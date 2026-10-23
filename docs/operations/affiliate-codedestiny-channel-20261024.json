@@ -1,0 +1,493 @@
+{
+  "channel": "codedestiny",
+  "account": "AF7837486",
+  "mode": "link-only-review-preserve-original-facts-and-expiry",
+  "changedLinks": 31,
+  "paused": 1,
+  "priceNull": 32,
+  "items": [
+    {
+      "id": "atomic-habits-ko",
+      "title": "아주 작은 습관의 힘 (50만 부 기념 스페셜 에디션)",
+      "sourceUrl": "https://www.coupang.com/vp/products/9766996432?itemId=29233265751",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS1OQsOAge",
+      "affiliateUrl": "https://link.coupang.com/a/h5GqddrRu0",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "bigtree-rest-mask",
+      "title": "빅트리 프리미엄 3D 암막 수면안대",
+      "sourceUrl": "https://www.coupang.com/vp/products/9670246858?itemId=28913015985",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS35FgB30K",
+      "affiliateUrl": "https://link.coupang.com/a/h5HKRZb0Tc",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "deep-work-ko",
+      "title": "딥 워크",
+      "sourceUrl": "https://www.coupang.com/vp/products/19531919?itemId=78211032",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS15pZCqw8",
+      "affiliateUrl": "https://link.coupang.com/a/h5HJvGYhW0",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "dodam-moon-jar-36",
+      "title": "박수재 도담 달항아리 특4호 화병 36cm, 무광화이트",
+      "sourceUrl": "https://www.coupang.com/vp/products/9234942124?itemId=27302472463",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTbklt6DVQ",
+      "affiliateUrl": "https://link.coupang.com/a/h5HQ9Sny1s",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "dotline-amethyst-ch06",
+      "title": "도트라인 CH06 자수정 팔찌 6mm",
+      "sourceUrl": "https://www.coupang.com/vp/products/24597231?itemId=95732138",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS0Skh2NGK",
+      "affiliateUrl": "https://link.coupang.com/a/h5HJ4L0diu",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "dune-blue-lapis",
+      "title": "둔 라피스라줄리 팔찌 (판매자 표기: 925실버)",
+      "sourceUrl": "https://www.coupang.com/vp/products/9740460703?itemId=29153609487",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTa3nq0HyS",
+      "affiliateUrl": "https://link.coupang.com/a/hTa3nq0HyS",
+      "status": "paused",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.status",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "elitno-black-onyx",
+      "title": "엘릿노 써지컬스틸 모노 오닉스 팔찌 (판매자 표기)",
+      "sourceUrl": "https://www.coupang.com/vp/products/9643841312?itemId=28818299476",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTaXTSu9rU",
+      "affiliateUrl": "https://link.coupang.com/a/h5HLNFXSuW",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "gayoung-moon-bookmark",
+      "title": "가영 달 별 독서 금속 책갈피 북마크, 1개, 실버",
+      "sourceUrl": "https://www.coupang.com/vp/products/8631941048?itemId=25043173847",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTa4D3TD6y",
+      "affiliateUrl": "https://link.coupang.com/a/h5HPdyJcHY",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "indigo-budget-cream",
+      "title": "인디고 생활의 온도 만년형 가계부, 크림, 1개",
+      "sourceUrl": "https://www.coupang.com/vp/products/1198912576?itemId=2183242509",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS30EbGXwy",
+      "affiliateUrl": "https://link.coupang.com/a/h5HKP33cdM",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "indigo-gratitude-pink",
+      "title": "인디고 자문자답 세가지 감사 일기 노트 6개월, 핑크, 1개",
+      "sourceUrl": "https://www.coupang.com/vp/products/8414901680?itemId=24333650022",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTaK3hfHX2",
+      "affiliateUrl": "https://link.coupang.com/a/h5HKYUJOEu",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "jetstream-three-colour",
+      "title": "제트스트림 3색 볼펜 0.5mm SXE3-404-05, 블랙, 2개",
+      "sourceUrl": "https://www.coupang.com/vp/products/6787529255?itemId=25019343448",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTaMZPFinc",
+      "affiliateUrl": "https://link.coupang.com/a/h5HK0zMcRU",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "karma-counselling-ko",
+      "title": "카르마 상담소",
+      "sourceUrl": "https://www.coupang.com/vp/products/7749266380?itemId=20869020265",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hGJHZ3BLRk",
+      "affiliateUrl": "https://link.coupang.com/a/h5HKbaPq8G",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "kitsch-green-aventurine",
+      "title": "키치쥬얼리 그린어벤츄린 칩스 원석팔찌 (판매자 표기)",
+      "sourceUrl": "https://www.coupang.com/vp/products/7238537633?itemId=18386098905",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTaZlxtsNo",
+      "affiliateUrl": "https://link.coupang.com/a/h5HLPSlzkO",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "klar-white-quartz",
+      "title": "클라 백수정 심플 원석팔찌 4mm (판매자 표기)",
+      "sourceUrl": "https://www.coupang.com/vp/products/9009337788?itemId=26406460501",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTaVZ0qvgy",
+      "affiliateUrl": "https://link.coupang.com/a/h5HLLujiKq",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "lactofit-gold-50",
+      "title": "종근당건강 락토핏 골드 100g (2g × 50포), 1개",
+      "sourceUrl": "https://www.coupang.com/vp/products/9750789038?itemId=29196897566",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS2jw54gNM",
+      "affiliateUrl": "https://link.coupang.com/a/h5HJ6ZrAGW",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "live-as-me-ko",
+      "title": "나는 나로 살기로 했다 (영미권 출간기념 특별판)",
+      "sourceUrl": "https://www.coupang.com/vp/products/8181054442?itemId=23389319636",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hGKUZ48e2C",
+      "affiliateUrl": "https://link.coupang.com/a/h5HKfsQ6sm",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "mans-search-meaning-ko",
+      "title": "빅터 프랭클의 죽음의 수용소에서 (20주년 기념보급판)",
+      "sourceUrl": "https://www.coupang.com/vp/products/9264843538?itemId=27415888103",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hGKapkCGgS",
+      "affiliateUrl": "https://link.coupang.com/a/h5HKdsdmk8",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "mindfulness-poems-ko",
+      "title": "마음챙김의 시",
+      "sourceUrl": "https://www.coupang.com/vp/products/2122569341?itemId=3601969503",
+      "previousAffiliateUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF7837486&pageKey=2122569341&itemId=3601969503&traceid=V0-101-e30928d795f88d0f",
+      "affiliateUrl": "https://link.coupang.com/a/h5HJ9e4oFM",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "nice-bookstand-o101",
+      "title": "나이스 독서대 O.101",
+      "sourceUrl": "https://www.coupang.com/vp/products/5244361519?itemId=7415916688",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS3XlsmAVw",
+      "affiliateUrl": "https://link.coupang.com/a/h5HKNSgn4m",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "popofancy-five-minute",
+      "title": "포포팬시 미니 모래시계, 퍼플 5분",
+      "sourceUrl": "https://www.coupang.com/vp/products/8492608053?itemId=24030161388",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTaRIaetMG",
+      "affiliateUrl": "https://link.coupang.com/a/h5HK4XlCnY",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "postit-reading-index",
+      "title": "포스트잇 플래그 인덱스 스티커 683-9KN, 90매, 1개",
+      "sourceUrl": "https://www.coupang.com/vp/products/9742938168?itemId=29126472461",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTaPcvePi8",
+      "affiliateUrl": "https://link.coupang.com/a/h5HK2Bwvuu",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "psychology-money-2026-ko",
+      "title": "돈의 심리학 (50만 부 기념 뉴 에디션)",
+      "sourceUrl": "https://www.coupang.com/vp/products/9652378259?itemId=28850929527",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS10EiZvHg",
+      "affiliateUrl": "https://link.coupang.com/a/h5HJsQCGdg",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "reflection-notebook-pair",
+      "title": "모닝글로리 3500 비움 연습장 좌철, 랜덤발송, 2개",
+      "sourceUrl": "https://www.coupang.com/vp/products/7578855357?itemId=20397108448",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS2aPLVrLo",
+      "affiliateUrl": "https://link.coupang.com/a/h5HJ22Jwyq",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "rimarin-yellow-citrine",
+      "title": "리마린 황수정·블랙 스피넬 팔찌 (판매자 표기)",
+      "sourceUrl": "https://www.coupang.com/vp/products/9356619013?itemId=27759689571",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTa1UG4qLk",
+      "affiliateUrl": "https://link.coupang.com/a/h5HLSpbvRA",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "rosequartz-pink-6mm",
+      "title": "로즈쿼츠 장미석 비즈 팔찌 6mm (판매자 표기)",
+      "sourceUrl": "https://www.coupang.com/vp/products/9340315934?itemId=27699591293",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS4dpsvQ1Q",
+      "affiliateUrl": "https://link.coupang.com/a/h5HKT1b4CW",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "saying-no-ko",
+      "title": "거절 잘 하는 법",
+      "sourceUrl": "https://www.coupang.com/vp/products/1766979093?itemId=3008780280",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS1SfXXGeG",
+      "affiliateUrl": "https://link.coupang.com/a/h5HJpSUGCi",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "sunflower-owl-large-frame",
+      "title": "인테리어 마블액자 해바라기부엉이 특대, 골드",
+      "sourceUrl": "https://www.coupang.com/vp/products/76690086?itemId=248930110",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTbgeuW900",
+      "affiliateUrl": "https://link.coupang.com/a/h5HQ5Gk9Rs",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "sunjin-moon-lamp",
+      "title": "SUNJIN 감성 달 무드등 + 리모컨, 혼합색상",
+      "sourceUrl": "https://www.coupang.com/vp/products/8391949317?itemId=24258696724",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTaTqdGgAS",
+      "affiliateUrl": "https://link.coupang.com/a/h5HK6NH7M4",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "tamsa-focus-timer",
+      "title": "탐사 다용도 시간관리 무소음 타이머, 블랙계열, 1개",
+      "sourceUrl": "https://www.coupang.com/vp/products/7959143727?itemId=22001894396",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hS3EvbDO5k",
+      "affiliateUrl": "https://link.coupang.com/a/h5HKhEtQbY",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "tamsa-weekly-planner",
+      "title": "탐사 튼튼한 크래프트 스탠딩 위클리 플래너, 2개",
+      "sourceUrl": "https://www.coupang.com/vp/products/8301593698?itemId=23949222174",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTaGWzn8O4",
+      "affiliateUrl": "https://link.coupang.com/a/h5HKWmu0NE",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "warmon-steam-fireplace",
+      "title": "웜앤온 4D 가습 LED 벽난로 수증기 조명, WnO 0.6M",
+      "sourceUrl": "https://www.coupang.com/vp/products/9164960738?itemId=27020491534",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTbd5cPTAi",
+      "affiliateUrl": "https://link.coupang.com/a/h5HQi4okKq",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    },
+    {
+      "id": "zz-plant-large-120",
+      "title": "금전수 대형 화분 120cm, 1개 (판매자 표기)",
+      "sourceUrl": "https://www.coupang.com/vp/products/8933476789?itemId=26828194278",
+      "previousAffiliateUrl": "https://link.coupang.com/a/hTbin52evA",
+      "affiliateUrl": "https://link.coupang.com/a/h5HQ7LuD2O",
+      "status": "active",
+      "price": null,
+      "priceVerifiedAt": null,
+      "changedFields": [
+        "data.affiliateUrl",
+        "data.linkSource",
+        "data.evidence"
+      ]
+    }
+  ],
+  "backupSha256": "c7eb9cdb44ed51470fe6cfdbe48e290aaf83efcd4ab647dc9a302eea55a5be48",
+  "appliedAt": "2026-10-23T18:47:34.677Z",
+  "verifiedAt": "2026-10-23T18:47:35.182Z",
+  "verification": "32 exact after-images; 14 other products and all settings unchanged"
+}

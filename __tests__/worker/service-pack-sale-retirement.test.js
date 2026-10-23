@@ -15,7 +15,7 @@ const seed=(db,values)=>createOrder(db,{...values,idempotencyKey:'service-pack:'
 test('only four five-use offers are sold, while all historical definitions remain readable',()=>{
  expect(listServicePackPlans()).toHaveLength(4);
  expect(listServicePackPlans().map(plan=>plan.totalUses)).toEqual([5,5,5,5]);
- expect(retired).toHaveLength(12);
+ expect(retired).toHaveLength(16);
  for(const id of retired)expect(resolveServicePackProduct(id).packSnapshot.totalUses).toBe(SERVICE_PACK_PLANS[id].totalUses);
  expect(classify(paymentError('PRODUCT_SALE_ENDED')).status).toBe(409);
 });
@@ -34,8 +34,8 @@ test('retired prepare route rejects a new order even when the client knows its o
   .rejects.toMatchObject({code:'PRODUCT_SALE_ENDED'});
  expect(db.rows).toHaveLength(0);
 });
-test.each(['SELF','GIFT'])('existing %s pending order replays the original snapshot only',async purchaseType=>{
- const db=setup(),args={...input(retired[0]),purchaseType,
+test.each(retired.flatMap(id=>['SELF','GIFT'].map(type=>[id,type])))('existing %s %s pending order replays the original snapshot only',async (id,purchaseType)=>{
+ const db=setup(),args={...input(id),purchaseType,
   ...(purchaseType==='GIFT'?{giftDraft:{senderName:'보내는 이',recipientName:'받는 이',giftMessage:'응원해요'}}:{})};
  const old=await seed(db,args),before=structuredClone(old.pricingSnapshot);
  const replay=await createServicePackOrder(db,{...args,expectedOrderId:old.merchantUid});

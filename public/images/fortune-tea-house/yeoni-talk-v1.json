@@ -1,0 +1,12 @@
+{
+  "tool": "image_gen",
+  "reference": "/images/fortune-tea-house/yeoni-moonlight-novel.webp",
+  "prompt": "Create a production-ready transparent sprite sheet of the adult human Yeoni from the supplied reference illustration, for her moonlit Korean fortune tea house. Reference is character identity and costume: long wavy pink hair, pink eyes, pink lotus hair ornament with lavender bow, dangling blossom earrings, elegant pale pink and lavender floral robe, holding a small porcelain teacup with both hands. Draw one consistent waist-up front-facing pose, softly smiling and warmly attentive, centered with entire hair ornament, hair and hands safely inside each cell. Output a square 2 by 2 grid of FOUR exactly equal square cells with transparent background, no dividers, no labels, no text and no checkerboard. Each cell must repeat the exact same character drawing, size, body, cup, head position, hair silhouette, accessories and lighting at identical coordinates; only lips and eyelids change. Top-left: eyes open, relaxed closed lips. Top-right: eyes open, lips slightly parted while speaking. Bottom-left: eyes open, gently open speaking mouth, small natural opening, no exaggerated teeth. Bottom-right: eyelids closed in a gentle blink, closed lips. The changes must be tiny and natural like visual novel lip sync. Match the refined detailed romantic illustration style and the original adult face. Keep all four bodies perfectly registered so animation does not wobble. No scenery, no shadows outside the figure, no extra characters. Leave 5 percent transparent safe margin around each figure. Clean alpha edges. 2x2 sprite sheet, not four separate portraits with different compositions.",
+  "grid": {
+    "columns": 2,
+    "rows": 2
+  },
+  "playback": "Body remains at cell 0. UI masks reveal the mouth from cell 1 or eyelids from cell 3; cell 2 reserved.",
+  "background": "https://assets.code-destiny.com/DestinyCafe/운명의 찻집 내부 데스크탑1.webp",
+  "optimization": "Sprite: proportional 768/1280 WebP quality 85 with alpha. Existing room: 1280 WebP quality 80."
+}

@@ -22,6 +22,7 @@ import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import NeoFactPunch from "./components/NeoFactPunch";
 import NeoSpriteActor from "./components/NeoSpriteActor";
+import NeoTalkingPortrait from "./components/NeoTalkingPortrait";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import NeoCompatSummaryCard, { type NeoCompatSummary } from "./components/NeoCompatSummaryCard";
 import {
@@ -2219,6 +2220,8 @@ export default function NeoOperationRoomPage() {
                   <span className={styles.vnMorphParticles} />
                   <span className={styles.vnMorphFlash} />
                 </div>
+              ) : activeHeroCharacter === "humanNeo" ? (
+                <NeoTalkingPortrait talking={isPrologueActive && heroTypewriter.isTyping && activePrologueLine?.speaker === "neo"} />
               ) : (
                 <div className={styles.vnCharacterImageLayer}>
                   <NeoWarRoomAssetImage
@@ -2499,10 +2502,8 @@ export default function NeoOperationRoomPage() {
                     <NeoWarRoomAssetImage
                       asset={item.coverAsset}
                       alt={`${item.label} ${methodSectionText.imageAltSuffix}`}
-                      sizes="(max-width: 720px) 92vw, (max-width: 1200px) 44vw, 380px"
-                      // 표시 폭은 데스크톱 380px / 모바일 92vw(≈390px). 실측 곡선상 760(레티나 2배)은
-                      // 176KB 인데 640 은 122KB 라, 4장을 함께 받는 선택 화면에서는 640 이 균형점이다.
-                      resizeWidth={640}
+                      sizes={method === item.mode ? "(max-width: 720px) 200px, 280px" : "(max-width: 720px) 38vw, 180px"}
+                      responsiveSrcSet={`/neo-operation-room/methods/${item.mode}-textless-v2-320.webp 320w, /neo-operation-room/methods/${item.mode}-textless-v2-640.webp 640w`}
                       loading="lazy"
                       className={styles.methodImageFrame}
                       imageClassName={styles.methodImage}
@@ -3404,7 +3405,8 @@ export default function NeoOperationRoomPage() {
               sheetFrame={commandActorSheetFrame}
               assetOverride={commandActorAsset}
               talkFrames={commandActorTalkFrames}
-              talking={commandActorIsTalking}
+              useTalkingPortrait={!displayBriefing && !displayRefinedOrder}
+              talking={!displayBriefing && !displayRefinedOrder ? isCommandTyping : commandActorIsTalking}
               talkFrameIntervalMs={NEO_TRANSPARENT_TALK_INTERVAL_MS}
               className={styles.commandActor}
             />

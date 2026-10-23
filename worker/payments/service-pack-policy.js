@@ -16,7 +16,7 @@ const LEGACY_SERVICE_PACK_PLANS = Object.fromEntries([
     priceKRW: prices[index], totalUses: PACK_USES[index], validityDays: 30,
     policyVersion: 'yeongnyangi-pack-20261005-ratio-corrected' }),
   ])));
-const CURRENT_SERVICE_PACK_PLANS = Object.fromEntries([
+const PREVIOUS_SERVICE_PACK_PLANS = Object.fromEntries([
   ['mackerel', '고등어', 20000],
   ['salmon', '연어', 40000],
   ['flounder', '광어', 60000],
@@ -26,13 +26,18 @@ const CURRENT_SERVICE_PACK_PLANS = Object.fromEntries([
   Object.freeze({ name: `${label} 세트 5회`, fishId, priceKRW, totalUses: 5, validityDays: 30,
     policyVersion: 'yeongnyangi-pack-20261011-premium-repricing' }),
 ]));
-export const SERVICE_PACK_PLANS = Object.freeze({ ...LEGACY_SERVICE_PACK_PLANS, ...CURRENT_SERVICE_PACK_PLANS });
+// Approved 2026-10-24: no usage expiry, including remaining historical rights.
+// Keep old offer snapshots intact so pending orders and gifts can still replay.
+const CURRENT_SERVICE_PACK_PLANS = Object.fromEntries(Object.entries(PREVIOUS_SERVICE_PACK_PLANS)
+  .map(([id, plan]) => [id.replace('-v4', '-v5'), Object.freeze({...plan,
+    validityDays: null, policyVersion: 'yeongnyangi-pack-20261024-no-expiry'})]));
+export const SERVICE_PACK_PLANS = Object.freeze({ ...LEGACY_SERVICE_PACK_PLANS, ...PREVIOUS_SERVICE_PACK_PLANS, ...CURRENT_SERVICE_PACK_PLANS });
 const FISH = Object.freeze(['mackerel','salmon','flounder','tuna']);
 
 // Historical definitions remain readable for fulfillment, gifts and order recovery.
 // Only five-use packs are offered for new purchases.
 export const SERVICE_PACK_SALE_IDS = Object.freeze(Object.keys(SERVICE_PACK_PLANS)
-  .filter(id => id.endsWith('-small-v4')));
+  .filter(id => id.endsWith('-small-v5')));
 export function isRetiredServicePack(planId) {
   return Boolean(SERVICE_PACK_PLANS[planId]) && !SERVICE_PACK_SALE_IDS.includes(planId);
 }
@@ -46,7 +51,7 @@ export function resolveServicePackProduct(planId,plans=SERVICE_PACK_PLANS) {
   const plan=plans[String(planId||'')];
   if(!plan||!Number.isSafeInteger(plan.priceKRW)||plan.priceKRW<=0
     ||!Number.isSafeInteger(plan.totalUses)||plan.totalUses<=0
-    ||!Number.isSafeInteger(plan.validityDays)||plan.validityDays<=0||!plan.policyVersion)
+    ||(plan.validityDays!==null&&(!Number.isSafeInteger(plan.validityDays)||plan.validityDays<=0))||!plan.policyVersion)
     throw paymentError('PRODUCT_NOT_FOUND','영냥이 이용권 판매 정보를 준비하고 있어요.');
   if(!String(plan.name||'').trim())throw paymentError('PRODUCT_NOT_FOUND','이용권 이름을 확인하지 못했어요.');
   const eligibleFeatureKeys=servicePackFeatures(plan.fishId);
@@ -71,11 +76,10 @@ export function servicePackCoverage(right,featureKey,amountKRW,now=new Date()) {
     ||!snapshot.eligibleFeatureKeys?.includes(featureKey)
     ||!(Number(snapshot.unitPriceKRW)>0&&Number(snapshot.unitPriceKRW)<=Number(amountKRW)))
     return {covered:false,reason:'SERVICE_PACK_NOT_COVERED'};
-  if(!right.expiresAt||!Number.isFinite(new Date(right.expiresAt).getTime())||new Date(right.expiresAt).getTime()<=now.getTime())
-    return {covered:false,reason:'SERVICE_PACK_EXPIRED'};
+  // Historical expiresAt remains audit data; usage is limited by count and paid proof.
   const remainingUses=Number(right.remainingUses);
   if(!Number.isSafeInteger(remainingUses)||remainingUses<=0)return {covered:false,reason:'SERVICE_PACK_EXHAUSTED'};
-  return {covered:true,remainingUses,consumeUses:1,fishId:snapshot.fishId,expiresAt:right.expiresAt};
+  return {covered:true,remainingUses,consumeUses:1,fishId:snapshot.fishId,expiresAt:null};
 }
 
 export function listServicePackPlans() {

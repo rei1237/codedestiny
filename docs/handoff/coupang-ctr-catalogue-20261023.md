@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: done
 updated: 2026-10-24
-next: "B2 — 가격을 비울지 또는 24시간 수동 갱신할지 사용자 결정 대기. C — 공식 subId·링크 형식 근거 대기. 후속 코드는 main에서 새 안전 워크트리로 진행."
+next: "채널 운영 반영 완료: 31개 codedestiny 링크, 발급 제한 1개 비공개. 이미지 입력은 사용자 수동 작업. push·배포·실제 클릭은 미수행."
 ---
 
 # 쿠팡 추천 — 상품별 CTR과 상품 데이터 (Codex 위임)
@@ -26,6 +26,10 @@ next: "B2 — 가격을 비울지 또는 24시간 수동 갱신할지 사용자 
 - 관리자 화면 `/admin/recommendations`에는 이미지 주소·이미지 근거·가격·가격 확인 시각 입력란이 이미 있다(`app/admin/recommendations/page.jsx:87,100-101`).
 - 정책 정본: `docs/operations/coupang-foundation.md`. 특히 "API 없이 등록하는 순서"(:42-)와 "이동과 통계"(:93-103)를 읽는다.
 
+## 최신 사용자 승인 (2026-10-24)
+
+기존 32개 채널 링크 변경과 운영 DB 반영을 승인했다. 이어 발급 제한 dune-blue-lapis의 비공개를 승인했다. 아래 최초 금지 규칙의 운영 DB 제한은 이 32개 변경·필요한 읽기·백업·검증에 한하여 이번 승인으로 대체한다. 쿠팡 API·실제 제휴 클릭·유료 LLM·push·배포 금지는 유지한다.
+
 ## 작업 규칙
 
 - `AGENTS.md`·`CLAUDE.md`를 먼저 읽는다. 아래 사용자 규칙이 AGENTS.md와 다르면 아래가 우선이다.
@@ -40,7 +44,7 @@ next: "B2 — 가격을 비울지 또는 24시간 수동 갱신할지 사용자 
   - 루트 체크아웃에는 다른 세션의 미커밋 변경이 있다. 루트에서 `reset --hard`·`stash`·`checkout --`를 쓰지 않는다. 남의 파일(`.claude/skills/fire-your-seo-agency/`, `docs/handoff/ggulggul-master-repair-release.md` 등)은 건드리지 않는다.
 - 머지 흐름(PR 없음)
   1. 워크트리에서 `git rebase main`.
-  2. `git worktree list`로 실제 main 체크아웃을 확인하고 그곳에서 `git merge --ff-only <워크트리 브랜치>`. 2026-10-24 기준 main은 `C:/Users/user/Documents/Codex/worktrees/mobile-clarity-20261023-122535`이며 원래 루트는 다른 브랜치다.
+  2. `git worktree list`로 실제 main 체크아웃을 확인하고 그곳에서 `git merge --ff-only <워크트리 브랜치>`. 원래 루트는 다른 브랜치다. A1~A3 병합 당시의 main 워크트리는 이후 정리됐다. main 체크아웃이 없으면 자신의 깨끗한 작업 워크트리에서 main으로 전환한 뒤 작업 브랜치를 ff 병합한다. 다른 세션의 체크아웃은 전환하지 않는다.
   3. 실제 main 체크아웃에서 `npm run -s verify:public-mirror-fresh`.
 - 커밋·배포
   - 수정이 끝나면 말하지 않아도 커밋한다.
@@ -113,7 +117,7 @@ next: "B2 — 가격을 비울지 또는 24시간 수동 갱신할지 사용자 
   - 열: `id, title, category, imageUrl, imageSource, price, priceVerifiedAt`. 값이 비어 있는 열은 빈칸으로 둔다.
   - 기준은 JSON 스냅숏이다. 운영 DB 현재값과 대조하려면 먼저 사용자 승인을 받는다.
   - 시트 머리에 규칙을 한 줄 적는다: 이미지는 coupangcdn 주소만 쓰고 근거를 함께 적는다.
-- [ ] **B2. 사용자에게 결정을 받는다** (질문만 하고 혼자 정하지 않는다)
+- [x] **B2. 사용자에게 결정을 받는다** (질문만 하고 혼자 정하지 않는다)
   - 수동 입력한 가격은 24시간 뒤 화면에서 사라진다. 그래서 수동 가격은 하루짜리다.
   - 권장안: 가격은 비우고(CTA "현재 가격 확인"이 대신한다) 이미지만 채운다.
   - 자동 가격 갱신에는 쿠팡 파트너스 API 승인과 키가 필요하다. `coupang-foundation.md:11`이 금지하고 있으니 별도 요청 때만 연다.
@@ -121,10 +125,10 @@ next: "B2 — 가격을 비울지 또는 24시간 수동 갱신할지 사용자 
   - 입력은 사용자가 `/admin/recommendations`에서 직접 한다. Codex는 운영 DB에 쓰지 않는다.
   - 이미지 다운로드, 상품 사진 생성, 상품 설명·후기 복사는 하지 않는다(`coupang-foundation.md:47`).
 
-### C. 23-subId (사용자 조치 대기)
+### C. 23-subId (공식 채널·링크 형식 확인 완료)
 
-- [ ] **C1. subId 발급·링크 형식은 사용자가 확인한다.** 받기 전에는 코드를 바꾸지 않는다.
-  - 받으면 공식 링크 형식의 근거를 `coupang-foundation.md`에 남기고, `validateAffiliateUrl` 허용 키에 추가한 뒤 테스트를 붙인다.
+- [x] **C1. subId·공식 링크 형식을 확인한다.** 사용자 위임 후 공식 포털에서 `codedestiny` 채널을 생성하고 이 채널을 선택해 상품 단축 링크 1개를 발급했다. 기존 `NEO910220` 채널은 유지했다.
+  - 공식 발급 결과는 기존 `https://link.coupang.com/a/<영숫자>` 형식이며 URL에 subId 쿼리가 없다. `coupang-foundation.md`에 근거를 남기고 기존 검증·원문 보존 경로의 호환성을 오프라인으로 확인했다. 현재 검증기가 지원하므로 쿼리 허용 키를 추측해 늘리지 않는다.
   - 기존 링크 뒤에 파라미터를 임의로 붙이지 않는다. 검증기가 거부하고 수익 귀속이 깨질 수 있다.
   - subId는 공식 리포트(수동 입력) 쪽 숫자를 나누는 용도다. 자체 CTR은 A로 이미 볼 수 있다.
 
@@ -151,7 +155,7 @@ next: "B2 — 가격을 비울지 또는 24시간 수동 갱신할지 사용자 
 ### 2026-10-24 구현·검증 기록
 
 - 사용자가 현재 상태에서 안전하게 진행하도록 승인했다. 지정했던 b9c2bbc88은 현재 main da8f766dd8048929ac8d5fd8e519917953be5f9d의 조상이며, 추천 관련 소스 차이는 없었다. 새 워크트리는 `D:/Development/codedestiny-worktrees/coupang-ctr-20261024-014132`, 브랜치는 `wt/coupang-ctr-20261024-014132`다.
-- 루트는 다른 세션의 `feat/world-cast-page`다. 위의 루트 merge 명령을 그대로 실행하지 않는다. 실제 main 체크아웃은 `C:/Users/user/Documents/Codex/worktrees/mobile-clarity-20261023-122535`이며 다른 세션의 미커밋 파일을 보존한다.
+- 루트는 다른 세션의 `feat/world-cast-page`다. 위의 루트 merge 명령을 그대로 실행하지 않는다. A1~A3 병합 당시 main 체크아웃은 `C:/Users/user/Documents/Codex/worktrees/mobile-clarity-20261023-122535`였으며 다른 세션의 미커밋 파일을 보존했다. 해당 워크트리는 이후 소유 세션이 정리했다.
 - A1 결정: (a) 상품마다 이벤트 1건. 결과 최대 2개와 실제로 보인 둘러보기 카드만 전송한다. 기존 1KB 본문·600건/분·day|service|placement|productId|event 키를 유지한다. 묶음 배열의 별도 검증·부분 수락 규칙 없이 카드별 50%·1초 조건을 그대로 적용한다. 한도에 걸리면 누락될 수 있는 자체 참고 지표다.
 - Surface/Browse/legacy는 실제 article을 관찰한다. 표시 세션의 Set으로 같은 상품의 새로고침·필터 재표시를 중복 집계하지 않는다. React effect는 service·상품 ID 목록에 의존하고 매번 생성되는 context에는 의존하지 않는다. 미리보기 통계와 외부 링크는 비활성 상태를 유지한다.
 - impression에 실상품 ID를 요구한다. 기존 block 노출은 추가 수집·자체 노출 합계·CTR 분모에서 제외한다. 과거 클릭은 남기므로 수집 전환 초기 CTR의 한계를 화면에 안내한다.
@@ -164,11 +168,38 @@ next: "B2 — 가격을 비울지 또는 24시간 수동 갱신할지 사용자 
 - 결제 정책·이용권/월정석/단건 결제·인증·DB 스키마는 변경하지 않았다. 추천 이벤트 검증 및 관리자 통계 응답만 요청 범위에서 변경했다. 운영 DB 읽기/쓰기·쿠팡 API·유료 LLM·push·배포는 하지 않았다.
 - 구현 커밋 `afba2c7a400f631da75412fcff54f4028b879dab`을 실제 main에 fast-forward 병합했다. 다른 세션의 변경을 되돌리거나 섞지 않았다. 병합 후 실제 main에서 `npm run -s verify:public-mirror-fresh` 종료 코드 0, 생성 결과 변화 없음 확인.
 - B1 완료: `D:/codedestiny-qa/coupang-ctr-20261023/products-to-fill.csv`. JSON 스냅숏의 고유 상품 32개, 지정한 7열, 첫 줄 이미지 규칙, UTF-8 BOM 확인. imageUrl·imageSource·price·priceVerifiedAt는 모두 빈칸이며 운영 DB와 대조하지 않았다. 미리보기 렌더로 한글·열 배치도 확인했다. CSV는 첫 줄 안내, 둘째 줄 열 제목이며 데이터 자동 가져오기보다 수동 입력 참고용이다.
-- B2 질문을 사용자에게 전달했다. 가격을 비우고 이미지만 입력하는 안을 권장했으나 아직 결정하지 않았다. 기존 24시간 가격 정책은 그대로다.
+- B2 결정 완료(2026-10-24): 사용자가 "이미지만 입력하고 가격은 비워두기"를 선택했다. 이번 32개 상품은 imageUrl·imageSource만 채우고 price·priceVerifiedAt는 비워둔다. 기존 24시간 가격 정책과 "현재 가격 확인" CTA는 그대로다.
 - B3 안내: 사용자가 `/admin/recommendations`에서 직접 입력한다. 입력 시트는 운영 DB에 자동 반영하지 않는다. 이미지 다운로드·생성, 설명·후기 복사는 하지 않았다.
-- C 질문을 사용자에게 전달했다. 발급 subId·공식 링크 원문·형식 근거를 받기 전에는 검증기·링크를 변경하지 않는다. 응답 대기이므로 문서 상태는 blocked다.
-- 구현과 검증은 완료됐다. 이 기록을 문서 커밋으로 main에 ff 병합한 뒤 위 완료 기준대로 자기 워크트리와 병합된 브랜치만 배수한다. 후속 작업은 남아 있는 main에서 새 안전 워크트리를 만든다.
+- C 완료(2026-10-24): 사용자 위임 및 Chrome 로그인 후 계정 `AF7837486` 확인. 기존 `NEO910220`을 보존하고 `codedestiny` 생성·활성 목록 확인. 공식 간편 링크 화면에서 `채널 아이디: codedestiny` 선택 상태를 확인한 뒤 스냅숏의 상품 ID 9766996432·itemId 29233265751로 링크 1개를 발급했다. 원문 `https://link.coupang.com/a/h5GqddrRu0`. 제휴 링크를 열지 않았고 운영 상품 32개의 URL을 바꾸지 않았다. 발급 UI 근거와 수익 귀속 실증은 다르며 실제 클릭·주문 귀속은 미검증이다.
+- A 구현·검증과 최초 기록은 `5c41d3d26872ecbf952596784ca1d7441436d235`까지 main에 ff 병합했고 최초 작업 워크트리·브랜치·임시 파일을 정리했다. 공유 node_modules는 보존했다. 이번 B2 결정과 C 완료 기록도 새 안전 워크트리에서 문서 검사·커밋·main ff 병합 후 정리한다. 후속 작업은 최신 main에서 새 안전 워크트리로 진행한다.
+
+- C 증거: `D:/codedestiny-qa/coupang-ctr-20261023/coupang-channel-created.png`, `coupang-channel-link.png`. 앞선 상품 목록의 생성 버튼 시도는 채널 선택 미확인으로 자동 승인 검토에서 거절됐다. 재시도 전에 공식 간편 링크 화면에서 codedestiny 선택을 확인했고 이후 정상 발급에 성공했다. 중간 Chrome 연결 끊김은 같은 로그인 브라우저의 새 탭으로 복구했다.
+
+- B2/C 후속 검증: 기존 추천 검사 43건과 이번 발급 원문의 검증·draft/review/public 전달·미확인 장문 subId 거부 검사 1건, 합계 44/44 통과. 런타임 동작 변경은 없으며 기존 테스트와 중복되는 임시 호환성 검사는 저장소에 남기지 않았다. 최종 변경은 운영·인수인계 문서 2개뿐이다.
+
+- B2/C 기록 병합 직전 기존 main 워크트리가 정리되고 main이 `3410a86cae33c80f8e55a741aafdbdc5376484bc`로 진행한 것을 확인했다. 다른 세션의 상담 UI 종료 문서 커밋을 보존하고, 작업 브랜치를 최신 main에 재배치한 다음 자기 워크트리에서 main을 체크아웃해 ff 병합한다. 원래 루트의 다른 브랜치·파일은 유지한다.
 
 ### 범위 밖 확인
 
 - K1. 기존 PRODUCT/디자인 스킬 메타데이터가 현재 코드와 맞지 않는 부분은 별도 정리 대상으로 남긴다. 이번 변경 UI의 디자인 detector 결과는 빈 배열이며 이 과제에서 메타데이터를 재작성하지 않았다.
+
+### 2026-10-24 운영 채널 전환 완료
+
+- 운영 반영: 2026-10-23T18:47:34.677Z
+- DB 재조회 검증: 2026-10-23T18:47:35.182Z
+- 사용자 승인: 기존 32개 상품의 채널 링크 전환·운영 DB 반영·가격 빈값 유지. 발급 제한 상품 1개 비공개도 별도 승인.
+- 결과: 31개 공식 codedestiny 링크 반영, dune-blue-lapis 1개 paused(비공개), 32개 price·priceVerifiedAt null.
+- 기존 상품 ID·옵션 ID를 공식 간편 링크 화면에 입력했다. 매 발급마다 codedestiny 선택·입력 원문·발급 원문을 함께 기록했다. 제휴 링크 뒤에 임의 파라미터를 붙이지 않았다.
+- dune-blue-lapis는 공식 포털이 법적 또는 판매자 요청에 따른 링크 생성 제한을 표시했다. 우회 발급하지 않고 기존 URL은 복구 기록용으로 보존한 채 공개를 중지했다.
+- 변경 전 원본과 2026-10-16 스냅숏의 상품·옵션·사실 근거를 대조했다. 비도서의 비활성 book 기본값 3개(language/format/perspective) 외 차이 없음. 운영 원본의 기본값은 그대로 보존했다.
+- 편집 시 cleanProduct로 검수를 해제한 뒤 계정·동일 상품 사실 근거·이미지 미사용·허용 분류를 재검수했다. 새 링크 검수는 상품 재고·상품 사실을 새로 확인했다는 의미가 아니므로 원래 verifiedAt·expiresAt을 보존했다. 30일 만료를 연장하지 않았다.
+- 모든 상품명·추천 문구·이미지·순위·분류·재고 및 다른 상품 14개, 공개 설정 1개는 변경하지 않았다.
+- 원본 전체 일치와 updatedAt 조건을 확인한 단일 MongoDB 트랜잭션으로 32개를 처리했다. 32개 수정 후 예상 문서와 정확히 일치함을 트랜잭션 안과 커밋 후 재조회에서 확인했다.
+- 대상 컬렉션: code_destiny.recommendationproducts. 설정은 recommendationsettings 읽기 대조만 했다. DB 스키마·결제·인증·API 코드는 변경하지 않았다.
+- 쿠팡 API·사이트 관리 API·실제 제휴 링크 클릭·유료 LLM·push·배포 없음. DB 연결은 기존 worker/lib/db.js의 connectDb 및 제한시간/majority 트랜잭션 설정을 재사용했다.
+- SEO: 상품명·본문·공개 URL·canonical·robots·sitemap 구조 변경 없음. 제휴 목적지만 공식 채널 원문으로 바꾸고 발급 제한 상품의 노출을 중지했다.
+
+
+- 상세 기록: docs/operations/affiliate-codedestiny-channel-20261024.md 및 같은 이름의 JSON.
+
+- 운영 후속 check:fast: 문서 4개, 종료 코드 0, BLOCKED 없음. 운영 데이터는 별도 오프라인 검사와 트랜잭션 전후 실제 DB 대조로 확인했다.

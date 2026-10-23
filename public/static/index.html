@@ -968,7 +968,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="꿀꿀 운세에서 사주풀이와 궁합, 타로, 자미두수, 숙요점을 만나보세요. 고양이 영냥이와 꽃돼지 연이가 내 성향과 지금의 고민을 살펴보는 길을 안내합니다.">
 <meta property="og:url" content="https://code-destiny.com/">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-f795c4b17d2a">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-6d7a2b8c4a43">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
@@ -977,7 +977,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="꿀꿀 운세 — 사주·궁합·타로">
 <meta name="twitter:description" content="꿀꿀 운세에서 사주풀이와 궁합, 타로, 자미두수, 숙요점을 만나보세요. 고양이 영냥이와 꽃돼지 연이가 내 성향과 지금의 고민을 살펴보는 길을 안내합니다.">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-f795c4b17d2a">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-6d7a2b8c4a43">
 <meta name="twitter:image:alt" content="꿀꿀운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
 <script type="application/ld+json">
 {
@@ -1099,7 +1099,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-f795c4b17d2a",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-6d7a2b8c4a43",
       "width": 1200,
       "height": 630
     },
@@ -6003,10 +6003,13 @@ html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni
 #cdHomeFunnel .cdh-scene-button--catalog { background:var(--cdh-bg); color:var(--cdh-ink); }
 #cdHomeFunnel .cdh-scene-actions a:hover { transform:translateY(-2px); border-color:var(--cdh-gold); }
 #cdHomeFunnel .cdh-scene-actions a:focus-visible { outline:3px solid var(--cdh-accent); outline-offset:4px; }
-/* 히어로 CTA 는 Brand 등급(DESIGN.md Button Tiers) — 골드 pill 56px. 딥 플럼은 셸·계정 CTA 전용이다. */
-#cdHomeFunnel .cdh-scene-copy .cdh-primary { min-height: var(--cd-btn-h-lg); padding: 14px 30px; border-color: var(--cd-cta-hairline); border-radius: var(--cd-r-pill); background: var(--cd-cta); color: var(--cd-cta-text); }
-html.neo-mode #cdHomeFunnel .cdh-scene-copy .cdh-primary { background: var(--cd-cta); color: var(--cd-cta-text); }
-#cdHomeFunnel .cdh-scene-copy .cdh-primary::before { border-radius: var(--cd-r-pill); }
+/* 사용자 참조: 짙은 자주색 면, 금색 이중 테두리와 연꽃을 가운데 정렬한다. */
+#cdHomeFunnel .cdh-scene-copy .cdh-primary { --cdh-lotus:#3b102c; --cdh-lotus-hover:#501b3d; min-height:var(--cd-btn-h-lg); padding:14px 24px; gap:14px; border:1px solid #aa874a; border-radius:8px; background:var(--cdh-lotus); color:#fff5f7; box-shadow:0 8px 20px -14px #3b102c66; }
+html.neo-mode #cdHomeFunnel .cdh-scene-copy .cdh-primary { background:var(--cdh-lotus); color:#fff5f7; }
+#cdHomeFunnel .cdh-scene-copy .cdh-primary:hover { background:var(--cdh-lotus-hover); border-color:#c6a66d; }
+#cdHomeFunnel .cdh-primary .cdh-scene-button__lotus { width:26px; height:26px; color:#c6a66d; stroke-width:1.35; }
+#cdHomeFunnel .cdh-primary .cdh-scene-button__lotus path { fill:none; }
+#cdHomeFunnel .cdh-scene-copy .cdh-primary::before { content:""; inset:4px; border:1px solid #aa874a; border-radius:4px; opacity:.7; }
 .cdh-scene-art { position: relative; align-self: end; justify-self: end; width: 100%; max-width: 240px; aspect-ratio: 1; }
 #cdHomeFunnel .cdh-scene-art img { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; border: 0; box-shadow: none; background: none; }
 /* 라이트·다크 모두 연이만 보인다(네오 페르소나 제거). */
@@ -6394,9 +6397,9 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel .cdh-pass-block .cdh-moonstone-guide__join{border:1px solid var(--cdh-accent);background:transparent;box-shadow:none;color:var(--cdh-accent)}
 #cdHomeFunnel .cdh-pass-block .cdh-moonstone-guide__join::before{content:none}
 #cdHomeFunnel .cdh-pass-block .cdh-moonstone-guide__join:hover{background:color-mix(in srgb,var(--cdh-accent) 8%,transparent)}
-/* 히어로 Brand CTA는 한 줄로 둔다. 모바일은 화살표가 숨으므로 그 몫의 오른쪽 여백을 거둔다. 320px대만 줄바꿈 허용. */
-@media(max-width:640px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{gap:8px;min-height:var(--cd-btn-h-lg);padding:12px 22px 12px 18px;white-space:nowrap}}
-@media(max-width:359px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{white-space:normal}}
+/* 좁은 화면에서도 연꽃과 문구 사이의 여백을 확보한다. */
+@media(max-width:640px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{gap:12px;min-height:var(--cd-btn-h-lg);padding:12px 20px;white-space:nowrap}}
+@media(max-width:380px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{gap:8px;padding-inline:12px;white-space:normal}#cdHomeFunnel .cdh-scene-button span{min-width:0;word-break:keep-all;text-wrap:balance}}
 /* 사주 타일은 무료 사주를 바로 시작한다. 사주 기능 전체는 이 3차 링크로 /saju/#services 에 모은다. */
 #cdHomeFunnel .cdh-saju-all{margin:4px 40px 0}
 #cdHomeFunnel .cdh-saju-all a{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--cdh-accent);font-size:14px;font-weight:700;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--cdh-accent) 30%,transparent);text-underline-offset:4px}
@@ -6434,7 +6437,7 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 /* 짧은 히어로 — 덱의 첫 카드가 모바일 첫 화면에 걸리도록 높이를 줄인다. */
 #cdHomeFunnel .cdh-hero--compact{min-height:0;padding:28px clamp(22px,4vw,48px)}
 #cdHomeFunnel .cdh-hero--compact h1{margin:10px 0 0;font-size:clamp(28px,3.2vw,44px);line-height:1.4}
-#cdHomeFunnel .cdh-hero__byline{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--cdh-ink);font-weight:600;letter-spacing:.02em;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--cdh-gold) 50%,transparent);text-underline-offset:5px}
+#cdHomeFunnel .cdh-hero__byline{display:inline-flex;align-items:center;gap:10px;width:fit-content;min-height:44px;padding:8px 0;color:var(--cdh-muted);font-size:var(--cd-t-caption);font-weight:500;letter-spacing:0;text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--cdh-gold) 30%,transparent)}
 #cdHomeFunnel .cdh-hero__byline svg{flex:none;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 #cdHomeFunnel .cdh-hero__byline:hover{color:var(--cdh-accent)}
 #cdHomeFunnel .cdh-hero__byline:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px;border-radius:4px}
@@ -6501,12 +6504,30 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__entry-note{margin:0;color:var(--cdh-muted);font-size:12px;line-height:1.75;text-align:center}
 @media(max-width:1100px){#cdHomeFunnel .cdh-consult{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:640px){#cdHomeFunnel .cdh-consult{margin:28px 16px 0}#cdHomeFunnel .cdh-consult .cdh-neo-letter{padding:0}}
-/* 이용권 — 영냥이 전용 세트는 접어 둔다. */
-#cdHomeFunnel .cdh-pass__packs>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;cursor:pointer;list-style:none}
+/* 영냥이 전용 이용권: local night-blue palette; flower passes retain their theme. */
+#cdHomeFunnel .cdh-pass__packs{--pack-night:#0c1930;--pack-surface:#142c4b;--pack-ink:#f0f6ff;--pack-muted:#becfe6;--pack-rim:#507299;--pack-light:#9dcaff;--pack-button:#275fba;margin-top:8px;padding:20px;border:1px solid var(--pack-rim);border-radius:24px;background:var(--pack-night);color:var(--pack-ink);color-scheme:dark;box-shadow:0 16px 32px -22px var(--pack-night)}
+#cdHomeFunnel .cdh-pass__packs>summary{display:flex;align-items:center;gap:20px;min-height:44px;margin:0;cursor:pointer;list-style:none;color:var(--pack-ink)}
 #cdHomeFunnel .cdh-pass__packs>summary::-webkit-details-marker{display:none}
-#cdHomeFunnel .cdh-pass__packs>summary::after{content:"+";color:var(--cdh-gold);font-size:1.25rem;line-height:1}
-#cdHomeFunnel .cdh-pass__packs[open]>summary::after{content:"−"}
-#cdHomeFunnel .cdh-pass__packs>summary:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:2px;border-radius:6px}
+#cdHomeFunnel .cdh-pass__pack-guide{flex:none;width:104px;height:104px;object-fit:contain;background:transparent}
+#cdHomeFunnel .cdh-pass__pack-heading{display:grid;gap:8px;min-width:0;font:700 clamp(19px,2.3vw,26px)/1.45 var(--cdh-serif)}
+#cdHomeFunnel .cdh-pass__pack-heading small{max-width:48ch;color:var(--pack-muted);font:400 14px/1.7 var(--font-premium,sans-serif);word-break:keep-all;overflow-wrap:anywhere}
+#cdHomeFunnel .cdh-pass__packs>summary::after{content:"";flex:none;width:10px;height:10px;margin-left:auto;border-right:2px solid var(--pack-light);border-bottom:2px solid var(--pack-light);transform:rotate(45deg)}
+#cdHomeFunnel .cdh-pass__packs[open]>summary::after{transform:rotate(225deg)}
+#cdHomeFunnel .cdh-pass__packs :focus-visible{outline:3px solid var(--pack-light);outline-offset:4px;border-radius:12px}
+#cdHomeFunnel .cdh-pass__packs ::selection{background:var(--pack-light);color:var(--pack-night)}
+#cdHomeFunnel .cdh-pass__packs .cdh-pass__tiers{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:24px}
+#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-link{grid-template-columns:minmax(0,1fr) 72px;gap:6px 12px;padding:20px;border-color:var(--pack-rim);background:var(--pack-surface);color:var(--pack-ink)!important}
+#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-link:hover{border-color:var(--pack-light);transform:none}
+#cdHomeFunnel .cdh-pass__pack-art{grid-column:2;grid-row:1/4;width:72px;height:72px;object-fit:contain;align-self:center;background:transparent}
+#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-name{grid-column:1;color:var(--pack-light);font-size:15px}
+#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-price{grid-column:1;color:var(--pack-ink);font-size:24px;font-variant-numeric:tabular-nums}
+#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-line{grid-column:1/-1;color:var(--pack-muted);font-size:14px}
+@media(max-width:640px){#cdHomeFunnel .cdh-pass__packs{padding:16px}#cdHomeFunnel .cdh-pass__packs>summary{gap:12px}#cdHomeFunnel .cdh-pass__pack-guide{width:68px;height:80px}#cdHomeFunnel .cdh-pass__pack-heading{font-size:18px}#cdHomeFunnel .cdh-pass__packs .cdh-pass__tiers{grid-template-columns:minmax(0,1fr);margin-top:20px}#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-link{padding:16px}}
+/* Transparent fish artwork and an understated silver fish engraving. */
+#cdHomeFunnel .cdh-pass__packs{position:relative;isolation:isolate;--pack-fish-mark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'%3E%3Cpath d='M10 30C32 5 70 7 91 25L112 12V48L91 35C70 53 32 55 10 30ZM74 16C68 25 68 35 74 44M33 26L33 27' fill='none' stroke='white' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+#cdHomeFunnel .cdh-pass__packs::before{content:"";position:absolute;z-index:-1;pointer-events:none;right:32px;top:18px;width:180px;height:90px;background:var(--pack-light);mask:var(--pack-fish-mark) center/contain no-repeat;opacity:.12}
+#cdHomeFunnel :is(.cdh-pass__pack-guide,.cdh-pass__pack-art){background:transparent;filter:drop-shadow(0 8px 12px rgba(0,8,24,.32))}
+@media(max-width:640px){#cdHomeFunnel .cdh-pass__packs::before{right:12px;top:8px;width:120px;height:60px;opacity:.08}}
 /* 둘러보기 — 넉넉한 터치 영역과 금박 테두리, 같은 폭의 세 진입점. */
 #cdHomeFunnel .cdh-all-cta{margin:40px 24px 0;text-align:center}
 /* 세 버튼은 달빛 이야기 토글을 기준으로 같은 틀을 쓴다: 가로 440, 세로 88, 금선 65%, 반경 20, 안쪽 틀·잔가지 없음. */
@@ -6726,6 +6747,15 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
   #cdHomeFunnel .cdh-hero::before{background:linear-gradient(90deg,color-mix(in srgb,var(--cdh-bg) 80%,transparent) 0%,color-mix(in srgb,var(--cdh-bg) 62%,transparent) 58%,color-mix(in srgb,var(--cdh-bg) 30%,transparent) 100%)}
   #cdHomeFunnel .cdh-hero::after{inset:6px;border-radius:calc(var(--cd-r-card,20px) - 6px)}
 }.cdh-honey{position:relative;display:flex;align-items:center;gap:24px;margin:12px clamp(18px,3vw,40px) 22px;padding:18px 24px;border:1px solid var(--cdh-line);border-radius:var(--cd-r-section);background:var(--cdh-card);color:var(--cdh-ink);font-family:var(--font-body);font-size:14px;line-height:1.5;flex-wrap:wrap}
+.cdh-honey[hidden]{display:none!important}
+#dpMasterCardHost .cdh-honey{display:block;width:100%;margin:0;padding:16px;border-radius:var(--cd-r-card);box-sizing:border-box}
+#dpMasterCardHost .cdh-honey__details>summary{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;min-height:48px;padding-block:8px;cursor:pointer;color:var(--cdh-ink)}
+#dpMasterCardHost .cdh-honey__details>summary:focus-visible{outline:2px solid var(--cdh-accent);outline-offset:4px}
+#dpMasterCardHost .cdh-honey__wallet{margin-left:auto}
+#dpMasterCardHost .cdh-honey__story{margin-block:12px;min-width:0}
+#dpMasterCardHost .cdh-honey__actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:16px}
+#dpMasterCardHost .cdh-honey__actions .cdh-primary{min-width:0;width:100%}
+#dpMasterCardHost .cdh-honey__actions .cdh-primary::after{content:none}
 .cdh-honey__story{display:flex;align-items:center;gap:12px;flex:1;min-width:220px}
 .cdh-honey__yeoni{background-color:transparent!important;flex:none;width:56px;height:64px;object-fit:contain}
 .cdh .cdh-honey h2{font-family:inherit;font-size:16px;line-height:1.4;margin:0 0 5px;font-weight:700;letter-spacing:-.02em}
@@ -10690,7 +10720,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
       <h1 id="cdhTitle" data-cd-trans="home.simpleHome.title">10년 경력 명리학자가 설계한 대표 상담</h1>
       <p class="cdh-scene-lead cdh-scene-lead--caption" data-cd-trans="home.simple.lead">상담은 유료예요. 가격과 결과 예시는 먼저 확인할 수 있어요.</p>
       <div class="cdh-scene-actions">
-        <a class="cdh-primary cdh-scene-button" href="#cdSignatureConsult" data-cd-business-entry="question"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 26C9 21 10 13 16 5c6 8 7 16 0 21Zm0 0C6 26 3 19 3 12c8 1 13 6 13 14Zm0 0c10 0 13-7 13-14-8 1-13 6-13 14Z"/></svg><span data-cd-trans="home.followup.start">대표 상담 고르기</span></a>
+        <a class="cdh-primary cdh-scene-button" href="#cdSignatureConsult" data-cd-business-entry="question"><svg class="cdh-scene-button__lotus" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 26C10 22 10 13 16 5c6 8 6 17 0 21Z"/><path d="M16 26C8 25 5 18 6 10c7 3 10 8 10 16Zm0 0c8-1 11-8 10-16-7 3-10 8-10 16Z"/><path d="M16 26C8 28 2 23 2 16c6 1 11 4 14 10Zm0 0c8 2 14-3 14-10-6 1-11 4-14 10Z"/><path d="M10 29h12" fill="none"/></svg><span data-cd-trans="home.followup.start">대표 상담 고르기</span></a>
       </div>
     </div>
     <div class="cdh-scene-art" aria-hidden="true">
@@ -10735,7 +10765,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   <h2 class="cdh-free__title" id="cdhFreeTitle" data-cd-trans="home.simpleHome.freeTitle">무료로 먼저</h2>
   <div class="cdh-slot" id="cdhQuickSlot"><section id="cdQuickServices" class="cdh-free__grid" aria-labelledby="cdhFreeTitle" data-cd-funnel-section="quick_services" data-marker="cd-quick-services-free-v20261017b"><a class="cdh-free-card" data-cdh-free href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/saju-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeSaju">무료 사주</strong><small data-cd-trans="home.simpleHome.freeSajuNote">생년월일로 바로 보기</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a><a class="cdh-free-card" href="/?action=cdHomeTarotEntry" data-action="cdHomeTarotEntry" data-cd-service-id="tarot"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/tarot-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeTarot">타로</strong><small data-cd-trans="home.simpleHome.freeTarotNote">카드 한 장으로 가볍게</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a><a class="cdh-free-card" href="/?action=cdHomeZiweiEntry" data-action="cdHomeZiweiEntry" data-cd-service-id="ziwei"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/ziwei-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeZiwei">자미두수</strong><small data-cd-trans="home.simpleHome.freeZiweiNote">12궁 명반 보기</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a><a class="cdh-free-card" href="/?action=cdHomeSukuyoEntry" data-action="cdHomeSukuyoEntry" data-cd-service-id="sukuyo"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/sukuyo-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeSukuyo">숙요점</strong><small data-cd-trans="home.simpleHome.freeSukuyoNote">나의 본명숙 찾기</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a><a class="cdh-free-card" href="/?action=cdHomeVedicEntry" data-action="cdHomeVedicEntry" data-cd-service-id="vedic"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/vedic-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeVedic">베다점</strong><small data-cd-trans="home.simpleHome.freeVedicNote">라그나·나크샤트라 보기</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a><a class="cdh-free-card" href="/?action=cdHomeAstroEntry" data-action="cdHomeAstroEntry" data-cd-service-id="astrology"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/astrology-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeAstro">점성술</strong><small data-cd-trans="home.simpleHome.freeAstroNote">출생차트 행성 배치</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a></section></div>
 </section>
-  <section class="cdh-honey" data-cd-honey-widget aria-labelledby="cdHoneyTitle">
+  <section class="cdh cdh-honey" data-cd-honey-widget aria-labelledby="cdHoneyTitle" hidden>
     <details class="cdh-honey__details"><summary><span id="cdHoneyTitle">출석 · 꿀방울</span><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp" width="192" height="192" loading="lazy" decoding="async" alt=""><p class="cdh-honey__balance"><span>내가 모은 꿀방울</span><strong data-cd-honey-balance>확인 중</strong></p></div></summary>    <div class="cdh-honey__story">
       <img class="cdh-honey__yeoni" src="/images/fortune-tea-house/flower-pig-honey-hug.webp" width="361" height="411" loading="lazy" decoding="async" alt="꿀방울을 품에 안고 웃는 꽃돼지 연이">
       <div class="cdh-honey__intro"><p class="cdh-honey__hint">매일 출석하고, 꿀꿀운세 기본 해석에 사용해요.</p></div>
@@ -10857,34 +10887,41 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     </a></li>
   </ul>
   <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꿀꿀 운세에, 패밀리 꿀단지는 꿀꿀 운세와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
-  <details class="cdh-pass__packs"><summary class="cdh-pass__group" data-cd-trans="home.passCopy.packTitle">영냥이 전용 이용권</summary>
+  <details class="cdh-pass__packs"><summary class="cdh-pass__group">
+    <img class="cdh-pass__pack-guide" src="/assets/yeongnyangi/original/hero-800.webp" alt="" width="800" height="800" loading="lazy" decoding="async">
+    <span class="cdh-pass__pack-heading"><span data-cd-trans="home.passCopy.packTitle">영냥이 전용 이용권</span><small data-cd-trans="home.passCopy.packNote">영냥이 세트는 같은 생선 상담에만 1회씩 사용돼요. 꽃돼지 이용권과 따로 적용돼요.</small></span>
+  </summary>
   <ul class="cdh-pass__tiers cdh-pass__tiers--packs" role="list">
-    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-mackerel-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-mackerel-small-v5"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <img class="cdh-pass__pack-art" src="/assets/yeongnyangi/service-packs/mackerel-gift-set-v2.webp" alt="" width="240" height="240" loading="lazy" decoding="async">
       <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishMackerel","total":"5"}'>고등어 세트 5회</span>
       <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"20,000"}'>20,000원</span></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"5,000"}'>회당 5,000원 상담</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishMackerel","days":"30","total":"5"}'>고등어 상담 전용 · 30일 · 총 5회</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishMackerel","total":"5"}'>고등어 상담 전용 · 사용 기한 없음 · 총 5회</span>
     </a></li>
-    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-salmon-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-salmon-small-v5"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <img class="cdh-pass__pack-art" src="/assets/yeongnyangi/service-packs/salmon-gift-set-v2.webp" alt="" width="240" height="240" loading="lazy" decoding="async">
       <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishSalmon","total":"5"}'>연어 세트 5회</span>
       <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"40,000"}'>40,000원</span></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"10,000"}'>회당 10,000원 상담</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishSalmon","days":"30","total":"5"}'>연어 상담 전용 · 30일 · 총 5회</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishSalmon","total":"5"}'>연어 상담 전용 · 사용 기한 없음 · 총 5회</span>
     </a></li>
-    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-flounder-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-flounder-small-v5"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <img class="cdh-pass__pack-art" src="/assets/yeongnyangi/service-packs/flounder-gift-set-v2.webp" alt="" width="240" height="240" loading="lazy" decoding="async">
       <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishFlounder","total":"5"}'>광어 세트 5회</span>
       <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"60,000"}'>60,000원</span></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"15,000"}'>회당 15,000원 상담</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishFlounder","days":"30","total":"5"}'>광어 상담 전용 · 30일 · 총 5회</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishFlounder","total":"5"}'>광어 상담 전용 · 사용 기한 없음 · 총 5회</span>
     </a></li>
-    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-tuna-small-v4"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="yeongnyangi-pack-tuna-small-v5"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
+      <img class="cdh-pass__pack-art" src="/assets/yeongnyangi/service-packs/tuna-gift-set-v2.webp" alt="" width="240" height="240" loading="lazy" decoding="async">
       <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"@home.passCopy.fishTuna","total":"5"}'>참치 세트 5회</span>
       <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"120,000"}'>120,000원</span></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"30,000"}'>회당 30,000원 상담</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishTuna","days":"30","total":"5"}'>참치 상담 전용 · 30일 · 총 5회</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"@home.passCopy.fishTuna","total":"5"}'>참치 상담 전용 · 사용 기한 없음 · 총 5회</span>
     </a></li>
   </ul>
-  <p class="cdh-pass__note" data-cd-trans="home.passCopy.packNote">영냥이 세트는 같은 생선 상담에만 1회씩 사용돼요. 꽃돼지 이용권과 따로 적용돼요.</p></details>
+  </details>
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section></div></div>
 <!-- 꿀꿀 운세 오프닝 음악 = 달빛 운명여행 뮤직비디오(e76391603^ 에서 복구, 동작은 js/core/home-mv.js). -->
@@ -20492,7 +20529,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
      DCL 이고, 하는 일은 첫 페인트가 아니라 프로필 카드 강화다. high 로 두면 그 다운로드가 LCP
      히어로 이미지 preload 와 같은 우선순위 슬롯을 놓고 경쟁해 LCP 를 늦춘다. low 도 쓰지 않는다 —
      DCL 이 defer 실행을 기다리므로 지나치게 내리면 DCL 자체가 밀린다. 기본값이 맞다. -->
-<script defer src="/js/destiny-profile.js?v=build-64d10352de32" data-marker="profile-card-date-input-v20260624"></script>
+<script defer src="/js/destiny-profile.js?v=build-f718f6dd0538" data-marker="profile-card-date-input-v20260624"></script>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-4bc5b80fb7f9" data-marker="fortune-gateway-v1"></script>
@@ -20503,7 +20540,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 <script defer src="/js/core/service-registry.js?v=build-a2ee81c6f918" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-71c24977a817" data-marker="cd-home-service-finder-v20260819"></script>
 <script defer src="/js/core/shell-sheet.js?v=build-4af43b6a03e3"></script>
-<script defer src="/js/core/home-funnel.js?v=build-93d3774ea501"></script>
+<script defer src="/js/core/home-funnel.js?v=build-e115487facee"></script>
 <script defer src="/js/core/home-mv.js?v=build-8a8b2c3c4b77"></script>
 <script type="module" src="/js/signup-benefit-exit.js?v=build-4e96f986bc76"></script>
 <script defer src="/js/mobile-interaction-patch.js?v=build-1cee87e2ca42" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
@@ -20511,7 +20548,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-01c7adc0e754" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-c5ebbc749cfd" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-1c2525b7d8f2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
@@ -20631,7 +20668,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-f795c4b17d2a';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-6d7a2b8c4a43';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -34077,7 +34114,7 @@ function updateBadge() {
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=build-1969477b5929" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-175cd442fc30"></script>
+<script type="module" src="/js/app.js?v=build-f2fb207e0e91"></script>
 <!-- Feature Preview Panel v2 -->
 <template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
 <div id="tilePvwOverlay" class="tile-pvw-overlay cd-detail-overlay MobileFeatureBottomSheet" data-cd-detail-overlay="" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
@@ -34501,7 +34538,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-f795c4b17d2a',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-6d7a2b8c4a43',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/ziwei-ai.webp",fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/neo-operation-room.webp",fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:"/images/service-introductions/naming-ai.webp",fallbackCta:'작명 시작하기'},

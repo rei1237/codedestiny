@@ -1977,7 +1977,7 @@
       "packPass": "ヨンニャンイ専用利用券",
       "packTitle": "ヨンニャンイ専用利用券",
       "packName": "{fish}セット {total}回",
-      "packScope": "{fish}の相談専用 · {days}日 · 全{total}回",
+      "packScope": "{fish}の相談専用 · 利用期限なし · 全{total}回",
       "packRemaining": "全{total}回中、残り{remaining}回",
       "packExpires": "{date}まで",
       "packOthers": "ほか{count}セット保有",
@@ -1988,7 +1988,8 @@
       "fishTuna": "マグロ",
       "packPerUse": "1回あたり{amount} KRWの鑑定",
       "budgetLeft": "残り{amount} KRW",
-      "packNote": "ヨンニャンイのセットは同じ魚の相談に1回ずつ使え、花豚の利用券とは別に適用されます。"
+      "packNote": "ヨンニャンイのセットは同じ魚の相談に1回ずつ使え、花豚の利用券とは別に適用されます。",
+      "packNoExpiry": "利用期限なし"
     },
     "simpleHome": {
       "tagline": "命理学にもとづく運勢相談",

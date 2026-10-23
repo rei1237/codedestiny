@@ -1977,7 +1977,7 @@
       "packPass": "योंगन्यांगी पास",
       "packTitle": "योंगन्यांगी के परामर्श पास",
       "packName": "{fish} सेट ({total} उपयोग)",
-      "packScope": "केवल {fish} परामर्श · {days} दिन · {total} उपयोग",
+      "packScope": "केवल {fish} परामर्श · उपयोग की समय सीमा नहीं · {total} उपयोग",
       "packRemaining": "{total} में से {remaining} उपयोग शेष",
       "packExpires": "{date} तक",
       "packOthers": "+{count} और पैक",
@@ -1988,7 +1988,8 @@
       "fishTuna": "टूना",
       "packPerUse": "प्रति उपयोग KRW {amount} की रीडिंग",
       "budgetLeft": "KRW {amount} शेष",
-      "packNote": "योंगन्यांगी पैक का हर उपयोग उसी मछली स्तर का एक परामर्श खोलता है, फ्लावर पिग पास से अलग।"
+      "packNote": "योंगन्यांगी पैक का हर उपयोग उसी मछली स्तर का एक परामर्श खोलता है, फ्लावर पिग पास से अलग।",
+      "packNoExpiry": "उपयोग की समय सीमा नहीं"
     },
     "simpleHome": {
       "tagline": "Myeongri पर आधारित परामर्श",

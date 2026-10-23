@@ -43,9 +43,9 @@ function prepareArgs(f,{key='gift-one',env={GIFTS_ENABLED:'1'},app='',gift={send
   env,ctx:{},userId:BUYER,withDb:(_env,_ctx,fn)=>fn(f.db),body:{planId:PLAN,idempotencyKey:key,purchaseType,gift,
    priceKRW:1,totalUses:999,validityDays:999,paymentMethod:'card_general'}};
 }
-async function purchase(f,{key='gift-one',paidAt=new Date('2026-09-01T00:00:00Z')}={}){
- const order=await createServicePackOrder(f.db,{userId:BUYER,product,idempotencyKey:key,purchaseType:'GIFT',
-  giftDraft:giftDraftFor({senderName:'연이'},product),env:{}});
+async function purchase(f,{key='gift-one',paidAt=new Date('2026-09-01T00:00:00Z'),offer=product}={}){
+ const order=await createServicePackOrder(f.db,{userId:BUYER,product:offer,idempotencyKey:key,purchaseType:'GIFT',
+  giftDraft:giftDraftFor({senderName:'연이'},offer),env:{}});
  await ensureGiftForOrder(f.db,order);
  const settled=await payments.settleVerifiedOrder(f.db,{},{
   order,pg:{pgTransactionId:'mock-'+key,paidAt,summary:{mock:true}}});
@@ -92,16 +92,29 @@ test('verified gift payment grants no buyer pack or subscription and allows one 
  expect(JSON.stringify(f.rows(Gift)[0])).not.toContain(raw);
  await expect(grantServicePack(f.db,g.order)).rejects.toMatchObject({code:'INVALID_REQUEST'});
 });
-test('recipient claim starts pack validity at acceptance and leaves both Family subscriptions unchanged',async()=>{
+test('recipient claim grants without usage expiry and leaves both Family subscriptions unchanged',async()=>{
  const f=fixture(),g=await purchase(f),result=await receive(f,g),right=f.rows(PurchaseEntitlement)[0];
  expect(result.grant.after.servicePack.entitlementId).toBe(String(right._id));
  expect(right.userId).toBe(RECIPIENT);expect(right.grantedAt).toEqual(NOW);
- expect(right.expiresAt).toEqual(new Date(NOW.getTime()+90*86400000));
+ expect(right.expiresAt).toBeNull();
  expect(g.order.userId).toBe(BUYER);
  expect(f.user(BUYER).profileSubscription).toEqual(subscription);expect(f.user(RECIPIENT).profileSubscription).toEqual(subscription);
  const wallet=await listOwnedServicePacks(f.db,{userId:RECIPIENT,now:NOW});
  expect(wallet.packs[0].available).toBe(true);expect((await listOwnedServicePacks(f.db,{userId:BUYER,now:NOW})).packs).toHaveLength(0);
 });
+test('current no-expiry gift retains its claim deadline and can be used far after acceptance',async()=>{
+ const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-mackerel-small-v5');
+ const g=await purchase(f,{offer});
+ expect(g.gift.expiresAt).toEqual(new Date('2027-09-01T00:00:00Z'));
+ expect(g.gift.productSnapshot.validityDays).toBeNull();
+ await receive(f,g);
+ const right=f.rows(PurchaseEntitlement)[0],reading=fortune(f);
+ expect(right.expiresAt).toBeNull();
+ const result=await consumeServicePack(f.db,{userId:RECIPIENT,entitlementId:String(right._id),
+  requestId:reading.requestId,now:new Date('2126-10-24')});
+ expect(result.remainingUses).toBe(4);
+});
+
 test('concurrent recipient claims grant one pack; replay returns current remaining uses without reset',async()=>{
  const f=fixture(),g=await purchase(f);
  const results=await Promise.all([receive(f,g),receive(f,g)]);
