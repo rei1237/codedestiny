@@ -45,11 +45,18 @@ describe("refundSessionPassIfNeeded", () => {
   test("챕터가 0개인 세션이 실패하면 환불을 시도하고 refundedAt 을 기록한다", async () => {
     const d = deps();
     await refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund }, [], d);
-    expect(d.refundPassCoverage).toHaveBeenCalledWith({ userId, cycleKey: refund.cycleKey, cost: refund.cost, refundId: `master-love-codex:${sessionId}` });
+    expect(d.refundPassCoverage).toHaveBeenCalledWith({ userId, cycleKey: refund.cycleKey, cost: refund.cost, refundId: `master-love-codex:${sessionId}`, restorePass: null });
     expect(d.MasterLoveCodexSession.updateOne).toHaveBeenCalledWith(
       { id: sessionId, userId, "passRefund.refundedAt": { $exists: false } },
       { $set: { "passRefund.refundedAt": expect.any(Date) } },
     );
+  });
+
+  test("차감 때 저장한 복원 정보는 환불 호출에 그대로 실린다(소진 종료된 이용권을 되살리는 근거)", async () => {
+    const d = deps();
+    const restorePass = { tier: "premium", expiresAt: refund.cycleKey, monthlyLimitCoin: 600 };
+    await refundSessionPassIfNeeded(sessionId, userId, { passRefund: { ...refund, restorePass } }, [], d);
+    expect(d.refundPassCoverage).toHaveBeenCalledWith(expect.objectContaining({ cycleKey: refund.cycleKey, restorePass }));
   });
 
   test("이미 챕터가 1개 이상 커밋된 세션은 환불하지 않는다(부분 전달 시 무료 재개 동작 보존)", async () => {
