@@ -303,14 +303,11 @@ function shouldConsumePurchase(product) {
 /**
  * productId → 서버 기능 역해석.
  *
- * 가격대 티어 SKU라 productId 하나에 여러 featureKey가 매달린다(예: cd_content_tier_02 ←
- * 50코인 기능 54개). 따라서 티어 SKU는 "이 유저가 이 상품으로 열어둔 결제 의도"를 먼저 보고,
- * 그것만으로 확정한다. 후보를 순회해 아무거나 첫 매치를 고르면 엉뚱한 기능을 지급하게 된다.
- *
- * 명시적 featureKey(= verify 정상 경로)가 있으면 그대로 쓰고, 없을 때(= 고아 구매 복구)만
- * 의도 기록을 조회한다.
+ * 가격대 티어 SKU 하나에 여러 기능이 연결되므로 Google 영수증의 원래 구매 의도 또는
+ * 이미 기록된 주문으로만 기능을 확정한다. 클라이언트의 featureKey나 같은 가격대의
+ * 최신 의도는 원래 주문의 증거가 아니며, 근거가 없으면 검토 대상으로 보류한다.
  */
-async function resolveProductByProductId(env, body = {}, auth = null) {
+async function resolveProductByProductId(env, body = {}, auth = null, receiptIntent = null) {
   const requestedProductId = cleanText(body.productId);
   if (!requestedProductId) {
     const error = new Error("Google Play productId is required.");
@@ -319,16 +316,29 @@ async function resolveProductByProductId(env, body = {}, auth = null) {
     throw error;
   }
 
-  if (cleanText(body.featureKey)) {
-    const pricing = resolvePricing(body);
-    const product = resolveProduct(pricing, env, body);
-    if (product.productId === requestedProductId) return { pricing, product, intent: null };
+  if (receiptIntent) {
+    if (cleanText(body.featureKey) && cleanText(body.featureKey) !== receiptIntent.featureKey) {
+      throw Object.assign(new Error("Purchase does not match the original consultation."), { code: "APP_STORE_INTENT_MISMATCH", status: 409 });
+    }
+    if (!receiptIntent.passTier) {
+      const saved = receiptIntent.recordedPayment?.pricingSnapshot;
+      const pricing = saved?.appBillingType ? saved : resolvePricing({ featureKey: receiptIntent.featureKey });
+      const product = saved?.appBillingType ? {
+        kind: saved.appProductKind || "content", featureKey: receiptIntent.featureKey,
+        productId: requestedProductId, productType: saved.productType || "inapp",
+        billingType: saved.appBillingType, amountKRW: saved.amountKRW,
+      } : resolveProduct(pricing, env, { featureKey: receiptIntent.featureKey });
+      if (product.productId !== requestedProductId) {
+        throw Object.assign(new Error("Purchase pricing needs review. Do not purchase again."), { code: "APP_STORE_INTENT_PRICE_CHANGED", status: 409 });
+      }
+      return { pricing, product, intent: receiptIntent };
+    }
   }
 
   const knownProduct = findAppStoreProductById(requestedProductId);
   if (knownProduct?.kind === "pass") {
     const product = resolveAppPassPurchaseProduct({ passTier: knownProduct.passTier, productId: knownProduct.productId });
-    return { pricing: buildPassPricingShape(knownProduct), product, intent: null };
+    return { pricing: buildPassPricingShape(knownProduct), product, intent: receiptIntent };
   }
 
   // env 오버라이드 매핑(기존 호환) — 1:1 매핑이라 역해석이 안전하다.
@@ -342,14 +352,9 @@ async function resolveProductByProductId(env, body = {}, auth = null) {
     if (product.productId === requestedProductId) return { pricing, product, intent: null };
   }
 
-  const intent = auth ? await findOpenPurchaseIntent(env, auth.userId, requestedProductId) : null;
-  if (intent) {
-    const pricing = resolvePricing({ ...body, featureKey: intent.featureKey });
-    const product = resolveProduct(pricing, env, { ...body, featureKey: intent.featureKey });
-    if (product.productId === requestedProductId) return { pricing, product, intent };
-  }
-
-  const error = new Error("Google Play purchase could not be matched to a feature. Open the feature again to retry.");
+  // 같은 가격대의 최신 의도는 원래 주문의 증거가 아니다. 구형 미기록 영수증은
+  // 검토 대상으로 남기고 다른 상담에 지급하거나 소비하지 않는다.
+  const error = new Error("Original purchase needs review. Do not purchase again.");
   error.code = "APP_STORE_INTENT_NOT_FOUND";
   error.status = 409;
   throw error;
@@ -373,16 +378,8 @@ function buildPassPricingShape(pass) {
   };
 }
 
-async function findOpenPurchaseIntent(env, userId, productId) {
-  await connectDb(env);
-  return AppPurchaseIntent.findOne({
-    userId: new mongoose.Types.ObjectId(String(userId)),
-    productId: cleanText(productId),
-    status: "OPEN",
-  }).sort({ createdAt: -1 }).lean();
-}
-
-async function settlePurchaseIntent(env, userId, productId, tokenHash) {
+async function settlePurchaseIntent(env, userId, productId, tokenHash, intentId = "") {
+  if (!intentId) return;
   try {
     await connectDb(env);
     await AppPurchaseIntent.findOneAndUpdate(
@@ -390,6 +387,7 @@ async function settlePurchaseIntent(env, userId, productId, tokenHash) {
         userId: new mongoose.Types.ObjectId(String(userId)),
         productId: cleanText(productId),
         status: "OPEN",
+        ...(intentId ? { _id: new mongoose.Types.ObjectId(String(intentId)) } : {}),
       },
       { $set: { status: "SETTLED", settledPurchaseTokenHash: cleanText(tokenHash) } },
       { sort: { createdAt: -1 } },
@@ -514,16 +512,56 @@ async function grantGoogleBirthUnlock({ payment, product, pricing, identity, hol
  * 이게 없으면 남의 purchaseToken을 먼저 POST하는 쪽이 콘텐츠를 가져갈 수 있다
  * (Payment.impUid 유니크는 '두 번째'만 막지 '첫 번째 선점'은 막지 못한다).
  */
-async function assertPurchaseBelongsToUser(auth, googlePurchase) {
+async function assertPurchaseBelongsToUser(auth, googlePurchase, env, purchaseToken) {
   const claimed = cleanText(googlePurchase?.obfuscatedExternalAccountId);
-  // 이 가드 도입 이전 클라이언트가 만든 구매는 값이 비어 있다 — 하위호환으로 통과시킨다.
-  if (!claimed) return;
+  // 구형 영수증은 이미 서버에 기록된 소유자만 복원할 수 있다. 빈 계정 식별자를
+  // 새 구매로 선점시키지 않는다. 기존 계정/주문은 병합하거나 다시 만들지 않는다.
+  if (!claimed) {
+    await connectDb(env);
+    const existing = await Payment.findOne({ impUid: `google:${await purchaseTokenHash(purchaseToken)}` }).lean();
+    if (existing && String(existing.userId) === String(auth.userId)) return;
+    throw Object.assign(new Error("Purchase account could not be verified. Check the original purchase account."), {
+      code: "GOOGLE_PLAY_PURCHASE_ACCOUNT_UNVERIFIED", status: 409,
+    });
+  }
   const expected = await obfuscatedAccountIdForUser(auth.userId);
   if (claimed === expected) return;
   const error = new Error("Google Play purchase belongs to a different account.");
   error.code = "GOOGLE_PLAY_PURCHASE_ACCOUNT_MISMATCH";
   error.status = 409;
   throw error;
+}
+
+// Google가 검증해 준 식별자만 사용한다. 클라이언트의 intentId/featureKey는
+// 늦게 완료된 다른 결제의 연결 근거가 될 수 없다.
+async function findReceiptPurchaseIntent(env, auth, googlePurchase, productId, purchaseToken) {
+  await connectDb(env);
+  const tokenHash = await purchaseTokenHash(purchaseToken);
+  const recorded = await Payment.findOne({ impUid: `google:${tokenHash}` }).lean();
+  if (recorded && String(recorded.userId) === String(auth.userId) &&
+      cleanText(recorded.productId || recorded.pricingSnapshot?.productId) === cleanText(productId)) {
+    // 임시 의도의 TTL과 무관하게 이미 기록된 동일 계정의 주문을 복원한다.
+    return {
+      ...recorded.pricingSnapshot, featureKey: recorded.featureKey, productId,
+      requestId: recorded.requestId, reportId: recorded.reportId, sessionId: recorded.sessionId,
+      passTier: recorded.subscriptionTier || "", recordedPayment: recorded,
+    };
+  }
+  const reference = cleanText(googlePurchase?.obfuscatedExternalProfileId);
+  if (!reference.startsWith("cd-intent:")) return null; // 이전 앱의 featureKey 식별자 호환
+  const intentId = reference.slice("cd-intent:".length);
+  if (!/^[a-f0-9]{24}$/i.test(intentId)) {
+    throw Object.assign(new Error("Purchase intent reference is invalid."), { code: "APP_STORE_INTENT_MISMATCH", status: 409 });
+  }
+  const intent = await AppPurchaseIntent.findOne({
+    _id: new mongoose.Types.ObjectId(intentId),
+    userId: new mongoose.Types.ObjectId(String(auth.userId)),
+    productId: cleanText(productId),
+  }).sort({ createdAt: -1 }).lean();
+  if (!intent || (intent.status === "SETTLED" && intent.settledPurchaseTokenHash !== tokenHash)) {
+    throw Object.assign(new Error("Original purchase needs review. Do not purchase again."), { code: "APP_STORE_INTENT_NOT_FOUND", status: 409 });
+  }
+  return intent;
 }
 
 export async function obfuscatedAccountIdForUser(userId) {
@@ -572,7 +610,9 @@ function isVerifiedPurchase(payload, productType) {
     if (expiryTime && expiryTime <= Date.now()) return false;
     return paymentState === 1 || paymentState === 2 || expiryTime > Date.now();
   }
-  return Number(payload.purchaseState || 0) === 0;
+  // Play Developer API: 0=PURCHASED, 1=CANCELED, 2=PENDING.
+  // 누락/null/빈 문자열을 0으로 바꾸면 검증 실패를 결제 완료로 지급하게 된다.
+  return payload.purchaseState === 0;
 }
 
 async function fetchGooglePurchase(env, { packageName, productId, productType, purchaseToken }) {
@@ -813,6 +853,7 @@ async function handleGoogleIntent(request, env) {
     data: {
       provider: "GOOGLE_PLAY",
       intentId: String(intent._id || ""),
+      obfuscatedProfileId: `cd-intent:${String(intent._id)}`,
       product,
       // 앱은 이 값을 launchBillingFlow의 obfuscatedAccountId로 주입해야 한다.
       obfuscatedAccountId: await obfuscatedAccountIdForUser(auth.userId),
@@ -830,8 +871,8 @@ function buildAccessGrant({ payment, pricing, requestId, body }) {
     merchantUid: cleanText(payment?.merchantUid),
     featureKey: cleanText(pricing?.featureKey || body.featureKey),
     requestId,
-    reportId: cleanText(body.reportId),
-    sessionId: cleanText(body.sessionId || body.reportSessionId),
+    reportId: cleanText(payment?.reportId),
+    sessionId: cleanText(payment?.sessionId),
     evidenceId: String(payment?._id || ""),
     paidAt: payment?.paidAt ? new Date(payment.paidAt).toISOString() : new Date().toISOString(),
   };
@@ -857,6 +898,9 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       error.code = "GOOGLE_PLAY_PURCHASE_TOKEN_REPLAY";
       error.status = 409;
       throw error;
+    }
+    if (existing.status === "cancelled" || existing.status === "refunded") {
+      throw Object.assign(new Error("This purchase was refunded."), { code: "GOOGLE_PLAY_PURCHASE_REVOKED", status: 409 });
     }
     const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now, passOrderId: impUid });
     // 재검증은 **이 결제에 저장된 스냅샷**으로만 다시 지급한다(지급 도중 실패한 결제의 복구). 스냅샷이 없는
@@ -1043,6 +1087,8 @@ async function handleGoogleVerify(request, env) {
   const requestedProductId = cleanText(body.productId);
   const purchaseToken = cleanText(body.purchaseToken);
   const packageName = cleanText(body.packageName || getEnv(env, "GOOGLE_PLAY_PACKAGE_NAME") || getEnv(env, "CODE_DESTINY_ANDROID_PACKAGE_ID") || "com.codedestiny.app");
+  const expectedPackage = cleanText(getEnv(env, "GOOGLE_PLAY_PACKAGE_NAME") || getEnv(env, "CODE_DESTINY_ANDROID_PACKAGE_ID") || "com.codedestiny.app");
+  if (packageName !== expectedPackage) return json({ ok: false, code: "GOOGLE_PLAY_PACKAGE_MISMATCH" }, { status: 400 });
 
   // 앱에서 무료로 통과시키는 저가 콘텐츠는 Play 상품 자체가 없다.
   if (product.freeInApp) {
@@ -1059,16 +1105,27 @@ async function handleGoogleVerify(request, env) {
     productType: product.productType,
     purchaseToken,
   });
-  await assertPurchaseBelongsToUser(auth, googlePurchase);
+  await assertPurchaseBelongsToUser(auth, googlePurchase, env, purchaseToken);
+  const receiptIntent = await findReceiptPurchaseIntent(env, auth, googlePurchase, product.productId, purchaseToken);
+  if (receiptIntent && receiptIntent.featureKey !== product.featureKey) {
+    throw Object.assign(new Error("Purchase does not match the original consultation."), { code: "APP_STORE_INTENT_MISMATCH", status: 409 });
+  }
   const persisted = await persistGooglePurchase({
     auth,
     env,
     pricing,
     product,
-    body: { ...body, packageName },
+    body: { ...body, packageName, ...(receiptIntent ? {
+      requestId: receiptIntent.requestId,
+      profileId: receiptIntent.profileId,
+      partnerProfileId: receiptIntent.partnerProfileId,
+      reportId: receiptIntent.reportId,
+      sessionId: receiptIntent.sessionId,
+    } : {}) },
     googlePurchase,
+    intent: receiptIntent,
   });
-  await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken));
+  await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken), receiptIntent?._id);
   const acknowledged = await acknowledgeGooglePurchase(env, {
     packageName,
     productId: product.productId,
@@ -1157,6 +1214,10 @@ async function handleGoogleRestore(request, env) {
       const packageName = cleanText(nativePurchase?.packageName || packageNameFallback);
 
       try {
+        const expectedPackage = cleanText(getEnv(env, "GOOGLE_PLAY_PACKAGE_NAME") || getEnv(env, "CODE_DESTINY_ANDROID_PACKAGE_ID") || "com.codedestiny.app");
+        if (packageName !== expectedPackage) {
+          throw Object.assign(new Error("Purchase package does not match this app."), { code: "GOOGLE_PLAY_PACKAGE_MISMATCH", status: 400 });
+        }
         if (!productId || !purchaseToken) {
           const error = new Error("Google Play productId and purchaseToken are required.");
           error.code = "PURCHASE_RESTORE_INPUT_INVALID";
@@ -1164,19 +1225,17 @@ async function handleGoogleRestore(request, env) {
           throw error;
         }
 
+        const googlePurchase = await verifyGooglePurchase(env, {
+          packageName, productId, productType, purchaseToken,
+        });
+        await assertPurchaseBelongsToUser(auth, googlePurchase, env, purchaseToken);
+        const receiptIntent = await findReceiptPurchaseIntent(env, auth, googlePurchase, productId, purchaseToken);
         const { pricing, product, intent } = await resolveProductByProductId(env, {
           ...body,
           ...nativePurchase,
           productId,
           productType,
-        }, auth);
-        const googlePurchase = await verifyGooglePurchase(env, {
-          packageName,
-          productId: product.productId,
-          productType: product.productType,
-          purchaseToken,
-        });
-        await assertPurchaseBelongsToUser(auth, googlePurchase);
+        }, auth, receiptIntent);
         const persisted = await persistGooglePurchase({
           auth,
           env,
@@ -1189,10 +1248,12 @@ async function handleGoogleRestore(request, env) {
             // A Play receipt has no consultation request ID. Recover the original
             // server-side intent before consuming the purchase, so a killed app
             // can still attach this payment to the same saved consultation.
-            requestId: intent?.requestId || nativePurchase?.requestId || body.requestId,
-            profileId: intent?.profileId || nativePurchase?.profileId || body.profileId,
-            reportId: intent?.reportId || nativePurchase?.reportId || body.reportId,
-            sessionId: intent?.sessionId || nativePurchase?.sessionId || body.sessionId,
+            requestId: intent ? intent.requestId : nativePurchase?.requestId || body.requestId,
+            profileId: intent ? intent.profileId : nativePurchase?.profileId || body.profileId,
+            partnerProfileId: intent ? intent.partnerProfileId : nativePurchase?.partnerProfileId || body.partnerProfileId,
+            reportId: intent ? intent.reportId : nativePurchase?.reportId || body.reportId,
+            sessionId: intent ? intent.sessionId : nativePurchase?.sessionId || body.sessionId,
+            reportSessionId: intent ? intent.sessionId : nativePurchase?.reportSessionId || body.reportSessionId,
             productId: product.productId,
             productType: product.productType,
             purchaseToken,
@@ -1208,7 +1269,7 @@ async function handleGoogleRestore(request, env) {
           purchaseToken,
           googlePurchase,
         });
-        await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken));
+        await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken), intent?._id);
         restoredPurchases.push({
           id: String(persisted.payment?._id || ""),
           featureKey: product.featureKey,

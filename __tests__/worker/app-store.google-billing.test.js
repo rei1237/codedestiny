@@ -93,7 +93,7 @@ jest.unstable_mockModule("../../worker/lib/content-unlocks.js", () => ({
   revokePaymentContentAccess: mockRevokePaymentContentAccess,
 }));
 
-const mockIntentCreate = jest.fn(async (doc) => ({ _id: "intent-1", ...doc }));
+const mockIntentCreate = jest.fn(async (doc) => ({ _id: "64b000000000000000000002", ...doc }));
 const mockIntentFindOne = jest.fn();
 const mockIntentFindOneAndUpdate = jest.fn(async () => null);
 jest.unstable_mockModule("../../worker/lib/app-store-models.js", () => ({
@@ -211,7 +211,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  googlePurchasePayload = { purchaseState: 0, acknowledgementState: 0, obfuscatedExternalAccountId: "" };
+  googlePurchasePayload = { purchaseState: 0, acknowledgementState: 0, obfuscatedExternalAccountId: sha256Hex(`cd-account:${USER_ID}`) };
   googlePurchaseStatus = 200;
   acknowledgeCalls = [];
 
@@ -292,7 +292,7 @@ describe("verify — 회당 결제(PER_USE)", () => {
   });
 
   test("이미 acknowledge된 영수증에는 다시 acknowledge를 보내지 않는다", async () => {
-    googlePurchasePayload = { purchaseState: 0, acknowledgementState: 1, obfuscatedExternalAccountId: "" };
+    googlePurchasePayload.acknowledgementState = 1;
     const { status, payload } = await callRoute(postJson("/google/verify", {
       featureKey: perUse.key,
       productId: perUse.tier.productId,
@@ -303,8 +303,8 @@ describe("verify — 회당 결제(PER_USE)", () => {
     expect(payload.data.payment.acknowledged).toBe(true);
   });
 
-  test("미결제 상태(purchaseState≠0)는 402로 거부하고 아무것도 기록하지 않는다", async () => {
-    googlePurchasePayload = { purchaseState: 1 };
+  test.each([1, 2, undefined, null, "", false, "0", 3])("미확정·비정상 상태(%p)는 지급·승인하지 않는다", async (purchaseState) => {
+    googlePurchasePayload = { purchaseState };
     const { status, payload } = await callRoute(postJson("/google/verify", {
       featureKey: perUse.key,
       productId: perUse.tier.productId,
@@ -313,6 +313,9 @@ describe("verify — 회당 결제(PER_USE)", () => {
     expect(status).toBe(402);
     expect(payload.code).toBe("GOOGLE_PLAY_PURCHASE_NOT_PAID");
     expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+    expect(mockGrantPermanentUnlock).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
   });
 
   test("클라이언트가 보낸 productId가 서버 티어와 다르면 400 — 임의 상품 결제 차단", async () => {
@@ -658,6 +661,133 @@ describe("free-grant — 앱 무료 구간", () => {
 });
 
 describe("intent — 결제 의도 기록", () => {
+  const originalIntentId = "64b000000000000000000101";
+
+  test("편의점 지연 완료는 최신 의도가 아닌 영수증에 묶인 원래 상담을 복구한다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
+    mockIntentFindOne.mockImplementation((query) => ({ sort: () => ({ lean: async () => (
+      String(query._id) === originalIntentId
+        ? { _id: originalIntentId, status: "OPEN", featureKey: "dream-psycho-analysis", requestId: "original-request", profileId: "me" }
+        : { featureKey: "yeongnyangi-saju-mackerel", requestId: "newer-request" }
+    ) }) }));
+    const { payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: "cd_content_tier_02", purchaseToken: "late-cash", requestId: "untrusted-request", reportId: "unrelated-report", reportSessionId: "unrelated-session" }],
+    }));
+    expect(payload.data.failedPurchases).toEqual([]);
+    expect(mockPaymentCreate.mock.calls[0][0]).toMatchObject({ featureKey: "dream-psycho-analysis", requestId: "original-request" });
+    expect(mockPaymentCreate.mock.calls[0][0]).toMatchObject({ reportId: "", sessionId: "" });
+    expect(String(mockIntentFindOneAndUpdate.mock.calls[0][0]._id)).toBe(originalIntentId);
+  });
+
+  test("verify 응답도 요청 본문 대신 원래 주문의 리포트와 세션에 연결한다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
+    mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
+      _id: originalIntentId, status: "OPEN", featureKey: perUse.key, productId: perUse.tier.productId,
+      requestId: "original-request", reportId: "original-report", sessionId: "original-session",
+    }) }) });
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: perUse.key, productId: perUse.tier.productId, purchaseToken: "late-verify",
+      requestId: "another-request", reportId: "another-report", sessionId: "another-session",
+    }));
+    expect(status).toBe(200);
+    expect(payload.data.accessGrant).toMatchObject({ requestId: "original-request", reportId: "original-report", sessionId: "original-session" });
+  });
+
+  test("원래 구매 의도가 없으면 다른 상담으로 추측 지급하지 않는다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
+    const { payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: perUse.tier.productId, purchaseToken: "late-missing-intent" }],
+    }));
+    expect(payload.data.failedPurchases[0].code).toBe("APP_STORE_INTENT_NOT_FOUND");
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
+  });
+
+  test("이미 기록된 주문은 임시 의도가 만료돼도 원래 상담으로 복구한다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
+    mockPaymentFindOne.mockReturnValue({ lean: async () => ({
+      _id: "pay-recorded", userId: USER_ID, status: "success",
+      featureKey: perUse.key, productId: perUse.tier.productId, requestId: "original-saved-request",
+    }) });
+    const { payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: perUse.tier.productId, purchaseToken: "already-recorded" }],
+    }));
+    expect(payload.data.failedPurchases).toEqual([]);
+    expect(payload.data.purchases[0].featureKey).toBe(perUse.key);
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(mockIntentFindOneAndUpdate).not.toHaveBeenCalled();
+  });
+
+  test("연결 증거 없는 구형 미기록 영수증은 클라이언트 기능명이나 최신 의도로 지급하지 않는다", async () => {
+    mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
+      featureKey: perUse.key, requestId: "unrelated-newer-request",
+    }) }) });
+    const { payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: perUse.tier.productId, purchaseToken: "legacy-unmatched", featureKey: perUse.key }],
+    }));
+    expect(payload.data.failedPurchases[0].code).toBe("APP_STORE_INTENT_NOT_FOUND");
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
+  });
+
+  test("대기 영수증을 restore해도 의도 확정·지급·승인하지 않는다", async () => {
+    googlePurchasePayload.purchaseState = 2;
+    const { payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: perUse.tier.productId, purchaseToken: "cash-pending" }],
+    }));
+    expect(payload.data.failedPurchases[0].code).toBe("GOOGLE_PLAY_PURCHASE_NOT_PAID");
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(mockIntentFindOneAndUpdate).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
+  });
+
+  test("계정 식별자가 없는 미등록 영수증의 최초 선점을 막는다", async () => {
+    googlePurchasePayload.obfuscatedExternalAccountId = "";
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: perUse.key, productId: perUse.tier.productId, purchaseToken: "unowned-legacy",
+    }));
+    expect(status).toBe(409);
+    expect(payload.code).toBe("GOOGLE_PLAY_PURCHASE_ACCOUNT_UNVERIFIED");
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
+  });
+
+  test("기존 소유자의 구형 영수증은 계정 식별자가 없어도 재구매 없이 인정한다", async () => {
+    googlePurchasePayload.obfuscatedExternalAccountId = "";
+    mockPaymentFindOne.mockReturnValue({ lean: async () => ({
+      _id: "legacy-pay", userId: USER_ID, featureKey: perUse.key, productId: perUse.tier.productId, status: "success", requestId: "legacy-request",
+    }) });
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: perUse.key, productId: perUse.tier.productId, purchaseToken: "owned-legacy",
+    }));
+    expect(status).toBe(200);
+    expect(payload.data.idempotent).toBe(true);
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+  });
+
+  test("환불 기록은 Google 상태 반영이 늦어도 재지급하지 않는다", async () => {
+    mockPaymentFindOne.mockReturnValue({ lean: async () => ({
+      _id: "refunded-pay", userId: USER_ID, featureKey: unlock.key, productId: unlock.tier.productId, status: "cancelled",
+    }) });
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: unlock.key, productId: unlock.tier.productId, purchaseToken: "refunded-token",
+    }));
+    expect(status).toBe(409);
+    expect(payload.code).toBe("GOOGLE_PLAY_PURCHASE_REVOKED");
+    expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+    expect(mockGrantPermanentUnlock).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
+  });
+
+  test("다른 앱 패키지의 영수증은 조회 전에 거부한다", async () => {
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: perUse.key, productId: perUse.tier.productId, purchaseToken: "wrong-package", packageName: "another.app",
+    }));
+    expect(status).toBe(400);
+    expect(payload.code).toBe("GOOGLE_PLAY_PACKAGE_MISMATCH");
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
   test("고등어 상담(50코인, ₩5,000 SKU)은 무료 지급으로 우회할 수 없다", async () => {
     const { status, payload } = await callRoute(postJson("/free-grant", {
       featureKey: "yeongnyangi-saju-mackerel", requestId: "yn-" + "a".repeat(64),
@@ -669,6 +799,7 @@ describe("intent — 결제 의도 기록", () => {
 
   // 복구는 현재 서버 가격과 일치하는 SKU로만 원래 상담 ID를 이어 간다.
   test("앱 종료 뒤 영수증 복구가 서버 의도의 상담 ID를 보존한다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
     const requestId = "dream-" + "a".repeat(32);
     mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
       featureKey: "dream-psycho-analysis", requestId, profileId: "saved-profile",
@@ -684,6 +815,7 @@ describe("intent — 결제 의도 기록", () => {
   });
 
   test("신규 SKU가 생긴 영냥이 연어 복구는 현재 10,000원 티어로 지급한다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
     mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
       featureKey: "yeongnyangi-saju-salmon", requestId: "yn-" + "a".repeat(64), profileId: "saved-profile",
     }) }) });
