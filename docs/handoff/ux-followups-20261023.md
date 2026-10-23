@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: done
 updated: 2026-10-23
-next: "사용자 조치 대기 — 22(쿠팡 상품 32개 이미지·가격 실데이터)·23(파트너스 subId 발급). 받으면 22부터 반영"
+next: "없음 — 22·23은 docs/handoff/coupang-ctr-catalogue-20261023.md(Codex 위임)로 이관"
 ---
 
 # 꿀꿀운세 UX 진단·개선 — 후속 과제
@@ -19,7 +19,7 @@ next: "사용자 조치 대기 — 22(쿠팡 상품 32개 이미지·가격 실�
 ## 지금 상태 (다시 하지 않는다)
 
 - 1~7단계 전부 로컬 main에 머지됨(push 안 함). 끝 커밋: `f73dc9337`, `5168c0180`, `a99804b6a`(토스트 이중 낭독·PWA 배너 페르소나), `76e2b6722`(사이트맵 원장).
-- 후속 커밋: 코드로 할 수 있는 후속은 전부 로컬 main에 머지됨(`a39af5498`까지, push 안 함). 머지 전 `check:fast` 전 단계 통과(결제 게이트 스위트 90/90, `test:node`·`test:jest` 포함). 머지 직전에 `verify:paid-service-offer`가 막은 회귀 1건을 고쳤다: `b2010ce21`이 인생의 책에 Offer를 넣었는데 `paid-flow-gates.yml` 트리거에 `app/life-book-ai/**`가 없었다(`a39af5498`). 남은 것은 아래 D(사용자 조치)뿐이다.
+- 후속 커밋: 코드로 할 수 있는 후속은 전부 로컬 main에 머지됨(`9b88b60f7`까지, push 안 함). 머지 전 `check:fast` 전 단계 통과(결제 게이트 스위트 90/90, `test:node`·`test:jest` 포함). 머지 직전 `verify:paid-service-offer` 회귀 1건 수정(`a39af5498`, `paid-flow-gates.yml` 트리거에 `app/life-book-ai/**`). 남은 22·23은 Codex 위임 문서 `docs/handoff/coupang-ctr-catalogue-20261023.md`로 이관했다. 이 문서는 닫는다.
 - 라이트 사주 풀이 결제 직후 열기, 라이트 표기, FAQ 차별점 4문항(`lib/brand/differentiation-faqs.mjs`), 쿠팡 배치 최적화는 끝났다.
 
 ## 작업 규칙
@@ -136,10 +136,10 @@ next: "사용자 조치 대기 — 22(쿠팡 상품 32개 이미지·가격 실�
 
 ### D. 사용자 조치가 필요한 것 (코드로 만들어 내지 않는다)
 
-- [ ] **22. 쿠팡 상품 32개에 이미지·가격이 없다**
+- [x] **22. 쿠팡 상품 32개에 이미지·가격이 없다** — 끝: 이관(코드 변경 없음). Codex 위임 문서 `docs/handoff/coupang-ctr-catalogue-20261023.md` B(입력 시트·가격 24시간 결정)로 옮김
   - 실제 데이터나 관리자 입력이 필요하다. 지어내지 않는다.
   - 데이터: `docs/operations/affiliate-expanded-coupang-20261016.json`.
-- [ ] **23. 쿠팡 subId·상품별 CTR이 없다**
+- [x] **23. 쿠팡 subId·상품별 CTR이 없다** — 끝: 이관. 같은 문서 A(상품별 노출·CTR 코드)와 C(subId 사용자 조치)로 옮김
   - 파트너스 subId 발급은 사용자 몫이다. 코드 쪽은 클릭 이벤트 집계까지만 할 수 있다.
   - URL 검증: `validateAffiliateUrl`(`js/recommendations-core.mjs:58`).
 
