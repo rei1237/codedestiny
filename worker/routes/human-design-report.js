@@ -31,7 +31,7 @@ import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { HumanDesignCalculation, HumanDesignReport } from "../lib/models.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
-import { calculateHumanDesignChart } from "../lib/human-design-ephemeris.js";
+import { calculateHumanDesignChart, resolveBirthMoment } from "../lib/human-design-ephemeris.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { escapeRawControlCharsInJsonStrings } from "../lib/json-text-repair.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -366,6 +366,11 @@ async function handleStart(request, env) {
   if (existing && existing.status !== "generation_failed") {
     if (existing.status !== "completed" && !await verifyStoredHdAccess(existing)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
     return json({ ok: true, reused: true, ...publicReport(existing) }, { headers: noStore });
+  }
+
+  try { resolveBirthMoment(input); }
+  catch {
+    return json({ ok: false, retryable: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
   }
 
   // 🔴 차트 조회와 결제 증빙을 **겹쳐서** 읽는다. 둘은 서로를 필요로 하지 않고,

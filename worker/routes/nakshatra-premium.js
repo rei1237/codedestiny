@@ -27,6 +27,7 @@ import { buildNakshatraDashaMap } from "../lib/nakshatra-dasha-map.js";
 import { buildNakshatraMuhurta, listMuhurtaPurposes } from "../lib/nakshatra-muhurta.js";
 import { buildNakshatraVvipCodex } from "../lib/nakshatra-vvip-codex.js";
 import { verifyPerUsePayment, logPerUsePaymentProof } from "../lib/nakshatra-paid-access.js";
+import { validNakshatraBirth } from "../lib/nakshatra-birth-evidence.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 
 // 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
@@ -113,14 +114,7 @@ function birthInputFromProfile(body, birth) {
 }
 
 function isValidBirth(input) {
-  return (
-    // 🔴 한국 음양력 코어의 지원 범위(1900~2100)다. 밖이면 음력을 못 만들므로 여기서 400 으로 끊는다.
-    Number.isFinite(input.year) && input.year >= 1900 && input.year <= 2100
-    && Number.isFinite(input.month)
-    && Number.isFinite(input.day)
-    && input.month >= 1 && input.month <= 12
-    && input.day >= 1 && input.day <= 31
-  );
+  return validNakshatraBirth(input);
 }
 
 // 🔴 음력은 한국 음양력 코어(KST 삭 기준)가 낸다. 중국 음력(lunar-javascript)은 삭이 CST 23시대에
@@ -321,7 +315,7 @@ function pad2(value) {
 // KST 벽시계 기준으로 하루씩 전진하며 날짜·요일·숙요를 만든다.
 function buildScanDays(startDate, dayCount) {
   const base = new Date(`${startDate}T00:00:00Z`);
-  if (!Number.isFinite(base.getTime())) return [];
+  if (!Number.isFinite(base.getTime()) || base.toISOString().slice(0, 10) !== startDate) return [];
   const out = [];
   for (let offset = 0; offset < dayCount; offset += 1) {
     const cursor = new Date(base.getTime() + offset * 86400000);
@@ -354,16 +348,20 @@ async function handleMuhurta(request, env) {
     return json({ ok: false, reason: "INVALID_PURPOSE", message: MESSAGES.invalidPurpose, purposes: listMuhurtaPurposes() }, { status: 400 });
   }
 
+  const startDate = body?.startDate == null || body.startDate === ""
+    ? new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10)
+    : String(body.startDate);
+  const dayCount = Math.min(MUHURTA_MAX_DAYS, Math.max(14, Number(body?.days) || MUHURTA_MAX_DAYS));
+  const scan = buildScanDays(startDate, dayCount);
+  if (!scan.length) {
+    return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidRange }, { status: 400 });
+  }
+
   const proof = await observePerUsePayment(env, auth, "muhurta", body);
   if (PER_USE_ENFORCE && proof) {
     if (proof.proven === null) return degraded();
     if (proof.proven === false) return json({ ok: false, reason: "PAYMENT_REQUIRED", message: MESSAGES.paymentRequiredPerUse }, { status: 402 });
   }
-
-  const startDate = /^\d{4}-\d{2}-\d{2}$/.test(String(body?.startDate || ""))
-    ? String(body.startDate)
-    : new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
-  const dayCount = Math.min(MUHURTA_MAX_DAYS, Math.max(14, Number(body?.days) || MUHURTA_MAX_DAYS));
 
   // 본인 명식 — 본명수(숙요)와 본명 나크샤트라. Swiss 호출 1회.
   const moonLon = await resolveMoon(env, input, request.url);
@@ -373,11 +371,6 @@ async function handleMuhurta(request, env) {
   const mySuk = sukuyoFromSolarDate(input.year, input.month, input.day, moonLon);
   if (!mySuk) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
-  }
-
-  const scan = buildScanDays(startDate, dayCount);
-  if (!scan.length) {
-    return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidRange }, { status: 400 });
   }
 
   // 🔴 날짜별 나크샤트라는 그날 달의 실제 황경에서 나와야 한다. 숙요에서 크로스워크로

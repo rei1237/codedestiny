@@ -98,6 +98,10 @@ export function resolveBirthMoment(birthInput) {
     solarDate = { year: solar.year, month: solar.month, day: solar.day };
   }
 
+  const dateCheck = new Date(Date.UTC(solarDate.year, solarDate.month - 1, solarDate.day));
+  if (dateCheck.getUTCFullYear() !== solarDate.year || dateCheck.getUTCMonth() !== solarDate.month - 1 || dateCheck.getUTCDate() !== solarDate.day) {
+    throw new RangeError("휴먼 디자인: 실재하는 생년월일을 입력해 주세요.");
+  }
   const wallClock = { ...solarDate, hour, minute, second: 0 };
   const { utcMillis, offsetHours } = wallClockToUtcMillis(wallClock, birthInput.timezone);
   return { utcMillis, offsetHours, solarDate, wallClock };

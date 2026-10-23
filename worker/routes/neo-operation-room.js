@@ -29,7 +29,7 @@ import {SYNC_LLM_TIMEOUT_CEILING_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/s
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { lunarToSolar } from "../../lib/korean-calendar/index.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
-import { calculateZiweiAiChart, describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
+import { calculateZiweiAiChart, describeBrightness, formatStarWithBrightness, parseTime as parseBirthTime } from "../lib/ziwei-ai-chart.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
 import { prepareAstroPremiumCalculation } from "../lib/astro-premium-generator.js";
 import {
@@ -168,7 +168,7 @@ function normalizeBirthInfo(source = {}) {
     name: clean(birth.name || birth.nickname, 80),
     gender: normalizeGender(birth.gender),
     birthDate: clean(birth.birthDate, 10),
-    birthTime: birthTimeUnknown ? "" : clean(birth.birthTime, 5),
+    birthTime: birthTimeUnknown ? "" : clean(birth.birthTime, 20),
     birthTimeUnknown,
     calendarType: clean(birth.calendarType).toLowerCase() === "lunar" ? "lunar" : "solar",
     isLeapMonth: birth.isLeapMonth === true || birth.leapMonth === true,
@@ -215,7 +215,7 @@ function normalizePartnerBirthInfo(body, selectedMethod, topic) {
   const partner = normalizeBirthInfo({ birthInput: source });
   if (!isCalculableBirth(partner)) return null;
   if (!partner.gender) return null;
-  if (!partner.birthTimeUnknown && !partner.birthTime) return null;
+  if (!parseBirthTime(partner.birthTime, partner.birthTimeUnknown)) return null;
   return withBirthPlace(partner);
 }
 
@@ -231,7 +231,7 @@ function normalizeInput(body = {}) {
   if (question.length < MIN_QUESTION_LENGTH) return { ok: false, message: INVALID_INPUT_MESSAGE };
   if (!isCalculableBirth(birthInfo)) return { ok: false, message: INVALID_BIRTH_MESSAGE };
   if (!birthInfo.gender) return { ok: false, message: INVALID_INPUT_MESSAGE };
-  if (!birthInfo.birthTimeUnknown && !birthInfo.birthTime) return { ok: false, message: INVALID_INPUT_MESSAGE };
+  if (!parseBirthTime(birthInfo.birthTime, birthInfo.birthTimeUnknown)) return { ok: false, message: INVALID_INPUT_MESSAGE };
   if ((selectedMethod === "vedic" || selectedMethod === "astrology") && !birthInfo.timezone) {
     return { ok: false, message: INVALID_INPUT_MESSAGE };
   }

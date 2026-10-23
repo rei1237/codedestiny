@@ -90,7 +90,7 @@ function parseDate(dateText, lunar = false) {
   return { year, month, day };
 }
 
-function parseTime(timeText, unknown) {
+export function parseTime(timeText, unknown) {
   if (unknown) return { hour: 12, minute: 0, unknown: true };
   const match = clean(timeText).match(/^([01]\d|2[0-3]):([0-5]\d)$/);
   if (!match) return null;

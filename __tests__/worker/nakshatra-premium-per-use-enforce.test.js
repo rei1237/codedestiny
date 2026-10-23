@@ -59,3 +59,17 @@ test("결제 증빙이 있으면 요청의 requestId 로 확인하고 402 를 �
     featureKey: "nakshatra-muhurta", requestId: "nakshatra-muhurta:1-abc",
   }));
 });
+test('숫자가 아닌 출생 시분은 두 상품 모두 증빙 확인 전에 거절한다', async () => {
+  for (const kind of ['muhurta','vvip-codex']) for (const input of [{hour:'abc'},{minute:'abc'},{hour:24},{minute:60}]) {
+    expect((await call(kind,input)).status).toBe(400);
+  }
+  expect(verifyPerUsePayment).not.toHaveBeenCalled();
+});
+test('실재하지 않는 양력 생일은 두 상품 모두 차감 전에 거절한다', async () => {
+  for (const kind of ['muhurta','vvip-codex']) expect((await call(kind,{month:2,day:31})).status).toBe(400);
+  expect(verifyPerUsePayment).not.toHaveBeenCalled();
+});
+test('실재하지 않는 택일 시작일은 증빙 확인 전에 거절한다', async () => {
+  for (const startDate of ['2026-13-45','2026-02-31','invalid']) expect((await call('muhurta',{startDate})).status).toBe(400);
+  expect(verifyPerUsePayment).not.toHaveBeenCalled();
+});

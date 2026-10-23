@@ -2,6 +2,8 @@
  * @jest-environment node
  */
 
+import { parseTime } from '../../worker/lib/ziwei-ai-chart.js';
+import { jest } from '@jest/globals';
 const USER_ID = "64f0a1b2c3d4e5f678901234";
 const FEATURE_KEY = "neo-operation-room-consultation";
 
@@ -58,6 +60,7 @@ beforeAll(async () => {
   }));
   jest.unstable_mockModule("../../worker/lib/ziwei-ai-chart.js", () => ({
     calculateZiweiAiChart: jest.fn(async () => ({})),
+    parseTime,
     describeBrightness: jest.fn(() => ""),
     formatStarWithBrightness: jest.fn((starName) => String(starName || "")),
   }));

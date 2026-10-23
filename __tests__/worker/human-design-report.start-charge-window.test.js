@@ -20,6 +20,7 @@
  */
 import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
+import { resolveBirthMoment } from '../../worker/lib/human-design-ephemeris.js';
 
 const USER_ID = "64b7f2a1c3d4e5f601234567";
 const ENV = { GEMINIF_API_KEY: "test-key" };
@@ -78,6 +79,14 @@ function startRequest(requestId) {
     body: JSON.stringify({ birth: BIRTH, locale: "ko", requestId }),
   });
 }
+test('인간설계의 결정적 출생 입력 오류는 차감 전에 거절한다', async () => {
+  for (const invalid of [{birthTime:'25:00'},{birthDate:'1991-02-31'},{birthDate:'1991-05-31',calendar:'lunar'},{timezone:'Not/AZone'}]) {
+    const response=await handleHumanDesignReportRoutes(new Request('https://example.com/api/human-design-report/start',{
+      method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({birth:{...BIRTH,...invalid},requestId:'invalid-birth'})}),ENV);
+    expect(response.status).toBe(400);expect(await response.json()).toMatchObject({reason:'INVALID_INPUT',retryable:false});
+  }
+  expect(verifyPerUsePaymentMock).not.toHaveBeenCalled();expect(calculateHumanDesignChartMock).not.toHaveBeenCalled();
+});
 
 beforeAll(async () => {
   reports = [];
@@ -146,6 +155,7 @@ beforeAll(async () => {
   calculateHumanDesignChartMock = jest.fn(async () => COMPLETE_CALCULATION);
   jest.unstable_mockModule("../../worker/lib/human-design-ephemeris.js", () => ({
     calculateHumanDesignChart: calculateHumanDesignChartMock,
+    resolveBirthMoment,
   }));
 
   jest.unstable_mockModule("../../worker/lib/structured-consultation.js", () => ({

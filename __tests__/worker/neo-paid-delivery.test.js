@@ -7,7 +7,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { idempotencyKey: "original-paid-request", selectedMethod: "saju", topic: "relationship", intensity: "standard", question: "반복되는 관계 선택을 구체적으로 살펴보고 싶습니다.", birthInput: { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", calendarType: "solar" } };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, startExecution;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, startExecution, settle;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -77,7 +77,7 @@ beforeAll(async () => {
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null) },
   }));
   jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({ canAccessPaidFeature: async () => ({ allowed: mode === "pass", accessSource: "family_pass" }), PAID_FEATURE_ACCESS_USER_PROJECTION: "id" }));
-  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({ settlePerUseAccessDecision: async (_env, args) => ({ allowed: args?.decision?.allowed === true, source: "pass", reason: args?.decision?.allowed ? "" : "PAYMENT_REQUIRED", passRefund }) }));
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({ settlePerUseAccessDecision: (...args) => settle(...args) }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? {} : null }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({ callGeminiText: (...args) => provider(...args) }));
   jest.unstable_mockModule("../../worker/lib/life-book-ai-saju.js", () => ({ calculateLifeBookAiSaju: (...args) => chart(...args) }));
@@ -108,6 +108,7 @@ function fixture(section) {
 }
 beforeEach(() => {
  passRefund=undefined;startExecution=jest.fn(async()=>({}));
+ settle=jest.fn(async(_env,args)=>({allowed:args?.decision?.allowed===true,source:'pass',reason:args?.decision?.allowed?'':'PAYMENT_REQUIRED',passRefund}));
  docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));chart=jest.fn(async()=>({}));
  provider=jest.fn(async(_env,prompt,options)=>{
    expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
@@ -118,6 +119,12 @@ beforeEach(() => {
 });
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore()});
 async function start(extra) { return route(new Request('https://mock.test/api/neo-operation-room/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(extra || (docs[0] ? {sessionId:docs[0].id}:body))}),{}); }
+it('네오의 네 출생 술수는 잘못된 시각을 차감 전에 거절한다',async()=>{
+ for(const selectedMethod of ['saju','ziwei','vedic','astrology']) for(const birthTime of ['24:00','09:61','ab:cd','09:00extra']) {
+   expect((await start({...body,selectedMethod,birthInput:{...body.birthInput,birthTime,timezone:'Asia/Seoul'}})).status).toBe(422);
+ }
+ expect(settle).not.toHaveBeenCalled();expect(chart).not.toHaveBeenCalled();expect(provider).not.toHaveBeenCalled();
+});
 it('이용권 복원 정보를 계산 전에 등록해 계산 실패도 환급 대상으로 남긴다',async()=>{
  passRefund={cycleKey:'2099-09-30T00:00:00.000Z',cost:300,restorePass:{tier:'family',expiresAt:'2099-09-30T00:00:00.000Z',monthlyLimitCoin:5000}};
  chart.mockImplementation(()=>{throw Error('chart unavailable');});

@@ -20,6 +20,7 @@
  */
 import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
+import { resolveBirthMoment } from '../../worker/lib/human-design-ephemeris.js';
 
 const USER_ID = "64b7f2a1c3d4e5f601234567";
 const ENV = { GEMINIF_API_KEY: "test-key" };
@@ -128,6 +129,7 @@ beforeAll(async () => {
   calculateHumanDesignChartMock = jest.fn(async () => CALCULATION);
   jest.unstable_mockModule("../../worker/lib/human-design-ephemeris.js", () => ({
     calculateHumanDesignChart: calculateHumanDesignChartMock,
+    resolveBirthMoment,
   }));
 
   // 🔴 /start 는 LLM 을 부르지 않는다. 부르면 테스트가 즉시 깨지도록 던지는 대역을 둔다.
