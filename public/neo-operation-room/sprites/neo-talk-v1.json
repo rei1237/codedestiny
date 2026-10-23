@@ -1,0 +1,21 @@
+{
+  "origin": "Generated with imagegen from the existing Neo half-body portrait at the user request",
+  "reference": "https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%20%EB%B0%98%EC%8B%A0%EC%83%81%20%EB%B0%B0%EA%B2%BD%EC%97%86%EC%9D%8C-Photoroom.webp",
+  "layout": {
+    "columns": 2,
+    "rows": 2,
+    "frames": [
+      "idle",
+      "speech-small",
+      "speech-open",
+      "blink"
+    ]
+  },
+  "transparency": true,
+  "variants": [
+    768,
+    1280
+  ],
+  "transform": "Proportional square WebP conversion, quality 82, alpha quality 100",
+  "usage": "Stable texture cropped during text reveal; paused offscreen and under reduced motion"
+}
