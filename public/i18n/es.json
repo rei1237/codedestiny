@@ -1977,7 +1977,7 @@
       "packPass": "Pase de Yeongnyangi",
       "packTitle": "Pases de consulta de Yeongnyangi",
       "packName": "Lote {fish} de {total} usos",
-      "packScope": "Solo consultas {fish} · {days} días · {total} usos",
+      "packScope": "Solo consultas {fish} · Sin caducidad de uso · {total} usos",
       "packRemaining": "Quedan {remaining} de {total} usos",
       "packExpires": "Hasta {date}",
       "packOthers": "+{count} packs más",
@@ -1988,7 +1988,8 @@
       "fishTuna": "Atún",
       "packPerUse": "Una lectura de KRW {amount} por uso",
       "budgetLeft": "Quedan KRW {amount}",
-      "packNote": "Cada uso de un pack de Yeongnyangi abre una consulta del mismo pescado, aparte de los pases de Cerdita Flor."
+      "packNote": "Cada uso de un pack de Yeongnyangi abre una consulta del mismo pescado, aparte de los pases de Cerdita Flor.",
+      "packNoExpiry": "Sin caducidad de uso"
     },
     "simpleHome": {
       "tagline": "Consultas basadas en el Myeongri",

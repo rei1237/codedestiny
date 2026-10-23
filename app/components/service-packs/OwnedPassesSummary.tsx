@@ -27,7 +27,7 @@ function Stamped({src,stamp,children}:{src?:string;stamp:string;children?:ReactN
 
 export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;flower:{active:boolean;tier:string;tierLabel:string;expiresAt?:string|null};packs:PackWalletView}){
  const copy=servicePackCopy(locale),usable=usablePacks(packs);
- const first=[...usable].sort((a,b)=>Date.parse(a.expiresAt)-Date.parse(b.expiresAt))[0];
+ const first=usable[0];
  return <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-labelledby="owned-passes-title" data-owned-passes>
   <h2 id="owned-passes-title" className="text-lg font-black text-white">{copy.passesTitle}</h2>
   <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -51,7 +51,7 @@ export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;f
      {first?<>
       <h3 className="mt-0.5 text-base font-black leading-snug text-white">{packName(first,locale)}</h3>
       <p className={appliedLine}>{dot}<span>{copy.applied}</span></p>
-      <p className="mt-0.5 text-xs font-bold text-[color:var(--moon-silver)] [word-break:keep-all]"><span className="whitespace-nowrap text-[color:var(--moon-teal)]">{packText(copy.remaining,{total:first.totalUses,remaining:first.remainingUses})}</span> · <span className="whitespace-nowrap">{packText(copy.expires,{date:date(first.expiresAt,locale)})}</span>{usable.length>1&&<> · <span className="whitespace-nowrap">{packText(copy.packOthers,{count:usable.length-1})}</span></>}</p>
+      <p className="mt-0.5 text-xs font-bold text-[color:var(--moon-silver)] [word-break:keep-all]"><span className="whitespace-nowrap text-[color:var(--moon-teal)]">{packText(copy.remaining,{total:first.totalUses,remaining:first.remainingUses})}</span> · <span className="whitespace-nowrap">{copy.validity}</span>{usable.length>1&&<> · <span className="whitespace-nowrap">{packText(copy.packOthers,{count:usable.length-1})}</span></>}</p>
      </>:packs==='loading'?<p role="status" className="mt-0.5 text-sm text-[color:var(--moon-silver)]">{copy.loading}</p>:packs==='error'?<>
       <p className="mt-0.5 text-sm font-bold text-[color:var(--moon-silver)]">{copy.unavailable}</p>
       <a href="#fish-packs" className="mt-1 inline-flex min-h-11 items-center text-sm font-black text-[color:var(--moon-glow)]">{copy.packBrowse} →</a>

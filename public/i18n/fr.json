@@ -1977,7 +1977,7 @@
       "packPass": "Pass Yeongnyangi",
       "packTitle": "Pass de consultation Yeongnyangi",
       "packName": "Lot {fish} de {total} utilisations",
-      "packScope": "Consultations {fish} uniquement · {days} jours · {total} utilisations",
+      "packScope": "Consultations {fish} uniquement · Sans limite de durée · {total} utilisations",
       "packRemaining": "{remaining} utilisations restantes sur {total}",
       "packExpires": "Jusqu’au {date}",
       "packOthers": "+{count} autres packs",
@@ -1988,7 +1988,8 @@
       "fishTuna": "Thon",
       "packPerUse": "Une lecture à KRW {amount} par utilisation",
       "budgetLeft": "KRW {amount} restants",
-      "packNote": "Chaque utilisation d’un pack Yeongnyangi ouvre une consultation du même poisson, indépendamment des pass Cochon Fleur."
+      "packNote": "Chaque utilisation d’un pack Yeongnyangi ouvre une consultation du même poisson, indépendamment des pass Cochon Fleur.",
+      "packNoExpiry": "Sans limite de durée"
     },
     "simpleHome": {
       "tagline": "Consultations fondées sur le Myeongri",

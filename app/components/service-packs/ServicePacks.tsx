@@ -30,7 +30,6 @@ const chip='rounded-full border border-[color:var(--moon-rim)] px-2.5 py-1 text-
 const ghost='btn-moonlight-ghost inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50';
 
 const won=(amount:number,locale:LoadingLocale)=>new Intl.NumberFormat(locale,{style:'currency',currency:'KRW',maximumFractionDigits:0}).format(amount);
-const date=(value:string,locale:LoadingLocale)=>new Intl.DateTimeFormat(locale,{dateStyle:'medium'}).format(new Date(value));
 // 이름 안의 공백("서양 점성술")에서 줄이 꺾이지 않도록 이름마다 묶고, 줄바꿈은 구분자에서만 일어나게 한다.
 const eligibleNames=(keys:string[],locale:LoadingLocale)=>[...new Set(products.filter(item=>keys.includes(item.cdFeatureKey)).map(item=>localizedSystem(item.domain,locale)))].map((name,index)=><Fragment key={name}>{index?' · ':''}<span className="whitespace-nowrap">{name}</span></Fragment>);
 const isPaidQuote=(quote:PackQuote)=>quote.status==='paid'||quote.status==='used'&&quote.accessMethod==='SERVICE_PACK'&&Boolean(quote.existingUse?.evidenceId);
@@ -40,7 +39,7 @@ export function PackRows({packs,locale}:{packs:OwnedServicePack[];locale:Loading
  const copy=servicePackCopy(locale);
  return <ul className={styles.wallet}>{packs.map(pack=><li key={pack.entitlementId} data-pack-entitlement={pack.entitlementId}>
   <Image src={SERVICE_PACK_IMAGES[pack.fishId]} width={240} height={240} sizes="100px" alt="" loading="lazy"/>
-  <div><h4>{packName(pack,locale)}</h4><strong>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</strong><p>{packText(copy.expires,{date:date(pack.expiresAt,locale)})}</p>
+  <div><h4>{packName(pack,locale)}</h4><strong>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</strong><p>{copy.validity}</p>
    <p>{eligibleNames(pack.eligibleFeatureKeys,locale)}</p>{!pack.available&&<p>{copy.inactive}</p>}</div>
   {pack.available&&<Link href="/yeongnyangi/fortune/" prefetch={false}>{copy.chooseConsultation}</Link>}
  </li>)}</ul>;
@@ -182,7 +181,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
    <Image src="/assets/yeongnyangi/original/hero-800.webp" alt="" width={800} height={800} sizes="(max-width: 640px) 88px, 160px" className={styles.shopGuide}/>
    <div>
     <h2 id="fish-packs-title" className={styles.shopTitle}>{copy.title}</h2>
-    <p className={styles.shopDescription}>{locale==='ko'?'같은 등급의 지원 상담에 사용할 수 있어요. 사용 기간과 적용 범위를 확인해 주세요.':copy.intro}</p>
+    <p className={styles.shopDescription}>{locale==='ko'?'같은 등급의 지원 상담에 사용할 수 있어요. 남은 횟수와 적용 범위를 확인해 주세요.':copy.intro}</p>
     {context&&<Link href={consultationResumePath(context)} prefetch={false} className={ghost}>{locale==='ko'?'이번 상담으로 돌아가기':copy.goConsult}</Link>}
     {contextual&&!context&&<p role="alert">{copy.unavailable}</p>}
    </div>
@@ -199,7 +198,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
     <div className="min-w-0">
      <p className="text-base font-black leading-snug text-white [word-break:keep-all] [text-wrap:balance]">{completedName?packText(copy.appliedDone,{name:completedName}):copy.complete}</p>
      {completedName&&<p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">{copy.complete}</p>}
-     {completedPack&&<p className="mt-1 flex flex-wrap gap-x-2 text-sm font-bold text-[color:var(--moon-teal)]"><span>{packText(copy.remaining,{total:completedPack.totalUses,remaining:completedPack.remainingUses})}</span><span className="text-[color:var(--moon-mist)]">{packText(copy.expires,{date:date(completedPack.expiresAt,locale)})}</span></p>}
+     {completedPack&&<p className="mt-1 flex flex-wrap gap-x-2 text-sm font-bold text-[color:var(--moon-teal)]"><span>{packText(copy.remaining,{total:completedPack.totalUses,remaining:completedPack.remainingUses})}</span><span className="text-[color:var(--moon-mist)]">{copy.validity}</span></p>}
     </div>
    </div>
    <div className="mt-3 flex flex-wrap gap-2">
@@ -228,7 +227,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
         <p className="mt-2 text-xs leading-relaxed text-[color:var(--moon-mist)]">{copy.eligible}: {eligibleNames(item.eligibleFeatureKeys,locale)}</p>
         <p className={styles.planPrice}>{won(item.priceKRW,locale)}</p>
         <div className="mt-3 flex flex-wrap gap-2">
-         <span className={`${chip} text-[color:var(--moon-silver)]`}>{packText(copy.scope,{fish:localizedTier(item.fishId,locale),days:item.validityDays,total:item.totalUses})}</span>
+         <span className={`${chip} text-[color:var(--moon-silver)]`}>{packText(copy.scope,{fish:localizedTier(item.fishId,locale),total:item.totalUses})}</span>
          <span className={`${chip} text-[color:var(--moon-mist)]`}>{packText(copy.perUse,{amount:won(Math.round(item.priceKRW/item.totalUses),locale)})}</span>
         </div>
         {savings>0&&<p className="mt-2 text-xs font-bold text-[color:var(--moon-gold)]">{packText(copy.savings,{total:item.totalUses,amount:won(savings,locale)})}</p>}
@@ -257,9 +256,9 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
     <p className="mt-2 text-sm leading-relaxed text-slate-200">{packName(plan,locale)} · {won(plan.priceKRW,locale)} · {purchaseType==='GIFT'?copy.giftPurchase:copy.selfPurchase}</p>
     <p className="mt-1 text-[12px] font-bold text-[color:var(--sp-light)]">{copy.wonOnly}</p>
     <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
-     <p className="font-black text-white">{packText(copy.conditionsTitle,{days:plan.validityDays})}</p>
-     <p className="mt-1">{packText(copy.scope,{fish:localizedTier(plan.fishId,locale),days:plan.validityDays,total:plan.totalUses})}</p>
-     <p className="mt-1">{purchaseType==='GIFT'?`${copy.giftComplete} ${packText(copy.giftUsagePeriod,{days:plan.validityDays})}`:packText(copy.selfActivation,{days:plan.validityDays})}</p>
+     <p className="font-black text-white">{copy.conditionsTitle}</p>
+     <p className="mt-1">{packText(copy.scope,{fish:localizedTier(plan.fishId,locale),total:plan.totalUses})}</p>
+     <p className="mt-1">{purchaseType==='GIFT'?`${copy.giftComplete} ${copy.giftUsagePeriod}`:copy.selfActivation}</p>
      <p className="mt-1 font-bold text-[color:var(--sp-light)]">{copy.eligible}: {eligibleNames(plan.eligibleFeatureKeys,locale)}</p>
      <p className="mt-1 flex flex-wrap gap-x-4">
       <a href={links.terms} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-black text-[color:var(--sp-light)] underline">{policy.legalTerms}</a>
@@ -363,7 +362,7 @@ export function ServicePackCheckout({requestId,featureKey,locale,disabled,onBusy
   {!failed&&!busy&&quote?.status==='available'&&quote.candidates.some(pack=>pack.available)&&<>
    <fieldset className={styles.choices}><legend>{copy.owned}</legend>{quote.candidates.filter(pack=>pack.available).map(pack=><label key={pack.entitlementId}>
     <input type="radio" name="service-pack-entitlement" value={pack.entitlementId} checked={selected===pack.entitlementId} onChange={()=>setSelected(pack.entitlementId)} disabled={disabled||checking}/>
-    <span><strong>{packName(pack,locale)}</strong><span>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</span><span>{packText(copy.expires,{date:date(pack.expiresAt,locale)})}</span></span>
+    <span><strong>{packName(pack,locale)}</strong><span>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</span><span>{copy.validity}</span></span>
    </label>)}</fieldset>
    <button type="button" onClick={()=>void consume()} disabled={disabled||checking||!selected}>{copy.use}</button>
   </>}
