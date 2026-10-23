@@ -309,7 +309,7 @@ test('대기 화면 진행 단계는 서버 생성 섹션과 같은 순서·같�
     }).join('\n');
   };
   const ctx = vm.createContext({});
-  vm.runInContext(ts.transpileModule(declarations('app/new-year-ai-consultation/NewYearAiClient.tsx', ts.ScriptKind.TSX, ['DOMAIN_CARDS', 'READING_STEPS', 'READING_SECTION_TOTAL']), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
+  vm.runInContext(ts.transpileModule(declarations('app/new-year-ai-consultation/_lib/answer-sections.ts', ts.ScriptKind.TS, ['DOMAIN_CARDS', 'READING_STEPS', 'READING_SECTION_TOTAL']), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
   vm.runInContext(declarations('worker/routes/new-year-ai.js', ts.ScriptKind.JS, ['NEW_YEAR_AI_SECTIONS']), ctx);
   assert.deepEqual(ctx.READING_STEPS.map(step => step.key), ctx.NEW_YEAR_AI_SECTIONS.map(section => section.key));
   assert.equal(ctx.READING_SECTION_TOTAL, ctx.NEW_YEAR_AI_SECTIONS.length);
