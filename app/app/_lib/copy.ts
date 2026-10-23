@@ -188,7 +188,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     exitHintText: "한 번 더 누르면 종료됩니다",
 
     pendingApprovalTitle: "결제 승인을 기다리는 중입니다",
-    pendingApprovalBody: "승인이 완료되면 콘텐츠가 자동으로 열립니다. 편의점·계좌이체 결제는 입금 확인까지 시간이 걸릴 수 있습니다.",
+    pendingApprovalBody: "입금 확인을 기다리고 있어요. 결제를 다시 시작하지 말고, 입금 후 같은 계정으로 앱을 열어 주세요. 확인이 끝나면 원래 구매에 반영됩니다.",
 
     passPageTitle: "이용권",
     passPageBody: "이용권이 있으면 커버 범위 안의 기능은 결제 없이 바로 열립니다.",
@@ -255,7 +255,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     exitHintText: "もう一度押すと終了します",
 
     pendingApprovalTitle: "決済承認を待っています",
-    pendingApprovalBody: "承認が完了するとコンテンツが自動的に開きます。コンビニ・口座振込決済は入金確認まで時間がかかる場合があります。",
+    pendingApprovalBody: "お支払いの確認を待っています。購入をやり直さず、お支払い後に同じアカウントでアプリを開いてください。確認後、元の購入に反映されます。",
 
     passPageTitle: "利用券",
     passPageBody: "利用券があれば適用範囲内の機能は決済なしですぐに開きます。",

@@ -72,6 +72,19 @@ const requiredMarkers = [
 ];
 
 const failures = [];
+const distIndex = process.argv.indexOf("--dist");
+const appDist = distIndex >= 0 ? path.resolve(root, process.argv[distIndex + 1] || "dist") : "";
+if (appDist) {
+  // Source coverage alone cannot detect a route deleted by the app postprocessor.
+  for (const route of unique([...serviceRoutes, "/points/history/", "/records/", "/yeongnyangi/library/", "/app/talismans/"])) {
+    const normalized = stripTrailingSlash(route);
+    const action = actionRoutes.get(normalized) || actionRoutes.get(route);
+    const relative = route.replace(/^\/+/, "").replace(/\/+$/, "");
+    const target = action ? path.join(appDist, "ggulggul/index.html") :
+      path.join(appDist, relative.endsWith(".html") ? relative : relative + "/index.html");
+    if (!fs.existsSync(target)) failures.push(`app artifact missing: ${route} → ${path.relative(appDist, target)}`);
+  }
+}
 
 for (const route of serviceRoutes) {
   if (!hasMobileEntry(route)) {
@@ -115,6 +128,7 @@ if (failures.length) {
   console.log(`- Route groups checked: ${requiredRouteGroups.length}`);
   console.log(`- Critical actions checked: ${requiredActions.length}`);
   console.log(`- Mobile performance markers checked: ${requiredMarkers.length}`);
+  if (appDist) console.log("- App artifact route coverage checked (modal execution requires device smoke).");
 }
 
 function hasMobileEntry(route) {

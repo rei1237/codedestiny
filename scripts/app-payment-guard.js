@@ -97,6 +97,11 @@
    * 이후 콘텐츠 지급 흐름이 그대로 이어진다.
    */
   async function runPlayBillingCheckoutCore(options) {
+    if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios") {
+      throw failure("IOS_BILLING_NOT_CONFIGURED", document.documentElement.lang === "ja"
+        ? "iPhoneでの新規購入は準備中です。購入済みの内容は同じアカウントで確認できます。"
+        : "iPhone의 새 구매 기능은 준비 중이에요. 기존 구매 내역은 같은 계정으로 확인할 수 있어요.");
+    }
     var opts = options || {};
     var featureKey = readFeatureKey(opts);
     var native = nativeBilling();
@@ -147,13 +152,26 @@
       productType: product.productType || "inapp",
       idempotencyKey: requestId,
       obfuscatedAccountId: String(intent.payload.data.obfuscatedAccountId || ""),
-      obfuscatedProfileId: featureKey.slice(0, 64),
+      obfuscatedProfileId: String(intent.payload.data.obfuscatedProfileId || featureKey.slice(0, 64)),
     });
     if (!purchaseResult || purchaseResult.ok === false) {
       throw failure(
         String((purchaseResult && purchaseResult.code) || "APP_STORE_PURCHASE_FAILED"),
         String((purchaseResult && purchaseResult.message) || "결제가 완료되지 않았습니다."),
       );
+    }
+
+    // 네이티브 enum: PURCHASED=1, PENDING=2 (서버 API의 0/1/2와 다르다).
+    // 입금 전에는 verify/consume/권한 갱신을 수행하지 않는다.
+    if (Number(purchaseResult.purchaseState) === 2) {
+      throw failure("APP_STORE_PURCHASE_PENDING", document.documentElement.lang === "ja"
+        ? "入金の確認を待っています。再購入せず、入金後に同じアカウントでアプリを開いてください。"
+        : "입금 확인을 기다리고 있어요. 결제를 다시 시작하지 말고, 입금 후 같은 계정으로 앱을 열어 주세요.");
+    }
+    if (Number(purchaseResult.purchaseState) !== 1) {
+      throw failure("APP_STORE_PURCHASE_NOT_COMPLETED", document.documentElement.lang === "ja"
+        ? "購入完了を確認できませんでした。アプリの購入履歴を確認してください。"
+        : "결제 완료를 확인하지 못했어요. 앱의 구매 내역을 확인해 주세요.");
     }
 
     var verify = await postJson(APP_STORE_BASE + "/google/verify", Object.assign({}, intentBody, {
@@ -293,12 +311,10 @@
   var PRUNED_ROUTES = [
     { pattern: /^\/points(\/|\?|#|$)/, redirect: "/app/store/" },
     { pattern: /^\/premium-unlock(\/|\?|#|$)/, redirect: "/app/store/" },
-    { pattern: /^\/insights(\/|\?|#|$)/, redirect: null },
-    { pattern: /^\/famous-saju(\/|\?|#|$)/, redirect: null },
   ];
 
   function toPath(href) {
-    return String(href || "").replace(/^https?:\/\/[^/]+/, "");
+    return String(href || "").replace(/^(?:https?:\/\/[^/]+|capacitor:\/\/localhost)/, "");
   }
 
   // 로케일 접두사(/en, /ja, /zh, /zh-tw, /en-us …)를 벗기고 나서 판정한다.
@@ -312,6 +328,7 @@
     var path = toPath(href);
     if (!path || path.charAt(0) !== "/") return null;
     var routePath = path.replace(LOCALE_PREFIX_RE, "");
+    if (/^\/points\/history(?:\/|\?|#|$)/.test(routePath)) return null;
     for (var i = 0; i < PRUNED_ROUTES.length; i += 1) {
       if (PRUNED_ROUTES[i].pattern.test(routePath)) return PRUNED_ROUTES[i];
     }
@@ -320,7 +337,7 @@
 
   // 홈의 SEO 섹션은 앵커만 지우면 제목만 남은 빈 껍데기가 된다 — 섹션째 걷어낸다.
   // body의 부모가 곧 섹션 카드 컨테이너다(index.html: 토글 헤더 + 본문을 감싼 div).
-  var PRUNED_SECTION_BODY_IDS = ["cd-insights-body", "cd-famous-body"];
+  var PRUNED_SECTION_BODY_IDS = [];
 
   function removePrunedSections() {
     for (var i = 0; i < PRUNED_SECTION_BODY_IDS.length; i += 1) {

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { getApiBaseUrl } from "@/app/_lib/api-config";
 import { persistSanitizedAuthUser } from "@/app/_lib/auth-storage";
 import { toAbsoluteApiUrl } from "@/app/_lib/http-client";
+import { getNativeBillingPlatform } from "@/app/app/_lib/native-billing";
 
 type NativePurchaseInput = {
   featureKey: string;
@@ -127,6 +128,7 @@ declare global {
 }
 
 function getNativeBillingPlugin() {
+  if (getNativeBillingPlatform() === "ios") return undefined;
   return (window as unknown as { Capacitor?: CapacitorRuntime }).Capacitor?.Plugins?.CodeDestinyBilling;
 }
 

@@ -12,7 +12,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM, VirtualConsole } from "jsdom";
 // 죽은 자산 판정 규칙은 빌드가 정본이다 — 여기서 다시 구현하면 두 규칙이 갈라진다.
-import { buildReferencedNameIndex } from "./build-mobile-app.mjs";
+import { buildReferencedNameIndex, isTalismanOriginal } from "./build-mobile-app.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distArgIndex = process.argv.indexOf("--dist");
@@ -159,7 +159,7 @@ check(
 // single-flight 래퍼(:3012)가 붙지 못하므로, 같은 보호를 가드가 직접 해야 한다.
 // (가드는 네이티브 브리지가 없으면 intent 전에 실패하므로 가짜 브리지를 붙인다)
 alertDom.window.CodeDestinyNative = {
-  purchase: async () => ({ ok: true, purchaseToken: "test-token" }),
+  purchase: async () => ({ ok: true, purchaseToken: "test-token", purchaseState: 1 }),
   consume: async () => ({ ok: true }),
 };
 let intentCalls = 0;
@@ -465,12 +465,11 @@ if (DIST) {
 
     for (const prefix of ["", "en", "ja", "zh"]) {
       const label = prefix ? `/${prefix}/points` : "/points";
-      check(`${label} 라우트 제거됨`, !(await exists(path.join(DIST, prefix, "points"))));
+      check(`${label} 웹 결제 진입 제거됨`, !(await exists(path.join(DIST, prefix, "points", "index.html"))));
     }
 
-    // SEO 전용 문서 — 앱 사용자는 도달하지 않는데 압축 후 28MB를 차지한다.
-    for (const route of ["insights", "famous-saju"]) {
-      check(`/${route} 라우트 제거됨`, !(await exists(path.join(DIST, route))));
+    for (const route of ["points/history", "insights", "famous-saju", "records", "yeongnyangi/library"]) {
+      check(`/${route} 열람 경로 보존됨`, await exists(path.join(DIST, route, "index.html")));
     }
 
     // 웹 배포 전용 산출물 — build-mobile-app.mjs 의 removeWebOnlyArtifacts 가 지웠어야 한다.
@@ -487,6 +486,7 @@ if (DIST) {
     const referencedNames = await buildReferencedNameIndex(DIST);
     const deadSurvivors = [];
     for (const png of await walk(DIST, (file) => file.toLowerCase().endsWith(".png"))) {
+      if (isTalismanOriginal(png, DIST)) continue;
       if (!(await exists(`${png.slice(0, -4)}.webp`))) continue;
       if (referencedNames.has(path.basename(png))) continue;
       deadSurvivors.push(path.relative(DIST, png).replace(/\\/g, "/"));
@@ -565,9 +565,9 @@ if (DIST) {
       const afterCount = countPrunedLinks(pageWindow.document);
 
       check(
-        `${label}: 프루닝 링크 0건 (가드 실행 전 ${beforeCount}건)`,
-        afterCount === 0,
-        `남은 링크 ${afterCount}건`,
+        `${label}: 콘텐츠 링크 보존 (가드 실행 전 ${beforeCount}건)`,
+        afterCount === beforeCount,
+        `실행 후 링크 ${afterCount}건`,
       );
 
       if (relPath === YEONGNYANGI_HOME_PATH) {
@@ -578,7 +578,7 @@ if (DIST) {
       if (relPath === LEGACY_SHELL_PATH) {
         // 섹션째 사라져야 한다 — 앵커만 지우면 제목만 남은 빈 카드가 된다.
         for (const id of ["cd-insights-body", "cd-famous-body", "fsp-grid"]) {
-          check(`홈: #${id} 제거됨`, !pageWindow.document.getElementById(id));
+          check(`홈: #${id} 보존됨`, Boolean(pageWindow.document.getElementById(id)));
         }
         // 과잉 제거 감시 — 섹션 부모를 지우다 홈을 통째로 날리면 안 된다.
         // (.cd-section-body는 index.html에 2개뿐이고 둘 다 프루닝 대상이라 기준이 못 된다)

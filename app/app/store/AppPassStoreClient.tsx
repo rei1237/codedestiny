@@ -11,6 +11,8 @@ import { refreshUserAccessAfterPayment } from "@/app/_lib/user-session-cache";
 import {
   consumeNativePurchase,
   getNativeBridge,
+  getNativeBillingPlatform,
+  iosPurchasePreparationMessage,
   isNativeBillingReady,
   queryAppProducts,
   type AppProductDetails,
@@ -62,10 +64,18 @@ export default function AppPassStoreClient() {
   const [purchase, setPurchase] = useState<PurchaseState>({ tier: "", phase: "idle" });
   const [message, setMessage] = useState("");
   const [nativeReady, setNativeReady] = useState(true);
+  const [isIOS, setIsIOS] = useState(false);
 
   const productIds = useMemo(() => passPlans.map((plan) => plan.productId), [passPlans]);
 
   const loadProducts = useCallback(async () => {
+    if (getNativeBillingPlatform() === "ios") {
+      setIsIOS(true);
+      setNativeReady(false);
+      setLoadingProducts(false);
+      setMessage(iosPurchasePreparationMessage());
+      return;
+    }
     setLoadingProducts(true);
     // 커버 금액은 서버 가격표가 정본이다(웹 PASS_LIMITS → 앱가 환산). 네이티브 결제가
     // 준비되지 않아도 혜택 표시는 가능하므로 브리지 확인보다 먼저 받아둔다.
@@ -149,6 +159,10 @@ export default function AppPassStoreClient() {
   }, [copy]);
 
   const buy = useCallback(async (plan: PassPlan) => {
+    if (getNativeBillingPlatform() === "ios") {
+      setMessage(iosPurchasePreparationMessage());
+      return;
+    }
     // 중복 탭 방지 — 결제창이 두 번 뜨면 두 번 청구된다.
     if (purchase.phase !== "idle") return;
     setMessage("");
@@ -177,6 +191,7 @@ export default function AppPassStoreClient() {
         productId: plan.productId,
         productType: "inapp",
         obfuscatedAccountId: String(intentPayload?.data?.obfuscatedAccountId || ""),
+        obfuscatedProfileId: String(intentPayload?.data?.obfuscatedProfileId || ""),
       });
       if (!result || result.ok === false) {
         // 사용자가 결제창을 닫은 것은 오류가 아니다.
@@ -186,6 +201,14 @@ export default function AppPassStoreClient() {
         return;
       }
 
+      if (Number(result.purchaseState) === 2) {
+        setMessage(copy.pendingApprovalBody);
+        return;
+      }
+      if (Number(result.purchaseState) !== 1) {
+        setMessage(copy.paymentIncompleteMessage);
+        return;
+      }
       setPurchase({ tier: plan.passTier, phase: "verifying" });
       const verifyResponse = await authFetch("/api/app-store/google/verify", {
         method: "POST",
@@ -230,6 +253,15 @@ export default function AppPassStoreClient() {
       setPurchase({ tier: "", phase: "idle" });
     }
   }, [purchase.phase, copy, scheduleCheckoutReturn]);
+
+  if (isIOS) return (
+    <section className="grid gap-3 px-4 pb-6" aria-label={copy.storeAriaLabel}>
+      <p className="cd-app-body" role="status">{iosPurchasePreparationMessage()}</p>
+      <a className="cd-app-tap cd-app-press" href="/points/history/">
+        {typeof document !== "undefined" && document.documentElement.lang === "ja" ? "購入履歴を見る" : "구매 내역 확인하기"}
+      </a>
+    </section>
+  );
 
   return (
     <section className="grid gap-3 px-4 pb-6" aria-label={copy.storeAriaLabel}>

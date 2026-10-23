@@ -22,6 +22,9 @@
   if (window.__cdAppNativeBridgeInstalled) return;
   window.__cdAppNativeBridgeInstalled = true;
 
+  // Set the app API origin before any page or payment script runs.
+  window.CODE_DESTINY_API_BASE_URL = window.CODE_DESTINY_API_BASE_URL || "https://code-destiny.com";
+
   // Capture the pre-hydration choice; page initialization may write a route default.
   var previousAppLanguage = "";
   try {
@@ -256,11 +259,13 @@
   window.addEventListener("cd:auth-changed", function (event) {
     var source = event && event.detail && event.detail.source;
     if (source === 'subscription-sync' || source === 'membership-cache') return;
+    if (event && event.detail && event.detail.event === "login") void runPurchaseRecovery();
     var plugins = window.Capacitor && window.Capacitor.Plugins;
     var lock = plugins && plugins.CodeDestinyLockScreen;
     if (lock && lock.clearNotifications) lock.clearNotifications().catch(function () {});
   });
 
+  var PURCHASE_STATE_PURCHASED = 1;
   var PURCHASE_STATE_PENDING = 2;
 
   // --- 0) 진단 추적 ---------------------------------------------------------
@@ -445,6 +450,7 @@
     return (window.Capacitor && window.Capacitor.Plugins) || null;
   }
   function billingPlugin() {
+    if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios") return null;
     var p = plugins();
     return (p && p.CodeDestinyBilling) || null;
   }
@@ -755,19 +761,30 @@
   // Play 결제는 앱 밖 결제 시트에서 끝나므로, 직후 앱이 죽거나 네트워크가 끊기면
   // "돈은 나갔는데 콘텐츠가 없는" 상태가 남는다. 부팅·포그라운드 복귀마다 훑는 것이 유일한 안전망이다.
   var recoveryRunning = false;
+  function publishPurchaseRecoveryState(pendingCount) {
+    var state = { pendingCount: pendingCount };
+    window.__cdAppPurchaseRecoveryState = state;
+    window.dispatchEvent(new CustomEvent("cd:app-purchase-state", { detail: state }));
+  }
   async function runPurchaseRecovery() {
+    if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios") return;
     if (recoveryRunning) return;
+    if (!readLocal("fortune_auth_token")) return;
     var plugin = billingPlugin();
     if (!plugin || !plugin.restore) return;
     recoveryRunning = true;
     try {
       var restored = await plugin.restore({ productType: "all" });
+      if (!restored || restored.ok === false) return;
       var purchases = (restored && restored.purchases) || [];
+      publishPurchaseRecoveryState(purchases.filter(function (purchase) {
+        return Number(purchase.purchaseState) === PURCHASE_STATE_PENDING;
+      }).length);
       if (!purchases.length) return;
 
       // PENDING(편의점·계좌이체)은 아직 결제 확정 전이라 서버로 보내지 않는다(402로 떨어진다).
       var settled = purchases.filter(function (purchase) {
-        return Number(purchase.purchaseState) !== PURCHASE_STATE_PENDING;
+        return Number(purchase.purchaseState) === PURCHASE_STATE_PURCHASED;
       });
       if (!settled.length) return;
 
@@ -1312,6 +1329,23 @@
   installThemeMutationProbe();
 
   function boot() {
+    // 앱에 포함된 실제 홈의 내 정보 메뉴에서 배경화면으로 진입한다.
+    // 기존 기록 링크를 바꾸지 않고 같은 메뉴 스타일을 재사용한다.
+    var historyLink = document.querySelector('#cdMySheet a[href^="/points/history"]') ||
+      document.querySelector('.my-garden-menu a[href^="/points/history"]');
+    if (historyLink && !document.getElementById("cdTalismanEntry")) {
+      var item = document.createElement("li");
+      var link = document.createElement("a");
+      link.id = "cdTalismanEntry";
+      link.href = "/app/talismans/index.html";
+      var syncTalismanLabel = function () {
+        link.textContent = document.documentElement.lang === "ja" ? "月明かりのお守り・壁紙" : "달빛 부적 · 배경화면";
+      };
+      syncTalismanLabel();
+      window.addEventListener("cd:locale-ready", syncTalismanLabel);
+      item.appendChild(link);
+      historyLink.closest("li").insertAdjacentElement("afterend", item);
+    }
     installAppLocaleBridge();
     installAppUrlListener();
     installBackButton();
@@ -1320,6 +1354,17 @@
     installDiagnosticsGesture();
     installProfileSheetProbe();
     installLogoutCredentialClear();
+    // visibilitychange뿐 아니라 네이티브 onResume와 지연 완료 콜백에서도 같은 복구를 쓴다.
+    var app = appPlugin();
+    if (app && app.addListener) {
+      Promise.resolve(app.addListener("appStateChange", function (state) {
+        if (state && state.isActive) void runPurchaseRecovery();
+      })).catch(function () {});
+    }
+    var billing = billingPlugin();
+    if (billing && billing.addListener) {
+      Promise.resolve(billing.addListener("purchasesUpdated", function () { void runPurchaseRecovery(); })).catch(function () {});
+    }
     trace("boot", { path: window.location.pathname, hasBrowser: !!browserPlugin() });
     // 브릿지·플러그인이 준비될 여유를 두고 복구를 태운다.
     // 🔴 Zero-Tap 복원이 **먼저**다 — 복원으로 세션이 살아나야 뒤따르는 구매 복구가 그 계정에

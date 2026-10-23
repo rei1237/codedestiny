@@ -88,6 +88,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(CodeDestinyLockScreenPlugin.class);
         // Zero-Tap Sign-In(Restore Credentials) 브리지 — 뼈대만. 서버 검증·호출부는 후속 PR.
         registerPlugin(CodeDestinyCredentialsPlugin.class);
+        registerPlugin(CodeDestinyWallpaperPlugin.class);
         // 라우트 해석기도 super.onCreate 이전에 등록해야 한다 —
         // BridgeActivity.onCreate 가 bridgeBuilder.create() 로 브리지를 만들어 버린다.
         installRouteProcessor();

@@ -233,7 +233,14 @@ public class CodeDestinyBillingPlugin extends Plugin implements PurchasesUpdated
     @Override
     public void onPurchasesUpdated(BillingResult billingResult, List<Purchase> purchases) {
         PluginCall call = pendingPurchaseCall;
-        if (call == null) return;
+        if (call == null) {
+            // 편의점 입금은 최초 결제창이 닫힌 뒤 완료될 수 있다. 토큰을 이벤트에 싣지
+            // 않고 기존 restore→서버 검증 경로를 깨운다.
+            if (isOk(billingResult) && purchases != null && !purchases.isEmpty()) {
+                notifyListeners("purchasesUpdated", new JSObject());
+            }
+            return;
+        }
 
         if (!isOk(billingResult)) {
             clearPendingPurchase();

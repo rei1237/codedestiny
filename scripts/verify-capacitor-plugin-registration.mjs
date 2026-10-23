@@ -226,6 +226,12 @@ const mustRegister = [];
 const runtimeOwned = [];
 let discovered = 0;
 for (const name of capacitorDeps) {
+  // The iOS platform runtime has no JVM plugins and is installed only for iOS builds.
+  // Android CI still verifies every Android-capable plugin and its explicit registration.
+  if (name === "@capacitor/ios") {
+    notes.push(`${name}: iOS 플랫폼 런타임 — Android 등록 대상 아님`);
+    continue;
+  }
   const dir = resolvePkgDir(name);
   if (!dir) continue;
   const classes = discoverPluginClasses(dir);

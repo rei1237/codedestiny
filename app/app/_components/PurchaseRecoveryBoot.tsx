@@ -6,6 +6,7 @@ import {
   consumeNativePurchase,
   isNativeBillingReady,
   PURCHASE_STATE_PENDING,
+  PURCHASE_STATE_PURCHASED,
   restoreNativePurchases,
   type AppNativePurchase,
 } from "@/app/app/_lib/native-billing";
@@ -52,7 +53,7 @@ export default function PurchaseRecoveryBoot() {
 
       // PENDING은 아직 결제 확정 전이라 서버로 보내지 않는다(검증에서 402로 떨어진다).
       const settled: AppNativePurchase[] = purchases.filter(
-        (purchase) => Number(purchase.purchaseState) !== PURCHASE_STATE_PENDING,
+        (purchase) => Number(purchase.purchaseState) === PURCHASE_STATE_PURCHASED,
       );
       if (!settled.length) return;
 
@@ -84,6 +85,13 @@ export default function PurchaseRecoveryBoot() {
   }, []);
 
   useEffect(() => {
+    const syncNativeState = (event?: Event) => {
+      const state = (event as CustomEvent<{ pendingCount?: number }> | undefined)?.detail
+        || (window as unknown as { __cdAppPurchaseRecoveryState?: { pendingCount?: number } }).__cdAppPurchaseRecoveryState;
+      setPendingCount(Math.max(0, Number(state?.pendingCount) || 0));
+    };
+    syncNativeState();
+    window.addEventListener("cd:app-purchase-state", syncNativeState);
     // 브리지(MobileAppRuntimeBridge)가 설치되기 전에 뜰 수 있어 한 박자 늦춘다.
     const timer = window.setTimeout(() => void recover(), 600);
     const onVisible = () => {
@@ -93,6 +101,7 @@ export default function PurchaseRecoveryBoot() {
     return () => {
       window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("cd:app-purchase-state", syncNativeState);
     };
   }, [recover]);
 

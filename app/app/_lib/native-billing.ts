@@ -59,8 +59,21 @@ export function getNativeBridge(): NativeBridge | null {
 }
 
 export function isNativeBillingReady(): boolean {
+  if (getNativeBillingPlatform() === "ios") return false;
   const bridge = getNativeBridge();
   return typeof bridge?.purchase === "function";
+}
+
+export function getNativeBillingPlatform(): string {
+  if (typeof window === "undefined") return "web";
+  const capacitor = (window as unknown as { Capacitor?: { getPlatform?: () => string } }).Capacitor;
+  return capacitor?.getPlatform?.() || "web";
+}
+
+export function iosPurchasePreparationMessage(): string {
+  return typeof document !== "undefined" && document.documentElement.lang === "ja"
+    ? "iPhoneでの新規購入は準備中です。購入済みの内容は同じアカウントで確認できます。"
+    : "iPhone의 새 구매 기능은 준비 중이에요. 기존 구매 내역은 같은 계정으로 확인할 수 있어요.";
 }
 
 export async function queryAppProducts(productIds: string[]): Promise<AppProductDetails[]> {
