@@ -1,6 +1,6 @@
 import { appendBasicFortunePersona } from '../lib/expert-character-personas.js';
 import {validateSajuNatalPayload} from "../lib/saju-correction.js";
-import { deliverFeatureQuestion, readFeatureQuestionRequest } from '../lib/feature-question-delivery.js';
+import { deliverFeatureQuestion, missingCalculatedFactsResponse, readFeatureQuestionRequest } from '../lib/feature-question-delivery.js';
 import { deliverGuardianPaid } from '../lib/guardian-paid-delivery.js';
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
@@ -4470,6 +4470,9 @@ async function handleAstrologyAIPrompt(request, auth, env) {
   let isCardSpend = false;
 
   try {
+    // 계산 근거가 비면 생성이 결정적으로 422 이므로 차감 앞에서 끝낸다.
+    const missingFacts = missingCalculatedFactsResponse({ astrologyResult, compatibilityResult });
+    if (missingFacts) return missingFacts;
     const delegatedRequest = new Request(request.url, {
       method: "POST",
       headers: new Headers({
@@ -4633,6 +4636,8 @@ async function handleVedicAIPrompt(request, auth, env) {
   let passRefund = null;
 
   try {
+    const missingFacts = missingCalculatedFactsResponse({ houseRulers: builtPrompt.houseRulers, vedicResult, compatibilityResult });
+    if (missingFacts) return missingFacts;
     const delegatedRequest = new Request(request.url, {
       method: "POST",
       headers: new Headers({
@@ -5621,6 +5626,8 @@ async function handleZiweiAIPrompt(request, auth, env) {
   let passRefund = null;
 
   try {
+    const missingFacts = missingCalculatedFactsResponse(chartResult);
+    if (missingFacts) return missingFacts;
     const delegatedRequest = new Request(request.url, {
       method: "POST",
       headers: new Headers({
@@ -5883,6 +5890,8 @@ async function handleSukuyoAIPrompt(request, auth, env) {
       });
     }
 
+    const missingFacts = missingCalculatedFactsResponse({ basicResult: { ...basicResult, daily: undefined }, compatibilityResult });
+    if (missingFacts) return missingFacts;
     const delegatedRequest = new Request(request.url, {
       method: "POST",
       headers: new Headers({

@@ -48,6 +48,15 @@ export function questionFacts(value, path = 'chart', rows = []) {
   return rows;
 }
 
+const missingFactsError = () => Object.assign(Error('상담의 계산 근거가 필요합니다.'), { status: 422, code: 'MISSING_CALCULATED_FACTS' });
+
+// seed 의 같은 검사를 결제(차감) 앞에서 돌려 본다. 차감 뒤에 던지면 입력만 고치면 열릴 고객의 코인·한도가 묶인다.
+export function missingCalculatedFactsResponse(factsInput) {
+  if (questionFacts(factsInput).length) return null;
+  const { code, message } = missingFactsError();
+  return json({ ok: false, code, message, retryable: false, paymentRetainedForRetry: false }, { status: 422 });
+}
+
 export async function deliverFeatureQuestion(request, env, auth, supplied, { featureKey, prepare, verify, refund }) {
   try {
     const body = { ...supplied };
@@ -59,7 +68,7 @@ export async function deliverFeatureQuestion(request, env, auth, supplied, { fea
       seed: async original => {
         const { built, factsInput } = await prepare(original);
         const facts = questionFacts(factsInput);
-        if (!facts.length) throw Object.assign(Error('상담의 계산 근거가 필요합니다.'), { status: 422, code: 'MISSING_CALCULATED_FACTS' });
+        if (!facts.length) throw missingFactsError();
         return { built: JSON.parse(JSON.stringify(built)), facts, paymentProof: proof,
           prompt: String(built.generatedPrompt || built.prompt || ''),
           systemPrompt: '각 점술 체계를 섞지 말고 제공된 계산값만 해설합니다. 시기 정보가 없으면 날짜를 지어내지 않습니다. 확률이나 타인의 마음을 단정하지 않고 근거와 반대 조건, 실행 가능한 선택을 제시합니다. 호칭은 처음부터 끝까지 \'당신\'으로 통일하고 HTML 태그를 쓰지 않습니다.',

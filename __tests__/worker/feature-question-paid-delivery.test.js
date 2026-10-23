@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 import { BSON } from 'mongodb';
-let delivery, readRequest, refund, consume;
+let delivery, readRequest, missingFacts, refund, consume;
 let docs,provider,revoked,userId,fault,lost,external,kind,mode,builtExtra,bsonRoundTrip;
 const owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
@@ -34,7 +34,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async()=>{if(mode==='denied')throw new HttpError(403,'payment denied');return {ok:true,accessType:mode};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/lib/gemini.js',()=>({...gemini,callGeminiText:(...args)=>provider(...args)}));
- ({deliverFeatureQuestion:delivery,readFeatureQuestionRequest:readRequest}=await import('../../worker/lib/feature-question-delivery.js'));
+ ({deliverFeatureQuestion:delivery,readFeatureQuestionRequest:readRequest,missingCalculatedFactsResponse:missingFacts}=await import('../../worker/lib/feature-question-delivery.js'));
 });
 beforeEach(()=>{docs=[];bsonRoundTrip=false;builtExtra={};revoked=false;userId=owner;fault=null;lost=false;kind='Astrology';mode='pass';
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
@@ -49,7 +49,7 @@ function handler(){
  const feature=kind.toLowerCase()+'_ai_prompt_generator';
  const built={prompt:'원래 계산 근거를 해설하는 질문 상담'.repeat(10),digestSource:'original-calculation',title:'전문가 상담',...builtExtra};
  const context=vm.createContext({Request,Response,Headers,Date,console:{error(){}},
-  readFeatureQuestionRequest:readRequest,deliverFeatureQuestion:delivery,
+  readFeatureQuestionRequest:readRequest,deliverFeatureQuestion:delivery,missingCalculatedFactsResponse:missingFacts,
   enrichAstrologyPromptResultWithSwiss:async value=>value,primePromptTemplateOverrides:async()=>{},
   sha256Hex:async()=> 'a'.repeat(64),readAIPromptRequestId:(body,fallback)=>body.requestId||fallback,
   handlePigCoinConsume:(...args)=>consume(...args),handlePigCoinRefund:(...args)=>refund(...args),
@@ -103,6 +103,11 @@ test.each(['short','hash','claim','truncated'])('%s is repaired locally when the
  const good=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{const response=await good(...args),value=JSON.parse(response.text);if(failure==='short')value.body='짧은 답변.';if(failure==='hash')value.evidenceHash='wrong';if(failure==='claim')value.claims[0].value='Moon';return {...response,truncated:failure==='truncated',text:JSON.stringify(value)};});await start();const recoverable=['claim','truncated'].includes(failure);expect(Object.keys(docs[0].metadata.paidNarrative.parts)).toHaveLength(recoverable?4:3);expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(recoverable?10:11);
 });
 test('rejected access, wrong owner and revocation prevent provider calls',async()=>{consume.mockResolvedValueOnce(new Response('{}',{status:402}));expect((await start()).status).toBe(402);expect(provider).not.toHaveBeenCalled();await start();userId='other-owner';expect((await resume()).status).toBe(404);userId=owner;revoked=true;expect((await resume()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(4);});
+test.each(['Astrology','Vedic','Ziwei','Sukuyo'])('%s 계산 근거가 비어 있으면 차감 전에 422 로 끝난다',async type=>{
+ kind=type;const response=await post({...original(),astrologyResult:{},vedicResult:{},chartResult:{},basicResult:{}});
+ expect(response.status).toBe(422);expect(await response.json()).toMatchObject({code:'MISSING_CALCULATED_FACTS',retryable:false});
+ expect(consume).not.toHaveBeenCalled();expect(provider).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();expect(docs).toHaveLength(0);
+});
 test('same input key cannot substitute new calculations',async()=>{await start();expect((await post({...original(),question:'다른 질문으로 바꾸었습니다.'})).status).toBe(409);expect(provider).toHaveBeenCalledTimes(4);});
 test.each([['monthly','Astrology'],['single','Astrology'],['pass','Ziwei'],['pass','Sukuyo'],['pass','Vedic']])('exhausted %s %s refund runs once despite a repeated request',async(access,type)=>{kind=type;mode=access;provider.mockResolvedValue({ok:false});await start();expect((await finish()).status).toBe(500);expect((await resume()).status).toBe(500);expect(refund).toHaveBeenCalledTimes(1);});
 
