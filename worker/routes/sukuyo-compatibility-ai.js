@@ -1295,7 +1295,8 @@ async function resolveStartAccess(request, env, auth, body, normalized, accessHa
   const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: FEATURE_KEY,
     coinPrice: COIN_PRICE, requestId: idempotencyKey, acceptSettled: true });
   if (settled.allowed === null) throw resultStorageUnavailable(idempotencyKey);
-  if (settled.allowed) return { ok: true, accessType: mapAccessType(decision, user || {}), paymentId: paymentIdFromBody(body) };
+  if (settled.allowed) return { ok: true, accessType: mapAccessType(decision, user || {}), paymentId: paymentIdFromBody(body),
+    requestId: idempotencyKey, passRefund: settled.passRefund };
   const paidPaymentId = paymentIdFromBody(body);
   const paidPaymentDocId = await findPaidPaymentId(env, auth, paidPaymentId);
   if (paidPaymentDocId) return { ok: true, accessType: "paid", paymentId: paidPaymentId, claimEvidenceId: paidPaymentDocId };
@@ -1733,8 +1734,13 @@ function executionAccessMethod(accessType) {
 // 선차감(코인/월정석)된 접근에서 생성이 실패하면 차감을 되돌린다.
 // vedic-ai.js의 restorePrepaidAccessOnFailure와 동일한 멱등 환급 규약을 따른다.
 async function restorePrepaidAccessOnFailure(env, auth, access, error) {
+  if (access?.passRefund) {
+    const { refundPassCoverage } = await import("../lib/pass-consumption.js");
+    const { cycleKey, cost, restorePass } = access.passRefund;
+    return refundPassCoverage({ userId: auth.userId, refundId: `${FEATURE_KEY}:${access.requestId}`, cycleKey, cost, restorePass });
+  }
   const accessType = clean(access?.accessType).toLowerCase();
-  // 이용권/월정석 커버(pass/family/license)·관리자·토큰 접근은 차감이 없으므로 환급 대상 아님.
+  // 이용권 차감은 위 스냅샷으로 복원하고, 나머지는 기존 선결제 증빙으로 환급한다.
   if (!["paid", "subscription"].includes(accessType)) return false;
   const evidenceId = clean(access?.paymentId, 160);
   if (!isObjectIdLike(evidenceId)) return false; // PG 직접결제(merchantUid 문자열)는 재시도로 자가복구되므로 제외.
@@ -1944,6 +1950,8 @@ async function handleStart(request, env, recoveryAuth = null) {
       consultationType: normalized.consultationType,
     });
     const access = await resolveStartAccess(request, env, auth, body, normalized, accessHash);
+    access.passRefund ||= existing?.llmMeta?.passRefund;
+    access.requestId = idempotencyKey;
     if (!access.ok) {
       logSukyoAi("[Sukyo AI LLM Access Check Success]", {
         route: "/api/sukuyo-compatibility-ai/generate",
@@ -2014,7 +2022,7 @@ async function handleStart(request, env, recoveryAuth = null) {
       accessType: access.accessType,
       paymentId: access.paymentId || paymentIdFromBody(body),
       messages: existing?.messages || [],
-      llmMeta: { ...(existing?.llmMeta || {}), calculation, resumeBody: existing?.llmMeta?.resumeBody || { ...body, accessToken: undefined, access_token: undefined } },
+      llmMeta: { ...(existing?.llmMeta || {}), ...(access.passRefund ? { passRefund: access.passRefund } : {}), calculation, resumeBody: existing?.llmMeta?.resumeBody || { ...body, accessToken: undefined, access_token: undefined } },
       provider: "",
       model: "",
       status: "generating",

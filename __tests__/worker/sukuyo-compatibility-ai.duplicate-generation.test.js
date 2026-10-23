@@ -12,6 +12,9 @@
  *    빈 시드(messages: [])로 덮여 사라진다.
  */
 import { jest } from "@jest/globals";
+import { refundPassCoverage as restoreQuota } from '../../worker/lib/pass-consumption.js';
+import { makeFakePaymentDb } from '../fixtures/fake-payment-db.mjs';
+import '../../worker/payments/db.js';
 
 const USER_ID = "64b7f2a1c3d4e5f601234567";
 const KEY = "sukuyo-ai-duplicate-window-test";
@@ -36,6 +39,7 @@ let storageFault;
 let revokedAt = -1;
 let paidMode = "pass";
 let blockedFetch;
+let passRefund, passDb;
 
 /** 24-hex ObjectId 모양. 라우트가 /^[0-9a-f]{24}$/ 로 검사한다. */
 let objectIdCounter = 0;
@@ -156,6 +160,7 @@ async function waitFor(predicate, label) {
 }
 
 beforeAll(async () => {
+  jest.unstable_mockModule('../../worker/lib/pass-consumption.js', () => ({ refundPassCoverage: input => restoreQuota({ ...input, db: passDb }) }));
   blockedFetch = jest.spyOn(globalThis, "fetch").mockRejectedValue(new Error("EXTERNAL_FETCH_BLOCKED"));
   store = createConsultationStore();
   jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({
@@ -180,7 +185,7 @@ beforeAll(async () => {
   }));
   // 이용권 허용은 이번 키로 정산(차감)해야 열린다 — 정산이 같은 판정을 따르게 둔다.
   jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
-    settlePerUseAccessDecision: jest.fn(async (_env, args) => ({ allowed: args?.decision?.allowed === true, source: "pass", reason: "" })),
+    settlePerUseAccessDecision: jest.fn(async (_env, args) => ({ allowed: args?.decision?.allowed === true, source: "pass", reason: "", passRefund })),
   }));
 
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({
@@ -223,6 +228,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  passRefund=undefined;
   storageFault = null; revokedAt = -1; paidMode = "pass";
   store.docs.length = 0;
   findCallArgs = [];
@@ -271,6 +277,16 @@ test("짧은 결과는 세 번만 보완한 뒤 실패로 남긴다", async () =
   for (let i = 0; i < 2; i++) expect((await runWave()).status).toBe(202);
   expect((await runWave()).status).toBe(503); expect(store.docs[0].status).toBe("generation_failed");
   expect((await runWave()).status).toBe(409); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(2);
+});
+test('소진 종료된 이용권은 재개한 숙요 생성 실패 뒤 저장된 복원 정보로 되살아난다', async () => {
+  const expiresAt='2099-09-30T00:00:00.000Z';passDb=makeFakePaymentDb();
+  passDb.rows.push({_id:USER_ID,profileSubscription:{tier:'free',passTier:'',premiumUseCycleKey:expiresAt,monthlySpendCoin:600,monthlyLimitCoin:0,expiresAt:new Date('2099-09-23'),passExhaustedAt:new Date('2099-09-23'),passExhaustedFromExpiresAt:new Date(expiresAt)}});
+  passRefund={cycleKey:expiresAt,cost:100,restorePass:{tier:'premium',expiresAt,monthlyLimitCoin:600,maxCoveredCoin:100,profileLimit:7}};
+  callGeminiJsonWithRetryMock.mockResolvedValue({ok:true,provider:'gemini',text:buildSectionPayload([])});
+  expect((await runWave()).status).toBe(202);passRefund=undefined;
+  expect((await runWave()).status).toBe(202);expect((await runWave()).status).toBe(503);
+  expect(passDb.rows[0].profileSubscription).toMatchObject({tier:'premium',monthlyLimitCoin:600,monthlySpendCoin:500});
+  expect(new Date(passDb.rows[0].profileSubscription.expiresAt).toISOString()).toBe(expiresAt);
 });
 test("예전 완료본은 현재 분량 검사나 추가 생성 없이 다시 읽는다", async () => {
   store.seed({ userId: USER_ID, idempotencyKey: KEY, personA: {}, personB: {}, sukuyoResult: {}, relationshipType: "연인", topic: "전체", accessType: "pass", messages: [{ role: "assistant", content: "과거 본문" }] });

@@ -8,6 +8,7 @@ import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { settlePerUseAccessDecision } from "../lib/nakshatra-paid-access.js";
+import { refundPassCoverage } from "../lib/pass-consumption.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
@@ -1244,7 +1245,7 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "", { before
         reason: settled.reason,
       });
     }
-    evidence = { source: settled.source, evidenceId: settleRequestId };
+    evidence = { source: settled.source, evidenceId: settleRequestId, ...(settled.passRefund ? { passRefund: settled.passRefund } : {}) };
   }
 
   const fallbackEvidence = readContextEvidenceId(ctx, body) || `${method}:${auth.userId}:${inputHash}`;
@@ -1440,8 +1441,7 @@ async function markNamingGenerationFailed(env, executionId, error, userId, lease
   );
 }
 
-// 월정석만 하드 환불한다(love-secret-ai.js와 동일 전략). 단건/이용권은 환불하지 않고 재시도로 회복 —
-// 같은 결제/이용권 증거로 /generate를 다시 호출하면 재생성된다(추가 차감 없음).
+// 확정 무결과 실패는 저장된 차감 증빙으로 월정석·이용권을 복원한다. 단건 결제 경로는 유지한다.
 async function refundNamingMonthlyCredit(env, auth, access) {
   const evidence = access?.evidence;
   if (!evidence?.evidenceId) return { refunded: false };
@@ -1515,6 +1515,11 @@ async function refundNamingMonthlyCredit(env, auth, access) {
 }
 
 async function restoreNamingAccessOnFailure(env, auth, access) {
+  const passRefund = access?.evidence?.passRefund;
+  if (passRefund) {
+    return refundPassCoverage({ userId: auth.userId, refundId: `${FEATURE_KEY}:${access.evidence.evidenceId}`,
+      cycleKey: passRefund.cycleKey, cost: passRefund.cost, restorePass: passRefund.restorePass });
+  }
   if (access?.accessMethod === "monthly") {
     return refundNamingMonthlyCredit(env, auth, access).catch(() => ({ refunded: false }));
   }
@@ -1746,7 +1751,7 @@ async function handleGenerate(request, env, _routeContext = null, recoveryAuth =
       const current = await saveNamingDelivery(filter, { result: { namingPrompt: snapshot } });
       if (wave.limited && delivery.confirmedEmptyNamingFailure(wave.state)) {
         await markNamingGenerationFailed(env, claim.executionId, Object.assign(new Error("작명첩 품질 기준 미달"), { code: "NAMING_RESULT_TOO_SHORT" }), String(auth.userId), claim.lease);
-        await restoreNamingAccessOnFailure(env, auth, access);
+        await restoreNamingAccessOnFailure(env, auth, snapshot.access || access);
         return json({ ok: false, retryable: false, reason: "LLM_ERROR", executionId: claim.executionId, resultId: claim.executionId, message: NAMING_LLM_ERROR_MESSAGE }, { status: 503 });
       }
       if (!delivery.namingReportComplete(wave.state)) return namingPendingResponse(current);

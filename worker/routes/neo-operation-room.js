@@ -604,6 +604,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
         ok: true,
         accessType: "pass",
         paymentId: ctx.transactionId || ctx.paymentId || "",
+        passRefund: settled.passRefund,
         source: "billing-gate",
         executionSourceTransactionId: ctx.transactionId,
         executionPayment: body.payment,
@@ -1282,12 +1283,12 @@ async function recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pr
 }
 
 async function startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing) {
-  if (access.source !== "billing-gate" || !access.executionSourceTransactionId) return null;
+  if (access.source !== "billing-gate" || (!access.executionSourceTransactionId && !access.passRefund)) return null;
   const result = await startServiceExecution(env, auth.userId, {
     executionKey: `${FEATURE_KEY}:${idempotencyKey}`,
     requestId: `${FEATURE_KEY}:${idempotencyKey}`,
     featureKey: FEATURE_KEY,
-    cost: pricing.coinPrice,
+    cost: access.passRefund ? 0 : pricing.coinPrice,
     sourceTransactionId: access.executionSourceTransactionId,
     sessionId,
     payment: access.executionPayment,
@@ -1296,6 +1297,7 @@ async function startRefundableExecution(env, auth, access, idempotencyKey, sessi
       serviceKey: SERVICE_KEY,
       featureKey: FEATURE_KEY,
       billing: access.billingContext || null,
+      ...(access.passRefund ? { passRefund: access.passRefund } : {}),
     },
   }).catch((error) => {
     console.warn("[neo-operation-room] execution guard start failed", { message: clean(error?.message || error, 300) });
@@ -1703,6 +1705,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   if (!doc) return pendingNeo(existing);
   const filter = { id: sessionId, userId: auth.userId, "llmMeta.lockToken": lockToken, status: { $ne: "completed" } };
   try {
+    await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
     if (!doc.methodSummary) {
       const methodSummary = await calculateMethodSummary(env, normalized, request);
       doc = await saveNeoDelivery(filter, { methodSummary, llmMeta: { ...doc.llmMeta, resumeBody } }, sessionId);
@@ -1731,7 +1734,6 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
         attempts[section.id] = Number(attempts[section.id] || 0) + 1;
       });
       doc = await saveNeoDelivery(filter, { llmMeta: { ...doc.llmMeta, resumeBody, attempts } }, sessionId);
-      await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
       const context = { ...normalized.input, birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true, methodSummary: doc.methodSummary };
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {

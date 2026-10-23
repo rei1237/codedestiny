@@ -1,12 +1,15 @@
 /** @jest-environment node */
 import { jest } from "@jest/globals";
+import * as passConsumption from '../../worker/lib/pass-consumption.js';
+import { makeFakePaymentDb } from '../fixtures/fake-payment-db.mjs';
+import '../../worker/payments/db.js';
 // Stress fixture: preserve multi-part storage/lease failures at the former batch width.
 // Production's one-part contract is covered by paid-llm-sequential.test.js.
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
 const uid="64b7f2a1c3d4e5f601234567";
-let route,docs,provider,fault,lost,refund,blocked,mode,userId,fetchBlock,settle,noCharge;
+let route,docs,provider,fault,lost,refund,blocked,mode,userId,fetchBlock,settle,noCharge,passDb;
 const clone=v=>v==null?v:structuredClone(v);
 const get=(d,k)=>k.split('.').reduce((v,p)=>v?.[p],d);
 function set(d,k,v){const keys=k.split('.');const end=keys.pop();let o=d;for(const key of keys)o=o[key]??={};o[end]=clone(v);}
@@ -29,6 +32,7 @@ const model={
  updateOne:async(f,u)=>{const doc=docs.find(d=>matches(d,f));if(doc)for(const[k,v]of Object.entries(u.$set||{}))set(doc,k,v);return {modifiedCount:doc?1:0};},
 };
 beforeAll(async()=>{
+ jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({...passConsumption,refundPassCoverage:input=>passConsumption.refundPassCoverage({...input,db:passDb})}));
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),gemini=await import('../../worker/lib/gemini.js');
  const featureAccess=await import('../../worker/lib/paid-feature-access.js'),paidAccess=await import('../../worker/lib/nakshatra-paid-access.js');
  // 정산(차감) 분기는 기본 픽스처가 "이미 차감된 증빙"으로 통과해 타지 않는다 — noCharge 테스트에서만 이 두 호출을 가로챈다.
@@ -57,6 +61,16 @@ beforeEach(()=>{docs=[];fault=null;lost=false;blocked=false;mode='PASS';userId=u
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore();});
 async function start(){return route(new Request('https://mock.test/api/naming-prompt/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:'original-paid',input:{gender:'F',birthDate:'1995-04-18',birthTime:'09:00',calendarType:'solar',familyName:'김'}})}),{});}
 async function resume(extra={}){return route(new Request('https://mock.test/api/naming-prompt/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resumeExecutionId:docs[0].executionId,...extra})}),{});}
+it('소진 종료된 이용권은 작명 생성의 확정 실패 뒤 등급과 만료일과 한도가 복원된다',async()=>{
+ noCharge=true;passDb=makeFakePaymentDb();const expiresAt='2099-09-30T00:00:00.000Z';
+ passDb.rows.push({_id:uid,profileSubscription:{tier:'free',passTier:'',premiumUseCycleKey:expiresAt,monthlySpendCoin:600,monthlyLimitCoin:0,expiresAt:new Date('2099-09-23'),passExhaustedAt:new Date('2099-09-23'),passExhaustedFromExpiresAt:new Date(expiresAt)}});
+ settle.mockResolvedValue({allowed:true,source:'pass',passRefund:{cycleKey:expiresAt,cost:100,restorePass:{tier:'premium',expiresAt,monthlyLimitCoin:600,maxCoveredCoin:100,profileLimit:7}}});
+ provider.mockResolvedValue({ok:true,provider:'gemini',text:'유효한 이름 후보 없음'});
+ await start();await resume();
+ expect(docs[0].status).toBe('generation_failed');
+ expect(passDb.rows[0].profileSubscription).toMatchObject({tier:'premium',monthlySpendCoin:500,monthlyLimitCoin:600});
+ expect(new Date(passDb.rows[0].profileSubscription.expiresAt).toISOString()).toBe(expiresAt);
+});
 for(const access of ['PASS','MONTHLY','SINGLE'])it(`${access}: stored provider body is completed and replayed without regenerating`,async()=>{
  mode=access;expect((await start()).status).toBe(202);expect((await start()).status).toBe(202);const first=await start();expect(first.status).toBe(201);expect((await first.json()).result.generatedResult).toContain('이름의 의미');expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(9);
  expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(9);expect(refund).not.toHaveBeenCalled();

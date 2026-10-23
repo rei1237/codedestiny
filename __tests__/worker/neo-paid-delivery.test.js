@@ -7,7 +7,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { idempotencyKey: "original-paid-request", selectedMethod: "saju", topic: "relationship", intensity: "standard", question: "반복되는 관계 선택을 구체적으로 살펴보고 싶습니다.", birthInput: { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", calendarType: "solar" } };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation;
+let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, startExecution;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -77,12 +77,12 @@ beforeAll(async () => {
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null) },
   }));
   jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({ canAccessPaidFeature: async () => ({ allowed: mode === "pass", accessSource: "family_pass" }), PAID_FEATURE_ACCESS_USER_PROJECTION: "id" }));
-  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({ settlePerUseAccessDecision: async (_env, args) => ({ allowed: args?.decision?.allowed === true, source: "pass", reason: args?.decision?.allowed ? "" : "PAYMENT_REQUIRED" }) }));
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({ settlePerUseAccessDecision: async (_env, args) => ({ allowed: args?.decision?.allowed === true, source: "pass", reason: args?.decision?.allowed ? "" : "PAYMENT_REQUIRED", passRefund }) }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? {} : null }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({ callGeminiText: (...args) => provider(...args) }));
   jest.unstable_mockModule("../../worker/lib/life-book-ai-saju.js", () => ({ calculateLifeBookAiSaju: (...args) => chart(...args) }));
   jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({ autoRefundSinglePaymentDeliveryFailure: (...args) => refund(...args) }));
-  jest.unstable_mockModule("../../worker/lib/service-execution-task.js", () => ({ startServiceExecution: async () => ({}), completeServiceExecution: async () => ({}), failServiceExecution: (...args) => refund(...args) }));
+  jest.unstable_mockModule("../../worker/lib/service-execution-task.js", () => ({ startServiceExecution: (...args) => startExecution(...args), completeServiceExecution: async () => ({}), failServiceExecution: (...args) => refund(...args) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
   ({ NEO_INITIAL_SECTIONS: definitions, NEO_REFINED_SECTIONS: refinedDefinitions } = await import("../../worker/lib/neo-operation-room-prompt.js"));
   ({ handleNeoOperationRoomRoutes: route, __neoOperationRoomTestUtils: utils } = await import("../../worker/routes/neo-operation-room.js"));
@@ -107,6 +107,7 @@ function fixture(section) {
   return walk(shape,'','',true);
 }
 beforeEach(() => {
+ passRefund=undefined;startExecution=jest.fn(async()=>({}));
  docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));chart=jest.fn(async()=>({}));
  provider=jest.fn(async(_env,prompt,options)=>{
    expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
@@ -117,6 +118,14 @@ beforeEach(() => {
 });
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore()});
 async function start(extra) { return route(new Request('https://mock.test/api/neo-operation-room/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(extra || (docs[0] ? {sessionId:docs[0].id}:body))}),{}); }
+it('이용권 복원 정보를 계산 전에 등록해 계산 실패도 환급 대상으로 남긴다',async()=>{
+ passRefund={cycleKey:'2099-09-30T00:00:00.000Z',cost:300,restorePass:{tier:'family',expiresAt:'2099-09-30T00:00:00.000Z',monthlyLimitCoin:5000}};
+ chart.mockImplementation(()=>{throw Error('chart unavailable');});
+ expect((await start()).status).toBe(503);
+ expect(startExecution).toHaveBeenCalledWith({},uid,expect.objectContaining({cost:0,metadata:expect.objectContaining({passRefund})}));
+ expect(startExecution.mock.invocationCallOrder[0]).toBeLessThan(chart.mock.invocationCallOrder[0]);
+ expect(refund).toHaveBeenCalled();expect(provider).not.toHaveBeenCalled();
+});
 for(const paid of ['pass','monthly','paid']) it(`${paid}: four waves save and reuse all fourteen sections`,async()=>{
  mode=paid;
  for(let i=0;i<3;i++){const response=await start();expect(await response.clone().json()).toMatchObject({ok:true});expect(response.status).toBe(202);expect(Object.keys(docs[0].llmMeta.sections)).toHaveLength((i+1)*4);expect(usage).not.toHaveBeenCalled();}
