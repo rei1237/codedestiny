@@ -184,6 +184,8 @@ async function handlePetDelivery(request, env, kind) {
   const auth = await requireAuth(request, env);
   const featureKey = kind === "report" ? REPORT_FEATURE_KEY : COMPAT_FEATURE_KEY;
   const reportType = kind === "report" ? REPORT_TYPE : COMPAT_REPORT_TYPE;
+  // verify 가 이용권을 차감하고 seed 가 그 뒤에 도는데, 입력 오류는 seed 에서 400 으로 끝난다. 차감 전에 같은 seed 로 먼저 거른다.
+  if (request.method === "POST" && !body.resumeResultId) seedPetNarrative(kind, body);
   return runPaidNarrativeDelivery(request, env, auth, body, {
     ...petNarrativeAdapter(env, reportType), featureKey,
     verify: original => resolveAccess(request, env, original, { featureKey, reportType, route: `/api/pet-saju-ai/${kind}` }, auth),

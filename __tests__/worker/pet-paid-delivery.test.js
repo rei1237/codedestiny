@@ -6,7 +6,7 @@ const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js')
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
 import { HttpError } from '../../worker/lib/http.js';
-let route,lab,seedPet,docs,provider,revoked,userId,fault,lost,external,kind,mode;
+let accessCalls=0,route,lab,seedPet,docs,provider,revoked,userId,fault,lost,external,kind,mode;
 const owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
 function matches(doc,filter){return Object.entries(filter).every(([key,value])=>{
@@ -25,12 +25,12 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),structured=await import('../../worker/lib/structured-consultation.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async()=>{if(mode==='denied')throw new HttpError(403,'payment denied');return {ok:true,accessType:mode};}}));
+ jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async()=>{accessCalls++;if(mode==='denied')throw new HttpError(403,'payment denied');return {ok:true,accessType:mode};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));
  ({handlePetSajuAiRoutes:route,buildAdminLabPrompt:lab,seedPetNarrative:seedPet}=await import('../../worker/routes/pet-saju-ai.js'));
 });
-beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;kind='report';mode='pass';
+beforeEach(()=>{accessCalls=0;docs=[];revoked=false;userId=owner;fault=null;lost=false;kind='report';mode='pass';
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.attempts).toBe(1);expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
   const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.split('[이번 호출 범위]\n')[1].split('\n')[0].replace(/[.!?]/g,'');
   return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body:Array.from({length:45},(_,i)=>`${label} ${i}번째 사례는 생활의 리듬과 각자의 반응을 함께 살펴보며 적용 조건을 확인합니다. ${label} ${i}번째 선택에서는 관찰된 행동과 휴식의 차이를 바탕으로 일상을 조정할 수 있습니다.`).join('\n\n')})};
@@ -44,6 +44,11 @@ const start=()=>post(original()),resume=()=>post({resumeResultId:docs[0].executi
 test('access rejection prevents initial and resumed provider calls',async()=>{
  mode='denied';expect((await start()).status).toBe(403);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);
  mode='pass';await start();const calls=provider.mock.calls.length;mode='denied';expect((await resume()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(calls);
+});
+test.each(['report','compat'])('%s 입력만으로 닫히는 반려동물 정보는 이용권 확인(차감) 전에 400 으로 끝난다',async type=>{
+ kind=type;const bad={...pet,birthDate:'2020-02-31'},body=type==='report'?{...original(),pet:bad}:{...original(),petA:bad};
+ const response=await post(body);
+ expect(response.status).toBe(400);expect(accessCalls).toBe(0);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);
 });
 async function finish(){let response;for(let n=0;n<8;n++){response=await resume();if(response.status!==202)break;}return response;}
 test.each(['report','compat'].flatMap(type=>['pass','monthly','single'].map(mode=>[type,mode])))('%s %s saves a real report and reopens without regeneration',async(type,access)=>{
