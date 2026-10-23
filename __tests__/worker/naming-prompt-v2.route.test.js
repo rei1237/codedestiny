@@ -140,6 +140,12 @@ it('결제 전 checkout 이 엔진 후보 수를 확인하고, v1 입력의 해�
  expect(few.status).toBe(400);expect((await few.json()).code).toBe('NAMING_ENGINE_TOO_FEW');
 });
 
+it('결제 전 checkout 은 계산 근거를 만들 수 없는 입력(없는 음력 날짜)을 422 로 돌려보내 결제를 시작시키지 않는다',async()=>{
+ const res=await post('/checkout',{input:{...BASE,birthDate:'1990-03-30',calendarType:'lunar'}});
+ expect(res.status).toBe(422);expect((await res.json()).code).toBe('CALCULATION_UNAVAILABLE');
+ expect((await post('/checkout',{input:BASE})).status).toBe(200);
+});
+
 it('직접 고른 이름(nameStrategy choose)은 한글 이름을 엔진에 넘기고, 추천(기본)은 해시 키를 더하지 않는다',async()=>{
  const V2={...BASE,surnameHanja:'金'};
  const chosen=await post('/checkout',{input:{...V2,nameStrategy:'choose',desiredNames:['서윤',{hangul:'하은'}]}});

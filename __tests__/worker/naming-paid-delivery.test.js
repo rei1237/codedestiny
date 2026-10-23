@@ -6,7 +6,7 @@ const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js')
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
 const uid="64b7f2a1c3d4e5f601234567";
-let route,docs,provider,fault,lost,refund,blocked,mode,userId,fetchBlock;
+let route,docs,provider,fault,lost,refund,blocked,mode,userId,fetchBlock,settle,noCharge;
 const clone=v=>v==null?v:structuredClone(v);
 const get=(d,k)=>k.split('.').reduce((v,p)=>v?.[p],d);
 function set(d,k,v){const keys=k.split('.');const end=keys.pop();let o=d;for(const key of keys)o=o[key]??={};o[end]=clone(v);}
@@ -30,10 +30,14 @@ const model={
 };
 beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),gemini=await import('../../worker/lib/gemini.js');
+ const featureAccess=await import('../../worker/lib/paid-feature-access.js'),paidAccess=await import('../../worker/lib/nakshatra-paid-access.js');
+ // 정산(차감) 분기는 기본 픽스처가 "이미 차감된 증빙"으로 통과해 타지 않는다 — noCharge 테스트에서만 이 두 호출을 가로챈다.
+ jest.unstable_mockModule('../../worker/lib/paid-feature-access.js',()=>({...featureAccess,canAccessPaidFeature:(...args)=>noCharge?{allowed:true,accessSource:'license_pass'}:featureAccess.canAccessPaidFeature(...args)}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({...paidAccess,settlePerUseAccessDecision:(...args)=>settle(...args)}));
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_e,fn)=>fn()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId})}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,PaidExecutionRecord:model,
-  PointHistory:{findOne:f=>query(f.$and?null:{_id:uid,metadata:{accessMethod:mode,requestId:'original-paid'}}),updateOne:(...args)=>refund(...args)},
+  PointHistory:{findOne:f=>query(f.$and||noCharge?null:{_id:uid,metadata:{accessMethod:mode,requestId:'original-paid'}}),updateOne:(...args)=>refund(...args)},
   Payment:{findOne:()=>query(null),findByIdAndUpdate:()=>query(null)},
   MonthlyCreditLedger:{findOne:()=>query(null),updateOne:(...args)=>refund(...args)},
  }));
@@ -41,7 +45,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/monthly-credit-store.js',()=>({restoreMonthlyCreditLot:(...args)=>refund(...args)}));
  ({handleNamingPromptRoutes:route}=await import('../../worker/routes/naming-prompt.js'));
 });
-beforeEach(()=>{docs=[];fault=null;lost=false;blocked=false;mode='PASS';userId=uid;refund=jest.fn();
+beforeEach(()=>{docs=[];fault=null;lost=false;blocked=false;mode='PASS';userId=uid;refund=jest.fn();noCharge=false;settle=jest.fn(async()=>({allowed:true,source:'license_pass'}));
  provider=jest.fn(async(_env,prompt,options)=>{
   expect(options.timeoutMs).toBe(45000);expect(options.fallbackToWorkersAI).toBe(false);
   if(options.logContext.sectionGroup==='candidates')return {ok:true,provider:'gemini',text:'[이름카드]\n'+['서윤','서연','지우','지유','소율'].map(name=>`후보: ${name} | 뜻: 이름의 의미 | 총평: 생활 속에서 부르기 좋은 이름`).join('\n')+'\n최종: 서윤 | 이유: 가족의 선호와 어울립니다.\n[/이름카드]'};
@@ -66,6 +70,15 @@ it('generating prompt is never a customer completed result',async()=>{
  let release;const promise=new Promise(resolve=>{release=resolve;});const base=provider.getMockImplementation();provider.mockImplementation(async()=>{await promise;return base();});
  const running=start();for(let n=0;n<50&&!docs.length;n++)await new Promise(resolve=>setImmediate(resolve));
  const duplicate=await start();expect(duplicate.status).toBe(202);expect((await duplicate.json()).result).toBeUndefined();release();expect((await running).status).toBe(202);
+});
+it('이용권 정산(차감) 전에 입력만으로 계산이 안 되는 사주는 422 로 끝나 차감 호출이 0회다',async()=>{
+ noCharge=true;
+ const send=input=>route(new Request('https://mock.test/api/naming-prompt/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:'original-paid',input})}),{});
+ const bad=await send({gender:'F',birthDate:'1990-03-30',birthTime:'09:00',calendarType:'lunar',familyName:'김'});
+ expect(bad.status).toBe(422);expect(await bad.json()).toMatchObject({code:'CALCULATION_UNAVAILABLE'});
+ expect(settle).not.toHaveBeenCalled();expect(docs).toHaveLength(0);expect(provider).not.toHaveBeenCalled();
+ expect((await send({gender:'F',birthDate:'1995-04-18',birthTime:'09:00',calendarType:'solar',familyName:'김'})).status).toBe(202);
+ expect(settle).toHaveBeenCalledTimes(1);
 });
 it('revoked completion is not replayed',async()=>{await start();await start();await start();blocked=true;expect((await start()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(9);});
 it('other owners cannot read generated results',async()=>{await start();userId='other-owner';const res=await route(new Request(`https://mock.test/api/naming-prompt/result/${docs[0].executionId}`),{});expect(res.status).toBe(404);});

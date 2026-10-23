@@ -1106,7 +1106,25 @@ async function verifyNamingChargeEvidence(env, auth, ctx, body, inputHash = "") 
   };
 }
 
-async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
+function namingUsesV2Engine(input, original) {
+  return original ? Boolean(original.engineVersion) : NAMING_ENGINE_VERSION === "v2" && Boolean(input.surnameHanja);
+}
+
+// handleGenerate 가 사주 스냅샷을 정하는 규칙(입력만으로 결정된다)을 결제·차감 앞에서 미리 돌려 본다.
+// true 면 생성 단계가 결정적으로 422 CALCULATION_UNAVAILABLE 로 끝나므로, 그 입력으로는 결제·차감을 받으면 안 된다.
+function namingCalculationUnavailable(input, sajuEvidence, original) {
+  if (original?.generatedResult) return false;
+  if (original?.sajuSnapshot && original.sajuSnapshot.source !== "input-fallback") return false;
+  if (sajuEvidence?.evidence) return false;
+  if (namingUsesV2Engine(input, original) && !original?.engine) return false;
+  return buildFallbackSajuContext(input).source === "input-fallback";
+}
+
+function calculationUnavailableError() {
+  return createHttpError(422, "사주 계산 근거 확인이 필요합니다. 생년월일과 양력/음력(윤달) 입력을 확인해 주세요.", { code: "CALCULATION_UNAVAILABLE" });
+}
+
+async function verifyNamingAccess(env, auth, body = {}, inputHash = "", { beforeSettle } = {}) {
   const ctx = unwrapAccessContext(body);
   const paymentId = firstClean(
     body.paymentId,
@@ -1215,6 +1233,8 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
     // 🔴 이용권·라이선스·월구독 허용은 읽기 전용이다(2026-10-16). 차감 증빙이 없으면 이번 요청 ID로
     //    결제를 찾거나 이용권을 실제로 차감해야 연다. 같은 ID 재요청은 이미 차감한 기록으로 통과한다.
     const settleRequestId = firstClean(ctx.accessGrant.requestId, ctx.consume.requestId, ctx.payload.requestId, body.requestId);
+    // 정산이 곧 차감이다 — 입력만으로 정해지는 결정적 실패는 차감 앞에서 끝낸다.
+    if (beforeSettle) await beforeSettle();
     const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: FEATURE_KEY,
       coinPrice: COIN_PRICE, requestId: settleRequestId });
     if (settled.allowed === null) throw createHttpError(503, "결제 확인이 잠시 지연되고 있어요. 잠시 후 다시 시도해 주세요.", { code: "PAYMENT_VERIFY_UNAVAILABLE" });
@@ -1559,6 +1579,8 @@ async function handleCheckout(request, env) {
     }
     engineVersion = view.engineVersion;
   }
+  // 결제(코인·월정석·단건)는 이 응답의 inputHash 로 시작된다 — 생성 단계가 결정적으로 422 로 끝날 입력은 여기서 막는다.
+  if (namingCalculationUnavailable(input, sajuEvidence, null)) throw calculationUnavailableError();
   return json({
     ok: true,
     ...(engineVersion ? { engineVersion } : {}),
@@ -1633,7 +1655,9 @@ async function handleGenerate(request, env, _routeContext = null, recoveryAuth =
   const expectedInputHash = await buildNamingOrderHash(input, sajuEvidence.evidenceHash);
   const inputHash = clean(body.inputHash, 160) || original?.inputHash || expectedInputHash;
   if (inputHash !== expectedInputHash) throw createHttpError(409, "입력값과 사주 계산 기준이 결제 전 스냅샷과 일치하지 않습니다.", { code: "INPUT_HASH_MISMATCH" });
-  const access = original?.access || await verifyNamingAccess(env, auth, body, inputHash);
+  const access = original?.access || await verifyNamingAccess(env, auth, body, inputHash, {
+    beforeSettle: () => { if (namingCalculationUnavailable(input, sajuEvidence, original)) throw calculationUnavailableError(); },
+  });
   if (await isPaidResultRevoked(auth.userId, FEATURE_KEY, [access.requestId, access.evidenceId, access.paymentId])) throw createHttpError(403, "취소·환불된 작명 결과입니다.", { code: "PAYMENT_REVOKED" });
   const payment = access.payment || null;
   const existing = payment ? serializeResult(payment) : null;
@@ -1657,7 +1681,7 @@ async function handleGenerate(request, env, _routeContext = null, recoveryAuth =
   }
 
   // v2 는 새 회차 + 성 한자 입력일 때만. 이어 가는 회차는 저장된 engineVersion 유무를 따른다(진행 중 v1 회차는 v1 로 끝난다).
-  const wantV2 = original ? Boolean(original.engineVersion) : NAMING_ENGINE_VERSION === "v2" && Boolean(input.surnameHanja);
+  const wantV2 = namingUsesV2Engine(input, original);
   const v2 = wantV2 ? await loadNamingV2() : null;
   const prepared = v2 && !original?.engine ? v2.prepareNaming(input) : null;
   const engine = wantV2 ? original?.engine || prepared.view : null;
