@@ -140,6 +140,16 @@ describe("정상 경로", () => {
   });
 });
 
+// 🔴 증빙 조회는 이용권을 실제로 차감할 수 있다. 생년월일·질문 누락은 요청만으로 정해지니 그 앞에서 400 으로 끝난다.
+describe("입력 누락은 증빙 조회(이용권 차감) 앞에서 끝난다", () => {
+  test.each([["birthDate", "생년월일을 입력해 주세요."], ["question", "상담 질문을 입력해 주세요."]])("%s 가 비면 400 이고 증빙 조회를 하지 않는다", async (field, message) => {
+    const { response, payload } = await postReading(buildClientBody({ [field]: "" }));
+    expect(response.status).toBe(400);
+    expect(payload.message).toBe(message);
+    expect(verifyPerUsePaymentMock).not.toHaveBeenCalled();
+  });
+});
+
 describe("결제 실패/보류 응답", () => {
   test("증빙이 없으면 500이 아니라 402로 돌려준다", async () => {
     verifyPerUsePaymentMock.mockResolvedValueOnce({ proven: false, source: "", reason: "NO_RECORD" });

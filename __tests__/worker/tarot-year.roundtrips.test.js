@@ -97,6 +97,29 @@ beforeEach(() => {
   }));
 });
 
+// 🔴 결제 게이트(requireYearTarotAccess)는 이용권을 실제로 차감할 수 있다. 카드 수·카드 id 는 요청만으로 정해지니 그 앞에서 끝난다.
+describe("POST /api/tarot/reading (yearly_twelve_card) — 결정적 입력 오류는 결제 게이트 앞에서 끝난다", () => {
+  async function postWithCards(mutate) {
+    const request = yearReadingRequest();
+    const body = await request.json();
+    return handleTarotRoutes(new Request(request.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(mutate(body)) }), {});
+  }
+
+  test("카드가 12장이 아니면 400 이고 게이트를 타지 않는다", async () => {
+    const response = await postWithCards((body) => ({ ...body, cards: body.cards.slice(0, 5) }));
+    expect(response.status).toBe(400);
+    expect(requireAuth).not.toHaveBeenCalled();
+    expect(canAccessPaidFeature).not.toHaveBeenCalled();
+  });
+
+  test("없는 카드 id 가 섞여 있으면 422 이고 게이트를 타지 않는다", async () => {
+    const response = await postWithCards((body) => ({ ...body, cards: body.cards.map((card, idx) => (idx === 3 ? { ...card, cardId: "NOPE" } : card)) }));
+    expect(response.status).toBe(422);
+    expect(requireAuth).not.toHaveBeenCalled();
+    expect(canAccessPaidFeature).not.toHaveBeenCalled();
+  });
+});
+
 describe("POST /api/tarot/reading (yearly_twelve_card) — Mongo 왕복 예산", () => {
   test("라우트 자신이 잡는 슬롯은 2개다 (멱등 조회 1 + 저장 1)", async () => {
     const response = await handleTarotRoutes(yearReadingRequest(), {});

@@ -147,6 +147,13 @@ describe("/crystal-soul", () => {
     expect(crystalBuilt).toBe(1);
   });
 
+  test("gem-v3 가 아닌데 카드가 없으면 400 이고 증빙 조회(이용권 차감) 앞에서 끝난다", async () => {
+    proofResult = { proven: true, source: "pass", reason: "" };
+    const res = await handleTarotRoutes(post("/crystal-soul", { requestId: CRYSTAL_BODY.requestId }), {});
+    expect(res.status).toBe(400);
+    expect(verifyCalls).toHaveLength(0);
+  });
+
   test("비로그인은 401 이고 증빙 조회까지 가지 않는다", async () => {
     authResult = null;
     const res = await handleTarotRoutes(post("/crystal-soul", CRYSTAL_BODY), {});

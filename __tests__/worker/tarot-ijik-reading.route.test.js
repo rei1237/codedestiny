@@ -146,11 +146,13 @@ test("이용권 차감이 이번 requestId 로 확인되면 통과한다", async
   expect(verifyCalls).toEqual([expect.objectContaining({ requestId: REQUEST_ID })]);
 });
 
-test("카드가 7장이 아니면 400 이고 결제 확인 뒤에 걸린다", async () => {
+// 🔴 증빙 확인은 이용권을 실제로 차감할 수 있다(settle == deduct). 카드 수는 요청만으로 정해지니 그 앞에서 끝난다.
+test("카드가 7장이 아니면 400 이고 증빙 확인(이용권 차감) 앞에서 걸린다", async () => {
   proofResult = { proven: true, source: "coin", reason: "" };
   const res = await handleTarotRoutes(post({ cards: CARDS.slice(0, 3), requestId: REQUEST_ID }), {});
   expect(res.status).toBe(400);
   const data = await res.json();
   expect(data.code).toBe("IJIK_TAROT_BAD_SPREAD");
   expect(data.reading).toBeUndefined();
+  expect(verifyCalls).toHaveLength(0);
 });

@@ -1632,16 +1632,21 @@ function mapInterpretationErrorToHttp(error) {
   return null;
 }
 
-async function buildNumerologyReadingPayload(body = {}, env = {}) {
-  const birthDate = asText(body?.birthDate);
-  if (!birthDate) {
+// 🔴 입력만으로 정해지는 검사다. verifyNumerologyReadingAccess 는 이용권을 실제로 차감할 수 있어
+//    (settle == deduct), 이 검사가 그 뒤에 있으면 못 여는 요청에 이용권 한도만 깎인다. 증빙 확인 앞에서 돈다.
+function assertNumerologyReadingInput(body = {}) {
+  if (!asText(body?.birthDate)) {
     throw createHttpError(400, "생년월일을 입력해 주세요.");
   }
-
-  const question = asText(body?.question);
-  if (!question) {
+  if (!asText(body?.question)) {
     throw createHttpError(400, "상담 질문을 입력해 주세요.");
   }
+}
+
+async function buildNumerologyReadingPayload(body = {}, env = {}) {
+  assertNumerologyReadingInput(body);
+  const birthDate = asText(body?.birthDate);
+  const question = asText(body?.question);
 
   const topic = normalizeTopic(body?.topic);
   const numerology = buildNumerologyContext({
@@ -1792,6 +1797,7 @@ export async function handleTarotRoutes(request, env = {}) {
     const body = await readJson(request);
 
     if (path === "/numerology-reading") {
+      assertNumerologyReadingInput(body);
       const access = await verifyNumerologyReadingAccess(request, env, body);
       if (!access.ok) {
         return json(
@@ -1816,6 +1822,15 @@ export async function handleTarotRoutes(request, env = {}) {
     // 🔴 생성기를 tarot-ijik.html 로 되돌리지 말 것 — 그러면 콘솔 한 줄로 결과가 공짜가 된다
     //    (__tests__/ui/tarot-ijik-server-gate.static.test.js 가 막는다).
     if (path === "/ijik-reading") {
+      // 🔴 카드 수는 요청만으로 정해진다 — 이용권을 차감할 수 있는 증빙 확인 앞에서 끝낸다.
+      const cards = Array.isArray(body?.cards) ? body.cards : [];
+      if (cards.length !== IJIK_READING_CARD_COUNT) {
+        return json(
+          { ok: false, code: "IJIK_TAROT_BAD_SPREAD", message: "카드 7장을 모두 연 뒤 다시 시도해 주세요." },
+          { status: 400 },
+        );
+      }
+
       const access = await verifyTarotPerUseAccess(request, env, body, {
         featureKey: IJIK_READING_FEATURE_KEY,
         minCost: IJIK_READING_MIN_COST,
@@ -1833,14 +1848,6 @@ export async function handleTarotRoutes(request, env = {}) {
             message: access.message,
           },
           { status: access.status || 402 },
-        );
-      }
-
-      const cards = Array.isArray(body?.cards) ? body.cards : [];
-      if (cards.length !== IJIK_READING_CARD_COUNT) {
-        return json(
-          { ok: false, code: "IJIK_TAROT_BAD_SPREAD", message: "카드 7장을 모두 연 뒤 다시 시도해 주세요." },
-          { status: 400 },
         );
       }
 
@@ -1926,6 +1933,11 @@ export async function handleTarotRoutes(request, env = {}) {
       let existingYearRecord = null;
 
       if (isYearReading) {
+        // 🔴 카드 수·카드 id 는 요청만으로 정해진다. requireYearTarotAccess 는 이용권을 실제로 차감할 수
+        //    있어서(settle == deduct), buildReadingPayload 가 같은 이유로 던질 요청은 그 앞에서 끝낸다.
+        //    던지는 오류는 buildReadingPayload 와 같은 함수가 같은 코드(400/422)로 만든다.
+        ensureCardCountOrThrow(spreadType, cards);
+        normalizeDrawnCardsForSpread(spreadType, cards);
         // 🔴 결제 증빙 조회의 열쇠라 게이트보다 **먼저** 확정한다. 예전에는 게이트 뒤에서 만들어
         //    게이트가 그 값을 쓸 수 없었고, 그래서 "산 적 있는가"로만 물었다.
         year = resolveYearValue(body?.year);
@@ -1991,6 +2003,13 @@ export async function handleTarotRoutes(request, env = {}) {
     //    `ensurePaidAccess` 로 결제를 마친 뒤 부르긴 했지만 서버는 그것을 확인하지 않았고,
     //    requestId 도 넘겨받지 못했다 — 즉 결제 없이 직접 POST 하면 유료 리딩이 그대로 나왔다.
     if (path === "/crystal-soul") {
+      // 🔴 카드 유무는 요청만으로 정해진다 — 이용권을 차감할 수 있는 증빙 확인 앞에서 끝낸다.
+      const isGemV3 = body?.crystalSoulVersion === "gem-v3" || body?.promptVersion === "crystal-soul-v3";
+      const cards = Array.isArray(body?.cards) ? body.cards : [];
+      if (!isGemV3 && !cards.length) {
+        return json({ ok: false, message: "카드 데이터가 필요합니다." }, { status: 400 });
+      }
+
       const access = await verifyTarotPerUseAccess(request, env, body, {
         featureKey: CRYSTAL_SOUL_FEATURE_KEY,
         minCost: CRYSTAL_SOUL_MIN_COST,
@@ -2011,12 +2030,8 @@ export async function handleTarotRoutes(request, env = {}) {
         );
       }
 
-      if (body?.crystalSoulVersion === "gem-v3" || body?.promptVersion === "crystal-soul-v3") {
+      if (isGemV3) {
         return json(buildCrystalSoulV3Reading(body));
-      }
-      const cards = Array.isArray(body?.cards) ? body.cards : [];
-      if (!cards.length) {
-        return json({ ok: false, message: "카드 데이터가 필요합니다." }, { status: 400 });
       }
       const crystal = await buildCrystalSoulReading(body, env);
       return json({
