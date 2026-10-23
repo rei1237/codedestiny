@@ -185,7 +185,9 @@ try {
   await page.goto(base+'/home-preview/');
   for(const width of [360,390,430,1280]){
     await page.setViewportSize({width,height:900});
-    await page.locator('figure img').waitFor();
+    const entry = page.locator('.cdh-neo-letter');
+    await expect(entry.locator('img')).toHaveCount(1);
+    await entry.locator('.cdh-neo-letter__art img').waitFor();
     // Resizing <picture> can replace an in-flight image and reject decode().
     // Wait for the selected source and loaded pixels; broken assets still fail.
     await expect(page.locator('picture img')).toHaveJSProperty('currentSrc',base+'/images/service-introductions/neo-consultation'+(width<=640?'-640':'')+'.webp');
@@ -193,6 +195,14 @@ try {
     await page.evaluate(async()=>{await Promise.all([...document.images].map(img=>img.decode()));});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     const path=resolve(out,'home-'+width+'.png');await page.screenshot({path,fullPage:true});captures.push(path);
+    const details = entry.locator('details');
+    await expect(details).toHaveJSProperty('open',false);
+    await details.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    await expect(details).toHaveJSProperty('open',true);
+    await expect(details).toContainText('자미두수 추가');
+    await page.keyboard.press('Enter');
+    await expect(details).toHaveJSProperty('open',false);
   }
   await page.getByRole('link',{name:'질문 작성하기'}).click();
   await page.getByRole('heading',{name:/네오에게.*물어봐/}).waitFor();
