@@ -43,6 +43,14 @@ test.each(["muhurta", "vvip-codex"])("%s: 증빙 확인이 터지면 본문 없�
   expect((await call(kind)).status).toBe(503);
 });
 
+test("목록에 없는 택일 목적은 증빙 확인(이용권 차감) 앞에서 400 으로 끝난다", async () => {
+  verifyPerUsePayment.mockResolvedValue({ proven: true, source: "pass" });
+  const response = await call("muhurta", { purpose: "not-a-purpose" });
+  expect(response.status).toBe(400);
+  expect((await response.json()).reason).toBe("INVALID_PURPOSE");
+  expect(verifyPerUsePayment).not.toHaveBeenCalled();
+});
+
 test("결제 증빙이 있으면 요청의 requestId 로 확인하고 402 를 내지 않는다", async () => {
   verifyPerUsePayment.mockResolvedValue({ proven: true, source: "payment" });
   const response = await call("muhurta");

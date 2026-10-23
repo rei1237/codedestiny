@@ -347,15 +347,17 @@ async function handleMuhurta(request, env) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
   }
 
+  // 🔴 입력만으로 정해지는 목적 검사는 증빙 확인(이용권 차감 가능) 앞이다 — 뒤에 두면 이용권 보유자가
+  //    목록에 없는 목적으로 한 번 부를 때마다 한도만 줄고 400 을 받는다.
+  const purposeKey = String(body?.purpose || "").trim();
+  if (!listMuhurtaPurposes().some((item) => item.key === purposeKey)) {
+    return json({ ok: false, reason: "INVALID_PURPOSE", message: MESSAGES.invalidPurpose, purposes: listMuhurtaPurposes() }, { status: 400 });
+  }
+
   const proof = await observePerUsePayment(env, auth, "muhurta", body);
   if (PER_USE_ENFORCE && proof) {
     if (proof.proven === null) return degraded();
     if (proof.proven === false) return json({ ok: false, reason: "PAYMENT_REQUIRED", message: MESSAGES.paymentRequiredPerUse }, { status: 402 });
-  }
-
-  const purposeKey = String(body?.purpose || "").trim();
-  if (!listMuhurtaPurposes().some((item) => item.key === purposeKey)) {
-    return json({ ok: false, reason: "INVALID_PURPOSE", message: MESSAGES.invalidPurpose, purposes: listMuhurtaPurposes() }, { status: 400 });
   }
 
   const startDate = /^\d{4}-\d{2}-\d{2}$/.test(String(body?.startDate || ""))
