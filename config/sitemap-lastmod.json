@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "8c9a5d5e149b74e2",
+      "signature": "7412fac351ddb0ff",
       "lastmod": "2026-10-23"
     },
     "/about/": {
@@ -79,7 +79,7 @@
       "lastmod": "2026-10-20"
     },
     "/en/": {
-      "signature": "04039134935356a1",
+      "signature": "59bbca254b1449a0",
       "lastmod": "2026-10-23"
     },
     "/en/about/": {
@@ -1003,7 +1003,7 @@
       "lastmod": "2026-10-23"
     },
     "/ggulggul/": {
-      "signature": "35f64e5cb7841fae",
+      "signature": "ff77e0cd78dc25fc",
       "lastmod": "2026-10-23"
     },
     "/guides/": {
@@ -1075,7 +1075,7 @@
       "lastmod": "2026-10-20"
     },
     "/ja/": {
-      "signature": "04039134935356a1",
+      "signature": "59bbca254b1449a0",
       "lastmod": "2026-10-23"
     },
     "/ja/about/": {
@@ -2263,7 +2263,7 @@
       "lastmod": "2026-10-23"
     },
     "/zh-tw/": {
-      "signature": "04039134935356a1",
+      "signature": "59bbca254b1449a0",
       "lastmod": "2026-10-23"
     },
     "/zh-tw/astrology/": {
@@ -2739,7 +2739,7 @@
       "lastmod": "2026-10-23"
     },
     "/zh/": {
-      "signature": "04039134935356a1",
+      "signature": "59bbca254b1449a0",
       "lastmod": "2026-10-23"
     },
     "/zh/about/": {
