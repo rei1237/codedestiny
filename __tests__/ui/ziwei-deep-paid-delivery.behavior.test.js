@@ -316,6 +316,14 @@ test('동시 요청, 소유권 변경, 입력 변경, 취소 증빙을 차단한
   f.owner('other'); assert.equal((await f.post({ resumeReportId: f.doc.id })).status, 404);
   f.owner('owner'); f.permitted(false); assert.equal((await f.post()).status, 402); assert.equal(f.calls, 8);
 });
+test('명반을 계산할 수 없는 입력은 이용권 확인(차감) 전에 422 로 끝난다', async () => {
+  const f = fixture('pass'); let access = 0; const resolve = f.ctx.resolveGenerateAccess;
+  f.ctx.calculateZiweiAiChart = () => { throw new Error('invalid birth'); };
+  f.ctx.resolveGenerateAccess = async (...args) => { access++; return resolve(...args); };
+  const response = await f.post();
+  assert.equal(response.status, 422); assert.equal((await response.json()).reason, 'CALCULATION_FAILED');
+  assert.equal(access, 0); assert.equal(f.doc, null); assert.equal(f.starts, 0); assert.equal(f.calls, 0);
+});
 test('유효한 모든 짧은 챕터는 목표 분량을 위한 재생성 없이 전달한다', async () => {
   const f = fixture(); const normal = f.ctx.generateChapter; let calls = 0;
   f.ctx.generateChapter = async (...args) => { calls++; const row = await normal(...args); return { ...row, body: row.body.slice(0, 500) }; };

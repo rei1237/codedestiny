@@ -710,6 +710,10 @@ export async function runZiweiDeepReportDeliveryBatch(request, env, body, auth, 
   if (stored && stored.inputHash !== normalized.inputHash) return invalidInput(MESSAGES.invalidInput, 409);
   if (stored?.status === 'completed') return replayCompletedDeepReport(env, auth, stored);
   if (stored?.status === 'generation_failed') return json({ ok: false, reason: 'GENERATION_FAILED', message: MESSAGES.generationFailed }, { status: 409 });
+  // 계산이 안 되는 입력은 이용권 차감(resolveAccess) 전에 끝낸다. 저장본이 있으면 그 명반을 그대로 쓴다.
+  let chart;
+  try { chart = stored?.llmMeta?.chartSnapshot || stored?.ziweiChart || calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() }); }
+  catch { return json({ ok: false, reason: 'CALCULATION_FAILED', message: MESSAGES.calculationFailed }, { status: 422 }); }
   const resolveAccess = async () => {
     if (!requireExisting) return resolveGenerateAccess(request, env, auth, body, normalized, idempotencyKey);
     if (await withMongoRetry(env, () => isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, { ...body, idempotencyKey }))) return { ok: false };
@@ -723,9 +727,6 @@ export async function runZiweiDeepReportDeliveryBatch(request, env, body, auth, 
   normalized.locale = stored?.locale || normalized.locale;
   if (stored?.status === 'delivery_pending') return json(publicStoredReport(await finishDeepDelivery(env, auth, stored)));
   if (stored?.llmMeta?.lockedAt && Date.now() - new Date(stored.llmMeta.lockedAt).getTime() < GENERATING_FRESHNESS_MS) return json({ ...publicStoredReport(stored), status: 'generating' }, { status: 202 });
-  let chart;
-  try { chart = stored?.llmMeta?.chartSnapshot || stored?.ziweiChart || calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() }); }
-  catch { return json({ ok: false, reason: 'CALCULATION_FAILED', message: MESSAGES.calculationFailed }, { status: 422 }); }
   if (!stored) {
     try {
       await withMongoRetry(env, () => ZiweiDeepReport.create({ id: reportId, userId: clean(auth.userId), idempotencyKey, inputHash: normalized.inputHash,
