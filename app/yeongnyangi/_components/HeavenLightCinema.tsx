@@ -9,21 +9,21 @@ import styles from './heaven-light-cinema.module.css';
 // R2(codedestinyassets) 내용해시 키라 immutable 캐시다. 영상을 바꾸면 새 키로 올리고 여기만 고친다.
 // 원본은 HEAVEN LIGHT MV 무자막 마스터(1080p30)다. 가사는 영상에 굽지 않고 같은 출처의 WebVTT 트랙으로 얹는다.
 const SOURCES={
- '1080p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-1080p-305a70272e79.mp4',
- '720p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-720p-472420706368.mp4',
+ '1080p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-1080p-1413c0e58a63.mp4',
+ '720p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-720p-f11929333865.mp4',
 };
 type Quality=keyof typeof SOURCES;
 const ART='/assets/yeongnyangi/mv';
-const LYRICS='/media/mv/heaven-light-ko-v4.vtt';
+const LYRICS='/media/mv/heaven-light-ko-v5.vtt';
 const CARD_SIZES='(max-width: 384px) 78vw, 300px';
 // 챕터 시작(초)은 MV 타임라인의 장 경계를 그 장 첫 컷의 시작 프레임에 맞춘 값이다. 썸네일은 그 챕터 안 대표 장면의 무자막 프레임이다.
 const CHAPTERS=[
  {name:'첫 번째 봄',at:0},
- {name:'피눈물의 달',at:74.71},
- {name:'두 번째 봄',at:96.21},
- {name:'다섯 개의 하늘',at:110.81},
+ {name:'피눈물의 달',at:74.7},
+ {name:'두 번째 봄',at:96.2},
+ {name:'달을 읽는 사람',at:110.8},
  {name:'부르는 이름',at:197.37},
- {name:'천량',at:226.91},
+ {name:'우리의 빛',at:226.9},
 ];
 const clock=(at:number)=>`${Math.floor(at/60)}:${String(Math.floor(at%60)).padStart(2,'0')}`;
 type Connection={saveData?:boolean;effectiveType?:string};
@@ -34,7 +34,7 @@ function pickQuality(width:number):Quality{
  const slow=Boolean(connection?.saveData)||/2g|3g/.test(connection?.effectiveType||'');
  return !slow&&displayPx(width)>1400?'1080p':'720p';
 }
-const pickPoster=(width:number)=>`${ART}/heaven-light-poster-${displayPx(width)>960?1440:displayPx(width)>640?960:640}.webp`;
+const pickPoster=(width:number)=>`${ART}/heaven-light-v5-poster-${displayPx(width)>960?1440:displayPx(width)>640?960:640}.webp`;
 type State='idle'|'loading'|'playing'|'error';
 type Source='card'|'chapter';
 
@@ -263,7 +263,7 @@ export default function HeavenLightCinema(){
       {CHAPTERS.map((item,index)=><li key={item.name}>
        <button type="button" className={styles.chapter} aria-current={state==='playing'&&chapter===index?'time':undefined} onClick={()=>seek(index)}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {opened&&<img src={`${ART}/heaven-light-v4-ch${index+1}-320.webp`} width={320} height={180} alt="" loading="lazy" decoding="async"/>}
+        {opened&&<img src={`${ART}/heaven-light-v5-ch${index+1}-320.webp`} width={320} height={180} alt="" loading="lazy" decoding="async"/>}
         <span className={styles.chapterName}><small>{index+1}장 · {clock(item.at)}</small>{item.name}</span>
        </button>
       </li>)}

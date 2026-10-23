@@ -19,11 +19,11 @@ test('video is an immutable content-hashed R2 key and nothing loads before the c
   for (const url of urls) assert.match(url, /^https:\/\/assets\.code-destiny\.com\/yeongnyangi\/mv\/heaven-light-(1080p|720p)-[0-9a-f]{12}\.mp4$/);
   assert.match(cinema, /<video[^>]*preload="none"/);
   assert.match(cinema, /<video[^>]*playsInline/);
-  assert.match(cinema, /const LYRICS='\/media\/mv\/heaven-light-ko-v4\.vtt'/);
+  assert.match(cinema, /const LYRICS='\/media\/mv\/heaven-light-ko-v5\.vtt'/);
 });
 
 test('lyrics, chapters and the stated length all fit the 4:44 cut', () => {
-  const vtt = read('public/media/mv/heaven-light-ko-v4.vtt').replace(/\r\n/g, '\n');
+  const vtt = read('public/media/mv/heaven-light-ko-v5.vtt').replace(/\r\n/g, '\n');
   assert.ok(vtt.startsWith('WEBVTT\n'));
   const seconds = stamp => stamp.split(':').reduce((total, part) => total * 60 + Number(part), 0);
   const cues = [...vtt.matchAll(/^(\d\d:\d\d:\d\d\.\d{3}) --> (\d\d:\d\d:\d\d\.\d{3})$/gm)].map(([, start, end]) => [seconds(start), seconds(end)]);
@@ -45,11 +45,11 @@ test('card, poster and chapter art stay inside their byte budgets', () => {
   // KiB. card-600.webp is held to the existing home card (root-card-yeongnyangi-600.webp, 89 KiB).
   const budgets = {
     'card-360.avif': 50, 'card-360.webp': 50, 'card-600.avif': 60, 'card-600.webp': 95,
-    'poster-640.webp': 180, 'poster-960.webp': 180, 'poster-1440.webp': 180,
+    'v5-poster-640.webp': 180, 'v5-poster-960.webp': 180, 'v5-poster-1440.webp': 180,
   };
   // Chapter art is renamed per cut: same-name files stay cached at the edge for up to 7 days.
-  assert.ok(cinema.includes('/heaven-light-v4-ch${index+1}-320.webp'));
-  for (let chapter = 1; chapter <= 6; chapter++) budgets[`v4-ch${chapter}-320.webp`] = 12;
+  assert.ok(cinema.includes('/heaven-light-v5-ch${index+1}-320.webp'));
+  for (let chapter = 1; chapter <= 6; chapter++) budgets[`v5-ch${chapter}-320.webp`] = 12;
   for (const [name, limit] of Object.entries(budgets)) assert.ok(bytes(`${art}-${name}`) <= limit * 1024, `${name} > ${limit} KiB`);
 });
 
