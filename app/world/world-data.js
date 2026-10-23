@@ -16,18 +16,16 @@ export const CHARACTER_GROUPS = [
     characters: [
       {
         id: "yeoni",
-        symbol: "🌸",
         name: "연이",
-        role: "주인공 · 꽃돼지 · 乙木",
-        portrait: "/images/novel/world/yeoni.webp",
-        alt: "꽃돼지 모습의 연이",
-        caption: "연이의 다른 모습",
+        role: "주인공 · 인간과 꽃돼지 · 乙木",
+        portrait: "/images/novel/world/yeoni-silhouette.webp",
+        alt: "인간 모습과 꽃돼지 모습이 겹친 연이의 실루엣",
+        caption: "인간과 꽃돼지, 두 모습의 연이",
         body: "평범한 대학생이었다가 타로의 문을 지나 운명 세계에 떨어졌습니다. 타고난 글자는 을목(乙木), 나무 중에서도 덩굴입니다. 혼자서는 서지 못하지만 붙잡을 것만 있으면 담벼락도 넘습니다. 되찾은 사주의 기운을 빌려 쓰는 그릇이라, 이야기가 진행될수록 쓸 수 있는 결이 하나씩 늘어납니다. 상담 화면에서는 마음의 결을 먼저 살핀 뒤 오늘 해볼 수 있는 한 가지를 권합니다.",
       },
       {
         id: "neo",
-        symbol: "🐱",
-        name: "네오",
+        name: "영냥이 네오",
         role: "동행 · 사주의 강 가디언 · 金",
         portrait: "/images/novel/world/neo.webp",
         alt: "모자 쓴 흰 고양이 영냥이 모습의 네오",
@@ -36,7 +34,6 @@ export const CHARACTER_GROUPS = [
       },
       {
         id: "moka",
-        symbol: "🦦",
         name: "모카",
         role: "식상의 섬 동료 · 丙火 · 수달 요리사",
         portrait: "/images/novel/world/moka.webp",
@@ -46,7 +43,6 @@ export const CHARACTER_GROUPS = [
       },
       {
         id: "yun",
-        symbol: "🔮",
         name: "윤달",
         role: "재성의 섬 동료 · 사람 점술가",
         portrait: "/images/novel/world/yun.webp",
@@ -63,7 +59,6 @@ export const CHARACTER_GROUPS = [
     characters: [
       {
         id: "luna",
-        symbol: "🥐",
         name: "루나 언니",
         role: "재성의 섬 빵집",
         portrait: "/images/novel/world/luna.webp",
@@ -73,7 +68,6 @@ export const CHARACTER_GROUPS = [
       },
       {
         id: "rab",
-        symbol: "🐰",
         name: "청토끼",
         role: "청토끼 금융 주인 · 자칭 최약체",
         portrait: "/images/novel/world/rab.webp",
@@ -83,7 +77,6 @@ export const CHARACTER_GROUPS = [
       },
       {
         id: "crow",
-        symbol: "🪶",
         name: "까마귀",
         role: "식상의 섬 · 검은 깃털",
         portrait: "/images/novel/world/crow.webp",
@@ -100,7 +93,6 @@ export const CHARACTER_GROUPS = [
     characters: [
       {
         id: "mirror",
-        symbol: "🪞",
         name: "거울 속 연이",
         role: "비겁의 섬 · 나를 닮은 얼굴",
         portrait: "/images/novel/world/mirror.webp",
@@ -110,7 +102,6 @@ export const CHARACTER_GROUPS = [
       },
       {
         id: "seohanbi",
-        symbol: "🌧️",
         name: "서한비",
         role: "2부에서 마주하는 인물 · 水(찬 비)",
         portrait: "/images/novel/world/seohanbi.webp",
@@ -120,7 +111,6 @@ export const CHARACTER_GROUPS = [
       },
       {
         id: "heukwol",
-        symbol: "🌑",
         name: "흑월",
         role: "그림자 · 목소리만 남은 일식",
         portrait: "/images/novel/world/heukwol.webp",
@@ -137,7 +127,6 @@ export const CHARACTER_GROUPS = [
     characters: [
       {
         id: "universe",
-        symbol: "🎧",
         name: "우주",
         role: "운명 고객센터 상담원",
         portrait: "/images/novel/world/universe.webp",

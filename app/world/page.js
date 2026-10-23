@@ -128,7 +128,6 @@ export default function WorldPage() {
                     <figcaption>{character.caption}</figcaption>
                   </figure>
                   <div className="cd-world-character-header">
-                    <span className="cd-world-symbol" aria-hidden="true">{character.symbol}</span>
                     <div>
                       <h4 className="cd-world-name">{character.name}</h4>
                       <p className="cd-world-role">{character.role}</p>
