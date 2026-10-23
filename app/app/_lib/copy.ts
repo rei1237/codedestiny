@@ -898,9 +898,11 @@ export function getAppShellCopy(locale: LoadingLocale): AppShellCopy {
 }
 
 export function useAppShellCopy(): AppShellCopy {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  // Match the Korean static export first, then apply the device's selected language.
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
+    sync();
     window.addEventListener("languagechange", sync);
     window.addEventListener("cd:locale-ready", sync);
     return () => {
