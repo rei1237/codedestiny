@@ -89,8 +89,19 @@ test("최종 실패는 차감을 한 번만 환불하고 refundedAt 을 남긴�
   const { state, calls, stored } = boot({ doc: { passSettlement: { cycleKey: "cycle-1", cost: 100 } } });
   await state.refundFortuneTeaHousePassSettlement({ auth: { userId: "user-1" }, resultId: RESULT_ID });
   await state.refundFortuneTeaHousePassSettlement({ auth: { userId: "user-1" }, resultId: RESULT_ID });
-  expect(calls.refund).toEqual([{ userId: "user-1", cycleKey: "cycle-1", cost: 100, refundId: RESULT_ID }]);
+  expect(calls.refund).toEqual([{ userId: "user-1", cycleKey: "cycle-1", cost: 100, refundId: RESULT_ID, restorePass: null }]);
   expect(stored().passRefund.refundedAt).toBeInstanceOf(Date);
+});
+
+// 마지막 차감이 월 예산을 채우면 이용권이 즉시 종료된다. 환불이 쿼터만 돌리면 고객 이용권은 끝난 채로 남는다.
+test("정산이 남긴 이용권 복원 정보를 최종 실패 환불에 그대로 넘긴다", async () => {
+  const restorePass = { tier: "premium", expiresAt: "2026-11-30T00:00:00.000Z", monthlyLimitCoin: 600, profileLimit: 7, maxCoveredCoin: 100, passPolicyVersion: "flower-20260930" };
+  const settled = { allowed: true, source: "pass", passRefund: { cycleKey: "2026-11-30T00:00:00.000Z", cost: 100, restorePass } };
+  const { state, calls, access, stored } = boot({ settled });
+  await state.settleFortuneTeaHouseGeneration({ env: {}, access, resultId: RESULT_ID, generation: { created: true, lockToken: LOCK }, consultRequest: {} });
+  expect(stored().passSettlement).toMatchObject({ cycleKey: "2026-11-30T00:00:00.000Z", cost: 100, restorePass });
+  await state.refundFortuneTeaHousePassSettlement({ auth: { userId: "user-1" }, resultId: RESULT_ID });
+  expect(calls.refund).toEqual([expect.objectContaining({ cycleKey: "2026-11-30T00:00:00.000Z", cost: 100, restorePass })]);
 });
 
 test("환불된 결과는 같은 요청으로 다시 생성하지 못한다(차감 마커가 남아 무료가 되므로)", () => {

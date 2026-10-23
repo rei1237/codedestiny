@@ -192,6 +192,28 @@ test("같은 실행을 다시 정산해도 두 번 복구되지 않는다", asyn
   expect(users[0].profileSubscription.monthlySpendCoin).toBe(0);
 });
 
+test("마지막 차감으로 소진 종료된 이용권은 실행 환불이 쿼터와 함께 되살린다", async () => {
+  const future = "2099-09-30T00:00:00.000Z";
+  const restorePass = { tier: "premium", expiresAt: future, monthlyLimitCoin: 600, profileLimit: 7, maxCoveredCoin: 100, passPolicyVersion: "flower-20260930" };
+  executions[0].metadata.passRefund = { cycleKey: future, cost: 100, restorePass };
+  users[0].profileSubscription = {
+    tier: "free", passTier: "", expiresAt: new Date("2099-09-23T00:00:00.000Z"), premiumUseCycleKey: future, monthlySpendCoin: 600,
+    monthlyLimitCoin: 0, maxCoveredCoin: 0, passExhaustedAt: new Date("2099-09-23T00:00:00.000Z"), passExhaustedFromExpiresAt: new Date(future),
+  };
+
+  await failServiceExecution({}, USER_ID, {
+    executionKey: `human-design-premium-report:${REQUEST_ID}`,
+    reasonCode: "human_design_report_generation_failed",
+    forceRefundOnClose: true,
+  });
+
+  expect(users[0].profileSubscription).toMatchObject({
+    tier: "premium", passTier: "premium", monthlySpendCoin: 500, monthlyLimitCoin: 600, maxCoveredCoin: 100,
+    passExhaustedAt: null, passExhaustedFromExpiresAt: null,
+  });
+  expect(new Date(users[0].profileSubscription.expiresAt).toISOString()).toBe(future);
+});
+
 test("사이클이 넘어간 뒤에는 다음 달 한도를 잘못 건드리지 않는다", async () => {
   users[0].profileSubscription.premiumUseCycleKey = "2026-10";
   users[0].profileSubscription.monthlySpendCoin = 5;

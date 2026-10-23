@@ -33,8 +33,13 @@ const pointFilter = (row, owner, rid) => ({
   ...requestKeys(rid, ['metadata.requestId','metadata.idempotencyKey','metadata.purchaseId','metadata.orderId']),
 });
 const passRefundFrom = evidence => {
-  const cycleKey = String(evidence?.metadata?.passCycleKey || ''), cost = Math.floor(Number(evidence?.metadata?.coinCost) || 0);
-  return cycleKey && cost > 0 ? { cycleKey, cost } : undefined;
+  const meta = evidence?.metadata || {};
+  const cycleKey = String(meta.passCycleKey || ''), cost = Math.floor(Number(meta.coinCost) || 0);
+  if (!cycleKey || !(cost > 0)) return undefined;
+  // The usage record stores what the debit saw, so a retry can still restore a pass that debit ended.
+  const restorePass = meta.passTier ? { tier: String(meta.passTier), expiresAt: cycleKey, monthlyLimitCoin: Number(meta.passBudgetCoin) || 0,
+    profileLimit: Number(meta.passProfileLimit) || 0, maxCoveredCoin: Number(meta.passLimit) || 0, passPolicyVersion: String(meta.passPolicyVersion || '') } : undefined;
+  return { cycleKey, cost, ...(restorePass ? { restorePass } : {}) };
 };
 const minimumStones = row =>calculatePaidFeatureMembershipCreditCost(row.featureKey, Math.floor(Number(row.amountKRW) / 100));
 
@@ -122,7 +127,7 @@ export async function proveChatAccess(env, { row, userId, owner, coinPrice, choi
     if (proof?.proven === null) throw failure(503, 'PAYMENT_EVIDENCE_PENDING');
     if (proof?.proven !== true) { await release(); throw required(); }
   }
-  const passRefund = proof.passRefund ? { cycleKey: proof.passRefund.cycleKey, cost: proof.passRefund.cost } : undefined;
+  const passRefund = proof.passRefund ? { cycleKey: proof.passRefund.cycleKey, cost: proof.passRefund.cost, ...(proof.passRefund.restorePass ? { restorePass: proof.passRefund.restorePass } : {}) } : undefined;
   let stored;
   if (proof.source === 'admin') stored = { perUseSource: 'admin', perUseEvidenceId: '' };
   else if (proof.source === 'payment') stored = { perUseSource: 'payment', perUseEvidenceId: proof.transactionId };

@@ -43,6 +43,7 @@ import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // 🔴 이 라우트는 coin-gate 를 거치지 않는 자체 게이트라, 이용권 통과를 내주면서 누적 사용량을
 // 아무도 차감하지 않았다(한도가 존재하지 않았다). 판정·소비 정본은 worker/payments/passes.js.
 import { consumePassForFeature, hasConsumedPassFeature, refundPassCoverage } from "../lib/pass-consumption.js";
+import { buildPassRestoreSnapshot } from "../lib/pass-restore-snapshot.js";
 // 🔴 코인·월정석·카드 환급은 결제 축의 정본 3종을 그대로 쓴다. 여기에 자체 환불기를 만들면
 // 멱등 마커가 갈라져(metadata.refundedForServiceExecution 등) 이중 환불이 열린다.
 import { runCoinRefund, runMonthlyCreditRefund, runPaymentCancel } from "../lib/service-execution-task.js";
@@ -951,9 +952,10 @@ function handlePlan(request) {
  * 되돌릴 정보를 만든다 — 재생(replayed)이거나 예산을 못 세는 상태(budgetApplies 없음)면
  * 애초에 차감이 없었으므로 undefined 를 돌려준다(환불 대상 아님).
  */
-function passRefundFor(consumed, cost) {
+function passRefundFor(consumed, cost, user) {
   if (!consumed?.covered || consumed.replayed || !consumed.coverage?.budgetApplies || !(cost > 0)) return undefined;
-  return { cycleKey: consumed.coverage.cycleKey, cost };
+  const restorePass = buildPassRestoreSnapshot(consumed.coverage, user);
+  return { cycleKey: consumed.coverage.cycleKey, cost, ...(restorePass ? { restorePass } : {}) };
 }
 
 async function handleEnsureAccess(request, env) {
@@ -1016,7 +1018,7 @@ async function handleEnsureAccess(request, env) {
         : null;
       // 🔴 차감이 된 건만 이용권으로 연다. 정본이 이용권을 못 보면(예전 "" 코드) 결제로 인계한다.
       if (consumed?.covered) {
-        return grant("pass", passRefundFor(consumed, pricing.coinPrice));
+        return grant("pass", passRefundFor(consumed, pricing.coinPrice, user));
       }
     }
   }
@@ -1083,7 +1085,7 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
         })
         : null;
       if (consumed?.covered) {
-        return { ok: true, accessType: "pass", paymentId: "", billingRequestId: idempotencyKey, passRefund: passRefundFor(consumed, startCoinCost) || null };
+        return { ok: true, accessType: "pass", paymentId: "", billingRequestId: idempotencyKey, passRefund: passRefundFor(consumed, startCoinCost, user) || null };
       }
     }
   }
@@ -1229,7 +1231,7 @@ async function refundSessionPassIfNeeded(sessionId, userId, doc, existingChapter
   const refundFn = dependencies.refundPassCoverage || refundPassCoverage;
   const SessionModel = dependencies.MasterLoveCodexSession || MasterLoveCodexSession;
   try {
-    const result = await refundFn({ userId, cycleKey: refund.cycleKey, cost: refund.cost, refundId: `master-love-codex:${sessionId}` });
+    const result = await refundFn({ userId, cycleKey: refund.cycleKey, cost: refund.cost, refundId: `master-love-codex:${sessionId}`, restorePass: refund.restorePass || null });
     if (result.refunded) {
       await SessionModel.updateOne(
         { id: sessionId, userId, "passRefund.refundedAt": { $exists: false } },

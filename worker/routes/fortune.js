@@ -121,6 +121,7 @@ import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // (AI 프롬프트 이용권 증빙 · SUBSCRIPTION_INCLUDED)은 coin-gate 를 거치지 않아 지금까지
 // monthlySpendCoin 을 한 번도 올리지 않았다. 판정·소비 정본은 worker/payments/passes.js.
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassCoverage } from "../lib/pass-consumption.js";
+import { buildPassRestoreSnapshot } from "../lib/pass-restore-snapshot.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
@@ -2154,8 +2155,9 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
         });
         // 🔴 차감이 안 됐으면 코드가 비어 있어도 열지 않는다 — 빈 코드를 통과로 보면 차감 없이 열렸다.
         if (!consumed.covered) return { source: "pass_denied", reason: passDenialCode(consumed.reason) || "PAYMENT_REQUIRED", record: null };
+        const restorePass = buildPassRestoreSnapshot(consumed.coverage, passUser);
         passRefund = consumed.covered && !consumed.replayed && consumed.coverage?.budgetApplies && cost > 0
-          ? { cycleKey: consumed.coverage.cycleKey, cost }
+          ? { cycleKey: consumed.coverage.cycleKey, cost, ...(restorePass ? { restorePass } : {}) }
           : null;
       }
       return {
@@ -4727,6 +4729,7 @@ async function handleVedicAIPrompt(request, auth, env) {
           cycleKey: passRefund.cycleKey,
           refundId: `vedic-ai-prompt:${requestId}`,
           cost: passRefund.cost,
+          restorePass: passRefund.restorePass || null,
         });
         refundOk = passRefundResult.refunded === true;
       } catch (refundError) {
@@ -5720,6 +5723,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
           cycleKey: passRefund.cycleKey,
           refundId: `ziwei-ai-prompt:${requestId}`,
           cost: passRefund.cost,
+          restorePass: passRefund.restorePass || null,
         });
         refundOk = passRefundResult.refunded === true;
       } catch (refundError) {
@@ -5975,6 +5979,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
           cycleKey: passRefund.cycleKey,
           refundId: `sukuyo-ai-prompt:${requestId}`,
           cost: passRefund.cost,
+          restorePass: passRefund.restorePass || null,
         });
         refundOk = passRefundResult.refunded === true;
       } catch (refundError) {

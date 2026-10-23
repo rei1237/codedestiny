@@ -33,6 +33,7 @@ import { resolveCanonicalEntitlement } from "./entitlement-policy.js";
 // 🔴 이용권 통과는 **차감을 동반해야** 한도가 존재한다. 판정·소비 정본은 worker/payments/passes.js
 // 이며 이 어댑터가 그 정본을 부른다(worker/lib/pass-consumption.js 머리주석).
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "./pass-consumption.js";
+import { buildPassRestoreSnapshot } from "./pass-restore-snapshot.js";
 
 const ID_MAX = 180;
 
@@ -97,10 +98,11 @@ async function findMonthlyLedger(env, userId, featureKey, requestId) {
  *
  * @param {object} env
  * @param {{ userId:string, featureKey:string, coinPrice:number, requestId:string, requireExisting?:boolean }} input
- * @returns {Promise<{proven:(boolean|null), source:string, reason:string, transactionId?:string, passRefund?:{cycleKey:string, cost:number}}>}
+ * @returns {Promise<{proven:(boolean|null), source:string, reason:string, transactionId?:string, passRefund?:{cycleKey:string, cost:number, restorePass?:object}}>}
  *   passRefund : source==="pass" 로 monthlySpendCoin 을 실제로 차감했을 때만 있다 — 뒤 단계(생성)가
  *     실패하면 호출부가 이 정보로 그 차감을 되돌려야 한다(worker/lib/service-execution-task.js
- *     runPassQuotaRefund).
+ *     runPassQuotaRefund). restorePass 는 차감으로 이용권이 소진 종료됐을 때 환불이 이용권을 되살리는
+ *     데 쓰는 스냅샷이며 refundPassCoverage({ restorePass }) 에 그대로 넘긴다.
  *   proven === true  : 증빙됨
  *   proven === false : 증빙 못 찾음
  *   proven === null  : 🔴 판단 보류(DB 일시 장애). 절대 402 로 바꾸지 말 것 — 503 이다.
@@ -215,8 +217,14 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
         if (!consumed.covered) return { proven: false, source: "", reason: passDenialCode(consumed.reason) || "NO_RECORD" };
         // 🔴 monthlySpendCoin 차감분을 되돌릴 정보다 — 이걸 안 실어 보내면 뒤에서 결제(생성)가
         //    실패해도 이 월간 사용한도가 영원히 복구되지 않는다(2026-09-12 실사고 수정).
+        //    마지막 차감이 월 예산을 채우면 이용권이 그 자리에서 종료되므로, 환불이 이용권까지 되살리도록
+        //    restorePass(등급·만료일·한도)를 함께 싣는다. consumed.user 는 이미 종료된 문서일 수 있어
+        //    한도 숫자는 차감 전 user 에서 읽는다.
         const cycleKey = consumed.coverage?.cycleKey;
-        if (cycleKey) passRefund = { cycleKey: String(cycleKey), cost };
+        if (cycleKey) {
+          const restorePass = buildPassRestoreSnapshot(consumed.coverage, user);
+          passRefund = { cycleKey: String(cycleKey), cost, ...(restorePass ? { restorePass } : {}) };
+        }
       }
       return { proven: true, source: "pass", reason: "", ...(passRefund ? { passRefund } : {}) };
     }

@@ -519,6 +519,8 @@ async function runPassQuotaRefund({ userId, executionId, execution }) {
   const result = await refundPassCoverage({
     userId, cycleKey, cost,
     refundId: `${execution.featureKey}:${execution.idempotencyKey || execution.executionKey || executionId}`,
+    // 소진 종료된 이용권을 되살리는 스냅샷 — 사이클·소진 증거가 맞을 때만 refundPassCoverage 가 적용한다.
+    restorePass: passRefund.restorePass && typeof passRefund.restorePass === "object" ? passRefund.restorePass : null,
   });
   if (!result.refunded) return result;
   await ServiceExecutionTransaction.updateOne(

@@ -6,6 +6,7 @@
  * 와 같은 사이클키 일치 + 잔액 조건부 $inc 규칙을 반대 방향으로 검증한다.
  */
 import { refundPassCoverage } from "../../worker/lib/pass-consumption.js";
+import { buildPassRestoreSnapshot } from "../../worker/lib/pass-restore-snapshot.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
@@ -77,6 +78,55 @@ test("마지막 사용으로 조기 종료된 Family도 무결과 환급과 같�
   expect(user.profileSubscription).toMatchObject({tier:"family",passTier:"family",monthlySpendCoin:4500,monthlyLimitCoin:5000,
     profileLimit:0,maxCoveredCoin:999999999,passPolicyVersion:"flower-cost-20260921",passExhaustedAt:null,passExhaustedFromExpiresAt:null});
   expect(new Date(user.profileSubscription.expiresAt).toISOString()).toBe(CYCLE_KEY);
+});
+
+// 차감 판정(coverage)에서 만든 스냅샷이 환불과 만나는 전 구간: 소진 종료된 프리미엄 이용권이 되살아나는지.
+const PREMIUM_COVERAGE = { tier: "premium", cycleKey: CYCLE_KEY, budgetCoin: 600, perItemLimit: 100 };
+const PREMIUM_BEFORE = { profileSubscription: { profileLimit: 7, passPolicyVersion: "flower-20260930" } };
+const exhaust = (user) => Object.assign(user.profileSubscription, {
+  tier: "free", passTier: "", expiresAt: new Date("2099-09-23T00:00:00.000Z"), monthlyLimitCoin: 0, maxCoveredCoin: 0,
+  passExhaustedAt: new Date("2099-09-23T00:00:00.000Z"), passExhaustedFromExpiresAt: new Date(CYCLE_KEY),
+});
+
+test("복원 스냅샷은 차감 판정과 차감 전 문서에서 만들고, 사이클·등급이 없으면 만들지 않는다", () => {
+  expect(buildPassRestoreSnapshot(PREMIUM_COVERAGE, PREMIUM_BEFORE)).toEqual({
+    tier: "premium", expiresAt: CYCLE_KEY, monthlyLimitCoin: 600, profileLimit: 7, maxCoveredCoin: 100, passPolicyVersion: "flower-20260930",
+  });
+  expect(buildPassRestoreSnapshot({ ...PREMIUM_COVERAGE, cycleKey: "" }, PREMIUM_BEFORE)).toBeUndefined();
+  expect(buildPassRestoreSnapshot({ ...PREMIUM_COVERAGE, tier: "" }, PREMIUM_BEFORE)).toBeUndefined();
+  expect(buildPassRestoreSnapshot(undefined, undefined)).toBeUndefined();
+});
+
+test("마지막 차감으로 소진 종료된 프리미엄 이용권은 환불과 함께 같은 만료일·한도로 되살아난다", async () => {
+  const db = makeFakePaymentDb();
+  const user = seed(db, { monthlySpendCoin: 600 });
+  exhaust(user);
+  const restorePass = buildPassRestoreSnapshot(PREMIUM_COVERAGE, PREMIUM_BEFORE);
+  await refundPassCoverage({ userId: USER, refundId: "tea-exhausted", cycleKey: CYCLE_KEY, cost: 100, db, restorePass });
+  expect(user.profileSubscription).toMatchObject({
+    tier: "premium", passTier: "premium", monthlySpendCoin: 500, monthlyLimitCoin: 600, maxCoveredCoin: 100,
+    profileLimit: 7, passPolicyVersion: "flower-20260930", passExhaustedAt: null, passExhaustedFromExpiresAt: null,
+  });
+  expect(new Date(user.profileSubscription.expiresAt).toISOString()).toBe(CYCLE_KEY);
+});
+
+test("소진 종료되지 않은 이용권은 스냅샷이 있어도 쿼터만 돌리고 등급·만료일을 건드리지 않는다", async () => {
+  const db = makeFakePaymentDb();
+  const user = seed(db, { monthlySpendCoin: 300 });
+  Object.assign(user.profileSubscription, { tier: "premium", passTier: "premium", expiresAt: new Date(CYCLE_KEY), monthlyLimitCoin: 600 });
+  const restorePass = buildPassRestoreSnapshot({ ...PREMIUM_COVERAGE, budgetCoin: 999 }, PREMIUM_BEFORE);
+  await refundPassCoverage({ userId: USER, refundId: "tea-active", cycleKey: CYCLE_KEY, cost: 100, db, restorePass });
+  expect(user.profileSubscription).toMatchObject({ tier: "premium", monthlySpendCoin: 200, monthlyLimitCoin: 600 });
+});
+
+test("그 사이 다른 사이클의 새 이용권이 들어왔으면 스냅샷이 있어도 아무것도 되살리지 않는다", async () => {
+  const db = makeFakePaymentDb();
+  const user = seed(db, { monthlySpendCoin: 40, premiumUseCycleKey: "2099-12-31T00:00:00.000Z" });
+  Object.assign(user.profileSubscription, { tier: "premium", passTier: "premium", monthlyLimitCoin: 600 });
+  const restorePass = buildPassRestoreSnapshot(PREMIUM_COVERAGE, PREMIUM_BEFORE);
+  const result = await refundPassCoverage({ userId: USER, refundId: "tea-new-pass", cycleKey: CYCLE_KEY, cost: 100, db, restorePass });
+  expect(result).toMatchObject({ refunded: false, skipped: true });
+  expect(user.profileSubscription).toMatchObject({ tier: "premium", monthlySpendCoin: 40, premiumUseCycleKey: "2099-12-31T00:00:00.000Z" });
 });
 
 test("other usage remains intact after a repeated refund with sufficient balance", async () => {

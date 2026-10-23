@@ -724,7 +724,7 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
   if(perUse?.perUseSource==='honey'&&perUse.state==='FORTUNE_FAILED')return refundChatHoney(env,userId,requestId);
   if(perUse?.perUseSource==='point'&&perUse.perUsePassRefund?.cycleKey&&perUse.state==='FORTUNE_FAILED') {
     return restorePassQuota(env,userId,requestId,{accessMethod:'PER_USE',perUseSource:'point'},{cycleKey:perUse.perUsePassRefund.cycleKey,
-      cost:perUse.perUsePassRefund.cost,evidenceId:perUse.perUseEvidenceId});
+      cost:perUse.perUsePassRefund.cost,evidenceId:perUse.perUseEvidenceId,restorePass:perUse.perUsePassRefund.restorePass||null});
   }
   if(perUse)return false;
   const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:{$in:['FAMILY']},
