@@ -69,7 +69,7 @@ test('calendar stamps attended days, marks today and celebrates the 5-day bonus'
     assert.equal(box.querySelectorAll('.cdh-cal__day.is-stamped').length, 5);
     assert.equal(box.querySelector('.cdh-cal__day.is-today').getAttribute('aria-label'), '10월 24일 출석 완료, 연속 보너스 지급');
     assert.equal(box.querySelectorAll('.cdh-cal__slot.is-filled').length, 5);
-    assert.match(box.querySelector('.cdh-cal__note').textContent, /5일 연속 달성! 보너스 4개를 더해 오늘 5개/);
+    assert.match(box.querySelector('.cdh-cal__note').textContent, /5일 연속 달성! 보너스 4개를 더해 오늘 꿀방울 5개/);
     const chip = doc.querySelector('[data-cd-honey-streak]');
     assert.equal(chip.hidden, false);
     assert.equal(chip.textContent, '연속 5일');
@@ -82,7 +82,7 @@ test('calendar stays hidden for guests and shows the way to the next bonus befor
   try {
     const box = app.win.document.querySelector('[data-cd-honey-calendar]');
     assert.equal(box.querySelectorAll('.cdh-cal__slot.is-filled').length, 3);
-    assert.match(box.querySelector('.cdh-cal__note').textContent, /오늘 출석하면 연속 4일째! 2일 더 출석하면 보너스 \+4개/);
+    assert.match(box.querySelector('.cdh-cal__note').textContent, /오늘 출석하면 연속 4일째예요. 보너스까지 2일 남았어요/);
   } finally { app.close(); }
 });
 test('all product button adapters preserve cash handlers and show server honey prices', async () => {

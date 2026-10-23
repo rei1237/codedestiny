@@ -1425,7 +1425,7 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   advancedSettings: "고급 설정",
   generating: "산출 데이터 계산 중…",
   honeyBalance: "꿀방울 {count}개",
-  honeyRule: "하루 한 번 출석하면 꿀방울 1개 · 프롬프트 1회에 1개",
+  honeyRule: "하루 한 번 출석하면 꿀방울 1개, 5일 연속이면 +4개 · 프롬프트 1회에 1개",
   honeyNextReward: "내일 출석하면 꿀방울 1개 더 · 프롬프트 1회에 1개",
   honeyAttend: "오늘 출석하기",
   honeyAttended: "오늘 출석 완료",
@@ -1456,7 +1456,7 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
     title: "로그인하고 프롬프트를 만들어 보세요",
     lead: "로그인하면 꿀방울 1개로 프롬프트 1회를 만들 수 있어요.",
     benefits: [
-      "하루 한 번 출석하면 꿀방울 1개",
+      "하루 한 번 출석하면 꿀방울 1개, 5일 연속이면 +4개",
       "만든 프롬프트를 보관함에 저장",
       "모든 운세 도구 이용",
       "결제 없이 무료 가입",

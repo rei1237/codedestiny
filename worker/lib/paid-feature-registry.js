@@ -312,7 +312,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "animal-destiny-unlock": { cost: 70, amountKRW: 7000, reason: "십이운성 동물점 해금" },
   "saju-guardian-unlock": { cost: 70, reason: "사주 가디언 소환진 해금" },
   "daily-fortune-reading": { cost: 30, amountKRW: 3000, reason: "오늘의 운세 티저 해석" },
-  // 꿀방울(출석 3일마다 1개)이 없을 때의 대체 결제. 1회 생성 = 1건.
+  // 꿀방울(매일 출석 1개, 5일 연속 보너스 +4)이 없을 때의 대체 결제. 1회 생성 = 1건.
   "fortune-prompt-hub-generate": { cost: 30, amountKRW: 3000, reason: "운세 프롬프트 1회 생성" },
   "dream-prompt-generator": { cost: 30, amountKRW: 3000, reason: "꿈해몽 티저 해석" },
   "psychotest-reading": { cost: 30, amountKRW: 3000, reason: "심리테스트 티저 해석" },

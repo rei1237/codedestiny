@@ -94,7 +94,7 @@
     var filled = streak > 0 && (state.attended || streak % every !== 0) ? ((streak - 1) % every) + 1 : 0;
 
     var head = node('div', '', 'cdh-cal__head');
-    head.append(node('strong', month + '월 출석 달력'), node('span', streak > 0 ? '연속 ' + streak + '일' : '오늘부터 시작해요', 'cdh-cal__streak'));
+    head.append(node('strong', month + '월 찻집 출석 도장'), node('span', streak > 0 ? '연속 ' + streak + '일' : '오늘부터 시작해요', 'cdh-cal__streak'));
 
     var board = node('ol', '', 'cdh-cal__board');
     board.setAttribute('aria-label', every + '일 연속 도장판');
@@ -106,11 +106,11 @@
     }
 
     var note = node('div', '', 'cdh-cal__note');
-    var message = bonusDay ? streak + '일 연속 달성! 보너스 ' + bonusAmount + '개를 더해 오늘 ' + (bonusAmount + 1) + '개를 받았어요.'
-      : state.attended ? '연속 ' + streak + '일째예요. ' + state.nextBonusIn + '일 더 출석하면 보너스 꿀방울 +' + bonusAmount + '개!'
+    var message = bonusDay ? streak + '일 연속 달성! 보너스 ' + bonusAmount + '개를 더해 오늘 꿀방울 ' + (bonusAmount + 1) + '개를 받았어요.'
+      : state.attended ? '연속 ' + streak + '일째예요. 보너스까지 ' + state.nextBonusIn + '일 남았어요.'
       : state.nextBonusIn === 1 ? '오늘 출석하면 보너스 꿀방울 +' + bonusAmount + '개를 받아요!'
-      : streak > 0 ? '오늘 출석하면 연속 ' + (streak + 1) + '일째! ' + state.nextBonusIn + '일 더 출석하면 보너스 +' + bonusAmount + '개예요.'
-      : '오늘 출석하면 연속 1일째! ' + every + '일 연속이면 꿀방울 +' + bonusAmount + '개 보너스예요.';
+      : streak > 0 ? '오늘 출석하면 연속 ' + (streak + 1) + '일째예요. 보너스까지 ' + state.nextBonusIn + '일 남았어요.'
+      : '오늘 첫 도장을 찍어 보세요! ' + every + '일 연속이면 꿀방울 +' + bonusAmount + '개를 더 드려요.';
     note.append(icon(bonusDay ? 'flower-pig-cheer.webp' : 'flower-pig-tea.webp', 40), node('p', message));
     note.firstChild.className = 'cdh-cal__pig';
 
