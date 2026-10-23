@@ -53,12 +53,14 @@
   .actions a:hover { color: var(--ac-ink); }
 }
 .actions button:active { background: var(--cd-neo-letter-blue-hover); }
-@media (max-width: 400px) {
-  .banner { padding: 22px; }
-  .banner h2 { font-size: 18px; }
-  .heading { gap: 8px; }
-  .actions { gap: 8px; }
-  .actions button { padding-inline: 6px; font-size: 13px; }
+@media (max-width: 768px) {
+  .banner { padding: 16px; }
+  .heading { gap: 8px; margin-bottom: 8px; }
+  .ornament { flex-basis: 24px; width: 24px; height: 24px; }
+  .banner h2 { font-size: 16px; line-height: 1.45; }
+  .banner p { margin-bottom: 12px; line-height: 1.6; }
+  .actions { gap: 4px 8px; }
+  .actions button { padding-inline: 8px; }
 }
 @media (min-width: 769px) {
   .banner { inset-inline: auto 24px; }

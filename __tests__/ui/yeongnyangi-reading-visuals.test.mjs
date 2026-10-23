@@ -54,6 +54,9 @@ test('timing rows parse years and dates and keep missing values table-only',()=>
  assert.deepEqual(rows.map(r=>[r.from,r.to,r.now]),[[2024,2034,true],[rows[1].from,rows[1].to,true],[undefined,undefined,false]]);
  assert.ok(rows[1].from>2014.6&&rows[1].from<2014.7);
  assert.equal(m.yearValue('34세'),undefined);
+ // A 세운 row carries one 연도 and spans that year.
+ const year=m.timingRows([{domain:'saju',groups:[{id:'y',label:'y',kind:'timing',items:[{label:'주기',value:'丙午'},{label:'연도',value:'2026'}]}]}],new Date(2026,8,27))[0];
+ assert.deepEqual([year.start,year.end,year.from,year.to,year.now],['2026','2026',2026,2027,true]);
 });
 
 test('the asked year card reads each 간지 into stem and branch elements, relative to the consultation date',()=>{

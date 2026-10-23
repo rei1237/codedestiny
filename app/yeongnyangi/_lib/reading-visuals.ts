@@ -84,7 +84,8 @@ export function timingRows(charts:ReadingChart[],today=new Date()):TimingRow[]{
  const current=today.getFullYear()+today.getMonth()/12+(today.getDate()-1)/365;
  const rows=charts.flatMap(chart=>chart.groups.filter(g=>g.kind==='timing').map(g=>{
   const item=(label:string)=>g.items.find(i=>i.label===label)?.value || '';
-  const start=item('시작'),end=item('끝'),from=yearValue(start),rawTo=yearValue(end);
+  // A 세운 row is a single 연도 (reading-presentation.ts) and spans that year.
+  const year=item('연도'),start=item('시작') || year,end=item('끝') || year,from=yearValue(start),rawTo=yearValue(end);
   // A bare end year covers that whole year.
   const to=rawTo!==undefined&&/^\d{4}$/.test(end.trim())?rawTo+1:rawTo;
   const valid=from!==undefined&&to!==undefined&&to>from;

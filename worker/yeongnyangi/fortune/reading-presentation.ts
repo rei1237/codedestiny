@@ -44,6 +44,7 @@ function text(value:unknown):string {
   }
   return names[String(value)] || String(value);
 }
+const day=(value:unknown)=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}T/.test(value)?value.slice(0,10):value;
 const titles:Record<DomainId,string>={saju:'나의 사주와 오행',ziwei:'열두 궁에 담긴 삶',sukuyo:'별 사이의 관계',vedic:'라시 차트와 별의 주기',astrology:'나의 출생 차트',tarot:'질문 위에 펼친 카드'};
 
 // Presentation is derived only from an owned saved snapshot, never a fresh calculation.
@@ -96,7 +97,12 @@ export function readingCharts(analysis:MasterAnalysis,manifest:ChapterSpec[]):Re
       const rows=key==='vimshottariDasha'?[value.currentMahadasha,value.currentAntardasha,...(value.periods || [])]:key==='majorLuck'?[value.currentCycle,...(value.cycles || [])]:Array.isArray(value)?value:[value];
       for(const r of rows.filter(Boolean)){
        const periodKey=JSON.stringify(r);if(periods.has(periodKey))continue;periods.add(periodKey);
-       add(key,'계산된 시기 · '+text(r.lord || r.planet || r.ganji || r.pillar || r.year),[{label:'주기',value:text(r.lord || r.planet || r.ganji || r.pillar || r.year)},{label:'시작',value:text(r.startDate || r.startYear || r.startAge)},{label:'끝',value:text(r.endDate || r.endYear || r.endAge)}],{kind:'timing'});
+       // Only empty cells change: the span before the first 교운 has no pillar, a dated 대운 is titled by its label like the
+       // body text, a 세운 row is one year, and a dasha may carry only start/end.
+       const name=r.lord || r.planet || r.ganji || r.pillar || r.year || (key==='majorLuck'?'대운 시작 전':null);
+       const start=r.startDate || r.startYear || r.startAge || day(r.start),end=r.endDate || r.endYear || r.endAge || day(r.end);
+       add(key,'계산된 시기 · '+(key==='majorLuck'&&typeof r.label==='string'?r.label:text(name)),[{label:'주기',value:text(name)},
+        ...(key==='yearlyLuck'&&r.year&&!start&&!end?[{label:'연도',value:text(r.year)}]:[{label:'시작',value:text(start)},{label:'끝',value:text(end)}])],{kind:'timing'});
       }
     }
     return {domain:d,title:titles[d],groups,limitations:d==='saju'&&context.engineVersion!==SAJU_ENGINE_VERSION?[...context.limitations,'이 보고서는 이전 계산 기준으로 작성되었습니다. 원국과 관련 해석의 정정 여부를 확인해야 합니다.']:context.limitations,...(f.spreadId==='yeongnyangi_compatibility_six'?{relationship:true}:{}),source:d==='tarot'?'서버에 저장된 카드 배열':'구매 당시 저장된 계산 근거',...(d==='astrology'?{cusps:Array.isArray(f.houseCusps)?f.houseCusps.filter((n:unknown)=>typeof n==='number'):[]}: {})};

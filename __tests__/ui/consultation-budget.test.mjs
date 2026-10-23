@@ -89,7 +89,10 @@ test('one question still reads aptitude, love and health once; the core chapter 
  // Flounder's fixed bonus chapters already read work and health for a money question.
  assert.deepEqual(core('saju','flounder','money'),[['core-love','evidence']]);
  assert.deepEqual(core('saju','flounder','love'),[]);
- for(const [domain,tier] of [['saju','tuna'],['tarot','mackerel'],['sukuyo','salmon']])assert.deepEqual(core(domain,tier,'money'),[],domain+' '+tier);
+ for(const [domain,tier] of [['saju','tuna'],['tarot','mackerel'],['tarot','salmon']])assert.deepEqual(core(domain,tier,'money'),[],domain+' '+tier);
+ // The 27 mansions have no health basis: sukuyo reads aptitude and love only.
+ assert.deepEqual(core('sukuyo','salmon','money'),[['core-work','core-love','evidence']]);
+ assert.match(m.questionManifest('sukuyo','mackerel',decision,undefined,QUESTION,false)[0].sections.find(s=>s.id==='core').instruction,/별개로 적성·연애의/);
  const rows=m.questionManifest('saju','mackerel',asked('money'),undefined,QUESTION);
  assert.equal(rows.at(-1).key,'question-5');
  assert.ok(rows.find(row=>row.key==='question-core').factSelectors.saju.includes('healthBasis'));

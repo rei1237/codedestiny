@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {readFileSync} from 'node:fs';
 const backManifest=JSON.parse(readFileSync(new URL('../../public/assets/yeongnyangi/tarot/v1/manifest.json',import.meta.url),'utf8')).back;
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {validateReadingQuality,bodyCharacterCount} from './worker/yeongnyangi/fortune/reading-quality'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {analyze} from './worker/yeongnyangi/fortune/analysis'; export {TAROT_CARDS} from './lib/tarot/tarot-cards.mjs'; export {getTarotCardImageUrl} from './src/features/fortune-tea-house/lib/tarotCardImageMap'; export {readingCharts} from './worker/yeongnyangi/fortune/reading-presentation';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,format:'esm',platform:'node',write:false});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {validateReadingQuality,bodyCharacterCount} from './worker/yeongnyangi/fortune/reading-quality'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {analyze} from './worker/yeongnyangi/fortune/analysis'; export {TAROT_CARDS} from './lib/tarot/tarot-cards.mjs'; export {getTarotCardImageUrl} from './src/features/fortune-tea-house/lib/tarotCardImageMap'; export {readingCharts} from './worker/yeongnyangi/fortune/reading-presentation'; export {withDatedMajorLuck} from './worker/yeongnyangi/fortune/saju/major-luck';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,format:'esm',platform:'node',write:false});
 const m=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 const legacyProducts=m.products.map(p=>({...p,manifestVersion:m.READING_V5_VERSION,chapterCount:m.readingChapterCount(p.domain,p.fishId,m.READING_V5_VERSION)}));
 const context={domain:'saju',engineVersion:'fixture',calculatedAt:'2026-09-22',limitations:[],facts:[{id:'saju.pillars',label:'pillars',value:{day:'甲子'}},{id:'saju.dayMaster',label:'dayMaster',value:'甲'}]};
@@ -86,6 +86,26 @@ test('surface element counts show the hidden stems under each pillar; legacy cha
  assert.deepEqual(month(groups(five)).find(i=>i.label==='지장간'),{label:'지장간',value:'甲·丙·戊'});
  assert.equal(groups(five).find(x=>x.label==='년주').items.some(i=>i.label==='지장간'),false);
  assert.equal(month(groups({...five,countBasis:undefined})).some(i=>i.label==='지장간'),false);
+});
+
+test('calculated periods fill empty cells only: 대운 before the first 교운, dated 대운 labels, one-year 세운 and dasha start/end',()=>{
+ const cycles=[{index:0,startYear:1997,endYear:1997,startAge:1,endAge:1},...[1,2,3].map(i=>({index:i,pillar:['癸卯','甲辰','乙巳'][i-1],startYear:1988+i*10,endYear:1997+i*10,startAge:i*10-8,endAge:i*10+1}))];
+ const major=m.withDatedMajorLuck({available:true,startSolarDate:'1998-05-10',startAfterBirth:{years:1,months:3,days:0},cycles,currentCycle:cycles[3]},new Date('2026-10-23T00:00:00Z'));
+ const saju={...context,facts:[...context.facts,{id:'saju.majorLuck',label:'majorLuck',value:major},{id:'saju.yearlyLuck',label:'yearlyLuck',value:[{year:2026,pillar:'丙午'},{year:2027,pillar:'丁未'}]}]};
+ const vedic={domain:'vedic',facts:[{id:'vedic.vimshottariDasha',label:'vimshottariDasha',value:{currentMahadasha:{lord:'Jupiter',start:'2020-01-05T00:00:00.000Z',end:'2036-01-05T00:00:00.000Z'},currentAntardasha:{lord:'Saturn',startDate:'2024-03-01',endDate:'2026-12-01'},periods:[]}}],limitations:[]};
+ const chart=[{id:'x',factSelectors:{saju:['majorLuck','yearlyLuck'],vedic:['vimshottariDasha']}}];
+ const timing=m.readingCharts({contexts:{saju,vedic}},chart).flatMap(c=>c.groups.filter(g=>g.kind==='timing'));
+ assert.equal(JSON.stringify(timing).includes('자료 없음'),false);
+ // The current cycle is one row; the saved values (dates, years, pillars) are unchanged.
+ assert.deepEqual(timing.map(g=>[g.label,...g.items.map(i=>i.label+'='+i.value)]),[
+  ['계산된 시기 · 을사 대운 · 2018년 5월 무렵부터 (만 21세, 대운수 1)','주기=乙巳','시작=2018-05-10','끝=2028-05-09'],
+  ['계산된 시기 · 대운 시작 전','주기=대운 시작 전','시작=1997','끝=1998-05-09'],
+  ['계산된 시기 · 계묘 대운 · 1998년 5월 무렵부터 (만 1세, 대운수 1)','주기=癸卯','시작=1998-05-10','끝=2008-05-09'],
+  ['계산된 시기 · 갑진 대운 · 2008년 5월 무렵부터 (만 11세, 대운수 1)','주기=甲辰','시작=2008-05-10','끝=2018-05-09'],
+  ['계산된 시기 · 丙午','주기=丙午','연도=2026'],['계산된 시기 · 丁未','주기=丁未','연도=2027'],
+  ['계산된 시기 · 목성','주기=목성','시작=2020-01-05','끝=2036-01-05'],['계산된 시기 · 토성','주기=토성','시작=2024-03-01','끝=2026-12-01']]);
+ // An undated (pre-label) 대운 keeps its pillar title.
+ assert.equal(m.readingCharts({contexts:{saju:{...context,facts:[{id:'saju.majorLuck',label:'majorLuck',value:{currentCycle:cycles[3],cycles}}]}}},chart)[0].groups.find(g=>g.kind==='timing').label,'계산된 시기 · 乙巳');
 });
 
 test('all 78 saved tarot cards use approved Yeongnyangi art without changing IDs, order or orientation',()=>{

@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-23
-next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 반복 문장 제거를 붙인다. 답을 ChapterBody로 감싸 pruneRestatements를 그대로 재사용한다"
+next: "없음 — 모든 항목 완료·닫음, 운영 반영 99da0ed57(결과 기록 참고)"
 ---
 
 # 영냥이 상담 중복·정확도 — 후속 과제
@@ -19,7 +19,7 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
 
 ## 지금 상태 (다시 하지 않는다)
 
-- 원 작업 커밋 `43adcc577..8cfe5f0d8`(8개)이 origin/main에 있고, 운영 Pages·Worker는 `406f1e4a2`다(릴리스 run 39847925828 성공).
+- 원 작업 커밋 `43adcc577..8cfe5f0d8`(8개)과 후속 1~5·숙요 core(`ab2119a83..99da0ed57`)가 origin/main에 있고, 운영 Pages·Worker는 `99da0ed57`다(2026-10-23 운영 릴리스 run 39882578653 성공).
 - 주문 `cda59aa3…`: 입력은 여성이고 순행 경오(대운수 1)가 맞다. 계해는 남성으로 계산한 값이다. 정정본은 2026-10-23 운영 보관함에 반영해 확인했다. 되돌릴 때는 `$unset correction`(별도 승인).
 - 정정본 검수본(고객 데이터 포함, 커밋 금지): `D:\영냥이_정정본검수_2026-10-23\`
 
@@ -66,7 +66,7 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
 
 ### P1 — 고객이 보는 중복·정확도
 
-- [ ] **1. 추가 질문 답변에 반복 문장 제거가 없다**
+- [x] **1. 추가 질문 답변에 반복 문장 제거가 없다** (ab2119a83)
   - 현재
     - `worker/yeongnyangi/question-followup.ts:29-83`(`questionConversation`)은 모델 답을 `validateFollowup`(`fortune/ask/conversation.ts:33`)으로 검사한다(`:70`). 그 결과를 그대로 저장한다(`:73`).
     - 프롬프트에는 본편 장의 summary·highlights만 들어간다(`:55`). 반복 금지는 문구 지시뿐이다(`:54`).
@@ -89,7 +89,7 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
     - 본편 문장을 복사한 답 → 그 문장만 빠지고 단락 3개와 하한은 유지된다.
     - repeatPolicy가 없는 옛 주문 → 답이 바이트 단위로 같다.
     - provider 호출 수는 그대로다.
-- [ ] **2. 본문의 세는 나이 "N세 대운" 표기를 결정적으로 고치지 않는다**
+- [x] **2. 본문의 세는 나이 "N세 대운" 표기를 결정적으로 고치지 않는다** (efa390129)
   - 현재 표기 규칙은 프롬프트에만 있다.
     - `fortune/saju/index.ts:11`
     - `fortune/saju/major-luck.ts:7-8`(`MAJOR_LUCK_AGE_RULE`)
@@ -113,7 +113,7 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
     - 고치지 않는 경우 3건: label 없는 옛 주문, 간지 불일치, 이미 "만 N세"인 문장
     - 프롬프트가 바뀌지 않으므로 불변성 해시는 그대로여야 한다.
   - 선택: 1번의 추가 질문 답에도 같은 교정을 적용할지 정한다. 지금은 `validateReadingClaims`만 거친다.
-- [ ] **3. 차트 "계산된 시기" 행에 "자료 없음"이 나온다**
+- [x] **3. 차트 "계산된 시기" 행에 "자료 없음"이 나온다** (79ffda868)
   - 위치: `fortune/reading-presentation.ts:91-101`
     - majorLuck은 `[currentCycle, ...cycles]`로, yearlyLuck은 배열 그대로 행을 만든다.
     - 라벨은 `text(r.lord||r.planet||r.ganji||r.pillar||r.year)`다.
@@ -133,7 +133,7 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
 
 ### P2 — 결제 판정 일관성 (돈 흐름은 바꾸지 않는다)
 
-- [ ] **4. `retry.js`가 자기만의 접근 판정을 쓴다**
+- [x] **4. `retry.js`가 자기만의 접근 판정을 쓴다** (a99288e99)
   - 판정 함수가 세 개다.
     - `worker/yeongnyangi/retry.js:7`: `paymentId || accessMethod==='FAMILY' || passEvidenceId`. MOONLIGHT_STONE·SERVICE_PACK·PER_USE·ACCOUNT_FREE_TRIAL·`moonstoneLedgerId`·`packEntitlementId`를 모른다.
     - `worker/yeongnyangi/access-methods.js:6`: `packEntitlementId`가 없다.
@@ -150,7 +150,7 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
   - 완료 판정
     - `__tests__/worker/yeongnyangi-retry.test.js`에 월정석·서비스팩 행을 재시도할 때 `attachPayment`를 부르지 않는다는 테스트를 넣는다.
     - 판정을 자체 정의한 테스트 mock을 실제 판정과 맞춘다: `__tests__/worker/yeongnyangi-delivery.test.js:5`, `__tests__/ui/saju-correction-api.test.mjs:8`, `__tests__/ui/yeongnyangi-reading-correction.test.mjs:31`
-- [ ] **5. 보관함 목록과 결과 화면의 `paid`가 증빙을 보지 않는다**
+- [x] **5. 보관함 목록과 결과 화면의 `paid`가 증빙을 보지 않는다** (운영 0건 → 받아들인 위험)
   - `routes/yeongnyangi.js:178`, `service.ts:579`, `routes/fortune-chat-consultations.js:93`이 모두 `paid: hasRequestAccess(row)`다. 필드가 있는지만 본다.
   - 생성과 이어보기는 `findNonCashEvidence`(`repository.js:108`)로 증빙을 다시 확인한다.
     - 그래서 accessMethod만 있고 증빙이 없는 행(복사 행, 회수된 이용권)은 목록에 결제됨으로 보이고, 열면 409가 난다.
@@ -162,23 +162,27 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
     - 0건이면 "받아들인 위험"으로 옮기고 닫는다.
     - 있으면 판정을 엄격하게 바꾸는 대신, 409 대신 복구·지원 안내가 나오게 하는 쪽을 먼저 검토한다.
 
-## 사용자 결정 대기
+## 사용자 결정 (2026-10-23 모두 결정됨)
 
-- **타로·숙요 질문 상담에도 core 장(적성·연애·건강)을 넣을지**
+- **타로·숙요 질문 상담에도 core 장(적성·연애·건강)을 넣을지** → 권고안대로 숙요만 넣고 타로는 뺐다(결과 기록 참고)
   - `fortune/ask/question-policy.ts:191`은 다음 경우에 core 장을 넣지 않는다.
     - 참치: 인생 장 12개에 이미 들어 있다.
     - `CORE_DOMAINS`(`:225`, saju·ziwei·vedic·astrology) 밖의 영역: 타로·숙요
   - 단일장(`:246`)도 같은 기준이다.
   - 원 지시("질문 하나를 하더라도 … 전반적인 특성은 다 넣도록")에 비추면 남은 빈틈이다.
   - 타로 카드는 기질의 근거가 아니어서, 넣으면 근거 없는 서술이 된다. 숙요(본명숙 성향)만 넣는 안을 권한다.
-- **주문 `cda59aa3…` 정정본에 core 내용을 더할지**
+- **주문 `cda59aa3…` 정정본에 core 내용을 더할지** → 만들지 않는다(사용자 선택). 받아들인 위험으로 옮겼다
   - 현재 정정본은 원본과 같은 8장 구조이고 core 장이 없다. 고객이 제기한 문제(대운·오행 개수)는 해결됐다.
   - `correctedFortune`(`reading-correction.js:2-10`)은 정정본 장 수가 원본 장 수와 manifest 길이와 같아야 한다. 그래서 9번째 장은 붙일 수 없다. 넣으려면 기존 장에 소절을 더한 정정본 v2가 필요하다.
   - `scripts/repair-profile-customer.mjs --apply-correction`은 `correction:{$exists:false}`일 때만 쓴다. v2를 넣으려면 교체 모드가 따로 필요하다.
   - 필요한 승인: 실호출 1회 이상, 운영 쓰기
-- **5번의 운영 읽기**
+- **5번의 운영 읽기** → "남은 작업 끝까지 진행해줘"를 1회 읽기 승인으로 보고 실행했다(결과 기록 참고)
 
 ## 받아들인 위험·참고 (고치지 않는다)
+
+- 5번: 보관함 목록·결과 화면의 `paid`는 필드만 본다. 2026-10-23 운영 읽기에서 비현금 접근 행 13건이 모두 증빙을 찾았고, 증빙 없는 행은 0건이었다. 목록 판정은 바꾸지 않는다. 같은 증상 제보가 오면 409 대신 복구·지원 안내부터 검토한다.
+- 주문 `cda59aa3…` 정정본은 원본과 같은 8장 구조이고 core 장이 없다. 고객이 제기한 대운·오행 개수 문제는 해결됐으므로 v2(실호출·운영 쓰기·교체 모드 필요)는 만들지 않는다(사용자 결정 2026-10-23).
+- 숙요 core 장은 적성·연애만 다룬다. 27수 데이터(`SUKUYO_MANSIONS`: keywords·strengths·shadows)에 건강 근거가 없다. 타로는 카드가 기질의 근거가 아니어서 core 장을 넣지 않는다.
 
 - 2026-10-23 이전 주문에는 repeatPolicy·countBasis·label이 없어서 새 동작이 적용되지 않는다. 의도한 것이다.
 - 오행 개수를 보이는 8글자로 세면서 월지 오행 비율이 바뀐다. 주문 `cda59aa3…`에서는 목이 33% 과다에서 25% 균형이 됐다. 강약·용신 판단은 기존 월령 가중(`weighted`)을 그대로 쓴다.
@@ -187,4 +191,16 @@ next: "1 — 추가 질문 답변(worker/yeongnyangi/question-followup.ts)에 �
 
 ## 결과 기록
 
-- (항목을 끝낼 때마다 날짜·SHA·검증을 여기에 적는다)
+- 2026-10-23 (워크트리 wt/yeongnyangi-followups-20261023-060746, base origin/main 7bc87244c, 항목마다 check:fast 통과, LLM 호출·운영 DB 접근 없음)
+  - 1 — ab2119a83: `question-followup.ts`에 `pruneFollowup`. `manifest[0].repeatPolicy`가 `sentence-v1`인 주문의 새 추가 질문 답에만 저장된 장·앞선 답과 겹치는 문장 제거(`pruneRestatements`)를 건다. 옛 주문 답은 바이트 그대로. 분량 안내(budgetGuide) 하한 아래로는 줄이지 않고, 안내가 없으면 완전 중복만 지운다(가정: 추가 질문 답의 바닥은 그 안내의 하한).
+  - 2 — efa390129: `natal-claims.ts`가 "N세(부터 M세까지) (간지) 대운"을 label이 있는 대운 주기의 만 나이 `ageRange`로 바꾼다. 간지 하나·나이 하나·주기 startAge/endAge 일치일 때만 고치고, 다른 사람·세운·이미 만 나이·여러 주기 문장은 그대로 둔다. 불변성 해시 변화 없음.
+  - 3 — 79ffda868: `reading-presentation.ts`가 빈 칸만 채운다. 첫 교운 전 대운 → "대운 시작 전", 날짜 붙은 대운 → 본문 label 제목(다른 언어는 간지·교운 연월), 세운 → 연도 한 칸(타임라인은 그 해 전체), 다샤 start/end → 날짜. 있는 값은 그대로. sitemap lastmod(/fortune-tea-house/ 시그니처) 재생성 포함.
+  - 4 — a99288e99: `retry.js`가 `repository.hasRequestAccess`를 쓴다. 월정석·서비스팩·PER_USE·무료체험 행 재시도가 `attachPayment`를 부르지 않는다는 jest 테스트 추가, 세 테스트 mock을 실제 판정과 맞췄다. `access-methods.js:6`은 그대로 둔다: SERVICE_PACK 기록(`payment-funding.js:48-55`)이 accessMethod·passEvidenceId·packEntitlementId를 함께 써서 실제 판정이 같고, 바꾸면 후기 자격만 넓어질 수 있다.
+  - 5 — 코드 변경 없음. `scripts/audit-library-retention.mjs`는 CLI 뼈대(`--env-file`/`--db`만 받는 읽기 전용 가드, native MongoClient, ownerHash)만 재사용할 수 있다. 감사 함수 본문은 serviceexecutiontransactions 보존 기한용이라 쓸 수 없고, 증빙 판정이 5경로(PER_USE·무료체험·서비스팩·월정석·Family PointHistory, `repository.js:108`)라 native 컬렉션으로 새 함수를 짜야 한다. 운영 읽기는 승인 뒤에만.
+  - push — origin/main `7bc87244c..a3423d25d`
+- 2026-10-23 2차 (워크트리 wt/yeongnyangi-followups2-20261023-071519, base a3423d25d, LLM 호출·운영 쓰기 없음)
+  - 5 — 운영 읽기 1회(승인: "남은 작업 끝까지 진행해줘"). 일회성 스크립트(커밋 안 함)가 `findNonCashEvidence`를 커밋 마커 없이 불러 find만 했다(autoIndex·autoCreate 끔). `yeongnyangi_requests` 비현금 접근 13건 스캔: MOONLIGHT_STONE 6·FAMILY 3·PER_USE 4, 모두 COMPLETED, 증빙 없음 0건. DIRECT_KRW(paymentId)는 범위 밖. 문서 규칙대로 받아들인 위험으로 닫았다.
+  - 숙요 core — 89bf47c85: `question-policy.ts`의 `CORE_DOMAINS`에 sukuyo를 더하고, 숙요는 `coreAreas`로 건강을 빼 적성·연애만 쓴다. expanded layout과 legacy core 지시문 모두 같은 목록을 쓴다. 사주 지시문은 바이트 그대로, 불변성 해시 변화 없음, QUESTION_LAYOUT/POLICY_VERSION 그대로. `consultation-budget.test.mjs`에 숙요·타로 기대값 추가. sitemap lastmod 재생성 포함.
+  - cda59aa3 v2 — 만들지 않음(사용자 결정), 받아들인 위험으로 이동.
+  - push — origin/main `c10f67ace..` 위로 fast-forward(숙요 89bf47c85 + 이 문서 커밋), check:pre-push 통과
+  - 운영 배포 — 릴리스 run 39882578653(mode=production, 99da0ed57) 성공. 사전 확인: 같은 커밋 PR CI·Main drift watchdog 통과

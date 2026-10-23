@@ -188,7 +188,7 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
  // One question still covers the whole person: the aptitude, love and health areas no question or fixed bonus chapter
  // reads get one chapter, taking an expansion row's place. Salmon's bonus-pick is the model's choice and covers nothing.
  const bonusRead=new Set(groups.filter(group=>group.role==='bonus').flatMap(group=>group.sections.map(x=>/^bonus-(\w+)-signal$/.exec(x.id)?.[1])));
- const core=fish==='tuna'||!CORE_DOMAINS.includes(domain)?[]:CORE_AREAS.filter(item=>!item.asked(topic,d)&&!(composite&&askedAreas[item.id].test(question))&&!bonusRead.has(item.id));
+ const core=fish==='tuna'||!CORE_DOMAINS.includes(domain)?[]:coreAreas(domain).filter(item=>!item.asked(topic,d)&&!(composite&&askedAreas[item.id].test(question))&&!bonusRead.has(item.id));
  if(core.length)groups.push({title:'나의 기본 특성 · '+core.map(item=>item.label).join('·'),role:'core',theme:'self',weight:1,sections:core.map(item=>section('core-'+item.id,item.title,item.instruction))});
  groups.push({title:subject+' · 종합 해석과 실행 계획',role:'synthesis',theme:'action',weight:.9,sections:actions});
  const targets=layoutTargets(groups.map(group=>group.weight),fish);
@@ -222,7 +222,9 @@ const CORE_AREAS=[
  {id:'health',label:'건강',title:'건강 리듬과 회복의 기본 성향',asked:(topic:string)=>topic==='healing',
   instruction:'타고난 활동과 휴식의 리듬, 소진 신호와 회복 습관을 실제 근거로 설명한다. 질병·치료를 판단하지 않는다.'},
 ] as const;
-const CORE_DOMAINS:DomainId[]=['saju','ziwei','vedic','astrology'];
+const CORE_DOMAINS:DomainId[]=['saju','ziwei','vedic','astrology','sukuyo'];
+// The 27 mansions carry keywords, strengths and shadows but no health basis, so sukuyo reads aptitude and love only. Tarot cards are no temperament evidence.
+const coreAreas=(domain:DomainId)=>domain==='sukuyo'?CORE_AREAS.filter(item=>item.id!=='health'):CORE_AREAS;
 const CORE_SELECTORS:Partial<Record<DomainId,string[]>>={saju:['elementProfile','tenGodProfile','healthBasis']};
 
 function legacyQuestionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDecision,spread?:{positions:{id:string;label:string;question:string;role:string;readOrder:number}[]}):ChapterSpec[]{
@@ -243,7 +245,7 @@ function legacyQuestionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDeci
  if(domain==='tarot'&&spread?.positions.length){
   sections.splice(1,1,...[...spread.positions].sort((a,b)=>a.readOrder-b.readOrder).map((p,i)=>({id:i===0?'evidence':'position-'+p.id,title:p.label,role:'interpretation' as const,instruction:`${p.id}: ${p.question} ${p.role} 이 자리에 저장된 카드·정역방향·상징을 질문과 연결하고 카드 사이의 흐름을 설명한다.`})));
  }
- if(CORE_DOMAINS.includes(domain))sections.splice(sections.length-1,0,{id:'core',title:'나의 기본 특성',role:'interpretation',instruction:'질문과 별개로 적성·연애·건강의 기본 성향을 실제 근거로 영역마다 짧게 정리한다. 질문과 같은 영역은 한 줄로만 짚는다. 실제 직업·상대의 마음·질병을 단정하지 않는다.'});
+ if(CORE_DOMAINS.includes(domain))sections.splice(sections.length-1,0,{id:'core',title:'나의 기본 특성',role:'interpretation',instruction:'질문과 별개로 '+coreAreas(domain).map(item=>item.label).join('·')+'의 기본 성향을 실제 근거로 영역마다 짧게 정리한다. 질문과 같은 영역은 한 줄로만 짚는다. 실제 직업·상대의 마음·질병을 단정하지 않는다.'});
  if(d.target==='pair')sections[0].instruction+=' 두 사람 각각의 성향, 잘 맞는 점과 어긋나는 점, 표현·갈등·생활·돈·책임의 합의를 다룬다.';
  if(d.relationshipType==='romantic_adults')sections.push({id:'intimacy',title:'가까워지는 속도와 편안함',role:'interpretation',instruction:'속궁합은 성인 두 사람의 편안함·속도·대화·경계로 설명한다. 조후의 한난조습은 기존 종격·억부·조후 우선순위 안에서 보완과 충돌을 함께 읽고 성적 특성·만족도를 지어내지 않는다.'});
  return [{id:'question-answer',key:'question',ordinal:0,title:'이 질문을 함께 살펴보기',part:'질문 상담',theme:'self',

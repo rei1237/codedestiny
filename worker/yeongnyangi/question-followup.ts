@@ -13,8 +13,23 @@ import {selectChapterFacts} from './fortune/chapter-facts';
 import {explanationFacts} from './fortune/shared/privacy';
 import {callGeminiText} from '../lib/gemini.js';
 import {TUNA_FOLLOWUP_THINKING_BUDGET,TUNA_FOLLOWUP_TIMEOUT_MS,tunaChapterModel,tunaQualityApplies} from './fortune/tuna-quality';
+import {REPEAT_POLICY,pruneRestatements} from './fortune/reading-restatement';
+import {bodyCharacterCount} from './fortune/reading-quality';
+import type {ChapterBody} from './fortune/book-contracts';
 
-import {empty,reserveConversation,validateFollowup,finishConversation,type Conversation,type Exchange} from './fortune/ask/conversation';
+import {empty,reserveConversation,validateFollowup,finishConversation,type Conversation,type Exchange,type FollowupReply} from './fortune/ask/conversation';
+// The chapters' sentence-level repeat prune (fortune/reading-restatement.ts), never a second provider call. Each \n\n
+// paragraph (text·reason·action) is one block, so every paragraph keeps a sentence. Orders without REPEAT_POLICY keep their replies.
+function pruneFollowup(reply:FollowupReply,snapshot:any,chapters:any[],history:Exchange[],budget:number[]|null):FollowupReply{
+ if(snapshot.manifest?.[0]?.repeatPolicy!==REPEAT_POLICY)return reply;
+ const previous=[...(chapters||[]),...history.map(e=>({analysis:e.reply.text.split('\n\n')}))];
+ const pruned=pruneRestatements({blocks:reply.text.split('\n\n').map(paragraph=>({title:'',paragraphs:[paragraph]}))} as ChapterBody,previous,
+  budget?{minimumChars:budget[0],targetChars:[budget[0],budget[1]]}:{minimumChars:0,targetChars:[0,0]},{exactOnly:!budget});
+ if(pruned.exact||pruned.near||pruned.previous||pruned.kept)console.log('[yeongnyangi-restatement]',JSON.stringify({section:'followup',
+  exact:pruned.exact,near:pruned.near,previous:pruned.previous,chars:pruned.chars,kept:pruned.kept,remaining:bodyCharacterCount(pruned.body)}));
+ if(!pruned.exact&&!pruned.near&&!pruned.previous)return reply;
+ return {...reply,text:pruned.body.blocks!.map(block=>block.paragraphs.join('\n\n')).join('\n\n')};
+}
 async function saveConversation(env:any,userId:string,id:string,before:Conversation|undefined,after:Conversation){
  const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({
   _id:id,userId:ownerId(userId),state:'COMPLETED','snapshot.questionContract.version':QUESTION_POLICY_VERSION,
@@ -67,7 +82,7 @@ export async function questionConversation(env:any,userId:string,id:string,body:
    logContext:{requestId:id,sectionGroup:'followup',attempt:next.pending!.attempts},
   });
   if(!response.ok||response.isMock||!response.text||response.truncated||response.finishReason==='MAX_TOKENS')throw new FortuneError('FORTUNE_PROVIDER_FAILED',502);
-  const reply=validateFollowup(response.text,new Set(facts.map((f:any)=>f.id)));
+  const reply=pruneFollowup(validateFollowup(response.text,new Set(facts.map((f:any)=>f.id))),snapshot,row.chapters,next.exchanges,budgetGuide);
   const funded=await readRequest(env,userId,id); // Recheck funding/revocation before persisting.
   if(funded.state!=='COMPLETED'||deliveryRefundPending(funded)||!hasRequestAccess(funded))throw new FortuneError('FOLLOWUP_NOT_AVAILABLE',409);
   await saveConversation(env,userId,id,next,finishConversation(next,token,reply,contract.followups));
