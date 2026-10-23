@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-23
-next: "13 — eslint 경고 375개"
+next: "14 — 신년운세 VM 테스트가 구현 세부에 묶여 있다"
 ---
 
 # 꿀꿀운세 UX 진단·개선 — 후속 과제
@@ -121,9 +121,9 @@ next: "13 — eslint 경고 375개"
 - [x] **12. 2단계에서 남은 i18n 낡은 키** (`public/i18n/*.json`) — 끝: `c123fbbbb`. 참조 없는 `premiumGates`(summary/daewun desc·sectionTitle·graphTitle)·`premiumShowcase`(eyebrow, summary/daewun desc·point1~4) 16개 키를 12개 언어에서 지웠다. `sajuReading.daeunTitle`·`graphTitle`을 12개 언어 사전과 `i18n/authored/sajuReading-1.json`에 손번역으로 채웠다. `i18n:check` 통과(B +43 경고는 5번 기록대로). H6도 이것으로 닫힌다
   - `result.premiumGates.summary.desc`·`daewun.desc`(5,000원, A4 30페이지), premiumShowcase desc, `sectionTitle` "기본 종합 사주 풀이", 쓰지 않는 eyebrow 키.
   - 참조가 없으므로 지우거나 손으로 고친다. `sajuReading.daeunTitle`은 12개 언어 모두에 없다.
-- [ ] **13. eslint 경고 375개**
+- [x] **13. eslint 경고 375개** — 끝: `2dff830f8`. 세 파일 424개 → 0개. `no-var`는 eslint 자동 수정 뒤 남은 12곳(블록마다 재선언된 `raf`·`dx`·`dy`, 콜백이 자기 자신을 읽는 `timer`, 한 줄 다중 선언의 `started`)을 손으로 바꿨다. 쓰지 않는 `catch (_)`는 `catch {}`로(셸 `uiBindings.js`가 이미 쓰는 문법, esbuild는 target 없이 문법을 낮추지 않음). 죽은 `findActionElement`·`withMobileBuild`(+`detectMobileBuildVersion`)를 지웠다. 함수 선언이 const/let보다 먼저 불리는 TDZ는 스크래치 `tdz-scan.cjs`(eslint-scope)로 0건. 뒤로가기 시나리오 10/10, `verify-moon-pwa`·모바일 가드 통과(H17만 기존 실패)
   - 전부 `js/mobile-backstack-navigation.js`와 `js/mobile-interaction-patch.js`에 있고, 315개는 자동 수정이 된다. `pwa-lifecycle.js`에도 49개가 있다.
-- [ ] **36. `RecommendationSurface.jsx` eslint 경고** — 39:9 img, 93:169 deps.
+- [x] **36. `RecommendationSurface.jsx` eslint 경고** — 39:9 img, 93:169 deps. — 끝: `2b0ef2b3f`. `<img>`는 정적 export(`images.unoptimized`)라 사유를 달아 끔. 노출 effect는 `trackRecommendation`이 읽는 `service`만 의존(렌더마다 새 `context`를 넣으면 구독이 매번 새로 생겨 노출이 중복된다)
 - [ ] **14. 신년운세 VM 테스트가 구현 세부에 묶여 있다**
   - `__tests__/ui/new-year-question-answer.behavior.test.js`가 VM transpile과 `friendlyErrorMessage` 스텁(L65)에 기댄다. 순수 헬퍼를 모듈로 옮긴다.
 - [ ] **27. 레거시 건강 보고서 분기가 죽은 코드다**
