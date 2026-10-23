@@ -47,12 +47,12 @@ export default function ConsultationAccessPanel({
               </button>
             ) : honey && !honey.attended ? (
               <button type="button" className={styles.accessSecondary} data-consultation-attend disabled={busy || honeyLoading} onClick={onAttend}>
-                오늘 출석하고 꿀방울 1개 받기
+                오늘 출석하고 꿀방울 받기
               </button>
             ) : honey?.attended ? (
-              <p className={styles.muted}>오늘 출석을 마쳤어요. 내일 또 1개를 받을 수 있어요.</p>
+              <p className={styles.muted}>오늘 출석을 마쳤어요. 내일도 출석하면 꿀방울을 받아요.</p>
             ) : null}
-            <p className={styles.muted}>매일 출석하면 꿀방울이 1개씩 쌓여요. 답을 받기 전에 상담이 멈추면 30개를 그대로 돌려드려요.</p>
+            <p className={styles.muted}>매일 출석하면 꿀방울이 1개씩, 5일 연속이면 보너스 4개가 더 쌓여요. 답을 받기 전에 상담이 멈추면 30개를 그대로 돌려드려요.</p>
           </section>
         )}
         <section className={`${styles.accessCard} ${styles.payCard}`} aria-labelledby="consultation-access-pay">
