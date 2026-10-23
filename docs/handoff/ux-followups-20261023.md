@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-23
-next: "35 — 관리자·공유 셸의 alert"
+next: "39-후속 — IntakeChat 삭제 뒤 남은 미사용 코드"
 ---
 
 # 꿀꿀운세 UX 진단·개선 — 후속 과제
@@ -128,7 +128,7 @@ next: "35 — 관리자·공유 셸의 alert"
   - `__tests__/ui/new-year-question-answer.behavior.test.js`가 VM transpile과 `friendlyErrorMessage` 스텁(L65)에 기댄다. 순수 헬퍼를 모듈로 옮긴다.
 - [x] **27. 레거시 건강 보고서 분기가 죽은 코드다** — 끝: `827396a69` 호출부가 `legacy-saju`·`legacy-tarot`·`pet-*`뿐임을 확인하고 분기 삭제. 테스트는 `legacy-tarot`로 마운트. 추천 테스트 19/19
   - 위치: `js/recommendations-legacy.mjs:53-56`. `__tests__/ui/recommendations.test.mjs`가 이 글자를 검사하므로 함께 고친다.
-- [ ] **35. 관리자·공유 셸의 `alert`**
+- [x] **35. 관리자·공유 셸의 `alert`** — 끝: `18ddbbb8a` 관리자 해금 실패·완료 2곳은 `_cdShellNotice`, 카카오 공유 실패는 같은 방식(`showToast`, 없을 때만 alert). 셸 관련 UI 테스트 50/50, `verify-paid-gate-ui-regression`·`verify:paid-resume-wiring` 통과
   - 위치: `index.html` 약 L30539·L30545, 공유 추천 흐름 약 L19257. `_cdShellNotice`를 쓴다.
 - [ ] **39-후속(선택). `IntakeChat` 삭제 뒤 남은 미사용 코드**
   - `app/yeongnyangi/_lib/intake-chat.ts`의 `intakeSteps`·`intakeAnswer`·`intakeStepValid`·`intakePrompts`·`intakeCursor`·`IntakeStep`과 그 테스트.
