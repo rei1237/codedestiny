@@ -3,6 +3,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import vm from "node:vm";
+import ts from "typescript";
 import { FEATURE_KEY_PRICE_TABLE } from "../../worker/lib/paid-feature-registry.js";
 
 const QUANTUM = "js/saju-engine-tarot-sukuyo-quantum.js";
@@ -86,5 +88,20 @@ test("per-use screen prices match the server registry", () => {
     assert.ok(found.length > 0, `${featureKey}: pattern ${pattern} not found in ${file}`);
     const expected = unit === "krw" ? entry.amountKRW : entry.cost;
     for (const value of found) assert.equal(value, expected, `${featureKey} (${unit}) in ${file}`);
+  }
+});
+
+test("마야 상담과 무후르타 게이트가 서버의 5,000원·7,000원을 그대로 사용한다", () => {
+  for (const [file, key, costKey, amountKey] of [
+    ['src/components/maya/MayaPromptGeneratorCard.tsx','maya-prompt-generator','FEATURE_COST','FEATURE_PRICE_KRW'],
+    ['app/nakshatra/muhurta/MuhurtaClient.tsx','nakshatra-muhurta','COIN_PRICE','AMOUNT_KRW'],
+  ]) {
+    const source=readFileSync(file,'utf8'),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+    const declarations=ast.statements.filter(ts.isVariableStatement).flatMap(node=>node.declarationList.declarations)
+      .filter(node=>['FEATURE_KEY',costKey,amountKey].includes(node.name.getText(ast)));
+    assert.equal(declarations.length,3);
+    const code=declarations.map(node=>`const ${node.getText(ast)};`).join('\n');
+    const actual=vm.runInNewContext(`${code}\n[${costKey},${amountKey}]`,{FEATURE_KEY_PRICE_TABLE});
+    assert.deepEqual(Array.from(actual),[FEATURE_KEY_PRICE_TABLE[key].cost,FEATURE_KEY_PRICE_TABLE[key].amountKRW]);
   }
 });

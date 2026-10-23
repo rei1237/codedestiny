@@ -1,8 +1,9 @@
 "use client";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { detectLocale } from "@/lib/i18n/dictionary";
+import { FEATURE_KEY_PRICE_TABLE } from "@/worker/lib/paid-feature-registry.js";
 
-// 택일(무후르타) — 회당 결제(₩5,000).
+// 택일(무후르타) — 회당 결제 가격은 서버 레지스트리를 공유한다.
 //
 // 앞의 두 리포트(영구 해금)와 달리 매번 결제하는 기능이라 해금 상태를 읽지 않는다.
 // 🔴 결제는 공용 게이트(useCoinGate.ensurePaidAccess, pass-first)에만 맡긴다 — forceDeduct 없음.
@@ -23,8 +24,8 @@ import type { NakshatraBirthInput } from "../nakshatra-birth";
 import { useNakshatraCopy, type MuhurtaPurposeKey } from "../_lib/copy";
 
 const FEATURE_KEY = "nakshatra-muhurta";
-const COIN_PRICE = 50;
-const AMOUNT_KRW = 5000;
+const COIN_PRICE = FEATURE_KEY_PRICE_TABLE[FEATURE_KEY].cost;
+const AMOUNT_KRW = FEATURE_KEY_PRICE_TABLE[FEATURE_KEY].amountKRW;
 const ENDPOINT = "/api/nakshatra-premium/muhurta";
 
 const PURPOSE_KEYS: MuhurtaPurposeKey[] = ["marriage", "business", "contract", "moving", "newStart", "healing"];

@@ -1,7 +1,7 @@
 import { readHoneyUseReceipt } from './honey-per-use.js';
 // 회당 결제 라우트 — 서버측 결제 증빙 검증(공용).
 //
-// 대상: /api/nakshatra/compat(₩10,000) · /api/nakshatra-premium/muhurta(₩5,000)
+// 대상: /api/nakshatra/compat · /api/nakshatra-premium/muhurta (가격은 레지스트리)
 //       /api/nakshatra-premium/vvip-codex(₩30,000)
 //       /api/fortune/guardian/generate(연이 운명 상담 ₩5,000, 무료 소진 이후)
 //       /api/fusion-fortune/generate[/stream](초융합 운세 ₩50,000)

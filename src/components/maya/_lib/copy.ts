@@ -5,6 +5,9 @@
 // 신규 필드는 en/ja/zh-CN/zh-TW만 채운다 — 나머지 로케일은 getMayaCopy()가 EN과 병합해 자동 폴백한다.
 
 import { useEffect, useState } from "react";
+import { FEATURE_KEY_PRICE_TABLE } from "@/worker/lib/paid-feature-registry.js";
+
+const mayaPrice = new Intl.NumberFormat("ko-KR").format(FEATURE_KEY_PRICE_TABLE["maya-prompt-generator"].amountKRW);
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 export interface MayaCopy {
@@ -126,7 +129,7 @@ const MAYA_COPY_EN: MayaCopy = {
   calcBasisLabel: "Calculation basis",
 
   promptFeatureReason: "Maya reading consultation prompt generation",
-  promptPriceLabel: "One-time ₩3,000",
+  promptPriceLabel: `One-time ₩${mayaPrice}`,
   gateTitle: "Maya reading prompt generation",
   gateCheckingMessage: "Checking your pass",
   errorLoginRequired: "Please log in to check your pass or payment.",
@@ -200,7 +203,7 @@ const MAYA_COPY: Partial<Record<LoadingLocale, MayaCopy>> = {
     calcBasisLabel: "계산 기준",
 
     promptFeatureReason: "마야점 상담 프롬프트 생성",
-    promptPriceLabel: "1회 3,000원",
+    promptPriceLabel: `1회 ${mayaPrice}원`,
     gateTitle: "마야점 프롬프트 생성",
     gateCheckingMessage: "이용권 확인 중",
     errorLoginRequired: "로그인 후 이용권 또는 결제를 확인할 수 있습니다.",
@@ -272,7 +275,7 @@ const MAYA_COPY: Partial<Record<LoadingLocale, MayaCopy>> = {
     calcBasisLabel: "計算基準",
 
     promptFeatureReason: "マヤ占い相談プロンプト生成",
-    promptPriceLabel: "1回 3,000ウォン",
+    promptPriceLabel: `1回 ${mayaPrice}ウォン`,
     gateTitle: "マヤ占いプロンプト生成",
     gateCheckingMessage: "利用券を確認中",
     errorLoginRequired: "ログイン後、利用券または決済を確認できます。",
@@ -344,7 +347,7 @@ const MAYA_COPY: Partial<Record<LoadingLocale, MayaCopy>> = {
     calcBasisLabel: "计算依据",
 
     promptFeatureReason: "玛雅占卜咨询提示词生成",
-    promptPriceLabel: "单次3,000韩元",
+    promptPriceLabel: `单次${mayaPrice}韩元`,
     gateTitle: "玛雅占卜提示词生成",
     gateCheckingMessage: "正在确认通行证",
     errorLoginRequired: "登录后即可确认通行证或付款。",
@@ -416,7 +419,7 @@ const MAYA_COPY: Partial<Record<LoadingLocale, MayaCopy>> = {
     calcBasisLabel: "計算依據",
 
     promptFeatureReason: "馬雅占卜諮詢提示詞生成",
-    promptPriceLabel: "單次3,000韓元",
+    promptPriceLabel: `單次${mayaPrice}韓元`,
     gateTitle: "馬雅占卜提示詞生成",
     gateCheckingMessage: "正在確認通行證",
     errorLoginRequired: "登入後即可確認通行證或付款。",

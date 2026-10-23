@@ -1,6 +1,7 @@
 "use client";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
+import { FEATURE_KEY_PRICE_TABLE } from "@/worker/lib/paid-feature-registry.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Copy, LockKeyhole, RefreshCw, WandSparkles } from "lucide-react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
@@ -14,8 +15,8 @@ type Props = {
 };
 
 const FEATURE_KEY = "maya-prompt-generator";
-const FEATURE_COST = 30;
-const FEATURE_PRICE_KRW = 3000;
+const FEATURE_COST = FEATURE_KEY_PRICE_TABLE[FEATURE_KEY].cost;
+const FEATURE_PRICE_KRW = FEATURE_KEY_PRICE_TABLE[FEATURE_KEY].amountKRW;
 const DISPLAY_FONT_CLASS = "[font-family:'Noto_Serif_KR','Noto_Serif',Georgia,serif]";
 const CODE_FONT_CLASS = "[font-family:Georgia,'Times_New_Roman',serif]";
 

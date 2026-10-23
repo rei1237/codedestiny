@@ -29,6 +29,7 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { getBillingFeaturePricing } from "../worker/lib/billing-feature-registry.js";
+import { FEATURE_KEY_PRICE_TABLE } from "../worker/lib/paid-feature-registry.js";
 import { PASS_EXCLUDED_FEATURE_KEYS } from "../worker/payments/catalog.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -98,6 +99,17 @@ function constFoldString(node, consts, depth = 0) {
   if (ts.isAsExpression(node) || ts.isParenthesizedExpression(node)) return constFoldString(node.expression, consts, depth);
   if (ts.isIdentifier(node)) return constFoldString(consts.get(node.text), consts, depth + 1);
   return null;
+}
+
+// 숫자 리터럴·같은 파일의 상수·서버 가격표만 해석한다. 임의 코드는 실행하지 않는다.
+function priceValue(node, consts, depth = 0) {
+  if (!node || depth > 8) return undefined;
+  if (ts.isNumericLiteral(node)) return Number(node.text);
+  if (ts.isStringLiteral(node)) return node.text;
+  if (ts.isIdentifier(node)) return node.text === 'FEATURE_KEY_PRICE_TABLE' ? FEATURE_KEY_PRICE_TABLE : priceValue(consts.get(node.text), consts, depth + 1);
+  if (ts.isPropertyAccessExpression(node)) return priceValue(node.expression, consts, depth + 1)?.[node.name.text];
+  if (ts.isElementAccessExpression(node)) return priceValue(node.expression, consts, depth + 1)?.[priceValue(node.argumentExpression, consts, depth + 1)];
+  return undefined;
 }
 
 /**
@@ -221,7 +233,11 @@ function readGateArgParts(objectLiteral, consts, funcs, depth = 0) {
 
 function readGateArg(objectLiteral, consts, funcs) {
   const { identity, price } = readGateArgParts(objectLiteral, consts, funcs);
-  return { identity, hasInlinePrice: price.size > 0 };
+  const values = {};
+  for (const prop of objectLiteral.properties) {
+    if (ts.isPropertyAssignment(prop) && PRICE_KEYS.includes(prop.name.getText().replace(/["']/g, ''))) values[prop.name.getText().replace(/["']/g, '')] = priceValue(prop.initializer, consts);
+  }
+  return { identity, values, hasInlinePrice: price.size > 0 };
 }
 
 function lineOf(sourceFile, node) {
@@ -383,6 +399,14 @@ for (const site of callSites) {
   const resolvedCost = resolveKnownCoinCost(site.identity, null);
   const resolvedKRW = resolveKnownAmountKRW(site.identity, null, resolvedCost);
   const registryResolvable = resolvedCost > 0 && resolvedKRW > 0;
+  if (['nakshatra-muhurta', 'maya-prompt-generator'].includes(site.identity.featureKey)) {
+    assert.ok(registryResolvable, `${site.file}: 서버 가격 미등록`);
+    for (const [field, value] of Object.entries(site.values || {})) {
+      assert.equal(value, ['cost', 'coinPrice'].includes(field) ? resolvedCost : resolvedKRW,
+        `${site.file}:${site.line} ${field}: 화면 가격이 서버 가격과 다릅니다`);
+    }
+    assert.ok(Object.keys(site.values || {}).length > 0, `${site.file}: 가격 비교 대상이 없습니다`);
+  }
   const ok = registryResolvable || site.hasInlinePrice;
 
   if (ok) {

@@ -98,7 +98,8 @@ assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICE_LABEL, '20,000원');
 const amountBySlug = new Map();
 for (const { slug, rel } of clientFiles) {
   const source = read(rel);
-  const amount = source.includes('amountKRW: NAKSHATRA_COMPAT_PRICING.amountKRW')
+  const amount = source.includes('AMOUNT_KRW = FEATURE_KEY_PRICE_TABLE[FEATURE_KEY].amountKRW') && source.includes('FEATURE_KEY = "nakshatra-muhurta"')
+    ? canonicalPricing.NAKSHATRA_MUHURTA_PRICING.amountKRW : source.includes('amountKRW: NAKSHATRA_COMPAT_PRICING.amountKRW')
     ? canonicalPricing.NAKSHATRA_COMPAT_PRICING.amountKRW : resolveAmountKrw(source);
   if (amount !== null) amountBySlug.set(slug, amount);
 }
@@ -177,6 +178,15 @@ const seenPerKey = new Map();
 const unclassified = [];
 
 copyLines.forEach((line, i) => {
+  const muhurtaLocale = /muhurtaPriceLabel: nakshatraMuhurtaPriceLabel\("([^"]+)"\)/.exec(line)?.[1];
+  if (muhurtaLocale) {
+    assert.equal(expectedKrwByKey.get('muhurtaPriceLabel'), canonicalPricing.NAKSHATRA_MUHURTA_PRICING.amountKRW);
+    const label = canonicalPricing.nakshatraMuhurtaPriceLabel(muhurtaLocale);
+    assert.equal(Number(label.replace(/\D/g, '')), canonicalPricing.NAKSHATRA_MUHURTA_PRICING.amountKRW);
+    assertions += 2;
+    seenPerKey.set('muhurtaPriceLabel', (seenPerKey.get('muhurtaPriceLabel') || 0) + 1);
+    return;
+  }
   if (/compatPriceLabel: NAKSHATRA_COMPAT_PRICE_LABEL,/.test(line)) {
     assert.equal(expectedKrwByKey.get('compatPriceLabel'), canonicalPricing.NAKSHATRA_COMPAT_PRICING.amountKRW);
     assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICE_LABEL, new Intl.NumberFormat('ko-KR').format(expectedKrwByKey.get('compatPriceLabel')) + '원');

@@ -483,9 +483,9 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
   check("택일 화면: 공용 게이트(useCoinGate) 사용", /useCoinGate/.test(muhurtaCode));
   check("택일 화면: 🔴 회당 결제이므로 forceDeduct 를 주지 않는다", !/forceDeduct/.test(muhurtaCode));
   check("택일 화면: paymentMode 를 강제하지 않는다", !/paymentMode/.test(muhurtaCode));
-  check("택일 화면: featureKey nakshatra-muhurta · 50코인 · 5,000원",
+  check("택일 화면: featureKey nakshatra-muhurta · 서버 가격표 사용",
     /FEATURE_KEY = "nakshatra-muhurta"/.test(muhurtaCode)
-    && /COIN_PRICE = 50/.test(muhurtaCode) && /AMOUNT_KRW = 5000/.test(muhurtaCode));
+    && /COIN_PRICE = FEATURE_KEY_PRICE_TABLE\[FEATURE_KEY\]\.cost/.test(muhurtaCode) && /AMOUNT_KRW = FEATURE_KEY_PRICE_TABLE\[FEATURE_KEY\]\.amountKRW/.test(muhurtaCode));
   // 본문 요청은 결제 성공 뒤에만 — 게이트 실패는 그 앞에서 early-return 한다.
   check("택일 화면: 결제 성공 뒤에만 본문을 요청한다",
     /if \(!gate\.ok\)[\s\S]{0,400}return;[\s\S]{0,400}fetchReport\(/.test(muhurtaCode));
@@ -566,7 +566,7 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
   const compatDelivery = stripComments(readFileSync(path.join(repoRoot, "worker/lib/nakshatra-compat-delivery.js"), "utf8"));
   check("compat 라우트가 결제 증빙 전달기를 사용한다", /deliverNakshatraCompat/.test(compat) && /verifyPerUsePayment/.test(compatDelivery) && /requireExisting: true/.test(compatDelivery));
   check("회당결제 상품 코인가가 레지스트리와 일치(이용권 커버 판정 근거)",
-    /featureKey: "nakshatra-muhurta", coinPrice: 50/.test(premium)
+    /featureKey: "nakshatra-muhurta", coinPrice: FEATURE_KEY_PRICE_TABLE\["nakshatra-muhurta"\]\.cost/.test(premium)
     && /featureKey: "nakshatra-vvip-codex", coinPrice: 300/.test(premium)
     && /FEATURE_KEY_PRICE_TABLE\[FEATURE\]\.cost/.test(compatDelivery));
 
@@ -636,7 +636,7 @@ console.log("\n[11] 일시 503 내성 — 블립에 결제·생성이 죽지 않
   let nakshatraCopySource = "";
   try { nakshatraCopySource = readFileSync(path.join(repoRoot, "app/nakshatra/_lib/copy.ts"), "utf8"); } catch { /* 로케일화 이전 상태 — 리터럴만 본다 */ }
   for (const [relative, label] of [
-    ["app/nakshatra/muhurta/MuhurtaClient.tsx", "택일(5,000원)"],
+    ["app/nakshatra/muhurta/MuhurtaClient.tsx", "택일(서버 가격표)"],
     ["app/nakshatra/vvip/VvipClient.tsx", "VVIP(30,000원)"],
     ["app/nakshatra/compat/NakshatraCompatClient.tsx", "궁합(20,000원)"],
   ]) {

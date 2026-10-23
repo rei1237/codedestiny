@@ -7,7 +7,7 @@
 // 🔴 표를 새로 들여오지 않는다. lib/sukuyo-calendar.ts(29.8KB)는 워커 번들에 없고, 여기서
 //    import 하면 그 크기가 그대로 워커에 얹힌다. 이미 번들에 있는 두 표로 충분하다.
 // 🔴 오늘 하루만·목적 무관으로 유지한다. 여러 날 랭킹과 목적별 적합도는 유료
-//    nakshatra-muhurta(₩5,000)의 몫이다.
+//    nakshatra-muhurta의 몫이다.
 
 import { DAY_TIER_LABEL, SUKUYO_ROLE_PROFILES } from "./sukuyo-relation-core.js";
 
