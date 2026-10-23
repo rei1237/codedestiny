@@ -13,6 +13,10 @@ test('concern and master links use existing routes and canonical assets', () => 
   }
   const dom=new JSDOM(renderConsultationDiscovery());
   assert.equal(dom.window.document.querySelectorAll('.consultation-discovery__concerns a').length,7);
+  assert.equal(dom.window.document.querySelectorAll('.consultation-discovery > .consultation-discovery__concerns a').length,3);
+  assert.equal(dom.window.document.querySelectorAll('.consultation-discovery__more a').length,4);
+  assert.equal(dom.window.document.querySelector('.consultation-discovery__more').hasAttribute('open'),false);
+  for(const image of dom.window.document.querySelectorAll('.consultation-discovery__scene img')) assert.ok(existsSync('public'+image.getAttribute('src')));
   assert.ok(!dom.window.document.querySelector('form'),'does not introduce a mandatory intake');
   dom.window.close();
 });
@@ -23,7 +27,7 @@ test('discovery clicks reuse the existing home section event with public concern
   w.eval(readFileSync('js/core/analytics.js','utf8'));
   w.cdTrack=(name,payload)=>events.push({name,payload});
   w.document.addEventListener('click',event=>event.preventDefault());
-  w.document.querySelector('a').click();
+  w.document.querySelector('[data-cd-question="love-pattern"]').click();
   const observed=events.filter(event=>event.name==='home_section_click');
   assert.equal(observed.length,1);
   assert.deepEqual(JSON.parse(JSON.stringify(observed[0].payload)),{section:'consultation_discovery',destination:'/master-love-codex/',question_id:'love-pattern'});

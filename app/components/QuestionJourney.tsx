@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {Fragment,useEffect,useRef,useState} from 'react';
 import {ArrowRight,Check,ChevronDown,Fish,PawPrint} from 'lucide-react';
 import {trackEvent} from '@/lib/analytics';
 import {getQuestionGuide,questionGuides,concernGuides,concernGroups,filterConcerns,anythingConsultationHref,questionScopeEntry,questionCheckoutHref,questionGuideHref,QUESTION_VERSION,freeQuestionMap,type QuestionGuide} from '@/lib/fortune/question-journey';
@@ -28,25 +28,27 @@ export function QuestionOffer({q,source}:{q:QuestionGuide;source:string}){
 }
 export default function QuestionJourney({source='home'}:{source?:string}){
  const [selected,setSelected]=useState<QuestionGuide>();
+ const [selectedInRecommendations,setSelectedInRecommendations]=useState(true);
+ const [moreQuestions,setMoreQuestions]=useState(false);
  const [question,setQuestion]=useState(''),[entryError,setEntryError]=useState('');
  const [search,setSearch]=useState(''),[group,setGroup]=useState('전체'),[limit,setLimit]=useState(12);
  const matches=filterConcerns(search,group);
- useEffect(()=>{const q=getQuestionGuide(new URLSearchParams(window.location.search).get('question'));if(q){setSelected(q);record('question_select',source,q);}},[source]);
- function choose(q:QuestionGuide){setSelected(q);record('question_select',source,q);}
- const buttons=(rows:QuestionGuide[],illustrated=false)=>rows.map((q,index)=><button type="button" key={q.id} aria-pressed={selected?.id===q.id} aria-controls="question-reading" onClick={()=>choose(q)}>{illustrated&&(index%2===0?<PawPrint className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>:<Fish className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>)}<span className={styles.questionText}><small>{q.group}</small><span>{q.question}</span></span>{selected?.id===q.id?<Check size={18} aria-hidden="true"/>:<ArrowRight size={18} aria-hidden="true"/>}</button>);
+ useEffect(()=>{const q=getQuestionGuide(new URLSearchParams(window.location.search).get('question'));if(q){setSelected(q);if(questionGuides.slice(4).some(item=>item.id===q.id))setMoreQuestions(true);record('question_select',source,q);}},[source]);
+ function choose(q:QuestionGuide,recommended:boolean){setSelected(q);setSelectedInRecommendations(recommended);record('question_select',source,q);}
+ const buttons=(rows:QuestionGuide[],illustrated=false)=>rows.map((q,index)=><Fragment key={q.id}><button type="button" aria-pressed={selected?.id===q.id} aria-controls="question-reading" onClick={()=>choose(q,illustrated)}>{illustrated&&(index%2===0?<PawPrint className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>:<Fish className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>)}<span className={styles.questionText}><small>{q.group}</small><span>{q.question}</span></span>{selected?.id===q.id?<Check size={18} aria-hidden="true"/>:<ArrowRight size={18} aria-hidden="true"/>}</button>{selected?.id===q.id&&selectedInRecommendations===illustrated&&<div id="question-reading" className={styles.inlineReading} aria-live="polite"><QuestionOffer q={q} source={source}/></div>}</Fragment>);
  return <section id="questions" className={`${styles.journey} ${styles.entry}`} aria-label="고민으로 시작하기">
-  <div className={styles.intro}><div><h2>지금 마음에 걸리는<br/>질문은?</h2><p>가까운 질문을 고르거나 직접 적어주세요.<br/>상담 범위와 가격은 시작 전에 확인해요.</p></div><div className={styles.mascotScene}><img className={styles.mascot} src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width: 560px) 80px, 144px" width="800" height="800" alt="달빛 모자를 쓰고 상담을 기다리는 흰 고양이 영냥이" loading="lazy" decoding="async"/><span className={styles.pawTrail} aria-hidden="true"><PawPrint size={19} strokeWidth={1.5}/><PawPrint size={23} strokeWidth={1.5}/></span></div></div>
+  <div className={styles.intro}><div><h2>지금 마음에 걸리는 질문은?</h2><p>직접 적거나 아래 질문을 골라보세요.</p></div><div className={styles.mascotScene}><img className={styles.mascot} src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width: 560px) 80px, 144px" width="800" height="800" alt="달빛 모자를 쓰고 상담을 기다리는 흰 고양이 영냥이" loading="lazy" decoding="async"/><span className={styles.pawTrail} aria-hidden="true"><PawPrint size={19} strokeWidth={1.5}/><PawPrint size={23} strokeWidth={1.5}/></span></div></div>
   <Exposure event="question_topics_view" source={source}/>
   <form className={styles.write} aria-label="내 고민 직접 적기" onSubmit={event=>{event.preventDefault();if(!question.trim())return;if(!saveQuestionEntry(question)){setEntryError('입력한 고민을 이어가지 못했어요. 내용을 복사해 두고 다시 시도해 주세요.');return;}window.location.assign(QUESTION_ENTRY_HREF);}}>
    <label htmlFor="home-question"><Fish size={25} strokeWidth={1.5} aria-hidden="true"/>내 고민 직접 적기</label>
-   <p id="home-question-help">자유롭게 입력하세요.<br/>영냥이가 정확하게 읽어보고 답변합니다.</p>
-   <textarea id="home-question" value={question} onChange={event=>{setQuestion(event.target.value);setEntryError('');}} maxLength={QUESTION_ENTRY_LIMIT} rows={4} placeholder="지금 마음에 남은 고민을 편하게 적어주세요." aria-describedby="home-question-help home-question-count" required/>
+   <p id="home-question-help">상황과 알고 싶은 점을 적어주세요. 상담 범위와 가격은 시작 전에 확인해요.</p>
+   <textarea id="home-question" value={question} onChange={event=>{setQuestion(event.target.value);setEntryError('');}} maxLength={QUESTION_ENTRY_LIMIT} rows={4} placeholder="지금 마음에 남은 고민을 적어주세요." aria-describedby="home-question-help home-question-count" required/>
    <div className={styles.writeFooter}><span id="home-question-count">{question.length.toLocaleString('ko-KR')} / {QUESTION_ENTRY_LIMIT.toLocaleString('ko-KR')}</span><button type="submit" disabled={!question.trim()}>이 고민으로 상담 준비하기<ArrowRight size={18} aria-hidden="true"/></button></div>
    {entryError&&<p className={styles.entryError} role="alert">{entryError}</p>}
   </form>
   <div className={styles.choiceHeading}><h3>이런 고민이 있나요?</h3><span>질문을 고르면 상담 내용을 볼 수 있어요</span></div>
-  <div className={styles.choices}>{buttons(questionGuides,true)}</div>
-  <div id="question-reading" aria-live="polite">{selected&&<QuestionOffer key={selected.id} q={selected} source={source}/>}</div>
+  <div className={styles.choices}>{buttons(questionGuides.slice(0,moreQuestions?questionGuides.length:4),true)}</div>
+  <button type="button" className={styles.moreQuestions} aria-expanded={moreQuestions} onClick={()=>setMoreQuestions(value=>!value)}>{moreQuestions?'추천 질문 접기':'질문 더 보기'}<ChevronDown size={18} aria-hidden="true"/></button>
   <details className={styles.discovery}><summary><span>다른 고민 더 찾아보기 <small>{concernGuides.length}가지 질문</small></span><ChevronDown size={18} aria-hidden="true"/></summary>
    <div className={styles.finder}>
     <label htmlFor="concern-search">어떤 고민이 마음에 남아 있나요?</label>

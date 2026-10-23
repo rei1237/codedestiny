@@ -113,7 +113,7 @@
 .signatureMaster { color: var(--hm-gold-ink); font-size: 0.75rem; font-weight: 700; }
 .signatureQuestion { color: var(--cd-text-muted); font-size: 0.875rem; line-height: 1.6; word-break: keep-all; }
 .signaturePrice { margin-top: 2px; color: var(--cd-text); font-size: 0.9375rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-.signaturePrimary, .signatureLink { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: auto; font-size: 0.875rem; font-weight: 700; white-space: nowrap; }
+.signaturePrimary, .signatureLink { display: inline-flex; align-items: center; gap: 6px; max-width:100%; min-height: 44px; margin-top: auto; font-size: 0.875rem; font-weight: 700; white-space: normal; overflow-wrap:anywhere; }
 .signaturePrimary { padding: 0 20px; border: 1px solid var(--cd-cta-hairline); border-radius: var(--cd-r-pill); background: var(--cd-cta); color: var(--cd-cta-text); }
 .signatureLink { color: var(--cd-text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.25em; }
 .discovery { width: 100%; max-width: 1040px; margin-top: 12px; }
@@ -193,4 +193,11 @@
   .advisers img { width: 112px; height: 168px; }
   .section { padding-block: 48px; }
   .readingSection { display: grid; grid-template-columns: 1fr 1.25fr; gap: 32px; align-items: start; }
+}
+
+@media(max-width:640px){
+ .section{padding-block:32px}
+ .sectionHeading h2{font-size:1.5rem;line-height:1.4}
+ .sectionHeading p{font-size:1rem;line-height:1.65}
+ .signatureQuestion{font-size:1rem;line-height:1.65}
 }

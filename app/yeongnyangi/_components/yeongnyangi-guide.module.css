@@ -4,6 +4,7 @@
   margin: 0 auto;
   padding: 24px 20px 48px;
   color: var(--yn-ivory);
+  font-size: 1rem;
   word-break: keep-all;
   overflow-wrap: break-word;
   line-height: 1.7;
@@ -43,7 +44,7 @@
 .guide h2 {
   font-family: "Yeongnyangi Myeongjo", serif;
   color: var(--yn-gold);
-  font-size: clamp(1.35rem, 2.6vw, 1.8rem);
+  font-size: clamp(1.5rem, 2.6vw, 1.75rem);
   letter-spacing: -0.03em;
   line-height: 1.35;
   margin: 0 0 14px;
@@ -136,7 +137,7 @@
 .tierName {
   display: block;
   margin-top: 2px;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 400;
   color: var(--yn-muted);
 }

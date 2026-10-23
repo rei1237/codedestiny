@@ -21,7 +21,7 @@ try{
  const {products}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
  server=createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;if(pathname.startsWith('/login')){res.end('<!doctype html><title>Mock login</title><p>Mock login</p>');return;}const file=pathname==='/fixture.js'||pathname==='/fixture.css'?path.join(temp,pathname.slice(1)):pathname.startsWith('/assets/')?path.resolve('public'+pathname):null;
   if(file&&fs.existsSync(file)){res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'image/webp');res.end(fs.readFileSync(file));return;}
-  res.setHeader('Content-Type','text/html');res.end('<!doctype html><html lang="ko"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/fixture.css"><body style="margin:0;background:#211432"><div id="root"></div><script src="/fixture.js"></script></body></html>');});
+  res.setHeader('Content-Type','text/html; charset=utf-8');res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/fixture.css"><body style="margin:0;background:#211432"><div id="root"></div><script src="/fixture.js"></script></body></html>');});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;
  browser=await chromium.launch({headless:true});
  for(const width of [360,390,430,1440]){

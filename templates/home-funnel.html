@@ -146,7 +146,7 @@
 
   <dialog class="cd-sheet" id="cdHoneyUnlockSheet" data-cd-sheet aria-labelledby="cdHoneyConfirmTitle"><div class="cd-sheet__panel"><div class="cd-sheet__head"><h2 id="cdHoneyConfirmTitle" data-honey-confirm-title>콘텐츠 열기</h2><button type="button" class="cd-sheet__close" data-cd-sheet-close aria-label="닫기">×</button></div><div class="cd-sheet__body"><p data-honey-confirm-cost></p><p data-honey-confirm-condition>선택한 프로필의 출생정보로 이 콘텐츠를 엽니다. 같은 계정·출생정보로 다시 볼 때는 추가로 쓰지 않아요.</p><button type="button" class="cdh-primary" data-honey-confirm>열기</button></div></div></dialog>
 
-  <section class="cdh-mypass" id="cdhMyPass" aria-labelledby="cdhMyPassTitle" hidden><h2 class="cdh-mypass__title" id="cdhMyPassTitle" data-cd-trans="home.passCopy.myTitle">내 이용권</h2><ul class="cdh-mypass__list" id="cdhMyPassList" role="list"></ul></section>
+  <section class="cdh-mypass" id="cdhMyPass" aria-labelledby="cdhMyPassTitle" hidden><details class="cdh-mypass__details"><summary id="cdhMyPassTitle" data-cd-trans="home.passCopy.myTitle">내 이용권</summary><ul class="cdh-mypass__list" id="cdhMyPassList" role="list"></ul></details></section>
 
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
@@ -158,12 +158,12 @@
   <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
 </section>
   <section class="cdh-honey" data-cd-honey-widget aria-labelledby="cdHoneyTitle">
-    <div class="cdh-honey__story">
+    <details class="cdh-honey__details"><summary><span id="cdHoneyTitle">출석 · 꿀방울</span><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp" width="192" height="192" loading="lazy" decoding="async" alt=""><p class="cdh-honey__balance"><span>내가 모은 꿀방울</span><strong data-cd-honey-balance>확인 중</strong></p></div></summary>    <div class="cdh-honey__story">
       <img class="cdh-honey__yeoni" src="/images/fortune-tea-house/flower-pig-honey-hug.webp" width="361" height="411" loading="lazy" decoding="async" alt="꿀방울을 품에 안고 웃는 꽃돼지 연이">
-      <div class="cdh-honey__intro"><h2 id="cdHoneyTitle">출석으로 모으는 꿀방울</h2><p class="cdh-honey__hint">매일 출석하고, 꿀꿀운세 기본 해석에 사용해요.</p></div>
+      <div class="cdh-honey__intro"><p class="cdh-honey__hint">매일 출석하고, 꿀꿀운세 기본 해석에 사용해요.</p></div>
     </div>
-    <div class="cdh-honey__actions"><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp" width="192" height="192" loading="lazy" decoding="async" alt=""><p class="cdh-honey__balance"><span>내가 모은 꿀방울</span><strong data-cd-honey-balance>확인 중</strong></p></div><button type="button" class="cdh-primary" data-cd-honey-attend disabled>출석 체크 하기</button><button type="button" class="cdh-honey__uses" data-cd-sheet-open="cdHoneySheet" aria-haspopup="dialog" aria-controls="cdHoneySheet">사용처 보기</button></div>
-    <p data-cd-honey-status role="status" aria-live="polite"></p><button type="button" data-cd-honey-retry hidden>다시 확인하기</button>
+    <div class="cdh-honey__actions"><button type="button" class="cdh-primary" data-cd-honey-attend disabled>출석 체크 하기</button><button type="button" class="cdh-honey__uses" data-cd-sheet-open="cdHoneySheet" aria-haspopup="dialog" aria-controls="cdHoneySheet">사용처 보기</button></div>
+    <p data-cd-honey-status role="status" aria-live="polite"></p><button type="button" data-cd-honey-retry hidden>다시 확인하기</button></details>
   </section>
 <div class="cdh-consult" role="group" aria-label="1:1 상담" data-cd-trans-attr="aria-label:home.simpleHome.consultTitle">
 <!-- 1:1 상담 두 입구(2026-10-17 복구): 연이 대화 상담 1회 5,000원(빌더가 가격표와 대조)·네오 이메일 상담. -->
@@ -228,6 +228,14 @@
 <div class="cdh-slot" id="cdhQuestionSlot">{{questionCategories}}</div>
 <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
 <!-- 꿀꿀 운세 오프닝 음악 = 달빛 운명여행 뮤직비디오(e76391603^ 에서 복구, 동작은 js/core/home-mv.js). -->
+
+<!-- 모든 운세 보기 — 달빛 예화 이중 틀 버튼. 전체 운세 시트(cdOpenAllFortunes)를 연다. -->
+<p class="cdh-all-cta"><a class="cdh-all-cta__btn" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M12 6.5C9.6 5 6.8 4.7 4 5.5v12c2.8-.8 5.6-.5 8 1 2.4-1.5 5.2-1.8 8-1v-12c-2.8-.8-5.6-.5-8 1Zm0 0v12"/></svg></span><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></p>
+<details class="cdh-links cdh-light" id="cdhLightFortunes" lang="ko">
+  <summary class="cdh-links__game"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M4 9h13v4a6.5 6.5 0 0 1-13 0V9Zm13 1h1a3 3 0 0 1 0 6h-2M3 21h16M8 3v3m5-3v3"/></svg></span><span class="cdh-links__copy"><span class="cdh-links__name">작은 운세 한 모금</span><small class="cdh-links__desc">무료 체험부터 나만의 결과까지</small></span><span class="cdh-light__chev" aria-hidden="true"></span></summary>
+  <div class="cdh-light__content"><p class="cdh-light__intro">혼자 잠깐 쉬어 가도, 친구와 결과를 비교해도 좋아요. 무료 체험부터 골라 보세요.</p><div class="cdh-light__list">{{lightFortunes}}</div><p class="cdh-light__note">유료 기능은 결제 전 조건을 확인해 주세요. 이용권·월정석 적용은 상품별 기존 기준을 따라요.</p></div>
+</details>
+<!-- 달빛 이야기 — 라이트 노벨·달빛 음악을 한 묶음으로. 열면 표지와 소개가 담긴 두 장의 서재 카드가 펼쳐진다(JS 없음). -->
 <section class="cdh-mv" id="cdhMoonlightMv" aria-labelledby="cdhMvTitle" data-cd-funnel-section="moonlight_mv" data-marker="cdh-mv-moonlight-destiny-v20261015">
   <img class="cdh-mv__orn cdh-mv__orn--start" src="/images/home/mv/ornament-lotus-branch-320.webp" srcset="/images/home/mv/ornament-lotus-branch-320.webp 320w, /images/home/mv/ornament-lotus-branch-640.webp 640w" sizes="(max-width: 600px) 132px, 260px" width="320" height="280" loading="lazy" decoding="async" alt="">
   <img class="cdh-mv__orn cdh-mv__orn--end" src="/images/home/mv/ornament-lotus-branch-320.webp" srcset="/images/home/mv/ornament-lotus-branch-320.webp 320w, /images/home/mv/ornament-lotus-branch-640.webp 640w" sizes="(max-width: 600px) 132px, 260px" width="320" height="280" loading="lazy" decoding="async" alt="">
@@ -262,13 +270,6 @@
     </div>
   </div>
 </section>
-<!-- 모든 운세 보기 — 달빛 예화 이중 틀 버튼. 전체 운세 시트(cdOpenAllFortunes)를 연다. -->
-<p class="cdh-all-cta"><a class="cdh-all-cta__btn" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M12 6.5C9.6 5 6.8 4.7 4 5.5v12c2.8-.8 5.6-.5 8 1 2.4-1.5 5.2-1.8 8-1v-12c-2.8-.8-5.6-.5-8 1Zm0 0v12"/></svg></span><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></p>
-<details class="cdh-links cdh-light" id="cdhLightFortunes" lang="ko">
-  <summary class="cdh-links__game"><span class="cdh-links__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M4 9h13v4a6.5 6.5 0 0 1-13 0V9Zm13 1h1a3 3 0 0 1 0 6h-2M3 21h16M8 3v3m5-3v3"/></svg></span><span class="cdh-links__copy"><span class="cdh-links__name">작은 운세 한 모금</span><small class="cdh-links__desc">무료 체험부터 나만의 결과까지</small></span><span class="cdh-light__chev" aria-hidden="true"></span></summary>
-  <div class="cdh-light__content"><p class="cdh-light__intro">혼자 잠깐 쉬어 가도, 친구와 결과를 비교해도 좋아요. 무료 체험부터 골라 보세요.</p><div class="cdh-light__list">{{lightFortunes}}</div><p class="cdh-light__note">유료 기능은 결제 전 조건을 확인해 주세요. 이용권·월정석 적용은 상품별 기존 기준을 따라요.</p></div>
-</details>
-<!-- 달빛 이야기 — 라이트 노벨·달빛 음악을 한 묶음으로. 열면 표지와 소개가 담긴 두 장의 서재 카드가 펼쳐진다(JS 없음). -->
 <details class="cdh-story">
   <summary class="cdh-story__toggle"><span class="cdh-story__backs" aria-hidden="true"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"></span><span class="cdh-story__label"><strong data-cd-trans="home.simpleHome.storyTitle">달빛 이야기</strong><small data-cd-trans="home.simpleHome.storyNote">노벨과 음악</small></span><span class="cdh-story__chev" aria-hidden="true"></span></summary>
   <div class="cdh-story__spread">

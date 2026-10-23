@@ -9,8 +9,8 @@ const home = read("index.html");
 const registry = read("js/core/service-registry.js");
 const template = read("templates/home-funnel.html");
 
-// 2026-10-23 강약: 대표 상담 덱 → 초융합 시그니처 띠 → 무료로 먼저(여섯 장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 작은 운세 모음 → 달빛 이야기.
-const flow = ['id="cdhFeatured"', 'id="cdhFusionSignatureSlot"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-consult"', 'id="cdhYeongnyangiSlot"', 'id="cdhQuestionSlot"', 'id="cdhPass"', 'id="cdhMoonlightMv"', 'data-action="cdOpenAllFortunes"', 'id="cdhLightFortunes"', 'class="cdh-story"'];
+// 2026-10-23 강약: 대표 상담 덱 → 초융합 시그니처 띠 → 무료로 먼저(여섯 장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 질문 카테고리 → 이용권 → 모든 운세 버튼 → 작은 운세 모음 → 뮤직비디오 → 달빛 이야기.
+const flow = ['id="cdhFeatured"', 'id="cdhFusionSignatureSlot"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-consult"', 'id="cdhYeongnyangiSlot"', 'id="cdhQuestionSlot"', 'id="cdhPass"', 'data-action="cdOpenAllFortunes"', 'id="cdhLightFortunes"', 'id="cdhMoonlightMv"', 'class="cdh-story"'];
 for (let i = 1; i < flow.length; i += 1) {
   const prev = template.indexOf(flow[i - 1]);
   const next = template.indexOf(flow[i]);

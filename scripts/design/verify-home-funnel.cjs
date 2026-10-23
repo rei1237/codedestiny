@@ -81,7 +81,7 @@ async function assertEssentials(page, label) {
 
       // 강약: 대표 상담 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
       const order = await page.evaluate(() => {
-        const nodes = [document.getElementById('cdSignatureConsult'), document.getElementById('cdhFusionSignature'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-honey'), document.querySelector('.cdh-consult'), document.getElementById('cdhYeongnyangiSlot'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.querySelector('.cdh-story')];
+        const nodes = [document.getElementById('cdSignatureConsult'), document.getElementById('cdhFusionSignature'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-honey'), document.querySelector('.cdh-consult'), document.getElementById('cdhYeongnyangiSlot'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-story')];
         return {
           dom: nodes.every((node, index) => index === 0 || Boolean(nodes[index - 1].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)),
           visual: nodes.map((node) => node.getBoundingClientRect().top + scrollY),
@@ -139,7 +139,11 @@ async function assertEssentials(page, label) {
       assert.deepEqual(await page.locator('#cdSigGrid .cd-sig-card').evaluateAll((cards) => cards.slice(0, 3).map((card) => card.dataset.cdServiceId)), ['love-secret-ai', 'new-year-ai', 'life-book-ai'], `${width}px the three signature consultations lead the deck`);
       const grid = await page.locator('#cdSigGrid').evaluate((node) => { const cs = getComputedStyle(node); const cols = cs.gridTemplateColumns.split(' ').length; const row = [...node.querySelectorAll('.cd-sig-card')].slice(0, cols).map((card) => card.getBoundingClientRect()); return { flow: cs.gridAutoFlow, overflowX: cs.overflowX, cols, heights: row.map((r) => Math.round(r.height)), top: row[0].top }; });
       assert.ok(grid.flow.startsWith('row') && grid.overflowX === 'visible', `${width}px deck is a grid, not a carousel (${grid.flow}, ${grid.overflowX})`);
-      assert.equal(grid.cols, width < 700 ? 2 : 3, `${width}px deck shows ${width < 700 ? 2 : 3} columns`);
+      assert.equal(grid.cols, width <= 700 ? 1 : 3, `${width}px deck shows ${width <= 700 ? 1 : 3} columns`);
+      assert.equal(await page.locator('#cdSigGrid .cd-sig-card:visible').count(),3,'Three featured consultations');
+      await page.locator('.cd-sig__more > summary').click();
+      assert.equal(await page.locator('#cdSigGrid .cd-sig-card:visible').count(),6,'Six consultations remain reachable');
+      await page.locator('.cd-sig__more > summary').click();
       // 카드 높이는 내용이 정한다(f75f35c88에서 2:3 고정을 뗐다). 같은 줄의 카드는 높이가 같아야 가격·라벨 줄이 맞는다.
       assert.ok(Math.max(...grid.heights) - Math.min(...grid.heights) <= 1, `${width}px first deck row cards share one height (${grid.heights.join(', ')})`);
       assert.equal(await page.locator('.cd-sig__dots, [data-cd-sig-dot]').count(), 0, `${width}px deck has no position dots`);

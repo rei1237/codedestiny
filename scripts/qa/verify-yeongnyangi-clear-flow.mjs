@@ -47,7 +47,7 @@ try {
       res.end(fs.readFileSync(file));return;
     }
     // Match the root font custom property used by the actual application layout.
-    res.setHeader('Content-Type','text/html');res.end('<!doctype html><html lang="ko" style="--font-noto-sans-kr:system-ui"><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/fixture.css"></head><body style="margin:0;background:#0b1220;font-family:system-ui,sans-serif"><div id="root"></div><script src="/fixture.js"></script></body></html>');
+    res.setHeader('Content-Type','text/html; charset=utf-8');res.end('<!doctype html><html lang="ko" style="--font-noto-sans-kr:system-ui"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/fixture.css"></head><body style="margin:0;background:#0b1220;font-family:system-ui,sans-serif"><div id="root"></div><script src="/fixture.js"></script></body></html>');
   });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base=`http://127.0.0.1:${server.address().port}`;
@@ -67,12 +67,12 @@ try {
     return route.continue();
   });
   const page=await context.newPage();
-  page.on('pageerror',error=>errors.push(error.message));
+  page.on('pageerror',error=>{errors.push(error.message);console.error('Browser error:',error.message);});
   for(const surface of targeted?['home','legacy']:['home','consultation','prashna']){
-    for(const width of targeted?[360,390]:[360,390,430,1440]){
-      await page.setViewportSize({width,height:width===1440?1000:844});
+    for(const width of targeted?[360,390]:[360,390,430,1280]){
+      await page.setViewportSize({width,height:width===1280?1000:844});
       await page.goto(`${base}${surface==='home'?'/yeongnyangi/':'/yeongnyangi/fortune/'}?surface=${surface}${surface==='legacy'?'&flow=legacy':''}`,{waitUntil:'networkidle'});
-      await page.locator(surface==='home'?'h1':surface==='legacy'?'[role="group"][aria-label="운세 종류"]':surface==='consultation'?'section[aria-label="영냥이와 상담 준비"]':'#sky-question').first().waitFor();
+      await page.locator(surface==='home'?'h1':surface==='legacy'?'[role="group"][aria-label="운세 종류"]':surface==='consultation'?'#yn-question':'#sky-question').first().waitFor();
       // Decode local artwork and expose below-fold lazy images before the full capture.
       await page.evaluate(async()=>{document.querySelectorAll('img[loading="lazy"]').forEach(image=>image.loading='eager');await Promise.all([...document.images].map(image=>image.decode().catch(()=>{})));});
       const geometry=await page.evaluate(()=>({viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight,brokenImages:[...document.images].filter(image=>!image.complete||!image.naturalWidth).map(image=>image.getAttribute('src'))}));
@@ -85,11 +85,18 @@ try {
       if(surface==='home'){
         const entry=page.locator('#questions');
         await entry.screenshot({path:path.join(output,`question-entry-${width}.png`)});
+        assert.equal(await entry.locator('button[aria-pressed]:visible').count(),4,'Four initial recommendations');
+        await entry.getByRole('button',{name:'질문 더 보기',exact:true}).click();
+        assert.equal(await entry.locator('button[aria-pressed]:visible').count(),8,'All recommendations remain available');
+        await entry.getByRole('button',{name:'추천 질문 접기',exact:true}).click();
         const choices=entry.getByRole('button',{name:/그 사람의 말과 행동/});
         await choices.focus();await page.keyboard.press('Enter');
         const reading=page.locator('#question-reading');
         await reading.getByRole('link',{name:'이 질문으로 상담 준비하기'}).waitFor();
         assert.equal(await choices.getAttribute('aria-pressed'),'true');
+        assert.ok(await entry.locator('small').evaluateAll(els=>els.every(el=>parseFloat(getComputedStyle(el).fontSize)>=14)),'Secondary question labels meet 14px minimum');
+        assert.ok(await reading.locator('p').evaluateAll(els=>els.every(el=>parseFloat(getComputedStyle(el).fontSize)>=14)),'Price and condition guidance is readable');
+        assert.equal(await choices.evaluate(el=>el.nextElementSibling?.id),'question-reading','Guidance follows the selected question immediately');
         assert.ok(await reading.evaluate(el=>Boolean(el.compareDocumentPosition(document.querySelector('#questions > details'))&Node.DOCUMENT_POSITION_FOLLOWING)),'Selected offer precedes the question finder');
         await reading.screenshot({path:path.join(output,`question-offer-${width}.png`)});
         const finder=entry.locator('details').first();await finder.locator('summary').click();
@@ -97,6 +104,9 @@ try {
         assert.equal(await entry.getByText('같은 표현의 고민이 아직 없어요.',{exact:false}).count(),1);
         await entry.locator('#concern-search').fill('이직');
         assert.ok(await entry.locator('#concern-search').inputValue()==='이직');
+        const searchChoice=finder.locator('button[aria-pressed]').first();await searchChoice.click();
+        assert.equal(await searchChoice.evaluate(el=>el.nextElementSibling?.id),'question-reading','Search selection shows its guidance in place');
+        assert.equal(await page.locator('#question-reading').count(),1,'A selection has one guidance panel');
         await finder.locator('summary').click();
         const form=entry.getByRole('form',{name:'내 고민 직접 적기'}),field=form.getByRole('textbox');
         assert.equal(await form.getByRole('button',{name:'이 고민으로 상담 준비하기'}).isDisabled(),true);
@@ -137,17 +147,26 @@ try {
         assert.equal(await faq.evaluate(el=>el.parentElement.open),true,'FAQ expands with keyboard');
         keyboardEvidence.push({surface,width,faqKeyboard:'PASS',guideCount:1});
       }else if(surface==='consultation'){
-        const chat=page.getByRole('region',{name:'영냥이와 상담 준비'}),input=chat.getByRole('textbox'),send=chat.getByRole('button',{name:'답장 보내기',exact:true});
-        assert.equal(await send.isDisabled(),true,'Empty question cannot advance');
+        const input=page.locator('#yn-question'),send=page.getByRole('button',{name:'상담과 결제 확인하기',exact:true});
+        await input.fill('');assert.equal(await send.isDisabled(),true,'Empty question cannot advance');
         await input.fill('내 마음을 어떻게 표현하면 좋을까?');
         assert.equal(await send.isEnabled(),true,'Valid question can advance');
-        await page.keyboard.press('Tab');assert.equal(await send.evaluate(el=>el===document.activeElement),true,'Send is next Tab stop');
+        await input.focus();await page.keyboard.press('Tab');assert.equal(await send.evaluate(el=>el===document.activeElement),true,'Continue is next Tab stop');
         const focus=await send.evaluate(el=>({outlineStyle:getComputedStyle(el).outlineStyle,outlineWidth:getComputedStyle(el).outlineWidth,width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}));
         assert.ok(focus.outlineStyle!=='none'&&parseFloat(focus.outlineWidth)>0,'Visible keyboard focus');
-        assert.ok(focus.width>=44&&focus.height>=44,'44px send target');
-        await page.keyboard.press('Tab');assert.equal(await chat.getByRole('button',{name:'전체 운세 고르기',exact:true}).evaluate(el=>el===document.activeElement),true);
-        await page.keyboard.press('Tab');assert.equal(await chat.getByRole('link',{name:'영냥 신점',exact:true}).evaluate(el=>el===document.activeElement),true);
-        await input.fill('');keyboardEvidence.push({surface,width,initialInput:'PASS',sendAndEntryTabOrder:'PASS',focus});
+        assert.ok(focus.width>=44&&focus.height>=44,'44px continue target');
+        await input.fill('지금의 관계와 앞으로의 선택에 대해 알고 싶어요. '.repeat(40).slice(0,1000));
+        assert.equal(await send.isEnabled(),true,'Long question remains editable');
+        const zoom=await page.addStyleTag({content:'html{font-size:200%!important}'});
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Input page reflows at 200%');
+        await zoom.evaluate(el=>el.remove());
+        if(width===390){
+          await page.setViewportSize({width,height:450});await input.focus();await page.keyboard.press('Tab');
+          const bounds=await send.boundingBox();assert.ok(bounds.y>=0&&bounds.y+bounds.height<=450,'Continue stays reachable in reduced viewport');
+          await page.screenshot({path:path.join(output,'consultation-reduced-viewport.png')});
+          await page.setViewportSize({width,height:844});
+        }
+        await input.fill('');keyboardEvidence.push({surface,width,initialInput:'PASS',tabOrder:'PASS',focus});
       }else{
         const question=page.locator('#sky-question');await question.focus();await page.keyboard.press('Tab');
         assert.equal(await page.locator('#sky-topic').evaluate(el=>el===document.activeElement),true,'Prashna topic follows question');
@@ -169,7 +188,7 @@ try {
   await page.evaluate(()=>{Storage.prototype.setItem=window.originalStorageSetItem;delete window.originalStorageSetItem;});
   await homeForm.getByRole('button',{name:'이 고민으로 상담 준비하기'}).click();
   await page.waitForURL('**/yeongnyangi/fortune/?flow=question');
-  const transferred=page.getByRole('region',{name:'영냥이와 상담 준비'}).getByRole('textbox');
+  const transferred=page.locator('#yn-question');
   await transferred.waitFor();
   assert.equal(await transferred.inputValue(),privateQuestion,'The exact home question reaches the first consultation step');
   assert.equal(new URL(page.url()).search,'?flow=question','Private question stays out of the URL');

@@ -129,8 +129,8 @@ export default function FortuneHome({offers,guide}:{offers:ProductOffers;guide?:
         <main>
           <NightHero/>
           <QuestionJourney source="home"/>
-          <HeavenLightCinema/>
           {guide}
+          <HeavenLightCinema/>
           <div className="main-content">
             <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">
               <Moon className="ggulggul-bridge__moon" size={28} strokeWidth={1} aria-hidden="true" />

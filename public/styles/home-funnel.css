@@ -1445,3 +1445,36 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 #cdHomeFunnel .cdh-light__item:hover strong{text-decoration:underline;text-underline-offset:4px}
 #cdHomeFunnel .cdh-light__note{margin:18px 0 0;font-size:12px;line-height:1.7;color:var(--cdh-muted);text-align:center}
 @media(max-width:640px){#cdHomeFunnel .cdh-light__list{grid-template-columns:1fr}#cdHomeFunnel .cdh-light .cdh-links__name{font-size:18px}#cdHomeFunnel .cdh-light .cdh-links__desc{font-size:12px}#cdHomeFunnel .cdh-light>summary{gap:12px}#cdHomeFunnel .cdh-light .cdh-links__icon{width:38px;height:42px}}
+
+/* 상담을 먼저 고르고, 보유 정보와 추가 상담은 필요할 때 펼친다. */
+#cdHomeFunnel .cd-sig__more{grid-column:1/-1;min-width:0;border-top:1px solid var(--cdh-line);padding-top:12px}
+#cdHomeFunnel :is(.cd-sig__more,.cdh-mypass__details,.cdh-honey__details)>summary{min-height:48px;padding:12px 0;font-size:1rem;line-height:1.6;cursor:pointer;color:var(--cdh-ink)}
+#cdHomeFunnel :is(.cd-sig__more,.cdh-mypass__details,.cdh-honey__details)>summary:focus-visible{outline:2px solid var(--cdh-accent);outline-offset:4px}
+#cdHomeFunnel .cd-sig__more-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;padding-top:16px}
+#cdHomeFunnel .cdh-mypass{padding:0 20px;margin-block:16px}
+#cdHomeFunnel .cdh-mypass__details{width:100%}
+#cdHomeFunnel .cdh-mypass__list{padding-bottom:16px}
+#cdHomeFunnel .cdh-honey{display:block;padding:0 20px;margin-block:16px}
+#cdHomeFunnel .cdh-honey__details>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none}
+#cdHomeFunnel .cdh-honey__details>summary::-webkit-details-marker{display:none}
+#cdHomeFunnel .cdh-honey__details>summary::after{content:'+';font-size:1.25rem;color:var(--cdh-accent)}
+#cdHomeFunnel .cdh-honey__details[open]>summary::after{content:'−'}
+#cdHomeFunnel .cdh-honey__wallet{margin-left:auto}
+#cdHomeFunnel .cdh-honey__balance>span{display:none}
+#cdHomeFunnel .cdh-honey__balance strong{font-size:1rem}
+#cdHomeFunnel .cdh-honey__wallet>img{width:20px;height:24px}
+#cdHomeFunnel .cdh-honey__story{margin:12px 0}
+#cdHomeFunnel .cdh-honey__actions{padding-bottom:16px}
+#cdHomeFunnel .cdh-honey :is(.cdh-honey__hint,.cdh-primary,.cdh-honey__uses,[data-cd-honey-status]){font-size:.875rem;line-height:1.65}
+@media(max-width:700px){
+ #cdHomeFunnel .cd-sig__more-grid{grid-template-columns:1fr;gap:24px}
+ #cdHomeFunnel .cd-sig--curated .cd-sig__grid{grid-template-columns:1fr;gap:24px}
+ #cdHomeFunnel .cd-sig--curated .cd-sig-card__body{padding:20px 16px;gap:12px}
+ #cdHomeFunnel .cd-sig--curated .cd-sig-card__q{font-size:1rem;line-height:1.65}
+ #cdHomeFunnel .cd-sig--curated .cd-sig-card__title{font-size:1.25rem}
+ #cdHomeFunnel .cd-sig--curated .cd-sig-card__master{font-size:.875rem}
+ #cdHomeFunnel .cd-sig--curated .cd-sig-card__cta{font-size:1rem}
+ #cdHomeFunnel .cdh-hero__note{font-size:1rem;line-height:1.65}
+ #cdHomeFunnel .cdh-honey__wallet{grid-column:auto}
+ #cdHomeFunnel .cdh-honey__actions{display:flex;flex-wrap:wrap}
+}

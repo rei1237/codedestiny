@@ -39,9 +39,9 @@ export default function YeongnyangiGuide(){
   <section id="yn-receive">
    <h2 id="yn-guide-title">한 가지 질문에서, 차분히 읽는 한 권까지</h2>
    <p>궁금한 점의 답부터 읽고, 그 판단의 근거와 반복되는 패턴, 지금 해볼 행동을 챕터별로 살펴보세요. 사주·자미두수·숙요점·베다점·점성술·타로 가운데 원하는 방식으로 시작할 수 있어요.</p>
-   <p>여러 관점으로 깊이 읽고 싶다면 <a href="/yeongnyangi/fortune/?product=fusion_all">오마카세 전체 리포트</a>에서 여섯 체계의 독립 해석과 인생 전반, 실행·점검 계획을 이어 읽어요.</p>
+   <details><summary>더 깊이 읽는 상담 구성</summary><p>여러 관점으로 깊이 읽고 싶다면 <a href="/yeongnyangi/fortune/?product=fusion_all">오마카세 전체 리포트</a>에서 여섯 체계의 독립 해석과 인생 전반, 실행·점검 계획을 이어 읽어요.</p>
    <p className={styles.volume}><strong>{FUSION_BOOK_CHAPTERS.omakase}개 챕터</strong><span>오마카세 본문 {(FUSION_BOOK_TARGETS.omakase[1]/10000).toFixed(1)}만 자까지 목표로 구성</span></p>
-   <p className={styles.note}>오마카세 기준이며 모든 상담에 같은 분량이 적용되지는 않아요. 실제 글 길이는 질문과 생성 결과에 따라, PDF 페이지 수는 편집에 따라 달라져요. 선택한 상담의 구성과 가격은 결제 전에 확인해요.</p>
+   <p className={styles.note}>오마카세 기준이며 모든 상담에 같은 분량이 적용되지는 않아요. 실제 글 길이는 질문과 생성 결과에 따라, PDF 페이지 수는 편집에 따라 달라져요. 선택한 상담의 구성과 가격은 결제 전에 확인해요.</p></details>
   </section>
   <section id="yn-example" aria-labelledby="yn-example-title">
    <h2 id="yn-example-title">실제 상담은 이렇게 이어져요</h2>
