@@ -126,7 +126,7 @@ export function julianDateFromUtcTimestamp(utcTimestamp) {
   return timestamp / DAY_MS + UNIX_EPOCH_JD;
 }
 
-function resolveSolarMoment(moment = {}) {
+export function resolveSolarMoment(moment = {}) {
   const calendarType = String(moment.calendarType || moment.calendar || "solar").trim().toLowerCase();
   if (calendarType !== "lunar" && calendarType !== "lunar_leap") {
     return { ...moment, calendarType: "solar" };

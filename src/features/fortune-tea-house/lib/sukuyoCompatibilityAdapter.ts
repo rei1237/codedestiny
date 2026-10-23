@@ -99,12 +99,12 @@ function lunarForPerson(person: FortuneTeaHouseSukuyoPersonInput): LunarBirth {
   if (!birth) throw new Error("INVALID_SUKUYO_BIRTH");
   const calendarType = normalizeCalendarType(person.calendarType);
   if (calendarType === "lunar") {
-    if (!lunarToSolar(birth.year, birth.month, birth.day, false)) throw new Error("INVALID_SUKUYO_BIRTH");
+    if (!lunarToSolar(birth.year, birth.month, birth.day, person.isLeapMonth === true)) throw new Error("INVALID_SUKUYO_BIRTH");
     return {
       lunarYear: birth.year,
       lunarMonth: birth.month,
       lunarDay: birth.day,
-      isLeapMonth: false,
+      isLeapMonth: person.isLeapMonth === true,
       source: "user-lunar-input",
     };
   }

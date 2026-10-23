@@ -6,10 +6,11 @@ const path = require("node:path");
 const vm = require("node:vm");
 const ts = require("typescript");
 
-let u, core;
+let u, core, astronomy;
 beforeAll(async () => {
   ({ __fortuneTeaHouseTestUtils: u } = await import("../../worker/routes/fortune-tea-house.js"));
   core = await import("../../lib/korean-calendar/index.js");
+  astronomy = await import('../../worker/lib/sukuyo-astronomy.js');
 });
 
 const baseBody = { selectedTeaCupId: "plain-cup", selectedTeaCupName: "플레인", selectedTeaCupTopic: "love", question: "두 사람의 앞날이 궁금해요", consultationVersion: "tea-v2" };
@@ -73,6 +74,31 @@ test("사주와 사주 궁합은 실재하는 입력(출생시간 미상·한국
 const source = fs.readFileSync(path.join(__dirname, "../../worker/routes/fortune-tea-house.js"), "utf8");
 const ast = ts.createSourceFile("fortune-tea-house.js", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
 const declared = (name) => ast.statements.find((node) => ts.isFunctionDeclaration(node) && node.name?.text === name).getText(ast);
+test('숙요 입력 오류와 천문 서비스 오류는 차감 전에 422와 재시도 503으로 구분한다', async () => {
+  for (const invalid of [true,false]) {
+    const consult=sukuyo({birthTime:invalid?'25:00':'09:00',birthTimeUnknown:false},{});
+    const verify=jest.fn(async()=>({ok:false,response:{status:402}}));
+    const context={console,checkRateLimit:()=>true,readJson:async()=>consult,normalizeRequest:x=>x,fortuneTeaRequestHash:()=>'',
+      parseFortuneTeaSukuyoBirthDate:u.parseFortuneTeaSukuyoBirthDate,assertSukuyoCalculationBasis:u.assertSukuyoCalculationBasis,
+      localMomentToUtc:astronomy.localMomentToUtc,resolveSolarMoment:astronomy.resolveSolarMoment,
+      calculateSukuyoForMoment:jest.fn(async()=>{throw new RangeError('mock ephemeris failure');}),verifyFortuneTeaHouseConsultAccess:verify};
+    vm.createContext(context);vm.runInContext(['assertSukuyoCalculationBasis','prepareFortuneTeaSukuyoAstronomy','handleConsult'].map(declared).join('\n'),context);
+    await expect(context.handleConsult({url:'https://mock.test'},{})).rejects.toMatchObject(invalid
+      ? {status:422,code:'FORTUNE_TEA_HOUSE_SUKUYO_BASIS_MISSING'}
+      : {status:503,code:'FORTUNE_TEA_HOUSE_SUKUYO_CALCULATION_UNAVAILABLE',retryable:true});
+    expect(verify).not.toHaveBeenCalled();
+    if(invalid)expect(context.calculateSukuyoForMoment).not.toHaveBeenCalled();
+  }
+});
+test('숙요 로컬 미리보기도 입력한 윤달로 검증하고 윤달 표시를 보존한다', () => {
+  const text=fs.readFileSync(path.join(__dirname,'../../src/features/fortune-tea-house/lib/sukuyoCompatibilityAdapter.ts'),'utf8');
+  const tree=ts.createSourceFile('adapter.ts',text,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
+  const pick=name=>tree.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text===name).getText(tree);
+  const context={lunarToSolar:core.lunarToSolar,solarToLunar:core.solarToLunar};vm.createContext(context);
+  vm.runInContext(ts.transpileModule(['cleanText','normalizeCalendarType','parseBirthDate','lunarForPerson'].map(pick).join('\n'),{compilerOptions:{target:ts.ScriptTarget.ES2020}}).outputText,context);
+  expect(context.lunarForPerson({birthDate:'2023-02-01',calendarType:'lunar',isLeapMonth:true})).toMatchObject({isLeapMonth:true,lunarMonth:2});
+  expect(()=>context.lunarForPerson({birthDate:'2023-03-01',calendarType:'lunar',isLeapMonth:true})).toThrow('INVALID_SUKUYO_BIRTH');
+});
 
 function bootConsult({ fallback, deferredUsage }) {
   const calls = { claim: [], begin: [], deferred: [] };

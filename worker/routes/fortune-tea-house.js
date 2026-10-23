@@ -32,7 +32,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { getCurrentUser, getOptionalUserFromRequest } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { buildSukuyoAiCompatibility, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
-import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
+import { calculateSukuyoForMoment, localMomentToUtc, resolveSolarMoment } from "../lib/sukuyo-astronomy.js";
 import {
   buildSajuAdvancedFactors,
   buildSajuMyeongsikFactSnapshot,
@@ -772,10 +772,11 @@ async function prepareFortuneTeaSukuyoAstronomy(request, env, requestUrl) {
   if (request?.consultationMode !== "sukuyo" || !request.sukuyo) return;
   for (const person of [request.sukuyo.user, request.sukuyo.partner]) {
     const birth = parseFortuneTeaSukuyoBirthDate(person?.birthDate, person);
-    if (!birth) continue;
+    if (!birth) assertSukuyoCalculationBasis(request, {});
     const timeMatch = String(person.birthTime || "").match(/^(\d{1,2}):(\d{2})$/);
+    if (person.birthTime && !timeMatch && person.birthTimeUnknown !== true) assertSukuyoCalculationBasis(request, {});
     const timeUnknown = person.birthTimeUnknown === true || !timeMatch;
-    person.astronomySukuyo = await calculateSukuyoForMoment(env, {
+    const moment = {
       calendarType: person.calendarType === "lunar" && person.isLeapMonth ? "lunar_leap" : person.calendarType,
       year: birth.year,
       month: birth.month,
@@ -787,7 +788,15 @@ async function prepareFortuneTeaSukuyoAstronomy(request, env, requestUrl) {
       latitude: person.latitude,
       longitude: person.longitude,
       birthTimeKnown: !timeUnknown,
-    }, { requestUrl });
+    };
+    try { localMomentToUtc(resolveSolarMoment(moment)); }
+    catch { assertSukuyoCalculationBasis(request, {}); }
+    try { person.astronomySukuyo = await calculateSukuyoForMoment(env, moment, { requestUrl }); }
+    catch {
+      throw Object.assign(new Error("달의 위치 계산이 잠시 지연되고 있어요. 같은 입력으로 다시 시도해 주세요."), {
+        status: 503, code: "FORTUNE_TEA_HOUSE_SUKUYO_CALCULATION_UNAVAILABLE", retryable: true,
+      });
+    }
   }
   const [userIndex, partnerIndex] = [request.sukuyo.user, request.sukuyo.partner].map((person) => person?.astronomySukuyo?.index);
   try {
@@ -6569,7 +6578,9 @@ export async function handleFortuneTeaHouseRoutes(request, env = {}, ctx = null)
     return methodNotAllowed();
   } catch (error) {
     if (Number.isFinite(Number(error?.status))) {
-      return json({ ok: false, message: String(error?.message || "상담 내용을 다시 확인해 주세요.") }, { status: Number(error.status) });
+      return json({ ok: false, message: String(error?.message || "상담 내용을 다시 확인해 주세요."),
+        ...(error.code ? { code: error.code } : {}), ...(typeof error.retryable === "boolean" ? { retryable: error.retryable } : {}),
+      }, { status: Number(error.status) });
     }
     return handleRouteError(error, { request, env, trace: { route: "fortune-tea-house", method: traceMethod, requestPath: tracePath } });
   }
