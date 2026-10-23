@@ -47,3 +47,9 @@ test('unclassified SDK/runtime exception is distinct from a payment refusal',()=
  const context=vm.createContext({Error,asRecord:v=>v,toText:v=>String(v||''),billingClientText:()=>''});vm.runInContext(caught,context);
  const result=context.caught(new Error('SDK exception'));assert.equal(result.error.code,'PAYMENT_RUNTIME_ERROR');assert.equal(result.status,500);
 });
+
+test('주문 발급 후 응답 유실은 주문번호를 보존한 확인 지연이다',()=>{
+ const context=vm.createContext({Error,asRecord:v=>v,toText:v=>String(v||''),billingClientText:()=>''});vm.runInContext(caught,context);
+ const result=context.caught(Object.assign(new Error('response lost'),{orderId:'order-12345678'}));
+ assert.equal(result.error.code,'PENDING_CONFIRMATION');assert.equal(result.raw.orderId,'order-12345678');
+});

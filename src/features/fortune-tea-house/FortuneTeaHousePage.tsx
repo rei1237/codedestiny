@@ -110,6 +110,7 @@ const TeaHouseResultSheet = lazy(() => import("./components/TeaHouseResultSheet"
 
 type FortuneTeaHouseConsultApiResponse = {
   ok?: boolean;
+  code?: string;
   status?: string;
   reason?: string;
   retryable?: boolean;
@@ -180,10 +181,18 @@ function toNumber(value: unknown): number {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
 }
 
-function buildFortuneTeaPaymentError(message: string) {
+function buildFortuneTeaPaymentError(message: string, code = "") {
   const error = new Error(message || "결제 확인이 완료되지 않았어요. 다시 한 번만 시도해 주세요.");
   (error as Error & { paymentRequired?: boolean }).paymentRequired = true;
+  (error as Error & { code?: string }).code = code;
   return error;
+}
+
+function fortuneTeaPaymentFailureMessage(code: string, fallback: string) {
+  if (/BUYER|EMAIL|PHONE/.test(code)) return "구매자 이메일과 휴대폰 번호를 확인해 주세요. 입력한 상담 내용은 그대로 남아 있어요.";
+  if (/CANCEL|PAY_PROCESS_CANCELED/.test(code)) return "결제창이 닫혔어요. 입력한 내용으로 다시 결제할 수 있어요.";
+  if (["PG_PAYMENT_NOT_PAID", "PG_UNAVAILABLE", "GRANT_PENDING", "PENDING_CONFIRMATION"].includes(code)) return "결제사에서 승인 결과를 확인하고 있어요. 다시 결제하지 말고 결제 내역을 확인해 주세요.";
+  return fallback || "결제를 시작하지 못했어요. 잠시 후 다시 결제해 주세요.";
 }
 
 function buildFortuneTeaGenerationPendingError(message?: string) {
@@ -367,9 +376,9 @@ async function runFortuneTeaBillingGate(
       : gate.error?.message || gate.message || "결제 확인이 완료되지 않았어요. 다시 한 번만 시도해 주세요.";
     // 이용권 보유자가 결제 선택을 닫았다면 "왜 결제를 물었는지"(한도 소진 등)를 알려 준다 — 일반 취소 문구만 보이면 이용권이 고장 난 것처럼 읽힌다.
     const passDenialNotice = payload.passDenial?.reason ? toText(payload.message) : "";
-    throw buildFortuneTeaPaymentError(code === "PAYMENT_CANCELLED"
-      ? (passDenialNotice ? `${passDenialNotice} 결제는 진행되지 않았어요.` : "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.")
-      : message);
+    throw buildFortuneTeaPaymentError(code === "PAYMENT_CANCELLED" && passDenialNotice
+      ? `${passDenialNotice} 결제는 진행되지 않았어요.`
+      : fortuneTeaPaymentFailureMessage(code, message), code);
   }
   return {
     featureKey: toText(billingInput.featureKey),
@@ -639,6 +648,7 @@ export default function FortuneTeaHousePage() {
   const [honeyRewardMessage, setHoneyRewardMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [submitRetryAction, setSubmitRetryAction] = useState<"payment" | "consult" | "pending">("payment");
   const [loadingBgmIndex, setLoadingBgmIndex] = useState(0);
   const [generationProgress, setGenerationProgress] = useState<FortuneTeaGenerationProgress>({
     percent: 5,
@@ -1145,6 +1155,7 @@ export default function FortuneTeaHousePage() {
 
   async function submitQuestion(nextQuestionInput: FortuneTeaHouseQuestionInput, prepaid?: FortuneTeaPrepaidResume) {
     if (isSubmitting || submitLockRef.current) return;
+    if (submitRetryAction === "pending" && !prepaid && !unusedPaidAttemptRef.current) return;
     logSubmitStep("start");
 
 
@@ -1441,6 +1452,7 @@ export default function FortuneTeaHousePage() {
       }
       if (!response.ok || !payload.ok || !payload.result) {
         const submitError = new Error(payload.message || "연이가 상담문을 엮는 중 잠시 멈췄어요. 다시 한 번만 건네주세요.");
+        (submitError as Error & { code?: string }).code = toText(payload.code);
         if (payload.paymentRequired) {
           (submitError as Error & { paymentRequired?: boolean }).paymentRequired = true;
         }
@@ -1529,7 +1541,12 @@ export default function FortuneTeaHousePage() {
         }
       }
       markGenerationError();
-      setSubmitError(error instanceof Error && error.message ? error.message : "찻잔의 향이 잠시 흐려졌어요. 다시 한 번만 건네주세요.");
+      const failureCode = toText((error as Error & { code?: string })?.code).toUpperCase();
+      const paymentPending = ["PG_PAYMENT_NOT_PAID", "PG_UNAVAILABLE", "GRANT_PENDING", "PENDING_CONFIRMATION"].includes(failureCode);
+      setSubmitRetryAction(paymentPending ? "pending" : unusedPaidAttemptRef.current ? "consult" : "payment");
+      setSubmitError(paymentPending ? fortuneTeaPaymentFailureMessage(failureCode, "")
+        : unusedPaidAttemptRef.current ? "결제는 확인했지만 상담 계산을 마치지 못했어요. 입력은 그대로 두고 같은 결제로 다시 시도할 수 있어요."
+        : error instanceof Error && error.message ? error.message : "상담 준비가 잠시 멈췄어요. 입력을 확인한 뒤 다시 시도해 주세요.");
       goToStage("questionInput");
     } finally {
       if (consultRunRef.current === consultRunId) {
@@ -1620,7 +1637,10 @@ export default function FortuneTeaHousePage() {
           onBack={() => goToStage("teaSelect")}
           onSubmit={submitQuestion}
           isSubmitting={isSubmitting}
+          paymentPending={submitRetryAction === "pending"}
           submitError={submitError}
+          retryLabel={submitRetryAction === "consult" ? "상담 다시 시도하기" : "다시 결제하기"}
+          onRetry={submitRetryAction === "pending" ? undefined : () => { void submitQuestion(questionInput); }}
         /></>
       );
     }

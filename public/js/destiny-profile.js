@@ -5608,6 +5608,17 @@
       var coinPrice = _dpDirectBuilt.coinPrice;
       var amountKrw = _dpDirectBuilt.amountKrw;
       var directFeatureKey = _dpDirectBuilt.featureKey;
+      var precheckoutUser = _dpReadAuthUser() || {};
+      opts.__cdOrderId = '';
+      var precheckoutContact = await _dpCheckoutEntry().ensureBuyerContact({
+        email: _dpPickText([checkoutPayload.customer && checkoutPayload.customer.email, checkoutPayload.email, checkoutPayload.customerEmail, checkoutPayload.userEmail, precheckoutUser.email, precheckoutUser.userEmail]),
+        phoneNumber: _dpNormalizePaymentPhoneNumber(_dpPickText([checkoutPayload.phoneNumber, checkoutPayload.phone, precheckoutUser.phoneNumber, precheckoutUser.phone])),
+        requiresPhone: checkoutPayload.paymentMethod !== 'paypal',
+        ensurePhone: function () { return _dpEnsurePaymentPhoneNumber({}); }
+      });
+      checkoutPayload.email = precheckoutContact.email;
+      checkoutPayload.phoneNumber = precheckoutContact.phoneNumber;
+      checkoutPayload.customer = Object.assign({}, checkoutPayload.customer || {}, precheckoutContact);
       // 🔴 주문 요청을 **먼저 발사**하고 그 다음에 대기 오버레이를 켠다. 오버레이 점등은 리플로우와
       // 스크롤락을 동반해(React 경로에서는 리렌더까지) 메인스레드를 붙잡으므로, 앞에 두면 그만큼
       // checkout 요청 시작이 밀린다 — 대기 UI 때문에 PG창이 늦어지지 않게 하는 것이 이 순서의 목적이다.
@@ -5684,6 +5695,7 @@
         throw new Error(_dpReadBillingMessage(checkoutData, '결제 주문 정보를 확인할 수 없습니다.'));
       }
       var merchantUid = String(order.merchantUid || order.paymentId || order.orderId || '').trim();
+      opts.__cdOrderId = merchantUid;
       var orderAmount = Number(order.paymentAmount || order.amountKRW || order.amount || 0);
       if (!merchantUid) {
         throw new Error('\uacb0\uc81c \uc8fc\ubb38 \uc815\ubcf4\uc5d0 \uc8fc\ubb38 ID\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.');
@@ -5725,6 +5737,7 @@
         checkoutUser.uid,
       ]) || merchantUid;
       var customerEmail = _dpPickText([
+        precheckoutContact.email,
         payloadCustomer.email,
         payloadCustomer.customerEmail,
         payloadCustomer.userEmail,
@@ -5735,6 +5748,7 @@
         checkoutUser.userEmail,
       ]);
       var customerPhone = _dpNormalizePaymentPhoneNumber(_dpPickText([
+        precheckoutContact.phoneNumber,
         orderCustomer.phoneNumber,
         orderCustomer.phone,
         payloadCustomer.phoneNumber,
@@ -5964,7 +5978,14 @@
           } catch (_dpLogErr) {}
         }
         if (!dpDuplicateConfirm) {
-          throw new Error(String((rsp && rsp.message) || dpRspCode || '결제가 완료되지 않았습니다.'));
+          if (rsp && rsp.code) _dpPaymentFetchJson('/api/payments/report-failure', { method: 'POST', body: JSON.stringify({ merchantUid: merchantUid,
+            reasonCode: _dpIsPortOneUserCancelCode(dpRspCode) ? 'PG_PAYMENT_CANCELLED' : (dpRspCode || 'PG_PAYMENT_FAILED'),
+            reasonMessage: String((rsp && rsp.message) || '결제창이 종료되었습니다.') }) }).catch(function () {});
+          var dpPaymentError = new Error(String((rsp && rsp.message) || dpRspCode || '결제가 완료되지 않았습니다.'));
+          dpPaymentError.code = _dpIsPortOneUserCancelCode(dpRspCode) ? 'PAYMENT_CANCELLED' : (dpRspCode || 'PENDING_CONFIRMATION');
+          dpPaymentError.__cdPaymentAborted = _dpIsPortOneUserCancelCode(dpRspCode);
+          dpPaymentError.__cdPortOneCode = dpRspCode;
+          throw dpPaymentError;
         }
         // 서버 검증 조건이 paymentId === orderId 라(worker/payments/pg.js) 주문 id 를 그대로 넘긴다.
         // 결제창은 다시 열지 않고 아래 confirm 으로 흘려보낸다.
@@ -6036,6 +6057,10 @@
         // _cdRunDirectKrwCheckout 래퍼(index.html)와 같은 자리·같은 방식으로 맞춘다.
         // 정상 경로는 PG창 직전에 이미 내려가 있으므로 무해하다.
         return Promise.resolve(_dpRunDirectKrwCheckoutCore(opts)).catch(function(_dpDirectCheckoutError) {
+          if (opts.__cdOrderId) {
+            _dpDirectCheckoutError.orderId = opts.__cdOrderId;
+            _dpCheckoutEntry().showPaymentIssue(opts.__cdOrderId, _dpDirectCheckoutError.message);
+          }
           _dpSetPaymentPending(false);
           // 🔴 억제 플래그도 여기서 되돌린다. core 는 requestPayment 직전에 이 값을 true 로 세우고
           // **반환 직후 한 줄로** 되돌리는데(그 두 줄 사이에 아무것도 두지 않는 것을 verify:paid-gate-ui

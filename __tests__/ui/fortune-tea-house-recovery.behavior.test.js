@@ -60,7 +60,7 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
   let serial = 0;
   let succeed = false;
   const state = {
-    ...api, Error, AbortController, URLSearchParams, console, isSubmitting: false,
+    ...api, Error, AbortController, URLSearchParams, console, isSubmitting: false, submitRetryAction: 'payment',
     trackEvent(_name, properties) { assert.ok(Object.keys(properties).every(key => ["method", "code"].includes(key)), "analytics must not include personal input"); },
     submitLockRef: { current: false }, submitSucceededRef: { current: false },
     consultRunRef: { current: 0 }, unusedPaidAttemptRef: { current: saved },
@@ -71,6 +71,7 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
     canUseLocalConsultPreview: () => true,
     logSubmitStep() {}, startGenerationProgress() {}, clearGenerationProgressTimer() {}, setQuestionInput(value) { state.input = value; },
     setConsultResult(value) { state.result = value; }, setSubmitError(value) { state.error = value; },
+    setSubmitRetryAction(value) { state.submitRetryAction = value; },
     setIsSubmitting() {}, setGenerationProgress() {}, setNotice() {}, setHoneyDrops() {},
     setHoneyRewardMessage() {}, setHoneyRewardBurstKey() {}, setPartialSections(value) { state.partial = value; },
     authFetch: async () => ({ ok: false }),
@@ -98,6 +99,7 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
     window: { ...window, location: window.location || { search: '' }, setTimeout: fn => { fn(); return 1; }, clearTimeout() {} },
   };
   vm.createContext(state);
+  vm.runInContext(functionSource("fortuneTeaPaymentFailureMessage"), state);
   vm.runInContext(functionSource("submitQuestion"), state);
   // 마운트 복구 effect 가 이 probe 를 호출하므로 effect 를 실행하는 모든 테스트에 정의가 필요하다.
   vm.runInContext(hookCallbackSource("probeFortuneTeaPending"), state);
@@ -138,6 +140,19 @@ test("blocked storage retains in-page request; API failure cannot become local p
   await h.submit();
   assert.equal(h.gateCalls(), 1);
   assert.deepEqual(h.posts[0], h.posts[1]);
+});
+
+test('찻집 실패 원인별 안내와 재시도는 입력·결제 증빙을 보존하고 승인 지연 중 재결제를 막는다', async () => {
+  const h = harness();
+  assert.match(h.state.fortuneTeaPaymentFailureMessage('BUYER_INFO_REQUIRED', ''), /이메일|휴대폰/);
+  assert.match(h.state.fortuneTeaPaymentFailureMessage('PAYMENT_CANCELLED', ''), /결제창/);
+  await h.submit();assert.equal(h.state.submitRetryAction,'consult');
+  h.succeed();await h.submit();assert.equal(h.gateCalls(),1);assert.deepEqual(h.posts[0],h.posts[1]);
+  const pending=harness();let calls=0;
+  pending.state.runFortuneTeaBillingGate=async()=>{calls++;throw Object.assign(new Error('확인 중'),{code:'PENDING_CONFIRMATION',paymentRequired:true});};
+  await pending.submit();assert.equal(pending.state.submitRetryAction,'pending');
+  assert.match(pending.state.error,/다시 결제하지/);await pending.submit();assert.equal(calls,1);
+  assert.equal(pending.state.input.question,input.question);
 });
 
 test("owner scoping, corrupted records and stale completions cannot expose or erase another attempt", async () => {

@@ -2110,8 +2110,50 @@
     });
   }
 
+  function showPaymentIssue(orderId, message) {
+    if (!orderId || typeof document === 'undefined') return;
+    var previous = document.getElementById('cdPaymentIssue'); if (previous) previous.remove();
+    var panel = document.createElement('aside');panel.id = 'cdPaymentIssue';panel.setAttribute('role', 'status');
+    panel.style.cssText = 'position:fixed;bottom:16px;left:16px;right:16px;max-width:480px;margin:auto;padding:20px;box-sizing:border-box;border:1px solid #bca574;border-radius:16px;background:#1a1530;color:#ede8f5;z-index:2147483646;box-shadow:0 12px 40px #0006';
+    var description = document.createElement('p');description.textContent = message || '결제 상태를 확인해 주세요.';panel.appendChild(description);
+    var copy = document.createElement('button');copy.type = 'button';copy.textContent = '주문번호 ' + String(orderId).slice(0,8) + ' 복사';copy.style.cssText = 'min-height:44px;margin-right:12px';
+    copy.addEventListener('click', function () { if (navigator.clipboard) navigator.clipboard.writeText(String(orderId).slice(0,8)).then(function () { copy.textContent = '주문번호를 복사했어요'; }).catch(function () { copy.textContent = String(orderId).slice(0,8); }); });panel.appendChild(copy);
+    var help = document.createElement('a');help.href = '/contact/#payment-help';help.textContent = '결제 문의';help.style.cssText = 'display:inline-flex;align-items:center;min-height:44px;color:#f0d59b';panel.appendChild(help);
+    var close = document.createElement('button');close.type = 'button';close.textContent = '닫기';close.style.cssText = 'min-height:44px;margin-left:12px';close.addEventListener('click',function(){panel.remove();});panel.appendChild(close);
+    document.body.appendChild(panel);
+  }
+
+  async function ensureBuyerContact(options) {
+    var opts = options || {};
+    var email = String(opts.email || '').trim();
+    var validEmail = function (value) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value); };
+    if (!validEmail(email)) {
+      email = await new Promise(function (resolve) {
+        var previous = document.activeElement;
+        var dialog = document.createElement('dialog');
+        dialog.setAttribute('aria-labelledby', 'cdBuyerEmailTitle');
+        dialog.style.cssText = 'width:min(420px,calc(100% - 32px));box-sizing:border-box;border:1px solid #bca574;border-radius:18px;padding:24px;background:#1a1530;color:#ede8f5;z-index:2147483647';
+        dialog.innerHTML = '<form><h2 id="cdBuyerEmailTitle" style="margin:0 0 12px;font-size:1.25rem">결제 정보 확인</h2><p>주문을 만들기 전에 구매자 이메일을 입력해 주세요.</p><label for="cdBuyerEmail">이메일</label><input id="cdBuyerEmail" name="email" type="email" autocomplete="email" required style="display:block;box-sizing:border-box;width:100%;min-height:48px;margin:8px 0 20px;padding:10px;background:#fff;color:#251b35;border:1px solid #bca574;border-radius:8px"><div style="display:flex;gap:12px"><button type="button" data-cancel style="min-height:48px;flex:1">취소</button><button type="submit" style="min-height:48px;flex:1">확인하고 계속</button></div></form>';
+        var input = dialog.querySelector('input');
+        input.value = email;
+        var finish = function (value) { dialog.remove(); if (previous && previous.focus) previous.focus(); resolve(value); };
+        dialog.querySelector('form').addEventListener('submit', function (event) { event.preventDefault(); if (validEmail(input.value.trim())) finish(input.value.trim()); });
+        dialog.querySelector('[data-cancel]').addEventListener('click', function () { finish(''); });
+        dialog.addEventListener('cancel', function (event) { event.preventDefault(); finish(''); });
+        document.body.appendChild(dialog);dialog.showModal();input.focus();
+      });
+    }
+    if (!validEmail(email)) throw Object.assign(new Error('구매자 이메일을 입력한 뒤 다시 결제해 주세요.'), { code: 'BUYER_INFO_REQUIRED' });
+    var phoneNumber = String(opts.phoneNumber || '').trim();
+    if (!phoneNumber && opts.requiresPhone !== false) phoneNumber = await opts.ensurePhone();
+    if (!phoneNumber && opts.requiresPhone !== false) throw Object.assign(new Error('구매자 휴대폰 번호를 입력한 뒤 다시 결제해 주세요.'), { code: 'BUYER_INFO_REQUIRED' });
+    return { email: email, phoneNumber: phoneNumber };
+  }
+
   return {
     VERSION: 1,
+    ensureBuyerContact: ensureBuyerContact,
+    showPaymentIssue: showPaymentIssue,
     requestPaypalPayment: requestPaypalPayment,
     buildPaidResumeContext: buildPaidResumeContext,
     peekCheckoutReturn: function () { return consumeCheckoutReturn(true); },

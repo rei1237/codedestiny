@@ -69,9 +69,9 @@ type GateState =
   | { phase: "idle" }
   | { phase: "paying" }
   | { phase: "paid" }
-  | { phase: "cancelled" }
-  | { phase: "confirming"; message: string }
-  | { phase: "error"; message: string };
+  | { phase: "cancelled"; orderId?: string }
+  | { phase: "confirming"; message: string; orderId?: string }
+  | { phase: "error"; message: string; orderId?: string };
 
 /** returnTo 는 auth-return 규칙을 통과한 뒤에도 영냥이 경로만 허용한다(오픈 리다이렉트 봉쇄). */
 function resolveReturnTo(raw: string | null): string {
@@ -284,7 +284,7 @@ function PreparedCheckoutClient() {
   },[isSoulCatMode,signedIn,params,copy]);
 
   const startPayment = useCallback(async (paymentMode:'DIRECT_KRW'|'MEMBERSHIP_PASS'|'MOONLIGHT_STONE'='DIRECT_KRW') => {
-    if (!pricing || !available || paymentLock.current || packLock.current) return;
+    if (!pricing || !available || paymentLock.current || packLock.current || gate.phase === "confirming") return;
     const moonstoneQuantity=paymentMode==='DIRECT_KRW'?Number(moonstoneInput):0;
     if (!Number.isSafeInteger(moonstoneQuantity) || moonstoneQuantity<0
       || (moonstoneQuantity>0 && (isSoulCatMode || pricing.monthlyCreditMultiplier!==1
@@ -318,20 +318,21 @@ function PreparedCheckoutClient() {
         resume: buildResume({ returnTo: params.returnTo }),
       });
       const code = String(result.error?.code || "").toUpperCase();
+      const orderId = String(result.raw?.orderId || "");
       if (result.ok || code==='FORTUNE_ALREADY_PAID') {
         setGate({ phase: "paid" });window.location.assign(params.returnTo);return;
       }
       if (code === "AUTH_REQUIRED" || code === "UNAUTHORIZED" || result.status === 401) {redirectToLogin();return;}
-      if (code === "PAYMENT_CANCELLED" || code === "PG_PAYMENT_CANCELLED") {setGate({ phase: "cancelled" });return;}
+      if (code === "PAYMENT_CANCELLED" || code === "PG_PAYMENT_CANCELLED") {setGate({ phase: "cancelled", orderId });return;}
       if (["PG_PAYMENT_NOT_PAID","PG_UNAVAILABLE","GRANT_PENDING","PENDING_CONFIRMATION"].includes(code)) {
-        setGate({phase:"confirming",message:String(result.error?.message || result.message || copy.errPaymentUnknown)});return;
+        setGate({phase:"confirming",orderId,message:String(result.error?.message || result.message || copy.errPaymentUnknown)});return;
       }
-      setGate({phase:"error",message:String(result.error?.message || result.message || copy.errPaymentFailed)});
+      setGate({phase:"error",orderId,message:String(result.error?.message || result.message || copy.errPaymentFailed)});
     } catch(error) {
       if(error instanceof FortuneApiError && error.status===401){redirectToLogin();return;}
       setGate({phase:'error',message:error instanceof Error?error.message:copy.errPaymentUnknown});
     } finally { paymentLock.current=false; }
-  }, [pricing, available, buildResume, params, copy, isSoulCatMode, productName, moonstoneInput]);
+  }, [pricing, available, buildResume, params, copy, isSoulCatMode, productName, moonstoneInput, gate.phase]);
 
   // CD 내부 모드의 returnTo 는 결제 "성공" 뒤 이동 주소(미결제면 "0 / N개 챕터 저장됨" 결과 화면)라 결제를 그만두고 나가는 링크에 쓰지 않는다.
   // SoulCat 모드의 returnTo 는 진짜 직전 화면이라 그대로 쓴다.
@@ -405,7 +406,7 @@ function PreparedCheckoutClient() {
               </fieldset>}
               </details>
               <button type="button" onClick={() => { if(purchase==='pack'&&shopContext&&nativePrice===null)window.location.assign(consultationShopPath(shopContext));else void startPayment(); }}
-                disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
+                disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid" || gate.phase === "confirming"}
                 className={styles.pay}>
                 {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
                   : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : purchase==='pack'?(lang==='ko'?'5회 이용권 구매하기':'Get 5-use pass'): lang==='ko'&&!isSoulCatMode&&nativePrice===null ? `${formatKrw(validDiscount ? discountedAmount : pricing.amountKRW)} 결제하기` : copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || 'Google Play')}
@@ -416,6 +417,14 @@ function PreparedCheckoutClient() {
                 {gate.phase === "cancelled" ? <p>{copy.cancelled}</p> : null}
                 {gate.phase === "error" ? <p role="alert">{gate.message}</p> : null}
                 {gate.phase === "confirming" ? <p role="status">{gate.message}</p> : null}
+                {"orderId" in gate && gate.orderId ? <p>
+                  <button type="button" className={styles.back} style={{ minHeight: 44 }} onClick={async (event) => {
+                    const button=event.currentTarget;
+                    try { await navigator.clipboard.writeText(gate.orderId!.slice(0,8)); button.textContent=lang==='ko'?'주문번호를 복사했어요':'Order ID copied'; }
+                    catch { button.textContent=gate.orderId!.slice(0,8); }
+                  }}>{lang==='ko'?'주문번호':'Order ID'} {gate.orderId.slice(0,8)} · {lang==='ko'?'복사':'Copy'}</button>
+                  {' · '}<a href={policyHrefs.support}>{copy.legalSupport}</a>
+                </p> : null}
               </div>
               <a href={chooseHref} className={styles.back} onClick={()=>{
                 if(!isSoulCatMode)saveQuestionEdit(reading);

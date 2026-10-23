@@ -31,7 +31,10 @@ type QuestionInputSceneProps = {
   onBack: () => void;
   onDraftChange?: (input: Partial<FortuneTeaHouseQuestionInput>) => void;
   isSubmitting?: boolean;
+  paymentPending?: boolean;
   submitError?: string;
+  retryLabel?: string;
+  onRetry?: () => void;
   priceLabels?: Partial<Record<FortuneTeaHouseConsultMode, string>>;
 };
 
@@ -391,7 +394,7 @@ const KO = {
   topicSyncNotice: "{cup} 상담은 {topic}으로 고정되어 있어요.",
 };
 
-export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, onDraftChange, isSubmitting = false, submitError = "", priceLabels = {} }: QuestionInputSceneProps) {
+export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, onDraftChange, isSubmitting = false, paymentPending = false, submitError = "", retryLabel = "다시 결제하기", onRetry, priceLabels = {} }: QuestionInputSceneProps) {
   const copy = useTeaHouseCopy("questionInput", KO);
   const categories = useTeaHouseCopy("questionCategories", CATEGORY_KO);
   const [consultationMode, setConsultationMode] = useState<FortuneTeaHouseConsultMode>(initialInput?.consultationMode || "tarot");
@@ -767,7 +770,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   }
 
   function submitCurrentQuestion() {
-    if (isSubmitting) return;
+    if (isSubmitting || paymentPending) return;
     const nextQuestion = question.trim().length < 4
       ? consultationMode === "sukuyo"
         ? buildSukuyoAutoQuestion()
@@ -1567,6 +1570,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
           <section className={styles.questionSubmitErrorCard} role="alert" aria-live="assertive">
             <strong>{copy.kw53ukki}</strong>
             <p>{submitError}</p>
+            {onRetry ? <TeaHouseButton type="button" onClick={onRetry} disabled={isSubmitting}>{retryLabel}</TeaHouseButton> : null}
+            <a href="/contact/#payment-help">결제 문의하기</a>
           </section>
         ) : null}
         <div className={`${styles.storyActions}`}>
@@ -1574,7 +1579,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             
             {copy.kchbatkz}
           </TeaHouseButton>
-          <TeaHouseButton className={styles.primaryAction} type="submit" loading={isSubmitting}>
+          <TeaHouseButton className={styles.primaryAction} type="submit" loading={isSubmitting} disabled={paymentPending}>
             {copy.reviewButton}
           </TeaHouseButton>
         </div>

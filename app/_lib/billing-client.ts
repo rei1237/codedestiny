@@ -2584,10 +2584,10 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       data: null,
       message: error instanceof Error ? error.message : billingClientText("billingClient.message.001"),
       error: {
-        code: toText(runtimeError?.code) || "PAYMENT_RUNTIME_ERROR",
+        code: toText(runtimeError?.code) || (runtimeError?.__cdPaymentAborted ? "PAYMENT_CANCELLED" : toText(runtimeError?.__cdPortOneCode)) || (runtimeError?.orderId ? "PENDING_CONFIRMATION" : "PAYMENT_RUNTIME_ERROR"),
         message: error instanceof Error ? error.message : billingClientText("billingClient.message.002"),
       },
-      raw: {},
+      raw: { orderId: toText(runtimeError?.orderId) },
     };
   }
 
