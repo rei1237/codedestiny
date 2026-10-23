@@ -626,13 +626,13 @@ html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni
 #cdHomeFunnel .cdh-scene-button--catalog { background:var(--cdh-bg); color:var(--cdh-ink); }
 #cdHomeFunnel .cdh-scene-actions a:hover { transform:translateY(-2px); border-color:var(--cdh-gold); }
 #cdHomeFunnel .cdh-scene-actions a:focus-visible { outline:3px solid var(--cdh-accent); outline-offset:4px; }
-/* 사용자 지정: 대표 상담 입구는 진한 연꽃 핑크와 은은한 금색 꽃잎을 사용한다. */
-#cdHomeFunnel .cdh-scene-copy .cdh-primary { --cdh-lotus:#a8225a; --cdh-lotus-hover:#8d1948; min-height:var(--cd-btn-h-lg); padding:14px 24px; gap:14px; border:1px solid #bd547a; border-radius:var(--cd-r-control); background:var(--cdh-lotus); color:#fff5f7; box-shadow:0 8px 20px -12px #77143e80; }
+/* 사용자 참조: 짙은 자주색 면, 금색 이중 테두리와 연꽃을 가운데 정렬한다. */
+#cdHomeFunnel .cdh-scene-copy .cdh-primary { --cdh-lotus:#3b102c; --cdh-lotus-hover:#501b3d; min-height:var(--cd-btn-h-lg); padding:14px 24px; gap:14px; border:1px solid #aa874a; border-radius:8px; background:var(--cdh-lotus); color:#fff5f7; box-shadow:0 8px 20px -14px #3b102c66; }
 html.neo-mode #cdHomeFunnel .cdh-scene-copy .cdh-primary { background:var(--cdh-lotus); color:#fff5f7; }
-#cdHomeFunnel .cdh-scene-copy .cdh-primary:hover { background:var(--cdh-lotus-hover); border-color:#e2afbf; }
-#cdHomeFunnel .cdh-primary .cdh-scene-button__lotus { width:30px; height:30px; color:#f6d9ae; stroke-width:1.2; }
-#cdHomeFunnel .cdh-primary .cdh-scene-button__lotus path { fill:currentColor; fill-opacity:.1; }
-#cdHomeFunnel .cdh-scene-copy .cdh-primary::before { content:none; }
+#cdHomeFunnel .cdh-scene-copy .cdh-primary:hover { background:var(--cdh-lotus-hover); border-color:#c6a66d; }
+#cdHomeFunnel .cdh-primary .cdh-scene-button__lotus { width:26px; height:26px; color:#c6a66d; stroke-width:1.35; }
+#cdHomeFunnel .cdh-primary .cdh-scene-button__lotus path { fill:none; }
+#cdHomeFunnel .cdh-scene-copy .cdh-primary::before { content:""; inset:4px; border:1px solid #aa874a; border-radius:4px; opacity:.7; }
 .cdh-scene-art { position: relative; align-self: end; justify-self: end; width: 100%; max-width: 240px; aspect-ratio: 1; }
 #cdHomeFunnel .cdh-scene-art img { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; border: 0; box-shadow: none; background: none; }
 /* 라이트·다크 모두 연이만 보인다(네오 페르소나 제거). */
@@ -1020,8 +1020,8 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel .cdh-pass-block .cdh-moonstone-guide__join{border:1px solid var(--cdh-accent);background:transparent;box-shadow:none;color:var(--cdh-accent)}
 #cdHomeFunnel .cdh-pass-block .cdh-moonstone-guide__join::before{content:none}
 #cdHomeFunnel .cdh-pass-block .cdh-moonstone-guide__join:hover{background:color-mix(in srgb,var(--cdh-accent) 8%,transparent)}
-/* 연꽃과 이동 화살표를 유지하고, 좁은 화면에서는 문구에 줄바꿈을 허용한다. */
-@media(max-width:640px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{gap:12px;min-height:var(--cd-btn-h-lg);padding:12px 20px;white-space:nowrap}#cdHomeFunnel .cdh-scene-actions .cdh-primary .cdh-scene-button__arrow{display:block;width:18px;height:18px;margin-left:auto}}
+/* 좁은 화면에서도 연꽃과 문구 사이의 여백을 확보한다. */
+@media(max-width:640px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{gap:12px;min-height:var(--cd-btn-h-lg);padding:12px 20px;white-space:nowrap}}
 @media(max-width:380px){#cdHomeFunnel .cdh-scene-actions .cdh-primary.cdh-scene-button{gap:8px;padding-inline:12px;white-space:normal}#cdHomeFunnel .cdh-scene-button span{min-width:0;word-break:keep-all;text-wrap:balance}}
 /* 사주 타일은 무료 사주를 바로 시작한다. 사주 기능 전체는 이 3차 링크로 /saju/#services 에 모은다. */
 #cdHomeFunnel .cdh-saju-all{margin:4px 40px 0}

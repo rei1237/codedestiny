@@ -24,6 +24,8 @@
 .sceneImage { object-fit: cover; object-position: 64% 30%; }
 .illustration::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, color-mix(in srgb,var(--novel-bg) 70%,transparent), transparent 25%, transparent 48%,var(--novel-bg)); }
 .pigActor { position: absolute; right: 20%; top: 10%; width: min(32vw,280px); height: 45%; object-fit: contain; }
+.reader .humanActor { position:absolute; right:12%; bottom:0; width:min(66vw,600px); }
+.menu .menuPortrait, .ritual .menuPortrait { width:min(100%,440px); justify-self:center; }
 .chapter { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; padding: 24px 40px; }
 .chapter h2 { margin: 0; font-size: clamp(1.15rem,2.5vw,1.8rem); }
 .chapter span { flex-shrink: 0; font-variant-numeric: tabular-nums; font-size: .85rem; }
@@ -86,6 +88,8 @@
  .readerControls .primary { flex-basis: 100%; }
  .responses { flex-direction: column; }
  .pigActor { width: 45vw; right: 25%; top: 14%; height: 60%; }
+ .reader .humanActor { right:5%; bottom:0; width:90%; }
+ .menu .menuPortrait, .ritual .menuPortrait { width:min(100%,320px); margin-inline:auto; }
  .menu, .ritual { padding: 20px 16px 32px; }
  .menuIntro { grid-template-columns: 1fr; gap: 22px; }
  .menuIntro img { height: 240px; }

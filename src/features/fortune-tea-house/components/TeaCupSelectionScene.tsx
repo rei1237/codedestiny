@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+import YeoniTalkingPortrait from "./YeoniTalkingPortrait";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { teaHouseCups, type TeaHouseCup } from "../data/teaCups";
@@ -22,7 +22,7 @@ export default function TeaCupSelectionScene({ selectedCupId, onSelect }: Props)
  const selected = cups.find(cup => cup.id === previewId);
  return <section className={styles.world + " " + styles.menu} aria-labelledby="teaCupSelectTitle">
   <div className={styles.menuIntro}>
-   <Image src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" alt={copy.yeoniAlt} width={1536} height={1024} priority sizes="(max-width:700px) 100vw,50vw" />
+   <YeoniTalkingPortrait className={styles.menuPortrait} speechKey={previewId} />
    <div><h2 id="teaCupSelectTitle">{copy.title}</h2><p>{copy.description}</p><p>{copy.topicNote}</p></div>
   </div>
   <div className={styles.cups} role="group" aria-label={copy.menuAria}>
