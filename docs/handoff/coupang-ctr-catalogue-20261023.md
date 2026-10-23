@@ -1,7 +1,7 @@
 ---
-status: active
+status: blocked
 updated: 2026-10-24
-next: "A3 — check:fast 전체 종료 결과 확인 후 커밋·실제 main 워크트리 ff 병합, B1 작성, B2·C 사용자 결정"
+next: "B2 — 가격을 비울지 또는 24시간 수동 갱신할지 사용자 결정 대기. C — 공식 subId·링크 형식 근거 대기. 후속 코드는 main에서 새 안전 워크트리로 진행."
 ---
 
 # 쿠팡 추천 — 상품별 CTR과 상품 데이터 (Codex 위임)
@@ -15,7 +15,7 @@ next: "A3 — check:fast 전체 종료 결과 확인 후 커밋·실제 main 워
   - 어떤 상품이 실제로 눌리는지 상품별 CTR로 본다. 지금은 노출이 섹션 단위라 상품별 CTR을 계산할 수 없다.
   - 이미지·가격이 빠진 쿠팡 상품 32개를 사용자가 채울 수 있게 준비한다. 값은 지어내지 않는다.
 
-## 지금 상태 (다시 하지 않는다)
+## 인수 당시 상태 (2026-10-23, 다시 하지 않는다)
 
 - 기준: 로컬 main `9b88b60f7`과 이 문서 커밋.
   - 로컬 main은 origin/main보다 77커밋 앞서 있다(push 안 함).
@@ -40,8 +40,8 @@ next: "A3 — check:fast 전체 종료 결과 확인 후 커밋·실제 main 워
   - 루트 체크아웃에는 다른 세션의 미커밋 변경이 있다. 루트에서 `reset --hard`·`stash`·`checkout --`를 쓰지 않는다. 남의 파일(`.claude/skills/fire-your-seo-agency/`, `docs/handoff/ggulggul-master-repair-release.md` 등)은 건드리지 않는다.
 - 머지 흐름(PR 없음)
   1. 워크트리에서 `git rebase main`.
-  2. `git -C D:/Development/code-destiny merge --ff-only <워크트리 브랜치>`.
-  3. 루트에서 `npm run -s verify:public-mirror-fresh`.
+  2. `git worktree list`로 실제 main 체크아웃을 확인하고 그곳에서 `git merge --ff-only <워크트리 브랜치>`. 2026-10-24 기준 main은 `C:/Users/user/Documents/Codex/worktrees/mobile-clarity-20261023-122535`이며 원래 루트는 다른 브랜치다.
+  3. 실제 main 체크아웃에서 `npm run -s verify:public-mirror-fresh`.
 - 커밋·배포
   - 수정이 끝나면 말하지 않아도 커밋한다.
   - 🔴 push·배포는 사용자가 요청할 때만 한다. AGENTS.md의 "종료 전 push"보다 이 규칙이 우선이다.
@@ -98,7 +98,7 @@ next: "A3 — check:fast 전체 종료 결과 확인 후 커밋·실제 main 워
   - 서버에서 30일치를 상품별로 묶어 돌려준다(Mongo `aggregate` `$group`). 상품별 행이 늘면 원시 행 5000개 상한에 먼저 걸린다.
   - 열: 상품 제목·id, 노출, 클릭, CTR(클릭÷노출). 노출이 0이면 "미확인"으로 표시한다. 서비스·위치 필터를 둔다.
   - "자체 지표" 표시를 유지하고, 공식 리포트 숫자(클릭·주문·수익)와 섞지 않는다.
-- [ ] **A3. 테스트·문서·확인**
+- [x] **A3. 테스트·문서·확인**
   - jest `__tests__/worker/recommendations.test.js`: 새 노출 이벤트 수용·거부, 상품별 집계.
   - `node --test "__tests__/ui/recommendations*.test.mjs"`: 노출 호출이 상품별로 나가는지.
   - `docs/operations/coupang-foundation.md`의 "이동과 통계"를 새 집계에 맞게 고친다.
@@ -108,7 +108,7 @@ next: "A3 — check:fast 전체 종료 결과 확인 후 커밋·실제 main 워
 
 ### B. 22: 상품 이미지·가격 (데이터는 사용자 몫, Codex는 준비만)
 
-- [ ] **B1. 입력 시트를 만든다**
+- [x] **B1. 입력 시트를 만든다**
   - 파일: `D:/codedestiny-qa/coupang-ctr-20261023/products-to-fill.csv`(UTF-8 BOM, 엑셀에서 열리게).
   - 열: `id, title, category, imageUrl, imageSource, price, priceVerifiedAt`. 값이 비어 있는 열은 빈칸으로 둔다.
   - 기준은 JSON 스냅숏이다. 운영 DB 현재값과 대조하려면 먼저 사용자 승인을 받는다.
@@ -117,7 +117,7 @@ next: "A3 — check:fast 전체 종료 결과 확인 후 커밋·실제 main 워
   - 수동 입력한 가격은 24시간 뒤 화면에서 사라진다. 그래서 수동 가격은 하루짜리다.
   - 권장안: 가격은 비우고(CTA "현재 가격 확인"이 대신한다) 이미지만 채운다.
   - 자동 가격 갱신에는 쿠팡 파트너스 API 승인과 키가 필요하다. `coupang-foundation.md:11`이 금지하고 있으니 별도 요청 때만 연다.
-- [ ] **B3. 입력 경로를 안내한다**
+- [x] **B3. 입력 경로를 안내한다**
   - 입력은 사용자가 `/admin/recommendations`에서 직접 한다. Codex는 운영 DB에 쓰지 않는다.
   - 이미지 다운로드, 상품 사진 생성, 상품 설명·후기 복사는 하지 않는다(`coupang-foundation.md:47`).
 
@@ -160,5 +160,15 @@ next: "A3 — check:fast 전체 종료 결과 확인 후 커밋·실제 main 워
 - `npm run -s sync:public`, `npm run -s sitemap:generate` 완료. 관리자 noindex 유지, 공개 문구·URL·canonical·robots 변경 없음. 공유 추천 컴포넌트 변경에 따른 sitemap 서명 5개만 갱신했고 날짜는 기존대로다.
 - mock 개발 서버+외부 요청 차단 브라우저: 360/390/430/1280px 가로 넘침 0, 실행 오류 0. 필터 CTR·노출 0·미리보기 전송 0·실제 가시성/중복 방지 통과. 화면·JSON은 `D:/codedestiny-qa/coupang-ctr-20261023/`. 실제 제휴 클릭 없음. 작업 소유 mock 서버 종료 완료.
 - 디자인 detector 결과 `[]`. 기존 PRODUCT/디자인 메타데이터 노후화는 이번 범위 밖이다.
-- `npm run check:fast` 끝까지 통과(종료 코드 0, BLOCKED 없음). paid-gate-suite 90/90, 전체 Node 3,501/3,501, 최종 Jest 424개 스위트·6,757개 테스트 통과. 전체 lint·typecheck·sitemap 일치·Worker dry-run 빌드·인코딩 검사 통과. 검증 뒤 최신 main 반영·ff 병합을 진행한다.
+- `npm run check:fast` 끝까지 통과(종료 코드 0, BLOCKED 없음). paid-gate-suite 90/90, 전체 Node 3,501/3,501, 최종 Jest 424개 스위트·6,757개 테스트 통과. 전체 lint·typecheck·sitemap 일치·Worker dry-run 빌드·인코딩 검사 통과. 검증 뒤 최신 main `fcd9db614`로 재배치했으며 `git range-diff`에서 구현 패치 동일(`=`)을 확인했다.
 - 결제 정책·이용권/월정석/단건 결제·인증·DB 스키마는 변경하지 않았다. 추천 이벤트 검증 및 관리자 통계 응답만 요청 범위에서 변경했다. 운영 DB 읽기/쓰기·쿠팡 API·유료 LLM·push·배포는 하지 않았다.
+- 구현 커밋 `afba2c7a400f631da75412fcff54f4028b879dab`을 실제 main에 fast-forward 병합했다. 다른 세션의 변경을 되돌리거나 섞지 않았다. 병합 후 실제 main에서 `npm run -s verify:public-mirror-fresh` 종료 코드 0, 생성 결과 변화 없음 확인.
+- B1 완료: `D:/codedestiny-qa/coupang-ctr-20261023/products-to-fill.csv`. JSON 스냅숏의 고유 상품 32개, 지정한 7열, 첫 줄 이미지 규칙, UTF-8 BOM 확인. imageUrl·imageSource·price·priceVerifiedAt는 모두 빈칸이며 운영 DB와 대조하지 않았다. 미리보기 렌더로 한글·열 배치도 확인했다. CSV는 첫 줄 안내, 둘째 줄 열 제목이며 데이터 자동 가져오기보다 수동 입력 참고용이다.
+- B2 질문을 사용자에게 전달했다. 가격을 비우고 이미지만 입력하는 안을 권장했으나 아직 결정하지 않았다. 기존 24시간 가격 정책은 그대로다.
+- B3 안내: 사용자가 `/admin/recommendations`에서 직접 입력한다. 입력 시트는 운영 DB에 자동 반영하지 않는다. 이미지 다운로드·생성, 설명·후기 복사는 하지 않았다.
+- C 질문을 사용자에게 전달했다. 발급 subId·공식 링크 원문·형식 근거를 받기 전에는 검증기·링크를 변경하지 않는다. 응답 대기이므로 문서 상태는 blocked다.
+- 구현과 검증은 완료됐다. 이 기록을 문서 커밋으로 main에 ff 병합한 뒤 위 완료 기준대로 자기 워크트리와 병합된 브랜치만 배수한다. 후속 작업은 남아 있는 main에서 새 안전 워크트리를 만든다.
+
+### 범위 밖 확인
+
+- K1. 기존 PRODUCT/디자인 스킬 메타데이터가 현재 코드와 맞지 않는 부분은 별도 정리 대상으로 남긴다. 이번 변경 UI의 디자인 detector 결과는 빈 배열이며 이 과제에서 메타데이터를 재작성하지 않았다.
