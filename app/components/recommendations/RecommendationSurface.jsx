@@ -36,6 +36,7 @@ export function ProductCard({ product, copy, preview = false, onClick = () => {}
   const ctaLabel = (product.linkType === 'search' ? copy.search : merchantCopy(priced ? copy.view : copy.price)).replace(/s*↗$/, '');
   return <article className={styles.product} data-affiliate-provider={product.providerId || 'coupang'}>
     <div className={styles.image}>{validImageUrl(product.imageUrl) && !failed
+      // eslint-disable-next-line @next/next/no-img-element -- 외부 제휴 이미지. 정적 export(images.unoptimized)라 next/image 이점이 없고 no-referrer·onError 대체가 필요하다
       ? <img src={product.imageUrl} alt={product.title} width="320" height="240" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)}/>
       : <span className={styles.placeholder}><PlaceholderIcon size={40} strokeWidth={1} aria-hidden="true"/><span>{preview ? copy.previewImage || copy.image : copy.categories?.[CATEGORIES.indexOf(product.category)] || copy.image}</span></span>}</div>
     <div className={styles.productText}>
@@ -90,7 +91,9 @@ export function RecommendationResult({ service, species = '', groupId = '', loca
     parent.prepend(disclosure); setTop(disclosure);
     return () => { disclosure.remove(); setTop(null); };
   }, [shown]);
-  useEffect(() => shown && !preview ? observeRecommendation(host.current, () => trackRecommendation('impression', context, 'result', '', getApiBaseUrl())) : undefined, [shown, service, preview]);
+  // 노출 이벤트는 service만 싣는다. context는 렌더마다 새 객체라 의존성에 넣으면 구독이 매번 새로 생겨 노출이 중복 집계된다.
+  const trackedService = context.service;
+  useEffect(() => shown && !preview ? observeRecommendation(host.current, () => trackRecommendation('impression', { service: trackedService }, 'result', '', getApiBaseUrl())) : undefined, [shown, trackedService, preview]);
   if (!shown) return null;
   const uiBrand = affiliateBrand(brand);
   const title = uiBrand === 'ggulggul' ? c.yeoniTitle : c.locale === 'ko' ? '영냥이가 고른 오늘의 취향' : c.title;
