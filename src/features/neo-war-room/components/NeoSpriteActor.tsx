@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import NeoWarRoomAssetImage from "./NeoWarRoomAssetImage";
+import NeoTalkingPortrait from "./NeoTalkingPortrait";
 import type { NeoWarRoomAsset } from "../data/assets";
 import {
   type NeoWarRoomEmotionState,
@@ -21,6 +22,7 @@ type NeoSpriteActorProps = {
   talkFrames?: readonly NeoWarRoomAsset[];
   talkSheetFrames?: readonly number[];
   talking?: boolean;
+  useTalkingPortrait?: boolean;
   talkFrameIntervalMs?: number;
   showDialogue?: boolean;
   ariaLive?: "off" | "polite" | "assertive";
@@ -37,6 +39,7 @@ export default function NeoSpriteActor({
   talkFrames,
   talkSheetFrames,
   talking = false,
+  useTalkingPortrait = false,
   talkFrameIntervalMs = 280,
   showDialogue = true,
   ariaLive = "polite",
@@ -44,7 +47,7 @@ export default function NeoSpriteActor({
 }: NeoSpriteActorProps) {
   const spriteGate = useSpritePlaybackGate<HTMLElement>();
   const config = getNeoWarRoomSpriteStateConfig(state);
-  const resolvedVariant = variant ?? config.variant;
+  const resolvedVariant = useTalkingPortrait ? "transparent" : variant ?? config.variant;
   const dialogue = dialogueOverride ?? config.dialogue;
   const asset = assetOverride ?? config.asset;
   const validTalkFrames = useMemo(() => talkFrames?.filter((frame) => Boolean(frame?.src)) ?? [], [talkFrames]);
@@ -64,9 +67,9 @@ export default function NeoSpriteActor({
   const talkSheetFrameKey = useMemo(() => validTalkSheetFrames.join("|"), [validTalkSheetFrames]);
   const [talkFrameIndex, setTalkFrameIndex] = useState(0);
   const [isPageVisible, setIsPageVisible] = useState(true);
-  const shouldAnimatePairedTalk = talking && displayTalkFrames.length > 1 && displayTalkSheetFrames.length > 1;
-  const shouldAnimateSheetTalk = talking && !shouldAnimatePairedTalk && displayTalkSheetFrames.length > 1;
-  const shouldAnimateAssetTalk = talking && !shouldAnimatePairedTalk && !shouldAnimateSheetTalk && displayTalkFrames.length > 1;
+  const shouldAnimatePairedTalk = !useTalkingPortrait && talking && displayTalkFrames.length > 1 && displayTalkSheetFrames.length > 1;
+  const shouldAnimateSheetTalk = !useTalkingPortrait && talking && !shouldAnimatePairedTalk && displayTalkSheetFrames.length > 1;
+  const shouldAnimateAssetTalk = !useTalkingPortrait && talking && !shouldAnimatePairedTalk && !shouldAnimateSheetTalk && displayTalkFrames.length > 1;
   const shouldAnimateTalk = shouldAnimatePairedTalk || shouldAnimateSheetTalk || shouldAnimateAssetTalk;
   const activeAsset = shouldAnimatePairedTalk || shouldAnimateAssetTalk
     ? displayTalkFrames[talkFrameIndex % displayTalkFrames.length] ?? asset
@@ -75,7 +78,7 @@ export default function NeoSpriteActor({
     ? displayTalkSheetFrames[talkFrameIndex % displayTalkSheetFrames.length] ?? sheetFrame
     : sheetFrame;
   const isMobileSingleWebpFrame = spriteGate.isMobile && activeAsset.src.includes("/neo-operation-room/sprites/transparent/");
-  const sheetFrameIndex = !isMobileSingleWebpFrame && typeof activeSheetFrame === "number" && activeSheetFrame >= 1 ? activeSheetFrame - 1 : null;
+  const sheetFrameIndex = !useTalkingPortrait && !isMobileSingleWebpFrame && typeof activeSheetFrame === "number" && activeSheetFrame >= 1 ? activeSheetFrame - 1 : null;
   const sheetCol = sheetFrameIndex === null ? 0 : sheetFrameIndex % 4;
   const sheetRow = sheetFrameIndex === null ? 0 : Math.floor(sheetFrameIndex / 4);
   const sheetCropStyle = sheetFrameIndex === null
@@ -119,14 +122,15 @@ export default function NeoSpriteActor({
       data-variant={resolvedVariant}
       data-size={size}
       data-motion={config.motion}
+      data-talk-portrait={useTalkingPortrait ? "true" : "false"}
       data-sheet-crop={sheetFrameIndex === null ? "false" : "true"}
       data-mobile-single-frame={isMobileSingleWebpFrame ? "true" : "false"}
-      data-talking={shouldAnimateTalk && spriteGate.canAnimate ? "true" : "false"}
-      data-playback={shouldAnimateTalk && spriteGate.canAnimate ? "animated" : "static"}
+      data-talking={(useTalkingPortrait ? talking : shouldAnimateTalk) && spriteGate.canAnimate ? "true" : "false"}
+      data-playback={(useTalkingPortrait ? talking : shouldAnimateTalk) && spriteGate.canAnimate ? "animated" : "static"}
       aria-live={ariaLive}
     >
       <div className={styles.spriteStage}>
-        <NeoWarRoomAssetImage
+        {useTalkingPortrait ? <NeoTalkingPortrait talking={talking} /> : <NeoWarRoomAssetImage
           asset={activeAsset}
           fallbackSrc={config.fallbackAsset.src}
           alt={config.alt}
@@ -134,7 +138,7 @@ export default function NeoSpriteActor({
           className={styles.spriteImageFrame}
           imageClassName={styles.spriteImage}
           style={sheetCropStyle}
-        />
+        />}
       </div>
       {showDialogue ? (
         <div className={styles.spriteDialogue}>

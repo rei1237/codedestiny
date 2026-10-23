@@ -2503,7 +2503,7 @@ export default function NeoOperationRoomPage() {
                       asset={item.coverAsset}
                       alt={`${item.label} ${methodSectionText.imageAltSuffix}`}
                       sizes={method === item.mode ? "(max-width: 720px) 200px, 280px" : "(max-width: 720px) 38vw, 180px"}
-                      responsiveSrcSet={`/neo-operation-room/methods/${item.mode}-320.webp 320w, /neo-operation-room/methods/${item.mode}-640.webp 640w`}
+                      responsiveSrcSet={`/neo-operation-room/methods/${item.mode}-textless-v2-320.webp 320w, /neo-operation-room/methods/${item.mode}-textless-v2-640.webp 640w`}
                       loading="lazy"
                       className={styles.methodImageFrame}
                       imageClassName={styles.methodImage}
@@ -3405,7 +3405,8 @@ export default function NeoOperationRoomPage() {
               sheetFrame={commandActorSheetFrame}
               assetOverride={commandActorAsset}
               talkFrames={commandActorTalkFrames}
-              talking={commandActorIsTalking}
+              useTalkingPortrait={!displayBriefing && !displayRefinedOrder}
+              talking={!displayBriefing && !displayRefinedOrder ? isCommandTyping : commandActorIsTalking}
               talkFrameIntervalMs={NEO_TRANSPARENT_TALK_INTERVAL_MS}
               className={styles.commandActor}
             />

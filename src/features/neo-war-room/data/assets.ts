@@ -162,25 +162,25 @@ export const neoWarRoomAssets = {
   },
   methods: {
     saju: localNeoWarRoomAsset(
-      "/neo-operation-room/methods/saju-640.webp",
+      "/neo-operation-room/methods/saju-textless-v2-640.webp",
       "네오가 네 기둥의 사주 명식과 오행을 짚는 상담",
       "method-cover",
       "method-saju",
     ),
     vedic: localNeoWarRoomAsset(
-      "/neo-operation-room/methods/vedic-640.webp",
+      "/neo-operation-room/methods/vedic-textless-v2-640.webp",
       "네오가 베다 차트와 달이 머무는 별의 자리를 살피는 상담",
       "method-cover",
       "method-vedic",
     ),
     ziwei: localNeoWarRoomAsset(
-      "/neo-operation-room/methods/ziwei-640.webp",
+      "/neo-operation-room/methods/ziwei-textless-v2-640.webp",
       "네오가 열두 궁 명반을 짚으며 삶의 영역을 살피는 상담",
       "method-cover",
       "method-ziwei",
     ),
     astrology: localNeoWarRoomAsset(
-      "/neo-operation-room/methods/astrology-640.webp",
+      "/neo-operation-room/methods/astrology-textless-v2-640.webp",
       "네오가 원형 출생차트의 행성과 하우스를 살피는 상담",
       "method-cover",
       "method-astrology",

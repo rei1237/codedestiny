@@ -105,6 +105,7 @@
 
 .shell[data-scene="command"] {
   padding-top: clamp(18px, 3vw, 36px);
+  overflow-x: clip;
 }
 
 .bgmAudio {
@@ -1593,7 +1594,7 @@
   border: 1px solid rgba(212, 183, 106, 0.28);
   border-radius: 8px;
   padding: clamp(18px, 3vw, 30px);
-  overflow: hidden;
+  overflow: clip;
   background:
     linear-gradient(180deg, rgba(7, 12, 24, 0.88), rgba(4, 7, 13, 0.95)),
     var(--neo-bg-desktop);
@@ -1976,6 +1977,10 @@
 .spriteActor[data-variant="transparent"] .spriteImage {
   object-fit: contain !important;
   object-position: center bottom !important;
+}
+
+.spriteActor[data-talk-portrait="true"] .spriteStage {
+  aspect-ratio: 1;
 }
 
 .spriteActor[data-variant="fullbody"] .spriteImage {
