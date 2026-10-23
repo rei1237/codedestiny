@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: in-progress
 updated: 2026-10-24
-next: 최신 Android 산출물 검증, main CI 복구 후 전달, iOS Mac/StoreKit 검증
+next: main 통합 및 전달 검사 후 push, 최종 CI 결과 확인
 ---
 
 # 일본 결제·Android·iPhone 앱 준비
@@ -85,7 +85,7 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App -destination 'generic/plat
 - Worker dry build 통과. 정책·가격 검사는 코드 레지스트리 대조이며 일본 Play Console의 실제 JPY 판매 가격을 증명하지 않는다.
 - 정적 앱 React #418 원인은 앱 헤더의 인라인 API 초기화였다. 외부 브릿지로 옮긴 뒤 실제 Next 출력+수정 후처리의 부적·상점에서 pageerror 0을 확인했다. 후속 v2 전체 `npm run build:mobile:app`도 통과했다. Next 1843개 페이지 생성, 앱 HTML 1850개 가드·결제 차단·기존 기록/읽기 경로 보존을 확인했다.
 - `check:fast -- --plan`은 critical. 전체 실행은 90개 중 87개 통과 뒤 메모리 부족 등으로 실패했다. 두 정적 가드는 수정 후 개별 통과했지만 전체 Jest/공식 게이트 통과로 보고하지 않는다.
-- origin/main a62384f3057afa885375feb1b9aac5fa35c821c7의 CI required·Static guards·paid-flow-gates 실패를 확인하여 그 위로 병합·push하지 않았다. 최종 전달 전 현재 결과를 한 번 재확인한다.
+- 최초 origin/main a62384f3057afa885375feb1b9aac5fa35c821c7의 CI required·Static guards·paid-flow-gates 실패를 확인하여 그 위로 push하지 않았다. 07:49 KST 조회에서 main은 e65f33fcb0beba284babe3385afe2ab38f90ae3f로 갱신됐고 CI가 진행 중이었다. 후속 08:17 KST 확인에서 같은 e65f33fc의 CI required 및 PR CI가 모두 success로 완료됐다. 근거: mobile-final-integration-gate.json.
 
 최종 v2 화면: 한국어 360/390/430px Android 모의·1280px 웹, 일본어 390px Android 모의, 한국어 390px iOS 모의의 6개 조건에서 넘침/실행 오류/44px 미만 조작 0개. 15장 선택 및 해시, 맞춤 PNG 크기, 홈/잠금/둘 다 전달, 원본 저장 해시, chooser 복귀·취소·미지원·사진 권한 안내가 통과했다. 시각 담당은 캡처와 맞춤 출력에 blocker 0, 제한된 ship 판정. 네이티브 시스템 응답은 mock이며 실기기 성공으로 확대하지 않는다. 공통 오프라인 화면은 연결이 끊기면 조작을 막으며 다시 연결하면 복귀한다.
 
@@ -103,16 +103,31 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App -destination 'generic/plat
 - `npx cap sync android`, `npx cap sync ios`: 최종 32bdae182 산출물로 두 플랫폼 동기화 통과. iOS 동기화는 Xcode 컴파일을 뜻하지 않는다.
 - `gradlew.bat :app:compileDebugJavaWithJavac`: 최신 Java 코드 24초 BUILD SUCCESSFUL.
 - `npm run verify:entry-encoding -- --strict-core`: 통과.
+- `npm run check:pre-push`: 문서 커밋 543d1bd83 기준 전체 통과. 서비스 레지스트리56, public 미러, 사이트맵1019, llms.txt, SEO 프로필62를 확인했다.
 
 증거 보존 위치: `D:\Development\code-destiny\output\mobile-japan-ios-20261024-033316\evidence`. 승인 v2 원본→앱 15개 해시·해상도는 `talismans-v2-source-evidence.json`에 기록했다. 캡처의 시각 검토와 native 모의 검사는 실제 기기의 배경화면 변경 증거가 아니다.
 
-전달 직전 한 번 다시 확인한 origin/main은 a62384f3057afa885375feb1b9aac5fa35c821c7이며 [CI required](https://github.com/rei1237/codedestiny/actions/runs/40014072839/job/120626899788)가 여전히 failure다. 이 작업의 변경은 아직 원격에 없다. 병합·push·공식 CI·배포 완료로 표시하지 않는다.
+07:49 KST 전달 판단 조회의 main은 e65f33fcb0beba284babe3385afe2ab38f90ae3f이며 [CI](https://github.com/rei1237/codedestiny/actions/runs/40035820980)는 in_progress였다. 08:17 KST 확인에서 같은 main의 필수 CI가 통과했다. 이 작업의 실제 통합·push와 최종 CI 결과는 전달 절차에서 별도로 확인한다. 운영 배포·스토어 제출은 포함하지 않는다. 최신 조회 증거는 mobile-delivery-ci.json과 mobile-delivery-ci-run.json이다.
 
 실출시 전에 운영 PurchaseIntent TTL 인덱스가 30일 설정과 일치하는지 승인된 운영 절차로 확인해야 한다. 모델 코드 수정만으로 기존 운영 인덱스의 변경을 증명하지 않는다.
 
 
 ## Android 설치 후보
 
-최종 소스 32bdae18207a0ca2fdf56802e3fc85ef1aadf97e로 APK/AAB 생성 중이다. 로컬 후보 버전은 versionCode 52 / versionName 1.0.52이며 기존 서명 설정을 사용한다. Play Console의 최신 버전 번호·앱 서명과 대조한 번호는 아니므로 제출 가능 판정으로 쓰지 않는다. 앱 삭제나 데이터 초기화를 통한 설치 우회는 하지 않았다.
+빌드 소스는 `32bdae18207a0ca2fdf56802e3fc85ef1aadf97e`다. APK/AAB 생성이 모두 완료됐으며 release lint와 signing task를 포함한 Gradle 결과는 `BUILD SUCCESSFUL in 48m 24s`, 190 tasks다. Windows의 파일 검사 지연 때문에 JVM 설정을 맞춘 단일 프로세스로 동일 Gradle 8.14.3을 실행했다. 앱 소스·검사·서명 설정은 바꾸지 않았다. 실제 실행 스크립트와 로그는 evidence에 보존했다.
 
-앱의 원시 웹 자산은 약 738.8MiB/11641파일이다. 실제 다운로드 크기는 로컬 AAB 파일 크기와 다르며 Console 또는 bundletool에서 별도 측정해야 한다. [Google Play 공식 크기 기준](https://support.google.com/googleplay/android-developer/answer/9859372?hl=en-GB)은 압축 다운로드 기준으로 base module 500MB다. 현재 작업에서는 Console 업로드·심사를 수행하지 않았다.
+| 파일 | 크기 | SHA-256 |
+| --- | --- | --- |
+| codedestiny-1.0.52-32bdae182.apk | 459,071,840 bytes / 437.8 MiB | `a96abbeeacd53cf7a0e43294a7ab3afcb63a35029051b9b69e35e18b0389310e` |
+| codedestiny-1.0.52-32bdae182.aab | 459,463,885 bytes / 438.2 MiB | `7345aa3d0bfcdd08389f53ae208cbf795aa7ddb9c52a9d8ac8bd18e6b7f6b32d` |
+
+저장 위치: `D:\Development\code-destiny\output\mobile-japan-ios-20261024-033316`. `artifact-manifest.json`, `SHA256SUMS.txt`, `mapping-1.0.52-32bdae182.txt`를 함께 보존했다.
+
+- APK: apksigner v2 signature verified. aapt로 `com.codedestiny.app`, versionCode 52 / versionName 1.0.52, minSdk 24 / targetSdk 36을 확인했다.
+- AAB: jarsigner가 `jar verified`를 반환했다. 자체 서명 인증서·타임스탬프 경고가 있으며 Play Console의 업로드/앱 서명 인증서와 대조한 것은 아니다.
+- 두 패키지 모두 내부 version.json의 소스 SHA, 승인 v2 원본 15장 SHA-256, 부적·상점·구매 내역·기록·영냥이 보관함·인사이트·유명인 사주 7개 경로가 일치했다. 복사본 해시도 확인했다.
+- iOS에 동기화한 웹 자산도 같은 SHA/원본 15장과 일치하지만 Xcode 컴파일·서명·실기기는 미검증이다.
+
+52 / 1.0.52는 로컬 설치 후보 번호이며 Play Console의 최신 버전과 대조하지 않았다. 실제 기기에 설치하거나 앱 삭제·데이터 초기화를 통한 우회를 하지 않았다. 서버 변경도 운영에 배포하지 않았다.
+
+앱의 원시 웹 자산은 약 738.8MiB/11641파일이다. 실제 다운로드 크기는 AAB 파일 크기와 다르며 Console 또는 bundletool에서 별도 측정해야 한다. [Google Play 공식 크기 기준](https://support.google.com/googleplay/android-developer/answer/9859372?hl=en-GB)은 압축 다운로드 기준 base module 500MB다. Console 업로드·심사는 수행하지 않았다.

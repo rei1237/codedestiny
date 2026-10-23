@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: in-progress
 updated: 2026-10-24
-next: main a62384f3의 기존 CI 실패 해소를 확인하고 이 작업의 검증 결과를 따라 통합한다.
+next: 성공한 main CI 기준으로 변경을 통합하고 전달 검사 후 push한다.
 ---
 
 # 일본 Android · iOS · 부적 앱 준비 인수인계
@@ -12,11 +12,11 @@ next: main a62384f3의 기존 CI 실패 해소를 확인하고 이 작업의 검
 선행 커밋: `803f7d8f43376853abc8b0f781a3570d5dec8eae` 원래 주문에 지연 영수증 연결, `7a4caad1ce9bb890e9c4c47cd57339812bebbda4` 모바일·부적·iOS 준비.
 푸시/병합/운영 배포/스토어 업로드: 수행하지 않음.
 
-## 전달 차단 근거
+## main 확인 기록
 
-읽기 전용 fetch로 확인한 origin/main은 `a62384f3057afa885375feb1b9aac5fa35c821c7`이다. [PR CI](https://github.com/rei1237/codedestiny/actions/runs/40014072839)의 CI required/Static guards와 [Paid Flow Gates](https://github.com/rei1237/codedestiny/actions/runs/40014072785)가 실패했다. Static guards 로그는 `scripts/verify-sukuyo-reading-house.mjs:58`에서 보이지 않는 `.cdh-honey__details summary` 클릭 대기 시간 초과다. 이 작업이 원격에 올라가기 전 발생한 실패이며 다른 변경의 실패 위로 push하지 않는 저장소 규칙을 따른다.
+최초 차단 근거는 `a62384f3057afa885375feb1b9aac5fa35c821c7`의 [PR CI](https://github.com/rei1237/codedestiny/actions/runs/40014072839) CI required/Static guards 및 [Paid Flow Gates](https://github.com/rei1237/codedestiny/actions/runs/40014072785) 실패다. Static guards는 `scripts/verify-sukuyo-reading-house.mjs:58`에서 보이지 않는 `.cdh-honey__details summary` 클릭 시간 초과였다. 2026-10-24 07:49 KST 조회에서는 main이 `e65f33fcb0beba284babe3385afe2ab38f90ae3f`로 갱신됐고 [새 CI](https://github.com/rei1237/codedestiny/actions/runs/40035820980)가 진행 중이었다. 후속 08:17 KST 확인에서 같은 e65f33fc의 CI required 및 PR CI가 모두 success로 완료됐다. 근거: mobile-final-integration-gate.json.
 
-main 체크아웃에는 다른 세션의 미커밋 홈·네오 변경이 있다. 다른 세션 작업, 메인 node_modules, 외부 워크트리를 reset/stash/삭제하지 않는다. 이 워크트리와 node_modules 정션은 전달 완료 전 보존한다.
+현재 main 체크아웃은 `C:\Users\user\Documents\Codex\worktrees\yeongnyangi-blue-passes-20261024-050530`이며 07:52 KST 읽기 전용 확인 당시 clean, HEAD `79aad78964b40342e1f93de3114e15863fbfd96d`였다. 다른 세션의 체크아웃·node_modules·워크트리는 변경하지 않았다. e65f33fc와 이 작업의 병합 미리보기는 충돌 없이 통과했으며 변경 파일 교집합도 없었다. 실제 통합 시에는 상태를 다시 확인한다.
 
 ## 구현 범위
 
@@ -48,7 +48,7 @@ Android `gradlew.bat :app:compileDebugJavaWithJavac --no-daemon --max-workers=1 
 
 ## 재개 순서
 
-1. 현재 main CI가 다른 변경 때문에 빨간지 다시 한 번 확인한다. 여전히 실패면 push하지 않고 원인 담당 변경을 보고한다.
+1. 현재 main의 필수 CI 결과를 한 번 확인한다. 기존 실패 해소가 확인되기 전에는 push를 쌓지 않고 현재 실행 상태를 보고한다.
 2. 이 워크트리의 마지막 커밋/상태와 아래 최종 검증 결과를 확인한다. 필요한 전체 게이트는 충분한 메모리에서 한 개씩 실행한다.
 3. 승인 v2 15장 연결은 완료했다. Android 실제 기기 적용/권한/취소 및 iOS Mac·사진 추가·수동 설정을 확인한다. 같은 계정의 구매 내역과 상담 보관함도 실기기에서 확인한다.
 4. main이 복구되고 다른 세션과 충돌하지 않는 시점에 main으로 통합, `npm run check:pre-push`, push, 최종 CI 한 번 확인. 운영 배포·스토어 업로드·실결제는 별도 권한 경계다.
@@ -67,16 +67,31 @@ Android `gradlew.bat :app:compileDebugJavaWithJavac --no-daemon --max-workers=1 
 - `npx cap sync android`, `npx cap sync ios`: 최종 32bdae182 산출물로 두 플랫폼 동기화 통과. iOS 동기화는 Xcode 컴파일을 뜻하지 않는다.
 - `gradlew.bat :app:compileDebugJavaWithJavac`: 최신 Java 코드 24초 BUILD SUCCESSFUL.
 - `npm run verify:entry-encoding -- --strict-core`: 통과.
+- `npm run check:pre-push`: 문서 커밋 543d1bd83 기준 전체 통과. 서비스 레지스트리56, public 미러, 사이트맵1019, llms.txt, SEO 프로필62를 확인했다.
 
 증거 보존 위치: `D:\Development\code-destiny\output\mobile-japan-ios-20261024-033316\evidence`. 승인 v2 원본→앱 15개 해시·해상도는 `talismans-v2-source-evidence.json`에 기록했다. 캡처의 시각 검토와 native 모의 검사는 실제 기기의 배경화면 변경 증거가 아니다.
 
-전달 직전 한 번 다시 확인한 origin/main은 a62384f3057afa885375feb1b9aac5fa35c821c7이며 [CI required](https://github.com/rei1237/codedestiny/actions/runs/40014072839/job/120626899788)가 여전히 failure다. 이 작업의 변경은 아직 원격에 없다. 병합·push·공식 CI·배포 완료로 표시하지 않는다.
+07:49 KST 전달 판단 조회의 main은 e65f33fcb0beba284babe3385afe2ab38f90ae3f이며 [CI](https://github.com/rei1237/codedestiny/actions/runs/40035820980)는 in_progress였다. 08:17 KST 확인에서 같은 main의 필수 CI가 통과했다. 이 작업의 실제 통합·push와 최종 CI 결과는 전달 절차에서 별도로 확인한다. 운영 배포·스토어 제출은 포함하지 않는다. 최신 조회 증거는 mobile-delivery-ci.json과 mobile-delivery-ci-run.json이다.
 
 실출시 전에 운영 PurchaseIntent TTL 인덱스가 30일 설정과 일치하는지 승인된 운영 절차로 확인해야 한다. 모델 코드 수정만으로 기존 운영 인덱스의 변경을 증명하지 않는다.
 
 
 ## Android 설치 후보
 
-최종 소스 32bdae18207a0ca2fdf56802e3fc85ef1aadf97e로 APK/AAB 생성 중이다. 로컬 후보 버전은 versionCode 52 / versionName 1.0.52이며 기존 서명 설정을 사용한다. Play Console의 최신 버전 번호·앱 서명과 대조한 번호는 아니므로 제출 가능 판정으로 쓰지 않는다. 앱 삭제나 데이터 초기화를 통한 설치 우회는 하지 않았다.
+빌드 소스는 `32bdae18207a0ca2fdf56802e3fc85ef1aadf97e`다. APK/AAB 생성이 모두 완료됐으며 release lint와 signing task를 포함한 Gradle 결과는 `BUILD SUCCESSFUL in 48m 24s`, 190 tasks다. Windows의 파일 검사 지연 때문에 JVM 설정을 맞춘 단일 프로세스로 동일 Gradle 8.14.3을 실행했다. 앱 소스·검사·서명 설정은 바꾸지 않았다. 실제 실행 스크립트와 로그는 evidence에 보존했다.
 
-앱의 원시 웹 자산은 약 738.8MiB/11641파일이다. 실제 다운로드 크기는 로컬 AAB 파일 크기와 다르며 Console 또는 bundletool에서 별도 측정해야 한다. [Google Play 공식 크기 기준](https://support.google.com/googleplay/android-developer/answer/9859372?hl=en-GB)은 압축 다운로드 기준으로 base module 500MB다. 현재 작업에서는 Console 업로드·심사를 수행하지 않았다.
+| 파일 | 크기 | SHA-256 |
+| --- | --- | --- |
+| codedestiny-1.0.52-32bdae182.apk | 459,071,840 bytes / 437.8 MiB | `a96abbeeacd53cf7a0e43294a7ab3afcb63a35029051b9b69e35e18b0389310e` |
+| codedestiny-1.0.52-32bdae182.aab | 459,463,885 bytes / 438.2 MiB | `7345aa3d0bfcdd08389f53ae208cbf795aa7ddb9c52a9d8ac8bd18e6b7f6b32d` |
+
+저장 위치: `D:\Development\code-destiny\output\mobile-japan-ios-20261024-033316`. `artifact-manifest.json`, `SHA256SUMS.txt`, `mapping-1.0.52-32bdae182.txt`를 함께 보존했다.
+
+- APK: apksigner v2 signature verified. aapt로 `com.codedestiny.app`, versionCode 52 / versionName 1.0.52, minSdk 24 / targetSdk 36을 확인했다.
+- AAB: jarsigner가 `jar verified`를 반환했다. 자체 서명 인증서·타임스탬프 경고가 있으며 Play Console의 업로드/앱 서명 인증서와 대조한 것은 아니다.
+- 두 패키지 모두 내부 version.json의 소스 SHA, 승인 v2 원본 15장 SHA-256, 부적·상점·구매 내역·기록·영냥이 보관함·인사이트·유명인 사주 7개 경로가 일치했다. 복사본 해시도 확인했다.
+- iOS에 동기화한 웹 자산도 같은 SHA/원본 15장과 일치하지만 Xcode 컴파일·서명·실기기는 미검증이다.
+
+52 / 1.0.52는 로컬 설치 후보 번호이며 Play Console의 최신 버전과 대조하지 않았다. 실제 기기에 설치하거나 앱 삭제·데이터 초기화를 통한 우회를 하지 않았다. 서버 변경도 운영에 배포하지 않았다.
+
+앱의 원시 웹 자산은 약 738.8MiB/11641파일이다. 실제 다운로드 크기는 AAB 파일 크기와 다르며 Console 또는 bundletool에서 별도 측정해야 한다. [Google Play 공식 크기 기준](https://support.google.com/googleplay/android-developer/answer/9859372?hl=en-GB)은 압축 다운로드 기준 base module 500MB다. Console 업로드·심사는 수행하지 않았다.
