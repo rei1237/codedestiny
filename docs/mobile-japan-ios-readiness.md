@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-10-24
-next: main 통합 및 전달 검사 후 push, 최종 CI 결과 확인
+next: 통합 기준을 고정해 1.0.53 재생성 후 서명·자산·최종 CI 확인
 ---
 
 # 일본 결제·Android·iPhone 앱 준비
@@ -113,6 +113,8 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App -destination 'generic/plat
 
 
 ## Android 설치 후보
+
+통합 커밋 `48308ec5d82c16dd006befd00ee26e5272cc9969`에는 별도 세션의 영냥이 이용권 v5/유효기간 표시 변경이 포함된다. 아래 1.0.52는 통합 전 부적 기능 검수본이며, 최신 정책까지 일치시키기 위해 통합 기준의 1.0.53을 재생성한다. 통합 후 결제94·부적/언어/기록23 검사는 통과했다.
 
 빌드 소스는 `32bdae18207a0ca2fdf56802e3fc85ef1aadf97e`다. APK/AAB 생성이 모두 완료됐으며 release lint와 signing task를 포함한 Gradle 결과는 `BUILD SUCCESSFUL in 48m 24s`, 190 tasks다. Windows의 파일 검사 지연 때문에 JVM 설정을 맞춘 단일 프로세스로 동일 Gradle 8.14.3을 실행했다. 앱 소스·검사·서명 설정은 바꾸지 않았다. 실제 실행 스크립트와 로그는 evidence에 보존했다.
 
