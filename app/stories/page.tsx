@@ -99,6 +99,13 @@ export default function StoriesHubPage() {
           </Link>
           을 함께 보시길 권합니다.
         </p>
+        <p>
+          섬마다 만나는 인물과 장소는{" "}
+          <Link href="/world/" className="text-amber-100 underline">
+            캐릭터와 세계관
+          </Link>
+          {" "}페이지에 정리해 두었습니다. 그 페이지도 1부와 2부 초입까지만 다룹니다.
+        </p>
       </YehwaCard>
 
       <YehwaCard as="section" id="characters" ornament={false} className="mt-8">
