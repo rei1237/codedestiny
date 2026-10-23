@@ -139,11 +139,10 @@ test('legacy results cap cards, retain result actions and hide failed requests',
   globalThis.fetch=async()=>({ok:true,json:async()=>({enabled:true,products})});
   const { mountRecommendation, mountSajuRecommendation }=await import('../../js/recommendations-legacy.mjs');
   const host=document.querySelector('main'),save=document.querySelector('#save');
-  await mountRecommendation(host,{service:'rpt_healthReportCard',source:'result',interests:['rest']},save);
+  await mountRecommendation(host,{service:'legacy-tarot',source:'result'},save);
   assert.equal(host.querySelectorAll('article').length,2);
   assert.equal(save.nextElementSibling?.dataset.recommendationBlock,'true');
   assert.ok(host.firstElementChild.classList.contains('cd-recommendations-disclosure'));
-  assert.ok(host.textContent.includes('건강기능식품 정보 따로 살펴보기'));
   assert.equal(host.querySelector('.cd-recommendations h2')?.textContent,'연이의 작은 추천 서가');
   assert.equal(host.querySelector('.cd-recommendations-lead'),null);
   const advice=document.createElement('ul');advice.id='iljuAdviceList';advice.innerHTML='<li>집중 시간을 확보하세요.</li>';host.prepend(advice);

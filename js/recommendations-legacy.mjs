@@ -55,11 +55,6 @@ export async function mountRecommendation(host, input, anchor = null) {
         select.value = context.species || context.interests[0] || '';
         select.addEventListener('change', () => { context = normalizeContext({ ...context, ...(context.service.startsWith('pet-') ? { species: select.value } : { interests: [select.value] }) }); track('filter'); void render(); });
       }
-      if (context.service === 'rpt_healthReportCard') {
-        const healthBrowse = node('a', (document.documentElement.lang || 'ko') === 'ko' ? '건강기능식품 정보 따로 살펴보기' : 'Explore supplement information separately', section);
-        healthBrowse.href = '/recommendations/?brand=ggulggul';
-        healthBrowse.addEventListener('click', () => browser.rememberRecommendationContext({ service: 'recommendations', source: 'browse', practiceTags: ['supplement-information'] }));
-      }
       const grid = node('div', '', section); grid.className = 'cd-recommendations-products';
       data.products.slice(0, RESULT_PRODUCT_LIMIT).forEach(p => {
         const merchantCopy = value => p.providerId === 'aliexpress' ? value.replace(/쿠팡|Coupang|coupang/g, 'AliExpress') : value;
