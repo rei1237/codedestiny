@@ -12,10 +12,10 @@ test("일본어 앱 상점은 정적 한국어 HTML과 일치한 뒤 선택 언�
   let locale = "ko";
   const source = fs.readFileSync(path.resolve(__dirname, "../../app/app/_lib/copy.ts"), "utf8");
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
-  const module = { exports: {} };
-  const scope = { module, exports: module.exports, require: name => name === "react" ? React : { getCurrentLoadingLocale: () => locale } };
+  const compiledModule = { exports: {} };
+  const scope = { module: compiledModule, exports: compiledModule.exports, require: name => name === "react" ? React : { getCurrentLoadingLocale: () => locale } };
   vm.runInNewContext(compiled, scope);
-  const { useAppShellCopy, getAppShellCopy } = module.exports;
+  const { useAppShellCopy, getAppShellCopy } = compiledModule.exports;
   const Header = () => React.createElement("h1", null, useAppShellCopy().passPageTitle);
   const html = renderToString(React.createElement(Header));
   const dom = new JSDOM("<div id='root'>" + html + "</div>", { url: "https://localhost/app/store/?lang=ja" });
