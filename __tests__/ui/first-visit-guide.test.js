@@ -5,7 +5,8 @@ const path = require('node:path');
 const {JSDOM} = require('jsdom');
 const root = path.resolve(__dirname, '../..');
 const stateSource = fs.readFileSync(path.join(root,'js/first-visit-state.mjs'),'utf8').replace(/export /g,'');
-const guideSource = fs.readFileSync(path.join(root,'js/core/first-visit-guide.mjs'),'utf8').replace(/^import .*;\r?\n/,'');
+const copySource = fs.readFileSync(path.join(root,'js/first-visit-copy.mjs'),'utf8').replace(/export /g,'');
+const guideSource = copySource + '\n' + fs.readFileSync(path.join(root,'js/core/first-visit-guide.mjs'),'utf8').replace(/^import .*;\r?\n/gm,'');
 function setup(url='https://local.test/ggulggul/', blocked=false){
  const dom=new JSDOM('<html lang="ko"><body><main id="cdHomeFunnel"><section class="cdh-free"></section></main><form id="destinyCardForm"></form><section id="resultPage" hidden><section class="saju-result-guide"></section></section><div id="cdCookieConsent"></div></body></html>',{url,runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window;
@@ -78,9 +79,17 @@ test('service/account state is separate; only explicit guest login resumes',()=>
  for(const value of saved)assert.deepEqual(Object.keys(value).sort(),['status','step']);
  dom.window.close();
 });
-test('non-Korean shell does not create a Korean guide',()=>{
- const ctx=setup();ctx.w.document.documentElement.lang='ja';ctx.run();ctx.tick();
- assert.equal(ctx.w.document.querySelector('.cd-first'),null);ctx.dom.window.close();
+test('English and Japanese first entry use translated guide text and accessible names',()=>{
+ for(const locale of ['en','en-GB','ja','ja-JP']) {
+  const ctx=setup();ctx.w.document.documentElement.lang=locale;ctx.run();ctx.tick();
+  const guide=ctx.w.document.querySelector('.cd-first');
+  assert.equal(guide.hidden,false);
+  assert.doesNotMatch(guide.textContent,/[가-힣]/);
+  assert.doesNotMatch(ctx.w.document.querySelector('dialog').textContent,/[가-힣]/);
+  assert.doesNotMatch(guide.getAttribute('aria-label'),/[가-힣]/);
+  assert.ok(ctx.w.document.querySelector('[data-first-start]').textContent.includes(locale.startsWith('ja')?'無料':'free'));
+  ctx.dom.window.close();
+ }
 });
 
 test('illustrated scene browsing never starts analysis or advances actual onboarding',()=>{
@@ -108,7 +117,7 @@ test('cross-tab dismissal replaces cached state and account changes discard prof
  ctx.dom.window.close();
 });
 
-test('existing result access points to records and language switch hides Korean result guidance',async()=>{
+test('language switch translates result guidance while preserving existing result access',async()=>{
  const ctx=setup(),{w}=ctx;
  w.CodeDestinyAccessStore={isUnlocked:()=>true,subscribe:()=>()=>{}};
  ctx.run();ctx.tick();w.document.querySelector('[data-first-close]').click();
@@ -118,7 +127,35 @@ test('existing result access points to records and language switch hides Korean 
  assert.ok([...w.document.querySelectorAll('.cd-first__offers li span')].every(el=>el.hidden));
  w.document.documentElement.lang='en';
  await new Promise(resolve=>setImmediate(resolve));
- assert.equal(w.document.getElementById('cdFirstResultHelp').hidden,true);
- assert.equal(w.document.querySelector('.cd-first__offers').hidden,true);
+ assert.equal(w.document.getElementById('cdFirstResultHelp').hidden,false);
+ assert.equal(w.document.querySelector('.cd-first__offers').hidden,false);
+ assert.doesNotMatch(w.document.getElementById('cdFirstResultHelp').textContent,/[가-힣]/);
+ assert.doesNotMatch(w.document.querySelector('.cd-first__offers').textContent,/[가-힣]/);
+ assert.ok([...w.document.querySelectorAll('.cd-first__offers li a')].every(a=>a.getAttribute('href')==='/records/'));
+ assert.equal(ctx.read().status,'dismissed');
+ ctx.dom.window.close();
+});
+
+test('switching supported languages keeps the active profile step without restarting analysis',async()=>{
+ const ctx=setup(),{w}=ctx;let entries=0;w.cdOneStepFreeSajuEntry=()=>{entries++;};
+ ctx.run();ctx.tick();w.document.querySelector('[data-first-start]').click();
+ for(const locale of ['en','ja','ko']) {
+  w.document.documentElement.lang=locale;
+  w.dispatchEvent(new w.Event('cd:locale-ready'));
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(ctx.read().status,'active');assert.equal(ctx.read().step,1);assert.equal(entries,1);
+  assert.equal(w.document.querySelectorAll('.cd-first__story').length,1);
+  if(locale!=='ko')assert.doesNotMatch(w.document.querySelector('.cd-first__story').textContent,/[가-힣]/);
+ }
+ ctx.dom.window.close();
+});
+
+test('an unsupported entry stays hidden and can later switch to a translated guide',async()=>{
+ const ctx=setup(),{w}=ctx;w.document.documentElement.lang='fr';ctx.run();ctx.tick();
+ assert.equal(w.document.querySelector('.cd-first').hidden,true);
+ assert.equal(w.document.querySelector('dialog').open,false);
+ w.document.documentElement.lang='ja';await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(w.document.querySelector('.cd-first').hidden,false);
+ assert.doesNotMatch(w.document.querySelector('.cd-first').textContent,/[가-힣]/);
  ctx.dom.window.close();
 });

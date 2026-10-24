@@ -1,4 +1,5 @@
 "use client";
+import { recordReaderCopy } from '@/lib/records/reader-copy';
 import dynamic from 'next/dynamic';
 import chatTheme from '@/app/fortune-chat/fortune-chat.module.css';
 import consultationTheme from '@/app/fortune-chat/consultation.module.css';
@@ -42,6 +43,7 @@ function IncompleteBiasReading({ row, notice, noBody }: { row: Record<string, un
 }
 export default function StoredReading({ source, serviceId, value, status }: { source: string; serviceId: string; value: unknown; status?: string }) {
   const locale = useLocale(), c = recordsCopy(locale), row = object(value);
+  const reader = recordReaderCopy(locale);
   const canonical = object(row.canonical), vm = object(canonical.viewModel);
   if (source === 'destiny-bias' && canonical.version === 'destiny-bias-record-v1' && Object.prototype.hasOwnProperty.call(canonical,'chemiReport')) {
     if (!isStoredChemiReport(canonical.chemiReport)) return <IncompleteBiasReading row={row} notice={c.formatUnavailable} noBody={c.noBody} />;
@@ -60,7 +62,7 @@ export default function StoredReading({ source, serviceId, value, status }: { so
   if (source === 'nakshatra' && row.decks) return <><AiConsultDecks decks={row.decks as Decks} natal={row.natal as NatalIdentity || null} question={typeof row.question === 'string' ? row.question : undefined} /><SavedChapters showEmpty={false} value={Object.fromEntries(Object.entries(row).filter(([key]) => !['decks','natal','question'].includes(key)))} /></>;
   if (source === 'chat' && Array.isArray(row.messages)) return <ol className={styles.dialogue}>{row.messages.map((message,index) => {
     const entry = object(message), role = entry.role || entry.speaker;
-    return <li key={index} className={styles.message} data-role={String(role)}><p className={styles.speaker}>{role === 'user' ? (locale==='ko'?'나의 질문':'My question') : role === 'system' ? (locale==='ko'?'상담 안내':'Guidance') : row.characterId === 'neo' ? '네오' : '연이'}</p><ChatMessage value={entry.content || entry.text || entry.message}/><ChatMessage value={entry.detail}/></li>;
+    return <li key={index} className={styles.message} data-role={String(role)}><p className={styles.speaker}>{role === 'user' ? reader.myQuestion : role === 'system' ? reader.guidance : row.characterId === 'neo' ? reader.neo : reader.yeoni}</p><ChatMessage value={entry.content || entry.text || entry.message}/><ChatMessage value={entry.detail}/></li>;
   })}</ol>;
   if (!Object.keys(row).length && typeof value !== 'string') return <p>{c.noBody}</p>;
   return <div data-saved-service={serviceId} className={styles.reader}><SavedServiceReading source={source} serviceId={serviceId} status={status} value={value}/></div>;

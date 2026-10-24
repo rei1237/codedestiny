@@ -108,7 +108,7 @@ const APP_SHELL_COPY_EN: AppShellCopy = {
   spotlightTeaHouseSubtitle: "Yeoni's Moonlight Consultation",
   spotlightTeaHouseDescription: "Warm Tarot and Saju consultations open calmly.",
   spotlightNeoRoomTitle: "Neo's Straight-Talk Destiny War Room",
-  spotlightNeoRoomSubtitle: "Expert-consultation-style war room",
+  spotlightNeoRoomSubtitle: "A practical, focused consultation",
   spotlightNeoRoomDescription: "Sharpens your question and lights up your next choice.",
   spotlightNeoRoomBadge: "Pass · Moonstones · Payment Applied",
 
@@ -127,10 +127,10 @@ const APP_SHELL_COPY_EN: AppShellCopy = {
   exitHintText: "Press once more to exit",
 
   pendingApprovalTitle: "Waiting for payment approval",
-  pendingApprovalBody: "Content will unlock automatically once approved. Convenience-store or bank-transfer payments may take some time to confirm.",
+  pendingApprovalBody: "We’re waiting for payment confirmation. Don’t start another purchase. After paying, open the app with the same account; confirmation will be applied to the original purchase.",
 
   passPageTitle: "Pass",
-  passPageBody: "With a pass, features within its coverage open instantly without payment.",
+  passPageBody: "A pass covers eligible features within its usage limits, with no separate payment for each reading.",
 
   passPlans: {
     standard: { title: "Small Honey Jar", blurb: "A light way to start" },
@@ -138,7 +138,7 @@ const APP_SHELL_COPY_EN: AppShellCopy = {
     vvip: { title: "Large Honey Jar", blurb: "Plenty of room for deep consultations" },
     family: { title: "Family Honey Jar", blurb: "Use every paid feature" },
   },
-  benefitCoverageFree: (coverageLabel) => `Features up to ${coverageLabel} are free`,
+  benefitCoverageFree: (coverageLabel) => `Covers eligible features priced up to ${coverageLabel}`,
   benefitAllFree: "All pass-eligible content",
   benefitMonthlyCap: (capLabel) => `Up to ${capLabel} worth`,
   benefitNoTimeLimit: "No time limit · no auto-renewal",
@@ -274,7 +274,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     pendingApprovalBody: "お支払いの確認を待っています。購入をやり直さず、お支払い後に同じアカウントでアプリを開いてください。確認後、元の購入に反映されます。",
 
     passPageTitle: "利用券",
-    passPageBody: "利用券があれば適用範囲内の機能は決済なしですぐに開きます。",
+    passPageBody: "利用券の対象機能は、利用限度内で追加の単件購入なしに利用できます。",
 
     passPlans: {
       standard: { title: "小さなはちみつ壺", blurb: "気軽に始める利用券" },
@@ -282,7 +282,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
       vvip: { title: "大きなはちみつ壺", blurb: "深い相談まで十分に" },
       family: { title: "ファミリーはちみつ壺", blurb: "すべての有料機能を利用" },
     },
-    benefitCoverageFree: (coverageLabel) => `${coverageLabel}以下の機能が無料`,
+    benefitCoverageFree: (coverageLabel) => `${coverageLabel}以下の対象機能に利用可能`,
     benefitAllFree: "利用券対象コンテンツすべて",
     benefitMonthlyCap: (capLabel) => `最大${capLabel}相当`,
     benefitNoTimeLimit: "期間制限なし · 自動更新なし",
