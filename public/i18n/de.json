@@ -2053,6 +2053,14 @@
       "fusionTitle": "Fusionsdeutung",
       "fusionDesc": "Fünf Meister verbinden sechs Traditionen, um Lebensmuster und nächste Entscheidungen zu betrachten.",
       "fusionPrice": "Expertenberatung · 50,000 KRW"
+    },
+    "focused": {
+      "find": "Finde deine Deutung",
+      "searchHint": "Saju · Tarot · Liebe · Neues Jahr",
+      "methods": "Beratungsarten vergleichen",
+      "fusion": "Die Deutung aus sechs Systemen entdecken",
+      "concerns": "Nach deiner Frage suchen",
+      "music": "Mondlichtreise · Eine musikalische Pause"
     }
   },
   "terms": {

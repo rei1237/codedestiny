@@ -307,6 +307,8 @@ let homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
   return vars[key];
 });
 
+homeHtml = homeHtml.replace('id="cdSigGrid"', 'id="cdSigGrid" data-home-stagger="signature"');
+
 // Mark authored text-only home labels; preserve nested markup and original quotations.
 const overseasLabels = JSON.parse(readFileSync('i18n/authored/homeOverseas-01.json', 'utf8'));
 const labelKeys = new Map(Object.entries(overseasLabels).filter(([, value]) => !value.ko.includes('{')).map(([key, value]) => [value.ko, key]));

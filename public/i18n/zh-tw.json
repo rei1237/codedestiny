@@ -2053,6 +2053,14 @@
       "fusionTitle": "超融合運勢",
       "fusionDesc": "五位導師交叉解讀六種體系，梳理人生走向與下一步選擇。",
       "fusionPrice": "專家諮詢 · 50,000韓元"
+    },
+    "focused": {
+      "find": "尋找運勢",
+      "searchHint": "四柱・塔羅・愛情・新年運勢",
+      "methods": "比較諮詢方式",
+      "fusion": "深入了解六體系綜合解讀",
+      "concerns": "按問題瀏覽占卜",
+      "music": "月光命運之旅・聽音樂休息一下"
     }
   },
   "terms": {

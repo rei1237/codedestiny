@@ -189,6 +189,10 @@
 
   function route() {
     var hash = location.hash.slice(1);
+    var deepTarget = hash ? document.getElementById(hash) : null;
+    for (var parent = deepTarget && deepTarget.parentElement; parent && parent !== home; parent = parent.parentElement) {
+      if (parent.tagName === 'DETAILS') parent.open = true;
+    }
     var isFinder = hash === 'services' || hash.indexOf('services/') === 0 || hash === 'cdServiceIndex' || hash === 'cdFinder';
     home.hidden = false;
     // 컬렉션 안의 앵커(#tarotCollection 등)로 들어오면 컬렉션 영역만 열고 대상으로 이동한다.

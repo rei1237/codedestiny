@@ -137,7 +137,7 @@ export default function HomePage() {
               </h2>
               <p id={`${card.key}CardTag`} className={styles.cardTag}>{card.tag}</p>
               <p id={`${card.key}CardHint`} className={styles.cardHint}>{card.hint}</p>
-              <span className={styles.cardAction} aria-hidden="true">카드 선택하기<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></span></div>
+              <span className={styles.cardAction} aria-hidden="true">{card.key === "yeoni" ? "운세 골라보기" : "상담 시작하기"}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></span></div>
               <span className={styles.cardFoil} aria-hidden="true" />
             </li>;
           })}
