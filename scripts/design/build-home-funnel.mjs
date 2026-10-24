@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
 import { listServicePackPlans } from '../../worker/payments/service-pack-policy.js';
@@ -155,7 +155,7 @@ vars.questionCategories = `<section class="cdh-other" id="cdhOtherFortunes" aria
     </header>
     <div class="cdh-concern-scroll" data-concern-scroll hidden><span>옆으로 넘겨 골라보세요</span><div><button type="button" data-concern-prev aria-label="이전 고민 보기"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button type="button" data-concern-next aria-label="다음 고민 보기"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></div></div>
     <div class="cd-concern__cards" role="group" aria-labelledby="cdhOtherFortunesTitle">${QUESTION_CATEGORIES.map((category, index) => `<button type="button" class="cd-concern__card" data-cd-concern="${category.id}" aria-expanded="${index === 0}" aria-controls="cdConcernPanel${capitalize(category.id)}"><span class="cd-concern__card-media" aria-hidden="true"><img src="${category.img}-240.webp" srcset="${category.img}-240.webp 240w, ${category.img}-400.webp 400w" sizes="(max-width: 599px) 42vw, 240px" alt="" width="960" height="640" loading="lazy" decoding="async"></span><span class="cd-concern__card-label" data-cd-trans="home.concernPick.${category.id}">${category.label}</span><span class="cd-concern__card-desc" data-cd-trans="home.concernPick.chip.${category.id}">${category.chip}</span></button>`).join('')}</div>
-${QUESTION_CATEGORIES.map((category, index) => `    <div class="cd-concern__panel" id="cdConcernPanel${capitalize(category.id)}" data-cd-concern-panel="${category.id}"${index === 0 ? '' : ' hidden'}><h3 class="cd-concern__panel-title"><span data-cd-trans="home.concernPick.${category.id}">${category.label}</span> · 관련 운세</h3><ul class="cd-concern__qs">${category.questions.map(questionLink).join('')}</ul></div>`).join('\n')}
+${QUESTION_CATEGORIES.map((category, index) => `    <div class="cd-concern__panel" id="cdConcernPanel${capitalize(category.id)}" data-cd-concern-panel="${category.id}"${index === 0 ? '' : ' hidden'}><h3 class="cd-concern__panel-title"><span data-cd-trans="home.concernPick.${category.id}">${category.label}</span> · <span>관련 운세</span></h3><ul class="cd-concern__qs">${category.questions.map(questionLink).join('')}</ul></div>`).join('\n')}
     <div class="cd-concern__actions"><a class="cd-concern__free" href="#destinyCardForm" data-cd-trans="home.concernPick.freeCta">무료로 먼저 확인하기</a><a class="cd-concern__ask" href="/fortune-chat/?character=yeoni" data-cd-price-key="fortune-chat-consultation"><span data-cd-trans="home.concernPick.ask">직접 물어보기</span> <em class="cd-concern__q-price" data-cd-trans="home.concernPick.price.w5000">${won(chatPrice)}</em></a></div>
   </section>
 </section>`;
@@ -253,7 +253,7 @@ const signaturePrice = (featureKey, suffix = '') => {
   return `${amount.toLocaleString('ko-KR')}원${suffix}`;
 };
 // 마스터 칩 — 아바타는 build-master-avatars.mjs 가 만든 128px 한 장. 이름이 옆에 있으니 이미지는 장식(alt="").
-const signatureMaster = ({ caption, names, avatars }) => `<span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true">${avatars.map((key) => `<img src="/images/master-profiles/avatars/${key}.webp" width="48" height="48" alt="" loading="lazy" decoding="async">`).join('')}</span><span class="cd-sig-card__master">${caption} <b>${names}</b></span></span>`;
+const signatureMaster = ({ caption, names, avatars }) => `<span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true">${avatars.map((key) => `<img src="/images/master-profiles/avatars/${key}.webp" width="48" height="48" alt="" loading="lazy" decoding="async">`).join('')}</span><span class="cd-sig-card__master"><span>${caption}</span> <b>${names}</b></span></span>`;
 // 타로 덱 — 카드 한 장이 상담 하나. 숫자는 장식(aria-hidden)이고, 카드 이름은 제목이 말한다.
 // 카드에는 고르는 데 필요한 것만 둔다: 마스터·제목·대표 질문·가격·CTA. 리포트 구성은 각 상담 상세가 보여 준다.
 const TAROT_NUMERALS = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
@@ -310,15 +310,50 @@ let homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
 homeHtml = homeHtml.replace('id="cdSigGrid"', 'id="cdSigGrid" data-home-stagger="signature"');
 
 // Mark authored text-only home labels; preserve nested markup and original quotations.
-const overseasLabels = JSON.parse(readFileSync('i18n/authored/homeOverseas-01.json', 'utf8'));
+const overseasLabels = Object.assign({}, ...readdirSync('i18n/authored').filter(file => /^homeOverseas-\d+\.json$/.test(file)).sort().map(file => JSON.parse(readFileSync('i18n/authored/' + file, 'utf8'))));
 const labelKeys = new Map(Object.entries(overseasLabels).filter(([, value]) => !value.ko.includes('{')).map(([key, value]) => [value.ko, key]));
+const varsAttribute = values => ' data-cd-vars="' + JSON.stringify(values).replaceAll('"', '&quot;') + '"';
+const copyReference = text => {
+  const key = labelKeys.get(text);
+  if (!key) throw new Error('Missing authored home label: ' + text);
+  return '@' + key;
+};
+for (const product of signatureProducts) {
+  homeHtml = homeHtml.replace('aria-label="' + product.title + ' — ' + product.cta + '"',
+    'aria-label="' + product.title + ' — ' + product.cta + '" data-cd-trans-attr="aria-label:home.guideCopy.cardLabel"' + varsAttribute({ title: copyReference(product.title), action: copyReference(product.cta) }));
+  homeHtml = homeHtml.replace('alt="' + product.imageAlt + '"',
+    'alt="' + product.imageAlt + '" data-cd-trans-attr="alt:home.guideCopy.sceneAlt"' + varsAttribute({ name: copyReference(product.master.names), title: copyReference(product.title) }));
+}
+for (const master of FUSION_MASTERS) {
+  homeHtml = homeHtml.replace('aria-label="' + master.name + '에게 물어보기 · ' + master.text + '" title="' + master.name + '에게 물어보기"',
+    'aria-label="' + master.name + '에게 물어보기 · ' + master.text + '" title="' + master.name + '에게 물어보기" data-cd-trans-attr="aria-label:home.guideCopy.masterLabel,title:home.guideCopy.askMaster"' + varsAttribute({ name: copyReference(master.name), role: copyReference(master.role) }));
+}
+homeHtml = homeHtml.replace('alt="연이·꽃돼지 연이의 연이와 나누는 대화 상담 상담 장면"',
+  'alt="연이·꽃돼지 연이의 연이와 나누는 대화 상담 상담 장면" data-cd-trans-attr="alt:home.guideCopy.sceneAlt"' + varsAttribute({ name: '@home.guideCopy.yeoniName', title: '@home.guideCopy.tabYeoni' }));
 homeHtml = homeHtml.replace(/(<[a-z][^>]*>)([^<>]+)(<\/[a-z][a-z0-9]*>)/g, (whole, open, text, close) => {
+  if (/^해금 \d[\d,]*원$/.test(text) && !/\sdata-cd-trans(?=[\s=>])/.test(open)) {
+    return open.slice(0, -1) + ' data-cd-trans="home.guideCopy.unlockPrice"' + varsAttribute({ amount: text.replace(/^해금 |원$/g, '') }) + '>' + text + close;
+  }
   if (/^\d[\d,]*원(?:부터)?$/.test(text) && !/\sdata-cd-trans(?=[\s=>])/.test(open)) {
     return open.slice(0, -1) + ' data-cd-trans="' + (text.endsWith('부터') ? 'home.simple.priceFrom' : 'home.overseasCopy.krwAmount') + '" data-cd-vars=\"' + JSON.stringify({amount:text.replace(/원(?:부터)?$/, '')}).replaceAll('\"', '&quot;') + '\">' + text + close;
   }
   const key = labelKeys.get(text);
   return !key || /\sdata-cd-trans(?=[\s=>])/.test(open) ? whole : open.slice(0, -1) + ' data-cd-trans="' + key + '">' + text + close;
 });
+
+// Translate accessibility copy alongside visible text, without replacing controls.
+homeHtml = homeHtml.replace(/<[a-z][^>]*>/g, open => {
+  const entries = [];
+  for (const attr of ['aria-label', 'title', 'alt']) {
+    const value = open.match(new RegExp('\\s' + attr + '="([^"]*)"'))?.[1];
+    const key = labelKeys.get(value);
+    if (key && !open.includes(attr + ':')) entries.push(attr + ':' + key);
+  }
+  if (!entries.length) return open;
+  return open.includes('data-cd-trans-attr="')
+    ? open.replace(/(data-cd-trans-attr=")([^"]*)"/, (_all, start, attrs) => start + attrs + ',' + entries.join(',') + '"')
+    : open.slice(0, -1) + ' data-cd-trans-attr="' + entries.join(',') + '">';
+}).replaceAll(' lang="ko"', '');
 
 let cleaned = original;
 
