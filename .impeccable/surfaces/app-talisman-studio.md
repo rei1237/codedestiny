@@ -71,3 +71,5 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 
 2026-10-24 후속 v2 검토: 시각 담당이 6개 환경의 잠금/홈, iOS 안내와 실제 맞춤 출력 캡처를 직접 검토했다. 넘침·조작부 잘림·가이드의 출력 혼입 없이 하단 문구와 여백이 유지되며 제한된 verdict는 ship, blocker 0이다. 홈 아이콘과 설명의 겹침 가능성은 크기·위치 조절 및 기기 확인 대상으로 남긴다. 부모의 최종 실제 dist 브라우저 검사도 6조건 모두 pageerror/가로 넘침/44px 미만 조작 0개다. 네이티브 응답은 mock이며 실제 Android/iPhone 적용 성공 판정이 아니다. 공통 오프라인 안내는 연결이 끊기면 조작을 막고 재연결 후 복귀한다.
+
+2026-10-24 통합 1.0.53 재검토: 소스 `c247d4ec353c730841b8b686791fa1b3d533dfdc`의 최종 dist에서도 같은 6조건 및 한국어·일본어 iOS 상점 검사가 통과했다. 시각 담당이 새 캡처 14개를 직접 확인해 새 blocker 0, verdict ship으로 판정했다. 하단 문구·여백·버튼 위계·iOS 안내·일본어 표시에서 회귀가 없었다. 증거는 `output/mobile-japan-ios-20261024-033316/evidence/talisman-v2-review-53/`와 `mobile-53-visual-review.txt`에 보존한다. 이 재검토도 실제 기기의 적용·저장·공유·아이콘 배치를 증명하지 않는다.
