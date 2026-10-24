@@ -44,10 +44,10 @@ test('ggulggul destination receives this reading input once without rewriting th
   function find(node) { if (ts.isFunctionDeclaration(node) && node.name?.text === 'handleSubmit') submit = node; ts.forEachChild(node, find); }
   find(ast);
   assert.ok(submit);
-  for (const pathname of ['/ggulggul/', '/ggulggul', '/']) {
+  for (const pathname of ['/ggulggul/', '/ggulggul', '/', '/vedic-ai/']) for (const owner of ['owner','previous-owner']) {
     const entries = new Map(); let destination;
     const ctx = {
-      URL, Date, JSON, SEO_LANDING_ENTRY_HANDOFF_KEY: 'cd:seo-landing-entry:v1',
+      URL, Date, JSON, selectedCard:{current:{owner,profile:{id:'chosen-card'}}}, SEO_LANDING_ENTRY_HANDOFF_KEY: 'cd:seo-landing-entry:v1',
       form: { birthDate: '1990-01-15', birthTime: '13:30', birthTimeUnknown: false, gender: 'female', calendarType: 'solar' },
       showTime: true, showGender: true, showCalendar: true,
       submitHref: pathname + '?action=checkPrivacyAndCalculate',
@@ -61,6 +61,8 @@ test('ggulggul destination receives this reading input once without rewriting th
     vm.runInContext(ts.transpileModule(submit.getText(ast), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
     ctx.handleSubmit({ preventDefault() {} });
     const handoff = JSON.parse(entries.get(ctx.SEO_LANDING_ENTRY_HANDOFF_KEY));
+    assert.equal(handoff.profile.id, owner==='owner'?'chosen-card':'saved-card');
+    assert.equal(handoff.path,pathname);
     assert.equal(handoff.profile.birthDate, '1990-01-15');
     assert.equal(handoff.profile.birthTime, '13:30');
     assert.equal(handoff.action, 'checkPrivacyAndCalculate');
