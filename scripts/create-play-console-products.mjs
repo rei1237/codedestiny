@@ -19,7 +19,8 @@
 import { config } from "dotenv";
 import { createSign } from "node:crypto";
 import { listAppContentTiers, listAppPassProducts } from "../worker/lib/app-store-pricing.js";
-import { MONTHLY_PASS_LIMITS_KRW } from "../worker/lib/profile-limits.js";
+import { resolvePassPolicy } from "../worker/lib/profile-limits.js";
+import { calculateKrwAmountFromCoins } from "../worker/lib/billing-policy.js";
 
 for (const path of [".env.cloudflare.local", ".env.cloudflare", ".env.local", ".env"]) {
   config({ path, override: false });
@@ -58,8 +59,8 @@ const CONTENT_LISTINGS = {
 // 이용권: 기간 없음(2026-10-11, 한도 소진 시 종료) · 자동갱신 없음 · 등급별 이용 한도 있음.
 // 상품 ID 의 _30d 는 Play 에서 바꿀 수 없어 그대로 둔다 — 표시명·설명만 기간 없이 쓴다.
 // 🔴 "무제한"·"횟수 제한 없음"으로 쓰지 말 것 — 모든 등급에 월 이용 한도가 있어 문구가
-//    실제 정책과 모순된다(2026-08-24). 월 한도 금액은 웹 정본 MONTHLY_PASS_LIMITS_KRW 에서
-//    파생시킨다 — 여기에 숫자를 다시 적으면 사본이 하나 더 생긴다.
+//    실제 정책과 모순된다(2026-08-24). 한도는 SKU의 정책 버전으로 해석한다.
+//    레거시 한도를 신규 이용권 설명에 쓰면 실제 지급 한도보다 크게 안내하게 된다.
 const PASS_LISTINGS = {
   cd_pass_standard_30d: { title: "작은 꿀단지", coverage: "5,000원 이하" },
   cd_pass_premium_30d: { title: "중간 꿀단지", coverage: "10,000원 이하" },
@@ -76,14 +77,16 @@ const PASS_LISTINGS = {
   cd_pass_vvip_30d_v4: { title: "큰 꿀단지", coverage: "30,000원 이하" },
 };
 
-const PASS_TIER_BY_SKU = Object.fromEntries(listAppPassProducts().map((pass) => [pass.productId, pass.passTier]));
+const PASS_BY_SKU = Object.fromEntries(listAppPassProducts().map((pass) => [pass.productId, pass]));
 
 function passDescription(sku) {
   const row = PASS_LISTINGS[sku];
   // 목적격 조사를 scope 안에 담는다 — "전체" 뒤에는 '를', "유료 기능" 뒤에는 '을'이라
   // 문장 쪽에 하나로 박으면 한쪽이 "…전체을"이 된다(Play 스토어에 그대로 등록되던 문구다).
   const scope = row.coverage === "이용권 대상 전체" ? "이용권 대상 유료 기능 전체를" : `${row.coverage} 유료 기능을`;
-  const monthlyKRW = Number(MONTHLY_PASS_LIMITS_KRW[PASS_TIER_BY_SKU[sku]] || 0);
+  const pass = PASS_BY_SKU[sku];
+  const policy = resolvePassPolicy(pass, pass.passTier);
+  const monthlyKRW = calculateKrwAmountFromCoins(policy.monthlyCoveredCoin);
   const monthly = `최대 ${monthlyKRW.toLocaleString("ko-KR")}원 상당`;
   // 최대 금액을 다 쓰면 이용권이 끝난다 — 스토어 설명에 없으면 환불 분쟁의 근거가 된다.
   return `${scope} ${monthly}까지 이용합니다. 기간 제한이 없으며, 최대 금액을 모두 사용하면 이용권이 종료됩니다. 자동 갱신되지 않습니다.`;
