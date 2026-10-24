@@ -49,22 +49,23 @@ function collectMarkers() {
     if (!map.has(key)) map.set(key, new Set());
     map.get(key).add(norm(value));
   };
+  const interpolateMarker = (node, key, original) => {
+    if (!node.hasAttribute('data-cd-vars')) return;
+    const vars = JSON.parse(node.getAttribute('data-cd-vars'));
+    const source = lookup(ko, key);
+    if (typeof source !== 'string') return;
+    // Text and accessibility attributes share the same runtime interpolation.
+    const resolveVar = raw => typeof raw === 'string' && raw.startsWith('@') ? lookup(ko, raw.slice(1)) ?? raw : raw;
+    const rendered = source.replace(/\{(\w+)\}/g, (token, name) => String(resolveVar(vars[name]) ?? token));
+    if (!interpolations.has(key)) interpolations.set(key, new Map());
+    interpolations.get(key).set(norm(original), norm(rendered));
+  };
 
   for (const node of document.querySelectorAll("[data-cd-trans]")) {
     // 마커는 두 형태다: data-cd-trans="키" 또는 값 없는 data-cd-trans + data-key="키"
     const key = node.getAttribute("data-cd-trans") || node.getAttribute("data-key") || "";
     if (key) add(texts, key, node.textContent || "");
-    if (key && node.hasAttribute('data-cd-vars')) {
-      const vars = JSON.parse(node.getAttribute('data-cd-vars'));
-      const source = lookup(ko, key);
-      if (typeof source === 'string') {
-        // 런타임(cd-lang-native.js resolveVars)처럼 "@키" 변수는 사전 값으로 푼다.
-        const resolveVar = (raw) => (typeof raw === 'string' && raw.length > 1 && raw[0] === '@' ? lookup(ko, raw.slice(1)) ?? raw : raw);
-        const rendered = source.replace(/\{(\w+)\}/g, (token, name) => String(resolveVar(vars[name]) ?? token));
-        if (!interpolations.has(key)) interpolations.set(key, new Map());
-        interpolations.get(key).set(norm(node.textContent || ''), norm(rendered));
-      }
-    }
+    if (key) interpolateMarker(node, key, node.textContent || '');
   }
 
   for (const node of document.querySelectorAll("[data-cd-trans-attr]")) {
@@ -73,7 +74,7 @@ function collectMarkers() {
       const [attr, key] = part.trim().split(":");
       if (!attr || !key) continue;
       const value = node.getAttribute(attr.trim());
-      if (value != null) add(attrs, key.trim(), value);
+      if (value != null) { add(attrs, key.trim(), value); interpolateMarker(node, key.trim(), value); }
     }
   }
 
@@ -117,7 +118,7 @@ test("ko.json 값이 셸 마크업 문구와 같다", () => {
       const value = lookup(ko, key);
       if (value === undefined) continue; // 위 테스트가 따로 잡는다
       if (markups.has(norm(value))) continue;
-      if (kind === '텍스트' && [...markups].every(markup => interpolations.get(key)?.get(markup) === markup)) continue;
+      if ([...markups].every(markup => interpolations.get(key)?.get(markup) === markup)) continue;
       drift.push(`${kind} ${key}\n    셸  : ${[...markups].join(" | ")}\n    사전: ${norm(value)}`);
     }
   }

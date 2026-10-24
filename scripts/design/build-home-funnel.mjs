@@ -330,6 +330,23 @@ for (const master of FUSION_MASTERS) {
 }
 homeHtml = homeHtml.replace('alt="연이·꽃돼지 연이의 연이와 나누는 대화 상담 상담 장면"',
   'alt="연이·꽃돼지 연이의 연이와 나누는 대화 상담 상담 장면" data-cd-trans-attr="alt:home.guideCopy.sceneAlt"' + varsAttribute({ name: '@home.guideCopy.yeoniName', title: '@home.guideCopy.tabYeoni' }));
+// The Korean source restored by the locale runtime must match its authored template too.
+homeHtml = homeHtml.replace(/<[a-z][^>]*data-cd-trans-attr="([^"]+)"[^>]*>/g, (tag, markers) => {
+  const raw = tag.match(/data-cd-vars="([^"]+)"/)?.[1];
+  if (!raw) return tag;
+  const values = JSON.parse(raw.replaceAll('&quot;', '"'));
+  for (const marker of markers.split(',')) {
+    const [attribute, key] = marker.split(':');
+    const source = overseasLabels[key]?.ko;
+    if (!source) continue;
+    const rendered = source.replace(/\{(\w+)\}/g, (token, name) => {
+      const value = values[name];
+      return typeof value === 'string' && value.startsWith('@') ? overseasLabels[value.slice(1)]?.ko ?? token : value ?? token;
+    }).replaceAll('&', '&amp;').replaceAll('"', '&quot;');
+    tag = tag.replace(new RegExp('(^|\\s)' + attribute + '="[^"]*"'), (_match, space) => space + attribute + '="' + rendered + '"');
+  }
+  return tag;
+});
 homeHtml = homeHtml.replace(/(<[a-z][^>]*>)([^<>]+)(<\/[a-z][a-z0-9]*>)/g, (whole, open, text, close) => {
   if (/^해금 \d[\d,]*원$/.test(text) && !/\sdata-cd-trans(?=[\s=>])/.test(open)) {
     return open.slice(0, -1) + ' data-cd-trans="home.guideCopy.unlockPrice"' + varsAttribute({ amount: text.replace(/^해금 |원$/g, '') }) + '>' + text + close;

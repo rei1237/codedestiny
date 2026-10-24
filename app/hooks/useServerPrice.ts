@@ -189,6 +189,12 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
   //    formatReferenceAmount 는 언어를 몰라 한국어 화면으로 판정해 "" 를 돌려준다.
   //    GlobalHeader.tsx:186 이 같은 순서 문제로 네비가 ko 로 굳었던 자리다.
   const locale = useLocale();
+  const [nativeRevision, setNativeRevision] = useState(0);
+  useEffect(() => {
+    const ready = () => setNativeRevision(value => value + 1);
+    window.addEventListener("cd:native-ready", ready);
+    return () => window.removeEventListener("cd:native-ready", ready);
+  }, []);
   // 🔴 개산가 문구는 React 사전에서만 읽는다(appendReferenceApprox 안의 주석이 이유다).
   //    사전이 도착하면 이 값이 표식에서 실문구로 바뀌므로, effect 의존성에 그대로 넣어
   //    그때 접미가 붙게 한다. useT 가 아니라 useTPick 인 이유는 PriceBadge 와 같다.
@@ -242,7 +248,7 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
     setState({ label: display, amountKRW: resolved?.amountKRW || 0, loading: false, source: "registry" });
     // 레지스트리 키·로케일·개산가 문구가 이 표시 조회의 완전한 의존이다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, fallback, locale, approxTemplate, pick]);
+  }, [key, fallback, locale, approxTemplate, pick, nativeRevision]);
 
   return state;
 }

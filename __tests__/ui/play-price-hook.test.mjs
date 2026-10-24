@@ -13,17 +13,19 @@ test('React badge loads Play labels, keeps registry KRW, and refreshes without s
  const dom=new JSDOM('<div id="root"></div>',{url:'https://fixture.test'});
  const prior={window:globalThis.window,document:globalThis.document,act:globalThis.IS_REACT_ACT_ENVIRONMENT};
  globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
- let locale='ja',requests=0,finish;
+ let locale='ja',requests=0,finish,native=false;
  const featureKey=Object.keys(registry.FEATURE_KEY_PRICE_TABLE).find(key=>registry.FEATURE_KEY_PRICE_TABLE[key].amountKRW===30000);
  assert.ok(featureKey);
  const pick=(key,fallback)=>fallback;
- const play={isApp:()=>true,read:async input=>{assert.equal(input.featureKey,featureKey);requests++;return new Promise(resolve=>{finish=resolve;});}};
+ const play={isApp:()=>native,read:async input=>{assert.equal(input.featureKey,featureKey);requests++;return new Promise(resolve=>{finish=resolve;});}};
  const mocks={react:React,'@/worker/lib/paid-feature-registry.js':registry,'@/constants/loadingMessages':{getCurrentLoadingLocale:()=>locale},'@/lib/payment/coin-pricing':{formatKrwFromCoins:()=>{throw Error('No native fallback');}},'@/app/_lib/legacy-core-runtime':{checkoutEntryRuntime:{formatReferenceAmount:()=>{throw Error('No estimated FX in Play');}}},'@/lib/i18n/useT':{useLocale:()=>locale,useTPick:()=>pick},'@/js/core/play-display-price.js':play,'@/app/_lib/auth-client':{authFetch:()=>{throw Error('Injected display resolver owns reads');}}};
  const exports={};vm.runInNewContext(compiled,{exports,require:name=>{assert.ok(name in mocks,name);return mocks[name];},window:dom.window});
  function Display(){const state=exports.useServerPrice({featureKey});return React.createElement('output',null,JSON.stringify(state));}
  const root=createRoot(document.getElementById('root'));const state=()=>JSON.parse(document.querySelector('output').textContent);
  try{
   await act(async()=>root.render(React.createElement(Display)));
+  assert.equal(state().source,'registry');assert.equal(requests,0);
+  native=true;await act(async()=>dom.window.dispatchEvent(new dom.window.Event('cd:native-ready')));
   assert.equal(state().label,'');assert.equal(state().loading,true);assert.equal(state().amountKRW,30000);
   await act(async()=>finish({formattedPrice:'¥3,900'}));
   assert.equal(state().label,'¥3,900');assert.equal(state().amountKRW,30000);assert.equal(state().source,'google-play');
