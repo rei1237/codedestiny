@@ -21,7 +21,7 @@ export const metadata = buildSeoMetadata({
   title,
   description,
   noindex: true,
-  ogImage: "/images/fusion-fortune/fusion-guardian-celestial-hero.webp",
+  ogImage: "/feature-details/assets/fusion-fortune-og.webp",
 });
 
 export default function FusionFortunePage() {
