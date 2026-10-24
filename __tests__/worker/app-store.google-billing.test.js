@@ -251,11 +251,59 @@ beforeEach(() => {
   mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => null }) });
 });
 
-test("Family v3 Play SKU는 검증 전 판매 준비 중으로 실패 폐쇄한다", async () => {
+test("Family v4 Play SKU는 검증 전 판매 준비 중으로 실패 폐쇄한다", async () => {
   const version=(await import("../../lib/payment/pass-policy.js")).CURRENT_PASS_POLICY_VERSION;
   const {status,payload}=await callRoute(new Request(`https://code-destiny.com/api/app-store/products?passTier=family&passPolicyVersion=${version}`));
   expect(status).toBe(503);
   expect(payload.code).toBe("APP_SKU_NOT_VERIFIED");
+});
+
+test.each(["standard", "premium", "vvip"])("승인된 %s v4 이용권은 결제 의도만 만들고 검증 전 지급하지 않는다", async (tier) => {
+  const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
+  const plan = currentPassPlan(tier);
+  const { status, payload } = await callRoute(postJson("/google/intent", {
+    passTier: tier,
+    productId: plan.appProductId,
+    passPolicyVersion: plan.passPolicyVersion,
+    requestId: `approved-pass-${tier}`,
+  }));
+  expect(status).toBe(200);
+  expect(payload.data.product).toMatchObject({ productId: plan.appProductId, amountKRW: plan.wonPrice });
+  expect(mockIntentCreate).toHaveBeenCalledTimes(1);
+  expect(mockPaymentCreate).not.toHaveBeenCalled();
+  expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+  expect(acknowledgeCalls).toHaveLength(0);
+  expect(global.fetch).not.toHaveBeenCalled();
+});
+
+test.each(["standard", "premium", "vvip"])("%s v4 이용권의 대기 결제는 지급·승인하지 않는다", async (tier) => {
+  const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
+  const plan = currentPassPlan(tier);
+  googlePurchasePayload.purchaseState = 2;
+  const { status, payload } = await callRoute(postJson("/google/verify", {
+    passTier: tier, productId: plan.appProductId, purchaseToken: `pending-pass-${tier}`,
+  }));
+  expect(status).toBe(402);
+  expect(payload.code).toBe("GOOGLE_PLAY_PURCHASE_NOT_PAID");
+  expect(mockPaymentCreate).not.toHaveBeenCalled();
+  expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+  expect(acknowledgeCalls).toHaveLength(0);
+});
+
+test.each(["standard", "premium", "vvip"])("%s v4 검증 완료 구매는 현재 가격·이용 한도·기간 없음 정책을 보존한다", async (tier) => {
+  const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
+  const plan = currentPassPlan(tier);
+  const before = Date.now();
+  const { status, payload } = await callRoute(postJson("/google/verify", {
+    passTier: tier, productId: plan.appProductId, purchaseToken: `paid-pass-${tier}`,
+  }));
+  expect(status).toBe(200);
+  expect(mockPaymentCreate.mock.calls[0][0].paymentAmount).toBe(plan.wonPrice);
+  const fields = mockUserFindByIdAndUpdate.mock.calls[0][1].$set;
+  expect(fields["profileSubscription.passPolicyVersion"]).toBe(plan.passPolicyVersion);
+  expect(fields["profileSubscription.monthlyLimitCoin"]).toBe(plan.monthlyLimitCoin);
+  expect(fields["profileSubscription.expiresAt"].getTime() - before).toBeGreaterThan(3650 * 24 * 60 * 60 * 1000);
+  expect(payload.data.appPurchase.shouldConsume).toBe(true);
 });
 
 describe("verify — 회당 결제(PER_USE)", () => {

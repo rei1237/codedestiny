@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "purpose": "한국어 첫 이용 안내, 프로필 입력, 핀란드 주석점",
+  "generator": "Built-in image_gen, transparent background",
+  "yeoniReference": "사용자 제공 연이 프로필1.png (D:/CodeDestiny-Build)",
+  "yeoniInvariants": ["분홍 꽃돼지", "머리의 분홍 연꽃", "보라색 목 스카프", "갈색 눈", "둥근 얼굴과 짧은 팔다리"],
+  "yeongnyangiReference": "public/assets/yeongnyangi/original/hero-800.webp",
+  "assets": [
+    {
+      "path": "public/images/first-visit/yeoni-tutorial-v2.webp",
+      "size": [1440, 480],
+      "scenes": ["프로필 준비", "무료 사주 읽기", "선택 상담"],
+      "source": "exec-70403eb4-a085-4202-a9e3-bbbabb0641c5.png"
+    },
+    {
+      "path": "public/images/first-visit/yeongnyangi-tutorial-v1.webp",
+      "size": [1440, 480],
+      "scenes": ["프로필 준비", "고민 정리", "상담 구성 확인"],
+      "source": "exec-8811b591-55d5-443c-b162-2b4d70ed1b7f.png"
+    },
+    {
+      "path": "public/images/first-visit/yeoni-tin-oracle-v1.webp",
+      "size": [1440, 480],
+      "scenes": ["환영", "의식 안내", "결과 안내"],
+      "source": "exec-423f4f7c-3c11-48a1-93cb-359a2f0d185c.png"
+    },
+    {
+      "path": "public/images/first-visit/yeoni-profile-guide-v1.webp",
+      "size": [384, 576],
+      "scenes": ["프로필 안내"],
+      "source": "exec-b776ca78-175f-481d-8c6b-cfefe3e14e3d.png"
+    }
+  ],
+  "rendering": "가로 3장면 파일은 같은 크기의 셀 하나만 노출한다. 이미지에 안내 텍스트를 넣지 않고 실제 UI로 제공한다. 원본 PNG를 비율 유지 리사이즈 후 알파를 보존하는 WebP로 변환했다."
+}

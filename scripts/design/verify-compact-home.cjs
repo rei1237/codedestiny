@@ -13,7 +13,7 @@ const server=createServer(async(request,response)=>{
  if(pathname==='/api/honey/attendance'){response.writeHead(401,{'Content-Type':'application/json'});response.end(JSON.stringify({ok:false}));return;}
  if(pathname==='/api/honey/catalog'){response.setHeader('Content-Type','application/json');response.end(JSON.stringify({ok:true,products:[]}));return;}
  if(pathname.startsWith('/api/')){response.setHeader('Content-Type','application/json');response.end(JSON.stringify({ok:true,authenticated:false,user:null,profiles:[],items:[],unlocks:[]}));return;}
- const local=pathname==='/'?'/index.html':pathname;
+ const local=(pathname==='/'||pathname==='/ggulggul/')?'/index.html':pathname;
  const file=path.resolve(root,'.'+local);
  if(!file.startsWith(root+path.sep)){response.writeHead(403);response.end();return;}
  try{const body=phase==='before'&&baselineFiles.has(local)?require('node:child_process').execFileSync('git',['show','5862684ab:'+local.slice(1)],{cwd:root,maxBuffer:10*1024*1024}):await fs.readFile(file).catch(()=>fs.readFile(path.join(root,'public',local)));response.setHeader('Content-Type',mime[path.extname(file)]||'application/octet-stream');response.end(body);}catch{response.writeHead(404);response.end();}
@@ -26,7 +26,7 @@ const server=createServer(async(request,response)=>{
  await context.addInitScript(()=>localStorage.setItem('cd:first-visit:v1:ggulggul:guest',JSON.stringify({status:'dismissed',step:0})));
  await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto(origin+'/',{waitUntil:'domcontentloaded',timeout:60000});
+ await page.goto(origin+'/ggulggul/',{waitUntil:'domcontentloaded',timeout:60000});
  await page.waitForFunction(()=>typeof window.__cdOpenGarden==='function',{timeout:30000});
  await page.locator('#cdConcernPick').scrollIntoViewIfNeeded();
  await page.waitForTimeout(600);

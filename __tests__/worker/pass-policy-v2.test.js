@@ -36,12 +36,18 @@ describe("versioned flower passes", () => {
     expect(isPassPolicyMix({ tier: "vvip", expiresAt }, currentPassPlan("vvip"), now)).toBe(true);
     expect(isPassPolicyMix({ tier: "vvip", expiresAt: "2026-09-01" }, currentPassPlan("vvip"), now)).toBe(false);
   });
-  test("approved web prices open web sales while Play remains closed without verified SKUs", () => {
+  test("approved prices open registered Play passes while Family and historical policies stay closed", () => {
     for (const tier of ["standard", "premium", "vvip", "family"]) {
       expect(auditPassSale(tier, "web")).toEqual({ eligible: true, reason: "APPROVED_WEB_PRICE_POLICY" });
-      expect(auditPassSale(tier, "googlePlay").eligible).toBe(false);
       expect(() => assertPassSaleAllowed(currentPassPlan(tier), "web")).not.toThrow();
-      expect(() => assertPassSaleAllowed(currentPassPlan(tier), "googlePlay")).toThrow();
+      if (tier === "family") {
+        expect(auditPassSale(tier, "googlePlay")).toEqual({ eligible: false, reason: "APP_SKU_NOT_VERIFIED" });
+        expect(() => assertPassSaleAllowed(currentPassPlan(tier), "googlePlay")).toThrow();
+      } else {
+        expect(auditPassSale(tier, "googlePlay")).toEqual({ eligible: true, reason: "APPROVED_GOOGLE_PLAY_PRICE_POLICY" });
+        expect(() => assertPassSaleAllowed(currentPassPlan(tier), "googlePlay")).not.toThrow();
+        expect(() => assertPassSaleAllowed(previousPassPlan(tier), "googlePlay")).toThrow();
+      }
     }
     expect(() => assertPassSaleAllowed({ tier: "family" })).toThrow();
   });
@@ -108,7 +114,7 @@ test("public offers expose four approved web offers and cost coverage includes r
   const playResponse = await __paymentsContextTestUtils.ROUTES["GET /pass-offers"].handle({ request: new Request("https://code-destiny.com/api/payments/pass-offers?channel=googlePlay") });
   const playBody = await playResponse.json();
   expect(playBody.offers.map(p => [p.tier, p.wonPrice, p.saleEnabled])).toEqual([
-    ["standard", 9900, false], ["premium", 29900, false], ["vvip", 59900, false], ["family", 149000, false],
+    ["standard", 9900, true], ["premium", 29900, true], ["vvip", 59900, true], ["family", 149000, false],
   ]);
   const catalog = listPassCostProducts(currentPassPlan("vvip"));
   expect(catalog.some(p => p.featureKey.includes("::"))).toBe(true);

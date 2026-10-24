@@ -8190,7 +8190,7 @@
       + '<span class="dp-lvl__bloom" aria-hidden="true" style="--garden-bloom:' + (0.10 + Math.min(snap.currentLevel, CD_LEVEL_MAX) / CD_LEVEL_MAX * 0.18).toFixed(2) + '"></span>'
       + (gameCard ? '<p class="dp-lvl__feedback pc-growth-feedback" role="status" aria-live="polite">작은 실천으로 오늘도 한 단계 가까이.</p>' : '<h3 class="dp-lvl__garden-title">' + _esc(_dpGardenText('growth', '나의 성장')) + '</h3>'
       + '<div class="dp-lvl__companion">'
-        + '<img class="dp-lvl__yeoni" src="/images/yeoni/welcome/yeoni-welcome-v1-320.webp" width="320" height="480" alt="' + _esc(_dpGardenText('mascotAlt', '연꽃을 건네며 응원하는 꽃돼지 연이')) + '" decoding="async">'
+        + '<img class="dp-lvl__yeoni" src="/images/first-visit/yeoni-profile-guide-v1.webp" width="320" height="480" alt="' + _esc(_dpGardenText('mascotAlt', '연꽃을 건네며 응원하는 꽃돼지 연이')) + '" decoding="async">'
         + '<p class="dp-lvl__feedback" role="status" aria-live="polite">' + _esc(_dpGardenText('cheer', '오늘도 한 걸음, 제가 곁에서 응원할게요.')) + '</p>'
       + '</div>'
       + '<p class="dp-lvl__garden-description">' + _esc(_dpGardenText('intro', '작은 실천을 쌓아, 좋은 흐름을 맞이할 준비를 해요.')) + '</p>')

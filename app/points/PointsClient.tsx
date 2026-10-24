@@ -23,7 +23,7 @@ import {
   currentPassPlan,
   priorPassPlan,
 } from "@/lib/payment/pass-policy.js";
-import { usePassSaleAvailability } from "@/app/hooks/usePassSaleAvailability";
+import { usePassSaleAvailabilityDetails } from "@/app/hooks/usePassSaleAvailability";
 import { PASS_MONTHLY_WON } from "@/lib/payment/pass-pricing";
 import { MoonShopMain, MoonShopSkeleton, MoonlightShopHero, ShopPigImage } from "./MoonShopFrame";
 import {readConsultationContext} from '../components/service-packs/consultation-context';
@@ -2391,7 +2391,12 @@ function MoonlightShopPlans({
   copy: PointsPageCopy;
   formatLocale: string;
 }) {
-  const saleReady = usePassSaleAvailability();
+  const { ready: saleReady, status: saleStatus, refresh: refreshSale } = usePassSaleAvailabilityDetails();
+  useEffect(() => {
+    if (window.location.hash === "#moonlight-plans") {
+      document.getElementById("moonlight-plans")?.scrollIntoView({ block: "start" });
+    }
+  }, []);
   const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
   const overseasCharge = useOverseasCharge();
 
@@ -2415,6 +2420,12 @@ function MoonlightShopPlans({
       </div>
 
       <p className="mb-3 text-[12px] leading-relaxed text-[color:var(--moon-mist)]">{copy.passTerminationNote}</p>
+      {saleStatus === "error" ? (
+        <div role="status" className="mb-4 rounded-xl border border-[color:var(--moon-rim)] p-4 text-sm text-[color:var(--moon-mist)]">
+          <p>이용권 판매 정보를 불러오지 못했어요. 다시 확인해 주세요.</p>
+          <button type="button" onClick={refreshSale} className="mt-2 min-h-11 px-3 font-bold text-[color:var(--moon-gold)] underline underline-offset-4">판매 정보 다시 확인하기</button>
+        </div>
+      ) : null}
 
       <div className="grid gap-4">
         {SUBSCRIPTION_PLANS.map((plan) => {
@@ -2473,7 +2484,7 @@ function MoonlightShopPlans({
                     disabled={ctaDisabled}
                     className={`${plan.badge === "recommended" ? "btn-moonlight" : "btn-moonlight-ghost"} inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto`}
                   >
-                    {!saleReady[plan.tier] ? "판매 준비 중" : isCurrentActive ? "연장하기 →" : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
+                    {saleStatus === "loading" ? "판매 정보 확인 중" : saleStatus === "error" ? "판매 정보 확인 필요" : saleReady[plan.tier] === undefined ? "판매 정보 확인 필요" : !saleReady[plan.tier] ? "판매 준비 중" : isCurrentActive ? "연장하기 →" : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
                   </button>
               <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11px] font-bold text-[color:var(--moon-mist)]">
                 <ShopPigImage className="h-4 w-4 object-contain" />

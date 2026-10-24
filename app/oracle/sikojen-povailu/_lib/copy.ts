@@ -99,7 +99,7 @@ const SIKOJEN_POVAILU_COPY: Partial<Record<LoadingLocale, SikojenPovailuCopy>> =
     welcomeIntroBullet1: "핀란드에서 수백 년 이어온 새해 주석 주조 점술",
     welcomeIntroBullet2: "녹인 주석을 차가운 물에 던져 굳은 형태로 운명을 읽어요",
     welcomeIntroBullet3: "20가지 형태 + 그림자 해석으로 표면 의미와 숨은 메시지를 함께 읽어요",
-    welcomeIntroBullet4: "연이 스프라이트 캐릭터가 페이즈마다 다른 모습으로 나타나 몰입감을 높여줘요",
+    welcomeIntroBullet4: "단계마다 연이가 다음 순서를 안내해 드릴게요.",
     welcomeIntroBullet5: "시작 버튼을 누르면 바로 의식이 시작돼요. 언제든 위쪽 버튼으로 나갈 수 있어요",
     welcomeCtaButton: "내 주석점 보기",
 
