@@ -7,7 +7,7 @@ function runtime(fetch){
  const cache=new Map();
  function load(file){
   if(cache.has(file))return cache.get(file).exports;
-  const module={exports:{}};cache.set(file,module);
+  const loadedModule={exports:{}};cache.set(file,loadedModule);
   const source=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,allowJs:true}}).outputText;
   const req=id=>{
    if(id.endsWith('auth-client'))return {authFetch:fetch};
@@ -17,7 +17,7 @@ function runtime(fetch){
    const target=[base,base+'.ts',base+'.tsx',base+'.js',path.join(base,'index.js')].find(p=>fs.existsSync(p)&&fs.statSync(p).isFile());
    if(!target)throw Error('missing '+base);return load(target);
   };
-  new Function('require','module','exports',source)(req,module,module.exports);return module.exports;
+  new Function('require','module','exports',source)(req,loadedModule,loadedModule.exports);return loadedModule.exports;
  }
  return load(path.resolve('app/components/SavedBirthProfilePicker.tsx')).default;
 }
