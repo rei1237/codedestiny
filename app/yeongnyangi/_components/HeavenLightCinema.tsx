@@ -9,8 +9,8 @@ import styles from './heaven-light-cinema.module.css';
 // R2(codedestinyassets) 내용해시 키라 immutable 캐시다. 영상을 바꾸면 새 키로 올리고 여기만 고친다.
 // 원본은 HEAVEN LIGHT MV 무자막 마스터(1080p30)다. 가사는 영상에 굽지 않고 같은 출처의 WebVTT 트랙으로 얹는다.
 const SOURCES={
- '1080p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-1080p-1b3b5e3c9a66.mp4',
- '720p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-720p-32d0f924db93.mp4',
+ '1080p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-1080p-e94ac248ae05.mp4',
+ '720p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-720p-738af9b228ea.mp4',
 };
 type Quality=keyof typeof SOURCES;
 const ART='/assets/yeongnyangi/mv';
