@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-24
-next: 통합 기준을 고정해 1.0.53 재생성 후 서명·자산·최종 CI 확인
+next: 실기기·일본 Play Console·Mac iOS 출시 게이트를 별도 확인한다.
 ---
 
 # 일본 결제·Android·iPhone 앱 준비
@@ -79,57 +79,41 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App -destination 'generic/plat
 
 ## 검증 기록
 
-- 모의 서버 결제 94개, 앱 복귀/API/기록 보존 검사 26개(후속 메뉴 검사 1개 추가), iOS CORS 1개가 통과했다.
-- 최신 v2 카탈로그·실제 원본 해시·맞춤 계산·앱 메뉴 검사 22개 통과. `npm run typecheck` 통과. 변경 UI ESLint는 오류 0, 정적 다중 페이지 링크·원본 img 관련 경고 6개다.
-- 최신 Android `:app:compileDebugJavaWithJavac`: BUILD SUCCESSFUL, 24s, 68 tasks. APK/AAB·실기기 완료를 뜻하지 않는다.
-- Worker dry build 통과. 정책·가격 검사는 코드 레지스트리 대조이며 일본 Play Console의 실제 JPY 판매 가격을 증명하지 않는다.
-- 정적 앱 React #418 원인은 앱 헤더의 인라인 API 초기화였다. 외부 브릿지로 옮긴 뒤 실제 Next 출력+수정 후처리의 부적·상점에서 pageerror 0을 확인했다. 후속 v2 전체 `npm run build:mobile:app`도 통과했다. Next 1843개 페이지 생성, 앱 HTML 1850개 가드·결제 차단·기존 기록/읽기 경로 보존을 확인했다.
-- `check:fast -- --plan`은 critical. 전체 실행은 90개 중 87개 통과 뒤 메모리 부족 등으로 실패했다. 두 정적 가드는 수정 후 개별 통과했지만 전체 Jest/공식 게이트 통과로 보고하지 않는다.
-- 최초 origin/main a62384f3057afa885375feb1b9aac5fa35c821c7의 CI required·Static guards·paid-flow-gates 실패를 확인하여 그 위로 push하지 않았다. 07:49 KST 조회에서 main은 e65f33fcb0beba284babe3385afe2ab38f90ae3f로 갱신됐고 CI가 진행 중이었다. 후속 08:17 KST 확인에서 같은 e65f33fc의 CI required 및 PR CI가 모두 success로 완료됐다. 근거: mobile-final-integration-gate.json.
+- `npm run test:jest -- __tests__/worker/app-store.google-billing.test.js`: 통합 후 94 passed. 입금 대기·지연 복구·원래 주문과 소유자 연결을 mock으로 확인했다.
+- `node --test __tests__/ui/talisman-catalog.test.js __tests__/ui/talisman-wallpaper-fit.test.js __tests__/release/mobile-account-content.test.js __tests__/ui/app-shell-locale-hydration.test.js`: 통합 후 23 passed.
+- `npm run typecheck`: 부적·native 연결 소스 통과. 후속 언어 수정은 실제 SSR/hydrate 회귀 검사와 ESLint 통과. 변경 UI ESLint 오류0·정적 링크/원본 img 경고6.
+- `npm run build:mobile:app`: 고정 통합 소스 `c247d4ec353c730841b8b686791fa1b3d533dfdc` 통과. 앱 결제 차단 및 구매·기록·읽기 경로 보존 검사 포함.
+- `npx cap copy android`, `npx cap copy ios`: 같은 최종 웹 자산 복사 성공. native53 release build 성공. 재현 스크립트 `evidence/v53-run-mobile-gradle-direct.ps1`에 JVM·Gradle8.14.3·버전 인자를 보존했다.
+- 최종 정적 산출물 UI: ko360/390/430 Android 모의·ko1280 웹·ja390 Android 모의·ko390 iOS 모의 6조건, 넘침/pageerror/44px 미만 조작0. 15장 선택·원본 해시·맞춤 PNG·홈/잠금/둘 다 전달·취소·미지원·권한 오류·재연결 처리 통과. ko/ja iOS 상점은 신규 구매 차단과 내역 경로 유지.
+- Worker dry build, iOS CORS, 앱 복귀/API/기록 검사, strict-core encoding 통과. 유료 LLM·실결제·운영 DB를 사용하지 않았다.
+- `npm run check:fast -- --plan`: critical. 이전 전체 실행은 90개 중87개 통과 뒤 메모리 부족 등으로 실패했다. 해당 정적 가드2개는 수정 후 개별 통과. 이 로컬 전체 실행을 성공으로 보고하지 않는다.
+- `npm run check:pre-push`: 서비스 레지스트리56·public 미러·사이트맵1019·llms·SEO 프로필62 통과.
+- 전달 CI: `7e301512c6945c0af069cb874953d6e89a1e52a9`의 [CI](https://github.com/rei1237/codedestiny/actions/runs/40044483012)는 `success`. 코드 통합은 다른 세션의 체크아웃을 변경하지 않고 격리 워크트리에서 처리했다. 강제 push·PR 생성 없음.
+- 빌드 소스와 전달 CI 소스의 차이는 테스트 변수명·문서·결제 동결 검증 해시의 5개 파일뿐이다. 실행 소스가 동일함을 `evidence/mobile-53-runtime-equivalence.json`으로 확인했다. 테스트의 예약 변수명은 기존 main 수정을 통합했고, 상위 main의 결제 파일 캐시 버전 변경은 공식 해시 갱신 명령으로 반영했다. 결제 검증을 우회하지 않았다.
+- 최종 CI의 `CI required`, 타입·린트, 정적 가드, 중요 영역 검사와 Pages/Worker 빌드가 성공했다. `Paid Flow Gates`도 같은 전달 SHA에서 성공했다. 시각 검수는 14장 직접 확인 결과 새 차단 이슈0이며 실제 기기 검증은 남는다.
 
-최종 v2 화면: 한국어 360/390/430px Android 모의·1280px 웹, 일본어 390px Android 모의, 한국어 390px iOS 모의의 6개 조건에서 넘침/실행 오류/44px 미만 조작 0개. 15장 선택 및 해시, 맞춤 PNG 크기, 홈/잠금/둘 다 전달, 원본 저장 해시, chooser 복귀·취소·미지원·사진 권한 안내가 통과했다. 시각 담당은 캡처와 맞춤 출력에 blocker 0, 제한된 ship 판정. 네이티브 시스템 응답은 mock이며 실기기 성공으로 확대하지 않는다. 공통 오프라인 화면은 연결이 끊기면 조작을 막으며 다시 연결하면 복귀한다.
+증거: `D:\Development\code-destiny\output\mobile-japan-ios-20261024-033316\evidence`. 실제 기기 배경화면 변경은 mock/캡처 검증으로 대체하지 않는다. 공통 오프라인 화면은 기존 정책대로 조작을 막고 재연결 시 복귀한다.
 
-남은 확인: Android 실기기의 저장·권한·홈/잠금/둘 다 적용과 하단 문구, 일본 Play 계정/상품·지연 승인/취소, 같은 계정의 웹↔Android↔iPhone 구매 내역과 보관함 재열람, Mac iOS 빌드·StoreKit. 연결된 adb 기기는 없었다. 운영 TTL 인덱스 변경, 실결제, 배포, 스토어 업로드는 실행하지 않았다.
+## 유지한 정책과 남은 출시 확인
 
+이 작업에서 이용권·월정석·단건 결제의 가격과 혜택을 새로 정하지 않았다. 통합한 main의 승인된 이용권 v5 정책을 그대로 포함한다. 기존 로그인 API와 서버 계정, 구매 내역, `/records/`와 `/yeongnyangi/library/`의 분리, 저장 결과 재열람을 유지한다. 결제 지연 상태/영수증 연결 및 PurchaseIntent 보존 코드 변경은 요청 범위에 포함된다. 운영 DB 인덱스는 변경하지 않았다.
 
-## 실행 명령과 증거
+실출시 전 확인: Android 실기기의 저장·공유·권한·홈/잠금/둘 다 적용, 같은 계정의 웹↔앱 구매 내역과 결과 재열람, 일본 Play 국가·현행SKU23개·JPY 가격·지연 승인/취소, 운영 PurchaseIntent TTL30일 인덱스, Mac Xcode·서명·StoreKit·개인정보/심사 요건. 연결된 adb 기기는 없었다. iOS 신규 구매는 준비 중이며 StoreKit 미구현은 출시 차단 조건이다. 실결제·환불·운영 DB 변경·운영 승격·스토어 업로드는 실행하지 않았다.
 
-- `npm run test:jest -- __tests__/worker/app-store.google-billing.test.js`: 94 passed.
-- `node --test __tests__/ui/talisman-catalog.test.js __tests__/ui/talisman-wallpaper-fit.test.js __tests__/release/mobile-account-content.test.js`: 22 passed.
-- `node --test __tests__/ui/app-shell-locale-hydration.test.js`: 1 passed. 일본어 상점은 정적 한국어와 초기 렌더를 맞춘 뒤 즉시 선택 언어를 반영하고 언어 변경 이벤트도 처리한다.
-- `npm run typecheck`: 통과(최종 부적·native 연결 소스). 후속 언어 수정은 hook 회귀 검사와 해당 파일 ESLint 통과.
-- `npx eslint app/app/talismans/TalismanStudio.tsx app/app/talismans/catalog.ts app/app/talismans/wallpaper-fit.ts`: 오류0, 기존 다중 페이지 링크/원본 img 경고6.
-- `npm run build:mobile:app`: 최종 32bdae18207a0ca2fdf56802e3fc85ef1aadf97e 산출물 통과. 일본어 상점 초기 문구 불일치를 수정한 뒤 한국어/일본어 상점 모두 pageerror0, 신규 구매 차단·구매내역 링크를 확인했다. 부적6조건도 최종 산출물에서 다시 통과했다.
-- `npx cap sync android`, `npx cap sync ios`: 최종 32bdae182 산출물로 두 플랫폼 동기화 통과. iOS 동기화는 Xcode 컴파일을 뜻하지 않는다.
-- `gradlew.bat :app:compileDebugJavaWithJavac`: 최신 Java 코드 24초 BUILD SUCCESSFUL.
-- `npm run verify:entry-encoding -- --strict-core`: 통과.
-- `npm run check:pre-push`: 문서 커밋 543d1bd83 기준 전체 통과. 서비스 레지스트리56, public 미러, 사이트맵1019, llms.txt, SEO 프로필62를 확인했다.
+## Android 1.0.53 설치 후보
 
-증거 보존 위치: `D:\Development\code-destiny\output\mobile-japan-ios-20261024-033316\evidence`. 승인 v2 원본→앱 15개 해시·해상도는 `talismans-v2-source-evidence.json`에 기록했다. 캡처의 시각 검토와 native 모의 검사는 실제 기기의 배경화면 변경 증거가 아니다.
-
-07:49 KST 전달 판단 조회의 main은 e65f33fcb0beba284babe3385afe2ab38f90ae3f이며 [CI](https://github.com/rei1237/codedestiny/actions/runs/40035820980)는 in_progress였다. 08:17 KST 확인에서 같은 main의 필수 CI가 통과했다. 이 작업의 실제 통합·push와 최종 CI 결과는 전달 절차에서 별도로 확인한다. 운영 배포·스토어 제출은 포함하지 않는다. 최신 조회 증거는 mobile-delivery-ci.json과 mobile-delivery-ci-run.json이다.
-
-실출시 전에 운영 PurchaseIntent TTL 인덱스가 30일 설정과 일치하는지 승인된 운영 절차로 확인해야 한다. 모델 코드 수정만으로 기존 운영 인덱스의 변경을 증명하지 않는다.
-
-
-## Android 설치 후보
-
-통합 커밋 `48308ec5d82c16dd006befd00ee26e5272cc9969`에는 별도 세션의 영냥이 이용권 v5/유효기간 표시 변경이 포함된다. 아래 1.0.52는 통합 전 부적 기능 검수본이며, 최신 정책까지 일치시키기 위해 통합 기준의 1.0.53을 재생성한다. 통합 후 결제94·부적/언어/기록23 검사는 통과했다.
-
-빌드 소스는 `32bdae18207a0ca2fdf56802e3fc85ef1aadf97e`다. APK/AAB 생성이 모두 완료됐으며 release lint와 signing task를 포함한 Gradle 결과는 `BUILD SUCCESSFUL in 48m 24s`, 190 tasks다. Windows의 파일 검사 지연 때문에 JVM 설정을 맞춘 단일 프로세스로 동일 Gradle 8.14.3을 실행했다. 앱 소스·검사·서명 설정은 바꾸지 않았다. 실제 실행 스크립트와 로그는 evidence에 보존했다.
+빌드 소스: `c247d4ec353c730841b8b686791fa1b3d533dfdc`. 검증된 main의 이용권 v5/유효기간 정책과 후속 캐릭터 렌더 수정을 통합한 고정 스냅샷이다. APK/AAB 생성, release lint와 signing task가 성공했다. 기존 1.0.52는 통합 전 부적 기능 검수본으로 별도 보존하며 최신 전달본으로 사용하지 않는다.
 
 | 파일 | 크기 | SHA-256 |
 | --- | --- | --- |
-| codedestiny-1.0.52-32bdae182.apk | 459,071,840 bytes / 437.8 MiB | `a96abbeeacd53cf7a0e43294a7ab3afcb63a35029051b9b69e35e18b0389310e` |
-| codedestiny-1.0.52-32bdae182.aab | 459,463,885 bytes / 438.2 MiB | `7345aa3d0bfcdd08389f53ae208cbf795aa7ddb9c52a9d8ac8bd18e6b7f6b32d` |
+| codedestiny-1.0.53-c247d4ec3.apk | 461,392,402 bytes / 440.0 MiB | `a2df9df70395fb7f4c8dada0f8967857951a89345b5ff17a026e2f48384ad4a7` |
+| codedestiny-1.0.53-c247d4ec3.aab | 461,788,286 bytes / 440.4 MiB | `569cf2c555ebf1d16669c7e04457611d6b19505d9d0b44c0c8e1b356beb384a3` |
 
-저장 위치: `D:\Development\code-destiny\output\mobile-japan-ios-20261024-033316`. `artifact-manifest.json`, `SHA256SUMS.txt`, `mapping-1.0.52-32bdae182.txt`를 함께 보존했다.
+저장 위치: `D:\Development\code-destiny\output\mobile-japan-ios-20261024-033316`. `artifact-manifest-1.0.53.json`, `SHA256SUMS.txt`, `mapping-1.0.53-c247d4ec3.txt`와 검증 로그를 함께 보존했다.
 
-- APK: apksigner v2 signature verified. aapt로 `com.codedestiny.app`, versionCode 52 / versionName 1.0.52, minSdk 24 / targetSdk 36을 확인했다.
-- AAB: jarsigner가 `jar verified`를 반환했다. 자체 서명 인증서·타임스탬프 경고가 있으며 Play Console의 업로드/앱 서명 인증서와 대조한 것은 아니다.
-- 두 패키지 모두 내부 version.json의 소스 SHA, 승인 v2 원본 15장 SHA-256, 부적·상점·구매 내역·기록·영냥이 보관함·인사이트·유명인 사주 7개 경로가 일치했다. 복사본 해시도 확인했다.
-- iOS에 동기화한 웹 자산도 같은 SHA/원본 15장과 일치하지만 Xcode 컴파일·서명·실기기는 미검증이다.
+- APK: apksigner v2 검증, `com.codedestiny.app`, versionCode 53 / versionName 1.0.53, minSdk 24 / targetSdk 36 확인.
+- AAB: jarsigner `jar verified` 확인. 자체 서명 인증서·타임스탬프 경고는 남으며 Play Console의 업로드 인증서와 대조하지 않았다.
+- 두 패키지의 version.json 소스 SHA, 승인 원본 15장의 SHA-256, 부적·상점·구매 내역·일반 기록·영냥이 보관함·인사이트·유명인 사주 7개 경로와 복사본 해시가 일치한다.
+- iOS 웹 자산도 같은 소스 SHA/원본 15장과 일치한다. Xcode 컴파일·서명·실기기 성공을 뜻하지 않는다.
 
-52 / 1.0.52는 로컬 설치 후보 번호이며 Play Console의 최신 버전과 대조하지 않았다. 실제 기기에 설치하거나 앱 삭제·데이터 초기화를 통한 우회를 하지 않았다. 서버 변경도 운영에 배포하지 않았다.
-
-앱의 원시 웹 자산은 약 738.8MiB/11641파일이다. 실제 다운로드 크기는 AAB 파일 크기와 다르며 Console 또는 bundletool에서 별도 측정해야 한다. [Google Play 공식 크기 기준](https://support.google.com/googleplay/android-developer/answer/9859372?hl=en-GB)은 압축 다운로드 기준 base module 500MB다. Console 업로드·심사는 수행하지 않았다.
+53 / 1.0.53은 로컬 후보 번호이며 Play Console의 최신 버전과 대조하지 않았다. AAB 파일 크기는 실제 다운로드 크기와 다르다. 2026-10-24 확인한 [Google Play 크기 기준](https://support.google.com/googleplay/android-developer/answer/9859372?hl=en-GB)은 기본 모듈의 압축 다운로드 크기 500 MB다. 최종 다운로드 크기는 Console 또는 bundletool로 별도 측정하며, 현재 파일 크기만으로 제출 가능 판정을 내리지 않는다. 업로드·심사·운영 배포는 수행하지 않았다.
