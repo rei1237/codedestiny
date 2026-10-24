@@ -4,14 +4,29 @@ import PromptHubRouteClient from "./PromptHubRouteClient";
 import { siteSeo } from "../../../lib/seo/siteSeo";
 
 const PAGE_PATH = "/fortune/prompt-hub/";
-const PAGE_TITLE = "운세 프롬프트 허브 · 사주·타로 질문 설계 | 꿀꿀 운세";
+// 사주·궁합·재회·자미두수·점성술 프롬프트, 챗지피티·제미나이 사주 프롬프트는 2026-10-24 네이버·구글 자동완성 근거(docs/seo/keyword-research-2026-10).
+const PAGE_TITLE = "사주 프롬프트 만들기 · 챗GPT·제미나이 운세 질문 | 꿀꿀 운세";
 const PAGE_DESCRIPTION =
-  "사주·타로·점성술·자미두수·숙요점 상담 질문을 한곳에서 다듬는 무료 프롬프트 허브입니다. 질문의 목적을 정리하고 도구별 상담 프롬프트를 만들어 보세요.";
+  "생년월일로 원국·오행·십성·용신·대운을 계산해 넣은 사주 프롬프트를 만듭니다. 궁합·재회·자미두수·점성술 프롬프트도 챗GPT·제미나이에 바로 붙여 쓸 수 있습니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
   description: PAGE_DESCRIPTION,
-  keywords: ["운세 프롬프트", "사주 질문", "타로 질문 만들기", "상담 프롬프트", "전문가 운세 상담"],
+  keywords: [
+    "운세 프롬프트",
+    "사주 질문",
+    "타로 질문 만들기",
+    "상담 프롬프트",
+    "전문가 운세 상담",
+    "사주 프롬프트",
+    "챗지피티 사주 프롬프트",
+    "사주 프롬프트 만세력",
+    "제미나이 사주 프롬프트",
+    "궁합 프롬프트",
+    "재회운 프롬프트",
+    "자미두수 프롬프트",
+    "점성술 프롬프트",
+  ],
   alternates: {
     canonical: `${siteSeo.siteUrl}${PAGE_PATH}`,
   },
@@ -233,6 +248,23 @@ export default function PromptHubPage() {
             <p className="mt-1">
               네, 가능합니다. 다만 그대로 붙여 넣기보다 자신의 상황과 말투에 맞게 한 번 다듬으면 더 자연스러운 상담
               결과를 얻을 수 있습니다.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-950 dark:text-[#fff1f7]">챗GPT·제미나이로 사주를 볼 때 어떤 프롬프트가 좋나요?</h3>
+            <p className="mt-1">
+              생년월일만 적어 보내면 AI가 만세력을 직접 계산하다 간지를 틀리기 쉽습니다. 이 허브의 사주 프롬프트는 원국,
+              오행 세력, 십성, 격국·용신, 대운 흐름을 만세력 엔진으로 먼저 계산해 문장 안에 넣어 두기 때문에, 챗GPT나
+              제미나이는 계산 대신 해석에 집중할 수 있습니다. 성별을 넣지 않으면 대운 방향이 정해지지 않으므로 대운은
+              빼고 만듭니다.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-950 dark:text-[#fff1f7]">궁합·재회 프롬프트도 만들 수 있나요?</h3>
+            <p className="mt-1">
+              숙요점 도구에서 나와 상대의 생년월일을 함께 넣으면 두 사람의 숙과 관계 거리를 담은 궁합 프롬프트가
+              만들어집니다. 재회처럼 관계의 방향이 궁금하다면 당사주·매화역수 도구에서 관계 유형을 재회로 고르고 지금의
+              상황을 적어 보세요. 자미두수와 점성술도 각각 명반과 출생차트 계산값을 넣은 프롬프트로 만들 수 있습니다.
             </p>
           </div>
           <div>

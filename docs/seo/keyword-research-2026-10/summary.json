@@ -1,0 +1,10 @@
+{
+  "generatedAt": "2026-10-24T12:59:04.414Z",
+  "volumeObservedAt": null,
+  "saturationP25": null,
+  "tiers": {
+    "S2": 1369,
+    "S1": 5561
+  },
+  "rows": 6930
+}
