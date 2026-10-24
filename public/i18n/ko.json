@@ -2063,6 +2063,11 @@
       "emailChart": "원국·명반 해석 추가 +{amount}원",
       "emailMax": "질문당 최대 {amount}원",
       "unlockPrice": "해금 {amount}원"
+    },
+    "playPrice": {
+      "from": "{price}부터",
+      "unlock": "{price}로 해금",
+      "perUse": "1회 {price}"
     }
   },
   "footer": {
@@ -11555,6 +11560,159 @@
         "verdict": "달빛의 결로 읽은 당신의 꽃은 {flowerName}({scientificName})입니다. {mansion}·{moon}·{guardian}이 어우러지는 자리가 지금 당신의 인연과 감정, 행동의 리듬과 가장 섬세하게 맞물립니다.",
         "narrative": "{mansion}({group})이 맺어 주는 인연의 결, 달 위상 {moon}이 밀어 올리는 감정의 조수, 수호동물 {guardianJosa} 새겨 준 보호의 문양이 한밤의 정원에서 하나로 겹칩니다. 이 세 갈래 달빛을 포개어 읽으면 \"{symbolism}\"의 성향이 짙게 배어나고, 지금 당신에게 가장 정확한 한 송이는 {flowerName}입니다.",
         "growthCycle": "별자리 연결 → 달빛 응집 → 영성 점화 → 개화"
+      }
+    }
+  },
+  "honeyUI": {
+    "retryLater": "잠시 후 다시 확인해 주세요.",
+    "confirm": "{title}을 꿀방울 {cost}개로 열까요?",
+    "costBalance": "꿀방울 {cost}개 · 현재 보유 {balance}개",
+    "perUseCondition": "이번 요청에 꿀방울을 사용해요. 새 궁합이나 새 카드 해석에는 다시 필요해요.",
+    "birthCondition": "선택한 프로필의 출생정보로 이 콘텐츠를 엽니다. 같은 계정·출생정보로 다시 볼 때는 추가로 쓰지 않아요.",
+    "openCost": "꿀방울 {cost}개로 열기",
+    "loginBalance": "로그인 후 확인",
+    "failed": "조회 실패",
+    "count": "{count}개",
+    "loading": "확인 중",
+    "attended": "오늘 출석 체크 완료",
+    "attend": "출석 체크 하기",
+    "balanceError": "꿀방울을 불러오지 못했어요. 다시 확인해 주세요.",
+    "collected": "꿀방울 {amount}개를 모았어요! 현재 {balance}개예요.",
+    "eligible": "꿀방울 사용 가능처",
+    "choice": "바로 열거나, 출석으로 모아 열어보세요",
+    "unlocked": "해금 완료",
+    "cashOrHoney": "{price} 또는 꿀방울 {cost}개",
+    "openNow": "바로 열기",
+    "cashLabel": "{title} · {price}으로 바로 열기",
+    "honeyLabel": "{title} · 꿀방울 {cost}개로 열기",
+    "openHoney": "꿀방울로 열기",
+    "profileNeeded": "출생정보를 프로필로 저장하거나 저장된 내 프로필을 선택해 주세요.",
+    "unlocking": "해금 확인 중…",
+    "unlockError": "해금 결과를 다시 확인해 주세요.",
+    "collectHint": "메인의 출석 카드에서 매일 모을 수 있어요.",
+    "retryButtonHint": "같은 버튼으로 다시 확인해 주세요.",
+    "usesLoading": "사용처와 해금 상태를 확인하고 있어요.",
+    "guestHint": "로그인하면 보유량을 확인할 수 있어요.",
+    "balanceRetry": "보유량을 확인하지 못했어요. 출석 카드에서 다시 확인해 주세요.",
+    "balance": "보유 꿀방울 {balance}개",
+    "selectedProfile": "선택한 프로필 기준",
+    "chooseProfile": "프로필 선택 후 해금 상태 확인",
+    "groupCount": "{count}종 · {range}개",
+    "unlockedNoExtra": "해금 완료 · 추가 사용 없음",
+    "cost": "꿀방울 {cost}개",
+    "perUseShort": "새 궁합·새 카드 해석을 요청할 때마다 사용",
+    "birthShort": "같은 계정·출생정보로 다시 볼 때 추가 사용 없음",
+    "shortfall": "{count}개 더 모으면 열 수 있어요.",
+    "ownershipError": "해금 상태는 운세 화면에서 다시 확인해 주세요.",
+    "viewUnlocked": "해금한 해석 보기",
+    "viewGroup": "{group}에서 보기",
+    "usesError": "사용처를 불러오지 못했어요.",
+    "retry": "다시 확인하기",
+    "usageError": "사용 방법을 확인하지 못했어요. 잠시 후 다시 눌러 주세요.",
+    "groups": {
+      "saju": "사주",
+      "astrology": "점성술",
+      "ziwei": "자미두수",
+      "sukuyo": "숙요",
+      "vedic": "베다",
+      "tarot": "타로"
+    },
+    "products": {
+      "section_summary": {
+        "title": "라이트 사주 풀이",
+        "description": "타고난 성향·강점·반복되는 패턴과 삶의 큰 흐름"
+      },
+      "section_daewun": {
+        "title": "사주 대운 풀이",
+        "description": "10년 단위 변화와 시기마다 살펴볼 선택"
+      },
+      "rpt_specialCharmCard": {
+        "title": "나의 매력 클래스",
+        "description": "사람에게 자연스럽게 전해지는 나의 매력"
+      },
+      "rpt_skillTreeCard": {
+        "title": "인생 스킬 트리",
+        "description": "강점을 쓰는 방법과 다음 성장 포인트"
+      },
+      "rpt_villainCard": {
+        "title": "빌런 블랙리스트",
+        "description": "나를 소모시키는 관계 패턴과 지켜야 할 선"
+      },
+      "astro_basic_deep_pack": {
+        "title": "점성술 기본 심층 해석",
+        "description": "겉으로 보이는 나와 마음이 원하는 나"
+      },
+      "astro_stellar_career_room": {
+        "title": "일과 역할",
+        "description": "능력이 살아나는 역할과 나다운 일의 방식"
+      },
+      "astro_stellar_talent_room": {
+        "title": "재능과 끌림",
+        "description": "좋아하는 일이 강점과 매력으로 이어지는 방식"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "관계의 문",
+        "description": "마음이 열리는 조건과 오래 가는 관계의 간격"
+      },
+      "astro_stellar_growth_room": {
+        "title": "과제와 변화",
+        "description": "반복되는 어려움에서 바꿔볼 선택"
+      },
+      "astro_career_talent_deep": {
+        "title": "커리어·재능 정밀 해석",
+        "description": "일에서 인정받는 강점과 소모되는 패턴"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "재능·매력 심화 해석",
+        "description": "나의 호감과 추진력이 드러나는 장면"
+      },
+      "astro_relationship_deep": {
+        "title": "관계·끌림 심화 해석",
+        "description": "끌림의 이유와 관계에서 필요한 조율"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "성장·내면 심화 해석",
+        "description": "강점의 이면을 이해하고 회복하는 방법"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "자미두수 12궁 해설",
+        "description": "삶의 영역마다 달라지는 강점과 과제"
+      },
+      "ziwei_love_deep": {
+        "title": "자미두수 부부궁 해석",
+        "description": "가까운 관계에서 반복되는 기대와 반응"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "자미두수 상징 해석",
+        "description": "별의 상징을 생활 속 선택으로 읽기"
+      },
+      "ziwei_decade_luck": {
+        "title": "자미두수 대한 흐름",
+        "description": "시기마다 달라지는 삶의 중심 주제"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "자미두수 생애·연간 흐름",
+        "description": "큰 흐름 속에서 올해 살펴볼 방향"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "숙요 본성 심화",
+        "description": "타고난 반응과 마음을 돌보는 방법"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "숙요 인연 도감",
+        "description": "인연마다 달라지는 거리와 소통의 리듬"
+      },
+      "vedic_basic_reading": {
+        "title": "베다 기본 해석",
+        "description": "출생 차트로 읽는 성향과 생활의 리듬"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "숙요 궁합 상세",
+        "description": "두 사람의 관계 패턴과 구체적인 행동 조언"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "기본 타로 세 장 해석",
+        "description": "선택한 세 장의 흐름과 실천 조언"
       }
     }
   }

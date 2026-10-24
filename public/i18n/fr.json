@@ -2214,6 +2214,11 @@
       "emailChart": "Ajouter l’analyse du thème natal +{amount} KRW",
       "emailMax": "Jusqu’à {amount} KRW par question",
       "unlockPrice": "Débloquer pour {amount} KRW"
+    },
+    "playPrice": {
+      "from": "À partir de {price}",
+      "unlock": "Débloquer pour {price}",
+      "perUse": "{price} par lecture"
     }
   },
   "terms": {
@@ -21753,6 +21758,159 @@
       "hour": "Les effets du pilier de l'heure sont exclus si l'heure de naissance est inconnue.",
       "story": "Les quatre chapitres relient des domaines de vie sans prédire l'ordre ni la date des événements.",
       "relations": "Une harmonie n'entraîne pas automatiquement une transformation élémentaire. Wonjin et Gwimun ne permettent pas de conclure à une infidélité, une maladie mentale ou une issue relationnelle."
+    }
+  },
+  "honeyUI": {
+    "retryLater": "Veuillez réessayer dans un instant.",
+    "confirm": "Ouvrir {title} avec {cost} gouttes de miel ?",
+    "costBalance": "{cost} gouttes de miel · Solde : {balance}",
+    "perUseCondition": "Les gouttes couvrent cette demande. Une nouvelle lecture de compatibilité ou de cartes en nécessite d’autres.",
+    "birthCondition": "Le contenu s’ouvre pour le profil de naissance choisi. Le revoir avec le même compte et les mêmes données ne coûte pas de gouttes supplémentaires.",
+    "openCost": "Ouvrir avec {cost} gouttes",
+    "loginBalance": "Connectez-vous pour vérifier",
+    "failed": "Chargement impossible",
+    "count": "{count} gouttes",
+    "loading": "Vérification",
+    "attended": "Présence du jour enregistrée",
+    "attend": "Enregistrer ma présence",
+    "balanceError": "Impossible de charger vos gouttes. Veuillez réessayer.",
+    "collected": "Vous avez reçu {amount} gouttes ! Solde : {balance}.",
+    "eligible": "Gouttes de miel acceptées",
+    "choice": "Ouvrez maintenant ou collectez des gouttes en enregistrant votre présence",
+    "unlocked": "Débloqué",
+    "cashOrHoney": "{price} ou {cost} gouttes",
+    "openNow": "Ouvrir maintenant",
+    "cashLabel": "{title} · Ouvrir pour {price}",
+    "honeyLabel": "{title} · Ouvrir avec {cost} gouttes",
+    "openHoney": "Utiliser des gouttes",
+    "profileNeeded": "Enregistrez vos données de naissance dans un profil ou choisissez un profil existant.",
+    "unlocking": "Vérification de l’accès…",
+    "unlockError": "Veuillez vérifier à nouveau le déblocage.",
+    "collectHint": "Collectez des gouttes chaque jour avec la carte de présence de l’accueil.",
+    "retryButtonHint": "Réessayez avec le même bouton.",
+    "usesLoading": "Vérification des contenus et de l’accès.",
+    "guestHint": "Connectez-vous pour voir votre solde.",
+    "balanceRetry": "Solde indisponible. Réessayez depuis la carte de présence.",
+    "balance": "Solde de gouttes : {balance}",
+    "selectedProfile": "Pour le profil choisi",
+    "chooseProfile": "Choisissez un profil pour vérifier l’accès",
+    "groupCount": "{count} contenus · {range} gouttes",
+    "unlockedNoExtra": "Débloqué · Aucune goutte supplémentaire",
+    "cost": "{cost} gouttes de miel",
+    "perUseShort": "Utilisées pour chaque nouvelle lecture de compatibilité ou de cartes",
+    "birthShort": "Revoir avec le même compte et les mêmes données ne coûte pas de gouttes supplémentaires",
+    "shortfall": "Collectez encore {count} gouttes pour ouvrir.",
+    "ownershipError": "Vérifiez l’accès sur l’écran de lecture.",
+    "viewUnlocked": "Voir la lecture débloquée",
+    "viewGroup": "Voir dans {group}",
+    "usesError": "Impossible de charger les contenus.",
+    "retry": "Réessayer",
+    "usageError": "Impossible de vérifier l’utilisation. Veuillez réessayer dans un instant.",
+    "groups": {
+      "saju": "Saju",
+      "astrology": "Astrologie",
+      "ziwei": "Ziwei Doushu",
+      "sukuyo": "Sukuyo",
+      "vedic": "Astrologie védique",
+      "tarot": "Tarot"
+    },
+    "products": {
+      "section_summary": {
+        "title": "Lecture légère de Saju",
+        "description": "Tempérament, forces, schémas récurrents et grandes tendances de vie"
+      },
+      "section_daewun": {
+        "title": "Cycles décennaux de Saju",
+        "description": "Changements sur dix ans et choix à considérer à chaque étape"
+      },
+      "rpt_specialCharmCard": {
+        "title": "Votre profil de charme",
+        "description": "Le charme que vous transmettez naturellement aux autres"
+      },
+      "rpt_skillTreeCard": {
+        "title": "Arbre des compétences de vie",
+        "description": "Utiliser vos forces et repérer votre prochaine étape de croissance"
+      },
+      "rpt_villainCard": {
+        "title": "Relations qui vous épuisent",
+        "description": "Schémas relationnels usants et limites à protéger"
+      },
+      "astro_basic_deep_pack": {
+        "title": "Lecture astrologique essentielle",
+        "description": "Votre image extérieure et les désirs de votre cœur"
+      },
+      "astro_stellar_career_room": {
+        "title": "Travail et rôles",
+        "description": "Les rôles qui révèlent vos capacités et votre façon de travailler"
+      },
+      "astro_stellar_talent_room": {
+        "title": "Talent et attirance",
+        "description": "Comment vos goûts deviennent une force et un charme"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "Portes de la relation",
+        "description": "Ce qui vous aide à vous ouvrir et la juste distance pour durer"
+      },
+      "astro_stellar_growth_room": {
+        "title": "Défis et changements",
+        "description": "Les choix à ajuster face aux difficultés récurrentes"
+      },
+      "astro_career_talent_deep": {
+        "title": "Carrière et talents en détail",
+        "description": "Forces reconnues au travail et schémas qui vous épuisent"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "Talent et charme en détail",
+        "description": "Les moments où votre charme et votre élan se révèlent"
+      },
+      "astro_relationship_deep": {
+        "title": "Relations et attirance en détail",
+        "description": "Les raisons de l’attirance et les ajustements dans la relation"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "Croissance et vie intérieure",
+        "description": "Comprendre l’envers de vos forces et retrouver l’équilibre"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "Les douze palais de Ziwei",
+        "description": "Forces et défis dans les différents domaines de vie"
+      },
+      "ziwei_love_deep": {
+        "title": "Palais du couple de Ziwei",
+        "description": "Attentes et réactions récurrentes dans les relations proches"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "Symboles de Ziwei",
+        "description": "Lire les symboles des étoiles à travers les choix quotidiens"
+      },
+      "ziwei_decade_luck": {
+        "title": "Cycles décennaux de Ziwei",
+        "description": "Les thèmes de vie qui évoluent selon les périodes"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "Ziwei : vie et cycles annuels",
+        "description": "La direction de cette année dans les grandes tendances de vie"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "Votre nature selon Sukuyo",
+        "description": "Réactions spontanées et façons de prendre soin de votre vie intérieure"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "Guide relationnel Sukuyo",
+        "description": "Distance et rythmes de communication selon les liens"
+      },
+      "vedic_basic_reading": {
+        "title": "Lecture natale védique",
+        "description": "Tempérament et rythmes de vie à travers le thème natal"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "Compatibilité Sukuyo détaillée",
+        "description": "Schémas relationnels entre deux personnes et conseils pratiques"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "Lecture de tarot à trois cartes",
+        "description": "Le fil de vos trois cartes et des conseils concrets"
+      }
     }
   }
 }

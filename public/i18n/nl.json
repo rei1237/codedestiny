@@ -2214,6 +2214,11 @@
       "emailChart": "Geboortehoroscoopanalyse toevoegen +{amount} KRW",
       "emailMax": "Tot {amount} KRW per vraag",
       "unlockPrice": "Ontgrendelen voor {amount} KRW"
+    },
+    "playPrice": {
+      "from": "Vanaf {price}",
+      "unlock": "Ontgrendelen voor {price}",
+      "perUse": "{price} per lezing"
     }
   },
   "terms": {
@@ -21753,6 +21758,159 @@
       "hour": "Bij een onbekende geboortetijd tellen effecten van de uurpijler niet mee.",
       "story": "De vier hoofdstukken verbinden levensgebieden; ze voorspellen geen volgorde of tijdstip van gebeurtenissen.",
       "relations": "Harmonie betekent geen automatische elementverandering. Wonjin en Gwimun bepalen geen ontrouw, psychische aandoening of relatie-uitkomst."
+    }
+  },
+  "honeyUI": {
+    "retryLater": "Probeer het zo opnieuw.",
+    "confirm": "{title} openen met {cost} honingdruppels?",
+    "costBalance": "{cost} honingdruppels · Saldo: {balance}",
+    "perUseCondition": "De druppels gelden voor dit verzoek. Een nieuwe relatie- of kaartlezing kost opnieuw druppels.",
+    "birthCondition": "De inhoud opent voor het gekozen geboorteprofiel. Opnieuw bekijken met hetzelfde account en dezelfde geboortegegevens kost geen extra druppels.",
+    "openCost": "Openen met {cost} druppels",
+    "loginBalance": "Log in om te bekijken",
+    "failed": "Laden mislukt",
+    "count": "{count} druppels",
+    "loading": "Controleren",
+    "attended": "Vandaag ingecheckt",
+    "attend": "Inchecken",
+    "balanceError": "Je honingdruppels konden niet worden geladen. Probeer het opnieuw.",
+    "collected": "Je hebt {amount} druppels verzameld! Saldo: {balance}.",
+    "eligible": "Honingdruppels mogelijk",
+    "choice": "Open nu of verzamel druppels door in te checken",
+    "unlocked": "Ontgrendeld",
+    "cashOrHoney": "{price} of {cost} honingdruppels",
+    "openNow": "Nu openen",
+    "cashLabel": "{title} · Openen voor {price}",
+    "honeyLabel": "{title} · Openen met {cost} druppels",
+    "openHoney": "Honingdruppels gebruiken",
+    "profileNeeded": "Sla je geboortegegevens op als profiel of kies een bewaard profiel.",
+    "unlocking": "Toegang controleren…",
+    "unlockError": "Controleer de ontgrendeling opnieuw.",
+    "collectHint": "Verzamel dagelijks druppels via de incheckkaart op de startpagina.",
+    "retryButtonHint": "Probeer dezelfde knop opnieuw.",
+    "usesLoading": "Inhoud en toegang controleren.",
+    "guestHint": "Log in om je saldo te zien.",
+    "balanceRetry": "Saldo niet beschikbaar. Probeer het via de incheckkaart opnieuw.",
+    "balance": "Saldo honingdruppels: {balance}",
+    "selectedProfile": "Voor het gekozen profiel",
+    "chooseProfile": "Kies een profiel om de toegang te zien",
+    "groupCount": "{count} items · {range} druppels",
+    "unlockedNoExtra": "Ontgrendeld · Geen extra druppels",
+    "cost": "{cost} honingdruppels",
+    "perUseShort": "Nodig voor elke nieuwe relatie- of kaartlezing",
+    "birthShort": "Opnieuw bekijken met hetzelfde account en geboortegegevens kost geen extra druppels",
+    "shortfall": "Verzamel nog {count} druppels om te openen.",
+    "ownershipError": "Controleer de toegang op het lezingsscherm.",
+    "viewUnlocked": "Ontgrendelde lezing bekijken",
+    "viewGroup": "Bekijken in {group}",
+    "usesError": "Inhoud kon niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "usageError": "Het gebruik kon niet worden gecontroleerd. Probeer het zo opnieuw.",
+    "groups": {
+      "saju": "Saju",
+      "astrology": "Astrologie",
+      "ziwei": "Ziwei Doushu",
+      "sukuyo": "Sukuyo",
+      "vedic": "Vedische astrologie",
+      "tarot": "Tarot"
+    },
+    "products": {
+      "section_summary": {
+        "title": "Lichte Saju-lezing",
+        "description": "Aard, sterke kanten, terugkerende patronen en levensrichting"
+      },
+      "section_daewun": {
+        "title": "Saju-cycli van tien jaar",
+        "description": "Veranderingen per decennium en keuzes voor elke fase"
+      },
+      "rpt_specialCharmCard": {
+        "title": "Jouw charmeprofiel",
+        "description": "De charme die je van nature uitstraalt"
+      },
+      "rpt_skillTreeCard": {
+        "title": "Vaardigheidsboom voor je leven",
+        "description": "Je sterke kanten benutten en je volgende groeipunt vinden"
+      },
+      "rpt_villainCard": {
+        "title": "Uitputtende relatiepatronen",
+        "description": "Relaties die energie kosten en grenzen om te bewaken"
+      },
+      "astro_basic_deep_pack": {
+        "title": "Verdiepende basislezing astrologie",
+        "description": "Je uiterlijke zelf en wat je hart verlangt"
+      },
+      "astro_stellar_career_room": {
+        "title": "Werk en rollen",
+        "description": "Rollen waarin je talent bloeit en jouw manier van werken"
+      },
+      "astro_stellar_talent_room": {
+        "title": "Talent en aantrekkingskracht",
+        "description": "Hoe je interesses sterke kanten en charme worden"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "Deuren naar verbinding",
+        "description": "Wat je helpt open te staan en welke nabijheid blijft werken"
+      },
+      "astro_stellar_growth_room": {
+        "title": "Uitdagingen en verandering",
+        "description": "Keuzes om bij te stellen bij terugkerende problemen"
+      },
+      "astro_career_talent_deep": {
+        "title": "Loopbaan en talent uitgediept",
+        "description": "Gewaardeerde sterke kanten op het werk en uitputtende patronen"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "Talent en charme uitgediept",
+        "description": "Momenten waarop je aantrekkingskracht en daadkracht zichtbaar worden"
+      },
+      "astro_relationship_deep": {
+        "title": "Relaties en aantrekking uitgediept",
+        "description": "Redenen voor aantrekking en afstemming binnen relaties"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "Groei en innerlijk leven",
+        "description": "De keerzijde van je sterke kanten begrijpen en herstellen"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "De twaalf paleizen van Ziwei",
+        "description": "Sterke kanten en uitdagingen per levensgebied"
+      },
+      "ziwei_love_deep": {
+        "title": "Relatiepaleis van Ziwei",
+        "description": "Terugkerende verwachtingen en reacties in hechte relaties"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "Symboliek van Ziwei",
+        "description": "Sterrensymbolen lezen als dagelijkse keuzes"
+      },
+      "ziwei_decade_luck": {
+        "title": "Tienjaarscycli van Ziwei",
+        "description": "Levensthema’s die per fase veranderen"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "Ziwei: levens- en jaarcycli",
+        "description": "De richting van dit jaar binnen je bredere levensloop"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "Je Sukuyo-aard uitgediept",
+        "description": "Instinctieve reacties en manieren om voor je innerlijk te zorgen"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "Sukuyo-relatiegids",
+        "description": "Afstand en communicatieritme in verschillende banden"
+      },
+      "vedic_basic_reading": {
+        "title": "Vedische geboortehoroscoop",
+        "description": "Karakter en levensritmes via je geboortehoroscoop"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "Uitgebreide Sukuyo-compatibiliteit",
+        "description": "Relatiepatronen tussen twee mensen en praktische adviezen"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "Tarotlezing met drie kaarten",
+        "description": "Het verhaal van je drie kaarten en praktische vervolgstappen"
+      }
     }
   }
 }

@@ -2214,6 +2214,11 @@
       "emailChart": "命式・命盤の解説を追加 +{amount}ウォン",
       "emailMax": "1件あたり最大{amount}ウォン",
       "unlockPrice": "{amount}ウォンで開く"
+    },
+    "playPrice": {
+      "from": "{price}〜",
+      "unlock": "{price}で開く",
+      "perUse": "1回 {price}"
     }
   },
   "terms": {
@@ -21753,6 +21758,159 @@
       "hour": "出生時刻が不明な方の時柱の作用は含めません。",
       "story": "四つの章は生活領域をつなぐ物語であり、出来事の順序や時期の予言ではありません。",
       "relations": "合が自動的に合化するわけではありません。怨嗔・鬼門から浮気、精神疾患、関係の結末を判断することはできません。"
+    }
+  },
+  "honeyUI": {
+    "retryLater": "少し待ってからもう一度お試しください。",
+    "confirm": "「{title}」をはちみつのしずく{cost}個で開きますか？",
+    "costBalance": "はちみつのしずく{cost}個・残高{balance}個",
+    "perUseCondition": "今回の依頼にはちみつのしずくを使います。新しい相性・カードの解釈には再度必要です。",
+    "birthCondition": "選んだプロフィールの出生情報で開きます。同じアカウント・出生情報での再閲覧には追加のしずくは不要です。",
+    "openCost": "しずく{cost}個で開く",
+    "loginBalance": "ログインして確認",
+    "failed": "読み込めませんでした",
+    "count": "{count}個",
+    "loading": "確認中",
+    "attended": "今日のチェックイン完了",
+    "attend": "チェックインする",
+    "balanceError": "しずくを読み込めませんでした。もう一度お試しください。",
+    "collected": "しずくを{amount}個集めました！現在{balance}個です。",
+    "eligible": "しずくが使えるコンテンツ",
+    "choice": "今すぐ開くか、チェックインでしずくを集めましょう",
+    "unlocked": "解放済み",
+    "cashOrHoney": "{price} またはしずく{cost}個",
+    "openNow": "今すぐ開く",
+    "cashLabel": "{title}・{price}で開く",
+    "honeyLabel": "{title}・しずく{cost}個で開く",
+    "openHoney": "しずくで開く",
+    "profileNeeded": "出生情報を保存するか、保存済みプロフィールを選んでください。",
+    "unlocking": "利用状況を確認中…",
+    "unlockError": "解放結果をもう一度確認してください。",
+    "collectHint": "ホームのチェックインカードで毎日集められます。",
+    "retryButtonHint": "同じボタンでもう一度確認してください。",
+    "usesLoading": "対象コンテンツと解放状況を確認中です。",
+    "guestHint": "ログインすると残高を確認できます。",
+    "balanceRetry": "残高を確認できませんでした。チェックインカードから再度お試しください。",
+    "balance": "しずく残高：{balance}個",
+    "selectedProfile": "選択中のプロフィール",
+    "chooseProfile": "プロフィールを選んで確認",
+    "groupCount": "{count}種類・{range}個",
+    "unlockedNoExtra": "解放済み・追加消費なし",
+    "cost": "しずく{cost}個",
+    "perUseShort": "新しい相性・カード解釈の依頼ごとに使用",
+    "birthShort": "同じアカウント・出生情報での再閲覧は追加消費なし",
+    "shortfall": "あと{count}個で開けます。",
+    "ownershipError": "運勢画面で解放状況を確認してください。",
+    "viewUnlocked": "解放済みの解釈を見る",
+    "viewGroup": "{group}で見る",
+    "usesError": "対象コンテンツを読み込めませんでした。",
+    "retry": "もう一度確認する",
+    "usageError": "利用方法を確認できませんでした。少し待ってからもう一度お試しください。",
+    "groups": {
+      "saju": "四柱推命",
+      "astrology": "西洋占星術",
+      "ziwei": "紫微斗数",
+      "sukuyo": "宿曜",
+      "vedic": "ヴェーダ占星術",
+      "tarot": "タロット"
+    },
+    "products": {
+      "section_summary": {
+        "title": "ライト四柱推命",
+        "description": "生まれ持った気質・強み・繰り返すパターンと人生の大きな流れ"
+      },
+      "section_daewun": {
+        "title": "四柱推命の大運",
+        "description": "10年単位の変化と各時期に考えたい選択"
+      },
+      "rpt_specialCharmCard": {
+        "title": "私の魅力タイプ",
+        "description": "人に自然と伝わるあなたの魅力"
+      },
+      "rpt_skillTreeCard": {
+        "title": "人生のスキルツリー",
+        "description": "強みの生かし方と次の成長ポイント"
+      },
+      "rpt_villainCard": {
+        "title": "消耗する関係のパターン",
+        "description": "心をすり減らす関係と守りたい境界線"
+      },
+      "astro_basic_deep_pack": {
+        "title": "占星術の基本深層リーディング",
+        "description": "外に見せる自分と心が望む自分"
+      },
+      "astro_stellar_career_room": {
+        "title": "仕事と役割",
+        "description": "力を発揮できる役割と自分らしい働き方"
+      },
+      "astro_stellar_talent_room": {
+        "title": "才能と惹かれるもの",
+        "description": "好きなことが強みや魅力につながる仕組み"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "関係への扉",
+        "description": "心が開く条件と長続きする関係の距離感"
+      },
+      "astro_stellar_growth_room": {
+        "title": "課題と変化",
+        "description": "繰り返す難しさの中で変えられる選択"
+      },
+      "astro_career_talent_deep": {
+        "title": "キャリア・才能の精密解釈",
+        "description": "仕事で認められる強みと消耗するパターン"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "才能・魅力の深層解釈",
+        "description": "好感や行動力が表れる場面"
+      },
+      "astro_relationship_deep": {
+        "title": "関係・惹かれ合いの深層解釈",
+        "description": "惹かれる理由と関係に必要な調整"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "成長・内面の深層解釈",
+        "description": "強みの裏側を理解し、調子を取り戻す方法"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "紫微斗数の12宮解説",
+        "description": "人生の各分野に表れる強みと課題"
+      },
+      "ziwei_love_deep": {
+        "title": "紫微斗数の夫妻宮解釈",
+        "description": "親しい関係で繰り返す期待と反応"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "紫微斗数の象徴解釈",
+        "description": "星の象徴を日々の選択として読む"
+      },
+      "ziwei_decade_luck": {
+        "title": "紫微斗数の大限の流れ",
+        "description": "時期ごとに変わる人生の中心テーマ"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "紫微斗数の生涯・年間の流れ",
+        "description": "大きな流れの中で今年考えたい方向"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "宿曜の本質を深く読む",
+        "description": "生まれ持った反応と心のいたわり方"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "宿曜の縁の図鑑",
+        "description": "相手によって変わる距離と会話のリズム"
+      },
+      "vedic_basic_reading": {
+        "title": "ヴェーダの基本リーディング",
+        "description": "出生チャートから読む気質と生活のリズム"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "宿曜相性の詳細",
+        "description": "二人の関係パターンと具体的な行動のヒント"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "基本タロット3枚リーディング",
+        "description": "選んだ3枚の流れと実践のヒント"
+      }
     }
   }
 }

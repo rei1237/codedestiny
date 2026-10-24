@@ -2214,6 +2214,11 @@
       "emailChart": "Añadir análisis de carta natal +{amount} KRW",
       "emailMax": "Hasta {amount} KRW por pregunta",
       "unlockPrice": "Desbloquear por {amount} KRW"
+    },
+    "playPrice": {
+      "from": "Desde {price}",
+      "unlock": "Desbloquear por {price}",
+      "perUse": "{price} por lectura"
     }
   },
   "terms": {
@@ -21753,6 +21758,159 @@
       "hour": "Se excluye el efecto del pilar de la hora si se desconoce la hora de nacimiento.",
       "story": "Los cuatro capítulos conectan ámbitos de la vida; no predicen el orden ni el momento de los hechos.",
       "relations": "Una armonía no implica transformación elemental automática. Wonjin y Gwimun no determinan infidelidad, enfermedad mental ni el desenlace de una relación."
+    }
+  },
+  "honeyUI": {
+    "retryLater": "Vuelve a intentarlo en unos momentos.",
+    "confirm": "¿Abrir {title} con {cost} gotas de miel?",
+    "costBalance": "{cost} gotas de miel · Saldo: {balance}",
+    "perUseCondition": "Las gotas cubren esta consulta. Una nueva lectura de compatibilidad o cartas requiere más gotas.",
+    "birthCondition": "Se abre para el perfil de nacimiento elegido. Volver a verlo con la misma cuenta y datos natales no consume más gotas.",
+    "openCost": "Abrir con {cost} gotas",
+    "loginBalance": "Inicia sesión para ver",
+    "failed": "No se pudo cargar",
+    "count": "{count} gotas",
+    "loading": "Comprobando",
+    "attended": "Ya registraste tu visita hoy",
+    "attend": "Registrar visita",
+    "balanceError": "No se pudieron cargar tus gotas. Vuelve a intentarlo.",
+    "collected": "¡Recibiste {amount} gotas! Saldo: {balance}.",
+    "eligible": "Admite gotas de miel",
+    "choice": "Abre ahora o reúne gotas con tus visitas",
+    "unlocked": "Desbloqueado",
+    "cashOrHoney": "{price} o {cost} gotas",
+    "openNow": "Abrir ahora",
+    "cashLabel": "{title} · Abrir por {price}",
+    "honeyLabel": "{title} · Abrir con {cost} gotas",
+    "openHoney": "Usar gotas de miel",
+    "profileNeeded": "Guarda tus datos natales en un perfil o elige uno guardado.",
+    "unlocking": "Comprobando acceso…",
+    "unlockError": "Comprueba de nuevo el desbloqueo.",
+    "collectHint": "Reúne gotas cada día desde la tarjeta de visita del inicio.",
+    "retryButtonHint": "Vuelve a probar con el mismo botón.",
+    "usesLoading": "Comprobando contenidos y acceso.",
+    "guestHint": "Inicia sesión para ver tu saldo.",
+    "balanceRetry": "No se pudo consultar el saldo. Reinténtalo desde la tarjeta de visita.",
+    "balance": "Saldo de gotas: {balance}",
+    "selectedProfile": "Para el perfil seleccionado",
+    "chooseProfile": "Elige un perfil para ver el acceso",
+    "groupCount": "{count} contenidos · {range} gotas",
+    "unlockedNoExtra": "Desbloqueado · Sin más gotas",
+    "cost": "{cost} gotas de miel",
+    "perUseShort": "Se usan en cada nueva lectura de compatibilidad o cartas",
+    "birthShort": "Reabrir con la misma cuenta y datos natales no consume más gotas",
+    "shortfall": "Reúne {count} gotas más para abrir.",
+    "ownershipError": "Comprueba el acceso en la pantalla de lectura.",
+    "viewUnlocked": "Ver lectura desbloqueada",
+    "viewGroup": "Ver en {group}",
+    "usesError": "No se pudieron cargar los contenidos.",
+    "retry": "Reintentar",
+    "usageError": "No se pudo comprobar el uso. Inténtalo en unos momentos.",
+    "groups": {
+      "saju": "Saju",
+      "astrology": "Astrología",
+      "ziwei": "Ziwei Doushu",
+      "sukuyo": "Sukuyo",
+      "vedic": "Astrología védica",
+      "tarot": "Tarot"
+    },
+    "products": {
+      "section_summary": {
+        "title": "Lectura ligera de Saju",
+        "description": "Temperamento, fortalezas, patrones repetidos y rumbo vital"
+      },
+      "section_daewun": {
+        "title": "Ciclos de diez años de Saju",
+        "description": "Cambios por década y decisiones a considerar en cada etapa"
+      },
+      "rpt_specialCharmCard": {
+        "title": "Tu perfil de encanto",
+        "description": "El encanto que transmites de forma natural"
+      },
+      "rpt_skillTreeCard": {
+        "title": "Árbol de habilidades vitales",
+        "description": "Cómo usar tus fortalezas y dónde seguir creciendo"
+      },
+      "rpt_villainCard": {
+        "title": "Patrones de relaciones agotadoras",
+        "description": "Vínculos que te desgastan y límites que conviene cuidar"
+      },
+      "astro_basic_deep_pack": {
+        "title": "Lectura astrológica esencial",
+        "description": "Tu imagen exterior y lo que desea tu corazón"
+      },
+      "astro_stellar_career_room": {
+        "title": "Trabajo y roles",
+        "description": "Roles que potencian tus capacidades y tu forma de trabajar"
+      },
+      "astro_stellar_talent_room": {
+        "title": "Talento y atracción",
+        "description": "Cómo lo que disfrutas se convierte en fortaleza y encanto"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "Puertas a la conexión",
+        "description": "Qué te ayuda a abrirte y a mantener una cercanía duradera"
+      },
+      "astro_stellar_growth_room": {
+        "title": "Retos y cambios",
+        "description": "Decisiones que puedes ajustar ante dificultades repetidas"
+      },
+      "astro_career_talent_deep": {
+        "title": "Carrera y talento en detalle",
+        "description": "Fortalezas reconocidas en el trabajo y patrones que te desgastan"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "Talento y encanto en detalle",
+        "description": "Situaciones donde destacan tu atractivo e iniciativa"
+      },
+      "astro_relationship_deep": {
+        "title": "Relaciones y atracción en detalle",
+        "description": "Motivos de la atracción y ajustes necesarios en la relación"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "Crecimiento e interior en detalle",
+        "description": "Comprender la otra cara de tus fortalezas y recuperar equilibrio"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "Los doce palacios de Ziwei",
+        "description": "Fortalezas y retos en las distintas áreas de la vida"
+      },
+      "ziwei_love_deep": {
+        "title": "Palacio de pareja de Ziwei",
+        "description": "Expectativas y reacciones recurrentes en los vínculos cercanos"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "Simbolismo de Ziwei",
+        "description": "Interpretar los símbolos estelares como decisiones cotidianas"
+      },
+      "ziwei_decade_luck": {
+        "title": "Ciclos decenales de Ziwei",
+        "description": "Temas centrales de la vida que cambian con cada etapa"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "Ziwei: vida y ciclos anuales",
+        "description": "La dirección de este año dentro del curso general de la vida"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "Tu naturaleza según Sukuyo",
+        "description": "Reacciones instintivas y formas de cuidar tu interior"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "Guía de relaciones Sukuyo",
+        "description": "Distancia y ritmos de comunicación en cada vínculo"
+      },
+      "vedic_basic_reading": {
+        "title": "Lectura natal védica",
+        "description": "Temperamento y ritmos de vida a través de la carta natal"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "Compatibilidad Sukuyo en detalle",
+        "description": "Patrones entre dos personas y consejos prácticos"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "Lectura de tarot de tres cartas",
+        "description": "El hilo de tus tres cartas y pasos prácticos"
+      }
     }
   }
 }

@@ -2214,6 +2214,11 @@
       "emailChart": "Add birth-chart analysis +KRW {amount}",
       "emailMax": "Up to KRW {amount} per question",
       "unlockPrice": "Unlock for KRW {amount}"
+    },
+    "playPrice": {
+      "from": "From {price}",
+      "unlock": "Unlock for {price}",
+      "perUse": "{price} per reading"
     }
   },
   "terms": {
@@ -21753,6 +21758,159 @@
       "hour": "Hour-pillar effects are excluded when the birth time is unknown.",
       "story": "The four chapters connect areas of life; they do not predict an order or timing of events.",
       "relations": "A harmony does not imply automatic elemental transformation. Wonjin and Gwimun do not establish infidelity, mental illness, or a relationship's outcome."
+    }
+  },
+  "honeyUI": {
+    "retryLater": "Please try again shortly.",
+    "confirm": "Open {title} with {cost} honey drops?",
+    "costBalance": "{cost} honey drops · Balance: {balance}",
+    "perUseCondition": "Honey drops cover this request. A new compatibility or card reading needs more drops.",
+    "birthCondition": "This opens the content for the selected birth profile. Reopening with the same account and birth details costs no more drops.",
+    "openCost": "Open with {cost} honey drops",
+    "loginBalance": "Sign in to check",
+    "failed": "Could not load",
+    "count": "{count} drops",
+    "loading": "Checking",
+    "attended": "Checked in today",
+    "attend": "Check in",
+    "balanceError": "Could not load your honey drops. Please try again.",
+    "collected": "You collected {amount} honey drops! Balance: {balance}.",
+    "eligible": "Honey drops accepted",
+    "choice": "Open now, or collect drops by checking in",
+    "unlocked": "Unlocked",
+    "cashOrHoney": "{price} or {cost} honey drops",
+    "openNow": "Open now",
+    "cashLabel": "{title} · Open for {price}",
+    "honeyLabel": "{title} · Open with {cost} honey drops",
+    "openHoney": "Use honey drops",
+    "profileNeeded": "Save your birth details as a profile, or select a saved profile.",
+    "unlocking": "Checking access…",
+    "unlockError": "Please check the unlock result again.",
+    "collectHint": "Collect drops daily with the home check-in card.",
+    "retryButtonHint": "Try the same button again.",
+    "usesLoading": "Checking eligible content and access.",
+    "guestHint": "Sign in to see your balance.",
+    "balanceRetry": "Could not check your balance. Retry from the check-in card.",
+    "balance": "Honey drop balance: {balance}",
+    "selectedProfile": "For the selected profile",
+    "chooseProfile": "Select a profile to check access",
+    "groupCount": "{count} items · {range} drops",
+    "unlockedNoExtra": "Unlocked · No extra drops",
+    "cost": "{cost} honey drops",
+    "perUseShort": "Used for each new compatibility or card reading",
+    "birthShort": "No more drops to reopen with the same account and birth details",
+    "shortfall": "Collect {count} more drops to open.",
+    "ownershipError": "Check access again on the reading screen.",
+    "viewUnlocked": "View unlocked reading",
+    "viewGroup": "View in {group}",
+    "usesError": "Could not load eligible content.",
+    "retry": "Try again",
+    "usageError": "Could not check how to use this. Please try again shortly.",
+    "groups": {
+      "saju": "Saju",
+      "astrology": "Astrology",
+      "ziwei": "Ziwei Doushu",
+      "sukuyo": "Sukuyo",
+      "vedic": "Vedic astrology",
+      "tarot": "Tarot"
+    },
+    "products": {
+      "section_summary": {
+        "title": "Light Saju reading",
+        "description": "Temperament, strengths, recurring patterns and life's broader direction"
+      },
+      "section_daewun": {
+        "title": "Saju decade cycles",
+        "description": "Changes across ten-year cycles and choices to consider in each phase"
+      },
+      "rpt_specialCharmCard": {
+        "title": "Your charm profile",
+        "description": "The charm you naturally convey to others"
+      },
+      "rpt_skillTreeCard": {
+        "title": "Life skill tree",
+        "description": "Ways to use your strengths and your next growth point"
+      },
+      "rpt_villainCard": {
+        "title": "Draining relationship patterns",
+        "description": "Relationships that wear you down and boundaries to protect"
+      },
+      "astro_basic_deep_pack": {
+        "title": "Core astrology reading",
+        "description": "Your outward self and what your heart wants"
+      },
+      "astro_stellar_career_room": {
+        "title": "Work and roles",
+        "description": "Roles that bring out your abilities and your way of working"
+      },
+      "astro_stellar_talent_room": {
+        "title": "Talent and attraction",
+        "description": "How what you enjoy becomes a strength and source of charm"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "Doors to connection",
+        "description": "What helps you open up and find a sustainable closeness"
+      },
+      "astro_stellar_growth_room": {
+        "title": "Challenges and change",
+        "description": "Choices you can adjust when difficulties repeat"
+      },
+      "astro_career_talent_deep": {
+        "title": "Career and talent insights",
+        "description": "Strengths valued at work and patterns that drain you"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "Talent and charm insights",
+        "description": "Moments when your appeal and drive come through"
+      },
+      "astro_relationship_deep": {
+        "title": "Relationship and attraction insights",
+        "description": "Why you feel drawn to someone and how to adjust together"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "Growth and inner-life insights",
+        "description": "Understanding the other side of your strengths and recovering balance"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "Ziwei's twelve palaces",
+        "description": "Strengths and challenges across different areas of life"
+      },
+      "ziwei_love_deep": {
+        "title": "Ziwei relationship palace",
+        "description": "Recurring expectations and responses in close relationships"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "Ziwei symbolism",
+        "description": "Reading star symbols as everyday choices"
+      },
+      "ziwei_decade_luck": {
+        "title": "Ziwei decade cycles",
+        "description": "Life themes that shift from one phase to another"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "Ziwei life and yearly cycles",
+        "description": "This year's direction within the wider course of life"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "Sukuyo nature in depth",
+        "description": "Instinctive responses and ways to care for your inner life"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "Sukuyo relationship guide",
+        "description": "Distance and communication rhythms in different connections"
+      },
+      "vedic_basic_reading": {
+        "title": "Vedic birth-chart reading",
+        "description": "Temperament and life's rhythms through your birth chart"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "Detailed Sukuyo compatibility",
+        "description": "Relationship patterns between two people and practical advice"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "Three-card tarot reading",
+        "description": "The story of your three chosen cards and practical next steps"
+      }
     }
   }
 }

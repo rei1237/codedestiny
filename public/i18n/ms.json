@@ -2214,6 +2214,11 @@
       "emailChart": "Tambah analisis carta kelahiran +KRW {amount}",
       "emailMax": "Sehingga KRW {amount} setiap soalan",
       "unlockPrice": "Buka dengan KRW {amount}"
+    },
+    "playPrice": {
+      "from": "Dari {price}",
+      "unlock": "Buka dengan {price}",
+      "perUse": "{price} setiap bacaan"
     }
   },
   "terms": {
@@ -21753,6 +21758,159 @@
       "hour": "Kesan tiang jam dikecualikan jika waktu kelahiran tidak diketahui.",
       "story": "Empat bab menghubungkan bidang kehidupan, bukan meramal urutan atau masa kejadian.",
       "relations": "Keharmonian tidak bermakna perubahan unsur secara automatik. Wonjin dan Gwimun tidak menentukan kecurangan, penyakit mental atau kesudahan hubungan."
+    }
+  },
+  "honeyUI": {
+    "retryLater": "Sila cuba lagi sebentar nanti.",
+    "confirm": "Buka {title} dengan {cost} titis madu?",
+    "costBalance": "{cost} titis madu · Baki: {balance}",
+    "perUseCondition": "Titis madu digunakan untuk permintaan ini. Bacaan keserasian atau kad baharu memerlukan titis madu lagi.",
+    "birthCondition": "Kandungan dibuka mengikut profil kelahiran dipilih. Melihat semula dengan akaun dan maklumat kelahiran sama tidak menggunakan titis tambahan.",
+    "openCost": "Buka dengan {cost} titis",
+    "loginBalance": "Log masuk untuk semak",
+    "failed": "Gagal dimuatkan",
+    "count": "{count} titis",
+    "loading": "Sedang menyemak",
+    "attended": "Daftar masuk hari ini selesai",
+    "attend": "Daftar masuk",
+    "balanceError": "Titis madu tidak dapat dimuatkan. Sila cuba lagi.",
+    "collected": "Anda mengumpul {amount} titis madu! Baki: {balance}.",
+    "eligible": "Titis madu diterima",
+    "choice": "Buka sekarang atau kumpul titis madu melalui daftar masuk",
+    "unlocked": "Dibuka",
+    "cashOrHoney": "{price} atau {cost} titis madu",
+    "openNow": "Buka sekarang",
+    "cashLabel": "{title} · Buka dengan {price}",
+    "honeyLabel": "{title} · Buka dengan {cost} titis",
+    "openHoney": "Guna titis madu",
+    "profileNeeded": "Simpan maklumat kelahiran sebagai profil atau pilih profil tersimpan.",
+    "unlocking": "Menyemak akses…",
+    "unlockError": "Sila semak semula hasil pembukaan.",
+    "collectHint": "Kumpul setiap hari melalui kad daftar masuk di laman utama.",
+    "retryButtonHint": "Cuba semula dengan butang yang sama.",
+    "usesLoading": "Menyemak kandungan dan status akses.",
+    "guestHint": "Log masuk untuk melihat baki.",
+    "balanceRetry": "Baki tidak dapat disemak. Cuba lagi melalui kad daftar masuk.",
+    "balance": "Baki titis madu: {balance}",
+    "selectedProfile": "Untuk profil dipilih",
+    "chooseProfile": "Pilih profil untuk semak akses",
+    "groupCount": "{count} kandungan · {range} titis",
+    "unlockedNoExtra": "Dibuka · Tiada titis tambahan",
+    "cost": "{cost} titis madu",
+    "perUseShort": "Digunakan bagi setiap bacaan keserasian atau kad baharu",
+    "birthShort": "Tiada titis tambahan untuk lihat semula dengan akaun dan maklumat kelahiran sama",
+    "shortfall": "Kumpul {count} titis lagi untuk buka.",
+    "ownershipError": "Semak akses sekali lagi pada skrin bacaan.",
+    "viewUnlocked": "Lihat bacaan dibuka",
+    "viewGroup": "Lihat dalam {group}",
+    "usesError": "Kandungan tidak dapat dimuatkan.",
+    "retry": "Cuba lagi",
+    "usageError": "Cara penggunaan tidak dapat disemak. Sila cuba sebentar lagi.",
+    "groups": {
+      "saju": "Saju",
+      "astrology": "Astrologi",
+      "ziwei": "Ziwei Doushu",
+      "sukuyo": "Sukuyo",
+      "vedic": "Astrologi Veda",
+      "tarot": "Tarot"
+    },
+    "products": {
+      "section_summary": {
+        "title": "Bacaan Saju ringkas",
+        "description": "Sifat semula jadi, kekuatan, corak berulang dan arah kehidupan"
+      },
+      "section_daewun": {
+        "title": "Kitaran sepuluh tahun Saju",
+        "description": "Perubahan sepanjang sepuluh tahun dan pilihan setiap fasa"
+      },
+      "rpt_specialCharmCard": {
+        "title": "Profil daya tarikan anda",
+        "description": "Daya tarikan yang disampaikan secara semula jadi"
+      },
+      "rpt_skillTreeCard": {
+        "title": "Pohon kemahiran hidup",
+        "description": "Cara menggunakan kekuatan dan langkah pertumbuhan seterusnya"
+      },
+      "rpt_villainCard": {
+        "title": "Corak hubungan yang meletihkan",
+        "description": "Hubungan yang menguras tenaga dan batas yang perlu dijaga"
+      },
+      "astro_basic_deep_pack": {
+        "title": "Bacaan asas astrologi mendalam",
+        "description": "Diri yang terlihat dan kehendak hati anda"
+      },
+      "astro_stellar_career_room": {
+        "title": "Kerja dan peranan",
+        "description": "Peranan yang menyerlahkan kebolehan dan gaya kerja anda"
+      },
+      "astro_stellar_talent_room": {
+        "title": "Bakat dan tarikan",
+        "description": "Cara minat menjadi kekuatan dan daya tarikan"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "Pintu hubungan",
+        "description": "Syarat untuk membuka hati dan jarak bagi hubungan berkekalan"
+      },
+      "astro_stellar_growth_room": {
+        "title": "Cabaran dan perubahan",
+        "description": "Pilihan yang boleh diubah apabila kesukaran berulang"
+      },
+      "astro_career_talent_deep": {
+        "title": "Kerjaya dan bakat terperinci",
+        "description": "Kekuatan yang dihargai di tempat kerja dan corak yang meletihkan"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "Bakat dan daya tarikan mendalam",
+        "description": "Saat daya tarikan dan dorongan anda terserlah"
+      },
+      "astro_relationship_deep": {
+        "title": "Hubungan dan tarikan mendalam",
+        "description": "Sebab tarikan dan penyesuaian yang diperlukan dalam hubungan"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "Pertumbuhan dan dalaman mendalam",
+        "description": "Memahami sisi lain kekuatan dan cara memulihkan diri"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "Dua belas istana Ziwei",
+        "description": "Kekuatan dan cabaran dalam pelbagai bidang kehidupan"
+      },
+      "ziwei_love_deep": {
+        "title": "Istana pasangan Ziwei",
+        "description": "Jangkaan dan reaksi berulang dalam hubungan rapat"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "Simbolisme Ziwei",
+        "description": "Membaca simbol bintang sebagai pilihan harian"
+      },
+      "ziwei_decade_luck": {
+        "title": "Kitaran dekad Ziwei",
+        "description": "Tema utama kehidupan yang berubah mengikut fasa"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "Kitaran kehidupan dan tahunan Ziwei",
+        "description": "Arah tahun ini dalam perjalanan besar kehidupan"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "Sifat Sukuyo mendalam",
+        "description": "Reaksi semula jadi dan cara menjaga hati"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "Panduan hubungan Sukuyo",
+        "description": "Jarak dan rentak komunikasi dalam setiap hubungan"
+      },
+      "vedic_basic_reading": {
+        "title": "Bacaan carta kelahiran Veda",
+        "description": "Sifat dan rentak hidup melalui carta kelahiran"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "Keserasian Sukuyo terperinci",
+        "description": "Corak hubungan dua orang dan nasihat tindakan praktikal"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "Bacaan tarot tiga kad",
+        "description": "Aliran tiga kad pilihan dan nasihat praktikal"
+      }
     }
   }
 }

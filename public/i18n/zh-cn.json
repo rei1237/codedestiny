@@ -2214,6 +2214,11 @@
       "emailChart": "加选命局、命盘解读 +{amount}韩元",
       "emailMax": "每题最高{amount}韩元",
       "unlockPrice": "{amount}韩元解锁"
+    },
+    "playPrice": {
+      "from": "{price}起",
+      "unlock": "{price}解锁",
+      "perUse": "每次{price}"
     }
   },
   "terms": {
@@ -21753,6 +21758,159 @@
       "hour": "出生时间不明者，不纳入其时柱作用。",
       "story": "四个篇章连接不同生活领域，并非预言事件顺序或发生时间。",
       "relations": "合不代表自动合化；怨嗔、鬼门不能作为判断出轨、精神疾病或关系结局的依据。"
+    }
+  },
+  "honeyUI": {
+    "retryLater": "请稍后重试。",
+    "confirm": "使用{cost}滴蜂蜜解锁{title}？",
+    "costBalance": "需要{cost}滴蜂蜜 · 当前{balance}滴",
+    "perUseCondition": "蜂蜜用于本次请求。新的合盘或卡牌解读需再次使用。",
+    "birthCondition": "按所选档案的出生信息解锁。同一账号、同一出生信息再次查看不额外消耗蜂蜜。",
+    "openCost": "用{cost}滴蜂蜜解锁",
+    "loginBalance": "登录后查看",
+    "failed": "加载失败",
+    "count": "{count}滴",
+    "loading": "正在查询",
+    "attended": "今日已签到",
+    "attend": "签到",
+    "balanceError": "无法加载蜂蜜数量，请重试。",
+    "collected": "已收集{amount}滴蜂蜜！目前有{balance}滴。",
+    "eligible": "可使用蜂蜜",
+    "choice": "立即解锁，或签到收集蜂蜜后解锁",
+    "unlocked": "已解锁",
+    "cashOrHoney": "{price}或{cost}滴蜂蜜",
+    "openNow": "立即解锁",
+    "cashLabel": "{title} · {price}解锁",
+    "honeyLabel": "{title} · 用{cost}滴蜂蜜解锁",
+    "openHoney": "用蜂蜜解锁",
+    "profileNeeded": "请保存出生档案，或选择已保存的档案。",
+    "unlocking": "正在确认解锁…",
+    "unlockError": "请再次确认解锁结果。",
+    "collectHint": "可在首页签到卡每天收集。",
+    "retryButtonHint": "请点击同一按钮重试。",
+    "usesLoading": "正在查询可用内容与解锁状态。",
+    "guestHint": "登录后可查看余额。",
+    "balanceRetry": "无法查询余额，请在签到卡重试。",
+    "balance": "蜂蜜余额：{balance}滴",
+    "selectedProfile": "按所选档案",
+    "chooseProfile": "选择档案后查看解锁状态",
+    "groupCount": "{count}项 · {range}滴",
+    "unlockedNoExtra": "已解锁 · 无额外消耗",
+    "cost": "{cost}滴蜂蜜",
+    "perUseShort": "每次新合盘或卡牌解读均需使用",
+    "birthShort": "同账号、同出生信息再次查看不额外消耗",
+    "shortfall": "再收集{count}滴即可解锁。",
+    "ownershipError": "请在运势页面再次确认解锁状态。",
+    "viewUnlocked": "查看已解锁内容",
+    "viewGroup": "前往{group}查看",
+    "usesError": "无法加载可用内容。",
+    "retry": "重试",
+    "usageError": "无法确认使用方式，请稍后重试。",
+    "groups": {
+      "saju": "四柱",
+      "astrology": "西方占星",
+      "ziwei": "紫微斗数",
+      "sukuyo": "宿曜",
+      "vedic": "吠陀占星",
+      "tarot": "塔罗"
+    },
+    "products": {
+      "section_summary": {
+        "title": "轻量四柱解读",
+        "description": "天生气质、优势、反复模式与人生整体走向"
+      },
+      "section_daewun": {
+        "title": "四柱大运解读",
+        "description": "十年周期的变化与各阶段值得考虑的选择"
+      },
+      "rpt_specialCharmCard": {
+        "title": "我的魅力类型",
+        "description": "自然传递给他人的个人魅力"
+      },
+      "rpt_skillTreeCard": {
+        "title": "人生技能树",
+        "description": "发挥优势的方法与下一步成长方向"
+      },
+      "rpt_villainCard": {
+        "title": "消耗型关系清单",
+        "description": "让你疲惫的关系模式与需要守住的界限"
+      },
+      "astro_basic_deep_pack": {
+        "title": "占星基础深度解读",
+        "description": "外在展现的自我与内心期待的自我"
+      },
+      "astro_stellar_career_room": {
+        "title": "工作与角色",
+        "description": "能发挥能力的角色与适合你的工作方式"
+      },
+      "astro_stellar_talent_room": {
+        "title": "才华与吸引力",
+        "description": "喜爱的事物如何转化为优势与魅力"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "关系之门",
+        "description": "敞开心扉的条件与长久相处的距离"
+      },
+      "astro_stellar_growth_room": {
+        "title": "课题与变化",
+        "description": "面对反复困难时可调整的选择"
+      },
+      "astro_career_talent_deep": {
+        "title": "事业与才华精解",
+        "description": "工作中受认可的优势与消耗模式"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "才华与魅力深解",
+        "description": "个人好感与行动力展现的场景"
+      },
+      "astro_relationship_deep": {
+        "title": "关系与吸引力深解",
+        "description": "被吸引的原因与关系中需要的协调"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "成长与内在深解",
+        "description": "理解优势的另一面与恢复平衡的方法"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "紫微斗数十二宫解读",
+        "description": "不同生活领域中的优势与课题"
+      },
+      "ziwei_love_deep": {
+        "title": "紫微斗数夫妻宫解读",
+        "description": "亲密关系中反复出现的期待与反应"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "紫微斗数象征解读",
+        "description": "将星曜象征转化为生活中的选择"
+      },
+      "ziwei_decade_luck": {
+        "title": "紫微斗数大限走势",
+        "description": "各阶段变化的人生核心主题"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "紫微斗数一生与流年",
+        "description": "在人生大趋势中寻找今年的方向"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "宿曜本性深解",
+        "description": "天生反应与照顾内心的方法"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "宿曜缘分图鉴",
+        "description": "不同缘分中的距离与沟通节奏"
+      },
+      "vedic_basic_reading": {
+        "title": "吠陀基础解读",
+        "description": "通过出生星盘理解气质与生活节奏"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "宿曜详细合盘",
+        "description": "两人的关系模式与具体行动建议"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "三张基础塔罗解读",
+        "description": "所选三张牌的脉络与实践建议"
+      }
     }
   }
 }

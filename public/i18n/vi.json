@@ -2214,6 +2214,11 @@
       "emailChart": "Thêm phân tích lá số +{amount} KRW",
       "emailMax": "Tối đa {amount} KRW/câu hỏi",
       "unlockPrice": "Mở khóa với {amount} KRW"
+    },
+    "playPrice": {
+      "from": "Từ {price}",
+      "unlock": "Mở khóa với {price}",
+      "perUse": "{price}/lần"
     }
   },
   "terms": {
@@ -21753,6 +21758,159 @@
       "hour": "Không xét tác động trụ giờ khi chưa rõ giờ sinh.",
       "story": "Bốn chương nối các lĩnh vực cuộc sống, không dự đoán thứ tự hay thời điểm sự kiện.",
       "relations": "Hợp không tự động hóa hành. Oán sân và quỷ môn không xác định ngoại tình, bệnh tâm thần hay kết cục quan hệ."
+    }
+  },
+  "honeyUI": {
+    "retryLater": "Vui lòng thử lại sau ít phút.",
+    "confirm": "Mở {title} bằng {cost} giọt mật ong?",
+    "costBalance": "{cost} giọt mật ong · Đang có: {balance}",
+    "perUseCondition": "Giọt mật ong dùng cho yêu cầu này. Xem độ hợp hoặc giải bài mới cần dùng thêm.",
+    "birthCondition": "Mở nội dung theo hồ sơ ngày sinh đã chọn. Xem lại bằng cùng tài khoản và thông tin sinh không tốn thêm giọt mật ong.",
+    "openCost": "Mở bằng {cost} giọt mật ong",
+    "loginBalance": "Đăng nhập để xem",
+    "failed": "Không tải được",
+    "count": "{count} giọt",
+    "loading": "Đang kiểm tra",
+    "attended": "Đã điểm danh hôm nay",
+    "attend": "Điểm danh",
+    "balanceError": "Không tải được số giọt mật ong. Vui lòng thử lại.",
+    "collected": "Bạn đã nhận {amount} giọt mật ong! Hiện có {balance} giọt.",
+    "eligible": "Có thể dùng giọt mật ong",
+    "choice": "Mở ngay hoặc điểm danh để tích giọt mật ong",
+    "unlocked": "Đã mở khóa",
+    "cashOrHoney": "{price} hoặc {cost} giọt mật ong",
+    "openNow": "Mở ngay",
+    "cashLabel": "{title} · Mở với {price}",
+    "honeyLabel": "{title} · Mở bằng {cost} giọt mật ong",
+    "openHoney": "Dùng giọt mật ong",
+    "profileNeeded": "Lưu thông tin sinh vào hồ sơ hoặc chọn hồ sơ đã lưu.",
+    "unlocking": "Đang kiểm tra quyền xem…",
+    "unlockError": "Vui lòng kiểm tra lại kết quả mở khóa.",
+    "collectHint": "Bạn có thể tích mỗi ngày qua thẻ điểm danh ở trang chủ.",
+    "retryButtonHint": "Vui lòng thử lại bằng cùng nút đó.",
+    "usesLoading": "Đang kiểm tra nội dung và trạng thái mở khóa.",
+    "guestHint": "Đăng nhập để xem số dư.",
+    "balanceRetry": "Không kiểm tra được số dư. Hãy thử lại ở thẻ điểm danh.",
+    "balance": "Giọt mật ong hiện có: {balance}",
+    "selectedProfile": "Theo hồ sơ đã chọn",
+    "chooseProfile": "Chọn hồ sơ để xem quyền truy cập",
+    "groupCount": "{count} mục · {range} giọt",
+    "unlockedNoExtra": "Đã mở khóa · Không tốn thêm",
+    "cost": "{cost} giọt mật ong",
+    "perUseShort": "Dùng cho mỗi lần xem độ hợp hoặc giải bài mới",
+    "birthShort": "Xem lại bằng cùng tài khoản và thông tin sinh không tốn thêm",
+    "shortfall": "Tích thêm {count} giọt để mở.",
+    "ownershipError": "Kiểm tra lại quyền xem ở màn hình luận giải.",
+    "viewUnlocked": "Xem luận giải đã mở",
+    "viewGroup": "Xem trong {group}",
+    "usesError": "Không tải được nội dung khả dụng.",
+    "retry": "Thử lại",
+    "usageError": "Không kiểm tra được cách dùng. Vui lòng thử lại sau.",
+    "groups": {
+      "saju": "Saju",
+      "astrology": "Chiêm tinh",
+      "ziwei": "Tử Vi Đẩu Số",
+      "sukuyo": "Tú Diệu",
+      "vedic": "Chiêm tinh Vệ Đà",
+      "tarot": "Tarot"
+    },
+    "products": {
+      "section_summary": {
+        "title": "Luận Saju cơ bản",
+        "description": "Khí chất, điểm mạnh, khuôn mẫu lặp lại và hướng đi cuộc đời"
+      },
+      "section_daewun": {
+        "title": "Đại vận Saju",
+        "description": "Thay đổi theo chu kỳ mười năm và lựa chọn trong mỗi giai đoạn"
+      },
+      "rpt_specialCharmCard": {
+        "title": "Phong cách cuốn hút",
+        "description": "Sức hút bạn tự nhiên mang đến cho người khác"
+      },
+      "rpt_skillTreeCard": {
+        "title": "Cây kỹ năng cuộc sống",
+        "description": "Cách dùng điểm mạnh và hướng phát triển tiếp theo"
+      },
+      "rpt_villainCard": {
+        "title": "Những mối quan hệ gây mệt mỏi",
+        "description": "Khuôn mẫu khiến bạn kiệt sức và ranh giới cần giữ"
+      },
+      "astro_basic_deep_pack": {
+        "title": "Luận chiêm tinh nền tảng",
+        "description": "Con người thể hiện ra ngoài và điều trái tim mong muốn"
+      },
+      "astro_stellar_career_room": {
+        "title": "Công việc và vai trò",
+        "description": "Vai trò phát huy năng lực và cách làm việc phù hợp"
+      },
+      "astro_stellar_talent_room": {
+        "title": "Tài năng và sức hút",
+        "description": "Điều yêu thích trở thành điểm mạnh và sức hút ra sao"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "Cánh cửa kết nối",
+        "description": "Điều giúp bạn mở lòng và khoảng cách cho quan hệ bền lâu"
+      },
+      "astro_stellar_growth_room": {
+        "title": "Thử thách và thay đổi",
+        "description": "Lựa chọn có thể điều chỉnh khi khó khăn lặp lại"
+      },
+      "astro_career_talent_deep": {
+        "title": "Luận sâu nghề nghiệp và tài năng",
+        "description": "Điểm mạnh được ghi nhận và khuôn mẫu gây kiệt sức trong công việc"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "Luận sâu tài năng và sức hút",
+        "description": "Những lúc sức hút và động lực của bạn thể hiện rõ"
+      },
+      "astro_relationship_deep": {
+        "title": "Luận sâu quan hệ và sự thu hút",
+        "description": "Lý do bị thu hút và cách dung hòa trong quan hệ"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "Luận sâu phát triển và nội tâm",
+        "description": "Hiểu mặt còn lại của điểm mạnh và cách phục hồi"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "Luận 12 cung Tử Vi",
+        "description": "Điểm mạnh và thử thách ở từng lĩnh vực cuộc sống"
+      },
+      "ziwei_love_deep": {
+        "title": "Luận cung Phu Thê Tử Vi",
+        "description": "Kỳ vọng và phản ứng lặp lại trong quan hệ gần gũi"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "Biểu tượng Tử Vi",
+        "description": "Đọc biểu tượng các sao qua lựa chọn đời thường"
+      },
+      "ziwei_decade_luck": {
+        "title": "Đại hạn Tử Vi",
+        "description": "Chủ đề chính của cuộc sống thay đổi theo từng giai đoạn"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "Tử Vi cuộc đời và năm",
+        "description": "Hướng đi trong năm giữa dòng chảy lớn của cuộc đời"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "Bản tính Tú Diệu chuyên sâu",
+        "description": "Phản ứng tự nhiên và cách chăm sóc nội tâm"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "Cẩm nang quan hệ Tú Diệu",
+        "description": "Khoảng cách và nhịp giao tiếp trong từng mối duyên"
+      },
+      "vedic_basic_reading": {
+        "title": "Luận Vệ Đà cơ bản",
+        "description": "Khí chất và nhịp sống qua lá số sinh"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "Độ hợp Tú Diệu chi tiết",
+        "description": "Khuôn mẫu quan hệ giữa hai người và lời khuyên thực tế"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "Giải ba lá Tarot cơ bản",
+        "description": "Mạch ý nghĩa của ba lá đã chọn và lời khuyên thực hành"
+      }
     }
   }
 }

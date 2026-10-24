@@ -2214,6 +2214,11 @@
       "emailChart": "Geburtshoroskop-Deutung ergänzen +{amount} KRW",
       "emailMax": "Bis zu {amount} KRW je Frage",
       "unlockPrice": "Für {amount} KRW freischalten"
+    },
+    "playPrice": {
+      "from": "Ab {price}",
+      "unlock": "Für {price} freischalten",
+      "perUse": "{price} je Deutung"
     }
   },
   "terms": {
@@ -21753,6 +21758,159 @@
       "hour": "Bei unbekannter Geburtszeit werden Wirkungen des Stundenpfeilers ausgelassen.",
       "story": "Die vier Kapitel verbinden Lebensbereiche; sie sagen weder Reihenfolge noch Zeitpunkt von Ereignissen voraus.",
       "relations": "Eine Verbindung bedeutet keine automatische Elementumwandlung. Wonjin und Gwimun belegen weder Untreue noch psychische Erkrankungen oder den Ausgang einer Beziehung."
+    }
+  },
+  "honeyUI": {
+    "retryLater": "Bitte versuche es gleich noch einmal.",
+    "confirm": "{title} mit {cost} Honigtropfen öffnen?",
+    "costBalance": "{cost} Honigtropfen · Guthaben: {balance}",
+    "perUseCondition": "Die Tropfen gelten für diese Anfrage. Neue Partner- oder Kartendeutungen benötigen erneut Tropfen.",
+    "birthCondition": "Der Inhalt wird für das gewählte Geburtsprofil geöffnet. Erneutes Ansehen mit demselben Konto und Geburtsdaten kostet keine weiteren Tropfen.",
+    "openCost": "Mit {cost} Tropfen öffnen",
+    "loginBalance": "Zum Prüfen anmelden",
+    "failed": "Laden fehlgeschlagen",
+    "count": "{count} Tropfen",
+    "loading": "Wird geprüft",
+    "attended": "Heute eingecheckt",
+    "attend": "Einchecken",
+    "balanceError": "Deine Honigtropfen konnten nicht geladen werden. Bitte versuche es erneut.",
+    "collected": "Du hast {amount} Tropfen gesammelt! Guthaben: {balance}.",
+    "eligible": "Honigtropfen nutzbar",
+    "choice": "Jetzt öffnen oder durch Einchecken Tropfen sammeln",
+    "unlocked": "Freigeschaltet",
+    "cashOrHoney": "{price} oder {cost} Honigtropfen",
+    "openNow": "Jetzt öffnen",
+    "cashLabel": "{title} · Für {price} öffnen",
+    "honeyLabel": "{title} · Mit {cost} Tropfen öffnen",
+    "openHoney": "Honigtropfen nutzen",
+    "profileNeeded": "Speichere deine Geburtsdaten als Profil oder wähle ein gespeichertes Profil.",
+    "unlocking": "Zugriff wird geprüft…",
+    "unlockError": "Bitte prüfe die Freischaltung erneut.",
+    "collectHint": "Sammle täglich Tropfen über die Check-in-Karte auf der Startseite.",
+    "retryButtonHint": "Versuche es mit derselben Schaltfläche erneut.",
+    "usesLoading": "Inhalte und Freischaltungen werden geprüft.",
+    "guestHint": "Melde dich an, um dein Guthaben zu sehen.",
+    "balanceRetry": "Guthaben nicht verfügbar. Versuche es über die Check-in-Karte erneut.",
+    "balance": "Honigtropfen-Guthaben: {balance}",
+    "selectedProfile": "Für das gewählte Profil",
+    "chooseProfile": "Profil wählen, um den Zugriff zu prüfen",
+    "groupCount": "{count} Inhalte · {range} Tropfen",
+    "unlockedNoExtra": "Freigeschaltet · Keine weiteren Tropfen",
+    "cost": "{cost} Honigtropfen",
+    "perUseShort": "Für jede neue Partner- oder Kartendeutung erforderlich",
+    "birthShort": "Erneutes Ansehen mit demselben Konto und Geburtsdaten kostet keine weiteren Tropfen",
+    "shortfall": "Sammle noch {count} Tropfen zum Öffnen.",
+    "ownershipError": "Prüfe den Zugriff auf der Deutungsseite erneut.",
+    "viewUnlocked": "Freigeschaltete Deutung ansehen",
+    "viewGroup": "In {group} ansehen",
+    "usesError": "Inhalte konnten nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "usageError": "Die Nutzung konnte nicht geprüft werden. Versuche es gleich noch einmal.",
+    "groups": {
+      "saju": "Saju",
+      "astrology": "Astrologie",
+      "ziwei": "Ziwei Doushu",
+      "sukuyo": "Sukuyo",
+      "vedic": "Vedische Astrologie",
+      "tarot": "Tarot"
+    },
+    "products": {
+      "section_summary": {
+        "title": "Leichte Saju-Deutung",
+        "description": "Temperament, Stärken, wiederkehrende Muster und Lebensrichtung"
+      },
+      "section_daewun": {
+        "title": "Saju-Zehnjahreszyklen",
+        "description": "Veränderungen je Jahrzehnt und Entscheidungen in jeder Phase"
+      },
+      "rpt_specialCharmCard": {
+        "title": "Dein Charmeprofil",
+        "description": "Der Charme, den du natürlich auf andere ausstrahlst"
+      },
+      "rpt_skillTreeCard": {
+        "title": "Lebens-Skillbaum",
+        "description": "Stärken nutzen und den nächsten Entwicklungsschritt finden"
+      },
+      "rpt_villainCard": {
+        "title": "Belastende Beziehungsmuster",
+        "description": "Beziehungen, die Kraft kosten, und wichtige Grenzen"
+      },
+      "astro_basic_deep_pack": {
+        "title": "Grundlegende Astrologie-Deutung",
+        "description": "Dein äußeres Selbst und die Wünsche deines Herzens"
+      },
+      "astro_stellar_career_room": {
+        "title": "Arbeit und Rollen",
+        "description": "Rollen, die deine Fähigkeiten fördern, und deine Arbeitsweise"
+      },
+      "astro_stellar_talent_room": {
+        "title": "Talent und Anziehung",
+        "description": "Wie Vorlieben zu Stärken und Ausstrahlung werden"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "Türen zu Beziehungen",
+        "description": "Was dich öffnet und welche Nähe langfristig trägt"
+      },
+      "astro_stellar_growth_room": {
+        "title": "Aufgaben und Wandel",
+        "description": "Entscheidungen, die du bei wiederkehrenden Problemen ändern kannst"
+      },
+      "astro_career_talent_deep": {
+        "title": "Beruf und Talent im Detail",
+        "description": "Anerkannte Stärken im Beruf und belastende Muster"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "Talent und Charme im Detail",
+        "description": "Momente, in denen Ausstrahlung und Tatkraft sichtbar werden"
+      },
+      "astro_relationship_deep": {
+        "title": "Beziehung und Anziehung im Detail",
+        "description": "Gründe für Anziehung und nötige Abstimmung in Beziehungen"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "Wachstum und Innenleben",
+        "description": "Die Kehrseite deiner Stärken verstehen und Balance finden"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "Die zwölf Ziwei-Paläste",
+        "description": "Stärken und Aufgaben in verschiedenen Lebensbereichen"
+      },
+      "ziwei_love_deep": {
+        "title": "Ziwei-Partnerschaftspalast",
+        "description": "Wiederkehrende Erwartungen und Reaktionen in engen Beziehungen"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "Ziwei-Symbolik",
+        "description": "Sternsymbole als Entscheidungen im Alltag lesen"
+      },
+      "ziwei_decade_luck": {
+        "title": "Ziwei-Zehnjahreszyklen",
+        "description": "Zentrale Lebensthemen im Wandel der Phasen"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "Ziwei-Lebens- und Jahreszyklen",
+        "description": "Die Richtung dieses Jahres im größeren Lebensverlauf"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "Sukuyo-Wesen im Detail",
+        "description": "Angeborene Reaktionen und Wege, dein Inneres zu pflegen"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "Sukuyo-Beziehungsführer",
+        "description": "Abstand und Kommunikationsrhythmen in verschiedenen Beziehungen"
+      },
+      "vedic_basic_reading": {
+        "title": "Vedische Geburtshoroskop-Deutung",
+        "description": "Temperament und Lebensrhythmen anhand deines Geburtshoroskops"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "Sukuyo-Partnerdeutung im Detail",
+        "description": "Beziehungsmuster zweier Menschen und konkrete Handlungstipps"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "Drei-Karten-Tarotdeutung",
+        "description": "Der Zusammenhang deiner drei Karten und praktische nächste Schritte"
+      }
     }
   }
 }

@@ -1,0 +1,23 @@
+{
+  "verifiedAt": "2026-10-25",
+  "verificationType": "read-only Play Console inspection",
+  "packageName": "com.codedestiny.app",
+  "productId": "cd_pass_standard_30d_v4",
+  "purchaseOptionId": "purchase",
+  "activeCountries": {
+    "KR": { "currency": "KRW", "amount": "9900" },
+    "JP": { "currency": "JPY", "amount": "1290" },
+    "US": { "currency": "USD", "amount": "7.49" },
+    "GB": { "currency": "GBP", "amount": "6.49" },
+    "CA": { "currency": "CAD", "amount": "9.99" },
+    "AU": { "currency": "AUD", "amount": "11.99" },
+    "NZ": { "currency": "NZD", "amount": "14.99" },
+    "IE": { "currency": "EUR", "amount": "7.99" }
+  },
+  "implementationSource": "Server-selected SKU and Play ProductDetails formattedPrice. This evidence file is not a runtime price registry.",
+  "uiLanguageChangesBillingCountry": false,
+  "pricesEdited": false,
+  "purchaseTested": false,
+  "restoreTested": false,
+  "newAppBuildCreated": false
+}

@@ -10,6 +10,8 @@ import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 import { checkoutEntryRuntime } from "@/app/_lib/legacy-core-runtime";
 import { useLocale, useTPick } from "@/lib/i18n/useT";
+import playDisplayPrice from "@/js/core/play-display-price.js";
+import { authFetch } from "@/app/_lib/auth-client";
 
 export type ServerPriceInput = {
   featureKey?: string;
@@ -25,7 +27,7 @@ export type ServerPriceState = {
   label: string;
   amountKRW: number;
   loading: boolean;
-  source: "registry" | "fallback";
+  source: "registry" | "fallback" | "google-play";
 };
 
 /**
@@ -171,10 +173,8 @@ export function appendReferenceApprox(
 }
 
 /**
- * Price display is intentionally local and synchronous. The Worker pricing
- * registry is imported as the canonical build-time source, so cards do not
- * request /api/billing/features just to render a matching price. Server-side
- * billing remains authoritative when an order or access decision is made.
+ * Web prices use the registry. App sale labels use the server-selected Play SKU.
+ * amountKRW remains the registry amount; local currency labels never feed billing.
  */
 export function useServerPrice(input: ServerPriceInput): ServerPriceState {
   const key = priceCacheKey(input);
@@ -198,11 +198,30 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
   const cached = hasQuery ? resolveCachedRegistryPrice(input) : null;
   const fallback = hasQuery ? "" : resolveFallbackLabel(input);
 
-  const [state, setState] = useState<ServerPriceState>(() => cached
+  const [state, setState] = useState<ServerPriceState>(() => playDisplayPrice.isApp()
+    ? { label: "", amountKRW: cached?.amountKRW || 0, loading: true, source: "google-play" }
+    : cached
     ? { label: formatResolvedPrice(cached, locale), amountKRW: cached.amountKRW, loading: false, source: "registry" }
     : { label: fallback, amountKRW: 0, loading: false, source: "fallback" });
 
   useEffect(() => {
+    if (playDisplayPrice.isApp()) {
+      let active = true;
+      let revision = 0;
+      const amountKRW = resolveCachedRegistryPrice(input)?.amountKRW || 0;
+      const refresh = async () => {
+        const current = ++revision;
+        setState({ label: "", amountKRW, loading: true, source: "google-play" });
+        const result = hasQuery ? await playDisplayPrice.read(input, authFetch) : null;
+        if (active && revision === current) setState({
+          label: result?.freeInApp ? pick("home.concernPick.price.free", "무료") || "" : result?.formattedPrice || "",
+          amountKRW, loading: false, source: "google-play",
+        });
+      };
+      void refresh();
+      window.addEventListener("cd:play-prices-changed", refresh);
+      return () => { active = false; window.removeEventListener("cd:play-prices-changed", refresh); };
+    }
     if (!hasQuery) {
       setState({ label: fallback, amountKRW: 0, loading: false, source: "fallback" });
       return;
@@ -223,7 +242,7 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
     setState({ label: display, amountKRW: resolved?.amountKRW || 0, loading: false, source: "registry" });
     // 레지스트리 키·로케일·개산가 문구가 이 표시 조회의 완전한 의존이다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, fallback, locale, approxTemplate]);
+  }, [key, fallback, locale, approxTemplate, pick]);
 
   return state;
 }

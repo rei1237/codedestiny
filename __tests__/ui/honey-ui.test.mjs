@@ -10,6 +10,19 @@ async function setup(mode = 'ok', options = {}) {
   const dom = new JSDOM('<body>' + widget, { url: 'https://example.test/', runScripts: 'outside-only', pretendToBeVisual: true });
   let status = mode, attendanceCalls = 0, finish;
   const win = dom.window, observers = [], animations = [];
+  const requests = [];
+  function setLocale(locale) {
+    const dictionary = JSON.parse(fs.readFileSync(new URL('../../public/i18n/' + locale.toLowerCase() + '.json', import.meta.url), 'utf8'));
+    win.document.documentElement.lang = locale;
+    win.cdGetCurrentLanguage = () => locale;
+    win.cdTranslate = (key, vars, fallback) => {
+      const value = key.split('.').reduce((node, part) => node?.[part], dictionary);
+      assert.equal(typeof value, 'string', locale + ': ' + key);
+      return (value || fallback).replace(/\{(\w+)\}/g, (_, name) => vars[name]);
+    };
+    win.dispatchEvent(new win.Event('cd:locale-ready'));
+  }
+  if (options.locale) setLocale(options.locale);
   win.matchMedia = () => ({ matches: Boolean(options.reducedMotion) });
   win.HTMLElement.prototype.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 160 });
   win.HTMLElement.prototype.animate = function () {
@@ -21,6 +34,7 @@ async function setup(mode = 'ok', options = {}) {
   win.MutationObserver = class extends Observer { constructor(callback) { super(callback); observers.push(this); } };
   win.cdBirthScopeCurrentProfileId = () => 'my-profile';
   win._cdAIPromptRequestJson = async (url, init) => {
+    requests.push({ url, method: init.method });
     if (url.endsWith('/catalog')) return { ok: true, payload: { ok: true, products: HONEY_UNLOCK_PRODUCTS, otherUses: [] } };
     if (url.includes('/unlocks?')) return {ok:true,payload:{ok:true,featureKeys:[]}};
     attendanceCalls++;
@@ -29,7 +43,7 @@ async function setup(mode = 'ok', options = {}) {
     return { ok: true, payload: { ok: true, balance: init.method === 'POST' && !options.noCredit ? 8 : 7, attended: init.method === 'POST' } };
   };
   win.eval(source); await tick();
-  return { win, animations, close: () => { observers.forEach(observer => observer.disconnect()); win.close(); }, status: value => { status = value; }, calls: () => attendanceCalls, finish: value => finish(value) };
+  return { win, animations, requests, setLocale, close: () => { observers.forEach(observer => observer.disconnect()); win.close(); }, status: value => { status = value; }, calls: () => attendanceCalls, finish: value => finish(value) };
 }
 test('guest attendance remains visible; failure is not a zero balance and retry recovers', async () => {
   const app = await setup('guest');
@@ -171,4 +185,49 @@ test('reduced motion still announces credit; no credit and failed requests never
       assert.equal(app.animations.length, 0);
     } finally { app.close(); }
   }
+});
+
+for (const locale of ['en', 'ja', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de', 'nl', 'ms']) {
+  test(locale + ': all 24 products, prices, controls and a cancelled confirmation use the locale', async () => {
+    const app = await setup('ok', { locale });
+    try {
+      const { win } = app, doc = win.document;
+      doc.body.insertAdjacentHTML('beforeend', '<button data-cd-sheet-open="cdHoneySheet">open</button><dialog id="cdHoneySheet" open><p data-cd-honey-sheet-state></p><div data-cd-honey-uses></div></dialog><button id="useHoney"></button><dialog id="cdHoneyUnlockSheet"><h3 data-honey-confirm-title></h3><p data-honey-confirm-cost></p><p data-honey-confirm-condition></p><button data-honey-confirm></button></dialog>');
+      doc.querySelector('[data-cd-sheet-open]').click(); await tick();
+      assert.equal(doc.querySelectorAll('.cd-honey-use').length, 24);
+      for (const row of doc.querySelectorAll('.cd-honey-use')) {
+        assert.doesNotMatch(row.textContent + row.querySelector('a').getAttribute('aria-label'), /[가-힣]|\{\w+\}|honeyUI\./);
+        const key = new URL(row.querySelector('a').href).searchParams.get('honeyContent');
+        const item = HONEY_UNLOCK_PRODUCTS.find(product => product.featureKey === key);
+        assert.ok(item);
+        assert.ok(row.querySelector('.cd-honey-use__meta').textContent.includes(Number(item.honeyCost).toLocaleString(locale)));
+      }
+      assert.doesNotMatch(doc.querySelector('[data-cd-honey-widget]').textContent, /[가-힣]/);
+      win.CodeDestinyShellSheet = { open() {}, close() {} };
+      const item = HONEY_UNLOCK_PRODUCTS.find(product => product.billingType === 'per_use');
+      const pending = win.CdHoney.unlockUse(doc.querySelector('#useHoney'), item.featureKey, {}, 'test-only');
+      await tick();
+      assert.doesNotMatch(doc.querySelector('#cdHoneyUnlockSheet').textContent, /[가-힣]|\{\w+\}/);
+      app.setLocale('ko'); await tick();
+      assert.match(doc.querySelector('#cdHoneyUnlockSheet').textContent, /이번 요청/);
+      app.setLocale(locale); await tick();
+      assert.doesNotMatch(doc.querySelector('#cdHoneyUnlockSheet').textContent, /[가-힣]/);
+      doc.querySelector('#cdHoneyUnlockSheet').dispatchEvent(new win.Event('cancel'));
+      assert.equal(await pending, false);
+      assert.ok(app.requests.every(request => request.method === 'GET'), 'translation and cancel must not spend or grant anything');
+    } finally { app.close(); }
+  });
+}
+test('honey cash choice shows the Play currency and retains server honey cost', async () => {
+  const app = await setup('ok', { locale: 'ja' });
+  try {
+    const { win } = app, item = HONEY_UNLOCK_PRODUCTS[0];
+    win.__cdPlayDisplayPrice = { isApp: () => true, read: async () => ({ formattedPrice: '¥650' }), label: result => result?.formattedPrice || '価格を確認' };
+    const button = win.document.createElement('button'); button.dataset.honeyCashKey = item.featureKey;
+    win.document.body.append(button); win.CdHoney.refreshLabels(); await tick();
+    assert.match(button.textContent, /¥650/);
+    assert.match(button.getAttribute('aria-label'), /¥650/);
+    assert.equal(button.nextElementSibling.querySelector('strong').textContent, item.honeyCost + '個');
+    assert.ok(app.requests.every(request => request.method === 'GET'));
+  } finally { app.close(); }
 });
