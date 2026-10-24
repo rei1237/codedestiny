@@ -10,12 +10,18 @@ const registry = read("js/core/service-registry.js");
 const template = read("templates/home-funnel.html");
 
 // 2026-10-23 강약: 대표 상담 덱 → 초융합 시그니처 띠 → 무료로 먼저(여섯 장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 질문 카테고리 → 이용권 → 모든 운세 버튼 → 작은 운세 모음 → 뮤직비디오 → 달빛 이야기.
-const flow = ['id="cdhFeatured"', 'id="cdhFusionSignatureSlot"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-consult"', 'id="cdhYeongnyangiSlot"', 'id="cdhQuestionSlot"', 'id="cdhPass"', 'data-action="cdOpenAllFortunes"', 'id="cdhLightFortunes"', 'id="cdhMoonlightMv"', 'class="cdh-story"'];
+const flow = ['id="cdhFeatured"', 'id="cdhFusionSignatureSlot"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-consult"', 'id="cdhYeongnyangiSlot"', 'id="cdhQuestionSlot"', 'id="cdhPass"', 'class="cdh-all-cta"', 'id="cdhLightFortunes"', 'id="cdhMoonlightMv"', 'class="cdh-story"'];
 for (let i = 1; i < flow.length; i += 1) {
   const prev = template.indexOf(flow[i - 1]);
   const next = template.indexOf(flow[i]);
   assert.ok(prev >= 0 && next > prev, `${flow[i - 1]} 가 ${flow[i]} 보다 먼저 와야 합니다`);
 }
+// 첫 화면 검색과 기존 하단 전체 운세 버튼은 같은 검색을 여는 별도 진입점이다.
+for (const entryClass of ['cdh-search-entry', 'cdh-all-cta__btn']) {
+  const entry = template.match(new RegExp(`<a class="${entryClass}"[^>]*>`))?.[0] || '';
+  assert.match(entry, /href="\/\?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"/, `${entryClass}는 기존 전체 운세 검색을 열어야 합니다`);
+}
+assert.ok(template.indexOf('class="cdh-search-entry"') < template.indexOf('id="cdhFeatured"'), '검색 진입점은 대표 상담 앞에서 바로 사용할 수 있어야 합니다');
 // 나머지 입구는 홈에 펼치지 않고 모든 운세 시트 하나로 연다.
 for (const gone of ['id="cdhMore"', 'id="cdhServices"', 'id="cdhConcern"', 'id="cdhTodaySlot"', 'id="cdhFlowerTitle"', 'data-cdh-chemi', '{{fusionRecommendation}}', '{{lightRecommendations}}', '{{consultationDiscovery}}']) {
   assert.ok(!template.includes(gone), `${gone} 는 홈 흐름에서 빠졌습니다`);
