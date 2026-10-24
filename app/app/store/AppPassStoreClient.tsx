@@ -1,5 +1,6 @@
 "use client";
 
+import { INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 import { CURRENT_PASS_POLICY_VERSION, currentPassPlan } from "@/lib/payment/pass-policy.js";
 import { usePassSaleAvailability } from "@/app/hooks/usePassSaleAvailability";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -12,12 +13,11 @@ import {
   consumeNativePurchase,
   getNativeBridge,
   getNativeBillingPlatform,
-  iosPurchasePreparationMessage,
   isNativeBillingReady,
   queryAppProducts,
   type AppProductDetails,
 } from "@/app/app/_lib/native-billing";
-import { useAppShellCopy, type AppShellCopy, type PassTier } from "@/app/app/_lib/copy";
+import { useAppShellLocale, getAppShellCopy, type AppShellCopy, type PassTier } from "@/app/app/_lib/copy";
 // 🔴 순수 상수 테이블이라 클라이언트 번들에 안전하게 들어간다(worker 전용 모듈을 import 하지 않는다).
 
 type PassPlan = {
@@ -42,12 +42,13 @@ function buildPassPlans(copy: AppShellCopy): PassPlan[] {
   ];
 }
 
-function buildBenefits(copy: AppShellCopy, plan: PassPlan, _coverageKRW: number | null): string[] {
+function buildBenefits(copy: AppShellCopy, plan: PassPlan, _coverageKRW: number | null, locale: LoadingLocale): string[] {
+  const won = (amount: number) => new Intl.NumberFormat(INTL_LOCALE_BY_LOADING_LOCALE[locale], { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(amount);
   const monthlyCapKRW = Number(currentPassPlan(plan.passTier)?.monthlyLimitCoin || 0) * 100;
   return [
-    "꽃돼지 서비스 전용 · 영냥이 제외",
-    copy.benefitCoverageFree(`${((currentPassPlan(plan.passTier)?.maxCoveredCoin || 0) * 100).toLocaleString("ko-KR")}원`),
-    copy.benefitMonthlyCap(`${monthlyCapKRW.toLocaleString("ko-KR")}원`),
+    copy.flowerOnlyBenefit,
+    copy.benefitCoverageFree(won((currentPassPlan(plan.passTier)?.maxCoveredCoin || 0) * 100)),
+    copy.benefitMonthlyCap(won(monthlyCapKRW)),
     copy.benefitNoTimeLimit,
   ];
 }
@@ -55,8 +56,9 @@ function buildBenefits(copy: AppShellCopy, plan: PassPlan, _coverageKRW: number 
 type PurchaseState = { tier: string; phase: "idle" | "purchasing" | "verifying" };
 
 export default function AppPassStoreClient() {
-  const copy = useAppShellCopy();
-  const passPlans = useMemo(() => buildPassPlans(copy).filter(p => p.passTier !== "family").map(p => ({ ...p, title: currentPassPlan(p.passTier)!.name, productId: currentPassPlan(p.passTier)!.appProductId })), [copy]);
+  const locale = useAppShellLocale();
+  const copy = getAppShellCopy(locale);
+  const passPlans = useMemo(() => buildPassPlans(copy).filter(p => p.passTier !== "family").map(p => ({ ...p, productId: currentPassPlan(p.passTier)!.appProductId })), [copy]);
   const saleReady = usePassSaleAvailability("googlePlay");
   const [products, setProducts] = useState<Record<string, AppProductDetails>>({});
   const [coverage, setCoverage] = useState<Record<string, number | null>>({});
@@ -73,7 +75,7 @@ export default function AppPassStoreClient() {
       setIsIOS(true);
       setNativeReady(false);
       setLoadingProducts(false);
-      setMessage(iosPurchasePreparationMessage());
+      setMessage(copy.iosPurchasePreparation);
       return;
     }
     setLoadingProducts(true);
@@ -105,7 +107,7 @@ export default function AppPassStoreClient() {
     for (const detail of details) byId[detail.productId] = detail;
     setProducts(byId);
     setLoadingProducts(false);
-  }, [productIds, passPlans]);
+  }, [productIds, passPlans, copy.iosPurchasePreparation]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void loadProducts(), 400);
@@ -160,7 +162,7 @@ export default function AppPassStoreClient() {
 
   const buy = useCallback(async (plan: PassPlan) => {
     if (getNativeBillingPlatform() === "ios") {
-      setMessage(iosPurchasePreparationMessage());
+      setMessage(copy.iosPurchasePreparation);
       return;
     }
     // 중복 탭 방지 — 결제창이 두 번 뜨면 두 번 청구된다.
@@ -256,9 +258,9 @@ export default function AppPassStoreClient() {
 
   if (isIOS) return (
     <section className="grid gap-3 px-4 pb-6" aria-label={copy.storeAriaLabel}>
-      <p className="cd-app-body" role="status">{iosPurchasePreparationMessage()}</p>
+      <p className="cd-app-body" role="status">{copy.iosPurchasePreparation}</p>
       <a className="cd-app-tap cd-app-press" href="/points/history/">
-        {typeof document !== "undefined" && document.documentElement.lang === "ja" ? "購入履歴を見る" : "구매 내역 확인하기"}
+        {copy.purchaseHistoryLabel}
       </a>
     </section>
   );
@@ -311,7 +313,7 @@ export default function AppPassStoreClient() {
               </div>
 
               <ul className="mt-3 grid list-none gap-1.5 p-0">
-                {buildBenefits(copy, plan, coverage[plan.passTier] ?? null).map((benefit) => (
+                {buildBenefits(copy, plan, coverage[plan.passTier] ?? null, locale).map((benefit) => (
                   <li key={benefit} className="flex items-center gap-2 text-[13px] leading-6" style={{ color: "var(--cd-app-ink-muted)" }}>
                     <Check className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--cd-app-gold)" }} aria-hidden="true" />
                     {benefit}
@@ -333,7 +335,7 @@ export default function AppPassStoreClient() {
                   style={{ background: "var(--cd-app-gold)", color: "var(--cd-app-on-gold)" }}
                 >
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-                  {!saleReady[plan.passTier] ? "판매 준비 중" : busy ? (purchase.phase === "verifying" ? copy.verifyingButton : copy.purchasingButton) : copy.buyButton}
+                  {!saleReady[plan.passTier] ? copy.salePreparationLabel : busy ? (purchase.phase === "verifying" ? copy.verifyingButton : copy.purchasingButton) : copy.buyButton}
                 </button>
               </div>
             </article>

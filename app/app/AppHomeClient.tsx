@@ -7,7 +7,7 @@ import MobileAppActions from "./MobileAppActions";
 import { listServiceFeatures } from "@/app/_lib/serviceFeatureRegistry";
 import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { FeatureMarketingLink, type FeatureMarketingTarget } from "@/app/components/FeatureMarketingDetailModal";
-import { useAppShellCopy, type AppShellCopy } from "./_lib/copy";
+import { getAppShellCopy, useAppShellLocale, type AppShellCopy } from "./_lib/copy";
 
 const CORE_SLUGS = [
   "saju",
@@ -65,8 +65,9 @@ function isDefined<T>(value: T | null | undefined): value is T {
 }
 
 export default function AppHomeClient() {
-  const copy = useAppShellCopy();
-  const featureBySlug = new Map(listServiceFeatures("ko").map((feature) => [feature.slug, feature]));
+  const locale = useAppShellLocale();
+  const copy = getAppShellCopy(locale);
+  const featureBySlug = new Map(listServiceFeatures(locale).map((feature) => [feature.slug, feature]));
   const features = CORE_SLUGS.map((slug) => featureBySlug.get(slug)).filter(isDefined);
   const spotlightFeatures = buildSpotlightFeatures(copy);
 

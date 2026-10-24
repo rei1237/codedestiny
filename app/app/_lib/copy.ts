@@ -43,6 +43,10 @@ export interface AppShellCopy {
   restoreCompleteText: (count: number) => string;
   restoreNoneText: string;
   restoreButtonLabel: string;
+  purchaseHistoryLabel: string;
+  salePreparationLabel: string;
+  iosPurchasePreparation: string;
+  flowerOnlyBenefit: string;
 
   // ── AppShell ──────────────────────────────────────────
   exitHintText: string;
@@ -115,6 +119,10 @@ const APP_SHELL_COPY_EN: AppShellCopy = {
   restoreCompleteText: (count) => `Restore complete: ${count} entitlement(s)`,
   restoreNoneText: "No purchase entitlements to restore.",
   restoreButtonLabel: "Restore Purchases",
+  purchaseHistoryLabel: "View purchase history",
+  salePreparationLabel: "Available soon",
+  iosPurchasePreparation: "New purchases on iPhone are being prepared. Sign in with the same account to view previous purchases.",
+  flowerOnlyBenefit: "Flower Pig services only · Yeongnyangi excluded",
 
   exitHintText: "Press once more to exit",
 
@@ -184,6 +192,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     restoreCompleteText: (count) => `복원 완료: ${count}개 권한`,
     restoreNoneText: "복원할 구매 권한이 없습니다.",
     restoreButtonLabel: "구매 복원",
+    purchaseHistoryLabel: "구매 내역 확인하기",
+    salePreparationLabel: "판매 준비 중",
+    iosPurchasePreparation: "iPhone의 새 구매 기능은 준비 중이에요. 기존 구매 내역은 같은 계정으로 확인할 수 있어요.",
+    flowerOnlyBenefit: "꽃돼지 서비스 전용 · 영냥이 제외",
 
     exitHintText: "한 번 더 누르면 종료됩니다",
 
@@ -251,6 +263,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     restoreCompleteText: (count) => `復元完了:${count}件の権限`,
     restoreNoneText: "復元する購入権限がありません。",
     restoreButtonLabel: "購入を復元",
+    purchaseHistoryLabel: "購入履歴を見る",
+    salePreparationLabel: "販売準備中",
+    iosPurchasePreparation: "iPhoneでの新規購入は準備中です。購入済みの内容は同じアカウントで確認できます。",
+    flowerOnlyBenefit: "花豚サービス専用・ヨンニャンイは対象外",
 
     exitHintText: "もう一度押すと終了します",
 
@@ -318,6 +334,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     restoreCompleteText: (count) => `恢复完成:${count}项权限`,
     restoreNoneText: "没有可恢复的购买权限。",
     restoreButtonLabel: "恢复购买",
+    purchaseHistoryLabel: "查看购买记录",
+    salePreparationLabel: "即将开售",
+    iosPurchasePreparation: "iPhone 的新购买功能正在准备中。使用同一账号即可查看已有购买记录。",
+    flowerOnlyBenefit: "仅限花猪服务 · 不含 Yeongnyangi",
 
     exitHintText: "再按一次即可退出",
 
@@ -385,6 +405,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     restoreCompleteText: (count) => `恢復完成:${count}項權限`,
     restoreNoneText: "沒有可恢復的購買權限。",
     restoreButtonLabel: "恢復購買",
+    purchaseHistoryLabel: "查看購買紀錄",
+    salePreparationLabel: "即將開賣",
+    iosPurchasePreparation: "iPhone 的新購買功能正在準備中。使用相同帳號即可查看既有購買紀錄。",
+    flowerOnlyBenefit: "僅限花豬服務 · 不含 Yeongnyangi",
 
     exitHintText: "再按一次即可退出",
 
@@ -452,6 +476,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     restoreCompleteText: (count) => `Khôi phục hoàn tất: ${count} quyền lợi`,
     restoreNoneText: "Không có quyền mua nào để khôi phục.",
     restoreButtonLabel: "Khôi phục giao dịch mua",
+    purchaseHistoryLabel: "Xem lịch sử mua hàng",
+    salePreparationLabel: "Sắp mở bán",
+    iosPurchasePreparation: "Tính năng mua mới trên iPhone đang được chuẩn bị. Đăng nhập cùng tài khoản để xem các giao dịch trước.",
+    flowerOnlyBenefit: "Chỉ dành cho dịch vụ Heo Hoa · Không gồm Yeongnyangi",
 
     exitHintText: "Nhấn thêm một lần nữa để thoát",
 
@@ -519,6 +547,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     restoreCompleteText: (count) => `बहाली पूर्ण: ${count} अधिकार`,
     restoreNoneText: "बहाल करने के लिए कोई खरीद अधिकार नहीं है।",
     restoreButtonLabel: "खरीद बहाल करें",
+    purchaseHistoryLabel: "खरीदारी का इतिहास देखें",
+    salePreparationLabel: "बिक्री की तैयारी जारी है",
+    iosPurchasePreparation: "iPhone पर नई खरीदारी की सुविधा तैयार की जा रही है। पिछली खरीदारी देखने के लिए उसी खाते से लॉग इन करें।",
+    flowerOnlyBenefit: "केवल Flower Pig सेवाएँ · Yeongnyangi शामिल नहीं",
 
     exitHintText: "बाहर निकलने के लिए फिर से दबाएँ",
 
@@ -586,6 +618,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     restoreCompleteText: (count) => `Restauración completa: ${count} derecho(s)`,
     restoreNoneText: "No hay derechos de compra para restaurar.",
     restoreButtonLabel: "Restaurar compras",
+    purchaseHistoryLabel: "Ver historial de compras",
+    salePreparationLabel: "Próximamente disponible",
+    iosPurchasePreparation: "Las nuevas compras en iPhone están en preparación. Accede con la misma cuenta para ver tus compras anteriores.",
+    flowerOnlyBenefit: "Solo servicios de Flower Pig · No incluye Yeongnyangi",
 
     exitHintText: "Pulsa una vez más para salir",
 
@@ -653,6 +689,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     restoreCompleteText: (count) => `Restauration terminée : ${count} droit(s)`,
     restoreNoneText: "Aucun droit d'achat à restaurer.",
     restoreButtonLabel: "Restaurer les achats",
+    purchaseHistoryLabel: "Voir les achats",
+    salePreparationLabel: "Bientôt disponible",
+    iosPurchasePreparation: "Les nouveaux achats sur iPhone sont en préparation. Connectez-vous au même compte pour consulter vos achats précédents.",
+    flowerOnlyBenefit: "Services Flower Pig uniquement · Yeongnyangi exclu",
 
     exitHintText: "Appuyez encore une fois pour quitter",
 
@@ -720,6 +760,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     restoreCompleteText: (count) => `Wiederherstellung abgeschlossen: ${count} Berechtigung(en)`,
     restoreNoneText: "Keine Kaufberechtigungen zum Wiederherstellen.",
     restoreButtonLabel: "Käufe wiederherstellen",
+    purchaseHistoryLabel: "Kaufhistorie ansehen",
+    salePreparationLabel: "Bald verfügbar",
+    iosPurchasePreparation: "Neue Käufe auf dem iPhone werden vorbereitet. Melde dich mit demselben Konto an, um frühere Käufe anzusehen.",
+    flowerOnlyBenefit: "Nur Flower-Pig-Dienste · Ohne Yeongnyangi",
 
     exitHintText: "Noch einmal drücken zum Beenden",
 
@@ -787,6 +831,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     restoreCompleteText: (count) => `Herstel voltooid: ${count} recht(en)`,
     restoreNoneText: "Geen aankooprechten om te herstellen.",
     restoreButtonLabel: "Aankopen herstellen",
+    purchaseHistoryLabel: "Aankoopgeschiedenis bekijken",
+    salePreparationLabel: "Binnenkort beschikbaar",
+    iosPurchasePreparation: "Nieuwe aankopen op iPhone worden voorbereid. Log in met hetzelfde account om eerdere aankopen te bekijken.",
+    flowerOnlyBenefit: "Alleen Flower Pig-diensten · Exclusief Yeongnyangi",
 
     exitHintText: "Druk nog een keer om af te sluiten",
 
@@ -854,6 +902,10 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     restoreCompleteText: (count) => `Pemulihan selesai: ${count} kelayakan`,
     restoreNoneText: "Tiada kelayakan pembelian untuk dipulihkan.",
     restoreButtonLabel: "Pulihkan pembelian",
+    purchaseHistoryLabel: "Lihat sejarah pembelian",
+    salePreparationLabel: "Jualan sedang disediakan",
+    iosPurchasePreparation: "Pembelian baharu pada iPhone sedang disediakan. Log masuk dengan akaun yang sama untuk melihat pembelian terdahulu.",
+    flowerOnlyBenefit: "Perkhidmatan Flower Pig sahaja · Tidak termasuk Yeongnyangi",
 
     exitHintText: "Tekan sekali lagi untuk keluar",
 
@@ -897,7 +949,7 @@ export function getAppShellCopy(locale: LoadingLocale): AppShellCopy {
   return APP_SHELL_COPY[locale] || APP_SHELL_COPY_EN;
 }
 
-export function useAppShellCopy(): AppShellCopy {
+export function useAppShellLocale(): LoadingLocale {
   // Match the Korean static export first, then apply the device's selected language.
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
@@ -910,5 +962,9 @@ export function useAppShellCopy(): AppShellCopy {
       window.removeEventListener("cd:locale-ready", sync);
     };
   }, []);
-  return getAppShellCopy(locale);
+  return locale;
+}
+
+export function useAppShellCopy(): AppShellCopy {
+  return getAppShellCopy(useAppShellLocale());
 }
