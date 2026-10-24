@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-10-24
-next: §R.9 1단계의 남은 셋(check_shotlist v7·v7.1 게이트, build_shotlist v7 헬퍼와 §3 샷 표, motion_audit --shotlist)을 하고 2단계 MG 데모 나머지 9개로 간다. 그 뒤 운영 배포 확인(§R.10)까지 진행한다. 먼저 "첫 행동"과 "구현된 설계"를 읽는다.
+updated: 2026-10-25
+next: "v7.2가 스테이징에 있다(c6cd78483). 운영 배포는 사용자 승인 대기(보류)다. 승인 문장이 이 대화에 없으면 배포하지 말고 한 번만 묻는다. 승인되면 운영 워크플로 → verify-deployed-sha → 운영 페이지가 1b3b5e3c9a66 키를 쓰는지 확인 → _prev_v71 삭제·status: done."
 ---
 
 # HEAVEN LIGHT MV v7.1 — P3R식 모션 그래픽 재연출, MD·GK 스틸 우선, 배포까지
@@ -12,6 +12,17 @@ next: §R.9 1단계의 남은 셋(check_shotlist v7·v7.1 게이트, build_shotl
 - "그런 모션 그래픽으로 헤븐라이트 뮤비를 더 개선해주고 참고하라고 준 페르소나3 리로드 연출 기법을 적극적으로 활요해"
 - v7.1(2026-10-24): "이미지도 새롭게 다시 만들거나 달빛 운명 여행이나 GOLDEN KINDNESS 이미지를 통해서 더 연출을 좋게 수정해서 배포해주도록해서 다시 작성해줘 프롬프트를"
 - 컨셉: 흑월이 흑막, 서한비는 속은 숙요점 마스터이고 회개한다. DEST1NOVA 멤버 컷은 없앤다. 총은 승인된 NE01 한 장에만 나온다.
+
+## v7.2 결과 (2026-10-25, 이 절이 아래보다 우선한다)
+
+- 사용자 요청: 인트로·검은 손을 이미지 생성으로 고급스럽게, 부자연스러운 컷은 다시 만들거나 기존 MV 컷으로, 이야기는 "위기의 연이를 영냥이가 네오로서 구하고, 잘못된 길을 걸은 서한비를 용서한다".
+- 결정: 2톤 레이어만 은퇴(스틸의 흑월 그레이드는 유지), 검은 손은 그림 속에 그려진 것만(K7 매트 은퇴). 기획 정본은 `05_PROJECT\hl_mv7\PLAN_v7.md` §R.13.
+- 새 스틸 19장 + 이식 2장, 이미지 누계 297/300. DEST1NOVA 0컷, H 0.829, 중복 0.
+- 마스터 `06_OUTPUT_v7inal\HEAVEN_LIGHT_MV_{nosub,lyrics}_1080p30.mp4`(sha 700961a80909…), qc 6항목 PASS. motion_audit 저움직임 0.144, 박 안 컷 0.935(구간 기준 0.982).
+- R2 새 키 `heaven-light-1080p-1b3b5e3c9a66.mp4` · `heaven-light-720p-32d0f924db93.mp4`, r2_verify ALL PASS. v7.1 키(8a0332259f52·58375a4f4483)는 고아, 운영 키(688d63fe6f03·34479f42d083)는 보존. 둘 다 지우지 않는다.
+- 사이트: df5e0bff7(SOURCES·`heaven-light-v72-ch*` 썸네일) + c6cd78483(사이트맵 서명). 스테이징 Pages·Worker c6cd78483 PASS, 청크에 새 키 확인.
+- 남은 후속: V062/V106/V107 세 번째 패널이 안 보임, V025(50.2)·V112(190.9) 박 밖 카메라 이동, Browser Shadow CI 실패(이전부터), origin/main의 독립 결제 페이지 `?v=` 핀이 낡음(ac35e2abf 이후, check:fast 경고).
+- 렌더 함정: 다른 세션의 node 개발 서버가 메모리를 다 쓰면 6 workers는 OOM이다. `--workers 3`, frame_full은 MemoryError 때 재시도한다.
 
 ## 첫 행동
 
