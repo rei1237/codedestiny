@@ -5,7 +5,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "오행과 균형 가이드 | 꿀꿀 운세",
+    "metadata.title": "사주 오행 분석·목화토금수 균형 보는 법 | 꿀꿀 운세",
     heading: "오행과 균형 가이드",
     "section.scope": "오행이 살피는 것",
     "section.inputs": "필요한 입력값",
@@ -75,8 +75,9 @@ export function generateMetadata() {
     path: "/saju/five-elements",
     title: fiveElementsGuideText("metadata.title"),
     description:
-      "사주 오행의 목화토금수 균형을 어떻게 읽는지와 입력값, 해석 흐름, 샘플 리딩, 주의사항을 안내합니다.",
-    keywords: ["오행", "사주 오행", "목화토금수", "오행 균형", "명리학", "꿀꿀운세"],
+      "사주 오행의 목화토금수 균형을 읽는 법과 오행 분석 흐름, 샘플 리딩, 주의사항을 안내합니다. 용신 찾기(억부·조후)는 이어지는 가이드에서 볼 수 있습니다.",
+    // 사주 오행 보는법·오행 분석·음양오행은 2026-10-24 자동완성 근거. 용신 찾기 정보형은 /insights/yongshin-finding-method-practical-guide 가 대표 URL이다.
+    keywords: ["오행", "사주 오행", "목화토금수", "오행 균형", "명리학", "꿀꿀운세", "사주 오행 보는법", "오행 분석", "음양오행"],
   });
 }
 
@@ -110,6 +111,11 @@ const faqItems = [
     question: "강한 오행은 항상 장점인가요?",
     answer:
       "강한 오행은 재능처럼 드러나기도 하지만 과하면 피로와 고집, 관계의 마찰로 나타날 수 있습니다. 잘 쓰는 힘일수록 쉬는 리듬과 조율이 함께 필요합니다.",
+  },
+  {
+    question: "오행 분포를 보면 용신도 바로 알 수 있나요?",
+    answer:
+      "바로 정해지지는 않습니다. 일간이 너무 강하거나 약할 때 균형을 맞추는 억부용신, 태어난 계절의 추위·더위를 조절하는 조후용신처럼 기준에 따라 같은 명식에서도 다른 오행이 나올 수 있습니다. 오행 분포는 그 판단의 출발점이며, 기준별 차이는 아래 용신 찾기 가이드에서 이어서 볼 수 있습니다.",
   },
 ];
 
@@ -201,6 +207,8 @@ export default function SajuFiveElementsPage() {
         <Link href="/saju/ten-gods" className="cd-chip">십성 가이드</Link>
         <Link href="/saju/destiny-anatomy" className="cd-chip">사주 뇌구조와 운명 구조도</Link>
         <Link href="/manse" className="cd-chip">만세력 보기</Link>
+        <Link href="/insights/yongshin-finding-method-practical-guide" className="cd-chip">용신 찾기: 억부·조후·격국</Link>
+        <Link href="/insights/five-elements-ohang-complete-guide" className="cd-chip">오행 상생·상극·음양 가이드</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>
       </nav>

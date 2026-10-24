@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import AnimalDestinyRouteClient from "./AnimalDestinyRouteClient";
 import YehwaCard from "../../components/service-intro/YehwaCard";
 
 const ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "십이운성 동물점 무료 | 내 운명의 동물 보는 곳 — 동물 도감",
+    title: "십이운성 동물점 무료 | 내 십이운성 계산·운명의 동물 도감",
     description: "생년월일로 세운 사주의 십이운성 흐름에서 나만의 운명 동물을 무료로 찾아 드립니다. 핵심 성향과 관계, 일과 재물 감각, 지금 단계의 성장 미션을 봅니다.",
   },
   en: {
@@ -22,6 +23,9 @@ const animalDestinyPageCopy = ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS.ko;
 export const metadata: Metadata = {
   title: animalDestinyPageCopy.title,
   description: animalDestinyPageCopy.description,
+  // 도구형 십이운성 검색어만 둔다. 뜻·보는법 정보형은 /insights/saju-12-unseong-complete-guide 가 대표 URL이다.
+  //   근거: 2026-10-24 네이버·구글 자동완성(docs/seo/keyword-research-2026-10).
+  keywords: ["십이운성", "십이운성 동물점", "사주 십이운성", "십이운성 계산", "내 십이운성", "운명의 동물", "동물점"],
   alternates: {
     canonical: "https://code-destiny.com/saju/animal-destiny",
   },
@@ -83,7 +87,18 @@ export default function Page() {
           어디에서 조심스러워지고 어디에서 대담해지는지, 어떤 사람 곁에서 더 부드러워지고 어떤 일 앞에서 다시 힘을 얻는지를 읽으면
           삶의 리듬은 조금 더 선명하고 편안하게 돌아오기 시작합니다.
         </p>
+        <p>
+          계산은 일간을 기준으로 연·월·일·시 네 기둥의 지지가 각각 십이운성의 어느 단계에 있는지 표에서 찾는 방식입니다.
+          장생은 시작, 목욕은 흔들림과 매력, 관대는 자립, 건록은 자기 힘, 제왕은 절정, 쇠는 노련한 물러섬, 병은 예민한 감수성,
+          사는 정리와 몰입, 묘는 저장, 절은 끊고 다시 잇는 전환, 태는 잉태된 가능성, 양은 보살핌 속의 준비를 상징하며,
+          대표 동물은 일지의 단계로 정합니다.
+        </p>
         </details>
+        <p className="mt-2">
+          <Link href="/insights/saju-12-unseong-complete-guide" className="font-semibold underline underline-offset-4">
+            십이운성 뜻과 보는 법 자세히 보기
+          </Link>
+        </p>
         </YehwaCard>
       </section>
       <AnimalDestinyRouteClient />
