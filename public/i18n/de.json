@@ -17169,11 +17169,13 @@
       },
       "sceneAria": "Yeoni is preparing your reading",
       "loadingAlt": "A loading scene with a moonlit cup rising",
-      "yeoniAria": "Yeoni handing over the cup",
+      "yeoniAria": "Yeoni gießt Tee aus einer Kanne",
       "progressAria": "Reading generation progress",
       "delayNotice": "Your reading is still being written. You can check its progress again in My readings.",
       "retryNotice": "If the flow breaks, you can try the same question again from the input screen.",
-      "libraryLink": "Continue in My readings"
+      "libraryLink": "Continue in My readings",
+      "introduction": "Wie Tee, der langsam zieht, wählen wir Worte, die zu deiner Geschichte passen.",
+      "waitingTitle": "Wir bereiten deine Deutung\nmit Sorgfalt vor"
     },
     "sajuPillarBoard": {
       "eyebrow": "The birth chart under moonlight",
@@ -17793,11 +17795,12 @@
       "welcomeNote": "It's okay to share something difficult to say. We'll explore the grounds relevant to your question.",
       "stepLabel": "Question and details · 1 / 3",
       "questionTitle": "What would you like to explore together?",
-      "questionGuide": "Write your question first, then choose a reading. Only the details needed for that method are requested.",
+      "questionGuide": "Prüfe dein gespeichertes Profil oder deine Geburtsdaten und schreibe dann deine Frage.",
       "reviewButton": "Review scope and price",
       "leapMonth": "Lunar leap month",
       "longitudeLabel": "Birthplace longitude (optional)",
-      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude."
+      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude.",
+      "changeMode": "Beratungsart ändern"
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -20564,6 +20567,12 @@
       "directTitle": "Yeonis Antwort",
       "guidanceTitle": "Was Sie tun können",
       "cautionTitle": "Worauf Sie achten sollten"
+    },
+    "completionGreeting": {
+      "title": "Dein Tee ist fertig",
+      "message": "Lies in Ruhe die Worte, die Yeoni für dich vorbereitet hat.",
+      "action": "Beratung lesen",
+      "portrait": "Yeoni reicht den Tee mit beiden Händen"
     }
   },
   "fortuneVar": {

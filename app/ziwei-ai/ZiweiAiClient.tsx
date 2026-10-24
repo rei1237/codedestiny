@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import introductionArt from "@/lib/marketing/service-introduction-art.json";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
@@ -533,15 +536,16 @@ const applyProfileSeedToZiweiForm = (form: FormState, profile: AiPrefillSeed): F
   const profileGender = toZiweiGender(profile.gender);
   return {
     ...form,
-    name: profile.name || form.name,
-    gender: profileGender || form.gender,
-    birthDate: profile.birthDate || form.birthDate,
+    name: profile.name ?? form.name,
+    gender: profile.gender === undefined ? form.gender : profileGender,
+    birthDate: profile.birthDate ?? form.birthDate,
     birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
     birthTime:
       profile.birthTimeUnknown === true
         ? ""
-        : profile.birthTime || form.birthTime,
+        : profile.birthTime ?? form.birthTime,
     calendarType: profile.calendarType || form.calendarType,
+    isLeapMonth: profile.isLeapMonth ?? form.isLeapMonth,
   };
 };
 
@@ -880,8 +884,9 @@ export default function ZiweiAiPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToZiweiForm(prev, seed));
     });
   }
@@ -1200,20 +1205,13 @@ export default function ZiweiAiPage() {
       {!consultation && getCurrentLoadingLocale() === "ko" && <div className="craftedGuide"><CraftedProductDisclosure featureKey="ziwei-ai-consultation" /></div>}
       <section className="workspace">
         <ExpertValueCards theme={musungOn ? "musung" : "ziwei"} points={[musungOn ? { title: "막힌 별부터 판결", description: "명반에서 화기(化忌)가 걸린 궁을 먼저 짚고, 그 자리를 화록(化祿)으로 돌릴 구체적인 행동을 처방합니다." } : { title: "명궁의 기질", description: "명궁과 주요 별이 보여주는 기본 반응과 선택 습관을 살핍니다." }, { title: "12궁의 무대", description: "일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다." }, { title: "별의 전환점", description: "현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다." }]} />
-        <form id="ziwei-consultation-form" className="consultForm" onSubmit={handleSubmit}>
+        <form data-moonlit-form="" id="ziwei-consultation-form" className="consultForm" onSubmit={handleSubmit}>
           <div className="formHeader flex-wrap">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <Sparkles size={20} />
               <strong>별궁을 열기 위한 정보</strong>
             </div>
-            <button
-              type="button"
-              onClick={loadFormFromProfileCard}
-              className="shrink-0 rounded-lg border border-[#fbbf24]/35 bg-[#fbbf24]/10 px-3 py-2 text-xs font-bold text-[#fbbf24] transition hover:bg-[#fbbf24]/20"
-              aria-label={copy.profileLoadAria}
-            >
-              프로필 카드에서 불러오기
-            </button>
+            <SavedBirthProfilePicker onSelect={loadFormFromProfileCard} />
           </div>
 
           <label>
@@ -1240,7 +1238,7 @@ export default function ZiweiAiPage() {
           <div className="fieldRow">
             <label>
               <span>출생시간</span>
-              <input type="time" value={form.birthTime} onChange={(event) => update("birthTime", event.target.value)} disabled={busy || form.birthTimeUnknown} />
+              <BirthTimeInput  value={form.birthTime} onChange={(event) => update("birthTime", event.target.value)} disabled={busy || form.birthTimeUnknown} />
             </label>
             <label>
               <span>양력/음력</span>

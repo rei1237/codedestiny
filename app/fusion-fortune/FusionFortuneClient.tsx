@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import { fusionAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
@@ -2059,7 +2062,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   const requestAbortRef = useRef<AbortController | null>(null);
   const profileTouchedRef = useRef(false);
   const coreDialogRef = useRef<HTMLDialogElement>(null);
-  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion } = useAiProfileSeed();
   const [stageStates, setStageStates] = useState<Record<FusionStageKey, FusionStageState>>(initialStageStates);
   /** 융합 단계의 하위 진행 — 서버가 네 그룹을 병렬로 쓰고 끝나는 대로 알려 준다.
    *  phase 가 "repair" 면 미달 묶음을 보완하는 국면이라 카운터의 총량이 다르다. */
@@ -2953,7 +2956,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         <div><span>{copy.statusMethodLabel}</span><strong>{copy.statusMethodValue}</strong><small>{copy.statusMethodNote}</small></div>
         <button className={styles.coreButton} type="button" onClick={() => coreDialogRef.current?.showModal()} aria-haspopup="dialog">{copy.coreButtonLabel}</button>
       </div>
-      {<form id="fusion-form" ref={formRef} className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
+      {<form data-moonlit-form="" id="fusion-form" ref={formRef} className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
         <div className={styles.formIntro}>
           <h2>{copy.formIntroHeading}</h2>
           <p>{copy.formIntroDesc}</p>
@@ -2967,7 +2970,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
             </span>
           </p>
           {guardianHandoff && <p className={styles.handoffNotice}>{copy.guardianHandoffPrefix}<strong>{guardianHandoff.topic}</strong>{copy.guardianHandoffSuffix}</p>}
-          <button className={styles.profileReload} type="button" onClick={() => void reloadProfileSeed()}>{copy.profileReloadCta}</button>
+          <SavedBirthProfilePicker calendarMode="lunar" disabled={loading} onSelect={seed => { profileTouchedRef.current = true; setForm(previous => ({...previous, birthDate:seed.birthDate || "", birthTime:seed.birthTimeUnknown ? "" : seed.birthTime || "", birthTimeUnknown:Boolean(seed.birthTimeUnknown), calendarType:seed.calendarType || "solar", gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "unspecified", nickname:seed.name || "", birthPlaceKey:""})); }} />
         </div>
         {/* "무엇을 받는가" 를 폼 **맨 앞**에 둔다. 히어로 CTA 가 가치 섹션을 건너뛰고 이 폼으로
             바로 점프하기 때문에, 전에는 이 카드가 제출 버튼 바로 위에 있어 사용자가 입력을
@@ -2981,7 +2984,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </ul>
         <p className={styles.formSectionFirst}>{copy.formSectionBirth}</p>
         <label><span className={styles.labelRow}>{copy.birthDateLabel}<FieldSystems field="birthDate" copy={copy} /></span><input required {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => setForm({ ...form, birthDate: nextBirthDate }))} /></label>
-        <label><span className={styles.labelRow}>{copy.birthTimeLabel}<FieldSystems field="birthTime" copy={copy} /></span><input type="time" required={!form.birthTimeUnknown} disabled={Boolean(pendingPaidRequest) && form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value, birthTimeUnknown: false })} />{pendingPaidRequest && <span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> {copy.birthTimeUnknownLabel}</span>}<small>{expertCopy.required}</small></label>
+        <label><span className={styles.labelRow}>{copy.birthTimeLabel}<FieldSystems field="birthTime" copy={copy} /></span><BirthTimeInput  required={!form.birthTimeUnknown} disabled={Boolean(pendingPaidRequest) && form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value, birthTimeUnknown: false })} />{pendingPaidRequest && <span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> {copy.birthTimeUnknownLabel}</span>}<small>{expertCopy.required}</small></label>
         <label><span className={styles.labelRow}>{copy.birthPlaceLabel}<FieldSystems field="birthPlace" copy={copy} /></span><select required={!pendingPaidRequest} value={form.birthPlaceKey} onChange={(event) => setForm({ ...form, birthPlaceKey: event.target.value })}><option value="">{pendingPaidRequest ? copy.birthPlaceUnknownOption : expertCopy.selectPlace}</option>{birthPlaces.map((place) => <option key={`${place.label}-${place.lat}-${place.lon}`} value={place.label}>{place.label}</option>)}</select><small>{copy.birthPlaceNote}</small></label>
         <fieldset><legend><span className={styles.labelRow}>{copy.calendarTypeLabel}<FieldSystems field="calendarType" copy={copy} /></span></legend><label><input type="radio" checked={form.calendarType === "solar"} onChange={() => setForm({ ...form, calendarType: "solar" })} /> {copy.calendarSolarLabel}</label><label><input type="radio" checked={form.calendarType === "lunar"} onChange={() => setForm({ ...form, calendarType: "lunar" })} /> {copy.calendarLunarLabel}</label></fieldset>
         <label><span className={styles.labelRow}><span>{copy.genderLabel}<em>{copy.optionalTag}</em></span><FieldSystems field="gender" copy={copy} /></span><select value={form.gender} onChange={(event) => setForm({ ...form, gender: event.target.value })}><option value="unspecified">{copy.genderUnspecifiedOption}</option><option value="female">{copy.genderFemaleOption}</option><option value="male">{copy.genderMaleOption}</option></select></label>

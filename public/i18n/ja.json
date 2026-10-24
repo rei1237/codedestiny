@@ -17169,11 +17169,13 @@
       },
       "sceneAria": "ヨニが鑑定文を準備中",
       "loadingAlt": "月あかりの茶碗が浮かぶローディング場面",
-      "yeoniAria": "茶碗を差し出すヨニ",
+      "yeoniAria": "急須からお茶を注ぐヨニ",
       "progressAria": "鑑定文の生成の進捗",
       "delayNotice": "相談文を作成中です。相談記録から進み具合を再確認できます。",
       "retryNotice": "流れが途切れたら、入力画面から同じ質問でもう一度お試しいただけます。",
-      "libraryLink": "相談記録から続ける"
+      "libraryLink": "相談記録から続ける",
+      "introduction": "お茶がゆっくりと香りを深めるように、あなたの物語に合う言葉を選んでいます。",
+      "waitingTitle": "あなたへの物語を\n心を込めて準備しています"
     },
     "sajuPillarBoard": {
       "eyebrow": "月あかりに照らされた命式",
@@ -17793,11 +17795,12 @@
       "welcomeNote": "話しにくい悩みも大丈夫。質問に合う根拠を一緒に見ていきましょう。",
       "stepLabel": "質問と情報 · 1 / 3",
       "questionTitle": "どんな悩みを一緒に読みましょうか？",
-      "questionGuide": "先に質問を書いて相談方法を選んでください。その方法に必要な情報だけを伺います。",
+      "questionGuide": "保存したプロフィールや出生情報を確認してから、質問を書いてください。",
       "reviewButton": "内容と料金を確認する",
       "leapMonth": "旧暦の閏月",
       "longitudeLabel": "出生地の経度（任意）",
-      "longitudeHelp": "都市名から座標は推定しません。初期値はソウル126.978°です。海外出生の場合は現地の経度を入力してください。"
+      "longitudeHelp": "都市名から座標は推定しません。初期値はソウル126.978°です。海外出生の場合は現地の経度を入力してください。",
+      "changeMode": "相談方法を変更"
     },
     "resultSheet": {
       "cardOrdinal": "{index}枚目のカード ·",
@@ -20564,6 +20567,12 @@
       "directTitle": "ヨニの答え",
       "guidanceTitle": "やってみること",
       "cautionTitle": "気をつけること"
+    },
+    "completionGreeting": {
+      "title": "あなたのお茶ができました",
+      "message": "ヨニが心を込めた言葉を、ゆっくりお読みください。",
+      "action": "鑑定結果を読む",
+      "portrait": "両手でお茶を差し出すヨニ"
     }
   },
   "fortuneVar": {

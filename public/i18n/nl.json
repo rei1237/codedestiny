@@ -17169,11 +17169,13 @@
       },
       "sceneAria": "Yeoni is preparing your reading",
       "loadingAlt": "A loading scene with a moonlit cup rising",
-      "yeoniAria": "Yeoni handing over the cup",
+      "yeoniAria": "Yeoni schenkt thee uit een theepot",
       "progressAria": "Reading generation progress",
       "delayNotice": "Your reading is still being written. You can check its progress again in My readings.",
       "retryNotice": "If the flow breaks, you can try the same question again from the input screen.",
-      "libraryLink": "Continue in My readings"
+      "libraryLink": "Continue in My readings",
+      "introduction": "Zoals thee langzaam trekt, kiezen we woorden die bij jouw verhaal passen.",
+      "waitingTitle": "We bereiden jouw duiding\nmet aandacht voor"
     },
     "sajuPillarBoard": {
       "eyebrow": "The birth chart under moonlight",
@@ -17793,11 +17795,12 @@
       "welcomeNote": "It's okay to share something difficult to say. We'll explore the grounds relevant to your question.",
       "stepLabel": "Question and details · 1 / 3",
       "questionTitle": "What would you like to explore together?",
-      "questionGuide": "Write your question first, then choose a reading. Only the details needed for that method are requested.",
+      "questionGuide": "Controleer je opgeslagen profiel of geboortegegevens en schrijf daarna je vraag.",
       "reviewButton": "Review scope and price",
       "leapMonth": "Lunar leap month",
       "longitudeLabel": "Birthplace longitude (optional)",
-      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude."
+      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude.",
+      "changeMode": "Type consult wijzigen"
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -20564,6 +20567,12 @@
       "directTitle": "Het antwoord van Yeoni",
       "guidanceTitle": "Wat je kunt doen",
       "cautionTitle": "Waar je op moet letten"
+    },
+    "completionGreeting": {
+      "title": "Je thee is klaar",
+      "message": "Neem rustig de tijd voor de woorden die Yeoni voor je heeft geschreven.",
+      "action": "Lees je consult",
+      "portrait": "Yeoni biedt thee aan met beide handen"
     }
   },
   "fortuneVar": {

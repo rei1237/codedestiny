@@ -17169,11 +17169,13 @@
       },
       "sceneAria": "Yeoni is preparing your reading",
       "loadingAlt": "A loading scene with a moonlit cup rising",
-      "yeoniAria": "Yeoni handing over the cup",
+      "yeoniAria": "यॉनी चायदानी से चाय डाल रही है",
       "progressAria": "Reading generation progress",
       "delayNotice": "Your reading is still being written. You can check its progress again in My readings.",
       "retryNotice": "If the flow breaks, you can try the same question again from the input screen.",
-      "libraryLink": "Continue in My readings"
+      "libraryLink": "Continue in My readings",
+      "introduction": "धीरे-धीरे पकती चाय की तरह, हम आपकी कहानी के लिए सही शब्द चुन रहे हैं।",
+      "waitingTitle": "आपके लिए परामर्श\nध्यान से तैयार कर रहे हैं"
     },
     "sajuPillarBoard": {
       "eyebrow": "The birth chart under moonlight",
@@ -17793,11 +17795,12 @@
       "welcomeNote": "It's okay to share something difficult to say. We'll explore the grounds relevant to your question.",
       "stepLabel": "Question and details · 1 / 3",
       "questionTitle": "What would you like to explore together?",
-      "questionGuide": "Write your question first, then choose a reading. Only the details needed for that method are requested.",
+      "questionGuide": "अपनी सहेजी गई प्रोफ़ाइल या जन्म विवरण जाँचें, फिर अपना प्रश्न लिखें।",
       "reviewButton": "Review scope and price",
       "leapMonth": "Lunar leap month",
       "longitudeLabel": "Birthplace longitude (optional)",
-      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude."
+      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude.",
+      "changeMode": "परामर्श का प्रकार बदलें"
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -20564,6 +20567,12 @@
       "directTitle": "Yeoni का उत्तर",
       "guidanceTitle": "क्या आज़माएँ",
       "cautionTitle": "किन बातों का ध्यान रखें"
+    },
+    "completionGreeting": {
+      "title": "आपकी चाय तैयार है",
+      "message": "यॉनी ने आपके लिए जो शब्द लिखे हैं, उन्हें आराम से पढ़ें।",
+      "action": "परामर्श का परिणाम पढ़ें",
+      "portrait": "यॉनी दोनों हाथों से चाय परोस रही है"
     }
   },
   "fortuneVar": {

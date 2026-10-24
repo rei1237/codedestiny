@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
 
 import CurrentLocationButton from '@/app/components/CurrentLocationButton';
 import {withContinuation} from '@/lib/fortune/prompt-continuation';
@@ -1632,7 +1635,7 @@ async function buildComputedFactsFor(toolId: ToolId, draft: ToolDraft): Promise<
           birthTime: formatDraftValue(draft.partnerBirthTime),
           birthTimeUnknown: !formatDraftValue(draft.partnerBirthTime),
           birthPlace: formatDraftValue(draft.partnerBirthPlace),
-          birthTimezone: BIRTH_TIMEZONE_BY_LABEL[formatDraftValue(draft.partnerBirthTimezone)] || "Asia/Seoul",
+          birthTimezone: BIRTH_TIMEZONE_BY_LABEL[formatDraftValue(draft.partnerBirthTimezone)] || formatDraftValue(draft.partnerBirthTimezone) || "Asia/Seoul",
         })
         : Promise.resolve(null),
     ])
@@ -2030,6 +2033,15 @@ export default function ComprehensivePromptHubPage() {
     if (options.updateUrl !== false) updateToolQueryParam(toolId, options.replace ? "replace" : "push");
   }
 
+  function applySavedBirth(seed: AiPrefillSeed, partner = false) {
+    const values: ToolDraft = partner ? {
+      partnerBirthDate:seed.birthDate || "", partnerBirthTime:seed.birthTime || "", partnerCalendarType:seed.calendarType === "lunar" ? "음력" : "양력", partnerLeapMonth:Boolean(seed.isLeapMonth), partnerBirthPlace:seed.region || "", partnerBirthTimezone:Object.keys(BIRTH_TIMEZONE_BY_LABEL).find(key=>BIRTH_TIMEZONE_BY_LABEL[key]===seed.timezone) || seed.timezone || ""
+    } : { birthDate:seed.birthDate || "", birthTime:seed.birthTime || "", birthTimeUnknown:Boolean(seed.birthTimeUnknown), calendarType:seed.calendarType === "lunar" ? "음력" : "양력", leapMonth:Boolean(seed.isLeapMonth), birthPlace:seed.region || "", birthTimezone:Object.keys(BIRTH_TIMEZONE_BY_LABEL).find(key=>BIRTH_TIMEZONE_BY_LABEL[key]===seed.timezone) || seed.timezone || "", gender:seed.gender === "male" ? "남성" : seed.gender === "female" ? "여성" : "선택 안 함" };
+    const allowed = new Set(currentTool.fields.map(field=>field.id));
+    setDraftsByToolId(previous=>({...previous,[activeToolId]:{...previous[activeToolId],...Object.fromEntries(Object.entries(values).filter(([key])=>allowed.has(key)))}}));
+    setCopiedToolId(null);
+  }
+
   function updateCurrentDraft(fieldId: string, value: ToolDraftValue) {
     setDraftsByToolId((prev) => ({
       ...prev,
@@ -2327,7 +2339,7 @@ export default function ComprehensivePromptHubPage() {
     };
 
     return (
-      <div key={field.id} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
+      <div data-moonlit-form="" key={field.id} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
         {field.type === "checkbox" ? (
           <label
             htmlFor={inputId}
@@ -2371,7 +2383,7 @@ export default function ComprehensivePromptHubPage() {
                 className={inputClass}
                 style={inputStyle}
               >
-                {field.id==='birthTimezone'&&String(value).includes('/')&&!(field.options||[]).includes(String(value))&&<option value={String(value)}>{String(value)} · 위치로 확인</option>}
+                {(field.id==='birthTimezone'||field.id==='partnerBirthTimezone')&&String(value).includes('/')&&!(field.options||[]).includes(String(value))&&<option value={String(value)}>{String(value)} · 위치로 확인</option>}
                 {(field.options || []).map((option) => (
                   <option key={option} value={option}>
                     {tx(option)}
@@ -2401,6 +2413,9 @@ export default function ComprehensivePromptHubPage() {
                   );
                 })}
               </div>
+            ) : field.type === "time" ? (
+              <BirthTimeInput id={inputId} value={String(value || "")} onChange={event => updateCurrentDraft(field.id, event.target.value)}
+                aria-invalid={hasError} aria-describedby={inputId + "-hint"} className={inputClass} style={inputStyle} />
             ) : (
               <input
                 id={inputId}
@@ -2948,6 +2963,8 @@ export default function ComprehensivePromptHubPage() {
               >
                 <div className="grid gap-4 sm:grid-cols-2">
                   {currentTool.id==='horary'&&<p><a href="/yeongnyangi/fortune/?mode=horary">질문 순간을 실제로 계산하는 영냥 호라리 상담 →</a></p>}
+                  {currentTool.fields.some(field=>field.id === "birthDate") && <SavedBirthProfilePicker onSelect={seed=>applySavedBirth(seed)} />}
+                  {currentTool.fields.some(field=>field.id === "partnerBirthDate") && <SavedBirthProfilePicker label="상대의 저장된 프로필" onSelect={seed=>applySavedBirth(seed,true)} />}
                   {currentTool.fields.filter((field) => !field.advanced).map(renderToolField)}
                 </div>
 

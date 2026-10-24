@@ -13,7 +13,6 @@ test("nakshatra premium screens share the profile picker", () => {
     ["muhurta", "MuhurtaClient.tsx"],
     ["vvip", "VvipClient.tsx"],
     ["ai", "NakshatraAiClient.tsx"],
-    ["compat", "NakshatraCompatClient.tsx"],
   ];
 
   for (const [directory, file] of clients) {
@@ -38,6 +37,7 @@ test("profile context preserves the free result before falling back to profiles"
 test("compatibility keeps the partner payload independent from the self profile", () => {
   const source = read("compat", "NakshatraCompatClient.tsx");
 
+  assert.match(source, /<SavedBirthProfilePicker/);
   assert.match(source, /const \[a, setA\]/);
   assert.match(source, /const \[b, setB\]/);
   assert.match(source, /payload\(b\)/);

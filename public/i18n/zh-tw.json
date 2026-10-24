@@ -17169,11 +17169,13 @@
       },
       "sceneAria": "Yeoni 正在準備諮詢文",
       "loadingAlt": "月光茶杯浮起的載入畫面",
-      "yeoniAria": "遞出茶杯的 Yeoni",
+      "yeoniAria": "妍兒用茶壺倒茶",
       "progressAria": "諮詢文生成進度",
       "delayNotice": "諮詢仍在產生中，可在我的諮詢中再次查看進度。",
       "retryNotice": "若流程中斷，可在輸入頁面用同樣的問題再試一次。",
-      "libraryLink": "在我的諮詢中繼續"
+      "libraryLink": "在我的諮詢中繼續",
+      "introduction": "如同茶香緩緩釋放，我們正為你的故事斟酌合適的話語。",
+      "waitingTitle": "正在用心準備\n屬於你的解讀"
     },
     "sajuPillarBoard": {
       "eyebrow": "月光映照的命盤",
@@ -17793,11 +17795,12 @@
       "welcomeNote": "難以啟齒的煩惱也沒關係，我們一起查看與問題相關的依據。",
       "stepLabel": "問題與資訊 · 1 / 3",
       "questionTitle": "想一起探討什麼煩惱？",
-      "questionGuide": "先寫下問題，再選擇方式。只需提供該方式需要的資訊。",
+      "questionGuide": "請先確認儲存的資料或出生資訊，再寫下諮詢問題。",
       "reviewButton": "確認內容與價格",
       "leapMonth": "農曆閏月",
       "longitudeLabel": "出生地經度（選填）",
-      "longitudeHelp": "不會根據城市名推測座標。預設首爾126.978°，海外出生請填寫當地經度。"
+      "longitudeHelp": "不會根據城市名推測座標。預設首爾126.978°，海外出生請填寫當地經度。",
+      "changeMode": "更改諮詢方式"
     },
     "resultSheet": {
       "cardOrdinal": "第 {index} 張牌 ·",
@@ -20564,6 +20567,12 @@
       "directTitle": "Yeoni 的答覆",
       "guidanceTitle": "可以嘗試的事",
       "cautionTitle": "需要留意的地方"
+    },
+    "completionGreeting": {
+      "title": "為你準備的茶好了",
+      "message": "請慢慢閱讀妍兒用心寫下的話語。",
+      "action": "閱讀諮詢結果",
+      "portrait": "妍兒雙手遞上茶杯"
     }
   },
   "fortuneVar": {

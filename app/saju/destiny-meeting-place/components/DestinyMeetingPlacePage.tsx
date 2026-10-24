@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
@@ -404,7 +407,7 @@ export default function DestinyMeetingPlacePage() {
 
         {getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="destiny_meeting_place" summaryLabel="인연 장소 리포트 상세 안내" /></div>}
 
-        <section className="rounded-[2rem] border border-[#ffd4a5]/45 bg-[linear-gradient(160deg,rgba(20,15,56,0.92),rgba(26,16,64,0.9))] p-5 shadow-[0_20px_48px_rgba(8,9,32,0.5)] sm:p-8">
+        <section data-moonlit-form="" className="rounded-[2rem] border border-[#ffd4a5]/45 bg-[linear-gradient(160deg,rgba(20,15,56,0.92),rgba(26,16,64,0.9))] p-5 shadow-[0_20px_48px_rgba(8,9,32,0.5)] sm:p-8">
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs font-bold">
             <span className="rounded-full border border-[#ffd88a]/45 bg-[#ffd88a]/15 px-3 py-1 text-[#ffe9bb]">{copy.onceBadge(copy.currency(sanitizeAmountKRW(FEATURE_AMOUNT_KRW)))}</span>
             <span className="rounded-full border border-[#c8f7dc]/45 bg-[#6ee7a7]/14 px-3 py-1 text-[#ddffe9]">{copy.badgePassCheck}</span>
@@ -428,7 +431,8 @@ export default function DestinyMeetingPlacePage() {
             </article>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <SavedBirthProfilePicker disabled={isLoading || isCharging} onSelect={seed=>setPatch({name:seed.name || "",birthDate:seed.birthDate || "",birthTime:seed.birthTimeUnknown ? "" : seed.birthTime || "",gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "unknown",calendarType:seed.calendarType || "solar",lunarLeap:Boolean(seed.isLeapMonth)})} />
+            <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2 text-sm font-bold text-[#f6ecff]">
               {copy.formNameLabel}
               <input
@@ -470,8 +474,8 @@ export default function DestinyMeetingPlacePage() {
 
             <label className="space-y-2 text-sm font-bold text-[#f6ecff]">
               {copy.formBirthTimeLabel}
-              <input
-                type="time"
+              <BirthTimeInput
+
                 value={input.birthTime || ""}
                 onChange={(event) => setPatch({ birthTime: event.target.value })}
                 className="w-full rounded-2xl border border-white/28 bg-[#ffffff12] px-4 py-3 text-base text-[#fefcff] focus:border-[#ffd88a] focus:outline-none focus:ring-2 focus:ring-[#ffd88a]/35"

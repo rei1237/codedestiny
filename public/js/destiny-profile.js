@@ -6807,7 +6807,7 @@
     var fallback = (typeof fallbackOffsetHours === 'number' && !isNaN(fallbackOffsetHours)) ? fallbackOffsetHours : 9;
     if (!tz || typeof Intl === 'undefined' || typeof Intl.DateTimeFormat !== 'function') return fallback;
     try {
-      var probeUtc = new Date(Date.UTC(year, (month || 1) - 1, day || 1, hour || 12, minute || 0, 0));
+      var probeUtc = new Date(Date.UTC(year, (month || 1) - 1, day || 1, hour == null ? 12 : hour, minute == null ? 0 : minute, 0));
       var fmt = new Intl.DateTimeFormat('en-US', {
         timeZone: tz,
         hour12: false,
@@ -9238,7 +9238,7 @@
     /* ③ 성별 동기화 */
     if (window.setGender) window.setGender(profile.gender || 'F');
     window._gender = profile.gender || 'F';
-    
+
     /* ③-2. 성별 버튼 UI 동기화 */
     var btnF = document.getElementById('btnF');
     var btnM = document.getElementById('btnM');
@@ -9298,6 +9298,7 @@
   ────────────────────────────────────────── */
 
   function renderProfileList() {
+    _dpRenderBirthProfileChoices();
     var list = DPStorage.list();
     /* 편집 대상이 목록에서 사라졌으면(삭제·다른 탭 동기화·서버 재조회) 편집 모드를 닫는다.
        renderProfileList 는 프로필이 바뀌는 모든 지점에서 불리므로, 흩어놓는 대신 여기 한 곳에서 자가 치유한다. */
@@ -11489,6 +11490,7 @@
         _dpUpdateSaveBtn();
         return;
       }
+      _dpRenderBirthProfileChoices();
       // 인증이 바뀌면 이용권 판정 근거(스냅샷·미커버 캐시)가 다른 계정 것이 된다 — 즉시 버린다.
       try { if (typeof _dpClearPaidPassGateCache === 'function') _dpClearPaidPassGateCache('auth-changed'); } catch (_) {}
       try { window.__cdSubscriptionSnapshotPrewarmed = false; } catch (_) {}
@@ -11679,13 +11681,14 @@
   /* 출생시간 필드셋 — 메인 폼과 궁합 카드가 같은 구조(텍스트 1 + select 2)를 반복하므로
      하드코딩 대신 배열로 등록해 함수를 공유한다. 새 폼이 생기면 여기에 한 줄만 추가한다. */
   var _DP_BIRTH_TIME_FIELDSETS = [
-    { text: 'birthTimeText', hour: 'birthHour', minute: 'birthMinute' },
-    { text: 'compatBirthTimeText', hour: 'compatBirthHour', minute: 'compatBirthMinute' }
+    { text: 'birthTimeText', period: 'birthTimePeriod', hour: 'birthHour', minute: 'birthMinute' },
+    { text: 'compatBirthTimeText', period: 'compatBirthTimePeriod', hour: 'compatBirthHour', minute: 'compatBirthMinute' }
   ];
 
   function _dpBirthTimeEls(fieldset) {
     return {
       text: document.getElementById(fieldset.text),
+      period: document.getElementById(fieldset.period),
       hour: document.getElementById(fieldset.hour),
       minute: document.getElementById(fieldset.minute)
     };
@@ -11712,7 +11715,8 @@
     var h = parseInt(els.hour.value, 10);
     var m = parseInt(els.minute.value, 10);
     if (!isFinite(h) || !isFinite(m)) return;
-    els.text.value = _dpPad2(h) + ':' + _dpPad2(m);
+    if (els.period) els.period.value = h >= 12 ? 'pm' : 'am';
+    els.text.value = _dpPad2(els.period ? h % 12 || 12 : h) + ':' + _dpPad2(m);
   }
 
   /** 텍스트 입력 → select. 해석 못 하면 select 를 건드리지 않고 텍스트도 되돌린다. */
@@ -11722,7 +11726,9 @@
     var normalized = _dpNormalizeBirthTimeText(els.text.value);
     if (!normalized) { _dpSyncBirthTimeTextFromSelects(fieldset); return; }
     var parts = normalized.split(':');
-    els.hour.value = String(parseInt(parts[0], 10));
+    var typedHour = parseInt(parts[0], 10);
+    if (els.period && (typedHour < 1 || typedHour > 12)) { _dpSyncBirthTimeTextFromSelects(fieldset); return; }
+    els.hour.value = String(els.period ? typedHour % 12 + (els.period.value === 'pm' ? 12 : 0) : typedHour);
     els.minute.value = String(parseInt(parts[1], 10));
     els.text.value = normalized;
     /* 보정 시각 프리뷰 등 기존 change 구독자가 있으므로 실제 이벤트를 쏜다. */
@@ -11771,6 +11777,9 @@
     document.addEventListener('change', function (event) {
       var el = event.target;
       if (!el || !el.id) return;
+      for (var i = 0; i < _DP_BIRTH_TIME_FIELDSETS.length; i += 1) {
+        if (_DP_BIRTH_TIME_FIELDSETS[i].period === el.id) { _dpSyncBirthTimeSelectsFromText(_DP_BIRTH_TIME_FIELDSETS[i]); return; }
+      }
       var selectFieldset = _dpFindBirthTimeFieldsetBySelectId(el.id);
       if (selectFieldset) _dpSyncBirthTimeTextFromSelects(selectFieldset);
     });
@@ -11960,6 +11969,43 @@
   window.addEventListener('hashchange', _dpOpenCharacterDeepLink);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _dpOpenCharacterDeepLink, { once: true });
   else _dpOpenCharacterDeepLink();
+
+  // Consultation choices read the profile cards' scoped list, without changing the active profile.
+  function _dpRenderBirthProfileChoices() {
+    var list = DPStorage.list();
+    document.querySelectorAll('[data-cd-profile-target]').forEach(function(select) {
+      var selected = select.value;
+      select.replaceChildren();
+      var empty = document.createElement('option'); empty.value = ''; empty.textContent = '저장된 프로필 선택하기'; select.appendChild(empty);
+      list.forEach(function(profile) {
+        var option = document.createElement('option'); option.value = _dpGetProfileId(profile);
+        option.textContent = (profile.name || '프로필') + (profile.birthDate ? ' · ' + profile.birthDate : ''); select.appendChild(option);
+      });
+      select.value = list.some(function(profile) { return _dpGetProfileId(profile) === selected; }) ? selected : '';
+    });
+  }
+  window.__cdRefreshBirthProfileChoices = _dpRenderBirthProfileChoices;
+  document.addEventListener('change', function(event) {
+    var select = event.target;
+    if (!select || !select.matches || !select.matches('[data-cd-profile-target]')) return;
+    var profile = _dpFindProfileById(DPStorage.list(), select.value);
+    if (!profile) return;
+    var target = select.getAttribute('data-cd-profile-target');
+    if (target === 'compat') {
+      var birth = profile.birth || {};
+      _dpSetProfileFieldValue('compatName', profile.name || '');
+      _dpSetProfileFieldValue('compatBirthDate', profile.birthDate || _dpBuildProfileBirthDateValue(birth.year,birth.month,birth.day));
+      _dpSetProfileFieldValue('compatBirthHour', birth.timeUnknown ? '' : birth.hour);
+      _dpSetProfileFieldValue('compatBirthMinute', birth.timeUnknown ? '' : birth.minute);
+      document.querySelectorAll('input[name="compatCalType"]').forEach(function(input) { input.checked = input.value === (birth.calType || profile.calType || 'solar'); if(input.checked)_dpDispatchProfileFieldRefresh(input); });
+      var timeText = document.getElementById('compatBirthTimeText');
+      if (timeText && (birth.timeUnknown || birth.hour == null)) timeText.value = '';
+      else _dpSyncBirthTimeTextFromSelects(_DP_BIRTH_TIME_FIELDSETS[1]);
+    } else document.dispatchEvent(new CustomEvent('cd:birth-profile-selected', {detail:{target:target,profile:profile}}));
+  });
+  document.addEventListener('destinyProfileChanged', _dpRenderBirthProfileChoices);
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _dpRenderBirthProfileChoices, {once:true});
+  else _dpRenderBirthProfileChoices();
 
   /* 외부 노출 */
   window.DestinyProfileManager = {

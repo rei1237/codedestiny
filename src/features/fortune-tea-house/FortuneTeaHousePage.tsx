@@ -100,6 +100,7 @@ type FortuneTeaBillingGateData = NonNullable<FortuneTeaBillingGateResult["data"]
 const DestinyCafeTarotAlbum = lazy(() => import("./components/DestinyCafeTarotAlbum"));
 const TeaHouseHistoryPanel = lazy(() => import("./components/TeaHouseHistoryPanel"));
 const QuestionInputScene = lazy(() => import("./components/QuestionInputScene"));
+const TeaCompletionGreeting = lazy(() => import("./components/TeaCompletionGreeting"));
 const ScentLoadingScene = lazy(() => import("./components/ScentLoadingScene"));
 const TarotRevealScene = lazy(() => import("./components/TarotRevealScene"));
 const TeaCupRitualScene = lazy(() => import("./components/TeaCupRitualScene"));
@@ -573,11 +574,12 @@ export default function FortuneTeaHousePage() {
   const authState = useAuthStore();
   const recoveryOwner = toText(authState.user?.id || authState.user?.userId || authState.user?._id || authState.user?.uid);
   const [stage, setStage] = useState<TeaHouseStage>("landing");
+  const [teaGreetingDismissed, setTeaGreetingDismissed] = useState(false);
   const [notice, setNotice] = useState("");
   const [isEnteringTeaHouse, setIsEnteringTeaHouse] = useState(false);
   const [hasSeenEntryPrologue, setHasSeenEntryPrologue] = useState(false);
   const [isEntryPrologueSkipped, setIsEntryPrologueSkipped] = useState(false);
-  const [bgmEnabled, setBgmEnabled] = useState(false);
+  const [bgmEnabled, setBgmEnabled] = useState(true);
   const [isBgmPreferenceReady, setIsBgmPreferenceReady] = useState(false);
   const [bgmStatus, setBgmStatus] = useState<"idle" | "playing" | "blocked" | "off">("idle");
   const [selectedCup, setSelectedCup] = useState<TeaHouseCup | null>(null);
@@ -795,7 +797,7 @@ export default function FortuneTeaHousePage() {
   const startGenerationProgress = useCallback((mode: FortuneTeaHouseConsultMode) => {
     clearGenerationProgressTimer();
     progressStartedAtRef.current = Date.now();
-    let stepIndex = 0;
+    setTeaGreetingDismissed(false);
     const firstStep = FORTUNE_TEA_PROGRESS_STEPS[0];
     setGenerationProgress({
       percent: firstStep.percent,
@@ -805,24 +807,8 @@ export default function FortuneTeaHousePage() {
     });
     progressTimerRef.current = window.setInterval(() => {
       const elapsed = Date.now() - progressStartedAtRef.current;
-      stepIndex = Math.min(FORTUNE_TEA_PROGRESS_STEPS.length - 1, stepIndex + 1);
-      const step = FORTUNE_TEA_PROGRESS_STEPS[stepIndex];
-      setGenerationProgress((current) => {
-        const softPercent = elapsed > 12000
-          ? Math.min(95, Math.max(current.percent, current.percent + 1))
-          : step.percent;
-        return {
-          percent: Math.min(95, Math.max(current.percent, softPercent)),
-          label: step.percent > current.percent ? step.label : current.label,
-          message: step.percent > current.percent ? progressMessageForMode(step, mode) : current.message,
-          delayed: elapsed > 18000,
-          status: "running",
-        };
-      });
-      if (stepIndex >= FORTUNE_TEA_PROGRESS_STEPS.length - 1 && elapsed > 12000) {
-        stepIndex = FORTUNE_TEA_PROGRESS_STEPS.length - 2;
-      }
-    }, 1450);
+      setGenerationProgress((current) => ({ ...current, delayed: elapsed > 18000 }));
+    }, 6000);
   }, [clearGenerationProgressTimer]);
 
   const markGenerationComplete = useCallback(() => {
@@ -850,7 +836,7 @@ export default function FortuneTeaHousePage() {
 
     try {
       const savedPreference = window.localStorage.getItem(FORTUNE_TEA_BGM_STORAGE_KEY);
-      if (savedPreference === "off") setBgmEnabled(false);
+      setBgmEnabled(savedPreference !== "off");
     } catch {
       void 0;
     }
@@ -1025,6 +1011,7 @@ export default function FortuneTeaHousePage() {
   }
 
   function toggleBgm() {
+    if (bgmEnabled && bgmStatus === "blocked") { void playBgm(true); return; }
     const nextEnabled = !bgmEnabled;
     setBgmEnabled(nextEnabled);
     try {
@@ -1381,6 +1368,7 @@ export default function FortuneTeaHousePage() {
       // 다음 화면(scentLoading)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다(찻집 로딩과 이중 표시 방지).
       void releaseFortuneTeaAccessGate(attemptId);
       goToStage("scentLoading");
+      setGenerationProgress(current => ({ ...current, label: "상담문 준비 중", message: "연이가 당신의 질문과 운의 흐름을 함께 살피고 있어요." }));
 
       logSubmitStep("api result start");
       const abortController = new AbortController();
@@ -1400,8 +1388,8 @@ export default function FortuneTeaHousePage() {
         setGenerationProgress(previous => ({
           ...previous,
           percent: Math.min(95, Math.round(completed / Math.max(1, total) * 95)),
-          label: `${completed}/${total} 부분 저장`,
-          message: "저장된 부분을 읽는 동안 나머지를 작성하고 있어요.",
+          label: completed ? (total ? `${completed}/${total} 부분 저장` : `${completed}개 장 저장`) : "상담문 준비 중",
+          message: completed ? "저장된 부분을 읽는 동안 나머지를 작성하고 있어요." : "입력한 질문과 근거를 차분히 살펴보고 있어요.",
         }));
       };
       if (isFortuneTeaGenerationPending(response, payload) || response.status === 503) {
@@ -1563,13 +1551,13 @@ export default function FortuneTeaHousePage() {
         className={roomStyles.soundToggle}
         type="button"
         data-active={bgmEnabled && bgmStatus === "playing" ? "true" : "false"}
-        aria-label={bgmEnabled ? "운명의 찻집 배경 음악 끄기" : "운명의 찻집 배경 음악 켜기"}
+        aria-label={bgmEnabled && bgmStatus !== "blocked" ? "운명의 찻집 배경 음악 끄기" : "운명의 찻집 배경 음악 켜기"}
         aria-pressed={bgmEnabled}
         onClick={toggleBgm}
       >
         <span aria-hidden>{bgmEnabled && bgmStatus === "playing" ? <Volume2 size={14} strokeWidth={2.4} /> : <VolumeX size={14} strokeWidth={2.4} />}</span>
         <strong>BGM</strong>
-        <em>{bgmEnabled ? (bgmStatus === "playing" ? "ON" : "READY") : "OFF"}</em>
+        <em>{bgmEnabled && bgmStatus === "playing" ? "음악 끄기" : "음악 켜기"}</em>
       </button>;
 
   function renderScene() {
@@ -1603,7 +1591,14 @@ export default function FortuneTeaHousePage() {
 
     if (stage === "questionInput" && selectedCup) {
       return (
-        <>{renderSavedSections()}<QuestionInputScene
+        <>{submitError && unusedPaidAttemptRef.current && <section className={styles.consultErrorCard} role="status">
+          <h2>이전 상담을 이어갈 수 있어요</h2>
+          <p>입력한 내용과 원래 요청을 보관했어요. 같은 상담으로 다시 확인해 주세요.</p>
+          <div className={styles.storyActions}>
+            <TeaHouseButton disabled={isSubmitting} onClick={() => { const saved = unusedPaidAttemptRef.current; if (saved) void submitQuestion(saved.questionInput); }}>상담 이어가기</TeaHouseButton>
+            <a href="/fortune-tea-house/?history=1">내 상담함 확인하기</a>
+          </div>
+        </section>}{renderSavedSections()}<QuestionInputScene
           key={`${recoveryOwner}:${questionInput.attemptId || "draft"}`}
           selectedCup={selectedCup}
           initialInput={questionInput}
@@ -1630,7 +1625,8 @@ export default function FortuneTeaHousePage() {
     }
 
     if (stage === "result" && consultResult) {
-      return (
+      return (<>
+        {generationProgress.status === "complete" && !teaGreetingDismissed && <TeaCompletionGreeting onDismiss={() => setTeaGreetingDismissed(true)} />}
         <TeaHouseResultSheet
           result={consultResult}
           honeyDrops={honeyDrops}
@@ -1639,7 +1635,7 @@ export default function FortuneTeaHousePage() {
           onEditBirthInfo={() => goToStage("questionInput")}
           onHoneyDropsChange={setHoneyDrops}
           onResultUpdate={setConsultResult}
-        />
+        /></>
       );
     }
 

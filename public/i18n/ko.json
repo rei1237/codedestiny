@@ -5819,11 +5819,13 @@
       },
       "sceneAria": "연이가 상담문을 준비하는 중",
       "loadingAlt": "달빛 찻잔이 떠오르는 로딩 장면",
-      "yeoniAria": "찻잔을 건네는 연이",
+      "yeoniAria": "찻주전자로 차를 따르는 연이",
       "progressAria": "상담문 생성 진행",
       "delayNotice": "상담문을 조금 더 깊게 엮고 있어요. 내 상담함에서 생성 상태를 다시 확인할 수 있어요.",
       "retryNotice": "흐름이 끊기면 입력 화면에서 같은 질문으로 다시 시도할 수 있어요.",
-      "libraryLink": "내 상담함에서 이어보기"
+      "libraryLink": "내 상담함에서 이어보기",
+      "introduction": "차가 천천히 우러나듯, 당신의 이야기에 어울리는 말을 고르고 있어요.",
+      "waitingTitle": "당신을 위한 이야기를\n정성껏 준비하고 있어요"
     },
     "sajuPillarBoard": {
       "eyebrow": "달빛이 비친 명식표",
@@ -6443,11 +6445,12 @@
       "welcomeNote": "말하기 어려웠던 고민도 괜찮아요. 질문에 맞는 근거를 함께 살펴볼게요.",
       "stepLabel": "질문과 정보 · 1 / 3",
       "questionTitle": "어떤 고민을 함께 읽어볼까요?",
-      "questionGuide": "질문을 먼저 적고 상담 방식을 골라 주세요. 선택한 방식에 필요한 정보만 받아요.",
+      "questionGuide": "저장된 프로필이나 필요한 출생정보를 확인한 뒤, 상담 질문을 적어 주세요.",
       "reviewButton": "상담 내용과 가격 확인",
       "leapMonth": "음력 윤달",
       "longitudeLabel": "출생지 경도 (선택)",
-      "longitudeHelp": "도시명만으로 좌표를 추정하지 않아요. 기본값은 서울 126.978°이며, 해외 출생은 해당 지역 경도를 입력해 주세요."
+      "longitudeHelp": "도시명만으로 좌표를 추정하지 않아요. 기본값은 서울 126.978°이며, 해외 출생은 해당 지역 경도를 입력해 주세요.",
+      "changeMode": "상담 방식 바꾸기"
     },
     "resultSheet": {
       "cardOrdinal": "{index}번째 카드 ·",
@@ -9214,6 +9217,12 @@
       "directTitle": "연이의 답",
       "guidanceTitle": "해볼 일",
       "cautionTitle": "조심할 점"
+    },
+    "completionGreeting": {
+      "title": "당신을 위한 차가 준비됐어요",
+      "message": "연이가 정성껏 담은 이야기를 천천히 읽어보세요.",
+      "action": "상담 결과 읽기",
+      "portrait": "완성된 차를 두 손으로 건네는 연이"
     }
   },
   "fortuneVar": {

@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<link rel="stylesheet" href="/styles/theme-tokens.css">
+<link rel="stylesheet" href="/styles/moonlit-birth-form.css">
+<script defer src="/js/core/korean-calendar.js"></script>
+<script defer src="/js/vedic-birth-inputs.js"></script>
 <meta name="robots" content="noindex, nofollow">
 <link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-0ef0b8407d64">
 <script src="/js/core/feature-pricing-store.js"></script>
@@ -14,7 +18,7 @@
 <script src="/js/core/pass-verdict.js?v=build-6300332e3d54"></script>
 <script src="/js/core/checkout-entry.js?v=build-baea5719c05c"></script>
 <script src="/js/core/payment-service.js?v=build-86f76b083b39"></script>
-<script src="/js/destiny-profile.js?v=build-6c9971209003"></script>
+<script src="/js/destiny-profile.js?v=build-cce04c700eb2"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" onerror="this.remove()">
 <style>
 /* ── 오프라인 폴백 폰트 스택 ─────────────────────────────
@@ -603,6 +607,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div class="section-head" style="margin-bottom:10px">출생 정보 입력</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div style="grid-column:1 / -1">
+          <div class="cd-saved-birth-profile"><label for="vedicSavedProfile">저장된 프로필</label><select id="vedicSavedProfile" data-cd-profile-target="vedic-self"><option value="">저장된 프로필 선택하기</option></select><p>프로필을 고른 뒤 필요한 정보만 보완해 주세요.</p></div>
           <label for="v_name">이름</label>
           <input id="v_name" placeholder="예: 홍길동">
         </div>
@@ -639,6 +644,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div style="margin-bottom:10px">
         <label for="v_placeText">태어난 장소 선택 (자동 위도/경도)</label>
         <input type="text" id="v_placeText" list="v_placeDatalist" placeholder="예: 서울, 도쿄, 뉴욕" style="width:100%" autocomplete="off">
+        <button type="button" data-vedic-place-check="v">출생지 확인</button><p id="v-birth-status" role="status"></p>
         <datalist id="v_placeDatalist"></datalist>
         <select id="v_place" style="display:none" aria-hidden="true" tabindex="-1">
           <option value="" data-long="126.9780" data-lat="37.5665" data-tz="9" data-base-tz="9">장소를 선택하세요 (기본: 서울)</option>
@@ -1087,8 +1093,8 @@ function vedicSyncPlaceSelectFromText(){
       return;
     }
   }
-  /* 목록에 없는 자유 입력은 select 를 그대로 두고(마지막 유효 선택 유지) 텍스트만 사용자가
-     친 대로 둔다 — 기존 select 의 기본값(서울) 폴백 동작과 같다. */
+  sel.selectedIndex=-1;
+  ['v_lat','v_lon','v_tz'].forEach(function(id){var field=document.getElementById(id);if(field)field.value='';});
 }
 
 function vedicApplySelectedPlace(){
@@ -5777,37 +5783,13 @@ function _readProfileFromStorage(){
   return null;
 }
 function _fillInputFromProfile(profile){
-  try{
-    var b=(profile&&profile.birth)||{};
-    var l=(profile&&profile.location)||{};
-    function setV(id,v){ var el=document.getElementById(id); if(el&&v!=null&&v!=='') el.value=String(v); }
-    setV('v_name',profile&&profile.name);
-    setV('v_year',b.year);
-    setV('v_month',b.month);
-    setV('v_day',b.day);
-    setV('v_hour',b.hour!=null?b.hour:12);
-    setV('v_minute',b.minute!=null?b.minute:0);
-    if(profile&&profile.gender){ var genEl=document.getElementById('v_gender'); if(genEl) genEl.value=String(profile.gender); }
-    var lat=(l.lat!=null&&!isNaN(parseFloat(l.lat)))?l.lat:37.5665;
-    var lng=(l.lng!=null&&!isNaN(parseFloat(l.lng)))?l.lng:(l.lon!=null&&!isNaN(parseFloat(l.lon))?l.lon:126.978);
-    var tz=(l.baseTzOffset!=null&&!isNaN(l.baseTzOffset))?l.baseTzOffset:(l.tzOffset!=null&&!isNaN(l.tzOffset)?l.tzOffset:9);
-    setV('v_lat',lat);
-    setV('v_lon',lng);
-    setV('v_tz',tz);
-
-    var matchedPlace=_selectBirthPlaceByProfile(l);
-    if(!matchedPlace){
-      try{ vedicApplySelectedPlace(); }catch(_){ }
-      setV('v_lat',lat);
-      setV('v_lon',lng);
-      setV('v_tz',tz);
-    }
-
-    try{ _syncVedicToProfileCardCompatFields(); }catch(_){ }
-  }catch(_){}
+  // Reuse the same read-only adapter for automatic restore and explicit selection.
+  if(window.cdRefreshVedicBirthInputs)window.cdRefreshVedicBirthInputs();
+  document.dispatchEvent(new CustomEvent('cd:birth-profile-selected',{detail:{target:'vedic-self',profile:profile||{}}}));
 }
 
 function initVedicPage(){
+  if(window.cdRefreshVedicBirthInputs)window.cdRefreshVedicBirthInputs();
   try{ vedicInitLanguageBridge(); }catch(_){}
   // URL payload 우선 처리: storage 접근 실패 환경에서도 프로필 카드 진입 보장
   var _qp=null;
@@ -6035,6 +6017,7 @@ function vedicValidCalendarDate(y,m,d){
 }
 
 function vedicReadManualProfile(){
+  var birthError=window.cdValidateVedicBirth&&window.cdValidateVedicBirth("v");if(birthError)return {error:birthError};
   var yEl=document.getElementById('v_year');
   var mEl=document.getElementById('v_month');
   var dEl=document.getElementById('v_day');
@@ -7348,6 +7331,7 @@ function renderCompatInput(){
       <div><label>일</label><input id="c-day" type="number" value="15" min="1" max="31"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div class="cd-saved-birth-profile" style="grid-column:1/-1"><label for="vedicPartnerProfile">상대의 저장된 프로필</label><select id="vedicPartnerProfile" data-cd-profile-target="vedic-partner"><option value="">저장된 프로필 선택하기</option></select></div>
       <div><label>시</label><input id="c-hour" type="number" value="12" min="0" max="23"></div>
       <div><label>분</label><input id="c-min" type="number" value="30" min="0" max="59"></div>
       <div><label>UTC+</label><input id="c-tz" type="number" value="9" min="-12" max="14"></div>
@@ -7356,9 +7340,11 @@ function renderCompatInput(){
       <div><label>위도</label><input id="c-lat" value="37.5665"></div>
       <div><label>경도</label><input id="c-lon" value="126.978"></div>
     </div>
+    <label for="c-place">태어난 도시와 국가</label><input id="c-place" placeholder="예: 미국 뉴욕"><button type="button" data-vedic-place-check="c">출생지 확인</button><p id="c-birth-status" role="status"></p>
     <button class="btn-primary" onclick="doCompatCalc()">💕 궁합 계산하기 (5,000원)</button>
   </div>
   <div id="compat-result"></div>`;
+  if(window.cdRefreshVedicBirthInputs)window.cdRefreshVedicBirthInputs();
 }
 
 const VEDIC_COMPAT_COST=50;
@@ -7466,6 +7452,7 @@ async function doCompatCalc(){
   }catch(err){
     console.warn('[vedic compat] Swiss bridge timeout; continue with fallback engine', err);
   }
+  var birthError=window.cdValidateVedicBirth&&window.cdValidateVedicBirth('c');if(birthError){var status=document.getElementById('c-birth-status');if(status)status.textContent=birthError;return false;}
   var f2Now=readVedicCompatForm();
   var ok = await _vedicCompatCoinGate(VEDIC_COMPAT_COST, '베다점 궁합 계산', buildVedicCompatResumeDescriptor(f2Now));
   if (!ok) return false;
@@ -7480,11 +7467,11 @@ function readVedicCompatForm(){
     year:parseInt(document.getElementById('c-year').value)||1992,
     month:parseInt(document.getElementById('c-month').value)||3,
     day:parseInt(document.getElementById('c-day').value)||15,
-    hour:parseInt(document.getElementById('c-hour').value)||12,
-    minute:parseInt(document.getElementById('c-min').value)||30,
-    lat:parseFloat(document.getElementById('c-lat').value)||37.5665,
-    lon:parseFloat(document.getElementById('c-lon').value)||126.978,
-    timezone:parseInt(document.getElementById('c-tz').value)||9
+    hour:Number(document.getElementById('c-hour').value),
+    minute:Number(document.getElementById('c-min').value),
+    lat:Number(document.getElementById('c-lat').value),
+    lon:Number(document.getElementById('c-lon').value),
+    timezone:Number(document.getElementById('c-tz').value)
   };
 }
 

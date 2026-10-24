@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import ConsultationMasterIntro, { masterPreparationLabel } from "@/app/components/ConsultationMasterIntro";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { cleanTopics, reportAdviceTopics } from "@/js/recommendations-context.mjs";
@@ -2114,19 +2117,19 @@ function applyProfileSeedToForm(form: FormState, profile: AiPrefillSeed): FormSt
   const birthplace = [profile.city, profile.country].filter(Boolean).join(", ");
   return {
     ...form,
-    userName: profile.name || form.userName,
+    userName: profile.name ?? form.userName,
     gender: (profile.gender as FormState["gender"]) || form.gender,
-    birthDate: profile.birthDate || form.birthDate,
+    birthDate: profile.birthDate ?? form.birthDate,
     birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
     birthTime:
       profile.birthTimeUnknown === true
         ? ""
-        : profile.birthTime || form.birthTime,
+        : profile.birthTime ?? form.birthTime,
     calendarType: profile.calendarType || form.calendarType,
-    birthPlace: birthplace || profile.region || form.birthPlace,
-    latitude: profile.latitude || form.latitude,
-    longitude: profile.longitude || form.longitude,
-    timezone: profile.timezone || form.timezone,
+    birthPlace: birthplace || (profile.region ?? form.birthPlace),
+    latitude: profile.latitude ?? form.latitude,
+    longitude: profile.longitude ?? form.longitude,
+    timezone: profile.timezone ?? form.timezone,
   };
 }
 
@@ -2959,6 +2962,7 @@ export default function VedicAiClient() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [geocoding, setGeocoding] = useState(false);
+  const placeLookupRef = useRef(0);
   const [geocode, setGeocode] = useState<GeocodeState>(() => {
     const initial = buildInitialForm();
     return {
@@ -2985,8 +2989,9 @@ export default function VedicAiClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
@@ -3057,9 +3062,10 @@ export default function VedicAiClient() {
   }
 
   function applyPreset(value: string) {
+    placeLookupRef.current += 1; setGeocoding(false);
     const preset = PLACE_PRESETS.find((place) => place.label === value);
     if (!preset) {
-      updateForm({ birthPlace: value,latitude:"",longitude:"" });
+      updateForm({ birthPlace: value,latitude:"",longitude:"",timezone:"" });
       setGeocode({lat:"",lng:"",name:"",fallback:false});
       return;
     }
@@ -3076,28 +3082,31 @@ export default function VedicAiClient() {
     const place = form.birthPlace.trim();
     if (!place || (geocode.name===place&&!geocode.fallback) || PLACE_PRESETS.some((preset) => preset.label === place) || geocoding) return;
 
+    const lookup = ++placeLookupRef.current;
     setGeocoding(true);
     try {
       const response = await fetch(`/api/geocode?place=${encodeURIComponent(place)}`, { cache: "no-store" });
       const data = await response.json().catch(() => ({}));
+      if (lookup !== placeLookupRef.current) return;
       const lat = toText(data.lat);
       const lng = toText(data.lng);
-      if (!response.ok || data.fallback || !lat || !lng) throw new Error("LOCATION_UNAVAILABLE");
+      if (!response.ok || data.fallback || !lat || !lng || !Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng)) || !data.timezone) throw new Error("LOCATION_UNAVAILABLE");
 
       const name = toText(data.name) || place;
       updateForm({
         latitude: lat,
         longitude: lng,
-        timezone: toText(data.timezone) || form.timezone || "Asia/Seoul",
+        timezone: toText(data.timezone),
       });
       setGeocode({ lat, lng, name, fallback: data.fallback === true });
       setNotice(data.fallback === true ? copy.geocodeFallbackNotice : "");
     } catch {
+      if (lookup !== placeLookupRef.current) return;
       setNotice("출생지를 확인하지 못했어요. 현재 위치를 사용하거나 도시와 국가를 다시 입력해 주세요.");
-      updateForm({ latitude: "", longitude: "" });
+      updateForm({ latitude: "", longitude: "", timezone: "" });
       setGeocode({ lat: "", lng: "", name: "", fallback: false });
     } finally {
-      setGeocoding(false);
+      if (lookup === placeLookupRef.current) setGeocoding(false);
     }
   }
 
@@ -3328,19 +3337,12 @@ export default function VedicAiClient() {
       />
 
       <section className={styles.workspace}>
-        <form id="vedic-consultation-form" className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
+        <form data-moonlit-form="" id="vedic-consultation-form" className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
           {!consultation && detectLocale() === "ko" && <CraftedProductDisclosure featureKey="vedic-ai-consultation" />}
           <div className={`${styles.panelHeader} flex-wrap`}>
             <span className="min-w-0 flex-1"><Star size={18} /> {copy.formPanelHeading}</span>
             <strong>{getCurrentLoadingLocale() === "ko" ? "마스터 윤달" : "Yun-dal"}</strong>
-            <button
-              type="button"
-              onClick={loadFormFromProfileCard}
-              className="shrink-0 rounded-lg border border-[#f6d67e]/35 bg-[#f6d67e]/10 px-3 py-2 text-xs font-bold text-[#f6d67e] transition hover:bg-[#f6d67e]/20"
-              aria-label={copy.loadProfileButtonAriaLabel}
-            >
-              {copy.loadProfileButtonLabel}
-            </button>
+            <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
           </div>
 
           <div className={styles.formGrid}>
@@ -3370,7 +3372,7 @@ export default function VedicAiClient() {
             </label>
             <label>
               <span><Clock3 size={15} /> {copy.birthTimeLabel}</span>
-              <input type="time" value={form.birthTime} onChange={(event) => updateForm({ birthTime: event.target.value })} disabled={busy || form.birthTimeUnknown} />
+              <BirthTimeInput  value={form.birthTime} onChange={(event) => updateForm({ birthTime: event.target.value })} disabled={busy || form.birthTimeUnknown} />
             </label>
             <label>
               <span><Compass size={15} /> {copy.timezoneLabel}</span>

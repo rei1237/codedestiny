@@ -1,5 +1,6 @@
 "use client";
 
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Copy, LockKeyhole, RefreshCw, WandSparkles } from "lucide-react";
@@ -207,7 +208,8 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
         </span>
       </div>
 
-      <div className="relative mt-5 grid min-w-0 gap-4 md:grid-cols-2">
+      <div data-moonlit-form="" data-birth-fields="" className="relative mt-5 grid min-w-0 gap-4 md:grid-cols-2">
+        <SavedBirthProfilePicker calendarMode="solar" disabled={loading} onSelect={seed=>{setName(seed.name || "");setBirthDate(seed.birthDate || "");setPrompt("");setError("");setMessage("");}} />
         <label className="block min-w-0 text-sm font-bold text-[#eee5cb]">
           {copy.nameLabel}
           <input

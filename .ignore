@@ -263,6 +263,7 @@
 /public/js/tarot-self-esteem-experience.js
 /public/js/tarot-year-fortune-experience.js
 /public/js/touch-perf.js
+/public/js/vedic-birth-inputs.js
 /public/js/vendor/sweph-wasm/ephe/seas_18.se1
 /public/js/vendor/sweph-wasm/ephe/semo_18.se1
 /public/js/vendor/sweph-wasm/ephe/sepl_18.se1
@@ -321,6 +322,7 @@
 /public/styles/mobile-bottom-nav.css
 /public/styles/mobile-lite.css
 /public/styles/mobile-totem-flower-fix.css
+/public/styles/moonlit-birth-form.css
 /public/styles/my-garden.css
 /public/styles/press-coverage.css
 /public/styles/profile-characters.css

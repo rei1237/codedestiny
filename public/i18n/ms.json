@@ -17169,11 +17169,13 @@
       },
       "sceneAria": "Yeoni is preparing your reading",
       "loadingAlt": "A loading scene with a moonlit cup rising",
-      "yeoniAria": "Yeoni handing over the cup",
+      "yeoniAria": "Yeoni menuang teh dari teko",
       "progressAria": "Reading generation progress",
       "delayNotice": "Your reading is still being written. You can check its progress again in My readings.",
       "retryNotice": "If the flow breaks, you can try the same question again from the input screen.",
-      "libraryLink": "Continue in My readings"
+      "libraryLink": "Continue in My readings",
+      "introduction": "Seperti teh yang meresap perlahan, kami memilih kata yang sesuai dengan kisah anda.",
+      "waitingTitle": "Sedang menyediakan bacaan\nanda dengan teliti"
     },
     "sajuPillarBoard": {
       "eyebrow": "The birth chart under moonlight",
@@ -17793,11 +17795,12 @@
       "welcomeNote": "It's okay to share something difficult to say. We'll explore the grounds relevant to your question.",
       "stepLabel": "Question and details · 1 / 3",
       "questionTitle": "What would you like to explore together?",
-      "questionGuide": "Write your question first, then choose a reading. Only the details needed for that method are requested.",
+      "questionGuide": "Semak profil tersimpan atau maklumat kelahiran, kemudian tulis soalan anda.",
       "reviewButton": "Review scope and price",
       "leapMonth": "Lunar leap month",
       "longitudeLabel": "Birthplace longitude (optional)",
-      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude."
+      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude.",
+      "changeMode": "Tukar jenis konsultasi"
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -20564,6 +20567,12 @@
       "directTitle": "Jawapan Yeoni",
       "guidanceTitle": "Perkara untuk dicuba",
       "cautionTitle": "Perkara yang perlu diberi perhatian"
+    },
+    "completionGreeting": {
+      "title": "Teh anda sudah siap",
+      "message": "Baca dengan tenang kata-kata yang Yeoni sediakan untuk anda.",
+      "action": "Baca hasil konsultasi",
+      "portrait": "Yeoni menghulurkan teh dengan kedua-dua tangan"
     }
   },
   "fortuneVar": {

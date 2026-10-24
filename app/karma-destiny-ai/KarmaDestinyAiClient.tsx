@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import ConsultationMasterIntro, { masterPreparationLabel } from "@/app/components/ConsultationMasterIntro";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { KarmaRelationshipFields, KarmaRelationshipGuide, emptyRelationshipContext, type RelationshipContext } from "./KarmaRelationshipGuide";
@@ -1825,20 +1828,20 @@ function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed):
     return form;
   }
   const birthplace = {
-    city: profile.city || form.birthPlace.city,
-    country: profile.country || form.birthPlace.country,
-    latitude: profile.latitude || form.birthPlace.latitude,
-    longitude: profile.longitude || form.birthPlace.longitude,
-    timezone: profile.timezone || form.birthPlace.timezone,
+    city: profile.city ?? form.birthPlace.city,
+    country: profile.country ?? form.birthPlace.country,
+    latitude: profile.latitude ?? form.birthPlace.latitude,
+    longitude: profile.longitude ?? form.birthPlace.longitude,
+    timezone: profile.timezone ?? form.birthPlace.timezone,
   };
   const resolvedGender = (profile.gender as GenderType) || form.gender;
   return {
     ...form,
-    name: profile.name || form.name,
+    name: profile.name ?? form.name,
     gender: resolvedGender,
-    birthDate: profile.birthDate || form.birthDate,
+    birthDate: profile.birthDate ?? form.birthDate,
     birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
-    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime || form.birthTime,
+    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime ?? form.birthTime,
     calendarType: profile.calendarType || form.calendarType,
     birthPlace: {
       ...form.birthPlace,
@@ -2318,8 +2321,9 @@ export default function KarmaDestinyAiPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
@@ -2640,20 +2644,13 @@ export default function KarmaDestinyAiPage() {
 
       {getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",position:"relative",zIndex:1,textAlign:"left",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="karma-destiny-ai-consultation" summaryLabel="붉은 실 · 운명의 업 상담 상세 안내" /></div>}
       <section className="kdai-workspace">
-        <form id="karma-destiny-consultation" className="kdai-form kdai-panel" onSubmit={handleSubmit}>
+        <form data-moonlit-form="" id="karma-destiny-consultation" className="kdai-form kdai-panel" onSubmit={handleSubmit}>
           <div className="kdai-panel-title kdai-panel-title--split">
             <div>
               <CalendarDays size={18} />
               <h2>{copy.formHeading}</h2>
             </div>
-            <button
-              className="kdai-ghost-action"
-              type="button"
-              onClick={loadFormFromProfileCard}
-              aria-label={copy.profileLoadAria}
-            >
-              <span>{copy.profileLoadCta}</span>
-            </button>
+            <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
           </div>
 
           <div className="kdai-grid">
@@ -2686,7 +2683,7 @@ export default function KarmaDestinyAiPage() {
           <div className="kdai-time-row">
             <label>
               {copy.birthTimeLabel}
-              <input type="time" value={form.birthTime} onChange={updateField("birthTime")} disabled={form.birthTimeUnknown} required={!form.birthTimeUnknown} />
+              <BirthTimeInput  value={form.birthTime} onChange={updateField("birthTime")} disabled={form.birthTimeUnknown} required={!form.birthTimeUnknown} />
             </label>
             <label className="kdai-check">
               <input type="checkbox" checked={form.birthTimeUnknown} onChange={updateField("birthTimeUnknown")} />

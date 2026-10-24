@@ -7,7 +7,7 @@ import { readBoundedText } from "./lib/request-body.js";
 import { resolveAiLocaleForRequest, runWithAiLocale } from "./lib/ai-locale-context.js";
 import { withDbScopes } from "./lib/db-scope.js";
 // 지오코딩 좌표의 시간대 판정. 경도만 보면 서울이 "UTC+8" 로 나와 차트가 1시간 어긋난다.
-import { resolveGeoTimezone } from "./lib/geo-timezone.js";
+import tzLookup from "tz-lookup";
 
 const ROUTE_METRICS_STATE = {
   byRoute: Object.create(null),
@@ -217,7 +217,7 @@ async function handleGeocodeRequest(request, env) {
     geocodeUrl.searchParams.set("format", "json");
     geocodeUrl.searchParams.set("limit", "1");
     geocodeUrl.searchParams.set("accept-language", "ko,en");
-    // 국가 코드가 있어야 표준시를 나라 기준으로 정할 수 있다(경도 추정은 마지막 수단).
+    // 좌표를 IANA 시간대로 변환해 한 국가 안의 여러 시간대도 구분한다.
     geocodeUrl.searchParams.set("addressdetails", "1");
 
     const response = await fetch(geocodeUrl.toString(), {
@@ -235,7 +235,7 @@ async function handleGeocodeRequest(request, env) {
       lat,
       lng,
       name: cleanGeocodeText(first.display_name || place, 180),
-      timezone: resolveGeoTimezone({ countryCode: first.address?.country_code, longitude: lng }),
+      timezone: tzLookup(lat, lng),
       fallback: false,
     });
   } catch {

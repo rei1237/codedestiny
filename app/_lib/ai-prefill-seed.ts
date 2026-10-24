@@ -129,7 +129,7 @@ export function seedFromDestinyProfile(profile: DestinyProfileCard | null | unde
   const gender = normalizeGender(profile.gender);
   if (gender) seed.gender = gender;
 
-  const [seedCity, seedCountry] = splitSeedRegion(profile.birthRegion);
+  const [seedCity, seedCountry] = splitSeedRegion(profile.birthRegion || profile.location?.label);
   if (seedCity || seedCountry) {
     const region = [seedCity, seedCountry].filter(Boolean).join(", ");
     seed.region = region || trimValue(profile.birthRegion);
@@ -151,4 +151,12 @@ export function seedFromDestinyProfile(profile: DestinyProfileCard | null | unde
   if (longitude) seed.longitude = longitude;
 
   return seed;
+}
+
+/** Explicit selection replaces birth details, including missing values; it never selects the global profile. */
+export function selectedBirthProfileSeed(profile: DestinyProfileCard): AiPrefillSeed {
+  const seed = seedFromDestinyProfile(profile);
+  return { profileId: "", name: "", gender: "", birthDate: "", birthTime: "", calendarType: "solar",
+    isLeapMonth: false, timezone: "", city: "", country: "", region: "", latitude: "", longitude: "",
+    ...seed, birthTimeUnknown: seed.birthTimeUnknown === true || !seed.birthTime };
 }

@@ -22,13 +22,13 @@
 .questionInvitation h2 { font-family: var(--tea-font-premium), serif; font-size: clamp(1.75rem,3.3vw,2.5rem); line-height: 1.5; font-weight: 500; margin: 14px 0; text-wrap: balance; word-break: keep-all; }
 .questionInvitation > p:last-child { color: #e9ccd8; margin: 0; max-width: 32ch; }
 .chosenTea { color: #efd39e; font-size: .875rem; margin: 0; }
-.questionPanel { min-width: 0; background: var(--question-paper); padding: 36px 42px 0; border: 1px solid var(--question-border); border-top: 0; border-radius: 0 0 22px 22px; }
+.questionPanel { min-width: 0; background: var(--question-paper); padding: 36px 42px 0; box-shadow: 0 20px 60px #30112314; border: 1px solid var(--question-border); border-top: 0; border-radius: 0 0 22px 22px; }
 .questionPanel h3 { font-family: var(--tea-font-premium), serif; font-size: 1.375rem; font-weight: 600; line-height: 1.5; margin: 0; word-break: keep-all; }
 .sceneEyebrow { font-size: .875rem; color: var(--question-rose); margin: 0 0 8px; }
 .sceneDescription { color: var(--question-muted); margin: 0; max-width: 65ch; }
 .questionFormSection { padding: 32px 0; border-bottom: 1px solid var(--question-border); }
-.questionSectionHeader { display: flex; gap: 14px; margin-bottom: 24px; align-items: baseline; }
-.questionSectionHeader > span { font-size: .875rem; color: #936948; flex-shrink: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.questionSectionHeader { display: flex; gap: 14px; margin-bottom: 24px; align-items: start; }
+.questionSectionHeader > span { display:grid; place-items:center; width:32px; height:32px; border:1px solid #bb945d80; border-radius:50%; background:#f6ede0; font-size:.75rem; color:#78552e; flex-shrink:0; font-variant-numeric:tabular-nums; }
 .questionSectionHeader p { margin: 6px 0 0; color: var(--question-muted); font-size: .9375rem; max-width: 65ch; }
 .questionLabel { display: grid; gap: 9px; font-size: .9375rem; font-weight: 600; min-width: 0; margin-bottom: 20px; }
 .questionInput, .questionTextarea, .sukuyoSituationTextarea { width: 100%; min-width: 0; min-height: 50px; padding: 13px 15px; border: 1px solid #ba989e; border-radius: 10px; background: #fffefd; color: var(--question-ink); font: inherit; font-size: 16px; font-weight: 400; }
@@ -58,7 +58,7 @@
 .birthTimeUnknownToggle { display: flex; align-items: center; gap: 10px; min-height: 48px; }
 .birthTimeUnknownToggle input { width: 20px; height: 20px; accent-color: var(--question-rose); }
 .birthOptionalNotice, .profileLoadNotice, .sukuyoAutoQuestionHint, .optionalFieldMark { font-size: .875rem; color: var(--question-muted); font-weight: 400; }
-.profileLoadPanel { padding: 20px; background: #f6e9e5; border: 1px solid var(--question-border); border-radius: 12px; margin-bottom: 24px; }
+.profileLoadPanel { padding: 20px; background: #f7efeb; border: 1px solid #dfcbbf; border-radius: 12px; margin-bottom: 24px; }
 .profileLoadHeader { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
 .profileLoadPanel button { background: #fff9f3; border: 1px solid #ba9297; border-radius: 10px; padding: 10px 16px; color: var(--question-rose); }
 .tarotSpreadSelector { border: 0; padding: 0; margin: 24px 0 0; min-width: 0; }
@@ -111,3 +111,14 @@
  .tarotSpreadOption { padding: 18px; }
  .questionSectionHeader { gap: 10px; }
 }
+
+.modeDisclosure > summary { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:52px; padding:12px 0; cursor:pointer; color:var(--question-ink); }
+.modeDisclosure > summary span { font-size:.875rem; text-decoration:underline; text-underline-offset:4px; }
+.modeDisclosure > summary:focus-visible { outline:3px solid var(--question-rose); outline-offset:4px; }
+
+.questionPanel :is(input:not([type=checkbox]):not([type=hidden]),select,textarea) { background-color:#fffefd; border-color:#cfb4b4; box-shadow:0 2px 3px #48233a04; transition:border-color .15s ease; }
+.questionPanel :is(input,select,textarea):focus { border-color:#7e395c; }
+.questionPanel :is(input,select,textarea):disabled { background:#eee7e2; box-shadow:none; }
+.modeDisclosure { border:1px solid #d8bda9; border-radius:12px; padding:4px 16px; background:#fcf4e9; }
+.modeDisclosure[open] { background:transparent; }
+@media(prefers-reduced-motion:reduce) { .questionPanel :is(input,select,textarea) { transition:none; } }

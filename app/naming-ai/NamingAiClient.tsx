@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -2024,7 +2027,7 @@ const PHASE_PROGRESS: Record<Phase, number> = {
 export default function NamingAiClient() {
   const locale = useNamingLocale();
   const copy = getNamingCopy(locale);
-  const { seed, reload } = useAiProfileSeed();
+  const { seed } = useAiProfileSeed();
   const [form, setForm] = useState<FormState>(() => ({ ...INITIAL_FORM, birthPlace: copy.defaultBirthPlace }));
   const [engineOptIn] = useState(readNamingEngineOptIn);
   const defaultBirthPlaceRef = useRef(form.birthPlace);
@@ -2474,7 +2477,7 @@ export default function NamingAiClient() {
         {showGeneratingCard ? (
           <NamingGeneratingCard phase={phase} />
         ) : (
-          <form
+          <form data-moonlit-form=""
             className="grid gap-6 lg:grid-cols-[1.12fr_0.88fr]"
             onSubmit={(event) => {
               event.preventDefault();
@@ -2519,14 +2522,7 @@ export default function NamingAiClient() {
                 <section className={`${PANEL} p-6 sm:p-7`}>
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5">
                     <h2 className="text-lg font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{copy.step0Heading}</h2>
-                    <button
-                      type="button"
-                      onClick={() => void reload()}
-                      className="rounded-full border border-[color:var(--nm-l-c4b5fd-30)] bg-[color:var(--nm-b-c4b5fd-10)] px-3.5 py-1.5 text-xs font-bold text-[color:var(--nm-t-dcd2fb)] transition hover:border-[color:var(--nm-l-c4b5fd-60)] hover:bg-[color:var(--nm-b-c4b5fd-20)]"
-                      aria-label={copy.reloadButtonAria}
-                    >
-                      {copy.reloadButton}
-                    </button>
+                    <SavedBirthProfilePicker calendarMode="lunar" onSelect={next => setForm(prev => ({...prev, gender:next.gender === "male" ? "M" : next.gender === "female" ? "F" : "", birthDate:next.birthDate || "", birthTime:next.birthTime || "", birthTimeUnknown:Boolean(next.birthTimeUnknown), calendarType:next.calendarType || "solar", birthPlace:next.region || "", timezone:next.timezone || ""}))} />
                   </div>
                   <div className="grid gap-3.5 sm:grid-cols-2">
                     <label className={LABEL}>
@@ -2549,8 +2545,8 @@ export default function NamingAiClient() {
                     </label>
                     <label className={LABEL}>
                       {copy.birthTimeLabel}
-                      <input
-                        type="time"
+                      <BirthTimeInput
+
                         value={form.birthTime}
                         onChange={(event) => updateForm({ birthTime: event.target.value })}
                         disabled={busy || form.birthTimeUnknown}

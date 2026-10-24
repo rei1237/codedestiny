@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 
 import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
@@ -1838,7 +1841,7 @@ export const LoveSimulationEngine: React.FC = () => {
 
   if (screen === "intro") {
     return (
-      <section className="relative min-h-[100svh] overflow-hidden bg-[#08060d] text-white">
+      <section data-moonlit-form="" className="relative min-h-[100svh] overflow-hidden bg-[#08060d] text-white">
         {/* lg 미만에서는 히어로를 원본 종횡비 그대로의 상단 밴드에 가둔다. 예전에는 inset-0 +
             object-cover 라 폼까지 쌓인 ~2000px 높이를 덮느라 배율 2.13 이 걸려 가로 11% 만 보였다.
             🔴 이 래퍼에는 transform/filter/opacity/z-index 를 넣지 말 것 — 스태킹 컨텍스트가 생기면
@@ -2008,6 +2011,7 @@ export const LoveSimulationEngine: React.FC = () => {
 
               <div className="grid gap-4">
                 <div>
+                  <SavedBirthProfilePicker label="상대의 저장된 프로필" onSelect={seed=>{setPartnerName(seed.name || "");setPartnerBirthDate(seed.birthDate || "");setPartnerCalType(seed.calendarType === "lunar" ? (seed.isLeapMonth ? "lunar_leap" : "lunar") : "solar");const [hour,minute]=(seed.birthTime || "").split(":");setPartnerHour(hour || "");setPartnerMinute(minute || "");setPartnerHasTime(!seed.birthTimeUnknown && Boolean(seed.birthTime));setPartnerCountry(seed.timezone || "");if(seed.gender === "male" || seed.gender === "female")setPartnerGender(seed.gender);}} />
                   <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerName">{copy.nameFieldLabel}</label>
                   <input
                     className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-5 text-base font-bold text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
@@ -2065,9 +2069,9 @@ export const LoveSimulationEngine: React.FC = () => {
 
                 <div>
                   <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerTime">{copy.birthTimeFieldLabel}</label>
-                  <input
+                  <BirthTimeInput
                     className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-4 text-base font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
-                    type="time"
+
                     id="lovePartnerTime"
                     name="partnerTime"
                     aria-label={copy.birthHourAria}

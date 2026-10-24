@@ -350,3 +350,18 @@ test("마운트 복구와 깨어남 복구가 같은 probe 하나를 쓴다", ()
   assert.ok(mount.includes("probeFortuneTeaPending"));
   assert.ok(effectSource("[recoveryOwner, probeFortuneTeaPending]").includes("probeFortuneTeaPending"));
 });
+
+
+test('BGM restores both saved choices and offers an explicit retry after autoplay blocking', () => {
+  for (const preference of ['on', 'off', null]) {
+    const state = { bgmAudioRef:{current:{pause(){}}}, FORTUNE_TEA_BGM_TRACKS:{moonlitTeaHouse:{volume:.2}},
+      FORTUNE_TEA_BGM_STORAGE_KEY:'bgm',FORTUNE_TEA_ENTRY_PROLOGUE_SEEN_STORAGE_KEY:'seen',
+      window:{localStorage:{getItem:key=>key==='bgm'?preference:null}},setBgmEnabled:value=>state.enabled=value,
+      setHasSeenEntryPrologue(){},setIsBgmPreferenceReady:value=>state.ready=value,enterTimerRef:{current:null},clearGenerationProgressTimer(){} };
+    vm.runInNewContext('('+effectSource('[clearGenerationProgressTimer]')+')()',state);
+    assert.equal(state.enabled,preference!=='off'); assert.equal(state.ready,true);
+  }
+  const state={bgmEnabled:true,bgmStatus:'blocked',playBgm:force=>state.played=force,setBgmEnabled:()=>assert.fail('must not turn music off'),window:{}};
+  vm.runInNewContext(functionSource('toggleBgm')+';toggleBgm();',state);
+  assert.equal(state.played,true);
+});

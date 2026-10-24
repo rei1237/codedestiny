@@ -1,4 +1,7 @@
 "use client";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+import BirthPlaceInput from "@/app/components/BirthPlaceInput";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 
 // 휴먼 디자인 — 몰입형 **무료** 차트 화면 (2026-09 무료화).
 //
@@ -58,13 +61,6 @@ import type { HdChart, HdInterpretation, HdPipelineStage, HdSelection } from "./
 import { BIRTH_STORAGE_KEY, writeChartHandoff } from "./_lib/chart-handoff";
 import styles from "./human-design.module.css";
 
-const TIMEZONE_PRESETS = [
-  "Asia/Seoul", "Asia/Tokyo", "Asia/Shanghai", "Asia/Kolkata", "Asia/Kabul",
-  "Europe/London", "Europe/Paris", "Europe/Berlin",
-  "America/New_York", "America/Chicago", "America/Los_Angeles", "America/Havana", "America/Sao_Paulo",
-  "Australia/Sydney", "Pacific/Auckland", "Pacific/Honolulu", "Africa/Dakar", "UTC",
-];
-
 /**
  * 요구사항 6의 단계 순서. 첫 화면(마이 디자인)은 차트 자체이므로 이동 칩에서 뺀다.
  * 🔴 순서를 바꾸면 화면의 <section id> 순서도 같이 바꿔야 한다 — 칩은 위치를 만들지 않고
@@ -84,11 +80,6 @@ const SECTION_ORDER = [
 
 type CalendarValue = "solar" | "lunar" | "lunar-leap";
 
-function normalizeTimeInput(value: string): string {
-  const digits = value.replace(/[^\d]/g, "").slice(0, 4);
-  if (digits.length <= 2) return digits;
-  return `${digits.slice(0, 2)}:${digits.slice(2)}`;
-}
 
 /**
  * 🔴 로케일은 런타임에서 읽는다. 2026-08-25 까지 page.tsx 가 locale="ko" 를 넘겨서, 이 화면이
@@ -113,12 +104,13 @@ function useHumanDesignLocale(override?: Locale): Locale {
 
 export default function HumanDesignClient({ locale: localeOverride }: { locale?: Locale } = {}) {
   const locale = useHumanDesignLocale(localeOverride);
-  const { seed, reload } = useAiProfileSeed();
+  const { seed, choose } = useAiProfileSeed();
   const inputEdited = useRef(false);
 
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
-  const [timezone, setTimezone] = useState("Asia/Seoul");
+  const [timezone, setTimezone] = useState("");
+  const [birthPlace, setBirthPlace] = useState("");
   const [calendar, setCalendar] = useState<CalendarValue>("solar");
 
   const [loading, setLoading] = useState(false);
@@ -137,7 +129,8 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
   const applyProfile = useCallback((profile: AiPrefillSeed | null) => {
     setBirthDate(profile?.birthDate || "");
     setBirthTime(profile?.birthTimeUnknown ? "" : profile?.birthTime || "");
-    setTimezone(profile?.timezone || "Asia/Seoul");
+    setTimezone(profile?.timezone || "");
+    setBirthPlace(profile?.region || "");
     setCalendar(profile?.calendarType === "lunar" ? (profile.isLeapMonth ? "lunar-leap" : "lunar") : "solar");
   }, []);
 
@@ -256,13 +249,8 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
   }, [activeGateSet, chart]);
 
   const birthForm = (
-    <div className={styles.formFields}>
-      <button type="button" className={styles.choice} onClick={() => void reload().then(profile => {
-        if (!profile) return;
-        inputEdited.current = false;
-        setEditAll(false);
-        applyProfile(profile);
-      })}>{pick(UI_TEXT.loadSavedProfile, locale)}</button>
+    <div data-moonlit-form="" className={styles.formFields}>
+      <SavedBirthProfilePicker disabled={loading} onSelect={profile => { inputEdited.current=true; choose(profile); setEditAll(true); applyProfile(profile); }} />
       {seed?.birthDate && !editAll && <div className={styles.help}>
         <p>{pick(UI_TEXT.savedProfileSummary, locale)}</p>
         <p>{birthDate} · {birthTime || (pick(UI_TEXT.timeRequired, locale))} · {calendar === 'solar' ? pick(UI_TEXT.solar, locale) : calendar === 'lunar-leap' ? pick(UI_TEXT.lunarLeap, locale) : pick(UI_TEXT.lunar, locale)} · {timezone}</p>
@@ -275,33 +263,13 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
 
       {(editAll || !seed?.birthTime || seed?.birthTimeUnknown) && <>
       <label className={styles.label} htmlFor="hd-birth-time">{pick(UI_TEXT.birthTime, locale)}</label>
-      <input
-        id="hd-birth-time"
-        className={styles.input}
-        type="text"
-        inputMode="numeric"
-        maxLength={5}
-        placeholder="HH:MM"
-        value={birthTime}
-        onChange={(event) => { inputEdited.current = true; setBirthTime(normalizeTimeInput(event.target.value)); }}
-      />
+      <BirthTimeInput id="hd-birth-time" className={styles.input} value={birthTime} onChange={event=>{inputEdited.current=true;setBirthTime(event.target.value);}} />
       <p className={styles.help}>{pick(UI_TEXT.timeHelp, locale)}</p>
       </>}
 
       {(editAll || !seed?.timezone) && <>
-      <label className={styles.label} htmlFor="hd-timezone">{pick(UI_TEXT.timezone, locale)}</label>
-      <input
-        id="hd-timezone"
-        className={styles.input}
-        list="hd-timezone-options"
-        value={timezone}
-        onChange={(event) => { inputEdited.current = true; setTimezone(event.target.value); }}
-        autoComplete="off"
-      />
-      <datalist id="hd-timezone-options">
-        {TIMEZONE_PRESETS.map((zone) => <option key={zone} value={zone} />)}
-      </datalist>
-      <p className={styles.help}>{pick(UI_TEXT.timezoneHelp, locale)}</p>
+      <label className={styles.label} htmlFor="hd-birth-place">태어난 도시와 국가</label>
+      <BirthPlaceInput id="hd-birth-place" value={birthPlace} required confirmed={Boolean(timezone)} onChange={value=>{inputEdited.current=true;setBirthPlace(value);setTimezone("");}} onResolved={place=>setTimezone(place?.timezone || "")} />
       </>}
 
       {(editAll || !seed?.calendarType) && <>

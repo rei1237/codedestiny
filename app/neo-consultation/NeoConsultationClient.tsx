@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -183,11 +186,12 @@ export default function NeoConsultationClient() {
           </>}
           {step === 1 && <>
             <label htmlFor="neo-email">회신 이메일</label><input id="neo-email" type="email" autoComplete="email" maxLength={254} value={email} onChange={e => setEmail(e.target.value)} required />
-            <fieldset><legend>출생정보 <span>필수</span></legend><p id="neo-birth-help" className={styles.small}>풀이에 필요한 생년월일과 출생시간을 정확하게 입력해 주세요. 모든 질문에 같은 출생정보를 사용합니다.</p>
+            <fieldset data-moonlit-form=""><legend>출생정보 <span>필수</span></legend><p id="neo-birth-help" className={styles.small}>풀이에 필요한 생년월일과 출생시간을 정확하게 입력해 주세요. 모든 질문에 같은 출생정보를 사용합니다.</p>
+              <SavedBirthProfilePicker disabled={busy} onSelect={seed=>{setDate(seed.birthDate || "");setTime(seed.birthTime || "");setCalendar(seed.calendarType || "solar");setLeapMonth(Boolean(seed.isLeapMonth));}} />
               <label htmlFor="neo-birth">생년월일</label><input id="neo-birth" type="text" inputMode="numeric" placeholder="YYYY-MM-DD" maxLength={10} value={date} onChange={e => setDate(maskBirthDateInput(e.target.value))} required aria-describedby="neo-birth-help" />
               <label htmlFor="neo-calendar">달력 구분</label><select id="neo-calendar" value={calendar} onChange={e => setCalendar(e.target.value)}><option value="solar">양력</option><option value="lunar">음력</option></select>
               {calendar === "lunar" && <label className={styles.check}><input type="checkbox" checked={leapMonth} onChange={e => setLeapMonth(e.target.checked)} />윤달이에요</label>}
-              <label htmlFor="neo-time">출생시간</label><input id="neo-time" type="time" value={time} onChange={e => setTime(e.target.value)} required aria-describedby="neo-time-help" /><p id="neo-time-help" className={styles.small}>오전·오후와 시·분을 확인해 주세요. 출생시간을 입력해야 결제할 수 있어요.</p>
+              <label htmlFor="neo-time">출생시간</label><BirthTimeInput id="neo-time"  value={time} onChange={e => setTime(e.target.value)} required aria-describedby="neo-time-help" /><p id="neo-time-help" className={styles.small}>오전·오후와 시·분을 확인해 주세요. 출생시간을 입력해야 결제할 수 있어요.</p>
             </fieldset>
             <p className={styles.small}>{NEO_POLICY.service}</p>
             <p className={styles.small}>{NEO_POLICY.delivery} {NEO_POLICY.capacity}</p>

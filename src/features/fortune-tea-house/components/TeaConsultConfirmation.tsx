@@ -65,7 +65,7 @@ export default function TeaConsultConfirmation({input,cupId,onConfirm,onBack,bus
     "name" in person ? person.name : input.nickname,person.birthDate,
     person.calendarType==="lunar" ? copy.lunar : copy.solar,person.isLeapMonth ? copy.leap : "",
     input.consultationMode!=="sukuyo" ? ("birthTime" in person && person.birthTime ? person.birthTime : copy.unknown) : "",
-    person.timezone,person.longitude == null ? "" : String(person.longitude)+"°",
+    "birthPlace" in person ? person.birthPlace : "",
   ].filter(Boolean).join(" · ")}</li>)}</ul></div>}
   <TeaCalculationPolicy mode={input.consultationMode}/>
   {isTarot&&<><label>{copy.spread}<select value={spreadId} disabled={!!draft||loading} onChange={e=>setSpreadId(e.target.value)}>{teaSpreads.map(s=><option key={s.id} value={s.id}>{spreadsCopy[s.id as keyof typeof spreadsCopy].title} · {s.cardCount}</option>)}</select></label>

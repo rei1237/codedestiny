@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
@@ -1936,8 +1939,9 @@ export default function LoveSecretAiPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
@@ -2314,7 +2318,7 @@ export default function LoveSecretAiPage() {
 
           <ExpertValueCards theme="love" points={[{ title: "내 마음의 속도", description: "지금 관계에서 내가 먼저 반응하는 지점과 원하는 거리를 살핍니다." }, { title: "상대와의 결", description: "상대의 마음을 단정하지 않고 관계의 패턴과 흐름으로 읽습니다." }, { title: "다음 대화", description: "불안을 키우기보다 지금 선택할 수 있는 대화와 간격을 정리합니다." }]} />
         <div className={styles.formLayout}>
-          <form onSubmit={handleSubmit} id={FORM_ANCHOR_ID} className={styles.entryForm}>
+          <form data-moonlit-form="" onSubmit={handleSubmit} id={FORM_ANCHOR_ID} className={styles.entryForm}>
             <div
               key={busy ? "busy" : activeStep.id}
               className={`${styles.stepEnter} rounded-lg border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5 sm:p-7`}
@@ -2337,14 +2341,7 @@ export default function LoveSecretAiPage() {
                       <p className="mt-1.5 text-sm leading-6 text-[var(--ls-text-muted)]">{copy.stepHelper[activeStep.id]}</p>
                     </div>
                     {activeStep.id === "me" && (
-                      <button
-                        type="button"
-                        onClick={loadFormFromProfileCard}
-                        className={`${theme.focusRing} shrink-0 rounded-xl border border-[var(--ls-line-control)] px-3 py-2 text-xs font-bold text-[var(--ls-accent)] transition hover:bg-[var(--ls-surface-sunken)]`}
-                        aria-label={copy.profileLoadAria}
-                      >
-                        {copy.profileLoadCta}
-                      </button>
+                      <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
                     )}
                   </header>
 
@@ -2597,7 +2594,10 @@ function PersonFields({
   const fieldLabels = copy.personFieldLabels[variant];
   const inputClass = `${theme.focusRing} min-h-12 rounded-2xl border border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] px-4 text-[var(--ls-text)] outline-none transition placeholder:text-[var(--ls-text-muted)] disabled:opacity-55`;
   return (
-    <div className="grid gap-5">
+    <div data-moonlit-form="" className="grid gap-5">
+      <SavedBirthProfilePicker calendarMode="lunar" label={variant==="me"?"내 저장 프로필":"상대 저장 프로필"} disabled={disabled} onSelect={seed=>{
+        onChange("name",seed.name || "");onChange("gender",seed.gender || "");onChange("birthDate",seed.birthDate || "");onChange("birthTime",seed.birthTime || "");onChange("birthTimeUnknown",Boolean(seed.birthTimeUnknown));onChange("calendarType",seed.calendarType || "solar");
+      }} />
       <label className="grid gap-2">
         <span className="text-sm font-bold text-[var(--ls-text)]">{fieldLabels.nameOrNickname}</span>
         <input
@@ -2664,15 +2664,15 @@ function PersonFields({
         </FieldGroup>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div data-moonlit-form="" className="grid gap-4 sm:grid-cols-2">
         <label className="grid gap-2">
           <span className="text-sm font-bold text-[var(--ls-text)]">{fieldLabels.birthDate}</span>
           <input {...birthDateTextInputProps(value.birthDate, (nextBirthDate) => onChange("birthDate", nextBirthDate))} disabled={disabled} className={inputClass} />
         </label>
         <label className="grid gap-2">
           <span className="text-sm font-bold text-[var(--ls-text)]">{fieldLabels.birthTime}</span>
-          <input
-            type="time"
+          <BirthTimeInput
+
             value={value.birthTime}
             onChange={(event) => onChange("birthTime", event.target.value)}
             disabled={disabled || value.birthTimeUnknown}
