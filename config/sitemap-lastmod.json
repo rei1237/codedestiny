@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "cddaf6e24b291d9e",
+      "signature": "a9aa4bcffed336a6",
       "lastmod": "2026-10-24"
     },
     "/about/": {
@@ -579,7 +579,7 @@
       "lastmod": "2026-10-23"
     },
     "/en/yeongnyangi/": {
-      "signature": "3d0464fc1b8793e7",
+      "signature": "23cd281ecf30908a",
       "lastmod": "2026-10-24"
     },
     "/en/ziwei/": {
@@ -1579,7 +1579,7 @@
       "lastmod": "2026-10-23"
     },
     "/ja/yeongnyangi/": {
-      "signature": "3d0464fc1b8793e7",
+      "signature": "23cd281ecf30908a",
       "lastmod": "2026-10-24"
     },
     "/ja/ziwei/": {
@@ -2255,7 +2255,7 @@
       "lastmod": "2026-10-20"
     },
     "/yeongnyangi/": {
-      "signature": "ce8ffd7b0f064956",
+      "signature": "2ecdcb26f7c2edc3",
       "lastmod": "2026-10-24"
     },
     "/yeongnyangi/1000-won-fortune/": {
@@ -2731,7 +2731,7 @@
       "lastmod": "2026-10-23"
     },
     "/zh-tw/yeongnyangi/": {
-      "signature": "3d0464fc1b8793e7",
+      "signature": "23cd281ecf30908a",
       "lastmod": "2026-10-24"
     },
     "/zh-tw/ziwei/": {
@@ -3239,7 +3239,7 @@
       "lastmod": "2026-10-23"
     },
     "/zh/yeongnyangi/": {
-      "signature": "3d0464fc1b8793e7",
+      "signature": "23cd281ecf30908a",
       "lastmod": "2026-10-24"
     },
     "/zh/ziwei/": {

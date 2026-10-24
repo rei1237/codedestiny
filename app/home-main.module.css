@@ -69,12 +69,13 @@
 
 }
 .card::before { content: ''; position: absolute; inset: 4px; z-index: 2; border: 1px solid var(--hm-card-edge); border-radius: calc(var(--cd-r-card) - 4px); pointer-events: none; }
+.yeoniCard { --hm-card-ink: var(--cd-samples-ink); --hm-card-muted: var(--cd-samples-muted); --hm-card-bg: var(--cd-samples-paper); --hm-card-edge: color-mix(in srgb, var(--cd-yehwa-line) 70%, var(--cd-samples-line)); }
 .ynCard { --hm-card-ink: var(--yn-ivory); --hm-card-muted: var(--yn-muted); --hm-card-bg: var(--yn-night); --hm-card-edge: var(--yn-gold); --hm-card-angle: 2deg; }
 .cardNumeral { position: absolute; top: -15px; left: 50%; z-index: 3; display: grid; place-items: center; min-width: 36px; height: 26px; padding-inline: 10px; border: 1px solid var(--hm-card-edge); border-radius: var(--cd-r-pill); transform: translateX(-50%); background: var(--hm-card-bg); color: var(--hm-card-ink); font: 700 .9375rem/1 var(--font-serif); }
 .cardArt { display: block; flex: none; width: 100%; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--hm-card-edge); border-radius: calc(var(--cd-r-card) - 8px); }
 .cardArt img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; transform: translate(var(--hm-px, 0px), var(--hm-py, 0px)) scale(1.04); transition: transform 450ms cubic-bezier(.16,1,.3,1); }
 .cardCopy { display: flex; flex-direction: column; align-items: center; flex: 1; padding: 14px 4px 4px; text-align: center; }
-.cardCopy::before { content: ''; width: 28px; height: 1px; margin-bottom: 10px; background: var(--hm-card-edge); }
+.cardCopy::before { content: ''; width: 64px; height: 1px; margin-bottom: 12px; background: linear-gradient(90deg, transparent, var(--hm-card-edge) 25%, var(--hm-card-edge) 75%, transparent); }
 .page .cardName { font-size: clamp(1rem, 3.9vw, 1.625rem); line-height: 1.4; color: var(--hm-card-ink); }
 .cardLink { text-decoration: none; }
 .cardLink::after { content: ''; position: absolute; inset: 0; z-index: 4; border-radius: var(--cd-r-card); }
@@ -195,6 +196,7 @@
 
 /* Entry composition: two illustrated doors, two quiet disclosures. */
 .cardArt img { transform: none; }
+.yeoniCard .cardAction { background: var(--cd-samples-blush); border-color: var(--cd-samples-line); }
 .ynCard .cardAction::before { mask-image: var(--yn-yehwa-mask-sparkle); }
 .cardAction { box-shadow: inset 0 0 0 3px var(--hm-card-bg); transition: background-color var(--cd-dur-fast) var(--cd-ease-out), border-color var(--cd-dur-fast) var(--cd-ease-out); }
 .explore { width: min(100%, 1040px); }
