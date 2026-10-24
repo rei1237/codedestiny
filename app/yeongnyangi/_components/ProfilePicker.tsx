@@ -10,7 +10,7 @@ import {consultationInputCopy,profileLoadError} from '../_lib/consultation-input
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import styles from './profiles.module.css';
 type ProfileState=ReturnType<typeof useProfiles>;
-export default function ProfilePicker({state,locale,conversational=false,voice='banmal',onLogin=loginForCurrentPage}:{state:ProfileState;locale?:ReadingLocale;conversational?:boolean;voice?:VoiceStyle;onLogin?:()=>void}){
+export default function ProfilePicker({state,locale,conversational=false,voice='banmal',showPolicyNote=true,onLogin=loginForCurrentPage}:{state:ProfileState;locale?:ReadingLocale;conversational?:boolean;voice?:VoiceStyle;showPolicyNote?:boolean;onLogin?:()=>void}){
  const copy=consultationInputCopy(locale);
  const [query,setQuery]=useState(''),[open,setOpen]=useState(false);
  const account=readDestinyProfileAccountId();
@@ -31,7 +31,7 @@ export default function ProfilePicker({state,locale,conversational=false,voice='
    {query&&!matches.length&&<p className={styles.message}>{copy.noMatch}</p>}
    {state.error&&<div className={styles.error} role="alert"><p>{locale==='ko'?state.error:profileLoadError(locale)}</p><button type="button" onClick={()=>void state.refresh(true)}>{copy.retry}</button></div>}
    <button type="button" className={styles.add} aria-expanded={open} onClick={()=>setOpen(!open)}><Plus size={17}/>{open?copy.close:copy.add}</button>
-   <p className={styles.note}>{copy.family}</p>
+   {showPolicyNote&&<p className={styles.note}>{copy.family}</p>}
    {open&&<ProfileForm key={account} locale={locale} conversational={conversational} voice={voice} onLogin={onLogin} onSaved={profile=>{state.saved(profile);setOpen(false);}}/>}
   </>}
  </section>;

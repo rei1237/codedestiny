@@ -21,7 +21,8 @@ body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,bod
 .saju-reading-switch [aria-pressed="true"] {background:var(--reading-accent);border-color:var(--reading-accent);color:#fff;}
 body.neo-mode .saju-reading-switch [aria-pressed="true"] {color:#21182f;}
 .saju-reading-compare {text-align:left;border:0;text-decoration:underline;text-underline-offset:4px;padding-left:0;color:var(--reading-accent);font-size:.875rem;}
-.saju-input-modes {padding:14px 16px;border-radius:14px;margin-bottom:20px;}
+.saju-input-modes {display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:14px;margin-bottom:20px;}
+.saju-input-modes>img {flex:none;width:64px;height:96px;object-fit:contain;background:transparent;}
 .saju-input-modes p {margin:8px 0 0;}
 .saju-reading {padding:20px;border-radius:16px;line-height:1.8;font-size:1rem;overflow-wrap:anywhere;text-align:left;}
 .saju-reading h3 {margin:0 0 20px;font-size:1.2rem;color:var(--reading-ink);}

@@ -321,6 +321,7 @@ export default function Consultation(){
   const plan=recommendQuestion(intake.domain,intake.decision,question);
   const confirmIntake=(next:IntakeValue)=>{const d={...next.decision,confirmed:true};setDecision(d);setScopeDraft(d);const fish=intakeFish(next);setQuestionFish(fish);setProductId(next.domain+'_'+fish);setDomain(next.domain);setKindId(next.domain==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';setError('');};
   return <QuestionCheckout value={intake} open={chatStep==='checkout'} busy={busy}
+   guidanceReady={!guest&&!catalogError&&!missing.length&&!plan.missing.length&&!plan.unsupported&&available.some(p=>p.id===productId)}
    onChange={next=>{setQuestion(next.question);setQuestionFish(next.fish);setScopeDraft(next.decision);if(chatStep==='checkout')confirmIntake(next);else setDecision(undefined);}}
    onOpen={()=>{const category=questionCandidate(question)||intake.decision.category;confirmIntake({...intake,decision:{...intake.decision,category,situation:intake.decision.situation||question.slice(0,600)}});setChatStep('checkout');}}
    preparation={prep.map(item=>({...item,pending:item.pending||Boolean(restoredDraft.current)}))}

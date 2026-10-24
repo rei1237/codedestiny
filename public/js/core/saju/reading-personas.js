@@ -216,7 +216,7 @@
     write('sajuReadingHeader','<img src="/images/saju/'+(neo?'yeongnyangi':'yeoni-clue')+'-160.webp" width="80" height="80" alt="" decoding="async"><div><h2>'+esc(neo?c.room:c.garden)+'</h2><p>'+esc(neo?c.neoIntro:c.yeonIntro)+'</p>'+controls()+'</div>');
     var form=document.getElementById('destinyCardForm');
     if(form&&!document.getElementById('sajuInputModes')){var host=document.createElement('div');host.id='sajuInputModes';host.className='saju-input-modes';form.prepend(host);}
-    write('sajuInputModes',controls()+'<p>'+esc(neo?c.room:c.garden)+'</p>');
+    write('sajuInputModes','<img src="/images/first-visit/yeoni-profile-guide-v1.webp" width="64" height="96" alt="" decoding="async"><div><strong>'+esc(c.yeon)+'</strong><p>'+esc(c.garden)+'</p></div>');
   }
   // 풍부한 판: 한국어는 reading-rich.js, 그 밖의 로케일은 reading-rich-intl.js(없으면 짧은 블록).
   function richFor(lang){return lang==='ko'?(root.SajuReadingRich||null):(root.SajuReadingRichIntl?root.SajuReadingRichIntl.forLang(lang):null);}
@@ -301,7 +301,7 @@
   root.SajuReadingPresentation={build:build,render:render,changed:changed,showGod:showGod,setFlow:function(rows){flow=rows.map(function(r){return Object.assign({},r);});render('flow');},setDaily:function(day,month){daily=[day,month];render('daily');},copy:langCopy,sourceCopy:copy,escape:esc,locale:locale,refreshCopy:refreshCopy};
   if(typeof document==='undefined')return;
   document.addEventListener('click',function(event){
-    var button=event.target.closest('#sajuReadingHeader [data-saju-mode], #sajuInputModes [data-saju-mode]');
+    var button=event.target.closest('#sajuReadingHeader [data-saju-mode]');
     if(button){var selected=button.getAttribute('data-saju-mode');if(selected===mode())return;try{root.localStorage.setItem(PERSONA_KEY,selected);}catch(_){}personaChanged();if(typeof root.cdTrack==='function')root.cdTrack('saju_reading_mode_change',{mode:selected,surface:root.G_PILLARS?'result':'input'});}
     var god=event.target.closest('[data-saju-god]');if(god)showGod(god.getAttribute('data-saju-god'),true);
   });

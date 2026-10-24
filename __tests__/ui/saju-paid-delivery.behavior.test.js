@@ -239,7 +239,7 @@ test('dark mode keeps Yeoni and preserves the paid result and input state', asyn
   h.ctx.requestAnimationFrame = () => 0;
   vm.runInContext(fs.readFileSync('js/core/saju/reading-personas.js','utf8'),h.ctx);
   const modes=h.w.document.createElement('div');
-  modes.id='sajuInputModes';
+  modes.id='sajuReadingHeader';
   modes.innerHTML='<button data-saju-mode="neo">영냥이 풀이</button>';
   h.w.document.body.appendChild(modes);
   modes.querySelector('button').click();

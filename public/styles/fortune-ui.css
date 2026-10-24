@@ -11507,6 +11507,8 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 
       /* 시트 푸터 — 셸에서 마이 탭이 이 시트를 열므로, /me(이용권·결제 내역)로 가는 통로가 된다 */
       .dp-sheet-foot {
+        display: grid;
+        gap: 8px;
         flex-shrink: 0;
         padding: 10px 14px max(12px, env(safe-area-inset-bottom));
         border-top: 1px solid rgba(255,215,0,0.12);
