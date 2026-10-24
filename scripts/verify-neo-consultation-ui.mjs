@@ -29,6 +29,7 @@ await build({
   plugins:[{name:'mock-boundaries',setup(builder){
     builder.onResolve({filter:/.*/},args => {
       if(Object.hasOwn(shims,args.path))return {path:args.path,namespace:'neo-mock'};
+      if(args.path.startsWith('.') && resolve(args.resolveDir,args.path)===resolve(root,'app/_lib/auth-client'))return {path:'@/app/_lib/auth-client',namespace:'neo-mock'};
       return undefined;
     });
     builder.onLoad({filter:/.*/,namespace:'neo-mock'},args=>({contents:shims[args.path],loader:'js',resolveDir:root}));
@@ -65,7 +66,7 @@ const errors=[], captures=[];
 try {
   const context=await browser.newContext();
   await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
-  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+  const page=await context.newPage();page.on('pageerror',e=>{errors.push(e.message);console.error('[neo-ui] browser error:',e.message);});
   for(const width of [360,390,430,1280]){
     await page.setViewportSize({width,height:900});
     await page.goto(base+'/neo-consultation/');
@@ -112,7 +113,9 @@ try {
     await page.getByRole('button',{name:'다음',exact:true}).click();
     await expect(page.getByRole('alert')).toBeVisible();
     await page.getByLabel('생년월일',{exact:true}).fill('19900420');
-    await page.getByLabel('출생시간',{exact:true}).fill('12:30');
+    await page.getByRole('combobox',{name:'오전 / 오후',exact:true}).selectOption('pm');
+    await page.getByRole('textbox',{name:'태어난 시간 · 시',exact:true}).fill('12');
+    await page.getByRole('textbox',{name:'태어난 시간 · 분',exact:true}).fill('30');
     if(width===360){const capture=resolve(out,'birth-360.png');await page.locator('#neo-form').screenshot({path:capture});captures.push(capture);}
     await page.getByLabel('상담과 회신을 위한').check();
     await page.getByRole('button',{name:'이전',exact:true}).click();
@@ -165,6 +168,7 @@ try {
   await page.getByRole('button',{name:'예약 메일 전달하기',exact:true}).click();
   await expect(page.getByRole('button',{name:'예약 메일 전달하기',exact:true})).toHaveCount(0);
   assert.match(mock.mails[0].message.text,/1990-04-20/);
+  assert.match(mock.mails[0].message.text,/12:30/);
   assert.match(mock.mails[0].message.text,/2022년 봄/);
   assert.match(mock.mails[0].message.text,/서른 살 무렵/);
   assert.match(mock.mails[0].message.text,/사주 \+ 자미두수 · 사주 원국·자미두수 명반 해석/);
