@@ -16999,6 +16999,54 @@
           "detail": "Bond type and distance, the three scores, and action guides for you and your partner to close."
         }
       }
+    },
+    "neo_consultation": {
+      "fallbackTitle": "Pregúntale a Neo",
+      "tagline": "Neo utiliza análisis de IA para redactar y revisar tu respuesta y enviártela por correo electrónico.",
+      "premiumIntro": "La base es Saju. Puedes añadir una interpretación de Ziwei o de la carta natal para cada pregunta.",
+      "fallbackCta": "Escribir una pregunta",
+      "ctaNote": "Comprueba la disponibilidad y el coste de los extras antes de pagar cada pedido por separado.",
+      "premiumOutcomes": {
+        "0": "No se ofrecen consultas por chat en vivo, teléfono ni en persona.",
+        "1": "Lee y conserva tu respuesta en el correo electrónico recibido."
+      },
+      "headline": "Neo utiliza análisis de IA para redactar y revisar tu respuesta y enviártela por correo electrónico.",
+      "badge": "Consulta por correo"
+    },
+    "emoi_omikuji_v2_html": {
+      "fallbackTitle": "Emoi Omikuji",
+      "tagline": "Saca una papeleta de fortuna y lee un mensaje para reflexionar sobre tu día.",
+      "premiumIntro": "Saca una papeleta de fortuna y lee un mensaje para reflexionar sobre tu día.",
+      "fallbackCta": "Sacar la papeleta de hoy",
+      "premiumOutcomes": {
+        "0": "Toma el resultado como una referencia ligera y considera tus circunstancias al tomar decisiones importantes."
+      },
+      "headline": "Saca una papeleta de fortuna y lee un mensaje para reflexionar sobre tu día.",
+      "badge": "La papeleta de hoy"
+    },
+    "saju_fpti": {
+      "fallbackTitle": "Saju FPTI",
+      "badge": "Saju FPTI",
+      "tagline": "Explora tu temperamento y tus decisiones mediante los Cinco Elementos y los Diez Dioses.",
+      "headline": "Explora tu temperamento y tus decisiones mediante los Cinco Elementos y los Diez Dioses.",
+      "premiumIntro": "Explora tu temperamento y tus decisiones mediante los Cinco Elementos y los Diez Dioses.",
+      "fallbackCta": "Explorar mis tendencias",
+      "ctaNote": "Los resultados básicos son gratuitos. Consulta las condiciones específicas del informe detallado.",
+      "premiumOutcomes": {
+        "0": "Es contenido para reflexionar sobre ti, no una prueba que determine definitivamente tu personalidad."
+      }
+    },
+    "saju_compatibility": {
+      "fallbackTitle": "Compatibilidad Saju",
+      "badge": "Compatibilidad Saju",
+      "tagline": "Compara dos cartas natales para explorar la relación y los puntos que podéis ajustar juntos.",
+      "headline": "Compara dos cartas natales para explorar la relación y los puntos que podéis ajustar juntos.",
+      "premiumIntro": "Compara dos cartas natales para explorar la relación y los puntos que podéis ajustar juntos.",
+      "fallbackCta": "Preparar la lectura de compatibilidad",
+      "ctaNote": "Prepara los datos de ambos y consulta las condiciones de pases, piedras lunares y pago individual antes del análisis.",
+      "premiumOutcomes": {
+        "0": "El resultado no determina la relación; úsalo como referencia para conversar y tomar decisiones."
+      }
     }
   },
   "featureMarketingCategory": {

@@ -16999,6 +16999,54 @@
           "detail": "Bond type and distance, the three scores, and action guides for you and your partner to close."
         }
       }
+    },
+    "neo_consultation": {
+      "fallbackTitle": "Ask Neo",
+      "tagline": "Neo uses AI analysis to write and review your reply, then sends it by email.",
+      "premiumIntro": "Saju is the basis. You can add Ziwei or natal-chart interpretation for each question.",
+      "fallbackCta": "Write a question",
+      "ctaNote": "Check availability and the cost of any extras before paying for an individual order.",
+      "premiumOutcomes": {
+        "0": "Live chat, phone and in-person consultations are not provided.",
+        "1": "Read and keep your reply in the email you receive."
+      },
+      "headline": "Neo uses AI analysis to write and review your reply, then sends it by email.",
+      "badge": "Email consultation"
+    },
+    "emoi_omikuji_v2_html": {
+      "fallbackTitle": "Emoi Omikuji",
+      "tagline": "Draw a fortune slip and read a message to reflect on your day.",
+      "premiumIntro": "Draw a fortune slip and read a message to reflect on your day.",
+      "fallbackCta": "Draw today’s slip",
+      "premiumOutcomes": {
+        "0": "Treat the result as a light reference and consider your circumstances when making important decisions."
+      },
+      "headline": "Draw a fortune slip and read a message to reflect on your day.",
+      "badge": "Today’s slip"
+    },
+    "saju_fpti": {
+      "fallbackTitle": "Saju FPTI",
+      "badge": "Saju FPTI",
+      "tagline": "Explore your temperament and decision-making through the Five Elements and Ten Gods.",
+      "headline": "Explore your temperament and decision-making through the Five Elements and Ten Gods.",
+      "premiumIntro": "Explore your temperament and decision-making through the Five Elements and Ten Gods.",
+      "fallbackCta": "Explore my temperament",
+      "ctaNote": "Core results are free. Check the separate access terms for an in-depth report.",
+      "premiumOutcomes": {
+        "0": "This is content for self-reflection, not a test that definitively determines your personality."
+      }
+    },
+    "saju_compatibility": {
+      "fallbackTitle": "Saju compatibility",
+      "badge": "Saju compatibility",
+      "tagline": "Compare two birth charts to explore relationship patterns and areas to work on together.",
+      "headline": "Compare two birth charts to explore relationship patterns and areas to work on together.",
+      "premiumIntro": "Compare two birth charts to explore relationship patterns and areas to work on together.",
+      "fallbackCta": "Prepare a compatibility reading",
+      "ctaNote": "Prepare both people’s details and check pass, Moonstone and single-payment terms before analysis.",
+      "premiumOutcomes": {
+        "0": "The result does not determine your relationship; use it as a reference for conversation and choices."
+      }
     }
   },
   "featureMarketingCategory": {

@@ -16999,6 +16999,54 @@
           "detail": "Bond type and distance, the three scores, and action guides for you and your partner to close."
         }
       }
+    },
+    "neo_consultation": {
+      "fallbackTitle": "Neo fragen",
+      "tagline": "Neo nutzt KI-Analysen, um deine Antwort zu verfassen und zu prüfen, und sendet sie per E-Mail.",
+      "premiumIntro": "Saju bildet die Grundlage. Für jede Frage kannst du Ziwei oder eine Deutung des Geburtshoroskops hinzubuchen.",
+      "fallbackCta": "Frage schreiben",
+      "ctaNote": "Prüfe die Verfügbarkeit und die Kosten der Zusatzoptionen, bevor du jeden Auftrag einzeln bezahlst.",
+      "premiumOutcomes": {
+        "0": "Beratungen per Live-Chat, Telefon oder vor Ort werden nicht angeboten.",
+        "1": "Lies und bewahre deine Antwort in der erhaltenen E-Mail auf."
+      },
+      "headline": "Neo nutzt KI-Analysen, um deine Antwort zu verfassen und zu prüfen, und sendet sie per E-Mail.",
+      "badge": "E-Mail-Beratung"
+    },
+    "emoi_omikuji_v2_html": {
+      "fallbackTitle": "Emoi Omikuji",
+      "tagline": "Ziehe ein Orakellos und lies eine Botschaft, um über deinen Tag nachzudenken.",
+      "premiumIntro": "Ziehe ein Orakellos und lies eine Botschaft, um über deinen Tag nachzudenken.",
+      "fallbackCta": "Heutiges Los ziehen",
+      "premiumOutcomes": {
+        "0": "Nutze das Ergebnis als unverbindliche Anregung und berücksichtige bei wichtigen Entscheidungen deine Umstände."
+      },
+      "headline": "Ziehe ein Orakellos und lies eine Botschaft, um über deinen Tag nachzudenken.",
+      "badge": "Das heutige Los"
+    },
+    "saju_fpti": {
+      "fallbackTitle": "Saju FPTI",
+      "badge": "Saju FPTI",
+      "tagline": "Erkunde dein Temperament und deine Entscheidungen anhand der Fünf Elemente und Zehn Götter.",
+      "headline": "Erkunde dein Temperament und deine Entscheidungen anhand der Fünf Elemente und Zehn Götter.",
+      "premiumIntro": "Erkunde dein Temperament und deine Entscheidungen anhand der Fünf Elemente und Zehn Götter.",
+      "fallbackCta": "Meine Neigungen erkunden",
+      "ctaNote": "Die Kernergebnisse sind kostenlos. Prüfe die gesonderten Nutzungsbedingungen für den ausführlichen Bericht.",
+      "premiumOutcomes": {
+        "0": "Diese Inhalte dienen der Selbstreflexion und sind kein Test, der deine Persönlichkeit endgültig festlegt."
+      }
+    },
+    "saju_compatibility": {
+      "fallbackTitle": "Saju-Kompatibilität",
+      "badge": "Saju-Kompatibilität",
+      "tagline": "Vergleiche zwei Geburtsdiagramme, um Beziehungsmuster und gemeinsame Ansatzpunkte zu erkunden.",
+      "headline": "Vergleiche zwei Geburtsdiagramme, um Beziehungsmuster und gemeinsame Ansatzpunkte zu erkunden.",
+      "premiumIntro": "Vergleiche zwei Geburtsdiagramme, um Beziehungsmuster und gemeinsame Ansatzpunkte zu erkunden.",
+      "fallbackCta": "Kompatibilitätsdeutung vorbereiten",
+      "ctaNote": "Bereite die Daten beider Personen vor und prüfe vor der Analyse die Bedingungen für Pässe, Mondsteine und Einzelzahlungen.",
+      "premiumOutcomes": {
+        "0": "Das Ergebnis legt die Beziehung nicht fest; nutze es als Anregung für Gespräche und Entscheidungen."
+      }
     }
   },
   "featureMarketingCategory": {

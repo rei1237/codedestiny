@@ -16999,6 +16999,54 @@
           "detail": "以关系类型・距离、三个分数，以及你和对方的行动指南作结。"
         }
       }
+    },
+    "neo_consultation": {
+      "fallbackTitle": "问问尼奥",
+      "tagline": "尼奥借助AI分析撰写并审核答复，再通过电子邮件发送。",
+      "premiumIntro": "以四柱命理为基础，每个问题可加选紫微斗数或命局、命盘解读。",
+      "fallbackCta": "填写问题",
+      "ctaNote": "确认是否开放受理及加选项目费用后，按单次付费申请。",
+      "premiumOutcomes": {
+        "0": "不提供实时聊天、电话或面对面咨询。",
+        "1": "请在收到的邮件中查看并保存答复。"
+      },
+      "headline": "尼奥借助AI分析撰写并审核答复，再通过电子邮件发送。",
+      "badge": "邮件咨询"
+    },
+    "emoi_omikuji_v2_html": {
+      "fallbackTitle": "Emoi御神签",
+      "tagline": "从签筒中抽出今日的一签，读一段回顾当天的寄语。",
+      "premiumIntro": "从签筒中抽出今日的一签，读一段回顾当天的寄语。",
+      "fallbackCta": "抽取今日一签",
+      "premiumOutcomes": {
+        "0": "结果仅作轻松参考，重要决定请结合自己的实际情况考虑。"
+      },
+      "headline": "从签筒中抽出今日的一签，读一段回顾当天的寄语。",
+      "badge": "今日一签"
+    },
+    "saju_fpti": {
+      "fallbackTitle": "四柱FPTI",
+      "badge": "四柱FPTI",
+      "tagline": "通过五行与十神，了解自己的气质和做选择的方式。",
+      "headline": "通过五行与十神，了解自己的气质和做选择的方式。",
+      "premiumIntro": "通过五行与十神，了解自己的气质和做选择的方式。",
+      "fallbackCta": "了解我的倾向",
+      "ctaNote": "核心结果可免费查看，深度报告请另行确认使用条件。",
+      "premiumOutcomes": {
+        "0": "这是帮助自我理解的参考内容，并非确定人格的测试。"
+      }
+    },
+    "saju_compatibility": {
+      "fallbackTitle": "四柱合盘",
+      "badge": "四柱合盘",
+      "tagline": "并列两人的命盘，了解关系的发展以及可以相互协调之处。",
+      "headline": "并列两人的命盘，了解关系的发展以及可以相互协调之处。",
+      "premiumIntro": "并列两人的命盘，了解关系的发展以及可以相互协调之处。",
+      "fallbackCta": "准备合盘分析",
+      "ctaNote": "备好两人的信息，分析前请确认使用券、月长石及单次付费条件。",
+      "premiumOutcomes": {
+        "0": "结果不会断定关系，请将其作为沟通和选择的参考。"
+      }
     }
   },
   "featureMarketingCategory": {

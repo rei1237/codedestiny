@@ -89,3 +89,5 @@
 - 공개 메인은 두 실제 그림 카드 → 요청 시 여는 ‘어디로 가면 좋을까요?’ → 기본 닫힌 ‘더 둘러보기’ → 필수 푸터. 기존 대표 상담·분야·결과 예시·FAQ·내부 링크는 더 둘러보기의 서버 HTML에 보존한다. 안내의 네오는 작은 직접 검수 상담 링크이며 세 번째 주 카드가 아니다.
 - 언어 경계: 공개 `/`의 한국어 그림 입구는 저장된 상담 언어나 앱 언어가 달라져도 유지한다. `lang="ko" data-cd-no-trans`로 본문 언어를 표시하고 부분 자동 번역을 방지한다. 상담 앱의 `cd_lang`과 별도 언어 경로는 그대로 유지한다. 회귀 검사는 로컬 mock 서버에서 `HOME_ENTRY_TEST_URL`을 지정해 `node scripts/design/verify-home-entry-locale.cjs`로 실행한다.
 - 코드 참조: app/home-main.module.css(두 카드·행동), styles/consultation-method-guide.css(그림 안내·메모), lib/brand/consultation-methods.mjs(entry/full 내용). 실제 360·390·430px와 데스크톱 기본/펼침 화면을 대조하고 브랜드 구분·대비·터치·줄바꿈을 함께 확인한다.
+- 모든 운세의 방식 카테고리는 기본 기능과 해당 체계의 전문가·심층 상담을 함께 포함한다. 레지스트리뿐 아니라 접힌 컬렉션의 `data-cd-methods`·`data-cd-purposes`도 유지한다. 제목·캐릭터·예화만으로 계산 체계나 사람의 검수를 추정하지 않는다. 중단된 서비스와 같은 기능의 별칭은 새 상품처럼 재노출하지 않는다.
+- 카탈로그 그림은 `lib/marketing/service-introduction-art.json`과 실제 원본 타일의 지정 예화를 사용한다. 대표 이미지 3:2, 최소 14px 설명, 기존 명조 제목과 48px 연꽃 행동 표시를 유지하며 별도 중첩 버튼을 만들지 않는다. 전수 분류·전문가 연결·모바일 분리 카드 회귀는 `node --test __tests__/ui/home-catalogue-coverage.test.js`로 확인한다.
