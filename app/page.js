@@ -6,18 +6,19 @@ import { brandCopy } from "../lib/seo/brand-copy.mjs";
 import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
 import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "../lib/brand/site-footer";
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
-import { founder } from "../lib/brand/founder";
 import { HOME_DIFFERENTIATION_FAQ } from "../lib/brand/differentiation-faqs.mjs";
 import { HOME_CATEGORIES, HOME_CONCERNS } from "../lib/seo/home-discovery.mjs";
 import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
+import HomeEntryState from "./components/HomeEntryState";
 import { PriceBadge } from "./components/PriceBadge";
 import ConsultationDiscovery from "./components/ConsultationDiscovery";
 import ConsultationMethodGuide from "./components/ConsultationMethodGuide";
 import { CONSULTATION_METHOD_FAQS } from "../lib/brand/consultation-methods.mjs";
 import LocalizedServiceSummary from "./components/LocalizedServiceSummary";
 import "./yeongnyangi/night-tokens.css";
+import "./yeongnyangi/yehwa-night.generated.css";
 import styles from "./home-main.module.css";
 import { IS_APP_BUILD } from "../lib/app-build-target";
 
@@ -72,8 +73,8 @@ export const metadata = {
 // 두 상담가의 역할과 실제 진입을 한 링크로 묶는다.
 // /ggulggul/ 은 Next RSC 페이로드가 없는 정적 셸이라 next/link 대신 <a> 로 연다(external).
 const CARDS = [
-  { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꿀꿀 운세", href: service.appEntryPath, external: true, tag: "무료 운세부터", hint: "고급 심층 리포트까지" },
-  { key: "yn", className: "ynCard", art: "yeongnyangi", name: "운세보는 영냥이", href: YEONGNYANGI.path, tag: "간단한 질문부터", hint: "세밀한 오마카세 상담까지", night: true },
+  { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꿀꿀 운세", href: service.appEntryPath, external: true, tag: "사주·타로부터 주제별 리포트까지", action: "운세 골라보기" },
+  { key: "yn", className: "ynCard", art: "yeongnyangi", name: "운세보는 영냥이", href: YEONGNYANGI.path, tag: "내 질문과 상황을 바탕으로 깊이 읽기", action: "영냥이 만나기", night: true },
 ];
 const CARD_ART_SIZES = "(min-width: 800px) 306px, (min-width: 641px) 38vw, 42vw";
 // 강약(2026-10-23): 대표 상담 3종을 두 입구 카드 바로 아래 한 줄로 둔다. 채움 버튼은 첫 장 하나뿐이다.
@@ -107,6 +108,7 @@ export default function HomePage() {
   ];
   return <>
     <LegacyHomeEntry />
+    <HomeEntryState />
     <LocalizedServiceSummary><div className={styles.page}>
       <header className={styles.brandRow}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -117,15 +119,15 @@ export default function HomePage() {
       <main className={styles.stage}>
         <div className={styles.head}>
           <h1 id="homeCardTitle" className={styles.title}>어떤 운세를 만나볼까요?</h1>
-          <p className={styles.lead}><Link href="/about/#author">{founder.byline}</Link></p>
+
         </div>
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
         <HomeCardDeck className={styles.deck}>
           {CARDS.map((card, index) => {
-            const linkProps = { href: card.href, className: styles.cardLink, "aria-label": `${card.name} ${card.key === "yeoni" ? "운세 골라보기" : "상담 시작하기"}`, "aria-describedby": `${card.key}CardTag ${card.key}CardHint`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
+            const linkProps = { href: card.href, className: styles.cardLink, "aria-label": `${card.name} ${card.action}`, "aria-describedby": `${card.key}CardTag`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
             return <li key={card.key} data-home-card={card.key} className={`${styles.card} ${styles[card.className]}`} data-yn-night={card.night ? "" : undefined}>
-              <span className={styles.cardNumeral} aria-hidden="true">{index === 0 ? "I" : "II"}</span>
+
               <picture className={styles.cardArt}>
                 <source type="image/avif" srcSet={`${ART}/root-card-${card.art}-360.avif${CARD_ART_REV} 360w, ${ART}/root-card-${card.art}-600.avif${CARD_ART_REV} 600w`} sizes={CARD_ART_SIZES} />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -136,14 +138,16 @@ export default function HomePage() {
                 {card.external ? <a {...linkProps}>{card.name}</a> : <Link {...linkProps}>{card.name}</Link>}
               </h2>
               <p id={`${card.key}CardTag`} className={styles.cardTag}>{card.tag}</p>
-              <p id={`${card.key}CardHint`} className={styles.cardHint}>{card.hint}</p>
-              <span className={styles.cardAction} aria-hidden="true">{card.key === "yeoni" ? "운세 골라보기" : "상담 시작하기"}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></span></div>
+
+              <span className={styles.cardAction} aria-hidden="true">{card.action}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></span></div>
               <span className={styles.cardFoil} aria-hidden="true" />
             </li>;
           })}
         </HomeCardDeck>
-        <ConsultationMethodGuide id="home-consultation-methods" />
-        <a className={styles.browseLink} href="#homeServices">분야부터 골라보기 <span aria-hidden="true">↓</span></a>
+        <ConsultationMethodGuide id="home-consultation-methods" variant="entry" />
+        <details id="homeExplore" data-home-disclosure="explore" className={styles.explore}>
+          <summary className={styles.exploreSummary}><span>더 둘러보기</span><span className={styles.disclosureMark} aria-hidden="true" /></summary>
+          <div className={styles.exploreContent}>
         {/* 카드 전체가 한 링크다. 클릭 귀속은 /ggulggul/ 덱과 같은 섹션 키(signature_consult)로 남는다(js/core/analytics.js). */}
         <section className={styles.signature} aria-labelledby="homeSignature" data-cd-funnel-section="signature_consult">
           <div className={styles.signatureHeading}><h2 id="homeSignature">대표 상담</h2><p>연애·한 해·인생, 큰 질문 하나를 마스터가 깊게 읽어 드려요.</p></div>
@@ -222,6 +226,8 @@ export default function HomePage() {
             <nav className={styles.quickLinks} aria-label="상담 방식과 이용 안내"><Link href="/about/">운영자와 해석 방식</Link><Link href="/editorial-policy/">콘텐츠 편집 원칙</Link><Link href="/faq/">전체 이용 안내</Link></nav>
           </section>
         </div>
+          </div>
+        </details>
       </main>
 
       <footer className={styles.footer}>
