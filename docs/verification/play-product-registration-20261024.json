@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-24",
+  "packageName": "com.codedestiny.app",
+  "purchaseOptionId": "purchase",
+  "purchaseType": "buy",
+  "countries": [
+    "KR",
+    "JP",
+    "US",
+    "GB",
+    "CA",
+    "AU",
+    "NZ",
+    "IE"
+  ],
+  "newRegionsAvailable": false,
+  "locales": [
+    "ko-KR",
+    "en-US",
+    "en-GB",
+    "en-AU",
+    "en-CA",
+    "ja-JP"
+  ],
+  "products": [
+    {
+      "productId": "cd_content_tier_15",
+      "state": "active",
+      "priceKRW": 1000,
+      "priceJPY": 130,
+      "priceUSD": 0.79
+    },
+    {
+      "productId": "cd_content_tier_16",
+      "state": "active",
+      "priceKRW": 15000,
+      "priceJPY": 1960,
+      "priceUSD": 10.99
+    },
+    {
+      "productId": "cd_content_tier_17",
+      "state": "active",
+      "priceKRW": 50000,
+      "priceJPY": 6500,
+      "priceUSD": 37.99
+    },
+    {
+      "productId": "cd_content_tier_18",
+      "state": "active",
+      "priceKRW": 70000,
+      "priceJPY": 9100,
+      "priceUSD": 54.99
+    },
+    {
+      "productId": "cd_pass_standard_30d_v4",
+      "state": "active",
+      "priceKRW": 9900,
+      "priceJPY": 1290,
+      "priceUSD": 7.49,
+      "coveragePerUseKRW": 5000,
+      "totalAllowanceKRW": 20000
+    },
+    {
+      "productId": "cd_pass_premium_30d_v4",
+      "state": "active",
+      "priceKRW": 29900,
+      "priceJPY": 3900,
+      "priceUSD": 22.99,
+      "coveragePerUseKRW": 10000,
+      "totalAllowanceKRW": 60000
+    },
+    {
+      "productId": "cd_pass_vvip_30d_v4",
+      "state": "active",
+      "priceKRW": 59900,
+      "priceJPY": 7800,
+      "priceUSD": 44.99,
+      "coveragePerUseKRW": 30000,
+      "totalAllowanceKRW": 120000
+    }
+  ],
+  "passPolicy": {
+    "version": "flower-20260930",
+    "expiry": "budget_exhaustion",
+    "automaticRenewal": false,
+    "salesDecision": "Owner approved current Play prices after registration; old cost evidence is not a prerequisite for these three explicitly approved SKUs.",
+    "profitabilityVerified": false
+  },
+  "scope": {
+    "familyV4Registered": false,
+    "legacyProductsChanged": false,
+    "realChargesMade": false,
+    "devicePurchaseVerified": false,
+    "deviceRestoreVerified": false,
+    "newAppBuild": "deferred until pass-page changes are ready"
+  },
+  "evidenceDirectory": "output/play-billing-readiness-20261024"
+}
