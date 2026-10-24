@@ -1,10 +1,19 @@
 ---
 status: active
 updated: 2026-10-25
-next: "이번 번역·Play 현지 가격 표시 커밋의 main CI를 한 번 확인한다. 로컬 브라우저 및 최종 실기기 화면 검수를 완료하고, 이용권 페이지 변경 준비 전에는 새 APK/AAB를 만들지 않는다."
+next: "최신 main CI를 한 번 확인하고 성공이면 이 문서를 done으로 닫고 이 작업의 워크트리만 배수한다. 새 APK/AAB 빌드는 계속 보류한다."
 ---
 
 # Play 결제 상품 등록 및 이용권 판매 준비
+
+## 2026-10-25 CI 확인 및 정리 요청
+- 최신 지시: 최신 CI 성공 시 이번 워크트리만 정리한다. 다른 세션은 건드리지 않고 앱은 빌드하지 않는다. 아래 과거 배포·기기 검수 순서는 이번 정리 요청의 선행 조건이 아니다.
+- `24809bdb6511c068d8c9f55b2c2d5baedc8c99d0`의 CI https://github.com/rei1237/codedestiny/actions/runs/40133515322 는 실패했다. fast/build/critical은 성공했고, Static guards의 Node 검사 3653개 중 1개만 실패했다.
+- 원인: 이벤트 검사기가 실제 `root.dispatchEvent?.(new root.CustomEvent(...))`를 인식하지 못해 `cd:play-prices-changed`를 발신자 없는 이벤트로 오인했다. 검사기의 호출 문법 인식 한 줄만 보완했고 면제 목록·앱 코드·결제 정책은 바꾸지 않았다.
+- 수정 커밋: `95be4128576a300bea71b4e36dca06b85ebd7c2f` (`test(ui): detect optional event dispatch`). 인수인계 갱신과 함께 main으로 전달한다.
+- 검증: `node --test __tests__/ui/custom-event-wiring.static.test.js __tests__/ui/play-display-price.test.mjs __tests__/ui/play-price-hook.test.mjs` 20/20 PASS. 대상 ESLint 오류 0개/기존 require 경고 4개, `git diff --check` PASS. `check:fast -- --plan`은 전체 critical 검사로 승격되어 전체 로컬 검사는 반복하지 않는다. 공식 판정은 새 main CI에 맡긴다.
+- CI 성공 조건이 충족되지 않았으므로 현재 상태는 active이며 워크트리는 보존한다. 새 CI가 진행 중이면 기다리거나 반복 조회하지 않고 다음 재개 때 한 번 확인한다.
+- 공유 루트의 `docs/handoff/heaven-light-mv-v7.md`, `.claude/skills/fire-your-seo-agency/`, `docs/handoff/ggulggul-master-repair-release.md`는 다른 세션 소유로 보존했다. 앱 빌드·실제 과금·배포 조작 없음.
 
 ## 2026-10-25 추가 번역 및 Google Play 현지 가격 표시
 - 최신 지시: 해외 상담 결과는 각 로케일로 제공하고 통화 표시는 Google Play Console 기준으로 한다. 번역이 먼저이며 새 APK/AAB는 계속 보류한다.
@@ -98,4 +107,4 @@ next: "이번 번역·Play 현지 가격 표시 커밋의 main CI를 한 번 확
 5. 완료 후 이 문서를 done으로 닫고 자기 워크트리의 node_modules 정션을 먼저 해제한 뒤 자기 워크트리·브랜치만 정리한다.
 
 ## 재개 지시
-`D:\Development\code-destiny\.codex-worktrees\play-billing-readiness-20261024-221610`에서 이 문서를 읽고 구현 커밋 `eea38194404f2d46ce74107a0d4be7c90e66db53`의 원격 main 포함 여부와 최신 CI를 확인한다. 새 APK/AAB는 이용권 페이지 수정 준비 전까지 만들지 않는다.
+`D:\Development\code-destiny\.codex-worktrees\play-billing-readiness-20261024-221610`에서 `D:\Development\code-destiny\.codex-worktrees\play-billing-readiness-20261024-221610\docs\handoff\play-billing-readiness-20261024.md`를 읽고 수정 커밋 `95be4128576a300bea71b4e36dca06b85ebd7c2f`의 원격 main 포함 여부와 최신 CI를 한 번 확인한다. 통과하면 이 문서를 done으로 닫아 전달하고 자기 워크트리의 정션·워크트리·머지된 브랜치만 순서대로 정리한다. 다른 세션 작업은 보존하고 앱 빌드는 하지 않는다.
