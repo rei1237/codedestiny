@@ -1321,12 +1321,12 @@ html.neo-mode #cdHomeFunnel .cd-concern__free,body.neo-mode #cdHomeFunnel .cd-co
 @media(hover:hover) and (pointer:fine){#cdHomeFunnel .cd-concern__card:hover{border-color:var(--cdh-gold);transform:none}#cdHomeFunnel .cd-concern__q-link:hover{background:color-mix(in srgb,var(--cdh-gold-soft) 50%,transparent);transform:none;box-shadow:none}#cdHomeFunnel .cd-concern__free:hover{background:linear-gradient(135deg,#46335a,#241a3a)}}
 @media(max-width:860px){#cdHomeFunnel .cdh-other{margin:28px 16px 0}}
 @media(max-width:599px){
-  #cdHomeFunnel .cd-concern__cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 16px;padding:0;overflow:visible}
-  #cdHomeFunnel .cd-concern__card{grid-template-columns:48px minmax(0,1fr);grid-template-rows:auto;align-items:center;gap:8px;min-height:68px;padding:10px;text-align:left;border-radius:12px}
-  #cdHomeFunnel .cd-concern__card-media{width:48px;aspect-ratio:3/2;border-radius:6px;overflow:hidden}
-  #cdHomeFunnel .cd-concern__card-label{margin:0;font-size:1rem;overflow-wrap:anywhere}
+  #cdHomeFunnel .cd-concern__cards{display:grid;grid-template-columns:none;grid-template-rows:repeat(2,auto);grid-auto-flow:column;grid-auto-columns:clamp(140px,44%,168px);gap:10px;margin:0 0 16px;padding:4px 3px 12px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-inline:3px;scrollbar-width:thin;scrollbar-color:var(--cdh-gold) transparent}
+  #cdHomeFunnel .cd-concern__card{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;align-content:start;gap:0;min-height:0;padding:0 0 10px;text-align:left;border-radius:12px;scroll-snap-align:start}
+  #cdHomeFunnel .cd-concern__card-media{width:100%;aspect-ratio:16/9;border-radius:0;overflow:hidden}
+  #cdHomeFunnel .cd-concern__card-label{margin:8px 12px 0;font-size:1rem;overflow-wrap:anywhere}
   #cdHomeFunnel .cd-concern__card-desc{display:none}
-  #cdHomeFunnel .cd-concern__card[aria-expanded="true"]::after{top:3px;right:3px;width:16px;height:16px;font-size:10px}
+  #cdHomeFunnel .cd-concern__card[aria-expanded="true"]::after{top:6px;right:6px;width:22px;height:22px;font-size:14px}
   #cdHomeFunnel .cd-concern__q-link{grid-template-columns:28px minmax(0,1fr) 20px;gap:4px 10px;padding:14px 0}
   #cdHomeFunnel .cd-concern__q-master{grid-column:1;grid-row:1/3}
   #cdHomeFunnel .cd-concern__q-text{grid-column:2;grid-row:1}
@@ -1527,3 +1527,60 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
  #cdHomeFunnel .cdh-honey__wallet{grid-column:auto}
  #cdHomeFunnel .cdh-honey__actions{display:flex;flex-wrap:wrap}
 }
+
+/* Three established consultation entries share one display surface. */
+#cdHomeFunnel .cdh-consult-browser{min-width:0}
+#cdHomeFunnel .cdh-consult-tabs{display:flex;gap:4px;padding:4px;margin-bottom:14px;border:1px solid var(--cdh-line);border-radius:var(--cd-r-control);background:var(--cdh-card)}
+#cdHomeFunnel .cdh-consult-tabs[hidden],#cdHomeFunnel .cdh-consult>[hidden]{display:none!important}
+#cdHomeFunnel .cdh-consult-tabs button{flex:1;min-width:0;min-height:48px;padding:10px 8px;border:0;border-radius:var(--cd-r-sm);background:transparent;color:var(--cdh-muted);font:600 .9rem/1.5 var(--font-body);cursor:pointer}
+#cdHomeFunnel .cdh-consult-tabs button[aria-selected="true"]{background:var(--cdh-ink);color:var(--cdh-card)}
+#cdHomeFunnel .cdh-consult-tabs button:focus-visible,#cdHomeFunnel .cdh-concern-scroll button:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
+#cdHomeFunnel .cdh-consult-browser .cdh-consult{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;margin:0}
+#cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__entry-shell{padding:20px;gap:14px}
+#cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__entry-copy{padding:0}
+#cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__entry-copy h2{font-size:clamp(1.2rem,2vw,1.5rem);margin-bottom:4px}
+#cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__door{grid-template-columns:minmax(120px,.8fr) minmax(0,1.2fr);gap:8px 20px;padding:0;border:0;border-radius:0;align-content:center}
+#cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__door-art{grid-column:1;grid-row:1/5;align-self:stretch;width:100%;height:100%;min-height:180px;aspect-ratio:auto;margin:0;border-radius:var(--cd-r-card)}
+#cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__door>:not(.fortune-gateway__door-art){grid-column:2}
+#cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__door-title{font-size:1.2rem;margin:0}
+#cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__door-meta{margin:0}
+#cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__entry-note{font-size:.875rem}
+#cdHomeFunnel .cdh-consult-browser .cdh-neo-letter{display:grid;grid-template-columns:minmax(180px,.9fr) minmax(0,1.1fr);border-radius:var(--cd-r-card)}
+#cdHomeFunnel .cdh-consult-browser .cdh-neo-letter__art img{height:100%;object-fit:cover}
+#cdHomeFunnel .cdh-consult-browser .cdh-neo-letter__copy{padding:20px}
+#cdHomeFunnel .cdh-consult-browser .cdh-neo-letter h2{font-size:clamp(1.25rem,2vw,1.6rem);margin-bottom:8px}
+#cdHomeFunnel .cdh-consult-browser .cdh-neo-letter p{font-size:.9rem;line-height:1.7;margin:8px 0}
+#cdHomeFunnel .cdh-consult-browser .cdh-neo-letter__details{margin-top:8px}
+#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(160px,.7fr);gap:16px;padding:24px;margin:0;min-height:0}
+#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__copy{min-width:0}
+#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry h2{font-size:clamp(1.2rem,2.2vw,1.7rem);line-height:1.5;margin:0 0 8px}
+#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__sub{margin:8px 0;font-size:.9rem}
+#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__stage{position:relative;inset:auto;align-self:start;min-height:0;width:100%;height:auto;grid-column:2;grid-row:1}
+#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__art{position:relative;inset:auto;width:100%;height:auto;max-width:280px;transform:none;animation:none}
+#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__eyebrow,#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__price{display:none}
+#cdHomeFunnel .cdh-consult-details{margin:12px 0}
+#cdHomeFunnel .cdh-consult-details>summary{min-height:44px;display:list-item;align-content:center;cursor:pointer;font-size:.9rem}
+#cdHomeFunnel .cdh-consult-details .cd-soulcat-entry__story{font-size:.9rem;line-height:1.7}
+#cdHomeFunnel .cdh-concern-scroll{display:none;align-items:center;justify-content:space-between;gap:12px;color:var(--cdh-muted);font-size:.875rem;margin-bottom:8px}
+#cdHomeFunnel .cdh-concern-scroll>div{display:flex;gap:6px}
+#cdHomeFunnel .cdh-concern-scroll button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--cdh-line);border-radius:var(--cd-r-control);color:var(--cdh-ink);background:var(--cdh-card);cursor:pointer}
+#cdHomeFunnel .cdh-concern-scroll button:disabled{opacity:.4;cursor:default}
+@media(max-width:599px){
+ #cdHomeFunnel .cdh-concern-scroll:not([hidden]){display:flex}
+ #cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__entry-shell{padding:16px}
+ #cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__door{grid-template-columns:minmax(0,1fr);gap:8px}
+ #cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__door-art{grid-column:1;grid-row:auto;height:auto;min-height:0;aspect-ratio:2/1}
+ #cdHomeFunnel .cdh-consult-browser #fortuneGatewayEntry .fortune-gateway__door>:not(.fortune-gateway__door-art){grid-column:1}
+ #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter{grid-template-columns:minmax(0,1fr)}
+ #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter__art img{aspect-ratio:2/1;height:auto;object-fit:cover;object-position:center 35%}
+ #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter__copy{padding:16px}
+ #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry{grid-template-columns:minmax(0,1fr);padding:16px}
+ #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__stage{grid-column:1;grid-row:1;max-width:160px;justify-self:center}
+ #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__copy{grid-row:2}
+ #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__actions{flex-wrap:wrap;gap:8px}
+ #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__cta{width:100%;min-height:48px}
+}
+
+#cdHomeFunnel #cdhQuestionSlot>.cdh-other{width:100%;margin-inline:0}
+
+@media(max-width:599px){#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__actions{display:grid;grid-template-columns:minmax(0,1fr)}#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__cta{box-sizing:border-box;min-width:0}}

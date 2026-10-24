@@ -1072,10 +1072,10 @@
         "detail",
         "/fusion-fortune/"
       ],
-      "output": "public/images/service-introductions/fusion-fortune.webp",
+      "output": "public/images/service-introductions/fusion-fortune-masters-v3.webp",
       "prompt": "Refine this existing illustration, keeping its 3:2 landscape composition and painterly style. Correct the two men on the RIGHT. The second man from the right has long dark purple hair, purple gem and golden feather: Musung. Put a SQUARE twelve-palace board directly in front of HIM (four cells top, four bottom, two left, two right, blank center). The rightmost man has short purple hair, white inner robe and pendant: Yundal. Give HIM a CIRCULAR western planet chart, and a small Indian chart. Remove the currently reversed tools. Preserve all five people and their faces exactly; preserve the first three peoples tools. No text. No lettering, watermark, UI, prices or buttons.",
       "status": "reviewed",
-      "source": "exec-475861a1-81a3-430f-9bac-735e97f7b7dd.png",
+      "source": "public/images/home/fusion-signature-masters-1200.webp",
       "alt": "네오·연이·서한비·윤달·무성의 초융합 심층 리딩 상담 장면",
       "previousAttempts": [
         {
@@ -1114,7 +1114,8 @@
         ],
         "crop": "preserve-full-composition",
         "objectPosition": "center"
-      }
+      },
+      "revisionNote": "2026-10-24: User rejected seated image for hand anatomy. Reused existing standing five-master artwork after identity and visible-hand review; original source retained."
     },
     {
       "slug": "tarot-year-fortune",

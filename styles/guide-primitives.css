@@ -1,0 +1,102 @@
+/* Guidance surfaces share the shell's typography and button tokens.
+ * .cd-first aliases the independently maintained first-visit guide markup.
+ * See DESIGN.md: Guidance UI contract. No state, price, or routing changes. */
+.cd-guide,
+.cd-first.cd-first {
+  font-family: var(--font-body);
+  color: var(--cd-text);
+  font-size: var(--cd-prose-font-size);
+  line-height: 1.7;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.cd-guide__steps,
+.cd-first.cd-first .cd-first__scene-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--cd-sp-xs);
+  margin-bottom: var(--cd-sp-lg);
+}
+.cd-guide__steps button,
+.cd-first.cd-first .cd-first__scene-nav button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--cd-sp-xs);
+  min-width: 0;
+  min-height: 64px;
+  padding: var(--cd-sp-sm) var(--cd-sp-xs);
+  border: 1px solid var(--cd-line-strong);
+  border-radius: var(--cd-r-control);
+  background: transparent;
+  color: var(--cd-text);
+  font: 600 max(var(--cd-t-body), calc(var(--cd-prose-font-size) * .875))/1.4 var(--font-body);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+.cd-guide__steps button[aria-pressed="true"],
+.cd-first.cd-first .cd-first__scene-nav button[aria-pressed="true"] {
+  border-color: var(--cd-primary);
+  background: var(--cd-surface-2);
+  color: var(--cd-primary);
+  box-shadow: inset 0 -2px var(--cd-primary);
+}
+.cd-guide__copy,
+.cd-first.cd-first .cd-first__speech {
+  padding: var(--cd-sp-lg);
+  background: var(--cd-surface);
+  border: 1px solid var(--cd-line-strong);
+  border-radius: var(--cd-r-card);
+}
+.cd-guide__scene,
+.cd-first.cd-first .cd-first__scene { display: grid; grid-template-columns: minmax(140px, 200px) minmax(0, 1fr); gap: var(--cd-sp-lg); align-items: center; }
+.cd-guide__art,
+#cdHomeFunnel .cd-first img.cd-guide__art { display: block; width: min(100%, 180px); max-width: 180px; height: auto; margin: auto; object-fit: contain; }
+@media (max-width: 600px) {
+  .cd-guide__scene,
+  .cd-first.cd-first .cd-first__scene { grid-template-columns: minmax(0, 1fr); gap: var(--cd-sp-md); }
+  .cd-guide__art,
+  #cdHomeFunnel .cd-first img.cd-guide__art { width: min(100%, 144px); max-width: 144px; }
+}
+.cd-first.cd-first .cd-first__speech::before { display: none; }
+.cd-guide__copy h2,
+.cd-first.cd-first .cd-first__speech h2 {
+  margin: 0 0 var(--cd-sp-md);
+  font: 700 var(--cd-t-section)/1.5 var(--font-display);
+  color: var(--cd-text);
+  text-wrap: balance;
+}
+.cd-guide__copy p,
+.cd-first.cd-first .cd-first__speech p {
+  margin: 0;
+  font: 400 var(--cd-prose-font-size)/1.8 var(--font-body);
+  color: var(--cd-text);
+}
+.cd-first.cd-first .cd-first__speaker { display: none; }
+.cd-guide__next,
+.cd-first.cd-first .cd-first__speech button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--cd-btn-h);
+  margin: var(--cd-sp-lg) 0 0;
+  padding: var(--cd-btn-pad);
+  border: 1px solid var(--cd-primary);
+  border-radius: var(--cd-r-control);
+  background: var(--cd-primary);
+  color: var(--cd-primary-ink);
+  font: 700 var(--cd-t-body)/1.4 var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+}
+.cd-guide :focus-visible,
+.cd-first.cd-first :focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 3px; }
+.cd-guide img,
+.cd-first.cd-first img { background: transparent; }
+@media (hover: hover) {
+  .cd-guide__next:hover,
+  .cd-first.cd-first .cd-first__speech button:hover { background: var(--cd-primary-hover); }
+}

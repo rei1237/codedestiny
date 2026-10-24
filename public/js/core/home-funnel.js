@@ -3,6 +3,60 @@
   'use strict';
   var home = document.getElementById('cdHomeFunnel');
   if (!home) return;
+
+  // Progressive tabs retain the existing cards, links and tracking attributes.
+  var consultationTabs = home.querySelector('[data-consult-tabs]');
+  if (consultationTabs) {
+    var tabs = Array.prototype.slice.call(consultationTabs.querySelectorAll('[data-consult-tab]'));
+    var panels = tabs.map(function (tab) { return document.getElementById(tab.getAttribute('aria-controls')); });
+    function selectConsultation(index, focus) {
+      tabs.forEach(function (tab, i) {
+        tab.setAttribute('aria-selected', String(i === index));
+        tab.tabIndex = i === index ? 0 : -1;
+        panels[i].hidden = i !== index;
+      });
+      if (focus) tabs[index].focus({ preventScroll: true });
+    }
+    if (panels.every(Boolean)) {
+      panels.forEach(function (panel, i) { panel.setAttribute('role', 'tabpanel'); panel.setAttribute('aria-labelledby', tabs[i].id); });
+      consultationTabs.hidden = false;
+      tabs.forEach(function (tab, i) {
+        tab.addEventListener('click', function () { selectConsultation(i, false); });
+        tab.addEventListener('keydown', function (event) {
+          var next = event.key === 'ArrowRight' ? (i + 1) % tabs.length : event.key === 'ArrowLeft' ? (i + tabs.length - 1) % tabs.length : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : -1;
+          if (next < 0) return;
+          event.preventDefault(); selectConsultation(next, true);
+        });
+      });
+      function revealConsultationHash() {
+        var target = document.getElementById(location.hash.slice(1));
+        var index = panels.findIndex(function (panel) { return target && panel.contains(target); });
+        if (index >= 0) selectConsultation(index, false);
+      }
+      selectConsultation(0, false);
+      revealConsultationHash();
+      window.addEventListener('hashchange', revealConsultationHash);
+    }
+  }
+  var concernRail = home.querySelector('.cd-concern__cards');
+  var concernControls = home.querySelector('[data-concern-scroll]');
+  if (concernRail && concernControls) {
+    var previousConcern = concernControls.querySelector('[data-concern-prev]');
+    var nextConcern = concernControls.querySelector('[data-concern-next]');
+    concernControls.hidden = false;
+    function syncConcernArrows() {
+      previousConcern.disabled = concernRail.scrollLeft <= 2;
+      nextConcern.disabled = concernRail.scrollLeft + concernRail.clientWidth >= concernRail.scrollWidth - 2;
+    }
+    function scrollConcerns(direction) {
+      concernRail.scrollBy({ left: direction * concernRail.clientWidth * .9, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    }
+    previousConcern.addEventListener('click', function () { scrollConcerns(-1); });
+    nextConcern.addEventListener('click', function () { scrollConcerns(1); });
+    concernRail.addEventListener('scroll', syncConcernArrows, { passive: true });
+    window.addEventListener('resize', syncConcernArrows);
+    syncConcernArrows();
+  }
   var formPanel = document.getElementById('dpDestinyPanel');
   var form = document.getElementById('destinyCardForm');
   var doc = document.documentElement;

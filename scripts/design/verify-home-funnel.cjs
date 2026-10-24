@@ -40,6 +40,12 @@ async function assertEssentials(page, label) {
     ['music video', '#cdhMoonlightMv'],
     ['moonlight story toggle', '.cdh-story__toggle'],
   ];
+  for (const tab of await page.locator('[data-consult-tab]').all()) {
+    await tab.click();
+    assert.equal(await tab.getAttribute('aria-selected'), 'true');
+    assert.equal(await page.locator('.cdh-consult > [role=tabpanel]:visible').count(), 1);
+  }
+  await page.locator('[data-consult-tab]').first().click();
   for (const [name, selector] of essentials) {
     const node = page.locator(selector).first();
     assert.ok(await node.isVisible(), `${label}: ${name} is visible`);
@@ -81,7 +87,7 @@ async function assertEssentials(page, label) {
 
       // 강약: 대표 상담 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
       const order = await page.evaluate(() => {
-        const nodes = [document.getElementById('cdSignatureConsult'), document.getElementById('cdhFusionSignature'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-honey'), document.querySelector('.cdh-consult'), document.getElementById('cdhYeongnyangiSlot'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-story')];
+        const nodes = [document.getElementById('cdSignatureConsult'), document.getElementById('cdhFusionSignature'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-honey'), document.querySelector('.cdh-consult-browser'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-story')];
         return {
           dom: nodes.every((node, index) => index === 0 || Boolean(nodes[index - 1].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)),
           visual: nodes.map((node) => node.getBoundingClientRect().top + scrollY),

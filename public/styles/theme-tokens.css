@@ -520,7 +520,7 @@ html[data-cd-theme="neo"] {
   padding: var(--cd-btn-pad);
   border: 1px solid transparent;
   border-radius: var(--cd-r-control);
-  font: inherit;
+  font-family: var(--font-body);
   font-size: var(--cd-t-body);
   font-weight: 800;
   line-height: 1.35;

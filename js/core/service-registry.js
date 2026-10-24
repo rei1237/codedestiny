@@ -314,7 +314,7 @@ window.__cdServiceRegistry = [
     keys: "작명 이름 개명 훈민정음 사주",
   },
   {
-    image: "/images/service-introductions/fusion-fortune-320.webp",
+    image: "/images/service-introductions/fusion-fortune-masters-v3-320.webp",
     imageAlt: "네오·연이·서한비·윤달·무성의 초융합 심층 리딩 상담 장면",
     id: "fusion-fortune",
     name: "초융합 심층 리딩",

@@ -2860,7 +2860,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       <Link href="/#fortuneGatewayEntry">{copy.navHome}</Link>
     </nav>
     <section ref={heroRef} className={styles.hero}>
-      <Image className={styles.heroImage} src="/images/service-introductions/fusion-fortune-960.webp" alt="다섯 마스터가 여섯 점술 체계의 근거를 함께 살피는 초융합 상담" fill priority sizes="(max-width: 720px) 100vw, 960px" />
+      <Image className={styles.heroImage} src="/images/service-introductions/fusion-fortune-masters-v3-960.webp" alt="다섯 마스터가 여섯 점술 체계의 근거를 함께 살피는 초융합 상담" fill priority sizes="(max-width: 720px) 100vw, 960px" />
       <div className={styles.heroVeil} />
       <div className={styles.heroCopy}>
         {/* 귀인 배지는 실제로 「오늘의 귀인」에서 넘어온 세션에만 맞는 문구다. 직접 들어온

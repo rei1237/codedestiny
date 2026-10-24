@@ -166,6 +166,12 @@
     <div class="cdh-honey__actions"><button type="button" class="cdh-primary" data-cd-honey-attend disabled>출석 체크 하기</button><button type="button" class="cdh-honey__uses" data-cd-sheet-open="cdHoneySheet" aria-haspopup="dialog" aria-controls="cdHoneySheet">사용처 보기</button></div>
     <p data-cd-honey-status role="status" aria-live="polite"></p><button type="button" data-cd-honey-retry hidden>다시 확인하기</button></details>
   </section>
+<section class="cdh-consult-browser" aria-label="상담 방식 고르기">
+  <div class="cdh-consult-tabs" lang="ko" data-consult-tabs hidden role="tablist" aria-label="상담 방식">
+    <button type="button" id="cdhConsultYeoni" data-consult-tab role="tab" aria-controls="cdhGatewaySlot" aria-selected="true">연이 대화</button>
+    <button type="button" id="cdhConsultNeo" data-consult-tab role="tab" aria-controls="cdhNeoLetterSlot" aria-selected="false" tabindex="-1">네오 이메일</button>
+    <button type="button" id="cdhConsultCat" data-consult-tab role="tab" aria-controls="cdhYeongnyangiSlot" aria-selected="false" tabindex="-1">영냥이 질문</button>
+  </div>
 <div class="cdh-consult" role="group" aria-label="1:1 상담" data-cd-trans-attr="aria-label:home.simpleHome.consultTitle">
 <!-- 1:1 상담 두 입구(2026-10-17 복구): 연이 대화 상담 1회 5,000원(빌더가 가격표와 대조)·네오 이메일 상담. -->
 <div class="cdh-slot" id="cdhGatewaySlot"><section class="fortune-gateway" id="fortuneGatewayEntry" data-fortune-gateway-entry aria-labelledby="fortuneGatewayTitle">
@@ -203,13 +209,13 @@
 </div>
       </section></div>
 <div class="cdh-slot" id="cdhNeoLetterSlot">{{neoEmailConsultation}}</div>
-</div>
 <!-- 영냥이 메인 배너(2026-10-18 복구, e76391603^ 블록): 생선 가격은 빌더가 가격표에서 채운다. -->
 <div class="cdh-slot" id="cdhYeongnyangiSlot"><section class="cd-soulcat-entry" aria-labelledby="cd-soulcat-title" data-marker="cd-soulcat-home-primary-v20261008">
       <div class="cd-soulcat-entry__copy">
         <div class="cd-soulcat-entry__eyebrow"><p class="cd-soulcat-entry__world">CODE DESTINY · MOONLIGHT ROOM</p><p class="cd-soulcat-entry__badge"><span aria-hidden="true">🐾</span><span data-cd-trans="home.yeongnyangiEntry.badge">영냥이의 질문 상담</span></p></div>
         <h2 id="cd-soulcat-title"><span data-cd-trans="home.yeongnyangiEntry.headingLead">질문에서 시작해, 흐름까지 읽는</span><strong data-cd-trans="home.yeongnyangiEntry.headingName">사주보는 고양이 영냥이</strong></h2>
         <p class="cd-soulcat-entry__sub" data-cd-trans="home.yeongnyangiEntry.subtitle">한 가지 고민을 붙잡고, 내게 맞는 운세 체계로 풀어보는 달빛 상담</p>
+        <details class="cdh-consult-details"><summary lang="ko">상담 구성과 가격 살펴보기</summary>
         <p class="cd-soulcat-entry__story"><span data-cd-trans="home.yeongnyangiEntry.storyFirst">영냥이는 사주·자미두수·숙요점·베다점·점성술의 계산을 바탕으로 지금의 질문에 답합니다.</span><br><span data-cd-trans="home.yeongnyangiEntry.storySecond">반복되는 패턴과 현재의 흐름, 오늘 해볼 다음 행동까지 일상의 언어로 차례로 정리해 드려요.</span></p>
         <ul class="cd-soulcat-entry__fish" aria-label="영냥이 상담 생선 등급과 가격" data-cd-trans-attr="aria-label:home.yeongnyangiEntry.fishAria">
           <li><img src="/assets/yeongnyangi/fish/mackerel.webp" width="56" height="25" alt="" decoding="async">고등어 <b data-yeongnyangi-price="mackerel" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"{{yeongnyangiMackerelPrice}}"}'>{{yeongnyangiMackerelPrice}}원</b></li>
@@ -221,11 +227,14 @@
           <p class="cd-soulcat-entry__notice"><span aria-hidden="true">🌙</span> <span data-cd-trans="home.yeongnyangiEntry.highlight">막연한 답 대신, 내 질문에 맞는 근거와 해석을 함께 받아보세요. 상담의 체계와 범위는 시작 전에 직접 고를 수 있어요.</span></p>
           <blockquote class="cd-soulcat-entry__quote"><p data-cd-trans="home.yeongnyangiEntry.quote">“네가 지금 알고 싶은 한 가지부터 말해 봐. 그 흐름을 같이 짚어 볼게.”</p><footer data-cd-trans="home.yeongnyangiEntry.quoteAttribution">— 영냥이</footer></blockquote>
         </div>
+        </details>
         <div class="cd-soulcat-entry__actions"><a class="cd-soulcat-entry__cta" href="/yeongnyangi/" data-cd-localized-route="yeongnyangi" data-cd-portal-link data-cd-portal-placement="home_hero"><span data-cd-trans="home.yeongnyangiEntry.start">질문 상담 시작하기</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a><a class="cd-soulcat-entry__cta cd-soulcat-entry__cta--ghost" href="/yeongnyangi/room/#daily" data-cd-portal-link data-cd-portal-placement="home_daily"><span aria-hidden="true">🐟</span><span data-cd-trans="home.yeongnyangiEntry.free">무료 운세 먼저 보기</span></a></div>
         <p class="cd-soulcat-entry__price"><span aria-hidden="true">🐟</span> <span data-cd-trans="home.yeongnyangiEntry.tagline">생선 한 마리로 여는, 나의 질문 상담</span></p>
       </div>
       <div class="cd-soulcat-entry__stage"><img class="cd-soulcat-entry__art" src="/assets/yeongnyangi/original/hero-800.webp" srcset="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width:600px) 240px, 400px" width="400" height="400" loading="lazy" alt="사주보는 고양이 영냥이, 보랏빛 모자를 쓰고 턱을 괸 모습" decoding="async"></div>
     </section></div>
+</div>
+</section>
 <div class="cdh-slot" id="cdhQuestionSlot">{{questionCategories}}</div>
 <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
 <!-- 꿀꿀 운세 오프닝 음악 = 달빛 운명여행 뮤직비디오(e76391603^ 에서 복구, 동작은 js/core/home-mv.js). -->

@@ -38,7 +38,8 @@ html { font-size: 14px; }
 .sec-title { font-family: var(--font-display, inherit); color: var(--point-color, var(--pink)); font-weight: 700; font-size: 1.05rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
 .sec-title::before { content: ""; display: block; width: 4px; height: 18px; background: var(--point-color, linear-gradient(var(--pink),var(--pink-l))); border-radius: 2px; }
 img, canvas, svg, video { max-width: 100%; height: auto; }
-img { background-color: rgb(229, 229, 229); }
+/* Transparent character art must retain alpha; placeholders belong to their own cards. */
+img { background-color: transparent; }
 .manse-grid { width: 100%; overflow-x: auto; }
 #resultPage { width: 100%; max-width: 760px; box-sizing: border-box; overflow-x: hidden; margin: 0px auto; padding-top: calc(72px + env(safe-area-inset-top,0px)); padding-bottom: calc(180px + env(safe-area-inset-bottom,0px)); }
 #resultPage > * { width: 100%; max-width: 100%; }

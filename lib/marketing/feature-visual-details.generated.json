@@ -6030,21 +6030,21 @@
               "id": "editorial-1",
               "title": "여섯 관점이 만나, 하나의 선택이 또렷해집니다.",
               "text": "사주·자미두수·베다점·숙요점·서양점성술·타로를 각각 읽고, 같은 질문을 향한 근거를 비교합니다. 다섯 마스터의 해석을 지나 지금 할 수 있는 선택으로 이어지는 초융합 상담입니다.",
-              "src": "/images/service-introductions/fusion-fortune.webp",
-              "width": 1536,
-              "height": 1024,
+              "src": "/images/service-introductions/fusion-fortune-masters-v3.webp",
+              "width": 1200,
+              "height": 800,
               "alt": "네오·연이·서한비·윤달·무성의 초융합 심층 리딩 상담 장면",
               "variants": [
                 {
-                  "src": "/images/service-introductions/fusion-fortune-320.webp",
+                  "src": "/images/service-introductions/fusion-fortune-masters-v3-320.webp",
                   "width": 320
                 },
                 {
-                  "src": "/images/service-introductions/fusion-fortune-640.webp",
+                  "src": "/images/service-introductions/fusion-fortune-masters-v3-640.webp",
                   "width": 640
                 },
                 {
-                  "src": "/images/service-introductions/fusion-fortune-960.webp",
+                  "src": "/images/service-introductions/fusion-fortune-masters-v3-960.webp",
                   "width": 960
                 }
               ],
@@ -6181,8 +6181,8 @@
       ],
       "catalogImage": "/feature-details/assets/fusion-fortune-catalog-320.webp",
       "theme": "navy",
-      "imageWidth": 1536,
-      "imageHeight": 1024,
+      "imageWidth": 1200,
+      "imageHeight": 800,
       "heroVariants": [
         {
           "src": "/feature-details/assets/fusion-fortune-480.webp",
