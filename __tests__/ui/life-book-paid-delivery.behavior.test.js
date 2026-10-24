@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 const { webcrypto } = require('node:crypto');
+const { runWithAiLocale, getAmbientAiLocale, storedAiLocale } = require('../../worker/lib/ai-locale-context.js');
+const { toAiLocale, AI_OUTPUT_LOCALES } = require('../../lib/i18n/ai-locale.js');
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const get = (value, key) => key.split('.').reduce((at, part) => at?.[part], value);
 function set(value, key, data) {
@@ -49,7 +51,7 @@ function fixture(accessType = 'pass') {
     updateOne: async (filter, update) => { if (!doc || !matches(doc, filter)) return; for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value); },
   };
   const plan = Array.from({ length: 15 }, (_, i) => ({ id: `section${i}`, kind: 'chapter', evidenceRefs: [], targetChars: 2600 }));
-  const ctx = vm.createContext({ Request, Response, Headers, Date, JSON, Map, crypto: webcrypto,
+  const ctx = vm.createContext({ runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto,
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
     clean: (v, max = 100000) => String(v || '').trim().slice(0, max), randomToken: () => String(++tick),
     readJson: request => request.json(), json: (body, init) => new Response(JSON.stringify(body), init),
@@ -267,4 +269,21 @@ test('life book reserved length repair resumes without calling that section agai
   for (let i = 0; i < 5 && f.doc.status !== 'completed'; i++) await f.post();
   assert.equal(f.doc.status, 'completed'); assert.ok(!f.calls.includes('section0'));
   assert.equal(f.doc.llmMeta.sections.section0.attempts, 2);
+});
+
+for (const locale of AI_OUTPUT_LOCALES) test(`${locale}: resumes in the purchased language after the UI changes`, async () => {
+  const f = fixture();
+  const languages = [];
+  const original = f.ctx.generateSectionOnce;
+  f.ctx.generateSectionOnce = (...args) => { languages.push(getAmbientAiLocale()); return original(...args); };
+  await runWithAiLocale(locale, () => f.post({ locale }));
+  for (let wave = 0; wave < 20 && f.doc.status !== 'completed'; wave++) {
+    await runWithAiLocale(locale === 'en' ? 'ja' : 'en', () => f.post({ locale: 'en' }));
+  }
+  assert.equal(f.doc.status, 'completed');
+  assert.ok(languages.length > 0);
+  assert.ok(languages.every(value => value === locale), languages.join(','));
+  const count = languages.length;
+  await runWithAiLocale('ko', () => f.post());
+  assert.equal(languages.length, count);
 });

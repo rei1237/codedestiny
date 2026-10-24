@@ -44,6 +44,8 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { getAmbientAiLocale, runWithAiLocale, storedAiLocale } from "../lib/ai-locale-context.js";
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import {
@@ -808,7 +810,8 @@ async function handleEnsureAccess(request, env) {
 }
 
 async function handleStart(request, env) {
-  const body = await readJson(request);
+  const received = await readJson(request);
+  const body = { ...received, locale: toAiLocale(getAmbientAiLocale() || received?.locale) };
   const normalized = normalizeInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
@@ -948,8 +951,8 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
       const outcomes = await Promise.allSettled(missing.map(async section => {
         const prompt = buildSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`]
           ? `\n[분량 보강] 기존 계산 근거를 유지하고 새로운 생활 장면과 행동 조언을 더해 공백 제외 본문 ${Math.ceil(section.minChars / 0.8)}자 이상의 완결된 JSON으로 작성하세요. 반복으로 채우지 마세요.` : "");
-        const row = await generateSectionOnce(env, section, prompt, { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 2592000,
-          minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` });
+        const row = await runWithAiLocale(storedAiLocale(session), () => generateSectionOnce(env, section, prompt, { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 2592000,
+          minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` }));
         const identity = session.factSummary?.identity;
         if (!isSectionSettled(row, {}, true) || (identity?.nakshatraKo && !row.vedicEvidence.includes(identity.nakshatraKo)) || (identity?.sukuyoKo && !row.sukuyoEvidence.includes(identity.sukuyoKo))) { await recordGenerationFailure(section.id); return; }
         const write = queue.catch(() => {}).then(async () => {

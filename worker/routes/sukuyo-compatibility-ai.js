@@ -1,3 +1,4 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { trimPaidReportText } from "../lib/paid-report-length.js";
 // 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
@@ -2080,12 +2081,12 @@ async function handleStart(request, env, recoveryAuth = null) {
       firstAnswer = normalized.consultationType === "compatibility"
         // 궁합은 웨이브 1만 만들고 응답한다. 나머지 4웨이브는 /continue 가 이어 받는다 —
         // 20장을 한 요청에 몰면 엣지 100초 컷에 걸려 결제만 되고 결과가 사라진다.
-        ? await createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation, {
+        ? await runWithAiLocale(storedAiLocale(existing || seedFields), async () => createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation, {
           sections: existing?.llmMeta?.sections || {}, attempts: existing?.llmMeta?.attempts || {}, summary: existing?.llmMeta?.summary, rawResponses: existing?.llmMeta?.rawResponses,
           onReserve: (groupId, attempt, lengthRepair) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { [`llmMeta.attempts.${groupId}`]: attempt, ...(lengthRepair ? { [`llmMeta.attempts.${groupId}:lengthRepair`]: 1 } : {}) }),
           onCheckpoint: ({ sections, summary, rawResponses }) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { 'llmMeta.sections': sections, 'llmMeta.summary': summary, 'llmMeta.rawResponses': rawResponses }),
-        })
-        : await createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation);
+        }))
+        : await runWithAiLocale(storedAiLocale(existing || seedFields), async () => createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation));
     } catch (genError) {
       if (genError?.code === "RESULT_STORAGE_UNAVAILABLE") throw genError;
       // 실패 확정도 현재 생성 잠금을 소유한 요청만 수행한다. 저장 장애는 환불로 보내지 않는다.

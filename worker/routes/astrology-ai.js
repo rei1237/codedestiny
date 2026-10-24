@@ -1,3 +1,4 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
@@ -1867,7 +1868,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       }
       const chart = doc.astrologyChart || await calculateAstrologyChart(env, normalized, request.url);
       doc = await saveAstrologyDelivery(locked, { astrologyChart: chart }, sessionId);
-      const generated = await generateSectionedConsultation(env, normalized.input, chart, {
+      const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateSectionedConsultation(env, normalized.input, chart, {
         minLength: ASTROLOGY_AI_MIN_RESULT_CHARS, maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
         sectionMaxOutputTokens: ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS, fallbackToWorkersAI: false,
         sections: doc.llmMeta?.sections, attempts: doc.llmMeta?.attempts, rawResponses: doc.llmMeta?.rawResponses,
@@ -1878,7 +1879,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
             messages: [{ role: "user", content: normalized.input.userQuestion || normalized.input.topic, createdAt: now }, { role: "assistant", content, createdAt: now }],
           }, sessionId);
         },
-      });
+      }));
       doc = await saveAstrologyDelivery(locked, {
         status: generated.complete ? "delivery_pending" : "partial",
         llmMeta: { ...doc.llmMeta, provider: generated.provider, model: generated.model, quality: generated.quality },

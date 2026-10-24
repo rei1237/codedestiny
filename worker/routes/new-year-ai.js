@@ -1,3 +1,4 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import {calculateNatalSaju} from "../../lib/korean-calendar/index.js";
 import { buildSajuNatalAnalysis, SAJU_ELEMENT_KO } from "../lib/saju-natal-analysis.js";
 import { buildLuckNatalInteractions } from '../lib/life-book-ai-saju.js';
@@ -2546,7 +2547,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   }
   try {
     const attempts = { ...(claimed.llmMeta?.attempts || {}) };
-    const generated = await generateConsultationText(env, normalized.input, fortuneData, {
+    const generated = await runWithAiLocale(storedAiLocale(claimed), async () => generateConsultationText(env, normalized.input, fortuneData, {
       hasCustomQuestion: clean(normalized.input.question).length >= 2, deadlineAt: startedAt + NEW_YEAR_AI_LLM_BUDGET_MS,
       savedSections: claimed.llmMeta?.savedSections || [], attempts,
       onReserve: async (key, lengthRepair) => {
@@ -2558,7 +2559,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
         await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { 'llmMeta.savedSections': savedSections } });
       },
       logContext: safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
-    });
+    }));
     const stored = await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: {
       status: generated.complete ? 'delivery_pending' : 'partial',
       messages: [{ role: 'user', content: normalized.input.topic, createdAt: new Date(startedAt) }, { role: 'assistant', content: generated.text, createdAt: new Date() }],

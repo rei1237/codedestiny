@@ -1,4 +1,6 @@
 import { appendBasicFortunePersona } from '../lib/expert-character-personas.js';
+import { getAmbientAiLocale } from '../lib/ai-locale-context.js';
+import { toAiLocale } from '../../lib/i18n/ai-locale.js';
 import {validateSajuNatalPayload} from "../lib/saju-correction.js";
 import { deliverFeatureQuestion, readFeatureQuestionRequest } from '../lib/feature-question-delivery.js';
 import { deliverGuardianPaid } from '../lib/guardian-paid-delivery.js';
@@ -656,7 +658,7 @@ function isSajuAISectionRowShort(row) {
  *
  * 제공자 오류는 그룹 결과로 반환한다. 체크포인트 저장 오류는 호출부로 전달해 환불과 분리한다.
  */
-async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false, allowRepair = true, initialRepairLines = [] } = {}) {
+async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, locale, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false, allowRepair = true, initialRepairLines = [] } = {}) {
   // 그룹 5개가 문자까지 같은 접두사를 각자 정가로 싣던 것을, Gemini 쪽에 한 벌만 올려 두고
   // 참조한다(명시적 컨텍스트 캐싱). null 이면 아무 일도 일어나지 않고 지금까지처럼 전체
   // 프롬프트가 나간다 — 웨이브1 직전에 채워지고, 웨이브가 끝나면 finally 에서 지운다.
@@ -665,6 +667,7 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
   const runSectionGroup = async (group, { repairLines = [], attempt = 0, timeoutMs, maxOutputTokens }) => {
     try {
       const ai = await callGeminiText(env, buildSajuAISectionPrompt(builtPrompt, group, { repairLines }), {
+        locale,
         systemPrompt,
         taskType: "fortune",
         temperature: attempt > 0 ? 0.5 : 0.56,
@@ -1226,7 +1229,7 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
           ...(existingExecution?.result || {}),
           leaseToken,
           payloadHash,
-          resumeBody: Object.fromEntries(["question", "sajuResult", "domain", "calibration", "profileId", "selectedProfileId", "requestId", "idempotencyKey", "transactionId", "ledgerId", "purchaseId", "paymentId", "accessType", "accessMethod", "paymentMode", "accessGrant", "accessDecision", "freeBySubscription", "consume", "payment", "_paymentContext"].filter((key) => body[key] !== undefined).map((key) => [key, body[key]])),
+          resumeBody: Object.fromEntries(["locale", "question", "sajuResult", "domain", "calibration", "profileId", "selectedProfileId", "requestId", "idempotencyKey", "transactionId", "ledgerId", "purchaseId", "paymentId", "accessType", "accessMethod", "paymentMode", "accessGrant", "accessDecision", "freeBySubscription", "consume", "payment", "_paymentContext"].filter((key) => body[key] !== undefined).map((key) => [key, body[key]])),
           progress: buildSajuAIProgress(10, "generating", "명식의 흐름을 읽고 있어요"),
           order: { paymentStatus: "PAID", accessMethod },
         },
@@ -4757,6 +4760,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
   // LLM 예산의 기산점. 인증·결제·명식 검증에 쓴 시간만큼 생성 시간이 줄어든다.
   const startedAt = Date.now();
   let body = await readJson(request);
+  body = { ...body, locale: toAiLocale(getAmbientAiLocale() || body?.locale) };
   if (body?.resumeJobId) {
     const original = await findSajuAIExecutionForRead({ auth, jobId: String(body.resumeJobId) });
     if (!original) return buildSajuAIPromptError("JOB_NOT_FOUND", "상담 생성 상태를 찾을 수 없습니다.", 404);
@@ -5010,6 +5014,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       const group = SAJU_AI_SECTION_GROUPS.find((item) => item.key === next.key);
       await runSajuAISectionWaves(env, {
         builtPrompt,
+        locale: toAiLocale(body.locale),
         systemPrompt: await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT),
         cache: { ...sajuLlmCache, skipRead: next.attempts > 1 || sajuLlmCache.skipRead },
         deadlineAt: sajuDeadlineAt,

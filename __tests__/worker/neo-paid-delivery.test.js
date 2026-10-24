@@ -1,5 +1,7 @@
 /** @jest-environment node */
 import { jest } from "@jest/globals";
+import { AI_OUTPUT_LOCALES } from '../../lib/i18n/ai-locale.js';
+import { getAmbientAiLocale, runWithAiLocale } from '../../worker/lib/ai-locale-context.js';
 // Stress fixture: preserve multi-part storage/lease failures at the former batch width.
 // Production's one-part contract is covered by paid-llm-sequential.test.js.
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
@@ -139,6 +141,24 @@ it('overlapping requests acquire only one generation lease',async()=>{let releas
 
 async function refine(extra) { return route(new Request('https://mock.test/api/neo-operation-room/refine',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(extra || {sessionId:docs[0].id})}),{}); }
 async function initialComplete() { for(let i=0;i<4;i++) await start(); expect(docs[0].status).toBe('completed'); }
+it.each(AI_OUTPUT_LOCALES)('retains purchase locale %s through resume and reality checks',async(locale)=>{
+ const seen=[],original=provider.getMockImplementation();
+ provider.mockImplementation((...args)=>{seen.push(getAmbientAiLocale());return original(...args);});
+ await runWithAiLocale(locale,start);
+ expect(docs[0].llmMeta.locale).toBe(locale);
+ expect(docs[0].llmMeta.resumeBody.locale).toBe(locale);
+ await runWithAiLocale(locale==='ko'?'ja':'ko',initialComplete);
+ expect(seen.length).toBeGreaterThan(4);
+ expect(seen.every(value=>value===locale)).toBe(true);
+ await runWithAiLocale('ko',()=>refine({sessionId:docs[0].id,freeform:'작은 행동부터 바꾸겠습니다.'}));
+ await runWithAiLocale('en',()=>refine());
+ expect(docs[0].refinementStatus).toBe('completed');
+ expect(seen.every(value=>value===locale)).toBe(true);
+ expect(usage).toHaveBeenCalledTimes(1);
+ const calls=provider.mock.calls.length;
+ await runWithAiLocale('ja',start);
+ expect(provider).toHaveBeenCalledTimes(calls);
+});
 it('two reality-check rounds preserve both answers and block a third without provider calls',async()=>{
  await initialComplete();
  const initial=structuredClone(docs[0].initialBriefing);

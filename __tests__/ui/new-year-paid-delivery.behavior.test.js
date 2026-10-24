@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 const { webcrypto } = require('node:crypto');
+const { runWithAiLocale, getAmbientAiLocale, storedAiLocale } = require('../../worker/lib/ai-locale-context.js');
+const { toAiLocale, AI_OUTPUT_LOCALES } = require('../../lib/i18n/ai-locale.js');
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const get = (value, key) => key.split('.').reduce((at, part) => at?.[part], value);
 function set(value, key, data) {
@@ -48,7 +50,7 @@ function fixture(accessType = 'pass', currentSections = null) {
     updateOne: async (filter, update) => { if (doc && matches(doc, filter)) for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value); },
   };
   const plan = currentSections || ['overview', 'wealth', 'romance', 'monthly', 'health'].map(key => ({ key, label: key, minChars: 4000, maxChars: 5000 }));
-  const ctx = vm.createContext({ Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {} },
+  const ctx = vm.createContext({ runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {} },
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'new-year-ai-consultation',
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
@@ -316,4 +318,21 @@ test('대기 화면 진행 단계는 서버 생성 섹션과 같은 순서·같�
   const source = fs.readFileSync('app/new-year-ai-consultation/NewYearAiClient.tsx', 'utf8');
   assert.doesNotMatch(source, /progress\?\.total \|\| \d/);
   assert.doesNotMatch(source, /DOMAIN_CARDS\.length\}개 분야/);
+});
+
+for (const locale of AI_OUTPUT_LOCALES) test(`${locale}: resumes in the purchased language after the UI changes`, async () => {
+  const f = fixture();
+  const languages = [];
+  const original = f.ctx.generateConsultationText;
+  f.ctx.generateConsultationText = (...args) => { languages.push(getAmbientAiLocale()); return original(...args); };
+  await runWithAiLocale(locale, () => f.post({ locale }));
+  for (let wave = 0; wave < 20 && f.doc.status !== 'completed'; wave++) {
+    await runWithAiLocale(locale === 'en' ? 'ja' : 'en', () => f.post({ locale: 'en' }));
+  }
+  assert.equal(f.doc.status, 'completed');
+  assert.ok(languages.length > 0);
+  assert.ok(languages.every(value => value === locale), languages.join(','));
+  const count = languages.length;
+  await runWithAiLocale('ko', () => f.post());
+  assert.equal(languages.length, count);
 });

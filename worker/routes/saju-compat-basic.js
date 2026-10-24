@@ -20,6 +20,7 @@ import {
   sajuCompatTasks, shapeSajuCompatGroup, sajuCompatResponseSchema,
 } from "../lib/saju-compat-schema.js";
 import { buildSajuCompatPrompt, buildSajuCompatSystemPrompt } from "../lib/saju-compat-prompts.js";
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 
 const ROUTE_PREFIX = "/api/saju-compat-basic";
 const ARCHIVE_LIMIT = 30;
@@ -33,7 +34,7 @@ const providerIsLive = (ai) => Boolean(ai?.ok) && !ai.isMock && !/mock/i.test(`$
 async function generateGroup(env, group, input, seen, promptOptions) {
   const ai = await callGeminiText(env, buildSajuCompatPrompt(group, input, promptOptions), {
     systemPrompt: buildSajuCompatSystemPrompt(input),
-    locale: "ko", // v1 서술은 한국어만(UI 로케일과 무관).
+    locale: toAiLocale(input.locale),
     temperature: 0.6,
     maxOutputTokens: group === "core" && input.facts.relationship ? 16384 : 8192,
     thinkingBudget: 0,
@@ -61,9 +62,10 @@ export function sajuCompatNarrativeAdapter(env) {
       const parsed = parseSajuCompatResponse(state.rawResponses?.[task.id], salvageTruncatedJsonObject);
       if (!parsed) return null;
       const seen = sajuCompatSeenKeys(state.parts);
-      let shaped = shapeSajuCompatGroup(task.id, parsed, state.input, new Set(seen));
+      const input = { ...state.input, locale: toAiLocale(state.locale) };
+      let shaped = shapeSajuCompatGroup(task.id, parsed, input, new Set(seen));
       const stash = state.lenient?.[task.id];
-      if (stash) shaped = mergeSajuCompatShaped(task.id, state.input, shaped, stash, new Set(seen));
+      if (stash) shaped = mergeSajuCompatShaped(task.id, input, shaped, stash, new Set(seen));
       // Local recovery only completes fully restored content, never waives holes.
       if (shaped.missing.length) return null;
       return acceptable(state, task.id, shaped, stash?.model || "", state.attempts[task.id])?.body || null;
@@ -73,12 +75,14 @@ export function sajuCompatNarrativeAdapter(env) {
     // 무관하게 받아들인다(분량 미달만으로 결과를 거부하지 않는다).
     produce: async (task, state) => {
       const group = task.id;
+      // The saved purchase language also owns resume/cron; a later UI choice cannot change it.
+      const input = { ...state.input, locale: toAiLocale(state.locale) };
       const attempt = Number(state.attempts?.[group]) || 1;
       const seen = sajuCompatSeenKeys(state.parts);
       const stash = state.lenient?.[group] || null;
       const retry = attempt > 1 ? { issues: state.issues?.[group] || [], shortfall: Boolean(state.shortfall?.[group]) } : {};
       let fresh = null;
-      try { fresh = await generateGroup(env, group, state.input, seen, retry); } catch { fresh = null; }
+      try { fresh = await generateGroup(env, group, input, seen, retry); } catch { fresh = null; }
       let shaped = fresh?.shaped || null;
       const model = fresh?.model || stash?.model || "";
       if (attempt < 2) {
@@ -92,7 +96,7 @@ export function sajuCompatNarrativeAdapter(env) {
         }
         return null;
       }
-      if (shaped && stash) shaped = mergeSajuCompatShaped(group, state.input, shaped, stash, new Set(seen));
+      if (shaped && stash) shaped = mergeSajuCompatShaped(group, input, shaped, stash, new Set(seen));
       else shaped = shaped || stash;
       if (!shaped) return null;
       return acceptable(state, group, shaped, model, attempt);
@@ -103,7 +107,7 @@ export function sajuCompatNarrativeAdapter(env) {
 
 // 엔진의 반복 문단 검사를 통과하지 못할 본문은 내지 않는다(정제 단계가 미리 막아 두므로 방어선이다).
 function acceptable(state, group, shaped, model, attempt) {
-  const body = buildSajuCompatPart(group, shaped, { model, attempt, schemaVersion: state.input.schemaVersion || 1, promptVersion: state.input.promptVersion || "saju-compat-basic-p1" });
+  const body = buildSajuCompatPart(group, shaped, { model, attempt, locale: toAiLocale(state.locale), schemaVersion: state.input.schemaVersion || 1, promptVersion: state.input.promptVersion || "saju-compat-basic-p1" });
   return hasRepeatedReportPassage(body) ? null : { evidenceHash: state.evidenceHash, body };
 }
 

@@ -14,6 +14,8 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { getAmbientAiLocale, runWithAiLocale, storedAiLocale } from "../lib/ai-locale-context.js";
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { deliverExpertFollowUp, recoverSavedExpertFollowUps, expertFollowUpNarrativeAdapter } from '../lib/expert-follow-up-delivery.js';
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
@@ -993,6 +995,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
 
 async function generateFollowUp(env, consultation, message) {
   const ai = await callGeminiText(env, buildFollowUpConsultationPrompt(consultation, message), {
+    locale: storedAiLocale(consultation),
     systemPrompt: await appendExpertPersona(env, "yeoniLove", await cmsPromptText(env, "love-secret-ai", LOVE_SECRET_AI_SYSTEM_PROMPT)),
     temperature: 0.7,
     maxOutputTokens: 5000,
@@ -1453,6 +1456,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   const requestStartedAt = Date.now();
   logLoveSecretAi("LLM Generate Start", safeLogPayload({ route, env }));
   let body = await readJson(request);
+  body = { ...body, locale: toAiLocale(getAmbientAiLocale() || body?.locale) };
   if (body?.resumeSessionId) {
     const resumeAuth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
     if (!resumeAuth) return loginRequired();
@@ -1593,7 +1597,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   const runGeneration = async () => {
   try {
     const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env });
-    const generated = await generateFirstConsultation(env, normalized.input, sajuResult, logContext, {
+    const generated = await runWithAiLocale(storedAiLocale(seed), () => generateFirstConsultation(env, normalized.input, sajuResult, logContext, {
       deadlineAt: requestStartedAt + LOVE_SECRET_AI_LLM_DEADLINE_MS,
       savedGroups: seed.llmMeta.delivery.groups,
       attempts: seed.llmMeta.delivery.attempts,
@@ -1610,7 +1614,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
         else if (row.ok || !groups[index].ok) groups[index] = row;
         await saveLoveSecretCheckpoint(auth.userId, sessionId, seed.llmMeta.delivery);
       },
-    });
+    }));
     const completed = await LoveSecretAiConsultation.findOneAndUpdate(
       { id: sessionId, userId: clean(auth.userId), status: "generating", "llmMeta.delivery.lease": seed.llmMeta.delivery.lease },
       {

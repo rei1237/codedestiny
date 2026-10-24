@@ -1,3 +1,4 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -2679,7 +2680,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
               : section;
             const digest = buildSectionDigest(plan, sections, section.id);
             const prompt = buildSectionPrompt(normalized.input, pickSajuSlice(sajuResult, section.evidenceRefs), boosted, digest);
-            const result = await generateSectionOnce(env, boosted, prompt, {
+            const result = await runWithAiLocale(storedAiLocale(lock.doc), async () => generateSectionOnce(env, boosted, prompt, {
               consultationType,
               birthInfo: normalized.input.birthInfo,
               // 재시도는 캐시를 우회해야 같은 짧은 응답을 다시 받지 않는다.
@@ -2690,7 +2691,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
                 keyExtra: `life-book-ai-v2-natal-v2-${consultationType}-${section.id}`,
               },
               logContext: { ...baseLogContext, sectionId: section.id, attempt },
-            });
+            }));
             const valid = row => row?.ok && lifeBookSectionValid(section, row.body, normalized.input)
               && !hasRepeatedReportPassage([...Object.entries(sections).filter(([id, value]) => id !== section.id && value.ok).map(([, value]) => value.body?.content || ""), row.body?.content || ""].join("\n"));
             const keepPrior = valid(stored) && (!valid(result) || sectionBodyChars(section, stored.body) >= sectionBodyChars(section, result.body));

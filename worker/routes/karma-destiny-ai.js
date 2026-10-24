@@ -1,3 +1,4 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -2747,7 +2748,7 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
       consultation = await saveKarmaDelivery(filter, { llmMeta: { ...consultation.llmMeta, resumeBody, attempts } }, consultation.id);
       let queue = Promise.resolve();
       const results = await Promise.allSettled(targets.map(async definition => {
-        const row = await generateOneChapter(env, consultation, definition, { singleAttempt: true, retry: attempts[definition.id] > 1, previousSummaries: chapters.map(chapter => chapter.summary).slice(-8), siblingDefinitions: targets });
+        const row = await runWithAiLocale(storedAiLocale(consultation), async () => generateOneChapter(env, consultation, definition, { singleAttempt: true, retry: attempts[definition.id] > 1, previousSummaries: chapters.map(chapter => chapter.summary).slice(-8), siblingDefinitions: targets }));
         if (!row.ok || !karmaChapterReady(row.chapter, definition, true)) return;
         const save = queue.catch(() => {}).then(async () => {
           const prior = safeArray(consultation.chapters).find(chapter => chapter.id === definition.id);

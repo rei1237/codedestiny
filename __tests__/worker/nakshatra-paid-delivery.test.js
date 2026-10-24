@@ -1,5 +1,7 @@
 /** @jest-environment node */
 import { jest } from "@jest/globals";
+import { AI_OUTPUT_LOCALES } from '../../lib/i18n/ai-locale.js';
+import { getAmbientAiLocale, runWithAiLocale } from '../../worker/lib/ai-locale-context.js';
 // Stress fixture: preserve multi-part storage/lease failures at the former batch width.
 // Production's one-part contract is covered by paid-llm-sequential.test.js.
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
@@ -149,6 +151,16 @@ for (const stage of ['reserved', 'last']) it(`accepts the short draft on ${stage
 });
 async function start(extra={}) { return route(new Request('https://mock.test/api/nakshatra-ai/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...body,...extra})}),{}); }
 async function batch() { return route(new Request('https://mock.test/api/nakshatra-ai/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:docs[0]?.id})}),{}); }
+it.each(AI_OUTPUT_LOCALES)('preserves %s when later batches use another UI language',async(locale)=>{
+ const seen=[],original=provider.getMockImplementation();
+ provider.mockImplementation((...args)=>{seen.push(getAmbientAiLocale());return original(...args);});
+ await runWithAiLocale(locale,start);
+ expect(docs[0].llmMeta.resumeBody.locale).toBe(locale);
+ await runWithAiLocale('ko',batch);await runWithAiLocale('en',batch);
+ expect(docs[0].status).toBe('completed');
+ expect(seen).toHaveLength(9);expect(seen.every(value=>value===locale)).toBe(true);
+ await runWithAiLocale('ja',batch);expect(provider).toHaveBeenCalledTimes(9);
+});
 for(const paid of ['pass','monthly','paid'])it(`${paid}: three waves preserve all nine chapters and paid evidence`,async()=>{mode=paid;const first=await start();expect(await first.clone().json()).toMatchObject({ok:true});expect(first.status).toBe(202);expect(docs[0].sections).toHaveLength(4);expect(usage).not.toHaveBeenCalled();expect((await batch()).status).toBe(202);expect(docs[0].sections).toHaveLength(8);expect((await batch()).status).toBe(200);expect(docs[0].totalCharCount).toBeGreaterThanOrEqual(20000);expect(provider).toHaveBeenCalledTimes(9);expect(chart).toHaveBeenCalledTimes(1);expect((await batch()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(9)});
 for(const status of ['delivery_pending','completed'])for(const kind of ['null','throw','confirm'])it(`${status} ${kind} preserves generated chapters without refund`,async()=>{await start();await batch();fault={status,kind};const response=await batch();expect(response.status).toBe(503);expect(await response.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',retryable:true});expect(refund).not.toHaveBeenCalled();const calls=provider.mock.calls.length;expect((await batch()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(calls)});
 

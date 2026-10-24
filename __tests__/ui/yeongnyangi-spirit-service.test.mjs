@@ -132,6 +132,20 @@ test('purchase locale separates new books while legacy Korean identity, money an
  assert.equal(globalThis.__spiritTest.rows.size,size);
 });
 
+test('question checkout accepts every result language without changing scope or price',async()=>{
+ const input={productId:'saju_mackerel',profileId:'self',question:'제 성향을 이해하고 일상에서 작은 변화를 만들고 싶어요.',timezone:'Asia/Seoul',questionDecision:{version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'일상의 소통',options:'',period:'',constraints:'',confirmed:true}};
+ const korean=await prepareFortune(env,'question-locale-owner',{...input,locale:'ko'});
+ for(const locale of RUNTIME_LOCALES){
+  const row=await prepareFortune(env,'question-locale-owner',{...input,locale});
+  assert.equal(row.snapshot.locale,locale);
+  assert.equal(row.amountKRW,korean.amountKRW);
+  assert.equal(row.featureKey,korean.featureKey);
+  assert.deepEqual(row.snapshot.questionContract,korean.snapshot.questionContract);
+  assert.deepEqual(row.snapshot.manifest,korean.snapshot.manifest);
+  assert.equal((await prepareFortune(env,'question-locale-owner',{...input,locale}))._id,row._id);
+ }
+});
+
 test('queue retries take locale only from the stored purchase, including Korean legacy fallback',async()=>{
  const {mode,spirit,...regular}=body;
  for(const locale of ['en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms',undefined]){

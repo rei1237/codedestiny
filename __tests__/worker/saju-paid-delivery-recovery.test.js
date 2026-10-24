@@ -5,6 +5,7 @@ const ts = require("typescript");
 const { webcrypto } = require("node:crypto");
 const prompt = require("../../worker/lib/saju-ai-prompt.js");
 const quality = require("../../worker/lib/paid-report-quality.js");
+const { toAiLocale, AI_OUTPUT_LOCALES } = require("../../lib/i18n/ai-locale.js");
 const { isCompleteLlmResponse } = require("../../worker/lib/llm-result-delivery.js");
 const source = fs.readFileSync(require.resolve("../../worker/routes/fortune.js"), "utf8");
 const ast = ts.createSourceFile("fortune.js", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
@@ -74,6 +75,7 @@ function harness(mode = "single") {
   const charges = new Set();
   const calls = [];
   const ctx = {
+    toAiLocale, getAmbientAiLocale: () => 'ko',
     ...prompt, ...quality, isCompleteLlmResponse, Request, Response, Headers, Date, crypto: webcrypto,
     console: { info() {}, warn() {}, error() {} },
     SAJU_AI_PROMPT_ACCESS_MODE: "per_use", SAJU_AI_PROMPT_AMOUNT_KRW: 20000,
@@ -150,6 +152,18 @@ function harness(mode = "single") {
     post: (input = body, owner = "owner") => ctx.handleSajuAIPrompt(new Request("https://mock.invalid/create", { method: "POST", body: JSON.stringify(input) }), { userId: owner }, {}),
   };
 }
+
+test.each(AI_OUTPUT_LOCALES)('saved Saju language %s overrides later request language',async(locale)=>{
+ const h=harness('pass');h.ctx.getAmbientAiLocale=()=>locale;
+ await h.post();expect(h.record().result.resumeBody.locale).toBe(locale);
+ h.ctx.getAmbientAiLocale=()=>locale==='ko'?'ja':'ko';
+ for(let i=0;i<4;i++)await h.post();
+ expect(h.record().status).toBe('completed');
+ expect(h.ctx.callGeminiText.mock.calls).toHaveLength(5);
+ for(const args of h.ctx.callGeminiText.mock.calls)expect(args[2].locale).toBe(locale);
+ await h.post();expect(h.ctx.callGeminiText.mock.calls).toHaveLength(5);
+ expect(h.charges.size).toBe(1);
+});
 
 describe.each(["pass", "monthly", "single"])("%s saved paid report", (mode) => {
   test("five stages preserve prior chapters, complete only after confirmed save and reuse without generation", async () => {

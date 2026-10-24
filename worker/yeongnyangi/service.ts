@@ -113,7 +113,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const product=persona?getChatProduct(body.domain,body.questionDecision!==undefined?body.fishId:undefined):getProduct(body.productId);
   const decision=body.questionDecision!==undefined&&!body.mode?questionDecision(body.questionDecision):undefined;
   if(decision){
-    if(locale!=='ko')throw new FortuneError('READING_LOCALE_UNAVAILABLE');
+    // The question form and the purchased result can use different languages.
+    // Keep the same scope/price contract; the existing reading locale controls prose.
     assertQuestionOrder(product,decision,body.question||'');
     body={...body,consultationKind:product.domain==='tarot'?'spread':decision.target==='pair'?'compatibility':'ask',topicId:questionTopic(decision.category)};
   }
