@@ -2444,7 +2444,7 @@ function __cdEnsureSajuCompatModules() {
   if (window.__cdSajuCompat) return Promise.resolve(window.__cdSajuCompat);
   if (__cdSajuCompatLoadPromise) return __cdSajuCompatLoadPromise;
   __cdSajuCompatLoadPromise = Promise.all([
-    import('/js/saju-compat-render.mjs?v=build-dcdaf6e22d5a'),
+    import('/js/saju-compat-render.mjs?v=build-4b9a2d23bc4a'),
     import('/js/saju-compat-flow.mjs?v=build-b7c7a53904fd'),
     import('/js/core/paid-narrative-reader.js?v=build-c9b681355666')
   ]).then(function(mods) {
