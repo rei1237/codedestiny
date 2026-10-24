@@ -9,8 +9,8 @@ import styles from './heaven-light-cinema.module.css';
 // R2(codedestinyassets) 내용해시 키라 immutable 캐시다. 영상을 바꾸면 새 키로 올리고 여기만 고친다.
 // 원본은 HEAVEN LIGHT MV 무자막 마스터(1080p30)다. 가사는 영상에 굽지 않고 같은 출처의 WebVTT 트랙으로 얹는다.
 const SOURCES={
- '1080p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-1080p-8a0332259f52.mp4',
- '720p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-720p-58375a4f4483.mp4',
+ '1080p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-1080p-e94ac248ae05.mp4',
+ '720p':'https://assets.code-destiny.com/yeongnyangi/mv/heaven-light-720p-738af9b228ea.mp4',
 };
 type Quality=keyof typeof SOURCES;
 const ART='/assets/yeongnyangi/mv';
@@ -263,7 +263,7 @@ export default function HeavenLightCinema(){
       {CHAPTERS.map((item,index)=><li key={item.name}>
        <button type="button" className={styles.chapter} aria-current={state==='playing'&&chapter===index?'time':undefined} onClick={()=>seek(index)}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {opened&&<img src={`${ART}/heaven-light-v7-ch${index+1}-320.webp`} width={320} height={180} alt="" loading="lazy" decoding="async"/>}
+        {opened&&<img src={`${ART}/heaven-light-v72-ch${index+1}-320.webp`} width={320} height={180} alt="" loading="lazy" decoding="async"/>}
         <span className={styles.chapterName}><small>{index+1}장 · {clock(item.at)}</small>{item.name}</span>
        </button>
       </li>)}

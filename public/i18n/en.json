@@ -2053,6 +2053,14 @@
       "fusionTitle": "Fusion Fortune",
       "fusionDesc": "Five masters cross-read six traditions to explore life patterns and your next choices.",
       "fusionPrice": "Expert consultation · KRW 50,000"
+    },
+    "focused": {
+      "find": "Find a reading",
+      "searchHint": "Saju · Tarot · Love · Year ahead",
+      "methods": "Compare consultation styles",
+      "fusion": "Explore the six-system reading",
+      "concerns": "Browse by your question",
+      "music": "Moonlight journey · Take a musical break"
     }
   },
   "terms": {

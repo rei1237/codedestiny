@@ -2053,6 +2053,14 @@
       "fusionTitle": "Lecture de fusion",
       "fusionDesc": "Cinq maîtres croisent six traditions pour explorer votre parcours et vos prochains choix.",
       "fusionPrice": "Consultation experte · 50,000 KRW"
+    },
+    "focused": {
+      "find": "Trouvez votre lecture",
+      "searchHint": "Saju · Tarot · Amour · Nouvel an",
+      "methods": "Comparer les types de consultation",
+      "fusion": "Explorer la lecture des six systèmes",
+      "concerns": "Chercher selon votre question",
+      "music": "Voyage au clair de lune · Une pause musicale"
     }
   },
   "terms": {

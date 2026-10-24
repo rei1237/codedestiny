@@ -4,10 +4,11 @@ import RouteMetadataLocaleSync from "../components/RouteMetadataLocaleSync";
 
 const PALM_READING_METADATA_COPY = {
   ko: {
-    title: "손금 지도 - Palm Destiny | 꿀꿀 운세",
+    title: "손금 보는 법·결혼선·재물선·M자 손금 지도 | 꿀꿀 운세",
     description:
-      "손바닥 이미지 기반으로 사랑, 재물, 직업, 마음 흐름을 상징적으로 읽어보는 손금 지도 기본 화면입니다.",
-    keywords: ["손금", "손금 지도", "Palm Destiny", "손바닥 운세", "손금 리딩"],
+      "손바닥 사진으로 생명선·두뇌선·감정선·운명선과 결혼선·재물선을 읽고, M자·막쥔 손금 같은 특수 패턴과 왼손·오른손 차이까지 짚는 손금 지도입니다.",
+    // 손금 보는법·결혼선·재물선·M자 손금 등은 2026-10-24 네이버·구글 자동완성 근거(docs/seo/keyword-research-2026-10).
+    keywords: ["손금", "손금 지도", "Palm Destiny", "손바닥 운세", "손금 리딩", "손금 보는법", "결혼선", "생명선", "감정선", "운명선", "재물선", "막쥔손금", "M자 손금", "손금 왼손 오른손 차이"],
     featureList: ["손바닥 업로드 준비", "실시간 촬영 준비", "손금 결과 화면 준비"],
   },
   en: {

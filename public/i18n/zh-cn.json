@@ -2053,6 +2053,14 @@
       "fusionTitle": "超融合运势",
       "fusionDesc": "五位导师交叉解读六种体系，梳理人生走向与下一步选择。",
       "fusionPrice": "专家咨询 · 50,000韩元"
+    },
+    "focused": {
+      "find": "寻找运势",
+      "searchHint": "四柱・塔罗・爱情・新年运势",
+      "methods": "比较咨询方式",
+      "fusion": "深入了解六体系综合解读",
+      "concerns": "按问题浏览占卜",
+      "music": "月光命运之旅・听音乐休息一下"
     }
   },
   "terms": {
