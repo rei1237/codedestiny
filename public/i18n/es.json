@@ -2061,6 +2061,9 @@
       "fusion": "Explora la lectura de seis sistemas",
       "concerns": "Busca según tu pregunta",
       "music": "Viaje a la luz de la luna · Descansa con música"
+    },
+    "guideCopy": {
+      "replyLanguage": "Idioma de la respuesta: {language}"
     }
   },
   "terms": {

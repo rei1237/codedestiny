@@ -2061,6 +2061,9 @@
       "fusion": "6つの体系で深く読む総合鑑定",
       "concerns": "悩みから占いを探す",
       "music": "月光の運命旅行・音楽でひと休み"
+    },
+    "guideCopy": {
+      "replyLanguage": "回答の言語：{language}"
     }
   },
   "terms": {

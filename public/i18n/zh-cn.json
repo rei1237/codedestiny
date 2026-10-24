@@ -2061,6 +2061,9 @@
       "fusion": "深入了解六体系综合解读",
       "concerns": "按问题浏览占卜",
       "music": "月光命运之旅・听音乐休息一下"
+    },
+    "guideCopy": {
+      "replyLanguage": "答复语言：{language}"
     }
   },
   "terms": {

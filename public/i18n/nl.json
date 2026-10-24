@@ -2061,6 +2061,9 @@
       "fusion": "Ontdek de duiding met zes systemen",
       "concerns": "Zoek op je vraag",
       "music": "Maanlichtreis · Even ontspannen met muziek"
+    },
+    "guideCopy": {
+      "replyLanguage": "Antwoordtaal: {language}"
     }
   },
   "terms": {

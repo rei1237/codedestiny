@@ -1910,6 +1910,9 @@
       "fusion": "여섯 체계로 깊게 읽는 초융합 운세",
       "concerns": "고민별 운세 찾아보기",
       "music": "달빛 운명여행 · 음악으로 쉬어가기"
+    },
+    "guideCopy": {
+      "replyLanguage": "답변 언어: {language}"
     }
   },
   "footer": {

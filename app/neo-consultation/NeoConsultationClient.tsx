@@ -14,6 +14,8 @@ import { neoCall } from "./api";
 import { openNeoCheckout } from "./checkout";
 import { NEO_POLICY } from "@/lib/neo-consultation/policy";
 import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/site-policy-config";
+import { useLocale, useT } from "@/lib/i18n/useT";
+import { AI_LOCALE_LABEL, toAiLocale } from "@/lib/i18n/ai-locale";
 import type { NeoDraftQuestion, NeoInput, NeoOrder } from "./types";
 
 const NEO_MAX_QUESTION_PRICE = neoQuestionPrice({ readingMode: "saju_ziwei", chartReading: true });
@@ -22,6 +24,9 @@ import styles from "./neo.module.css";
 const statusLabel = (state: string) => (NEO_STATUS_LABELS as Record<string,string>)[state] || state;
 export default function NeoConsultationClient() {
   const auth = useAuthStore();
+  const locale = useLocale();
+  const t = useT();
+  const replyLanguage = (value?: string) => t("home.guideCopy.replyLanguage", { language: AI_LOCALE_LABEL[toAiLocale(value)] });
   const reducedMotion = useReducedMotion();
   const [questions, setQuestions] = useState<NeoDraftQuestion[]>([{text: "", readingMode: "saju", chartReading: false}]);
   const [goodPeriod, setGoodPeriod] = useState("");
@@ -76,7 +81,7 @@ export default function NeoConsultationClient() {
     document.addEventListener("visibilitychange", refresh);
     return () => { active = false; window.removeEventListener("pageshow", refresh); window.removeEventListener("popstate", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, [canSubmit, signedIn, ownerKey]);
-  const input = (): NeoInput => ({ questions, context, goodPeriod, difficultPeriod, email, consent, birth: date ? { date, calendar, leapMonth, timeUnknown: false, time } : null });
+  const input = (): NeoInput => ({ locale, questions, context, goodPeriod, difficultPeriod, email, consent, birth: date ? { date, calendar, leapMonth, timeUnknown: false, time } : null });
   const run = async (task: () => Promise<void>) => {
     if (inFlight.current) return;
     inFlight.current = true;
@@ -200,12 +205,12 @@ export default function NeoConsultationClient() {
             <label className={styles.check}><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} />답변 기한·취소 및 환불 안내를 확인하고, 상담과 회신을 위한 개인정보 수집·이용에 동의합니다.</label>
             <p className={styles.small}><Link href="/privacy/">개인정보처리방침</Link> · <a href={SUPPORT_MAILTO}>취소·환불 및 미수신 문의</a></p>
           </>}
-          {step === 2 && <>{goodPeriod && <p className={styles.periodSummary}>특별히 좋았던 시기: {goodPeriod}</p>}{difficultPeriod && <p className={styles.periodSummary}>힘들었던 시기: {difficultPeriod}</p>}<ol className={styles.summary}>{questions.map((q,i) => <li key={i}><p>{q.text}</p><span>{neoReadingLabel(q)} · {neoMoney(neoQuestionPrice(q))}</span></li>)}</ol><p>출생정보: {neoBirthLabel(input().birth)}</p><p>회신 이메일: {email}</p><p className={styles.small}>결제가 확인되면 자동으로 상담이 접수됩니다.</p><p>{NEO_POLICY.service} 답변 본문은 서비스 서버에 저장하지 않으니 이메일에서 확인해 주세요.</p><p className={styles.small}>한 질문에 여러 독립 질문이 포함되면 정정을 요청할 수 있습니다. 추가 과금은 자동으로 진행하지 않습니다.</p></>}
+          {step === 2 && <>{goodPeriod && <p className={styles.periodSummary}>특별히 좋았던 시기: {goodPeriod}</p>}{difficultPeriod && <p className={styles.periodSummary}>힘들었던 시기: {difficultPeriod}</p>}<ol className={styles.summary}>{questions.map((q,i) => <li key={i}><p>{q.text}</p><span>{neoReadingLabel(q)} · {neoMoney(neoQuestionPrice(q))}</span></li>)}</ol><p>출생정보: {neoBirthLabel(input().birth)}</p><p>회신 이메일: {email}</p><p>{replyLanguage(locale)}</p><p className={styles.small}>결제가 확인되면 자동으로 상담이 접수됩니다.</p><p>{NEO_POLICY.service} 답변 본문은 서비스 서버에 저장하지 않으니 이메일에서 확인해 주세요.</p><p className={styles.small}>한 질문에 여러 독립 질문이 포함되면 정정을 요청할 수 있습니다. 추가 과금은 자동으로 진행하지 않습니다.</p></>}
           <div className={styles.total} aria-live="polite"><span>질문 {questions.length}개</span><strong>{neoMoney(neoTotal(questions))}</strong></div>
           <div className={styles.actions}>{step > 0 && <button className={styles.secondary} disabled={busy} onClick={() => setStep(step-1)}>이전</button>}{step < 2 ? <button className={styles.primary} onClick={next}>다음</button> : <button className={styles.primary} disabled={busy || !canSubmit || !signedIn} onClick={prepare}>{busy ? "주문 확인 중" : mock ? "모의 결제로 상담 신청하기" : canSubmit ? `총 ${neoMoney(neoTotal(questions))} 결제하고 상담 신청하기` : "판매 준비 중"}</button>}</div>
           {!signedIn && step === 2 && <p>상담 신청에는 <Link href="/login?next=%2Fneo-consultation%2F">로그인</Link>이 필요합니다.</p>}
         </>}
-        {order && <><h3>{statusLabel(order.state)}</h3><p>질문 {order.questions.length}개 · {neoMoney(order.quote?.totalKRW || neoTotal(order.questions))}</p>
+        {order && <><h3>{statusLabel(order.state)}</h3><p>{replyLanguage(order.locale)}</p><p>질문 {order.questions.length}개 · {neoMoney(order.quote?.totalKRW || neoTotal(order.questions))}</p>
           {order.payment?.status === "paid" && ["pending","sending","retry","unknown"].includes(order.deliveryStatus?.receipt || "") && <p role="status">결제는 완료됐어요. 접수 메일 전달을 확인하고 있어요. 다시 결제하지 않아도 됩니다.</p>}
           {order.payment?.status === "paid" && ["retry","unknown"].includes(order.deliveryStatus?.answer || "") && <p role="status">답변 메일 전달을 확인하고 있어요. 주문과 검수한 답변은 안전하게 보관됩니다.</p>}
           {order.state === "pending" && <p role="status">결제 완료 여부를 확인하고 있어요. 새 주문을 만들지 말고 같은 주문에서 확인해 주세요.</p>}

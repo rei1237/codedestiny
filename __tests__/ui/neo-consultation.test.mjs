@@ -9,6 +9,7 @@ import { handleNeoConsultations, handleNeoRuntimeRequest } from '../../worker/ro
 import { priceNeoOrder } from '../../worker/neo-consultation/payment.js';
 import { buildNeoEmail, neoMailAdapter } from '../../worker/neo-consultation/mail.js';
 import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
+import { AI_OUTPUT_LOCALES, AI_LOCALE_LABEL, AI_LOCALE_HEADER } from '../../lib/i18n/ai-locale.js';
 
 const admin = { id: 'neo-test-admin' }, user = 'test-owner';
 const input = (count = 1) => ({ questions: Array.from({length:count},(_,i) => '이번 선택에서 고려할 점 ' + (i+1)), context: '현재 상황', email: 'customer@example.invalid', consent: true, birth: {date:'1990-04-20',calendar:'solar',leapMonth:false,timeUnknown:false,time:'12:30'} });
@@ -36,6 +37,45 @@ async function reviewed(mock, count = 1) {
   return row;
 }
 const rejects = (promise, code) => assert.rejects(promise, e => e.code === code);
+
+for (const locale of AI_OUTPUT_LOCALES) test(`수동 이메일 상담: ${locale} 접수 언어를 결제·운영·이어서 보기까지 보존한다`, async () => {
+  const m = createNeoMock();
+  const response = await handleNeoConsultations(new Request('https://example.invalid/api/neo-consultations', {
+    method: 'POST', headers: { [AI_LOCALE_HEADER]: locale }, body: JSON.stringify(input()),
+  }), { service: m.service, userId: user });
+  assert.equal(response.status, 200);
+  let row = (await response.json()).order;
+  assert.equal(row.locale, locale);
+  row = await m.service.quote(user, row.id, row.version);
+  const quote = structuredClone(row.quote);
+  row = await m.service.prepare(user, row.id, row.quote.id);
+  row = await m.pay(row.id);
+  const operator = await m.service.adminGet(admin, row.id);
+  assert.equal(operator.locale, locale);
+  assert.deepEqual(operator.quote, quote);
+  const email = buildNeoEmail(operator, { kind: 'receipt' }, 'operator@example.invalid');
+  assert.ok(email.text.includes('요청 답변 언어: ' + AI_LOCALE_LABEL[locale]));
+  await rejects(m.service.update(user, row.id, { ...input(), locale: locale === 'ko' ? 'en' : 'ko' }, row.version), 'ORDER_LOCKED');
+  const reopened = await handleNeoConsultations(new Request('https://example.invalid/api/neo-consultations/' + row.id, {
+    headers: { [AI_LOCALE_HEADER]: locale === 'ko' ? 'en' : 'ko' },
+  }), { service: m.service, userId: user });
+  assert.equal((await reopened.json()).order.locale, locale);
+  assert.equal(m.mails.length, 0);
+});
+
+test('수동 이메일 접수는 명시한 한국어·언어 별칭·기존 한국어 주문을 구분한다', async () => {
+  assert.equal(validateNeoInput(input()).locale, 'ko');
+  assert.equal(validateNeoInput({ ...input(), locale: 'zh-Hant' }).locale, 'zh-TW');
+  const m = createNeoMock();
+  const response = await handleNeoConsultations(new Request('https://example.invalid/api/neo-consultations', {
+    method: 'POST', headers: { [AI_LOCALE_HEADER]: 'en' }, body: JSON.stringify({ ...input(), locale: 'ko' }),
+  }), { service: m.service, userId: user });
+  assert.equal((await response.json()).order.locale, 'ko');
+  let row = await pending(m);
+  row = await m.pay(row.id);
+  delete row.locale;
+  assert.ok(buildNeoEmail(row, { kind: 'receipt' }, 'operator@example.invalid').text.includes('요청 답변 언어: 한국어'));
+});
 
 test('새 접수는 답변 본문 저장·자동 발송 없이 수동 이메일 전달 이력만 기록한다', async () => {
   const m = createNeoMock();
