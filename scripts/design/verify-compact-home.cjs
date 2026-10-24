@@ -72,8 +72,9 @@ const server=createServer(async(request,response)=>{
     await guide.screenshot({path:path.join(output,'after-guide-'+(dark?'neo':'yeoni')+'-'+width+'.png')});
   }
   await page.locator('#guidanceDesignFixture').evaluate(el=>el.remove());
-  const liveGuide=page.locator('#cdHomeFunnel > .cd-first .cd-first__story');
-  if(await liveGuide.count()) {
+  const liveGuide=page.locator('#cdHomeFunnel .cd-first .cd-first__story');
+  assert.equal(await liveGuide.count(),1,'first-visit guide is mounted');
+  {
     for(const dark of [false,true]) {
       await page.evaluate(d=>{document.documentElement.classList.toggle('neo-mode',d);document.body.classList.toggle('neo-mode',d);},dark);
       await liveGuide.scrollIntoViewIfNeeded();
