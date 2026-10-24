@@ -21365,175 +21365,241 @@
     }
   },
   "sajuCompat": {
-    "selfFallback": "Me",
+    "selfFallback": "मैं",
     "type": {
-      "love": "Romance / marriage compatibility",
-      "business": "Business / partnership compatibility",
-      "friend": "Friend / colleague compatibility"
+      "love": "प्रेम / विवाह अनुकूलता",
+      "business": "व्यापार / साझेदारी अनुकूलता",
+      "friend": "मित्र / सहकर्मी अनुकूलता"
     },
     "grade": {
-      "S": "🌟 Benefactor from a past life",
-      "A": "✨ Destined match",
-      "B": "😊 Connected match",
-      "C": "🙂 Ordinary connection",
-      "D": "⚠️ Karmic match",
-      "F": "🌧️ Difficult-fate match"
+      "S": "🌟 पिछले जन्म का उपकारी",
+      "A": "✨ नियति से जुड़ा मेल",
+      "B": "😊 जुड़ाव वाला मेल",
+      "C": "🙂 सामान्य जुड़ाव",
+      "D": "⚠️ कर्म से जुड़ा मेल",
+      "F": "🌧️ चुनौतीपूर्ण मेल"
     },
-    "gradeBadge": "Grade {grade}",
+    "gradeBadge": "श्रेणी {grade}",
     "titleLine": "{type} — {self} × {partner}",
-    "scoreLine": "Saju-only compatibility score: {score}/100",
+    "scoreLine": "केवल साजू पर आधारित अनुकूलता: {score}/100",
     "overview": {
-      "title": "🧭 Compatibility overview",
-      "note": "This result is calculated from Saju alone. Day-stem and day-branch harmonies and clashes, seasonal balance, useful and harmful elements, and the ten-gods structure are combined into a score of {score}/100."
+      "title": "🧭 अनुकूलता का सार",
+      "note": "यह परिणाम केवल साजू पर आधारित है। दिन के तने व शाखा का सामंजस्य और टकराव, मौसमी संतुलन, सहायक व कठिन तत्व और दस देवताओं की संरचना से {score}/100 अंक बनते हैं।"
     },
     "energy": {
-      "title": "🌡️ Energy harmony",
-      "johu": "Seasonal balance (temperature)",
-      "elements": "Day-stem element",
-      "season": "Season of the month branch",
-      "tenGods": "Ten-gods structure"
+      "title": "🌡️ ऊर्जा का सामंजस्य",
+      "johu": "मौसमी संतुलन (तापमान)",
+      "elements": "दिन के तने का तत्व",
+      "season": "माह की शाखा का मौसम",
+      "tenGods": "दस देवताओं की संरचना"
     },
     "detail": {
-      "title": "🧩 Detailed reading",
-      "emotionRhythm": "Emotional rhythm",
-      "conflictSwitch": "Conflict triggers",
-      "realOps": "Everyday practice",
-      "longTerm": "Long-term outlook"
+      "title": "🧩 विस्तृत व्याख्या",
+      "emotionRhythm": "भावनात्मक लय",
+      "conflictSwitch": "टकराव के कारण",
+      "realOps": "दैनिक व्यवहार",
+      "longTerm": "दीर्घकालिक दृष्टि"
     },
     "reasons": {
-      "title": "📋 Compatibility checkpoints",
-      "total": "Total {total} pts"
+      "title": "📋 अनुकूलता के मुख्य बिंदु",
+      "total": "कुल {total} अंक"
     },
     "reason": {
-      "JOHU_COMPLEMENT": "One of you runs hot and the other cool, so you balance each other's temperature nicely.",
-      "JOHU_BOTH_HOT": "You both run hot, so the spark is strong, but arguments can flare up quickly as well. It is a fire-overheating pairing.",
-      "JOHU_BOTH_COLD": "You both run cool, so there is stability, but it may be hard to bring each other enough warmth.",
-      "JOHU_MILD": "Your temperatures do not clash much, but one of you runs slightly {tone}, which creates a balancing structure.",
-      "MOIST_COMPLEMENT": "One of you is moist and the other dry, so your moisture balance fills in for each other. It is an ideal match.",
-      "MOIST_BOTH": "You are both on the {moist} side, so when you are low you can easily sag or dry out together.",
-      "MOIST_NEUTRAL": "Your moisture balance does not clash much, and your day-to-day condition tends to run alike.",
-      "ELEMENT_SAME": "You both have strong {element} energy and share a similar code and rhythm.",
-      "ELEMENT_SAME_EXCESS": "However, the same element is very strong in both of you, so neither tends to give way when opinions clash.",
-      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from} generates {to}, so one of you naturally nourishes the other. It is a mutually generating match.",
-      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from} supports {to}, so you are dependable supporters who help each other grow.",
-      "ELEMENT_KE": "Your elements are in a controlling relationship ({self} ↔ {partner}), so tension and friction can arise easily.",
-      "DAY_STEM_HE": "Your day stems form a harmony (合), so your hearts tend to be in tune.",
-      "DAY_BRANCH_HE": "Your day branches (the spouse position) form a six-harmony, bringing strong comfort and attraction when you are together.",
-      "DAY_STEM_CHONG": "Your day stems clash (沖), so the highs are strong but so are the collisions. It is a roller-coaster pairing.",
-      "DAY_BRANCH_CHONG": "Your day branches clash (沖), so your daily patterns and emotional rhythms may move differently. Adjusting to each other matters.",
-      "YONGSHIN_COMMON": "You both rely on {elements} energy as your useful element, so your core direction in life is very similar.",
-      "YONGSHIN_CLASH": "In particular, {elements} energy is a useful element for one of you but a harmful element for the other, so you may collide sensitively on that theme.",
-      "KIJI_CONTROL_FORWARD": "Harmful-element control: your partner's characters ({by}) clear your harmful elements ({chars}) through clash (沖). This is the core of a top-tier match: the other person drives out your bad energy.",
-      "KIJI_CONTROL_REVERSE": "Reverse control: your characters ({by}) clear your partner's harmful elements through clash. You also bring your partner a sense of release.",
-      "HE_TRAP": "Harmony trap: {self} and {partner} form a harmony (合), and the resulting element ({element}) strengthens your harmful element. It looks like a good fit on the surface, but harmful energy can build up inside. Tell comfort apart from dependence."
+      "JOHU_COMPLEMENT": "एक का स्वभाव गर्म और दूसरे का ठंडा होने से दोनों एक-दूसरे को संतुलित कर सकते हैं।",
+      "JOHU_BOTH_HOT": "दोनों में गर्मी अधिक है, इसलिए आकर्षण तीव्र हो सकता है और बहस भी जल्दी बढ़ सकती है।",
+      "JOHU_BOTH_COLD": "दोनों की ठंडी प्रवृत्ति स्थिरता देती है, पर एक-दूसरे को पर्याप्त गर्मजोशी देना कठिन हो सकता है।",
+      "JOHU_MILD": "तापमान में बड़ा टकराव नहीं है; एक की प्रवृत्ति थोड़ी {tone} है, जिससे संतुलन बन सकता है।",
+      "MOIST_COMPLEMENT": "एक में नमी और दूसरे में शुष्कता की प्रवृत्ति होने से दोनों एक-दूसरे की कमी पूरी कर सकते हैं।",
+      "MOIST_BOTH": "दोनों की प्रवृत्ति {moist} है; थकान के समय सुस्ती या रूखापन साथ बढ़ सकता है।",
+      "MOIST_NEUTRAL": "नमी और शुष्कता में बड़ा टकराव नहीं है; रोज़मर्रा की स्थिति अक्सर मिलती-जुलती रहती है।",
+      "ELEMENT_SAME": "दोनों में {element} ऊर्जा प्रबल है, इसलिए स्वभाव और लय में समानता हो सकती है।",
+      "ELEMENT_SAME_EXCESS": "लेकिन एक ही तत्व दोनों में अत्यधिक होने से मतभेद में झुकना कठिन हो सकता है।",
+      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from}, {to} को पोषित करता है; एक व्यक्ति स्वाभाविक रूप से दूसरे के विकास में सहारा बनता है।",
+      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from}, {to} का सहारा बनता है; यह भरोसे और विकास को समर्थन देता है।",
+      "ELEMENT_KE": "तत्वों में नियंत्रण का संबंध ({self} ↔ {partner}) है, जिससे तनाव और घर्षण उभर सकते हैं।",
+      "DAY_STEM_HE": "दिन के तने सामंजस्य (合) बनाते हैं, जिससे भावनात्मक तालमेल की संभावना रहती है।",
+      "DAY_BRANCH_HE": "जीवनसाथी स्थान की दिन-शाखाएँ छह-सामंजस्य बनाती हैं, जिससे साथ में सहजता और आकर्षण बढ़ सकता है।",
+      "DAY_STEM_CHONG": "दिन के तनों में टकराव (沖) है; अच्छे क्षण तीव्र हो सकते हैं और मतभेद भी।",
+      "DAY_BRANCH_CHONG": "दिन की शाखाओं में टकराव (沖) से दिनचर्या और भावनात्मक लय अलग हो सकती है। आपसी समायोजन ज़रूरी है।",
+      "YONGSHIN_COMMON": "दोनों के लिए {elements} सहायक तत्व हैं, इसलिए जीवन की मुख्य दिशा मिलती-जुलती हो सकती है।",
+      "YONGSHIN_CLASH": "{elements} एक के लिए सहायक और दूसरे के लिए कठिन तत्व हैं; इस विषय पर संवेदनशील मतभेद हो सकते हैं।",
+      "KIJI_CONTROL_FORWARD": "कठिन तत्व पर नियंत्रण: साथी के चिह्न ({by}) आपके कठिन तत्वों ({chars}) से टकराते हैं। इस मॉडल में यह किसी कमज़ोरी को संतुलित करने का संकेत है।",
+      "KIJI_CONTROL_REVERSE": "उलटी दिशा में, आपके चिह्न ({by}) साथी के कठिन तत्वों से टकराकर राहत का संकेत देते हैं।",
+      "HE_TRAP": "सामंजस्य का जाल: {self} और {partner} का मेल (合) बनता है, लेकिन बनने वाला तत्व ({element}) कठिन पक्ष बढ़ाता है। सहजता और निर्भरता में अंतर रखें।"
     },
     "element": {
-      "wood": "Wood (木)",
-      "fire": "Fire (火)",
-      "earth": "Earth (土)",
-      "metal": "Metal (金)",
-      "water": "Water (水)"
+      "wood": "लकड़ी (木)",
+      "fire": "अग्नि (火)",
+      "earth": "पृथ्वी (土)",
+      "metal": "धातु (金)",
+      "water": "जल (水)"
     },
     "tone": {
-      "warm": "warmer",
-      "cool": "cooler"
+      "warm": "अधिक गर्म",
+      "cool": "अधिक ठंडी"
     },
     "moist": {
-      "wet": "damp",
-      "dry": "dry"
+      "wet": "नम",
+      "dry": "शुष्क"
     },
     "love": {
-      "title": "💍 In-depth romance and marriage compatibility",
-      "emotion": "💞 Emotional and expressive rhythm",
-      "conflict": "🧯 How you conflict and recover",
-      "home": "🏠 Living together and married life",
-      "growth": "🌱 Conditions for long-term growth"
+      "title": "💍 प्रेम और विवाह का विस्तृत मेल",
+      "emotion": "💞 भावना और अभिव्यक्ति की लय",
+      "conflict": "🧯 टकराव और सुधार",
+      "home": "🏠 साथ रहना और वैवाहिक जीवन",
+      "growth": "🌱 दीर्घकालिक विकास की शर्तें"
     },
     "fact": {
-      "title": "💥 Straight talk — the truth of this relationship",
-      "STRENGTH_SELF_LEADS": "Power imbalance alert",
-      "STRENGTH_PARTNER_LEADS": "Absorption warning",
-      "STRENGTH_PEER": "Strong vs. strong / weak vs. weak",
-      "KE_SELF_OVER_PARTNER": "Day-stem control (you are the controller)",
-      "KE_PARTNER_OVER_SELF": "Day-stem control (you are the one controlled)",
-      "KIJI_RELIEF": "The sweetness of covering weak spots",
-      "HE_TRAP": "⚠ Harmony (合) trap alert",
-      "repeatScene": "A scene that tends to repeat",
-      "recovery": "How to know you have recovered"
+      "title": "💥 रिश्ते की स्पष्ट समीक्षा",
+      "STRENGTH_SELF_LEADS": "शक्ति असंतुलन पर ध्यान",
+      "STRENGTH_PARTNER_LEADS": "अपने लिए जगह बनाए रखें",
+      "STRENGTH_PEER": "दोनों प्रबल / दोनों कमज़ोर",
+      "KE_SELF_OVER_PARTNER": "दिन के तनों में नियंत्रण (आपका प्रभाव)",
+      "KE_PARTNER_OVER_SELF": "दिन के तनों में नियंत्रण (साथी का प्रभाव)",
+      "KIJI_RELIEF": "कमज़ोरियों में सहारा मिलने का सुख",
+      "HE_TRAP": "⚠ सामंजस्य (合) के जाल पर ध्यान",
+      "repeatScene": "दोहराने वाली स्थिति",
+      "recovery": "सुधार के संकेत"
     },
     "advice": {
-      "title": "🎯 Prescription from the stars",
-      "keep": "[Keep it up] Never neglect it",
-      "grow": "[Grow] The beauty of differences",
-      "communicate": "[Communicate] Put dissatisfaction into words",
-      "survive": "[Survive] Rules and boundaries",
+      "title": "🎯 व्यवहारिक सलाह",
+      "keep": "[बनाए रखें] उपेक्षा न करें",
+      "grow": "[विकास] भिन्नताओं की खूबसूरती",
+      "communicate": "[संवाद] असंतोष को शब्द दें",
+      "survive": "[स्थिरता] नियम और सीमाएँ",
       "secret": {
-        "love": "[Romance secret]",
-        "business": "[Partnership secret]",
-        "friend": "[Friendship secret]"
+        "love": "[प्रेम की सलाह]",
+        "business": "[साझेदारी की सलाह]",
+        "friend": "[मित्रता की सलाह]"
       },
-      "conflictRoutine": "[Conflict recovery routine]",
-      "growthGoal": "[Shared growth goal]"
+      "conflictRoutine": "[टकराव सुलझाने का अभ्यास]",
+      "growthGoal": "[साझा विकास का लक्ष्य]"
     },
     "past": {
-      "title": "🔮 Past-life connection reading",
-      "subtitle": "PAST LIFE COMPATIBILITY · Day × year pillar cross analysis",
+      "title": "🔮 पिछले जन्म के संबंध की व्याख्या",
+      "subtitle": "पिछले जन्म का मेल · दिन × वर्ष स्तंभ की तुलना",
       "grade": {
-        "S": "🌟 Grade S · Twin stars of a past life",
-        "A": "✨ Grade A · A destined déjà-vu bond",
-        "B": "🌱 Grade B · A bond sprouting again",
-        "C": "⚪ Grade C · A fresh bond on a blank page",
-        "D": "⚠️ Grade D · A knot to untie, a karmic bond",
-        "F": "🌀 Grade F · Learning through pain, a bond of inherited hardship"
+        "S": "🌟 श्रेणी S · पिछले जन्म के जुड़वाँ तारे",
+        "A": "✨ श्रेणी A · पहले मिले होने का एहसास",
+        "B": "🌱 श्रेणी B · फिर अंकुरित होता संबंध",
+        "C": "⚪ श्रेणी C · नए पन्ने पर नया संबंध",
+        "D": "⚠️ श्रेणी D · सुलझाने वाली कर्म की गाँठ",
+        "F": "🌀 श्रेणी F · मिली हुई कठिनाइयों से सीखना"
       },
-      "crossSelf": "🧬 {self}'s day pillar ({selfPillar}) × {partner}'s year pillar ({partnerPillar})",
-      "crossPartner": "🧬 {partner}'s day pillar ({partnerPillar}) × {self}'s year pillar ({selfPillar})",
+      "crossSelf": "🧬 {self} का दिन स्तंभ ({selfPillar}) × {partner} का वर्ष स्तंभ ({partnerPillar})",
+      "crossPartner": "🧬 {partner} का दिन स्तंभ ({partnerPillar}) × {self} का वर्ष स्तंभ ({selfPillar})",
       "cross": {
-        "he": "Harmony (合)",
-        "chong": "Clash (沖)",
-        "same": "Same (同)",
-        "none": "None (無)"
+        "he": "सामंजस्य (合)",
+        "chong": "टकराव (沖)",
+        "same": "समान (同)",
+        "none": "कोई नहीं (無)"
       },
-      "prescription": "⚔️ Prescription from the stars",
-      "questionsTitle": "Questions to check in this life",
-      "reflectionPull": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the pull between you and the emotional scenes that keep recurring.",
-      "reflectionDistance": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the distance between you and the moments that call for adjustment.",
-      "reflectionNote": "Don't stop at asking “Why are we so drawn to each other, or why do we clash?” Look for actions you can actually change in your current relationship. What shapes your next scene is your agreements and boundaries now, more than the story of the past.",
-      "disclaimer": "※ The past-life bond reading is entertainment content based on Saju theory 🌙"
+      "prescription": "⚔️ व्यवहारिक सलाह",
+      "questionsTitle": "इस जीवन में विचारने योग्य सवाल",
+      "reflectionPull": "पिछले जन्म की श्रेणी रिश्ते का नतीजा नहीं तय करती। यह परिचितपन और तनाव पर विचार करने का प्रतीक है। “{label}” आकर्षण और दोहराते भावनात्मक प्रसंग देखने में मदद करता है।",
+      "reflectionDistance": "पिछले जन्म की श्रेणी नतीजा नहीं तय करती; यह परिचितपन और तनाव का प्रतीक है। “{label}” दूरी और समायोजन की ज़रूरत वाले क्षण देखने में मदद करता है।",
+      "reflectionNote": "केवल आकर्षण या टकराव का कारण न पूछें। वर्तमान रिश्ते में बदल सकने वाले व्यवहार देखें। आगे की दिशा पिछले किस्से से अधिक आज की सहमति और सीमाओं से बनती है।",
+      "disclaimer": "※ पिछले जन्म के संबंध की यह व्याख्या साजू पर आधारित मनोरंजन सामग्री है 🌙"
     },
-    "footer": "This reading is an AI-written interpretation based on the scores and harmony/clash evidence calculated by the engine, provided for reference only. It does not stand in for a conclusion about your relationship.",
+    "footer": "यह AI व्याख्या प्रणाली द्वारा निकाले गए अंकों और सामंजस्य-टकराव के आधारों पर संदर्भ हेतु है। यह आपके रिश्ते का अंतिम निष्कर्ष नहीं है।",
     "flow": {
-      "starting": "Preparing your Saju compatibility reading…",
-      "progress": "Writing your Saju compatibility reading… ({done}/{total})",
-      "keepOpen": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-      "saved": "This result is saved in your library. Reopening it later costs nothing extra.",
-      "fallback": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-      "review": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-      "revoked": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-      "retry": "Continue loading the AI reading",
-      "moduleFail": "Couldn't load the AI reading screen. No payment was made. Please try again shortly."
+      "starting": "साजू अनुकूलता व्याख्या तैयार हो रही है…",
+      "progress": "अनुकूलता व्याख्या लिखी जा रही है… ({done}/{total})",
+      "keepOpen": "भुगतान पूरा है। बाहर जाकर लौटने पर यही परिणाम जारी रहेगा।",
+      "saved": "परिणाम संग्रह में सहेजा गया है। दोबारा खोलने पर अतिरिक्त शुल्क नहीं लगेगा।",
+      "fallback": "AI व्याख्या नहीं खुली, इसलिए पहले मूल व्याख्या दिखाई गई है। भुगतान सुरक्षित है; नीचे के बटन से इसी जोड़ी की AI व्याख्या जारी रखें।",
+      "review": "AI व्याख्या पूरी नहीं हुई। भुगतान और सहेजा गया पाठ सुरक्षित हैं; सहायता टीम जाँच करेगी। मूल व्याख्या नीचे है।",
+      "revoked": "रद्द या वापस किए गए भुगतान का परिणाम जारी नहीं किया जा सकता। मूल व्याख्या नीचे है।",
+      "retry": "AI व्याख्या जारी रखें",
+      "moduleFail": "AI व्याख्या की स्क्रीन नहीं खुली। कोई भुगतान नहीं हुआ। थोड़ी देर बाद फिर प्रयास करें।"
     },
     "archive": {
-      "title": "Saju compatibility records",
-      "lead": "Your paid Saju compatibility results are kept exactly as they were. Reopening one never costs extra or generates anything new.",
-      "loading": "Loading your records…",
-      "empty": "No Saju compatibility results are saved yet.",
-      "login": "Sign in to see your saved Saju compatibility records.",
-      "loginCta": "Sign in",
-      "error": "Couldn't load your records. Please try again shortly.",
-      "retry": "Try again",
-      "back": "← Back to list",
-      "close": "Close",
+      "title": "साजू अनुकूलता रिकॉर्ड",
+      "lead": "भुगतान वाले अनुकूलता परिणाम मूल रूप में सुरक्षित हैं। दोबारा खोलने पर अतिरिक्त शुल्क या नया निर्माण नहीं होता।",
+      "loading": "रिकॉर्ड लोड हो रहे हैं…",
+      "empty": "अभी कोई साजू अनुकूलता परिणाम सहेजा नहीं गया है।",
+      "login": "सहेजे गए अनुकूलता रिकॉर्ड देखने के लिए लॉग इन करें।",
+      "loginCta": "लॉग इन करें",
+      "error": "रिकॉर्ड लोड नहीं हुए। थोड़ी देर बाद फिर प्रयास करें।",
+      "retry": "फिर प्रयास करें",
+      "back": "← सूची पर लौटें",
+      "close": "बंद करें",
       "itemTitle": "{type} — {name}",
-      "itemMeta": "{date} · {score} pts",
+      "itemMeta": "{date} · {score} अंक",
       "itemDate": "{date}",
-      "itemOpen": "Open",
-      "itemAria": "Open Saju compatibility result for {name}",
-      "revoked": "A result for a cancelled or refunded payment can't be opened.",
-      "notFound": "We couldn't find this record.",
-      "unreadable": "This record can't be shown on this screen right now. Please contact support.",
-      "detailNote": "This is a saved result. Reopening it doesn't call the AI again and costs nothing extra.",
-      "duplicate": "A Saju compatibility result with the same conditions (your chart, partner name and type) is already saved in your library.\n\n[OK] Pay again and view a new reading\n[Cancel] Open the saved result in your library"
+      "itemOpen": "खोलें",
+      "itemAria": "{name} का साजू अनुकूलता परिणाम खोलें",
+      "revoked": "रद्द या वापस किए गए भुगतान का परिणाम नहीं खोला जा सकता।",
+      "notFound": "यह रिकॉर्ड नहीं मिला।",
+      "unreadable": "यह रिकॉर्ड अभी इस स्क्रीन पर नहीं दिखाया जा सकता। सहायता से संपर्क करें।",
+      "detailNote": "यह सहेजा गया परिणाम है। दोबारा खोलने पर AI फिर नहीं चलता और अतिरिक्त शुल्क नहीं लगता।",
+      "duplicate": "इन्हीं शर्तों (आपका चार्ट, साथी का नाम और अनुकूलता प्रकार) का परिणाम संग्रह में है।\n\n[ठीक] नया भुगतान करके नई व्याख्या देखें\n[रद्द] सहेजा गया परिणाम खोलें"
+    },
+    "art": {
+      "caption": "रिश्ते के भाव की प्रतीकात्मक तस्वीर",
+      "love": "चाँदनी के बगीचे में आमने-सामने बैठे दो लोग",
+      "business": "नक्शे पर दिशा तय करते दो लोग",
+      "friend": "लालटेन लिए साथ चलते दो लोग",
+      "year": "अलग रास्तों से बगीचे के द्वार तक आते दो लोग",
+      "month": "बगीचे के पास अलग मेज़ों पर बैठे दो लोग",
+      "day": "गर्म रोशनी वाली खिड़की पर रखे दो चाय के प्याले",
+      "hour": "दूर पहाड़ों की सुबह की ओर दो लालटेन",
+      "past-resonance": "तालाब पर पास आती दो लालटेन",
+      "past-growth": "फूलदार पेड़ों वाले दो किनारों को जोड़ता पुल",
+      "past-knot": "कमल के पास रेशम की ढीली गाँठ"
+    },
+    "relationship": {
+      "title": "जहाँ दोनों जन्म-चार्ट मिलते हैं",
+      "context": "एक ही चिह्न का अर्थ उसकी स्थिति और जीवन की परिस्थितियों के अनुसार बदलता है।",
+      "all": "सभी संबंध और मूल चार्ट के आधार देखें",
+      "natal": "हर मूल चार्ट के भीतर के संबंध",
+      "cross": "दोनों चार्टों के बीच",
+      "triad": "त्रय के तीनों चिह्न मौजूद",
+      "chapters": "आपके रिश्ते के चार अध्याय",
+      "evidence": "इस अध्याय का साजू आधार",
+      "unknownHour": "जन्म समय अज्ञात होने से घंटे के स्तंभों की तुलना नहीं की गई है।",
+      "stem": "स्वर्गीय तने",
+      "branch": "पृथ्वी शाखाएँ"
+    },
+    "pillar": {
+      "year": "वर्ष स्तंभ",
+      "month": "माह स्तंभ",
+      "day": "दिन स्तंभ",
+      "hour": "घंटे का स्तंभ"
+    },
+    "area": {
+      "year": "पृष्ठभूमि और संबंधों की परिचित शैली",
+      "month": "सामाजिक जीवन और साझा लय",
+      "day": "करीबी रिश्ते और रोज़मर्रा का जीवन",
+      "hour": "भविष्य की योजनाएँ और मिलकर सँवारने वाली बातें"
+    },
+    "direction": {
+      "same": "एक ही तत्व",
+      "selfGenerates": "आपका तत्व साथी के तत्व को पोषित करता है",
+      "partnerGenerates": "साथी का तत्व आपके तत्व को पोषित करता है",
+      "selfControls": "आपका तत्व साथी के तत्व को नियंत्रित करता है",
+      "partnerControls": "साथी का तत्व आपके तत्व को नियंत्रित करता है"
+    },
+    "relation": {
+      "sixHarmony": "छह सामंजस्य (合)",
+      "partialTriad": "आंशिक त्रय (三合)",
+      "penalty": "तनाव (刑)",
+      "selfPenalty": "आंतरिक तनाव (自刑)",
+      "break": "व्यवधान (破)",
+      "harm": "घर्षण (害)",
+      "wonjin": "भावनात्मक खटास (怨嗔)",
+      "gwimun": "बढ़ी संवेदनशीलता (鬼門)",
+      "he": "सामंजस्य (合)",
+      "chong": "टकराव (沖)",
+      "same": "समान (同)",
+      "none": "कोई नहीं (無)",
+      "generates": "पोषण (生)",
+      "controls": "नियंत्रण (剋)"
+    },
+    "limit": {
+      "hour": "जन्म समय अज्ञात होने पर घंटे के स्तंभ का प्रभाव शामिल नहीं है।",
+      "story": "चार अध्याय जीवन के क्षेत्रों को जोड़ते हैं; वे घटनाओं का क्रम या समय नहीं बताते।",
+      "relations": "सामंजस्य का अर्थ स्वतः तत्व परिवर्तन नहीं है। वोनजिन और ग्विमुन से बेवफ़ाई, मानसिक बीमारी या रिश्ते का परिणाम तय नहीं होता।"
     }
   }
 }

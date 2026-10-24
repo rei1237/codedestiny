@@ -21365,175 +21365,241 @@
     }
   },
   "sajuCompat": {
-    "selfFallback": "Me",
+    "selfFallback": "Saya",
     "type": {
-      "love": "Romance / marriage compatibility",
-      "business": "Business / partnership compatibility",
-      "friend": "Friend / colleague compatibility"
+      "love": "Keserasian cinta / perkahwinan",
+      "business": "Keserasian perniagaan / perkongsian",
+      "friend": "Keserasian rakan / rakan sekerja"
     },
     "grade": {
-      "S": "🌟 Benefactor from a past life",
-      "A": "✨ Destined match",
-      "B": "😊 Connected match",
-      "C": "🙂 Ordinary connection",
-      "D": "⚠️ Karmic match",
-      "F": "🌧️ Difficult-fate match"
+      "S": "🌟 Penolong dari kehidupan lampau",
+      "A": "✨ Pertemuan takdir",
+      "B": "😊 Hubungan yang terjalin",
+      "C": "🙂 Hubungan biasa",
+      "D": "⚠️ Hubungan karma",
+      "F": "🌧️ Hubungan penuh cabaran"
     },
-    "gradeBadge": "Grade {grade}",
+    "gradeBadge": "Gred {grade}",
     "titleLine": "{type} — {self} × {partner}",
-    "scoreLine": "Saju-only compatibility score: {score}/100",
+    "scoreLine": "Skor keserasian berdasarkan Saju sahaja: {score}/100",
     "overview": {
-      "title": "🧭 Compatibility overview",
-      "note": "This result is calculated from Saju alone. Day-stem and day-branch harmonies and clashes, seasonal balance, useful and harmful elements, and the ten-gods structure are combined into a score of {score}/100."
+      "title": "🧭 Gambaran keserasian",
+      "note": "Keputusan ini berdasarkan Saju sahaja. Keharmonian dan pertembungan batang serta cabang hari, keseimbangan musim, unsur membantu dan mencabar serta struktur sepuluh dewa menghasilkan {score}/100."
     },
     "energy": {
-      "title": "🌡️ Energy harmony",
-      "johu": "Seasonal balance (temperature)",
-      "elements": "Day-stem element",
-      "season": "Season of the month branch",
-      "tenGods": "Ten-gods structure"
+      "title": "🌡️ Keharmonian tenaga",
+      "johu": "Keseimbangan musim (suhu)",
+      "elements": "Unsur batang hari",
+      "season": "Musim cabang bulan",
+      "tenGods": "Struktur sepuluh dewa"
     },
     "detail": {
-      "title": "🧩 Detailed reading",
-      "emotionRhythm": "Emotional rhythm",
-      "conflictSwitch": "Conflict triggers",
-      "realOps": "Everyday practice",
-      "longTerm": "Long-term outlook"
+      "title": "🧩 Tafsiran terperinci",
+      "emotionRhythm": "Rentak emosi",
+      "conflictSwitch": "Pencetus konflik",
+      "realOps": "Amalan harian",
+      "longTerm": "Prospek jangka panjang"
     },
     "reasons": {
-      "title": "📋 Compatibility checkpoints",
-      "total": "Total {total} pts"
+      "title": "📋 Perkara penting keserasian",
+      "total": "Jumlah {total} mata"
     },
     "reason": {
-      "JOHU_COMPLEMENT": "One of you runs hot and the other cool, so you balance each other's temperature nicely.",
-      "JOHU_BOTH_HOT": "You both run hot, so the spark is strong, but arguments can flare up quickly as well. It is a fire-overheating pairing.",
-      "JOHU_BOTH_COLD": "You both run cool, so there is stability, but it may be hard to bring each other enough warmth.",
-      "JOHU_MILD": "Your temperatures do not clash much, but one of you runs slightly {tone}, which creates a balancing structure.",
-      "MOIST_COMPLEMENT": "One of you is moist and the other dry, so your moisture balance fills in for each other. It is an ideal match.",
-      "MOIST_BOTH": "You are both on the {moist} side, so when you are low you can easily sag or dry out together.",
-      "MOIST_NEUTRAL": "Your moisture balance does not clash much, and your day-to-day condition tends to run alike.",
-      "ELEMENT_SAME": "You both have strong {element} energy and share a similar code and rhythm.",
-      "ELEMENT_SAME_EXCESS": "However, the same element is very strong in both of you, so neither tends to give way when opinions clash.",
-      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from} generates {to}, so one of you naturally nourishes the other. It is a mutually generating match.",
-      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from} supports {to}, so you are dependable supporters who help each other grow.",
-      "ELEMENT_KE": "Your elements are in a controlling relationship ({self} ↔ {partner}), so tension and friction can arise easily.",
-      "DAY_STEM_HE": "Your day stems form a harmony (合), so your hearts tend to be in tune.",
-      "DAY_BRANCH_HE": "Your day branches (the spouse position) form a six-harmony, bringing strong comfort and attraction when you are together.",
-      "DAY_STEM_CHONG": "Your day stems clash (沖), so the highs are strong but so are the collisions. It is a roller-coaster pairing.",
-      "DAY_BRANCH_CHONG": "Your day branches clash (沖), so your daily patterns and emotional rhythms may move differently. Adjusting to each other matters.",
-      "YONGSHIN_COMMON": "You both rely on {elements} energy as your useful element, so your core direction in life is very similar.",
-      "YONGSHIN_CLASH": "In particular, {elements} energy is a useful element for one of you but a harmful element for the other, so you may collide sensitively on that theme.",
-      "KIJI_CONTROL_FORWARD": "Harmful-element control: your partner's characters ({by}) clear your harmful elements ({chars}) through clash (沖). This is the core of a top-tier match: the other person drives out your bad energy.",
-      "KIJI_CONTROL_REVERSE": "Reverse control: your characters ({by}) clear your partner's harmful elements through clash. You also bring your partner a sense of release.",
-      "HE_TRAP": "Harmony trap: {self} and {partner} form a harmony (合), and the resulting element ({element}) strengthens your harmful element. It looks like a good fit on the surface, but harmful energy can build up inside. Tell comfort apart from dependence."
+      "JOHU_COMPLEMENT": "Seorang cenderung panas dan seorang lagi sejuk, lalu saling mengimbangkan suhu.",
+      "JOHU_BOTH_HOT": "Kedua-duanya cenderung panas; tarikan kuat, tetapi pertengkaran juga mudah memuncak.",
+      "JOHU_BOTH_COLD": "Kedua-duanya cenderung sejuk; ada kestabilan, namun kemesraan mungkin perlu dipupuk.",
+      "JOHU_MILD": "Suhu tidak banyak bertembung; satu pihak sedikit {tone}, membantu keseimbangan.",
+      "MOIST_COMPLEMENT": "Seorang cenderung lembap dan seorang lagi kering, lalu saling melengkapi.",
+      "MOIST_BOTH": "Kedua-duanya cenderung {moist}; ketika letih, kelesuan atau kekeringan boleh meningkat bersama.",
+      "MOIST_NEUTRAL": "Keseimbangan lembap dan kering tidak banyak bertembung; keadaan harian cenderung serupa.",
+      "ELEMENT_SAME": "Kedua-duanya mempunyai tenaga {element} yang kuat serta rentak dan kecenderungan serupa.",
+      "ELEMENT_SAME_EXCESS": "Namun, unsur yang sama terlalu kuat boleh menyukarkan kedua-duanya untuk bertolak ansur.",
+      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from} menyuburkan {to}, maka seorang secara semula jadi menyokong perkembangan yang lain.",
+      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from} menyokong {to}, membentuk hubungan saling membantu untuk berkembang.",
+      "ELEMENT_KE": "Unsur berada dalam hubungan kawalan ({self} ↔ {partner}), maka ketegangan dan geseran mudah timbul.",
+      "DAY_STEM_HE": "Batang hari membentuk keharmonian (合), membantu keserasian perasaan.",
+      "DAY_BRANCH_HE": "Cabang hari pada kedudukan pasangan membentuk enam keharmonian, membawa keselesaan dan tarikan.",
+      "DAY_STEM_CHONG": "Batang hari bertembung (沖); detik baik dan perselisihan boleh terasa kuat.",
+      "DAY_BRANCH_CHONG": "Cabang hari bertembung (沖), menyebabkan rutin dan rentak emosi berbeza. Penyesuaian bersama penting.",
+      "YONGSHIN_COMMON": "Kedua-duanya bergantung pada {elements} sebagai unsur membantu, maka arah hidup asas agak serupa.",
+      "YONGSHIN_CLASH": "{elements} membantu seorang tetapi mencabar yang lain; perkara ini boleh menimbulkan geseran sensitif.",
+      "KIJI_CONTROL_FORWARD": "Kawalan unsur mencabar: tanda pasangan ({by}) bertembung dengan unsur mencabar anda ({chars}). Dalam model ini, ia boleh mengimbangkan kelemahan.",
+      "KIJI_CONTROL_REVERSE": "Sebaliknya, tanda anda ({by}) bertembung dengan unsur mencabar pasangan dan boleh membawa kelegaan.",
+      "HE_TRAP": "Perangkap keharmonian: {self} dan {partner} bergabung (合), tetapi unsur terhasil ({element}) menguatkan unsur mencabar. Bezakan keselesaan daripada kebergantungan."
     },
     "element": {
-      "wood": "Wood (木)",
-      "fire": "Fire (火)",
-      "earth": "Earth (土)",
-      "metal": "Metal (金)",
-      "water": "Water (水)"
+      "wood": "Kayu (木)",
+      "fire": "Api (火)",
+      "earth": "Tanah (土)",
+      "metal": "Logam (金)",
+      "water": "Air (水)"
     },
     "tone": {
-      "warm": "warmer",
-      "cool": "cooler"
+      "warm": "lebih hangat",
+      "cool": "lebih sejuk"
     },
     "moist": {
-      "wet": "damp",
-      "dry": "dry"
+      "wet": "lembap",
+      "dry": "kering"
     },
     "love": {
-      "title": "💍 In-depth romance and marriage compatibility",
-      "emotion": "💞 Emotional and expressive rhythm",
-      "conflict": "🧯 How you conflict and recover",
-      "home": "🏠 Living together and married life",
-      "growth": "🌱 Conditions for long-term growth"
+      "title": "💍 Cinta dan perkahwinan secara mendalam",
+      "emotion": "💞 Rentak emosi dan luahan",
+      "conflict": "🧯 Konflik dan pemulihan",
+      "home": "🏠 Hidup bersama dan rumah tangga",
+      "growth": "🌱 Syarat pertumbuhan bersama"
     },
     "fact": {
-      "title": "💥 Straight talk — the truth of this relationship",
-      "STRENGTH_SELF_LEADS": "Power imbalance alert",
-      "STRENGTH_PARTNER_LEADS": "Absorption warning",
-      "STRENGTH_PEER": "Strong vs. strong / weak vs. weak",
-      "KE_SELF_OVER_PARTNER": "Day-stem control (you are the controller)",
-      "KE_PARTNER_OVER_SELF": "Day-stem control (you are the one controlled)",
-      "KIJI_RELIEF": "The sweetness of covering weak spots",
-      "HE_TRAP": "⚠ Harmony (合) trap alert",
-      "repeatScene": "A scene that tends to repeat",
-      "recovery": "How to know you have recovered"
+      "title": "💥 Pandangan terus terang tentang hubungan ini",
+      "STRENGTH_SELF_LEADS": "Perhatikan ketidakseimbangan pengaruh",
+      "STRENGTH_PARTNER_LEADS": "Jaga ruang peribadi",
+      "STRENGTH_PEER": "Kedua-duanya kuat / lemah",
+      "KE_SELF_OVER_PARTNER": "Kawalan batang hari (anda mengawal)",
+      "KE_PARTNER_OVER_SELF": "Kawalan batang hari (pasangan mengawal)",
+      "KIJI_RELIEF": "Kelegaan apabila kelemahan saling dilengkapi",
+      "HE_TRAP": "⚠ Perhatikan perangkap keharmonian (合)",
+      "repeatScene": "Situasi yang berulang",
+      "recovery": "Tanda pemulihan"
     },
     "advice": {
-      "title": "🎯 Prescription from the stars",
-      "keep": "[Keep it up] Never neglect it",
-      "grow": "[Grow] The beauty of differences",
-      "communicate": "[Communicate] Put dissatisfaction into words",
-      "survive": "[Survive] Rules and boundaries",
+      "title": "🎯 Panduan praktikal",
+      "keep": "[Kekalkan] Jangan abaikan",
+      "grow": "[Berkembang] Nilai perbezaan",
+      "communicate": "[Berkomunikasi] Nyatakan rasa tidak puas hati",
+      "survive": "[Bertahan] Peraturan dan batasan",
       "secret": {
-        "love": "[Romance secret]",
-        "business": "[Partnership secret]",
-        "friend": "[Friendship secret]"
+        "love": "[Panduan cinta]",
+        "business": "[Panduan perkongsian]",
+        "friend": "[Panduan persahabatan]"
       },
-      "conflictRoutine": "[Conflict recovery routine]",
-      "growthGoal": "[Shared growth goal]"
+      "conflictRoutine": "[Rutin memulihkan konflik]",
+      "growthGoal": "[Matlamat pertumbuhan bersama]"
     },
     "past": {
-      "title": "🔮 Past-life connection reading",
-      "subtitle": "PAST LIFE COMPATIBILITY · Day × year pillar cross analysis",
+      "title": "🔮 Tafsiran hubungan kehidupan lampau",
+      "subtitle": "KEHIDUPAN LAMPAU · Perbandingan tiang hari × tahun",
       "grade": {
-        "S": "🌟 Grade S · Twin stars of a past life",
-        "A": "✨ Grade A · A destined déjà-vu bond",
-        "B": "🌱 Grade B · A bond sprouting again",
-        "C": "⚪ Grade C · A fresh bond on a blank page",
-        "D": "⚠️ Grade D · A knot to untie, a karmic bond",
-        "F": "🌀 Grade F · Learning through pain, a bond of inherited hardship"
+        "S": "🌟 Gred S · Bintang kembar kehidupan lampau",
+        "A": "✨ Gred A · Pertemuan takdir yang terasa dikenali",
+        "B": "🌱 Gred B · Hubungan yang berputik semula",
+        "C": "⚪ Gred C · Hubungan baharu pada lembaran kosong",
+        "D": "⚠️ Gred D · Simpulan karma untuk dileraikan",
+        "F": "🌀 Gred F · Belajar daripada kesukaran yang diwarisi"
       },
-      "crossSelf": "🧬 {self}'s day pillar ({selfPillar}) × {partner}'s year pillar ({partnerPillar})",
-      "crossPartner": "🧬 {partner}'s day pillar ({partnerPillar}) × {self}'s year pillar ({selfPillar})",
+      "crossSelf": "🧬 Tiang hari {self} ({selfPillar}) × tiang tahun {partner} ({partnerPillar})",
+      "crossPartner": "🧬 Tiang hari {partner} ({partnerPillar}) × tiang tahun {self} ({selfPillar})",
       "cross": {
-        "he": "Harmony (合)",
-        "chong": "Clash (沖)",
-        "same": "Same (同)",
-        "none": "None (無)"
+        "he": "Keharmonian (合)",
+        "chong": "Pertembungan (沖)",
+        "same": "Sama (同)",
+        "none": "Tiada (無)"
       },
-      "prescription": "⚔️ Prescription from the stars",
-      "questionsTitle": "Questions to check in this life",
-      "reflectionPull": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the pull between you and the emotional scenes that keep recurring.",
-      "reflectionDistance": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the distance between you and the moments that call for adjustment.",
-      "reflectionNote": "Don't stop at asking “Why are we so drawn to each other, or why do we clash?” Look for actions you can actually change in your current relationship. What shapes your next scene is your agreements and boundaries now, more than the story of the past.",
-      "disclaimer": "※ The past-life bond reading is entertainment content based on Saju theory 🌙"
+      "prescription": "⚔️ Panduan praktikal",
+      "questionsTitle": "Soalan untuk kehidupan ini",
+      "reflectionPull": "Gred kehidupan lampau tidak menentukan kesudahan; ia melambangkan rasa biasa dan ketegangan. “{label}” membantu melihat tarikan dan situasi emosi yang berulang.",
+      "reflectionDistance": "Gred kehidupan lampau tidak menentukan kesudahan. “{label}” ialah simbol untuk meneliti jarak dan saat yang memerlukan penyesuaian.",
+      "reflectionNote": "Jangan sekadar bertanya mengapa tertarik atau bertembung. Cari tindakan yang boleh diubah sekarang. Persetujuan dan batasan hari ini lebih membentuk langkah seterusnya daripada kisah lampau.",
+      "disclaimer": "※ Tafsiran kehidupan lampau ini ialah hiburan berdasarkan Saju 🌙"
     },
-    "footer": "This reading is an AI-written interpretation based on the scores and harmony/clash evidence calculated by the engine, provided for reference only. It does not stand in for a conclusion about your relationship.",
+    "footer": "Tafsiran AI ini berdasarkan skor dan bukti keharmonian atau pertembungan yang dikira sistem. Ia untuk rujukan, bukan keputusan muktamad tentang hubungan anda.",
     "flow": {
-      "starting": "Preparing your Saju compatibility reading…",
-      "progress": "Writing your Saju compatibility reading… ({done}/{total})",
-      "keepOpen": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-      "saved": "This result is saved in your library. Reopening it later costs nothing extra.",
-      "fallback": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-      "review": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-      "revoked": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-      "retry": "Continue loading the AI reading",
-      "moduleFail": "Couldn't load the AI reading screen. No payment was made. Please try again shortly."
+      "starting": "Menyediakan tafsiran keserasian Saju…",
+      "progress": "Menulis tafsiran… ({done}/{total})",
+      "keepOpen": "Pembayaran selesai. Jika anda keluar dan kembali, keputusan yang sama akan disambung.",
+      "saved": "Keputusan disimpan. Membukanya semula tidak dikenakan bayaran tambahan.",
+      "fallback": "Tafsiran AI belum dapat dimuatkan; tafsiran asas dipaparkan dahulu. Pembayaran dikekalkan. Butang di bawah menyambung tafsiran pasangan yang sama.",
+      "review": "Tafsiran AI belum selesai. Pembayaran dan kandungan tersimpan dikekalkan untuk semakan sokongan. Tafsiran asas dipaparkan di bawah.",
+      "revoked": "Keputusan bagi pembayaran yang dibatalkan atau dipulangkan tidak boleh diteruskan. Tafsiran asas dipaparkan di bawah.",
+      "retry": "Sambung tafsiran AI",
+      "moduleFail": "Skrin tafsiran AI tidak dapat dimuatkan. Tiada pembayaran dibuat. Cuba sebentar lagi."
     },
     "archive": {
-      "title": "Saju compatibility records",
-      "lead": "Your paid Saju compatibility results are kept exactly as they were. Reopening one never costs extra or generates anything new.",
-      "loading": "Loading your records…",
-      "empty": "No Saju compatibility results are saved yet.",
-      "login": "Sign in to see your saved Saju compatibility records.",
-      "loginCta": "Sign in",
-      "error": "Couldn't load your records. Please try again shortly.",
-      "retry": "Try again",
-      "back": "← Back to list",
-      "close": "Close",
+      "title": "Rekod keserasian Saju",
+      "lead": "Keputusan berbayar disimpan dalam bentuk asal. Membuka semula tidak mengenakan bayaran atau menjana kandungan baharu.",
+      "loading": "Memuatkan rekod…",
+      "empty": "Belum ada keputusan keserasian Saju disimpan.",
+      "login": "Log masuk untuk melihat keputusan tersimpan.",
+      "loginCta": "Log masuk",
+      "error": "Rekod tidak dapat dimuatkan. Cuba sebentar lagi.",
+      "retry": "Cuba lagi",
+      "back": "← Kembali ke senarai",
+      "close": "Tutup",
       "itemTitle": "{type} — {name}",
-      "itemMeta": "{date} · {score} pts",
+      "itemMeta": "{date} · {score} mata",
       "itemDate": "{date}",
-      "itemOpen": "Open",
-      "itemAria": "Open Saju compatibility result for {name}",
-      "revoked": "A result for a cancelled or refunded payment can't be opened.",
-      "notFound": "We couldn't find this record.",
-      "unreadable": "This record can't be shown on this screen right now. Please contact support.",
-      "detailNote": "This is a saved result. Reopening it doesn't call the AI again and costs nothing extra.",
-      "duplicate": "A Saju compatibility result with the same conditions (your chart, partner name and type) is already saved in your library.\n\n[OK] Pay again and view a new reading\n[Cancel] Open the saved result in your library"
+      "itemOpen": "Buka",
+      "itemAria": "Buka keserasian Saju dengan {name}",
+      "revoked": "Keputusan bagi pembayaran yang dibatalkan atau dipulangkan tidak boleh dibuka.",
+      "notFound": "Rekod ini tidak ditemui.",
+      "unreadable": "Rekod ini belum dapat dipaparkan di sini. Hubungi sokongan.",
+      "detailNote": "Ini keputusan tersimpan. Membuka semula tidak memanggil AI atau mengenakan bayaran tambahan.",
+      "duplicate": "Keputusan dengan syarat sama (carta anda, nama pasangan dan jenis) sudah ada dalam simpanan.\n\n[OK] Bayar semula untuk tafsiran baharu\n[Batal] Buka keputusan tersimpan"
+    },
+    "art": {
+      "caption": "Ilustrasi simbolik hubungan",
+      "love": "Dua orang duduk berhadapan di taman diterangi bulan",
+      "business": "Dua orang berbincang tentang arah di hadapan peta",
+      "friend": "Dua orang berjalan bersama sambil membawa tanglung",
+      "year": "Dua orang menuju pintu taman melalui jalan berbeza",
+      "month": "Dua orang di meja masing-masing berhampiran taman",
+      "day": "Dua cawan teh bersebelahan di jendela yang nyaman",
+      "hour": "Dua tanglung menghadap fajar di pergunungan jauh",
+      "past-resonance": "Dua tanglung menghampiri satu sama lain di kolam",
+      "past-growth": "Jambatan menghubungkan dua tebing berpohon bunga",
+      "past-knot": "Simpulan sutera longgar di sisi teratai"
+    },
+    "relationship": {
+      "title": "Pertemuan dua carta kelahiran",
+      "context": "Simbol yang sama ditafsir mengikut kedudukan dan keadaan hidup.",
+      "all": "Lihat semua hubungan dan asas carta kelahiran",
+      "natal": "Hubungan dalam setiap carta kelahiran",
+      "cross": "Antara kedua-dua carta",
+      "triad": "Ketiga-tiga tanda gabungan hadir",
+      "chapters": "Empat bab hubungan anda",
+      "evidence": "Asas Saju untuk bab ini",
+      "unknownHour": "Tiang jam tidak dibandingkan kerana waktu kelahiran tidak diketahui.",
+      "stem": "Batang langit",
+      "branch": "Cabang bumi"
+    },
+    "pillar": {
+      "year": "Tiang tahun",
+      "month": "Tiang bulan",
+      "day": "Tiang hari",
+      "hour": "Tiang jam"
+    },
+    "area": {
+      "year": "Latar belakang dan cara berhubung yang biasa",
+      "month": "Kehidupan sosial dan rentak bersama",
+      "day": "Hubungan rapat dan kehidupan harian",
+      "hour": "Rancangan masa depan dan perkara yang dibina bersama"
+    },
+    "direction": {
+      "same": "Unsur yang sama",
+      "selfGenerates": "Unsur anda menyokong unsur pasangan",
+      "partnerGenerates": "Unsur pasangan menyokong unsur anda",
+      "selfControls": "Unsur anda mengawal unsur pasangan",
+      "partnerControls": "Unsur pasangan mengawal unsur anda"
+    },
+    "relation": {
+      "sixHarmony": "Enam keharmonian (合)",
+      "partialTriad": "Gabungan tiga separa (三合)",
+      "penalty": "Ketegangan (刑)",
+      "selfPenalty": "Ketegangan dalaman (自刑)",
+      "break": "Gangguan (破)",
+      "harm": "Geseran (害)",
+      "wonjin": "Geseran emosi (怨嗔)",
+      "gwimun": "Kepekaan tinggi (鬼門)",
+      "he": "Keharmonian (合)",
+      "chong": "Pertembungan (沖)",
+      "same": "Sama (同)",
+      "none": "Tiada (無)",
+      "generates": "Menyuburkan (生)",
+      "controls": "Mengawal (剋)"
+    },
+    "limit": {
+      "hour": "Kesan tiang jam dikecualikan jika waktu kelahiran tidak diketahui.",
+      "story": "Empat bab menghubungkan bidang kehidupan, bukan meramal urutan atau masa kejadian.",
+      "relations": "Keharmonian tidak bermakna perubahan unsur secara automatik. Wonjin dan Gwimun tidak menentukan kecurangan, penyakit mental atau kesudahan hubungan."
     }
   }
 }

@@ -21534,6 +21534,72 @@
       "unreadable": "This record can't be shown on this screen right now. Please contact support.",
       "detailNote": "This is a saved result. Reopening it doesn't call the AI again and costs nothing extra.",
       "duplicate": "A Saju compatibility result with the same conditions (your chart, partner name and type) is already saved in your library.\n\n[OK] Pay again and view a new reading\n[Cancel] Open the saved result in your library"
+    },
+    "art": {
+      "caption": "Symbolic illustration of the relationship",
+      "love": "Two people facing each other in a moonlit garden",
+      "business": "Two people discussing directions over a map",
+      "friend": "Two people walking side by side with lanterns",
+      "year": "Two people approaching a garden gate from different paths",
+      "month": "Two people at separate desks beside a garden",
+      "day": "Two teacups side by side at a warm window",
+      "hour": "Two lanterns facing dawn over distant mountains",
+      "past-resonance": "Two lanterns drifting closer on a pond",
+      "past-growth": "A bridge joining two banks with flowering trees",
+      "past-knot": "A loose silk knot beside a lotus"
+    },
+    "relationship": {
+      "title": "Where your two charts meet",
+      "context": "The same symbol is read differently depending on its position and life circumstances.",
+      "all": "View all chart links and natal evidence",
+      "natal": "Links within each natal chart",
+      "cross": "Across both charts",
+      "triad": "All three triad signs present",
+      "chapters": "Four chapters of your relationship",
+      "evidence": "Saju evidence for this chapter",
+      "unknownHour": "The hour pillars are not compared because a birth time is unknown.",
+      "stem": "Heavenly stems",
+      "branch": "Earthly branches"
+    },
+    "pillar": {
+      "year": "Year pillar",
+      "month": "Month pillar",
+      "day": "Day pillar",
+      "hour": "Hour pillar"
+    },
+    "area": {
+      "year": "Background and familiar ways of relating",
+      "month": "Social life and shared rhythms",
+      "day": "Close relationships and everyday life",
+      "hour": "Future plans and what you nurture together"
+    },
+    "direction": {
+      "same": "The same element",
+      "selfGenerates": "Your element nourishes your partner's",
+      "partnerGenerates": "Your partner's element nourishes yours",
+      "selfControls": "Your element checks your partner's",
+      "partnerControls": "Your partner's element checks yours"
+    },
+    "relation": {
+      "sixHarmony": "Six harmonies (合)",
+      "partialTriad": "Partial triad (三合)",
+      "penalty": "Tension (刑)",
+      "selfPenalty": "Self-tension (自刑)",
+      "break": "Disruption (破)",
+      "harm": "Friction (害)",
+      "wonjin": "Emotional friction (怨嗔)",
+      "gwimun": "Heightened sensitivity (鬼門)",
+      "he": "Harmony (合)",
+      "chong": "Clash (沖)",
+      "same": "Same (同)",
+      "none": "None (無)",
+      "generates": "Nourishing (生)",
+      "controls": "Checking (剋)"
+    },
+    "limit": {
+      "hour": "Hour-pillar effects are excluded when the birth time is unknown.",
+      "story": "The four chapters connect areas of life; they do not predict an order or timing of events.",
+      "relations": "A harmony does not imply automatic elemental transformation. Wonjin and Gwimun do not establish infidelity, mental illness, or a relationship's outcome."
     }
   }
 }

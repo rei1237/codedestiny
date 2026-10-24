@@ -21365,175 +21365,241 @@
     }
   },
   "sajuCompat": {
-    "selfFallback": "Me",
+    "selfFallback": "Tôi",
     "type": {
-      "love": "Romance / marriage compatibility",
-      "business": "Business / partnership compatibility",
-      "friend": "Friend / colleague compatibility"
+      "love": "Tương hợp tình yêu / hôn nhân",
+      "business": "Tương hợp kinh doanh / hợp tác",
+      "friend": "Tương hợp bạn bè / đồng nghiệp"
     },
     "grade": {
-      "S": "🌟 Benefactor from a past life",
-      "A": "✨ Destined match",
-      "B": "😊 Connected match",
-      "C": "🙂 Ordinary connection",
-      "D": "⚠️ Karmic match",
-      "F": "🌧️ Difficult-fate match"
+      "S": "🌟 Ân nhân từ kiếp trước",
+      "A": "✨ Duyên định mệnh",
+      "B": "😊 Duyên gắn kết",
+      "C": "🙂 Duyên bình thường",
+      "D": "⚠️ Duyên nghiệp",
+      "F": "🌧️ Duyên nhiều thử thách"
     },
-    "gradeBadge": "Grade {grade}",
+    "gradeBadge": "Hạng {grade}",
     "titleLine": "{type} — {self} × {partner}",
-    "scoreLine": "Saju-only compatibility score: {score}/100",
+    "scoreLine": "Điểm tương hợp chỉ theo Tứ trụ: {score}/100",
     "overview": {
-      "title": "🧭 Compatibility overview",
-      "note": "This result is calculated from Saju alone. Day-stem and day-branch harmonies and clashes, seasonal balance, useful and harmful elements, and the ten-gods structure are combined into a score of {score}/100."
+      "title": "🧭 Tổng quan tương hợp",
+      "note": "Kết quả chỉ tính theo Tứ trụ. Hợp–xung can chi ngày, cân bằng mùa, dụng thần–kỵ thần và cấu trúc thập thần được tổng hợp thành {score}/100."
     },
     "energy": {
-      "title": "🌡️ Energy harmony",
-      "johu": "Seasonal balance (temperature)",
-      "elements": "Day-stem element",
-      "season": "Season of the month branch",
-      "tenGods": "Ten-gods structure"
+      "title": "🌡️ Hài hòa năng lượng",
+      "johu": "Điều hậu (nhiệt độ)",
+      "elements": "Ngũ hành can ngày",
+      "season": "Mùa của chi tháng",
+      "tenGods": "Cấu trúc thập thần"
     },
     "detail": {
-      "title": "🧩 Detailed reading",
-      "emotionRhythm": "Emotional rhythm",
-      "conflictSwitch": "Conflict triggers",
-      "realOps": "Everyday practice",
-      "longTerm": "Long-term outlook"
+      "title": "🧩 Luận giải chi tiết",
+      "emotionRhythm": "Nhịp cảm xúc",
+      "conflictSwitch": "Điểm kích hoạt mâu thuẫn",
+      "realOps": "Cách chung sống hằng ngày",
+      "longTerm": "Triển vọng lâu dài"
     },
     "reasons": {
-      "title": "📋 Compatibility checkpoints",
-      "total": "Total {total} pts"
+      "title": "📋 Điểm cần xem về tương hợp",
+      "total": "Tổng {total} điểm"
     },
     "reason": {
-      "JOHU_COMPLEMENT": "One of you runs hot and the other cool, so you balance each other's temperature nicely.",
-      "JOHU_BOTH_HOT": "You both run hot, so the spark is strong, but arguments can flare up quickly as well. It is a fire-overheating pairing.",
-      "JOHU_BOTH_COLD": "You both run cool, so there is stability, but it may be hard to bring each other enough warmth.",
-      "JOHU_MILD": "Your temperatures do not clash much, but one of you runs slightly {tone}, which creates a balancing structure.",
-      "MOIST_COMPLEMENT": "One of you is moist and the other dry, so your moisture balance fills in for each other. It is an ideal match.",
-      "MOIST_BOTH": "You are both on the {moist} side, so when you are low you can easily sag or dry out together.",
-      "MOIST_NEUTRAL": "Your moisture balance does not clash much, and your day-to-day condition tends to run alike.",
-      "ELEMENT_SAME": "You both have strong {element} energy and share a similar code and rhythm.",
-      "ELEMENT_SAME_EXCESS": "However, the same element is very strong in both of you, so neither tends to give way when opinions clash.",
-      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from} generates {to}, so one of you naturally nourishes the other. It is a mutually generating match.",
-      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from} supports {to}, so you are dependable supporters who help each other grow.",
-      "ELEMENT_KE": "Your elements are in a controlling relationship ({self} ↔ {partner}), so tension and friction can arise easily.",
-      "DAY_STEM_HE": "Your day stems form a harmony (合), so your hearts tend to be in tune.",
-      "DAY_BRANCH_HE": "Your day branches (the spouse position) form a six-harmony, bringing strong comfort and attraction when you are together.",
-      "DAY_STEM_CHONG": "Your day stems clash (沖), so the highs are strong but so are the collisions. It is a roller-coaster pairing.",
-      "DAY_BRANCH_CHONG": "Your day branches clash (沖), so your daily patterns and emotional rhythms may move differently. Adjusting to each other matters.",
-      "YONGSHIN_COMMON": "You both rely on {elements} energy as your useful element, so your core direction in life is very similar.",
-      "YONGSHIN_CLASH": "In particular, {elements} energy is a useful element for one of you but a harmful element for the other, so you may collide sensitively on that theme.",
-      "KIJI_CONTROL_FORWARD": "Harmful-element control: your partner's characters ({by}) clear your harmful elements ({chars}) through clash (沖). This is the core of a top-tier match: the other person drives out your bad energy.",
-      "KIJI_CONTROL_REVERSE": "Reverse control: your characters ({by}) clear your partner's harmful elements through clash. You also bring your partner a sense of release.",
-      "HE_TRAP": "Harmony trap: {self} and {partner} form a harmony (合), and the resulting element ({element}) strengthens your harmful element. It looks like a good fit on the surface, but harmful energy can build up inside. Tell comfort apart from dependence."
+      "JOHU_COMPLEMENT": "Một người thiên nóng, người kia thiên lạnh nên có thể cân bằng nhiệt độ cho nhau.",
+      "JOHU_BOTH_HOT": "Cả hai thiên nóng nên cảm xúc mạnh, nhưng tranh cãi cũng dễ bùng lên. Cần để nhiệt hỏa dịu lại.",
+      "JOHU_BOTH_COLD": "Cả hai thiên lạnh tạo sự ổn định, nhưng có thể khó mang đủ hơi ấm cho nhau.",
+      "JOHU_MILD": "Nhiệt độ ít xung đột; một người hơi {tone}, tạo điều kiện cân bằng.",
+      "MOIST_COMPLEMENT": "Một người thiên ẩm, người kia thiên khô nên cân bằng ẩm–khô bổ sung cho nhau.",
+      "MOIST_BOTH": "Cả hai cùng thiên {moist}, nên khi mệt dễ cùng chùng xuống hoặc khô cạn.",
+      "MOIST_NEUTRAL": "Cân bằng ẩm–khô ít xung đột, trạng thái hằng ngày thường tương tự.",
+      "ELEMENT_SAME": "Cả hai có năng lượng {element} mạnh, chia sẻ nhịp sống và cách cảm nhận tương tự.",
+      "ELEMENT_SAME_EXCESS": "Tuy nhiên, cùng một hành quá mạnh có thể khiến cả hai khó nhường khi bất đồng.",
+      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from} sinh {to}, nên một người tự nhiên nâng đỡ sự phát triển của người kia.",
+      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from} hỗ trợ {to}, tạo mối quan hệ nâng đỡ và cùng phát triển.",
+      "ELEMENT_KE": "Hai hành có quan hệ khắc ({self} ↔ {partner}), nên căng thẳng và va chạm dễ xuất hiện.",
+      "DAY_STEM_HE": "Can ngày tạo hợp (合), nên cách cảm nhận thường dễ đồng điệu.",
+      "DAY_BRANCH_HE": "Chi ngày ở cung phối ngẫu tạo lục hợp, có thể mang cảm giác gần gũi và thu hút khi ở bên nhau.",
+      "DAY_STEM_CHONG": "Can ngày xung (沖), nên điểm mạnh và va chạm đều dễ trở nên rõ nét.",
+      "DAY_BRANCH_CHONG": "Chi ngày xung (沖), khiến nếp sống và nhịp cảm xúc khác nhau. Điều chỉnh cho nhau rất quan trọng.",
+      "YONGSHIN_COMMON": "Cả hai lấy {elements} làm dụng thần, nên hướng sống cốt lõi khá tương đồng.",
+      "YONGSHIN_CLASH": "{elements} là dụng thần của một người nhưng là kỵ thần của người kia, nên chủ đề này dễ nhạy cảm.",
+      "KIJI_CONTROL_FORWARD": "Chế ngự kỵ thần: các chữ của đối phương ({by}) xung với kỵ thần của bạn ({chars}). Theo mô hình này, sự đối chiếu ấy có thể giảm một điểm bất lợi.",
+      "KIJI_CONTROL_REVERSE": "Chiều ngược lại: các chữ của bạn ({by}) xung với kỵ thần của đối phương, có thể mang cảm giác được giải tỏa.",
+      "HE_TRAP": "Bẫy của hợp: {self} và {partner} tạo hợp (合), nhưng hành sinh ra ({element}) tăng kỵ thần. Cảm giác hợp nhau có thể đi cùng lệ thuộc; hãy phân biệt thoải mái với bám víu."
     },
     "element": {
-      "wood": "Wood (木)",
-      "fire": "Fire (火)",
-      "earth": "Earth (土)",
-      "metal": "Metal (金)",
-      "water": "Water (水)"
+      "wood": "Mộc (木)",
+      "fire": "Hỏa (火)",
+      "earth": "Thổ (土)",
+      "metal": "Kim (金)",
+      "water": "Thủy (水)"
     },
     "tone": {
-      "warm": "warmer",
-      "cool": "cooler"
+      "warm": "ấm hơn",
+      "cool": "mát hơn"
     },
     "moist": {
-      "wet": "damp",
-      "dry": "dry"
+      "wet": "ẩm",
+      "dry": "khô"
     },
     "love": {
-      "title": "💍 In-depth romance and marriage compatibility",
-      "emotion": "💞 Emotional and expressive rhythm",
-      "conflict": "🧯 How you conflict and recover",
-      "home": "🏠 Living together and married life",
-      "growth": "🌱 Conditions for long-term growth"
+      "title": "💍 Chuyên sâu về tình yêu và hôn nhân",
+      "emotion": "💞 Nhịp cảm xúc và biểu đạt",
+      "conflict": "🧯 Mâu thuẫn và hàn gắn",
+      "home": "🏠 Chung sống và đời sống hôn nhân",
+      "growth": "🌱 Điều kiện để cùng trưởng thành"
     },
     "fact": {
-      "title": "💥 Straight talk — the truth of this relationship",
-      "STRENGTH_SELF_LEADS": "Power imbalance alert",
-      "STRENGTH_PARTNER_LEADS": "Absorption warning",
-      "STRENGTH_PEER": "Strong vs. strong / weak vs. weak",
-      "KE_SELF_OVER_PARTNER": "Day-stem control (you are the controller)",
-      "KE_PARTNER_OVER_SELF": "Day-stem control (you are the one controlled)",
-      "KIJI_RELIEF": "The sweetness of covering weak spots",
-      "HE_TRAP": "⚠ Harmony (合) trap alert",
-      "repeatScene": "A scene that tends to repeat",
-      "recovery": "How to know you have recovered"
+      "title": "💥 Nói thẳng về mối quan hệ này",
+      "STRENGTH_SELF_LEADS": "Lưu ý chênh lệch sức mạnh",
+      "STRENGTH_PARTNER_LEADS": "Lưu ý mất không gian riêng",
+      "STRENGTH_PEER": "Cùng mạnh / cùng yếu",
+      "KE_SELF_OVER_PARTNER": "Can ngày khắc nhau (bạn kiểm soát)",
+      "KE_PARTNER_OVER_SELF": "Can ngày khắc nhau (đối phương kiểm soát)",
+      "KIJI_RELIEF": "Sự dễ chịu khi bù đắp điểm yếu",
+      "HE_TRAP": "⚠ Lưu ý cái bẫy của hợp (合)",
+      "repeatScene": "Tình huống dễ lặp lại",
+      "recovery": "Dấu hiệu hàn gắn"
     },
     "advice": {
-      "title": "🎯 Prescription from the stars",
-      "keep": "[Keep it up] Never neglect it",
-      "grow": "[Grow] The beauty of differences",
-      "communicate": "[Communicate] Put dissatisfaction into words",
-      "survive": "[Survive] Rules and boundaries",
+      "title": "🎯 Gợi ý hành động",
+      "keep": "[Duy trì] Đừng bỏ mặc",
+      "grow": "[Phát triển] Giá trị của khác biệt",
+      "communicate": "[Giao tiếp] Nói rõ điều chưa hài lòng",
+      "survive": "[Giữ vững] Quy tắc và ranh giới",
       "secret": {
-        "love": "[Romance secret]",
-        "business": "[Partnership secret]",
-        "friend": "[Friendship secret]"
+        "love": "[Gợi ý tình yêu]",
+        "business": "[Gợi ý hợp tác]",
+        "friend": "[Gợi ý tình bạn]"
       },
-      "conflictRoutine": "[Conflict recovery routine]",
-      "growthGoal": "[Shared growth goal]"
+      "conflictRoutine": "[Thói quen hàn gắn mâu thuẫn]",
+      "growthGoal": "[Mục tiêu cùng phát triển]"
     },
     "past": {
-      "title": "🔮 Past-life connection reading",
-      "subtitle": "PAST LIFE COMPATIBILITY · Day × year pillar cross analysis",
+      "title": "🔮 Luận giải duyên tiền kiếp",
+      "subtitle": "DUYÊN TIỀN KIẾP · Đối chiếu trụ ngày × trụ năm",
       "grade": {
-        "S": "🌟 Grade S · Twin stars of a past life",
-        "A": "✨ Grade A · A destined déjà-vu bond",
-        "B": "🌱 Grade B · A bond sprouting again",
-        "C": "⚪ Grade C · A fresh bond on a blank page",
-        "D": "⚠️ Grade D · A knot to untie, a karmic bond",
-        "F": "🌀 Grade F · Learning through pain, a bond of inherited hardship"
+        "S": "🌟 Hạng S · Hai ngôi sao song sinh kiếp trước",
+        "A": "✨ Hạng A · Duyên quen như đã từng gặp",
+        "B": "🌱 Hạng B · Duyên lại nảy mầm",
+        "C": "⚪ Hạng C · Duyên mới trên trang trắng",
+        "D": "⚠️ Hạng D · Nút thắt cần tháo gỡ",
+        "F": "🌀 Hạng F · Bài học qua những khó khăn kế thừa"
       },
-      "crossSelf": "🧬 {self}'s day pillar ({selfPillar}) × {partner}'s year pillar ({partnerPillar})",
-      "crossPartner": "🧬 {partner}'s day pillar ({partnerPillar}) × {self}'s year pillar ({selfPillar})",
+      "crossSelf": "🧬 Trụ ngày của {self} ({selfPillar}) × trụ năm của {partner} ({partnerPillar})",
+      "crossPartner": "🧬 Trụ ngày của {partner} ({partnerPillar}) × trụ năm của {self} ({selfPillar})",
       "cross": {
-        "he": "Harmony (合)",
-        "chong": "Clash (沖)",
-        "same": "Same (同)",
-        "none": "None (無)"
+        "he": "Hợp (合)",
+        "chong": "Xung (沖)",
+        "same": "Giống nhau (同)",
+        "none": "Không có (無)"
       },
-      "prescription": "⚔️ Prescription from the stars",
-      "questionsTitle": "Questions to check in this life",
-      "reflectionPull": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the pull between you and the emotional scenes that keep recurring.",
-      "reflectionDistance": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the distance between you and the moments that call for adjustment.",
-      "reflectionNote": "Don't stop at asking “Why are we so drawn to each other, or why do we clash?” Look for actions you can actually change in your current relationship. What shapes your next scene is your agreements and boundaries now, more than the story of the past.",
-      "disclaimer": "※ The past-life bond reading is entertainment content based on Saju theory 🌙"
+      "prescription": "⚔️ Gợi ý hành động",
+      "questionsTitle": "Câu hỏi để nhìn lại hiện tại",
+      "reflectionPull": "Hạng tiền kiếp không quyết định kết cục; đó là biểu tượng để nhìn lại sự thân quen và căng thẳng. “{label}” giúp quan sát sức hút và những tình huống cảm xúc lặp lại.",
+      "reflectionDistance": "Hạng tiền kiếp không quyết định kết cục; đó là biểu tượng của sự thân quen và căng thẳng. “{label}” giúp nhìn khoảng cách và những lúc cần điều chỉnh.",
+      "reflectionNote": "Đừng chỉ hỏi vì sao bị thu hút hay xung đột. Hãy tìm hành động có thể đổi ngay trong quan hệ hiện tại. Thỏa thuận và ranh giới hôm nay định hình bước tiếp theo nhiều hơn câu chuyện quá khứ.",
+      "disclaimer": "※ Luận giải duyên tiền kiếp là nội dung giải trí dựa trên Tứ trụ 🌙"
     },
-    "footer": "This reading is an AI-written interpretation based on the scores and harmony/clash evidence calculated by the engine, provided for reference only. It does not stand in for a conclusion about your relationship.",
+    "footer": "Đây là luận giải do AI viết từ điểm và căn cứ hợp–xung do hệ thống tính, chỉ để tham khảo. Không phải kết luận về mối quan hệ.",
     "flow": {
-      "starting": "Preparing your Saju compatibility reading…",
-      "progress": "Writing your Saju compatibility reading… ({done}/{total})",
-      "keepOpen": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-      "saved": "This result is saved in your library. Reopening it later costs nothing extra.",
-      "fallback": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-      "review": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-      "revoked": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-      "retry": "Continue loading the AI reading",
-      "moduleFail": "Couldn't load the AI reading screen. No payment was made. Please try again shortly."
+      "starting": "Đang chuẩn bị luận giải tương hợp Tứ trụ…",
+      "progress": "Đang viết luận giải tương hợp… ({done}/{total})",
+      "keepOpen": "Thanh toán đã hoàn tất. Nếu rời đi rồi quay lại, bạn sẽ tiếp tục cùng kết quả.",
+      "saved": "Kết quả đã lưu trong thư viện. Mở lại sau không mất thêm phí.",
+      "fallback": "Chưa tải được luận giải AI nên hiển thị phần cơ bản trước. Thanh toán được giữ nguyên; nút bên dưới tiếp tục tải luận giải cho cùng cặp đôi.",
+      "review": "Chưa hoàn thành luận giải AI. Thanh toán và nội dung đã lưu được giữ an toàn để hỗ trợ kiểm tra. Phần cơ bản hiển thị bên dưới.",
+      "revoked": "Không thể tiếp tục kết quả của khoản thanh toán đã hủy hoặc hoàn tiền. Phần cơ bản hiển thị bên dưới.",
+      "retry": "Tiếp tục tải luận giải AI",
+      "moduleFail": "Không tải được màn hình luận giải AI. Chưa thanh toán. Vui lòng thử lại sau ít phút."
     },
     "archive": {
-      "title": "Saju compatibility records",
-      "lead": "Your paid Saju compatibility results are kept exactly as they were. Reopening one never costs extra or generates anything new.",
-      "loading": "Loading your records…",
-      "empty": "No Saju compatibility results are saved yet.",
-      "login": "Sign in to see your saved Saju compatibility records.",
-      "loginCta": "Sign in",
-      "error": "Couldn't load your records. Please try again shortly.",
-      "retry": "Try again",
-      "back": "← Back to list",
-      "close": "Close",
+      "title": "Lịch sử tương hợp Tứ trụ",
+      "lead": "Kết quả tương hợp đã thanh toán được giữ nguyên bản. Mở lại không tính thêm phí hay tạo nội dung mới.",
+      "loading": "Đang tải lịch sử…",
+      "empty": "Chưa có kết quả tương hợp Tứ trụ được lưu.",
+      "login": "Đăng nhập để xem lịch sử tương hợp đã lưu.",
+      "loginCta": "Đăng nhập",
+      "error": "Không tải được lịch sử. Vui lòng thử lại sau ít phút.",
+      "retry": "Thử lại",
+      "back": "← Về danh sách",
+      "close": "Đóng",
       "itemTitle": "{type} — {name}",
-      "itemMeta": "{date} · {score} pts",
+      "itemMeta": "{date} · {score} điểm",
       "itemDate": "{date}",
-      "itemOpen": "Open",
-      "itemAria": "Open Saju compatibility result for {name}",
-      "revoked": "A result for a cancelled or refunded payment can't be opened.",
-      "notFound": "We couldn't find this record.",
-      "unreadable": "This record can't be shown on this screen right now. Please contact support.",
-      "detailNote": "This is a saved result. Reopening it doesn't call the AI again and costs nothing extra.",
-      "duplicate": "A Saju compatibility result with the same conditions (your chart, partner name and type) is already saved in your library.\n\n[OK] Pay again and view a new reading\n[Cancel] Open the saved result in your library"
+      "itemOpen": "Mở",
+      "itemAria": "Mở kết quả tương hợp Tứ trụ với {name}",
+      "revoked": "Không thể mở kết quả của khoản thanh toán đã hủy hoặc hoàn tiền.",
+      "notFound": "Không tìm thấy bản ghi này.",
+      "unreadable": "Hiện chưa thể hiển thị bản ghi này. Vui lòng liên hệ hỗ trợ.",
+      "detailNote": "Đây là kết quả đã lưu. Mở lại không gọi AI hay tính thêm phí.",
+      "duplicate": "Thư viện đã có kết quả cùng điều kiện (lá số của bạn, tên đối phương và loại tương hợp).\n\n[OK] Thanh toán lại để xem luận giải mới\n[Hủy] Mở kết quả đã lưu"
+    },
+    "art": {
+      "caption": "Hình minh họa tượng trưng cho mối quan hệ",
+      "love": "Hai người ngồi đối diện trong vườn dưới trăng",
+      "business": "Hai người bàn hướng đi trước bản đồ",
+      "friend": "Hai người cầm đèn đi bên nhau",
+      "year": "Hai người đến cổng vườn từ hai con đường",
+      "month": "Hai người ngồi ở hai bàn bên khu vườn",
+      "day": "Hai tách trà bên cửa sổ ấm áp",
+      "hour": "Hai ngọn đèn hướng về bình minh trên núi xa",
+      "past-resonance": "Hai ngọn đèn trôi gần nhau trên hồ",
+      "past-growth": "Cây cầu nối hai bờ có cây nở hoa",
+      "past-knot": "Nút lụa buộc lỏng bên hoa sen"
+    },
+    "relationship": {
+      "title": "Nơi hai lá số gặp nhau",
+      "context": "Cùng một ký hiệu có thể được hiểu khác tùy vị trí và hoàn cảnh sống.",
+      "all": "Xem mọi liên hệ và căn cứ lá số gốc",
+      "natal": "Các liên hệ trong từng lá số",
+      "cross": "Giữa hai lá số",
+      "triad": "Đủ ba chi tam hợp",
+      "chapters": "Bốn chương của mối quan hệ",
+      "evidence": "Căn cứ Tứ trụ của chương này",
+      "unknownHour": "Không so sánh trụ giờ vì chưa rõ giờ sinh.",
+      "stem": "Thiên can",
+      "branch": "Địa chi"
+    },
+    "pillar": {
+      "year": "Trụ năm",
+      "month": "Trụ tháng",
+      "day": "Trụ ngày",
+      "hour": "Trụ giờ"
+    },
+    "area": {
+      "year": "Bối cảnh và cách gắn kết quen thuộc",
+      "month": "Đời sống xã hội và nhịp sống chung",
+      "day": "Quan hệ thân thiết và đời sống thường ngày",
+      "hour": "Kế hoạch tương lai và điều cùng vun đắp"
+    },
+    "direction": {
+      "same": "Cùng ngũ hành",
+      "selfGenerates": "Ngũ hành của bạn sinh cho đối phương",
+      "partnerGenerates": "Ngũ hành của đối phương sinh cho bạn",
+      "selfControls": "Ngũ hành của bạn khắc đối phương",
+      "partnerControls": "Ngũ hành của đối phương khắc bạn"
+    },
+    "relation": {
+      "sixHarmony": "Lục hợp",
+      "partialTriad": "Quan hệ tam hợp chưa đủ",
+      "penalty": "Hình",
+      "selfPenalty": "Tự hình",
+      "break": "Phá",
+      "harm": "Hại",
+      "wonjin": "Oán sân (va chạm cảm xúc)",
+      "gwimun": "Quỷ môn (nhạy cảm)",
+      "he": "Hợp (合)",
+      "chong": "Xung (沖)",
+      "same": "Giống nhau (同)",
+      "none": "Không có (無)",
+      "generates": "Sinh",
+      "controls": "Khắc"
+    },
+    "limit": {
+      "hour": "Không xét tác động trụ giờ khi chưa rõ giờ sinh.",
+      "story": "Bốn chương nối các lĩnh vực cuộc sống, không dự đoán thứ tự hay thời điểm sự kiện.",
+      "relations": "Hợp không tự động hóa hành. Oán sân và quỷ môn không xác định ngoại tình, bệnh tâm thần hay kết cục quan hệ."
     }
   }
 }

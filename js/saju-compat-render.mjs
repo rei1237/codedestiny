@@ -6,6 +6,58 @@ import { COMPAT_ART, pastLifeArt } from './saju-compat-art.mjs';
 // 사용자 노출 고정 문구는 SAJU_COMPAT_KO(한국어 정본)에 두고, 번역은 i18n/authored/sajuCompat-01.json 이 맡는다.
 
 export const SAJU_COMPAT_KO = {
+  "sajuCompat.relation.he": "합",
+  "sajuCompat.relation.chong": "충",
+  "sajuCompat.relation.same": "동",
+  "sajuCompat.relation.none": "관계 없음",
+  "sajuCompat.relation.generates": "생",
+  "sajuCompat.relation.controls": "극",
+  "sajuCompat.art.caption": "관계의 분위기를 담은 상징 삽화",
+  "sajuCompat.art.love": "달빛 정원에서 마주 앉은 두 사람",
+  "sajuCompat.art.business": "펼친 지도 앞에서 방향을 의논하는 두 사람",
+  "sajuCompat.art.friend": "등불을 들고 나란히 걷는 두 사람",
+  "sajuCompat.art.year": "서로 다른 길에서 정원 문으로 향하는 두 사람",
+  "sajuCompat.art.month": "정원 앞 각자의 책상에 앉은 두 사람",
+  "sajuCompat.art.day": "따뜻한 창가에 나란히 놓인 두 찻잔",
+  "sajuCompat.art.hour": "먼 산의 아침을 바라보는 두 등불",
+  "sajuCompat.art.past-resonance": "연못 위에서 가까워지는 두 등불",
+  "sajuCompat.art.past-growth": "꽃나무가 선 두 물가를 잇는 다리",
+  "sajuCompat.art.past-knot": "연꽃 곁에 느슨하게 묶인 비단 매듭",
+  "sajuCompat.relationship.title": "두 명식이 만나는 자리",
+  "sajuCompat.relationship.context": "같은 글자도 놓인 자리와 생활 조건에 따라 다르게 읽습니다.",
+  "sajuCompat.relationship.all": "전체 교차 관계와 원국 근거 보기",
+  "sajuCompat.relationship.natal": "각자의 원국 내부 관계",
+  "sajuCompat.relationship.cross": "두 명식 교차",
+  "sajuCompat.relationship.triad": "삼합 세 글자 충족",
+  "sajuCompat.relationship.chapters": "우리 관계의 기승전결",
+  "sajuCompat.relationship.evidence": "이 장면의 명리 근거",
+  "sajuCompat.relationship.unknownHour": "출생시간이 확인되지 않아 두 사람의 시주 비교는 생략합니다.",
+  "sajuCompat.relationship.stem": "천간",
+  "sajuCompat.relationship.branch": "지지",
+  "sajuCompat.pillar.year": "년주",
+  "sajuCompat.pillar.month": "월주",
+  "sajuCompat.pillar.day": "일주",
+  "sajuCompat.pillar.hour": "시주",
+  "sajuCompat.area.year": "배경과 익숙한 관계 방식",
+  "sajuCompat.area.month": "사회생활과 함께하는 리듬",
+  "sajuCompat.area.day": "가까운 관계와 일상",
+  "sajuCompat.area.hour": "미래 계획과 함께 키울 것",
+  "sajuCompat.direction.same": "같은 오행",
+  "sajuCompat.direction.selfGenerates": "본인이 상대를 생함",
+  "sajuCompat.direction.partnerGenerates": "상대가 본인을 생함",
+  "sajuCompat.direction.selfControls": "본인이 상대를 극함",
+  "sajuCompat.direction.partnerControls": "상대가 본인을 극함",
+  "sajuCompat.relation.sixHarmony": "육합",
+  "sajuCompat.relation.partialTriad": "삼합 부분 관계",
+  "sajuCompat.relation.penalty": "형",
+  "sajuCompat.relation.selfPenalty": "자형",
+  "sajuCompat.relation.break": "파",
+  "sajuCompat.relation.harm": "해",
+  "sajuCompat.relation.wonjin": "원진",
+  "sajuCompat.relation.gwimun": "귀문",
+  "sajuCompat.limit.hour": "출생시간 미상인 사람의 시주 작용은 제외합니다.",
+  "sajuCompat.limit.story": "기승전결은 생활 영역을 연결한 서사이며 사건 발생 순서나 시기 예언이 아닙니다.",
+  "sajuCompat.limit.relations": "합은 자동 합화가 아니며 원진·귀문은 외도·정신질환·관계 결말의 판정 근거가 아닙니다.",
   "sajuCompat.selfFallback": "나",
   "sajuCompat.type.love": "연애/결혼 궁합",
   "sajuCompat.type.business": "사업/동업 궁합",
@@ -284,12 +336,20 @@ export function renderSajuCompat(snapshot, { t = createSajuCompatT(), selfName =
   ].join("");
   const advice = adviceItems ? `<div class="compat-advice-box"><div class="compat-advice-title">${T("sajuCompat.advice.title")}</div><div class="compat-advice-body">${adviceItems}</div></div>` : "";
 
-  const art = (asset) => `<figure class="compat-story-art"><img src="${asset.src}" width="${asset.width}" height="${asset.height}" alt="${escapeHtml(asset.alt)}" loading="lazy" decoding="async"><figcaption>관계의 분위기를 담은 상징 삽화</figcaption></figure>`;
+  const art = (asset) => `<figure class="compat-story-art"><img src="${asset.src}" width="${asset.width}" height="${asset.height}" alt="${T('sajuCompat.art.' + asset.id)}" loading="lazy" decoding="async"><figcaption>${T('sajuCompat.art.caption')}</figcaption></figure>`;
   const evidence = facts.relationship;
-  const point = (row) => `${row.side === 'self' ? self : partner} ${row.label} ${row.gan}${row.ji}`;
-  const relation = (row) => `${point(row.from)} ↔ ${point(row.to)}: 천간 ${row.stem || '관계 없음'} / 지지 ${row.branches.join('·') || '특별한 짝 관계 없음'}`;
-  const matrix = evidence ? section('두 명식이 만나는 자리', `<p class="compat-text">${escapeHtml(evidence.dayStem?.direction || '')}. 같은 글자도 놓인 자리와 생활 조건에 따라 다르게 읽습니다.</p><div class="compat-relation-map">${evidence.cross.filter(row => row.from.pillar === row.to.pillar).map(row => `<p>${escapeHtml(relation(row))}</p>`).join('')}</div><details><summary>전체 교차 관계와 원국 근거 보기</summary><ul>${evidence.cross.map(row => `<li>${escapeHtml(relation(row))}</li>`).join('')}</ul><h4>각자의 원국 내부 관계</h4><ul>${evidence.natal.filter(row => row.branches.length).map(row => `<li>${escapeHtml(relation(row))}</li>`).join('')}</ul><p>${escapeHtml(evidence.triads.map(row => `${row.scope === 'cross' ? '두 명식 교차' : row.scope === 'selfNatal' ? self : partner}: ${row.group} ${row.kind}`).join(' / '))}</p></details>`) : '';
-  const chapters = evidence ? section('우리 관계의 기승전결', evidence.chapters.map((ch,i) => `<article class="compat-story-chapter">${ch.available ? art(COMPAT_ART[ch.key]) : ''}<h3>${['기','승','전','결'][i]} · ${escapeHtml(ch.label)} — ${escapeHtml(ch.area)}</h3>${paragraphs(ch.available ? stringAt(narrative.pillarStory, ch.key) : '출생시간이 확인되지 않아 두 사람의 시주 비교는 생략합니다.', 'compat-text')}<details><summary>이 장면의 명리 근거</summary><ul>${evidence.cross.filter(row => ch.evidenceIds.includes(row.id)).map(row => `<li>${escapeHtml(relation(row))}</li>`).join('')}</ul></details></article>`).join('') + evidence.limitations.map(line => `<p class="compat-note">${escapeHtml(line)}</p>`).join('')) : '';
+  const relationKeys = { '합':'relation.he', '충':'relation.chong', '동':'relation.same', '생':'relation.generates', '극':'relation.controls', '육합':'relation.sixHarmony', '삼합 부분 관계':'relation.partialTriad', '형':'relation.penalty', '자형':'relation.selfPenalty', '파':'relation.break', '해':'relation.harm', '원진':'relation.wonjin', '귀문':'relation.gwimun' };
+  const relationName = value => t('sajuCompat.' + (relationKeys[value] || 'relation.none'));
+  const directionKeys = { '같은 오행':'same', '본인이 상대를 생함':'selfGenerates', '상대가 본인을 생함':'partnerGenerates', '본인이 상대를 극함':'selfControls', '상대가 본인을 극함':'partnerControls' };
+  const limitationKeys = Object.fromEntries(['hour','story','relations'].map(key => [SAJU_COMPAT_KO['sajuCompat.limit.' + key], key]));
+  const point = row => `${row.side === 'self' ? self : partner} ${t('sajuCompat.pillar.' + row.pillar)} ${row.gan}${row.ji}`;
+  const relation = row => `${point(row.from)} ↔ ${point(row.to)}: ${t('sajuCompat.relationship.stem')} ${relationName(row.stem)} / ${t('sajuCompat.relationship.branch')} ${row.branches.map(relationName).join(' · ') || relationName('')}`;
+  const direction = directionKeys[evidence?.dayStem?.direction];
+  const matrix = evidence ? section(T('sajuCompat.relationship.title'),
+    `<p class="compat-text">${direction ? T('sajuCompat.direction.' + direction) + '. ' : ''}${T('sajuCompat.relationship.context')}</p><div class="compat-relation-map">${evidence.cross.filter(row => row.from.pillar === row.to.pillar).map(row => '<p>' + escapeHtml(relation(row)) + '</p>').join('')}</div><details><summary>${T('sajuCompat.relationship.all')}</summary><ul>${evidence.cross.map(row => '<li>' + escapeHtml(relation(row)) + '</li>').join('')}</ul><h4>${T('sajuCompat.relationship.natal')}</h4><ul>${evidence.natal.filter(row => row.branches.length).map(row => '<li>' + escapeHtml(relation(row)) + '</li>').join('')}</ul><p>${escapeHtml(evidence.triads.map(row => (row.scope === 'cross' ? t('sajuCompat.relationship.cross') : row.scope === 'selfNatal' ? self : partner) + ': ' + row.group + ' ' + t('sajuCompat.relationship.triad')).join(' / '))}</p></details>`) : '';
+  const chapters = evidence ? section(T('sajuCompat.relationship.chapters'), evidence.chapters.map((ch,i) =>
+    `<article class="compat-story-chapter">${ch.available ? art(COMPAT_ART[ch.key]) : ''}<h3>${i+1} · ${T('sajuCompat.pillar.' + ch.key)} — ${T('sajuCompat.area.' + ch.key)}</h3>${paragraphs(ch.available ? stringAt(narrative.pillarStory, ch.key) : t('sajuCompat.relationship.unknownHour'), 'compat-text')}<details><summary>${T('sajuCompat.relationship.evidence')}</summary><ul>${evidence.cross.filter(row => ch.evidenceIds.includes(row.id)).map(row => '<li>' + escapeHtml(relation(row)) + '</li>').join('')}</ul></details></article>`).join('')
+    + evidence.limitations.map(line => '<p class="compat-note">' + (limitationKeys[line] ? T('sajuCompat.limit.' + limitationKeys[line]) : escapeHtml(line)) + '</p>').join('')) : '';
   const past = renderPastLife(snapshot, { t, T, self, partner, paragraphs });
   return `<div class="compat-wrap cd-compat-snap" data-saju-compat-schema="${escapeHtml(snapshot.schemaVersion ?? "")}">`
     + (evidence ? art(COMPAT_ART[type]) : "") + grade + overview + matrix + chapters + energy + details + reasons + love + fact + (evidence && past ? art(pastLifeArt(facts.pastLife.grade.code)) : "") + past + advice

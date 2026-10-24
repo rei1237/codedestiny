@@ -146,3 +146,31 @@ test('번역 사전: 모든 키가 en·ja·zh 사전에 있고 자리표시자�
     if (file === 'ko') for (const [key, ko] of Object.entries(SAJU_COMPAT_KO)) assert.equal(dictionary[key], ko, `ko: ${key}`);
   }
 });
+
+test('relationship facts, chapter labels and artwork descriptions render in every locale without changing saved facts', () => {
+  const snap = snapshotOf('甲子 乙丑 丙寅 丁卯', '己未 癸酉 壬午 癸亥', 'love', 'Alex');
+  snap.narrative = {};
+  const original = JSON.stringify(snap);
+  for (const file of ['en', 'ja', 'zh-cn', 'zh-tw', 'vi', 'hi', 'es', 'fr', 'de', 'nl', 'ms']) {
+    const dictionary = JSON.parse(readFileSync(new URL(`../../public/i18n/${file}.json`, import.meta.url), 'utf8'));
+    const t = createSajuCompatT((key, vars) => key.split('.').reduce((node, part) => node?.[part], dictionary)
+      .replace(/\{(\w+)\}/g, (match, key) => String(vars[key] ?? match)));
+    const html = renderSajuCompat(snap, { t, selfName: 'Sam' });
+    assert.doesNotMatch(html, /[가-힣]|sajuCompat\.|\{\w+\}/, file);
+    assert.ok(html.includes('compat-relation-map') && html.includes('compat-story-chapter'), file);
+    assert.ok(html.includes(dictionary.sajuCompat.relation.generates) || html.includes(dictionary.sajuCompat.relation.controls), file);
+  }
+  assert.equal(JSON.stringify(snap), original);
+});
+
+test('non-English compatibility dictionaries contain authored prose rather than English copies', () => {
+  for (const chunk of ['01', '02', '03', '04']) {
+    const authored = JSON.parse(readFileSync(new URL(`../../i18n/authored/sajuCompat-${chunk}.json`, import.meta.url), 'utf8'));
+    for (const [key, translations] of Object.entries(authored)) {
+      if (key.startsWith('_') || translations.en.replace(/\{\w+\}/g, '').trim().split(/\s+/).length < 5) continue;
+      for (const locale of ['ja', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de', 'nl', 'ms']) {
+        assert.notEqual(translations[locale], translations.en, `${key}: ${locale}`);
+      }
+    }
+  }
+});

@@ -21365,175 +21365,241 @@
     }
   },
   "sajuCompat": {
-    "selfFallback": "Me",
+    "selfFallback": "Yo",
     "type": {
-      "love": "Romance / marriage compatibility",
-      "business": "Business / partnership compatibility",
-      "friend": "Friend / colleague compatibility"
+      "love": "Compatibilidad amorosa / matrimonial",
+      "business": "Compatibilidad de negocios / socios",
+      "friend": "Compatibilidad de amigos / colegas"
     },
     "grade": {
-      "S": "🌟 Benefactor from a past life",
-      "A": "✨ Destined match",
-      "B": "😊 Connected match",
-      "C": "🙂 Ordinary connection",
-      "D": "⚠️ Karmic match",
-      "F": "🌧️ Difficult-fate match"
+      "S": "🌟 Benefactor de una vida pasada",
+      "A": "✨ Vínculo del destino",
+      "B": "😊 Vínculo cercano",
+      "C": "🙂 Conexión cotidiana",
+      "D": "⚠️ Vínculo kármico",
+      "F": "🌧️ Vínculo difícil"
     },
-    "gradeBadge": "Grade {grade}",
+    "gradeBadge": "Grado {grade}",
     "titleLine": "{type} — {self} × {partner}",
-    "scoreLine": "Saju-only compatibility score: {score}/100",
+    "scoreLine": "Puntuación basada solo en Saju: {score}/100",
     "overview": {
-      "title": "🧭 Compatibility overview",
-      "note": "This result is calculated from Saju alone. Day-stem and day-branch harmonies and clashes, seasonal balance, useful and harmful elements, and the ten-gods structure are combined into a score of {score}/100."
+      "title": "🧭 Resumen de compatibilidad",
+      "note": "Este resultado usa solo Saju. Las armonías y choques del tronco y la rama del día, el equilibrio estacional, los elementos favorables y desfavorables y los diez dioses componen {score}/100."
     },
     "energy": {
-      "title": "🌡️ Energy harmony",
-      "johu": "Seasonal balance (temperature)",
-      "elements": "Day-stem element",
-      "season": "Season of the month branch",
-      "tenGods": "Ten-gods structure"
+      "title": "🌡️ Armonía de energía",
+      "johu": "Equilibrio estacional (temperatura)",
+      "elements": "Elemento del tronco del día",
+      "season": "Estación de la rama del mes",
+      "tenGods": "Estructura de los diez dioses"
     },
     "detail": {
-      "title": "🧩 Detailed reading",
-      "emotionRhythm": "Emotional rhythm",
-      "conflictSwitch": "Conflict triggers",
-      "realOps": "Everyday practice",
-      "longTerm": "Long-term outlook"
+      "title": "🧩 Lectura detallada",
+      "emotionRhythm": "Ritmo emocional",
+      "conflictSwitch": "Desencadenantes del conflicto",
+      "realOps": "Práctica cotidiana",
+      "longTerm": "Perspectiva a largo plazo"
     },
     "reasons": {
-      "title": "📋 Compatibility checkpoints",
-      "total": "Total {total} pts"
+      "title": "📋 Claves de compatibilidad",
+      "total": "Total: {total} puntos"
     },
     "reason": {
-      "JOHU_COMPLEMENT": "One of you runs hot and the other cool, so you balance each other's temperature nicely.",
-      "JOHU_BOTH_HOT": "You both run hot, so the spark is strong, but arguments can flare up quickly as well. It is a fire-overheating pairing.",
-      "JOHU_BOTH_COLD": "You both run cool, so there is stability, but it may be hard to bring each other enough warmth.",
-      "JOHU_MILD": "Your temperatures do not clash much, but one of you runs slightly {tone}, which creates a balancing structure.",
-      "MOIST_COMPLEMENT": "One of you is moist and the other dry, so your moisture balance fills in for each other. It is an ideal match.",
-      "MOIST_BOTH": "You are both on the {moist} side, so when you are low you can easily sag or dry out together.",
-      "MOIST_NEUTRAL": "Your moisture balance does not clash much, and your day-to-day condition tends to run alike.",
-      "ELEMENT_SAME": "You both have strong {element} energy and share a similar code and rhythm.",
-      "ELEMENT_SAME_EXCESS": "However, the same element is very strong in both of you, so neither tends to give way when opinions clash.",
-      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from} generates {to}, so one of you naturally nourishes the other. It is a mutually generating match.",
-      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from} supports {to}, so you are dependable supporters who help each other grow.",
-      "ELEMENT_KE": "Your elements are in a controlling relationship ({self} ↔ {partner}), so tension and friction can arise easily.",
-      "DAY_STEM_HE": "Your day stems form a harmony (合), so your hearts tend to be in tune.",
-      "DAY_BRANCH_HE": "Your day branches (the spouse position) form a six-harmony, bringing strong comfort and attraction when you are together.",
-      "DAY_STEM_CHONG": "Your day stems clash (沖), so the highs are strong but so are the collisions. It is a roller-coaster pairing.",
-      "DAY_BRANCH_CHONG": "Your day branches clash (沖), so your daily patterns and emotional rhythms may move differently. Adjusting to each other matters.",
-      "YONGSHIN_COMMON": "You both rely on {elements} energy as your useful element, so your core direction in life is very similar.",
-      "YONGSHIN_CLASH": "In particular, {elements} energy is a useful element for one of you but a harmful element for the other, so you may collide sensitively on that theme.",
-      "KIJI_CONTROL_FORWARD": "Harmful-element control: your partner's characters ({by}) clear your harmful elements ({chars}) through clash (沖). This is the core of a top-tier match: the other person drives out your bad energy.",
-      "KIJI_CONTROL_REVERSE": "Reverse control: your characters ({by}) clear your partner's harmful elements through clash. You also bring your partner a sense of release.",
-      "HE_TRAP": "Harmony trap: {self} and {partner} form a harmony (合), and the resulting element ({element}) strengthens your harmful element. It looks like a good fit on the surface, but harmful energy can build up inside. Tell comfort apart from dependence."
+      "JOHU_COMPLEMENT": "Uno tiende al calor y el otro al frío, por lo que pueden equilibrarse.",
+      "JOHU_BOTH_HOT": "Ambos tienden al calor: la chispa es intensa, pero las discusiones también pueden crecer rápido.",
+      "JOHU_BOTH_COLD": "Ambos tienden al frío: hay estabilidad, pero puede faltar calidez mutua.",
+      "JOHU_MILD": "Las temperaturas apenas chocan; una parte es algo {tone}, lo que ayuda al equilibrio.",
+      "MOIST_COMPLEMENT": "Uno tiende a la humedad y el otro a la sequedad, por lo que se complementan.",
+      "MOIST_BOTH": "Ambos tienen una tendencia {moist}; al decaer, pueden compartir pesadez o sequedad.",
+      "MOIST_NEUTRAL": "La humedad y la sequedad apenas chocan; el estado cotidiano suele ser parecido.",
+      "ELEMENT_SAME": "Ambos tienen una energía fuerte de {element} y comparten códigos y ritmos parecidos.",
+      "ELEMENT_SAME_EXCESS": "Sin embargo, el mismo elemento muy fuerte en ambos puede dificultar ceder ante un desacuerdo.",
+      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from} genera {to}, por lo que uno nutre de forma natural el crecimiento del otro.",
+      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from} apoya a {to}, creando un vínculo de apoyo y crecimiento.",
+      "ELEMENT_KE": "Los elementos se regulan entre sí ({self} ↔ {partner}), lo que puede generar tensión y fricción.",
+      "DAY_STEM_HE": "Los troncos del día forman armonía (合), favoreciendo la sintonía emocional.",
+      "DAY_BRANCH_HE": "Las ramas del día, asociadas a la pareja, forman seis armonías y pueden aportar comodidad y atracción.",
+      "DAY_STEM_CHONG": "Los troncos del día chocan (沖): tanto los buenos momentos como los conflictos pueden ser intensos.",
+      "DAY_BRANCH_CHONG": "Las ramas del día chocan (沖); pueden diferir los hábitos y ritmos emocionales. Ajustarse mutuamente importa.",
+      "YONGSHIN_COMMON": "Ambos se apoyan en {elements} como elementos favorables, por lo que su orientación vital se parece.",
+      "YONGSHIN_CLASH": "{elements} favorece a uno y dificulta al otro; ese tema puede ser sensible entre ustedes.",
+      "KIJI_CONTROL_FORWARD": "Control del elemento desfavorable: los signos de tu pareja ({by}) chocan con tus elementos difíciles ({chars}). En este modelo, puede compensar un punto débil.",
+      "KIJI_CONTROL_REVERSE": "En sentido inverso, tus signos ({by}) chocan con los elementos difíciles de tu pareja y pueden aportar alivio.",
+      "HE_TRAP": "Trampa de la armonía: {self} y {partner} se unen (合), pero el elemento resultante ({element}) refuerza lo desfavorable. Distingue comodidad de dependencia."
     },
     "element": {
-      "wood": "Wood (木)",
-      "fire": "Fire (火)",
-      "earth": "Earth (土)",
+      "wood": "Madera (木)",
+      "fire": "Fuego (火)",
+      "earth": "Tierra (土)",
       "metal": "Metal (金)",
-      "water": "Water (水)"
+      "water": "Agua (水)"
     },
     "tone": {
-      "warm": "warmer",
-      "cool": "cooler"
+      "warm": "más cálida",
+      "cool": "más fresca"
     },
     "moist": {
-      "wet": "damp",
-      "dry": "dry"
+      "wet": "húmeda",
+      "dry": "seca"
     },
     "love": {
-      "title": "💍 In-depth romance and marriage compatibility",
-      "emotion": "💞 Emotional and expressive rhythm",
-      "conflict": "🧯 How you conflict and recover",
-      "home": "🏠 Living together and married life",
-      "growth": "🌱 Conditions for long-term growth"
+      "title": "💍 Amor y matrimonio en profundidad",
+      "emotion": "💞 Ritmo emocional y expresivo",
+      "conflict": "🧯 Conflicto y recuperación",
+      "home": "🏠 Convivencia y vida matrimonial",
+      "growth": "🌱 Condiciones para crecer juntos"
     },
     "fact": {
-      "title": "💥 Straight talk — the truth of this relationship",
-      "STRENGTH_SELF_LEADS": "Power imbalance alert",
-      "STRENGTH_PARTNER_LEADS": "Absorption warning",
-      "STRENGTH_PEER": "Strong vs. strong / weak vs. weak",
-      "KE_SELF_OVER_PARTNER": "Day-stem control (you are the controller)",
-      "KE_PARTNER_OVER_SELF": "Day-stem control (you are the one controlled)",
-      "KIJI_RELIEF": "The sweetness of covering weak spots",
-      "HE_TRAP": "⚠ Harmony (合) trap alert",
-      "repeatScene": "A scene that tends to repeat",
-      "recovery": "How to know you have recovered"
+      "title": "💥 Una mirada franca a esta relación",
+      "STRENGTH_SELF_LEADS": "Atención al desequilibrio de poder",
+      "STRENGTH_PARTNER_LEADS": "Atención a perder espacio propio",
+      "STRENGTH_PEER": "Ambos fuertes / ambos débiles",
+      "KE_SELF_OVER_PARTNER": "Control entre troncos del día (tú regulas)",
+      "KE_PARTNER_OVER_SELF": "Control entre troncos del día (te regulan)",
+      "KIJI_RELIEF": "El alivio de compensar puntos débiles",
+      "HE_TRAP": "⚠ Atención a la trampa de la armonía (合)",
+      "repeatScene": "Una escena que se repite",
+      "recovery": "Señales de recuperación"
     },
     "advice": {
-      "title": "🎯 Prescription from the stars",
-      "keep": "[Keep it up] Never neglect it",
-      "grow": "[Grow] The beauty of differences",
-      "communicate": "[Communicate] Put dissatisfaction into words",
-      "survive": "[Survive] Rules and boundaries",
+      "title": "🎯 Orientaciones prácticas",
+      "keep": "[Mantener] No lo descuiden",
+      "grow": "[Crecer] El valor de las diferencias",
+      "communicate": "[Comunicar] Expresar el malestar",
+      "survive": "[Sostener] Normas y límites",
       "secret": {
-        "love": "[Romance secret]",
-        "business": "[Partnership secret]",
-        "friend": "[Friendship secret]"
+        "love": "[Consejo amoroso]",
+        "business": "[Consejo para socios]",
+        "friend": "[Consejo de amistad]"
       },
-      "conflictRoutine": "[Conflict recovery routine]",
-      "growthGoal": "[Shared growth goal]"
+      "conflictRoutine": "[Rutina para resolver conflictos]",
+      "growthGoal": "[Meta de crecimiento compartido]"
     },
     "past": {
-      "title": "🔮 Past-life connection reading",
-      "subtitle": "PAST LIFE COMPATIBILITY · Day × year pillar cross analysis",
+      "title": "🔮 Vínculo de vidas pasadas",
+      "subtitle": "VIDAS PASADAS · Cruce del pilar del día × año",
       "grade": {
-        "S": "🌟 Grade S · Twin stars of a past life",
-        "A": "✨ Grade A · A destined déjà-vu bond",
-        "B": "🌱 Grade B · A bond sprouting again",
-        "C": "⚪ Grade C · A fresh bond on a blank page",
-        "D": "⚠️ Grade D · A knot to untie, a karmic bond",
-        "F": "🌀 Grade F · Learning through pain, a bond of inherited hardship"
+        "S": "🌟 Grado S · Estrellas gemelas de otra vida",
+        "A": "✨ Grado A · Un déjà vu del destino",
+        "B": "🌱 Grado B · Un vínculo que vuelve a brotar",
+        "C": "⚪ Grado C · Un vínculo en una página nueva",
+        "D": "⚠️ Grado D · Un nudo kármico por desatar",
+        "F": "🌀 Grado F · Aprender de dificultades heredadas"
       },
-      "crossSelf": "🧬 {self}'s day pillar ({selfPillar}) × {partner}'s year pillar ({partnerPillar})",
-      "crossPartner": "🧬 {partner}'s day pillar ({partnerPillar}) × {self}'s year pillar ({selfPillar})",
+      "crossSelf": "🧬 Pilar del día de {self} ({selfPillar}) × pilar del año de {partner} ({partnerPillar})",
+      "crossPartner": "🧬 Pilar del día de {partner} ({partnerPillar}) × pilar del año de {self} ({selfPillar})",
       "cross": {
-        "he": "Harmony (合)",
-        "chong": "Clash (沖)",
-        "same": "Same (同)",
-        "none": "None (無)"
+        "he": "Armonía (合)",
+        "chong": "Choque (沖)",
+        "same": "Igual (同)",
+        "none": "Ninguna (無)"
       },
-      "prescription": "⚔️ Prescription from the stars",
-      "questionsTitle": "Questions to check in this life",
-      "reflectionPull": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the pull between you and the emotional scenes that keep recurring.",
-      "reflectionDistance": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the distance between you and the moments that call for adjustment.",
-      "reflectionNote": "Don't stop at asking “Why are we so drawn to each other, or why do we clash?” Look for actions you can actually change in your current relationship. What shapes your next scene is your agreements and boundaries now, more than the story of the past.",
-      "disclaimer": "※ The past-life bond reading is entertainment content based on Saju theory 🌙"
+      "prescription": "⚔️ Orientaciones prácticas",
+      "questionsTitle": "Preguntas para esta vida",
+      "reflectionPull": "El grado de vidas pasadas no dicta el desenlace; simboliza familiaridad y tensión. “{label}” ayuda a observar la atracción y las escenas emocionales recurrentes.",
+      "reflectionDistance": "El grado de vidas pasadas no dicta el desenlace; simboliza familiaridad y tensión. “{label}” ayuda a observar la distancia y cuándo conviene ajustarse.",
+      "reflectionNote": "No te quedes en por qué se atraen o chocan. Busca acciones que puedan cambiar ahora. Los acuerdos y límites actuales influyen más en lo que sigue que la historia del pasado.",
+      "disclaimer": "※ Esta lectura de vidas pasadas es entretenimiento basado en Saju 🌙"
     },
-    "footer": "This reading is an AI-written interpretation based on the scores and harmony/clash evidence calculated by the engine, provided for reference only. It does not stand in for a conclusion about your relationship.",
+    "footer": "Esta interpretación de IA usa puntuaciones y bases de armonía o choque calculadas por el sistema. Es orientativa y no determina el futuro de la relación.",
     "flow": {
-      "starting": "Preparing your Saju compatibility reading…",
-      "progress": "Writing your Saju compatibility reading… ({done}/{total})",
-      "keepOpen": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-      "saved": "This result is saved in your library. Reopening it later costs nothing extra.",
-      "fallback": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-      "review": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-      "revoked": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-      "retry": "Continue loading the AI reading",
-      "moduleFail": "Couldn't load the AI reading screen. No payment was made. Please try again shortly."
+      "starting": "Preparando la lectura de compatibilidad Saju…",
+      "progress": "Escribiendo la lectura… ({done}/{total})",
+      "keepOpen": "El pago está completo. Si sales y vuelves, continuarás con el mismo resultado.",
+      "saved": "El resultado está guardado. Volver a abrirlo no tiene coste adicional.",
+      "fallback": "No se pudo cargar la lectura de IA; se muestra primero la básica. El pago se conserva. El botón permite continuar la lectura para la misma pareja.",
+      "review": "No se pudo terminar la lectura de IA. Se conservan el pago y el contenido guardado para revisión de soporte. Abajo aparece la lectura básica.",
+      "revoked": "No se puede continuar un resultado con pago cancelado o reembolsado. Abajo aparece la lectura básica.",
+      "retry": "Continuar la lectura de IA",
+      "moduleFail": "No se pudo cargar la pantalla de IA. No se efectuó ningún pago. Inténtalo de nuevo en breve."
     },
     "archive": {
-      "title": "Saju compatibility records",
-      "lead": "Your paid Saju compatibility results are kept exactly as they were. Reopening one never costs extra or generates anything new.",
-      "loading": "Loading your records…",
-      "empty": "No Saju compatibility results are saved yet.",
-      "login": "Sign in to see your saved Saju compatibility records.",
-      "loginCta": "Sign in",
-      "error": "Couldn't load your records. Please try again shortly.",
-      "retry": "Try again",
-      "back": "← Back to list",
-      "close": "Close",
+      "title": "Historial de compatibilidad Saju",
+      "lead": "Los resultados pagados se conservan tal como se entregaron. Reabrirlos no cobra ni genera contenido nuevo.",
+      "loading": "Cargando historial…",
+      "empty": "Aún no hay resultados de compatibilidad Saju guardados.",
+      "login": "Inicia sesión para ver tus resultados guardados.",
+      "loginCta": "Iniciar sesión",
+      "error": "No se pudo cargar el historial. Inténtalo de nuevo en breve.",
+      "retry": "Reintentar",
+      "back": "← Volver a la lista",
+      "close": "Cerrar",
       "itemTitle": "{type} — {name}",
-      "itemMeta": "{date} · {score} pts",
+      "itemMeta": "{date} · {score} puntos",
       "itemDate": "{date}",
-      "itemOpen": "Open",
-      "itemAria": "Open Saju compatibility result for {name}",
-      "revoked": "A result for a cancelled or refunded payment can't be opened.",
-      "notFound": "We couldn't find this record.",
-      "unreadable": "This record can't be shown on this screen right now. Please contact support.",
-      "detailNote": "This is a saved result. Reopening it doesn't call the AI again and costs nothing extra.",
-      "duplicate": "A Saju compatibility result with the same conditions (your chart, partner name and type) is already saved in your library.\n\n[OK] Pay again and view a new reading\n[Cancel] Open the saved result in your library"
+      "itemOpen": "Abrir",
+      "itemAria": "Abrir compatibilidad Saju con {name}",
+      "revoked": "No se puede abrir un resultado con pago cancelado o reembolsado.",
+      "notFound": "No se encontró este registro.",
+      "unreadable": "Este registro no se puede mostrar aquí por ahora. Contacta con soporte.",
+      "detailNote": "Este resultado está guardado. Reabrirlo no llama a la IA ni cobra de nuevo.",
+      "duplicate": "Ya hay un resultado con las mismas condiciones (tu carta, nombre y tipo) en tu biblioteca.\n\n[Aceptar] Pagar de nuevo y ver una lectura nueva\n[Cancelar] Abrir el resultado guardado"
+    },
+    "art": {
+      "caption": "Ilustración simbólica de la relación",
+      "love": "Dos personas frente a frente en un jardín a la luz de la luna",
+      "business": "Dos personas decidiendo el rumbo sobre un mapa",
+      "friend": "Dos personas caminando juntas con faroles",
+      "year": "Dos personas llegan a un jardín por caminos distintos",
+      "month": "Dos personas en escritorios separados junto a un jardín",
+      "day": "Dos tazas de té junto a una ventana acogedora",
+      "hour": "Dos faroles ante el amanecer en montañas lejanas",
+      "past-resonance": "Dos faroles se acercan sobre un estanque",
+      "past-growth": "Un puente une dos orillas con árboles en flor",
+      "past-knot": "Un nudo de seda suelto junto a un loto"
+    },
+    "relationship": {
+      "title": "Donde se encuentran sus cartas",
+      "context": "Un mismo símbolo se interpreta según su posición y las circunstancias de vida.",
+      "all": "Ver todos los vínculos y sus bases natales",
+      "natal": "Vínculos dentro de cada carta natal",
+      "cross": "Entre ambas cartas",
+      "triad": "Los tres signos de la tríada están presentes",
+      "chapters": "Cuatro capítulos de su relación",
+      "evidence": "Base de Saju de este capítulo",
+      "unknownHour": "No se comparan los pilares de la hora porque falta una hora de nacimiento.",
+      "stem": "Troncos celestes",
+      "branch": "Ramas terrestres"
+    },
+    "pillar": {
+      "year": "Pilar del año",
+      "month": "Pilar del mes",
+      "day": "Pilar del día",
+      "hour": "Pilar de la hora"
+    },
+    "area": {
+      "year": "Origen y formas habituales de relacionarse",
+      "month": "Vida social y ritmos compartidos",
+      "day": "Vínculos cercanos y vida cotidiana",
+      "hour": "Planes futuros y lo que cultivan juntos"
+    },
+    "direction": {
+      "same": "El mismo elemento",
+      "selfGenerates": "Tu elemento nutre el de tu pareja",
+      "partnerGenerates": "El elemento de tu pareja nutre el tuyo",
+      "selfControls": "Tu elemento regula el de tu pareja",
+      "partnerControls": "El elemento de tu pareja regula el tuyo"
+    },
+    "relation": {
+      "sixHarmony": "Seis armonías (合)",
+      "partialTriad": "Tríada parcial (三合)",
+      "penalty": "Tensión (刑)",
+      "selfPenalty": "Tensión interna (自刑)",
+      "break": "Ruptura del ritmo (破)",
+      "harm": "Fricción (害)",
+      "wonjin": "Fricción emocional (怨嗔)",
+      "gwimun": "Sensibilidad intensa (鬼門)",
+      "he": "Armonía (合)",
+      "chong": "Choque (沖)",
+      "same": "Igual (同)",
+      "none": "Ninguna (無)",
+      "generates": "Nutrición (生)",
+      "controls": "Regulación (剋)"
+    },
+    "limit": {
+      "hour": "Se excluye el efecto del pilar de la hora si se desconoce la hora de nacimiento.",
+      "story": "Los cuatro capítulos conectan ámbitos de la vida; no predicen el orden ni el momento de los hechos.",
+      "relations": "Una armonía no implica transformación elemental automática. Wonjin y Gwimun no determinan infidelidad, enfermedad mental ni el desenlace de una relación."
     }
   }
 }
