@@ -341,6 +341,8 @@ async function pollFortuneTeaConsultResult(body: FortuneTeaConsultPostBody, isCa
     if (next.payload.completedSections) onProgress?.(next.payload);
     if (next.payload.retryable === false && isFortuneTeaGenerationPending(next.response,next.payload)) throw buildFortuneTeaGenerationPendingError("저장된 내용을 보존했어요. 생성 한도에 도달해 추가 확인이 필요합니다.");
     if (next.response.status === 429) return next; // rate-limit: 폴링 종료, 호출부에서 일반 처리
+    // Keep the same bounded polling loop and original evidence on temporary failures.
+    if (next.response.status === 503) continue;
     if (!isFortuneTeaGenerationPending(next.response, next.payload)) return next;
   }
   return null; // 상한 소진 — 여전히 생성 중
@@ -1402,9 +1404,9 @@ export default function FortuneTeaHousePage() {
           message: "저장된 부분을 읽는 동안 나머지를 작성하고 있어요.",
         }));
       };
-      if (isFortuneTeaGenerationPending(response, payload)) {
-        showPartial(payload);
-        if (payload.retryable === false) throw buildFortuneTeaGenerationPendingError("저장된 내용을 보존했어요. 생성 한도에 도달해 추가 확인이 필요합니다.");
+      if (isFortuneTeaGenerationPending(response, payload) || response.status === 503) {
+        if (payload.completedSections) showPartial(payload);
+        if (payload.retryable === false && isFortuneTeaGenerationPending(response, payload)) throw buildFortuneTeaGenerationPendingError("저장된 내용을 보존했어요. 생성 한도에 도달해 추가 확인이 필요합니다.");
         const polled = await pollFortuneTeaConsultResult(consultPollBody, () => consultRunRef.current !== consultRunId, showPartial);
         if (consultRunRef.current !== consultRunId) return;
         if (polled) ({ response, payload } = polled);

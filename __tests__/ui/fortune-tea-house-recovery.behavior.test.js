@@ -51,6 +51,27 @@ function recoveryApi(window) {
   return exports;
 }
 const input = { consultationMode: "saju", question: "원래 상담 질문", profileId: "profile-a" };
+test('actual polling survives 503 without changing evidence and remains bounded', async () => {
+  const body={attemptId:'original',billingGate:{paymentId:'original-payment'}};
+  const posts=[];let success=true;
+  const state={
+    FORTUNE_TEA_POLL_BACKOFFS_MS:[0,0,0],window:{setTimeout:fn=>fn()},
+    postFortuneTeaConsultRequest:async value=>{
+      posts.push(value);
+      return {response:{status:success&&posts.length===3?200:503},payload:{code:'RATE_LIMIT_UNAVAILABLE'}};
+    },
+    isFortuneTeaGenerationPending:()=>false,
+  };
+  vm.createContext(state);vm.runInContext(functionSource('pollFortuneTeaConsultResult'),state);
+  assert.equal((await state.pollFortuneTeaConsultResult(body,()=>false)).response.status,200);
+  assert.ok(posts.every(value=>value===body));
+  success=false;posts.length=0;
+  assert.equal(await state.pollFortuneTeaConsultResult(body,()=>false),null);
+  assert.equal(posts.length,3);
+  posts.length=0;
+  assert.equal(await state.pollFortuneTeaConsultResult(body,()=>true),null);
+  assert.equal(posts.length,0);
+});
 const cup = { id: "cup-a", name: "찻잔", topic: "진로" };
 function harness({ window = { localStorage: store(), sessionStorage: store() }, failureStatus = 503, paid = true, saved = null, owner = "user-a" } = {}) {
   const api = recoveryApi(window);
@@ -94,6 +115,8 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
         : { response: { ok: false, status: failureStatus }, payload: { ok: false, reason: "RESULT_STORAGE_UNAVAILABLE", message: "저장 확인 실패" } };
     },
     isFortuneTeaGenerationPending: () => false, normalizeHoneyDropsState: () => null,
+    pollFortuneTeaConsultResult: async () => null,
+    buildFortuneTeaGenerationPendingError: message => Object.assign(new Error(message || '상담 이어가기'), {generationPending:true}),
     Date: { now: (() => { let n = 0; return () => (n += 2000); })() },
     window: { ...window, location: window.location || { search: '' }, setTimeout: fn => { fn(); return 1; }, clearTimeout() {} },
   };
@@ -106,6 +129,20 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
 }
 
 for (const paid of [true, false]) {
+  test(`${paid ? "paid" : "pass"} initial 503 resumes to result without a second gate`, async () => {
+    const h=harness({paid,failureStatus:503});
+    let retried;
+    h.state.pollFortuneTeaConsultResult=async body=>{
+      retried=body;
+      return {response:{ok:true,status:200},payload:{ok:true,result:{resultId:body.attemptId,body:'SAVED_RESULT'}}};
+    };
+    await h.submit();
+    assert.equal(h.state.completed,true);
+    assert.deepEqual(JSON.parse(JSON.stringify(retried)),h.posts[0]);
+    assert.equal(h.gateCalls(),paid?1:0);
+    assert.equal(h.ensureCalls(),1);
+    assert.equal(h.api.readFortuneTeaRecovery('user-a'),null);
+  });
   for (const failureStatus of [503, 409, 402, 0]) {
     test(`${paid ? "paid" : "pass"} ${failureStatus}: refresh retains original request and never reopens gate`, async () => {
       const first = harness({ paid, failureStatus });

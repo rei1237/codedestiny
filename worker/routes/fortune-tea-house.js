@@ -6149,6 +6149,25 @@ function fortuneTeaRequestHash(consultRequest) {
   return createHash("sha256").update(JSON.stringify(hashed)).digest("hex");
 }
 
+// Only quota classification: the route still verifies access and settles under
+// its original lock. Never trust a client resume flag or result ID alone.
+export async function isOwnedFortuneTeaHouseResume(body, userId) {
+  if (!userId || !body || !(body.resultId || body.jobId || body.attemptId)) return false;
+  const consultRequest = normalizeRequest(body);
+  const requestId = readFortuneTeaRequestId(body, consultRequest);
+  const featureKey = resolveFortuneTeaHouseFeatureKey(body, consultRequest);
+  if (!requestId || !featureKey) return false;
+  const doc = await honeyCollections().results.findOne({
+    userId: String(userId),
+    resultId: buildHoneyResultId(body, consultRequest),
+    deliveryRequestId: requestId,
+    featureKey,
+    generationRequestHash: fortuneTeaRequestHash(consultRequest),
+    status: { $in: ["generating", "delivery_pending", "generation_failed", "completed"] },
+  }, { projection: { status: 1, passRefund: 1, revokedAt: 1, refundedAt: 1 } });
+  return Boolean(doc && !doc.passRefund?.refundedAt && !doc.revokedAt && !doc.refundedAt);
+}
+
 async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
   if (!checkRateLimit(request)) {
     return json(

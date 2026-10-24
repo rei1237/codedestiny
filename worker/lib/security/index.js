@@ -288,6 +288,13 @@ const ADMIN_ENTRY_RATE_LIMIT_DB_OPTIONS = Object.freeze({
   attemptTimeoutMS: 3000,
 });
 
+// Required tea counters include connection setup. Keep telemetry/admission limits
+// unchanged; a healthy cold connection must not be rejected at the old 1s mark.
+const TEA_RATE_LIMIT_DB_OPTIONS = Object.freeze({
+  ...SECURITY_DB_OPERATION_OPTIONS,
+  attemptTimeoutMS: 3000,
+});
+
 function withSecurityDbOperation(env, operation, options = SECURITY_DB_OPERATION_OPTIONS) {
   return withMongoRetry(env, operation, options);
 }
@@ -385,7 +392,9 @@ export async function enforceRateLimit({
       { upsert: true, new: true, setDefaultsOnInsert: true },
     ).lean(), endpoint === "admin:/entry/password"
       ? ADMIN_ENTRY_RATE_LIMIT_DB_OPTIONS
-      : SECURITY_DB_OPERATION_OPTIONS);
+      : endpoint.startsWith("ai:fortune-tea-house:")
+        ? TEA_RATE_LIMIT_DB_OPTIONS
+        : SECURITY_DB_OPERATION_OPTIONS);
     const count = Number(doc?.score);
     if (!doc || !Number.isSafeInteger(count) || count < 1) throw new Error("INVALID_RATE_LIMIT_COUNTER");
     if (count <= Number(limit || 60)) return { ok: true, count };
@@ -395,7 +404,14 @@ export async function enforceRateLimit({
     return shouldEnforce(env)
       ? { ok: false, response: securityResponse(429, "RATE_LIMIT_EXCEEDED", SECURITY_MESSAGES.RATE_LIMIT_EXCEEDED, { "Retry-After": retryAfter }) }
       : { ok: true, monitored: true, count };
-  } catch (_) {
+  } catch (error) {
+    if (endpoint.startsWith("ai:fortune-tea-house:")) {
+      const detail = String(error?.message || "");
+      const reason = /admission|slot|concurren/i.test(detail) ? "admission"
+        : /timed? ?out|timeout|deadline/i.test(detail) ? "timeout"
+          : detail === "INVALID_RATE_LIMIT_COUNTER" ? "invalid_counter" : "database";
+      console.warn("[fortune-tea-house] rate limit unavailable", { endpoint, reason });
+    }
     return shouldEnforce(env)
       ? { ok: false, response: securityResponse(503, "RATE_LIMIT_UNAVAILABLE", "요청 한도를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", { "Retry-After": "1" }) }
       : { ok: true, monitored: true };
@@ -567,7 +583,7 @@ export function aiActionFromPath(path = "", serviceKey = "", method = "GET") {
   if (/\/basis$/.test(normalized)) return "basis";
   if (/\/(unlock|unlock-benefits)$/.test(normalized)) return "unlock";
   // 계정·화면·온라인 복귀 때 한 번 조회하며 생성은 하지 않는다. 기존 read 100회/분 한도 적용.
-  if (service === "astrology-ai" && normalized === "/api/astrology-ai/pending") return "read";
+  if ((service === "astrology-ai" || service === "fortune-tea-house") && normalized === `/api/${service}/pending`) return "read";
   if (/\/(plan|badges|honey-drops|balance)$/.test(normalized)) return "read";
   // 서비스 루트(`/api/<service>` · 후행 슬래시 포함) — 일부 서비스가 `/plan` 별칭으로 쓴다.
   if (service && (normalized === `/api/${service}` || normalized === `/api/${service}/`)) return "read";
@@ -593,8 +609,8 @@ const CHECKPOINT_RESUME_MODELS = Object.freeze({
 
 // Only a small server-ID resume envelope can change the quota classification. The
 // original request stream remains available to the route's ownership/payment checks.
-async function readCheckpointResumeBody(request) {
-  if (Number(request.headers.get("content-length") || 0) > 4096) return null;
+async function readCheckpointResumeBody(request, maxBytes = 4096) {
+  if (Number(request.headers.get("content-length") || 0) > maxBytes) return null;
   let reader;
   try {
     reader = request.clone().body?.getReader();
@@ -604,7 +620,7 @@ async function readCheckpointResumeBody(request) {
       const { value, done } = await reader.read();
       if (done) break;
       bytes += value.byteLength;
-      if (bytes > 4096) return null;
+      if (bytes > maxBytes) return null;
       chunks.push(value);
     }
     const buffer = new Uint8Array(bytes); let offset = 0;
@@ -615,6 +631,15 @@ async function readCheckpointResumeBody(request) {
 }
 
 async function isOwnedCheckpointResume(request, env, serviceKey, userId) {
+  if (serviceKey === "fortune-tea-house" && userId && request.method === "POST"
+    && new URL(request.url).pathname === "/api/fortune-tea-house/consult") {
+    const body = await readCheckpointResumeBody(request, 256 * 1024);
+    if (!body) return false;
+    try {
+      const { isOwnedFortuneTeaHouseResume } = await import("../../routes/fortune-tea-house.js");
+      return await withSecurityDbOperation(env, () => isOwnedFortuneTeaHouseResume(body, userId), TEA_RATE_LIMIT_DB_OPTIONS);
+    } catch { return false; }
+  }
   const modelName = CHECKPOINT_RESUME_MODELS[serviceKey];
   if (!modelName || !userId || request.method !== "POST") return false;
   const body = await readCheckpointResumeBody(request);

@@ -36,6 +36,10 @@ const RATE_LIMIT_CALLS = [];
 let checkpointDoc = null;
 let checkpointLookupFails = false;
 let exhaustedStarts = false;
+let teaResume = false;
+jest.unstable_mockModule("../../worker/routes/fortune-tea-house.js", () => ({
+  isOwnedFortuneTeaHouseResume: async (body, userId) => teaResume && body.attemptId === 'original' && userId === 'user-1',
+}));
 const checkpointModel = {
   findOne: filter => ({ select() { return this; }, lean: async () => {
     if (checkpointLookupFails) throw new Error('mock DB unavailable');
@@ -323,6 +327,25 @@ describe("AI 라우트 경로 전수 분류", () => {
   });
 });
 const checkpointServices = ['astrology-ai','vedic-ai','ziwei-ai','love-secret-ai','life-book-ai','new-year-ai','sukuyo-compatibility-ai','neo-operation-room','relationship-boundary-test'];
+test('tea exact owned resume uses batch despite exhausted start budget; original stream survives', async () => {
+  const {enforceAiRouteSecurity}=await import('../../worker/lib/security/index.js');
+  const path='/api/fortune-tea-house/consult';
+  const body={attemptId:'original',draftResult:{body:'x'.repeat(5000)}};
+  const run=async()=>{
+    const request=new Request('https://api.code-destiny.com'+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+    const result=await enforceAiRouteSecurity({request,env:ENV,serviceKey:'fortune-tea-house',path,userId:'user-1'});
+    expect(await request.json()).toEqual(body);
+    return result;
+  };
+  try {
+    exhaustedStarts=true;teaResume=true;RATE_LIMIT_CALLS.length=0;
+    expect((await run()).ok).toBe(true);
+    expect(RATE_LIMIT_CALLS.map(row=>row.endpoint)).toEqual(['ai:fortune-tea-house:batch']);
+    teaResume=false;
+    expect((await run()).ok).toBe(false);
+    expect(RATE_LIMIT_CALLS.map(row=>row.endpoint)).toContain('ai:fortune-tea-house:start:daily');
+  } finally {teaResume=false;exhaustedStarts=false;}
+});
 describe('서버 저장본의 재개는 새 리포트 일일 예산을 소비하지 않는다', () => {
   beforeEach(() => { checkpointDoc={id:'saved-result-id',userId:'user-1',status:'partial',llmMeta:{resumeBody:{idempotencyKey:'original-key'}}};checkpointLookupFails=false;exhaustedStarts=false;RATE_LIMIT_CALLS.length=0; });
   afterEach(() => { checkpointDoc=null;checkpointLookupFails=false;exhaustedStarts=false; });

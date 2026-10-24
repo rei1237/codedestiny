@@ -124,3 +124,22 @@ test('admin soft-block lookup keeps its original 1s budget', async () => {
   await finish(checkSoftBlock({ env, request: request(), endpoint: 'admin:/entry/password' }));
   expect(operations[0].attemptTimeoutMS).toBe(1000);
 });
+
+test.each(['ensure', 'start', 'start:daily', 'batch', 'result', 'read'])('tea %s counter permits a normal cold connection', async action => {
+  connectionDelay = 1733;
+  expect((await finish(run('ai:fortune-tea-house:' + action), 1733)).ok).toBe(true);
+  expect(operations[0]).toMatchObject({ attemptTimeoutMS: 3000, retries: 0, maxConcurrent: 2, admissionTimeoutMS: 250 });
+});
+
+test('tea counter still fails closed beyond its deadline', async () => {
+  connectionDelay = 3500;
+  const result = await finish(run('ai:fortune-tea-house:start'), 3000);
+  expect(result.response.status).toBe(503);
+  expect((await result.response.json()).code).toBe('RATE_LIMIT_UNAVAILABLE');
+});
+
+test('similarly named services do not inherit the tea deadline', async () => {
+  connectionDelay = 1733;
+  expect((await finish(run('ai:fortune-tea-house-other:start'), 1000)).response.status).toBe(503);
+  expect(operations[0].attemptTimeoutMS).toBe(1000);
+});
