@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-10-24
 next: 통합 기준을 고정해 1.0.53을 빌드하고 서명·자산·main CI 결과를 확인한다.
 ---

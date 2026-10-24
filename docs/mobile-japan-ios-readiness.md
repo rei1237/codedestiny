@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-10-24
 next: 통합 기준을 고정해 1.0.53 재생성 후 서명·자산·최종 CI 확인
 ---
