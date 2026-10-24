@@ -60,7 +60,7 @@ export default function HomeView({ data, range, onRangeChange, onRefresh, refres
   const funnel = metrics.funnel;
   const focus = data.focus.filter(isActiveOperationsQuest);
   const upcoming = data.upcoming.filter(isActiveOperationsQuest);
-  const alerts = data.alerts.filter((alert) => alert.id !== "threads");
+  const alerts = data.alerts;
 
   return (
     <div className="cd-hq-page space-y-4">
@@ -256,6 +256,7 @@ export default function HomeView({ data, range, onRangeChange, onRefresh, refres
 
         {/* 보조 열 */}
         <aside className="space-y-4 lg:col-span-4" aria-label="안내와 기록">
+          <HqPanel title="Threads 대화 원정" game="연이의 작업실"><p className="text-sm">짧은 글을 검토하고 기존 발행 상태를 확인해요. 공개는 사용자 확인 후 진행합니다.</p><Link href="/admin/threads/" className={adminButton("primary")}>Threads 작업실 열기</Link></HqPanel>
           <HqPanel title="최근 XP 변동" game="별빛 원장" action={<Link href="/admin/growth/" className={adminButton("neutral", { size: "sm" })}>전체</Link>}>
             {data.recentXp.length ? (
               <ul className="space-y-2">

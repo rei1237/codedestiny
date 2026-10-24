@@ -54,7 +54,7 @@ export default function AdminTaskReminder() {
             <button type="button" className={adminButton("neutral")} disabled={reminder.loading} onClick={reminder.reload}>다시 시도</button>
           </div>
         ) : null}
-        {reminder.data?.alerts.filter((alert) => alert.id !== "threads").map((alert) => (
+        {reminder.data?.alerts.map((alert) => (
           <Link key={alert.id} href={alert.href} className={`cd-hq-focus flex min-h-[44px] flex-wrap items-center gap-2 rounded-[var(--cd-adm-radius)] bg-[var(--cd-adm-panel-2)] px-3 py-2 text-sm cd-hq-tone-${alert.tone}`}>
             <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
             <strong>확인 필요 · {alert.label} {alert.count}건</strong>
