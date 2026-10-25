@@ -18,7 +18,7 @@ export function mountPaidReviewInvite({ host, completed, paid, locale = 'ko' }) 
   const detail = document.createElement('p'); detail.className = 'cd-review-invite__detail'; detail.textContent = copy.detail;
   const action = document.createElement('a'); action.className = 'cd-review-invite__action'; action.href = REVIEW_WRITE_URL; action.textContent = copy.action;
   text.append(heading, description, reward, detail, action);
-  const image = document.createElement('img'); image.className = 'cd-review-invite__image'; image.src = copy.image; image.alt = copy.name; image.width = 240; image.height = 240; image.loading = 'lazy';
+  const image = document.createElement('img'); image.className = 'cd-review-invite__image'; image.src = copy.image; image.alt = reviewRewardCopy.imageAlt; image.width = 360; image.height = 240; image.loading = 'lazy';
   section.append(text, image); host.appendChild(section);
   const krwPerStone = Number(document.getElementById('cdReviewInvite')?.dataset.reviewKrwPerStone);
   fetch('/api/reviews/products', { headers: { accept: 'application/json' } })

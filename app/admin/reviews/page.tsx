@@ -4,8 +4,12 @@ import { Check, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBaseUrl } from "../../_lib/api-config";
 import { adminFetch, describeAdminError, type AdminErrorView } from "../_lib/admin-api";
+import { normalizeReviewSocialProof, REVIEW_SOCIAL_CHANNELS } from "@/js/review-sharing.mjs";
+import { type ReviewRewardPolicy } from "../../components/ReviewRewardBanner";
+import { reviewRewardLabel, reviewRewardWorthLabel } from "@/js/review-reward-copy.mjs";
+import { KRW_PER_MONTHLY_CREDIT } from "@/lib/payment/coin-pricing";
 import AdminErrorState from "../_components/AdminErrorState";
-import { ADMIN_INPUT, ADMIN_TOOLBAR, adminButton, adminChip } from "../_components/ui";
+import { ADMIN_CARD, ADMIN_INPUT, ADMIN_TOOLBAR, adminButton, adminChip } from "../_components/ui";
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "hidden";
 type TabValue = ReviewStatus | "all" | "create";
@@ -42,6 +46,7 @@ interface ReviewItem {
   autoFlagReasons: string[];
   adminNote: string;
   reviewedBy: string;
+  socialProof?: { platform: string; url: string; disclosed: boolean };
   reviewReward?: { granted: boolean; amount: number; grantedAt?: string | null };
   approvedAt?: string | null;
   displayedAt?: string | null;
@@ -184,6 +189,7 @@ export default function AdminReviewsPage() {
   // 상품 목록만 공개 라우트라 직접 fetch 한다 — 401 이 날 수 없는 경로에 관리자 인증·리다이렉트를 붙일 이유가 없다.
   const productsEndpoint = `${apiBase || ""}/api/reviews/products`;
 
+  const [rewardPolicy, setRewardPolicy] = useState<ReviewRewardPolicy | null>(null);
   const [activeTab, setActiveTab] = useState<TabValue>("pending");
   const [productFilter, setProductFilter] = useState("");
   const [flaggedOnly, setFlaggedOnly] = useState(false);
@@ -206,6 +212,7 @@ export default function AdminReviewsPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return;
       setProducts(Array.isArray(data?.items) ? data.items : []);
+      setRewardPolicy(data?.rewardPolicy || null);
     } catch {
       setProducts([]);
     }
@@ -604,7 +611,7 @@ export default function AdminReviewsPage() {
             <div className="p-6 text-sm text-slate-400">
               <p>왼쪽 목록에서 검수할 리뷰를 선택하세요.</p>
               <p className="mt-2 text-xs leading-5 text-slate-500">
-                사용자가 작성한 리뷰는 항상 검수 대기 상태로 저장되며, 승인해야 리뷰 페이지에 노출됩니다.
+                {reviewRewardLabel(rewardPolicy)} · {reviewRewardWorthLabel(rewardPolicy, KRW_PER_MONTHLY_CREDIT)}. 승인 건별 지급이며 계정·상품별 참여 횟수 제한은 없습니다. 낮은 별점이나 아쉬운 의견도 동일한 기준으로 검토해 주세요.
               </p>
             </div>
           ) : (
@@ -619,6 +626,15 @@ export default function AdminReviewsPage() {
                     🚩 자동 필터: {draft.autoFlagReasons.map((flag) => FLAG_LABELS[flag] || flag).join(", ")}
                   </p>
                 ) : null}
+              </div>
+
+              <div className={`${ADMIN_CARD} space-y-3 rounded-xl p-4 text-sm leading-6`}>
+                <p>{reviewRewardLabel(rewardPolicy)} · {reviewRewardWorthLabel(rewardPolicy, KRW_PER_MONTHLY_CREDIT)}. 승인 건별 지급이며 작성 기한과 참여 횟수 제한은 없습니다. 낮은 별점이나 아쉬운 의견도 동일한 기준으로 검토해 주세요.</p>
+                {draft.socialProof?.url && <>
+                  <p>SNS: {REVIEW_SOCIAL_CHANNELS.find((channel) => channel.id === draft.socialProof?.platform)?.label || draft.socialProof.platform}</p>
+                  {normalizeReviewSocialProof(draft.socialProof.platform, draft.socialProof.url) && <a href={draft.socialProof.url} target="_blank" rel="noopener noreferrer" className={adminButton("neutral", { size: "lg" })}>후기 게시글 확인하기</a>}
+                  <p>보상 참여 표시: {draft.socialProof.disclosed ? "작성자 확인 완료 · 게시글에서 확인해 주세요" : "미확인"}</p>
+                </>}
               </div>
 
               <div className="space-y-1">
@@ -705,11 +721,11 @@ export default function AdminReviewsPage() {
                 <button
                   type="button"
                   onClick={() => { void updateStatus(draft.id, "approved"); }}
-                  disabled={busy || draft.status === "approved"}
-                  className={commandButtonClass("success")}
+                  disabled={busy || (draft.status === "approved" && (draft.reviewReward?.granted || draft.createdByAdmin))}
+                  className={adminButton("success", { size: "lg" })}
                 >
                   <Check className="h-4 w-4" />
-                  승인
+                  {draft.createdByAdmin || draft.reviewReward?.granted ? "공개 승인하기" : draft.status === "approved" ? "월정석 지급 재시도" : "승인하고 월정석 지급"}
                 </button>
                 <button
                   type="button"

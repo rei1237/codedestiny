@@ -4567,6 +4567,7 @@ function toAdminReviewItem(doc) {
     aiFlagReason: reviewText(doc?.aiFlagReason),
     adminNote: reviewText(doc?.adminNote),
     reviewedBy: reviewText(doc?.reviewedBy),
+    socialProof: doc?.socialProof || null,
     reviewReward: {
       granted: Boolean(doc?.reviewReward?.granted),
       amount: Math.max(0, Math.floor(Number(doc?.reviewReward?.amount || 0))),

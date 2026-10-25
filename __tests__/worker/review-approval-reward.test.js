@@ -48,10 +48,10 @@ beforeEach(() => {
   jest.clearAllMocks();
   userLean.mockResolvedValue({ _id: USER_ID, status: "active" });
   grantMonthlyCreditLotDetailed.mockResolvedValue({
-    user: { _id: USER_ID, profileSubscription: { membershipCreditBalance: 340 } },
+    user: { _id: USER_ID, profileSubscription: { membershipCreditBalance: 3240 } },
     added: true,
     beforeBalance: 240,
-    afterBalance: 340,
+    afterBalance: 3240,
   });
 });
 
@@ -62,13 +62,36 @@ function reviewDoc(overrides = {}) {
     productId: "saju-ai",
     productName: "AI 사주 분석",
     createdByAdmin: false,
+    status: 'approved',
     ...overrides,
   };
 }
 
+test.each(['pending', 'rejected', 'hidden', undefined])('unapproved status %s cannot grant', async (status) => {
+  expect(await grantReviewApprovalReward({ reviewDoc: reviewDoc({ status }) })).toMatchObject({ granted: false, reason: 'REVIEW_NOT_APPROVED' });
+  expect(grantMonthlyCreditLotDetailed).not.toHaveBeenCalled();
+});
+test('another approved submission from the same author receives its own grant', async () => {
+  await grantReviewApprovalReward({ reviewDoc: reviewDoc() });
+  await grantReviewApprovalReward({ reviewDoc: reviewDoc({ _id: '507f1f77bcf86cd799439098' }) });
+  expect(grantMonthlyCreditLotDetailed.mock.calls.map(([x]) => x.lotId)).toEqual(['review-reward:' + REVIEW_ID, 'review-reward:507f1f77bcf86cd799439098']);
+});
+test('partial historical grant retains its original amount during recovery', async () => {
+  grantMonthlyCreditLotDetailed.mockResolvedValueOnce({ added: false, user: { profileSubscription: { membershipCreditBalance: 50, membershipCreditLots: [{ lotId: 'review-reward:' + REVIEW_ID, amount: 100, remaining: 50 }] } } });
+  expect(await grantReviewApprovalReward({ reviewDoc: reviewDoc() })).toMatchObject({ granted: true, idempotent: true, amount: 100 });
+  expect(ledgerUpdateOne.mock.calls[0][1].$setOnInsert.amount).toBe(100);
+});
+test('retry after persistence failure reconciles the same grant', async () => {
+  reviewUpdateOne.mockRejectedValueOnce(new Error('write failed'));
+  expect(await grantReviewApprovalReward({ reviewDoc: reviewDoc() })).toMatchObject({ granted: false });
+  grantMonthlyCreditLotDetailed.mockResolvedValueOnce({ added: false, user: { profileSubscription: { membershipCreditBalance: 3000, membershipCreditLots: [{ lotId: 'review-reward:' + REVIEW_ID, amount: 3000, remaining: 3000 }] } } });
+  expect(await grantReviewApprovalReward({ reviewDoc: reviewDoc() })).toMatchObject({ granted: true, idempotent: true, amount: 3000 });
+  expect(new Set(grantMonthlyCreditLotDetailed.mock.calls.map(([x]) => x.lotId)).size).toBe(1);
+});
+
 describe("후기 승인 보상 — 지급 금액과 단위", () => {
-  test("보상은 월정석 100개다(= 1,000원 상당, 월정석 1개 10원)", () => {
-    expect(REVIEW_REWARD_AMOUNT).toBe(100);
+  test("보상은 월정석 3,000개다(= 30,000원 상당, 월정석 1개 10원)", () => {
+    expect(REVIEW_REWARD_AMOUNT).toBe(3000);
   });
 
   test("멱등키는 reviewId 하나로만 만들어진다", () => {
@@ -81,21 +104,21 @@ describe("후기 승인 보상 — 정상 지급", () => {
     const result = await grantReviewApprovalReward({ reviewDoc: reviewDoc(), actorId: "admin-1" });
 
     const sourceId = buildReviewRewardSourceId(REVIEW_ID);
-    expect(result).toMatchObject({ granted: true, amount: 100, balanceAfter: 340, sourceId });
+    expect(result).toMatchObject({ granted: true, amount: 3000, balanceAfter: 3240, sourceId });
 
     expect(grantMonthlyCreditLotDetailed).toHaveBeenCalledWith({
       userId: USER_ID,
       lotId: sourceId,
-      amount: 100,
+      amount: 3000,
     });
 
     const [ledgerFilter, ledgerUpdate, ledgerOptions] = ledgerUpdateOne.mock.calls[0];
     expect(ledgerFilter).toEqual({ userId: USER_ID, type: "MONTHLY_CREDIT_GRANT", sourceId });
     expect(ledgerOptions).toEqual({ upsert: true });
     expect(ledgerUpdate.$setOnInsert).toMatchObject({
-      amount: 100,
+      amount: 3000,
       beforeBalance: 240,
-      afterBalance: 340,
+      afterBalance: 3240,
       serviceKey: "review_reward",
       metadata: { grantKind: "review_reward", reviewId: REVIEW_ID, productId: "saju-ai", actorId: "admin-1" },
     });
@@ -103,7 +126,7 @@ describe("후기 승인 보상 — 정상 지급", () => {
     const [, reviewUpdate] = reviewUpdateOne.mock.calls[0];
     expect(reviewUpdate.$set).toMatchObject({
       "reviewReward.granted": true,
-      "reviewReward.amount": 100,
+      "reviewReward.amount": 3000,
       "reviewReward.ledgerSourceId": sourceId,
     });
   });
@@ -178,7 +201,7 @@ describe("후기 승인 보상 — 실패해도 승인을 막지 않는다", () 
 
     const result = await grantReviewApprovalReward({ reviewDoc: reviewDoc() });
 
-    expect(result).toMatchObject({ granted: true, amount: 100 });
+    expect(result).toMatchObject({ granted: true, amount: 3000 });
     expect(reviewUpdateOne).toHaveBeenCalled();
   });
 });

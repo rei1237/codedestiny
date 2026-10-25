@@ -88,6 +88,20 @@ describe("공개 후기 응답(GET /api/reviews)", () => {
 });
 
 describe("본인 후기 응답(GET /api/reviews/mine)", () => {
+  test("SNS 증빙과 지급 내역은 본인 응답에만 포함한다", () => {
+    const doc = {
+      ...reviewDoc("reader"),
+      socialProof: { platform: "threads", url: "https://www.threads.com/@reader/post/123", disclosed: true },
+      reviewReward: { granted: true, amount: 3000, grantedBy: "private-admin-id", ledgerSourceId: "private-ledger-id" },
+    };
+    expect(toOwnReview(doc)).toMatchObject({ socialProof: { platform: "threads", url: doc.socialProof.url }, reviewReward: { granted: true, amount: 3000 } });
+    const publicPayload = JSON.stringify(toPublicReview(doc));
+    expect(publicPayload).not.toContain(doc.socialProof.url);
+    expect(toPublicReview(doc)).not.toHaveProperty("reviewReward");
+    expect(JSON.stringify(toOwnReview(doc))).not.toContain("private-admin-id");
+    expect(JSON.stringify(toOwnReview(doc))).not.toContain("private-ledger-id");
+  });
+
   test("authorName 은 원본을 유지한다 — 자기가 쓴 자기 데이터라 가릴 이유가 없다", () => {
     expect(toOwnReview(reviewDoc("seongbae555")).authorName).toBe("seongbae555");
   });
