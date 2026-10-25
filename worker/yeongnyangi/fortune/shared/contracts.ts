@@ -63,7 +63,7 @@ export interface FortuneLLMResponse {
 export interface LLMProvider {
   generate(request: FortuneLLMRequest): Promise<FortuneLLMResponse>;
 }
-export interface CalculationOptions { runtimeEnv?: Record<string, unknown>; asOf?: string; /** Order instant (ISO); saju compares 입춘·절입 with it. */ asOfInstant?: string; tarotFusion?: boolean; relationshipReading?: boolean; }
+export interface CalculationOptions { runtimeEnv?: Record<string, unknown>; asOf?: string; /** Order instant (ISO); saju compares 입춘·절입 with it. */ asOfInstant?: string; tarotFusion?: boolean; relationshipReading?: boolean; /** 과거 경험 설문(정규화됨). 대운·세운 해석 보정에만 쓴다. */ experience?: import('../saju/experience').ExperienceAnswer[]; }
 
 export interface FortuneDomain {
   id: DomainId;

@@ -181,7 +181,7 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
    return send({ok:true,fortune:row},202);
   }
   // Premium saju input asks the server for 종격 check years before checkout; none keeps these payment flows question-free.
-  if(path==='/api/yeongnyangi/saju/jong-check'&&request.method()==='POST')return send({ok:true,check:null});
+  if(path==='/api/yeongnyangi/saju/experience-check'&&request.method()==='POST')return send({ok:true,check:null});
   // The checkout asks for owned service packs; the fixture user owns none. Branches mirror
   // quoteServicePack (worker/payments/service-packs.js): a settled row is 'paid', else no candidates.
   if(path==='/api/payments/service-packs/quote'&&request.method()==='POST'){

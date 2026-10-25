@@ -54,6 +54,9 @@ import {consultationInputCopy} from '../_lib/consultation-input-copy';
 import {v7Label,v7PartHead} from '../_lib/reading-v7-copy';
 import {readingDepthCopy,readingTierDepth} from '../_lib/reading-depth-copy';
 import {askPhase5Copy} from '../_lib/ask-phase5-copy';
+import {experienceCopy} from '../_lib/experience-copy';
+import ExperienceSurvey,{experienceAnswers,promptedRows,type ExperienceCheck,type ExperienceRow} from './ExperienceSurvey';
+import {experienceCheckApplies} from '@/worker/yeongnyangi/fortune/saju/experience-policy';
 import {tarotConsultation} from '@/worker/yeongnyangi/fortune/tarot/consultation-contract';
 import {tarotPeriods,tarotRelationStatuses,TAROT_SPREAD_KIND} from '@/worker/yeongnyangi/fortune/tarot/spread-v3';
 import {tierAllowsSpread} from '@/lib/tarot/yeongnyangi-spread-catalog.mjs';
@@ -92,6 +95,8 @@ export default function Consultation(){
  const [currentLocation,setCurrentLocation]=useState<CurrentLocation|null>(null);
  const [extraTime,setExtraTime]=useState(''),[extraPlace,setExtraPlace]=useState('');
  const [tarotPlan,setTarotPlan]=useState<TarotPlan>(emptyTarotPlan),[tierNotice,setTierNotice]=useState('');
+ const [experience,setExperience]=useState<{key:string;loading:boolean;check:ExperienceCheck|null}>({key:'',loading:false,check:null});
+ const [experienceRows,setExperienceRows]=useState<ExperienceRow[]>([]);
  const partnerProfile=profiles.find(p=>profileKey(p)===partnerId);
  const selectedProfile=profiles.find(p=>(p.profileId||p.id)===profileId);
  const lock=useRef(false);
@@ -137,6 +142,11 @@ export default function Consultation(){
  const premium=!questionActive&&['flounder','tuna'].includes(product.fishId);
  const needsTime=premium||Boolean(questionActive&&decision?.horizon==='transition')||product.systems.some(id=>!['saju','tarot'].includes(id));
  const needsPlace=premium||relationship&&domain==='ziwei'||product.systems.some(id=>['vedic','astrology','sukuyo'].includes(id));
+ // Optional past-experience survey for tiers that keep 대운 evidence. It only tunes 대운·세운 emphasis on the server,
+ // never the natal chart, and a failed or pending check never blocks payment: the survey simply does not appear.
+ const experienceKey=!guest&&selectedProfile&&experienceCheckApplies(product)&&!timeUnknown&&!(selectedProfile.birth?.timeUnknown&&!extraTime)?JSON.stringify([productId,profileId,extraTime,currentLocation?.latitude,currentLocation?.longitude]):'';
+ const experienceCheck=experienceKey&&experience.key===experienceKey&&!experience.loading?experience.check:null;
+ const surveyAnswers=experienceCheck?experienceAnswers(experienceRows,experienceCheck.maxEntries):[];
  const missing=!tarotOnly&&!guest?[
   ...(kind.partner&&partnerProfile&&premium&&(partnerProfile.birth?.timeUnknown||!partnerProfile.location?.label||!partnerProfile.gender)?[inputCopy.partnerDetails]:[]),
   ...(kind.partner&&partnerProfile&&!premium&&(needsTime&&partnerProfile.birth?.timeUnknown||needsPlace&&!partnerProfile.location?.label)?[inputCopy.partnerDetails]:[]),
@@ -154,6 +164,15 @@ export default function Consultation(){
  const fieldNote=(field:string)=>fieldError(field)&&<small id={`consultation-${field}-error`} className={styles.fieldError}>{fieldError(field)}</small>;
  const goToField=(field:string)=>{setTouched(prev=>({...prev,[field]:true}));const target=document.getElementById(`consultation-${field}`)||document.getElementById(`consultation-${field}-unknown`);target?.scrollIntoView({block:'center'});target?.focus({preventScroll:true});};
  useEffect(()=>{if(restoredDraft.current)return;setExtraTime('');setExtraPlace('');setCurrentLocation(null);setTimeUnknown(false);setError('');},[profileId]);
+ useEffect(()=>{
+  if(!experienceKey)return;
+  const controller=new AbortController();
+  setExperience({key:experienceKey,loading:true,check:null});setExperienceRows([]);
+  fortuneApi<{check:ExperienceCheck|null}>('saju/experience-check',{productId,profileId,timeUnknown,birthDetails:{birthTime:extraTime,birthPlace:currentLocation?{name:currentLocation.name,latitude:currentLocation.latitude,longitude:currentLocation.longitude,timezone:currentLocation.timezone}:undefined},timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'},{signal:controller.signal,timeoutMs:8000})
+   .then(data=>{setExperience({key:experienceKey,loading:false,check:data.check||null});if(data.check)setExperienceRows(promptedRows(data.check));})
+   .catch(()=>{if(!controller.signal.aborted)setExperience({key:experienceKey,loading:false,check:null});});
+  return ()=>controller.abort();
+ },[experienceKey]);
  useEffect(()=>{if(!profileState.loading&&partnerId&&(partnerId===profileId||!profiles.some(p=>profileKey(p)===partnerId)))setPartnerId('');},[profileId,profiles,partnerId,profileState.loading]);
  useEffect(()=>{
   const params=new URLSearchParams(window.location.search),requested=params.get('domain')||'saju';
@@ -246,12 +265,12 @@ export default function Consultation(){
     if(!response.ok||found.fallback)throw new Error(inputCopy.geocodeError);
     birthPlace={name:found.name,latitude:found.lat,longitude:found.lng,timezone:found.timezone};
    }
-   const inputKey=JSON.stringify([productId,kind.id,profileId,partnerId,question,decision,topicId,locale,voiceStyle,birthPlace,extraTime,timeUnknown,participants,tarotPlan]);
+   const inputKey=JSON.stringify([productId,kind.id,profileId,partnerId,question,decision,topicId,locale,voiceStyle,birthPlace,extraTime,timeUnknown,surveyAnswers,participants,tarotPlan]);
    if(preparationKey.current&&preparationKey.current!==inputKey)consultationAttemptId.current='';
    preparationKey.current=inputKey;
    if(!consultationAttemptId.current)consultationAttemptId.current=crypto.randomUUID();
    try{const draft=JSON.parse(sessionStorage.getItem(loginDraftKey)||'null');if(draft)sessionStorage.setItem(loginDraftKey,JSON.stringify({...draft,consultationAttemptId:consultationAttemptId.current,preparationKey:preparationKey.current}));}catch{/* Optional intent restoration. */}
-   const data=await fortuneApi<{fortune:FortuneRecord}>('requests',{...(questionActive?{questionDecision:decision}:{}),...(relationshipQuestionId?{relationshipQuestionId}:{}),...(locale==='ko'&&voiceStyle==='honorific'?{voiceStyle}:{}),...((relationship||relationshipStage)&&tarotOnly?{participants}:{}),locale,...browserReadingContext(siteLocale),consultationAttemptId:consultationAttemptId.current,birthDetails:{birthTime:extraTime,birthPlace},productId,consultationKind:kind.id,profileId,topicId:kind.id==='ask'?topicId:kind.topic,question:kind.question||kind.partner&&relationshipQuestionId?question:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',timeUnknown,...(kind.partner&&partnerId?{partnerProfileId:partnerId}:{}),...(tarotSpread?{tarotSpreadId:tarotSpread.id,tarotInputs:plannedInputs(tarotPlan,tarotSpread)}:{})});
+   const data=await fortuneApi<{fortune:FortuneRecord}>('requests',{...(questionActive?{questionDecision:decision}:{}),...(relationshipQuestionId?{relationshipQuestionId}:{}),...(locale==='ko'&&voiceStyle==='honorific'?{voiceStyle}:{}),...((relationship||relationshipStage)&&tarotOnly?{participants}:{}),locale,...browserReadingContext(siteLocale),consultationAttemptId:consultationAttemptId.current,birthDetails:{birthTime:extraTime,birthPlace},productId,consultationKind:kind.id,profileId,topicId:kind.id==='ask'?topicId:kind.topic,question:kind.question||kind.partner&&relationshipQuestionId?question:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',timeUnknown,...(surveyAnswers.length?{experience:surveyAnswers}:{}),...(kind.partner&&partnerId?{partnerProfileId:partnerId}:{}),...(tarotSpread?{tarotSpreadId:tarotSpread.id,tarotInputs:plannedInputs(tarotPlan,tarotSpread)}:{})});
    if(!inline)try{sessionStorage.removeItem(loginDraftKey);}catch{/* The server snapshot now owns the consultation input. */}
    trackEvent('consultation_start',{item_id:product.cdFeatureKey,service:'yeongnyangi'});
    if(inline)return data.fortune;
@@ -279,6 +298,7 @@ export default function Consultation(){
    if(selectedProfile?.birth?.timeUnknown)prep.push({id:'birth-time',prompt:voiceStyle==='honorific'?'태어난 시간을 보충해 주실 수 있나요?':'태어난 시간을 보충해 줄 수 있어?',answer:timeUnknown?'시간 미상':extraTime||'시간 미상',valid:!needsTime||Boolean(extraTime&&!timeUnknown),content:<div className={styles.form}><label>{inputCopy.timeSupplement}<BirthTimeInput  {...fieldProps('time')} value={extraTime} disabled={timeUnknown} onChange={e=>setExtraTime(e.target.value)}/></label><label><input type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/>{inputCopy.timeUnknown}</label><p id="consultation-time-error">{needsTime?inputCopy.timeRequired:inputCopy.supplementSaved}</p></div>});
    if(selectedProfile&&!selectedProfile.location?.label)prep.push({id:'birth-place',prompt:voiceStyle==='honorific'?'지역을 확인해 주실래요?':'지역도 확인해 줄래?',answer:extraPlace||'지역 보충 없이 진행',valid:!needsPlace||Boolean(extraPlace.trim()||currentLocation),content:<div className={styles.form}><CurrentLocationButton key={profileId} locale={siteLocale} translation={readingLocationCopy(siteLocale)} disabled={busy} onLocation={value=>{setCurrentLocation(value);setExtraPlace(value.name);}}/><label>{inputCopy.placeSupplement}<input {...fieldProps('place')} maxLength={120} value={extraPlace} onChange={e=>{setExtraPlace(e.target.value);setCurrentLocation(null);}} placeholder={inputCopy.placePlaceholder}/></label><p id="consultation-place-error">{needsPlace?inputCopy.placeRequired:inputCopy.supplementSaved}</p></div>});
    if(kind.partner)prep.push({id:'partner',prompt:voiceStyle==='honorific'?'함께 비교할 상대의 프로필도 골라주세요.':'함께 비교할 상대의 프로필도 골라줘.',answer:partnerProfile?.name||'',valid:Boolean(partnerId)&&!missing.includes(inputCopy.partnerDetails),content:<div className={styles.form}><label>{inputCopy.partner}<select {...fieldProps('partner')} value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">{inputCopy.partnerSelect}</option>{profiles.filter(p=>profileKey(p)!==profileId).map(p=><option key={profileKey(p)} value={profileKey(p)}>{p.name}</option>)}</select></label>{missing.includes(inputCopy.partnerDetails)?<p role="alert" id="consultation-partner-error">{inputCopy.partnerDetails}</p>:fieldNote('partner')}</div>});
+   if(experienceCheck)prep.push({id:'past-years',prompt:voiceStyle==='honorific'?'원하시면 지난 몇 해의 경험도 알려 주세요. 건너뛰어도 괜찮아요.':'원하면 지난 몇 해의 경험도 알려 줘. 건너뛰어도 괜찮아.',answer:surveyAnswers.length?experienceCopy(siteLocale).answered(surveyAnswers.length):experienceCopy(siteLocale).skipped,valid:true,content:<ExperienceSurvey check={experienceCheck} rows={experienceRows} onRows={setExperienceRows} locale={siteLocale} disabled={busy} open/>});
   }
   else {
    prep.push({id:'tarot',prompt:voiceStyle==='honorific'?'질문에 맞는 카드 배치를 확인해 볼까요?':'질문에 맞는 카드 배치를 함께 골라볼까?',answer:tarotSpreadView?.title||'타로 준비',valid:Boolean(tarotSpread&&tierAllowsSpread(product.fishId,tarotSpread)),content:<><TarotSpreadPlanner panel="spread" locale={siteLocale} question={question} onQuestion={value=>{setQuestion(value);setDecision(undefined);setChatStep('question');}} plan={tarotPlan} onPlan={plan=>{setTarotPlan(plan);setTierNotice('');}} tier={product.fishId} purposeMode={questionActive} disabled={busy} notice={tierNotice}
@@ -343,6 +363,7 @@ export default function Consultation(){
     {(selectedProfile?.birth?.timeUnknown||!selectedProfile.location?.label)&&<p>{inputCopy.supplementSaved}</p>}
     {kind.partner&&<label>{inputCopy.partner}<select {...fieldProps('partner')} value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">{inputCopy.partnerSelect}</option>{profiles.filter(p=>(p.profileId||p.id)!==profileId).map(p=><option key={p.profileId||p.id} value={p.profileId||p.id}>{p.name}</option>)}</select>{fieldNote('partner')}</label>}
     </div>}
+    {experienceCheck&&<ExperienceSurvey check={experienceCheck} rows={experienceRows} onRows={setExperienceRows} locale={siteLocale} disabled={busy}/>}
    </>}
    {!questionActive&&!tarotSpread&&(kind.question||kind.partner&&relationshipQuestionId)&&<section className={styles.questionSection} aria-label={askCopy.heading} lang={siteLocale}><figure className={styles.questionPose} aria-hidden="true"><img src={`/assets/yeongnyangi/moods/${tarotOnly?'sparkle':'ponder'}.webp`} alt="" width={360} height={300} decoding="async"/></figure><h2>{tarotOnly?inputCopy.tarotHeading:askCopy.heading}</h2><p>{askCopy.intro}</p>
    {kind.id==='ask'&&<><label htmlFor="consultation-topic">{askCopy.topic}</label><select id="consultation-topic" value={topicId} onChange={e=>{setTopicId(e.target.value);trackEvent('concern_selected',{service:'yeongnyangi',domain,topic_id:e.target.value});}}><option value="general">{askCopy.general}</option>{Object.keys(topicCatalog).map(id=><option value={id} key={id}>{askCopy.topics[id as keyof typeof topicCatalog]}</option>)}</select></>}

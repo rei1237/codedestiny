@@ -1,4 +1,5 @@
 import { calculateScreenSaju } from './runtime';
+import { experienceCalibrationFact } from './experience';
 import {sajuCompatibilityEvidence} from './compatibility-evidence';
 import { buildElementProfile, buildMovementSignals, buildRomanceTiming, buildSajuHealthBasis, buildTenGodProfile } from '../../../lib/saju-derived-signals.js';
 import { context, domain } from "../shared/domain";
@@ -31,7 +32,9 @@ fiveElements에 countBasis가 있으면 오행 개수는 counts(눈에 보이는
     const timed = !!input.personA!.birthTime;
     const pillars = {year:r.yearPillar, month:r.monthPillar, day:r.dayPillar, hour:r.hourPillar ?? null};
     const elementProfile = buildElementProfile(r.fiveElements);
-    const partner = input.personB ? await saju.calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},options) : undefined;
+    const partner = input.personB ? await saju.calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},{...options,experience:undefined}) : undefined;
+    // 경험 보정은 원국을 읽기만 하고 대운·세운 강조에만 쓰인다. 출생시간이 없으면 대운 경계를 몰라 만들지 않는다.
+    const experienceCalibration = timed && options.experience?.length ? experienceCalibrationFact(r, options.experience) : null;
     const partnerFacts = partner ? Object.fromEntries(partner.facts.map(f=>[f.label,f.value])) : undefined;
     return context(
       "saju",
@@ -73,6 +76,7 @@ fiveElements에 countBasis가 있으면 오행 개수는 counts(눈에 보이는
         romanceTiming: buildRomanceTiming({gender:input.personA!.gender, tenGodsByPillar:r.tenGodsByPillar, shinsal:r.shinsal, yearlyLuck:timed ? r.yearlyLuck : null, majorLuck:timed ? r.majorLuck : null}),
         healthBasis: buildSajuHealthBasis({fiveElements:r.fiveElements, seasonalBalance:r.seasonalBalance, dayMaster:r.dayMaster, elementProfile}),
         calculationMeta: r.calculationMeta,
+        ...(experienceCalibration?{experienceCalibration}:{}),
       },
       [...limitations,...(partner?.limitations.map(value=>`상대: ${value}`)||[])],
     );

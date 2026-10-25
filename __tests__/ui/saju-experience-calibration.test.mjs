@@ -54,7 +54,7 @@ test('19. 같은 해 여러 분야 사건은 분야별로 따로 센다', () => 
 test('20. 평범·불확실·건너뜀은 나쁨이 되지 않고, 같은 사건은 한 번만 센다', () => {
   const c = run([
     ev(2006, 'career', 'ordinary'), ev(2007, null, 'unsure'), ev(2008, null, 'skip'), ev(2009, 'money', 'mixed'),
-    ev(2013, 'career', 'good', { certainty: 'unsure' }),
+    ev(2013, 'career', 'good', { certainty: 'unsure' }), ev(1994, 'career', 'good'), ev(2026, 'money', 'good'),
     ev(2004, 'career', 'good'), ev(2004, 'career', 'good'),
     ev(2004, 'study', 'good', { note: '대학원 준비' }), ev(2005, 'study', 'good', { note: '대학원  준비' }),
   ]);
@@ -64,6 +64,8 @@ test('20. 평범·불확실·건너뜀은 나쁨이 되지 않고, 같은 사건
   assert.equal(reasons['2008|null|skip'], 'not-a-signal:skip');
   assert.equal(reasons['2009|money|mixed'], 'mixed-signal');
   assert.equal(reasons['2013|career|good'], 'uncertain-memory');
+  assert.equal(reasons['1994|career|good'], 'outside-window');
+  assert.equal(reasons['2026|money|good'], 'outside-window');
   assert.deepEqual(c.unused.filter((u) => ['duplicate', 'same-event'].includes(u.reason)).map((u) => [u.year, u.reason]), [[2004, 'duplicate'], [2005, 'same-event']]);
   assert.equal(c.counts.used, 2);
   assert.ok(c.agreements.every((a) => a.outcome === 'good') && c.mismatches.length === 0);

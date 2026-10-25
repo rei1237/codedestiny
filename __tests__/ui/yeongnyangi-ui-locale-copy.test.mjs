@@ -3,8 +3,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {RUNTIME_LOCALES} from '../../lib/i18n/locale-normalize.js';
-const built=await build({stdin:{contents:"export {chartCopy,chartTerm,chartLimitation} from './app/yeongnyangi/_lib/reading-chart-copy'; export {consultationInputCopy} from './app/yeongnyangi/_lib/consultation-input-copy'; export {resultStateCopy} from './app/yeongnyangi/_lib/result-state-copy'; export {readingCopy} from './app/yeongnyangi/_lib/reading-copy'; export {askPhase5Copy} from './app/yeongnyangi/_lib/ask-phase5-copy'; export {jongCheckCopy} from './app/yeongnyangi/_lib/jong-check-copy';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
-const {chartCopy,chartTerm,chartLimitation,consultationInputCopy,resultStateCopy,readingCopy,askPhase5Copy,jongCheckCopy}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+const built=await build({stdin:{contents:"export {chartCopy,chartTerm,chartLimitation} from './app/yeongnyangi/_lib/reading-chart-copy'; export {consultationInputCopy} from './app/yeongnyangi/_lib/consultation-input-copy'; export {resultStateCopy} from './app/yeongnyangi/_lib/result-state-copy'; export {readingCopy} from './app/yeongnyangi/_lib/reading-copy'; export {askPhase5Copy} from './app/yeongnyangi/_lib/ask-phase5-copy'; export {experienceCopy} from './app/yeongnyangi/_lib/experience-copy';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
+const {chartCopy,chartTerm,chartLimitation,consultationInputCopy,resultStateCopy,readingCopy,askPhase5Copy,experienceCopy}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 test('chart display translates known evidence while retaining saved source values',()=>{
  assert.equal(chartTerm('오행 분포 · 월령 가중치 포함','en'),'Five elements · adjusted for birth month');
  assert.equal(chartTerm('오행 분포 · 보이는 글자 기준','ja'),'五行の分布・見える文字のみ');
@@ -57,13 +57,15 @@ test('a held paid reading preserves saved content and gives a review path withou
   assert.match(readingCopy(locale).recoveringItems(9,15),/9\/15/);
  }
 });
-test('종격 year check is authored in every site language',()=>{
- const authored=RUNTIME_LOCALES.map(locale=>jongCheckCopy(locale));
- for(const copy of authored)for(const [key,value] of Object.entries(copy))if(typeof value==='string')assert.ok(value.length>0,key);
- assert.equal(new Set(authored.map(copy=>copy.best)).size,RUNTIME_LOCALES.length);
- assert.equal(new Set(authored.map(copy=>copy.strengthIntro)).size,RUNTIME_LOCALES.length);
- assert.ok(authored.every(copy=>copy.strengthIntro!==copy.intro),'the 신강/신약 check has its own intro');
- for(const locale of ['vi','hi','es','fr','de','nl','ms'])assert.notEqual(jongCheckCopy(locale).heading,jongCheckCopy('en').heading);
- assert.equal(jongCheckCopy('ko').year(2022,'壬寅(임인)'),'2022년 壬寅(임인)');
- assert.equal(jongCheckCopy('en').year(2022,'壬寅(임인)'),'2022 (壬寅)');
+test('past-experience survey is authored in every site language',()=>{
+ const authored=RUNTIME_LOCALES.map(locale=>experienceCopy(locale));
+ for(const copy of authored)for(const group of [copy,copy.outcomes,copy.domains,copy.intensities])for(const [key,value] of Object.entries(group))if(typeof value==='string')assert.ok(value.trim(),key);
+ assert.equal(experienceCopy('ko').heading,'과거 경험을 바탕으로 운의 해석을 개인화합니다');
+ assert.equal(new Set(authored.map(copy=>copy.heading)).size,RUNTIME_LOCALES.length);
+ for(const copy of authored)assert.equal(Object.keys(copy.outcomes).length,6);
+ // "아니오"를 "나빴음"으로 바꾸지 않도록 평범·불확실·건너뜀이 따로 있고, 정확도를 약속하지 않는다.
+ assert.deepEqual(Object.values(experienceCopy('ko').outcomes),['특별히 좋았음','특별히 나빴음','좋고 나쁜 일이 함께 있었음','대체로 평범했음','기억이 불확실함','해당 없음·응답 건너뜀']);
+ for(const copy of authored)assert.doesNotMatch(JSON.stringify(copy),/정확도|적중|검증되|accuracy|verified/i);
+ assert.equal(experienceCopy('ko').year(2022),'2022년');
+ assert.equal(experienceCopy('en').year(2022),'2022');
 });

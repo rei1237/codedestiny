@@ -36,7 +36,7 @@ try{
    let data={ok:true};
    if(url.pathname==='/api/yeongnyangi/products')data={products:products.map(p=>({...p,available:true}))};
    else if(url.pathname==='/api/yeongnyangi/profiles')data={ok:true,profiles:missingProfile?[]:[profile],currentId:missingProfile?null:profile.id};
-   else if(url.pathname.endsWith('/saju/jong-check'))data={check:null};
+   else if(url.pathname.endsWith('/saju/experience-check'))data={check:null};
    else if(url.pathname.endsWith('/service-packs/wallet'))data={ok:true,packs:hasPacks&&url.searchParams.has('before')?[{entitlementId:'mock-pack',orderId:'mock-order',planId:'mock-plan',label:'고등어 5회 이용권',fishId:'mackerel',totalUses:5,remainingUses:3,expiresAt:'2099-01-01',status:'granted',available:true,unavailableReason:'',eligibleFeatureKeys:['yeongnyangi-saju-mackerel']}]:[],nextCursor:hasPacks&&!url.searchParams.has('before')?'second':null};
    else if(url.pathname.endsWith('/service-packs/quote'))return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,code:'REQUEST_UNCERTAIN'})});
    else if(url.pathname==='/api/yeongnyangi/requests'){
