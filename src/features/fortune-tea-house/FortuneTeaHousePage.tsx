@@ -1420,6 +1420,14 @@ export default function FortuneTeaHousePage() {
       }
       if (!response.ok || !payload.ok || !payload.result) {
         const submitError = new Error(payload.message || "연이가 상담문을 엮는 중 잠시 멈췄어요. 다시 한 번만 건네주세요.");
+        // 서버가 한도 복구를 확정한 요청만 종료한다. 응답 유실·저장 지연은 기존 증빙을 유지한다.
+        if (payload.reason === "PASS_ALREADY_REFUNDED") {
+          clearFortuneTeaRecovery(attemptOwnerId, attemptId);
+          if (unusedPaidAttemptRef.current?.attemptId === attemptId) unusedPaidAttemptRef.current = null;
+          setQuestionInput({ ...nextQuestionInput, attemptId: undefined });
+          setPartialSections([]);
+          (submitError as Error & { paymentRequired?: boolean }).paymentRequired = true;
+        }
         if (payload.paymentRequired) {
           (submitError as Error & { paymentRequired?: boolean }).paymentRequired = true;
         }

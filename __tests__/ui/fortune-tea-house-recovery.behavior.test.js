@@ -73,7 +73,7 @@ test('actual polling survives 503 without changing evidence and remains bounded'
   assert.equal(posts.length,0);
 });
 const cup = { id: "cup-a", name: "찻잔", topic: "진로" };
-function harness({ window = { localStorage: store(), sessionStorage: store() }, failureStatus = 503, paid = true, saved = null, owner = "user-a" } = {}) {
+function harness({ window = { localStorage: store(), sessionStorage: store() }, failureStatus = 503, failureReason = "RESULT_STORAGE_UNAVAILABLE", paid = true, saved = null, owner = "user-a" } = {}) {
   const api = recoveryApi(window);
   const posts = [];
   let gateCalls = 0;
@@ -112,7 +112,7 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
       posts.push(JSON.parse(JSON.stringify(body)));
       if (!succeed && failureStatus === 0) throw new Error("MOCK_RESPONSE_LOST");
       return succeed ? { response: { ok: true, status: 200 }, payload: { ok: true, result: { resultId: body.attemptId, body: "SAVED_RESULT" } } }
-        : { response: { ok: false, status: failureStatus }, payload: { ok: false, reason: "RESULT_STORAGE_UNAVAILABLE", message: "저장 확인 실패" } };
+        : { response: { ok: false, status: failureStatus }, payload: { ok: false, reason: failureReason, message: "저장 확인 실패" } };
     },
     isFortuneTeaGenerationPending: () => false, normalizeHoneyDropsState: () => null,
     pollFortuneTeaConsultResult: async () => null,
@@ -163,6 +163,22 @@ for (const paid of [true, false]) {
     });
   }
 }
+
+test("confirmed pass refund ends only the failed attempt and a manual retry checks access with a new key", async () => {
+  const h = harness({ paid: false, failureStatus: 409, failureReason: "PASS_ALREADY_REFUNDED" });
+  await h.submit({ ...input, attemptId: "old-refunded-attempt" });
+  assert.equal(h.state.completed, undefined);
+  assert.equal(h.state.unusedPaidAttemptRef.current, null);
+  assert.equal(h.api.readFortuneTeaRecovery("user-a"), null);
+  assert.equal(h.state.input.attemptId, undefined);
+  assert.equal(h.state.input.question, input.question);
+  h.succeed();
+  await h.submit(h.state.input);
+  assert.notEqual(h.posts[0].attemptId, h.posts[1].attemptId);
+  assert.equal(h.ensureCalls(), 2);
+  assert.equal(h.gateCalls(), 0);
+  assert.equal(h.state.completed, true);
+});
 
 test("blocked storage retains in-page request; API failure cannot become local preview success", async () => {
   const blocked = {};
