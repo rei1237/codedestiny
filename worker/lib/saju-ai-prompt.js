@@ -17,7 +17,9 @@ import {
 import {
   buildGyeokgukAnalysis,
   buildTwelveLifeStagesForPillars,
+  natalCoreFromPillarRows,
 } from "./saju-gyeokguk.js";
+import { legacyJongShape } from "../../lib/saju/natal-core/index.mjs";
 
 const DEFAULT_TEXT = "제공되지 않음";
 
@@ -2209,7 +2211,8 @@ export function buildSajuAIPromptWithDomain({
   const weights = normalizeElementWeights(sajuResult, sajuResult.snapshot);
   const johu = sajuResult.johu && typeof sajuResult.johu === "object" ? sajuResult.johu : {};
   const power = sajuResult.power && typeof sajuResult.power === "object" ? sajuResult.power : {};
-  const jong = sajuResult.jong && typeof sajuResult.jong === "object" ? sajuResult.jong : {};
+  // 종격 여부는 요청에 실린 값(옛 설문을 거쳤을 수 있음)이 아니라 원국 기둥으로 다시 판정한다.
+  const jong = legacyJongShape(natalCoreFromPillarRows(normalizeSajuPillarRows(sajuResult)));
   const engineContext = normalizeSajuEngineContext(sajuResult);
   const advancedFactors = engineContext.advancedFactors;
   const calibrationResolved = resolveSajuCalibrationLuck(calibration, {

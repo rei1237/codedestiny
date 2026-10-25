@@ -26,6 +26,7 @@ var SajuNatalCore = (() => {
     NATAL_RULE_PROFILE: () => NATAL_RULE_PROFILE,
     analyzeClimate: () => analyzeClimate,
     analyzeNatalCore: () => analyzeNatalCore,
+    gyeokgukView: () => gyeokgukView,
     legacyJongShape: () => legacyJongShape,
     natalAnalysisId: () => natalAnalysisId,
     natalAnalysisKeyMaterial: () => natalAnalysisKeyMaterial,
@@ -38,6 +39,8 @@ var SajuNatalCore = (() => {
   var ELEMENTS = ["wood", "fire", "earth", "metal", "water"];
   var EL_KO = { wood: "목", fire: "화", earth: "토", metal: "금", water: "수" };
   var EL_HAN = { wood: "木", fire: "火", earth: "土", metal: "金", water: "水" };
+  var STEM_KO = { 甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계" };
+  var BRANCH_KO = { 子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해" };
   var STEM_EL = { 甲: "wood", 乙: "wood", 丙: "fire", 丁: "fire", 戊: "earth", 己: "earth", 庚: "metal", 辛: "metal", 壬: "water", 癸: "water" };
   var STEM_YANG = { 甲: true, 乙: false, 丙: true, 丁: false, 戊: true, 己: false, 庚: true, 辛: false, 壬: true, 癸: false };
   var BRANCH_EL = { 子: "water", 丑: "earth", 寅: "wood", 卯: "wood", 辰: "earth", 巳: "fire", 午: "fire", 未: "earth", 申: "metal", 酉: "metal", 戌: "earth", 亥: "water" };
@@ -451,8 +454,8 @@ var SajuNatalCore = (() => {
     if ("子午卯酉".includes(monthBranch)) return { ...main, exposed: isExposed(main), rule: "왕지는 정기" };
     if ("寅申巳亥".includes(monthBranch)) {
       if (isExposed(main)) return { ...main, exposed: true, rule: "생지 정기 투간" };
-      const other = layers.slice(0, -1).reverse().find(isExposed);
-      return other ? { ...other, exposed: true, rule: "생지 정기 미투, 투간한 중기·여기" } : { ...main, exposed: false, rule: "생지 투간 없음, 정기" };
+      const other = layers.slice(0, -1).reverse().find((h) => isExposed(h) && relationOf(STEM_EL[dayStem], h.el) !== "self");
+      return other ? { ...other, exposed: true, rule: "생지 정기 미투, 투간한 중기·여기" } : { ...main, exposed: false, rule: "생지 비겁 외 투간 없음, 정기" };
     }
     const order = [...layers].reverse();
     const nonSelf = order.find((h) => isExposed(h) && relationOf(STEM_EL[dayStem], h.el) !== "self");
@@ -473,7 +476,7 @@ var SajuNatalCore = (() => {
       const pick = pickMonthStem(mb, d, exposed);
       const god = tenGod(d, pick.stem);
       if (god === "비견" || god === "겁재") row = { ...base, name: "월겁격", kind: "yuejie", ruleId: "GK-ROK", chosen: pick, tenGod: god, reason: `월령에서 취한 ${pick.stem}(${pick.layer})이 ${god}` };
-      else row = { ...base, name: GEOK_BY_TEN_GOD[god], kind: "regular", ruleId: "GK-REGULAR", chosen: pick, tenGod: god, reason: `월령에서 취한 ${pick.stem}(${pick.layer}, ${pick.rule})이 ${god}`, confident: pick.exposed || "子午卯酉".includes(mb) };
+      else row = { ...base, name: GEOK_BY_TEN_GOD[god], kind: "regular", ruleId: "GK-REGULAR", chosen: pick, tenGod: god, reason: `월령에서 취한 ${pick.stem}(${pick.layer}, ${pick.rule})이 ${god}`, confident: pick.exposed };
     }
     if (row.kind !== "regular") row.subUses = rokSubUses(chart);
     return row;
@@ -509,6 +512,90 @@ var SajuNatalCore = (() => {
       monthStructure: general,
       pendingSpecial: special.decision === "pending" ? special.pending : [],
       reason: general ? month.reason : "월령 정보가 부족해 격을 세우지 않음"
+    };
+  }
+  function josa(word, withBatchim, withoutBatchim) {
+    const text = String(word || "").replace(/\([^)]*\)$/, "");
+    const code = text.charCodeAt(text.length - 1) - 44032;
+    const batchim = code >= 0 && code <= 11171 ? code % 28 : 0;
+    return String(word || "") + (batchim && !(batchim === 8 && withBatchim === "으로") ? withBatchim : withoutBatchim);
+  }
+  var SUB_USE_KO = { 用官: "용관(用官)", 用煞: "용살(用煞)", 用財: "용재(用財)", 用食傷: "용식상(用食傷)" };
+  function gyeokgukView(core) {
+    if (!core || core.status !== "ok" || core.monthStructure?.status !== "pass") {
+      return {
+        name: "미정",
+        type: "참고",
+        family: "",
+        familyKo: "",
+        ruleId: "",
+        isGa: false,
+        monthStructure: "",
+        subUses: [],
+        pendingSpecial: [],
+        confident: false,
+        reason: "월지 정보가 부족해 격을 세우지 않고, 억부·조후 흐름으로 보완해 읽습니다.",
+        reasonNeo: "월지 정보가 부족해서 격을 세우지 않고, 억부·조후 흐름으로 보완해 읽어."
+      };
+    }
+    const g = core.gyeokguk, m = core.monthStructure, d = core.dayMaster.stem;
+    const mbKo = BRANCH_KO[m.monthBranch] || m.monthBranch, dKo = STEM_KO[d] || d;
+    const uses = [...new Set((m.subUses || []).map((u) => SUB_USE_KO[u.use]).filter(Boolean))];
+    const useText = uses.length ? `다른 자리의 재·관·식상 쓰임인 ${josa(uses.join("·"), "을", "를")} 함께 봅니다.` : "다른 자리에 재·관·식상이 드러나지 않아 억부·조후로 쓰임을 정합니다.";
+    const useTextNeo = uses.length ? `다른 자리의 재·관·식상 쓰임인 ${josa(uses.join("·"), "을", "를")} 같이 봐.` : "다른 자리에 재·관·식상이 드러나지 않아서 억부·조후로 쓰임을 정해.";
+    let reason = "", reasonNeo = "", confident = true;
+    if (g.type === "특수격") {
+      const adopted = core.special.candidates.find((c) => c.id === core.special.adopted) || {};
+      reason = `원국이 ${g.name}의 필수 조건을 모두 충족해 ${josa(g.familyKo, "으로", "로")} 봅니다.`;
+      reasonNeo = `원국이 ${g.name}의 필수 조건을 모두 채워서 ${josa(g.familyKo, "으로", "로")} 봐.`;
+      if (adopted.isGa) {
+        reason += " 일간을 돕는 글자가 있어도 실제 뿌리로 작용하지 못하는 가종(假從)의 조건입니다.";
+        reasonNeo += " 일간을 돕는 글자가 있어도 실제 뿌리로 작용하지 못하는 가종(假從)의 조건이야.";
+      }
+    } else if (m.kind === "rok") {
+      reason = `월지 ${josa(mbKo, "이", "가")} 일간 ${dKo}의 건록 자리라 건록격으로 봅니다. 건록격은 일반격이며, ${useText}`;
+      reasonNeo = `월지 ${josa(mbKo, "이", "가")} 일간 ${dKo}의 건록 자리라 건록격으로 봐. 건록격은 일반격이고, ${useTextNeo}`;
+    } else if (m.kind === "yangin") {
+      reason = `월지 ${josa(mbKo, "이", "가")} 양간 일간 ${dKo}의 양인 자리라 양인격으로 봅니다. 양인격은 일반격이며, ${useText}`;
+      reasonNeo = `월지 ${josa(mbKo, "이", "가")} 양간 일간 ${dKo}의 양인 자리라 양인격으로 봐. 양인격은 일반격이고, ${useTextNeo}`;
+    } else if (m.kind === "yuejie") {
+      const picked = josa(`${STEM_KO[m.chosen.stem] || m.chosen.stem}(${m.chosen.layer})`, "이", "가"), god = josa(m.tenGod, "이라", "라");
+      reason = `월령에서 취한 ${picked} ${god} 월겁격으로 봅니다. 월겁격은 일반격이며, ${useText}`;
+      reasonNeo = `월령에서 취한 ${picked} ${god} 월겁격으로 봐. 월겁격은 일반격이고, ${useTextNeo}`;
+    } else {
+      const god = m.tenGod;
+      if (m.chosen.exposed) {
+        reason = `월지 ${mbKo} 지장간의 ${josa(god, "이", "가")} 천간에 투출되어 ${josa(m.name, "이", "가")} 뚜렷합니다.`;
+        reasonNeo = `월지 ${mbKo} 지장간의 ${josa(god, "이", "가")} 천간에 투출돼서 ${josa(m.name, "이", "가")} 뚜렷해.`;
+      } else {
+        reason = `월지 ${mbKo} 지장간의 ${josa(god, "을", "를")} 기준으로 ${josa(m.name, "으로", "로")} 보되, 투출이 약해 확정도는 낮습니다.`;
+        reasonNeo = `월지 ${mbKo} 지장간의 ${josa(god, "을", "를")} 기준으로 ${josa(m.name, "으로", "로")} 보되, 투출이 약해서 확정도는 낮아.`;
+        confident = false;
+      }
+    }
+    if (m.hourSensitive && g.type !== "특수격") {
+      reason += ` 시주에 따라 월령 구조가 ${josa(m.alternatives.join("·"), "으로", "로")} 갈려 확정하지 않습니다.`;
+      reasonNeo += ` 시주에 따라 월령 구조가 ${josa(m.alternatives.join("·"), "으로", "로")} 갈려서 확정하지 않아.`;
+      confident = false;
+    }
+    const pending = g.pendingSpecial || [];
+    if (pending.length) {
+      reason += ` 특수격 후보(${pending.join("·")})는 시주나 문헌 이설 때문에 판정을 보류하고 일반격 기준으로 읽습니다.`;
+      reasonNeo += ` 특수격 후보(${pending.join("·")})는 시주나 문헌 이설 때문에 판정을 보류하고 일반격 기준으로 읽어.`;
+    }
+    return {
+      name: g.name,
+      type: g.type,
+      family: g.family,
+      familyKo: g.familyKo,
+      ruleId: g.ruleId,
+      isGa: g.isGa === true,
+      monthStructure: g.monthStructure,
+      subUses: m.subUses || [],
+      pendingSpecial: pending,
+      confident,
+      reason,
+      reasonNeo
     };
   }
 

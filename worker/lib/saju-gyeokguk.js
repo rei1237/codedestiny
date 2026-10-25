@@ -6,6 +6,23 @@
 //
 // 십이운성 60갑자 조견표(E12_MAP)는 프로덕션 검증된 js/saju-engine.js:8274-8285 값을
 // 그대로 복사해 이식했다(재유도하지 않음).
+//
+// 최종 격국은 lib/saju/natal-core(원국 판정 정본)가 정한다. 호출부가 넘기는 jong은
+// 과거 설문을 거친 값일 수 있어 판정에 쓰지 않는다.
+import { analyzeNatalCore, gyeokgukView } from "../../lib/saju/natal-core/index.mjs";
+
+// [{ position, stem, branch }] → natal-core 판정. 시주 행이 없으면 시주 미상으로 본다.
+export function natalCoreFromPillarRows(pillarRows, dayStem) {
+  const rows = Array.isArray(pillarRows) ? pillarRows : [];
+  const natalPillars = {};
+  for (const [position, key] of [["year", "y"], ["month", "m"], ["day", "d"], ["hour", "h"]]) {
+    const row = rows.find((r) => r?.position === position);
+    if (row) natalPillars[key] = { g: normalizeStemChar(row.stem), j: normalizeBranchChar(row.branch) };
+  }
+  const day = normalizeStemChar(dayStem);
+  if (day && !natalPillars.d?.g) natalPillars.d = { ...natalPillars.d, g: day };
+  return analyzeNatalCore(natalPillars);
+}
 
 const STEM_ELEMENT_KEY = Object.freeze({
   甲: "wood", 乙: "wood", 丙: "fire", 丁: "fire", 戊: "earth",
@@ -209,7 +226,7 @@ function buildLuckTiming(luckRows, power, jong, dayStem) {
  *   hiddenStems           buildSajuHiddenStemItems 결과 [{ position, branch, hiddenStem, layer, weight, tenGodFromDayMaster }]
  *   hiddenStemExposures   buildSajuHiddenStemExposures 결과 [{ hiddenStem, exposedInNatalHeavenlyStem, ... }]
  *   power                 { yongshin, kijishin, isStrong }
- *   jong                  { isJong, name }
+ *   jong                  { isJong, name } — 호환용으로 받기만 하고 격국 판정에는 쓰지 않는다.
  *   luckRows              normalizeSajuLuckRows 결과 [{ scope, stem, branch, label }]
  *   doChung               { exists, ... }
  *   earthStorageOpenings  [{ sourceBranch, triggerBranch, relationType }]
@@ -278,56 +295,14 @@ export function buildGyeokgukAnalysis({
       score: row.score,
     }));
 
-  // 월지 정기(본기) 십성 — 건록격/양인격/월겁격 판정 기준.
-  const mainQi = monthHidden.find((row) => row.layer === "정기") || monthHidden[0] || null;
-  const monthStage = getTwelveLifeStage(day, monthBranch);
-  const dayIsYang = STEM_POLARITY[day] === "yang";
-
-  let finalGyeokguk = "";
-  let finalType = "일반격";
-  let judgmentReason = "";
-  let judgmentReasonNeo = "";
-  let confident = true;
-
-  if (jong && jong.isJong) {
-    finalGyeokguk = String(jong.name || "종격").trim() || "종격";
-    finalType = "특수격";
-    judgmentReason = "일간이 극도로 편중되어 종격(특수격)으로 성립합니다. 정기·투출보다 세력의 종속이 우선입니다.";
-    judgmentReasonNeo = "일간이 극도로 편중돼서 종격(특수격)으로 성립해. 정기·투출보다 세력의 종속이 우선이야.";
-  } else if (mainQi && (mainQi.tenGod === "비견" || mainQi.tenGod === "겁재")) {
-    // 월령 본기가 일간과 같은 오행 → 정규 격 대신 건록/양인/월겁 구조.
-    if (monthStage === "건록") {
-      finalGyeokguk = "건록격";
-      judgmentReason = `월지 ${withJosa(monthBranchKo, "이", "가")} 일간 ${STEM_KO[day] || day}의 건록 자리라 건록격으로 봅니다.`;
-      judgmentReasonNeo = `월지 ${withJosa(monthBranchKo, "이", "가")} 일간 ${STEM_KO[day] || day}의 건록 자리라 건록격으로 봐.`;
-    } else if (monthStage === "제왕" && dayIsYang) {
-      finalGyeokguk = "양인격";
-      judgmentReason = `월지 ${withJosa(monthBranchKo, "이", "가")} 양간 일간의 제왕(양인) 자리라 양인격으로 봅니다.`;
-      judgmentReasonNeo = `월지 ${withJosa(monthBranchKo, "이", "가")} 양간 일간의 제왕(양인) 자리라 양인격으로 봐.`;
-    } else {
-      finalGyeokguk = "월겁격";
-      judgmentReason = `월령 본기가 ${mainQi.tenGod}이라 정규 격 대신 월겁격(신강 구조)으로 봅니다.`;
-      judgmentReasonNeo = `월령 본기가 ${mainQi.tenGod}이라 정규 격 대신 월겁격(신강 구조)으로 봐.`;
-    }
-    finalType = "특수격";
-  } else if (candidates.length) {
-    const best = candidates[0];
-    finalGyeokguk = best.name;
-    finalType = "일반격";
-    judgmentReason = best.exposed
-      ? `월지 ${monthBranchKo} 지장간의 ${best.tenGod}이 천간에 투출되어 ${best.name}이 뚜렷합니다.`
-      : `월지 ${monthBranchKo} 지장간의 ${best.tenGod}을 기준으로 ${best.name}으로 보되, 투출이 약해 확정도는 낮습니다.`;
-    judgmentReasonNeo = best.exposed
-      ? `월지 ${monthBranchKo} 지장간의 ${best.tenGod}이 천간에 투출돼서 ${best.name}이 뚜렷해.`
-      : `월지 ${monthBranchKo} 지장간의 ${best.tenGod}을 기준으로 ${best.name}으로 보되, 투출이 약해서 확정도는 낮아.`;
-    if (!best.exposed) confident = false;
-  } else {
-    finalGyeokguk = "미정";
-    finalType = "참고";
-    judgmentReason = "월지 지장간에서 뚜렷한 정규 격이 성립하지 않아, 억부·조후 흐름으로 보완해 읽습니다.";
-    judgmentReasonNeo = "월지 지장간에서 뚜렷한 정규 격이 성립하지 않아서, 억부·조후 흐름으로 보완해 읽어.";
-    confident = false;
-  }
+  // 최종 격국: 원국 네 기둥만으로 natal-core가 판정한다. 건록·양인·월겁도 일반격이다.
+  const natalCore = natalCoreFromPillarRows(rows, day);
+  const view = gyeokgukView(natalCore);
+  const finalGyeokguk = view.name;
+  const finalType = view.type;
+  const judgmentReason = view.reason;
+  const judgmentReasonNeo = view.reasonNeo;
+  const confident = view.confident;
 
   // 파격 요소.
   const breakFactors = [];
@@ -364,5 +339,14 @@ export function buildGyeokgukAnalysis({
     candidates: candidates.slice(0, 3),
     breakFactors,
     luckTiming,
+    family: view.family,
+    familyKo: view.familyKo,
+    isGa: view.isGa,
+    ruleId: view.ruleId,
+    monthStructure: view.monthStructure,
+    subUses: view.subUses,
+    pendingSpecial: view.pendingSpecial,
+    natalAnalysisId: natalCore.analysisId,
+    natalCoreVersion: natalCore.version,
   };
 }

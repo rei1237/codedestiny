@@ -221,10 +221,10 @@ describe("Saju AI prompt domain templates", () => {
       domain: "life_direction",
     });
 
-    // 甲 일간 · 월지 寅(본기 甲=비견) → 건록 자리 → 건록격
+    // 甲 일간 · 월지 寅 → 녹(ROK-01) → 건록격, 건록격은 일반격
     const gyeok = built.factSnapshot.majorStructures.gyeokguk;
     expect(gyeok.finalGyeokguk).toBe("건록격");
-    expect(gyeok.finalType).toBe("특수격");
+    expect(gyeok.finalType).toBe("일반격");
     expect(built.factCard).toContain("10. 격국");
     expect(built.factCard).toContain("십이운성");
     // 년지 未는 甲 기준 묘
@@ -252,17 +252,19 @@ describe("Saju AI prompt domain templates", () => {
     expect(gyeok.finalType).toBe("일반격");
   });
 
-  test("종격이면 jong.name을 그대로 격국으로 존중한다", () => {
+  test("요청에 실린 jong(옛 설문을 거쳤을 수 있음)은 격국을 바꾸지 않는다", () => {
+    const ask = (sajuResult) => sajuPrompt.buildSajuAIPromptWithDomain({
+      question: "내 명식이 종격인지와 그 흐름을 알려줘",
+      sajuResult,
+      domain: "life_direction",
+    }).factSnapshot.majorStructures.gyeokguk;
+    const plain = ask(buildBaseSajuResult());
     const base = buildBaseSajuResult();
     base.jong = { isJong: true, name: "종재격" };
-    const built = sajuPrompt.buildSajuAIPromptWithDomain({
-      question: "내 명식이 종격인지와 그 흐름을 알려줘",
-      sajuResult: base,
-      domain: "life_direction",
-    });
-    const gyeok = built.factSnapshot.majorStructures.gyeokguk;
-    expect(gyeok.finalGyeokguk).toBe("종재격");
-    expect(gyeok.finalType).toBe("특수격");
+    const withJong = ask(base);
+    expect(withJong.finalGyeokguk).toBe(plain.finalGyeokguk);
+    expect(withJong.finalGyeokguk).not.toBe("종재격");
+    expect(withJong.natalAnalysisId).toBe(plain.natalAnalysisId);
   });
 
   test("power/jong 없이 buildSajuAdvancedFactors를 호출해도 격국이 안전하게 반환된다", () => {

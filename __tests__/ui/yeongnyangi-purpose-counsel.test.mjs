@@ -171,6 +171,7 @@ test('actual calculated cycles retain natal identity and fit a bounded evidence 
   assert.ok(JSON.stringify(p).length<110000);
 });
 test('thermal/moisture axes and confirmed or rejected special structure preserve the configured policy',()=>{
+  const gyeokguk=new Set();
   for(const type of ['cold','hot'])for(const moistType of ['wet','dry'])for(const isJong of [true,false]){
     const jong=isJong?{isJong:true,name:'종왕격',confirmedByUser:true}:{isJong:false,rejectedByUser:true};
     const input={...source,seasonalBalance:{type,moistType},jong,usefulGod:['火']};
@@ -178,6 +179,8 @@ test('thermal/moisture axes and confirmed or rejected special structure preserve
     assert.deepEqual(facts.seasonalBalance,input.seasonalBalance);
     assert.deepEqual(facts.jong,jong);assert.deepEqual(facts.usefulGod,input.usefulGod);
     assert.deepEqual(facts.strengthHeuristic,input.strengthHeuristic);
-    if(isJong)assert.equal(facts.advancedFactors.gyeokguk.finalGyeokguk,'종왕격');
+    gyeokguk.add(facts.advancedFactors.gyeokguk.finalGyeokguk);
   }
+  // 격국은 원국 기둥으로만 판정한다. 넘겨받은 jong(설문을 거쳤을 수 있음)은 격국을 바꾸지 않는다.
+  assert.equal(gyeokguk.size,1);assert.ok(!gyeokguk.has('종왕격'));
 });

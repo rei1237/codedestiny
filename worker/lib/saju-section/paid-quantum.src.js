@@ -367,7 +367,8 @@ function renderQuantumStrategy(p, natal, bazi){
   })();
 
   /* ── STEP 4: 격국 판별 ── */
-  /* 정본: worker/lib/saju-gyeokguk.js buildGyeokgukAnalysis (GEOK_BY_TEN_GOD / LAYER_WEIGHT / EXPOSURE_BONUS) */
+  /* 후보 표: worker/lib/saju-gyeokguk.js buildGyeokgukAnalysis (GEOK_BY_TEN_GOD / LAYER_WEIGHT / EXPOSURE_BONUS).
+     최종 격국은 natal-core(원국 판정 정본)의 gyeokgukView를 그대로 쓴다. 건록·양인·월겁도 일반격이다. */
   var Q_GEOK_BY_TEN_GOD={정관:'정관격',편관:'편관격',정재:'정재격',편재:'편재격',식신:'식신격',상관:'상관격',정인:'정인격',편인:'편인격'};
   var Q_EXPOSURE_BONUS=2.2;
   var qGyeokguk=(function(){
@@ -385,38 +386,9 @@ function renderQuantumStrategy(p, natal, bazi){
     });
     var candidates=monthHidden.filter(function(r){return r.geok;})
       .sort(function(a,b){return b.score-a.score;});
-    var mainQi=monthHidden.filter(function(r){return r.layer==='정기';})[0]||monthHidden[0]||null;
     var monthStage=(typeof cdTwelveStage==='function')?cdTwelveStage(p.d.g,monthBranch):'';
-    var dayIsYang=(GAN[p.d.g]&&GAN[p.d.g].y)==='+';
-    var name='', type='일반격', reason='', confident=true;
-
-    if(jg&&jg.isJong){
-      name=String(jg.name||'종격').trim()||'종격';
-      type='특수격';
-      reason='일간이 극도로 편중되어 종격(특수격)으로 성립합니다. 정기·투출보다 세력의 종속이 우선입니다.';
-    }else if(mainQi&&(mainQi.tenGod==='비견'||mainQi.tenGod==='겁재')){
-      if(monthStage==='건록'){
-        name='건록격';
-        reason='월지 '+monthBranch+'가 일간 '+(GAN[p.d.g]&&GAN[p.d.g].n||p.d.g)+'의 건록 자리라 건록격으로 봅니다.';
-      }else if(monthStage==='제왕'&&dayIsYang){
-        name='양인격';
-        reason='월지 '+monthBranch+'가 양간 일간의 제왕(양인) 자리라 양인격으로 봅니다.';
-      }else{
-        name='월겁격';
-        reason='월령 본기가 '+mainQi.tenGod+'이라 정규 격 대신 월겁격(신강 구조)으로 봅니다.';
-      }
-      type='특수격';
-    }else if(candidates.length){
-      var best=candidates[0];
-      name=best.geok; type='일반격';
-      reason=best.exposed
-        ? '월지 '+monthBranch+' 지장간의 '+best.tenGod+'이 천간에 투출되어 '+best.geok+'이 뚜렷합니다.'
-        : '월지 '+monthBranch+' 지장간의 '+best.tenGod+'을 기준으로 '+best.geok+'으로 보되, 투출이 약해 확정도는 낮습니다.';
-      if(!best.exposed)confident=false;
-    }else{
-      name='미정'; type='참고'; confident=false;
-      reason='월지 지장간에서 뚜렷한 정규 격이 성립하지 않아, 억부·조후 흐름으로 보완해 읽습니다.';
-    }
+    var view=window.SajuNatalCore.gyeokgukView(window.SajuNatalCore.analyzeNatalCore(p));
+    var name=view.name, type=view.type, reason=view.reason, confident=view.confident;
 
     /* 파격 요소 */
     var breaks=[];
@@ -644,7 +616,7 @@ function renderQuantumStrategy(p, natal, bazi){
           '<div class="qm-oracle-value">'+qEsc(qGyeokguk.name)+'</div>'+
           '<div class="qm-yong-list" style="margin-top:6px">'+
             '<span class="qm-el-chip qm-chip-neutral">'+qEsc(qGyeokguk.type)+'</span>'+
-            '<span class="qm-el-chip '+(qGyeokguk.confident?'qm-chip-good':'qm-chip-neutral')+'">'+(qGyeokguk.confident?'투출 확정':'확정도 낮음')+'</span>'+
+            '<span class="qm-el-chip '+(qGyeokguk.confident?'qm-chip-good':'qm-chip-neutral')+'">'+(qGyeokguk.confident?'판정 확정':'확정도 낮음')+'</span>'+
             (qGyeokguk.monthStage?'<span class="qm-el-chip qm-chip-neutral">월령 '+qEsc(qGyeokguk.monthStage)+'</span>':'')+
           '</div>'+
           '<div class="qm-oracle-meta">'+qEsc(qGyeokguk.reason)+'</div>'+
