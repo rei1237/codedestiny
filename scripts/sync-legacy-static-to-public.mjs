@@ -13,6 +13,7 @@ import "./build-astro-reading-library.mjs";
 import "./build-sukuyo-reading-library.mjs";
 import "./build-ziwei-reading-library.mjs";
 import "./build-saju-reading-depth.mjs";
+import "./build-saju-natal-core.mjs";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync, rmSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, resolve, join } from "node:path";
