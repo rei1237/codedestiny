@@ -3713,15 +3713,22 @@ function updateCorrectedTimePreview(){
    STEP 5: 명리학 분석 엔진
 ═══════════════════════════════════════ */
 
+/* 원국 판정 정본(lib/saju/natal-core). 셸은 전역, Worker 생성물은 같은 이름의 import로 받는다. */
+function _sajuNatalCore(){
+  var core = typeof SajuNatalCore !== 'undefined' ? SajuNatalCore : (typeof window !== 'undefined' ? window.SajuNatalCore : null);
+  if (!core || typeof core.analyzeNatalCore !== 'function') throw new Error('SajuNatalCore 미로드 — js/core/saju/natal-core.generated.js 가 먼저 실행돼야 한다');
+  return core;
+}
+
 /* ─ 조후 분석 ─ */
 function analyzeJohu(p){
   var yg=p.y.g,yz=p.y.j,mg=p.m.g,mz=p.m.j,dg=p.d.g,dz=p.d.j,hg=p.h.g,hz=p.h.j;
   var score=0;
   var seasonMap={'寅':'봄','卯':'봄','辰':'봄','巳':'여름','午':'여름','未':'여름','申':'가을','酉':'가을','戌':'가을','亥':'겨울','子':'겨울','丑':'겨울'};
-  var season=seasonMap[mz]||'봄';
+  var season=seasonMap[mz]||'';
   /* 월지별 계절 온도: 寅월의 남은 추위(餘寒)·申월의 남은 더위(餘熱)를 반영한 12단계 */
   var branchTemp={'子':-4,'丑':-4,'寅':-1,'卯':1,'辰':2,'巳':3,'午':4,'未':4,'申':1,'酉':-1,'戌':-2,'亥':-3};
-  score+=(mz in branchTemp)?branchTemp[mz]:2;
+  score+=(mz in branchTemp)?branchTemp[mz]:0;
   var fc=0,wc=0,wdc=0,mc=0;
   var moistCnt=0,dryCnt=0;
   [yg,yz,mg,mz,dg,dz,hg,hz].forEach(function(c){
@@ -3735,21 +3742,28 @@ function analyzeJohu(p){
       if(c==='戌'||c==='未')dryCnt++;
     }
   });
+  /* 한난·조습 판정은 원국 정본을 따른다. 월지 미상이거나 시주에 따라 갈리면 insufficient이고 균형으로 단정하지 않는다. */
+  var climate=_sajuNatalCore().analyzeClimate(p);
+  var hanType=climate.hanNan.type, joType=climate.joSeup.type;
   var type,advice,badgeCls,badgeTxt;
-  if(score>=5){type='hot';advice='사주가 매우 뜨겁습니다. 水·金 기운이 절실히 필요합니다.';badgeCls='jb-hot';badgeTxt='🔥 뜨거운 사주';}
-  else if(score>=2){type='warm';advice='사주가 따뜻한 편입니다. 水 기운으로 조절하면 좋습니다.';badgeCls='jb-warm';badgeTxt='🌞 따뜻한 사주';}
-  else if(score>=-2){type='neutral';advice='사주의 온도가 시원하게 균형잡혀 있습니다. 계절 변화에 맞춰 음양을 조절하세요.';badgeCls='jb-neutral';badgeTxt='🌤️ 시원한 사주';}
-  else if(score>=-5){type='cool';advice='사주가 서늘한 편입니다. 火·木 기운으로 온기를 보충하면 좋습니다.';badgeCls='jb-cool';badgeTxt='🍃 서늘한 사주';}
-  else{type='cold';advice='사주가 매우 차갑습니다. 火·木 기운이 절실히 필요합니다.';badgeCls='jb-cold';badgeTxt='❄️ 차가운 사주';}
+  if(hanType==='hot'){type='hot';advice='사주가 매우 뜨겁습니다. 水·金 기운이 절실히 필요합니다.';badgeCls='jb-hot';badgeTxt='🔥 뜨거운 사주';}
+  else if(hanType==='warm'){type='warm';advice='사주가 따뜻한 편입니다. 水 기운으로 조절하면 좋습니다.';badgeCls='jb-warm';badgeTxt='🌞 따뜻한 사주';}
+  else if(hanType==='neutral'){type='neutral';advice='사주의 온도가 시원하게 균형잡혀 있습니다. 계절 변화에 맞춰 음양을 조절하세요.';badgeCls='jb-neutral';badgeTxt='🌤️ 시원한 사주';}
+  else if(hanType==='cool'){type='cool';advice='사주가 서늘한 편입니다. 火·木 기운으로 온기를 보충하면 좋습니다.';badgeCls='jb-cool';badgeTxt='🍃 서늘한 사주';}
+  else if(hanType==='cold'){type='cold';advice='사주가 매우 차갑습니다. 火·木 기운이 절실히 필요합니다.';badgeCls='jb-cold';badgeTxt='❄️ 차가운 사주';}
+  else{type='insufficient';advice='출생 시각이나 월지 정보가 부족해 사주의 온도(한난)를 단정하지 않습니다.';badgeCls='jb-neutral';badgeTxt='🌫️ 한난 판단 보류';}
   var moistType,moistAdvice;
   var diff=moistCnt-dryCnt;
-  if(diff>=3){moistType='wet';moistAdvice='사주에 습기가 많은 편입니다. 건조한 환경, 금(金)·불(火) 기운을 적절히 써주면 균형이 좋아집니다.';}
-  else if(diff<=-3){moistType='dry';moistAdvice='사주가 건조한 편입니다. 물(水)·나무(木) 기운과 실제 수분(물·목욕·자연)을 통해 촉촉함을 채워주는 것이 좋습니다.';}
-  else{moistType='balanced';moistAdvice='습조(濕燥)는 비교적 균형잡힌 편입니다. 한난만 잘 맞춰주면 좋습니다.';}
+  if(joType==='wet'){moistType='wet';moistAdvice='사주에 습기가 많은 편입니다. 건조한 환경, 금(金)·불(火) 기운을 적절히 써주면 균형이 좋아집니다.';}
+  else if(joType==='dry'){moistType='dry';moistAdvice='사주가 건조한 편입니다. 물(水)·나무(木) 기운과 실제 수분(물·목욕·자연)을 통해 촉촉함을 채워주는 것이 좋습니다.';}
+  else if(joType==='balanced'){moistType='balanced';moistAdvice='습조(濕燥)는 비교적 균형잡힌 편입니다. 한난만 잘 맞춰주면 좋습니다.';}
+  else{moistType='insufficient';moistAdvice='출생 시각이나 월지 정보가 부족해 습조(濕燥)를 단정하지 않습니다.';}
   var improve=(type==='hot'||type==='warm')
     ?'시원하고 차가운 기운 필요. 북쪽 방향, 파란색·검은색 컬러, 수영·물가 활동.'
     :(type==='cold'||type==='cool')
     ?'따뜻하고 밝은 기운 필요. 남쪽 방향, 빨간색·주황색 컬러, 캠핑·BBQ 활동.'
+    :type==='insufficient'
+    ?'출생 시각이 확인되면 사주의 온도를 다시 판단할 수 있습니다.'
     :'균형잡힌 사주입니다. 다양한 오행을 골고루 활용하세요.';
   return{
     score:score,
@@ -3763,7 +3777,12 @@ function analyzeJohu(p){
     moistType:moistType,
     moistAdvice:moistAdvice,
     moistCnt:moistCnt,
-    dryCnt:dryCnt
+    dryCnt:dryCnt,
+    hanNan:climate.hanNan,
+    joSeup:climate.joSeup,
+    complete:climate.complete,
+    needLevel:climate.needLevel,
+    supplements:climate.supplements
   };
 }
 
@@ -3834,197 +3853,11 @@ function sajuSamhapState(members, incoming, original) {
 }
 
 function detectJong(p){
-  var GANHE={
-    '甲':{'己':'earth'},'己':{'甲':'earth'},
-    '乙':{'庚':'metal'},'庚':{'乙':'metal'},
-    '丙':{'辛':'water'},'辛':{'丙':'water'},
-    '丁':{'壬':'wood'},'壬':{'丁':'wood'},
-    '戊':{'癸':'fire'},'癸':{'戊':'fire'}
-  };
-  var GANCHONG=[['甲','庚'],['乙','辛'],['丙','壬'],['丁','癸']];
-  var JIHE={
-    '子':{'丑':'earth'},'丑':{'子':'earth'},
-    '寅':{'亥':'wood'},'亥':{'寅':'wood'},
-    '卯':{'戌':'fire'},'戌':{'卯':'fire'},
-    '辰':{'酉':'metal'},'酉':{'辰':'metal'},
-    '巳':{'申':'water'},'申':{'巳':'water'},
-    '午':{'未':'fire'},'未':{'午':'fire'}
-  };
-  var JICHONG=[['子','午'],['丑','未'],['寅','申'],['卯','酉'],['辰','戌'],['巳','亥']];
-
-  var gans=[p.y.g,p.m.g,p.d.g,p.h.g];
-  var zhis=[p.y.j,p.m.j,p.d.j,p.h.j];
-
-  var ganChongSet={};
-  GANCHONG.forEach(function(pr){
-    if(gans.indexOf(pr[0])>=0&&gans.indexOf(pr[1])>=0){
-      ganChongSet[pr[0]]=true; ganChongSet[pr[1]]=true;
-    }
-  });
-  var jiChongSet={};
-  JICHONG.forEach(function(pr){
-    if(zhis.indexOf(pr[0])>=0&&zhis.indexOf(pr[1])>=0){
-      jiChongSet[pr[0]]=true; jiChongSet[pr[1]]=true;
-    }
-  });
-
-  // 합 관계만으로 오행을 바꾸지 않고 월령·투간·통근·쟁합·충 조건을 확인한다.
-  // 직접 충이 있는 경우 합화가 성립하지 않으므로 원래 오행을 유지한다.
-  var ganElMap={};
-  gans.forEach(function(g){if(g&&GAN[g])ganElMap[g]=GAN[g].e;});
-  var ganHeMerged={};
-  for(var gi=0;gi<gans.length;gi++){
-    for(var gj=gi+1;gj<gans.length;gj++){
-      var g1=gans[gi],g2=gans[gj];
-      if(!g1||!g2)continue;
-      if(GANHE[g1]&&GANHE[g1][g2] && sajuHapAssessment(GANHE[g1][g2],'stem',g1,g2,gans,zhis,p.m.j).transformed){
-        // 월령·투간·통근과 쟁합·충을 확인한 합화 후보만 반영
-        ganElMap[g1]=GANHE[g1][g2]; ganElMap[g2]=GANHE[g1][g2];
-        ganHeMerged[g1]=true; ganHeMerged[g2]=true;
-        // 합화 성립에는 직접 충이 없어야 한다.
-        delete ganChongSet[g1]; delete ganChongSet[g2];
-      }
-    }
-  }
-  var jiElMap={};
-  zhis.forEach(function(z){if(z&&JI[z])jiElMap[z]=JI[z].e;});
-  var jiHeMerged={}; // 직접 충이 있는 지지는 합화하지 않는다.
-  for(var zi=0;zi<zhis.length;zi++){
-    for(var zj=zi+1;zj<zhis.length;zj++){
-      var z1=zhis[zi],z2=zhis[zj];
-      if(!z1||!z2)continue;
-      if(JIHE[z1]&&JIHE[z1][z2]){
-        if(!jiChongSet[z1] && !jiChongSet[z2] && sajuHapAssessment(JIHE[z1][z2],'branch',z1,z2,gans,zhis,p.m.j).transformed){
-          jiElMap[z1]=JIHE[z1][z2]; jiElMap[z2]=JIHE[z1][z2];
-          jiHeMerged[z1]=true; jiHeMerged[z2]=true;
-        }
-      }
-    }
-  }
-
-  var cnt={wood:0,fire:0,earth:0,metal:0,water:0};
-  gans.forEach(function(g){var e=ganElMap[g];if(e&&cnt[e]!==undefined)cnt[e]++;});
-  zhis.forEach(function(z){var e=jiElMap[z];if(e&&cnt[e]!==undefined)cnt[e]++;});
-  if(p.m.j){var mje=jiElMap[p.m.j];if(mje&&cnt[mje]!==undefined)cnt[mje]++;}
-
-  var total=9;
-  var dom1='wood',max1=0;
-  Object.keys(cnt).forEach(function(e){if(cnt[e]>max1){max1=cnt[e];dom1=e;}});
-  var dom2='wood',max2=0;
-  Object.keys(cnt).forEach(function(e){
-    var par=parentOf(e);
-    var c2=cnt[e]+(par?cnt[par]:0);
-    if(c2>max2){max2=c2;dom2=e;}
-  });
-  var pct1=max1/total*100, pct2=max2/total*100;
-  var dayEl=GAN[p.d.g]&&GAN[p.d.g].e;
-
-  // ── 종격 판정 임계값: 80%+ 진종격 / 70~80% 가종격 ──────────────
-  var JONG_TRUE_THRESHOLD = 80;
-  var JONG_GA_THRESHOLD   = 70;
-  var HWA_GA_THRESHOLD    = 75; // 합화格: 75%+ 성립 (가화格 시작)
-  var HWA_TRUE_THRESHOLD  = 80; // 합화格: 80%+ 진화格 / 75~80% 가화格
-
-  // ── 합화格(化格) 특별 판별: 일간이 천간합화에 참여한 경우 ──────────
-  // 예) 戊癸합화火: 癸 일간이 합화 → 합화된 오행+모(母)오행 기준으로 화格 판별
-  var dayGanChar = p.d.g;
-  if(ganHeMerged[dayGanChar]) {
-    var hwaDom = ganElMap[dayGanChar]; // 합화된 오행
-    var hwaPar = parentOf(hwaDom);    // 합화오행을 생하는 부모 오행
-    var hwaCnt = (cnt[hwaDom]||0) + (hwaPar ? (cnt[hwaPar]||0) : 0);
-    var hwaPct = hwaCnt / total * 100;
-    if(hwaPct >= HWA_GA_THRESHOLD) {
-      var hwaIsGaJong = (hwaPct < HWA_TRUE_THRESHOLD); // 75~80% = 가화格
-      var hwaName = (hwaIsGaJong ? '가' : '') + '화格(化格)';
-      return {
-        isJong: true,
-        isGaJong: hwaIsGaJong,
-        dominant: hwaDom,
-        parEl: hwaPar,
-        pct: hwaPct.toFixed(0),
-        name: hwaName,
-        dayEl: dayEl,
-        heHaPriority: true,
-        ganHeMerged: ganHeMerged,
-        jiHeMerged: jiHeMerged
-      };
-    }
-  }
-
-  var maxPct = Math.max(pct1, pct2);
-  // ── 단일 오행이 70% 미만이면 절대 종격 판별 모달을 띄우지 않음 ──
-  if(pct1 < JONG_GA_THRESHOLD) return{isJong:false};
-  if(maxPct >= JONG_GA_THRESHOLD) {
-    // 지배 오행은 실제 최다 오행(dom1)이다. dom2 는 '자신+모오행' 합이라 pct2>=pct1 이 항상
-    // 성립해, 예전 삼항식(pct1>=pct2 ? dom1 : dom2)은 dom1 쪽이 닿지 않는 죽은 분기였다.
-    // 그 결과 동점일 때 cnt 키 순서로 엉뚱한 오행이 뽑혀 대운 길흉이 통째로 뒤집혔다.
-    var dominant = dom1;
-    var parEl = parentOf(dominant);
-    // 세력 비율도 지배 오행 기준(자신+모오행)으로 맞춘다.
-    var pct = (cnt[dominant] + (parEl ? (cnt[parEl]||0) : 0)) / total * 100;
-    var isGaJong = (pct < JONG_TRUE_THRESHOLD); // 70~80% = 가종격
-
-    var jongName;
-    if(dominant === dayEl) {
-      var J_MAP = {'wood':'곡직격(曲直格)','fire':'염상격(炎上格)','earth':'가색격(稼穡格)','metal':'종혁격(從革格)','water':'윤하격(潤下格)'};
-      jongName = (isGaJong ? '가(假)' : '') + (J_MAP[dayEl] || '종왕격(從旺格)');
-    } else if(parEl === dayEl) {
-      jongName = (isGaJong ? '가' : '') + '종아격(從兒格)';
-    } else if(dominant === parentOf(dayEl)) {
-      jongName = (isGaJong ? '가' : '') + '종강격(從强格)';
-    } else if(KE[dayEl] === dominant) {
-      jongName = (isGaJong ? '가' : '') + '종재격(從財格)';
-    } else if(KE[dominant] === dayEl) {
-      jongName = (isGaJong ? '가' : '') + '종살격(從殺格)';
-    } else {
-      jongName = (isGaJong ? '가' : '') + '화격(化格)';
-    }
-
-    // 합화 우선 여부
-    var hadChongOverride = (Object.keys(ganHeMerged).length > 0 || Object.keys(jiHeMerged).length > 0) &&
-      (GANCHONG.some(function(pr){return gans.indexOf(pr[0])>=0&&gans.indexOf(pr[1])>=0;}) ||
-       JICHONG.some(function(pr){return zhis.indexOf(pr[0])>=0&&zhis.indexOf(pr[1])>=0;}));
-
-    var jongResult = {
-      isJong: true,          // 가종격도 isJong=true — 대운/세운 평가에 동일 적용
-      isGaJong: isGaJong,    // 가종격 여부 (60~70%)
-      dominant: dominant, parEl: parEl, pct: pct.toFixed(0), name: jongName, dayEl: dayEl,
-      heHaPriority: hadChongOverride,
-      ganHeMerged: ganHeMerged,
-      jiHeMerged: jiHeMerged
-    };
-
-    // ── 가종격은 대운 조건에 따라 진종격으로 전환될 수 있음 ──────────
-    // 진종격(70%+) 이상도 반대세력 뿌리 검증
-    var myForceCount = (cnt[dayEl]||0) + (cnt[parentOf(dayEl)]||0);
-    var myForcePct   = (myForceCount / total) * 100;
-    var isFollowingOthers = (jongName.indexOf('종아격')>=0 || jongName.indexOf('종재격')>=0 || jongName.indexOf('종살격')>=0 || jongName.indexOf('화격')>=0);
-    var JANGGAN_DB = CD_JANGGAN; /* 정본은 파일 상단 CD_JANGGAN */
-    var rootElements = [dayEl, parentOf(dayEl)];
-    var hasRootInJanggan = false;
-    [p.y.j, p.m.j, p.d.j, p.h.j].forEach(function(z){
-      if(!z) return;
-      (JANGGAN_DB[z]||[]).forEach(function(jgGan){
-        if(GAN[jgGan] && rootElements.indexOf(GAN[jgGan].e)>=0) hasRootInJanggan = true;
-      });
-    });
-
-    // 가종격은 별도 'pending' 없이 바로 isGaJong=true로 처리
-    // 진종격이라도 반대세력이 뚜렷하면 가종격으로 격하
-    if(!isGaJong) {
-      var opposingPct = ((total - myForceCount) / total) * 100;
-      if (isFollowingOthers && (myForcePct >= 21 || hasRootInJanggan)) {
-        jongResult.isGaJong = true;
-        jongResult.name = '가(假)' + jongName;
-      } else if (!isFollowingOthers && opposingPct >= 21) {
-        jongResult.isGaJong = true;
-        jongResult.name = '가(假)' + jongName;
-      }
-    }
-
-    return jongResult;
-  }
-  return{isJong:false};
+  // 종격·격국은 원국으로만 판정한다. 설문·사건 응답은 받지 않는다.
+  // lib/saju/natal-power.js 에 이 함수만 복사되므로 헬퍼(_sajuNatalCore) 없이 직접 찾는다.
+  var core = typeof SajuNatalCore !== 'undefined' ? SajuNatalCore : (typeof window !== 'undefined' ? window.SajuNatalCore : null);
+  if (!core || typeof core.analyzeNatalCore !== 'function') throw new Error('SajuNatalCore 미로드 — js/core/saju/natal-core.generated.js 가 먼저 실행돼야 한다');
+  return core.legacyJongShape(core.analyzeNatalCore(p));
 }
 
 /* ─ 오행 분포 ─ */
@@ -10520,6 +10353,8 @@ function renderJohu(johu) {
                 rows.push('<div style="margin-top:10px; background:#E8F5E9; border-radius:8px; padding:10px 12px; border-left:3px solid #43A047;"><b style="color:#2E7D32;">🌤️ 시원한(균형) 사주 처방</b><br>온도 균형이 양호합니다. 계절 변화와 습도에 맞춰 세밀하게 조절하세요.<br>· 오행을 고루 활용하는 멀티플레이어 천기 유효<br>· 봄·가을: 木·金 기운 활용, 여름: 水 보충, 겨울: 火·木 보충<br>· 다양한 환경 변화에 유연하게 적응하는 것이 개운의 핵심</div>');
               } else if(t === 'cool'){
                 rows.push('<div style="margin-top:10px; background:#E3F2FD; border-radius:8px; padding:10px 12px; border-left:3px solid #1976D2;"><b style="color:#0D47A1;">🍃 서늘한 사주 처방</b><br>온기가 다소 부족합니다. <b>火·木</b> 기운으로 보충하면 좋습니다.<br>· 추천 색상: 주황색·녹색·붉은 계열<br>· 추천 방향: 남쪽·동쪽<br>· 추천 활동: 햇빛 쬐기, 온탕·반신욕, 스트레칭·요가<br>· 주의: 찬 음식·냉방 과다 노출 자제</div>');
+              } else if(t === 'insufficient'){
+                rows.push('<div style="margin-top:10px; background:#F5F5F5; border-radius:8px; padding:10px 12px; border-left:3px solid #9E9E9E;"><b style="color:#555;">🌫️ 한난 판단 보류</b><br>' + (johu.hanNan && johu.hanNan.reason ? johu.hanNan.reason.replace(/[<>&]/g, '') + ' — ' : '') + '온도 처방을 단정하지 않습니다.</div>');
               } else if(t === 'cold'){
                 rows.push('<div style="margin-top:10px; background:#E8EAF6; border-radius:8px; padding:10px 12px; border-left:3px solid #3949AB;"><b style="color:#1A237E;">❄️ 차가운 사주 처방</b><br>水·金 기운이 과잉입니다. <b>火·木</b> 기운이 절실히 필요합니다.<br>· 추천 색상: 빨간색·주황색·연두색<br>· 추천 방향: 남쪽·동쪽<br>· 추천 활동: 따뜻한 음식·온탕, 유산소 운동으로 체온 올리기, 햇빛 충분히 쬐기<br>· 주의: 냉수욕·과한 냉방·어두운 색상 과다 사용 자제</div>');
               }
@@ -10529,8 +10364,10 @@ function renderJohu(johu) {
                 rows.push('<div style="margin-top:8px; background:#FFF3E0; border-radius:8px; padding:10px 12px; border-left:3px solid #F57C00;"><b style="color:#E65100;">🏜️ 건조한 사주 추가 처방</b><br>습기가 부족합니다. <b>水·木</b> 기운과 실제 수분 보충이 필요합니다.<br>· 물 충분히 마시기(하루 1.5L 이상), 가습기 사용<br>· 목욕·족욕·수영·자연(숲·물가) 자주 접하기<br>· 촉촉한 생활 환경(식물 키우기, 수족관 등) 조성</div>');
               } else if(m === 'wet'){
                 rows.push('<div style="margin-top:8px; background:#E8F5E9; border-radius:8px; padding:10px 12px; border-left:3px solid #388E3C;"><b style="color:#2E7D32;">💧 촉촉한 사주 보완 처방</b><br>습기가 많습니다. <b>金·火</b> 기운으로 건조함을 추가해 균형을 맞추세요.<br>· 환기 자주 하기, 건조한 환경 조성<br>· 흰색·금색 소품 활용, 서쪽 방향 에너지 활용<br>· 규칙적인 생활로 끈적한 감정·관계의 경계선 명확히 하기</div>');
-              } else {
+              } else if(m === 'balanced'){
                 rows.push('<div style="margin-top:8px; background:#F3E5F5; border-radius:8px; padding:10px 12px; border-left:3px solid #8E24AA;"><b style="color:#6A1B9A;">⚖️ 습조(濕燥) 균형 유지</b><br>습도 균형이 양호합니다. 현재 생활 패턴을 유지하면서 온도 처방에 집중하세요.</div>');
+              } else {
+                rows.push('<div style="margin-top:8px; background:#F5F5F5; border-radius:8px; padding:10px 12px; border-left:3px solid #9E9E9E;"><b style="color:#555;">🌫️ 습조(濕燥) 판단 보류</b><br>' + (johu.joSeup && johu.joSeup.reason ? johu.joSeup.reason.replace(/[<>&]/g, '') + ' — ' : '') + '습도 처방을 단정하지 않습니다.</div>');
               }
 
               return rows.join('');
@@ -24265,7 +24102,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
         score+=3;
         reasons.push('한 사람은 촉촉하고 한 사람은 건조한 체질이라, 습조(濕燥)가 서로를 채워주는 이상적인 궁합입니다.');
         addReasonFact('MOIST_COMPLEMENT',3);
-      }else if(jh1.moistType===jh2.moistType&&jh1.moistType!=='balanced'){
+      }else if(jh1.moistType===jh2.moistType&&(jh1.moistType==='wet'||jh1.moistType==='dry')){
         score-=2;
         reasons.push('둘 다 '+(jh1.moistType==='wet'?'습기가 많은':'건조한')+' 편이라, 컨디션이 나쁠 때 함께 늘어지거나 메말라 있기 쉬운 구조입니다.');
         addReasonFact('MOIST_BOTH',-2,{moist:jh1.moistType});

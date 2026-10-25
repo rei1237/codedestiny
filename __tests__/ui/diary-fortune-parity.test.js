@@ -24,6 +24,7 @@ const path = require("node:path");
 const { sliceFunction, stripComments } = require("../../scripts/lib/js-source-slice.mjs");
 const koreanCalendar = require("../../lib/korean-calendar/index.js");
 const copyEngine = require("../../lib/saju/natal-power.js");
+const natalCore = require("../../lib/saju/natal-core/index.mjs");
 const copyCore = require("../../lib/diary/fortune-core.js");
 const { loadTsModule } = require("../../scripts/lib/load-ts-module.mjs");
 const adapter = loadTsModule("lib/diary/fortune-adapter.ts");
@@ -58,8 +59,9 @@ const ENGINE_PARTS = [
 
 function buildEngineSandbox() {
   const body = ENGINE_PARTS.map((marker) => sliceOnce(ENGINE_SRC, marker, "saju-engine")).join(";\n");
+  // 셸 detectJong은 전역 SajuNatalCore(원국 판정 정본)를 부른다.
   // eslint-disable-next-line no-new-func
-  return new Function(`${body};\nreturn { calcPower: calcPower, detectJong: detectJong };`)();
+  return new Function("SajuNatalCore", `${body};\nreturn { calcPower: calcPower, detectJong: detectJong };`)(natalCore);
 }
 
 /* ─── 샌드박스 2: js/luck-sync-diary.js 의 일진·십성·운기 등급 ───── */

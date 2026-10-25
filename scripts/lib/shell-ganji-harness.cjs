@@ -33,6 +33,7 @@ const REPO_ROOT = path.resolve(__dirname, "..", "..");
  */
 const SHELL_CHAIN = Object.freeze([
   "js/core/korean-calendar.js",
+  "js/core/saju/natal-core.generated.js",
   "js/core/kasi-calendar-service.js",
   "js/compat-llm-prompts.js",
   "js/saju-engine.js",
@@ -45,7 +46,7 @@ const SHELL_CHAIN = Object.freeze([
  * 🔴 `kasi-calendar-service.js` 가 여기 **들어 있다** — 브라우저가 그것을 싣기 때문이다.
  * 이게 빠져 있던 것이 위 §의 사고였다.
  */
-const ZIWEI_CHAIN = Object.freeze(SHELL_CHAIN.slice(0, 4));
+const ZIWEI_CHAIN = Object.freeze(SHELL_CHAIN.slice(0, SHELL_CHAIN.indexOf("js/saju-engine.js") + 1));
 
 let loadedChainKey = null;
 

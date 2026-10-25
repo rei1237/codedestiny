@@ -37,13 +37,13 @@ var TS_DEEP_NEO={
 };
 /* analyzeJohu 의 advice·moistAdvice·improve 를 type·moistType 기준으로 바꿔 끼운다. */
 var JOHU_TEXT_NEO={
-  advice:{hot:'사주가 많이 뜨거운 편이야. 水·金 기운이 특히 필요해.',warm:'사주가 따뜻한 편이야. 水 기운으로 조절하면 좋아.',neutral:'사주 온도가 시원하게 균형 잡혀 있어. 계절 변화에 맞춰 음양을 조절해 봐.',cool:'사주가 서늘한 편이야. 火·木 기운으로 온기를 보충하면 좋아.',cold:'사주가 많이 차가운 편이야. 火·木 기운이 특히 필요해.'},
-  moistAdvice:{wet:'사주에 습기가 많은 편이야. 건조한 환경이나 금(金)·불(火) 기운을 적당히 써 주면 균형이 좋아져.',dry:'사주가 건조한 편이야. 물(水)·나무(木) 기운이랑 실제 수분(물·목욕·자연)으로 촉촉함을 채워 주는 게 좋아.',balanced:'습조(濕燥)는 비교적 균형 잡힌 편이야. 한난만 잘 맞춰 주면 돼.'},
-  improve:{heat:'시원하고 차가운 기운이 필요해. 북쪽 방향, 파란색·검은색 컬러, 수영·물가 활동이 잘 맞아.',chill:'따뜻하고 밝은 기운이 필요해. 남쪽 방향, 빨간색·주황색 컬러, 캠핑·BBQ 활동이 잘 맞아.',even:'균형 잡힌 사주야. 여러 오행을 골고루 써 봐.'}
+  advice:{hot:'사주가 많이 뜨거운 편이야. 水·金 기운이 특히 필요해.',warm:'사주가 따뜻한 편이야. 水 기운으로 조절하면 좋아.',neutral:'사주 온도가 시원하게 균형 잡혀 있어. 계절 변화에 맞춰 음양을 조절해 봐.',insufficient:'출생 시각이나 월지 정보가 부족해서 사주 온도(한난)는 단정하지 않을게.',cool:'사주가 서늘한 편이야. 火·木 기운으로 온기를 보충하면 좋아.',cold:'사주가 많이 차가운 편이야. 火·木 기운이 특히 필요해.'},
+  moistAdvice:{wet:'사주에 습기가 많은 편이야. 건조한 환경이나 금(金)·불(火) 기운을 적당히 써 주면 균형이 좋아져.',dry:'사주가 건조한 편이야. 물(水)·나무(木) 기운이랑 실제 수분(물·목욕·자연)으로 촉촉함을 채워 주는 게 좋아.',insufficient:'출생 시각이나 월지 정보가 부족해서 습조(濕燥)는 단정하지 않을게.',balanced:'습조(濕燥)는 비교적 균형 잡힌 편이야. 한난만 잘 맞춰 주면 돼.'},
+  improve:{heat:'시원하고 차가운 기운이 필요해. 북쪽 방향, 파란색·검은색 컬러, 수영·물가 활동이 잘 맞아.',chill:'따뜻하고 밝은 기운이 필요해. 남쪽 방향, 빨간색·주황색 컬러, 캠핑·BBQ 활동이 잘 맞아.',even:'균형 잡힌 사주야. 여러 오행을 골고루 써 봐.',pending:'출생 시각이 확인되면 사주 온도를 다시 판단할 수 있어.'}
 };
 function _sajuNeoJohu(johu){
   if(!johu||!johu.type)return johu;
-  var t=johu.type, grp=(t==='hot'||t==='warm')?'heat':(t==='cold'||t==='cool')?'chill':'even';
+  var t=johu.type, grp=(t==='hot'||t==='warm')?'heat':(t==='cold'||t==='cool')?'chill':t==='insufficient'?'pending':'even';
   return Object.assign({},johu,{
     advice:JOHU_TEXT_NEO.advice[t]||johu.advice,
     moistAdvice:JOHU_TEXT_NEO.moistAdvice[johu.moistType]||johu.moistAdvice,
@@ -441,9 +441,11 @@ function renderSummary(p,johu,natal){
     var elOrder=Object.keys(natal.ratios||{}).sort(function(a,b){return natal.ratios[b]-natal.ratios[a];});
     var elTop=EL_KO[elOrder[0]]||EL_KO[domE]||'중심 오행';
     var elLow=EL_KO[elOrder[elOrder.length-1]]||'비어 있는 오행';
-    var johuType=(johu&&johu.type)||'균형';
+    var johuType=(johu&&johu.type)==='insufficient'?'판단 보류(출생 정보 부족)':(johu&&johu.type)||'균형';
     var johuScoreTxt=(johu&&typeof johu.score==='number')?(Math.round(johu.score)+'점'):'현재 값';
-    var johuMoistType=(johu&&johu.moistType)||'중간';
+    var johuMoistType=(johu&&johu.moistType)==='insufficient'?'판단 보류(출생 정보 부족)':(johu&&johu.moistType)||'중간';
+    // 판단 보류면 '…쪽으로 기울어 있다면' 같은 방향 문장과 부분 데이터 점수를 쓰지 않는다.
+    var johuPending=(johu&&johu.type)==='insufficient', johuMoistPending=(johu&&johu.moistType)==='insufficient';
     var johuImprove=(johu&&johu.improve)||'생활 리듬을 계절에 맞춰 조금씩 조정해 보세요.';
     var johuMoistAdvice=(johu&&johu.moistAdvice)||'건조함과 눅눅함 사이에서 몸이 편한 지점을 찾아 보세요.';
     var johuSeasonTxt=(johu&&johu.season)||monthSeason;
@@ -485,11 +487,11 @@ function renderSummary(p,johu,natal){
       }
       if(key==='johu'){
         return depthParagraph('온도와 습도의 실제 의미',
-          '조후는 좋고 나쁨을 가르는 낙인이 아니야. 몸과 감정이 어떤 환경에서 편하게 움직이는지 살피는 기준이거든. 지금 판정이 '+johuType+' 쪽으로 기울어 있다면 일·관계·수면 리듬도 같은 방향으로 영향을 받을 수 있어. '+((johu&&johu.advice)||seasonAdvice))+
+          '조후는 좋고 나쁨을 가르는 낙인이 아니야. 몸과 감정이 어떤 환경에서 편하게 움직이는지 살피는 기준이거든. '+(johuPending?'':'지금 판정이 '+johuType+' 쪽으로 기울어 있다면 일·관계·수면 리듬도 같은 방향으로 영향을 받을 수 있어. ')+((johu&&johu.advice)||seasonAdvice))+
           depthParagraph('계절에 맞춘 조정',
             seasonCaution+' '+monthRelation+'을 같이 보면서 너무 뜨겁거나 차가운 선택은 줄이고, 네가 회복되는 장소·사람·시간대를 구체적으로 확보해 봐.')+
           depthParagraph('두 개의 축을 나눠 보기',
-            '조후 점수는 '+johuScoreTxt+'이고, 습·조의 축에서는 '+johuMoistType+' 쪽으로 읽혀. 온도 축(춥다·덥다)과 습도 축(마르다·눅눅하다)은 서로 다른 문제라서 해법도 달라. 온도는 활동량이랑 사람과의 접촉으로, 습도는 수면·수분·공간 환기로 조정하는 쪽이 체감이 빨라.')+
+            (johuPending?'':'조후 점수는 '+johuScoreTxt+'이고, ')+(johuMoistPending?'습·조의 축은 출생 정보가 부족해서 판단을 보류해 둘게. ':'습·조의 축에서는 '+johuMoistType+' 쪽으로 읽혀. ')+'온도 축(춥다·덥다)과 습도 축(마르다·눅눅하다)은 서로 다른 문제라서 해법도 달라. 온도는 활동량이랑 사람과의 접촉으로, 습도는 수면·수분·공간 환기로 조정하는 쪽이 체감이 빨라.')+
           depthParagraph('실제 생활로 옮기기',
             johuImprove+' '+johuMoistAdvice+' 한 번에 다 바꾸려고 하면 몸이 먼저 지쳐. 아침·낮·저녁 중에 컨디션이 제일 많이 무너지는 시간대 하나만 골라서 그 구간에만 조정을 넣어 봐. 2주 뒤에 다음 구간으로 넘어가면 돼.')+
           depthParagraph('흔한 오해 바로잡기',
@@ -589,7 +591,7 @@ function renderSummary(p,johu,natal){
           depthParagraph('애정 표현의 번역 문제',
             '관계에서 반복되는 패턴은 일지(日支)와 십성 배치에서 읽어. 지금 구조에서는 '+dominant+'의 성질이 애정 표현에도 그대로 나오기 쉬워. '+(deep.love||'마음을 전하는 너만의 방식이 있어.')+' 이 방식이 관계의 리듬을 정해. 상대가 이 방식을 애정으로 번역하지 못하면, 마음의 크기랑 상관없이 오해가 쌓여.')+
           depthParagraph('회복 속도의 차이',
-            johuType+' 쪽으로 기운 조후는 다툰 뒤 회복에 필요한 시간에도 영향을 줘. 빨리 풀어야 안심하는 사람과 혼자 정리할 시간이 필요한 사람이 만나면, 문제는 사랑의 크기가 아니라 회복 속도의 차이야. 이 차이를 미리 말로 정해 두면 같은 다툼이 되풀이되지 않아.')+
+            (johuPending?'조후는':johuType+' 쪽으로 기운 조후는')+' 다툰 뒤 회복에 필요한 시간에도 영향을 줘. 빨리 풀어야 안심하는 사람과 혼자 정리할 시간이 필요한 사람이 만나면, 문제는 사랑의 크기가 아니라 회복 속도의 차이야. 이 차이를 미리 말로 정해 두면 같은 다툼이 되풀이되지 않아.')+
           depthParagraph('흔한 오해 바로잡기',
             '궁합을 두 사람의 점수로 바꾸는 해석은 실제 관계를 설명하지 못해. 명리가 보는 건 두 기운이 만났을 때 어떤 장면이 자주 반복되느냐고, 그 장면은 대화와 합의로 바꿀 수 있어. 안 맞는 조합이라기보다 아직 조율을 안 한 조합인 경우가 훨씬 많아.')+
           depthParagraph('스스로 확인할 질문',
@@ -615,7 +617,7 @@ function renderSummary(p,johu,natal){
           depthParagraph('회복 루틴의 기준',
             (health.advice||'작고 반복 가능한 회복 루틴')+' '+(health.food||'몸에 맞는 식사')+'를 한꺼번에 바꾸기보다 하나씩 실험해 봐. 증상이 계속되거나 일상에 영향을 준다면 운세 해석보다 의료 전문가의 판단이 먼저야.')+
           depthParagraph('신호가 먼저 오는 자리',
-            '일간 '+dg+'('+dayElKo+') 기준으로는 '+(health.weak||'주의할 부위')+_sajuJo(health.weak||'주의할 부위','이','가')+' 먼저 신호를 보내는 편이고, 오행 분포에서 '+elLow+'가 얇다는 건 회복 자원이 모자라기 쉬운 지점을 알려 줘. 조후가 '+johuType+' 쪽이라면 계절이 바뀌는 구간에 컨디션 진폭이 특히 커질 수 있어.')+
+            '일간 '+dg+'('+dayElKo+') 기준으로는 '+(health.weak||'주의할 부위')+_sajuJo(health.weak||'주의할 부위','이','가')+' 먼저 신호를 보내는 편이고, 오행 분포에서 '+elLow+'가 얇다는 건 회복 자원이 모자라기 쉬운 지점을 알려 줘.'+(johuPending?'':' 조후가 '+johuType+' 쪽이라면 계절이 바뀌는 구간에 컨디션 진폭이 특히 커질 수 있어.'))+
           depthParagraph('식사를 다루는 방식',
             (health.food||'몸에 맞는 식사')+'는 치료식이 아니라 기울어진 기운을 되돌리는 생활 재료로 보는 게 맞아. '+(ctips.food||'담백한 식사')+' 같은 방향을 평소 식단에 조금씩 섞고, 극단적으로 제한하기보다 비율만 바꿔 봐. 오래 못 지키는 식단은 효과를 확인할 기회조차 안 주거든.')+
           depthParagraph('꼭 지켜야 할 한계',
@@ -706,11 +708,11 @@ function renderSummary(p,johu,natal){
     }
     if(key==='johu'){
       return depthParagraph('온도와 습도의 실제 의미',
-        '조후는 좋고 나쁨을 가르는 낙인이 아니라, 몸과 감정이 어떤 환경에서 편안하게 움직이는지 살피는 기준입니다. 현재 판정이 '+johuType+' 쪽으로 기울어 있다면 일·관계·수면 리듬도 같은 방향으로 영향을 받을 수 있습니다. '+((johu&&johu.advice)||seasonAdvice))+
+        '조후는 좋고 나쁨을 가르는 낙인이 아니라, 몸과 감정이 어떤 환경에서 편안하게 움직이는지 살피는 기준입니다. '+(johuPending?'':'현재 판정이 '+johuType+' 쪽으로 기울어 있다면 일·관계·수면 리듬도 같은 방향으로 영향을 받을 수 있습니다. ')+((johu&&johu.advice)||seasonAdvice))+
         depthParagraph('계절에 맞춘 조정',
           seasonCaution+' '+monthRelation+'을 함께 보면서 지나치게 뜨겁거나 차가운 선택을 줄이고, 내가 회복되는 장소·사람·시간대를 구체적으로 확보해 보세요.')+
         depthParagraph('두 개의 축을 나누어 본다',
-          '조후 점수는 '+johuScoreTxt+'이고 습·조의 축에서는 '+johuMoistType+' 쪽으로 읽힙니다. 온도 축(춥다·덥다)과 습도 축(마르다·눅눅하다)은 서로 다른 문제라서 해법도 다릅니다. 온도는 활동량과 사람과의 접촉으로, 습도는 수면·수분·공간의 환기로 조정하는 편이 체감이 빠릅니다.')+
+          (johuPending?'':'조후 점수는 '+johuScoreTxt+'이고 ')+(johuMoistPending?'습·조의 축은 출생 정보가 부족해 판단을 보류합니다. ':'습·조의 축에서는 '+johuMoistType+' 쪽으로 읽힙니다. ')+'온도 축(춥다·덥다)과 습도 축(마르다·눅눅하다)은 서로 다른 문제라서 해법도 다릅니다. 온도는 활동량과 사람과의 접촉으로, 습도는 수면·수분·공간의 환기로 조정하는 편이 체감이 빠릅니다.')+
         depthParagraph('실제 생활로 옮기기',
           johuImprove+' '+johuMoistAdvice+' 한 번에 전부 바꾸려 하면 몸이 먼저 지칩니다. 아침·낮·저녁 가운데 컨디션이 가장 많이 무너지는 시간대 하나를 골라 그 구간에만 조정을 넣고, 2주 뒤에 다음 구간으로 넘어가세요.')+
         depthParagraph('흔한 오해 바로잡기',
@@ -810,7 +812,7 @@ function renderSummary(p,johu,natal){
         depthParagraph('애정 표현의 번역 문제',
           '관계에서 반복되는 패턴은 일지(日支)와 십성의 배치에서 읽습니다. 지금 구조에서는 '+dominant+'의 성질이 애정 표현에도 그대로 나타나기 쉬워 '+(deep.love||'마음을 전하는 고유한 방식')+'이 관계의 리듬을 결정합니다. 상대가 이 방식을 애정으로 번역하지 못하면, 마음의 크기와 무관하게 오해가 쌓입니다.')+
         depthParagraph('회복 속도의 차이',
-          johuType+' 쪽으로 기운 조후는 다툰 뒤 회복에 필요한 시간에도 영향을 줍니다. 빨리 풀어야 안심하는 사람과 혼자 정리할 시간이 필요한 사람이 만나면, 문제는 사랑의 크기가 아니라 회복 속도의 차이입니다. 이 차이를 미리 말로 정해 두면 같은 다툼이 반복되지 않습니다.')+
+          (johuPending?'조후는':johuType+' 쪽으로 기운 조후는')+' 다툰 뒤 회복에 필요한 시간에도 영향을 줍니다. 빨리 풀어야 안심하는 사람과 혼자 정리할 시간이 필요한 사람이 만나면, 문제는 사랑의 크기가 아니라 회복 속도의 차이입니다. 이 차이를 미리 말로 정해 두면 같은 다툼이 반복되지 않습니다.')+
         depthParagraph('흔한 오해 바로잡기',
           '궁합을 두 사람의 점수로 환산하는 해석은 실제 관계를 설명하지 못합니다. 명리가 보는 것은 두 기운이 만났을 때 어떤 장면이 자주 반복되는가이며, 그 장면은 대화와 합의로 바꿀 수 있습니다. 맞지 않는 조합이라기보다 아직 조율하지 않은 조합인 경우가 훨씬 많습니다.')+
         depthParagraph('스스로 확인할 질문',
@@ -836,7 +838,7 @@ function renderSummary(p,johu,natal){
         depthParagraph('회복 루틴의 기준',
           (health.advice||'작고 반복 가능한 회복 루틴')+' '+(health.food||'몸에 맞는 식사')+'를 한꺼번에 바꾸기보다 하나씩 실험하세요. 증상이 지속되거나 일상에 영향을 준다면 운세 해석보다 의료 전문가의 판단을 우선해야 합니다.')+
         depthParagraph('신호가 먼저 오는 자리',
-          '일간 '+dg+'('+dayElKo+') 기준으로는 '+(health.weak||'주의할 부위')+_sajuJo(health.weak||'주의할 부위','이','가')+' 먼저 신호를 보내는 편이고, 오행 분포에서 '+elLow+'가 얇다는 점은 회복 자원이 부족해지기 쉬운 지점을 알려줍니다. 조후가 '+johuType+' 쪽이라면 계절이 바뀌는 구간에 컨디션의 진폭이 특히 커질 수 있습니다.')+
+          '일간 '+dg+'('+dayElKo+') 기준으로는 '+(health.weak||'주의할 부위')+_sajuJo(health.weak||'주의할 부위','이','가')+' 먼저 신호를 보내는 편이고, 오행 분포에서 '+elLow+'가 얇다는 점은 회복 자원이 부족해지기 쉬운 지점을 알려줍니다.'+(johuPending?'':' 조후가 '+johuType+' 쪽이라면 계절이 바뀌는 구간에 컨디션의 진폭이 특히 커질 수 있습니다.'))+
         depthParagraph('식사를 다루는 방식',
           (health.food||'몸에 맞는 식사')+'는 치료식이 아니라 기울어진 기운을 되돌리는 생활 재료로 보는 편이 맞습니다. '+(ctips.food||'담백한 식사')+' 같은 방향을 평소 식단에 조금씩 섞고, 극단적인 제한 대신 비율만 바꾸세요. 오래 지키지 못하는 식단은 효과를 확인할 기회조차 주지 않습니다.')+
         depthParagraph('반드시 지켜야 할 한계',

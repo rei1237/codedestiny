@@ -572,7 +572,7 @@ function renderQuantumStrategy(p, natal, bazi){
   var monthEl=(JI[p.m.j]&&JI[p.m.j].e)||'';
   var dayMasterName=(GAN[p.d.g]&&GAN[p.d.g].n)||p.d.g||'';
   var johuLabel=G_JOHU
-    ? [G_JOHU.badgeTxt||'',G_JOHU.type||'',G_JOHU.moistType||''].filter(Boolean).join(' · ')
+    ? [G_JOHU.badgeTxt||'',G_JOHU.type==='insufficient'?'':G_JOHU.type||'',G_JOHU.moistType==='insufficient'?'습조 판단 보류':G_JOHU.moistType||''].filter(Boolean).join(' · ')
     : '조후 미확인';
   var powerLabel=pw?(pw.isStrong?'신강':'신약'):'강약 미확인';
   var yongHtml=qUnique(yongList).length?qUnique(yongList).map(function(el){return qElementChip(el,'good');}).join(''):'<span class="qm-el-chip qm-chip-neutral">용신 미확인</span>';

@@ -37,6 +37,8 @@ export function loadCompatEngine(sourceUrl = new URL('../../js/saju-engine.js', 
   }
   const code = order.slice().reverse().map((name) => decl.get(name).text).join('\n');
   const ctx = vm.createContext({ window: {}, document: undefined, console });
+  // 셸처럼 원국 판정 정본 번들(전역 SajuNatalCore)을 먼저 싣는다.
+  vm.runInContext(fs.readFileSync(new URL('../../js/core/saju/natal-core.generated.js', import.meta.url), 'utf8'), ctx, { filename: 'natal-core.generated.js' });
   vm.runInContext(
     `${code}\nthis.__api={${ROOTS.join(',')},GAN,JI,setUser:function(n){USER_NAME=n;}};`,
     ctx,

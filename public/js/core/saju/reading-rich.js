@@ -225,8 +225,12 @@
   var MOIST_RX = {
     dry: {need:'수(水)·목(木)', act:'물 자주 마시기, 가습, 숲·물가 산책, 식물 기르기'},
     wet: {need:'금(金)·화(火)', act:'자주 환기하기, 햇볕에 말린 침구, 흰색·금색 소품, 관계의 경계선 분명히 하기'},
-    balanced: {need:'추가 보완 없음', act:'습조는 고른 편이라 온도 쪽 처방에 집중'}
+    balanced: {need:'추가 보완 없음', act:'습조는 고른 편이라 온도 쪽 처방에 집중'},
+    /* 시주 미상이어도 가능한 시주 모두에서 고른 편이면 balanced지만, 원국이 다 확인되기 전에는 '보완 없음'으로 단정하지 않는다. */
+    balancedPending: {need:'큰 치우침 신호 없음(시주 미확정)', act:'가능한 시주 모두에서 고른 편이에요. 시주가 확인되면 다시 판단해요'},
+    insufficient: {need:'판단 보류', act:'출생 정보가 부족해 습조를 단정하지 않아요. 출생 시각이 확인되면 다시 판단해요'}
   };
+  var TEMP_PENDING_RX = {need:'판단 보류', color:'정하지 않음', dir:'정하지 않음', act:'출생 시각이 확인되면 온도를 다시 판단해요', less:'—'};
   var CLIMATE_COPY = {
     pig: {
       lead:'연이가 읽은 기후', env:'조후로 본 삶의 환경', parts:'글자별 온도·습도 기여', count:'온도를 움직이는 네 기운',
@@ -246,6 +250,7 @@
   function johuNeed(type) { return type === 'cold' || type === 'cool' ? ['fire', 'wood'] : type === 'hot' || type === 'warm' ? ['water', 'metal'] : []; }
   function climateVersus(facts, neo) {
     var j = facts.johu, pw = facts.power, need = johuNeed(j.type), yong = (pw && pw.yongshin) || [];
+    if (TEMP_INDEX[j.type] == null) return para(neo ? '한난 판정을 보류했으니까 조후로 채울 기운은 정하지 않아. 억부 용신을 중심으로 봐.' : '한난 판정을 보류했기 때문에 조후로 채울 기운은 정하지 않아요. 억부에서 고른 용신을 중심으로 읽어요.');
     var jong = facts.jong && facts.jong.isJong;
     var needText = need.map(function (e) { return EL[e]; }).join('·');
     var yongText = yong.slice(0, 2).map(function (e) { return EL[e]; }).join('·');
@@ -259,16 +264,24 @@
     t.push(neo ? '조후는 계절의 한난조습을, 억부는 일간 힘의 과부족을 보는 기준이야. 둘 중 하나만 정답이라고 보지 않아.' : '조후는 태어난 계절의 온도와 습도를, 억부는 일간이 감당하는 힘의 크고 작음을 보는 기준이에요. 어느 한쪽만 정답으로 두지 않고, 원국의 상황에 따라 앞뒤를 정해요.');
     return t.map(para).join('');
   }
+  function climatePendingVerdict(neo, season, hanPending, moistPending, typeName, moistName) {
+    var axes = [hanPending ? '한난' : '', moistPending ? '조습' : ''].filter(Boolean).join('·');
+    if (neo) return (season ? season + ' 월령이야. ' : '') + (hanPending ? '' : '온도는 ' + typeName + '. ') + (moistPending ? '' : '습조는 ' + moistName + '. ') + axes + ' 판정은 출생 정보가 부족해서 보류해. 아래 수치는 확인된 글자까지만 더한 참고값이야.';
+    return (season ? season + '의 월령에 태어난 원국이에요. ' : '') + (hanPending ? '' : '온도는 ' + typeName + '으로 읽혀요. ') + (moistPending ? '' : '습조는 ' + moistName + '이에요. ') + axes + '은 출생 정보가 부족해 단정하지 않고 보류해요. 아래 수치는 확인된 글자까지만 더한 참고값이에요.';
+  }
   function climate(facts, mode) {
     var j = facts && facts.johu, p = facts && facts.p;
     if (!j || !p || typeof j.score !== 'number') return '';
     var neo = mode === 'neo', c = CLIMATE_COPY[neo ? 'neo' : 'pig'], L = lib(facts);
     var parts = johuParts(p, L), ok = johuMatches(parts, j);
     var diff = (j.moistCnt || 0) - (j.dryCnt || 0);
-    var typeName = TEMP_NAMES[TEMP_INDEX[j.type] != null ? TEMP_INDEX[j.type] : 2], moistName = MOIST_NAMES[j.moistType] || MOIST_NAMES.balanced;
+    // 모르는 판정값(insufficient 포함)은 '고른 편'으로 채우지 않고 보류로 보여 준다.
+    var hanPending = TEMP_INDEX[j.type] == null, moistPending = !MOIST_NAMES[j.moistType];
+    var typeName = hanPending ? '판단 보류' : TEMP_NAMES[TEMP_INDEX[j.type]], moistName = moistPending ? '판단 보류' : MOIST_NAMES[j.moistType];
     var season = j.season || (parts && parts.season) || '';
-    var env = ENV[(Math.max(-6, Math.min(6, j.score)) < 0 ? 'cold' : 'hot') + (diff < 0 ? 'dry' : 'wet')];
-    var html = section(c.lead, hero(env.title, [typeName, '습조 ' + moistName, '온도 점수 ' + num(j.score)]) + para(fmt(c.verdict, {season:season, base:num(parts ? parts.seasonTemp : (BRANCH_TEMP[p.m.j] || 0)), score:num(j.score), type:typeName, wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName})), 'saju-rich__lead');
+    var env = hanPending || moistPending ? null : ENV[(Math.max(-6, Math.min(6, j.score)) < 0 ? 'cold' : 'hot') + (diff < 0 ? 'dry' : 'wet')];
+    var verdictVars = {season:season, base:num(parts ? parts.seasonTemp : (BRANCH_TEMP[p.m.j] || 0)), score:num(j.score), type:typeName, wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName};
+    var html = section(c.lead, hero(env ? env.title : '기후 판단 보류', [typeName, '습조 ' + moistName, '온도 점수 ' + num(j.score)]) + para(env ? fmt(c.verdict, verdictVars) : climatePendingVerdict(neo, season, hanPending, moistPending, typeName, moistName)), 'saju-rich__lead');
     html += '<div class="saju-rich__gauges">' +
       gauge({kind:'temp', value:j.score, min:-9, max:9, zones:[-5, -2, 2, 5], names:TEMP_NAMES, ends:['차가움 寒', '뜨거움 暖'], caption:'온도 점수 ' + num(j.score), aria:'한난 게이지: 온도 점수 ' + num(j.score) + ', ' + typeName}) +
       gauge({kind:'humid', value:diff, min:-6, max:6, zones:[-2.5, 3], names:['건조한 편', '고른 편', '습한 편'], ends:['건조함 燥', '촉촉함 濕'], caption:'습 ' + (j.moistCnt || 0) + ' · 조 ' + (j.dryCnt || 0) + ' (편차 ' + num(diff) + ')', aria:'조습 게이지: 습한 신호 ' + (j.moistCnt || 0) + '개, 건조한 신호 ' + (j.dryCnt || 0) + '개, ' + moistName}) + '</div>';
@@ -277,9 +290,9 @@
         [['월령 계절', season, '—', num(parts.seasonTemp), '—']].concat(parts.rows.map(function (r) { return [r.label + hourMark(facts, r.key), r.char, EL[r.el] || '—', r.temp ? num(r.temp) : '0', (r.moist ? '습' + (r.moist > 1 ? '×' + r.moist : '') : '') + (r.dry ? '조' + (r.dry > 1 ? '×' + r.dry : '') : '') || '—']; })),
         ['합계', '', '', num(parts.total), '습 ' + parts.moist + ' · 조 ' + parts.dry])) : ''));
     html += seasonArt(p.m.j);
-    html += section(c.env, '<p class="saju-rich__title">' + esc(env.title) + '</p>' + para(neo ? env.neo : env.pig));
+    if (env) html += section(c.env, '<p class="saju-rich__title">' + esc(env.title) + '</p>' + para(neo ? env.neo : env.pig));
     html += section(c.versus, climateVersus(facts, neo));
-    var rx = TEMP_RX[j.type] || TEMP_RX.neutral, mrx = MOIST_RX[j.moistType] || MOIST_RX.balanced;
+    var rx = hanPending ? TEMP_PENDING_RX : TEMP_RX[j.type], mrx = moistPending ? MOIST_RX.insufficient : j.moistType === 'balanced' && j.complete === false ? MOIST_RX.balancedPending : MOIST_RX[j.moistType];
     html += section(c.rx, para(c.rxIntro) + tiles([['채울 기운', rx.need, '氣'], ['색', rx.color, '色'], ['방향', rx.dir, '方'], ['활동', rx.act, '動'], ['줄일 것', rx.less, '減'], [c.moistRx + ' (' + mrx.need + ')', mrx.act, j.moistType === 'wet' ? '燥' : '濕']]) + '<p class="saju-rich__note">' + esc(c.notHealth) + '</p>', 'saju-rich__wide');
     html += more('한난조습이란 무엇인가요?', '<p>' + esc(neo ? '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 보는 조후의 기준이야. 어떤 환경에서 네 힘이 잘 쓰이는지 볼 때 써.' : '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 살피는 조후의 기준이에요. 자연에 계절과 날씨가 있듯 사람의 기질에도 기후가 있다고 보고, 어떤 환경에서 내가 편안하고 힘이 잘 쓰이는지 알아보는 데 써요.') + '</p>' +
       '<ul class="saju-tiles"><li><b>한(寒) · 차가움</b><span>겨울의 응축된 기운. 차분하고 신중하게 안으로 다지는 힘으로 읽어요.</span></li><li><b>난(暖) · 따뜻함</b><span>여름의 발산하는 기운. 열정과 표현, 밖으로 뻗는 힘으로 읽어요.</span></li><li><b>조(燥) · 건조함</b><span>가을의 단단한 기운. 맺고 끊음이 분명하고 군더더기 없는 결로 읽어요.</span></li><li><b>습(濕) · 촉촉함</b><span>봄의 얽히는 기운. 공감과 친화력, 함께 자라는 결로 읽어요.</span></li></ul>' +
