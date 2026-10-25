@@ -11681,14 +11681,13 @@
   /* 출생시간 필드셋 — 메인 폼과 궁합 카드가 같은 구조(텍스트 1 + select 2)를 반복하므로
      하드코딩 대신 배열로 등록해 함수를 공유한다. 새 폼이 생기면 여기에 한 줄만 추가한다. */
   var _DP_BIRTH_TIME_FIELDSETS = [
-    { text: 'birthTimeText', period: 'birthTimePeriod', hour: 'birthHour', minute: 'birthMinute' },
-    { text: 'compatBirthTimeText', period: 'compatBirthTimePeriod', hour: 'compatBirthHour', minute: 'compatBirthMinute' }
+    { text: 'birthTimeText', hour: 'birthHour', minute: 'birthMinute' },
+    { text: 'compatBirthTimeText', hour: 'compatBirthHour', minute: 'compatBirthMinute' }
   ];
 
   function _dpBirthTimeEls(fieldset) {
     return {
       text: document.getElementById(fieldset.text),
-      period: document.getElementById(fieldset.period),
       hour: document.getElementById(fieldset.hour),
       minute: document.getElementById(fieldset.minute)
     };
@@ -11715,8 +11714,7 @@
     var h = parseInt(els.hour.value, 10);
     var m = parseInt(els.minute.value, 10);
     if (!isFinite(h) || !isFinite(m)) return;
-    if (els.period) els.period.value = h >= 12 ? 'pm' : 'am';
-    els.text.value = _dpPad2(els.period ? h % 12 || 12 : h) + ':' + _dpPad2(m);
+    els.text.value = _dpPad2(h) + ':' + _dpPad2(m);
   }
 
   /** 텍스트 입력 → select. 해석 못 하면 select 를 건드리지 않고 텍스트도 되돌린다. */
@@ -11727,8 +11725,7 @@
     if (!normalized) { _dpSyncBirthTimeTextFromSelects(fieldset); return; }
     var parts = normalized.split(':');
     var typedHour = parseInt(parts[0], 10);
-    if (els.period && (typedHour < 1 || typedHour > 12)) { _dpSyncBirthTimeTextFromSelects(fieldset); return; }
-    els.hour.value = String(els.period ? typedHour % 12 + (els.period.value === 'pm' ? 12 : 0) : typedHour);
+    els.hour.value = String(typedHour);
     els.minute.value = String(parseInt(parts[1], 10));
     els.text.value = normalized;
     /* 보정 시각 프리뷰 등 기존 change 구독자가 있으므로 실제 이벤트를 쏜다. */
@@ -11777,9 +11774,6 @@
     document.addEventListener('change', function (event) {
       var el = event.target;
       if (!el || !el.id) return;
-      for (var i = 0; i < _DP_BIRTH_TIME_FIELDSETS.length; i += 1) {
-        if (_DP_BIRTH_TIME_FIELDSETS[i].period === el.id) { _dpSyncBirthTimeSelectsFromText(_DP_BIRTH_TIME_FIELDSETS[i]); return; }
-      }
       var selectFieldset = _dpFindBirthTimeFieldsetBySelectId(el.id);
       if (selectFieldset) _dpSyncBirthTimeTextFromSelects(selectFieldset);
     });

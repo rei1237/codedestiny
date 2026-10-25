@@ -1,8 +1,4 @@
-.clock { display: grid; grid-template-columns: minmax(76px, 1.1fr) minmax(48px, 1fr) auto minmax(48px, 1fr); align-items: center; gap: 8px; min-width: 0; width: 100%; color: inherit; }
-.clock > .number, .clock > .period { box-sizing: border-box; width: 100%; min-width: 0; min-height: 48px; margin: 0; border: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 35%, transparent); border-radius: 10px; padding: 10px 8px; font: inherit; font-size: 16px; color: inherit; background: transparent; font-variant-numeric: tabular-nums; }
-.clock > .number { text-align: center; }
-.clock > .period { cursor: pointer; }
-.clock option { background: Canvas; color: CanvasText; }
-.clock > :is(input,select):focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.clock { display: block; min-width: 0; width: 100%; color: inherit; }
+.clock > .number { box-sizing: border-box; width: 100%; min-width: 0; min-height: 48px; margin: 0; border: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 35%, transparent); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 16px; color: inherit; background: transparent; font-variant-numeric: tabular-nums; text-align: center; }
+.clock > input:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .clock > :disabled { opacity: .5; cursor: default; }
-.separator { opacity: .7; }

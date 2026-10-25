@@ -2077,6 +2077,7 @@ export const LoveSimulationEngine: React.FC = () => {
                     aria-label={copy.birthHourAria}
                     value={`${String(Number(partnerHour) || 0).padStart(2, "0")}:${String(Number(partnerMinute) || 0).padStart(2, "0")}`}
                     onChange={(event) => {
+                      if (!event.target.value) return;
                       const [hour, minute] = event.target.value.split(":");
                       setPartnerHour(String(Number(hour) || 0));
                       setPartnerMinute(String(Number(minute) || 0));

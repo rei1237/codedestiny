@@ -201,15 +201,16 @@ test("출생시간을 타이핑하면 기존 select 두 개가 함께 맞춰진�
   const minute = doc.getElementById("birthMinute");
   assert.ok(text && hour && minute, "출생시간 입력 3종이 다 있어야 한다");
 
-  for (const [typed, expected, h, m, period] of [
-    ["0835", "08:35", "8", "35", "am"],
-    ["08:35", "08:35", "8", "35", "am"],
-    ["8:35", "08:35", "8", "35", "am"],
-    ["1159", "11:59", "23", "59", "pm"],
-    ["1200", "12:00", "0", "0", "am"],
-    ["1200", "12:00", "12", "0", "pm"],
+  for (const [typed, expected, h, m] of [
+    ["0835", "08:35", "8", "35"],
+    ["08:35", "08:35", "8", "35"],
+    ["8:35", "08:35", "8", "35"],
+    ["1430", "14:30", "14", "30"],
+    ["2359", "23:59", "23", "59"],
+    ["0", "00:00", "0", "0"],
+    ["0000", "00:00", "0", "0"],
+    ["1200", "12:00", "12", "0"],
   ]) {
-    doc.getElementById("birthTimePeriod").value = period;
     text.value = typed;
     fire(window, text, "blur");
     assert.equal(text.value, expected, `"${typed}" 정규화 실패`);
@@ -218,12 +219,16 @@ test("출생시간을 타이핑하면 기존 select 두 개가 함께 맞춰진�
   }
 });
 
+test("출생시간은 24시간제 한 칸이다 — 오전/오후 select 가 없다", () => {
+  assert.doesNotMatch(shell, /id="(?:compat)?[bB]irthTimePeriod"/, "오전/오후 select 가 다시 생겼다");
+  assert.doesNotMatch(profileJs, /BirthTimePeriod/, "destiny-profile.js 가 오전/오후 select 를 참조한다");
+});
+
 test("해석할 수 없는 시간은 select 를 건드리지 않고 되돌린다", async () => {
   const { window, doc } = await boot();
   const text = doc.getElementById("birthTimeText");
   const hour = doc.getElementById("birthHour");
 
-  doc.getElementById("birthTimePeriod").value = "am";
   text.value = "08:35";
   fire(window, text, "blur");
   assert.equal(hour.value, "8");

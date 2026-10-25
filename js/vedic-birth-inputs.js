@@ -42,24 +42,9 @@
       applyPlace(prefix,data);
     }catch(_){if(request!==sequences[prefix])return;invalidate(prefix);notice(prefix,'출생지를 찾지 못했어요. 도시와 국가를 함께 적어 다시 확인해 주세요.');}
   }
-  function refreshTime(prefix) {
-    var original=field(prefix,'hour'),display=document.getElementById(prefix+'-hour-display'),period=document.getElementById(prefix+'-period');
-    if(!original || !display || !period)return;
-    var hour=Number(original.value);display.value=original.value!==''&&Number.isInteger(hour)?String(hour%12 || 12):'';period.value=hour>=12?'pm':'am';
-  }
   function install(prefix) {
     var hour=field(prefix,'hour');if(!hour)return;
-    if(!document.getElementById(prefix+'-hour-display')) {
-      hour.type='hidden';
-      var row=document.createElement('span');row.style.cssText='display:flex;gap:8px';
-      var period=document.createElement('select');period.id=prefix+'-period';period.setAttribute('aria-label','오전 또는 오후');
-      ['am','pm'].forEach(function(v,i){var option=document.createElement('option');option.value=v;option.textContent=i?'오후':'오전';period.appendChild(option);});
-      var display=document.createElement('input');display.id=prefix+'-hour-display';display.type='text';display.inputMode='numeric';display.maxLength=2;display.placeholder='12';display.setAttribute('aria-label','태어난 시');
-      function sync(){display.value=display.value.replace(/\D/g,'').slice(0,2);var number=Number(display.value);hour.value=number>=1&&number<=12?String(number%12+(period.value==='pm'?12:0)):'';hour.dispatchEvent(new Event('change',{bubbles:true}));}
-      display.addEventListener('input',sync);period.addEventListener('change',sync);row.append(period,display);hour.after(row);
-      var label=document.querySelector('label[for="'+hour.id+'"]');if(label)label.htmlFor=display.id;
-    }
-    refreshTime(prefix);
+    hour.type='text';hour.inputMode='numeric';hour.maxLength=2;hour.placeholder='0~23';
     var minute=field(prefix,'min');if(minute){minute.type='text';minute.inputMode='numeric';minute.maxLength=2;}
     ['lat','lon','tz'].forEach(function(key){var el=field(prefix,key);if(el){el.type='hidden';var label=document.querySelector('label[for="'+el.id+'"]');if(label)label.hidden=true;if(el.parentElement.children.length<=2)el.parentElement.hidden=true;}});
     var input=placeInput(prefix);
@@ -73,7 +58,7 @@
     var date=[Number(field(prefix,'year').value),Number(field(prefix,'month').value),Number(field(prefix,'day').value)];
     var probe=new Date(Date.UTC(date[0],date[1]-1,date[2]));
     if(date[0]<1||probe.getUTCFullYear()!==date[0]||probe.getUTCMonth()!==date[1]-1||probe.getUTCDate()!==date[2])return '생년월일을 확인해 주세요.';
-    if(!hour.value || !minute.value || !Number.isInteger(Number(hour.value)) || !Number.isInteger(Number(minute.value)) || Number(hour.value)>23 || Number(minute.value)>59 || Number(hour.value)<0 || Number(minute.value)<0)return '정확한 출생시간이 필요해요. 오전·오후와 시·분을 입력해 주세요.';
+    if(!hour.value || !minute.value || !Number.isInteger(Number(hour.value)) || !Number.isInteger(Number(minute.value)) || Number(hour.value)>23 || Number(minute.value)>59 || Number(hour.value)<0 || Number(minute.value)<0)return '정확한 출생시간이 필요해요. 시(0~23)와 분을 입력해 주세요.';
     if(input&&input.dataset.ianaTimezone)value(prefix,'tz',offset(prefix,input.dataset.ianaTimezone));
     if(!input||!input.value.trim()||!field(prefix,'lat').value||!field(prefix,'lon').value||!field(prefix,'tz').value)return '태어난 도시와 국가를 입력한 뒤 출생지를 확인해 주세요.';
     if(['lat','lon','tz'].some(function(key){return !Number.isFinite(Number(field(prefix,key).value));}) || Math.abs(Number(field(prefix,'lat').value))>90 || Math.abs(Number(field(prefix,'lon').value))>180)return '출생지를 다시 확인해 주세요.';
@@ -89,7 +74,6 @@
     value(prefix,'hour',birth.timeUnknown?'':birth.hour);value(prefix,'min',birth.timeUnknown?'':birth.minute);value(prefix,'gender',profile.gender||'');
     var input=placeInput(prefix);if(input)input.value=location.label||profile.birthRegion||'';
     if(location.lat!=null&&location.lng!=null&&location.tz)applyPlace(prefix,{name:input.value,lat:Number(location.lat),lng:Number(location.lng),timezone:location.tz});
-    refreshTime(prefix);
   });
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',window.cdRefreshVedicBirthInputs,{once:true});else window.cdRefreshVedicBirthInputs();
 })();

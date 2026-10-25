@@ -2317,7 +2317,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-cce04c700eb2')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-fde8e33a1a65')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -3457,9 +3457,7 @@ function __cdApplySeoLandingEntryHandoff(action) {
   var minute = timeUnknown ? 0 : Math.min(59, Math.max(0, parseInt(timeParts[2], 10)));
   if (hourEl) hourEl.value = String(hour);
   if (minuteEl) minuteEl.value = String(minute);
-  var timePeriodEl = document.getElementById('birthTimePeriod');
-  if (timePeriodEl) timePeriodEl.value = hour >= 12 ? 'pm' : 'am';
-  if (timeTextEl) timeTextEl.value = ('0' + (timePeriodEl ? hour % 12 || 12 : hour)).slice(-2) + ':' + ('0' + minute).slice(-2);
+  if (timeTextEl) timeTextEl.value = ('0' + hour).slice(-2) + ':' + ('0' + minute).slice(-2);
   if (hourEl && minuteEl) {
     if (timeUnknown) {
       hourEl.setAttribute('data-cd-time-unknown', '1');
