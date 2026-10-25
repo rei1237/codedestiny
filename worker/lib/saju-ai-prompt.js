@@ -2212,13 +2212,18 @@ export function buildSajuAIPromptWithDomain({
   const johu = sajuResult.johu && typeof sajuResult.johu === "object" ? sajuResult.johu : {};
   const power = sajuResult.power && typeof sajuResult.power === "object" ? sajuResult.power : {};
   // 종격 여부는 요청에 실린 값(옛 설문을 거쳤을 수 있음)이 아니라 원국 기둥으로 다시 판정한다.
-  const jong = legacyJongShape(natalCoreFromPillarRows(normalizeSajuPillarRows(sajuResult)));
+  const natalCore = natalCoreFromPillarRows(normalizeSajuPillarRows(sajuResult));
+  const jong = legacyJongShape(natalCore);
   const engineContext = normalizeSajuEngineContext(sajuResult);
   const advancedFactors = engineContext.advancedFactors;
   const calibrationResolved = resolveSajuCalibrationLuck(calibration, {
     daewunRows: engineContext.quantum.daewun,
     currentAge: engineContext.quantum.currentAge,
     currentYear: Number(sajuResult.targetYear || sajuResult.currentYear || sajuResult.engineContext?.currentYear || 0) || undefined,
+    // 경험 대조는 원국과 화면이 쓰는 용신·기신을 읽기만 한다.
+    natal: natalCore,
+    useful: power.yongshin,
+    avoid: power.kijishin,
   });
   const factBuild = buildSajuMyeongsikFactSnapshot({
     sajuResult,
@@ -2344,10 +2349,7 @@ export function buildSajuAIPromptWithDomain({
     minPromptLength: 2600,
   });
 
-  const calibrationLines = buildSajuCalibrationPromptLines(calibrationResolved, {
-    yongshin: power.yongshin,
-    kijishin: power.kijishin,
-  });
+  const calibrationLines = buildSajuCalibrationPromptLines(calibrationResolved);
   const purposePrompt = [
     // 헤더 문자열은 SAJU_AI_PROMPT_VERSION(= promptVersion, 캐시 키 keyExtra)과 같은 세대를 가리켜야 한다.
     `[명식이 답하는 사주 AI 상담 ${SAJU_AI_PROMPT_VERSION.replace(/^saju-myeongsik-ai-/, "")}]`,

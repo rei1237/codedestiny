@@ -6845,15 +6845,36 @@ function _sajuPromptDomainLabel(domain) {
 }
 
 var _sajuPromptActiveCalibration = null;
-var _SAJU_CALIB_MAX_ROWS = 6;
+// 과거 경험 입력(6분류). 대운·세운 해석의 강조와 예시에만 쓰이고, 격국·용신 등 원국 판정은 바꾸지 않는다.
+var _SAJU_CALIB_MAX_ROWS = 8;
 var _SAJU_CALIB_AREAS = [
-  ['money', '재물'],
   ['career', '직업'],
-  ['love', '애정'],
-  ['health', '건강'],
-  ['study', '학업'],
-  ['etc', '기타']
+  ['business', '사업'],
+  ['money', '재정'],
+  ['relationship', '관계'],
+  ['study', '학업']
 ];
+var _SAJU_CALIB_OUTCOMES = [
+  ['good', '특별히 좋았음'],
+  ['bad', '특별히 나빴음'],
+  ['mixed', '좋고 나쁜 일이 함께 있었음'],
+  ['ordinary', '대체로 평범했음'],
+  ['unsure', '기억이 불확실함'],
+  ['skip', '해당 없음·응답 건너뜀']
+];
+// 옛 입력(좋았던/힘들었던 시기, 체감 1~5)을 새 칸으로 옮긴다. 건강·기타는 지금 분야 목록에 없어 비워 둔다.
+function _sajuPromptCalibFromLegacy(period) {
+  if (!period || period.outcome) return period;
+  var n = parseInt(period.intensity, 10) || 3;
+  return {
+    outcome: period.polarity === 'bad' ? 'bad' : 'good',
+    year: period.year,
+    age: period.age,
+    domain: period.area === 'love' ? 'relationship' : (['money', 'career', 'study'].indexOf(period.area) >= 0 ? period.area : ''),
+    intensity: n <= 2 ? 1 : (n === 3 ? 2 : 3),
+    note: period.note
+  };
+}
 
 function _sajuPromptCalibStorageKey() {
   var profileId = _sajuPromptResolveProfileId();
@@ -6881,7 +6902,7 @@ function _sajuPromptReadSavedCalibration() {
 
 function _sajuPromptStoreCalibration(calibration) {
   if (!calibration || !Array.isArray(calibration.periods) || !calibration.periods.length) return;
-  var payload = { v: 1, periods: calibration.periods, updatedAt: new Date().toISOString() };
+  var payload = { v: 2, periods: calibration.periods, updatedAt: new Date().toISOString() };
   try {
     var profileId = _sajuPromptResolveProfileId();
     if (profileId && window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.update === 'function') {
@@ -6919,46 +6940,50 @@ function _sajuPromptCollectCalibration(scopeEl) {
     var whenEl = row.querySelector('[data-saju-ai-calib-when]');
     var when = _sajuPromptParseCalibWhen(whenEl && whenEl.value);
     if (!when) return;
-    var polarityEl = row.querySelector('[data-saju-ai-calib-polarity]');
+    var outcomeEl = row.querySelector('[data-saju-ai-calib-outcome]');
+    var outcome = outcomeEl ? String(outcomeEl.value || '') : '';
+    // 응답을 고르지 않았거나 건너뛴 줄은 보내지 않는다. 어떤 응답도 '나빴음'으로 바꾸지 않는다.
+    if (!outcome || outcome === 'skip') return;
     var areaEl = row.querySelector('[data-saju-ai-calib-area]');
     var intensityEl = row.querySelector('[data-saju-ai-calib-intensity]');
+    var unsureEl = row.querySelector('[data-saju-ai-calib-unsure]');
     var noteEl = row.querySelector('[data-saju-ai-calib-note]');
     periods.push({
-      polarity: polarityEl && polarityEl.value === 'bad' ? 'bad' : 'good',
+      outcome: outcome,
       year: when.year,
       age: when.age,
-      area: areaEl && areaEl.value ? String(areaEl.value) : 'etc',
-      intensity: Math.min(5, Math.max(1, parseInt((intensityEl && intensityEl.value) || '3', 10) || 3)),
+      domain: areaEl && areaEl.value ? String(areaEl.value) : null,
+      intensity: Math.min(3, Math.max(1, parseInt((intensityEl && intensityEl.value) || '2', 10) || 2)),
+      certainty: unsureEl && unsureEl.checked ? 'unsure' : 'sure',
       note: String((noteEl && noteEl.value) || '').replace(/\s+/g, ' ').trim().slice(0, 60)
     });
   });
   if (!periods.length) return null;
-  return { v: 1, periods: periods };
+  return { v: 2, periods: periods };
 }
 
 function _sajuPromptCalibrationForRequest(calibration) {
-  if (!calibration || !Array.isArray(calibration.periods)) return null;
-  var hasGood = calibration.periods.some(function(p) { return p.polarity === 'good'; });
-  var hasBad = calibration.periods.some(function(p) { return p.polarity === 'bad'; });
-  return hasGood && hasBad ? calibration : null;
+  if (!calibration || !Array.isArray(calibration.periods) || !calibration.periods.length) return null;
+  return calibration;
 }
 
-function _sajuPromptBuildCalibRowHtml(polarity) {
+function _sajuPromptBuildCalibRowHtml() {
   var fieldStyle = 'border:1px solid rgba(230,196,112,.4);background:rgba(255,252,243,.94);color:#24170c;border-radius:8px;padding:7px 8px;font-size:0.74rem;font-weight:700;box-sizing:border-box;';
-  var areaOptions = _SAJU_CALIB_AREAS.map(function(pair) {
+  var outcomeOptions = '<option value="">응답 선택</option>' + _SAJU_CALIB_OUTCOMES.map(function(pair) {
     return '<option value="' + pair[0] + '">' + pair[1] + '</option>';
   }).join('');
-  var intensityOptions = ['1 (살짝)', '2', '3 (제법)', '4', '5 (아주 강하게)'].map(function(label, idx) {
-    return '<option value="' + (idx + 1) + '"' + (idx === 2 ? ' selected' : '') + '>' + label + '</option>';
+  var areaOptions = '<option value="">분야 선택</option>' + _SAJU_CALIB_AREAS.map(function(pair) {
+    return '<option value="' + pair[0] + '">' + pair[1] + '</option>';
+  }).join('');
+  var intensityOptions = ['약하게', '보통', '강하게'].map(function(label, idx) {
+    return '<option value="' + (idx + 1) + '"' + (idx === 1 ? ' selected' : '') + '>체감 ' + label + '</option>';
   }).join('');
   return '<div data-saju-ai-calib-row style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;border:1px solid rgba(230,196,112,.22);background:rgba(255,255,255,.05);border-radius:8px;padding:8px;">'
-    + '<select data-saju-ai-calib-polarity aria-label="시기 성격" style="' + fieldStyle + '">'
-    +   '<option value="good"' + (polarity === 'bad' ? '' : ' selected') + '>좋았던 시기</option>'
-    +   '<option value="bad"' + (polarity === 'bad' ? ' selected' : '') + '>힘들었던 시기</option>'
-    + '</select>'
-    + '<input data-saju-ai-calib-when type="text" inputmode="numeric" placeholder="예: 2014 (연도) 또는 25 (나이)" aria-label="시기(연도 또는 나이)" style="' + fieldStyle + 'flex:1 1 150px;min-width:130px;">'
-    + '<select data-saju-ai-calib-area aria-label="영역" style="' + fieldStyle + '">' + areaOptions + '</select>'
+    + '<input data-saju-ai-calib-when type="text" inputmode="numeric" placeholder="연도 (예: 2014) 또는 나이" aria-label="시기(연도 또는 나이)" style="' + fieldStyle + 'flex:1 1 150px;min-width:130px;">'
+    + '<select data-saju-ai-calib-outcome aria-label="그해의 경험" style="' + fieldStyle + 'flex:1 1 180px;">' + outcomeOptions + '</select>'
+    + '<select data-saju-ai-calib-area aria-label="분야" style="' + fieldStyle + '">' + areaOptions + '</select>'
     + '<select data-saju-ai-calib-intensity aria-label="체감 강도" style="' + fieldStyle + '">' + intensityOptions + '</select>'
+    + '<label style="display:inline-flex;gap:4px;align-items:center;font-size:0.72rem;"><input data-saju-ai-calib-unsure type="checkbox">시기가 확실하지 않아요</label>'
     + '<input data-saju-ai-calib-note type="text" maxlength="60" placeholder="한 줄 메모 (선택 — 쓰지 않아도 괜찮아요)" aria-label="한 줄 메모" style="' + fieldStyle + 'flex:1 1 100%;">'
     + '</div>';
 }
@@ -6974,26 +6999,24 @@ function _sajuPromptBindCalibrationSection(rootEl) {
     if (!nudgeEl) return;
     var collected = _sajuPromptCollectCalibration(section);
     var periods = collected ? collected.periods : [];
-    var good = periods.filter(function(p) { return p.polarity === 'good'; }).length;
-    var bad = periods.length - good;
-    var message;
-    if (!periods.length) message = '입력한 시기를 해석의 참고 정보로 사용합니다';
-    else if (!good || !bad) message = '서로 다른 시기를 입력하면 경험의 차이를 함께 참고할 수 있어요';
-    else if (good === 1 && bad === 1) message = '기억하는 시기가 더 있다면 추가할 수 있어요';
-    else message = '시기 ' + periods.length + '건이 상담 보정에 반영돼요';
-    nudgeEl.textContent = message;
+    nudgeEl.textContent = periods.length
+      ? '경험 ' + periods.length + '건을 대운·세운 해석에 참고해요'
+      : '입력한 경험은 대운·세운 해석에만 참고합니다';
   }
-  function fillRow(row, period) {
+  function fillRow(row, saved) {
+    var period = _sajuPromptCalibFromLegacy(saved);
     if (!row || !period) return;
-    var polarityEl = row.querySelector('[data-saju-ai-calib-polarity]');
+    var outcomeEl = row.querySelector('[data-saju-ai-calib-outcome]');
     var whenEl = row.querySelector('[data-saju-ai-calib-when]');
     var areaEl = row.querySelector('[data-saju-ai-calib-area]');
     var intensityEl = row.querySelector('[data-saju-ai-calib-intensity]');
+    var unsureEl = row.querySelector('[data-saju-ai-calib-unsure]');
     var noteEl = row.querySelector('[data-saju-ai-calib-note]');
-    if (polarityEl) polarityEl.value = period.polarity === 'bad' ? 'bad' : 'good';
+    if (outcomeEl) outcomeEl.value = period.outcome || '';
     if (whenEl) whenEl.value = period.year ? String(period.year) : (period.age ? String(period.age) : '');
-    if (areaEl && period.area) areaEl.value = period.area;
+    if (areaEl) areaEl.value = period.domain || '';
     if (intensityEl && period.intensity) intensityEl.value = String(period.intensity);
+    if (unsureEl) unsureEl.checked = period.certainty === 'unsure';
     if (noteEl) noteEl.value = String(period.note || '');
   }
   function syncAddButton() {
@@ -7006,7 +7029,7 @@ function _sajuPromptBindCalibrationSection(rootEl) {
   if (saved && Array.isArray(saved.periods) && saved.periods.length) {
     var needed = Math.min(_SAJU_CALIB_MAX_ROWS, saved.periods.length);
     while (rowsEl.querySelectorAll('[data-saju-ai-calib-row]').length < needed) {
-      rowsEl.insertAdjacentHTML('beforeend', _sajuPromptBuildCalibRowHtml('good'));
+      rowsEl.insertAdjacentHTML('beforeend', _sajuPromptBuildCalibRowHtml());
     }
     var rows = rowsEl.querySelectorAll('[data-saju-ai-calib-row]');
     saved.periods.slice(0, needed).forEach(function(period, idx) { fillRow(rows[idx], period); });
@@ -7015,7 +7038,7 @@ function _sajuPromptBindCalibrationSection(rootEl) {
   addBtn.addEventListener('click', function() {
     var count = rowsEl.querySelectorAll('[data-saju-ai-calib-row]').length;
     if (count >= _SAJU_CALIB_MAX_ROWS) return;
-    rowsEl.insertAdjacentHTML('beforeend', _sajuPromptBuildCalibRowHtml(count % 2 === 0 ? 'good' : 'bad'));
+    rowsEl.insertAdjacentHTML('beforeend', _sajuPromptBuildCalibRowHtml());
     syncAddButton();
     updateNudge();
   });
@@ -7032,7 +7055,7 @@ function _confirmSajuQuestionPromptPurchase(domain, privacyOptions, calibrationC
   if (privacyOptions && privacyOptions.hideBirth) protectedItems.push('원본 생년월일');
   if (privacyOptions && privacyOptions.hideTime) protectedItems.push('원본 출생시간');
   var protectedText = protectedItems.length ? protectedItems.join(', ') + ' 제외' : '개인정보 원문 포함';
-  var calibrationText = Number(calibrationCount) > 0 ? '정확도 보정: 시기 ' + Number(calibrationCount) + '건 반영\n' : '';
+  var calibrationText = Number(calibrationCount) > 0 ? '과거 경험: ' + Number(calibrationCount) + '건 반영(대운·세운 해석에만)\n' : '';
   return window.confirm(
     '사주 AI 상담 결과를 엽니다. 결제, 월정석 크레딧, 멤버십 이용권 중 사용 가능한 방식으로 확인됩니다.\n\n'
     + '선택 주제: ' + _sajuPromptDomainLabel(domain) + '\n'
@@ -7853,7 +7876,7 @@ function _buildSajuQuestionPromptHtml() {
     + '<fieldset class="consultation-domains"><legend>질문의 주제</legend>' + domainHtml + '</fieldset>'
     + '<fieldset class="consultation-privacy"><legend>상담에 전달할 원문 정보</legend><label><input type="checkbox" data-saju-ai-hide-name checked>이름 원문 제외</label><label><input type="checkbox" data-saju-ai-hide-birth checked>원본 생년월일 제외</label><label><input type="checkbox" data-saju-ai-hide-time checked>원본 출생시간 제외</label></fieldset>'
     + '<p>원문 정보는 기본으로 가리고, 계산된 명식은 해석 근거로 사용합니다.</p>'
-    + '<details data-saju-ai-calib class="consultation-calibration"><summary>기억하는 시기 추가하기 · 선택</summary><div><p>좋았거나 힘들었던 시기를 해석의 참고 정보로 함께 전할 수 있어요. 사연은 쓰지 않아도 됩니다.</p><div data-saju-ai-calib-rows>' + _sajuPromptBuildCalibRowHtml('good') + _sajuPromptBuildCalibRowHtml('bad') + '</div><button data-saju-ai-calib-add type="button" aria-label="시기 추가">시기 추가</button><span data-saju-ai-calib-nudge></span></div></details>'
+    + '<details data-saju-ai-calib class="consultation-calibration"><summary>과거 경험을 바탕으로 운의 해석을 개인화합니다 · 선택</summary><div><p>기억나는 해의 경험을 적으면 대운·세운 해석의 강조와 예시에 반영합니다. 격국·용신 같은 원국 판정은 바뀌지 않고, 사연은 쓰지 않아도 됩니다.</p><div data-saju-ai-calib-rows>' + _sajuPromptBuildCalibRowHtml() + _sajuPromptBuildCalibRowHtml() + '</div><button data-saju-ai-calib-add type="button" aria-label="경험 추가">경험 추가</button><span data-saju-ai-calib-nudge></span></div></details>'
     + '<button data-saju-ai-generate type="button" class="consultation-primary">상담 시작하기</button><p>단건 결제 <strong data-consultation-price>가격 확인 중</strong> · 결제 전 사용할 방식을 확인합니다.</p></div></details>'
     + '<div class="consultation-recovery"><button data-saju-ai-regenerate type="button" style="display:none">같은 상담 이어 받기</button><button data-saju-ai-archive type="button" style="display:none">상담 보관함 · 저장된 상담 보기</button><button data-saju-ai-resume type="button" style="display:none">이전 상담문 이어보기</button></div>'
     + '<div data-saju-ai-status role="status" aria-live="polite"></div>'

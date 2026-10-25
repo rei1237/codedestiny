@@ -397,7 +397,7 @@ function buildSajuAISectionPromptPrefix(builtPrompt) {
     "분량을 채우려고 같은 문장을 반복하거나 말을 늘리지 말고, 아직 짚지 않은 근거와 현실의 장면, 판단 기준을 새로 더해 채우세요.",
     "사용자에게 '프롬프트', '기능', '분석 결과는', '내부 지시문' 같은 말은 쓰지 마세요.",
     Number(builtPrompt?.calibrationApplied) > 0
-      ? "사용자가 보고한 시기 캘리브레이션 검증 결과는 별도 목차를 만들지 말고 맡은 챕터 산문에 자연스럽게 녹이세요."
+      ? "사용자가 적은 과거 경험과 그 대조 결과는 별도 목차를 만들지 말고 맡은 챕터 산문에 자연스럽게 녹이세요. 맞은 경험과 어긋난 경험을 모두 그대로 다루세요."
       : "",
     formatSajuAIResultRubric(categoryRubric),
     factCard && !internalPrompt.includes(factCard) ? "내부 명식 사실 카드:" : "",
