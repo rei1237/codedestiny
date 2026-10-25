@@ -113,9 +113,8 @@ try {
     await page.getByRole('button',{name:'다음',exact:true}).click();
     await expect(page.getByRole('alert')).toBeVisible();
     await page.getByLabel('생년월일',{exact:true}).fill('19900420');
-    await page.getByRole('combobox',{name:'오전 / 오후',exact:true}).selectOption('pm');
-    await page.getByRole('textbox',{name:'태어난 시간 · 시',exact:true}).fill('12');
-    await page.getByRole('textbox',{name:'태어난 시간 · 분',exact:true}).fill('30');
+    await page.getByRole('textbox',{name:'태어난 시간',exact:true}).fill('1230');
+    assert.equal(await page.locator('#neo-time').inputValue(),'12:30');
     if(width===360){const capture=resolve(out,'birth-360.png');await page.locator('#neo-form').screenshot({path:capture});captures.push(capture);}
     await page.getByLabel('상담과 회신을 위한').check();
     await page.getByRole('button',{name:'이전',exact:true}).click();
