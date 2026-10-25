@@ -23,7 +23,7 @@ export default function TeaCupSelectionScene({ selectedCupId, onSelect }: Props)
  const selected = cups.find(cup => cup.id === previewId);
  return <section className={styles.world + " " + styles.menu} aria-labelledby="teaCupSelectTitle">
   <div className={styles.menuIntro}>
-   <Image className={styles.menuPortrait} src={fortuneTeaHouseAssets.yeoni.transparent.cupPose} alt="연이" width={600} height={600} />
+   <Image className={styles.menuPortrait} src={fortuneTeaHouseAssets.yeoni.transparent.cupPose} alt="연이" width={1086} height={1448} sizes="(max-width:700px) 320px,440px" />
    <div><h2 id="teaCupSelectTitle">{copy.title}</h2><p>{copy.description}</p><p>{copy.topicNote}</p></div>
   </div>
   <div className={styles.cups} role="group" aria-label={copy.menuAria}>
