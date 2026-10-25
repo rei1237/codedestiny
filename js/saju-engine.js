@@ -2503,7 +2503,6 @@ var JANYEOGUN_DATA={
 
 var GENDER='F', USER_NAME='', BIRTH_YEAR=0, DAY_GAN='', JOHU_TYPE='', JOHU_SCORE=0, CURRENT_AGE=0;
 var G_POWER=null, G_JONG=null, G_JOHU=null;
-var G_JONG_VERIFIED=null; /* {key:'원국8글자', result:종격판정} — 사용자가 검증 모달에서 확정한 결과 */
 var G_PILLARS=null, G_NATAL=null, G_BAZI=null;
 window._ziweiBirth={year:0,month:0,day:0,hour:12,minute:0};
 window._astroBirth={year:0,month:0,day:0,hour:12,minute:0,lat:37.6,lon:127.0,tz:9};
@@ -2784,13 +2783,6 @@ function _clearDestinyFlowerSajuSnapshot() {
   } catch (e) {}
 }
 
-/* 종격 검증 결과의 소유자 키. 재계산 경로(KASI 비동기 vs 로컬 동기)가 달라 원국 간지가
-   미세하게 어긋나도 깨지지 않도록, 파생된 간지가 아니라 원본 생년월일시 입력을 식별자로 쓴다. */
-function _jongVerifiedKey(dateStr, calType, hour, minute){
-  if(!dateStr) return '';
-  return dateStr+'|'+(calType||'solar')+'|'+hour+'|'+minute;
-}
-
 /* ── 모달 전용: 분석 페이지 이동 없이 프로필 데이터로 전역 변수 계산 ── */
 window.computeProfileForModal = function(profile) {
   if (!profile || !profile.birth) return false;
@@ -2812,11 +2804,6 @@ window.computeProfileForModal = function(profile) {
   var hasBirthLocation = l.lat != null && l.lng != null;
   var hour   = hasBirthHour ? b.hour   : 12;
   var minute = hasBirthMinute ? b.minute : 0;
-  // b.year/b.month/b.day 는 이 시점까지 음력→양력 변환의 영향을 받지 않은 원본 값이다(변환은 위의
-  // 로컬 year/month/day 변수만 덮어쓴다) — calculate() 가 저장한 원본 입력 기반 키와 맞추기 위해 이 값을 쓴다.
-  var _mjKey = (b.year!=null && b.month!=null && b.day!=null)
-    ? _jongVerifiedKey(String(b.year)+String(b.month).padStart(2,'0')+String(b.day).padStart(2,'0'), calType, hour, minute)
-    : '';
   var lat    = hasBirthLocation ? l.lat    : 37.6;
   var lng    = hasBirthLocation ? l.lng    : 127.0;
   var baseTzOff = (l.baseTzOffset != null) ? l.baseTzOffset : ((l.tzOffset != null) ? l.tzOffset : 9);
@@ -2906,9 +2893,8 @@ window.computeProfileForModal = function(profile) {
     G_PILLARS = p;  G_NATAL = natal;  G_BAZI = bazi;
     if (typeof analyzeJohu === 'function') G_JOHU = analyzeJohu(p);
     if (typeof calcPower  === 'function') G_POWER = calcPower(p);
-    // 사용자가 검증 모달에서 확정한 판정이 같은 생년월일시 입력이면 그것을 쓴다 (원본 detectJong 으로 덮어쓰지 않는다)
-    if (G_JONG_VERIFIED && G_JONG_VERIFIED.key === _mjKey) G_JONG = G_JONG_VERIFIED.result;
-    else if (typeof detectJong === 'function') G_JONG = detectJong(p);
+    // 종격은 원국으로만 판정한다. 과거 경험 응답은 원국 판정에 쓰지 않는다.
+    if (typeof detectJong === 'function') G_JONG = detectJong(p);
     G_POWER=applyRuntimeYongshinPolicy(G_POWER,G_JONG,G_JOHU);
     resetEvalDaewunMemo();
     _syncDestinyFlowerSajuSnapshot('modal-profile');
@@ -4320,146 +4306,6 @@ function getDetailedGaeun(element,isGood){
   return(GAEUN_DB[element]||GAEUN_DB.earth)[isGood?'good':'bad'];
 }
 
-/* ═ 종격 감별 UI (Interactive Jong-gyeok) ═ */
-function extractSixPastTestingYears(jongResult, p) {
-  var yongshin = [jongResult.dominant, jongResult.parEl];
-  if(jongResult.name.indexOf('종아')>-1) yongshin.push(KE[jongResult.dayEl]); // 식상 생재
-  if(jongResult.name.indexOf('종재')>-1) yongshin.push(SHENG[jongResult.dominant]); // 식상 생재
-  if(jongResult.name.indexOf('종살')>-1) yongshin.push(KE[jongResult.dayEl]); // 재성 생살
-
-  var kishin = [whoControls(jongResult.dominant)];
-  var JongSelfNames = ['종강격', '곡직격', '염상격', '가색격', '종혁격', '윤하격', '종왕격'];
-  var isFollowingSelf = false;
-  JongSelfNames.forEach(function(n) { if(jongResult.name.indexOf(n)>-1) isFollowingSelf = true; });
-
-  if (!isFollowingSelf) {
-      kishin.push(jongResult.dayEl, parentOf(jongResult.dayEl));
-  } else {
-      kishin.push(KE[jongResult.dayEl], SHENG[jongResult.dayEl], whoControls(jongResult.dayEl));
-  }
-
-  var cY = new Date().getFullYear();
-  var candidates = [];
-  var GAN_E = { '甲':'wood','乙':'wood','丙':'fire','丁':'fire','戊':'earth','己':'earth','庚':'metal','辛':'metal','壬':'water','癸':'water' };
-  var ZHI_E = { '子':'water','丑':'earth','寅':'wood','卯':'wood','辰':'earth','巳':'fire','午':'fire','未':'earth','申':'metal','酉':'metal','戌':'earth','亥':'water' };
-  var gArr = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
-  var zArr = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-
-  var birthYear = p.y.y ? parseInt(p.y.y) : (cY - 30);
-  for(var i=cY-25; i<=cY-1; i++) {
-      var diff = i - 1984; // 1984년 甲子년 기준
-      var gId = (diff % 10 + 10) % 10;
-      var zId = (diff % 12 + 12) % 12;
-      if (gId < 0) gId += 10;
-      if (zId < 0) zId += 12;
-      var g = gArr[gId]; var z = zArr[zId];
-      if (i - birthYear > 8) { // 8살 이전 과거는 제외
-          candidates.push({y: i, g:g, z:z, gE:GAN_E[g], zE:ZHI_E[z]});
-      }
-  }
-
-  candidates.reverse();
-
-  var bestYears = [];
-  var worstYears = [];
-
-  candidates.forEach(function(c) {
-      if(bestYears.length < 3 && yongshin.indexOf(c.gE)>-1 && yongshin.indexOf(c.zE)>-1) bestYears.push(c);
-  });
-  candidates.forEach(function(c) {
-      if(bestYears.length < 3 && !bestYears.includes(c) && (yongshin.indexOf(c.zE)>-1 || yongshin.indexOf(c.gE)>-1)) bestYears.push(c);
-  });
-
-  candidates.forEach(function(c) {
-      if(worstYears.length < 3 && kishin.indexOf(c.gE)>-1 && kishin.indexOf(c.zE)>-1 && !bestYears.includes(c)) worstYears.push(c);
-  });
-  candidates.forEach(function(c) {
-      if(worstYears.length < 3 && !worstYears.includes(c) && !bestYears.includes(c) && (kishin.indexOf(c.zE)>-1 || kishin.indexOf(c.gE)>-1)) worstYears.push(c);
-  });
-
-  return {best: bestYears.sort(function(a,b){return a.y-b.y;}), worst: worstYears.sort(function(a,b){return a.y-b.y;})};
-}
-
-function showJongVerificationModal(jongResult, p, run) {
-  return new Promise(function(resolve) {
-      var parsedYrs = extractSixPastTestingYears(jongResult, p);
-      var bestText = parsedYrs.best.map(function(y){return y.y+"년(" + y.g + y.z + ")"}).join(', ');
-      var worstText = parsedYrs.worst.map(function(y){return y.y+"년(" + y.g + y.z + ")"}).join(', ');
-
-      var overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(4px); padding:20px;';
-
-      var box = document.createElement('div');
-      box.style.cssText = 'background:#1a1a2e; color:#e2e8f0; max-width:700px; width:100%; border-radius:12px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:1px solid #c084fc; max-height: 90vh; overflow-y: auto;';
-      var descText = jongResult.isGaJong
-        ? '이 명식은 <b>' + jongResult.name + '</b>일 가능성이 있습니다. 지배 오행의 강도가 70~80% 이상 수준으로, 실제 삶의 흐름과 대조해 종격 여부를 한 번 더 검증합니다.<br><br><b style="color:#f472b6;">아래 대표 연도들의 길흉이 종격 패턴과 일치하면 가종격으로 확정됩니다.</b>'
-        : '이 명식은 <b>' + jongResult.name + '</b>일 가능성이 있습니다. 일간을 돕는 기운이나 반대 세력이 내장되어 있어 진종격(眞從格) 여부를 판별해야 합니다.<br><br><b style="color:#f472b6;">정확한 판별을 위해 다음 연도들의 길흉을 확인해 주십시오.</b>';
-      box.innerHTML = `
-          <div style="font-size:1.3rem; font-weight:bold; color:#c084fc; margin-bottom:14px; text-align:center;">
-              <i class="fa fa-balance-scale"></i> ${jongResult.isGaJong ? '가종격(假從格)' : '종격(從格)'} 정밀 판별
-          </div>
-          <div style="font-size:0.95rem; line-height:1.6; color:#cbd5e1; margin-bottom:20px; text-align:justify;">
-              ${descText}
-          </div>
-
-          <div style="background:#0f172a; padding:16px; border-radius:8px; border:1px solid #334155; margin-bottom:16px;">
-              <div style="font-weight:bold; color:#10b981; margin-bottom:10px; font-size:1.05rem;">[길운의 시기 대조]</div>
-              <div style="color:#94a3b8; font-size:0.9rem; margin-bottom:12px;">대상 연도: ${bestText}</div>
-              <div style="color:#e2e8f0; font-size:0.95rem; margin-bottom:12px;">"이 시기에 사회적 성취가 수월하게 좋았고 심리적으로 안정되었습니까?"</div>
-              <div style="display:flex; gap:12px;">
-                  <label style="flex:1; cursor:pointer;"><input type="radio" name="best_ans" value="yes" checked> <span style="font-size:1rem; color:#a7f3d0; font-weight:bold;">예, 맞습니다.</span></label>
-                  <label style="flex:1; cursor:pointer;"><input type="radio" name="best_ans" value="no"> <span style="font-size:1rem;">아니오</span></label>
-              </div>
-          </div>
-
-          <div style="background:#0f172a; padding:16px; border-radius:8px; border:1px solid #334155; margin-bottom:24px;">
-              <div style="font-weight:bold; color:#ef4444; margin-bottom:10px; font-size:1.05rem;">[흉운의 시기 대조]</div>
-              <div style="color:#94a3b8; font-size:0.9rem; margin-bottom:12px;">대상 연도: ${worstText}</div>
-              <div style="color:#e2e8f0; font-size:0.95rem; margin-bottom:12px;">"이 시기에 건강, 재물, 혹은 관계의 극심한 부침이 있었습니까?"</div>
-              <div style="display:flex; gap:12px;">
-                  <label style="flex:1; cursor:pointer;"><input type="radio" name="worst_ans" value="yes" checked> <span style="font-size:1rem; color:#fca5a5; font-weight:bold;">예, 맞습니다.</span></label>
-                  <label style="flex:1; cursor:pointer;"><input type="radio" name="worst_ans" value="no"> <span style="font-size:1rem;">아니오</span></label>
-              </div>
-          </div>
-
-          <button id="btnJongSubmit" style="width:100%; padding:15px; background:linear-gradient(135deg, #a855f7, #7e22ce); border:none; border-radius:8px; color:#fff; font-weight:bold; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 12px rgba(168,85,247,0.3);">최종 격국 확정</button>
-      `;
-
-      overlay.appendChild(box);
-      document.body.appendChild(overlay);
-      function dismissCancelled() { overlay.remove(); resolve(jongResult); }
-      if (run) run.signal.addEventListener('abort', dismissCancelled, { once: true });
-      overlay.setAttribute('role', 'dialog');
-      overlay.setAttribute('aria-modal', 'true');
-      overlay.setAttribute('aria-label', '종격 확인');
-      overlay.querySelector('#btnJongSubmit').focus();
-
-      overlay.querySelector('#btnJongSubmit').onclick = function() {
-          var bestAns = overlay.querySelector('input[name="best_ans"]:checked').value;
-          var worstAns = overlay.querySelector('input[name="worst_ans"]:checked').value;
-
-          if (run) run.signal.removeEventListener('abort', dismissCancelled);
-          document.body.removeChild(overlay);
-
-          resolve(_sajuApplyJongDecision(jongResult, bestAns === 'yes' && worstAns === 'yes'));
-      };
-  });
-}
-
-// 종격 검증 모달의 답을 판정에 반영한다. 서버 종합·대운 풀이(worker/lib/saju-section)도 이 함수를 그대로 쓴다.
-function _sajuApplyJongDecision(jongResult, confirmed) {
-  if (confirmed) {
-    jongResult.isJong = true;
-    var confirmLabel = jongResult.isGaJong ? '가종격 확정' : '종격 확정';
-    jongResult.verifiedText = "<span style='color:#a855f7'>[" + confirmLabel + "]</span> 과거의 길흉 화복을 대조한 결과, 해당 오행에 종(從)하는 "+jongResult.name+"의 운세 흐름이 일치함이 검증되었습니다.";
-    return jongResult;
-  }
-  // 합화 여부는 판정이 아니라 원국 사실이므로 내격 전환 시에도 유지한다 (대운 충 무효화 판단에 쓰인다)
-  return {isJong: false,
-    ganHeMerged: jongResult.ganHeMerged, jiHeMerged: jongResult.jiHeMerged,
-    verifiedText: "<span style='color:#3b82f6'>[일반 내격 전환]</span> 과거 운세 흐름이 종격의 길흉과 일치하지 않아 일반격(내격)으로 회귀하여 재분석하였습니다."};
-}
-
 /* ═══════════════════════════════════════
    개인정보 동의 모달 제어
 ═══════════════════════════════════════ */
@@ -5359,20 +5205,8 @@ async function calculate(run){
     G_JOHU=johu; JOHU_TYPE=johu.type; JOHU_SCORE=johu.score;
     G_POWER=calcPower(p);
 
-    var _tj = detectJong(p);
-    G_JONG_VERIFIED = null;
-    // 종격/가종격 모두 검증 모달로 사용자 확인
-    if (_tj.isJong) {
-      _sajuSetCalculationLoading(false, 'confirming');
-      try {
-        _tj = await _sajuCalculationWait(showJongVerificationModal(_tj, p, run), run, 0);
-      } finally {
-        if (!run || !run.signal.aborted) _sajuSetCalculationLoading(true, 'calculating');
-      }
-      // 사용자 확정본을 원본 생년월일시 입력 키와 함께 보관 — 이후 앰비언트 재계산이 되돌리지 못하게 한다
-      G_JONG_VERIFIED = { key: _jongVerifiedKey(bd, calType, hour, minute), result: _tj };
-    }
-    G_JONG = _tj;
+    // 종격은 원국으로만 판정한다. 과거 경험 응답은 원국 판정에 쓰지 않는다.
+    G_JONG = detectJong(p);
     G_POWER = applyRuntimeYongshinPolicy(G_POWER, G_JONG, G_JOHU);
 
     G_BAZI=bazi;
@@ -5466,10 +5300,9 @@ async function calculate(run){
     // 예전에는 결제 여부와 무관하게 #summaryArea 를 채우고 CSS blur 만 씌워서, 개발자도구로
     // 클래스 하나만 지우면 본문 전체가 그대로 보였다. 해금 시 재렌더는 index.html 의
     // applySectionGates 가 아래 __cdLastSummaryArgs 로 수행한다(renderLifeGraph 재호출과 같은 패턴).
-    // 서버 본문 요청 입력(js/core/saju/section-client.js). 출생 정보·출생지·종격 검증 답만 담는다.
+    // 서버 본문 요청 입력(js/core/saju/section-client.js). 출생 정보·출생지만 담는다.
     window.__cdSajuSectionInput={birth:{date:bd,calType:calType,hour:hour,minute:minute,timeKnown:!_birthTimeUnknown},gender:GENDER,name:USER_NAME,
-      place:{name:opt?opt.text:'대한민국 (서울)',longitude:bLong,latitude:bLat,timezone:bTz,baseTzOffset:bBaseTzOff},
-      jongDecision:G_JONG_VERIFIED?(G_JONG_VERIFIED.result&&G_JONG_VERIFIED.result.isJong?'confirmed':'rejected'):'unverified'};
+      place:{name:opt?opt.text:'대한민국 (서울)',longitude:bLong,latitude:bLat,timezone:bTz,baseTzOffset:bBaseTzOff}};
     window.__cdLastSummaryArgs={p:p,johu:johu,natal:natal};
     try { if(_cdSajuGateUnlocked('section_summary')) renderSummary(p,johu,natal); } catch(e) { try { window.__cdLastSummaryRenderError=e; } catch(_errKeepErr){} console.error('Summary 에러:', e); }
     // 기존 해금은 계산보다 먼저 복원될 수 있다. 본문 준비가 끝난 시점에 같은 게이트
@@ -10488,8 +10321,6 @@ function renderUkbu(p){
   var dayEl=(GAN[dg]&&GAN[dg].e)||'earth';
   var dayName=(GAN[dg]&&GAN[dg].n)||dg;
   var mjEl=(p.m&&p.m.j&&JI[p.m.j])?JI[p.m.j].e:null;
-  // 종격 검증 모달에서 사용자가 확정한 결과 안내 (예/아니오 어느 쪽이든)
-  var verifiedNote=(jg&&jg.verifiedText)?'<div class="uk-note">'+jg.verifiedText+'</div>':'';
   var html='<div class="uk-wrap">';
 
   if(jg&&jg.isJong){
@@ -10503,9 +10334,8 @@ function renderUkbu(p){
       '<div class="uk-block"><div class="uk-head">🧭 대운·세운 방향</div>'+
       '<div class="uk-body"><b>'+EL_K[jg.dominant]+'</b> 기운을 더 <b>북돋는 운</b>이 오면 크게 길(吉)하고, 그 기세를 <b>거스르는 운</b>이 오면 흉(凶)합니다. 이것저것 분산하지 말고, 타고난 강점 한 가지를 극한까지 밀어붙이세요. 그게 당신 인생의 열쇠입니다.</div></div>'+
       (jg.isGaJong
-        ?'<div class="uk-note">⚠️ <b>가종격(假從格)</b>입니다 — 일간을 돕는 미약한 뿌리가 남아 있어, 대운의 흐름에 따라 진종격(眞從格)으로 굳어질 수도, 일반 사주(내격)로 돌아올 수도 있습니다. 실제 살아온 길흉과 대조해 확인해 보세요.</div>'
+        ?'<div class="uk-note">⚠️ <b>가종격(假從格)</b>입니다 — 일간을 돕는 글자가 있지만 실제 뿌리로 작용하지 못해, 지배 오행을 따르는 가종(假從)의 조건을 갖췄습니다.</div>'
         :'<div class="uk-note">✓ <b>진종격(眞從格)</b>에 가깝습니다 — 지배 오행에 온전히 순응하는 흐름이 뚜렷합니다.</div>')+
-      verifiedNote+
       '</div>';
   }else if(pw){
     var strong=!!pw.isStrong;
@@ -10549,7 +10379,6 @@ function renderUkbu(p){
         ?'<b>식상(食傷)·재(財)·관(官)</b> 운 — 즉 기운을 밖으로 쓰고 성취로 바꾸는 흐름에서 사회적 성공이 터집니다.'
         :'<b>비겁(比劫)·인성(印星)</b> 운 — 즉 나를 채우고 지지해 주는 흐름에서 자존감과 귀인이 함께 옵니다.')+
       '</div></div>'+
-      verifiedNote+
       '</div>';
   }else{
     html+='<div class="uk-card"><div class="uk-body">억부 계산 중이거나 사주 데이터가 부족합니다. 잠시 후 다시 확인해 주세요.</div></div>';

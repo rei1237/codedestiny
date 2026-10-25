@@ -54,9 +54,6 @@ import { analyzeAsk, parseAskAnalysis, escapeAskData } from './fortune/ask/analy
 import type { AskAnalysis } from './fortune/ask/analysis';
 import type { EvidencePacket } from './fortune/ask/contracts';
 import { consultationClock, consultationPeriod, createConsultation } from './fortune/consultation';
-import { calculateScreenSaju } from './fortune/saju/runtime';
-import { parseJongAnswer } from './fortune/saju/jong-check';
-import { jongCheckApplies } from './fortune/saju/jong-check-policy';
 import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
 import { CodeDestinyProvider } from './providers/code-destiny';
@@ -143,8 +140,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   // voice; anything else is 반말. Only 'honorific' enters the identity, so existing orders keep their fingerprints.
   const voiceStyle=!persona&&!body.mode&&locale==='ko'&&body.voiceStyle==='honorific'?'honorific' as const:undefined;
   const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput&&!relationship&&!tarotQuestion&&!decision);
-  // Only tiers that keep 종격 evidence ask; an answer sent anywhere else is dropped, not stored.
-  const jongAnswer=jongCheckApplies(product)&&!spiritInput?parseJongAnswer(body.jongCheck):undefined;
+  // body.jongCheck(옛 종격 확인 답)는 받기만 하고 쓰지 않는다. 종격·강약은 원국으로만 판정한다.
   if(kind){
     if(kind.partner&&!body.partnerProfileId)throw new FortuneError('PARTNER_REQUIRED');
     if(!kind.partner&&body.partnerProfileId)throw new FortuneError('PARTNER_NOT_SUPPORTED');
@@ -201,7 +197,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({...(locale==='ko'&&!persona&&!body.mode&&(decision||product.readingKind!=='single')?{readingExpansionVersion:CONSULTATION_EXPANSION_VERSION}:{}),...(decision?{questionDecision:decision}:{}),...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput?{counselVersion:COUNSEL_VERSION}:{}),...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:[READING_V6_VERSION,FUSION_READING_VERSION].includes(product.manifestVersion)?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{}),...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(tarotV3?{tarotSpread:{id:tarotOrder!.spread.id,version:tarotOrder!.spread.version},tarotInputs:tarotOrder!.inputs}:{})});
+  const fingerprint=await digest({...(locale==='ko'&&!persona&&!body.mode&&(decision||product.readingKind!=='single')?{readingExpansionVersion:CONSULTATION_EXPANSION_VERSION}:{}),...(decision?{questionDecision:decision}:{}),...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput?{counselVersion:COUNSEL_VERSION}:{}),...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:[READING_V6_VERSION,FUSION_READING_VERSION].includes(product.manifestVersion)?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(tarotV3?{tarotSpread:{id:tarotOrder!.spread.id,version:tarotOrder!.spread.version},tarotInputs:tarotOrder!.inputs}:{})});
   const id=questionIntentId||tarotIntentId||relationshipId||await digest({userId,fingerprint,...attempt,...(relationship?{relationshipVersion:RELATIONSHIP_VERSION}:{}),...(tarotV2?{tarotConsultationVersion:TAROT_CONSULTATION_VERSION}:{}),...(tarotV3?{tarotConsultationVersion:TAROT_SPREAD_VERSION}:{})});
   if(askEvidenceEnabled||relationship||tarotQuestion) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
@@ -220,7 +216,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     tarotV3&&system==='tarot'?domainContext('tarot',{spreadId:tarotOrder!.spread.id,drawPending:true}):
     tarotV2&&system==='tarot'?calculateTarotConsultation(kind!.id as TarotConsultationId):
     (askEvidenceEnabled||relationship)&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')
-      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,asOfInstant:now.toISOString(),relationshipReading:relationship,tarotFusion:product.readingKind!=='single',...(system==='saju'&&jongAnswer?{jongAnswer}:{})}));
+      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,asOfInstant:now.toISOString(),relationshipReading:relationship,tarotFusion:product.readingKind!=='single'}));
   if(contexts.saju&&!spiritInput)contexts.saju=withSajuCycleEvidence(contexts.saju,date);
   if(relationship&&product.domain!=='tarot'){
     const system=product.domain,input=normalized[system];
@@ -366,16 +362,9 @@ export async function drawTarotSpread(env: Record<string, unknown>, userId: stri
   return commitTarotDraw(env,userId,requestId,{context:tarot,draw:{version:TAROT_DECK_VERSION,method,picks,drawnAt:new Date().toISOString()}});
 }
 
-/** Pre-payment 종격 question: the same profile, supplement and consultation day prepareFortune will use. Read-only, no LLM. */
-export async function jongCheckFortune(env: Record<string, unknown>, userId: string, body: any) {
-  const product=getProduct(body.productId);
-  if(!jongCheckApplies(product))return {check:null};
-  if (typeof body.profileId !== 'string' || !body.profileId || body.profileId.length>80) throw new FortuneError('PROFILE_REQUIRED');
-  await connectDb(env);
-  const profile=await withMongoRetry(env,()=>ProfileCard.findOne({userId:ownerId(userId),profileId:body.profileId}).lean());
-  if (!profile) throw new FortuneError('PROFILE_NOT_FOUND',404);
-  const input=domains.saju.validateInput({personA:birthFromProfile(profile,body.timeUnknown===true,body.birthDetails || {})});
-  return {check:calculateScreenSaju(input.personA!,new Date(consultationClock(body.timezone).asOf)).jongCheck};
+/** Legacy pre-payment 종격 question. Past experience no longer decides the natal chart, so old clients get no question. */
+export async function jongCheckFortune(_env: Record<string, unknown>, _userId: string, _body: any) {
+  return {check:null};
 }
 
 async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:any){

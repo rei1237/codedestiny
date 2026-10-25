@@ -12,7 +12,7 @@ const profiles=['self','partner'].map((id,i)=>({profileId:id,id,name:i?'상대 �
 const browser=await chromium.launch({headless:true});const context=await browser.newContext();
 const errors=[];let posted;let successfulPrepare=false;let libraryCalls=0,failLibrary=false,holdLibrary=false,held=false;
 const attempts=new Set();
-let jongKind;const jongBodies=[],jongFixture={best:[{year:2006,ganji:'丙戌(병술)'},{year:2009,ganji:'己丑(기축)'},{year:2018,ganji:'戊戌(무술)'}],worst:[{year:2020,ganji:'庚子(경자)'},{year:2022,ganji:'壬寅(임인)'},{year:2023,ganji:'癸卯(계묘)'}]};
+const jongBodies=[];
 await context.addInitScript(user=>{localStorage.setItem('fortune_auth_user',JSON.stringify(user));},user);
 await context.route('**/*',async route=>{
  const url=new URL(route.request().url());
@@ -20,7 +20,7 @@ await context.route('**/*',async route=>{
   let data={ok:true,user,authenticated:true};let status=200;
   if(url.pathname.endsWith('/profiles'))data={ok:true,profiles,currentId:'self'};
   else if(url.pathname.endsWith('/products'))data={ok:true,products:products.map(p=>({...p,available:true}))};
-  else if(url.pathname==='/api/yeongnyangi/saju/jong-check'){jongBodies.push(route.request().postDataJSON());data={ok:true,check:{...jongFixture,kind:jongKind}};}
+  else if(url.pathname==='/api/yeongnyangi/saju/jong-check'){jongBodies.push(route.request().postDataJSON());data={ok:true,check:null};}
   else if(url.pathname==='/api/yeongnyangi/requests'){
    if(route.request().method()==='POST'){posted=route.request().postDataJSON();status=successfulPrepare?201:503;data=successfulPrepare?{fortune:{id:'a'.repeat(64),paid:false,product:products.find(p=>p.id===posted.productId)}}:{code:'FIXTURE_PREPARED',message:'검증 완료',retryable:false};}
    else {libraryCalls++;if(holdLibrary){holdLibrary=false;held=true;await new Promise(resolve=>setTimeout(resolve,400));return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fortunes:[{id:'old',product:products[0],createdAt:'2026-09-23',kindLabel:'이전 계정 기록',state:'COMPLETED'}],nextCursor:null})}).catch(()=>{});}if(failLibrary){status=503;data={code:'SERVICE_UNAVAILABLE',retryable:true};}else data={fortunes:Array.from({length:url.searchParams.has('cursor')?1:30},(_,i)=>({id:(url.searchParams.has('cursor')?'f':i.toString(16)).padStart(64,'0'),product:products[0],createdAt:'2026-09-23',state:'COMPLETED',paid:true,completedChapters:5})),nextCursor:url.searchParams.has('cursor')?null:'next'};}
@@ -56,31 +56,14 @@ try{
  }
  for(const [domain,label] of [['sukuyo','본명숙'],['vedic','베다 차트'],['astrology','출생 차트'],['ziwei','명반 해석'],['tarot','지금의 선택'],['fusion','종합 해석']]){await page.goto(base+`/yeongnyangi/fortune/?domain=${domain}`,{waitUntil:'domcontentloaded'});await page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:new RegExp(label)}).waitFor();assert.equal(await page.locator('#consultation-question').count(),domain==='tarot'?1:0);}
  await page.setViewportSize({width:390,height:900});await page.goto(base+'/yeongnyangi/fortune/?product=saju_tuna',{waitUntil:'domcontentloaded'});
- const jongSection=page.getByRole('region',{name:'지난 해로 사주 흐름 확인하기'});await jongSection.waitFor();
- assert.equal(jongBodies.at(-1).productId,'saju_tuna');assert.equal(jongBodies.at(-1).profileId,'self');
- assert.ok(await page.getByText('2006년 丙戌(병술) · 2009년 己丑(기축) · 2018년 戊戌(무술)',{exact:true}).isVisible());
- assert.ok(await page.getByRole('button',{name:'결제 내용 확인하기'}).isDisabled(),'unanswered premium question blocks checkout');
- assert.ok(await jongSection.getByText('한 기운이 아주 강해서',{exact:false}).isVisible(),'a check without kind keeps the 종격 intro');
- await page.getByText('지난 해 확인 질문 두 가지에 답해 주세요.',{exact:true}).waitFor();
- await page.getByRole('group',{name:'이 해들은 대체로 잘 풀린 편이었어?'}).getByLabel('아니오').check();
- await page.getByRole('group',{name:'이 해들은 대체로 힘들거나 막힌 편이었어?'}).getByLabel('아니오').check();
+ // 과거 경험은 원국 판정에 쓰지 않으므로 상위 사주 상품도 종격 질문 없이 바로 결제로 간다.
+ await page.getByRole('button',{name:'결제 내용 확인하기'}).waitFor();
+ assert.equal(await page.getByRole('region',{name:'지난 해로 사주 흐름 확인하기'}).count(),0);
+ assert.equal(await page.getByRole('button',{name:'결제 내용 확인하기'}).isDisabled(),false);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
- await jongSection.screenshot({path:'.codex-consultation-shots/jong-check-390.png'});
  posted=undefined;await page.getByRole('button',{name:'결제 내용 확인하기'}).click();
  while(!posted)await new Promise(resolve=>setTimeout(resolve,10));
- assert.deepEqual(posted.jongCheck,{best:'no',worst:'no',bestYears:[2006,2009,2018],worstYears:[2020,2022,2023]});
- jongKind='strength';await page.goto(base+'/yeongnyangi/fortune/?product=saju_tuna',{waitUntil:'domcontentloaded'});await jongSection.waitFor();
- assert.ok(await jongSection.getByText('스스로 버티는 힘과 바깥 기운이 거의 팽팽해서',{exact:false}).isVisible());assert.equal(await jongSection.getByText('한 기운이 아주 강해서',{exact:false}).count(),0);
- await page.getByRole('group',{name:'이 해들은 대체로 잘 풀린 편이었어?'}).getByLabel('예',{exact:true}).check();
- await page.getByRole('group',{name:'이 해들은 대체로 힘들거나 막힌 편이었어?'}).getByLabel('예',{exact:true}).check();
- await jongSection.screenshot({path:'.codex-consultation-shots/strength-check-390.png'});
- posted=undefined;await page.getByRole('button',{name:'결제 내용 확인하기'}).click();
- while(!posted)await new Promise(resolve=>setTimeout(resolve,10));
- assert.deepEqual(posted.jongCheck,{best:'yes',worst:'yes',bestYears:[2006,2009,2018],worstYears:[2020,2022,2023]});jongKind=undefined;
- await page.goto(base+'/yeongnyangi/fortune/?product=saju_flounder',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'결제 내용 확인하기'}).waitFor();
- posted=undefined;await page.getByRole('button',{name:'결제 내용 확인하기'}).click();
- while(!posted)await new Promise(resolve=>setTimeout(resolve,10));
- assert.equal(posted.productId,'saju_flounder');assert.equal(posted.jongCheck,undefined);assert.equal(await jongSection.count(),0);
+ assert.equal(posted.productId,'saju_tuna');assert.equal(posted.jongCheck,undefined);assert.equal(jongBodies.length,0);
  successfulPrepare=true;
  await page.goto(base+'/yeongnyangi/fortune/',{waitUntil:'domcontentloaded'});
  await page.getByRole('button',{name:'결제 내용 확인하기'}).click();await page.waitForURL('**/checkout/**');

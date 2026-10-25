@@ -23,12 +23,10 @@ import { BirthProfile } from "../shared/contracts";
 import { kstWall, sexagenaryYearAt } from './sexagenary-year';
 import { cycleTag, withDatedMajorLuck } from './major-luck';
 import { surfaceElements } from './element-counts';
-import { flipStrength, jongCheckYears, resolveJongVerdict, strengthCheckYears, type JongAnswer } from './jong-check';
 
-export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer?: JongAnswer) {
+export function calculateScreenSaju(profile: BirthProfile, now: Date) {
   const natalChart = calculateNatalSaju(profile);
   const pillars = natalChart.pillars;
-  const year = natalChart.calculationMeta.civil.year;
   const civil = { g: pillars.day[0], j: pillars.day[1] };
   const kstYear = new Date(now.getTime() + 9 * 3600000).getUTCFullYear();
   // The 세운 turns at 입춘: from 1 January until then the previous year's pillar is still in force, so the
@@ -88,27 +86,9 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer
     natal = calcNatalElement(p),
     detected = detectJong(p),
     calculated = calcPower(p);
-  const span = { birthYear: year, asOfYear: kstYear };
-  // 종격은 억부와 별개인 격이다(지배 오행이 강해질수록 좋다). 신강·신약 경계 질문은 종격 후보가 아닐 때만 묻는다.
-  const jongCheck = detected.isJong ? jongCheckYears(detected, span) : strengthCheckYears(calculated, span);
-  const verdict = resolveJongVerdict(jongCheck, jongAnswer);
-  const jongVerdict = jongCheck?.kind === "jong" ? verdict : "unconfirmed";
-  const strengthVerdict = jongCheck?.kind === "strength" ? verdict : "unconfirmed";
-  // 생활 이력이 종격과 맞지 않으면 억부로 읽는다. 합화 사실은 꿀꿀 원본처럼 남긴다.
-  const jong = jongVerdict === "rejected"
-    ? { isJong: false, ganHeMerged: detected.ganHeMerged, jiHeMerged: detected.jiHeMerged }
-    : detected;
-  const userCheck = verdict === "unconfirmed" ? undefined : {
-    best: jongAnswer!.best,
-    worst: jongAnswer!.worst,
-    bestYears: jongCheck!.best,
-    worstYears: jongCheck!.worst,
-  };
-  // 경계값의 신강·신약이 생활 이력과 반대면 calcPower 의 반대 분기로 읽는다. 조후 혼합은 그 뒤 기존 정책 그대로다.
-  const eokbu = strengthVerdict === "rejected"
-    ? { ...flipStrength(calculated), flippedByUser: true, userCheck }
-    : strengthVerdict === "confirmed" ? { ...calculated, confirmedByUser: true, userCheck } : calculated;
-  const power = applyRuntimeYongshinPolicy(eokbu, jong, johu);
+  // 종격·신강/신약은 원국으로만 판정한다. 과거 경험 응답은 원국 판정에 쓰지 않는다.
+  const jong = detected;
+  const power = applyRuntimeYongshinPolicy(calculated, jong, johu);
   const advanced = buildSajuAdvancedFactors({
     pillars: p,
     power,
@@ -125,14 +105,7 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer
     strength: power,
     usefulGod: power?.yongshin,
     advancedFactors: advanced,
-    jong: jongVerdict === "rejected"
-      ? { ...jong, candidateName: detected.name, rejectedByUser: true, confirmationRequired: false, userCheck }
-      : jongVerdict === "confirmed"
-        ? { ...detected, confirmedByUser: true, confirmationRequired: false, userCheck }
-        : { ...detected, confirmationRequired: detected.isJong === true },
-    jongCheck,
-    jongVerdict,
-    strengthVerdict,
+    jong,
     shinsal: buildLoveShinsal({
       pillars: Object.fromEntries(
         Object.entries(p).map(([key, v]) => [

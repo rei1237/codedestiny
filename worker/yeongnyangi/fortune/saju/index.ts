@@ -19,7 +19,7 @@ fiveElements에 countBasis가 있으면 오행 개수는 counts(눈에 보이는
     "현실적인 조언",
   ],
   async (input, options = {}) => {
-    const r = calculateScreenSaju(input.personA!,new Date(options.asOfInstant || options.asOf || Date.now()),options.jongAnswer);
+    const r = calculateScreenSaju(input.personA!,new Date(options.asOfInstant || options.asOf || Date.now()));
     const limitations = [
       "강약·용신은 월령·통근·조후와 함께 읽는 참고 판단입니다.",
       "절입은 실제 출생 순간으로 비교하며 일주·시주는 지역 평균시 보정 후 함께 계산합니다.",
@@ -28,13 +28,10 @@ fiveElements에 countBasis가 있으면 오행 개수는 counts(눈에 보이는
       limitations.push(
         "출생시간 미상: 시주와 정확한 대운 시작 시점은 해석하지 않습니다.",
       );
-    if(r.jongVerdict==='rejected')limitations.push('생활 이력 확인 결과가 종격 흐름과 맞지 않아 일반격(억부) 용신으로 읽었습니다.');
-    if(r.strengthVerdict==='rejected')limitations.push('지난 해 확인 결과에 따라 경계값에 있던 신강·신약 판단을 반대로 읽었습니다.');
-    if(r.jong.confirmationRequired)limitations.push('종격은 기존 엔진이 찾은 후보입니다. 기존 서비스의 생활 이력 확인을 거치지 않은 용신·종격 해석은 조건부입니다.');
     const timed = !!input.personA!.birthTime;
     const pillars = {year:r.yearPillar, month:r.monthPillar, day:r.dayPillar, hour:r.hourPillar ?? null};
     const elementProfile = buildElementProfile(r.fiveElements);
-    const partner = input.personB ? await saju.calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},{...options,jongAnswer:undefined}) : undefined;
+    const partner = input.personB ? await saju.calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},options) : undefined;
     const partnerFacts = partner ? Object.fromEntries(partner.facts.map(f=>[f.label,f.value])) : undefined;
     return context(
       "saju",

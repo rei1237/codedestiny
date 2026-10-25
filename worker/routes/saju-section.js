@@ -280,7 +280,7 @@ export async function handleSajuSection(request, env = {}) {
     const result = buildSajuSectionHtml({
       featureKey, birth, gender: gender === "M" ? "M" : "F",
       name: body?.name, mode: body?.mode === "neo" ? "neo" : "pig", lang: typeof body?.lang === "string" ? body.lang.slice(0, 8) : "ko",
-      place: body?.place, jongDecision: body?.jongDecision, daewun: body?.daewun, encyclopedia: body?.encyclopedia, energy: body?.energy, sukuyo, house: body?.house,
+      place: body?.place, daewun: body?.daewun, encyclopedia: body?.encyclopedia, energy: body?.energy, sukuyo, house: body?.house,
     });
     return json({ ok: true, unlocked: true, featureKey, ...result });
   } catch (error) {

@@ -40,7 +40,7 @@
     if (!input || !input.birth) return null;
     var body = {
       featureKey: featureKey, birth: input.birth, gender: input.gender, name: input.name,
-      place: input.place, jongDecision: input.jongDecision, mode: mode(), lang: lang()
+      place: input.place, mode: mode(), lang: lang()
     };
     var pid = profileId();
     if (pid) body.profileId = pid;

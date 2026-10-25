@@ -2953,18 +2953,6 @@ function getDetailedGaeun(element,isGood){
   }
   return(GAEUN_DB[element]||GAEUN_DB.earth)[isGood?'good':'bad'];
 }
-function _sajuApplyJongDecision(jongResult, confirmed) {
-  if (confirmed) {
-    jongResult.isJong = true;
-    var confirmLabel = jongResult.isGaJong ? '가종격 확정' : '종격 확정';
-    jongResult.verifiedText = "<span style='color:#a855f7'>[" + confirmLabel + "]</span> 과거의 길흉 화복을 대조한 결과, 해당 오행에 종(從)하는 "+jongResult.name+"의 운세 흐름이 일치함이 검증되었습니다.";
-    return jongResult;
-  }
-  // 합화 여부는 판정이 아니라 원국 사실이므로 내격 전환 시에도 유지한다 (대운 충 무효화 판단에 쓰인다)
-  return {isJong: false,
-    ganHeMerged: jongResult.ganHeMerged, jiHeMerged: jongResult.jiHeMerged,
-    verifiedText: "<span style='color:#3b82f6'>[일반 내격 전환]</span> 과거 운세 흐름이 종격의 길흉과 일치하지 않아 일반격(내격)으로 회귀하여 재분석하였습니다."};
-}
 function iljuEscapeHtml(str) {
   return String(str || '')
     .replace(/&/g, '&amp;')
@@ -24123,7 +24111,6 @@ var EL_ORGAN  = { wood: '간·담', fire: '심장·소장', earth: '비·위', m
     renderHealthReport: window.renderHealthReport,
     attachKasiDaewunBridge: attachKasiDaewunBridge,
     daewunRows: _sajuDaewunRowsFromList,
-    applyJongDecision: _sajuApplyJongDecision,
     parsePillar: parseKasiGanjiPair,
     GAN: GAN,
     JI: JI,

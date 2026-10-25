@@ -308,22 +308,21 @@ test('new paid compatibility and timing chapters satisfy existing v5 quality and
   assert.equal(previous.length,row.snapshot.manifest.length);
  }
 });
-test('종격 answers change only premium saju requests; no answer keeps the legacy request id',async()=>{
+test('an old 종격 answer never changes a saju request, its id or its analysis',async()=>{
+ // 종격·강약은 원국으로만 판정한다. 옛 클라이언트가 보낸 jongCheck는 받기만 하고 쓰지 않는다.
  const jong={...body,profileId:'jong',consultationKind:'personal'};
- assert.deepEqual(await jongCheckFortune(env,'owner',{...jong,productId:'saju_mackerel'}),{check:null});
- const {check}=await jongCheckFortune(env,'owner',{...jong,productId:'saju_tuna'});
- assert.ok(check.best.length>=2&&check.worst.length>=2);
- const answer=reply=>({best:reply,worst:reply,bestYears:check.best.map(y=>y.year),worstYears:check.worst.map(y=>y.year)});
- const lower=await prepareFortune(env,'owner',{...jong});
- assert.equal((await prepareFortune(env,'owner',{...jong,jongCheck:answer('no')}))._id,lower._id,'lower tiers drop the answer');
- assert.equal((await prepareFortune(env,'owner',{...jong,jongCheck:'malformed'}))._id,lower._id);
- const tuna={...jong,productId:'saju_tuna'};
- const plain=await prepareFortune(env,'owner',tuna);
- const rejected=await prepareFortune(env,'owner',{...tuna,jongCheck:answer('no')});
- assert.notEqual(rejected._id,plain._id);
- assert.ok(JSON.stringify(rejected.snapshot.analysis).includes('rejectedByUser')&&!JSON.stringify(plain.snapshot.analysis).includes('rejectedByUser'));
- assert.equal((await prepareFortune(env,'owner',{...tuna,jongCheck:answer('unsure')}))._id!==plain._id,true,'every answer is its own request');
- await assert.rejects(prepareFortune(env,'owner',{...tuna,jongCheck:{best:'no'}}),{code:'INVALID_JONG_CHECK'});
+ for(const productId of ['saju_mackerel','saju_tuna'])assert.deepEqual(await jongCheckFortune(env,'owner',{...jong,productId}),{check:null});
+ const answer=reply=>({best:reply,worst:reply,bestYears:[2006,2009,2018],worstYears:[2020,2022,2023]});
+ for(const productId of [undefined,'saju_tuna']){
+  const req=productId?{...jong,productId}:jong;
+  const plain=await prepareFortune(env,'owner',req);
+  for(const jongCheck of [answer('no'),answer('yes'),answer('unsure'),{best:'no'},'malformed']){
+   const row=await prepareFortune(env,'owner',{...req,jongCheck});
+   assert.equal(row._id,plain._id);
+   assert.deepEqual(row.snapshot.analysis,plain.snapshot.analysis);
+  }
+  assert.doesNotMatch(JSON.stringify(plain.snapshot.analysis),/rejectedByUser|confirmedByUser|flippedByUser/);
+ }
 });
 
 test('new v7 purchases leave a paid v6 result and its original price untouched',async()=>{

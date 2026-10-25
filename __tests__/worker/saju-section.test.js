@@ -285,6 +285,21 @@ test.each(PARITY.renders.map((render) => [render.id, render.mode, render]))("ser
   expect(daewun).toEqual(render.daewun);
 });
 
+test.each([
+  ["종왕격", { calendarDate: "1960-08-13", calType: "solar", hour: 2, minute: 0, timeKnown: true }],
+  ["가종재격", { calendarDate: "1960-01-07", calType: "solar", hour: 10, minute: 0, timeKnown: true }],
+])("old clients' jongDecision never changes the natal reading: %s", (name, birth) => {
+  // 종격은 원국으로만 판정한다. 옛 종격 검증 모달의 답은 받기만 하고 쓰지 않는다.
+  const html = (featureKey, jongDecision) => buildSajuSectionHtml({
+    birth, gender: "F", name: "테스트", mode: "pig", now: new Date(PARITY.now), featureKey, jongDecision,
+  }).html;
+  for (const featureKey of ["section_summary", "rpt_quantumCard"]) {
+    const plain = html(featureKey);
+    for (const decision of ["confirmed", "rejected", "unverified"]) expect(html(featureKey, decision)).toBe(plain);
+  }
+  expect(html("section_summary", "rejected")).toContain(name);
+});
+
 test("the summary adds this and next year's prescription from the same seun reading as the daewun years", () => {
   const base = { birth: CARD_BIRTH, gender: "M", name: "테스트", mode: "pig", now: new Date(PARITY.now) };
   const DAEWUN_ROWS = mapRows(buildSajuSectionHtml({ ...base, featureKey: "section_daewun", daewun: DAEWUN }).html);

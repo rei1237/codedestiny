@@ -119,7 +119,7 @@ const qText = `var ${Q_TEXT} = ${JSON.stringify({ ko: Object.fromEntries(Q_KEYS.
 
 const engineAst = parse('saju-engine.js', read('js/saju-engine.js'));
 const SEEDS = ['GENDER', 'USER_NAME', 'BIRTH_YEAR', 'DAY_GAN', 'JOHU_TYPE', 'JOHU_SCORE', 'CURRENT_AGE', 'G_POWER', 'G_JONG', 'G_JOHU', 'G_PILLARS', 'G_NATAL', 'G_BAZI'];
-const SERVER_ROOTS = ['attachKasiDaewunBridge', '_sajuDaewunRowsFromList', '_sajuApplyJongDecision', 'resetEvalDaewunMemo', 'parseKasiGanjiPair', 'GAN', 'JI', 'getTenGod', 'SHENG', ...SEEDS];
+const SERVER_ROOTS = ['attachKasiDaewunBridge', '_sajuDaewunRowsFromList', 'resetEvalDaewunMemo', 'parseKasiGanjiPair', 'GAN', 'JI', 'getTenGod', 'SHENG', ...SEEDS];
 const shellRoots = [...refs(paidAst), ...refs(quantumAst), ...refs(natureAst), ...refs(compatAst), ...refs(energyAst), ...refs(villainAst), ...refs(charmAst), ...refs(skillAst), ...refs(ziweiAst), ...tarotPicked.flatMap(t => [...refs(parse('t.js', t))]), ...SERVER_ROOTS];
 const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...encyclopediaNames, ...natureNames, ...compatNames, ...energyNames, ...villainNames, ...charmNames, ...skillNames, ...ziweiNames, ...tarotNames]));
 const sharedNames = new Set(shared.flatMap(t => [...declared(parse('s.js', t))]));
@@ -249,7 +249,6 @@ ${healthSrc.trim()}
     renderHealthReport: window.renderHealthReport,
     attachKasiDaewunBridge: attachKasiDaewunBridge,
     daewunRows: _sajuDaewunRowsFromList,
-    applyJongDecision: _sajuApplyJongDecision,
     parsePillar: parseKasiGanjiPair,
     GAN: GAN,
     JI: JI,

@@ -88,12 +88,12 @@ test('both personas draw the same numbers in different words, with the old key i
   for(const item of ['용신','희신','기신','왜 신','대운 방향 한눈에','득령','억부(抑扶)란 무엇인가요?'])assert.ok(strength.includes(item),item);
 });
 
-test('a jong chart is read by its dominant force, and engine strings are escaped',()=>{
+test('a jong chart is read by its dominant force, and a leftover survey note is not shown',()=>{
   const p=charts[5];
   const jong={isJong:true,name:'종재격',dominant:'earth',pct:72,isGaJong:true,verifiedText:'<img src=x onerror=alert(1)>'};
   const html=rich.strength(factsOf(p,{jong}),'pig');
   assert.match(html,/종격\(從格\)이란/);assert.match(html,/종재격\(從財格\)/);assert.match(html,/가종격/);
-  assert.doesNotMatch(html,/<img/);assert.match(html,/&lt;img/);
+  assert.doesNotMatch(html,/<img|&lt;img|경험과 견주어/);
 });
 
 test('unknown birth time marks the hour rows and keeps the warning',()=>{
