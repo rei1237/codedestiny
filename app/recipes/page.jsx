@@ -5,22 +5,22 @@ import { siteSeo } from '../../lib/seo/siteSeo';
 import { RECIPES, recipePath, recipeImage } from '../../lib/lifestyle/recipes.mjs';
 import ReadingLayout, { JsonLd, YeoniTip, sectionClass, headingClass, linkClass } from './ReadingLayout';
 
-export const metadata = buildSeoMetadata({ path: '/recipes/', title: '오행 건강 요리 레시피 10가지, 연이의 그림 요리 교실 | 꿀꿀 사주', description: '꽃돼지 연이와 2D 그림으로 만나는 오행 요리 10가지. 샐러드·리조또·국수·토스트·오트밀·주먹밥의 2인분 재료, 조리 과정과 실패 보완법을 소개합니다.', ogImage: '/images/five-elements/earth-2d.webp' });
+export const metadata = buildSeoMetadata({ path: '/recipes/', title: '오행 건강 요리 레시피, 연이의 그림 요리 교실 | 꿀꿀 사주', description: '꽃돼지 연이와 2D 그림으로 만나는 다양한 오행 요리. 샐러드·리조또·국수·토스트·오트밀·주먹밥의 2인분 재료, 조리 과정과 실패 보완법을 소개합니다.', ogImage: '/images/five-elements/earth-2d.webp' });
 
 const flavours = [ ['목(木)', '신맛'], ['화(火)', '쓴맛'], ['토(土)', '단맛'], ['금(金)', '매운맛'], ['수(水)', '짠맛'] ];
 
 export default function RecipesPage() {
-  return <ReadingLayout illustrated title="연이와 만드는 오행의 식탁" description="앞치마를 두르고, 오늘 먹고 싶은 맛부터 골라요. 꽃돼지 연이가 2D 그림과 조리 메모로 안내하는 열 가지 요리. 아침부터 따뜻한 저녁까지 한 단계씩 함께 만들어요." image="/images/five-elements/earth-2d.webp" imageAlt="꽃돼지 연이가 단호박 버섯 리조또를 젓는 2D 그림">
+  return <ReadingLayout illustrated title="연이와 만드는 오행의 식탁" description="앞치마를 두르고, 오늘 먹고 싶은 맛부터 골라요. 꽃돼지 연이가 2D 그림과 조리 메모로 안내하는 다양한 요리. 아침부터 따뜻한 저녁까지 한 단계씩 함께 만들어요." image="/images/five-elements/earth-2d.webp" imageAlt="꽃돼지 연이가 단호박 버섯 리조또를 젓는 2D 그림">
     <JsonLd value={{ '@context': 'https://schema.org', '@type': 'ItemList', itemListElement: RECIPES.map((r, i) => ({ '@type': 'ListItem', position: i + 1, url: `${siteSeo.siteUrl}${recipePath(r)}`, name: r.name })) }} />
     <section className={sectionClass}><h2 className={headingClass}>부족한 기운보다, 오늘 먹고 싶은 맛부터</h2>
       <p>오행의 오미는 목의 신맛, 화의 쓴맛, 토의 단맛, 금의 매운맛, 수의 짠맛을 연결하는 전통적인 분류입니다. 이곳에서는 그 관계를 메뉴를 떠올리는 출발점으로 씁니다. 사주의 특정 오행이 적다고 어떤 음식을 더 먹어야 한다는 처방은 아닙니다.</p>
       <p>‘건강 요리’는 특정 질환에 효과가 있다는 뜻이 아니라, 재료를 알고 간과 양을 스스로 조절하며 한 끼를 준비하자는 취지입니다. 단맛은 단호박의 맛으로, 매운맛은 생강의 향으로, 짠맛은 적은 양의 간을 확인하는 과정으로 풀었어요. 기호와 식사 제한이 오행 테마보다 우선입니다.</p>
       <YeoniTip introduction>불 없이 만드는 샐러드, 바삭한 토스트, 따뜻한 국수까지 준비했어요. 각 레시피의 재료와 조리 시간을 먼저 살펴보고, 오늘의 여유에 맞춰 골라 보세요.</YeoniTip>
-      <a className={linkClass} href="#recipes">열 가지 레시피 고르기</a>
+      <a className={linkClass} href="#recipes">레시피 고르기</a>
     </section>
     <section id="recipes" className="mt-14 scroll-mt-6" aria-labelledby="recipe-list"><h2 id="recipe-list" className={headingClass}>어떤 맛으로 시작할까요?</h2>
       <nav aria-label="오행의 맛별 레시피" className="mt-4 flex flex-wrap gap-x-6">{flavours.map(([element, taste], i) => <a key={element} className={linkClass} href={`#flavour-${i}`}>{element} · {taste}</a>)}</nav>
-      {flavours.map(([element, taste], i) => <section key={element} id={`flavour-${i}`} className="mt-10 scroll-mt-6" aria-labelledby={`flavour-title-${i}`}><h3 id={`flavour-title-${i}`} className="text-2xl font-semibold text-[var(--ia-ink)]">{element} · {taste}을 즐기는 두 가지 방법</h3><div className="mt-3 divide-y divide-[var(--ia-line)]">{RECIPES.filter((r) => r.element === element).map((r) => <article key={r.slug} className="grid gap-6 py-8 sm:grid-cols-[280px_1fr]">
+      {flavours.map(([element, taste], i) => <section key={element} id={`flavour-${i}`} className="mt-10 scroll-mt-6" aria-labelledby={`flavour-title-${i}`}><h3 id={`flavour-title-${i}`} className="text-2xl font-semibold text-[var(--ia-ink)]">{element} · {taste}을 즐기는 다양한 방법</h3><div className="mt-3 divide-y divide-[var(--ia-line)]">{RECIPES.filter((r) => r.element === element).map((r) => <article key={r.slug} className="grid gap-6 py-8 sm:grid-cols-[280px_1fr]">
         <Link prefetch={false} href={recipePath(r)} aria-label={`${r.name} 레시피 보기`} className="rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--ia-accent)]"><Image src={recipeImage(r)} alt={`연이와 ${r.name} 요리 장면 일러스트`} width={720} height={480} loading="lazy" sizes="(min-width:640px) 280px, 100vw" className="aspect-[3/2] w-full rounded-xl object-cover" /></Link>
         <div><h4 className="text-2xl font-semibold text-[var(--ia-ink)]"><Link prefetch={false} className={linkClass} href={recipePath(r)}>{r.name}</Link></h4><p className="mt-1 text-sm text-[var(--ia-muted)]">{r.category} · 2인분 · 예상 {r.prep + r.cook}분</p><p className="mt-4 max-w-[55ch] leading-8">{r.description}</p></div>
       </article>)}</div></section>)}
