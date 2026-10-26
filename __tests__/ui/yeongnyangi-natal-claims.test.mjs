@@ -115,12 +115,14 @@ test('a counting-age 대운 span becomes the labeled cycle\'s 만 나이; old or
 test('a 격국 other than the engine\'s becomes the template sentence once; candidates, matching negations and partners stay',()=>{
  // 1975-01-22 14:00 (甲寅 丁丑 戊辰 己未): 丑 정기 己는 戊의 겁재라 월겁격(일반격). 가색격은 기각 후보다.
  const gk={...facts,gyeokguk:{finalGyeokguk:'월겁격',finalType:'일반격'}};
- const kept=['가색격 후보도 따져 봤지만 월겁격으로 봐.','너는 종격이 아니야.','상대는 가색격이야.','네 격국은 월겁격이야.'];
+ // 상품 목차의 주제 이름(reading-v7 'useful')을 따라 쓴 문장도 판정이 아니라 둔다.
+ const kept=['가색격 후보도 따져 봤지만 월겁격으로 봐.','너는 종격이 아니야.','상대는 가색격이야.','네 격국은 월겁격이야.','나를 살리는 기운(용신·종격 판정)','종격 여부가 바꾸는 해석을 같이 볼게.'];
  const r=run(['너는 가색격이야. 토가 단단해. 稼穡格이니 흐름을 따라가.',...kept],gk);
  assert.equal(r.body.blocks[0].paragraphs[0],'격국은 월겁격(일반격)으로 봐. 토가 단단해.');
  assert.deepEqual(r.body.blocks[0].paragraphs.slice(1),kept);
  assert.deepEqual([r.replaced,r.dropped],[1,1]);
  assert.equal(run(['손님은 월겁격이 아니에요. 쉬어 가요.'],gk).body.blocks[0].paragraphs[0],'격국은 월겁격(일반격)으로 봐요. 쉬어 가요.');
+ assert.equal(run(['토가 단단해. 너는 가색격이야.'],gk).body.blocks[0].paragraphs[0],'토가 단단해. 격국은 월겁격(일반격)으로 봐.');
  // 정격·특수격 위계와 가종 비하는 fact와 상관없이 지운다.
  assert.equal(run(['특수격은 일반격보다 귀한 사주야. 가종격은 가짜라서 성격이 불안정해. 쉬어 가.'],gk).body.blocks[0].paragraphs[0],'쉬어 가.');
  // 출생시간 미상처럼 격국 fact가 없으면 격국 주장을 모두 지운다(fail-closed).

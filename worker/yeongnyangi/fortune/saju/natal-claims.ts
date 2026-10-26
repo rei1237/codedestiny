@@ -176,7 +176,7 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
     if(!drop){
       const verdict=checkGyeokgukSentence(next,gyeokFact);
       if(verdict.action==='drop'||(verdict.action==='replace'&&templated))drop=true;
-      else if(verdict.action==='replace'){templated=true;replaced++;next=(next.match(/^s*/u)?.[0]||'')+verdict.text;}
+      else if(verdict.action==='replace'){templated=true;replaced++;next=(next.match(/^\s*/u)?.[0]||'')+verdict.text;}
     }
     if(drop){dropped++;return '';}
     return next;
