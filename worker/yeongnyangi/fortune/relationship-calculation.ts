@@ -103,5 +103,7 @@ export function extendRelationshipContext(self:DomainContext,partner:DomainConte
   basis={self:{planets:a.planets,ascendant:a.ascendant,houseCusps:a.houseCusps},partner:{planets:b.planets,ascendant:b.ascendant,houseCusps:b.houseCusps}};
   comparison=westernPair(a,b);timing={asOf,limitation:'출생 시나스트리만 제공하며 날짜별 예측은 제공하지 않는다.'};
  }
- return context(self.domain,{...a,relationshipVersion:RELATIONSHIP_VERSION,relationshipBasis:basis,relationshipComparison:comparison,relationshipTiming:timing,...(b?{partnerChart:b}: {})},[...self.limitations,...(partner?.limitations||[])]);
+ const extended=context(self.domain,{...a,relationshipVersion:RELATIONSHIP_VERSION,relationshipBasis:basis,relationshipComparison:comparison,relationshipTiming:timing,...(b?{partnerChart:b}: {})},[...self.limitations,...(partner?.limitations||[])]);
+ // 원국 판정 기준은 본인 명식의 것을 그대로 둔다(reading-presentation이 이전 기준 저장본을 가른다).
+ return self.natalCore?{...extended,natalCore:self.natalCore}:extended;
 }

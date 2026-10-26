@@ -724,8 +724,10 @@ var SajuNatalCore = (() => {
     };
   }
 
-  // lib/saju/natal-core/index.mjs
+  // lib/saju/natal-core/version.mjs
   var NATAL_CORE_VERSION = "natal-core-v1";
+
+  // lib/saju/natal-core/index.mjs
   var NATAL_RULE_PROFILE = Object.freeze({
     id: "rok-yangin-strictjong-v1",
     // 개발 정책 보조값. 고전 원문의 수치가 아니다.

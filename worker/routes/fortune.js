@@ -89,6 +89,7 @@ import {
   validateSajuMyeongsikTenGodText,
 } from "../lib/saju-ai-prompt.js";
 import { correctGyeokgukText, gyeokgukClaimFact } from "../../lib/saju/gyeokguk-claim-guard.mjs";
+import { NATAL_CORE_VERSION } from "../../lib/saju/natal-core/version.mjs";
 import {
   buildAstrologyAIPrompt,
   buildAstrologyAIPromptWithDomain,
@@ -4993,7 +4994,8 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+    // 원국 판정 규칙이 바뀌면 같은 생년월일이라도 이전 판정으로 쓴 응답을 다시 쓰지 않는다.
+    keyExtra: `${builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION}|${NATAL_CORE_VERSION}`,
     skipRead: skipCacheRead || undefined,
   };
 

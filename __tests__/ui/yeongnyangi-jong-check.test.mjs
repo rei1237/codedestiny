@@ -5,9 +5,9 @@ import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 const require=createRequire(import.meta.url),Module=require('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/saju/experience-policy'; export * from './worker/yeongnyangi/fortune/saju/experience'; export {calculateScreenSaju} from './worker/yeongnyangi/fortune/saju/runtime'; export {saju} from './worker/yeongnyangi/fortune/saju'; export {getProduct} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/saju/experience-policy'; export * from './worker/yeongnyangi/fortune/saju/experience'; export {calculateScreenSaju} from './worker/yeongnyangi/fortune/saju/runtime'; export {saju} from './worker/yeongnyangi/fortune/saju'; export {getProduct} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {readingCharts} from './worker/yeongnyangi/fortune/reading-presentation';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const loaded=new Module(path.resolve('jong-check-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,loaded.id);
-const {experienceCheckApplies,experienceCheck,parseExperience,calculateScreenSaju,saju,getProduct,readingManifest,selectChapterFacts}=loaded.exports;
+const {experienceCheckApplies,experienceCheck,parseExperience,calculateScreenSaju,saju,getProduct,readingManifest,selectChapterFacts,readingCharts}=loaded.exports;
 
 test('only the three tiers that keep 대운·용신 evidence offer the experience survey',()=>{
   assert.deepEqual(['saju_mackerel','saju_salmon','saju_flounder','saju_tuna','fusion_saju_ziwei','fusion_sukuyo_vedic','fusion_all'].filter(id=>experienceCheckApplies(getProduct(id))),['saju_tuna','fusion_saju_ziwei','fusion_all']);
@@ -104,4 +104,19 @@ test('the calibration fact rides only on 대운·세운 chapters and leaves the 
     }
   }
   assert.ok(readingManifest(getProduct('saju_tuna')).some(chapter=>selectChapterFacts(context,chapter).some(f=>f.label==='experienceCalibration')));
+});
+
+test('the natal-core basis is stored once per chart, survey answers keep it, and older snapshots are marked as an earlier basis',async()=>{
+  const input=saju.validateInput({personA:person});
+  const plain=await saju.calculate(input,{asOf:'2026-09-27'});
+  const answered=await saju.calculate(input,{asOf:'2026-09-27',experience:parseExperience(survey,2026)});
+  assert.deepEqual(Object.keys(plain.natalCore),['version','ruleProfile','analysisId']);
+  assert.deepEqual(answered.natalCore,plain.natalCore);
+  const fact=answered.facts.find(f=>f.label==='experienceCalibration').value;
+  assert.equal(fact.natalAnalysisId,plain.natalCore.analysisId);
+  const note=context=>readingCharts({contexts:{saju:context}},[])[0].limitations.some(l=>l.includes('격국·종격 판정은 이전 계산 기준'));
+  const {natalCore,...older}=plain;
+  assert.equal(note(plain),false);
+  assert.equal(note(older),true);
+  assert.equal(note({...plain,natalCore:{...natalCore,version:'natal-core-v0'}}),true);
 });

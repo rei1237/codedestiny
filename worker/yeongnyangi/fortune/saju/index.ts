@@ -36,7 +36,9 @@ fiveElements에 countBasis가 있으면 오행 개수는 counts(눈에 보이는
     // 경험 보정은 원국을 읽기만 하고 대운·세운 강조에만 쓰인다. 출생시간이 없으면 대운 경계를 몰라 만들지 않는다.
     const experienceCalibration = timed && options.experience?.length ? experienceCalibrationFact(r, options.experience) : null;
     const partnerFacts = partner ? Object.fromEntries(partner.facts.map(f=>[f.label,f.value])) : undefined;
-    return context(
+    // r.jong.natalCore는 열거되지 않아 저장 fact에 남지 않는다. 판정 기준만 context에 따로 남긴다.
+    const natal = (r.jong as any)?.natalCore;
+    const calculated = context(
       "saju",
       {
         ...(partnerFacts?{
@@ -80,5 +82,6 @@ fiveElements에 countBasis가 있으면 오행 개수는 counts(눈에 보이는
       },
       [...limitations,...(partner?.limitations.map(value=>`상대: ${value}`)||[])],
     );
+    return natal?.version ? {...calculated,natalCore:{version:natal.version,ruleProfile:natal.ruleProfile,analysisId:natal.analysisId}} : calculated;
   },
 );

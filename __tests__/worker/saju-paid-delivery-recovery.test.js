@@ -8,6 +8,7 @@ const quality = require("../../worker/lib/paid-report-quality.js");
 const { toAiLocale, AI_OUTPUT_LOCALES } = require("../../lib/i18n/ai-locale.js");
 const { isCompleteLlmResponse } = require("../../worker/lib/llm-result-delivery.js");
 const gyeokgukGuard = require("../../lib/saju/gyeokguk-claim-guard.mjs");
+const { NATAL_CORE_VERSION } = require("../../lib/saju/natal-core/version.mjs");
 const source = fs.readFileSync(require.resolve("../../worker/routes/fortune.js"), "utf8");
 const ast = ts.createSourceFile("fortune.js", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
 const names = new Set([
@@ -77,7 +78,7 @@ function harness(mode = "single") {
   const calls = [];
   const ctx = {
     toAiLocale, getAmbientAiLocale: () => 'ko',
-    ...prompt, ...quality, ...gyeokgukGuard, isCompleteLlmResponse, Request, Response, Headers, Date, crypto: webcrypto,
+    ...prompt, ...quality, ...gyeokgukGuard, NATAL_CORE_VERSION, isCompleteLlmResponse, Request, Response, Headers, Date, crypto: webcrypto,
     console: { info() {}, warn() {}, error() {} },
     SAJU_AI_PROMPT_ACCESS_MODE: "per_use", SAJU_AI_PROMPT_AMOUNT_KRW: 20000,
     SAJU_AI_RESULT_SYSTEM_PROMPT: "mock", FEATURE_AI_LLM_BUDGET_MS: 80000,

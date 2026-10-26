@@ -32,6 +32,8 @@ export interface DomainContext {
   calculatedAt: string;
   facts: Evidence[];
   limitations: string[];
+  /** 사주만. 원국 판정 기준(lib/saju/natal-core). 없거나 다르면 이전 기준으로 계산된 저장본이다. */
+  natalCore?: { version: string; ruleProfile: string; analysisId: string };
 }
 export interface FortuneResult {
   title: string;
