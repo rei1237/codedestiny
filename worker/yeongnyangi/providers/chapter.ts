@@ -51,6 +51,7 @@ import {tokensRequiredForChars} from '../../lib/llm-budget.js';
 import {attachTarotSafetyNotice,buildTarotMasterContract,validateTarotChapter} from '../fortune/tarot/master-reading';
 import {TAROT_POSITION_RULE,TAROT_TIMING_RULE,TAROT_VERDICT_RULE,correctTarotChapter,tarotCardListing,tarotChapterDiscipline,validateTarotDiscipline} from '../fortune/tarot/chapter-discipline';
 import {correctNatalClaims} from '../fortune/saju/natal-claims';
+import {gyeokgukClaimFact,gyeokgukPromptRules} from '../../../lib/saju/gyeokguk-claim-guard.mjs';
 import {correctZiweiClaims} from '../fortune/ziwei/claims';
 import {sexagenaryYearOfDate} from '../fortune/saju/sexagenary-year';
 import {TUNA_PROMPT_CONTRACT,tunaReviewInstruction} from '../fortune/tuna-quality';
@@ -122,7 +123,7 @@ export function correctChapterProse(v: ChapterBody, input: ChapterRequest): Chap
   if(addressed.count){v=addressed.body;console.log('[yeongnyangi-persona-address]',JSON.stringify({chapter:input.chapter.ordinal,count:addressed.count}));}
   // The reader's own pillars, day master and strength are stored facts; a contradicting claim is fixed here, not regenerated.
   const sajuFact=(label:string)=>input.analysis.contexts?.saju?.facts.find(f=>f.label===label)?.value as any;
-  const natal=correctNatalClaims(v,{pillars:sajuFact('pillars'),dayMaster:sajuFact('dayMaster'),strength:sajuFact('strengthHeuristic'),majorLuck:sajuFact('majorLuck'),tenGodsByPillar:sajuFact('tenGodsByPillar'),fiveElements:sajuFact('fiveElements')},input.locale||'ko');
+  const natal=correctNatalClaims(v,{pillars:sajuFact('pillars'),dayMaster:sajuFact('dayMaster'),strength:sajuFact('strengthHeuristic'),majorLuck:sajuFact('majorLuck'),tenGodsByPillar:sajuFact('tenGodsByPillar'),fiveElements:sajuFact('fiveElements'),gyeokguk:sajuFact('advancedFactors')?.gyeokguk??null},input.locale||'ko');
   if(natal.replaced||natal.dropped){v=natal.body;console.log('[yeongnyangi-natal-correction]',JSON.stringify({chapter:input.chapter.ordinal,replaced:natal.replaced,dropped:natal.dropped}));}
   // A 삼합·대궁 pair or a year's 유년사화 is fixed by the palace order and the year's stem (fortune/ziwei/claims.ts).
   const ziwei=input.analysis.contexts?.ziwei?correctZiweiClaims(v,input.locale||'ko',input.chapter.questionPolicy?input.analysis.contexts.ziwei.facts.find(f=>f.label==='fourTransformations')?.value as Record<string,string>:undefined,input.voiceStyle!=='banmal'):{body:v,replaced:0,dropped:0};
@@ -615,6 +616,8 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         paidScope: paidScoped?(allowsPreventionBalance(input.chapter)?preventionTierRule:REPAIR_INSTRUCTIONS.TIER_SCOPE_VIOLATION):undefined,
         evidenceLimit: '자료 부족은 낮은 위험이나 좋은 운이 아니다. 없는 시기와 사실은 만들지 않는다. 질병·장기 이상·음식의 치료 효능을 명식으로 판단하지 않는다.',
         ...(input.chapter.questionPolicy&&input.analysis.contexts.saju?{sajuCombinationContract:'천간합의 element는 전통적인 연결 오행을 뜻하며 합화 성립을 계산한 값이 아니다. 병신합이 있다고 수 기운이 만들어졌다거나 오행 개수가 늘었다고 쓰지 않는다. 합의 연결 가능성과 합화 성립의 미확정을 구분한다. 원국·대운에 丑이 없고 해당 시기에도 丑이 제공되지 않으면 未·戌 두 글자만으로 삼형을 성립시키지 않고 계산된 미술파로 설명한다.'}:{}),
+        // The 격국 is the engine's (advancedFactors.gyeokguk); correctNatalClaims enforces the same template sentence.
+        ...(input.analysis.contexts.saju&&!spirit?{sajuGyeokgukContract:gyeokgukPromptRules(gyeokgukClaimFact((input.analysis.contexts.saju.facts.find(f=>f.label==='advancedFactors')?.value as any)?.gyeokguk)).join(' ')}:{}),
         ...(input.chapter.questionPolicy&&input.analysis.contexts.ziwei?{ziweiFrameContract:'fourTransformations와 palaces.transformations는 생년 사화다. yearlyLuck·yearlyTimeline의 annualTransformations는 그 해 천간의 유년 사화다. 두 표가 같은 별에 다른 사화를 주더라도 서로 상쇄하거나 바꾸지 않는다. 올해 보너스 장에서도 생년·유년을 명시해서 구분한다.'}:{}),
         ...(input.chapter.questionPolicy&&input.analysis.contexts.astrology?{astrologyPeriodContract:'트랜짓 등 시기 계산이 제공되지 않으면 올해 보너스 장도 사건 예측으로 쓰지 않는다. 요청한 기간은 질문 또는 준비·점검 기간이며 그 기간에 전환점이나 새로운 기회가 찾아온다는 근거가 아니다. 특정 시기의 좋고 나쁨 대신 출생 기질에 맞는 선택 조건과 확인할 현실 신호를 설명한다.'}:{}),
         citationContract: '최상위 sources에는 모든 blocks[].sources의 합집합을 빠짐없이 넣는다. sources는 CALCULATED_DATA.facts의 id를 그대로 사용한다. label이나 새 ID를 만들지 않는다.',

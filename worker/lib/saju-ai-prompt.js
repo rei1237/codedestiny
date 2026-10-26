@@ -20,6 +20,7 @@ import {
   natalCoreFromPillarRows,
 } from "./saju-gyeokguk.js";
 import { legacyJongShape } from "../../lib/saju/natal-core/index.mjs";
+import { gyeokgukClaimFact, gyeokgukPromptRules } from "../../lib/saju/gyeokguk-claim-guard.mjs";
 
 const DEFAULT_TEXT = "제공되지 않음";
 
@@ -2304,6 +2305,7 @@ export function buildSajuAIPromptWithDomain({
     "- 내부 십성표와 다른 십성으로 바꾸지 마세요.",
     "- 예: 신금(辛) 일간에게 임수(壬)는 식신이 아니라 상관입니다.",
     "- 격국·십이운성은 위 명식 사실 카드(10. 격국, 2. 사주 원국)에 확정값이 있습니다. 이와 다른 격국을 새로 만들지 말고, 격국의 활성화/파격 시기는 대운·세운 라인과 연결해 시기별 행동지침으로 풀어주세요.",
+    ...gyeokgukPromptRules(gyeokgukClaimFact(factSnapshot.majorStructures?.gyeokguk), "formal").map((line) => `- ${line}`),
     "- fact card 밖의 출생 개인정보나 존재하지 않는 신살·관계를 새로 만들지 마세요.",
     "",
     `도메인: ${template.domainKo}`,

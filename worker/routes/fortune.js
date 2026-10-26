@@ -88,6 +88,7 @@ import {
   getSajuAICategoryRubric,
   validateSajuMyeongsikTenGodText,
 } from "../lib/saju-ai-prompt.js";
+import { correctGyeokgukText, gyeokgukClaimFact } from "../../lib/saju/gyeokguk-claim-guard.mjs";
 import {
   buildAstrologyAIPrompt,
   buildAstrologyAIPromptWithDomain,
@@ -684,7 +685,10 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         //    웨이브2의 보강 요청은 접미사에 들어가므로 같은 핸들이 그대로 유효하다.
         geminiCachedContent: contextCache || undefined,
       });
-      return { group, ok: isCompleteLlmResponse(ai), text: normalizeSajuAIResultText(ai?.text), ai };
+      // 엔진 격국과 다른 격국 단정은 재생성하지 않고 고정 문장으로 바꾸거나 지운다(lib/saju/gyeokguk-claim-guard.mjs).
+      const guarded = correctGyeokgukText(normalizeSajuAIResultText(ai?.text), gyeokgukClaimFact(builtPrompt.factSnapshot?.majorStructures?.gyeokguk));
+      if (guarded.replaced || guarded.dropped) console.info("[SajuMyeongsikAI] gyeokguk correction", JSON.stringify({ requestId, group: group.key, replaced: guarded.replaced, dropped: guarded.dropped }));
+      return { group, ok: isCompleteLlmResponse(ai), text: guarded.text, ai };
     } catch (groupError) {
       console.warn("[SajuMyeongsikAI] section group threw", {
         requestId,

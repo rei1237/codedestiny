@@ -1,4 +1,6 @@
 import type {ChapterBody} from '../book-contracts';
+// Plain ESM shared with the main-shell AI route (worker/routes/fortune.js).
+import {checkGyeokgukSentence,gyeokgukClaimFact} from '../../../../lib/saju/gyeokguk-claim-guard.mjs';
 
 // Principle 17: a claim about the reader's own chart that contradicts the stored chart is corrected
 // (or its sentence dropped), never regenerated. Only Korean prose about the reader (너·네·손님·당신·고객·본인·나);
@@ -74,7 +76,9 @@ const stemWithElement=(stem:string,sample:string)=>{
 
 export interface NatalFacts {pillars?:Record<string,string|null>;dayMaster?:unknown;strength?:{isStrong?:unknown};
   majorLuck?:{currentCycle?:{pillar?:unknown}|null;cycles?:{pillar?:unknown;startAge?:unknown;endAge?:unknown;startAgeMan?:unknown;ageRange?:unknown;label?:unknown}[]|null}|null;fiveElements?:{countBasis?:unknown;counts?:Record<string,unknown>}|null;
-  tenGodsByPillar?:Record<string,{stemTenGod?:unknown;branchTenGods?:unknown;primaryHiddenTenGod?:unknown}|null>|null}
+  tenGodsByPillar?:Record<string,{stemTenGod?:unknown;branchTenGods?:unknown;primaryHiddenTenGod?:unknown}|null>|null;
+  // advancedFactors.gyeokguk. Missing (untimed chart) means every 격국 claim is dropped (fail-closed).
+  gyeokguk?:{finalGyeokguk?:unknown;finalType?:unknown;judgmentReason?:unknown}|null}
 function computedTenGods(facts:NatalFacts,key:string,position:'branch'|'pillar'):string[]{
   const t=facts.tenGodsByPillar?.[key];
   if(!t)return [];
@@ -111,7 +115,8 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
   const counts=facts.fiveElements?.countBasis==='surface'?facts.fiveElements.counts:undefined;
   const cycles=facts.majorLuck?.cycles;
   const dated=Array.isArray(cycles)?cycles.filter(c=>typeof c?.label==='string'&&typeof c.pillar==='string'&&typeof c.ageRange==='string'):[];
-  let replaced=0,dropped=0,countContext=false;
+  const gyeokFact=gyeokgukClaimFact(facts.gyeokguk);
+  let replaced=0,dropped=0,countContext=false,templated=false;
   const sentence=(s:string)=>{
     let drop=false;
     let next=s.replace(pillarClaim(),(whole,lead:string,name:string,mid:string,found:string,paren?:string,inner?:string,particle?:string)=>{
@@ -167,6 +172,12 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
       const claim=next.match(BORN_SEASON);
       if(claim&&claim[1]!==season&&!namesSeason(next,season)&&!HEDGED.test(next)&&!OTHER_PERSON.test(next)&&!GENERIC_BIRTH.test(next))drop=true;
     }
+    // A 격국 other than the stored one becomes the fixed template sentence once per field; later ones are dropped.
+    if(!drop){
+      const verdict=checkGyeokgukSentence(next,gyeokFact);
+      if(verdict.action==='drop'||(verdict.action==='replace'&&templated))drop=true;
+      else if(verdict.action==='replace'){templated=true;replaced++;next=(next.match(/^s*/u)?.[0]||'')+verdict.text;}
+    }
     if(drop){dropped++;return '';}
     return next;
   };
@@ -174,7 +185,7 @@ export function correctNatalClaims(body:ChapterBody,facts:NatalFacts,locale='ko'
     if(typeof value!=='string'||!value)return value;
     const before={replaced,dropped};
     // The paragraph, not the sentence, says whether a bare '금이 한 개' is about the chart.
-    countContext=COUNT_CONTEXT.test(value);
+    countContext=COUNT_CONTEXT.test(value);templated=false;
     // Keep each sentence's own separator so paragraph line breaks survive a dropped sentence.
     const next=value.split(/(?<=[.!?。？！])(?=\s)/u).map(sentence).join('').replace(/^\s+/u,'').trim();
     // Never blank a field to pass: an emptied string stays as written for the guard to see.
