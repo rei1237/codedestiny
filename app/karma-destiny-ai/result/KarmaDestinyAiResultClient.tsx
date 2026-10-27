@@ -8,8 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
-import AiResultProse from "@/components/fortune/AiResultProse";
-import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import ConsultationShare from "@/components/fortune/ConsultationShare";
 import { karmaShareChoices } from "@/lib/consultation-sharing";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -1288,7 +1287,7 @@ function KarmaDestinyResultInner() {
                     {report.synthesis.highlightQuotes?.[0] && (
                       <blockquote className="kdo-quote">{report.synthesis.highlightQuotes[0]}</blockquote>
                     )}
-                    <AiResultProse
+                    <ConsultationReading kind="karma" index={1}
                       value={report.synthesis.content}
                       highlight={report.synthesis.highlightQuotes}
                       className="kdo-prose"
@@ -1377,11 +1376,10 @@ function KarmaDestinyResultInner() {
                           {!summaryMode && (
                             <>
                               <div className={`kdai-chapter__prose ${clamp ? "is-clamped" : ""}`.trim()}>
-                                <AiResultProse
+                                <ConsultationReading kind="karma" index={index}
                                   value={chapter.content}
                                   highlight={chapter.highlightQuotes}
                                   className="kdo-prose"
-                                  illustration={index % 3 === 0 ? <ConsultationIllustration kind="karma" /> : undefined}
                                 />
                               </div>
                               {longBody && (
@@ -1431,7 +1429,7 @@ function KarmaDestinyResultInner() {
                 {report.letter && (
                   <div className="kdo-letter">
                     <span className="kdo-kicker">{report.letter.title}</span>
-                    <AiResultProse value={report.letter.content} className="kdo-prose" />
+                    <ConsultationReading kind="karma" value={report.letter.content} index={1} className="kdo-prose" />
                   </div>
                 )}
               </section>

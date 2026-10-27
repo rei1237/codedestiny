@@ -1,7 +1,7 @@
 "use client";
 
 import AiResultProse from "@/components/fortune/AiResultProse";
-import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import { useNakshatraCopy } from "../_lib/copy";
 import styles from "./consult-decks.module.css";
 
@@ -115,7 +115,7 @@ export default function AiConsultDecks({ decks, natal, question, totalChars = 0 
               <p className={styles.chapterLabel} aria-label={`상담 장 ${index + 2}`}>{String(index + 1).padStart(2, "0")}</p>
               <h2>{section.title}</h2>
               {section.keyInsight ? <p className={styles.chapterInsight}>{section.keyInsight}</p> : null}
-              <div className={styles.chapterBody}><AiResultProse value={section.body} illustration={index === 0 ? <ConsultationIllustration kind="vedic" /> : undefined} /></div>
+              <div className={styles.chapterBody}><ConsultationReading kind="vedic" value={section.body} index={index} /></div>
             </article>
           ))}
         </div>

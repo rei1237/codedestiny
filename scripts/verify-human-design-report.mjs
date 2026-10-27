@@ -547,8 +547,8 @@ check("조판 상수가 A4 이고 본문 폭·하단선이 유도값이다",
   && metrics.CONTENT_WIDTH_MM === 166 && metrics.CONTENT_BOTTOM_MM === 271,
   `${metrics.CONTENT_WIDTH_MM} / ${metrics.CONTENT_BOTTOM_MM}`);
 
-// 🔴 2026-10-27 승인된 리포트 조판 값이다. 이 숫자가 바뀌면 실제 상품의 페이지 나눔이 달라지므로
-//    화면과 PDF를 검토하고 이 계약도 함께 갱신한다.
+// 2026-10-27 승인된 결과/PDF 가독성 규격. 본문·제목·캡션 확대 뒤에도 원문 보존과
+// 페이지 넘침 산술 검사는 아래에서 같은 실제 조판기로 검증한다.
 const FUSION_PINNED = { lead: [11.5, 1.8], body: [11.3, 1.85], heading: [12.5, 1.5], caption: [9, 1.6], bullets: [10, 1.7] };
 for (const [kind, [sizePt, factor]] of Object.entries(FUSION_PINNED)) {
   const style = metrics.BLOCK_STYLE[kind];

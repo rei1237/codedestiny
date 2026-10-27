@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { parseProseBlocks } from "@/lib/llm-text";
 import styles from "./ai-result-prose.module.css";
 
@@ -17,6 +17,9 @@ type AiResultProseProps = {
   highlight?: string[];
   /** Decorative service artwork inserted only at a natural block boundary. */
   illustration?: ReactNode;
+  illustrations?: ReactNode[];
+  appearance?: string;
+  style?: CSSProperties;
 };
 
 function escapeRegExp(value: string) {
@@ -94,20 +97,29 @@ function renderBlock(block: ProseBlock, index: number, pattern: RegExp | null = 
  * 8개 전문가 상담 기능(숙요점/자미두수/인생의책/연애비책/신년운세/베다점/점성술/운명의업) 결과 화면 전용 —
  * 운명의 찻집·네오의 팩폭 전략실에는 적용하지 않는다.
  */
-export default function AiResultProse({ value, className = "", highlight, illustration }: AiResultProseProps) {
+export default function AiResultProse({ value, className = "", highlight, illustration, illustrations, appearance, style }: AiResultProseProps) {
   const blocks = parseProseBlocks(value);
   if (!blocks.length) return null;
-  const illustrationIndex = blocks.findIndex((block, index) => index >= Math.floor((blocks.length - 1) / 2) && block.type !== "h3");
+  const art = illustrations || (illustration ? [illustration] : []);
+  const weight = (block: ProseBlock) => block.type === "p" ? block.lines.join(" ").length : "items" in block ? block.items.join(" ").length : block.text.length;
+  const total = blocks.reduce((sum, block) => sum + weight(block), 0);
+  const count = Math.min(art.length, Math.max(1, Math.ceil(total / 1800)));
+  const interludes = new Map<number, ReactNode>();
+  let chars = 0, next = 0;
+  blocks.forEach((block, index) => {
+    chars += weight(block);
+    if (next < count && block.type !== "h3" && chars >= total * (next + 1) / (count + 1)) interludes.set(index, art[next++]);
+  });
   const needles = (highlight || []).map((item) => String(item ?? "").trim()).filter((item) => item.length >= 6);
   const pattern = needles.length
     // 긴 문장을 먼저 매칭해야 짧은 문장이 긴 문장을 잘라먹지 않는다.
     ? new RegExp(`(${[...needles].sort((a, b) => b.length - a.length).map(escapeRegExp).join("|")})`, "g")
     : null;
   return (
-    <div className={`${styles.prose} ${className}`.trim()} data-reading-prose>
+    <div className={`${styles.prose} ${appearance ? styles.editorial : ""} ${className}`.trim()} data-reading-prose data-reading-appearance={appearance} style={style}>
       {blocks.map((block, index) => <Fragment key={index}>
         {renderBlock(block, index, pattern)}
-        {illustration && index === illustrationIndex ? illustration : null}
+        {interludes.get(index)}
       </Fragment>)}
     </div>
   );

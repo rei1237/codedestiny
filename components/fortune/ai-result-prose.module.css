@@ -60,3 +60,19 @@
   padding: 0.05em 0.12em;
   color: inherit;
 }
+
+.editorial { gap: 1.3em; width: 100%; font-size: 1.0625rem; line-height: 1.9; }
+.editorial .mark { background: var(--reading-wash, transparent); border-bottom-color: var(--reading-accent, currentColor); }
+.editorial > .paragraph:first-of-type { font-size: 1.08em; font-weight: 500; line-height: 1.85; padding-bottom: 1.1em; border-bottom: 1px solid var(--reading-line); }
+.editorial .heading { color: var(--reading-accent); margin-top: 1.1em; padding-top: .6em; border-top: 1px solid var(--reading-line); }
+.editorial strong { color: var(--reading-accent); font-weight: 650; }
+.editorial .quote { margin: .5em 0; border: 1px solid var(--reading-line); border-radius: var(--cd-r-md); padding: 1.3em 1.4em; background: var(--reading-wash); color: inherit; opacity: 1; font-family: var(--font-serif); font-weight: 500; line-height: 1.9; }
+.editorial .list { border-block: 1px solid var(--reading-line); padding: 1.2em 1em 1.2em 2em; background: var(--reading-wash); }
+.editorial .list li::marker { color: var(--reading-accent); font-weight: 700; }
+.editorial[data-reading-appearance="love"] > .paragraph:first-of-type::first-letter,
+.editorial[data-reading-appearance="lifeBook"] > .paragraph:first-of-type::first-letter { color: var(--reading-accent); font-family: var(--font-serif); font-size: 1.5em; }
+.editorial[data-reading-appearance="vedic"] .heading { border-top-style: double; border-top-width: 3px; }
+.editorial[data-reading-appearance="ziwei"] .quote { border-radius: var(--cd-r-sm); }
+.editorial[data-reading-appearance="astrology"] .heading { letter-spacing: .015em; }
+.editorial[data-reading-appearance="sukuyo"] .quote { border-radius: var(--cd-r-section) var(--cd-r-sm); }
+@media(max-width:480px) { .editorial .quote { padding: 1em; } }

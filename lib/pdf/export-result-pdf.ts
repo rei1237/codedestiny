@@ -136,13 +136,23 @@ function addCapturedCanvasAsPages(pdf: JsPDFInstance, canvas: HTMLCanvasElement,
     }
   }
   const pagePixels = Math.floor(CONTENT_HEIGHT_MM * canvas.width / CONTENT_WIDTH_MM);
+  const textLines = [...lines].sort((a, b) => a.top - b.top);
   // Keep fitting illustrations, captions, table rows and headings together as well as text lines.
   for (const item of Array.from(element.querySelectorAll("figure, img, svg, tr, h1, h2, h3, h4"))) {
     const rect = item.getBoundingClientRect();
-    if (rect.height > 0 && rect.height * ratio < pagePixels) lines.push({ top: (rect.top - bounds.top) * ratio, bottom: (rect.bottom - bounds.top) * ratio });
+    const top = (rect.top - bounds.top) * ratio;
+    let bottom = (rect.bottom - bounds.top) * ratio;
+    // A heading belongs to its first explanation line, including headings inside a chapter header.
+    if (/^H[1-4]$/.test(item.tagName)) {
+      const firstLine = textLines.find(line => line.top >= bottom - 1);
+      if (firstLine && firstLine.bottom - top < pagePixels) bottom = firstLine.bottom;
+    }
+    if (rect.height > 0 && bottom - top < pagePixels) lines.push({ top, bottom });
   }
+  // Bottom padding/borders may be painted on the last page, but cannot create an empty extra page.
+  const contentBottom = lines.length ? Math.min(canvas.height, Math.ceil(Math.max(...lines.map(line => line.bottom)))) : canvas.height;
   let offset = 0;
-  while (offset < canvas.height) {
+  while (offset < contentBottom) {
     let end = Math.min(canvas.height, offset + pagePixels);
     // Move a page boundary before the intersecting text line, never through it.
     if (end < canvas.height) {

@@ -28,8 +28,7 @@ import {
 import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
-import AiResultProse from "@/components/fortune/AiResultProse";
-import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
@@ -40,6 +39,7 @@ import styles from "./LoveSecretAiResultClient.module.css";
 import LoveSecretChecklist, { type ActionSecret } from "./LoveSecretChecklist";
 import PremiumResultShare from "@/components/fortune/PremiumResultShare";
 import { groupLoveSections, resolveLoveSpeaker, type LoveCardVariant, type LoveSectionGroup, type LoveSpeaker } from "./love-secret-sections";
+import LoveSecretResultSection, { LoveSpeakerChip } from "./LoveReadingChapter";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type LoveSecretResultCopy = {
@@ -1397,7 +1397,7 @@ function LoveSecretGroupCard({
                   <h3 className="text-base font-black text-[var(--ls-text)]">{section.title}</h3>
                   <LoveSpeakerChip title={section.title} names={copy.speakerNames} />
                 </div>
-                <AiResultProse value={section.body} className={`${styles.chapterProse} mt-2 text-[var(--ls-text-muted)]`} />
+                <ConsultationReading kind="love" value={section.body} index={index} speaker={resolveLoveSpeaker(section.title)} className={`${styles.chapterProse} mt-2 text-[var(--ls-text-muted)]`} />
               </article>
             ))}
           </div>
@@ -1543,40 +1543,6 @@ function SajuChartCard({ label, chart }: { label: string; chart?: SajuChartSumma
         ) : null}
         {chart.lovePattern && <p className="whitespace-pre-wrap">{chart.lovePattern}</p>}
       </div>
-    </article>
-  );
-}
-
-const LOVE_SPEAKER_AVATAR: Record<LoveSpeaker, string> = {
-  yeoni: "/images/master-profiles/avatars/yeoni-love.webp",
-  hanbi: "/images/master-profiles/avatars/hanbi-love.webp",
-};
-
-/** 그 섹션을 쓴 상담자 — 연애 비책은 연이와 서한비가 부를 나눠 쓴다. */
-function LoveSpeakerChip({ title, names }: { title: string; names?: Record<LoveSpeaker, string> }) {
-  if (!names) return null;
-  const speaker = resolveLoveSpeaker(title);
-  return (
-    <p className={styles.speakerChip} data-speaker={speaker}>
-      <img src={LOVE_SPEAKER_AVATAR[speaker]} alt="" width={24} height={24} decoding="async" />
-      {names[speaker]}
-    </p>
-  );
-}
-
-function LoveSecretResultSection({ index, section, speakerNames }: { index: number; section: ResultSection; speakerNames?: Record<LoveSpeaker, string> }) {
-  return (
-    <article className={styles.letterChapter}>
-      <div className={styles.letterChapterHeading}>
-        <span>
-          {String(index + 1).padStart(2, "0")}
-        </span>
-        <div className="min-w-0">
-          <h3>{section.title}</h3>
-          <LoveSpeakerChip title={section.title} names={speakerNames} />
-        </div>
-      </div>
-      <AiResultProse value={section.body} className={`${styles.chapterProse} text-[var(--ls-text-muted)]`} illustration={index % 3 === 0 ? <ConsultationIllustration kind="love" /> : undefined} />
     </article>
   );
 }

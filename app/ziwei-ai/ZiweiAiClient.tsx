@@ -25,8 +25,7 @@ import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
-import AiResultProse from "@/components/fortune/AiResultProse";
-import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
@@ -1480,7 +1479,7 @@ export default function ZiweiAiPage() {
                         <b>{section.glyph || "星"}</b>
                         <h3>{section.title}</h3>
                       </div>
-                      <AiResultProse value={section.body} illustration={sectionIndex % 3 === 0 ? <ConsultationIllustration kind="ziwei" /> : undefined} />
+                      <ConsultationReading kind="ziwei" value={section.body} index={sectionIndex} />
                     </article>
                   ))}
                 </div>

@@ -2,11 +2,12 @@
   margin: 1.75rem 0;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border: 1px solid var(--reading-line, currentColor);
   border-radius: var(--cd-r-control);
   break-inside: avoid;
 }
 .artwork img { display: block; width: 100%; height: auto; }
+.portrait { width: min(64%, 15rem); align-self: center; margin-inline: auto; padding: .4rem; border-radius: var(--cd-r-card); background: var(--reading-wash, transparent); }
 .astrology { border-radius: var(--cd-r-card) var(--cd-r-card) var(--cd-r-sm) var(--cd-r-sm); }
 .vedic { padding: .35rem; border-style: double; border-width: 3px; }
 .ziwei { max-width: 32rem; margin-inline: auto; border-radius: var(--cd-r-sm); }
