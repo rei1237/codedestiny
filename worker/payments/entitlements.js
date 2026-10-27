@@ -32,11 +32,11 @@ import {
   ContentEntitlement,
   User,
 } from "../lib/models.js";
-import { USER_SCOPE_PROFILE_ID, buildLegacyBirthUnlockFilter, resolvePaidContentServiceKey } from "../lib/content-unlocks.js";
+import { USER_SCOPE_PROFILE_ID, buildLegacyBirthUnlockFilter, resolvePaidContentReadContentKeys, resolvePaidContentReadServiceKeys, resolvePaidContentServiceKey } from "../lib/content-unlocks.js";
 import { paymentError } from "./errors.js";
 import { toObjectId, toUserIdString } from "./db.js";
 import { revokePurchaseEntitlement } from "./executions.js";
-import { isBirthScopedUnlockFeatureKey } from "../lib/paid-feature-registry.js";
+import { isBirthScopedUnlockFeatureKey, isUnlockPaidFeatureKey } from "../lib/paid-feature-registry.js";
 import { resolvePaymentBirthIdentity } from "./birth-identity.js";
 import { BIRTH_ENTITLEMENT_SCOPE } from "../lib/birth-key.js";
 
@@ -125,9 +125,18 @@ export async function findOwnedEntitlement(db, {
   const identity = resolveEntitlementIdentity({
     featureKey: product.featureKey, profileId, serviceKey, contentKey, scope, birthIdentity: birth,
   });
+  const compatibleKeys = resolvePaidContentReadServiceKeys({ featureKey: product.featureKey, contentKey, serviceKey });
+  const serviceKeys = compatibleKeys.length > 1
+    ? [...new Set([identity.serviceKey, ...compatibleKeys])] : [identity.serviceKey];
+  const compatibleContentKeys = resolvePaidContentReadContentKeys({ featureKey: product.featureKey, contentKey });
+  const contentKeys = compatibleContentKeys.length > 1
+    ? [...new Set([identity.contentKey, ...compatibleContentKeys])] : [identity.contentKey];
   const owned = await db.findOne(ContentEntitlement, {
     ...identityFilter(uid, identity),
+    contentKey: contentKeys.length > 1 ? { $in: contentKeys } : identity.contentKey,
+    serviceKey: serviceKeys.length > 1 ? { $in: serviceKeys } : identity.serviceKey,
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+    $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }],
   });
   return { owned: Boolean(owned), identity, entitlement: owned || null };
 }
@@ -170,6 +179,15 @@ export async function grantEntitlement(db, {
       status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     });
     if (legacyTwin) return { alreadyOwned: true, identity, entitlement: legacyTwin };
+  }
+
+  // 과거 영구 해금의 서비스·콘텐츠 별칭도 차감 전에 같은 소유로 확인한다.
+  if (birth || isUnlockPaidFeatureKey(product.featureKey)) {
+    const existing = await findOwnedEntitlement(db, { userId: uid, product, profileId, partnerProfileId,
+      serviceKey, contentKey, scope, birthIdentity: birth });
+    if (existing.owned) return { alreadyOwned: true,
+      identity: { ...identity, serviceKey: existing.entitlement.serviceKey, contentKey: existing.entitlement.contentKey },
+      entitlement: existing.entitlement };
   }
 
   /* 이미 있으면 그대로 둔다. 재생 시 grantedAt·orderId 를 덮어쓰면 "언제 무엇으로 샀는가"라는

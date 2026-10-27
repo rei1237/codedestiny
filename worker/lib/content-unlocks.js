@@ -284,7 +284,7 @@ export function buildLegacyBirthUnlockFilter(input = {}) {
   if (!target.userId || !target.serviceKey || !target.contentKey || !target.birthScoped) return null;
   return {
     userId: target.userId,
-    serviceKey: target.serviceKey,
+    serviceKey: { $in: resolvePaidContentReadServiceKeys(input) },
     ...buildContentKeyClause(target.contentKey),
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     $and: [activeExpiryClause(), { $or: legacyGrandfatheredScopeClauses(target.profileId) }],
@@ -394,6 +394,24 @@ export function resolvePaidContentUnlockTarget({
   };
 }
 
+// 같은 등록 상품의 과거 지급 키만 허용하며, 명시 서비스나 별도 contentKey는 확장하지 않는다.
+export function resolvePaidContentReadServiceKeys(input = {}) {
+  const target = resolvePaidContentUnlockTarget(input);
+  const featureTarget = resolvePaidContentUnlockTarget({ featureKey: target.featureKey });
+  return !input.serviceKey && isUnlockPaidFeatureKey(target.featureKey)
+    && featureTarget.contentKey === target.contentKey
+    ? uniqueKeys([target.serviceKey, target.featureKey, "paid_content"])
+    : [target.serviceKey].filter(Boolean);
+}
+
+export function resolvePaidContentReadContentKeys(input = {}) {
+  const target = resolvePaidContentUnlockTarget(input);
+  const featureTarget = resolvePaidContentUnlockTarget({ featureKey: target.featureKey });
+  return isUnlockPaidFeatureKey(target.featureKey) && featureTarget.contentKey === target.contentKey
+    ? resolveContentKeyAliases(target.contentKey)
+    : [target.contentKey].filter(Boolean);
+}
+
 export function formatPermanentUnlockGrant(document = {}, fallback = {}) {
   if (String(document?.grantType || "").trim().toLowerCase() !== "permanent_unlock") return null;
   const featureKey = cleanKey(document?.featureKey || fallback?.featureKey, 160);
@@ -442,13 +460,7 @@ export async function findActivePaidContentUnlock(input = {}) {
      호출부마다 감싸지 않고 공유 리더인 여기 한 곳에서 막는다(원칙 6). */
   if (isPerUsePaidFeatureKey(target.featureKey)) return null;
 
-  // 과거 지급 경로는 같은 등록 상품의 serviceKey를 원래 featureKey 또는 paid_content로 저장했다.
-  // 명시된 서비스나 다른 contentKey 조회에는 별칭을 적용하지 않는다.
-  const featureTarget = resolvePaidContentUnlockTarget({ featureKey: target.featureKey });
-  const compatibleKeys = !input.serviceKey && isUnlockPaidFeatureKey(target.featureKey)
-    && featureTarget.contentKey === target.contentKey
-    ? uniqueKeys([target.serviceKey, target.featureKey, "paid_content"])
-    : [target.serviceKey];
+  const compatibleKeys = resolvePaidContentReadServiceKeys(input);
   const serviceKeyClause = compatibleKeys.length > 1 ? { $in: compatibleKeys } : target.serviceKey;
 
   if (target.birthScoped) {
