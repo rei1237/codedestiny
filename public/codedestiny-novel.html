@@ -1120,7 +1120,9 @@ function buildEnterPig(){
 function showMain(){
   S.screen="main";
   document.getElementById("enter").classList.add("hidden");
-  var mh=document.getElementById("mainHero");setImg(mh,"/images/novel/yeoni-youngyangi-hero-v1.webp",svgData('<rect width="600" height="900" fill="none"/>',600,900));
+  var mh=document.getElementById("mainHero"),heroPath="/images/novel/yeoni-youngyangi-hero-v1.webp";
+  if(location.protocol==="file:")heroPath="images/novel/yeoni-youngyangi-hero-v1.webp";
+  setImg(mh,heroPath,svgData('<rect width="600" height="900" fill="none"/>',600,900));
   buildMenu();
   var main=document.getElementById("main");main.classList.remove("hidden");requestAnimationFrame(function(){main.classList.add("on");});
   // parallax
