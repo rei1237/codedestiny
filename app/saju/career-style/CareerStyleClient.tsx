@@ -53,7 +53,10 @@ export default function CareerStyleClient(){
   </button>
   {result?.error&&<p role="alert">{result.error} 다른 카드를 선택하거나 위에서 정확한 정보로 카드를 추가해 주세요.</p>}
   {result?.report&&<article className={styles.report} aria-label="나의 일 스타일 리포트">
-   <header><p>나의 일 스타일</p><h2 ref={reportHeading} tabIndex={-1}>{result.report.title}</h2><p>{result.report.basis}</p></header>
+   <header className={styles.reportHeader}>
+    <img className={styles.reportPortrait} src="/fuctionassets/career-style-yeoni.webp" alt="나의 일 스타일 탐색을 함께하는 꽃돼지 연이" width={600} height={400} loading="lazy" decoding="async"/>
+    <div><p>나의 일 스타일</p><h2 ref={reportHeading} tabIndex={-1}>{result.report.title}</h2><p>{result.report.basis}</p></div>
+   </header>
    <details className={styles.evidence}><summary>계산 근거와 해석 범위 확인</summary>
     <p>년주 {result.report.analysis.natal.pillars.year} · 월주 {result.report.analysis.natal.pillars.month} · 일주 {result.report.analysis.natal.pillars.day} · 시주 {result.report.analysis.natal.pillars.hour || '시간 미상'}</p>
     <p>기존 사주 엔진의 절기·일자 경계와 출생지 시간 보정을 그대로 사용했습니다. 입력 정보가 달라지면 결과도 달라집니다. 오행 개수로 적성 점수를 만들지 않습니다.</p>
@@ -63,7 +66,12 @@ export default function CareerStyleClient(){
    </details>
    <nav className={styles.contents} aria-label="리포트 목차">{result.report.sections.map((section:{title:string},i:number)=><a key={section.title} href={`#career-chapter-${i+1}`}>{section.title}</a>)}</nav>
    {result.report.sections.map((section,i)=><section className={styles.chapter} key={section.title} id={`career-chapter-${i+1}`}>
-    <h3>{section.title}</h3>{section.paragraphs.map((text:string)=><p key={text}>{text}</p>)}
+    <h3>{section.title}</h3>
+    {i===2&&<figure className={styles.chapterArt}>
+     <img src="/images/saju/yeoni-moonlight-reading.webp" alt="달빛이 들어오는 창가에서 책을 읽는 연이" width={960} height={640} loading="lazy" decoding="async"/>
+     <figcaption>내가 편안한 조건을 천천히 살펴보세요. 이해를 돕는 공통 삽화입니다.</figcaption>
+    </figure>}
+    {section.paragraphs.map((text:string)=><p key={text}>{text}</p>)}
     {section.axes?.map(axis=><div className={styles.axis} key={axis.id}><h4>{axis.title}</h4><small>{axis.basis}</small><p>{axis.reading}</p><p><strong>강점을 쓰기 쉬운 조건</strong> {axis.easy}</p><p><strong>보완하면 편해지는 조건</strong> {axis.support}</p></div>)}
     {section.roles?.map((role,index)=><div className={styles.axis} key={`${role.title}-${index}`}><h4>{role.title}</h4><p>{role.reason}</p><p><strong>연습할 역량</strong> {role.skill}</p><p><strong>직접 확인할 활동</strong> {role.activity}</p></div>)}
    </section>)}

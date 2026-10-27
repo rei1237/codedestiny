@@ -61,6 +61,13 @@ try{
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),`overflow ${width}`);
   await page.screenshot({path:`.tmp/career-style/landing-${width}.png`});
   await report.locator('header').scrollIntoViewIfNeeded();await page.screenshot({path:`.tmp/career-style/report-${width}.png`});
+  for(const img of await report.locator('img').all()){
+   await img.scrollIntoViewIfNeeded();
+   await img.evaluate(async el=>{await el.decode();if(!el.naturalWidth)throw Error('Report image failed to load');});
+  }
+  await page.locator('#career-chapter-3').scrollIntoViewIfNeeded();
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),`report image overflow ${width}`);
+  await page.screenshot({path:`.tmp/career-style/chapter-art-${width}.png`});
  }
  await page.keyboard.press('Tab');assert.ok(await page.evaluate(()=>document.activeElement!==document.body));
  // Logout, changed account, empty cards, errors and no stale report after invalidation.
