@@ -44,7 +44,7 @@ export default function QuestionConversation({row,onRow}:{row:FortuneRecord;onRo
    <p>이번 상담에서 궁금한 점을 모두 짚어보세요. 답변을 받은 뒤에도 남은 질문을 계속 이어갈 수 있어요.</p>
    <div className={styles.suggestions} aria-label="추가 질문 시작 문장">{['방금 설명한 흐름에서 제가 먼저 바꿔볼 행동은 무엇인가요?','말해준 선택 기준을 제 상황에 적용하는 예를 더 들어줄 수 있나요?','이번 상담에서 특히 주의하라고 한 부분을 조금 더 설명해 주세요.'].filter(text=>!c.exchanges.some(e=>e.question===text)).map(text=><button key={text} type="button" disabled={busy||Boolean(c.pending)||Boolean(intent.current)} onClick={()=>{setQuestion(text);document.getElementById('question-conversation-input')?.focus();}}>{text}</button>)}</div>
    <label htmlFor="question-conversation-input">영냥이에게 이어서 묻기<textarea id="question-conversation-input" rows={3} maxLength={1200} value={c.pending?.question||question} disabled={busy||Boolean(c.pending)||Boolean(intent.current)} onChange={e=>setQuestion(e.target.value)} placeholder="결과에서 궁금했던 부분과 지금 상황을 함께 적어주세요."/></label>
-   <p>의미 확인과 정보 보충은 같은 질문으로 이어가요. 대상·주제·기간·계산이 달라지면 선택지를 먼저 안내해요.</p>
+   <p>다른 고민도 물어볼 수 있어요. 저장된 상담 근거로 답하기 어렵거나 새 계산이 필요하면 먼저 안내해요. 의미 확인과 정보 보충은 횟수에서 제외해요.</p>
    <div className={styles.actions}><button type="button" disabled={busy||(!c.pending&&question.trim().length<2)} onClick={()=>void send()}>{busy?'답변을 정리하고 있어요':c.pending?'같은 질문 다시 확인하기':'질문 보내기'}</button>
    </div>
   </div>}
