@@ -142,6 +142,7 @@ async function prepared(productId,kindId,extra={}){
 const row=(r,manifests)=>[sha(r.id),sha(r.prepare),sha(r.requests),sha(r.validated),manifests].join(' ');
 const topicManifests=(p,k)=>sha(Object.fromEntries(m.topicIds.map(t=>[t,m.consultationManifest(p,k,t)])));
 
+// 2026-10-27 오마카세 신규 가격: 세 fusion_all 행은 주문 ID와 준비 스냅샷만 바뀌며 본문·목차 해시는 유지한다.
 // New concise preparation changes only snapshot, request and validated prose hashes (2026-09-30).
 // Combined with main: saju conditional-basis v1.1 and corrected strength/useful-god
 // facts also update saju-containing and cross-daily request payloads.
@@ -375,9 +376,9 @@ const EXPECTED = {
  "fusion_astrology_tarot:legacy": "7eb0f10d7751 229efe472136 9b64779cb052 5d916b47d261 25e4aacb63c5",
  "fusion_astrology_tarot:personal": "e3271cce5dca 72ed630afc72 c47e3611e644 c714e34cd496 656712d72276",
  "fusion_astrology_tarot:ask": "9c36a035236e 76caf99461c8 5fe124bcebcb c760fd0c9e5a 25e4aacb63c5",
- "fusion_all:legacy": "dce6cef7628a e14a94b3d227 941033bb88ce ce8d70b5d60a 41723e0e4970",
- "fusion_all:personal": "6c1cec6e4f99 14491553780a 1eca35a4a267 5e5aff1f7826 8d19aca0ff68",
- "fusion_all:ask": "19a87fc0d85a 3eaff87fef17 7aa5a2b99a0c b4da13c94948 41723e0e4970",
+ "fusion_all:legacy": "4885d2065df4 99d74aae14f8 941033bb88ce ce8d70b5d60a 41723e0e4970",
+ "fusion_all:personal": "24fbba0fdff4 c66dd54f5ebe 1eca35a4a267 5e5aff1f7826 8d19aca0ff68",
+ "fusion_all:ask": "5ebc98c52418 bc4989d8c8bd 7aa5a2b99a0c b4da13c94948 41723e0e4970",
  "saju_salmon@timeUnknown": "92a20df9da71 e02037d6143e 8d352a1da6f9 3cbca35fe723 -",
  "saju_salmon@timeUnknown:ask": "6a4c6f9417fa 913377fd7131 18a1bd39ad8d 446ce98d9b2d -",
  "ziwei_salmon@noPlace": "dba2f94a1f0f 7ed554dc39a5 d06a45a69518 58713471d73f -",
