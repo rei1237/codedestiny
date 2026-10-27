@@ -127,7 +127,7 @@ async function assertEssentials(page, label) {
       assert.ok(await page.locator('#cdhLightFortunes .cdh-light__list a').count() > 0, `${width}px light fortunes fold holds its links`);
       assert.equal(await page.locator('#fortuneGatewayEntry').count(), 1, `${width}px one Yeoni consultation door`);
       assert.match(await page.locator('#fortuneGatewayEntry').textContent(), /5,000원/, `${width}px Yeoni door states 5,000원`);
-      assert.deepEqual(await page.locator('#cdQuickServices .cdh-free-card').evaluateAll((cards) => cards.map((card) => card.dataset.cdServiceId)), ['saju', 'tarot', 'ziwei', 'sukuyo', 'vedic', 'astrology'], `${width}px free cards keep the method order`);
+      assert.deepEqual(await page.locator('#cdQuickServices .cdh-free-card').evaluateAll((cards) => cards.map((card) => card.dataset.cdSignatureId || card.dataset.cdServiceId)), ['saju', 'tarot', 'ziwei', 'sukuyo', 'vedic', 'astrology'], `${width}px free cards keep the method order`);
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card img').first().evaluate((img) => getComputedStyle(img).backgroundColor), 'rgba(0, 0, 0, 0)', `${width}px free card icon has no grey box`);
       // 달빛 이야기: 접혀 있다가 열면 노벨·음악 카드 두 장이 펼쳐진다.
       assert.equal(await page.locator('.cdh-story__card').first().isVisible(), false, `${width}px story cards start folded`);
@@ -139,22 +139,16 @@ async function assertEssentials(page, label) {
       assert.ok(story.every((card) => card.visible) && (Math.abs(story[0].top - story[1].top) < 40) === sideBySide, `${width}px story cards open ${sideBySide ? 'side by side' : 'stacked'}`);
       await page.locator('.cdh-story__toggle').click();
 
-      // 대표 상담 덱: 700 미만 2열, 이상 3열 격자(가로 스크롤·위치 점 없음). 대표 상담 3종이 첫 줄이고, 라벨은 텍스트 링크다.
-      assert.equal(await page.locator('#cdSigGrid .cd-sig-card').count(), 6, `${width}px deck has six cards`);
-      assert.equal(await page.locator('#cdSignatureConsult .cd-sig-card__img').count(), 6, `${width}px each card carries its visual`);
-      assert.deepEqual(await page.locator('#cdSigGrid .cd-sig-card').evaluateAll((cards) => cards.slice(0, 3).map((card) => card.dataset.cdServiceId)), ['love-secret-ai', 'new-year-ai', 'life-book-ai'], `${width}px the three signature consultations lead the deck`);
-      const grid = await page.locator('#cdSigGrid').evaluate((node) => { const cs = getComputedStyle(node); const cols = cs.gridTemplateColumns.split(' ').length; const row = [...node.querySelectorAll('.cd-sig-card')].slice(0, cols).map((card) => card.getBoundingClientRect()); return { flow: cs.gridAutoFlow, overflowX: cs.overflowX, cols, heights: row.map((r) => Math.round(r.height)), top: row[0].top }; });
-      assert.ok(grid.flow.startsWith('row') && grid.overflowX === 'visible', `${width}px deck is a grid, not a carousel (${grid.flow}, ${grid.overflowX})`);
-      assert.equal(grid.cols, width <= 700 ? 1 : 3, `${width}px deck shows ${width <= 700 ? 1 : 3} columns`);
-      assert.equal(await page.locator('#cdSigGrid .cd-sig-card:visible').count(),3,'Three featured consultations');
-      await page.locator('.cd-sig__more > summary').click();
-      assert.equal(await page.locator('#cdSigGrid .cd-sig-card:visible').count(),6,'Six consultations remain reachable');
-      await page.locator('.cd-sig__more > summary').click();
-      // 카드 높이는 내용이 정한다(f75f35c88에서 2:3 고정을 뗐다). 같은 줄의 카드는 높이가 같아야 가격·라벨 줄이 맞는다.
-      assert.ok(Math.max(...grid.heights) - Math.min(...grid.heights) <= 1, `${width}px first deck row cards share one height (${grid.heights.join(', ')})`);
-      assert.equal(await page.locator('.cd-sig__dots, [data-cd-sig-dot]').count(), 0, `${width}px deck has no position dots`);
-      // 첫 화면에서 덱의 첫 줄이 보이기 시작한다.
-      assert.ok(grid.top < height, `${width}px first deck card starts inside the first viewport (${Math.round(grid.top)} < ${height})`);
+      // 모든 상담을 한 레일에서 순서대로 탐색한다.
+      assert.equal(await page.locator('#cdSigGrid .cd-sig-card').count(), 10);
+      assert.deepEqual(await page.locator('#cdSigGrid .cd-sig-card').evaluateAll(cards => cards.slice(0, 4).map(card => card.dataset.cdSignatureId || card.dataset.cdServiceId)), ['fusion-fortune', 'fortune-chat', 'neo-email', 'yeongnyangi-question']);
+      assert.equal(await page.locator('#cdhQuestionSlot').evaluate(node => node.closest('details').open), true);
+      const viewport = page.locator('#cdSigViewport');
+      assert.equal(await viewport.evaluate(node => getComputedStyle(node).overflowX), 'auto');
+      await page.locator('[data-sig-next]').click();
+      await page.waitForTimeout(100);
+      assert.ok(await viewport.evaluate(node => node.scrollLeft) > 0);
+      assert.equal(await page.locator('[data-sig-position]').textContent(), '2 / 10');
       assert.equal(await page.locator('#cdSigGrid .cd-sig-card__cta').evaluateAll((labels) => labels.filter((label) => getComputedStyle(label).backgroundColor !== 'rgba(0, 0, 0, 0)').length), 0, `${width}px deck labels stay text links`);
 
       // 채움 CTA = 배경과 대비 1.5 이상인 불투명 채움이나 그라디언트를 가진 버튼 크기(72px 이하) 요소.

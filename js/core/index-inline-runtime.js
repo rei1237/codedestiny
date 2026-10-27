@@ -2952,6 +2952,14 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
     img.setAttribute('sizes', COLLECTION_TILE_SIZES);
   }
 
+  // 도감의 소개 그림은 320·640 쌍이 있어 고밀도 모바일에서 원본 320 확대를 피한다.
+  function applyIntroductionSrcset(img, src) {
+    var match = /^(\/images\/service-introductions\/[a-z0-9-]+)-320\.webp$/.exec(String(src || ''));
+    if (!match || img.hasAttribute('srcset')) return;
+    img.setAttribute('srcset', match[1] + '-320.webp 320w, ' + match[1] + '-640.webp 640w');
+    img.setAttribute('sizes', '(max-width: 768px) 50vw, 320px');
+  }
+
   function hydrateWrap(wrap) {
     if (!wrap) return;
     var src = wrap.getAttribute('data-img-src');
@@ -2973,6 +2981,7 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
       var existingFallback = [resizedExisting ? resolvedExistingSrc : '', existingSrc];
       var nextSrc = resizedExisting || resolvedExistingSrc;
       applyFeatureDetailSrcset(existingImg, existingSrc);
+      applyIntroductionSrcset(existingImg, existingSrc);
       if (nextSrc && nextSrc !== existingSrc) {
         // 체인은 "바인딩 시점의 src" 와 같은 후보를 중복으로 보고 걸러낸다. 먼저 바인딩하면
         // 마크업의 원래 경로(/fuctionassets/…)가 아직 현재 src 라 체인에서 빠지고, R2 에 없는
@@ -3015,6 +3024,7 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
     // 리사이즈본 → 원본 R2 → 마크업의 원래 경로 → 그래도 안 되면 심볼 플레이스홀더.
     bindCollectionImageFallback(img, [resizedSrc ? resolvedSrc : '', fallbackSrc, src], placeholder, skeleton);
     applyFeatureDetailSrcset(img, resizedSrc || resolvedSrc);
+    applyIntroductionSrcset(img, src);
     img.src = resizedSrc || resolvedSrc;
     wrap.insertBefore(img, wrap.firstChild);
   }

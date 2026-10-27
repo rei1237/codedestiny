@@ -2213,7 +2213,12 @@
       "emailZiwei": "Saju + Tử Vi: {amount} KRW mỗi câu hỏi",
       "emailChart": "Thêm phân tích lá số +{amount} KRW",
       "emailMax": "Tối đa {amount} KRW/câu hỏi",
-      "unlockPrice": "Mở khóa với {amount} KRW"
+      "unlockPrice": "Mở khóa với {amount} KRW",
+      "simpleChatTitle": "Tư vấn vận mệnh qua trò chuyện",
+      "signatureNewLead": "Khám phá cách tư vấn phù hợp với điều bạn băn khoăn.",
+      "signatureFeatured": "Tư vấn nổi bật",
+      "signatureFusionDesc": "Năm chuyên gia luận giải dòng đời qua sáu hệ thống.",
+      "signatureCatDesc": "Tìm hiểu một băn khoăn qua hệ thống phù hợp với bạn."
     },
     "playPrice": {
       "from": "Từ {price}",

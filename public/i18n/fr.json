@@ -2213,7 +2213,12 @@
       "emailZiwei": "Saju + Ziwei par question : {amount} KRW",
       "emailChart": "Ajouter l’analyse du thème natal +{amount} KRW",
       "emailMax": "Jusqu’à {amount} KRW par question",
-      "unlockPrice": "Débloquer pour {amount} KRW"
+      "unlockPrice": "Débloquer pour {amount} KRW",
+      "simpleChatTitle": "Consultation courte par chat",
+      "signatureNewLead": "Découvrez les consultations et leur déroulement.",
+      "signatureFeatured": "Consultation à la une",
+      "signatureFusionDesc": "Cinq guides explorent votre parcours à travers six systèmes.",
+      "signatureCatDesc": "Explorez une question avec une méthode qui vous convient."
     },
     "playPrice": {
       "from": "À partir de {price}",

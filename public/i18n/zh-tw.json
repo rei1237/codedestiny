@@ -2213,7 +2213,12 @@
       "emailZiwei": "四柱＋紫微斗數：每個問題{amount}韓元",
       "emailChart": "加選命局、命盤解讀 +{amount}韓元",
       "emailMax": "每題最高{amount}韓元",
-      "unlockPrice": "{amount}韓元解鎖"
+      "unlockPrice": "{amount}韓元解鎖",
+      "simpleChatTitle": "簡短對話占卜諮詢",
+      "signatureNewLead": "了解適合您煩惱的諮詢及進行方式。",
+      "signatureFeatured": "精選諮詢",
+      "signatureFusionDesc": "五位導師透過六種體系解讀人生走向。",
+      "signatureCatDesc": "用適合自己的占卜體系探索一個煩惱。"
     },
     "playPrice": {
       "from": "{price}起",

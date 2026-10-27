@@ -2213,7 +2213,12 @@
       "emailZiwei": "साजू + जिवेई: प्रति प्रश्न {amount} KRW",
       "emailChart": "जन्म-कुंडली विश्लेषण जोड़ें +KRW {amount}",
       "emailMax": "प्रति सवाल अधिकतम KRW {amount}",
-      "unlockPrice": "KRW {amount} में खोलें"
+      "unlockPrice": "KRW {amount} में खोलें",
+      "simpleChatTitle": "सरल संवाद परामर्श",
+      "signatureNewLead": "अपनी चिंता के लिए उपयुक्त परामर्श और तरीका देखें।",
+      "signatureFeatured": "प्रमुख परामर्श",
+      "signatureFusionDesc": "पाँच विशेषज्ञ छह पद्धतियों से जीवन की दिशा पढ़ते हैं।",
+      "signatureCatDesc": "अपनी एक चिंता को उपयुक्त पद्धति से समझें।"
     },
     "playPrice": {
       "from": "{price} से",

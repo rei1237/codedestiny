@@ -57,6 +57,44 @@
     window.addEventListener('resize', syncConcernArrows);
     syncConcernArrows();
   }
+
+  // 네이티브 스크롤을 유지하며 버튼과 위치 표시만 보강한다.
+  var signatureViewport = home.querySelector('#cdSigViewport');
+  var signatureControls = home.querySelector('.cd-sig__controls');
+  if (signatureViewport && signatureControls) {
+    var signatureCards = Array.prototype.slice.call(signatureViewport.querySelectorAll('.cd-sig-card'));
+    var signaturePrevious = signatureControls.querySelector('[data-sig-prev]');
+    var signatureNext = signatureControls.querySelector('[data-sig-next]');
+    var signaturePosition = signatureControls.querySelector('[data-sig-position]');
+    var signatureIndex = 0;
+    var signatureFrame = 0;
+    function syncSignature() {
+      signatureFrame = 0;
+      var edge = signatureViewport.getBoundingClientRect().left;
+      var best = Infinity;
+      signatureCards.forEach(function (card, index) {
+        var distance = Math.abs(card.getBoundingClientRect().left - edge);
+        if (distance < best) { best = distance; signatureIndex = index; }
+      });
+      signaturePrevious.disabled = signatureViewport.scrollLeft <= 2;
+      signatureNext.disabled = signatureViewport.scrollLeft + signatureViewport.clientWidth >= signatureViewport.scrollWidth - 2;
+      signaturePosition.textContent = (signatureIndex + 1) + ' / ' + signatureCards.length;
+    }
+    function moveSignature(direction) {
+      var target = signatureCards[Math.max(0, Math.min(signatureCards.length - 1, signatureIndex + direction))];
+      if (!target) return;
+      signatureViewport.scrollBy({ left: target.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    }
+    if (signatureCards.length && signaturePrevious && signatureNext && signaturePosition) {
+      signatureControls.hidden = false;
+      signaturePrevious.addEventListener('click', function () { moveSignature(-1); });
+      signatureNext.addEventListener('click', function () { moveSignature(1); });
+      signatureViewport.addEventListener('scroll', function () { if (!signatureFrame) signatureFrame = requestAnimationFrame(syncSignature); }, { passive: true });
+      window.addEventListener('resize', syncSignature);
+      syncSignature();
+    }
+  }
+
   var formPanel = document.getElementById('dpDestinyPanel');
   var form = document.getElementById('destinyCardForm');
   var doc = document.documentElement;
@@ -266,6 +304,15 @@
   document.addEventListener('click', function (event) {
     var target = event.target instanceof Element ? event.target : null;
     if (!target) return;
+    var inputReturn = target.closest('[data-cdh-input-return]');
+    if (inputReturn && !event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+      event.preventDefault();
+      doc.classList.remove('cdh-input-open');
+      home.hidden = false;
+      if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+      window.scrollTo(0, 0);
+      return;
+    }
     var portal = target.closest('[data-cd-portal-link]');
     if (portal && portal.href && !event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
       markPortalJourney(portal);

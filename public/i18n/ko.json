@@ -2062,7 +2062,12 @@
       "emailZiwei": "사주 + 자미두수 질문당 {amount}원",
       "emailChart": "원국·명반 해석 추가 +{amount}원",
       "emailMax": "질문당 최대 {amount}원",
-      "unlockPrice": "해금 {amount}원"
+      "unlockPrice": "해금 {amount}원",
+      "simpleChatTitle": "대화형 간단 운세 상담",
+      "signatureNewLead": "고민에 맞는 상담과 진행 방식을 살펴보세요.",
+      "signatureFeatured": "대표 상담",
+      "signatureFusionDesc": "다섯 마스터가 여섯 체계로 삶의 흐름을 읽어요.",
+      "signatureCatDesc": "한 가지 고민을 나에게 맞는 운세 체계로 풀어보세요."
     },
     "playPrice": {
       "from": "{price}부터",
