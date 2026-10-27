@@ -2210,7 +2210,7 @@
       "catHeroAlt": "Yeongnyangi, le chat de Saju au chapeau violet, repose son menton",
       "novelAlt": "Couverture d’aventure avec Yeoni humaine, Yeongnyangi, Mocha, Yundal et Seo Hanbi",
       "emailBase": "{amount} KRW par question de Saju · Paiement à l’unité",
-      "emailZiwei": "Ajouter Ziwei +{amount} KRW",
+      "emailZiwei": "Saju + Ziwei par question : {amount} KRW",
       "emailChart": "Ajouter l’analyse du thème natal +{amount} KRW",
       "emailMax": "Jusqu’à {amount} KRW par question",
       "unlockPrice": "Débloquer pour {amount} KRW"

@@ -2210,7 +2210,7 @@
       "catHeroAlt": "Yeongnyangi, el gato de Saju, apoya la barbilla bajo su sombrero morado",
       "novelAlt": "Portada de aventura con Yeoni humana, Yeongnyangi, Mocha, Yundal y Seo Hanbi",
       "emailBase": "{amount} KRW por pregunta de Saju · Pago único",
-      "emailZiwei": "Añadir Ziwei +{amount} KRW",
+      "emailZiwei": "Saju + Ziwei por pregunta: {amount} KRW",
       "emailChart": "Añadir análisis de carta natal +{amount} KRW",
       "emailMax": "Hasta {amount} KRW por pregunta",
       "unlockPrice": "Desbloquear por {amount} KRW"

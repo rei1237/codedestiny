@@ -2210,7 +2210,7 @@
       "catHeroAlt": "Saju-Katze Yeongnyangi mit violettem Hut und aufgestütztem Kinn",
       "novelAlt": "Abenteuercover mit menschlicher Yeoni, Yeongnyangi, Mocha, Yundal und Seo Hanbi",
       "emailBase": "{amount} KRW je Saju-Frage · Einzelzahlung",
-      "emailZiwei": "Ziwei ergänzen +{amount} KRW",
+      "emailZiwei": "Saju + Ziwei je Frage: {amount} KRW",
       "emailChart": "Geburtshoroskop-Deutung ergänzen +{amount} KRW",
       "emailMax": "Bis zu {amount} KRW je Frage",
       "unlockPrice": "Für {amount} KRW freischalten"

@@ -11,6 +11,7 @@ const TEXT = new Set(['.css', '.csv', '.html', '.js', '.json', '.jsx', '.md', '.
 const BINARY = new Set(['.png', '.webp', '.jpg', '.jpeg', '.svg', '.ico', '.gif', '.avif']);
 // 유명인 사주 데이터 속 정치인은 신뢰 문구가 아니라 인물 데이터라 유지한다(2026-10-01 사용자 결정). 숫자는 정확히 맞아야 해서, 새 문구는 허용목록에 묻히지 않는다.
 const ALLOWED = {
+  'app/neo-consultation/NeoConsultationClient.tsx': { count: 7, reason: '2026-10-28 사용자 승인: 2025년 공개 기록 두 건과 한계를 함께 설명하고 원문 비교에 연결' },
   'app/yeongnyangi/_original/home-data.ts': { count: 14, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'app/components/FounderTrust.tsx': { count: 1, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'app/components/TrustStories.tsx': { count: 4, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },

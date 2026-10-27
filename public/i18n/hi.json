@@ -2210,7 +2210,7 @@
       "catHeroAlt": "बैंगनी टोपी में ठोड़ी टिकाए साजू बिल्ली योंगन्यांगी",
       "novelAlt": "मानव योनी, योंगन्यांगी, मोका, युंदाल और सो हानबी के साथ नियति की यात्रा का आवरण",
       "emailBase": "प्रति साजू सवाल KRW {amount} · एकमुश्त भुगतान",
-      "emailZiwei": "ज़िवेई जोड़ें +KRW {amount}",
+      "emailZiwei": "साजू + जिवेई: प्रति प्रश्न {amount} KRW",
       "emailChart": "जन्म-कुंडली विश्लेषण जोड़ें +KRW {amount}",
       "emailMax": "प्रति सवाल अधिकतम KRW {amount}",
       "unlockPrice": "KRW {amount} में खोलें"

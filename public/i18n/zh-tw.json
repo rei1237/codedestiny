@@ -2210,7 +2210,7 @@
       "catHeroAlt": "戴紫色帽子托腮的四柱占卜貓Yeongnyangi",
       "novelAlt": "人形Yeoni、Yeongnyangi、Mocha、Yundal及Seo Hanbi登場的命運冒險封面",
       "emailBase": "四柱每題{amount}韓元 · 單次付款",
-      "emailZiwei": "加選紫微斗數 +{amount}韓元",
+      "emailZiwei": "四柱＋紫微斗數：每個問題{amount}韓元",
       "emailChart": "加選命局、命盤解讀 +{amount}韓元",
       "emailMax": "每題最高{amount}韓元",
       "unlockPrice": "{amount}韓元解鎖"

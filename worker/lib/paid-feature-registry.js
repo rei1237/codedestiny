@@ -331,7 +331,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "life-fortune-ai-consultation": { cost: 300, amountKRW: 30000, reason: "인생 총운 전문가 상담" },
   "astrology-ai-consultation": { cost: 300, amountKRW: 30000, reason: "점성술 전문가 상담" },
   "neo-operation-room-consultation": { cost: 300, amountKRW: 30000, reason: "네오의 팩폭 작전실" },
-  "neo-email-consultation": { cost: 100, amountKRW: 10000, sajuAddonKRW: 10000, ziweiAddonKRW: 10000, chartAddonKRW: 20000, reason: "네오에게 물어봐 · 질문 1개", paymentScope: "direct_only", saleEnabled: true },
+  "neo-email-consultation": { cost: 300, amountKRW: 30000, sajuAddonKRW: 10000, ziweiAddonKRW: 20000, chartAddonKRW: 20000, reason: "네오에게 물어봐 · 질문 1개", paymentScope: "direct_only", saleEnabled: true },
   "saju_ai_question_prompt": { cost: 100, reason: "사주 전문가 상담 결과 생성" },
   "ziwei_ai_prompt_generator": { cost: 100, reason: "자미두수 AI 질문 프롬프트 생성" },
   "astrology_ai_prompt_generator": { cost: 100, reason: "점성술 AI 질문 프롬프트 생성" },

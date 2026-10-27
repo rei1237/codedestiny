@@ -29,9 +29,9 @@ export default function ConsultationSamplesPage() {
     </nav>
     <div id="compare-readings"><ResultSamples prefix="landing-sample" mode="comparison"/></div>
     <section className="samples-landing__email" id="neo-email" aria-labelledby="neo-email-title">
-      <div><h2 id="neo-email-title">내 사정까지 읽어 줬으면 한다면,<br/>네오에게 물어봐.</h2>
+      <div><h2 id="neo-email-title">내 사정까지 읽어 줬으면 한다면,<br/>네오 작전 결정서.</h2>
         <p>운세를 읽고도 결정이 서지 않을 때가 있어요. 지금 처한 상황과 고민을 적어 보내면, 네오가 접수 내용을 직접 읽고 답변을 검수해요.</p>
-        <a className="samples-landing__button" href="/neo-consultation/">이메일 상담 조건 확인하기 →</a>
+        <a className="samples-landing__button" href="/yeongnyangi/neo-decision/">이메일 상담 조건 확인하기 →</a>
       </div>
       <div className="samples-landing__email-info">
         <h3>답변을 받는 방식</h3><p>{NEO_POLICY.service}</p>
@@ -42,7 +42,7 @@ export default function ConsultationSamplesPage() {
     <section className="samples-landing__questions" aria-labelledby="consultation-questions-title">
       <h2 id="consultation-questions-title">상담을 고르기 전에 궁금한 것</h2>
       <details><summary>인연의 서 개인판과 궁합판, 무엇이 다른가요?</summary><p>개인판은 내가 끌리는 사람과 감정 표현·갈등의 반복 패턴을 읽어요. 궁합판은 두 사람의 정보를 함께 놓고 차이와 조율할 지점을 살펴봐요. 상대 정보 없이 상대의 성향까지 해석하는 상품은 아니에요. <a href="/master-love-codex/">인연의 서 구성과 예시 보기</a></p></details>
-      <details><summary>마스터 상담과 네오 이메일 상담은 어떻게 고르나요?</summary><p>마스터 상담은 선택한 분야와 해석 체계에 따라 AI가 상담문을 작성해요. 각 상세페이지에서 담당 마스터와 결과 예시를 확인해 보세요. 네오에게 물어봐는 접수 내용을 네오가 직접 읽고 답변을 작성·검수해 이메일로 보내는 별도 서비스예요. 실시간 대화 상담은 아니에요.</p></details>
+      <details><summary>마스터 상담과 네오 이메일 상담은 어떻게 고르나요?</summary><p>마스터 상담은 선택한 분야와 해석 체계에 따라 AI가 상담문을 작성해요. 각 상세페이지에서 담당 마스터와 결과 예시를 확인해 보세요. 네오 작전 결정서는 접수 내용을 네오가 직접 읽고 답변을 작성·검수해 이메일로 보내는 별도 서비스예요. 실시간 대화 상담은 아니에요.</p></details>
       <details><summary>가격과 이용권·월정석 조건은 어디에서 확인하나요?</summary><p>상담별 상세페이지와 결제 화면에서 해당 상품의 가격과 적용 가능한 이용권·월정석·단건 결제 조건을 확인해 주세요. 모든 상담에 같은 이용권이나 월정석 조건이 적용되는 것은 아니에요. 결과 예시를 먼저 읽고 필요한 범위의 상담을 선택해 보세요.</p></details>
     </section>
     <section className="samples-landing__benefit" aria-labelledby="sample-benefit-title">

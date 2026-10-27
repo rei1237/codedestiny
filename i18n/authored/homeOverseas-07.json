@@ -280,18 +280,18 @@
     "ms": "KRW {amount} setiap soalan Saju · Bayaran sekali"
   },
   "home.guideCopy.emailZiwei": {
-    "ko": "자미두수 추가 +{amount}원",
-    "en": "Add Ziwei +KRW {amount}",
-    "ja": "紫微斗数を追加 +{amount}ウォン",
-    "zh-CN": "加选紫微斗数 +{amount}韩元",
-    "zh-TW": "加選紫微斗數 +{amount}韓元",
-    "vi": "Thêm Tử Vi +{amount} KRW",
-    "hi": "ज़िवेई जोड़ें +KRW {amount}",
-    "es": "Añadir Ziwei +{amount} KRW",
-    "fr": "Ajouter Ziwei +{amount} KRW",
-    "de": "Ziwei ergänzen +{amount} KRW",
-    "nl": "Ziwei toevoegen +{amount} KRW",
-    "ms": "Tambah Ziwei +KRW {amount}"
+    "ko": "사주 + 자미두수 질문당 {amount}원",
+    "en": "Saju + Ziwei per question: KRW {amount}",
+    "ja": "四柱推命＋紫微斗数：質問ごとに{amount}ウォン",
+    "zh-CN": "四柱＋紫微斗数：每个问题{amount}韩元",
+    "zh-TW": "四柱＋紫微斗數：每個問題{amount}韓元",
+    "vi": "Saju + Tử Vi: {amount} KRW mỗi câu hỏi",
+    "hi": "साजू + जिवेई: प्रति प्रश्न {amount} KRW",
+    "es": "Saju + Ziwei por pregunta: {amount} KRW",
+    "fr": "Saju + Ziwei par question : {amount} KRW",
+    "de": "Saju + Ziwei je Frage: {amount} KRW",
+    "nl": "Saju + Ziwei per vraag: {amount} KRW",
+    "ms": "Saju + Ziwei setiap soalan: {amount} KRW"
   },
   "home.guideCopy.emailChart": {
     "ko": "원국·명반 해석 추가 +{amount}원",

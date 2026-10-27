@@ -7,11 +7,11 @@ export function priceNeoOrder(product, row, userId, quoteId) {
   const quote = row?.quote;
   if (!row || row.userId !== String(userId) || !quote || quote.id !== quoteId || row.cancellationRequestedAt || !['draft','preparing','pending'].includes(row.state)) throw neoError('NEO_QUOTE_INVALID', '상담 질문과 가격을 다시 확인해 주세요.', 409);
   // v2는 레거시 자미두수 방식, v3는 사주 기본 방식을 같은 항목 비교로 재검증한다.
-  const modern = quote.pricingVersion === 2 || quote.pricingVersion === 3;
-  if (modern) validateNeoInput(row, { allowLegacyModes: quote.pricingVersion === 2 });
+  const modern = [2, 3, 4].includes(quote.pricingVersion);
+  if (modern) validateNeoInput(row, { allowLegacyModes: quote.pricingVersion === 2, allowChartReading: quote.pricingVersion < 4 });
   const validPrice = modern
-    ? quote.totalKRW === neoTotal(row.questions) && JSON.stringify(quote.items) === JSON.stringify(neoQuoteItems(row.questions))
-    : row.questions.every(q => neoReadingMode(q) === 'ziwei') && quote.unitKRW === neoUnitPrice() && quote.totalKRW === quote.quantity * quote.unitKRW;
+    ? quote.totalKRW === neoTotal(row.questions, quote.pricingVersion) && JSON.stringify(quote.items) === JSON.stringify(neoQuoteItems(row.questions, quote.pricingVersion))
+    : row.questions.every(q => neoReadingMode(q) === 'ziwei') && quote.unitKRW === 10000 && quote.totalKRW === quote.quantity * quote.unitKRW;
   if (quote.quantity !== row.questions.length || quote.quantity < 1 || quote.quantity > 10
     || !validPrice
     || JSON.stringify(quote.questions) !== JSON.stringify(row.questions)) throw neoError('NEO_QUOTE_INVALID', '상담 질문과 가격을 다시 확인해 주세요.', 409);

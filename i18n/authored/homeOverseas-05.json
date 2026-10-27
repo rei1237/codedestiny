@@ -154,9 +154,9 @@
     "ms": "Lihat konsultasi mengikut topik"
   },
   "home.guideCopy.askNeo": {
-    "ko": "네오에게 물어봐",
-    "en": "Ask Neo",
-    "ja": "ネオに聞く",
+    "ko": "네오 작전 결정서",
+    "en": "Neo’s Decision Brief",
+    "ja": "ネオの決断作戦書",
     "zh-CN": "问问Neo",
     "zh-TW": "問問Neo",
     "vi": "Hỏi Neo",
@@ -322,7 +322,7 @@
     "ms": "Ini konsultasi e-mel, bukan sembang langsung."
   },
   "home.guideCopy.emailOptions": {
-    "ko": "추가 옵션·답변 안내",
+    "ko": "풀이 구성·답변 안내",
     "en": "Add-ons and reply details",
     "ja": "追加オプション・回答について",
     "zh-CN": "附加选项与答复说明",

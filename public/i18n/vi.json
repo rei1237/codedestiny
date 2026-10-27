@@ -2210,7 +2210,7 @@
       "catHeroAlt": "Mèo Saju Yeongnyangi đội mũ tím, chống cằm",
       "novelAlt": "Bìa phiêu lưu với Yeoni hình người, Yeongnyangi, Mocha, Yundal và Seo Hanbi",
       "emailBase": "{amount} KRW/câu hỏi Saju · Trả từng lần",
-      "emailZiwei": "Thêm Tử Vi +{amount} KRW",
+      "emailZiwei": "Saju + Tử Vi: {amount} KRW mỗi câu hỏi",
       "emailChart": "Thêm phân tích lá số +{amount} KRW",
       "emailMax": "Tối đa {amount} KRW/câu hỏi",
       "unlockPrice": "Mở khóa với {amount} KRW"

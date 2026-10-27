@@ -2210,7 +2210,7 @@
       "catHeroAlt": "Kucing Saju Yeongnyangi bertopi ungu sambil menopang dagu",
       "novelAlt": "Kulit pengembaraan dengan Yeoni manusia, Yeongnyangi, Mocha, Yundal dan Seo Hanbi",
       "emailBase": "KRW {amount} setiap soalan Saju · Bayaran sekali",
-      "emailZiwei": "Tambah Ziwei +KRW {amount}",
+      "emailZiwei": "Saju + Ziwei setiap soalan: {amount} KRW",
       "emailChart": "Tambah analisis carta kelahiran +KRW {amount}",
       "emailMax": "Sehingga KRW {amount} setiap soalan",
       "unlockPrice": "Buka dengan KRW {amount}"

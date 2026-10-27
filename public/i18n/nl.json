@@ -2210,7 +2210,7 @@
       "catHeroAlt": "Saju-kat Yeongnyangi met paarse hoed en gesteunde kin",
       "novelAlt": "Avonturenomslag met menselijke Yeoni, Yeongnyangi, Mocha, Yundal en Seo Hanbi",
       "emailBase": "{amount} KRW per Saju-vraag · Eenmalige betaling",
-      "emailZiwei": "Ziwei toevoegen +{amount} KRW",
+      "emailZiwei": "Saju + Ziwei per vraag: {amount} KRW",
       "emailChart": "Geboortehoroscoopanalyse toevoegen +{amount} KRW",
       "emailMax": "Tot {amount} KRW per vraag",
       "unlockPrice": "Ontgrendelen voor {amount} KRW"

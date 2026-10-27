@@ -40,6 +40,7 @@ export const YEONGNYANGI_FAQS=[
 
 export default function YeongnyangiGuide(){
  return <article className={styles.guide} aria-labelledby="yn-guide-title">
+  <section><h2>네오 작전 결정서</h2><p>상대의 사주와 두 사람의 궁합, 지금 필요한 선택을 네오가 직접 읽고 검수해 이메일로 전해요.</p><p><a href="/yeongnyangi/neo-decision/">네오 작전 결정서 살펴보기 →</a></p></section>
   <section id="yn-receive">
    <h2 id="yn-guide-title">한 가지 질문에서, 차분히 읽는 한 권까지</h2>
    <p>궁금한 점의 답부터 읽고, 그 판단의 근거와 반복되는 패턴, 지금 해볼 행동을 챕터별로 살펴보세요. 사주·자미두수·숙요점·베다점·점성술·타로 가운데 원하는 방식으로 시작할 수 있어요.</p>

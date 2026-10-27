@@ -39,7 +39,7 @@ const server = createServer(async(req,res)=>{
   try {
     const origin='http://127.0.0.1:'+server.address().port;
     const path=new URL(req.url,origin).pathname;
-    if(/^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/service-introductions\/neo-consultation(?:-640)?\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
+    if(/^\/assets\/yeongnyangi\/scenes\/(love|work-400|wealth-400|self-400)\.webp$/.test(path) || /^\/images\/home-questions\/(marriage|reunion)-400\.webp$/.test(path) || /^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/service-introductions\/neo-consultation(?:-640)?\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
     if(path==='/home-preview/'){
       res.setHeader('content-type','text/html');
       res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;padding:20px;background:#f6eff5}.cdh{max-width:1000px;margin:auto}*{box-sizing:border-box}</style><style>'+tokens+await readFile(resolve(root,'styles/home-funnel.css'),'utf8')+'</style><div class="cdh">'+renderNeoEmailHomeEntry()+'</div></html>');return;
@@ -95,21 +95,27 @@ try {
     await page.locator('details').filter({hasText:'지나온 시기도'}).locator('summary').click();
     await page.locator('#neo-good-period').fill('2022년 봄, 일을 시작했어요.');
     await page.locator('#neo-difficult-period').fill('서른 살 무렵, 이직이 힘들었어요.');
+    await page.getByRole('button',{name:'두 사람의 궁합',exact:true}).click();
+    await page.getByRole('button',{name:'직장과 상사',exact:true}).click();
+    await page.getByRole('button',{name:'두 사람의 궁합',exact:true}).click();
+    await expect(page.getByRole('button',{name:'두 사람의 궁합',exact:true})).toHaveAttribute('aria-pressed','true');
+    await expect(page.getByLabel('질문 1',{exact:true})).toHaveValue('우리의 궁합과 갈등 지점은 무엇일까요?');
     await page.getByLabel('질문 1',{exact:true}).fill('직장을 옮기기 전에 고려할 점은 무엇인가요?');
     await page.getByRole('button',{name:'질문 추가하기',exact:false}).click();
     await page.getByLabel('질문 2',{exact:true}).fill('관계에서 반복되는 패턴을 어떻게 바꾸면 좋을까요?');
     await page.getByRole('group',{name:'질문 2 풀이 구성'}).getByRole('checkbox',{name:/자미두수 추가/}).check();
-    await page.getByRole('group',{name:'질문 2 풀이 구성'}).getByRole('checkbox',{name:/원국·자미두수 명반 해석 추가/}).check();
-    assert.ok(await page.getByText('50,000원',{exact:true}).isVisible());
+    assert.ok(await page.getByText('80,000원',{exact:true}).isVisible());
     if(width===360){const capture=resolve(out,'options-360.png');await page.locator('#neo-form').screenshot({path:capture});captures.push(capture);}
     await page.getByRole('button',{name:'질문 2 삭제'}).click();
     assert.equal(await page.locator('textarea[id^="neo-q-"]').count(),1);
     await page.getByRole('button',{name:'질문 추가하기',exact:false}).click();
     await page.getByLabel('질문 2',{exact:true}).fill('관계에서 반복되는 패턴을 어떻게 바꾸면 좋을까요?');
     await page.getByRole('group',{name:'질문 2 풀이 구성'}).getByRole('checkbox',{name:/자미두수 추가/}).check();
-    await page.getByRole('group',{name:'질문 2 풀이 구성'}).getByRole('checkbox',{name:/원국·자미두수 명반 해석 추가/}).check();
     await page.getByRole('button',{name:'다음',exact:true}).click();
     await page.getByLabel('회신 이메일').fill('browser@example.invalid');
+    await page.getByLabel('상대방의 사주·궁합을 함께 살펴볼게요').check();
+    await page.getByLabel('상대방 생년월일').fill('19920220');
+    await page.getByLabel('상대방 출생시간을 몰라요').check();
     await page.getByRole('button',{name:'다음',exact:true}).click();
     await expect(page.getByRole('alert')).toBeVisible();
     await page.getByLabel('생년월일',{exact:true}).fill('19900420');
@@ -168,9 +174,10 @@ try {
   await expect(page.getByRole('button',{name:'예약 메일 전달하기',exact:true})).toHaveCount(0);
   assert.match(mock.mails[0].message.text,/1990-04-20/);
   assert.match(mock.mails[0].message.text,/12:30/);
+  assert.match(mock.mails[0].message.text,/상대방 출생정보: 1992-02-20/);
   assert.match(mock.mails[0].message.text,/2022년 봄/);
   assert.match(mock.mails[0].message.text,/서른 살 무렵/);
-  assert.match(mock.mails[0].message.text,/사주 \+ 자미두수 · 사주 원국·자미두수 명반 해석/);
+  assert.match(mock.mails[0].message.text,/사주 \+ 자미두수/);
   await page.getByRole('checkbox',{name:/모든 질문과 선택한/}).check();
   await page.getByRole('button',{name:'이메일 발송 완료 기록하기'}).click();
   await page.getByRole('heading',{name:'답변 발송 완료',exact:true}).waitFor();
@@ -203,12 +210,12 @@ try {
     await details.locator('summary').focus();
     await page.keyboard.press('Enter');
     await expect(details).toHaveJSProperty('open',true);
-    await expect(details).toContainText('자미두수 추가');
+    await expect(details).toContainText('사주 + 자미두수 질문당 50,000원');
     await page.keyboard.press('Enter');
     await expect(details).toHaveJSProperty('open',false);
   }
   await page.getByRole('link',{name:'질문 작성하기'}).click();
-  await page.getByRole('heading',{name:/네오에게.*물어봐/}).waitFor();
+  await page.getByRole('heading',{name:/그 사람은 왜.*그렇게 행동할까/}).waitFor();
   await page.setViewportSize({width:390,height:380});
   await page.getByLabel('질문 1',{exact:true}).fill('작은 화면에서도 질문이 보존되나요?');
   await page.getByLabel('질문 1',{exact:true}).focus();
