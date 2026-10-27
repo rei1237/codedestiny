@@ -4,6 +4,7 @@ let consultationRecoveryFilter, runConsultationRecovery;
 beforeAll(async()=>{
  const db = await import('../../worker/lib/db.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,work)=>work()}));
+ jest.unstable_mockModule('../../worker/lib/consultation-delivery-refund.js',()=>({runPendingConsultationRefunds:async()=>({outcomes:[]})}));
  ({ consultationRecoveryFilter, runConsultationRecovery } = await import('../../worker/lib/consultation-recovery-task.js'));
 });
 import { getAmbientAiLocale } from '../../worker/lib/ai-locale-context.js';

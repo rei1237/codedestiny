@@ -22,12 +22,16 @@ export const RECORD_METADATA_PROJECTION = Object.freeze({
   'metadata.paidNarrative.body.topic': 1, 'metadata.archive.title': 1,
   'result.title': 1, 'result.sessionTitle': 1, 'result.question': 1, 'result.questionSummary': 1, 'initialBriefing.operationTitle': 1,
   'inputSummary.topic': 1, 'llmMeta.input.consultationType': 1,
+  'llmMeta.deliveryRefund.status': 1,
 });
 export const readRecordField = (doc, path) => path.split('.').reduce((value, key) => value?.[key], doc);
 const clean = (value, size = 600) => typeof value === 'string' ? value.trim().slice(0, size) : '';
 const questionFields = ['question', 'userQuestion', 'questionSummary', 'selectedTopic', 'snapshot.analysis.consultation.question', 'inputSummary.topic', 'metadata.paidNarrative.body.question', 'metadata.paidNarrative.body.userQuestion', 'result.question', 'result.questionSummary'];
 const titleFields = ['title', 'result.title', 'result.sessionTitle', 'initialBriefing.operationTitle', 'metadata.archive.title', 'metadata.paidNarrative.body.topic', 'topic'];
 export function recordStatus(doc, source) {
+  const refund = doc.llmMeta?.deliveryRefund?.status;
+  if (refund === 'refunded') return 'revoked';
+  if (['pending', 'manual_review'].includes(refund)) return 'refund_pending';
   const status = clean(doc.state || doc.premiumStatus || doc.generationStatus || doc.status, 40).toLowerCase();
   if (['refunded', 'cancelled', 'canceled', 'revoked'].includes(doc.status)) return 'revoked';
   if(status!=='refunded'&&(doc.refundStatus==='pending'||doc.generationCheckpoint?.deliveryRefund?.status==='pending'))return 'refund_pending';

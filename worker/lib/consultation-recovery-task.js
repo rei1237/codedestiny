@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import { connectDb, withMongoRetry } from './db.js';
 import * as models from './models.js';
 import { runWithAiLocale, storedAiLocale } from './ai-locale-context.js';
+import { runPendingConsultationRefunds } from './consultation-delivery-refund.js';
 
 // Each adapter resumes an existing owner-scoped record through its normal
 // payment, lease, persistence and per-part budget checks. No insert or grant here.
@@ -36,6 +37,10 @@ export function consultationRecoveryFilter(now, extra) {
 export async function runConsultationRecovery(env, options = {}) {
   const now = options.now || Date.now(), deadline = now + TASK_MS;
   await (options.connectDb || connectDb)(env);
+  // Financial obligations outlive the generation window and do not wait for LLM.
+  let refunds;
+  try { refunds = await (options.refundRecovery || runPendingConsultationRefunds)(env); }
+  catch { refunds = { outcomes: [{ refundStatus: 'pending' }] }; }
   const catalog = options.adapters || CONSULTATION_RECOVERY_ADAPTERS;
   // Rotate first service so a slow provider cannot permanently starve later ones.
   const offset = Math.floor(now / 600000) % catalog.length;
@@ -71,6 +76,6 @@ export async function runConsultationRecovery(env, options = {}) {
       outcomes.push({ service: route, code: String(error?.code || 'RECOVERY_PENDING').slice(0, 80) });
     }
   }
-  console.log('[consultation-recovery]', JSON.stringify({ outcomes }));
-  return { ok: true, outcomes };
+  console.log('[consultation-recovery]', JSON.stringify({ outcomes, refunds }));
+  return { ok: true, outcomes, refunds };
 }

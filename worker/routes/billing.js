@@ -1,4 +1,4 @@
-import { getRequestMeta, getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { HttpError, getRequestMeta, getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { handleFortuneRoutes } from "./fortune.js";
 import { handlePaymentRoutes } from "./payments.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
@@ -31,6 +31,8 @@ import {
 } from "../lib/service-execution-task.js";
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { consultationRefundResponse } from "../lib/consultation-refund-state.js";
+import { withPaymentDb, createPaymentContext, toObjectId } from "../payments/db.js";
 import {
   collectDeferredEvidenceIds,
   deferredAccessType,
@@ -42,6 +44,8 @@ import {
   CONTENT_ENTITLEMENT_SOURCES,
   CheckoutFunnelEvent,
   MonthlyCreditLedger,
+  NewYearAiConsultation,
+  LifeBookAiConsultation,
   PaidExecutionRecord,
   Payment,
   PointHistory,
@@ -2410,7 +2414,7 @@ async function markDeferredPaymentFulfilled(record, authUserId) {
         { requestId: paymentId },
       ],
     };
-  await Payment.updateOne(query, {
+  await Payment.updateOne({ ...query, status: { $in: ["paid", "success", "fulfilled"] } }, {
     $set: {
       status: "fulfilled",
       orderState: "UNLOCKED",
@@ -2418,23 +2422,36 @@ async function markDeferredPaymentFulfilled(record, authUserId) {
   }).catch(() => {});
 }
 
-async function completeDeferredUsageRecord(record, authUserId, resultId, applyResult = null) {
+async function completeDeferredUsageRecord(record, authUserId, resultId, applyResult = null, env = {}) {
   const now = new Date();
+  const filter = { _id: record._id, userId: String(authUserId || ""), status: { $nin: ["refunded", "cancelled"] } };
+  const update = { $set: { status: "completed", consumedAt: record.consumedAt || now, completedAt: now,
+    resultId: String(resultId || ""), "result.applyResult": applyResult, "result.completedAt": now.toISOString() } };
+  const model = record.featureId === "new-year-ai-consultation" ? NewYearAiConsultation
+    : ["life-book-ai-consultation", "life-fortune-ai-consultation"].includes(record.featureId) ? LifeBookAiConsultation : null;
+  const snapshot = deferredUsageSnapshot(record);
+  if (model && normalizeDeferredPaymentMethod(snapshot.paymentMethod) === "DIRECT_KRW") {
+    const blocked = () => Object.assign(new HttpError(409, "결제 취소·환불 상태를 확인 중입니다.", { code: "DEFERRED_USAGE_REVOKED" }), { code: "DEFERRED_USAGE_REVOKED" });
+    const ctx = createPaymentContext({ requestId: record.requestId, route: "billing-deferred-apply" });
+    return withPaymentDb(env, ctx, db => db.transaction(async tx => {
+      const consultation = await tx.findOne(model, { userId: String(authUserId), idempotencyKey: String(record.requestId) });
+      if (!consultation || consultationRefundResponse(consultation) || !["delivery_pending", "completed"].includes(consultation.status)) throw blocked();
+      const tokens = [...new Set([snapshot.paymentId, snapshot.evidence?.paymentId, record.paymentId, record.orderId].map(value => String(value || "").trim()).filter(Boolean))];
+      const payment = await tx.findOneAndUpdate(Payment, { userId: toObjectId(authUserId), featureKey: record.featureId,
+        status: { $in: ["paid", "success", "fulfilled"] }, $and: [
+          { $or: [{ requestId: record.requestId }, { idempotencyKey: record.requestId }, { merchantUid: { $in: tokens } }, { impUid: { $in: tokens } },
+            { _id: { $in: tokens.map(toObjectId).filter(Boolean) } }] },
+          { $or: [{ refundLock: null }, { refundLock: { $exists: false } }] },
+        ] }, { $set: { status: "fulfilled", orderState: "UNLOCKED", updatedAt: now } }, { returnDocument: "after", includeResultMetadata: false });
+      if (!payment) throw blocked();
+      const completed = await tx.findOneAndUpdate(PaidExecutionRecord, filter, update, { returnDocument: "after", includeResultMetadata: false });
+      if (!completed) throw blocked();
+      return completed;
+    }));
+  }
+  const updated = await PaidExecutionRecord.findOneAndUpdate(filter, update, { new: true }).lean();
+  if (!updated) throw Object.assign(new HttpError(409, "이용 처리가 취소되었거나 확인 중입니다.", { code: "DEFERRED_USAGE_REVOKED" }), { code: "DEFERRED_USAGE_REVOKED" });
   await markDeferredPaymentFulfilled(record, authUserId);
-  const updated = await PaidExecutionRecord.findOneAndUpdate(
-    { _id: record._id, userId: String(authUserId || "") },
-    {
-      $set: {
-        status: "completed",
-        consumedAt: record.consumedAt || now,
-        completedAt: now,
-        resultId: String(resultId || ""),
-        "result.applyResult": applyResult,
-        "result.completedAt": now.toISOString(),
-      },
-    },
-    { new: true },
-  ).lean();
   return updated;
 }
 
@@ -2448,6 +2465,18 @@ async function handleDeferredUsageApply(request, env) {
   const featureKey = String(pricingResult.pricing?.featureKey || body?.featureKey || "").trim();
   const record = await findDeferredUsageRecord(env, authCheck.auth.userId, featureKey, requestId, body);
   if (!record) return failure(404, "DEFERRED_USAGE_NOT_FOUND", "보류된 이용 권한을 찾을 수 없습니다.");
+  const consultationModel = record.featureId === "new-year-ai-consultation" ? NewYearAiConsultation
+    : ["life-book-ai-consultation", "life-fortune-ai-consultation"].includes(record.featureId) ? LifeBookAiConsultation : null;
+  if (consultationModel) {
+    const consultation = await consultationModel.findOne({ userId: String(authCheck.auth.userId), idempotencyKey: String(record.requestId) })
+      .select("status llmMeta.deliveryRefund").lean();
+    const refund = consultationRefundResponse(consultation);
+    if (refund) return json(refund.body, { status: refund.status });
+    if (!consultation || !["delivery_pending", "completed"].includes(consultation.status)) {
+      return failure(409, "RESULT_NOT_READY", "상담 결과의 완료 상태를 확인한 뒤 이용 처리를 확정합니다.");
+    }
+  }
+  if (["refunded", "cancelled"].includes(record.status)) return failure(403, "DEFERRED_USAGE_REVOKED", "취소된 이용 처리는 다시 확정할 수 없습니다.");
   if (record.status === "completed") {
     return success({ deferredUsage: true, executionId: record.executionId, status: "completed" }, "이용 권한이 이미 확정되었습니다.");
   }
@@ -2463,7 +2492,7 @@ async function handleDeferredUsageApply(request, env) {
     });
   }
   if (snapshot.source === "verified_payment" || snapshot.evidence) {
-    const completed = await completeDeferredUsageRecord(record, authCheck.auth.userId, body?.resultId || body?.sessionId || "", { source: snapshot.source, evidence: snapshot.evidence || null });
+    const completed = await completeDeferredUsageRecord(record, authCheck.auth.userId, body?.resultId || body?.sessionId || "", { source: snapshot.source, evidence: snapshot.evidence || null }, env);
     return success({ deferredUsage: true, executionId: completed?.executionId || record.executionId, status: "completed" }, "이용 권한이 확정되었습니다.");
   }
 
@@ -2479,7 +2508,7 @@ async function handleDeferredUsageApply(request, env) {
   const applyResponse = await processCoinGateFromPricing(request, env, applyBody, pricingResult);
   const applyPayload = await readPayloadSafe(applyResponse);
   if (!applyResponse.ok || applyPayload?.ok !== true) return applyResponse;
-  const completed = await completeDeferredUsageRecord(record, authCheck.auth.userId, body?.resultId || body?.sessionId || "", applyPayload?.data || applyPayload);
+  const completed = await completeDeferredUsageRecord(record, authCheck.auth.userId, body?.resultId || body?.sessionId || "", applyPayload?.data || applyPayload, env);
   return success({
     ...(applyPayload?.data && typeof applyPayload.data === "object" ? applyPayload.data : {}),
     deferredUsage: true,
@@ -2505,8 +2534,10 @@ async function handleDeferredUsageCancel(request, env) {
     {
       $set: {
         status: "generation_failed",
-        "error.code": String(body?.code || "GENERATION_FAILED").slice(0, 80),
-        "error.message": String(body?.message || "").slice(0, 500),
+        error: {
+          code: String(body?.code || "GENERATION_FAILED").slice(0, 80),
+          message: String(body?.message || "").slice(0, 500),
+        },
       },
     },
   );
