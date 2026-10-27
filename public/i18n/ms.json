@@ -2213,7 +2213,17 @@
       "emailZiwei": "Saju + Ziwei setiap soalan: {amount} KRW",
       "emailChart": "Tambah analisis carta kelahiran +KRW {amount}",
       "emailMax": "Sehingga KRW {amount} setiap soalan",
-      "unlockPrice": "Buka dengan KRW {amount}"
+      "unlockPrice": "Buka dengan KRW {amount}",
+      "simpleChatTitle": "Konsultasi ringkas melalui sembang",
+      "signatureNewLead": "Terokai konsultasi dan cara ia dijalankan.",
+      "signatureFeatured": "Konsultasi pilihan",
+      "signatureFusionDesc": "Lima pembimbing meneliti perjalanan hidup melalui enam sistem.",
+      "signatureCatDesc": "Terokai satu persoalan dengan sistem yang sesuai untuk anda.",
+      "signatureCardsLabel": "Kad konsultasi pilihan",
+      "signatureNavigation": "Navigasi konsultasi pilihan",
+      "signaturePrevious": "Konsultasi sebelumnya",
+      "signatureNext": "Konsultasi seterusnya",
+      "signatureYeoniDesc": "Yeoni membantu anda berbual tentang perkara yang mengganggu fikiran."
     },
     "playPrice": {
       "from": "Dari {price}",

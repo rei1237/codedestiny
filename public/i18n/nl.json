@@ -2213,7 +2213,17 @@
       "emailZiwei": "Saju + Ziwei per vraag: {amount} KRW",
       "emailChart": "Geboortehoroscoopanalyse toevoegen +{amount} KRW",
       "emailMax": "Tot {amount} KRW per vraag",
-      "unlockPrice": "Ontgrendelen voor {amount} KRW"
+      "unlockPrice": "Ontgrendelen voor {amount} KRW",
+      "simpleChatTitle": "Kort gesprek over je toekomst",
+      "signatureNewLead": "Bekijk de consulten en kies hoe je verder wilt.",
+      "signatureFeatured": "Uitgelicht consult",
+      "signatureFusionDesc": "Vijf begeleiders onderzoeken je levensloop met zes systemen.",
+      "signatureCatDesc": "Onderzoek één vraag met een passende methode.",
+      "signatureCardsLabel": "Uitgelichte consultkaarten",
+      "signatureNavigation": "Navigatie voor consulten",
+      "signaturePrevious": "Vorig consult",
+      "signatureNext": "Volgend consult",
+      "signatureYeoniDesc": "Yeoni praat met je over wat je bezighoudt."
     },
     "playPrice": {
       "from": "Vanaf {price}",

@@ -2213,7 +2213,17 @@
       "emailZiwei": "四柱＋紫微斗数：每个问题{amount}韩元",
       "emailChart": "加选命局、命盘解读 +{amount}韩元",
       "emailMax": "每题最高{amount}韩元",
-      "unlockPrice": "{amount}韩元解锁"
+      "unlockPrice": "{amount}韩元解锁",
+      "simpleChatTitle": "简短对话占卜咨询",
+      "signatureNewLead": "了解适合您烦恼的咨询及进行方式。",
+      "signatureFeatured": "精选咨询",
+      "signatureFusionDesc": "五位导师通过六种体系解读人生走向。",
+      "signatureCatDesc": "用适合自己的占卜体系探索一个烦恼。",
+      "signatureCardsLabel": "精选咨询卡片",
+      "signatureNavigation": "切换精选咨询",
+      "signaturePrevious": "上一个咨询",
+      "signatureNext": "下一个咨询",
+      "signatureYeoniDesc": "妍伊通过对话陪您梳理心事。"
     },
     "playPrice": {
       "from": "{price}起",

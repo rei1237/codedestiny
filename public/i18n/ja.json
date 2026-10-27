@@ -2213,7 +2213,17 @@
       "emailZiwei": "四柱推命＋紫微斗数：質問ごとに{amount}ウォン",
       "emailChart": "命式・命盤の解説を追加 +{amount}ウォン",
       "emailMax": "1件あたり最大{amount}ウォン",
-      "unlockPrice": "{amount}ウォンで開く"
+      "unlockPrice": "{amount}ウォンで開く",
+      "simpleChatTitle": "気軽な対話式占い相談",
+      "signatureNewLead": "悩みに合う相談と進め方をご覧ください。",
+      "signatureFeatured": "おすすめ相談",
+      "signatureFusionDesc": "5人のマスターが6つの体系で人生の流れを読み解きます。",
+      "signatureCatDesc": "一つの悩みを自分に合う占術で読み解きましょう。",
+      "signatureCardsLabel": "おすすめ相談カード",
+      "signatureNavigation": "おすすめ相談の移動",
+      "signaturePrevious": "前の相談",
+      "signatureNext": "次の相談",
+      "signatureYeoniDesc": "ヨニが心にかかることを対話で一緒に整理します。"
     },
     "playPrice": {
       "from": "{price}〜",

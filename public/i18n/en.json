@@ -2213,7 +2213,17 @@
       "emailZiwei": "Saju + Ziwei per question: KRW {amount}",
       "emailChart": "Add birth-chart analysis +KRW {amount}",
       "emailMax": "Up to KRW {amount} per question",
-      "unlockPrice": "Unlock for KRW {amount}"
+      "unlockPrice": "Unlock for KRW {amount}",
+      "simpleChatTitle": "Simple chat consultation",
+      "signatureNewLead": "Explore consultations and choose how you would like to proceed.",
+      "signatureFeatured": "Featured consultation",
+      "signatureFusionDesc": "Five guides explore life patterns through six systems.",
+      "signatureCatDesc": "Explore one concern through a reading system suited to you.",
+      "signatureCardsLabel": "Featured consultation cards",
+      "signatureNavigation": "Featured consultation navigation",
+      "signaturePrevious": "Previous consultation",
+      "signatureNext": "Next consultation",
+      "signatureYeoniDesc": "Yeoni helps you talk through what is on your mind."
     },
     "playPrice": {
       "from": "From {price}",

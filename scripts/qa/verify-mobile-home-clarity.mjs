@@ -136,8 +136,8 @@ else{
     await page.locator('#cdhOtherFortunes').screenshot({path:path.join(output,'other-fortunes-dark-'+width+'.png')});
     await page.evaluate(()=>{document.documentElement.classList.remove('neo-mode');document.body.classList.remove('neo-mode');});
    }
-   assert.equal(await page.locator('#cdSigGrid .cd-sig-card:visible').count(),3);
-   await page.locator('.cd-sig__more summary').click();assert.equal(await page.locator('#cdSigGrid .cd-sig-card:visible').count(),6);
+   assert.equal(await page.locator('#cdSigGrid .cd-sig-card').count(),10);
+   await page.locator('[data-sig-next]').click();assert.ok(await page.locator('#cdSigViewport').evaluate(node=>node.scrollLeft)>0);
    await page.locator('.cdh-honey__details summary').click();assert.equal(await page.locator('[data-cd-honey-attend]').isVisible(),true);
   }
   if(name==='yeongnyangi')await page.locator('#questions').screenshot({path:path.join(output,'question-entry-'+width+'.png')});

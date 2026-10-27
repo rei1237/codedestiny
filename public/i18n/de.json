@@ -2213,7 +2213,17 @@
       "emailZiwei": "Saju + Ziwei je Frage: {amount} KRW",
       "emailChart": "Geburtshoroskop-Deutung ergänzen +{amount} KRW",
       "emailMax": "Bis zu {amount} KRW je Frage",
-      "unlockPrice": "Für {amount} KRW freischalten"
+      "unlockPrice": "Für {amount} KRW freischalten",
+      "simpleChatTitle": "Kurze Beratung im Chat",
+      "signatureNewLead": "Entdecke Beratungen und ihre Abläufe.",
+      "signatureFeatured": "Ausgewählte Beratung",
+      "signatureFusionDesc": "Fünf Begleiter lesen Lebensmuster mit sechs Systemen.",
+      "signatureCatDesc": "Erkunde eine Frage mit einer passenden Methode.",
+      "signatureCardsLabel": "Ausgewählte Beratungskarten",
+      "signatureNavigation": "Navigation der Beratungen",
+      "signaturePrevious": "Vorherige Beratung",
+      "signatureNext": "Nächste Beratung",
+      "signatureYeoniDesc": "Yeoni spricht mit dir über das, was dich beschäftigt."
     },
     "playPrice": {
       "from": "Ab {price}",
