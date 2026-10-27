@@ -14,7 +14,7 @@ function seed(scope:string){
  }catch{/* Storage can be unavailable; the authenticated request still works. */}
  return {profiles:readScopedDestinyProfileList(),profileId:''};
 }
-export function useProfiles(){
+export function useProfiles({forceFreshOnMount=false}:{forceFreshOnMount?:boolean}={}){
  const [profiles,setProfiles]=useState<DestinyProfileCard[]>([]),[profileId,setProfileId]=useState('');
  const [guest,setGuest]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState('');
  const scope=useRef(''),revision=useRef(0),selection=useRef(''),selectedByUser=useRef(false),list=useRef<DestinyProfileCard[]>([]);
@@ -58,7 +58,7 @@ export function useProfiles(){
   setProfiles(list.current);setLoading(false);setError('');select(profileKey(normalized));
  },[select]);
  useEffect(()=>{
-  void refresh(false,true);
+  void refresh(forceFreshOnMount,true);
   // auth-client 는 refresh 가 실패한 뒤에야 logout 을 발행한다. 여기서 다시 조회하면 401→refresh→logout 이 끝없이 돈다.
   const auth=(event?:Event)=>{
    const detail=event instanceof CustomEvent?(event.detail as Record<string,unknown>|null):null;
@@ -72,6 +72,6 @@ export function useProfiles(){
   const storage=(event:StorageEvent)=>{if(event.key===null||['fortune_auth_user','fortune_auth_token','cdToken'].includes(event.key))auth();};
   window.addEventListener('cd:auth-changed',auth);window.addEventListener('storage',storage);
   return()=>{revision.current++;window.removeEventListener('cd:auth-changed',auth);window.removeEventListener('storage',storage);};
- },[refresh]);
+ },[refresh,forceFreshOnMount]);
  return {profiles,profileId,select,saved,guest,loading,error,refresh};
 }

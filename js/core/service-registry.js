@@ -662,6 +662,8 @@ window.__cdServiceRegistry = [
     keys: "십이운성 동물점 수호동물 성향 사주",
   },
 
+  { id: "career-style", name: "나의 일 스타일", question: "어떤 조건에서 내 강점이 살아날까?", desc: "가입 후 무료 · 성향과 월지로 살펴보는 업무 환경", href: "/saju/career-style/", image: "/images/career-style/yeoni-work-style.webp", imageAlt: "노트와 나침반으로 진로 탐색을 돕는 연이", price: "가입 후 무료", purposes: ["self", "career"], methods: ["saju"], keys: "진로 적성 일 스타일 자기이해 무료" },
+
   /* ── 신탁·오라클·기타 유료 체험 ──────────────────────────────── */
   {
     image: "/images/service-introductions/kemet-oracle-320.webp",

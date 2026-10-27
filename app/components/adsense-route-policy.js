@@ -18,6 +18,7 @@ const BLOCKED_EXACT_PATHS = new Set([
   "/refund-policy",
   "/fortune/prompt-hub",
   "/saju/animal-destiny",
+  "/saju/career-style",
   "/saju/destiny-bias",
   "/saju/destiny-meeting-place",
   "/saju/lifebook",
