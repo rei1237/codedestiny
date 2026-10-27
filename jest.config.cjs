@@ -8,6 +8,10 @@
 // 테스트 환경에서는 스텁으로 대체한다.
 module.exports = {
   roots: ["<rootDir>/__tests__"],
+  // 직렬 실행을 유지하되 ESM 모듈이 한 프로세스에 계속 쌓이지 않게 파일 종료 후 재활용한다.
+  // runInBand는 worker 재활용을 우회하므로 전체 스위트의 기본 인수로 넣지 않는다.
+  maxWorkers: 1,
+  workerIdleMemoryLimit: "512MiB",
   // 🔴 실과금·실네트워크 차단은 러너가 아니라 **설정**이 진다. scripts/run-mock-tests.mjs 는
   //    NODE_OPTIONS 의 --require 로 이 가드를 넣지만, `npx jest <파일>` 처럼 러너를 우회하면
   //    보호가 통째로 사라진다 — 실측 2026-09-13: 직접 호출한 jest 안에서 요청이

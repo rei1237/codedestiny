@@ -6,6 +6,7 @@ import { dirname, resolve as resolvePath } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import http from 'node:http';
 import { tmpdir } from 'node:os';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { mockTestInvocation } from '../../scripts/run-mock-tests.mjs';
 import { NODE_TEST_PATTERNS, JEST_BASE_ARGS } from '../../scripts/lib/mock-test-config.mjs';
 
@@ -15,6 +16,53 @@ test('both runners use canonical targets and preserve test selection arguments',
   assert.deepEqual(mockTestInvocation('jest', ['--listTests'], {}).args.slice(1), [...JEST_BASE_ARGS, '--listTests']);
   assert.throws(() => mockTestInvocation('live'), /Usage/);
   assert.match(mockTestInvocation('node', [], { NODE_OPTIONS: '--no-warnings' }).env.NODE_OPTIONS, /^--no-warnings /);
+  assert.ok(!JEST_BASE_ARGS.includes('--runInBand'), 'the full suite must allow worker recycling');
+  assert.equal(mockTestInvocation('jest', ['--runInBand'], {}).args.at(-1), '--runInBand');
+});
+
+test('serial Jest workers recycle without losing suites, failures, or the network guard', { timeout: 30000 }, () => {
+  const root = resolvePath(dirname(fileURLToPath(import.meta.url)), '../..');
+  const config = createRequire(import.meta.url)('../../jest.config.cjs');
+  assert.equal(config.maxWorkers, 1, 'keep existing serial execution');
+  assert.equal(config.workerIdleMemoryLimit, '512MiB', 'bound idle memory without increasing the Node heap');
+  const prefix = resolvePath(tmpdir(), 'mock-runner-recycle-');
+  const directory = mkdtempSync(prefix);
+  const output = resolvePath(directory, 'executed.jsonl');
+  try {
+    const files = ['a', 'b', 'c'].map(id => {
+      const path = resolvePath(directory, `runner-recycle-${id}.test.mjs`);
+      writeFileSync(path, `
+        import { appendFileSync } from 'node:fs';
+        import { connect } from 'node:net';
+        test('worker ${id}', () => {
+          expect(() => connect(443, '203.0.113.1')).toThrow(/MOCK_NETWORK_BLOCKED/);
+          appendFileSync(${JSON.stringify(output)}, JSON.stringify({ id: '${id}', pid: process.pid, worker: process.env.JEST_WORKER_ID }) + '\\n');
+          expect('${id}').not.toBe('b');
+        });
+      `);
+      return path;
+    });
+    const result = spawnSync(process.execPath, ['scripts/run-mock-tests.mjs', 'jest',
+      '--config', JSON.stringify({
+        rootDir: root, roots: [directory], testEnvironment: 'node', maxWorkers: config.maxWorkers,
+        // Every completed fixture exceeds 1 KiB, proving replacement after each file.
+        workerIdleMemoryLimit: '1KiB',
+        setupFiles: config.setupFiles.map(path => path.replace('<rootDir>', root)),
+      }), '--no-cache', '--silent',
+      '--runTestsByPath', ...files,
+    ], { cwd: root, env: { ...process.env, NODE_OPTIONS: '' }, encoding: 'utf8', windowsHide: true, timeout: 25000 });
+    assert.equal(result.status, 1, `${result.error || ''}\n${result.stderr}`);
+    assert.match(result.stderr, /1 failed, 2 passed, 3 total/);
+    const executions = readFileSync(output, 'utf8').trim().split(/\r?\n/).map(line => JSON.parse(line));
+    assert.deepEqual(executions.map(row => row.id).sort(), ['a', 'b', 'c']);
+    assert.equal(new Set(executions.map(row => row.pid)).size, 3, 'recycle the child between suites');
+    assert.ok(executions.every(row => row.pid !== process.pid && row.worker === '1'));
+  } finally {
+    const target = resolvePath(directory);
+    assert.equal(dirname(target), resolvePath(tmpdir()));
+    assert.ok(target.startsWith(prefix), 'only remove this test fixture directory');
+    rmSync(target, { recursive: true, force: true });
+  }
 });
 
 test('both runner environments preload offline guard in children with a different cwd', () => {
