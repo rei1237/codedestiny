@@ -401,7 +401,7 @@ describe("pig-coin refund — 전달된 결제는 자동 환불하지 않는다"
       });
       return value === condition;
     });
-    deliveryLookup.ServiceExecutionTransaction = query => match(doc, query) ? { _id: "delivered-1" } : null;
+    deliveryLookup.ServiceExecutionTransaction = function findDeliveredExecution(query) { return match(doc, query) ? { _id: "delivered-1" } : null; };
     await expectRefused(await handlePigCoinRefund(spend(), auth, { failedRequestId: "failed-req-1" }), 409, "REFUND_NOT_ELIGIBLE");
   });
 
