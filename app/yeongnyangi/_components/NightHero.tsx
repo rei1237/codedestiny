@@ -18,9 +18,9 @@ export default function NightHero(){
   <picture className={styles.room}><source media="(max-width: 699px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/><img src="/assets/yeongnyangi/night/consultation-room.webp" width={1440} height={960} alt="" fetchPriority="high"/></picture>
   <div className={styles.copy}>
    <h1 id="hero-title">{brandCopy('yeongnyangiHeading')}<br/><span>{brandCopy('yeongnyangiServiceName')}</span></h1>
-   <p>질문 하나부터, 나를 이해하는 깊은 상담까지.</p>
+   <p>간단한 고민 상담은 영냥이에게 물어봐! 답과 근거, 지금 해볼 행동을 함께 살펴봐요.</p>
    <div className={styles.actions}>
-    <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>지금 궁금한 질문 고르기<ArrowRight size={19} aria-hidden="true"/></a>
+    <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>내 고민 상담하기<ArrowRight size={19} aria-hidden="true"/></a>
    </div>
    <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/></>:null}<span className={styles.keep}>질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원부터</span> · 질문 범위에 따라 안내</p>
    <a className={styles.example} href="#yn-example">결제 전 상담 예시 읽기 →</a>

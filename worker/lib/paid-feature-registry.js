@@ -208,7 +208,7 @@ const YEONGNYANGI_FUSIONS = Object.freeze([
   ["fusion-saju-ziwei", "사주 + 자미두수", "생선 모둠 세트", 50000],
   ["fusion-sukuyo-vedic", "숙요 + 베다점", "생선 모둠 세트", 50000],
   ["fusion-astrology-tarot", "서양 점성술 + 타로", "생선 모둠 세트", 50000],
-  ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 70000],
+  ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 60000],
 ]);
 function buildYeongnyangiEntry(name, fishName, amountKRW) {
   return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_or_family", membershipCreditAllowed: true, membershipCreditMultiplier: 1 };

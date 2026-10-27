@@ -9,12 +9,12 @@ import {drawFooters,paintPaper,PdfFontError,type PdfFonts} from './typeset-write
 import {CONTENT_WIDTH_MM,MARGIN_X_MM,PAGE_WIDTH_MM,PAGE_HEIGHT_MM} from './typeset-metrics';
 import {buildYeongnyangiReportPlan,type ReadingReportInput} from './yeongnyangi-report-plan';
 export type ReadingPdfPhase='preparing'|'typesetting'|'saving';
-type Options={row:ReadingReportInput;fileName:string;includeQuestion?:boolean;onProgress?:(phase:ReadingPdfPhase)=>void};
+type Options={row:ReadingReportInput;fileName:string;includeQuestion?:boolean;includeFollowups?:boolean;onProgress?:(phase:ReadingPdfPhase)=>void};
 
 /** Reserve a measured, multi-page TOC before writing the body so destinations remain stable. */
 export function typesetYeongnyangiReport(pdf:Pdf,fonts:PdfFonts,options:Options,art:ReportArt[]=[]){
  fonts={title:fonts.body,body:fonts.body};
- const chapters=buildYeongnyangiReportPlan(options.row,{includeQuestion:options.includeQuestion});
+ const chapters=buildYeongnyangiReportPlan(options.row,{includeQuestion:options.includeQuestion,includeFollowups:options.includeFollowups});
  if(!chapters.length)throw new Error('저장할 상담 내용이 없어요.');
  const toc=planLinkedContents(pdf,fonts,chapters.map((chapter,i)=>`${chapter.part!==chapters[i-1]?.part?chapter.part+'\n':''}${chapter.title}`));
  const contentsPages=toc.pages;

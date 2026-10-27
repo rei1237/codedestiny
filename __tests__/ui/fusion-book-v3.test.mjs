@@ -74,3 +74,12 @@ test('book paragraph rhythm adds breathing space without rewriting stored senten
  assert.ok(paragraphs.length>10);assert.ok(paragraphs.every(p=>p.length<=230));
  assert.equal(paragraphs.join('').replace(/\s/g,''),source.replace(/\s/g,''));
 });
+
+test('follow-up questions and answers are exported only when explicitly selected',()=>{
+ const fixture={...row,conversation:{exchanges:[{id:'x',question:'비공개 추가 고민',kind:'answer',text:'완료된 추가 답변'},{id:'y',question:'확인 질문',kind:'clarification',text:'확인이 필요해요'}]}};
+ const basic=JSON.stringify(m.buildYeongnyangiReportPlan(fixture));
+ const selected=JSON.stringify(m.buildYeongnyangiReportPlan(fixture,{includeFollowups:true}));
+ assert.ok(!basic.includes('비공개 추가 고민'));assert.ok(!basic.includes('완료된 추가 답변'));
+ assert.ok(selected.includes('비공개 추가 고민'));assert.ok(selected.includes('완료된 추가 답변'));
+ assert.ok(!selected.includes('확인 질문'));
+});

@@ -9,6 +9,8 @@ import CraftedProductDetail from '@/app/components/CraftedProductDetail';
 import craftedOverview from '@/content/product-details/yeongnyangi-overview/manifest.json';
 import resultSamples from '@/lib/marketing/result-samples.json';
 import {FUSION_BOOK_CHAPTERS,FUSION_BOOK_TARGETS} from '@/worker/yeongnyangi/fortune/fusion-book';
+import {consultationBudget} from '@/worker/yeongnyangi/fortune/consultation-budget';
+import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
 
 // Server-rendered guide for the indexed /yeongnyangi/ landing ("사주 보는 고양이" brand query).
 // 🔴 Prices come from the payment catalog; scope and followups from the question policy — never type them here.
@@ -28,7 +30,7 @@ const tarotExcerpts=(()=>{
 
 export const YEONGNYANGI_FAQS=[
  ...CONSULTATION_METHOD_FAQS,
- {question:'사주 보는 고양이 영냥이는 어떤 서비스인가요?',answer:`영냥이는 꿀꿀운세(CODE DESTINY)가 운영하는 유료 운세 상담 캐릭터예요. ${SYSTEMS} 중 하나를 골라 한 가지 고민을 챕터로 나눠 읽어 줘요. "사주보는고양이"처럼 붙여 써서 찾아도 같은 서비스예요.`},
+ {question:'사주 보는 고양이 영냥이는 어떤 서비스인가요?',answer:`영냥이는 꿀꿀운세(CODE DESTINY)가 운영하는 유료 운세 상담 캐릭터예요. ${SYSTEMS} 중 하나를 골라 고민의 답과 근거, 생활 속 선택과 실천을 챕터로 나눠 살펴봐요. "사주보는고양이"처럼 붙여 써서 찾아도 같은 서비스예요.`},
  {question:'운세보는 영냥이와 꿀꿀 운세는 어떤 관계인가요?',answer:'운세보는 영냥이는 꿀꿀 운세 안의 사주보는 고양이 상담 서비스예요. 운영자는 CODE DESTINY(코드 데스티니)로 같고, 공식 홈페이지는 https://code-destiny.com/, 영냥이 상담 입구는 https://code-destiny.com/yeongnyangi/예요.'},
  {question:'가장 저렴한 상담은 얼마인가요?',answer:`고등어 상담이 ${LOWEST_PRICE}이고, 여섯 체계 모두 같은 가격이에요. 결제창에서 총액과 적용 수단을 한 번 더 확인한 뒤에 결제돼요.`},
  {question:'결제하고 나면 결과는 언제, 어디서 보나요?',answer:'결제가 확인되면 영냥이가 상담을 쓰기 시작해요. 보통 몇 분 안에 완성되고, 화면을 닫아도 같은 계정의 내 상담에서 이어서 확인하고 다시 열 수 있어요.'},
@@ -62,11 +64,10 @@ export default function YeongnyangiGuide(){
   <section id="yn-prices" aria-labelledby="yn-prices-title">
    <h2 id="yn-prices-title">상담 가격</h2>
    <p>생선별로 다루는 범위와 추가 질문 횟수가 달라요. 모든 생선에서 답과 근거, 생활 속 예시와 행동 조언을 담아요.</p>
-   <div className={styles.tableWrap}><table>
-    <caption>영냥이 단일 체계 상담 가격과 구성</caption>
-    <thead><tr><th scope="col">가격</th><th scope="col">추가 질문</th><th scope="col">질문 상담 범위</th></tr></thead>
-    <tbody>{tierRows.map(row=><tr key={row.tier}><th scope="row">{won(row.price)}<span className={styles.tierName}>{row.name}</span></th><td>{row.followups}회</td><td>{row.depth}</td></tr>)}</tbody>
-   </table></div>
+   <div className={styles.fishList}>{[...tierRows.map(row=>({...row,href:'/yeongnyangi/fortune/?flow=question'})),...(['assorted','omakase'] as const).map(tier=>{const product=products.find(p=>p.fishId===tier)!;return {tier,name:packages[tier].name,price:product.priceKRW,followups:consultationBudget(tier).followups,depth:tier==='assorted'?'두 체계의 해석과 생활 분야를 엮은 상세 상담서':'여섯 체계의 해석과 삶의 흐름을 담은 초융합 상담서',href:tier==='omakase'?'/yeongnyangi/fortune/?product=fusion_all':'/yeongnyangi/fortune/?domain=fusion'};})].map(row=><article key={row.tier} className={styles.fishCard}>
+    <img src={'/assets/yeongnyangi/fish/reaction-'+row.tier+'.webp'} width={128} height={128} alt="" loading="lazy"/>
+    <div><h3>{row.name} <span>{won(row.price)}</span></h3><p>{row.tier==='mackerel'?'한 가지 고민도 답과 근거, 생활 속 해석과 지금 해볼 행동까지 챕터별로 충분히 살펴봐요.':row.depth}</p><p className={styles.fishMeta}>{'신규 질문 상담 '+EXPANDED_CHAPTERS[row.tier]+'개 챕터 · '}{row.followups?'추가 질문 '+row.followups+'회 · 다른 고민도 이어서':'추가 질문 없이 첫 상담에 담아요'}{['tuna','assorted','omakase'].includes(row.tier)?' · 리포트 PDF 저장':''}</p><a href={row.href}>상담 구성 살펴보기 →</a></div>
+   </article>)}</div><p className={styles.note}>챕터 수는 신규 한국어 질문 상담 기준이며 상담 종류와 기존 구매에 따라 달라질 수 있어요. 추가 질문은 저장된 상담 근거로 답할 수 있는 범위에서 이용해요. PDF는 한국어 상담 완료 후 저장할 수 있어요.</p>
   </section>
 
   <section id="yn-faq" aria-labelledby="yn-faq-title">

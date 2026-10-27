@@ -11,11 +11,11 @@ const won=(amount:number)=>`${amount.toLocaleString('ko-KR')}원`;
 export default function LaunchOfferBanner(){
  const reviewCount=visibleReviews().length;
  return <aside id="launch-offer" className={styles.offer} aria-labelledby="launch-offer-title">
-  <p className={styles.badge}>2026년 10월 12일 가격 변경 안내</p>
+  <p className={styles.badge}>영냥이 상담 가격 안내</p>
   <h2 id="launch-offer-title" className={styles.title}>더 깊어진 프리미엄 상담으로 개편했어요</h2>
   <p className={styles.price}><span className={styles.trial}><strong>고등어 {won(starter.priceKRW)} · 연어 {won(salmon.priceKRW)} · 오마카세 {won(omakase.priceKRW)}</strong></span></p>
-  <p className={styles.scope}>상담 깊이와 결과 구성을 넓히며 새 가격을 적용합니다. 실제 결제 금액과 이용권 적용 여부는 결제창에서 다시 확인해 주세요.</p>
-  <p className={styles.quip}><span className={styles.speaker}>영냥이</span>“가격만 올린 게 아니라, 읽고 나서 남는 답을 더 단단히 준비했어.”</p>
+  <p className={styles.scope}>상담마다 다른 구성과 추가 질문 횟수를 확인해 보세요. 실제 결제 금액과 이용권 적용 여부는 결제창에서 다시 확인해 주세요.</p>
+  <p className={styles.quip}><span className={styles.speaker}>영냥이</span>“고민의 답과 지금 해볼 행동을 함께 정리해줄게.”</p>
   <ul className={styles.facts}>
    <li>이미 결제한 상담과 기존 해금 결과는 가격 변경 뒤에도 그대로 다시 볼 수 있어요.</li>
    <li>이용권·월정석·단건 결제 구조는 바뀌지 않아요.</li>

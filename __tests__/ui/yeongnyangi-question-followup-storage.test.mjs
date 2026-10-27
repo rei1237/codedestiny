@@ -91,6 +91,8 @@ test('stored persona and grounded recognition reach followups without changing t
   assert.ok(t.sent.input.recognition.lenses.length);
   assert.equal(t.sent.input.recognition.version,'grounded-recognition-20261007');
   assert.match(t.sent.options.systemPrompt,/전체 성향 분석을 반복하지 않고/);
+  assert.match(t.sent.options.systemPrompt,/다른 주제도 저장된 체계와 근거가 뒷받침하면 답한다/);
+  assert.match(t.sent.options.systemPrompt,/새로운 차트·카드·시기 계산이 반드시 필요하면 new_consultation/);
   assert.doesNotMatch(JSON.stringify(t.sent.input.evidence),/2\.35/);
   assert.equal(t.row.snapshot.analysis.contexts.saju.facts.find(f=>f.label==='tenGods').value.비견,2.35);
   assert.ok(t.sent.options.systemPrompt.includes(persona==='yeoni'?'연이':persona==='neo'?'네오':'영냥이'));
@@ -102,6 +104,16 @@ test('stored persona and grounded recognition reach followups without changing t
   const rules=t.sent.options.systemPrompt.split('계산 사실 → 쉬운 의미')[1];
   if(common)assert.equal(rules,common);else common=rules;
  }
+});
+
+test('separate chapters retain their own fact IDs for a different follow-up concern',async()=>{
+ const t=globalThis.__conversationTest;
+ t.row.snapshot.manifest[0].factIds=['saju.pillars'];
+ t.row.snapshot.manifest.push({...t.row.snapshot.manifest[0],factIds:['saju.tenGodsByPillar'],factSelectors:{saju:['tenGodsByPillar']}});
+ t.row.snapshot.analysis.contexts.saju.facts.push({id:'saju.tenGodsByPillar',label:'tenGodsByPillar',value:{month:'정관'}});
+ await questionConversation({},user,id,{...body,question:'다른 고민인 직장에서는 무엇을 살펴볼까요?'});
+ assert.ok(t.sent.input.evidence.some(f=>f.id==='saju.pillars'));
+ assert.ok(t.sent.input.evidence.some(f=>f.id==='saju.tenGodsByPillar'));
 });
 
 for(const limit of [5,7])test('fusion '+limit+' followups use all saved chapter evidence and the stored total budget',async()=>{
