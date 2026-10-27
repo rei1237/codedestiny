@@ -1070,6 +1070,33 @@ describe("rpt_specialCharmCard", () => {
     expect((await request({ ...INPUT, featureKey: "rpt_healthReportCard" })).status).toBe(402);
   });
 
+  test.each(["rpt_specialCharmCard", "paid_content"])("existing %s service key preserves the purchased birth and owner boundary", async (serviceKey) => {
+    grant({ serviceKey }, "rpt_specialCharmCard");
+    expect((await request(CHARM)).status).toBe(200);
+    expect((await request({ ...CHARM, profileId: "p2" })).status).toBe(200);
+    expect((await request({ ...CHARM, profileId: "p3" })).status).toBe(402);
+    expect((await request({ ...CHARM, featureKey: "rpt_skillTreeCard" })).status).toBe(402);
+    auth.mockResolvedValue({ userId: OTHER_USER_ID });
+    expect((await request({ ...CHARM, profileId: "x1" })).status).toBe(402);
+  });
+
+  test.each([
+    { status: "REFUNDED" },
+    { expiresAt: new Date("2000-01-01") },
+  ])("inactive historical service key never opens a card: %j", async (overrides) => {
+    grant({ serviceKey: "rpt_specialCharmCard", ...overrides }, "rpt_specialCharmCard");
+    expect((await request(CHARM)).status).toBe(402);
+  });
+
+  test.each([
+    { scope: "USER", profileId: "__user__" },
+    { scope: "PROFILE", profileId: "p1" },
+  ])("legacy scope with historical service key opens only its entitled profile: %j", async (overrides) => {
+    grant({ serviceKey: "rpt_specialCharmCard", ...overrides }, "rpt_specialCharmCard");
+    expect((await request(CHARM)).status).toBe(200);
+    if (overrides.scope === "PROFILE") expect((await request({ ...CHARM, profileId: "p2" })).status).toBe(402);
+  });
+
   test("a legacy account grant without a saved profile renders the body birth", async () => {
     grant({ scope: "USER", profileId: "__user__" }, "rpt_specialCharmCard");
     const { profileId: _omit, ...account } = CHARM;

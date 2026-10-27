@@ -442,11 +442,20 @@ export async function findActivePaidContentUnlock(input = {}) {
      호출부마다 감싸지 않고 공유 리더인 여기 한 곳에서 막는다(원칙 6). */
   if (isPerUsePaidFeatureKey(target.featureKey)) return null;
 
+  // 과거 지급 경로는 같은 등록 상품의 serviceKey를 원래 featureKey 또는 paid_content로 저장했다.
+  // 명시된 서비스나 다른 contentKey 조회에는 별칭을 적용하지 않는다.
+  const featureTarget = resolvePaidContentUnlockTarget({ featureKey: target.featureKey });
+  const compatibleKeys = !input.serviceKey && isUnlockPaidFeatureKey(target.featureKey)
+    && featureTarget.contentKey === target.contentKey
+    ? uniqueKeys([target.serviceKey, target.featureKey, "paid_content"])
+    : [target.serviceKey];
+  const serviceKeyClause = compatibleKeys.length > 1 ? { $in: compatibleKeys } : target.serviceKey;
+
   if (target.birthScoped) {
     const scopeClause = await birthScopedReadScopeClause(target, input);
     const query = ContentEntitlement.findOne({
       userId: target.userId,
-      serviceKey: target.serviceKey,
+      serviceKey: serviceKeyClause,
       ...buildContentKeyClause(target.contentKey),
       status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
       $and: [activeExpiryClause(), scopeClause],
@@ -461,7 +470,7 @@ export async function findActivePaidContentUnlock(input = {}) {
     : { scope: CONTENT_ENTITLEMENT_SCOPES.USER };
   return ContentEntitlement.findOne({
     userId: target.userId,
-    serviceKey: target.serviceKey,
+    serviceKey: serviceKeyClause,
     ...buildContentKeyClause(target.contentKey),
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     $and: [
