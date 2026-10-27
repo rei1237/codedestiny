@@ -370,6 +370,56 @@ test('P2 generates missing groups before reinforcing valid short sections', asyn
   expect(result.complete).toBe(false);
 });
 function p3SectionBody(key, size) { return key + Array.from({ length: size - key.length }, (_, i) => String.fromCharCode(0xac00 + i % 11172)).join(''); }
+
+test('one saved item in each group cannot complete a fifteen-item purchase', async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = testUtils.calculateSukuyo(input);
+  const sections = Object.fromEntries(testUtils.SUKUYO_SECTION_GROUPS.map((group, index) => [group.keys[0], {
+    body: p3SectionBody(`${group.keys[0]}-${index}`, 500),
+  }]));
+  const originals = structuredClone(sections);
+  mockSectionsResolvedImmediately();
+  const onReserve = jest.fn();
+  const result = await testUtils.createCompatibilityAnswer({}, input, calculation, {
+    sections, summary: { headline: 'saved' }, onReserve,
+  });
+  expect(result.complete).toBe(false);
+  expect(result.retryable).toBe(true);
+  expect(onReserve).toHaveBeenCalledWith(testUtils.SUKUYO_SECTION_GROUPS[0].id, 1, true);
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
+  expect(Object.keys(result.sections)).toHaveLength(7);
+  for (const [key, row] of Object.entries(originals)) expect(result.sections[key]).toEqual(row);
+});
+
+test('exhausted incomplete groups fail without accepting five of fifteen items', async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = testUtils.calculateSukuyo(input);
+  const sections = Object.fromEntries(testUtils.SUKUYO_SECTION_GROUPS.map(group => [group.keys[0], {
+    body: p3SectionBody(group.keys[0], 500),
+  }]));
+  const attempts = Object.fromEntries(testUtils.SUKUYO_SECTION_GROUPS.map(group => [group.id, 2]));
+  await expect(testUtils.createCompatibilityAnswer({}, input, calculation, {
+    sections, summary: { headline: 'saved' }, attempts,
+  })).rejects.toMatchObject({ code: 'LLM_FAILED', status: 503 });
+  expect(Object.keys(sections)).toHaveLength(5);
+  expect(callGeminiJsonWithRetryMock).not.toHaveBeenCalled();
+});
+
+test('a sub-minimum saved item is still missing while all other accepted items stay intact', async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = testUtils.calculateSukuyo(input);
+  const specs = testUtils.SUKUYO_SECTION_SPECS;
+  const sections = Object.fromEntries(specs.map(spec => [spec.key, { body: p3SectionBody(spec.key, 500) }]));
+  sections[specs[0].key] = { body: '초안' };
+  const originals = structuredClone(sections);
+  mockSectionsResolvedImmediately();
+  const result = await testUtils.createCompatibilityAnswer({}, input, calculation, {
+    sections, summary: { headline: 'saved' },
+  });
+  expect(result.complete).toBe(true);
+  expect(result.retryable).toBe(false);
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
+  expect(result.sections[specs[0].key].body.length).toBeGreaterThanOrEqual(40);
+  for (const spec of specs.slice(1)) expect(result.sections[spec.key]).toEqual(originals[spec.key]);
+});
+
 for (const repair of ['shorter', 'empty', 'truncated', 'repeat']) test(`P3 keeps valid short sections after ${repair} repair`, async () => {
   const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = testUtils.calculateSukuyo(input);
   const specs = testUtils.SUKUYO_SECTION_SPECS, group = testUtils.SUKUYO_SECTION_GROUPS[0];
