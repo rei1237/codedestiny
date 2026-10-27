@@ -22,7 +22,7 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
  const mobile=devices[browser.browserType().name()==='webkit'?'iPhone 13':'Pixel 7'];
  const context=await browser.newContext({viewport:{width,height:844},screen:{width,height:844},isMobile:true,hasTouch:true,userAgent:mobile.userAgent,serviceWorkers:'block'});
  context.setDefaultTimeout(30000);context.setDefaultNavigationTimeout(120000);
- await context.addCookies([{name:'fortune_auth_role',value:'user',url:base}]);
+ await context.addCookies([{name:'fortune_auth_role',value:'user',url:base},{name:'cd_cookie_consent',value:'essential',url:base}]);
  const row={id:'a'.repeat(64),productId:product.id,profileId:'shared-profile',product,state:'CREATED',paid:false,chapters:[],manifest:Array.from({length:product.chapterCount},(_,i)=>({id:`chapter-${i}`,title:`QA 상담 ${i+1}`})),createdAt:new Date().toISOString()};
  const state={row,orders:new Map(),sdk:[],confirm:0,activates:0,generates:0,resumeReads:0,unknown:[],errors:[],approved:false,pending:false,auth:true,read503:0,activate503:0,generate503:0,holdGeneration:false,generationBoundary:0,sdkMode:'redirect',handlerDelay:0,assetDelays:0};
  state.monthlyBalance=monthlyBalance;state.monthlyRequests=[];state.monthlySpends=new Map();state.monthlyDeductions=0;
@@ -376,7 +376,9 @@ export async function verifyMobilePayments({base,products,systemNames}){
      });
     }
     await check(browser,`${engine.name()}-question-purpose-entry`,products[0],390,async f=>{
+     await f.context.clearCookies({name:'cd_cookie_consent'});
      await f.page.goto(base+'/yeongnyangi/fortune/');
+     await f.page.getByRole('button',{name:'필수만 사용',exact:true}).click();
      const question='업무 부탁을 거절할 때 어떻게 말하면 좋을까?';
      await f.page.getByRole('heading',{name:'지금, 어떤 마음이 궁금하세요?',exact:true}).waitFor();
      await f.page.getByLabel('상담 질문',{exact:true}).fill(question);
@@ -399,7 +401,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
      await f.page.waitForLoadState('load');
      await f.page.goto(base+'/yeongnyangi/fortune/?flow=legacy');await f.page.getByRole('button',{name:'새 프로필 만들기'}).click();
      await f.page.getByLabel('이름',{exact:true}).fill('QA 고객');await f.page.getByLabel('생년월일',{exact:true}).fill('1990-06-15');
-     await f.page.getByLabel('출생시간',{exact:true}).fill('14:30');await f.page.getByLabel('출생지역',{exact:true}).fill('부산');
+     await f.page.getByLabel('태어난 시간',{exact:true}).fill('14:30');await f.page.getByLabel('출생지역',{exact:true}).fill('부산');
      await f.page.getByRole('button',{name:'프로필 저장하기',exact:true}).click();await waitFixture(()=>f.state.profileCreates===1);
      let displayed=0;
      for(const [domain,label] of [...Object.entries(systemNames),['fusion','복합 운세']]){
