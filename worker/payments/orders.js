@@ -1,5 +1,6 @@
 import { isChatFeatureKey } from '../../lib/fortune/chat-products.js';
 import { assertFeatureEnabled } from '../lib/billing-feature-registry.js';
+import { paymentOrderName, productNameForSnapshot } from '../lib/payment-product-name.js';
 /**
  * 단계 ② 주문 생성 · ⑤ 주문 확정. **이 시스템의 모든 CAS 조건이 여기에만 있다.**
  *
@@ -206,6 +207,8 @@ export async function createOrder(db, {
           confirmAttempts: 0,
           // 가격을 주문 시점에 박아 둔다. 나중에 가격표가 바뀌어도 이 주문의 대조 기준은 흔들리지 않는다.
           pricingSnapshot: {
+            productName: productNameForSnapshot(product, purchaseType),
+            orderName: paymentOrderName(productNameForSnapshot(product, purchaseType)),
             ...(product.consultationSnapshot ? { consultation: product.consultationSnapshot } : {}),
             priceKRW: moonstoneDiscount?.payableKRW ?? product.priceKRW,
             ...(moonstoneDiscount ? {moonstoneDiscount} : {}),

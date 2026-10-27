@@ -31,6 +31,7 @@ type PaymentHistoryItem = {
   paymentMethodLabel?: string;
   paymentType?: string;
   productId?: string;
+  productName?: string;
   featureKey?: string;
   membershipCreditCost?: number;
   orderState?: string;
@@ -1094,13 +1095,14 @@ export default function PointHistoryPage() {
                   >
                     <div className={styles.paymentTop}>
                       <p className={styles.paymentTitle}>
-                        {order.amount ? copy.paymentAmount(formatWon(order.amount.value, copy, formatLocale)) : order.title}
+                        {order.title}
                       </p>
                       <span className={orderStatusClass(order.status)}>
                         {order.statusLabel}
                       </span>
                     </div>
                     <div className={styles.paymentMetaGrid}>
+                      {order.amount && <p className={styles.paymentMeta}>{copy.paymentAmount(formatWon(order.amount.value, copy, formatLocale))}</p>}
                       <p className={styles.paymentMeta}>{copy.paidAt(formatDateTime(order.purchasedAt, formatLocale))}</p>
                       <p className={styles.paymentMeta}>{copy.paymentMethod(order.paymentMethod || "-")}</p>
                     </div>

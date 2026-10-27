@@ -19,6 +19,7 @@
  * 로그가 잡는다.
  */
 import { listCurrentPassOffers } from "../lib/pass-sale-policy.js";
+import { resolveOrderProductName } from "../lib/payment-product-name.js";
 import {
   CURRENT_PASS_POLICY_VERSION,
   PREVIOUS_PASS_POLICY_VERSION,
@@ -761,6 +762,7 @@ function presentOrder(order) {
     orderId: String(order.merchantUid || ""),
     status: toOrderStatus(order),
     productId: String(order.productId || ""),
+    productName: resolveOrderProductName(order),
     featureKey: String(order.featureKey || ""),
     requestId: String(order.requestId || order.idempotencyKey || ""),
     amountKRW: Number(order.paymentAmount || 0),

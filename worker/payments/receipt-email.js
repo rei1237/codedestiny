@@ -27,8 +27,8 @@ import { sendEmail as sendEmailViaResend } from "../lib/resend.js";
 import { BUSINESS_IDENTITY, BUSINESS_PHONE_INTL, SUPPORT_EMAIL } from "../../lib/site-policy-config.js";
 import { RECEIPT_WITHDRAWAL_ROWS } from "../../lib/legal/refund-policy-rows.js";
 import { toObjectId } from "./db.js";
-import { resolveProduct } from "./catalog.js";
-import { resolvePassPlan } from "./passes.js";
+import { resolveOrderProductName } from "../lib/payment-product-name.js";
+export { resolveOrderProductName };
 
 /** 이 창보다 오래된 주문에는 영수증을 보내지 않는다. 기능 도입 이전 주문을 보호한다. */
 export const RECEIPT_MAX_AGE_MS = 2 * 60 * 60_000;
@@ -89,29 +89,6 @@ export function formatKstDateTime(value) {
   const pad = (n) => String(n).padStart(2, "0");
   return `${kst.getUTCFullYear()}-${pad(kst.getUTCMonth() + 1)}-${pad(kst.getUTCDate())}`
     + ` ${pad(kst.getUTCHours())}:${pad(kst.getUTCMinutes())} (KST)`;
-}
-
-/**
- * 상품명. 주문에 사람이 읽을 이름이 저장돼 있지 않아 정본에서 다시 푼다.
- * 못 풀면 featureKey 를 그대로 쓴다 — 영수증을 안 보내는 것보다 낫다.
- */
-export function resolveOrderProductName(order) {
-  if (order?.purchaseType === "GIFT") return `${order.metadata?.giftDraft?.productSnapshot?.name || "이용권"} 선물`;
-  if (String(order?.paymentType || "") === "membership_pass") {
-    const plan = resolvePassPlan(order?.subscriptionTier, Number(order?.metadata?.durationMonths || 1), order?.metadata?.passPolicyVersion || "legacy");
-    if (plan?.name) return plan.name;
-    return String(order?.subscriptionTier || "이용권");
-  }
-  try {
-    const product = resolveProduct({
-      productId: String(order?.productId || ""),
-      featureKey: String(order?.featureKey || ""),
-    });
-    if (product?.label) return product.label;
-  } catch {
-    // 상품표에서 사라진 옛 상품일 수 있다. 아래 폴백으로 간다.
-  }
-  return String(order?.featureKey || order?.productId || "");
 }
 
 const ROWS = [

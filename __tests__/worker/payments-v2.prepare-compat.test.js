@@ -124,7 +124,7 @@ test("PointsClient 형 바디(멱등키 없음): 201 + 소비 키 전부 + 클�
   expect(order.merchantUid).toMatch(/^cd[0-9a-f]{38}$/);
   expect(order.paymentAmount).toBe(PRODUCT.priceKRW);
   expect(order.coinPrice).toBe(PRODUCT.priceCoins);
-  expect(order.productName).toBe("테스트 상품");
+  expect(order.productName).toBe(PRODUCT.label);
   expect(order.storeId).toBe("store-test-1");
   expect(order.channelKey).toBe("channel-test-1");
   expect(order.currency).toBe("CURRENCY_KRW");

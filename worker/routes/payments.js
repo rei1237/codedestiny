@@ -61,6 +61,7 @@ const isPartialSingleCancel = isPartialCancel;
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { buildApiError, buildApiMeta } from "../lib/api-contract.js";
 import { resolvePaymentMethodLabel } from "../lib/payment-method-label.js";
+import { ORDER_PRODUCT_NAME_PROJECTION, resolveOrderProductName } from "../lib/payment-product-name.js";
 import { isV2OrderId } from "../payments/order-id.js";
 
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
@@ -280,6 +281,7 @@ async function findRecentPaymentsForUser(userId, limit = 20, { includeDetails = 
     chargedPoints: 1,
     featureKey: 1,
     productId: 1,
+    ...ORDER_PRODUCT_NAME_PROJECTION,
     accessType: 1,
     paymentMethod: 1,
     paymentType: 1,
@@ -440,6 +442,7 @@ function formatPaymentResponse(payment) {
     chargedPoints: Number(payment.chargedPoints || 0),
     featureKey: String(payment.featureKey || ""),
     productId: String(payment.productId || ""),
+    productName: resolveOrderProductName(payment),
     accessType: String(payment.accessType || ""),
     requestId: String(payment.requestId || ""),
     reportId: String(payment.reportId || ""),
@@ -476,6 +479,7 @@ function formatPaymentSummaryResponse(payment) {
     chargedPoints: detail.chargedPoints,
     featureKey: detail.featureKey,
     productId: detail.productId,
+    productName: detail.productName,
     accessType: detail.accessType,
     paymentMethod: detail.paymentMethod,
     paymentMethodLabel: detail.paymentMethodLabel,

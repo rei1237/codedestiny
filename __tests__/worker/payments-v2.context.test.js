@@ -123,8 +123,9 @@ describe("주문 표현", () => {
     order.rawPortOne = { secret: "x" };
     const view = presentOrder(order);
     expect(Object.keys(view).sort()).toEqual(
-      ["amountKRW", "createdAt", "entitlementGranted", "featureKey", "orderId", "paidAt", "productId", "requestId", "status"],
+      ["amountKRW", "createdAt", "entitlementGranted", "featureKey", "orderId", "paidAt", "productId", "productName", "requestId", "status"],
     );
+    expect(typeof view.productName).toBe("string");
     expect(JSON.stringify(view)).not.toMatch(/rawPortOne|pricingSnapshot|idempotencyKey/);
   });
 });
