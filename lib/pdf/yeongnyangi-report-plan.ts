@@ -1,7 +1,7 @@
 import type {ChapterBody,ChapterSpec} from '@/worker/yeongnyangi/fortune/book-contracts';
 import type {ReadingChart} from '@/worker/yeongnyangi/fortune/reading-presentation';
 
-export type ReadingReportInput={manifest:ChapterSpec[];chapters:ChapterBody[];charts?:ReadingChart[];consultation?:{question?:string;asOf?:string};createdAt:string;completedAt?:string;locale?:string;product:{name:string;readingKind:string}};
+export type ReadingReportInput={manifest:ChapterSpec[];chapters:ChapterBody[];charts?:ReadingChart[];consultation?:{question?:string;asOf?:string};createdAt:string;completedAt?:string;locale?:string;product:{name:string;readingKind:string};conversation?:{exchanges:{id:string;question:string;kind:string;text:string}[]}};
 export type ReadingReportBlock={kind:'heading'|'body'|'lead'|'table';text:string;rows?:{label:string;value:string}[]};
 export type ReadingReportChapter={id:string;title:string;part:string;blocks:ReadingReportBlock[]};
 const text=(value:unknown)=>typeof value==='string'?value.trim():'';
@@ -47,7 +47,7 @@ export function readingReportAppendices(row:ReadingReportInput):ReadingReportCha
   {id:'appendix-glossary',title:'내 리포트에 나온 용어',part:'다시 펼치는 상담 노트',blocks:glossary},
  ].filter(chapter=>chapter.blocks.length&&(chapter.id!=='appendix-actions'||actions.length));
 }
-export function buildYeongnyangiReportPlan(row:ReadingReportInput,{includeQuestion=false}={}):ReadingReportChapter[]{
+export function buildYeongnyangiReportPlan(row:ReadingReportInput,{includeQuestion=false,includeFollowups=false}={}):ReadingReportChapter[]{
  const chapters=row.chapters.map((body,i)=>{
   const spec=row.manifest.find(spec=>body.chapterId&&spec.id===body.chapterId)||row.manifest[i];
   if(!spec)throw new Error('상담 본문과 목차를 연결할 수 없어요. 다시 열어 주세요.');
@@ -62,5 +62,5 @@ export function buildYeongnyangiReportPlan(row:ReadingReportInput,{includeQuesti
   if(!chart||placed.has(chart.id))return [chapter];
   placed.add(chart.id);return [chapter,{...chart,part:chapter.part}];
  });
- return [...(question?[{id:'question',title:'내가 남긴 질문',part:'상담의 시작',blocks:[{kind:'body' as const,text:question}]}]:[]),...body,...charts.filter(chart=>!placed.has(chart.id)),...readingReportAppendices(row)];
+ return [...(question?[{id:'question',title:'내가 남긴 질문',part:'상담의 시작',blocks:[{kind:'body' as const,text:question}]}]:[]),...body,...charts.filter(chart=>!placed.has(chart.id)),...readingReportAppendices(row),...(includeFollowups?(row.conversation?.exchanges||[]).filter(exchange=>exchange.kind==='answer').map(exchange=>({id:'followup-'+exchange.id,title:'추가 질문과 답변',part:'영냥이와 이어 나눈 상담',blocks:[{kind:'heading' as const,text:'나의 질문'},{kind:'body' as const,text:exchange.question},{kind:'heading' as const,text:'영냥이의 답변'},{kind:'body' as const,text:exchange.text}]})):[])];
 }
