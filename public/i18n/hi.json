@@ -2218,7 +2218,12 @@
       "signatureNewLead": "अपनी चिंता के लिए उपयुक्त परामर्श और तरीका देखें।",
       "signatureFeatured": "प्रमुख परामर्श",
       "signatureFusionDesc": "पाँच विशेषज्ञ छह पद्धतियों से जीवन की दिशा पढ़ते हैं।",
-      "signatureCatDesc": "अपनी एक चिंता को उपयुक्त पद्धति से समझें।"
+      "signatureCatDesc": "अपनी एक चिंता को उपयुक्त पद्धति से समझें।",
+      "signatureCardsLabel": "प्रमुख परामर्श कार्ड",
+      "signatureNavigation": "प्रमुख परामर्श नेविगेशन",
+      "signaturePrevious": "पिछला परामर्श",
+      "signatureNext": "अगला परामर्श",
+      "signatureYeoniDesc": "येओनी बातचीत से आपकी चिंता सुलझाने में साथ देती हैं।"
     },
     "playPrice": {
       "from": "{price} से",

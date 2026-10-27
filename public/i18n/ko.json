@@ -2067,7 +2067,12 @@
       "signatureNewLead": "고민에 맞는 상담과 진행 방식을 살펴보세요.",
       "signatureFeatured": "대표 상담",
       "signatureFusionDesc": "다섯 마스터가 여섯 체계로 삶의 흐름을 읽어요.",
-      "signatureCatDesc": "한 가지 고민을 나에게 맞는 운세 체계로 풀어보세요."
+      "signatureCatDesc": "한 가지 고민을 나에게 맞는 운세 체계로 풀어보세요.",
+      "signatureCardsLabel": "대표 상담 카드",
+      "signatureNavigation": "대표 상담 이동",
+      "signaturePrevious": "이전 상담",
+      "signatureNext": "다음 상담",
+      "signatureYeoniDesc": "연이가 마음에 걸린 이야기를 대화로 함께 풀어 드려요."
     },
     "playPrice": {
       "from": "{price}부터",

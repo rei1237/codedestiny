@@ -68,12 +68,13 @@ assert.match(signatureSection, /class="cd-sig__samples-link" href="\/consultatio
 assert.deepEqual(
   [...signatureSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map((match) => match[1]),
   ['love-secret-ai', 'new-year-ai', 'life-book-ai', 'neo-operation-room', 'fortune-tea-house', 'master-love-codex'],
-  '대표 상담 3종(연애 비책·신년운세·인생의 책)을 첫 줄에 두고 여섯 상품을 한 번씩만 노출합니다',
+  '기존 여섯 상품을 한 번씩 유지합니다',
 );
-assert.doesNotMatch(signatureSection, /cd-sig__dots|data-cd-sig-dot/, '덱은 격자라 위치 점이 없습니다');
-assert.equal((signatureSection.match(/class="cd-sig-card__img"/g) || []).length, 6, '대표 상담 여섯 장 모두 전용 이미지가 있어야 합니다');
+assert.deepEqual([...signatureSection.matchAll(/data-cd-signature-id="([^"]+)"/g)].map(match => match[1]), ['fusion-fortune', 'fortune-chat', 'neo-email', 'yeongnyangi-question']);
+assert.match(signatureSection, /data-sig-next/, '상담 카드를 넘길 수 있어야 합니다');
+assert.equal((signatureSection.match(/class="cd-sig-card__img"/g) || []).length, 10, '대표 상담 열 장 모두 이미지가 있어야 합니다');
 assert.equal((signatureSection.match(/class="cd-sig-card__price"/g) || []).length, 6, '대표 상담 여섯 장 모두 원화 가격을 보여줘야 합니다');
-assert.equal((signatureSection.match(/class="cd-sig-card__cta"/g) || []).length, 6, '대표 상담 여섯 장 모두 상품별 CTA 가 있어야 합니다');
+assert.equal((signatureSection.match(/class="cd-sig-card__cta"/g) || []).length, 10, '대표 상담 열 장 모두 CTA가 있어야 합니다');
 const lifeBookCard = signatureSection.match(/<a class="cd-sig-card cd-sig-card--life"[\s\S]*?<\/a>/)?.[0] || '';
 assert.match(lifeBookCard, />30,000원<\/span>/, '인생의 책 대표 카드 가격은 결제 정본과 같은 30,000원이어야 합니다');
 assert.doesNotMatch(home, /id="cdhSamples"/, '중복 결과 샘플 카드 묶음은 홈에 다시 만들지 않습니다');

@@ -2218,7 +2218,12 @@
       "signatureNewLead": "Terokai konsultasi dan cara ia dijalankan.",
       "signatureFeatured": "Konsultasi pilihan",
       "signatureFusionDesc": "Lima pembimbing meneliti perjalanan hidup melalui enam sistem.",
-      "signatureCatDesc": "Terokai satu persoalan dengan sistem yang sesuai untuk anda."
+      "signatureCatDesc": "Terokai satu persoalan dengan sistem yang sesuai untuk anda.",
+      "signatureCardsLabel": "Kad konsultasi pilihan",
+      "signatureNavigation": "Navigasi konsultasi pilihan",
+      "signaturePrevious": "Konsultasi sebelumnya",
+      "signatureNext": "Konsultasi seterusnya",
+      "signatureYeoniDesc": "Yeoni membantu anda berbual tentang perkara yang mengganggu fikiran."
     },
     "playPrice": {
       "from": "Dari {price}",

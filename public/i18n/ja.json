@@ -2218,7 +2218,12 @@
       "signatureNewLead": "悩みに合う相談と進め方をご覧ください。",
       "signatureFeatured": "おすすめ相談",
       "signatureFusionDesc": "5人のマスターが6つの体系で人生の流れを読み解きます。",
-      "signatureCatDesc": "一つの悩みを自分に合う占術で読み解きましょう。"
+      "signatureCatDesc": "一つの悩みを自分に合う占術で読み解きましょう。",
+      "signatureCardsLabel": "おすすめ相談カード",
+      "signatureNavigation": "おすすめ相談の移動",
+      "signaturePrevious": "前の相談",
+      "signatureNext": "次の相談",
+      "signatureYeoniDesc": "ヨニが心にかかることを対話で一緒に整理します。"
     },
     "playPrice": {
       "from": "{price}〜",

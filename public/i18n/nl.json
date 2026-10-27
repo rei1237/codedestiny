@@ -2218,7 +2218,12 @@
       "signatureNewLead": "Bekijk de consulten en kies hoe je verder wilt.",
       "signatureFeatured": "Uitgelicht consult",
       "signatureFusionDesc": "Vijf begeleiders onderzoeken je levensloop met zes systemen.",
-      "signatureCatDesc": "Onderzoek één vraag met een passende methode."
+      "signatureCatDesc": "Onderzoek één vraag met een passende methode.",
+      "signatureCardsLabel": "Uitgelichte consultkaarten",
+      "signatureNavigation": "Navigatie voor consulten",
+      "signaturePrevious": "Vorig consult",
+      "signatureNext": "Volgend consult",
+      "signatureYeoniDesc": "Yeoni praat met je over wat je bezighoudt."
     },
     "playPrice": {
       "from": "Vanaf {price}",

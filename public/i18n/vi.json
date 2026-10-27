@@ -2218,7 +2218,12 @@
       "signatureNewLead": "Khám phá cách tư vấn phù hợp với điều bạn băn khoăn.",
       "signatureFeatured": "Tư vấn nổi bật",
       "signatureFusionDesc": "Năm chuyên gia luận giải dòng đời qua sáu hệ thống.",
-      "signatureCatDesc": "Tìm hiểu một băn khoăn qua hệ thống phù hợp với bạn."
+      "signatureCatDesc": "Tìm hiểu một băn khoăn qua hệ thống phù hợp với bạn.",
+      "signatureCardsLabel": "Thẻ tư vấn nổi bật",
+      "signatureNavigation": "Điều hướng tư vấn nổi bật",
+      "signaturePrevious": "Tư vấn trước",
+      "signatureNext": "Tư vấn tiếp theo",
+      "signatureYeoniDesc": "Yeoni cùng bạn trò chuyện về điều còn vướng trong lòng."
     },
     "playPrice": {
       "from": "Từ {price}",

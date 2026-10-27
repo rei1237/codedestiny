@@ -2218,7 +2218,12 @@
       "signatureNewLead": "Découvrez les consultations et leur déroulement.",
       "signatureFeatured": "Consultation à la une",
       "signatureFusionDesc": "Cinq guides explorent votre parcours à travers six systèmes.",
-      "signatureCatDesc": "Explorez une question avec une méthode qui vous convient."
+      "signatureCatDesc": "Explorez une question avec une méthode qui vous convient.",
+      "signatureCardsLabel": "Cartes de consultations à la une",
+      "signatureNavigation": "Navigation des consultations à la une",
+      "signaturePrevious": "Consultation précédente",
+      "signatureNext": "Consultation suivante",
+      "signatureYeoniDesc": "Yeoni vous aide à parler de ce qui vous préoccupe."
     },
     "playPrice": {
       "from": "À partir de {price}",

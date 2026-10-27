@@ -2218,7 +2218,12 @@
       "signatureNewLead": "Explora las consultas y elige cómo continuar.",
       "signatureFeatured": "Consulta destacada",
       "signatureFusionDesc": "Cinco guías exploran tu vida mediante seis sistemas.",
-      "signatureCatDesc": "Explora una inquietud con el sistema que mejor te vaya."
+      "signatureCatDesc": "Explora una inquietud con el sistema que mejor te vaya.",
+      "signatureCardsLabel": "Tarjetas de consultas destacadas",
+      "signatureNavigation": "Navegación de consultas destacadas",
+      "signaturePrevious": "Consulta anterior",
+      "signatureNext": "Consulta siguiente",
+      "signatureYeoniDesc": "Yeoni te ayuda a conversar sobre lo que te preocupa."
     },
     "playPrice": {
       "from": "Desde {price}",
