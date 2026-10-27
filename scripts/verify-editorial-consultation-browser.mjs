@@ -49,7 +49,6 @@ const root=document.getElementById('root');createRoot(root).render(<main classNa
 }
 `;
 const bundle = await build({ stdin: { contents: entry, resolveDir: process.cwd(), loader: 'tsx' },
-  plugins: [{ name: 'next-image-only', setup(b) { b.onResolve({ filter: /^next\/image$/ }, () => ({ path: 'image', namespace: 'stub' })); b.onLoad({ filter: /.*/, namespace: 'stub' }, () => ({ contents: 'import React from "react";export default function Image({priority,fill,quality,unoptimized,...props}){return React.createElement("img",props)}', loader: 'js', resolveDir: process.cwd() })); } }],
   bundle: true, write: false, outfile: 'preview.js', external: ['/images/*'], format: 'iife', globalName: 'editorialTest', platform: 'browser', jsx: 'automatic',
   define: { 'process.env.NODE_ENV': '"development"', 'process.env.NEXT_PUBLIC_ASSETS_BASE_URL': '"https://assets.code-destiny.com"' } });
 const fonts = {};
