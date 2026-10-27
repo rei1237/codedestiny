@@ -13,4 +13,3 @@ next: "원격 main CI 복구와 로컬 전체 검증 결과 확인 후 변경 �
 - `npm run check:pre-push` 통과, `node scripts/i18n-check.mjs` 통과, `npm run verify:home-service-registry` 통과. `scripts/design/verify-home-funnel.cjs`는 기존 탭의 숨김 상태를 항상 보이는 것으로 기대해 실패했고, 해당 기대를 임시 조정했을 때 기존 히어로 그라디언트 기대도 실패했다. 임시 수정은 되돌렸다. `check:fast -- --base=f7995f761447f933727f725d7929303b7d83d7ba`는 카드 수 기대값과 다국어 누락으로 88/90에서 실패했다. 해당 기대값·번역을 고친 뒤 관련 Node 테스트 15건과 `verify:master-love-codex-flow`는 통과했다. 수정 후 전체 스위트는 다시 실행하지 않았다.
 - 원격 main `f7995f761447f933727f725d7929303b7d83d7ba` CI 실패: https://github.com/rei1237/codedestiny/actions/runs/40574675893 — `verify:feature-marketing-schema`에서 `neo-email-consultation` 마케팅 카피 누락. 기존 실패 위에 push하지 않는다. 로컬 main은 origin/main과 2 대 90으로 갈라져 있고 다른 워크트리에서 사용 중이므로 건드리지 않는다.
 - 다음: 수정 후 전체 `check:fast -- --base=f7995f761447f933727f725d7929303b7d83d7ba` 재실행; 기존 CI 복구 후 최신 원격과 다른 세션 변경을 확인하고 안전하게 통합; 홈 회귀 스크립트의 오래된 기대값과 실기기·성능 비교를 확인한 뒤 전달 전 검사와 CI 확인. 운영 배포는 별도 승인 필요.
-
