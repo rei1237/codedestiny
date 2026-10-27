@@ -765,7 +765,7 @@
       ],
       "catalogImage": "/fuctionassets/career-style-yeoni.webp",
       "category": "사주·심층 상담",
-      "description": "어떤 업무 조건에서 시작이 쉬울까요?",
+      "description": "프로필 카드로 읽는 여덟 장의 한국어 사주 자기이해 리포트. 성향·월지·업무 조건을 살펴봐요.",
       "verification": "source-inventory-only"
     },
     {
@@ -8068,25 +8068,9 @@
         "/saju/career-style"
       ],
       "category": "사주·심층 상담",
-      "headline": "직업 하나보다, 내게 맞는 일의 방식을 찾아봐요.",
-      "description": "저장한 프로필 카드로 성향과 월지의 환경을 읽고, 여섯 업무 조건과 작은 진로 실험으로 연결하는 무료 자기이해 리포트입니다.",
-      "panels": [
-        {
-          "title": "이런 질문에 도움이 됩니다",
-          "items": [
-            "어떤 업무 조건에서 시작이 쉬울까요?",
-            "내 방식과 주변 요구를 어떻게 조율할까요?",
-            "이번 주에 어떤 진로 실험을 해볼까요?"
-          ]
-        },
-        {
-          "title": "이런 분께 어울려요",
-          "items": [
-            "일하는 성향을 돌아보고 싶은 분",
-            "작은 경험으로 진로를 탐색하고 싶은 분"
-          ]
-        }
-      ],
+      "headline": "나의 일 스타일",
+      "description": "프로필 카드로 읽는 여덟 장의 한국어 사주 자기이해 리포트. 성향·월지·업무 조건을 살펴봐요.",
+      "panels": [],
       "ctaLabel": "가입 후 무료로 알아보기",
       "evidence": [
         "index.html:FEATURE_MARKETING_COPY:saju_career_style"
@@ -8094,39 +8078,14 @@
       "verification": "source-inventory-only",
       "imageAlt": "노트와 나침반으로 진로 탐색을 돕는 연이",
       "catalogImage": "/fuctionassets/career-style-yeoni.webp",
-      "benefits": [
-        "여덟 장의 리포트",
-        "여섯 업무 조건",
-        "역할군과 진로 실험",
-        "선택적 공유"
-      ],
-      "contents": [
-        {
-          "title": "가입·로그인",
-          "detail": "기존 계정으로 로그인한 뒤 원래 페이지로 돌아옵니다."
-        },
-        {
-          "title": "프로필 카드 선택",
-          "detail": "기존 카드를 선택하거나 같은 화면에서 새 카드를 만듭니다."
-        },
-        {
-          "title": "무료 리포트 읽기",
-          "detail": "기존 사주 엔진으로 이 기기에서 계산합니다. LLM을 호출하지 않습니다."
-        },
-        {
-          "title": "경험과 비교하기",
-          "detail": "결과를 작은 활동으로 확인하고 공유는 원할 때만 선택합니다."
-        }
-      ],
+      "benefits": [],
+      "contents": [],
       "theme": "navy",
       "journey": {
-        "questions": [
-          "어떤 업무 조건에서 시작이 쉬울까요?",
-          "내 방식과 주변 요구를 어떻게 조율할까요?",
-          "이번 주에 어떤 진로 실험을 해볼까요?"
-        ],
+        "questions": [],
         "trustNotes": [
-          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+          "결제·후기·공유 의무는 없습니다.",
+          "사주 기반 자기이해 콘텐츠이며 전문 진로검사·심리상담을 대체하지 않습니다."
         ],
         "faq": []
       }

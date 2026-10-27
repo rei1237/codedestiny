@@ -17215,6 +17215,16 @@
       "premiumOutcomes": {
         "0": "Het resultaat bepaalt de relatie niet; gebruik het als uitgangspunt voor gesprekken en keuzes."
       }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "Mijn werkstijl",
+      "tagline": "Een Koreaans saju-rapport voor zelfreflectie met acht hoofdstukken op basis van je profielkaart. Verken neigingen, de maandtak en werkomstandigheden.",
+      "premiumIntro": "Log in en kies of maak een profielkaart om gratis te lezen.",
+      "fallbackCta": "Inloggen en gratis ontdekken",
+      "premiumOutcomes": {
+        "0": "Betalen, een beoordeling schrijven of delen is niet verplicht.",
+        "1": "Zelfreflectie op basis van saju; geen vervanging voor professionele loopbaantests of psychologische begeleiding."
+      }
     }
   },
   "featureMarketingCategory": {

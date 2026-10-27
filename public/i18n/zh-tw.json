@@ -17215,6 +17215,16 @@
       "premiumOutcomes": {
         "0": "結果不會斷定關係，請將其作為溝通和選擇的參考。"
       }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "我的工作風格",
+      "tagline": "依個人資料卡產生的八章韓語四柱命理自我探索報告，了解性格傾向、月支與工作條件。",
+      "premiumIntro": "註冊或登入後，選擇既有資料卡或建立新卡，即可免費閱讀。",
+      "fallbackCta": "登入後免費探索",
+      "premiumOutcomes": {
+        "0": "無須付費、撰寫評價或分享。",
+        "1": "這是基於四柱命理的自我探索內容，不能取代專業職涯測評或心理諮商。"
+      }
     }
   },
   "featureMarketingCategory": {

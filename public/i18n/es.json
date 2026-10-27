@@ -17215,6 +17215,16 @@
       "premiumOutcomes": {
         "0": "El resultado no determina la relación; úsalo como referencia para conversar y tomar decisiones."
       }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "Mi estilo de trabajo",
+      "tagline": "Informe de autoconocimiento saju en coreano, con ocho capítulos basados en tu perfil. Explora tendencias, la rama del mes y condiciones de trabajo.",
+      "premiumIntro": "Inicia sesión y selecciona o crea una tarjeta de perfil para leer gratis.",
+      "fallbackCta": "Inicia sesión y explora gratis",
+      "premiumOutcomes": {
+        "0": "No se exige pagar, escribir reseñas ni compartir.",
+        "1": "Contenido de autoconocimiento basado en saju; no sustituye las evaluaciones profesionales de orientación laboral ni el asesoramiento psicológico."
+      }
     }
   },
   "featureMarketingCategory": {

@@ -17215,6 +17215,16 @@
       "premiumOutcomes": {
         "0": "Hasilnya tidak menentukan hubungan; gunakannya sebagai rujukan untuk berbual dan membuat pilihan."
       }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "Gaya kerja saya",
+      "tagline": "Laporan refleksi diri saju dalam bahasa Korea dengan lapan bab berdasarkan kad profil anda. Terokai kecenderungan, cabang bulan dan keadaan kerja.",
+      "premiumIntro": "Log masuk, kemudian pilih atau cipta kad profil untuk membaca secara percuma.",
+      "fallbackCta": "Log masuk untuk teroka percuma",
+      "premiumOutcomes": {
+        "0": "Tiada kewajipan membayar, menulis ulasan atau berkongsi.",
+        "1": "Kandungan refleksi diri berasaskan saju; bukan pengganti penilaian kerjaya profesional atau kaunseling psikologi."
+      }
     }
   },
   "featureMarketingCategory": {

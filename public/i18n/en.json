@@ -17215,6 +17215,16 @@
       "premiumOutcomes": {
         "0": "The result does not determine your relationship; use it as a reference for conversation and choices."
       }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "My work style",
+      "tagline": "An eight-chapter Korean saju self-reflection report based on your profile card. Explore tendencies, the month branch and working conditions.",
+      "premiumIntro": "Sign in, then select or create a profile card to read for free.",
+      "fallbackCta": "Sign in to explore for free",
+      "premiumOutcomes": {
+        "0": "No payment, reviews or sharing required.",
+        "1": "Saju-based self-reflection content; not a substitute for professional career assessments or psychological counseling."
+      }
     }
   },
   "featureMarketingCategory": {

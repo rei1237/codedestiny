@@ -17215,6 +17215,16 @@
       "premiumOutcomes": {
         "0": "Kết quả không quyết định mối quan hệ; hãy dùng làm tham khảo cho trò chuyện và lựa chọn."
       }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "Phong cách làm việc của tôi",
+      "tagline": "Báo cáo tự khám phá saju bằng tiếng Hàn gồm tám chương dựa trên thẻ hồ sơ, tìm hiểu khuynh hướng, địa chi tháng và điều kiện làm việc.",
+      "premiumIntro": "Đăng nhập, rồi chọn hoặc tạo thẻ hồ sơ để đọc miễn phí.",
+      "fallbackCta": "Đăng nhập để khám phá miễn phí",
+      "premiumOutcomes": {
+        "0": "Không bắt buộc thanh toán, viết đánh giá hoặc chia sẻ.",
+        "1": "Nội dung tự khám phá dựa trên saju, không thay thế đánh giá nghề nghiệp chuyên môn hay tư vấn tâm lý."
+      }
     }
   },
   "featureMarketingCategory": {

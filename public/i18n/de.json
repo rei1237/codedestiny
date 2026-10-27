@@ -17215,6 +17215,16 @@
       "premiumOutcomes": {
         "0": "Das Ergebnis legt die Beziehung nicht fest; nutze es als Anregung für Gespräche und Entscheidungen."
       }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "Mein Arbeitsstil",
+      "tagline": "Ein koreanischer Saju-Bericht zur Selbstreflexion in acht Kapiteln, basierend auf deiner Profilkarte. Erkunde Neigungen, den Monatszweig und Arbeitsbedingungen.",
+      "premiumIntro": "Melde dich an und wähle oder erstelle eine Profilkarte, um kostenlos zu lesen.",
+      "fallbackCta": "Anmelden und kostenlos entdecken",
+      "premiumOutcomes": {
+        "0": "Keine Zahlung, Bewertung oder Weitergabe erforderlich.",
+        "1": "Saju-basierte Selbstreflexion; kein Ersatz für professionelle Berufsdiagnostik oder psychologische Beratung."
+      }
     }
   },
   "featureMarketingCategory": {

@@ -17215,6 +17215,16 @@
       "premiumOutcomes": {
         "0": "Le résultat ne définit pas la relation ; utilisez-le comme repère pour dialoguer et choisir."
       }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "Ma façon de travailler",
+      "tagline": "Un rapport saju de connaissance de soi en coréen, en huit chapitres, basé sur votre profil. Explorez vos tendances, la branche du mois et les conditions de travail.",
+      "premiumIntro": "Connectez-vous, puis sélectionnez ou créez une fiche de profil pour lire gratuitement.",
+      "fallbackCta": "Se connecter pour découvrir gratuitement",
+      "premiumOutcomes": {
+        "0": "Aucun paiement, avis ou partage obligatoire.",
+        "1": "Un contenu de réflexion personnelle fondé sur le saju, qui ne remplace ni un bilan professionnel d’orientation ni un accompagnement psychologique."
+      }
     }
   },
   "featureMarketingCategory": {
