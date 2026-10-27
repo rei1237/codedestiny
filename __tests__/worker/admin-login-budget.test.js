@@ -105,9 +105,15 @@ test.each([null, { score: 0 }, { score: NaN }, { score: -1 }, { score: Infinity 
 });
 test('DB failure stays blocked without exposing internal error details', async () => {
   counter.mockRejectedValue(new Error('private synthetic database error'));
+  const warning = jest.spyOn(console, 'warn').mockImplementation(() => {});
   const result = await finish(run());
   expect(result.response.status).toBe(503);
   expect(await result.response.text()).not.toContain('private synthetic');
+  expect(warning).toHaveBeenCalledWith('[admin-entry] rate limit unavailable', {
+    endpoint: 'admin:/entry/password', reason: 'database',
+  });
+  expect(JSON.stringify(warning.mock.calls)).not.toContain('private synthetic');
+  warning.mockRestore();
 });
 test('20th attempt is permitted; 21st is blocked with retry-after', async () => {
   counter.mockResolvedValue({ score: 20 });

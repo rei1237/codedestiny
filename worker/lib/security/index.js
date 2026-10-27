@@ -405,12 +405,13 @@ export async function enforceRateLimit({
       ? { ok: false, response: securityResponse(429, "RATE_LIMIT_EXCEEDED", SECURITY_MESSAGES.RATE_LIMIT_EXCEEDED, { "Retry-After": retryAfter }) }
       : { ok: true, monitored: true, count };
   } catch (error) {
-    if (endpoint.startsWith("ai:fortune-tea-house:")) {
+    if (endpoint === "admin:/entry/password" || endpoint.startsWith("ai:fortune-tea-house:")) {
       const detail = String(error?.message || "");
       const reason = /admission|slot|concurren/i.test(detail) ? "admission"
         : /timed? ?out|timeout|deadline/i.test(detail) ? "timeout"
           : detail === "INVALID_RATE_LIMIT_COUNTER" ? "invalid_counter" : "database";
-      console.warn("[fortune-tea-house] rate limit unavailable", { endpoint, reason });
+      const label = endpoint === "admin:/entry/password" ? "[admin-entry]" : "[fortune-tea-house]";
+      console.warn(`${label} rate limit unavailable`, { endpoint, reason });
     }
     return shouldEnforce(env)
       ? { ok: false, response: securityResponse(503, "RATE_LIMIT_UNAVAILABLE", "요청 한도를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", { "Retry-After": "1" }) }
