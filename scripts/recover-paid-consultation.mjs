@@ -6,7 +6,7 @@ import { config } from 'dotenv';
 import { connectDb, mongoose, mongoTransactionOptions } from '../worker/lib/db.js';
 import * as models from '../worker/lib/models.js';
 import { buildMongoEnv, requireMongoUri, writeBeforeImage } from './lib/migration-before-image.mjs';
-import { SUPPORT_SERVICES, planPaidConsultationRecovery, partHash, assertSupportPaymentApproval } from './lib/paid-consultation-support.mjs';
+import { SUPPORT_SERVICES, planPaidConsultationRecovery, partHash, assertSupportPaymentApproval, supportRecoveryEnvironment } from './lib/paid-consultation-support.mjs';
 
 config({ path: '.env.local', quiet: true });
 config({ path: '.env', quiet: true });
@@ -29,8 +29,7 @@ if (apply) {
   assert.equal(approvedOwner, scopedOrders[orderId].owner, 'Approval must name the original purchasing account');
   assert.equal(approvedCalls, scopedOrders[orderId].maxCalls, 'Approval must match the reviewed maximum call count');
 }
-const env = { ...process.env, ...buildMongoEnv(), MONGO_DB_NAME: database, MONGODB_DB_NAME: database,
-  WORKERS_AI_ENABLED: 'false' };
+const env = supportRecoveryEnvironment(database, { ...process.env, ...buildMongoEnv() });
 requireMongoUri(env);
 const originalFetch = globalThis.fetch;
 let calls = 0;

@@ -7,6 +7,13 @@ export const SUPPORT_SERVICES = Object.freeze({
 export const partHash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function requireCondition(ok, code) { if (!ok) throw Object.assign(new Error(code), { code }); }
 
+export function supportRecoveryEnvironment(database, base = {}) {
+  requireCondition(['code_destiny', 'code_destiny_staging'].includes(database), 'SUPPORT_DATABASE_REQUIRED');
+  return { ...base, MONGO_DB_NAME: database, MONGODB_DB_NAME: database,
+    APP_ENV: database === 'code_destiny' ? 'production' : 'staging',
+    STAGING_LLM_MOCK_ENABLED: 'false', LLM_DRY_RUN: 'false', WORKERS_AI_ENABLED: 'false' };
+}
+
 export function assertSupportPaymentApproval(order, payment) {
   requireCondition(payment?.status === 'paid', 'SUPPORT_PROVIDER_PAYMENT_NOT_PAID');
   requireCondition(Number(order?.paymentAmount) > 0 && Number(payment.amount) === Number(order.paymentAmount)
@@ -44,6 +51,8 @@ export function planPaidConsultationRecovery({ order, doc, parts, expectedOwner,
     attempts: doc.llmMeta?.attempts || null, waveCount: doc.llmMeta?.waveCount || 0,
     providerCallCount: doc.llmMeta?.providerCallCount || 0,
     failures: Object.fromEntries((doc.llmMeta?.savedSections || []).filter(row => row.failure).map(row => [row.key, row.failure])),
+    sectionFailures: Object.fromEntries(parts.filter(p => doc.llmMeta?.sections?.[p.key]?.failure)
+      .map(p => [p.key, doc.llmMeta.sections[p.key].failure])),
     sectionAttempts: Object.fromEntries(parts.map(p => [p.key, doc.llmMeta?.sections?.[p.key]?.attempts || 0])) };
   const maxProviderCalls = missing.length * spec.maxAttempts;
   const recovery = { version: 1, active: true, orderId: order.merchantUid, startedAt: now.toISOString(),
@@ -62,6 +71,7 @@ export function planPaidConsultationRecovery({ order, doc, parts, expectedOwner,
     for (const key of missing) {
       set[`llmMeta.sections.${key}.attempts`] = 0;
       set[`llmMeta.sections.${key}.needsRepair`] = false;
+      set[`llmMeta.sections.${key}.failure`] = null;
     }
   }
   return { action: 'recover', service: spec.service, missing, preserved, original, maxProviderCalls, set };

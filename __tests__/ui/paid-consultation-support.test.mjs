@@ -1,11 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { planPaidConsultationRecovery, partHash, assertSupportPaymentApproval } from '../../scripts/lib/paid-consultation-support.mjs';
+import { planPaidConsultationRecovery, partHash, assertSupportPaymentApproval, supportRecoveryEnvironment } from '../../scripts/lib/paid-consultation-support.mjs';
+import { isStagingLlmMockEnabled } from '../../worker/lib/staging-llm-mock.js';
 
 const fixture = () => ({ order: { userId: 'owner', featureKey: 'life-book-ai-consultation', merchantUid: 'paid-order', requestId: 'original', status: 'paid' },
   doc: { id: 'stored', userId: 'owner', idempotencyKey: 'original', status: 'generation_failed', generationError: { code: 'ORIGINAL' },
     llmMeta: { waveCount: 21, sections: { 'chapter-1': { attempts: 2 }, 'chapter-4': { attempts: 2 } } } },
   parts: [{ key: 'chapter-1', valid: false, body: null }, { key: 'chapter-4', valid: true, body: { content: 'preserved original' } }] });
+
+test('support recovery cannot inherit a mock success or a different database from the developer environment', () => {
+  const inherited={APP_ENV:'staging',STAGING_LLM_MOCK_ENABLED:'true',LLM_DRY_RUN:'true',WORKERS_AI_ENABLED:'false',MONGO_DB_NAME:'other'};
+  for (const database of ['code_destiny','code_destiny_staging']) {
+    const env=supportRecoveryEnvironment(database,inherited);
+    assert.equal(isStagingLlmMockEnabled(env),false);
+    assert.equal(env.LLM_DRY_RUN,'false');
+    assert.equal(env.MONGO_DB_NAME,database);
+    assert.equal(env.MONGODB_DB_NAME,database);
+  }
+  assert.equal(supportRecoveryEnvironment('code_destiny',inherited).APP_ENV,'production');
+  assert.equal(inherited.STAGING_LLM_MOCK_ENABLED,'true');
+  assert.throws(()=>supportRecoveryEnvironment('other',inherited),{code:'SUPPORT_DATABASE_REQUIRED'});
+});
 
 test('support requires fresh PG approval for the original amount, currency and order before arming', () => {
   const order={merchantUid:'original',paymentAmount:30000}, pg={status:'paid',amount:30000,currency:'KRW',paymentId:'original'};
@@ -15,11 +30,15 @@ test('support requires fresh PG approval for the original amount, currency and o
   }
 });
 test('support resets only missing parts and preserves the original failure and valid prose hash', () => {
-  const f = fixture(), original = structuredClone(f), p = planPaidConsultationRecovery(f);
+  const f = fixture();
+  f.doc.llmMeta.sections['chapter-1'].failure={code:'LLM_PROVIDER_UNAVAILABLE',retryable:false};
+  const original = structuredClone(f), p = planPaidConsultationRecovery(f);
   assert.deepEqual(f, original);
   assert.deepEqual(p.missing, ['chapter-1']);
   assert.equal(p.maxProviderCalls, 2);
   assert.equal(p.set['llmMeta.sections.chapter-1.attempts'], 0);
+  assert.equal(p.set['llmMeta.sections.chapter-1.failure'], null);
+  assert.deepEqual(p.original.sectionFailures['chapter-1'],original.doc.llmMeta.sections['chapter-1'].failure);
   assert.equal(p.set['llmMeta.sections.chapter-4.attempts'], undefined);
   assert.equal(p.preserved['chapter-4'], partHash(f.parts[1].body));
   assert.equal(p.original.generationError.code, 'ORIGINAL');
