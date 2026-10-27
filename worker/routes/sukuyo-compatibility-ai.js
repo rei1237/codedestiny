@@ -1787,7 +1787,10 @@ async function restorePrepaidAccessOnFailure(env, auth, access, error) {
       "metadata.refundedForServiceExecution": { $ne: true },
     }).lean();
     if (!history) return false;
-    const refundCoins = Math.max(0, Math.floor(Math.abs(Number(history.delta || history?.metadata?.chargedCoins || COIN_PRICE || 0))));
+    // 가격이나 요청 금액이 아닌 원 차감 행의 음수 delta만 복원 근거다.
+    const deducted = Number(history.delta);
+    const refundCoins = Number.isFinite(deducted) && deducted < 0 ? Math.floor(-deducted) : 0;
+    if (!refundCoins) return false;
     const marked = await PointHistory.updateOne(
       { _id: history._id, userId, "metadata.refundedForServiceExecution": { $ne: true } },
       { $set: { "metadata.refundedForServiceExecution": true, "metadata.serviceExecutionRefundedAt": now, "metadata.serviceExecutionFailureMessage": failureMessage } },
@@ -2345,6 +2348,7 @@ export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
 
 // 검증 하네스(verify-analysis-basis-contract)가 순수 계산 경로만 따로 돌려 보기 위한 노출.
 export const __sukuyoCompatibilityAiTestUtils = {
+  restorePrepaidAccessOnFailure,
   FEATURE_KEY,
   normalizeInput,
   calculateSukuyo,
