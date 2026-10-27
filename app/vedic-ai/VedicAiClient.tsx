@@ -7,6 +7,7 @@ import { RecommendationResult } from "@/app/components/recommendations/Recommend
 import { cleanTopics, reportAdviceTopics } from "@/js/recommendations-context.mjs";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 
 import CurrentLocationButton from '@/app/components/CurrentLocationButton';
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -19,7 +20,7 @@ import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
-import { extractReadableTextFromJsonLike, looksLikeRawJson, splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -2747,15 +2748,6 @@ function splitBilingual(label: string): { ko: string; sans: string } {
   return { ko: raw.slice(0, comma).trim(), sans: raw.slice(comma + 1).trim() };
 }
 
-// LLM 본문은 핵심 문구를 **굵게**로 반환한다(worker/routes/vedic-ai.js 시스템 프롬프트).
-// 인라인 **...** 마크만 <strong>으로 렌더링해 훑어보기 쉽게 한다.
-function renderRichText(text: string) {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
-    const bold = /^\*\*([^*]+)\*\*$/.exec(part);
-    return bold ? <strong key={index}>{bold[1]}</strong> : <span key={index}>{part}</span>;
-  });
-}
-
 // 요약 메달리온 카드의 라인 글리프 아이콘 (currentColor 골드 stroke).
 function SummaryGlyph({ kind }: { kind: "lagna" | "rashi" | "nakshatra" }) {
   const common = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "aria-hidden": true as const, className: styles.medallionGlyph };
@@ -2829,6 +2821,7 @@ export function StructuredReadingResult({
         fileName: `vedic-reading-${safeFilePart(name || "result")}.pdf`,
         backgroundColor: "#0a0818",
         cover: {
+          theme: "vedic",
           title: copy.resultTitle(name || copy.defaultConsultantName),
           subtitle: copy.jyotishEyebrow,
           date: new Date().toISOString().slice(0, 10),
@@ -2942,9 +2935,7 @@ export function StructuredReadingResult({
                 {sans ? <em className={styles.sectionTitleSans}>{sans}</em> : null}
               </h3>
             </div>
-            {splitIntoParagraphs(toText(section.body)).map((paragraph, paragraphIndex) => (
-              <p key={paragraphIndex}>{renderRichText(paragraph)}</p>
-            ))}
+            <ConsultationReading kind="vedic" value={section.body} index={index} />
           </article>
         );
       })}
@@ -3508,9 +3499,7 @@ export default function VedicAiClient() {
                       {splitAssistantSections(message.content, copy).map((section, sectionIndex) => (
                         <article className={styles.sectionCard} key={`${section.title}-${sectionIndex}`}>
                           <span>{section.title}</span>
-                          {splitIntoParagraphs(section.body).map((paragraph, paragraphIndex) => (
-                            <p key={paragraphIndex}>{paragraph}</p>
-                          ))}
+                          <ConsultationReading kind="vedic" value={section.body} index={sectionIndex} />
                         </article>
                       ))}
                     </div>

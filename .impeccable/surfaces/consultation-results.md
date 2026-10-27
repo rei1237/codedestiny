@@ -22,5 +22,6 @@ primaryTarget: components/fortune/AiResultProse.tsx
 - TypeScript와 신년운세 mock 흐름·초융합 PDF 구조 검사를 확인한다.
 - 영냥이 실제 ReadingBook/내보내기 컴포넌트는 격리 mock에서 360·390·430·1440px, 글꼴 실패 후 재시도, 저장 결과 위치 복원을 확인한다.
 - 실제 Next 개발 라우트는 기존 CommonJS/import.meta 번들 충돌로 별도 미검증이다. 격리 mock·PDF 렌더 판정을 전체 운영 흐름의 검증으로 확대하지 않는다.
+- 베다점은 구조화 저장 결과와 일반 텍스트 결과 모두 같은 본문·삽화를 사용한다. 구조화 결과의 PDF 표지도 베다점 팔레트에 연결하며 기존 차트·점수·원문은 보존한다.
 - `node scripts/verify-editorial-consultation-browser.mjs`: 실제 연애 장/공통 결과 컴포넌트로 7종×4폭, 브랜드 서체 로드·삽화·긴 원문 보존·PDF를 확인한다. 반복 문단 스트레스 PDF는 디자인 샘플로 제공하지 않는다.
 - 캡처 PDF는 소제목과 첫 해설 줄을 함께 넘기며, 하단 여백·테두리만으로 빈 페이지를 만들지 않는다. 짧은 장의 마지막 페이지 여백은 원문과 장별 시작을 보존한 결과일 수 있다.
