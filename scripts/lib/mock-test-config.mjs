@@ -5,5 +5,5 @@ export const NODE_TEST_PATTERNS = Object.freeze([
   '.claude/hooks/*.test.mjs', '__tests__/ui/*.test.mjs',
 ]);
 export const JEST_BASE_ARGS = Object.freeze([
-  '--runInBand', '--testEnvironment', 'node', '--cacheDirectory=build-cache/jest',
+  '--testEnvironment', 'node', '--cacheDirectory=build-cache/jest',
 ]);

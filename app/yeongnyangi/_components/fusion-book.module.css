@@ -1,6 +1,6 @@
 .introduction,.extras{color:var(--yn-ivory);max-width:76ch;margin:2rem auto;line-height:1.8;overflow-wrap:anywhere}
 .introduction{display:flex;align-items:flex-start;gap:1rem;padding:1.5rem 0 2rem;border-bottom:1px solid var(--yn-line)}
-.introduction>svg{flex:none;color:var(--yn-gold);margin-top:.3rem}.introduction h2,.notes h2{font-size:clamp(1.35rem,3vw,1.8rem);line-height:1.45;text-wrap:balance;word-break:keep-all;margin:0 0 1rem}.introduction p{margin:.5rem 0 1rem}
+.introduction>svg{flex:none;color:var(--yn-gold);margin-top:.3rem}.introduction h2,.notes h2{font-size:clamp(1.35rem,3vw,1.8rem);line-height:1.45;text-wrap:balance;word-break:keep-all;margin:0 0 1rem}.introduction p{margin:.5rem 0 1rem;word-break:keep-all}
 .introduction a{color:var(--yn-gold);display:inline-block;min-height:44px;text-underline-offset:.3em}
 .export{border:1px solid var(--yn-line);border-radius:1rem;background:var(--yn-surface);scroll-margin-top:6rem}.export>summary{display:flex;align-items:center;gap:.75rem;padding:1.25rem;min-height:48px;cursor:pointer;color:var(--yn-gold);font-weight:700}
 .exportBody{padding:0 1.25rem 1rem}.exportBody h3{font-size:1.2rem;margin:1rem 0}.contents{border-block:1px solid var(--yn-line);margin:1.5rem 0}.contents summary,.notes summary{padding:.85rem 0;min-height:48px;cursor:pointer;color:var(--yn-gold)}.contents ol{max-height:20rem;overflow:auto;padding-left:1.5rem;scrollbar-color:var(--yn-gold) var(--yn-surface)}.contents li{padding:.3rem 0}

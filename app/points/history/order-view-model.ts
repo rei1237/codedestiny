@@ -10,6 +10,7 @@ export type PaymentOrderRecord = {
   paymentMethodLabel?: string;
   paymentType?: string;
   productId?: string;
+  productName?: string;
   featureKey?: string;
   subscriptionTier?: string;
   membershipCreditCost?: number;
@@ -149,8 +150,7 @@ export function adaptOrderToViewModel(order: PaymentOrderRecord, locale: Loading
   return {
     id: String(order.id || "").trim(),
     type,
-    title: titleFor(type, copy),
-    description: order.productId || order.featureKey || undefined,
+    title: order.productName?.trim() || titleFor(type, copy),
     status,
     statusLabel: statusLabel(status, copy),
     paymentMethod: order.paymentMethodLabel || order.paymentMethod || undefined,

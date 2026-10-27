@@ -1,5 +1,6 @@
 "use client";
-import YeoniTalkingPortrait from "./YeoniTalkingPortrait";
+import Image from "next/image";
+import { fortuneTeaHouseAssets } from "../data/assets";
 import type { TeaHouseCup } from "../data/teaCups";
 import { teaHouseCups } from "../data/teaCups";
 import TeaCupVisual from "./TeaCupVisual";
@@ -13,7 +14,7 @@ export default function TeaCupRitualScene({ selectedCup, onConfirm, onBack }: Pr
  const cups = useTeaHouseCopy("teaCups", teaHouseCups, { skipKeys: CUP_SKIP_KEYS });
  const cup = cups.find(item => item.id === selectedCup.id) || selectedCup;
  return <section className={styles.world + " " + styles.ritual} aria-labelledby="teaCupRitualTitle">
-  <YeoniTalkingPortrait className={styles.menuPortrait} speechKey={selectedCup.id} />
+  <Image className={styles.menuPortrait} src={fortuneTeaHouseAssets.yeoni.transparent.cupPose} alt="연이" width={1086} height={1448} sizes="(max-width:700px) 320px,440px" />
   <div><TeaCupVisual cup={cup} state="selected" size="menu" className={styles.ritualCup} /><h2 id="teaCupRitualTitle">{cup.ritualTitle}</h2><p>{cup.yeoniSelectLine}</p><p>{cup.questionGuideLine}</p>
    <div className={styles.ritualActions}><button type="button" onClick={onBack}>{copy.backLabel}</button><button type="button" className={styles.primary} onClick={onConfirm}>{copy.confirmLabel}</button></div>
   </div>

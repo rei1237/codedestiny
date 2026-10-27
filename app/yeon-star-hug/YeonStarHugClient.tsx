@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import {
@@ -2918,7 +2920,8 @@ export default function YeonStarHugPage() {
             <h2 className="text-xl font-black text-slate-700">{copy.inputPanelTitle}</h2>
             <p className="mb-4 mt-1 text-sm text-slate-500">{copy.inputPanelIntro}</p>
 
-            <details className="mb-4">
+            <SavedBirthProfilePicker onSelect={async(_seed,profile)=>{const version=++profileSyncVersionRef.current;await applyProfileAndAstro(profile,()=>version!==profileSyncVersionRef.current);}} />
+            <details data-moonlit-form="" className="mb-4">
               <summary className="flex min-h-12 cursor-pointer items-center justify-between text-sm font-bold text-[#70445c]">내 정보 확인·수정 <span className="text-xs">프로필 또는 직접 입력</span></summary>
             <div className="mb-4 rounded-2xl border border-[#ead089]/80 bg-[#fff8dc]/70 p-4" aria-live="polite">
               <div className="flex items-center justify-between gap-3">
@@ -2975,16 +2978,7 @@ export default function YeonStarHugPage() {
 
               <label htmlFor="yeon-birth-time" className="grid gap-1 sm:col-span-2">
                 <span className="text-xs font-bold text-pink-600">{copy.birthTimeFieldLabel}</span>
-                <input
-                  id="yeon-birth-time"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={4}
-                  value={birthTimeInput}
-                  onChange={(event) => handleBirthTimeInputChange(event.target.value)}
-                  placeholder="0730"
-                  className="min-h-12 rounded-xl border border-pink-200 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus-visible:ring-2 focus-visible:ring-pink-200"
-                />
+                <BirthTimeInput id="yeon-birth-time" value={birthTimeInput.length===4?birthTimeInput.slice(0,2)+":"+birthTimeInput.slice(2):""} onChange={event=>handleBirthTimeInputChange(event.target.value.replace(":",""))} />
               </label>
             </div>
 

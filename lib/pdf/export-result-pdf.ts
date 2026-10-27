@@ -1,5 +1,7 @@
 import type { jsPDF as JsPDFInstance } from "jspdf";
 import { buildAssetsPublicUrl } from "@/lib/r2-public-url";
+import { REPORT_COVER_THEMES, type ReportCoverTheme } from "./report-cover-theme";
+import { loadReportArt, type ReportArt } from "./report-art";
 
 const PAGE_WIDTH_MM = 210;
 const PAGE_HEIGHT_MM = 297;
@@ -21,6 +23,7 @@ export type PdfCoverInfo = {
   subtitle?: string;
   name?: string;
   date?: string;
+  theme?: ReportCoverTheme;
 };
 
 export type ExportResultPdfOptions = {
@@ -88,25 +91,33 @@ export async function registerPdfFontsSafely(pdf: JsPDFInstance): Promise<{ titl
   }
 }
 
-function drawCoverPage(pdf: JsPDFInstance, cover: PdfCoverInfo, fonts: { title: string; body: string } | null) {
-  if (fonts) pdf.setFont(fonts.title, "normal");
-  pdf.setFontSize(26);
-  pdf.setTextColor(40, 32, 24);
-  const titleLines = pdf.splitTextToSize(cover.title, CONTENT_WIDTH_MM);
-  pdf.text(titleLines, PAGE_MARGIN_MM, 110, { lineHeightFactor: 1.4 });
-
-  let cursorY = 110 + titleLines.length * 12;
-  if (fonts) pdf.setFont(fonts.body, "normal");
-  if (cover.subtitle) {
-    pdf.setFontSize(13);
-    pdf.setTextColor(90, 78, 64);
-    const subtitleLines = pdf.splitTextToSize(cover.subtitle, CONTENT_WIDTH_MM);
-    cursorY += 10;
-    pdf.text(subtitleLines, PAGE_MARGIN_MM, cursorY, { lineHeightFactor: 1.6 });
+function drawCoverPage(pdf: JsPDFInstance, cover: PdfCoverInfo, fonts: { title: string; body: string }, art?: ReportArt) {
+  const theme = cover.theme ? REPORT_COVER_THEMES[cover.theme] : null;
+  const paint = () => {
+    if (!theme) return;
+    pdf.setFillColor(theme.paper[0], theme.paper[1], theme.paper[2]); pdf.rect(0, 0, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, "F");
+    pdf.setDrawColor(theme.accent[0], theme.accent[1], theme.accent[2]); pdf.setLineWidth(.3); pdf.rect(12, 12, PAGE_WIDTH_MM - 24, PAGE_HEIGHT_MM - 24);
+  };
+  paint();
+  let cursorY = 80;
+  if (art) {
+    const height = Math.min(114, CONTENT_WIDTH_MM * art.ratio);
+    pdf.addImage(art.dataUrl, "JPEG", PAGE_MARGIN_MM, 36, CONTENT_WIDTH_MM, height);
+    cursorY = 36 + height + 22;
   }
-
-  pdf.setFontSize(11);
-  pdf.setTextColor(120, 110, 98);
+  pdf.setFont(fonts.body, "normal");
+  const text = (value: string, size: number, color: readonly [number, number, number], factor: number) => {
+    pdf.setFontSize(size); pdf.setTextColor(...color);
+    const height = size * .352778 * factor;
+    for (const line of pdf.splitTextToSize(value, CONTENT_WIDTH_MM) as string[]) {
+      if (cursorY + height > PAGE_HEIGHT_MM - 62) { pdf.addPage(); paint(); cursorY = 36; }
+      pdf.text(line, PAGE_MARGIN_MM, cursorY); cursorY += height;
+    }
+  };
+  text(cover.title, 24, theme?.ink || [40,32,24], 1.5);
+  if (cover.subtitle) { cursorY += 8; text(cover.subtitle, 12, theme?.muted || [90,78,64], 1.7); }
+  const muted = theme?.muted || [120,110,98];
+  pdf.setFontSize(10); pdf.setTextColor(muted[0], muted[1], muted[2]);
   if (cover.name) pdf.text(cover.name, PAGE_MARGIN_MM, PAGE_HEIGHT_MM - 40);
   if (cover.date) pdf.text(cover.date, PAGE_MARGIN_MM, PAGE_HEIGHT_MM - 32);
 }
@@ -125,8 +136,23 @@ function addCapturedCanvasAsPages(pdf: JsPDFInstance, canvas: HTMLCanvasElement,
     }
   }
   const pagePixels = Math.floor(CONTENT_HEIGHT_MM * canvas.width / CONTENT_WIDTH_MM);
+  const textLines = [...lines].sort((a, b) => a.top - b.top);
+  // Keep fitting illustrations, captions, table rows and headings together as well as text lines.
+  for (const item of Array.from(element.querySelectorAll("figure, img, svg, tr, h1, h2, h3, h4"))) {
+    const rect = item.getBoundingClientRect();
+    const top = (rect.top - bounds.top) * ratio;
+    let bottom = (rect.bottom - bounds.top) * ratio;
+    // A heading belongs to its first explanation line, including headings inside a chapter header.
+    if (/^H[1-4]$/.test(item.tagName)) {
+      const firstLine = textLines.find(line => line.top >= bottom - 1);
+      if (firstLine && firstLine.bottom - top < pagePixels) bottom = firstLine.bottom;
+    }
+    if (rect.height > 0 && bottom - top < pagePixels) lines.push({ top, bottom });
+  }
+  // Bottom padding/borders may be painted on the last page, but cannot create an empty extra page.
+  const contentBottom = lines.length ? Math.min(canvas.height, Math.ceil(Math.max(...lines.map(line => line.bottom)))) : canvas.height;
   let offset = 0;
-  while (offset < canvas.height) {
+  while (offset < contentBottom) {
     let end = Math.min(canvas.height, offset + pagePixels);
     // Move a page boundary before the intersecting text line, never through it.
     if (end < canvas.height) {
@@ -176,8 +202,8 @@ export async function exportResultPdf(options: ExportResultPdfOptions): Promise<
     backgroundColor,
     cover,
     watermarkText = "Code Destiny · 꿀꿀운세",
-    jpegQuality = 0.75,
-    scale = typeof window !== "undefined" ? Math.min(1.5, window.devicePixelRatio || 1.5) : 1.5,
+    jpegQuality = 0.88,
+    scale = 2,
   } = options;
 
   const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
@@ -195,7 +221,11 @@ export async function exportResultPdf(options: ExportResultPdfOptions): Promise<
   const fonts = await registerPdfFontsSafely(pdf);
   await document.fonts.ready;
 
-  if (cover && fonts) drawCoverPage(pdf, cover, fonts);
+  if (cover && fonts) {
+    const theme = cover.theme ? REPORT_COVER_THEMES[cover.theme] : null;
+    const art = theme ? await Promise.allSettled([loadReportArt(`/images/service-introductions/${theme.artwork}-960.webp`, undefined, true)]) : [];
+    drawCoverPage(pdf, cover, fonts, art[0]?.status === "fulfilled" ? art[0].value : undefined);
+  }
   else if (cover) {
     // jsPDF's default fonts have no Korean glyphs. Rasterize the cover too when
     // embedding fails, rather than delivering a broken first page.
@@ -218,7 +248,10 @@ export async function exportResultPdf(options: ExportResultPdfOptions): Promise<
   let isFirstContentPage = !cover;
   let capturedAnyPage = false;
   for (const element of elements) {
-    const canvas = await html2canvas(element, { backgroundColor, scale, useCORS: true });
+    const canvas = await html2canvas(element, { backgroundColor, scale, useCORS: true,
+      // The capture clone must load off-screen art; do not wait on the live reader's lazy images.
+      onclone: (_document, clonedElement) => { clonedElement.querySelectorAll("img").forEach(image => { image.loading = "eager"; }); },
+    });
     if (!canvas.width || !canvas.height) continue;
     addCapturedCanvasAsPages(pdf, canvas, jpegQuality, !isFirstContentPage, element);
     isFirstContentPage = false;

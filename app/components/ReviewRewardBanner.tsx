@@ -8,7 +8,7 @@ import { REVIEW_REWARD_IMAGE, REVIEW_WRITE_URL, reviewRewardCopy, reviewRewardLa
 import { KRW_PER_MONTHLY_CREDIT } from "@/lib/payment/coin-pricing";
 import "@/styles/review-reward.css";
 
-export type ReviewRewardPolicy = { amount: number; currency: string; trigger: string };
+export type ReviewRewardPolicy = { amount: number; valueKRW?: number; currency: string; trigger: string };
 
 // 결과 뒤 후기 배너는 화면에 하나만 둔다(DESIGN.md §5). 공유·이미지 안내 컴포넌트가
 // 각자 배너를 붙여 한 결과 화면에 두 번 뜨던 것을, 먼저 마운트된 하나만 보이게 한다.
@@ -53,7 +53,7 @@ export default function ReviewRewardBanner({ policy, onWrite, brand = 'ggulggul'
 
   const copy = afterResult ? paidReviewCopy(brand, locale) : reviewRewardCopy;
   const resolvedPolicy = policy === undefined ? loadedPolicy : policy;
-  const worth = afterResult ? reviewRewardWorthLabel(resolvedPolicy, KRW_PER_MONTHLY_CREDIT, locale) : '';
+  const worth = reviewRewardWorthLabel(resolvedPolicy, KRW_PER_MONTHLY_CREDIT, locale);
   const reward = afterResult && locale !== 'ko' ? resolvedPolicy?.currency === 'moonstone' && resolvedPolicy.trigger === 'approved' && Number.isSafeInteger(resolvedPolicy.amount) && resolvedPolicy.amount > 0 ? `${resolvedPolicy.amount} moonstones after publication approval` : 'Moonstones after publication approval' : reviewRewardLabel(resolvedPolicy);
   if (!owner) return null;
   return (
@@ -63,10 +63,11 @@ export default function ReviewRewardBanner({ policy, onWrite, brand = 'ggulggul'
         <p>{copy.description}</p>
         <p className="cd-review-invite__reward" aria-live="polite">{reward}{worth && <span className="cd-review-invite__worth"> · {worth}</span>}</p>
         <p className="cd-review-invite__detail">{copy.detail}</p>
+        {!afterResult && <p className="cd-review-invite__detail">지급일부터 30일 · 월정석 사용이 가능한 대상 상품에서 사용 · 이용권 구매 및 현금 교환 제외</p>}
         {onWrite ? <button type="button" className="cd-review-invite__action" onClick={onWrite}>{copy.action}</button>
           : <Link href={REVIEW_WRITE_URL} className="cd-review-invite__action">{copy.action}</Link>}
       </div>
-      <Image src={afterResult ? paidReviewCopy(brand, locale).image : REVIEW_REWARD_IMAGE} alt={afterResult ? paidReviewCopy(brand, locale).name : reviewRewardCopy.imageAlt} width={240} height={240} className="cd-review-invite__image" />
+      <Image src={afterResult ? paidReviewCopy(brand, locale).image : REVIEW_REWARD_IMAGE} alt={reviewRewardCopy.imageAlt} width={360} height={240} className="cd-review-invite__image" />
     </section>
   );
 }

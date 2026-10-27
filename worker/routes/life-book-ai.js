@@ -1,8 +1,12 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { reserveSupportRecoveryAttempt, supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } from "../lib/support-recovery-budget.js";
+import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
+import { consultationRefundResponse } from "../lib/consultation-refund-state.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -1371,18 +1375,23 @@ function getLifeBookReportQualityIssues(content, input = {}, options = {}) {
   if (lifeFortune && !clean(report.title, 120).includes("인생 총운")) issues.push("life_fortune_title_missing");
 
   const chapters = Array.isArray(report.chapters) ? report.chapters : [];
-  if (chapters.length !== LIFE_BOOK_EXPECTED_CHAPTER_COUNT) issues.push("chapter_count_mismatch");
+  const chapterNumbers = chapters.map((chapter, index) => chapter?.chapterNumber == null ? index + 1 : Number(chapter.chapterNumber));
+  const missingChapters = Array.from({ length: LIFE_BOOK_EXPECTED_CHAPTER_COUNT }, (_, index) => index + 1)
+    .filter(number => !chapterNumbers.includes(number));
+  if (chapters.length !== LIFE_BOOK_EXPECTED_CHAPTER_COUNT || missingChapters.length
+    || chapterNumbers.some(number => !Number.isInteger(number) || number < 1 || number > LIFE_BOOK_EXPECTED_CHAPTER_COUNT)) issues.push("chapter_count_mismatch");
+  for (const number of missingChapters) issues.push(`chapter_${number}_content_missing`);
 
   let totalContentLength = 0;
   chapters.forEach((chapter, index) => {
-    const chapterNumber = index + 1;
+    const chapterNumber = chapterNumbers[index];
     const summary = clean(chapter?.summary, 1200);
     const chapterContent = clean(chapter?.content, 20000);
     const advice = Array.isArray(chapter?.advice)
       ? chapter.advice.map((item) => clean(item, 1000)).filter(Boolean)
       : [];
     totalContentLength += countPaidReportBodyChars(chapterContent);
-    if (lifeFortune && !clean(chapter?.title, 120).includes(LIFE_FORTUNE_CHAPTER_TITLES[index] || "")) issues.push(`chapter_${chapterNumber}_title_mismatch`);
+    if (lifeFortune && !clean(chapter?.title, 120).includes(LIFE_FORTUNE_CHAPTER_TITLES[chapterNumber - 1] || "")) issues.push(`chapter_${chapterNumber}_title_mismatch`);
     if (lifeFortune && !hasValidEvidenceRefs(chapter?.evidenceRefs, 3)) issues.push(`chapter_${chapterNumber}_evidence_refs_missing`);
     if (!summary) issues.push(`chapter_${chapterNumber}_summary_missing`);
     if (!chapterContent) issues.push(`chapter_${chapterNumber}_content_missing`);
@@ -1459,6 +1468,7 @@ function resolveSectionTimeoutMs(env = {}) {
 
 // 🔴 절대 throw 하지 않는다. 한 섹션의 실패가 같은 웨이브의 나머지를 죽이면 안 된다.
 async function generateSectionOnce(env, section, prompt, options = {}) {
+  const recoveryOptions = supportRecoveryGenerationOptions(options.supportRecovery);
   const startedAt = Date.now();
   const base = {
     id: section.id,
@@ -1487,6 +1497,7 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
       fallbackMinChars: Math.round(section.minChars * 0.4),
       logContext: options.logContext,
       cache: options.cache,
+      ...recoveryOptions,
     });
     base.durationMs = Date.now() - startedAt;
     const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -1495,7 +1506,8 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
     base.provider = provider;
     base.model = clean(ai?.model);
     if (!ai?.ok || ai.truncated || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)) || isMock || !text) {
-      base.error = isMock ? "MOCK_PROVIDER_BLOCKED" : clean(ai?.message || ai?.error || "LLM generation failed.", 300);
+      if (!ai?.ok) base.failure = { code: /^[A-Z][A-Z0-9_]{0,79}$/.test(ai?.error || "") ? ai.error : "LLM_PROVIDER_UNAVAILABLE", ...safeGeminiFailure(ai) };
+      base.error = isMock ? "MOCK_PROVIDER_BLOCKED" : base.failure?.code || "SECTION_CONTENT_EMPTY";
       return base;
     }
     const parsed = extractReportJson(cleanForbiddenResult(text));
@@ -1512,7 +1524,8 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
     return base;
   } catch (error) {
     base.durationMs = Date.now() - startedAt;
-    base.error = clean(error?.code || error?.message || error, 300);
+    base.failure = { code: "LLM_PROVIDER_UNAVAILABLE", ...safeGeminiFailure(error) };
+    base.error = base.failure.code;
     return base;
   }
 }
@@ -1602,7 +1615,7 @@ function assembleReport(input, plan, sections) {
   const frame = sections.frame?.body || null;
   const chapters = plan
     .filter((section) => section.kind === "chapter")
-    .map((section) => sections[section.id]?.body)
+    .map((section) => sections[section.id]?.body ? { ...sections[section.id].body, chapterNumber: section.index + 1 } : null)
     .filter(Boolean);
   const expertReadings = plan
     .filter((section) => section.kind === "expert")
@@ -1675,6 +1688,9 @@ function mapIssuesToSections(issues = [], plan = [], sections = {}) {
     }
     if (issue === "life_fortune_title_missing" || issue === "chapter_count_mismatch" || issue === "expert_reading_count_too_short") {
       if (issue === "life_fortune_title_missing") targets.add("frame");
+      if (issue === "chapter_count_mismatch") for (const section of plan) {
+        if (section.kind === "chapter" && !sections[section.id]?.body) targets.add(section.id);
+      }
       continue;
     }
     if (issue === "forbidden_terms" || issue === "report_json_missing" || issue === "empty_result") {
@@ -1768,7 +1784,7 @@ async function finalizeDeferredBillingUsage({ request, env, auth, access, idempo
 
 async function cancelDeferredBillingUsage({ request, env, auth, access, idempotencyKey, sessionId, error, orderName = ORDER_NAME }) {
   if (access?.accessSource !== "billing_gate_deferred") return false;
-  await callDeferredBillingRoute({
+  const response = await callDeferredBillingRoute({
     request,
     env,
     auth,
@@ -1788,7 +1804,11 @@ async function cancelDeferredBillingUsage({ request, env, auth, access, idempote
       message: clean(error?.message || error, 500),
     },
   }).catch(() => null);
-  return true;
+  const payload = await response?.json().catch(() => ({}));
+  const canceled = response?.ok === true && payload?.ok === true;
+  await LifeBookAiConsultation.updateOne({ id: sessionId, userId: clean(auth.userId), status: "generation_failed" },
+    { $set: { "llmMeta.billingCleanupPending": !canceled } });
+  return canceled;
 }
 
 async function restoreBillingGateAccessOnFailure({ userId, access, reason = MESSAGES.llmFailed, orderName = ORDER_NAME }) {
@@ -2212,10 +2232,21 @@ async function reserveProviderCallOnce({ userId, sessionId, idempotencyKey, rout
 }
 
 async function releaseSectionLock(sessionId, lockToken) {
-  await LifeBookAiConsultation.updateOne(
+  return LifeBookAiConsultation.findOneAndUpdate(
     { id: sessionId, "llmMeta.lockToken": lockToken },
     { $set: { "llmMeta.lockedAt": null, "llmMeta.lockToken": "" } },
-  ).catch(() => {});
+    { new: true },
+  ).lean().catch(() => null);
+}
+
+async function settleLifeBookFailureRefund(env, id, userId) {
+  try {
+    const { settleFailedConsultationRefund } = await import('../lib/consultation-delivery-refund.js');
+    return await settleFailedConsultationRefund(env, { service: 'life-book-ai', id, userId });
+  } catch {
+    console.warn('[life-book-ai] refund settlement pending');
+    return { ok: false, refundStatus: 'pending', retryable: true };
+  }
 }
 
 async function saveLifeBookState({ userId, id, lockToken, status = "generating", values }) {
@@ -2239,7 +2270,9 @@ async function finishLifeBookDelivery({ request, env, auth, access, pending, pri
   } catch (cause) {
     throw Object.assign(new Error("이용 처리 확인 중입니다. 같은 상담에서 다시 시도해 주세요."), { code: "RESULT_DELIVERY_PENDING", status: 503, resultId: pending.id, cause });
   }
-  return saveLifeBookState({ userId: auth.userId, id: pending.id, lockToken: pending.llmMeta?.lockToken || "", status: "delivery_pending", values: { status: "completed" } });
+  return saveLifeBookState({ userId: auth.userId, id: pending.id, lockToken: pending.llmMeta?.lockToken || "", status: "delivery_pending", values: {
+    status: "completed", ...(pending.llmMeta?.supportRecovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": new Date().toISOString() } : {}),
+  } });
 }
 
 async function handleResult(request, env, pathId = "") {
@@ -2290,6 +2323,8 @@ async function handleResult(request, env, pathId = "") {
     });
     return json({ ok: false, reason: "RESULT_NOT_FOUND", message: MESSAGES.resultNotFound }, { status: 404 });
   }
+  const refund = consultationRefundResponse(consultation);
+  if (refund) return json(refund.body, { status: refund.status });
   if (["generating", "partial", "delivery_pending"].includes(consultation.status)) {
     if (consultation.llmMeta?.resumeBody) {
       const body = consultation.llmMeta.resumeBody;
@@ -2361,6 +2396,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
     await connectDb(env);
     const stored = await LifeBookAiConsultation.findOne({ id: clean(body.resumeSessionId), userId: clean(resumeAuth.userId) }).lean();
     if (!stored) return invalidInput(MESSAGES.resultNotFound, 404);
+    const refund = consultationRefundResponse(stored);
+    if (refund) return json(refund.body, { status: refund.status });
     if (stored.status === "completed") return json(publicSession(stored));
     if (!stored.llmMeta?.resumeBody) return invalidInput(MESSAGES.invalidInput, 409);
     body = { ...stored.llmMeta.resumeBody, idempotencyKey: stored.idempotencyKey, requestId: stored.idempotencyKey };
@@ -2417,6 +2454,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
     const orderName = getConsultationOrderName(normalized.input);
 
     const existing = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+    const refund = consultationRefundResponse(existing);
+    if (refund) return json(refund.body, { status: refund.status });
     if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput(MESSAGES.invalidInput, 409);
     if (existing?.status === "completed") {
       logLifeBookAction("generate_reused", {
@@ -2592,6 +2631,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
       } catch (error) {
         if (error?.code === 11000) {
           const duplicate = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+          const refund = consultationRefundResponse(duplicate);
+          if (refund) return json(refund.body, { status: refund.status });
           logLifeBookAction("generate_reused", {
             route,
             requestId: idempotencyKey,
@@ -2637,11 +2678,21 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         throw resultStorageUnavailable(sessionId);
       });
       const sections = lock.doc?.llmMeta?.sections || storedSections;
+      const recovery = lock.doc?.llmMeta?.supportRecovery;
+      const preserved = new Set(Object.keys(recovery?.preserved || {}));
       let finished = false;
       let responsePayload = null;
+      let terminalFailure = null;
 
       try {
+        supportRecoveryGenerationOptions(recovery);
+        assertSupportRecoveryPreserved(recovery, Object.entries(sections).map(([key, row]) => ({ key, body: row.body })));
+        const blocked = plan.find(section => !preserved.has(section.id) && sections[section.id]?.failure && !sections[section.id]?.ok);
+        if (blocked && (sections[blocked.id].failure.retryable === false || Number(sections[blocked.id].attempts || 0) >= LIFE_BOOK_MAX_SECTION_ATTEMPTS)) {
+          throw Object.assign(new Error(sections[blocked.id].failure.message), sections[blocked.id].failure, { code: "LLM_PROVIDER_UNAVAILABLE", retryable: false });
+        }
         const pending = plan.filter((section) => {
+          if (preserved.has(section.id)) return false;
           const stored = sections[section.id];
           if (!stored) return true;
           if (stored.repairKind === "length" && stored.ok) {
@@ -2672,6 +2723,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
             const attempt = Number(stored?.attempts || 0) + 1;
             const lengthRepair = stored?.lengthRepair || (stored?.repairKind === "length" && stored?.ok);
             const reservedSection = { ...(stored || { id: section.id, kind: section.kind, ok: false }), attempts: attempt, lengthRepair };
+            await reserveSupportRecoveryAttempt({ Model: LifeBookAiConsultation, id: sessionId, userId: auth.userId, lockToken: lock.lockToken });
             await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: { [`llmMeta.sections.${section.id}`]: reservedSection } });
             // 재시도에서는 목표 분량을 올려 잡아 "또 짧게" 오는 것을 막는다.
             const boosted = stored?.needsRepair
@@ -2679,9 +2731,10 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
               : section;
             const digest = buildSectionDigest(plan, sections, section.id);
             const prompt = buildSectionPrompt(normalized.input, pickSajuSlice(sajuResult, section.evidenceRefs), boosted, digest);
-            const result = await generateSectionOnce(env, boosted, prompt, {
+            const result = await runWithAiLocale(storedAiLocale(lock.doc), async () => generateSectionOnce(env, boosted, prompt, {
               consultationType,
               birthInfo: normalized.input.birthInfo,
+              supportRecovery: recovery,
               // 재시도는 캐시를 우회해야 같은 짧은 응답을 다시 받지 않는다.
               cache: attempt > 1 ? null : {
                 store: createLlmCacheStore(env),
@@ -2690,16 +2743,23 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
                 keyExtra: `life-book-ai-v2-natal-v2-${consultationType}-${section.id}`,
               },
               logContext: { ...baseLogContext, sectionId: section.id, attempt },
-            });
+            }));
             const valid = row => row?.ok && lifeBookSectionValid(section, row.body, normalized.input)
               && !hasRepeatedReportPassage([...Object.entries(sections).filter(([id, value]) => id !== section.id && value.ok).map(([, value]) => value.body?.content || ""), row.body?.content || ""].join("\n"));
-            const keepPrior = valid(stored) && (!valid(result) || sectionBodyChars(section, stored.body) >= sectionBodyChars(section, result.body));
+            const priorValid = stored?.ok && lifeBookSectionValid(section, stored.body, normalized.input);
+            const keepPrior = priorValid && (!valid(result) || sectionBodyChars(section, stored.body) >= sectionBodyChars(section, result.body));
             result.ok = Boolean(valid(result));
             const checkpoint = keepPrior
               ? { ...stored, attempts: attempt, lengthRepair, needsRepair: false }
-              : { id: section.id, kind: section.kind, ok: result.ok, body: result.body, chars: result.chars, attempts: attempt, lengthRepair, provider: result.provider, model: result.model, error: result.error, needsRepair: false };
+              : { id: section.id, kind: section.kind, ok: result.ok, body: result.body, chars: result.chars, attempts: attempt, lengthRepair, provider: result.provider, model: result.model, error: result.error, failure: result.failure || null, needsRepair: false };
+            assertSupportRecoveryPreserved(recovery, Object.entries({ ...sections, [section.id]: checkpoint }).map(([key, row]) => ({ key, body: row.body })));
             await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: { [`llmMeta.sections.${section.id}`]: checkpoint } });
             sections[section.id] = checkpoint;
+            if (result.failure && !keepPrior) {
+              throw Object.assign(new Error(result.failure.message), result.failure, {
+                code: "LLM_PROVIDER_UNAVAILABLE", retryable: result.failure.retryable && attempt < LIFE_BOOK_MAX_SECTION_ATTEMPTS,
+              });
+            }
             logLifeBookAction(result.ok ? "section_generate" : "section_retry", {
               route,
               requestId: idempotencyKey,
@@ -2724,7 +2784,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         }
 
         // ── 조립 + 품질 게이트(정본 재사용). 결손은 책임 섹션에만 매핑한다.
-        const missing = plan.filter((section) => !sections[section.id]?.ok
+        const missing = plan.filter((section) => !preserved.has(section.id) && !sections[section.id]?.ok
           && Number(sections[section.id]?.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS);
         let repairTargets = [];
         let assembled = null;
@@ -2736,7 +2796,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
           assembledText = JSON.stringify(assembled);
           issues = getLifeBookReportQualityIssues(assembledText, normalized.input, lifeBookLengthOptions(plan, sections));
           repairTargets = mapIssuesToSections(issues, plan, sections).targets
-            .filter((id) => Number(sections[id]?.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS);
+            .filter((id) => !preserved.has(id) && Number(sections[id]?.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS);
           for (const id of repairTargets) {
             if (sections[id]) {
               const section = plan.find(row => row.id === id);
@@ -2759,12 +2819,14 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         }
 
         const stillPending = plan.filter((section) => {
+          if (preserved.has(section.id)) return false;
           const stored = sections[section.id];
           if (!stored) return true;
           if (stored.needsRepair || !stored.ok) return Number(stored.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS;
           return false;
         });
         const completedCount = plan.filter((section) => sections[section.id]?.ok).length;
+        assertSupportRecoveryPreserved(recovery, Object.entries(sections).map(([key, row]) => ({ key, body: row.body })));
 
         if (stillPending.length && (lock.waveCount < MAX_GENERATION_WAVES)) {
           const partial = await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken,
@@ -2867,22 +2929,36 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         }
       } catch (error) {
         if (["RESULT_STORAGE_UNAVAILABLE", "RESULT_DELIVERY_PENDING"].includes(error?.code)) throw error;
+        const failure = error?.code === "LLM_PROVIDER_UNAVAILABLE" ? safeGeminiFailure(error) : {};
+        if (error?.code === "LLM_PROVIDER_UNAVAILABLE" && error.retryable) {
+          await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: {
+            status: "partial", generationError: { code: error.code, ...failure, at: new Date().toISOString() },
+          } });
+          return json({ ok: false, reason: error.code, retryable: true, sessionId, message: MESSAGES.llmFailed }, { status: 503 });
+        }
+        const failedAt = new Date().toISOString();
         await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: {
-          status: "generation_failed", generationError: {
+          status: "generation_failed", "llmMeta.refundEligibleAt": failedAt,
+          ...(recovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": failedAt } : {}), generationError: {
             code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
             message: clean(error?.message || error, 500), at: new Date().toISOString(),
+            ...failure,
           },
         } });
         error.lifeBookFailureClaimed = true;
+        terminalFailure = error;
         throw error;
       } finally {
-        await releaseSectionLock(sessionId, lock.lockToken);
+        const released = await releaseSectionLock(sessionId, lock.lockToken);
+        if (terminalFailure && released?.status === "generation_failed") terminalFailure.refundSettlement = await settleLifeBookFailureRefund(env, sessionId, auth.userId);
       }
       return responsePayload;
     } catch (error) {
       if (["RESULT_STORAGE_UNAVAILABLE", "RESULT_DELIVERY_PENDING"].includes(error?.code)) return json({ ...resultStorageFailurePayload(error), reason: error.code, ...(error.code === "RESULT_DELIVERY_PENDING" ? { message: error.message } : {}) }, { status: 503 });
       if (clean(error?.code) === "PROVIDER_DUPLICATE_BLOCKED") {
         const duplicate = await LifeBookAiConsultation.findOne({ id: sessionId }).lean();
+        const refund = consultationRefundResponse(duplicate);
+        if (refund) return json(refund.body, { status: refund.status });
         if (duplicate?.status === "completed") return json(publicSession(duplicate));
         if (duplicate?.status === "generation_failed") {
           return json({
@@ -2901,25 +2977,19 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
           message: `${orderName}을 완성하는 중입니다.`,
         }, { status: 409, headers: { "Retry-After": "4" } });
       }
+      const failedAt = new Date().toISOString();
       const failedOwner = error.lifeBookFailureClaimed || await LifeBookAiConsultation.findOneAndUpdate(
         { id: sessionId, userId: clean(auth.userId), status: { $in: ["generating", "partial"] }, "llmMeta.lockedAt": null, "llmMeta.waveCount": { $gte: MAX_GENERATION_WAVES } },
-        { $set: { status: "generation_failed", generationError: {
+        { $set: { status: "generation_failed", "llmMeta.refundEligibleAt": failedAt,
+          ...(existing?.llmMeta?.supportRecovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": failedAt } : {}), generationError: {
           code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
           message: clean(error?.message || error, 500), at: new Date().toISOString(),
         } } }, { new: true },
       ).lean().catch(() => null);
       if (!failedOwner) return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
-      const restored = await restoreAccessBeforeGenerationFailure({
-        request,
-        env,
-        auth,
-        userId: auth.userId,
-        access,
-        idempotencyKey,
-        sessionId,
-        error,
-        orderName,
-      });
+      await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: [clean(access?.claimEvidenceId, 160)] }).catch(() => null);
+      const settlement = error.refundSettlement || (!error.lifeBookFailureClaimed ? await settleLifeBookFailureRefund(env, sessionId, auth.userId) : null);
+      const restored = settlement?.refundStatus === "refunded";
       logLifeBookAi("Refund Or Restore", safeLogPayload({
         route,
         requestId: idempotencyKey,
@@ -2933,7 +3003,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
       }), restored ? "info" : "warn");
       logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env, error }), "error");
       if (clean(error?.code) === "DEFERRED_USAGE_APPLY_FAILED") return paymentVerifyFailed();
-      return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed, refunded: Boolean(restored) }, { status: 503 });
+      return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed, refunded: restored,
+        ...(settlement?.refundStatus ? { refundStatus: settlement.refundStatus } : {}) }, { status: 503 });
     }
   })().catch((error) => {
     if (["RESULT_STORAGE_UNAVAILABLE", "RESULT_DELIVERY_PENDING"].includes(error?.code)) return json({ ...resultStorageFailurePayload(error), reason: error.code, ...(error.code === "RESULT_DELIVERY_PENDING" ? { message: error.message } : {}) }, { status: 503 });

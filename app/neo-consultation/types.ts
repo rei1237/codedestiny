@@ -2,9 +2,10 @@
 export type NeoReadingMode = 'saju' | 'saju_ziwei' | 'ziwei' | 'ziwei_saju';
 export type NeoDraftQuestion = { text: string; readingMode: 'saju' | 'saju_ziwei'; chartReading: boolean };
 export type NeoQuestion = { id: string; text: string; readingMode?: NeoReadingMode; chartReading?: boolean; answer?: string; answerVersion?: number; correction?: string; review?: { by: string; at: string; answerVersion: number; combinedReadingConfirmed?: boolean; chartReadingConfirmed?: boolean }; state?: string };
-export type NeoInput = { questions: NeoDraftQuestion[]; context: string; goodPeriod?: string; difficultPeriod?: string; email: string; consent: boolean; birth: null | { date: string; calendar: string; leapMonth: boolean; timeUnknown: boolean; time: string | null } };
+type NeoBirth = { date: string; calendar: string; leapMonth: boolean; timeUnknown: boolean; time: string | null };
+export type NeoInput = { locale?: string; questions: NeoDraftQuestion[]; context: string; goodPeriod?: string; difficultPeriod?: string; email: string; consent: boolean; birth: NeoBirth | null; partnerBirth?: NeoBirth | null };
 export type NeoOrder = {
-  id: string; version: number; state: string; email: string; context: string; goodPeriod?: string; difficultPeriod?: string; birth: NeoInput['birth']; consent: boolean;
+  id: string; version: number; locale?: string; state: string; email: string; context: string; goodPeriod?: string; difficultPeriod?: string; birth: NeoInput['birth']; partnerBirth?: NeoBirth | null; consent: boolean;
   questions: NeoQuestion[];
   quote: null | { id: string; quantity: number; unitKRW: number | null; totalKRW: number; pricingVersion?: number; items?: { questionId: string; readingMode: NeoReadingMode; chartReading?: boolean; unitKRW: number }[] };
   payment: null | { id: string; status: string };

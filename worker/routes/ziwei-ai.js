@@ -1,3 +1,4 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
@@ -2626,13 +2627,13 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
       const chart = doc.llmMeta?.chartSnapshot || calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
       doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
-      const generated = await generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses,
+      const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses,
         checkpoint: async ({ groups, attempts, meta, rawResponses }) => {
           const sections = Object.assign({}, ...Object.values(groups));
           const content = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart).text;
           doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, groups, attempts, reportMeta: meta, rawResponses }, messages: [{ role: "assistant", content, createdAt: now }] }, sessionId);
         },
-      });
+      }));
       doc = await saveZiweiDelivery(locked, { status: generated.complete ? "delivery_pending" : "partial", llmMeta: { ...doc.llmMeta, ...generated.meta }, messages: [{ role: "user", content: normalized.input.userQuestion || normalized.input.topic, createdAt: now }, { role: "assistant", content: generated.text, createdAt: now }] }, sessionId);
       if (!generated.complete) return pending(doc);
     }

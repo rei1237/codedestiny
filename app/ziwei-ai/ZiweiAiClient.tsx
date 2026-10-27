@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import introductionArt from "@/lib/marketing/service-introduction-art.json";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
@@ -22,7 +25,7 @@ import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
-import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
@@ -533,15 +536,16 @@ const applyProfileSeedToZiweiForm = (form: FormState, profile: AiPrefillSeed): F
   const profileGender = toZiweiGender(profile.gender);
   return {
     ...form,
-    name: profile.name || form.name,
-    gender: profileGender || form.gender,
-    birthDate: profile.birthDate || form.birthDate,
+    name: profile.name ?? form.name,
+    gender: profile.gender === undefined ? form.gender : profileGender,
+    birthDate: profile.birthDate ?? form.birthDate,
     birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
     birthTime:
       profile.birthTimeUnknown === true
         ? ""
-        : profile.birthTime || form.birthTime,
+        : profile.birthTime ?? form.birthTime,
     calendarType: profile.calendarType || form.calendarType,
+    isLeapMonth: profile.isLeapMonth ?? form.isLeapMonth,
   };
 };
 
@@ -880,8 +884,9 @@ export default function ZiweiAiPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToZiweiForm(prev, seed));
     });
   }
@@ -1157,6 +1162,7 @@ export default function ZiweiAiPage() {
         fileName: `자미두수_AI_상담_${userName}_${date}.pdf`,
         backgroundColor: "#060712",
         cover: {
+          theme: "ziwei",
           title: `${userName}님의 자미두수 상담`,
           subtitle: musungOn ? getExpertLine("musung", "pdf.byline").text : undefined,
           name: userName,
@@ -1200,20 +1206,13 @@ export default function ZiweiAiPage() {
       {!consultation && getCurrentLoadingLocale() === "ko" && <div className="craftedGuide"><CraftedProductDisclosure featureKey="ziwei-ai-consultation" /></div>}
       <section className="workspace">
         <ExpertValueCards theme={musungOn ? "musung" : "ziwei"} points={[musungOn ? { title: "막힌 별부터 판결", description: "명반에서 화기(化忌)가 걸린 궁을 먼저 짚고, 그 자리를 화록(化祿)으로 돌릴 구체적인 행동을 처방합니다." } : { title: "명궁의 기질", description: "명궁과 주요 별이 보여주는 기본 반응과 선택 습관을 살핍니다." }, { title: "12궁의 무대", description: "일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다." }, { title: "별의 전환점", description: "현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다." }]} />
-        <form id="ziwei-consultation-form" className="consultForm" onSubmit={handleSubmit}>
+        <form data-moonlit-form="" id="ziwei-consultation-form" className="consultForm" onSubmit={handleSubmit}>
           <div className="formHeader flex-wrap">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <Sparkles size={20} />
               <strong>별궁을 열기 위한 정보</strong>
             </div>
-            <button
-              type="button"
-              onClick={loadFormFromProfileCard}
-              className="shrink-0 rounded-lg border border-[#fbbf24]/35 bg-[#fbbf24]/10 px-3 py-2 text-xs font-bold text-[#fbbf24] transition hover:bg-[#fbbf24]/20"
-              aria-label={copy.profileLoadAria}
-            >
-              프로필 카드에서 불러오기
-            </button>
+            <SavedBirthProfilePicker onSelect={loadFormFromProfileCard} />
           </div>
 
           <label>
@@ -1240,7 +1239,7 @@ export default function ZiweiAiPage() {
           <div className="fieldRow">
             <label>
               <span>출생시간</span>
-              <input type="time" value={form.birthTime} onChange={(event) => update("birthTime", event.target.value)} disabled={busy || form.birthTimeUnknown} />
+              <BirthTimeInput  value={form.birthTime} onChange={(event) => update("birthTime", event.target.value)} disabled={busy || form.birthTimeUnknown} />
             </label>
             <label>
               <span>양력/음력</span>
@@ -1474,13 +1473,13 @@ export default function ZiweiAiPage() {
 
                 <PaidResultImageGuide domain="ziwei" status={consultation.status} content={assistantMessages.map(message=>message.content)} basis={consultation.analysisBasis} />
                 <div className="chatList">
-                  {assistantSections.map((section) => (
+                  {assistantSections.map((section, sectionIndex) => (
                     <article className="chatCard" key={section.key} data-ziwei-pdf-section>
                       <div className="chatCardTitle">
                         <b>{section.glyph || "星"}</b>
                         <h3>{section.title}</h3>
                       </div>
-                      <AiResultProse value={section.body} />
+                      <ConsultationReading kind="ziwei" value={section.body} index={sectionIndex} />
                     </article>
                   ))}
                 </div>
@@ -1634,7 +1633,7 @@ export default function ZiweiAiPage() {
         .chatCardTitle b{display:grid;place-items:center;width:32px;aspect-ratio:1;border-radius:999px;background:rgba(245,217,145,.10);color:#fff0b8;font-family:var(--font-premium);font-size:17px;font-weight:800}
         .chatCardTitle h3{margin:0;font-family:var(--zwv-serif);font-size:19px;font-weight:700;line-height:1.4;letter-spacing:.01em;color:#fff0b8}
         .chatCardTitle svg{color:#f5d991}
-        .chatCard p{margin:0;white-space:pre-wrap;line-height:1.92;font-size:16px;letter-spacing:-.003em;color:#f3efff;word-break:keep-all}
+        .chatCard p{margin:0;white-space:pre-wrap;font-family:var(--zwv-body);line-height:1.95;font-size:17px;letter-spacing:-.003em;color:#f3efff;word-break:keep-all}
         .chatCard p+p{margin-top:15px}
         /* 한자를 직접 렌더하는 자리들. 브랜드 서체(The Jamsil·Mulmaru)와 세리프 청크 모두 한자 글리프가 없어
            OS 한자 폰트로 넘어가야 命·紫微斗數 가 보인다. 이 규칙이 앞선 font-family 선언을 덮는다. */

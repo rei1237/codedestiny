@@ -155,7 +155,7 @@ export function expandCiGuards(plan, workflow, scripts) {
 
 export function fullSuitesCoverSmoke(scripts, jestConfig) {
   const jestCommand = scripts["test:jest"] === "node scripts/run-mock-tests.mjs jest" ? `jest ${JEST_BASE_ARGS.join(" ")}` : scripts["test:jest"] || "";
-  if (!/(?:^|\s)jest --runInBand --testEnvironment node(?: --cacheDirectory=[\w./-]+)?$/.test(jestCommand)) return false;
+  if (!/(?:^|\s)jest(?: --runInBand)? --testEnvironment node(?: --cacheDirectory=[\w./-]+)?$/.test(jestCommand)) return false;
   if (JSON.stringify(jestConfig?.roots) !== JSON.stringify(["<rootDir>/__tests__"]) || jestConfig.testMatch || jestConfig.testRegex || jestConfig.projects) return false;
   const match = /^npm run test:jest -- --runInBand ([\w./ -]+) && node --test ([\w./ -]+)$/.exec(scripts["smoke:core"] || "");
   const nodePatterns = scripts["test:node"] === "node scripts/run-mock-tests.mjs node" ? NODE_TEST_PATTERNS : scripts["test:node"]?.split(/\s--test\s/)[1]?.trim().split(/\s+/);

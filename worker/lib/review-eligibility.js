@@ -258,7 +258,8 @@ export async function listReviewableProducts({ userId, env = {} }) {
 
   return used.map((item) => ({
     ...item,
-    alreadyReviewed: statusByProduct.has(item.productId),
+    alreadyReviewed: false, // No account/product participation cap; each submission needs approval.
+    hasPreviousReview: statusByProduct.has(item.productId),
     existingReviewStatus: statusByProduct.get(item.productId) || "",
   }));
 }

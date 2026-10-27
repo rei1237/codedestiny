@@ -1,4 +1,5 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
@@ -1981,7 +1982,7 @@ export default function SajuGuardianPage() {
     setBirthYear(fields.year);
     setBirthMonth(fields.month);
     setBirthDay(fields.day);
-    if (fields.hour) setBirthHour(fields.hour);
+    setBirthHour(fields.hour || "");
     return true;
   }, []);
 
@@ -1992,8 +1993,9 @@ export default function SajuGuardianPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  const loadFromProfileCard = useCallback(() => {
-    void reloadProfileSeed().then((seed) => {
+  const loadFromProfileCard = useCallback((selectedSeed?: AiPrefillSeed) => {
+    if(selectedSeed) birthTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (applyProfileSeed(seed)) {
         showToast(tx("프로필 카드의 출생 정보를 불러왔어요."), "success");
       } else {
@@ -2431,15 +2433,8 @@ export default function SajuGuardianPage() {
         </div>
 
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 border border-white/60 shadow-xl shadow-pink-100/50 space-y-4">
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={loadFromProfileCard}
-              aria-label={tx("프로필 카드에서 출생 정보 불러오기")}
-              className="rounded-full border border-pink-200 bg-pink-50/80 px-3.5 py-1.5 text-xs font-bold text-pink-500 transition-colors hover:bg-pink-100"
-            >
-              {tx("프로필 카드에서 불러오기")}
-            </button>
+          <div data-moonlit-form="" className="flex justify-end">
+            <SavedBirthProfilePicker onSelect={loadFromProfileCard} />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <TextField

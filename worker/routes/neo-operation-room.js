@@ -24,6 +24,8 @@ import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../li
 // 이용권 정산 모듈은 db 트랜잭션 옵션까지 끌고 와 쓸 때만 불러온다(이 라우트를 db 대역으로 띄우는 테스트 보호).
 const loadPerUsePaidAccess = () => import("../lib/nakshatra-paid-access.js");
 import { callGeminiText } from "../lib/gemini.js";
+import { getAmbientAiLocale, runWithAiLocale } from "../lib/ai-locale-context.js";
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import {SYNC_LLM_TIMEOUT_CEILING_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1656,13 +1658,16 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
   if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   const sessionId = existing?.id || `neoop_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}`;
-  const resumeBody = { ...body, idempotencyKey };
+  const locale = toAiLocale(existing
+    ? existing.llmMeta?.locale || existing.llmMeta?.resumeBody?.locale || "ko"
+    : getAmbientAiLocale() || body.locale);
+  const resumeBody = { ...body, idempotencyKey, locale };
   delete resumeBody.accessToken;
   if (!existing) {
     try {
       await NeoOperationRoomConsultation.create({ id: sessionId, userId: auth.userId, idempotencyKey, inputHash: normalized.inputHash,
         ...normalized.input, accessType: access.accessType, paymentId: access.paymentId || "", status: "generating",
-        llmMeta: { resumeBody, sections: {}, attempts: {} } });
+        llmMeta: { locale, resumeBody, sections: {}, attempts: {} } });
       existing = await NeoOperationRoomConsultation.findOne({ id: sessionId, userId: auth.userId }).lean();
       if (!existing) throw resultStorageUnavailable(sessionId);
     } catch (error) {
@@ -1721,7 +1726,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
           drifted(previousDraft) ? "\n[어조 보강] 이전 초안이 존댓말(습니다·세요·당신)로 쓰였다. 처음부터 끝까지 해라체 반말로 쓰고, 사용자는 너로 부른다." : "",
         ].join("") : "";
         const prompt = buildNeoInitialSectionPrompt(section, context) + repairNotes + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
-        const row = await generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true);
+        const row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true));
         if (!usable(section, row)) return;
         const write = queue.catch(() => {}).then(async () => {
           const previous = doc.llmMeta.sections?.[section.id];
@@ -1896,7 +1901,8 @@ async function handleRefine(request, env) {
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {
         const prompt = buildNeoRefinedSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`] ? "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다." : "") + `\n[완료 기준] 제목·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 현실 점검 답변과 계산값에 근거하고 앞 영역을 반복하지 않는다.`;
-        const row = await generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true);
+        const locale = toAiLocale(doc.llmMeta?.locale || doc.llmMeta?.resumeBody?.locale || "ko");
+        const row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true));
         if (!neoRefinedSectionReady(section, row, doc, true)) return;
         const write = queue.catch(() => {}).then(async () => {
           const previous = doc.llmMeta.refinement.sections[section.id];

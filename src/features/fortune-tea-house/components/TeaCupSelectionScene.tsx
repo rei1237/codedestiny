@@ -1,5 +1,6 @@
 "use client";
-import YeoniTalkingPortrait from "./YeoniTalkingPortrait";
+import Image from "next/image";
+import { fortuneTeaHouseAssets } from "../data/assets";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { teaHouseCups, type TeaHouseCup } from "../data/teaCups";
@@ -22,7 +23,7 @@ export default function TeaCupSelectionScene({ selectedCupId, onSelect }: Props)
  const selected = cups.find(cup => cup.id === previewId);
  return <section className={styles.world + " " + styles.menu} aria-labelledby="teaCupSelectTitle">
   <div className={styles.menuIntro}>
-   <YeoniTalkingPortrait className={styles.menuPortrait} speechKey={previewId} />
+   <Image className={styles.menuPortrait} src={fortuneTeaHouseAssets.yeoni.transparent.cupPose} alt="연이" width={1086} height={1448} sizes="(max-width:700px) 320px,440px" />
    <div><h2 id="teaCupSelectTitle">{copy.title}</h2><p>{copy.description}</p><p>{copy.topicNote}</p></div>
   </div>
   <div className={styles.cups} role="group" aria-label={copy.menuAria}>

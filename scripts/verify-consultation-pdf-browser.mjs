@@ -57,10 +57,11 @@ const result = await generateFusionFortuneWithMockLLM({ context: built.context, 
 await writeFile(output + '/synthetic-result.json', JSON.stringify(result));
 const browser = await chromium.launch({ headless: true });
 try {
-  for (const mode of ['typeset', 'long-cover', 'font-failure']) {
+  for (const mode of ['typeset', 'long-cover', 'themed-new-year', 'themed-love', 'font-failure']) {
     const context = await browser.newContext({ acceptDownloads: true, serviceWorkers: 'block', viewport: { width: 1280, height: 900 } });
     await context.route('**/*', async route => {
       const url = new URL(route.request().url());
+      if(url.pathname.startsWith('/images/service-introductions/'))return route.fulfill({body:await readFile('public'+url.pathname),contentType:'image/webp'});
       if(url.pathname==='/images/fusion-fortune/premium-chapters-v1.webp')return route.fulfill({body:await readFile('public'+url.pathname),contentType:'image/webp'});
       const font = fontFiles[url.pathname.slice(1)];
       if (font && mode !== 'font-failure') return route.fulfill({ body: font, contentType: 'font/ttf', headers: { 'access-control-allow-origin': '*' } });
@@ -82,12 +83,15 @@ try {
       }
       const table = document.createElement('table');
       for (let i=0;i<16;i++) { const tr=table.insertRow(); tr.insertCell().textContent='선택 '+i;tr.insertCell().textContent='이득과 부담을 확인하고 다음 행동을 정합니다.'; }
-      el.appendChild(table); document.body.appendChild(el);
+      el.appendChild(table);
+      const art = document.createElement('img'); art.src='/images/service-introductions/new-year-ai-960.webp'; art.width=680; art.height=453; art.loading='lazy';
+      el.appendChild(art); document.body.appendChild(el);
       window.mockResult = mode === 'long-cover' ? { ...result, title: '선택을 앞둔 당신의 현재 흐름과 구체적인 실행 기준 '.repeat(8) } : result;
     }, { result, mode });
     const downloadPromise = page.waitForEvent('download', { timeout: 120000 });
     await page.evaluate(async mode => {
-      if (mode !== 'font-failure') await window.pdfExports.exportFusionReportPdf({ result: window.mockResult, fileName: mode + '.pdf', topic: '상담 주제와 확인할 조건 '.repeat(mode === 'long-cover' ? 8 : 1) });
+      if (mode.startsWith('themed-')) await window.pdfExports.exportResultPdf({ captureTargets: ['#report'], fileName: mode + '.pdf', backgroundColor: '#ffffff', cover: { theme: mode === 'themed-love' ? 'love' : 'newYear', title: mode === 'themed-love' ? '연이와 서한비의 관계 상담 편지' : '네오의 한 해 작전 기록', subtitle: '가상 프로필을 사용한 PDF 디자인 검수 자료' } });
+      else if (mode !== 'font-failure') await window.pdfExports.exportFusionReportPdf({ result: window.mockResult, fileName: mode + '.pdf', topic: '상담 주제와 확인할 조건 '.repeat(mode === 'long-cover' ? 8 : 1) });
       else await window.pdfExports.exportResultPdf({ captureTargets: ['#report'], fileName: mode + '.pdf', backgroundColor: '#ffffff', cover: { title: '한글 글꼴 실패에도 읽을 수 있는 초융합 상담', subtitle: '기존 결과를 안전하게 저장합니다.' } });
     }, mode);
     await (await downloadPromise).saveAs(output + '/' + mode + '.pdf');

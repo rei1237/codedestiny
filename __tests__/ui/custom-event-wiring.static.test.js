@@ -58,7 +58,7 @@ function scanEventNames() {
   const listened = new Map();
   const dispatched = new Set();
   const listenRe = /addEventListener\(\s*["'](cd:[a-z0-9-]+)["']/g;
-  const dispatchRe = /dispatchEvent\(\s*new\s+[\w.]*Event\(\s*["'](cd:[a-z0-9-]+)["']/g;
+  const dispatchRe = /dispatchEvent(?:\?\.)?\(\s*new\s+[\w.]*Event\(\s*["'](cd:[a-z0-9-]+)["']/g;
   const initRe = /initEvent\(\s*["'](cd:[a-z0-9-]+)["']/g;
 
   for (const file of collectSourceFiles(root, [])) {

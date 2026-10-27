@@ -36,7 +36,7 @@ function readableSeason(value:unknown):unknown {
   return {...Object.fromEntries(Object.entries(v).filter(([key])=>!SEASON_NUMBERS.includes(key))),
     ...(TEMPERATURE[String(v.type)]?{temperature:TEMPERATURE[String(v.type)]}:{}),...(HUMIDITY[String(v.moistType)]?{humidity:HUMIDITY[String(v.moistType)]}:{})};
 }
-// calcPower reads 신강 at 30; one peripheral stem or branch is worth 7 (saju/jong-check.ts), so within 7 is a boundary reading.
+// calcPower reads 신강 at 30; one peripheral stem or branch is worth 7 (lib/saju/natal-power.js), so within 7 is a boundary reading.
 function readableStrength(value:unknown):unknown {
   if(!value||typeof value!=='object'||Array.isArray(value))return value;
   const {score,...rest}=value as Record<string,unknown>;

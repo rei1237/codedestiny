@@ -11,7 +11,7 @@ for (const variant of ['entry', 'full']) {
     assert.equal(doc.querySelectorAll('.consultation-memo').length, 1);
     assert.equal(doc.querySelectorAll('.consultation-memo__notes > div').length, 3);
     for (const index of [0, 2]) assert.ok(doc.querySelector('.consultation-memo').textContent.includes(CONSULTATION_METHOD_FAQS[index].answer));
-    for (const href of ['/ggulggul/', '/yeongnyangi/', '/neo-consultation/']) assert.ok(doc.querySelector('a[href="' + href + '"]'));
+    for (const href of ['/ggulggul/', '/yeongnyangi/', '/yeongnyangi/neo-decision/']) assert.ok(doc.querySelector('a[href="' + href + '"]'));
     assert.equal(doc.querySelectorAll('a a, summary a').length, 0);
     assert.ok(doc.getElementById(doc.querySelector('section').getAttribute('aria-labelledby')));
     if (variant === 'entry') {

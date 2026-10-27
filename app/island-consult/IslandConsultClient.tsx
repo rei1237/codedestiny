@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
@@ -458,7 +461,7 @@ export default function IslandConsultClient() {
   const formTouchedRef = useRef(false);
   const seedAppliedRef = useRef(false);
 
-  const { seed: profileSeed, seedVersion } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion, choose: chooseProfile } = useAiProfileSeed();
   // 🔴 심층 리포트는 이 저장 프로필의 출생 정보로만 해금 판정·계산된다(폼의 생년월일은 서버가 쓰지 않는다).
   const reportProfileId = profileSeed?.profileId || "";
 
@@ -500,11 +503,11 @@ export default function IslandConsultClient() {
     if (!force && formTouchedRef.current) return;
     setForm((f) => ({
       ...f,
-      name: seed.name || f.name,
+      name: seed.name ?? f.name,
       gender: (seed.gender === "male" || seed.gender === "female" || seed.gender === "unknown") ? seed.gender as Gender : f.gender,
-      birthDate: seed.birthDate || f.birthDate,
+      birthDate: seed.birthDate ?? f.birthDate,
       birthTimeUnknown: seed.birthTimeUnknown ?? f.birthTimeUnknown,
-      birthTime: seed.birthTimeUnknown ? "" : (seed.birthTime || f.birthTime),
+      birthTime: seed.birthTimeUnknown ? "" : (seed.birthTime ?? f.birthTime),
       calendarType: (seed.calendarType === "lunar" ? "lunar" : "solar"),
       isLeapMonth: seed.calendarType === "lunar" ? (seed.isLeapMonth ?? f.isLeapMonth) : false,
       question: seed.question ? String(seed.question).slice(0, 400) : f.question,
@@ -1022,11 +1025,12 @@ export default function IslandConsultClient() {
 
           {getCurrentLoadingLocale() === "ko" && <div data-crafted-island-consult style={{width:"100%",maxWidth:540,margin:"0 auto"}}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
           <ExpertValueCards theme="island" points={[{ title: "궁의 주제", description: "12궁 중 지금 질문이 머무는 삶의 영역을 먼저 고릅니다." }, { title: "별과 사화", description: "해당 궁의 별 배치와 움직임을 현재 고민에 맞춰 풀어냅니다." }, { title: "다음 전략", description: "연이의 마음 읽기와 네오의 현실 조언을 한 상담으로 정리합니다." }]} />
-          <form id="island-consultation-form" className="ic-form" onSubmit={startConsult}>
+          <form data-moonlit-form="" id="island-consultation-form" className="ic-form" onSubmit={startConsult}>
           <div className="ic-lead">
             <span className="ic-lead__tag">전문가 상담</span>
             <p className="ic-lead__desc"><strong>{palace.name} 하나</strong>를 지금 고민에 맞춰 연이·네오가 새로 읽어 드려요.</p>
           </div>
+          <SavedBirthProfilePicker disabled={reportLoading || reportExporting} onSelect={next=>{setReport(null);setReportError("");reportFetchedRef.current=false;formTouchedRef.current=true;chooseProfile(next);applySeedToForm(next,true);setBirthEditing(true);}} />
           {showBirthConfirm ? (
             <div className="ic-confirm">
               <div className="ic-confirm__head">
@@ -1043,7 +1047,7 @@ export default function IslandConsultClient() {
           ) : (
             <>
               <label className="ic-field"><span>생년월일</span><input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => patchForm({ birthDate: nextBirthDate }))} required /></label>
-              <label className="ic-field"><span>태어난 시간</span><input type="time" value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTime: e.target.value })} /></label>
+              <label className="ic-field"><span>태어난 시간</span><BirthTimeInput  value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTime: e.target.value })} /></label>
               <label className="ic-check"><input type="checkbox" checked={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTimeUnknown: e.target.checked })} /> 태어난 시간을 몰라요 (정오 기준)</label>
               <div className="ic-segrow">
                 <div className="ic-seg" role="group" aria-label={copy.genderGroupAria}>

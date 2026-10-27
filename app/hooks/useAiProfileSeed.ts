@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { readAiProfileSeed, seedFromDestinyProfile, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
-import { fetchCurrentDestinyProfile, isDestinyProfileStorageKey } from "@/app/_lib/profile-card-storage";
+import { consumeSeoLandingProfile, fetchCurrentDestinyProfile, isDestinyProfileStorageKey } from "@/app/_lib/profile-card-storage";
 
 function hasSeedContent(seed: AiPrefillSeed | null | undefined): seed is AiPrefillSeed {
   if (!seed) return false;
@@ -20,10 +20,12 @@ export function useAiProfileSeed(): {
   seed: AiPrefillSeed | null;
   seedVersion: number;
   reload: () => Promise<AiPrefillSeed | null>;
+  choose: (next: AiPrefillSeed) => void;
 } {
   const [seed, setSeed] = useState<AiPrefillSeed | null>(null);
   const [seedVersion, setSeedVersion] = useState(0);
   const revision = useRef(0);
+  const landingSeed = useRef<AiPrefillSeed | null | undefined>(undefined);
 
   const publishSeed = useCallback((next: AiPrefillSeed | null): AiPrefillSeed | null => {
     const value = hasSeedContent(next) ? next : null;
@@ -47,7 +49,8 @@ export function useAiProfileSeed(): {
     if (typeof window === "undefined") return;
     let cancelled = false;
 
-    const localSeed = readAiProfileSeed();
+    if (landingSeed.current === undefined) landingSeed.current = seedFromDestinyProfile(consumeSeoLandingProfile(window.location.pathname));
+    const localSeed = hasSeedContent(landingSeed.current) ? landingSeed.current : readAiProfileSeed();
     publishSeed(localSeed);
 
     const hydrateFromApi = () => {
@@ -87,5 +90,6 @@ export function useAiProfileSeed(): {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { seed, seedVersion, reload };
+  const choose = useCallback((next: AiPrefillSeed) => { revision.current++; publishSeed(next); }, [publishSeed]);
+  return { seed, seedVersion, reload, choose };
 }

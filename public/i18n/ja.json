@@ -2061,6 +2061,174 @@
       "fusion": "6つの体系で深く読む総合鑑定",
       "concerns": "悩みから占いを探す",
       "music": "月光の運命旅行・音楽でひと休み"
+    },
+    "guideCopy": {
+      "replyLanguage": "回答の言語：{language}",
+      "header": "共通ヘッダー",
+      "nav": "ホームの主なメニュー",
+      "honeyTitle": "はちみつドロップはどこで使えますか？",
+      "honeyClose": "はちみつドロップの案内を閉じる",
+      "honeyEligible": "はちみつドロップ対応",
+      "honeyLead": "出席で集めたはちみつドロップで、対象の基本鑑定を開けます。鑑定ごとの内容と必要数を下でご確認ください。",
+      "honeyTutorialAlt": "ヨニが出席でドロップを集め、鑑定を選び、ドロップで開く三つの場面",
+      "honeyTutorial": "出席で集める · 鑑定を選ぶ · ドロップで開く",
+      "honeyChoose": "鑑定を選ぶ",
+      "honeyChooseBody": "下の分類を開いて、読みたい鑑定を選びます。",
+      "honeyProfile": "プロフィールを確認する",
+      "honeyProfileBody": "ログインして、出生情報を保存したプロフィールを選びます。",
+      "honeyCheckOpen": "必要数を確認して開く",
+      "honeyCheckOpenBody": "鑑定画面で「はちみつドロップで開く」を選びます。リンクを押しただけでは消費しません。",
+      "honeyQuestion": "どんなことを知りたいですか？",
+      "honeyHint": "鑑定名を押すと、利用できる項目が開きます。",
+      "honeyRules": "ご利用の前に",
+      "honeyProfileRule": "基本鑑定はプロフィール単位",
+      "honeyProfileRuleBody": "同じアカウント・出生情報で開いた項目は、再閲覧時にドロップを追加消費しません。",
+      "honeyPerUseRule": "相性詳細・基本タロットは依頼ごと",
+      "honeyPerUseRuleBody": "新しい相手との相性や新しいカードの鑑定には、再びドロップが必要です。宿曜の詳細は保存完了後、保管箱で原文を再閲覧できます。",
+      "honeyListOnly": "この一覧の項目が対象",
+      "honeyOtherPayments": "ほかのお支払い方法も利用可能",
+      "honeyOtherPaymentsBody": "パス・月晶石・都度払いは各商品の既存ルールに従います。ドロップの必要数は現金価格とは別です。",
+      "honeyOpenTitle": "コンテンツを開く",
+      "close": "閉じる",
+      "open": "開く",
+      "honeyConfirmPolicy": "選択したプロフィールの出生情報で開きます。同じアカウント・出生情報での再閲覧は追加消費しません。",
+      "honeyAttendance": "出席 · はちみつドロップ",
+      "honeyMine": "集めたはちみつドロップ",
+      "honeyMascotAlt": "はちみつドロップを抱いて微笑むヨニ",
+      "honeyAttendanceHint": "毎日出席して、基本鑑定に使えます。",
+      "honeyAttend": "出席する",
+      "honeyUses": "使える場所を見る",
+      "retry": "もう一度確認する",
+      "signatureTitle": "今のあなたに合う相談を選んでください",
+      "signatureLead": "共通の鑑定方針で、テーマに合わせたAI解説を読みます。まず構成と例をご覧ください。",
+      "coMasters": "二人の案内役",
+      "loveNames": "ヨニ · ソ・ハンビ",
+      "loveQuestion": "まずはお気持ちを聞かせてください。二人の距離をソ・ハンビが一緒に見つめます。",
+      "loveStart": "恋愛の相談を始める",
+      "yearTitle": "新年の運勢",
+      "yearQuestion": "今年の流れを先に読もう。どこで進み、いつ立ち止まる？",
+      "yearStart": "新年の運勢を読む",
+      "lifeQuestion": "あなたの人生を、最初の章から一緒に読みます。",
+      "lifeStart": "人生の書を開く",
+      "signatureMore": "ほかの代表的な相談を見る",
+      "neoRoomTitle": "ネオの率直な戦略室",
+      "neoQuestion": "十分に考えた。次は何から変えていこう？",
+      "neoRoomStart": "戦略室に入る",
+      "teaQuestion": "復縁から仕事まで、どんな選択に迷っていますか？",
+      "teaStart": "運命の茶屋に入る",
+      "codexShort": "縁の書",
+      "codexQuestion": "相手は変わるのに、恋の悩みが似ているのはなぜ？",
+      "codexStart": "縁の書を開く",
+      "signatureSamples": "相談ごとの構成と例を見る",
+      "fusionEyebrow": "六つの体系による総合相談",
+      "fusionLead": "五人の案内役が六つの体系をそれぞれ照らし合わせる一冊。気質、時期、恋愛、結婚、財運を分野ごとに読みます。",
+      "fusionSystems": "六つの体系",
+      "fusionChapters": "分野別の八章",
+      "lifeTiming": "人生の時期",
+      "fusionStart": "総合鑑定を受ける",
+      "neoRole": "四柱推命 · 財運 · 仕事",
+      "yeoniRole": "タロット · 恋愛",
+      "hanbiRole": "宿曜 · 結婚 · 関係",
+      "yunRole": "占星術 · 時期 · 健康",
+      "musungRole": "紫微斗数 · 気質",
+      "chooseFormat": "相談方法を選ぶ",
+      "format": "相談方法",
+      "tabYeoni": "ヨニとの対話",
+      "tabNeo": "ネオのメール相談",
+      "tabCat": "ヨンニャンイへの質問",
+      "sharedBasis": "共通の解釈基準で、",
+      "yourFormat": "相談の形は自分に合わせて",
+      "methodChoice": "ヨンニャンイ・Ggulggul・ネオ、どの相談を選ぶ？",
+      "expand": "詳しく見る",
+      "catName": "ヨンニャンイ",
+      "yourQuestion": "自分の質問を中心に",
+      "questionFormat": "質問や状況に合わせたAI解説を、章ごとに読みます。",
+      "catConsult": "ヨンニャンイの相談を見る",
+      "chooseTopic": "テーマから探す",
+      "topicFormat": "占いツールやテーマ別のAIレポートを選べます。",
+      "topicConsult": "テーマ別の相談を見る",
+      "askNeo": "ネオの決断作戦書",
+      "humanReply": "本人が確認した回答を受け取る",
+      "humanFormat": "ネオがAI分析を活用して回答を作成・確認し、メールで届けます。",
+      "emailGuide": "メール相談の案内を見る",
+      "beforeConsult": "相談の前に",
+      "basisTitle": "解釈の基準",
+      "reviewTitle": "AIと本人確認の違い",
+      "termsTitle": "利用条件の確認",
+      "compareSamples": "相談結果のサンプルを比較",
+      "emailMethod": "本人が確認・メール相談",
+      "writeQuestion": "質問を書く",
+      "emailOnly": "リアルタイムのチャットではなく、メールでの相談です。",
+      "emailOptions": "追加オプション・回答について",
+      "viewPrices": "相談内容と料金を見る",
+      "swipe": "横にスワイプして選べます",
+      "previousConcern": "前の悩みを見る",
+      "nextConcern": "次の悩みを見る",
+      "related": "関連する占い",
+      "smallFortune": "占いをひとくち",
+      "trialToResult": "無料体験から自分だけの結果まで",
+      "fishName": "フォーチュンフィッシュ",
+      "fishDesc": "小さな金魚の動きから今日の気分を読む",
+      "omikujiName": "おみくじ",
+      "omikujiDesc": "今日の一枚を引いてみる",
+      "typeDesc": "自分はどんなタイプ？友達と比べてみよう",
+      "teaLeafName": "紅茶占い",
+      "teaLeafDesc": "茶葉の形から今日のヒントを探す",
+      "flowerDesc": "自分の気質を映す花と色をカードに",
+      "idolName": "推しとの相性",
+      "idolDesc": "推しとの相性をフォトカードに",
+      "storyNote": "ヨンニャンイとヨニ、失われた運命を探す旅",
+      "musicNote": "物語の余韻をつなぐ月明かりのメロディー",
+      "dailyAria": "過去30日間の干支別運勢",
+      "monthlyAria": "2026年9月の日干別運勢",
+      "methodIntro": "どの入口からでも、パク・ビョンハ（ネオ）が設計した解釈基準に基づく相談を受けられます。",
+      "basisBody": "ヨンニャンイとGgulggulには、パク・ビョンハ（ネオ）の解釈基準が反映されています。「ネオの決断作戦書」も同じ相談経験に基づき、名称によって別の先生の解釈になるわけではありません。四柱推命・タロット・占星術はそれぞれの体系で読み、商品ごとに質問や解釈の範囲が異なります。",
+      "reviewBody": "「ネオの戦略室」は鑑定資料をAIが解説する相談です。「ネオの決断作戦書」はネオが申込内容を読み、AI分析を活用して回答を作成・確認し、メールで届けます。リアルタイムのチャット・電話・対面相談ではありません。解釈基準の設計は、すべてのAI結果を人が確認するという意味ではありません。",
+      "termsBody": "相談内容とサンプルを見たうえで、料金と利用券・ムーンストーン・都度払いの適用条件を確認してください。",
+      "emailLead": "今の状況や迷っている選択をお書きください。ネオが直接読み、AI分析を活用して作成・確認した回答をメールで届けます。",
+      "emailTiming": "通常24時間、混雑時は3日以内にメールで回答・1日30問",
+      "smallLead": "ひとりでひと休みしたり、友達と結果を比べたり。まずは無料体験から選んでみてください。",
+      "smallPolicy": "有料機能は支払い前に条件を確認してください。利用券・ムーンストーンの適用は各商品の既存ルールに従います。",
+      "honeyScope": "ここでは指定の基本占いを案内しています。リスト外の機能は各画面で条件をご確認ください。すでに持っている結果や利用権はそのままです。",
+      "cardLabel": "{title} — {action}",
+      "sceneAlt": "{name}による「{title}」の相談シーン",
+      "askMaster": "{name}に聞く",
+      "masterLabel": "{name} — {role}",
+      "neoName": "ネオ",
+      "yeoniName": "ヨニ",
+      "hanbiName": "ソ・ハンビ",
+      "yunName": "ユンダル",
+      "musungName": "ムソン",
+      "masterName": "マスター",
+      "loveTitle": "恋愛の秘策",
+      "lifeTitle": "人生の書",
+      "teaTitle": "ヨニの運命の茶屋",
+      "codexTitle": "マスターの縁の書",
+      "catListeningAlt": "紫の帽子をかぶり、質問を聞くヨンニャンイ",
+      "yeoniGuideAlt": "占いを案内する花ぶたのヨニ",
+      "neoReviewAlt": "相談資料と手紙を確認するネオ",
+      "catHeroAlt": "紫の帽子をかぶり、頬杖をつく四柱推命ねこヨンニャンイ",
+      "novelAlt": "人間姿のヨニとヨンニャンイ、モカ、ユンダル、ソ・ハンビが登場する運命の冒険の表紙",
+      "emailBase": "四柱推命の質問1件につき{amount}ウォン・都度払い",
+      "emailZiwei": "四柱推命＋紫微斗数：質問ごとに{amount}ウォン",
+      "emailChart": "命式・命盤の解説を追加 +{amount}ウォン",
+      "emailMax": "1件あたり最大{amount}ウォン",
+      "unlockPrice": "{amount}ウォンで開く",
+      "simpleChatTitle": "気軽な対話式占い相談",
+      "signatureNewLead": "悩みに合う相談と進め方をご覧ください。",
+      "signatureFeatured": "おすすめ相談",
+      "signatureFusionDesc": "5人のマスターが6つの体系で人生の流れを読み解きます。",
+      "signatureCatDesc": "一つの悩みを自分に合う占術で読み解きましょう。",
+      "signatureCardsLabel": "おすすめ相談カード",
+      "signatureNavigation": "おすすめ相談の移動",
+      "signaturePrevious": "前の相談",
+      "signatureNext": "次の相談",
+      "signatureYeoniDesc": "ヨニが心にかかることを対話で一緒に整理します。"
+    },
+    "playPrice": {
+      "from": "{price}〜",
+      "unlock": "{price}で開く",
+      "perUse": "1回 {price}"
     }
   },
   "terms": {
@@ -17225,11 +17393,13 @@
       },
       "sceneAria": "ヨニが鑑定文を準備中",
       "loadingAlt": "月あかりの茶碗が浮かぶローディング場面",
-      "yeoniAria": "茶碗を差し出すヨニ",
+      "yeoniAria": "急須からお茶を注ぐヨニ",
       "progressAria": "鑑定文の生成の進捗",
       "delayNotice": "相談文を作成中です。相談記録から進み具合を再確認できます。",
       "retryNotice": "流れが途切れたら、入力画面から同じ質問でもう一度お試しいただけます。",
-      "libraryLink": "相談記録から続ける"
+      "libraryLink": "相談記録から続ける",
+      "introduction": "お茶がゆっくりと香りを深めるように、あなたの物語に合う言葉を選んでいます。",
+      "waitingTitle": "あなたへの物語を\n心を込めて準備しています"
     },
     "sajuPillarBoard": {
       "eyebrow": "月あかりに照らされた命式",
@@ -17849,11 +18019,12 @@
       "welcomeNote": "話しにくい悩みも大丈夫。質問に合う根拠を一緒に見ていきましょう。",
       "stepLabel": "質問と情報 · 1 / 3",
       "questionTitle": "どんな悩みを一緒に読みましょうか？",
-      "questionGuide": "先に質問を書いて相談方法を選んでください。その方法に必要な情報だけを伺います。",
+      "questionGuide": "保存したプロフィールや出生情報を確認してから、質問を書いてください。",
       "reviewButton": "内容と料金を確認する",
       "leapMonth": "旧暦の閏月",
       "longitudeLabel": "出生地の経度（任意）",
-      "longitudeHelp": "都市名から座標は推定しません。初期値はソウル126.978°です。海外出生の場合は現地の経度を入力してください。"
+      "longitudeHelp": "都市名から座標は推定しません。初期値はソウル126.978°です。海外出生の場合は現地の経度を入力してください。",
+      "changeMode": "相談方法を変更"
     },
     "resultSheet": {
       "cardOrdinal": "{index}枚目のカード ·",
@@ -20620,6 +20791,12 @@
       "directTitle": "ヨニの答え",
       "guidanceTitle": "やってみること",
       "cautionTitle": "気をつけること"
+    },
+    "completionGreeting": {
+      "title": "あなたのお茶ができました",
+      "message": "ヨニが心を込めた言葉を、ゆっくりお読みください。",
+      "action": "鑑定結果を読む",
+      "portrait": "両手でお茶を差し出すヨニ"
     }
   },
   "fortuneVar": {
@@ -21573,6 +21750,225 @@
       "unreadable": "この記録は現在この画面で開けません。サポートまでお問い合わせください。",
       "detailNote": "保存された結果です。開き直してもAIを再び呼び出さず、追加のお支払いもありません。",
       "duplicate": "同じ条件（あなたの命式・相手の名前・相性タイプ）で保存された四柱推命の相性結果が保管箱にすでにあります。\n\n[OK] 新たに決済してもう一度見る\n[キャンセル] 保管箱の保存済み結果を開く"
+    },
+    "art": {
+      "caption": "関係の雰囲気を表すイラスト",
+      "love": "月明かりの庭で向き合う二人",
+      "business": "地図を広げて進む方向を話し合う二人",
+      "friend": "灯りを手に並んで歩く二人",
+      "year": "別々の道から庭の門へ向かう二人",
+      "month": "庭を前にそれぞれの机に向かう二人",
+      "day": "暖かな窓辺に並ぶ二つの茶碗",
+      "hour": "遠い山の朝を見つめる二つの灯り",
+      "past-resonance": "池の上で近づく二つの灯り",
+      "past-growth": "花木の立つ両岸を結ぶ橋",
+      "past-knot": "蓮のそばで緩く結ばれた絹の結び目"
+    },
+    "relationship": {
+      "title": "二人の命式が出会うところ",
+      "context": "同じ文字でも、位置や暮らしの状況によって読み方は変わります。",
+      "all": "すべての交差関係と原局の根拠を見る",
+      "natal": "それぞれの原局内の関係",
+      "cross": "二つの命式の交差",
+      "triad": "三合の三支が揃う",
+      "chapters": "二人の関係をたどる四つの章",
+      "evidence": "この章の命理上の根拠",
+      "unknownHour": "出生時刻が不明のため、二人の時柱の比較は省略します。",
+      "stem": "天干",
+      "branch": "地支"
+    },
+    "pillar": {
+      "year": "年柱",
+      "month": "月柱",
+      "day": "日柱",
+      "hour": "時柱"
+    },
+    "area": {
+      "year": "育った背景と慣れ親しんだ関わり方",
+      "month": "社会生活と共に過ごすリズム",
+      "day": "親しい関係と日常",
+      "hour": "将来の計画と共に育むもの"
+    },
+    "direction": {
+      "same": "同じ五行",
+      "selfGenerates": "自分の五行が相手の五行を育む",
+      "partnerGenerates": "相手の五行が自分の五行を育む",
+      "selfControls": "自分の五行が相手の五行を抑える",
+      "partnerControls": "相手の五行が自分の五行を抑える"
+    },
+    "relation": {
+      "sixHarmony": "六合",
+      "partialTriad": "三合の部分関係",
+      "penalty": "刑",
+      "selfPenalty": "自刑",
+      "break": "破",
+      "harm": "害",
+      "wonjin": "怨嗔（感情のすれ違い）",
+      "gwimun": "鬼門（繊細な感受性）",
+      "he": "合",
+      "chong": "沖",
+      "same": "同",
+      "none": "無",
+      "generates": "生（育む関係）",
+      "controls": "剋（抑える関係）"
+    },
+    "limit": {
+      "hour": "出生時刻が不明な方の時柱の作用は含めません。",
+      "story": "四つの章は生活領域をつなぐ物語であり、出来事の順序や時期の予言ではありません。",
+      "relations": "合が自動的に合化するわけではありません。怨嗔・鬼門から浮気、精神疾患、関係の結末を判断することはできません。"
+    }
+  },
+  "honeyUI": {
+    "retryLater": "少し待ってからもう一度お試しください。",
+    "confirm": "「{title}」をはちみつのしずく{cost}個で開きますか？",
+    "costBalance": "はちみつのしずく{cost}個・残高{balance}個",
+    "perUseCondition": "今回の依頼にはちみつのしずくを使います。新しい相性・カードの解釈には再度必要です。",
+    "birthCondition": "選んだプロフィールの出生情報で開きます。同じアカウント・出生情報での再閲覧には追加のしずくは不要です。",
+    "openCost": "しずく{cost}個で開く",
+    "loginBalance": "ログインして確認",
+    "failed": "読み込めませんでした",
+    "count": "{count}個",
+    "loading": "確認中",
+    "attended": "今日のチェックイン完了",
+    "attend": "チェックインする",
+    "balanceError": "しずくを読み込めませんでした。もう一度お試しください。",
+    "collected": "しずくを{amount}個集めました！現在{balance}個です。",
+    "eligible": "しずくが使えるコンテンツ",
+    "choice": "今すぐ開くか、チェックインでしずくを集めましょう",
+    "unlocked": "解放済み",
+    "cashOrHoney": "{price} またはしずく{cost}個",
+    "openNow": "今すぐ開く",
+    "cashLabel": "{title}・{price}で開く",
+    "honeyLabel": "{title}・しずく{cost}個で開く",
+    "openHoney": "しずくで開く",
+    "profileNeeded": "出生情報を保存するか、保存済みプロフィールを選んでください。",
+    "unlocking": "利用状況を確認中…",
+    "unlockError": "解放結果をもう一度確認してください。",
+    "collectHint": "ホームのチェックインカードで毎日集められます。",
+    "retryButtonHint": "同じボタンでもう一度確認してください。",
+    "usesLoading": "対象コンテンツと解放状況を確認中です。",
+    "guestHint": "ログインすると残高を確認できます。",
+    "balanceRetry": "残高を確認できませんでした。チェックインカードから再度お試しください。",
+    "balance": "しずく残高：{balance}個",
+    "selectedProfile": "選択中のプロフィール",
+    "chooseProfile": "プロフィールを選んで確認",
+    "groupCount": "{count}種類・{range}個",
+    "unlockedNoExtra": "解放済み・追加消費なし",
+    "cost": "しずく{cost}個",
+    "perUseShort": "新しい相性・カード解釈の依頼ごとに使用",
+    "birthShort": "同じアカウント・出生情報での再閲覧は追加消費なし",
+    "shortfall": "あと{count}個で開けます。",
+    "ownershipError": "運勢画面で解放状況を確認してください。",
+    "viewUnlocked": "解放済みの解釈を見る",
+    "viewGroup": "{group}で見る",
+    "usesError": "対象コンテンツを読み込めませんでした。",
+    "retry": "もう一度確認する",
+    "usageError": "利用方法を確認できませんでした。少し待ってからもう一度お試しください。",
+    "groups": {
+      "saju": "四柱推命",
+      "astrology": "西洋占星術",
+      "ziwei": "紫微斗数",
+      "sukuyo": "宿曜",
+      "vedic": "ヴェーダ占星術",
+      "tarot": "タロット"
+    },
+    "products": {
+      "section_summary": {
+        "title": "ライト四柱推命",
+        "description": "生まれ持った気質・強み・繰り返すパターンと人生の大きな流れ"
+      },
+      "section_daewun": {
+        "title": "四柱推命の大運",
+        "description": "10年単位の変化と各時期に考えたい選択"
+      },
+      "rpt_specialCharmCard": {
+        "title": "私の魅力タイプ",
+        "description": "人に自然と伝わるあなたの魅力"
+      },
+      "rpt_skillTreeCard": {
+        "title": "人生のスキルツリー",
+        "description": "強みの生かし方と次の成長ポイント"
+      },
+      "rpt_villainCard": {
+        "title": "消耗する関係のパターン",
+        "description": "心をすり減らす関係と守りたい境界線"
+      },
+      "astro_basic_deep_pack": {
+        "title": "占星術の基本深層リーディング",
+        "description": "外に見せる自分と心が望む自分"
+      },
+      "astro_stellar_career_room": {
+        "title": "仕事と役割",
+        "description": "力を発揮できる役割と自分らしい働き方"
+      },
+      "astro_stellar_talent_room": {
+        "title": "才能と惹かれるもの",
+        "description": "好きなことが強みや魅力につながる仕組み"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "関係への扉",
+        "description": "心が開く条件と長続きする関係の距離感"
+      },
+      "astro_stellar_growth_room": {
+        "title": "課題と変化",
+        "description": "繰り返す難しさの中で変えられる選択"
+      },
+      "astro_career_talent_deep": {
+        "title": "キャリア・才能の精密解釈",
+        "description": "仕事で認められる強みと消耗するパターン"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "才能・魅力の深層解釈",
+        "description": "好感や行動力が表れる場面"
+      },
+      "astro_relationship_deep": {
+        "title": "関係・惹かれ合いの深層解釈",
+        "description": "惹かれる理由と関係に必要な調整"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "成長・内面の深層解釈",
+        "description": "強みの裏側を理解し、調子を取り戻す方法"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "紫微斗数の12宮解説",
+        "description": "人生の各分野に表れる強みと課題"
+      },
+      "ziwei_love_deep": {
+        "title": "紫微斗数の夫妻宮解釈",
+        "description": "親しい関係で繰り返す期待と反応"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "紫微斗数の象徴解釈",
+        "description": "星の象徴を日々の選択として読む"
+      },
+      "ziwei_decade_luck": {
+        "title": "紫微斗数の大限の流れ",
+        "description": "時期ごとに変わる人生の中心テーマ"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "紫微斗数の生涯・年間の流れ",
+        "description": "大きな流れの中で今年考えたい方向"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "宿曜の本質を深く読む",
+        "description": "生まれ持った反応と心のいたわり方"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "宿曜の縁の図鑑",
+        "description": "相手によって変わる距離と会話のリズム"
+      },
+      "vedic_basic_reading": {
+        "title": "ヴェーダの基本リーディング",
+        "description": "出生チャートから読む気質と生活のリズム"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "宿曜相性の詳細",
+        "description": "二人の関係パターンと具体的な行動のヒント"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "基本タロット3枚リーディング",
+        "description": "選んだ3枚の流れと実践のヒント"
+      }
     }
   }
 }

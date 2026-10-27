@@ -2061,6 +2061,174 @@
       "fusion": "Ontdek de duiding met zes systemen",
       "concerns": "Zoek op je vraag",
       "music": "Maanlichtreis · Even ontspannen met muziek"
+    },
+    "guideCopy": {
+      "replyLanguage": "Antwoordtaal: {language}",
+      "header": "Sitekop",
+      "nav": "Hoofdnavigatie",
+      "honeyTitle": "Waar kan ik honingdruppels gebruiken?",
+      "honeyClose": "Honingdruppelgids sluiten",
+      "honeyEligible": "Honingdruppels bruikbaar",
+      "honeyLead": "Gebruik honingdruppels van dagelijkse bezoeken voor beschikbare basisduidingen. Bekijk hieronder de inhoud en benodigde hoeveelheid.",
+      "honeyTutorialAlt": "Yeoni verzamelt honingdruppels, kiest een duiding en opent deze",
+      "honeyTutorial": "Bezoek · Kies een duiding · Open met honingdruppels",
+      "honeyChoose": "Duiding kiezen",
+      "honeyChooseBody": "Open een categorie en kies een duiding.",
+      "honeyProfile": "Profiel controleren",
+      "honeyProfileBody": "Log in en kies het profiel met je opgeslagen geboortegegevens.",
+      "honeyCheckOpen": "Controleer het aantal en open",
+      "honeyCheckOpenBody": "Kies bij de duiding “Openen met honingdruppels”. Alleen een link volgen verbruikt geen druppels.",
+      "honeyQuestion": "Wat wil je onderzoeken?",
+      "honeyHint": "Kies een categorie om beschikbare inhoud te zien.",
+      "honeyRules": "Voor gebruik",
+      "honeyProfileRule": "Basisduidingen gelden per profiel",
+      "honeyProfileRuleBody": "Ontgrendelde inhoud opnieuw bekijken met hetzelfde account en dezelfde geboortegegevens kost geen extra druppels.",
+      "honeyPerUseRule": "Uitgebreide compatibiliteit en basistarot per aanvraag",
+      "honeyPerUseRuleBody": "Een nieuwe partnervergelijking of kaartlegging gebruikt opnieuw druppels. Een opgeslagen uitgebreide Sukuyo-duiding kun je in het archief in de oorspronkelijke vorm lezen.",
+      "honeyListOnly": "Voor inhoud in deze lijst",
+      "honeyOtherPayments": "Andere betaalmethoden blijven gelden",
+      "honeyOtherPaymentsBody": "Passen, maanstenen en losse betalingen volgen het bestaande productbeleid. Het aantal druppels staat los van de geldprijs.",
+      "honeyOpenTitle": "Inhoud openen",
+      "close": "Sluiten",
+      "open": "Openen",
+      "honeyConfirmPolicy": "De inhoud gebruikt de geboortegegevens van het gekozen profiel. Opnieuw openen met hetzelfde account en dezelfde gegevens kost geen extra druppels.",
+      "honeyAttendance": "Bezoeken · Honingdruppels",
+      "honeyMine": "Mijn honingdruppels",
+      "honeyMascotAlt": "Yeoni glimlacht met honingdruppels",
+      "honeyAttendanceHint": "Kom dagelijks langs en gebruik druppels voor basisduidingen.",
+      "honeyAttend": "Bezoek registreren",
+      "honeyUses": "Waar te gebruiken",
+      "retry": "Opnieuw controleren",
+      "signatureTitle": "Kies de begeleiding die je nu nodig hebt",
+      "signatureLead": "Lees AI-duidingen per thema vanuit onze gedeelde aanpak. Bekijk eerst de inhoud en voorbeelden.",
+      "coMasters": "Je begeleiders",
+      "loveNames": "Yeoni · Seo Hanbi",
+      "loveQuestion": "Vertel eerst wat je voelt. Seo Hanbi helpt je de afstand tussen jullie te begrijpen.",
+      "loveStart": "Liefdesadvies starten",
+      "yearTitle": "Jaarvooruitblik",
+      "yearQuestion": "Laten we het komende jaar bekijken. Waar ga je vooruit en wanneer pauzeer je?",
+      "yearStart": "Jaarvooruitblik lezen",
+      "lifeQuestion": "Laten we je levensverhaal vanaf het eerste hoofdstuk openen.",
+      "lifeStart": "Je levensboek openen",
+      "signatureMore": "Meer begeleiding ontdekken",
+      "neoRoomTitle": "Neo's strategie met duidelijke taal",
+      "neoQuestion": "Je hebt erover nagedacht. Wat verander je als eerste?",
+      "neoRoomStart": "Strategieruimte openen",
+      "teaQuestion": "Van opnieuw contact tot zaken: welke keuze houdt je bezig?",
+      "teaStart": "Het theehuis van het lot binnengaan",
+      "codexShort": "Boek van verbindingen",
+      "codexQuestion": "Waarom keren dezelfde relatiezorgen terug bij andere mensen?",
+      "codexStart": "Boek van verbindingen openen",
+      "signatureSamples": "Inhoud en voorbeelden bekijken",
+      "fusionEyebrow": "Duiding vanuit zes tradities",
+      "fusionLead": "Vijf begeleiders verkennen zes afzonderlijke tradities in één rapport over karakter, timing, liefde, huwelijk en financiën.",
+      "fusionSystems": "Zes tradities",
+      "fusionChapters": "Acht themahoofdstukken",
+      "lifeTiming": "Levensfasen",
+      "fusionStart": "Gecombineerde duiding ontvangen",
+      "neoRole": "Saju · Geld · Werk",
+      "yeoniRole": "Tarot · Liefde",
+      "hanbiRole": "Sukuyo · Huwelijk · Relaties",
+      "yunRole": "Astrologie · Timing · Welzijn",
+      "musungRole": "Ziwei · Persoonlijkheid",
+      "chooseFormat": "Begeleidingsvorm kiezen",
+      "format": "Begeleidingsvorm",
+      "tabYeoni": "Gesprek met Yeoni",
+      "tabNeo": "E-mail van Neo",
+      "tabCat": "Vraag het Yeongnyangi",
+      "sharedBasis": "Een gedeelde aanpak,",
+      "yourFormat": "een vorm die bij je past",
+      "methodChoice": "Yeongnyangi, Ggulggul of Neo: welk advies past?",
+      "expand": "Details tonen",
+      "catName": "Yeongnyangi",
+      "yourQuestion": "Jouw vraag centraal",
+      "questionFormat": "Lees AI-uitleg in hoofdstukken op basis van je vraag en situatie.",
+      "catConsult": "Yeongnyangi bekijken",
+      "chooseTopic": "Per onderwerp bekijken",
+      "topicFormat": "Kies duidingstools en AI-rapporten per onderwerp.",
+      "topicConsult": "Onderwerpen bekijken",
+      "askNeo": "Vraag het Neo",
+      "humanReply": "Een persoonlijk nagekeken antwoord ontvangen",
+      "humanFormat": "Neo gebruikt AI-analyse om je antwoord te schrijven en na te kijken en mailt het daarna.",
+      "emailGuide": "E-mailadvies bekijken",
+      "beforeConsult": "Voor je begint",
+      "basisTitle": "Aanpak van de duiding",
+      "reviewTitle": "AI en persoonlijke controle",
+      "termsTitle": "Gebruiksvoorwaarden bekijken",
+      "compareSamples": "Voorbeeldresultaten vergelijken",
+      "emailMethod": "Persoonlijk nagekeken · E-mailadvies",
+      "writeQuestion": "Je vraag schrijven",
+      "emailOnly": "Dit is advies per e-mail, geen livechat.",
+      "emailOptions": "Extra opties en antwoorddetails",
+      "viewPrices": "Inhoud en prijzen bekijken",
+      "swipe": "Veeg om te kiezen",
+      "previousConcern": "Vorig onderwerp",
+      "nextConcern": "Volgend onderwerp",
+      "related": "Bijbehorende lezingen",
+      "smallFortune": "Een klein voorproefje van geluk",
+      "trialToResult": "Van gratis proberen tot persoonlijke resultaten",
+      "fishName": "Geluksvis",
+      "fishDesc": "Lees de stemming van vandaag in de bewegingen van een goudvisje",
+      "omikujiName": "Omikuji",
+      "omikujiDesc": "Trek je geluksbriefje voor vandaag",
+      "typeDesc": "Welk type ben jij? Vergelijk eigenschappen met vrienden",
+      "teaLeafName": "Theebladeren lezen",
+      "teaLeafDesc": "Vind een hint voor vandaag in de vormen van theebladeren",
+      "flowerDesc": "Een kaart met bloemen en kleuren die je karakter weerspiegelen",
+      "idolName": "Klik met je idool",
+      "idolDesc": "Jouw klik met je idool op een fotokaart",
+      "storyNote": "Yeongnyangi en Yeoni op zoek naar een verloren lot",
+      "musicNote": "Maanlichtmelodieën die het verhaal laten voortleven",
+      "dailyAria": "Dagelijkse dierenriemlezingen van de afgelopen 30 dagen",
+      "monthlyAria": "Lezingen voor september 2026 per dagstam",
+      "methodIntro": "Elke ingang gebruikt de interpretatieprincipes van Byeongha Park (Neo).",
+      "basisBody": "Yeongnyangi en Ggulggul volgen de principes van Byeongha Park (Neo). Neo’s e-mailadvies steunt op dezelfde ervaring; andere namen betekenen geen andere leraren. Saju, tarot en astrologie behouden hun eigen systemen. Vragen en diepgang verschillen per product.",
+      "reviewBody": "Neo’s Strategiekamer gebruikt AI om de gegevens uit te leggen. Bij Vraag het Neo leest Neo je inzending, gebruikt AI-analyse om een antwoord te schrijven en na te kijken en mailt het. Dit is geen livechat, telefoon- of persoonlijk gesprek. De principes ontwerpen betekent niet dat elk AI-resultaat door een mens wordt nagekeken.",
+      "termsBody": "Bekijk inhoud en voorbeelden en controleer de prijs en of passen, maanstenen of eenmalige betaling gelden.",
+      "emailLead": "Beschrijf je situatie en de keuze die je overweegt. Neo leest die zelf en mailt een met AI-analyse geschreven en nagekeken antwoord.",
+      "emailTiming": "E-mailantwoord meestal binnen 24 uur, bij drukte binnen 3 dagen · 30 vragen per dag",
+      "smallLead": "Neem een korte pauze of vergelijk resultaten met vrienden. Begin met een gratis ervaring.",
+      "smallPolicy": "Bekijk de voorwaarden voor je betaalt. Passen en maanstenen volgen de bestaande regels per product.",
+      "honeyScope": "Deze lijst toont geselecteerde basislezingen. Bekijk voorwaarden van andere functies op hun eigen scherm. Je bestaande resultaten en toegangsrechten blijven behouden.",
+      "cardLabel": "{title} — {action}",
+      "sceneAlt": "{name} in een adviesscène over {title}",
+      "askMaster": "Vraag het {name}",
+      "masterLabel": "{name} — {role}",
+      "neoName": "Neo",
+      "yeoniName": "Yeoni",
+      "hanbiName": "Seo Hanbi",
+      "yunName": "Yundal",
+      "musungName": "Museong",
+      "masterName": "Meester",
+      "loveTitle": "Liefdesinzichten",
+      "lifeTitle": "Levensboek",
+      "teaTitle": "Yeoni’s theehuis van het lot",
+      "codexTitle": "Het bandenboek van de meester",
+      "catListeningAlt": "Yeongnyangi luistert met een paarse hoed",
+      "yeoniGuideAlt": "Bloemenbiggetje Yeoni helpt je bij de lezingen",
+      "neoReviewAlt": "Neo bekijkt adviesnotities en brieven",
+      "catHeroAlt": "Saju-kat Yeongnyangi met paarse hoed en gesteunde kin",
+      "novelAlt": "Avonturenomslag met menselijke Yeoni, Yeongnyangi, Mocha, Yundal en Seo Hanbi",
+      "emailBase": "{amount} KRW per Saju-vraag · Eenmalige betaling",
+      "emailZiwei": "Saju + Ziwei per vraag: {amount} KRW",
+      "emailChart": "Geboortehoroscoopanalyse toevoegen +{amount} KRW",
+      "emailMax": "Tot {amount} KRW per vraag",
+      "unlockPrice": "Ontgrendelen voor {amount} KRW",
+      "simpleChatTitle": "Kort gesprek over je toekomst",
+      "signatureNewLead": "Bekijk de consulten en kies hoe je verder wilt.",
+      "signatureFeatured": "Uitgelicht consult",
+      "signatureFusionDesc": "Vijf begeleiders onderzoeken je levensloop met zes systemen.",
+      "signatureCatDesc": "Onderzoek één vraag met een passende methode.",
+      "signatureCardsLabel": "Uitgelichte consultkaarten",
+      "signatureNavigation": "Navigatie voor consulten",
+      "signaturePrevious": "Vorig consult",
+      "signatureNext": "Volgend consult",
+      "signatureYeoniDesc": "Yeoni praat met je over wat je bezighoudt."
+    },
+    "playPrice": {
+      "from": "Vanaf {price}",
+      "unlock": "Ontgrendelen voor {price}",
+      "perUse": "{price} per lezing"
     }
   },
   "terms": {
@@ -17225,11 +17393,13 @@
       },
       "sceneAria": "Yeoni is preparing your reading",
       "loadingAlt": "A loading scene with a moonlit cup rising",
-      "yeoniAria": "Yeoni handing over the cup",
+      "yeoniAria": "Yeoni schenkt thee uit een theepot",
       "progressAria": "Reading generation progress",
       "delayNotice": "Your reading is still being written. You can check its progress again in My readings.",
       "retryNotice": "If the flow breaks, you can try the same question again from the input screen.",
-      "libraryLink": "Continue in My readings"
+      "libraryLink": "Continue in My readings",
+      "introduction": "Zoals thee langzaam trekt, kiezen we woorden die bij jouw verhaal passen.",
+      "waitingTitle": "We bereiden jouw duiding\nmet aandacht voor"
     },
     "sajuPillarBoard": {
       "eyebrow": "The birth chart under moonlight",
@@ -17849,11 +18019,12 @@
       "welcomeNote": "It's okay to share something difficult to say. We'll explore the grounds relevant to your question.",
       "stepLabel": "Question and details · 1 / 3",
       "questionTitle": "What would you like to explore together?",
-      "questionGuide": "Write your question first, then choose a reading. Only the details needed for that method are requested.",
+      "questionGuide": "Controleer je opgeslagen profiel of geboortegegevens en schrijf daarna je vraag.",
       "reviewButton": "Review scope and price",
       "leapMonth": "Lunar leap month",
       "longitudeLabel": "Birthplace longitude (optional)",
-      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude."
+      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude.",
+      "changeMode": "Type consult wijzigen"
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -20620,6 +20791,12 @@
       "directTitle": "Het antwoord van Yeoni",
       "guidanceTitle": "Wat je kunt doen",
       "cautionTitle": "Waar je op moet letten"
+    },
+    "completionGreeting": {
+      "title": "Je thee is klaar",
+      "message": "Neem rustig de tijd voor de woorden die Yeoni voor je heeft geschreven.",
+      "action": "Lees je consult",
+      "portrait": "Yeoni biedt thee aan met beide handen"
     }
   },
   "fortuneVar": {
@@ -21404,175 +21581,394 @@
     }
   },
   "sajuCompat": {
-    "selfFallback": "Me",
+    "selfFallback": "Ik",
     "type": {
-      "love": "Romance / marriage compatibility",
-      "business": "Business / partnership compatibility",
-      "friend": "Friend / colleague compatibility"
+      "love": "Liefdes- en huwelijkscompatibiliteit",
+      "business": "Zakelijke compatibiliteit",
+      "friend": "Compatibiliteit van vrienden / collega's"
     },
     "grade": {
-      "S": "🌟 Benefactor from a past life",
-      "A": "✨ Destined match",
-      "B": "😊 Connected match",
-      "C": "🙂 Ordinary connection",
-      "D": "⚠️ Karmic match",
-      "F": "🌧️ Difficult-fate match"
+      "S": "🌟 Weldoener uit een vorig leven",
+      "A": "✨ Voorbestemde ontmoeting",
+      "B": "😊 Verbonden relatie",
+      "C": "🙂 Gewone verbinding",
+      "D": "⚠️ Karmische verbinding",
+      "F": "🌧️ Uitdagende verbinding"
     },
-    "gradeBadge": "Grade {grade}",
+    "gradeBadge": "Niveau {grade}",
     "titleLine": "{type} — {self} × {partner}",
-    "scoreLine": "Saju-only compatibility score: {score}/100",
+    "scoreLine": "Compatibiliteit uitsluitend volgens Saju: {score}/100",
     "overview": {
-      "title": "🧭 Compatibility overview",
-      "note": "This result is calculated from Saju alone. Day-stem and day-branch harmonies and clashes, seasonal balance, useful and harmful elements, and the ten-gods structure are combined into a score of {score}/100."
+      "title": "🧭 Overzicht van de compatibiliteit",
+      "note": "Dit resultaat gebruikt alleen Saju. Harmonie en botsingen van dagstam en dagtak, seizoensbalans, gunstige en ongunstige elementen en de tien-godenstructuur vormen samen {score}/100."
     },
     "energy": {
-      "title": "🌡️ Energy harmony",
-      "johu": "Seasonal balance (temperature)",
-      "elements": "Day-stem element",
-      "season": "Season of the month branch",
-      "tenGods": "Ten-gods structure"
+      "title": "🌡️ Harmonie van energie",
+      "johu": "Seizoensbalans (temperatuur)",
+      "elements": "Element van de dagstam",
+      "season": "Seizoen van de maandtak",
+      "tenGods": "Tien-godenstructuur"
     },
     "detail": {
-      "title": "🧩 Detailed reading",
-      "emotionRhythm": "Emotional rhythm",
-      "conflictSwitch": "Conflict triggers",
-      "realOps": "Everyday practice",
-      "longTerm": "Long-term outlook"
+      "title": "🧩 Uitgebreide duiding",
+      "emotionRhythm": "Emotioneel ritme",
+      "conflictSwitch": "Aanleidingen voor conflict",
+      "realOps": "Dagelijkse praktijk",
+      "longTerm": "Vooruitzicht op lange termijn"
     },
     "reasons": {
-      "title": "📋 Compatibility checkpoints",
-      "total": "Total {total} pts"
+      "title": "📋 Aandachtspunten voor compatibiliteit",
+      "total": "Totaal: {total} punten"
     },
     "reason": {
-      "JOHU_COMPLEMENT": "One of you runs hot and the other cool, so you balance each other's temperature nicely.",
-      "JOHU_BOTH_HOT": "You both run hot, so the spark is strong, but arguments can flare up quickly as well. It is a fire-overheating pairing.",
-      "JOHU_BOTH_COLD": "You both run cool, so there is stability, but it may be hard to bring each other enough warmth.",
-      "JOHU_MILD": "Your temperatures do not clash much, but one of you runs slightly {tone}, which creates a balancing structure.",
-      "MOIST_COMPLEMENT": "One of you is moist and the other dry, so your moisture balance fills in for each other. It is an ideal match.",
-      "MOIST_BOTH": "You are both on the {moist} side, so when you are low you can easily sag or dry out together.",
-      "MOIST_NEUTRAL": "Your moisture balance does not clash much, and your day-to-day condition tends to run alike.",
-      "ELEMENT_SAME": "You both have strong {element} energy and share a similar code and rhythm.",
-      "ELEMENT_SAME_EXCESS": "However, the same element is very strong in both of you, so neither tends to give way when opinions clash.",
-      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from} generates {to}, so one of you naturally nourishes the other. It is a mutually generating match.",
-      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from} supports {to}, so you are dependable supporters who help each other grow.",
-      "ELEMENT_KE": "Your elements are in a controlling relationship ({self} ↔ {partner}), so tension and friction can arise easily.",
-      "DAY_STEM_HE": "Your day stems form a harmony (合), so your hearts tend to be in tune.",
-      "DAY_BRANCH_HE": "Your day branches (the spouse position) form a six-harmony, bringing strong comfort and attraction when you are together.",
-      "DAY_STEM_CHONG": "Your day stems clash (沖), so the highs are strong but so are the collisions. It is a roller-coaster pairing.",
-      "DAY_BRANCH_CHONG": "Your day branches clash (沖), so your daily patterns and emotional rhythms may move differently. Adjusting to each other matters.",
-      "YONGSHIN_COMMON": "You both rely on {elements} energy as your useful element, so your core direction in life is very similar.",
-      "YONGSHIN_CLASH": "In particular, {elements} energy is a useful element for one of you but a harmful element for the other, so you may collide sensitively on that theme.",
-      "KIJI_CONTROL_FORWARD": "Harmful-element control: your partner's characters ({by}) clear your harmful elements ({chars}) through clash (沖). This is the core of a top-tier match: the other person drives out your bad energy.",
-      "KIJI_CONTROL_REVERSE": "Reverse control: your characters ({by}) clear your partner's harmful elements through clash. You also bring your partner a sense of release.",
-      "HE_TRAP": "Harmony trap: {self} and {partner} form a harmony (合), and the resulting element ({element}) strengthens your harmful element. It looks like a good fit on the surface, but harmful energy can build up inside. Tell comfort apart from dependence."
+      "JOHU_COMPLEMENT": "De een neigt naar warmte, de ander naar koelte, waardoor ze elkaar kunnen aanvullen.",
+      "JOHU_BOTH_HOT": "Beiden neigen naar warmte: de vonk is sterk, maar ruzies kunnen snel oplaaien.",
+      "JOHU_BOTH_COLD": "Beiden neigen naar koelte: dat geeft rust, maar wederzijdse warmte kan ontbreken.",
+      "JOHU_MILD": "De temperaturen botsen weinig; één kant is wat {tone}, wat voor balans kan zorgen.",
+      "MOIST_COMPLEMENT": "De een neigt naar vochtigheid, de ander naar droogte; ze kunnen elkaar aanvullen.",
+      "MOIST_BOTH": "Beiden zijn eerder {moist}; bij tegenslag kunnen loomheid of droogte samen toenemen.",
+      "MOIST_NEUTRAL": "Vochtigheid en droogte botsen weinig; de dagelijkse gesteldheid lijkt vaak op elkaar.",
+      "ELEMENT_SAME": "Beiden hebben sterke {element}-energie en delen vergelijkbare patronen en ritmes.",
+      "ELEMENT_SAME_EXCESS": "Als hetzelfde element bij beiden erg sterk is, kan toegeven bij onenigheid lastig zijn.",
+      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from} voedt {to}; de een ondersteunt zo vanzelf de groei van de ander.",
+      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from} ondersteunt {to}, wat een band van steun en groei kan geven.",
+      "ELEMENT_KE": "De elementen begrenzen elkaar ({self} ↔ {partner}), waardoor spanning en wrijving kunnen ontstaan.",
+      "DAY_STEM_HE": "De dagstammen vormen harmonie (合), wat emotionele afstemming kan bevorderen.",
+      "DAY_BRANCH_HE": "De dagtakken op de partnerpositie vormen een harmonie die gemak en aantrekkingskracht kan geven.",
+      "DAY_STEM_CHONG": "De dagstammen botsen (沖): fijne momenten en conflicten kunnen beide intens zijn.",
+      "DAY_BRANCH_CHONG": "De dagtakken botsen (沖), waardoor gewoonten en gevoelsritmes kunnen verschillen. Afstemming helpt.",
+      "YONGSHIN_COMMON": "Voor beiden zijn {elements} gunstige elementen, waardoor hun levensrichting kan overeenkomen.",
+      "YONGSHIN_CLASH": "{elements} helpt de een maar werkt minder gunstig voor de ander; dit onderwerp kan gevoelig liggen.",
+      "KIJI_CONTROL_FORWARD": "Ongunstige elementen begrenzen: de tekens van je partner ({by}) botsen met jouw lastige elementen ({chars}). Binnen dit model kan dat een zwakke plek aanvullen.",
+      "KIJI_CONTROL_REVERSE": "Omgekeerd botsen jouw tekens ({by}) met lastige elementen van je partner en kunnen ze verlichting geven.",
+      "HE_TRAP": "Harmonieval: {self} en {partner} vormen harmonie (合), maar het ontstane element ({element}) versterkt een ongunstige kant. Onderscheid comfort van afhankelijkheid."
     },
     "element": {
-      "wood": "Wood (木)",
-      "fire": "Fire (火)",
-      "earth": "Earth (土)",
-      "metal": "Metal (金)",
+      "wood": "Hout (木)",
+      "fire": "Vuur (火)",
+      "earth": "Aarde (土)",
+      "metal": "Metaal (金)",
       "water": "Water (水)"
     },
     "tone": {
       "warm": "warmer",
-      "cool": "cooler"
+      "cool": "koeler"
     },
     "moist": {
-      "wet": "damp",
-      "dry": "dry"
+      "wet": "vochtig",
+      "dry": "droog"
     },
     "love": {
-      "title": "💍 In-depth romance and marriage compatibility",
-      "emotion": "💞 Emotional and expressive rhythm",
-      "conflict": "🧯 How you conflict and recover",
-      "home": "🏠 Living together and married life",
-      "growth": "🌱 Conditions for long-term growth"
+      "title": "💍 Liefde en huwelijk uitgediept",
+      "emotion": "💞 Ritme van gevoel en uitdrukking",
+      "conflict": "🧯 Conflict en herstel",
+      "home": "🏠 Samenwonen en huwelijksleven",
+      "growth": "🌱 Voorwaarden voor gezamenlijke groei"
     },
     "fact": {
-      "title": "💥 Straight talk — the truth of this relationship",
-      "STRENGTH_SELF_LEADS": "Power imbalance alert",
-      "STRENGTH_PARTNER_LEADS": "Absorption warning",
-      "STRENGTH_PEER": "Strong vs. strong / weak vs. weak",
-      "KE_SELF_OVER_PARTNER": "Day-stem control (you are the controller)",
-      "KE_PARTNER_OVER_SELF": "Day-stem control (you are the one controlled)",
-      "KIJI_RELIEF": "The sweetness of covering weak spots",
-      "HE_TRAP": "⚠ Harmony (合) trap alert",
-      "repeatScene": "A scene that tends to repeat",
-      "recovery": "How to know you have recovered"
+      "title": "💥 Een eerlijke blik op deze relatie",
+      "STRENGTH_SELF_LEADS": "Let op ongelijke invloed",
+      "STRENGTH_PARTNER_LEADS": "Bewaar je eigen ruimte",
+      "STRENGTH_PEER": "Beiden sterk / beiden zwak",
+      "KE_SELF_OVER_PARTNER": "Controle tussen dagstammen (jij begrenst)",
+      "KE_PARTNER_OVER_SELF": "Controle tussen dagstammen (jij wordt begrensd)",
+      "KIJI_RELIEF": "Verlichting door elkaars zwakke kanten aan te vullen",
+      "HE_TRAP": "⚠ Let op de harmonieval (合)",
+      "repeatScene": "Terugkerende situatie",
+      "recovery": "Tekenen van herstel"
     },
     "advice": {
-      "title": "🎯 Prescription from the stars",
-      "keep": "[Keep it up] Never neglect it",
-      "grow": "[Grow] The beauty of differences",
-      "communicate": "[Communicate] Put dissatisfaction into words",
-      "survive": "[Survive] Rules and boundaries",
+      "title": "🎯 Praktische adviezen",
+      "keep": "[Behouden] Niet verwaarlozen",
+      "grow": "[Groeien] De waarde van verschillen",
+      "communicate": "[Praten] Onvrede onder woorden brengen",
+      "survive": "[Volhouden] Regels en grenzen",
       "secret": {
-        "love": "[Romance secret]",
-        "business": "[Partnership secret]",
-        "friend": "[Friendship secret]"
+        "love": "[Liefdesadvies]",
+        "business": "[Samenwerkingsadvies]",
+        "friend": "[Vriendschapsadvies]"
       },
-      "conflictRoutine": "[Conflict recovery routine]",
-      "growthGoal": "[Shared growth goal]"
+      "conflictRoutine": "[Routine voor conflictherstel]",
+      "growthGoal": "[Gezamenlijk groeidoel]"
     },
     "past": {
-      "title": "🔮 Past-life connection reading",
-      "subtitle": "PAST LIFE COMPATIBILITY · Day × year pillar cross analysis",
+      "title": "🔮 Duiding van een band uit een vorig leven",
+      "subtitle": "VORIGE LEVENS · Vergelijking dag- en jaarpijler",
       "grade": {
-        "S": "🌟 Grade S · Twin stars of a past life",
-        "A": "✨ Grade A · A destined déjà-vu bond",
-        "B": "🌱 Grade B · A bond sprouting again",
-        "C": "⚪ Grade C · A fresh bond on a blank page",
-        "D": "⚠️ Grade D · A knot to untie, a karmic bond",
-        "F": "🌀 Grade F · Learning through pain, a bond of inherited hardship"
+        "S": "🌟 Niveau S · Tweelingsterren uit een vorig leven",
+        "A": "✨ Niveau A · Een voorbestemd déjà vu",
+        "B": "🌱 Niveau B · Een band die opnieuw ontkiemt",
+        "C": "⚪ Niveau C · Een band op een blanco blad",
+        "D": "⚠️ Niveau D · Een karmische knoop om te ontwarren",
+        "F": "🌀 Niveau F · Leren van overgeërfde moeilijkheden"
       },
-      "crossSelf": "🧬 {self}'s day pillar ({selfPillar}) × {partner}'s year pillar ({partnerPillar})",
-      "crossPartner": "🧬 {partner}'s day pillar ({partnerPillar}) × {self}'s year pillar ({selfPillar})",
+      "crossSelf": "🧬 Dagpijler van {self} ({selfPillar}) × jaarpijler van {partner} ({partnerPillar})",
+      "crossPartner": "🧬 Dagpijler van {partner} ({partnerPillar}) × jaarpijler van {self} ({selfPillar})",
       "cross": {
-        "he": "Harmony (合)",
-        "chong": "Clash (沖)",
-        "same": "Same (同)",
-        "none": "None (無)"
+        "he": "Harmonie (合)",
+        "chong": "Botsing (沖)",
+        "same": "Gelijk (同)",
+        "none": "Geen (無)"
       },
-      "prescription": "⚔️ Prescription from the stars",
-      "questionsTitle": "Questions to check in this life",
-      "reflectionPull": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the pull between you and the emotional scenes that keep recurring.",
-      "reflectionDistance": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the distance between you and the moments that call for adjustment.",
-      "reflectionNote": "Don't stop at asking “Why are we so drawn to each other, or why do we clash?” Look for actions you can actually change in your current relationship. What shapes your next scene is your agreements and boundaries now, more than the story of the past.",
-      "disclaimer": "※ The past-life bond reading is entertainment content based on Saju theory 🌙"
+      "prescription": "⚔️ Praktische adviezen",
+      "questionsTitle": "Vragen voor dit leven",
+      "reflectionPull": "Het niveau van vorige levens bepaalt geen uitkomst, maar verbeeldt vertrouwdheid en spanning. “{label}” helpt aantrekkingskracht en terugkerende emotionele situaties te bekijken.",
+      "reflectionDistance": "Het niveau van vorige levens bepaalt geen uitkomst. “{label}” is een symbool om afstand en momenten voor afstemming te onderzoeken.",
+      "reflectionNote": "Vraag niet alleen waarom jullie elkaar aantrekken of botsen. Zoek gedrag dat nu kan veranderen. Huidige afspraken en grenzen vormen de volgende stap meer dan het verleden.",
+      "disclaimer": "※ Deze duiding van vorige levens is amusement op basis van Saju 🌙"
     },
-    "footer": "This reading is an AI-written interpretation based on the scores and harmony/clash evidence calculated by the engine, provided for reference only. It does not stand in for a conclusion about your relationship.",
+    "footer": "Deze AI-duiding gebruikt berekende scores en patronen van harmonie en botsing. Ze is ter oriëntatie en bepaalt niets definitiefs over jullie relatie.",
     "flow": {
-      "starting": "Preparing your Saju compatibility reading…",
-      "progress": "Writing your Saju compatibility reading… ({done}/{total})",
-      "keepOpen": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-      "saved": "This result is saved in your library. Reopening it later costs nothing extra.",
-      "fallback": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-      "review": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-      "revoked": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-      "retry": "Continue loading the AI reading",
-      "moduleFail": "Couldn't load the AI reading screen. No payment was made. Please try again shortly."
+      "starting": "Saju-compatibiliteitsduiding wordt voorbereid…",
+      "progress": "Duiding wordt geschreven… ({done}/{total})",
+      "keepOpen": "De betaling is voltooid. Als je weggaat en terugkomt, ga je verder met hetzelfde resultaat.",
+      "saved": "Het resultaat is opgeslagen. Opnieuw openen kost niets extra.",
+      "fallback": "De AI-duiding kon niet worden geladen; de basisduiding staat alvast hieronder. Je betaling blijft behouden. Met de knop kun je doorgaan voor hetzelfde paar.",
+      "review": "De AI-duiding is nog niet afgerond. Betaling en opgeslagen inhoud blijven bewaard voor controle door ondersteuning. De basisduiding staat hieronder.",
+      "revoked": "Een resultaat bij een geannuleerde of terugbetaalde betaling kan niet worden voortgezet. De basisduiding staat hieronder.",
+      "retry": "AI-duiding voortzetten",
+      "moduleFail": "Het AI-scherm kon niet worden geladen. Er is geen betaling gedaan. Probeer het zo opnieuw."
     },
     "archive": {
-      "title": "Saju compatibility records",
-      "lead": "Your paid Saju compatibility results are kept exactly as they were. Reopening one never costs extra or generates anything new.",
-      "loading": "Loading your records…",
-      "empty": "No Saju compatibility results are saved yet.",
-      "login": "Sign in to see your saved Saju compatibility records.",
-      "loginCta": "Sign in",
-      "error": "Couldn't load your records. Please try again shortly.",
-      "retry": "Try again",
-      "back": "← Back to list",
-      "close": "Close",
+      "title": "Saju-compatibiliteitsarchief",
+      "lead": "Betaalde resultaten blijven ongewijzigd bewaard. Opnieuw openen kost niets en genereert niets nieuws.",
+      "loading": "Archief wordt geladen…",
+      "empty": "Er zijn nog geen Saju-compatibiliteitsresultaten opgeslagen.",
+      "login": "Log in om je opgeslagen resultaten te bekijken.",
+      "loginCta": "Inloggen",
+      "error": "Het archief kon niet worden geladen. Probeer het zo opnieuw.",
+      "retry": "Opnieuw proberen",
+      "back": "← Terug naar de lijst",
+      "close": "Sluiten",
       "itemTitle": "{type} — {name}",
-      "itemMeta": "{date} · {score} pts",
+      "itemMeta": "{date} · {score} punten",
       "itemDate": "{date}",
-      "itemOpen": "Open",
-      "itemAria": "Open Saju compatibility result for {name}",
-      "revoked": "A result for a cancelled or refunded payment can't be opened.",
-      "notFound": "We couldn't find this record.",
-      "unreadable": "This record can't be shown on this screen right now. Please contact support.",
-      "detailNote": "This is a saved result. Reopening it doesn't call the AI again and costs nothing extra.",
-      "duplicate": "A Saju compatibility result with the same conditions (your chart, partner name and type) is already saved in your library.\n\n[OK] Pay again and view a new reading\n[Cancel] Open the saved result in your library"
+      "itemOpen": "Openen",
+      "itemAria": "Saju-compatibiliteit met {name} openen",
+      "revoked": "Een resultaat bij een geannuleerde of terugbetaalde betaling kan niet worden geopend.",
+      "notFound": "Dit record is niet gevonden.",
+      "unreadable": "Dit record kan hier nu niet worden getoond. Neem contact op met ondersteuning.",
+      "detailNote": "Dit resultaat is opgeslagen. Opnieuw openen roept de AI niet aan en kost niets extra.",
+      "duplicate": "Er staat al een resultaat met dezelfde voorwaarden (jouw profiel, partnernaam en type) in je archief.\n\n[OK] Opnieuw betalen voor een nieuwe duiding\n[Annuleren] Opgeslagen resultaat openen"
+    },
+    "art": {
+      "caption": "Symbolische illustratie van de relatie",
+      "love": "Twee mensen tegenover elkaar in een tuin bij maanlicht",
+      "business": "Twee mensen bespreken hun richting bij een kaart",
+      "friend": "Twee mensen lopen naast elkaar met lantaarns",
+      "year": "Twee mensen naderen een tuinhek via verschillende paden",
+      "month": "Twee mensen aan eigen bureaus bij een tuin",
+      "day": "Twee kopjes thee bij een warm verlicht raam",
+      "hour": "Twee lantaarns gericht op de ochtend boven verre bergen",
+      "past-resonance": "Twee lantaarns drijven naar elkaar op een vijver",
+      "past-growth": "Een brug tussen twee oevers met bloeiende bomen",
+      "past-knot": "Een losse zijden knoop naast een lotus"
+    },
+    "relationship": {
+      "title": "Waar jullie twee geboorteprofielen elkaar raken",
+      "context": "Hetzelfde teken wordt anders gelezen naargelang de plaats en levensomstandigheden.",
+      "all": "Alle verbanden en onderbouwing bekijken",
+      "natal": "Verbanden binnen elk geboorteprofiel",
+      "cross": "Tussen beide geboorteprofielen",
+      "triad": "Alle drie tekens van de triade aanwezig",
+      "chapters": "Vier hoofdstukken van jullie relatie",
+      "evidence": "Saju-onderbouwing van dit hoofdstuk",
+      "unknownHour": "De uurpijlers worden niet vergeleken omdat een geboortetijd ontbreekt.",
+      "stem": "Hemelse stammen",
+      "branch": "Aardse takken"
+    },
+    "pillar": {
+      "year": "Jaarpijler",
+      "month": "Maandpijler",
+      "day": "Dagpijler",
+      "hour": "Uurpijler"
+    },
+    "area": {
+      "year": "Achtergrond en vertrouwde omgangsvormen",
+      "month": "Sociaal leven en gedeeld ritme",
+      "day": "Nabije relaties en het dagelijks leven",
+      "hour": "Toekomstplannen en wat jullie samen ontwikkelen"
+    },
+    "direction": {
+      "same": "Hetzelfde element",
+      "selfGenerates": "Jouw element voedt dat van de ander",
+      "partnerGenerates": "Het element van de ander voedt dat van jou",
+      "selfControls": "Jouw element begrenst dat van de ander",
+      "partnerControls": "Het element van de ander begrenst dat van jou"
+    },
+    "relation": {
+      "sixHarmony": "Zes harmonieën (合)",
+      "partialTriad": "Gedeeltelijke triade (三合)",
+      "penalty": "Spanning (刑)",
+      "selfPenalty": "Innerlijke spanning (自刑)",
+      "break": "Verstoring (破)",
+      "harm": "Wrijving (害)",
+      "wonjin": "Emotionele wrijving (怨嗔)",
+      "gwimun": "Verhoogde gevoeligheid (鬼門)",
+      "he": "Harmonie (合)",
+      "chong": "Botsing (沖)",
+      "same": "Gelijk (同)",
+      "none": "Geen (無)",
+      "generates": "Voedend (生)",
+      "controls": "Begrenzend (剋)"
+    },
+    "limit": {
+      "hour": "Bij een onbekende geboortetijd tellen effecten van de uurpijler niet mee.",
+      "story": "De vier hoofdstukken verbinden levensgebieden; ze voorspellen geen volgorde of tijdstip van gebeurtenissen.",
+      "relations": "Harmonie betekent geen automatische elementverandering. Wonjin en Gwimun bepalen geen ontrouw, psychische aandoening of relatie-uitkomst."
+    }
+  },
+  "honeyUI": {
+    "retryLater": "Probeer het zo opnieuw.",
+    "confirm": "{title} openen met {cost} honingdruppels?",
+    "costBalance": "{cost} honingdruppels · Saldo: {balance}",
+    "perUseCondition": "De druppels gelden voor dit verzoek. Een nieuwe relatie- of kaartlezing kost opnieuw druppels.",
+    "birthCondition": "De inhoud opent voor het gekozen geboorteprofiel. Opnieuw bekijken met hetzelfde account en dezelfde geboortegegevens kost geen extra druppels.",
+    "openCost": "Openen met {cost} druppels",
+    "loginBalance": "Log in om te bekijken",
+    "failed": "Laden mislukt",
+    "count": "{count} druppels",
+    "loading": "Controleren",
+    "attended": "Vandaag ingecheckt",
+    "attend": "Inchecken",
+    "balanceError": "Je honingdruppels konden niet worden geladen. Probeer het opnieuw.",
+    "collected": "Je hebt {amount} druppels verzameld! Saldo: {balance}.",
+    "eligible": "Honingdruppels mogelijk",
+    "choice": "Open nu of verzamel druppels door in te checken",
+    "unlocked": "Ontgrendeld",
+    "cashOrHoney": "{price} of {cost} honingdruppels",
+    "openNow": "Nu openen",
+    "cashLabel": "{title} · Openen voor {price}",
+    "honeyLabel": "{title} · Openen met {cost} druppels",
+    "openHoney": "Honingdruppels gebruiken",
+    "profileNeeded": "Sla je geboortegegevens op als profiel of kies een bewaard profiel.",
+    "unlocking": "Toegang controleren…",
+    "unlockError": "Controleer de ontgrendeling opnieuw.",
+    "collectHint": "Verzamel dagelijks druppels via de incheckkaart op de startpagina.",
+    "retryButtonHint": "Probeer dezelfde knop opnieuw.",
+    "usesLoading": "Inhoud en toegang controleren.",
+    "guestHint": "Log in om je saldo te zien.",
+    "balanceRetry": "Saldo niet beschikbaar. Probeer het via de incheckkaart opnieuw.",
+    "balance": "Saldo honingdruppels: {balance}",
+    "selectedProfile": "Voor het gekozen profiel",
+    "chooseProfile": "Kies een profiel om de toegang te zien",
+    "groupCount": "{count} items · {range} druppels",
+    "unlockedNoExtra": "Ontgrendeld · Geen extra druppels",
+    "cost": "{cost} honingdruppels",
+    "perUseShort": "Nodig voor elke nieuwe relatie- of kaartlezing",
+    "birthShort": "Opnieuw bekijken met hetzelfde account en geboortegegevens kost geen extra druppels",
+    "shortfall": "Verzamel nog {count} druppels om te openen.",
+    "ownershipError": "Controleer de toegang op het lezingsscherm.",
+    "viewUnlocked": "Ontgrendelde lezing bekijken",
+    "viewGroup": "Bekijken in {group}",
+    "usesError": "Inhoud kon niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "usageError": "Het gebruik kon niet worden gecontroleerd. Probeer het zo opnieuw.",
+    "groups": {
+      "saju": "Saju",
+      "astrology": "Astrologie",
+      "ziwei": "Ziwei Doushu",
+      "sukuyo": "Sukuyo",
+      "vedic": "Vedische astrologie",
+      "tarot": "Tarot"
+    },
+    "products": {
+      "section_summary": {
+        "title": "Lichte Saju-lezing",
+        "description": "Aard, sterke kanten, terugkerende patronen en levensrichting"
+      },
+      "section_daewun": {
+        "title": "Saju-cycli van tien jaar",
+        "description": "Veranderingen per decennium en keuzes voor elke fase"
+      },
+      "rpt_specialCharmCard": {
+        "title": "Jouw charmeprofiel",
+        "description": "De charme die je van nature uitstraalt"
+      },
+      "rpt_skillTreeCard": {
+        "title": "Vaardigheidsboom voor je leven",
+        "description": "Je sterke kanten benutten en je volgende groeipunt vinden"
+      },
+      "rpt_villainCard": {
+        "title": "Uitputtende relatiepatronen",
+        "description": "Relaties die energie kosten en grenzen om te bewaken"
+      },
+      "astro_basic_deep_pack": {
+        "title": "Verdiepende basislezing astrologie",
+        "description": "Je uiterlijke zelf en wat je hart verlangt"
+      },
+      "astro_stellar_career_room": {
+        "title": "Werk en rollen",
+        "description": "Rollen waarin je talent bloeit en jouw manier van werken"
+      },
+      "astro_stellar_talent_room": {
+        "title": "Talent en aantrekkingskracht",
+        "description": "Hoe je interesses sterke kanten en charme worden"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "Deuren naar verbinding",
+        "description": "Wat je helpt open te staan en welke nabijheid blijft werken"
+      },
+      "astro_stellar_growth_room": {
+        "title": "Uitdagingen en verandering",
+        "description": "Keuzes om bij te stellen bij terugkerende problemen"
+      },
+      "astro_career_talent_deep": {
+        "title": "Loopbaan en talent uitgediept",
+        "description": "Gewaardeerde sterke kanten op het werk en uitputtende patronen"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "Talent en charme uitgediept",
+        "description": "Momenten waarop je aantrekkingskracht en daadkracht zichtbaar worden"
+      },
+      "astro_relationship_deep": {
+        "title": "Relaties en aantrekking uitgediept",
+        "description": "Redenen voor aantrekking en afstemming binnen relaties"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "Groei en innerlijk leven",
+        "description": "De keerzijde van je sterke kanten begrijpen en herstellen"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "De twaalf paleizen van Ziwei",
+        "description": "Sterke kanten en uitdagingen per levensgebied"
+      },
+      "ziwei_love_deep": {
+        "title": "Relatiepaleis van Ziwei",
+        "description": "Terugkerende verwachtingen en reacties in hechte relaties"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "Symboliek van Ziwei",
+        "description": "Sterrensymbolen lezen als dagelijkse keuzes"
+      },
+      "ziwei_decade_luck": {
+        "title": "Tienjaarscycli van Ziwei",
+        "description": "Levensthema’s die per fase veranderen"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "Ziwei: levens- en jaarcycli",
+        "description": "De richting van dit jaar binnen je bredere levensloop"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "Je Sukuyo-aard uitgediept",
+        "description": "Instinctieve reacties en manieren om voor je innerlijk te zorgen"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "Sukuyo-relatiegids",
+        "description": "Afstand en communicatieritme in verschillende banden"
+      },
+      "vedic_basic_reading": {
+        "title": "Vedische geboortehoroscoop",
+        "description": "Karakter en levensritmes via je geboortehoroscoop"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "Uitgebreide Sukuyo-compatibiliteit",
+        "description": "Relatiepatronen tussen twee mensen en praktische adviezen"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "Tarotlezing met drie kaarten",
+        "description": "Het verhaal van je drie kaarten en praktische vervolgstappen"
+      }
     }
   }
 }

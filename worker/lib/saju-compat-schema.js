@@ -444,7 +444,15 @@ function fragmentKeys(sentence) {
 }
 
 const compact = (value) => Array.from(String(value || "").replace(/\s/gu, "")).length;
-const hangulCount = (value) => (String(value || "").match(/[가-힣]/gu) || []).length;
+// Preserve the original Korean floor; other output languages count their own script.
+// This checks readable text, not translation quality or the correctness of the reading.
+const proseLetterCount = (value, locale = "ko") => {
+  const pattern = locale === "ko" ? /[가-힣]/gu
+    : locale === "ja" ? /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/gu
+    : locale === "zh-CN" || locale === "zh-TW" ? /\p{Script=Han}/gu
+    : locale === "hi" ? /\p{Script=Devanagari}/gu : /\p{Script=Latin}/gu;
+  return (String(value || "").match(pattern) || []).length;
+};
 
 function numbersMismatch(sentence, input) {
   const allowedScores = new Set([100, input.facts.score.display, input.facts.score.raw, Math.abs(input.facts.score.raw)]);
@@ -499,7 +507,7 @@ function shapeText(value, spec, input, seen, stats) {
 }
 
 /**
- * 파싱된 응답 → 그룹 값. 해당 없음 필드는 null 로 고정하고, 필수 필드의 결손(없음·너무 짧음·한글 없음)은
+ * 파싱된 응답 → 그룹 값. 해당 없음 필드는 null 로 고정하고, 필수 필드의 결손(없음·너무 짧음·대상 문자 없음)은
  * missing 에 모은다. seen 은 앞선 part 에서 이미 쓴 문장 키 집합(복사본을 넘긴다).
  */
 export function shapeSajuCompatGroup(group, parsed, input, seen = new Set()) {
@@ -514,14 +522,14 @@ export function shapeSajuCompatGroup(group, parsed, input, seen = new Set()) {
       const items = [];
       for (const item of (Array.isArray(getPath(known, spec.path)) ? getPath(known, spec.path) : []).slice(0, spec.count)) {
         const shaped = shapeText(item, spec, input, seen, stats).replace(/\n+/g, " ").trim();
-        if (compact(shaped) >= QUESTION_MIN_CHARS && hangulCount(shaped) >= 4) items.push(shaped);
+        if (compact(shaped) >= QUESTION_MIN_CHARS && proseLetterCount(shaped, input.locale) >= 4) items.push(shaped);
       }
       setPath(value, spec.path, items);
       if (!items.length) missing.push(spec.path);
       continue;
     }
     const shaped = shapeText(getPath(known, spec.path), spec, input, seen, stats);
-    const ok = compact(shaped) >= FIELD_MIN_CHARS && hangulCount(shaped) >= 8;
+    const ok = compact(shaped) >= FIELD_MIN_CHARS && proseLetterCount(shaped, input.locale) >= 8;
     setPath(value, spec.path, ok ? shaped : "");
     if (!ok) missing.push(spec.path);
   }
@@ -536,7 +544,7 @@ export function mergeSajuCompatShaped(group, input, preferred, other, seen = new
   const { required } = groupFields(group, input);
   const filled = (spec, value) => (spec.kind === "list"
     ? Array.isArray(value) && value.length > 0
-    : typeof value === "string" && compact(value) >= FIELD_MIN_CHARS && hangulCount(value) >= 8);
+    : typeof value === "string" && compact(value) >= FIELD_MIN_CHARS && proseLetterCount(value, input.locale) >= 8);
   const merged = {};
   for (const spec of required) {
     const a = getPath(preferred?.value, spec.path);
@@ -588,11 +596,12 @@ export function sajuCompatSeenKeys(parts) {
 const encodePath = (path) => String(path).replaceAll(".", "/");
 const decodePath = (path) => String(path).replaceAll("/", ".");
 
-export function buildSajuCompatPart(group, shaped, { model = "", at = Math.floor(Date.now() / 1000), attempt = 1, schemaVersion = SAJU_COMPAT_SCHEMA_VERSION, promptVersion = SAJU_COMPAT_PROMPT_VERSION } = {}) {
+export function buildSajuCompatPart(group, shaped, { model = "", at = Math.floor(Date.now() / 1000), attempt = 1, locale = "ko", schemaVersion = SAJU_COMPAT_SCHEMA_VERSION, promptVersion = SAJU_COMPAT_PROMPT_VERSION } = {}) {
   const meta = {
     g: group, v: schemaVersion, p: promptVersion, m: String(model || "").replace(/\./g, "_"),
     at, a: attempt, req: shaped.required.map(encodePath), ld: shaped.stats.lintDrops, dd: shaped.stats.dedupeDrops, tr: shaped.stats.truncated,
     ...(shaped.missing.length ? { miss: shaped.missing.map(encodePath) } : {}),
+    ...(locale !== "ko" ? { l: locale } : {}),
   };
   return JSON.stringify({ _meta: meta, ...shaped.value });
 }
@@ -612,7 +621,7 @@ const textAt = (parsed, path) => {
 const isFilled = (parsed, path) => {
   const value = getPath(parsed, path);
   if (Array.isArray(value)) return value.length > 0 && value.every((item) => typeof item === "string" && compact(item) >= QUESTION_MIN_CHARS);
-  return typeof value === "string" && compact(value) >= FIELD_MIN_CHARS && hangulCount(value) >= 8;
+  return typeof value === "string" && compact(value) >= FIELD_MIN_CHARS && proseLetterCount(value, parsed._meta.l) >= 8;
 };
 const maxHoles = (required) => Math.max(2, Math.floor(required.length * 0.34));
 
@@ -660,7 +669,7 @@ export function assembleSajuCompatSnapshot(state) {
     promptVersion: input.promptVersion || "saju-compat-basic-p1",
     model,
     generatedAt: at ? new Date(at * 1000).toISOString() : null,
-    locale: "ko",
+    locale: state.locale || "ko",
     input: { compatType: input.compatType, partnerName: input.partnerName, self: input.self, partner: input.partner },
     facts: input.facts,
     narrative,

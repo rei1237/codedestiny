@@ -2,7 +2,9 @@
 
 import type { FortuneTeaHouseConsultMode } from "../data/consult";
 import { type TeaHouseCup } from "../data/teaCups";
-import styles from "../styles/tea-room.module.css";
+import { BookOpen, Check, Leaf } from "lucide-react";
+import YeoniWaitingPortrait from "./YeoniWaitingPortrait";
+import styles from "../styles/tea-brewing.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type ScentLoadingSceneProps = {
@@ -46,8 +48,10 @@ const KO = {
   progress: { label: "요청 접수", message: "찻잔 위에 질문을 올리고 있어요." },
   sceneAria: "연이가 상담문을 준비하는 중",
   loadingAlt: "달빛 찻잔이 떠오르는 로딩 장면",
-  yeoniAria: "찻잔을 건네는 연이",
+  yeoniAria: "찻주전자로 차를 따르는 연이",
   progressAria: "상담문 생성 진행",
+  introduction: "차가 천천히 우러나듯, 당신의 이야기에 어울리는 말을 고르고 있어요.",
+  waitingTitle: "당신을 위한 이야기를\n정성껏 준비하고 있어요",
   delayNotice: "상담문을 조금 더 깊게 엮고 있어요. 내 상담함에서 생성 상태를 다시 확인할 수 있어요.",
   libraryLink: "내 상담함에서 이어보기",
   retryNotice: "흐름이 끊기면 입력 화면에서 같은 질문으로 다시 시도할 수 있어요.",
@@ -57,13 +61,20 @@ export default function ScentLoadingScene({ selectedCup, consultationMode = "tar
   const copy = useTeaHouseCopy("scentLoading", KO);
   const activeProgress = progress || { percent: 5, label: copy.progress.label, message: copy.progress.message, status: "running" };
   const complete = activeProgress.status === "complete";
-  return <section className={styles.loading} aria-label={copy.sceneAria} aria-busy={!complete}>
-    <img src={`/images/fortune-tea-house/renewal/${activeProgress.status === "error" ? "state-retry" : complete ? "state-completed" : "state-brewing"}.webp`} width="200" height="220" alt="" />
-    <h2>{copy.title[consultationMode]}</h2>
-    <p role="status">{activeProgress.label}</p><p>{activeProgress.message}</p>
-    <progress max={100} value={complete ? 100 : Math.max(5, Math.min(95, activeProgress.percent))} aria-label={copy.progressAria}/>
-    {activeProgress.delayed && <p>{copy.delayNotice}</p>}
-    {activeProgress.status === "error" && <p>{copy.retryNotice}</p>}
-    <a href="/fortune-tea-house/?history=1">{copy.libraryLink}</a>
+  return <section className={styles.scene} aria-label={copy.sceneAria} aria-busy={!complete}>
+    <div className={styles.visual}><YeoniWaitingPortrait label={copy.yeoniAria} complete={complete} /></div>
+    <div className={styles.content}>
+      <h2 className={styles.title}>{copy.waitingTitle}</h2>
+      <p className={styles.intro}>{copy.introduction}</p>
+      <div className={styles.status} role="status" aria-live="polite" aria-atomic="true">
+        <h3 className={styles.statusTitle}>{complete ? <Check className={styles.statusIcon} aria-hidden /> : <Leaf className={styles.statusIcon} aria-hidden />}{activeProgress.label}</h3>
+        <p>{activeProgress.message || copy.title[consultationMode]}</p>
+      </div>
+      <div className={styles.actions}>
+        <a className={styles.link} href="/fortune-tea-house/?history=1"><BookOpen size={18} aria-hidden />{copy.libraryLink}</a>
+        {activeProgress.delayed && <p className={styles.hint}>{copy.delayNotice}</p>}
+        {activeProgress.status === "error" && <p className={styles.hint}>{copy.retryNotice}</p>}
+      </div>
+    </div>
   </section>;
 }

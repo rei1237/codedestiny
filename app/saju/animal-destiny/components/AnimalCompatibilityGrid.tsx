@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useState } from "react";
@@ -157,7 +160,7 @@ export default function AnimalCompatibilityGrid({ animal, partner, onSubmitPartn
   }, []);
 
   return (
-    <section className="space-y-6">
+    <section data-moonlit-form="" className="space-y-6">
       <div className="grid grid-cols-2 gap-3">
         <CompatibilityCard label={copy.best} animalName={bestName} reason={animal.compatibility.best.reason} />
         <CompatibilityCard label={copy.good} animalName={goodName} reason={animal.compatibility.good.reason} />
@@ -167,6 +170,7 @@ export default function AnimalCompatibilityGrid({ animal, partner, onSubmitPartn
 
       <div className="rounded-3xl border-2 border-dashed border-[#EAD8B1] bg-[#FFFBEB]/30 p-5">
         <p className="mb-4 text-center text-sm font-black text-[#634832]">{copy.partnerTitle}</p>
+        <SavedBirthProfilePicker label="상대의 저장된 프로필" onSelect={seed => setPartnerInput({ name:seed.name || "", birthDate:seed.birthDate || "", birthTime:seed.birthTimeUnknown ? "" : seed.birthTime || "", gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "unknown", calendarType:seed.calendarType || "solar", lunarLeap:Boolean(seed.isLeapMonth) })} />
         <div className="grid gap-3 sm:grid-cols-2">
           <input
             value={partnerInput.name || ""}
@@ -178,8 +182,8 @@ export default function AnimalCompatibilityGrid({ animal, partner, onSubmitPartn
             {...birthDateTextInputProps(partnerInput.birthDate, (nextBirthDate) => setPartnerInput((prev) => ({ ...prev, birthDate: nextBirthDate })))}
             className="h-12 rounded-xl border border-[#EAD8B1] bg-white px-4 text-sm text-[#634832]"
           />
-          <input
-            type="time"
+          <BirthTimeInput
+
             value={partnerInput.birthTime || ""}
             onChange={(e) => setPartnerInput((prev) => ({ ...prev, birthTime: e.target.value }))}
             className="h-12 rounded-xl border border-[#EAD8B1] bg-white px-4 text-sm text-[#634832]"

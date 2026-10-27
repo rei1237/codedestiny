@@ -138,19 +138,22 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
   assert(result.model === "@cf/second/two", "오버라이드 체인의 성공 모델이 보고되지 않았다");
 }
 
-// (8) 전부 실패하면 모델별 사유를 모두 담아 올린다 — 어느 모델이 왜 죽었는지 로그로 남아야 한다.
+// (8) 전부 실패하면 두 모델을 시도하고 안전한 진단 코드만 반환한다.
+//     공급자 원문에는 사용자 입력이 섞일 수 있으므로 오류 메시지에 다시 싣지 않는다.
 {
-  const { env } = stubEnv(() => {
-    throw new Error(DEPRECATED);
+  const { env, calls } = stubEnv(() => {
+    throw new Error(`${DEPRECATED} private-prompt-fixture`);
   });
-  let message = "";
+  let failure;
   try {
     await callLLM({ prompt: "테스트" }, env);
   } catch (error) {
-    message = String(error?.message || "");
+    failure = error;
   }
-  assert(message.includes("@cf/zai-org/glm-4.7-flash"), "실패 메시지에 1차 모델명이 없다");
-  assert(message.includes("@cf/meta/llama-3.3-70b-instruct-fp8-fast"), "실패 메시지에 2차 모델명이 없다");
+  assert(calls[0]?.model === "@cf/zai-org/glm-4.7-flash", "실패 체인의 1차 모델을 시도하지 않았다");
+  assert(calls[1]?.model === "@cf/meta/llama-3.3-70b-instruct-fp8-fast", "실패 체인의 2차 모델을 시도하지 않았다");
+  assert(failure?.fallbackCode === "WORKERS_AI_UNAVAILABLE", "전체 폴백 실패의 안전 진단 코드가 없다");
+  assert(!String(failure?.message || "").includes("private-prompt-fixture"), "공급자 오류 원문이 노출됐다");
 }
 
 // (9) 🔴 무응답 모델을 시간으로 끊어야 한다.
@@ -232,16 +235,16 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
 {
   for (const off of ["false", "0", "off", "FALSE", " off "]) {
     const { env, calls } = stubEnv(() => ({ response: "여기 오면 안 된다" }), { WORKERS_AI_ENABLED: off });
-    let message = "";
+    let failure;
     try {
       await callLLM({ prompt: "테스트" }, env);
     } catch (error) {
-      message = String(error?.message || "");
+      failure = error;
     }
     assert(calls.length === 0, `WORKERS_AI_ENABLED="${off}" 인데 env.AI.run 이 ${calls.length}회 호출됐다`);
     assert(
-      message.includes("WORKERS_AI_ENABLED"),
-      `차단 사유가 실패 메시지에 남아야 한다 (off="${off}", 실제: ${message})`,
+      failure?.fallbackCode === "WORKERS_AI_UNAVAILABLE",
+      `차단된 폴백의 안전 진단 코드가 남아야 한다 (off="${off}", 실제: ${failure?.fallbackCode})`,
     );
   }
 
@@ -266,16 +269,16 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
 //      보냈다면 원가 상한이 아니므로 호출 횟수 0을 함께 단언한다.
 {
   const { env, calls } = stubEnv(() => ({ response: "여기 오면 안 된다" }));
-  let message = "";
+  let failure;
   try {
     await callLLM({ prompt: "a".repeat(WORKERS_AI_INPUT_TOKEN_HARD_LIMIT) }, env);
   } catch (error) {
-    message = String(error?.message || "");
+    failure = error;
   }
   assert(calls.length === 0, `Workers AI 입력 상한 초과인데 env.AI.run 이 ${calls.length}회 호출됐다`);
   assert(
-    message.includes("Workers AI input token limit exceeded"),
-    `입력 상한 차단 사유가 실패 메시지에 남아야 한다 (실제: ${message})`,
+    ["WORKERS_AI_UNAVAILABLE", "WORKERS_AI_INPUT_TOKEN_LIMIT_EXCEEDED"].includes(failure?.fallbackCode),
+    `입력 상한으로 차단된 폴백의 안전 진단 코드가 남아야 한다 (실제: ${failure?.fallbackCode})`,
   );
 }
 

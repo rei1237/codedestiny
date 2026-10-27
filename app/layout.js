@@ -1,6 +1,7 @@
 import "../styles/press-coverage.css";
 import "../styles/globals.css";
 import "../styles/theme-tokens.css";
+import "../styles/moonlit-birth-form.css";
 import "../styles/feature-marketing-detail.css";
 import "../styles/mobile-bottom-nav.css";
 import "../styles/yehwa-motifs-nav.css";
@@ -184,6 +185,7 @@ export default function RootLayout({ children }) {
         <Script src="/js/core/auth-hint.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
         {/* 앱 판별 정본. checkout-entry 가 진입 분기에서 읽으므로 그보다 먼저 둔다. */}
         <Script src="/js/core/app-context.js?v=20260812-app-context-v1" strategy="beforeInteractive" />
+        <Script src="/js/core/play-display-price.js" strategy="beforeInteractive" />
         <Script src="/js/core/checkout-entry.js?v=build-1711b2150559" strategy="beforeInteractive" />
         <Script src="/js/core/access-store.js?v=20260804-access-v3" strategy="beforeInteractive" />
         <Script src="/js/core/payment-service.js?v=20260804" strategy="beforeInteractive" />

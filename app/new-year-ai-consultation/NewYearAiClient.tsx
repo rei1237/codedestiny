@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import ProductMasterStrip from "@/app/components/ProductMasterStrip";
 import MasterProfile from "@/components/fortune/MasterProfile";
@@ -37,6 +40,7 @@ import {
   type ParsedSection,
 } from "./_lib/answer-sections";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildNewYearPreviewPayload } from "@/lib/dev-preview/fixtures/new-year";
 import SajuPillarTable from "@/components/fortune/SajuPillarTable";
@@ -366,10 +370,10 @@ function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed):
   }
   return {
     ...form,
-    userName: profile.name || form.userName,
-    gender: (profile.gender as ConsultationForm["gender"]) || form.gender,
-    birthDate: profile.birthDate || form.birthDate,
-    birthTime: profile.birthTimeUnknown ? "" : (profile.birthTime || form.birthTime),
+    userName: profile.name ?? form.userName,
+    gender: (profile.gender as ConsultationForm["gender"]) ?? form.gender,
+    birthDate: profile.birthDate ?? form.birthDate,
+    birthTime: profile.birthTimeUnknown ? "" : (profile.birthTime ?? form.birthTime),
     calendarType: profile.calendarType || form.calendarType,
   };
 }
@@ -1487,8 +1491,9 @@ export default function NewYearAiConsultationPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
@@ -1851,6 +1856,7 @@ export default function NewYearAiConsultationPage() {
         fileName: `신년운세_전문가상담_${safeName}_${form.targetYear}.pdf`,
         backgroundColor: "#170b0f",
         cover: {
+          theme: "newYear",
           title: `${form.userName || "당신"}님의 ${form.targetYear}년 신년운세`,
           name: form.userName,
           date: new Date().toISOString().slice(0, 10),
@@ -1966,18 +1972,11 @@ export default function NewYearAiConsultationPage() {
 
       {getCurrentLoadingLocale() === "ko" && <div style={{ width: "100%", maxWidth: 540, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
       <section className="nyai-workspace">
-        <form id="new-year-form" className="nyai-form nyai-panel" onSubmit={handleSubmit}>
+        <form data-moonlit-form="" id="new-year-form" className="nyai-form nyai-panel" onSubmit={handleSubmit}>
           <div className="nyai-form-title">
             <CalendarDays size={18} />
             <h2>새해 상담에 필요한 정보를 알려주세요</h2>
-            <button
-              type="button"
-              className="nyai-profile-load"
-              onClick={loadFormFromProfileCard}
-              aria-label={copy.profileLoadAria}
-            >
-              프로필 카드에서 불러오기
-            </button>
+            <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
           </div>
           <div className="nyai-grid">
             <label>
@@ -1999,7 +1998,7 @@ export default function NewYearAiConsultationPage() {
             </label>
             <label>
               출생시간
-              <input type="time" value={form.birthTime} onChange={updateField("birthTime")} />
+              <BirthTimeInput  value={form.birthTime} onChange={updateField("birthTime")} />
             </label>
             <label>
               양력/음력
@@ -2182,6 +2181,7 @@ export default function NewYearAiConsultationPage() {
                     </RevealBlock>
                   )}
                   <DomainConsultationCards bodies={domainBodies} />
+                  {index === 0 && <ConsultationIllustration kind="newYear" />}
                   {index === 0 && (
                     <RevealBlock index={4}>
                       <MonthlyFlowCalendar rows={monthlyFlow} letters={classified.monthLetters} />
@@ -3022,7 +3022,7 @@ export default function NewYearAiConsultationPage() {
 
         .nyai-result-bundle {
           display: grid;
-          gap: 12px;
+          gap: 20px;
         }
 
         .nyai-saju-profile {
@@ -3116,7 +3116,7 @@ export default function NewYearAiConsultationPage() {
           overflow-wrap: anywhere;
         }
 
-        .nyai-message span {
+        .nyai-message > span {
           display: block;
           margin-bottom: 7px;
           color: var(--nyai-gold-bright);
@@ -3147,7 +3147,7 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-result-section {
-          padding: 15px;
+          padding: clamp(18px, 3vw, 28px);
           border: 1px solid var(--nyai-gold-hair);
           border-radius: var(--nyai-radius-md);
           background:
@@ -3156,25 +3156,25 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-result-section h3 {
-          margin: 0 0 8px;
+          margin: 0 0 16px;
           color: var(--nyai-gold-bright);
           font-family: var(--nyai-serif);
-          font-size: 16px;
-          line-height: 1.4;
+          font-size: 18px;
+          line-height: 1.5;
           letter-spacing: 0;
         }
 
         .nyai-result-section p {
           margin: 0;
           max-width: 66ch;
-          line-height: 1.82;
+          line-height: 1.9;
           word-break: keep-all;
           overflow-wrap: anywhere;
           white-space: pre-line;
         }
 
         .nyai-result-section p + p {
-          margin-top: 10px;
+          margin-top: 16px;
         }
 
         .nyai-spin {

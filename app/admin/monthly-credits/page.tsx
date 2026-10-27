@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
+import Image from "next/image";
 import { adminFetch, describeAdminError } from "../_lib/admin-api";
 import { adminButton } from "../_components/ui";
 
@@ -26,7 +27,7 @@ type GrantResponse = {
 };
 
 const inputClass =
-  "w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none transition-colors placeholder:text-slate-500 focus:border-violet-400 focus:ring-2 focus:ring-violet-400/20";
+  "w-full rounded-lg border border-[var(--cd-adm-line-strong)] bg-[var(--cd-adm-field)] px-3 py-3 text-base text-[var(--cd-adm-ink)] outline-none transition-colors placeholder:text-[var(--cd-adm-ink-quiet)] focus:border-violet-400 focus:ring-2 focus:ring-violet-400/20 sm:text-sm";
 
 function createIdempotencyKey() {
   const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -122,22 +123,21 @@ export default function AdminMonthlyCreditsPage() {
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <header className="flex flex-col gap-5 border-b border-slate-800 pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <p className="text-xs font-semibold tracking-[0.16em] text-violet-300">운영 도구</p>
             <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-50 sm:text-3xl">마케팅 월정석 지급</h1>
-            <p className="mt-3 text-sm leading-6 text-slate-400">
-              특정 계정에 월정석을 예외 지급합니다. 지급분은 새 30일 lot으로 기록되며, 기존 잔액과 별도로 만료일이 관리됩니다.
+            <p className="mt-3 text-sm leading-6 text-[var(--cd-adm-ink-quiet)]">
+              특정 계정에 월정석을 예외 지급합니다. 지급분은 별도로 기록되며 지급 후 30일이 지나면 만료됩니다.
             </p>
           </div>
         </header>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
-          <section className="rounded-2xl border border-slate-800 bg-[#11131e] p-5 sm:p-6" aria-labelledby="grant-form-title">
+          <section className="cd-adm-card rounded-2xl p-5 sm:p-6" aria-labelledby="grant-form-title">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 id="grant-form-title" className="text-lg font-bold text-slate-50">지급 정보</h2>
-                <p className="mt-1 text-xs leading-5 text-slate-500">관리자 인증과 운영 플래그를 통과한 요청만 서버에서 처리됩니다.</p>
+                <p className="mt-1 text-sm leading-5 text-[var(--cd-adm-ink-quiet)]">지급할 계정과 수량을 입력해 주세요.</p>
               </div>
-              <span className="rounded-full border border-emerald-700 bg-emerald-950 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">30일 만료</span>
+              <span className="shrink-0 whitespace-nowrap rounded-full border border-emerald-700 bg-emerald-950 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">30일 만료</span>
             </div>
 
             <form className="mt-6 space-y-5" onSubmit={submitGrant}>
@@ -224,15 +224,24 @@ export default function AdminMonthlyCreditsPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className={`w-full ${adminButton("primary", { size: "lg" })}`}
+                className={`w-full ${adminButton("gift", { size: "lg" })}`}
+                style={{ minHeight: "3.5rem" }}
               >
+                <Image src="/assets/mascot/moonstone-lotus-v2-480.webp" alt="" width={40} height={40} className="h-10 w-10 object-contain" />
                 {submitting ? "지급 처리 중…" : "월정석 지급하기"}
               </button>
             </form>
           </section>
 
           <aside className="space-y-6" aria-label="월정석 지급 안내">
-            <section className="rounded-2xl border border-slate-800 bg-[#11131e] p-5 sm:p-6">
+            <section className="cd-adm-card rounded-2xl p-5 sm:p-6">
+              <div className="mb-5 flex items-center gap-4 border-b border-[var(--cd-adm-line)] pb-5">
+                <Image src="/assets/mascot/yeoni-moonstone-reward-v1-160.webp" alt="" width={112} height={112} className="h-24 w-24 shrink-0 object-contain sm:h-28 sm:w-28" />
+                <div>
+                  <p className="font-semibold text-[var(--cd-adm-ink)]">꽃돼지의 월정석</p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--cd-adm-ink-quiet)]">지급 전 계정과 수량을 한 번 더 확인해 주세요.</p>
+                </div>
+              </div>
               <h2 className="text-base font-bold text-slate-50">지급 규칙</h2>
               <dl className="mt-4 divide-y divide-slate-800 text-sm">
                 <div className="flex items-start justify-between gap-4 py-3 first:pt-0"><dt className="text-slate-500">지급 단위</dt><dd className="text-right font-semibold text-slate-200">월정석</dd></div>

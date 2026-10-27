@@ -1910,6 +1910,174 @@
       "fusion": "여섯 체계로 깊게 읽는 초융합 운세",
       "concerns": "고민별 운세 찾아보기",
       "music": "달빛 운명여행 · 음악으로 쉬어가기"
+    },
+    "guideCopy": {
+      "replyLanguage": "답변 언어: {language}",
+      "header": "공통 헤더",
+      "nav": "홈 주요 메뉴",
+      "honeyTitle": "꿀방울, 어디에 쓸 수 있나요?",
+      "honeyClose": "꿀방울 사용처 닫기",
+      "honeyEligible": "꿀방울 사용 가능처",
+      "honeyLead": "출석으로 모은 꿀방울로 꿀꿀운세의 지정된 기본 해석을 열 수 있어요. 아래에서 운세별 상품과 필요한 개수를 확인해 보세요.",
+      "honeyTutorialAlt": "꽃돼지 연이가 출석으로 꿀방울을 모으고, 운세를 고른 뒤 꿀방울로 해석을 여는 세 장면",
+      "honeyTutorial": "출석으로 모으기 · 운세 고르기 · 꿀방울로 열기",
+      "honeyChoose": "운세 고르기",
+      "honeyChooseBody": "아래 분류를 펼쳐 보고 싶은 해석을 골라요.",
+      "honeyProfile": "프로필 확인하기",
+      "honeyProfileBody": "로그인하고 내 출생정보가 저장된 프로필을 선택해요.",
+      "honeyCheckOpen": "개수 확인 후 열기",
+      "honeyCheckOpenBody": "운세 화면에서 ‘꿀방울로 열기’를 선택해요. 바로가기를 누르는 것만으로 차감되지는 않아요.",
+      "honeyQuestion": "어떤 이야기가 궁금하세요?",
+      "honeyHint": "운세 이름을 누르면 사용할 수 있는 상품이 펼쳐져요.",
+      "honeyRules": "사용 전 알아두세요",
+      "honeyProfileRule": "기본 해석은 프로필 기준",
+      "honeyProfileRuleBody": "같은 계정·출생정보로 해금한 상품은 다시 볼 때 꿀방울을 추가로 쓰지 않아요.",
+      "honeyPerUseRule": "궁합 상세·기본 타로는 요청마다",
+      "honeyPerUseRuleBody": "새로운 상대와의 궁합이나 새 카드 해석은 꿀방울이 다시 필요해요. 숙요 상세는 저장 완료 후 보관함에서 원문을 다시 볼 수 있어요.",
+      "honeyListOnly": "이 목록의 상품에만 사용",
+      "honeyOtherPayments": "다른 결제 방법도 그대로",
+      "honeyOtherPaymentsBody": "이용권·월정석·단건 결제는 각 상품의 기존 정책을 따릅니다. 꿀방울은 현금 가격과 별도의 사용 개수예요.",
+      "honeyOpenTitle": "콘텐츠 열기",
+      "close": "닫기",
+      "open": "열기",
+      "honeyConfirmPolicy": "선택한 프로필의 출생정보로 이 콘텐츠를 엽니다. 같은 계정·출생정보로 다시 볼 때는 추가로 쓰지 않아요.",
+      "honeyAttendance": "출석 · 꿀방울",
+      "honeyMine": "내가 모은 꿀방울",
+      "honeyMascotAlt": "꿀방울을 품에 안고 웃는 꽃돼지 연이",
+      "honeyAttendanceHint": "매일 출석하고, 꿀꿀운세 기본 해석에 사용해요.",
+      "honeyAttend": "출석 체크 하기",
+      "honeyUses": "사용처 보기",
+      "retry": "다시 확인하기",
+      "signatureTitle": "지금 필요한 상담을 골라보세요",
+      "signatureLead": "같은 풀이 기준으로, 주제에 맞춘 AI 해설을 읽어요. 구성과 예시를 먼저 살펴보세요.",
+      "coMasters": "공동 마스터",
+      "loveNames": "연이 · 서한비",
+      "loveQuestion": "마음부터 들려주세요. 두 분 사이의 거리는 서한비가 재어 드릴게요.",
+      "loveStart": "연애 비책 시작하기",
+      "yearTitle": "신년운세",
+      "yearQuestion": "올해 판세는 내가 먼저 읽는다. 어디서 밀고, 언제 멈출까?",
+      "yearStart": "신년운세 받기",
+      "lifeQuestion": "당신의 인생, 첫 장부터 읽어 드릴게요.",
+      "lifeStart": "인생의 책 펼치기",
+      "signatureMore": "다른 대표 상담도 살펴보기",
+      "neoRoomTitle": "네오의 팩폭 전략실",
+      "neoQuestion": "고민은 충분히 했다. 이제 무엇부터 바꿀까?",
+      "neoRoomStart": "전략실 입장하기",
+      "teaQuestion": "재회부터 사업까지, 어떤 선택이 고민인가요?",
+      "teaStart": "운명 찻집 들어가기",
+      "codexShort": "인연의 서",
+      "codexQuestion": "사람은 바뀌는데, 연애의 고민은 왜 비슷할까?",
+      "codexStart": "인연의 서 펼치기",
+      "signatureSamples": "상담별 구성과 예시 보기",
+      "fusionEyebrow": "여섯 체계 종합 상담",
+      "fusionLead": "다섯 마스터가 여섯 체계로 교차해 읽는 한 권. 타고난 성향부터 시기·연애·결혼·재물까지 영역별로 짚어 드려요.",
+      "fusionSystems": "여섯 체계",
+      "fusionChapters": "영역별 8장",
+      "lifeTiming": "인생의 시기",
+      "fusionStart": "초융합 운세 받기",
+      "neoRole": "사주 · 재물 · 일",
+      "yeoniRole": "타로 · 연애",
+      "hanbiRole": "숙요 · 결혼 · 관계",
+      "yunRole": "점성술 · 시기 · 건강",
+      "musungRole": "자미두수 · 성향",
+      "chooseFormat": "상담 방식 고르기",
+      "format": "상담 방식",
+      "tabYeoni": "연이 대화",
+      "tabNeo": "네오 이메일",
+      "tabCat": "영냥이 질문",
+      "sharedBasis": "풀이 기준은 함께,",
+      "yourFormat": "상담 방식은 나에게 맞게",
+      "methodChoice": "영냥이·꿀꿀운세·네오, 어떤 상담을 고를까요?",
+      "expand": "펼쳐보기",
+      "catName": "영냥이",
+      "yourQuestion": "내 질문을 중심으로",
+      "questionFormat": "질문·상황을 반영한 AI 해설을 챕터로 읽어요.",
+      "catConsult": "영냥이 상담 보기",
+      "chooseTopic": "주제를 골라 살펴보기",
+      "topicFormat": "여러 운세 도구와 주제별 AI 리포트를 골라요.",
+      "topicConsult": "주제별 상담 보기",
+      "askNeo": "네오 작전 결정서",
+      "humanReply": "직접 검수한 답변 받기",
+      "humanFormat": "네오가 AI 분석을 활용해 작성·검수하고 이메일로 전해요.",
+      "emailGuide": "이메일 상담 안내 보기",
+      "beforeConsult": "상담 전에 알아두세요",
+      "basisTitle": "풀이 기준",
+      "reviewTitle": "AI와 직접 검수의 차이",
+      "termsTitle": "이용 조건 확인",
+      "compareSamples": "상담 결과 예시 비교하기",
+      "emailMethod": "직접 검수 · 이메일 상담",
+      "writeQuestion": "질문 작성하기",
+      "emailOnly": "실시간 채팅이 아닌 이메일 상담입니다.",
+      "emailOptions": "풀이 구성·답변 안내",
+      "viewPrices": "상담 구성과 가격 살펴보기",
+      "swipe": "옆으로 넘겨 골라보세요",
+      "previousConcern": "이전 고민 보기",
+      "nextConcern": "다음 고민 보기",
+      "related": "관련 운세",
+      "smallFortune": "작은 운세 한 모금",
+      "trialToResult": "무료 체험부터 나만의 결과까지",
+      "fishName": "포춘 피쉬",
+      "fishDesc": "작은 금붕어의 몸짓으로 오늘의 기분 읽기",
+      "omikujiName": "오미쿠지",
+      "omikujiDesc": "제비통에서 꺼내 보는 오늘의 한 장",
+      "typeDesc": "나는 어떤 타입일까? 친구와 성향 비교하기",
+      "teaLeafName": "영국 홍차점",
+      "teaLeafDesc": "찻잎이 남긴 모양에서 찾는 오늘의 힌트",
+      "flowerDesc": "나의 기질을 닮은 꽃과 색을 카드에 담기",
+      "idolName": "최애운명",
+      "idolDesc": "최애와 나의 케미를 포토카드로 만나기",
+      "storyNote": "영냥이와 연이, 잃어버린 운명을 찾는 여행",
+      "musicNote": "이야기의 여운을 이어가는 달빛 선율",
+      "dailyAria": "최근 30일 띠별 날짜 운세",
+      "monthlyAria": "2026년 9월 일간별 운세",
+      "methodIntro": "어느 입구로 오셔도, 박병하(네오)가 설계한 풀이 기준을 만나요.",
+      "basisBody": "영냥이와 꿀꿀운세의 운세·상담에는 박병하(네오)가 설계한 풀이 기준이 반영돼요. 네오 작전 결정서 이메일 상담도 같은 상담 경험을 바탕으로 해요. 이름이 달라서 다른 선생님의 풀이인 것은 아니에요. 다만 사주·타로·점성술 등은 각각의 체계로 읽으며, 상품마다 다루는 질문과 해석 범위가 달라요.",
+      "reviewBody": "네오의 팩폭 전략실은 풀이 자료를 바탕으로 AI가 해설하는 상담이에요. 네오 작전 결정서는 네오가 접수 내용을 직접 읽고 AI 분석을 활용해 답변을 작성·검수한 뒤 이메일로 전해요. 실시간 채팅·전화·대면 상담은 아니에요. 풀이 기준을 설계했다는 안내가 모든 AI 결과를 사람이 직접 검토한다는 뜻은 아니에요.",
+      "termsBody": "선택한 상담의 구성과 예시를 살펴본 뒤, 가격과 이용권·월정석·단건 결제 적용 여부를 확인해 주세요.",
+      "emailLead": "현재 상황과 고민하는 선택을 남겨주세요. 네오가 직접 읽고 AI 분석을 활용해 작성·검수한 답변을 이메일로 전합니다.",
+      "emailTiming": "보통 24시간, 접수가 몰리면 3일 이내 이메일 답변 · 하루 질문 30개",
+      "smallLead": "혼자 잠깐 쉬어 가도, 친구와 결과를 비교해도 좋아요. 무료 체험부터 골라 보세요.",
+      "smallPolicy": "유료 기능은 결제 전 조건을 확인해 주세요. 이용권·월정석 적용은 상품별 기존 기준을 따라요.",
+      "honeyScope": "여기에는 지정된 기본 운세 상품을 안내해요. 목록 밖 기능의 사용 조건은 각 화면에서 확인해 주세요. 기존에 보유한 결과와 권리는 유지돼요.",
+      "cardLabel": "{title} — {action}",
+      "sceneAlt": "{name}의 {title} 상담 장면",
+      "askMaster": "{name}에게 물어보기",
+      "masterLabel": "{name} — {role}",
+      "neoName": "네오",
+      "yeoniName": "연이",
+      "hanbiName": "서한비",
+      "yunName": "윤달",
+      "musungName": "무성",
+      "masterName": "마스터",
+      "loveTitle": "연애 비책",
+      "lifeTitle": "인생의 책",
+      "teaTitle": "연이의 운명 찻집",
+      "codexTitle": "마스터 인연의 서",
+      "catListeningAlt": "보랏빛 모자를 쓰고 질문을 듣는 영냥이",
+      "yeoniGuideAlt": "운세를 안내하는 꽃돼지 연이",
+      "neoReviewAlt": "상담 자료와 편지를 검토하는 네오",
+      "catHeroAlt": "사주보는 고양이 영냥이, 보랏빛 모자를 쓰고 턱을 괸 모습",
+      "novelAlt": "인간형 연이와 영냥이, 모카, 윤달, 서한비가 등장하는 운명 모험 표지",
+      "emailBase": "사주 질문당 {amount}원 · 단건 결제",
+      "emailZiwei": "사주 + 자미두수 질문당 {amount}원",
+      "emailChart": "원국·명반 해석 추가 +{amount}원",
+      "emailMax": "질문당 최대 {amount}원",
+      "unlockPrice": "해금 {amount}원",
+      "simpleChatTitle": "대화형 간단 운세 상담",
+      "signatureNewLead": "고민에 맞는 상담과 진행 방식을 살펴보세요.",
+      "signatureFeatured": "대표 상담",
+      "signatureFusionDesc": "다섯 마스터가 여섯 체계로 삶의 흐름을 읽어요.",
+      "signatureCatDesc": "한 가지 고민을 나에게 맞는 운세 체계로 풀어보세요.",
+      "signatureCardsLabel": "대표 상담 카드",
+      "signatureNavigation": "대표 상담 이동",
+      "signaturePrevious": "이전 상담",
+      "signatureNext": "다음 상담",
+      "signatureYeoniDesc": "연이가 마음에 걸린 이야기를 대화로 함께 풀어 드려요."
+    },
+    "playPrice": {
+      "from": "{price}부터",
+      "unlock": "{price}로 해금",
+      "perUse": "1회 {price}"
     }
   },
   "footer": {
@@ -5827,11 +5995,13 @@
       },
       "sceneAria": "연이가 상담문을 준비하는 중",
       "loadingAlt": "달빛 찻잔이 떠오르는 로딩 장면",
-      "yeoniAria": "찻잔을 건네는 연이",
+      "yeoniAria": "찻주전자로 차를 따르는 연이",
       "progressAria": "상담문 생성 진행",
       "delayNotice": "상담문을 조금 더 깊게 엮고 있어요. 내 상담함에서 생성 상태를 다시 확인할 수 있어요.",
       "retryNotice": "흐름이 끊기면 입력 화면에서 같은 질문으로 다시 시도할 수 있어요.",
-      "libraryLink": "내 상담함에서 이어보기"
+      "libraryLink": "내 상담함에서 이어보기",
+      "introduction": "차가 천천히 우러나듯, 당신의 이야기에 어울리는 말을 고르고 있어요.",
+      "waitingTitle": "당신을 위한 이야기를\n정성껏 준비하고 있어요"
     },
     "sajuPillarBoard": {
       "eyebrow": "달빛이 비친 명식표",
@@ -6451,11 +6621,12 @@
       "welcomeNote": "말하기 어려웠던 고민도 괜찮아요. 질문에 맞는 근거를 함께 살펴볼게요.",
       "stepLabel": "질문과 정보 · 1 / 3",
       "questionTitle": "어떤 고민을 함께 읽어볼까요?",
-      "questionGuide": "질문을 먼저 적고 상담 방식을 골라 주세요. 선택한 방식에 필요한 정보만 받아요.",
+      "questionGuide": "저장된 프로필이나 필요한 출생정보를 확인한 뒤, 상담 질문을 적어 주세요.",
       "reviewButton": "상담 내용과 가격 확인",
       "leapMonth": "음력 윤달",
       "longitudeLabel": "출생지 경도 (선택)",
-      "longitudeHelp": "도시명만으로 좌표를 추정하지 않아요. 기본값은 서울 126.978°이며, 해외 출생은 해당 지역 경도를 입력해 주세요."
+      "longitudeHelp": "도시명만으로 좌표를 추정하지 않아요. 기본값은 서울 126.978°이며, 해외 출생은 해당 지역 경도를 입력해 주세요.",
+      "changeMode": "상담 방식 바꾸기"
     },
     "resultSheet": {
       "cardOrdinal": "{index}번째 카드 ·",
@@ -9222,6 +9393,12 @@
       "directTitle": "연이의 답",
       "guidanceTitle": "해볼 일",
       "cautionTitle": "조심할 점"
+    },
+    "completionGreeting": {
+      "title": "당신을 위한 차가 준비됐어요",
+      "message": "연이가 정성껏 담은 이야기를 천천히 읽어보세요.",
+      "action": "상담 결과 읽기",
+      "portrait": "완성된 차를 두 손으로 건네는 연이"
     }
   },
   "fortuneVar": {
@@ -10175,6 +10352,72 @@
       "unreadable": "이 기록은 지금 화면으로 열 수 없어요. 고객센터로 문의해 주세요.",
       "detailNote": "저장된 결과예요. 다시 열어도 AI를 새로 부르지 않고 추가 결제도 없어요.",
       "duplicate": "같은 조건(내 사주·상대 이름·궁합 유형)으로 저장된 사주 궁합 결과가 보관함에 이미 있어요.\n\n[확인] 새로 결제하고 다시 보기\n[취소] 보관함에서 저장된 결과 열기"
+    },
+    "art": {
+      "caption": "관계의 분위기를 담은 상징 삽화",
+      "love": "달빛 정원에서 마주 앉은 두 사람",
+      "business": "펼친 지도 앞에서 방향을 의논하는 두 사람",
+      "friend": "등불을 들고 나란히 걷는 두 사람",
+      "year": "서로 다른 길에서 정원 문으로 향하는 두 사람",
+      "month": "정원 앞 각자의 책상에 앉은 두 사람",
+      "day": "따뜻한 창가에 나란히 놓인 두 찻잔",
+      "hour": "먼 산의 아침을 바라보는 두 등불",
+      "past-resonance": "연못 위에서 가까워지는 두 등불",
+      "past-growth": "꽃나무가 선 두 물가를 잇는 다리",
+      "past-knot": "연꽃 곁에 느슨하게 묶인 비단 매듭"
+    },
+    "relationship": {
+      "title": "두 명식이 만나는 자리",
+      "context": "같은 글자도 놓인 자리와 생활 조건에 따라 다르게 읽습니다.",
+      "all": "전체 교차 관계와 원국 근거 보기",
+      "natal": "각자의 원국 내부 관계",
+      "cross": "두 명식 교차",
+      "triad": "삼합 세 글자 충족",
+      "chapters": "우리 관계의 기승전결",
+      "evidence": "이 장면의 명리 근거",
+      "unknownHour": "출생시간이 확인되지 않아 두 사람의 시주 비교는 생략합니다.",
+      "stem": "천간",
+      "branch": "지지"
+    },
+    "pillar": {
+      "year": "년주",
+      "month": "월주",
+      "day": "일주",
+      "hour": "시주"
+    },
+    "area": {
+      "year": "배경과 익숙한 관계 방식",
+      "month": "사회생활과 함께하는 리듬",
+      "day": "가까운 관계와 일상",
+      "hour": "미래 계획과 함께 키울 것"
+    },
+    "direction": {
+      "same": "같은 오행",
+      "selfGenerates": "본인이 상대를 생함",
+      "partnerGenerates": "상대가 본인을 생함",
+      "selfControls": "본인이 상대를 극함",
+      "partnerControls": "상대가 본인을 극함"
+    },
+    "relation": {
+      "sixHarmony": "육합",
+      "partialTriad": "삼합 부분 관계",
+      "penalty": "형",
+      "selfPenalty": "자형",
+      "break": "파",
+      "harm": "해",
+      "wonjin": "원진",
+      "gwimun": "귀문",
+      "he": "합",
+      "chong": "충",
+      "same": "동",
+      "none": "관계 없음",
+      "generates": "생",
+      "controls": "극"
+    },
+    "limit": {
+      "hour": "출생시간 미상인 사람의 시주 작용은 제외합니다.",
+      "story": "기승전결은 생활 영역을 연결한 서사이며 사건 발생 순서나 시기 예언이 아닙니다.",
+      "relations": "합은 자동 합화가 아니며 원진·귀문은 외도·정신질환·관계 결말의 판정 근거가 아닙니다."
     }
   },
   "fortune": {
@@ -11377,6 +11620,159 @@
       "ctaNote": "두 사람의 정보를 준비하고, 분석 전에 이용권·월정석·단건 결제 조건을 확인해요.",
       "premiumOutcomes": {
         "0": "결과는 관계를 단정하지 않으며, 대화와 선택을 위한 참고로 읽어 주세요."
+      }
+    }
+  },
+  "honeyUI": {
+    "retryLater": "잠시 후 다시 확인해 주세요.",
+    "confirm": "{title}을 꿀방울 {cost}개로 열까요?",
+    "costBalance": "꿀방울 {cost}개 · 현재 보유 {balance}개",
+    "perUseCondition": "이번 요청에 꿀방울을 사용해요. 새 궁합이나 새 카드 해석에는 다시 필요해요.",
+    "birthCondition": "선택한 프로필의 출생정보로 이 콘텐츠를 엽니다. 같은 계정·출생정보로 다시 볼 때는 추가로 쓰지 않아요.",
+    "openCost": "꿀방울 {cost}개로 열기",
+    "loginBalance": "로그인 후 확인",
+    "failed": "조회 실패",
+    "count": "{count}개",
+    "loading": "확인 중",
+    "attended": "오늘 출석 체크 완료",
+    "attend": "출석 체크 하기",
+    "balanceError": "꿀방울을 불러오지 못했어요. 다시 확인해 주세요.",
+    "collected": "꿀방울 {amount}개를 모았어요! 현재 {balance}개예요.",
+    "eligible": "꿀방울 사용 가능처",
+    "choice": "바로 열거나, 출석으로 모아 열어보세요",
+    "unlocked": "해금 완료",
+    "cashOrHoney": "{price} 또는 꿀방울 {cost}개",
+    "openNow": "바로 열기",
+    "cashLabel": "{title} · {price}으로 바로 열기",
+    "honeyLabel": "{title} · 꿀방울 {cost}개로 열기",
+    "openHoney": "꿀방울로 열기",
+    "profileNeeded": "출생정보를 프로필로 저장하거나 저장된 내 프로필을 선택해 주세요.",
+    "unlocking": "해금 확인 중…",
+    "unlockError": "해금 결과를 다시 확인해 주세요.",
+    "collectHint": "메인의 출석 카드에서 매일 모을 수 있어요.",
+    "retryButtonHint": "같은 버튼으로 다시 확인해 주세요.",
+    "usesLoading": "사용처와 해금 상태를 확인하고 있어요.",
+    "guestHint": "로그인하면 보유량을 확인할 수 있어요.",
+    "balanceRetry": "보유량을 확인하지 못했어요. 출석 카드에서 다시 확인해 주세요.",
+    "balance": "보유 꿀방울 {balance}개",
+    "selectedProfile": "선택한 프로필 기준",
+    "chooseProfile": "프로필 선택 후 해금 상태 확인",
+    "groupCount": "{count}종 · {range}개",
+    "unlockedNoExtra": "해금 완료 · 추가 사용 없음",
+    "cost": "꿀방울 {cost}개",
+    "perUseShort": "새 궁합·새 카드 해석을 요청할 때마다 사용",
+    "birthShort": "같은 계정·출생정보로 다시 볼 때 추가 사용 없음",
+    "shortfall": "{count}개 더 모으면 열 수 있어요.",
+    "ownershipError": "해금 상태는 운세 화면에서 다시 확인해 주세요.",
+    "viewUnlocked": "해금한 해석 보기",
+    "viewGroup": "{group}에서 보기",
+    "usesError": "사용처를 불러오지 못했어요.",
+    "retry": "다시 확인하기",
+    "usageError": "사용 방법을 확인하지 못했어요. 잠시 후 다시 눌러 주세요.",
+    "groups": {
+      "saju": "사주",
+      "astrology": "점성술",
+      "ziwei": "자미두수",
+      "sukuyo": "숙요",
+      "vedic": "베다",
+      "tarot": "타로"
+    },
+    "products": {
+      "section_summary": {
+        "title": "라이트 사주 풀이",
+        "description": "타고난 성향·강점·반복되는 패턴과 삶의 큰 흐름"
+      },
+      "section_daewun": {
+        "title": "사주 대운 풀이",
+        "description": "10년 단위 변화와 시기마다 살펴볼 선택"
+      },
+      "rpt_specialCharmCard": {
+        "title": "나의 매력 클래스",
+        "description": "사람에게 자연스럽게 전해지는 나의 매력"
+      },
+      "rpt_skillTreeCard": {
+        "title": "인생 스킬 트리",
+        "description": "강점을 쓰는 방법과 다음 성장 포인트"
+      },
+      "rpt_villainCard": {
+        "title": "빌런 블랙리스트",
+        "description": "나를 소모시키는 관계 패턴과 지켜야 할 선"
+      },
+      "astro_basic_deep_pack": {
+        "title": "점성술 기본 심층 해석",
+        "description": "겉으로 보이는 나와 마음이 원하는 나"
+      },
+      "astro_stellar_career_room": {
+        "title": "일과 역할",
+        "description": "능력이 살아나는 역할과 나다운 일의 방식"
+      },
+      "astro_stellar_talent_room": {
+        "title": "재능과 끌림",
+        "description": "좋아하는 일이 강점과 매력으로 이어지는 방식"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "관계의 문",
+        "description": "마음이 열리는 조건과 오래 가는 관계의 간격"
+      },
+      "astro_stellar_growth_room": {
+        "title": "과제와 변화",
+        "description": "반복되는 어려움에서 바꿔볼 선택"
+      },
+      "astro_career_talent_deep": {
+        "title": "커리어·재능 정밀 해석",
+        "description": "일에서 인정받는 강점과 소모되는 패턴"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "재능·매력 심화 해석",
+        "description": "나의 호감과 추진력이 드러나는 장면"
+      },
+      "astro_relationship_deep": {
+        "title": "관계·끌림 심화 해석",
+        "description": "끌림의 이유와 관계에서 필요한 조율"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "성장·내면 심화 해석",
+        "description": "강점의 이면을 이해하고 회복하는 방법"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "자미두수 12궁 해설",
+        "description": "삶의 영역마다 달라지는 강점과 과제"
+      },
+      "ziwei_love_deep": {
+        "title": "자미두수 부부궁 해석",
+        "description": "가까운 관계에서 반복되는 기대와 반응"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "자미두수 상징 해석",
+        "description": "별의 상징을 생활 속 선택으로 읽기"
+      },
+      "ziwei_decade_luck": {
+        "title": "자미두수 대한 흐름",
+        "description": "시기마다 달라지는 삶의 중심 주제"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "자미두수 생애·연간 흐름",
+        "description": "큰 흐름 속에서 올해 살펴볼 방향"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "숙요 본성 심화",
+        "description": "타고난 반응과 마음을 돌보는 방법"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "숙요 인연 도감",
+        "description": "인연마다 달라지는 거리와 소통의 리듬"
+      },
+      "vedic_basic_reading": {
+        "title": "베다 기본 해석",
+        "description": "출생 차트로 읽는 성향과 생활의 리듬"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "숙요 궁합 상세",
+        "description": "두 사람의 관계 패턴과 구체적인 행동 조언"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "기본 타로 세 장 해석",
+        "description": "선택한 세 장의 흐름과 실천 조언"
       }
     }
   }

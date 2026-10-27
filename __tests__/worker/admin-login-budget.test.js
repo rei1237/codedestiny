@@ -105,9 +105,15 @@ test.each([null, { score: 0 }, { score: NaN }, { score: -1 }, { score: Infinity 
 });
 test('DB failure stays blocked without exposing internal error details', async () => {
   counter.mockRejectedValue(new Error('private synthetic database error'));
+  const warning = jest.spyOn(console, 'warn').mockImplementation(() => {});
   const result = await finish(run());
   expect(result.response.status).toBe(503);
   expect(await result.response.text()).not.toContain('private synthetic');
+  expect(warning).toHaveBeenCalledWith('[admin-entry] rate limit unavailable', {
+    endpoint: 'admin:/entry/password', reason: 'database',
+  });
+  expect(JSON.stringify(warning.mock.calls)).not.toContain('private synthetic');
+  warning.mockRestore();
 });
 test('20th attempt is permitted; 21st is blocked with retry-after', async () => {
   counter.mockResolvedValue({ score: 20 });
@@ -122,5 +128,24 @@ test('20th attempt is permitted; 21st is blocked with retry-after', async () => 
 });
 test('admin soft-block lookup keeps its original 1s budget', async () => {
   await finish(checkSoftBlock({ env, request: request(), endpoint: 'admin:/entry/password' }));
+  expect(operations[0].attemptTimeoutMS).toBe(1000);
+});
+
+test.each(['ensure', 'start', 'start:daily', 'batch', 'result', 'read'])('tea %s counter permits a normal cold connection', async action => {
+  connectionDelay = 1733;
+  expect((await finish(run('ai:fortune-tea-house:' + action), 1733)).ok).toBe(true);
+  expect(operations[0]).toMatchObject({ attemptTimeoutMS: 3000, retries: 0, maxConcurrent: 2, admissionTimeoutMS: 250 });
+});
+
+test('tea counter still fails closed beyond its deadline', async () => {
+  connectionDelay = 3500;
+  const result = await finish(run('ai:fortune-tea-house:start'), 3000);
+  expect(result.response.status).toBe(503);
+  expect((await result.response.json()).code).toBe('RATE_LIMIT_UNAVAILABLE');
+});
+
+test('similarly named services do not inherit the tea deadline', async () => {
+  connectionDelay = 1733;
+  expect((await finish(run('ai:fortune-tea-house-other:start'), 1000)).response.status).toBe(503);
   expect(operations[0].attemptTimeoutMS).toBe(1000);
 });

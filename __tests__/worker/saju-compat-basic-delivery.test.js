@@ -1,6 +1,8 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
 import { requestBody, samplePairs, llmResponse } from '../fixtures/saju-compat-llm-fixture.mjs';
+import { AI_OUTPUT_LOCALES } from '../../lib/i18n/ai-locale.js';
+import { runWithAiLocale } from '../../worker/lib/ai-locale-context.js';
 
 // 선결제 사주 궁합 LLM 라우트(paid-narrative 엔진) — 실제 LLM·DB·결제는 쓰지 않는다.
 let route, normalize, recovery, docs, provider, revoked, userId, fault, lost, external, mode, accessCalls, plan;
@@ -112,6 +114,45 @@ beforeEach(() => {
   external = jest.spyOn(globalThis, 'fetch').mockImplementation(() => { throw Error('external network'); });
 });
 afterEach(() => { expect(external).not.toHaveBeenCalled(); external.mockRestore(); });
+
+const localeProse = {
+  en: 'You can compare your daily routines and agree on a small practical next step together',
+  ja: 'ふたりの日常の習慣を比べながら、無理なく続けられる小さな行動を一緒に考えてみましょう',
+  'zh-CN': '可以先比较彼此日常的习惯，再一起商量一个能够坚持的小行动，让沟通逐渐清晰',
+  'zh-TW': '可以先比較彼此日常的習慣，再一起商量一個能夠持續的小行動，讓溝通逐漸清晰',
+  vi: 'Bạn có thể so sánh thói quen hằng ngày và cùng thống nhất một bước nhỏ phù hợp với cả hai',
+  hi: 'आप दोनों अपनी दैनिक आदतों की तुलना करके साथ मिलकर एक छोटा व्यावहारिक कदम तय कर सकते हैं',
+  es: 'Pueden comparar sus hábitos cotidianos y acordar juntos un pequeño paso práctico para comunicarse',
+  fr: 'Vous pouvez comparer vos habitudes et convenir ensemble d’une petite action concrète pour mieux communiquer',
+  de: 'Ihr könnt eure täglichen Gewohnheiten vergleichen und gemeinsam einen kleinen praktischen Schritt vereinbaren',
+  nl: 'Jullie kunnen dagelijkse gewoonten vergelijken en samen een kleine praktische stap afspreken',
+  ms: 'Anda boleh membandingkan rutin harian dan bersama-sama memilih langkah kecil yang praktikal untuk berkomunikasi',
+};
+
+test.each(AI_OUTPUT_LOCALES.filter(locale => locale !== 'ko'))('purchase language %s survives resume and archive without another generation', async (locale) => {
+  let serial = 0;
+  const translateFixture = value => typeof value === 'string' ? `${localeProse[locale]} (${++serial})`
+    : Array.isArray(value) ? value.map(translateFixture)
+    : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, translateFixture(item)])) : value;
+  provider.mockImplementation(async (_env, prompt, options) => {
+    expect(options.locale).toBe(locale);
+    return { ok: true, provider: 'gemini', model: 'gemini-2.5-flash', text: JSON.stringify(translateFixture(llmResponse(groupOf(prompt), input()))) };
+  });
+  // A subsequent request is in Korean; the stored purchase language remains authoritative.
+  await runWithAiLocale(locale, start);
+  const response = await runWithAiLocale('ko', () => drive(resume));
+  expect(response.status).toBe(200);
+  const result = await response.json();
+  expect(result.locale).toBe(locale);
+  expect(result.meta.missing).toEqual([]);
+  expect(docs[0].metadata.result.locale).toBe(locale);
+  expect(docs[0].metadata.result.facts).toEqual(input().facts);
+  provider.mockClear();
+  const saved = await call(`/archive/${docs[0].executionKey}`);
+  expect(saved.status).toBe(200);
+  expect((await saved.json()).result).toEqual(docs[0].metadata.result);
+  expect(provider).not.toHaveBeenCalled();
+});
 
 function misplacedPastLife() {
   const raw = llmResponse('pastLife', input());

@@ -634,6 +634,7 @@
   };
 
   window.CodeDestinyNative = Object.assign({}, window.CodeDestinyNative, nativeApi);
+  window.dispatchEvent(new CustomEvent('cd:native-ready'));
 
   /**
    * 앱 세션 저장. 딥링크 토큰 교환과 Zero-Tap 복원이 함께 쓴다 —

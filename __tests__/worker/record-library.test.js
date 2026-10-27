@@ -167,6 +167,19 @@ test('partial, generating, failed and revoked states never masquerade as complet
   for(const status of ['generating','partial','generation_failed','refunded'])expect(library.recordMetadata(source,seed('1','01',{status})).nativeHref).toBe('');
   stores.neoOperationRoomConsultations=[seed('1','01')];revoked=true;expect((await route(request('/detail?source=neo&id=record-1'))).status).toBe(403);
 });
+
+test('consultation refund reservation and settlement remain visible without a result link',async()=>{
+  const {recordService}=await import('../../lib/records/service-registry.js');
+  for (const id of ['new-year','life-book']) {
+    const source=recordService(id);
+    for (const [refund,status] of [['pending','refund_pending'],['manual_review','refund_pending'],['refunded','revoked']]) {
+      const doc=seed('1','01',{status:'completed',llmMeta:{deliveryRefund:{status:refund}}});
+      const item=library.recordMetadata(source,doc);
+      expect(item.status).toBe(status);
+      expect(item.nativeHref).toBe('');
+    }
+  }
+});
 test('foreign, malformed and search-mismatched cursors are rejected',async()=>{
   const page=await library.listRecords(owner,new URLSearchParams({limit:'1'}),async source=>source.id==='neo'?[seed('1','01'),seed('2','02')]:[]);
   await expect(library.listRecords(foreign,new URLSearchParams({cursor:page.nextCursor}))).rejects.toMatchObject({status:400});

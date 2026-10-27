@@ -14,7 +14,7 @@ import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
-import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
 import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -616,6 +616,7 @@ export default function AstrologyAiResultClient() {
         fileName: `code-destiny-astrology-ai-${safeFilePart(userName)}-${date}.pdf`,
         backgroundColor: "#060817",
         cover: {
+          theme: "astrology",
           title: `${userName}님의 별자리 상담`,
           subtitle: toText(consultation?.topic) || "전체 차트 해석",
           name: userName,
@@ -728,8 +729,8 @@ export default function AstrologyAiResultClient() {
                     label: toText(section.title).slice(0, 12) || `${index + 1}장`,
                     content: (
                       <div className={`${RESULT_PANEL_CLASS} p-5 sm:p-6`}>
-                        <h3 className="text-lg font-black leading-7 text-[#f5d487]">{section.title}</h3>
-                        <AiResultProse value={section.body} className="mt-5 text-slate-100" />
+                        <h3 className="break-keep text-lg font-black leading-7 text-[#f5d487]">{section.title}</h3>
+                        <ConsultationReading kind="astrology" value={section.body} index={index} className="mt-5 text-slate-100" />
                       </div>
                     ),
                   }))}

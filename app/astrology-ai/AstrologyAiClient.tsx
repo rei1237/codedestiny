@@ -1,4 +1,8 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthPlaceInput from "@/app/components/BirthPlaceInput";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
 import CurrentLocationButton from '@/app/components/CurrentLocationButton';
@@ -1450,19 +1454,19 @@ const applyProfileSeedToForm = (form: FormState, profile: AiPrefillSeed): FormSt
   }
   return {
     ...form,
-    name: profile.name || form.name,
-    gender: profile.gender || form.gender,
-    birthDate: profile.birthDate || form.birthDate,
+    name: profile.name ?? form.name,
+    gender: profile.gender ?? form.gender,
+    birthDate: profile.birthDate ?? form.birthDate,
     birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
     birthTime:
       profile.birthTimeUnknown === true
         ? ""
-        : profile.birthTime || form.birthTime,
-    timezone: profile.timezone || form.timezone,
-    city: profile.city || form.city,
-    country: profile.country || form.country,
-    latitude: profile.latitude || form.latitude,
-    longitude: profile.longitude || form.longitude,
+        : profile.birthTime ?? form.birthTime,
+    timezone: profile.timezone ?? form.timezone,
+    city: profile.city ?? form.city,
+    country: profile.country ?? form.country,
+    latitude: profile.latitude ?? form.latitude,
+    longitude: profile.longitude ?? form.longitude,
     placeKey: profile.city ? "custom" : form.placeKey,
   };
 };
@@ -1636,8 +1640,9 @@ export default function AstrologyAiClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
@@ -1704,7 +1709,7 @@ export default function AstrologyAiClient() {
 
   function validateForm() {
     if (!form.gender || !form.birthDate || (!form.birthTimeUnknown && !form.birthTime)) return false;
-    if (!form.city.trim() || !Number.isFinite(Number(form.latitude)) || !Number.isFinite(Number(form.longitude)) || !form.timezone.trim()) return false;
+    if (!form.city.trim() || !form.latitude.trim() || !form.longitude.trim() || !Number.isFinite(Number(form.latitude)) || !Number.isFinite(Number(form.longitude)) || !form.timezone.trim()) return false;
     if (!form.topic || form.userQuestion.trim().length < 2) return false;
     return true;
   }
@@ -2028,7 +2033,7 @@ export default function AstrologyAiClient() {
 
             {getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey="astrology-ai-consultation" />}
             <ExpertValueCards theme={yunOn ? "yun" : "astrology"} points={[yunOn ? { title: "생시부터 묻는 이유", description: "태어난 분까지 알면 상승궁과 열두 하우스가 또렷해지고, 태양·달과 함께 기질의 중심을 정확히 잡습니다." } : { title: "차트의 중심", description: "태양·달·상승궁이 보여주는 기질과 감정의 리듬을 정리합니다." }, { title: "지금의 하늘", description: "행성과 하우스의 흐름을 현재의 질문과 맞물려 읽습니다." }, { title: "선택의 타이밍", description: "변화를 밀어붙일 때와 숨을 고를 때를 구체적으로 나눠 봅니다." }]} />
-            <form id="astrology-ai-form" onSubmit={handleSubmit} className="space-y-5">
+            <form data-moonlit-form="" id="astrology-ai-form" onSubmit={handleSubmit} className="space-y-5">
               <section className={PANEL_CLASS}>
                 <div className="mb-5 flex items-start gap-3">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
@@ -2038,14 +2043,7 @@ export default function AstrologyAiClient() {
                     <h2 className="text-lg font-black text-white">{copy.birthInfoHeading}</h2>
                     <p className="mt-1 text-sm leading-6 text-slate-300">{copy.birthInfoDesc}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={loadFormFromProfileCard}
-                    className="shrink-0 rounded-lg border border-[#f5d487]/35 bg-[#f5d487]/10 px-3 py-2 text-xs font-bold text-[#f5d487] transition hover:bg-[#f5d487]/20"
-                    aria-label={copy.profileLoadAria}
-                  >
-                    {copy.profileLoadCta}
-                  </button>
+                  <SavedBirthProfilePicker calendarMode="solar" onSelect={loadFormFromProfileCard} />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -2069,7 +2067,7 @@ export default function AstrologyAiClient() {
                   <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
                     <label className={LABEL_CLASS}>
                       {copy.birthTimeLabel}
-                      <input className={FIELD_CLASS} type="time" value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTime: event.target.value })} />
+                      <BirthTimeInput className={FIELD_CLASS}  value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTime: event.target.value })} />
                     </label>
                     <label className="flex min-h-12 items-end gap-2 pb-3 text-sm font-semibold text-slate-200">
                       <input className="h-4 w-4 accent-[#f5d487]" type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTimeUnknown: event.target.checked })} />
@@ -2105,30 +2103,13 @@ export default function AstrologyAiClient() {
                       <option value="custom">{copy.customInputOption}</option>
                     </select>
                   </label>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className={LABEL_CLASS}>
-                      {copy.cityLabel}
-                      <input className={FIELD_CLASS} value={form.city} onChange={(event) => patchForm({ city: event.target.value, placeKey: "custom" })} placeholder={copy.cityPlaceholder} />
-                    </label>
-                    <label className={LABEL_CLASS}>
-                      {copy.countryLabel}
-                      <input className={FIELD_CLASS} value={form.country} onChange={(event) => patchForm({ country: event.target.value, placeKey: "custom" })} placeholder={copy.countryPlaceholder} />
-                    </label>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <label className={LABEL_CLASS}>
-                      {copy.latitudeLabel}
-                      <input className={FIELD_CLASS} inputMode="decimal" value={form.latitude} onChange={(event) => patchForm({ latitude: event.target.value, placeKey: "custom" })} placeholder="37.5665" />
-                    </label>
-                    <label className={LABEL_CLASS}>
-                      {copy.longitudeLabel}
-                      <input className={FIELD_CLASS} inputMode="decimal" value={form.longitude} onChange={(event) => patchForm({ longitude: event.target.value, placeKey: "custom" })} placeholder="126.9780" />
-                    </label>
-                    <label className={LABEL_CLASS}>
-                      {copy.timezoneLabel}
-                      <input className={FIELD_CLASS} value={form.timezone} onChange={(event) => patchForm({ timezone: event.target.value, placeKey: "custom" })} placeholder="Asia/Seoul" />
-                    </label>
-                  </div>
+                  <label className={LABEL_CLASS}>
+                    {copy.birthPlaceHeading}
+                    <BirthPlaceInput className={FIELD_CLASS} value={form.city} required disabled={busy}
+                      confirmed={Boolean(form.latitude.trim() && form.longitude.trim() && form.timezone.trim())}
+                      onChange={city => patchForm({ city, country: "", placeKey: "custom" })}
+                      onResolved={place => patchForm({ latitude: place ? String(place.lat) : "", longitude: place ? String(place.lng) : "", timezone: place?.timezone || "" })} />
+                  </label>
                 </div>
               </section>
 

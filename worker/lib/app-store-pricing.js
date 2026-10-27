@@ -90,7 +90,7 @@ const PASS_TIER_TABLE = Object.freeze([
 // 웹에는 존재하지만 Play Console SKU를 아직 만들지 않은 가격대. 네이티브 결제는 대체 SKU로
 // 내리지 않고 APP_SKU_NOT_VERIFIED로 실패 폐쇄한다.
 // 2026-10-11 신규 SKU 4종으로 현행 레지스트리의 모든 코인가를 덮는다.
-export const APP_UNVERIFIED_CONTENT_COIN_PRICES = Object.freeze([]);
+export const APP_UNVERIFIED_CONTENT_COIN_PRICES = Object.freeze([600]);
 export function isAppUnverifiedContentCoinPrice(value) {
   return APP_UNVERIFIED_CONTENT_COIN_PRICES.includes(Math.floor(Number(value)));
 }

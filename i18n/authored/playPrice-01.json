@@ -1,0 +1,44 @@
+{
+  "home.playPrice.from": {
+    "ko": "{price}부터",
+    "en": "From {price}",
+    "ja": "{price}〜",
+    "zh-CN": "{price}起",
+    "zh-TW": "{price}起",
+    "vi": "Từ {price}",
+    "hi": "{price} से",
+    "es": "Desde {price}",
+    "fr": "À partir de {price}",
+    "de": "Ab {price}",
+    "nl": "Vanaf {price}",
+    "ms": "Dari {price}"
+  },
+  "home.playPrice.unlock": {
+    "ko": "{price}로 해금",
+    "en": "Unlock for {price}",
+    "ja": "{price}で開く",
+    "zh-CN": "{price}解锁",
+    "zh-TW": "{price}解鎖",
+    "vi": "Mở khóa với {price}",
+    "hi": "{price} में खोलें",
+    "es": "Desbloquear por {price}",
+    "fr": "Débloquer pour {price}",
+    "de": "Für {price} freischalten",
+    "nl": "Ontgrendelen voor {price}",
+    "ms": "Buka dengan {price}"
+  },
+  "home.playPrice.perUse": {
+    "ko": "1회 {price}",
+    "en": "{price} per reading",
+    "ja": "1回 {price}",
+    "zh-CN": "每次{price}",
+    "zh-TW": "每次{price}",
+    "vi": "{price}/lần",
+    "hi": "प्रति व्याख्या {price}",
+    "es": "{price} por lectura",
+    "fr": "{price} par lecture",
+    "de": "{price} je Deutung",
+    "nl": "{price} per lezing",
+    "ms": "{price} setiap bacaan"
+  }
+}

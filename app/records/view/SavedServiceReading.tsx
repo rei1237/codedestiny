@@ -1,4 +1,5 @@
 "use client";
+import { recordReaderCopy } from '@/lib/records/reader-copy';
 import dynamic from 'next/dynamic';
 import SavedSibylReading from './SavedSibylReading';
 import SavedFptiReading from './SavedFptiReading';
@@ -44,7 +45,8 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
  const {parsed,message}=assistantObject(row);
  const model=Object.keys(parsed).length?{...row,...parsed,messages:list(row.messages).filter(entry=>entry!==message)}:row;
  const family=view.family, saju=model.sajuResult||model.saju||model.sajuFacts||object(model.basis).saju;
- const body=<SavedChapters labels={family==='pet'?{routine:locale==='ko'?'하루의 돌봄':'Daily care'}:undefined} value={Object.keys(original).length?model:value} fields={view.fields} omit={['cards','savedCards','saju','sajuResult','sajuFacts','ziweiChart','astrologyChart','vedicChart','calculation','basis','canonical']}/>;
+ const reader=recordReaderCopy(locale);
+ const body=<SavedChapters labels={family==='pet'?{routine:reader.dailyCare}:undefined} value={Object.keys(original).length?model:value} fields={view.fields} omit={['cards','savedCards','saju','sajuResult','sajuFacts','ziweiChart','astrologyChart','vedicChart','calculation','basis','canonical']}/>;
  if(typeof parseSavedText(value)==='string') return <div className={['book','love','naming','saju'].includes(family)?styles.letter:styles.reader}><SavedText text={text(value)}/></div>;
  if(family==='relationship') {
   const sections=list(row.sections).map(object).filter(s=>typeof s.body==='string').map(s=>({title:text(s.title),body:text(s.body)}));
@@ -79,7 +81,7 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
   return <div className={vedicStyles.shell+' '+styles.night+' '+styles.vedic} style={{minHeight:0}}>{reading.scores&&reading.sections ? <><VedicStructured savedOnly reading={{scores:object(reading.scores),sections:object(reading.sections)}} chart={chart} name="" completed={(status||row.status)==='completed'}/><SavedChapters value={{messages:model.messages,finalMessage:model.finalMessage,evidence:model.evidence}} showEmpty={false}/></> : <><SavedVedic value={chart}/>{body}</>}</div>;
  }
  if(family==='astrology') return <div className={styles.night}><SavedAstrology value={model.astrologyChart||model.chart}/>{body}</div>;
- if(family==='ziwei'&&(model.serviceType==='ziwei-island-palace-consult'||model.palaceKey)) return <article className={styles.island}><img className={styles.islandArt} src="/images/destiny-island/consult-reading.webp" alt="" width={720} height={720}/><p>당신의 궁이 보내온 편지</p><h2>{text(model.palaceKey)}{model.palaceTitle?' · '+text(model.palaceTitle):''}</h2><SavedZiwei value={model.ziweiChart||model.chart}/>{body}</article>;
+ if(family==='ziwei'&&(model.serviceType==='ziwei-island-palace-consult'||model.palaceKey)) return <article className={styles.island}><img className={styles.islandArt} src="/images/destiny-island/consult-reading.webp" alt="" width={720} height={720}/><p>{reader.palaceLetter}</p><h2>{text(model.palaceKey)}{model.palaceTitle?' · '+text(model.palaceTitle):''}</h2><SavedZiwei value={model.ziweiChart||model.chart}/>{body}</article>;
  if(family==='ziwei') return <div className={styles.reader}><SavedZiwei value={model.ziweiChart||model.chart}/>{body}</div>;
  if(family==='human-design') {
   const chart=row.calculation||object(row.basis).chart||row.chart;

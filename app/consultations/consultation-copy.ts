@@ -10,6 +10,10 @@ export const hubTranslations: Record<string, Record<string, [string, string, str
     codex: ['Master Book of Connections', 'When you want to understand your relationship patterns or compatibility', 'Personal or compatibility edition · chapter report'],
   },
   ja: {
+    'new-year': ['新年の運勢相談', '一年の流れを知り、これからの選択を考えたいとき', '一年の見通しと時期ごとのアドバイス'],
+    karma: ['運命のパターン', '繰り返すパターンや、自分の選択の意味を振り返りたいとき', '占術の根拠を添えた章別解説と総合リーディング'],
+    'love-secret': ['恋愛のヒント', '恋愛で繰り返す傾向や、今の悩みを整理したいとき', '四柱推命をもとに、恋愛の質問を読み解く相談'],
+    'life-book': ['人生の本', '生まれ持った気質と人生の方向を、長い視点で見つめたいとき', '四柱推命をもとに人生を章ごとに読み解くレポート'],
     tea: ['ヨニの運命の茶屋', '複雑な気持ちや状況を落ち着いて整理したいとき', '質問に沿った解釈と行動のヒント・カードや命式'],
     neo: ['ネオの戦略室', '繰り返す問題を見直し、次の行動を決めたいとき', '状況の整理と実践的な戦略'],
     fusion: ['超融合占い', '複数の占術で今の状況を深く見つめたいとき', '六つの体系別解釈と総合レポート'],
@@ -40,7 +44,7 @@ export const expertCopy: Record<string, Record<string, [string, string, string]>
     'legacy-naming': ['훈민정음 작명소', '오래 불릴 이름에 어떤 뜻을 담고 싶으세요?', '사주와 성명학을 바탕으로 이름 후보와 풀이를 살펴보세요.'],
   },
   en: {
-    ziwei: ['Ziwei Consultation', 'Explore your temperament and different areas of life', 'Museong names the blocked star in your chart and how to unblock it'],
+    ziwei: ['Ziwei Consultation', 'Explore your temperament and different areas of life', 'Museong explores tensions in your chart and possible ways forward'],
     astrology: ['Astrology Consultation', 'Understand your nature and the changes around you', 'Yundal starts from your birth minute and reads your natal chart'],
     vedic: ['Vedic Consultation', 'Reflect on life cycles and the direction of your choices', 'Indian astrology birth chart and timing guidance'],
     'sukuyo-compat': ['Sukuyo Compatibility', 'Understand the differences between two people', 'Seo Hanbi measures the distance between two lunar mansions'],

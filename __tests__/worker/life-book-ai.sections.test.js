@@ -9,6 +9,7 @@ import { __lifeBookAiTestUtils } from "../../worker/routes/life-book-ai.js";
 import { calculateLifeBookAiSaju } from "../../worker/lib/life-book-ai-saju.js";
 
 const {
+  lifeBookLengthOptions,
   buildSectionPlan,
   buildSectionPrompt,
   pickSajuSlice,
@@ -19,6 +20,21 @@ const {
   scrubBirthValues,
   scrubSectionBody,
 } = __lifeBookAiTestUtils;
+
+test('a missing middle chapter cannot shift the identity or short-draft allowance of later chapters', () => {
+  const plan = buildSectionPlan(lifeBookInput);
+  const sections = buildSectionsAtTarget(plan);
+  sections['chapter-2'] = { id: 'chapter-2', ok: false, attempts: 2, body: null };
+  sections['chapter-3'].body.content = '계산 근거를 따라 현실에서 실천할 방향을 정리합니다.';
+  const report = assembleReport(lifeBookInput, plan, sections);
+  const issues = getLifeBookReportQualityIssues(JSON.stringify(report), lifeBookInput, lifeBookLengthOptions(plan, sections));
+  expect(report.chapters.map(row => row.chapterNumber)).toEqual([1, 3, 4, 5, 6, 7, 8, 9, 10]);
+  expect(issues).toContain('chapter_count_mismatch');
+  expect(issues).toContain('chapter_2_content_missing');
+  expect(issues).not.toContain('chapter_2_content_too_short');
+  expect(issues).not.toContain('chapter_3_content_too_short');
+  expect(mapIssuesToSections(issues, plan, sections).targets).toContain('chapter-2');
+});
 
 const birthInfo = {
   name: "테스트",

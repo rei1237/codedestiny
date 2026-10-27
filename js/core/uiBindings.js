@@ -109,11 +109,11 @@ const __lazyActionLoaders = {
   openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-1969477b5929').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
-  
+
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-6c9971209003')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-fde8e33a1a65')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))

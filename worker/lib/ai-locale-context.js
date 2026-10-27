@@ -29,6 +29,12 @@ export function getAmbientAiLocale() {
   return store && store.locale ? store.locale : "";
 }
 
+/** Read the existing storage shapes without rewriting a purchased result. */
+export function storedAiLocale(record) {
+  return toAiLocale(record?.locale || record?.llmMeta?.locale || record?.llmMeta?.resumeBody?.locale
+    || record?.llmMeta?.delivery?.resumeBody?.locale || record?.result?.resumeBody?.locale);
+}
+
 /**
  * 헤더 → cd_locale 쿠키 → Accept-Language 순.
  *

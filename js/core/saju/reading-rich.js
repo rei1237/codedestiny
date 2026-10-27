@@ -225,8 +225,12 @@
   var MOIST_RX = {
     dry: {need:'수(水)·목(木)', act:'물 자주 마시기, 가습, 숲·물가 산책, 식물 기르기'},
     wet: {need:'금(金)·화(火)', act:'자주 환기하기, 햇볕에 말린 침구, 흰색·금색 소품, 관계의 경계선 분명히 하기'},
-    balanced: {need:'추가 보완 없음', act:'습조는 고른 편이라 온도 쪽 처방에 집중'}
+    balanced: {need:'추가 보완 없음', act:'습조는 고른 편이라 온도 쪽 처방에 집중'},
+    /* 시주 미상이어도 가능한 시주 모두에서 고른 편이면 balanced지만, 원국이 다 확인되기 전에는 '보완 없음'으로 단정하지 않는다. */
+    balancedPending: {need:'큰 치우침 신호 없음(시주 미확정)', act:'가능한 시주 모두에서 고른 편이에요. 시주가 확인되면 다시 판단해요'},
+    insufficient: {need:'판단 보류', act:'출생 정보가 부족해 습조를 단정하지 않아요. 출생 시각이 확인되면 다시 판단해요'}
   };
+  var TEMP_PENDING_RX = {need:'판단 보류', color:'정하지 않음', dir:'정하지 않음', act:'출생 시각이 확인되면 온도를 다시 판단해요', less:'—'};
   var CLIMATE_COPY = {
     pig: {
       lead:'연이가 읽은 기후', env:'조후로 본 삶의 환경', parts:'글자별 온도·습도 기여', count:'온도를 움직이는 네 기운',
@@ -246,6 +250,7 @@
   function johuNeed(type) { return type === 'cold' || type === 'cool' ? ['fire', 'wood'] : type === 'hot' || type === 'warm' ? ['water', 'metal'] : []; }
   function climateVersus(facts, neo) {
     var j = facts.johu, pw = facts.power, need = johuNeed(j.type), yong = (pw && pw.yongshin) || [];
+    if (TEMP_INDEX[j.type] == null) return para(neo ? '한난 판정을 보류했으니까 조후로 채울 기운은 정하지 않아. 억부 용신을 중심으로 봐.' : '한난 판정을 보류했기 때문에 조후로 채울 기운은 정하지 않아요. 억부에서 고른 용신을 중심으로 읽어요.');
     var jong = facts.jong && facts.jong.isJong;
     var needText = need.map(function (e) { return EL[e]; }).join('·');
     var yongText = yong.slice(0, 2).map(function (e) { return EL[e]; }).join('·');
@@ -259,16 +264,24 @@
     t.push(neo ? '조후는 계절의 한난조습을, 억부는 일간 힘의 과부족을 보는 기준이야. 둘 중 하나만 정답이라고 보지 않아.' : '조후는 태어난 계절의 온도와 습도를, 억부는 일간이 감당하는 힘의 크고 작음을 보는 기준이에요. 어느 한쪽만 정답으로 두지 않고, 원국의 상황에 따라 앞뒤를 정해요.');
     return t.map(para).join('');
   }
+  function climatePendingVerdict(neo, season, hanPending, moistPending, typeName, moistName) {
+    var axes = [hanPending ? '한난' : '', moistPending ? '조습' : ''].filter(Boolean).join('·');
+    if (neo) return (season ? season + ' 월령이야. ' : '') + (hanPending ? '' : '온도는 ' + typeName + '. ') + (moistPending ? '' : '습조는 ' + moistName + '. ') + axes + ' 판정은 출생 정보가 부족해서 보류해. 아래 수치는 확인된 글자까지만 더한 참고값이야.';
+    return (season ? season + '의 월령에 태어난 원국이에요. ' : '') + (hanPending ? '' : '온도는 ' + typeName + '으로 읽혀요. ') + (moistPending ? '' : '습조는 ' + moistName + '이에요. ') + axes + '은 출생 정보가 부족해 단정하지 않고 보류해요. 아래 수치는 확인된 글자까지만 더한 참고값이에요.';
+  }
   function climate(facts, mode) {
     var j = facts && facts.johu, p = facts && facts.p;
     if (!j || !p || typeof j.score !== 'number') return '';
     var neo = mode === 'neo', c = CLIMATE_COPY[neo ? 'neo' : 'pig'], L = lib(facts);
     var parts = johuParts(p, L), ok = johuMatches(parts, j);
     var diff = (j.moistCnt || 0) - (j.dryCnt || 0);
-    var typeName = TEMP_NAMES[TEMP_INDEX[j.type] != null ? TEMP_INDEX[j.type] : 2], moistName = MOIST_NAMES[j.moistType] || MOIST_NAMES.balanced;
+    // 모르는 판정값(insufficient 포함)은 '고른 편'으로 채우지 않고 보류로 보여 준다.
+    var hanPending = TEMP_INDEX[j.type] == null, moistPending = !MOIST_NAMES[j.moistType];
+    var typeName = hanPending ? '판단 보류' : TEMP_NAMES[TEMP_INDEX[j.type]], moistName = moistPending ? '판단 보류' : MOIST_NAMES[j.moistType];
     var season = j.season || (parts && parts.season) || '';
-    var env = ENV[(Math.max(-6, Math.min(6, j.score)) < 0 ? 'cold' : 'hot') + (diff < 0 ? 'dry' : 'wet')];
-    var html = section(c.lead, hero(env.title, [typeName, '습조 ' + moistName, '온도 점수 ' + num(j.score)]) + para(fmt(c.verdict, {season:season, base:num(parts ? parts.seasonTemp : (BRANCH_TEMP[p.m.j] || 0)), score:num(j.score), type:typeName, wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName})), 'saju-rich__lead');
+    var env = hanPending || moistPending ? null : ENV[(Math.max(-6, Math.min(6, j.score)) < 0 ? 'cold' : 'hot') + (diff < 0 ? 'dry' : 'wet')];
+    var verdictVars = {season:season, base:num(parts ? parts.seasonTemp : (BRANCH_TEMP[p.m.j] || 0)), score:num(j.score), type:typeName, wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName};
+    var html = section(c.lead, hero(env ? env.title : '기후 판단 보류', [typeName, '습조 ' + moistName, '온도 점수 ' + num(j.score)]) + para(env ? fmt(c.verdict, verdictVars) : climatePendingVerdict(neo, season, hanPending, moistPending, typeName, moistName)), 'saju-rich__lead');
     html += '<div class="saju-rich__gauges">' +
       gauge({kind:'temp', value:j.score, min:-9, max:9, zones:[-5, -2, 2, 5], names:TEMP_NAMES, ends:['차가움 寒', '뜨거움 暖'], caption:'온도 점수 ' + num(j.score), aria:'한난 게이지: 온도 점수 ' + num(j.score) + ', ' + typeName}) +
       gauge({kind:'humid', value:diff, min:-6, max:6, zones:[-2.5, 3], names:['건조한 편', '고른 편', '습한 편'], ends:['건조함 燥', '촉촉함 濕'], caption:'습 ' + (j.moistCnt || 0) + ' · 조 ' + (j.dryCnt || 0) + ' (편차 ' + num(diff) + ')', aria:'조습 게이지: 습한 신호 ' + (j.moistCnt || 0) + '개, 건조한 신호 ' + (j.dryCnt || 0) + '개, ' + moistName}) + '</div>';
@@ -277,9 +290,9 @@
         [['월령 계절', season, '—', num(parts.seasonTemp), '—']].concat(parts.rows.map(function (r) { return [r.label + hourMark(facts, r.key), r.char, EL[r.el] || '—', r.temp ? num(r.temp) : '0', (r.moist ? '습' + (r.moist > 1 ? '×' + r.moist : '') : '') + (r.dry ? '조' + (r.dry > 1 ? '×' + r.dry : '') : '') || '—']; })),
         ['합계', '', '', num(parts.total), '습 ' + parts.moist + ' · 조 ' + parts.dry])) : ''));
     html += seasonArt(p.m.j);
-    html += section(c.env, '<p class="saju-rich__title">' + esc(env.title) + '</p>' + para(neo ? env.neo : env.pig));
+    if (env) html += section(c.env, '<p class="saju-rich__title">' + esc(env.title) + '</p>' + para(neo ? env.neo : env.pig));
     html += section(c.versus, climateVersus(facts, neo));
-    var rx = TEMP_RX[j.type] || TEMP_RX.neutral, mrx = MOIST_RX[j.moistType] || MOIST_RX.balanced;
+    var rx = hanPending ? TEMP_PENDING_RX : TEMP_RX[j.type], mrx = moistPending ? MOIST_RX.insufficient : j.moistType === 'balanced' && j.complete === false ? MOIST_RX.balancedPending : MOIST_RX[j.moistType];
     html += section(c.rx, para(c.rxIntro) + tiles([['채울 기운', rx.need, '氣'], ['색', rx.color, '色'], ['방향', rx.dir, '方'], ['활동', rx.act, '動'], ['줄일 것', rx.less, '減'], [c.moistRx + ' (' + mrx.need + ')', mrx.act, j.moistType === 'wet' ? '燥' : '濕']]) + '<p class="saju-rich__note">' + esc(c.notHealth) + '</p>', 'saju-rich__wide');
     html += more('한난조습이란 무엇인가요?', '<p>' + esc(neo ? '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 보는 조후의 기준이야. 어떤 환경에서 네 힘이 잘 쓰이는지 볼 때 써.' : '한난조습은 원국의 온도(차고 뜨거움)와 습도(건조하고 촉촉함)를 살피는 조후의 기준이에요. 자연에 계절과 날씨가 있듯 사람의 기질에도 기후가 있다고 보고, 어떤 환경에서 내가 편안하고 힘이 잘 쓰이는지 알아보는 데 써요.') + '</p>' +
       '<ul class="saju-tiles"><li><b>한(寒) · 차가움</b><span>겨울의 응축된 기운. 차분하고 신중하게 안으로 다지는 힘으로 읽어요.</span></li><li><b>난(暖) · 따뜻함</b><span>여름의 발산하는 기운. 열정과 표현, 밖으로 뻗는 힘으로 읽어요.</span></li><li><b>조(燥) · 건조함</b><span>가을의 단단한 기운. 맺고 끊음이 분명하고 군더더기 없는 결로 읽어요.</span></li><li><b>습(濕) · 촉촉함</b><span>봄의 얽히는 기운. 공감과 친화력, 함께 자라는 결로 읽어요.</span></li></ul>' +
@@ -337,7 +350,6 @@
     var parts = powerParts(p, L), ok = powerMatches(parts, pw), strong = !!pw.isStrong, st = stage(pw.score);
     var html = '';
     var gaugeHtml = gauge({kind:'power', value:pw.score, min:-71, max:88, base:30, zones:[-20, 10, 30, 50, 70], names:['극신약', '신약', '중화에 가까운 신약', '중화에 가까운 신강', '신강', '극신강'], ends:['신약 쪽', '신강 쪽'], baseLabel:'기준 30', caption:'억부 점수 ' + pw.score + '점 (판정 기준 30점)', aria:'억부 게이지: 점수 ' + pw.score + '점, ' + st + ', 판정 기준 30점'});
-    var verified = jg && jg.verifiedText ? '<p class="saju-rich__note">' + esc(jg.verifiedText) + '</p>' : '';
     if (jg && jg.isJong) {
       var dom = EL[jg.dominant] || '';
       html += section(neo ? '영냥이의 진단' : '연이가 읽은 힘의 모양', hero(jg.name || '종격', [dom + (jg.pct != null ? ' ' + jg.pct + '%' : ''), '억부 ' + pw.score + '점 (참고)']) + para(neo ? '판정: ' + (jg.name || '종격') + '. ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '원국을 이끌어. 그래서 일반적인 신강·신약 공식은 대지 않아.' : '당신의 원국은 ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '크게 모인 ' + (jg.name || '종격') + '으로 검토됐어요. 이런 구조는 일반적인 신강·신약 잣대로 재지 않고, 모인 기세를 따르는 쪽으로 읽어요.'), 'saju-rich__lead');
@@ -345,7 +357,7 @@
       html += section('종격(從格)이란', para(neo ? '한 오행이 원국 전체를 압도하면 그 기세를 누르지 말고 따르는 게 해법이라는 이론이야. 그래서 억부 점수는 참고값으로만 둬.' : '한 가지 오행이 원국 전체를 압도할 만큼 강하면, 그 기세를 억지로 누르기보다 따르는 쪽이 자연스럽다고 보는 이론이에요. 그래서 위의 억부 점수는 참고로만 보고, 아래의 격 설명을 중심에 둬요.'));
       html += section(neo ? '격의 종류' : '당신의 격', para((jg.name || '종격') + ' — ' + jongKind(jg.name, neo) + '.'));
       html += section('대운·세운의 방향', para(neo ? dom + ' 기운을 북돋는 운에서는 흐름이 순하게 이어지기 쉽고, 기세를 거스르는 운에서는 조율할 일이 늘 수 있어. 강점 하나에 힘을 모으는 쪽이 잘 맞아.' : dom + ' 기운을 북돋는 운이 오면 흐름이 순하게 이어지기 쉽고, 그 기세를 거스르는 운에서는 조율할 일이 늘 수 있어요. 여러 갈래로 힘을 나누기보다 타고난 강점 하나를 깊게 가꾸는 쪽이 잘 맞는 구조예요.'));
-      html += section(jg.isGaJong ? '가종격(假從格)' : '진종격(眞從格)에 가까움', para(jg.isGaJong ? (neo ? '일간을 돕는 약한 뿌리가 남아 있어. 대운에 따라 종격으로 굳을 수도, 일반 격으로 돌아올 수도 있으니까 지나온 흐름이랑 맞춰 봐.' : '일간을 돕는 약한 뿌리가 남아 있어서, 대운의 흐름에 따라 종격으로 굳어지기도 하고 일반 격(내격)으로 돌아오기도 해요. 지나온 시기의 경험과 견주어 보며 확인해 주세요.') : (neo ? '지배 오행을 따르는 흐름이 뚜렷해.' : '지배하는 오행을 따르는 흐름이 뚜렷한 편이에요.')) + verified);
+      html += section(jg.isGaJong ? '가종격(假從格)' : '진종격(眞從格)에 가까움', para(jg.isGaJong ? (neo ? '일간을 돕는 글자가 있어도 실제 뿌리로 작용하지 못해서 지배 오행을 따르는 가종(假從) 조건이야.' : '일간을 돕는 글자가 있지만 실제 뿌리로 작용하지 못해 지배 오행을 따르는 가종(假從)의 조건이에요.') : (neo ? '지배 오행을 따르는 흐름이 뚜렷해.' : '지배하는 오행을 따르는 흐름이 뚜렷한 편이에요.')));
     } else {
       var lead = neo ? '판정: ' + st + '(' + (strong ? '신강' : '신약') + '). 억부 점수 ' + pw.score + '점, 기준선 30점에서 ' + Math.abs(pw.score - 30) + '점 ' + (pw.score >= 30 ? '위' : '아래') + '야.' : '억부 점수는 ' + pw.score + '점으로 ' + st + '으로 읽혀요. 신강과 신약을 가르는 기준선은 30점이고, 당신의 ' + dayName + ' 일간은 그 기준선에서 ' + Math.abs(pw.score - 30) + '점 ' + (pw.score >= 30 ? '위' : '아래') + '에 있어요.';
       var tagline = strong ? (neo ? '유형: 스스로 밀고 나가는 주체형이야.' : '스스로 밀고 나가는 주체형에 가까워요.') : (neo ? '유형: 섬세하게 살피고 함께 가는 공감형이야.' : '섬세하게 살피고 함께 가는 공감형에 가까워요.');
@@ -370,7 +382,7 @@
       html += section(neo ? '용신·희신 / 기신·구신' : '나를 살리는 기운 · 조심할 기운', chips(godChips(L, dayEl, pw.yongshin || [], ['용신', '희신'], 'good').concat(godChips(L, dayEl, pw.kijishin || [], ['기신', '구신'], 'care'))) +
         para(neo ? '용신·희신 오행이 대운·세운으로 들어올 때 일이 풀리기 쉽고, 기신·구신이 강해지는 시기에는 확장 속도를 늦추는 편이 안전해.' : '용신·희신의 오행이 대운이나 세운으로 들어올 때 일이 수월하게 풀리고 도움을 만나기 쉬워요. 기신·구신이 강해지는 시기에는 한 템포 늦추고, 무리한 확장이나 큰 결정은 조금 더 살펴본 뒤에 해도 늦지 않아요.') +
         more('용신·희신·기신·구신·한신이란', para('용신(用神)은 원국의 균형을 잡는 데 가장 필요한 기운, 희신(喜神)은 용신을 돕는 기운이에요. 기신(忌神)은 용신을 해치는 기운, 구신(仇神)은 기신을 돕는 기운이고, 한신(閑神)은 어느 쪽에도 크게 기울지 않는 기운이에요. 이 원국의 계산은 다섯 오행을 돕는 쪽과 부담 쪽으로 모두 나누기 때문에 한신은 따로 두지 않아요.')));
-      html += section('대운 방향 한눈에', para(strong ? (neo ? '식상·재성·관성 운, 그러니까 힘을 밖으로 쓰고 성과로 바꾸는 흐름이 너한테 유리해.' : '식상·재성·관성의 운, 즉 기운을 밖으로 쓰고 성취로 바꾸는 흐름에서 사회적인 결실이 맺히기 쉬워요.') : (neo ? '비겁·인성 운, 그러니까 너를 채우고 받쳐 주는 흐름이 유리해.' : '비겁·인성의 운, 즉 나를 채우고 지지해 주는 흐름에서 자신감과 도움이 함께 찾아오기 쉬워요.')) + verified);
+      html += section('대운 방향 한눈에', para(strong ? (neo ? '식상·재성·관성 운, 그러니까 힘을 밖으로 쓰고 성과로 바꾸는 흐름이 너한테 유리해.' : '식상·재성·관성의 운, 즉 기운을 밖으로 쓰고 성취로 바꾸는 흐름에서 사회적인 결실이 맺히기 쉬워요.') : (neo ? '비겁·인성 운, 그러니까 너를 채우고 받쳐 주는 흐름이 유리해.' : '비겁·인성의 운, 즉 나를 채우고 지지해 주는 흐름에서 자신감과 도움이 함께 찾아오기 쉬워요.')));
     }
     html += more('억부(抑扶)란 무엇인가요?', para('억부는 일간이 너무 강하면 누르고(抑) 약하면 돕는(扶) 쪽으로 균형을 찾는 명리의 기준이에요. 이 원국은 월지를 가장 무겁게 봐요(같은 오행 +40, 인성 +27, 관살 −27, 식상 −10). 일지는 같은 오행이나 인성이면 +13, 관살이면 −9이고, 나머지 다섯 글자는 같은 오행이나 인성이면 +7, 관살이면 −7이에요. 합계 30점 이상을 신강, 그 아래를 신약으로 판정하고, 단계 이름은 점수 구간을 읽기 쉽게 붙인 것이에요. 점수는 사람의 능력이나 가치를 매기는 등급이 아니에요.'));
     return wrap(mode, html, facts);

@@ -1,5 +1,7 @@
 import { NEO_EMAIL_SALE_ENABLED, neoUnitPrice } from '../../lib/neo-consultation/contract.js';
 
+import { AI_LOCALE_HEADER } from '../../lib/i18n/ai-locale.js';
+
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 export const neoUnavailable = () => json({ code: 'PRODUCT_SALE_DISABLED', message: '상담을 준비하고 있어요. 아직 결제와 접수는 진행되지 않아요.' }, 503);
 
@@ -36,8 +38,8 @@ export async function handleNeoConsultations(request, { service, userId, admin, 
       else if (action === 'resolve-delivery') order = await service.resolveDelivery(admin,id,body.jobKey,body.resolution,body.version);
       else return json({ code: 'NOT_FOUND' },404);
     } else {
-      if (!id) order = await service.create(userId,body);
-      else if (action === 'update') order = await service.update(userId,id,body.input,body.version);
+      if (!id) order = await service.create(userId,{ ...body, locale: body.locale ?? request.headers.get(AI_LOCALE_HEADER) });
+      else if (action === 'update') order = await service.update(userId,id,{ ...body.input, locale: body.input?.locale ?? request.headers.get(AI_LOCALE_HEADER) },body.version);
       else if (action === 'quote') order = await service.quote(userId,id,body.version);
       else if (action === 'prepare') order = await service.prepare(userId,id,body.quoteId);
       else if (action === 'checkout' && checkout) return json(await checkout(userId,id));

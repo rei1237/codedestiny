@@ -157,6 +157,7 @@
 /public/js/core/payment-service.d.ts
 /public/js/core/payment-service.js
 /public/js/core/pet/crafted-details.mjs
+/public/js/core/play-display-price.js
 /public/js/core/premium-chapter-orchestrator.js
 /public/js/core/profile-character-card.mjs
 /public/js/core/profile-characters.mjs
@@ -172,6 +173,7 @@
 /public/js/core/saju/dopamineResult.js
 /public/js/core/saju/extremeTResult.js
 /public/js/core/saju/modalProfileState.js
+/public/js/core/saju/natal-core.generated.js
 /public/js/core/saju/reading-depth.generated.js
 /public/js/core/saju/reading-navigation.js
 /public/js/core/saju/reading-personas.js
@@ -199,6 +201,7 @@
 /public/js/feature-detail-preview.mjs
 /public/js/feature-introduction-share.d.mts
 /public/js/feature-introduction-share.mjs
+/public/js/first-visit-copy.mjs
 /public/js/first-visit-state.d.mts
 /public/js/first-visit-state.mjs
 /public/js/fortune-gateway.js
@@ -233,6 +236,7 @@
 /public/js/recommendations-legacy.mjs
 /public/js/review-reward-copy.mjs
 /public/js/review-reward-invite.mjs
+/public/js/review-sharing.mjs
 /public/js/runtime-stability.js
 /public/js/saju-compat-archive.js
 /public/js/saju-compat-art.d.mts
@@ -264,6 +268,7 @@
 /public/js/tarot-self-esteem-experience.js
 /public/js/tarot-year-fortune-experience.js
 /public/js/touch-perf.js
+/public/js/vedic-birth-inputs.js
 /public/js/vendor/sweph-wasm/ephe/seas_18.se1
 /public/js/vendor/sweph-wasm/ephe/semo_18.se1
 /public/js/vendor/sweph-wasm/ephe/sepl_18.se1
@@ -297,7 +302,6 @@
 /public/styles/app-shell.css
 /public/styles/astro-reading.css
 /public/styles/basic-fortune-library.css
-/public/styles/concern-first-home.css
 /public/styles/consultation-discovery.css
 /public/styles/consultation-editorial.css
 /public/styles/consultation-method-guide.css
@@ -322,6 +326,7 @@
 /public/styles/mobile-bottom-nav.css
 /public/styles/mobile-lite.css
 /public/styles/mobile-totem-flower-fix.css
+/public/styles/moonlit-birth-form.css
 /public/styles/my-garden.css
 /public/styles/press-coverage.css
 /public/styles/profile-characters.css

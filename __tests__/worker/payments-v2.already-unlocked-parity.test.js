@@ -118,6 +118,24 @@ test("🔴 월정석: 첫 결제는 차감하고, 같은 콘텐츠 재열람은 
   expect(second.ops).toBeLessThan(first.ops);
 });
 
+test("과거 서비스 키의 출생 권한은 월정석 재열람에서 다시 차감하지 않는다", async () => {
+  expect(isBirthScopedUnlockFeatureKey(UNLOCK_ITEM.featureKey)).toBe(true);
+  const db = makeDb();
+  const user = seedFundedUser(db);
+  const first = await postMoonstone(db, "historical-key-buy");
+  expect(first.response.status).toBe(200);
+  const row = db.rows.find(item => item.grantType === "permanent_unlock");
+  expect(row).toBeTruthy();
+  row.serviceKey = "paid_content";
+  const balance = user.profileSubscription.membershipCreditBalance;
+  const second = await postMoonstone(db, "historical-key-reopen", "p2");
+  expect(second.response.status).toBe(200);
+  expect(second.payload.data.consume).toMatchObject({ alreadyUnlocked: true, membershipCreditCost: 0 });
+  expect(user.profileSubscription.membershipCreditBalance).toBe(balance);
+  expect(ledgerCount(db)).toBe(1);
+  expect(entitlementCount(db)).toBe(1);
+});
+
 /**
  * 🔴 위 규칙의 뒷면. "한 번 결제하면 계속 열린다"는 **결제가 실제로 일어났을 때만** 성립한다.
  *
@@ -236,6 +254,17 @@ describe("레거시 해금 행(출생 기반 전환 이전 구매)", () => {
     expect(payload.data.consume.alreadyUnlocked).toBe(true);
     expect(Number(user.profileSubscription.membershipCreditBalance)).toBe(100000);
     expect(ledgerCount(db)).toBe(0);
+  });
+
+  test.each(["saju", "section_daewun", "paid_content"])("이용권: 과거 USER 권한 %s는 다시 소비하지 않는다", async serviceKey => {
+    const db = makeDb();
+    const pass = { tier: "family", passTier: "family", isActive: true, expiresAt: new Date(Date.now() + 10 * 86400000) };
+    const user = { _id: USER, points: 0, profileSubscription: pass };
+    db.rows.push(user, legacyRow({ scope: "USER", profileId: "__user__", serviceKey }));
+    const { response, payload } = await post(db, "pass-check", { paymentMode: "MEMBERSHIP_PASS", requestId: `legacy-pass-${serviceKey}` });
+    expect(response.status).toBe(200);
+    expect(payload.data.consume.alreadyUnlocked).toBe(true);
+    expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
   });
 
   test("월정석: 다른 카드의 레거시 PROFILE 행으로는 열리지 않고 새로 차감한다", async () => {

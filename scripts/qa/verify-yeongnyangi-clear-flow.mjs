@@ -61,7 +61,7 @@ try {
     if(url.origin!==base){blocked.push(url.hostname);return route.abort();}
     if(url.pathname.startsWith('/api/')){
       assert.equal(request.method(),'GET','Visual capture must not submit mutations');
-      const data=url.pathname==='/api/auth/me'?{authenticated:true,user:{id:'visual-mock',name:'테스트 손님'}}:url.pathname.endsWith('/products')?{products}:url.pathname.endsWith('/profiles')?{ok:true,profiles:[profile],currentId:profile.id}:url.pathname.endsWith('/saju/jong-check')?{check:null}:{ok:true};
+      const data=url.pathname==='/api/auth/me'?{authenticated:true,user:{id:'visual-mock',name:'테스트 손님'}}:url.pathname.endsWith('/products')?{products}:url.pathname.endsWith('/profiles')?{ok:true,profiles:[profile],currentId:profile.id}:url.pathname.endsWith('/saju/experience-check')?{check:null}:{ok:true};
       return route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
     }
     return route.continue();

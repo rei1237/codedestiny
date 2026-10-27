@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -1272,11 +1275,11 @@ function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed):
   }
   return {
     ...form,
-    name: profile.name || form.name,
-    gender: (profile.gender as ConsultationForm["gender"]) || form.gender,
-    birthDate: profile.birthDate || form.birthDate,
+    name: profile.name ?? form.name,
+    gender: (profile.gender as ConsultationForm["gender"]) ?? form.gender,
+    birthDate: profile.birthDate ?? form.birthDate,
     birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
-    birthTime: profile.birthTimeUnknown === true ? "" : (profile.birthTime || form.birthTime),
+    birthTime: profile.birthTimeUnknown === true ? "" : (profile.birthTime ?? form.birthTime),
     calendarType: profile.calendarType || form.calendarType,
   };
 }
@@ -1417,8 +1420,9 @@ export default function LifeBookAiClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
@@ -1789,7 +1793,7 @@ export default function LifeBookAiClient() {
 
           <section className="grid content-start gap-4">
             <ExpertValueCards theme="lifeBook" points={[{ title: "타고난 기질", description: "생년월일과 질문을 바탕으로 반복되는 선택의 결을 정리합니다." }, { title: "삶의 장면", description: "일·관계·회복의 흐름을 한 권의 목차처럼 연결해 봅니다." }, { title: "다음 장면", description: "지금 할 수 있는 작고 현실적인 다음 선택을 남깁니다." }]} />
-            <form id="life-book-form" onSubmit={submit} className={intro.bookForm}>
+            <form data-moonlit-form="" id="life-book-form" onSubmit={submit} className={intro.bookForm}>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0 basis-full">
                   <h2 className="mt-1 text-2xl font-semibold text-amber-50">{copy.formHeading}</h2>
@@ -1797,14 +1801,7 @@ export default function LifeBookAiClient() {
                     {copy.formDescription}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={loadFormFromProfileCard}
-                  className="shrink-0 rounded-lg border border-amber-200/30 bg-amber-50/10 px-3 py-2 text-xs font-bold text-amber-100 transition hover:bg-amber-100/20"
-                  aria-label={copy.profileLoadAria}
-                >
-                  {copy.profileLoadCta}
-                </button>
+                <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
                 <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-black/20 px-3 py-1 text-sm font-bold text-amber-100">
                   {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <BookOpen className="h-4 w-4" aria-hidden="true" />}
                   {statusLabel}
@@ -1873,7 +1870,7 @@ export default function LifeBookAiClient() {
               <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                 <label className="grid gap-2 text-sm font-bold">
                   <span className="flex items-center gap-2 text-[#f6e6c4]"><Clock3 className="h-4 w-4" aria-hidden="true" /> {copy.birthTimeFieldLabel}</span>
-                  <input type="time" value={form.birthTime} onChange={(event) => updateField("birthTime", event.target.value)} disabled={form.birthTimeUnknown} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#14271e] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33] disabled:opacity-50" />
+                  <BirthTimeInput  value={form.birthTime} onChange={(event) => updateField("birthTime", event.target.value)} disabled={form.birthTimeUnknown} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#14271e] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33] disabled:opacity-50" />
                 </label>
                 <label className="flex min-h-11 items-center gap-3 rounded-full border border-amber-100/15 bg-[#14271e] px-4 text-sm font-bold text-[#eadfc9]">
                   <input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => updateField("birthTimeUnknown", event.target.checked)} className="h-4 w-4 accent-[#e7bd62]" />

@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import Link from "next/link";
 import salon from "./yeoni-salon.module.css";
 import YeoniWelcome from "./YeoniWelcome";
@@ -291,7 +294,7 @@ export default function FortuneChatClient() {
     else router.back();
   }, [router]);
   const { ensurePaidAccess, isPaying } = useCoinGate();
-  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion } = useAiProfileSeed();
   // 상담자는 연이 하나다. 예전 링크의 `?character=neo` 나 네오로 저장된 세션도 연이로 연다(대화 기록은 그대로).
   const [messages, setMessages] = useState<Message[]>(() => welcome("yeoni"));
   const [usage, setUsage] = useState<Usage | null>(null);
@@ -747,7 +750,7 @@ export default function FortuneChatClient() {
       {notice && <p className={styles.ticketStatus} role="status">{notice}</p>}
     </div>
 
-    <section className={styles.composer} aria-label={copy.composerAria}>
+    <section data-moonlit-form="" className={styles.composer} aria-label={copy.composerAria}>
       <div className={styles.policyRow}>
         <p className={styles.policy}>{usageLabel}</p>
         {usage && <PriceBadge featureKey={PAID_FEATURE_KEY} prefix="단건 " className={styles.priceBadge} />}
@@ -757,11 +760,11 @@ export default function FortuneChatClient() {
         <summary>{birth.birthDate ? `생년 정보 ${birth.birthDate}${birth.birthTime ? ` ${birth.birthTime}` : " · 시간 모름"}` : "생년 정보를 알려주세요"}</summary>
         <div className={styles.birthGrid}>
           <label>생년월일<input {...birthDateTextInputProps(birth.birthDate, (nextBirthDate) => editBirth({ birthDate: nextBirthDate }))} /></label>
-          <label>태어난 시각 <em>(모르면 비워두세요)</em><input type="time" value={birth.birthTime} onChange={(event) => editBirth({ birthTime: event.target.value })} /></label>
+          <label>태어난 시각 <em>(모르면 비워두세요)</em><BirthTimeInput  value={birth.birthTime} onChange={(event) => editBirth({ birthTime: event.target.value })} /></label>
           <label>달력<select value={birth.calendarType} onChange={(event) => editBirth({ calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}><option value="solar">양력</option><option value="lunar">음력</option></select></label>
           <label>성별 <em>(선택)</em><select value={birth.gender} onChange={(event) => editBirth({ gender: event.target.value as Birth["gender"] })}><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
         </div>
-        <button className={styles.birthReload} type="button" onClick={() => { birthTouchedRef.current = false; void reloadProfileSeed(); }}>저장한 프로필에서 불러오기</button>
+        <SavedBirthProfilePicker calendarMode="lunar" disabled={busy} onSelect={seed => { birthTouchedRef.current = true; setBirth({birthDate:seed.birthDate || "", birthTime:seed.birthTimeUnknown ? "" : seed.birthTime || "", calendarType:seed.calendarType || "solar", gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "unknown"}); }} />
       </details>
 
       {suggestions.items.length > 0 && <div className={styles.followUps} aria-label={copy.followUpsAria}>

@@ -1,5 +1,6 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
+import { supportRecoveryPartHash } from '../../worker/lib/support-recovery-budget.js';
 let utils, provider, fetchBlock, monthlyIndex;
 beforeAll(async () => {
   const gemini = await import('../../worker/lib/gemini.js');
@@ -26,6 +27,31 @@ it('first section citing a few monthly pillars is adopted while the monthly sect
   const result = await utils.generateConsultationText({}, input, facts, options([]));
   expect(provider).toHaveBeenCalledTimes(1);
   expect(result.savedSections[0].text).toContain('임인');
+});
+
+it('support recovery pins the approved provider options and never rewrites a preserved opening', async () => {
+  const saved = filled();
+  const opening = saved[0].text;
+  saved[monthlyIndex] = { ...saved[monthlyIndex], text: '', ok: false };
+  provider.mockResolvedValue({ ok: true, provider: 'gemini', text: text('monthly', 5000, pillars.join(' ')) });
+  const recovery = { active: true, approvedProvider: 'gemini', approvedModel: 'gemini-2.5-flash', maxOutputTokens: 12000,
+    preserved: { opening: supportRecoveryPartHash(opening) } };
+  const result = await utils.generateConsultationText({}, input, facts, {
+    ...options(saved), hasCustomQuestion: true, supportRecovery: recovery,
+  });
+  expect(provider).toHaveBeenCalledTimes(1);
+  expect(provider.mock.calls[0][2]).toEqual(expect.objectContaining({ model: 'gemini-2.5-flash', fallbackToWorkersAI: false, maxProviderAttempts: 1, maxOutputTokens: 12000 }));
+  expect(result.savedSections[0].text).toBe(opening);
+  expect(result.complete).toBe(true);
+});
+
+it('support recovery rejects a changed preserved body before calling a provider', async () => {
+  const saved = filled();
+  const recovery = { active: true, approvedProvider: 'gemini', approvedModel: 'gemini-2.5-flash', maxOutputTokens: 12000,
+    preserved: { opening: supportRecoveryPartHash('a different original body') } };
+  await expect(utils.generateConsultationText({}, input, facts, { ...options(saved), supportRecovery: recovery }))
+    .rejects.toMatchObject({ code: 'SUPPORT_RECOVERY_ORIGINAL_CHANGED' });
+  expect(provider).not.toHaveBeenCalled();
 });
 for (const previousCount of [9, 7]) it(`a rewrite that lowers monthly pillar citations from ${previousCount} to 2 is not adopted`, async () => {
   const saved = utils.NEW_YEAR_AI_SECTIONS.map(section => ({ key: section.key, section, ok: true,

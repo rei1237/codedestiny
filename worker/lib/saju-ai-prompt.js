@@ -17,7 +17,10 @@ import {
 import {
   buildGyeokgukAnalysis,
   buildTwelveLifeStagesForPillars,
+  natalCoreFromPillarRows,
 } from "./saju-gyeokguk.js";
+import { legacyJongShape } from "../../lib/saju/natal-core/index.mjs";
+import { gyeokgukClaimFact, gyeokgukPromptRules } from "../../lib/saju/gyeokguk-claim-guard.mjs";
 
 const DEFAULT_TEXT = "제공되지 않음";
 
@@ -2209,13 +2212,19 @@ export function buildSajuAIPromptWithDomain({
   const weights = normalizeElementWeights(sajuResult, sajuResult.snapshot);
   const johu = sajuResult.johu && typeof sajuResult.johu === "object" ? sajuResult.johu : {};
   const power = sajuResult.power && typeof sajuResult.power === "object" ? sajuResult.power : {};
-  const jong = sajuResult.jong && typeof sajuResult.jong === "object" ? sajuResult.jong : {};
+  // 종격 여부는 요청에 실린 값(옛 설문을 거쳤을 수 있음)이 아니라 원국 기둥으로 다시 판정한다.
+  const natalCore = natalCoreFromPillarRows(normalizeSajuPillarRows(sajuResult));
+  const jong = legacyJongShape(natalCore);
   const engineContext = normalizeSajuEngineContext(sajuResult);
   const advancedFactors = engineContext.advancedFactors;
   const calibrationResolved = resolveSajuCalibrationLuck(calibration, {
     daewunRows: engineContext.quantum.daewun,
     currentAge: engineContext.quantum.currentAge,
     currentYear: Number(sajuResult.targetYear || sajuResult.currentYear || sajuResult.engineContext?.currentYear || 0) || undefined,
+    // 경험 대조는 원국과 화면이 쓰는 용신·기신을 읽기만 한다.
+    natal: natalCore,
+    useful: power.yongshin,
+    avoid: power.kijishin,
   });
   const factBuild = buildSajuMyeongsikFactSnapshot({
     sajuResult,
@@ -2296,6 +2305,7 @@ export function buildSajuAIPromptWithDomain({
     "- 내부 십성표와 다른 십성으로 바꾸지 마세요.",
     "- 예: 신금(辛) 일간에게 임수(壬)는 식신이 아니라 상관입니다.",
     "- 격국·십이운성은 위 명식 사실 카드(10. 격국, 2. 사주 원국)에 확정값이 있습니다. 이와 다른 격국을 새로 만들지 말고, 격국의 활성화/파격 시기는 대운·세운 라인과 연결해 시기별 행동지침으로 풀어주세요.",
+    ...gyeokgukPromptRules(gyeokgukClaimFact(factSnapshot.majorStructures?.gyeokguk), "formal").map((line) => `- ${line}`),
     "- fact card 밖의 출생 개인정보나 존재하지 않는 신살·관계를 새로 만들지 마세요.",
     "",
     `도메인: ${template.domainKo}`,
@@ -2341,10 +2351,7 @@ export function buildSajuAIPromptWithDomain({
     minPromptLength: 2600,
   });
 
-  const calibrationLines = buildSajuCalibrationPromptLines(calibrationResolved, {
-    yongshin: power.yongshin,
-    kijishin: power.kijishin,
-  });
+  const calibrationLines = buildSajuCalibrationPromptLines(calibrationResolved);
   const purposePrompt = [
     // 헤더 문자열은 SAJU_AI_PROMPT_VERSION(= promptVersion, 캐시 키 keyExtra)과 같은 세대를 가리켜야 한다.
     `[명식이 답하는 사주 AI 상담 ${SAJU_AI_PROMPT_VERSION.replace(/^saju-myeongsik-ai-/, "")}]`,

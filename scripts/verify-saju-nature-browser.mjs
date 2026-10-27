@@ -24,7 +24,7 @@ const server = createServer(async (req, res) => {
       const result = buildSajuSectionHtml({
         featureKey: body.featureKey,
         birth: {calendarDate: birth.date, calType: birth.calType, timeKnown: birth.timeKnown !== false, hour: birth.hour, minute: birth.minute},
-        gender: body.gender, name: body.name, mode: body.mode, lang: body.lang, place: body.place, jongDecision: body.jongDecision, daewun: body.daewun,
+        gender: body.gender, name: body.name, mode: body.mode, lang: body.lang, place: body.place, daewun: body.daewun,
       });
       payload = {ok:true, unlocked:true, featureKey:body.featureKey, ...result};
     } catch (error) { status = 400; payload = {ok:false, message:error.message}; }

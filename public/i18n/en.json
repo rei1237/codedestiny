@@ -2061,6 +2061,174 @@
       "fusion": "Explore the six-system reading",
       "concerns": "Browse by your question",
       "music": "Moonlight journey · Take a musical break"
+    },
+    "guideCopy": {
+      "replyLanguage": "Reply language: {language}",
+      "header": "Site header",
+      "nav": "Main navigation",
+      "honeyTitle": "Where can I use Honey Drops?",
+      "honeyClose": "Close Honey Drop guide",
+      "honeyEligible": "Honey Drops accepted",
+      "honeyLead": "Use Honey Drops collected from check-ins to open eligible basic readings. Browse the readings and required amounts below.",
+      "honeyTutorialAlt": "Yeoni collects Honey Drops, chooses a reading and opens it with Honey Drops",
+      "honeyTutorial": "Check in · Choose a reading · Open with Honey Drops",
+      "honeyChoose": "Choose a reading",
+      "honeyChooseBody": "Expand a category below and choose a reading.",
+      "honeyProfile": "Check your profile",
+      "honeyProfileBody": "Sign in and select the profile with your saved birth details.",
+      "honeyCheckOpen": "Check the amount, then open",
+      "honeyCheckOpenBody": "Choose “Open with Honey Drops” on the reading screen. Following a link alone does not spend any drops.",
+      "honeyQuestion": "What would you like to explore?",
+      "honeyHint": "Select a reading category to see eligible items.",
+      "honeyRules": "Before you use Honey Drops",
+      "honeyProfileRule": "Basic readings follow your profile",
+      "honeyProfileRuleBody": "Reopen an unlocked item with the same account and birth details without spending more Honey Drops.",
+      "honeyPerUseRule": "Detailed compatibility and basic tarot are per request",
+      "honeyPerUseRuleBody": "A new partner comparison or card reading uses Honey Drops again. Once a detailed Sukuyo reading is saved, its original text is available in your records.",
+      "honeyListOnly": "For the items in this list",
+      "honeyOtherPayments": "Other payment options still apply",
+      "honeyOtherPaymentsBody": "Passes, Moonstones and one-time payments follow each item's existing policy. Honey Drop amounts are separate from cash prices.",
+      "honeyOpenTitle": "Open content",
+      "close": "Close",
+      "open": "Open",
+      "honeyConfirmPolicy": "Open this content using the selected profile's birth details. Reopening it with the same account and birth details uses no extra drops.",
+      "honeyAttendance": "Check-ins · Honey Drops",
+      "honeyMine": "My Honey Drops",
+      "honeyMascotAlt": "Yeoni smiles while holding Honey Drops",
+      "honeyAttendanceHint": "Check in daily and use your drops for basic readings.",
+      "honeyAttend": "Check in",
+      "honeyUses": "Where to use them",
+      "retry": "Check again",
+      "signatureTitle": "Choose the reading you need now",
+      "signatureLead": "Read AI interpretations tailored to each topic using our shared approach. Explore the contents and examples first.",
+      "coMasters": "Your guides",
+      "loveNames": "Yeoni · Seo Hanbi",
+      "loveQuestion": "Start with what's on your heart. Seo Hanbi will help you understand the distance between you.",
+      "loveStart": "Explore your love reading",
+      "yearTitle": "Year-ahead reading",
+      "yearQuestion": "Let's map the year ahead. Where should you push forward, and when should you pause?",
+      "yearStart": "Read your year ahead",
+      "lifeQuestion": "Let's open your life story from its first chapter.",
+      "lifeStart": "Open your Book of Life",
+      "signatureMore": "Explore more readings",
+      "neoRoomTitle": "Neo's Straight-Talk Strategy Room",
+      "neoQuestion": "You've thought it through. What will you change first?",
+      "neoRoomStart": "Enter the Strategy Room",
+      "teaQuestion": "From reconnecting to business, which choice is on your mind?",
+      "teaStart": "Enter the Destiny Tea House",
+      "codexShort": "Book of Bonds",
+      "codexQuestion": "Why do the same relationship worries return with different people?",
+      "codexStart": "Open the Book of Bonds",
+      "signatureSamples": "See reading contents and examples",
+      "fusionEyebrow": "A reading across six traditions",
+      "fusionLead": "Five guides explore six distinct traditions in one report, covering your nature, timing, love, marriage and finances.",
+      "fusionSystems": "Six traditions",
+      "fusionChapters": "Eight topic chapters",
+      "lifeTiming": "Life phases",
+      "fusionStart": "Get your Fusion Reading",
+      "neoRole": "Saju · Money · Work",
+      "yeoniRole": "Tarot · Love",
+      "hanbiRole": "Sukuyo · Marriage · Relationships",
+      "yunRole": "Astrology · Timing · Well-being",
+      "musungRole": "Ziwei · Personality",
+      "chooseFormat": "Choose a consultation format",
+      "format": "Consultation format",
+      "tabYeoni": "Chat with Yeoni",
+      "tabNeo": "Email from Neo",
+      "tabCat": "Ask Yeongnyangi",
+      "sharedBasis": "A shared approach,",
+      "yourFormat": "a format that suits you",
+      "methodChoice": "Yeongnyangi, Ggulggul or Neo: which consultation suits you?",
+      "expand": "Show details",
+      "catName": "Yeongnyangi",
+      "yourQuestion": "Focus on your question",
+      "questionFormat": "Read AI explanations in chapters, based on your question and situation.",
+      "catConsult": "Explore Yeongnyangi",
+      "chooseTopic": "Explore by topic",
+      "topicFormat": "Choose from fortune tools and AI reports by topic.",
+      "topicConsult": "Explore topics",
+      "askNeo": "Neo’s Decision Brief",
+      "humanReply": "Receive a personally reviewed reply",
+      "humanFormat": "Neo uses AI analysis to write and review your reply, then emails it to you.",
+      "emailGuide": "View email consultation details",
+      "beforeConsult": "Before you begin",
+      "basisTitle": "Interpretation approach",
+      "reviewTitle": "AI and personal review",
+      "termsTitle": "Check access terms",
+      "compareSamples": "Compare reading samples",
+      "emailMethod": "Personal review · Email consultation",
+      "writeQuestion": "Write your question",
+      "emailOnly": "Replies are delivered by email; this is not live chat.",
+      "emailOptions": "Add-ons and reply details",
+      "viewPrices": "View content and prices",
+      "swipe": "Swipe to choose",
+      "previousConcern": "Previous topic",
+      "nextConcern": "Next topic",
+      "related": "Related readings",
+      "smallFortune": "A little taste of fortune",
+      "trialToResult": "From free trials to personal results",
+      "fishName": "Fortune Fish",
+      "fishDesc": "Read today's mood in a little goldfish's movements",
+      "omikujiName": "Omikuji",
+      "omikujiDesc": "Draw today's fortune slip",
+      "typeDesc": "What type are you? Compare traits with friends",
+      "teaLeafName": "Tea-leaf reading",
+      "teaLeafDesc": "Find today's hint in the shapes of tea leaves",
+      "flowerDesc": "A card of flowers and colors reflecting your temperament",
+      "idolName": "Idol chemistry",
+      "idolDesc": "Your chemistry with your favorite idol, on a photocard",
+      "storyNote": "Yeongnyangi and Yeoni set out to find a lost destiny",
+      "musicNote": "Moonlit melodies that carry the story onward",
+      "dailyAria": "Daily zodiac readings for the past 30 days",
+      "monthlyAria": "September 2026 readings by day stem",
+      "methodIntro": "Every entry point uses interpretation principles designed by Byeongha Park (Neo).",
+      "basisBody": "Yeongnyangi and Ggulggul use interpretation principles designed by Byeongha Park (Neo). Neo’s Decision Brief email consultations draw on the same experience; different names do not mean different teachers. Saju, tarot and astrology each retain their own systems, and each product covers different questions and depth.",
+      "reviewBody": "Neo’s Strategy Room uses AI to explain the reading material. With Neo’s Decision Brief, Neo reads your submission, uses AI analysis to write and review a reply, and sends it by email. It is not live chat, phone or an in-person session. Designing the principles does not mean every AI result receives human review.",
+      "termsBody": "Review the content and samples, then check the price and whether passes, Moonstones or one-time payment apply.",
+      "emailLead": "Describe your situation and the choice you are considering. Neo reads it personally and emails a reply written and reviewed with the help of AI analysis.",
+      "emailTiming": "Email reply usually within 24 hours, or within 3 days during busy periods · 30 questions per day",
+      "smallLead": "Take a short break or compare results with friends. Start with a free experience.",
+      "smallPolicy": "Check the terms before paying. Pass and Moonstone eligibility follows each product's existing policy.",
+      "honeyScope": "This list covers selected basic readings. Check other features' own screens for their terms. Your existing results and access rights remain unchanged.",
+      "cardLabel": "{title} — {action}",
+      "sceneAlt": "{name} in a {title} consultation scene",
+      "askMaster": "Ask {name}",
+      "masterLabel": "{name} — {role}",
+      "neoName": "Neo",
+      "yeoniName": "Yeoni",
+      "hanbiName": "Seo Hanbi",
+      "yunName": "Yundal",
+      "musungName": "Museong",
+      "masterName": "Master",
+      "loveTitle": "Love Insights",
+      "lifeTitle": "Book of Life",
+      "teaTitle": "Yeoni's Destiny Teahouse",
+      "codexTitle": "Master's Book of Bonds",
+      "catListeningAlt": "Yeongnyangi listening in a purple hat",
+      "yeoniGuideAlt": "Yeoni the flower pig guides your readings",
+      "neoReviewAlt": "Neo reviews consultation notes and letters",
+      "catHeroAlt": "Yeongnyangi, the Saju cat, resting their chin under a purple hat",
+      "novelAlt": "Destiny adventure cover with human Yeoni, Yeongnyangi, Mocha, Yundal and Seo Hanbi",
+      "emailBase": "KRW {amount} per Saju question · One-time payment",
+      "emailZiwei": "Saju + Ziwei per question: KRW {amount}",
+      "emailChart": "Add birth-chart analysis +KRW {amount}",
+      "emailMax": "Up to KRW {amount} per question",
+      "unlockPrice": "Unlock for KRW {amount}",
+      "simpleChatTitle": "Simple chat consultation",
+      "signatureNewLead": "Explore consultations and choose how you would like to proceed.",
+      "signatureFeatured": "Featured consultation",
+      "signatureFusionDesc": "Five guides explore life patterns through six systems.",
+      "signatureCatDesc": "Explore one concern through a reading system suited to you.",
+      "signatureCardsLabel": "Featured consultation cards",
+      "signatureNavigation": "Featured consultation navigation",
+      "signaturePrevious": "Previous consultation",
+      "signatureNext": "Next consultation",
+      "signatureYeoniDesc": "Yeoni helps you talk through what is on your mind."
+    },
+    "playPrice": {
+      "from": "From {price}",
+      "unlock": "Unlock for {price}",
+      "perUse": "{price} per reading"
     }
   },
   "terms": {
@@ -17225,11 +17393,13 @@
       },
       "sceneAria": "Yeoni is preparing your reading",
       "loadingAlt": "A loading scene with a moonlit cup rising",
-      "yeoniAria": "Yeoni handing over the cup",
+      "yeoniAria": "Yeoni pouring tea from a teapot",
       "progressAria": "Reading generation progress",
       "delayNotice": "Your reading is still being written. You can check its progress again in My readings.",
       "retryNotice": "If the flow breaks, you can try the same question again from the input screen.",
-      "libraryLink": "Continue in My readings"
+      "libraryLink": "Continue in My readings",
+      "introduction": "Like tea slowly steeping, we are choosing words that fit your story.",
+      "waitingTitle": "Thoughtfully preparing\nyour reading"
     },
     "sajuPillarBoard": {
       "eyebrow": "The birth chart under moonlight",
@@ -17849,11 +18019,12 @@
       "welcomeNote": "It's okay to share something difficult to say. We'll explore the grounds relevant to your question.",
       "stepLabel": "Question and details · 1 / 3",
       "questionTitle": "What would you like to explore together?",
-      "questionGuide": "Write your question first, then choose a reading. Only the details needed for that method are requested.",
+      "questionGuide": "Review your saved profile or birth details, then write your question.",
       "reviewButton": "Review scope and price",
       "leapMonth": "Lunar leap month",
       "longitudeLabel": "Birthplace longitude (optional)",
-      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude."
+      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude.",
+      "changeMode": "Change reading type"
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -20620,6 +20791,12 @@
       "directTitle": "Yeoni's answer",
       "guidanceTitle": "What to try",
       "cautionTitle": "Things to watch"
+    },
+    "completionGreeting": {
+      "title": "Your tea is ready",
+      "message": "Take your time with the words Yeoni has prepared for you.",
+      "action": "Read your consultation",
+      "portrait": "Yeoni offering tea with both hands"
     }
   },
   "fortuneVar": {
@@ -21573,6 +21750,225 @@
       "unreadable": "This record can't be shown on this screen right now. Please contact support.",
       "detailNote": "This is a saved result. Reopening it doesn't call the AI again and costs nothing extra.",
       "duplicate": "A Saju compatibility result with the same conditions (your chart, partner name and type) is already saved in your library.\n\n[OK] Pay again and view a new reading\n[Cancel] Open the saved result in your library"
+    },
+    "art": {
+      "caption": "Symbolic illustration of the relationship",
+      "love": "Two people facing each other in a moonlit garden",
+      "business": "Two people discussing directions over a map",
+      "friend": "Two people walking side by side with lanterns",
+      "year": "Two people approaching a garden gate from different paths",
+      "month": "Two people at separate desks beside a garden",
+      "day": "Two teacups side by side at a warm window",
+      "hour": "Two lanterns facing dawn over distant mountains",
+      "past-resonance": "Two lanterns drifting closer on a pond",
+      "past-growth": "A bridge joining two banks with flowering trees",
+      "past-knot": "A loose silk knot beside a lotus"
+    },
+    "relationship": {
+      "title": "Where your two charts meet",
+      "context": "The same symbol is read differently depending on its position and life circumstances.",
+      "all": "View all chart links and natal evidence",
+      "natal": "Links within each natal chart",
+      "cross": "Across both charts",
+      "triad": "All three triad signs present",
+      "chapters": "Four chapters of your relationship",
+      "evidence": "Saju evidence for this chapter",
+      "unknownHour": "The hour pillars are not compared because a birth time is unknown.",
+      "stem": "Heavenly stems",
+      "branch": "Earthly branches"
+    },
+    "pillar": {
+      "year": "Year pillar",
+      "month": "Month pillar",
+      "day": "Day pillar",
+      "hour": "Hour pillar"
+    },
+    "area": {
+      "year": "Background and familiar ways of relating",
+      "month": "Social life and shared rhythms",
+      "day": "Close relationships and everyday life",
+      "hour": "Future plans and what you nurture together"
+    },
+    "direction": {
+      "same": "The same element",
+      "selfGenerates": "Your element nourishes your partner's",
+      "partnerGenerates": "Your partner's element nourishes yours",
+      "selfControls": "Your element checks your partner's",
+      "partnerControls": "Your partner's element checks yours"
+    },
+    "relation": {
+      "sixHarmony": "Six harmonies (合)",
+      "partialTriad": "Partial triad (三合)",
+      "penalty": "Tension (刑)",
+      "selfPenalty": "Self-tension (自刑)",
+      "break": "Disruption (破)",
+      "harm": "Friction (害)",
+      "wonjin": "Emotional friction (怨嗔)",
+      "gwimun": "Heightened sensitivity (鬼門)",
+      "he": "Harmony (合)",
+      "chong": "Clash (沖)",
+      "same": "Same (同)",
+      "none": "None (無)",
+      "generates": "Nourishing (生)",
+      "controls": "Checking (剋)"
+    },
+    "limit": {
+      "hour": "Hour-pillar effects are excluded when the birth time is unknown.",
+      "story": "The four chapters connect areas of life; they do not predict an order or timing of events.",
+      "relations": "A harmony does not imply automatic elemental transformation. Wonjin and Gwimun do not establish infidelity, mental illness, or a relationship's outcome."
+    }
+  },
+  "honeyUI": {
+    "retryLater": "Please try again shortly.",
+    "confirm": "Open {title} with {cost} honey drops?",
+    "costBalance": "{cost} honey drops · Balance: {balance}",
+    "perUseCondition": "Honey drops cover this request. A new compatibility or card reading needs more drops.",
+    "birthCondition": "This opens the content for the selected birth profile. Reopening with the same account and birth details costs no more drops.",
+    "openCost": "Open with {cost} honey drops",
+    "loginBalance": "Sign in to check",
+    "failed": "Could not load",
+    "count": "{count} drops",
+    "loading": "Checking",
+    "attended": "Checked in today",
+    "attend": "Check in",
+    "balanceError": "Could not load your honey drops. Please try again.",
+    "collected": "You collected {amount} honey drops! Balance: {balance}.",
+    "eligible": "Honey drops accepted",
+    "choice": "Open now, or collect drops by checking in",
+    "unlocked": "Unlocked",
+    "cashOrHoney": "{price} or {cost} honey drops",
+    "openNow": "Open now",
+    "cashLabel": "{title} · Open for {price}",
+    "honeyLabel": "{title} · Open with {cost} honey drops",
+    "openHoney": "Use honey drops",
+    "profileNeeded": "Save your birth details as a profile, or select a saved profile.",
+    "unlocking": "Checking access…",
+    "unlockError": "Please check the unlock result again.",
+    "collectHint": "Collect drops daily with the home check-in card.",
+    "retryButtonHint": "Try the same button again.",
+    "usesLoading": "Checking eligible content and access.",
+    "guestHint": "Sign in to see your balance.",
+    "balanceRetry": "Could not check your balance. Retry from the check-in card.",
+    "balance": "Honey drop balance: {balance}",
+    "selectedProfile": "For the selected profile",
+    "chooseProfile": "Select a profile to check access",
+    "groupCount": "{count} items · {range} drops",
+    "unlockedNoExtra": "Unlocked · No extra drops",
+    "cost": "{cost} honey drops",
+    "perUseShort": "Used for each new compatibility or card reading",
+    "birthShort": "No more drops to reopen with the same account and birth details",
+    "shortfall": "Collect {count} more drops to open.",
+    "ownershipError": "Check access again on the reading screen.",
+    "viewUnlocked": "View unlocked reading",
+    "viewGroup": "View in {group}",
+    "usesError": "Could not load eligible content.",
+    "retry": "Try again",
+    "usageError": "Could not check how to use this. Please try again shortly.",
+    "groups": {
+      "saju": "Saju",
+      "astrology": "Astrology",
+      "ziwei": "Ziwei Doushu",
+      "sukuyo": "Sukuyo",
+      "vedic": "Vedic astrology",
+      "tarot": "Tarot"
+    },
+    "products": {
+      "section_summary": {
+        "title": "Light Saju reading",
+        "description": "Temperament, strengths, recurring patterns and life's broader direction"
+      },
+      "section_daewun": {
+        "title": "Saju decade cycles",
+        "description": "Changes across ten-year cycles and choices to consider in each phase"
+      },
+      "rpt_specialCharmCard": {
+        "title": "Your charm profile",
+        "description": "The charm you naturally convey to others"
+      },
+      "rpt_skillTreeCard": {
+        "title": "Life skill tree",
+        "description": "Ways to use your strengths and your next growth point"
+      },
+      "rpt_villainCard": {
+        "title": "Draining relationship patterns",
+        "description": "Relationships that wear you down and boundaries to protect"
+      },
+      "astro_basic_deep_pack": {
+        "title": "Core astrology reading",
+        "description": "Your outward self and what your heart wants"
+      },
+      "astro_stellar_career_room": {
+        "title": "Work and roles",
+        "description": "Roles that bring out your abilities and your way of working"
+      },
+      "astro_stellar_talent_room": {
+        "title": "Talent and attraction",
+        "description": "How what you enjoy becomes a strength and source of charm"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "Doors to connection",
+        "description": "What helps you open up and find a sustainable closeness"
+      },
+      "astro_stellar_growth_room": {
+        "title": "Challenges and change",
+        "description": "Choices you can adjust when difficulties repeat"
+      },
+      "astro_career_talent_deep": {
+        "title": "Career and talent insights",
+        "description": "Strengths valued at work and patterns that drain you"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "Talent and charm insights",
+        "description": "Moments when your appeal and drive come through"
+      },
+      "astro_relationship_deep": {
+        "title": "Relationship and attraction insights",
+        "description": "Why you feel drawn to someone and how to adjust together"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "Growth and inner-life insights",
+        "description": "Understanding the other side of your strengths and recovering balance"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "Ziwei's twelve palaces",
+        "description": "Strengths and challenges across different areas of life"
+      },
+      "ziwei_love_deep": {
+        "title": "Ziwei relationship palace",
+        "description": "Recurring expectations and responses in close relationships"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "Ziwei symbolism",
+        "description": "Reading star symbols as everyday choices"
+      },
+      "ziwei_decade_luck": {
+        "title": "Ziwei decade cycles",
+        "description": "Life themes that shift from one phase to another"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "Ziwei life and yearly cycles",
+        "description": "This year's direction within the wider course of life"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "Sukuyo nature in depth",
+        "description": "Instinctive responses and ways to care for your inner life"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "Sukuyo relationship guide",
+        "description": "Distance and communication rhythms in different connections"
+      },
+      "vedic_basic_reading": {
+        "title": "Vedic birth-chart reading",
+        "description": "Temperament and life's rhythms through your birth chart"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "Detailed Sukuyo compatibility",
+        "description": "Relationship patterns between two people and practical advice"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "Three-card tarot reading",
+        "description": "The story of your three chosen cards and practical next steps"
+      }
     }
   }
 }

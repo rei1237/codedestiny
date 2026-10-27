@@ -6,6 +6,9 @@ import { ArrowLeft, BadgeCheck, PenLine, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getApiBaseUrl } from "../_lib/api-config";
 import ReviewRewardBanner, { type ReviewRewardPolicy } from "../components/ReviewRewardBanner";
+import ReviewSocialFields, { type ReviewSocialProof } from "./ReviewSocialFields";
+import ReviewRewardHistory from "./ReviewRewardHistory";
+import { normalizeReviewSocialProof } from "@/js/review-sharing.mjs";
 import { reviewRewardLabel } from "@/js/review-reward-copy.mjs";
 import { authFetch } from "../_lib/auth-client";
 import YeonSpriteFrame from "@/components/yeon/YeonSpriteFrame";
@@ -936,6 +939,10 @@ export default function ReviewsClient() {
   const [formRating, setFormRating] = useState(5);
   const [formTitle, setFormTitle] = useState("");
   const [formBody, setFormBody] = useState("");
+  const [socialProof, setSocialProof] = useState<ReviewSocialProof>({ platform: "", url: "", disclosed: false });
+  const submissionRef = useRef<{ id: string; payload: string } | null>(null);
+  const submitLock = useRef(false);
+  const [historyVersion, setHistoryVersion] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [formNotice, setFormNotice] = useState("");
@@ -1021,7 +1028,7 @@ export default function ReviewsClient() {
       }
       const items: EligibleProduct[] = Array.isArray(data?.items) ? data.items : [];
       setEligible(items);
-      setFormProductId(items.find((item) => !item.alreadyReviewed)?.productId || "");
+      setFormProductId(items[0]?.productId || "");
       setEligibleState("ready");
     } catch {
       setEligibleState("error");
@@ -1050,7 +1057,7 @@ export default function ReviewsClient() {
   }, [writerOpen]);
 
   const submitReview = useCallback(async () => {
-    if (!formProductId || !eligible.some((item) => item.productId === formProductId && !item.alreadyReviewed)) {
+    if (!formProductId || !eligible.some((item) => item.productId === formProductId)) {
       setFormError(copy.selectProductError);
       return;
     }
@@ -1059,6 +1066,14 @@ export default function ReviewsClient() {
       return;
     }
 
+    if (submitLock.current) return;
+    const normalizedProof = normalizeReviewSocialProof(socialProof.platform, socialProof.url);
+    if (!normalizedProof || (normalizedProof.url && !socialProof.disclosed)) {
+      setFormError("SNS 후기 주소와 보상 참여 표시를 확인해 주세요."); return;
+    }
+    const payload = JSON.stringify({ productId: formProductId, rating: formRating, title: formTitle.trim(), body: formBody.trim(), socialProof });
+    if (!submissionRef.current || submissionRef.current.payload !== payload) submissionRef.current = { id: crypto.randomUUID().replaceAll("-", "").slice(0, 24), payload };
+    submitLock.current = true;
     setSubmitting(true);
     setFormError("");
     try {
@@ -1066,6 +1081,8 @@ export default function ReviewsClient() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          submissionId: submissionRef.current.id,
+          socialProof,
           productId: formProductId,
           rating: formRating,
           title: formTitle.trim(),
@@ -1081,19 +1098,19 @@ export default function ReviewsClient() {
       setFormNotice(copy.submitSuccessNotice);
       setFormTitle("");
       setFormBody("");
-      setEligible((prev) => prev.map((item) => (
-        item.productId === formProductId ? { ...item, alreadyReviewed: true, existingReviewStatus: "pending" } : item
-      )));
-      setFormProductId(eligible.find((item) => item.productId !== formProductId && !item.alreadyReviewed)?.productId || "");
+      submissionRef.current = null;
+      setSocialProof({ platform: "", url: "", disclosed: false });
+      setHistoryVersion((value) => value + 1);
     } catch {
       setFormError(copy.submitFailedRetry);
     } finally {
+      submitLock.current = false;
       setSubmitting(false);
     }
-  }, [formBody, formProductId, formRating, formTitle, eligible, copy]);
+  }, [formBody, formProductId, formRating, formTitle, socialProof, eligible, copy]);
 
   const visibleOnMobile = mobileExpanded ? reviews : reviews.slice(0, 3);
-  const writableProducts = eligible.filter((item) => !item.alreadyReviewed);
+  const writableProducts = eligible;
 
   return (
     <div className="min-h-screen bg-[#fffaf7] text-[#3c1830] dark:bg-[#1a0a14] dark:text-[#fff1f7]">
@@ -1129,6 +1146,7 @@ export default function ReviewsClient() {
 
       <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
         <ReviewRewardBanner policy={rewardPolicy} onWrite={() => { void openWriter(); }} />
+        <ReviewRewardHistory key={historyVersion} />
         <section className="rounded-3xl border border-[#f0d4de] bg-white px-5 py-7 dark:border-[#5a3348] dark:bg-[#2b0c1f] sm:px-8">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#b31955] dark:text-[#f4bed1]">Reviews</p>
           <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-2">
@@ -1344,9 +1362,9 @@ export default function ReviewsClient() {
                   >
                     <option value="">{copy.selectProductPlaceholder}</option>
                     {eligible.map((item) => (
-                      <option key={item.productId} value={item.productId} disabled={item.alreadyReviewed}>
+                      <option key={item.productId} value={item.productId}>
                         {item.productName}{item.usedAt ? ` · ${new Date(item.usedAt).toLocaleDateString(numberLocale)}` : ""}
-                        {item.alreadyReviewed ? ` (${({ pending: "검수 대기", approved: "공개", rejected: "반려" } as Record<string, string>)[item.existingReviewStatus || ""] || "작성 완료"})` : ""}
+
                       </option>
                     ))}
                   </select>
@@ -1408,8 +1426,10 @@ export default function ReviewsClient() {
                   <p className="text-right text-xs text-[#8a6478] dark:text-[#c99cb2]">{formBody.trim().length} / 1000</p>
                 </div>
 
-                {formError ? <p className="text-sm text-[#b31955] dark:text-[#f4bed1]">{formError}</p> : null}
-                {formNotice ? <p className="text-sm text-[#1f7a4d] dark:text-[#8fe0b4]">{formNotice}</p> : null}
+                <ReviewSocialFields body={formBody} productName={eligible.find((item) => item.productId === formProductId)?.productName || ""} value={socialProof} onChange={setSocialProof} />
+
+                {formError ? <p role="alert" className="text-sm text-[#b31955] dark:text-[#f4bed1]">{formError}</p> : null}
+                {formNotice ? <p role="status" className="text-sm text-[#1f7a4d] dark:text-[#8fe0b4]">{formNotice}</p> : null}
 
                 <button
                   type="button"
@@ -1421,7 +1441,7 @@ export default function ReviewsClient() {
                 </button>
 
                 <p className="rounded-2xl bg-[#fdf1f6] px-4 py-3 text-xs font-semibold leading-6 text-[#b31955] dark:bg-[#3c1830] dark:text-[#f4bed1]">
-                  {reviewRewardLabel(rewardPolicy)} · 꿀꿀운세에서 사용할 수 있어요. 상품별 1회 지급됩니다.
+                  {reviewRewardLabel(rewardPolicy)} · 매번 관리자 승인 후 지급돼요. 참여 횟수 제한은 없어요.
                 </p>
                 <p className="text-xs leading-6 text-[#8a6478] dark:text-[#c99cb2]">
                   {copy.moderationNotice}

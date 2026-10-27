@@ -14,7 +14,7 @@ import { vedicShareChoices } from "@/lib/consultation-sharing";
 import { toDisplayText } from "@/lib/llm-text";
 import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
-import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import { StructuredReadingResult, parseStructuredReading, splitAssistantSections, pollVedicResult } from "../VedicAiClient";
 import styles from "../VedicAiClient.module.css";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -273,7 +273,7 @@ function AssistantSectionsView({ content, viewAll, onViewAllChange }: { content:
   const renderSection = (section: { title: string; body: string }, sectionIndex: number) => (
     <article className={styles.sectionCard} key={`${section.title}-${sectionIndex}`}>
       <span>{section.title}</span>
-      <AiResultProse value={section.body} />
+      <ConsultationReading kind="vedic" value={section.body} index={sectionIndex} />
     </article>
   );
   if (sections.length <= 1) {

@@ -66,7 +66,7 @@ test.each([
   ['v3 사주 기본 + 자미두수·원국명반 5만원',3,[{id:'q1',text:'이직의 기준',readingMode:'saju',chartReading:false},{id:'q2',text:'관계의 기준',readingMode:'saju_ziwei',chartReading:true}],50000],
 ])('%s을 실제 주문 스냅샷에 저장하고 승인 검증 뒤 한 번만 접수한다', async (_label,pricingVersion,questions,total) => {
   const db=makeFakePaymentDb(), repository=createNeoRepository(db);
-  const items=neoQuoteItems(questions);
+  const items=neoQuoteItems(questions,pricingVersion);
   const row={id:'neo-mixed',userId,version:1,state:'preparing',capacityDay:'2026-10-17',email:'x@example.invalid',consent:true,
     birth:{date:'1990-04-20',calendar:'solar',leapMonth:false,timeUnknown:false,time:'12:30'},questions,deliveries:[],mailJobs:[],payment:null,
     quote:{id:'mixed-quote',pricingVersion,unitKRW:null,quantity:2,totalKRW:total,questions,items}};

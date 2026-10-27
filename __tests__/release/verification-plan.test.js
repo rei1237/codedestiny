@@ -142,6 +142,10 @@ test('smoke is omitted only when both full suites provably contain every target'
   const jestConfig = { roots: ['<rootDir>/__tests__'], testPathIgnorePatterns: ['/__tests__/ui/'] };
   assert.equal(fullSuitesCoverSmoke(scripts, jestConfig), true);
   assert.equal(fullSuitesCoverSmoke({ ...scripts, 'test:jest': 'node scripts/run-mock-tests.mjs jest', 'test:node': 'node scripts/run-mock-tests.mjs node' }, jestConfig), true);
+  for (const command of ['jest --runInBand --testEnvironment node', 'jest --testEnvironment node']) {
+    assert.equal(fullSuitesCoverSmoke({ ...scripts, 'test:jest': command }, jestConfig), true);
+  }
+  assert.equal(fullSuitesCoverSmoke({ ...scripts, 'test:jest': 'jest --testEnvironment node __tests__/one.test.js' }, jestConfig), false);
   const plan = createVerificationPlan(input(['worker/routes/payments.js']), { scripts, jestConfig });
   assert.ok(!plan.steps.some((step) => step.name === 'smoke:core'));
   assert.ok(plan.steps.some((step) => step.name === 'test:jest'));

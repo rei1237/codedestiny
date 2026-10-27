@@ -9,6 +9,7 @@
  */
 import { handlePaymentsContext } from "../../worker/payments/index.js";
 import { ContentEntitlement, ProfileCard } from "../../worker/lib/models.js";
+import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 import { hasPaidUnlockForProfile } from "../../worker/lib/content-unlocks.js";
 import { makeFakePaymentDb, matches } from "../fixtures/fake-payment-db.mjs";
 import { TEST_USER_ID as USER, OTHER_USER_ID, profileCardModel, testCard } from "../fixtures/profile-card-model.mjs";
@@ -196,6 +197,19 @@ test("🔴 레거시 해금: 같은 모양으로 목록에 뜨고, 고른 프로
   const again = await call("POST", `/birth-profile-pending/legacy-${LEGACY_ID}/claim`, { profileId: "p2" });
   expect(again.payload).toMatchObject({ ok: true, replayed: true });
   expect(await opens("p2")).toBe(false); // 재생은 다른 생년월일을 열지 않는다
+});
+
+test("다른 콘텐츠 별칭의 기존 BACKFILL 행에 원 주문 근거를 보존한다", async () => {
+  const birthKey = computeBirthKey(CARDS[0]);
+  const existing = { userId: String(USER), profileId: toBirthEntitlementProfileId(birthKey), birthKey, scope: "BIRTH",
+    featureKey: "section_summary", contentKey: "section_summary", serviceKey: "saju", source: "BACKFILL",
+    grantType: "permanent_unlock", status: "ACTIVE", expiresAt: null, mergedOrderIds: ["previous-order"] };
+  db.rows.push(sourceRow(), legacyClaim(), existing);
+  const result = await call("POST", `/birth-profile-pending/legacy-${LEGACY_ID}/claim`, { profileId: "p1" });
+  expect(result.status).toBe(200);
+  expect(result.payload.alreadyOwned).toBe(true);
+  expect(existing.mergedOrderIds).toEqual(expect.arrayContaining(["previous-order", "cd-single-old-0001", "pay_old_0001"]));
+  expect(db.rows.filter(row => row.grantType === "permanent_unlock")).toHaveLength(1);
 });
 
 test("이미 같은 BIRTH 권한이 있으면 중복 레거시 증빙으로 프로필을 다시 묻지 않는다", async () => {

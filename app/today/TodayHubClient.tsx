@@ -1,4 +1,5 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 
 // 오늘의 운세 전용 화면 — /today 의 실기능부.
 //
@@ -966,7 +967,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         .map(([key, value]) => [key, value.replaceAll("오늘", "내일")])) as Record<TodaySystem, string>,
     };
   }, [baseCopy, locale, period]);
-  const { seed, seedVersion } = useAiProfileSeed();
+  const { seed, seedVersion, choose } = useAiProfileSeed();
   // 마운트 후에만 계산한다(정적 빌드에 날짜가 굳는 것을 막고, 자정을 넘겨도 새로고침이면 갱신된다).
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
@@ -1189,7 +1190,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
           {([['today', tomorrowCopy.today], ['tomorrow', tomorrowCopy.tomorrow], ['weekly', tomorrowCopy.weekly]] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)} className={`min-h-12 rounded-full border px-2 py-3 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200 ${period === value ? 'border-rose-200 bg-white/[0.08] text-rose-50 shadow-[0_6px_16px_rgba(0,0,0,0.35)]' : 'border-rose-200/40 text-rose-100 hover:border-rose-200/70'}`}>{label}</button>)}
         </div>}
         {accessGranted && locale === "ko" && period === "weekly" && weeklyContent}
-        <div hidden={accessGranted && locale === "ko" && period === "weekly"}>
+        <div data-moonlit-form="" hidden={accessGranted && locale === "ko" && period === "weekly"}>
         {accessGranted && <>
         {/* 탭 */}
         <div role="tablist" aria-label={copy.tabsAriaLabel} className={locale === "ko" ? styles.tabs : "mt-8 grid grid-cols-2 gap-2 rounded-2xl sm:grid-cols-4 border border-white/10 bg-white/[0.04] p-1.5"}>
@@ -1221,6 +1222,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         </div>
         <p className="mt-2.5 break-keep text-center text-xs leading-6 text-slate-400">{activeTab.blurb}</p>
 
+        <SavedBirthProfilePicker onSelect={choose} />
         {showGuestForm && (
           <form onSubmit={submitGuestBirth} className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
             <p className="break-keep text-sm leading-7 text-slate-200">{guestCopy.lead}</p>

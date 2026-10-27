@@ -752,7 +752,7 @@ function initTranslateLangUI() {
   var hideTimer = null;
   var HIDE_DELAY = 30000; // 30초
   window.__cdTranslateInitAttempts = (window.__cdTranslateInitAttempts || 0) + 1;
-  
+
   // 요소가 없으면 제한적으로 재시도 (무한 루프 방지)
   if (!langBtn || !langCard || !langWrap) {
     if (window.__cdTranslateInitAttempts < 120) {
@@ -760,7 +760,7 @@ function initTranslateLangUI() {
     }
     return;
   }
-  
+
   // 자동 숨김 시작
   function startHideTimer() {
     clearTimeout(hideTimer);
@@ -770,7 +770,7 @@ function initTranslateLangUI() {
       }
     }, HIDE_DELAY);
   }
-  
+
   // 버튼 표시 및 타이머 리셋
   function showTranslateButton() {
     clearTimeout(hideTimer);
@@ -778,21 +778,21 @@ function initTranslateLangUI() {
       langWrap.classList.remove('translate-lang-wrap--hidden');
     }
   }
-  
+
   // 버튼 클릭 시 카드 토글
   langBtn.addEventListener('click', function(e) {
     e.stopPropagation();
     langCard.classList.toggle('active');
     showTranslateButton();
   });
-  
+
   // 바깥 클릭 시 카드 닫기
   document.addEventListener('click', function(e) {
     if (langWrap && !langWrap.contains(e.target)) {
       langCard.classList.remove('active');
     }
   });
-  
+
   // 언어 변경 카드 버튼 핸들러
   // NOTE: Google Translate includedLanguages와 라벨 매핑을 맞춘다.
   var langCodeMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'zh-TW': 'TW', 'vi': 'VI', 'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS' };
@@ -801,18 +801,18 @@ function initTranslateLangUI() {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
-      
+
       var lang = btn.getAttribute('data-lang');
       if (!lang) return;
       cdSaveCurrentLang(lang);
-      
+
       // 활성 상태 업데이트
       Array.prototype.forEach.call(langCodeBtns, function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      
+
       // 버튼 레이블 업데이트
       if (langLabel) langLabel.textContent = langCodeMap[lang] || lang.toUpperCase();
-      
+
       // Google Translate 드롭다운 변경 (로딩 지연/중복 인스턴스 대응)
       cdSetGoogleTranslateLanguage(lang, {
         maxAttempts: 60,
@@ -822,7 +822,7 @@ function initTranslateLangUI() {
       cdRetargetLocaleSensitiveLinks();
       cdApplyCollectionToggleHintTexts(lang);
       startHideTimer();
-      
+
       // 카드 닫기
       if (langCard) langCard.classList.remove('active');
     });
@@ -2281,17 +2281,19 @@ function __cdEnsureSajuCoreLoaded() {
      * 음양력 변환의 유일한 근거로 쓰고, 없으면 던진다(조용히 lunar-javascript 로 떨어지면
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
+    /* 원국 판정 정본(전역 SajuNatalCore). saju-engine 의 detectJong 이 이것 없이는 던진다. */
+    '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-4d324bc3c29a',
+    '/js/saju-engine.js?v=build-ddc6e98db9ce',
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-7b161108f115',
     '/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-4b72b4b61ac9',
-    '/js/saju-engine-continuation.js?v=build-b10118108171',
+    '/js/core/saju/reportDashboard.js?v=build-e2419d20eac4',
+    '/js/saju-engine-continuation.js?v=build-f4d87e14c1c7',
     '/js/entertain-engine.js?v=build-bcbaca1718c8',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
     '/js/core/saju/dopamineResult.js?v=build-2e244f8ece95'
@@ -2317,7 +2319,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-6c9971209003')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-fde8e33a1a65')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -2444,7 +2446,7 @@ function __cdEnsureSajuCompatModules() {
   if (window.__cdSajuCompat) return Promise.resolve(window.__cdSajuCompat);
   if (__cdSajuCompatLoadPromise) return __cdSajuCompatLoadPromise;
   __cdSajuCompatLoadPromise = Promise.all([
-    import('/js/saju-compat-render.mjs?v=build-dcdaf6e22d5a'),
+    import('/js/saju-compat-render.mjs?v=build-4b9a2d23bc4a'),
     import('/js/saju-compat-flow.mjs?v=build-b7c7a53904fd'),
     import('/js/core/paid-narrative-reader.js?v=build-c9b681355666')
   ]).then(function(mods) {
@@ -2950,6 +2952,14 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
     img.setAttribute('sizes', COLLECTION_TILE_SIZES);
   }
 
+  // 도감의 소개 그림은 320·640 쌍이 있어 고밀도 모바일에서 원본 320 확대를 피한다.
+  function applyIntroductionSrcset(img, src) {
+    var match = /^(\/images\/service-introductions\/[a-z0-9-]+)-320\.webp$/.exec(String(src || ''));
+    if (!match || img.hasAttribute('srcset')) return;
+    img.setAttribute('srcset', match[1] + '-320.webp 320w, ' + match[1] + '-640.webp 640w');
+    img.setAttribute('sizes', '(max-width: 768px) 50vw, 320px');
+  }
+
   function hydrateWrap(wrap) {
     if (!wrap) return;
     var src = wrap.getAttribute('data-img-src');
@@ -2971,6 +2981,7 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
       var existingFallback = [resizedExisting ? resolvedExistingSrc : '', existingSrc];
       var nextSrc = resizedExisting || resolvedExistingSrc;
       applyFeatureDetailSrcset(existingImg, existingSrc);
+      applyIntroductionSrcset(existingImg, existingSrc);
       if (nextSrc && nextSrc !== existingSrc) {
         // 체인은 "바인딩 시점의 src" 와 같은 후보를 중복으로 보고 걸러낸다. 먼저 바인딩하면
         // 마크업의 원래 경로(/fuctionassets/…)가 아직 현재 src 라 체인에서 빠지고, R2 에 없는
@@ -3013,6 +3024,7 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
     // 리사이즈본 → 원본 R2 → 마크업의 원래 경로 → 그래도 안 되면 심볼 플레이스홀더.
     bindCollectionImageFallback(img, [resizedSrc ? resolvedSrc : '', fallbackSrc, src], placeholder, skeleton);
     applyFeatureDetailSrcset(img, resizedSrc || resolvedSrc);
+    applyIntroductionSrcset(img, src);
     img.src = resizedSrc || resolvedSrc;
     wrap.insertBefore(img, wrap.firstChild);
   }
@@ -9027,8 +9039,10 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 음양력 변환의 유일한 근거로 쓰고, 없으면 던진다(조용히 lunar-javascript 로 떨어지면
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
+    /* 원국 판정 정본(전역 SajuNatalCore). saju-engine 의 detectJong 이 이것 없이는 던진다. */
+    '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-4d324bc3c29a',
+      '/js/saju-engine.js?v=build-ddc6e98db9ce',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-7b161108f115'
   ];

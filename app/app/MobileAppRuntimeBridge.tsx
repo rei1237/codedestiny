@@ -281,6 +281,8 @@ export default function MobileAppRuntimeBridge() {
       },
     };
 
+    window.dispatchEvent(new CustomEvent("cd:native-ready"));
+
     return () => {
       void appUrlListener?.remove?.();
     };

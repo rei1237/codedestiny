@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
 
 import { useDiaryToday, useDiaryWriter } from "./DiaryStoreProvider";
 import {
@@ -214,7 +216,11 @@ export default function DiaryTogetherSheet({ onClose }: { onClose: () => void })
 
       {hydrated && ymd ? (
         <>
-          <div className={styles.togetherFields}>
+          <div data-moonlit-form="" className={styles.togetherFields}>
+            <SavedBirthProfilePicker calendarMode="solar" label={copy.partnerFallback} onSelect={seed=>{
+              setBirthText(seed.birthDate || "");setBirthTime(seed.birthTime || "");name.onChange(seed.name || "");
+              updateEntry(ymd,entry=>{writePartnerName(seed.name || "")(entry);writePartnerBirth(seed.birthDate || "")(entry);writePartnerBirthTime(seed.birthTime || "")(entry);});
+            }} />
             <input
               type="text"
               className={styles.input}
@@ -232,8 +238,7 @@ export default function DiaryTogetherSheet({ onClose }: { onClose: () => void })
               aria-label={copy.birth}
             />
             <div className={styles.togetherTimeField}>
-              <input
-                type="time"
+              <BirthTimeInput
                 className={styles.input}
                 value={birthTime}
                 onChange={(event) => {

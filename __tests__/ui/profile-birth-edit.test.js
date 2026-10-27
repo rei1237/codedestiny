@@ -46,3 +46,8 @@ test('a landing draft is account-bound, short-lived and consumed without changin
   put({createdAt:Date.now()-11*60*1000});assert.equal(profile.consumeSeoLandingProfile('/ziwei/chart/'),null);
   assert.equal(writes,0);
 });
+
+test('explicit profile selection clears old person fields, preserves zero coordinates and unknown time',()=>{
+ const value=seed.selectedBirthProfileSeed({id:'b',birthDate:'2000-01-02',location:{lat:0,lng:0,label:'Accra, Ghana',tz:'Africa/Accra'}});
+ assert.equal(value.birthTime,'');assert.equal(value.birthTimeUnknown,true);assert.equal(value.latitude,'0');assert.equal(value.longitude,'0');assert.equal(value.region,'Accra, Ghana');assert.equal(value.name,'');
+});

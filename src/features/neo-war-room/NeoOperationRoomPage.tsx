@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -2389,7 +2392,7 @@ export default function NeoOperationRoomPage() {
       {showCommandDeck ? (
       <>
 
-      <form id="neo-operation-command-deck" className={styles.commandDeck} data-entered="true" onSubmit={handleSubmit}>
+      <form data-moonlit-form="" id="neo-operation-command-deck" className={styles.commandDeck} data-entered="true" onSubmit={handleSubmit}>
         <NeoWarRoomAssetImage
           asset={neoWarRoomAssets.decor.asset1}
           alt=""
@@ -2553,6 +2556,7 @@ export default function NeoOperationRoomPage() {
                 <h2 id="neo-profile-title">{formCopy["birthInfo.title"]}</h2>
               </div>
               <p className={styles.sectionCopy}>{formCopy["birthInfo.sectionCopy"]}</p>
+              <SavedBirthProfilePicker calendarMode="lunar" onSelect={seed=>{resetPendingFlow();setLastCommandChoice(null);const birth:NeoWarRoomBirthInput=({name:seed.name || "",gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "",birthDate:seed.birthDate || "",birthTime:seed.birthTime || "",birthTimeUnknown:Boolean(seed.birthTimeUnknown),calendarType:seed.calendarType || "solar",city:seed.city || "",country:seed.country || "",timezone:seed.timezone || "",latitude:seed.latitude || "",longitude:seed.longitude || ""});setBirthState(previous=>({...previous,profileMode:"manual",hasSavedProfile:true,savedBirth:birth,birth}));}} />
               <div className={styles.profileModeGrid} role="group" aria-label={formCopy["birthInfo.modeGroupAria"]}>
                 <button
                   type="button"
@@ -2607,8 +2611,8 @@ export default function NeoOperationRoomPage() {
                 </label>
                 <label className={styles.fieldLabel}>
                   {formCopy["birthInfo.birthTime"]}
-                  <input
-                    type="time"
+                  <BirthTimeInput
+
                     value={birthState.birth.birthTime}
                     disabled={birthFieldsDisabled || birthState.birth.birthTimeUnknown}
                     onChange={(event) => updateBirthInput("birthTime", event.target.value)}
@@ -2703,6 +2707,7 @@ export default function NeoOperationRoomPage() {
                           </button>
                         ))}
                       </div>
+                      <SavedBirthProfilePicker calendarMode="lunar" label="상대의 저장된 프로필" onSelect={seed=>{resetPendingFlow();setLastCommandChoice(null);const birth:NeoWarRoomBirthInput=({name:seed.name || "",gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "",birthDate:seed.birthDate || "",birthTime:seed.birthTime || "",birthTimeUnknown:Boolean(seed.birthTimeUnknown),calendarType:seed.calendarType || "solar",city:seed.city || "",country:seed.country || "",timezone:seed.timezone || "",latitude:seed.latitude || "",longitude:seed.longitude || ""});setPartnerState(previous=>({...previous,birth}));}} />
                       <div className={styles.birthGrid}>
                         <label className={styles.fieldLabel}>
                           {formCopy["partner.name"]}
@@ -2732,8 +2737,8 @@ export default function NeoOperationRoomPage() {
                         </label>
                         <label className={styles.fieldLabel}>
                           {formCopy["birthInfo.birthTime"]}
-                          <input
-                            type="time"
+                          <BirthTimeInput
+
                             value={partnerState.birth.birthTime}
                             disabled={partnerState.birth.birthTimeUnknown}
                             onChange={(event) => updatePartnerBirthInput("birthTime", event.target.value)}

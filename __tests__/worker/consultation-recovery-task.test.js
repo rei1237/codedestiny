@@ -4,9 +4,11 @@ let consultationRecoveryFilter, runConsultationRecovery;
 beforeAll(async()=>{
  const db = await import('../../worker/lib/db.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,work)=>work()}));
+ jest.unstable_mockModule('../../worker/lib/consultation-delivery-refund.js',()=>({runPendingConsultationRefunds:async()=>({outcomes:[]})}));
  ({ consultationRecoveryFilter, runConsultationRecovery } = await import('../../worker/lib/consultation-recovery-task.js'));
 });
 import { getAmbientAiLocale } from '../../worker/lib/ai-locale-context.js';
+import { AI_OUTPUT_LOCALES } from '../../lib/i18n/ai-locale.js';
 const now = Date.now();
 test('recovery scans only recent idle pending records through an indexed id range', () => {
  const filter = consultationRecoveryFilter(now, { serviceType: 'stored-product' });
@@ -26,6 +28,17 @@ test('one unavailable adapter does not prevent another stored service from resum
  const model={find:()=>({sort(){return this},limit(){return this},select(){return this},lean:async()=>[{id:'saved',userId:'owner'}]})};
  const result=await runConsultationRecovery({}, {now,connectDb:async()=>{},adapters:[['bad','Test',{}],['good','Test',{}]],models:{Test:model},loadAdapter:async route=>({resumeConsultationOnServer:async()=>{if(route==='bad')throw new Error('private body');return new Response('{}')}})});
  expect(result.outcomes).toEqual(expect.arrayContaining([{service:'bad',code:'RECOVERY_PENDING'},{service:'good',status:200}]));expect(JSON.stringify(result)).not.toContain('private body');
+});
+
+test.each(['llmMeta.locale','llmMeta.resumeBody.locale','llmMeta.delivery.resumeBody.locale','result.resumeBody.locale'])('recovery projects and preserves %s for all result languages',async(path)=>{
+ for(const locale of AI_OUTPUT_LOCALES){
+  const doc={id:'saved',userId:'owner'};let at=doc;
+  const keys=path.split('.');for(const key of keys.slice(0,-1))at=at[key]={};at[keys.at(-1)]=locale;
+  const model={find:()=>({sort(){return this},limit(){return this},select(fields){expect(fields.split(' ')).toContain(path);return this},lean:async()=>[doc]})};
+  const resume=jest.fn(async()=>{expect(getAmbientAiLocale()).toBe(locale);return new Response('{}')});
+  await runConsultationRecovery({}, {now,connectDb:async()=>{},adapters:[['test','Test',{}]],models:{Test:model},loadAdapter:async()=>({resumeConsultationOnServer:resume})});
+  expect(resume).toHaveBeenCalledTimes(1);
+ }
 });
 
 test('an unchanged failed record is deferred with a timestamp compare-and-set', async () => {

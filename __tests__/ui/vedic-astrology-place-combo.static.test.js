@@ -79,12 +79,12 @@ test("vedicSyncPlaceSelectFromText: 타이핑한 라벨과 정확히 일치하�
   assert.ok(changed, "select 에 change 이벤트가 안 갔다 — vedicApplySelectedPlace 등 기존 리스너가 안 걸린다");
 });
 
-test("vedicSyncPlaceSelectFromText: 목록에 없는 자유 입력은 select 를 그대로 두고 텍스트도 건드리지 않는다", () => {
+test("vedicSyncPlaceSelectFromText: 목록에 없는 자유 입력은 이전 선택을 무효화하고 텍스트를 보존한다", () => {
   const window = makeDom();
   const sel = window.document.getElementById("v_place");
   sel.selectedIndex = 1;
   window.document.getElementById("v_placeText").value = "존재하지 않는 도시";
   window.vedicSyncPlaceSelectFromText();
-  assert.equal(sel.selectedIndex, 1, "매칭 안 되는 자유 입력인데 select 선택이 바뀌었다");
+  assert.equal(sel.selectedIndex, -1, "이전 출생지 선택이 남아 있다");
   assert.equal(window.document.getElementById("v_placeText").value, "존재하지 않는 도시");
 });

@@ -142,7 +142,7 @@ test("기존 후기 상태를 전달하고 기존 후기 조회 실패도 숨기
   rows.execution = [{ userId: USER, featureId: "tarot-year-fortune", status: "completed" }];
   reviewLean.mockResolvedValueOnce([{ productId: "tarot", status: "pending" }]);
   expect(await listReviewableProducts({ userId: USER })).toEqual([
-    expect.objectContaining({ productId: "tarot", alreadyReviewed: true, existingReviewStatus: "pending" }),
+    expect.objectContaining({ productId: "tarot", alreadyReviewed: false, hasPreviousReview: true, existingReviewStatus: "pending" }),
   ]);
   reviewLean.mockRejectedValueOnce(new Error("review lookup failed"));
   await expect(listReviewableProducts({ userId: USER })).rejects.toThrow("review lookup failed");

@@ -1,6 +1,6 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
-import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
+import { CURRENT_PASS_PLANS, CURRENT_PASS_POLICY_VERSION } from '../../lib/payment/pass-policy.js';
 import { listServicePackPlans } from '../../worker/payments/service-pack-policy.js';
 import { FEATURE_KEY_PRICE_TABLE, UNLOCK_PRODUCT_BY_FEATURE_KEY } from '../../worker/lib/paid-feature-registry.js';
 import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
@@ -24,7 +24,7 @@ vars.lightFortunes = LIGHT_FORTUNES.map(item => {
   const product = item.key && (FEATURE_KEY_PRICE_TABLE[item.key] || UNLOCK_PRODUCT_BY_FEATURE_KEY[item.key]);
   if (item.key && (!Number.isSafeInteger(product?.amountKRW) || product.amountKRW <= 0)) throw new Error('Missing light fortune price: ' + item.key);
   const price = product ? (product.accessModel === 'unlock' ? '해금 ' : '1회 ') + product.amountKRW.toLocaleString('ko-KR') + '원' : '무료';
-  return '<a class="cdh-light__item" href="' + item.href + '"><img src="' + item.image + '" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong>' + item.name + '</strong><span>' + item.desc + '</span><small' + (item.key ? ' data-cd-price-key="' + item.key + '" data-price-krw="' + product.amountKRW + '"' : ' data-cd-price-free="true"') + '>' + price + '</small></span></a>';
+  return '<a class="cdh-light__item" href="' + item.href + '"><img src="' + item.image + '" width="160" height="100" loading="lazy" decoding="async" alt=""><span class="cdh-light__copy"><strong>' + item.name + '</strong><span>' + item.desc + '</span><small' + (item.key ? ' data-cd-play-price data-cd-play-feature="' + item.key + '" data-cd-play-kind="' + (product.accessModel === 'unlock' ? 'unlock' : 'perUse') + '" data-cd-price-key="' + item.key + '" data-price-krw="' + product.amountKRW + '"' : ' data-cd-price-free="true"') + '>' + price + '</small></span></a>';
 }).join('');
 
 const introductionArt = JSON.parse(readFileSync('lib/marketing/service-introduction-art.json', 'utf8'));
@@ -146,7 +146,7 @@ for (const question of QUESTION_CATEGORIES.flatMap(category => category.question
   if (amount !== Number(question.price.replace(/\D/g, ''))) throw new Error(`Home question ${question.id} says ${question.price}; registry amount for ${question.key} is ${amount}`);
 }
 const capitalize = value => value[0].toUpperCase() + value.slice(1);
-const questionLink = question => `<li class="cd-concern__q"><a class="cd-concern__q-link${question.fusion ? ' cd-concern__q-link--fusion' : ''}" href="${question.href}" data-cd-question="${question.id}"${question.price.startsWith('from') ? ' data-price-from="true"' : ''}${question.key ? ` data-cd-price-key="${question.key}"` : ' data-cd-price-free'}><img class="cd-concern__q-master" src="${QUESTION_MASTER[question.master]}" width="28" height="28" alt="" loading="lazy" decoding="async"><span class="cd-concern__q-text"><strong class="cd-concern__q-title" data-cd-trans="home.concernPick.q.${question.id}.t">${question.t}</strong><span class="cd-concern__q-badge" data-cd-trans="home.concernPick.q.${question.id}.b">${question.b}</span></span><span class="cd-concern__q-price" data-cd-trans="home.concernPick.price.${question.price}">${questionPriceLabel(question.price)}</span><span class="cd-concern__q-go" aria-hidden="true">→</span></a>${question.alt ? `<a class="cd-concern__q-alt" href="${question.alt.href}" data-cd-question="${question.id}" data-cd-question-alt data-cd-price-free><span data-cd-trans="home.concernPick.altLabel">다른 방식으로</span> <span class="cd-concern__q-alt-name" data-cd-trans="home.concernPick.q.${question.id}.alt">${question.alt.name}</span> <span class="cd-concern__q-price" data-cd-trans="home.concernPick.price.free">무료</span></a>` : ''}</li>`;
+const questionLink = question => `<li class="cd-concern__q"><a class="cd-concern__q-link${question.fusion ? ' cd-concern__q-link--fusion' : ''}" href="${question.href}" data-cd-question="${question.id}"${question.price.startsWith('from') ? ' data-price-from="true"' : ''}${question.key ? ` data-cd-price-key="${question.key}"` : ' data-cd-price-free'}><img class="cd-concern__q-master" src="${QUESTION_MASTER[question.master]}" width="28" height="28" alt="" loading="lazy" decoding="async"><span class="cd-concern__q-text"><strong class="cd-concern__q-title" data-cd-trans="home.concernPick.q.${question.id}.t">${question.t}</strong><span class="cd-concern__q-badge" data-cd-trans="home.concernPick.q.${question.id}.b">${question.b}</span></span><span class="cd-concern__q-price"${question.key ? ` data-cd-play-price data-cd-play-feature="${question.key}"${question.price.startsWith('from') ? ' data-cd-play-kind="from"' : ''}` : ''} data-cd-trans="home.concernPick.price.${question.price}">${questionPriceLabel(question.price)}</span><span class="cd-concern__q-go" aria-hidden="true">→</span></a>${question.alt ? `<a class="cd-concern__q-alt" href="${question.alt.href}" data-cd-question="${question.id}" data-cd-question-alt data-cd-price-free><span data-cd-trans="home.concernPick.altLabel">다른 방식으로</span> <span class="cd-concern__q-alt-name" data-cd-trans="home.concernPick.q.${question.id}.alt">${question.alt.name}</span> <span class="cd-concern__q-price" data-cd-trans="home.concernPick.price.free">무료</span></a>` : ''}</li>`;
 vars.questionCategories = `<section class="cdh-other" id="cdhOtherFortunes" aria-labelledby="cdhOtherFortunesTitle" data-marker="cdh-other-fortunes-v20261017">
   <section data-cd-funnel-section="concern_pick" class="cd-concern cdh-qcat" id="cdConcernPick" aria-labelledby="cdhOtherFortunesTitle" data-marker="cd-concern-pick-v20260824">
     <header class="cdh-qcat__head">
@@ -155,8 +155,8 @@ vars.questionCategories = `<section class="cdh-other" id="cdhOtherFortunes" aria
     </header>
     <div class="cdh-concern-scroll" data-concern-scroll hidden><span>옆으로 넘겨 골라보세요</span><div><button type="button" data-concern-prev aria-label="이전 고민 보기"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button type="button" data-concern-next aria-label="다음 고민 보기"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></div></div>
     <div class="cd-concern__cards" role="group" aria-labelledby="cdhOtherFortunesTitle">${QUESTION_CATEGORIES.map((category, index) => `<button type="button" class="cd-concern__card" data-cd-concern="${category.id}" aria-expanded="${index === 0}" aria-controls="cdConcernPanel${capitalize(category.id)}"><span class="cd-concern__card-media" aria-hidden="true"><img src="${category.img}-240.webp" srcset="${category.img}-240.webp 240w, ${category.img}-400.webp 400w" sizes="(max-width: 599px) 42vw, 240px" alt="" width="960" height="640" loading="lazy" decoding="async"></span><span class="cd-concern__card-label" data-cd-trans="home.concernPick.${category.id}">${category.label}</span><span class="cd-concern__card-desc" data-cd-trans="home.concernPick.chip.${category.id}">${category.chip}</span></button>`).join('')}</div>
-${QUESTION_CATEGORIES.map((category, index) => `    <div class="cd-concern__panel" id="cdConcernPanel${capitalize(category.id)}" data-cd-concern-panel="${category.id}"${index === 0 ? '' : ' hidden'}><h3 class="cd-concern__panel-title"><span data-cd-trans="home.concernPick.${category.id}">${category.label}</span> · 관련 운세</h3><ul class="cd-concern__qs">${category.questions.map(questionLink).join('')}</ul></div>`).join('\n')}
-    <div class="cd-concern__actions"><a class="cd-concern__free" href="#destinyCardForm" data-cd-trans="home.concernPick.freeCta">무료로 먼저 확인하기</a><a class="cd-concern__ask" href="/fortune-chat/?character=yeoni" data-cd-price-key="fortune-chat-consultation"><span data-cd-trans="home.concernPick.ask">직접 물어보기</span> <em class="cd-concern__q-price" data-cd-trans="home.concernPick.price.w5000">${won(chatPrice)}</em></a></div>
+${QUESTION_CATEGORIES.map((category, index) => `    <div class="cd-concern__panel" id="cdConcernPanel${capitalize(category.id)}" data-cd-concern-panel="${category.id}"${index === 0 ? '' : ' hidden'}><h3 class="cd-concern__panel-title"><span data-cd-trans="home.concernPick.${category.id}">${category.label}</span> · <span>관련 운세</span></h3><ul class="cd-concern__qs">${category.questions.map(questionLink).join('')}</ul></div>`).join('\n')}
+    <div class="cd-concern__actions"><a class="cd-concern__free" href="#destinyCardForm" data-cd-trans="home.concernPick.freeCta">무료로 먼저 확인하기</a><a class="cd-concern__ask" href="/fortune-chat/?character=yeoni" data-cd-price-key="fortune-chat-consultation"><span data-cd-trans="home.concernPick.ask">직접 물어보기</span> <em class="cd-concern__q-price" data-cd-play-price data-cd-play-feature="fortune-chat-consultation" data-cd-trans="home.concernPick.price.w5000">${won(chatPrice)}</em></a></div>
   </section>
 </section>`;
 
@@ -253,13 +253,21 @@ const signaturePrice = (featureKey, suffix = '') => {
   return `${amount.toLocaleString('ko-KR')}원${suffix}`;
 };
 // 마스터 칩 — 아바타는 build-master-avatars.mjs 가 만든 128px 한 장. 이름이 옆에 있으니 이미지는 장식(alt="").
-const signatureMaster = ({ caption, names, avatars }) => `<span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true">${avatars.map((key) => `<img src="/images/master-profiles/avatars/${key}.webp" width="48" height="48" alt="" loading="lazy" decoding="async">`).join('')}</span><span class="cd-sig-card__master">${caption} <b>${names}</b></span></span>`;
+const signatureMaster = ({ caption, names, avatars }) => `<span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true">${avatars.map((key) => `<img src="/images/master-profiles/avatars/${key}.webp" width="48" height="48" alt="" loading="lazy" decoding="async">`).join('')}</span><span class="cd-sig-card__master"><span>${caption}</span> <b>${names}</b></span></span>`;
 // 타로 덱 — 카드 한 장이 상담 하나. 숫자는 장식(aria-hidden)이고, 카드 이름은 제목이 말한다.
 // 카드에는 고르는 데 필요한 것만 둔다: 마스터·제목·대표 질문·가격·CTA. 리포트 구성은 각 상담 상세가 보여 준다.
 const TAROT_NUMERALS = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
+const introCards = [
+  { id: 'fusion-fortune', href: '/fusion-fortune/?from=home_signature', title: '초융합 운세', desc: '다섯 마스터가 여섯 체계로 삶의 흐름을 읽어요.', image: '/images/service-introductions/fusion-fortune-640.webp', action: '초융합 운세 받기' },
+  { id: 'fortune-chat', href: '/fortune-chat/?character=yeoni', title: '대화형 간단 운세 상담', desc: '연이가 마음에 걸린 이야기를 대화로 함께 풀어 드려요.', image: '/images/service-introductions/fortune-chat-yeoni-640.webp', action: '연이와 상담하기' },
+  { id: 'neo-email', href: '/yeongnyangi/neo-decision/', title: '네오 이메일', desc: '현재 상황과 고민하는 선택을 남겨주세요. 네오가 직접 읽고 AI 분석을 활용해 작성·검수한 답변을 이메일로 전합니다.', image: '/images/service-introductions/neo-consultation-640.webp', action: '질문 작성하기' },
+  { id: 'yeongnyangi-question', href: '/yeongnyangi/', title: '영냥이 질문', desc: '한 가지 고민을 나에게 맞는 운세 체계로 풀어보세요.', image: '/images/home/illustrated/root-card-yeongnyangi-600.webp', action: '질문 상담 시작하기' },
+];
+const introCardMarkup = introCards.map((card, index) => `<a class="cd-sig-card cd-sig-card--intro" data-cd-signature-id="${card.id}" href="${card.href}"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top">${index === 0 ? '<span class="cd-sig-card__badge">대표 상담</span>' : ''}</span><span class="cd-sig-card__media"><img class="cd-sig-card__img" src="${card.image}" width="640" height="360" alt="" loading="lazy" decoding="async"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">${card.title}</span><span class="cd-sig-card__q">${card.desc}</span><span class="cd-sig-card__cta"><span>${card.action}</span> <i aria-hidden="true">→</i></span></span></a>`).join('');
 vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated cd-sig--deck" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261016" aria-labelledby="cdSignatureTitle" lang="ko">
-  <div class="cd-sig__head"><h2 class="cd-sig__title" id="cdSignatureTitle">지금 필요한 상담을 골라보세요</h2><p class="cd-sig__sub">같은 풀이 기준으로, 주제에 맞춘 AI 해설을 읽어요. 구성과 예시를 먼저 살펴보세요.</p></div>
-  <div class="cd-sig__viewport" id="cdSigViewport"><div class="cd-sig__grid" id="cdSigGrid">${signatureProducts.map((product, index) => `${index === 3 ? '<details class="cd-sig__more"><summary>다른 대표 상담도 살펴보기</summary><div class="cd-sig__more-grid">' : ''}<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 699px) 44vw, (max-width: 1023px) 30vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__price">${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a>${index === signatureProducts.length - 1 ? '</div></details>' : ''}`).join('')}</div></div>
+  <div class="cd-sig__head"><h2 class="cd-sig__title" id="cdSignatureTitle">지금 필요한 상담을 골라보세요</h2><p class="cd-sig__sub">고민에 맞는 상담과 진행 방식을 살펴보세요.</p></div>
+  <div class="cd-sig__viewport" id="cdSigViewport" tabindex="0" aria-label="대표 상담 카드"><div class="cd-sig__grid" id="cdSigGrid">${introCardMarkup}${signatureProducts.map((product, index) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 699px) 82vw, (max-width: 1023px) 45vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="${product.featureKey}"${product.priceSuffix ? ' data-cd-play-kind="from"' : ''}>${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
+  <div class="cd-sig__controls" hidden aria-label="대표 상담 이동"><button type="button" data-sig-prev aria-controls="cdSigViewport" aria-label="이전 상담">←</button><span data-sig-position aria-live="polite"></span><button type="button" data-sig-next aria-controls="cdSigViewport" aria-label="다음 상담">→</button></div>
   <a class="cd-sig__samples-link" href="/consultation-samples/"><span>상담별 구성과 예시 보기</span><span class="cd-yehwa-spray cd-sig__samples-motif" aria-hidden="true"></span></a>
 </section>`;
 
@@ -275,7 +283,7 @@ vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-desig
   <ul class="cdh-pass__tiers" role="list">${Object.values(CURRENT_PASS_PLANS).map(plan => `
     <li class="cdh-pass__tier${plan.tier === 'family' ? ' cdh-pass__tier--family' : ''}"><a class="cdh-pass__tier-link" href="/points/?source=flower-membership&amp;plan=${plan.tier}">
       ${plan.tier === 'family' ? '<span class="cdh-pass__badge" data-cd-trans="home.gardenCopy.passBadge">영냥이까지</span>' : ''}<span class="cdh-pass__tier-name">${plan.name}</span>
-      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.wonPrice).toLocaleString('en-US')}"}'>${won(plan.wonPrice)}</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
+      <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-play-pass="${plan.tier}" data-cd-play-policy="${CURRENT_PASS_POLICY_VERSION}" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.wonPrice).toLocaleString('en-US')}"}'>${won(plan.wonPrice)}</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.${plan.tier === 'family' ? 'passNoLimit' : 'passPerLimit'}" data-cd-vars='{"amount":"${Number(plan.maxCoveredCoin * 100).toLocaleString('en-US')}"}'>${plan.tier === 'family' ? '유료 리딩 건당 한도 없음' : `건당 ${won(plan.maxCoveredCoin * 100)} 이하`}</span>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"${Number(plan.monthlyLimitCoin * 100).toLocaleString('en-US')}"}'>누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
     </a></li>`).join('')}
@@ -292,7 +300,7 @@ vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-desig
     <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="${plan.planId}"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
       <img class="cdh-pass__pack-art" src="/assets/yeongnyangi/service-packs/${plan.fishId}-gift-set-v2.webp" alt="" width="240" height="240" loading="lazy" decoding="async">
       <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"${fishKey}","total":"${plan.totalUses}"}'>${plan.label}</span>
-      <strong class="cdh-pass__tier-price"><span data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.priceKRW).toLocaleString('en-US')}"}'>${won(plan.priceKRW)}</span></strong>
+      <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.priceKRW).toLocaleString('en-US')}"}'>${won(plan.priceKRW)}</span></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"${Number(plan.unitPriceKRW).toLocaleString('en-US')}"}'>회당 ${won(plan.unitPriceKRW)} 상담</span>
       <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"${fishKey}","total":"${plan.totalUses}"}'>${fishKo} 상담 전용 · 사용 기한 없음 · 총 ${plan.totalUses}회</span>
     </a></li>`;
@@ -310,15 +318,67 @@ let homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
 homeHtml = homeHtml.replace('id="cdSigGrid"', 'id="cdSigGrid" data-home-stagger="signature"');
 
 // Mark authored text-only home labels; preserve nested markup and original quotations.
-const overseasLabels = JSON.parse(readFileSync('i18n/authored/homeOverseas-01.json', 'utf8'));
+const overseasLabels = Object.assign({}, ...readdirSync('i18n/authored').filter(file => /^homeOverseas-\d+\.json$/.test(file)).sort().map(file => JSON.parse(readFileSync('i18n/authored/' + file, 'utf8'))));
 const labelKeys = new Map(Object.entries(overseasLabels).filter(([, value]) => !value.ko.includes('{')).map(([key, value]) => [value.ko, key]));
+const varsAttribute = values => ' data-cd-vars="' + JSON.stringify(values).replaceAll('"', '&quot;') + '"';
+const copyReference = text => {
+  const key = labelKeys.get(text);
+  if (!key) throw new Error('Missing authored home label: ' + text);
+  return '@' + key;
+};
+for (const product of signatureProducts) {
+  homeHtml = homeHtml.replace('aria-label="' + product.title + ' — ' + product.cta + '"',
+    'aria-label="' + product.title + ' — ' + product.cta + '" data-cd-trans-attr="aria-label:home.guideCopy.cardLabel"' + varsAttribute({ title: copyReference(product.title), action: copyReference(product.cta) }));
+  homeHtml = homeHtml.replace('alt="' + product.imageAlt + '"',
+    'alt="' + product.imageAlt + '" data-cd-trans-attr="alt:home.guideCopy.sceneAlt"' + varsAttribute({ name: copyReference(product.master.names), title: copyReference(product.title) }));
+}
+for (const master of FUSION_MASTERS) {
+  homeHtml = homeHtml.replace('aria-label="' + master.name + '에게 물어보기 · ' + master.text + '" title="' + master.name + '에게 물어보기"',
+    'aria-label="' + master.name + '에게 물어보기 · ' + master.text + '" title="' + master.name + '에게 물어보기" data-cd-trans-attr="aria-label:home.guideCopy.masterLabel,title:home.guideCopy.askMaster"' + varsAttribute({ name: copyReference(master.name), role: copyReference(master.role) }));
+}
+homeHtml = homeHtml.replace('alt="연이·꽃돼지 연이의 연이와 나누는 대화 상담 상담 장면"',
+  'alt="연이·꽃돼지 연이의 연이와 나누는 대화 상담 상담 장면" data-cd-trans-attr="alt:home.guideCopy.sceneAlt"' + varsAttribute({ name: '@home.guideCopy.yeoniName', title: '@home.guideCopy.tabYeoni' }));
+// The Korean source restored by the locale runtime must match its authored template too.
+homeHtml = homeHtml.replace(/<[a-z][^>]*data-cd-trans-attr="([^"]+)"[^>]*>/g, (tag, markers) => {
+  const raw = tag.match(/data-cd-vars="([^"]+)"/)?.[1];
+  if (!raw) return tag;
+  const values = JSON.parse(raw.replaceAll('&quot;', '"'));
+  for (const marker of markers.split(',')) {
+    const [attribute, key] = marker.split(':');
+    const source = overseasLabels[key]?.ko;
+    if (!source) continue;
+    const rendered = source.replace(/\{(\w+)\}/g, (token, name) => {
+      const value = values[name];
+      return typeof value === 'string' && value.startsWith('@') ? overseasLabels[value.slice(1)]?.ko ?? token : value ?? token;
+    }).replaceAll('&', '&amp;').replaceAll('"', '&quot;');
+    tag = tag.replace(new RegExp('(^|\\s)' + attribute + '="[^"]*"'), (_match, space) => space + attribute + '="' + rendered + '"');
+  }
+  return tag;
+});
 homeHtml = homeHtml.replace(/(<[a-z][^>]*>)([^<>]+)(<\/[a-z][a-z0-9]*>)/g, (whole, open, text, close) => {
+  if (/^해금 \d[\d,]*원$/.test(text) && !/\sdata-cd-trans(?=[\s=>])/.test(open)) {
+    return open.slice(0, -1) + ' data-cd-trans="home.guideCopy.unlockPrice"' + varsAttribute({ amount: text.replace(/^해금 |원$/g, '') }) + '>' + text + close;
+  }
   if (/^\d[\d,]*원(?:부터)?$/.test(text) && !/\sdata-cd-trans(?=[\s=>])/.test(open)) {
     return open.slice(0, -1) + ' data-cd-trans="' + (text.endsWith('부터') ? 'home.simple.priceFrom' : 'home.overseasCopy.krwAmount') + '" data-cd-vars=\"' + JSON.stringify({amount:text.replace(/원(?:부터)?$/, '')}).replaceAll('\"', '&quot;') + '\">' + text + close;
   }
   const key = labelKeys.get(text);
   return !key || /\sdata-cd-trans(?=[\s=>])/.test(open) ? whole : open.slice(0, -1) + ' data-cd-trans="' + key + '">' + text + close;
 });
+
+// Translate accessibility copy alongside visible text, without replacing controls.
+homeHtml = homeHtml.replace(/<[a-z][^>]*>/g, open => {
+  const entries = [];
+  for (const attr of ['aria-label', 'title', 'alt']) {
+    const value = open.match(new RegExp('\\s' + attr + '="([^"]*)"'))?.[1];
+    const key = labelKeys.get(value);
+    if (key && !open.includes(attr + ':')) entries.push(attr + ':' + key);
+  }
+  if (!entries.length) return open;
+  return open.includes('data-cd-trans-attr="')
+    ? open.replace(/(data-cd-trans-attr=")([^"]*)"/, (_all, start, attrs) => start + attrs + ',' + entries.join(',') + '"')
+    : open.slice(0, -1) + ' data-cd-trans-attr="' + entries.join(',') + '">';
+}).replaceAll(' lang="ko"', '');
 
 let cleaned = original;
 

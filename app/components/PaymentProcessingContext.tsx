@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -1153,6 +1154,8 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
 export function PaymentProcessingProvider({
   children,
 }: PaymentProcessingProviderProps) {
+  const pathname = usePathname();
+  const profileOnly = pathname?.replace(/\/$/, "") === "/saju/career-style";
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingVariant, setProcessingVariant] = useState<PaymentLoadingVariant>("payment");
   const processingVariantRef = useRef<PaymentLoadingVariant>("payment");
@@ -1170,7 +1173,7 @@ export function PaymentProcessingProvider({
   // warmSubscriptionSnapshotOnEntry가 조기 반환하므로 실제 요청은 TTL당 1회다.
   // billing-client/auth-store는 동적 import로만 참조한다 — 루트 레이아웃 번들을 키우지 않기 위해서다.
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || profileOnly) return;
     let cancelled = false;
     let unsubscribe: (() => void) | null = null;
     let idleHandle: number | null = null;
@@ -1222,7 +1225,7 @@ export function PaymentProcessingProvider({
         idleWindow.cancelIdleCallback(idleHandle);
       }
     };
-  }, []);
+  }, [profileOnly]);
 
   // 유료 CTA 클릭 "전"에 결제 런타임(/js/destiny-profile.js, ~400KB — 결제 선택창을 여는 코드)을
   // 미리 받아 둔다. app/hooks/useCoinGate.ts 는 자기 마운트 시점에 이미 이걸 하지만, 그 훅을 쓰지
@@ -1232,7 +1235,7 @@ export function PaymentProcessingProvider({
   // idle 콜백으로 걸어 두면 화면마다 배선할 필요가 없다 — loadPaidServiceRuntimeGate 는 이미 멱등
   // (중복 로드 방지)이라 useCoinGate 와 겹쳐 불려도 안전하다.
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || profileOnly) return;
     let cancelled = false;
     let idleHandle: number | null = null;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -1264,7 +1267,7 @@ export function PaymentProcessingProvider({
       }
       if (timer !== null) clearTimeout(timer);
     };
-  }, []);
+  }, [profileOnly]);
 
   const setPaymentLoadingVariant = useCallback((variant: PaymentLoadingVariant) => {
     processingVariantRef.current = variant;

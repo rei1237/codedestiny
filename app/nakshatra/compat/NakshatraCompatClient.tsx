@@ -1,49 +1,62 @@
 "use client";
+import { useNakshatraProfileContext } from "../_lib/nakshatra-context";
+import { readDestinyProfileAccountId } from "@/app/_lib/profile-card-storage";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthPlaceInput from "@/app/components/BirthPlaceInput";
+import { cardToFormValues, ianaOffsetHours } from "../nakshatra-birth";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import { NAKSHATRA_COMPAT_PRICING } from "../_lib/pricing";
 
 import { authFetch } from "@/app/_lib/auth-client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "../../hooks/usePaidResume";
 import { postPaidBody } from "../nakshatra-fetch";
-import { useNakshatraCopy, type CompatCityKey } from "../_lib/copy";
-import NakshatraProfilePicker from "../_components/NakshatraProfilePicker";
-import { useNakshatraProfileContext } from "../_lib/nakshatra-context";
+import { useNakshatraCopy } from "../_lib/copy";
+
+
 import CompatResultView, { type CompatResult } from "./CompatResultView";
 
 const FEATURE_KEY = "nakshatra-compat";
-const CITY: { key: CompatCityKey; lat: number; lon: number }[] = [
-  { key: "seoul", lat: 37.5665, lon: 126.978 }, { key: "busan", lat: 35.1796, lon: 129.0756 },
-  { key: "daegu", lat: 35.8714, lon: 128.6014 }, { key: "incheon", lat: 37.4563, lon: 126.7052 },
-  { key: "gwangju", lat: 35.1595, lon: 126.8526 }, { key: "daejeon", lat: 36.3504, lon: 127.3845 },
-  { key: "jeju", lat: 33.4996, lon: 126.5312 },
-];
 
-interface P { name: string; year: string; month: string; day: string; hour: string; minute: string; timeUnknown: boolean; gender: "" | "male" | "female"; cityIndex: number; latitude?: number; longitude?: number; timezone?: number }
-const emptyP = (): P => ({ name: "", year: "", month: "", day: "", hour: "", minute: "", timeUnknown: false, gender: "", cityIndex: 0 });
+interface P { name: string; year: string; month: string; day: string; hour: string; minute: string; timeUnknown: boolean; gender: "" | "male" | "female"; birthPlace: string; ianaTimezone: string; latitude?: number; longitude?: number; timezone?: number }
+const emptyP = (): P => ({ name: "", year: "", month: "", day: "", hour: "", minute: "", timeUnknown: false, gender: "", birthPlace: "", ianaTimezone: "" });
 const valid = (p: P) => {
   const year = Number(p.year), month = Number(p.month), day = Number(p.day);
   const date = new Date(Date.UTC(year, month - 1, day));
   return Number.isInteger(year) && year >= 1900 && year <= 2100 && date.getUTCFullYear() === year
     && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+    && Number.isFinite(p.latitude) && Number.isFinite(p.longitude) && (Boolean(p.ianaTimezone) || Number.isFinite(p.timezone))
     && (p.timeUnknown || (p.hour !== '' && Number(p.hour) >= 0 && Number(p.hour) <= 23 && Number(p.minute || 0) >= 0 && Number(p.minute || 0) <= 59));
 };
 function payload(p: P) {
-  const c = CITY[p.cityIndex] || CITY[0];
-  return { year: +p.year, month: +p.month, day: +p.day, hour: p.timeUnknown ? 12 : +(p.hour === "" ? 12 : p.hour), minute: p.timeUnknown ? 0 : +(p.minute || 0), timezone: p.timezone ?? 9, lat: p.latitude ?? c.lat, lon: p.longitude ?? c.lon, timeUnknown: p.timeUnknown, gender: p.gender || undefined };
+
+  return { year: +p.year, month: +p.month, day: +p.day, hour: p.timeUnknown ? 12 : +(p.hour === "" ? 12 : p.hour), minute: p.timeUnknown ? 0 : +(p.minute || 0), timezone: p.timezone ?? ianaOffsetHours(+p.year,+p.month,+p.day,p.timeUnknown?12:+p.hour,p.timeUnknown?0:+p.minute,p.ianaTimezone,0), lat: p.latitude, lon: p.longitude, timeUnknown: p.timeUnknown, gender: p.gender || undefined };
 }
 const enc = (p: P) => { try { return btoa(encodeURIComponent(JSON.stringify(p))); } catch { return ""; } };
-const dec = (s: string): P | null => { try { return JSON.parse(decodeURIComponent(atob(s))); } catch { return null; } };
+const dec = (s: string): P | null => { try {
+  const value = JSON.parse(decodeURIComponent(atob(s)));
+  // Previous invitation links stored a Korean city index; retain those historical inputs.
+  const cities = [[37.5665,126.978],[35.1796,129.0756],[35.8714,128.6014],[37.4563,126.7052],[35.1595,126.8526],[36.3504,127.3845],[33.4996,126.5312]];
+  const city = Number.isInteger(value.cityIndex) ? cities[value.cityIndex] : null;
+  if (!value.ianaTimezone && city) return {...value,latitude:value.latitude ?? city[0],longitude:value.longitude ?? city[1],ianaTimezone:"Asia/Seoul",birthPlace:value.birthPlace || ""};
+  return value;
+} catch { return null; } };
 
 const IN = "w-full rounded-lg border border-white/15 bg-white/[0.04] px-3 py-2.5 text-slate-100 placeholder:text-slate-400 outline-none focus:border-amber-200/60";
-function Person({ v, set, locked, title, copy }: { v: P; set: (p: P) => void; locked?: boolean; title: string; copy: ReturnType<typeof useNakshatraCopy> }) {
-  const u = (patch: Partial<P>) => set({ ...v, ...patch });
+function Person({ v, set, locked, title, copy }: { v: P; set: Dispatch<SetStateAction<P>>; locked?: boolean; title: string; copy: ReturnType<typeof useNakshatraCopy> }) {
+  const selection = useRef(0);
+  const [profileError,setProfileError] = useState("");
+  useEffect(()=>()=>{selection.current++;},[]);
+  const u = (patch: Partial<P>) => { selection.current++; set(previous => ({ ...previous, ...patch })); };
   const dg = (x: string, n: number) => x.replace(/\D/g, "").slice(0, n);
   return (
-    <fieldset disabled={locked} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 disabled:opacity-70">
+    <fieldset data-moonlit-form="" disabled={locked} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 disabled:opacity-70">
       <legend className="px-2 text-sm font-bold text-slate-100">{title}{locked && <span className="ml-2 text-xs font-normal text-amber-100/80">{copy.compatInviteLockedSuffix}</span>}</legend>
+      <SavedBirthProfilePicker label={title} disabled={locked} onSelect={async(seed,card)=>{const owner=readDestinyProfileAccountId();const request=++selection.current;setProfileError("");const values=await cardToFormValues(card);if(request!==selection.current || owner!==readDestinyProfileAccountId())return;if(!values){setProfileError(copy.formCardReadError);return;}set({...emptyP(),...values,gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "",latitude:values.latitude?Number(values.latitude):undefined,longitude:values.longitude?Number(values.longitude):undefined,ianaTimezone:seed.timezone || "",timeUnknown:Boolean(seed.birthTimeUnknown),timezone:undefined});}} />
+      {profileError&&<p role="alert">{profileError}</p>}
       <label className="block text-xs leading-7 text-slate-300">{copy.compatNamePlaceholder}<input className={`${IN} mb-3`} value={v.name} onChange={(e) => u({ name: e.target.value.slice(0, 20) })} aria-label={copy.compatNamePlaceholder} placeholder={copy.compatNamePlaceholder} /></label>
       <div className="mb-3 grid grid-cols-3 gap-2">
         <label className="block text-xs leading-7 text-slate-300">{copy.compatYearPlaceholder}<input className={IN} inputMode="numeric" value={v.year} onChange={(e) => u({ year: dg(e.target.value, 4) })} aria-label={copy.compatYearPlaceholder} placeholder={copy.compatYearPlaceholder} /></label>
@@ -51,8 +64,10 @@ function Person({ v, set, locked, title, copy }: { v: P; set: (p: P) => void; lo
         <label className="block text-xs leading-7 text-slate-300">{copy.compatDayPlaceholder}<input className={IN} inputMode="numeric" value={v.day} onChange={(e) => u({ day: dg(e.target.value, 2) })} aria-label={copy.compatDayPlaceholder} placeholder={copy.compatDayPlaceholder} /></label>
       </div>
       <div className="mb-2 grid grid-cols-2 gap-2">
-        <label className="block text-xs leading-7 text-slate-300">{copy.compatHourPlaceholder}<input className={IN} inputMode="numeric" disabled={v.timeUnknown} value={v.hour} onChange={(e) => u({ hour: dg(e.target.value, 2) })} aria-label={copy.compatHourPlaceholder} placeholder={copy.compatHourPlaceholder} /></label>
-        <label className="block text-xs leading-7 text-slate-300">{copy.compatMinutePlaceholder}<input className={IN} inputMode="numeric" disabled={v.timeUnknown} value={v.minute} onChange={(e) => u({ minute: dg(e.target.value, 2) })} aria-label={copy.compatMinutePlaceholder} placeholder={copy.compatMinutePlaceholder} /></label>
+        <label className="col-span-2 block text-xs leading-7 text-slate-300">{copy.compatHourPlaceholder}
+          <BirthTimeInput className={IN} disabled={v.timeUnknown} value={v.hour === "" ? "" : v.hour.padStart(2, "0") + ":" + (v.minute || "0").padStart(2, "0")}
+            onChange={event => { const [hour = "", minute = ""] = event.target.value.split(":"); u({hour, minute}); }} />
+        </label>
       </div>
       <label className="mb-3 flex cursor-pointer items-center gap-2 text-sm text-slate-200">
         <input type="checkbox" className="h-4 w-4 accent-amber-300" checked={v.timeUnknown} onChange={(e) => u({ timeUnknown: e.target.checked })} /> {copy.compatTimeUnknownLabel}
@@ -63,9 +78,7 @@ function Person({ v, set, locked, title, copy }: { v: P; set: (p: P) => void; lo
           <option value="male" className="bg-slate-900">{copy.compatMaleOption}</option>
           <option value="female" className="bg-slate-900">{copy.compatFemaleOption}</option>
         </select></label>
-        <label className="block text-xs leading-7 text-slate-300">출생 도시<select aria-label="출생 도시" className={IN} value={v.cityIndex} onChange={(e) => u({ cityIndex: +e.target.value })}>
-          {CITY.map((c, i) => <option key={c.key} value={i} className="bg-slate-900">{copy.compatCityLabel[c.key]}</option>)}
-        </select></label>
+        <label className="block text-xs leading-7 text-slate-300">태어난 도시와 국가<BirthPlaceInput value={v.birthPlace || ""} confirmed={Number.isFinite(v.latitude)&&Number.isFinite(v.longitude)&&(Boolean(v.ianaTimezone)||Number.isFinite(v.timezone))} onChange={birthPlace=>u({birthPlace,latitude:undefined,longitude:undefined,ianaTimezone:"",timezone:undefined})} onResolved={place=>u({latitude:place?.lat,longitude:place?.lng,ianaTimezone:place?.timezone || "",timezone:undefined})} /></label>
       </div>
     </fieldset>
   );
@@ -74,7 +87,9 @@ function Person({ v, set, locked, title, copy }: { v: P; set: (p: P) => void; lo
 export default function NakshatraCompatClient() {
   const copy = useNakshatraCopy();
   const { ensurePaidAccess, isPaying } = useCoinGate();
+
   const profilePicker = useNakshatraProfileContext();
+  const selfTouched = useRef(false);
   const [a, setA] = useState<P>(emptyP);
   const [b, setB] = useState<P>(emptyP);
   const [aLocked, setALocked] = useState(false);
@@ -107,23 +122,13 @@ export default function NakshatraCompatClient() {
     } catch { /* ignore */ }
   }, []);
 
-  useEffect(() => {
-    if (aLocked || !profilePicker.birth || !profilePicker.selectionSource) return;
-    const next = profilePicker.birth;
-    setA((previous) => ({
-      ...previous,
-      year: String(next.year),
-      month: String(next.month),
-      day: String(next.day),
-      hour: next.timeUnknown ? "" : String(next.hour),
-      minute: next.timeUnknown ? "" : String(next.minute),
-      timeUnknown: next.timeUnknown,
-      gender: next.gender === "male" || next.gender === "female" ? next.gender : previous.gender,
-      latitude: next.lat,
-      longitude: next.lon,
-      timezone: next.timezone,
-    }));
-  }, [aLocked, profilePicker.birth, profilePicker.selectionSource]);
+
+
+  useEffect(()=>{
+    if(aLocked || selfTouched.current || !profilePicker.birth || !profilePicker.selectionSource)return;
+    const next=profilePicker.birth;
+    setA(previous=>({...previous,year:String(next.year),month:String(next.month),day:String(next.day),hour:next.timeUnknown?"":String(next.hour),minute:next.timeUnknown?"":String(next.minute),timeUnknown:next.timeUnknown,gender:next.gender === "male" || next.gender === "female" ? next.gender : "",latitude:next.lat,longitude:next.lon,timezone:next.timezone,birthPlace:profilePicker.profiles.find(profile=>String(profile.id || profile.profileId)===profilePicker.selectedProfileId)?.location?.label || "",ianaTimezone:""}));
+  },[aLocked,profilePicker.birth,profilePicker.selectionSource,profilePicker.profiles,profilePicker.selectedProfileId]);
 
   /* 결제 후 자동 재개 — 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 submitOnce 의 await 가
      페이지와 함께 죽는다. 두 사람의 입력은 state 안에만 있어 복귀한 문서에서 재현할 수 없으니 결제
@@ -203,10 +208,10 @@ export default function NakshatraCompatClient() {
   return (
     <div className="mx-auto w-full max-w-2xl">
       {detectLocale() === "ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto 24px",background:"#efe7df",color:"#3e414d",borderRadius:12}}><CraftedProductDisclosure featureKey="nakshatra-compat" summaryLabel="동서 통합 궁합 상세 안내" /></div>}
-      <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={aLocked || isPaying || loading} />
+
       <div className="grid gap-4">
-        <Person title={copy.compatMeLabel} v={a} set={setA} locked={aLocked} copy={copy} />
-        <Person title={copy.compatPartnerLabel} v={b} set={setB} copy={copy} />
+        <Person title={copy.compatMeLabel} v={a} set={next=>{selfTouched.current=true;setA(next);}} locked={aLocked || isPaying || loading} copy={copy} />
+        <Person title={copy.compatPartnerLabel} v={b} set={setB} locked={isPaying || loading} copy={copy} />
       </div>
       {error && <p role="alert" className="mt-4 rounded-lg border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">{error}</p>}
       {canRetry && paidRef.current && !result && (

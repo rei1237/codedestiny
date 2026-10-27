@@ -1,0 +1,28 @@
+{
+  "created": "2026-10-27",
+  "generator": "image_gen",
+  "reference": "public/assets/yeongnyangi/original/hero-800.webp",
+  "purpose": "Decorative consultation illustrations. Never calculation evidence; no user data is sent for generation.",
+  "assets": [
+    {
+      "id": "cover",
+      "source": "exec-5203ea30-2b76-4ded-a18f-3a9185c02c72.png",
+      "prompt": "Create one premium editorial illustration for Code Destiny's Yeongnyangi fortune consultation report cover. The attached image is the character identity reference, NOT a composition target: preserve this exact fluffy white longhair chibi magician cat, half-lidded violet-gold eyes, navy floppy wizard hat with gold crescent and small stars, elegant navy robe, blue-violet pendant; keep recognizable face and proportions. Landscape 3:2. Cat sits beside an open blank ivory consultation book in a tranquil midnight-blue moon observatory, silver-blue moonlight through an arched window, fine champagne gold botanical linework confined to the outer edges, restrained painterly anime storybook finish with detailed fur and soft paper texture. Mature, quiet, refined, no childish stickers. Place cat toward left half, book in foreground, spacious balanced environment. No text, letters, words, numbers, labels, watermarks, or legible markings anywhere including the cat's tag and book. This is static decorative art, not a factual chart. Rich deep blue, ivory fur, muted antique gold; avoid purple gradients and glowing neon."
+    },
+    {
+      "id": "insight",
+      "source": "exec-f4d4e23d-a4a1-42fc-800c-51a7eb88c84e.png",
+      "prompt": "Premium landscape 3:2 illustrated chapter interlude for a personal fortune report. Reference is the exact identity of Yeongnyangi: fluffy white longhair chibi wizard cat, half-lidded violet and gold eyes, navy floppy hat with gold crescent and stars, navy cloak, violet gemstone pendant. Preserve character faithfully. New scene: cat thoughtfully holds a small antique magnifying lens beside blank celestial parchment, gently studying a floating luminous blue crystal and abstract golden orbital rings. Refined anime storybook painting, pearl-blue moonlight, misty blue observatory, muted antique gold, delicately textured fur. Balanced medium-wide scene, fine restrained botanical border at corners, calm intelligent expression, no neon, no purple gradient. Absolutely NO text, letters, numbers, watermarks, annotations or diagrams claiming factual measurements; remove the reference's name tag lettering. This is decorative insight artwork with no typography."
+    },
+    {
+      "id": "choices",
+      "source": "exec-f5ddc4cb-9c27-475d-a342-19a2d38e6863.png",
+      "prompt": "Premium editorial illustration, landscape 3:2, for Yeongnyangi consultation's choices chapter. Exact character identity from reference: fluffy white longhair chibi wizard cat, violet-gold half-lidded eyes, navy gold-crescent wizard hat and cloak, blue-violet pendant. New full scene: cat stands calmly at a fork of two stone garden paths under moonlight, holding a small antique brass lantern. One path leads toward a distant softly lit observatory, another toward a quiet moonlit garden; both inviting, neither marked as right/wrong. Silvery blue hydrangeas and delicate gold botanical details around outer corners, dignified reflective anime storybook painting with detailed fur. Midnight blue and sage silver environment, gentle warm lantern gold, no neon. No text, signs, letters, numbers, name-tag text, watermark or diagram. Keep the cat recognizable rather than generic or realistic."
+    },
+    {
+      "id": "closing",
+      "source": "exec-3f0ee08c-a13b-4392-bf38-38d211e68ddd.png",
+      "prompt": "Landscape 3:2 premium illustrated closing scene for Yeongnyangi's personal consultation report. Preserve the exact reference character identity: fluffy white longhair chibi wizard cat, violet-gold half-lidded eyes, navy floppy wizard hat with gold crescent and stars, navy robe, violet jewel pendant. Cat rests a paw on a closed dark-blue gold-bound book and offers a single small cup of warm tea on an observatory balcony. Peaceful pre-dawn sky fading into soft blue and pearl rose at horizon, distant moon still visible, silver foliage and subtle gold branches along outer edges. Expression quietly reassuring yet slightly aloof, recognizable face; finely rendered fur and refined painterly anime storybook finish. Balanced spacious composition, environmental illustration, not a sticker. No text, lettering, digits, captions, symbols functioning as labels, watermarks, or legible name tag. Warm ivory cat against cool desaturated blues, no generic purple gradient or neon."
+    }
+  ]
+}

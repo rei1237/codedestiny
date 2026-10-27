@@ -1,7 +1,8 @@
 import { Types } from 'mongoose';
 import { connectDb, withMongoRetry } from './db.js';
 import * as models from './models.js';
-import { runWithAiLocale } from './ai-locale-context.js';
+import { runWithAiLocale, storedAiLocale } from './ai-locale-context.js';
+import { runPendingConsultationRefunds } from './consultation-delivery-refund.js';
 
 // Each adapter resumes an existing owner-scoped record through its normal
 // payment, lease, persistence and per-part budget checks. No insert or grant here.
@@ -36,6 +37,10 @@ export function consultationRecoveryFilter(now, extra) {
 export async function runConsultationRecovery(env, options = {}) {
   const now = options.now || Date.now(), deadline = now + TASK_MS;
   await (options.connectDb || connectDb)(env);
+  // Financial obligations outlive the generation window and do not wait for LLM.
+  let refunds;
+  try { refunds = await (options.refundRecovery || runPendingConsultationRefunds)(env); }
+  catch { refunds = { outcomes: [{ refundStatus: 'pending' }] }; }
   const catalog = options.adapters || CONSULTATION_RECOVERY_ADAPTERS;
   // Rotate first service so a slow provider cannot permanently starve later ones.
   const offset = Math.floor(now / 600000) % catalog.length;
@@ -47,11 +52,11 @@ export async function runConsultationRecovery(env, options = {}) {
       const adapter = options.loadAdapter ? await options.loadAdapter(route) : await loadAdapters[route]();
       const model = (options.models || models)[modelName];
       const docs = !modelName ? await adapter.findRecoverableConsultations(env, consultationRecoveryFilter(now, extra)) : await withMongoRetry(env, () => model.find(consultationRecoveryFilter(now, extra))
-        .sort({ updatedAt: 1, _id: 1 }).limit(1).select('id executionId executionKey userId updatedAt locale llmMeta.locale llmMeta.resumeBody.locale').lean());
+        .sort({ updatedAt: 1, _id: 1 }).limit(1).select('id executionId executionKey userId updatedAt locale llmMeta.locale llmMeta.resumeBody.locale llmMeta.delivery.resumeBody.locale result.resumeBody.locale').lean());
       for (const doc of docs) {
         if (!doc.userId || !(doc.id || doc._id || doc.resultId)) continue;
         try {
-        const response = await runWithAiLocale(doc.locale || doc.llmMeta?.locale || doc.llmMeta?.resumeBody?.locale || 'ko',
+        const response = await runWithAiLocale(storedAiLocale(doc),
           () => adapter.resumeConsultationOnServer(env, doc));
         // Never log body/raw, payment IDs or birth inputs.
         outcomes.push({ service: route, status: response.status });
@@ -71,6 +76,6 @@ export async function runConsultationRecovery(env, options = {}) {
       outcomes.push({ service: route, code: String(error?.code || 'RECOVERY_PENDING').slice(0, 80) });
     }
   }
-  console.log('[consultation-recovery]', JSON.stringify({ outcomes }));
-  return { ok: true, outcomes };
+  console.log('[consultation-recovery]', JSON.stringify({ outcomes, refunds }));
+  return { ok: true, outcomes, refunds };
 }

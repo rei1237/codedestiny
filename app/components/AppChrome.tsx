@@ -49,6 +49,7 @@ const CHROMELESS_ROUTES = [
   "/tarot/healing",
   "/tarot/mindscan",
   "/saju/animal-destiny",
+  "/saju/career-style",
   "/saju/animal-test",
   "/palm-reading",
   "/music",
@@ -110,6 +111,7 @@ const IMMERSIVE_FORTUNE_ROUTES = [
 // Routes that render their own in-experience back/home controls, so the global
 // floating nav would duplicate and overlap them.
 const FEATURE_NAV_SELF_MANAGED_ROUTES = [
+  "/saju/career-style",
   "/share",
   "/relationship-boundary-test/inline",
   "/gift",

@@ -28,7 +28,7 @@ export interface ConnectionsViewProps {
 }
 
 export default function ConnectionsView({ data, busy = null, notice = null, onSync }: ConnectionsViewProps) {
-  const activeSources = data.sources.filter(row => !/threads|campaign|plan/i.test(row.id));
+  const activeSources = data.sources.filter(row => !/campaign|plan/i.test(row.id));
   const troubled = activeSources.filter((row) => row.status === "error" || row.status === "stale");
   return (
     <div className="cd-hq-page space-y-4">
@@ -96,11 +96,11 @@ export default function ConnectionsView({ data, busy = null, notice = null, onSy
         <HqPanel title="WordPress 작업실" game="연이의 편집 원정">
           <p className="text-sm">현재 집중 발행처입니다. 계정 상태는 편집기에서 직접 확인합니다. 자동 발행이나 통계 API 연결을 뜻하지 않습니다.</p>
           <a className={adminButton("primary")} href="/admin/wordpress/">작업실 열기</a>
-          <details className="cd-ops-archive"><summary>이전 Threads 연결 기록</summary>
+          </HqPanel><HqPanel title="Threads 작업실" game="대화와 발행 기록">
             <p>현재 서버 설정: <code>{data.threads.mode}</code></p>
             <p>{data.threads.note}</p>
-            <p>현재 마케팅 대상에서 제외했습니다. 모드가 off 또는 0이 아니면 배포 설정을 확인하세요.</p>
-          </details>
+            <p>원고는 스튜디오에서 검토하고 공개는 직접 확인해요. 이 화면을 열어도 자동 발행 설정은 바뀌지 않아요.</p>
+            <a className={adminButton("primary")} href="/admin/threads/">Threads 작업실 열기</a>
         </HqPanel>
       </div>
     </div>

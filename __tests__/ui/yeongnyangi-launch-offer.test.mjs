@@ -25,7 +25,7 @@ const TRIAL={mackerel:1000,salmon:3000,flounder:5000,tuna:10000,assorted:20000,o
 const whileActive=fn=>{const before=mod.launchOffer.active;mod.launchOffer.active=true;try{return fn();}finally{mod.launchOffer.active=before;}};
 
 test('all 28 catalog products follow the user-confirmed fish ratio and fusion prices',()=>{
- const approved={mackerel:5000,salmon:10000,flounder:15000,tuna:30000,assorted:50000,omakase:70000};
+ const approved={mackerel:5000,salmon:10000,flounder:15000,tuna:30000,assorted:50000,omakase:60000};
  assert.equal(mod.products.length,28);
  for(const product of mod.products)assert.equal(product.priceKRW,approved[product.fishId],product.id);
  assert.deepEqual(mod.launchOffer.plannedPriceKRW,approved);
@@ -65,8 +65,8 @@ test('while active, a planned price shows only above the trial price and the lad
 
 test('banner renders the effective date, current catalog prices, and preserved purchase rights',()=>{
  const html=render();
- assert.match(html,/2026년 10월 12일 가격 변경 안내/);
- assert.match(html,/고등어 5,000원 · 연어 10,000원 · 오마카세 70,000원/);
+ assert.match(html,/영냥이 상담 가격 안내/);
+ assert.match(html,/고등어 5,000원 · 연어 10,000원 · 오마카세 60,000원/);
  assert.match(html,/이미 결제한 상담과 기존 해금 결과/);
 });
 

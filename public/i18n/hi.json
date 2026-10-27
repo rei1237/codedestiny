@@ -2061,6 +2061,174 @@
       "fusion": "छह प्रणालियों का संयुक्त पाठ देखें",
       "concerns": "अपने प्रश्न के अनुसार खोजें",
       "music": "चाँदनी यात्रा · संगीत के साथ विश्राम"
+    },
+    "guideCopy": {
+      "replyLanguage": "उत्तर की भाषा: {language}",
+      "header": "साइट हेडर",
+      "nav": "मुख्य मेनू",
+      "honeyTitle": "हनी ड्रॉप्स कहाँ इस्तेमाल करें?",
+      "honeyClose": "हनी ड्रॉप्स गाइड बंद करें",
+      "honeyEligible": "हनी ड्रॉप्स स्वीकार्य",
+      "honeyLead": "चेक-इन से मिले हनी ड्रॉप्स से पात्र मूल व्याख्याएँ खोलें। नीचे सामग्री और आवश्यक मात्रा देखें।",
+      "honeyTutorialAlt": "योनी हनी ड्रॉप्स इकट्ठा करती है, व्याख्या चुनती है और खोलती है",
+      "honeyTutorial": "चेक-इन करें · व्याख्या चुनें · हनी ड्रॉप्स से खोलें",
+      "honeyChoose": "व्याख्या चुनें",
+      "honeyChooseBody": "नीचे श्रेणी खोलकर व्याख्या चुनें।",
+      "honeyProfile": "प्रोफ़ाइल जाँचें",
+      "honeyProfileBody": "लॉग इन करके जन्म जानकारी वाली प्रोफ़ाइल चुनें।",
+      "honeyCheckOpen": "मात्रा जाँचकर खोलें",
+      "honeyCheckOpenBody": "व्याख्या स्क्रीन पर “हनी ड्रॉप्स से खोलें” चुनें। केवल लिंक खोलने से ड्रॉप्स नहीं कटते।",
+      "honeyQuestion": "आप क्या जानना चाहते हैं?",
+      "honeyHint": "पात्र सामग्री देखने के लिए व्याख्या की श्रेणी चुनें।",
+      "honeyRules": "इस्तेमाल से पहले",
+      "honeyProfileRule": "मूल व्याख्या प्रोफ़ाइल पर आधारित है",
+      "honeyProfileRuleBody": "उसी खाते और जन्म जानकारी से खुली सामग्री दोबारा देखने पर अतिरिक्त हनी ड्रॉप्स नहीं लगते।",
+      "honeyPerUseRule": "विस्तृत अनुकूलता और मूल टैरो प्रति अनुरोध हैं",
+      "honeyPerUseRuleBody": "नए साथी की तुलना या नए कार्ड की व्याख्या पर हनी ड्रॉप्स फिर लगते हैं। विस्तृत सुकुयो व्याख्या सहेजने के बाद रिकॉर्ड में मूल पाठ पढ़ सकते हैं।",
+      "honeyListOnly": "इस सूची की सामग्री के लिए",
+      "honeyOtherPayments": "अन्य भुगतान विकल्प भी उपलब्ध हैं",
+      "honeyOtherPaymentsBody": "पास, मूनस्टोन और एकमुश्त भुगतान हर सामग्री की मौजूदा नीति के अनुसार हैं। हनी ड्रॉप्स की मात्रा नकद मूल्य से अलग है।",
+      "honeyOpenTitle": "सामग्री खोलें",
+      "close": "बंद करें",
+      "open": "खोलें",
+      "honeyConfirmPolicy": "चुनी हुई प्रोफ़ाइल की जन्म जानकारी से खोलें। उसी खाते और जानकारी से दोबारा देखने पर अतिरिक्त ड्रॉप्स नहीं लगते।",
+      "honeyAttendance": "चेक-इन · हनी ड्रॉप्स",
+      "honeyMine": "मेरे हनी ड्रॉप्स",
+      "honeyMascotAlt": "हनी ड्रॉप्स लिए मुस्कुराती योनी",
+      "honeyAttendanceHint": "रोज़ चेक-इन करें और मूल व्याख्याओं में ड्रॉप्स इस्तेमाल करें।",
+      "honeyAttend": "चेक-इन करें",
+      "honeyUses": "कहाँ इस्तेमाल करें",
+      "retry": "फिर जाँचें",
+      "signatureTitle": "अभी अपनी ज़रूरत की सलाह चुनें",
+      "signatureLead": "हमारी साझा पद्धति से हर विषय की AI व्याख्या पढ़ें। पहले सामग्री और उदाहरण देखें।",
+      "coMasters": "आपके मार्गदर्शक",
+      "loveNames": "योनी · सो हानबी",
+      "loveQuestion": "पहले अपने दिल की बात कहें। सो हानबी आप दोनों की दूरी समझने में मदद करेंगे।",
+      "loveStart": "प्रेम की सलाह शुरू करें",
+      "yearTitle": "आने वाले वर्ष की व्याख्या",
+      "yearQuestion": "आने वाले साल की दिशा समझें। कहाँ आगे बढ़ें और कब ठहरें?",
+      "yearStart": "वर्ष की व्याख्या पढ़ें",
+      "lifeQuestion": "आपके जीवन की कहानी पहले अध्याय से पढ़ें।",
+      "lifeStart": "जीवन की किताब खोलें",
+      "signatureMore": "और सलाहें देखें",
+      "neoRoomTitle": "नियो का स्पष्ट रणनीति कक्ष",
+      "neoQuestion": "आपने खूब सोच लिया। अब पहले क्या बदलेंगे?",
+      "neoRoomStart": "रणनीति कक्ष में जाएँ",
+      "teaQuestion": "दोबारा जुड़ने से कारोबार तक, किस फैसले पर मन अटका है?",
+      "teaStart": "नियति के चायघर में जाएँ",
+      "codexShort": "संबंधों की किताब",
+      "codexQuestion": "लोग बदलते हैं, फिर भी रिश्तों की चिंताएँ क्यों दोहराती हैं?",
+      "codexStart": "संबंधों की किताब खोलें",
+      "signatureSamples": "सलाह की सामग्री और उदाहरण देखें",
+      "fusionEyebrow": "छह परंपराओं की संयुक्त व्याख्या",
+      "fusionLead": "पाँच मार्गदर्शक छह अलग परंपराओं से एक रिपोर्ट में स्वभाव, समय, प्रेम, विवाह और धन के पहलू देखते हैं।",
+      "fusionSystems": "छह परंपराएँ",
+      "fusionChapters": "विषयवार आठ अध्याय",
+      "lifeTiming": "जीवन के चरण",
+      "fusionStart": "संयुक्त व्याख्या प्राप्त करें",
+      "neoRole": "साजू · धन · काम",
+      "yeoniRole": "टैरो · प्रेम",
+      "hanbiRole": "सुकुयो · विवाह · रिश्ते",
+      "yunRole": "ज्योतिष · समय · स्वास्थ्य",
+      "musungRole": "ज़िवेई · स्वभाव",
+      "chooseFormat": "सलाह का तरीका चुनें",
+      "format": "सलाह का तरीका",
+      "tabYeoni": "योनी से बातचीत",
+      "tabNeo": "नियो का ईमेल",
+      "tabCat": "यॉन्गन्यांगी से पूछें",
+      "sharedBasis": "एक साझा व्याख्या आधार,",
+      "yourFormat": "सलाह का तरीका आपके अनुसार",
+      "methodChoice": "योंगन्यांगी, Ggulggul या नियो: कौन-सी सलाह चुनें?",
+      "expand": "विवरण देखें",
+      "catName": "योंगन्यांगी",
+      "yourQuestion": "आपके सवाल पर केंद्रित",
+      "questionFormat": "अपने सवाल और परिस्थिति पर आधारित AI व्याख्या अध्यायों में पढ़ें।",
+      "catConsult": "योंगन्यांगी की सलाह देखें",
+      "chooseTopic": "विषय चुनकर देखें",
+      "topicFormat": "विषय के अनुसार ज्योतिष उपकरण और AI रिपोर्ट चुनें।",
+      "topicConsult": "विषयवार सलाह देखें",
+      "askNeo": "नियो से पूछें",
+      "humanReply": "व्यक्तिगत समीक्षा वाला उत्तर पाएं",
+      "humanFormat": "नियो AI विश्लेषण की सहायता से उत्तर लिखते, जांचते और ईमेल करते हैं।",
+      "emailGuide": "ईमेल सलाह का विवरण देखें",
+      "beforeConsult": "शुरू करने से पहले",
+      "basisTitle": "व्याख्या का आधार",
+      "reviewTitle": "AI और व्यक्तिगत समीक्षा का अंतर",
+      "termsTitle": "उपयोग की शर्तें देखें",
+      "compareSamples": "सलाह के नमूने देखें",
+      "emailMethod": "व्यक्तिगत समीक्षा · ईमेल सलाह",
+      "writeQuestion": "अपना सवाल लिखें",
+      "emailOnly": "यह ईमेल सलाह है, लाइव चैट नहीं।",
+      "emailOptions": "अतिरिक्त विकल्प और उत्तर",
+      "viewPrices": "सलाह का विवरण और कीमत देखें",
+      "swipe": "चुनने के लिए स्वाइप करें",
+      "previousConcern": "पिछला विषय",
+      "nextConcern": "अगला विषय",
+      "related": "संबंधित व्याख्याएं",
+      "smallFortune": "भाग्य की छोटी झलक",
+      "trialToResult": "मुफ्त अनुभव से निजी परिणाम तक",
+      "fishName": "फॉर्च्यून फिश",
+      "fishDesc": "छोटी सुनहरी मछली की चाल से आज का मन जानें",
+      "omikujiName": "ओमिकुजी",
+      "omikujiDesc": "आज की भाग्य-पर्ची निकालें",
+      "typeDesc": "आप किस तरह के हैं? दोस्तों से स्वभाव तुलना करें",
+      "teaLeafName": "चाय की पत्तियों की व्याख्या",
+      "teaLeafDesc": "चाय की पत्तियों के आकार में आज का संकेत देखें",
+      "flowerDesc": "आपके स्वभाव जैसे फूलों और रंगों का कार्ड",
+      "idolName": "पसंदीदा सितारे से तालमेल",
+      "idolDesc": "फोटोकार्ड पर पसंदीदा सितारे से अपना तालमेल देखें",
+      "storyNote": "योंगन्यांगी और योनी की खोई नियति की खोज",
+      "musicNote": "कहानी की गूंज बढ़ाती चांदनी की धुनें",
+      "dailyAria": "पिछले 30 दिनों की दैनिक चीनी राशि व्याख्या",
+      "monthlyAria": "दिन के स्तंभ के अनुसार सितंबर 2026 की व्याख्या",
+      "methodIntro": "हर प्रवेश पर ब्यॉन्गहा पार्क (नियो) के बनाए व्याख्या सिद्धांत लागू होते हैं।",
+      "basisBody": "योंगन्यांगी और Ggulggul में ब्यॉन्गहा पार्क (नियो) के सिद्धांत हैं। नियो की ईमेल सलाह भी उसी अनुभव पर आधारित है; अलग नाम का अर्थ अलग गुरु नहीं है। साजू, टैरो और ज्योतिष अपनी-अपनी पद्धति रखते हैं। प्रश्नों और व्याख्या का दायरा उत्पाद के अनुसार बदलता है।",
+      "reviewBody": "नियो का रणनीति कक्ष AI से सामग्री की व्याख्या करता है। नियो से पूछें में नियो आपकी बात पढ़कर AI विश्लेषण से उत्तर लिखते, जांचते और ईमेल करते हैं। यह लाइव चैट, फोन या आमने-सामने की सलाह नहीं है। सिद्धांतों की रचना का अर्थ हर AI परिणाम की मानवीय समीक्षा नहीं है।",
+      "termsBody": "सामग्री और नमूने देखें, फिर कीमत और पास, मूनस्टोन या एकमुश्त भुगतान की उपलब्धता जांचें।",
+      "emailLead": "अपनी स्थिति और जिस विकल्प पर सोच रहे हैं उसे लिखें। नियो खुद पढ़कर AI विश्लेषण की मदद से उत्तर लिखेंगे, जांचेंगे और ईमेल करेंगे।",
+      "emailTiming": "आमतौर पर 24 घंटे में, व्यस्त समय में 3 दिन के भीतर ईमेल उत्तर · प्रतिदिन 30 सवाल",
+      "smallLead": "थोड़ा विराम लें या दोस्तों के परिणामों से तुलना करें। मुफ्त अनुभव से शुरू करें।",
+      "smallPolicy": "भुगतान से पहले शर्तें देखें। पास और मूनस्टोन की पात्रता हर उत्पाद की मौजूदा नीति के अनुसार है।",
+      "honeyScope": "यह सूची चुनी हुई मूल व्याख्याओं की है। अन्य सुविधाओं की शर्तें उनके पृष्ठ पर देखें। आपके पुराने परिणाम और अधिकार बने रहते हैं।",
+      "cardLabel": "{title} — {action}",
+      "sceneAlt": "{name} का {title} सलाह दृश्य",
+      "askMaster": "{name} से पूछें",
+      "masterLabel": "{name} — {role}",
+      "neoName": "नियो",
+      "yeoniName": "योनी",
+      "hanbiName": "सो हानबी",
+      "yunName": "युंदाल",
+      "musungName": "मुसॉन्ग",
+      "masterName": "मार्गदर्शक",
+      "loveTitle": "प्रेम की अंतर्दृष्टि",
+      "lifeTitle": "जीवन की पुस्तक",
+      "teaTitle": "योनी का नियति चायघर",
+      "codexTitle": "मार्गदर्शक की संबंध पुस्तक",
+      "catListeningAlt": "बैंगनी टोपी में सवाल सुनते योंगन्यांगी",
+      "yeoniGuideAlt": "फूल-सजी प्यारी योनी ज्योतिष का मार्ग दिखाती है",
+      "neoReviewAlt": "सलाह के नोट और पत्र जांचते नियो",
+      "catHeroAlt": "बैंगनी टोपी में ठोड़ी टिकाए साजू बिल्ली योंगन्यांगी",
+      "novelAlt": "मानव योनी, योंगन्यांगी, मोका, युंदाल और सो हानबी के साथ नियति की यात्रा का आवरण",
+      "emailBase": "प्रति साजू सवाल KRW {amount} · एकमुश्त भुगतान",
+      "emailZiwei": "साजू + जिवेई: प्रति प्रश्न {amount} KRW",
+      "emailChart": "जन्म-कुंडली विश्लेषण जोड़ें +KRW {amount}",
+      "emailMax": "प्रति सवाल अधिकतम KRW {amount}",
+      "unlockPrice": "KRW {amount} में खोलें",
+      "simpleChatTitle": "सरल संवाद परामर्श",
+      "signatureNewLead": "अपनी चिंता के लिए उपयुक्त परामर्श और तरीका देखें।",
+      "signatureFeatured": "प्रमुख परामर्श",
+      "signatureFusionDesc": "पाँच विशेषज्ञ छह पद्धतियों से जीवन की दिशा पढ़ते हैं।",
+      "signatureCatDesc": "अपनी एक चिंता को उपयुक्त पद्धति से समझें।",
+      "signatureCardsLabel": "प्रमुख परामर्श कार्ड",
+      "signatureNavigation": "प्रमुख परामर्श नेविगेशन",
+      "signaturePrevious": "पिछला परामर्श",
+      "signatureNext": "अगला परामर्श",
+      "signatureYeoniDesc": "येओनी बातचीत से आपकी चिंता सुलझाने में साथ देती हैं।"
+    },
+    "playPrice": {
+      "from": "{price} से",
+      "unlock": "{price} में खोलें",
+      "perUse": "प्रति व्याख्या {price}"
     }
   },
   "terms": {
@@ -17225,11 +17393,13 @@
       },
       "sceneAria": "Yeoni is preparing your reading",
       "loadingAlt": "A loading scene with a moonlit cup rising",
-      "yeoniAria": "Yeoni handing over the cup",
+      "yeoniAria": "यॉनी चायदानी से चाय डाल रही है",
       "progressAria": "Reading generation progress",
       "delayNotice": "Your reading is still being written. You can check its progress again in My readings.",
       "retryNotice": "If the flow breaks, you can try the same question again from the input screen.",
-      "libraryLink": "Continue in My readings"
+      "libraryLink": "Continue in My readings",
+      "introduction": "धीरे-धीरे पकती चाय की तरह, हम आपकी कहानी के लिए सही शब्द चुन रहे हैं।",
+      "waitingTitle": "आपके लिए परामर्श\nध्यान से तैयार कर रहे हैं"
     },
     "sajuPillarBoard": {
       "eyebrow": "The birth chart under moonlight",
@@ -17849,11 +18019,12 @@
       "welcomeNote": "It's okay to share something difficult to say. We'll explore the grounds relevant to your question.",
       "stepLabel": "Question and details · 1 / 3",
       "questionTitle": "What would you like to explore together?",
-      "questionGuide": "Write your question first, then choose a reading. Only the details needed for that method are requested.",
+      "questionGuide": "अपनी सहेजी गई प्रोफ़ाइल या जन्म विवरण जाँचें, फिर अपना प्रश्न लिखें।",
       "reviewButton": "Review scope and price",
       "leapMonth": "Lunar leap month",
       "longitudeLabel": "Birthplace longitude (optional)",
-      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude."
+      "longitudeHelp": "Coordinates are not inferred from a city name. The default is Seoul, 126.978°. For births elsewhere, enter the location's longitude.",
+      "changeMode": "परामर्श का प्रकार बदलें"
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -20620,6 +20791,12 @@
       "directTitle": "Yeoni का उत्तर",
       "guidanceTitle": "क्या आज़माएँ",
       "cautionTitle": "किन बातों का ध्यान रखें"
+    },
+    "completionGreeting": {
+      "title": "आपकी चाय तैयार है",
+      "message": "यॉनी ने आपके लिए जो शब्द लिखे हैं, उन्हें आराम से पढ़ें।",
+      "action": "परामर्श का परिणाम पढ़ें",
+      "portrait": "यॉनी दोनों हाथों से चाय परोस रही है"
     }
   },
   "fortuneVar": {
@@ -21404,175 +21581,394 @@
     }
   },
   "sajuCompat": {
-    "selfFallback": "Me",
+    "selfFallback": "मैं",
     "type": {
-      "love": "Romance / marriage compatibility",
-      "business": "Business / partnership compatibility",
-      "friend": "Friend / colleague compatibility"
+      "love": "प्रेम / विवाह अनुकूलता",
+      "business": "व्यापार / साझेदारी अनुकूलता",
+      "friend": "मित्र / सहकर्मी अनुकूलता"
     },
     "grade": {
-      "S": "🌟 Benefactor from a past life",
-      "A": "✨ Destined match",
-      "B": "😊 Connected match",
-      "C": "🙂 Ordinary connection",
-      "D": "⚠️ Karmic match",
-      "F": "🌧️ Difficult-fate match"
+      "S": "🌟 पिछले जन्म का उपकारी",
+      "A": "✨ नियति से जुड़ा मेल",
+      "B": "😊 जुड़ाव वाला मेल",
+      "C": "🙂 सामान्य जुड़ाव",
+      "D": "⚠️ कर्म से जुड़ा मेल",
+      "F": "🌧️ चुनौतीपूर्ण मेल"
     },
-    "gradeBadge": "Grade {grade}",
+    "gradeBadge": "श्रेणी {grade}",
     "titleLine": "{type} — {self} × {partner}",
-    "scoreLine": "Saju-only compatibility score: {score}/100",
+    "scoreLine": "केवल साजू पर आधारित अनुकूलता: {score}/100",
     "overview": {
-      "title": "🧭 Compatibility overview",
-      "note": "This result is calculated from Saju alone. Day-stem and day-branch harmonies and clashes, seasonal balance, useful and harmful elements, and the ten-gods structure are combined into a score of {score}/100."
+      "title": "🧭 अनुकूलता का सार",
+      "note": "यह परिणाम केवल साजू पर आधारित है। दिन के तने व शाखा का सामंजस्य और टकराव, मौसमी संतुलन, सहायक व कठिन तत्व और दस देवताओं की संरचना से {score}/100 अंक बनते हैं।"
     },
     "energy": {
-      "title": "🌡️ Energy harmony",
-      "johu": "Seasonal balance (temperature)",
-      "elements": "Day-stem element",
-      "season": "Season of the month branch",
-      "tenGods": "Ten-gods structure"
+      "title": "🌡️ ऊर्जा का सामंजस्य",
+      "johu": "मौसमी संतुलन (तापमान)",
+      "elements": "दिन के तने का तत्व",
+      "season": "माह की शाखा का मौसम",
+      "tenGods": "दस देवताओं की संरचना"
     },
     "detail": {
-      "title": "🧩 Detailed reading",
-      "emotionRhythm": "Emotional rhythm",
-      "conflictSwitch": "Conflict triggers",
-      "realOps": "Everyday practice",
-      "longTerm": "Long-term outlook"
+      "title": "🧩 विस्तृत व्याख्या",
+      "emotionRhythm": "भावनात्मक लय",
+      "conflictSwitch": "टकराव के कारण",
+      "realOps": "दैनिक व्यवहार",
+      "longTerm": "दीर्घकालिक दृष्टि"
     },
     "reasons": {
-      "title": "📋 Compatibility checkpoints",
-      "total": "Total {total} pts"
+      "title": "📋 अनुकूलता के मुख्य बिंदु",
+      "total": "कुल {total} अंक"
     },
     "reason": {
-      "JOHU_COMPLEMENT": "One of you runs hot and the other cool, so you balance each other's temperature nicely.",
-      "JOHU_BOTH_HOT": "You both run hot, so the spark is strong, but arguments can flare up quickly as well. It is a fire-overheating pairing.",
-      "JOHU_BOTH_COLD": "You both run cool, so there is stability, but it may be hard to bring each other enough warmth.",
-      "JOHU_MILD": "Your temperatures do not clash much, but one of you runs slightly {tone}, which creates a balancing structure.",
-      "MOIST_COMPLEMENT": "One of you is moist and the other dry, so your moisture balance fills in for each other. It is an ideal match.",
-      "MOIST_BOTH": "You are both on the {moist} side, so when you are low you can easily sag or dry out together.",
-      "MOIST_NEUTRAL": "Your moisture balance does not clash much, and your day-to-day condition tends to run alike.",
-      "ELEMENT_SAME": "You both have strong {element} energy and share a similar code and rhythm.",
-      "ELEMENT_SAME_EXCESS": "However, the same element is very strong in both of you, so neither tends to give way when opinions clash.",
-      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from} generates {to}, so one of you naturally nourishes the other. It is a mutually generating match.",
-      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from} supports {to}, so you are dependable supporters who help each other grow.",
-      "ELEMENT_KE": "Your elements are in a controlling relationship ({self} ↔ {partner}), so tension and friction can arise easily.",
-      "DAY_STEM_HE": "Your day stems form a harmony (合), so your hearts tend to be in tune.",
-      "DAY_BRANCH_HE": "Your day branches (the spouse position) form a six-harmony, bringing strong comfort and attraction when you are together.",
-      "DAY_STEM_CHONG": "Your day stems clash (沖), so the highs are strong but so are the collisions. It is a roller-coaster pairing.",
-      "DAY_BRANCH_CHONG": "Your day branches clash (沖), so your daily patterns and emotional rhythms may move differently. Adjusting to each other matters.",
-      "YONGSHIN_COMMON": "You both rely on {elements} energy as your useful element, so your core direction in life is very similar.",
-      "YONGSHIN_CLASH": "In particular, {elements} energy is a useful element for one of you but a harmful element for the other, so you may collide sensitively on that theme.",
-      "KIJI_CONTROL_FORWARD": "Harmful-element control: your partner's characters ({by}) clear your harmful elements ({chars}) through clash (沖). This is the core of a top-tier match: the other person drives out your bad energy.",
-      "KIJI_CONTROL_REVERSE": "Reverse control: your characters ({by}) clear your partner's harmful elements through clash. You also bring your partner a sense of release.",
-      "HE_TRAP": "Harmony trap: {self} and {partner} form a harmony (合), and the resulting element ({element}) strengthens your harmful element. It looks like a good fit on the surface, but harmful energy can build up inside. Tell comfort apart from dependence."
+      "JOHU_COMPLEMENT": "एक का स्वभाव गर्म और दूसरे का ठंडा होने से दोनों एक-दूसरे को संतुलित कर सकते हैं।",
+      "JOHU_BOTH_HOT": "दोनों में गर्मी अधिक है, इसलिए आकर्षण तीव्र हो सकता है और बहस भी जल्दी बढ़ सकती है।",
+      "JOHU_BOTH_COLD": "दोनों की ठंडी प्रवृत्ति स्थिरता देती है, पर एक-दूसरे को पर्याप्त गर्मजोशी देना कठिन हो सकता है।",
+      "JOHU_MILD": "तापमान में बड़ा टकराव नहीं है; एक की प्रवृत्ति थोड़ी {tone} है, जिससे संतुलन बन सकता है।",
+      "MOIST_COMPLEMENT": "एक में नमी और दूसरे में शुष्कता की प्रवृत्ति होने से दोनों एक-दूसरे की कमी पूरी कर सकते हैं।",
+      "MOIST_BOTH": "दोनों की प्रवृत्ति {moist} है; थकान के समय सुस्ती या रूखापन साथ बढ़ सकता है।",
+      "MOIST_NEUTRAL": "नमी और शुष्कता में बड़ा टकराव नहीं है; रोज़मर्रा की स्थिति अक्सर मिलती-जुलती रहती है।",
+      "ELEMENT_SAME": "दोनों में {element} ऊर्जा प्रबल है, इसलिए स्वभाव और लय में समानता हो सकती है।",
+      "ELEMENT_SAME_EXCESS": "लेकिन एक ही तत्व दोनों में अत्यधिक होने से मतभेद में झुकना कठिन हो सकता है।",
+      "ELEMENT_SHENG_SELF_TO_PARTNER": "{from}, {to} को पोषित करता है; एक व्यक्ति स्वाभाविक रूप से दूसरे के विकास में सहारा बनता है।",
+      "ELEMENT_SHENG_PARTNER_TO_SELF": "{from}, {to} का सहारा बनता है; यह भरोसे और विकास को समर्थन देता है।",
+      "ELEMENT_KE": "तत्वों में नियंत्रण का संबंध ({self} ↔ {partner}) है, जिससे तनाव और घर्षण उभर सकते हैं।",
+      "DAY_STEM_HE": "दिन के तने सामंजस्य (合) बनाते हैं, जिससे भावनात्मक तालमेल की संभावना रहती है।",
+      "DAY_BRANCH_HE": "जीवनसाथी स्थान की दिन-शाखाएँ छह-सामंजस्य बनाती हैं, जिससे साथ में सहजता और आकर्षण बढ़ सकता है।",
+      "DAY_STEM_CHONG": "दिन के तनों में टकराव (沖) है; अच्छे क्षण तीव्र हो सकते हैं और मतभेद भी।",
+      "DAY_BRANCH_CHONG": "दिन की शाखाओं में टकराव (沖) से दिनचर्या और भावनात्मक लय अलग हो सकती है। आपसी समायोजन ज़रूरी है।",
+      "YONGSHIN_COMMON": "दोनों के लिए {elements} सहायक तत्व हैं, इसलिए जीवन की मुख्य दिशा मिलती-जुलती हो सकती है।",
+      "YONGSHIN_CLASH": "{elements} एक के लिए सहायक और दूसरे के लिए कठिन तत्व हैं; इस विषय पर संवेदनशील मतभेद हो सकते हैं।",
+      "KIJI_CONTROL_FORWARD": "कठिन तत्व पर नियंत्रण: साथी के चिह्न ({by}) आपके कठिन तत्वों ({chars}) से टकराते हैं। इस मॉडल में यह किसी कमज़ोरी को संतुलित करने का संकेत है।",
+      "KIJI_CONTROL_REVERSE": "उलटी दिशा में, आपके चिह्न ({by}) साथी के कठिन तत्वों से टकराकर राहत का संकेत देते हैं।",
+      "HE_TRAP": "सामंजस्य का जाल: {self} और {partner} का मेल (合) बनता है, लेकिन बनने वाला तत्व ({element}) कठिन पक्ष बढ़ाता है। सहजता और निर्भरता में अंतर रखें।"
     },
     "element": {
-      "wood": "Wood (木)",
-      "fire": "Fire (火)",
-      "earth": "Earth (土)",
-      "metal": "Metal (金)",
-      "water": "Water (水)"
+      "wood": "लकड़ी (木)",
+      "fire": "अग्नि (火)",
+      "earth": "पृथ्वी (土)",
+      "metal": "धातु (金)",
+      "water": "जल (水)"
     },
     "tone": {
-      "warm": "warmer",
-      "cool": "cooler"
+      "warm": "अधिक गर्म",
+      "cool": "अधिक ठंडी"
     },
     "moist": {
-      "wet": "damp",
-      "dry": "dry"
+      "wet": "नम",
+      "dry": "शुष्क"
     },
     "love": {
-      "title": "💍 In-depth romance and marriage compatibility",
-      "emotion": "💞 Emotional and expressive rhythm",
-      "conflict": "🧯 How you conflict and recover",
-      "home": "🏠 Living together and married life",
-      "growth": "🌱 Conditions for long-term growth"
+      "title": "💍 प्रेम और विवाह का विस्तृत मेल",
+      "emotion": "💞 भावना और अभिव्यक्ति की लय",
+      "conflict": "🧯 टकराव और सुधार",
+      "home": "🏠 साथ रहना और वैवाहिक जीवन",
+      "growth": "🌱 दीर्घकालिक विकास की शर्तें"
     },
     "fact": {
-      "title": "💥 Straight talk — the truth of this relationship",
-      "STRENGTH_SELF_LEADS": "Power imbalance alert",
-      "STRENGTH_PARTNER_LEADS": "Absorption warning",
-      "STRENGTH_PEER": "Strong vs. strong / weak vs. weak",
-      "KE_SELF_OVER_PARTNER": "Day-stem control (you are the controller)",
-      "KE_PARTNER_OVER_SELF": "Day-stem control (you are the one controlled)",
-      "KIJI_RELIEF": "The sweetness of covering weak spots",
-      "HE_TRAP": "⚠ Harmony (合) trap alert",
-      "repeatScene": "A scene that tends to repeat",
-      "recovery": "How to know you have recovered"
+      "title": "💥 रिश्ते की स्पष्ट समीक्षा",
+      "STRENGTH_SELF_LEADS": "शक्ति असंतुलन पर ध्यान",
+      "STRENGTH_PARTNER_LEADS": "अपने लिए जगह बनाए रखें",
+      "STRENGTH_PEER": "दोनों प्रबल / दोनों कमज़ोर",
+      "KE_SELF_OVER_PARTNER": "दिन के तनों में नियंत्रण (आपका प्रभाव)",
+      "KE_PARTNER_OVER_SELF": "दिन के तनों में नियंत्रण (साथी का प्रभाव)",
+      "KIJI_RELIEF": "कमज़ोरियों में सहारा मिलने का सुख",
+      "HE_TRAP": "⚠ सामंजस्य (合) के जाल पर ध्यान",
+      "repeatScene": "दोहराने वाली स्थिति",
+      "recovery": "सुधार के संकेत"
     },
     "advice": {
-      "title": "🎯 Prescription from the stars",
-      "keep": "[Keep it up] Never neglect it",
-      "grow": "[Grow] The beauty of differences",
-      "communicate": "[Communicate] Put dissatisfaction into words",
-      "survive": "[Survive] Rules and boundaries",
+      "title": "🎯 व्यवहारिक सलाह",
+      "keep": "[बनाए रखें] उपेक्षा न करें",
+      "grow": "[विकास] भिन्नताओं की खूबसूरती",
+      "communicate": "[संवाद] असंतोष को शब्द दें",
+      "survive": "[स्थिरता] नियम और सीमाएँ",
       "secret": {
-        "love": "[Romance secret]",
-        "business": "[Partnership secret]",
-        "friend": "[Friendship secret]"
+        "love": "[प्रेम की सलाह]",
+        "business": "[साझेदारी की सलाह]",
+        "friend": "[मित्रता की सलाह]"
       },
-      "conflictRoutine": "[Conflict recovery routine]",
-      "growthGoal": "[Shared growth goal]"
+      "conflictRoutine": "[टकराव सुलझाने का अभ्यास]",
+      "growthGoal": "[साझा विकास का लक्ष्य]"
     },
     "past": {
-      "title": "🔮 Past-life connection reading",
-      "subtitle": "PAST LIFE COMPATIBILITY · Day × year pillar cross analysis",
+      "title": "🔮 पिछले जन्म के संबंध की व्याख्या",
+      "subtitle": "पिछले जन्म का मेल · दिन × वर्ष स्तंभ की तुलना",
       "grade": {
-        "S": "🌟 Grade S · Twin stars of a past life",
-        "A": "✨ Grade A · A destined déjà-vu bond",
-        "B": "🌱 Grade B · A bond sprouting again",
-        "C": "⚪ Grade C · A fresh bond on a blank page",
-        "D": "⚠️ Grade D · A knot to untie, a karmic bond",
-        "F": "🌀 Grade F · Learning through pain, a bond of inherited hardship"
+        "S": "🌟 श्रेणी S · पिछले जन्म के जुड़वाँ तारे",
+        "A": "✨ श्रेणी A · पहले मिले होने का एहसास",
+        "B": "🌱 श्रेणी B · फिर अंकुरित होता संबंध",
+        "C": "⚪ श्रेणी C · नए पन्ने पर नया संबंध",
+        "D": "⚠️ श्रेणी D · सुलझाने वाली कर्म की गाँठ",
+        "F": "🌀 श्रेणी F · मिली हुई कठिनाइयों से सीखना"
       },
-      "crossSelf": "🧬 {self}'s day pillar ({selfPillar}) × {partner}'s year pillar ({partnerPillar})",
-      "crossPartner": "🧬 {partner}'s day pillar ({partnerPillar}) × {self}'s year pillar ({selfPillar})",
+      "crossSelf": "🧬 {self} का दिन स्तंभ ({selfPillar}) × {partner} का वर्ष स्तंभ ({partnerPillar})",
+      "crossPartner": "🧬 {partner} का दिन स्तंभ ({partnerPillar}) × {self} का वर्ष स्तंभ ({selfPillar})",
       "cross": {
-        "he": "Harmony (合)",
-        "chong": "Clash (沖)",
-        "same": "Same (同)",
-        "none": "None (無)"
+        "he": "सामंजस्य (合)",
+        "chong": "टकराव (沖)",
+        "same": "समान (同)",
+        "none": "कोई नहीं (無)"
       },
-      "prescription": "⚔️ Prescription from the stars",
-      "questionsTitle": "Questions to check in this life",
-      "reflectionPull": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the pull between you and the emotional scenes that keep recurring.",
-      "reflectionDistance": "The past-life grade is not a verdict on where your relationship will end up; it is a symbol for reflecting on the familiarity and tension you feel when you meet. The result read as “{label}” can help you observe the distance between you and the moments that call for adjustment.",
-      "reflectionNote": "Don't stop at asking “Why are we so drawn to each other, or why do we clash?” Look for actions you can actually change in your current relationship. What shapes your next scene is your agreements and boundaries now, more than the story of the past.",
-      "disclaimer": "※ The past-life bond reading is entertainment content based on Saju theory 🌙"
+      "prescription": "⚔️ व्यवहारिक सलाह",
+      "questionsTitle": "इस जीवन में विचारने योग्य सवाल",
+      "reflectionPull": "पिछले जन्म की श्रेणी रिश्ते का नतीजा नहीं तय करती। यह परिचितपन और तनाव पर विचार करने का प्रतीक है। “{label}” आकर्षण और दोहराते भावनात्मक प्रसंग देखने में मदद करता है।",
+      "reflectionDistance": "पिछले जन्म की श्रेणी नतीजा नहीं तय करती; यह परिचितपन और तनाव का प्रतीक है। “{label}” दूरी और समायोजन की ज़रूरत वाले क्षण देखने में मदद करता है।",
+      "reflectionNote": "केवल आकर्षण या टकराव का कारण न पूछें। वर्तमान रिश्ते में बदल सकने वाले व्यवहार देखें। आगे की दिशा पिछले किस्से से अधिक आज की सहमति और सीमाओं से बनती है।",
+      "disclaimer": "※ पिछले जन्म के संबंध की यह व्याख्या साजू पर आधारित मनोरंजन सामग्री है 🌙"
     },
-    "footer": "This reading is an AI-written interpretation based on the scores and harmony/clash evidence calculated by the engine, provided for reference only. It does not stand in for a conclusion about your relationship.",
+    "footer": "यह AI व्याख्या प्रणाली द्वारा निकाले गए अंकों और सामंजस्य-टकराव के आधारों पर संदर्भ हेतु है। यह आपके रिश्ते का अंतिम निष्कर्ष नहीं है।",
     "flow": {
-      "starting": "Preparing your Saju compatibility reading…",
-      "progress": "Writing your Saju compatibility reading… ({done}/{total})",
-      "keepOpen": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-      "saved": "This result is saved in your library. Reopening it later costs nothing extra.",
-      "fallback": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-      "review": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-      "revoked": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-      "retry": "Continue loading the AI reading",
-      "moduleFail": "Couldn't load the AI reading screen. No payment was made. Please try again shortly."
+      "starting": "साजू अनुकूलता व्याख्या तैयार हो रही है…",
+      "progress": "अनुकूलता व्याख्या लिखी जा रही है… ({done}/{total})",
+      "keepOpen": "भुगतान पूरा है। बाहर जाकर लौटने पर यही परिणाम जारी रहेगा।",
+      "saved": "परिणाम संग्रह में सहेजा गया है। दोबारा खोलने पर अतिरिक्त शुल्क नहीं लगेगा।",
+      "fallback": "AI व्याख्या नहीं खुली, इसलिए पहले मूल व्याख्या दिखाई गई है। भुगतान सुरक्षित है; नीचे के बटन से इसी जोड़ी की AI व्याख्या जारी रखें।",
+      "review": "AI व्याख्या पूरी नहीं हुई। भुगतान और सहेजा गया पाठ सुरक्षित हैं; सहायता टीम जाँच करेगी। मूल व्याख्या नीचे है।",
+      "revoked": "रद्द या वापस किए गए भुगतान का परिणाम जारी नहीं किया जा सकता। मूल व्याख्या नीचे है।",
+      "retry": "AI व्याख्या जारी रखें",
+      "moduleFail": "AI व्याख्या की स्क्रीन नहीं खुली। कोई भुगतान नहीं हुआ। थोड़ी देर बाद फिर प्रयास करें।"
     },
     "archive": {
-      "title": "Saju compatibility records",
-      "lead": "Your paid Saju compatibility results are kept exactly as they were. Reopening one never costs extra or generates anything new.",
-      "loading": "Loading your records…",
-      "empty": "No Saju compatibility results are saved yet.",
-      "login": "Sign in to see your saved Saju compatibility records.",
-      "loginCta": "Sign in",
-      "error": "Couldn't load your records. Please try again shortly.",
-      "retry": "Try again",
-      "back": "← Back to list",
-      "close": "Close",
+      "title": "साजू अनुकूलता रिकॉर्ड",
+      "lead": "भुगतान वाले अनुकूलता परिणाम मूल रूप में सुरक्षित हैं। दोबारा खोलने पर अतिरिक्त शुल्क या नया निर्माण नहीं होता।",
+      "loading": "रिकॉर्ड लोड हो रहे हैं…",
+      "empty": "अभी कोई साजू अनुकूलता परिणाम सहेजा नहीं गया है।",
+      "login": "सहेजे गए अनुकूलता रिकॉर्ड देखने के लिए लॉग इन करें।",
+      "loginCta": "लॉग इन करें",
+      "error": "रिकॉर्ड लोड नहीं हुए। थोड़ी देर बाद फिर प्रयास करें।",
+      "retry": "फिर प्रयास करें",
+      "back": "← सूची पर लौटें",
+      "close": "बंद करें",
       "itemTitle": "{type} — {name}",
-      "itemMeta": "{date} · {score} pts",
+      "itemMeta": "{date} · {score} अंक",
       "itemDate": "{date}",
-      "itemOpen": "Open",
-      "itemAria": "Open Saju compatibility result for {name}",
-      "revoked": "A result for a cancelled or refunded payment can't be opened.",
-      "notFound": "We couldn't find this record.",
-      "unreadable": "This record can't be shown on this screen right now. Please contact support.",
-      "detailNote": "This is a saved result. Reopening it doesn't call the AI again and costs nothing extra.",
-      "duplicate": "A Saju compatibility result with the same conditions (your chart, partner name and type) is already saved in your library.\n\n[OK] Pay again and view a new reading\n[Cancel] Open the saved result in your library"
+      "itemOpen": "खोलें",
+      "itemAria": "{name} का साजू अनुकूलता परिणाम खोलें",
+      "revoked": "रद्द या वापस किए गए भुगतान का परिणाम नहीं खोला जा सकता।",
+      "notFound": "यह रिकॉर्ड नहीं मिला।",
+      "unreadable": "यह रिकॉर्ड अभी इस स्क्रीन पर नहीं दिखाया जा सकता। सहायता से संपर्क करें।",
+      "detailNote": "यह सहेजा गया परिणाम है। दोबारा खोलने पर AI फिर नहीं चलता और अतिरिक्त शुल्क नहीं लगता।",
+      "duplicate": "इन्हीं शर्तों (आपका चार्ट, साथी का नाम और अनुकूलता प्रकार) का परिणाम संग्रह में है।\n\n[ठीक] नया भुगतान करके नई व्याख्या देखें\n[रद्द] सहेजा गया परिणाम खोलें"
+    },
+    "art": {
+      "caption": "रिश्ते के भाव की प्रतीकात्मक तस्वीर",
+      "love": "चाँदनी के बगीचे में आमने-सामने बैठे दो लोग",
+      "business": "नक्शे पर दिशा तय करते दो लोग",
+      "friend": "लालटेन लिए साथ चलते दो लोग",
+      "year": "अलग रास्तों से बगीचे के द्वार तक आते दो लोग",
+      "month": "बगीचे के पास अलग मेज़ों पर बैठे दो लोग",
+      "day": "गर्म रोशनी वाली खिड़की पर रखे दो चाय के प्याले",
+      "hour": "दूर पहाड़ों की सुबह की ओर दो लालटेन",
+      "past-resonance": "तालाब पर पास आती दो लालटेन",
+      "past-growth": "फूलदार पेड़ों वाले दो किनारों को जोड़ता पुल",
+      "past-knot": "कमल के पास रेशम की ढीली गाँठ"
+    },
+    "relationship": {
+      "title": "जहाँ दोनों जन्म-चार्ट मिलते हैं",
+      "context": "एक ही चिह्न का अर्थ उसकी स्थिति और जीवन की परिस्थितियों के अनुसार बदलता है।",
+      "all": "सभी संबंध और मूल चार्ट के आधार देखें",
+      "natal": "हर मूल चार्ट के भीतर के संबंध",
+      "cross": "दोनों चार्टों के बीच",
+      "triad": "त्रय के तीनों चिह्न मौजूद",
+      "chapters": "आपके रिश्ते के चार अध्याय",
+      "evidence": "इस अध्याय का साजू आधार",
+      "unknownHour": "जन्म समय अज्ञात होने से घंटे के स्तंभों की तुलना नहीं की गई है।",
+      "stem": "स्वर्गीय तने",
+      "branch": "पृथ्वी शाखाएँ"
+    },
+    "pillar": {
+      "year": "वर्ष स्तंभ",
+      "month": "माह स्तंभ",
+      "day": "दिन स्तंभ",
+      "hour": "घंटे का स्तंभ"
+    },
+    "area": {
+      "year": "पृष्ठभूमि और संबंधों की परिचित शैली",
+      "month": "सामाजिक जीवन और साझा लय",
+      "day": "करीबी रिश्ते और रोज़मर्रा का जीवन",
+      "hour": "भविष्य की योजनाएँ और मिलकर सँवारने वाली बातें"
+    },
+    "direction": {
+      "same": "एक ही तत्व",
+      "selfGenerates": "आपका तत्व साथी के तत्व को पोषित करता है",
+      "partnerGenerates": "साथी का तत्व आपके तत्व को पोषित करता है",
+      "selfControls": "आपका तत्व साथी के तत्व को नियंत्रित करता है",
+      "partnerControls": "साथी का तत्व आपके तत्व को नियंत्रित करता है"
+    },
+    "relation": {
+      "sixHarmony": "छह सामंजस्य (合)",
+      "partialTriad": "आंशिक त्रय (三合)",
+      "penalty": "तनाव (刑)",
+      "selfPenalty": "आंतरिक तनाव (自刑)",
+      "break": "व्यवधान (破)",
+      "harm": "घर्षण (害)",
+      "wonjin": "भावनात्मक खटास (怨嗔)",
+      "gwimun": "बढ़ी संवेदनशीलता (鬼門)",
+      "he": "सामंजस्य (合)",
+      "chong": "टकराव (沖)",
+      "same": "समान (同)",
+      "none": "कोई नहीं (無)",
+      "generates": "पोषण (生)",
+      "controls": "नियंत्रण (剋)"
+    },
+    "limit": {
+      "hour": "जन्म समय अज्ञात होने पर घंटे के स्तंभ का प्रभाव शामिल नहीं है।",
+      "story": "चार अध्याय जीवन के क्षेत्रों को जोड़ते हैं; वे घटनाओं का क्रम या समय नहीं बताते।",
+      "relations": "सामंजस्य का अर्थ स्वतः तत्व परिवर्तन नहीं है। वोनजिन और ग्विमुन से बेवफ़ाई, मानसिक बीमारी या रिश्ते का परिणाम तय नहीं होता।"
+    }
+  },
+  "honeyUI": {
+    "retryLater": "कृपया थोड़ी देर बाद फिर कोशिश करें।",
+    "confirm": "क्या {cost} शहद की बूंदों से {title} खोलें?",
+    "costBalance": "{cost} शहद की बूंदें · शेष: {balance}",
+    "perUseCondition": "बूंदें इस अनुरोध के लिए हैं। नई संगतता या कार्ड व्याख्या में फिर बूंदें लगेंगी।",
+    "birthCondition": "चुनी जन्म-प्रोफ़ाइल का विवरण खुलेगा। उसी खाते और जन्म विवरण से दोबारा देखने पर अतिरिक्त बूंदें नहीं लगेंगी।",
+    "openCost": "{cost} बूंदों से खोलें",
+    "loginBalance": "देखने के लिए लॉग इन करें",
+    "failed": "लोड नहीं हुआ",
+    "count": "{count} बूंदें",
+    "loading": "जांच हो रही है",
+    "attended": "आज की हाज़िरी पूरी",
+    "attend": "हाज़िरी दर्ज करें",
+    "balanceError": "शहद की बूंदें लोड नहीं हुईं। कृपया फिर कोशिश करें।",
+    "collected": "आपको {amount} बूंदें मिलीं! अब {balance} बूंदें हैं।",
+    "eligible": "यहाँ शहद की बूंदें चलती हैं",
+    "choice": "अभी खोलें या हाज़िरी से बूंदें जमा करें",
+    "unlocked": "खुल चुका है",
+    "cashOrHoney": "{price} या {cost} बूंदें",
+    "openNow": "अभी खोलें",
+    "cashLabel": "{title} · {price} में खोलें",
+    "honeyLabel": "{title} · {cost} बूंदों से खोलें",
+    "openHoney": "शहद की बूंदें इस्तेमाल करें",
+    "profileNeeded": "जन्म विवरण को प्रोफ़ाइल में सहेजें या सहेजी प्रोफ़ाइल चुनें।",
+    "unlocking": "पहुंच जांची जा रही है…",
+    "unlockError": "कृपया खोलने का नतीजा फिर जांचें।",
+    "collectHint": "होम की हाज़िरी कार्ड से रोज़ बूंदें जुटाएं।",
+    "retryButtonHint": "उसी बटन से फिर कोशिश करें।",
+    "usesLoading": "उपलब्ध सामग्री और पहुंच जांची जा रही है।",
+    "guestHint": "शेष देखने के लिए लॉग इन करें।",
+    "balanceRetry": "शेष नहीं मिला। हाज़िरी कार्ड से फिर जांचें।",
+    "balance": "शहद की बूंदों का शेष: {balance}",
+    "selectedProfile": "चुनी प्रोफ़ाइल के अनुसार",
+    "chooseProfile": "पहुंच जांचने के लिए प्रोफ़ाइल चुनें",
+    "groupCount": "{count} सामग्री · {range} बूंदें",
+    "unlockedNoExtra": "खुल चुका है · अतिरिक्त बूंदें नहीं",
+    "cost": "{cost} शहद की बूंदें",
+    "perUseShort": "हर नई संगतता या कार्ड व्याख्या में इस्तेमाल",
+    "birthShort": "उसी खाते और जन्म विवरण से फिर देखने पर अतिरिक्त बूंदें नहीं",
+    "shortfall": "खोलने के लिए {count} और बूंदें जुटाएं।",
+    "ownershipError": "व्याख्या स्क्रीन पर पहुंच फिर जांचें।",
+    "viewUnlocked": "खुली व्याख्या देखें",
+    "viewGroup": "{group} में देखें",
+    "usesError": "उपलब्ध सामग्री लोड नहीं हुई।",
+    "retry": "फिर कोशिश करें",
+    "usageError": "इस्तेमाल का तरीका नहीं मिल पाया। थोड़ी देर बाद फिर कोशिश करें।",
+    "groups": {
+      "saju": "साजू",
+      "astrology": "ज्योतिष",
+      "ziwei": "ज़िवेई दोउशु",
+      "sukuyo": "सुकुयो",
+      "vedic": "वैदिक ज्योतिष",
+      "tarot": "टैरो"
+    },
+    "products": {
+      "section_summary": {
+        "title": "सरल साजू व्याख्या",
+        "description": "जन्मजात स्वभाव, खूबियाँ, दोहराते ढर्रे और जीवन की व्यापक दिशा"
+      },
+      "section_daewun": {
+        "title": "साजू के दस-वर्षीय चक्र",
+        "description": "दस साल के चक्रों में बदलाव और हर दौर के विकल्प"
+      },
+      "rpt_specialCharmCard": {
+        "title": "आपका आकर्षण",
+        "description": "दूसरों तक सहजता से पहुंचने वाला आपका आकर्षण"
+      },
+      "rpt_skillTreeCard": {
+        "title": "जीवन का कौशल-वृक्ष",
+        "description": "खूबियों का उपयोग और आगे बढ़ने का अगला कदम"
+      },
+      "rpt_villainCard": {
+        "title": "थका देने वाले रिश्तों के ढर्रे",
+        "description": "ऊर्जा घटाने वाले रिश्ते और ज़रूरी सीमाएँ"
+      },
+      "astro_basic_deep_pack": {
+        "title": "ज्योतिष की मूल गहन व्याख्या",
+        "description": "बाहर दिखता आपका रूप और मन की चाह"
+      },
+      "astro_stellar_career_room": {
+        "title": "काम और भूमिकाएँ",
+        "description": "क्षमता निखारने वाली भूमिकाएँ और आपके अनुकूल काम का ढंग"
+      },
+      "astro_stellar_talent_room": {
+        "title": "प्रतिभा और आकर्षण",
+        "description": "पसंदीदा काम कैसे खूबी और आकर्षण बनता है"
+      },
+      "astro_stellar_relationship_room": {
+        "title": "रिश्तों के द्वार",
+        "description": "मन खोलने की परिस्थितियाँ और टिकाऊ नज़दीकी"
+      },
+      "astro_stellar_growth_room": {
+        "title": "चुनौतियाँ और बदलाव",
+        "description": "दोहराती कठिनाइयों में बदलने योग्य विकल्प"
+      },
+      "astro_career_talent_deep": {
+        "title": "करियर और प्रतिभा की गहराई",
+        "description": "काम में सराही जाने वाली खूबियाँ और थकाने वाले ढर्रे"
+      },
+      "astro_talent_attraction_deep": {
+        "title": "प्रतिभा और आकर्षण की गहराई",
+        "description": "वे मौके जब आपका आकर्षण और पहल दिखते हैं"
+      },
+      "astro_relationship_deep": {
+        "title": "रिश्तों और आकर्षण की गहराई",
+        "description": "आकर्षण के कारण और रिश्ते में ज़रूरी तालमेल"
+      },
+      "astro_growth_shadow_deep": {
+        "title": "विकास और अंतर्मन की गहराई",
+        "description": "खूबियों का दूसरा पहलू समझना और संतुलन लौटाना"
+      },
+      "ziwei_twelve_palaces": {
+        "title": "ज़िवेई के बारह भाव",
+        "description": "जीवन के अलग क्षेत्रों में खूबियाँ और चुनौतियाँ"
+      },
+      "ziwei_love_deep": {
+        "title": "ज़िवेई का संबंध भाव",
+        "description": "करीबी रिश्तों में दोहराती उम्मीदें और प्रतिक्रियाएँ"
+      },
+      "ziwei_symbolic_layer": {
+        "title": "ज़िवेई के प्रतीक",
+        "description": "तारों के प्रतीकों को रोज़मर्रा के विकल्पों में समझना"
+      },
+      "ziwei_decade_luck": {
+        "title": "ज़िवेई के दशक चक्र",
+        "description": "हर दौर में बदलते जीवन के मुख्य विषय"
+      },
+      "ziwei_life_yearly_flow": {
+        "title": "ज़िवेई जीवन और वार्षिक चक्र",
+        "description": "जीवन के बड़े प्रवाह में इस साल की दिशा"
+      },
+      "sukuyo-nature-deep-dive": {
+        "title": "सुकुयो: स्वभाव की गहराई",
+        "description": "सहज प्रतिक्रियाएँ और मन की देखभाल के तरीके"
+      },
+      "sukuyo-relationship-encyclopedia": {
+        "title": "सुकुयो संबंध मार्गदर्शिका",
+        "description": "अलग रिश्तों में दूरी और बातचीत की लय"
+      },
+      "vedic_basic_reading": {
+        "title": "वैदिक जन्म-कुंडली व्याख्या",
+        "description": "जन्म-कुंडली से स्वभाव और जीवन की लय"
+      },
+      "compat-sukuyo-compatibility": {
+        "title": "विस्तृत सुकुयो संगतता",
+        "description": "दो लोगों के रिश्ते के ढर्रे और व्यावहारिक सलाह"
+      },
+      "tarot-myeongri-three-card": {
+        "title": "तीन कार्ड की टैरो व्याख्या",
+        "description": "चुने तीन कार्डों का क्रम और व्यावहारिक अगले कदम"
+      }
     }
   }
 }

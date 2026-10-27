@@ -34,6 +34,19 @@
    */
   function withCurrentLocaleLabel(entry) {
     if (!entry) return entry;
+    var play = window.__cdPlayDisplayPrice;
+    if (play?.isApp()) {
+      var version = playVersion;
+      entry.displayPrice = playLabels[entry.featureKey] || play.label(null);
+      void play.read({ featureKey: entry.featureKey }).then(function (result) {
+        if (version !== playVersion) return;
+        var next = play.label(result);
+        if (playLabels[entry.featureKey] === next) return;
+        playLabels[entry.featureKey] = next; entry.displayPrice = next;
+        document.dispatchEvent(new CustomEvent('cd:feature-pricing-loaded'));
+      });
+      return entry;
+    }
     var label = formatAmountLabel(entry.amountKRW);
     if (label) entry.displayPrice = label;
     return entry;
@@ -116,6 +129,7 @@
 
   // Only presentation labels are refreshed. These markers never grant access or open checkout.
   function refreshDisplayPrices() {
+    if (window.__cdPlayDisplayPrice?.isApp()) { window.__cdPlayDisplayPrice.refresh(); return; }
     document.querySelectorAll('.tarot-tile__coin-badge[data-cd-price-key][data-price-krw]').forEach(function (badge) {
       if (typeof badge.textContent !== 'string') return;
       var key = badge.getAttribute('data-cd-price-key');
@@ -186,5 +200,9 @@
       catalogPromise = null;
     }
   };
-  if (window.addEventListener) window.addEventListener('cd:locale-ready', refreshDisplayPrices);
+  var playLabels = Object.create(null), playVersion = 0;
+  if (window.addEventListener) {
+    window.addEventListener('cd:locale-ready', refreshDisplayPrices);
+    window.addEventListener('cd:play-prices-changed', function () { playVersion++; playLabels = Object.create(null); refreshDisplayPrices(); });
+  }
 })(window);

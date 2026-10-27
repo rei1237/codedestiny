@@ -60,8 +60,10 @@ function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
  const selectors=chapter.factSelectors?.[context.domain]||[];
  const allowed=new Map<string,{whole:boolean;paths:string[];palaces:string[]}>();
  for(const selector of selectors){const match=selector.match(/^([^.[\]]+)(?:\[([^\]]+)\]|\.(.+))?$/);if(!match)continue;const [,label,names,path]=match;const entry=allowed.get(label)||{whole:false,paths:[],palaces:[]};if(names)entry.palaces.push(...names.split(','));else if(path)entry.paths.push(path);else entry.whole=true;allowed.set(label,entry);}
+ // 과거 경험 보정은 대운·세운을 읽는 장에만 따라붙는다. 설문이 없으면 fact가 없으므로 장 구성(manifest)은 그대로다.
+ const luckChapter=['majorLuck','yearlyLuck','luckOverlap'].some(label=>allowed.has(label));
  return context.facts.flatMap(f=>{
-  const selection=allowed.get(f.label);if(!selection||chapter.factIds&&!chapter.factIds.includes(f.id))return [];
+  const selection=f.label==='experienceCalibration'&&context.domain==='saju'&&premium&&luckChapter?{whole:true,paths:[],palaces:[]}:allowed.get(f.label);if(!selection||chapter.factIds&&!chapter.factIds.includes(f.id))return [];
   if(!premium&&/usefulGod|jong|majorLuck|luckOverlap|vimshottariDasha|dasha|yogas|divisionalCharts|fourTransformations|sanFangSiZheng/.test(f.label))return [];
   let value=f.value;
   // 4·13A: a chapter scoped to a requested period drops rows that describe another time — the 기준일 하루 근거

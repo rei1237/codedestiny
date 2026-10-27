@@ -1,9 +1,12 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useRef, useState } from "react";
 import { validateBirthDateWithAge } from "@/lib/birthDateInput";
-import { readCurrentDestinyProfile, readDestinyProfileAccountId, applyDestinyProfileBirthEdit } from "@/app/_lib/profile-card-storage";
+import { readCurrentDestinyProfile, readDestinyProfileAccountId, applyDestinyProfileBirthEdit, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -156,11 +159,12 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
   const showCalendar = Boolean(fields.calendar);
 
   const copy = useSeoLandingBirthFormCopy();
-  const { seed, seedVersion, reload } = useAiProfileSeed();
+  const { seed, seedVersion, choose } = useAiProfileSeed();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [error, setError] = useState("");
   const [editAll, setEditAll] = useState(false);
   const touchedRef = useRef(false);
+  const selectedCard = useRef<{owner:string;profile:DestinyProfileCard} | null>(null);
 
   useEffect(() => {
     if (touchedRef.current) setEditAll(true);
@@ -175,14 +179,6 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
     setForm((prev) => ({ ...prev, ...patch }));
   }
 
-  function loadFromProfileCard() {
-    void reload().then((next) => {
-      if (!next) return;
-      touchedRef.current = false;
-      setEditAll(false);
-      setForm(applySeed(EMPTY_FORM, next));
-    });
-  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -194,7 +190,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
     }
 
     // 이번 이동의 입력만 만든다. 저장 프로필 및 영구 활성 캐시는 수정하지 않는다.
-    const existing = readCurrentDestinyProfile() || {};
+    const existing = selectedCard.current?.owner === readDestinyProfileAccountId() ? selectedCard.current.profile : readCurrentDestinyProfile() || {};
     const card = applyDestinyProfileBirthEdit(existing, {
       birthDate: form.birthDate,
       ...(showTime ? { birthTime: form.birthTime, timeUnknown: form.birthTimeUnknown } : {}),
@@ -204,7 +200,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
 
     const target = new URL(submitHref, window.location.origin);
     const action = target.searchParams.get("action");
-    if ((action && ["/", "/index.html", "/ggulggul", "/ggulggul/"].includes(target.pathname)) || target.pathname.replace(/\/$/, "") === "/ziwei/chart") {
+    if (target.origin === window.location.origin) {
       try {
         window.sessionStorage.setItem(
           SEO_LANDING_ENTRY_HANDOFF_KEY,
@@ -221,11 +217,12 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
   }
 
   return (
-    <form
+    <form data-moonlit-form=""
       onSubmit={handleSubmit}
       className={`${compact ? "mt-0" : "mt-9"} rounded-2xl border border-[#d5c8df] bg-white p-5 sm:p-6`}
     >
       <p className="text-[0.95rem] font-semibold text-[#292431]">{heading}</p>
+      <SavedBirthProfilePicker onSelect={(next,profile) => { selectedCard.current={owner:readDestinyProfileAccountId(),profile}; touchedRef.current=true; choose(next); setEditAll(true); setError(""); setForm(applySeed(EMPTY_FORM,next)); }} />
       {seed?.birthDate && !editAll && <div className="mt-4 text-sm text-[#51475c]">
         <p>{copy.savedDetails}</p><p className="mt-2 font-semibold">{form.birthDate} · {form.calendarType === 'solar' ? copy.calendarSolar : form.calendarType === 'lunar_leap' ? copy.calendarLeap : copy.calendarLunar}{showTime && ` · ${form.birthTimeUnknown ? copy.birthTimeUnknownLabel : form.birthTime || '—'}`}</p>
         <button type="button" onClick={() => setEditAll(true)} className="min-h-11 text-[#6f3fa6] underline underline-offset-4">{copy.editDetails}</button>
@@ -250,10 +247,10 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
             <label htmlFor="cd-landing-birthtime" className={LABEL_CLASS}>
               {copy.birthTimeLabel}
             </label>
-            <input
+            <BirthTimeInput
               id="cd-landing-birthtime"
               name="birthTime"
-              type="time"
+
               value={form.birthTime}
               disabled={form.birthTimeUnknown}
               onChange={(event) => update({ birthTime: event.target.value })}
@@ -325,16 +322,6 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
         >
           {submitLabel}
         </button>
-        {seed && (
-          <button
-            type="button"
-            onClick={loadFromProfileCard}
-            aria-label={copy.loadFromProfileCardAria}
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#9275ae] px-5 text-[0.88rem] font-semibold text-[#6f3fa6] transition-colors duration-200 ease-out hover:bg-[rgba(232,213,163,0.08)]"
-          >
-            {copy.loadFromProfileCardLabel}
-          </button>
-        )}
       </div>
     </form>
   );

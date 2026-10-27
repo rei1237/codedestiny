@@ -41,7 +41,7 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
 
   if (stage === "landing") return <main style={backgroundStyle}>{children}</main>;
   return (
-    <main className={room.room + (isTeaHouseEntryStage(stage) || ["teaSelect", "teaCupRitual", "questionInput"].includes(stage) ? " " + novel.world + " " + room.moonlit : "")} data-stage={stage} style={backgroundStyle}>
+    <main className={room.room + (isTeaHouseEntryStage(stage) || ["teaSelect", "teaCupRitual", "questionInput", "scentLoading"].includes(stage) ? " " + novel.world + " " + room.moonlit : "")} data-stage={stage} style={backgroundStyle}>
       <div className={room.atmosphere} aria-hidden><FloatingPetals /></div>
       <header className={room.header}><button type="button" onClick={onBackToLanding}>{copy.back}</button><Link href="/fortune-tea-house/">{brand.title}</Link><Link href="/ggulggul/" aria-label={copy.homeAria}>{copy.home}</Link></header>
       <div className={room.soundBar}>{soundControl}</div>

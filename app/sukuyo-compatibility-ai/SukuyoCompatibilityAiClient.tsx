@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { sukuyoCompatAdviceTopics } from "@/js/recommendations-context.mjs";
@@ -15,6 +18,7 @@ import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
@@ -202,6 +206,7 @@ type PersonForm = {
   birthTime: string;
   birthTimeUnknown: boolean;
   calendarType: CalendarType;
+  isLeapMonth?: boolean;
 };
 type ConsultationMessage = {
   role: "user" | "assistant";
@@ -456,7 +461,8 @@ function applyProfileSeedToPerson(person: PersonForm, profile: AiPrefillSeed): P
     gender: (profile.gender as PersonForm["gender"]) || person.gender,
     birthDate: profile.birthDate || person.birthDate,
     birthTime: birthTimeUnknown ? "" : profile.birthTime || person.birthTime,
-    birthTimeUnknown: birthTimeUnknown || person.birthTimeUnknown,
+    birthTimeUnknown: profile.birthTimeUnknown ?? person.birthTimeUnknown,
+    isLeapMonth: profile.isLeapMonth ?? person.isLeapMonth,
     calendarType: profile.calendarType || person.calendarType,
   };
 }
@@ -886,7 +892,7 @@ function ChapterReadingArticle({ sectionKey, section }: { sectionKey: string; se
         <span>{SECTION_ICONS[sectionKey] || "✦"}</span>
         <h3>{section.title}</h3>
       </div>
-      <div className={styles.readingBody}><AiResultProse value={section.body} /></div>
+      <div className={styles.readingBody}><ConsultationReading kind="sukuyo" value={section.body} index={sectionKey === "closingLetter" ? 1 : 0} /></div>
       {signoff && <p className={styles.hanbiSignoff}>{signoff}</p>}
     </article>
   );
@@ -1302,7 +1308,7 @@ export default function SukuyoCompatibilityAiClient() {
     pendingGenerationRef.current = null; submitKeyRef.current = ""; submitLockRef.current = false;
     setConsultation(null); setRecentList([]); setError(""); setNotice(""); setPhase("idle"); setResumeEpoch(value => value + 1);
   });
-  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion } = useAiProfileSeed();
   const formTouchedRef = useRef(false);
 
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 본인(나의 별) 폼에 반영
@@ -1312,11 +1318,6 @@ export default function SukuyoCompatibilityAiClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadPersonAFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
-      if (seed) setPersonA((prev) => applyProfileSeedToPerson(prev, seed));
-    });
-  }
 
   const busy = phase === "access" || phase === "payment" || phase === "start";
   const consultationType: ConsultationType = "compatibility";
@@ -1440,6 +1441,8 @@ export default function SukuyoCompatibilityAiClient() {
     partnerGender: consultationType === "compatibility" ? personB.gender : "",
     partnerBirthDate: consultationType === "compatibility" ? personB.birthDate : "",
     partnerBirthTime: consultationType === "compatibility" ? (personB.birthTimeUnknown ? "" : personB.birthTime) : "",
+    isLeapMonth: personA.calendarType === "lunar" && Boolean(personA.isLeapMonth),
+    partnerIsLeapMonth: personB.calendarType === "lunar" && Boolean(personB.isLeapMonth),
     partnerCalendarType: consultationType === "compatibility" ? personB.calendarType : "",
     relationshipType,
     topic,
@@ -1683,6 +1686,7 @@ export default function SukuyoCompatibilityAiClient() {
     ].filter(Boolean);
     return (
       <>
+        <SavedBirthProfilePicker label={target === "a" ? "나의 저장된 프로필" : "상대의 저장된 프로필"} disabled={busy} onSelect={seed => { formTouchedRef.current = true; (target === "a" ? setPersonA : setPersonB)(applyProfileSeedToPerson({ ...EMPTY_PERSON }, seed)); }} />
         <div className={`${styles.field} ${styles.primaryField}`}>
           <label htmlFor={`${prefix}-birth-date`}>생년월일</label>
           <input id={`${prefix}-birth-date`} {...birthDateTextInputProps(value.birthDate, (nextBirthDate) => updatePerson(target, { birthDate: nextBirthDate }))} disabled={busy} />
@@ -1717,7 +1721,7 @@ export default function SukuyoCompatibilityAiClient() {
                 <option value="unknown">비공개</option>
               </select>
             </div>
-            <div className={styles.field}>
+            <div data-moonlit-form="" className={styles.field}>
               <label htmlFor={`${prefix}-birth-time`}>
                 출생시간 <span className={styles.labelOptional}>선택</span>
               </label>
@@ -1742,9 +1746,9 @@ export default function SukuyoCompatibilityAiClient() {
                 </button>
               </div>
               {!value.birthTimeUnknown && (
-                <input
+                <BirthTimeInput
                   id={`${prefix}-birth-time`}
-                  type="time"
+
                   value={value.birthTime}
                   onChange={(event) => updatePerson(target, { birthTime: event.target.value })}
                   disabled={busy}
@@ -1755,6 +1759,7 @@ export default function SukuyoCompatibilityAiClient() {
             </div>
             <div className={styles.fieldWide}>
               <span>달력 기준</span>
+              {value.calendarType === "lunar" && <label><input type="checkbox" checked={Boolean(value.isLeapMonth)} onChange={event => updatePerson(target, {isLeapMonth:event.target.checked})} disabled={busy}/> 윤달</label>}
               <div className={styles.segmented} role="group" aria-label={`${owner} 달력 기준`}>
                 {(["solar", "lunar"] as CalendarType[]).map((calendarType) => (
                   <button
@@ -1829,14 +1834,7 @@ export default function SukuyoCompatibilityAiClient() {
                       <YehwaMotifArt motif={SUKUYO_SEAL} width={22} height={22} />
                     </span>
                     <strong className="min-w-0 flex-1">나의 별</strong>
-                    <button
-                      type="button"
-                      onClick={loadPersonAFromProfileCard}
-                      className="shrink-0 rounded-lg border border-[#ffe8b6]/30 bg-[#ffe8b6]/10 px-2 py-1 text-xs font-bold text-[#ffe8b6] transition hover:bg-[#ffe8b6]/20"
-                      aria-label={copy.profileLoadAria}
-                    >
-                      프로필 카드에서 불러오기
-                    </button>
+
                     <em>{personAComplete ? "자리 완성" : "채우는 중"}</em>
                   </header>
                   {renderPersonFields("a", personA)}

@@ -23,7 +23,6 @@ export const ZIWEI_COMPAT_FEATURE_KEYS = Object.freeze(["compat-ziwei-compatibil
 export const SAJU_SECTION_FEATURE_KEYS = Object.freeze(["section_summary", "section_daewun", "rpt_quantumCard", "sukuyo-extreme-t-relationship", "sukuyo-relationship-encyclopedia", "sukuyo-nature-deep-dive", ...SUKUYO_COMPAT_FEATURE_KEYS, "rpt_energyCoordCard", "rpt_villainCard", "rpt_healthReportCard", "rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_secretHouseEntryCard", "animal-destiny-unlock", ...ZIWEI_SECTION_FEATURE_KEYS, ...ZIWEI_COMPAT_FEATURE_KEYS]);
 // 클라이언트 출생지 선택의 기본 옵션(index.html #birthCountry 의 대한민국 서울).
 const DEFAULT_PLACE = Object.freeze({ name: "대한민국 (서울)", longitude: 127.0, latitude: 37.6, timezone: "Asia/Seoul", baseTzOffset: 9 });
-const JONG_DECISIONS = new Set(["confirmed", "rejected", "unverified"]);
 
 export class SajuSectionInputError extends Error {
   constructor(message, code) { super(message); this.code = code; }
@@ -258,7 +257,7 @@ function buildAnimalDestinyHtml(input) {
  * @param {"neo"|"pig"} [input.mode]
  * @param {string} [input.lang]
  * @param {object} [input.place] {name, longitude, latitude, timezone, baseTzOffset}
- * @param {"confirmed"|"rejected"|"unverified"} [input.jongDecision] 종격 검증 모달의 답
+ * input.jongDecision(옛 종격 검증 모달의 답)은 옛 클라이언트 호환으로 받기만 하고 쓰지 않는다. 종격은 원국으로만 판정한다.
  * @param {{age:number, gan:string, zhi:string}} [input.daewun] section_daewun 에서 펼친 대운
  * @param {Date} [input.now] 현재 나이·퀀텀 카드의 오늘 간지·에너지 카드의 오늘 날짜 기준 시각
  * @param {{userName:string, userMansionIdx:number, userMansion:string}} [input.encyclopedia] 숙요 인연 도감의 화면 입력(출생 정보는 쓰지 않는다)
@@ -289,7 +288,6 @@ export function buildSajuSectionHtml(input) {
   const neo = input.mode === "neo";
   const place = normalizePlace(input.place);
   const ziweiPartner = ZIWEI_COMPAT_FEATURE_KEYS.includes(featureKey) ? normalizeZiweiPartner(input.partner) : null;
-  const jongDecision = JONG_DECISIONS.has(input.jongDecision) ? input.jongDecision : "unverified";
 
   let natalChart;
   try {
@@ -360,8 +358,7 @@ export function buildSajuSectionHtml(input) {
   const natal = calcNatalElement(p);
   const johu = analyzeJohu(p);
   let power = calcPower(p);
-  let jong = detectJong(p);
-  if (jong.isJong && jongDecision !== "unverified") jong = rt.applyJongDecision(jong, jongDecision === "confirmed");
+  const jong = detectJong(p);
   power = applyRuntimeYongshinPolicy(power, jong, johu);
   rt.seed({
     GENDER: gender, USER_NAME: escapeHtml(String(input.name || "").trim().slice(0, 40) || "사용자"),

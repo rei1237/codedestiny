@@ -17,11 +17,11 @@ import { mongoose, withMongoRetry } from "./db.js";
 import { MonthlyCreditLedger, User } from "./models.js";
 import { grantMonthlyCreditLotDetailed } from "./monthly-credit-store.js";
 import { Review } from "./review-models.js";
+import { KRW_PER_COIN, MEMBERSHIP_CREDIT_PER_COIN } from "./billing-policy.js";
 
-// 월정석 1개 = 10원(KRW_PER_COIN 100 ÷ MEMBERSHIP_CREDIT_PER_COIN 10)이므로 1,000원 상당이다.
-// 버그 제보 보상(300 = 3,000원 상당)보다 낮게 둔다 — 재현 정보를 정리해 보내는 노동보다
-// 후기 작성이 가볍고, 상품별로 1건씩 받을 수 있어 누적 상한이 훨씬 높기 때문이다.
-export const REVIEW_REWARD_AMOUNT = 100;
+// 2026-10-25 승인: 후기 승인 건마다 30,000원 상당. 환산율·만료·사용 범위는 기존 정책 유지.
+export const REVIEW_REWARD_KRW = 30_000;
+export const REVIEW_REWARD_AMOUNT = REVIEW_REWARD_KRW / (KRW_PER_COIN / MEMBERSHIP_CREDIT_PER_COIN);
 
 const REVIEW_REWARD_SERVICE_KEY = "review_reward";
 
@@ -47,6 +47,7 @@ function skip(reason) {
 export async function grantReviewApprovalReward({ reviewDoc, actorId = "", env } = {}) {
   const reviewId = toText(reviewDoc?._id);
   if (!reviewId) return skip("REVIEW_NOT_FOUND");
+  if (reviewDoc?.status !== "approved") return skip("REVIEW_NOT_APPROVED");
 
   // 🔴 운영진 시딩 리뷰(createdByAdmin)는 지급 대상이 아니다. 작성자가 실사용자가 아니고,
   // userId 가 비어 있거나 남의 계정을 가리킬 수 있다.
@@ -81,6 +82,10 @@ export async function grantReviewApprovalReward({ reviewDoc, actorId = "", env }
     });
     if (!applied?.user) return skip("MONTHLY_CREDIT_GRANT_FAILED");
 
+    // A prior partial grant may predate the policy change. Reconcile its actual amount.
+    const existingLot = applied.user?.profileSubscription?.membershipCreditLots?.find((lot) => lot.lotId === sourceId);
+    const grantedAmount = applied.added === true ? REVIEW_REWARD_AMOUNT : Number(existingLot?.amount || applied.lot?.amount || 0);
+    if (!Number.isSafeInteger(grantedAmount) || grantedAmount <= 0) return skip("REWARD_RECONCILIATION_REQUIRED");
     const afterBalance = Math.max(0, Math.floor(Number(applied.user?.profileSubscription?.membershipCreditBalance || 0)));
 
     try {
@@ -90,7 +95,7 @@ export async function grantReviewApprovalReward({ reviewDoc, actorId = "", env }
           $setOnInsert: {
             userId: user._id,
             type: "MONTHLY_CREDIT_GRANT",
-            amount: REVIEW_REWARD_AMOUNT,
+            amount: grantedAmount,
             beforeBalance: Math.max(0, Math.floor(Number(applied.beforeBalance || 0))),
             afterBalance,
             reason: `후기 작성 보상 (${toText(reviewDoc?.productName) || "상품 미상"})`,
@@ -115,7 +120,7 @@ export async function grantReviewApprovalReward({ reviewDoc, actorId = "", env }
     await Review.updateOne({ _id: reviewDoc._id }, {
       $set: {
         "reviewReward.granted": true,
-        "reviewReward.amount": REVIEW_REWARD_AMOUNT,
+        "reviewReward.amount": grantedAmount,
         "reviewReward.grantedAt": new Date(),
         "reviewReward.grantedBy": toText(actorId) || "admin",
         "reviewReward.ledgerSourceId": sourceId,
@@ -125,7 +130,7 @@ export async function grantReviewApprovalReward({ reviewDoc, actorId = "", env }
     return {
       granted: true,
       idempotent: applied.added !== true,
-      amount: REVIEW_REWARD_AMOUNT,
+      amount: grantedAmount,
       balanceAfter: afterBalance,
       sourceId,
     };

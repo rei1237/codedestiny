@@ -1,4 +1,5 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 
 import Image from "next/image";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
@@ -1566,7 +1567,7 @@ export default function NumerologyTarotClient() {
             </ol>
 
             <div className={styles.stage}>
-              <section className={styles.formCard}>
+              <section data-moonlit-form="" className={styles.formCard}>
                 <h2 className={styles.formTitle}>지금 가장 궁금한 이야기를 골라 주세요</h2>
 
                 <div className={styles.topicTabs}>
@@ -1598,6 +1599,7 @@ export default function NumerologyTarotClient() {
                   ))}
                 </div>
 
+                <SavedBirthProfilePicker calendarMode="solar" disabled={formLocked} onSelect={seed=>{setName(seed.name || "");setBirthDate(seed.birthDate || "");}} />
                 <div className={styles.formGrid}>
                   <label className={`${styles.field} ${styles.fieldWide}`}>
                     <span className={styles.label}>이름 (선택)</span>

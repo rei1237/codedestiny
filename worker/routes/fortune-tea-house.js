@@ -4857,6 +4857,10 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
     });
     if (result) return { ok: false, completed: true, result, doc: existing };
   }
+  // 복구가 끝난 요청은 다시 claim하지 않는다. 오류 원인과 실패 상태도 보존한다.
+  if (existing?.passRefund?.refundedAt) {
+    return { ok: false, passRefundedAt: existing.passRefund.refundedAt };
+  }
   if (isFreshFortuneTeaGeneration(existing)) {
     return { ok: false, inProgress: true, doc: existing };
   }
@@ -6149,6 +6153,25 @@ function fortuneTeaRequestHash(consultRequest) {
   return createHash("sha256").update(JSON.stringify(hashed)).digest("hex");
 }
 
+// Only quota classification: the route still verifies access and settles under
+// its original lock. Never trust a client resume flag or result ID alone.
+export async function isOwnedFortuneTeaHouseResume(body, userId) {
+  if (!userId || !body || !(body.resultId || body.jobId || body.attemptId)) return false;
+  const consultRequest = normalizeRequest(body);
+  const requestId = readFortuneTeaRequestId(body, consultRequest);
+  const featureKey = resolveFortuneTeaHouseFeatureKey(body, consultRequest);
+  if (!requestId || !featureKey) return false;
+  const doc = await honeyCollections().results.findOne({
+    userId: String(userId),
+    resultId: buildHoneyResultId(body, consultRequest),
+    deliveryRequestId: requestId,
+    featureKey,
+    generationRequestHash: fortuneTeaRequestHash(consultRequest),
+    status: { $in: ["generating", "delivery_pending", "generation_failed", "completed"] },
+  }, { projection: { status: 1, passRefund: 1, revokedAt: 1, refundedAt: 1 } });
+  return Boolean(doc && !doc.passRefund?.refundedAt && !doc.revokedAt && !doc.refundedAt);
+}
+
 async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
   if (!checkRateLimit(request)) {
     return json(
@@ -6182,7 +6205,14 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
       const section = buildSajuResultSection(buildFortuneTeaSajuSnapshotFromParts(withTeaSajuLongitude(person)), personRequest);
       pair[key] = { ...person, saju: canonicalTeaSaju(personRequest, section) };
     }
-    serverDraft = { saju: pair.user.saju, sajuCompatibility: pair };
+    serverDraft = { saju: pair.user.saju, sajuCompatibility: {
+      ...pair,
+      available: pair.user.saju.available === true && pair.partner.saju.available === true,
+      calculationSource: "fortune-tea-house-saju-compatibility",
+      relationshipType: consultRequest.sajuCompatibility.relationshipType,
+      focus: consultRequest.sajuCompatibility.focus,
+      currentSituation: consultRequest.sajuCompatibility.currentSituation,
+    } };
   }
   if (consultRequest.consultationMode === "tarot" && consultRequest.consultationVersion === "tea-v2") {
     await connectDb(env);
@@ -6207,6 +6237,9 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
       if (fallback.sukuyoCompatibility.relationDetail) delete fallback.sukuyoCompatibility.relationDetail.intensity;
     }
   }
+  // 계산 오류는 생성 claim·이용권 차감 전에 거절한다.
+  assertSajuCalculationBasis(consultRequest, fallback);
+  assertSukuyoCalculationBasis(consultRequest, fallback);
   const resultId = buildHoneyResultId(body, consultRequest);
   const requestId = readFortuneTeaRequestId(body, consultRequest);
   let generation;
@@ -6258,7 +6291,6 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
       }, { status: 202 });
     }
     if (generation.passRefundedAt) {
-      await releaseFortuneTeaDelivery({ auth: access.auth, resultId, lockToken: generation.lockToken });
       return json({ ok: false, reason: "PASS_ALREADY_REFUNDED", resultId,
         message: "이 상담은 생성에 실패해 이용권 한도를 돌려드렸어요. 새 상담으로 다시 신청해 주세요." }, { status: 409 });
     }

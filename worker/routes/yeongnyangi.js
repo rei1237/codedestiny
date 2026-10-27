@@ -8,7 +8,7 @@ import { json, readJson, createHttpError, handleRouteError, notFound } from '../
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { products } from '../yeongnyangi/payments/catalog.ts';
 import { readAndContinueFortune } from '../yeongnyangi/delivery.js';
-import { activateFortune, drawTarotSpread, jongCheckFortune, prepareFortune, presentFortune, providerReady, submitQuestionSkyFollowup } from '../yeongnyangi/service.ts';
+import { activateFortune, drawTarotSpread, experienceCheckFortune, jongCheckFortune, prepareFortune, presentFortune, providerReady, submitQuestionSkyFollowup } from '../yeongnyangi/service.ts';
 import { ownerId, YeongnyangiRequest, userCanRetry } from '../yeongnyangi/repository.js';
 import { hasRequestAccess } from '../yeongnyangi/access-methods.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
@@ -149,6 +149,13 @@ export async function handleYeongnyangiRoutes(request, env) {
         throw createHttpError(400,'상담 요청 정보를 확인해 주세요.',{code:'INVALID_REQUEST'});
       }
       return json({ok:true,...await jongCheckFortune(env,auth.userId,body)},{headers:{'Cache-Control':'private, no-store'}});
+    }
+    if(path==='saju/experience-check' && method==='POST') {
+      const body=await readJson(request);
+      if(!body || typeof body!=='object' || Array.isArray(body)) {
+        throw createHttpError(400,'상담 요청 정보를 확인해 주세요.',{code:'INVALID_REQUEST'});
+      }
+      return json({ok:true,...await experienceCheckFortune(env,auth.userId,body)},{headers:{'Cache-Control':'private, no-store'}});
     }
     if(path==='requests' && method==='GET') {
       const dbStart=performance.now();

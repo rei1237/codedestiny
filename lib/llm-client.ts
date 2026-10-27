@@ -10,7 +10,7 @@ import {
 import {
   assertWorkersAiInputTokenLimit,
 } from "./workers-ai-input-token-limit.mjs";
-import { classifyGeminiHttpError, geminiOutageCode } from "./gemini-provider-errors.mjs";
+import { classifyGeminiHttpError, geminiOutageCode, safeGeminiFailure } from "./gemini-provider-errors.mjs";
 import { reportProviderOutage } from "../worker/lib/provider-outage-alert.js";
 import { recordGeminiUsage } from "../worker/lib/llm-usage-meter.js";
 
@@ -1253,11 +1253,13 @@ async function callLLMUncached(
     return await callCloudflareWorkersAI(request, env, deadlineAt, budget);
   } catch (cloudflareError) {
     if (isGenerationTimeout(cloudflareError)) throw cloudflareError;
-    throw new Error(
-      `LLM request failed. Gemini: ${getErrorMessage(geminiError)}; Cloudflare Workers AI: ${getErrorMessage(
-        cloudflareError,
-      )}`,
-    );
+    const failureCode = String((geminiError as { code?: string })?.code || "");
+    const fallbackCode = String((cloudflareError as { code?: string })?.code || "");
+    throw Object.assign(new Error("LLM providers could not complete this request."),
+      safeGeminiFailure(geminiError && typeof geminiError === "object" ? geminiError : {}), {
+        code: /^[A-Z][A-Z0-9_]{0,79}$/.test(failureCode) ? failureCode : "LLM_PROVIDER_UNAVAILABLE",
+        fallbackCode: /^[A-Z][A-Z0-9_]{0,79}$/.test(fallbackCode) ? fallbackCode : "WORKERS_AI_UNAVAILABLE",
+      });
   }
 }
 

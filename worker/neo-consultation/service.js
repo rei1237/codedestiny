@@ -72,7 +72,7 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       const expiredDraft = row.state === 'draft' && Date.parse(now())-Date.parse(row.createdAt)>=7*86400000;
       if (row.contentDeletedAt || (!expiredDraft && (!row.contentDeleteAfter || row.contentDeleteAfter>now()))) return;
       if (row.mailJobs.some(j => j.state === 'sending' && Date.parse(now())-Date.parse(j.claimedAt)<15*60000)) return;
-      row.email=''; row.context=''; row.goodPeriod=''; row.difficultPeriod=''; row.birth=null;
+      row.email=''; row.context=''; row.goodPeriod=''; row.difficultPeriod=''; row.birth=null; row.partnerBirth=null;
       delete row.checkout;
       row.questions=row.questions.map(q => ({id:q.id,text:'',readingMode:neoReadingMode(q),chartReading:neoChartReading(q),answerVersion:q.answerVersion,review:q.review}));
       if (row.quote) row.quote.questions=row.quote.questions.map(q=>({id:q.id}));
@@ -202,7 +202,7 @@ export function createNeoService({ repository, payments, sendMail, operatorEmail
       if (row.manualDelivery) fail('ORDER_LOCKED', '이메일 전달을 완료한 주문의 질문은 변경할 수 없어요.');
       const q = question(row, questionId);
       if (!q.correction) fail('CORRECTION_NOT_REQUESTED', '정정 요청된 질문만 수정할 수 있어요.');
-      const valid = validateNeoInput({ ...row, questions: [{ text, readingMode: neoReadingMode(q), chartReading: q.chartReading }] }, { requireBirth: false, allowLegacyModes: true });
+      const valid = validateNeoInput({ ...row, questions: [{ text, readingMode: neoReadingMode(q), chartReading: q.chartReading }] }, { requireBirth: false, allowLegacyModes: true, allowChartReading: true });
       q.text = valid.questions[0].text; q.correction = ''; q.answer = ''; q.review = null;
       q.answerVersion = (q.answerVersion || 0) + 1;
       row.state = row.questions.some(item => item.correction) ? 'correction' : 'received';

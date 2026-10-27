@@ -66,6 +66,35 @@ test('an already-started refund is never changed back into a delivered execution
 test.each(['pet-saju-ai-consultation','pet-compatibility-ai','animal-totem-basic','animal-totem-deep','dream-psycho-analysis','geomancy','yoga-guru-per-use','tarot-prompt-maker','tarot-prompt-maker-standard','tarot-prompt-maker-deep','tarot-prompt-maker-master','tarot-mindscan','tarot-love-relationship'])('%s saved narrative is not refunded by timeout cleanup',async feature=>{
  execution.featureKey=feature;execution.metadata={paidNarrative:{tasks:[{id:'personality'}],parts:{}}};expect(await inspect(execution)).toBe('recoverable');expect(queries).toHaveLength(0);
 });
+test('every registered narrative feature and report pair protects a saved checkpoint from timeout refund',async()=>{
+ const {PAID_NARRATIVE_SERVER_RESUME_KEYS}=await import('../../worker/lib/paid-narrative-adapters.js');
+ for(const pair of PAID_NARRATIVE_SERVER_RESUME_KEYS){
+  const [featureKey,reportType]=pair.split('|');
+  execution.featureKey=featureKey;execution.reportType=reportType;execution.metadata={paidNarrative:{tasks:[{id:'answer'}],parts:{answer:'saved'}}};
+  expect({pair,result:await inspect(execution)}).toEqual({pair,result:'recoverable'});
+ }
+});
+
+test('question checkpoint survives timeout sweep without refund',async()=>{
+ execution.featureKey='astrology_ai_prompt_generator';execution.reportType='featureQuestionConsultation';
+ execution.metadata={paidNarrative:{tasks:[{id:'answer'}],parts:{answer:'saved'}}};
+ const result=await sweep({}, {limit:1});
+ expect(result).toMatchObject({scanned:1,refunded:0,pending:1});
+ expect(execution.status).toBe('pending');expect(execution.metadata.paidNarrative.parts.answer).toBe('saved');
+ expect(execution.nextRetryAt.getTime()).toBeGreaterThan(Date.now());
+});
+
+test('registered pair without a saved checkpoint does not imply a result',async()=>{
+ execution.featureKey='astrology_ai_prompt_generator';execution.reportType='featureQuestionConsultation';execution.metadata={};
+ expect(await inspect(execution)).toBe('unmanaged');
+});
+
+test('an unregistered feature and report pair does not gain checkpoint protection',async()=>{
+ execution.featureKey='unrelated-product';execution.reportType='featureQuestionConsultation';
+ execution.metadata={paidNarrative:{tasks:[{id:'answer'}],parts:{answer:'saved'}}};
+ expect(await inspect(execution)).toBe('unmanaged');
+});
+
 test('celestial card checkpoints in the execution collection remain recoverable',async()=>{
  execution.featureKey='tarot-celestial-harmony';execution.metadata={celestialDelivery:{delivery:{parts:{0:{archetypeReading:'saved'}}}}};
  expect(await inspect(execution)).toBe('recoverable');expect(queries).toHaveLength(0);

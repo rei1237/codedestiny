@@ -128,7 +128,7 @@ async function fetchJson(url: string, init?: RequestInit): Promise<Record<string
   }
 }
 
-type Coordinates = { lat: number; lon: number; name: string };
+type Coordinates = { lat: number; lon: number; name: string; timezone?: string };
 
 /** 🔴 fallback === true 는 워커가 서울 기본값을 돌려준 것이다 — 좌표 없음으로 취급한다. */
 async function resolveCoordinates(place: string): Promise<Coordinates | null> {
@@ -138,7 +138,7 @@ async function resolveCoordinates(place: string): Promise<Coordinates | null> {
   const lat = Number(payload.lat);
   const lon = Number(payload.lng);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-  return { lat, lon, name: text(payload.name) || place };
+  return { lat, lon, name: text(payload.name) || place, timezone: text(payload.timezone) };
 }
 
 async function coordinatesForInput(input:AstroFactsInput):Promise<Coordinates|null>{
@@ -195,9 +195,9 @@ export async function buildAstrologyPromptFacts(input: AstroFactsInput, options:
     if (!solar) return "";
 
     const hm = input.birthTimeUnknown ? null : parseHm(input.birthTime);
-    const lines: string[] = ["[점성술 차트 산출 데이터]", ...commonBirthLines(input, solar, hm)];
-
     const coords = hm ? await coordinatesForInput(input) : null;
+    if (coords?.timezone) input = { ...input, birthTimezone: coords.timezone };
+    const lines: string[] = ["[점성술 차트 산출 데이터]", ...commonBirthLines(input, solar, hm)];
     const chart = coords && hm ? await fetchChart(solar, hm, coords, resolveBirthTimezone(input)) : null;
 
     if (!chart) {
@@ -283,6 +283,8 @@ export async function buildVedicPromptFacts(input: AstroFactsInput): Promise<str
 
     const hm = input.birthTimeUnknown ? null : parseHm(input.birthTime);
     const coords = await coordinatesForInput(input);
+    if (!coords) return "[베다 점성 산출 데이터]\n출생지를 확인하지 못해 차트를 계산하지 않았습니다. 도시와 국가를 다시 입력해 주세요. 계산값을 추정하지 마세요.";
+    if (coords.timezone) input = { ...input, birthTimezone: coords.timezone };
     const { offsetHours } = wallClockToUtcMillis(
       { year: solar.year, month: solar.month, day: solar.day, hour: hm?.hour ?? 12, minute: hm?.minute ?? 0 },
       resolveBirthTimezone(input),
@@ -298,8 +300,8 @@ export async function buildVedicPromptFacts(input: AstroFactsInput): Promise<str
         hour: hm?.hour ?? 12,
         minute: hm?.minute ?? 0,
         timezone: offsetHours,
-        lat: coords?.lat ?? 37.5665,
-        lon: coords?.lon ?? 126.978,
+        lat: coords.lat,
+        lon: coords.lon,
         timeUnknown: !hm,
       }),
     });

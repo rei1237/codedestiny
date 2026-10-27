@@ -9,10 +9,9 @@ const source=fs.readFileSync('js/saju-engine.js','utf8');
 function fixture(){
  const context={window:{},console,Date,Number,String,Object,Math,KasiEngine:{lunarToSolar:core.lunarToSolar},...runtime,
   _koreanCalendar:()=>core,attachKasiDaewunBridge:()=>{},resetEvalDaewunMemo:()=>{},_syncDestinyFlowerSajuSnapshot:()=>{},
-  GAN:Object.fromEntries([...core.STEM_HANJA].map(k=>[k,{}])),JI:Object.fromEntries([...core.BRANCH_HANJA].map(k=>[k,{}])),G_JONG_VERIFIED:null,GENDER:'F'};
+  GAN:Object.fromEntries([...core.STEM_HANJA].map(k=>[k,{}])),JI:Object.fromEntries([...core.BRANCH_HANJA].map(k=>[k,{}])),GENDER:'F'};
  vm.createContext(context);
  vm.runInContext(sliceFunction(source,'function _cdNatalBazi('),context);
- vm.runInContext(sliceFunction(source,'function _jongVerifiedKey('),context);
  const start=source.indexOf('window.computeProfileForModal = function(profile)');const end=source.indexOf('\n};',start)+3;
  vm.runInContext(source.slice(start,end),context);return context;
 }

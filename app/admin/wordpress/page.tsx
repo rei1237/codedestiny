@@ -47,7 +47,7 @@ export default function WordPressWorkshop() {
         </div>
         <p className="cd-hq-quiet mt-3 text-sm">검색 클릭·세션·사용자·실결제는 다른 지표예요. 서비스로 보내는 자사 링크는 독립 외부 추천과 구분해서 봐요.</p>
       </HqPanel>
-      <details className="cd-ops-archive"><summary>이전 SNS 운영 기록</summary><p>Threads는 운영 대상에서 제외했습니다. 기존 게시물과 증빙은 보존하며 여기서 재발행하지 않습니다.</p><Link href="/admin/quests/?channel=threads_existing_worker">Threads 기록 보기</Link></details>
+      <details className="cd-ops-archive"><summary>이전 SNS 운영 기록</summary><p>Threads 운영을 다시 준비합니다. 새 원고와 상태는 Threads 작업실에서 확인하고, 지난 일정은 기록으로 보존해요.</p><Link href="/admin/threads/">Threads 작업실 열기</Link></details>
     </div>
   );
 }

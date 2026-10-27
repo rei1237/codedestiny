@@ -1,4 +1,6 @@
 import { appendBasicFortunePersona } from '../lib/expert-character-personas.js';
+import { getAmbientAiLocale } from '../lib/ai-locale-context.js';
+import { toAiLocale } from '../../lib/i18n/ai-locale.js';
 import {validateSajuNatalPayload} from "../lib/saju-correction.js";
 import { deliverFeatureQuestion, readFeatureQuestionRequest } from '../lib/feature-question-delivery.js';
 import { deliverGuardianPaid } from '../lib/guardian-paid-delivery.js';
@@ -86,6 +88,8 @@ import {
   getSajuAICategoryRubric,
   validateSajuMyeongsikTenGodText,
 } from "../lib/saju-ai-prompt.js";
+import { correctGyeokgukText, gyeokgukClaimFact } from "../../lib/saju/gyeokguk-claim-guard.mjs";
+import { NATAL_CORE_VERSION } from "../../lib/saju/natal-core/version.mjs";
 import {
   buildAstrologyAIPrompt,
   buildAstrologyAIPromptWithDomain,
@@ -395,7 +399,7 @@ function buildSajuAISectionPromptPrefix(builtPrompt) {
     "분량을 채우려고 같은 문장을 반복하거나 말을 늘리지 말고, 아직 짚지 않은 근거와 현실의 장면, 판단 기준을 새로 더해 채우세요.",
     "사용자에게 '프롬프트', '기능', '분석 결과는', '내부 지시문' 같은 말은 쓰지 마세요.",
     Number(builtPrompt?.calibrationApplied) > 0
-      ? "사용자가 보고한 시기 캘리브레이션 검증 결과는 별도 목차를 만들지 말고 맡은 챕터 산문에 자연스럽게 녹이세요."
+      ? "사용자가 적은 과거 경험과 그 대조 결과는 별도 목차를 만들지 말고 맡은 챕터 산문에 자연스럽게 녹이세요. 맞은 경험과 어긋난 경험을 모두 그대로 다루세요."
       : "",
     formatSajuAIResultRubric(categoryRubric),
     factCard && !internalPrompt.includes(factCard) ? "내부 명식 사실 카드:" : "",
@@ -656,7 +660,7 @@ function isSajuAISectionRowShort(row) {
  *
  * 제공자 오류는 그룹 결과로 반환한다. 체크포인트 저장 오류는 호출부로 전달해 환불과 분리한다.
  */
-async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false, allowRepair = true, initialRepairLines = [] } = {}) {
+async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, locale, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false, allowRepair = true, initialRepairLines = [] } = {}) {
   // 그룹 5개가 문자까지 같은 접두사를 각자 정가로 싣던 것을, Gemini 쪽에 한 벌만 올려 두고
   // 참조한다(명시적 컨텍스트 캐싱). null 이면 아무 일도 일어나지 않고 지금까지처럼 전체
   // 프롬프트가 나간다 — 웨이브1 직전에 채워지고, 웨이브가 끝나면 finally 에서 지운다.
@@ -665,6 +669,7 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
   const runSectionGroup = async (group, { repairLines = [], attempt = 0, timeoutMs, maxOutputTokens }) => {
     try {
       const ai = await callGeminiText(env, buildSajuAISectionPrompt(builtPrompt, group, { repairLines }), {
+        locale,
         systemPrompt,
         taskType: "fortune",
         temperature: attempt > 0 ? 0.5 : 0.56,
@@ -681,7 +686,10 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         //    웨이브2의 보강 요청은 접미사에 들어가므로 같은 핸들이 그대로 유효하다.
         geminiCachedContent: contextCache || undefined,
       });
-      return { group, ok: isCompleteLlmResponse(ai), text: normalizeSajuAIResultText(ai?.text), ai };
+      // 엔진 격국과 다른 격국 단정은 재생성하지 않고 고정 문장으로 바꾸거나 지운다(lib/saju/gyeokguk-claim-guard.mjs).
+      const guarded = correctGyeokgukText(normalizeSajuAIResultText(ai?.text), gyeokgukClaimFact(builtPrompt.factSnapshot?.majorStructures?.gyeokguk));
+      if (guarded.replaced || guarded.dropped) console.info("[SajuMyeongsikAI] gyeokguk correction", JSON.stringify({ requestId, group: group.key, replaced: guarded.replaced, dropped: guarded.dropped }));
+      return { group, ok: isCompleteLlmResponse(ai), text: guarded.text, ai };
     } catch (groupError) {
       console.warn("[SajuMyeongsikAI] section group threw", {
         requestId,
@@ -1226,7 +1234,7 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
           ...(existingExecution?.result || {}),
           leaseToken,
           payloadHash,
-          resumeBody: Object.fromEntries(["question", "sajuResult", "domain", "calibration", "profileId", "selectedProfileId", "requestId", "idempotencyKey", "transactionId", "ledgerId", "purchaseId", "paymentId", "accessType", "accessMethod", "paymentMode", "accessGrant", "accessDecision", "freeBySubscription", "consume", "payment", "_paymentContext"].filter((key) => body[key] !== undefined).map((key) => [key, body[key]])),
+          resumeBody: Object.fromEntries(["locale", "question", "sajuResult", "domain", "calibration", "profileId", "selectedProfileId", "requestId", "idempotencyKey", "transactionId", "ledgerId", "purchaseId", "paymentId", "accessType", "accessMethod", "paymentMode", "accessGrant", "accessDecision", "freeBySubscription", "consume", "payment", "_paymentContext"].filter((key) => body[key] !== undefined).map((key) => [key, body[key]])),
           progress: buildSajuAIProgress(10, "generating", "명식의 흐름을 읽고 있어요"),
           order: { paymentStatus: "PAID", accessMethod },
         },
@@ -4757,6 +4765,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
   // LLM 예산의 기산점. 인증·결제·명식 검증에 쓴 시간만큼 생성 시간이 줄어든다.
   const startedAt = Date.now();
   let body = await readJson(request);
+  body = { ...body, locale: toAiLocale(getAmbientAiLocale() || body?.locale) };
   if (body?.resumeJobId) {
     const original = await findSajuAIExecutionForRead({ auth, jobId: String(body.resumeJobId) });
     if (!original) return buildSajuAIPromptError("JOB_NOT_FOUND", "상담 생성 상태를 찾을 수 없습니다.", 404);
@@ -4985,7 +4994,8 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+    // 원국 판정 규칙이 바뀌면 같은 생년월일이라도 이전 판정으로 쓴 응답을 다시 쓰지 않는다.
+    keyExtra: `${builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION}|${NATAL_CORE_VERSION}`,
     skipRead: skipCacheRead || undefined,
   };
 
@@ -5010,6 +5020,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       const group = SAJU_AI_SECTION_GROUPS.find((item) => item.key === next.key);
       await runSajuAISectionWaves(env, {
         builtPrompt,
+        locale: toAiLocale(body.locale),
         systemPrompt: await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT),
         cache: { ...sajuLlmCache, skipRead: next.attempts > 1 || sajuLlmCache.skipRead },
         deadlineAt: sajuDeadlineAt,
