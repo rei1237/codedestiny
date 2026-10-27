@@ -38,6 +38,27 @@ test('first success spends one generation', async()=>{
 
 const workerBuilt = await build({stdin:{contents:"export * from './worker/lib/gemini.js';export * from './worker/lib/paid-generation-context.js';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false});
 const {callGeminiText,runWithPaidGenerationContext,getPaidGenerationRaw,getPaidGenerationContext} = await import('data:text/javascript;base64,'+Buffer.from(workerBuilt.outputFiles[0].text).toString('base64'));
+
+test('shared provider and worker wrappers retain safe tokenizer failure labels across fallback failure', async () => {
+  const original = globalThis.fetch; let generations = 0;
+  const secret = 'private-prompt-or-api-key';
+  globalThis.fetch = async url => {
+    assert.ok(String(url).includes(':countTokens')); generations++;
+    return Response.json({ error: { code: 400, status: 'INVALID_ARGUMENT', message: secret,
+      details: [{ reason: 'API_KEY_INVALID', metadata: { private: secret } }] } }, { status: 400 });
+  };
+  try {
+    const result = await callGeminiText({ GEMINIF_API_KEY: 'fixture-only', AI: { run: async () => { throw Error('fixture unavailable'); } } }, 'fixture');
+    assert.equal(result.ok, false);
+    assert.equal(result.error, 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE');
+    assert.equal(result.status, 400);
+    assert.equal(result.providerCode, 'GEMINI_API_KEY_INVALID');
+    assert.equal(result.providerReason, 'API_KEY_INVALID');
+    assert.equal(result.retryable, false);
+    assert.ok(!JSON.stringify(result).includes(secret));
+    assert.equal(generations, 1);
+  } finally { globalThis.fetch = original; }
+});
 test('two durable worker reservations cannot multiply provider, cache and fallback calls', async()=>{
   const original=globalThis.fetch; let generations=0, fallback=0;
   globalThis.fetch=async url=>{

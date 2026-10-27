@@ -60,6 +60,30 @@ test("token count failure is fail-closed instead of falling through to inference
   );
 });
 
+test("token count failures preserve safe provider labels without echoed secrets or prompts", async () => {
+  const secret = 'fixture-private-key-and-birth-input';
+  await assert.rejects(assertGeminiInputTokenLimit({
+    apiKey: secret, model: "gemini-2.5-flash", generateContentRequest: request,
+    fetchImpl: async () => response({ error: { code: 400, status: "INVALID_ARGUMENT", message: secret,
+      details: [{ reason: "API_KEY_INVALID", metadata: { echoedPrompt: secret } }] } }, 400),
+  }), error => {
+    assert.equal(error.code, "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE");
+    assert.equal(error.providerReason, "API_KEY_INVALID");
+    assert.equal(error.providerStatus, "INVALID_ARGUMENT");
+    assert.equal(error.providerCode, "GEMINI_API_KEY_INVALID");
+    assert.equal(error.retryable, false);
+    assert.ok(!JSON.stringify(error).includes(secret));
+    assert.ok(!error.message.includes(secret));
+    return true;
+  });
+});
+
+test("temporary token count rejection keeps its retryable classification", async () => {
+  await assert.rejects(assertGeminiInputTokenLimit({ apiKey: "fixture", model: "gemini-2.5-flash", generateContentRequest: request,
+    fetchImpl: async () => response({ error: { code: 503, status: "UNAVAILABLE", message: "private input" } }, 503),
+  }), error => error.retryable === true && error.providerStatus === "UNAVAILABLE" && !error.message.includes("private input"));
+});
+
 test("all Gemini generation gateways are wired to the shared hard cap", () => {
   const paths = [
     "../../lib/llm-client.ts",
