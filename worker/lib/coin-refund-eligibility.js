@@ -89,6 +89,7 @@ export async function assertDeductionRefundable(env, { userId, deduction, failed
           { "metadata.paidNarrative.body.sourceTransactionId": { $in: deliveryIds } },
           { "metadata.paidNarrative.body.transactionId": { $in: deliveryIds } },
           { "metadata.paidNarrative.paymentProof.sourceTransactionId": { $in: deliveryIds } },
+          { "metadata.paidNarrativeProof.transactionId": { $in: deliveryIds } },
         ] },
       ],
     }).select({ _id: 1 }).lean();

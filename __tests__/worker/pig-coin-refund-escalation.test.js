@@ -383,6 +383,28 @@ describe("pig-coin refund — 전달된 결제는 자동 환불하지 않는다"
     await expectRefused(await handlePigCoinRefund(spend(), auth, {}), 409, "REFUND_NOT_ELIGIBLE");
   });
 
+  test.each([
+    { status: "success", premiumStatus: "completed" },
+    { status: "pending", premiumStatus: "generating", metadata: { paidNarrative: { parts: { chapter: "delivered" } } } },
+  ])("서버 복구 구매 증빙으로 전달된 다른 상담은 환불하지 않는다: %j", async execution => {
+    const doc = { ...execution, userId: TEST_USER_ID, idempotencyKey: "other-paid-request",
+      metadata: { ...execution.metadata, paidNarrativeProof: { transactionId: REAL_SPEND_ID } } };
+    const match = (object, query) => Object.entries(query).every(([key, condition]) => {
+      if (key === '$and') return condition.every(part => match(object, part));
+      if (key === '$or') return condition.some(part => match(object, part));
+      const value = readPath(object, key);
+      if (condition && typeof condition === 'object') return Object.entries(condition).every(([op, expected]) => {
+        if (op === '$in') return expected.includes(value);
+        if (op === '$exists') return (value !== undefined) === expected;
+        if (op === '$ne') return JSON.stringify(value) !== JSON.stringify(expected);
+        throw Error('unsupported operator ' + op);
+      });
+      return value === condition;
+    });
+    deliveryLookup.ServiceExecutionTransaction = query => match(doc, query) ? { _id: "delivered-1" } : null;
+    await expectRefused(await handlePigCoinRefund(spend(), auth, { failedRequestId: "failed-req-1" }), 409, "REFUND_NOT_ELIGIBLE");
+  });
+
   test("영구 해금(ContentEntitlement ACTIVE 또는 해금 키 차감 행)은 해지하지 않고 409", async () => {
     deliveryLookup.ContentEntitlement = mentionsSpend;
     await expectRefused(await handlePigCoinRefund(spend(), auth, {}), 409, "REFUND_NOT_ELIGIBLE");
