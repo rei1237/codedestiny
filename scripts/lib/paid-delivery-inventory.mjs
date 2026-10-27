@@ -118,5 +118,6 @@ export function buildPaidDeliveryInventory(products=listProducts()){
     allProductsVerified:false,products:rows};
 }
 
-export const inventoryIsComplete=report=>['missingDeliveryMappings','ambiguousDeliveryMappings','invalidMappings','staleEvidenceKeys','unusedLlmAdapters']
+export const inventoryIsComplete=report=>['missingDeliveryMappings','ambiguousDeliveryMappings','invalidMappings','staleEvidenceKeys','unusedLlmAdapters',
+  'backgroundRecoveryNotMapped','llmWithoutServerRecovery']
   .every(field=>report[field].length===0);
