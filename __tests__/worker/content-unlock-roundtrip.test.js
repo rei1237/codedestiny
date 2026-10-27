@@ -11,7 +11,7 @@
 
 import { jest } from "@jest/globals";
 import { TEST_USER_ID, profileCardModel, testCard } from "../fixtures/profile-card-model.mjs";
-import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
+import { computeBirthKey, computeCompatBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 
 const findOneAndUpdate = jest.fn();
 const findOne = jest.fn();
@@ -170,5 +170,26 @@ test("꿀방울 22종은 실제 영구 권리 쓰기와 기존 읽기가 같은 
     expect(matchesFilter(stored, capturedReadFilter())).toBe(true);
     expect(readQuery.session).toHaveBeenCalledWith(session);
     expect(findOneAndUpdate.mock.results[0].value.session).toHaveBeenCalledWith(session);
+  }
+});
+
+
+test("등록된 영구 해금 상품은 기존 지급 서비스 키로 동일한 구매만 조회한다", async () => {
+  const { BIRTH_SCOPED_UNLOCK_FEATURE_KEYS, ACCOUNT_SCOPED_UNLOCK_FEATURE_KEYS } = await import('../../worker/lib/paid-feature-registry.js');
+  const { findActivePaidContentUnlock, resolvePaidContentServiceKey, resolvePaidContentUnlockTarget } = await import('../../worker/lib/content-unlocks.js');
+  for (const featureKey of [...BIRTH_SCOPED_UNLOCK_FEATURE_KEYS, ...ACCOUNT_SCOPED_UNLOCK_FEATURE_KEYS]) {
+    const input = { userId: TEST_USER_ID, profileId: 'profile-1', featureKey, ...(featureKey === 'section_compat' ? { partnerProfileId: 'profile-1' } : {}) };
+    const target = resolvePaidContentUnlockTarget(input);
+    const birthScoped = BIRTH_SCOPED_UNLOCK_FEATURE_KEYS.includes(featureKey);
+    await findActivePaidContentUnlock(input);
+    const filter = findOne.mock.calls.at(-1)[0];
+    const base = { userId: TEST_USER_ID, contentKey: target.contentKey, status: 'ACTIVE', expiresAt: null,
+      scope: birthScoped ? 'BIRTH' : 'USER', profileId: birthScoped ? (featureKey === 'section_compat' ? toBirthEntitlementProfileId(computeCompatBirthKey(testCard('profile-1'), testCard('profile-1'))) : BIRTH_PROFILE_ID) : '__user__' };
+    for (const serviceKey of [resolvePaidContentServiceKey(featureKey, featureKey), resolvePaidContentServiceKey(featureKey), 'paid_content']) {
+      expect({ featureKey, matches: matchesFilter({ ...base, serviceKey }, filter) }).toEqual({ featureKey, matches: true });
+    }
+    expect(matchesFilter({ ...base, serviceKey: featureKey, userId: 'another-user' }, filter)).toBe(false);
+    expect(matchesFilter({ ...base, serviceKey: featureKey, contentKey: 'different-product' }, filter)).toBe(false);
+    findOne.mockClear();
   }
 });
