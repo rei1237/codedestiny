@@ -11,6 +11,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { FAILURE_COPY, reasonCopy } from "../lifeBookCopy";
 import { useTypewriter } from "./useTypewriter";
@@ -1617,6 +1618,7 @@ function LifeBookResultContent() {
         fileName: `life-book-reading-${safeFilePart(attemptId)}.pdf`,
         backgroundColor: "#100a08",
         cover: {
+          theme: "lifeBook",
           title: copy.pdfCoverTitle(userName),
           subtitle: result?.topic || copy.focusAreaDefault,
           name: userName,
@@ -1873,6 +1875,7 @@ function LifeBookResultContent() {
                             {toText(chapter.summary)}
                           </p>
                         )}
+                        {index % 3 === 0 && <ConsultationIllustration kind="lifeBook" />}
                         <ChapterProse
                           value={chapter.content}
                           live={isStreamingIn && index === freshChapterIndex}

@@ -1504,7 +1504,7 @@
   margin-bottom: 18px;
 }
 
-.readingSection > div span {
+.readingSection > div:first-child > span {
   min-width: 28px;
   color: rgba(251, 191, 36, .74);
   font-family: var(--font-premium), var(--font-display), var(--font-body), system-ui, sans-serif;

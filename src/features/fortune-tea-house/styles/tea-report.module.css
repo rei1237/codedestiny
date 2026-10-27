@@ -1,4 +1,4 @@
-.resultScene{max-width:1040px;margin:auto;padding:24px 20px;line-height:1.85;color:#303c31;overflow-wrap:anywhere}
+.resultScene{max-width:1040px;margin:auto;padding:24px 20px;font-family:var(--font-body);font-size:1.0625rem;line-height:1.9;color:#303c31;overflow-wrap:anywhere}
 .resultSheet{max-width:780px;margin:auto;min-width:0;background:#fffdf7;border:1px solid #dedbcc;border-radius:12px;padding:32px}
 .resultSheet h2,.resultSheet h3,.sajuResultPanel h3,.sukuyoResultPanel h3{font-family:var(--tea-font-premium),serif;line-height:1.5;color:#3c533b}
 .resultSheet h2{font-size:1.7rem}.resultSheet h3{font-size:1.24rem;margin:0 0 16px}.resultSheet h4{font-size:1rem}

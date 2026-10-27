@@ -21,28 +21,31 @@ export function typesetYeongnyangiReport(pdf:Pdf,fonts:PdfFonts,options:Options,
  pdf.setFillColor(16,27,44);pdf.rect(0,0,PAGE_WIDTH_MM,PAGE_HEIGHT_MM,'F');
  pdf.setFontSize(26);pdf.setTextColor(249,241,218);
  pdf.text('영냥이의\n개인 상담서',MARGIN_X_MM,45,{lineHeightFactor:1.5});
- if(art[0])pdf.addImage(art[0].dataUrl,'JPEG',MARGIN_X_MM,83,CONTENT_WIDTH_MM,CONTENT_WIDTH_MM*art[0].ratio);
+ if(art[0])pdf.addImage(art[0].dataUrl,'JPEG',MARGIN_X_MM,72,CONTENT_WIDTH_MM,CONTENT_WIDTH_MM*art[0].ratio);
  pdf.setFontSize(12);pdf.setTextColor(225,203,157);
- pdf.text(pdf.splitTextToSize(options.row.product.name,CONTENT_WIDTH_MM),MARGIN_X_MM,165);
- pdf.setFontSize(10);pdf.text(`${options.row.chapters.length}개의 상담 챕터와 나만의 실천 노트`,MARGIN_X_MM,185);
- pdf.text(`상담 기준일 ${(options.row.consultation?.asOf||options.row.createdAt).slice(0,10)}`,MARGIN_X_MM,197);
- pdf.text('질문의 답부터, 삶의 선택까지 천천히 펼쳐 보세요.',MARGIN_X_MM,240);
+ pdf.text(pdf.splitTextToSize(options.row.product.name,CONTENT_WIDTH_MM),MARGIN_X_MM,202);
+ pdf.setFontSize(10);pdf.text(`${options.row.chapters.length}개의 상담 챕터와 나만의 실천 노트`,MARGIN_X_MM,225);
+ pdf.text(`상담 기준일 ${(options.row.consultation?.asOf||options.row.createdAt).slice(0,10)}`,MARGIN_X_MM,237);
+ pdf.text('질문의 답부터, 삶의 선택까지 천천히 펼쳐 보세요.',MARGIN_X_MM,260);
  for(let i=0;i<contentsPages;i++){pdf.addPage();paintPaper(pdf);}
  const writer=createBookWriter(pdf,fonts);
  for(const [i,chapter] of chapters.entries()){
   writer.chapter(chapter.part,chapter.title);toc.entries[i].destination=writer.page;
   let bodyChars=0,illustrated=false;
+  const bodyIndex=options.row.manifest.findIndex(spec=>spec.id===chapter.id);
+  const illustration=bodyIndex<0?undefined:bodyIndex===0?art[1]:bodyIndex===options.row.chapters.length-1?art[3]:bodyIndex===Math.floor(options.row.chapters.length/2)&&options.row.chapters.length>3?art[2]:undefined;
   for(const block of chapter.blocks){
    if(block.kind==='table'){if(!block.text.includes('오행')||!drawElementChart(pdf,writer,block.rows||[]))writer.keyValueTable(block.rows||[]);}else if(block.kind==='body'){
     for(const paragraph of bookParagraphs(block.text)){writer.body(paragraph);bodyChars+=paragraph.length;
-     if(!illustrated&&art.length>1&&bodyChars>=350){const illustration=art[1+i%(art.length-1)];writer.image(illustration.dataUrl,CONTENT_WIDTH_MM,CONTENT_WIDTH_MM*illustration.ratio);illustrated=true;}
+     if(!illustrated&&illustration&&bodyChars>=350){writer.image(illustration.dataUrl,CONTENT_WIDTH_MM,CONTENT_WIDTH_MM*illustration.ratio);illustrated=true;}
     }
    }else writer[block.kind](block.text);
    if(block.kind==='lead')bodyChars+=block.text.length;
-   if(!illustrated&&art.length>1&&bodyChars>=500&&block.kind==='body'){
-    const illustration=art[1+i%(art.length-1)];writer.image(illustration.dataUrl,CONTENT_WIDTH_MM,CONTENT_WIDTH_MM*illustration.ratio);illustrated=true;
+   if(!illustrated&&illustration&&bodyChars>=500&&block.kind==='body'){
+    writer.image(illustration.dataUrl,CONTENT_WIDTH_MM,CONTENT_WIDTH_MM*illustration.ratio);illustrated=true;
    }
   }
+  if(illustration&&!illustrated)writer.image(illustration.dataUrl,CONTENT_WIDTH_MM,CONTENT_WIDTH_MM*illustration.ratio);
  }
  drawLinkedContents(pdf,fonts,toc);
  drawFooters(pdf,fonts,'꿀꿀운세 · 영냥이 개인 상담서',contentsPages+2);

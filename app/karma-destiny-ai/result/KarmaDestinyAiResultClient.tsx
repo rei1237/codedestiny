@@ -9,6 +9,7 @@ import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState }
 import { ArrowLeft, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
 import ConsultationShare from "@/components/fortune/ConsultationShare";
 import { karmaShareChoices } from "@/lib/consultation-sharing";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -1079,6 +1080,7 @@ function KarmaDestinyResultInner() {
         fileName: `karma-destiny-report_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`,
         backgroundColor: "#060A18",
         cover: {
+          theme: "karma",
           title: copy.pdfCoverTitle(userName),
           subtitle: result?.userInput?.topic || copy.defaultTopic,
           name: userName,
@@ -1379,6 +1381,7 @@ function KarmaDestinyResultInner() {
                                   value={chapter.content}
                                   highlight={chapter.highlightQuotes}
                                   className="kdo-prose"
+                                  illustration={index % 3 === 0 ? <ConsultationIllustration kind="karma" /> : undefined}
                                 />
                               </div>
                               {longBody && (
