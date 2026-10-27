@@ -61,11 +61,11 @@
 
 /*
  * 리딩 본문의 서체. 2만 자를 읽는 상품이라 조작 UI(버튼·라벨·상태 칩)와 글을 나눈다 —
- * 글은 세리프, 조작은 Pretendard. 디스플레이 서체(Mulmaru)는 굵기가 400 하나뿐이라
+ * 제목은 세리프, 긴 본문과 조작은 본문 서체. 디스플레이 서체(Mulmaru)는 굵기가 400 하나뿐이라
  * 제목에 무게를 줄 수 없었고, 그래서 위계가 평평했다.
  */
 .reading {
-  font-family: var(--fx-serif);
+  font-family: var(--font-body);
   letter-spacing: -0.005em;
   word-break: keep-all;
   /* 흩어져 있던 임의값(text-[1.06rem] 외 5종)의 정본. 좁은 화면 값은 그대로 두고
@@ -81,6 +81,8 @@
   letter-spacing: -0.02em;
   word-break: keep-all;
 }
+.chapterPortrait { width: min(100%, 26rem); margin: 2rem auto; overflow: hidden; border: 1px solid var(--fx-gold-2); border-radius: var(--cd-r-card); }
+.chapterPortrait img { display: block; width: 100%; height: auto; }
 @media (min-width: 1024px) {
   .reading {
     font-size: 1.125rem;

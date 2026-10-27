@@ -1588,8 +1588,8 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
   const attempts = { ...(options.attempts || {}) };
   const valid = key => typeof sections[key]?.body === "string" && countPaidReportBodyChars(sections[key].body) > 0 && !hasRepeatedReportPassage(sections[key].body);
   const rawResponses = { ...(options.rawResponses || {}) };
-  const isComplete = valid;
-  const groupComplete = group => group.keys.some(key => valid(key) && countPaidReportBodyChars(sections[key].body) >= 40);
+  const isComplete = key => valid(key) && countPaidReportBodyChars(sections[key].body) >= 40;
+  const groupComplete = group => group.keys.every(isComplete);
   const pending = SUKUYO_SECTION_GROUPS.filter(group => !groupComplete(group));
   const group = pending[0];
   if (group && Number(attempts[group.id] || 0) >= 2) throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
@@ -1606,7 +1606,7 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
     for (const [key, row] of Object.entries(generated.sections)) {
       const others = Object.entries(sections).filter(([other]) => other !== key).map(([, value]) => value.body).join("\n");
       if (hasRepeatedReportPassage(`${others}\n${row.body}`)) continue;
-      if (!valid(key) || countPaidReportBodyChars(row.body) > countPaidReportBodyChars(sections[key].body)) sections[key] = row;
+      if (!isComplete(key) && (!valid(key) || countPaidReportBodyChars(row.body) > countPaidReportBodyChars(sections[key].body))) sections[key] = row;
     }
     rawResponses[group.id] = generated.rawText || "";
     provider = generated.provider; model = generated.model;

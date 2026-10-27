@@ -26,6 +26,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
@@ -1162,6 +1163,7 @@ export default function ZiweiAiPage() {
         fileName: `자미두수_AI_상담_${userName}_${date}.pdf`,
         backgroundColor: "#060712",
         cover: {
+          theme: "ziwei",
           title: `${userName}님의 자미두수 상담`,
           subtitle: musungOn ? getExpertLine("musung", "pdf.byline").text : undefined,
           name: userName,
@@ -1472,13 +1474,13 @@ export default function ZiweiAiPage() {
 
                 <PaidResultImageGuide domain="ziwei" status={consultation.status} content={assistantMessages.map(message=>message.content)} basis={consultation.analysisBasis} />
                 <div className="chatList">
-                  {assistantSections.map((section) => (
+                  {assistantSections.map((section, sectionIndex) => (
                     <article className="chatCard" key={section.key} data-ziwei-pdf-section>
                       <div className="chatCardTitle">
                         <b>{section.glyph || "星"}</b>
                         <h3>{section.title}</h3>
                       </div>
-                      <AiResultProse value={section.body} />
+                      <AiResultProse value={section.body} illustration={sectionIndex % 3 === 0 ? <ConsultationIllustration kind="ziwei" /> : undefined} />
                     </article>
                   ))}
                 </div>
@@ -1632,7 +1634,7 @@ export default function ZiweiAiPage() {
         .chatCardTitle b{display:grid;place-items:center;width:32px;aspect-ratio:1;border-radius:999px;background:rgba(245,217,145,.10);color:#fff0b8;font-family:var(--font-premium);font-size:17px;font-weight:800}
         .chatCardTitle h3{margin:0;font-family:var(--zwv-serif);font-size:19px;font-weight:700;line-height:1.4;letter-spacing:.01em;color:#fff0b8}
         .chatCardTitle svg{color:#f5d991}
-        .chatCard p{margin:0;white-space:pre-wrap;line-height:1.92;font-size:16px;letter-spacing:-.003em;color:#f3efff;word-break:keep-all}
+        .chatCard p{margin:0;white-space:pre-wrap;font-family:var(--zwv-body);line-height:1.95;font-size:17px;letter-spacing:-.003em;color:#f3efff;word-break:keep-all}
         .chatCard p+p{margin-top:15px}
         /* 한자를 직접 렌더하는 자리들. 브랜드 서체(The Jamsil·Mulmaru)와 세리프 청크 모두 한자 글리프가 없어
            OS 한자 폰트로 넘어가야 命·紫微斗數 가 보인다. 이 규칙이 앞선 font-family 선언을 덮는다. */

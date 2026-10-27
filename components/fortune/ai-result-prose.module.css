@@ -6,11 +6,13 @@
   flex-direction: column;
   gap: var(--cd-prose-paragraph-gap, 1.15em);
   max-width: var(--cd-prose-measure, 66ch);
-  font-size: var(--cd-prose-font-size, 16px);
-  line-height: var(--cd-prose-line-height, 1.75);
+  font-size: var(--cd-prose-font-size, 1.0625rem);
+  line-height: var(--cd-prose-line-height, 1.9);
   letter-spacing: var(--cd-prose-letter-spacing, -0.01em);
   color: var(--cd-prose-body-color, inherit);
-  font-family: var(--cd-prose-font-family, var(--font-premium, var(--font-display, inherit)));
+  font-family: var(--cd-prose-font-family, var(--font-body, inherit));
+  min-width: 0;
+  text-align: start;
 }
 
 .paragraph {
@@ -21,9 +23,10 @@
 
 .heading {
   margin: 0.35em 0 0;
-  font-size: 1.05em;
-  font-weight: 800;
-  line-height: 1.4;
+  font-family: var(--font-serif, var(--font-premium, inherit));
+  font-size: 1.14em;
+  font-weight: 700;
+  line-height: 1.55;
 }
 
 .list {

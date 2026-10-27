@@ -18,6 +18,7 @@ import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
@@ -891,7 +892,7 @@ function ChapterReadingArticle({ sectionKey, section }: { sectionKey: string; se
         <span>{SECTION_ICONS[sectionKey] || "✦"}</span>
         <h3>{section.title}</h3>
       </div>
-      <div className={styles.readingBody}><AiResultProse value={section.body} /></div>
+      <div className={styles.readingBody}><AiResultProse value={section.body} illustration={sectionKey === "closingLetter" ? <ConsultationIllustration kind="sukuyo" /> : undefined} /></div>
       {signoff && <p className={styles.hanbiSignoff}>{signoff}</p>}
     </article>
   );

@@ -1,0 +1,18 @@
+.artwork {
+  margin: 1.75rem 0;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: var(--cd-r-control);
+  break-inside: avoid;
+}
+.artwork img { display: block; width: 100%; height: auto; }
+.astrology { border-radius: var(--cd-r-card) var(--cd-r-card) var(--cd-r-sm) var(--cd-r-sm); }
+.vedic { padding: .35rem; border-style: double; border-width: 3px; }
+.ziwei { max-width: 32rem; margin-inline: auto; border-radius: var(--cd-r-sm); }
+.sukuyo { border-radius: var(--cd-r-section); }
+.lifeBook { max-width: 32rem; margin-inline: auto; padding: .5rem; border-radius: 0; }
+.love { max-width: 34rem; margin-inline: auto; border-radius: var(--cd-r-section) var(--cd-r-section) var(--cd-r-sm) var(--cd-r-sm); }
+.karma { border-radius: var(--cd-r-card); }
+.newYear { margin-block: .75rem 1rem; max-width: 38rem; margin-inline: auto; }
+@media (max-width: 480px) { .artwork { margin-block: 1.25rem; } }

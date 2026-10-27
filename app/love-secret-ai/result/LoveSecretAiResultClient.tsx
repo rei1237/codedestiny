@@ -29,6 +29,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
@@ -999,6 +1000,7 @@ export default function LoveSecretAiResultClient() {
           // 캡처 시점의 실제 모드로 해석한다(하드코딩하면 라이트 사용자가 검은 배경을 받는다).
           backgroundColor: prefersDark() ? "#24081a" : "#fffaf7",
           cover: {
+            theme: "love",
             title: summaryTitle,
             subtitle: oneLine,
             date: new Date().toISOString().slice(0, 10),
@@ -1574,7 +1576,7 @@ function LoveSecretResultSection({ index, section, speakerNames }: { index: numb
           <LoveSpeakerChip title={section.title} names={speakerNames} />
         </div>
       </div>
-      <AiResultProse value={section.body} className={`${styles.chapterProse} text-[var(--ls-text-muted)]`} />
+      <AiResultProse value={section.body} className={`${styles.chapterProse} text-[var(--ls-text-muted)]`} illustration={index % 3 === 0 ? <ConsultationIllustration kind="love" /> : undefined} />
     </article>
   );
 }

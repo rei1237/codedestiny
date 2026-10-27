@@ -8,6 +8,7 @@ import {askPhase5Copy} from '../_lib/ask-phase5-copy';
 import {journeyCopy} from '../_lib/journey-copy';
 import {v7Label,v7PartHead} from '../_lib/reading-v7-copy';
 import ReadingCharts from './ReadingCharts';
+import ReportIllustration from './ReportIllustration';
 import {readingPartHeading,readingBodyBlocks} from '@/lib/pdf/yeongnyangi-report-plan';
 import {TarotSpreadResult,spreadCards} from './tarot/TarotSpreadReveal';
 import BlockChartHints from './BlockChartHints';
@@ -74,6 +75,7 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
    })}</nav>
   </details>{saved&&row.manifest.some(c=>`chapter-${c.id}`===saved)&&<a className={styles.resume} href={`#${saved}`}>{copy.resume}</a>}</aside>
   <div className={styles.body}>
+   {row.chapters.length>0&&<ReportIllustration scene="cover"/>}
    {rich&&<details className={styles.reference}><summary>{visualCopy(row.locale).glance}</summary><AtAGlance manifest={row.manifest} chapters={row.chapters} title={title} locale={row.locale}/></details>}
    {!!row.charts?.length&&<details className={styles.reference} data-reading-evidence><summary>{chartCopy(row.locale).section}</summary><ReadingCharts charts={row.charts} available={available} titles={Object.fromEntries(row.manifest.map((c,i)=>[c.id,title(i)]))} locale={row.locale}/></details>}
    {row.chapters.map((chapter,index)=><Fragment key={row.manifest[index].id}><article data-reading-chapter id={`chapter-${row.manifest[index].id}`} className={styles.chapter} tabIndex={-1}>
@@ -89,7 +91,8 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
     {index===timingAt&&timingLate&&<TimingTimeline rows={timing} focus={focus} locale={row.locale}/>}
     {visual&&index===0&&saju&&<SajuBoard pillars={saju.pillars} elements={saju.elements} surface={saju.surface} locale={row.locale}/>}
     {visual&&chapter.persona?<MascotBubble expression={expressionFor(row.manifest[index].theme,index)} text={chapter.persona} locale={row.locale}/>:<blockquote>{chapter.persona}</blockquote>}<a href="#reading-progress">{copy.top}</a>
-   </article>{index===0&&row.tarotSpread&&spreadMap&&<TarotSpreadResult spread={row.tarotSpread} locale={row.locale} cards={spreadMap}/>}{breaks.has(index)&&<Interlude art={breaks.get(index)!}/>}</Fragment>)}
+   </article>{index===0&&row.tarotSpread&&spreadMap&&<TarotSpreadResult spread={row.tarotSpread} locale={row.locale} cards={spreadMap}/>}{index===0&&row.chapters.length>1?<ReportIllustration scene="insight"/>:index===Math.floor(row.chapters.length/2)&&row.chapters.length>3?<ReportIllustration scene="choices"/>:breaks.has(index)&&<Interlude art={breaks.get(index)!}/>}</Fragment>)}
+   {row.state==='COMPLETED'&&row.chapters.length>0&&<ReportIllustration scene="closing"/>}
   </div>
  </div>;
 }

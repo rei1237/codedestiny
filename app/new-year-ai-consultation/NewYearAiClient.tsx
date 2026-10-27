@@ -40,6 +40,7 @@ import {
   type ParsedSection,
 } from "./_lib/answer-sections";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildNewYearPreviewPayload } from "@/lib/dev-preview/fixtures/new-year";
 import SajuPillarTable from "@/components/fortune/SajuPillarTable";
@@ -1855,6 +1856,7 @@ export default function NewYearAiConsultationPage() {
         fileName: `신년운세_전문가상담_${safeName}_${form.targetYear}.pdf`,
         backgroundColor: "#170b0f",
         cover: {
+          theme: "newYear",
           title: `${form.userName || "당신"}님의 ${form.targetYear}년 신년운세`,
           name: form.userName,
           date: new Date().toISOString().slice(0, 10),
@@ -2179,6 +2181,7 @@ export default function NewYearAiConsultationPage() {
                     </RevealBlock>
                   )}
                   <DomainConsultationCards bodies={domainBodies} />
+                  {index === 0 && <ConsultationIllustration kind="newYear" />}
                   {index === 0 && (
                     <RevealBlock index={4}>
                       <MonthlyFlowCalendar rows={monthlyFlow} letters={classified.monthLetters} />
@@ -3019,7 +3022,7 @@ export default function NewYearAiConsultationPage() {
 
         .nyai-result-bundle {
           display: grid;
-          gap: 12px;
+          gap: 20px;
         }
 
         .nyai-saju-profile {
@@ -3113,7 +3116,7 @@ export default function NewYearAiConsultationPage() {
           overflow-wrap: anywhere;
         }
 
-        .nyai-message span {
+        .nyai-message > span {
           display: block;
           margin-bottom: 7px;
           color: var(--nyai-gold-bright);
@@ -3144,7 +3147,7 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-result-section {
-          padding: 15px;
+          padding: clamp(18px, 3vw, 28px);
           border: 1px solid var(--nyai-gold-hair);
           border-radius: var(--nyai-radius-md);
           background:
@@ -3153,25 +3156,25 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-result-section h3 {
-          margin: 0 0 8px;
+          margin: 0 0 16px;
           color: var(--nyai-gold-bright);
           font-family: var(--nyai-serif);
-          font-size: 16px;
-          line-height: 1.4;
+          font-size: 18px;
+          line-height: 1.5;
           letter-spacing: 0;
         }
 
         .nyai-result-section p {
           margin: 0;
           max-width: 66ch;
-          line-height: 1.82;
+          line-height: 1.9;
           word-break: keep-all;
           overflow-wrap: anywhere;
           white-space: pre-line;
         }
 
         .nyai-result-section p + p {
-          margin-top: 10px;
+          margin-top: 16px;
         }
 
         .nyai-spin {

@@ -5,7 +5,6 @@
   background: #152721;
   color: #f5f0e5;
   font-family: var(--font-body);
-  --cd-prose-font-family: var(--font-premium);
 }
 .readingRoom ::selection { background: #d3bd83; color: #152721; }
 .readingShell { position: relative; width: min(100%, 1240px); margin: auto; padding: 84px 24px 116px; }
@@ -98,7 +97,7 @@
 }
 
 /* 챕터 오프닝 첫 문단 드롭캡 — 첫 블록이 일반 문단(p)일 때만 자연스럽게 적용된다 */
-.chapterProse { max-width: 70ch; font-size: 17px; line-height: 1.95; }
+.chapterProse { max-width: 66ch; font-family: var(--font-body); font-size: 17px; line-height: 1.95; }
 
 @media (prefers-reduced-motion: no-preference) {
   .chapterProse :global(p:first-of-type)::first-letter {
