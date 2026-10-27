@@ -72,6 +72,7 @@
 
 /* ── 종이 내지(세피아) — 해석(AI 상담문) 전용 표면 ───────────── */
 .paperPage {
+  --book-reading-accent: #8a5a2b;
   background: #faf7ef;
   color: #302d26;
   border: 1px solid #d7d0bf;
@@ -89,7 +90,7 @@
 }
 
 .paperAccent {
-  color: #8a5a2b;
+  color: var(--book-reading-accent, #8a5a2b);
 }
 
 .paperDivider {

@@ -11,7 +11,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
-import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { FAILURE_COPY, reasonCopy } from "../lifeBookCopy";
 import { useTypewriter } from "./useTypewriter";
@@ -1360,11 +1360,11 @@ const TERMINAL_RESULT_REASONS = new Set([
  */
 function ChapterProse({ value = "", live, className }: { value?: string; live: boolean; className?: string }) {
   const { typed, isTyping } = useTypewriter(value, live);
-  if (!live) return <AiResultProse value={value} className={className} />;
+  if (!live) return <ConsultationReading kind="lifeBook" value={value} className={className} />;
   return (
     <>
       <div aria-hidden="true">
-        <AiResultProse value={typed} className={className} />
+        {isTyping ? <AiResultProse value={typed} className={className} /> : <ConsultationReading kind="lifeBook" value={value} className={className} />}
         {isTyping && <span className={styles.typingCaret} aria-hidden="true" />}
       </div>
       <div className="sr-only">{value}</div>
@@ -1875,7 +1875,6 @@ function LifeBookResultContent() {
                             {toText(chapter.summary)}
                           </p>
                         )}
-                        {index % 3 === 0 && <ConsultationIllustration kind="lifeBook" />}
                         <ChapterProse
                           value={chapter.content}
                           live={isStreamingIn && index === freshChapterIndex}
@@ -1916,7 +1915,7 @@ function LifeBookResultContent() {
                     {report.expertReadings.map((reading, index) => (
                       <div key={`${reading.title || "reading"}-${index}`} className={`rounded-2xl border p-4 ${styles.paperDivider}`} style={{ background: "rgba(43,28,16,0.04)" }}>
                         <h3 className={`text-lg font-semibold ${styles.chapterTitle}`}>{reading.title || copy.deepReadingFallbackTitle(index + 1)}</h3>
-                        <AiResultProse value={reading.content} className="mt-3" />
+                        <ConsultationReading kind="lifeBook" value={reading.content} className="mt-3" />
                         {Array.isArray(reading.guidance) && reading.guidance.length > 0 && (
                           <div className="mt-4 grid gap-2">
                             {reading.guidance.map((guide, guideIndex) => (
@@ -1939,7 +1938,7 @@ function LifeBookResultContent() {
                     <Sparkles className="h-5 w-5" aria-hidden="true" />
                     <h2 className={`text-xl font-semibold ${styles.chapterTitle}`}>{copy.finalMessageHeading}</h2>
                   </div>
-                  <AiResultProse value={report.finalMessage} className="mt-3" />
+                  <ConsultationReading kind="lifeBook" value={report.finalMessage} index={1} className="mt-3" />
                 </section>
               )}
 
