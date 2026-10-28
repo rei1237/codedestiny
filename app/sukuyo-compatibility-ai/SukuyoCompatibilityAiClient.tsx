@@ -218,6 +218,7 @@ type Consultation = {
   saved?: boolean;
   id: string;
   status?: string;
+  reviewRequired?: boolean;
   consultationType?: ConsultationType;
   personA: { name?: string; shuku?: string };
   personB: { name?: string; shuku?: string };
@@ -1518,6 +1519,11 @@ export default function SukuyoCompatibilityAiClient() {
       if (!data.ok) throw new Error(status === 402 && paymentWasRequired ? "PAYMENT_VERIFY_FAILED" : data.reason || "SERVER_ERROR");
       failures = 0;
       if (data.consultation) setConsultation(data.consultation);
+      if (data.reviewRequired) {
+        setNotice("저장된 내용은 보관되어 있어요. 나머지 상담을 확인할 수 있도록 고객센터에 문의해 주세요.");
+        setPhase("idle");
+        return false;
+      }
       if (status !== 202 && data.consultation && (!data.consultation.status || data.consultation.status === "completed")) {
         pendingGenerationRef.current = null; submitKeyRef.current = ""; setError(""); setNotice(""); setPhase("idle"); return true;
       }

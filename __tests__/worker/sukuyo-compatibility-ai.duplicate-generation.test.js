@@ -36,6 +36,7 @@ let storageFault;
 let revokedAt = -1;
 let paidMode = "pass";
 let blockedFetch;
+let legacyRefund, monthlyRefund;
 
 /** 24-hex ObjectId 모양. 라우트가 /^[0-9a-f]{24}$/ 로 검사한다. */
 let objectIdCounter = 0;
@@ -193,6 +194,9 @@ beforeAll(async () => {
   }));
 
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => paidMode === "subscription" ? { ledgerId: "64b7f2a1c3d4e5f600000008" } : null }));
+  legacyRefund = jest.fn(async () => true); monthlyRefund = jest.fn(async () => true);
+  jest.unstable_mockModule("../../worker/lib/sukuyo-legacy-refund.js", () => ({ restoreSukuyoLegacyRefund: legacyRefund }));
+  jest.unstable_mockModule("../../worker/lib/sukuyo-monthly-refund.js", () => ({ restoreSukuyoMonthlyRefund: monthlyRefund }));
 
   jest.unstable_mockModule("../../worker/lib/monthly-credit-store.js", () => ({
     restoreMonthlyCreditLot: jest.fn(async () => ({ restored: false })),
@@ -228,6 +232,7 @@ beforeEach(() => {
   findCallArgs = [];
   callGeminiJsonWithRetryMock.mockReset();
   callGeminiTextMock.mockReset();
+  legacyRefund.mockClear(); monthlyRefund.mockClear();
   callGeminiTextMock.mockImplementation(async () => ({ ok: false, error: "not-called" }));
   testUtils.clearStartLocks();
 });
@@ -271,6 +276,27 @@ test("짧은 결과는 세 번만 보완한 뒤 실패로 남긴다", async () =
   for (let i = 0; i < 2; i++) expect((await runWave()).status).toBe(202);
   expect((await runWave()).status).toBe(503); expect(store.docs[0].status).toBe("generation_failed");
   expect((await runWave()).status).toBe(409); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(2);
+});
+test.each(["pass", "paid", "subscription"])("%s: 저장된 본문이 있으면 재시도 소진 시 본문과 결제를 보존한다", async mode => {
+  paidMode = mode;
+  mockSectionsResolvedImmediately();
+  expect((await runWave()).status).toBe(202);
+  const saved = structuredClone(store.docs[0].llmMeta.sections);
+  callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: buildSectionPayload([]) }));
+  expect((await runWave()).status).toBe(202);
+  expect((await runWave()).status).toBe(202);
+  const response = await runWave();
+  expect(response.status).toBe(202);
+  expect(await response.json()).toMatchObject({ status: "partial", retryable: false, reviewRequired: true });
+  expect(store.docs[0].status).toBe("partial");
+  expect(store.docs[0].llmMeta.sections).toEqual(saved);
+  expect(store.docs[0].llmMeta.recoveryReviewRequired).toBe(true);
+  const count = callGeminiJsonWithRetryMock.mock.calls.length;
+  const replay = await runWave();
+  expect(await replay.json()).toMatchObject({ status: "partial", reviewRequired: true });
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(count);
+  expect(legacyRefund).not.toHaveBeenCalled();
+  expect(monthlyRefund).not.toHaveBeenCalled();
 });
 test("예전 완료본은 현재 분량 검사나 추가 생성 없이 다시 읽는다", async () => {
   store.seed({ userId: USER_ID, idempotencyKey: KEY, personA: {}, personB: {}, sukuyoResult: {}, relationshipType: "연인", topic: "전체", accessType: "pass", messages: [{ role: "assistant", content: "과거 본문" }] });

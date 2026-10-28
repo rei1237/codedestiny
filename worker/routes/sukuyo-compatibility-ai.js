@@ -1891,6 +1891,11 @@ async function handleStart(request, env, recoveryAuth = null) {
       });
       return json({ ok: false, reason: "PAYMENT_REQUIRED", paymentPayload: buildPaymentPayload(idempotencyKey), message: MESSAGES.paymentRequired }, { status: 402 });
     }
+    if (existingStatus === "partial" && existing?.llmMeta?.recoveryReviewRequired === true) {
+      return json({ ok: true, saved: false, status: "partial", retryable: false, reviewRequired: true,
+        sessionId: String(existing._id), resumeSessionId: String(existing._id), idempotencyKey,
+        consultation: await serializeConsultation(existing) }, { status: 202 });
+    }
     if (existingStatus === "delivery_pending") {
       const completed = await confirmSukuyoDelivery(auth.userId, String(existing._id), existing.messages, existing.generationLease);
       await recordSuccessfulUsage(auth, idempotencyKey, access, completed, new Date()).catch(() => {});
@@ -2029,6 +2034,22 @@ async function handleStart(request, env, recoveryAuth = null) {
         : await runWithAiLocale(storedAiLocale(existing || seedFields), async () => createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation));
     } catch (genError) {
       if (genError?.code === "RESULT_STORAGE_UNAVAILABLE") throw genError;
+      // A later group can exhaust its attempts after earlier groups were saved.
+      // Retain the original payment and checkpoint for review instead of refunding
+      // or discarding already-delivered material.
+      let checkpoint;
+      try { checkpoint = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId }).lean(); }
+      catch { throw resultStorageUnavailable(sessionId); }
+      if (!checkpoint) throw resultStorageUnavailable(sessionId);
+      const savedSections = checkpoint.llmMeta?.sections || {};
+      if (Object.values(savedSections).some(row => typeof row?.body === "string" && row.body.trim())) {
+        const partial = await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, {
+          status: "partial", generationLease: "", "llmMeta.recoveryReviewRequired": true,
+          generationError: { code: clean(genError?.code || "LLM_GENERATION_FAILED", 80), at: new Date().toISOString() },
+        });
+        return json({ ok: true, saved: false, status: "partial", retryable: false, reviewRequired: true,
+          sessionId, resumeSessionId: sessionId, idempotencyKey, consultation: await serializeConsultation(partial) }, { status: 202 });
+      }
       // 실패 확정도 현재 생성 잠금을 소유한 요청만 수행한다. 저장 장애는 환불로 보내지 않는다.
       await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { status: "generation_failed", generationError: {
         code: clean(genError?.code || "LLM_GENERATION_FAILED", 80), message: clean(genError?.message || genError, 500), at: new Date().toISOString(),
