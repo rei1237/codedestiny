@@ -18,6 +18,24 @@ const SIGNS_EN = [
   'Pisces',
 ];
 
+/** Strict civil date parsing; reject overflow dates instead of normalizing them. */
+export function parseSkyDate(ymd) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return null;
+  const [y, m, d] = ymd.split('-').map(Number);
+  const date = new Date(`${ymd}T12:00:00+09:00`);
+  if (!Number.isFinite(date.getTime()) || date.getUTCFullYear() !== y
+    || date.getUTCMonth() + 1 !== m || date.getUTCDate() !== d) return null;
+  return { y, m, d, date };
+}
+
+/** Daily tropical Sun sign at KST noon, matching the Moon's daily sampling time. */
+export function sunSignForDate(ymd) {
+  const parsed = parseSkyDate(ymd);
+  if (!parsed) return null;
+  const longitude = Astronomy.SunPosition(parsed.date).elon;
+  return SIGNS_EN[Math.floor(((longitude % 360) + 360) % 360 / 30)].toLowerCase();
+}
+
 function kstYmdFromDate(d) {
   return d.toLocaleString('en-CA', {
     timeZone: 'Asia/Seoul',

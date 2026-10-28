@@ -44,31 +44,32 @@ const PERIOD_BASIS: Record<FortunePeriodId, BasisCopy> = {
   today: {
     question: (name) => `${name} 오늘 운세는 무엇을 기준으로 계산되나요?`,
     answer: (p) =>
-      `오늘 날짜의 일진(日辰) 간지와 달의 위상, 그리고 현재 절기 구간을 먼저 계산한 뒤 `
-      + `${p.nameKo}의 ${p.element} 기운과 ${p.ruler}의 성향에 대입해 총운·애정·재물·건강·직장 다섯 축으로 나눕니다. `
-      + `사람이 그날그날 손으로 쓰는 글이 아니라 날짜에서 결정되는 값이라, 같은 날이면 누가 언제 열어도 같은 결과가 나옵니다.`,
+      (p.kind === "animal"
+        ? `${p.nameKo}의 지지와 오늘 일진의 비화·충·삼합 그룹·육합 관계, 천간 오행의 생극을 살피고 달의 위상을 보조 지표로 사용합니다. `
+        : `${withGwaWa(p.nameKo)} 오늘 태양·달이 위치한 별자리 및 원소 관계, 달의 위상을 살핍니다. 천체 위치는 한국시간 정오 기준이며 고정 생일표로 태양궁을 정하지 않습니다. `)
+      + `총운·연애운·재물운·건강운·직장운 점수는 콘텐츠의 흐름 지표이며 사건의 발생 확률이나 개인 정밀 진단은 아닙니다.`,
   },
   tomorrow: {
     question: (name) => `${name} 내일 운세는 오늘 것과 어떻게 다른가요?`,
     answer: (p) =>
-      `기준 날짜가 하루 뒤로 넘어가면 일진 간지가 바뀌고 달의 위상도 한 칸 이동하므로, `
-      + `${p.nameKo}의 ${p.element} 기운과 만나는 조합 자체가 달라집니다. `
-      + `그래서 내일 페이지는 오늘의 복사본이 아니라 내일 간지로 다시 계산한 결과이고, `
-      + `읽는 목적도 다릅니다 — 오늘 것은 지금 무엇을 할지, 내일 것은 미리 무엇을 준비할지에 씁니다.`,
+      `${p.nameKo} 내일 운세는 기준 날짜를 하루 뒤로 옮겨 `
+      + (p.kind === "animal" ? `일진의 지지 관계와 천간 오행, 달의 위상을 다시 계산합니다. ` : `한국시간 정오의 태양·달 별자리와 달의 위상을 다시 계산합니다. `)
+      + `그 결과로 약속·지출·업무의 우선순위를 미리 점검해 보세요. 지표가 같은 구간에서는 오늘과 내일의 점수가 같을 수도 있습니다.`,
   },
   weekly: {
     question: (name) => `${name} 주간 운세는 하루 운세를 일곱 번 더한 건가요?`,
     answer: (p) =>
-      `아닙니다. 주간 페이지는 이번 주 7일의 일진을 한 줄로 늘어놓고, `
-      + `${p.nameKo}의 ${withGwaWa(p.ruler)} 삼합(三合)·충(沖) 관계를 따져 기운이 붙는 날과 부딪히는 날을 먼저 가려냅니다. `
-      + `그래서 결과가 "며칠에 무엇을 하라"는 배치 조언으로 나오고, 하루 단위 총운 점수와는 축이 다릅니다.`,
+      `주간 요약 점수는 월요일부터 일요일까지 7일의 계산값을 평균하고 반올림한 값입니다. `
+      + (p.kind === "animal" ? `${withGwaWa(p.nameKo)} 매일 일진의 지지 관계·천간 오행을 비교합니다. ` : `${withGwaWa(p.nameKo)} 매일 정오의 태양·달 별자리 관계를 비교합니다. `)
+      + `요일별 표와 달의 이동을 함께 보며 집중할 일과 여유를 둘 일을 나누세요. 점수가 같으면 특정 하루만 더 좋은 날이라고 단정하지 않습니다.`,
   },
   monthly: {
     question: (name) => `${name} 월간 운세는 어떤 자료로 만들어지나요?`,
     answer: (p) =>
-      `이번 달의 월건(月建) 간지와 그 안에 걸리는 절기 구간, 그리고 삭(그믐)과 망(보름) 날짜를 먼저 잡습니다. `
-      + `거기에 ${p.nameKo}의 ${p.element} 기운을 대입해 달의 전반과 후반을 나누고, 흐름이 바뀌는 분기점을 표시합니다. `
-      + `하루치 일진은 여기서 쓰지 않습니다 — 한 달은 날이 아니라 구간으로 읽어야 맞기 때문입니다.`,
+      (p.kind === "animal"
+        ? `${p.nameKo} 월간 운세는 기준 날짜에 해당하는 월건(月建)의 지지·천간을 사용합니다. 월건은 양력 1일이 아닌 절입을 기준으로 바뀝니다. `
+        : `${p.nameKo} 월간 운세는 기준 날짜 정오의 태양·달 위치와 위상을 사용합니다. `)
+      + `해당 달의 절기와 신월·보름 날짜도 함께 안내합니다. 한 달 전체의 일별 점수 평균이나 사건 예측이 아닌, 기준 시점의 월간 탐색 안내입니다.`,
   },
 };
 
@@ -76,73 +77,73 @@ const LOCALIZED_PERIOD_BASIS: Record<Exclude<FortuneLocale, "ko">, Record<Fortun
   en: {
     today: {
       question: (name) => `How is today's fortune for ${name} calculated?`,
-      answer: (p) => `We first calculate today's sexagenary day pillar, Moon phase and current solar-term interval. Those values are read against ${p.nameKo}'s ${p.element} element and ${p.ruler} traits across five axes: overall, love, money, health and work. Because the result comes from the date rather than a text written by hand each day, it remains the same whenever it is opened on that date.`,
+      answer: (p) => (p.kind === "animal" ? "The animal reading compares the birth-year branch with today’s branch, stem element and Moon phase." : "The zodiac reading compares the sign with the Sun and Moon signs and phase calculated at noon Korea time.") + " Scores are reflective content indicators, not event probabilities or individual diagnoses. The monthly view is a reference-date overview, not an average of the whole month.",
     },
     tomorrow: {
       question: (name) => `How is tomorrow's fortune for ${name} different from today's?`,
-      answer: (p) => `Moving the reference date forward changes the day pillar and advances the Moon phase, so the combination meeting ${p.nameKo}'s ${p.element} element also changes. Tomorrow's page is recalculated from tomorrow's values rather than copied from today. Use today's reading for a current choice and tomorrow's reading to prepare ahead.`,
+      answer: (p) => (p.kind === "animal" ? "Tomorrow’s reading recalculates branch relationships, stem elements and Moon phase for the next date." : "Tomorrow’s reading recalculates Sun and Moon positions and phase at noon Korea time on the next date.") + " Scores are reflective content indicators, not event probabilities or individual diagnoses. The monthly view is a reference-date overview, not an average of the whole month.",
     },
     weekly: {
       question: (name) => `Is the weekly fortune for ${name} just seven daily readings added together?`,
-      answer: (p) => `No. The weekly page compares all seven day pillars with ${p.nameKo}'s ${p.ruler} traits and separates days of harmony from days of friction. The result is scheduling guidance about which day suits which action, so its axis differs from a single day's overall score.`,
+      answer: (p) => (p.kind === "animal" ? "The weekly score is the rounded average of seven daily scores from Monday to Sunday, using branch relationships and stem elements." : "The weekly score is the rounded average of seven daily scores from Monday to Sunday, using the Sun and Moon signs and phase.") + " Scores are reflective content indicators, not event probabilities or individual diagnoses. The monthly view is a reference-date overview, not an average of the whole month.",
     },
     monthly: {
       question: (name) => `What data is used for the monthly fortune for ${name}?`,
-      answer: (p) => `It begins with the month's pillar, the solar-term interval, and the new- and full-moon dates. ${p.nameKo}'s ${p.element} element is then applied to divide the month into earlier and later stretches and mark turning points. A single day's pillar is not used here because a month is read as a sequence of intervals.`,
+      answer: (p) => (p.kind === "animal" ? "The monthly reading uses the month pillar at the reference date; it changes at the solar-term boundary, not the first calendar day." : "The monthly reading uses the Sun and Moon positions and phase at noon Korea time on the reference date.") + " Scores are reflective content indicators, not event probabilities or individual diagnoses. The monthly view is a reference-date overview, not an average of the whole month.",
     },
   },
   ja: {
     today: {
       question: (name) => `${name}の今日の運勢は、何を基準に計算しますか？`,
-      answer: (p) => `今日の日柱の干支、月相、現在の節気区間を先に計算し、${p.nameKo}の${p.element}の気と${p.ruler}の性質に当てはめます。そのうえで総合運・恋愛運・金運・健康運・仕事運の五つに分けます。毎日手書きする文章ではなく日付から決まる値なので、同じ日なら開く時刻が違っても結果は同じです。`,
+      answer: (p) => (p.kind === "animal" ? "干支の運勢は、生年の地支と今日の地支の関係、天干の五行、月相を比較します。" : "星座の運勢は、韓国時間正午の太陽・月の星座と月相を計算し、対象の星座と比較します。") + " スコアは振り返りのための指標であり、出来事の確率や個人の診断ではありません。月間表示は基準日時点の案内で、一か月全体の平均ではありません。",
     },
     tomorrow: {
       question: (name) => `${name}の明日の運勢は、今日と何が違いますか？`,
-      answer: (p) => `基準日が一日進むと日柱が変わり、月相も動くため、${p.nameKo}の${p.element}の気と出会う組み合わせ自体が変わります。明日のページは今日の複製ではなく、明日の値で計算し直した結果です。今日は今の選択に、明日は事前の準備に使ってください。`,
+      answer: (p) => (p.kind === "animal" ? "明日の日付で地支の関係、天干の五行、月相を計算し直します。" : "明日の韓国時間正午を基準に、太陽・月の星座と月相を計算し直します。") + " スコアは振り返りのための指標であり、出来事の確率や個人の診断ではありません。月間表示は基準日時点の案内で、一か月全体の平均ではありません。",
     },
     weekly: {
       question: (name) => `${name}の週間運勢は、一日運勢を七つ足したものですか？`,
-      answer: (p) => `いいえ。週間ページは七日分の日柱を並べ、${p.nameKo}の${p.ruler}の性質と照らして、調和しやすい日と摩擦が生じやすい日を分けます。そのため結果は「何を何曜日に置くか」という予定の助言になり、一日単位の総合スコアとは軸が異なります。`,
+      answer: (p) => (p.kind === "animal" ? "週間スコアは月曜から日曜の地支の関係と天干の五行などから算出した七日分の平均を四捨五入した値です。" : "週間スコアは月曜から日曜の太陽・月の星座と月相から算出した七日分の平均を四捨五入した値です。") + " スコアは振り返りのための指標であり、出来事の確率や個人の診断ではありません。月間表示は基準日時点の案内で、一か月全体の平均ではありません。",
     },
     monthly: {
       question: (name) => `${name}の月間運勢は、どの資料から作られますか？`,
-      answer: (p) => `今月の月柱、節気の区間、新月と満月の日付を先に確認します。そこへ${p.nameKo}の${p.element}の気を当てはめ、前半と後半を分けて流れの転換点を示します。一日分の日柱ではなく、一か月を複数の区間として読むための計算です。`,
+      answer: (p) => (p.kind === "animal" ? "月間運勢は基準日時点の月柱を使います。月柱は暦の一日ではなく節入りで変わります。" : "月間運勢は基準日の韓国時間正午における太陽・月の位置と月相を使います。") + " スコアは振り返りのための指標であり、出来事の確率や個人の診断ではありません。月間表示は基準日時点の案内で、一か月全体の平均ではありません。",
     },
   },
   "zh-CN": {
     today: {
       question: (name) => `${name}今日运势依据什么计算？`,
-      answer: (p) => `先计算今日的日柱干支、月相与当前节气区间，再结合${p.nameKo}的${p.element}元素和${p.ruler}特质，分别得出综合、感情、财运、健康与事业五项评分。结果来自日期数据，并非每天手写，因此在同一天的不同时刻打开，结果也保持一致。`,
+      answer: (p) => (p.kind === "animal" ? "生肖运势比较出生年地支与今日日支的关系、天干五行及月相。" : "星座运势以韩国时间正午的太阳、月亮星座及月相，与所选星座比较。") + "评分是用于自我观察的内容指标，不是事件发生概率或个人诊断。月运是基准时点的提示，不是整月日评分的平均。",
     },
     tomorrow: {
       question: (name) => `${name}明日运势与今日有什么不同？`,
-      answer: (p) => `基准日期向后一天，日柱会改变，月相也会继续运行，因此与${p.nameKo}的${p.element}元素形成的组合随之变化。明日页面不是今日内容的复制，而是按明日数据重新计算；今日适合判断当下，明日适合提前准备。`,
+      answer: (p) => (p.kind === "animal" ? "明日运势按下一天的日期重新计算地支关系、天干五行与月相。" : "明日运势按下一天韩国时间正午重新计算太阳、月亮位置与月相。") + "评分是用于自我观察的内容指标，不是事件发生概率或个人诊断。月运是基准时点的提示，不是整月日评分的平均。",
     },
     weekly: {
       question: (name) => `${name}周运是把七天日运相加吗？`,
-      answer: (p) => `不是。周运会排列本周七天的日柱，并与${p.nameKo}的${p.ruler}特质比较，区分较易协调与较易产生摩擦的日期。因此结果侧重“哪一天安排什么”的节奏建议，与单日综合评分采用不同的观察轴。`,
+      answer: (p) => (p.kind === "animal" ? "周评分是周一至周日七天评分的四舍五入平均值，参考地支关系、天干五行与月相。" : "周评分是周一至周日七天评分的四舍五入平均值，参考太阳、月亮星座与月相。") + "评分是用于自我观察的内容指标，不是事件发生概率或个人诊断。月运是基准时点的提示，不是整月日评分的平均。",
     },
     monthly: {
       question: (name) => `${name}月运使用哪些资料？`,
-      answer: (p) => `先确定本月月柱、节气区间以及新月与满月日期，再结合${p.nameKo}的${p.element}元素，划分前后阶段并标出转折点。这里不使用某一天的日柱，因为月运需要按区间观察整个月的变化。`,
+      answer: (p) => (p.kind === "animal" ? "月运使用基准日期对应的月柱。月柱在节令交接时变化，并非每月一日变化。" : "月运使用基准日期韩国时间正午的太阳、月亮位置与月相。") + "评分是用于自我观察的内容指标，不是事件发生概率或个人诊断。月运是基准时点的提示，不是整月日评分的平均。",
     },
   },
   "zh-TW": {
     today: {
       question: (name) => `${name}今日運勢依據什麼計算？`,
-      answer: (p) => `先計算今日的日柱干支、月相與目前節氣區間，再結合${p.nameKo}的${p.element}元素和${p.ruler}特質，分別得出綜合、感情、財運、健康與事業五項評分。結果來自日期資料，並非每天手寫，因此在同一天的不同時刻開啟，結果也保持一致。`,
+      answer: (p) => (p.kind === "animal" ? "生肖運勢比較出生年地支與今日日支的關係、天干五行及月相。" : "星座運勢以韓國時間正午的太陽、月亮星座及月相，與所選星座比較。") + "評分是用於自我觀察的內容指標，不是事件發生機率或個人診斷。月運是基準時點的提示，不是整月日評分的平均。",
     },
     tomorrow: {
       question: (name) => `${name}明日運勢與今日有什麼不同？`,
-      answer: (p) => `基準日期往後一天，日柱會改變，月相也會繼續運行，因此與${p.nameKo}的${p.element}元素形成的組合隨之變化。明日頁面不是今日內容的複製，而是按明日資料重新計算；今日適合判斷當下，明日適合提前準備。`,
+      answer: (p) => (p.kind === "animal" ? "明日運勢按下一天的日期重新計算地支關係、天干五行與月相。" : "明日運勢按下一天韓國時間正午重新計算太陽、月亮位置與月相。") + "評分是用於自我觀察的內容指標，不是事件發生機率或個人診斷。月運是基準時點的提示，不是整月日評分的平均。",
     },
     weekly: {
       question: (name) => `${name}週運是把七天日運相加嗎？`,
-      answer: (p) => `不是。週運會排列本週七天的日柱，並與${p.nameKo}的${p.ruler}特質比較，區分較易協調與較易產生摩擦的日期。因此結果側重「哪一天安排什麼」的節奏建議，與單日綜合評分採用不同的觀察軸。`,
+      answer: (p) => (p.kind === "animal" ? "週評分是週一至週日七天評分的四捨五入平均值，參考地支關係、天干五行與月相。" : "週評分是週一至週日七天評分的四捨五入平均值，參考太陽、月亮星座與月相。") + "評分是用於自我觀察的內容指標，不是事件發生機率或個人診斷。月運是基準時點的提示，不是整月日評分的平均。",
     },
     monthly: {
       question: (name) => `${name}月運使用哪些資料？`,
-      answer: (p) => `先確定本月月柱、節氣區間以及新月與滿月日期，再結合${p.nameKo}的${p.element}元素，劃分前後階段並標出轉折點。這裡不使用某一天的日柱，因為月運需要按區間觀察整個月的變化。`,
+      answer: (p) => (p.kind === "animal" ? "月運使用基準日期對應的月柱。月柱在節令交接時變化，並非每月一日變化。" : "月運使用基準日期韓國時間正午的太陽、月亮位置與月相。") + "評分是用於自我觀察的內容指標，不是事件發生機率或個人診斷。月運是基準時點的提示，不是整月日評分的平均。",
     },
   },
 };
@@ -155,5 +156,11 @@ export function buildPeriodBasisFaq(profile: SignProfile, period: FortunePeriodI
 
 /** 화면과 FAQPage 스키마가 함께 쓰는 목록. 기간 문답이 맨 앞에 온다. */
 export function buildPeriodFaqs(profile: SignProfile, period: FortunePeriodId, locale: FortuneLocale = "ko"): SignFaq[] {
-  return [buildPeriodBasisFaq(profile, period, locale), ...profile.faqs];
+  const topics: SignFaq[] = locale === "ko" ? [{
+    question: `${profile.nameKo} ${withGwaWa("연애운")} 재물운·직장운은 어떻게 활용하나요?`,
+    answer: `연애운은 대화의 속도와 기대를, 재물운은 소비 계획과 지출 습관을, 직장운은 협업과 업무 우선순위를 점검하는 질문으로 읽어보세요. 건강운은 생활 리듬을 돌아보는 참고이며 의학적 판단에 사용하지 않습니다. 같은 ${profile.kind === "animal" ? "띠" : "별자리"}라도 실제 성향과 상황은 다릅니다.`,
+  }] : [];
+  if (locale === "ko" && profile.id === "tiger") topics.push({ question: "범띠 운세와 호랑이띠 운세는 다른가요?", answer: "범띠와 호랑이띠는 같은 인(寅)의 띠입니다. 두 검색어 모두 이 페이지의 동일한 일진 계산과 기간별 해석을 가리킵니다." });
+  if (locale === "ko" && profile.id === "sagittarius") topics.push({ question: "사수자리 운세와 궁수자리 운세는 같은가요?", answer: "사수자리와 궁수자리는 모두 Sagittarius를 가리킵니다. 이 페이지에서는 궁수자리라는 이름으로 오늘·내일·주간·월간 흐름을 안내합니다." });
+  return [buildPeriodBasisFaq(profile, period, locale), ...topics, ...profile.faqs];
 }

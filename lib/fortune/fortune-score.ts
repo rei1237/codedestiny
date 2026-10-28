@@ -134,7 +134,7 @@ function scoreAnimal(profile: SignProfile, ctx: ScoreContext): FortuneScore {
       branchValue = "충 — 정면으로 부딪힘";
     } else if (TRINE_GROUPS.some((g) => g.includes(own) && g.includes(dayBranch))) {
       branchDelta = 2;
-      branchValue = "삼합 — 한 국을 이룸";
+      branchValue = "삼합 그룹 — 두 지지의 연결, 완성 여부는 미판정";
     } else if (SIX_HARMONY[own] === dayBranch) {
       branchDelta = 2;
       branchValue = "육합 — 짝을 이룸";

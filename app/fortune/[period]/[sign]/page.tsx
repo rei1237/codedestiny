@@ -113,7 +113,10 @@ function seoText(periodParam: string, signParam: string) {
       `${title} 운세`,
       `${kindSearchLabel} 운세`,
       "무료 운세",
-      "오늘의 운세",
+      `${PERIOD_LABEL[periodParam]} ${kindSearchLabel} 운세`,
+      ...["연애운", "재물운", "직장운", "건강운"].map((topic) => `${profile.nameKo} ${PERIOD_LABEL[periodParam]} ${topic}`),
+      ...(profile.id === "tiger" ? ["호랑이띠 운세", "범띠 운세"] : []),
+      ...(profile.id === "sagittarius" ? ["사수자리 운세", "궁수자리 운세"] : []),
     ],
   };
 }

@@ -8,6 +8,7 @@
  *  - 띠   : 십이지 삼합(三合)·충(沖)·비화(比和). 일진 간지의 두 번째 글자(지지)로 판정한다.
  *  - 별자리: 날짜로 정해지는 태양궁과, 일일 패키지가 담고 있는 그날의 달 자리.
  */
+import { sunSignForDate } from "@/scripts/lib/moon-sky.mjs";
 import type { SignProfile } from "./sign-profiles";
 import { zodiacNameKoFromEn } from "./sign-profiles";
 import { ANIMAL_KEY_BY_BRANCH, BRANCH_KEY, ELEMENT_KEY, SIGN_KEY, TRINE_KEY, ref, type MarkedText } from "./i18n-marker";
@@ -181,7 +182,7 @@ export function animalDayRelation(animalId: string, ilchin: string): DayRelation
     const partner = trine.members.filter((m) => m !== own && m !== day)[0];
     return {
       kind: "trine",
-      badge: `삼합 · ${trine.label}`,
+      badge: `삼합 그룹 · ${trine.label}`,
       badgeI18n: { key: "fortuneTpl.animalTrineBadge", vars: { trine: ref(TRINE_KEY, trine.label, trine.label) } },
       detailI18n: {
         key: "fortuneTpl.animalTrine",
@@ -192,7 +193,7 @@ export function animalDayRelation(animalId: string, ilchin: string): DayRelation
           a2: ref(ANIMAL_KEY_BY_BRANCH, partner, ANIMAL_KO_BY_BRANCH[partner]),
         },
       },
-      detail: `오늘 일진의 지지 ${dayKo}는 이 띠와 삼합(三合)을 이뤄 ${trine.label}을 만듭니다. ${dayAnimal}띠·${ANIMAL_KO_BY_BRANCH[partner]}띠와 결이 맞는 날이라 협력과 부탁이 잘 통합니다. 혼자 끌고 가던 일을 나누기 좋은 자리입니다.`,
+      detail: `오늘 일진의 지지 ${dayKo}와 이 띠는 ${trine.label} 삼합 그룹의 두 지지입니다. ${dayAnimal}띠·${ANIMAL_KO_BY_BRANCH[partner]}띠가 연결된 그룹이지만, 두 글자만으로 삼합의 완성이나 합화를 확정하지 않습니다. 협업을 떠올리는 참고로 읽고, 실제로는 역할과 기대를 먼저 맞춰보세요.`,
     };
   }
 
@@ -205,36 +206,9 @@ export function animalDayRelation(animalId: string, ilchin: string): DayRelation
   };
 }
 
-/** 태양이 각 궁에 머무는 구간 — 경계일은 해마다 하루 정도 움직인다(그래서 근사) */
-const SUN_SIGN_RANGES: { id: string; from: [number, number]; to: [number, number] }[] = [
-  { id: "capricorn", from: [12, 22], to: [1, 19] },
-  { id: "aquarius", from: [1, 20], to: [2, 18] },
-  { id: "pisces", from: [2, 19], to: [3, 20] },
-  { id: "aries", from: [3, 21], to: [4, 19] },
-  { id: "taurus", from: [4, 20], to: [5, 20] },
-  { id: "gemini", from: [5, 21], to: [6, 21] },
-  { id: "cancer", from: [6, 22], to: [7, 22] },
-  { id: "leo", from: [7, 23], to: [8, 22] },
-  { id: "virgo", from: [8, 23], to: [9, 22] },
-  { id: "libra", from: [9, 23], to: [10, 23] },
-  { id: "scorpio", from: [10, 24], to: [11, 22] },
-  { id: "sagittarius", from: [11, 23], to: [12, 21] },
-];
-
+/** 기존 천문 엔진으로 KST 정오의 열대황도 태양궁을 계산한다. 출생 별자리 판정과는 별개다. */
 export function sunSignIdOf(ymd: string): string | null {
-  const [, m, d] = ymd.split("-").map(Number);
-  if (!m || !d) return null;
-  for (const range of SUN_SIGN_RANGES) {
-    const [fm, fd] = range.from;
-    const [tm, td] = range.to;
-    if (fm <= tm) {
-      if ((m === fm && d >= fd) || (m === tm && d <= td) || (m > fm && m < tm)) return range.id;
-    } else if ((m === fm && d >= fd) || (m === tm && d <= td)) {
-      // 염소자리처럼 해를 넘기는 구간
-      return range.id;
-    }
-  }
-  return null;
+  return sunSignForDate(ymd);
 }
 
 export function zodiacDayRelation(
