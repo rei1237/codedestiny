@@ -17167,6 +17167,64 @@
           "detail": "Bond type and distance, the three scores, and action guides for you and your partner to close."
         }
       }
+    },
+    "neo_consultation": {
+      "fallbackTitle": "Hỏi Neo",
+      "tagline": "Neo dùng phân tích AI để soạn và kiểm tra câu trả lời, rồi gửi qua email.",
+      "premiumIntro": "Saju là nền tảng. Bạn có thể thêm Tử Vi hoặc diễn giải lá số cho từng câu hỏi.",
+      "fallbackCta": "Viết câu hỏi",
+      "ctaNote": "Kiểm tra khả năng tiếp nhận và phí lựa chọn bổ sung trước khi thanh toán từng đơn.",
+      "premiumOutcomes": {
+        "0": "Không cung cấp tư vấn qua trò chuyện trực tiếp, điện thoại hoặc gặp mặt.",
+        "1": "Hãy đọc và lưu câu trả lời trong email nhận được."
+      },
+      "headline": "Neo dùng phân tích AI để soạn và kiểm tra câu trả lời, rồi gửi qua email.",
+      "badge": "Tư vấn qua email"
+    },
+    "emoi_omikuji_v2_html": {
+      "fallbackTitle": "Emoi Omikuji",
+      "tagline": "Rút một quẻ từ ống và đọc lời nhắn để nhìn lại ngày của bạn.",
+      "premiumIntro": "Rút một quẻ từ ống và đọc lời nhắn để nhìn lại ngày của bạn.",
+      "fallbackCta": "Rút quẻ hôm nay",
+      "premiumOutcomes": {
+        "0": "Chỉ xem kết quả là tham khảo nhẹ nhàng; hãy cân nhắc hoàn cảnh của mình khi quyết định việc quan trọng."
+      },
+      "headline": "Rút một quẻ từ ống và đọc lời nhắn để nhìn lại ngày của bạn.",
+      "badge": "Quẻ hôm nay"
+    },
+    "saju_fpti": {
+      "fallbackTitle": "Saju FPTI",
+      "badge": "Saju FPTI",
+      "tagline": "Tìm hiểu khí chất và cách lựa chọn của bạn qua Ngũ hành và Thập thần.",
+      "headline": "Tìm hiểu khí chất và cách lựa chọn của bạn qua Ngũ hành và Thập thần.",
+      "premiumIntro": "Tìm hiểu khí chất và cách lựa chọn của bạn qua Ngũ hành và Thập thần.",
+      "fallbackCta": "Khám phá xu hướng của tôi",
+      "ctaNote": "Kết quả cốt lõi miễn phí. Hãy kiểm tra điều kiện riêng cho báo cáo chuyên sâu.",
+      "premiumOutcomes": {
+        "0": "Đây là nội dung tham khảo để hiểu bản thân, không phải bài kiểm tra xác định chắc chắn tính cách."
+      }
+    },
+    "saju_compatibility": {
+      "fallbackTitle": "Tương hợp Saju",
+      "badge": "Tương hợp Saju",
+      "tagline": "Đặt hai lá số cạnh nhau để tìm hiểu dòng chảy quan hệ và những điểm có thể cùng điều chỉnh.",
+      "headline": "Đặt hai lá số cạnh nhau để tìm hiểu dòng chảy quan hệ và những điểm có thể cùng điều chỉnh.",
+      "premiumIntro": "Đặt hai lá số cạnh nhau để tìm hiểu dòng chảy quan hệ và những điểm có thể cùng điều chỉnh.",
+      "fallbackCta": "Chuẩn bị xem tương hợp",
+      "ctaNote": "Chuẩn bị thông tin của cả hai và kiểm tra điều kiện vé, Đá Mặt Trăng và thanh toán từng lần trước khi phân tích.",
+      "premiumOutcomes": {
+        "0": "Kết quả không quyết định mối quan hệ; hãy dùng làm tham khảo cho trò chuyện và lựa chọn."
+      }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "Phong cách làm việc của tôi",
+      "tagline": "Báo cáo tự khám phá saju bằng tiếng Hàn gồm tám chương dựa trên thẻ hồ sơ, tìm hiểu khuynh hướng, địa chi tháng và điều kiện làm việc.",
+      "premiumIntro": "Đăng nhập, rồi chọn hoặc tạo thẻ hồ sơ để đọc miễn phí.",
+      "fallbackCta": "Đăng nhập để khám phá miễn phí",
+      "premiumOutcomes": {
+        "0": "Không bắt buộc thanh toán, viết đánh giá hoặc chia sẻ.",
+        "1": "Nội dung tự khám phá dựa trên saju, không thay thế đánh giá nghề nghiệp chuyên môn hay tư vấn tâm lý."
+      }
     }
   },
   "featureMarketingCategory": {

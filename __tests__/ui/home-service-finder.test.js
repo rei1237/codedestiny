@@ -154,7 +154,7 @@ test("방식은 이름 정규식이 아니라 선언된 값으로 판정한다",
   doc.querySelector('#fortuneGatewayDiscover [data-method="ziwei"]').click();
 
   const hits = names(panel);
-  assert.deepEqual(hits, ["자미두수"], `자미두수 방식 결과가 예상과 다르다: ${hits.join(", ")}`);
+  assert.deepEqual(hits, ["팩폭 전략소", "자미두수", "네오에게 물어봐"], `자미두수 방식 결과가 예상과 다르다: ${hits.join(", ")}`);
 });
 
 test("검색은 레지스트리에 없는 컬렉션 타일도 찾아 준다", async () => {

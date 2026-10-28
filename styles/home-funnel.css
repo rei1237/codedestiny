@@ -1422,9 +1422,10 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 .cdh-honey__collection{position:absolute;inset:0;z-index:2;overflow:hidden;border-radius:inherit;pointer-events:none}
 .cdh-honey__collection>img{background-color:transparent!important;position:absolute;top:0;left:0;width:32px;height:32px;object-fit:contain}
 /* All-readings world exploration. These rules never style the main home or other finders. */
-#cdAllFortunes .cd-sheet__body,html body #cdMobileFortuneOverview{padding-top:0}
+#cdAllFortunes .cd-sheet__body,html body #cdMobileFortuneOverview{padding-top:0;scroll-padding-block-start:80px}
 #cdAllFortunesRoot{gap:20px;--cd-af-surface:var(--cd-surface,#fffaf7)}
-#cdAllFortunesRoot .cd-af__search{position:sticky;top:0;z-index:3;padding:8px 0;background:var(--cd-af-surface);border-radius:14px}
+#cdAllFortunesRoot .cd-af__search{position:sticky;top:0;z-index:3;padding:8px 0;background:var(--cd-af-surface);border-radius:0;isolation:isolate}
+#cdAllFortunesRoot .cd-af__search::before{content:"";position:absolute;inset:0 -20px;z-index:-1;background:var(--cd-af-surface);border-bottom:1px solid var(--cd-af-line);pointer-events:none}
 #cdAllFortunesRoot .cd-af__clear{top:10px}
 #cdAllFortunesRoot .cd-af__explore{display:grid;gap:24px;min-width:0;padding:12px 0 24px;border-bottom:1px solid color-mix(in srgb,var(--cd-gold) 40%,var(--cd-af-line))}
 #cdAllFortunesRoot [hidden]{display:none!important}
@@ -1447,16 +1448,22 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 #cdAllFortunesRoot .cd-af__region-intro p{margin:8px 0 0;color:var(--cd-af-muted);font-size:.94rem;line-height:1.75;max-width:42ch;word-break:keep-all;overflow-wrap:anywhere}
 #cdAllFortunesRoot .fortune-gateway__recs-grid{grid-template-columns:minmax(0,1fr);gap:16px}
 #cdAllFortunesRoot .fortune-gateway__rec{display:flex;flex-direction:column;gap:12px;padding:20px;min-width:0;background:var(--cd-af-field);border-color:color-mix(in srgb,var(--cd-gold) 32%,var(--cd-af-line));color:var(--cd-af-ink);text-align:left;box-shadow:var(--cd-shade-1)}
-#cdAllFortunesRoot .fortune-gateway__rec-media{width:100%;aspect-ratio:16/9;max-height:200px;flex:none}
+#cdAllFortunesRoot .fortune-gateway__rec-media{width:100%;aspect-ratio:3/2;max-height:none;flex:none;padding:5px;border:1px solid color-mix(in srgb,var(--cd-gold) 42%,var(--cd-af-line));border-radius:12px;background:var(--cd-af-field);box-sizing:border-box}
 #cdAllFortunesRoot .fortune-gateway__rec-media img{width:100%;height:100%;object-fit:cover}
-#cdAllFortunesRoot .fortune-gateway__rec-name{font-size:1.06rem;line-height:1.5;white-space:normal;color:var(--cd-af-ink);word-break:keep-all;overflow-wrap:anywhere}
-#cdAllFortunesRoot .fortune-gateway__rec-desc{display:block;overflow:visible;color:var(--cd-af-muted);font-size:.9rem;line-height:1.65;word-break:keep-all;overflow-wrap:anywhere}
-#cdAllFortunesRoot .cd-af__question{color:var(--cd-af-muted);font-size:.84rem;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
-#cdAllFortunesRoot .cd-af__masters{color:var(--cd-af-ink);font-size:.82rem;line-height:1.6}
+#cdAllFortunesRoot .fortune-gateway__rec-media--legacy img{object-fit:contain}
+#cdAllFortunesRoot .fortune-gateway__rec-name{font:700 max(18px,1.16rem)/1.5 "CodeDestinySerifKR",var(--font-premium,serif);white-space:normal;color:var(--cd-af-ink);word-break:keep-all;overflow-wrap:anywhere}
+#cdAllFortunesRoot .fortune-gateway__rec-desc{display:block;overflow:visible;color:var(--cd-af-muted);font-size:max(14px,1rem);line-height:1.65;word-break:keep-all;overflow-wrap:anywhere}
+#cdAllFortunesRoot .cd-af__question{color:var(--cd-af-muted);font-size:max(14px,.9rem);line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+#cdAllFortunesRoot .cd-af__masters{color:var(--cd-af-ink);font-size:max(14px,.9rem);line-height:1.6}
 #cdAllFortunesRoot .fortune-gateway__rec-foot{flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid var(--cd-af-line);min-height:44px}
 #cdAllFortunesRoot :is(.fortune-gateway__rec-price,.fortune-gateway__rec-go){font-size:var(--cd-t-body);color:var(--cd-af-accent);font-style:normal;line-height:1.6;white-space:normal;overflow-wrap:anywhere}
 #cdAllFortunesRoot .fortune-gateway__rec-price{font:600 1.1rem/1.6 "CodeDestinySerifKR",var(--font-premium,serif);color:var(--cd-af-ink);font-variant-numeric:tabular-nums}
-#cdAllFortunesRoot .fortune-gateway__rec-go{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid var(--cd-af-line);border-radius:var(--cd-r-control);color:var(--cd-af-ink)}
+#cdAllFortunesRoot .fortune-gateway__rec-go{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:9px 16px;box-sizing:border-box;border:1px solid color-mix(in srgb,var(--cd-af-accent) 50%,var(--cd-af-line));border-radius:999px;box-shadow:inset 0 0 0 3px var(--cd-af-field),inset 0 0 0 4px var(--cd-af-line);color:var(--cd-af-accent);font-weight:700;transition:background-color 120ms ease-out,color 120ms ease-out}
+#cdAllFortunesRoot .fortune-gateway__rec-go::before{content:"";flex:none;width:20px;height:20px;background:currentColor;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='none' stroke='black' stroke-width='1.5' stroke-linejoin='round' d='M16 26C10 22 10 13 16 5c6 8 6 17 0 21ZM16 26C8 25 5 18 6 10c7 3 10 8 10 16Zm0 0c8-1 11-8 10-16-7 3-10 8-10 16ZM16 26C8 28 2 23 2 16c6 1 11 4 14 10Zm0 0c8 2 14-3 14-10-6 1-11 4-14 10ZM10 29h12'/%3E%3C/svg%3E") center/contain no-repeat}
+#cdAllFortunesRoot .fortune-gateway__rec:focus-visible{outline:3px solid var(--cd-af-accent);outline-offset:4px}
+#cdAllFortunesRoot .fortune-gateway__rec:active .fortune-gateway__rec-go{background:var(--cd-af-accent);color:var(--cd-af-on-accent)}
+@media(hover:hover){#cdAllFortunesRoot .fortune-gateway__rec:hover .fortune-gateway__rec-go{background:var(--cd-af-accent);color:var(--cd-af-on-accent)}}
+@media(prefers-reduced-motion:reduce){#cdAllFortunesRoot .fortune-gateway__rec-go{transition:none}}
 #cdAllFortunesRoot[data-cd-af-host=sheet] .cd-afy-hero{display:none}
 #cdAllFortunesRoot[data-cd-af-host=overview]{padding:0 2px 8px}
 #cdAllFortunesRoot .cd-afy-hero{margin-bottom:0}

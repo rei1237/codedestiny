@@ -16,7 +16,6 @@ import { PriceBadge } from "./components/PriceBadge";
 import ConsultationDiscovery from "./components/ConsultationDiscovery";
 import ConsultationMethodGuide from "./components/ConsultationMethodGuide";
 import { CONSULTATION_METHOD_FAQS } from "../lib/brand/consultation-methods.mjs";
-import LocalizedServiceSummary from "./components/LocalizedServiceSummary";
 import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
 import styles from "./home-main.module.css";
@@ -109,7 +108,8 @@ export default function HomePage() {
   return <>
     <LegacyHomeEntry />
     <HomeEntryState />
-    <LocalizedServiceSummary><div className={styles.page}>
+    {/* This public Korean entry stays visible regardless of a saved reading language. */}
+    <div className={styles.page} lang="ko" data-cd-no-trans>
       <header className={styles.brandRow}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className={styles.brandMark} src="/images/yeoni/welcome/yeoni-mark-v1-96.webp" width={96} height={96} alt="" decoding="async" />
@@ -246,7 +246,7 @@ export default function HomePage() {
         </p>
         <p className={styles.notice}>{FOOTER_NOTICE}</p>
       </footer>
-    </div></LocalizedServiceSummary>
+    </div>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd([webPageJsonLd, ...serviceJsonLd, buildFaqPageJsonLd(HOME_FAQS)])}} />
   </>;
 }

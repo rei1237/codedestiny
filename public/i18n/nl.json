@@ -17167,6 +17167,64 @@
           "detail": "Bond type and distance, the three scores, and action guides for you and your partner to close."
         }
       }
+    },
+    "neo_consultation": {
+      "fallbackTitle": "Vraag het Neo",
+      "tagline": "Neo gebruikt AI-analyse om je antwoord te schrijven en na te kijken en stuurt het daarna per e-mail.",
+      "premiumIntro": "Saju vormt de basis. Per vraag kun je Ziwei of een duiding van de geboortehoroscoop toevoegen.",
+      "fallbackCta": "Een vraag schrijven",
+      "ctaNote": "Controleer de beschikbaarheid en de kosten van extra opties voordat je elke opdracht afzonderlijk betaalt.",
+      "premiumOutcomes": {
+        "0": "Er zijn geen consulten via livechat, telefoon of op locatie.",
+        "1": "Lees en bewaar je antwoord in de ontvangen e-mail."
+      },
+      "headline": "Neo gebruikt AI-analyse om je antwoord te schrijven en na te kijken en stuurt het daarna per e-mail.",
+      "badge": "Consult per e-mail"
+    },
+    "emoi_omikuji_v2_html": {
+      "fallbackTitle": "Emoi Omikuji",
+      "tagline": "Trek een orakellot en lees een boodschap om over je dag na te denken.",
+      "premiumIntro": "Trek een orakellot en lees een boodschap om over je dag na te denken.",
+      "fallbackCta": "Het lot van vandaag trekken",
+      "premiumOutcomes": {
+        "0": "Zie het resultaat als een luchtige suggestie en houd bij belangrijke beslissingen rekening met je eigen omstandigheden."
+      },
+      "headline": "Trek een orakellot en lees een boodschap om over je dag na te denken.",
+      "badge": "Het lot van vandaag"
+    },
+    "saju_fpti": {
+      "fallbackTitle": "Saju FPTI",
+      "badge": "Saju FPTI",
+      "tagline": "Verken je temperament en keuzes via de Vijf Elementen en Tien Goden.",
+      "headline": "Verken je temperament en keuzes via de Vijf Elementen en Tien Goden.",
+      "premiumIntro": "Verken je temperament en keuzes via de Vijf Elementen en Tien Goden.",
+      "fallbackCta": "Mijn neigingen verkennen",
+      "ctaNote": "De kernresultaten zijn gratis. Bekijk de aparte gebruiksvoorwaarden voor een verdiepend rapport.",
+      "premiumOutcomes": {
+        "0": "Dit is inhoud voor zelfreflectie, geen test die je persoonlijkheid definitief vaststelt."
+      }
+    },
+    "saju_compatibility": {
+      "fallbackTitle": "Saju-compatibiliteit",
+      "badge": "Saju-compatibiliteit",
+      "tagline": "Vergelijk twee geboortehoroscopen om relatiepatronen en punten voor afstemming te verkennen.",
+      "headline": "Vergelijk twee geboortehoroscopen om relatiepatronen en punten voor afstemming te verkennen.",
+      "premiumIntro": "Vergelijk twee geboortehoroscopen om relatiepatronen en punten voor afstemming te verkennen.",
+      "fallbackCta": "De compatibiliteitslezing voorbereiden",
+      "ctaNote": "Bereid de gegevens van beide personen voor en bekijk vóór de analyse de voorwaarden voor passen, Maanstenen en eenmalige betalingen.",
+      "premiumOutcomes": {
+        "0": "Het resultaat bepaalt de relatie niet; gebruik het als uitgangspunt voor gesprekken en keuzes."
+      }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "Mijn werkstijl",
+      "tagline": "Een Koreaans saju-rapport voor zelfreflectie met acht hoofdstukken op basis van je profielkaart. Verken neigingen, de maandtak en werkomstandigheden.",
+      "premiumIntro": "Log in en kies of maak een profielkaart om gratis te lezen.",
+      "fallbackCta": "Inloggen en gratis ontdekken",
+      "premiumOutcomes": {
+        "0": "Betalen, een beoordeling schrijven of delen is niet verplicht.",
+        "1": "Zelfreflectie op basis van saju; geen vervanging voor professionele loopbaantests of psychologische begeleiding."
+      }
     }
   },
   "featureMarketingCategory": {

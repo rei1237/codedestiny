@@ -513,5 +513,10 @@
     "image": "/images/service-introductions/neo-astrology.webp",
     "cardImage": "/images/service-introductions/neo-astrology-320.webp",
     "alt": "네오의 네오 점성술 전략 상담 장면"
+  },
+  "career-style": {
+    "image": "/images/career-style/yeoni-work-style.webp",
+    "cardImage": "/fuctionassets/career-style-yeoni.webp",
+    "alt": "노트와 나침반으로 진로 탐색을 돕는 연이"
   }
 }

@@ -10,8 +10,8 @@
  *
  * 🔴 DOM 스크래핑을 없애지 말 것. 레지스트리(js/core/service-registry.js)는 큐레이션된
  *    30여 개뿐이고, 컬렉션 타일 수백 개의 검색 커버리지는 스크래핑에만 있다. 두 결과를
- *    **병합**한다 — 태그를 가진 레지스트리 항목만 필터 대상이 되고, 스크래핑 항목은
- *    검색어 매칭 전용이다.
+ *    **병합**한다. 컬렉션도 원본의 data-cd-methods/data-cd-purposes로 필터에 참여한다.
+ *    이름이나 담당자에서 체계를 추측하지 않는다.
  *
  * 🔴 innerHTML 을 쓰지 않는다. 이전 게이트웨이 렌더러의 esc() 는 '&'→'&' 처럼 항등 매핑이라
  *    사실상 이스케이프가 아니었다. 노드를 직접 만들면 그 함정 자체가 없어진다.
@@ -269,7 +269,7 @@
     return !item.roles.length && item.buckets[0] === "free";
   }).slice(0, 6);
 
-  /* ── DOM 스크래핑 (태그 없음 · 검색 전용) ───────────────────── */
+  /* ── 원본 컬렉션 병합 (명시한 체계·고민·예화 보존) ────────── */
   var TILE_SELECTOR = [
     "#inputPage .moon-preview-card",
     "#inputPage .tarot-tile",
@@ -368,6 +368,13 @@
     return METHOD_HUB_IDS.indexOf(item.id) !== -1 ? "/feature-details/assets/" + item.id + "-320.webp" : "";
   }
 
+  // These active tools predate the illustration ledger. Reuse their real detail artwork;
+  // home-catalogue-coverage checks this mapping against the original detail/preview source.
+  var LEGACY_SERVICE_IMAGES = {
+    "saju-compatibility": "/fuctionassets/compat-preview-core.webp",
+    "saju-fpti": "/fuctionassets/사주로 보는 FPTI 테스트.webp"
+  };
+
   /* 기능별 장면을 우선하고, 명시된 담당자가 있을 때만 초상을 보조로 쓴다.
      체계(methods)만으로 담당자를 추정하지 않는다. */
   var MASTER_PORTRAIT_BASE = "/images/master-profiles/";
@@ -412,6 +419,12 @@
     return !!(collection && known["c:" + collection]);
   }
 
+  function tileTags(el, attribute, allowed) {
+    return String(el.getAttribute(attribute) || "").split(/\s+/).filter(function (tag, index, tags) {
+      return allowed.indexOf(tag) !== -1 && tags.indexOf(tag) === index;
+    });
+  }
+
   function scrapeTiles(knownKeys) {
     var out = [];
     var nodes = Array.prototype.slice.call(document.querySelectorAll(TILE_SELECTOR));
@@ -454,6 +467,9 @@
       var desc = String((metaEl && metaEl.textContent) || "").trim();
       var price = String((priceEl && priceEl.textContent) || "").trim();
       var sourceCollection = el.__cdCollection || lazySources.get(el) || el.closest(".feat-collection[id], .tarot-collection[id]");
+      var meta = window.__cdServiceRegistryMeta || { methods: [], purposes: [] };
+      var methods = tileTags(el, "data-cd-methods", meta.methods);
+      var purposes = tileTags(el, "data-cd-purposes", meta.purposes);
       out.push({
         name: name,
         desc: desc,
@@ -465,8 +481,8 @@
         buckets: price ? bucketsOf(price) : [],
         featureKey: featureKey,
         paid: isPaidItem(featureKey, price),
-        purposes: [],
-        methods: [],
+        purposes: purposes,
+        methods: methods,
         badge: "",
         image: tileImageOf(el),
         imageAlt: (function () {
@@ -474,7 +490,7 @@
           var lazyImage = el.querySelector("[data-img-alt]");
           return image && image.getAttribute("alt") || lazyImage && lazyImage.getAttribute("data-img-alt") || (name ? name + " 대표 이미지" : "운세 서비스 대표 이미지");
         })(),
-        tagged: false,
+        tagged: methods.length > 0 && purposes.length > 0,
         hay: norm([name, desc, price, el.getAttribute("aria-label")].join(" "))
       });
     }
@@ -504,7 +520,7 @@
     var methods = state.methods || [];
     var buckets = state.buckets || [];
     var needsTags = purposes.length || methods.length || buckets.length;
-    /* 방식 '기타'(모든 운세 화면)는 레지스트리 밖 컬렉션 타일을 받는 칸이다. */
+    /* 기타 체계는 명시적으로 분류한다. 미분류 외부 타일도 검색/기타에서 접근은 보존한다. */
     var wantsEtc = methods.indexOf("etc") !== -1;
     var variants = queryVariants(query);
 
@@ -556,7 +572,8 @@
     var image = document.createElement("img");
     var master = masterImage(item);
     if (worldSearch && !SERVICE_MASTERS[item.id] && METHOD_HUB_IDS.indexOf(item.id) === -1) master = "";
-    var featureImage = item.image || featureTileImage(item) || methodHubImage(item);
+    var featureImage = item.image || featureTileImage(item) || methodHubImage(item) || LEGACY_SERVICE_IMAGES[item.id];
+    if (LEGACY_SERVICE_IMAGES[item.id]) media.classList.add("fortune-gateway__rec-media--legacy");
     image.src = featureImage || master || DEFAULT_SERVICE_IMAGE;
     image.alt = item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지");
     if (master && !featureImage) media.className += " is-master";
@@ -800,6 +817,17 @@
         : '전체 서비스 ' + list.length + '개';
       if (summary && config.showAll) worldText(summary, active ? "summaryFiltered" : "summaryAll",
         active ? "조건에 맞는 서비스 {count}개" : "전체 서비스 {count}개", { count: list.length });
+      if (config.showAll) root.querySelectorAll('.cd-af__chips').forEach(function (rail) {
+        var focused = document.activeElement;
+        var chip = rail.contains(focused) && focused.getAttribute('aria-pressed') === 'true'
+          ? focused : rail.querySelector('[aria-pressed="true"]');
+        if (!chip || rail.scrollWidth <= rail.clientWidth) return;
+        var bounds = rail.getBoundingClientRect();
+        var selected = chip.getBoundingClientRect();
+        // Only the chip rail moves; search focus and vertical reading position stay put.
+        if (selected.left < bounds.left + 4) rail.scrollLeft -= bounds.left + 4 - selected.left;
+        else if (selected.right > bounds.right - 4) rail.scrollLeft += selected.right - bounds.right + 4;
+      });
       if (config.onRender) config.onRender(current);
     }
 

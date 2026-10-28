@@ -17167,6 +17167,64 @@
           "detail": "Bond type and distance, the three scores, and action guides for you and your partner to close."
         }
       }
+    },
+    "neo_consultation": {
+      "fallbackTitle": "Tanya Neo",
+      "tagline": "Neo menggunakan analisis AI untuk menulis dan menyemak jawapan, kemudian menghantarnya melalui e-mel.",
+      "premiumIntro": "Saju menjadi asas. Anda boleh menambah tafsiran Ziwei atau carta kelahiran bagi setiap soalan.",
+      "fallbackCta": "Tulis soalan",
+      "ctaNote": "Semak ketersediaan dan kos pilihan tambahan sebelum membayar setiap pesanan secara berasingan.",
+      "premiumOutcomes": {
+        "0": "Rundingan melalui sembang langsung, telefon atau bersemuka tidak disediakan.",
+        "1": "Baca dan simpan jawapan dalam e-mel yang diterima."
+      },
+      "headline": "Neo menggunakan analisis AI untuk menulis dan menyemak jawapan, kemudian menghantarnya melalui e-mel.",
+      "badge": "Rundingan e-mel"
+    },
+    "emoi_omikuji_v2_html": {
+      "fallbackTitle": "Emoi Omikuji",
+      "tagline": "Cabut sekeping ramalan dan baca pesanan untuk merenung hari anda.",
+      "premiumIntro": "Cabut sekeping ramalan dan baca pesanan untuk merenung hari anda.",
+      "fallbackCta": "Cabut ramalan hari ini",
+      "premiumOutcomes": {
+        "0": "Anggap hasilnya sebagai rujukan ringan dan pertimbangkan keadaan sendiri ketika membuat keputusan penting."
+      },
+      "headline": "Cabut sekeping ramalan dan baca pesanan untuk merenung hari anda.",
+      "badge": "Ramalan hari ini"
+    },
+    "saju_fpti": {
+      "fallbackTitle": "Saju FPTI",
+      "badge": "Saju FPTI",
+      "tagline": "Terokai kecenderungan dan cara anda membuat pilihan melalui Lima Unsur dan Sepuluh Dewa.",
+      "headline": "Terokai kecenderungan dan cara anda membuat pilihan melalui Lima Unsur dan Sepuluh Dewa.",
+      "premiumIntro": "Terokai kecenderungan dan cara anda membuat pilihan melalui Lima Unsur dan Sepuluh Dewa.",
+      "fallbackCta": "Terokai kecenderungan saya",
+      "ctaNote": "Hasil utama adalah percuma. Semak syarat penggunaan berasingan untuk laporan mendalam.",
+      "premiumOutcomes": {
+        "0": "Ini ialah kandungan untuk memahami diri, bukan ujian yang menentukan personaliti secara muktamad."
+      }
+    },
+    "saju_compatibility": {
+      "fallbackTitle": "Keserasian Saju",
+      "badge": "Keserasian Saju",
+      "tagline": "Bandingkan dua carta kelahiran untuk meneroka corak hubungan dan perkara yang boleh diselaraskan bersama.",
+      "headline": "Bandingkan dua carta kelahiran untuk meneroka corak hubungan dan perkara yang boleh diselaraskan bersama.",
+      "premiumIntro": "Bandingkan dua carta kelahiran untuk meneroka corak hubungan dan perkara yang boleh diselaraskan bersama.",
+      "fallbackCta": "Sediakan bacaan keserasian",
+      "ctaNote": "Sediakan maklumat kedua-dua pihak dan semak syarat pas, Batu Bulan serta bayaran tunggal sebelum analisis.",
+      "premiumOutcomes": {
+        "0": "Hasilnya tidak menentukan hubungan; gunakannya sebagai rujukan untuk berbual dan membuat pilihan."
+      }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "Gaya kerja saya",
+      "tagline": "Laporan refleksi diri saju dalam bahasa Korea dengan lapan bab berdasarkan kad profil anda. Terokai kecenderungan, cabang bulan dan keadaan kerja.",
+      "premiumIntro": "Log masuk, kemudian pilih atau cipta kad profil untuk membaca secara percuma.",
+      "fallbackCta": "Log masuk untuk teroka percuma",
+      "premiumOutcomes": {
+        "0": "Tiada kewajipan membayar, menulis ulasan atau berkongsi.",
+        "1": "Kandungan refleksi diri berasaskan saju; bukan pengganti penilaian kerjaya profesional atau kaunseling psikologi."
+      }
     }
   },
   "featureMarketingCategory": {

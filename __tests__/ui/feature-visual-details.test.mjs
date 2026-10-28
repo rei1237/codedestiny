@@ -9,6 +9,13 @@ const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json'
 const sharedHero = '/feature-details/assets/feature-detail-shared-hero-v1-960.webp';
 const shell = fs.readFileSync('index.html', 'utf8');
 const introductionArt = JSON.parse(fs.readFileSync('lib/marketing/service-introduction-art.json','utf8'));
+// Registry discovery is not editorial publication. Keep this explicit so newly
+// discovered services cannot silently become verified product introductions.
+const inventoryOnlySlugs = ['career-style', 'love-code', 'neo-consultation', 'points', 'saju-animal', 'saju-compatibility', 'saju-fpti'];
+const inventoryOnlyPaidRoutes = {
+  '/saju/compatibility/': { slug: 'saju-compatibility', featureKey: 'compat-saju-compatibility', source: 'app/saju/compatibility/page.js' },
+  '/neo-consultation/': { slug: 'neo-consultation', featureKey: 'neo-email-consultation', source: 'app/neo-consultation/page.tsx' },
+};
 
 test('paid introductions keep an honest sample in the authored essay or before the legacy outline', () => {
   let checked = 0;
@@ -241,7 +248,7 @@ test('editorial detail owns a complete readable palette and horizontal layout', 
 
 test('published visual introductions have proven sources, real assets, and distinct destinations', () => {
   const generated = JSON.parse(fs.readFileSync('lib/marketing/feature-visual-details.generated.json', 'utf8'));
-  assert.equal(generated.index.length, 76);
+  assert.equal(generated.index.length, catalog.length + inventoryOnlySlugs.length);
   assert.equal(new Set(generated.index.map(item => item.slug)).size, generated.index.length);
   assert.equal(catalog.length, 73);
   assert.equal(new Set(catalog.map(item => item.slug)).size, catalog.length);
@@ -285,7 +292,8 @@ test('published visual introductions have proven sources, real assets, and disti
   assert.equal(face.href, '/animal/physio');
   assert.equal(face.ctaLabel, '무료로 동물 관상 보기');
 
-  assert.deepEqual(Object.values(generated.items).filter(item => item.verification !== 'verified').map(item => item.slug).sort(), ['love-code', 'points', 'saju-animal']);
+  assert.deepEqual(Object.values(generated.items).filter(item => item.verification !== 'verified').map(item => item.slug).sort(), inventoryOnlySlugs);
+  assert.deepEqual(catalog.map(item => item.slug).sort(), generated.index.filter(item => item.verification === 'verified').map(item => item.slug).sort());
 });
 
 test('shared renderer escapes text and rejects unsafe image URLs and unverified content', () => {
@@ -371,11 +379,27 @@ test('every priced marketing introduction resolves to a published or inline edit
   const { FEATURE_KEY_PRICE_TABLE } = await import('../../worker/lib/paid-feature-registry.js');
   const copy = extractObjectLiteral(shell, 'FEATURE_MARKETING_COPY');
   const inline = Object.values(extractObjectLiteral(shell, 'FEATURE_VISUAL_DETAILS')).filter(item => item.inlineAliases);
+  const generated = JSON.parse(fs.readFileSync('lib/marketing/feature-visual-details.generated.json', 'utf8'));
   for (const [key, item] of Object.entries(copy)) {
     if (!FEATURE_KEY_PRICE_TABLE[item.featureId]) continue;
     // Paused content keeps its authored copy, but must not be a published product.
     if (item.featureId === 'love-code') {
       assert.ok(!catalog.some(entry => entry.featureKey === 'love-code'));
+      continue;
+    }
+    const inventory = inventoryOnlyPaidRoutes[key];
+    if (inventory) {
+      const record = generated.items[inventory.slug];
+      assert.ok(record, key + ': inventory record missing');
+      assert.equal(item.featureId, inventory.featureKey);
+      assert.equal(record.featureKey, inventory.featureKey);
+      assert.equal(record.verification, 'source-inventory-only');
+      assert.ok(record.aliases.includes(key));
+      assert.ok(fs.existsSync(inventory.source), inventory.source);
+      assert.ok(record.evidence.length);
+      record.evidence.forEach(source => assert.ok(fs.existsSync(source.split(':')[0]), source));
+      assert.ok(!catalog.some(entry => entry.slug === inventory.slug || entry.featureKey === inventory.featureKey || entry.aliases.includes(key)), key + ': unreviewed introduction published');
+      assert.ok(!inline.some(entry => entry.inlineAliases.includes(key) || entry.inlineAliases.includes(inventory.featureKey)), key + ': unreviewed inline introduction published');
       continue;
     }
     assert.ok(catalog.some(entry=>entry.featureKey===item.featureId || entry.aliases.includes(key)) || inline.some(entry=>entry.inlineAliases.includes(key) || entry.inlineAliases.includes(item.featureId)), key+': paid introduction missing');

@@ -17167,6 +17167,64 @@
           "detail": "Bond type and distance, the three scores, and action guides for you and your partner to close."
         }
       }
+    },
+    "neo_consultation": {
+      "fallbackTitle": "Demander à Neo",
+      "tagline": "Neo utilise une analyse par IA pour rédiger et vérifier votre réponse, puis vous l’envoie par e-mail.",
+      "premiumIntro": "Le Saju sert de base. Vous pouvez ajouter une interprétation Ziwei ou du thème natal pour chaque question.",
+      "fallbackCta": "Rédiger une question",
+      "ctaNote": "Vérifiez la disponibilité et le coût des options avant de régler chaque commande séparément.",
+      "premiumOutcomes": {
+        "0": "Aucune consultation par chat en direct, téléphone ou en personne n’est proposée.",
+        "1": "Lisez et conservez votre réponse dans l’e-mail reçu."
+      },
+      "headline": "Neo utilise une analyse par IA pour rédiger et vérifier votre réponse, puis vous l’envoie par e-mail.",
+      "badge": "Consultation par e-mail"
+    },
+    "emoi_omikuji_v2_html": {
+      "fallbackTitle": "Emoi Omikuji",
+      "tagline": "Tirez un billet de fortune et lisez un message pour réfléchir à votre journée.",
+      "premiumIntro": "Tirez un billet de fortune et lisez un message pour réfléchir à votre journée.",
+      "fallbackCta": "Tirer le billet du jour",
+      "premiumOutcomes": {
+        "0": "Prenez le résultat comme un repère léger et tenez compte de votre situation pour les décisions importantes."
+      },
+      "headline": "Tirez un billet de fortune et lisez un message pour réfléchir à votre journée.",
+      "badge": "Le billet du jour"
+    },
+    "saju_fpti": {
+      "fallbackTitle": "Saju FPTI",
+      "badge": "Saju FPTI",
+      "tagline": "Explorez votre tempérament et vos choix à travers les Cinq Éléments et les Dix Dieux.",
+      "headline": "Explorez votre tempérament et vos choix à travers les Cinq Éléments et les Dix Dieux.",
+      "premiumIntro": "Explorez votre tempérament et vos choix à travers les Cinq Éléments et les Dix Dieux.",
+      "fallbackCta": "Explorer mes tendances",
+      "ctaNote": "Les résultats essentiels sont gratuits. Consultez les conditions propres au rapport approfondi.",
+      "premiumOutcomes": {
+        "0": "Ce contenu aide à mieux se comprendre ; ce n’est pas un test qui détermine définitivement votre personnalité."
+      }
+    },
+    "saju_compatibility": {
+      "fallbackTitle": "Compatibilité Saju",
+      "badge": "Compatibilité Saju",
+      "tagline": "Comparez deux thèmes de naissance pour explorer la relation et les points à ajuster ensemble.",
+      "headline": "Comparez deux thèmes de naissance pour explorer la relation et les points à ajuster ensemble.",
+      "premiumIntro": "Comparez deux thèmes de naissance pour explorer la relation et les points à ajuster ensemble.",
+      "fallbackCta": "Préparer la lecture de compatibilité",
+      "ctaNote": "Préparez les informations des deux personnes et vérifiez les conditions des pass, pierres de lune et paiements à l’unité avant l’analyse.",
+      "premiumOutcomes": {
+        "0": "Le résultat ne définit pas la relation ; utilisez-le comme repère pour dialoguer et choisir."
+      }
+    },
+    "saju_career_style": {
+      "fallbackTitle": "Ma façon de travailler",
+      "tagline": "Un rapport saju de connaissance de soi en coréen, en huit chapitres, basé sur votre profil. Explorez vos tendances, la branche du mois et les conditions de travail.",
+      "premiumIntro": "Connectez-vous, puis sélectionnez ou créez une fiche de profil pour lire gratuitement.",
+      "fallbackCta": "Se connecter pour découvrir gratuitement",
+      "premiumOutcomes": {
+        "0": "Aucun paiement, avis ou partage obligatoire.",
+        "1": "Un contenu de réflexion personnelle fondé sur le saju, qui ne remplace ni un bilan professionnel d’orientation ni un accompagnement psychologique."
+      }
     }
   },
   "featureMarketingCategory": {

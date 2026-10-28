@@ -151,6 +151,7 @@ var LOVE_CODE_FEATURE = {
 };
 
 var REPORT_CARDS = [
+  {id:"career-style",target:"careerStyle",thumb:"career-style-yeoni.webp",label:"나의 일 스타일",desc:"성향과 월지로 내게 맞는 업무 조건을 탐색해요.",note:"프로필 카드로 보는 여덟 장의 자기이해 리포트",cta:"무료 리포트 알아보기",action:"openCareerStyleRoute",coinCost:0,mainLock:false,badge:"가입 후 무료",category:"self"},
   { id:'meryok',     label:_reportDashboardText("rd.label.001"),      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:_reportDashboardText("rd.cta.004"), thumb:'meryok-new.webp', accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:10  },
   { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:_reportDashboardText("rd.label.002"),        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:_reportDashboardText("rd.cta.005"),          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'10,000원 · 영구 해금'  },
   { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:_reportDashboardText("rd.label.003"),      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:_reportDashboardText("rd.cta.006"),      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:50  },
@@ -325,7 +326,7 @@ REPORT_CARDS.forEach(function(card) { if (card && !card.category) card.category 
 })();
 
 function _rptIsDirectAction(actionName) {
-  return actionName === 'openFortunePlanner' || actionName === 'openLegacyLuckSyncDiary' || actionName === 'openRelationshipBoundaryTestRoute' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute' || actionName === 'openDestinyMeetingPlaceRoute' || actionName === 'openLoveSimulationRoute';
+  return actionName === 'openCareerStyleRoute' || actionName === 'openFortunePlanner' || actionName === 'openLegacyLuckSyncDiary' || actionName === 'openRelationshipBoundaryTestRoute' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute' || actionName === 'openDestinyMeetingPlaceRoute' || actionName === 'openLoveSimulationRoute';
 }
 
 window.openSecretHouseRoute = function() {
@@ -360,6 +361,8 @@ window.openSecretHouseRoute = function() {
     window.open(target, '_blank');
   }
 };
+
+window.openCareerStyleRoute = function() { window.location.href = "/saju/career-style/"; };
 
 window.openAnimalDestinyRoute = function() {
   var target = SAJU_ANIMAL_TEST_FEATURE.href || '/saju/animal-destiny';

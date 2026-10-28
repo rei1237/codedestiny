@@ -8,7 +8,7 @@
  *   ④ app/_lib/serviceSections.js 55개 (렌더되지 않는 데드코드)
  * ①②를 여기로 합쳤다. ③은 폐기하지 않는다 — 컬렉션 타일 수백 개의 검색 커버리지가
  * 거기에 있어서, home-service-finder.js 가 이 레지스트리와 스크래핑 결과를 **병합**한다.
- * 태그(purposes/methods)를 가진 항목만 필터 대상이 되고, 스크래핑 항목은 검색어 매칭 전용이다.
+ * 컬렉션은 원본의 data-cd-methods/data-cd-purposes를 함께 읽어 검색과 필터에 참여한다.
  *
  * 🔴 인라인 <script> 로 되돌리지 말 것 — 8KB 를 넘으면 외부 청크로 빠지면서 data-marker 가
  *    사라지고 scripts/split-dist-boot-tasks.mjs 의 허용목록이 죽는다(index.html 주석 참조).
@@ -48,7 +48,7 @@
  */
 window.__cdServiceRegistryMeta = {
   purposes: ["love", "money", "career", "family", "life", "today", "compatibility", "self", "etc"],
-  methods: ["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot", "ai"],
+  methods: ["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot", "ai", "etc"],
 };
 
 window.__cdServiceRegistry = [
@@ -65,7 +65,7 @@ window.__cdServiceRegistry = [
     featureKeyTo: "master-love-codex-compat",
     price: "30,000원~50,000원",
     purposes: ["love", "compatibility"],
-    methods: ["saju", "ai"],
+    methods: ["saju","ziwei","ai"],
     keys: "인연 연애 만남 시기 재회 짝사랑 사주",
     badge: "대표",
     roles: ["recommended"],
@@ -83,7 +83,7 @@ window.__cdServiceRegistry = [
     price: "5,000원~15,000원",
     priceFrom: true,
     purposes: ["love", "self", "life"],
-    methods: ["tarot", "saju", "ai"],
+    methods: ["tarot", "saju", "sukuyo", "ai"],
     keys: "찻집 상담 연이 마음 고민",
     badge: "대표",
     roles: ["recommended"],
@@ -99,7 +99,7 @@ window.__cdServiceRegistry = [
     imageAlt: "연이·서한비의 연애 비책 상담 장면",
     price: "30,000원",
     purposes: ["love"],
-    methods: ["ai"],
+    methods: ["saju", "ai"],
     keys: "연애 재회 짝사랑 이별 관계 사주",
     badge: "대표",
     roles: ["recommended"],
@@ -115,7 +115,7 @@ window.__cdServiceRegistry = [
     featureKey: "fortune-chat-consultation",
     price: "5,000원",
     purposes: ["love", "self", "life", "etc"],
-    methods: ["ai"],
+    methods: ["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot", "ai"],
     keys: "상담 채팅 대화 연이 네오 고민",
   },
 
@@ -188,7 +188,7 @@ window.__cdServiceRegistry = [
     featureKey: "neo-operation-room-consultation",
     price: "30,000원",
     purposes: ["money", "career", "life"],
-    methods: ["saju", "ai"],
+    methods: ["saju","ziwei","vedic","astrology","ai"],
     keys: "네오 작전실 팩폭 전략 현실 사주",
     badge: "대표",
     roles: ["recommended"],
@@ -662,6 +662,8 @@ window.__cdServiceRegistry = [
     keys: "십이운성 동물점 수호동물 성향 사주",
   },
 
+  { id: "career-style", name: "나의 일 스타일", question: "어떤 조건에서 내 강점이 살아날까?", desc: "가입 후 무료 · 성향과 월지로 살펴보는 업무 환경", href: "/saju/career-style/", image: "/fuctionassets/career-style-yeoni.webp", imageAlt: "노트와 나침반으로 진로 탐색을 돕는 연이", price: "무료 시작", badge: "가입 후 무료", purposes: ["self", "career"], methods: ["saju"], keys: "진로 적성 일 스타일 자기이해 무료" },
+
   /* ── 신탁·오라클·기타 유료 체험 ──────────────────────────────── */
   {
     image: "/images/service-introductions/kemet-oracle-320.webp",
@@ -847,6 +849,111 @@ window.__cdServiceRegistry = [
     keys: "룬 스톤헨지 노른 우르드 베르단디 스쿨드",
   },
 
+  {
+    id: "nakshatra-ai",
+    name: "숙요·나크샤트라 통합 상담",
+    desc: "동양 숙요와 인도 나크샤트라를 각각 읽고 나의 흐름을 함께 살펴봐요",
+    href: "/nakshatra/ai/",
+    featureKey: "nakshatra-ai-consultation",
+    purposes: [
+      "self",
+      "life"
+    ],
+    methods: [
+      "sukuyo",
+      "vedic",
+      "ai"
+    ],
+    keys: "숙요점 베다점 나크샤트라 전문가 AI 통합 상담",
+    price: "30,000원",
+    image: "/images/service-introductions/nakshatra-ai-320.webp",
+    imageAlt: "숙요·나크샤트라 통합 상담의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  {
+    id: "nakshatra-vvip-codex",
+    name: "나크샤트라 VVIP 코덱스",
+    desc: "숙요와 나크샤트라, 지배성과 다샤의 흐름을 한 권의 통합서로 읽어요",
+    href: "/nakshatra/vvip/",
+    featureKey: "nakshatra-vvip-codex",
+    purposes: [
+      "self",
+      "life"
+    ],
+    methods: [
+      "sukuyo",
+      "vedic",
+      "ai"
+    ],
+    keys: "숙요점 베다점 나크샤트라 통합서 PDF",
+    price: "30,000원",
+    image: "/images/service-introductions/nakshatra-vvip-codex-320.webp",
+    imageAlt: "나크샤트라 VVIP 코덱스의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  {
+    id: "omikuji",
+    name: "이모이 오미쿠지",
+    desc: "제비를 뽑고 오늘 마음에 남길 짧은 조언을 만나보세요",
+    href: "/emoi_omikuji_v2.html",
+    price: "무료",
+    purposes: [
+      "today",
+      "self"
+    ],
+    methods: [
+      "etc"
+    ],
+    keys: "일본 제비뽑기 오늘 운세 오미쿠지",
+    image: "/images/service-introductions/omikuji-320.webp",
+    imageAlt: "이모이 오미쿠지의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  {
+    id: "neo-consultation",
+    name: "네오에게 물어봐",
+    desc: "직접 검수한 답변을 이메일로 받는 상담. 사주·자미두수 추가 분석은 접수 화면에서 선택해요",
+    href: "/neo-consultation/",
+    featureKey: "neo-email-consultation",
+    priceFrom: true,
+    purposes: [
+      "life",
+      "love",
+      "career",
+      "money",
+      "self"
+    ],
+    methods: [
+      "saju",
+      "ziwei"
+    ],
+    keys: "네오 직접 검수 전문가 이메일 상담",
+    badge: "직접 검수",
+    price: "30,000원",
+    image: "/images/service-introductions/neo-consultation-320.webp",
+    imageAlt: "네오의 네오에게 물어봐 상담 장면"
+  },
+
+  {
+    id: "saju-compatibility",
+    name: "사주 궁합",
+    desc: "두 사람의 명식을 바탕으로 관계의 조화와 차이를 살펴봐요",
+    href: "/saju/compatibility/",
+    aliases: ["runCompat"],
+    featureKey: "compat-saju-compatibility",
+    price: "10,000원",
+    purposes: ["love", "compatibility"],
+    methods: ["saju"],
+    keys: "궁합 연인 결혼 관계",
+  },
+  {
+    id: "saju-fpti",
+    name: "사주 FPTI",
+    desc: "오행과 십성을 네 가지 성향 축으로 읽어요. 핵심 결과는 무료, 심화 리포트는 별도 조건을 확인해요",
+    href: "/saju-fpti/",
+    aliases: ["openSajuFptiTest"],
+    price: "무료 시작",
+    purposes: ["self"],
+    methods: ["saju"],
+    keys: "FPTI 성향 테스트 오행 십성",
+  },
   /* ── 그 밖의 진입점 ─────────────────────────────────────────── */
   {
     image: "/images/service-introductions/luck-sync-diary-320.webp",
