@@ -17224,6 +17224,18 @@
       "premiumOutcomes": {
         "0": "Aucun paiement, avis ou partage obligatoire.",
         "1": "Un contenu de réflexion personnelle fondé sur le saju, qui ne remplace ni un bilan professionnel d’orientation ni un accompagnement psychologique."
+      },
+      "receives": {
+        "0": {
+          "title": "Ma façon de travailler",
+          "detail": "Un rapport saju de connaissance de soi en coréen, en huit chapitres, basé sur votre profil. Explorez vos tendances, la branche du mois et les conditions de travail."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Parcours du rapport",
+          "detail": "Explorez vos tendances et la branche du mois, les conditions et rôles de travail, les limites de vos forces et de petites expériences professionnelles."
+        }
       }
     }
   },

@@ -8078,8 +8078,15 @@
       "verification": "source-inventory-only",
       "imageAlt": "노트와 나침반으로 진로 탐색을 돕는 연이",
       "catalogImage": "/fuctionassets/career-style-yeoni.webp",
-      "benefits": [],
-      "contents": [],
+      "benefits": [
+        "나의 일 스타일"
+      ],
+      "contents": [
+        {
+          "title": "리포트 읽는 순서",
+          "detail": "성향과 월지, 업무 조건과 역할, 강점의 그림자, 작은 진로 실험을 차례로 살펴봐요."
+        }
+      ],
       "theme": "navy",
       "journey": {
         "questions": [],
