@@ -17224,6 +17224,18 @@
       "premiumOutcomes": {
         "0": "Keine Zahlung, Bewertung oder Weitergabe erforderlich.",
         "1": "Saju-basierte Selbstreflexion; kein Ersatz für professionelle Berufsdiagnostik oder psychologische Beratung."
+      },
+      "receives": {
+        "0": {
+          "title": "Mein Arbeitsstil",
+          "detail": "Ein koreanischer Saju-Bericht zur Selbstreflexion in acht Kapiteln, basierend auf deiner Profilkarte. Erkunde Neigungen, den Monatszweig und Arbeitsbedingungen."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Der Weg durch den Bericht",
+          "detail": "Erkunde Neigungen und den Monatszweig, Arbeitsbedingungen und Rollen, die Schattenseiten von Stärken und kleine berufliche Experimente."
+        }
       }
     }
   },

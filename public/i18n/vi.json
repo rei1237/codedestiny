@@ -17224,6 +17224,18 @@
       "premiumOutcomes": {
         "0": "Không bắt buộc thanh toán, viết đánh giá hoặc chia sẻ.",
         "1": "Nội dung tự khám phá dựa trên saju, không thay thế đánh giá nghề nghiệp chuyên môn hay tư vấn tâm lý."
+      },
+      "receives": {
+        "0": {
+          "title": "Phong cách làm việc của tôi",
+          "detail": "Báo cáo tự khám phá saju bằng tiếng Hàn gồm tám chương dựa trên thẻ hồ sơ, tìm hiểu khuynh hướng, địa chi tháng và điều kiện làm việc."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Trình tự đọc báo cáo",
+          "detail": "Lần lượt tìm hiểu khuynh hướng và địa chi tháng, điều kiện và vai trò công việc, mặt hạn chế của điểm mạnh và những thử nghiệm nghề nghiệp nhỏ."
+        }
       }
     }
   },

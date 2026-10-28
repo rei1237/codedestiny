@@ -17224,6 +17224,18 @@
       "premiumOutcomes": {
         "0": "No payment, reviews or sharing required.",
         "1": "Saju-based self-reflection content; not a substitute for professional career assessments or psychological counseling."
+      },
+      "receives": {
+        "0": {
+          "title": "My work style",
+          "detail": "An eight-chapter Korean saju self-reflection report based on your profile card. Explore tendencies, the month branch and working conditions."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Your report journey",
+          "detail": "Explore tendencies and the month branch, working conditions and roles, the downsides of strengths, and small career experiments."
+        }
       }
     }
   },

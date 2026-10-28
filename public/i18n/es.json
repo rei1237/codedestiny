@@ -17224,6 +17224,18 @@
       "premiumOutcomes": {
         "0": "No se exige pagar, escribir reseñas ni compartir.",
         "1": "Contenido de autoconocimiento basado en saju; no sustituye las evaluaciones profesionales de orientación laboral ni el asesoramiento psicológico."
+      },
+      "receives": {
+        "0": {
+          "title": "Mi estilo de trabajo",
+          "detail": "Informe de autoconocimiento saju en coreano, con ocho capítulos basados en tu perfil. Explora tendencias, la rama del mes y condiciones de trabajo."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Recorrido por el informe",
+          "detail": "Explora tendencias y la rama del mes, condiciones y roles de trabajo, los límites de tus fortalezas y pequeños experimentos profesionales."
+        }
       }
     }
   },
