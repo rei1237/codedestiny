@@ -36,7 +36,7 @@ let storageFault;
 let revokedAt = -1;
 let paidMode = "pass";
 let blockedFetch;
-let legacyRefund, monthlyRefund;
+let legacyRefund, monthlyRefund, restoreAllowed;
 
 /** 24-hex ObjectId 모양. 라우트가 /^[0-9a-f]{24}$/ 로 검사한다. */
 let objectIdCounter = 0;
@@ -191,10 +191,14 @@ beforeAll(async () => {
     MonthlyCreditLedger: { find: () => ({ sort: () => ({ lean: async () => [] }) }), findOne: () => thenableWithLean(revokedAt === 3 ? { id: "revoked" } : null) },
     Payment: { findOne: () => thenableWithLean(revokedAt === 1 ? { id: "revoked" } : null), updateOne: jest.fn(async () => ({})) },
     PointHistory: { findOne: query => thenableWithLean(revokedAt === 2 ? { id: "revoked" } : paidMode === "paid" && query.kind === "deduct" ? { _id: "64b7f2a1c3d4e5f600000009", metadata: { accessType: "coin" } } : null), create: jest.fn(async () => ({})), updateOne: jest.fn(async () => ({})) },
+    ContentEntitlement: {},
+    ServiceExecutionTransaction: {},
   }));
 
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => paidMode === "subscription" ? { ledgerId: "64b7f2a1c3d4e5f600000008" } : null }));
   legacyRefund = jest.fn(async () => true); monthlyRefund = jest.fn(async () => true);
+  const actualEligibility = await import("../../worker/lib/sukuyo-refund-eligibility.js");
+  jest.unstable_mockModule("../../worker/lib/sukuyo-refund-eligibility.js", () => ({ ...actualEligibility, canRestoreSukuyoDebit: async () => restoreAllowed }));
   jest.unstable_mockModule("../../worker/lib/sukuyo-legacy-refund.js", () => ({ restoreSukuyoLegacyRefund: legacyRefund }));
   jest.unstable_mockModule("../../worker/lib/sukuyo-monthly-refund.js", () => ({ restoreSukuyoMonthlyRefund: monthlyRefund }));
 
@@ -227,7 +231,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  storageFault = null; revokedAt = -1; paidMode = "pass";
+  storageFault = null; revokedAt = -1; paidMode = "pass"; restoreAllowed = true;
   store.docs.length = 0;
   findCallArgs = [];
   callGeminiJsonWithRetryMock.mockReset();
@@ -271,11 +275,49 @@ test("다른 isolate의 동시 요청도 한 묶음만 생성한다", async () =
   expect((await runWave()).status).toBe(202); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
   release(); expect((await first).status).toBe(202);
 });
+test('기존 증빙 claim이 없는 과거 부분 상담도 같은 결제의 새 생성을 막는다', async () => {
+  paidMode = 'paid'; mockSectionsResolvedImmediately();
+  expect((await runWave()).status).toBe(202);
+  const saved = structuredClone(store.docs[0].llmMeta.sections);
+  globalThis.__cdBillingEvidenceClaims.clear();
+  const before = callGeminiJsonWithRetryMock.mock.calls.length;
+  const response = await handleSukuyoCompatibilityAiRoutes(startRequest(KEY + '-different'), ENV);
+  expect(response.status).toBe(409); expect(await response.json()).toMatchObject({ reason: 'EVIDENCE_ALREADY_USED' });
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(before);
+  expect(store.docs).toHaveLength(1); expect(store.docs[0].llmMeta.sections).toEqual(saved);
+});
 test("짧은 결과는 세 번만 보완한 뒤 실패로 남긴다", async () => {
   callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: buildSectionPayload([]) }));
   for (let i = 0; i < 2; i++) expect((await runWave()).status).toBe(202);
   expect((await runWave()).status).toBe(503); expect(store.docs[0].status).toBe("generation_failed");
   expect((await runWave()).status).toBe(409); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(2);
+});
+test.each(['paid', 'subscription'])('%s: 복원 자격을 확인할 수 없으면 차감 증빙을 다른 요청에 풀지 않는다', async mode => {
+  paidMode = mode; restoreAllowed = false;
+  callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: 'gemini', text: buildSectionPayload([]) }));
+  await runWave(); await runWave(); const held = await runWave();
+  expect(held.status).toBe(409); expect(await held.json()).toMatchObject({ reason: 'REFUND_REVIEW_REQUIRED' });
+  expect(legacyRefund).not.toHaveBeenCalled(); expect(monthlyRefund).not.toHaveBeenCalled();
+  const claims = globalThis.__cdBillingEvidenceClaims;
+  expect([...claims.values()].some(row => row.userId === USER_ID && row.requestId === KEY)).toBe(true);
+  const replay = await runWave(); expect(replay.status).toBe(409);
+  expect(await replay.json()).toMatchObject({ reason: 'REFUND_REVIEW_REQUIRED' });
+});
+test.each(['paid', 'subscription'])('%s: 복원 완료 뒤에는 해당 요청의 증빙을 정리한다', async mode => {
+  paidMode = mode;
+  callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: 'gemini', text: buildSectionPayload([]) }));
+  await runWave(); await runWave(); expect((await runWave()).status).toBe(503);
+  expect(mode === 'paid' ? legacyRefund : monthlyRefund).toHaveBeenCalledTimes(1);
+  expect([...globalThis.__cdBillingEvidenceClaims.values()].some(row => row.userId === USER_ID && row.requestId === KEY)).toBe(false);
+});
+test('복원 응답을 확인하지 못하면 검토 상태와 원 증빙을 유지한다', async () => {
+  paidMode = 'paid'; legacyRefund.mockRejectedValueOnce(new Error('response lost'));
+  callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: 'gemini', text: buildSectionPayload([]) }));
+  await runWave(); await runWave(); const response = await runWave();
+  expect(response.status).toBe(409); expect(await response.json()).toMatchObject({ reason: 'REFUND_REVIEW_REQUIRED' });
+  expect(store.docs[0].generationError.code).toBe('REFUND_REVIEW_REQUIRED');
+  expect([...globalThis.__cdBillingEvidenceClaims.values()].some(row => row.userId === USER_ID && row.requestId === KEY)).toBe(true);
+  expect(await (await runWave()).json()).toMatchObject({ reason: 'REFUND_REVIEW_REQUIRED' });
 });
 test.each(["pass", "paid", "subscription"])("%s: 저장된 본문이 있으면 재시도 소진 시 본문과 결제를 보존한다", async mode => {
   paidMode = mode;

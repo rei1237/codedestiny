@@ -2,9 +2,11 @@
 import { jest } from '@jest/globals';
 const userId = '64b7f2a1c3d4e5f601234567';
 const evidenceId = '64b7f2a1c3d4e5f600000009';
-let restore, history, find, mark, credit, create, external;
+let restore, history, find, mark, credit, create, external, eligibility;
 const query = value => ({ lean: async () => value });
 beforeAll(async () => {
+ eligibility = jest.fn(async () => true);
+ jest.unstable_mockModule('../../worker/lib/sukuyo-refund-eligibility.js', () => ({ canRestoreSukuyoDebit: (...args) => eligibility(...args) }));
  const models = await import('../../worker/lib/models.js');
  const paymentDb = await import('../../worker/payments/db.js');
  jest.unstable_mockModule('../../worker/payments/db.js', () => ({ ...paymentDb,
@@ -23,13 +25,14 @@ beforeAll(async () => {
 });
 beforeEach(() => {
  history = { _id: evidenceId, delta: 0, metadata: {} };
+ eligibility.mockReset(); eligibility.mockResolvedValue(true);
  find = jest.fn(() => query(history));
  mark = jest.fn(async () => ({ modifiedCount: 1 }));
  credit = jest.fn(() => ({ points: 12 })); create = jest.fn(async () => ({}));
  external = jest.spyOn(globalThis, 'fetch').mockImplementation(() => { throw Error('external fetch forbidden'); });
 });
 afterEach(() => { expect(external).not.toHaveBeenCalled(); external.mockRestore(); });
-const run = () => restore({}, { userId }, { accessType: 'paid', paymentId: evidenceId }, new Error('generation failed'));
+const run = () => restore({}, { userId }, { accessType: 'paid', paymentId: evidenceId }, new Error('generation failed'), 'failed-request');
 
 test.each([0, null, undefined, 12, Infinity, -Infinity])('a deduct record with delta %s never invents a refund', async delta => {
  history.delta = delta;
@@ -54,4 +57,11 @@ test('missing original deduction is never treated as a refund', async () => {
  history = null;
  expect(await run()).toBe(false);
  expect(mark).not.toHaveBeenCalled(); expect(credit).not.toHaveBeenCalled(); expect(create).not.toHaveBeenCalled();
+});
+
+test('a linked or uncertain delivery prevents any restoration', async () => {
+ history.delta = -12; eligibility.mockResolvedValue(false);
+ expect(await run()).toBe(false);
+ expect(eligibility).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ userId, evidenceId, requestId: 'failed-request' }));
+ expect(find).not.toHaveBeenCalled(); expect(mark).not.toHaveBeenCalled(); expect(credit).not.toHaveBeenCalled(); expect(create).not.toHaveBeenCalled();
 });

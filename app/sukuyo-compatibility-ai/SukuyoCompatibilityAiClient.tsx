@@ -478,8 +478,9 @@ const ERROR_TEXT: Record<string, string> = {
   PAYMENT_CANCELLED: "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.",
   INVALID_INPUT: "상담에 필요한 정보가 부족해요. 두 사람의 생년월일과 달력 기준을 다시 확인해 주세요.",
   CALCULATION_FAILED: "숙요점 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
-  SERVER_ERROR: "상담 준비 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
-  LLM_FAILED: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
+  SERVER_ERROR: "상담 준비 중 문제가 생겼어요. 결제가 완료되었다면 추가 결제하지 말고 고객센터에 문의해 주세요.",
+  LLM_FAILED: "상담문을 생성하는 중 문제가 생겼어요. 결제 내역 확인이 필요하면 고객센터에 문의해 주세요.",
+  REFUND_REVIEW_REQUIRED: "결제 내역 확인이 필요해요. 추가 결제하지 말고 고객센터에 문의해 주세요.",
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
   TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정해요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
   GENERATION_TIMEOUT: "상담문이 아직 완성되지 않았어요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
@@ -1574,7 +1575,7 @@ export default function SukuyoCompatibilityAiClient() {
     const pending = pendingGenerationRef.current;
     if (pending) {
       try { await startConsultation(pending.key, pending.access, true, pending.sessionId ? { resumeSessionId: pending.sessionId } : pending.body); }
-      catch (error) { if (isCurrent()) { setError(error instanceof Error ? error.message : ERROR_TEXT.SERVER_ERROR); setPhase("idle"); } }
+      catch (error) { if (isCurrent()) { const code = error instanceof TypeError ? "NETWORK_ERROR" : error instanceof Error ? error.message : "SERVER_ERROR"; setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR); setPhase("idle"); } }
       return;
     }
     const previewState = readDevPreviewState();

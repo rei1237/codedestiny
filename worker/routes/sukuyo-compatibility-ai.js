@@ -31,7 +31,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
 import { RELATIONSHIP_ANALYSIS_DOMAINS, buildDomainAnalysisRuleLines, buildEvidenceRuleLines } from "../lib/fortune-reasoning-contract.js";
-import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
+import { claimRequestBillingEvidence, evidenceAlreadyUsedResult, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 const FEATURE_KEY = "sukuyo-compatibility-ai";
 const TITLE = "숙요점 전문가 상담";
@@ -1732,7 +1732,7 @@ function executionAccessMethod(accessType) {
 
 // 선차감(코인/월정석)된 접근에서 생성이 실패하면 차감을 되돌린다.
 // vedic-ai.js의 restorePrepaidAccessOnFailure와 동일한 멱등 환급 규약을 따른다.
-async function restorePrepaidAccessOnFailure(env, auth, access, error) {
+async function restorePrepaidAccessOnFailure(env, auth, access, error, requestId = "") {
   const accessType = clean(access?.accessType).toLowerCase();
   // 이용권/월정석 커버(pass/family/license)·관리자·토큰 접근은 차감이 없으므로 환급 대상 아님.
   if (!["paid", "subscription"].includes(accessType)) return false;
@@ -1743,6 +1743,8 @@ async function restorePrepaidAccessOnFailure(env, auth, access, error) {
   const failureMessage = clean(error?.message || error || "sukuyo compatibility generation failed", 500);
 
   try {
+    const { canRestoreSukuyoDebit } = await import("../lib/sukuyo-refund-eligibility.js");
+    if (!await canRestoreSukuyoDebit(env, { userId, evidenceId, requestId })) return false;
     if (accessType === "subscription") {
       const { restoreSukuyoMonthlyRefund } = await import("../lib/sukuyo-monthly-refund.js");
       return await restoreSukuyoMonthlyRefund(env, { userId, evidenceId, failureMessage });
@@ -1873,7 +1875,8 @@ async function handleStart(request, env, recoveryAuth = null) {
         { status: 202 },
       );
     }
-    if (existingStatus === "generation_failed") return json({ ok: false, reason: "LLM_FAILED" }, { status: 409 });
+    if (existingStatus === "generation_failed") return json({ ok: false,
+      reason: existing?.generationError?.code === "REFUND_REVIEW_REQUIRED" ? "REFUND_REVIEW_REQUIRED" : "LLM_FAILED" }, { status: 409 });
     const accessHash = await inputHash(normalized);
     if (existing?.inputHash && existing.inputHash !== accessHash) return json({ ok: false, reason: "REQUEST_CONFLICT", message: "기존 상담과 입력이 달라요. 저장된 상담에서 이어서 시도해 주세요." }, { status: 409 });
     logSukyoAi("[Sukyo AI LLM Access Check Start]", {
@@ -1906,6 +1909,17 @@ async function handleStart(request, env, recoveryAuth = null) {
     const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
     if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
     const releaseEvidence = () => releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds }).catch(() => null);
+    if (access.claimEvidenceId) {
+      try {
+        const { findOtherSukuyoDelivery } = await import("../lib/sukuyo-refund-eligibility.js");
+        const linked = await findOtherSukuyoDelivery({ userId: auth.userId,
+          evidenceIds: [access.claimEvidenceId, access.paymentId], requestId: idempotencyKey });
+        if (linked) { await releaseEvidence(); return json(evidenceClaimErrorBody(evidenceAlreadyUsedResult()), { status: 409 }); }
+      } catch {
+        await releaseEvidence();
+        throw resultStorageUnavailable(idempotencyKey);
+      }
+    }
     logSukyoAi("[Sukyo AI LLM Access Check Success]", {
       route: "/api/sukuyo-compatibility-ai/generate",
       requestId: idempotencyKey,
@@ -1918,14 +1932,16 @@ async function handleStart(request, env, recoveryAuth = null) {
       calculation = existing?.llmMeta?.calculation || await calculateSukuyo(normalized, env, request.url);
     } catch (calcError) {
       // 아직 시드가 없다 — 뒤집을 문서가 없으므로 기존과 동일하게 환급 후 전파한다.
-      const restored = await restorePrepaidAccessOnFailure(env, auth, access, calcError).catch(() => false);
-      await releaseEvidence();
+      const restored = await restorePrepaidAccessOnFailure(env, auth, access, calcError, idempotencyKey).catch(() => false);
+      const prepaid = ["paid", "subscription"].includes(clean(access.accessType).toLowerCase()) && isObjectIdLike(clean(access.paymentId));
+      if (restored || !prepaid) await releaseEvidence();
       logSukyoAi("[Sukyo AI LLM Refund Or Restore]", {
         route: "/api/sukuyo-compatibility-ai/generate",
         requestId: idempotencyKey,
         consultationType: normalized.consultationType,
         restored,
       }, restored ? null : calcError, env);
+      if (prepaid && !restored) return json({ ok: false, reason: "REFUND_REVIEW_REQUIRED" }, { status: 409 });
       throw calcError;
     }
     const now = new Date();
@@ -2051,10 +2067,19 @@ async function handleStart(request, env, recoveryAuth = null) {
           sessionId, resumeSessionId: sessionId, idempotencyKey, consultation: await serializeConsultation(partial) }, { status: 202 });
       }
       // 실패 확정도 현재 생성 잠금을 소유한 요청만 수행한다. 저장 장애는 환불로 보내지 않는다.
+      const prepaid = ["paid", "subscription"].includes(clean(access.accessType).toLowerCase()) && isObjectIdLike(clean(access.paymentId));
       await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { status: "generation_failed", generationError: {
-        code: clean(genError?.code || "LLM_GENERATION_FAILED", 80), message: clean(genError?.message || genError, 500), at: new Date().toISOString(),
+        code: prepaid ? "REFUND_REVIEW_REQUIRED" : clean(genError?.code || "LLM_GENERATION_FAILED", 80), message: clean(genError?.message || genError, 500), at: new Date().toISOString(),
       } });
-      await restorePrepaidAccessOnFailure(env, auth, access, genError).catch(() => false);
+      const restored = await restorePrepaidAccessOnFailure(env, auth, access, genError, idempotencyKey).catch(() => false);
+      if (prepaid && !restored) {
+        return json({ ok: false, reason: "REFUND_REVIEW_REQUIRED", sessionId }, { status: 409 });
+      }
+      if (prepaid && restored) {
+        const marked = await SukuyoCompatibilityAiConsultation.updateOne({ _id: sessionId, userId: auth.userId, status: "generation_failed" },
+          { $set: { "generationError.code": clean(genError?.code || "LLM_GENERATION_FAILED", 80) } });
+        if (!marked?.matchedCount) throw resultStorageUnavailable(sessionId);
+      }
       await releaseEvidence();
       throw genError;
     }
