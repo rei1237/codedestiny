@@ -117,15 +117,29 @@ async function verifyStaticMobileJourney() {
 
       await page.evaluate(() => window.__cdMobileNav.markFeature("journey-test"));
       await page.goBack({ waitUntil: "domcontentloaded" });
-      await page.waitForTimeout(220);
+      // Back dispatch and the overlay lifecycle cleanup run on separate tasks.
+      // Observe their completed state instead of sampling a fixed 220 ms later.
+      // A persistent lock still fails, with the active overlays in the error.
+      await page.waitForFunction(() => window.__cdMobileNav.getState().surface === 'main'
+        && document.body.style.overflow !== 'hidden', undefined, { timeout: 5000 }).catch(async (error) => {
+        const pending = await page.evaluate(() => ({
+          navigation: window.__cdMobileNav.getState(),
+          overflow: document.body.style.overflow,
+          overlays: [...document.querySelectorAll('[id$="Overlay"], dialog[open]')]
+            .filter(node => { const style = getComputedStyle(node); return style.display !== 'none' && style.visibility !== 'hidden' && node.getBoundingClientRect().height > 0; })
+            .map(node => node.id || node.className),
+        }));
+        throw new Error(`${viewport.width}px: browser back did not finish cleanup ${JSON.stringify(pending)}: ${error.message}`);
+      });
       const back = await page.evaluate(() => ({
         path: window.location.pathname,
         surface: window.__cdMobileNav.getState().surface,
         bodyOverflow: document.body.style.overflow,
+        visibleOverlays: [...document.querySelectorAll('body [id$="Overlay"], body [role="dialog"], .cd-boot-gate__veil')].filter(node => { const style = getComputedStyle(node); return style.display !== 'none' && style.visibility !== 'hidden' && node.getBoundingClientRect().height > 0; }).map(node => ({ id: node.id, className: node.className, display: node.style.display })),
       }));
       check(back.path === "/", `${viewport.width}px: browser back rewrote ${back.path} instead of preserving /`);
       check(back.surface === "main", `${viewport.width}px: browser back did not restore the main surface (${JSON.stringify(back)})`);
-      check(back.bodyOverflow !== "hidden", `${viewport.width}px: browser back left body scroll locked`);
+      check(back.bodyOverflow !== "hidden", `${viewport.width}px: browser back left body scroll locked (${JSON.stringify(back)})`);
       await context.close();
     }
   } finally {
