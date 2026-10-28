@@ -270,7 +270,7 @@ async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requ
  *
  * @returns {Promise<{refunded:boolean, amount?:number, skipped?:boolean, reason?:string}>}
  */
-export async function refundPassCoverage({ userId, cycleKey, cost, refundId, restorePass = null, sourcePointHistoryId = null, db = nativeDb }) {
+export async function refundPassCoverage({ userId, cycleKey, cost, refundId, restorePass = null, sourcePointHistoryId = null, sourceFeatureKey = '', sourceRequestId = '', db = nativeDb }) {
   const amount = Math.max(0, Math.floor(Number(cost) || 0));
   const key = String(cycleKey || "").trim();
   if (!userId || amount <= 0 || !key || !refundId) return { refunded: false, skipped: true };
@@ -290,6 +290,8 @@ export async function refundPassCoverage({ userId, cycleKey, cost, refundId, res
     if (sourcePointHistoryId) {
       if (!sourceId) throw sourceFailure();
       const claimed = unwrapUser(await tx.findOneAndUpdate(PointHistory, { _id: sourceId, userId: uid, kind: 'deduct',
+        ...(sourceFeatureKey ? { featureKey: sourceFeatureKey } : {}),
+        ...(sourceRequestId ? { 'metadata.requestId': sourceRequestId } : {}),
         'metadata.passCycleKey': key, 'metadata.refundedForServiceExecution': { $ne: true },
         'metadata.passQuotaRefundReceiptId': { $exists: false },
       }, { $set: { 'metadata.refundedForServiceExecution': true, 'metadata.refundedAt': new Date(),

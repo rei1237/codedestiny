@@ -490,11 +490,21 @@ async function runPassQuotaRefund({ userId, executionId, execution }) {
     return { refunded: true, idempotent: true, amount: cost };
   }
 
+  const featureKey = cleanMetadataText(execution?.featureKey, 120);
+  const requestId = cleanMetadataText(execution?.idempotencyKey, 180);
+  if (!featureKey || !requestId) return { refunded: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true };
+  const { passUsageEvidenceId } = await import("../payments/passes.js");
+  const sourcePointHistoryId = passUsageEvidenceId(userId, featureKey, requestId);
+  if (!sourcePointHistoryId) return { refunded: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true };
   const { refundPassCoverage } = await import("./pass-consumption.js");
-  const result = await refundPassCoverage({
-    userId, cycleKey, cost,
-    refundId: `${execution.featureKey}:${execution.idempotencyKey || execution.executionKey || executionId}`,
-  });
+  let result;
+  try {
+    result = await refundPassCoverage({ userId, cycleKey, cost, refundId: `${featureKey}:${requestId}`,
+      sourcePointHistoryId, sourceFeatureKey: featureKey, sourceRequestId: requestId });
+  } catch (error) {
+    if (error?.code === "REFUND_PASS_REVIEW") return { refunded: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true };
+    throw error;
+  }
   if (!result.refunded) return result;
   await ServiceExecutionTransaction.updateOne(
     { _id: executionId },
@@ -1218,9 +1228,11 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       execution,
     }), { retries: 0 });
 
-    const paymentResult = await runPaymentCancel(env, execution.paymentRef || {}, reason.message, execution);
+    const paymentResult = passQuotaResult.adminReviewRequired
+      ? { cancelled: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true }
+      : await runPaymentCancel(env, execution.paymentRef || {}, reason.message, execution);
 
-    const nextStatus = coinResult.refunded
+    const nextStatus = passQuotaResult.adminReviewRequired ? "failed" : coinResult.refunded
       || monthlyCreditResult.refunded
       || passQuotaResult.refunded
       || paymentResult.cancelled
@@ -1261,7 +1273,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
           "compensation.passQuotaRefundAmount": Number(passQuotaResult.amount || 0),
           "compensation.paymentCancelled": Boolean(paymentResult.cancelled),
           "compensation.unlockRevoked": Boolean(paymentResult.unlockRevoked),
-          "compensation.adminReviewRequired": Boolean(paymentResult.adminReviewRequired),
+          "compensation.adminReviewRequired": Boolean(paymentResult.adminReviewRequired || passQuotaResult.adminReviewRequired),
           "lock.token": "",
           "lock.until": null,
           "lock.acquiredAt": null,
