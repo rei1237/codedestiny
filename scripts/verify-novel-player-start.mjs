@@ -148,6 +148,28 @@ async function verifyLoadFailureIsVisible() {
   }
 }
 
+async function verifyMainRemainsAvailableOnLoadFailure() {
+  const { dom } = createPlayerDom({ failManifest: true });
+  try {
+    const { document } = dom.window;
+    await waitFor(() => dom.window.__NOVEL_READY === false, "failed manifest");
+    const enter = document.getElementById("enterBtn");
+    assert.equal(enter.disabled, false, "manifest failure disabled the main-screen entry");
+    assert.equal(enter.textContent, "메인 화면 보기", "manifest failure did not explain the available fallback");
+    enter.click();
+    await waitFor(() => !document.getElementById("main").classList.contains("hidden"), "main screen after load failure");
+    assert.equal(document.querySelector(".novelWorld")?.getAttribute("href"), "/world/", "world page link is missing");
+    document.querySelector("#menu .readPrimary").click();
+    await waitFor(() => document.getElementById("toast")?.textContent.includes("연결 상태"), "read retry notice");
+    assert.equal(document.getElementById("main").classList.contains("hidden"), false, "failed reading attempt hid the main screen");
+    assert.equal(document.getElementById("player").classList.contains("hidden"), true, "failed reading attempt opened an empty player");
+    document.querySelector("#menu .readSecondary").click();
+    assert.equal(document.getElementById("main").classList.contains("hidden"), false, "empty chapter list hid the main screen");
+  } finally {
+    dom.window.close();
+  }
+}
+
 async function verifyVisualCueBindings() {
   const { dom, errors } = createPlayerDom();
   try {
@@ -264,7 +286,7 @@ async function verifyFormContinuity() {
       document.getElementById("enterBtn").click();
       await waitFor(() => document.querySelector("#menu button"), "main menu");
       const resume = document.querySelector("#menu button");
-      assert.match(resume.textContent, /이어읽기/, "the bookmark did not produce a resume entry");
+      assert.match(resume.textContent, /이어 읽기/, "the bookmark did not produce a resume entry");
       resume.click();
       await waitFor(() => document.getElementById("dlgBody")?.textContent.trim().length > 0, "resumed dialogue");
       assert.equal(win.S.ep, episodeIndex(5), "resume did not land on the bookmarked episode");
@@ -743,6 +765,7 @@ await verifyMobileRendering();
 await verifyDirectStart();
 await verifyMainEntry();
 await verifyLoadFailureIsVisible();
+await verifyMainRemainsAvailableOnLoadFailure();
 await verifyVisualCueBindings();
 await verifyBackgroundStability();
 await verifyFormContinuity();

@@ -346,9 +346,9 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/world",
     title: siteSeoText("siteSeo.025"),
     description:
-      "꿀꿀운세의 상담자 연이와 네오는 누구인지, 사주의 강·인성의 도서관 같은 장소가 어디서 왔는지 한자리에 모아 소개합니다.",
+      "꿀꿀운세의 상담자 연이와 네오, 섬에서 만난 모카·윤달·루나·청토끼·까마귀, 사주의 강·비겁의 섬 같은 장소를 한자리에 모아 소개합니다. 1부와 2부 초입까지만 다룹니다.",
     h1: "캐릭터와 세계관",
-    keywords: ["연이", "네오", "꿀꿀운세 캐릭터", "사주의 강", "운명 세계관"],
+    keywords: ["연이", "네오", "꿀꿀운세 캐릭터", "사주의 강", "운명 세계관", "모카", "윤달", "루나", "청토끼", "까마귀", "거울 속 연이", "검은 호랑이", "흑월", "우주"],
     changeFrequency: "monthly",
     priority: 0.7,
     structuredData: ["WebPage", "BreadcrumbList"],

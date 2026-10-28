@@ -1,0 +1,143 @@
+{
+  "date": "2026-10-23",
+  "tool": "codex-image (codex exec, built-in image_gen, gpt-image-2)",
+  "style": "soft premium 2D storybook anime, watercolor shading (content/novel/character-art-v2.json)",
+  "raw": "D:/Development/world-cast-art/raw/<id>.png (1024x1024, kept off the repo)",
+  "format": "WebP 640x640, cover crop, quality 82 (public/images/novel/world/<id>.webp)",
+  "verdicts_note": "Every portrait was checked at original size against its reference assets. Retries are capped at 3 per id.",
+  "assets": [
+    {
+      "id": "yeoni-silhouette",
+      "references": [
+        "refs/yeoni-pig-ref.png (from public/images/novel/remaster/v2/yeoni/neutral.webp)",
+        "refs/yeoni-human-ref.png (from public/images/novel/remaster/yeon/base.webp)"
+      ],
+      "raw_sha256": "e33f348cda470db0035a94fc8c3bd853dd3c5048a0b14e0ee8092fe200f753f5",
+      "webp_sha256": "90e824a0f732cd9f51a6766f4d609c203fc99044949de279140ffc64e93164ee",
+      "verdict": "accepted",
+      "notes": "Dual-form silhouette: human silhouette behind, pig silhouette in front, lotus and lavender ribbon, moonlit rim light. Back view, so no face is shown. Replaces the earlier pig-only portrait (raw/yeoni.png, sha256 062a1bc3724279cb1d840b963857b840030ed3bf4ed9e9a884e8dd520c6a6676), which was removed from the page."
+    },
+    {
+      "id": "neo",
+      "references": [
+        "public/assets/yeongnyangi/original/hero-800.webp",
+        "public/images/novel/yeongnyangi/smile.webp"
+      ],
+      "raw_sha256": "0b6b4bbc64dc6b97c0121f528f8cdb4890d7a499b4ce89f20773c1a39c6aa78b",
+      "webp_sha256": "012201eebb79d582814a35e387c6d9b169ef6ac9b905c52141d22ac59af5af96",
+      "verdict": "accepted",
+      "notes": "Yeongnyangi form. Two ears checked at original size; hat tilted to the right. No lion reference. Not a self-display pose."
+    },
+    {
+      "id": "moka",
+      "references": [
+        "public/images/novel/remaster/v2/moka/neutral.webp",
+        "public/images/novel/remaster/v2/moka/moka-sheet.webp"
+      ],
+      "raw_sha256": "9f38d0ef0b71c3be257606d74085e23376275e8962c4969013e7d87c7908bce7",
+      "webp_sha256": "854c5debb316a99a48277a3fb2ae6c3eee532399510259ccf811bc594a74d589",
+      "verdict": "accepted",
+      "notes": "Otter anatomy kept (ears, whiskers, webbed paws, tail). Headphones."
+    },
+    {
+      "id": "yun",
+      "references": [
+        "public/images/novel/remaster/yun/base.webp"
+      ],
+      "raw_sha256": "4b0b4ef24fa3a0d1ef2d71fab561e2ccf8bef5b7df3b83c3bb03105876f898f1",
+      "webp_sha256": "de9d15e92bde0b4960890c5a0cb0a9c6ee1458d930fdcfd4a476f74e0d3b4f7d",
+      "verdict": "accepted",
+      "notes": "Human fortune-teller. Name in the page: 윤달."
+    },
+    {
+      "id": "luna",
+      "references": [
+        "public/images/novel/lunas-sheet.webp"
+      ],
+      "raw_sha256": "b46eea0d2c306c05b5331b0df7325b194ce2b3902fc67c346af52055fb943807",
+      "webp_sha256": "6a522d259ca6b6928c5026acf1cc1cdb9fe0983345728b99c2f45ff4855de0df",
+      "verdict": "accepted",
+      "notes": "Pink apron, bunny-ear hairband."
+    },
+    {
+      "id": "rab",
+      "references": [
+        "public/images/novel/rab-sheet.webp"
+      ],
+      "raw_sha256": "ae9158762a821eaa4400e7d897058b6bd10550e293176f7a13df7eedfcba9c70",
+      "webp_sha256": "07381a7f36c20e8f61229eb6e6047759d174f76ff815e303961bc21daf0c479f",
+      "verdict": "accepted",
+      "notes": "Blue rabbit, 청토끼 금융 owner."
+    },
+    {
+      "id": "crow",
+      "references": [
+        "public/images/novel/remaster/crow/base.webp"
+      ],
+      "raw_sha256": "6d3af5f7f2653bd8795785d8363f73f8784d1282723be9bcebc4b68a46c7f170",
+      "webp_sha256": "698ebf359e8ff987a72d5a33c7c77c9de9febcf469f920023acab77e8699f012",
+      "verdict": "accepted",
+      "notes": "Hooded crow judge. Not labelled with the hidden identity name.",
+      "deviation": "The plan listed mu-01.webp as a second reference. It was not attached, so the portrait cannot reveal the identity before EP.32."
+    },
+    {
+      "id": "mirror",
+      "references": [
+        "public/images/novel/remaster/v2/yeoni/neutral.webp",
+        "public/images/novel/remaster/mirror-trial-v1.webp"
+      ],
+      "raw_sha256": "724f0e402016a6dacb4d41e84e9e4040b99be6a1fd8f4c37b444f8f4a30b580d",
+      "webp_sha256": "a0f6ea970f53a86bfc03f04096db1f27e91b3774cb07b3275b0d4d4b611ff7a4",
+      "verdict": "accepted_with_warning",
+      "notes": "Mirror Yeoni.",
+      "deviation": "The reflection is very close to the Yeoni portrait. The only differences are a raised paw and a glassy sheen. The difference is weak and should be reviewed."
+    },
+    {
+      "id": "seohanbi",
+      "references": [
+        "public/images/novel/remaster/pje/smile.webp"
+      ],
+      "raw_sha256": "a90e0f507b01bd1784f2e90aace50b9fdf47580439b44af3fab551b2125436a0",
+      "webp_sha256": "949a52e2882d856817357e52642195a29ac57810b5cb3d1fe33554ec4ce7b6d6",
+      "verdict": "accepted",
+      "notes": "Human form, high closed lace collar. Face, hair, red gems and expression kept.",
+      "deviation": "The first draft (raw/seohanbi-v1.png, sha256 2211440173885a48237c9533ec263a11fcd4bff48f01468a08e03d8a95269eac) had a low neckline that revealed too much. It was regenerated with a high collar. This changes the approved identity look."
+    },
+    {
+      "id": "heukwol",
+      "references": [
+        "public/images/novel/remaster/eclipse-sky-v1.webp"
+      ],
+      "raw_sha256": "330ae3ca6872d242cf2ef92eaf3cbbf11d04fde6dea7bc104a05e773a08468bc",
+      "webp_sha256": "65cea0ea039a82ad0bd75597963071f683d44bd6782df41cd524c46cdbbbe302",
+      "verdict": "accepted",
+      "notes": "Faceless eclipse silhouette. Body-less, so no sprite."
+    },
+    {
+      "id": "universe",
+      "references": [
+        "public/images/novel/remaster/time-vault-v1.webp (mood reference only)"
+      ],
+      "raw_sha256": "9c5d7fe611303dc53bd1105bd1412909c2d61df7b4231bdc22dcfd02956147a7",
+      "webp_sha256": "dc138db4d7046fedc906b4d502000f824192d0f38e30cfa620b40483d27c9912",
+      "verdict": "accepted",
+      "notes": "Customer-service agent, headset and call-desk light. No body shown, since the character is a voice."
+    }
+  ],
+  "dropped": {
+    "altPortrait": "The plan's altPortrait field was dropped. The page shows one portrait per character to keep it simpler."
+  },
+  "places": {
+    "note": "No new place art. The page reuses existing backgrounds under public/images/novel/ (remaster/*-v1.webp).",
+    "files": [
+      "remaster/tarot-door-awakening-v1.webp",
+      "remaster/river-of-names-v1.webp",
+      "remaster/mirror-trial-v1.webp",
+      "remaster/siksang-festival-street-v1.webp",
+      "remaster/time-vault-v1.webp",
+      "remaster/sunken-stacks-v1.webp",
+      "remaster/apartment-hall-v1.webp"
+    ]
+  },
+  "forbidden_check": "The world-data static test checks the forbidden names and spoiler terms from the canon constants (FORBIDDEN_STORY_NAMES) in the rendered data and in page.js. Comments are excluded."
+}

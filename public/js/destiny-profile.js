@@ -11026,7 +11026,9 @@
       return;
     }
     _dpHomeIntent(type);
-    _toast(_dpHomeEntryNames[type]+'을 보려면 프로필을 먼저 설정해 주세요. 저장하면 이어서 열어드릴게요.','info');
+    var entryName=_dpHomeEntryNames[type];
+    var entryParticle=(type==='saju'||type==='ziwei')?'를':'을';
+    _toast(entryName+entryParticle+' 보려면 프로필을 설정해 주세요.','profile-guide','프로필을 저장하면 지금 고른 운세를 이어서 열어드릴게요.');
     if(typeof window.dpStartProfileCreate==='function') window.dpStartProfileCreate();
   };
   window.cdHomeZiweiEntry=function(){window.cdHomeFortuneEntry('ziwei');};
@@ -11124,13 +11126,44 @@
   /* ──────────────────────────────────────────
      9. 토스트
   ────────────────────────────────────────── */
-  function _toast(msg, type) {
+  function _toast(msg, type, detail) {
     /* 기존 같은 타입 토스트 제거 */
     var prev = document.querySelector('.dp-toast.dp-toast--' + (type || 'info'));
     if (prev && prev.parentNode) prev.parentNode.removeChild(prev);
     var t = document.createElement('div');
     t.className = 'dp-toast dp-toast--' + (type || 'info');
-    t.textContent = msg;
+    if(type==='profile-guide') {
+      t.setAttribute('role','status');
+      t.setAttribute('aria-live','polite');
+      var header=document.createElement('span');
+      header.className='dp-toast__header';
+      var moon=document.createElement('span');
+      moon.className='dp-toast__moon';
+      moon.setAttribute('aria-hidden','true');
+      var moonSvg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      moonSvg.setAttribute('viewBox','0 0 24 24');
+      moonSvg.setAttribute('focusable','false');
+      var moonPath=document.createElementNS('http://www.w3.org/2000/svg','path');
+      moonPath.setAttribute('d','M19.2 15.1A8.2 8.2 0 0 1 8.9 4.8 8.3 8.3 0 1 0 19.2 15.1Z');
+      moonSvg.appendChild(moonPath);
+      moon.appendChild(moonSvg);
+      var eyebrow=document.createElement('span');
+      eyebrow.className='dp-toast__eyebrow';
+      eyebrow.textContent='PROFILE GUIDE';
+      header.appendChild(moon);
+      header.appendChild(eyebrow);
+      var title=document.createElement('strong');
+      title.className='dp-toast__title';
+      title.textContent=msg;
+      var message=document.createElement('span');
+      message.className='dp-toast__message';
+      message.textContent=detail || '';
+      t.appendChild(header);
+      t.appendChild(title);
+      t.appendChild(message);
+    } else {
+      t.textContent = msg;
+    }
     document.body.appendChild(t);
     requestAnimationFrame(function() { t.classList.add('dp-toast--show'); });
     setTimeout(function() {
