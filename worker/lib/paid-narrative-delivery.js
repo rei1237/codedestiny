@@ -142,7 +142,11 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
         }
       }
     }
-    const missing = savedOnly ? [] : state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
+    // Once an unrecoverable part has exhausted its budget, preserve any
+    // delivered parts for review. Stored drafts above can still be repaired
+    // without another provider call.
+    const partialReview = limited(state) && Object.keys(state.parts).length > 0;
+    const missing = savedOnly || partialReview ? [] : state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
     for (const task of missing) state.attempts[task.id] = (state.attempts[task.id] || 0) + 1;
     if (missing.length) await persist();
     let queue = Promise.resolve();
@@ -203,7 +207,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     })));
     const rejected = calls.find(call => call.status === "rejected"); if (rejected) throw rejected.reason;
     if (!ready(state, measureBody)) {
-      if (!savedOnly && limited(state) && onExhausted) {
+      if (!savedOnly && limited(state) && onExhausted && Object.keys(state.parts).length === 0) {
         // Persist a single refund claim before any external side effect. An
         // uncertain refund response is for reconciliation, never another refund.
         state = { ...state, exhaustionClaimed: true };
