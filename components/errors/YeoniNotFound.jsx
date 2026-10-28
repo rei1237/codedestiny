@@ -13,6 +13,7 @@ export default function YeoniNotFound() {
           <div className={styles.copy}>
             <h1 id="not-found-title">연이가 잠시<br />길을 잃었어요.</h1>
             <p>찾으시는 페이지가 옮겨졌거나<br className={styles.desktopBreak} /> 아직 열리지 않은 길일 수 있어요.</p>
+            <p>오래된 링크라면 주소가 중간에 잘리지 않았는지 확인해 주세요.</p>
             <p>괜찮아요. 익숙한 꽃길로 돌아가<br className={styles.desktopBreak} /> 다시 시작해 볼까요?</p>
             <nav className={styles.actions} aria-label="다시 시작하기">
               <a className={styles.primary} href="/">홈으로 돌아가기</a>
