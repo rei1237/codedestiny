@@ -147,7 +147,7 @@ export default function NeoConsultationClient() {
     } else setOrder(await openNeoCheckout(current));
   });
   return <LazyMotion features={domAnimation}><main className={styles.page}>
-    <nav className={styles.nav}><Link href="/yeongnyangi/">영냥이 상담</Link><a href="#neo-form">질문 작성하기</a></nav>
+    <nav className={styles.nav}><a href="/ggulggul/">꿀꿀운세</a><a href="#neo-form">질문 작성하기</a></nav>
     <header className={styles.hero}>
       <picture className={styles.heroArt} aria-hidden="true"><source media="(max-width:760px)" srcSet="/images/service-introductions/neo-consultation-640.webp" /><Image src="/images/service-introductions/neo-consultation.webp" width={1536} height={1024} alt="" loading="eager" /></picture>
       <m.div className={styles.heroCopy} initial={{ y: reducedMotion ? 0 : 16 }} animate={{ y: 0 }} transition={{ duration: .85, ease: [.16,1,.3,1] }}>
@@ -234,7 +234,7 @@ export default function NeoConsultationClient() {
           {step === 2 && <>{goodPeriod && <p className={styles.periodSummary}>특별히 좋았던 시기: {goodPeriod}</p>}{difficultPeriod && <p className={styles.periodSummary}>힘들었던 시기: {difficultPeriod}</p>}<ol className={styles.summary}>{questions.map((q,i) => <li key={i}><p>{q.text}</p><span>{neoReadingLabel(q)} · {neoMoney(neoQuestionPrice(q))}</span></li>)}</ol><p>나의 출생정보: {neoBirthLabel(input().birth)}</p>{partnerEnabled && <p>상대방 출생정보: {neoBirthLabel(input().partnerBirth)}</p>}<p>회신 이메일: {email}</p><p>{replyLanguage(locale)}</p><p className={styles.small}>결제가 확인되면 자동으로 상담이 접수됩니다.</p><p>{NEO_POLICY.service} 답변 본문은 서비스 서버에 저장하지 않으니 이메일에서 확인해 주세요.</p><p className={styles.small}>한 질문에 여러 독립 질문이 포함되면 정정을 요청할 수 있습니다. 추가 과금은 자동으로 진행하지 않습니다.</p></>}
           <div className={styles.total} aria-live="polite"><span>질문 {questions.length}개</span><strong>{neoMoney(neoTotal(questions))}</strong></div>
           <div className={styles.actions}>{step > 0 && <button className={styles.secondary} disabled={busy} onClick={() => setStep(step-1)}>이전</button>}{step < 2 ? <button className={styles.primary} onClick={next}>다음</button> : <button className={styles.primary} disabled={busy || !canSubmit || !signedIn} onClick={prepare}>{busy ? "주문 확인 중" : mock ? "모의 결제로 상담 신청하기" : canSubmit ? `총 ${neoMoney(neoTotal(questions))} 결제하고 상담 신청하기` : "판매 준비 중"}</button>}</div>
-          {!signedIn && step === 2 && <p>상담 신청에는 <Link href="/login?next=%2Fyeongnyangi%2Fneo-decision%2F">로그인</Link>이 필요합니다.</p>}
+          {!signedIn && step === 2 && <p>상담 신청에는 <Link href="/login?next=%2Fneo-consultation%2F">로그인</Link>이 필요합니다.</p>}
         </>}
         {order && <><h3>{statusLabel(order.state)}</h3><p>{replyLanguage(order.locale)}</p><p>질문 {order.questions.length}개 · {neoMoney(order.quote?.totalKRW || neoTotal(order.questions))}</p>
           {order.payment?.status === "paid" && ["pending","sending","retry","unknown"].includes(order.deliveryStatus?.receipt || "") && <p role="status">결제는 완료됐어요. 접수 메일 전달을 확인하고 있어요. 다시 결제하지 않아도 됩니다.</p>}

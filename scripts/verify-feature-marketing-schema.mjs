@@ -308,7 +308,7 @@ const neoRegistry = FEATURE_KEY_PRICE_TABLE[NEO_EMAIL_FEATURE];
 if (!neoRegistry || neoUnitPrice() !== neoRegistry.amountKRW || neoZiweiAddonPrice() !== neoRegistry.ziweiAddonKRW ||
     !neoClient.includes('neoMoney(neoUnitPrice())') || !neoClient.includes('neoMoney(neoUnitPrice() + neoZiweiAddonPrice())') ||
     !neoClient.includes('이메일로 전합니다') || !neoClient.includes('작성·검수') ||
-    !neoHomeEntry.includes('href="/yeongnyangi/neo-decision/"') || !neoHomeEntry.includes('이메일 상담')) {
+    !neoHomeEntry.includes('href="/neo-consultation/"') || !neoHomeEntry.includes('이메일 상담')) {
   fail(NEO_EMAIL_FEATURE + ': 전용 상담의 이메일 전달·검수·가격 안내를 확인하세요.');
 } else {
   dedicatedCopy.set(NEO_EMAIL_FEATURE, { source: 'neo-email-dedicated-page' });

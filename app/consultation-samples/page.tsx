@@ -31,7 +31,7 @@ export default function ConsultationSamplesPage() {
     <section className="samples-landing__email" id="neo-email" aria-labelledby="neo-email-title">
       <div><h2 id="neo-email-title">내 사정까지 읽어 줬으면 한다면,<br/>네오 작전 결정서.</h2>
         <p>운세를 읽고도 결정이 서지 않을 때가 있어요. 지금 처한 상황과 고민을 적어 보내면, 네오가 접수 내용을 직접 읽고 답변을 검수해요.</p>
-        <a className="samples-landing__button" href="/yeongnyangi/neo-decision/">이메일 상담 조건 확인하기 →</a>
+        <a className="samples-landing__button" href="/neo-consultation/">이메일 상담 조건 확인하기 →</a>
       </div>
       <div className="samples-landing__email-info">
         <h3>답변을 받는 방식</h3><p>{NEO_POLICY.service}</p>

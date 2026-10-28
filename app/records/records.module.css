@@ -14,6 +14,8 @@
 .libraryArt { width: 132px; height: 132px; object-fit: contain; flex-shrink: 0; }
 .flower { position: absolute; right: 4px; bottom: -10px; width: 160px; height: 24px; pointer-events: none; opacity: .6; background: var(--cd-yehwa-line-deep); mask: url('/icons/yehwa-branch.svg') center / contain no-repeat; z-index: -1; }
 .tools { margin-bottom: 24px; display: grid; gap: 16px; }
+.neoRecords { margin-bottom: 16px; font-size: .875rem; color: var(--record-muted, var(--cd-text-muted)); }
+.neoRecords a { text-decoration: underline; text-underline-offset: 4px; }
 .search { display: flex; min-height: 52px; align-items: center; gap: 12px; border: 1px solid var(--cd-border); border-radius: var(--cd-r-control); background: var(--cd-surface); padding-inline: 16px; }
 .search:focus-within { outline: 2px solid var(--cd-focus-ring, var(--cd-accent)); outline-offset: 3px; }
 .search input { width: 100%; min-width: 0; font-size: 16px; padding-block: 14px; outline: none; background: transparent; caret-color: var(--cd-accent); }
