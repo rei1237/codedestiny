@@ -2,7 +2,10 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 
-const base = process.env.YEONI_TEST_BASE || 'http://127.0.0.1:3117';
+const localBase = process.env.YEONI_TEST_BASE || 'http://127.0.0.1:3117';
+// Replay LOCAL pages at the real site origin: the font CDN only permits that
+// origin. All site/API requests remain intercepted; no production page is read.
+const base = 'https://code-destiny.com';
 const output = process.env.YEONI_TEST_OUTPUT || '.impeccable/review/yeoni-salon';
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
@@ -34,7 +37,12 @@ try {
         }
         return reply({ ok: true, authenticated: true, balance: 0, data: {} });
       }
-      if (url.origin === base) return route.continue();
+      if (url.origin === base) {
+        const response = await route.fetch({ url: localBase + url.pathname + url.search, timeout: 120000 });
+        return route.fulfill({ response });
+      }
+      if (url.origin === 'https://assets.code-destiny.com' && request.method() === 'GET'
+        && (url.pathname.startsWith('/fonts/') || ['/Mulmaru.woff2', '/PretendardVariable.ttf', '/Galmuri11-Bold.woff2'].includes(url.pathname))) return route.continue();
       return route.abort();
     });
     const page = await context.newPage();
@@ -46,7 +54,12 @@ try {
     await page.locator('img[src*="salon-welcome"]').evaluate((img) => img.decode());
     assert(await page.getByRole('button', { name: '계속하기', exact: true }).isDisabled(), 'empty question is disabled');
     await page.locator('#yeoni-welcome-title').scrollIntoViewIfNeeded();
-    await page.screenshot({path:output+'/welcome-'+width+'.png'});
+    const welcomeBox = await page.locator('#yeoni-welcome-title').locator('..').locator('..').boundingBox();
+    assert(welcomeBox && welcomeBox.height > 250, 'welcome retains its content height at ' + width);
+    await page.locator('#yeoni-welcome-title').locator('..').locator('..').screenshot({path:output+'/welcome-'+width+'.png'});
+    const fonts=await page.evaluate(async()=>{await document.fonts.load('700 24px CodeDestinySerifKR','마음 이야기');return [...document.fonts].filter(f=>f.status==='loaded').map(f=>({family:f.family,status:f.status}));});
+    assert(fonts.some(f=>f.family==='CodeDestinySerifKR'),'brand serif actually loads');
+    console.log(JSON.stringify({width,fonts}));
     await page.getByText('질문이 떠오르지 않나요?',{exact:true}).click();
     await page.getByRole('region',{name:'연이의 상담 안내'}).locator('img').evaluate(img=>img.decode());
     await input.fill('새로운 일을 시작해도 괜찮을까요?');

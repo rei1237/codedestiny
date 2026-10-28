@@ -16,7 +16,7 @@ const withBundleAnalyzer = createBundleAnalyzer({
 // correctly parses their CommonJS wrapper as a non-module and then rejects
 // that injected ESM-only syntax.  Keep the shared legacy boundary out of the
 // refresh transform; webpack still bundles its plain CommonJS exports.
-const LEGACY_SHARED_BROWSER_MODULE = /[\\/]js[\\/]core[\\/](?:app-context|checkout-entry|pass-verdict|payment-service)\.js$/;
+const LEGACY_SHARED_BROWSER_MODULE = /[\\/]js[\\/]core[\\/](?:app-context|checkout-entry|pass-verdict|payment-service|play-display-price)\.js$/;
 
 function isRefreshOrSwcRule(rule) {
   const loaders = Array.isArray(rule?.use) ? rule.use : [rule?.use];
