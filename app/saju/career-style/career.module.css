@@ -48,7 +48,6 @@
  .reportHeader { flex-direction:column; align-items:flex-start; gap:20px; }
  .reportPortrait { width:180px; max-width:100%; }
  .page { padding:0 18px; }
- .top a,.bottom a { display:inline-flex; align-items:center; min-height:44px; }
 .top { font-size:.8rem; min-height:64px; }
  .hero { display:flex; flex-direction:column; overflow:visible; }
  .hero img { border-radius:20px; order:2; }
