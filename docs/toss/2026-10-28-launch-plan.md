@@ -52,3 +52,19 @@ status: in-progress
 > D:\Development\code-destiny\.codex-worktrees\toss-launch-20261028에서 CLAUDE.md와 docs/toss/2026-10-28-launch-plan.md, docs/toss/design-brief.md를 읽고 앱인토스 전체 이식을 계속하라. 디자인과 기능은 동등한 완료 조건이다. 실제 서비스의 이미지·캐릭터·문체를 재사용하고 토스 밝은 화면과 네이티브 탐색을 유지하라. launch:status로 미이식 원장을 확인하고, 원본 입력→제공 권리→결과→보관 계약을 기능군별로 이식하라. 화면 카드 추가를 완성으로 세지 마라. 기존 이용권·월정석·단건 결제의 가격/정책과 다른 작업은 보존하라. 이미 구매한 결과는 추가 차감·생성 없이 재열람하고, 중단된 작업은 같은 주문으로 복구하라. 외부 실결제·실 LLM·운영 DB를 개발 테스트에 쓰지 마라. 변경 기반 검사와 실제 모바일 화면 검증을 마친 단위를 커밋하고, main이 정상일 때만 통합/push해 CI를 확인하라. 콘솔 약관/보안 발급과 운영 승격은 필요한 구체적인 단계에서 사용자 승인을 받고, 실제 출시 상태까지 확인해야 출시 완료라고 보고하라.
 
 이 문서는 인수인계·진행 계획이다. 커밋·원격 전달·CI·콘솔 검수와 출시 증거를 대체하지 않는다.
+
+## 로컬 검증 기록
+
+검증은 전부 모의 경계에서 수행했고 실제 결제·과금 LLM·운영 DB 쓰기는 없었다.
+
+- `npm test --prefix apps/toss`: 92/92 통과. 소유권, 환불/미결제 차단, 내구성 확인 후 구매 승인, 입력 없는 복구, 같은 주문 재개, 작업 임대 만료/이전 작업 차단, 저장 원문 재열람, 카드 섞기 포함.
+- `npm run build --prefix apps/toss`: 타입 검사와 Vite/ait 빌드 통과. 대형 기본 청크 및 공유 모듈의 `use client` 지시문 경고는 남는다.
+- `node --test __tests__/ui/ziwei-deep-paid-delivery.behavior.test.js`: 57/57 통과.
+- `NODE_OPTIONS=--experimental-vm-modules npx jest __tests__/worker/fusion-paid-delivery-route.test.js --runInBand`: 64/64 통과. PowerShell에서는 `NODE_OPTIONS`를 환경 변수로 설정해 실행했다.
+- `npm run verify:worker-no-undef`: 760개 파일 통과.
+- `npm run verify:mongo-query-index-shapes`: 1,022개 쿼리, 위반 0. 기존 마이그레이션 귀속 경고는 남는다.
+- `impeccable detect`: App/Brand/TarotLibrary 대상 종료 코드 0. 실제 시각 검수 완료를 의미하지 않는다.
+- `npm run check:fast`: 최초 두 실행에서 기존 cron 테스트의 토스 작업 mock 누락을 발견했다. 주문 대사·연결 해제 mock을 함께 연결한 뒤 실패했던 121개 테스트는 통과했으며 전체 변경 기반 검증을 다시 실행했다. 최종 판정은 실행 로그와 전달 보고에서 확인한다.
+- `npm run check:pre-push`: 첫 실행에서 사이트맵 원장 서명 24개 불일치 발견. `npm run sitemap:generate`로 원장만 갱신했다. 공개 URL 1,020개와 날짜는 바뀌지 않았다.
+
+마지막 로컬 묶음: `apps/toss/ai-saju-studio.ait`, 1,834,602 bytes, deploymentId `01a182ca-99b9-79b8-8fce-8790039915bc`, SHA-256 `87565318D467F2BD396612BB1EFE3B397F1D70181B9F3ABAE37AF1D3069F824E`. 업로드·출시 증거가 아니다.
