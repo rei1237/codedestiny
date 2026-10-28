@@ -9,7 +9,7 @@ export async function api<T>(path:string,body?:unknown):Promise<T>{
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   const response=await fetch(API+path,{method:body===undefined?'GET':'POST',credentials:'omit',
     headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(token?{Authorization:`Bearer ${token}`}:{})},
-    ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path.endsWith('/conversation')?75000:20000)});
+    ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path.endsWith('/conversation')||body!==undefined&&path.startsWith('/tarot-library/results/')?75000:20000)});
   const data=await response.json();
   if(!response.ok){if(response.status===401)await clearSession();throw new ApiError(data.error,data.errorId,response.status);}
   return data;
@@ -71,7 +71,7 @@ export async function restorePurchases(){
   let recovered=0,failed=0;
   for(const order of pending?.orders||[]){
     try{
-      const receipt=await api<Receipt>('/orders/grant',{orderId:order.orderId,sku:order.sku});
+      const receipt=await api<Receipt>('/orders/restore',{orderId:order.orderId,sku:order.sku});
       if(!validReceipt(receipt,order.orderId))throw new ApiError('GRANT_NOT_DURABLE');
       if(!await IAP.completeProductGrant({params:{orderId:order.orderId}}))throw new ApiError('GRANT_ACK_PENDING');
       recovered++;

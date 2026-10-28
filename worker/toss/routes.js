@@ -1,5 +1,5 @@
 import {questionConversation} from '../yeongnyangi/question-followup.ts';
-import {TossError,requireTossOrigin,verifiedUserKey,analyticsEvent} from './policy.js';
+import {checkOrder,TossError,requireTossOrigin,verifiedUserKey,analyticsEvent} from './policy.js';
 import {callbackAuthorized,identityId,hash} from './crypto.js';
 import {createTossSession,requireTossSession,invalidateIdentity,disconnectIdentity} from './session.js';
 import {APPROVED_TOSS_PRODUCTS,APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS,approvedProduct} from './catalog.js';
@@ -17,7 +17,7 @@ import {prepareFortune,presentFortune,drawTarotSpread} from '../yeongnyangi/serv
 import {publicTarotSpread} from '../yeongnyangi/fortune/tarot/spread-v3.ts';
 import {readRequest,resumeRequest} from '../yeongnyangi/repository.js';
 import {enqueueConsultation} from '../yeongnyangi/queue.js';
-import {deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryFlow,tarotLibraryProduct,tarotLibraryResult} from './tarot-library.js';
+import {attachTarotLibraryInput,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryFlow,tarotLibraryProduct,tarotLibraryResult} from './tarot-library.js';
 
 async function bodyOf(request) {
   if(!request.headers.get('Content-Type')?.startsWith('application/json'))throw new TossError('JSON_REQUIRED',415);
@@ -108,10 +108,13 @@ export async function handleTossRoutes(request,env) {
       const drawn=await drawTarotSpread(env,auth.userId,drawMatch[1],{method:input.method,picks:input.picks});
       return reply({id:String(drawn._id),state:drawn.state,tarotSpread:publicTarotSpread(drawn.snapshot)});
     }
-    if(path==='/orders/grant'&&request.method==='POST') {
-      const input=await bodyOf(request),product=approvedProduct(input.sku);
+    if((path==='/orders/grant'||path==='/orders/restore')&&request.method==='POST') {
+      const input=await bodyOf(request);
+      const tarotProduct=path==='/orders/restore'&&APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS.find(item=>item.sku===input.sku);
+      const product=tarotProduct?tarotLibraryProduct(tarotProduct):approvedProduct(input.sku);
       const order=await lookupOrder(env,auth.userKey,input.orderId);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
+      if(tarotProduct)return reply(await grantTarotLibraryOrder({store:purchaseStore,auth,order,product}));
       if(input.requestId!==undefined&&!/^[a-f0-9]{64}$/.test(input.requestId))throw new TossError('REQUEST_ID_INVALID');
       return reply(await grantVerifiedOrder({store:purchaseStore,auth,order,product,requestId:input.requestId||null,
         enqueue:async id=>enqueueConsultation(env,await readRequest(env,auth.userId,id))}));
@@ -121,8 +124,7 @@ export async function handleTossRoutes(request,env) {
       const order=await lookupOrder(env,auth.userKey,input.orderId);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
       const receipt=await grantTarotLibraryOrder({store:purchaseStore,auth,order,product,input:input.input});
-      const delivery=await deliverTarotLibraryOrder({store:purchaseStore,auth,orderId:order.orderId,flowId:product.flow.id,env});
-      return reply({...receipt,delivery});
+      return reply(receipt);
     }
     if(path==='/library'&&request.method==='GET') {
       const rows=await TossPurchase.find(libraryFilter(auth,url.searchParams.get('cursor'))).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
@@ -135,6 +137,9 @@ export async function handleTossRoutes(request,env) {
       const order=await lookupOrder(env,auth.userKey,orderId);
       if(order.sku!==purchase.sku||order.orderId!==orderId)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
+      checkOrder(order,{orderId,sku:purchase.sku});
+      const input=await bodyOf(request);
+      if(input.input!==undefined)await attachTarotLibraryInput({store:purchaseStore,auth,orderId,flowId:purchase.tarotFlowId,input:input.input});
       return reply(await deliverTarotLibraryOrder({store:purchaseStore,auth,orderId,flowId:purchase.tarotFlowId,env}));
     }
     if(tarotResultMatch&&request.method==='GET') {

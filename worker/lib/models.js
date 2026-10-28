@@ -892,6 +892,8 @@ const paidExecutionRecordSchema = new mongoose.Schema({
     default: "paid_pending_generation",
     index: true,
   },
+  tossDeliveryToken: { type: String, default: "", maxlength: 80 },
+  tossDeliveryLeaseUntil: { type: Date, default: null },
   consumedAt: { type: Date, default: null },
   completedAt: { type: Date, default: null },
   resultId: { type: String, default: "", trim: true, maxlength: 160 },

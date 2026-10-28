@@ -4,6 +4,7 @@ import {getTarotCardByAnyId} from '../../lib/tarot/tarot-cards.mjs';
 import {generateTarotLibraryResult} from './tarot-library-generator.js';
 
 export {TOSS_TAROT_LIBRARY_FLOWS};
+export const TAROT_DELIVERY_LEASE_MS=5*60*1000;
 
 export function tarotLibraryFlow(id){
   const flow=tossTarotLibraryFlow(id);
@@ -115,23 +116,39 @@ export async function grantTarotLibraryOrder({store,auth,order,product,input}){
   return receipt;
 }
 
+// A recovered purchase may have no question because the app closed before grant.
+// Attach it once, under the same ownership transaction; never replace paid input.
+export async function attachTarotLibraryInput({store,auth,orderId,flowId,input}){
+  const flow=tarotLibraryFlow(flowId),prepared=tarotInput(flow,input);
+  return store.transaction(async tx=>{
+    await tx.assertIdentity(auth);
+    const purchase=await tx.purchase(orderId),execution=await tx.execution(orderId);
+    assertExistingPurchase(purchase,auth,{...purchase,flow},orderId);
+    assertExistingExecution(execution,auth,{...purchase,flow},orderId);
+    if(execution.input)return;
+    if(execution.status!=='paid_pending_generation')throw new TossError('TAROT_LIBRARY_INPUT_LOCKED',409);
+    if(!await tx.attachExecutionInput(orderId,prepared))throw new TossError('TAROT_LIBRARY_INPUT_LOCKED',409);
+  });
+}
+
 export async function deliverTarotLibraryOrder({store,auth,orderId,flowId,env={},generate=(id,input)=>generateTarotLibraryResult(id,input,{env})}){
   const claimed=await claimTarotLibraryDelivery({store,auth,orderId,flowId});
   if(claimed.state==='completed')return tarotLibraryResult(claimed.execution,tarotLibraryFlow(flowId));
+  if(claimed.state==='input_required')return tarotLibraryResult(claimed.execution,tarotLibraryFlow(flowId));
   if(claimed.state!=='claimed')return {state:'generating',result:null,canRetryNow:false};
   const input=claimed.execution?.input;
   if(!input)throw new TossError('TAROT_LIBRARY_INPUT_MISSING',409);
   try{
     const result=await generate(flowId,input);
-    return completeTarotLibraryDelivery({store,auth,orderId,flowId,result});
+    return completeTarotLibraryDelivery({store,auth,orderId,flowId,result,token:claimed.execution.tossDeliveryToken});
   }catch(error){
-    return failTarotLibraryDelivery({store,auth,orderId,flowId,error});
+    return failTarotLibraryDelivery({store,auth,orderId,flowId,error,token:claimed.execution.tossDeliveryToken});
   }
 }
 
 // Delivery callers are server-only. The public route can read a stored result but
 // cannot submit one, which keeps an IAP callback from becoming a result forgery API.
-export async function claimTarotLibraryDelivery({store,auth,orderId,flowId}){
+export async function claimTarotLibraryDelivery({store,auth,orderId,flowId,now=new Date()}){
   const flow=tarotLibraryFlow(flowId);
   return store.transaction(async tx=>{
     await tx.assertIdentity(auth);
@@ -140,12 +157,13 @@ export async function claimTarotLibraryDelivery({store,auth,orderId,flowId}){
     assertExistingExecution(execution,auth,{...purchase,flow},orderId);
     if(purchase.tarotFlowId!==flow.id)throw new TossError('RESULT_NOT_FOUND',404);
     if(execution.status==='completed')return {state:'completed',execution};
-    const claimed=await tx.claimExecution(orderId);
+    if(!execution.input)return {state:'input_required',execution};
+    const claimed=await tx.claimExecution(orderId,{token:crypto.randomUUID(),now,until:new Date(now.getTime()+TAROT_DELIVERY_LEASE_MS)});
     return claimed?{state:'claimed',execution:claimed}:{state:'in_progress',execution:await tx.execution(orderId)};
   });
 }
 
-export async function completeTarotLibraryDelivery({store,auth,orderId,flowId,result}){
+export async function completeTarotLibraryDelivery({store,auth,orderId,flowId,result,token}){
   const flow=tarotLibraryFlow(flowId);
   return store.transaction(async tx=>{
     await tx.assertIdentity(auth);
@@ -154,13 +172,14 @@ export async function completeTarotLibraryDelivery({store,auth,orderId,flowId,re
     assertExistingExecution(execution,auth,{...purchase,flow},orderId);
     if(purchase.tarotFlowId!==flow.id)throw new TossError('RESULT_NOT_FOUND',404);
     if(execution.status==='completed')return tarotLibraryResult(execution,flow);
-    const completed=await tx.completeExecution(orderId,result);
+    if(!token||execution.tossDeliveryToken!==token)throw new TossError('DELIVERY_NOT_CLAIMED',409);
+    const completed=await tx.completeExecution(orderId,result,token);
     if(!completed)throw new TossError('DELIVERY_NOT_CLAIMED',409);
     return tarotLibraryResult(completed,flow);
   });
 }
 
-export async function failTarotLibraryDelivery({store,auth,orderId,flowId,error}){
+export async function failTarotLibraryDelivery({store,auth,orderId,flowId,error,token}){
   const flow=tarotLibraryFlow(flowId);
   return store.transaction(async tx=>{
     await tx.assertIdentity(auth);
@@ -169,7 +188,8 @@ export async function failTarotLibraryDelivery({store,auth,orderId,flowId,error}
     assertExistingExecution(execution,auth,{...purchase,flow},orderId);
     if(purchase.tarotFlowId!==flow.id)throw new TossError('RESULT_NOT_FOUND',404);
     if(execution.status==='completed')return tarotLibraryResult(execution,flow);
-    const failed=await tx.failExecution(orderId,{code:text(error?.code)||'TAROT_LIBRARY_GENERATION_FAILED'});
+    if(!token||execution.tossDeliveryToken!==token)throw new TossError('DELIVERY_NOT_CLAIMED',409);
+    const failed=await tx.failExecution(orderId,{code:text(error?.code)||'TAROT_LIBRARY_GENERATION_FAILED'},token);
     if(!failed)throw new TossError('DELIVERY_NOT_CLAIMED',409);
     return tarotLibraryResult(failed,flow);
   });
@@ -179,6 +199,6 @@ export function tarotLibraryResult(execution,flow){
   if(!execution)throw new TossError('RESULT_NOT_FOUND',404);
   if(['refunded','cancelled'].includes(execution.status))throw new TossError('ORDER_REFUNDED',409);
   return {requestId:execution.requestId,resultId:execution.resultId,flowId:flow.id,featureKey:flow.featureKeys.includes(execution.featureId)?execution.featureId:null,
-    state:execution.status,result:execution.status==='completed'?execution.result:null,
-    canRetryNow:execution.status==='generation_failed'};
+    state:execution.status==='paid_pending_generation'&&!execution.input?'input_required':execution.status,result:execution.status==='completed'?execution.result:null,
+    canRetryNow:Boolean(execution.input)&&(['paid_pending_generation','generation_failed'].includes(execution.status)||execution.status==='generating'&&!!execution.tossDeliveryLeaseUntil&&new Date(execution.tossDeliveryLeaseUntil).getTime()<=Date.now())};
 }

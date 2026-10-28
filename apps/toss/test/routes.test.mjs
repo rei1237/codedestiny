@@ -8,6 +8,7 @@ const require=createRequire(import.meta.url),Module=require('node:module');
 const calls={profiles:[],prepared:[],followups:0};
 const auth={_id:'identity',ownerId:'owner',userId:'owner',userKey:'123',environment:'SANDBOX'};
 const mocks={
+ tarotProducts:[],grants:[],deliveries:0,
  auth:async()=>auth,profile:async(...args)=>calls.profiles.push(args),
  product:sku=>({productId:sku.includes(':')?sku.split(':')[1]:sku,serviceId:sku.includes(':')?sku.split(':')[0]:'yeongnyangi',sku,approvedPriceKRW:1,approved:true}),
  prepare:async(_env,user,body,options)=>{calls.prepared.push({user,body,options});return {_id:'a'.repeat(64),productId:body.productId,amountKRW:1,snapshot:{manifest:[{id:'part',title:'answer',ordinal:0}]}};},
@@ -16,9 +17,10 @@ const mocks={
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
  'worker/toss/session.js':"import {TossError} from './policy.js';export const requireTossSession=async()=>{if(globalThis.__tossRouteMocks.denyAuth)throw new TossError('LOGIN_REQUIRED',401);return globalThis.__tossRouteMocks.auth();};export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
- 'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=[];export const approvedProduct=globalThis.__tossRouteMocks.product;",
- 'worker/toss/models.js':"export const TossPurchase={findOne:globalThis.__tossRouteMocks.purchase};export const TossSession={};",
- 'worker/toss/partner.js':"export const lookupOrder=()=>{throw new Error('unexpected partner call')};",
+ 'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=globalThis.__tossRouteMocks.product;",
+ 'worker/toss/models.js':"export const TossPurchase={findOne:(...args)=>globalThis.__tossRouteMocks.purchase(...args)};export const TossSession={};",
+ 'worker/toss/partner.js':"export const lookupOrder=(...args)=>globalThis.__tossRouteMocks.lookupOrder(...args);",
+ 'worker/toss/tarot-library.js':"export const tarotLibraryProduct=x=>x;export const tarotLibraryFlow=()=>{};export const tarotLibraryResult=()=>{};export const attachTarotLibraryInput=()=>{};export const grantTarotLibraryOrder=async args=>{globalThis.__tossRouteMocks.grants.push(args);return {orderId:args.order.orderId,durable:true,entitlement:'granted'};};export const deliverTarotLibraryOrder=()=>{globalThis.__tossRouteMocks.deliveries++;throw Error('grant must never generate')};",
  'worker/toss/grant.js':"export const grantVerifiedOrder=()=>{};",
  'worker/toss/purchases.js':"export const purchaseStore={};export const recordTossRefund=()=>{};",
  'worker/lib/models.js':"export const ProfileCard={updateOne:globalThis.__tossRouteMocks.profile};export const PaidExecutionRecord={findOne:()=>({lean:async()=>null})};",
@@ -42,8 +44,27 @@ async function request(body,path='/prepare',env={TOSS_RELEASE_READY:'true'}){
  return handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{method:'POST',headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com','Content-Type':'application/json'},body:JSON.stringify(body)}),env);
 }
 test('release gate prevents any profile or prepared row write',async()=>{const r=await request(input(),'/prepare',{});assert.equal(r.status,503);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);});
-test('missing or mismatched question scope is rejected before profile writes',async()=>{
- for(const form of [{...input(),questionDecision:undefined},{...input(),sku:'saju_salmon'}]){const r=await request(form);assert.equal(r.status,400);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);}
+
+test('tarot recovery routes the approved SKU on the server and acknowledges without generation',async()=>{
+ const orderId='01900000-1111-7111-8111-000000000042',product={sku:'approved-tarot',flow:{id:'tarot-mindscan'}};
+ mocks.tarotProducts.push(product);mocks.grants.length=0;mocks.deliveries=0;
+ mocks.lookupOrder=async(_env,key,id)=>{assert.equal(key,auth.userKey);assert.equal(id,orderId);return {orderId,sku:product.sku,status:'PURCHASED'};};
+ try{
+  const restored=await request({orderId,sku:product.sku,input:{question:'ignore forged recovery input'}},'/orders/restore');
+  assert.equal(restored.status,200);assert.equal((await restored.json()).durable,true);
+  assert.equal(mocks.grants[0].input,undefined);assert.equal(mocks.grants[0].auth,auth);
+  const granted=await request({orderId,sku:product.sku,input:{question:'forward to grant validation'}},'/tarot-library/orders/grant');
+  assert.equal(granted.status,200);assert.equal(mocks.grants[1].input.question,'forward to grant validation');
+  assert.equal(mocks.deliveries,0);assert.equal(calls.profiles.length,0);
+ }finally{mocks.tarotProducts.length=0;}
+});
+test('missing or unconfirmed question scope is rejected before profile writes',async()=>{
+ for(const form of [{...input(),questionDecision:undefined},{...input(),questionDecision:{...decision,confirmed:false}}]){const r=await request(form);assert.equal(r.status,400);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);}
+});
+
+test('current canonical policy permits the user to choose an approved consultation depth',async()=>{
+ const r=await request({...input(),sku:'saju_salmon'});assert.equal(r.status,200);
+ assert.equal(calls.prepared[0].body.productId,'saju_salmon');
 });
 test('server owns account and input profile identity and forwards current decision',async()=>{
  const r=await request({...input(),userId:'attacker',profileId:'unrelated'});assert.equal(r.status,200);
@@ -92,4 +113,18 @@ test('chat preparation derives persona and domain from server catalog, ignoring 
   assert.equal(calls.prepared[0].body.fishId,'mackerel');
   assert.equal(calls.prepared[0].body.productId,'chat_saju_mackerel');
  }
+});
+
+
+test('tarot resume rejects an unpaid or cancelled partner order before attaching input or generating',async()=>{
+ const previous=mocks.purchase,orderId='01900000-1111-7111-8111-000000000042';
+ mocks.purchase=filter=>({lean:async()=>{assert.equal(filter.identityId,auth._id);assert.equal(filter.environment,auth.environment);return {_id:orderId,sku:'owned-sku',tarotFlowId:'tarot-mindscan'};}});
+ mocks.deliveries=0;
+ try{for(const status of ['PAYMENT_PENDING','CANCELLED','UNKNOWN']){
+  mocks.lookupOrder=async()=>({orderId,sku:'owned-sku',status});
+  const response=await request({input:{question:'must not attach'}},'/tarot-library/results/'+orderId);
+  assert.equal(response.status,409);assert.equal((await response.json()).error,'ORDER_NOT_PAID');
+ }
+ assert.equal(mocks.deliveries,0);
+ }finally{mocks.purchase=previous;}
 });

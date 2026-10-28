@@ -21,12 +21,16 @@ export const purchaseStore={transaction:task=>tossTransaction(session=>task({
   assignPurchase:(orderId,requestId)=>TossPurchase.updateOne({_id:orderId,requestId:null},{$set:{requestId}},{session}),
   execution:orderId=>PaidExecutionRecord.findOne({orderId}).session(session).lean(),
   insertExecution:execution=>PaidExecutionRecord.create([execution],{session}),
-  claimExecution:orderId=>PaidExecutionRecord.findOneAndUpdate({orderId,status:{$in:['paid_pending_generation','generation_failed']}},
-    {$set:{status:'generating',error:null}},{new:true,session}).lean(),
-  completeExecution:(orderId,result)=>PaidExecutionRecord.findOneAndUpdate({orderId,status:'generating'},
-    {$set:{status:'completed',result,consumedAt:new Date(),completedAt:new Date(),error:null}},{new:true,session}).lean(),
-  failExecution:(orderId,error)=>PaidExecutionRecord.findOneAndUpdate({orderId,status:'generating'},
-    {$set:{status:'generation_failed',error}},{new:true,session}).lean(),
+  attachExecutionInput:(orderId,input)=>PaidExecutionRecord.findOneAndUpdate({orderId,status:'paid_pending_generation',input:null},
+    {$set:{input}},{new:true,session}).lean(),
+  claimExecution:(orderId,{token,now,until})=>PaidExecutionRecord.findOneAndUpdate({orderId,$or:[
+    {status:{$in:['paid_pending_generation','generation_failed']}},
+    {status:'generating',tossDeliveryLeaseUntil:{$lte:now}},
+  ]},{$set:{status:'generating',error:null,tossDeliveryToken:token,tossDeliveryLeaseUntil:until}},{new:true,session}).lean(),
+  completeExecution:(orderId,result,token)=>PaidExecutionRecord.findOneAndUpdate({orderId,status:'generating',tossDeliveryToken:token},
+    {$set:{status:'completed',result,consumedAt:new Date(),completedAt:new Date(),error:null,tossDeliveryToken:'',tossDeliveryLeaseUntil:null}},{new:true,session}).lean(),
+  failExecution:(orderId,error,token)=>PaidExecutionRecord.findOneAndUpdate({orderId,status:'generating',tossDeliveryToken:token},
+    {$set:{status:'generation_failed',error,tossDeliveryToken:'',tossDeliveryLeaseUntil:null}},{new:true,session}).lean(),
 }))};
 
 export async function findTossPurchaseEvidence(row,ownerId,session,commitMarker) {
