@@ -1305,7 +1305,7 @@ async function refundSessionBillingIfNeeded(env, sessionId, userId, doc, existin
   const outcome = { coin: null, monthlyCredit: null, payment: null };
   try {
     if (accessType !== "monthly_credit" && accessType !== "membership_credit") {
-      outcome.coin = await coinFn({ ...common, cost, sourceTransactionId: paymentId });
+      outcome.coin = await coinFn({ env, ...common, cost, sourceTransactionId: paymentId });
     }
     if (!outcome.coin?.refunded) {
       outcome.monthlyCredit = await monthlyFn({ env, ...common, sourceTransactionId: paymentId });

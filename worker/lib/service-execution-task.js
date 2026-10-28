@@ -430,7 +430,7 @@ function toSummary(doc) {
  *    호출자가 같은 모양을 만들어 넘기면 된다. 여기에 ServiceExecutionTransaction 전용 필드 의존을
  *    새로 넣으면 그 호출자가 조용히 skip 된다.
  */
-export async function runCoinRefund({ userId, featureKey, cost, sourceTransactionId, executionId, requestId, reason }) {
+export async function runCoinRefund({ env, userId, featureKey, cost, sourceTransactionId, executionId, requestId, reason }, deps = {}) {
   if (!userId || !sourceTransactionId || cost <= 0) {
     return { refunded: false, skipped: true };
   }
@@ -438,61 +438,36 @@ export async function runCoinRefund({ userId, featureKey, cost, sourceTransactio
     return { refunded: false, skipped: true, reason: "SOURCE_TRANSACTION_NOT_POINT_HISTORY_ID" };
   }
 
-  const existing = await PointHistory.findOne({
-    userId,
-    kind: "refund",
-    "metadata.refundForPointHistoryId": String(sourceTransactionId),
-  }).lean();
-  if (existing) {
-    return {
-      refunded: true,
-      idempotent: true,
-      refundTxId: String(existing._id || ""),
-    };
-  }
-
-  const deducted = await PointHistory.findOne({
-    _id: sourceTransactionId,
-    userId,
-    kind: "deduct",
-  }).lean();
-  if (!deducted) {
-    return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
-  }
-  if (cleanMetadataText(deducted?.metadata?.accessType).toLowerCase() === "membership_credit") {
-    return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_DEDUCT" };
-  }
-
-  const user = await User.findByIdAndUpdate(
-    userId,
-    { $inc: { points: cost } },
-    { returnDocument: "after", projection: { points: 1 } },
-  ).lean();
-  if (!user) {
-    throw new Error("USER_NOT_FOUND_FOR_REFUND");
-  }
-
-  const refund = await PointHistory.create({
-    userId,
-    kind: "refund",
-    delta: cost,
-    balanceAfter: Number(user.points || 0),
-    reason,
-    featureKey,
-    metadata: {
-      source: "billing.service-execution",
-      requestId: String(requestId || "").slice(0, 120),
-      executionId: String(executionId || ""),
-      refundForPointHistoryId: String(sourceTransactionId),
-      sourceTransactionId: String(sourceTransactionId),
-    },
-  });
-
-  return {
-    refunded: true,
-    idempotent: false,
-    refundTxId: String(refund?._id || ""),
-  };
+  const uid = toObjectId(userId), sourceId = toObjectId(sourceTransactionId);
+  if (!uid || !sourceId) return { refunded: false, skipped: true, reason: "SOURCE_ID_INVALID" };
+  const { createPaymentContext, withPaymentDb } = await import("../payments/db.js");
+  const context = createPaymentContext({ requestId: `service-refund:${sourceId}`, route: "service-execution-coin-refund" });
+  return (deps.withDb || withPaymentDb)(env || {}, context, db => db.transaction(async tx => {
+    const existing = await tx.findOne(PointHistory, { userId: uid, kind: "refund", "metadata.refundForPointHistoryId": String(sourceId) });
+    if (existing) {
+      if (!featureKey || String(existing.featureKey || "") !== String(featureKey)) return { refunded: false, skipped: true, reason: "REFUND_FEATURE_MISMATCH" };
+      return { refunded: true, idempotent: true, refundTxId: String(existing._id || "") };
+    }
+    const filter = { _id: sourceId, userId: uid, kind: "deduct", "metadata.refundedForServiceExecution": { $ne: true } };
+    const deducted = await tx.findOne(PointHistory, filter);
+    if (!deducted) return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
+    if (!featureKey || String(deducted.featureKey || "") !== String(featureKey)) return { refunded: false, skipped: true, reason: "DEDUCT_FEATURE_MISMATCH" };
+    if (cleanMetadataText(deducted?.metadata?.accessType).toLowerCase() === "membership_credit") return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_DEDUCT" };
+    const delta = Number(deducted.delta);
+    if (!Number.isSafeInteger(delta) || delta >= 0) return { refunded: false, skipped: true, reason: "DEDUCT_AMOUNT_UNVERIFIED" };
+    const now = new Date(), refundAmount = -delta;
+    const claimed = await tx.updateOne(PointHistory, filter, { $set: { "metadata.refundedForServiceExecution": true, "metadata.refundedAt": now } });
+    if (claimed.modifiedCount !== 1) throw new Error("COIN_REFUND_SOURCE_CONFLICT");
+    const updated = await tx.findOneAndUpdate(User, { _id: uid }, { $inc: { points: refundAmount } }, { returnDocument: "after", projection: { points: 1 } });
+    const user = updated && "value" in updated && !("_id" in updated) ? updated.value : updated;
+    if (!user || !Number.isFinite(Number(user.points))) throw new Error("USER_NOT_FOUND_FOR_REFUND");
+    const receipt = await tx.insertOne(PointHistory, { userId: uid, kind: "refund", delta: refundAmount,
+      balanceAfter: Number(user.points), reason, featureKey,
+      metadata: { source: "billing.service-execution", requestId: String(requestId || "").slice(0, 120),
+        executionId: String(executionId || ""), refundForPointHistoryId: String(sourceId), sourceTransactionId: String(sourceId) },
+      createdAt: now, updatedAt: now });
+    return { refunded: true, idempotent: false, amount: refundAmount, refundTxId: String(receipt.insertedId || "") };
+  }));
 }
 
 /**
@@ -1201,10 +1176,10 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
   });
 
   try {
-    // 🔴 환급 두 갈래는 **호출 통째로** 감싼다 — 안에 PointHistory.create / MonthlyCreditLedger.create /
-    // User $inc 가 있어 op 단위로 쪼개면 그 사이에 웜 커넥션이 끊길 수 있다(부분 환급).
-    // {retries:0} 은 이중 환급 방지이고, 이 서브트리 안에 재시도를 새로 추가하지 말 것.
-    const coinResult = await withMongoRetry(env, () => runCoinRefund({
+    // 차감 표식·잔액·영수증은 runCoinRefund의 한 트랜잭션에서 함께 처리한다.
+    // 내부 withPaymentDb가 단일 DB admission을 소유하므로 바깥에서 다시 감싸지 않는다.
+    const coinResult = await runCoinRefund({
+      env,
       userId: execution.userId,
       featureKey: execution.featureKey,
       cost: Number(execution.cost || 0),
@@ -1212,7 +1187,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       executionId: String(execution._id),
       requestId,
       reason: `${reason.message}`.slice(0, 120),
-    }), { retries: 0 });
+    });
 
     // attemptTimeoutMS 15000 — PointHistory 갈래(조회 5회 + 원장 생성 + 갱신 2회)와, 그것이 비었을
     // 때 이어 도는 원장 갈래(증빙 조회 + lot 복원 + 원장 생성/갱신)를 합쳐 이 파일에서 가장 긴 단위다.
