@@ -4,7 +4,7 @@ import { runCoinRefund } from '../../worker/lib/service-execution-task.js';
 const userId = '64b7f2a1c3d4e5f601234567';
 const sourceId = '64b7f2a1c3d4e5f600000009';
 
-function fixture({ delta = -12, failure = '', featureKey = 'test-feature' } = {}) {
+function fixture({ delta = -12, failure = '', featureKey = 'test-feature', cost = 90 } = {}) {
   let state = { marked: false, balance: 7, receipt: null };
   let calls = 0;
   let queue = Promise.resolve();
@@ -35,7 +35,7 @@ function fixture({ delta = -12, failure = '', featureKey = 'test-feature' } = {}
     return result;
     } finally { release(); }
   } });
-  return { run: () => runCoinRefund({ userId, featureKey: 'test-feature', cost: 90, sourceTransactionId: sourceId }, { withDb }), state: () => state };
+  return { run: () => runCoinRefund({ userId, featureKey: 'test-feature', cost, sourceTransactionId: sourceId }, { withDb }), state: () => state };
 }
 
 test('restores the actual debit once even when the requested price differs', async () => {
@@ -62,6 +62,12 @@ test('a deduction for another product cannot fund this refund', async () => {
   const f = fixture({ featureKey: 'other-feature' });
   expect(await f.run()).toMatchObject({ refunded: false, reason: 'DEDUCT_FEATURE_MISMATCH' });
   expect(f.state()).toMatchObject({ marked: false, balance: 7, receipt: null });
+});
+
+test('a missing execution price does not hide a verified source debit', async () => {
+  const f = fixture({ cost: 0 });
+  expect(await f.run()).toMatchObject({ refunded: true, amount: 12 });
+  expect(f.state().balance).toBe(19);
 });
 
 test('a committed refund with a lost response is not applied twice', async () => {

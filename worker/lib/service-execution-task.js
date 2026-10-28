@@ -430,8 +430,8 @@ function toSummary(doc) {
  *    호출자가 같은 모양을 만들어 넘기면 된다. 여기에 ServiceExecutionTransaction 전용 필드 의존을
  *    새로 넣으면 그 호출자가 조용히 skip 된다.
  */
-export async function runCoinRefund({ env, userId, featureKey, cost, sourceTransactionId, executionId, requestId, reason }, deps = {}) {
-  if (!userId || !sourceTransactionId || cost <= 0) {
+export async function runCoinRefund({ env, userId, featureKey, sourceTransactionId, executionId, requestId, reason }, deps = {}) {
+  if (!userId || !sourceTransactionId) {
     return { refunded: false, skipped: true };
   }
   if (!mongoose.Types.ObjectId.isValid(String(sourceTransactionId))) {
@@ -1010,6 +1010,15 @@ export async function runPaymentCancel(env, paymentRef = {}, reason, execution =
   }).lean());
 
   if (!payment) return { cancelled: false, skipped: true };
+  if (!execution.userId || String(payment.userId || "") !== String(execution.userId)) {
+    return { cancelled: false, skipped: true, reason: "PAYMENT_OWNER_MISMATCH" };
+  }
+  if (!execution.featureKey || String(payment.featureKey || "") !== String(execution.featureKey)) {
+    return { cancelled: false, skipped: true, reason: "PAYMENT_FEATURE_MISMATCH" };
+  }
+  if (cleanMetadataText(payment.paymentType, 80).toLowerCase() === "membership_pass") {
+    return { cancelled: false, skipped: true, reason: "PASS_PURCHASE_NOT_CONSULTATION_REFUND" };
+  }
   if (String(payment.status || "") === "cancelled" || String(payment.status || "") === "refunded") {
     return { cancelled: true, idempotent: true };
   }
@@ -1024,11 +1033,10 @@ export async function runPaymentCancel(env, paymentRef = {}, reason, execution =
   const accessType = cleanMetadataText(payment.accessType, 80).toLowerCase();
   const paymentMethod = cleanMetadataText(payment.paymentMethod, 80).toLowerCase();
   const singlePurchasePayment = paymentType === "digital_content" && accessType === "single_purchase";
-  const membershipPassPayment = paymentType === "membership_pass";
   if (paymentMethod === "monthly_credit") {
     return { cancelled: false, skipped: true, reason: "MONTHLY_CREDIT_NOT_PG" };
   }
-  if (!singlePurchasePayment && !membershipPassPayment) {
+  if (!singlePurchasePayment) {
     return { cancelled: false, skipped: true, reason: "PAYMENT_CANCEL_NOT_ELIGIBLE" };
   }
   if (singlePurchasePayment && Number(payment.chargedPoints || 0) > 0) {

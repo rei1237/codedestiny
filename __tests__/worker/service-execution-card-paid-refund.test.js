@@ -24,7 +24,7 @@ const EXECUTION_ID = "64b7f2a1c3d4e5f6012345aa";
 const PAYMENT_ID = "64b7f2a1c3d4e5f6012345cc";
 const MERCHANT_UID = "cd-order-v2-001";
 
-let failServiceExecution;
+let failServiceExecution, runPaymentCancel;
 let cancelPortOnePaymentMock;
 let executions;
 let payments;
@@ -120,7 +120,7 @@ beforeAll(async () => {
     revokePaymentContentAccess: jest.fn(async () => ({ unlockRevoked: true })),
   }));
 
-  ({ failServiceExecution } = await import("../../worker/lib/service-execution-task.js"));
+  ({ failServiceExecution, runPaymentCancel } = await import("../../worker/lib/service-execution-task.js"));
 });
 
 /** 카드 단건 결제로 열린 실행 1건 + 그 Payment 1건을 세운다. */
@@ -130,6 +130,7 @@ function seed(paymentStatus) {
   payments = [{
     _id: PAYMENT_ID,
     userId: USER_ID,
+    featureKey: "master-love-codex",
     merchantUid: MERCHANT_UID,
     impUid: "pg-tx-v2-001",
     status: paymentStatus,
@@ -193,4 +194,17 @@ test("승인 전 주문은 여전히 환불하지 않는다", async () => {
 
   expect(cancelPortOnePaymentMock).not.toHaveBeenCalled();
   expect(payments[0].status).toBe("pending");
+});
+
+test.each([
+  [{ userId: '64b7f2a1c3d4e5f601234568' }, 'PAYMENT_OWNER_MISMATCH'],
+  [{ featureKey: 'different-product' }, 'PAYMENT_FEATURE_MISMATCH'],
+  [{ paymentType: 'membership_pass' }, 'PASS_PURCHASE_NOT_CONSULTATION_REFUND'],
+])('다른 계정·상품 또는 이용권 구매는 상담 실패로 취소하지 않는다: %s', async (change, reason) => {
+  seed('paid');
+  Object.assign(payments[0], change);
+  const result = await runPaymentCancel({}, { merchantUid: MERCHANT_UID }, 'generation failed', executions[0]);
+  expect(result).toMatchObject({ cancelled: false, reason });
+  expect(cancelPortOnePaymentMock).not.toHaveBeenCalled();
+  expect(payments[0].status).toBe('paid');
 });
