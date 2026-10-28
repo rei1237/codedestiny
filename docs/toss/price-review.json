@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "ee92e5a927a90b17deb8159a0e398f7806ab6598",
+  "sourceCommit": "d3f1ed91f9015324e63d19a981fbe682f8ad8a10",
   "policy": "Review only. Registry entries may be historical. Active route wins; no sales registration authorized by this file.",
   "maxNonGameSkus": 30,
   "priceDecision": "user-review-required",
@@ -7,19 +7,19 @@
   "features": [
     {
       "featureKey": "animal-destiny-unlock",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 7000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -30,19 +30,19 @@
     },
     {
       "featureKey": "animal-totem-basic",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -53,19 +53,19 @@
     },
     {
       "featureKey": "animal-totem-deep",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -76,19 +76,19 @@
     },
     {
       "featureKey": "astro_basic_deep_pack",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -99,19 +99,19 @@
     },
     {
       "featureKey": "astro_career_talent_deep",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -122,19 +122,19 @@
     },
     {
       "featureKey": "astro_growth_shadow_deep",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -145,19 +145,19 @@
     },
     {
       "featureKey": "astro_monthly_transit",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -168,19 +168,19 @@
     },
     {
       "featureKey": "astro_relationship_deep",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -191,19 +191,19 @@
     },
     {
       "featureKey": "astro_stellar_career_room",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -214,19 +214,19 @@
     },
     {
       "featureKey": "astro_stellar_growth_room",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -237,19 +237,19 @@
     },
     {
       "featureKey": "astro_stellar_relationship_room",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -260,19 +260,19 @@
     },
     {
       "featureKey": "astro_stellar_talent_room",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -283,19 +283,19 @@
     },
     {
       "featureKey": "astro_talent_attraction_deep",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -306,19 +306,19 @@
     },
     {
       "featureKey": "astro_yearly_transit",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -352,19 +352,19 @@
     },
     {
       "featureKey": "astrology_ai_prompt_generator",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -387,52 +387,6 @@
     },
     {
       "featureKey": "compat-astro-direct-synastry",
-      "webPriceKRW": 3000,
-      "billingType": "per_use",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
-        },
-        {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "compat-astro-synastry",
-      "webPriceKRW": 3000,
-      "billingType": "per_use",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
-        },
-        {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "compat-saju-compatibility",
       "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
@@ -455,20 +409,66 @@
       "status": "requires-active-route-and-price-review"
     },
     {
-      "featureKey": "compat-sukuyo-compatibility",
-      "webPriceKRW": 3000,
+      "featureKey": "compat-astro-synastry",
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "compat-saju-compatibility",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "compat-sukuyo-compatibility",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -479,19 +479,19 @@
     },
     {
       "featureKey": "compat-ziwei-compatibility",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -524,7 +524,30 @@
       "status": "requires-active-route-and-price-review"
     },
     {
-      "featureKey": "destiny-compass-crossroads",
+      "featureKey": "daily-fortune-reading",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "destiny-bias-analyze",
       "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
@@ -538,6 +561,29 @@
           "supplyKRW": 4550,
           "estimatedFinalKRW": 5005,
           "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "destiny-compass-crossroads",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -548,19 +594,19 @@
     },
     {
       "featureKey": "destiny-compass-deep-report",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 7000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -571,19 +617,19 @@
     },
     {
       "featureKey": "destiny-compass-future-sim",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 7000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -594,6 +640,75 @@
     },
     {
       "featureKey": "destiny-compass-life-voyage",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "destiny_meeting_place",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "dream-prompt-generator",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "dream-psycho-analysis",
       "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
@@ -616,30 +731,7 @@
       "status": "requires-active-route-and-price-review"
     },
     {
-      "featureKey": "destiny_meeting_place",
-      "webPriceKRW": 1000,
-      "billingType": "per_use",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
-        },
-        {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "dream-psycho-analysis",
+      "featureKey": "egyptOracle",
       "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
@@ -653,29 +745,6 @@
           "supplyKRW": 2730,
           "estimatedFinalKRW": 3003,
           "differenceKRW": 3
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "egyptOracle",
-      "webPriceKRW": 1000,
-      "billingType": "per_use",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
-        },
-        {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
         }
       ],
       "approvedSku": null,
@@ -686,19 +755,19 @@
     },
     {
       "featureKey": "egyptian_oracle_ai_prompt",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -709,19 +778,19 @@
     },
     {
       "featureKey": "sukuyo-extreme-t-relationship",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -732,19 +801,19 @@
     },
     {
       "featureKey": "flower-fc",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -755,19 +824,19 @@
     },
     {
       "featureKey": "fortune-chat-consultation",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -801,19 +870,19 @@
     },
     {
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -824,19 +893,19 @@
     },
     {
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 8180,
-          "estimatedFinalKRW": 8998,
-          "differenceKRW": -2
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 8190,
-          "estimatedFinalKRW": 9009,
-          "differenceKRW": 9
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -869,20 +938,43 @@
       "status": "requires-active-route-and-price-review"
     },
     {
-      "featureKey": "fortune-tea-house-saju-compatibility-consultation",
-      "webPriceKRW": 5000,
+      "featureKey": "fortune-prompt-hub-generate",
+      "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-tea-house-saju-compatibility-consultation",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -893,19 +985,42 @@
     },
     {
       "featureKey": "fortune-tea-house-saju-consultation",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-tea-house-saju-joint-consultation",
+      "webPriceKRW": 15000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 13630,
+          "estimatedFinalKRW": 14993,
+          "differenceKRW": -7
+        },
+        {
+          "supplyKRW": 13640,
+          "estimatedFinalKRW": 15004,
+          "differenceKRW": 4
         }
       ],
       "approvedSku": null,
@@ -916,19 +1031,19 @@
     },
     {
       "featureKey": "fortune-tea-house-sukuyo-compatibility-consultation",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -962,19 +1077,19 @@
     },
     {
       "featureKey": "fortune-tea-house-tarot-five-consultation",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 7000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -986,7 +1101,7 @@
     {
       "featureKey": "fun.quantumLotto.ritualReport",
       "webPriceKRW": 1000,
-      "billingType": "unlock",
+      "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
@@ -1054,8 +1169,31 @@
     },
     {
       "featureKey": "premium-sibyl-dominator",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 20000,
       "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 18180,
+          "estimatedFinalKRW": 19998,
+          "differenceKRW": -2
+        },
+        {
+          "supplyKRW": 18190,
+          "estimatedFinalKRW": 20009,
+          "differenceKRW": 9
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "geomancy",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
@@ -1067,29 +1205,6 @@
           "supplyKRW": 4550,
           "estimatedFinalKRW": 5005,
           "differenceKRW": 5
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "geomancy",
-      "webPriceKRW": 3000,
-      "billingType": "per_use",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
-        },
-        {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
         }
       ],
       "approvedSku": null,
@@ -1123,19 +1238,19 @@
     },
     {
       "featureKey": "neo-operation-room-consultation",
-      "webPriceKRW": 20000,
+      "webPriceKRW": 30000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 18180,
-          "estimatedFinalKRW": 19998,
-          "differenceKRW": -2
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
         },
         {
-          "supplyKRW": 18190,
-          "estimatedFinalKRW": 20009,
-          "differenceKRW": 9
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
         }
       ],
       "approvedSku": null,
@@ -1215,19 +1330,19 @@
     },
     {
       "featureKey": "healthReport",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -1261,19 +1376,19 @@
     },
     {
       "featureKey": "human-design-report",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 7000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -1284,19 +1399,19 @@
     },
     {
       "featureKey": "ifa-oracle",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
         }
       ],
       "approvedSku": null,
@@ -1330,19 +1445,19 @@
     },
     {
       "featureKey": "life-book-ai-consultation",
-      "webPriceKRW": 10000,
+      "webPriceKRW": 30000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 9090,
-          "estimatedFinalKRW": 9999,
-          "differenceKRW": -1
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
         },
         {
-          "supplyKRW": 9100,
-          "estimatedFinalKRW": 10010,
-          "differenceKRW": 10
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
         }
       ],
       "approvedSku": null,
@@ -1376,19 +1491,19 @@
     },
     {
       "featureKey": "love-code",
-      "webPriceKRW": 1000,
-      "billingType": "unlock",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -1422,29 +1537,6 @@
     },
     {
       "featureKey": "master-love-codex",
-      "webPriceKRW": 10000,
-      "billingType": "per_use",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 9090,
-          "estimatedFinalKRW": 9999,
-          "differenceKRW": -1
-        },
-        {
-          "supplyKRW": 9100,
-          "estimatedFinalKRW": 10010,
-          "differenceKRW": 10
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "master-love-codex-compat",
       "webPriceKRW": 30000,
       "billingType": "per_use",
       "accessModel": null,
@@ -1467,7 +1559,53 @@
       "status": "requires-active-route-and-price-review"
     },
     {
+      "featureKey": "master-love-codex-compat",
+      "webPriceKRW": 50000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 45450,
+          "estimatedFinalKRW": 49995,
+          "differenceKRW": -5
+        },
+        {
+          "supplyKRW": 45460,
+          "estimatedFinalKRW": 50006,
+          "differenceKRW": 6
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
       "featureKey": "maya-prompt-generator",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "mbti-animal-compat",
       "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
@@ -1513,20 +1651,43 @@
       "status": "requires-active-route-and-price-review"
     },
     {
-      "featureKey": "nakshatra-compat",
-      "webPriceKRW": 1000,
+      "featureKey": "nakshatra-basic-reading",
+      "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "nakshatra-compat",
+      "webPriceKRW": 20000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 18180,
+          "estimatedFinalKRW": 19998,
+          "differenceKRW": -2
+        },
+        {
+          "supplyKRW": 18190,
+          "estimatedFinalKRW": 20009,
+          "differenceKRW": 9
         }
       ],
       "approvedSku": null,
@@ -1537,19 +1698,19 @@
     },
     {
       "featureKey": "nakshatra-dasha-map",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -1560,19 +1721,19 @@
     },
     {
       "featureKey": "nakshatra-lord-report",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -1583,19 +1744,19 @@
     },
     {
       "featureKey": "nakshatra-muhurta",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 7000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -1628,20 +1789,43 @@
       "status": "requires-active-route-and-price-review"
     },
     {
-      "featureKey": "neville-meditation",
-      "webPriceKRW": 3000,
+      "featureKey": "neo-email-consultation",
+      "webPriceKRW": 30000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "neville-meditation",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -1675,19 +1859,19 @@
     },
     {
       "featureKey": "olympus-fc",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -1698,19 +1882,19 @@
     },
     {
       "featureKey": "tarot-celestial-harmony",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -1721,19 +1905,19 @@
     },
     {
       "featureKey": "tarot-crystal-soul-reading",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -1744,19 +1928,19 @@
     },
     {
       "featureKey": "openGeomancyOracle",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -1767,19 +1951,19 @@
     },
     {
       "featureKey": "tarot-ijik",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -1790,19 +1974,19 @@
     },
     {
       "featureKey": "openJuyukModal",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
         }
       ],
       "approvedSku": null,
@@ -1813,19 +1997,19 @@
     },
     {
       "featureKey": "openKemetModal",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
         }
       ],
       "approvedSku": null,
@@ -1836,19 +2020,19 @@
     },
     {
       "featureKey": "tarot-mindscan",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -1859,19 +2043,19 @@
     },
     {
       "featureKey": "royal-tea-oracle",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
         }
       ],
       "approvedSku": null,
@@ -1882,19 +2066,19 @@
     },
     {
       "featureKey": "stonehengeRunes",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
         }
       ],
       "approvedSku": null,
@@ -1905,19 +2089,19 @@
     },
     {
       "featureKey": "saju-guardian-unlock",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 7000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -1928,19 +2112,19 @@
     },
     {
       "featureKey": "tarot-love-relationship",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -1951,19 +2135,19 @@
     },
     {
       "featureKey": "tarot-reunion-reading",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -1974,19 +2158,19 @@
     },
     {
       "featureKey": "tarot-year-fortune",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -1997,19 +2181,19 @@
     },
     {
       "featureKey": "tetogen_deep_report",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2020,19 +2204,19 @@
     },
     {
       "featureKey": "yoga-guru-per-use",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2043,19 +2227,19 @@
     },
     {
       "featureKey": "palm-reading-ai-consult",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -2066,6 +2250,29 @@
     },
     {
       "featureKey": "palm-reading-general",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "pet-compatibility-ai",
       "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
@@ -2088,43 +2295,20 @@
       "status": "requires-active-route-and-price-review"
     },
     {
-      "featureKey": "pet-compatibility-ai",
-      "webPriceKRW": 3000,
-      "billingType": "per_use",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
-        },
-        {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
       "featureKey": "pet-saju-ai-consultation",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2135,19 +2319,19 @@
     },
     {
       "featureKey": "physiognomy-compatibility",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2158,19 +2342,19 @@
     },
     {
       "featureKey": "physiognomy-ogwan-mole-deep",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2181,19 +2365,19 @@
     },
     {
       "featureKey": "physiognomy-pastlife-compatibility",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2204,19 +2388,19 @@
     },
     {
       "featureKey": "premium-sukuyo-compat-extra",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2250,19 +2434,19 @@
     },
     {
       "featureKey": "premiumTarot",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -2273,29 +2457,6 @@
     },
     {
       "featureKey": "profile-card-manage",
-      "webPriceKRW": 5000,
-      "billingType": "per_use",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
-        },
-        {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "relationship-boundary-test",
       "webPriceKRW": 1000,
       "billingType": "per_use",
       "accessModel": null,
@@ -2318,9 +2479,9 @@
       "status": "requires-active-route-and-price-review"
     },
     {
-      "featureKey": "rpgCharacter",
+      "featureKey": "psychotest-reading",
       "webPriceKRW": 3000,
-      "billingType": "unlock",
+      "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
@@ -2341,20 +2502,66 @@
       "status": "requires-active-route-and-price-review"
     },
     {
-      "featureKey": "rpt_energyCoordCard",
-      "webPriceKRW": 1000,
+      "featureKey": "relationship-boundary-test",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "rpgCharacter",
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "rpt_energyCoordCard",
+      "webPriceKRW": 7000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -2365,19 +2572,19 @@
     },
     {
       "featureKey": "rpt_healthReportCard",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2388,19 +2595,19 @@
     },
     {
       "featureKey": "rpt_quantumCard",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 10000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -2411,19 +2618,19 @@
     },
     {
       "featureKey": "rpt_secretHouseEntryCard",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2480,19 +2687,19 @@
     },
     {
       "featureKey": "rpt_villainCard",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2549,19 +2756,19 @@
     },
     {
       "featureKey": "secretHouseEpisodes",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2572,19 +2779,19 @@
     },
     {
       "featureKey": "section_compat",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 10000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -2595,19 +2802,19 @@
     },
     {
       "featureKey": "section_daewun",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 20000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 18180,
+          "estimatedFinalKRW": 19998,
+          "differenceKRW": -2
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 18190,
+          "estimatedFinalKRW": 20009,
+          "differenceKRW": 9
         }
       ],
       "approvedSku": null,
@@ -2618,19 +2825,19 @@
     },
     {
       "featureKey": "section_summary",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 10000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -2641,19 +2848,19 @@
     },
     {
       "featureKey": "tarot-myeongri-three-card",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2664,19 +2871,19 @@
     },
     {
       "featureKey": "stonehenge-runes-ai-prompt",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2687,19 +2894,19 @@
     },
     {
       "featureKey": "stonehenge-runes-deep",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
         }
       ],
       "approvedSku": null,
@@ -2710,19 +2917,19 @@
     },
     {
       "featureKey": "stonehenge-runes-single",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
         }
       ],
       "approvedSku": null,
@@ -2733,19 +2940,19 @@
     },
     {
       "featureKey": "stonehenge-runes-triad",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
         }
       ],
       "approvedSku": null,
@@ -2756,19 +2963,19 @@
     },
     {
       "featureKey": "stonehenge-runes-yearly",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
         }
       ],
       "approvedSku": null,
@@ -2779,19 +2986,19 @@
     },
     {
       "featureKey": "sukuyo-monthly-fortune",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2802,19 +3009,19 @@
     },
     {
       "featureKey": "sukuyo-nature-deep-dive",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2825,19 +3032,19 @@
     },
     {
       "featureKey": "sukuyo-past-life-reading",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -2848,19 +3055,19 @@
     },
     {
       "featureKey": "sukuyo-relationship-encyclopedia",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2871,19 +3078,19 @@
     },
     {
       "featureKey": "sukuyo-symbolic-comparison",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2894,19 +3101,19 @@
     },
     {
       "featureKey": "sukuyo_ai_prompt_generator",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -2917,19 +3124,19 @@
     },
     {
       "featureKey": "sukyo_yearly_fortune_unlock",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 7000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -2940,19 +3147,19 @@
     },
     {
       "featureKey": "tarot-numerology-reading",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2963,19 +3170,19 @@
     },
     {
       "featureKey": "tarot-prompt-maker",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -2986,19 +3193,19 @@
     },
     {
       "featureKey": "tarot-prompt-maker-deep",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -3009,19 +3216,19 @@
     },
     {
       "featureKey": "tarot-prompt-maker-master",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -3032,98 +3239,6 @@
     },
     {
       "featureKey": "tarot-prompt-maker-standard",
-      "webPriceKRW": 3000,
-      "billingType": "per_use",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
-        },
-        {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "travelDestiny",
-      "webPriceKRW": 3000,
-      "billingType": "unlock",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
-        },
-        {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "turtleIChing",
-      "webPriceKRW": 1000,
-      "billingType": "per_use",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
-        },
-        {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "vedic-compatibility-per-use",
-      "webPriceKRW": 3000,
-      "billingType": "per_use",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
-        },
-        {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "vedic_ai_prompt_generator",
       "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
@@ -3146,20 +3261,20 @@
       "status": "requires-active-route-and-price-review"
     },
     {
-      "featureKey": "vedic_basic_reading",
-      "webPriceKRW": 1000,
+      "featureKey": "travelDestiny",
+      "webPriceKRW": 7000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
         }
       ],
       "approvedSku": null,
@@ -3169,7 +3284,7 @@
       "status": "requires-active-route-and-price-review"
     },
     {
-      "featureKey": "vedic_prashna_prompt",
+      "featureKey": "turtleIChing",
       "webPriceKRW": 3000,
       "billingType": "per_use",
       "accessModel": null,
@@ -3183,6 +3298,98 @@
           "supplyKRW": 2730,
           "estimatedFinalKRW": 3003,
           "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "vedic-compatibility-per-use",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "vedic_ai_prompt_generator",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "vedic_basic_reading",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "vedic_prashna_prompt",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -3216,19 +3423,19 @@
     },
     {
       "featureKey": "yeongnyangi-astrology-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -3239,19 +3446,19 @@
     },
     {
       "featureKey": "yeongnyangi-astrology-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 8180,
-          "estimatedFinalKRW": 8998,
-          "differenceKRW": -2
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 8190,
-          "estimatedFinalKRW": 9009,
-          "differenceKRW": 9
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -3285,19 +3492,19 @@
     },
     {
       "featureKey": "yeongnyangi-fusion-all",
-      "webPriceKRW": 80000,
+      "webPriceKRW": 60000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 72720,
-          "estimatedFinalKRW": 79992,
-          "differenceKRW": -8
+          "supplyKRW": 54540,
+          "estimatedFinalKRW": 59994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 72730,
-          "estimatedFinalKRW": 80003,
-          "differenceKRW": 3
+          "supplyKRW": 54550,
+          "estimatedFinalKRW": 60005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -3400,19 +3607,19 @@
     },
     {
       "featureKey": "yeongnyangi-saju-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -3423,19 +3630,19 @@
     },
     {
       "featureKey": "yeongnyangi-saju-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 8180,
-          "estimatedFinalKRW": 8998,
-          "differenceKRW": -2
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 8190,
-          "estimatedFinalKRW": 9009,
-          "differenceKRW": 9
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -3492,19 +3699,19 @@
     },
     {
       "featureKey": "yeongnyangi-sukuyo-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -3515,19 +3722,19 @@
     },
     {
       "featureKey": "yeongnyangi-sukuyo-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 8180,
-          "estimatedFinalKRW": 8998,
-          "differenceKRW": -2
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 8190,
-          "estimatedFinalKRW": 9009,
-          "differenceKRW": 9
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -3584,19 +3791,19 @@
     },
     {
       "featureKey": "yeongnyangi-tarot-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -3607,19 +3814,19 @@
     },
     {
       "featureKey": "yeongnyangi-tarot-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 8180,
-          "estimatedFinalKRW": 8998,
-          "differenceKRW": -2
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 8190,
-          "estimatedFinalKRW": 9009,
-          "differenceKRW": 9
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -3676,19 +3883,19 @@
     },
     {
       "featureKey": "yeongnyangi-vedic-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -3699,19 +3906,19 @@
     },
     {
       "featureKey": "yeongnyangi-vedic-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 8180,
-          "estimatedFinalKRW": 8998,
-          "differenceKRW": -2
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 8190,
-          "estimatedFinalKRW": 9009,
-          "differenceKRW": 9
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -3768,19 +3975,19 @@
     },
     {
       "featureKey": "yeongnyangi-ziwei-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 2720,
-          "estimatedFinalKRW": 2992,
-          "differenceKRW": -8
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 2730,
-          "estimatedFinalKRW": 3003,
-          "differenceKRW": 3
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -3791,19 +3998,19 @@
     },
     {
       "featureKey": "yeongnyangi-ziwei-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 8180,
-          "estimatedFinalKRW": 8998,
-          "differenceKRW": -2
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 8190,
-          "estimatedFinalKRW": 9009,
-          "differenceKRW": 9
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -3837,19 +4044,19 @@
     },
     {
       "featureKey": "ziwei_ai_prompt_generator",
-      "webPriceKRW": 5000,
+      "webPriceKRW": 10000,
       "billingType": "per_use",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 4540,
-          "estimatedFinalKRW": 4994,
-          "differenceKRW": -6
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
         },
         {
-          "supplyKRW": 4550,
-          "estimatedFinalKRW": 5005,
-          "differenceKRW": 5
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
         }
       ],
       "approvedSku": null,
@@ -3883,31 +4090,8 @@
     },
     {
       "featureKey": "ziwei-island-deep-report",
-      "webPriceKRW": 1000,
-      "billingType": "unlock",
-      "accessModel": null,
-      "reviewCandidates": [
-        {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
-        },
-        {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
-        }
-      ],
-      "approvedSku": null,
-      "approvedFinalKRW": null,
-      "feeEvidence": null,
-      "llmCostEvidence": null,
-      "status": "requires-active-route-and-price-review"
-    },
-    {
-      "featureKey": "ziwei-island-palace-consult",
       "webPriceKRW": 5000,
-      "billingType": "per_use",
+      "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
@@ -3928,20 +4112,43 @@
       "status": "requires-active-route-and-price-review"
     },
     {
+      "featureKey": "ziwei-island-palace-consult",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
       "featureKey": "ziwei_decade_luck",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -3952,19 +4159,19 @@
     },
     {
       "featureKey": "ziwei_life_yearly_flow",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -3975,19 +4182,19 @@
     },
     {
       "featureKey": "ziwei_love_deep",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -3998,19 +4205,19 @@
     },
     {
       "featureKey": "ziwei_symbolic_layer",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -4021,19 +4228,19 @@
     },
     {
       "featureKey": "ziwei_twelve_palaces",
-      "webPriceKRW": 1000,
+      "webPriceKRW": 5000,
       "billingType": "unlock",
       "accessModel": null,
       "reviewCandidates": [
         {
-          "supplyKRW": 900,
-          "estimatedFinalKRW": 990,
-          "differenceKRW": -10
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
         },
         {
-          "supplyKRW": 910,
-          "estimatedFinalKRW": 1001,
-          "differenceKRW": 1
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
         }
       ],
       "approvedSku": null,
@@ -4048,7 +4255,7 @@
       "serviceId": "yeongnyangi",
       "productId": "saju_mackerel",
       "featureKey": "yeongnyangi-saju-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "saju"
       ],
@@ -4061,7 +4268,7 @@
       "serviceId": "yeongnyangi",
       "productId": "saju_salmon",
       "featureKey": "yeongnyangi-saju-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "saju"
       ],
@@ -4100,7 +4307,7 @@
       "serviceId": "yeongnyangi",
       "productId": "ziwei_mackerel",
       "featureKey": "yeongnyangi-ziwei-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "ziwei"
       ],
@@ -4113,7 +4320,7 @@
       "serviceId": "yeongnyangi",
       "productId": "ziwei_salmon",
       "featureKey": "yeongnyangi-ziwei-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "ziwei"
       ],
@@ -4152,7 +4359,7 @@
       "serviceId": "yeongnyangi",
       "productId": "sukuyo_mackerel",
       "featureKey": "yeongnyangi-sukuyo-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "sukuyo"
       ],
@@ -4165,7 +4372,7 @@
       "serviceId": "yeongnyangi",
       "productId": "sukuyo_salmon",
       "featureKey": "yeongnyangi-sukuyo-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "sukuyo"
       ],
@@ -4204,7 +4411,7 @@
       "serviceId": "yeongnyangi",
       "productId": "vedic_mackerel",
       "featureKey": "yeongnyangi-vedic-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "vedic"
       ],
@@ -4217,7 +4424,7 @@
       "serviceId": "yeongnyangi",
       "productId": "vedic_salmon",
       "featureKey": "yeongnyangi-vedic-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "vedic"
       ],
@@ -4256,7 +4463,7 @@
       "serviceId": "yeongnyangi",
       "productId": "astrology_mackerel",
       "featureKey": "yeongnyangi-astrology-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "astrology"
       ],
@@ -4269,7 +4476,7 @@
       "serviceId": "yeongnyangi",
       "productId": "astrology_salmon",
       "featureKey": "yeongnyangi-astrology-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "astrology"
       ],
@@ -4308,7 +4515,7 @@
       "serviceId": "yeongnyangi",
       "productId": "tarot_mackerel",
       "featureKey": "yeongnyangi-tarot-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "tarot"
       ],
@@ -4321,7 +4528,7 @@
       "serviceId": "yeongnyangi",
       "productId": "tarot_salmon",
       "featureKey": "yeongnyangi-tarot-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "tarot"
       ],
@@ -4402,7 +4609,7 @@
       "serviceId": "yeongnyangi",
       "productId": "fusion_all",
       "featureKey": "yeongnyangi-fusion-all",
-      "webPriceKRW": 80000,
+      "webPriceKRW": 60000,
       "systems": [
         "saju",
         "ziwei",
@@ -4420,7 +4627,7 @@
       "serviceId": "yeoni",
       "productId": "chat_saju_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "saju"
       ],
@@ -4433,7 +4640,7 @@
       "serviceId": "yeoni",
       "productId": "chat_saju_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "saju"
       ],
@@ -4472,7 +4679,7 @@
       "serviceId": "yeoni",
       "productId": "chat_ziwei_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "ziwei"
       ],
@@ -4485,7 +4692,7 @@
       "serviceId": "yeoni",
       "productId": "chat_ziwei_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "ziwei"
       ],
@@ -4524,7 +4731,7 @@
       "serviceId": "yeoni",
       "productId": "chat_sukuyo_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "sukuyo"
       ],
@@ -4537,7 +4744,7 @@
       "serviceId": "yeoni",
       "productId": "chat_sukuyo_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "sukuyo"
       ],
@@ -4563,7 +4770,7 @@
       "serviceId": "yeoni",
       "productId": "chat_vedic_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "vedic"
       ],
@@ -4576,7 +4783,7 @@
       "serviceId": "yeoni",
       "productId": "chat_vedic_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "vedic"
       ],
@@ -4615,7 +4822,7 @@
       "serviceId": "yeoni",
       "productId": "chat_astrology_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "astrology"
       ],
@@ -4628,7 +4835,7 @@
       "serviceId": "yeoni",
       "productId": "chat_astrology_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "astrology"
       ],
@@ -4654,7 +4861,7 @@
       "serviceId": "yeoni",
       "productId": "chat_tarot_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "tarot"
       ],
@@ -4667,7 +4874,7 @@
       "serviceId": "yeoni",
       "productId": "chat_tarot_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "tarot"
       ],
@@ -4693,7 +4900,7 @@
       "serviceId": "neo",
       "productId": "chat_saju_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "saju"
       ],
@@ -4706,7 +4913,7 @@
       "serviceId": "neo",
       "productId": "chat_saju_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "saju"
       ],
@@ -4745,7 +4952,7 @@
       "serviceId": "neo",
       "productId": "chat_ziwei_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "ziwei"
       ],
@@ -4758,7 +4965,7 @@
       "serviceId": "neo",
       "productId": "chat_ziwei_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "ziwei"
       ],
@@ -4797,7 +5004,7 @@
       "serviceId": "neo",
       "productId": "chat_sukuyo_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "sukuyo"
       ],
@@ -4810,7 +5017,7 @@
       "serviceId": "neo",
       "productId": "chat_sukuyo_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "sukuyo"
       ],
@@ -4836,7 +5043,7 @@
       "serviceId": "neo",
       "productId": "chat_vedic_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "vedic"
       ],
@@ -4849,7 +5056,7 @@
       "serviceId": "neo",
       "productId": "chat_vedic_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "vedic"
       ],
@@ -4888,7 +5095,7 @@
       "serviceId": "neo",
       "productId": "chat_astrology_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "astrology"
       ],
@@ -4901,7 +5108,7 @@
       "serviceId": "neo",
       "productId": "chat_astrology_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "astrology"
       ],
@@ -4927,7 +5134,7 @@
       "serviceId": "neo",
       "productId": "chat_tarot_mackerel",
       "featureKey": "fortune-chat-question-mackerel",
-      "webPriceKRW": 3000,
+      "webPriceKRW": 5000,
       "systems": [
         "tarot"
       ],
@@ -4940,7 +5147,7 @@
       "serviceId": "neo",
       "productId": "chat_tarot_salmon",
       "featureKey": "fortune-chat-question-salmon",
-      "webPriceKRW": 9000,
+      "webPriceKRW": 10000,
       "systems": [
         "tarot"
       ],

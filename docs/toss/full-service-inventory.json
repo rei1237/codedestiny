@@ -1,8 +1,8 @@
 {
-  "sourceCommit": "852b25f8354f9c6faef9327ca35ab51536fe3e7f",
+  "sourceCommit": "d3f1ed91f9015324e63d19a981fbe682f8ad8a10",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
-    "home": 57,
+    "home": 63,
     "react": 18,
     "visual": 85
   },
@@ -17,7 +17,7 @@
           "name": "십이운성 동물점",
           "entry": "/saju/animal-destiny/",
           "featureKey": "animal-destiny-unlock",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "7,000원"
         },
         {
           "source": "shell-visual-details",
@@ -69,7 +69,7 @@
           "name": "애니멀 토템",
           "entry": "openAnimalTotemModal",
           "featureKey": "animal-totem-basic",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "react-registry",
@@ -188,8 +188,8 @@
           "id": "bias-destiny",
           "name": "최애운명",
           "entry": "/saju/destiny-bias",
-          "featureKey": null,
-          "accessEvidence": "free"
+          "featureKey": "destiny-bias-analyze",
+          "accessEvidence": "paid"
         },
         {
           "source": "shell-visual-details",
@@ -198,6 +198,28 @@
           "entry": null,
           "featureKey": null,
           "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "career-style",
+      "name": "나의 일 스타일",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "career-style",
+          "name": "나의 일 스타일",
+          "entry": "/saju/career-style/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
         }
       ],
       "toss": {
@@ -240,8 +262,8 @@
           "id": "daily-fortune",
           "name": "오늘의 운세",
           "entry": "/today/",
-          "featureKey": null,
-          "accessEvidence": "무료"
+          "featureKey": "daily-fortune-reading",
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -271,7 +293,7 @@
           "name": "운명의 나침반",
           "entry": "/destiny-compass/",
           "featureKey": "destiny-compass-life-voyage",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "7,000원"
         },
         {
           "source": "shell-visual-details",
@@ -352,8 +374,8 @@
           "id": "dream",
           "name": "꿈해몽",
           "entry": "/dream/",
-          "featureKey": null,
-          "accessEvidence": "무료"
+          "featureKey": "dream-prompt-generator",
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -383,7 +405,7 @@
           "name": "정신분석 해몽",
           "entry": "openPsychoDreamModal",
           "featureKey": "dream-psycho-analysis",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -465,7 +487,7 @@
           "name": "유명인 사주",
           "entry": "/insights/famous-saju/",
           "featureKey": null,
-          "accessEvidence": "무료"
+          "accessEvidence": "읽을거리"
         },
         {
           "source": "shell-visual-details",
@@ -513,7 +535,7 @@
           "name": "대화형 운명 상담",
           "entry": "/fortune-chat/",
           "featureKey": "fortune-chat-consultation",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -543,7 +565,7 @@
           "name": "운명의 찻집",
           "entry": "/fortune-tea-house/",
           "featureKey": "fortune-tea-house-tarot-consultation",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "5,000원~15,000원"
         },
         {
           "source": "shell-visual-details",
@@ -603,7 +625,7 @@
           "name": "지오맨시 흙점",
           "entry": "openGeomancyOracle",
           "featureKey": "openGeomancyOracle",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -685,7 +707,7 @@
           "name": "IFÀ 오라클",
           "entry": "/ifa-oracle.html",
           "featureKey": "ifa-oracle",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -715,7 +737,7 @@
           "name": "주역 거북점",
           "entry": "/oracle/juyuk/",
           "featureKey": "openJuyukModal",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -737,12 +759,12 @@
     },
     {
       "id": "karma-destiny-ai",
-      "name": "운명의 업",
+      "name": "네오와 서한비의 붉은 실",
       "evidence": [
         {
           "source": "home-registry",
           "id": "karma-destiny-ai",
-          "name": "운명의 업",
+          "name": "네오와 서한비의 붉은 실",
           "entry": "/karma-destiny-ai/",
           "featureKey": "karma-destiny-ai-consultation",
           "accessEvidence": "30,000원"
@@ -775,7 +797,7 @@
           "name": "이집트 신탁",
           "entry": "openKemetModal",
           "featureKey": "openKemetModal",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -805,7 +827,7 @@
           "name": "인생의 책",
           "entry": "/life-book-ai/",
           "featureKey": "life-book-ai-consultation",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "30,000원"
         },
         {
           "source": "shell-visual-details",
@@ -926,14 +948,6 @@
       "name": "LOVE CODE 연애 시뮬레이션",
       "evidence": [
         {
-          "source": "home-registry",
-          "id": "love-simulation",
-          "name": "LOVE CODE 연애 시뮬레이션",
-          "entry": "openLoveSimulation",
-          "featureKey": "love-code",
-          "accessEvidence": "1,000원"
-        },
-        {
           "source": "shell-visual-details",
           "id": "love-simulation",
           "name": "LOVE CODE 연애 시뮬레이션",
@@ -961,7 +975,7 @@
           "name": "운기 다이어리와 플래너",
           "entry": "/diary/",
           "featureKey": null,
-          "accessEvidence": "무료"
+          "accessEvidence": "기록 도구"
         },
         {
           "source": "shell-visual-details",
@@ -991,7 +1005,7 @@
           "name": "만세력",
           "entry": "/manse/",
           "featureKey": null,
-          "accessEvidence": "무료"
+          "accessEvidence": "차트 공개"
         },
         {
           "source": "shell-visual-details",
@@ -1021,7 +1035,7 @@
           "name": "마스터 인연의 서",
           "entry": "/master-love-codex/",
           "featureKey": "master-love-codex",
-          "accessEvidence": "10,000원~30,000원"
+          "accessEvidence": "30,000원~50,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1102,8 +1116,8 @@
           "id": "mbti-animal-compat",
           "name": "MBTI 동물 궁합",
           "entry": "openMbtiModal",
-          "featureKey": null,
-          "accessEvidence": "무료"
+          "featureKey": "mbti-animal-compat",
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1133,7 +1147,7 @@
           "name": "달빛 음악 플레이어",
           "entry": "/music/",
           "featureKey": null,
-          "accessEvidence": "무료 재생 · 다운로드 1,000원"
+          "accessEvidence": "스트리밍 · 다운로드 1,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1162,8 +1176,8 @@
           "id": "nakshatra",
           "name": "나크샤트라 결정판",
           "entry": "/nakshatra/",
-          "featureKey": null,
-          "accessEvidence": "무료"
+          "featureKey": "nakshatra-basic-reading",
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1187,6 +1201,14 @@
       "id": "nakshatra-ai",
       "name": "숙요·나크샤트라 통합 상담",
       "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-ai",
+          "name": "숙요·나크샤트라 통합 상담",
+          "entry": "/nakshatra/ai/",
+          "featureKey": "nakshatra-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
         {
           "source": "shell-visual-details",
           "id": "nakshatra-ai",
@@ -1215,7 +1237,7 @@
           "name": "동서 통합 궁합",
           "entry": "/nakshatra/compat/",
           "featureKey": "nakshatra-compat",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "20,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1245,7 +1267,7 @@
           "name": "택일 무후르타",
           "entry": "/nakshatra/muhurta/",
           "featureKey": "nakshatra-muhurta",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "7,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1269,6 +1291,14 @@
       "id": "nakshatra-vvip-codex",
       "name": "나크샤트라 VVIP 코덱스",
       "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-vvip-codex",
+          "name": "나크샤트라 VVIP 코덱스",
+          "entry": "/nakshatra/vvip/",
+          "featureKey": "nakshatra-vvip-codex",
+          "accessEvidence": "30,000원"
+        },
         {
           "source": "shell-visual-details",
           "id": "nakshatra-vvip-codex",
@@ -1318,6 +1348,28 @@
       }
     },
     {
+      "id": "neo-consultation",
+      "name": "네오에게 물어봐",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "neo-consultation",
+          "name": "네오에게 물어봐",
+          "entry": "/neo-consultation/",
+          "featureKey": "neo-email-consultation",
+          "accessEvidence": "30,000원"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
       "id": "neo-operation-room",
       "name": "팩폭 전략소",
       "evidence": [
@@ -1327,7 +1379,7 @@
           "name": "팩폭 전략소",
           "entry": "/neo-operation-room/",
           "featureKey": "neo-operation-room-consultation",
-          "accessEvidence": "20,000원"
+          "accessEvidence": "30,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1357,7 +1409,7 @@
           "name": "네빌 명상 실습",
           "entry": "/neville-meditation.html",
           "featureKey": "neville-meditation",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1417,7 +1469,7 @@
           "name": "라이트 노벨",
           "entry": "/codedestiny-novel.html",
           "featureKey": null,
-          "accessEvidence": "무료"
+          "accessEvidence": "연재 읽을거리"
         },
         {
           "source": "shell-visual-details",
@@ -1463,6 +1515,14 @@
       "id": "omikuji",
       "name": "이모이 오미쿠지",
       "evidence": [
+        {
+          "source": "home-registry",
+          "id": "omikuji",
+          "name": "이모이 오미쿠지",
+          "entry": "/emoi_omikuji_v2.html",
+          "featureKey": null,
+          "accessEvidence": "무료"
+        },
         {
           "source": "react-registry",
           "id": "omikuji",
@@ -1685,7 +1745,7 @@
           "name": "영국 홍차점",
           "entry": "openRoyalTeaOracle",
           "featureKey": "royal-tea-oracle",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1766,6 +1826,50 @@
       }
     },
     {
+      "id": "saju-compatibility",
+      "name": "사주 궁합",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-compatibility",
+          "name": "사주 궁합",
+          "entry": "/saju/compatibility/",
+          "featureKey": "compat-saju-compatibility",
+          "accessEvidence": "10,000원"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "saju-fpti",
+      "name": "사주 FPTI",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-fpti",
+          "name": "사주 FPTI",
+          "entry": "/saju-fpti/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
       "id": "saju-guardian",
       "name": "사주 가디언 소환진",
       "evidence": [
@@ -1775,7 +1879,7 @@
           "name": "사주 가디언 소환진",
           "entry": "openSajuGuardianPage",
           "featureKey": "saju-guardian-unlock",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "7,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1819,15 +1923,15 @@
     },
     {
       "id": "saju-sibyl",
-      "name": "사이빌 전문가 상담",
+      "name": "시빌라 연간 대비 리포트",
       "evidence": [
         {
           "source": "home-registry",
           "id": "saju-sibyl",
-          "name": "사이빌 전문가 상담",
+          "name": "시빌라 연간 대비 리포트",
           "entry": "/saju/sibyl/",
           "featureKey": "premium-sibyl-dominator",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "20,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1901,7 +2005,7 @@
           "name": "스톤헨지 룬",
           "entry": "openRuneOracle",
           "featureKey": "stonehenge-runes-single",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2073,7 +2177,7 @@
           "name": "천체의 선율",
           "entry": "/celestial-harmony.html",
           "featureKey": "tarot-celestial-harmony",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "10,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2103,7 +2207,7 @@
           "name": "원석 소울 타로",
           "entry": "/tarot/crystal-soul/",
           "featureKey": "tarot-crystal-soul-reading",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2133,7 +2237,7 @@
           "name": "이직 운명의 카드",
           "entry": "/tarot-ijik.html",
           "featureKey": "tarot-ijik",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2163,7 +2267,7 @@
           "name": "우리는 무슨 사이?",
           "entry": "openTarotLoveModal",
           "featureKey": "tarot-love-relationship",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2193,7 +2297,7 @@
           "name": "말과 행동 사이 타로",
           "entry": "/tarot/mindscan/",
           "featureKey": "tarot-mindscan",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2223,7 +2327,7 @@
           "name": "수비학 타로",
           "entry": "/tarot/numerology/",
           "featureKey": "tarot-numerology-reading",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2283,7 +2387,7 @@
           "name": "재회운 타로",
           "entry": "openTarotReunionModal",
           "featureKey": "tarot-reunion-reading",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2313,7 +2417,7 @@
           "name": "십이지신 천운 타로",
           "entry": "openTarotYearFortuneModal",
           "featureKey": "tarot-year-fortune",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "10,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2342,8 +2446,8 @@
           "id": "today-hub",
           "name": "오늘의 운세 허브",
           "entry": "/today/",
-          "featureKey": null,
-          "accessEvidence": "무료"
+          "featureKey": "daily-fortune-reading",
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2403,12 +2507,12 @@
     },
     {
       "id": "vedic-ai",
-      "name": "베다점 전문가 상담",
+      "name": "윤달의 베다점 상담",
       "evidence": [
         {
           "source": "shell-visual-details",
           "id": "vedic-ai",
-          "name": "베다점 전문가 상담",
+          "name": "윤달의 베다점 상담",
           "entry": "/vedic-ai",
           "featureKey": "vedic-ai-consultation",
           "accessEvidence": null
@@ -2451,7 +2555,7 @@
           "name": "Divya Yoga",
           "entry": "/yoga-guru.html",
           "featureKey": "yoga-guru-per-use",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2597,7 +2701,7 @@
           "name": "십이운성 동물점",
           "entry": "/saju/animal-destiny/",
           "featureKey": "animal-destiny-unlock",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "7,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2651,7 +2755,7 @@
           "name": "애니멀 토템",
           "entry": "openAnimalTotemModal",
           "featureKey": "animal-totem-basic",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "react-registry",
@@ -2751,8 +2855,8 @@
           "id": "bias-destiny",
           "name": "최애운명",
           "entry": "/saju/destiny-bias",
-          "featureKey": null,
-          "accessEvidence": "free"
+          "featureKey": "destiny-bias-analyze",
+          "accessEvidence": "paid"
         },
         {
           "source": "shell-visual-details",
@@ -2770,6 +2874,29 @@
       "inputContract": "app/saju/destiny-bias/engine/chemiReportBridge.ts",
       "resultRenderer": "apps/toss/src/BiasReading.tsx + BiasReport.tsx",
       "storageContract": "native-card-save-summary-share-mocked; device-and-web-history-parity-pending"
+    },
+    {
+      "id": "career-style",
+      "discoveryIds": [
+        "career-style"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "career-style",
+          "name": "나의 일 스타일",
+          "entry": "/saju/career-style/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
     },
     {
       "id": "cosmic-soul-meditation",
@@ -2806,7 +2933,7 @@
           "name": "운명의 나침반",
           "entry": "/destiny-compass/",
           "featureKey": "destiny-compass-life-voyage",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "7,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2867,8 +2994,8 @@
           "id": "dream",
           "name": "꿈해몽",
           "entry": "/dream/",
-          "featureKey": null,
-          "accessEvidence": "무료"
+          "featureKey": "dream-prompt-generator",
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2899,7 +3026,7 @@
           "name": "정신분석 해몽",
           "entry": "openPsychoDreamModal",
           "featureKey": "dream-psycho-analysis",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2984,7 +3111,7 @@
           "name": "유명인 사주",
           "entry": "/insights/famous-saju/",
           "featureKey": null,
-          "accessEvidence": "무료"
+          "accessEvidence": "읽을거리"
         },
         {
           "source": "shell-visual-details",
@@ -3075,7 +3202,7 @@
           "name": "대화형 운명 상담",
           "entry": "/fortune-chat/",
           "featureKey": "fortune-chat-consultation",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3106,7 +3233,7 @@
           "name": "운명의 찻집",
           "entry": "/fortune-tea-house/",
           "featureKey": "fortune-tea-house-tarot-consultation",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "5,000원~15,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3168,7 +3295,7 @@
           "name": "지오맨시 흙점",
           "entry": "openGeomancyOracle",
           "featureKey": "openGeomancyOracle",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3253,7 +3380,7 @@
           "name": "IFÀ 오라클",
           "entry": "/ifa-oracle.html",
           "featureKey": "ifa-oracle",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3284,7 +3411,7 @@
           "name": "주역 거북점",
           "entry": "/oracle/juyuk/",
           "featureKey": "openJuyukModal",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3312,7 +3439,7 @@
         {
           "source": "home-registry",
           "id": "karma-destiny-ai",
-          "name": "운명의 업",
+          "name": "네오와 서한비의 붉은 실",
           "entry": "/karma-destiny-ai/",
           "featureKey": "karma-destiny-ai-consultation",
           "accessEvidence": "30,000원"
@@ -3346,7 +3473,7 @@
           "name": "이집트 신탁",
           "entry": "openKemetModal",
           "featureKey": "openKemetModal",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3378,7 +3505,7 @@
           "name": "인생의 책",
           "entry": "/life-book-ai/",
           "featureKey": "life-book-ai-consultation",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "30,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3470,14 +3597,6 @@
           "accessEvidence": "paid"
         },
         {
-          "source": "home-registry",
-          "id": "love-simulation",
-          "name": "LOVE CODE 연애 시뮬레이션",
-          "entry": "openLoveSimulation",
-          "featureKey": "love-code",
-          "accessEvidence": "1,000원"
-        },
-        {
           "source": "shell-visual-details",
           "id": "love-simulation",
           "name": "LOVE CODE 연애 시뮬레이션",
@@ -3539,7 +3658,7 @@
           "name": "운기 다이어리와 플래너",
           "entry": "/diary/",
           "featureKey": null,
-          "accessEvidence": "무료"
+          "accessEvidence": "기록 도구"
         },
         {
           "source": "shell-visual-details",
@@ -3570,7 +3689,7 @@
           "name": "만세력",
           "entry": "/manse/",
           "featureKey": null,
-          "accessEvidence": "무료"
+          "accessEvidence": "차트 공개"
         },
         {
           "source": "shell-visual-details",
@@ -3601,7 +3720,7 @@
           "name": "마스터 인연의 서",
           "entry": "/master-love-codex/",
           "featureKey": "master-love-codex",
-          "accessEvidence": "10,000원~30,000원"
+          "accessEvidence": "30,000원~50,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3685,8 +3804,8 @@
           "id": "mbti-animal-compat",
           "name": "MBTI 동물 궁합",
           "entry": "openMbtiModal",
-          "featureKey": null,
-          "accessEvidence": "무료"
+          "featureKey": "mbti-animal-compat",
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3717,7 +3836,7 @@
           "name": "달빛 음악 플레이어",
           "entry": "/music/",
           "featureKey": null,
-          "accessEvidence": "무료 재생 · 다운로드 1,000원"
+          "accessEvidence": "스트리밍 · 다운로드 1,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3747,8 +3866,8 @@
           "id": "nakshatra",
           "name": "나크샤트라 결정판",
           "entry": "/nakshatra/",
-          "featureKey": null,
-          "accessEvidence": "무료"
+          "featureKey": "nakshatra-basic-reading",
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3773,6 +3892,14 @@
         "nakshatra-ai"
       ],
       "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-ai",
+          "name": "숙요·나크샤트라 통합 상담",
+          "entry": "/nakshatra/ai/",
+          "featureKey": "nakshatra-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
         {
           "source": "shell-visual-details",
           "id": "nakshatra-ai",
@@ -3802,7 +3929,7 @@
           "name": "동서 통합 궁합",
           "entry": "/nakshatra/compat/",
           "featureKey": "nakshatra-compat",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "20,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3833,7 +3960,7 @@
           "name": "택일 무후르타",
           "entry": "/nakshatra/muhurta/",
           "featureKey": "nakshatra-muhurta",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "7,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3858,6 +3985,14 @@
         "nakshatra-vvip-codex"
       ],
       "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-vvip-codex",
+          "name": "나크샤트라 VVIP 코덱스",
+          "entry": "/nakshatra/vvip/",
+          "featureKey": "nakshatra-vvip-codex",
+          "accessEvidence": "30,000원"
+        },
         {
           "source": "shell-visual-details",
           "id": "nakshatra-vvip-codex",
@@ -3907,6 +4042,29 @@
       "storageContract": null
     },
     {
+      "id": "neo-consultation",
+      "discoveryIds": [
+        "neo-consultation"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "neo-consultation",
+          "name": "네오에게 물어봐",
+          "entry": "/neo-consultation/",
+          "featureKey": "neo-email-consultation",
+          "accessEvidence": "30,000원"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
       "id": "neo-operation-room",
       "discoveryIds": [
         "neo-operation-room"
@@ -3918,7 +4076,7 @@
           "name": "팩폭 전략소",
           "entry": "/neo-operation-room/",
           "featureKey": "neo-operation-room-consultation",
-          "accessEvidence": "20,000원"
+          "accessEvidence": "30,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3949,7 +4107,7 @@
           "name": "네빌 명상 실습",
           "entry": "/neville-meditation.html",
           "featureKey": "neville-meditation",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4011,7 +4169,7 @@
           "name": "라이트 노벨",
           "entry": "/codedestiny-novel.html",
           "featureKey": null,
-          "accessEvidence": "무료"
+          "accessEvidence": "연재 읽을거리"
         },
         {
           "source": "shell-visual-details",
@@ -4059,6 +4217,14 @@
         "omikuji"
       ],
       "evidence": [
+        {
+          "source": "home-registry",
+          "id": "omikuji",
+          "name": "이모이 오미쿠지",
+          "entry": "/emoi_omikuji_v2.html",
+          "featureKey": null,
+          "accessEvidence": "무료"
+        },
         {
           "source": "react-registry",
           "id": "omikuji",
@@ -4306,7 +4472,7 @@
           "name": "영국 홍차점",
           "entry": "openRoyalTeaOracle",
           "featureKey": "royal-tea-oracle",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4388,6 +4554,52 @@
       "storageContract": null
     },
     {
+      "id": "saju-compatibility",
+      "discoveryIds": [
+        "saju-compatibility"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-compatibility",
+          "name": "사주 궁합",
+          "entry": "/saju/compatibility/",
+          "featureKey": "compat-saju-compatibility",
+          "accessEvidence": "10,000원"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "saju-fpti",
+      "discoveryIds": [
+        "saju-fpti"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-fpti",
+          "name": "사주 FPTI",
+          "entry": "/saju-fpti/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
       "id": "saju-guardian",
       "discoveryIds": [
         "saju-guardian"
@@ -4399,7 +4611,7 @@
           "name": "사주 가디언 소환진",
           "entry": "openSajuGuardianPage",
           "featureKey": "saju-guardian-unlock",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "7,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4427,10 +4639,10 @@
         {
           "source": "home-registry",
           "id": "saju-sibyl",
-          "name": "사이빌 전문가 상담",
+          "name": "시빌라 연간 대비 리포트",
           "entry": "/saju/sibyl/",
           "featureKey": "premium-sibyl-dominator",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "20,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4493,7 +4705,7 @@
           "name": "스톤헨지 룬",
           "entry": "openRuneOracle",
           "featureKey": "stonehenge-runes-single",
-          "accessEvidence": "1,000원"
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4620,12 +4832,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "local-reading-not-server-stored",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "tarot-celestial-harmony",
@@ -4639,7 +4852,7 @@
           "name": "천체의 선율",
           "entry": "/celestial-harmony.html",
           "featureKey": "tarot-celestial-harmony",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "10,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4651,12 +4864,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "tarot-crystal-soul",
@@ -4670,7 +4884,7 @@
           "name": "원석 소울 타로",
           "entry": "/tarot/crystal-soul/",
           "featureKey": "tarot-crystal-soul-reading",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4682,12 +4896,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "tarot-healing",
@@ -4699,12 +4914,13 @@
           "implementation": "app/tarot/healing/TarotHealingRouteClient.tsx"
         }
       ],
-      "status": "not-ported",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "local-reading-not-server-stored",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "tarot-ijik",
@@ -4718,7 +4934,7 @@
           "name": "이직 운명의 카드",
           "entry": "/tarot-ijik.html",
           "featureKey": "tarot-ijik",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4730,12 +4946,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "tarot-love-relationship",
@@ -4749,7 +4966,7 @@
           "name": "우리는 무슨 사이?",
           "entry": "openTarotLoveModal",
           "featureKey": "tarot-love-relationship",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4761,12 +4978,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "tarot-mindscan",
@@ -4780,7 +4998,7 @@
           "name": "말과 행동 사이 타로",
           "entry": "/tarot/mindscan/",
           "featureKey": "tarot-mindscan",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4792,12 +5010,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "tarot-numerology",
@@ -4811,7 +5030,7 @@
           "name": "수비학 타로",
           "entry": "/tarot/numerology/",
           "featureKey": "tarot-numerology-reading",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4823,12 +5042,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "tarot-prompt-maker",
@@ -4854,12 +5074,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "tarot-reunion",
@@ -4873,7 +5094,7 @@
           "name": "재회운 타로",
           "entry": "openTarotReunionModal",
           "featureKey": "tarot-reunion-reading",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4885,12 +5106,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "tarot-self-esteem",
@@ -4902,12 +5124,13 @@
           "implementation": "js/tarot-self-esteem-experience.js"
         }
       ],
-      "status": "not-ported",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "local-reading-not-server-stored",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "tarot-year-fortune",
@@ -4921,7 +5144,7 @@
           "name": "십이지신 천운 타로",
           "entry": "openTarotYearFortuneModal",
           "featureKey": "tarot-year-fortune",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "10,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4933,12 +5156,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
     },
     {
       "id": "today-hub",
@@ -4952,8 +5176,8 @@
           "id": "daily-fortune",
           "name": "오늘의 운세",
           "entry": "/today/",
-          "featureKey": null,
-          "accessEvidence": "무료"
+          "featureKey": "daily-fortune-reading",
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4968,8 +5192,8 @@
           "id": "today-hub",
           "name": "오늘의 운세 허브",
           "entry": "/today/",
-          "featureKey": null,
-          "accessEvidence": "무료"
+          "featureKey": "daily-fortune-reading",
+          "accessEvidence": "3,000원"
         },
         {
           "source": "shell-visual-details",
@@ -5038,7 +5262,7 @@
         {
           "source": "shell-visual-details",
           "id": "vedic-ai",
-          "name": "베다점 전문가 상담",
+          "name": "윤달의 베다점 상담",
           "entry": "/vedic-ai",
           "featureKey": "vedic-ai-consultation",
           "accessEvidence": null
@@ -5083,7 +5307,7 @@
           "name": "Divya Yoga",
           "entry": "/yoga-guru.html",
           "featureKey": "yoga-guru-per-use",
-          "accessEvidence": "3,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",

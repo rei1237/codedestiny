@@ -7,7 +7,8 @@
     "dev": "vite --host 127.0.0.1 --port 4317",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build && ait build",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "launch:status": "node scripts/launch-status.mjs"
   },
   "dependencies": {
     "@apps-in-toss/web-framework": "3.7.0",
