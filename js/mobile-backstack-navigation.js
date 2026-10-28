@@ -8,16 +8,13 @@
   const BACK_SURFACE_FLAG = '__cdStaticBackSurfaceV1';
   const BACK_STAMP_FLAG = '__cdStaticBackStampV1';
 
-  const MAIN_DOUBLE_BACK_MS = 2000;
   const POP_DEBOUNCE_MS = 170;
 
   const state = {
     surface: 'main',
     feature: '',
-    firstMainBackAt: 0,
     lastPopAt: 0,
-    allowNativeBackOnce: false,
-    toastTimer: null
+    allowNativeBackOnce: false
   };
 
   // 사주 화면은 오버레이가 아니라 셸 안에서 자리를 바꾸는 #resultPage 다. 그래서 여기에 여는
@@ -172,22 +169,6 @@
     return Date.now();
   }
 
-  function isMobileRuntime() {
-    try {
-      const hasMatchMedia = typeof window.matchMedia === 'function';
-      const coarse = hasMatchMedia && (
-        window.matchMedia('(pointer:coarse)').matches ||
-        window.matchMedia('(any-pointer:coarse)').matches
-      );
-      const maxTouchPoints = typeof navigator.maxTouchPoints === 'number' ? navigator.maxTouchPoints : 0;
-      const touchCapable = coarse || maxTouchPoints > 0;
-      if (touchCapable) return true;
-      return /android|iphone|ipad|ipod|mobile/i.test(String(navigator.userAgent || ''));
-    } catch {
-      return false;
-    }
-  }
-
   function getHistoryState() {
     const s = window.history.state;
     if (!s || typeof s !== 'object') return {};
@@ -303,130 +284,11 @@
     try {
       window.history.replaceState(buildHistoryState(false), '', window.location.href);
     } catch {}
-    state.firstMainBackAt = 0;
   }
 
   function resetToSaju() {
     closeAllKnownOverlays();
     setSurface('saju', 'saju');
-  }
-
-  function ensureToastNode() {
-    let toast = document.getElementById('cdExitIntentToast');
-    if (toast) return toast;
-
-    toast = document.createElement('div');
-    toast.id = 'cdExitIntentToast';
-    toast.style.position = 'fixed';
-    toast.style.left = '50%';
-    toast.style.bottom = '96px';
-    toast.style.transform = 'translateX(-50%) translateY(10px)';
-    toast.style.background = 'rgba(15, 23, 42, 0.92)';
-    toast.style.color = '#f8fafc';
-    toast.style.padding = '11px 16px';
-    toast.style.borderRadius = '999px';
-    toast.style.fontSize = '13px';
-    toast.style.fontWeight = '600';
-    toast.style.letterSpacing = '0.01em';
-    toast.style.zIndex = '100160';
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity .18s ease, transform .18s ease';
-    toast.style.pointerEvents = 'none';
-    document.body.appendChild(toast);
-    return toast;
-  }
-
-  function showMainExitToast() {
-    if (typeof window.showToast === 'function') {
-      try {
-        window.showToast('한 번 더 누르면 종료됩니다');
-        return;
-      } catch {}
-    }
-
-    const toast = ensureToastNode();
-    toast.textContent = '한 번 더 누르면 종료됩니다';
-    toast.style.opacity = '1';
-    toast.style.transform = 'translateX(-50%) translateY(0)';
-
-    if (state.toastTimer) {
-      clearTimeout(state.toastTimer);
-      state.toastTimer = null;
-    }
-
-    state.toastTimer = setTimeout(function () {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateX(-50%) translateY(10px)';
-      state.toastTimer = null;
-    }, MAIN_DOUBLE_BACK_MS);
-  }
-
-  function attemptAppExit() {
-    try {
-      if (window.Android && typeof window.Android.exitApp === 'function') {
-        window.Android.exitApp();
-        return true;
-      }
-
-      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.exitApp && typeof window.webkit.messageHandlers.exitApp.postMessage === 'function') {
-        window.webkit.messageHandlers.exitApp.postMessage({ source: 'code-destiny' });
-        return true;
-      }
-
-      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.exitApp === 'function') {
-        window.Capacitor.Plugins.App.exitApp();
-        return true;
-      }
-
-      if (window.cordova && window.cordova.plugins && window.cordova.plugins.App && typeof window.cordova.plugins.App.exitApp === 'function') {
-        window.cordova.plugins.App.exitApp();
-        return true;
-      }
-
-      if (window.navigator && window.navigator.app && typeof window.navigator.app.exitApp === 'function') {
-        window.navigator.app.exitApp();
-        return true;
-      }
-
-      if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'EXIT_APP', source: 'code-destiny', ts: now() }));
-        return true;
-      }
-    } catch {}
-
-    try {
-      if (window.history.length > 1) {
-        state.allowNativeBackOnce = true;
-        window.history.back();
-        return true;
-      }
-    } catch {}
-
-    try {
-      window.close();
-      if (window.closed) return true;
-    } catch {}
-
-    try {
-      if (window.navigator && typeof window.navigator.vibrate === 'function') {
-        window.navigator.vibrate(18);
-      }
-    } catch {}
-
-    return false;
-  }
-
-  // 웹 브라우저의 첫 화면 뒤로가기는 이전 사이트(검색 결과 등)로 돌아가는 정상 이탈이다.
-  // "한 번 더 누르면 종료" 토스트는 뒤로가기가 곧 종료인 앱·홈 화면 설치(standalone)에서만 쓴다.
-  function usesMainExitGuard() {
-    try {
-      const appContext = window.__cdAppContext;
-      if (appContext && typeof appContext.isApp === 'function' && appContext.isApp()) return true;
-      if (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) return true;
-      return !!(window.navigator && window.navigator.standalone === true);
-    } catch {
-      return false;
-    }
   }
 
   function leaveToPreviousPage() {
@@ -443,36 +305,9 @@
   }
 
   function handleMainBack() {
-    const t = now();
-    try {
-      if (window.__cdSignupBenefitExit && window.__cdSignupBenefitExit.open(function () {
-        state.firstMainBackAt = 0;
-        const handled = attemptAppExit();
-        if (!handled) rearmGuardState();
-      }, rearmGuardState)) {
-        state.firstMainBackAt = 0;
-        return;
-      }
-    } catch {}
-
-    if (!usesMainExitGuard()) {
-      state.firstMainBackAt = 0;
-      if (!leaveToPreviousPage()) rearmGuardState();
-      return;
-    }
-
-    if (t - state.firstMainBackAt <= MAIN_DOUBLE_BACK_MS) {
-      state.firstMainBackAt = 0;
-      const handled = attemptAppExit();
-      if (!handled) {
-        rearmGuardState();
-      }
-      return;
-    }
-
-    state.firstMainBackAt = t;
-    showMainExitToast();
-    rearmGuardState();
+    // 셸 가드만 소비한 뒤 웹·PWA의 원래 이탈을 이어 간다. 루트 가드를 다시 쌓지 않는다.
+    // 실제 앱 종료는 app-native-bridge 한 곳이 맡는다.
+    leaveToPreviousPage();
   }
 
   function handleSurfaceBack() {
@@ -618,6 +453,13 @@
         return function () { window._cdCloseTilePreview(); };
       }
     } catch {}
+    try {
+      const dialogs = document.querySelectorAll('dialog[open]');
+      const dialog = dialogs[dialogs.length - 1];
+      if (dialog) return function () {
+        if (dialog.dispatchEvent(new Event('cancel', { cancelable: true }))) dialog.close();
+      };
+    } catch {}
     return null;
   }
 
@@ -629,13 +471,17 @@
   }
 
   function onPopState(event) {
-    if (!isMobileRuntime()) return;
 
     if (state.allowNativeBackOnce) {
       state.allowNativeBackOnce = false;
       return;
     }
 
+    // 루트 이탈에는 연속 입력 방지용 가드도 다시 쌓지 않는다.
+    if (state.surface === 'main' && !(event && event.__cdBackConsumed) && !findTopTransientSurface()) {
+      handleMainBack();
+      return;
+    }
     const t = now();
     if (t - state.lastPopAt < POP_DEBOUNCE_MS) {
       rearmGuardState();
@@ -672,11 +518,18 @@
       }
     };
 
-    if (!isMobileRuntime()) return;
 
     setSurface('main', '');
     ensureGuardState();
     window.addEventListener('popstate', onPopState);
+    window.addEventListener('cd:app-back', function (event) {
+      const overlay = event.detail && event.detail.scope === 'overlay';
+      if (overlay ? !findTopTransientSurface() : state.surface === 'main') return;
+      event.preventDefault();
+      // 기존 popstate 경로가 결제 단계/잠금과 화면 복원을 소유한다.
+      ensureGuardState();
+      window.history.back();
+    });
   }
 
   if (document.readyState === 'loading') {
