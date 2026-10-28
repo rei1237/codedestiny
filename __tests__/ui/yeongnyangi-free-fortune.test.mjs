@@ -14,13 +14,13 @@ test('room restores all sixteen anchovy fortunes without a provider call',()=>{
   assert.doesNotMatch(service,/CodeDestinyProvider|GEMINI|LLM/);
 });
 
-test('main Yeongnyangi free CTA opens the native sixteen-fortune room',()=>{
+test('home keeps one clear Yeongnyangi consultation entry without a repeated free CTA',()=>{
   const shell=read('index.html');
-  const entry=shell.match(/<a class="cdh-free__more"[\s\S]*?<\/a>/)?.[0]||'';
-  assert.match(entry,/href="\/yeongnyangi\/room\/#daily"/);
-  assert.match(entry,/data-cd-portal-placement="home_daily"/);
-  assert.doesNotMatch(entry,/utm_(source|medium|campaign|content)=/);
-  assert.doesNotMatch(entry,/href="\/today\//);
+  assert.doesNotMatch(shell,/class="cdh-free__more"/);
+  const entry=shell.match(/<a class="cd-sig-card cd-sig-card--intro" data-cd-signature-id="yeongnyangi-question"[^>]+>/)?.[0]||'';
+  assert.match(entry,/href="\/yeongnyangi\/"/);
+  assert.match(entry,/data-cd-portal-placement="home_hero"/);
+  assert.ok(existsSync('app/yeongnyangi/room/page.tsx'));
 });
 
 test('room keeps original artwork and restores its purple selection surface',()=>{

@@ -26,8 +26,8 @@ import { IS_APP_BUILD } from "../lib/app-build-target";
 // 두 캐릭터 카드의 직접 진입을 유지하고, 아래에 공개 HTML 서비스 탐색을 제공한다.
 const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
-const HOME_TITLE = `${service.name} | 사주·자미두수·숙요점·베다점 종합 운세`;
-const HOME_DESCRIPTION = `명리학자 박병하(네오)가 만든 종합 운세 플랫폼 ${service.name}(꿀꿀운세). 사주·자미두수·숙요점·베다점·타로와 운세보는 영냥이 상담, MBTI·심리테스트·휴먼 디자인으로 나를 알아보세요.`;
+const HOME_TITLE = brandCopy('homeSearchTitle');
+const HOME_DESCRIPTION = brandCopy('homeSearchDescription');
 const HOME_IMAGE = "https://code-destiny.com/icons/moonlight-garden-v1-512.png";
 const ART = "/images/home/illustrated";
 // 카드 그림은 같은 파일명으로 다시 그려 왔고 정적 이미지는 7일 캐시된다(public/_headers).
@@ -38,7 +38,7 @@ export const metadata = {
   metadataBase: new URL(service.siteUrl),
   title: { absolute: HOME_TITLE },
   description: HOME_DESCRIPTION,
-  keywords: [service.name, ...service.alternateNames, `${service.name} 공식`, YEONGNYANGI.serviceName, "무료 사주", "무료 타로", "영냥이", ...publicSeoPages.home.keywords],
+  keywords: [service.name, ...service.alternateNames, `${service.name} 공식`, YEONGNYANGI.serviceName, "무료 사주", "무료 타로", "영냥이", "자미두수", "베다점", "숙요점", "휴먼 디자인", "MBTI", ...publicSeoPages.home.keywords],
   // 대표 홈은 자기 자신만 정본으로 둔다. /ggulggul/ 로케일 클러스터(hreflang)와 섞지 않는다.
   alternates: { canonical: service.homeUrl },
   robots: {

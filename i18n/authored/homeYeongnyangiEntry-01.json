@@ -140,18 +140,20 @@
     "ms": "— Yeongnyangi"
   },
   "home.yeongnyangiEntry.start": {
-    "ko": "질문 상담 시작하기",
-    "en": "Start a question reading",
-    "ja": "質問相談を始める",
-    "zh-CN": "开始问题咨询",
-    "zh-TW": "開始問題諮詢",
-    "vi": "Bat dau tu van cau hoi",
-    "hi": "प्रश्न परामर्श शुरू करें",
-    "es": "Empezar una consulta de preguntas",
-    "fr": "Commencer une consultation question",
-    "de": "Frageberatung starten",
+    "ko": "영냥이에게 물어보기",
+    "en": "Ask Yeongnyangi",
+    "ja": "ヨンニャンイに質問する",
+    "zh-CN": "向灵喵提问",
+    "zh-TW": "向靈喵提問",
+    "vi": "Hỏi Yeongnyangi",
+    "hi": "Yeongnyangi से पूछें",
+    "es": "Preguntar a Yeongnyangi",
+    "fr": "Poser une question à Yeongnyangi",
+    "de": "Yeongnyangi fragen",
     "nl": "Vraagconsult starten",
-    "ms": "Mulakan konsultasi soalan"
+    "ms": "Mulakan konsultasi soalan",
+    "pt": "Perguntar a Yeongnyangi",
+    "id": "Tanya Yeongnyangi"
   },
   "home.yeongnyangiEntry.free": {
     "ko": "무료 운세 먼저 보기",

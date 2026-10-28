@@ -504,17 +504,19 @@
     "ms": "E-mel Neo"
   },
   "home.guideCopy.tabCat": {
-    "ko": "영냥이 질문",
-    "en": "Ask Yeongnyangi",
-    "ja": "ヨンニャンイへの質問",
-    "zh-CN": "向Yeongnyangi提问",
-    "zh-TW": "向Yeongnyangi提問",
-    "vi": "Hỏi Yeongnyangi",
-    "hi": "यॉन्गन्यांगी से पूछें",
-    "es": "Pregunta a Yeongnyangi",
-    "fr": "Demander à Yeongnyangi",
-    "de": "Yeongnyangi fragen",
+    "ko": "영냥이 고민 상담",
+    "en": "Talk through a concern with Yeongnyangi",
+    "ja": "ヨンニャンイのお悩み相談",
+    "zh-CN": "灵喵烦恼咨询",
+    "zh-TW": "靈喵煩惱諮詢",
+    "vi": "Tâm sự cùng Yeongnyangi",
+    "hi": "Yeongnyangi से अपनी चिंता पूछें",
+    "es": "Consulta tus dudas con Yeongnyangi",
+    "fr": "Confiez vos questions à Yeongnyangi",
+    "de": "Rat von Yeongnyangi",
     "nl": "Vraag het Yeongnyangi",
-    "ms": "Tanya Yeongnyangi"
+    "ms": "Tanya Yeongnyangi",
+    "pt": "Converse com Yeongnyangi",
+    "id": "Konsultasi bersama Yeongnyangi"
   }
 }

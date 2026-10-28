@@ -56,18 +56,20 @@
     "ms": "Lima pembimbing meneliti perjalanan hidup melalui enam sistem."
   },
   "home.guideCopy.signatureCatDesc": {
-    "ko": "한 가지 고민을 나에게 맞는 운세 체계로 풀어보세요.",
-    "en": "Explore one concern through a reading system suited to you.",
-    "ja": "一つの悩みを自分に合う占術で読み解きましょう。",
-    "zh-CN": "用适合自己的占卜体系探索一个烦恼。",
-    "zh-TW": "用適合自己的占卜體系探索一個煩惱。",
-    "vi": "Tìm hiểu một băn khoăn qua hệ thống phù hợp với bạn.",
-    "hi": "अपनी एक चिंता को उपयुक्त पद्धति से समझें।",
-    "es": "Explora una inquietud con el sistema que mejor te vaya.",
-    "fr": "Explorez une question avec une méthode qui vous convient.",
-    "de": "Erkunde eine Frage mit einer passenden Methode.",
+    "ko": "연애·일·돈 고민을 남기면, 질문에 맞춘 AI 운세 해석과 행동 조언을 받아요.",
+    "en": "Ask about love, work or money and receive an AI reading with practical advice.",
+    "ja": "恋愛・仕事・お金の悩みに、AIの運勢解釈と行動のヒントをお届けします。",
+    "zh-CN": "提出感情、工作或金钱问题，获取AI运势解读与行动建议。",
+    "zh-TW": "提出感情、工作或金錢問題，取得AI運勢解讀與行動建議。",
+    "vi": "Hỏi về tình yêu, công việc hoặc tiền bạc để nhận luận giải AI và lời khuyên thiết thực.",
+    "hi": "प्रेम, काम या धन पर सवाल पूछें और AI व्याख्या के साथ व्यावहारिक सलाह पाएँ।",
+    "es": "Pregunta por amor, trabajo o dinero y recibe una lectura con IA y consejos prácticos.",
+    "fr": "Amour, travail, argent : recevez une lecture par IA et des conseils concrets.",
+    "de": "Frage zu Liebe, Arbeit oder Geld und erhalte eine KI-Deutung mit praktischen Tipps.",
     "nl": "Onderzoek één vraag met een passende methode.",
-    "ms": "Terokai satu persoalan dengan sistem yang sesuai untuk anda."
+    "ms": "Terokai satu persoalan dengan sistem yang sesuai untuk anda.",
+    "pt": "Pergunte sobre amor, trabalho ou dinheiro e receba uma leitura com IA e orientações práticas.",
+    "id": "Tanyakan cinta, pekerjaan, atau keuangan untuk bacaan AI dan saran praktis."
   },
   "home.guideCopy.signatureCardsLabel": {
     "ko": "대표 상담 카드",

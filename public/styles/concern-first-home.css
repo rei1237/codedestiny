@@ -293,5 +293,3 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
  #cdHomeFunnel.cdh--focused .cd-choice .cd-concern__q-price{grid-column:2;text-align:right}
 }
 @media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-choice .cd-sig__viewport{scroll-behavior:auto}}
-
-#cdHomeFunnel .cdh-free__more{display:flex;align-items:center;justify-content:center;gap:8px;width:fit-content;max-width:100%;min-height:48px;margin:12px auto 0;color:var(--cdh-ink);font-size:14px;text-underline-offset:4px;flex-wrap:wrap}

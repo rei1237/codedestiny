@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { memo, useCallback, useEffect, useState, type MouseEvent } from "react";
-import { Archive, Home, MessageCircleHeart, Sparkles, UserCircle } from "lucide-react";
+import { Archive, MessageCircleHeart, Sparkles, UserCircle } from "lucide-react";
 import {
   MOBILE_TABS,
   MNAV_TOGGLE_LABEL_KO,
@@ -55,7 +55,7 @@ const TAB_PENDING_FAILSAFE_MS = 6000;
 function TabIcon({ tabKey }: { tabKey: MobileTabKey }) {
   switch (tabKey) {
     case "home":
-      return <Home className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
+      return <span className={`${ICON_CLASS} cd-mnav__icon--home`} aria-hidden="true" />;
     case "fortunes":
       return <Sparkles className={ICON_CLASS} strokeWidth={1.9} aria-hidden="true" />;
     case "consult":

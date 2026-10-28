@@ -88,9 +88,9 @@ body.cd-mnav-mounted .cd-feature-nav {
   background: transparent;
   color: var(--cd-nav-muted);
   font: inherit;
-  font-size: 0.6875rem; /* 11px */
+  font-size: 0.75rem; /* clear 12px labels, within the existing dock height */
   font-weight: 600;
-  line-height: 1.1;
+  line-height: 1;
   text-align: center;
   text-decoration: none;
   touch-action: manipulation;
@@ -349,3 +349,5 @@ body.cd-mnav-collapsed .cd-mnav__chevron {
     transform: none;
   }
 }
+
+.cd-mnav__icon--home{background:currentColor;mask:url("/images/navigation/home.svg") center/contain no-repeat}
