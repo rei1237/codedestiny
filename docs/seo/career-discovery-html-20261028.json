@@ -1,0 +1,496 @@
+{
+  "status": "PASS",
+  "observedAt": "2026-10-28T09:40:05.719Z",
+  "sourceRevision": "1c8f19fac3772dfbd9faebd656292d6a9f5eb4cc",
+  "scope": "local mock development SSR; no hydration, live accounts, external APIs, CI or deployment",
+  "staticCoverage": "Existing 96-period FAQ and 12-locale checks are recorded in career-discovery-verification-20261028.json; not rerun here.",
+  "pages": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "꿀꿀 운세 | 사주·자미두수·숙요점·베다점 종합 운세",
+      "description": "명리학자 박병하(네오)가 만든 종합 운세 플랫폼 꿀꿀 운세(꿀꿀운세). 사주·자미두수·숙요점·베다점·타로와 운세보는 영냥이 상담, MBTI·심리테스트·휴먼 디자인으로 나를 알아보세요.",
+      "h1": [
+        "어떤 운세를 만나볼까요?"
+      ],
+      "canonical": [
+        "https://code-destiny.com/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 9,
+      "alternates": [],
+      "linkCount": 49,
+      "bodyCharactersWithoutWhitespace": 3673
+    },
+    {
+      "path": "/faq/",
+      "status": 200,
+      "title": "꿀꿀 운세 자주 묻는 질문",
+      "description": "무료 운세 이용, 회원가입, 개인정보, 결제와 환불, 결과 해석 기준에 대한 자주 묻는 질문을 정리했습니다.",
+      "h1": [
+        "자주 묻는 질문"
+      ],
+      "canonical": [
+        "https://code-destiny.com/faq/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 21,
+      "alternates": [
+        {
+          "lang": "ko",
+          "href": "https://code-destiny.com/faq/"
+        },
+        {
+          "lang": "ja",
+          "href": "https://code-destiny.com/ja/faq/"
+        },
+        {
+          "lang": "en",
+          "href": "https://code-destiny.com/en/faq/"
+        },
+        {
+          "lang": "zh",
+          "href": "https://code-destiny.com/zh/faq/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://code-destiny.com/faq/"
+        }
+      ],
+      "linkCount": 47,
+      "bodyCharactersWithoutWhitespace": 3931
+    },
+    {
+      "path": "/psychotest/",
+      "status": 200,
+      "title": "무료 심리테스트 22종 | MBTI·HSP·정신연령·연애",
+      "description": "성격, 연애, 직장, 공감, HSP, 정신연령 심리테스트 22종을 주제별로 비교하고 원하는 테스트를 골라 시작하세요. 모든 테스트는 무료입니다.",
+      "h1": [
+        "나는 어떤장면을 닮았을까."
+      ],
+      "canonical": [
+        "https://code-destiny.com/psychotest/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 0,
+      "alternates": [
+        {
+          "lang": "ko",
+          "href": "https://code-destiny.com/psychotest/"
+        },
+        {
+          "lang": "ja",
+          "href": "https://code-destiny.com/ja/psychotest/"
+        },
+        {
+          "lang": "en",
+          "href": "https://code-destiny.com/en/psychotest/"
+        },
+        {
+          "lang": "zh",
+          "href": "https://code-destiny.com/zh/psychotest/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://code-destiny.com/psychotest/"
+        }
+      ],
+      "linkCount": 34,
+      "bodyCharactersWithoutWhitespace": 1544
+    },
+    {
+      "path": "/human-design/guide/",
+      "status": 200,
+      "title": "휴먼 디자인 무료 차트·바디그래프 해석 안내 | 꿀꿀 운세",
+      "description": "휴먼 디자인의 타입·전략·권위와 9센터를 이해하고, 출생시간·시간대가 필요한 이유와 무료 차트·유료 리포트의 차이를 확인하세요.",
+      "h1": [
+        "휴먼 디자인, 나의 선택 방식을 읽는 지도"
+      ],
+      "canonical": [
+        "https://code-destiny.com/human-design/guide/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 5,
+      "alternates": [],
+      "linkCount": 17,
+      "bodyCharactersWithoutWhitespace": 2516
+    },
+    {
+      "path": "/saju/career-style/",
+      "status": 200,
+      "title": "사주로 찾는 나의 일 스타일 | 가입 후 무료 리포트 · 꿀꿀 운세",
+      "description": "내 프로필 카드로 일하는 성향과 월지의 환경을 살펴보세요. 여섯 업무 조건과 작은 진로 실험을 담은 무료 사주 자기이해 리포트. 결제·후기·공유 의무 없이 이용합니다.",
+      "h1": [
+        "사주로 찾는나의 일 스타일"
+      ],
+      "canonical": [
+        "https://code-destiny.com/saju/career-style/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 0,
+      "alternates": [],
+      "linkCount": 4,
+      "bodyCharactersWithoutWhitespace": 1953
+    },
+    {
+      "path": "/fortune/today/rat/",
+      "status": 200,
+      "title": "쥐띠 오늘의 운세 2026년 10월 28일 | 총운 4/10·행운의 색",
+      "description": "2026년 10월 28일 (수) 쥐띠 오늘의 운세 — 균형·정돈. 오늘은 흐름을 다시 정돈하기 좋은 날이에요. 작은 약속부터 지키면 신뢰가 쌓이고, 마음이 가벼워집니다.",
+      "h1": [
+        "🐭쥐띠 오늘의 운세"
+      ],
+      "canonical": [
+        "https://code-destiny.com/fortune/today/rat/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 4,
+      "alternates": [
+        {
+          "lang": "ko",
+          "href": "https://code-destiny.com/fortune/today/rat/"
+        },
+        {
+          "lang": "en",
+          "href": "https://code-destiny.com/en/fortune/today/rat/"
+        },
+        {
+          "lang": "ja",
+          "href": "https://code-destiny.com/ja/fortune/today/rat/"
+        },
+        {
+          "lang": "zh-CN",
+          "href": "https://code-destiny.com/zh/fortune/today/rat/"
+        },
+        {
+          "lang": "zh-TW",
+          "href": "https://code-destiny.com/zh-tw/fortune/today/rat/"
+        }
+      ],
+      "linkCount": 125,
+      "bodyCharactersWithoutWhitespace": 3176
+    },
+    {
+      "path": "/fortune/today/aries/",
+      "status": 200,
+      "title": "양자리 오늘의 운세 2026년 10월 28일 | 총운 5/10·행운의 색",
+      "description": "2026년 10월 28일 (수) 양자리 오늘의 운세 — 새 시즌·방향. 미뤄 둔 연락 하나가 오늘의 매듭입니다. 길게 쓰지 말고 한 줄로 먼저 보내 보세요.",
+      "h1": [
+        "♈양자리 오늘의 운세"
+      ],
+      "canonical": [
+        "https://code-destiny.com/fortune/today/aries/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 4,
+      "alternates": [
+        {
+          "lang": "ko",
+          "href": "https://code-destiny.com/fortune/today/aries/"
+        },
+        {
+          "lang": "en",
+          "href": "https://code-destiny.com/en/fortune/today/aries/"
+        },
+        {
+          "lang": "ja",
+          "href": "https://code-destiny.com/ja/fortune/today/aries/"
+        },
+        {
+          "lang": "zh-CN",
+          "href": "https://code-destiny.com/zh/fortune/today/aries/"
+        },
+        {
+          "lang": "zh-TW",
+          "href": "https://code-destiny.com/zh-tw/fortune/today/aries/"
+        }
+      ],
+      "linkCount": 125,
+      "bodyCharactersWithoutWhitespace": 3309
+    },
+    {
+      "path": "/fortune/tomorrow/rat/",
+      "status": 200,
+      "title": "쥐띠 내일의 운세 2026년 10월 29일 | 총운 7/10·행운의 색",
+      "description": "2026년 10월 29일 (목) 쥐띠 내일의 운세 — 균형·정돈. 오늘은 흐름을 다시 정돈하기 좋은 날이에요. 작은 약속부터 지키면 신뢰가 쌓이고, 마음이 가벼워집니다.",
+      "h1": [
+        "🐭쥐띠 내일의 운세"
+      ],
+      "canonical": [
+        "https://code-destiny.com/fortune/tomorrow/rat/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 4,
+      "alternates": [
+        {
+          "lang": "ko",
+          "href": "https://code-destiny.com/fortune/tomorrow/rat/"
+        },
+        {
+          "lang": "en",
+          "href": "https://code-destiny.com/en/fortune/tomorrow/rat/"
+        },
+        {
+          "lang": "ja",
+          "href": "https://code-destiny.com/ja/fortune/tomorrow/rat/"
+        },
+        {
+          "lang": "zh-CN",
+          "href": "https://code-destiny.com/zh/fortune/tomorrow/rat/"
+        },
+        {
+          "lang": "zh-TW",
+          "href": "https://code-destiny.com/zh-tw/fortune/tomorrow/rat/"
+        }
+      ],
+      "linkCount": 128,
+      "bodyCharactersWithoutWhitespace": 3222
+    },
+    {
+      "path": "/fortune/tomorrow/aries/",
+      "status": 200,
+      "title": "양자리 내일의 운세 2026년 10월 29일 | 총운 5/10·행운의 색",
+      "description": "2026년 10월 29일 (목) 양자리 내일의 운세 — 정리·여백. 기준을 하나 정해 두면 오늘의 선택이 빨라집니다. 무엇을 포기할지 먼저 적어 보세요.",
+      "h1": [
+        "♈양자리 내일의 운세"
+      ],
+      "canonical": [
+        "https://code-destiny.com/fortune/tomorrow/aries/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 4,
+      "alternates": [
+        {
+          "lang": "ko",
+          "href": "https://code-destiny.com/fortune/tomorrow/aries/"
+        },
+        {
+          "lang": "en",
+          "href": "https://code-destiny.com/en/fortune/tomorrow/aries/"
+        },
+        {
+          "lang": "ja",
+          "href": "https://code-destiny.com/ja/fortune/tomorrow/aries/"
+        },
+        {
+          "lang": "zh-CN",
+          "href": "https://code-destiny.com/zh/fortune/tomorrow/aries/"
+        },
+        {
+          "lang": "zh-TW",
+          "href": "https://code-destiny.com/zh-tw/fortune/tomorrow/aries/"
+        }
+      ],
+      "linkCount": 128,
+      "bodyCharactersWithoutWhitespace": 3351
+    },
+    {
+      "path": "/fortune/weekly/rat/",
+      "status": 200,
+      "title": "쥐띠 이번 주 운세 10월 26~11월 1일 | 총운 5/10·행운의 색",
+      "description": "10월 26일 ~ 11월 1일 쥐띠 이번 주 운세 — 균형·정돈. 오늘은 흐름을 다시 정돈하기 좋은 날이에요. 작은 약속부터 지키면 신뢰가 쌓이고, 마음이 가벼워집니다.",
+      "h1": [
+        "🐭쥐띠 이번 주 운세"
+      ],
+      "canonical": [
+        "https://code-destiny.com/fortune/weekly/rat/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 4,
+      "alternates": [
+        {
+          "lang": "ko",
+          "href": "https://code-destiny.com/fortune/weekly/rat/"
+        },
+        {
+          "lang": "en",
+          "href": "https://code-destiny.com/en/fortune/weekly/rat/"
+        },
+        {
+          "lang": "ja",
+          "href": "https://code-destiny.com/ja/fortune/weekly/rat/"
+        },
+        {
+          "lang": "zh-CN",
+          "href": "https://code-destiny.com/zh/fortune/weekly/rat/"
+        },
+        {
+          "lang": "zh-TW",
+          "href": "https://code-destiny.com/zh-tw/fortune/weekly/rat/"
+        }
+      ],
+      "linkCount": 125,
+      "bodyCharactersWithoutWhitespace": 3403
+    },
+    {
+      "path": "/fortune/weekly/aries/",
+      "status": 200,
+      "title": "양자리 이번 주 운세 10월 26~11월 1일 | 총운 5/10·행운의 색",
+      "description": "10월 26일 ~ 11월 1일 양자리 이번 주 운세 — 균형·속도. 속도를 올리기보다 방향을 한 번 더 확인할 때 성과가 붙습니다. 목적지를 먼저 말해 보세요.",
+      "h1": [
+        "♈양자리 이번 주 운세"
+      ],
+      "canonical": [
+        "https://code-destiny.com/fortune/weekly/aries/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 4,
+      "alternates": [
+        {
+          "lang": "ko",
+          "href": "https://code-destiny.com/fortune/weekly/aries/"
+        },
+        {
+          "lang": "en",
+          "href": "https://code-destiny.com/en/fortune/weekly/aries/"
+        },
+        {
+          "lang": "ja",
+          "href": "https://code-destiny.com/ja/fortune/weekly/aries/"
+        },
+        {
+          "lang": "zh-CN",
+          "href": "https://code-destiny.com/zh/fortune/weekly/aries/"
+        },
+        {
+          "lang": "zh-TW",
+          "href": "https://code-destiny.com/zh-tw/fortune/weekly/aries/"
+        }
+      ],
+      "linkCount": 125,
+      "bodyCharactersWithoutWhitespace": 3513
+    },
+    {
+      "path": "/fortune/monthly/rat/",
+      "status": 200,
+      "title": "쥐띠 이번 달 운세 2026년 10월 | 총운 3/10·행운의 색",
+      "description": "2026년 10월 쥐띠 이번 달 운세 — 균형·정돈. 오늘은 흐름을 다시 정돈하기 좋은 날이에요. 작은 약속부터 지키면 신뢰가 쌓이고, 마음이 가벼워집니다.",
+      "h1": [
+        "🐭쥐띠 이번 달 운세"
+      ],
+      "canonical": [
+        "https://code-destiny.com/fortune/monthly/rat/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 4,
+      "alternates": [
+        {
+          "lang": "ko",
+          "href": "https://code-destiny.com/fortune/monthly/rat/"
+        },
+        {
+          "lang": "en",
+          "href": "https://code-destiny.com/en/fortune/monthly/rat/"
+        },
+        {
+          "lang": "ja",
+          "href": "https://code-destiny.com/ja/fortune/monthly/rat/"
+        },
+        {
+          "lang": "zh-CN",
+          "href": "https://code-destiny.com/zh/fortune/monthly/rat/"
+        },
+        {
+          "lang": "zh-TW",
+          "href": "https://code-destiny.com/zh-tw/fortune/monthly/rat/"
+        }
+      ],
+      "linkCount": 125,
+      "bodyCharactersWithoutWhitespace": 3374
+    },
+    {
+      "path": "/fortune/monthly/aries/",
+      "status": 200,
+      "title": "양자리 이번 달 운세 2026년 10월 | 총운 5/10·행운의 색",
+      "description": "2026년 10월 양자리 이번 달 운세 — 회복·휴식. 작게 시작한 일이 오늘 예상보다 멀리 갑니다. 완벽한 시작을 기다리지 마세요.",
+      "h1": [
+        "♈양자리 이번 달 운세"
+      ],
+      "canonical": [
+        "https://code-destiny.com/fortune/monthly/aries/"
+      ],
+      "robots": "index, follow",
+      "faqCount": 4,
+      "alternates": [
+        {
+          "lang": "ko",
+          "href": "https://code-destiny.com/fortune/monthly/aries/"
+        },
+        {
+          "lang": "en",
+          "href": "https://code-destiny.com/en/fortune/monthly/aries/"
+        },
+        {
+          "lang": "ja",
+          "href": "https://code-destiny.com/ja/fortune/monthly/aries/"
+        },
+        {
+          "lang": "zh-CN",
+          "href": "https://code-destiny.com/zh/fortune/monthly/aries/"
+        },
+        {
+          "lang": "zh-TW",
+          "href": "https://code-destiny.com/zh-tw/fortune/monthly/aries/"
+        }
+      ],
+      "linkCount": 125,
+      "bodyCharactersWithoutWhitespace": 3453
+    },
+    {
+      "path": "/human-design/report/",
+      "status": 200,
+      "title": "휴먼 디자인 프리미엄 리포트 | 꿀꿀 운세",
+      "description": "내 바디그래프 계산 결과만 근거로 쓰는 개인 분석 리포트입니다. 18장 구성으로 웹에서 읽고 PDF 로 내려받으세요.",
+      "h1": [],
+      "canonical": [],
+      "robots": "noindex, follow",
+      "faqCount": 0,
+      "alternates": [],
+      "linkCount": 2,
+      "bodyCharactersWithoutWhitespace": 39
+    },
+    {
+      "path": "/fortune/share/",
+      "status": 200,
+      "title": "공유된 오늘의 귀인 운세 | 꿀꿀 운세",
+      "description": "연이와 네오가 읽어준 오늘의 귀인 운세를 확인해 보세요.",
+      "h1": [],
+      "canonical": [],
+      "robots": "noindex, nofollow",
+      "faqCount": 0,
+      "alternates": [],
+      "linkCount": 82,
+      "bodyCharactersWithoutWhitespace": 934
+    }
+  ],
+  "linkChecks": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/saju/",
+      "status": 200
+    },
+    {
+      "path": "/faq/",
+      "status": 200
+    },
+    {
+      "path": "/human-design/",
+      "status": 200
+    },
+    {
+      "path": "/human-design/guide/",
+      "status": 200
+    },
+    {
+      "path": "/saju/career-style/",
+      "status": 200
+    },
+    {
+      "path": "/fortune/today/",
+      "status": 200
+    }
+  ]
+}
