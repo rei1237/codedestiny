@@ -67,6 +67,12 @@ export async function assertDeductionRefundable(env, { userId, deduction, failed
       { [path]: { $ne: {} } },
       ...(ownRequestId ? [{ idempotencyKey: { $ne: ownRequestId } }] : []),
     ] });
+    // Another paid execution may still be producing its first part. Its empty
+    // checkpoint is not evidence that this funding is safe to restore.
+    const activeOther = { $and: [
+      { status: "pending" },
+      ...(ownRequestId ? [{ idempotencyKey: { $ne: ownRequestId } }, { executionKey: { $ne: ownRequestId } }] : []),
+    ] };
 
     const executed = await ServiceExecutionTransaction.findOne({
       userId: uid,
@@ -75,6 +81,7 @@ export async function assertDeductionRefundable(env, { userId, deduction, failed
           { status: "success" },
           { deliveryStatus: "delivered" },
           { premiumStatus: "completed" },
+          activeOther,
           // 진행 중 paid-narrative·celestial 도 확정된 파트는 202 응답으로 이미 화면에 나간다(respond 의 render).
           // 서버가 자기 실패를 환불할 때(onExhausted)는 그 요청 자신의 기록만 제외한다.
           startedParts("metadata.paidNarrative.parts"),
@@ -97,7 +104,11 @@ export async function assertDeductionRefundable(env, { userId, deduction, failed
 
     const record = await PaidExecutionRecord.findOne({
       userId: uid,
-      status: { $in: ["completed", "partial", "delivery_pending"] },
+      $and: [{ $or: [
+        { status: { $in: ["completed", "partial", "delivery_pending"] } },
+        { $and: [{ status: { $in: ["paid_pending_generation", "generating"] } },
+          ...(ownRequestId ? [{ requestId: { $ne: ownRequestId } }] : [])] },
+      ] }],
       $or: [{ paymentId: { $in: deliveryIds } }, { requestId: { $in: deliveryIds } }, { idempotencyKey: { $in: deliveryIds } }, { orderId: { $in: deliveryIds } }],
     }).select({ _id: 1 }).lean();
     if (record) return notEligible("EXECUTION_DELIVERED");
@@ -114,8 +125,8 @@ export async function assertDeductionRefundable(env, { userId, deduction, failed
       ],
     }).select({ _id: 1 }).lean();
     if (unlock) return notEligible("PERMANENT_UNLOCK");
-  } catch (error) {
-    console.warn("[pig-coin-refund] eligibility check unavailable", { userId: uid, message: String(error?.message || error) });
+  } catch {
+    console.warn("[pig-coin-refund] eligibility check unavailable");
     return { ok: false, status: 503, code: REFUND_VERIFY_UNAVAILABLE, message: REFUND_VERIFY_UNAVAILABLE_MESSAGE, retryable: true };
   }
 

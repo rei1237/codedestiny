@@ -430,7 +430,7 @@ function toSummary(doc) {
  *    호출자가 같은 모양을 만들어 넘기면 된다. 여기에 ServiceExecutionTransaction 전용 필드 의존을
  *    새로 넣으면 그 호출자가 조용히 skip 된다.
  */
-export async function runCoinRefund({ env, userId, featureKey, sourceTransactionId, executionId, requestId, reason }, deps = {}) {
+export async function runCoinRefund({ env, userId, featureKey, sourceTransactionId, executionId, requestId, reason, receiptSource }, deps = {}) {
   if (!userId || !sourceTransactionId) {
     return { refunded: false, skipped: true };
   }
@@ -440,7 +440,7 @@ export async function runCoinRefund({ env, userId, featureKey, sourceTransaction
 
   const uid = toObjectId(userId), sourceId = toObjectId(sourceTransactionId);
   if (!uid || !sourceId) return { refunded: false, skipped: true, reason: "SOURCE_ID_INVALID" };
-  const { createPaymentContext, withPaymentDb } = await import("../payments/db.js");
+  const { createPaymentContext, withPaymentDb } = deps.paymentDb || await import("../payments/db.js");
   const context = createPaymentContext({ requestId: `service-refund:${sourceId}`, route: "service-execution-coin-refund" });
   return (deps.withDb || withPaymentDb)(env || {}, context, db => db.transaction(async tx => {
     const existing = await tx.findOne(PointHistory, { userId: uid, kind: "refund", "metadata.refundForPointHistoryId": String(sourceId) });
@@ -463,7 +463,7 @@ export async function runCoinRefund({ env, userId, featureKey, sourceTransaction
     if (!user || !Number.isFinite(Number(user.points))) throw new Error("USER_NOT_FOUND_FOR_REFUND");
     const receipt = await tx.insertOne(PointHistory, { userId: uid, kind: "refund", delta: refundAmount,
       balanceAfter: Number(user.points), reason, featureKey,
-      metadata: { source: "billing.service-execution", requestId: String(requestId || "").slice(0, 120),
+      metadata: { source: receiptSource === "fortune.pig-coin.refund" ? receiptSource : "billing.service-execution", requestId: String(requestId || "").slice(0, 120),
         executionId: String(executionId || ""), refundForPointHistoryId: String(sourceId), sourceTransactionId: String(sourceId) },
       createdAt: now, updatedAt: now });
     return { refunded: true, idempotent: false, amount: refundAmount, refundTxId: String(receipt.insertedId || "") };

@@ -3377,42 +3377,24 @@ async function handlePigCoinRefund(request, auth, options = {}) {
     return json(payload, { status });
   }
 
-  // 🔴 환불 금액의 정본은 클라이언트가 보낸 cost 가 아니라 실제 차감 행의 delta 다.
-  // 1차 조회는 delta:-cost 로 묶여 있어 두 값이 같지만, 위 폴백은 금액 조건을 일부러 풀어 두므로
-  // 거기서 cost 를 그대로 믿으면 소액 차감 1건으로 상한(PIG_COIN_MAX_COST)까지 발행할 수 있다.
-  const refundAmount = Math.max(0, Math.floor(Math.abs(Number(deducted.delta || 0))));
-
-  const updatedUser = await User.findByIdAndUpdate(
-    auth.userId,
-    { $inc: { points: refundAmount } },
-    { returnDocument: "after", projection: { points: 1 } },
-  ).lean();
-
-  if (!updatedUser) {
-    return json({ message: "User not found." }, { status: 404 });
-  }
-
-  const refundHistory = await PointHistory.create({
-    userId: auth.userId,
-    kind: "refund",
-    delta: refundAmount,
-    balanceAfter: Number(updatedUser.points || 0),
-    reason,
-    featureKey,
-    metadata: {
-      source: "fortune.pig-coin.refund",
-      requestId,
-      refundForPointHistoryId: String(deducted._id),
-      sourceTransactionId: String(deducted._id),
-    },
-  });
+  // All callers claiming the same source must use the same transactional marker.
+  const settle = options.settleCoinRefund || (await import("../lib/service-execution-task.js")).runCoinRefund;
+  const refund = await settle({ env: options.env, userId: auth.userId, featureKey,
+    sourceTransactionId: String(deducted._id), requestId, reason, receiptSource: "fortune.pig-coin.refund" });
+  if (!refund.refunded) return json({ message: "Refund evidence needs review.", code: "NO_REFUNDABLE_DEDUCTION" }, { status: 409 });
+  const updatedUser = await User.findById(auth.userId).select("points").lean();
+  if (!updatedUser) throw new Error("REFUND_BALANCE_UNAVAILABLE");
+  if (refund.idempotent) return json({ message: "Refund already processed.", code: "REFUND_ALREADY_PROCESSED",
+    alreadyRefunded: true, sourceTransactionId: String(deducted._id), refundTransactionId: refund.refundTxId,
+    user: userPayload(auth, Number(updatedUser?.points || 0)) });
+  const refundAmount = refund.amount;
 
   return json({
     message: `${refundAmount.toLocaleString("ko-KR")} coins refunded.`,
     refundedCoins: refundAmount,
     sourceTransactionId: String(deducted._id),
-    refundTransactionId: String(refundHistory?._id || ""),
-    user: userPayload(auth, updatedUser.points),
+    refundTransactionId: String(refund.refundTxId || ""),
+    user: userPayload(auth, Number(updatedUser?.points || 0)),
   });
 }
 
