@@ -189,6 +189,8 @@
   function hasOpenMobileOverlay() {
     const selectors = [
       '#tilePvwOverlay.pvw-open',
+      // 타로는 display로 여닫는다. 열린 동안 기존 스크롤 잠금을 보존한다.
+      '#tarotModalOverlay',
       '#sajuLoaderOverlay[aria-hidden="false"]',
       '#cdPaidFeatureGate.is-open',
       '#cdLoginRequiredModal.is-open',
