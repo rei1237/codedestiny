@@ -19,7 +19,8 @@ function fixture(width=1280,reduced=false,translate){
  rail.getBoundingClientRect=()=>({left:0});
  Object.defineProperty(rail,'clientWidth',{get:()=>stride});
  cards.forEach((card,i)=>{card.getBoundingClientRect=()=>({left:4+i*stride-rail.scrollLeft});});
- rail.scrollBy=({left})=>{rail.scrollLeft+=left;rail.dispatchEvent(new w.Event('scroll'));flush();};
+ rail.scrollTo=({left})=>{rail.scrollLeft=left;rail.dispatchEvent(new w.Event('scroll'));flush();};
+ rail.scrollBy=({left})=>rail.scrollTo({left:rail.scrollLeft+left});
  if(translate)w.cdTranslate=translate;
  w.eval(source);
  return {w,d,timers,rail,cards,media,flush,resize:value=>{stride=value;resizeObserver();flush();},setVisible:ratio=>observer([{intersectionRatio:ratio}]),changeMotion:matches=>{media.matches=matches;mediaChange();},close:()=>dom.window.close()};
@@ -59,7 +60,7 @@ test('연속 이동과 레일 폭 변화는 선택 카드 정렬을 유지한다
  f.resize(224);assert.equal(f.rail.scrollLeft,448);assert.equal(f.d.querySelector('[data-sig-position]').textContent,'03 / 08');assert.equal(f.cards.filter(c=>!c.inert).length,1);f.close();
 });
 test('현재 위치 점을 눌러도 화면 밖 카드는 키보드 접근에서 제외한다',()=>{
- const f=fixture(390);f.rail.scrollBy=()=>{};f.d.querySelector('[data-sig-slide="0"]').click();assert.equal(f.cards.filter(c=>!c.inert).length,1);f.close();
+ const f=fixture(390);f.rail.scrollTo=()=>{};f.d.querySelector('[data-sig-slide="0"]').click();assert.equal(f.cards.filter(c=>!c.inert).length,1);f.close();
 });
 test('동작 축소에서는 자동 이동과 재생 버튼을 사용하지 않는다',()=>{
  const f=fixture(390,true);f.setVisible(1);assert.equal(f.timers.size,0);assert.equal(f.d.querySelector('[data-sig-pause]').hidden,true);f.close();

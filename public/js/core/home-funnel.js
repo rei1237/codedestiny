@@ -119,7 +119,7 @@
       signatureAnchor = nextIndex;
       // Release inert before moving so pointer/keyboard use never targets a hidden card.
       signatureCards.forEach(function (item) { item.inert = false; });
-      signatureViewport.scrollBy({left: card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4, behavior: signatureMotion.matches ? 'instant' : 'smooth'});
+      signatureViewport.scrollTo({left: signatureViewport.scrollLeft + card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4, behavior: signatureMotion.matches ? 'instant' : 'smooth'});
       if (Math.abs(card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4) < 1) syncSignature();
       scheduleSignature();
     }
@@ -148,7 +148,7 @@
         signatureWidth = signatureViewport.clientWidth;
         // Keep the requested card as the resize anchor; a native drag releases it.
         var card = signatureCards[Math.min(signatureAnchor === null ? signatureIndex : signatureAnchor, signatureLast())];
-        signatureViewport.scrollBy({left: card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4, behavior:'instant'});
+        signatureViewport.scrollTo({left: signatureViewport.scrollLeft + card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4, behavior:'instant'});
         syncSignature(); scheduleSignature();
       }) : null;
       if (signatureResize) signatureResize.observe(signatureViewport);
