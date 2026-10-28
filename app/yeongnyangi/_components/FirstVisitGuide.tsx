@@ -65,14 +65,15 @@ export default function FirstVisitGuide(){
  const active=state?.status==='active'&&!hidden;
  return <section className={styles.guide} aria-label="처음 이용 안내" ref={panel} tabIndex={-1}>
   <div className={styles.bar}><button ref={replay} type="button" onClick={show} aria-label="영냥이 이용 안내 열기">이용 방법</button></div>
-  <dialog ref={dialog} className={styles.welcome} aria-labelledby="yn-first-title" onCancel={event=>{event.preventDefault();dismiss();}}>
+  <dialog ref={dialog} className={styles.welcome} aria-labelledby="yn-first-title" aria-describedby="yn-first-description" onCancel={event=>{event.preventDefault();dismiss();}}>
    <button className={styles.close} type="button" aria-label="첫 이용 안내 닫기" onClick={dismiss}><X size={20}/></button>
    <h2 id="yn-first-title">영냥이가 알려줄게</h2>
+   <p id="yn-first-description">어떤 이야기를 받을지, 가격은 얼마인지 먼저 보여줄게. 천천히 골라도 괜찮아.</p>
   <div className={styles.story}>
    <nav className={styles.sceneNav} aria-label="그림으로 보는 이용 순서">{scenes.map((item,index)=><button type="button" key={item.label} aria-pressed={scene===index} onClick={()=>setScene(index)}><span>{index+1}</span>{item.label}</button>)}</nav>
    <div className={styles.scene}>
     <GuideArt step={scene}/>
-    <div className={styles.speech} aria-live="polite"><span className={styles.speaker}>영냥이가 알려줄게</span><h2>{scenes[scene].title}</h2><p>{scenes[scene].speech}</p><button type="button" className={styles.nextScene} onClick={()=>setScene((scene+1)%scenes.length)}>{scene===2?'처음부터 살펴보기':'다음 이야기'} <ArrowRight size={16}/></button></div>
+    <div className={styles.speech} aria-live="polite"><span className={styles.speaker}>영냥이가 알려줄게</span><h3>{scenes[scene].title}</h3><p>{scenes[scene].speech}</p><button type="button" className={styles.nextScene} onClick={()=>setScene((scene+1)%scenes.length)}>{scene===2?'처음부터 살펴보기':'다음 이야기'} <ArrowRight size={16}/></button></div>
    </div>
   </div>
 

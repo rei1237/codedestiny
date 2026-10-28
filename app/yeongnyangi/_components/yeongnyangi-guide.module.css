@@ -143,7 +143,6 @@
 }
 .faq {
   display: grid;
-  gap: 18px;
 }
 @media (min-width: 720px) {
   .receive {
@@ -151,11 +150,21 @@
   }
 }
 
-.fishList { display: grid; gap: 14px; margin: 22px 0; }
-.fishCard { display: grid; grid-template-columns: 112px minmax(0,1fr); gap: 16px; align-items: center; padding: 18px; border: 1px solid var(--yn-line); border-radius: var(--yn-radius); background: var(--yn-surface); }
-.fishCard img { display:block; width:100%; height:auto; }
-.fishCard h3 span { display:inline-block; color:var(--yn-gold); margin-left:8px; font-variant-numeric:tabular-nums; }
-.fishCard p { margin-bottom:8px; }
-.fishMeta { color:var(--yn-gold); font-weight:600; }
-.fishCard a { display:inline-block; padding:8px 0; }
-@media (max-width: 430px) { .fishCard { grid-template-columns: 76px minmax(0,1fr); gap:12px; padding:14px; align-items:start; } }
+.fishList { display: grid; gap: 8px; margin: 16px 0 4px; padding: 0; list-style: none; }
+.fishRow { display: grid; grid-template-columns: 48px minmax(0,1fr) auto; gap: 12px; align-items: center; min-height: 64px; padding: 8px 16px 8px 8px; border: 1px solid var(--yn-line); border-radius: var(--yn-btn-radius); background: var(--yn-surface); text-decoration: none; }
+.guide a.fishRow { color: var(--yn-ivory); }
+.fishRow:hover { border-color: var(--yn-gold); }
+.fishRow:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
+.fishRow img { display: block; width: 48px; height: 48px; }
+.fishText { display: grid; min-width: 0; }
+.fishText strong { line-height: 1.45; }
+.fishMeta { color: var(--yn-muted); font-size: 0.8125rem; line-height: 1.5; }
+.fishPrice { color: var(--yn-gold); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fishDepth { display: grid; gap: 10px; margin: 0 0 12px; }
+.fishDepth dt { color: var(--yn-gold); font-weight: 700; }
+.fishDepth dd { margin: 0; color: var(--yn-muted); }
+.panel { border-bottom: 1px solid var(--yn-line); }
+.panel > summary { font-weight: 700; }
+.faqBlock { margin-top: 24px; }
+.faqBlock > h3 { font-family: "Yeongnyangi Myeongjo", serif; color: var(--yn-gold); font-size: 1.15rem; margin: 0 0 4px; }
+.faqBlock .craftedOverview{margin-inline:0}.faqBlock .craftedOverview>summary{padding-inline:0}

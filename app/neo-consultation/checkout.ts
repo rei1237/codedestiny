@@ -12,7 +12,7 @@ export async function openNeoCheckout(order: NeoOrder) {
     throw new Error('주문과 결제 정보가 다릅니다. 같은 주문의 상태를 다시 확인해 주세요.');
   const result = await requestPortOneSinglePayment({
     apiBase:'',paymentId:checkout.merchantUid,orderName:'네오 작전 결정서 · 이메일 상담',
-    totalAmount:checkout.paymentAmount,redirectPath:'/yeongnyangi/neo-decision/?order='+encodeURIComponent(order.id),
+    totalAmount:checkout.paymentAmount,redirectPath:'/neo-consultation/?order='+encodeURIComponent(order.id),
     customer:{...checkout.customer,customerId:checkout.merchantUid,email:order.email},customData:{featureKey:'neo-email-consultation',requestId:order.id},
     storeId:checkout.storeId,channelKey:checkout.channelKey,payFields:{payMethod:'CARD'},
   });

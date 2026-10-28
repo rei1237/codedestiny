@@ -7,8 +7,8 @@ test('home keeps one Yeongnyangi card with its destination and artwork', () => {
  const cards = html.match(/<a class="cd-sig-card cd-sig-card--intro" data-cd-signature-id="yeongnyangi-question"[\s\S]*?<\/a>/g) || [];
  assert.equal(cards.length, 1);
  assert.match(cards[0], /href="\/yeongnyangi\/"/);
- assert.match(cards[0], /\/images\/home\/illustrated\/root-card-yeongnyangi-600\.webp/);
- assert.ok(existsSync('public/images/home/illustrated/root-card-yeongnyangi-600.webp'));
+ assert.match(cards[0], /\/images\/service-introductions\/yeongnyangi-question-v2-640\.webp/);
+ assert.ok(existsSync('public/images/service-introductions/yeongnyangi-question-v2-640.webp'));
  assert.doesNotMatch(html, /data-marker="cd-soulcat-home-primary-v20261008"/);
 });
 test('Yeongnyangi translations remain available to their other surfaces', () => {

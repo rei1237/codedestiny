@@ -2410,3 +2410,16 @@
 .ynOriginal .hero-hat-invitation>img{width:100%;height:auto;border-radius:14px}.ynOriginal .hero-hat-invitation>span{display:grid;gap:14px;line-height:1.7}.ynOriginal .hero-hat-invitation strong{font:700 clamp(1.5rem,3vw,2.2rem)/1.4 var(--serif,serif)}.ynOriginal .hero-hat-invitation b{display:flex;align-items:center;gap:12px;min-height:48px;color:#f3d296}.ynOriginal .hero-hat-invitation small{color:#d4c2dc}.ynOriginal .hero-hat-invitation:focus-visible{outline:2px solid #f3d296;outline-offset:4px}
 .ynOriginal .yn-founder-disclosure{margin-block:40px;border-block:1px solid #795b8255}.ynOriginal .yn-founder-disclosure>summary{padding:20px;min-height:56px;cursor:pointer;color:#e8d5a3;font-weight:600}.ynOriginal .yn-founder-disclosure>summary:focus-visible{outline:2px solid #e8d5a3;outline-offset:3px}
 @media(max-width:700px){.ynOriginal .hero-hat-invitation{grid-template-columns:minmax(0,1fr);gap:18px;padding:18px}.ynOriginal .hero-hat-invitation>img{max-height:240px;object-fit:cover}}
+
+/* 2026-10-28 홈 단순화: 모바일 헤더 pill 은 하단 탭과 겹쳐 숨기고, 꿀꿀운세 배너는 한 줄 카드, 푸터 사업자 정보는 라벨·값 2열로 줄인다. */
+@media(max-width:699px){.ynOriginal #home>.header>.desktop-nav{display:none}}
+.ynOriginal .ggulggul-bridge{grid-template-columns:72px minmax(0,1fr);justify-items:stretch;gap:16px;margin:32px 0;padding:14px 18px;text-align:left}
+.ynOriginal .ggulggul-bridge::before{display:none}
+.ynOriginal .ggulggul-bridge__art,.ynOriginal .ggulggul-bridge__art img{width:72px}
+.ynOriginal .ggulggul-bridge__art{padding:2px 0;border-radius:36px 36px 10px 10px}
+.ynOriginal .ggulggul-bridge__copy h2{margin:0;font-size:var(--yn-t-card)}
+.ynOriginal .ggulggul-bridge__copy h2 span{display:inline}
+.ynOriginal .ggulggul-bridge__actions{justify-content:flex-start;gap:0 16px;margin-top:2px}
+.ynOriginal .ggulggul-bridge__entry{width:auto;min-height:44px;padding:0;border:0;background:none;color:var(--bridge-ink);gap:6px}
+.ynOriginal .ggulggul-bridge__entry:hover{background:none;text-decoration:underline}
+@media(max-width:760px){.ynOriginal .service-navigation__business{gap:4px;font-size:13px}.ynOriginal .service-navigation__business div{grid-template-columns:116px minmax(0,1fr);gap:8px}}

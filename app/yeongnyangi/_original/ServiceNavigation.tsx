@@ -49,7 +49,7 @@ export default function ServiceNavigation() {
 
     <div className="service-navigation__notice">
       <ShieldCheck size={18} aria-hidden="true" />
-      <p>영냥이 운세 콘텐츠는 각 점술 체계의 이론에 근거한 참고 해석이며, 확정된 미래나 전문 자문을 보장하지 않습니다.</p>
+      <p>영냥이 운세 콘텐츠는 각 점술 체계의 이론에 근거한 참고 해석이며, 풀이 문장 작성에 생성형 AI를 활용합니다. 확정된 미래나 전문 자문을 보장하지 않습니다.</p>
     </div>
 
     <div className="service-navigation__partner">

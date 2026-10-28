@@ -3,7 +3,6 @@ import Image from "next/image";
 import QuestionJourney from "@/app/components/QuestionJourney";
 import NightHero from "../_components/NightHero";
 import FirstVisitGuide from "../_components/FirstVisitGuide";
-import ConsultationMethodGuide from "@/app/components/ConsultationMethodGuide";
 import HeavenLightCinema from "../_components/HeavenLightCinema";
 import SessionControls from "./SessionControls";
 import type {ProductOffers} from '../_components/ProductGuide';
@@ -12,10 +11,11 @@ import LocalizedFortuneHome from '../_components/LocalizedFortuneHome';
 import {LocaleSwitcher} from '@/app/components/LocaleSwitcher';
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowRight, Bookmark, ChevronRight, House, KeyRound, Moon, PawPrint, X } from "lucide-react";
+import { ArrowRight, Bookmark, ChevronRight, House, KeyRound, PawPrint, X } from "lucide-react";
 import { ggulggulFortuneHref, loginHref, socialLoginHref, type SocialProvider } from "./service-links";
 
-// 2026-10-17 "직관성": 한국어 홈은 히어로 → 고민으로 시작하기 → 결과 예시를 중심으로 둔다. 꿀꿀운세 연결 배너는 기존 형태로 유지한다.
+// 2026-10-28 단순화: 한국어 홈은 히어로 → 뮤직비디오 → 고민으로 시작하기 → 가격·결제 전 안내 → 꿀꿀운세 한 줄 순서다.
+// 상담 방식 3지선다(영냥이·꿀꿀·네오)와 첫 방문 인라인 그림 안내는 홈에서 뺐다. 네오 작전 결정서는 꿀꿀운세 /neo-consultation/ 소속이다.
 // 체계 카드·초융합·추천·영냥이의 방 같은 블록은 홈에서 뺐다. 각 주소(/yeongnyangi/room/ 등)는 그대로 열린다.
 // 가격표·상담 예시·FAQ 는 page.tsx 가 홈 아래에 붙이는 YeongnyangiGuide 가 맡는다.
 type Panel = "auth" | null;
@@ -130,14 +130,12 @@ export default function FortuneHome({offers,guide}:{offers:ProductOffers;guide?:
 
         <main>
           <NightHero/>
+          <HeavenLightCinema/>
           <FirstVisitGuide/>
-          <ConsultationMethodGuide id="yn-consultation-methods"/>
           <QuestionJourney source="home"/>
           {guide}
-          <HeavenLightCinema/>
           <div className="main-content">
             <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">
-              <Moon className="ggulggul-bridge__moon" size={28} strokeWidth={1} aria-hidden="true" />
               <div className="ggulggul-bridge__art">
                 <img
                   src="/images/home/yeoni-pass-mascot-480.webp"
@@ -152,10 +150,6 @@ export default function FortuneHome({offers,guide}:{offers:ProductOffers;guide?:
               </div>
               <div className="ggulggul-bridge__copy">
                 <h2 id="ggulggul-title">달빛 따라, <span>꿀꿀운세로.</span></h2>
-                <p>
-                  꽃돼지 연이가 기다리는 다정한 운세 정원.<br />
-                  사주·타로부터 삶의 여러 흐름까지, 천천히 둘러봐.
-                </p>
                 <div className="ggulggul-bridge__actions">
                   <a className="ggulggul-bridge__entry" href={ggulggulFortuneHref("/yeongnyangi/fortune/")}>
                     연이의 꽃정원 둘러보기 <ArrowRight size={17} aria-hidden="true" />

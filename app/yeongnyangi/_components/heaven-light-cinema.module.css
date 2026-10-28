@@ -101,3 +101,18 @@
  .art img,.cover:hover .play{transform:none}
  .screen[data-state=loading] .play{animation:none}
 }
+
+/* 2026-10-28 홈 상단 배치: 세로 타로 카드 대신 썸네일·제목·재생 한 줄의 가로 카드. 위 규칙과 미디어 규칙을 이 블록이 덮는다. */
+.cinema{--mv-angle:0deg;width:min(560px,100% - 32px);margin:20px auto 4px;padding:0}
+.cinema::before{inset:-12% 4%}
+.deck{width:100%}
+.card{flex-direction:row;align-items:center;gap:14px}
+.numeral{top:-13px;left:56px}
+.art{width:96px}
+.copy{flex:1;min-width:0;align-items:flex-start;padding:2px 8px 2px 0;text-align:left}
+.copy::before{display:none}
+.cinema .name{font-size:1.35rem}
+.cinema .line{margin-top:4px;font-size:.875rem;line-height:1.55;text-wrap:pretty}
+.cinema .meta{margin-top:2px}
+.action{min-height:32px;margin-top:2px}
+.foil{inset:8px auto 8px 8px;width:96px;aspect-ratio:auto}

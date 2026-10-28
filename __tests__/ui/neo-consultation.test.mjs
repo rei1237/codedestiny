@@ -305,7 +305,7 @@ test('CI node suite discovers this test; runtime cannot import mock or open sale
 });
 test('네오 편지 안내는 상담 장면과 서버 가격·답변 기한을 안내한다', () => {
   const html = renderNeoEmailHomeEntry();
-  assert.match(html,/href="\/yeongnyangi\/neo-decision\/"/);
+  assert.match(html,/href="\/neo-consultation\/"/);
   assert.match(html,/service-introductions\/neo-consultation-640\.webp/);
   assert.match(html,/사주 질문당 30,000원/);
   assert.match(html,/사주 \+ 자미두수 질문당 50,000원/);

@@ -6,9 +6,9 @@ const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'ut
 const bytes = path => statSync(new URL(`../../${path}`, import.meta.url)).size;
 const cinema = read('app/yeongnyangi/_components/HeavenLightCinema.tsx');
 
-test('the HEAVEN LIGHT card follows questions and consultation guidance on the Korean home', () => {
+test('the HEAVEN LIGHT card sits right under the hero, before questions and guidance, on the Korean home', () => {
   const home = read('app/yeongnyangi/_original/FortuneHome.tsx');
-  const order = ['<NightHero/>', '<QuestionJourney source="home"/>', '{guide}', '<HeavenLightCinema/>'].map(mark => home.indexOf(mark));
+  const order = ['<NightHero/>', '<HeavenLightCinema/>', '<QuestionJourney source="home"/>', '{guide}'].map(mark => home.indexOf(mark));
   assert.ok(order.every(index => index > 0), `missing mount: ${order}`);
   assert.deepEqual([...order].sort((a, b) => a - b), order);
 });
