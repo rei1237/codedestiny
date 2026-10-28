@@ -35,6 +35,45 @@ test('home auto offer respects consent overlay and persists skip, replay is expl
  assert.equal(w.document.querySelector('dialog').open,true);
  ctx.dom.window.close();
 });
+test('home tutorial is inside the dialog and can be reopened without starting a consultation',()=>{
+ const ctx=setup(),{w}=ctx;let entries=0;w.cdOneStepFreeSajuEntry=()=>{entries++;};
+ ctx.run();ctx.tick();
+ const dialog=w.document.querySelector('dialog');
+ assert.ok(dialog.querySelector('.cd-first__story'));
+ assert.ok(dialog.querySelector('.cd-first__howto'));
+ assert.equal(w.document.querySelector('#cdHomeFunnel .cd-first__story'),null);
+ dialog.querySelector('[data-first-close]').click();
+ w.document.querySelector('[data-first-replay]').click();
+ assert.equal(dialog.open,true);assert.equal(entries,0);
+ ctx.dom.window.close();
+});
+test('one-day guide preference uses a non-identifying cookie and expires',()=>{
+ const {w,dom}=setup();const now=w.Date.now();w.Date.now=()=>now;
+ w.eval('hideYeongnyangiGuide()');
+ assert.match(w.document.cookie,/cd_yeongnyangi_guide_hidden=1/);
+ assert.equal(w.eval('readYeongnyangiGuideHidden()'),true);
+ assert.equal(Number(w.localStorage.getItem('cd:yeongnyangi:guide-hidden-until')),now+86400000);
+ w.document.cookie='cd_yeongnyangi_guide_hidden=; Max-Age=0; Path=/';
+ w.Date.now=()=>now+86400001;
+ assert.equal(w.eval('readYeongnyangiGuideHidden()'),false);
+ dom.window.close();
+});
+test('one-day guide preference works when cookies are unavailable',()=>{
+ const {w,dom}=setup();
+ Object.defineProperty(w.document,'cookie',{get(){return '';},set(){throw new Error('blocked');}});
+ w.eval('hideYeongnyangiGuide()');
+ assert.equal(w.eval('readYeongnyangiGuideHidden()'),true);
+ w.eval('clearYeongnyangiGuideHidden()');
+ assert.equal(w.eval('readYeongnyangiGuideHidden()'),false);
+ dom.window.close();
+});
+test('one-day guide preference still uses cookies when local storage is unavailable',()=>{
+ const {w,dom}=setup(undefined,true);
+ w.eval('hideYeongnyangiGuide()');
+ assert.match(w.document.cookie,/cd_yeongnyangi_guide_hidden=1/);
+ assert.equal(w.eval('readYeongnyangiGuideHidden()'),true);
+ dom.window.close();
+});
 test('free result is the completion signal, not profile publication; no payment API is invoked',async()=>{
  const ctx=setup(),{w}=ctx;let entries=0;
  w.cdOneStepFreeSajuEntry=()=>{entries++;};
@@ -95,11 +134,12 @@ test('English and Japanese first entry use translated guide text and accessible 
 test('illustrated scene browsing never starts analysis or advances actual onboarding',()=>{
  const ctx=setup(),{w}=ctx;let entries=0;
  w.cdOneStepFreeSajuEntry=()=>{entries++;};ctx.run();ctx.tick();
- w.document.querySelector('[data-first-close]').click();
  w.document.querySelector('[data-first-scene="2"]').click();
  assert.equal(w.document.querySelector('[data-first-scene="2"]').getAttribute('aria-pressed'),'true');
  w.document.querySelector('[data-first-next]').click();
+ w.document.querySelector('[data-first-close]').click();
  assert.equal(entries,0);assert.equal(ctx.read().status,'dismissed');
+ assert.equal(w.document.querySelector('#cdHomeFunnel .cd-first').hasAttribute('data-pwa-block'),false);
  assert.equal(w.document.querySelector('[data-first-scene="0"]').getAttribute('aria-pressed'),'true');
  ctx.dom.window.close();
 });

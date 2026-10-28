@@ -1,6 +1,9 @@
 export type FirstVisitService = 'ggulggul' | 'yeongnyangi';
 export type FirstVisitStatus = 'new' | 'offered' | 'active' | 'dismissed' | 'complete';
 export type FirstVisitState = {status:FirstVisitStatus;step:number};
+export function readYeongnyangiGuideHidden():boolean;
+export function hideYeongnyangiGuide(days?:number):void;
+export function clearYeongnyangiGuideHidden():void;
 export function firstVisitScope():string;
 export function readFirstVisit(service:FirstVisitService,scope?:string):FirstVisitState;
 export function writeFirstVisit(service:FirstVisitService,status:FirstVisitStatus,step?:number,scope?:string):void;

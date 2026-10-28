@@ -6,7 +6,7 @@ import ProfilePicker from './ProfilePicker';
 import {useProfiles} from '../_lib/use-profiles';
 import {useFirstVisit} from '../_lib/use-first-visit';
 import {loginForCurrentPage} from '../_lib/api';
-import {firstVisitEvent,firstVisitHome,firstVisitOverlayBusy,firstVisitLogin,writeFirstVisit,readFirstVisit} from '@/js/first-visit-state.mjs';
+import {firstVisitEvent,firstVisitHome,firstVisitOverlayBusy,firstVisitLogin,writeFirstVisit,readFirstVisit,readYeongnyangiGuideHidden,hideYeongnyangiGuide,clearYeongnyangiGuideHidden,type FirstVisitState} from '@/js/first-visit-state.mjs';
 import styles from './first-visit.module.css';
 const scenes=[
  {label:'프로필',title:'먼저, 너를 알려줘.',speech:'사주를 보려면 태어난 때가 필요해. 프로필을 골라주면 네 이야기를 읽을 준비를 할게. 타로처럼 출생 정보를 쓰지 않는 상담은 질문부터 골라도 돼.'},
@@ -20,21 +20,30 @@ export default function FirstVisitGuide(){
  const {state,scope}=useFirstVisit();
  const profiles=useProfiles();
  const [scene,setScene]=useState(0);
+ const [hidden,setHidden]=useState(false);
  const dialog=useRef<HTMLDialogElement>(null),panel=useRef<HTMLElement>(null),replay=useRef<HTMLButtonElement>(null);
  const returnFocus=useRef<HTMLElement|null>(null);
+ const beforeOffer=useRef<FirstVisitState>({status:'new',step:0});
  const selected=profiles.profiles.find(p=>String(p.profileId||p.id)===profiles.profileId);
  function close(){dialog.current?.close();returnFocus.current?.focus({preventScroll:true});}
- function dismiss(){writeFirstVisit('yeongnyangi','dismissed');firstVisitEvent('yeongnyangi','skip');close();}
+ function dismiss(){hideYeongnyangiGuide(365);setHidden(true);writeFirstVisit('yeongnyangi','dismissed');firstVisitEvent('yeongnyangi','skip');close();}
+ function hideToday(){const previous=beforeOffer.current;hideYeongnyangiGuide();setHidden(true);writeFirstVisit('yeongnyangi',previous.status==='offered'?'new':previous.status,previous.step);firstVisitEvent('yeongnyangi','skip');close();}
  function show(){
   const el=dialog.current;if(!el||el.open)return;
   returnFocus.current=document.activeElement instanceof HTMLElement?document.activeElement:replay.current;
+  beforeOffer.current=readFirstVisit('yeongnyangi');
   writeFirstVisit('yeongnyangi','offered');
   el.showModal();firstVisitEvent('yeongnyangi','view');
  }
  useEffect(()=>{
+  const previouslyClosed=state?.status==='dismissed'||(scope!=='guest'&&readFirstVisit('yeongnyangi','guest').status==='dismissed');
+  if(previouslyClosed&&!readYeongnyangiGuideHidden())hideYeongnyangiGuide(365);
+  setHidden(readYeongnyangiGuideHidden()||state?.status==='dismissed');
+ },[state?.status,scope]);
+ useEffect(()=>{
   if(!state||state.status!=='new'||profiles.loading||profiles.error||!firstVisitHome(window.location,'yeongnyangi'))return;
   let cancelled=false;
-  const offer=()=>{if(!cancelled&&readFirstVisit('yeongnyangi').status==='new'&&!firstVisitOverlayBusy(document))show();};
+  const offer=()=>{if(!cancelled&&!readYeongnyangiGuideHidden()&&readFirstVisit('yeongnyangi').status==='new'&&!firstVisitOverlayBusy(document))show();};
   const observer=new MutationObserver(offer);
   const timer=setTimeout(()=>{offer();observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['open','class','hidden','aria-hidden']});},1400);
   return()=>{cancelled=true;clearTimeout(timer);observer.disconnect();};
@@ -49,12 +58,14 @@ export default function FirstVisitGuide(){
   }
  },[state,profiles.loading,profiles.error,profiles.guest,selected]);
  function start(){
+  clearYeongnyangiGuideHidden();setHidden(false);
   close();writeFirstVisit('yeongnyangi','active',1);firstVisitEvent('yeongnyangi','start',1);
   requestAnimationFrame(()=>{panel.current?.focus();panel.current?.scrollIntoView({block:'center'});});
  }
- const active=state?.status==='active';
+ const active=state?.status==='active'&&!hidden;
  return <section className={styles.guide} aria-label="처음 이용 안내" ref={panel} tabIndex={-1}>
   <div className={styles.bar}><span>영냥이와 첫 상담 준비</span><button ref={replay} type="button" onClick={show}>이용 방법 다시 보기</button></div>
+  <div hidden={!state||hidden||state.status==='complete'}>
   <div className={styles.story}>
    <nav className={styles.sceneNav} aria-label="그림으로 보는 이용 순서">{scenes.map((item,index)=><button type="button" key={item.label} aria-pressed={scene===index} onClick={()=>setScene(index)}><span>{index+1}</span>{item.label}</button>)}</nav>
    <div className={styles.scene}>
@@ -80,6 +91,7 @@ export default function FirstVisitGuide(){
     <p>이미 받은 상담은 ‘내 상담’에서 다시 읽을 수 있어. 새 상담을 시작하기 전에 전에 받은 이야기부터 펼쳐봐도 좋아.</p>
    </div>
   </details>
+  </div>
   {active&&<div className={styles.body}>
    <ol className={styles.steps} aria-label="상담 준비 순서"><li aria-current={state.step===1?'step':undefined}>1. 프로필</li><li aria-current={state.step>=2?'step':undefined}>2. 고민</li><li>3. 구성·가격</li></ol>
    <h2>{selected?'좋아, 프로필이 준비됐어. 어떤 고민이 있어?':'먼저, 누구의 이야기를 살펴볼까?'}</h2>
@@ -99,6 +111,7 @@ export default function FirstVisitGuide(){
    <p id="yn-first-description">프로필부터 준비하고, 마음에 남은 고민을 골라보자.<br/>어떤 이야기를 받을지, 가격은 얼마인지 먼저 보여줄게. 천천히 골라도 괜찮아.</p>
    <button className={styles.primary} type="button" onClick={start}>상담 준비하기 <ArrowRight size={18}/></button>
    <button className={styles.textButton} type="button" onClick={dismiss}>나중에 할게요</button>
+   <button className={styles.textButton} type="button" onClick={hideToday}>하루 동안 보지 않기</button>
   </dialog>
  </section>;
 }

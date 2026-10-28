@@ -24,7 +24,6 @@ function installGuide() {
   const art=(step=0)=>'<span class="cd-first__art" aria-hidden="true"><img src="/images/first-visit/yeoni-tutorial-v2.webp" width="1440" height="480" alt="" style="left:-'+step*100+'%"></span>';
   const story=document.createElement('div');story.className='cd-first__story';
   story.innerHTML=`<nav class="cd-first__scene-nav" data-first-aria="scenesLabel" aria-label="${guideText('scenesLabel')}">`+scenes().map((scene,index)=>'<button type="button" data-first-scene="'+index+'"><span>'+(index+1)+'</span>'+'<span data-first-copy="'+['sceneProfileLabel','sceneReadingLabel','sceneDeeperLabel'][index]+'">'+scene.label+'</span></button>').join('')+'</nav><div class="cd-first__scene">'+art()+`<div class="cd-first__speech" aria-live="polite"><span class="cd-first__speaker" data-first-copy="speaker">${guideText('speaker')}</span><h2></h2><p></p><button type="button" data-first-next></button></div></div>`;
-  root.querySelector('[data-first-progress]').before(story);
   let sceneIndex=0,lastProgressStep=0;
   function showScene(index){
     sceneIndex=index;
@@ -39,7 +38,6 @@ function installGuide() {
   showScene(0);
   const howTo=document.createElement('details');howTo.className='cd-first__howto';
   howTo.innerHTML=`<summary data-first-copy="howToTitle">${guideText('howToTitle')}</summary><div><h3 data-first-copy="profileTitle">${guideText('profileTitle')}</h3><p data-first-copy="profileBody">${guideText('profileBody')}</p><p data-first-copy="profileSaved">${guideText('profileSaved')}</p><h3 data-first-copy="readingTitle">${guideText('readingTitle')}</h3><p data-first-copy="readingBody">${guideText('readingBody')}</p><p data-first-copy="readingPace">${guideText('readingPace')}</p><h3 data-first-copy="deeperTitle">${guideText('deeperTitle')}</h3><p data-first-copy="deeperBody">${guideText('deeperBody')}</p><p data-first-copy="paymentNote">${guideText('paymentNote')}</p><h3 data-first-copy="actionTitle">${guideText('actionTitle')}</h3><p data-first-copy="actionBody">${guideText('actionBody')}</p></div>`;
-  root.append(howTo);
   const anchor = home.querySelector('.cdh-free');
   if (anchor) anchor.before(root); else home.append(root);
   const dialog = document.createElement('dialog');
@@ -47,7 +45,8 @@ function installGuide() {
   dialog.setAttribute('aria-labelledby','cdFirstTitle');dialog.setAttribute('aria-describedby','cdFirstDescription');
   dialog.innerHTML = `<button type="button" class="cd-first__close" data-first-aria="close" aria-label="${guideText('close')}" data-first-close><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><img src="/images/yeoni/welcome/yeoni-welcome-v1-320.webp" width="144" height="144" alt=""><h2 id="cdFirstTitle"><span data-first-copy="welcomeTitle">${guideText('welcomeTitle')}</span><br><span data-first-copy="welcomeReading">${guideText('welcomeReading')}</span></h2><p id="cdFirstDescription"><span data-first-copy="welcomeBody">${guideText('welcomeBody')}</span><br><span data-first-copy="welcomeLater">${guideText('welcomeLater')}</span></p><button class="cd-first__primary" type="button" data-first-start data-first-copy="start">${guideText('start')}</button><button type="button" data-first-close data-first-copy="later">${guideText('later')}</button>`;
   document.body.append(dialog);
-  dialog.querySelector('img').outerHTML=art();
+  dialog.querySelector('img').remove();
+  dialog.querySelector('[data-first-start]').before(story,howTo);
   const progress = root.querySelector('[data-first-progress]');
   const formHint = document.createElement('p');
   formHint.className = 'cd-first__form-hint';formHint.dataset.firstCopy='formHint';formHint.hidden = true;
@@ -57,7 +56,7 @@ function installGuide() {
     const p = window.__cdCurrentDestinyProfile;
     return Boolean(profileScope === scope && p && p.birth && p.syncStatus !== 'pending');
   }
-  function close(){dialog.close();opener?.focus({preventScroll:true});}
+  function close(){dialog.close();previewing=false;opener?.focus({preventScroll:true});}
   function dismiss(){writeFirstVisit(service,'dismissed',0,scope);firstVisitEvent(service,'skip');close();sync();}
   function show(){
     if(dialog.open || !supported())return;
@@ -79,7 +78,7 @@ function installGuide() {
     if(resultReady && supported())installResultHelp();
     refreshGuideCopy();showScene(sceneIndex);
     const nextScope = firstVisitScope();
-    if(nextScope!==scope){scope=nextScope;profileScope='';resultReady=false;dialog.close();}
+    if(nextScope!==scope){scope=nextScope;profileScope='';resultReady=false;previewing=false;dialog.close();}
     resumeFirstVisitLogin(service);
     const state = readFirstVisit(service,scope);
     if(state.status==='active'&&state.step!==lastProgressStep){lastProgressStep=state.step;showScene(Math.min(2,Math.max(0,state.step-1)));}
