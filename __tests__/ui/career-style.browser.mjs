@@ -42,7 +42,7 @@ try{
  await open();
  const first=await report.locator('header h2').innerText();
  assert.equal(await report.locator('section[id^="career-chapter-"]').count(),8);
- const extra=report.locator('summary').filter({hasText:'추가 해석'});
+ const extra=report.locator('summary').filter({hasText:'이 이야기의 사주 단서'});
  for(const summary of await extra.all())await summary.click();
  assert.ok(await report.getByText('해석의 근거',{exact:true}).count()>8);
  assert.ok(await report.getByText('이렇게 확인해 보세요',{exact:true}).count()>8);
@@ -63,7 +63,7 @@ try{
  fs.mkdirSync('.tmp/career-style',{recursive:true});
  for(const width of [360,390,430,1280]){
   await page.setViewportSize({width,height:900});await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';window.scrollTo({top:0,behavior:'instant'});});
-  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),`overflow ${width}`);
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),`overflow ${width}: ${JSON.stringify(await page.evaluate(()=>[...document.querySelectorAll("body *")].filter(el=>el.getBoundingClientRect().right>innerWidth+1).slice(0,8).map(el=>({tag:el.tagName,cls:el.className,right:el.getBoundingClientRect().right}))))}`);
   await page.screenshot({path:`.tmp/career-style/landing-${width}.png`});
   await report.locator(':scope > header').scrollIntoViewIfNeeded();await page.screenshot({path:`.tmp/career-style/report-${width}.png`});
   for(const img of await report.locator('img').all()){
@@ -92,7 +92,7 @@ try{
  await page.locator('input[name="date"]').fill('2000-03-15');
  await page.getByLabel('출생시간을 몰라요',{exact:true}).check();
  await page.getByRole('button',{name:'프로필 저장하기',exact:true}).click();
- await open();assert.match(await report.innerText(),/출생 시각이 없어/);
+ await open();await report.getByText('계산 근거와 해석 범위 확인').click();assert.match(await report.innerText(),/시주 미상: 시주에 따라 갈리는 판정은 보류/);
  fail=true;await auth();await page.getByText('프로필 조회 실패').waitFor();assert.equal(await report.count(),0);
  fail=false;profiles=[{profileId:'new-account-card',name:'새 계정 카드',birthDate:'1999-11-12',birthTime:'09:00'}];
  await page.evaluate(()=>localStorage.setItem('fortune_auth_user',JSON.stringify({id:'second-user'})));await auth();await open();
