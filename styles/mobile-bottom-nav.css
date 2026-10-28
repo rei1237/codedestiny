@@ -350,4 +350,4 @@ body.cd-mnav-collapsed .cd-mnav__chevron {
   }
 }
 
-.cd-mnav__icon--home{background:currentColor;mask:url("/images/navigation/home.svg") center/contain no-repeat}
+.cd-mnav__icon--home{background:currentColor;mask:url("/images/navigation/home.svg?v=flower-20261028") center/contain no-repeat}
