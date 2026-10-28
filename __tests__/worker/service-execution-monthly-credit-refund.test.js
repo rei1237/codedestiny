@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import {setup,uid,debit,execId} from './monthly-refund-fixture.mjs';
+import {setup,uid,debit,execId} from '../fixtures/monthly-refund-fixture.mjs';
 test('V2 restores actual moonstones atomically and stamps the original debit',async()=>{
  const f=await setup();expect(await f.run()).toMatchObject({refunded:true,amount:3});
  expect(f.state.balance).toBe(13);expect(f.grants()).toHaveLength(1);

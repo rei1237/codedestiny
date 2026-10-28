@@ -338,7 +338,7 @@ assert.doesNotMatch(
 // (life-book-ai·sukuyo-compatibility-ai·vedic-ai·ziwei-ai·ziwei-island-ai)가 계약을 어긴 채
 // 통과하고 있었다(2026-08-20 실측).
 //
-// 대상 판별: worker/ 아래에서 restoreMonthlyCreditLot 을 부르면서 MonthlyCreditLedger 를 함께
+// 대상 판별: worker/ 아래에서 restoreMonthlyCreditLot 또는 트랜잭션용 WithDb를 부르면서 MonthlyCreditLedger 를 함께
 // 다루는 파일. profile.js 는 프로필 카드 변경 환불이라 원장을 건드리지 않아 자연히 빠진다
 // (이름으로 빼지 않는다 — 원장을 만지기 시작하면 자동으로 검사 대상이 된다).
 //
@@ -355,7 +355,7 @@ for (const dir of ["worker/routes", "worker/lib"]) {
     const rel = `${dir}/${name}`;
     if (rel === "worker/lib/monthly-credit-store.js") continue; // 헬퍼 정의부(호출부가 아니다)
     const source = readFileSync(resolve(root, rel), "utf8");
-    if (!source.includes("restoreMonthlyCreditLot(")) continue;
+    if (!/restoreMonthlyCreditLot(?:WithDb)?\(/.test(source)) continue;
     if (!source.includes("MonthlyCreditLedger")) continue;
     if (rel === "worker/routes/profile.js") {
       // Legacy PointHistory refunds remain here; canonical ledger refunds are delegated and scanned below.
@@ -374,10 +374,10 @@ assert.ok(
 for (const [rel, source] of monthlyRefundSites) {
   assert.match(
     source,
-    /"metadata\.refundedForUnlockFailure": true/,
+    /['"]metadata\.refundedForUnlockFailure['"]:\s*true/,
     `${rel}: 월정석 환불은 원장에 refundedForUnlockFailure 를 찍어야 한다(키 해제) — 없으면 재구매가 402 로 막힌다`,
   );
-  const calls = source.match(/restoreMonthlyCreditLot\(\{[\s\S]{0,600}?\}\)/g) || [];
+  const calls = source.match(/restoreMonthlyCreditLot(?:WithDb)?\((?:tx,\s*)?\{[\s\S]{0,600}?\}\)/g) || [];
   assert.ok(calls.length > 0, `${rel}: restoreMonthlyCreditLot 호출을 파싱하지 못했다(가드 정규식 점검 필요)`);
   for (const call of calls) {
     assert.ok(
@@ -386,10 +386,10 @@ for (const [rel, source] of monthlyRefundSites) {
     );
   }
   // PointHistory 에도 표식을 찍는 지점이라면 replay 배제 표식이 짝으로 있어야 한다.
-  if (source.includes('"metadata.monthlyCreditRefundedForServiceExecution": true')) {
+  if (/['"]metadata\.monthlyCreditRefundedForServiceExecution['"]:\s*true/.test(source)) {
     assert.match(
       source,
-      /"metadata\.monthlyCreditRefundedForServiceExecution": true,\s*(?:\/\/[^\n]*\n\s*)*"metadata\.monthlyCreditRefundedForUnlockFailure": true/,
+      /['"]metadata\.monthlyCreditRefundedForServiceExecution['"]:\s*true,\s*(?:\/\/[^\n]*\n\s*)*['"]metadata\.monthlyCreditRefundedForUnlockFailure['"]:\s*true/,
       `${rel}: PointHistory 에 monthlyCreditRefundedForUnlockFailure 도 찍어야 한다(replay 배제)`,
     );
   }

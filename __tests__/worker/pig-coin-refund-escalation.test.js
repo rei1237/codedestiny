@@ -210,7 +210,13 @@ beforeAll(async () => {
       let release; const previous = settlementQueue; settlementQueue = new Promise(resolve => { release = resolve; }); await previous;
       const rowsBefore = structuredClone(pointHistoryStore), pointsBefore = userPoints; let committed = false;
       try { const result = await callback({
-        findOne: async (_model, filter) => matchOne(filter),
+        findOne: async (model, filter) => {
+          if (model === PointHistoryMock) return matchOne(filter);
+          const name = model === ServiceExecutionTransactionMock ? 'ServiceExecutionTransaction' : model === PaidExecutionRecordMock ? 'PaidExecutionRecord' : null;
+          if (!name) throw new Error('Unexpected settlement model');
+          if (deliveryLookup.error) throw deliveryLookup.error;
+          return deliveryLookup[name] ? deliveryLookup[name](filter) : null;
+        },
         updateOne: async (_model, filter, update) => {
           const row = matchOne(filter); if (!row) return { modifiedCount: 0 };
           row.metadata ||= {}; row.metadata.refundedForServiceExecution = update.$set['metadata.refundedForServiceExecution'];

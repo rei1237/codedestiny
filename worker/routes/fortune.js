@@ -3380,7 +3380,7 @@ async function handlePigCoinRefund(request, auth, options = {}) {
   // All callers claiming the same source must use the same transactional marker.
   const settle = options.settleCoinRefund || (await import("../lib/service-execution-task.js")).runCoinRefund;
   const refund = await settle({ env: options.env, userId: auth.userId, featureKey,
-    sourceTransactionId: String(deducted._id), requestId, reason, receiptSource: "fortune.pig-coin.refund" });
+    sourceTransactionId: String(deducted._id), requestId, failedRequestId: String(options.failedRequestId || ""), reason, receiptSource: "fortune.pig-coin.refund" });
   if (!refund.refunded) return json({ message: "Refund evidence needs review.", code: "NO_REFUNDABLE_DEDUCTION" }, { status: 409 });
   const updatedUser = await User.findById(auth.userId).select("points").lean();
   if (!updatedUser) throw new Error("REFUND_BALANCE_UNAVAILABLE");

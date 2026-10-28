@@ -431,7 +431,7 @@ function toSummary(doc) {
  *    호출자가 같은 모양을 만들어 넘기면 된다. 여기에 ServiceExecutionTransaction 전용 필드 의존을
  *    새로 넣으면 그 호출자가 조용히 skip 된다.
  */
-export async function runCoinRefund({ env, userId, featureKey, sourceTransactionId, executionId, requestId, reason, receiptSource }, deps = {}) {
+export async function runCoinRefund({ env, userId, featureKey, sourceTransactionId, executionId, requestId, failedRequestId = requestId, reason, receiptSource }, deps = {}) {
   if (!userId || !sourceTransactionId) {
     return { refunded: false, skipped: true };
   }
@@ -458,7 +458,7 @@ export async function runCoinRefund({ env, userId, featureKey, sourceTransaction
     if (!Number.isSafeInteger(delta) || delta >= 0) return { refunded: false, skipped: true, reason: "DEDUCT_AMOUNT_UNVERIFIED" };
     const protectedResult = await findProtectedFundingExecution({
       userId: uid, ids: [sourceId, deducted.metadata?.requestId, deducted.metadata?.purchaseId, deducted.metadata?.orderId, requestId],
-      executionId: toObjectId(executionId), failedRequestId: requestId,
+      executionId: toObjectId(executionId), failedRequestId,
     }, (name, filter) => tx.findOne(refundModels[name], filter));
     if (protectedResult) return {refunded:false,skipped:true,adminReviewRequired:true,reason:'FUNDING_ACTIVE_OR_COMPLETED'};
     const now = new Date(), refundAmount = -delta;
