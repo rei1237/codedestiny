@@ -182,18 +182,18 @@
     "ms": "Terima jawapan yang disemak sendiri"
   },
   "home.guideCopy.humanFormat": {
-    "ko": "네오가 AI 분석을 활용해 작성·검수하고 이메일로 전해요.",
-    "en": "Neo uses AI analysis to write and review your reply, then emails it to you.",
-    "ja": "ネオがAI分析を活用して回答を作成・確認し、メールで届けます。",
-    "zh-CN": "Neo结合AI分析撰写并审核答复，通过邮件发送。",
-    "zh-TW": "Neo結合AI分析撰寫並審核答覆，透過郵件寄送。",
-    "vi": "Neo dùng phân tích AI để viết, duyệt và gửi trả lời qua email.",
-    "hi": "नियो AI विश्लेषण की सहायता से उत्तर लिखते, जांचते और ईमेल करते हैं।",
-    "es": "Neo usa análisis de IA para redactar y revisar tu respuesta y enviarla por correo.",
-    "fr": "Neo s’appuie sur l’analyse IA pour rédiger et relire sa réponse, puis vous l’envoie par e-mail.",
-    "de": "Neo nutzt KI-Analysen, schreibt und prüft die Antwort und sendet sie per E-Mail.",
-    "nl": "Neo gebruikt AI-analyse om je antwoord te schrijven en na te kijken en mailt het daarna.",
-    "ms": "Neo menggunakan analisis AI untuk menulis, menyemak dan menghantar jawapan melalui e-mel."
+    "ko": "네오가 직접 읽고 작성·검수해 이메일로 전해요.",
+    "en": "Neo personally reads, writes and reviews your reply, then emails it to you.",
+    "ja": "ネオが自ら読み、回答を作成・確認してメールで届けます。",
+    "zh-CN": "Neo亲自阅读，撰写并审核答复后通过邮件发送。",
+    "zh-TW": "Neo親自閱讀，撰寫並審核答覆後透過郵件寄送。",
+    "vi": "Neo trực tiếp đọc, viết, duyệt và gửi trả lời qua email.",
+    "hi": "नियो स्वयं पढ़कर उत्तर लिखते, जांचते और ईमेल करते हैं।",
+    "es": "Neo lee tu caso, redacta y revisa personalmente la respuesta y te la envía por correo.",
+    "fr": "Neo lit votre demande, rédige et relit personnellement la réponse, puis vous l’envoie par e-mail.",
+    "de": "Neo liest deine Angaben, schreibt und prüft die Antwort persönlich und sendet sie per E-Mail.",
+    "nl": "Neo leest je vraag, schrijft en controleert het antwoord persoonlijk en mailt het daarna.",
+    "ms": "Neo membaca sendiri, menulis, menyemak dan menghantar jawapan melalui e-mel."
   },
   "home.guideCopy.emailGuide": {
     "ko": "이메일 상담 안내 보기",

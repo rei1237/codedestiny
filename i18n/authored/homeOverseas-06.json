@@ -56,18 +56,18 @@
     "ms": "Semak kandungan dan contoh, kemudian harga serta penggunaan pas, batu bulan atau bayaran sekali."
   },
   "home.guideCopy.emailLead": {
-    "ko": "현재 상황과 고민하는 선택을 남겨주세요. 네오가 직접 읽고 AI 분석을 활용해 작성·검수한 답변을 이메일로 전합니다.",
-    "en": "Describe your situation and the choice you are considering. Neo reads it personally and emails a reply written and reviewed with the help of AI analysis.",
-    "ja": "今の状況や迷っている選択をお書きください。ネオが直接読み、AI分析を活用して作成・確認した回答をメールで届けます。",
-    "zh-CN": "写下当前处境与正在考虑的选择。Neo会亲自阅读，结合AI分析撰写并审核后邮件回复。",
-    "zh-TW": "寫下目前處境與正在考慮的選擇。Neo會親自閱讀，結合AI分析撰寫並審核後以郵件回覆。",
-    "vi": "Mô tả hoàn cảnh và lựa chọn bạn đang cân nhắc. Neo trực tiếp đọc, viết và duyệt với phân tích AI rồi gửi email.",
-    "hi": "अपनी स्थिति और जिस विकल्प पर सोच रहे हैं उसे लिखें। नियो खुद पढ़कर AI विश्लेषण की मदद से उत्तर लिखेंगे, जांचेंगे और ईमेल करेंगे।",
-    "es": "Describe tu situación y la decisión que contemplas. Neo lo lee personalmente y envía por correo una respuesta redactada y revisada con apoyo del análisis de IA.",
-    "fr": "Décrivez votre situation et le choix envisagé. Neo lit votre demande et vous envoie une réponse rédigée et relue avec l’aide de l’analyse IA.",
-    "de": "Beschreibe deine Situation und die anstehende Entscheidung. Neo liest sie persönlich und sendet eine mit KI-Analyse verfasste und geprüfte Antwort per E-Mail.",
-    "nl": "Beschrijf je situatie en de keuze die je overweegt. Neo leest die zelf en mailt een met AI-analyse geschreven en nagekeken antwoord.",
-    "ms": "Terangkan situasi dan pilihan yang anda pertimbangkan. Neo membacanya sendiri dan menghantar jawapan yang ditulis serta disemak dengan bantuan analisis AI melalui e-mel."
+    "ko": "현재 상황과 고민하는 선택을 남겨주세요. 네오가 직접 읽고 작성·검수한 답변을 이메일로 전합니다.",
+    "en": "Describe your situation and the choice you are considering. Neo reads it personally, then writes, reviews and emails the reply.",
+    "ja": "今の状況や迷っている選択をお書きください。ネオが直接読み、作成・確認した回答をメールで届けます。",
+    "zh-CN": "写下当前处境与正在考虑的选择。Neo会亲自阅读，撰写并审核后邮件回复。",
+    "zh-TW": "寫下目前處境與正在考慮的選擇。Neo會親自閱讀，撰寫並審核後以郵件回覆。",
+    "vi": "Mô tả hoàn cảnh và lựa chọn bạn đang cân nhắc. Neo trực tiếp đọc, viết và duyệt rồi gửi email.",
+    "hi": "अपनी स्थिति और जिस विकल्प पर सोच रहे हैं उसे लिखें। नियो खुद पढ़कर उत्तर लिखेंगे, जांचेंगे और ईमेल करेंगे।",
+    "es": "Describe tu situación y la decisión que contemplas. Neo lo lee personalmente y envía por correo una respuesta que redacta y revisa.",
+    "fr": "Décrivez votre situation et le choix envisagé. Neo lit personnellement votre demande et vous envoie une réponse rédigée et relue.",
+    "de": "Beschreibe deine Situation und die anstehende Entscheidung. Neo liest sie persönlich und sendet eine selbst verfasste und geprüfte Antwort per E-Mail.",
+    "nl": "Beschrijf je situatie en de keuze die je overweegt. Neo leest die zelf en mailt een zelf geschreven en nagekeken antwoord.",
+    "ms": "Terangkan situasi dan pilihan yang anda pertimbangkan. Neo membacanya sendiri dan menghantar jawapan yang ditulis serta disemak melalui e-mel."
   },
   "home.guideCopy.emailTiming": {
     "ko": "보통 24시간, 접수가 몰리면 3일 이내 이메일 답변 · 하루 질문 30개",
