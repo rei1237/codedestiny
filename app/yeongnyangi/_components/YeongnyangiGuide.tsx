@@ -1,5 +1,4 @@
 import PublicRecordLink from '@/app/components/PublicRecordLink';
-import {CONSULTATION_METHOD_FAQS} from '@/lib/brand/consultation-methods.mjs';
 import {products,systemNames,packages,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import {questionScopes,FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
@@ -29,7 +28,6 @@ const tarotExcerpts=(()=>{
 })();
 
 export const YEONGNYANGI_FAQS=[
- ...CONSULTATION_METHOD_FAQS,
  {question:'사주 보는 고양이 영냥이는 어떤 서비스인가요?',answer:`영냥이는 꿀꿀운세(CODE DESTINY)가 운영하는 유료 운세 상담 캐릭터예요. ${SYSTEMS} 중 하나를 골라 고민의 답과 근거, 생활 속 선택과 실천을 챕터로 나눠 살펴봐요. "사주보는고양이"처럼 붙여 써서 찾아도 같은 서비스예요.`},
  {question:'운세보는 영냥이와 꿀꿀 운세는 어떤 관계인가요?',answer:'운세보는 영냥이는 꿀꿀 운세 안의 사주보는 고양이 상담 서비스예요. 운영자는 CODE DESTINY(코드 데스티니)로 같고, 공식 홈페이지는 https://code-destiny.com/, 영냥이 상담 입구는 https://code-destiny.com/yeongnyangi/예요.'},
  {question:'가장 저렴한 상담은 얼마인가요?',answer:`고등어 상담이 ${LOWEST_PRICE}이고, 여섯 체계 모두 같은 가격이에요. 결제창에서 총액과 적용 수단을 한 번 더 확인한 뒤에 결제돼요.`},
@@ -38,44 +36,48 @@ export const YEONGNYANGI_FAQS=[
  {question:'꿀꿀운세의 무료 운세와는 무엇이 다른가요?',answer:'무료 페이지는 정해진 항목의 계산 결과와 기본 풀이를 보여 줘요. 영냥이 상담은 같은 계산을 출발점으로 삼아 내가 고른 주제와 질문을 반영한 글을 새로 쓰고, 결과를 계정에 보관해요.'},
 ];
 
-export default function YeongnyangiGuide(){
- return <article className={styles.guide} aria-labelledby="yn-guide-title">
-  <section><h2>네오 작전 결정서</h2><p>상대의 사주와 두 사람의 궁합, 지금 필요한 선택을 네오가 직접 읽고 검수해 이메일로 전해요.</p><p><a href="/yeongnyangi/neo-decision/">네오 작전 결정서 살펴보기 →</a></p></section>
-  <section id="yn-receive">
-   <h2 id="yn-guide-title">한 가지 질문에서, 차분히 읽는 한 권까지</h2>
-   <p>궁금한 점의 답부터 읽고, 그 판단의 근거와 반복되는 패턴, 지금 해볼 행동을 챕터별로 살펴보세요. 사주·자미두수·숙요점·베다점·점성술·타로 가운데 원하는 방식으로 시작할 수 있어요.</p>
-   <details><summary>더 깊이 읽는 상담 구성</summary><p>여러 관점으로 깊이 읽고 싶다면 <a href="/yeongnyangi/fortune/?product=fusion_all">오마카세 전체 리포트</a>에서 여섯 체계의 독립 해석과 인생 전반, 실행·점검 계획을 이어 읽어요.</p>
-   <p className={styles.volume}><strong>{FUSION_BOOK_CHAPTERS.omakase}개 챕터</strong><span>오마카세 본문 {(FUSION_BOOK_TARGETS.omakase[1]/10000).toFixed(1)}만 자까지 목표로 구성</span></p>
-   <p className={styles.note}>오마카세 기준이며 모든 상담에 같은 분량이 적용되지는 않아요. 실제 글 길이는 질문과 생성 결과에 따라, PDF 페이지 수는 편집에 따라 달라져요. 선택한 상담의 구성과 가격은 결제 전에 확인해요.</p></details>
-  </section>
-  <section id="yn-example" aria-labelledby="yn-example-title">
-   <h2 id="yn-example-title">실제 상담은 이렇게 이어져요</h2>
-   <p>“지금 회사에 남을까, 다른 길로 옮길까?”</p>
-   <p className={styles.note}>가상 프로필로 생성한 영냥이 타로·연어 샘플에서 발췌했어요. 전체 샘플은 약 3.5만 자이며 아래는 그 일부예요. 실제 고객 후기가 아니며 현재 상품의 보장 분량을 뜻하지 않아요.</p>
-   <blockquote className={styles.sample}>
-    <h3>카드가 보여주는 마음의 흐름</h3>
-    <p>{tarotExcerpts[0]}</p>
-    <h3>현실의 조건과 다음 행동</h3><p>{tarotExcerpts[2]}</p>
-    <details><summary>영냥이의 해석 더 읽기</summary><p>{tarotExcerpts[1]}</p><p>{tarotExcerpts[3]}</p><a href="https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV" target="_blank" rel="noopener noreferrer">가상 프로필 상담 원문 모음 읽기 (새 창)</a></details>
-   </blockquote>
-   <p><a href="/yeongnyangi/fortune/?domain=tarot">타로 상담 구성 보기</a> · <a href="/consultation-samples/">다른 상담 결과 예시 보기</a></p>
-   <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey}/>
-  </section>
+const fishRows=[...tierRows.map(row=>({...row,href:'/yeongnyangi/fortune/?flow=question&domain=saju&fish='+row.tier})),...(['assorted','omakase'] as const).map(tier=>{const product=products.find(p=>p.fishId===tier)!;return {tier,name:packages[tier].name,price:product.priceKRW,followups:consultationBudget(tier).followups,depth:tier==='assorted'?'두 체계의 해석과 생활 분야를 엮은 상세 상담서':'여섯 체계의 해석과 삶의 흐름을 담은 초융합 상담서',href:tier==='omakase'?'/yeongnyangi/fortune/?product=fusion_all':'/yeongnyangi/fortune/?domain=fusion'};})];
 
+// 2026-10-28 단순화: 가격은 한 줄 행, 예시·깊은 구성·FAQ는 "결제 전에 알아두기" 한 묶음으로 접어 둔다. 접힌 본문도 서버 HTML에 남아 색인된다.
+export default function YeongnyangiGuide(){
+ return <article className={styles.guide} aria-labelledby="yn-prices-title">
   <section id="yn-prices" aria-labelledby="yn-prices-title">
    <h2 id="yn-prices-title">상담 가격</h2>
-   <p>생선별로 다루는 범위와 추가 질문 횟수가 달라요. 모든 생선에서 답과 근거, 생활 속 예시와 행동 조언을 담아요.</p>
-   <div className={styles.fishList}>{[...tierRows.map(row=>({...row,href:'/yeongnyangi/fortune/?flow=question'})),...(['assorted','omakase'] as const).map(tier=>{const product=products.find(p=>p.fishId===tier)!;return {tier,name:packages[tier].name,price:product.priceKRW,followups:consultationBudget(tier).followups,depth:tier==='assorted'?'두 체계의 해석과 생활 분야를 엮은 상세 상담서':'여섯 체계의 해석과 삶의 흐름을 담은 초융합 상담서',href:tier==='omakase'?'/yeongnyangi/fortune/?product=fusion_all':'/yeongnyangi/fortune/?domain=fusion'};})].map(row=><article key={row.tier} className={styles.fishCard}>
+   <p>모든 생선에서 답과 근거, 생활 속 예시와 행동 조언을 담아요. 생선마다 다루는 범위와 추가 질문 횟수가 달라요.</p>
+   <ul className={styles.fishList}>{fishRows.map(row=><li key={row.tier}><a className={styles.fishRow} href={row.href}>
     <img src={'/assets/yeongnyangi/fish/reaction-'+row.tier+'.webp'} width={128} height={128} alt="" loading="lazy"/>
-    <div><h3>{row.name} <span>{won(row.price)}</span></h3><p>{row.tier==='mackerel'?'한 가지 고민도 답과 근거, 생활 속 해석과 지금 해볼 행동까지 챕터별로 충분히 살펴봐요.':row.depth}</p><p className={styles.fishMeta}>{'신규 질문 상담 '+EXPANDED_CHAPTERS[row.tier]+'개 챕터 · '}{row.followups?'추가 질문 '+row.followups+'회 · 다른 고민도 이어서':'추가 질문 없이 첫 상담에 담아요'}{['tuna','assorted','omakase'].includes(row.tier)?' · 리포트 PDF 저장':''}</p><a href={row.href}>상담 구성 살펴보기 →</a></div>
-   </article>)}</div><p className={styles.note}>챕터 수는 신규 한국어 질문 상담 기준이며 상담 종류와 기존 구매에 따라 달라질 수 있어요. 추가 질문은 저장된 상담 근거로 답할 수 있는 범위에서 이용해요. PDF는 한국어 상담 완료 후 저장할 수 있어요.</p>
+    <span className={styles.fishText}><strong>{row.name}</strong><span className={styles.fishMeta}>{EXPANDED_CHAPTERS[row.tier]+'챕터 · '}{row.followups?'추가 질문 '+row.followups+'회':'추가 질문 없음'}{['tuna','assorted','omakase'].includes(row.tier)?' · PDF':''}</span></span>
+    <span className={styles.fishPrice}>{won(row.price)}</span>
+   </a></li>)}</ul>
+   <details className={styles.panel}><summary>생선별로 살펴보는 범위</summary><dl className={styles.fishDepth}>{fishRows.map(row=><div key={row.tier}><dt>{row.name}</dt><dd>{row.tier==='mackerel'?'한 가지 고민도 답과 근거, 생활 속 해석과 지금 해볼 행동까지 챕터별로 충분히 살펴봐요.':row.depth}</dd></div>)}</dl></details>
+   <p className={styles.note}>챕터 수는 신규 한국어 질문 상담 기준이며 상담 종류와 기존 구매에 따라 달라질 수 있어요. 추가 질문은 저장된 상담 근거로 답할 수 있는 범위에서 이용해요. PDF는 한국어 상담 완료 후 저장할 수 있어요.</p>
   </section>
 
-  <section id="yn-faq" aria-labelledby="yn-faq-title">
-   <h2 id="yn-faq-title">영냥이 자주 묻는 질문</h2>
-   <div className={styles.faq}>{YEONGNYANGI_FAQS.map(item=><details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
-   <details className={styles.craftedOverview}><summary>상담 방식과 전체 구성 자세히 보기</summary><CraftedProductDetail detail={craftedOverview}/><PublicRecordLink/></details>
-   <p className={styles.note}>함께 보기: <a href="/ggulggul/">꿀꿀운세 홈</a> · <a href="/yeongnyangi/1000-won-fortune/">천원 사주 리포트</a> · <a href="/yeongnyangi/library/">내 상담</a> · <a href="/privacy/">개인정보 처리방침</a></p>
+  <section id="yn-before" aria-labelledby="yn-guide-title">
+   <h2 id="yn-guide-title">결제 전에 알아두기</h2>
+   <details id="yn-example" className={styles.panel}><summary>실제 상담 예시 · “지금 회사에 남을까, 다른 길로 옮길까?”</summary>
+    <p className={styles.note}>가상 프로필로 생성한 영냥이 타로·연어 샘플에서 발췌했어요. 전체 샘플은 약 3.5만 자이며 아래는 그 일부예요. 실제 고객 후기가 아니며 현재 상품의 보장 분량을 뜻하지 않아요.</p>
+    <blockquote className={styles.sample} data-sample-exposure="">
+     <h3>카드가 보여주는 마음의 흐름</h3>
+     <p>{tarotExcerpts[0]}</p>
+     <h3>현실의 조건과 다음 행동</h3><p>{tarotExcerpts[2]}</p>
+     <details><summary>영냥이의 해석 더 읽기</summary><p>{tarotExcerpts[1]}</p><p>{tarotExcerpts[3]}</p><a href="https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV" target="_blank" rel="noopener noreferrer">가상 프로필 상담 원문 모음 읽기 (새 창)</a></details>
+    </blockquote>
+    <p><a href="/yeongnyangi/fortune/?domain=tarot">타로 상담 구성 보기</a> · <a href="/consultation-samples/">다른 상담 결과 예시 보기</a></p>
+    <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey}/>
+   </details>
+   <details id="yn-receive" className={styles.panel}><summary>한 가지 질문에서, 차분히 읽는 한 권까지</summary>
+    <p>궁금한 점의 답부터 읽고, 그 판단의 근거와 반복되는 패턴, 지금 해볼 행동을 챕터별로 살펴보세요. 사주·자미두수·숙요점·베다점·점성술·타로 가운데 원하는 방식으로 시작할 수 있어요.</p>
+    <p>여러 관점으로 깊이 읽고 싶다면 <a href="/yeongnyangi/fortune/?product=fusion_all">오마카세 전체 리포트</a>에서 여섯 체계의 독립 해석과 인생 전반, 실행·점검 계획을 이어 읽어요.</p>
+    <p className={styles.volume}><strong>{FUSION_BOOK_CHAPTERS.omakase}개 챕터</strong><span>오마카세 본문 {(FUSION_BOOK_TARGETS.omakase[1]/10000).toFixed(1)}만 자까지 목표로 구성</span></p>
+    <p className={styles.note}>오마카세 기준이며 모든 상담에 같은 분량이 적용되지는 않아요. 실제 글 길이는 질문과 생성 결과에 따라, PDF 페이지 수는 편집에 따라 달라져요. 선택한 상담의 구성과 가격은 결제 전에 확인해요.</p>
+   </details>
+   <div id="yn-faq" className={styles.faqBlock}>
+    <h3>자주 묻는 질문</h3>
+    <div className={styles.faq}>{YEONGNYANGI_FAQS.map(item=><details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
+    <details className={styles.craftedOverview}><summary>상담 방식과 전체 구성 자세히 보기</summary><CraftedProductDetail detail={craftedOverview}/><PublicRecordLink/></details>
+    <p className={styles.note}>함께 보기: <a href="/ggulggul/">꿀꿀운세 홈</a> · <a href="/yeongnyangi/1000-won-fortune/">천원 사주 리포트</a> · <a href="/yeongnyangi/library/">내 상담</a> · <a href="/privacy/">개인정보 처리방침</a></p>
+   </div>
   </section>
  </article>;
 }

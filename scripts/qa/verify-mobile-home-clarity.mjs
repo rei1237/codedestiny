@@ -141,7 +141,8 @@ else{
    await page.locator('.cdh-honey__details summary').click();assert.equal(await page.locator('[data-cd-honey-attend]').isVisible(),true);
   }
   if(name==='yeongnyangi')await page.locator('#questions').screenshot({path:path.join(output,'question-entry-'+width+'.png')});
-  if(!baseline){
+  // 2026-10-28: the yeongnyangi home no longer carries the three-way method guide.
+  if(!baseline&&name!=='yeongnyangi'){
    const guide=page.locator('.consultation-methods');
    await guide.screenshot({path:path.join(output,name+'-methods-'+width+'.png')});
    const summary=guide.locator('summary');
@@ -175,7 +176,7 @@ else{
    await page.evaluate(()=>{for(const {el,size,line} of window.__textResize){el.style.setProperty('font-size',size*2+'px','important');if(Number.isFinite(line))el.style.setProperty('line-height',line*2+'px','important');}delete window.__textResize;});
    if(name==='ggulggul')await page.locator('#cdhFusionSignature').screenshot({path:path.join(output,'fusion-text-200.png')});
    if(name==='ggulggul')for(const [label,selector] of [['neo-entry','.cdh-neo-letter'],['other-fortunes','#cdhOtherFortunes']])await page.locator(selector).screenshot({path:path.join(output,label+'-text-200.png')});
-   await page.locator('.consultation-methods').screenshot({path:path.join(output,name+'-methods-text-200.png')});
+   if(name!=='yeongnyangi')await page.locator('.consultation-methods').screenshot({path:path.join(output,name+'-methods-text-200.png')});
    await page.screenshot({path:path.join(output,name+'-text-200.png')});
    const overflow=await page.evaluate(()=>({ok:document.documentElement.scrollWidth<=innerWidth+1,items:[...document.querySelectorAll('body *')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&(r.right>innerWidth+1||r.left < -1)}).slice(0,15).map(el=>({tag:el.tagName,class:el.className,text:el.textContent.slice(0,60),width:el.getBoundingClientRect().width}))}));
    assert.ok(overflow.ok,name+' at 200% text '+JSON.stringify(overflow.items));

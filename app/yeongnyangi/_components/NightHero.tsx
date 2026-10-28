@@ -23,7 +23,6 @@ export default function NightHero(){
     <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>내 고민 상담하기<ArrowRight size={19} aria-hidden="true"/></a>
    </div>
    <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/></>:null}<span className={styles.keep}>질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원부터</span> · 질문 범위에 따라 안내</p>
-   <a className={styles.example} href="#yn-example">결제 전 상담 예시 읽기 →</a>
   </div>
   <div className={styles.character}>
    <button className={`${styles.cat} ${petted?styles.petted:''}`} aria-label="영냥이 쓰다듬기" onClick={()=>{setGreeting(value=>(value+1)%greetings.length);setPetted(true);if(timer.current)clearTimeout(timer.current);timer.current=setTimeout(()=>setPetted(false),360);}}>

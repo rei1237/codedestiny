@@ -29,7 +29,7 @@ export function QuestionOffer({q,source}:{q:QuestionGuide;source:string}){
 export default function QuestionJourney({source='home'}:{source?:string}){
  const [selected,setSelected]=useState<QuestionGuide>();
  const [selectedInRecommendations,setSelectedInRecommendations]=useState(true);
- const [moreQuestions,setMoreQuestions]=useState(false);
+ const [moreQuestions,setMoreQuestions]=useState(false);// set only by ?question= beyond the first four
  const [question,setQuestion]=useState(''),[entryError,setEntryError]=useState('');
  const [search,setSearch]=useState(''),[group,setGroup]=useState('전체'),[limit,setLimit]=useState(12);
  const matches=filterConcerns(search,group);
@@ -41,15 +41,14 @@ export default function QuestionJourney({source='home'}:{source?:string}){
   <Exposure event="question_topics_view" source={source}/>
   <form className={styles.write} aria-label="내 고민 직접 적기" onSubmit={event=>{event.preventDefault();if(!question.trim())return;if(!saveQuestionEntry(question)){setEntryError('입력한 고민을 이어가지 못했어요. 내용을 복사해 두고 다시 시도해 주세요.');return;}window.location.assign(QUESTION_ENTRY_HREF);}}>
    <label htmlFor="home-question"><Fish size={25} strokeWidth={1.5} aria-hidden="true"/>내 고민 직접 적기</label>
-   <p id="home-question-help">상황과 알고 싶은 점을 적어주세요. 선택한 체계의 풀이 자료를 바탕으로 AI가 해설해요. 상담 범위와 가격은 시작 전에 확인해요.</p>
+   <p id="home-question-help">상황과 알고 싶은 점을 적어주세요. 선택한 체계의 풀이 자료를 바탕으로 영냥이가 풀이해요. 상담 범위와 가격은 시작 전에 확인해요.</p>
    <textarea id="home-question" value={question} onChange={event=>{setQuestion(event.target.value);setEntryError('');}} maxLength={QUESTION_ENTRY_LIMIT} rows={4} placeholder="지금 마음에 남은 고민을 적어주세요." aria-describedby="home-question-help home-question-count" required/>
    <div className={styles.writeFooter}><span id="home-question-count">{question.length.toLocaleString('ko-KR')} / {QUESTION_ENTRY_LIMIT.toLocaleString('ko-KR')}</span><button type="submit" disabled={!question.trim()}>이 고민으로 상담 준비하기<ArrowRight size={18} aria-hidden="true"/></button></div>
    {entryError&&<p className={styles.entryError} role="alert">{entryError}</p>}
   </form>
   <div className={styles.choiceHeading}><h3>이런 고민이 있나요?</h3><span>질문을 고르면 상담 내용을 볼 수 있어요</span></div>
   <div className={styles.choices}>{buttons(questionGuides.slice(0,moreQuestions?questionGuides.length:4),true)}</div>
-  <button type="button" className={styles.moreQuestions} aria-expanded={moreQuestions} onClick={()=>setMoreQuestions(value=>!value)}>{moreQuestions?'추천 질문 접기':'질문 더 보기'}<ChevronDown size={18} aria-hidden="true"/></button>
-  <details className={styles.discovery}><summary><span>다른 고민 더 찾아보기 <small>{concernGuides.length}가지 질문</small></span><ChevronDown size={18} aria-hidden="true"/></summary>
+  <details className={styles.discovery}><summary><span>다른 고민 찾기 <small>{concernGuides.length}가지 질문</small></span><ChevronDown size={18} aria-hidden="true"/></summary>
    <div className={styles.finder}>
     <label htmlFor="concern-search">어떤 고민이 마음에 남아 있나요?</label>
     <input id="concern-search" type="search" value={search} placeholder="이직, 연락, 가족처럼 떠오르는 말로 찾아보세요" onChange={e=>{setSearch(e.target.value);setLimit(12);}}/>
@@ -61,9 +60,9 @@ export default function QuestionJourney({source='home'}:{source?:string}){
     {matches.length>limit&&<button className={styles.more} type="button" onClick={()=>setLimit(limit+12)}>고민 12개 더 보기 ({Math.min(limit,matches.length)}/{matches.length})</button>}
     <a href={anythingConsultationHref}>영냥이에게 무엇이든 상담하기</a>
     <p>내 고민은 다음 화면에서 직접 적을 수 있어요. 상담 구성과 결제 조건도 먼저 확인해요.</p>
+    <nav className={styles.explore} aria-label="다른 상담 탐색"><a href="/yeongnyangi/fortune/?flow=legacy">전체 운세 고르기</a><a href="/yeongnyangi/fortune/?mode=spirit">영냥 신점</a><a href="/yeongnyangi/room/">영냥이의 방</a></nav>
    </div>
   </details>
-  <nav className={styles.explore} aria-label="다른 상담 탐색"><a href="/yeongnyangi/fortune/?flow=legacy">전체 운세 고르기</a><a href="/yeongnyangi/fortune/?mode=spirit">영냥 신점</a><a href="/yeongnyangi/room/">영냥이의 방</a></nav>
  </section>;
 }
 export function FreeQuestionNext({category,source}:{category:string;source:string}){

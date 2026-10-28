@@ -15,7 +15,7 @@ const SOURCES={
 type Quality=keyof typeof SOURCES;
 const ART='/assets/yeongnyangi/mv';
 const LYRICS='/media/mv/heaven-light-ko-v7.vtt';
-const CARD_SIZES='(max-width: 384px) 78vw, 300px';
+const CARD_SIZES='96px';
 // 챕터 시작(초)은 MV 타임라인의 장 경계를 그 장 첫 컷의 시작 프레임에 맞춘 값이다. 썸네일은 그 챕터 안 대표 장면의 무자막 프레임이다.
 const CHAPTERS=[
  {name:'흑월의 시간',at:0},
