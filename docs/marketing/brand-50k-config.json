@@ -1,0 +1,197 @@
+{
+  "status": "prepared_not_registered",
+  "updated": "2026-10-28",
+  "approval": {
+    "source": "user: 일단 예산 5만원으로 진행해줘",
+    "maxActualChargeKRW": 50000,
+    "includesVAT": true,
+    "automaticTopup": false,
+    "additionalPaidGenerationAPI": false
+  },
+  "budget": {
+    "firstStageAllInKRW": 30000,
+    "conditionalScaleAllInKRW": 15000,
+    "reserveAllInKRW": 5000,
+    "newSpendThisTurnKRW": 0,
+    "currentAccountBalanceKRW": null,
+    "existingSpendKRW": null
+  },
+  "platform": "naver_powerlink",
+  "campaignName": "꿀꿀운세_사이트홍보_5만원",
+  "reuseCampaignId": "cmp-a001-01-000000011262693",
+  "accountIdHistorical": "2614862",
+  "landing": "https://code-destiny.com/",
+  "settings": {
+    "statusBeforeVerifiedLaunch": "OFF",
+    "dailyBudgetInputKRW": 3000,
+    "dailyBudgetVATBasis": "verify_in_account_before_funding",
+    "baseBidExVATKRW": 70,
+    "bidCeilingExVATKRW": 150,
+    "bidWeightsPercent": 100,
+    "automaticBid": false,
+    "expandedMatch": false,
+    "network": "Naver search only; exclude content and partners",
+    "country": "KR",
+    "devices": [
+      "mobile",
+      "desktop"
+    ],
+    "dailySchedule": "all hours",
+    "hardSpendCapVerified": false
+  },
+  "keywords": [
+    {
+      "code": "K01",
+      "term": "온라인사주상담",
+      "stage": "initial",
+      "initialBidExVATKRW": 70,
+      "searchVolume": null,
+      "competition": null,
+      "forecastCPC": null,
+      "registeredThisTurn": false
+    },
+    {
+      "code": "K02",
+      "term": "사주상담사이트",
+      "stage": "initial",
+      "initialBidExVATKRW": 70,
+      "searchVolume": null,
+      "competition": null,
+      "forecastCPC": null,
+      "registeredThisTurn": false
+    },
+    {
+      "code": "K03",
+      "term": "AI사주상담",
+      "stage": "initial",
+      "initialBidExVATKRW": 70,
+      "searchVolume": null,
+      "competition": null,
+      "forecastCPC": null,
+      "registeredThisTurn": false
+    },
+    {
+      "code": "K04",
+      "term": "종합사주상담",
+      "stage": "initial",
+      "initialBidExVATKRW": 70,
+      "searchVolume": null,
+      "competition": null,
+      "forecastCPC": null,
+      "registeredThisTurn": false
+    },
+    {
+      "code": "K05",
+      "term": "2027신년운세",
+      "stage": "initial",
+      "initialBidExVATKRW": 70,
+      "searchVolume": null,
+      "competition": null,
+      "forecastCPC": null,
+      "registeredThisTurn": false
+    },
+    {
+      "code": "K06",
+      "term": "인터넷사주상담",
+      "stage": "reserve",
+      "initialBidExVATKRW": 70,
+      "searchVolume": null,
+      "competition": null,
+      "forecastCPC": null,
+      "registeredThisTurn": false
+    },
+    {
+      "code": "K07",
+      "term": "신년운세상담",
+      "stage": "reserve",
+      "initialBidExVATKRW": 70,
+      "searchVolume": null,
+      "competition": null,
+      "forecastCPC": null,
+      "registeredThisTurn": false
+    },
+    {
+      "code": "K08",
+      "term": "사주상담가격",
+      "stage": "reserve",
+      "initialBidExVATKRW": 70,
+      "searchVolume": null,
+      "competition": null,
+      "forecastCPC": null,
+      "registeredThisTurn": false
+    }
+  ],
+  "negativeCandidates": [
+    "무료사주",
+    "무료운세",
+    "사주독학",
+    "사주강의",
+    "사주자격증",
+    "로또번호",
+    "당첨번호",
+    "고등어구이",
+    "고등어택배",
+    "고등어가격"
+  ],
+  "sharedAd": {
+    "title": "명리학자가 만든 꿀꿀운세",
+    "description": "대통령 운세 공개 분석 기록부터 초융합·신년운세 상담 예시까지."
+  },
+  "variants": [
+    {
+      "id": "A_ko",
+      "concept": "기존 성냥팔이 고등어 판매 영냥이",
+      "source": "yeongnyangi-paid-20261028/creative/mackerel-story-9x16-v2.png",
+      "asset": "yeongnyangi-paid-20261028/creative/story-A-square.png",
+      "url": "https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_brand&utm_content=A_ko"
+    },
+    {
+      "id": "B_ko",
+      "concept": "새 달빛 상담실 영냥이와 연이",
+      "asset": "yeongnyangi-paid-20261028/creative/consultation-B-square.png",
+      "url": "https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_brand&utm_content=B_ko"
+    }
+  ],
+  "experiment": {
+    "type": "exploratory_switchback_not_randomized",
+    "imageOnly": true,
+    "oneActiveGroupAtATime": true,
+    "sequence": [
+      "A_ko",
+      "B_ko",
+      "B_ko",
+      "A_ko",
+      "B_ko",
+      "A_ko",
+      "A_ko",
+      "B_ko"
+    ],
+    "bucket": "24 hours KST from approved launch; stop early on budget or error",
+    "sameKeywordsBidsTextLandingSchedule": true,
+    "primary": [
+      "verified_paid_buyers",
+      "refund_adjusted_revenue",
+      "CAC",
+      "ROAS"
+    ],
+    "secondary": [
+      "CTR",
+      "CPC"
+    ],
+    "extensionExposureCaveat": "Ad group attribution is not proof that image extension was shown; segment extension impressions if available."
+  },
+  "launchBlockers": [
+    "Current logged-in account and actual billing controls not verified",
+    "Review status not verified",
+    "Production campaign attribution + server reconciliation + refund net revenue not verified",
+    "Real paid fulfillment/library E2E not verified; no real test charge authorized"
+  ],
+  "results": {
+    "impressions": null,
+    "clicks": null,
+    "paidBuyers": null,
+    "netRevenueKRW": null,
+    "CAC": null,
+    "ROAS": null
+  }
+}

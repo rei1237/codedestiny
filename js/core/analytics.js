@@ -171,18 +171,26 @@
       // growth-20261012-v2: 4주 캠페인(블로그·YouTube·TikTok·X). 원고 ID(B01_ko)는 공개 코드라 함께 둔다.
       var allowedV2 = /^growth_(20261012_(naver_blog|youtube|tiktok|x)|20261021_(naver_blog|youtube))$/;
       var contentV2 = /^(W[0-9]{2}-)?[A-Z][A-Z0-9-]{1,10}_(ko|en|ja)$/;
+      var paidCampaigns = /^(paid_20261028_naver|paid_20261028_brand)$/;
+      var paidContent = /^[A-E]_ko$/;
+      var paidKeyword = /^K(0[1-9]|10)$/;
       var query = new URLSearchParams(global.location.search);
       var campaign = query.get('utm_source') === 'threads' && /^(social|organic_social)$/.test(query.get('utm_medium') || '') ? query.get('utm_campaign') : '';
       var campaignV2 = /^(growth_20261012|growth_20261021)$/.test(query.get('utm_campaign') || '') && query.get('utm_medium') === 'social' ? query.get('utm_campaign') + '_' + (query.get('utm_source') || '') : '';
-      if (allowed.test(campaign || '')) global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaign,until:Date.now()+1800000}));
+      if (paidCampaigns.test(query.get('utm_campaign') || '') && query.get('utm_source') === 'naver' && query.get('utm_medium') === 'cpc') {
+        global.sessionStorage.setItem(key, JSON.stringify({campaignId:query.get('utm_campaign'),content:paidContent.test(query.get('utm_content') || '') ? query.get('utm_content') : '',keyword:paidKeyword.test(query.get('utm_term') || '') ? query.get('utm_term') : '',until:Date.now()+1800000}));
+      }
+      else if (allowed.test(campaign || '')) global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaign,until:Date.now()+1800000}));
       else if (allowedV2.test(campaignV2)) {
         var content = query.get('utm_content') || '';
         global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaignV2,content:contentV2.test(content) ? content : '',until:Date.now()+1800000}));
       }
       var saved = JSON.parse(global.sessionStorage.getItem(key) || 'null');
       var v2 = saved && allowedV2.test(saved.campaignId);
-      if (!saved || saved.until <= Date.now() || !(v2 || allowed.test(saved.campaignId))) { global.sessionStorage.removeItem(key); return null; }
+      var paid = saved && paidCampaigns.test(saved.campaignId);
+      if (!saved || saved.until <= Date.now() || !(paid || v2 || allowed.test(saved.campaignId))) { global.sessionStorage.removeItem(key); return null; }
       var device = global.innerWidth < 768 ? 'mobile' : 'desktop';
+      if (paid) return Object.assign({campaignId:saved.campaignId,consent:true,version:'paid-20261028-v1',device:device},paidContent.test(saved.content || '') ? {content:saved.content} : {},paidKeyword.test(saved.keyword || '') ? {keyword:saved.keyword} : {});
       if (v2) return contentV2.test(saved.content || '') ? {campaignId:saved.campaignId,consent:true,version:'growth-20261012-v2',device:device,content:saved.content} : {campaignId:saved.campaignId,consent:true,version:'growth-20261012-v2',device:device};
       return {campaignId:saved.campaignId,consent:true,version:'growth-20260929-v1',device:device};
     } catch (_) { return null; }
@@ -198,6 +206,10 @@
       if (insight) safeParams.share_campaign = insight;
       var growth = growthAttribution();
       if (growth) { safeParams.growth_campaign = growth.campaignId; safeParams.growth_version = growth.version; }
+      if (growth && growth.version === 'paid-20261028-v1') {
+        if (growth.content) safeParams.campaign_creative = growth.content;
+        if (growth.keyword) safeParams.campaign_keyword = growth.keyword;
+      }
       if (eventName === 'page_view') safeParams.page_location = pageLocation();
       global.gtag("event", String(eventName), safeParams);
     } catch (_sendError) {
@@ -295,7 +307,7 @@
     if (!record || record.paid !== true || record.state !== 'COMPLETED' || !/^[a-f0-9]{64}$/.test(record.id || '')) return;
     var item = String(record.product && record.product.cdFeatureKey || 'yeongnyangi-' + String(record.productId || 'fortune').replace(/_/g, '-'));
     if (!/^[a-zA-Z0-9_-]{1,100}$/.test(item)) return;
-    ['fortune_completed', 'fortune_first_open'].forEach(function (eventName) {
+    ['fortune_completed', 'fortune_first_open', 'consultation_completed'].forEach(function (eventName) {
       var key = 'cd:delivery:' + eventName + ':' + record.id;
       var persisted = readConsent() === 'accepted';
       var seen = purchaseEvents[key];

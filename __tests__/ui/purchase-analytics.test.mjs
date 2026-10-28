@@ -47,6 +47,72 @@ function boot(url='https://code-destiny.com/points/?token=private',{consent='',s
   for(const [key,value] of Object.entries(stored))dom.window.localStorage.setItem(key,value);
   dom.window.eval(source);return dom;
 }
+
+test('brand campaign follows site-wide purchases and keeps product revenue separate', async()=>{
+ const dom=boot('https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_brand&utm_content=A_ko&utm_term=K01',{consent:'accepted'}),w=dom.window;
+ const products=[['fusion-fortune-consultation',50000],['new-year-ai-consultation',30000],['yeongnyangi-saju-mackerel',5000]];
+ for(const [featureKey,value] of products){
+   w.history.replaceState({},'','/points/');
+   const payload={featureKey,payment:{merchantUid:'brand-'+featureKey,paymentAmount:value,status:'paid'}};
+   w.cdTrackConfirmedPurchase(payload);w.cdTrackConfirmedPurchase(payload);
+ }
+ const events=w.dataLayer.filter(row=>row[1]==='purchase').map(row=>row[2]);
+ assert.equal(events.length,3);
+ assert.equal(events.reduce((sum,event)=>sum+event.value,0),85000);
+ for(const event of events){assert.equal(event.growth_campaign,'paid_20261028_brand');assert.equal(event.campaign_creative,'A_ko');}
+ const {normalizeGrowthAttribution}=await import('../../lib/marketing/growth-attribution.mjs');
+ assert.equal(normalizeGrowthAttribution(w.cdReadGrowthAttribution()).campaignId,'paid_20261028_brand');
+ dom.window.close();
+});
+
+test('brand attribution requires consent and the intended source and medium',()=>{
+ for(const [source,medium,consent] of [['google','cpc','accepted'],['naver','social','accepted'],['naver','cpc','essential']]){
+   const dom=boot('https://code-destiny.com/?utm_source='+source+'&utm_medium='+medium+'&utm_campaign=paid_20261028_brand',{consent});
+   assert.equal(dom.window.cdReadGrowthAttribution(),null);dom.window.close();
+ }
+});
+
+test('paid search attribution survives login and PG return without collecting question text',async()=>{
+ const dom=boot('https://code-destiny.com/yeongnyangi/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_naver&utm_content=C_ko&utm_term=K03&question=private',{consent:'accepted'}),w=dom.window;
+ const expected={campaignId:'paid_20261028_naver',version:'paid-20261028-v1',consent:true,device:'desktop',content:'C_ko',keyword:'K03'};
+ assert.deepEqual({...w.cdReadGrowthAttribution()},expected);
+ w.history.replaceState({},'','/login/?returnTo=private');
+ assert.deepEqual({...w.cdReadGrowthAttribution()},expected);
+ const saved=Object.fromEntries(Object.keys(w.sessionStorage).map(key=>[key,w.sessionStorage.getItem(key)]));
+ const returned=boot('https://code-destiny.com/checkout/?paymentId=private',{consent:'accepted'});
+ for(const [key,value] of Object.entries(saved))returned.window.sessionStorage.setItem(key,value);
+ returned.window.cdTrackConfirmedPurchase({payment:{merchantUid:'mock-paid-search',paymentAmount:5000,status:'paid'}});
+ const event=returned.window.dataLayer.find(row=>row[1]==='purchase')[2];
+ assert.equal(event.growth_campaign,expected.campaignId);assert.equal(event.campaign_creative,'C_ko');assert.equal(event.campaign_keyword,'K03');
+ assert.equal(JSON.stringify(event).includes('private'),false);
+ const {normalizeGrowthAttribution}=await import('../../lib/marketing/growth-attribution.mjs');
+ assert.deepEqual(normalizeGrowthAttribution({...expected,question:'private'}),expected);
+ returned.window.sessionStorage.setItem('cd:growth:campaign',JSON.stringify({...expected,until:Date.now()-1}));
+ assert.equal(returned.window.cdReadGrowthAttribution(),null);
+ dom.window.close();returned.window.close();
+});
+
+test('paid search rejects arbitrary creative and keyword text and clears on consent withdrawal',async()=>{
+ const dom=boot('https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_naver&utm_content=private&utm_term=private',{consent:'accepted'}),w=dom.window;
+ assert.equal(w.cdReadGrowthAttribution().content,undefined);assert.equal(w.cdReadGrowthAttribution().keyword,undefined);
+ assert.equal(w.sessionStorage.getItem('cd:growth:campaign').includes('private'),false);
+ w.document.cookie='cd_cookie_consent=essential; path=/';
+ assert.equal(w.cdReadGrowthAttribution(),null);assert.equal(w.sessionStorage.getItem('cd:growth:campaign'),null);
+ const {normalizeGrowthAttribution:normalize}=await import('../../lib/marketing/growth-attribution.mjs');
+ assert.equal(normalize({campaignId:'paid_20261028_naver',version:'paid-20261028-v1'}),undefined);
+ assert.equal(normalize({campaignId:'paid_20261028_google',version:'paid-20261028-v1',consent:true}),undefined);
+ assert.deepEqual(normalize({campaignId:'paid_20261028_naver',version:'paid-20261028-v1',consent:true,content:'private',keyword:'private'}),{campaignId:'paid_20261028_naver',version:'paid-20261028-v1',consent:true,device:'unknown'});
+ dom.window.close();
+});
+
+test('consultation_completed records a completed server response once and excludes refunded results',()=>{
+ const dom=boot(),w=dom.window,row={id:'d'.repeat(64),productId:'saju_mackerel',paid:true,state:'GENERATING'};
+ for(const state of ['GENERATING','REFUNDED'])w.cdTrackFortuneDelivery({...row,state});
+ assert.equal(w.dataLayer.filter(event=>event[1]==='consultation_completed').length,0);
+ w.cdTrackFortuneDelivery({...row,state:'COMPLETED'});w.cdTrackFortuneDelivery({...row,state:'COMPLETED'});
+ assert.equal(w.dataLayer.filter(event=>event[1]==='consultation_completed').length,1);
+ dom.window.close();
+});
 test('server approval is purchase; pending grant is not fulfillment; replay does not duplicate',()=>{
   const dom=boot(),w=dom.window;
   const payload={code:'GRANT_PENDING',activationPending:true,payment:{merchantUid:'order-1',paymentAmount:1000,status:'paid'},question:'private',birthDate:'private'};

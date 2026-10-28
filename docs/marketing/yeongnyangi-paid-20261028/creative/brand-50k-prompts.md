@@ -1,0 +1,21 @@
+# 5만원 브랜드 소재 제작 기록
+
+내장 image_gen 사용. 외부 유료 API 미사용. 원본 보존. 생성물 시각 검수 완료, 네이버 심사 미진행.
+
+## 최종 A: story-A-square.png
+기존 성냥팔이 영냥이 mackerel-story-9x16-v2.png에서 파생. 고등어와 눈길/연이 유지. 문자 없는 검색광고용.
+
+Edit this exact existing poster, do not invent a new concept. Make a 1:1 square Naver Powerlink IMAGE-EXTENSION adaptation of the CENTRAL ILLUSTRATION. Preserve the original snowy Korean alley scene and its existing original white fluffy wizard cat holding a silver mackerel, navy moon hat, navy golden cape and scarf; pink lotus-flower pig Yeoni offering tea at his right, humble market stall with lanterns. Preserve the character faces and original style as closely as possible. Preserve the match-seller parody, cold snow and warm light, cute slightly forlorn cat selling the fish. This is variant A reusing the existing mackerel-selling cat poster. Crop/reframe around cat, fish and helpful pig so faces/fish stay clear at thumbnail size. REMOVE all lettering, numbers, prices, promotional text, text strips, logos, borders, the textual stall sign and top human portrait; replace removed sign/text with natural continuation of original wood or scene. Keep fish clearly visible; absolutely do not replace fish with book or remove fish. No new person, no lion, no typography anywhere, no collage or split panels or added effects, no empty outer margins. Full-bleed one continuous square scene, at least 640x640. The original full poster is preserved separately and not overwritten.
+
+## 최종 B: consultation-B-square.png
+
+Use case: ads-marketing. Create a SINGLE square 1:1 premium Korean webtoon illustration for Naver Powerlink image extension, approximately 1024x1024. Reference image is character/style reference ONLY; do not make a grid or collage. Preserve the reference white fluffy fortune-teller cat Yeongnyangi, violet-gold eyes, midnight navy pointed hat with gold crescent moon, navy cape with delicate gold celestial embroidery. Beside him is Yeoni a smaller pink flower pig with a pink lotus flower on her head, lavender scarf. Both at one consultation desk in a moonlit refined Korean fantasy library, studying a beautifully illuminated open fortune book, expressions intelligent, reassuring and welcoming. Cat face occupies about 38 percent image width; pig 24 percent; full hat kept within safe crop. Large readable silhouettes, restrained warm gold on deep blue, elegant hand-painted webtoon texture, detailed but calm background, low clutter, full-bleed continuous scene. No fish market or fish, no president likeness, no politics imagery, no human character or lion, no guarantee imagery. NO text, letters, numbers, labels, logos, watermark, border, panels, empty external margins, speech bubbles, sparkle overlays or explosive magical effects. Must remain clear when displayed as a tiny search-ad thumbnail. Keep real brand character identities from reference.
+
+## 보유 채널 검토용: brand-banner-16x9.png
+검색 이미지 확장소재에 업로드하지 않는다.
+
+Use case: ads-marketing. Create ONE finished landscape 16:9 Korean brand banner for 꿀꿀 운세, premium moonlit illustrated webtoon style. Use attached reference for exact character identity and art style: white fluffy cat Yeongnyangi with navy gold crescent wizard hat and cape, violet gold eyes; cute smaller pink flower pig Yeoni with lotus flower and purple scarf. Place both at an open fortune book on the RIGHT 50 percent of the banner, coherent single scene, warm light, deep midnight blue. LEFT 50 percent is calm dark navy integrated background with extremely legible elegant Korean typography, sharp and correct. Exact text, with no additional text: small top eyebrow '대통령 운세 공개 분석'; large main two-line headline '명리학자가 만든\n꿀꿀 운세'; medium supporting line '초융합 · 신년운세 · 영냥이 상담'; bottom understated gold pill label '상담 예시 살펴보기'. Make 꿀꿀 운세 the dominant visual text. Clear text and face hierarchy, restrained rich gold details, generous 6 percent safe margins. No fish, no price, no claim of guaranteed success, no actual president portrait, no politics symbols, no human or lion, no collage, no watermark. This is a brand banner for owned media review, not the text-free Powerlink thumbnail. Keep sophisticated, warm and mobile legible.
+
+## 제외한 중간안
+대통령 기록 포스터를 잘못 A로 선택하여 생성한 인간 네오+고양이 사각형은 사용자 정정에 따라 이번 실험에서 제외. 파일 배포/업로드하지 않음.
+

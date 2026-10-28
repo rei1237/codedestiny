@@ -1,0 +1,151 @@
+{
+  "status": "preparing_paused",
+  "budgetKRW": {
+    "total": 100000,
+    "test": 60000,
+    "scale": 30000,
+    "reserve": 10000,
+    "inclusiveOfVAT": true,
+    "approvedSpend": 0,
+    "charged": 0
+  },
+  "naver": {
+    "account": "2614862",
+    "campaign": "cmp-a001-01-000000011262693",
+    "adgroup": "grp-a001-01-000000075480054",
+    "campaignEnabled": false,
+    "adgroupEnabled": false,
+    "dailyBudget": 5000,
+    "bidExVAT": 70,
+    "keywordCount": 10,
+    "channelReview": "pending; UI says review requires sufficient Bizmoney",
+    "funded": false,
+    "creativeCount": 5,
+    "creativeReview": "검토중",
+    "conversionApplication": "신청 가능한 사이트가 없습니다",
+    "negativeCountPerType": 14,
+    "reviewStatus": "5개 소재 검토중, 비즈채널 검토중; 잔액 부족으로 심사 진행 차단"
+  },
+  "ads": [
+    {
+      "id": "A_ko",
+      "type": "전문가 신뢰형",
+      "title": "10년 명리학자의 사주상담",
+      "description": "명리학자 박병하가 설계한 AI 상담. 고등어 5,000원부터.",
+      "url": "https://code-destiny.com/yeongnyangi/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_naver&utm_content=A_ko"
+    },
+    {
+      "id": "B_ko",
+      "type": "공개 분석 기록 후킹형",
+      "title": "대통령 운세 공개 분석",
+      "description": "2024년 탄핵 가능성 분석과 실제 결과. 그 명리학자의 AI 사주 상담.",
+      "url": "https://code-destiny.com/yeongnyangi/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_naver&utm_content=B_ko"
+    },
+    {
+      "id": "C_ko",
+      "type": "가격·가치형",
+      "title": "고등어 5천원 사주상담",
+      "description": "한 가지 고민, 답과 근거부터 행동까지. 신규 한국어 질문 상담 8챕터.",
+      "url": "https://code-destiny.com/yeongnyangi/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_naver&utm_content=C_ko"
+    },
+    {
+      "id": "D_ko",
+      "type": "고민 해결형",
+      "title": "직장 연애 진로 사주상담",
+      "description": "지금의 고민을 선택한 운명학으로 살펴보세요. 영냥이 AI 상담.",
+      "url": "https://code-destiny.com/yeongnyangi/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_naver&utm_content=D_ko"
+    },
+    {
+      "id": "E_ko",
+      "type": "세계관 스토리형",
+      "title": "천기를 누설한 고양이",
+      "description": "고양이가 된 명리학자의 이야기. 고등어 5,000원 AI 상담을 만나보세요.",
+      "url": "https://code-destiny.com/yeongnyangi/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_naver&utm_content=E_ko"
+    }
+  ],
+  "keywords": [
+    {
+      "code": "K01",
+      "keyword": "온라인사주상담",
+      "bidExVAT": 70,
+      "registered": true
+    },
+    {
+      "code": "K02",
+      "keyword": "사주상담가격",
+      "bidExVAT": 70,
+      "registered": true
+    },
+    {
+      "code": "K03",
+      "keyword": "5000원사주",
+      "bidExVAT": 70,
+      "registered": true
+    },
+    {
+      "code": "K04",
+      "keyword": "AI사주상담",
+      "bidExVAT": 70,
+      "registered": true
+    },
+    {
+      "code": "K05",
+      "keyword": "사주상담사이트",
+      "bidExVAT": 70,
+      "registered": true
+    },
+    {
+      "code": "K06",
+      "keyword": "연애사주상담",
+      "bidExVAT": 70,
+      "registered": true
+    },
+    {
+      "code": "K07",
+      "keyword": "이직사주상담",
+      "bidExVAT": 70,
+      "registered": true
+    },
+    {
+      "code": "K08",
+      "keyword": "진로사주상담",
+      "bidExVAT": 70,
+      "registered": true
+    },
+    {
+      "code": "K09",
+      "keyword": "인터넷사주상담",
+      "bidExVAT": 70,
+      "registered": true
+    },
+    {
+      "code": "K10",
+      "keyword": "영냥이사주",
+      "bidExVAT": 70,
+      "registered": true
+    }
+  ],
+  "negatives": [
+    "무료사주",
+    "무료운세",
+    "무료사주풀이",
+    "만세력무료",
+    "무료타로",
+    "사주무료사이트",
+    "사주보는법",
+    "사주독학",
+    "사주강의",
+    "사주자격증",
+    "로또번호",
+    "당첨번호",
+    "고등어구이",
+    "고등어가격"
+  ],
+  "creatives": {
+    "trust": "creative/presidential-record-4x5.png",
+    "story": "creative/mackerel-story-9x16.png",
+    "source": "built-in ImageGen; existing character references; no paid external API",
+    "finalStory": "creative/mackerel-story-9x16-v2.png",
+    "distribution": "not_published_or_uploaded"
+  }
+}
