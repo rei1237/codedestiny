@@ -1,0 +1,267 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "width": 330,
+          "left": 15,
+          "right": 345,
+          "loaded": true
+        },
+        {
+          "width": 330,
+          "left": 15,
+          "right": 345,
+          "loaded": true
+        },
+        {
+          "width": 330,
+          "left": 15,
+          "right": 345,
+          "loaded": true
+        },
+        {
+          "width": 330,
+          "left": 15,
+          "right": 345,
+          "loaded": true
+        },
+        {
+          "width": 330,
+          "left": 15,
+          "right": 345,
+          "loaded": true
+        },
+        {
+          "width": 330,
+          "left": 15,
+          "right": 345,
+          "loaded": true
+        },
+        {
+          "width": 330,
+          "left": 15,
+          "right": 345,
+          "loaded": true
+        },
+        {
+          "width": 330,
+          "left": 15,
+          "right": 345,
+          "loaded": true
+        },
+        {
+          "width": 330,
+          "left": 15,
+          "right": 345,
+          "loaded": true
+        },
+        {
+          "width": 330,
+          "left": 15,
+          "right": 345,
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "width": 360,
+          "left": 15,
+          "right": 375,
+          "loaded": true
+        },
+        {
+          "width": 360,
+          "left": 15,
+          "right": 375,
+          "loaded": true
+        },
+        {
+          "width": 360,
+          "left": 15,
+          "right": 375,
+          "loaded": true
+        },
+        {
+          "width": 360,
+          "left": 15,
+          "right": 375,
+          "loaded": true
+        },
+        {
+          "width": 360,
+          "left": 15,
+          "right": 375,
+          "loaded": true
+        },
+        {
+          "width": 360,
+          "left": 15,
+          "right": 375,
+          "loaded": true
+        },
+        {
+          "width": 360,
+          "left": 15,
+          "right": 375,
+          "loaded": true
+        },
+        {
+          "width": 360,
+          "left": 15,
+          "right": 375,
+          "loaded": true
+        },
+        {
+          "width": 360,
+          "left": 15,
+          "right": 375,
+          "loaded": true
+        },
+        {
+          "width": 360,
+          "left": 15,
+          "right": 375,
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "width": 400,
+          "left": 15,
+          "right": 415,
+          "loaded": true
+        },
+        {
+          "width": 400,
+          "left": 15,
+          "right": 415,
+          "loaded": true
+        },
+        {
+          "width": 400,
+          "left": 15,
+          "right": 415,
+          "loaded": true
+        },
+        {
+          "width": 400,
+          "left": 15,
+          "right": 415,
+          "loaded": true
+        },
+        {
+          "width": 400,
+          "left": 15,
+          "right": 415,
+          "loaded": true
+        },
+        {
+          "width": 400,
+          "left": 15,
+          "right": 415,
+          "loaded": true
+        },
+        {
+          "width": 400,
+          "left": 15,
+          "right": 415,
+          "loaded": true
+        },
+        {
+          "width": 400,
+          "left": 15,
+          "right": 415,
+          "loaded": true
+        },
+        {
+          "width": 400,
+          "left": 15,
+          "right": 415,
+          "loaded": true
+        },
+        {
+          "width": 400,
+          "left": 15,
+          "right": 415,
+          "loaded": true
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "width": 540,
+          "left": 370,
+          "right": 910,
+          "loaded": true
+        },
+        {
+          "width": 540,
+          "left": 370,
+          "right": 910,
+          "loaded": true
+        },
+        {
+          "width": 540,
+          "left": 370,
+          "right": 910,
+          "loaded": true
+        },
+        {
+          "width": 540,
+          "left": 370,
+          "right": 910,
+          "loaded": true
+        },
+        {
+          "width": 540,
+          "left": 370,
+          "right": 910,
+          "loaded": true
+        },
+        {
+          "width": 540,
+          "left": 370,
+          "right": 910,
+          "loaded": true
+        },
+        {
+          "width": 540,
+          "left": 370,
+          "right": 910,
+          "loaded": true
+        },
+        {
+          "width": 540,
+          "left": 370,
+          "right": 910,
+          "loaded": true
+        },
+        {
+          "width": 540,
+          "left": 370,
+          "right": 910,
+          "loaded": true
+        },
+        {
+          "width": 540,
+          "left": 370,
+          "right": 910,
+          "loaded": true
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "apiPosts": 4,
+  "mode": "All API mocked;existing saju input and result;no purchase/generation click"
+}

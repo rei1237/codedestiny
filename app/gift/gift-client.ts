@@ -1,7 +1,7 @@
 import { authFetch } from "@/app/_lib/auth-client";
 
 import type {ServicePackPlan,OwnedServicePack} from '@/app/components/service-packs/service-pack-client';
-export type GiftPackProduct=ServicePackPlan&{productType:'service_pack';productId:string;name:string;durationDays:number};
+export type GiftPackProduct=ServicePackPlan&{productType:'service_pack';productId:string;name:string;durationDays:number|null};
 export type GiftSubscriptionProduct={productType?:'subscription';name:string;durationDays:number;wonPrice:number;tier:string};
 export type GiftView = {
   giftId: string; orderId?: string; status: string; senderName: string; recipientName: string;

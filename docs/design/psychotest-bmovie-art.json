@@ -1,0 +1,116 @@
+{
+  "generator": "built-in imagegen",
+  "stylePrompt": "Create ONE finished 3:2 landscape editorial illustration for a Korean B-movie absurdist personality quiz card. Deliberately ridiculous lowbrow humor, witty surreal situation, beautifully drawn expressive grotesque cartoon, confident thick ink contours, risograph halftone shading, vintage cheap pulp-comic print texture, dusty cream paper with bold mustard, coral-red, teal and violet accent colors. This is a polished humorous illustration, NOT an icon, NOT a logo, NOT a cute generic mascot, NOT minimal vector geometry. One large clear scene with exaggerated facial expression and delightful props, legible at thumbnail size, centered with safe margins. No borders. Absolutely NO text, letters, Korean, digits, speech bubble lettering, logos or watermark. Do not mock disability or mental illness. Scene: ",
+  "scenes": [
+    {
+      "id": "psycho",
+      "prompt": "A completely deadpan poker-faced person in a business suit is carefully putting a smiling theatrical mask on a tiny cactus at a tea party, dramatic suspicious sideways glance, exaggerated stage spotlight, dark absurd comedy about hidden reactions.",
+      "sourceFile": "exec-23264433-98ae-409b-be4b-02dc498be07d.png"
+    },
+    {
+      "id": "narcissist",
+      "prompt": "An extravagantly dressed person kneels presenting an enormous bouquet to their own reflection in an ornate hand mirror, reflection smugly applauds itself, heart confetti and tiny trophy, deliciously vain theatrical expression.",
+      "sourceFile": "exec-2bcab2a8-ff6b-4139-8fa7-8696e4486936.png"
+    },
+    {
+      "id": "chihuahua",
+      "prompt": "A tiny furious chihuahua wearing an oversized boxing glove yells silently at a gigantic harmless rubber duck, bulging comedic eyes, ridiculous disproportion, energetic action lines without writing.",
+      "sourceFile": "exec-c356c6f0-ed25-4a42-bdb9-9c4f61e0f69c.png"
+    },
+    {
+      "id": "aura",
+      "prompt": "A person stands proudly under a disco prism while their colorful aura is a huge swirling rainbow cloud shaped like a flamboyant peacock tail, tiny sunglasses, mystical but completely ridiculous fashion pose.",
+      "sourceFile": "exec-79d20535-4f85-4fc2-90c6-dfb7e230497a.png"
+    },
+    {
+      "id": "ttest",
+      "prompt": "A stone-faced robot accountant uses a giant kitchen balance scale to weigh a tiny anatomical heart against an enormous calculator; a little flower tries to get its attention. Ridiculously solemn mathematical concentration, affectionate satire of overly rational thinking, no numbers on calculator.",
+      "sourceFile": "exec-effde81e-779f-43f9-a4cc-f0e11ce07692.png"
+    },
+    {
+      "id": "persona",
+      "prompt": "A bewildered ordinary person is juggling five different theatrical face masks around their head while wearing a half-office-suit half-party-jacket outfit, each mask is expressive, circus-level social multitasking, no extra anatomical faces fused into the person.",
+      "sourceFile": "exec-33db4694-8c75-4142-b32d-17f8970eb6fd.png"
+    },
+    {
+      "id": "thriller",
+      "prompt": "A frightened amateur detective with a huge magnifying glass dramatically opens a spooky creaking door, but behind it is a small innocent cat wearing a bedsheet ghost costume, theatrical horror lighting played for comedy, no violence.",
+      "sourceFile": "exec-d88b8484-7eb6-4cb7-974b-7cac8d58083d.png"
+    },
+    {
+      "id": "office",
+      "prompt": "An exhausted office worker sits on an enormous stack of blank paperwork; their translucent tiny soul floats out of their head dragging a briefcase toward a sunny beach, coffee mug and rubber stamp on desk, exaggerated tragicomic Monday expression.",
+      "sourceFile": "exec-ccf0f973-45ec-4bde-84cc-1a8a326e4cef.png"
+    },
+    {
+      "id": "seven",
+      "prompt": "Seven miniature mischievous imps in a frantic tug of war over a single enormous slice of strawberry cake, each with a different silly expression: vanity, greed, jealousy, laziness, anger, hunger, affection. Wholesome ridiculous temptation, no sexuality, no words.",
+      "sourceFile": "exec-0c17f0bf-4118-4370-a1b4-ab64dbf7f7b2.png"
+    },
+    {
+      "id": "hsp",
+      "prompt": "A delicate highly alert hedgehog wears enormous noise-canceling headphones and holds a tiny parasol against ONE falling feather, comically overprepared padded comfortable room, tender funny sensitivity, not mockery of distress.",
+      "sourceFile": "exec-bb517445-278c-4562-b9af-6bacb07c8785.png"
+    },
+    {
+      "id": "tci",
+      "prompt": "An earnest explorer uses a gigantic wildly overcomplicated compass with four colored needles while riding a stubborn snail that confidently goes the opposite direction; folded blank map, expedition hat, absurd temperament versus character journey.",
+      "sourceFile": "exec-f802ad98-50c2-4e68-887b-68f40a509cd2.png"
+    },
+    {
+      "id": "empathy",
+      "prompt": "A person and a giant anthropomorphic onion sit together on a sofa both crying theatrical cartoon tears into one absurdly tiny tissue box, the person gently pats the onion's shoulder, warm ridiculous mutual empathy, no distress or cruelty.",
+      "sourceFile": "exec-b6b33b77-584d-43f8-9fe4-959e8b078515.png"
+    },
+    {
+      "id": "mental",
+      "prompt": "An adult in a dignified business suit rides a tiny playground spring horse with a wildly delighted expression while a baby in a grandpa cardigan reads a blank newspaper nearby, absurd reversal of mental age, wholesome and fully clothed.",
+      "sourceFile": "exec-43837993-5845-4b5b-a03f-1e7d4e207c14.png"
+    },
+    {
+      "id": "romance",
+      "prompt": "Two shy anthropomorphic magnets on a candlelit dinner date accidentally attract every spoon, fork and saucepan in the restaurant instead of each other, heart eyes and ridiculous magnetic chaos, romantic awkwardness.",
+      "sourceFile": "exec-7ccec0ba-0654-4c39-bfc6-fdd78088fe18.png"
+    },
+    {
+      "id": "mbti",
+      "prompt": "A flustered person tries to squeeze four differently shaped colorful puzzle pieces representing different aspects of self into a tiny suitcase shaped like their own head silhouette, pieces sprout comically argumentative faces, personality is too complex for a box.",
+      "sourceFile": "exec-1e37dc91-dd31-4f95-84d7-093a143cd281.png"
+    },
+    {
+      "id": "lovelang",
+      "prompt": "Five enthusiastic small anthropomorphic pigeons deliver love in five wildly different ways: huge flower bouquet, wrapped present, hug, tiny breakfast tray, and handwritten-looking BLANK envelope; one overwhelmed cheerful person in center, all props without any writing.",
+      "sourceFile": "exec-8cf89056-9bbe-42cd-8ba3-976296dbb986.png"
+    },
+    {
+      "id": "pastlife",
+      "prompt": "A modern office worker peeks into a mystical crystal ball and discovers their past self was an absurdly majestic potato emperor on a tiny throne, velvet cape and golden crown on potato, the worker looks both shocked and weirdly proud, surreal reincarnation joke.",
+      "sourceFile": "exec-1228de22-ddf8-4044-a5b1-b06eaa96c73f.png"
+    },
+    {
+      "id": "dopamine",
+      "prompt": "A hyper-enthusiastic hamster rides a giant spinning prize wheel powered by a smartphone, popcorn and little lightning bolts flying everywhere, huge ecstatic cheeks and cartoon energy, phone screen contains only colorful abstract shapes no interface text.",
+      "sourceFile": "exec-4d215e2c-ceb1-4772-8739-04e20078ba98.png"
+    },
+    {
+      "id": "nunchi",
+      "prompt": "At a silent tea table, a suspicious meerkat detective deploys an absurd enormous satellite-dish ear to interpret one tiny raised eyebrow from a calm cat, subtle social cue exaggerated into ridiculous espionage, expressive side-eye, no writing.",
+      "sourceFile": "exec-ac4386bb-b557-4b7c-af04-89b358c0f567.png"
+    },
+    {
+      "id": "mentalfit",
+      "prompt": "A tiny determined brain-shaped cartoon athlete wearing a sweatband struggles to lift a dumbbell made from two enormous fluffy storm clouds, a supportive smiling sun acts as coach, humorous resilience gym, no medical claims, not horror.",
+      "sourceFile": "exec-0eaf5cad-ff75-4cd0-a0f9-f54085196d0c.png"
+    },
+    {
+      "id": "villain",
+      "prompt": "A melodramatic caped villain in a giant swivel chair attempts an intimidating pose while a fluffy cat stubbornly sits on their head and their long cape is caught in a tiny desk fan, harmless campy B-movie villain incompetence, no violence.",
+      "sourceFile": "exec-4e491293-ecb8-4470-a0bc-1d2976fdb1e4.png"
+    },
+    {
+      "id": "idealsignal",
+      "prompt": "A flustered pigeon wearing a gigantic heart-shaped radar dish on its head mistakes an ordinary streetlamp for its soulmate, lovingly offers a bouquet while another equally confused pigeon watches, absurd romantic signal detection, no words.",
+      "sourceFile": "exec-d1035237-590b-43f1-9800-bb94f5bc90a7.png"
+    }
+  ]
+}

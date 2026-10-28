@@ -10,7 +10,7 @@ import { enqueueConsultation } from './queue.js';
 
 const ABANDONED_MS = 5 * 60 * 1000;
 const BUDGET_MS = CHAPTER_LEASE_MS + 30000;
-const CHAPTER_RESERVE_MS = CHAPTER_LEASE_MS; // provider + analysis, validation and persisted commit
+const CHAPTER_RESERVE_MS = CHAPTER_LEASE_MS; // provider + analysis, validation and persisted commit; the largest tier lease (chapterLeaseMs)
 const MAX_REQUESTS = 3;
 const TRANSIENT_HOLD_MS = 5 * 60 * 1000; // lands on the next ten-minute tick
 const PERMANENT_HOLD_MS = 24 * 60 * 60 * 1000;
@@ -96,7 +96,7 @@ async function reviveHeldOrders(env, options, now, outcomes) {
 // (free use, pass). The second is a double charge, so operators hear about it before the order is marked.
 async function settleChatOrder(env, order, row, notify, outcomes) {
   const attached=row?.accessMethod==='PER_USE'&&row.perUseSource==='payment'&&String(row.perUseEvidenceId)===String(order._id);
-  if(!attached&&!await sendHoldAlert(env,{subject:`[꿀꿀 운세] 중복 결제 확인 ${String(order._id).slice(0,12)}`,text:[
+  if(!attached&&!await sendHoldAlert(env,{subject:`[꿀꿀운세] 중복 결제 확인 ${String(order._id).slice(0,12)}`,text:[
     `결제: ${order._id}`,`상담: ${order.requestId}`,`열린 방식: ${row?.accessMethod || 'UNKNOWN'}`,
     '같은 상담이 다른 방식으로 먼저 열린 뒤 카드 결제가 승인됨. 운영자 환불 확인 필요',
   ].join('\n')},notify)){outcomes.push({outcome:'alert_pending'});return;}
@@ -138,7 +138,7 @@ export async function runYeongnyangiRecovery(env, options = {}) {
       // A paid fortune-chat order that cannot open its consultation (e.g. one already refunded) would only retry daily.
       // Operators hear about it once; an undelivered alert is retried on the next tick instead of a day later.
       const alert=!transient&&order.requestId.startsWith('fc-')&&!order.metadata?.fortuneChatActivationAlerted;
-      const alerted=alert&&await sendHoldAlert(env,{subject:`[꿀꿀 운세] 결제 상담 열기 실패 ${String(order._id).slice(0,12)}`,text:[
+      const alerted=alert&&await sendHoldAlert(env,{subject:`[꿀꿀운세] 결제 상담 열기 실패 ${String(order._id).slice(0,12)}`,text:[
         `결제: ${order._id}`,`상담: ${order.requestId}`,`오류: ${code}`,
         '카드 결제가 승인됐지만 상담을 열지 못함. 24시간마다 자동 재시도. 운영자 확인 필요(환불 여부 포함)',
       ].join('\n')},options.notify);

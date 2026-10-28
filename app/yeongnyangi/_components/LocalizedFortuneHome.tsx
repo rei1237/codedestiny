@@ -15,7 +15,7 @@ export default function LocalizedFortuneHome({locale,offers}:{locale:ReadingLoca
  const copy=consultationLocaleCopy(locale);
  const relationship=relationshipCopyFor(locale);
  return <main className={styles.page} lang={locale}>
-  <nav className={styles.nav} aria-label={copy.home}><a href={`/?lang=${locale}`}>CODE DESTINY · Yeongnyangi</a><a href={`/yeongnyangi/library/?lang=${locale}`}>{copy.library}</a><SessionControls compact/><LocaleSwitcher preservePath locale={locale}/></nav>
+  <nav className={styles.nav} aria-label={copy.home}><a href={`/?lang=${locale}`}>꿀꿀운세 · Yeongnyangi</a><a href={`/yeongnyangi/library/?lang=${locale}`}>{copy.library}</a><SessionControls compact/><LocaleSwitcher preservePath locale={locale}/></nav>
   <section className={heroStyles.hero} aria-labelledby="localized-home-title">
    <picture className={heroStyles.room}><source media="(max-width: 699px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/><img src="/assets/yeongnyangi/night/consultation-room.webp" width={1440} height={960} alt="" fetchPriority="high"/></picture>
    <div className={heroStyles.copy}><h1 id="localized-home-title">{copy.title}</h1><p>{copy.pitch}</p><p>{copy.about}</p><div className={heroStyles.actions}><a className={heroStyles.primary} href={`/yeongnyangi/fortune/?lang=${locale}`}>{copy.start}</a><a className={heroStyles.secondary} href="#readings">{copy.depth}</a></div></div>

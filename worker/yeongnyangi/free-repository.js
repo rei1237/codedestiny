@@ -10,6 +10,8 @@ const natalVersion=SAJU_ENGINE_VERSION+':'+SAJU_POLICY_VERSION;
 const failure=(status,code)=>createHttpError(status,code,{code});
 export const kstDay=(now=new Date())=>new Date(now.getTime()+9*3600000).toISOString().slice(0,10);
 const ledgerId=(owner,day,kind)=>`${owner.toString()}:${day}:${kind}`;
+// 오늘의 16종을 여는 값. 출석은 하루 1마리라 사흘 출석이 한 번 열기다.
+export const DAILY_UNLOCK_COST=3;
 
 export async function attendanceStatus(env,userId,now=new Date()) {
   const owner=ownerId(userId),day=kstDay(now);
@@ -18,7 +20,7 @@ export async function attendanceStatus(env,userId,now=new Date()) {
     YeongnyangiAnchovyLedger.findById(ledgerId(owner,day,'attendance')).select('_id').lean(),
     YeongnyangiAnchovyLedger.findById(ledgerId(owner,day,'unlock')).select('_id').lean(),
   ]));
-  return {day,balance:Number(account?.balance||0),attended:Boolean(attendance),unlocked:Boolean(unlock)};
+  return {day,balance:Number(account?.balance||0),unlockCost:DAILY_UNLOCK_COST,attended:Boolean(attendance),unlocked:Boolean(unlock)};
 }
 
 function isDuplicate(error){return Number(error?.code)===11000;}
@@ -49,10 +51,10 @@ export async function unlockToday(env,userId,now=new Date()) {
       const session=await (scopeConnection()||mongoose).startSession();
       try{await session.withTransaction(async()=>{
         if(await YeongnyangiAnchovyLedger.findById(_id).session(session).lean())return;
-        const account=await YeongnyangiAnchovyAccount.findOneAndUpdate({_id:owner,balance:{$gte:1}},{$inc:{balance:-1}},
+        const account=await YeongnyangiAnchovyAccount.findOneAndUpdate({_id:owner,balance:{$gte:DAILY_UNLOCK_COST}},{$inc:{balance:-DAILY_UNLOCK_COST}},
           {new:true,session}).lean();
         if(!account)throw failure(409,'ANCHOVY_REQUIRED');
-        await YeongnyangiAnchovyLedger.create([{_id,userId:owner,day,kind:'unlock',amount:-1}],{session});
+        await YeongnyangiAnchovyLedger.create([{_id,userId:owner,day,kind:'unlock',amount:-DAILY_UNLOCK_COST}],{session});
         newlyUnlocked=true;
       },mongoTransactionOptions(env));}finally{await session.endSession();}
     });

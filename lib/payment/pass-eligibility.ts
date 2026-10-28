@@ -23,18 +23,18 @@ export type PassEligibility = {
 
 const PASS_TIER_ORDER: PassTier[] = ["standard", "premium", "vvip", "family"];
 const PASS_TIER_LABELS: Record<string, Record<PassTier, string>> = {
-  ko: { standard: "스탠다드 꿀", premium: "프리미엄 꿀", vvip: "VVIP 꿀단지", family: "Code Destiny Family" },
-  en: { standard: "Standard Honey", premium: "Premium Honey", vvip: "VVIP Honey Jar", family: "Code Destiny Family" },
-  ja: { standard: "スタンダードハニー", premium: "プレミアムハニー", vvip: "VVIPハニージャー", family: "Code Destiny Family" },
-  "zh-cn": { standard: "标准蜂蜜", premium: "高级蜂蜜", vvip: "VVIP蜂蜜罐", family: "Code Destiny Family" },
-  "zh-tw": { standard: "標準蜂蜜", premium: "高級蜂蜜", vvip: "VVIP蜂蜜罐", family: "Code Destiny Family" },
-  vi: { standard: "Mật ong Standard", premium: "Mật ong Premium", vvip: "Hũ mật ong VVIP", family: "Code Destiny Family" },
-  hi: { standard: "स्टैंडर्ड हनी", premium: "प्रीमियम हनी", vvip: "VVIP हनी जार", family: "Code Destiny Family" },
-  es: { standard: "Miel estándar", premium: "Miel premium", vvip: "Tarro de miel VVIP", family: "Code Destiny Family" },
-  fr: { standard: "Miel Standard", premium: "Miel Premium", vvip: "Pot de miel VVIP", family: "Code Destiny Family" },
-  de: { standard: "Standard-Honig", premium: "Premium-Honig", vvip: "VVIP-Honigglas", family: "Code Destiny Family" },
-  nl: { standard: "Standard Honing", premium: "Premium Honing", vvip: "VVIP Honingpot", family: "Code Destiny Family" },
-  ms: { standard: "Madu Standard", premium: "Madu Premium", vvip: "Balang Madu VVIP", family: "Code Destiny Family" },
+  ko: { standard: "작은 꿀단지", premium: "중간 꿀단지", vvip: "큰 꿀단지", family: "패밀리 꿀단지" },
+  en: { standard: "Small Honey Jar", premium: "Medium Honey Jar", vvip: "Large Honey Jar", family: "Family Honey Jar" },
+  ja: { standard: "小さなはちみつ壺", premium: "中くらいのはちみつ壺", vvip: "大きなはちみつ壺", family: "ファミリーはちみつ壺" },
+  "zh-cn": { standard: "小蜜罐", premium: "中蜜罐", vvip: "大蜜罐", family: "家庭蜜罐" },
+  "zh-tw": { standard: "小蜜罐", premium: "中蜜罐", vvip: "大蜜罐", family: "家庭蜜罐" },
+  vi: { standard: "Hũ mật ong nhỏ", premium: "Hũ mật ong vừa", vvip: "Hũ mật ong lớn", family: "Hũ mật ong gia đình" },
+  hi: { standard: "छोटा शहद जार", premium: "मध्यम शहद जार", vvip: "बड़ा शहद जार", family: "फ़ैमिली शहद जार" },
+  es: { standard: "Tarro de miel pequeño", premium: "Tarro de miel mediano", vvip: "Tarro de miel grande", family: "Tarro de miel familiar" },
+  fr: { standard: "Petit pot de miel", premium: "Pot de miel moyen", vvip: "Grand pot de miel", family: "Pot de miel familial" },
+  de: { standard: "Kleines Honigglas", premium: "Mittleres Honigglas", vvip: "Großes Honigglas", family: "Familien-Honigglas" },
+  nl: { standard: "Kleine honingpot", premium: "Middelgrote honingpot", vvip: "Grote honingpot", family: "Gezinshoningpot" },
+  ms: { standard: "Balang Madu Kecil", premium: "Balang Madu Sederhana", vvip: "Balang Madu Besar", family: "Balang Madu Keluarga" },
 };
 
 function normalizeLocale(locale: string | undefined): string {
@@ -51,18 +51,18 @@ const PASS_ELIGIBILITY_COPY: Record<string, {
   exhausted: string;
   included: (tier: string) => string;
 }> = {
-  ko: { notCovered: "이용권 미포함 · 단건 구매", exhausted: "이용권 적용 대상 · 이번 이용권 기간 한도 소진 · 다음 이용권 기간 또는 단건 구매", included: (tier) => `${tier} 이상 이용권 포함` },
-  en: { notCovered: "Not covered by pass · Single purchase", exhausted: "Pass-eligible · Pass period limit exhausted · Next pass period or single purchase", included: (tier) => `${tier} pass or higher included` },
-  ja: { notCovered: "利用券対象外 · 単品購入", exhausted: "利用券対象 · 利用券期間の上限に達しました · 次の利用券期間または単品購入", included: (tier) => `${tier}以上の利用券に含まれます` },
-  "zh-cn": { notCovered: "不包含在利用券内 · 单次购买", exhausted: "适用利用券 · 本利用券期间额度已用尽 · 下个利用券期间或单次购买", included: (tier) => `包含在${tier}及以上利用券内` },
-  "zh-tw": { notCovered: "不包含在利用券內 · 單次購買", exhausted: "適用利用券 · 本利用券期間額度已用盡 · 下個利用券期間或單次購買", included: (tier) => `包含在${tier}及以上利用券內` },
-  vi: { notCovered: "Không bao gồm trong vé · Mua lẻ", exhausted: "Được áp dụng vé · Đã hết hạn mức trong kỳ vé · Kỳ vé tiếp theo hoặc mua lẻ", included: (tier) => `Bao gồm từ vé ${tier} trở lên` },
-  hi: { notCovered: "पास में शामिल नहीं · एकल खरीद", exhausted: "पास के लिए योग्य · पास अवधि की सीमा समाप्त · अगली पास अवधि या एकल खरीद", included: (tier) => `${tier} पास या उससे ऊपर में शामिल` },
-  es: { notCovered: "No incluido en el pase · Compra individual", exhausted: "Apto para el pase · Límite del periodo agotado · Próximo periodo o compra individual", included: (tier) => `Incluido desde el pase ${tier}` },
-  fr: { notCovered: "Non inclus dans le pass · Achat à l’unité", exhausted: "Éligible au pass · Limite de la période épuisée · Prochaine période ou achat à l’unité", included: (tier) => `Inclus avec le pass ${tier} ou supérieur` },
-  de: { notCovered: "Nicht im Pass enthalten · Einzelkauf", exhausted: "Pass-berechtigt · Limit des Passzeitraums erreicht · Nächster Passzeitraum oder Einzelkauf", included: (tier) => `Im ${tier}-Pass oder höher enthalten` },
-  nl: { notCovered: "Niet inbegrepen in pas · Losse aankoop", exhausted: "Geschikt voor pas · Limiet van de pasperiode bereikt · Volgende pasperiode of losse aankoop", included: (tier) => `Inbegrepen vanaf de ${tier}-pas` },
-  ms: { notCovered: "Tidak termasuk dalam pas · Pembelian tunggal", exhausted: "Layak untuk pas · Had tempoh pas telah habis · Tempoh pas seterusnya atau pembelian tunggal", included: (tier) => `Termasuk dalam pas ${tier} atau lebih tinggi` },
+  ko: { notCovered: "이용권 미포함 · 단건 구매", exhausted: "이용권 적용 대상 · 이용 한도 소진 · 이용권 재구매 또는 단건 구매", included: (tier) => `${tier} 이상 이용권 포함` },
+  en: { notCovered: "Not covered by pass · Single purchase", exhausted: "Pass-eligible · Usage limit used up · Buy a new pass or single purchase", included: (tier) => `${tier} pass or higher included` },
+  ja: { notCovered: "利用券対象外 · 単品購入", exhausted: "利用券対象 · 利用上限に達しました · 利用券の再購入または単品購入", included: (tier) => `${tier}以上の利用券に含まれます` },
+  "zh-cn": { notCovered: "不包含在利用券内 · 单次购买", exhausted: "适用利用券 · 使用额度已用尽 · 重新购买利用券或单次购买", included: (tier) => `包含在${tier}及以上利用券内` },
+  "zh-tw": { notCovered: "不包含在利用券內 · 單次購買", exhausted: "適用利用券 · 使用額度已用盡 · 重新購買利用券或單次購買", included: (tier) => `包含在${tier}及以上利用券內` },
+  vi: { notCovered: "Không bao gồm trong vé · Mua lẻ", exhausted: "Được áp dụng vé · Đã dùng hết hạn mức sử dụng · Mua vé mới hoặc mua lẻ", included: (tier) => `Bao gồm từ vé ${tier} trở lên` },
+  hi: { notCovered: "पास में शामिल नहीं · एकल खरीद", exhausted: "पास के लिए योग्य · उपयोग सीमा समाप्त · नया पास या एकल खरीद", included: (tier) => `${tier} पास या उससे ऊपर में शामिल` },
+  es: { notCovered: "No incluido en el pase · Compra individual", exhausted: "Apto para el pase · Límite de uso agotado · Nuevo pase o compra individual", included: (tier) => `Incluido desde el pase ${tier}` },
+  fr: { notCovered: "Non inclus dans le pass · Achat à l’unité", exhausted: "Éligible au pass · Limite d’utilisation épuisée · Nouveau pass ou achat à l’unité", included: (tier) => `Inclus avec le pass ${tier} ou supérieur` },
+  de: { notCovered: "Nicht im Pass enthalten · Einzelkauf", exhausted: "Pass-berechtigt · Nutzungslimit aufgebraucht · Neuer Pass oder Einzelkauf", included: (tier) => `Im ${tier}-Pass oder höher enthalten` },
+  nl: { notCovered: "Niet inbegrepen in pas · Losse aankoop", exhausted: "Geschikt voor pas · Gebruikslimiet bereikt · Nieuwe pas of losse aankoop", included: (tier) => `Inbegrepen vanaf de ${tier}-pas` },
+  ms: { notCovered: "Tidak termasuk dalam pas · Pembelian tunggal", exhausted: "Layak untuk pas · Had penggunaan telah habis · Pas baharu atau pembelian tunggal", included: (tier) => `Termasuk dalam pas ${tier} atau lebih tinggi` },
 };
 
 function getEligibilityCopy(locale?: string) {

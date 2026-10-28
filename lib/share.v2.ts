@@ -39,7 +39,7 @@ export function getShareMetadata(content: SeoV2Content & { contentId?: string })
   // result. Permit this one static public surface without opening private routes.
   const publicIntroduction = content.contentType === "software" && /^\/features\/[a-z0-9-]+\/?$/.test(content.path);
   const shareable = (publicIntroduction || !isPrivateRoute(content.path)) && !content.noindex;
-  const title = String(content.title || "Code Destiny").trim();
+  const title = String(content.title || "꿀꿀운세").trim();
   const text = String(content.description || "").trim();
 
   return {

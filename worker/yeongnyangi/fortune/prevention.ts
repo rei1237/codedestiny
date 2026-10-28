@@ -91,5 +91,57 @@ export function withPreventionReading(manifest:ChapterSpec[],analysis:MasterAnal
 export function preventionFacts(context:DomainContext,chapter:ChapterSpec):Evidence[] {
  if(!hasPrevention(chapter)||chapter.key!=='prevention')return [];
  const fact=context.facts.find(f=>f.label===LABEL);
- return fact?[fact]:[];
+ return fact?[compactPrevention(fact)]:[];
+}
+// 상위 등급 사주 앵커는 대운 전체를 통째로 담아 모듬·오마카세 예방 장이 시도당 입력 상한을 넘었다
+// (2026-10-10 countTokens 실측 MA 51,874·MO 64,725토큰). 주의점 판단(buildPreventionFact periods)은 현재 대운 1개·세운 10년·
+// 월운 12개월만 쓰므로 보낼 때 그 범위만 남긴다: 다른 대운(cycles)과, 세운 행·후보가 따로 싣는 현재 대운의 연도별 해석(annual)을 뺀다.
+// 후보마다 되풀이되는 설명문은 key별로 한 번만 싣는다. 저장된 근거는 그대로 두고 여기서 줄여, 결제 후 멈춘 주문도 같은 코드로 이어진다.
+const GUIDE_FIELDS=['opportunity','burden','observe','action','buffering','limitation'];
+// 10: MA·MO 예방 장의 conditions·signals 소절이 후보를 고르지 못해 실제 성립한 충·파 대신 일반론을 썼다. 보낼 때 후보를
+// 형충파해의 세기 → 기간(세운·월운·대운·원국) → 이른 시기 순으로 rank를 매긴다. 목록 순서와 저장된 후보 내용은 그대로 두고 rank·tensionNames만 붙인다.
+const TENSION_WEIGHT:Record<string,number>={branchClashes:5,stemClashes:4,branchPunishments:4,branchBreaks:3,branchHarms:2};
+const PERIOD_ORDER:Record<string,number>={year:0,month:1,major:2,natal:3};
+export const RANK_RULE='candidates 목록 순서가 아니라 rank 숫자 순으로 읽는다. rank 1이 먼저 다룰 후보다. 충 > 형 > 파 > 해 순으로 강한 관계가 있는 후보를 앞에 두고, 같은 세기면 세운 → 월운 → 대운 → 원국, 이른 시기 순이다. tensionNames가 없는 후보(십성·이동)는 충·파 근거가 아니며 뒤에 둔다. 질문과 맞지 않는 후보만 건너뛴다.';
+function rankCandidates(candidates:any[]):number[] {
+ const tensions=(c:any)=>Array.isArray(c?.anchors?.tensions)?c.anchors.tensions:[];
+ const weight=(c:any)=>Math.max(0,...tensions(c).map((t:any)=>TENSION_WEIGHT[t.kind]||1));
+ const when=(c:any)=>(c.period?.year||0)*100+(c.period?.month||0);
+ return candidates.map((c,i)=>({c,i})).sort((a,b)=>weight(b.c)-weight(a.c)
+   ||(PERIOD_ORDER[a.c.period?.kind]??9)-(PERIOD_ORDER[b.c.period?.kind]??9)||when(a.c)-when(b.c)||a.i-b.i)
+  .reduce((ranks,{i},rank)=>(ranks[i]=rank+1,ranks),[] as number[]);
+}
+function withRanks(candidates:any[]):any[] {
+ const ranks=rankCandidates(candidates);
+ return candidates.map((c,i)=>{
+  const tensions=Array.isArray(c?.anchors?.tensions)?c.anchors.tensions:[];
+  const names=[...tensions].sort((x:any,y:any)=>(TENSION_WEIGHT[y.kind]||1)-(TENSION_WEIGHT[x.kind]||1)).map((t:any)=>t.label).filter(Boolean);
+  return {rank:ranks[i],...(names.length?{tensionNames:[...new Set(names)]}:{}),...c};
+ });
+}
+function compactPrevention(fact:Evidence):Evidence {
+ const value=fact.value as Record<string,any>;
+ if(value?.system!=='saju'||!Array.isArray(value.anchors))return fact;
+ const omit=(v:any,keys:string[])=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).filter(([key])=>!keys.includes(key))):v;
+ // 주의점 후보가 있는 기간은 후보 anchors 가 그 기간의 원국 상호작용을 그대로 싣는다 — 행에서는 빼고 후보가 없는 기간만 남긴다.
+ const covered=new Set((value.saju?.candidates||[]).map((c:any)=>`${c.period?.kind}:${c.period?.year}:${c.period?.month??''}`));
+ const rows=(v:any,limit:number,key:(r:any)=>string)=>Array.isArray(v)?v.slice(0,limit).map(r=>covered.has(key(r))?omit(r,['natalInteractions']):r):v;
+ const periods:Record<string,(v:any)=>any>={
+  majorLuck:v=>{const rest=omit(v,['cycles']);return rest?.currentCycle?{...rest,currentCycle:{...rest.currentCycle,interpretation:omit(rest.currentCycle.interpretation,['annual'])}}:rest;},
+  yearlyLuck:v=>rows(v,10,r=>`year:${r.year}:`),
+  monthlyLuck:v=>rows(v,12,r=>`month:${r.start?.year}:${r.start?.month??''}`),
+ };
+ const anchors=value.anchors.map((a:Evidence)=>periods[a.label]?{...a,value:periods[a.label](a.value)}:a);
+ const compactPacket=(packet:any)=>{
+  if(!Array.isArray(packet?.candidates))return packet;
+  const guides:Record<string,Record<string,unknown>>={};
+  const candidates=withRanks(packet.candidates).map((c:any)=>{
+   const guide=Object.fromEntries(GUIDE_FIELDS.filter(k=>c[k]!==undefined).map(k=>[k,c[k]]));
+   const id=Object.entries(guides).find(([,g])=>JSON.stringify(g)===JSON.stringify(guide))?.[0]||`${c.key}#${Object.keys(guides).length+1}`;
+   guides[id]=guide;
+   return {...omit(c,GUIDE_FIELDS),guide:id};
+  });
+  return {...packet,candidates,guides,guideRule:'후보의 guide 값은 guides의 같은 키 설명을 가리킨다.',rankRule:RANK_RULE};
+ };
+ return {...fact,value:{...value,anchors,...(value.saju?{saju:compactPacket(value.saju)}:{}),...(value.partner?{partner:compactPacket(value.partner)}:{})}};
 }

@@ -11,7 +11,7 @@ const storageFailure = resultId => Object.assign(new Error("Result storage unava
 // Mongoose adds internal ids to character/section subdocuments; compare the stored content.
 const comparable = value => JSON.stringify(value, (key, item) => key === "_id" || key === "__v" ? undefined : item);
 export const relationshipPublicResult = doc => ({
-  ok: true, sessionId: doc.id, score: doc.score, grade: doc.grade, character: doc.character,
+  ok: true, mode: doc.llmMeta?.mode || "target", schemaVersion: doc.llmMeta?.schemaVersion || 1, sceneIds: doc.llmMeta?.sceneIds || null, status: doc.status, sessionId: doc.id, score: doc.score, grade: doc.grade, character: doc.character,
   scoreFactors: doc.scoreFactors, summary: doc.summary, sections: doc.sections, finalMessage: doc.finalMessage,
 });
 export async function findRelationshipResult(env, filter) {
@@ -46,7 +46,7 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
   const body = stored?.llmMeta?.resumeBody || (stored && supplied.resumeSessionId ? { targetInfo: stored.targetInfo, idempotencyKey: stored.idempotencyKey } : supplied);
   const input = callbacks.normalize(body);
   if (!input.ok || typeof body.idempotencyKey !== "string" || body.idempotencyKey.length < 12 || body.idempotencyKey.length > 180) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 422 });
-  if (stored?.inputHash && (stored.inputHash !== input.inputHash || (supplied.targetInfo && callbacks.normalize(supplied).inputHash !== stored.inputHash))) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
+  if (stored?.inputHash && (stored.inputHash !== input.inputHash || ((supplied.targetInfo || supplied.selfInfo) && callbacks.normalize(supplied).inputHash !== stored.inputHash))) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
   const access = await callbacks.verify(userId, body.idempotencyKey);
   if (access.proven === null) throw storageFailure(stored?.id || body.idempotencyKey);
   if (!access.proven) return json({ ok: false, reason: "PAYMENT_REQUIRED" }, { status: 402 });
@@ -61,7 +61,7 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
     let seed;
     try { seed = callbacks.seed(input); }
     catch { return json({ ok: false, reason: "CALCULATION_FAILED" }, { status: 422 }); }
-    const meta = { ...seed.meta, passRefund: access.passRefund || null, locale: getAmbientAiLocale() || "ko", resumeBody: { targetInfo: body.targetInfo, idempotencyKey: body.idempotencyKey }, lease,
+    const meta = { ...seed.meta, passRefund: access.passRefund || null, locale: getAmbientAiLocale() || "ko", resumeBody: { targetInfo: body.targetInfo, ...(body.selfInfo ? { selfInfo: body.selfInfo } : {}), idempotencyKey: body.idempotencyKey }, lease,
       evidenceHash: createHash("sha256").update(JSON.stringify(seed.meta)).digest("hex"), delivery: { parts: {}, attempts: {}, invalidAttempts: {} } };
     const fields = { ...seed.fields, id: sessionId, userId, targetInfo: input.targetInfo, inputHash: input.inputHash, idempotencyKey: body.idempotencyKey,
       accessType: access.source || "paid", paymentId: stored?.paymentId || access.transactionId || "", status: "generating", llmMeta: meta, generationError: null };

@@ -216,6 +216,10 @@ ok(
   ok("⑨ 현재 대한 줄에 궁간이 있다", lines.some((line) => line.startsWith("현재 대한:") && line.includes("궁간")), text);
   ok("⑨ 대한사화 줄이 있다", lines.some((line) => line.startsWith("대한사화")), text);
   ok("⑨ 소한 줄이 있다", lines.some((line) => line.startsWith("소한:")), text);
+  // R6 2026-10-10: 기준 연도가 없어 "내년 2026"이 나왔다. 올해·내년 세운이 연이은 연도로 실린다.
+  const yearly = lines.filter((line) => line.startsWith("세운("));
+  const thisYear = Number(yearly[0]?.match(/올해 (\d{4})년/)?.[1]);
+  ok("⑨ 올해·내년 세운 줄이 있다", yearly.length === 2 && Number.isFinite(thisYear) && yearly[1].includes(`내년 ${thisYear + 1}년`), yearly.join("\n"));
 
   // 🔴 삼방사정 회조 줄은 요약본의 flatMap(강약 소실)이 아니라 궁별 brightness 를 다시 읽어야 한다.
   const triadLine = lines.find((line) => line.startsWith("삼방사정 회조")) || "";
@@ -318,6 +322,12 @@ ok(
   ok("⑫ triad_axis 규칙이 회조 별의 강약 판정을 지시한다", prompt.includes("회조하는 별의 강약 표기"), "");
   ok("⑫ twelve_palaces 규칙이 자화를 구분해 읽도록 지시한다", prompt.includes("'자화' 줄이 있으면"), "");
   ok("⑫ 확정값 블록이 프롬프트에 실린다", prompt.includes("삼방사정 회조(명궁 기준)"), "");
+  // R6 2026-10-11: 이름이 없으면 meta 예시의 "이름 미입력"이 그대로 저장됐다.
+  const unnamed = { ...mockInput, birthInfo: { ...mockInput.birthInfo, name: "" } };
+  const metaPrompt = __ziweiAiTestUtils.buildMetaPrompt(unnamed, chart);
+  ok("⑫ 이름이 없으면 meta·그룹 프롬프트에 '미입력' 이름이 없다", !/이름 미입력|"name":"미입력/.test(metaPrompt + buildSectionGroupPrompt(unnamed, chart, flowGroup)), "");
+  const stored = JSON.parse(__ziweiAiTestUtils.enforceZiweiChartFacts(JSON.stringify({ meta: { name: "이름 미입력" }, sections: {} }), chart).text);
+  check("⑫ 모델이 대체 이름을 써도 meta.name 은 비운다", stored.meta.name, "");
 }
 
 // ── ⑬ 한 프롬프트 안에서 나이 기준이 갈리지 않는다 ─────────────────────────

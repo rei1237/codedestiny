@@ -326,7 +326,7 @@
 }
 
 /* 앱 설치 카드(2026-09-04) — .cd-feedback 과 같은 3열 카드라 같은 자리·같은 처방을 쓴다.
- * 카드는 기본 hidden 이고 beforeinstallprompt 가 와야 열린다(js/pwa-install-prompt.js). */
+ * 카드는 기본 hidden 이고 Chromium 설치 이벤트 또는 iOS 홈 화면 안내가 있을 때 열린다. */
 .cd-app-install__copy {
   position: relative;
 }
@@ -339,17 +339,6 @@
   background: linear-gradient(160deg, #ead089 0%, var(--cd-yehwa-line) 100%);
   opacity: .3;
   transform: translateY(-50%);
-}
-
-.cd-footer-shell {
-  position: relative;
-}
-
-.cd-footer-shell > .cd-yehwa-peony {
-  right: 32px;
-  bottom: 20px;
-  width: 220px;
-  height: 220px;
 }
 
 /* ── 네오: 같은 선, 샴페인 골드로 재도색(바이올렛은 그라데이션 끝 15% 만 — One Accent) ── */

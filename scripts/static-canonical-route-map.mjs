@@ -22,13 +22,6 @@ export const STATIC_CANONICAL_ROUTES = [
     action: "openSibylModal",
   },
   {
-    canonical: "/saju/basic",
-    aliases: [],
-    title: "무료 사주 만세력 기본 해석 — 오행·십성 한눈에",
-    description: "오행과 십성, 명식의 네 기둥을 바탕으로 타고난 기질, 관계의 결, 일과 재물의 기본 흐름을 차분히 살핍니다.",
-    source: "app",
-  },
-  {
     canonical: "/saju/animal-destiny",
     aliases: ["/saju/animal-test"],
     title: "십이운성 동물점 | 코드 데스티니",
@@ -97,21 +90,6 @@ export const STATIC_CANONICAL_ROUTES = [
     source: "app",
   },
   {
-    canonical: "/astrology/cosmic",
-    aliases: [],
-    title: "무료 코즈믹 차트 — 태양·달·상승궁 출생차트",
-    description: "태양 별자리, 달 별자리, 상승궁과 MC의 흐름으로 출생차트에 담긴 기질, 관계, 일의 방향을 코즈믹 차트로 살핍니다.",
-    source: "app",
-    action: "openAstroModal",
-  },
-  {
-    canonical: "/vedic/jyotish",
-    aliases: [],
-    title: "베다 점성술 Jyotish | 코드 데스티니",
-    description: "항성 황도 기반 베다 점성술로 라시 차트, 낙샤트라, 다샤의 시간 흐름과 삶의 선택 방향을 차분히 살핍니다.",
-    source: "app",
-  },
-  {
     // 2026-08-24: 정본을 도구(/ifa-oracle)에서 랜딩(/oracle/ifa)으로 옮겼다.
     // 그전에는 정본이 도구였고 랜딩은 별칭이라, 색인 대상이 되는 URL 이 크롤러 가시
     // 텍스트 328자짜리 도구 화면 하나뿐이었다. 도구는 계속 noindex 로 둔다
@@ -137,14 +115,6 @@ export const STATIC_CANONICAL_ROUTES = [
     description: "열두 달 화투패의 상징으로 오늘의 재물, 사랑, 시험과 승부의 흐름을 직설적이면서도 선명하게 살핍니다.",
     source: "static-shell",
     action: "openHwatuModal",
-  },
-  {
-    canonical: "/oracle/sukuyo",
-    aliases: [],
-    title: "무료 숙요점 궁합 — 27숙 인연 거리 보기",
-    description: "27숙의 달빛 관계 흐름으로 본명숙, 인연 거리, 궁합의 리듬, 가까워지는 방식과 조심할 거리를 살핍니다.",
-    source: "app",
-    action: "openSukuyoModal",
   },
 ];
 

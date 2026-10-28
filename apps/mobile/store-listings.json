@@ -1,0 +1,24 @@
+{
+  "packageName": "com.codedestiny.app",
+  "updated": "2026-10-24",
+  "status": "draft",
+  "releaseCountries": ["KR", "JP", "US", "GB", "CA", "AU", "NZ", "IE"],
+  "englishLocales": ["en-US", "en-GB", "en-AU", "en-CA"],
+  "listings": {
+    "ko-KR": {
+      "title": "꿀꿀운세",
+      "shortDescription": "사주·타로·점성술로 나의 흐름을 돌아보고, 일상에 어울리는 부적 배경화면을 만나세요.",
+      "fullDescription": "나의 성향과 관계, 지금의 고민을 새로운 관점에서 돌아보세요. 꿀꿀 운세는 사주, 타로, 점성술과 상담형 콘텐츠를 한곳에서 만나는 서비스입니다.\n\n다양한 관점으로 읽는 나의 이야기\n• 사주: 태어난 날짜와 시간을 바탕으로 기질과 삶의 흐름을 살펴봅니다.\n• 서양 점성술·베다점·숙요점: 각 체계의 관점으로 성향과 관계를 탐색합니다.\n• 타로: 카드의 상징을 통해 감정과 선택을 돌아봅니다.\n• 상담형 콘텐츠: 연애, 인간관계, 일상의 고민을 정리하며 다음 행동을 생각해 봅니다.\n\n마음에 담은 바람을 배경화면으로\n부적 장면과 바람을 고르고, 그림 전체가 보이도록 크기와 위치를 조절하세요. 홈 화면과 잠금화면에 적용하거나 이미지를 저장·공유할 수 있습니다. 실제 적용 방식은 기기와 Android 설정에 따라 달라질 수 있습니다.\n\n계정과 기록\n기존에 사용하던 계정으로 로그인하여 구매 내역과 저장한 결과를 확인하세요. 꿀꿀 운세와 영냥이의 상담 기록은 각각의 보관함에서 확인합니다.\n\n이용 안내\n일부 콘텐츠는 유료이며, 이용 조건과 금액은 구매 전에 확인할 수 있습니다. 운세와 부적은 자신을 돌아보는 참고와 상징으로 활용해 주세요. 특정한 미래나 결과를 보장하지 않습니다."
+    },
+    "en": {
+      "title": "꿀꿀운세: Saju & Tarot",
+      "shortDescription": "Explore Saju, tarot and astrology, with talisman wallpapers for your daily life.",
+      "fullDescription": "Reflect on your personality, relationships and everyday questions from a fresh perspective. 꿀꿀운세 brings together Saju, tarot, astrology and guided readings.\n\nDifferent perspectives on your story\n• Saju, the Korean Four Pillars: explore personal tendencies and life patterns using your birth date and time.\n• Western astrology, Vedic astrology and Sukuyo: explore personality and relationships through each tradition's distinct approach.\n• Tarot: reflect on feelings and choices through the symbolism of the cards.\n• Guided readings: consider questions about relationships, work and daily life, and think about your next steps.\n\nA wish for your wallpaper\nChoose a talisman scene and theme, then adjust the size and position to keep the whole illustration visible. Apply it to your home or lock screen, or save and share the image. The available steps may vary by device and Android settings.\n\nYour account and saved readings\nSign in with your existing account to view purchase history and saved results. 꿀꿀운세 and Yeongnyangi readings have separate libraries.\n\nBefore you begin\nSome content requires payment. Check the price and terms shown before purchasing. Some reading content and text within images may be in Korean. Readings and talismans offer reflection and symbolism; they do not guarantee a particular future or outcome."
+    },
+    "ja-JP": {
+      "title": "꿀꿀운세：四柱推命・タロット",
+      "shortDescription": "四柱推命・タロット・占星術で自分を見つめ直す時間を。願いを込めたお守り壁紙も楽しめます。",
+      "fullDescription": "自分の性格や人間関係、日々の悩みを、少し違う角度から見つめてみませんか。꿀꿀운세は、四柱推命、タロット、占星術、相談形式のリーディングを楽しめるサービスです。\n\nさまざまな視点から、自分を知る\n・四柱推命：生年月日と出生時刻をもとに、気質や人生の流れを読み解きます。\n・西洋占星術・インド占星術・宿曜占星術：それぞれの体系の視点から、性格や関係性を探ります。\n・タロット：カードの象徴を通して、気持ちや選択肢を振り返ります。\n・相談形式のリーディング：恋愛、人間関係、仕事などの悩みを整理し、次の行動を考えます。\n\n願いを込めたお守りを壁紙に\nお守りの風景と願いを選び、イラスト全体が見えるように大きさや位置を調整できます。ホーム画面やロック画面への設定、画像の保存・共有に対応しています。設定方法は端末やAndroidの設定によって異なる場合があります。\n\nアカウントと保存した記録\nこれまで使っていたアカウントでログインすると、購入履歴や保存済みの結果を確認できます。꿀꿀운세とYeongnyangiの相談記録は、それぞれのライブラリで確認できます。\n\nご利用について\n一部のコンテンツは有料です。購入前に表示される価格と利用条件をご確認ください。一部のリーディングや画像内の文字は韓国語で表示されます。占いやお守りは、自分を見つめ直すための参考や象徴です。特定の未来や結果を保証するものではありません。"
+    }
+  }
+}

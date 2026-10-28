@@ -1,0 +1,148 @@
+{
+  "id": "nakshatra-vvip",
+  "featureKey": "nakshatra-vvip-codex",
+  "title": "나크샤트라 VVIP 통합서",
+  "notice": "계산값과 준비된 문장을 조합하는 5장 통합서입니다. 명식 총람/관점별 해석/27수 관계 지형/지배성 심화/다샤 인생지도를 포함합니다. 세 대가의 목소리는 해석 관점을 표현한 명칭으로 실제 전문가 세 명의 상담이나 새 AI 답변이 아닙니다. 프로필의 출생정보를 확인하며 시간미상은 개인 파다 제한, 성별미입력은 동양대운 누락이 있습니다. 지배성·다샤의 내용을 이 통합서에서 읽는 것이며 별도 상품의 해금권 제공이 아닙니다. PDF 저장이 있고 현재 화면의 별도 결과 보관함은 없습니다. 본문 수신 실패는 같은 결제 다시 받기 안내를 따릅니다. 질문답변/궁합/택일/AI 심화상담은 포함되지 않습니다. 도식과 문장은 설명용 가상 예시로 실제 후기/개인 결과가 아닙니다. 이용권·월정석·단건 결제는 기존 화면의 기준을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-book-of-two-stars",
+      "title": "두 개의 별로 읽는, 한 사람의 통합서.",
+      "src": "/feature-details/crafted/nakshatra-vvip/01-a-book-of-two-stars.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 개의 별로 읽는,\n한 사람의 통합서.\n\n숙요\n\n×\n\n나크샤트라\n\n성향 · 관계 · 시간\n\n나크샤트라 결정판 VVIP 통합서.\n명식 총람부터 관계 지형과 시기까지,\n다섯 장의 결과를 한 화면에 모읍니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-vvip/01-a-book-of-two-stars-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-five-chapters",
+      "title": "페이지를 넘기듯, 다섯 장을 따라갑니다.",
+      "src": "/feature-details/crafted/nakshatra-vvip/02-five-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "페이지를 넘기듯,\n다섯 장을 따라갑니다.\n명식 총람\n세 대가의 목소리\n27수 지형에서의 내 자리\n지배성 심화 리포트\n다샤 인생지도\n\n계산값과 준비된 해석으로 구성합니다.\n새 AI 전문가 답변을 만드는 상품은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-vvip/02-five-chapters-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-two-names",
+      "title": "서로 다른 이름이, 같은 사람을 비춥니다.",
+      "src": "/feature-details/crafted/nakshatra-vvip/03-two-names.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "서로 다른 이름이,\n같은 사람을 비춥니다.\n동양의 숙요\n\n숙요의 자리와 관계 해석을 읽습니다.\n\n인도의 나크샤트라\n\n달의 별자리 구간과 지배성,\n기질의 세부 자료를 살펴봅니다.\n\n두 체계는 계산과 해석의 출발점이 다릅니다.\n같은 뜻의 이름처럼 바꾸어 쓰지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-vvip/03-two-names-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-voices-in-the-book",
+      "title": "겹치는 설명도, 갈리는 설명도 함께.",
+      "src": "/feature-details/crafted/nakshatra-vvip/04-voices-in-the-book.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "겹치는 설명도,\n갈리는 설명도 함께.\n\n숙요의 관점\n\n베다의 관점\n\n함께 읽는 해석\n\n‘세 대가의 목소리’는\n준비된 해석을 관점별로 보여주는 장입니다.\n공통점과 차이점을 나란히 읽어보세요.\n\n세 명의 전문가가 직접 상담하는 서비스가\n아니며, 실시간 대화도 제공하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-vvip/04-voices-in-the-book-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-a-map-of-relations",
+      "title": "사람을 단정하기보다, 관계의 거리를 읽습니다.",
+      "src": "/feature-details/crafted/nakshatra-vvip/05-a-map-of-relations.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "사람을 단정하기보다,\n관계의 거리를 읽습니다.\n나의 자리\n\n가까워지는 결\n\n조율이 필요한 결\n\n나의 숙요를 기준으로 27수의\n관계 역할을 표에서 살펴봅니다.\n다른 자리에 선 상대를 이해하는\n하나의 관점으로 활용하세요.\n\n도식은 설명용입니다. 상대의 실제 성격이나\n관계 성공률을 확정하는 표는 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-vvip/05-a-map-of-relations-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-the-person-and-the-time",
+      "title": "그 시기를 지나는 사람과, 지금의 시간을.",
+      "src": "/feature-details/crafted/nakshatra-vvip/06-the-person-and-the-time.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "그 시기를 지나는 사람과,\n지금의 시간을.\n제4장 · 지배성 심화\n\n재능과 그림자, 관계와 일,\n기질을 다루는 생활 실천을 읽습니다.\n\n제5장 · 다샤 인생지도\n\n대주기와 부주기, 현재의 흐름과\n전환 구간을 펼쳐봅니다.\n\n이 두 리포트의 내용을 통합서 안에서 읽습니다.\n별도 상품의 해금권을 함께 주는 뜻은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-vvip/06-the-person-and-the-time-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-a-reading-example",
+      "title": "설명이 다를 때, 나의 경험을 놓아봅니다.",
+      "src": "/feature-details/crafted/nakshatra-vvip/07-a-reading-example.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "설명이 다를 때,\n나의 경험을 놓아봅니다.\n“관계에서는 신중하지만,\n일을 시작할 때는 빠르네.\n어떤 상황에서\n각 모습이 드러났을까?”\n\n공통된 설명만 정답으로 고르기보다\n체계가 강조하는 차이를\n생활 속 장면과 비교해보세요.\n\n읽는 방법의 가상 예시입니다.\n실제 개인 결과나 고객 후기가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-vvip/07-a-reading-example-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-a-copy-to-keep",
+      "title": "읽은 화면을, PDF로 간직합니다.",
+      "src": "/feature-details/crafted/nakshatra-vvip/08-a-copy-to-keep.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "읽은 화면을,\nPDF로 간직합니다.\n\n다섯 장의 통합서\n\nPDF 저장\n\n완성된 통합서 화면의\nPDF 저장 버튼으로 내보낼 수 있습니다.\n파일이 저장됐는지 확인해주세요.\n\n현재 이 화면은 별도 결과 보관함을\n제공하지 않습니다. 본문 수신에 실패하면\n같은 결제의 다시 받기 안내를 따릅니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-vvip/08-a-copy-to-keep-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-before-the-calculation",
+      "title": "시간과 성별에 따라, 읽을 범위가 달라집니다.",
+      "src": "/feature-details/crafted/nakshatra-vvip/09-before-the-calculation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "시간과 성별에 따라,\n읽을 범위가 달라집니다.\n\n프로필의 생일·시각·지역 등\n계산에 사용할 정보를 확인해주세요.\n\n시간 미상은 개인 파다 해석이 제한됩니다.\n성별 정보가 없으면 동양 대운 축이 빠집니다.\n시기 경계도 출생시각에 영향을 받습니다.\n\n질문 입력이나 실제 전문가와의 대화는\n이 통합서의 구성에 포함되지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-vvip/09-before-the-calculation-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-choose-the-right-book",
+      "title": "책처럼 모아 읽고 싶을 때, 이 통합서.",
+      "src": "/feature-details/crafted/nakshatra-vvip/10-choose-the-right-book.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "책처럼 모아 읽고 싶을 때,\n이 통합서.\n\n프로필을 확인한 뒤 기존 버튼에서\n가격과 이용 조건을 확인합니다.\n이용권·월정석·단건 결제는\n현재 화면의 기준을 따릅니다.\n\n새 질문에 맞춘 AI 심화 상담,\n두 사람의 궁합, 날짜를 고르는 택일은\n각각 별도 상품입니다.\n\n통합서는 해석 자료입니다.\n성향이나 미래를 확정하거나\n중요한 결정을 대신하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-vvip/10-choose-the-right-book-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

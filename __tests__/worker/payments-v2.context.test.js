@@ -49,6 +49,8 @@ describe("라우트 표", () => {
   test("표를 읽으면 전체 표면이 보인다", () => {
     expect(Object.keys(ROUTES).sort()).toEqual([
       // 결제 공개 설정 컷오버 어댑터 — 구 GET /api/payments/config 가 여기로 온다.
+      // 프로필 선택 지급 — 출생 기반 전환 전 주문의 지급 보류 해소(birth-profile-claim.js).
+      "GET /birth-profile-pending",
       "GET /config",
       "GET /features",
       "GET /orders/:id",
@@ -60,6 +62,7 @@ describe("라우트 표", () => {
       "GET /service-packs/orders/:id/status",
       "GET /service-packs/wallet",
       // 월정석 컷오버 어댑터 — 구 coin-gate 의 MOONLIGHT_STONE 분기(재작성)가 여기로 온다.
+      "POST /birth-profile-pending/:id/claim",
       "POST /coin-gate/moonstone",
       // 이용권 검사 컷오버 — 구 coin-gate 의 MEMBERSHIP_PASS 분기(재작성)가 여기로 온다.
       "POST /coin-gate/pass-check",
@@ -120,8 +123,9 @@ describe("주문 표현", () => {
     order.rawPortOne = { secret: "x" };
     const view = presentOrder(order);
     expect(Object.keys(view).sort()).toEqual(
-      ["amountKRW", "createdAt", "entitlementGranted", "featureKey", "orderId", "paidAt", "productId", "requestId", "status"],
+      ["amountKRW", "createdAt", "entitlementGranted", "featureKey", "orderId", "paidAt", "productId", "productName", "requestId", "status"],
     );
+    expect(typeof view.productName).toBe("string");
     expect(JSON.stringify(view)).not.toMatch(/rawPortOne|pricingSnapshot|idempotencyKey/);
   });
 });
@@ -183,7 +187,7 @@ describe("확정 오케스트레이션", () => {
     db.rows[0].status = "cancelled";
     let caught = null;
     try {
-      await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, { fetchPayment: async () => pgReply() });
+      await runConfirm(db, ctxOf(), { orderId: order.merchantUid, systemActor: true }, { fetchPayment: async () => pgReply() });
     } catch (error) { caught = error; }
     expect(classify(caught).status).toBe(409);
   });
@@ -217,7 +221,7 @@ describe("확정 오케스트레이션", () => {
     const order = await seedPending(db);
     let caught = null;
     try {
-      await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, {
+      await runConfirm(db, ctxOf(), { orderId: order.merchantUid, systemActor: true }, {
         fetchPayment: async () => pgReply({ paymentId: order.merchantUid, amount: 100 }),
       });
     } catch (error) { caught = error; }
@@ -231,7 +235,7 @@ describe("확정 오케스트레이션", () => {
     const order = await seedPending(db);
     let caught = null;
     try {
-      await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, {
+      await runConfirm(db, ctxOf(), { orderId: order.merchantUid, systemActor: true }, {
         fetchPayment: async () => { throw new Error("PortOne payment lookup failed: request timed out after 8000ms"); },
       });
     } catch (error) { caught = error; }
@@ -244,7 +248,7 @@ describe("확정 오케스트레이션", () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);
     db.rows[0].featureKey = "totally-made-up"; // resolveProduct 가 던지게 만든다
-    const result = await runConfirm(db, ctxOf(), { orderId: order.merchantUid }, {
+    const result = await runConfirm(db, ctxOf(), { orderId: order.merchantUid, systemActor: true }, {
       fetchPayment: async () => pgReply({ paymentId: order.merchantUid }),
     });
     expect(result.granted).toBe(false);
@@ -256,7 +260,7 @@ describe("확정 오케스트레이션", () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);
     const ctx = ctxOf();
-    const result = await runConfirm(db, ctx, { orderId: order.merchantUid }, {
+    const result = await runConfirm(db, ctx, { orderId: order.merchantUid, systemActor: true }, {
       fetchPayment: async () => {
         // PG 검증 도중 형제가 먼저 확정한 상황을 만든다.
         db.rows[0].status = "paid";
@@ -467,7 +471,7 @@ describe("전 경로 — 실행기를 주입해 Mongo 없이 돌린다", () => {
     expect(db.ctx.ops).toBe(1);
     const payload = await response.json();
     // 위 PRODUCT 스텁이 아니라 paid-feature-registry 의 실제 가격이 나온다.
-    expect(payload.amountKRW).toBe(10000);
+    expect(payload.amountKRW).toBe(30000);
     expect(payload.order.status).toBe("PENDING");
   });
 

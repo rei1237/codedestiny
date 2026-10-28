@@ -37,11 +37,11 @@ assert.ok(countFusionFortuneVisibleText(result) >= 30000);
 assert.equal(Object.keys(snapshot.context.systems).length, 6);
 assert.equal(snapshot.context.tarotSpread.cards.length, 6);
 const requests = [], errors = [], metrics = [];
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, channel: process.env.BROWSER_CHANNEL || 'chrome' });
 try {
-  for (const width of [390, 430, 1280]) {
+  for (const [width, dpr] of [[360,1],[390,1],[430,1],[1280,1],[1280,1.25],[1440,1],[1440,1.25]]) {
     // A separate browser document/context for every viewport, no preview injection.
-    const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
+    const context = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: dpr, reducedMotion: 'reduce', serviceWorkers: 'block' });
     await context.route('**/*', async route => {
       const url = new URL(route.request().url());
       if (url.pathname.startsWith('/api/')) {
@@ -76,8 +76,8 @@ try {
       await page.evaluate(name => (name === 'visibilitychange' ? document : window).dispatchEvent(new Event(name)), event);
     }
     assert.equal(await closing.textContent(), result.closingMessage);
-    metrics.push({ width, closingChars: result.closingMessage.length, lastLineBottom, overflow });
-    if (output) await page.screenshot({ path: path.join(output, `fusion-closing-${width}.png`) });
+    metrics.push({ width, dpr, closingChars: result.closingMessage.length, lastLineBottom, overflow });
+    if (output) await page.screenshot({ path: path.join(output, `fusion-closing-${width}-${dpr}.png`) });
     await context.close();
   }
   // A server checkpoint may arrive while this document is asleep. Test each wake event alone.

@@ -38,8 +38,8 @@ try {
     assert.equal(await page.locator(`[data-consultation-share="${brand}"]`).count(), 0, `${brand}: failed result cannot share`);
   }
   for (const [guide, target, label] of [
-    ['/astrology/cosmic/', '/astrology-ai/', '서양 점성술 상담 살펴보기'],
-    ['/vedic/jyotish/', '/vedic-ai/', '베다점 상담 살펴보기'],
+    ['/astrology/', '/astrology-ai/', '서양 점성술 상담 살펴보기'],
+    ['/vedic/', '/vedic-ai/', '베다점 상담 살펴보기'],
   ]) {
     for (const width of [390, 1280]) {
       await page.setViewportSize({ width, height: 844 });
@@ -49,7 +49,7 @@ try {
       assert.equal(new URL(await link.getAttribute('href'), origin).pathname, target);
       if (process.env.CONSULTATION_SCREENSHOT_DIR) {
         await link.scrollIntoViewIfNeeded();
-        await page.screenshot({ path: `${process.env.CONSULTATION_SCREENSHOT_DIR}/${guide === '/vedic/jyotish/' ? 'vedic' : 'astrology'}-guide-${width}.png` });
+        await page.screenshot({ path: `${process.env.CONSULTATION_SCREENSHOT_DIR}/${guide === '/vedic/' ? 'vedic' : 'astrology'}-guide-${width}.png` });
       }
       await Promise.all([page.waitForURL(`**${target}`), link.click()]);
       console.log(`PASS ${guide} ${width}px: public guide to consultation entry`);

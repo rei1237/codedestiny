@@ -1,11 +1,16 @@
 import { connectDb, resolveMongoDbName } from "../lib/db.js";
 import { User } from "../lib/models.js";
 import { getEnv } from "../lib/env.js";
+import { isExplicitLocalDevEnv } from "../lib/auth-secret.js";
 import { getRoutePath, json, methodNotAllowed, notFound } from "../lib/http.js";
 
 function isDebugModeEnabled(env) {
   const raw = String(getEnv(env, "DEBUG_MODE", "")).trim().toLowerCase();
-  return raw === "true" || raw === "1" || raw === "yes" || raw === "on";
+  if (!(raw === "true" || raw === "1" || raw === "yes" || raw === "on")) return false;
+  // 무인증 쓰기·조회 라우트라 운영 런타임에서는 DEBUG_MODE를 무시한다.
+  // 명시적 로컬 개발 또는 스테이징(APP_ENV=staging)에서만 열린다.
+  const appEnv = String(getEnv(env, "APP_ENV", "")).trim().toLowerCase();
+  return isExplicitLocalDevEnv(env) || appEnv === "staging";
 }
 
 function requireDebugMode(env) {

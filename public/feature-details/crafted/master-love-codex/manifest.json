@@ -1,0 +1,164 @@
+{
+  "id": "master-love-codex",
+  "featureKey": "master-love-codex",
+  "title": "마스터 인연의 서 · 개인",
+  "cardTitle": "개인판",
+  "hook": "나의 끌림과 연애 패턴을 여러 장으로 나누어, 관계를 이해할 단서를 찾습니다.",
+  "chaptersLabel": "다섯 막 스무 장 목차",
+  "chapters": [
+    {
+      "title": "운명의 문 — 당신이라는 사람",
+      "detail": "Ⅰ막 타고난 결"
+    },
+    {
+      "title": "타고난 연애 기질 — 일간과 십성이 말하는 것",
+      "detail": "Ⅰ막 타고난 결"
+    },
+    {
+      "title": "부부궁이 말하는 배우자상",
+      "detail": "Ⅰ막 타고난 결"
+    },
+    {
+      "title": "끌림의 원리 — 오행과 조후",
+      "detail": "Ⅰ막 타고난 결"
+    },
+    {
+      "title": "애착과 표현 방식",
+      "detail": "Ⅱ막 마음의 구조"
+    },
+    {
+      "title": "마음의 방어기제",
+      "detail": "Ⅱ막 마음의 구조"
+    },
+    {
+      "title": "인연이 열리는 자리 — 천이궁의 지도",
+      "detail": "Ⅱ막 마음의 구조"
+    },
+    {
+      "title": "썸에서 연애로 넘어가는 조건",
+      "detail": "Ⅱ막 마음의 구조"
+    },
+    {
+      "title": "고백과 타이밍",
+      "detail": "Ⅲ막 관계의 온도"
+    },
+    {
+      "title": "관계의 온도 곡선",
+      "detail": "Ⅲ막 관계의 온도"
+    },
+    {
+      "title": "갈등의 뿌리 — 형충파해가 건드리는 자리",
+      "detail": "Ⅲ막 관계의 온도"
+    },
+    {
+      "title": "화해와 회복의 언어",
+      "detail": "Ⅲ막 관계의 온도"
+    },
+    {
+      "title": "질투·집착·거리두기",
+      "detail": "Ⅳ막 깊어지는 자리"
+    },
+    {
+      "title": "친밀감과 두 사람의 리듬",
+      "detail": "Ⅳ막 깊어지는 자리"
+    },
+    {
+      "title": "이별의 패턴과 재회의 문",
+      "detail": "Ⅳ막 깊어지는 자리"
+    },
+    {
+      "title": "결혼운과 장기 동행",
+      "detail": "Ⅳ막 깊어지는 자리"
+    },
+    {
+      "title": "사주 × 자미두수 교차검증",
+      "detail": "Ⅴ막 해독과 봉인"
+    },
+    {
+      "title": "연애 DNA 프로필",
+      "detail": "Ⅴ막 · 신뢰·배려·주도성·표현력·질투·집착·감성·이성·설렘·헌신"
+    },
+    {
+      "title": "앞으로 3년, 인연의 흐름",
+      "detail": "Ⅴ막 해독과 봉인"
+    },
+    {
+      "title": "연애 고수의 마지막 편지",
+      "detail": "Ⅴ막 해독과 봉인"
+    }
+  ],
+  "notice": "삽화 속 마스터는 상담을 안내하는 캐릭터이며, 상담 내용은 AI가 생성합니다. 사람이 결과마다 직접 작성하는 상담이 아닙니다. 소개 문장은 풀이 방식을 설명하는 편집 예시이며 고객의 실제 결과·후기가 아닙니다. 실제 내용은 입력 정보와 생성된 결과에 따라 달라집니다. 미래나 상대의 마음을 확정하지 않습니다. 제작자의 과거 직접 1:1 상담 후기는 이 디지털 상품의 구매 후기가 아닙니다.",
+  "panels": [
+    {
+      "id": "opening",
+      "title": "사람은 바뀌는데, 사랑의 고민은 비슷하다면.",
+      "text": "나의 끌림과 연애 패턴을 여러 장으로 나누어, 관계를 이해할 단서를 찾습니다.",
+      "src": "/images/service-introductions/master-love-codex.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "인연의 서 마스터가 사주와 자미두수로 사랑의 패턴을 살피는 상담 장면"
+    },
+    {
+      "id": "scope",
+      "title": "나의 반복을 읽는 개인판",
+      "text": "본인의 출생 정보로 끌림·표현·방어·갈등과 회복의 패턴을 읽습니다. 특정 상대의 명식을 비교하는 상품은 궁합판입니다. 연애 DNA는 해석을 정리한 표현이며 심리검사 점수나 성공 확률이 아닙니다.",
+      "src": "/images/service-introductions/master-love-codex.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": ""
+    },
+    {
+      "id": "reading-example",
+      "title": "개인판 · 화해와 회복의 언어",
+      "text": "가상 프로필로 생성한 실제 AI 결과 원문 발췌 · 실제 고객 후기 아님\n\n갈등이 발생했을 때, 너무 오랫동안 혼자 감정을 정리하려 하기보다는, 적절한 시점에 대화를 시도하는 용기가 필요합니다. 예를 들어, '지금은 마음이 좀 복잡해서 잠시 생각할 시간이 필요해. 조금 후에 다시 이야기할 수 있을까?'라고 솔직하게 자신의 상태를 전달하는 것이 좋습니다.",
+      "src": "/images/service-introductions/master-love-codex.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "sampleKind": "result",
+      "sourceUrl": "https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV",
+      "sourceLabel": "인연의 서 · 개인 / 화해와 회복의 언어"
+    },
+    {
+      "id": "approach",
+      "title": "사주와 자미두수, 같은 장면을 다른 근거로 읽어요.",
+      "text": "사주는 일간·십성·오행과 시기의 흐름을, 자미두수는 명궁·부부궁 등 삶의 자리를 살핍니다. 두 체계가 함께 가리키는 부분과 다르게 보이는 부분을 구분합니다. 교차검증은 해석의 대조이며 미래 사실의 검증을 뜻하지 않습니다.",
+      "src": "/images/service-introductions/master-love-codex.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": ""
+    },
+    {
+      "id": "takeaway",
+      "title": "읽고 나면 바꿔 볼 행동이 남도록.",
+      "text": "갈등에서 침묵하는 습관, 애정을 확인하는 방법, 가까워질 때의 속도를 일상의 언어로 풀어봅니다. 해석 중 내 경험과 맞는 부분을 살피고, 다음 대화에서 시도할 행동을 하나 골라보세요.",
+      "src": "/images/service-introductions/master-love-codex.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": ""
+    },
+    {
+      "id": "prepare",
+      "title": "출생 정보를 준비한 뒤, 맞는 판을 선택해 주세요.",
+      "text": "본인의 생년월일·성별·달력 기준을 준비해 주세요. 모르는 출생 시간은 모름으로 선택할 수 있습니다. 개인판과 궁합판은 별도 상품입니다. 금액과 이용권·월정석 적용 여부는 각 상품의 가격 안내와 결제 화면에서 확인해 주세요. 모든 장이 완성되면 PDF로 저장할 수 있습니다.",
+      "src": "/images/service-introductions/master-love-codex.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": ""
+    }
+  ],
+  "layout": "editorial",
+  "masters": [
+    {
+      "key": "master",
+      "name": "마스터",
+      "epithet": "인연의 서 · 사랑의 패턴을 읽는 안내자",
+      "signature": "사주와 자미두수를 함께 읽어, 사랑에서 반복되는 패턴과 관계의 선택을 짚어주는 마스터입니다.",
+      "role": "인연의 서 · 사랑의 패턴을 읽는 안내자",
+      "part": "기질과 관계의 흐름을 차근차근 풀고, 지금의 인연에서 살펴볼 질문과 현실적인 행동을 함께 정리합니다.",
+      "basis": "기질과 관계의 흐름을 차근차근 풀고, 지금의 인연에서 살펴볼 질문과 현실적인 행동을 함께 정리합니다.",
+      "avatar": "/images/master-profiles/avatars/master.webp",
+      "portrait": "/images/master-profiles/master-love-portrait.webp"
+    }
+  ]
+}

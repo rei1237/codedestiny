@@ -1,4 +1,5 @@
 import { actualContentDate } from "../lib/content/editorial-review.mjs";
+import { getPublishedProfiles } from "../lib/famous-saju/profile-publication.js";
 import { INTRO_TOPICS, introductionRoutes } from "../lib/i18n/feature-introductions.mjs";
 import { TRUST_KEYS, trustRoutes } from "../lib/i18n/public-trust-copy.mjs";
 import { splitLocaleSitemaps, sitemapIndex } from "./lib/locale-sitemaps.mjs";
@@ -68,12 +69,20 @@ const LEDGER_CHECK_LABEL = "config/sitemap-lastmod.json";
 // 확장자가 있는 경로는 normalizeSitemapPath 가 후행 슬래시를 붙이지 않아
 // noindexPathPrefixes(startsWith prefix + "/")로 걸러지지 않는다. 정확 일치로 제외한다.
 const excludedExactSitemapPaths = new Set([
+  "/secret-house_real.html", "/destiny-poker.html",
+  // Retired presentations redirect to their canonical category or home.
+  "/kkul-kkul-unse/", "/saju/basic/", "/oracle/sukuyo/", "/vedic/jyotish/", "/astrology/cosmic/",
   "/ifa-oracle.html",
   "/account/delete/",
 ]);
 // public/_headers 의 X-Robots-Tag: noindex 정책과 동기화 유지할 것.
 // noindex 경로를 사이트맵에 넣으면 GSC/네이버에서 "제출된 URL에 noindex" 오류가 난다.
 const noindexPathPrefixes = [
+  // 선택형/놀이형 콘텐츠 임시 비노출 (기존 결과는 보존).
+  "/saju/love-simulation",
+  "/secret-house_real",
+  "/destiny-poker",
+  "/mini-games",
   // 날짜별 보관 화면은 재방문 도구다. 기간별 정본과 반복되는 360개 URL은 검색에서 제외한다.
   "/fortune/date",
   '/neo-operation-room/strategy-books',
@@ -104,7 +113,6 @@ const noindexPathPrefixes = [
   // docs/context/seo-and-adsense.md 참고.
   "/oracle/juyuk",
   "/oracle/hwatu",
-  "/tadagochi",
   "/blog",
   "/famous",
   "/fortune/sikojen-povailu",
@@ -176,12 +184,13 @@ const staticCanonicalRouteEntries = STATIC_CANONICAL_ROUTES.map((route) => ({
 }));
 
 const coreRoutes = [
-  // 🔴 "/" 는 넣지 않는다 — 워커가 /ggulggul/ 로 301 한다(2026-10-02 사용자 결정: /ggulggul/ 단일 대표).
-  //    리다이렉트 URL 을 사이트맵에 내면 대표 URL 신호가 둘로 갈린다.
-  // 브랜드 별칭("꿀꿀 운세") 의 대표 URL 은 /ggulggul/ 다. 이 페이지는 그 관계를
-  // 설명하는 보조 안내라 대표보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
-  { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.85 },
-  // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 1,000원 재미 사주 콘텐츠와 영냥이 고등어 상담 안내를 맡는다.
+  { path: "/saju/career-style", changefreq: "monthly", priority: 0.8 },
+  { path: "/consultation-samples", changefreq: "monthly", priority: 0.7 },
+  // "/" 는 꿀꿀 운세 공식 대표 홈이다(2026-10-15 사용자 결정, 200). /ggulggul/ 로케일 클러스터와
+  // 섞지 않도록 alternates 없이 둔다. 앱 입구 /ggulggul/ 은 아래에 그대로 남는다.
+  { path: "/", changefreq: "daily", priority: 1.0 },
+  // 공식 주소·표기 안내 페이지. 대표 홈보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
+  // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 1,000원 사주 리포트와 영냥이 고등어 상담 안내를 맡는다.
   { path: "/yeongnyangi/1000-won-fortune", changefreq: "weekly", priority: 0.8 },
   { path: "/saju/destiny-anatomy", changefreq: "monthly", priority: 0.76 },
   { path: "/human-design/guide", changefreq: "monthly", priority: 0.7 },
@@ -209,7 +218,6 @@ const coreRoutes = [
   { path: "/ziwei/chart", changefreq: "weekly", priority: 0.92 },
   { path: "/ziwei/animal-destiny", changefreq: "weekly", priority: 0.87 },
   { path: "/astrology", changefreq: "weekly", priority: 0.95 },
-  { path: "/astrology/cosmic", changefreq: "weekly", priority: 0.92 },
   { path: "/sukuyo", changefreq: "weekly", priority: 0.94 },
   { path: "/sukuyo/compatibility", changefreq: "weekly", priority: 0.93 },
   // 2026-08-30: /sukuyo/calendar 를 noindexPathPrefixes 에서 빼고 여기 등재했다 —
@@ -217,7 +225,6 @@ const coreRoutes = [
   // 서버 렌더 해설 섹션을 넣어 해결했다(위 2026-08-24 5건과 같은 처방).
   { path: "/sukuyo/calendar", changefreq: "daily", priority: 0.9 },
   { path: "/vedic", changefreq: "weekly", priority: 0.94 },
-  { path: "/vedic/jyotish", changefreq: "weekly", priority: 0.93 },
   { path: "/nakshatra", changefreq: "weekly", priority: 0.9 },
   // 27수 도감(0–26) — /nakshatra/calc·/result 는 색인 제외이므로 등록하지 않는다.
   ...Array.from({ length: 27 }, (_, i) => ({ path: `/nakshatra/codex/${i}`, changefreq: "monthly", priority: 0.72 })),
@@ -228,8 +235,6 @@ const coreRoutes = [
   { path: "/physiognomy", changefreq: "weekly", priority: 0.93 },
   { path: "/pdf/love-report", changefreq: "monthly", priority: 0.88 },
   { path: "/sukuyo-compatibility-ai", changefreq: "monthly", priority: 0.87 },
-  { path: "/saju/basic", changefreq: "weekly", priority: 0.95 },
-  { path: "/oracle/sukuyo", changefreq: "weekly", priority: 0.93 },
   { path: "/tarot/mingri", changefreq: "weekly", priority: 0.93 },
   { path: "/tarot/love", changefreq: "weekly", priority: 0.9 },
   { path: "/tarot/healing", changefreq: "weekly", priority: 0.9 },
@@ -239,6 +244,8 @@ const coreRoutes = [
   //    /tarot/healing 등 2026-08-24 의 5개와 같은 모양이다. page.tsx 에 서버 렌더
   //    안내 섹션을 넣어 1,900자대로 올린 뒤 되돌렸다.
   { path: "/saju-fpti", changefreq: "weekly", priority: 0.86 },
+  // 체험형 게임 10종 모음(2026-10-17). 홈·컬렉션에서 빠진 게임 타일의 진입점이다.
+  { path: "/mini-games", changefreq: "weekly", priority: 0.84 },
   // 🔴 coreRoutes 는 손으로 유지하는 목록이라, noindexPathPrefixes 에서 빼는 것만으로는
   //    사이트맵에 들어오지 않는다. 2026-08-24 에 색인으로 되돌린 5개 중 /tarot/healing 과
   //    /saju/love-simulation 은 이미(각각 여기와 정적 canonical 목록에) 등재돼 있었고,
@@ -482,8 +489,8 @@ function extractFamousSajuRoutes() {
 
   // 상세 페이지(/insights/famous-saju/<slug>)는 **검수된 고유 원고가 있는 인물만** 넣는다.
   // 나머지는 app/insights/famous-saju/[slug]/page.tsx 가 noindex 로 내보내는 템플릿 조립물이라
-  // 색인 대상이 아니다. 색인 여부의 정본은 lib/famous-saju/celebrity-editorial.js 의 reviewedAt
-  // 하나이고, 페이지 robots · 이 사이트맵 · verify-adsense-readiness 가 전부 그 값을 본다.
+  // 색인 대상이 아니다. 기존 원고는 reviewedAt, 인물별 AI 편집 글은 profile-publication.js의
+  // 공개 승인을 사용한다. 페이지 robots와 readiness도 동일한 두 경로만 허용한다.
   // 카테고리 12개(`/famous-saju/category/<slug>`)는 2026-08-17 에 라우트째 삭제해서 뺐다.
   // 🔴 위 튜플 스캔은 셀럽 데이터의 모양이 깨지지 않았는지 보는 앵커다 — 0건이면 파싱이 깨진
   //    것이므로 통과시키지 않고, 원고의 슬러그가 튜플에 없어도 통과시키지 않는다.
@@ -500,6 +507,12 @@ function extractFamousSajuRoutes() {
     }
     // lastmod 는 검수일 — 페이지의 Article.dateModified 와 같은 값이어야 하므로 원장을 타지 않는다.
     routes.push({ path: `/insights/famous-saju/${slug}`, lastmod: entry.reviewedAt, changefreq: "monthly", priority: 0.78 });
+  }
+  for (const profile of getPublishedProfiles()) {
+    const path = `/insights/famous-saju/${profile.slug}`;
+    if (!routes.some(route => route.path === path)) {
+      routes.push({ path, lastmod: profile.publication.updatedAt, changefreq: "monthly", priority: 0.78 });
+    }
   }
   return routes;
 }
@@ -672,7 +685,7 @@ function isPublicSitemapPath(pathname) {
   const normalized = normalizeSitemapPath(pathname);
   if (staticCanonicalAliasPaths.has(normalized.replace(/\/+$/, ""))) return false;
   if (excludedExactSitemapPaths.has(normalized)) return false;
-  if (noindexPathPrefixes.some((prefix) => normalized === `${prefix}/` || normalized.startsWith(`${prefix}/`))) return false;
+  if (noindexPathPrefixes.some((prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`))) return false;
   if (privateRoutePatterns.some((pattern) => pattern.test(normalized))) return false;
   return isLiveRoute(normalized);
 }

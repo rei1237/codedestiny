@@ -1,15 +1,22 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
-import type { VisualDetail } from "@/js/feature-detail-panels.mjs";
+import { revealCraftedTranscript, type VisualDetail } from "@/js/feature-detail-panels.mjs";
 
-export default function FeatureIntroductionActions({ detail }: { detail: Pick<VisualDetail, "featureKey" | "featureKeyTo" | "accessType" | "href" | "ctaLabel"> }) {
+export default function FeatureIntroductionActions({ detail }: { detail: Pick<VisualDetail, "featureKey" | "featureKeyTo" | "priceFrom" | "accessType" | "href" | "ctaLabel"> }) {
   const price = useServerPrice({ featureKey: detail.featureKey || undefined });
-  const upper = useServerPrice({ featureKey: detail.featureKeyTo || undefined });
+  const upper = useServerPrice({ featureKey: detail.priceFrom ? undefined : detail.featureKeyTo || undefined });
   const [sticky, setSticky] = useState(false);
   const bottom = useRef<HTMLElement>(null);
-  const range = detail.featureKeyTo && upper.amountKRW > price.amountKRW ? `${price.label} ~ ${upper.label}` : price.label;
-  const label = detail.accessType === "free" ? "무료" : price.loading || (detail.featureKeyTo && upper.loading) ? "이용 가격 확인 중" : range || "시작 화면에서 이용 조건 확인";
+  const range = detail.priceFrom && price.amountKRW > 0 ? `${price.label}부터` : detail.featureKeyTo && upper.amountKRW > price.amountKRW ? `${price.label} ~ ${upper.label}` : price.label;
+  const label = detail.accessType === "free" ? "무료" : price.loading || (!detail.priceFrom && detail.featureKeyTo && upper.loading) ? "이용 가격 확인 중" : range || "시작 화면에서 이용 조건 확인";
+  useEffect(() => {
+    document.addEventListener('error', revealCraftedTranscript, true);
+    document.querySelectorAll<HTMLImageElement>('.craftedDetail img').forEach(image => {
+      if (image.complete && image.naturalWidth === 0) revealCraftedTranscript({ target: image });
+    });
+    return () => document.removeEventListener('error', revealCraftedTranscript, true);
+  }, []);
   useEffect(() => {
     const slot = document.querySelector<HTMLElement>('[data-fortune-hero-action]');
     if (!slot) return;

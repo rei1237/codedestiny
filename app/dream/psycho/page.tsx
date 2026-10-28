@@ -16,7 +16,7 @@ const DREAM_PSYCHO_TEXT_TRANSLATIONS = {
     "value.6.title": "6. 불편감이 크면 전문가 상담과 병행하세요",
   },
   en: {
-    "meta.title": "Psychoanalytic Dream Reading - Freud Study | Code Destiny",
+    "meta.title": "Psychoanalytic Dream Reading - Freud Study | 꿀꿀 운세",
     "meta.description": "An in-depth dream interpretation guide that reads unconscious signals and relationship patterns through symbolic analysis from a Freudian perspective.",
     "service.h1": "Psychoanalytic Dream Reading",
     "service.seoText": "Psychoanalytic dream reading treats dreams as the language of the unconscious and reads symbols together with emotional flow.",
@@ -61,7 +61,7 @@ const SERVICE = {
   seoText: dreamPsychoText("service.seoText"),
   localized: {
     en: {
-      title: "Psychoanalytic Dream Reading - Freud Study | Code Destiny",
+      title: "Psychoanalytic Dream Reading - Freud Study | 꿀꿀 운세",
       h1: "Psychoanalytic Dream Reading",
       description:
         "An in-depth dream interpretation guide that reads unconscious signals and relationship patterns through symbolic analysis from a Freudian perspective.",
@@ -103,7 +103,7 @@ const SERVICE = {
       ],
     },
     ja: {
-      title: "精神分析的夢占い - Freud Study | Code Destiny",
+      title: "精神分析的夢占い - Freud Study | 꿀꿀 운세",
       h1: "精神分析的夢占い",
       description:
         "フロイト的な象徴分析の視点から、夢にひそむ無意識のサインと人間関係のパターンを読み解く深層夢占いガイドです。",
@@ -145,7 +145,7 @@ const SERVICE = {
       ],
     },
     "zh-CN": {
-      title: "精神分析解梦 - Freud Study | Code Destiny",
+      title: "精神分析解梦 - Freud Study | 꿀꿀 운세",
       h1: "精神分析解梦",
       description:
         "从弗洛伊德式象征分析视角，阅读梦中的无意识信号与关系模式的深层解梦指南。",
@@ -187,7 +187,7 @@ const SERVICE = {
       ],
     },
     "zh-TW": {
-      title: "精神分析解夢 - Freud Study | Code Destiny",
+      title: "精神分析解夢 - Freud Study | 꿀꿀 운세",
       h1: "精神分析解夢",
       description:
         "從佛洛伊德式象徵分析視角，閱讀夢中的無意識訊號與關係模式的深層解夢指南。",
@@ -229,7 +229,7 @@ const SERVICE = {
       ],
     },
     vi: {
-      title: "Giải mộng phân tâm học - Freud Study | Code Destiny",
+      title: "Giải mộng phân tâm học - Freud Study | 꿀꿀 운세",
       h1: "Giải mộng phân tâm học",
       description:
         "Hướng dẫn giải mộng chuyên sâu đọc tín hiệu vô thức và mô thức quan hệ qua phân tích biểu tượng theo góc nhìn Freud.",
@@ -271,7 +271,7 @@ const SERVICE = {
       ],
     },
     hi: {
-      title: "मनोविश्लेषणात्मक स्वप्न व्याख्या - Freud Study | Code Destiny",
+      title: "मनोविश्लेषणात्मक स्वप्न व्याख्या - Freud Study | 꿀꿀 운세",
       h1: "मनोविश्लेषणात्मक स्वप्न व्याख्या",
       description:
         "फ्रायडीय प्रतीक विश्लेषण से स्वप्न में छिपे अचेतन संकेत और संबंध पैटर्न पढ़ने वाली गहन स्वप्न गाइड.",
@@ -313,7 +313,7 @@ const SERVICE = {
       ],
     },
     es: {
-      title: "Lectura psicoanalítica de sueños - Freud Study | Code Destiny",
+      title: "Lectura psicoanalítica de sueños - Freud Study | 꿀꿀 운세",
       h1: "Lectura psicoanalítica de sueños",
       description:
         "Una guía profunda de sueños que lee señales inconscientes y patrones relacionales mediante análisis simbólico desde una mirada freudiana.",
@@ -355,7 +355,7 @@ const SERVICE = {
       ],
     },
     fr: {
-      title: "Lecture psychanalytique des rêves - Freud Study | Code Destiny",
+      title: "Lecture psychanalytique des rêves - Freud Study | 꿀꿀 운세",
       h1: "Lecture psychanalytique des rêves",
       description:
         "Un guide d'interprétation approfondi qui lit les signaux inconscients et les schémas relationnels par analyse symbolique d'inspiration freudienne.",
@@ -397,7 +397,7 @@ const SERVICE = {
       ],
     },
     de: {
-      title: "Psychoanalytische Traumdeutung - Freud Study | Code Destiny",
+      title: "Psychoanalytische Traumdeutung - Freud Study | 꿀꿀 운세",
       h1: "Psychoanalytische Traumdeutung",
       description:
         "Ein tiefgehender Traumdeutungsleitfaden, der unbewusste Signale und Beziehungsmuster durch symbolische Analyse aus freudianischer Perspektive liest.",
@@ -439,7 +439,7 @@ const SERVICE = {
       ],
     },
     nl: {
-      title: "Psychoanalytische droomduiding - Freud Study | Code Destiny",
+      title: "Psychoanalytische droomduiding - Freud Study | 꿀꿀 운세",
       h1: "Psychoanalytische droomduiding",
       description:
         "Een diepgaande droomgids die onbewuste signalen en relatiepatronen leest via symbolische analyse vanuit freudiaans perspectief.",
@@ -481,7 +481,7 @@ const SERVICE = {
       ],
     },
     ms: {
-      title: "Tafsiran mimpi psikoanalitik - Freud Study | Code Destiny",
+      title: "Tafsiran mimpi psikoanalitik - Freud Study | 꿀꿀 운세",
       h1: "Tafsiran mimpi psikoanalitik",
       description:
         "Panduan tafsir mimpi mendalam yang membaca isyarat bawah sedar dan pola hubungan melalui analisis simbolik dari perspektif Freud.",

@@ -14,7 +14,7 @@ if (typeof window !== 'undefined' && typeof window.openSajuAnimalPage !== 'funct
 
 if (typeof window !== 'undefined' && typeof window.openDestinyEggPage !== 'function') {
   window.openDestinyEggPage = function openDestinyEggPage() {
-    window.location.assign('/tadagochi');
+    window.location.assign('/ggulggul/#dpMasterCard');
   };
 }
 
@@ -57,26 +57,26 @@ const __lazyActionLoaders = {
   agreeAndCalculate: () => __ensureSajuCoreScripts(),
   calculate: () => __ensureSajuCoreScripts(),
   runCompat: () => __ensureSajuCoreScripts(),
-  openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PhysiognomyUI.js?v=hc500a55c5938')),
-  openPastLifeFaceApp: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PastLifeFaceUI.js?v=h18a3c245e2db')),
-  openHwatuModal: () => __loadScriptOnce('HwatuFortune.js?v=h7c6f7751f293'),
+  openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PhysiognomyUI.js?v=h249f3790ba4b')),
+  openPastLifeFaceApp: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PastLifeFaceUI.js?v=he6a7b41ecbbb')),
+  openHwatuModal: () => __loadScriptOnce('HwatuFortune.js?v=haecc3241c877'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-5311846b921c'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-6d2c2ef4778c'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-355af2ec3036'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-0ec1914725f2'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-cf48ab7e8047'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-f7656ba31ff5'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-81c843ae9e30')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-4cb9efbdfb11')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
-  openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
+  openDestinyEggPage: () => Promise.resolve(window.location.assign('/ggulggul/#dpMasterCard')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-650a9aee4faa'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-9b771f6b8215'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-b43826e23353'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-8e57ec2d8607'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing/')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing/')),
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-86062dc39929'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-2758f960eb34'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-d5a7f78af64e'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai/')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai/')),
@@ -106,16 +106,16 @@ const __lazyActionLoaders = {
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai/')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openRuneOracle: () => Promise.resolve(window.location.assign('/oracle/rune/')),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-17f27a22f2a0').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-1969477b5929').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
-  
+
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-5a3b2b6e4fbd')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-5a1066da4d34')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
-    .then(() => __loadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-0717901ec907'))
+    .then(() => __loadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
 }
@@ -436,9 +436,12 @@ function __bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton) 
   // 이 속성을 읽는 다른 코드가 있어 첫 후보는 그대로 노출한다.
   if (chain.length) img.setAttribute('data-cd-img-fallback-src', chain[0]);
   else img.removeAttribute('data-cd-img-fallback-src');
-  if (skeleton) {
-    img.addEventListener('load', () => { skeleton.remove(); }, { once: true });
-  }
+  const revealImage = () => {
+    if (placeholder) placeholder.style.display = 'none';
+    if (skeleton) skeleton.remove();
+  };
+  img.addEventListener('load', revealImage, { once: true });
+  if (img.complete && img.naturalWidth > 0) revealImage();
   if (img.dataset && img.dataset.cdCollectionFallbackBound === '1') return;
   if (img.dataset) img.dataset.cdCollectionFallbackBound = '1';
   img.addEventListener('error', () => {
@@ -545,6 +548,7 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
 
     const existingImg = wrap.querySelector('img.tarot-tile__img');
     if (existingImg) {
+      if (existingImg.complete && existingImg.naturalWidth > 0 && placeholder) placeholder.style.display = 'none';
       const existingSrc = existingImg.getAttribute('src') || src;
       const resolvedExistingSrc = __resolveCollectionImageSrc(existingSrc);
       // 마크업에 박힌 정적 <img> 도 같은 리사이즈 경로를 태운다(원본 80~200KB 를 그대로 받고 있었다)

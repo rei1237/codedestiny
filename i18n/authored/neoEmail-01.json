@@ -1,0 +1,16 @@
+{
+  "home.guideCopy.replyLanguage": {
+    "ko": "답변 언어: {language}",
+    "en": "Reply language: {language}",
+    "ja": "回答の言語：{language}",
+    "zh-CN": "答复语言：{language}",
+    "zh-TW": "回覆語言：{language}",
+    "vi": "Ngôn ngữ trả lời: {language}",
+    "hi": "उत्तर की भाषा: {language}",
+    "es": "Idioma de la respuesta: {language}",
+    "fr": "Langue de réponse : {language}",
+    "de": "Antwortsprache: {language}",
+    "nl": "Antwoordtaal: {language}",
+    "ms": "Bahasa jawapan: {language}"
+  }
+}

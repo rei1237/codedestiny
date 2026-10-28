@@ -111,7 +111,8 @@ for (const featureKey of ["tarot-love-relationship", "vedic-ai-consultation"]) {
 console.log("\n[5] 등록되지 않은 가격대는 fail-closed인가");
 check("999코인(미등록 가격대) → 티어 해석 거부", resolveAppContentTier(999) === null);
 check("0코인 → 티어 해석 거부", resolveAppContentTier(0) === null);
-check("인하된 꽃 상품은 검증된 천원 SKU 등록 전 결제를 닫음", resolveProductForFeature("flower-fc") === null);
+check("꽃 상품은 기존 5,000원 SKU로 웹가와 같은 앱가를 사용함", resolveProductForFeature("flower-fc")?.amountKRW === 5000);
+check("천원 운세는 신규 tier_15로 웹가와 같은 앱가를 사용함", resolveProductForFeature("rpt_specialCharmCard")?.amountKRW === 1000);
 
 console.log("\n[6] RTDN 환불 알림이 해석되는가");
 function extractVoided(decoded) {
@@ -168,7 +169,7 @@ for (const [tier, expectedKRW] of [["standard", 5000], ["premium", 10000], ["vvi
 check("family(무제한): 커버 티어 없음 → null", resolveAppPassCoverageKRW(PASS_LIMITS.family) === null);
 
 console.log("\n[9] 이용권에 존재하지 않는 '횟수' 개념을 안내하지 않는가");
-// 이용권은 30일 기간만 있고 사용 횟수 제한이 없다(canUseByPass에 횟수 개념 자체가 없음).
+// 이용권은 기간이 없고(2026-10-11, 한도 소진 시 종료) 사용 횟수 제한이 없다(canUseByPass에 횟수 개념 자체가 없음).
 for (const relPath of ["app/page.js"]) {
   const source = await fs.readFile(path.join(ROOT, relPath), "utf8");
   const claimsPassCount = /이용권\s*횟수/.test(source.replace(/^\s*\/\/.*$/gm, ""));

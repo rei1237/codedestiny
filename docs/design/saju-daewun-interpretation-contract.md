@@ -18,6 +18,7 @@ next: 계산 및 챕터 규칙 변경 시 공통 회귀와 기존 구매 결과 
 - 동물점의 기존 해외 입력처럼 시간대만 있고 경도가 없으면 내부 명시 옵션으로 민용 시각(`CIVIL_TIME`)을 사용한다. 경도를 추정하지 않고 실제 UTC 출생 순간과 KST 절기 시계는 보존하며, 미보정 사유와 별도 정책 버전을 기록한다. 기본 명식 API의 불완전한 출생지 검증은 유지하고, 한국 기본 입력은 기존 서울 경도를 적용한다. 잘못된 좌표와 서머타임 중복·누락 시각은 거절한다.
 - 대운 시계는 환산된 출생 순간과 절기의 차이를 사용한다. 출생지의 민용 날짜, 한국 표준시, 표시하는 세는 나이를 구분한다.
 - 공통 강약·종격: 화면 원본 `js/saju-engine.js`와 생성된 `lib/saju/natal-power.js`. 영냥이와 snapshot은 추출 런타임을 재사용한다. 최소 오행을 별도 용신으로 지명하지 않는다.
+- 원국 판정(격국·진가종·강약·한난·조습·구조 용신)의 정본은 `lib/saju/natal-core/`와 [saju-natal-core-rule-profile.md](saju-natal-core-rule-profile.md)다. 종격은 원국으로만 판정한다. 과거 연도 설문·사건 응답은 원국 판정을 바꾸지 않고 기간 해석의 보정(`ExperienceCalibration`)에만 쓴다.
 - 합화·삼합 조건: `sajuHapAssessment`, `sajuSamhapState`를 `scripts/sync-saju-luck-rules.mjs`로 `lib/saju/luck-rules.js`에 생성한다. 화면·Worker·퀀텀 관계의 회귀를 함께 실행한다.
 - 미확인 시주는 관계·장간·통근 근거로 쓰지 않는다. 생시 미상에서는 대운 시작 시점과 현재 대운을 확정하지 않는다. 이미 표시된 이전 명식의 대운과 그래프도 지운다.
 

@@ -445,7 +445,7 @@
   min-height: 3.25rem;
   border: 0;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--vd-saffron-lit) 0%, var(--vd-saffron) 47%, var(--vd-moon) 100%);
+  background: var(--vd-saffron-lit);
   color: var(--vd-bg-deep);
   font-weight: 800;
   cursor: pointer;
@@ -722,7 +722,7 @@
 
 .summaryGrid span,
 .chartCards span,
-.sectionCard span,
+.sectionCard > span,
 .userMsg span {
   display: block;
   color: var(--vd-saffron-lit);
@@ -791,7 +791,7 @@
 .userMsg p {
   margin: 0.35rem 0 0;
   color: rgba(var(--vd-text-rgb), 0.9);
-  line-height: 1.78;
+  line-height: 1.9;
   white-space: pre-wrap;
   /* keep-all 은 어절만 지킬 뿐 URL·연속 영숫자 같은 긴 런을 못 끊는다 — 짝이 없으면 그대로 넘친다. */
   word-break: keep-all;

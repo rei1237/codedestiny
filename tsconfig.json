@@ -56,6 +56,7 @@
     "playwright-report",
     "test-results",
     "build-cache",
+    "output",
     ".cache",
     "backups",
     "**/_tmp_*.mjs",

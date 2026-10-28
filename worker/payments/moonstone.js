@@ -32,7 +32,7 @@
  * 폐지된 통화(코인)의 0-delta 감사행이라 신규 시스템은 쓰지 않는다. 월정석의 회계 정본은
  * MonthlyCreditLedger 하나다. 구 데이터는 그대로 보존되며 아무것도 지우지 않는다.
  */
-import { calculatePaidFeatureMembershipCreditCost, FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
+import { calculatePaidFeatureMembershipCreditCost, FEATURE_KEY_PRICE_TABLE, getPaidFeaturePaymentPolicy } from "../lib/paid-feature-registry.js";
 import { assertFeatureEnabled } from "../lib/billing-feature-registry.js";
 import { isMoonstoneSpendRefunded } from "../lib/moonstone-spend-proof.js";
 import { profileMutationMetadata } from "../lib/profile-mutation-context.js";
@@ -158,13 +158,25 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
   if (!sourceId) throw paymentError("IDEMPOTENCY_KEY_REQUIRED", "결제 요청 식별자가 필요합니다.");
   const cost = Math.max(0, Math.floor(Number(product?.monthlyCost || 0)));
   if (cost <= 0) throw paymentError("PRODUCT_NOT_FOUND", "월정석으로 결제할 수 없는 상품입니다.");
+  const mutationMetadata = profileMutationMetadata({ featureKey: product.featureKey, profileId, purchaseId: sourceId, action: profileAction });
+  if (!mutationMetadata) throw paymentError("INVALID_REQUEST", "프로필 변경 정보를 확인해 주세요.");
+  if (getPaidFeaturePaymentPolicy(product.featureKey).monthlyExcluded) {
+    // Completed charges remain replayable; a new debit cannot bypass the catalog floor.
+    const existing = await db.findOne(MonthlyCreditLedger, ledgerFilter(uid, sourceId));
+    if (existing && (existing.serviceKey !== product.featureKey || Number(existing.amount) !== cost))
+      throw paymentError('IDEMPOTENCY_CONFLICT', '기존 월정석 결제의 대상 또는 금액이 일치하지 않습니다.');
+    if (existing?.settledAt && !isMoonstoneSpendRefunded(existing)
+      && existing.serviceKey === product.featureKey && Number(existing.amount) === cost
+      && String(existing.profileId || '') === String(profileId || '')) {
+      return { balance: Number(existing.afterBalance || 0), replayed: true, ledgerId: String(existing._id || '') };
+    }
+    throw paymentError("MONTHLY_NOT_ALLOWED", "월정석은 1만원 이상 대상 상품에 사용할 수 있습니다. 다른 결제 방식을 선택해 주세요.");
+  }
 
   if(String(product.featureKey || '').startsWith('yeongnyangi-')
     && (Number(product.priceCoins)!==Number(FEATURE_KEY_PRICE_TABLE[product.featureKey]?.cost)
       || cost!==calculatePaidFeatureMembershipCreditCost(product.featureKey)))
     throw paymentError('INVALID_REQUEST','상담 상품의 월정석 금액이 일치하지 않습니다.');
-  const mutationMetadata = profileMutationMetadata({ featureKey: product.featureKey, profileId, purchaseId: sourceId, action: profileAction });
-  if (!mutationMetadata) throw paymentError("INVALID_REQUEST", "프로필 변경 정보를 확인해 주세요.");
   const funding=/^yeongnyangi-/.test(String(product.featureKey || ''))?await import('../yeongnyangi/payment-funding.js'):null;
   const fundingClaim=funding?await funding.reserveFortuneFunding(db,{userId,requestId:sourceId,featureKey:product.featureKey,coinCost:product.priceCoins,method:'MOONLIGHT_STONE'}):null;
   const finishSpend=async result=>{

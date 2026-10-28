@@ -26,7 +26,7 @@ function cuts(persona: Persona): Record<PersonaMood, string> {
 
 export const PERSONA_SPRITE: Record<Persona, { cells: Record<PersonaMood, string>; alt: string }> = {
   yeoni: { cells: cuts("yeoni"), alt: "꽃돼지 연이" },
-  neo: { cells: cuts("neo"), alt: "백사자 네오" },
+  neo: { cells: cuts("neo"), alt: "네오" },
 };
 
 export function personaImage(persona: Persona, mood: PersonaMood): string {

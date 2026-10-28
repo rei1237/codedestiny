@@ -5,7 +5,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "오행과 균형 가이드 | Code Destiny",
+    "metadata.title": "사주 오행 분석·목화토금수 균형 보는 법 | 꿀꿀 운세",
     heading: "오행과 균형 가이드",
     "section.scope": "오행이 살피는 것",
     "section.inputs": "필요한 입력값",
@@ -17,7 +17,7 @@ const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "해석 시 주의할 점",
   },
   en: {
-    "metadata.title": "Five Elements and Balance Guide | Code Destiny",
+    "metadata.title": "Five Elements and Balance Guide | 꿀꿀 운세",
     heading: "Five Elements and Balance Guide",
     "section.scope": "What the Five Elements Look At",
     "section.inputs": "Required Inputs",
@@ -29,7 +29,7 @@ const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "What to Keep in Mind",
   },
   ja: {
-    "metadata.title": "五行とバランスガイド | Code Destiny",
+    "metadata.title": "五行とバランスガイド | 꿀꿀 운세",
     heading: "五行とバランスガイド",
     "section.scope": "五行が見るもの",
     "section.inputs": "必要な入力項目",
@@ -41,7 +41,7 @@ const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解釈時の注意点",
   },
   "zh-CN": {
-    "metadata.title": "五行与平衡指南 | Code Destiny",
+    "metadata.title": "五行与平衡指南 | 꿀꿀 운세",
     heading: "五行与平衡指南",
     "section.scope": "五行会观察什么",
     "section.inputs": "需要输入的信息",
@@ -53,7 +53,7 @@ const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解读时的注意事项",
   },
   "zh-TW": {
-    "metadata.title": "五行與平衡指南 | Code Destiny",
+    "metadata.title": "五行與平衡指南 | 꿀꿀 운세",
     heading: "五行與平衡指南",
     "section.scope": "五行會觀察什麼",
     "section.inputs": "需要輸入的資訊",
@@ -75,8 +75,9 @@ export function generateMetadata() {
     path: "/saju/five-elements",
     title: fiveElementsGuideText("metadata.title"),
     description:
-      "사주 오행의 목화토금수 균형을 어떻게 읽는지와 입력값, 해석 흐름, 샘플 리딩, 주의사항을 안내합니다.",
-    keywords: ["오행", "사주 오행", "목화토금수", "오행 균형", "명리학", "Code Destiny"],
+      "사주 오행의 목화토금수 균형을 읽는 법과 오행 분석 흐름, 샘플 리딩, 주의사항을 안내합니다. 용신 찾기(억부·조후)는 이어지는 가이드에서 볼 수 있습니다.",
+    // 사주 오행 보는법·오행 분석·음양오행은 2026-10-24 자동완성 근거. 용신 찾기 정보형은 /insights/yongshin-finding-method-practical-guide 가 대표 URL이다.
+    keywords: ["오행", "사주 오행", "목화토금수", "오행 균형", "명리학", "꿀꿀운세", "사주 오행 보는법", "오행 분석", "음양오행"],
   });
 }
 
@@ -111,6 +112,11 @@ const faqItems = [
     answer:
       "강한 오행은 재능처럼 드러나기도 하지만 과하면 피로와 고집, 관계의 마찰로 나타날 수 있습니다. 잘 쓰는 힘일수록 쉬는 리듬과 조율이 함께 필요합니다.",
   },
+  {
+    question: "오행 분포를 보면 용신도 바로 알 수 있나요?",
+    answer:
+      "바로 정해지지는 않습니다. 일간이 너무 강하거나 약할 때 균형을 맞추는 억부용신, 태어난 계절의 추위·더위를 조절하는 조후용신처럼 기준에 따라 같은 명식에서도 다른 오행이 나올 수 있습니다. 오행 분포는 그 판단의 출발점이며, 기준별 차이는 아래 용신 찾기 가이드에서 이어서 볼 수 있습니다.",
+  },
 ];
 
 export default function SajuFiveElementsPage() {
@@ -119,7 +125,7 @@ export default function SajuFiveElementsPage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">{fiveElementsGuideText("heading")}</h1>
         <p className="cd-main-intro">
-          오행은 목, 화, 토, 금, 수가 서로 돕고 제어하며 삶의 기질과 리듬을 이루는 명리학의 기본 언어입니다. Code Destiny는 오행을 부족과 과다의 점수표로만 보지 않고, 계절과 배치 속에서 어떤 힘이 자연스럽게 흐르는지 살핍니다.
+          오행은 목, 화, 토, 금, 수가 서로 돕고 제어하며 삶의 기질과 리듬을 이루는 명리학의 기본 언어입니다. 꿀꿀운세는 오행을 부족과 과다의 점수표로만 보지 않고, 계절과 배치 속에서 어떤 힘이 자연스럽게 흐르는지 살핍니다.
         </p>
       </header>
 
@@ -181,7 +187,7 @@ export default function SajuFiveElementsPage() {
       <section className="cd-card">
         <h2>{fiveElementsGuideText("section.caution")}</h2>
         <p>
-          오행 해석은 엔터테인먼트와 자기 점검을 위한 참고 자료이며 의료 진단이나 치료 지침이 아닙니다. 건강, 투자, 법률, 결혼, 이혼, 소송, 진로처럼 중대한 결정은 실제 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
+          오행 해석은 자기 점검을 위한 참고 자료이며 의료 진단이나 치료 지침이 아닙니다. 건강, 투자, 법률, 결혼, 이혼, 소송, 진로처럼 중대한 결정은 실제 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
         </p>
       </section>
 
@@ -201,6 +207,8 @@ export default function SajuFiveElementsPage() {
         <Link href="/saju/ten-gods" className="cd-chip">십성 가이드</Link>
         <Link href="/saju/destiny-anatomy" className="cd-chip">사주 뇌구조와 운명 구조도</Link>
         <Link href="/manse" className="cd-chip">만세력 보기</Link>
+        <Link href="/insights/yongshin-finding-method-practical-guide" className="cd-chip">용신 찾기: 억부·조후·격국</Link>
+        <Link href="/insights/five-elements-ohang-complete-guide" className="cd-chip">오행 상생·상극·음양 가이드</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>
       </nav>

@@ -1,0 +1,74 @@
+module.exports={
+  "id": "yeongnyangi-vedic-flounder",
+  "featureKey": "yeongnyangi-vedic-flounder",
+  "title": "영냥이 베다점 광어 상담",
+  "notice": "베다 광어의 질문 상담은 두 사람의 출생 차트와 실제 비교 근거를 바탕으로 관계의 차이와 합의할 조건을 읽습니다. 두 사람 궁합 질문은 15장, 질문 없이 읽는 기본 성향 리포트는 13장으로 구성이 다릅니다. 별도 레거시 궁합·건강 등 상담 종류를 고르면 해당 화면의 목차를 확인해 주세요. 아슈타쿠타 등 전통 비교는 결혼·재회 여부나 상대의 속마음을 확정하지 않습니다. 성인 연인·배우자 관계의 친밀감은 편안함·속도·대화·경계로만 다룹니다. 예시는 가상 편집이며 AI가 작성하는 상담입니다. 가격과 추가 질문 조건은 기존 화면에서 확인하세요.",
+  "evidence": [
+    "worker/yeongnyangi/fortune/ask/question-policy.ts",
+    "worker/yeongnyangi/fortune/ask/wrappers.ts",
+    "worker/yeongnyangi/fortune/vedic/index.ts",
+    "docs/product-details/vedic-pair-timing-contract-snapshot.json"
+  ],
+  "panels": [
+    {
+      "id": "01-two-rhythms-one-conversation",
+      "title": "마음의 속도가 다를 때, 함께 읽는 두 사람.",
+      "alt": "공식베다영냥이와서로다른감정리듬을읽는관계표지.",
+      "html": "<h1>마음의 속도가 다를 때,<br>함께 읽는 두 사람.</h1><img class=\"cover\" src=\"/assets/yeongnyangi/readings/vedic-v5.webp\" alt=\"\"><p>사랑의 크기를 재기보다,<br>서로 편안해질 조건을 살펴봅니다.</p><p class=\"sign\">영냥이 베다점 · 광어</p>"
+    },
+    {
+      "id": "02-how-we-return-to-a-talk",
+      "title": "바로 풀고 싶은 마음, 잠시 쉬고 싶은 마음.",
+      "alt": "다툼뒤즉시대화와휴식이라는두리듬을나란히보는편집장면.",
+      "html": "<h2>바로 풀고 싶은 마음,<br>잠시 쉬고 싶은 마음.</h2><div class=\"voices\"><section><h3>“지금 이야기해야 안심돼.”</h3><p>침묵이 길어지면<br>관계가 멀어질까 걱정되는 사람.</p></section><section><h3>“조금만 혼자 정리하고 싶어.”</h3><p>감정이 가라앉아야<br>내 말을 찾을 수 있는 사람.</p></section></div><p>어느 쪽이 덜 사랑하는지보다,<br>다시 대화할 시간을 약속해 봐요.</p><p class=\"note\">관계의 차이를 설명하는 가상 예시입니다.</p>"
+    },
+    {
+      "id": "03-read-the-basis-together",
+      "title": "두 차트의 차이를, 생활의 언어로 읽어요.",
+      "alt": "라그나달나크샤트라와아슈타쿠타를관계비교근거로설명.",
+      "html": "<h2>두 차트의 차이를,<br>생활의 언어로 읽어요.</h2><div class=\"basis\"><section><h3>라그나 · 밖으로 드러나는 태도</h3><p>각자 세상을 만나고 반응하는 방식.</p></section><section><h3>달과 나크샤트라 · 마음의 바탕</h3><p>감정의 리듬과 익숙한 반응의 결.</p></section><section><h3>아슈타쿠타 · 전통 궁합 비교</h3><p>달의 위치를 바탕으로 살피는<br>여러 비교 항목을 함께 읽어요.</p></section></div><p class=\"note\">한 항목이나 점수로 관계를 결정하지 않아요.<br>맞는 부분과 조율할 부분을 함께 살핍니다.</p>"
+    },
+    {
+      "id": "04-where-the-question-begins",
+      "title": "“우리는 왜 이럴까?” 이유를 찾는 첫 다섯 장.",
+      "alt": "실제질문1~5장기질강점판단근거기회조건을두단계로안내.",
+      "html": "<h2>“우리는 왜 이럴까?”<br>이유를 찾는 첫 다섯 장.</h2><p class=\"label\">두 사람 궁합 질문 · 15장 중 1–5장</p><div class=\"chapter\"><section><h3>1–2장 · 나를 이해하는 바탕</h3><p>라그나와 달의 성향<br>강점과 부담이 되는 순간</p></section><section><h3>3–5장 · 두 사람에 대한 판단</h3><p>잘 맞는 점과 조율할 차이<br>판단의 근거와 달라지는 조건<br>현재의 기회와 주의 조건</p></section></div><p class=\"note\">관계를 점수로 닫지 않고,<br>해석이 달라질 수 있는 조건까지 읽어요.</p>"
+    },
+    {
+      "id": "05-a-path-back-to-each-other",
+      "title": "차이를 알았다면, 함께 지킬 방법으로.",
+      "alt": "질문6~10장구조끌림책임시기회복을대화경로로설계.",
+      "html": "<h2>차이를 알았다면,<br>함께 지킬 방법으로.</h2><div class=\"path\"><section><h3>6–7장 · 우리의 기본 리듬</h3><p>두 사람의 구조 · 끌림과 충돌</p></section><section><h3>8장 · 역할과 책임의 분담</h3><p>자연스럽게 맡는 일과 합의할 일</p></section><section><h3>9–10장 · 흔들릴 때의 약속</h3><p>관계가 흔들리는 시기 · 회복의 조건</p></section></div><p class=\"note\">시기는 계산된 근거의 범위에서 읽습니다.<br>상대가 돌아올 날짜를 정해주지는 않아요.</p>"
+    },
+    {
+      "id": "06-our-lives-outside-the-relationship",
+      "title": "관계 밖의 삶도, 둘 사이로 들어옵니다.",
+      "alt": "실제11~15장재물일회복올해흐름종합실행과성인조건고지.",
+      "html": "<h2>관계 밖의 삶도,<br>둘 사이로 들어옵니다.</h2><p class=\"label\">질문 11–15장 · 생활과 실행</p><div class=\"chapter\"><section><h3>11–14장 · 질문 밖에서 보이는 흐름</h3><p>재물 · 일과 적성<br>건강 리듬과 회복 · 올해의 흐름</p></section><section><h3>15장 · 종합 해석과 실행 계획</h3><p>차이를 생활 속 합의로 옮겨 봐요.</p></section></div><p>성인 연인·배우자의 친밀감도<br>편안함과 대화, 속도와 경계로 읽어요.</p><p class=\"note\">성적 특성이나 만족도를 지어내지 않습니다.<br>다른 관계에는 같은 항목을 강요하지 않아요.</p>"
+    },
+    {
+      "id": "07-a-small-agreement",
+      "title": "잠시 멀어져도, 돌아올 시간을 정해요.",
+      "alt": "다툼후정리시간과재대화약속을제안하는허구예시.",
+      "html": "<h2>잠시 멀어져도,<br>돌아올 시간을 정해요.</h2><p class=\"label\">이해를 돕기 위한 편집 예시</p><blockquote>혼자 정리할 시간이 필요하다면,<br>그 시간을 말로 알려 주세요.<br><br>“지금은 생각이 엉켜 있어.<br>저녁에 다시 이야기하자.”<br><br>기다리는 사람에게도<br>다음 대화의 자리를 남겨두는 거예요.</blockquote><p class=\"note\">실제 고객의 차트나 상담 결과가 아닙니다.</p>"
+    },
+    {
+      "id": "08-the-personal-book-is-different",
+      "title": "질문 없이 읽는다면, 나의 삶을 펼치는 13장.",
+      "alt": "별도기본성향13장을실제순서에따른네영역으로안내.",
+      "html": "<h2>질문 없이 읽는다면,<br>나의 삶을 펼치는 13장.</h2><div class=\"book\"><section><h3>1–4장 · 나와 사랑</h3><p>라그나 · 달 · 연애 · 배우자와 결혼</p></section><section><h3>5–7장 · 자원과 사회적 자리</h3><p>돈을 모으는 힘 · 이익과 인맥 · 일</p></section><section><h3>8–10장 · 관계의 뿌리</h3><p>형제와 소통 · 스승과 믿음 · 집과 어머니</p></section><section><h3>11–13장 · 힘을 쓰고 쉬는 법</h3><p>몸과 회복 · 위기와 변화 · 소모와 쉼</p></section></div><p class=\"note\">위 목차는 기본 성향 리포트예요.<br>두 사람 질문 15장과는 별도 구성입니다.</p>"
+    },
+    {
+      "id": "09-bring-both-stories",
+      "title": "두 사람의 정보와, 지금의 상황이 필요해요.",
+      "alt": "두사람필수출생시간지역시간대와관계유형질문준비.",
+      "html": "<h2>두 사람의 정보와,<br>지금의 상황이 필요해요.</h2><dl><div><dt>각자의 출생 정보</dt><dd>생년월일·성별·출생시간·출생 지역.<br>시간대와 좌표를 함께 확인합니다.</dd></div><div><dt>두 사람의 실제 관계</dt><dd>연인·배우자, 가족, 그 밖의 관계 중<br>지금의 관계를 알려 주세요.</dd></div><div><dt>함께 풀고 싶은 한 가지</dt><dd>최근 상황과 반복되는 대화,<br>서로 바라는 변화를 적어 주세요.</dd></div></dl><p class=\"note\">출생시간을 모르면 임의로 채우지 마세요.<br>관계의 판단도 확인된 정보 안에서 읽어요.</p>"
+    },
+    {
+      "id": "10-leave-room-for-the-other",
+      "title": "차이를 이해하는 일, 대화의 시작이 되도록.",
+      "alt": "공식영냥이와AI작성가격기존조건결과보관마무리.",
+      "html": "<h2>차이를 이해하는 일,<br>대화의 시작이 되도록.</h2><img class=\"cover\" src=\"/assets/yeongnyangi/readings/vedic-v5.webp\" alt=\"\"><p>상담에서 찾은 한 가지를,<br>두 사람이 나눌 질문으로 옮겨 보세요.</p><p class=\"note\">AI가 계산 근거를 바탕으로 작성합니다.<br>가격과 추가 질문 조건은 현재 화면에서,<br>저장된 결과는 내 상담에서 다시 읽어요.</p>"
+    }
+  ]
+};

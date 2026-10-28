@@ -1,0 +1,340 @@
+{
+  "status": "user-verified-ready-for-admin-registration",
+  "date": "2026-10-09",
+  "providerId": "aliexpress",
+  "trackingId": "NEO2277",
+  "website": "https://code-destiny.com",
+  "accountEvidence": "2026-10-09 사용자가 NEO2277 발급, code-destiny.com 활동 웹사이트 등록, 제휴 계정 홍보 가능 상태를 확인함. 계정 화면을 에이전트가 직접 열람한 것은 아님.",
+  "disclosure": "제휴 광고 · 이 페이지의 AliExpress 제휴 링크를 통해 구매하면 Code Destiny가 일정액의 수수료를 받을 수 있습니다.",
+  "purchaseNotice": "가격·배송비·배송 기간·반품 조건과 선택 옵션은 판매 페이지에서 확인해 주세요.",
+  "editorialPolicy": {
+    "noEfficacyClaims": true,
+    "noVerifiedGemstoneClaims": true,
+    "noUnverifiedPrices": true,
+    "noUnlicensedImages": true,
+    "booksFirst": true
+  },
+  "selection": {
+    "submitted": 36,
+    "selected": 6,
+    "held": 30,
+    "heldReasons": [
+      "낱알 비즈·펜던트·베이스 등 DIY 재료는 완제품과 혼동 가능하여 첫 공개에서 제외",
+      "아이돌 포토카드·스티커는 공식 라이선스 확인 전 제외",
+      "기종별 휴대전화 케이스는 호환 옵션 확인 전 제외",
+      "목걸이·팔찌가 혼재된 상품명은 구성 확인 전 제외",
+      "유사한 고양이 장식·옥 장신구는 중복 노출을 줄이기 위해 보류"
+    ]
+  },
+  "publication": {
+    "enabled": false,
+    "blocking": [
+      "운영 관리자가 아직 AliExpress 미지원 구버전",
+      "동작 검사를 실행한 main CI와 공식 배포 필요",
+      "배포 후 관리자 등록·검수·공개 설정 및 live 추천 확인"
+    ],
+    "revenueEvidence": "주문·수익 미확인. 자체 클릭은 수익으로 집계하지 않음."
+  },
+  "products": [
+    {
+      "id": "ali-tassel-bookmark",
+      "providerId": "aliexpress",
+      "currency": "KRW",
+      "category": "books",
+      "kind": "stationery",
+      "title": "태슬 장식 금속 책갈피",
+      "reason": "읽던 페이지에 작은 표시를 남겨두세요. 짧게 읽고 다음 날 이어가는 독서 습관에 활용할 수 있는 책갈피예요.",
+      "practiceTags": [
+        "habit-building",
+        "focus"
+      ],
+      "topicReasons": {
+        "habit-building": "읽던 페이지에 작은 표시를 남겨두세요. 짧게 읽고 다음 날 이어가는 독서 습관에 활용할 수 있는 책갈피예요.",
+        "focus": "읽던 페이지에 작은 표시를 남겨두세요. 짧게 읽고 다음 날 이어가는 독서 습관에 활용할 수 있는 책갈피예요."
+      },
+      "colors": [],
+      "motifs": [],
+      "interests": [
+        "reading",
+        "study"
+      ],
+      "serviceTags": [],
+      "topicTags": [],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://s.click.aliexpress.com/e/_c359R0RR",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 1개 빈티지 예술적 금속 책갈피, 긴 태슬이 달린 속이 빈 그림 디자인, 사무실 책 애호가를 위한 독서 선물 문구류",
+      "attributes": [
+        "책갈피 1개로 소개된 상품",
+        "문양·크기·태슬 색상은 선택 옵션 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": true,
+      "order": 100,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false,
+      "source": {
+        "originalTitle": "1개 빈티지 예술적 금속 책갈피, 긴 태슬이 달린 속이 빈 그림 디자인, 사무실 책 애호가를 위한 독서 선물 문구류",
+        "userQuotedPriceKRW": 1693,
+        "priceSource": "사용자 제공 참고값; 현재 가격 미검증; 공개 가격 필드 미사용"
+      }
+    },
+    {
+      "id": "ali-cat-savings-box",
+      "providerId": "aliexpress",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "symbol-accessory",
+      "title": "고양이 모양 저금통",
+      "reason": "동전을 모으는 작은 자리를 만들어 보세요. 저축 목표를 적은 메모와 함께 두고, 모인 금액을 가끔 기록하는 용도로 살펴볼 수 있어요.",
+      "practiceTags": [
+        "budgeting"
+      ],
+      "topicReasons": {
+        "budgeting": "동전을 모으는 작은 자리를 만들어 보세요. 저축 목표를 적은 메모와 함께 두고, 모인 금액을 가끔 기록하는 용도로 살펴볼 수 있어요."
+      },
+      "colors": [],
+      "motifs": [],
+      "interests": [
+        "budgeting",
+        "planning"
+      ],
+      "serviceTags": [],
+      "topicTags": [],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://s.click.aliexpress.com/e/_c3gY8lB3",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 세라믹 마네키 네코 동상 행운의 고양이 돈 상자, 행운의 색 고양이 돼지 저금통, 집 장식 선물, 풍수, 4.5 인치",
+      "attributes": [
+        "저금통으로 소개된 상품",
+        "동전 투입구·꺼내는 방식·크기 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": true,
+      "order": 101,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false,
+      "source": {
+        "originalTitle": "세라믹 마네키 네코 동상 행운의 고양이 돈 상자, 행운의 색 고양이 돼지 저금통, 집 장식 선물, 풍수, 4.5 인치",
+        "userQuotedPriceKRW": 14000,
+        "priceSource": "사용자 제공 참고값; 현재 가격 미검증; 공개 가격 필드 미사용"
+      }
+    },
+    {
+      "id": "ali-green-donut-bracelet",
+      "providerId": "aliexpress",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bracelet",
+      "title": "초록색 도넛 장식 팔찌",
+      "reason": "초록색과 둥근 장식을 좋아한다면 일상 옷차림에 곁들일 소품으로 살펴보세요. 소재와 손목 둘레에 맞는 크기는 판매 페이지에서 확인해 주세요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "직접 고른 색상 취향에 맞춰 살펴보는 장식 소품이에요. 운세의 변화나 특정 효과를 보장하는 상품으로 소개하지 않아요."
+      },
+      "colors": [
+        "green"
+      ],
+      "motifs": [],
+      "interests": [
+        "collecting"
+      ],
+      "serviceTags": [],
+      "topicTags": [],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://s.click.aliexpress.com/e/_c3bNiDg5",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 녹색 미얀마 경옥 도넛 팔찌 디자이너 팔찌 천연 버마 옥 패션 액세서리 진짜 보석 빈티지 부적",
+      "attributes": [
+        "초록색·도넛 모양 장식으로 소개",
+        "소재·사이즈·금속 알레르기 관련 정보 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 102,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false,
+      "source": {
+        "originalTitle": "녹색 미얀마 경옥 도넛 팔찌 디자이너 팔찌 천연 버마 옥 패션 액세서리 진짜 보석 빈티지 부적",
+        "userQuotedPriceKRW": 6570,
+        "priceSource": "사용자 제공 참고값; 현재 가격 미검증; 공개 가격 필드 미사용"
+      }
+    },
+    {
+      "id": "ali-green-clover-earrings",
+      "providerId": "aliexpress",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "symbol-accessory",
+      "title": "초록색 클로버 귀걸이",
+      "reason": "초록색 포인트를 작은 장신구로 더하고 싶을 때 살펴볼 만해요. 클로버 모양은 취향을 표현하는 장식으로 소개하며, 착용 방식과 소재를 먼저 확인해 주세요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "직접 고른 색상 취향에 맞춰 살펴보는 장식 소품이에요. 운세의 변화나 특정 효과를 보장하는 상품으로 소개하지 않아요."
+      },
+      "colors": [
+        "green"
+      ],
+      "motifs": [],
+      "interests": [
+        "collecting"
+      ],
+      "serviceTags": [],
+      "topicTags": [],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://s.click.aliexpress.com/e/_c4amvaQH",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 녹색 천연 옥 클로버 귀걸이 여성용 선물 부적 빈티지 귀걸이 행운의 돌 참 장식품 럭셔리",
+      "attributes": [
+        "클로버 모양 귀걸이로 소개",
+        "침·클립 여부와 소재·크기 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 103,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false,
+      "source": {
+        "originalTitle": "녹색 천연 옥 클로버 귀걸이 여성용 선물 부적 빈티지 귀걸이 행운의 돌 참 장식품 럭셔리",
+        "userQuotedPriceKRW": 4720,
+        "priceSource": "사용자 제공 참고값; 현재 가격 미검증; 공개 가격 필드 미사용"
+      }
+    },
+    {
+      "id": "ali-gold-cat-decoration",
+      "providerId": "aliexpress",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "symbol-accessory",
+      "title": "금색 고양이 장식",
+      "reason": "금색과 고양이 모양을 좋아한다면 선반이나 현관의 장식 후보로 살펴보세요. 놓을 자리의 폭과 높이를 재고 상품 크기를 비교하면 선택하기 편해요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "직접 고른 색상 취향에 맞춰 살펴보는 장식 소품이에요. 운세의 변화나 특정 효과를 보장하는 상품으로 소개하지 않아요."
+      },
+      "colors": [
+        "gold"
+      ],
+      "motifs": [],
+      "interests": [
+        "collecting"
+      ],
+      "serviceTags": [],
+      "topicTags": [],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://s.click.aliexpress.com/e/_c37MP109",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 세라믹 마네키 네코 장식품, 금 도자기, 행운의 행운의 고양이, 중국 풍수 장식, 팔짱을 흔드는 고양이, 7.5 인치",
+      "attributes": [
+        "금색 고양이 장식으로 소개",
+        "크기·무게·작동 여부는 선택 옵션 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 104,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false,
+      "source": {
+        "originalTitle": "세라믹 마네키 네코 장식품, 금 도자기, 행운의 행운의 고양이, 중국 풍수 장식, 팔짱을 흔드는 고양이, 7.5 인치",
+        "userQuotedPriceKRW": 49600,
+        "priceSource": "사용자 제공 참고값; 현재 가격 미검증; 공개 가격 필드 미사용"
+      }
+    },
+    {
+      "id": "ali-green-bead-bracelet",
+      "providerId": "aliexpress",
+      "currency": "KRW",
+      "category": "daily-life",
+      "kind": "bracelet",
+      "title": "초록색 비즈 팔찌",
+      "reason": "둥근 비즈와 초록색을 좋아하는 분을 위한 장신구 후보예요. 비즈 크기와 팔찌 둘레를 비교해 평소 착용하기 편한 구성을 골라보세요.",
+      "practiceTags": [
+        "symbolism"
+      ],
+      "topicReasons": {
+        "symbolism": "직접 고른 색상 취향에 맞춰 살펴보는 장식 소품이에요. 운세의 변화나 특정 효과를 보장하는 상품으로 소개하지 않아요."
+      },
+      "colors": [
+        "green"
+      ],
+      "motifs": [],
+      "interests": [
+        "collecting"
+      ],
+      "serviceTags": [],
+      "topicTags": [],
+      "species": [],
+      "groupId": "",
+      "affiliateUrl": "https://s.click.aliexpress.com/e/_c3gr3LZB",
+      "linkSource": "portal",
+      "linkType": "product",
+      "imageUrl": "",
+      "imageSource": "이미지 미사용. 판매처 상품 이미지를 확인하거나 복제하지 않았음.",
+      "evidence": "2026-10-09 사용자 제공 상품명·공식 단축 링크. 사용자가 NEO2277 발급 및 code-destiny.com 활동 웹사이트 등록 확인. 선정 6개 링크의 상품 연결·판매 상태를 사용자가 확인함. 에이전트 직접 열람은 브라우저 사이트 안전 정책 차단으로 미실행. 원문: 녹색 천연 옥 비즈 팔찌 여성을위한 패션 선물 팔찌 진짜 보석 조각 보석 빈티지 디자이너 액세서리",
+      "attributes": [
+        "초록색 비즈 팔찌로 소개",
+        "비즈 지름·팔찌 둘레·소재 확인"
+      ],
+      "stock": "available",
+      "price": null,
+      "priceVerifiedAt": null,
+      "featured": false,
+      "order": 105,
+      "status": "draft",
+      "verifiedAt": null,
+      "expiresAt": null,
+      "accountVerified": false,
+      "source": {
+        "originalTitle": "녹색 천연 옥 비즈 팔찌 여성을위한 패션 선물 팔찌 진짜 보석 조각 보석 빈티지 디자이너 액세서리",
+        "userQuotedPriceKRW": 5070,
+        "priceSource": "사용자 제공 참고값; 현재 가격 미검증; 공개 가격 필드 미사용"
+      }
+    }
+  ]
+}

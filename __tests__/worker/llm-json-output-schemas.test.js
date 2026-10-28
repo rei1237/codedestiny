@@ -5,6 +5,7 @@ import ts from 'typescript';
 import { jsonSchemaFromExample, repairJsonFieldLocations } from '../../worker/lib/json-text-repair.js';
 import { LOVE_SECRET_AI_GROUPS, buildLoveSecretGroupResponseSchema } from '../../worker/lib/love-secret-ai-prompt.js';
 import { PALM_VISION_RESPONSE_SCHEMA } from '../../worker/lib/palm-vision.js';
+import { TEA_FOLLOW_UP_ANSWER_EXAMPLE } from '../../worker/lib/fortune-tea-follow-up-contract.js';
 
 function teaSchema(group) {
   const source = fs.readFileSync('worker/routes/fortune-tea-house.js', 'utf8');
@@ -27,6 +28,14 @@ test('tea chapters constrain only their purchased paths and preserve object-arra
   expect(teaSchema({ fields: ['emotionAnalysis'] }).properties.emotionAnalysis.items.properties.value.type).toBe('NUMBER');
 });
 
+test('tea follow-up answers keep evidence as a string array and unwrap a misplaced result', () => {
+  const schema = jsonSchemaFromExample(TEA_FOLLOW_UP_ANSWER_EXAMPLE);
+  expect(schema.required).toEqual(['answerTitle', 'directAnswer', 'evidence', 'guidance', 'caution', 'closing']);
+  expect(schema.properties.evidence).toEqual({ type: 'ARRAY', items: { type: 'STRING' } });
+  const misplaced = { result: { directAnswer: '답', evidence: ['일간', '대운'], guidance: '해볼 일' } };
+  expect(repairJsonFieldLocations(misplaced, schema)).toEqual(misplaced.result);
+});
+
 test('love-secret schemas share the prompt example and keep section items as objects', () => {
   for (const group of LOVE_SECRET_AI_GROUPS) {
     const schema = buildLoveSecretGroupResponseSchema(group);
@@ -40,6 +49,9 @@ test('love-secret schemas share the prompt example and keep section items as obj
 test('palm schema preserves negative detection and numeric confidence without inventing observations', () => {
   expect(PALM_VISION_RESPONSE_SCHEMA.properties.palmDetected.type).toBe('BOOLEAN');
   expect(PALM_VISION_RESPONSE_SCHEMA.properties.majorLines.properties.lifeLine.properties.confidence.type).toBe('NUMBER');
+  // Score and coverage examples are placeholder strings in the prompt; the response stays numeric.
+  expect(Object.values(PALM_VISION_RESPONSE_SCHEMA.properties.scores.properties).map(item => item.type)).toEqual(Array(6).fill('NUMBER'));
+  expect(PALM_VISION_RESPONSE_SCHEMA.properties.imageQuality.properties.palmCoverage.type).toBe('NUMBER');
   const source = { result: { palmDetected: false, notPalmReason: '손바닥이 보이지 않음' } };
   expect(repairJsonFieldLocations(source, PALM_VISION_RESPONSE_SCHEMA)).toEqual(source.result);
 });

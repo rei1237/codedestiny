@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useState } from "react";
@@ -166,7 +169,7 @@ export default function TwelveAnimalInputCard({ input, onChange, onSubmit, isBus
   }, []);
 
   return (
-    <section className="space-y-5 rounded-[2rem] border border-[#b8d4eb] bg-[linear-gradient(158deg,#f8fcff_0%,#f7fbff_45%,#fff6ea_100%)] p-5 text-[#2f5677] shadow-[0_20px_46px_rgba(62,110,154,0.15)] sm:p-8">
+    <section data-moonlit-form="" className="space-y-5 rounded-[2rem] border border-[#b8d4eb] bg-[linear-gradient(158deg,#f8fcff_0%,#f7fbff_45%,#fff6ea_100%)] p-5 text-[#2f5677] shadow-[0_20px_46px_rgba(62,110,154,0.15)] sm:p-8">
       <div className="space-y-2 text-center">
         <h2 className="text-2xl font-black tracking-tight text-[#214968]">{copy.title}</h2>
         <p className="text-sm font-semibold leading-relaxed text-[#3f6789]">
@@ -192,7 +195,8 @@ export default function TwelveAnimalInputCard({ input, onChange, onSubmit, isBus
         </div>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <SavedBirthProfilePicker onSelect={seed => onChange({ name:seed.name || "", birthDate:seed.birthDate || "", birthTime:seed.birthTimeUnknown ? "" : seed.birthTime || "", gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "unknown", calendarType:seed.calendarType || "solar", lunarLeap:Boolean(seed.isLeapMonth) })} />
+      <div className="grid gap-5 md:grid-cols-2" data-birth-fields="">
         <label className="space-y-2 text-sm font-bold text-[#2b5376]">
           {copy.nameLabel}
           <input
@@ -225,8 +229,8 @@ export default function TwelveAnimalInputCard({ input, onChange, onSubmit, isBus
 
         <label className="space-y-2 text-sm font-bold text-[#2b5376]">
           {copy.birthTimeLabel}
-          <input
-            type="time"
+          <BirthTimeInput
+
             value={input.birthTime || ""}
             onChange={(e) => onChange({ birthTime: e.target.value })}
             className="min-h-[46px] w-full rounded-2xl border border-[#bfd8eb] bg-white px-4 py-3 text-base text-[#315c7f] focus:border-[#4f8fbe] focus:outline-none"

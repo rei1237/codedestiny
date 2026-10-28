@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const SAJU_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    metaTitle: "사주 명리학 기본 가이드 | Code Destiny",
+    metaTitle: "사주 명리학 기본 가이드 | 꿀꿀 운세",
     observe: "사주가 살피는 것",
     inputs: "필요한 입력값",
     useCases: "어떤 때 참고하면 좋은가",
@@ -30,7 +30,7 @@ export function generateMetadata() {
     title: sajuGuideText("metaTitle"),
     description:
       "사주 명리학이 무엇을 살피는지, 생년월일과 출생시간이 왜 필요한지, 오행·십성·대운을 어떻게 읽는지 차분히 안내합니다.",
-    keywords: ["사주 가이드", "명리학 기본", "오행", "십성", "대운", "Code Destiny"],
+    keywords: ["사주 가이드", "명리학 기본", "오행", "십성", "대운", "꿀꿀운세"],
   });
 }
 
@@ -105,7 +105,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "사주 서비스",
-      keywords: ["사주 가이드", "명리학 기본", "오행", "십성", "대운", "Code Destiny"],
+      keywords: ["사주 가이드", "명리학 기본", "오행", "십성", "대운", "꿀꿀운세"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),
@@ -119,7 +119,7 @@ export default function SajuGuidePage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">사주 명리학 기본 가이드</h1>
         <p className="cd-main-intro">
-          사주(사주팔자)는 태어난 연·월·일·시를 각각 천간과 지지 두 글자로 옮긴 네 기둥, 모두 여덟 글자의 명식입니다. 명리학은 이 여덟 글자 가운데 태어난 날의 천간(일간)을 나로 두고, 나머지 글자가 나를 돕는지 제어하는지와 오행이 어디에 몰리고 비었는지를 읽습니다. Code Destiny에서는 이 흐름을 겁주거나 단정하기보다, 자기 이해와 현실적인 판단을 돕는 참고 자료로 풀이합니다.
+          사주(사주팔자)는 태어난 연·월·일·시를 각각 천간과 지지 두 글자로 옮긴 네 기둥, 모두 여덟 글자의 명식입니다. 명리학은 이 여덟 글자 가운데 태어난 날의 천간(일간)을 나로 두고, 나머지 글자가 나를 돕는지 제어하는지와 오행이 어디에 몰리고 비었는지를 읽습니다. 꿀꿀운세에서는 이 흐름을 겁주거나 단정하기보다, 자기 이해와 현실적인 판단을 돕는 참고 자료로 풀이합니다.
         </p>
       </header>
 
@@ -219,7 +219,7 @@ export default function SajuGuidePage() {
       <nav className="cd-chip-wrap" aria-label="사주 가이드 관련 링크">
         <Link href="/saju" className="cd-chip">사주 서비스</Link>
         <Link href="/manse" className="cd-chip">무료 만세력으로 명식 세우기</Link>
-        <Link href="/saju/basic" className="cd-chip">기본 사주 보기</Link>
+        <Link href="/saju" className="cd-chip">기본 사주 보기</Link>
         <Link href="/compatibility" className="cd-chip">궁합 보기</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>

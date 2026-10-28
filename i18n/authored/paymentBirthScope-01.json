@@ -1,0 +1,31 @@
+{
+  "_comment": "출생 기반 영구 해금(사주 종합·대운·자미두수·숙요·점성 등)은 계정 + 저장된 프로필의 출생 정보 단위다. 코드 정본은 index.html 의 _cdApplyBirthScopeGateNote(잠금 안내) · _cdBirthScopeSaveProfileMessage(미저장 출생 정보로 구매 시도) 이며 ko 값은 그 폴백과 글자까지 같아야 한다. 서버 정본은 worker/lib/paid-feature-registry.js 의 BIRTH_SCOPED_UNLOCK_FEATURE_KEYS.",
+  "payment.birthScope.separatePurchaseRequired": {
+    "ko": "이 생년월일은 별도 구매가 필요합니다",
+    "en": "This birth date requires a separate purchase",
+    "ja": "この生年月日は別途購入が必要です",
+    "zh-CN": "此出生日期需要单独购买",
+    "zh-TW": "此出生日期需要另外購買",
+    "vi": "Ngày sinh này cần được mua riêng",
+    "hi": "इस जन्मतिथि के लिए अलग से खरीदना होगा",
+    "es": "Esta fecha de nacimiento requiere una compra aparte",
+    "fr": "Cette date de naissance nécessite un achat séparé",
+    "de": "Für dieses Geburtsdatum ist ein separater Kauf erforderlich",
+    "nl": "Voor deze geboortedatum is een aparte aankoop nodig",
+    "ms": "Tarikh lahir ini memerlukan pembelian berasingan"
+  },
+  "payment.birthScope.saveProfileFirst": {
+    "ko": "프로필을 저장한 뒤 구매해 주세요",
+    "en": "Please save this profile before purchasing",
+    "ja": "プロフィールを保存してから購入してください",
+    "zh-CN": "请先保存档案后再购买",
+    "zh-TW": "請先儲存個人檔案後再購買",
+    "vi": "Vui lòng lưu hồ sơ trước khi mua",
+    "hi": "कृपया खरीदने से पहले प्रोफ़ाइल सहेजें",
+    "es": "Guarda el perfil antes de comprar",
+    "fr": "Veuillez enregistrer le profil avant l'achat",
+    "de": "Bitte speichere das Profil vor dem Kauf",
+    "nl": "Sla het profiel op voordat je koopt",
+    "ms": "Sila simpan profil sebelum membuat pembelian"
+  }
+}

@@ -1,4 +1,6 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 
@@ -142,6 +144,7 @@ const SAJU_GUARDIAN_ACCESS_CHECKING_MESSAGE = "빠르게 잠금 해제 권한을
 type SajuGuardianTx = (value: string) => string;
 
 const SAJU_GUARDIAN_TEXT_KEYS_COPY = [
+  "프로필을 저장한 뒤 구매해 주세요.",
   "사주 가디언 소환진 해금 확인",
   "사주 가디언 소환진 해금 재확인",
   "해금 확인",
@@ -401,6 +404,7 @@ const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, stri
     "태어난 시간 (선택)": "Birth Time (Optional)",
     "시간을 모르면 건너뛰세요": "Skip if you do not know the time",
     "프로필 카드에서 불러오기": "Load from profile card",
+    "프로필을 저장한 뒤 구매해 주세요.": "Please save a profile before purchasing.",
     "프로필 카드에서 출생 정보 불러오기": "Load birth info from profile card",
     "프로필 카드의 출생 정보를 불러왔어요.": "Birth info loaded from your profile card.",
     "프로필 카드에 저장된 출생 정보가 없어요.": "No birth info saved on your profile card.",
@@ -1408,6 +1412,7 @@ function ResultCard({
   birthMonth,
   birthDay,
   birthHour,
+  profileId,
 }: {
   data: ApiResult;
   onReset: () => void;
@@ -1416,6 +1421,7 @@ function ResultCard({
   birthMonth: string;
   birthDay: string;
   birthHour: string;
+  profileId?: string;
 }) {
   const [activePanel, setActivePanel] = useState("seal");
   const [promptCopied, setPromptCopied] = useState(false);
@@ -1469,6 +1475,11 @@ function ResultCard({
   const hasBirthTime = result.hasBirthTime === true;
 
   const handleGenerateGuardianImage = async () => {
+    // 이미지 해금은 저장된 프로필의 생년월일 단위 — 서버는 profileId 의 저장된 출생 정보로만 생성한다.
+    if (!profileId) {
+      showToast(tx("프로필을 저장한 뒤 구매해 주세요."), "error");
+      return;
+    }
     setGuardianImage({ status: "loading" });
     try {
       const response = await fetch("/api/guardian/generate-image", {
@@ -1476,6 +1487,7 @@ function ResultCard({
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
+          profileId,
           sajuData: {
             year: Number(birthYear) || 0,
             month: Number(birthMonth) || 0,
@@ -1493,7 +1505,8 @@ function ResultCard({
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload?.ok || !payload?.imageBase64) {
         setGuardianImage({ status: "error" });
-        showToast(tx("수호신 이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요."), "error");
+        const accessMessage = [400, 402, 403].includes(response.status) && typeof payload?.message === "string" ? payload.message : "";
+        showToast(accessMessage || tx("수호신 이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요."), "error");
         return;
       }
       setGuardianImage({ status: "ready", base64: payload.imageBase64 });
@@ -1969,7 +1982,7 @@ export default function SajuGuardianPage() {
     setBirthYear(fields.year);
     setBirthMonth(fields.month);
     setBirthDay(fields.day);
-    if (fields.hour) setBirthHour(fields.hour);
+    setBirthHour(fields.hour || "");
     return true;
   }, []);
 
@@ -1980,8 +1993,9 @@ export default function SajuGuardianPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  const loadFromProfileCard = useCallback(() => {
-    void reloadProfileSeed().then((seed) => {
+  const loadFromProfileCard = useCallback((selectedSeed?: AiPrefillSeed) => {
+    if(selectedSeed) birthTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (applyProfileSeed(seed)) {
         showToast(tx("프로필 카드의 출생 정보를 불러왔어요."), "success");
       } else {
@@ -2152,6 +2166,7 @@ export default function SajuGuardianPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#fff7ed] via-[#fff1f2] to-[#eef2ff] px-5 py-8">
         <div className="mx-auto flex min-h-[76vh] w-full max-w-5xl flex-col justify-center gap-6">
+          {locale === "ko" && <div className="mx-auto w-full max-w-[540px] text-slate-800"><CraftedProductDisclosure featureKey="saju-guardian-unlock" summaryLabel="사주 가디언 상세 안내" /></div>}
           <div className="grid gap-6 lg:grid-cols-[0.92fr,1.08fr] lg:items-center">
             <section className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-xl backdrop-blur-xl">
               <p className="text-xs font-black tracking-[0.16em] text-rose-500">{tx("프리미엄 수호 인장")}</p>
@@ -2231,6 +2246,7 @@ export default function SajuGuardianPage() {
         birthMonth={birthMonth}
         birthDay={birthDay}
         birthHour={birthHour}
+        profileId={profileSeed?.profileId}
       />
     );
   }
@@ -2417,15 +2433,8 @@ export default function SajuGuardianPage() {
         </div>
 
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 border border-white/60 shadow-xl shadow-pink-100/50 space-y-4">
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={loadFromProfileCard}
-              aria-label={tx("프로필 카드에서 출생 정보 불러오기")}
-              className="rounded-full border border-pink-200 bg-pink-50/80 px-3.5 py-1.5 text-xs font-bold text-pink-500 transition-colors hover:bg-pink-100"
-            >
-              {tx("프로필 카드에서 불러오기")}
-            </button>
+          <div data-moonlit-form="" className="flex justify-end">
+            <SavedBirthProfilePicker onSelect={loadFromProfileCard} />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <TextField

@@ -82,6 +82,7 @@ beforeAll(async () => {
     parseNeoSectionResponse: jest.fn(() => ({})),
     mergeNeoInitialSections: jest.fn(() => ({})),
     mergeNeoRefinedSections: jest.fn(() => ({})),
+    neoRegisterDrift: jest.fn(() => false),
   }));
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     connectDb: jest.fn(async () => undefined),
@@ -175,17 +176,17 @@ describe("neo operation room payment flow", () => {
     expect(response.status).toBe(402);
     expect(payload.reason).toBe("PAYMENT_REQUIRED");
     expect(payload.paymentPayload.featureKey).toBe(FEATURE_KEY);
-    expect(payload.paymentPayload.amountKRW).toBe(20000);
-    expect(payload.paymentPayload.cost).toBe(200);
-    expect(payload.paymentPayload.membershipCreditCost).toBe(2000);
+    expect(payload.paymentPayload.amountKRW).toBe(30000);
+    expect(payload.paymentPayload.cost).toBe(300);
+    expect(payload.paymentPayload.membershipCreditCost).toBe(3000);
   });
-  test("new consultation resolves the existing 20,000 KRW Play tier", async () => {
+  test("new consultation resolves the existing 30,000 KRW Play tier", async () => {
     const { resolveAppContentTier } = await import("../../worker/lib/app-store-pricing.js");
     const { getBillingFeaturePricing } = await import("../../worker/lib/billing-feature-registry.js");
     const { pricing } = getBillingFeaturePricing({ featureKey: FEATURE_KEY });
-    expect(pricing.amountKRW).toBe(20000);
+    expect(pricing.amountKRW).toBe(30000);
     expect(resolveAppContentTier(pricing.cost)).toMatchObject({
-      productId: "cd_content_tier_09", amountKRW: 20000, webAmountKRW: 20000,
+      productId: "cd_content_tier_10", amountKRW: 30000, webAmountKRW: 30000,
     });
   });
 });

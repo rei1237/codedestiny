@@ -84,10 +84,17 @@ test('stored persona and grounded recognition reach followups without changing t
   t.row.snapshot.persona=persona;
   t.row.snapshot.manifest[0].factSelectors.saju.push('tenGodsByPillar');
   t.row.snapshot.analysis.contexts.saju.facts.push({id:'saju.tenGodsByPillar',label:'tenGodsByPillar',value:{month:'정관'}});
+  t.row.snapshot.manifest[0].factSelectors.saju.push('tenGods');
+  t.row.snapshot.analysis.contexts.saju.facts.push({id:'saju.tenGods',label:'tenGods',value:{비견:2.35,겁재:1}});
   t.row.generationCheckpoint=undefined;
   await questionConversation({},user,id,body);
   assert.ok(t.sent.input.recognition.lenses.length);
   assert.equal(t.sent.input.recognition.version,'grounded-recognition-20261007');
+  assert.match(t.sent.options.systemPrompt,/전체 성향 분석을 반복하지 않고/);
+  assert.match(t.sent.options.systemPrompt,/다른 주제도 저장된 체계와 근거가 뒷받침하면 답한다/);
+  assert.match(t.sent.options.systemPrompt,/새로운 차트·카드·시기 계산이 반드시 필요하면 new_consultation/);
+  assert.doesNotMatch(JSON.stringify(t.sent.input.evidence),/2\.35/);
+  assert.equal(t.row.snapshot.analysis.contexts.saju.facts.find(f=>f.label==='tenGods').value.비견,2.35);
   assert.ok(t.sent.options.systemPrompt.includes(persona==='yeoni'?'연이':persona==='neo'?'네오':'영냥이'));
   if(persona)assert.ok(!t.sent.options.systemPrompt.includes('너는 영냥이'));
   assert.equal(t.sent.options.maxProviderAttempts,1);
@@ -97,6 +104,16 @@ test('stored persona and grounded recognition reach followups without changing t
   const rules=t.sent.options.systemPrompt.split('계산 사실 → 쉬운 의미')[1];
   if(common)assert.equal(rules,common);else common=rules;
  }
+});
+
+test('separate chapters retain their own fact IDs for a different follow-up concern',async()=>{
+ const t=globalThis.__conversationTest;
+ t.row.snapshot.manifest[0].factIds=['saju.pillars'];
+ t.row.snapshot.manifest.push({...t.row.snapshot.manifest[0],factIds:['saju.tenGodsByPillar'],factSelectors:{saju:['tenGodsByPillar']}});
+ t.row.snapshot.analysis.contexts.saju.facts.push({id:'saju.tenGodsByPillar',label:'tenGodsByPillar',value:{month:'정관'}});
+ await questionConversation({},user,id,{...body,question:'다른 고민인 직장에서는 무엇을 살펴볼까요?'});
+ assert.ok(t.sent.input.evidence.some(f=>f.id==='saju.pillars'));
+ assert.ok(t.sent.input.evidence.some(f=>f.id==='saju.tenGodsByPillar'));
 });
 
 for(const limit of [5,7])test('fusion '+limit+' followups use all saved chapter evidence and the stored total budget',async()=>{
@@ -111,4 +128,45 @@ for(const limit of [5,7])test('fusion '+limit+' followups use all saved chapter 
  assert.equal(t.sent.options.maxProviderAttempts,1);
  await assert.rejects(questionConversation({},user,id,{...body,id:crypto.randomUUID()}));
  assert.equal(t.calls,limit);
+});
+
+const COPIED='일간 갑목은 곧게 뻗는 나무처럼 원칙을 먼저 세우고 그 안에서 움직이려는 성향을 보여 줍니다.';
+const REASON='월지 정관은 정해진 질서 안에서 인정을 받을 때 힘이 난다는 뜻이라 범위를 정하면 판단이 쉬워집니다.';
+const repeatReply=(text,reason=REASON)=>({kind:'answer',answered:true,text,reason,action:'오늘은 부탁할 일을 한 문장으로 적고 상대가 바로 답할 수 있게 마감까지 함께 말해 보세요.',sources:['saju.pillars']});
+function repeatOrder(t,repeatPolicy){
+ t.row.chapters=[{summary:'저장된 기본 답변',blocks:[{title:'성향',paragraphs:[COPIED+' 짧은 맺음.']}]}];
+ t.row.snapshot.questionContract={...t.row.snapshot.questionContract,followups:2,readingBudget:{followup:[100,200]}};
+ if(repeatPolicy)t.row.snapshot.manifest[0].repeatPolicy=repeatPolicy;
+ t.reply=repeatReply(COPIED+' 그래서 이번 질문에서는 부탁할 범위를 먼저 정해 두는 편이 마음을 덜 소모하게 해 줍니다.');
+}
+test('sentence-v1 followups drop sentences copied from chapters and earlier answers, keeping every paragraph and the floor',async()=>{
+ const t=globalThis.__conversationTest;repeatOrder(t,'sentence-v1');
+ await questionConversation({},user,id,body);
+ t.reply=repeatReply('두 번째 질문에서는 상대의 속도를 먼저 확인하고 그 속도에 맞춰 요청 시점을 고르는 쪽이 편합니다.','앞선 기준은 그대로 두되 시점만 조정하면 됩니다. '+REASON);
+ await questionConversation({},user,id,{...body,id:crypto.randomUUID(),question:'언제 말하면 좋을까?'});
+ const [first,second]=t.row.generationCheckpoint.conversation.exchanges.map(e=>e.reply);
+ assert.equal(t.calls,2);
+ assert.equal(first.kind,'answer');assert.deepEqual(first.sources,['saju.pillars']);
+ assert.ok(!first.text.includes(COPIED));assert.match(first.text,/부탁할 범위를 먼저 정해/);
+ assert.equal(second.text.split(REASON).length,1);assert.match(second.text,/시점만 조정하면 됩니다\./);
+ for(const reply of [first,second]){
+  assert.equal(reply.text.split('\n\n').length,3);
+  assert.ok(Array.from(reply.text.replace(/\s+/g,' ')).length>=70);
+ }
+});
+test('followups of orders without repeatPolicy are stored byte for byte',async()=>{
+ const t=globalThis.__conversationTest;repeatOrder(t);
+ await questionConversation({},user,id,body);
+ const saved=t.row.generationCheckpoint.conversation.exchanges[0].reply;
+ assert.equal(saved.text,[t.reply.text,t.reply.reason,t.reply.action].join('\n\n'));
+ assert.equal(t.calls,1);
+});
+
+test('D8: single-system follow-ups keep the 60-second timeout; assorted and omakase follow-ups get 90 seconds',async()=>{
+ const t=globalThis.__conversationTest;
+ for(const [fishId,ms] of [[undefined,60000],['mackerel',60000],['tuna',60000],['assorted',90000],['omakase',90000]]){
+  t.row.snapshot.product={...t.row.snapshot.product,fishId};t.row.generationCheckpoint=undefined;
+  await questionConversation({},user,id,{...body,id:crypto.randomUUID()});
+  assert.equal(t.sent.options.timeoutMs,ms,String(fishId));
+ }
 });

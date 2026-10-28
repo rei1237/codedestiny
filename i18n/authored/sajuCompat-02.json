@@ -1,18 +1,18 @@
 {
-  "_comment": "기본 사주 궁합 생성 흐름(js/saju-compat-flow.mjs · js/saju-engine.js)의 진행·안내 문구. ko 는 렌더러 정본 복사, en·ja·zh-CN·zh-TW 는 저작, 나머지 7개 로케일은 영어 복사.",
+  "_comment": "기본 사주 궁합 결과·진행·보관함 고정 문구. 12개 로케일 저작 번역. 계산·가격·저장 원문은 변경하지 않는다.",
   "sajuCompat.flow.starting": {
     "ko": "사주 궁합 풀이를 준비하고 있어요…",
     "en": "Preparing your Saju compatibility reading…",
     "ja": "四柱推命の相性鑑定を準備しています…",
     "zh-CN": "正在准备您的八字合盘解读…",
     "zh-TW": "正在準備您的八字合盤解讀…",
-    "vi": "Preparing your Saju compatibility reading…",
-    "hi": "Preparing your Saju compatibility reading…",
-    "es": "Preparing your Saju compatibility reading…",
-    "fr": "Preparing your Saju compatibility reading…",
-    "de": "Preparing your Saju compatibility reading…",
-    "nl": "Preparing your Saju compatibility reading…",
-    "ms": "Preparing your Saju compatibility reading…"
+    "vi": "Đang chuẩn bị luận giải tương hợp Tứ trụ…",
+    "hi": "साजू अनुकूलता व्याख्या तैयार हो रही है…",
+    "es": "Preparando la lectura de compatibilidad Saju…",
+    "fr": "Préparation de la lecture de compatibilité Saju…",
+    "de": "Saju-Kompatibilitätsdeutung wird vorbereitet…",
+    "nl": "Saju-compatibiliteitsduiding wordt voorbereid…",
+    "ms": "Menyediakan tafsiran keserasian Saju…"
   },
   "sajuCompat.flow.progress": {
     "ko": "사주 궁합 풀이를 쓰고 있어요… ({done}/{total})",
@@ -20,13 +20,13 @@
     "ja": "四柱推命の相性鑑定を書いています…（{done}/{total}）",
     "zh-CN": "正在撰写八字合盘解读…（{done}/{total}）",
     "zh-TW": "正在撰寫八字合盤解讀…（{done}/{total}）",
-    "vi": "Writing your Saju compatibility reading… ({done}/{total})",
-    "hi": "Writing your Saju compatibility reading… ({done}/{total})",
-    "es": "Writing your Saju compatibility reading… ({done}/{total})",
-    "fr": "Writing your Saju compatibility reading… ({done}/{total})",
-    "de": "Writing your Saju compatibility reading… ({done}/{total})",
-    "nl": "Writing your Saju compatibility reading… ({done}/{total})",
-    "ms": "Writing your Saju compatibility reading… ({done}/{total})"
+    "vi": "Đang viết luận giải tương hợp… ({done}/{total})",
+    "hi": "अनुकूलता व्याख्या लिखी जा रही है… ({done}/{total})",
+    "es": "Escribiendo la lectura… ({done}/{total})",
+    "fr": "Rédaction de la lecture… ({done}/{total})",
+    "de": "Deutung wird geschrieben… ({done}/{total})",
+    "nl": "Duiding wordt geschreven… ({done}/{total})",
+    "ms": "Menulis tafsiran… ({done}/{total})"
   },
   "sajuCompat.flow.keepOpen": {
     "ko": "결제는 완료됐어요. 이 화면을 나갔다 돌아와도 같은 결과를 이어서 받아요.",
@@ -34,13 +34,13 @@
     "ja": "お支払いは完了しています。画面を離れて戻っても、同じ結果を続けて受け取れます。",
     "zh-CN": "支付已完成。离开后再回来，也能继续获取同一份结果。",
     "zh-TW": "付款已完成。離開後再回來，也能繼續取得同一份結果。",
-    "vi": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-    "hi": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-    "es": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-    "fr": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-    "de": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-    "nl": "Your payment is complete. If you leave and come back, you will pick up the same result.",
-    "ms": "Your payment is complete. If you leave and come back, you will pick up the same result."
+    "vi": "Thanh toán đã hoàn tất. Nếu rời đi rồi quay lại, bạn sẽ tiếp tục cùng kết quả.",
+    "hi": "भुगतान पूरा है। बाहर जाकर लौटने पर यही परिणाम जारी रहेगा।",
+    "es": "El pago está completo. Si sales y vuelves, continuarás con el mismo resultado.",
+    "fr": "Le paiement est terminé. Si vous quittez puis revenez, vous reprendrez le même résultat.",
+    "de": "Die Zahlung ist abgeschlossen. Nach Verlassen und Rückkehr wird dasselbe Ergebnis fortgesetzt.",
+    "nl": "De betaling is voltooid. Als je weggaat en terugkomt, ga je verder met hetzelfde resultaat.",
+    "ms": "Pembayaran selesai. Jika anda keluar dan kembali, keputusan yang sama akan disambung."
   },
   "sajuCompat.flow.saved": {
     "ko": "이 결과는 보관함에 저장되었어요. 다시 열어 볼 때는 추가 결제가 없어요.",
@@ -48,13 +48,13 @@
     "ja": "この結果は保管箱に保存されました。後で開き直しても追加のお支払いはありません。",
     "zh-CN": "此结果已保存到收藏夹，之后再次打开无需额外付费。",
     "zh-TW": "此結果已儲存到收藏夾，之後再次開啟無需額外付費。",
-    "vi": "This result is saved in your library. Reopening it later costs nothing extra.",
-    "hi": "This result is saved in your library. Reopening it later costs nothing extra.",
-    "es": "This result is saved in your library. Reopening it later costs nothing extra.",
-    "fr": "This result is saved in your library. Reopening it later costs nothing extra.",
-    "de": "This result is saved in your library. Reopening it later costs nothing extra.",
-    "nl": "This result is saved in your library. Reopening it later costs nothing extra.",
-    "ms": "This result is saved in your library. Reopening it later costs nothing extra."
+    "vi": "Kết quả đã lưu trong thư viện. Mở lại sau không mất thêm phí.",
+    "hi": "परिणाम संग्रह में सहेजा गया है। दोबारा खोलने पर अतिरिक्त शुल्क नहीं लगेगा।",
+    "es": "El resultado está guardado. Volver a abrirlo no tiene coste adicional.",
+    "fr": "Le résultat est enregistré. Le rouvrir n'entraîne aucun coût supplémentaire.",
+    "de": "Das Ergebnis ist gespeichert. Erneutes Öffnen kostet nichts zusätzlich.",
+    "nl": "Het resultaat is opgeslagen. Opnieuw openen kost niets extra.",
+    "ms": "Keputusan disimpan. Membukanya semula tidak dikenakan bayaran tambahan."
   },
   "sajuCompat.flow.fallback": {
     "ko": "AI 풀이를 불러오지 못해 기본 해석을 먼저 보여 드려요. 결제는 보존되어 있고, 아래 버튼으로 같은 궁합의 AI 풀이를 이어서 불러올 수 있어요.",
@@ -62,13 +62,13 @@
     "ja": "AI鑑定を読み込めなかったため、まず基本の解釈を表示しています。お支払いは保全されており、下のボタンで同じ組み合わせのAI鑑定を続けて読み込めます。",
     "zh-CN": "未能加载 AI 解读，先为您显示基础解读。您的付款已保留，可通过下方按钮继续加载同一对组合的 AI 解读。",
     "zh-TW": "未能載入 AI 解讀，先為您顯示基礎解讀。您的付款已保留，可透過下方按鈕繼續載入同一組合的 AI 解讀。",
-    "vi": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-    "hi": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-    "es": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-    "fr": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-    "de": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-    "nl": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair.",
-    "ms": "We couldn't load the AI reading, so the basic interpretation is shown first. Your payment is preserved, and the button below lets you continue loading the AI reading for the same pair."
+    "vi": "Chưa tải được luận giải AI nên hiển thị phần cơ bản trước. Thanh toán được giữ nguyên; nút bên dưới tiếp tục tải luận giải cho cùng cặp đôi.",
+    "hi": "AI व्याख्या नहीं खुली, इसलिए पहले मूल व्याख्या दिखाई गई है। भुगतान सुरक्षित है; नीचे के बटन से इसी जोड़ी की AI व्याख्या जारी रखें।",
+    "es": "No se pudo cargar la lectura de IA; se muestra primero la básica. El pago se conserva. El botón permite continuar la lectura para la misma pareja.",
+    "fr": "La lecture IA n'a pas pu être chargée ; la lecture de base s'affiche d'abord. Votre paiement est conservé. Le bouton permet de reprendre la lecture du même duo.",
+    "de": "Die KI-Deutung konnte nicht geladen werden; zunächst erscheint die Grunddeutung. Die Zahlung bleibt erhalten. Unten kannst du die KI-Deutung für dasselbe Paar fortsetzen.",
+    "nl": "De AI-duiding kon niet worden geladen; de basisduiding staat alvast hieronder. Je betaling blijft behouden. Met de knop kun je doorgaan voor hetzelfde paar.",
+    "ms": "Tafsiran AI belum dapat dimuatkan; tafsiran asas dipaparkan dahulu. Pembayaran dikekalkan. Butang di bawah menyambung tafsiran pasangan yang sama."
   },
   "sajuCompat.flow.review": {
     "ko": "AI 풀이 생성이 끝나지 못했어요. 결제와 저장된 내용은 안전하게 보존되어 있고, 고객센터에서 확인해 드릴게요. 아래는 기본 해석이에요.",
@@ -76,13 +76,13 @@
     "ja": "AI鑑定の生成が完了しませんでした。お支払いと保存済みの内容は安全に保全されており、サポートで確認いたします。以下は基本の解釈です。",
     "zh-CN": "AI 解读未能生成完成。您的付款与已保存的内容均已安全保留，客服会为您确认。以下为基础解读。",
     "zh-TW": "AI 解讀未能生成完成。您的付款與已儲存的內容均已安全保留，客服會為您確認。以下為基礎解讀。",
-    "vi": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-    "hi": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-    "es": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-    "fr": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-    "de": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-    "nl": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
-    "ms": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below."
+    "vi": "Chưa hoàn thành luận giải AI. Thanh toán và nội dung đã lưu được giữ an toàn để hỗ trợ kiểm tra. Phần cơ bản hiển thị bên dưới.",
+    "hi": "AI व्याख्या पूरी नहीं हुई। भुगतान और सहेजा गया पाठ सुरक्षित हैं; सहायता टीम जाँच करेगी। मूल व्याख्या नीचे है।",
+    "es": "No se pudo terminar la lectura de IA. Se conservan el pago y el contenido guardado para revisión de soporte. Abajo aparece la lectura básica.",
+    "fr": "La lecture IA n'a pas pu être terminée. Paiement et contenu enregistré sont conservés pour examen par l'assistance. La lecture de base apparaît ci-dessous.",
+    "de": "Die KI-Deutung konnte nicht abgeschlossen werden. Zahlung und gespeicherter Inhalt bleiben für die Prüfung durch den Support erhalten. Die Grunddeutung steht unten.",
+    "nl": "De AI-duiding is nog niet afgerond. Betaling en opgeslagen inhoud blijven bewaard voor controle door ondersteuning. De basisduiding staat hieronder.",
+    "ms": "Tafsiran AI belum selesai. Pembayaran dan kandungan tersimpan dikekalkan untuk semakan sokongan. Tafsiran asas dipaparkan di bawah."
   },
   "sajuCompat.flow.revoked": {
     "ko": "취소·환불된 결제의 결과는 이어서 만들 수 없어요. 아래는 기본 해석이에요.",
@@ -90,13 +90,13 @@
     "ja": "キャンセル・返金された決済の結果は続けて作成できません。以下は基本の解釈です。",
     "zh-CN": "已取消或退款的付款无法继续生成结果。以下为基础解读。",
     "zh-TW": "已取消或退款的付款無法繼續生成結果。以下為基礎解讀。",
-    "vi": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-    "hi": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-    "es": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-    "fr": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-    "de": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-    "nl": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
-    "ms": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below."
+    "vi": "Không thể tiếp tục kết quả của khoản thanh toán đã hủy hoặc hoàn tiền. Phần cơ bản hiển thị bên dưới.",
+    "hi": "रद्द या वापस किए गए भुगतान का परिणाम जारी नहीं किया जा सकता। मूल व्याख्या नीचे है।",
+    "es": "No se puede continuar un resultado con pago cancelado o reembolsado. Abajo aparece la lectura básica.",
+    "fr": "Un résultat lié à un paiement annulé ou remboursé ne peut pas être poursuivi. La lecture de base apparaît ci-dessous.",
+    "de": "Ein Ergebnis zu einer stornierten oder erstatteten Zahlung kann nicht fortgesetzt werden. Die Grunddeutung steht unten.",
+    "nl": "Een resultaat bij een geannuleerde of terugbetaalde betaling kan niet worden voortgezet. De basisduiding staat hieronder.",
+    "ms": "Keputusan bagi pembayaran yang dibatalkan atau dipulangkan tidak boleh diteruskan. Tafsiran asas dipaparkan di bawah."
   },
   "sajuCompat.flow.retry": {
     "ko": "AI 풀이 이어서 불러오기",
@@ -104,13 +104,13 @@
     "ja": "AI鑑定の続きを読み込む",
     "zh-CN": "继续加载 AI 解读",
     "zh-TW": "繼續載入 AI 解讀",
-    "vi": "Continue loading the AI reading",
-    "hi": "Continue loading the AI reading",
-    "es": "Continue loading the AI reading",
-    "fr": "Continue loading the AI reading",
-    "de": "Continue loading the AI reading",
-    "nl": "Continue loading the AI reading",
-    "ms": "Continue loading the AI reading"
+    "vi": "Tiếp tục tải luận giải AI",
+    "hi": "AI व्याख्या जारी रखें",
+    "es": "Continuar la lectura de IA",
+    "fr": "Reprendre la lecture IA",
+    "de": "KI-Deutung fortsetzen",
+    "nl": "AI-duiding voortzetten",
+    "ms": "Sambung tafsiran AI"
   },
   "sajuCompat.flow.moduleFail": {
     "ko": "AI 풀이 화면을 불러오지 못했어요. 결제는 진행되지 않았어요. 잠시 후 다시 시도해 주세요.",
@@ -118,12 +118,12 @@
     "ja": "AI鑑定の画面を読み込めませんでした。お支払いは行われていません。しばらくしてからもう一度お試しください。",
     "zh-CN": "未能加载 AI 解读界面，未产生任何付款。请稍后再试。",
     "zh-TW": "未能載入 AI 解讀介面，未產生任何付款。請稍後再試。",
-    "vi": "Couldn't load the AI reading screen. No payment was made. Please try again shortly.",
-    "hi": "Couldn't load the AI reading screen. No payment was made. Please try again shortly.",
-    "es": "Couldn't load the AI reading screen. No payment was made. Please try again shortly.",
-    "fr": "Couldn't load the AI reading screen. No payment was made. Please try again shortly.",
-    "de": "Couldn't load the AI reading screen. No payment was made. Please try again shortly.",
-    "nl": "Couldn't load the AI reading screen. No payment was made. Please try again shortly.",
-    "ms": "Couldn't load the AI reading screen. No payment was made. Please try again shortly."
+    "vi": "Không tải được màn hình luận giải AI. Chưa thanh toán. Vui lòng thử lại sau ít phút.",
+    "hi": "AI व्याख्या की स्क्रीन नहीं खुली। कोई भुगतान नहीं हुआ। थोड़ी देर बाद फिर प्रयास करें।",
+    "es": "No se pudo cargar la pantalla de IA. No se efectuó ningún pago. Inténtalo de nuevo en breve.",
+    "fr": "L'écran de lecture IA n'a pas pu être chargé. Aucun paiement n'a été effectué. Réessayez dans un instant.",
+    "de": "Die KI-Deutungsansicht konnte nicht geladen werden. Es wurde keine Zahlung vorgenommen. Bitte versuche es gleich erneut.",
+    "nl": "Het AI-scherm kon niet worden geladen. Er is geen betaling gedaan. Probeer het zo opnieuw.",
+    "ms": "Skrin tafsiran AI tidak dapat dimuatkan. Tiada pembayaran dibuat. Cuba sebentar lagi."
   }
 }

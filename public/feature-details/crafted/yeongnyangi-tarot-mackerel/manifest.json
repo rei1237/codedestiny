@@ -1,0 +1,152 @@
+{
+  "id": "yeongnyangi-tarot-mackerel",
+  "featureKey": "yeongnyangi-tarot-mackerel",
+  "title": "영냥이 타로 고등어 상담",
+  "notice": "타로 고등어의 ‘질문으로 고르는 배열’은 최대 5장 범위에서 질문에 맞는 배열 하나를 선택합니다. 이 안내는 3장 배열 ‘막힌 상황을 푸는 실마리’를 예로 설명하며 항상 5장을 뽑는 상품이 아닙니다. 자기이해 질문 상담은 6장 목차, 기존 배열 상담은 5장 목차로 구성이 다릅니다. 카드의 자리·정역방향·연결을 질문에 비춰 읽고 실제 타인의 마음이나 미래 사건을 확인하지 않습니다. 출생 정보 대신 질문과 상황을 사용하며 결제 전에 뒷면 카드를 선택하고 결제 후 공개합니다. 예시는 실제 추첨·고객 결과가 아닌 가상 편집입니다. AI 작성 상담이며 가격·이용 조건은 기존 화면을 따릅니다. 기존 고정 질문 메뉴는 등급과 무관하게 종류별 카드 수를 사용하며 별도로 선택합니다.",
+  "panels": [
+    {
+      "id": "01-one-small-opening",
+      "title": "움직이고 싶은데, 시작이 막막하다면.",
+      "alt": "마법사 고양이 영냥이가 펼친 타로 카드의 흐름을 읽는 장면",
+      "src": "/images/service-introductions/yeongnyangi-tarot.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "움직이고 싶은데,\n시작이 막막하다면.\n\n지금의 매듭과 이미 가진 자원을 읽고,\n다음 한 걸음을 찾아봐요.\n\n영냥이 타로 · 고등어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-name-the-knot",
+      "title": "큰 답을 찾기 전에, 막힌 장면 하나부터.",
+      "alt": "준비만반복하는상황을행동가능한질문으로바꾸는예시.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/02-name-the-knot.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "큰 답을 찾기 전에,\n막힌 장면 하나부터.\n지금 반복되는 일\n\n계획을 고치다 보면 하루가 끝나요.\n막상 시작하려면 부족한 것만 보여요.\n\n이번에 묻고 싶은 것\n\n준비를 어디까지 하고,\n무엇부터 실제로 해보면 좋을까요?\n\n질문을 돕는 가상 상황입니다.\n한 번에 먼저 다룰 고민을 골라 주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/02-name-the-knot-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-three-places-one-thread",
+      "title": "매듭과 자원을 읽고, 다음 행동으로 이어가요.",
+      "alt": "실제3자리명과공식카드뒷면으로배열역할을설명.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/03-three-places-one-thread.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "매듭과 자원을 읽고,\n다음 행동으로 이어가요.\n\n배열 예시 · 막힌 상황을 푸는 실마리\n\n1 · 현재의 매듭\n\n움직이지 못하게 하는 조건\n\n2 · 활용할 자원\n\n이미 가진 강점·도구·관계\n\n3 · 다음 행동\n\n그 자원으로 해볼 작은 실천\n\n자리 설명용 뒷면이며 추첨 결과가 아니에요.\n배열 선택 메뉴에서는 최대 5장이에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/03-three-places-one-thread-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-a-card-needs-a-place",
+      "title": "같은 카드도, 놓인 자리에 따라 달라져요.",
+      "alt": "카드상징자리질문세축과역방향단순반대해석금지안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/04-a-card-needs-a-place.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 카드도,\n놓인 자리에 따라 달라져요.\n카드의 상징\n\n정방향·역방향의 표현을 읽어요.\n\n그 자리가 묻는 것\n\n문제인지, 자원인지, 행동인지 살펴요.\n\n지금 나의 상황\n\n질문 속 조건에 연결해 설명해요.\n\n역방향을 나쁜 결과로만 읽지 않아요.\n결론을 맞추려고 다시 뽑지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/04-a-card-needs-a-place-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-six-chapters-to-a-step",
+      "title": "마음의 바탕에서, 실행할 한 가지까지.",
+      "alt": "질문형6장실제목차및3자리전용해석구성안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/05-six-chapters-to-a-step.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "마음의 바탕에서,\n실행할 한 가지까지.\n\n자기이해 질문 · 6장 목차\n\n1–2장 · 나의 현재\n\n카드에 비친 마음과 태도\n강점과 부담이 되는 순간\n\n3–4장 · 질문과 카드의 연결\n\n마음과 선택을 이해하는 실마리\n현재의 매듭 · 활용할 자원 · 다음 행동\n\n5–6장 · 바뀔 수 있는 조건\n\n기회와 주의 조건\n종합 해석과 실행 계획\n\n선택한 배열에 따라 자리 이름은 달라져요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/05-six-chapters-to-a-step-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-start-smaller-than-the-plan",
+      "title": "계획을 더 다듬는 대신, 작게 한 번 해봐요.",
+      "alt": "실제추첨이아닌준비와실행의가상편집예시.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/06-start-smaller-than-the-plan.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "계획을 더 다듬는 대신,\n작게 한 번 해봐요.\n\n이해를 돕기 위한 편집 예시\n\n준비가 모자라서라기보다,\n잘해야 한다는 마음이\n시작의 문턱을 높였을 수 있어요.\n\n오늘은 완성본 대신 첫 문단만 써봐요.\n끝낸 뒤 부족한 부분을 적으면,\n다음 준비는 더 구체적이 될 거예요.\n\n실제 카드 추첨이나 고객 결과가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/06-start-smaller-than-the-plan-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-five-chapters-another-entry",
+      "title": "기존 배열 상담은, 다섯 장으로 읽어요.",
+      "alt": "기존5장실제목차와질문형별도구성입력순서안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/07-five-chapters-another-entry.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기존 배열 상담은,\n다섯 장으로 읽어요.\n배열과 질문에 대한 답\n자리마다 드러나는 카드의 의미\n카드들의 연결과 충돌\n결과가 달라질 조건\n지금 할 수 있는 행동\n\n1장 배열은 카드 상징과 질문 맥락을 읽어요.\n질문형 6장과 묶인 구성은 아니에요.\n\n질문·상황 → 배열 확인 → 뒷면 선택\n결제 후 카드 공개와 해석으로 이어져요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/07-five-chapters-another-entry-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "fixed-question-menu",
+      "title": "고정 질문 메뉴에서는, 카드 수의 기준이 달라요.",
+      "alt": "기존고정질문메뉴의종류별카드수와등급별해석목차구분.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/fixed-question-menu.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "고정 질문 메뉴에서는,\n카드 수의 기준이 달라요.\n지금의 선택 · 3장\n\n원인과 과정, 조건이 이어질 때의 흐름.\n\n일과 진로 · 7장\n\n같은 등급이어도 질문 종류에 맞춰\n정해진 배열을 사용해요.\n\n고등어 고정 질문 목차는 5장이에요.\n앞의 배열 선택 메뉴와는 별도 구성입니다.\n\n현재 화면에서 질문 종류와 목차를 확인해요.\n여러 상담이 한 번에 포함되지는 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/fixed-question-menu-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-leave-with-one-action",
+      "title": "오늘 할 수 있는 한 가지를, 손에 남기도록.",
+      "alt": "공식타로영냥이와출생정보불필요AI현재가격안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/08-leave-with-one-action.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "오늘 할 수 있는 한 가지를,\n손에 남기도록.\n\n출생 정보보다 지금의 상황과\n내가 고를 수 있는 행동을 알려 주세요.\n\n카드의 상징을 바탕으로 AI가 작성합니다.\n가격과 이용 조건은 현재 화면에서 확인해요.\n저장된 결과는 내 상담에서 다시 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-mackerel/08-leave-with-one-action-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

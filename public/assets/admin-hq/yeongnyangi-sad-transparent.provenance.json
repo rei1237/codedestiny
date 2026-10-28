@@ -1,0 +1,12 @@
+{
+  "created": "2026-10-21",
+  "tool": "image_gen",
+  "operation": "background removal with character reference",
+  "reference": "public/assets/yeongnyangi/expressions/tear.webp",
+  "asset": "public/assets/admin-hq/yeongnyangi-sad-transparent.webp",
+  "transparentBackground": true,
+  "width": 352,
+  "height": 352,
+  "hasAlpha": true,
+  "sha256": "714ad4cb39ea2d9134010cd13da6c3f522c0b500d5fa921306ad1d0a15d23837"
+}

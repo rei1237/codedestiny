@@ -791,7 +791,7 @@ function derivePinKey(assets) {
   return `build-${hash.digest("hex").slice(0, 12)}`;
 }
 
-const trackedFiles = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" })
+const trackedFiles = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })
   .split("\n")
   .filter((rel) => /\.(html|ts|tsx|js|mjs)$/.test(rel) && existsSync(resolve(root, rel)));
 assert.ok(

@@ -100,6 +100,8 @@ next: "S00 기준선의 동일 KST 기간·동의/테스트 제외·승인일 �
 | `question_select` (홈) | `index.html` `cd-concern-pick-v20260824` 토글 스크립트 (2026-10-02) | GA4 | `surface=home_concern_pick` · `topic_id`·`question_id`(타일 키 8종: love·reunion·marriage·money·career·future·self·people) · `content_version=question-first-v1` |
 | `question_select` (영냥이) | `app/components/QuestionJourney.tsx` | GA4 | `surface` · `topic_id` · `question_id`(guide id) · `item_id` · `content_version=question-journey-v3` — 홈과는 `surface`로 나눈다 |
 | `yeongnyangi_portal_impression` · `yeongnyangi_portal_click` · `yeongnyangi_portal_arrival` | `js/core/analytics.js` + `js/core/home-funnel.js` | GA4 | `from_service` · `to_service` · `placement` · `destination` · `metric_version` |
+| `home_mv_play` · `home_mv_chapter` · `home_card_impression`(card=`moonlight_mv`) | `js/core/home-mv.js` (홈 「달빛 운명여행」 뮤직비디오, 2026-10-15) | GA4 | `home_mv_play`: `quality`(`1080p`·`720p`) · `source`(`poster`·`chapter`), 페이지당 1회 / `home_mv_chapter`: `chapter`(1~5) / 노출: `placement=home_mid`, 화면 절반이 보일 때 1회 |
+| `yeongnyangi_mv_impression` · `yeongnyangi_mv_open` · `yeongnyangi_mv_play` · `yeongnyangi_mv_chapter` · `yeongnyangi_mv_complete` · `yeongnyangi_mv_cta` | `app/yeongnyangi/_components/HeavenLightCinema.tsx` (영냥이 홈 「HEAVEN LIGHT」 뮤직비디오 타로 카드·극장, 2026-10-21) | GA4 | 노출: `placement=home_journey`, 카드가 절반 보일 때 1회 / `yeongnyangi_mv_open`: 카드 클릭 / `yeongnyangi_mv_play`: `quality`(`1080p`·`720p`) · `source`(`card`·`chapter`), 극장당 첫 재생 1회 / `yeongnyangi_mv_chapter`: `chapter`(1~6) / `yeongnyangi_mv_complete`: 끝까지 재생, 1회 / `yeongnyangi_mv_cta`: `placement`(`theatre_end` 영상 끝 패널 · `theatre_footer` 극장 하단 링크), 누를 때마다 |
 | `cross_sell_click` | `js/core/analytics.js:251` | GA4 | `from_service` · `to_service` |
 | `share_receive` | `js/core/analytics.js:294` | GA4 | `referral_channel` |
 | `retention_visit` | `js/core/analytics.js:315` | GA4 | `days_since_last_visit` |
@@ -112,7 +114,7 @@ next: "S00 기준선의 동일 KST 기간·동의/테스트 제외·승인일 �
 
 `section` 10종(`index.html` 의 `data-cd-funnel-section`): `hero` · `concern_pick` · `today_hub` ·
 `today_pick` · `quick_services` · `signature_consult` · `service_index` · `finder` · `why_us` ·
-`secondary_panel`.
+`secondary_panel`. 2026-10-15 에 `moonlight_mv`(홈 뮤직비디오의 `/music/` 링크)가 더해졌다.
 
 ## 2. 채널이 둘이고, 담는 것이 다르다
 
@@ -143,6 +145,11 @@ next: "S00 기준선의 동일 KST 기간·동의/테스트 제외·승인일 �
 | 섹션 점유 | 섹션별 `home_section_click` ÷ 전체 `home_section_click` | `section` | 홈 구조를 바꿨을 때 클릭이 어디로 옮겨갔나 |
 | 영냥이 포털 클릭률 | `yeongnyangi_portal_click` ÷ `yeongnyangi_portal_impression` | `placement` · 기기 | 꿀꿀 운세 첫 화면의 영냥이 연결이 실제로 발견되고 눌리는가 |
 | 영냥이 포털 도착률 | `yeongnyangi_portal_arrival` ÷ `yeongnyangi_portal_click` | `placement` · 기기 | 포털 전환·라우팅이 사용자를 잃지 않는가 |
+| 홈 뮤직비디오 재생률 | `home_mv_play` ÷ `home_card_impression`(card=`moonlight_mv`) | `quality` · `source` · 기기 | 홈 중간의 뮤직비디오가 보인 뒤 실제로 재생되는가 |
+| 영냥이 뮤직비디오 열기율 | `yeongnyangi_mv_open` ÷ `yeongnyangi_mv_impression` | 기기 | 영냥이 홈의 타로 카드가 보인 뒤 실제로 눌리는가 |
+| 영냥이 뮤직비디오 재생 성공률 | `yeongnyangi_mv_play` ÷ `yeongnyangi_mv_open` | `quality` · `source` · 기기 | 극장을 연 사람이 영상을 실제로 보기 시작하는가(로딩·자동재생 차단 손실) |
+| 영냥이 뮤직비디오 완주율 | `yeongnyangi_mv_complete` ÷ `yeongnyangi_mv_play` | `quality` · 기기 | 4분 44초를 끝까지 보는가 |
+| 영냥이 뮤직비디오→운세 전환율 | `yeongnyangi_mv_cta` ÷ `yeongnyangi_mv_play` | `placement` · 기기 | 영상을 본 사람이 영냥이에게 운세를 물으러 가는가 |
 | 무료 체험 완주율 | `free_saju_completed` ÷ `free_saju_started` | `signed_in` | 무료 경로에서 이탈이 나는지 |
 | 결제창 도달률 | `checkout_opened` ÷ `free_saju_completed` | `feature_key` | 무료→유료 다리가 작동하는지 |
 | 결제창 전환율 | `purchase_complete` ÷ `checkout_opened` | `feature_key` · `payment_mode` | 결제창 자체의 설득력 |

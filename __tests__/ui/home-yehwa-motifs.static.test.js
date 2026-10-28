@@ -20,6 +20,14 @@ test('the shell loads yehwa-motifs.css before the hero renders', () => {
   assert.ok(link < hero, 'yehwa-motifs.css must be linked before the hero markup');
 });
 
+test('representative consultation artwork remains legible on mobile', () => {
+  const css = read('styles/concern-first-home.css');
+  const mobile = css.slice(css.indexOf('@media(max-width:640px)'));
+  assert.match(mobile, /\.cd-sig-card__media\{[^}]*aspect-ratio:16\/9/);
+  assert.match(mobile, /\.cd-sig-card__img\{[^}]*width:100%[^}]*height:100%[^}]*object-fit:cover/);
+  assert.doesNotMatch(mobile, /\.cd-sig-card__img\{[^}]*height:80px/);
+});
+
 test('section dividers sit between the home sections', () => {
   const html = read('index.html');
   const count = (html.match(/<div class="cd-yehwa-divider" aria-hidden="true"><\/div>/g) || []).length;
@@ -31,7 +39,8 @@ test('illustrated hero replaces decorative motifs with separate persona art', ()
   const html = read('index.html');
   const garden = html.match(/<div class="cdh-scene-art" aria-hidden="true">([\s\S]*?)<\/div>/)?.[1] || '';
   assert.match(garden, /data-character="yeoni"/);
-  assert.match(garden, /data-character="neo"/);
+  // 2026-10-13: 라이트·다크 모두 연이 하나 — 네오 히어로 그림은 걷어 냈다.
+  assert.doesNotMatch(garden, /data-character="neo"/);
   assert.doesNotMatch(garden, /cd-yehwa-spray|cdh-moon|cdh-peony/);
   assert.doesNotMatch(html, /class="moon-hero__(?:visual|zzz|ambient|picture--mascot)/);
   assert.doesNotMatch(read('styles/cosmic-main.css'), /\.moon-hero__(?:visual|zzz|picture--mascot)/);
@@ -50,40 +59,28 @@ test('yehwa-motifs.css is generated, paired for Safari, quiet, and repainted for
   // 라인아트는 텍스트 뒤의 배경 장식 — 실측(2026-09-03) 연이 히어로 일러스트 위에서 .5 가 선 대비 1.3:1(은은),
   // 그 위로 올리면 일러스트를 덮는다. 상한 .5 를 넘기면 장식이 아니라 그림이 된다.
   assert.doesNotMatch(css, /\.moon-hero__yehwa/);
-  assert.match(read('styles/home-funnel.css'), /yeoni-room-640\.webp/);
+  assert.match(read('styles/home-funnel.css'), /yeoni-moon-garden-640\.webp/);
 });
 
 // ── PR-2 (2026-09-03) — 카드 인장·스파클 ───────────────────────────────────────
 // 인장은 두 카드 모두 "모서리 밖으로 걸쳐 두고 카드의 overflow 로 자른다"는 한 가지 방식으로 놓았고,
 // 그래서 호스트 카드의 담기(position/isolation/overflow)가 빠지면 조용히 사라지거나 카드 밖으로 샌다.
 
-test('seals are child spans on the two host cards, sparkles sit inside the art box', () => {
+test('seals are child spans on the signature deck cards', () => {
   const html = read('index.html');
-  assert.equal((html.match(/<span class="cd-yehwa-seal"/g) || []).length, 6, 'expected 6 seals (운명의 문 1 + 대표 상담 5)');
-  assert.equal((html.match(/class="cd-yehwa-seal" aria-hidden="true"/g) || []).length, 6, 'every seal must be aria-hidden');
+  // 2026-10-17: 소개 2장과 상품 6장; 중복 운명의 문은 통합했다.
+  assert.equal((html.match(/<span class="cd-yehwa-seal"/g) || []).length, 8, 'expected 8 seals (소개 2 + 상품 6)');
+  assert.equal((html.match(/class="cd-yehwa-seal" aria-hidden="true"/g) || []).length, 8, 'every seal must be aria-hidden');
   // 🔴 ::before/::after 로 바꾸지 말 것 — .cd-sig-card 는 animation-fill-mode:backwards 인 cdSigRise 를 돌아
   // 의사요소가 시작 프레임 값에 붙들린다. 자식 span 이라야 카드와 함께 움직인다(hover/active 실측 동일 좌표).
   const sig = html.match(/<a class="cd-sig-card(?: cd-sig-card--[a-z]+)?"[^>]*>[^<]*<span class="cd-yehwa-seal"/g) || [];
-  assert.equal(sig.length, 5, `대표 상담 카드 5장 전부에 인장이 있어야 한다 (현재 ${sig.length})`);
+  assert.equal(sig.length, 8, `대표 상담 8장에 인장이 있어야 한다 (현재 ${sig.length})`);
   // 🔴 빠른 서비스 카드에는 인장을 두지 않는다(2026-09-03 사용자 결정) — 182x106px 카드에서
   // 72px 인장은 높이의 68% 이고, 그 크기에서는 꽃잎이 직선 방사살로 잘려 "시계 밴드"로 읽혔다.
   const quick = html.match(/<a class="cd-quick-card"[^>]*>[^<]*<span class="cd-yehwa-seal"/g) || [];
   assert.equal(quick.length, 0, `빠른 서비스 카드에는 인장이 없어야 한다 (현재 ${quick.length})`);
-  const doorStart = html.indexOf('<a class="fortune-gateway__door fortune-gateway__door--chat"');
-  assert.ok(doorStart > 0, '운명의 문 카드 마커가 없다');
-  const doorHead = html.slice(doorStart, html.indexOf('fortune-gateway__door-art', doorStart));
-  assert.ok(doorHead.includes('<span class="cd-yehwa-seal"'), '운명의 문 카드 인장이 아트 상자 앞에 없다');
-
-  // 스파클은 아트 상자 안에만 둔다 — 카드 기준 px 로 놓으면 문구가 바뀔 때 글자를 덮는다.
-  const artStart = html.indexOf('<span class="fortune-gateway__door-art" aria-hidden="true">');
-  assert.ok(artStart > 0, '.fortune-gateway__door-art 마커가 없다');
-  const artEnd = html.indexOf('</span>\n              <span class="fortune-gateway__door-kicker">', artStart);
-  assert.ok(artEnd > artStart, '아트 상자의 끝을 찾지 못했다');
-  const art = html.slice(artStart, artEnd);
-  for (const cls of ['cd-yehwa-sparkle--a', 'cd-yehwa-sparkle--b', 'cd-yehwa-sparkle--c']) {
-    assert.ok(art.includes(cls), `${cls} 가 아트 상자 밖에 있다`);
-  }
-  assert.equal((html.match(/cd-yehwa-sparkle--/g) || []).length, 3, '스파클은 아트 상자 안 3개뿐이어야 한다');
+  // 통합한 운명의 문 장식을 대표 상담에 중복 추가하지 않는다.
+  assert.equal((html.match(/cd-yehwa-sparkle--/g) || []).length, 0, '통합된 운명의 문 스파클은 남지 않는다');
 });
 
 test('seal and sparkle placements are generated for every host and repainted for neo', () => {
@@ -110,26 +107,15 @@ test('seal and sparkle placements are generated for every host and repainted for
 
 test('sprigs, concern seals and peonies are child spans on their hosts', () => {
   const html = read('index.html');
-  assert.equal((html.match(/class="cd-yehwa-sprig /g) || []).length, 2, '가지는 AI 카드 2 = 2개(왜 우리 섹션은 2026-10-03 운세 정원 개편에서 삭제)');
-  assert.equal((html.match(/<span class="cd-yehwa-sprig cd-yehwa-sprig--(?:tl|tr)" aria-hidden="true"><\/span>/g) || []).length, 2, '가지는 전부 aria-hidden 인 --tl/--tr 이어야 한다');
-  assert.match(html, /<section class="cd-ai-feats"[^>]*>\s*<span class="cd-yehwa-sprig cd-yehwa-sprig--tl"/, 'AI 카드 첫 자식이 가지가 아니다');
-  // 🔴 파인더 가격 행은 단방향 가지(branch-spray)만 받는다 — 좌우 대칭인 구분선 마스크(branch-h)를 여기 두면
-  // 방식/가격 행 사이 거터에 미러 쌍이 떠서 "나눌 것 없는 자리의 구분선"으로 읽힌다(2026-09-03 시각 판정).
-  // 문양은 필터 묶음(.fortune-gateway__filters)이 아니라 가격 행 안에 있어야 자리가 행 baseline 에 붙는다.
-  assert.doesNotMatch(html, /<div class="fortune-gateway__filters"[^>]*>\s*<span class="cd-yehwa/, '문양은 필터 묶음이 아니라 가격 행 안에 둔다');
-  assert.equal((html.match(/class="cd-yehwa-spray"/g) || []).length, 1, '가지 스프레이는 파인더 가격 행에만 두고 그림 히어로의 중복 장식은 제거한다');
-  assert.match(html, /<div class="fortune-gateway__filter-row" role="group" aria-label="가격대로 좁히기"[^>]*>\s*<span class="cd-yehwa-spray" aria-hidden="true"><\/span>/, '가격 행 첫 자식이 가지 스프레이가 아니다');
-
-  // 질문 타일 8장(2026-10-02) 전부에 인장 span 이 있고 CSS 가 aria-expanded=true 인 카드에서만 켠다.
-  const concern = html.match(/<button type="button" class="cd-concern__card"[^>]*>\s*<span class="cd-yehwa-seal cd-yehwa-seal--concern" aria-hidden="true"><\/span>/g) || [];
-  assert.equal(concern.length, 8, `질문 타일 8장 전부에 인장이 있어야 한다 (현재 ${concern.length})`);
-  assert.equal((html.match(/cd-yehwa-seal--concern"/g) || []).length, 8, '고민 인장은 타일 안 8개뿐이어야 한다');
-
-  assert.ok(html.includes('<div class="cd-feedback__copy"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '피드백 카드 가운데 열의 모란이 없다');
-  assert.ok(html.includes('<div class="cd-footer-shell" data-marker="cd-footer-refine-v20260724"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '푸터 링크 허브의 모란이 없다');
-  // 앱 설치 카드(2026-09-04) — 피드백 카드와 같은 3열 카드라 같은 자리에 같은 모란을 쓴다.
+  // 2026-10-17 "직관성": 가지(AI 카드)·스프레이(파인더 가격 행)·고민 인장(질문 타일)·피드백 모란의 호스트가 모두 홈에서 빠졌다.
+  // 배치 규칙(styles/yehwa-motifs.css)은 아래 테스트가 계속 지킨다 — 호스트가 돌아오면 이 개수부터 되돌릴 것.
+  assert.equal((html.match(/class="cd-yehwa-sprig /g) || []).length, 0, '가지를 달던 AI 카드는 홈에서 빠졌다');
+  assert.equal((html.match(/class="cd-yehwa-spray"/g) || []).length, 0, '스프레이를 달던 파인더 가격 행은 홈에서 빠졌다');
+  assert.equal((html.match(/cd-yehwa-seal--concern"/g) || []).length, 0, '고민 인장을 달던 질문 타일은 홈에서 빠졌다');
+  // 2026-10-16 "직관성": 푸터 링크 허브와 그 모란은 걷어냈다(최소 푸터 규격, lib/brand/site-footer.ts).
+  // 앱 설치 카드(2026-09-04) — 3열 카드 가운데 열에 모란을 쓴다.
   assert.ok(html.includes('<div class="cd-app-install__copy"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '앱 설치 카드 가운데 열의 모란이 없다');
-  assert.equal((html.match(/class="cd-yehwa-peony"/g) || []).length, 3, '모란은 피드백 카드 + 앱 설치 카드 + 푸터 3개뿐이어야 한다');
+  assert.equal((html.match(/class="cd-yehwa-peony"/g) || []).length, 1, '모란은 앱 설치 카드 1개뿐이어야 한다');
 });
 
 test('PR-3 placements are generated, ordered by width, and repainted for neo', () => {
@@ -139,7 +125,6 @@ test('PR-3 placements are generated, ordered by width, and repainted for neo', (
     '.cd-concern__card[aria-expanded="true"] .cd-yehwa-seal--concern',
     '.cd-feedback__copy > .cd-yehwa-peony',
     '.cd-app-install__copy > .cd-yehwa-peony',
-    '.cd-footer-shell > .cd-yehwa-peony',
   ]) {
     assert.ok(css.includes(`${sel} {`), `${sel} 배치 규칙이 없다`);
   }

@@ -3,9 +3,9 @@
    .vars 를 랜딩 루트와 폼 루트에 각각 부여해 폼이 /calc 단독에서도 팔레트를 갖게 한다. */
 
 .vars {
-  --ink-900: #04050c;
-  --ink-800: #080a16;
-  --ink-700: #0e1124;
+  --ink-900: #091321;
+  --ink-800: #101d2d;
+  --ink-700: #142538;
   --ink-600: #151934;
   --east: #74c7d6;
   --east-soft: #a7dfe8;
@@ -13,9 +13,9 @@
   --gold: #e5c789;
   --gold-soft: #f4e4b6;
   --amber: #dda44f;
-  --rose: #e0517f;
+  --rose: #e6a394;
   --rose-strong: #c02659;
-  --rose-soft: #f4a6c1;
+  --rose-soft: #e6a394;
   --t-100: #f4f4fb;
   --t-200: #d9ddf0;
   --t-300: #aab2d4;
@@ -42,7 +42,7 @@
     radial-gradient(1200px 780px at 12% -10%, rgba(116, 199, 214, 0.10), transparent 58%),
     radial-gradient(1100px 760px at 90% 2%, rgba(229, 199, 137, 0.11), transparent 55%),
     radial-gradient(1000px 900px at 50% 120%, rgba(179, 25, 85, 0.13), transparent 60%),
-    linear-gradient(180deg, #04050c 0%, #080a16 46%, #0a0c1c 100%);
+    linear-gradient(180deg, #091321 0%, #101d2d 46%, #0a0c1c 100%);
 }
 .stars {
   position: fixed; inset: 0; z-index: -2; opacity: 0.6;
@@ -239,7 +239,7 @@
 }
 .fld input::placeholder { color: var(--t-400); }
 .fld input:focus, .fld select:focus { border-color: rgba(229, 199, 137, 0.6); background: rgba(255, 255, 255, 0.07); }
-.fld select option { background: #0e1124; }
+.fld select option { background: #142538; }
 .check { margin-top: 0; display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--t-300); cursor: pointer; }
 /* 네이티브 16×16 체크박스는 탭 타깃 44px 미달(스캔 실측 2026-09-02 유일 TT 위반).
    input 자체를 44×44 히트박스로 키우고 16px 글리프는 ::before/::after 로 그린다

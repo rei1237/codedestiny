@@ -27,7 +27,7 @@ test('actual karma-destiny-ai start-screen restore effect resumes on every foreg
   let currentOwner = true;
   const lockRef = { current: false };
   const context = {
-    window: { ...surface('window:'), location: { assign: (url) => opens.push(url) } },
+    window: { ...surface('window:'), location: { replace: (url) => opens.push(url) } },
     document: { ...surface('document:'), visibilityState: 'visible' },
     captureOwner: () => () => currentOwner,
     startLockRef: lockRef,

@@ -1,7 +1,13 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
+import ConsultationMasterIntro, { masterPreparationLabel } from "@/app/components/ConsultationMasterIntro";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { KarmaRelationshipFields, KarmaRelationshipGuide, emptyRelationshipContext, type RelationshipContext } from "./KarmaRelationshipGuide";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
-import { CalendarDays, Clock3, Download, Loader2, MapPin, Maximize2, Moon, Send, Sparkles, WalletCards, X } from "lucide-react";
+import { CalendarDays, Download, Loader2, MapPin, Maximize2, Send, Sparkles, WalletCards, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   beginPaidFeatureGateCheck,
@@ -49,6 +55,7 @@ type ConsultationForm = {
   birthPlace: BirthPlace;
   focusArea: FocusAreaType;
   question: string;
+  relationshipContext: RelationshipContext;
 };
 
 type ChatMessage = {
@@ -447,8 +454,8 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroTitle: "운명의 업 전문가 상담",
     heroDescription: "반복되는 인생의 흐름 속에서, 지금 끊어내야 할 패턴과 새롭게 열어야 할 길을 읽어드립니다.",
     premiumMapAriaLabel: "운명의 업 상담 구성",
-    premiumMapHeading: "30,000자 이상으로 여는 운명의 업 리포트",
-    premiumMapDesc: "프리미엄 상담에 맞게 명리, 점성, 베다 상징과 현실 행동 전략을 16장 장문 흐름으로 엮습니다.",
+    premiumMapHeading: "다섯 관점으로 읽는 운명의 업 리포트",
+    premiumMapDesc: "사주·자미두수·숙요·서양 점성술·베다의 관점과 현실 행동 전략을 15장 흐름으로 엮습니다.",
     formHeading: "운명의 실을 읽기 위한 정보",
     profileLoadAria: "프로필 카드에서 출생 정보 불러오기",
     profileLoadCta: "프로필 카드에서 불러오기",
@@ -1813,6 +1820,7 @@ const defaultForm = (): ConsultationForm => ({
   },
   focusArea: "overall",
   question: "",
+  relationshipContext: emptyRelationshipContext(),
 });
 
 function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed): ConsultationForm {
@@ -1820,20 +1828,20 @@ function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed):
     return form;
   }
   const birthplace = {
-    city: profile.city || form.birthPlace.city,
-    country: profile.country || form.birthPlace.country,
-    latitude: profile.latitude || form.birthPlace.latitude,
-    longitude: profile.longitude || form.birthPlace.longitude,
-    timezone: profile.timezone || form.birthPlace.timezone,
+    city: profile.city ?? form.birthPlace.city,
+    country: profile.country ?? form.birthPlace.country,
+    latitude: profile.latitude ?? form.birthPlace.latitude,
+    longitude: profile.longitude ?? form.birthPlace.longitude,
+    timezone: profile.timezone ?? form.birthPlace.timezone,
   };
   const resolvedGender = (profile.gender as GenderType) || form.gender;
   return {
     ...form,
-    name: profile.name || form.name,
+    name: profile.name ?? form.name,
     gender: resolvedGender,
-    birthDate: profile.birthDate || form.birthDate,
+    birthDate: profile.birthDate ?? form.birthDate,
     birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
-    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime || form.birthTime,
+    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime ?? form.birthTime,
     calendarType: profile.calendarType || form.calendarType,
     birthPlace: {
       ...form.birthPlace,
@@ -1881,6 +1889,7 @@ function buildConsultationPayload(form: ConsultationForm) {
     timezone: birthPlace.timezone,
     focusArea: form.focusArea,
     question: form.question.trim(),
+    ...(Object.values(form.relationshipContext).some(value => value.trim()) ? { relationshipContext: form.relationshipContext } : {}),
     locale: detectLocale(),
     birthInfo: {
       name: form.name.trim(),
@@ -2267,6 +2276,7 @@ function KarmaResultModal({
 
 export default function KarmaDestinyAiPage() {
   const copy = useKarmaDestinyCopy();
+  const locale = getCurrentLoadingLocale();
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
   const [notice, setNotice] = useState("");
@@ -2295,7 +2305,7 @@ export default function KarmaDestinyAiPage() {
       try {
         const response = await authFetch("/api/karma-destiny-ai/result");
         const pending = await response.json().catch(() => ({}));
-        if (isCurrent() && response.ok && pending.sessionId && ["generating", "partial", "delivery_pending"].includes(pending.status)) window.location.assign(`/karma-destiny-ai/result?sessionId=${encodeURIComponent(pending.sessionId)}`);
+        if (isCurrent() && response.ok && pending.sessionId && ["generating", "partial", "delivery_pending"].includes(pending.status)) window.location.replace(`/karma-destiny-ai/result?sessionId=${encodeURIComponent(pending.sessionId)}`);
       } catch { /* The saved report remains available for the next lifecycle event. */ }
     };
     void restore(); window.addEventListener("online", restore); document.addEventListener("visibilitychange", restore);
@@ -2311,8 +2321,9 @@ export default function KarmaDestinyAiPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
@@ -2360,6 +2371,11 @@ export default function KarmaDestinyAiPage() {
     const target = event.target;
     const value = target instanceof HTMLInputElement && target.type === "checkbox" ? target.checked : target.value;
     setForm((prev) => ({ ...prev, [field]: value } as ConsultationForm));
+    resetAttempt();
+  };
+
+  const updateRelationshipContext = (relationshipContext: RelationshipContext) => {
+    setForm(current => ({ ...current, relationshipContext }));
     resetAttempt();
   };
 
@@ -2412,7 +2428,8 @@ export default function KarmaDestinyAiPage() {
       setError("");
       setStatus("reading");
       const target = `/karma-destiny-ai/result?sessionId=${encodeURIComponent(result.sessionId)}${result.status === "completed" ? "" : "&pending=1"}`;
-      window.location.assign(target);
+      // 결과에서 뒤로가기가 이미 쓴 입력 화면으로 돌아가지 않게 히스토리를 바꿔 넣는다.
+      window.location.replace(target);
       return result.status === "completed";
     }
     if (result.ok && result.status === "generating") {
@@ -2592,21 +2609,13 @@ export default function KarmaDestinyAiPage() {
 
   return (
     <main className={`kdai-page ${polish.page}`} data-karma-destiny-ai="v20260629">
-      <section className="kdai-hero" aria-label={copy.heroAriaLabel}>
-        <div className="kdai-hero__copy">
-          <div className="kdai-kicker"><Moon size={16} /> Karma · Saju · Astrology · Vedic Reading</div>
-          <h2>{copy.heroTitle}</h2>
-          <p>{copy.heroDescription}</p>
-          <div className="kdai-status" data-status={status}>
-            {isBusy ? <Loader2 size={16} className="kdai-spin" /> : <Sparkles size={16} />}
-            <span>{statusText}</span>
-          </div>
-          {accessType && <p className="kdai-access">{copy.accessTypeLabelPrefix}{accessType}</p>}
-          <a className={polish.heroCta} href="#karma-destiny-consultation">
-            운명의 패턴 해석 준비하기
-          </a>
+      <ConsultationMasterIntro kind="karma" label={copy.heroTitle} lead={copy.heroDescription} actionHref="#karma-destiny-consultation" actionId="karma-hero-start">
+        <div className="kdai-status" data-status={status} role="status">
+          {isBusy ? <Loader2 size={16} className="kdai-spin" /> : <Sparkles size={16} />}
+          <span>{statusText}</span>
         </div>
-      </section>
+        {accessType && <p className="kdai-access">{copy.accessTypeLabelPrefix}{accessType}</p>}
+      </ConsultationMasterIntro>
 
       <ExpertValueCards
         theme="karma"
@@ -2633,21 +2642,15 @@ export default function KarmaDestinyAiPage() {
         </div>
       </section>
 
+      {getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",position:"relative",zIndex:1,textAlign:"left",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="karma-destiny-ai-consultation" summaryLabel="붉은 실 · 운명의 업 상담 상세 안내" /></div>}
       <section className="kdai-workspace">
-        <form id="karma-destiny-consultation" className="kdai-form kdai-panel" onSubmit={handleSubmit}>
+        <form data-moonlit-form="" id="karma-destiny-consultation" className="kdai-form kdai-panel" onSubmit={handleSubmit}>
           <div className="kdai-panel-title kdai-panel-title--split">
             <div>
               <CalendarDays size={18} />
               <h2>{copy.formHeading}</h2>
             </div>
-            <button
-              className="kdai-ghost-action"
-              type="button"
-              onClick={loadFormFromProfileCard}
-              aria-label={copy.profileLoadAria}
-            >
-              <span>{copy.profileLoadCta}</span>
-            </button>
+            <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
           </div>
 
           <div className="kdai-grid">
@@ -2680,7 +2683,7 @@ export default function KarmaDestinyAiPage() {
           <div className="kdai-time-row">
             <label>
               {copy.birthTimeLabel}
-              <input type="time" value={form.birthTime} onChange={updateField("birthTime")} disabled={form.birthTimeUnknown} required={!form.birthTimeUnknown} />
+              <BirthTimeInput  value={form.birthTime} onChange={updateField("birthTime")} disabled={form.birthTimeUnknown} required={!form.birthTimeUnknown} />
             </label>
             <label className="kdai-check">
               <input type="checkbox" checked={form.birthTimeUnknown} onChange={updateField("birthTimeUnknown")} />
@@ -2729,6 +2732,7 @@ export default function KarmaDestinyAiPage() {
               {FOCUS_AREA_OPTIONS.map((option) => <option key={option.value} value={option.value}>{copy.focusAreaLabel[option.value]}</option>)}
             </select>
           </label>
+          <KarmaRelationshipFields value={form.relationshipContext} onChange={updateRelationshipContext} locale={locale} disabled={isBusy} />
           <label className="kdai-topic">
             {copy.questionLabel}
             <textarea
@@ -2813,11 +2817,7 @@ export default function KarmaDestinyAiPage() {
 
           <div className="kdai-messages">
             {messages.length === 0 ? (
-              <div className="kdai-empty">
-                <div className="kdai-karma-ring" aria-hidden="true"><Clock3 size={28} /></div>
-                <p>{copy.emptyStateTitle}</p>
-                <span>{copy.emptyStateDesc}</span>
-              </div>
+              <KarmaRelationshipGuide locale={locale} />
             ) : messages.map((message, index) => (
               <article key={`${message.role}-${index}`} className={`kdai-message kdai-message--${message.role}`}>
                 <span>{message.role === "assistant" ? copy.assistantRoleLabel : copy.userRoleLabel}</span>
@@ -2858,7 +2858,8 @@ export default function KarmaDestinyAiPage() {
         <ExpertStickyCta
           theme="karma"
           targetId="karma-destiny-consultation"
-          label="상담 정보 입력하기"
+          watchId="karma-hero-start"
+          label={masterPreparationLabel(getCurrentLoadingLocale())}
           price={<PriceBadge featureKey="karma-destiny-ai-consultation" prefix="" />}
         />
       )}
@@ -3147,6 +3148,7 @@ export default function KarmaDestinyAiPage() {
           background: rgba(255, 252, 243, .09);
           color: #fff7df;
           font: inherit;
+          font-size: 16px;
           outline: none;
           transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
         }
@@ -3286,7 +3288,7 @@ export default function KarmaDestinyAiPage() {
           border: 0;
           border-radius: 8px;
           color: #17120a;
-          background: linear-gradient(135deg, #ffe7a6, #d9a441 52%, #be123c);
+          background: #d9a441;
           font-weight: 900;
           cursor: pointer;
           box-shadow: 0 14px 30px rgba(0, 0, 0, .28), 0 0 0 1px rgba(255, 244, 205, .18);
@@ -3371,48 +3373,6 @@ export default function KarmaDestinyAiPage() {
           gap: 12px;
           overflow: auto;
           padding-right: 4px;
-        }
-
-        .kdai-empty {
-          position: relative;
-          display: grid;
-          place-content: center;
-          min-height: 360px;
-          text-align: center;
-          color: rgba(249, 240, 220, .72);
-        }
-
-        .kdai-karma-ring {
-          position: relative;
-          display: grid;
-          place-items: center;
-          width: 94px;
-          aspect-ratio: 1;
-          margin: 0 auto 12px;
-          border: 1px solid rgba(239, 204, 137, .38);
-          border-radius: 50%;
-          color: #f1cd7c;
-          background:
-            conic-gradient(from 0deg, rgba(239, 204, 137, .24), transparent 24%, rgba(190, 18, 60, .22), transparent 68%, rgba(244, 114, 182, .18)),
-            rgba(255, 252, 243, .04);
-          box-shadow: inset 0 0 0 12px rgba(255, 255, 255, .025), 0 0 30px rgba(248, 208, 111, .16);
-          animation: kdaiSlowTurn 18s linear infinite;
-        }
-
-        .kdai-karma-ring svg {
-          color: #f1cd7c;
-          animation: kdaiReverseTurn 18s linear infinite;
-        }
-
-        .kdai-empty p {
-          margin: 0 0 8px;
-          color: #f1cd7c;
-          font-size: 18px;
-          font-weight: 900;
-        }
-
-        .kdai-empty span {
-          font-size: 14px;
         }
 
         .kdai-message {

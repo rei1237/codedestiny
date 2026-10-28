@@ -49,20 +49,23 @@ function collectMarkers() {
     if (!map.has(key)) map.set(key, new Set());
     map.get(key).add(norm(value));
   };
+  const interpolateMarker = (node, key, original) => {
+    if (!node.hasAttribute('data-cd-vars')) return;
+    const vars = JSON.parse(node.getAttribute('data-cd-vars'));
+    const source = lookup(ko, key);
+    if (typeof source !== 'string') return;
+    // Text and accessibility attributes share the same runtime interpolation.
+    const resolveVar = raw => typeof raw === 'string' && raw.startsWith('@') ? lookup(ko, raw.slice(1)) ?? raw : raw;
+    const rendered = source.replace(/\{(\w+)\}/g, (token, name) => String(resolveVar(vars[name]) ?? token));
+    if (!interpolations.has(key)) interpolations.set(key, new Map());
+    interpolations.get(key).set(norm(original), norm(rendered));
+  };
 
   for (const node of document.querySelectorAll("[data-cd-trans]")) {
     // 마커는 두 형태다: data-cd-trans="키" 또는 값 없는 data-cd-trans + data-key="키"
     const key = node.getAttribute("data-cd-trans") || node.getAttribute("data-key") || "";
     if (key) add(texts, key, node.textContent || "");
-    if (key && node.hasAttribute('data-cd-vars')) {
-      const vars = JSON.parse(node.getAttribute('data-cd-vars'));
-      const source = lookup(ko, key);
-      if (typeof source === 'string') {
-        const rendered = source.replace(/\{(\w+)\}/g, (token, name) => String(vars[name] ?? token));
-        if (!interpolations.has(key)) interpolations.set(key, new Map());
-        interpolations.get(key).set(norm(node.textContent || ''), norm(rendered));
-      }
-    }
+    if (key) interpolateMarker(node, key, node.textContent || '');
   }
 
   for (const node of document.querySelectorAll("[data-cd-trans-attr]")) {
@@ -71,7 +74,7 @@ function collectMarkers() {
       const [attr, key] = part.trim().split(":");
       if (!attr || !key) continue;
       const value = node.getAttribute(attr.trim());
-      if (value != null) add(attrs, key.trim(), value);
+      if (value != null) { add(attrs, key.trim(), value); interpolateMarker(node, key.trim(), value); }
     }
   }
 
@@ -83,7 +86,8 @@ const { texts, attrs, interpolations } = collectMarkers();
 
 test("셸 텍스트 마커를 전수 발견한다", () => {
   assert.ok(
-    texts.size >= 1000,
+    // 2026-10-17 "직관성": 홈 섹션을 걷어내며 마커가 1000개 아래(989)로 줄었다. 바닥은 파서 유실을 잡는 용도라 950 으로 둔다.
+    texts.size >= 950,
     `index.html 의 data-cd-trans 마커가 ${texts.size}개뿐이다 — 마커가 유실됐거나 셀렉터가 셸 구조를 못 따라가고 있다`,
   );
 });
@@ -114,7 +118,7 @@ test("ko.json 값이 셸 마크업 문구와 같다", () => {
       const value = lookup(ko, key);
       if (value === undefined) continue; // 위 테스트가 따로 잡는다
       if (markups.has(norm(value))) continue;
-      if (kind === '텍스트' && [...markups].every(markup => interpolations.get(key)?.get(markup) === markup)) continue;
+      if ([...markups].every(markup => interpolations.get(key)?.get(markup) === markup)) continue;
       drift.push(`${kind} ${key}\n    셸  : ${[...markups].join(" | ")}\n    사전: ${norm(value)}`);
     }
   }

@@ -235,6 +235,42 @@ await isolated(async () => {
   const result = await callLLM({ prompt: "thought parts fixture", timeoutMs: 1000, fallbackToWorkersAI: false });
   assert(result.text === '{"body":"완성된 원고"}', "내부 thinking이 JSON/본문에 섞이면 안 된다");
 });
+
+// (7) 월 지출 한도 429는 계정 조치 전까지 계속 거절되므로 재시도하지 않고 원인 코드를 남긴다
+//     (2026-10-17 사고). 분당 rate limit 429는 기존대로 일시 오류로 재시도한다.
+const SPEND_CAP_BODY = { error: { code: 429, status: "RESOURCE_EXHAUSTED", message: "Your project has exceeded its monthly spending cap." } };
+await isolated(async () => {
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    if (String(url).includes(":countTokens")) return fakeResponse(200, { totalTokens: 1200 });
+    calls.push(url);
+    return fakeResponse(429, SPEND_CAP_BODY);
+  };
+  let code = "";
+  try { await callLLM({ prompt: "spend cap", timeoutMs: 5000, fallbackToWorkersAI: false }); }
+  catch (error) { code = String(error?.code || ""); }
+  assert(code === "GEMINI_SPEND_CAP", `월 지출 한도 429는 GEMINI_SPEND_CAP 코드여야 한다 (실제: ${code})`);
+  assert(calls.length === 1, `월 지출 한도 429는 재시도하면 안 된다 (실제 ${calls.length}회)`);
+});
+await isolated(async () => {
+  const { fetch, calls } = instantFailFetch(429);
+  globalThis.fetch = fetch;
+  let code = "";
+  try { await callLLM({ prompt: "rate limit", timeoutMs: 5000, fallbackToWorkersAI: false }); }
+  catch (error) { code = String(error?.code || ""); }
+  assert(code === "GEMINI_RATE_LIMITED", `일반 429는 GEMINI_RATE_LIMITED 코드여야 한다 (실제: ${code})`);
+  assert(calls.length === 2, `일반 429는 기존대로 재시도해야 한다 (실제 ${calls.length}회)`);
+});
+await isolated(async () => {
+  globalThis.fetch = async () => fakeResponse(429, SPEND_CAP_BODY);
+  let error;
+  try { await callLLM({ prompt: "count spend cap", timeoutMs: 5000, fallbackToWorkersAI: false }); }
+  catch (caught) { error = caught; }
+  assert(
+    error?.code === "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE" && error?.providerCode === "GEMINI_SPEND_CAP",
+    `countTokens 단계의 한도 거절도 providerCode로 원인을 남겨야 한다 (실제: ${error?.code}/${error?.providerCode})`,
+  );
+});
 globalThis.fetch = originalFetch;
 
 if (failures.length) {

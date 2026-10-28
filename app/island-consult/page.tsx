@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import IslandConsultClient from "./IslandConsultClient";
 
-// 운명의 섬 12궁 상담 허브 — 궁을 골라 기존 검증된 자미두수 전문가 상담(/ziwei-ai)으로 이어주는 진입 화면.
-// 상담 결과·결제는 /ziwei-ai가 그대로 담당한다. 색인 대상 아님(noindex, 사이트맵 미등록).
+// 무료 탐험 전환 후 기존 구매 결과 재열람만 유지한다. 색인 대상 아님.
 export const metadata: Metadata = {
-  title: "운명의 섬 · 12궁 상담",
+  title: "운명의 섬 · 기존 상담 다시 보기",
   description:
-    "운명의 섬 12궁 중 하나를 골라 자미두수 전문가 상담으로 이어주는 진입 화면입니다. 상담과 결제는 /ziwei-ai 가 담당하며 이 화면은 검색 색인 대상이 아닙니다.",
+    "운명의 섬은 무료 정적 탐험으로 전환되었습니다. 이 화면에서는 기존 구매 상담을 다시 볼 수 있습니다.",
   robots: { index: false, follow: false },
 };
 

@@ -1,0 +1,134 @@
+{
+  "id": "energy-travel",
+  "featureKey": "rpt_energyCoordCard",
+  "title": "사주로 보는 여행지",
+  "notice": "기존 사주 계산 결과의 용신·희신과 오행 분포, 현재 월의 계절 분류, 준비된 장소 자료를 사용한 여행 주제 리포트입니다. 보완 기운·방위·국내 및 해외 장소 카드·네 가지 모드의 룰렛·오행별 여행법·여섯 여행 타입·미션 세 가지·주의할 패턴·결론을 제공합니다. 후보 순서에는 현재 시점과 브라우저에 기록된 최근 장소가 반영되어 다시 볼 때 달라질 수 있습니다. 장소별 좌표·체류 방식과 준비된 설명을 제공하며 실시간 영업·날씨·교통·예약 정보는 제공하지 않습니다. 출발 전에 실제 운영 조건과 안전·예산을 확인하세요. 결핍도·회복 우선도는 상징 지표이며 건강 결핍·치료 효과·실제 회복률을 측정한 값이 아닙니다. 방향과 장소는 금지나 효능 보장이 아닌 참고이며 새 AI 상담·PDF는 포함하지 않습니다. 가상 편집 예시는 실제 결과·후기가 아니며 이미지는 분위기 연출입니다. 현재 이용권·월정석·단건 결제와 해금 범위는 결제창을 확인하세요.",
+  "panels": [
+    {
+      "id": "01-a-place-for-your-pace",
+      "title": "멀리 가는 여행보다, 내 속도에 맞는 여행.",
+      "src": "/feature-details/crafted/energy-travel/01-a-place-for-your-pace.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "멀리 가는 여행보다,\n내 속도에 맞는 여행.\n\n숲길에 머물지, 물가를 걸을지.\n사주의 오행을 여행의 주제로 삼아\n새로운 후보지를 만나보세요.\n\n사주로 보는 여행지 · 분위기 연출 이미지",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/energy-travel/01-a-place-for-your-pace-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-how-the-map-is-made",
+      "title": "장소를 고르는 데도, 나만의 기준을 더해요.",
+      "src": "/feature-details/crafted/energy-travel/02-how-the-map-is-made.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "장소를 고르는 데도,\n나만의 기준을 더해요.\n사주에서 읽은 보완 축\n\n균형을 돕는 용신·희신을 먼저,\n부족한 오행을 함께 살펴요.\n\n계절과 여행의 분위기\n\n현재 월의 계절 분류와\n장소의 지형·여행 방식을 더해요.\n\n최근 본 장소도 고려\n\n브라우저에 남은 최근 후보는\n순서를 조절해 다른 곳을 제안해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/energy-travel/02-how-the-map-is-made-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-what-is-in-the-report",
+      "title": "지명만 나열하지 않는, 여행의 작은 안내서.",
+      "src": "/feature-details/crafted/energy-travel/03-what-is-in-the-report.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "지명만 나열하지 않는,\n여행의 작은 안내서.\n\n01 보완 오행과 기운 요약\n02 사주·계절·방위 해설\n\n03 국내 좌표 · 04 해외 좌표\n05 네 가지 모드의 에너지 룰렛\n\n06 오행별 여행법\n07 여섯 가지 여행 타입\n\n08 실천 미션 세 가지\n09 주의할 패턴 · 한 줄 결론\n\n읽기 쉽게 묶은 안내 목차입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/energy-travel/03-what-is-in-the-report-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-read-a-destination",
+      "title": "한 곳을 고를 때, 머무는 방식까지 살펴요.",
+      "src": "/feature-details/crafted/energy-travel/04-read-a-destination.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 곳을 고를 때,\n머무는 방식까지 살펴요.\n국내·해외 후보 카드\n\n장소 이름과 좌표, 지형과 키워드,\n어울리는 여행 방식을 읽어요.\n\n국내 카드의 안내\n\n체류 방식·추천 시간대와\n그곳에서 해볼 작은 행동.\n\n해외 카드의 안내\n\n여행 난이도·체류 방식과\n어울리는 여행자 유형.\n\n후보 수는 장소 데이터에 따라 달라져요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/energy-travel/04-read-a-destination-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-choose-a-travel-mode",
+      "title": "계획이 막막한 날엔, 룰렛으로 후보를 좁혀요.",
+      "src": "/feature-details/crafted/energy-travel/05-choose-a-travel-mode.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "계획이 막막한 날엔,\n룰렛으로 후보를 좁혀요.\n국내 좌표 · 해외 좌표\n\n가고 싶은 범위부터 선택해요.\n\n월별 여행지 · 랜덤 원정\n\n다른 관점에서 후보를 만나고\n마음에 들면 더 살펴보세요.\n\n한 번 더 뽑아도 괜찮아요\n\n정해진 운명을 찾는 절차가 아닌,\n여행 생각을 넓히는 장치예요.\n\n항공·숙박 예약 기능은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/energy-travel/05-choose-a-travel-mode-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-an-example-of-a-slower-trip",
+      "title": "여행의 목적을, 하나만 남겨본다면.",
+      "src": "/feature-details/crafted/energy-travel/06-an-example-of-a-slower-trip.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "여행의 목적을,\n하나만 남겨본다면.\n\n이해를 위한 가상 편집 예시\n\n“많은 곳을 들르는 대신,\n한 곳에서 천천히 걸어보세요.\n사진을 고르는 시간보다\n머무는 시간을 남겨두고요.”\n\n장소의 이름보다\n그곳에서 원하는 경험을 먼저.\n내 일정과 체력에 맞춰 조정해요.\n\n실제 결과·후기가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/energy-travel/06-an-example-of-a-slower-trip-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-from-a-day-trip-to-a-reset",
+      "title": "어떻게 떠나고 싶은지, 여섯 갈래로 살펴보세요.",
+      "src": "/feature-details/crafted/energy-travel/07-from-a-day-trip-to-a-reset.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "어떻게 떠나고 싶은지,\n여섯 갈래로 살펴보세요.\n\n당일치기 · 1박 2일\n\n혼자 가는 여행 · 연인과의 여행\n\n창작·공부·리셋을 위한 여행\n\n쉬어가는 여행\n\n타입별 후보와 함께 미션 세 가지,\n피하고 싶은 일정 패턴을 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/energy-travel/07-from-a-day-trip-to-a-reset-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-what-the-map-cannot-tell",
+      "title": "지도 밖의 현실도, 함께 확인해 주세요.",
+      "src": "/feature-details/crafted/energy-travel/08-what-the-map-cannot-tell.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "지도 밖의 현실도,\n함께 확인해 주세요.\n오행 점수는 상징 지표\n\n건강 결핍이나 실제 회복률을\n측정한 수치가 아니에요.\n\n운영 정보는 별도 확인\n\n날씨·교통·영업·입장 조건과\n예산은 출발 전에 확인해요.\n\n결과의 제공 방식\n\n기존 사주와 준비된 장소 자료로\n구성하며 새 AI 상담·PDF는 없어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/energy-travel/08-what-the-map-cannot-tell-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-start-with-a-candidate",
+      "title": "나를 위한 여행, 한 곳의 후보부터 시작해요.",
+      "src": "/feature-details/crafted/energy-travel/09-start-with-a-candidate.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나를 위한 여행,\n한 곳의 후보부터 시작해요.\n\n국내·해외 카드를 읽고,\n머무는 방식과 작은 미션을 골라\n현실의 일정에 맞춰보세요.\n\n결제 전 확인\n\n현재 이용권·월정석·단건 결제와\n해금 범위는 결제창에서 확인해요.\n\n여행의 상징적 참고 자료.\n건강 개선이나 운의 변화를 보장하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/energy-travel/09-start-with-a-candidate-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

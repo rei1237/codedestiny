@@ -1,6 +1,8 @@
-// 🔴 Organization(회사) 이름이다. 브랜드(WebSite)는 "꿀꿀 운세" 로 따로 있다.
-//    lib/seo/siteSeo.ts 의 organization.name 과 같아야 한다.
-const BRAND_NAME = "CODE DESTINY";
+// Operator name (CODE DESTINY) and registered legal identity are separate; the service name lives on WebSite.
+import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
+import { siteSeo } from "../../lib/seo/siteSeo";
+import { serializeJsonLd } from "../../lib/seo/json-ld.mjs";
+const OPERATOR_NAME = siteSeo.organization.name;
 const BRAND_URL = "https://code-destiny.com";
 const DEFAULT_IMAGE = `${BRAND_URL}/og/code-destiny-og.png`;
 
@@ -16,7 +18,7 @@ function StructuredDataScript({ id, data }) {
     <script
       id={id}
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   );
 }
@@ -25,8 +27,9 @@ function buildOrganization() {
   return {
     "@type": "Organization",
     "@id": `${BRAND_URL}/#organization`,
-    name: BRAND_NAME,
-    alternateName: ["CODE DESTINY", "CodeDestiny", "코드데스티니", "코드 데스티니", "꿀꿀운세", "꿀꿀만세력", "꽃돼지 운세"],
+    name: OPERATOR_NAME,
+    alternateName: siteSeo.organization.alternateName,
+    legalName: BUSINESS_IDENTITY.companyName,
     url: BRAND_URL,
     logo: {
       "@type": "ImageObject",
@@ -70,7 +73,7 @@ export function ArticleJsonLd({
         author: {
           "@type": "Organization",
           "@id": `${BRAND_URL}/#organization`,
-          name: BRAND_NAME,
+          name: OPERATOR_NAME,
         },
         publisher: {
           "@id": `${BRAND_URL}/#organization`,

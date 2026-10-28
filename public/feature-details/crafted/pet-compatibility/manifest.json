@@ -1,0 +1,128 @@
+{
+  "id": "pet-compatibility",
+  "featureKey": "pet-compatibility-ai",
+  "title": "반려동물 궁합 분석",
+  "notice": "등록된 두 반려동물의 종·품종·출생 및 생활 정보를 바탕으로 관계를 읽는 AI 콘텐츠입니다. 결과는 종합 점수·등급·관계요약, 활력·안정·소통·영역갈등·회복의 다섯 축과 해설, 함께 가면 좋은 자리, 주의할 상황, 함께 지내는 하루로 구성됩니다. 영역갈등은 낮을수록 좋은 내부 지표이며 종합 점수는 합사 성공률이나 안전 판정이 아닙니다. 공간 후보는 입력에 따라 달라집니다. 목차·읽던 장 이동 및 진행 중 부분 저장을 지원합니다. 다른 조합은 새 분석이며 한 아이의 심층리포트는 별도 상품입니다. 전통 오행의 상징적 해석이므로 실제 종별 돌봄·분리·합사 기준과 행동·건강 관찰을 우선합니다. 예시·공간 그림은 가상 편집이며 실제 결과·고객 후기가 아닙니다. 현재 이용권·월정석·단건 결제 조건은 결제창에서 확인합니다.",
+  "panels": [
+    {
+      "id": "01-two-pets-one-home",
+      "title": "함께 사는 두 아이, 편안한 거리는 달라요.",
+      "alt": "함께 사는 두 아이, 편안한 거리는 다를 수 있어요.",
+      "src": "/feature-details/crafted/pet-compatibility/01-two-pets-one-home.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "함께 사는 두 아이,\n편안한 거리는 달라요.\n첫째의 휴식\n\n함께 쓰는 공간\n\n둘째의 휴식\n\n잘 맞는다는 한마디보다,\n언제 편하고 어디서 긴장하는지.\n두 아이의 기질과 생활 조건을\n나란히 읽어보세요.\n\n반려동물 궁합 분석\n그림은 공간 분리를 설명하는 가상 예시예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/pet-compatibility/01-two-pets-one-home-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-choose-two-profiles",
+      "title": "같이 볼 두 아이의 정보를 먼저 확인해요.",
+      "alt": "같이 볼 두 아이의 정보를 먼저 확인해요.",
+      "src": "/feature-details/crafted/pet-compatibility/02-choose-two-profiles.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같이 볼 두 아이의 정보를\n먼저 확인해요.\n등록된 두 아이 선택\n\n각자의 종·품종·출생 정보와\n생활 조건을 바탕으로 계산해요.\n\n다른 기질의 만남\n\n오행이 서로를 보완하는 면과\n부담을 키우는 조건을 함께 읽어요.\n\n조합별로 달라지는 결과\n\n다른 아이를 고르면 새 조합이에요.\n새 분석의 이용 조건을 확인해요.\n\n실제 만남과 행동 관찰을 대신하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/pet-compatibility/02-choose-two-profiles-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-five-axes-not-one-verdict",
+      "title": "한 점수 안에, 다섯 가지 관계가 있어요.",
+      "alt": "한 점수 안에, 다섯 가지 관계가 있어요.",
+      "src": "/feature-details/crafted/pet-compatibility/03-five-axes-not-one-verdict.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 점수 안에,\n다섯 가지 관계가 있어요.\n활력\n\n활동 리듬의 만남\n\n안정\n\n함께 있을 때의 편안함\n\n소통\n\n반응을 주고받는 경향\n\n영역 갈등\n\n공간·자원을 둘러싼 긴장\n\n회복\n\n자극 뒤 쉬어가는 리듬\n\n각 축의 수치와 AI 해설을 함께 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/pet-compatibility/03-five-axes-not-one-verdict-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-a-low-conflict-number",
+      "title": "영역 갈등은, 낮을수록 좋은 지표예요.",
+      "alt": "영역 갈등은, 낮을수록 좋은 지표예요.",
+      "src": "/feature-details/crafted/pet-compatibility/04-a-low-conflict-number.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "영역 갈등은,\n낮을수록 좋은 지표예요.\n\n다섯 축을 모두 ‘높으면 좋다’고\n읽으면 관계를 오해할 수 있어요.\n영역 갈등은 긴장의 정도를 나타내며,\n전체 점수에는 방향을 바꿔 반영해요.\n\n종합 점수와 등급은\n계산에 따른 내부 참고 지표.\n친해질 확률이나\n합사 성공률이 아니에요.\n\n실제 안전 여부는 종의 특성과\n행동·건강·환경을 별도로 확인해야 해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/pet-compatibility/04-a-low-conflict-number-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-a-place-and-a-way-to-use-it",
+      "title": "함께 갈 자리보다, 함께 쓰는 방법까지.",
+      "alt": "함께 갈 자리보다, 함께 쓰는 방법까지.",
+      "src": "/feature-details/crafted/pet-compatibility/05-a-place-and-a-way-to-use-it.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "함께 갈 자리보다,\n함께 쓰는 방법까지.\n함께 가면 좋은 자리\n\n선정된 공간마다 거리·순서와\n관찰할 반응을 풀어드려요.\n\n주의할 상황\n\n활동량·자원·자극이 겹칠 때와\n휴식이 필요할 때를 구분해요.\n\n함께 지내는 하루\n\n두 아이의 상태에 맞춰 바꿀\n일과 예시를 읽어요.\n\n결과의 공간 후보는 입력에 따라 달라져요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/pet-compatibility/05-a-place-and-a-way-to-use-it-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-leave-a-way-to-rest",
+      "title": "가까워지는 연습에도, 물러날 자리가 필요해요.",
+      "alt": "가까워지는 연습에도, 물러날 자리가 필요해요.",
+      "src": "/feature-details/crafted/pet-compatibility/06-leave-a-way-to-rest.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "가까워지는 연습에도,\n물러날 자리가 필요해요.\n\n생활 조정 예시 · 가상 편집\n\n함께 머무는 시간을 늘리기 전에,\n각자 방해받지 않고 쉬는 곳이\n확보되어 있는지 확인해 보세요.\n각자의 자리\n\n서로의 거리\n\n선택할 여유\n\n실제 결과나 고객 후기가 아니에요.\n종별 분리·합사 기준과 안전을 우선해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/pet-compatibility/06-leave-a-way-to-rest-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-read-the-whole-relationship",
+      "title": "요약에서 하루의 루틴까지, 필요한 장으로 이동해요.",
+      "alt": "요약에서 하루의 루틴까지, 필요한 장으로 이동해요.",
+      "src": "/feature-details/crafted/pet-compatibility/07-read-the-whole-relationship.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "요약에서 하루의 루틴까지,\n필요한 장으로 이동해요.\n관계 요약과 전체 해석\n\n보완점·긴장 조건·반대 상황\n\n다섯 축과 공간별 해설\n\n계산 근거를 생활로 풀어낸 본문\n\n주의할 상황과 하루 예시\n\n관찰하고 조정할 구체적인 기준\n\n목차와 읽던 장 이동을 지원해요.\n진행 중 저장된 부분과 완성 상태는 구분해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/pet-compatibility/07-read-the-whole-relationship-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-a-guide-to-observation",
+      "title": "잘 맞는지 묻는 것에서, 잘 지내는 방법으로.",
+      "alt": "잘 맞는지 묻는 것에서, 잘 지내는 방법으로.",
+      "src": "/feature-details/crafted/pet-compatibility/08-a-guide-to-observation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "잘 맞는지 묻는 것에서,\n잘 지내는 방법으로.\n\n반려동물 궁합은 오행의 상징을\n관계와 생활에 연결하는 콘텐츠예요.\n낮은 점수로 만남을 단정하거나,\n높은 점수로 위험을 무시하지 마세요.\n\n오늘은 어떤 거리에서 편했는지,\n어떤 상황을 줄여야 하는지.\n두 아이의 실제 반응으로\n다시 확인해 주세요.\n\n한 아이의 심층 리포트는 별도 상품이에요.\n현재 이용 조건은 결제창에서 확인해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/pet-compatibility/08-a-guide-to-observation-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

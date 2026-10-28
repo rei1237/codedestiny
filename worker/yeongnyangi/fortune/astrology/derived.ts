@@ -58,6 +58,19 @@ export function buildAstrologySect(planets:unknown):O{
   return {chart:day?'day':'night',light,beneficOfSect:benefic,maleficOfSect:malefic,contraryMalefic:contrary,lines};
 }
 
+/** Prompt-only view of dignity and sect: the stored facts keep their codes for the rules above, while the model
+ *  reads Korean labels and never copies '(Dignity: domicile)' or 'contrary malefic' into the prose. */
+export function astrologyPromptValue(label:string,value:unknown):unknown{
+  const dignity=(row:unknown)=>row&&typeof row==='object'&&DIGNITY_KO[(row as O).dignity as AstroDignity]?{...(row as O),dignity:DIGNITY_KO[(row as O).dignity as AstroDignity]}:row;
+  if(label==='planets'&&value&&typeof value==='object'&&!Array.isArray(value))return Object.fromEntries(Object.entries(value).map(([name,p])=>[name,dignity(p)]));
+  if(label==='houseRulers'&&Array.isArray(value))return value.map(dignity);
+  if(label==='chartSect'&&value&&typeof value==='object'){
+    const s=value as O,name=(n:unknown)=>KO[n as string]||n;
+    return {...s,chart:s.chart==='day'?'주간':s.chart==='night'?'야간':s.chart,light:name(s.light),beneficOfSect:name(s.beneficOfSect),maleficOfSect:name(s.maleficOfSect),contraryMalefic:name(s.contraryMalefic)};
+  }
+  return value;
+}
+
 const RULER_MEANING:Record<number,string>={
   1:'나를 이끄는 힘(차트 룰러)이 그 자리의 일로 향한다',
   6:'일상 루틴과 컨디션이 그 자리의 리듬을 따른다',

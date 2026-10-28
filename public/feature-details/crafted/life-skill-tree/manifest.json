@@ -1,0 +1,128 @@
+{
+  "id": "life-skill-tree",
+  "featureKey": "rpt_skillTreeCard",
+  "title": "인생 스킬 트리 · 사주 RPG",
+  "notice": "기존 사주 결과를 게임 캐릭터 시트처럼 읽는 해금 콘텐츠입니다. 일간과 십성의 구성으로 클래스·주력 축·랭크를, 오행 비율로 다섯 스탯과 분포를 표시합니다. 일주 자료가 있는 경우 고유능력이 나오며 주력 스킬·추가 보유 스킬·잠긴 스킬은 사주 구성에 따라 달라집니다. 추가 보유 또는 잠긴 스킬이 없다는 안내가 나올 수 있습니다. 현재 연도의 세운과 성장축을 비교한 레벨업 조언을 함께 읽습니다. 브라우저의 사주 규칙과 준비된 문장으로 구성하며 새 AI 답변이나 실제 플레이 게임이 아닙니다. 스탯은 능력 검사 점수나 타인 대비 백분위가 아니며, 잠긴 스킬은 추가 구매 항목이 아니라 상징적인 성장 과제입니다. 챕터·경험치 표시는 활동 기록이 아닌 나이 기반 연출입니다. 가상 편집 예시는 실제 결과·후기가 아니며 이미지는 분위기 연출입니다. PDF·캐릭터 이미지 저장을 포함하지 않습니다. 현재 이용권·월정석·단건 결제 및 해금 범위는 결제창을 확인하세요.",
+  "panels": [
+    {
+      "id": "01-read-your-strengths-as-skills",
+      "title": "나의 강점을, 스킬 트리로 읽는다면.",
+      "alt": "나의 강점을, 하나의 스킬 트리로 읽는다면.",
+      "src": "/feature-details/crafted/life-skill-tree/01-read-your-strengths-as-skills.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 강점을,\n스킬 트리로 읽는다면.\n\n잘 쓰는 힘과 더 연습할 힘을\n사주 RPG 캐릭터 시트로 살펴요.\n새로운 관점으로 나를 읽어보세요.\n\n인생 스킬 트리 · 분위기 연출 이미지",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-skill-tree/01-read-your-strengths-as-skills-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-your-class-and-main-axis",
+      "title": "내 클래스는 무엇이고, 어떤 힘이 중심일까요.",
+      "alt": "내 클래스는 무엇이고, 어떤 힘이 중심일까요.",
+      "src": "/feature-details/crafted/life-skill-tree/02-your-class-and-main-axis.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 클래스는 무엇이고,\n어떤 힘이 중심일까요.\n일간에서 읽는 클래스\n\n사주에서 나를 나타내는 글자를\n캐릭터의 기본 성격으로 풀어요.\n\n십성에서 읽는 주력 축\n\n자아·창조·자원·질서·지혜 중\n두드러지는 구성을 살펴요.\n\n랭크와 성장 표시\n\n사주 구성과 나이를 바탕으로\n게임처럼 표현한 정보예요.\n\n우열이나 실제 활동 점수가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-skill-tree/02-your-class-and-main-axis-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-five-stats-from-elements",
+      "title": "다섯 스탯으로 보는, 내 힘의 분포.",
+      "alt": "다섯 스탯으로 보는, 내 힘의 분포.",
+      "src": "/feature-details/crafted/life-skill-tree/03-five-stats-from-elements.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다섯 스탯으로 보는,\n내 힘의 분포.\n\n목 · 창의력\n\n화 · 카리스마\n\n토 · 안정성\n\n금 · 결단력\n\n수 · 직관력\n\n오행 비율을 번역한 상징 스탯.\n실제 능력 검사 점수는 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-skill-tree/03-five-stats-from-elements-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-skills-you-use-and-develop",
+      "title": "주력과 보유 스킬, 아직 낯선 성장 과제.",
+      "alt": "주력과 보유 스킬, 아직 낯선 성장 과제.",
+      "src": "/feature-details/crafted/life-skill-tree/04-skills-you-use-and-develop.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "주력과 보유 스킬,\n아직 낯선 성장 과제.\n주력 스킬\n\n가장 두드러진 십성 축을\n대표 기술로 보여줘요.\n\n보유 스킬\n\n다른 축에서 드러나는 힘을\n추가 기술로 살펴요.\n\n잠긴 스킬\n\n드러나지 않은 축을\n연습할 과제로 읽어보세요.\n\n잠긴 스킬은 추가 구매가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-skill-tree/04-skills-you-use-and-develop-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-the-sheet-you-will-read",
+      "title": "캐릭터 시트에서, 올해의 성장 방향까지.",
+      "alt": "캐릭터 시트에서, 올해의 성장 방향까지.",
+      "src": "/feature-details/crafted/life-skill-tree/05-the-sheet-you-will-read.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "캐릭터 시트에서,\n올해의 성장 방향까지.\n\n클래스 · 랭크 · 주력 축\n\n다섯 오행 스탯과 분포\n\n일주 고유능력 · 자료가 있는 경우\n\n주력 · 보유 · 잠긴 스킬\n\n현재 연도의 레벨업 조언\n\n그해의 기운과 성장축을 비교해요.\n성과를 보장하는 예측은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-skill-tree/05-the-sheet-you-will-read-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-a-skill-to-practise",
+      "title": "능력이 없다는 뜻보다, 연습할 방향으로.",
+      "alt": "능력이 없다는 뜻보다, 연습할 방향으로.",
+      "src": "/feature-details/crafted/life-skill-tree/06-a-skill-to-practise.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "능력이 없다는 뜻보다,\n연습할 방향으로.\n\n가상 편집 예시 · 실제 결과·후기 아님\n\n“표현의 힘을 더 쓰려면\n오늘 무엇부터 해볼까요?”\n\n떠오른 생각을 세 줄로 적고,\n그중 하나를 가까운 사람에게\n설명해 보는 건 어떨까요?\n\n스탯을 고정된 한계로 읽기보다\n작은 행동을 고르는 참고로 써요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-skill-tree/06-a-skill-to-practise-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-a-reading-not-a-game",
+      "title": "플레이하는 게임보다, 읽어보는 캐릭터 시트.",
+      "alt": "플레이하는 게임보다, 읽어보는 캐릭터 시트.",
+      "src": "/feature-details/crafted/life-skill-tree/07-a-reading-not-a-game.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "플레이하는 게임보다,\n읽어보는 캐릭터 시트.\n브라우저에서 구성\n\n사주 규칙과 준비된 설명을 써요.\n새 AI 답변을 생성하지 않아요.\n\n챕터와 경험치\n\n나이를 바탕으로 한 연출이며\n행동을 기록해 쌓는 점수가 아니에요.\n\n화면에서 읽기\n\nPDF나 캐릭터 이미지 파일\n저장은 포함하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-skill-tree/07-a-reading-not-a-game-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-open-your-character-sheet",
+      "title": "사주 결과에서, 나의 스킬 트리를 펼쳐요.",
+      "alt": "사주 결과에서, 나의 스킬 트리를 펼쳐요.",
+      "src": "/feature-details/crafted/life-skill-tree/08-open-your-character-sheet.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "사주 결과에서,\n나의 스킬 트리를 펼쳐요.\n\n기존 사주 입력으로 계산된\n나의 구성에서 이어지는 해석이에요.\n\n해금 범위 확인\n\n이용권·월정석·단건 결제는\n현재 결제창을 기준으로 해요.\n\n성격이나 능력을 단정하는 판정보다\n성장을 돌아보는 관점으로 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-skill-tree/08-open-your-character-sheet-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

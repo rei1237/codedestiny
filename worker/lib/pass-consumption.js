@@ -143,17 +143,17 @@ export async function refundYeongnyangiMoonstone(input) {
    같아야 한다 — 클라이언트 판정기 pass-verdict.isMonthlyLimitPayload 가 이 문자열만 보고 "한도 초과"와
    "이용권 없음"을 가르며, 어긋나면 한도 초과가 이용권 상점으로 튕긴다.
 
-   🔴 빈 문자열("")은 **차단하지 말라**는 뜻이다. no_active_pass·invalid_price 는 정본이 이 사용자의
-   이용권을 아예 못 보는(= 사이클 키가 없어 예산을 셀 수 없는) 상태라 강제할 한도 자체가 없다.
-   이때 호출부는 예전 통과 판정을 그대로 존중하고 차감만 건너뛴다 — 여기서 막으면 정본과
-   호출부의 활성 판정이 어긋나는 사용자(예: 취소했지만 만료 전)의 접근을 조용히 뺏는다. */
+   🔴 차감이 안 된(covered:false) 건은 사유와 무관하게 **항상 막는다**(2026-10-16). 예전에는
+   no_active_pass·invalid_price·family_pass_required 에 빈 문자열을 돌려 "막지 말라"는 뜻으로 썼고,
+   호출부가 그 빈 값을 통과로 읽어 차감 없이 유료 본문이 열렸다. 정본이 이용권을 못 보면 이용권으로
+   연 것이 아니다 — 결제로 인계한다. 운영 실측(2026-10-16) 활성 이용권 중 cycleKey 없는 계정 0명. */
 export function passDenialCode(reason) {
   const key = String(reason || "");
   if (key === "monthly_pass_limit_exceeded") return "MONTHLY_PASS_LIMIT_EXCEEDED";
   if (key === "price_exceeds_pass_limit") return "PRICE_EXCEEDS_PASS_LIMIT";
   // CAS 패배 = 그 사이 예산이 소진됐거나 이용권이 바뀌었다. 커버를 단정하지 않고 결제로 인계한다.
   if (key === "pass_access_conflict") return "PAYMENT_REQUIRED";
-  return "";
+  return "PAYMENT_REQUIRED";
 }
 
 export async function hasConsumedPassFeature(user, featureKey, requestId, db = nativeDb) {
@@ -163,7 +163,7 @@ export async function hasConsumedPassFeature(user, featureKey, requestId, db = n
   return Boolean(await findPassUsageEvidence(db, user?._id || user?.id, featureKey, requestId));
 }
 
-export async function consumePassForFeature({ user, entitlement, userId, featureKey, requestId = "", coinCost = 0, db = nativeDb }) {
+export async function consumePassForFeature({ user, entitlement, userId, featureKey, requestId = "", coinCost = 0, profileId = "", db = nativeDb }) {
   if(String(featureKey || '').startsWith('yeongnyangi-'))return consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requestId,coinCost,db});
   const { buildPassConsumeMarker, consumePassCoverage, evaluatePassCoverage, recordPassUsageEvidence } = await loadPassPolicy();
   const cost = Math.max(0, Math.floor(Number(coinCost) || 0));
@@ -173,7 +173,7 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
   const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
   const marker = buildPassConsumeMarker(featureKey, requestId);
   if (await hasConsumedPassFeature(user, featureKey, requestId, db)) {
-    await recordPassUsageEvidence(db, { userId, product: { featureKey, priceCoins: cost }, requestId, coverage, user });
+    await recordPassUsageEvidence(db, { userId, product: { featureKey, priceCoins: cost }, requestId, profileId, coverage, user });
     return {
       covered: true,
       reason: "",
@@ -190,7 +190,8 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
   // even after the bounded recent-marker array has rotated out this request.
   const updated = await db.transaction(async tx => {
     const result = await consumePassCoverage(tx, { userId, coverage, marker, existingMarkers: markers });
-    if (result) await recordPassUsageEvidence(tx, { userId, product: { featureKey, priceCoins: cost }, requestId, coverage, user: result });
+    // profileId 는 결제 기록(어느 카드로 썼는가)용이다 — 열람 판정에는 쓰지 않는다.
+    if (result) await recordPassUsageEvidence(tx, { userId, product: { featureKey, priceCoins: cost }, requestId, profileId, coverage, user: result });
     return result;
   });
   if (!updated) {
@@ -250,7 +251,10 @@ async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requ
       coinCost:Number(meta.coinCost ?? cost),cycleKey:meta.passCycleKey || coverage.cycleKey,
       budgetCoin:meta.passBudgetCoin ?? coverage.budgetCoin}};
   });
-  if(!result)return {covered:false,reason:'pass_access_conflict',replayed:false,coverage};
+  // The payment route serializes coverage, not the outer covered flag. A failed
+  // debit must not retain the earlier eligibility verdict as a paid receipt.
+  if(!result)return {covered:false,reason:'pass_access_conflict',replayed:false,
+    coverage:{...coverage,covered:false,reason:'pass_access_conflict'}};
   invalidatePassUsageReadCaches(userId);
   return {covered:true,reason:'',replayed:Boolean(existing),coverage:withPersistedPassUsage(result.coverage,result.user),user:result.user};
 }
@@ -266,7 +270,7 @@ async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requ
  *
  * @returns {Promise<{refunded:boolean, amount?:number, skipped?:boolean, reason?:string}>}
  */
-export async function refundPassCoverage({ userId, cycleKey, cost, refundId, restorePass = null, db = nativeDb }) {
+export async function refundPassCoverage({ userId, cycleKey, cost, refundId, restorePass = null, sourcePointHistoryId = null, sourceFeatureKey = '', sourceRequestId = '', db = nativeDb }) {
   const amount = Math.max(0, Math.floor(Number(cost) || 0));
   const key = String(cycleKey || "").trim();
   if (!userId || amount <= 0 || !key || !refundId) return { refunded: false, skipped: true };
@@ -275,8 +279,25 @@ export async function refundPassCoverage({ userId, cycleKey, cost, refundId, res
   if (!uid) return { refunded: false, skipped: true };
   const receiptId = toObjectId(createHash("sha256").update(JSON.stringify(["pass-quota-refund", String(userId), key, String(refundId)])).digest("hex").slice(0, 24));
   const result = await db.transaction(async tx => {
+    const sourceId = sourcePointHistoryId ? toObjectId(sourcePointHistoryId) : null;
+    const sourceFailure = () => Object.assign(new Error('PASS_REFUND_SOURCE_REVIEW'), { code: 'REFUND_PASS_REVIEW' });
     const receipt = await tx.findOne(PointHistory, { _id: receiptId, userId: uid });
-    if (receipt) return { refunded: true, idempotent: true, amount: receipt.metadata.amount };
+    if (receipt) {
+      if (sourcePointHistoryId && (!sourceId || !await tx.findOne(PointHistory, { _id: sourceId, userId: uid,
+        'metadata.passQuotaRefundReceiptId': String(receiptId), 'metadata.refundedForServiceExecution': true }))) throw sourceFailure();
+      return { refunded: true, idempotent: true, amount: receipt.metadata.amount };
+    }
+    if (sourcePointHistoryId) {
+      if (!sourceId) throw sourceFailure();
+      const claimed = unwrapUser(await tx.findOneAndUpdate(PointHistory, { _id: sourceId, userId: uid, kind: 'deduct',
+        ...(sourceFeatureKey ? { featureKey: sourceFeatureKey } : {}),
+        ...(sourceRequestId ? { 'metadata.requestId': sourceRequestId } : {}),
+        'metadata.passCycleKey': key, 'metadata.refundedForServiceExecution': { $ne: true },
+        'metadata.passQuotaRefundReceiptId': { $exists: false },
+      }, { $set: { 'metadata.refundedForServiceExecution': true, 'metadata.refundedAt': new Date(),
+        'metadata.passQuotaRefundReceiptId': String(receiptId) } }, { returnDocument: 'after' }));
+      if (!claimed || Number(claimed.metadata?.coinCost || claimed.metadata?.coinPrice) !== amount) throw sourceFailure();
+    }
     const current = restorePass ? await tx.findOne(User, { _id: uid }) : null;
     const sub = current?.profileSubscription && typeof current.profileSubscription === "object" ? current.profileSubscription : {};
     const restoreExpiry = restorePass?.expiresAt ? new Date(restorePass.expiresAt) : null;
@@ -308,7 +329,10 @@ export async function refundPassCoverage({ userId, cycleKey, cost, refundId, res
     { $inc: { "profileSubscription.monthlySpendCoin": -amount }, ...(shouldRestore ? { $set: restoreSet } : {}) },
     { returnDocument: "after" },
   ));
-    if (!updated) return { refunded: false, skipped: true, reason: "PASS_QUOTA_CYCLE_MISMATCH_OR_INSUFFICIENT" };
+    if (!updated) {
+      if (sourcePointHistoryId) throw sourceFailure();
+      return { refunded: false, skipped: true, reason: "PASS_QUOTA_CYCLE_MISMATCH_OR_INSUFFICIENT" };
+    }
     // The durable receipt and quota restoration commit together. A lost response
     // or a later session-marker failure cannot restore another request's quota.
     await tx.findOneAndUpdate(PointHistory, { _id: receiptId }, { $setOnInsert: {

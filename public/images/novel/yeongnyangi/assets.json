@@ -1,0 +1,58 @@
+{
+  "provenance": "Codex image_gen (gpt-image-2) expression sheet on a #00FF00 green screen, identity reference public/assets/yeongnyangi/original/hero-800.webp; chroma key removed by this script; 2026-10-13.",
+  "master": "expressions.webp",
+  "grid": [
+    4,
+    2
+  ],
+  "frames": [
+    {
+      "expression": "neutral",
+      "bytes": 35510,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "soft",
+      "bytes": 36060,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "calm",
+      "bytes": 35004,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "surprise",
+      "bytes": 37292,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "serious",
+      "bytes": 35998,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "talk",
+      "bytes": 36644,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "sad",
+      "bytes": 33630,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "smile",
+      "bytes": 35644,
+      "width": 360,
+      "height": 480
+    }
+  ]
+}

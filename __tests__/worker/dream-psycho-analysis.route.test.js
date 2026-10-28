@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 // Multi-part stress fixture; the default one-part contract has separate coverage.
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
@@ -24,7 +25,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,getOptionalUserFromRequest:async()=>({userId})}));
  jest.unstable_mockModule('../../worker/lib/paid-feature-access.js',()=>({PAID_FEATURE_ACCESS_USER_PROJECTION:{},canAccessPaidFeature:async()=>({allowed:false,reason:'PAYMENT_REQUIRED'})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async(_env,input)=>{proofs.push(input);return {proven:mode==='denied'?false:true,source:mode};}}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async(_env,input)=>{proofs.push(input);return {proven:mode==='denied'?false:true,source:mode};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/lib/gemini.js',()=>({callGeminiText:(...args)=>provider(...args)}));
  ({handleDreamRoutes:route}=await import('../../worker/routes/dream.js'));
@@ -32,7 +33,7 @@ beforeAll(async()=>{
 let proofs=[];
 beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;mode='pass';proofs=[];
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);expect(options.thinkingBudget).toBe(0);
- const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1],label=prompt.split('[이번 호출]\n')[1].split('\n')[0].replace(/[.!?]/g,'');
+ const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.split('[이번 호출]\n')[1].split('\n')[0].replace(/[.!?]/g,'');
  return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body:Array.from({length:25},(_,i)=>`${label} ${i}번째 관찰에서는 꿈의 장면과 마음의 리듬을 함께 살펴보며 안정과 회복의 조건을 확인할 수 있습니다. ${label} ${i}번째 성찰은 현실에서 경험한 감정과 꿈속 표현의 차이를 기록하고 여러 가능한 의미를 비교해 보는 방법입니다.`).join('\n\n')})};
  });external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});
 });
@@ -42,7 +43,7 @@ const post=body=>route(new Request('https://mock.test/api/dream/psycho-analysis'
 const start=()=>post(original()),resume=()=>post({resumeResultId:docs[0].executionKey});
 async function finish(){let response;for(let i=0;i<8;i++){response=await resume();if(response.status!==202)break;}return response;}
 test.each(['pass','monthly','single'])('%s creates five saved chapters and reopens without new generation',async access=>{
- mode=access;expect((await start()).status).toBe(202);const response=await finish();expect(response.status).toBe(200);const data=await response.json();expect(data).toMatchObject({status:'completed',saved:true,quality:{ok:true,fallbackUsed:false}});expect(data.chapters).toHaveLength(5);expect(data.record.markdown).toContain('Chapter 5. 현실 조언과 치유의 방향');expect(provider).toHaveBeenCalledTimes(10);expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(10);expect(proofs.every(proof=>proof.requestId==='original-paid-dream'&&proof.coinPrice===30)).toBe(true);
+ mode=access;expect((await start()).status).toBe(202);const response=await finish();expect(response.status).toBe(200);const data=await response.json();expect(data).toMatchObject({status:'completed',saved:true,quality:{ok:true,fallbackUsed:false}});expect(data.chapters).toHaveLength(5);expect(data.record.markdown).toContain('Chapter 5. 현실 조언과 치유의 방향');expect(provider).toHaveBeenCalledTimes(10);expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(10);expect(proofs.every(proof=>proof.requestId==='original-paid-dream'&&proof.coinPrice===50)).toBe(true);
 });
 test.each(['pass','monthly','single'].flatMap(mode=>['throw','null','confirm'].map(fault=>[mode,fault])))('%s final save %s reuses all chapters without regeneration',async(access,fail)=>{
  mode=access;await start();fault={kind:fail};const response=await finish();expect(response.status).toBe(503);expect(await response.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',retryable:true,ok:false,resultId:docs[0].executionKey});const calls=provider.mock.calls.length;expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(calls);
@@ -75,4 +76,14 @@ test.each(['short-readable','truncated','tone','json-tail','missing-hash'])('%s 
  if(fail==='tone')value.body=value.body.replaceAll('안정과 회복','불안과 붕괴');if(fail==='missing-hash')delete value.evidenceHash;
  const text=JSON.stringify(value);return {...ai,truncated:fail==='truncated',text:fail==='json-tail'?text.slice(0,-1):text};});
  await start();expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(10);
+});
+test('a markdown heading inside a part body is not saved, and later parts get the earlier gist',async()=>{
+ const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const response=await base(...args),value=JSON.parse(response.text),paragraphs=value.body.split('\n\n');paragraphs.splice(3,0,'### 3. 꿈이 보여 주는 관계의 거리');value.body=paragraphs.join('\n\n');return {...response,text:JSON.stringify(value)};});
+ await start();expect((await finish()).status).toBe(200);const {parts}=docs[0].metadata.paidNarrative;
+ for(const body of Object.values(parts))expect(body).not.toMatch(/^#{1,6}\s/m);
+ expect(provider.mock.calls.at(-1)[1]).toContain('[앞 부분 요지]');
+});
+test('part targets add up to about 12,000–14,000 chars for a 5,000-won product',async()=>{
+ const {seedDreamPsychoNarrative}=await import('../../worker/routes/dream.js');const {tasks}=seedDreamPsychoNarrative(original());
+ const total=tasks.reduce((sum,task)=>sum+task.minChars,0);expect(total).toBeGreaterThanOrEqual(12000);expect(total).toBeLessThanOrEqual(14000);
 });

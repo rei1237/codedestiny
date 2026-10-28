@@ -1,7 +1,7 @@
 // 나크샤트라 결정판 — 영구 해금 심화 리포트 2종 배달 라우트.
 //
-//   POST /api/nakshatra-premium/lord-report  : 지배성 심화 리포트 (₩1,000)
-//   POST /api/nakshatra-premium/dasha-map    : 다샤 인생지도 (₩1,000)
+//   POST /api/nakshatra-premium/lord-report  : 지배성 심화 리포트 (₩5,000)
+//   POST /api/nakshatra-premium/dasha-map    : 다샤 인생지도 (₩5,000)
 //
 // 이 라우트는 "이미 해금된 사용자에게 본문을 준다"만 한다.
 // 🔒 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등)은 공용 결제 게이트(/api/billing/coin-gate)가
@@ -17,6 +17,8 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } f
 import { getOptionalUserFromRequest, isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { User } from "../lib/models.js";
+import { readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
+import { isBirthScopedUnlockFeatureKey } from "../lib/paid-feature-registry.js";
 import { getSwissVedicPlanets, getSwissMoonLongitudes } from "../lib/swiss-ephemeris.js";
 import { nakshatraInfo, buildVimshottariDasha } from "../lib/vedic-derived-calculations.js";
 import { buildSukuyoFromMoonLongitude } from "../lib/sukuyo-astronomy.js";
@@ -31,14 +33,14 @@ import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 const PRODUCTS = Object.freeze({
   "lord-report": Object.freeze({
     featureKey: "nakshatra-lord-report",
-    coinPrice: 10,
-    amountKRW: 1000,
+    coinPrice: 50,
+    amountKRW: 5000,
     orderName: "나크샤트라 지배성 심화 리포트",
   }),
   "dasha-map": Object.freeze({
     featureKey: "nakshatra-dasha-map",
-    coinPrice: 10,
-    amountKRW: 1000,
+    coinPrice: 50,
+    amountKRW: 5000,
     orderName: "나크샤트라 다샤 인생지도",
   }),
 });
@@ -46,6 +48,9 @@ const PRODUCTS = Object.freeze({
 const MESSAGES = Object.freeze({
   login: "리포트를 열려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
   paymentRequired: "이 리포트는 1회 해금이 필요합니다. 이용권이 있으면 무료로 열립니다.",
+  paymentRequiredBirth: "이 생년월일은 별도 구매가 필요합니다. 이용권이 있으면 무료로 열립니다.",
+  missingProfile: "프로필을 저장한 뒤 구매해 주세요.",
+  invalidProfile: "저장된 내 프로필을 선택해 주세요.",
   paymentRequiredPerUse: "결제 확인이 필요합니다. 결제창에서 다시 진행해 주세요.",
   degraded: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
   invalidInput: "생년월일(year/month/day)이 필요합니다.",
@@ -64,8 +69,9 @@ function degraded() {
 }
 
 /**
- * 계정 스코프 영구 해금 여부. billing.js 의 hasUserScopedPermanentUnlock 과 같은 판정(User.unlockedFeatures)이며,
- * coin-gate 결제·카드 단건결제(payments.js recordUserPaidFeature) 양쪽이 모두 이 배열에 기록한다.
+ * 계정 스코프 영구 해금 여부(출생 기반이 아닌 키 전용). billing.js 의 hasUserScopedPermanentUnlock 과 같은
+ * 판정(User.unlockedFeatures)이다. 🔴 출생 기반 키(isBirthScopedUnlockFeatureKey)는 이 배열을 근거로 쓰지 않는다 —
+ * handleProduct 가 readProfileBirthUnlock 으로 판정한다.
  */
 async function isUnlockedForUser(env, userId, featureKey) {
   await connectDb(env);
@@ -88,6 +94,21 @@ function normalizeBirthBody(body) {
     lon: Number(src.lon ?? src.lng ?? src.longitude ?? 126.978),
     timeUnknown,
     gender: src.gender === "male" || src.gender === "female" ? src.gender : "",
+  };
+}
+
+function birthInputFromProfile(body, birth) {
+  const base = normalizeBirthBody(body);
+  const timeUnknown = birth.timeKnown !== true;
+  return {
+    ...base,
+    year: birth.year,
+    month: birth.month,
+    day: birth.day,
+    hour: timeUnknown ? 12 : birth.hour,
+    minute: timeUnknown ? 0 : birth.minute,
+    timeUnknown,
+    gender: birth.gender === "M" ? "male" : birth.gender === "F" ? "female" : "",
   };
 }
 
@@ -158,12 +179,39 @@ async function handleProduct(request, env, product, kind) {
   }
   if (!auth?.userId) return loginRequired();
 
+  const body = await readJson(request);
+  const birthScoped = isBirthScopedUnlockFeatureKey(product.featureKey);
   let unlocked = false;
-  try {
-    unlocked = await isUnlockedForUser(env, auth.userId, product.featureKey);
-  } catch (error) {
-    if (isTransientMongoError(error) || isAuthDbInfraError(error)) return degraded();
-    throw error;
+  let profileBirth = null;
+  if (birthScoped) {
+    let access;
+    try {
+      access = await readProfileBirthUnlock(env, { userId: auth.userId, profileId: body?.profileId, featureKey: product.featureKey });
+    } catch {
+      // 권한 조회 실패는 미구매(402)가 아니다 — 재시도 가능한 503.
+      return degraded();
+    }
+    if (!access.ok) {
+      if (access.reason === "LOGIN_REQUIRED") return loginRequired();
+      const missing = access.reason === "MISSING_PROFILE_ID";
+      return json({
+        ok: false,
+        reason: access.reason,
+        code: access.reason,
+        featureKey: product.featureKey,
+        requiresProfile: true,
+        message: missing ? MESSAGES.missingProfile : MESSAGES.invalidProfile,
+      }, { status: missing ? 400 : 403 });
+    }
+    unlocked = access.unlocked;
+    profileBirth = access.birth;
+  } else {
+    try {
+      unlocked = await isUnlockedForUser(env, auth.userId, product.featureKey);
+    } catch (error) {
+      if (isTransientMongoError(error) || isAuthDbInfraError(error)) return degraded();
+      throw error;
+    }
   }
 
   if (!unlocked) {
@@ -172,7 +220,7 @@ async function handleProduct(request, env, product, kind) {
     return json({
       ok: false,
       reason: "PAYMENT_REQUIRED",
-      message: MESSAGES.paymentRequired,
+      message: birthScoped ? MESSAGES.paymentRequiredBirth : MESSAGES.paymentRequired,
       featureKey: product.featureKey,
       title: product.orderName,
       coinPrice: product.coinPrice,
@@ -180,8 +228,12 @@ async function handleProduct(request, env, product, kind) {
     }, { status: 402 });
   }
 
-  const body = await readJson(request);
-  const input = normalizeBirthBody(body);
+  if (birthScoped && !profileBirth) {
+    return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
+  }
+  // 🔴 출생 기반 해금은 저장 프로필의 출생 정보 단위다 — 계산도 그 프로필의 저장된 생년월일·시각·성별로만 한다
+  //    (본문 값으로 계산하면 한 번의 구매로 아무 사람의 리포트나 열린다). 시간대·출생지는 신원이 아니므로 요청 값을 쓴다.
+  const input = birthScoped ? birthInputFromProfile(body, profileBirth) : normalizeBirthBody(body);
   if (!isValidBirth(input)) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
   }
@@ -232,14 +284,14 @@ const MUHURTA_MAX_DAYS = 60;
 
 // 회당 결제 상품 — 레지스트리 등록값과 일치해야 한다(이용권 커버 판정에 코인가가 필요).
 const PER_USE_PRODUCTS = Object.freeze({
-  muhurta: Object.freeze({ featureKey: "nakshatra-muhurta", coinPrice: 10 }),
+  muhurta: Object.freeze({ featureKey: "nakshatra-muhurta", coinPrice: 50 }),
   "vvip-codex": Object.freeze({ featureKey: "nakshatra-vvip-codex", coinPrice: 300 }),
 });
 
-// 🔴 1단계는 관측 전용이다 — 증빙 결과를 로그로만 남기고 아무것도 막지 않는다.
-//    차단(402)은 실사용 로그에서 정상 결제 경로가 전부 proven:true 로 찍히는 것을 확인한 뒤 켠다.
-//    이 순서를 지키는 이유: 검증이 과하면 이미 결제한 사용자가 402 를 맞아 돈만 나간다.
-const PER_USE_ENFORCE = false;
+// 🔴 차단 켜짐(2026-10-16) — 결제 증빙이 없으면 402, 확인 불가면 503. 관측 전용으로 두는 동안
+//    무후르타·VVIP 코덱스가 결제 없이 열렸다. 클라이언트는 결제에 쓴 requestId 를 그대로 보내므로
+//    정상 결제자는 proven:true 로 통과한다. false 로 되돌리지 않는다(verify:paid-access-integrity 가 막는다).
+const PER_USE_ENFORCE = true;
 
 async function observePerUsePayment(env, auth, kind, body) {
   const product = PER_USE_PRODUCTS[kind];

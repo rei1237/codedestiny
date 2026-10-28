@@ -75,7 +75,9 @@ const buildSource = firstNonEmpty([
   process.env.GITHUB_ACTIONS ? "github-actions" : "",
   "local",
 ]);
+const appRelease = JSON.parse(readFileSync(resolve(rootDir, "config/app-release.json"), "utf8"));
 const payload = {
+  appRelease,
   ok: true,
   service: "code-destiny",
   appVersion,

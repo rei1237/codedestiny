@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP10",
+  "mobile": "Independent SHIP10+notices+transcript+CTA;keep-all and duplicate thumbnail removal rechecked;cover recaptured with viewport bounds assertion",
+  "checks": "4 widths330/360/400/540 load/bounds/fallback PASS;static success/failure preservation2 PASS;ESLint clean",
+  "limits": "API mocked;no purchase/generation;checkfast running;main pending"
+}

@@ -8,14 +8,16 @@ export type ChatPersona = "yeoni" | "neo";
 export type ChatDomain = "saju" | "ziwei" | "sukuyo" | "vedic" | "astrology" | "tarot";
 /** 타로는 명식 없이 고민의 종류로 읽는다. 서버 허용 목록은 worker/yeongnyangi/payments/catalog.ts 의 chatTarotKinds. */
 export type ChatTarotKind = "choice" | "love" | "feelings" | "contact" | "reunion" | "career" | "money" | "healing";
-export type ChatAccessChoice = "free_trial" | "pass" | "checkout" | "";
+/** `honey` 는 연이 기본 상담만 — 꿀방울 30개를 쓴다(worker/lib/honey-wallet.js FORTUNE_CHAT_HONEY_COST). */
+export type ChatAccessChoice = "pass" | "checkout" | "honey" | "";
 
 export type ChatConsultation = Omit<FortuneRecord, "accessMethod"> & {
   accessMethod?: string;
   persona: ChatPersona;
   paidFeatureKey: string;
   paymentRequestId: string;
-  freeTrialAvailable?: boolean;
+  /** PER_USE 로 열린 상담의 증빙 종류(honey·payment …). 열린 상담 머리 배지에만 쓴다. */
+  perUseSource?: string;
 };
 
 export type ChatConsultationSummary = {
@@ -23,6 +25,8 @@ export type ChatConsultationSummary = {
   persona: ChatPersona;
   state: string;
   paid: boolean;
+  /** PER_USE 로 열린 상담의 증빙 종류(honey·payment·pass …). 기록 배지에만 쓴다. */
+  perUseSource?: string;
   domain: string;
   completedChapters: number;
   totalChapters: number;
@@ -83,12 +87,16 @@ export const consultationApi = {
    * 토큰 갱신 실패 → logout 이벤트로 번지지 않게. 실패는 false(기존 상담방)로 닫는다.
    */
   status: async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
     try {
-      const response = await fetch(`${getApiBaseUrl()}/api/fortune-chat/consultations/status`, { cache: "no-store" });
+      const response = await fetch(`${getApiBaseUrl()}/api/fortune-chat/consultations/status`, { cache: "no-store", signal: controller.signal });
       const payload = response.ok ? await response.json() : null;
       return payload?.enabled === true;
     } catch {
       return false;
+    } finally {
+      clearTimeout(timer);
     }
   },
   list: (persona: ChatPersona) => call<{ ok: true; enabled?: boolean; consultations: ChatConsultationSummary[] }>(`?persona=${persona}`),
@@ -103,4 +111,34 @@ export const consultationApi = {
   /** 빈 선택(`""`)은 아무것도 쓰지 않는다 — 이미 있는 결제 증빙만 붙여 본다. */
   activate: (id: string, access: ChatAccessChoice) => call<One>(`/${id}/activate`, { access }).then((r) => r.consultation),
   generate: (id: string) => call<One>(`/${id}/generate`, {}).then((r) => r.consultation),
+};
+
+export type HoneyStatus = {
+  balance: number;
+  attended: boolean;
+  attendanceCount: number;
+  attendanceEvery: number;
+  nextRewardIn: number;
+};
+
+/** 꿀방울 잔액·출석(/api/honey/attendance, worker/routes/prompt-hub.js). 실패는 null — 잔액은 보조 정보다. */
+async function honeyCall(attend: boolean): Promise<HoneyStatus | null> {
+  try {
+    const response = await authFetch("/api/honey/attendance", {
+      cache: "no-store",
+      ...(attend ? { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" } : {}),
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || data?.ok !== true || !Number.isFinite(Number(data.balance))) return null;
+    // 다른 화면(프롬프트 허브 등)의 잔액 표시도 새로 읽게 알린다.
+    if (attend) { try { localStorage.setItem("cd:honey-refresh", String(Date.now())); } catch { /* 보조 신호다. */ } }
+    return data as HoneyStatus;
+  } catch {
+    return null;
+  }
+}
+
+export const honeyApi = {
+  status: () => honeyCall(false),
+  attend: () => honeyCall(true),
 };

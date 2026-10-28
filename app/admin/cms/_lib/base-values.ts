@@ -49,6 +49,42 @@ function asRecordEntry(key: string, label: string, hint: string, table: Record<s
 }
 
 const loaders: Record<string, Loader> = {
+  "fortune-sign": async () => {
+    const [{ SIGN_PROFILE_DEFAULTS, signProfileProse }, { staticCopyRecord }] = await Promise.all([
+      import("@/lib/fortune/sign-profiles"), import("@/lib/cms/static-copy.mjs"),
+    ]);
+    return SIGN_PROFILE_DEFAULTS.map((profile) => ({key: profile.id, label: profile.nameKo,
+      hint: "성향·강점·주의점·생활 조언·질문과 답변", fields: {record: staticCopyRecord(signProfileProse(profile))},
+    }));
+  },
+  "daily-fortune": async () => {
+    const { dailyProseDefaults } = await import("@/lib/fortune/daily-cms.mjs");
+    const labels: Record<string, string> = {love: "연애", money: "재물", health: "건강", work: "일", advice: "조언", overall: "별자리 총운", planet: "별자리 흐름"};
+    return Object.entries(dailyProseDefaults()).map(([key, record]) => ({
+      key, label: labels[key] || key, hint: "날짜별로 선택되는 공통 문장 · 전체 문장 보기에서 모두 편집", fields: { record },
+    }));
+  },
+  "hat-reading": async () => {
+    const [{ hatPersonalityDefaults }, { hatHouses }, { staticCopyRecord }] = await Promise.all([
+      import("@/lib/yeongnyangi/hat-personality"), import("@/lib/yeongnyangi/hat-houses"), import("@/lib/cms/static-copy.mjs"),
+    ]);
+    return Object.entries(hatPersonalityDefaults).map(([key, story]) => ({
+      key, label: hatHouses.find((house) => house.id === key)?.name || key,
+      hint: "성향·관계·일·선택 대사", fields: { record: staticCopyRecord(story) },
+    }));
+  },
+  "feature-detail": async () => {
+    const [{ default: catalog }, { detailCopyRecord }] = await Promise.all([
+      import("@/lib/marketing/feature-visual-details.generated.json"),
+      import("@/lib/cms/detail-copy.mjs"),
+    ]);
+    return Object.values(catalog.items).filter((item) => item.verification === "verified").map((item) => ({
+      key: item.slug,
+      label: item.title,
+      hint: `/features/${item.slug}/`,
+      fields: { record: detailCopyRecord(item) },
+    }));
+  },
   "prompt.system": async () => {
     const data = await adminFetch<{ defaults?: Record<string, { label?: string; service?: string; fields?: Record<string, unknown> }> }>(
       "/api/admin/cms/defaults?ns=prompt.system",
@@ -123,13 +159,10 @@ const loaders: Record<string, Loader> = {
   },
 
   "saju-animal": async () => {
-    const [twelve, results] = await Promise.all([
-      import("@/components/fortune/animal-twelve/animalTwelveData"),
-      import("@/app/saju/animal-destiny/lib/twelveGrowthAnimalResults"),
-    ]);
+    // 결과 리포트(stage-result) 문장은 유료라 서버(worker/lib/saju-section/paid-animal.src.js)로 옮겨 브라우저 번들에서 뺐다.
+    const twelve = await import("@/components/fortune/animal-twelve/animalTwelveData");
     return [
       asRecordEntry("stage", "동물 캐릭터 카드", "12단계", twelve.__cmsAnimalTwelveBase as Record<string, unknown>),
-      asRecordEntry("stage-result", "결과 리포트", "12단계", results.__cmsStageSeeds as Record<string, unknown>),
     ];
   },
 
@@ -295,7 +328,7 @@ export async function loadBaseEntries(ns: string): Promise<CmsBaseEntry[]> {
     return await loader();
   } catch (error) {
     console.warn(`[cms] ${ns} 기본값을 불러오지 못했습니다.`, error);
-    return [];
+    throw error;
   }
 }
 

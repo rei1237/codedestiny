@@ -1,5 +1,6 @@
 import { isChatFeatureKey } from '../../lib/fortune/chat-products.js';
 import { assertFeatureEnabled } from '../lib/billing-feature-registry.js';
+import { paymentOrderName, productNameForSnapshot } from '../lib/payment-product-name.js';
 /**
  * 단계 ② 주문 생성 · ⑤ 주문 확정. **이 시스템의 모든 CAS 조건이 여기에만 있다.**
  *
@@ -36,6 +37,7 @@ import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 import { toForeignCardSnapshot } from "./foreign-card-policy.js";
 import { ORDER_POLICY_VERSIONS, buildRefundConsentRecord } from "./policy-versions.js";
+import { birthSnapshotFields, isBirthScopedProduct, resolvePaymentBirthIdentity } from "./birth-identity.js";
 
 export const ORDER_STATUS = Object.freeze({
   PENDING: "PENDING",
@@ -94,6 +96,32 @@ export async function deriveOrderId(userId, idempotencyKey) {
 }
 
 /**
+ * 주문 스냅샷에 저장하는 복귀 경로 정규화. 클라이언트 입력이 길이·형식 제한 없이 DB 에 들어가던 것을 막는다.
+ * 규칙은 routes/payments.js sanitizeReturnPath 와 같다(사이트 내부 상대경로만, 700자). 비어 있으면 그대로 비워 둔다.
+ */
+export function normalizeOrderReturnPath(value) {
+  let candidate = String(value ?? "").trim();
+  if (!candidate) return "";
+  if (/^https?:\/\//i.test(candidate)) {
+    try {
+      const parsed = new URL(candidate);
+      candidate = `${parsed.pathname || "/"}${parsed.search || ""}${parsed.hash || ""}`;
+    } catch (_) {
+      return "/";
+    }
+  }
+  if (!candidate.startsWith("/") || candidate.startsWith("//")) return "/";
+  if (candidate.includes("\\") || /[\u0000-\u001f\u007f]/.test(candidate)) return "/";
+  try {
+    const base = "https://code-destiny.invalid";
+    if (new URL(candidate, base).origin !== base) return "/";
+  } catch (_) {
+    return "/";
+  }
+  return candidate.slice(0, 700);
+}
+
+/**
  * T1 · (none) → PENDING. 사용자가 결제수단을 고른 시점. **Mongo 왕복 1회.**
  * 같은 idempotencyKey 로 다시 부르면 **같은 문서**가 그대로 돌아온다(같은 merchantUid → 같은 PG 창).
  */
@@ -102,11 +130,23 @@ export async function createOrder(db, {
   profileId = "", contentKey = "", scope = "", returnPath = "", paymentMethod = "unknown",
   requestId = "", paidResume = null, env = {}, foreignCard = null, refundConsent = false,
   purchaseType = "SELF", giftDraft = null, moonstoneDiscount = null, paypalCharge = null,
+  partnerProfileId = "", birthIdentity = null,
 }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   const enabled = assertFeatureEnabled(product);
   if (!enabled.ok) throw paymentError(enabled.code, enabled.message);
+  if (product.featureKey === 'neo-email-consultation') {
+    if (!product.consultationSnapshot) throw paymentError('INVALID_REQUEST','서버 상담 견적이 필요합니다.');
+    const { resolveNeoOrderProduct } = await import('../neo-consultation/payment.js');
+    product = await resolveNeoOrderProduct(db,product,userId,requestId,idempotencyKey);
+  }
+  /* 🔴 출생 기반 영구 해금은 **결제창을 열기 전에** 저장된 내 프로필인지 확인하고 그 생년월일을 주문에 박는다.
+     profileId 가 없거나 남의 것이면 MISSING_PROFILE_ID / INVALID_PROFILE — 돈을 받은 뒤에 거절하지 않는다. */
+  const birth = isBirthScopedProduct(product)
+    ? (birthIdentity || await resolvePaymentBirthIdentity(db, { userId, profileId, partnerProfileId, featureKey: product.featureKey }))
+    : null;
+  if (birth) { profileId = birth.profileId; scope = birth.scope; }
   let fortunePaymentGeneration;
   if (product.fulfillmentType!=='service_pack' && String(product.featureKey || '').startsWith('yeongnyangi-')) {
     const {assertFortunePaymentIntent}=await import('../yeongnyangi/payment-intent.js');
@@ -167,13 +207,17 @@ export async function createOrder(db, {
           confirmAttempts: 0,
           // 가격을 주문 시점에 박아 둔다. 나중에 가격표가 바뀌어도 이 주문의 대조 기준은 흔들리지 않는다.
           pricingSnapshot: {
+            productName: productNameForSnapshot(product, purchaseType),
+            orderName: paymentOrderName(productNameForSnapshot(product, purchaseType)),
+            ...(product.consultationSnapshot ? { consultation: product.consultationSnapshot } : {}),
             priceKRW: moonstoneDiscount?.payableKRW ?? product.priceKRW,
             ...(moonstoneDiscount ? {moonstoneDiscount} : {}),
             priceCoins: product.priceCoins,
             monthlyCost: product.monthlyCost,
             billingType: product.billingType,
             ...(product.fulfillmentType==='service_pack'?{fulfillmentType:'service_pack',packSnapshot:product.packSnapshot}:{}),
-            profileId, contentKey, scope, returnPath,
+            profileId, contentKey, scope, returnPath: normalizeOrderReturnPath(returnPath),
+            ...birthSnapshotFields(birth),
             createdAt: now.toISOString(),
           },
           // 해외 발급 카드 결제창 노출 판정(foreign-card-policy.js)을 주문 시점에 박는다. prepare 응답은 지금 판정과 좁혀 낸다.
@@ -385,12 +429,21 @@ export async function createPayableOrder(db, input) {
   if (!baseKey) throw paymentError("IDEMPOTENCY_KEY_REQUIRED", "결제 요청 식별자가 필요합니다.");
   const product = input.product;
   let lastOrderId = "";
+  // 신원은 세대마다 다시 풀지 않는다(ProfileCard 왕복 1회). 같은 키로 다른 생년월일을 사면 새 세대로 간다.
+  const birthIdentity = isBirthScopedProduct(product)
+    ? await resolvePaymentBirthIdentity(db, {
+      userId: input.userId, profileId: input.profileId, partnerProfileId: input.partnerProfileId, featureKey: product.featureKey,
+    })
+    : null;
+  const orderInput = birthIdentity ? { ...input, birthIdentity } : input;
 
   for (let generation = 0; generation < MAX_ORDER_GENERATIONS; generation += 1) {
-    const order = await createOrder(db, { ...input, idempotencyKey: generationKey(baseKey, generation) });
+    const order = await createOrder(db, { ...orderInput, idempotencyKey: generationKey(baseKey, generation) });
     lastOrderId = String(order.merchantUid || "");
     if (!isPayableOrder(order)) continue; // 결제완료·실패·만료취소·레거시 상태 → 재사용하지 않는다
     if (hasFeatureDrift(order, product)) continue; // 다른 기능으로의 키 재사용 → 재가격 금지, 새 주문
+    // 같은 키의 주문이 다른 생년월일(또는 구 주문이라 birthKey 없음)을 가리키면 재사용하지 않는다 — 지급이 엉뚱한 사람에게 간다.
+    if (birthIdentity && String(order?.pricingSnapshot?.birthKey || "") !== birthIdentity.birthKey) continue;
     if (!hasPriceDrift(order, product)) return order;
     // 같은 기능·미결제·옛 가격 → 충돌이 아니라 승계 대상이다(#497).
     const repriced = await repricePendingOrder(db, { orderId: lastOrderId, product });
@@ -399,7 +452,7 @@ export async function createPayableOrder(db, input) {
   }
 
   // 고정 사다리 소진 — 겹칠 수 없는 키로 새 주문을 발급한다(위 terminalGenerationKey 머리주석).
-  const fresh = await createOrder(db, { ...input, idempotencyKey: terminalGenerationKey(baseKey) });
+  const fresh = await createOrder(db, { ...orderInput, idempotencyKey: terminalGenerationKey(baseKey) });
   if (isPayableOrder(fresh) && !hasPriceDrift(fresh, product)) return fresh;
 
   throw paymentError("IDEMPOTENCY_CONFLICT", "Idempotency key conflict. Request payload does not match existing product payment preparation.", {

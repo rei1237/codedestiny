@@ -1,0 +1,152 @@
+{
+  "id": "yeongnyangi-sukuyo-flounder",
+  "featureKey": "yeongnyangi-sukuyo-flounder",
+  "title": "영냥이 숙요 광어 상담",
+  "notice": "숙요 광어는 두 사람의 본명숙과 양방향 거리·역할을 비교하는 질문 상담입니다. 궁합 질문은 15장, 질문 없는 기본 개인 리포트는 8장으로 다릅니다. 기존 메뉴의 궁합·관계 유지 구성은 각각 11장이므로 선택 후 목차를 확인해 주세요. 천문식 27숙 계산에는 두 사람의 출생시간·지역·시간대가 필요합니다. 거리란 지리적 거리나 연락 빈도가 아닌 숙 사이의 관계 구분입니다. 관계 이름을 좋고 나쁜 인연의 등급으로 쓰지 않으며 날짜별 사건이나 속마음을 확정하지 않습니다. 성인 연인·배우자 친밀감은 편안함·속도·대화·경계로 읽습니다. 가상 편집 예시와 AI 작성 상담이며 가격·추가 질문 조건은 기존 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-when-care-becomes-a-role",
+      "title": "늘 맞춰주는 사람, 나로 정해진 걸까요?",
+      "alt": "마법사 고양이 영냥이가 두 달 자리의 관계 거리를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-sukuyo.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "늘 맞춰주는 사람,\n나로 정해진 걸까요?\n\n두 사람이 같은 관계를\n어떻게 다르게 경험하는지 살펴봐요.\n\n영냥이 숙요 · 광어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-the-unspoken-arrangement",
+      "title": "자연스러웠던 배려가, 어느새 내 몫이 됐다면.",
+      "alt": "약속계획과조율부담을구체적장면으로정리하는가상예시.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/02-the-unspoken-arrangement.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "자연스러웠던 배려가,\n어느새 내 몫이 됐다면.\n처음에는, 내가 먼저\n\n장소를 찾고 약속을 정하는 일이\n즐겁고 자연스러웠어요.\n\n어느 순간, 나만 계속\n\n계획부터 변경 연락까지 맡으면서\n기대와 서운함이 함께 쌓였어요.\n\n관계의 이름을 묻기 전에,\n어떤 역할이 반복되는지 알려 주세요.\n\n실제 고객 사연이 아닌 편집 예시입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/02-the-unspoken-arrangement-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-a-bond-has-two-directions",
+      "title": "나에게 보이는 관계, 상대에게 보이는 관계.",
+      "alt": "정방향역방향의역할비대칭을추상도해로설명.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/03-a-bond-has-two-directions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나에게 보이는 관계,\n상대에게 보이는 관계.\n나 → 상대\n\n내가 느끼는 기대와 역할을 읽어요.\n\n상대 → 나\n\n반대 방향의 역할도 함께 확인해요.\n\n숙 사이의 거리와 관계 유형은 같아도,\n각자가 맡는 역할은 다를 수 있어요.\n\n실제 두 사람의 본명숙으로 계산합니다.\n여기서 거리는 지리적 거리나\n연락 횟수를 뜻하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/03-a-bond-has-two-directions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-understand-before-judging",
+      "title": "둘의 바탕부터, 판단이 달라지는 조건까지.",
+      "alt": "질문1~5장기질강점궁합판단근거기회범위안내.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/04-understand-before-judging.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "둘의 바탕부터,\n판단이 달라지는 조건까지.\n\n궁합 질문 · 15장 중 1–5장\n\n1–2장 · 나의 바탕\n\n본명숙의 마음과 관계 리듬\n강점과 부담이 되는 순간\n\n3–5장 · 두 사람에 대한 판단\n\n잘 맞는 점과 조율할 차이\n판단의 근거와 달라지는 조건\n현재의 기회와 주의 조건\n\n인연을 좋고 나쁜 등급으로 닫지 않고,\n두 사람이 확인할 조건을 함께 남겨요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/04-understand-before-judging-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-a-role-can-be-renegotiated",
+      "title": "역할을 이해한 다음, 합의를 다시 써봐요.",
+      "alt": "질문6~10장구조끌림역할시기회복을단계로설명.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/05-a-role-can-be-renegotiated.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "역할을 이해한 다음,\n합의를 다시 써봐요.\n6–7장 · 두 사람의 구조와 끌림\n\n기본 리듬 · 서로 끌리고 부딪히는 지점\n\n8장 · 역할과 책임의 분담\n\n자연스럽게 맡는 일과 합의할 부분\n\n9–10장 · 관계가 흔들릴 때와 회복\n\n긴장이 커질 때 지킬 원칙\n다시 가까워지는 방법과 경계\n\n시기 목차로 사건 날짜를 예측하지 않아요.\n상대의 거절과 경계도 현실의 조건으로 봅니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/05-a-role-can-be-renegotiated-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-beyond-the-two-of-us",
+      "title": "둘 사이의 일에도, 각자의 생활이 묻어 있어요.",
+      "alt": "질문11~15장생활영역종합행동과성인관계조건고지.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/06-beyond-the-two-of-us.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "둘 사이의 일에도,\n각자의 생활이 묻어 있어요.\n11–14장 · 질문 밖의 흐름\n\n재물 · 일과 적성\n건강 리듬과 회복 · 올해의 흐름\n\n15장 · 종합 해석과 실행 계획\n\n생활 속 적용과 선택, 다음 행동\n\n성인 연인·배우자는 가까워지는 속도와\n편안함, 대화와 경계도 함께 읽어요.\n\n속마음이나 성적 특성을 지어내지 않아요.\n관계의 실제 모습은 서로 대화하며 확인합니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/06-beyond-the-two-of-us-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-share-the-next-small-task",
+      "title": "서운함을 참는 대신, 한 가지를 나눠 맡아봐요.",
+      "alt": "관계약속준비역할을명확히나누는가상조언.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/07-share-the-next-small-task.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "서운함을 참는 대신,\n한 가지를 나눠 맡아봐요.\n\n이해를 돕기 위한 편집 예시\n\n“다음 약속은 네가 장소를 찾아줄래?\n나는 시간을 맞춰볼게.”\n\n모든 배려를 멈추기보다,\n내가 계속 맡기 어려운 일을 말해요.\n\n상대가 마음을 알아주길 기다리는 대신,\n서로 할 수 있는 몫을 확인하는 거예요.\n\n실제 고객 결과가 아닌 가상 예시입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/07-share-the-next-small-task-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-the-personal-map-is-another-book",
+      "title": "질문 없는 여덟 장은, 나를 중심으로 읽어요.",
+      "alt": "기본개인8장실제숙유형목차와15질문별도안내.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/08-the-personal-map-is-another-book.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문 없는 여덟 장은,\n나를 중심으로 읽어요.\n1–3장 · 나와 끌림\n\n본명숙 · 편안하게 끌리는 안\n깨지며 배우는 괴\n\n4–5장 · 성장과 친밀함\n\n서로를 키우는 영 · 가족 같은 친\n\n6–8장 · 협력과 거리, 얽힘\n\n일의 성위 · 친구와 거리의 우쇠\n명·업·태의 인연\n\n본인의 관계 유형을 넓게 읽는 개인 지도예요.\n특정 상대와의 궁합을 계산한 결과는 아닙니다.\n질문 15장과는 별도 구성입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/08-the-personal-map-is-another-book-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-bring-both-sides",
+      "title": "두 사람의 정보로, 서로의 몫을 살펴봐요.",
+      "alt": "두사람필수출생정보질문현재가격AI저장결과마무리.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/09-bring-both-sides.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 사람의 정보로,\n서로의 몫을 살펴봐요.\n\n각자의 생년월일·출생시간·지역과\n현재 관계, 반복되는 상황을 알려 주세요.\n\n천문식 27숙을 바탕으로 AI가 작성합니다.\n가격과 추가 질문 조건은 현재 화면에서,\n저장된 결과는 내 상담에서 다시 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-flounder/09-bring-both-sides-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

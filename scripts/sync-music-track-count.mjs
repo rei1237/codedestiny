@@ -128,9 +128,11 @@ const expected = countTracks(readFileSync(manifestPath, "utf8"));
   const html = readFileSync(shellPath, "utf8");
   const hintPattern = /(<span class="moon-music-entry__hint"[^>]*>)([^<]*)(<\/span>)/;
   const match = html.match(hintPattern);
-  if (!match) throw new Error(`${LABEL} index.html 에서 moon-music-entry__hint 를 찾지 못했습니다.`);
-  const next = html.replace(hintPattern, (_all, open, body, close) => `${open}${withCount(body, expected)}${close}`);
-  applyText(shellPath, "index.html", html, next, readCurrentCount(match[2]), expected);
+  // 2026-10-17 홈 단순화로 음악 블록이 홈에서 빠지면(맨 아래 텍스트 링크만 남음) 셸에 곡 수 문구가 없다. 그때는 건너뛴다.
+  if (match) {
+    const next = html.replace(hintPattern, (_all, open, body, close) => `${open}${withCount(body, expected)}${close}`);
+    applyText(shellPath, "index.html", html, next, readCurrentCount(match[2]), expected);
+  }
 }
 
 // 2) 12개 로케일 JSON 의 home.music.hint

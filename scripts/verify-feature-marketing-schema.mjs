@@ -298,6 +298,21 @@ for(const product of chatQuestionProducts()){
     fail(`${product.cdFeatureKey}: 전용 질문 상품 안내의 이름·상담 범위·추가 질문·가격을 확인하세요.`);
   }else dedicatedCopy.set(product.cdFeatureKey,product);
 }
+// 네오 이메일 상담은 공용 타일 팝업이 아닌 전용 신청 화면에서 구성과 가격을 안내한다.
+// 실제 화면과 홈 진입점이 동일한 서버 가격 정본을 쓰는지 확인한다.
+const { NEO_EMAIL_FEATURE, neoUnitPrice, neoZiweiAddonPrice } = await import('../lib/neo-consultation/contract.js');
+const { renderNeoEmailHomeEntry } = await import('../lib/brand/neo-email-home-entry.mjs');
+const neoClient = readFileSync(resolve(ROOT, 'app/neo-consultation/NeoConsultationClient.tsx'), 'utf8');
+const neoHomeEntry = renderNeoEmailHomeEntry();
+const neoRegistry = FEATURE_KEY_PRICE_TABLE[NEO_EMAIL_FEATURE];
+if (!neoRegistry || neoUnitPrice() !== neoRegistry.amountKRW || neoZiweiAddonPrice() !== neoRegistry.ziweiAddonKRW ||
+    !neoClient.includes('neoMoney(neoUnitPrice())') || !neoClient.includes('neoMoney(neoUnitPrice() + neoZiweiAddonPrice())') ||
+    !neoClient.includes('이메일로 전합니다') || !neoClient.includes('작성·검수') ||
+    !neoHomeEntry.includes('href="/neo-consultation/"') || !neoHomeEntry.includes('이메일 상담')) {
+  fail(NEO_EMAIL_FEATURE + ': 전용 상담의 이메일 전달·검수·가격 안내를 확인하세요.');
+} else {
+  dedicatedCopy.set(NEO_EMAIL_FEATURE, { source: 'neo-email-dedicated-page' });
+}
 const highPrice = Object.entries(FEATURE_KEY_PRICE_TABLE)
   .map(([key, value]) => [key, Number(value?.amountKRW) || Number(value?.cost) * 100])
   .filter(([, won]) => won >= HIGH_PRICE_KRW)

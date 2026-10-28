@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP all10; orphan words removed",
+  "mobile": "Independent SHIP both entry flows all40 panels,24 CTA/notice,8 transcript viewports across2 products",
+  "checks": "Question/intake node15 PASS; all8 rows per product load/bounds/fallback PASS",
+  "limits": "Mock only, no real payment or LLM; main delivery pending"
+}

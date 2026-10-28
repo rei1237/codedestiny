@@ -1,3 +1,7 @@
+import {createBookWriter} from './book-writer';
+import {bookParagraphs} from './book-paragraphs';
+import {loadFusionArt} from './report-art';
+import {planLinkedContents,drawLinkedContents} from './linked-contents';
 import type { jsPDF as JsPDFInstance } from "jspdf";
 import { registerPdfFontsSafely } from "./export-result-pdf";
 import { buildFusionReportPlan, cleanReportText as clean } from "./fusion-report-plan";
@@ -13,8 +17,6 @@ import {
 import {
   PdfFontError,
   captureElementAsImage,
-  createTypesetWriter,
-  drawContentsPage,
   drawFooters,
   paintPaper,
 } from "./typeset-writer";
@@ -97,12 +99,17 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
   pdf.text("CODE DESTINY · 여섯 체계 교차 판정", MARGIN_X_MM, 74);
 
   pdf.setFont(fonts.title, "normal");
-  pdf.setFontSize(25);
+  let titleSize = 25;
+  pdf.setFontSize(titleSize);
+  while ((pdf.splitTextToSize(title, CONTENT_WIDTH_MM) as string[]).length * lineHeightMm(titleSize, 1.4) > 100 && titleSize > 14) {
+    titleSize -= 1;
+    pdf.setFontSize(titleSize);
+  }
   pdf.setTextColor(INK.title[0], INK.title[1], INK.title[2]);
   let cursorY = 92;
   for (const line of pdf.splitTextToSize(title, CONTENT_WIDTH_MM) as string[]) {
     pdf.text(line, MARGIN_X_MM, cursorY);
-    cursorY += lineHeightMm(25, 1.4);
+    cursorY += lineHeightMm(titleSize, 1.4);
   }
 
   pdf.setDrawColor(INK.gold[0], INK.gold[1], INK.gold[2]);
@@ -115,8 +122,10 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
   cursorY += 16;
   for (const line of ["사주 · 자미두수 · 베다점 · 숙요점 · 점성술 · 타로", options.topic ? `상담 주제 · ${clean(options.topic, 80)}` : ""]) {
     if (!line) continue;
-    pdf.text(line, MARGIN_X_MM, cursorY);
-    cursorY += lineHeightMm(11, 1.8);
+    for (const wrapped of pdf.splitTextToSize(line, CONTENT_WIDTH_MM) as string[]) {
+      pdf.text(wrapped, MARGIN_X_MM, cursorY);
+      cursorY += lineHeightMm(11, 1.8);
+    }
   }
 
   pdf.setFontSize(10);
@@ -157,6 +166,7 @@ export async function exportFusionReportPdf(options: ExportFusionReportPdfOption
   //    읽을 수 없는 3만원짜리 문서를 내려주느니 호출자가 캡처 방식으로 되돌아가게 한다.
   if (!fonts) throw new FusionPdfFontError();
 
+  const art = await loadFusionArt();
   const visual = visualizationSelector ? await captureElementAsImage(visualizationSelector) : null;
   const chapters = buildFusionReportPlan(options.result, { includeVisual: Boolean(visual) });
   if (!chapters.length) throw new Error("fusion report pdf: nothing to typeset");
@@ -164,16 +174,23 @@ export async function exportFusionReportPdf(options: ExportFusionReportPdfOption
   paintPaper(pdf);
   drawCover(pdf, fonts, options);
 
-  pdf.addPage();
-  paintPaper(pdf);
-  const contentsPage = pdf.getNumberOfPages();
+  const toc = planLinkedContents(pdf, fonts, chapters.map(chapter => chapter.title));
+  for (let i = 0; i < toc.pages; i++) {
+    pdf.addPage();
+    paintPaper(pdf);
+  }
 
-  const writer = createTypesetWriter(pdf, fonts);
-  const entries: { label: string; page: number }[] = [];
-  for (const chapter of chapters) {
+  const writer = createBookWriter(pdf, fonts);
+
+  for (const [index, chapter] of chapters.entries()) {
     writer.chapter(chapter.kicker, chapter.title);
-    entries.push({ label: chapter.title, page: writer.page });
-    for (const block of chapter.blocks) {
+    toc.entries[index].destination = writer.page;
+    let illustrated = false;
+    for (const [blockIndex, block] of chapter.blocks.entries()) {
+      if (!illustrated && blockIndex === Math.min(2, chapter.blocks.length - 1) && art[chapter.kicker]) {
+        illustrated = true; const illustration = art[chapter.kicker];
+        writer.image(illustration.dataUrl, CONTENT_WIDTH_MM, CONTENT_WIDTH_MM * illustration.ratio, `${chapter.kicker} 해설을 위한 상징 그림 · 계산 수치를 나타내지 않습니다`);
+      }
       if (block.kind === "bullets") { writer.bullets(block.items); continue; }
       if (block.kind === "visual") {
         if (!visual) continue;
@@ -184,11 +201,21 @@ export async function exportFusionReportPdf(options: ExportFusionReportPdfOption
         );
         continue;
       }
-      writer[block.kind](block.text);
+      if (block.kind === 'keyvalue') { writer.keyValueTable(block.rows); continue; }
+      if (block.kind === 'body') {
+        const paragraphs = bookParagraphs(block.text);
+        for (const [i, paragraph] of paragraphs.entries()) {
+          writer.body(paragraph);
+          if (!illustrated && i === 1 && art[chapter.kicker]) {
+            const illustration = art[chapter.kicker];
+            writer.image(illustration.dataUrl, CONTENT_WIDTH_MM, CONTENT_WIDTH_MM * illustration.ratio, '해설을 위한 상징 그림 · 계산 수치가 아닙니다'); illustrated = true;
+          }
+        }
+      } else writer[block.kind](block.text);
     }
   }
 
-  drawContentsPage(pdf, fonts, contentsPage, entries, "차례");
-  drawFooters(pdf, fonts, watermarkText);
+  drawLinkedContents(pdf, fonts, toc);
+  drawFooters(pdf, fonts, watermarkText, toc.pages + 2);
   pdf.save(fileName);
 }

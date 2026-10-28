@@ -18,6 +18,7 @@ import { activatePassSubscription, evaluatePassCoverage, revokePassGrantForOrder
 import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
 import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
+import { testCard } from "../fixtures/profile-card-model.mjs";
 
 const USER = "64b000000000000000000001";
 const ENV = { JWT_ACCESS_SECRET: "test-access-secret-value-0123456789" };
@@ -143,7 +144,7 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
   test.each([
     ["premium", "ziwei_ai_prompt_generator"],
     ["vvip", "saju_ai_prompt_generator"],
-    ["vvip", "master-love-codex"],
+    ["family", "master-love-codex"],
     ["family", "master-love-codex-compat"],
     ["family", "ziwei-ai-consultation"],
   ])("레거시 %s 이용권은 실제 pass-check에서 %s를 PG 없이 승인하고 재요청을 재개한다", async (tier, featureKey) => {
@@ -164,6 +165,18 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
     expect(replay.response.status).toBe(200);
     expect(replay.payload.data.consume.idempotent).toBe(true);
     expect(user.profileSubscription.monthlySpendCoin).toBe(Number(pricing.pricing.cost));
+  });
+
+  // 2026-10-12 인연의 서 개인판 300코인: vvip 건당 상한(200코인)을 넘어 단건 결제로 인계한다.
+  test("vvip 이용권은 30,000원 인연의 서를 건당 상한 초과 402로 넘긴다(쓰기 없음)", async () => {
+    const db = makeFakePaymentDb();
+    const user = seedUser(db, activePass("vvip"));
+    const { response, payload } = await postPassCheck(db, {
+      featureKey: "master-love-codex", paymentMode: "MEMBERSHIP_PASS", requestId: "vvip-codex-300",
+    });
+    expect(response.status).toBe(402);
+    expect(payload.code).toBe("PRICE_EXCEEDS_PASS_LIMIT");
+    expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
   });
 
   test("🔴 커버 성공: 셸 판정기가 읽는 키 + User 1읽기 + CAS 1쓰기(왕복 2회)", async () => {
@@ -221,21 +234,76 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
     const unlockItem = list().find((p) => p.billingType !== "per_use" && Number(p.priceCoins) > 0
       && Number(p.priceCoins) <= PASS_LIMITS.family);
     if (!unlockItem) return;
-    const db = makeFakePaymentDb();
+    const db = makeFakePaymentDb({ profileCards: [testCard("p1", { userId: USER })] });
     const user = seedUser(db, activePass("family"));
     const first = await postPassCheck(db, {
-      featureKey: unlockItem.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "unlock-req-1",
+      featureKey: unlockItem.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "unlock-req-1", profileId: "p1",
     });
     expect(first.response.status).toBe(200);
     const spentOnce = Number(user.profileSubscription.monthlySpendCoin || 0);
 
     // 다른 requestId(=새 클릭)로 다시 열어도 이미 소유한 콘텐츠라 예산이 늘지 않아야 한다.
     const second = await postPassCheck(db, {
-      featureKey: unlockItem.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "unlock-req-2",
+      featureKey: unlockItem.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "unlock-req-2", profileId: "p1",
     });
     expect(second.response.status).toBe(200);
     expect(second.payload.data.consume.alreadyUnlocked).toBe(true);
     expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(spentOnce);
+  });
+
+  describe("🔴 출생 단위 이용권 차감", () => {
+    async function birthItem() {
+      const { listProducts: list } = await import("../../worker/payments/catalog.js");
+      const { isBirthScopedUnlockFeatureKey } = await import("../../worker/lib/paid-feature-registry.js");
+      return list().find((p) => p.billingType !== "per_use" && !p.passExcluded && !p.familyPassOnly
+        && Number(p.priceCoins) > 0 && Number(p.priceCoins) <= PASS_LIMITS.family && isBirthScopedUnlockFeatureKey(p.featureKey));
+    }
+    const CARDS = [testCard("p1", { userId: USER }), testCard("p2", { userId: USER }), testCard("p3", { userId: USER, day: 18 })];
+    const pass = (db, item, requestId, profileId) => postPassCheck(db, {
+      featureKey: item.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId, ...(profileId ? { profileId } : {}),
+    });
+
+    test("새 출생 정보는 차감하고, 같은 출생 정보의 다른 프로필은 차감하지 않는다", async () => {
+      const item = await birthItem();
+      if (!item) return;
+      const db = makeFakePaymentDb({ profileCards: CARDS });
+      const user = seedUser(db, activePass("family"));
+      expect((await pass(db, item, "b-1", "p1")).response.status).toBe(200);
+      const spentOnce = Number(user.profileSubscription.monthlySpendCoin || 0);
+      expect(spentOnce).toBeGreaterThan(0);
+
+      const same = await pass(db, item, "b-2", "p2");
+      expect(same.payload.data.consume.alreadyUnlocked).toBe(true);
+      expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(spentOnce);
+
+      const other = await pass(db, item, "b-3", "p3");
+      expect(other.response.status).toBe(200);
+      expect(other.payload.data.consume.alreadyUnlocked).toBe(false);
+      expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBeGreaterThan(spentOnce);
+    });
+
+    test("이미 산 출생 정보는 월 한도를 다 써도 402 가 아니라 그대로 열린다(소유 → 커버리지 순서)", async () => {
+      const item = await birthItem();
+      if (!item) return;
+      const db = makeFakePaymentDb({ profileCards: CARDS });
+      const user = seedUser(db, activePass("family"));
+      expect((await pass(db, item, "own-1", "p1")).response.status).toBe(200);
+      user.profileSubscription.monthlySpendCoin = 10_000_000;
+      const reopened = await pass(db, item, "own-2", "p1");
+      expect(reopened.response.status).toBe(200);
+      expect(reopened.payload.data.consume.alreadyUnlocked).toBe(true);
+    });
+
+    test("profileId 가 없거나 남의 프로필이면 차감 없이 거절한다", async () => {
+      const item = await birthItem();
+      if (!item) return;
+      const db = makeFakePaymentDb({ profileCards: CARDS });
+      const user = seedUser(db, activePass("family"));
+      expect((await pass(db, item, "x-1", "")).response.status).toBe(400);
+      expect((await pass(db, item, "x-2", "not-mine")).response.status).toBe(403);
+      expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
+      expect(db.rows.filter((row) => row.grantType === "permanent_unlock")).toHaveLength(0);
+    });
   });
 
   test("🔴 미커버는 402 로 인계한다 — 막다른 길(4xx 아닌 실패·빈 화면) 금지", async () => {
@@ -531,10 +599,10 @@ describe("동시 확정 CAS — 다른 주문이 먼저 반영되면 덮어쓰�
    MONTHLY 요청은 worker/index.js 가 이 두 라우트로 재작성하므로 여기가 실제 관문이다. */
 describe("영냥이 제휴 상품 — Family·월정석·단건 허용", () => {
   const FAMILY_PRODUCTS = listProducts().filter((p) => p.familyPassOnly === true);
-  const FAMILY_ONLY = FAMILY_PRODUCTS.find(p=>p.featureKey==='yeongnyangi-saju-mackerel');
+  const FAMILY_ONLY = FAMILY_PRODUCTS.find(p=>!p.monthlyExcluded);
   const fortuneId='a'.repeat(64),requestId='yn-'+fortuneId;
   function seedFortune(db) {
-    db.rows.push({_id:fortuneId,userId:USER,featureKey:FAMILY_ONLY.featureKey,productId:'saju_mackerel',amountKRW:FAMILY_ONLY.priceKRW,state:'CREATED',paymentId:null});
+    db.rows.push({_id:fortuneId,userId:USER,featureKey:FAMILY_ONLY.featureKey,productId:FAMILY_ONLY.featureKey.replace('yeongnyangi-','').replaceAll('-','_'),amountKRW:FAMILY_ONLY.priceKRW,state:'CREATED',paymentId:null});
   }
 
   async function postMoonstone(db, body) {
@@ -555,9 +623,9 @@ describe("영냥이 제휴 상품 — Family·월정석·단건 허용", () => {
     for (const product of FAMILY_PRODUCTS) {
       expect(product).toMatchObject({
         familyPassOnly: true,
-        monthlyExcluded: false,
+        monthlyExcluded: product.priceKRW < 10000,
         passExcluded: false,
-        allowedPaymentMethods: ["FAMILY", "DIRECT_KRW", "MOONLIGHT_STONE"],
+        allowedPaymentMethods: ["FAMILY", "DIRECT_KRW", ...(product.priceKRW >= 10000 ? ["MOONLIGHT_STONE"] : [])],
       });
     }
   });
@@ -678,7 +746,7 @@ describe("revokePassGrantForOrder — users 조회는 profileSubscription 프로
     };
   }
 
-  test("프로젝션을 넘기고, profileSubscription 만 받은 문서로 되감는다", async () => {
+  test("프로젝션을 넘기고, profileSubscription 만 받은 문서로 회수한다", async () => {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 40 * DAY_MS);
     const db = projectingDb({
@@ -697,4 +765,64 @@ describe("revokePassGrantForOrder — users 조회는 profileSubscription 프로
     await expect(revokePassGrantForOrder(db, { userId: USER, orderId: "order-3", durationMonths: 1 })).resolves.toBe(false);
     expect(db.calls).toHaveLength(1);
   });
+});
+
+describe('영냥이 Family 이용권 상담 회귀',()=>{
+ const products=listProducts().filter(p=>p.featureKey?.startsWith('yeongnyangi-')&&p.familyPassOnly&&p.priceCoins>0);
+ test('영냥이 등록 상품은 Family의 기존 한도로 적용되고 다른 일반 등급은 제외한다',()=>{
+  expect(products.length).toBeGreaterThan(20);
+  for(const product of products){
+   expect(evaluatePassCoverage({user:{profileSubscription:activePass('family')},entitlement:activePass('family'),coinCost:product.priceCoins}).covered).toBe(true);
+   expect(product.familyPassOnly).toBe(true);
+  }
+ });
+ test('명시적 Family 선택은 같은 상담에서 한 번 차감하고 재시도는 재사용한다',async()=>{
+  const product=products.find(p=>p.featureKey==='yeongnyangi-saju-mackerel');
+  const db=makeFakePaymentDb(),pass=activePass('family');pass.premiumUseCycleKey=pass.expiresAt.toISOString();
+  const user=seedUser(db,pass);
+  db.rows.push({_id:'a'.repeat(64),userId:USER,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',accessMethod:null,paymentClaimOrderId:'',chapters:[]});
+  const body={featureKey:product.featureKey,requestId:'yn-'+ 'a'.repeat(64),paymentMode:'MEMBERSHIP_PASS'};
+  const first=await postPassCheck(db,body),replay=await postPassCheck(db,body);
+  expect(first.response.status).toBe(200);expect(first.payload.data.consume.accessMethod).toBe('FAMILY');
+  expect(replay.response.status).toBe(200);expect(replay.payload.data.consume.idempotent).toBe(true);
+  expect(user.profileSubscription.monthlySpendCoin).toBe(product.priceCoins);
+ });
+ test.each(['expired','exhausted'])('Family %s는 새 상담에 적용하지 않고 PG로 자동 청구하지 않는다',async reason=>{
+  const product=products.find(p=>p.featureKey==='yeongnyangi-saju-mackerel');
+  const db=makeFakePaymentDb(),pass=activePass('family',reason==='expired'?{expiresAt:new Date(0)}:{});
+  pass.premiumUseCycleKey=pass.expiresAt.toISOString();pass.monthlySpendCoin=reason==='exhausted'?MONTHLY_PASS_LIMITS.family:0;
+  const user=seedUser(db,pass),spent=pass.monthlySpendCoin;
+  const result=await postPassCheck(db,{featureKey:product.featureKey,requestId:'yn-'+ 'b'.repeat(64),paymentMode:'MEMBERSHIP_PASS'});
+  expect(result.response.status).toBe(402);expect(user.profileSubscription.monthlySpendCoin).toBe(spent);
+ });
+});
+
+
+describe('영냥이 패밀리 실제 결제 라우트',()=>{
+ const products=listProducts().filter(p=>p.featureKey.startsWith('yeongnyangi-')&&p.familyPassOnly);
+ test.each(products.map(p=>[p.featureKey,p]))('%s: prepares, funds, and replays exactly once',async(key,product)=>{
+  const db=makeFakePaymentDb();const pass=activePass('family');const id='c'.repeat(64);
+  seedUser(db,pass);db.rows.push({_id:id,userId:USER,featureKey:key,amountKRW:product.priceKRW,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});
+  const body={featureKey:key,requestId:'yn-'+id,paymentMode:'MEMBERSHIP_PASS'};
+  const first=await postPassCheck(db,body);expect(first.response.status).toBe(200);
+  const row=db.rows.find(r=>r._id===id);expect(row.state).toBe('PAID');expect(row.accessMethod).toBe('FAMILY');expect(row.passEvidenceId).toBeTruthy();
+  expect((await postPassCheck(db,body)).response.status).toBe(200);
+  expect(db.rows.find(r=>String(r._id)===USER).profileSubscription.monthlySpendCoin).toBe(product.priceCoins);
+ });
+ test.each(['standard','premium','vvip'])('%s cannot fund a Family-only consultation',async tier=>{
+  const db=makeFakePaymentDb(),product=products[0],id='d'.repeat(64);seedUser(db,activePass(tier));
+  db.rows.push({_id:id,userId:USER,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',paymentId:null});
+  expect((await postPassCheck(db,{featureKey:product.featureKey,requestId:'yn-'+id})).response.status).toBe(402);
+  expect(db.rows.find(r=>r._id===id).state).toBe('CREATED');
+ });
+});
+
+
+test('영냥이 Family CAS conflict cannot report a paid consultation without a receipt',async()=>{
+ const db=makeFakePaymentDb(),product=listProducts().find(p=>p.featureKey==='yeongnyangi-saju-mackerel'),id='e'.repeat(64);
+ seedUser(db,activePass('family'));db.rows.push({_id:id,userId:USER,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});
+ const write=db.findOneAndUpdate;db.findOneAndUpdate=async(Model,...args)=>Model.modelName==='User'?null:write(Model,...args);
+ const result=await postPassCheck(db,{featureKey:product.featureKey,requestId:'yn-'+id});
+ expect(result.response.status).toBe(402);expect(db.rows.find(r=>r._id===id).state).toBe('CREATED');
+ expect(db.rows.find(r=>String(r._id)===USER).profileSubscription.monthlySpendCoin||0).toBe(0);
 });

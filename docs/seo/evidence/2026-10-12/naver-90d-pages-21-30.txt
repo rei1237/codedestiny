@@ -1,0 +1,31 @@
+No	검색 웹문서	클릭	노출	CTR(%)
+21
+https://code-destiny.com/ziwei/
+	65	7,661	0.8
+22
+https://code-destiny.com/fortune/tomorrow/leo/
+	64	22,379	0.3
+23
+https://code-destiny.com/fortune/tomorrow/
+	60	5,778	1
+24
+https://code-destiny.com/fortune/tomorrow/aquarius/
+	57	22,652	0.3
+25
+https://code-destiny.com/fortune/tomorrow/gemini/
+	50	23,879	0.2
+26
+https://code-destiny.com/fortune/weekly/pisces/
+	48	9,724	0.5
+27
+https://code-destiny.com/fortune/weekly/goat/
+	48	6,862	0.7
+28
+https://code-destiny.com/fortune/today/
+	44	4,908	0.9
+29
+https://code-destiny.com/insights/famous-saju/iu/?v=086b7d63fd62
+	43	2,144	2
+30
+https://code-destiny.com/fortune/monthly/monkey/
+	41	2,277	1.8

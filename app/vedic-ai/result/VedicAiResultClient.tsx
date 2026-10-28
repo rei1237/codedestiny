@@ -1,5 +1,7 @@
 "use client";
+import ConsultationMasterIntro from "@/app/components/ConsultationMasterIntro";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
+import { cleanTopics, reportAdviceTopics } from "@/js/recommendations-context.mjs";
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import { useEffect, useState } from "react";
@@ -12,7 +14,7 @@ import { vedicShareChoices } from "@/lib/consultation-sharing";
 import { toDisplayText } from "@/lib/llm-text";
 import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
-import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import { StructuredReadingResult, parseStructuredReading, splitAssistantSections, pollVedicResult } from "../VedicAiClient";
 import styles from "../VedicAiClient.module.css";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -203,6 +205,7 @@ export default function VedicAiResultClient() {
 
   return (
     <main className={styles.shell} data-vedic-ai-page="result-route-v20260704">
+      <ConsultationMasterIntro kind="vedic" compact />
       <section className={styles.resultPanel}>
         {consultation.status !== "completed" && <div className={styles.resumeStatus} role="status"><h2>{COPY.resumeTitle}</h2><p>{COPY.resumeBody}</p><button type="button" className={styles.resultListItem} onClick={() => setResumeEpoch(value => value + 1)}>{COPY.resumeButton}</button></div>}
         <div className={styles.chatList}>
@@ -236,19 +239,19 @@ export default function VedicAiResultClient() {
           })}
         </div>
 
-        <PaidResultImageGuide domain="vedic" status={consultation.status} content={consultation.messages.filter(message=>message.role==="assistant").map(message=>message.content)} basis={consultation.analysisBasis} />
-
         {shareChoices.length > 0 && (
           <div className={styles.resultShare}>
             <ConsultationShare brand="vedic" choices={shareChoices} />
           </div>
         )}
 
+        <PaidResultImageGuide domain="vedic" status={consultation.status} content={consultation.messages.filter(message=>message.role==="assistant").map(message=>message.content)} basis={consultation.analysisBasis} />
+
         <footer className={styles.resultFooter}>
           <span className={styles.resultFooterRule} aria-hidden="true" />
           <p className={styles.resultFooterNote}>{COPY.footerNote}</p>
           <div className={styles.resultFooterActions}>
-            <Link href="/vedic-ai/" className={styles.resultFooterPrimary}>
+            <Link href="/vedic-ai/" className={styles.resultFooterSecondary}>
               <ArrowLeft size={16} aria-hidden="true" />
               <span>{COPY.backToConsult}</span>
             </Link>
@@ -258,7 +261,7 @@ export default function VedicAiResultClient() {
             </Link>
           </div>
         </footer>
-        {consultation.status === "completed" && <RecommendationResult service="vedic-ai-consultation"/>}
+        {consultation.status === "completed" && <RecommendationResult service="vedic-ai-consultation" practiceTags={cleanTopics(consultation.messages.filter(message => message.role === "assistant").flatMap(message => reportAdviceTopics(message.content)))}/>}
       </section>
     </main>
   );
@@ -270,7 +273,7 @@ function AssistantSectionsView({ content, viewAll, onViewAllChange }: { content:
   const renderSection = (section: { title: string; body: string }, sectionIndex: number) => (
     <article className={styles.sectionCard} key={`${section.title}-${sectionIndex}`}>
       <span>{section.title}</span>
-      <AiResultProse value={section.body} />
+      <ConsultationReading kind="vedic" value={section.body} index={sectionIndex} />
     </article>
   );
   if (sections.length <= 1) {

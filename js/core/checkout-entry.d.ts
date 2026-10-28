@@ -217,6 +217,7 @@ declare const checkoutEntry: {
   /** 살아 있는 락이 붙든 노드와 keepNode 를 뺀 결제창 노드를 전부 제거하고 개수를 돌려준다. */
   sweepOrphanChoiceModals(keepNode?: Element | null): number;
   hasOpenPaymentChoiceModal(): boolean;
+  stepBackOpenPaymentChoice(root?: Element | null): boolean;
   /**
    * 결제창 문구 조회. 세 렌더러가 같은 키·같은 사전(public/i18n)을 보게 하는 지점.
    * 한국어 fallback 이 ko 정본이므로 ko.json 과 항상 함께 맞춘다.

@@ -9,7 +9,7 @@ import { CmsEntry, CmsRevision } from "../lib/models.js";
 import { purgeCmsCache, readCmsThroughCache } from "../lib/cms-cache.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildCmsPublicStatusQuery } from "../lib/cms-status.js";
-import { CMS_STATUSES, getCmsNamespace, isValidCmsKey, listRuntimeNamespaceIds } from "../../lib/cms/registry.mjs";
+import { CMS_STATUSES, getCmsNamespace, isValidCmsKey, listRuntimeNamespaceIds, listBuildNamespaceIds } from "../../lib/cms/registry.mjs";
 import { listPromptDefaults } from "../lib/cms-prompt-defaults.js";
 
 const REVISION_KEEP_PER_KEY = 200;
@@ -426,6 +426,25 @@ function purgeEntryCaches(ns, locale) {
 
 // ───────────────────────────── 공개 핸들러 ─────────────────────────────
 
+// Only published public-page content; runtime prompts and administrator drafts
+// are excluded by namespace and publication state, not filtered in the browser.
+async function handleBuildBundle(request, env) {
+  await connectDb(env);
+  const docs = await cmsMongoRead(env, () => CmsEntry.find({
+    namespace: { $in: listBuildNamespaceIds() },
+    locale: "ko",
+    ...buildCmsPublicStatusQuery(),
+  }).limit(5001).lean());
+  if (docs.length > 5000) throw createHttpError(503, "콘텐츠가 내보내기 한도를 초과했습니다.", { code: "CMS_EXPORT_LIMIT" });
+  const entries = {};
+  for (const doc of docs) {
+    const ns = String(doc.namespace);
+    if (!entries[ns]) entries[ns] = {};
+    entries[ns][String(doc.key)] = doc.fields || {};
+  }
+  return json({ ok: true, version: 1, entries }, { headers: { "Cache-Control": "no-store" } });
+}
+
 async function handlePublicBundle(request, env) {
   const url = new URL(request.url);
   const locale = normalizeLocale(url.searchParams.get("locale"));
@@ -533,6 +552,10 @@ export async function handleCmsRoutes(request, env) {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/cms");
 
+    if (path === "/build-bundle" || path === "/build-bundle/") {
+      if (method === "GET") return await handleBuildBundle(request, env);
+      return methodNotAllowed();
+    }
     if (path === "/bundle" || path === "/bundle/") {
       if (method === "GET" || method === "HEAD") return await handlePublicBundle(request, env);
       return methodNotAllowed();

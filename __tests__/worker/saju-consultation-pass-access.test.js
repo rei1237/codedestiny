@@ -99,7 +99,6 @@ const evidenceHelpers = {
 
 test.each([
   ["karma-destiny-ai", "karma-destiny-ai-consultation", "KarmaDestinyAiConsultation", KarmaDestinyAiConsultation],
-  ["ziwei-island-ai", "ziwei-island-palace-consult", "ZiweiAiConsultation", ZiweiAiConsultation],
 ])("%s Family 판정이 실제 저장 스키마와 호환된다", async (route, featureKey, modelName, Model) => {
   const f = fixture(route, featureKey, "flower-20260930", 0, false);
   Object.assign(f.context, { [modelName]: { findOne: () => chain(null) },
@@ -110,6 +109,13 @@ test.each([
   });
   expect(access.accessType).toBe("pass");
   expect(new Model({ accessType: access.accessType }).validateSync(["accessType"])).toBeUndefined();
+});
+
+test("판매 종료된 섬의 기존 Family 상담 저장 스키마는 pass 접근을 보존한다", () => {
+  expect(new ZiweiAiConsultation({ accessType: "pass" }).validateSync(["accessType"])).toBeUndefined();
+  const source = fs.readFileSync(new URL('../../worker/routes/ziwei-island-ai.js', import.meta.url), 'utf8');
+  expect(source).toContain('ISLAND_NOW_FREE');
+  expect(source).not.toContain('applyUsageOnce');
 });
 
 describe.each([

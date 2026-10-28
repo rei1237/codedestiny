@@ -4,46 +4,56 @@
   // Presentation only. Existing composers retain payment, request and recovery ownership.
   var services = {
     ziwei: {
-      image: '/images/feature-details/ziwei-ai-hero-v2.webp',
-      name: '자미두수 궁성 상담', title: '열두 궁에 담긴,<br>나의 다음 선택',
-      lead: '명궁의 기질부터 일과 관계의 자리까지. 지금의 고민을 명반 위에 놓고, 나에게 맞는 선택의 방향을 함께 읽어요.',
+      image: '/images/master-profiles/musung-ziwei-portrait.webp', master: '무성', avatar: 'musung', freeLead: '명궁과 열두 궁에서 지금 살펴볼 자리를 짚겠습니다. 별의 근거를 확인하고, 생활에서 풀어 갈 선택을 함께 읽어요.',
+      name: '무성의 자미두수 궁성 상담', title: '열두 궁에 담긴,<br>나의 다음 선택',
+      lead: '무성입니다. 명궁의 기질부터 일과 관계의 자리까지. 지금의 고민을 명반 위에 놓고, 나에게 맞는 선택의 방향을 함께 읽어요.',
       basis: '명궁 · 관록궁 · 재백궁과 주요 별의 배치',
       difference: '무료 명반에서 본 별의 배치를, 지금 고민하는 선택과 연결해 풀어드립니다.',
       topics: ['일과 나의 역할', '사람 사이의 거리', '변화 앞의 선택'],
       examples: ['지금 하는 일을 계속할지, 새로운 역할을 시도할지 고민이에요. 제 강점과 주의할 점을 함께 봐주세요.', '관계에서 제 뜻을 너무 앞세우는 것 같아요. 제 성향에 맞는 소통 방법이 궁금해요.'],
-      alt: '별 지도를 펼쳐 상담하는 자미두수 해석가'
+      alt: '먹색 학자 도포를 입고 금빛 깃털을 든 자미두수 마스터 무성'
     },
     sukuyo: {
-      image: '/images/feature-details/sukuyo-hero-v2.webp',
-      name: '숙요점 달빛 상담', title: '마음의 리듬을 읽고,<br>인연의 간격을 찾다',
-      lead: '나의 본명숙이 비추는 성향과 관계의 리듬. 반복되는 마음의 패턴을 살피고, 지금 필요한 한 걸음을 찾아요.',
+      image: '/images/master-profiles/hanbi-sukuyo-reading.webp',
+      master: '서한비', avatar: 'hanbi', freeLead: '본명숙에 담긴 강점과 마음이 지치는 순간을 함께 살펴보겠습니다. 상대의 마음을 단정하기보다, 당신에게 편안한 관계의 간격을 읽어 드릴게요.',
+      name: '서한비의 숙요점 라이트 상담', title: '마음의 리듬을 읽고,<br>인연의 간격을 찾다',
+      lead: '서한비입니다. 지금 마음에 남은 질문 하나를 들려주세요. 본명숙의 성향과 관계의 리듬을 짚고, 오늘 해 볼 수 있는 작은 행동을 함께 찾아드릴게요.',
       basis: '계산된 본명숙과 숙요 성향',
       difference: '무료 숙요 프로필의 성향 설명에서 한 걸음 더 나아가, 내가 겪는 상황에 맞춰 상담합니다.',
       topics: ['반복되는 마음', '관계의 속도', '나에게 맞는 선택'],
       examples: ['가까운 사람에게 마음을 쏟다가 지치는 일이 반복돼요. 제 성향과 편안한 관계의 간격을 봐주세요.', '새로운 일을 시작하려는데 마음이 자주 흔들려요. 제 강점을 살릴 방법을 알고 싶어요.'],
-      alt: '달과 별의 흐름을 살피는 숙요 해석가'
+      alt: '달빛 아래 장부를 펼쳐 설명하는 숙요점 마스터 서한비'
     },
     astrology: {
-      image: '/images/feature-details/astrology-ai-hero-v2.webp',
-      name: '서양 점성술 차트 상담', title: '별들의 배치에서,<br>나다운 방향을 찾다',
-      lead: '태양과 달, 행성과 하우스가 보여주는 나의 여러 모습. 차트의 흐름을 지금의 질문과 연결해, 선택의 실마리를 읽어요.',
+      image: '/images/master-profiles/yun-astrology-portrait.webp', master: '윤달', avatar: 'yun', freeLead: '태양과 달, 상승궁이 서로 다른 자리에서 나를 비춰요. 계산된 행성과 하우스를 먼저 짚고, 지금의 선택과 연결해 볼게요.',
+      name: '윤달의 서양 점성술 차트 상담', title: '별들의 배치에서,<br>나다운 방향을 찾다',
+      lead: '윤달이에요. 태양과 달, 행성과 하우스가 보여주는 나의 여러 모습. 차트의 흐름을 지금의 질문과 연결해, 선택의 실마리를 읽어요.',
       basis: '출생 차트의 행성 · 하우스 · 주요 각도',
       difference: '무료 차트에서 확인한 배치가 일과 관계에서 어떻게 드러날 수 있는지, 질문을 중심으로 풀어드립니다.',
       topics: ['겉과 속의 성향', '일과 관계의 패턴', '선택의 실마리'],
       examples: ['하고 싶은 일과 주변의 기대가 달라 고민이에요. 제 차트에서 어떤 강점을 먼저 살려볼 수 있을까요?', '연애에서 자꾸 같은 갈등을 겪어요. 제 감정 표현과 관계 패턴을 함께 읽어주세요.'],
-      alt: '천체 관측실에서 출생 차트를 읽는 서양 점성술 해석가'
+      alt: '별과 달을 배경으로 남색 옷을 입은 점성술 마스터 윤달'
     },
     vedic: {
-      image: '/images/feature-details/vedic-ai-hero-v2.webp',
-      name: '베다 점성술 별빛 상담', title: '타고난 별의 결,<br>지금의 시간을 읽다',
-      lead: '라시와 나크샤트라가 비추는 기질, 다샤가 보여주는 긴 시간의 흐름. 지금의 고민에 맞춰 내 삶의 리듬을 살펴요.',
+      image: '/images/master-profiles/yun-astrology-portrait.webp', master: '윤달', avatar: 'yun', freeLead: '윤달이에요. 라시는 별자리의 기질, 나크샤트라는 달이 머문 자리의 성향, 다샤는 시기의 흐름을 보여줘요. 베다 점성술의 근거를 하나씩 짚고, 지금 준비할 일을 함께 살펴볼게요.',
+      name: '윤달의 베다 점성술 상담', title: '타고난 별의 결,<br>지금의 시간을 읽다',
+      lead: '윤달이에요. 베다 점성술의 라시와 나크샤트라가 비추는 기질, 다샤가 보여주는 긴 시간의 흐름. 지금의 고민에 맞춰 내 삶의 리듬을 살펴요.',
       basis: '라시 · 나크샤트라 · 계산된 다샤 흐름',
       difference: '무료 차트의 별자리와 시기 정보를 질문에 연결해, 준비할 일과 살펴볼 선택을 함께 정리합니다.',
       topics: ['나의 기본 기질', '시간의 큰 흐름', '지금의 준비'],
       examples: ['진로를 바꾸고 싶은데 준비가 충분한지 고민이에요. 지금의 다샤 흐름과 제 성향을 함께 봐주세요.', '관계에서 비슷한 감정이 반복돼요. 제 나크샤트라의 성향과 대화에서 살펴볼 점이 궁금해요.'],
-      alt: '인도의 관측 뜰에서 천문 기구를 살피는 베다 점성술 해석가'
+      alt: '별과 달을 배경으로 남색 옷을 입은 베다점 마스터 윤달'
     }
   };
+
+  function guide(service) {
+    var item = services[service];
+    if (!item || !item.master) return '';
+    var labels = {ziwei:'자미두수',sukuyo:'숙요점',astrology:'서양 점성술',vedic:'베다점'};
+    return '<section class="fc-master-reading" data-fc-master="'+item.avatar+'" aria-label="'+item.master+'의 '+labels[service]+' 해설">'
+      + '<img class="fc-master-reading__portrait" src="'+item.image+'" width="600" height="720" decoding="async" alt="'+item.alt+'">'
+      + '<div class="fc-master-reading__copy"><h3>'+item.master+'의 <br>'+labels[service]+' 해설</h3><p>'+item.freeLead+'</p><p class="fc-master-reading__basis">'+item.basis+'</p></div></section>';
+  }
 
   function refreshPrices(service) {
     var store = window.CodeDestinyFeaturePricingStore;
@@ -109,5 +119,5 @@
       opener.setAttribute('aria-expanded', String(form.open));
     });
   }, true);
-  window.CodeDestinyConsultationUI = { entry: entry, formIntro: formIntro };
+  window.CodeDestinyConsultationUI = { entry: entry, formIntro: formIntro, guide: guide };
 })(window, document);

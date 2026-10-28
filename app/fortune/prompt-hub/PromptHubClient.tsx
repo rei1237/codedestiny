@@ -1,21 +1,26 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
 
 import CurrentLocationButton from '@/app/components/CurrentLocationButton';
 import {withContinuation} from '@/lib/fortune/prompt-continuation';
-import {buildHoraryPrompt} from './horary-prompt';
+import {buildHoraryRequest} from './horary-prompt';
 import { Bookmark, BookmarkCheck, Check, Copy, ExternalLink, Home, RotateCcw, Sparkles, Trash2, WandSparkles } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthState, primeAuthFromCache, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
+import { getApiUrl } from "@/app/_lib/api-config";
+import { useCoinGate } from "@/app/hooks/useCoinGate";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { hasClientAuthHint } from "@/app/_lib/user-session-cache";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { PromptHubLoginGateModal, type PromptHubGateCopy } from "./PromptHubLoginGateModal";
 import {
   consumeResumeSnapshot,
-  hasFreeGenerationLeft,
   readLibrary,
-  recordFreeGeneration,
   removeFromLibrary,
   resolveLibraryOwnerKey,
   saveResumeSnapshot,
@@ -261,9 +266,6 @@ type ToolConfig = {
   generateLabel: string;
   resultLabel: string;
   emptyState: string;
-  role: string;
-  principles: string[];
-  answerSections: string[];
   keywords: string[];
   ready: "ready" | "beta";
 };
@@ -368,21 +370,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "종합 운세 프롬프트 생성하기",
     resultLabel: "완성된 종합 운세 상담 프롬프트",
     emptyState: "질문, 배경, 활용할 체계를 적으면 여러 운세의 언어가 한 문장 안에서 차분히 정돈됩니다.",
-    role: "사주 명식·자미두수 명반·출생 차트 같은 확정 산출값을 먼저 읽고 체계 간 신호를 대조하는 통합 운세 상담가",
-    principles: [
-      "해석마다 어느 체계의 어느 값에서 나왔는지 근거를 밝힙니다(예: 월지 신 금왕절, 명궁 태음, 상승궁 천칭자리).",
-      "체계마다 신호가 어긋나면 억지로 하나로 합치지 말고, 어긋난다는 사실과 각각의 근거를 함께 보여 줍니다.",
-      "체계 수만큼 결론을 늘리지 말고, 여러 체계가 겹쳐 가리키는 지점을 먼저 짚습니다.",
-      "질문자의 선택권을 흐리지 않고, 상징은 가능성의 언어로 전합니다.",
-    ],
-    answerSections: [
-      "질문의 핵심 정리",
-      "체계별 근거와 해석 (고른 체계마다 어떤 값에서 무엇을 읽었는지)",
-      "체계 간 겹치는 신호와 어긋나는 신호",
-      "상담 기간에 따른 흐름과 주의할 구간",
-      "현실적인 선택지와 각각의 대가",
-      "오늘부터 할 수 있는 작은 실천",
-    ],
     keywords: ["통합", "달빛", "상담", "여러 체계"],
     ready: "ready",
   },
@@ -410,9 +397,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "기본 운세 프롬프트 생성하기",
     resultLabel: "완성된 기본 운세 상담 프롬프트",
     emptyState: "날짜와 관심 영역을 정하면 오늘의 빛처럼 가볍고 선명한 상담 프롬프트가 열립니다.",
-    role: "일상의 흐름을 쉽고 밝게 짚어 주는 운세 상담가",
-    principles: ["무겁지 않은 언어로 안내합니다.", "기간과 관심 영역을 분명히 나눕니다.", "실행 가능한 조언을 우선합니다."],
-    answerSections: ["기간의 전체 흐름", "관심 영역별 신호", "피하면 좋은 행동", "가볍게 시도할 일"],
     keywords: ["오늘", "기간", "일상", "가벼운 운세"],
     ready: "ready",
   },
@@ -439,9 +423,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "사주/명리 상담 프롬프트 생성하기",
     resultLabel: "완성된 사주/명리 상담 프롬프트",
     emptyState: "생년월일과 질문을 적으면 오행의 균형과 현재 선택의 방향을 읽는 프롬프트가 준비됩니다.",
-    role: "오행과 십성의 균형을 차분히 읽는 명리학자",
-    principles: ["출생 정보가 불완전하면 단정하지 않습니다.", "오행, 십성, 대운을 구분해 설명합니다.", "강약보다 균형과 보완을 중심에 둡니다."],
-    answerSections: ["명식에서 먼저 볼 축", "오행과 십성의 흐름", "현재 질문과 맞닿은 지점", "보완하면 좋은 태도", "현실적인 선택 조언"],
     keywords: ["사주", "명리", "오행", "천간지지"],
     ready: "ready",
   },
@@ -471,9 +452,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "육효 상담 프롬프트 생성하기",
     resultLabel: "완성된 육효 상담 프롬프트",
     emptyState: "하나의 질문과 괘를 얻은 단서를 적으면 여섯 효의 변화가 판단의 초점으로 정리됩니다.",
-    role: "괘와 효의 변화를 절제된 언어로 읽는 육효 상담가",
-    principles: ["한 번에 하나의 질문만 다룹니다.", "본괘, 변괘, 동효의 의미를 구분합니다.", "판단은 가능성과 주의점으로 전합니다."],
-    answerSections: ["질문의 초점", "본괘의 분위기", "움직이는 효", "변화 뒤의 흐름", "결정 전 확인할 현실 조건"],
     keywords: ["육효", "괘", "동효", "변괘"],
     ready: "ready",
   },
@@ -499,9 +477,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "당사주 상담 프롬프트 생성하기",
     resultLabel: "완성된 당사주 상담 프롬프트",
     emptyState: "생년월일과 생시를 적으면 열두 자리의 흐름이 지금의 질문과 연결됩니다.",
-    role: "12성의 흐름을 정교하게 풀어내는 당사주 상담가",
-    principles: ["12성의 배치를 삶의 시기와 연결합니다.", "고전적 표현을 현대적인 조언으로 풀어냅니다.", "한 사람의 가능성을 좁히지 않습니다."],
-    answerSections: ["12성의 중심 흐름", "시기별로 드러나는 결", "현재 질문과 맞물린 자리", "관계와 행동의 조언"],
     keywords: ["당사주", "12성", "생시", "고전"],
     ready: "ready",
   },
@@ -532,9 +507,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "구성기학 상담 프롬프트 생성하기",
     resultLabel: "완성된 구성기학 상담 프롬프트",
     emptyState: "생년월일, 기준일, 이동 질문을 적으면 구궁의 질서가 선택의 방향을 밝혀 줍니다.",
-    role: "방위와 시기의 질서를 명료하게 읽는 구성기학 상담가",
-    principles: ["방위, 시기, 생활 조건을 함께 봅니다.", "금기보다 조정 가능한 현실 대안을 제안합니다.", "불확실한 계산값은 가능성으로 설명합니다."],
-    answerSections: ["본명성과 기준 흐름", "방위에서 살필 신호", "시기 선택의 장단점", "현실적인 조정 방법"],
     keywords: ["구성기학", "구궁", "방위", "이동"],
     ready: "ready",
   },
@@ -566,9 +538,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "심리테스트 프롬프트 생성하기",
     resultLabel: "완성된 심리테스트 프롬프트",
     emptyState: "테스트 주제와 대상, 문항 수를 정하면 마음을 가볍게 비추는 질문지가 준비됩니다.",
-    role: "부담 없는 질문으로 자기 이해를 돕는 심리테스트 설계자",
-    principles: ["낙인찍는 표현을 피합니다.", "질문은 짧고 명확하게 둡니다.", "결과는 위로와 실천으로 이어지게 합니다."],
-    answerSections: ["테스트 소개", "문항 구성", "채점 기준", "결과 타입", "타입별 조언"],
     keywords: ["심리", "테스트", "질문", "자기 탐색"],
     ready: "ready",
   },
@@ -598,9 +567,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "타로 상담 프롬프트 생성하기",
     resultLabel: "완성된 타로 상담 프롬프트",
     emptyState: "질문과 스프레드, 뽑은 카드를 적으면 카드의 상징이 상담 문장으로 차분히 펼쳐집니다.",
-    role: "카드의 상징과 질문자의 마음을 함께 읽는 타로 리더",
-    principles: ["카드의 정·역방향을 구분합니다.", "상징을 단정적 예언으로 몰아가지 않습니다.", "질문자의 선택과 대화 가능성을 열어 둡니다."],
-    answerSections: ["질문에 어울리는 스프레드", "카드별 상징", "카드 사이의 이야기", "지금 필요한 태도", "현실적인 다음 행동"],
     keywords: ["타로", "스프레드", "카드", "상징"],
     ready: "ready",
   },
@@ -626,9 +592,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "점성술 상담 프롬프트 생성하기",
     resultLabel: "완성된 점성술 상담 프롬프트",
     emptyState: "출생 정보와 분석 영역을 적으면 행성과 별자리의 관계가 질문 위에 놓입니다.",
-    role: "행성과 하우스의 관계를 분석적으로 읽는 점성술사",
-    principles: ["태양, 달, 상승궁을 구분해 설명합니다.", "하우스와 행성의 상징을 현실 언어로 풀어냅니다.", "트랜짓은 가능성의 흐름으로 안내합니다."],
-    answerSections: ["차트에서 먼저 볼 축", "행성·하우스의 신호", "질문과 연결되는 지점", "시기별 가능성", "현실적인 조언"],
     keywords: ["점성술", "차트", "행성", "하우스"],
     ready: "ready",
   },
@@ -654,9 +617,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "베다점 상담 프롬프트 생성하기",
     resultLabel: "완성된 베다점 상담 프롬프트",
     emptyState: "출생 정보와 베다 점성의 분석 주제를 적으면 깊은 전통의 흐름이 정리됩니다.",
-    role: "베다 점성의 전통을 차분히 풀어내는 베다 점성술사",
-    principles: ["라그나와 나크샤트라를 구분합니다.", "다샤는 시기의 분위기로 설명합니다.", "전통 용어는 쉬운 말로 덧붙입니다."],
-    answerSections: ["베다 차트의 중심", "나크샤트라와 다샤의 흐름", "질문과 연결되는 가능성", "조심할 판단", "실천 조언"],
     keywords: ["베다", "라그나", "나크샤트라", "다샤"],
     ready: "ready",
   },
@@ -690,9 +650,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "자미두수 상담 프롬프트 생성하기",
     resultLabel: "완성된 자미두수 상담 프롬프트",
     emptyState: "출생 정보를 적으면 12궁 명반 전체가 정리됩니다. 중점적으로 볼 궁을 고르면 그 궁을 중심으로 답하도록 안내합니다.",
-    role: "명반 12궁과 별의 배치를 두루 읽는 자미두수 해석가",
-    principles: ["궁과 별의 역할을 분리해 설명합니다.", "권위적인 단정보다 구조적 가능성을 전합니다.", "질문자의 현실 조건을 함께 살핍니다."],
-    answerSections: ["명반 12궁 전체의 짜임", "별의 배치가 비추는 기질", "중점적으로 볼 궁과 질문의 연결", "강점과 보완점", "현실적인 실행 방향"],
     keywords: ["자미두수", "명궁", "별", "궁"],
     ready: "ready",
   },
@@ -734,9 +691,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "숙요점 상담 프롬프트 생성하기",
     resultLabel: "완성된 숙요점 상담 프롬프트",
     emptyState: "나와 상대의 생년월일, 관계 유형을 적으면 달의 숙이 관계의 결을 비춥니다.",
-    role: "달의 숙과 관계의 리듬을 섬세하게 읽는 숙요점 상담가",
-    principles: ["산출된 본명숙과 구요 관계를 근거로 삼되 다시 계산하지 않습니다.", "상대의 마음을 단정하지 않습니다.", "관계의 거리와 리듬을 중심으로 봅니다.", "상호 존중의 행동을 제안합니다."],
-    answerSections: ["나와 상대의 본명숙이 보여주는 기본 결", "구요 관계에서 끌림과 피로가 생기는 지점", "관계의 거리와 대화의 타이밍", "이 관계를 지키기 위한 행동"],
     keywords: ["숙요", "관계", "달", "상성"],
     ready: "ready",
   },
@@ -768,9 +722,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "수비학 상담 프롬프트 생성하기",
     resultLabel: "완성된 수비학 상담 프롬프트",
     emptyState: "생년월일과 관심 숫자를 적으면 반복되는 패턴이 선명한 구조로 정리됩니다.",
-    role: "숫자의 반복과 리듬을 논리적으로 해석하는 수비학 해석가",
-    principles: ["숫자를 성향의 가능성으로 설명합니다.", "반복 패턴과 현재 선택을 연결합니다.", "실천 가능한 행동으로 마무리합니다."],
-    answerSections: ["핵심 숫자", "반복되는 패턴", "현재 질문과의 연결", "강점과 과제", "현실적인 조언"],
     keywords: ["수비학", "숫자", "패턴", "라이프패스"],
     ready: "ready",
   },
@@ -805,9 +756,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "꿈/상징 상담 프롬프트 생성하기",
     resultLabel: "완성된 꿈/상징 상담 프롬프트",
     emptyState: "꿈의 장면과 감정을 적으면 흐릿한 상징이 선명한 질문으로 다시 떠오릅니다.",
-    role: "꿈의 장면과 감정의 상징을 섬세하게 읽는 꿈 상징 해석가",
-    principles: ["꿈을 현실의 확정 예고로 말하지 않습니다.", "상징과 감정을 함께 다룹니다.", "최근 상황과 연결하되 단정하지 않습니다."],
-    answerSections: ["꿈의 핵심 장면", "상징별 의미", "감정의 흐름", "최근 상황과의 연결", "기록하거나 실천할 일"],
     keywords: ["꿈", "상징", "무의식", "감정"],
     ready: "ready",
   },
@@ -837,9 +785,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "호라리 상담 프롬프트 생성하기",
     resultLabel: "완성된 호라리 상담 프롬프트",
     emptyState: "하나의 질문, 떠오른 시각, 장소를 적으면 그 순간의 하늘을 기준으로 프롬프트가 열립니다.",
-    role: "질문이 떠오른 순간의 하늘을 읽는 호라리 점성술사",
-    principles: ["질문은 하나로 좁혀 다룹니다.", "시각과 장소의 불확실성을 명시합니다.", "판단은 가능성과 조건으로 설명합니다."],
-    answerSections: ["질문의 성립 여부", "시각과 장소 기준", "주요 시그니피케이터", "가능성과 장애물", "결정 전 확인할 현실 조건"],
     keywords: ["호라리", "질문 시각", "좌표", "점성"],
     ready: "ready",
   },
@@ -869,9 +814,6 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "매화역수 상담 프롬프트 생성하기",
     resultLabel: "완성된 매화역수 상담 프롬프트",
     emptyState: "질문, 시각, 숫자나 징후를 적으면 변화의 결이 본괘와 변괘의 언어로 정리됩니다.",
-    role: "수와 징후에서 변화의 결을 읽는 매화역수 해석가",
-    principles: ["징후를 과장하지 않고 관찰의 단서로 봅니다.", "본괘, 호괘, 변괘의 흐름을 나눕니다.", "시적인 표현과 현실 조언의 균형을 지킵니다."],
-    answerSections: ["질문의 씨앗", "숫자와 징후의 의미", "본괘와 변괘의 흐름", "전환점", "현실적인 실천"],
     keywords: ["매화역수", "숫자", "징후", "괘"],
     ready: "ready",
   },
@@ -910,6 +852,17 @@ type PromptHubCopy = {
   requiredInputMessage: string;
   advancedSettings: string;
   generating: string;
+  honeyBalance: string;
+  honeyRule: string;
+  honeyNextReward: string;
+  honeyAttend: string;
+  honeyAttended: string;
+  honeyShortTitle: string;
+  honeyShortBody: string;
+  honeyPayOnce: string;
+  honeyPayReason: string;
+  generateFailed: string;
+  paymentNotConfirmed: string;
   exampleInput: string;
   reset: string;
   resultEyebrow: string;
@@ -971,6 +924,17 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
   requiredInputMessage: "{label} is required.",
   advancedSettings: "Advanced Settings",
   generating: "Computing chart data…",
+  honeyBalance: "Honey drops: {count}",
+  honeyRule: "Check in daily for 1 honey drop · 1 drop per prompt",
+  honeyNextReward: "Check in again tomorrow for another drop · 1 drop per prompt",
+  honeyAttend: "Check in today",
+  honeyAttended: "Checked in today",
+  honeyShortTitle: "You're out of honey drops",
+  honeyShortBody: "Each prompt takes 1 honey drop. Check in to earn one, or make this prompt right away for {price}.",
+  honeyPayOnce: "Generate once for {price}",
+  honeyPayReason: "Fortune prompt — 1 generation",
+  generateFailed: "We couldn't build the prompt. Please check your inputs.",
+  paymentNotConfirmed: "The payment wasn't confirmed.",
   exampleInput: "Use Example",
   reset: "Reset",
   resultEyebrow: "Moonlight Result",
@@ -989,10 +953,10 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
   missingTranslation: "Translation unavailable",
   heroMascotAlt: "Yeon flower-piglet mascot — Fortune Prompt Hub",
   gate: {
-    title: "Start using it for free",
-    lead: "You have used your free try. Become a free member and keep building prompts.",
+    title: "Log in to build prompts",
+    lead: "Log in to build a prompt with 1 honey drop.",
     benefits: [
-      "Unlimited prompt generation",
+      "1 honey drop per daily check-in",
       "Save what you build to your library",
       "Full access to every tool",
       "Free to join — no payment",
@@ -1460,6 +1424,17 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   requiredInputMessage: "{label} 입력이 필요합니다.",
   advancedSettings: "고급 설정",
   generating: "산출 데이터 계산 중…",
+  honeyBalance: "꿀방울 {count}개",
+  honeyRule: "하루 한 번 출석하면 꿀방울 1개 · 프롬프트 1회에 1개",
+  honeyNextReward: "내일 출석하면 꿀방울 1개 더 · 프롬프트 1회에 1개",
+  honeyAttend: "오늘 출석하기",
+  honeyAttended: "오늘 출석 완료",
+  honeyShortTitle: "꿀방울이 부족해요",
+  honeyShortBody: "프롬프트 1회에는 꿀방울 1개가 필요해요. 출석으로 모으거나, {price}으로 이번 1회를 바로 만들 수 있어요.",
+  honeyPayOnce: "{price}으로 1회 생성",
+  honeyPayReason: "운세 프롬프트 1회 생성",
+  generateFailed: "프롬프트를 만들지 못했어요. 입력을 확인해 주세요.",
+  paymentNotConfirmed: "결제가 확인되지 않았어요.",
   exampleInput: "예시 입력",
   reset: "초기화",
   resultEyebrow: "Moonlight Result",
@@ -1478,10 +1453,10 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   missingTranslation: "번역 문구를 확인해주세요",
   heroMascotAlt: "연이 꽃돼지 마스코트 — 운세 프롬프트 허브",
   gate: {
-    title: "무료 이용을 시작해보세요",
-    lead: "무료 체험 1회를 사용하셨어요. 무료 회원이 되면 프롬프트를 계속 만들 수 있어요.",
+    title: "로그인하고 프롬프트를 만들어 보세요",
+    lead: "로그인하면 꿀방울 1개로 프롬프트 1회를 만들 수 있어요.",
     benefits: [
-      "프롬프트 무제한 생성",
+      "하루 한 번 출석하면 꿀방울 1개",
       "만든 프롬프트를 보관함에 저장",
       "모든 운세 도구 이용",
       "결제 없이 무료 가입",
@@ -1660,7 +1635,7 @@ async function buildComputedFactsFor(toolId: ToolId, draft: ToolDraft): Promise<
           birthTime: formatDraftValue(draft.partnerBirthTime),
           birthTimeUnknown: !formatDraftValue(draft.partnerBirthTime),
           birthPlace: formatDraftValue(draft.partnerBirthPlace),
-          birthTimezone: BIRTH_TIMEZONE_BY_LABEL[formatDraftValue(draft.partnerBirthTimezone)] || "Asia/Seoul",
+          birthTimezone: BIRTH_TIMEZONE_BY_LABEL[formatDraftValue(draft.partnerBirthTimezone)] || formatDraftValue(draft.partnerBirthTimezone) || "Asia/Seoul",
         })
         : Promise.resolve(null),
     ])
@@ -1751,54 +1726,6 @@ async function buildComputedFactsFor(toolId: ToolId, draft: ToolDraft): Promise<
   }
 }
 
-function buildStructuredFortunePrompt(config: ToolConfig, values: ToolDraft, computedFacts = "") {
-  const filledFields = config.fields
-    .map((field) => {
-      const value = formatDraftValue(values[field.id]);
-      return value ? `- ${field.label}: ${value}` : "";
-    })
-    .filter(Boolean)
-    .join("\n");
-  const avoid = formatDraftValue(values.avoid);
-  const tone = formatDraftValue(values.tone) || "차분하고 전문적인 상담";
-  const depth = formatDraftValue(values.depth) || "균형 있게";
-  const selectedSystems = formatDraftValue(values.systems);
-  const facts = String(computedFacts || "").trim();
-
-  return [
-    `당신은 ${config.role}입니다.`,
-    "",
-    `선택된 운세 체계: ${selectedSystems || config.label}`,
-    `해석 모티프: ${config.theme.motif}`,
-    `상담 분위기: ${tone}`,
-    `답변 깊이: ${depth}`,
-    "",
-    "[입력 단서]",
-    filledFields || "- 아직 입력된 단서가 적습니다. 부족한 정보는 추정하지 말고 필요한 확인 질문을 먼저 제안해 주세요.",
-    avoid ? `\n피해야 할 표현: ${avoid}` : "",
-    facts ? `\n${facts}` : "",
-    "",
-    "[해석 원칙]",
-    ...config.principles.map((item) => `- ${item}`),
-    facts
-      ? "- 위 [산출 데이터]의 명칭·수치·관계는 이미 확정된 값이니 그대로 근거로 삼고, 임의로 바꾸거나 새로 계산하지 않습니다."
-      : "",
-    "- 입력 단서에 없는 값(생년월일시, 명식, 별자리 등)은 지어내지 말고, 필요하면 계산이 필요하다고 표시하거나 확인 질문을 제안합니다.",
-    "- 단정적인 예언, 공포를 주는 표현, 운명을 고정하는 표현은 피합니다.",
-    "- 불확실한 내용은 가능성, 경향, 선택지의 언어로 설명합니다.",
-    "- 의료, 법률, 투자, 계약 등 전문 판단을 대신하지 않으며 필요한 경우 전문가 상담을 권합니다.",
-    "- 질문자가 오늘 실천할 수 있는 현실적인 조언을 포함합니다.",
-    "",
-    "[답변 구조]",
-    ...config.answerSections.map((item, index) => `${index + 1}. ${item}`),
-    "",
-    "[말투]",
-    "전문적이되 차갑지 않게, 신비롭되 과장하지 않게 말해 주세요. 운세의 상징은 질문자가 자기 선택을 더 선명하게 바라보도록 돕는 언어로 전해 주세요.",
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
 function getInitialDraftsByToolId() {
   return TOOL_REGISTRY_COPY.reduce<Record<ToolId, ToolDraft>>((acc, config) => {
     acc[config.id] = getDefaultDraft(config);
@@ -1821,6 +1748,41 @@ async function copyTextToClipboard(text: string) {
     try{copied=document.execCommand("copy");}finally{document.body.removeChild(textarea);}
     if(!copied)throw new Error("COPY_FAILED");
   }
+}
+
+// 꿀방울이 없을 때의 대체 결제 키. 가격 정본은 worker/lib/paid-feature-registry.js.
+const PROMPT_HUB_GENERATE_FEATURE_KEY = "fortune-prompt-hub-generate";
+
+type HoneyState = {
+  balance: number;
+  attended: boolean;
+  attendanceCount: number;
+  attendanceEvery: number;
+  nextRewardIn: number;
+  promptCost: number;
+};
+
+async function requestHoney(method: "GET" | "POST"): Promise<HoneyState | null> {
+  const response = await fetch(getApiUrl("/api/honey/attendance"), {
+    method,
+    credentials: "include",
+    cache: "no-store",
+    ...(method === "POST" ? { headers: { "Content-Type": "application/json" }, body: "{}" } : {}),
+  });
+  const data = await response.json().catch(() => null);
+  return response.ok && data?.ok ? (data as HoneyState) : null;
+}
+
+function newPromptHubRequestId() {
+  const random = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  return `ph:${Date.now().toString(36)}:${random}`;
+}
+
+function formatPromptHubPrice(locale: LoadingLocale) {
+  const krw = (lookupServerCoinPrice(PROMPT_HUB_GENERATE_FEATURE_KEY) ?? 30) * 100;
+  return locale === "ko" ? `${krw.toLocaleString("ko-KR")}원` : `₩${krw.toLocaleString("en-US")}`;
 }
 
 export default function ComprehensivePromptHubPage() {
@@ -1886,6 +1848,44 @@ export default function ComprehensivePromptHubPage() {
   const gateIntentRef = useRef<PromptHubResumeIntent>("generate");
   const gateCheckRef = useRef(false);
   const generatingRef = useRef(false);
+  const { ensurePaidAccess } = useCoinGate();
+  const [honey, setHoney] = useState<HoneyState | null>(null);
+  const [honeyBusy, setHoneyBusy] = useState(false);
+  // 꿀방울이 모자라 멈춘 생성. 3,000원 결제는 이 입력 그대로를 1회 만든다.
+  const [honeyShortfall, setHoneyShortfall] = useState<{ toolId: ToolId; draft: ToolDraft } | null>(null);
+
+  useEffect(() => {
+    if (!auth.isAuthenticated) {
+      setHoney(null);
+      return undefined;
+    }
+    let alive = true;
+    requestHoney("GET")
+      .then((state) => {
+        if (alive && state) setHoney(state);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [auth.isAuthenticated]);
+
+  /* 결제 후 자동 재개 — 모바일 PG 복귀는 새 문서라 입력이 비어 있다. 서술자에 실은 입력과 처음 결제한
+     requestId 그대로 생성한다. 🔴 게이트를 다시 타지 않는다(재과금 방지). */
+  const buildPaidResume = usePaidResume(PROMPT_HUB_GENERATE_FEATURE_KEY, async (args, grant) => {
+    const toolId = String(args.toolId || "") as ToolId;
+    const draft = unpackPaidResumeArg<ToolDraft>(args.draft);
+    const requestId = String(grant?.requestId || args.requestId || "");
+    if (!toolConfigById[toolId] || !draft || !requestId) return false;
+    setActiveToolId(toolId);
+    setDraftsByToolId((prev) => ({ ...prev, [toolId]: draft }));
+    try {
+      return Boolean(await runPromptGeneration(toolId, draft, requestId));
+    } catch (error) {
+      setGenerationError(error instanceof Error ? error.message : getPromptHubCopy(localeRef.current).generateFailed);
+      return false;
+    }
+  });
   const resumeHandledRef = useRef(false);
   const localeRef = useRef(locale);
   localeRef.current = locale;
@@ -1993,7 +1993,13 @@ export default function ComprehensivePromptHubPage() {
       if (!restored) return;
       // 로그인을 취소하고 돌아온 경우엔 입력만 되살리고 생성은 하지 않는다.
       if (!getAuthState().isAuthenticated) return;
-      const entry = await runPromptGeneration(restored.toolId, restored.draft);
+      let entry: Awaited<ReturnType<typeof runPromptGeneration>> = null;
+      try {
+        entry = await runPromptGeneration(restored.toolId, restored.draft);
+      } catch (error) {
+        setGenerationError(error instanceof Error ? error.message : getPromptHubCopy(localeRef.current).generateFailed);
+      }
+      if (!entry) return;
       // 저장하려다 로그인하러 갔던 것이라면, 다시 누르게 하지 않고 저장까지 끝낸다.
       if (resuming?.intent === "save") {
         persistResultToLibrary(resolveLibraryOwnerKey(getAuthState().user), restored.toolId, entry);
@@ -2027,6 +2033,15 @@ export default function ComprehensivePromptHubPage() {
     if (options.updateUrl !== false) updateToolQueryParam(toolId, options.replace ? "replace" : "push");
   }
 
+  function applySavedBirth(seed: AiPrefillSeed, partner = false) {
+    const values: ToolDraft = partner ? {
+      partnerBirthDate:seed.birthDate || "", partnerBirthTime:seed.birthTime || "", partnerCalendarType:seed.calendarType === "lunar" ? "음력" : "양력", partnerLeapMonth:Boolean(seed.isLeapMonth), partnerBirthPlace:seed.region || "", partnerBirthTimezone:Object.keys(BIRTH_TIMEZONE_BY_LABEL).find(key=>BIRTH_TIMEZONE_BY_LABEL[key]===seed.timezone) || seed.timezone || ""
+    } : { birthDate:seed.birthDate || "", birthTime:seed.birthTime || "", birthTimeUnknown:Boolean(seed.birthTimeUnknown), calendarType:seed.calendarType === "lunar" ? "음력" : "양력", leapMonth:Boolean(seed.isLeapMonth), birthPlace:seed.region || "", birthTimezone:Object.keys(BIRTH_TIMEZONE_BY_LABEL).find(key=>BIRTH_TIMEZONE_BY_LABEL[key]===seed.timezone) || seed.timezone || "", gender:seed.gender === "male" ? "남성" : seed.gender === "female" ? "여성" : "선택 안 함" };
+    const allowed = new Set(currentTool.fields.map(field=>field.id));
+    setDraftsByToolId(previous=>({...previous,[activeToolId]:{...previous[activeToolId],...Object.fromEntries(Object.entries(values).filter(([key])=>allowed.has(key)))}}));
+    setCopiedToolId(null);
+  }
+
   function updateCurrentDraft(fieldId: string, value: ToolDraftValue) {
     setDraftsByToolId((prev) => ({
       ...prev,
@@ -2044,13 +2059,8 @@ export default function ComprehensivePromptHubPage() {
     updateCurrentDraft(fieldId, values.includes(option) ? values.filter((item) => item !== option) : [...values, option]);
   }
 
-  /**
-   * 입력을 갈아엎을 때 결과도 함께 지운다 — 단, 무료 체험을 이미 쓴 비회원의 결과는 남긴다.
-   * 지워 봐야 다시 만들 수단이 없어서, 옆에 붙은 "예시 입력"·"초기화" 를 한 번 잘못 누르면
-   * 체험으로 얻은 유일한 결과가 되돌릴 방법 없이 사라진다.
-   */
-  function clearResultUnlessLastFreeOne(toolId: ToolId) {
-    if (!getAuthState().isAuthenticated && !hasFreeGenerationLeft()) return;
+  /** 입력을 갈아엎을 때 결과도 함께 지운다. */
+  function clearResult(toolId: ToolId) {
     setResultsByToolId((prev) => ({ ...prev, [toolId]: null }));
     setExpandedResultsByToolId((prev) => ({ ...prev, [toolId]: false }));
   }
@@ -2063,14 +2073,14 @@ export default function ComprehensivePromptHubPage() {
         ...currentTool.exampleValues,
       },
     }));
-    clearResultUnlessLastFreeOne(activeToolId);
+    clearResult(activeToolId);
     setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: false }));
     setCopiedToolId(null);
   }
 
   function resetCurrentToolDraft() {
     setDraftsByToolId((prev) => ({ ...prev, [activeToolId]: getDefaultDraft(currentTool) }));
-    clearResultUnlessLastFreeOne(activeToolId);
+    clearResult(activeToolId);
     setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: false }));
     setCopiedToolId(null);
   }
@@ -2079,12 +2089,46 @@ export default function ComprehensivePromptHubPage() {
    * 실제 조립부. 재개 흐름에서 setState 직후에도 불려야 해서 toolId·draft 를 인자로 받는다
    * (state 를 읽으면 방금 복원한 값이 아니라 이전 draft 를 집는다).
    */
-  async function runPromptGeneration(toolId: ToolId, draft: ToolDraft) {
+  async function runPromptGeneration(toolId: ToolId, draft: ToolDraft, paymentRequestId = "") {
     setGenerationError('');
     const config = toolConfigById[toolId];
-    const computedFacts = config.id==='horary'?await buildHoraryPrompt(draft):await buildComputedFactsFor(config.id, draft);
+    const isHorary = config.id === 'horary';
+    // 산출값은 사용자 입력으로 여기서 계산하고, 프롬프트 틀은 서버가 조립한다(번들에 틀을 싣지 않는다).
+    const body = {
+      toolId,
+      requestId: paymentRequestId || newPromptHubRequestId(),
+      ...(paymentRequestId ? { paymentRequestId } : {}),
+      locale: localeRef.current,
+      fields: config.fields.map((field) => ({ id: field.id, label: field.label, value: formatDraftValue(draft[field.id]) })),
+      computedFacts: isHorary ? '' : await buildComputedFactsFor(config.id, draft),
+      ...(isHorary ? { horary: await buildHoraryRequest(draft) } : {}),
+    };
+    const response = await fetch(getApiUrl('/api/fortune/prompt-hub/generate'), {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(45000),
+    });
+    const data = await response.json().catch(() => null);
+    if (response.status === 401) {
+      gateIntentRef.current = "generate";
+      setLoginGateOpen(true);
+      return null;
+    }
+    if (response.status === 402 && data?.code === 'INSUFFICIENT_HONEY_DROPS') {
+      setHoney((prev) => (prev ? { ...prev, balance: Number(data.balance) || 0, attended: Boolean(data.attended), nextRewardIn: Number(data.nextRewardIn) || prev.nextRewardIn } : prev));
+      setHoneyShortfall({ toolId, draft });
+      return null;
+    }
+    if (!response.ok || !data?.ok || typeof data.prompt !== 'string') {
+      throw new Error(String(data?.message || getPromptHubCopy(localeRef.current).generateFailed));
+    }
+    if (data.honey) setHoney(data.honey as HoneyState);
+    setHoneyShortfall(null);
     const entry = {
-      prompt: withContinuation(config.id==='horary'?computedFacts:buildStructuredFortunePrompt(config, draft, computedFacts)),
+      prompt: withContinuation(data.prompt),
       // 재개 흐름은 마운트 시점 클로저로 이 함수를 붙잡으므로 locale 을 ref 로 읽는다.
       // state 를 그대로 쓰면 로케일이 늦게 확정된 화면에서 시각만 다른 언어로 찍힌다.
       generatedAt: new Intl.DateTimeFormat(getPromptHubDateLocale(localeRef.current), {
@@ -2120,20 +2164,13 @@ export default function ComprehensivePromptHubPage() {
     generatingRef.current = true;
     setIsGenerating(true);
     try {
-      // ② 로그인 사용자는 무제한 — 카운터를 읽지도 않는다.
+      // ② 로그인 사용자는 서버에서 꿀방울 1개로 만든다. 모자라면 출석·1회 결제 안내가 뜬다.
       if (getAuthState().isAuthenticated) {
         await runPromptGeneration(toolId, draft);
         return;
       }
 
-      // ③ 무료 체험이 남았으면 인증 왕복 없이 바로 만들어 준다. 첫 방문 경험을 그대로 둔다.
-      if (hasFreeGenerationLeft()) {
-        await runPromptGeneration(toolId, draft);
-        recordFreeGeneration();
-        return;
-      }
-
-      // ④ 체험을 다 썼다면 게스트로 보이는 로그인 사용자를 먼저 걸러낸다.
+      // ③ 게스트로 보이는 로그인 사용자를 먼저 걸러낸다.
       if (await confirmAuthenticated()) {
         await runPromptGeneration(toolId, draft);
         return;
@@ -2141,7 +2178,49 @@ export default function ComprehensivePromptHubPage() {
       gateIntentRef.current = "generate";
       setLoginGateOpen(true);
     } catch(error) {
-      setGenerationError(error instanceof Error?error.message:'프롬프트를 만들지 못했어요. 입력을 확인해 주세요.');
+      setGenerationError(error instanceof Error?error.message:copy.generateFailed);
+    } finally {
+      generatingRef.current = false;
+      setIsGenerating(false);
+    }
+  }
+
+  async function attendToday() {
+    if (honeyBusy) return;
+    setHoneyBusy(true);
+    try {
+      const state = await requestHoney("POST");
+      if (state) setHoney(state);
+    } catch {
+      // 출석 실패는 다음 클릭으로 다시 시도한다.
+    } finally {
+      setHoneyBusy(false);
+    }
+  }
+
+  /** 꿀방울이 모자란 그 입력을 3,000원으로 1회 만든다. */
+  async function payOnceForPrompt() {
+    const shortfall = honeyShortfall;
+    if (!shortfall || generatingRef.current) return;
+    const requestId = newPromptHubRequestId();
+    generatingRef.current = true;
+    setIsGenerating(true);
+    setGenerationError('');
+    try {
+      const gate = await ensurePaidAccess({
+        featureKey: PROMPT_HUB_GENERATE_FEATURE_KEY,
+        cost: lookupServerCoinPrice(PROMPT_HUB_GENERATE_FEATURE_KEY),
+        reason: copy.honeyPayReason,
+        requestId,
+        resume: buildPaidResume({ requestId, toolId: shortfall.toolId, draft: packPaidResumeArg(shortfall.draft) }),
+      });
+      if (!gate.ok) {
+        if (gate.code !== "PAYMENT_CANCELLED") setGenerationError(String(gate.message || copy.paymentNotConfirmed));
+        return;
+      }
+      await runPromptGeneration(shortfall.toolId, shortfall.draft, requestId);
+    } catch (error) {
+      setGenerationError(error instanceof Error ? error.message : copy.generateFailed);
     } finally {
       generatingRef.current = false;
       setIsGenerating(false);
@@ -2260,7 +2339,7 @@ export default function ComprehensivePromptHubPage() {
     };
 
     return (
-      <div key={field.id} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
+      <div data-moonlit-form="" key={field.id} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
         {field.type === "checkbox" ? (
           <label
             htmlFor={inputId}
@@ -2304,7 +2383,7 @@ export default function ComprehensivePromptHubPage() {
                 className={inputClass}
                 style={inputStyle}
               >
-                {field.id==='birthTimezone'&&String(value).includes('/')&&!(field.options||[]).includes(String(value))&&<option value={String(value)}>{String(value)} · 위치로 확인</option>}
+                {(field.id==='birthTimezone'||field.id==='partnerBirthTimezone')&&String(value).includes('/')&&!(field.options||[]).includes(String(value))&&<option value={String(value)}>{String(value)} · 위치로 확인</option>}
                 {(field.options || []).map((option) => (
                   <option key={option} value={option}>
                     {tx(option)}
@@ -2334,6 +2413,9 @@ export default function ComprehensivePromptHubPage() {
                   );
                 })}
               </div>
+            ) : field.type === "time" ? (
+              <BirthTimeInput id={inputId} value={String(value || "")} onChange={event => updateCurrentDraft(field.id, event.target.value)}
+                aria-invalid={hasError} aria-describedby={inputId + "-hint"} className={inputClass} style={inputStyle} />
             ) : (
               <input
                 id={inputId}
@@ -2881,6 +2963,8 @@ export default function ComprehensivePromptHubPage() {
               >
                 <div className="grid gap-4 sm:grid-cols-2">
                   {currentTool.id==='horary'&&<p><a href="/yeongnyangi/fortune/?mode=horary">질문 순간을 실제로 계산하는 영냥 호라리 상담 →</a></p>}
+                  {currentTool.fields.some(field=>field.id === "birthDate") && <SavedBirthProfilePicker onSelect={seed=>applySavedBirth(seed)} />}
+                  {currentTool.fields.some(field=>field.id === "partnerBirthDate") && <SavedBirthProfilePicker label="상대의 저장된 프로필" onSelect={seed=>applySavedBirth(seed,true)} />}
                   {currentTool.fields.filter((field) => !field.advanced).map(renderToolField)}
                 </div>
 
@@ -2897,6 +2981,48 @@ export default function ComprehensivePromptHubPage() {
                   <p className="mt-4 rounded-xl border border-[color:var(--danger-line)] bg-[color:var(--danger-glow)] px-3 py-2 text-sm font-bold text-[color:var(--danger-ink)]" aria-live="polite">
                     {disabledReason}
                   </p>
+                ) : null}
+
+                {auth.isAuthenticated && honey ? (
+                  <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--hairline)] bg-[color:var(--surface-1)] px-3 py-2 text-sm text-[color:var(--ink-2)]" aria-live="polite">
+                    <span className="font-black">🍯 {copy.honeyBalance.replace("{count}", String(honey.balance))}</span>
+                    <span>{honey.attended ? copy.honeyNextReward.replace("{count}", String(honey.nextRewardIn)) : copy.honeyRule}</span>
+                    <button
+                      type="button"
+                      onClick={attendToday}
+                      disabled={honey.attended || honeyBusy}
+                      className="ml-auto inline-flex min-h-[36px] items-center rounded-xl border border-[color:var(--hairline)] px-3 text-xs font-black transition hover:border-[color:var(--tool-accent)] disabled:cursor-not-allowed disabled:opacity-55"
+                    >
+                      {honey.attended ? copy.honeyAttended : copy.honeyAttend}
+                    </button>
+                  </div>
+                ) : null}
+
+                {honeyShortfall ? (
+                  <div role="alert" className="mt-3 rounded-xl border border-[color:var(--danger-line)] bg-[color:var(--danger-glow)] px-3 py-3 text-sm text-[color:var(--danger-ink)]">
+                    <p className="font-black">{copy.honeyShortTitle}</p>
+                    <p className="mt-1">{copy.honeyShortBody.replace("{price}", formatPromptHubPrice(locale))}</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {honey && !honey.attended ? (
+                        <button
+                          type="button"
+                          onClick={attendToday}
+                          disabled={honeyBusy}
+                          className="inline-flex min-h-[40px] items-center rounded-xl border border-[color:var(--hairline)] bg-[color:var(--surface-1)] px-3 text-xs font-black text-[color:var(--ink-2)] disabled:opacity-55"
+                        >
+                          {copy.honeyAttend}
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={payOnceForPrompt}
+                        disabled={isGenerating}
+                        className="inline-flex min-h-[40px] items-center rounded-xl bg-[color:var(--tool-accent-strong)] px-3 text-xs font-black text-[color:var(--on-accent-strong)] disabled:opacity-55"
+                      >
+                        {copy.honeyPayOnce.replace("{price}", formatPromptHubPrice(locale))}
+                      </button>
+                    </div>
+                  </div>
                 ) : null}
 
                 <div className="mt-5 flex flex-wrap gap-2">

@@ -1,3 +1,4 @@
+import ResultSamples from "@/app/components/ResultSamples";
 import type { Metadata } from "next";
 import LoveSecretAiRouteClient from "./LoveSecretAiRouteClient";
 import {
@@ -11,9 +12,9 @@ import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/love-secret-ai/";
-const PAGE_TITLE = "짝사랑 운세 | 재회·연애 마음 리딩 — 사랑의 비밀";
+const PAGE_TITLE = "짝사랑 운세 | 재회·연애 마음 리딩 — 연애 비책";
 const PAGE_DESCRIPTION =
-  "생년월일 기반 사주 흐름으로 짝사랑, 썸, 재회, 이별 후 마음까지 읽어주는 사랑의 비밀 전문가 상담. 상대의 마음 결과 관계의 방향을 상담 문장으로 확인하세요.";
+  "생년월일 기반 사주 흐름으로 짝사랑, 썸, 재회, 이별 후 마음까지 읽어주는 연애 비책 전문가 상담. 상대의 마음 결과 관계의 방향을 상담 문장으로 확인하세요.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     siteName: siteSeo.brandName,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "사랑의 비밀 전문가 상담" }],
+    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "연애 비책 전문가 상담" }],
   },
   twitter: {
     card: siteSeo.twitterCard,
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
 
 const loveSecretFaqItems = [
   {
-    question: "사랑의 비밀 전문가 상담은 무엇을 봐주나요?",
+    question: "연애 비책 전문가 상담은 무엇을 봐주나요?",
     answer:
       "짝사랑과 썸의 진전 가능성, 연인 사이의 흐름, 이별 후 재회의 결까지 연애에 얽힌 마음의 방향을 읽습니다. 생년월일로 세운 사주 명식의 일간과 십성 흐름을 바탕으로 관계에서 반복되는 패턴을 상담 문장으로 풀어 드립니다.",
   },
@@ -74,7 +75,7 @@ const loveSecretFaqItems = [
 
 const loveSecretJsonLd = [
   buildServiceJsonLd({
-    name: "사랑의 비밀 전문가 상담",
+    name: "연애 비책 전문가 상담",
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "연애 사주 상담 서비스",
@@ -85,7 +86,7 @@ const loveSecretJsonLd = [
   buildFaqPageJsonLd(loveSecretFaqItems),
   buildBreadcrumbJsonLd([
     { name: "홈", path: "/" },
-    { name: "사랑의 비밀 전문가 상담", path: PAGE_PATH },
+    { name: "연애 비책 전문가 상담", path: PAGE_PATH },
   ]),
 ];
 
@@ -97,10 +98,12 @@ export default function LoveSecretAiPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(loveSecretJsonLd) }}
       />
             <LoveSecretAiRouteClient />
-            <ServiceIntroSection label="사랑의 비밀 전문가 상담 안내">
+      <ResultSamples ids={["love-secret"]}/>
+            <ServiceIntroSection label="연애 비책 전문가 상담 안내">
+        {/* 문서 H1은 이 서버 영역의 하나뿐이다. 위 상담 화면은 클라이언트에서 그려져 서버 HTML(verify:seo-heading-integrity)에 없고, 그 화면 제목을 h1로 올리면 하이드레이션 뒤 H1이 2개가 된다(verify:hydrated-h1-integrity). 그래서 화면 제목은 h2로 둔다. */}
         <h1>짝사랑 운세 — 재회와 연애 마음 리딩</h1>
         <p>
-          사랑의 비밀은 생년월일로 세운 사주 명식을 따라 연애에 얽힌 마음의 결을 읽는 전문가 상담입니다.
+          연애 비책은 생년월일로 세운 사주 명식을 따라 연애에 얽힌 마음의 결을 읽는 전문가 상담입니다.
           짝사랑이 어디까지 닿아 있는지, 썸이 관계로 이어질 흐름인지, 이별 뒤의 마음을 어떻게
           정리하면 좋을지 — 일간의 기질과 십성의 흐름, 지금 지나는 운의 계절을 함께 살펴 긴 호흡의
           상담 문장으로 답해 드립니다.

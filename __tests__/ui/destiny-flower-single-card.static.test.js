@@ -33,11 +33,12 @@ function lockTileKeys() {
   return keys;
 }
 
-test("꽃은 하나의 무료 서비스로 소개하고 구매 타일을 남기지 않는다", () => {
- assert.equal(lockTileKeys().filter(key=>key==='flower-fc').length,0);
- assert.match(shell,/id="cdhFlowerTitle"/);
- assert.match(shell,/로그인 후 무료로 이용할 수 있어요/);
- assert.match(read('worker/lib/billing-feature-registry.js'),/FEATURE_NOW_FREE/);
+test("꽃은 하나의 5,000원 상품으로 소개하고 공용 해금 키를 쓴다", () => {
+ assert.equal(lockTileKeys().filter(key=>key==='flower-fc').length,1);
+ // 2026-10-17 "직관성": 홈의 운명의 꽃 소개 카드(#cdhFlowerTitle)는 걷어냈다. 꽃은 컬렉션 잠금 타일 하나와 /flower 랜딩으로 간다.
+ assert.doesNotMatch(shell,/id="cdhFlowerTitle"/);
+ assert.doesNotMatch(shell,/로그인 후 무료로 이용할 수 있어요/);
+ assert.doesNotMatch(read('worker/lib/billing-feature-registry.js'),/FEATURE_NOW_FREE/);
 });
 
 test("랜딩은 /flower 하나이고 옛 경로는 리다이렉트다", () => {

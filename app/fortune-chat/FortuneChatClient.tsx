@@ -1,4 +1,10 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
+import Link from "next/link";
+import salon from "./yeoni-salon.module.css";
+import YeoniWelcome from "./YeoniWelcome";
 
 import { readPendingTurn, readRecentTurns, recentTurnsOf, requestGuardianTurn, type RecentTurn } from "./paid-turn-recovery";
 
@@ -6,6 +12,7 @@ import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { PersonaAvatar } from "./PersonaAvatar";
 import { GuardianShareButton } from "./GuardianShareButton";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -21,7 +28,6 @@ import { detectLocale } from "@/lib/i18n/dictionary";
 type FortuneChatCopy = {
   backAria: string;
   newChatAria: string;
-  characterPickerAria: string;
   composerAria: string;
   followUpsAria: string;
   topicChipsAria: string;
@@ -33,7 +39,6 @@ type FortuneChatCopy = {
 const FORTUNE_CHAT_EN: FortuneChatCopy = {
   backAria: "Go to previous page",
   newChatAria: "Start a new consultation",
-  characterPickerAria: "Choose a consultant",
   composerAria: "Consultation input",
   followUpsAria: "Suggested questions",
   topicChipsAria: "Suggested question topics",
@@ -46,7 +51,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   ko: {
     backAria: "이전 페이지로 이동",
     newChatAria: "새 상담 시작",
-    characterPickerAria: "상담자 선택",
     composerAria: "상담 입력",
     followUpsAria: "추천 질문",
     topicChipsAria: "추천 질문 분야",
@@ -58,7 +62,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   ja: {
     backAria: "前のページに戻る",
     newChatAria: "新しい相談を始める",
-    characterPickerAria: "相談相手を選択",
     composerAria: "相談入力",
     followUpsAria: "おすすめの質問",
     topicChipsAria: "おすすめの質問分野",
@@ -69,7 +72,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   "zh-CN": {
     backAria: "返回上一页",
     newChatAria: "开始新咨询",
-    characterPickerAria: "选择咨询对象",
     composerAria: "咨询输入",
     followUpsAria: "推荐问题",
     topicChipsAria: "推荐问题领域",
@@ -80,7 +82,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   "zh-TW": {
     backAria: "返回上一頁",
     newChatAria: "開始新諮詢",
-    characterPickerAria: "選擇諮詢對象",
     composerAria: "諮詢輸入",
     followUpsAria: "推薦問題",
     topicChipsAria: "推薦問題領域",
@@ -91,7 +92,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   vi: {
     backAria: "Về trang trước",
     newChatAria: "Bắt đầu tư vấn mới",
-    characterPickerAria: "Chọn người tư vấn",
     composerAria: "Ô nhập tư vấn",
     followUpsAria: "Câu hỏi gợi ý",
     topicChipsAria: "Lĩnh vực câu hỏi gợi ý",
@@ -102,7 +102,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   hi: {
     backAria: "पिछले पृष्ठ पर जाएं",
     newChatAria: "नया परामर्श शुरू करें",
-    characterPickerAria: "परामर्शदाता चुनें",
     composerAria: "परामर्श इनपुट",
     followUpsAria: "सुझाए गए प्रश्न",
     topicChipsAria: "सुझाए गए प्रश्न क्षेत्र",
@@ -113,7 +112,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   es: {
     backAria: "Ir a la página anterior",
     newChatAria: "Iniciar una nueva consulta",
-    characterPickerAria: "Elegir un consultor",
     composerAria: "Entrada de consulta",
     followUpsAria: "Preguntas sugeridas",
     topicChipsAria: "Temas de preguntas sugeridas",
@@ -124,7 +122,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   fr: {
     backAria: "Retour à la page précédente",
     newChatAria: "Démarrer une nouvelle consultation",
-    characterPickerAria: "Choisir un consultant",
     composerAria: "Saisie de la consultation",
     followUpsAria: "Questions suggérées",
     topicChipsAria: "Domaines de questions suggérées",
@@ -135,7 +132,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   de: {
     backAria: "Zur vorherigen Seite",
     newChatAria: "Neue Beratung starten",
-    characterPickerAria: "Berater auswählen",
     composerAria: "Beratungseingabe",
     followUpsAria: "Empfohlene Fragen",
     topicChipsAria: "Empfohlene Fragebereiche",
@@ -146,7 +142,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   nl: {
     backAria: "Naar vorige pagina",
     newChatAria: "Nieuw consult starten",
-    characterPickerAria: "Kies een adviseur",
     composerAria: "Consultinvoer",
     followUpsAria: "Voorgestelde vragen",
     topicChipsAria: "Voorgestelde vraaggebieden",
@@ -157,7 +152,6 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
   ms: {
     backAria: "Kembali ke halaman sebelumnya",
     newChatAria: "Mulakan perundingan baharu",
-    characterPickerAria: "Pilih perunding",
     composerAria: "Input perundingan",
     followUpsAria: "Soalan dicadangkan",
     topicChipsAria: "Bidang soalan dicadangkan",
@@ -217,8 +211,9 @@ type Birth = { birthDate: string; birthTime: string; calendarType: "solar" | "lu
 
 /** 무료 소진 이후의 회당 결제. 가격 정본은 worker/lib/paid-feature-registry.js. */
 const PAID_FEATURE_KEY = "fortune-chat-consultation";
-const PAID_COIN_PRICE = 30;
-const PAID_AMOUNT_KRW = 3000;
+const PAID_PRICE = resolveServerFeaturePricing({ featureKey: PAID_FEATURE_KEY });
+const PAID_COIN_PRICE = PAID_PRICE?.cost;
+const PAID_AMOUNT_KRW = PAID_PRICE?.amountKRW;
 /** 서버 검증 상한과 같은 값 — 넘겨 보내면 400 으로 되돌아온다. */
 const CONCERN_MAX_LENGTH = 120;
 
@@ -254,7 +249,6 @@ const CATEGORY_BY_TOPIC: Record<string, Category> = {
 };
 
 const CHARACTER_LABEL: Record<Character, string> = { yeoni: "연이", neo: "네오" };
-const CHARACTER_BLURB: Record<Character, string> = { yeoni: "꽃돼지 모습의 연이", neo: "핵심을 짚는 백사자 네오" };
 const CHARACTER_GREETING: Record<Character, string> = {
   yeoni: "안녕하세요, 연이예요. 마음에 걸리는 한 가지부터 들려주세요. 지금의 흐름과 다음 선택을 다정하게 함께 살펴볼게요.",
   neo: "네오다. 돌려 말하지 않는다. 무엇을 정하지 못하고 있는지부터 말해라. 판세와 다음 수순을 정리해 주지.",
@@ -265,11 +259,6 @@ function id() { return globalThis.crypto?.randomUUID?.() || `fortune-chat-${Date
 /** 결제 게이트와 생성 요청이 **같은 requestId** 를 써야 서버가 증빙을 찾는다. */
 function makeRequestId() { return `${PAID_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`; }
 
-/** 홈 등에서 `?character=neo|yeoni` 로 들어오면 그 상담자로 시작한다. 그 밖의 값은 무시한다. */
-function requestedCharacter(params: { get(name: string): string | null } | null): Character | "" {
-  const value = params?.get("character");
-  return value === "neo" || value === "yeoni" ? value : "";
-}
 
 function welcome(character: Character = "yeoni"): Message[] {
   return [{ id: id(), speaker: "assistant", text: CHARACTER_GREETING[character] }];
@@ -299,14 +288,20 @@ export default function FortuneChatClient() {
   const apiBase = getApiBaseUrl();
   const router = useRouter();
   const params = useSearchParams();
+  // 새 탭·공유 링크로 바로 들어와 돌아갈 곳이 없으면 이 방의 입구인 찻집으로 보낸다.
+  const leaveRoom = useCallback(() => {
+    if (window.history.length <= 1) router.push("/fortune-tea-house/");
+    else router.back();
+  }, [router]);
   const { ensurePaidAccess, isPaying } = useCoinGate();
-  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
-  const [messages, setMessages] = useState<Message[]>(() => welcome(requestedCharacter(params) || "yeoni"));
+  const { seed: profileSeed, seedVersion } = useAiProfileSeed();
+  // 상담자는 연이 하나다. 예전 링크의 `?character=neo` 나 네오로 저장된 세션도 연이로 연다(대화 기록은 그대로).
+  const [messages, setMessages] = useState<Message[]>(() => welcome("yeoni"));
   const [usage, setUsage] = useState<Usage | null>(null);
   const [topic, setTopic] = useState(params?.get("topic") || "");
   const [category, setCategory] = useState<Category | "">("");
   const [question, setQuestion] = useState("");
-  const [character, setCharacter] = useState<Character>(() => requestedCharacter(params) || "yeoni");
+  const [character] = useState<Character>("yeoni");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -338,15 +333,11 @@ export default function FortuneChatClient() {
     if (!response.ok || !payload) throw new Error("상담방 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
     if (payload.session?.sessionId) setSessionId(payload.session.sessionId);
     if (payload.usage) setUsage(payload.usage);
-    // 링크로 고른 상담자가 있으면 저장된 세션의 상담자로 덮어쓰지 않는다(대화 기록은 그대로 이어 간다).
-    const requested = requestedCharacter(params);
-    const storedCharacter: Character = requested || (payload.session?.characterId === "neo" ? "neo" : "yeoni");
-    if (payload.session?.characterId && !requested) setCharacter(storedCharacter);
     if (payload.session?.selectedTopic) setTopic(payload.session.selectedTopic);
     const stored = payload.session?.messages;
     // 은퇴 포맷 기록은 복원하지 않고 지금 인사말로 새로 연다. 다음 전송의 persist 가 서버
     // 목록을 통째로 교체하므로 여기서 따로 쓰지 않는다(판정은 멱등이라 새로고침해도 같다).
-    if (stored?.length) setMessages(isRetiredSessionFormat(stored) ? welcome(storedCharacter) : stored);
+    if (stored?.length) setMessages(isRetiredSessionFormat(stored) ? welcome("yeoni") : stored);
   }, [apiBase, params]);
 
   useEffect(() => { void bootstrap().catch((reason) => setError(reason instanceof Error ? reason.message : "상담방을 열지 못했어요.")); }, [bootstrap]);
@@ -412,8 +403,7 @@ export default function FortuneChatClient() {
 
   const usageLabel = useMemo(() => {
     if (!usage) return "상담 가능 여부를 확인하는 중";
-    if (!usage.isLoggedIn) return usage.guestFreeRemaining > 0 ? "첫 상담을 무료로 시작할 수 있어요" : "로그인하면 1회 무료로 상담할 수 있어요";
-    return usage.dailyFreeRemaining > 0 ? `무료 상담 ${usage.dailyFreeRemaining}회 남음` : "무료 상담을 모두 사용했어요";
+    return usage.isLoggedIn ? "상담은 1회씩 결제해요" : "로그인한 뒤 상담할 수 있어요";
   }, [usage]);
 
   /** 결제 게이트. 이용권 보유자는 여기서 결제 없이 통과한다. */
@@ -697,14 +687,6 @@ export default function FortuneChatClient() {
     setBirth((current) => ({ ...current, ...patch }));
   };
 
-  /**
-   * 상담자를 바꾼다. 아직 대화가 시작되지 않았으면 인사말도 그 상담자의 것으로 갈아준다 —
-   * 네오를 골랐는데 연이의 인사가 남아 있으면 누가 답하는지 알 수 없다.
-   */
-  const switchCharacter = (next: Character) => {
-    setCharacter(next);
-    setMessages((current) => (current.length === 1 && current[0].speaker === "assistant" ? welcome(next) : current));
-  };
 
   const startNewChat = () => {
     const next = welcome(character);
@@ -726,31 +708,35 @@ export default function FortuneChatClient() {
     ? { label: "이어서 물어볼까요?", items: followUps }
     : { label: "이런 질문은 어떠세요?", items: SUGGESTED_QUESTIONS[topic] || [] };
 
-  return <main className={styles.room} data-character={character}>
-    <header className={styles.header}>
-      <button className={styles.backButton} type="button" onClick={() => router.back()} aria-label={copy.backAria}>←</button>
+  return <main className={`${styles.room} ${character === "yeoni" ? salon.room : ""}`} data-character={character}>
+    <header className={`${styles.header} ${salon.header}`}>
+      <button className={styles.backButton} type="button" onClick={leaveRoom} aria-label={copy.backAria}>←</button>
       <div className={styles.brand}>
         <PersonaAvatar persona={character} mood="greet" size="sm" decorative />
         <div><strong>{CHARACTER_LABEL[character]} 운명 상담</strong><span>{character === "neo" ? "판세부터 정리해 드릴게요" : "작은 마음부터 천천히 살펴봐요"}</span></div>
       </div>
       <button className={styles.resetButton} type="button" aria-label={copy.newChatAria} onClick={startNewChat}>새 상담</button>
+      <Link className={salon.headerLink} href="/records/" prefetch={false}>지난 상담</Link>
+      <Link className={salon.headerLink} href="/fortune-tea-house/" prefetch={false}>찻집</Link>
     </header>
 
-    <div className={styles.timeline} ref={timelineRef} aria-live="polite" aria-relevant="additions">
+    <div className={`${styles.timeline} ${salon.timeline}`} ref={timelineRef} aria-live="polite" aria-relevant="additions">
+      {character === "yeoni" ? <YeoniWelcome compact /> : (
       <section className={styles.welcomeCard} aria-labelledby="fortuneChatWelcomeTitle">
         <div>
-          <p>달빛 찻집의 편지함</p>
+          <PriceBadge featureKey={PAID_FEATURE_KEY} prefix="연이 단독 상담 · 1회 " className={styles.priceBadge} />
           <h1 id="fortuneChatWelcomeTitle">{character === "neo" ? "무엇을 정하지 못하고 있나요?" : "오늘, 무엇이 가장 마음에 남나요?"}</h1>
           <span>한 가지 질문으로 시작해 현재의 흐름과 다음 선택을 함께 정리해요.</span>
         </div>
         <PersonaAvatar persona={character} mood="greet" size="lg" decorative />
       </section>
-      <section className={styles.characterPicker} aria-label={copy.characterPickerAria}>
-        {(["yeoni", "neo"] as Character[]).map((item) => <button key={item} type="button" aria-pressed={character === item} onClick={() => switchCharacter(item)}>
-          <PersonaAvatar persona={item} mood={character === item ? "cheer" : "listen"} size="md" decorative />
-          <strong>{CHARACTER_LABEL[item]}</strong><small>{CHARACTER_BLURB[item]}</small>
-        </button>)}
-      </section>
+      )}
+      {getCurrentLoadingLocale() === "ko" && <details className={styles.birthPanel}>
+        <summary>상담 구성과 이용 방법 자세히 보기</summary>
+        <p>질문 하나를 중심으로 현재 흐름, 반복되는 패턴과 지금 해볼 일을 정리해요. 출생정보를 입력하고 질문을 보내면 상담과 결제 안내를 이어갈 수 있어요.</p>
+        <p>사주를 선택해도 연이 단독 상담으로 진행해요. 연이·네오 공동 사주 상담은 별도 상품이에요.</p>
+        <p>AI가 작성하는 상담으로, 미래나 상대의 마음을 확정하지 않아요.</p>
+      </details>}
       {messages.map((message) => <article key={message.id} className={`${styles.message} ${styles[message.speaker]} ${message.kind ? styles[message.kind] : ""}`}>
         {message.speaker === "assistant" ? <PersonaAvatar persona={character} mood={message.kind === "reading" ? "read" : "listen"} size="sm" decorative /> : null}
         <div className={styles.bubble}><p>{message.text}</p>{message.detail && <details><summary>자세히 보기</summary><p>{message.detail}</p></details>}
@@ -764,21 +750,21 @@ export default function FortuneChatClient() {
       {notice && <p className={styles.ticketStatus} role="status">{notice}</p>}
     </div>
 
-    <section className={styles.composer} aria-label={copy.composerAria}>
+    <section data-moonlit-form="" className={styles.composer} aria-label={copy.composerAria}>
       <div className={styles.policyRow}>
         <p className={styles.policy}>{usageLabel}</p>
-        {needsPayment && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="3,000원" prefix="1회 " className={styles.priceBadge} />}
+        {usage && <PriceBadge featureKey={PAID_FEATURE_KEY} prefix="단건 " className={styles.priceBadge} />}
       </div>
 
       <details className={styles.birthPanel} open={birthOpen} onToggle={(event) => setBirthOpen((event.currentTarget as HTMLDetailsElement).open)}>
         <summary>{birth.birthDate ? `생년 정보 ${birth.birthDate}${birth.birthTime ? ` ${birth.birthTime}` : " · 시간 모름"}` : "생년 정보를 알려주세요"}</summary>
         <div className={styles.birthGrid}>
           <label>생년월일<input {...birthDateTextInputProps(birth.birthDate, (nextBirthDate) => editBirth({ birthDate: nextBirthDate }))} /></label>
-          <label>태어난 시각 <em>(모르면 비워두세요)</em><input type="time" value={birth.birthTime} onChange={(event) => editBirth({ birthTime: event.target.value })} /></label>
+          <label>태어난 시각 <em>(모르면 비워두세요)</em><BirthTimeInput  value={birth.birthTime} onChange={(event) => editBirth({ birthTime: event.target.value })} /></label>
           <label>달력<select value={birth.calendarType} onChange={(event) => editBirth({ calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}><option value="solar">양력</option><option value="lunar">음력</option></select></label>
           <label>성별 <em>(선택)</em><select value={birth.gender} onChange={(event) => editBirth({ gender: event.target.value as Birth["gender"] })}><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
         </div>
-        <button className={styles.birthReload} type="button" onClick={() => { birthTouchedRef.current = false; void reloadProfileSeed(); }}>저장한 프로필에서 불러오기</button>
+        <SavedBirthProfilePicker calendarMode="lunar" disabled={busy} onSelect={seed => { birthTouchedRef.current = true; setBirth({birthDate:seed.birthDate || "", birthTime:seed.birthTimeUnknown ? "" : seed.birthTime || "", calendarType:seed.calendarType || "solar", gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "unknown"}); }} />
       </details>
 
       {suggestions.items.length > 0 && <div className={styles.followUps} aria-label={copy.followUpsAria}>

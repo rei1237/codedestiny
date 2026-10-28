@@ -39,7 +39,7 @@ const GUIDE_COPY = {
       "컵의 카드가 중심에 있고 검의 카드가 주변에 놓였다면, 마음의 온기는 남아 있지만 생각이 많아 대화의 문이 좁아진 흐름으로 읽을 수 있습니다. 지금은 감정을 증명하려 하기보다, 짧고 분명한 말로 서로의 부담을 낮추는 쪽이 더 부드럽게 열립니다.",
     cautionTitle: "해석 시 주의할 점",
     caution:
-      "타로는 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 소송, 진로처럼 삶에 큰 영향을 주는 결정은 카드 결과만으로 정하지 말고, 현실의 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.",
+      "타로는 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 소송, 진로처럼 삶에 큰 영향을 주는 결정은 카드 결과만으로 정하지 말고, 현실의 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.",
     // 한국어 FAQ 정본은 tarot-guide-faq.js — page.js 의 FAQPage JSON-LD 와 같은 배열이어야 한다.
     faqItems: TAROT_GUIDE_FAQ_KO.map(({ question, answer }) => [question, answer]),
     navLabel: "타로 가이드 관련 링크",
@@ -82,7 +82,7 @@ const GUIDE_COPY = {
       "If cups sit at the center and swords surround them, the feeling may still be connected, while overthinking narrows the door to conversation. Rather than proving emotion, a short and clear message can soften the pressure between both sides.",
     cautionTitle: "What to keep in mind",
     caution:
-      "Tarot is a reference for entertainment and self-reflection. Decisions that deeply affect life, such as health, law, investment, marriage, divorce, litigation, or career, should not be made by card results alone. Check real information and qualified professional advice as well.",
+      "Tarot is a reference for self-reflection. Decisions that deeply affect life, such as health, law, investment, marriage, divorce, litigation, or career, should not be made by card results alone. Check real information and qualified professional advice as well.",
     faqItems: [
       ["Can I ask the same question many times?", "Repeating the same question in a short time can increase anxiety. It is calmer to return when the situation changes or new information appears."],
       ["Do difficult cards mean something bad will happen?", "Darker cards often reflect pause, review, tension in a relationship, or emotional overheating rather than fixed misfortune. When a warning appears, look for realistic protective actions."],

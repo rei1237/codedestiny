@@ -7,10 +7,10 @@
 <title>이직 운명의 카드 — 일의 기준을 읽는 7카드 타로</title>
 <meta name="description" content="지금 일에서 남길 기준, 옮길 방향, 다음 한 걸음을 7장의 카드로 차분히 읽는 커리어 전환 타로 리딩입니다.">
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
+<script src="/js/core/pass-verdict.js?v=build-1711b2150559"></script>
+<script src="/js/core/checkout-entry.js?v=build-1711b2150559"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-9c92542eb04f"></script>
+<script src="/js/destiny-profile.js?v=build-2d81696a26c1"></script>
 <script>
 window.tailwind = window.tailwind || {};
 window.tailwind.config = {
@@ -1226,17 +1226,17 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     <div class="intro-card">
       <div class="intro-card-icon">🌟</div>
       <div class="intro-card-num">1·2·3</div>
-      <div class="intro-card-label">나의 천직과<br>진로 탐색</div>
+      <div class="intro-card-label">현직과 이직 조건,<br>변화의 핵심</div>
     </div>
     <div class="intro-card">
       <div class="intro-card-icon">🌊</div>
       <div class="intro-card-num">4·5</div>
-      <div class="intro-card-label">문턱 너머의 변화와<br>현실화 방법</div>
+      <div class="intro-card-label">옮긴 뒤의 흐름과<br>준비할 시기</div>
     </div>
     <div class="intro-card">
       <div class="intro-card-icon">⚖</div>
       <div class="intro-card-num">6·7</div>
-      <div class="intro-card-label">놓아야 할 기준과<br>최종 길잡이</div>
+      <div class="intro-card-label">확인할 조건과<br>최종 방향</div>
     </div>
   </div>
 
@@ -1245,7 +1245,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
   </button>
 
   <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;">
-    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.4);border-radius:20px;padding:5px 14px;font-size:11.5px;color:#e8c44a;font-weight:600;letter-spacing:0.5px;">7카드 커리어 전환 리딩 · 3,000원</span>
+    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.4);border-radius:20px;padding:5px 14px;font-size:11.5px;color:#e8c44a;font-weight:600;letter-spacing:0.5px;">7카드 커리어 전환 리딩 · 5,000원</span>
   </div>
 
   <p style="margin-top:12px;font-size:11px;color:rgba(200,185,220,0.3);letter-spacing:1px;">
@@ -1444,7 +1444,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
   <div class="action-area">
     <div class="status-msg" id="statusMsg" role="status" aria-live="polite">카드를 한 장씩 열어 일의 기준을 확인하세요 ✦</div>
     <button class="btn-read" id="readBtn" onclick="getReading()" disabled>
-      <div>✦ &nbsp; 3,000원으로 커리어 리딩 열기 &nbsp; ✦</div>
+      <div>✦ &nbsp; 5,000원으로 리딩 열기 &nbsp; ✦</div>
       <div style="font-size:11px;font-weight:600;background:rgba(0,0,0,0.2);border-radius:12px;padding:2px 12px;margin-top:5px;letter-spacing:0.5px;">리딩이 열리지 않으면 자동 환불</div>
     </button>
     <button class="btn-reset" onclick="resetSpread()">↺ &nbsp; 카드 다시 정렬하기</button>
@@ -1511,7 +1511,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 <script>
 const TAROT_SPREAD_TYPE = 'job_change_seven_card';
 const TAROT_API_TIMEOUT_MS = 12000;
-const IJIK_COIN_COST = 30;
+const IJIK_COIN_COST = 50;
 
 let _ijikLastCoinTx = '';
 // 서버 리딩 라우트가 결제 증빙을 찾을 때 쓰는 열쇠. coin-gate 에 넘긴 값과 같아야 한다.
@@ -2272,5 +2272,9 @@ generateStars();
 resetSpread();
 </script>
 
+<script type="module">
+import {mountOracleCraftedDetails} from "/js/core/oracle/crafted-details.mjs";
+mountOracleCraftedDetails(document.getElementById("screen-landing"),{target:".card-intro-grid",id:"career-transition-tarot",title:"커리어 전환 타로"});
+</script>
 </body>
 </html>

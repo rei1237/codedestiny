@@ -1,6 +1,6 @@
 # Current Dev Baseline
 
-Last curated: `2026-10-02`
+Last curated: `2026-10-17`
 
 ## Curation Rules
 
@@ -38,7 +38,7 @@ Last curated: `2026-10-02`
 
 - Source files: `app/yeongnyangi/`, `worker/yeongnyangi/`, `app/fortune-chat/`, `worker/routes/fortune-chat-consultations.js`
 - 질문 근거·단계별 구현 규칙의 정본은 [docs/context/yeongnyangi-ask.md](context/yeongnyangi-ask.md)다. 상담방(`/fortune-chat/`)은 영냥이의 결제·이용권·복구 경로(`worker/yeongnyangi/`)를 함께 쓴다 — 결제창·이용권 차감 전에 상담을 먼저 잡고(claim), 산출물 없이 끝나면 이용권·월정석을 되돌린다.
-- 상담방 생성·활성화는 `ENABLE_FORTUNE_CHAT_CONSULTATIONS` 가 켜진 곳에서만 된다. 지금은 스테이징(`worker/wrangler.staging.toml`)만 켜져 있고, 프로덕션에서 켜는 것은 운영 승격 1회 승인 사항이다 → [docs/handoff/fortune-chat-engine-unification-2026-10-01.md](handoff/fortune-chat-engine-unification-2026-10-01.md)
+- 상담방 생성·활성화는 `ENABLE_FORTUNE_CHAT_CONSULTATIONS` 가 켜진 곳에서만 된다. 2026-10-11(`7ef040653`)부터 스테이징과 프로덕션(`worker/wrangler.toml` `[vars]`) 모두 켜져 있다 — 프로덕션 반영 시점은 사람이 실행하는 운영 승격을 따른다 → [docs/handoff/fortune-chat-engine-unification-2026-10-01.md](handoff/fortune-chat-engine-unification-2026-10-01.md)
 - 자미두수 7단계 강약 정본 표: S1~S5 완료, S0 은 사용자 캡처 대기 → [docs/handoff/2026-10-01-ziwei-strength-consultation.md](handoff/2026-10-01-ziwei-strength-consultation.md)
 
 ### 4. Static shell and runtime sync
@@ -86,7 +86,8 @@ Last curated: `2026-10-02`
 - 🔴 **사주 그룹 프롬프트의 배열 순서(`worker/routes/fortune.js` `buildSajuAISectionPrompt`)는 불변 접두사 → 가변 접미사다.** Gemini 암묵 캐싱은 공통 **접두사**에만 걸린다. 뒤집으면 6만자가 정가로 돌아간다.
 - 숙요 궁합의 서버측 중복 생성 창은 2026-08-15 #652(`eab74c949`)로 닫혔다(`generationLease` + 낡은 `generating` 판정, `__tests__/worker/sukuyo-compatibility-ai.duplicate-generation.test.js`).
 - 🟡 **차단**: 프롬프트 JSON 덤프를 섹션이 쓰는 만큼만 싣기(사주 기준 남은 덤프 47,105자). 사주 5그룹에 `evidenceRefs` 선언이 없어 명리 도메인 설계 결정이 먼저이고, **모델이 보는 정보를 줄이는** 작업이라 위험도가 가장 높다 → [`docs/handoff/llm-prompt-json-slicing.md`](handoff/llm-prompt-json-slicing.md)
-- 🟡 **남은 개별 항목**은 로드맵 S18 이 맡는다 → [`docs/handoff/llm-optimization-leftovers.md`](handoff/llm-optimization-leftovers.md): worker `palm-vision.js` 의 `capTokens`(12288) 가 base×1.3(약 10650)과 어긋나는 것([손금 인수인계](handoff/2026-10-02-palm-reading-logic-and-token-cap.md) 1번) · F(palm-vision·animal-totem 캐시, 적중률 실측 뒤 결정). 2026-10-02 기준 완료 — 숙요 `attempts`·`capTokens` 정합(`63b7bc03e`) · Gemini 네이티브 `responseSchema` 전환(`f26f2f432`) · 토큰 집계 사각지대 2곳(mindscan·love-reading) 집계 연결 — `lib/tarot/token-usage.mjs`(`3a9a0378d`)
+- 🟡 **남은 개별 항목**은 로드맵 S18 이 맡는다 → [`docs/handoff/llm-optimization-leftovers.md`](handoff/llm-optimization-leftovers.md): F(palm-vision·animal-totem 캐시, 적중률 실측 뒤 결정). 완료 — palm-vision `capTokens` 10650 정합(2026-10-03 `9ddd2ea18`) · 숙요 `attempts`·`capTokens` 정합(`63b7bc03e`) · Gemini 네이티브 `responseSchema` 전환(`f26f2f432`) · 토큰 집계 사각지대 2곳(mindscan·love-reading) 집계 연결 — `lib/tarot/token-usage.mjs`(`3a9a0378d`)
+- 🔴 **Gemini 월 지출 한도 = 유료 생성 전면 중단이다.** 2026-10-17 한도 도달로 영냥이 결제 2건이 생성 실패 → 20분 자동 환불됐고 운영자 알림은 0건이었다. 이제 429 "spending cap"(·403 billing)은 `GEMINI_SPEND_CAP`(`GEMINI_BILLING_DISABLED`)로 분류돼 재시도하지 않고, `worker/lib/provider-outage-alert.js` 가 운영자 알림 1회(60분마다 재알림, 10분 크론이 미전달분 재발송·복구 추정 알림)를 보낸다. 영냥이 보류 감사 `detail` 에도 원인 코드가 남는다. 20분 환불 정책은 그대로다. 사전 경보: 모든 Gemini 응답의 토큰·추정 USD 가 `LlmUsage`(일·기능·모델 행 + 월 합계 행)에 쌓이고, 10분 크론이 월 누적을 `GEMINI_MONTHLY_BUDGET_USD` 의 50·80·95%와 비교해 1회씩 알린다(미설정이면 경보만 끔). 단가는 `lib/gemini-tariffs.mjs`(검토일 표기) — 공식 단가가 바뀌면 함께 고친다. 기능별 지출 순위는 `LlmUsage` 일 행을 `service` 로 묶어 본다.
 - 🔴 **thinking 토큰은 이미 전역 OFF다**(`lib/llm-client.ts` 의 `resolveThinkingBudget` — 미지정 = 0, 옵트인 호출자 0건). 여기서 더 아낄 것이 없으니 다시 조사하지 말 것.
 
 ### 8. 경쟁력 로드맵 — 측정 정합 → 모수 확대 → 공유 루프 → 속도 → 비용 (2026-09-23 — 현재 최우선 축)

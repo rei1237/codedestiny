@@ -244,6 +244,8 @@
   box-shadow: inset 0 0 0 1px rgba(160, 210, 255, .25), 0 4px 24px rgba(0, 20, 50, .2);
 }
 .tarot-reunion-title {
+  padding-top: 44px;
+  text-wrap: balance;
   margin: 0;
   font-family: "Noto Serif KR", "Georgia", serif;
   font-size: 34px;
@@ -396,6 +398,8 @@
   padding-bottom: env(safe-area-inset-bottom, 24px);
 }
 .tarot-reunion-draw-header {
+  padding-top: 56px;
+  text-wrap: balance;
   font-family: "Noto Serif KR", "Georgia", serif;
   font-size: 1.16rem;
   color: #edf8ff;
@@ -1581,3 +1585,7 @@
     display: none;
   }
 }
+
+/* Authored introduction before the existing lighthouse ritual. */
+#tarotReunionOverlay .oracle-crafted{margin:20px auto}
+#tarotReunionOverlay .tarot-reunion-shell:has(#tarotReunionIntroStage:not(.is-active))>.oracle-crafted{display:none}

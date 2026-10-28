@@ -1,0 +1,113 @@
+{
+  "id": "yeongnyangi-vedic-salmon",
+  "featureKey": "yeongnyangi-vedic-salmon",
+  "title": "영냥이 베다점 연어 상담",
+  "notice": "베다점 연어 질문 상담은 진로·시험·재물·이동 등 중요한 선택의 조건을 읽습니다. 여기서는 취업·적성·직업 질문 11장과 별도 기본 성향 리포트 8장을 안내합니다. 실제 라그나·달·하우스·행성과 다샤 근거를 사용하며 직업명이나 합격·수익을 확정하지 않습니다. 큰 시기인 마하다샤와 그 안의 안타르다샤를 구분하고 사주 대운으로 부르지 않습니다. 목차는 질문에 따라 바뀌며 두 사람 비교·장기 다샤 전환은 별도 범위입니다. 사례는 편집 예시이며 AI 작성 상담입니다. 가격과 추가 질문 조건은 기존 화면에서 확인합니다.",
+  "panels": [
+    {
+      "id": "01-a-place-to-use-your-talent",
+      "title": "내 재능을, 어디에서 쓸 수 있을까요?",
+      "alt": "마법사 고양이 영냥이가 마름모로 나뉜 베다 차트를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-vedic.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "내 재능을,\n어디에서 쓸 수 있을까요?\n\n강점과 일의 조건을 연결해,\n지금 준비할 방향을 살펴봅니다.\n\n영냥이 베다점 · 연어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-vedic-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-vedic-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-vedic-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-look-at-the-work-itself",
+      "title": "직업 이름 뒤에 있는, 매일의 일을 보세요.",
+      "alt": "기획직과운영직의구체적업무를비교하는질문작성예시.",
+      "src": "/feature-details/crafted/yeongnyangi-vedic-salmon/02-look-at-the-work-itself.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "직업 이름 뒤에 있는,\n매일의 일을 보세요.\n새로운 것을 만드는 자리\n\n아이디어를 정리하고,\n아직 없는 답을 제안하는 일.\n\n흐름을 안정시키는 자리\n\n진행 상황을 살피고,\n사람과 일정의 틈을 메우는 일.\n\n어느 이름이 더 멋진지보다,\n내 힘을 어떤 과정에 쓸지 물어봐요.\n\n질문을 구체화하는 편집 예시입니다.\n실제 지원 직무와 준비 상황을 알려 주세요."
+    },
+    {
+      "id": "03-talent-in-context",
+      "title": "한 행성보다, 삶의 영역과 연결해서.",
+      "alt": "라그나와달그리고10·2·6하우스의역할을쉬운말로설명.",
+      "src": "/feature-details/crafted/yeongnyangi-vedic-salmon/03-talent-in-context.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 행성보다,\n삶의 영역과 연결해서.\n라그나와 달\n세상을 만나는 태도와 마음의 리듬.\n10하우스 · 일과 사회적 자리\n책임과 역할이 드러나는 영역.\n2하우스 · 자원과 축적\n가진 능력과 자원을 관리하는 방식.\n6하우스 · 일상과 회복\n부담을 다루고 리듬을 지키는 조건.\n\n하우스는 삶의 영역을 가리켜요.\n그 자리의 행성과 주인 행성을 함께 보며,\n별 하나로 직업을 정하지 않습니다."
+    },
+    {
+      "id": "04-find-the-direction",
+      "title": "방향을 묻되, 이유도 함께 읽어요.",
+      "alt": "취업적성질문11장앞5장을바탕과판단두단계로구분.",
+      "src": "/feature-details/crafted/yeongnyangi-vedic-salmon/04-find-the-direction.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "방향을 묻되,\n이유도 함께 읽어요.\n\n취업·적성·직업 질문 · 앞부분 5장\n\n1–2장 · 나의 출발점\n\n베다 차트의 바탕 · 라그나와 달\n강점과 부담이 되는 순간\n\n3–5장 · 질문에 대한 판단\n\n나에게 맞는 일과 취업 준비의 방향\n판단의 근거와 달라지는 조건\n현재의 기회와 주의 조건\n\n한 직업을 정답으로 내세우기보다,\n강점을 쓸 환경과 부담을 줄일 조건을\n읽는 순서입니다."
+    },
+    {
+      "id": "05-turn-direction-into-preparation",
+      "title": "방향 다음에는, 준비와 점검이 남아요.",
+      "alt": "질문6~11장의비교시기조건부두드러진영역과종합행동안내.",
+      "src": "/feature-details/crafted/yeongnyangi-vedic-salmon/05-turn-direction-into-preparation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "방향 다음에는,\n준비와 점검이 남아요.\n6–8장 · 선택을 구체적으로\n\n현재 위치와 적성\n이동과 유지의 비교\n움직이기 좋은 시기\n\n9–10장 · 질문 밖의 단서\n\n차트에서 두드러진 영역\n올해의 흐름\n\n11장 · 종합 해석과 실행 계획\n\n앞의 판단을 준비할 일로 정리해요.\n\n두드러진 영역은 실제 근거에 따라 달라요.\n목차의 시기가 합격 날짜를 뜻하지 않아요."
+    },
+    {
+      "id": "06-test-a-strength-in-real-work",
+      "title": "잘할 것 같은 일과, 해보니 맞는 일 사이.",
+      "alt": "관찰·정리강점을작은과제로점검하는가상진로조언.",
+      "src": "/feature-details/crafted/yeongnyangi-vedic-salmon/06-test-a-strength-in-real-work.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "잘할 것 같은 일과,\n해보니 맞는 일 사이.\n\n이해를 돕기 위한 편집 예시\n\n복잡한 이야기를 정리하는 힘이\n보인다고 곧바로 직업이 정해지진 않아.\n\n관심 있는 분야의 자료를 모아\n한 장의 제안서로 만들어 봐.\n재미있었던 과정과\n지쳤던 과정을 나눠 적어보자.\n\n실제 고객 차트·결과가 아닙니다.\n해석을 작은 직무 경험으로 확인하는 예시예요."
+    },
+    {
+      "id": "07-the-eight-part-personal-book",
+      "title": "기본 성향으로 넓게 읽는, 또 하나의 선택.",
+      "alt": "베다연어기본8장실제목차와질문11장구분.",
+      "src": "/feature-details/crafted/yeongnyangi-vedic-salmon/07-the-eight-part-personal-book.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기본 성향으로 넓게 읽는,\n또 하나의 선택.\n\n전체 성향 리포트 · 기본 8장\n\n라그나로 본 삶의 출발점\n달과 마음의 결\n끌림과 연애 · 금성·5하우스\n배우자와 결혼 · 7하우스\n돈을 모으는 힘 · 목성·2하우스\n일과 사회적 자리 · 10하우스\n형제·스승·믿음\n몸과 회복 · 6하우스\n\n앞의 질문 상담 11장과 다른 구성입니다.\n몸과 회복의 해석은 의료 진단이 아니에요."
+    },
+    {
+      "id": "08-time-without-a-promise",
+      "title": "다샤는 시기의 맥락, 결과의 보증서가 아니에요.",
+      "alt": "마하다샤와안타르다샤의큰주기작은주기구분과현재조건읽기.",
+      "src": "/feature-details/crafted/yeongnyangi-vedic-salmon/08-time-without-a-promise.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다샤는 시기의 맥락,\n결과의 보증서가 아니에요.\n마하다샤 · 큰 시기의 흐름\n\n한 행성이 주관하는 긴 구간.\n\n안타르다샤 · 그 안의 작은 흐름\n\n큰 구간 안에서 달라지는 초점.\n\n현재 저장된 시기 근거가 있다면\n준비와 선택의 맥락으로 연결해요.\n\n베다점의 시기 체계입니다.\n사주의 대운과 섞거나 성공을 보장하지 않아요.\n현재와 다음 장기 다샤의 전환 자체를\n깊게 묻는 상담은 참치 범위를 확인해요."
+    },
+    {
+      "id": "09-bring-the-real-choices",
+      "title": "차트의 좌표와, 현실의 조건을 함께.",
+      "alt": "필수시간지역시간대와진로선택지목표기간제약정보준비.",
+      "src": "/feature-details/crafted/yeongnyangi-vedic-salmon/09-bring-the-real-choices.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "차트의 좌표와,\n현실의 조건을 함께.\n필수 출생 정보\n생년월일·달력·출생시간·출생지역.\n시간대를 확인하고 모르는 값은 보완해요.\n지원할 일 또는 준비 목표\n직무·시험·학습 등 비교할 대상을\n구체적으로 알려 주세요.\n목표 시기와 현실 제약\n쓸 수 있는 시간과 비용,\n지켜야 할 책임도 질문에 담아주세요.\n\n두 사람 차트 비교는 별도 범위예요.\n자동으로 합쳐 제공하지 않아요."
+    },
+    {
+      "id": "10-make-the-next-step-visible",
+      "title": "내 재능의 이름보다, 다음 한 걸음이 보이도록.",
+      "alt": "공식영냥이와AI작성·기존이용조건·결과다시읽기마무리.",
+      "src": "/feature-details/crafted/yeongnyangi-vedic-salmon/10-make-the-next-step-visible.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 재능의 이름보다,\n다음 한 걸음이 보이도록.\n\n베다 차트의 근거를 풀어 쓴 AI 상담을\n실제 준비와 경험에 맞춰 읽어 보세요.\n\n가격과 추가 질문 조건은 기존 화면에서\n확인한 뒤 시작합니다.\n\n저장된 결과는 같은 계정의 내 상담에서\n다시 읽을 수 있어요.\n사람이 직접 답하는 상담은 아닙니다."
+    }
+  ]
+}

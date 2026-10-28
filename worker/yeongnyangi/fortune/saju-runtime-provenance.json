@@ -1,6 +1,6 @@
 {
   "sourcePath": "js/saju-engine.js",
-  "sha256": "745397e4ca0a9b031727db7bdb1e9eb882e3c2b0d5cf9824422288d482f6409f",
+  "sha256": "29e2e7ce93b91370f7ab4e04b5796a7ee40a4815dc83bdc7ea468f8b2ac2602d",
   "symbols": [
     {
       "name": "_applyTrueSolarTimeCorrection",
@@ -32,7 +32,11 @@
     },
     {
       "name": "analyzeJohu",
-      "sha256": "e1e7632f84f80924e1f6318e2e1ee3fe58c27e8ad96abc421c14cbb931faf310"
+      "sha256": "ffc17bc02ed3f69bc2e5fa43056e4a152cd2ec0fab02c6f7b2aa083d23536c83"
+    },
+    {
+      "name": "_sajuNatalCore",
+      "sha256": "c53335db52361f2c33b4dc1161eba2a3fef2e86ee9585bc41c64092ceb33e8e4"
     },
     {
       "name": "applyRuntimeYongshinPolicy",

@@ -29,7 +29,7 @@ beforeAll(async()=>{
 let proofs=[];
 beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;mode='pass';proofs=[];
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
- const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1],label=prompt.split('[이번 호출 범위] ')[1].split('\n')[0];
+ const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.split('[이번 호출 범위] ')[1].split('\n')[0];
  return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body:Array.from({length:65},(_,i)=>`${label} ${i}번째 해석은 세 형상의 관계에 비추어 지금의 선택을 검토하는 과정이며 확정된 사건을 예언하지 않습니다. ${label} ${i}번째 관찰에서는 생활 속 조건과 실천의 결과를 기록하며 자신에게 맞는 방향을 선택할 수 있습니다.`).join('\n\n')})};
  });external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});
 });
@@ -90,13 +90,19 @@ test('structured repairs share one deadline and never retry a timed out provider
 test('all durable multi-part dispatchers use the shared one-part policy',()=>{
  const files=['lib/paid-narrative-delivery.js','lib/celestial-report-delivery.js','lib/relationship-report-delivery.js',
   'lib/naming-report-delivery.js','lib/human-design-report-contract.js','routes/astrology-ai.js','routes/neo-operation-room.js',
-  'routes/destiny-compass-ai.js','routes/ziwei-island-ai.js','routes/fortune-tea-house.js','routes/life-book-ai.js',
+  'routes/destiny-compass-ai.js','routes/fortune-tea-house.js','routes/life-book-ai.js',
   'routes/nakshatra-ai.js','routes/ziwei-deep-report.js','routes/master-love-codex.js','routes/karma-destiny-ai.js'];
  for(const file of files){
   const source=readFileSync(new URL('../../worker/'+file,import.meta.url),'utf8');
   expect(source).toMatch(/import\s*\{[^}]*PAID_LLM_PARTS_PER_REQUEST[^}]*\}\s*from/);
   expect(source).toMatch(/(?:slice\(0,\s*PAID_LLM_PARTS_PER_REQUEST\)|(?:BATCH_SIZE|CONCURRENCY)\s*=\s*PAID_LLM_PARTS_PER_REQUEST)/);
  }
+});
+
+test('retired island consultation cannot dispatch another paid LLM part',()=>{
+ const source=readFileSync(new URL('../../worker/routes/ziwei-island-ai.js',import.meta.url),'utf8');
+ expect(source).toContain('ISLAND_NOW_FREE');
+ expect(source).not.toMatch(/callGemini|PAID_LLM_PARTS_PER_REQUEST|applyUsageOnce/);
 });
 
  test('structured helper never multiplies durable attempts and caps standalone failures at two',async()=>{

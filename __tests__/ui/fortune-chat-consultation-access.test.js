@@ -1,16 +1,23 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
 const source=ts.transpileModule(fs.readFileSync('app/fortune-chat/consultation-access.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const context={exports:{}};vm.runInNewContext(source,context);
-const {canOfferCheckout,canOfferFreeTrial,guardCheckout}=context.exports;
-const fresh={id:'c1',paid:false,state:'CREATED',freeTrialAvailable:true};
+const {canOfferCheckout,canOfferHoney,guardCheckout,HONEY_COST}=context.exports;
+const fresh={id:'c1',paid:false,state:'CREATED'};
 
 test('pay button renders only for an unopened consultation',()=>{
   assert.equal(canOfferCheckout(fresh),true);
   for(const opened of [{...fresh,paid:true},{...fresh,state:'GENERATING'},{...fresh,state:'COMPLETED'},{...fresh,accessMethod:'ACCOUNT_FREE_TRIAL'},{...fresh,accessMethod:'PER_USE'},null,undefined])
     assert.equal(canOfferCheckout(opened),false);
-  assert.equal(canOfferFreeTrial(fresh),true);
-  assert.equal(canOfferFreeTrial({...fresh,freeTrialAvailable:false}),false);
-  assert.equal(canOfferFreeTrial({...fresh,paid:true}),false);
+  assert.equal('canOfferFreeTrial' in context.exports,false);
+});
+
+test('the honey card opens only an unopened consultation with thirty drops in hand',()=>{
+  assert.equal(HONEY_COST,30);
+  assert.equal(canOfferHoney(fresh,30),true);
+  assert.equal(canOfferHoney(fresh,120),true);
+  for(const balance of [29,0,null,undefined,Number.NaN])assert.equal(canOfferHoney(fresh,balance),false);
+  for(const opened of [{...fresh,paid:true},{...fresh,state:'PAID'},{...fresh,accessMethod:'PER_USE'},null])
+    assert.equal(canOfferHoney(opened,100),false);
 });
 
 test('a consultation opened in another tab never reaches the payment window',async()=>{

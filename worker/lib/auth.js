@@ -1,10 +1,11 @@
 import { getEnv } from "./env.js";
+import { isExplicitLocalDevEnv, isPlaceholderSecret, resolveRequiredAuthSecret } from "./auth-secret.js";
 import { cookieValue, createHttpError, getRequestMeta } from "./http.js";
 import { signJwt, verifyJwt } from "./jwt.js";
 import { createHash } from "node:crypto";
 import { connectDb, mongoose, withMongoRetry, isTransientMongoError } from "./db.js";
 import { RefreshTokenSession, User } from "./models.js";
-import { normalizeHoneyPassEntitlement, PASS_LIMITS } from "./profile-limits.js";
+import { normalizeHoneyPassEntitlement, PASS_LIMITS, resolveProfileLimitForClient } from "./profile-limits.js";
 import { ensureLotsForBalance, resolveNextExpiry } from "./monthly-credit-lots.js";
 
 export const JWT_ISSUER = "code-destiny-api";
@@ -76,59 +77,13 @@ export function getJwtAudience(env) {
   return getEnv(env, "JWT_AUDIENCE") || getEnv(env, "AUTH_AUDIENCE") || "code-destiny-web";
 }
 
-function isProductionAuthEnv(env) {
-  const value = String(
-    getEnv(env, "NODE_ENV")
-    || getEnv(env, "ENVIRONMENT")
-    || getEnv(env, "CF_PAGES_BRANCH")
-    || "",
-  ).trim().toLowerCase();
-  return value === "production" || value === "main";
-}
-
-// The dev secret fallback must be OPT-IN: only an explicit local-dev signal enables it.
-// An unknown/unset environment (e.g. a Cloudflare deploy with empty NODE_ENV and a non-main
-// CF_PAGES_BRANCH) is NOT treated as dev, so it can never silently sign tokens with "dev-secret".
-function isExplicitLocalDevEnv(env) {
-  const nodeEnv = String(getEnv(env, "NODE_ENV") || "").trim().toLowerCase();
-  const environment = String(getEnv(env, "ENVIRONMENT") || "").trim().toLowerCase();
-  return nodeEnv === "development"
-    || nodeEnv === "test"
-    || environment === "development"
-    || environment === "local";
-}
-
-function isPlaceholderSecret(value) {
-  const normalized = String(value || "").trim().toLowerCase();
-  return !normalized
-    || normalized === "dev-secret"
-    || normalized.includes("placeholder")
-    || normalized.includes("change_me")
-    || normalized.includes("your_")
-    || normalized.includes("example");
-}
-
 function resolveFlowerAdminSecret(env) {
   const secret = String(getEnv(env, "FLOWER_ADMIN_SECRET") || "").trim();
-  if (isProductionAuthEnv(env) && isPlaceholderSecret(secret)) {
+  // 관리자 토큰 위조 방지: 명시적 로컬 개발이 아니면 비어 있거나 placeholder인 시크릿을 거부한다.
+  if (isPlaceholderSecret(secret) && !isExplicitLocalDevEnv(env)) {
     throw new Error("FLOWER_ADMIN_SECRET is required in production.");
   }
-  return secret || (isProductionAuthEnv(env) ? "" : "flower-admin-dev-secret-placeholder-000000");
-}
-
-function resolveRequiredAuthSecret(env, keys, fallbackErrorMessage) {
-  for (const key of keys) {
-    const value = getEnv(env, key);
-    // Ignore placeholder/dev values so a leftover "dev-secret"/"change_me" can't be trusted.
-    if (value && !isPlaceholderSecret(value)) return value;
-  }
-  // Fail closed everywhere except an explicit local-dev context. This is stricter than the
-  // previous "any non-production env → dev-secret", which let a mis-detected production sign
-  // forgeable tokens.
-  if (!isExplicitLocalDevEnv(env)) {
-    throw new Error(fallbackErrorMessage);
-  }
-  return "dev-secret";
+  return secret || "flower-admin-dev-secret-placeholder-000000";
 }
 
 export function getAccessTokenSecret(env) {
@@ -148,7 +103,11 @@ export function getRefreshTokenSecret(env) {
 }
 
 export function getAccessTokenExpiresIn(env) {
-  return getEnv(env, "ACCESS_TOKEN_EXPIRES_IN") || getEnv(env, "JWT_EXPIRES_IN", "30m");
+  const raw = getEnv(env, "ACCESS_TOKEN_EXPIRES_IN") || getEnv(env, "JWT_EXPIRES_IN", "30m");
+  // signJwt 는 해석하지 못하는 값("30 min", "0")이면 exp 를 조용히 빼 만료 없는 토큰을 발급한다.
+  // 액세스 검증처가 requireExp 로 그런 토큰을 거부하므로(C5), 형식이 틀리면 기본값으로 되돌린다.
+  const match = String(raw).trim().match(/^(\d+)([smhd])?$/i);
+  return match && Number(match[1]) > 0 ? raw : "30m";
 }
 
 export function getRefreshTokenExpiresIn(env) {
@@ -418,6 +377,7 @@ async function verifyAccessTokenToAuth(token, env, options = {}) {
     const payload = await verifyJwt(token, getAccessTokenSecret(env), {
       issuer: getJwtIssuer(env),
       audience: getJwtAudience(env),
+      requireExp: true,
     });
     const userId = extractTokenUserId(payload);
     if (!userId) return null;
@@ -429,9 +389,10 @@ async function verifyAccessTokenToAuth(token, env, options = {}) {
       if (options.allowDbFallback === true) {
         return { ...tokenAuth, authDbFallback: true };
       }
-      // Mongo URI가 없는 환경(테스트 등)에서는 JWT 검증만으로 인증 허용
+      // Mongo URI가 없는 환경(테스트 등)에서는 JWT 검증만으로 인증 허용 — 명시적 로컬 개발 환경에 한정.
+      // 운영에서 URI가 빠진 오설정이면 탈퇴·권한 박탈 사용자가 claim만으로 통과하지 않도록 거부한다.
       const isNoUriError = String(dbError?.message || "").includes("Mongo URI is required");
-      if (isNoUriError) {
+      if (isNoUriError && isExplicitLocalDevEnv(env)) {
         return { ...tokenAuth, authDbFallback: true };
       }
       // JWT는 유효한데 DB 조회만 일시적으로 실패한 케이스. 옵트인 호출자(유료 라우트)에는
@@ -466,6 +427,7 @@ async function verifyRefreshSessionToAuth(request, env, options = {}) {
     const payload = await verifyJwt(refreshToken, getRefreshTokenSecret(env), {
       issuer: getJwtIssuer(env),
       audience: getJwtAudience(env),
+      requireExp: true,
     });
     userId = extractRefreshUserId(payload);
     if (!userId) return null;
@@ -656,7 +618,7 @@ export async function peekAccessTokenUserId(request, env) {
   for (const token of [bearerToken, accessCookieToken]) {
     if (!token) continue;
     try {
-      const payload = await verifyJwt(token, secret, { issuer, audience });
+      const payload = await verifyJwt(token, secret, { issuer, audience, requireExp: true });
       const userId = extractTokenUserId(payload);
       if (userId) return userId;
     } catch (_) {
@@ -796,7 +758,7 @@ function normalizeAuthProfileSubscription(user = {}) {
     membershipStatus: isActive ? String(rawSub.membershipStatus || rawSub.status || "active") : "free",
     source: isActive ? String(entitlement.source || rawSub.source || "auth_me") : "auth_me",
     expiresAt: isActive ? (entitlement.expiresAt || toAuthIsoOrNull(rawSub.expiresAt)) : null,
-    profileLimit: isActive ? readNonNegativeInteger(entitlement.maxProfiles || rawSub.profileLimit, 1) : 1,
+    profileLimit: resolveProfileLimitForClient(), // 2026-10-11 프로필 개수 상한 없음(0 = 무제한)
     freeLimit: passLimit,
     passLimit,
     maxCoveredCoin: passLimit,

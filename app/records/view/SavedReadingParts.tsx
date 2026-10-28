@@ -1,4 +1,6 @@
 "use client";
+import { recordReaderCopy } from '@/lib/records/reader-copy';
+
 import { useId } from 'react';
 import AiResultProse from '@/components/fortune/AiResultProse';
 import { sanitizePublicInsightHtml } from '@/app/insights/_lib/sanitizePublicHtml';
@@ -13,10 +15,11 @@ export function SavedText({ text }: { text: string }) {
 }
 export function SavedChapters({ value, omit = [], fields = [], chapterClass = '', showEmpty = true, labels = {} }: { value:unknown; labels?:Record<string,string>; omit?:string[]; fields?:string[]; chapterClass?:string; showEmpty?:boolean }) {
   const locale = useLocale(), c = recordsCopy(locale), id = useId().replace(/:/g,'');
+  const reader = recordReaderCopy(locale);
   const chapters = readingSections(value,{locale,omit,fields,labels});
   if (!chapters.length) return showEmpty ? <p className={styles.notice}>{c.noBody}</p> : null;
   return <div className={styles.chapters}>
-    {chapters.length > 2 && <details className={styles.outline}><summary>{locale === 'ko' ? '목차 펼치기' : 'Contents'}</summary><nav aria-label={locale === 'ko' ? '저장된 결과 목차' : 'Saved reading contents'}>{chapters.map((chapter,index) => <a key={index} href={'#'+id+'-'+index}>{chapter.title}</a>)}</nav></details>}
+    {chapters.length > 2 && <details className={styles.outline}><summary>{reader.contents}</summary><nav aria-label={reader.contentsLabel}>{chapters.map((chapter,index) => <a key={index} href={'#'+id+'-'+index}>{chapter.title}</a>)}</nav></details>}
     {chapters.map((chapter,index) => <section key={index} id={id+'-'+index} className={styles.chapter+' '+chapterClass}><h2>{chapter.title}</h2><SavedText text={chapter.body} /></section>)}
   </div>;
 }

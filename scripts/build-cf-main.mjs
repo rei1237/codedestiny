@@ -22,6 +22,14 @@ const steps = [
   // 지우고, 이후 두 프로세스가 같은 경로를 번갈아 쓰면서 빌드가 조용히 멈춘다.
   { command: process.execPath, args: ["scripts/verify-no-dev-server.mjs"] },
   { command: npmCommand, args: npmArgs(["run", "clean:build"]) },
+  // Explicit release jobs read published copy before generating either renderer.
+  // Local development and ordinary CI never connect to the production CMS.
+  ...(process.env.CD_CMS_REFRESH === "true" && process.env.CI === "true" ? [
+    { command: process.execPath, args: ["scripts/fetch-published-cms.mjs"] },
+    { command: process.execPath, args: ["scripts/verify-vn-override-safety.mjs", "--strict"] },
+    { command: process.execPath, args: ["scripts/apply-vn-overrides.mjs"] },
+    { command: npmCommand, args: npmArgs(["run", "story:generate"]) },
+  ] : []),
   { command: npmCommand, args: npmArgs(["run", "sync:public"]) },
   { command: npmCommand, args: npmArgs(["run", "sitemap:generate"]) },
   // 🔴 sitemap 과 함께 돌아야 한다. 여기 없던 동안 rss.xml 의 lastBuildDate 가 2026-05-06 에

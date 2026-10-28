@@ -6,28 +6,28 @@ import { TAROT_GUIDE_FAQ_KO } from "./tarot-guide-faq";
 
 const TAROT_GUIDE_METADATA_COPY = {
   ko: {
-    title: "타로 카드 리딩 입문 | Code Destiny",
+    title: "타로 카드 리딩 입문 | 꿀꿀 운세",
     description:
       "타로 리딩의 기본 구조, 좋은 질문을 세우는 법, 카드 배열과 해석 흐름, 리딩을 안전하게 받아들이는 기준을 안내합니다.",
-    keywords: ["타로 가이드", "타로 리딩", "타로 카드", "카드 배열", "Code Destiny"],
+    keywords: ["타로 가이드", "타로 리딩", "타로 카드", "카드 배열", "꿀꿀운세"],
   },
   en: {
-    title: "Beginner's Guide to Tarot Reading | Code Destiny",
+    title: "Beginner's Guide to Tarot Reading | 꿀꿀 운세",
     description:
       "Learn the basic structure of tarot reading, how to shape a question, card spreads, interpretation flow, and the difference between free and paid readings.",
-    keywords: ["tarot guide", "tarot reading", "tarot cards", "card spread", "Code Destiny"],
+    keywords: ["tarot guide", "tarot reading", "tarot cards", "card spread", "꿀꿀운세"],
   },
   ja: {
-    title: "タロットカードリーディング入門 | Code Destiny",
+    title: "タロットカードリーディング入門 | 꿀꿀 운세",
     description:
       "タロットリーディングの基本構造、質問の立て方、カードスプレッド、解釈の流れ、無料・有料リーディングの違いと注意点を案内します。",
-    keywords: ["タロットガイド", "タロットリーディング", "タロットカード", "カードスプレッド", "Code Destiny"],
+    keywords: ["タロットガイド", "タロットリーディング", "タロットカード", "カードスプレッド", "꿀꿀운세"],
   },
   zh: {
-    title: "塔罗牌解读入门 | Code Destiny",
+    title: "塔罗牌解读入门 | 꿀꿀 운세",
     description:
       "了解塔罗解读的基本结构、提问方式、牌阵与解读流程，以及免费和付费解读的差异与注意事项。",
-    keywords: ["塔罗指南", "塔罗解读", "塔罗牌", "牌阵", "Code Destiny"],
+    keywords: ["塔罗指南", "塔罗解读", "塔罗牌", "牌阵", "꿀꿀운세"],
   },
 };
 

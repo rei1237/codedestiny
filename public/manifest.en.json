@@ -1,6 +1,6 @@
 {
-  "name": "Ggulggul Fortune — Code Destiny",
-  "short_name": "Ggulggul Fortune",
+  "name": "꿀꿀 운세",
+  "short_name": "꿀꿀 운세",
   "description": "Today's fortune, Four Pillars, compatibility, and tarot — read with a calm, steady hand.",
   "start_url": "/en/",
   "scope": "/",
@@ -45,7 +45,7 @@
       "name": "Today's Fortune",
       "short_name": "Fortune",
       "description": "See today's flow at a glance.",
-      "url": "/#today",
+      "url": "/ggulggul/#today",
       "icons": [
         {
           "src": "/icons/moonlight-garden-v1-192.png",
@@ -54,5 +54,6 @@
         }
       ]
     }
-  ]
+  ],
+  "id": "/"
 }

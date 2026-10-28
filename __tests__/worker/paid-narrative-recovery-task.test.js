@@ -35,7 +35,7 @@ beforeAll(async()=>{
  ({handleOracleRoutes:route}=await import('../../worker/routes/oracle.js'));
  ({runPaidNarrativeRecovery:run}=await import('../../worker/lib/paid-narrative-recovery-task.js'));
 });
-const good=async(_env,prompt)=>{const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1],label=prompt.split('[이번 호출 범위] ')[1].split(':')[0];
+const good=async(_env,prompt)=>{const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.split('[이번 호출 범위] ')[1].split(':')[0];
  return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body:Array.from({length:65},(_,i)=>`${label} ${i}번째 해석은 세 형상의 관계에 비추어 지금의 선택을 검토하는 과정이며 확정된 사건을 예언하지 않습니다. ${label} ${i}번째 관찰에서는 생활 속 조건과 실천의 결과를 기록하며 자신에게 맞는 방향을 선택할 수 있습니다.`).join('\n\n')})};};
 beforeEach(()=>{docs=[];revoked=false;fault=null;lost=false;provider=jest.fn(good);
  external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});});
@@ -106,7 +106,7 @@ for (const variant of ['short', 'partial-json', 'missing-evidence', 'duplicate-p
  const {runPaidNarrativeDelivery}=await import('../../worker/lib/paid-narrative-delivery.js');
  const body='지금의 관계에서는 상대의 반응을 확인하며 대화의 간격을 조절하는 편이 좋습니다.\n\n이번 주에는 먼저 원하는 것을 짧게 설명하고 실제 반응을 기록해 다음 대화의 방향을 정해 보세요.';
  provider=jest.fn(async(_env,prompt)=>{
-  const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1];
+  const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1];
   let value={evidenceHash,body:variant==='duplicate-paragraph'?body+'\n\n'+body:body};
   if(variant==='missing-evidence')delete value.evidenceHash;
   return {ok:true,provider:'gemini',text:JSON.stringify(value).slice(0,variant==='partial-json'?-1:undefined),truncated:variant==='partial-json'};

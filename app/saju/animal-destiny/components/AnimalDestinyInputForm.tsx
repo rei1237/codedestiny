@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useState } from "react";
@@ -156,7 +159,7 @@ export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBu
   }, []);
 
   return (
-    <section className="space-y-6 rounded-[2.2rem] border border-[#dcc39b] bg-[linear-gradient(158deg,#fff8ea_0%,#fdf1dc_52%,#fae7c5_100%)] p-5 text-[#6b3f1d] shadow-[0_18px_48px_rgba(120,82,34,0.16)] sm:p-8">
+    <section data-moonlit-form="" className="space-y-6 rounded-[2.2rem] border border-[#dcc39b] bg-[linear-gradient(158deg,#fff8ea_0%,#fdf1dc_52%,#fae7c5_100%)] p-5 text-[#6b3f1d] shadow-[0_18px_48px_rgba(120,82,34,0.16)] sm:p-8">
       <div className="space-y-2 text-center">
         <h2 className="text-2xl font-black tracking-tight text-[#6b3f1d]">{copy.title}</h2>
         <p className="text-sm font-semibold leading-relaxed text-[#7f542e]">
@@ -170,7 +173,8 @@ export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBu
         <div className="rounded-xl border border-[#ced8ae] bg-[#f4f8e7] px-3 py-2 text-[#5a6a35]">{copy.badgeCompatibility}</div>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <SavedBirthProfilePicker onSelect={seed => onChange({ name:seed.name || "", birthDate:seed.birthDate || "", birthTime:seed.birthTimeUnknown ? "" : seed.birthTime || "", gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "unknown", calendarType:seed.calendarType || "solar", lunarLeap:Boolean(seed.isLeapMonth) })} />
+      <div className="grid gap-5 md:grid-cols-2" data-birth-fields="">
         <label className="space-y-2 text-sm font-bold text-[#6b3f1d]">
           {copy.nameLabel}
           <input
@@ -203,8 +207,8 @@ export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBu
 
         <label className="space-y-2 text-sm font-bold text-[#6b3f1d]">
           {copy.birthTimeLabel}
-          <input
-            type="time"
+          <BirthTimeInput
+
             value={input.birthTime || ""}
             onChange={(e) => onChange({ birthTime: e.target.value })}
             className="min-h-[46px] w-full rounded-2xl border border-[#dcc39b] bg-white px-4 py-3 text-base text-[#5f3818] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] transition-all focus:border-[#8a5a2b] focus:outline-none"

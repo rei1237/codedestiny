@@ -119,10 +119,11 @@ test("returns the authoritative access state without calling payment providers",
     monthlyStoneBalance: 250,
     profileCount: null,
     profileCountDeferred: true,
-    maxProfileCount: 7,
+    maxProfileCount: 0, // 2026-10-11: 프로필 카드 개수 상한 없음(0 = 무제한)
     currentProfileId: "profile-main",
     unlockedFeatureIds: ["premium-sibyl-dominator", "section_compat"],
-    ownedProductIds: ["account-purchase", "section_daewun", "section_compat"],
+    // 출생 기반 키(section_daewun)는 계정 배열(paidFeatures)이 아니라 요청 프로필의 BIRTH 스냅샷으로만 보유가 된다.
+    ownedProductIds: ["account-purchase", "section_compat"],
     lockMap: {
       "premium-sibyl-dominator": false,
       section_compat: false,
@@ -342,6 +343,25 @@ test("isolates complete access snapshots by selected profile", async () => {
   expect(secondPayload.data.unlockedFeatureIds).toContain("section_daewun");
   expect(secondPayload.data.unlockedFeatureIds).not.toContain("section_compat");
   expect(getUnlockedContentSnapshot).toHaveBeenCalledTimes(2);
+});
+
+test("exposes birth-scope keys opened by legacy USER/PROFILE rows so the client keeps them open", async () => {
+  getUnlockedContentSnapshot.mockResolvedValueOnce({
+    featureKeys: ["section_daewun", "section_summary", "section_compat"],
+    contentKeys: ["saju.daeunAnalysis", "saju.fullReading", "saju.compatibility"],
+    unlockMap: { section_daewun: true, section_summary: true, section_compat: true },
+    legacyAccountFeatureKeys: ["section_daewun"],
+    legacyProfileFeatureKeys: ["section_summary"],
+    profileScopedAuthoritative: true,
+  });
+
+  const payload = await (await handleAccessStateRoutes(request(), {})).json();
+
+  for (const view of [payload.data, payload.data.entitlementSnapshot]) {
+    expect(view.legacyAccountUnlockedFeatureIds).toEqual(["section_daewun"]);
+    expect(view.legacyProfileUnlockedFeatureIds).toEqual(["section_summary"]);
+    expect(view.unlockedFeatureIds).toEqual(expect.arrayContaining(["section_daewun", "section_summary", "section_compat"]));
+  }
 });
 
 test("requested profile takes precedence over the stored previous profile", async () => {

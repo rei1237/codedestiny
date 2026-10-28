@@ -1,0 +1,296 @@
+{
+  "id": "love-secret",
+  "featureKey": "love-secret-ai-consultation",
+  "title": "연애 비책",
+  "hook": "왜 비슷한 관계를 반복할까요? 나의 연애 성향과 관계의 거리감을 함께 살펴보세요.",
+  "chaptersLabel": "연이와 서한비가 나눠 쓰는 연애 비책 28장",
+  "masters": [
+    "yeoniLove",
+    "hanbiLove"
+  ],
+  "chapters": [
+    {
+      "title": "현재 관계의 자리와 질문의 핵심",
+      "detail": "핵심 연애운과 질문의 답",
+      "master": "yeoniLove",
+      "gain": "적어 주신 질문에 첫 문장부터 답하고, 지금 관계가 선 자리를 짚어 드려요"
+    },
+    {
+      "title": "핵심 연애운 — 명식이 사랑에서 그리는 큰 결",
+      "detail": "핵심 연애운과 질문의 답",
+      "master": "yeoniLove",
+      "gain": "대운·세운·격국에 걸어 지금 연애운의 기회와 위험 구간을 함께 봐요"
+    },
+    {
+      "title": "오행과 조후로 보는 감정의 온도",
+      "detail": "핵심 연애운과 질문의 답",
+      "master": "yeoniLove",
+      "gain": "감정의 온도와 습도가 연애에서 어떻게 드러나는지 쉬운 말로 알게 돼요"
+    },
+    {
+      "title": "나의 명식이 사랑에서 반복하는 방식",
+      "detail": "나의 연애 성향 — 장점·약점·심리",
+      "master": "yeoniLove",
+      "gain": "자꾸 같은 선택을 하게 되는 습관과 관계 패턴을 일간에서 찾아 드려요"
+    },
+    {
+      "title": "십성으로 보는 애착과 표현 방식",
+      "detail": "나의 연애 성향 — 장점·약점·심리",
+      "master": "yeoniLove",
+      "gain": "내 애착 유형과 표현 방식, 불안이 올라오는 순간을 알아차리게 돼요"
+    },
+    {
+      "title": "연애 장점 — 상대가 먼저 알아보는 힘",
+      "detail": "나의 연애 성향 — 장점·약점·심리",
+      "master": "yeoniLove",
+      "gain": "상대가 먼저 알아보는 매력과 나도 몰랐던 숨은 장점을 명식 근거로 받아요"
+    },
+    {
+      "title": "연애 약점 — 반복해서 걸려 넘어지는 자리",
+      "detail": "나의 연애 성향 — 장점·약점·심리",
+      "master": "yeoniLove",
+      "gain": "자주 걸려 넘어지는 자리와 오해받는 이유를, 탓하지 않고 원인으로 풀어 드려요"
+    },
+    {
+      "title": "애정 표현 스타일과 연애 심리",
+      "detail": "나의 연애 성향 — 장점·약점·심리",
+      "master": "yeoniLove",
+      "gain": "내가 사랑을 표현하는 방식과 사랑이 어렵게 느껴지는 이유를 함께 알게 돼요"
+    },
+    {
+      "title": "상대의 기운과 감정 거리감",
+      "detail": "상대·궁합·이상형",
+      "master": "hanbiLove",
+      "gain": "상대 명식이 있으면 그 결로, 없으면 배우자궁으로만 거리감을 짚어 드립니다"
+    },
+    {
+      "title": "두 사람 사이 끌림이 살아나는 조건",
+      "detail": "상대·궁합·이상형",
+      "master": "hanbiLove",
+      "gain": "끌림이 다시 살아나는 조건을 일지 관계와 용신으로 정리해 드립니다"
+    },
+    {
+      "title": "속궁합과 친밀감 리듬",
+      "detail": "상대·궁합·이상형",
+      "master": "hanbiLove",
+      "gain": "감정 온도와 친밀감의 속도가 맞는 리듬을 품위 있게 짚어 드립니다"
+    },
+    {
+      "title": "이상형 분석 — 내 명식이 끌리는 사람",
+      "detail": "상대·궁합·이상형",
+      "master": "hanbiLove",
+      "gain": "잘 맞는 연인상·배우자상과 피해야 할 유형을 나눠 말씀드립니다"
+    },
+    {
+      "title": "상대가 원하는 연애 스타일",
+      "detail": "상대·궁합·이상형",
+      "master": "hanbiLove",
+      "gain": "어떤 사람이 당신에게 끌리고, 그 사람이 바라는 연애가 무엇인지 말씀드립니다"
+    },
+    {
+      "title": "갈등의 뿌리와 회복 방식",
+      "detail": "갈등·바람기·재회·자기 보호",
+      "master": "hanbiLove",
+      "gain": "실제로 성립한 충·형만 근거로 갈등의 뿌리와 피해야 할 말을 짚어 드립니다"
+    },
+    {
+      "title": "바람기와 마음이 흩어지는 조건",
+      "detail": "갈등·바람기·재회·자기 보호",
+      "master": "hanbiLove",
+      "gain": "마음이 흔들리기 쉬운 조건과 시기를 판단이 아닌 조건으로 정리해 드립니다"
+    },
+    {
+      "title": "재회 가능성과 그 조건",
+      "detail": "갈등·바람기·재회·자기 보호",
+      "master": "hanbiLove",
+      "gain": "재회를 확률이 아니라 조건과 시기로 셈해 드립니다"
+    },
+    {
+      "title": "피해야 할 선택과 자기 보호",
+      "detail": "갈등·바람기·재회·자기 보호",
+      "master": "hanbiLove",
+      "gain": "지켜야 할 경계와 물러설 자리를 먼저 정해 드립니다"
+    },
+    {
+      "title": "연락/고백/재회/관계 진전 타이밍",
+      "detail": "대운·올해·좋은 날짜·결혼운",
+      "master": "hanbiLove",
+      "gain": "지금 밀지 기다릴지를 계산된 세운·대운·일진에 걸어 정해 드립니다"
+    },
+    {
+      "title": "올해 연애운 — 좋은 달과 조심할 달",
+      "detail": "대운·올해·좋은 날짜·결혼운",
+      "master": "hanbiLove",
+      "gain": "올해 좋은 달과 조심할 달을 이름 붙여, 소개팅·고백의 결을 나눠 드립니다"
+    },
+    {
+      "title": "좋은 날짜 — 계산된 일진으로 고른 날",
+      "detail": "대운·올해·좋은 날짜·결혼운",
+      "master": "hanbiLove",
+      "gain": "계산된 일진에서 고른 날짜 세 개 이상을 간지와 근거와 함께 드립니다"
+    },
+    {
+      "title": "결혼운과 인연이 굳어지는 시기",
+      "detail": "대운·올해·좋은 날짜·결혼운",
+      "master": "hanbiLove",
+      "gain": "결혼 적기와 배우자상, 결혼 뒤의 모습을 대운과 배우자궁으로 말씀드립니다"
+    },
+    {
+      "title": "30일 관계 흐름 처방",
+      "detail": "대운·올해·좋은 날짜·결혼운",
+      "master": "hanbiLove",
+      "gain": "앞으로 30일을 주 단위로 나눠, 관계의 온도를 조율하는 흐름을 드립니다"
+    },
+    {
+      "title": "썸에서 확신으로 가는 전략",
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove",
+      "gain": "다가가는 법, 연락 빈도, 고백 타이밍, 데이트 전략을 순서대로 좁혀 드려요"
+    },
+    {
+      "title": "관계 단계별 실행 비책",
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove",
+      "gain": "지금이 썸·연애·재회·정리 중 어디인지 먼저 짚고, 그 단계의 실행안을 드려요"
+    },
+    {
+      "title": "상대에게 다가가는 대화 문장",
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove",
+      "gain": "그대로 보낼 수 있는 문장과 하지 말아야 할 말을 함께 받아요"
+    },
+    {
+      "title": "매력적으로 보이는 방법 — 이미지·말투·스타일",
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove",
+      "gain": "용신 색과 개운 방향에 맞춘 말투·이미지·스타일 방향을 받아요"
+    },
+    {
+      "title": "7일 실천 가이드",
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove",
+      "gain": "1일차부터 7일차까지, 날마다 해 볼 행동 하나씩을 근거와 함께 받아요"
+    },
+    {
+      "title": "마지막 상담사의 한마디",
+      "detail": "썸 전략·대화·매력·실천",
+      "master": "yeoniLove",
+      "gain": "편지처럼 맺으며, 오늘 붙잡을 태도 하나와 행동 하나를 남겨 드려요"
+    }
+  ],
+  "outcomes": [
+    {
+      "title": "연애 성공 체크리스트",
+      "text": "실천 비책마다 오늘·이번 주 같은 시기와 근거가 붙어요. 해낸 항목에 체크하면 이 기기에서 상담별로 기억해요.",
+      "evidence": "app/love-secret-ai/result/LoveSecretChecklist.tsx"
+    },
+    {
+      "title": "7일 실천 가이드",
+      "text": "1일차부터 7일차까지 날마다 해 볼 행동을 체크리스트로 받아요.",
+      "evidence": "app/love-secret-ai/result/LoveSecretChecklist.tsx"
+    },
+    {
+      "title": "좋은 날짜와 시기",
+      "text": "계산된 일진에서 고른 날짜와 올해 좋은 달·조심할 달을 한 카드에 모아 봐요.",
+      "evidence": "app/love-secret-ai/result/love-secret-sections.ts"
+    },
+    {
+      "title": "그대로 보낼 수 있는 대화 문장",
+      "text": "따옴표로 정리한 문장과 하지 말아야 할 말을 관계 전략 카드에서 바로 꺼내 써요.",
+      "evidence": "app/love-secret-ai/result/love-secret-sections.ts"
+    },
+    {
+      "title": "PDF 상담 리포트",
+      "text": "받은 상담 전체를 PDF로 저장해 두고 필요할 때 다시 읽어요.",
+      "evidence": "app/love-secret-ai/result/LoveSecretAiResultClient.tsx"
+    }
+  ],
+  "notice": "삽화 속 마스터는 상담을 안내하는 캐릭터이며, 상담 내용은 AI가 생성합니다. 사람이 결과마다 직접 작성하는 상담이 아닙니다. 소개 문장은 풀이 방식을 설명하는 편집 예시이며 고객의 실제 결과·후기가 아닙니다. 실제 내용은 입력 정보와 생성된 결과에 따라 달라집니다. 미래나 상대의 마음을 확정하지 않습니다. 제작자의 과거 직접 1:1 상담 후기는 이 디지털 상품의 구매 후기가 아닙니다.",
+  "panels": [
+    {
+      "id": "editorial-1",
+      "title": "마음은 연이가 듣고, 관계의 거리는 서한비가 짚습니다.",
+      "text": "왜 비슷한 관계를 반복할까요? 나의 연애 성향과 관계의 거리감을 함께 살펴보세요.",
+      "src": "/images/service-introductions/love-secret-ai.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "연이·서한비의 연애 비책 상담 장면",
+      "variants": [
+        {
+          "src": "/images/service-introductions/love-secret-ai-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/love-secret-ai-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/love-secret-ai-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "editorial-2",
+      "title": "어떤 근거로 풀어 주나요?",
+      "text": "연이는 명식에서 감정의 결과 연애 습관을 읽습니다. 서한비는 상대와의 관계, 갈등과 재회의 조건, 다가갈 시기를 살핍니다. 상대 명식이 없는 경우 실제 두 사람의 궁합처럼 설명하지 않습니다.",
+      "src": "/images/consultation-editorial/love.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/love-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-3",
+      "title": "상담에서 읽게 될 내용",
+      "text": "현재 질문의 답부터 연애 성향·관계의 조건·시기·실천까지 이어지는 상담을 읽습니다.",
+      "src": "/images/consultation-editorial/love.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/love-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-4",
+      "title": "풀이를 일상으로 가져오는 방법",
+      "text": "편집 예시 · 실제 개인 결과가 아닙니다.\n\n지금의 패턴을 알아차리는 것부터 시작해 보세요. 같은 상황에서 어떤 선택을 반복했는지 적고, 다음에는 바꿔 볼 행동을 하나 정해 보는 방식으로 풀이를 일상에 연결할 수 있습니다.",
+      "src": "/images/consultation-editorial/love.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/love-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-5",
+      "title": "상담을 준비해 주세요",
+      "text": "나의 출생 정보와 관계의 상황을 준비해 주세요. 상대 정보는 알고 있는 범위에서 입력합니다.\n\n이용권·월정석·단건 결제의 적용 여부와 금액은 기존 결제 화면에서 확인해 주세요.",
+      "src": "/images/consultation-editorial/love.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/love-768.webp",
+          "width": 768
+        }
+      ]
+    }
+  ],
+  "layout": "editorial"
+}

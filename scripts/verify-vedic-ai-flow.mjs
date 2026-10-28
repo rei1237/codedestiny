@@ -197,8 +197,9 @@ const longMockQuality = __vedicAiTestUtils.validateConsultationQuality(JSON.stri
 }), { minTotalChars: 10000, maxTotalChars: 20000, requireStructured: true });
 assert.equal(longMockQuality.ok, false, "[verify:vedic-ai-flow] long mock reading must fail");
 assert(longMockQuality.issues.includes("total_body_too_long"), "[verify:vedic-ai-flow] long mock length issue missing");
-const sanitizedMock = __vedicAiTestUtils.sanitizeAssistantText("PDF 챕터 프롬프트 시스템");
-assert.equal(/PDF|챕터|프롬프트|시스템/.test(sanitizedMock), false, "[verify:vedic-ai-flow] mechanical tokens must be sanitized");
+const sanitizedMock = __vedicAiTestUtils.sanitizeAssistantText("PDF 챕터 프롬프트 시스템 지시");
+assert.equal(/PDF|챕터|프롬프트|시스템\s*지시/.test(sanitizedMock), false, "[verify:vedic-ai-flow] mechanical tokens must be sanitized");
+assert.equal(__vedicAiTestUtils.sanitizeAssistantText("면역 시스템을 돌보세요."), "면역 시스템을 돌보세요.", "[verify:vedic-ai-flow] ordinary 시스템 prose must survive");
 
 const validPayload = {
   serviceType: "vedic-ai-consultation",

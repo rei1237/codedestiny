@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP30 panels; three orphan lines fixed and two fusion covers composed with distinct official system art",
+  "mobile": "Independent SHIP30 panels,18 CTA/notice,6 transcript viewports",
+  "checks": "4 widths load/bounds/fallback PASS; fusion product selection replacement and POST0 PASS; existing fusion/budget16 PASS; Consultation ESLint0 errors11 warnings on unchanged existing lines",
+  "limits": "APIs mock; no paid LLM/payment; main delivery pending"
+}

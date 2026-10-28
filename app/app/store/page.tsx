@@ -3,7 +3,7 @@ import AppPassStoreHeader from "./AppPassStoreHeader";
 
 export const metadata = {
   title: "이용권",
-  description: "Code Destiny 이용권 구매",
+  description: "꿀꿀운세 이용권 구매",
   robots: {
     index: false,
     follow: false,

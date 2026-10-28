@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "46c9cd86ab1ac97d2482693e8c4af40052df61b0aebb1da8a2732a1597f1e00c",
+  "sourceHash": "8ba562241517e1e324fbb5326f4ec69210a15b0a6dae5c333b57fe04c2e0c36e",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -410,8 +410,8 @@
     },
     {
       "id": "ep-02",
-      "title": "갈기 있는 고양이? 네오",
-      "purpose": "갈기 있는 고양이? 네오",
+      "title": "모자 쓴 고양이? 영냥이",
+      "purpose": "모자 쓴 고양이? 영냥이",
       "conflictBeatId": "ep-02:19",
       "emotionPath": [
         {
@@ -7157,11 +7157,11 @@
       "id": "ep-27",
       "title": "갓 구운 아침",
       "purpose": "갓 구운 아침",
-      "conflictBeatId": "ep-27:18",
+      "conflictBeatId": "ep-27:neo-return-6",
       "emotionPath": [
         {
           "phase": "진입",
-          "beatId": "ep-27:1",
+          "beatId": "ep-27:neo-return-1",
           "pacing": "normal"
         },
         {
@@ -7176,6 +7176,26 @@
         }
       ],
       "visualCues": [
+        {
+          "beatId": "ep-27:neo-return-1",
+          "background": "river",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "river 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-27:neo-return-7",
+          "background": "river",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "reveal",
+          "camera": "drift",
+          "accessibility": "river 배경에서 진행되는 서술"
+        },
         {
           "beatId": "ep-27:1",
           "background": "jae",
@@ -10936,7 +10956,7 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-38a:27",
+          "beatId": "ep-38a:35",
           "pacing": "impact"
         },
         {
@@ -13601,7 +13621,7 @@
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-50:112",
+          "beatId": "ep-50:final-choice",
           "pacing": "normal"
         }
       ],
@@ -13727,54 +13747,14 @@
           "accessibility": "tarotDoor 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-50:91",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": "transform",
-          "camera": "drift",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-50:97",
-          "background": "tarotDoor",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "tarotDoor 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-50:101",
-          "background": "roomNight",
+          "beatId": "ep-50:choice-door",
+          "background": "cherryMoonPortal",
           "transition": "crossfade",
           "tone": "natural",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "drift",
-          "accessibility": "roomNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-50:105",
-          "background": "roomNight",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
           "camera": "focus",
-          "accessibility": "roomNight 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-50:109",
-          "background": "roomNight",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "roomNight 배경에서 진행되는 시스템 메시지"
+          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
         }
       ]
     },
@@ -14330,6 +14310,161 @@
           "eventEffect": "stars",
           "camera": "focus",
           "accessibility": "cherryDay 배경에서 진행되는 시스템 메시지"
+        }
+      ]
+    },
+    {
+      "id": "ep-51s",
+      "title": "남는 사람",
+      "purpose": "남는 사람",
+      "conflictBeatId": "ep-51s:1",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-51s:1",
+          "pacing": "impact"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-51s:17",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-51s:25",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-51s:1",
+          "background": "cherryMoonPortal",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "stars",
+          "camera": "focus",
+          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-51s:17",
+          "background": "cherryMoonPortal",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "veil",
+          "camera": "drift",
+          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-52s",
+      "title": "열린 문의 편지",
+      "purpose": "열린 문의 편지",
+      "conflictBeatId": "ep-52s:22",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-52s:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-52s:22",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-52s:30",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-52s:1",
+          "background": "foundation",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "foundation 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-52s:22",
+          "background": "foundation",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "reveal",
+          "camera": "drift",
+          "accessibility": "foundation 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-52s:extra-46",
+          "background": "foundation",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "heart",
+          "camera": "drift",
+          "accessibility": "foundation 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-53s",
+      "title": "달빛 세계수의 결혼식",
+      "purpose": "달빛 세계수의 결혼식",
+      "conflictBeatId": "ep-53s:1",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-53s:1",
+          "pacing": "impact"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-53s:21",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-53s:34",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-53s:1",
+          "background": "foundation",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "stars",
+          "camera": "focus",
+          "accessibility": "foundation 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-53s:21",
+          "background": "foundation",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "reveal",
+          "camera": "drift",
+          "accessibility": "foundation 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-53s:33",
+          "background": "foundation",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "heart",
+          "camera": "drift",
+          "accessibility": "foundation 배경에서 진행되는 서술"
         }
       ]
     }

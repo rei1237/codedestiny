@@ -24,6 +24,8 @@
 .sceneImage { object-fit: cover; object-position: 64% 30%; }
 .illustration::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, color-mix(in srgb,var(--novel-bg) 70%,transparent), transparent 25%, transparent 48%,var(--novel-bg)); }
 .pigActor { position: absolute; right: 20%; top: 10%; width: min(32vw,280px); height: 45%; object-fit: contain; }
+.reader .humanActor { position:absolute; right:12%; bottom:0; width:min(66vw,600px); }
+.menu .menuPortrait, .ritual .menuPortrait { width:min(100%,440px); justify-self:center; object-fit:contain; object-position:center; }
 .chapter { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; padding: 24px 40px; }
 .chapter h2 { margin: 0; font-size: clamp(1.15rem,2.5vw,1.8rem); }
 .chapter span { flex-shrink: 0; font-variant-numeric: tabular-nums; font-size: .85rem; }
@@ -50,16 +52,21 @@
 .log h3 { color: var(--novel-rose); margin-top: 32px; }
 .menu { max-width: 1180px; margin: auto; padding: 32px; background: color-mix(in srgb,var(--novel-bg) 94%,transparent); }
 .menuIntro { display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 32px; }
-.menuIntro img { display: block; width: 100%; height: 320px; object-fit: cover; object-position: 65% 32%; border-radius: var(--cd-r-section,26px); }
+.menuIntro img { display: block; width: 100%; height: 360px; border-radius: var(--cd-r-section,26px); }
 .menuIntro h2 { font-size: clamp(1.7rem,3vw,2.4rem); line-height: 1.4; margin: 0 0 16px; }
 .menuIntro p { color: var(--novel-muted); margin: 0; }
 .cups { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px 24px; margin-top: 30px; }
-.cup { display: flex; flex-direction: column; align-items: center; border: 1px solid transparent; border-bottom-color: var(--novel-border); background: transparent; border-radius: var(--cd-r-card,20px); padding: 12px; text-align: center; }
-.cup[data-selected=true] { border-color: var(--novel-gold); background: var(--novel-surface); }
+.cup { position:relative; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--novel-border); background: color-mix(in srgb,var(--novel-surface) 45%,transparent); border-radius: 44px 44px 20px 20px; padding: 20px 12px; text-align: center; box-shadow:0 8px 24px #13040c30; }
+.cup::after { content:""; width:44px; height:36px; margin-top:10px; background:url('/images/fortune-tea-house/moonlight-lotus-ornament-360.webp') center/contain no-repeat; opacity:.5; pointer-events:none; }
+.cup[data-selected=true] { border-color: var(--novel-gold); background: var(--novel-surface); box-shadow:inset 0 0 0 1px var(--novel-gold),0 10px 28px #13040c50; }
+.cup[data-selected=true]::after { opacity:1; }
 .cup strong { font-family: var(--tea-font-premium),serif; font-size: 1.1rem; }
 .cup small { font-size: .86rem; color: var(--novel-muted); }
 .cupVisual { max-width: 150px; }
-.cupPreview { margin-top: 28px; padding: 20px 0 0; border-top: 1px solid var(--novel-border); display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.cupPreview { margin-top: 28px; padding: 24px 0 0; border-top: 1px solid var(--novel-border); display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.menu .primary, .ritual .primary { border-color:var(--novel-gold); border-radius:24px 8px 24px 8px; min-height:54px; box-shadow:0 8px 22px #13040c50; }
+.menu .primary::before, .ritual .primary::before { content:""; flex:0 0 28px; width:28px; height:32px; background:url('/images/fortune-tea-house/moonlight-lotus-ornament-360.webp') center/contain no-repeat; }
+@media(hover:hover) { .menu .primary:not(:disabled):hover, .ritual .primary:not(:disabled):hover { background:#ffe0eb; } }
 .cupPreview p { margin: 0; max-width: 55ch; color: var(--novel-muted); }
 .cupPreview strong { display: block; color: var(--novel-gold); margin-bottom: 6px; }
 .cupPreview button { flex-shrink: 0; }
@@ -86,11 +93,13 @@
  .readerControls .primary { flex-basis: 100%; }
  .responses { flex-direction: column; }
  .pigActor { width: 45vw; right: 25%; top: 14%; height: 60%; }
+ .reader .humanActor { right:5%; bottom:0; width:90%; }
+ .menu .menuPortrait, .ritual .menuPortrait { width:min(100%,320px); margin-inline:auto; }
  .menu, .ritual { padding: 20px 16px 32px; }
  .menuIntro { grid-template-columns: 1fr; gap: 22px; }
- .menuIntro img { height: 240px; }
+ .menuIntro img { height: 280px; }
  .cups { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 8px; }
- .cup { padding: 8px; }
+ .cup { padding: 14px 8px; border-radius:32px 32px 16px 16px; }
  .cup strong { font-size: 1rem; }
  .cupPreview { display: block; }
  .cupPreview button { width: 100%; margin-top: 18px; }

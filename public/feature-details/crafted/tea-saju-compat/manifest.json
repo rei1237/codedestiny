@@ -1,0 +1,158 @@
+{
+  "id": "tea-saju-compat",
+  "featureKey": "fortune-tea-house-saju-compatibility-consultation",
+  "title": "운명의 찻집 · 두 사람 사주 궁합",
+  "hook": "두 사람의 명식을 각각 세우고 대조하는 사주 궁합",
+  "badge": "추가 질문 1회 포함",
+  "chapters": [
+    {
+      "title": "당신의 사주",
+      "detail": "내 일간·오행·십성을 따로 세워 읽어요."
+    },
+    {
+      "title": "상대방의 사주",
+      "detail": "상대의 명식도 같은 깊이로 읽어요."
+    },
+    {
+      "title": "두 사람의 궁합",
+      "detail": "두 일간의 관계, 같은 자리 지지끼리의 합·충·형·파·해, 오행의 보완."
+    },
+    {
+      "title": "질문에 대한 답",
+      "detail": "함께 풀고 싶은 질문에 두 사람의 관점으로 답해요."
+    },
+    {
+      "title": "함께일 때의 강점",
+      "detail": "서로 채워 주는 기운이 관계에서 쓰이는 자리."
+    },
+    {
+      "title": "미리 알아둘 주의점",
+      "detail": "부딪히기 쉬운 관계와 각자의 원국에서 반복되는 결."
+    },
+    {
+      "title": "지금 이 시기 관계의 운",
+      "detail": "두 사람의 지금 대운·세운이 관계에 부는 순풍과 역풍."
+    },
+    {
+      "title": "찻집의 처방",
+      "detail": "두 사람이 함께 해 볼 구체적인 실천."
+    },
+    {
+      "title": "월별 흐름 — 두 사람의 석 달",
+      "detail": "다가올 세 절기월을 각자의 명식에 대조해요."
+    },
+    {
+      "title": "관계 처방 — 서로에게 건네는 말",
+      "detail": "서로의 방식에 맞춘 말과 거리."
+    },
+    {
+      "title": "실행 체크리스트 — 함께 확인할 것",
+      "detail": "다음 대화 전에 같이 살펴볼 것."
+    },
+    {
+      "title": "연이의 한마디",
+      "detail": "두 사람에게 남기는 마지막 메시지."
+    }
+  ],
+  "notice": "삽화 속 마스터는 상담을 안내하는 캐릭터이며, 상담 내용은 AI가 생성합니다. 사람이 결과마다 직접 작성하는 상담이 아닙니다. 소개 문장은 풀이 방식을 설명하는 편집 예시이며 고객의 실제 결과·후기가 아닙니다. 실제 내용은 입력 정보와 생성된 결과에 따라 달라집니다. 미래나 상대의 마음을 확정하지 않습니다. 제작자의 과거 직접 1:1 상담 후기는 이 디지털 상품의 구매 후기가 아닙니다.",
+  "panels": [
+    {
+      "id": "editorial-1",
+      "title": "마음을 먼저 듣는, 연이의 사주 궁합 상담.",
+      "text": "쉽게 꺼내지 못한 마음도 천천히 들려주세요. 따뜻한 차 한 잔처럼 이야기를 듣고, 지금의 흐름을 함께 살펴봅니다.",
+      "src": "/images/service-introductions/tea-saju-compat.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "연이의 연이 사주 궁합 상담 장면",
+      "variants": [
+        {
+          "src": "/images/service-introductions/tea-saju-compat-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/tea-saju-compat-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/tea-saju-compat-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "editorial-2",
+      "title": "어떤 근거로 풀어 주나요?",
+      "text": "두 사람의 명식과 관계 패턴를 바탕으로 감정과 상황을 풀어 드립니다. 관계의 결말이나 상대의 마음을 단정하지 않습니다.",
+      "src": "/images/consultation-editorial/yeoni.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/yeoni-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-3",
+      "title": "상담에서 읽게 될 내용",
+      "text": "현재의 마음과 상황을 이해하는 해석, 오늘 해 볼 수 있는 작은 행동을 읽습니다.",
+      "src": "/images/consultation-editorial/yeoni.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/yeoni-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-4",
+      "title": "풀이를 일상으로 가져오는 방법",
+      "text": "편집 예시 · 실제 개인 결과가 아닙니다.\n\n지금의 패턴을 알아차리는 것부터 시작해 보세요. 같은 상황에서 어떤 선택을 반복했는지 적고, 다음에는 바꿔 볼 행동을 하나 정해 보는 방식으로 풀이를 일상에 연결할 수 있습니다.",
+      "src": "/images/consultation-editorial/yeoni.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/yeoni-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-5",
+      "title": "상담을 준비해 주세요",
+      "text": "상담에서 요청하는 정보와 지금 가장 궁금한 질문을 준비해 주세요.\n\n이용권·월정석·단건 결제의 적용 여부와 금액은 기존 결제 화면에서 확인해 주세요.",
+      "src": "/images/consultation-editorial/yeoni.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/yeoni-768.webp",
+          "width": 768
+        }
+      ]
+    }
+  ],
+  "layout": "editorial",
+  "masters": [
+    {
+      "key": "yeoni",
+      "name": "연이",
+      "epithet": "운명 찻집 마스터 · 따뜻한 공감으로 여는 상담",
+      "signature": "마음을 먼저 듣고, 흐름의 근거와 작은 실천을 함께 전하는 운명 찻집 마스터예요. 쉽게 꺼내지 못했던 이야기도 천천히 들려주세요.",
+      "role": "운명 찻집 마스터 · 따뜻한 공감으로 여는 상담",
+      "part": "사주는 삶의 흐름을, 타로는 지금의 선택을, 숙요점은 관계의 거리감을 살펴봐요. 따뜻한 차 한 잔처럼 마음을 보듬으며, 오늘 할 수 있는 작은 행동을 함께 찾아요.",
+      "basis": "사주는 삶의 흐름을, 타로는 지금의 선택을, 숙요점은 관계의 거리감을 살펴봐요. 따뜻한 차 한 잔처럼 마음을 보듬으며, 오늘 할 수 있는 작은 행동을 함께 찾아요.",
+      "avatar": "/images/master-profiles/avatars/yeoni.webp",
+      "portrait": "/images/master-profiles/yeoni-teahouse-portrait.webp"
+    }
+  ]
+}

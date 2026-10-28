@@ -5,8 +5,9 @@ import Link from "next/link";
 import { ChevronRight, MoonStar, Sparkles } from "lucide-react";
 import MobileAppActions from "./MobileAppActions";
 import { listServiceFeatures } from "@/app/_lib/serviceFeatureRegistry";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { FeatureMarketingLink, type FeatureMarketingTarget } from "@/app/components/FeatureMarketingDetailModal";
-import { useAppShellCopy, type AppShellCopy } from "./_lib/copy";
+import { getAppShellCopy, useAppShellLocale, type AppShellCopy } from "./_lib/copy";
 
 const CORE_SLUGS = [
   "saju",
@@ -48,14 +49,14 @@ function buildSpotlightFeatures(copy: AppShellCopy): Array<FeatureMarketingTarge
 }
 
 function normalizeLaunchRoute(route: string) {
-  if (!route) return "/";
+  if (!route) return SHELL_HOME_PATH;
   if (route.includes("action=cdOneStepFreeSajuEntry")) return "/?action=cdOneStepFreeSajuEntry";
   if (route.includes("action=openTarotModal")) return "/tarot/mingri";
-  if (route.includes("action=openSukuyoModal")) return "/oracle/sukuyo";
-  if (route.includes("action=navigateToVedic")) return "/vedic/jyotish";
-  if (route.includes("action=openAstroModal")) return "/astrology/cosmic";
+  if (route.includes("action=openSukuyoModal")) return "/sukuyo";
+  if (route.includes("action=navigateToVedic")) return "/vedic";
+  if (route.includes("action=openAstroModal")) return "/astrology";
   if (route.includes("action=openZiweiModal")) return "/ziwei/chart";
-  if (route.startsWith("/index.html")) return "/";
+  if (route.startsWith("/index.html")) return SHELL_HOME_PATH;
   return route;
 }
 
@@ -64,8 +65,9 @@ function isDefined<T>(value: T | null | undefined): value is T {
 }
 
 export default function AppHomeClient() {
-  const copy = useAppShellCopy();
-  const featureBySlug = new Map(listServiceFeatures("ko").map((feature) => [feature.slug, feature]));
+  const locale = useAppShellLocale();
+  const copy = getAppShellCopy(locale);
+  const featureBySlug = new Map(listServiceFeatures(locale).map((feature) => [feature.slug, feature]));
   const features = CORE_SLUGS.map((slug) => featureBySlug.get(slug)).filter(isDefined);
   const spotlightFeatures = buildSpotlightFeatures(copy);
 
@@ -82,7 +84,7 @@ export default function AppHomeClient() {
             style={{ background: "var(--cd-app-bg-raised)", boxShadow: "var(--cd-app-shadow-1)" }}
           />
           <span className="grid min-w-0 gap-0.5">
-            <span className="truncate text-sm font-black leading-tight" style={{ color: "var(--cd-app-ink)" }}>Code Destiny</span>
+            <span className="truncate text-sm font-black leading-tight" style={{ color: "var(--cd-app-ink)" }}>꿀꿀운세</span>
             <span className="truncate text-xs font-semibold leading-tight" style={{ color: "var(--cd-app-ink-subtle)" }}>{copy.moonlightHomeTagline}</span>
           </span>
         </Link>

@@ -1,7 +1,7 @@
 {
-  "name": "꿀꿀운세",
-  "short_name": "꿀꿀운세",
-  "description": "꿀꿀 운세는 꽃돼지 연이·네오와 영냥이가 함께하는 사주·타로·운세 상담 서비스입니다. 나의 기질과 관계, 일과 돈의 흐름을 살펴보세요.",
+  "name": "꿀꿀 운세",
+  "short_name": "꿀꿀 운세",
+  "description": "꿀꿀 운세는 꽃돼지 연이와 영냥이가 함께하는 사주·타로·운세 상담 서비스입니다. 나의 기질과 관계, 일과 돈의 흐름을 살펴보세요.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -45,7 +45,7 @@
       "name": "오늘의 운세",
       "short_name": "운세",
       "description": "오늘 하루의 흐름을 바로 비춥니다.",
-      "url": "/#today",
+      "url": "/ggulggul/#today",
       "icons": [
         {
           "src": "/icons/moonlight-garden-v1-192.png",
@@ -54,5 +54,6 @@
         }
       ]
     }
-  ]
+  ],
+  "id": "/"
 }

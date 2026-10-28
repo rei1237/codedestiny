@@ -6,6 +6,10 @@ export const READING_V6_VERSION = 'destiny-book-v6';
 export const READING_V7_VERSION = 'destiny-book-v7';
 // New multi-system purchases use fewer distinct chapters; stored manifests remain immutable.
 export const FUSION_READING_VERSION = 'fusion-book-v1';
+// D7 layout markers. Chapters keep their v5/v6 version (sections, prompts); the marker only selects the
+// per-chapter budget and the new question/fusion chapter roles. Stored manifests never gain it.
+export const QUESTION_LAYOUT_VERSION = 'question-consultation-20261010';
+export const FUSION_LAYOUT_VERSION = 'fusion-book-v2';
 // A paid question-sky consultation is intentionally split into a concise first
 // answer and one buyer-triggered deepening response. It has its own immutable
 // snapshot version; legacy sky books keep their original manifests.

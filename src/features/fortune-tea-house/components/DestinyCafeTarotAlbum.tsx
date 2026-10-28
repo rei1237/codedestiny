@@ -15,7 +15,6 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import {
-  BookOpen,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -43,11 +42,8 @@ import {
   type TarotAlbumStoryCard,
   type TarotAlbumSuit,
 } from "../data/tarotAlbumStories";
-import { authFetch } from "@/app/_lib/auth-client";
 import albumStyles from "../styles/tea-album.module.css";
 import { albumVisitCopy } from "../data/albumVisitCopy";
-import { TAROT_ALBUM_UNLOCK_COST } from "../lib/honeyDrops";
-import { normalizeHoneyDropsState } from "../lib/honeyDrops";
 import { getTarotCardImageCoverage } from "../lib/tarotCardImageMap";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 
@@ -62,13 +58,7 @@ type TarotAlbumSortMode = "default" | "major-first" | "minor-first" | "name";
 type TarotPdfPhase = "idle" | "preparing" | "images" | "stories" | "rendering" | "done" | "error";
 type TarotPdfMode = "all" | "selected" | "single";
 
-type TarotAlbumApiResponse = {
-  ok?: boolean;
-  success?: boolean;
-  message?: string;
-  errorCode?: string;
-  honeyDrops?: FortuneTeaHouseHoneyDropsState;
-};
+
 
 type TarotPdfStatus = {
   phase: TarotPdfPhase;
@@ -287,7 +277,6 @@ export default function DestinyCafeTarotAlbum({
   isOpen,
   honeyDrops,
   onClose,
-  onHoneyDropsChange,
   onRequestRefresh,
 }: DestinyCafeTarotAlbumProps) {
   const copy = useTeaHouseCopy("tarotAlbum", KO);
@@ -298,8 +287,6 @@ export default function DestinyCafeTarotAlbum({
   const [selectedCard, setSelectedCard] = useState<TarotAlbumStoryCard | null>(null);
   const [selectedCardIds, setSelectedCardIds] = useState<Record<string, boolean>>({});
   const [imageFailedById, setImageFailedById] = useState<Record<string, boolean>>({});
-  const [isUnlocking, setIsUnlocking] = useState(false);
-  const [unlockMessage, setUnlockMessage] = useState("");
   const [pdfCards, setPdfCards] = useState<TarotAlbumStoryCard[]>([]);
   const [pdfStatus, setPdfStatus] = useState<TarotPdfStatus | null>(null);
   const [flippedById, setFlippedById] = useState<Record<string, boolean>>({});
@@ -329,22 +316,12 @@ export default function DestinyCafeTarotAlbum({
   );
   const selectedCount = selectedCards.length;
   const currentHoneyDrops = Math.max(0, honeyDrops?.currentHoneyDrops ?? honeyDrops?.balance ?? 0);
-  const isHoneyLoading = !honeyDrops;
-  const isHoneyDisabled = Boolean(honeyDrops?.disabled);
   const isAlbumUnlocked = Boolean(honeyDrops?.tarotAlbumUnlocked);
-  const canUnlock = !isHoneyLoading && !isHoneyDisabled && !isAlbumUnlocked && currentHoneyDrops >= TAROT_ALBUM_UNLOCK_COST;
   const cardBackUrl = fortuneTeaHouseAssets.premium.tarotCardBack;
   const backgroundDesktopUrl = fortuneTeaHouseAssets.premium.landingDesktop;
   const backgroundMobileUrl = fortuneTeaHouseAssets.premium.landingMobile;
   const yeoniPoseFrames = fortuneTeaHouseAssets.yeoni.transparent.tarotPoseFrames;
   const isPdfBusy = Boolean(pdfStatus && ["preparing", "images", "stories", "rendering"].includes(pdfStatus.phase));
-  const lockDialogue = isHoneyDisabled
-    ? copy.kqcshbql
-    : isAlbumUnlocked
-      ? copy.kodlrapd
-      : canUnlock
-        ? copy.knbpabsn
-        : copy.kyikujnc;
   const filteredCards = useMemo(() => {
     const query = normalizeSearch(searchText);
     const nextCards = albumCards.filter((card) => {
@@ -392,7 +369,6 @@ export default function DestinyCafeTarotAlbum({
   useEffect(() => {
     if (!isOpen) {
       setSelectedCard(null);
-      setUnlockMessage("");
       setPdfStatus(null);
       setPdfCards([]);
       setFlippedById({});
@@ -636,49 +612,12 @@ export default function DestinyCafeTarotAlbum({
             ) : null}
           </div>
         ) : (
-          <TarotAlbumLockPanel
-            currentHoneyDrops={currentHoneyDrops}
-            isHoneyLoading={isHoneyLoading}
-            canUnlock={canUnlock}
-            isUnlocking={isUnlocking}
-            unlockMessage={unlockMessage}
-            lockDialogue={lockDialogue}
-            guest={Boolean(honeyDrops && !honeyDrops.authenticated)}
-            onRequestRefresh={onRequestRefresh}
-            onUnlock={async () => {
-              if (isAlbumUnlocked) return;
-              if (isHoneyLoading || isHoneyDisabled) {
-                setUnlockMessage(copy.kqcshbql);
-                return;
-              }
-              if (currentHoneyDrops < TAROT_ALBUM_UNLOCK_COST) {
-                setUnlockMessage(copy.ksp1zhrt);
-                return;
-              }
-              setIsUnlocking(true);
-              setUnlockMessage("");
-              try {
-                const response = await authFetch("/api/fortune-tea-house/honey-drops/tarot-album/unlock", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ idempotencyKey: `yeoni-tarot-album-${Date.now()}` }),
-                  cache: "no-store",
-                });
-                const payload = (await response.json().catch(() => null)) as TarotAlbumApiResponse | null;
-                const nextHoneyDrops = normalizeHoneyDropsState(payload?.honeyDrops);
-                if (nextHoneyDrops) onHoneyDropsChange(nextHoneyDrops);
-                if (!response.ok || !payload?.success) {
-                  setUnlockMessage(payload?.message || copy.kqcshbql);
-                  return;
-                }
-                setUnlockMessage(copy.k9bz0eod);
-              } catch {
-                setUnlockMessage(copy.kqcshbql);
-              } finally {
-                setIsUnlocking(false);
-              }
-            }}
-          />
+          <section className={albumStyles.lockCopy} aria-label="타로 앨범 안내">
+            <h2>타로 앨범</h2>
+            <p>꿀방울 신규 해금은 종료되었어요. 꿀방울은 꿀꿀운세 지정 상품에서 사용할 수 있어요.</p>
+            <p>이미 해금한 앨범은 같은 계정으로 로그인하면 다시 볼 수 있어요.</p>
+            <button type="button" onClick={onRequestRefresh}>보유 앨범 다시 확인하기</button>
+          </section>
         )}
       </section>
 
@@ -720,7 +659,7 @@ function TarotAlbumHero({ currentHoneyDrops, totalCards, selectedCount, pdfBusy,
     <div className={albumStyles.heroCopy}>
       <Image src="/images/fortune-tea-house/moonlight-lotus-ornament.webp" alt="" width={120} height={120} className={albumStyles.moonOrnament}/><span className={albumStyles.eyebrow}>{visit.chapter}</span>
       <h2 id="tarotAlbumTitle">{copy.k1yzt0ya}</h2><p>{copy.kampzo9z}</p>
-      <div className={albumStyles.meta}><span>{copy.kq8n5rri}</span><span>{copy.kfe3rgpe} {totalCards}{copy.kskfjn2j}</span><span>{copy.khjystua} {currentHoneyDrops}</span></div>
+      <div className={albumStyles.meta}><span>{copy.kq8n5rri}</span><span>{copy.kfe3rgpe} {totalCards}{copy.kskfjn2j}</span><span>{copy.khjystua} {copy.honeyCountText.replace("{count}", String(currentHoneyDrops))}</span></div>
       <div className={albumStyles.actions}>
         <PdfActionButton onClick={onDownloadAll} disabled={pdfBusy} label={copy.kmzmv9si}/>
         <PdfActionButton onClick={onDownloadSelected} disabled={pdfBusy || selectedCount === 0} secondary label={selectedCount ? copy.selectedPdfLabel.replace("{count}", String(selectedCount)) : copy.kvgpq4qo}/>
@@ -1103,28 +1042,6 @@ function MoonPhaseSeal({ full = false }: { full?: boolean }) {
       <path d="M 10 2 Q 17 10 10 18 Q 10 18 10 2" fill="currentColor" opacity="0.6" />
     </svg>
   );
-}
-
-function TarotAlbumLockPanel({ currentHoneyDrops, isHoneyLoading, canUnlock, isUnlocking, unlockMessage, lockDialogue, guest, onUnlock, onRequestRefresh }: {
-  currentHoneyDrops: number; isHoneyLoading: boolean; canUnlock: boolean; isUnlocking: boolean;
-  unlockMessage: string; lockDialogue: string; guest: boolean; onUnlock: () => void; onRequestRefresh: () => Promise<boolean>;
-}) {
-  const copy = useTeaHouseCopy("tarotAlbum", KO);
-  const visit = useTeaHouseCopy("albumVisit", albumVisitCopy);
-  const [refreshing, setRefreshing] = useState(false);
-  const progress = visit.progress.replace("{count}", String(currentHoneyDrops)).replace("{cost}", String(TAROT_ALBUM_UNLOCK_COST));
-  return <div className={albumStyles.lock}>
-    <div className={albumStyles.lockArt}><Image src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" alt={visit.humanAlt} fill sizes="(max-width:700px) 100vw,45vw"/></div>
-    <div className={albumStyles.lockCopy}><Image src="/images/fortune-tea-house/moonlight-lotus-ornament.webp" alt="" width={110} height={110} className={albumStyles.moonOrnament}/>
-      <span className={albumStyles.eyebrow}>{visit.eyebrow}</span><h2 id="tarotAlbumTitle">{copy.k1yzt0ya}</h2><p>{visit.description.replace("{cost}", String(TAROT_ALBUM_UNLOCK_COST))}</p>
-      <span className={albumStyles.balance}>{guest ? visit.guest : isHoneyLoading ? visit.loading : progress}</span>
-      {!guest && <progress max={TAROT_ALBUM_UNLOCK_COST} value={Math.min(currentHoneyDrops,TAROT_ALBUM_UNLOCK_COST)} aria-label={progress}/>}
-      <div className={albumStyles.actions}>
-        {guest ? <Link className={albumStyles.primary} href="/login/?next=%2Ffortune-tea-house%2F">{visit.login}</Link> : <button type="button" className={albumStyles.primary} disabled={!canUnlock || isUnlocking} onClick={onUnlock}>{isUnlocking ? <Loader2 size={18} className="animate-spin" aria-hidden/> : <BookOpen size={18} aria-hidden/>}{isUnlocking ? copy.k1h4mohy : canUnlock ? copy.klirlgb2 : copy.kyny7lmn}</button>}
-        {!guest && <button type="button" className={albumStyles.secondary} disabled={refreshing} onClick={async () => { setRefreshing(true); try { await onRequestRefresh(); } finally { setRefreshing(false); } }}>{refreshing ? visit.loading : visit.retry}</button>}
-      </div><blockquote role="status">{unlockMessage || lockDialogue}</blockquote>
-    </div>
-  </div>;
 }
 
 function TarotAlbumMotionStyles({ yeoniPoseFrames }: { yeoniPoseFrames: readonly string[] }) {

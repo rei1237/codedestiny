@@ -18,8 +18,8 @@
 .receipt .total{padding-top:20px;border-top:1px dashed var(--yn-line);align-items:center}
 .total dd{font-size:28px;font-weight:850;font-variant-numeric:tabular-nums;color:var(--yn-gold)}
 .policy{font-size:13px;line-height:1.75;color:var(--yn-muted);margin:24px 0 20px}.policy p{margin:0 0 9px}.policy p:last-child{margin-bottom:0}.moonstones dd{font-variant-numeric:tabular-nums}
-.pay{width:100%;min-height:54px;border:0;border-radius:16px;background:var(--yn-violet);color:var(--yn-ivory);font:inherit;font-size:16px;font-weight:750;padding:14px 18px;cursor:pointer;box-shadow:0 5px 14px #44294c20;transition:background .15s}
-.pay:hover{background:#786197}.pay:disabled{background:var(--yn-raised);color:var(--yn-muted);cursor:wait;box-shadow:none}
+.pay{width:100%;min-height:var(--yn-btn-h);border:1px solid var(--yn-gold);border-radius:var(--yn-btn-radius);background:var(--yn-gold);color:var(--yn-deep);font:inherit;font-size:16px;font-weight:750;padding:14px 18px;cursor:pointer;transition:background .15s}
+.pay:hover:not(:disabled){background:var(--yn-gold-hover)}.pay:disabled{background:var(--yn-raised);border-color:var(--yn-line);color:var(--yn-muted);cursor:wait}
 .page a:focus-visible,.pay:focus-visible{outline:3px solid var(--yn-gold);outline-offset:4px}
 .security{font-size:14px;line-height:1.6;text-align:center;color:var(--yn-muted);margin:12px 0}
 .feedback{font-size:14px;line-height:1.7;color:#ffc3b8}.feedback:empty{display:none}
@@ -44,9 +44,10 @@
 .purchaseChoices label:has(input:checked){border-color:var(--yn-gold);background:var(--yn-raised)}
 .purchaseChoices input{margin:4px 0 0;accent-color:var(--yn-gold);width:18px;height:18px;flex-shrink:0}
 .purchaseChoices label>span{display:grid;gap:6px;min-width:0}.purchaseChoices small{line-height:1.6;color:var(--yn-muted)}
-.benefits{border-top:1px solid var(--yn-line);margin-top:24px;padding-top:12px}
-.benefits summary{padding:12px 0;cursor:pointer;font-weight:700;min-height:44px}
+.benefits{border-top:1px solid var(--yn-line);margin:24px 0 20px;padding-top:12px}
+.benefits>summary{display:flex;align-items:center;min-height:44px;font-size:1rem;font-weight:700;line-height:1.5;cursor:pointer}.benefits>summary:focus-visible{outline:3px solid var(--yn-gold);outline-offset:4px}.benefits>summary{list-style:none;gap:12px}.benefits>summary::-webkit-details-marker{display:none}.benefits>summary::after{content:"＋";margin-left:auto;color:var(--yn-gold);font-weight:400}.benefits[open]>summary::after{content:"－"}
 .benefits>p{font-size:14px;color:var(--yn-muted);line-height:1.7}
-.benefits>button{width:100%;min-height:48px;margin:8px 0;padding:12px;border:1px solid var(--yn-line);border-radius:12px;background:var(--yn-raised);color:var(--yn-ivory);font:inherit;cursor:pointer}
+.benefits>button{display:inline-flex;align-items:center;width:auto;min-height:44px;margin:4px 20px 4px 0;padding:8px 0;border:0;background:none;color:var(--yn-ivory);font:inherit;font-size:14px;text-decoration:underline;text-underline-offset:4px;text-align:left;cursor:pointer}
+.benefits>button:hover:not(:disabled){color:var(--yn-gold)}
 .benefits button:disabled{opacity:.5;cursor:wait}
 .page :is(summary,input,button):focus-visible{outline:3px solid var(--yn-gold);outline-offset:3px}

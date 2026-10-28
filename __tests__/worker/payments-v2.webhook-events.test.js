@@ -155,12 +155,12 @@ test("🔴 Transaction.Cancelled: PAID 이용권 주문은 profileSubscription �
   const { payload } = await postWebhook(db, { type: "Transaction.Cancelled", data: { paymentId: order.merchantUid } });
   expect(payload).toMatchObject({ ok: true, event: "cancelled", refunded: true, revoked: true, reviewRequired: false });
   expect(order.status).toBe("refunded");
-  // 20일 남은 만료를 1개월 되감으면 과거 → free 강등.
+  // 이 주문의 한도를 빼면 남은 한도가 없다 → free 강등, 만료일은 회수 시각(2026-10-11 이용권 기간 없음).
   expect(user.profileSubscription.tier).toBe("free");
   expect(user.profileSubscription.passTier).toBe("");
   expect(user.profileSubscription.passLimit).toBe(0);
   expect(user.profileSubscription.maxCoveredCoin).toBe(0);
-  expect(new Date(user.profileSubscription.expiresAt).getTime()).toBeLessThan(Date.now());
+  expect(new Date(user.profileSubscription.expiresAt).getTime()).toBeLessThanOrEqual(Date.now());
 });
 
 test("Transaction.Cancelled: 이용권 주문이 최신 활성 주문이 아니면 손대지 않고 검토 마커를 남긴다", async () => {

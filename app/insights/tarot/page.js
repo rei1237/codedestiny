@@ -5,15 +5,15 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 const path = "/insights/tarot";
 const INSIGHTS_TAROT_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "타로 인사이트 허브 · 질문법과 카드 해석 | Code Destiny",
+    title: "타로 인사이트 허브 · 질문법과 카드 해석 | 꿀꿀 운세",
     description: "무료 타로, 연애 타로, 재회운 타로, 상대방 속마음 타로의 질문 설계와 카드 해석을 차분한 말로 정리한 타로 인사이트 허브입니다.",
     keywords: ["타로 카드 의미", "타로 카드 해석", "타로 질문 설계", "메이저 아르카나"],
-    breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "타로 인사이트"],
+    breadcrumbs: ["꿀꿀운세 홈", "운세 인사이트", "타로 인사이트"],
     archiveTitle: "타로 인사이트 허브",
     intro: "카드 의미를 외우는 데서 멈추지 않고, 좋은 질문을 세우고 현실에서 확인할 조언으로 이어 가는 타로 해석 아카이브입니다.",
   },
   en: {
-    title: "Tarot Insights Hub · Reading Questions and Interpretation Guide | Code Destiny",
+    title: "Tarot Insights Hub · Reading Questions and Interpretation Guide | 꿀꿀 운세",
     description: "A tarot insights hub for free tarot, love tarot, reunion readings, and question design around someone's true feelings.",
     keywords: ["free tarot", "love tarot", "reunion tarot", "tarot interpretation", "true feelings tarot"],
     breadcrumbs: ["Home", "Fortune Insights", "Tarot Insights"],
@@ -21,7 +21,7 @@ const INSIGHTS_TAROT_PAGE_TEXT_TRANSLATIONS = {
     intro: "A warm tarot archive focused less on memorizing card meanings and more on question design, practical guidance, and humane divination service.",
   },
   ja: {
-    title: "タロットインサイトハブ · 占いサービス型の質問設計と解釈ガイド | Code Destiny",
+    title: "タロットインサイトハブ · 占いサービス型の質問設計と解釈ガイド | 꿀꿀 운세",
     description: "無料タロット、恋愛タロット、復縁運、相手の気持ちタロットの質問設計と解釈を、人に届く言葉でまとめたタロットインサイトハブです。",
     keywords: ["無料タロット", "恋愛タロット", "復縁運タロット", "タロット解釈", "相手の気持ちタロット"],
     breadcrumbs: ["ホーム", "運勢インサイト", "タロットインサイト"],

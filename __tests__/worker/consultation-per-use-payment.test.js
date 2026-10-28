@@ -25,6 +25,7 @@ const userFindById = jest.fn();
 const consumePassForFeatureMock = jest.fn();
 
 let verifyPerUsePayment;
+let settlePerUseAccessDecision;
 let transientError;
 
 /** Mongoose 체이닝(.select().lean())을 흉내내는 최소 스텁. */
@@ -97,7 +98,7 @@ beforeAll(async () => {
     })),
   ]);
 
-  ({ verifyPerUsePayment } = await import("../../worker/lib/nakshatra-paid-access.js"));
+  ({ verifyPerUsePayment, settlePerUseAccessDecision } = await import("../../worker/lib/nakshatra-paid-access.js"));
 });
 
 beforeEach(() => resetModels());
@@ -148,6 +149,14 @@ describe("회당 결제 증빙 — 5경로", () => {
       .resolves.toMatchObject({ proven: false, reason: "NO_RECORD" });
   });
 
+  // 이용권 사용 증빙(recordPassUsageEvidence, delta 0)도 PointHistory deduct 행이다. 코인으로 보고하면
+  // 결제 기록이 코인 차감으로 남고, 영냥이 재시도의 이용권 한도 복원(source==="pass")도 빠진다.
+  it.each(["membership_pass", "family"])("이용권 사용 증빙(accessType=%s)은 코인이 아니라 이용권으로 보고한다", async (accessType) => {
+    pointHistoryFindOne.mockReturnValue(query({ _id: "ph-3", metadata: { accessType, requestId: REQUEST_ID } }));
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: CHAT_FEATURE_KEY, coinPrice: 50, requestId: REQUEST_ID }))
+      .resolves.toMatchObject({ proven: true, source: "pass", transactionId: "ph-3" });
+  });
+
   it("admin 은 차감 기록 없이 통과한다", async () => {
     userFindById.mockReturnValue(query({ _id: USER_ID, role: "admin" }));
     await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 500, requestId: REQUEST_ID }))
@@ -160,6 +169,12 @@ describe("이용권 커버 — 가격에 따라 등급이 갈린다", () => {
     _id: USER_ID,
     role: "user",
     profileSubscription: { tier, status: "active", expiresAt: "2099-01-01T00:00:00.000Z" },
+  });
+
+  it("이용권 소비에 결제한 카드(profileId)를 넘겨 사용 기록에 남긴다", async () => {
+    userFindById.mockReturnValue(query(activePass("standard")));
+    await verifyPerUsePayment({}, { userId: USER_ID, featureKey: CHAT_FEATURE_KEY, coinPrice: 30, requestId: REQUEST_ID, profileId: "card-a" });
+    expect(consumePassForFeatureMock).toHaveBeenCalledWith(expect.objectContaining({ requestId: REQUEST_ID, profileId: "card-a" }));
   });
 
   // 50코인 경계값: standard 적용 범위(50코인)와 정확히 같아 전 등급 커버되는지 검증하는
@@ -260,5 +275,64 @@ describe("증빙 실패와 판단 보류를 구분한다", () => {
   it("requestId 가 없으면 DB 조회 없이 미결제로 떨어진다", async () => {
     const proof = await verifyPerUsePayment({}, { userId: USER_ID, featureKey: CHAT_FEATURE_KEY, coinPrice: 50, requestId: "" });
     expect(proof).toMatchObject({ proven: false, reason: "NO_REQUEST_ID" });
+  });
+});
+
+// 2026-10-16 찻집 사건: canAccessPaidFeature 의 이용권·라이선스 허용은 읽기 전용이라,
+// 그 판정만 믿은 회당 상담이 차감 없이 열렸다. 허용은 정산(실제 차감) 뒤에만 성립한다.
+describe("settlePerUseAccessDecision — 허용 판정은 차감 뒤에만 통과", () => {
+  const TEA_FEATURE_KEY = "fortune-tea-house-saju-consultation";
+  const passUser = (tier) => ({
+    _id: USER_ID,
+    role: "user",
+    profileSubscription: { tier, status: "active", expiresAt: "2099-01-01T00:00:00.000Z" },
+  });
+  const settle = (decision, extra = {}) => settlePerUseAccessDecision({}, {
+    decision, userId: USER_ID, featureKey: TEA_FEATURE_KEY, coinPrice: 100, requestId: REQUEST_ID, ...extra,
+  });
+
+  it("거부된 판정은 DB 를 보지 않고 거부한다", async () => {
+    await expect(settle({ allowed: false, reason: "PAYMENT_REQUIRED" })).resolves.toMatchObject({ allowed: false });
+    expect(userFindById).not.toHaveBeenCalled();
+  });
+
+  it("requestId 가 없으면 거부한다", async () => {
+    await expect(settle({ allowed: true, accessSource: "license_pass" }, { requestId: "" }))
+      .resolves.toMatchObject({ allowed: false, reason: "NO_REQUEST_ID" });
+  });
+
+  it("라이선스·월구독 판정만으로는 회당 상담이 열리지 않는다", async () => {
+    for (const accessSource of ["licenses", "monthlySubscription", "paidFeatures"]) {
+      const settled = await settle({ allowed: true, accessSource });
+      expect(settled.allowed).toBe(false);
+    }
+    expect(consumePassForFeatureMock).not.toHaveBeenCalled();
+  });
+
+  it("이용권 허용은 이번 requestId 로 실제 차감하고 환불 정보를 돌려준다", async () => {
+    userFindById.mockReturnValue(query(passUser("premium")));
+    consumePassForFeatureMock.mockResolvedValue({ covered: true, reason: "", replayed: false, coverage: { cycleKey: "2099-01-01T00:00:00.000Z" } });
+    const settled = await settle({ allowed: true, accessSource: "license_pass" });
+    expect(settled).toMatchObject({ allowed: true, source: "pass", passRefund: { cycleKey: "2099-01-01T00:00:00.000Z", cost: 100 } });
+    expect(consumePassForFeatureMock).toHaveBeenCalledTimes(1);
+    expect(consumePassForFeatureMock).toHaveBeenCalledWith(expect.objectContaining({ requestId: REQUEST_ID, coinCost: 100 }));
+  });
+
+  it("건당 상한을 넘는 등급(standard 5,000원 < 찻집 10,000원)은 차감하지 않고 거부한다", async () => {
+    userFindById.mockReturnValue(query(passUser("standard")));
+    await expect(settle({ allowed: true, accessSource: "license_pass" })).resolves.toMatchObject({ allowed: false });
+    expect(consumePassForFeatureMock).not.toHaveBeenCalled();
+  });
+
+  it("차감이 커버되지 않으면 거부한다", async () => {
+    userFindById.mockReturnValue(query(passUser("premium")));
+    consumePassForFeatureMock.mockResolvedValue({ covered: false, reason: "monthly_pass_limit_exceeded", coverage: {} });
+    await expect(settle({ allowed: true, accessSource: "license_pass" }))
+      .resolves.toMatchObject({ allowed: false, reason: "MONTHLY_PASS_LIMIT_EXCEEDED" });
+  });
+
+  it("🔴 DB 일시 장애는 거부가 아니라 판단 보류(null)다", async () => {
+    paymentFindOne.mockImplementation(() => { throw transientError; });
+    await expect(settle({ allowed: true, accessSource: "license_pass" })).resolves.toMatchObject({ allowed: null });
   });
 });

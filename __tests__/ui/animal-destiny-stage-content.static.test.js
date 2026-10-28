@@ -8,7 +8,7 @@ function read(relPath) {
 }
 
 test("twelve growth stage seeds define all 12 stages", () => {
-  const src = read("app/saju/animal-destiny/lib/twelveGrowthAnimalResults.ts");
+  const src = read("worker/lib/saju-section/paid-animal.src.js"); // 유료 결과 문장은 서버 전용 사본으로 옮겼다
   const requiredKeys = [
     "jangsaeng",
     "mogyok",
@@ -30,7 +30,7 @@ test("twelve growth stage seeds define all 12 stages", () => {
 });
 
 test("tab labels include required eight sections", () => {
-  const src = read("app/saju/animal-destiny/lib/twelveGrowthAnimalResults.ts");
+  const src = read("worker/lib/saju-section/paid-animal.src.js"); // 유료 결과 문장은 서버 전용 사본으로 옮겼다
   // 라벨은 `label: "..."` 리터럴에서 i18n 번역 맵(`"section.core": "핵심 성향"`)으로 옮겨갔다.
   // 표기 형태가 아니라 "여덟 섹션이 모두 존재하는가"를 지킨다 — 형태를 박아두면 리팩터링
   // 한 번에 테스트가 죽고, 정작 섹션이 사라져도 아무도 모르게 된다.

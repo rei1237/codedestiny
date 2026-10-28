@@ -67,6 +67,15 @@ test('question analysis uses a short deterministic single provider call',async()
  assert.equal(getOptions().thinkingBudget,0);
  setResponse({ok:true,text:'{}',truncated:true});await assert.rejects(provider.analyzeQuestion('classify','data'));
 });
+
+test('only the synthesis chapter forwards Pro intent; question classification remains ordinary',async()=>{
+ const synthesis=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used',LLM_DRY_RUN:'false'},{},{},90000,'gemini-2.5-pro','tuna-synthesis');
+ setResponse({ok:true,text:'{}',provider:'gemini'});
+ await synthesis.generate(request);
+ assert.equal(getOptions().reasoningTask,'tuna-synthesis');
+ await synthesis.analyzeQuestion('classify','data');
+ assert.equal(getOptions().reasoningTask,undefined);
+});
 test('output truncation is never accepted as a complete paid chapter',async()=>{
  for(const flags of [{truncated:true},{finishReason:'MAX_TOKENS'}]){
   setResponse({ok:true,text:'{}',...flags});await assert.rejects(provider.generate(request),e=>e.code==='CHAPTER_TRUNCATED');assert.equal(getOptions().preserveTermination,true);
@@ -74,7 +83,11 @@ test('output truncation is never accepted as a complete paid chapter',async()=>{
 });
 test('timeout and provider failure remain distinct recoverable errors',async()=>{
  setResponse({ok:false,error:'LLM_TIMEOUT'});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_TIMEOUT');
- setResponse({ok:false,error:'UNAVAILABLE'});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_FAILED');
+ setResponse({ok:false,error:'UNAVAILABLE'});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_FAILED'&&e.detail===undefined);
+});
+test('spend-cap outage keeps the failure code and names the cause in the audit detail',async()=>{
+ setResponse({ok:false,error:'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE',status:429,providerCode:'GEMINI_SPEND_CAP'});
+ await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_PROVIDER_FAILED'&&e.detail==='GEMINI_SPEND_CAP');
 });
 
 test('chapter receipt distinguishes measured, estimated and unavailable tokens without retaining text',async()=>{

@@ -32,7 +32,7 @@ export default function PublicFeatureIntroduction({ locale, topic }) {
         </>}
         <p className={styles.updated}>{ui.updated}: <time dateTime={hook ? ENTRY_HOOK_UPDATED : copy.updated || "2026-09-08"}>{hook ? ENTRY_HOOK_UPDATED : copy.updated || "2026-09-08"}</time></p>
       </div>
-      <Image className={styles.pig} src="/icons/app-logo-512.webp" alt="Code Destiny" width={512} height={512} sizes="(max-width: 720px) 88px, 132px" priority />
+      <Image className={styles.pig} src="/icons/app-logo-512.webp" alt="꿀꿀운세" width={512} height={512} sizes="(max-width: 720px) 88px, 132px" priority />
     </header>
     <div className={styles.content}>
       {copy.sections.map(([heading, body]) => <section key={heading} className={styles.section}>

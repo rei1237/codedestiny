@@ -34,7 +34,7 @@
 // 실행: npm run verify:overseas-payment-notice
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { gateCovers as gateCoversAny, readGatePatterns } from "./lib/gate-trigger-coverage.mjs";
@@ -133,10 +133,12 @@ const REFERENCE_FN = "formatReferenceAmount";
 // verify:payment-choice-single-instance 가 따로 강제한다(위 "범위" 주석 참고).
 const LEAK_SCAN_EXCLUDED = /^(public\/|scripts\/|__tests__\/|docs\/)|\.d\.ts$/;
 
-const trackedSources = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" })
+const trackedSources = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })
   .split("\n")
   .map((rel) => rel.trim())
-  .filter((rel) => /\.(html|ts|tsx|js|mjs)$/.test(rel) && !LEAK_SCAN_EXCLUDED.test(rel));
+  .filter((rel) => /\.(html|ts|tsx|js|mjs)$/.test(rel) && !LEAK_SCAN_EXCLUDED.test(rel))
+  // ls-files 는 지웠지만 아직 커밋하지 않은 추적 파일도 낸다 — 디스크에 없으면 읽을 수 없다(ENOENT).
+  .filter((rel) => existsSync(resolve(root, rel)));
 assert.ok(
   trackedSources.length > 100,
   `git ls-files 가 ${trackedSources.length}개만 돌려줬습니다 — 누출 검사가 대상 없이 통과할 뻔했습니다.`,

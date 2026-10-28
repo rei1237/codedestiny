@@ -92,7 +92,7 @@ assert(
 
 const structuredDataSource = readProjectFile("lib/structured-data.ts");
 const layoutSource = readProjectFile("app/layout.js");
-const brandLandingSource = readProjectFile("app/kkul-kkul-unse/page.js");
+const brandLandingSource = readProjectFile("app/page.js");
 const jsonLdComponentSource = readProjectFile("app/components/SeoJsonLd.jsx");
 const metadataSource = readProjectFile("lib/generate-page-metadata.ts");
 const seoSource = readProjectFile("lib/seo.ts");
@@ -110,8 +110,8 @@ assert(!metadataSource.includes("isAccessibleForFree: true"), "Metadata helper d
 assert(seoSource.includes("getSeoProfileKeywords(path)"), "Primary metadata helper does not use the registry");
 assert(i18nMetadataSource.includes("getSeoProfileKeywords(routeByLocale.ko)"), "Korean i18n metadata does not use the registry");
 assert(structuredDataSource.includes("knowsAbout"), "Organization JSON-LD does not describe Fusion Fortune");
-assert(brandLandingSource.includes("FUSION_FORTUNE_SUMMARY"), "Brand landing page is missing visible Fusion Fortune content");
-assert(brandLandingSource.includes('href="/fusion-fortune"'), "Brand landing page does not link to Fusion Fortune");
+assert(brandLandingSource.includes("BRAND_FACTS"), "Brand home does not use the shared brand identity");
+assert(brandLandingSource.includes("appEntryPath"), "Brand home does not link to the app entry");
 assert(!brandLandingSource.includes("fusionFortuneServiceJsonLd"), "Brand landing page duplicates the Fusion Fortune Service JSON-LD");
 assert(fusionPageSource.includes("buildServiceJsonLd"), "Fusion Fortune hub is missing Service JSON-LD");
 assert(fusionPageSource.includes("buildFaqPageJsonLd"), "Fusion Fortune hub is missing FAQPage JSON-LD");
@@ -124,7 +124,7 @@ if (shouldVerifyBuild) {
 
     const html = fs.readFileSync(outputPath, "utf8");
     const h1Count = (html.match(/<h1\b/gi) || []).length;
-    const expectedCanonical = `https://code-destiny.com${profile.path}/`;
+    const expectedCanonical = `https://code-destiny.com${profile.path === "/" ? "/" : `${profile.path}/`}`;
     const canonicalMatch = html.match(/<link\s+rel=["']canonical["']\s+href=["']([^"']+)["']/i);
 
     assert(canonicalMatch?.[1] === expectedCanonical, `Canonical missing or wrong: ${profile.path}`);
@@ -137,11 +137,11 @@ if (shouldVerifyBuild) {
     }
   }
 
-  const brandOutputPath = getOutputHtmlPath("/kkul-kkul-unse");
+  const brandOutputPath = getOutputHtmlPath("/");
   if (fs.existsSync(brandOutputPath)) {
     const brandHtml = fs.readFileSync(brandOutputPath, "utf8");
-    assert(brandHtml.includes("초융합 운세"), "Fusion Fortune is missing from built brand landing page");
-    assert(brandHtml.includes('href="/fusion-fortune'), "Fusion Fortune link is missing from built brand landing page");
+    assert(brandHtml.includes("꿀꿀 운세"), "Brand name is missing from built home");
+    assert(brandHtml.includes('href="/saju'), "Saju category link is missing from built home");
   }
 
   const fusionOutputPath = getOutputHtmlPath("/fusion-fortune");

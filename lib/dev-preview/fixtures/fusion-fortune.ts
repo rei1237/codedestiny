@@ -1,3 +1,4 @@
+import { FUSION_PREMIUM_VERSION, FUSION_PREMIUM_V2, FUSION_PREMIUM_TARGETS_V2 as FUSION_PREMIUM_TARGETS, FUSION_DOMAIN_CHAPTERS, normalizeFusionSubchapters } from "@/lib/fusion-premium-report";
 import type { DevPreviewState } from "@/lib/dev-preview/core";
 
 /**
@@ -45,7 +46,8 @@ function body(seed: number, targetChars: number): string {
   return paragraphs.join("\n\n");
 }
 
-const SECTION_TITLES: [string, string, number][] = [
+type PreviewSectionKey = "sajuSection" | "ziweiSection" | "vedicSection" | "sukuyoSection" | "astrologySection" | "tarotSection" | "integratedReading";
+const SECTION_TITLES: [PreviewSectionKey, string, number][] = [
   ["sajuSection", "사주 — 타고난 결과 지금의 계절", 0],
   ["ziweiSection", "자미두수 — 자리와 역할", 2],
   ["vedicSection", "베다점 — 무의식의 리듬", 4],
@@ -79,7 +81,7 @@ const SYSTEM_SCORES = [
 const MONTH_NOTES = ["정리", "준비", "시험", "확장", "조정", "수확", "휴지", "재정비", "추진", "점검", "마무리", "설계"];
 
 function buildStageOne() {
-  const sections = Object.fromEntries(SECTION_TITLES.map(([key, title, seed]) => [key, section(title, seed, key === "integratedReading" ? 4600 : 4200)]));
+  const sections = Object.fromEntries(SECTION_TITLES.map(([key, title, seed]) => [key, section(title, seed, key === "integratedReading" ? 4600 : 4200)])) as Record<PreviewSectionKey, ReturnType<typeof section>>;
   return {
     ...sections,
     title: "여섯 체계가 함께 본 당신의 올해",
@@ -138,11 +140,32 @@ export function buildFusionPreviewResult(state: DevPreviewState) {
   if (state === "failed") return { ok: false as const, reason: "LLM_ERROR" };
   const first = buildStageOne();
   if (state === "legacy") return { ok: true as const, stageTwoPending: false, result: { ...first, ...buildStageTwo() } };
+  for (const [key, , seed] of SECTION_TITLES) {
+    const item = first[key];
+    if (!item?.content) continue;
+    Object.assign(item, normalizeFusionSubchapters({ ...item, content: body(seed, FUSION_PREMIUM_TARGETS[key]), subchapters: ["내가 일을 선택하는 방식", "강점이 부담으로 바뀌는 순간", "남을 때와 옮길 때의 조건", "지금 확인할 작은 행동"].map((title, index) => ({title, start:0, end:0, questionIds:[`q${index % 3 + 1}`],evidenceKeys:[],artKey:key.replace("Section", "")})) }));
+  }
   const expert = {
+    reportVersion: FUSION_PREMIUM_VERSION,
+    consultationPlan: { version: FUSION_PREMIUM_VERSION, question: "이직할까요, 지금 자리에서 조금 더 준비할까요?", questions: [{id:"q1",title:"내 성향과 지금 역할은 어떻게 맞물리나요?"},{id:"q2",title:"남을 때와 옮길 때 무엇을 비교해야 하나요?"},{id:"q3",title:"이번 주에 무엇부터 확인할까요?"}] },
     expertMeta: { version: "fusion-expert.v2", locale: "ko", identity: "local-preview", calculatedAt: "2026-09-09T00:00:00.000Z", pendingStage: 2 as const, complete: state !== "truncated" },
     tarotCards: ["major_fool", "major_magician", "major_high_priestess", "major_empress", "major_emperor", "major_lovers"].map((cardId, i) => ({ cardId, name: ["바보", "마법사", "여사제", "여황제", "황제", "연인"][i], orientation: i % 2 ? "reversed" : "upright", positionKey: ["current", "inner", "obstacle", "external", "choice", "action"][i], meaningSummary: "개발 전용 카드 공개 예시" })),
     evidenceCrossCheck: { aligned: [], divergent: [{ domain: "psychology" as const, period: "current", systems: ["saju", "tarot"] as const, preferredSystems: ["tarot"] as const, positions: [{ system: "saju", summary: "실행을 준비하는 흐름입니다.", evidenceKeys: ["saju.expertEvidence.majorLuck"] }, { system: "tarot", summary: "선택하기 전에 마음의 속도를 돌아봅니다.", evidenceKeys: ["tarot.cards.0.name"] }] }] },
   };
   if (state === "truncated") return { ok: true as const, stageTwoPending: true, result: { ...first, ...expert } };
-  return { ok: true as const, stageTwoPending: false, result: { ...first, ...buildStageTwo(), ...expert } };
+  const second = buildStageTwo();
+  second.executiveSummary = body(5, FUSION_PREMIUM_TARGETS.executiveSummary);
+  second.finalVerdict.rationale = body(11, FUSION_PREMIUM_TARGETS.finalVerdict);
+  second.timingAndAction = normalizeFusionSubchapters({ ...second.timingAndAction,
+    content: body(9, FUSION_PREMIUM_TARGETS.timingAndAction),
+    subchapters: ["지금 할 일", "확인할 조건", "멈추거나 바꿀 신호", "한 달 뒤 돌아볼 기록"].map((title, index) => ({ title, start: 0, end: 0, questionIds: [`q${index % 3 + 1}`], evidenceKeys: [], artKey: "action" })),
+  });
+  first.openingMessage = body(0, FUSION_PREMIUM_TARGETS.openingMessage);
+  first.closingMessage = body(3, FUSION_PREMIUM_TARGETS.closingMessage);
+  // v2 영역별 8장 — 마지막 장(인간관계)은 비워 "보강 중" 줄을 함께 확인한다.
+  const domains = Object.fromEntries(FUSION_DOMAIN_CHAPTERS.slice(0, -1).map((chapter, index) => [chapter.key, normalizeFusionSubchapters({
+    ...section(`${chapter.label} — 여섯 체계가 겹치는 자리`, 12 + index, chapter.target), content: body(12 + index, chapter.target),
+    subchapters: ["타고난 결", "반복되는 장면", "시기와 조건", "지금 할 한 가지"].map((title, sub) => ({ title, start: 0, end: 0, questionIds: [`q${sub % 3 + 1}`], evidenceKeys: [], artKey: chapter.id })),
+  })]));
+  return { ok: true as const, stageTwoPending: false, result: { ...first, ...second, ...expert, ...domains, reportVersion: FUSION_PREMIUM_V2 } };
 }

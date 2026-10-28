@@ -123,7 +123,7 @@ export default function GlobalError({
         <main style={docStyle}>
           <header style={headStyle}>
             <h1 style={titleStyle}>{t("errorBoundary.title")}</h1>
-            <p style={metaStyle}>CODE DESTINY</p>
+            <p style={metaStyle}>꿀꿀운세</p>
             <p style={ledeStyle}>{t("errorBoundary.description")}</p>
           </header>
           <div style={actionsStyle}>

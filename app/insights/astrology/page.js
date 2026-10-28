@@ -5,15 +5,15 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 const path = "/insights/astrology";
 const INSIGHTS_ASTROLOGY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "점성술 인사이트 허브 · 출생차트·상승궁 | Code Destiny",
+    title: "점성술 인사이트 허브 · 출생차트·상승궁 | 꿀꿀 운세",
     description: "점성술 차트, 태양궁·달궁·상승궁, 하우스 해석을 초보자 친화적으로 정리한 점성술 허브입니다.",
     keywords: ["상승궁", "달궁", "태양궁", "하우스 뜻", "점성술 용어"],
-    breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "점성술 인사이트"],
+    breadcrumbs: ["꿀꿀운세 홈", "운세 인사이트", "점성술 인사이트"],
     archiveTitle: "점성술 인사이트 허브",
     intro: "출생차트 구조와 별자리 해석을 실제 생활 계획으로 연결하는 점성술 실전 가이드 모음입니다.",
   },
   en: {
-    title: "Astrology Insights Hub · Birth Chart and Rising Sign Guide | Code Destiny",
+    title: "Astrology Insights Hub · Birth Chart and Rising Sign Guide | 꿀꿀 운세",
     description: "A beginner-friendly astrology hub for birth charts, Sun, Moon, rising signs, and house interpretation.",
     keywords: ["astrology chart", "birth chart", "rising sign", "moon sign", "sun sign", "house interpretation"],
     breadcrumbs: ["Home", "Fortune Insights", "Astrology Insights"],
@@ -21,7 +21,7 @@ const INSIGHTS_ASTROLOGY_PAGE_TEXT_TRANSLATIONS = {
     intro: "Practical astrology guides that connect birth-chart structure and zodiac interpretation to real-life planning.",
   },
   ja: {
-    title: "占星術インサイトハブ · 出生チャート・上昇宮ガイド | Code Destiny",
+    title: "占星術インサイトハブ · 出生チャート・上昇宮ガイド | 꿀꿀 운세",
     description: "出生チャート、太陽星座・月星座・上昇宮、ハウス解釈を初心者にもわかりやすく整理した占星術ハブです。",
     keywords: ["占星術チャート", "出生チャート", "上昇宮", "月星座", "太陽星座", "ハウス解釈"],
     breadcrumbs: ["ホーム", "運勢インサイト", "占星術インサイト"],

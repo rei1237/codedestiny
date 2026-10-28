@@ -46,7 +46,6 @@ export const LLM_DELIVERY_ADAPTERS=Object.freeze([
   [/^love-secret-ai-consultation$/, 'worker/routes/love-secret-ai.js',null,'route-delivery'],
   [/^relationship-boundary-test$/, 'worker/routes/relationship-boundary-test.js',null,'route-delivery'],
   [/^karma-destiny-ai-consultation$/, 'worker/routes/karma-destiny-ai.js',null,'route-delivery'],
-  [/^ziwei-island-palace-consult$/, 'worker/routes/ziwei-island-ai.js',null,'route-delivery'],
   [/^palm-reading-general$/, 'worker/routes/palm.js',null,'route-delivery'],
   [/^fortune-chat-consultation$/, 'worker/routes/fortune-chat.js',null,'route-delivery'],
 ]);
@@ -74,6 +73,7 @@ function deliveryCandidates(featureKey){
   }));
   const fixture=deterministic.get(featureKey), past=historical.get(featureKey), action=nonResult.get(featureKey);
   return [...llm,
+    featureKey === 'neo-email-consultation' && {deliveryKind:'human-reviewed-email',generation:'worker/neo-consultation/service.js',serverRecovery:'worker/neo-consultation/tasks.js',evidence:{saleEnabled:true,automaticLlm:false}},
     fixture && {deliveryKind:'deterministic',generation:fixture.consumer.file,evidence:{cta:fixture.cta,consumer:fixture.consumer}},
     past && {deliveryKind:'historical',generation:null,evidence:{retained:past.retained,replacement:past.replacement}},
     REGISTRY_ONLY_NON_LLM_KEYS.includes(featureKey) && {deliveryKind:'registry-only',generation:null,evidence:null},
@@ -118,5 +118,6 @@ export function buildPaidDeliveryInventory(products=listProducts()){
     allProductsVerified:false,products:rows};
 }
 
-export const inventoryIsComplete=report=>['missingDeliveryMappings','ambiguousDeliveryMappings','invalidMappings','staleEvidenceKeys','unusedLlmAdapters']
+export const inventoryIsComplete=report=>['missingDeliveryMappings','ambiguousDeliveryMappings','invalidMappings','staleEvidenceKeys','unusedLlmAdapters',
+  'backgroundRecoveryNotMapped','llmWithoutServerRecovery']
   .every(field=>report[field].length===0);

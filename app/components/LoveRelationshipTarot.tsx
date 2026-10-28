@@ -11,7 +11,7 @@ import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
-import { continueOracleDelivery, registerPaidNarrativeIntent, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
+import { continueOracleDelivery, needsTarotRedraw, registerPaidNarrativeIntent, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
 
 type DrawnCard = {
   cardId: string;
@@ -27,7 +27,6 @@ function toPayloadCards(cards: DrawnCard[]): PayloadCard[] {
   return cards.map((c) => ({ cardId: c.cardId, position: c.position, orientation: c.orientation }));
 }
 
-const SPREAD_TYPE = "relationship_six_card";
 const CATEGORY = "love";
 const CARD_COUNT = 6;
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
@@ -37,6 +36,7 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     drawFailed: "카드 뽑기 실패",
     invalidCards: "6카드 데이터가 올바르지 않습니다.",
     drawError: "카드 뽑기 중 오류가 발생했습니다.",
+    redrawRequired: "카드를 다시 뽑아 주세요. 이미 결제한 요청으로 이어지며 추가 결제는 없습니다.",
     paymentReason: "우리는 무슨 사이? 타로 리딩",
     subscriptionIncluded: "이용권 혜택이 적용되어 추가 결제 없이 열렸습니다.",
     subscriptionReason: "우리는 무슨 사이 타로",
@@ -89,6 +89,7 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     drawFailed: "Card draw failed.",
     invalidCards: "The six-card data is not valid.",
     drawError: "An error occurred while drawing cards.",
+    redrawRequired: "Please draw the cards again. The reading continues on your existing payment with no new charge.",
     paymentReason: "What Are We? Tarot Reading",
     subscriptionIncluded: "Your pass benefit was applied, so it opened without an extra payment.",
     subscriptionReason: "What Are We Tarot",
@@ -140,6 +141,7 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     drawFailed: "カードの抽出に失敗しました。",
     invalidCards: "6枚カードのデータが正しくありません。",
     drawError: "カード抽出中にエラーが発生しました。",
+    redrawRequired: "カードをもう一度引いてください。お支払い済みのリクエストで続けるため、追加の支払いはありません。",
     paymentReason: "私たちはどんな関係？タロットリーディング",
     subscriptionIncluded: "利用券の特典が適用され、追加決済なしで開きました。",
     subscriptionReason: "私たちはどんな関係タロット",
@@ -191,6 +193,7 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     drawFailed: "抽卡失败。",
     invalidCards: "6 张卡数据不正确。",
     drawError: "抽卡过程中发生错误。",
+    redrawRequired: "请重新抽牌。将沿用已付款的请求继续解读，不会再次扣费。",
     paymentReason: "我们是什么关系？塔罗解读",
     subscriptionIncluded: "已应用使用券权益，无需额外付款即可开启。",
     subscriptionReason: "我们是什么关系塔罗",
@@ -242,6 +245,7 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     drawFailed: "抽牌失敗。",
     invalidCards: "6 張牌資料不正確。",
     drawError: "抽牌過程中發生錯誤。",
+    redrawRequired: "請重新抽牌。將沿用已付款的請求繼續解讀，不會再次扣費。",
     paymentReason: "我們是什麼關係？塔羅解讀",
     subscriptionIncluded: "已套用使用券權益，無需額外付款即可開啟。",
     subscriptionReason: "我們是什麼關係塔羅",
@@ -383,7 +387,12 @@ function safeCardName(card?: DrawnCard, idx?: number) {
   return `카드 ${typeof idx === "number" ? idx + 1 : ""}`.trim();
 }
 
-type LoveRecovery = { body: { cards: PayloadCard[]; clientCards?: DrawnCard[]; locale: LoadingLocale; requestId: string }; resultId?: string };
+type LoveRecovery = { body: { cards: PayloadCard[]; clientCards?: DrawnCard[]; locale: LoadingLocale; requestId: string; drawId?: string }; resultId?: string };
+function newLoveDrawId(): string {
+  let random = "";
+  try { random = crypto.randomUUID(); } catch { /* Older browsers fall back below. */ }
+  return `tarot-love-draw:${random || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`}`;
+}
 const loveOwner = () => { const user = getAuthState().user; return String(user?.id || user?.userId || user?._id || user?.uid || ''); };
 const loveRecoveryKey = (owner: string) => `cd:love-tarot-delivery:v1:${owner}`;
 
@@ -392,6 +401,8 @@ export default function LoveRelationshipTarot() {
   const auth = useAuthStore();
   const owner = String(auth.user?.id || auth.user?.userId || auth.user?._id || auth.user?.uid || '');
   const recoveryRef = useRef<LoveRecovery | null>(null), requestIdRef = useRef('');
+  // The server draw (worker/lib/paid-tarot-draw.js) the cards came from; the paid route refuses other cards.
+  const drawIdRef = useRef('');
   const runRef = useRef(0), busyRef = useRef(false);
   const [delivery, setDelivery] = useState<OracleDeliveryResponse | null>(null);
   useEffect(() => { if (!getAuthState().authReady) void refreshAuth({ silent: true }).catch(() => {}); }, []);
@@ -403,6 +414,8 @@ export default function LoveRelationshipTarot() {
   const [readingRaw, setReadingRaw] = useState<any>(null);
   // 결제 확인이 끝난 뒤 리딩 생성이 실패했을 때, 재시도에서 중복 과금을 막는 세션 플래그.
   const paidAccessGrantedRef = useRef(false);
+  // The paid requestId the next server draw continues after a draw refusal (askRedraw).
+  const redrawRequestIdRef = useRef('');
 
   const canRead = cards.length === CARD_COUNT && revealedCount === CARD_COUNT && !loading;
   // 🔴 표에 없는 로케일(vi/hi/es/fr/de/nl/ms)은 ko 로 새지 않고 en 으로 대신한다.
@@ -426,12 +439,23 @@ export default function LoveRelationshipTarot() {
     try { localStorage.setItem(loveRecoveryKey(expectedOwner), JSON.stringify(entry)); } catch { /* Server checkpoint survives. */ }
   }
 
+  // The server refuses paid cards that are not its held draw before any payment lookup (worker/lib/paid-tarot-draw.js).
+  // The paid requestId waits for the next server draw, and a carry without cards replaces the saved entry,
+  // so a reload asks for the redraw again instead of resending the refused body.
+  const askRedraw = (paidRequestId: string) => {
+    const expectedOwner = loveOwner();
+    recoveryRef.current = null; drawIdRef.current = '';
+    if (paidRequestId) redrawRequestIdRef.current = paidRequestId;
+    try { if (expectedOwner && paidRequestId) localStorage.setItem(loveRecoveryKey(expectedOwner), JSON.stringify({ body: { cards: [], locale, requestId: paidRequestId } })); } catch { /* The carry stays in memory. */ }
+    setCards([]); setRevealedCount(0); setDelivery(null); setReadingRaw(null);
+  };
+
   async function performReading(payloadCards: PayloadCard[], readingLocale: LoadingLocale, requestId: string) {
     if (busyRef.current) return;
     const expectedOwner = loveOwner();
     if (!expectedOwner) throw new Error(copy.authRequired);
     const entry = recoveryRef.current?.body.requestId === requestId ? recoveryRef.current
-      : { body: { cards: payloadCards, locale: readingLocale, requestId } };
+      : { body: { cards: payloadCards, locale: readingLocale, requestId, drawId: drawIdRef.current } };
     remember(entry, expectedOwner);
     const run = ++runRef.current;
     const active = () => run === runRef.current && expectedOwner === loveOwner();
@@ -445,14 +469,15 @@ export default function LoveRelationshipTarot() {
           if (data.resultId) { entry.resultId = data.resultId; remember(entry, expectedOwner); }
         } });
       if (!active() || !result) return;
-      if (result.saved && result.status === 'completed' && result.reading) { setReadingRaw(result.reading); return; }
+      if (result.saved && result.status === 'completed' && result.reading) { redrawRequestIdRef.current = ''; setReadingRaw(result.reading); return; }
+      if (needsTarotRedraw(result)) { askRedraw(requestId); throw new Error(copy.redrawRequired); }
       throw new Error(readingLocale === 'ko' ? '저장된 본문을 보존했습니다. 잠시 후 이어서 생성해 주세요.' : 'Saved sections are retained. Continue the reading shortly.');
     } finally { if (active()) { busyRef.current = false; setLoading(false); } }
   }
 
   useEffect(() => {
     const run = ++runRef.current;
-    busyRef.current = false; recoveryRef.current = null; paidAccessGrantedRef.current = false;
+    busyRef.current = false; recoveryRef.current = null; paidAccessGrantedRef.current = false; redrawRequestIdRef.current = '';
     setDelivery(null); setReadingRaw(null); setLoading(false); setError(''); setCards([]); setRevealedCount(0);
     if (!owner || !auth.authReady) return;
     let disposed = false;
@@ -470,7 +495,9 @@ export default function LoveRelationshipTarot() {
         else if ([401, 403].includes(response.status)) return;
       } catch { /* Original local evidence remains available. */ }
       if (!active() || !entry?.body?.requestId || !Array.isArray(entry.body.cards)) return;
-      remember(entry, owner); requestIdRef.current = entry.body.requestId; paidAccessGrantedRef.current = true;
+      // Saved before the server draw (or a refused draw's carry): the paid request continues on a new draw.
+      if (!entry.resultId && !entry.body.drawId) { askRedraw(entry.body.requestId); setError(copy.redrawRequired); return; }
+      remember(entry, owner); requestIdRef.current = entry.body.requestId; drawIdRef.current = entry.body.drawId || ''; paidAccessGrantedRef.current = true;
       setCards(entry.body.clientCards || entry.body.cards); setRevealedCount(CARD_COUNT); setDelivery(data);
       if (data?.saved && data.status === 'completed' && data.reading) setReadingRaw(data.reading);
     })().catch(() => {});
@@ -501,6 +528,7 @@ export default function LoveRelationshipTarot() {
     const restored = unpackPaidResumeArg<DrawnCard[]>(args.cards);
     const requestId = String(args.requestId || "");
     if (!requestId || !Array.isArray(restored) || restored.length !== CARD_COUNT) return false;
+    drawIdRef.current = String(args.drawId || "");
     const readingLocale = (String(args.locale || "") || locale) as LoadingLocale;
     setCards(restored);
     setRevealedCount(CARD_COUNT);
@@ -520,17 +548,20 @@ export default function LoveRelationshipTarot() {
 
   async function startDraw() {
     runRef.current += 1; busyRef.current = false; recoveryRef.current = null;
-    requestIdRef.current = ''; paidAccessGrantedRef.current = false; setDelivery(null);
+    // A refused draw's paid request continues on this draw without a second checkout.
+    requestIdRef.current = redrawRequestIdRef.current; drawIdRef.current = ''; paidAccessGrantedRef.current = Boolean(redrawRequestIdRef.current); setDelivery(null);
     setLoading(true);
     setError("");
     setReadingRaw(null);
     setCards([]);
     setRevealedCount(0);
     try {
-      const res = await fetch("/api/tarot/draw", {
+      // 🔴 유료 리딩 카드는 서버가 나눠 주고 drawId 로 보관한다 — 결제 후 다른 카드를 보내면 거절된다.
+      const drawId = newLoveDrawId();
+      const res = await fetch("/api/tarot/paid-draw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spreadType: SPREAD_TYPE }),
+        body: JSON.stringify({ featureKey: "tarot-love-relationship", drawId, auto: true }),
       });
       const data = await res.json();
       if (!res.ok || data?.ok === false) {
@@ -541,6 +572,7 @@ export default function LoveRelationshipTarot() {
       if (sliced.length !== CARD_COUNT) {
         throw new Error(copy.invalidCards);
       }
+      drawIdRef.current = drawId;
       setCards(sliced);
     } catch (e: any) {
       setError(e?.message || copy.drawError);
@@ -552,6 +584,8 @@ export default function LoveRelationshipTarot() {
   async function loadReading() {
     const requestOwner = loveOwner();
     if (!canRead) return;
+    // Paid cards come only from the server draw; a saved result id still resumes as before.
+    if (!drawIdRef.current && !recoveryRef.current?.resultId) { askRedraw(paidAccessGrantedRef.current ? requestIdRef.current : ''); setError(copy.redrawRequired); return; }
     setLoading(true);
     setError("");
     try {
@@ -576,7 +610,7 @@ export default function LoveRelationshipTarot() {
       const payloadCards = toPayloadCards(cards);
 
       if (!requestIdRef.current) requestIdRef.current = `tarot-love-relationship:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-      if (!recoveryRef.current) remember({ body: { cards: payloadCards, clientCards: cards, locale, requestId: requestIdRef.current } });
+      if (!recoveryRef.current) remember({ body: { cards: payloadCards, clientCards: cards, locale, requestId: requestIdRef.current, drawId: drawIdRef.current } });
       const executeReading = () => loveOwner() === requestOwner ? performReading(payloadCards, locale, requestIdRef.current) : Promise.resolve();
 
       if (isFlowerAdminMode) {
@@ -597,7 +631,7 @@ export default function LoveRelationshipTarot() {
         cost: lookupServerCoinPrice("tarot-love-relationship"),
         reason: copy.paymentReason,
         requestId: requestIdRef.current,
-        resume: buildResume({ cards: packPaidResumeArg(cards), locale, requestId: requestIdRef.current }),
+        resume: buildResume({ cards: packPaidResumeArg(cards), locale, requestId: requestIdRef.current, drawId: drawIdRef.current }),
         // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
         onPaid: ({ chargedCoins, accessSource, monthlyCreditsSpent, monthlyBalanceAfter, balanceAfter }) => {
           // 🔴 판정은 accessSource 로만 한다. chargedCoins 는 이용권·월정석·재열람 모두 0 이라

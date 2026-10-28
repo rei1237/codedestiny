@@ -1,0 +1,525 @@
+{
+  "master-love-codex": [
+    "generated feature detail",
+    "service registry",
+    "shell:src",
+    "content/product-details/master-love-codex/manifest.json",
+    "content/product-details/master-love-codex-compat/manifest.json"
+  ],
+  "fortune-tea-house": [
+    "generated feature detail",
+    "service registry",
+    "shell:src"
+  ],
+  "love-secret-ai": [
+    "generated feature detail",
+    "service registry",
+    "shell:src",
+    "shell:data-img-src",
+    "shell:src",
+    "content/product-details/love-secret/manifest.json"
+  ],
+  "fortune-chat": [
+    "generated feature detail",
+    "service registry"
+  ],
+  "tarot-love-relationship": [
+    "generated feature detail",
+    "service registry",
+    "D:openTarotLoveModal",
+    "shell:data-img-src"
+  ],
+  "tarot-reunion": [
+    "generated feature detail",
+    "service registry",
+    "D:openTarotReunionModal",
+    "shell:data-img-src"
+  ],
+  "tarot-mindscan": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "nakshatra-compat": [
+    "generated feature detail",
+    "service registry"
+  ],
+  "neo-operation-room": [
+    "generated feature detail",
+    "service registry",
+    "D:/neo-operation-room",
+    "shell:src",
+    "content/product-details/neo-operation-room/manifest.json"
+  ],
+  "destiny-compass": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src"
+  ],
+  "saju-sibyl": [
+    "generated feature detail",
+    "service registry",
+    "shell:src"
+  ],
+  "new-year-ai": [
+    "generated feature detail",
+    "service registry",
+    "shell:src",
+    "shell:data-img-src",
+    "content/product-details/new-year-expert/manifest.json"
+  ],
+  "tarot-ijik": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "life-book-ai": [
+    "generated feature detail",
+    "service registry",
+    "shell:src",
+    "shell:data-img-src",
+    "shell:src",
+    "content/product-details/life-book/manifest.json"
+  ],
+  "karma-destiny-ai": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src",
+    "shell:src",
+    "content/product-details/karma-destiny/manifest.json"
+  ],
+  "saju-guardian": [
+    "generated feature detail",
+    "service registry",
+    "D:openSajuGuardianPage",
+    "D:openSajuAnimalPage",
+    "shell:data-img-src"
+  ],
+  "naming-ai": [
+    "generated feature detail",
+    "service registry",
+    "D:openNamingPromptModal",
+    "shell:data-img-src"
+  ],
+  "fusion-fortune": [
+    "generated feature detail",
+    "service registry",
+    "shell:src",
+    "shell:data-img-src",
+    "content/product-details/fusion-fortune/manifest.json"
+  ],
+  "tarot-year-fortune": [
+    "generated feature detail",
+    "service registry",
+    "D:openTarotYearFortuneModal",
+    "shell:data-img-src"
+  ],
+  "tarot-celestial-harmony": [
+    "generated feature detail",
+    "service registry",
+    "D:openCelestialHarmony",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "nakshatra-muhurta": [
+    "generated feature detail",
+    "service registry",
+    "content/product-details/nakshatra-muhurta/manifest.json"
+  ],
+  "saju": [
+    "generated feature detail",
+    "service registry",
+    "shell:src"
+  ],
+  "tarot": [
+    "generated feature detail",
+    "service registry",
+    "D:openTarotModal",
+    "shell:src",
+    "shell:data-img-src"
+  ],
+  "ziwei": [
+    "generated feature detail",
+    "service registry",
+    "D:openZiweiModal",
+    "shell:src",
+    "shell:data-img-src",
+    "shell:data-img-src"
+  ],
+  "sukuyo": [
+    "generated feature detail",
+    "service registry",
+    "shell:src"
+  ],
+  "vedic": [
+    "generated feature detail",
+    "service registry",
+    "D:navigateToVedic",
+    "shell:src"
+  ],
+  "astrology": [
+    "generated feature detail",
+    "service registry",
+    "D:openAstroModal",
+    "shell:src",
+    "shell:data-img-src"
+  ],
+  "human-design": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src"
+  ],
+  "nakshatra": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "maya": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src"
+  ],
+  "daily-fortune": [
+    "generated feature detail",
+    "service registry"
+  ],
+  "today-hub": [
+    "generated feature detail",
+    "service registry"
+  ],
+  "palm-reading": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src"
+  ],
+  "physiognomy": [
+    "generated feature detail",
+    "service registry",
+    "D:openPhysiognomyApp",
+    "shell:data-img-src"
+  ],
+  "dream": [
+    "generated feature detail",
+    "service registry",
+    "D:openDreamModal",
+    "shell:data-img-src"
+  ],
+  "psychotest": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "manse": [
+    "generated feature detail",
+    "service registry"
+  ],
+  "famous-saju": [
+    "generated feature detail",
+    "service registry"
+  ],
+  "animal-destiny": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src",
+    "content/product-details/animal-destiny/manifest.json"
+  ],
+  "kemet-oracle": [
+    "generated feature detail",
+    "service registry",
+    "D:openKemetModal",
+    "shell:data-img-src"
+  ],
+  "ifa-oracle": [
+    "generated feature detail",
+    "service registry",
+    "D:openIfaOracle",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "juyuk-turtle": [
+    "generated feature detail",
+    "service registry",
+    "D:openJuyukModal",
+    "shell:data-img-src"
+  ],
+  "neville-meditation": [
+    "generated feature detail",
+    "service registry",
+    "D:openNevilleMeditationPage",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "yoga-guru": [
+    "generated feature detail",
+    "service registry",
+    "D:openYogaGuru",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "tarot-numerology": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "dream-psycho-analysis": [
+    "generated feature detail",
+    "service registry",
+    "D:openPsychoDreamModal",
+    "shell:data-img-src"
+  ],
+  "animal-totem": [
+    "generated feature detail",
+    "service registry",
+    "D:openAnimalTotemModal",
+    "shell:data-img-src",
+    "content/product-details/animal-totem-basic/manifest.json",
+    "content/product-details/animal-totem-deep/manifest.json"
+  ],
+  "mbti-animal-compat": [
+    "generated feature detail",
+    "service registry",
+    "D:openMbtiModal",
+    "shell:data-img-src"
+  ],
+  "tarot-crystal-soul": [
+    "generated feature detail",
+    "service registry",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "royal-tea-oracle": [
+    "generated feature detail",
+    "service registry",
+    "D:openRoyalTeaOracle",
+    "shell:data-img-src"
+  ],
+  "geomancy-oracle": [
+    "generated feature detail",
+    "service registry",
+    "D:openGeomancyOracle",
+    "shell:data-img-src"
+  ],
+  "stonehenge-runes": [
+    "generated feature detail",
+    "service registry",
+    "D:openRuneOracle",
+    "shell:data-img-src"
+  ],
+  "luck-sync-diary": [
+    "generated feature detail",
+    "service registry"
+  ],
+  "sukyo": [
+    "generated feature detail"
+  ],
+  "tarot-prompt-maker": [
+    "generated feature detail",
+    "D:/tarot/prompt-maker",
+    "shell:data-img-src"
+  ],
+  "face-reading": [
+    "generated feature detail"
+  ],
+  "bias-destiny": [
+    "generated feature detail",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "love-code": [
+    "generated feature detail"
+  ],
+  "omikuji": [
+    "generated feature detail"
+  ],
+  "saju-animal": [
+    "generated feature detail"
+  ],
+  "destiny-meeting-place": [
+    "generated feature detail",
+    "shell:data-img-src"
+  ],
+  "ziwei-ai": [
+    "generated feature detail",
+    "D:gotoZiweiPremium",
+    "shell:data-img-src",
+    "content/product-details/ziwei-expert/manifest.json"
+  ],
+  "destiny-flower": [
+    "generated feature detail",
+    "D:openDestinyFlowerStudio",
+    "shell:data-img-src"
+  ],
+  "astrology-flower": [
+    "generated feature detail",
+    "D:openAstrologyFlowerStudio"
+  ],
+  "ziwei-flower": [
+    "generated feature detail",
+    "D:openJamidusuFlowerStudio"
+  ],
+  "sukuyo-flower": [
+    "generated feature detail",
+    "D:openSukuyoFlowerStudio"
+  ],
+  "cosmic-soul-meditation": [
+    "generated feature detail",
+    "D:openCosmicSoulMeditation",
+    "shell:data-img-src",
+    "shell:src"
+  ],
+  "olympus-oracle": [
+    "generated feature detail",
+    "D:openOlympusOracleModal",
+    "shell:data-img-src",
+    "content/product-details/olympus-oracle/manifest.json"
+  ],
+  "sukuyo-compatibility-ai": [
+    "generated feature detail",
+    "D:gotoSukuyoPremium",
+    "shell:data-img-src",
+    "content/product-details/sukuyo-compatibility-expert/manifest.json"
+  ],
+  "astrology-ai": [
+    "generated feature detail",
+    "shell:data-img-src",
+    "content/product-details/astrology-expert/manifest.json"
+  ],
+  "vedic-ai": [
+    "generated feature detail",
+    "shell:data-img-src",
+    "content/product-details/vedic-expert/manifest.json"
+  ],
+  "nakshatra-ai": [
+    "generated feature detail"
+  ],
+  "nakshatra-vvip-codex": [
+    "generated feature detail"
+  ],
+  "fortune-prompt-hub": [
+    "shell:src"
+  ],
+  "tarot-healing": [
+    "D:openTarotHealingModal",
+    "shell:data-img-src"
+  ],
+  "tarot-self-esteem": [
+    "D:openTarotSelfEsteemModal",
+    "shell:data-img-src"
+  ],
+  "hwatu": [
+    "D:openHwatuModal",
+    "shell:data-img-src"
+  ],
+  "sikojen-povailu": [
+    "D:/oracle/sikojen-povailu",
+    "shell:data-img-src"
+  ],
+  "destiny-island": [
+    "shell:data-img-src",
+    "destiny-island.html"
+  ],
+  "life-fortune-ai": [
+    "shell:data-img-src"
+  ],
+  "pet-saju": [
+    "shell:data-img-src"
+  ],
+  "yeon-star-hug": [
+    "D:openYeonStarHug",
+    "shell:data-img-src",
+    "shell:src",
+    "app/yeon-star-hug/YeonStarHugClient.tsx"
+  ],
+  "neo-consultation": [
+    "app/neo-consultation/NeoConsultationClient.tsx"
+  ],
+  "fortune-chat-yeoni": [
+    "shell:src",
+    "content/product-details/chat-yeoni/manifest.json",
+    "app/fortune-chat/YeoniWelcome.tsx"
+  ],
+  "yeongnyangi-saju": [
+    "content/product-details/yeongnyangi-saju-mackerel/manifest.json",
+    "content/product-details/yeongnyangi-saju-salmon/manifest.json",
+    "content/product-details/yeongnyangi-saju-flounder/manifest.json",
+    "content/product-details/yeongnyangi-saju-tuna/manifest.json"
+  ],
+  "yeongnyangi-tarot": [
+    "content/product-details/yeongnyangi-tarot-mackerel/manifest.json",
+    "content/product-details/yeongnyangi-tarot-salmon/manifest.json",
+    "content/product-details/yeongnyangi-tarot-flounder/manifest.json",
+    "content/product-details/yeongnyangi-tarot-tuna/manifest.json"
+  ],
+  "yeongnyangi-ziwei": [
+    "content/product-details/yeongnyangi-ziwei-mackerel/manifest.json",
+    "content/product-details/yeongnyangi-ziwei-salmon/manifest.json",
+    "content/product-details/yeongnyangi-ziwei-flounder/manifest.json",
+    "content/product-details/yeongnyangi-ziwei-tuna/manifest.json"
+  ],
+  "yeongnyangi-astrology": [
+    "content/product-details/yeongnyangi-astrology-mackerel/manifest.json",
+    "content/product-details/yeongnyangi-astrology-salmon/manifest.json",
+    "content/product-details/yeongnyangi-astrology-flounder/manifest.json",
+    "content/product-details/yeongnyangi-astrology-tuna/manifest.json"
+  ],
+  "yeongnyangi-vedic": [
+    "content/product-details/yeongnyangi-vedic-mackerel/manifest.json",
+    "content/product-details/yeongnyangi-vedic-salmon/manifest.json",
+    "content/product-details/yeongnyangi-vedic-flounder/manifest.json",
+    "content/product-details/yeongnyangi-vedic-tuna/manifest.json"
+  ],
+  "yeongnyangi-sukuyo": [
+    "content/product-details/yeongnyangi-sukuyo-mackerel/manifest.json",
+    "content/product-details/yeongnyangi-sukuyo-salmon/manifest.json",
+    "content/product-details/yeongnyangi-sukuyo-flounder/manifest.json",
+    "content/product-details/yeongnyangi-sukuyo-tuna/manifest.json"
+  ],
+  "yeongnyangi-fusion-saju-ziwei": [
+    "content/product-details/yeongnyangi-fusion-saju-ziwei/manifest.json"
+  ],
+  "yeongnyangi-fusion-sukuyo-vedic": [
+    "content/product-details/yeongnyangi-fusion-sukuyo-vedic/manifest.json"
+  ],
+  "yeongnyangi-fusion-astrology-tarot": [
+    "content/product-details/yeongnyangi-fusion-astrology-tarot/manifest.json"
+  ],
+  "yeongnyangi-fusion-all": [
+    "content/product-details/yeongnyangi-fusion-all/manifest.json"
+  ],
+  "tea-saju-compat": [
+    "content/product-details/tea-saju-compat/manifest.json"
+  ],
+  "tea-saju": [
+    "content/product-details/tea-saju/manifest.json",
+    "src/features/fortune-tea-house/components/FortuneTeaHouseLanding.tsx"
+  ],
+  "tea-tarot": [
+    "content/product-details/tea-tarot-three/manifest.json",
+    "content/product-details/tea-tarot-five/manifest.json",
+    "src/features/fortune-tea-house/components/FortuneTeaHouseLanding.tsx"
+  ],
+  "tea-sukuyo": [
+    "content/product-details/tea-sukuyo/manifest.json",
+    "src/features/fortune-tea-house/components/FortuneTeaHouseLanding.tsx"
+  ],
+  "tea-saju-joint": [
+    "src/features/fortune-tea-house/components/FortuneTeaHouseLanding.tsx"
+  ],
+  "neo-saju": [
+    "src/features/neo-war-room/data/assets.ts"
+  ],
+  "neo-vedic": [
+    "src/features/neo-war-room/data/assets.ts"
+  ],
+  "neo-ziwei": [
+    "src/features/neo-war-room/data/assets.ts"
+  ],
+  "neo-astrology": [
+    "src/features/neo-war-room/data/assets.ts"
+  ]
+}

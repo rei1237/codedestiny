@@ -51,8 +51,29 @@ function recoveryApi(window) {
   return exports;
 }
 const input = { consultationMode: "saju", question: "원래 상담 질문", profileId: "profile-a" };
+test('actual polling survives 503 without changing evidence and remains bounded', async () => {
+  const body={attemptId:'original',billingGate:{paymentId:'original-payment'}};
+  const posts=[];let success=true;
+  const state={
+    FORTUNE_TEA_POLL_BACKOFFS_MS:[0,0,0],window:{setTimeout:fn=>fn()},
+    postFortuneTeaConsultRequest:async value=>{
+      posts.push(value);
+      return {response:{status:success&&posts.length===3?200:503},payload:{code:'RATE_LIMIT_UNAVAILABLE'}};
+    },
+    isFortuneTeaGenerationPending:()=>false,
+  };
+  vm.createContext(state);vm.runInContext(functionSource('pollFortuneTeaConsultResult'),state);
+  assert.equal((await state.pollFortuneTeaConsultResult(body,()=>false)).response.status,200);
+  assert.ok(posts.every(value=>value===body));
+  success=false;posts.length=0;
+  assert.equal(await state.pollFortuneTeaConsultResult(body,()=>false),null);
+  assert.equal(posts.length,3);
+  posts.length=0;
+  assert.equal(await state.pollFortuneTeaConsultResult(body,()=>true),null);
+  assert.equal(posts.length,0);
+});
 const cup = { id: "cup-a", name: "찻잔", topic: "진로" };
-function harness({ window = { localStorage: store(), sessionStorage: store() }, failureStatus = 503, paid = true, saved = null, owner = "user-a" } = {}) {
+function harness({ window = { localStorage: store(), sessionStorage: store() }, failureStatus = 503, failureReason = "RESULT_STORAGE_UNAVAILABLE", paid = true, saved = null, owner = "user-a" } = {}) {
   const api = recoveryApi(window);
   const posts = [];
   let gateCalls = 0;
@@ -91,9 +112,11 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
       posts.push(JSON.parse(JSON.stringify(body)));
       if (!succeed && failureStatus === 0) throw new Error("MOCK_RESPONSE_LOST");
       return succeed ? { response: { ok: true, status: 200 }, payload: { ok: true, result: { resultId: body.attemptId, body: "SAVED_RESULT" } } }
-        : { response: { ok: false, status: failureStatus }, payload: { ok: false, reason: "RESULT_STORAGE_UNAVAILABLE", message: "저장 확인 실패" } };
+        : { response: { ok: false, status: failureStatus }, payload: { ok: false, reason: failureReason, message: "저장 확인 실패" } };
     },
     isFortuneTeaGenerationPending: () => false, normalizeHoneyDropsState: () => null,
+    pollFortuneTeaConsultResult: async () => null,
+    buildFortuneTeaGenerationPendingError: message => Object.assign(new Error(message || '상담 이어가기'), {generationPending:true}),
     Date: { now: (() => { let n = 0; return () => (n += 2000); })() },
     window: { ...window, location: window.location || { search: '' }, setTimeout: fn => { fn(); return 1; }, clearTimeout() {} },
   };
@@ -106,6 +129,20 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
 }
 
 for (const paid of [true, false]) {
+  test(`${paid ? "paid" : "pass"} initial 503 resumes to result without a second gate`, async () => {
+    const h=harness({paid,failureStatus:503});
+    let retried;
+    h.state.pollFortuneTeaConsultResult=async body=>{
+      retried=body;
+      return {response:{ok:true,status:200},payload:{ok:true,result:{resultId:body.attemptId,body:'SAVED_RESULT'}}};
+    };
+    await h.submit();
+    assert.equal(h.state.completed,true);
+    assert.deepEqual(JSON.parse(JSON.stringify(retried)),h.posts[0]);
+    assert.equal(h.gateCalls(),paid?1:0);
+    assert.equal(h.ensureCalls(),1);
+    assert.equal(h.api.readFortuneTeaRecovery('user-a'),null);
+  });
   for (const failureStatus of [503, 409, 402, 0]) {
     test(`${paid ? "paid" : "pass"} ${failureStatus}: refresh retains original request and never reopens gate`, async () => {
       const first = harness({ paid, failureStatus });
@@ -126,6 +163,22 @@ for (const paid of [true, false]) {
     });
   }
 }
+
+test("confirmed pass refund ends only the failed attempt and a manual retry checks access with a new key", async () => {
+  const h = harness({ paid: false, failureStatus: 409, failureReason: "PASS_ALREADY_REFUNDED" });
+  await h.submit({ ...input, attemptId: "old-refunded-attempt" });
+  assert.equal(h.state.completed, undefined);
+  assert.equal(h.state.unusedPaidAttemptRef.current, null);
+  assert.equal(h.api.readFortuneTeaRecovery("user-a"), null);
+  assert.equal(h.state.input.attemptId, undefined);
+  assert.equal(h.state.input.question, input.question);
+  h.succeed();
+  await h.submit(h.state.input);
+  assert.notEqual(h.posts[0].attemptId, h.posts[1].attemptId);
+  assert.equal(h.ensureCalls(), 2);
+  assert.equal(h.gateCalls(), 0);
+  assert.equal(h.state.completed, true);
+});
 
 test("blocked storage retains in-page request; API failure cannot become local preview success", async () => {
   const blocked = {};
@@ -312,4 +365,19 @@ test("마운트 복구와 깨어남 복구가 같은 probe 하나를 쓴다", ()
   assert.ok(!mount.includes("/api/fortune-tea-house/pending"));
   assert.ok(mount.includes("probeFortuneTeaPending"));
   assert.ok(effectSource("[recoveryOwner, probeFortuneTeaPending]").includes("probeFortuneTeaPending"));
+});
+
+
+test('BGM restores both saved choices and offers an explicit retry after autoplay blocking', () => {
+  for (const preference of ['on', 'off', null]) {
+    const state = { bgmAudioRef:{current:{pause(){}}}, FORTUNE_TEA_BGM_TRACKS:{moonlitTeaHouse:{volume:.2}},
+      FORTUNE_TEA_BGM_STORAGE_KEY:'bgm',FORTUNE_TEA_ENTRY_PROLOGUE_SEEN_STORAGE_KEY:'seen',
+      window:{localStorage:{getItem:key=>key==='bgm'?preference:null}},setBgmEnabled:value=>state.enabled=value,
+      setHasSeenEntryPrologue(){},setIsBgmPreferenceReady:value=>state.ready=value,enterTimerRef:{current:null},clearGenerationProgressTimer(){} };
+    vm.runInNewContext('('+effectSource('[clearGenerationProgressTimer]')+')()',state);
+    assert.equal(state.enabled,preference!=='off'); assert.equal(state.ready,true);
+  }
+  const state={bgmEnabled:true,bgmStatus:'blocked',playBgm:force=>state.played=force,setBgmEnabled:()=>assert.fail('must not turn music off'),window:{}};
+  vm.runInNewContext(functionSource('toggleBgm')+';toggleBgm();',state);
+  assert.equal(state.played,true);
 });

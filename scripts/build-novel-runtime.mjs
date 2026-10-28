@@ -100,9 +100,20 @@ function validateBeat(beat, context, bgKeys, trackKeys, sfxKeys) {
   if (beat.fx && !EFFECTS.has(beat.fx)) throw new Error(`${context}: 효과 '${beat.fx}'이 허용 목록에 없습니다.`);
   if (beat.sfx !== undefined && (typeof beat.sfx !== "string" || !sfxKeys.has(beat.sfx))) throw new Error(`${context}: 효과음 '${beat.sfx}'이 SFX 맵에 없습니다.`);
   // form·tone 은 오타가 나도 플레이어가 조용히 무시한다 — 화면은 멀쩡하고 연출만 사라진다.
+  if (beat.neoForm !== undefined && !["lion", "human"].includes(beat.neoForm)) throw new Error(`${context}: invalid Neo form ${beat.neoForm}`);
   if (beat.form && !BEAT_FORMS.has(beat.form)) throw new Error(`${context}: 모습 '${beat.form}'이 허용 목록(${[...BEAT_FORMS].join(", ")})에 없습니다.`);
   if (beat.tone && !BEAT_TONES.has(beat.tone)) throw new Error(`${context}: 톤 '${beat.tone}'이 허용 목록(${[...BEAT_TONES].join(", ")})에 없습니다.`);
   if (beat.c?.who && !CAST_IDS.has(beat.c.who)) throw new Error(`${context}: 중앙 캐릭터 '${beat.c.who}'가 알 수 없는 캐스트입니다.`);
+  if (beat.choice !== undefined) {
+    if (!beat.choice || typeof beat.choice.id !== "string" || !/^[a-z0-9-]+$/.test(beat.choice.id)) throw new Error(`${context}: choice.id 형식이 잘못됐습니다.`);
+    if (!Array.isArray(beat.choice.options) || beat.choice.options.length !== 2) throw new Error(`${context}: 선택지는 정확히 2개여야 합니다.`);
+    const optionIds = new Set();
+    for (const option of beat.choice.options) {
+      if (!option || typeof option.id !== "string" || !/^[a-z0-9-]+$/.test(option.id) || optionIds.has(option.id)) throw new Error(`${context}: 선택 옵션 ID가 비었거나 중복됩니다.`);
+      if (typeof option.label !== "string" || !option.label.trim() || typeof option.target !== "string") throw new Error(`${context}: 선택 라벨·대상이 필요합니다.`);
+      optionIds.add(option.id);
+    }
+  }
   for (const slot of ["l", "c", "r"]) {
     if (beat[slot]?.who && !CAST_IDS.has(beat[slot].who)) throw new Error(`${context}: ${slot} 슬롯 캐릭터 '${beat[slot].who}'가 알 수 없습니다.`);
   }
@@ -158,8 +169,28 @@ export function buildNovelPayload() {
       if (scene) priorScene = scene;
       return beat;
     });
-    return { id, no: episode.no, tag: episode.tag, title: episode.title, ...(rev > 1 ? { rev } : {}), beats };
+    if (episode.branch !== undefined && !["reality", "destiny"].includes(episode.branch)) throw new Error(`${episode.no}: branch는 reality 또는 destiny여야 합니다.`);
+    if (episode.ending !== undefined && (!episode.ending || typeof episode.ending.id !== "string" || typeof episode.ending.label !== "string")) throw new Error(`${episode.no}: ending 메타데이터가 잘못됐습니다.`);
+    return { id, no: episode.no, tag: episode.tag, title: episode.title, ...(rev > 1 ? { rev } : {}), ...(episode.branch ? { branch: episode.branch } : {}), ...(episode.ending ? { ending: episode.ending } : {}), beats };
   });
+  const choiceIds = new Set();
+  const episodeIndexById = new Map(episodes.map((episode, index) => [episode.id, index]));
+  for (const [episodeIndex, episode] of episodes.entries()) for (const beat of episode.beats) if (beat.choice) {
+    if (choiceIds.has(beat.choice.id)) throw new Error(`중복 선택 ID: ${beat.choice.id}`);
+    choiceIds.add(beat.choice.id);
+    for (const option of beat.choice.options) {
+      const targetIndex = episodeIndexById.get(option.target);
+      if (targetIndex === undefined) throw new Error(`${beat.choice.id}: 대상 화 '${option.target}'가 없습니다.`);
+      if (targetIndex <= episodeIndex) throw new Error(`${beat.choice.id}: 선택 대상은 현재 화 뒤에 있어야 합니다(순환 금지).`);
+      if (episodes[targetIndex].branch !== option.id) throw new Error(`${beat.choice.id}: 옵션 '${option.id}'과 대상 branch가 다릅니다.`);
+    }
+  }
+  for (const branch of ["reality", "destiny"]) {
+    const branchEpisodes = episodes.filter((episode) => episode.branch === branch);
+    if (branchEpisodes.length !== 3) throw new Error(`${branch}: 3화 분기가 필요합니다.`);
+    const endings = branchEpisodes.filter((episode) => episode.ending);
+    if (endings.length !== 1 || endings[0] !== branchEpisodes.at(-1)) throw new Error(`${branch}: 마지막 화에만 ending이 필요합니다.`);
+  }
   for (const slug of Object.keys(readLegacyRanges())) {
     if (!episodeIds.has(slug)) throw new Error(`얼린 책갈피 범위표의 화 '${slug}'가 정본에 없습니다. 화 주소는 바꾸거나 지우지 않습니다.`);
   }
@@ -169,6 +200,8 @@ export function buildNovelPayload() {
 }
 
 export function readerPayload(runtime) {
+  // 네오는 인간 형태 마커(neoForm: "human") 전까지 고양이 영냥이로 표시한다 — 플레이어 speakerName과 같은 규칙.
+  let neoForm = "lion";
   return {
     version: runtime.version,
     sourceHash: runtime.sourceHash,
@@ -179,17 +212,22 @@ export function readerPayload(runtime) {
         slug: episode.id,
         tag: episode.tag,
         title: episode.title,
+        ...(episode.branch ? { branch: episode.branch } : {}),
+        ...(episode.ending ? { ending: episode.ending } : {}),
         beats: episode.beats.map((beat) => {
+          if (beat.neoForm) neoForm = beat.neoForm;
+          const nm = beat.nm || (beat.s === "neo" && neoForm !== "human" ? "영냥이" : null);
           const background = beat.bg ?? null;
           const sceneBreak = Boolean(background && previousBackground && background !== previousBackground);
           if (background) previousBackground = background;
           return {
             s: beat.s,
             t: beat.t,
-            ...(beat.nm ? { nm: beat.nm } : {}),
+            ...(nm ? { nm } : {}),
             ...(sceneBreak ? { sceneBreak: true } : {}),
             ...(beat.im ? { im: String(beat.im) } : {}),
             ...(beat.skill ? { skill: beat.skill } : {}),
+            ...(beat.choice ? { choice: beat.choice } : {}),
           };
         }),
       };
@@ -255,6 +293,8 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
       no: episode.no,
       tag: episode.tag,
       title: episode.title,
+      ...(episode.branch ? { branch: episode.branch } : {}),
+      ...(episode.ending ? { ending: episode.ending } : {}),
       ...(episode.rev ? { rev: episode.rev } : {}),
       beatCount: episode.beats.length,
       legacyRanges: legacyRanges[episode.id] ?? [],
@@ -275,10 +315,10 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
 
 // 플레이어의 연이 모습 표(FORM_MARKS)는 (화 색인, 컷 색인)이라 화를 다시 쓰면 손으로 맞추기 어렵다.
 // 정본의 form 마커에서 그 한 줄만 다시 쓴다. verify-novel-runtime 이 같은 표를 다시 대조한다.
-export function formMarks(runtime) {
+export function formMarks(runtime, field = "form") {
   const marks = [];
   runtime.episodes.forEach((episode, ep) => episode.beats.forEach((beat, bi) => {
-    if (beat.form) marks.push({ ep, bi, form: beat.form });
+    if (beat[field]) marks.push({ ep, bi, form: beat[field] });
   }));
   return marks;
 }
@@ -287,7 +327,9 @@ function syncShellFormMarks(runtime) {
   const shell = readFileSync(LEGACY_SHELL_PATH, "utf8");
   const pattern = /var FORM_MARKS=\[[^\]]*\];/;
   if (!pattern.test(shell)) throw new Error("플레이어 셸에서 'var FORM_MARKS=[...];' 한 줄을 찾지 못했습니다.");
-  const next = shell.replace(pattern, `var FORM_MARKS=${JSON.stringify(formMarks(runtime))};`);
+  const neoPattern = /var NEO_FORM_MARKS=\[[^\]]*\];/;
+  if (!neoPattern.test(shell)) throw new Error("Neo form registry missing");
+  const next = shell.replace(pattern, `var FORM_MARKS=${JSON.stringify(formMarks(runtime))};`).replace(neoPattern, `var NEO_FORM_MARKS=${JSON.stringify(formMarks(runtime, "neoForm"))};`);
   if (next !== shell) writeFileSync(LEGACY_SHELL_PATH, next);
 }
 

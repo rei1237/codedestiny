@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "source": "Original portrait method illustrations; see provenance.json",
+  "tool": "built-in image_gen",
+  "edit": "Remove embedded titles, captions and lettering; retain Neo, portrait framing and each original scene.",
+  "transform": "Proportional 320/640px WebP quality82, no crop",
+  "assets": [
+    {
+      "name": "saju",
+      "prompt": "Edit this exact supplied original vertical illustration for a premium consultation method card. Keep the seated silver-haired Neo, navy suit, gold embroidery, gloves, cape, moonlit room, lion and five small colored elemental flames. Remove the large gold Korean title across his lower torso, the small subtitle, the vertical Korean slogan on the left, all printed characters on scrolls, all Chinese glyphs around the celestial wheel, and the five written element labels; replace lettering with coherent painted surfaces and simple unlabeled ornamental geometry. Preserve the original character identity, pose, anatomy, lighting, color palette, fine artwork, gold frame, full portrait composition and original approximately 1055:1491 aspect ratio. Do not crop to landscape. Only remove lettering and naturally reconstruct the areas underneath. No typography, no captions, no words, no letters, no watermark. This is artwork only; interface labels will be rendered separately."
+    },
+    {
+      "name": "ziwei",
+      "prompt": "Edit this exact supplied original vertical illustration for a premium consultation method card. Keep the seated silver-haired Neo, navy suit, gold embroidery, gloves, cape, star chart table and moonlit room. Remove the large gold Korean title at the bottom, subtitle, vertical left slogan, upper-right Chinese and English title, Chinese writing on the right and all characters inside the table cells and celestial circles. Keep the table divisions and star points, with no letters. Preserve the original character identity, pose, anatomy, lighting, color palette, fine artwork, gold frame, full portrait composition and original approximately 1055:1491 aspect ratio. Do not crop to landscape. Only remove lettering and naturally reconstruct the areas underneath. No typography, no captions, no words, no letters, no watermark. This is artwork only; interface labels will be rendered separately."
+    },
+    {
+      "name": "vedic",
+      "prompt": "Edit this exact supplied original vertical illustration for a premium consultation method card. Keep the seated silver-haired Neo, navy suit, gold embroidery, gloves, cape, celestial mandala, moonlit room and pale lion. Remove the large Korean title near the bottom, all Korean small subtitles, and all letter-like writing around the mandalas and rings. Preserve the intricate unlabeled geometric mandala and beautiful original scene. Preserve the original character identity, pose, anatomy, lighting, color palette, fine artwork, gold frame, full portrait composition and original approximately 1055:1491 aspect ratio. Do not crop to landscape. Only remove lettering and naturally reconstruct the areas underneath. No typography, no captions, no words, no letters, no watermark. This is artwork only; interface labels will be rendered separately."
+    },
+    {
+      "name": "astrology",
+      "prompt": "Edit this exact supplied original vertical illustration for a premium consultation method card. Keep the seated silver-haired Neo, navy suit, gold embroidery, gloves, cape, moonlit room, star wheel with animal silhouettes, and celestial table. Remove the large Korean title at the bottom, all small Korean captions at top and bottom, the English NEO word, and all letters or numbers around the wheel and table. Keep animal silhouettes and unlabeled geometric star patterns. Preserve the original character identity, pose, anatomy, lighting, color palette, fine artwork, gold frame, full portrait composition and original approximately 1055:1491 aspect ratio. Do not crop to landscape. Only remove lettering and naturally reconstruct the areas underneath. No typography, no captions, no words, no letters, no watermark. This is artwork only; interface labels will be rendered separately."
+    }
+  ]
+}

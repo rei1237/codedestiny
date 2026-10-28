@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { handleAuthRoutes } from "../worker/routes/auth.js";
 
 function decodeJwtPayload(token) {
@@ -22,12 +23,27 @@ function assertEqual(actual, expected, label) {
   }
 }
 
-async function assertOAuthStartFrontendBase({ requestUrl, headers, env, expectedFrontendBase, expectedRedirectUri, label }) {
-  const response = await handleAuthRoutes(new Request(requestUrl, { headers }), env);
+async function assertOAuthStartFrontendBase({ requestUrl, headers, env, expectedFrontendBase, expectedRedirectUri, expectedStartRedirect, label }) {
+  let response = await handleAuthRoutes(new Request(requestUrl, { headers }), env);
+  if (expectedStartRedirect) {
+    assertEqual(response.status, 302, `${label}.canonical_start_status`);
+    assertEqual(response.headers.get("location"), expectedStartRedirect, `${label}.canonical_start_location`);
+    assertEqual(response.headers.get("set-cookie"), null, `${label}.no_cookie_on_wrong_host`);
+    // Follow only the exact configured start URL, in-process: no real OAuth/network call.
+    response = await handleAuthRoutes(new Request(expectedStartRedirect, {
+      headers: { referer: requestUrl },
+    }), env);
+  }
   const location = response.headers.get("location") || "";
   assertEqual(response.status, 302, `${label}.status`);
   const state = readStateFromLocation(location);
   assertEqual(state.frontendBase, expectedFrontendBase, `${label}.frontendBase`);
+  const bindingCookie = getSetCookieHeaders(response).find(cookie => cookie.startsWith("cd_oauth_browser_google="));
+  if (!bindingCookie || !bindingCookie.includes("HttpOnly") || /Domain=/i.test(bindingCookie)) {
+    throw new Error(`${label}.host_only_browser_cookie_missing`);
+  }
+  const binding = bindingCookie.split(";")[0].split("=")[1];
+  assertEqual(state.browserBindingHash, createHash("sha256").update(binding).digest("hex"), `${label}.browser_binding`);
   if (expectedRedirectUri) {
     const redirectUri = new URL(location).searchParams.get("redirect_uri") || "";
     assertEqual(redirectUri, expectedRedirectUri, `${label}.redirect_uri`);
@@ -115,11 +131,33 @@ await assertOAuthStartFrontendBase({
   env: {
     ...baseEnv,
     NODE_ENV: "development",
+    // Local browser binding requires a local callback; an operational callback redirects first.
+    GOOGLE_OAUTH_CALLBACK: "http://127.0.0.1:8790/api/auth/oauth/google/callback",
     AUTH_FRONTEND_BASE_URL: "https://code-destiny.com",
     SITE_BASE_URL: "https://code-destiny.com",
     AUTH_API_BASE_URL: "http://127.0.0.1:8790",
   },
   expectedFrontendBase: "http://localhost:3000",
+  expectedRedirectUri: "http://127.0.0.1:8790/api/auth/oauth/google/callback",
+});
+
+await assertOAuthStartFrontendBase({
+  label: "local_with_production_callback",
+  requestUrl: "http://127.0.0.1:8790/api/auth/oauth/google/start?flow=login&next=%2F",
+  headers: { referer: "http://localhost:3000/login/" },
+  env: { ...baseEnv, NODE_ENV: "development", AUTH_FRONTEND_BASE_URL: "https://code-destiny.com" },
+  expectedStartRedirect: "https://code-destiny.com/api/auth/oauth/google/start?flow=login&next=%2F",
+  expectedFrontendBase: "https://code-destiny.com",
+  expectedRedirectUri: "https://code-destiny.com/api/auth/oauth/google/callback",
+});
+
+await assertOAuthStartFrontendBase({
+  label: "production_alias",
+  requestUrl: "https://www.code-destiny.com/api/auth/oauth/google/start?flow=login&next=%2Frecords%2F",
+  headers: { referer: "https://www.code-destiny.com/login/" },
+  env: { ...baseEnv, AUTH_FRONTEND_BASE_URL: "https://code-destiny.com" },
+  expectedStartRedirect: "https://code-destiny.com/api/auth/oauth/google/start?flow=login&next=%2Frecords%2F",
+  expectedFrontendBase: "https://code-destiny.com",
   expectedRedirectUri: "https://code-destiny.com/api/auth/oauth/google/callback",
 });
 

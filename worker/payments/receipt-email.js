@@ -27,8 +27,8 @@ import { sendEmail as sendEmailViaResend } from "../lib/resend.js";
 import { BUSINESS_IDENTITY, BUSINESS_PHONE_INTL, SUPPORT_EMAIL } from "../../lib/site-policy-config.js";
 import { RECEIPT_WITHDRAWAL_ROWS } from "../../lib/legal/refund-policy-rows.js";
 import { toObjectId } from "./db.js";
-import { resolveProduct } from "./catalog.js";
-import { resolvePassPlan } from "./passes.js";
+import { resolveOrderProductName } from "../lib/payment-product-name.js";
+export { resolveOrderProductName };
 
 /** 이 창보다 오래된 주문에는 영수증을 보내지 않는다. 기능 도입 이전 주문을 보호한다. */
 export const RECEIPT_MAX_AGE_MS = 2 * 60 * 60_000;
@@ -91,29 +91,6 @@ export function formatKstDateTime(value) {
     + ` ${pad(kst.getUTCHours())}:${pad(kst.getUTCMinutes())} (KST)`;
 }
 
-/**
- * 상품명. 주문에 사람이 읽을 이름이 저장돼 있지 않아 정본에서 다시 푼다.
- * 못 풀면 featureKey 를 그대로 쓴다 — 영수증을 안 보내는 것보다 낫다.
- */
-export function resolveOrderProductName(order) {
-  if (order?.purchaseType === "GIFT") return `${order.metadata?.giftDraft?.productSnapshot?.name || "이용권"} 선물`;
-  if (String(order?.paymentType || "") === "membership_pass") {
-    const plan = resolvePassPlan(order?.subscriptionTier, Number(order?.metadata?.durationMonths || 1), order?.metadata?.passPolicyVersion || "legacy");
-    if (plan?.name) return plan.name;
-    return String(order?.subscriptionTier || "이용권");
-  }
-  try {
-    const product = resolveProduct({
-      productId: String(order?.productId || ""),
-      featureKey: String(order?.featureKey || ""),
-    });
-    if (product?.label) return product.label;
-  } catch {
-    // 상품표에서 사라진 옛 상품일 수 있다. 아래 폴백으로 간다.
-  }
-  return String(order?.featureKey || order?.productId || "");
-}
-
 const ROWS = [
   ["주문번호 / Order no.", (order) => String(order.merchantUid || "")],
   ["결제일시 / Paid at", (order) => formatKstDateTime(order.paidAt || order.updatedAt)],
@@ -121,7 +98,9 @@ const ROWS = [
   ["결제금액 / Amount", (order) => `${Number(order.paymentAmount || 0).toLocaleString("ko-KR")}원 (KRW)`],
   // 🔴 영수증은 법정 통지라 내부 코드가 그대로 나가면 안 된다(예전엔 order.paymentMethod 원문이었다).
   ["결제수단 / Method", (order) => resolvePaymentMethodLabel(order)],
-  ["제공시점 / Delivered", () => "결제 승인 직후 디지털 콘텐츠로 제공 / Digital content, delivered immediately after approval"],
+  ["제공시점 / Delivered", (order) => order.featureKey === "neo-email-consultation"
+    ? "네오 직접 검수 후 이메일 답변 / Email reply after human review"
+    : "결제 승인 직후 디지털 콘텐츠로 제공 / Digital content, delivered immediately after approval"],
 ];
 
 const SELLER_ROWS = [

@@ -157,7 +157,8 @@ for (const baseDir of ["dist", "out", ".open-next/assets"]) {
     const dictionary = flattenDictionary(JSON.parse(readFileSync(dictionaryPath, "utf8")));
     // 첫 화면(검색·히어로) 키가 빠지면 로케일 첫 화면이 한국어로 나간다 — 빌드를 멈춘다.
     // 2026-10-03 운세 정원 개편으로 히어로 제목이 home.gardenCopy.* 로 옮겨 그 접두사도 필수로 둔다.
-    for (const match of markupOnly.matchAll(/data-cd-trans="(home\.(?:searchEntry|gardenCopy)\.[^"]+)"/g)) {
+    // 2026-10-17 "직관성" 단순화로 히어로·무료 카드가 home.simpleHome.* 를 쓴다 — 같은 이유로 필수다.
+    for (const match of markupOnly.matchAll(/data-cd-trans="(home\.(?:searchEntry|gardenCopy|simpleHome)\.[^"]+)"/g)) {
       if (!dictionary[match[1]]?.trim()) {
         throw new Error(`[locale-prerender] ${locale}: missing required translation ${match[1]}`);
       }

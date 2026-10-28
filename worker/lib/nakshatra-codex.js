@@ -24,6 +24,8 @@ import {
 } from "../../constants/nakshatra-crosswalk.js";
 import { getFusionBySukuyo } from "../../constants/nakshatra-fusion.js";
 
+import { buildLifeReading, buildNatalEvidence } from './nakshatra-life-reading.js';
+
 const AYANAMSA_LABEL = "Lahiri";
 
 // ── 타라 발라(Tara Bala): 출생 나크샤트라 대비 일진 나크샤트라의 9구간 길흉 ─────────
@@ -137,7 +139,7 @@ function summarizeDasha(dasha) {
  * 순수 조립: 달 시데리얼 황경 + 표시용 음양력 메타데이터 + 옵션으로 3-뷰 객체 생성.
  * 하네스가 이 함수를 고정 입력으로 직접 호출해 검증한다(WASM 불필요).
  */
-export function assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown = false, now }) {
+export function assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown = false, now, japaneseSukuyo = null, rawChart = null, uncertainty = null }) {
   const nak = nakshatraInfo(moonLon); // { index, name, pada, lord }
   const attrs = getNakshatraAttributes(nak.index);
   // 시각 미상이면 파다 오차가 과대하므로 산출 금지(스펙 2.2).
@@ -145,23 +147,32 @@ export function assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown = fal
 
   // 🔴 lunar 는 호출부가 한국 음양력 코어로 만들어 넘긴다(routes/nakshatra.js·nakshatra-ai.js).
   //    라벨은 그 자리에서 명시한다 — 기본값에 기대면 기본값이 바뀔 때 조용히 따라간다.
-  const suk = buildSukuyoFromMoonLongitude(moonLon, {
+  const suk = japaneseSukuyo || buildSukuyoFromMoonLongitude(moonLon, {
     lunarMonth: lunar?.month ?? null,
     lunarDay: lunar?.day ?? null,
     isLeapMonth: Boolean(lunar?.isLeap),
     source: "swiss-ephemeris-lahiri",
   });
 
-  const dasha = buildVimshottariDasha(moonLon, birthUtc, now || birthUtc);
+  const dasha = timeUnknown ? null : buildVimshottariDasha(moonLon, birthUtc, now || birthUtc);
   const dashaSummary = summarizeDasha(dasha);
 
   const dongyang = buildDongyangView(suk);
   const india = buildIndiaView(nak, attrs, pada, dashaSummary);
-  const unified = buildUnifiedView(suk ? suk.index : null, nak.index);
+  const unified = japaneseSukuyo ? {
+    fusionTitle: suk.nameKo + '숙과 ' + attrs.nameKo + ', 나를 읽는 두 시선',
+    easternKeywords: suk.keywords || [], crosswalk: null, boundaryNote: null,
+    convergence: '일본 숙요는 구력 생일의 본명숙으로, 베다는 출생 시각의 항성 달 위치로 읽습니다. 각 체계의 근거를 나란히 살펴보세요.',
+    divergence: '달력의 날짜와 천문 좌표는 서로 다른 기준입니다. 두 이름의 차이가 계산 오류나 경계일을 뜻하지는 않습니다.',
+    fusionReading: '성향은 고정된 운명보다 반복되는 선택을 돌아보는 실마리입니다. 마음에 닿는 해석을 실제 생활에서 확인해 보세요.',
+  } : buildUnifiedView(suk ? suk.index : null, nak.index);
+  const natalEvidence = buildNatalEvidence(rawChart, timeUnknown);
 
   const cross = suk ? crosswalkFromSukuyo(suk.index) : null;
 
   return {
+    ...(japaneseSukuyo ? { calculationVersion: 'nakshatra-dual-v2', natalEvidence,
+      lifeReading: buildLifeReading(suk, india, natalEvidence), japaneseLunar: japaneseSukuyo.lunar } : {}),
     summary: {
       sukuyoKo: suk ? suk.nameKo : null,
       sukuyoHan: suk ? suk.nameHan : null,
@@ -177,10 +188,11 @@ export function assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown = fal
     unified,
     transparency: {
       ayanamsa: AYANAMSA_LABEL,
+      ...(japaneseSukuyo ? { sukuyoMethod: japaneseSukuyo.calculationBasis, calendarConvention: japaneseSukuyo.lunar.convention, uncertainty } : {}),
       siderealMoonLongitude: Number.isFinite(moonLon) ? Math.round(moonLon * 1e4) / 1e4 : null,
       pada,
       timeUnknown: Boolean(timeUnknown),
-      expectedCrosswalkNakshatraKo: cross ? cross.nakshatraKo : null,
+      expectedCrosswalkNakshatraKo: !japaneseSukuyo && cross ? cross.nakshatraKo : null,
     },
   };
 }

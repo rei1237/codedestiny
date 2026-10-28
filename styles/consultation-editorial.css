@@ -1,0 +1,69 @@
+/* Opt-in edition: the illustration is decoration; the reading is always live text. */
+.craftedDetail .craftedCoverCopy { padding: 24px; }
+.craftedDetail .craftedCoverCopy p { white-space: pre-line; line-height: 1.8; }
+.craftedDetail.craftedEditorial {
+  background: #f7f3eb;
+  color: #202d3c;
+  --fortune-gold: #78562b;
+  --fortune-ink: #202d3c;
+  --fd-rule: #d5c4aa;
+  padding-bottom: 24px;
+  overflow-wrap: anywhere;
+}
+.craftedEditorial > header { background: #172638; color: #fff8eb; }
+.craftedEditorial > header > img { display: block; width: 100%; height: auto; }
+.craftedEditorial .craftedEditorialCopy { padding: 28px 24px 32px; }
+.craftedEditorial .craftedEditorialCopy h3 { color: #fff8eb; }
+.craftedEditorial h3 {
+  margin: 0 0 16px;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: clamp(24px, 5vw, 32px);
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -.025em;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+.craftedEditorial .craftedEditorialCopy p,
+.craftedEditorial .craftedEditorialSection p {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.9;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+.craftedEditorial .craftedEditorialSection {
+  margin: 0 24px;
+  padding: 30px 0;
+  border-top: 1px solid #d5c4aa;
+}
+.craftedEditorial .craftedEditorialSection img { margin-bottom: 24px; }
+.craftedEditorial .craftedEditorialMasters { padding: 32px 24px 8px; }
+.craftedEditorial .craftedEditorialMasters h3 { font-size: 24px; }
+.craftedEditorial .craftedEditorialMasters ul { list-style: none; margin: 0; padding: 0; }
+.craftedEditorial .craftedEditorialMasters li + li { margin-top: 22px; }
+.craftedEditorial .craftedEditorialMasterHead { display: flex; align-items: center; gap: 14px; }
+.craftedDetail.craftedEditorial .craftedEditorialMasterHead img { width: 64px; height: 64px; flex: 0 0 64px; border-radius: 50%; }
+.craftedEditorial .craftedEditorialMasterHead strong { font: 600 22px/1.5 var(--font-serif, Georgia, serif); }
+.craftedEditorial .craftedEditorialMasterHead p { margin: 4px 0 0; font-size: 16px; line-height: 1.6; }
+.craftedEditorial .craftedEditorialMasterVoice { margin: 16px 0 0; font-size: 16px; line-height: 1.85; word-break: keep-all; }
+.craftedEditorial .craftedEditorialMasterNotes > summary {
+  min-height: 44px; padding-block: 12px; cursor: pointer; color: #78562b;
+  font-size: 16px; text-decoration: underline; text-underline-offset: 4px;
+}
+.craftedDetail.craftedEditorial .craftedMasters { margin: 32px 24px; }
+.craftedDetail.craftedEditorial .craftedMaster {
+  color: #202d3c; background: transparent; box-shadow: none;
+  border-radius: 0; border: 0; border-bottom: 1px solid #d5c4aa;
+  padding: 0 0 22px;
+}
+.craftedDetail.craftedEditorial .craftedMaster :is(p,dd,blockquote) { color: #34445a; }
+.craftedDetail.craftedEditorial .craftedMasterName strong { color: #172638; }
+.craftedDetail.craftedEditorial .craftedMastersLead { color: #78562b; font-size: 16px; letter-spacing: 0; }
+.craftedEditorial ::selection { background: #d7bd8b; color: #172638; }
+.craftedEditorial :focus-visible { outline: 2px solid #78562b; outline-offset: 4px; }
+@media (max-width: 380px) {
+  .craftedEditorial .craftedEditorialCopy { padding-inline: 18px; }
+  .craftedEditorial .craftedEditorialSection { margin-inline: 18px; }
+  .craftedDetail.craftedEditorial .craftedMasters { margin-inline: 18px; }
+}

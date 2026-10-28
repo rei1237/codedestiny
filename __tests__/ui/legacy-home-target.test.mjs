@@ -6,6 +6,7 @@ import { runInNewContext } from "node:vm";
 import { build, transformSync } from "esbuild";
 import { legacyHomeTarget } from "../../lib/navigation/legacy-home-target.mjs";
 import {RUNTIME_LOCALES} from '../../lib/i18n/locale-normalize.js';
+import { BRAND_FACTS } from "../../lib/brand/brand-facts.mjs";
 
 test('language selection stays on Yeongnyangi, while paid legacy returns keep their target',()=>{
  for(const locale of RUNTIME_LOCALES){
@@ -17,6 +18,7 @@ test('language selection stays on Yeongnyangi, while paid legacy returns keep th
 test("new home and its anchors retain campaign attribution", () => {
   for (const hash of ["", "#home", "#readings", "#recommendations", "#room"]) {
     assert.equal(legacyHomeTarget("?utm_source=kakao", hash), null);
+    assert.equal(legacyHomeTarget("?gclid=a&gbraid=b&wbraid=c", hash), null);
   }
 });
 test("legacy payment returns, service inputs and shared fragments survive verbatim", () => {
@@ -43,13 +45,18 @@ const componentBundle = await build({
   bundle: true, platform: "node", format: "cjs", write: false, external: ["react"],
 });
 
-function homeRedirects(search = "", hash = "") {
+function homeRedirects(search = "", hash = "", { anchors = [], standalone = false, appBuild = false } = {}) {
   const redirects = [];
   const effects = [];
   const componentModule = { exports: {} };
   runInNewContext(componentBundle.outputFiles[0].text, {
     module: componentModule, URL, URLSearchParams,
-    window: { location: { search, hash, origin: "https://code-destiny.com", replace: target => redirects.push(target) } },
+    process: { env: { NEXT_PUBLIC_RUNTIME_TARGET: appBuild ? "mobile-app" : "web" } },
+    window: {
+      location: { search, hash, origin: "https://code-destiny.com", replace: target => redirects.push(target) },
+      matchMedia: query => ({ matches: standalone && query === "(display-mode: standalone)" }),
+    },
+    document: { getElementById: id => (anchors.includes(id) ? {} : null) },
     require(name) {
       assert.equal(name, "react");
       return { useEffect: effect => effects.push(effect) };
@@ -64,9 +71,21 @@ function homeRedirects(search = "", hash = "") {
   return redirects;
 }
 
-test("home component opens Ggulggul and preserves campaign attribution", () => {
-  assert.deepEqual(homeRedirects(), ["/ggulggul/"]);
+// 2026-10-15: `/` is the brand home. Plain visits, campaign links and its own anchors stay.
+test("brand home stays put for plain visits, campaign links and its own anchors", () => {
+  assert.deepEqual(homeRedirects(), []);
+  assert.deepEqual(homeRedirects("?utm_source=google&utm_campaign=free-fortune"), []);
+  assert.deepEqual(homeRedirects("", "#homeCardTitle", { anchors: ["homeCardTitle"] }), []);
+});
+
+test("app anchors preserve their destination while installed apps keep the chooser", () => {
   assert.deepEqual(homeRedirects("?utm_source=google&utm_campaign=free-fortune", "#readings"), ["/ggulggul/?utm_source=google&utm_campaign=free-fortune#readings"]);
+  assert.deepEqual(homeRedirects("", "", { standalone: true }), []);
+});
+
+test("the mobile app bundle starts on the service chooser", () => {
+  assert.deepEqual(homeRedirects("", "", { appBuild: true }), []);
+  assert.deepEqual(homeRedirects("?utm_source=app", "", { appBuild: true }), []);
 });
 
 test("home component preserves question guides and their campaign attribution", () => {
@@ -85,9 +104,16 @@ test("home component prioritizes legacy payment returns over question guides", (
 });
 
 test("static shell entries use document navigation instead of Next RSC prefetch", () => {
-  const entries = [...homeSource.matchAll(/<(a|Link)\b[^>]*\bhref="(\/ggulggul\/[^"]*)"[^>]*>/g)];
-  assert.deepEqual(entries.map(([, , href]) => href), ["/ggulggul/", "/ggulggul/#premiumVvipCollection"]);
-  for (const [, tag, href] of entries) {
-    assert.equal(tag, "a", `${href} has no Next RSC payload; it needs a full document navigation`);
-  }
+  // 2026-10-16: the only /ggulggul/ entry is card I, which renders <a> through its `external` flag.
+  assert.equal(BRAND_FACTS.service.appEntryPath, "/ggulggul/");
+  assert.match(homeSource, /href: service\.appEntryPath, external: true\b/);
+  assert.match(homeSource, /card\.external \? <a \{\.\.\.linkProps\}>/);
+  assert.doesNotMatch(homeSource, /<Link\b[^>]*\bhref="\/ggulggul\//, "/ggulggul/ has no Next RSC payload; it needs a full document navigation");
+});
+
+test("installed launch settings point to the two-service home", () => {
+  const manifest = JSON.parse(readFileSync(new URL("../../manifest.json", import.meta.url), "utf8"));
+  assert.equal(manifest.start_url, "/");
+  const nativeConfig = readFileSync(new URL("../../apps/mobile/capacitor.config.ts", import.meta.url), "utf8");
+  assert.ok(nativeConfig.includes('appStartPath: "/index.html"'));
 });

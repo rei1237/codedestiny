@@ -87,6 +87,8 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Only used after the user selects a target and taps Apply. -->
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
 
     <!-- 촉각 피드백. 웹 Vibration API(navigator.vibrate)가 이 권한 없이는 조용히 무시된다.
          호출부는 이미 있다 — js/touch-perf.js 의 safeVibrate(8) 가 버튼·카드 터치에 걸려 있고

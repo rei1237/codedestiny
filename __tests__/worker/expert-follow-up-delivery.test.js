@@ -3,6 +3,8 @@ import { jest } from '@jest/globals';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
+import { AI_OUTPUT_LOCALES } from '../../lib/i18n/ai-locale.js';
+import { runWithAiLocale, getAmbientAiLocale } from '../../worker/lib/ai-locale-context.js';
 let deliver, recover, docs, report, revoked, fault, provider;
 const owner = '64b7f2a1c3d4e5f601234567';
 const at = (obj, key) => key.split('.').reduce((v, k) => v?.[k], obj);
@@ -123,4 +125,14 @@ test('server resumes the original follow-up budget and GET attaches once without
   expect(report.messages).toHaveLength(3);expect(provider).toHaveBeenCalledTimes(2);
   await recover({auth:{userId:owner},consultation:report,featureKey:'karma-destiny-ai-consultation',model:reportModel});
   expect(report.messages).toHaveLength(3);expect(provider).toHaveBeenCalledTimes(2);
+});
+
+test.each(AI_OUTPUT_LOCALES)('%s: follow-up uses the original report language and reopens without generation', async locale => {
+  report.llmMeta.resumeBody = { locale };
+  const languages = [], original = provider.getMockImplementation();
+  provider.mockImplementation(async (...args) => { languages.push(getAmbientAiLocale()); return original(...args); });
+  expect((await runWithAiLocale(locale === 'en' ? 'ja' : 'en', () => start())).status).toBe(200);
+  expect((await runWithAiLocale('ko', () => start())).status).toBe(200);
+  expect(languages).toEqual([locale]);
+  expect(report.messages).toHaveLength(3);
 });

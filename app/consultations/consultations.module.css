@@ -45,44 +45,45 @@
 .section:first-of-type { margin-top: 24px; }
 .sectionHeading h2 { font-size: clamp(1.4rem, 2.4vw, 1.85rem); line-height: 1.4; letter-spacing: -.025em; }
 .sectionHeading p { color: var(--hub-muted); margin-top: 8px; max-width: 65ch; font-size: .9rem; word-break: keep-all; }
-.featuredGrid, .expertGrid, .reportGrid { display: grid; gap: 24px; }
-.card { min-width: 0; }
-.art { background: var(--hub-surface); overflow: hidden; border-radius: var(--cd-r-card, 20px); }
-.art img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.cardBody { min-width: 0; }
-.card h3 { font-family: var(--font-serif); font-size: 1.3rem; line-height: 1.5; font-weight: 700; }
-.description { color: var(--hub-ink); font-size: .94rem; margin-top: 8px !important; word-break: keep-all; }
-.format { color: var(--hub-muted); font-size: .8rem; margin-top: 8px !important; word-break: keep-all; }
-.featured { overflow: hidden; background: var(--hub-card); border: 1px solid var(--hub-line); border-radius: var(--cd-r-section, 26px); }
-.featured .art { border-radius: 0; height: 180px; }
-.featured[data-service="tea"] .art img { object-position: right center; }
-.expert[data-service="life-book"] .art img { object-position: center 70%; }
-.featured .cardBody { padding: 24px; }
-.featured[data-service='neo'] { background: var(--hub-lilac-soft); }
-.featured[data-service='neo'] .button { background: var(--hub-lilac); }
-.actions { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-top: 20px; }
+/* 대표 상담 = 타로 카드 덱(DESIGN.md "Tarot Card", 홈 #cdSignatureConsult 와 같은 틀).
+   카드 전체가 링크 하나이고, 채움 행동은 첫 장의 라벨 하나뿐이다. */
+.deck { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tarot { --tarot-hue: var(--hub-accent); min-width: 0; }
+.tarot[data-service='neo'] { --tarot-hue: #5d5299; }
+.tarot[data-service='tea'] { --tarot-hue: #b53660; }
+.tarot[data-service='codex'] { --tarot-hue: #8a5a22; }
+.tarot[data-service='love-secret'] { --tarot-hue: #b0476c; }
+.tarot[data-service='new-year'] { --tarot-hue: #2e6f62; }
+.tarot[data-service='life-book'] { --tarot-hue: #2f6a44; }
+.tarot > a { display: flex; flex-direction: column; height: 100%; aspect-ratio: 2 / 3; padding: 8px; border: 1px solid color-mix(in srgb, var(--hub-gold) 55%, transparent); border-radius: 18px; background: color-mix(in srgb, var(--hub-card) 92%, transparent); box-shadow: inset 0 0 0 4px var(--hub-card), inset 0 0 0 5px color-mix(in srgb, var(--tarot-hue) 55%, transparent), 0 18px 34px -26px var(--tarot-hue); transition: border-color .18s ease, transform .18s ease; }
+.tarot > a:hover { border-color: var(--hub-gold); transform: translateY(-2px); }
+.tarotTop { display: flex; justify-content: center; padding: 4px 0 6px; }
+.tarotTop b { color: var(--tarot-hue); font: 700 1.2rem/1 var(--font-serif); letter-spacing: .04em; }
+.tarotArt { display: block; flex: none; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--hub-line); border-radius: 12px 12px 4px 4px; background: var(--hub-surface); }
+.tarotArt img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.tarotBody { display: flex; flex: 1; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 0; text-align: center; }
+.tarot h3 { font-family: var(--font-serif); font-size: 1rem; line-height: 1.4; font-weight: 700; }
+.tarotLine { display: none; color: var(--hub-muted); font-size: .85rem; line-height: 1.55; word-break: keep-all; }
 .prices { font-size: .8rem; color: var(--hub-muted); font-variant-numeric: tabular-nums; }
-.prices > span { display: block; margin-bottom: 2px; }
+.tarot .prices { margin-top: auto; padding-top: 4px; }
+.tarot .prices > span { display: block; }
 .price { color: var(--hub-accent); font-weight: 750; font-size: .95rem; }
-.page .button { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; padding: 10px 16px; border-radius: var(--cd-r-control, 12px); background: var(--hub-accent); color: var(--hub-card); font-size: .875rem; font-weight: 700; transition: box-shadow .18s ease, transform .18s ease; }
-.button:hover { box-shadow: 0 6px 16px var(--hub-line); transform: translateY(-2px); }
+.primary, .tertiary { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 40px; margin-top: 2px; font-size: .82rem; font-weight: 700; }
+.primary { align-self: stretch; padding: 8px 10px; border-radius: var(--cd-r-control, 12px); background: var(--hub-accent); color: var(--hub-card); }
+.tertiary { color: var(--tarot-hue); text-decoration: underline; text-decoration-color: var(--hub-line); text-underline-offset: 4px; }
+/* 다른 상담 = 압축 목록. 그림은 작은 표식, 행동은 텍스트 링크(3차)만. */
+.rows { display: grid; column-gap: 32px; scroll-margin-top: 24px; border-top: 1px solid var(--hub-line); }
+.row { display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-areas: 'art body' 'art link'; column-gap: 14px; padding-block: 14px 6px; border-bottom: 1px solid var(--hub-line); }
+.row img { grid-area: art; display: block; width: 56px; height: 56px; object-fit: cover; border-radius: var(--cd-r-md, 14px); background: var(--hub-surface); }
+.rowBody { grid-area: body; min-width: 0; }
+.row h3 { font-family: var(--font-serif); font-size: 1.02rem; line-height: 1.45; font-weight: 700; }
+.description { color: var(--hub-ink); font-size: .875rem; margin-top: 2px !important; word-break: keep-all; }
+.row .prices { margin-top: 4px !important; }
+.row .prices > span { margin-right: 10px; }
+.rowLink { grid-area: link; justify-self: start; display: inline-flex; align-items: center; gap: 4px; min-width: 44px; min-height: 44px; color: var(--hub-accent); font-size: .875rem; font-weight: 700; text-decoration: underline; text-decoration-color: var(--hub-line); text-underline-offset: 4px; }
 .chat { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; margin-top: 20px; padding: 12px 0; border-block: 1px solid var(--hub-line); }
 .chat > div { display: flex; align-items: center; gap: 10px; font-size: .9rem; margin-right: auto; }
 .chat a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--hub-accent); font-size: .85rem; font-weight: 650; }
-.expert { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 16px; padding-bottom: 24px; border-bottom: 1px solid var(--hub-line); }
-.expert .art { aspect-ratio: 1; border-radius: var(--cd-r-md, 16px); }
-.expert h3 { font-size: 1.1rem; }
-.expert .actions { align-items: start; gap: 8px; margin-top: 12px; }
-.expert .button { background: transparent; color: var(--hub-accent); border: 1px solid var(--hub-line); }
-.naming { background: var(--hub-surface); padding: 20px; border-radius: var(--cd-r-section, 26px); }
-.naming .art { aspect-ratio: 16 / 9; }
-.naming .cardBody { padding-top: 20px; }
-.naming h3 { font-size: 1.6rem; }
-.report { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 16px; border-bottom: 1px solid var(--hub-line); padding-bottom: 24px; }
-.report .art { aspect-ratio: 1; }
-.report h3 { font-size: 1.15rem; }
-.report .actions { margin-top: 12px; gap: 8px; }
-.report .button { background: transparent; color: var(--hub-accent); border: 1px solid var(--hub-line); }
 .guide { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--hub-line); color: var(--hub-muted); font-size: .9rem; }
 .guide h2 { font-size: 1.5rem; }
 .guide p { max-width: 70ch; line-height: 1.8; margin-block: 16px; }
@@ -92,23 +93,23 @@
 .guide nav { display: flex; flex-wrap: wrap; gap: 8px 24px; }
 @media (min-width: 700px) {
   .page { padding-inline: 40px; }
-  .featuredGrid, .reportGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .featured { display: flex; flex-direction: column; }
-  .featured .cardBody { flex: 1; display: flex; flex-direction: column; }
-  .featured .actions { margin-top: auto; padding-top: 20px; }
-  .naming { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; padding: 28px; }
-  .naming .cardBody { padding: 0; }
-  .naming .art { aspect-ratio: 4 / 3; }
+  .deck { gap: 20px; }
+  .tarot > a { padding: 10px; }
+  .tarot h3 { font-size: 1.15rem; }
+  .tarotLine { display: block; }
+  .row { grid-template-columns: 64px minmax(0, 1fr) auto; grid-template-areas: 'art body link'; align-items: center; padding-block: 16px; }
+  .row img { width: 64px; height: 64px; }
 }
 @media (min-width: 960px) {
   .heading { padding-block: 20px 12px; }
   .section { margin-top: 48px; }
-  .featured .art { height: 196px; }
-  .expertGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
-  .expert { display: flex; flex-direction: column; gap: 16px; }
-  .expert .art { aspect-ratio: 16 / 10; }
-  .expert .cardBody { flex: 1; display: flex; flex-direction: column; }
-  .expert .actions { margin-top: auto; padding-top: 16px; }
+  .rows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  /* 데스크톱은 여섯 장을 한 줄로 펼친다 — 첫 화면에서 카드 Ⅰ의 라벨까지 보이게. */
+  .deck { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+  .tarot h3 { font-size: 1.05rem; }
+  .tarotLine { display: none; }
 }
 @media (max-width: 380px) {
   .page { padding-inline: 16px; }
@@ -116,12 +117,12 @@
   .moon { width: 28px; right: 0; }
   .categories { gap: 4px 14px; }
   .categories a { font-size: .8rem; gap: 4px; }
-  .featured .cardBody { padding: 20px; }
-  .expert, .report { grid-template-columns: 88px minmax(0, 1fr); gap: 12px; }
+  .deck { gap: 10px; }
+  .tarot > a { padding: 7px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .button { transition: none; }
-  .button:hover { transform: none; }
+  .tarot > a { transition: none; }
+  .tarot > a:hover { transform: none; }
 }
 
 
@@ -135,10 +136,9 @@
   :global(body):has(.page) :global(.cd-mnav__list) { background: var(--hub-bg); border-color: var(--hub-line); box-shadow: 0 6px 24px var(--hub-line); }
 }
 @media (max-width: 699px) {
-  .categories { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  .categories { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
   .categories a { justify-content: center; font-size: .8rem; white-space: nowrap; }
   .categories svg { display: none; }
   .heading h1 { font-size: 1.7rem; }
   .heading p { font-size: .875rem; }
-  .featured .cardBody { padding: 18px; }
 }

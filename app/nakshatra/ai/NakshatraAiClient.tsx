@@ -1,4 +1,7 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { detectLocale } from "@/lib/i18n/dictionary";
+import library from '../library.module.css';
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -420,10 +423,9 @@ export default function NakshatraAiClient() {
     }
   }, [pdfBusy, phase, identity, copy]);
 
-  const bgClass =
-    "relative isolate min-h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(179,25,85,0.14),transparent_34%),radial-gradient(circle_at_85%_10%,rgba(212,175,55,0.12),transparent_36%),linear-gradient(160deg,#0a0818_0%,#12102a_55%,#070510_100%)] px-4 py-8 text-slate-100 md:py-12";
+  const bgClass = library.page;
 
-  if (!ready) return <main className="min-h-[100dvh] bg-[#070812]" aria-busy="true" />;
+  if (!ready) return <main className={library.page} aria-busy="true" />;
 
   if (!birth && !decks) {
     return (
@@ -490,6 +492,7 @@ export default function NakshatraAiClient() {
         <WaitingView phase={phase} statusMsg={statusMsg} identity={identity} progress={progress} copy={copy} />
       ) : (
         <div className="mx-auto grid w-full max-w-lg gap-4">
+          {detectLocale() === "ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto",background:"#eee7dc",color:"#463a31",borderRadius:12}}><CraftedProductDisclosure featureKey="nakshatra-ai-consultation" summaryLabel="나크샤트라 AI 심화 상담 상세 안내" /></div>}
           <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={working || profilePicker.selecting} />
           <IntroView
             identity={identity}
@@ -544,7 +547,7 @@ function IntroView({
         onChange={(e) => onQuestion(e.target.value.slice(0, 1000))}
         rows={3}
         placeholder={copy.aiQuestionPlaceholder}
-        className="mt-2 w-full resize-none rounded-xl border border-white/15 bg-white/[0.04] px-3.5 py-3 text-sm leading-7 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-amber-200/60 focus:bg-white/[0.06] focus-visible:ring-2 focus-visible:ring-amber-200/40"
+        className="mt-2 w-full resize-none rounded-xl border border-white/15 bg-white/[0.04] px-3.5 py-3 text-sm leading-7 text-slate-100 placeholder:text-slate-400 outline-none transition focus:border-amber-200/60 focus:bg-white/[0.06] focus-visible:ring-2 focus-visible:ring-amber-200/40"
       />
 
       <p className="mt-3 text-xs leading-6 text-slate-400">

@@ -6,6 +6,7 @@
 - 결제 정책 표기: 코드에 보이는 가격/한도만 기록하고 정책은 변경하지 않음
 - 🔴 **가격 정본은 이 문서가 아니다** — `worker/lib/paid-feature-registry.js`(콘텐츠) · `worker/payments/passes.js`(이용권) · `worker/lib/app-store-pricing.js`(앱)이다. 이 표의 가격 열은 **참고용 사본**이며 이를 검증하는 CI 가드가 없어 조용히 낡는다(2026-08-12 감사에서 가격 기재 52행 중 7행이 어긋나 있었다). 가격을 이 문서에서 읽어 코드에 넣지 말 것. 현행 전수 목록은 [docs/pricing/PRICING_AUDIT.md](docs/pricing/PRICING_AUDIT.md) 참고
 - 표기 단위는 **원화 고정** — 코인은 폐지된 내부 단위라 사용자 대상 문서에 쓰지 않는다(`docs/payment-policy-overview.md` 2절)
+- 2026-10-18 진입 경로 확인: 점성술·베다점의 현재 경로는 `/astrology/`·`/vedic/`다. 이전 `/astrology/cosmic`·`/vedic/jyotish`는 `public/_worker.js`에서 각 현재 경로로 301 이동하며, 아래 표는 현재 진입 경로를 기록한다.
 
 ## Registry
 | 기능명 | 현재 진입 위치 | 라우트/모달/인페이지 여부 | 무료/유료 | 모바일 첫 화면 문제 | 성능 문제 | 개선 방식 |
@@ -76,10 +77,10 @@
 | 영국 홍차점 | 신탁 & 점술 컬렉션 | `/royal-tea-oracle.html`, `openRoyalTeaOracle` | 무료 | 기능명이 낯설어 설명 필요 | static HTML | 무료 신탁 카드로 유지 |
 | 데스티니 포커 | 신탁 & 점술 컬렉션 | `/destiny-poker.html` | 무료 | 게임/점술 혼재 | static HTML | 신탁 컬렉션 내부 |
 | 코즈믹 & 별자리 | 모바일 빠른 탐색, 별자리 컬렉션 | `cosmicCollection`, `openAstroModal` | 무료/유료 혼합 | 기본 차트와 AI 상담이 섞여 복잡함 | chart route, modal, AI route 혼합 | 별자리 탭에서 기본 차트와 유료 상담 분리 |
-| 서양 점성술 기본 차트 | 코즈믹 & 별자리 컬렉션 | `openAstroModal`, `/astrology/cosmic` | 기본 무료 | 코즈믹 카드 사이에 묻힘 | hidden modal/route | 별자리 chip 후 노출 |
+| 서양 점성술 기본 차트 | 코즈믹 & 별자리 컬렉션 | `openAstroModal`, `/astrology/` | 기본 무료 | 코즈믹 카드 사이에 묻힘 | hidden modal/route | 별자리 chip 후 노출 |
 | 자미두수 기본 명반 | 코즈믹 & 별자리 컬렉션 | `openZiweiModal`, `/ziwei/chart` | 기본 무료 | 이름이 길어 모바일 폭 부담 | hidden modal/route | 제목 축약 유지 |
 | 자미두수 심화 | 코즈믹 & 별자리 컬렉션 | `navigateToZiweiChart`, `/ziwei/chart` | 명반 무료 · 심층 PDF 30,000원 | 무료 명반과 유료 PDF 구분이 필요 | 진입 게이트 없음 | preview에서 안내 |
-| 베다 점성술 | 코즈믹 & 별자리 컬렉션 | `navigateToVedic`, `/vedic-ai`, `/vedic/jyotish` | 기본 무료, AI 상담 유료 | 기본/AI가 혼재 | route bundle | 기본 차트와 AI 상담 분리 |
+| 베다 점성술 | 코즈믹 & 별자리 컬렉션 | `navigateToVedic`, `/vedic-ai`, `/vedic/` | 기본 무료, AI 상담 유료 | 기본/AI가 혼재 | route bundle | 기본 차트와 AI 상담 분리 |
 | 올림푸스 신탁 | 코즈믹 & 별자리 컬렉션 | `openOlympusOracleModal` | 해금 10,000원 | modal 진입이 카드 안에 묻힘 | lazy script | 별자리 chip 내부 |
 | 운명의 꽃 & 해몽 | 모바일 빠른 탐색, 꽃/해몽 컬렉션 | `flowerCollection`, `openDestinyFlowerStudio` | 무료/유료 혼합 | 꽃 1종과 해몽 2종 | studio modal/engine, dream modal 혼합 | 꽃/해몽 탭에서 대표 카드와 더보기 |
 | 운명의 꽃 아틀리에 | 운명의 꽃 & 해몽 컬렉션 | `openDestinyFlowerStudio`, `/flower` | 전체 해금 10,000원(사주·점성술·자미두수·숙요 4종 전부) | — (2026-08-23 카드 4장을 1장으로 통합) | studio modal/engine | 꽃·해몽 chip 하위 |
@@ -114,6 +115,15 @@
 | 퀀텀 로또 리포트 | 사주 결과 특수 리포트 | 인페이지 `lottoCard` | 유료/패키지 | 엔터테인먼트 기능이 결과를 늘림 | 결과 DOM | 결과 후 optional 카드 |
 | 테토 vs 에겐 테스트 | 사주 결과 특수 테스트 | `hormone-vibe-section`, `hormoneVibeResult` | 무료/결과 기반 | 결과 후반에 묻힘 | 결과 DOM | 테스트 묶음 접힘 |
 | 극T 테스트 | 사주 결과 특수 테스트 | 인페이지 `tTestTitle`, extremeT script | 무료/결과 기반 | 결과 후반에 묻힘 | `extremeTResult.js` | 테스트 묶음 접힘 |
+
+## 진입 계층 (2026-10-16)
+위 표의 "개선 방식" 열보다 이 절이 우선한다.
+
+- **하단 내비 라벨:** "재밌는 운세"(aria "재밌는 운세 둘러보기")와 "대표 상담"(aria "대표 상담 고르기")을 쓴다. 정본은 `app/_lib/mobile-tabs.ts`, 정적 셸은 `index.html` `#cdMobileBottomNav` 수기 미러다. key·href·순서는 바꾸지 않았다.
+- **`/consultations/` 2단 구성:** 대표 상담 6장(`#signature`, Tarot Card)과 다른 상담 7개(`#others`, 압축 행)로 나눈다. `#experts` 는 하위 호환 앵커다.
+- **사주 모아보기:** `/saju/#services` 에 사주 기능 30종을 모았다. 순서는 대표 상담 → 무료로 바로 보기 → 사주 리포트 더 보기 → 사주 공부하기다. 정본은 `lib/saju/saju-service-catalog.mjs` 다.
+  - 입구는 세 곳이다. 홈 여섯 방식 아래의 텍스트 링크, 모든 운세 검색 결과 맨 위의 "사주 서비스 전체 보기"("사주" 칩을 고르거나 사주·명리·팔자·만세력을 검색할 때), 그리고 `/saju/` 히어로 바로 아래다.
+  - 레지스트리 `methods:"saju"` 항목을 더하면 카탈로그에도 더해야 한다. 이는 `__tests__/ui/saju-service-catalog.static.test.mjs` 가드로 검사한다.
 
 ## 누락 방지 체크
 - 필수 사용자 목록의 모든 기능군을 위 표에 포함함.

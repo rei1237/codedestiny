@@ -1,0 +1,148 @@
+{
+  "id": "cosmic-soul-meditation",
+  "featureKey": "cosmic-soul-meditation",
+  "title": "코스믹 소울 명상",
+  "notice": "로그인 후 재물·집중·관계·몸의 네 가지 의도와 30분(5단계) 또는 60분(7단계) 코스를 고르는 화면 안내형 명상 실습입니다. 준비된 문장에 선택한 의도별 문장이 일부 더해지며 타이머·진행 표시·배경음 세 분위기·재생·다음 곡·일시정지·재개·종료를 제공합니다. 생년월일 분석, AI 상담, 개인 음성 안내나 결과 리포트는 아닙니다. 완료 화면에 의도별 행동 안내와 저널 질문이 표시됩니다. 저장한 저널은 브라우저에 최근 50개까지, 완료 통계도 같은 브라우저에 남습니다. 계정/기기 간 동기화, 전체 기록 목록, PDF 내보내기는 제공하지 않으며 브라우저 데이터 삭제 시 사라질 수 있습니다. 음악은 브라우저 환경에 따라 달라집니다. 우주·코드·양자 등의 표현과 Hz 표시는 연출/비유이며 뇌파나 건강 상태를 측정하지 않습니다. 의료적 진단·치료 및 특정 수익·관계·건강·성취를 보장하지 않습니다. 그림과 예시는 콘셉트/가상 편집으로 고객 후기가 아닙니다. 코스별 이용권·월정석·단건 결제와 회당 조건은 현재 안내에서 확인하세요.",
+  "panels": [
+    {
+      "id": "01-give-attention-a-direction",
+      "title": "마음을 비우기 전에, 어디를 향할지.",
+      "src": "/feature-details/crafted/cosmic-soul-meditation/01-give-attention-a-direction.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "마음을 비우기 전에,\n어디를 향할지.\n\n오늘의 의도를 고르고\n단계별 문장과 음악을 따라가는\n코스믹 소울 명상입니다.\n\n콘셉트 이미지 · 개인 결과가 아닙니다.\n상상의 언어를 실제 효과와 구분해주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/cosmic-soul-meditation/01-give-attention-a-direction-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-four-intentions",
+      "title": "같은 시간도, 다른 주제로.",
+      "src": "/feature-details/crafted/cosmic-soul-meditation/02-four-intentions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 시간도,\n다른 주제로.\n재물\n\n풍요와 선택을 떠올리기\n\n집중\n\n중요한 한 가지에 주의 두기\n\n관계\n\n나와 타인을 향한 태도 살피기\n\n몸\n\n휴식과 생활의 감각 돌아보기\n\n선택한 의도의 준비 문장이 일부 단계에\n더해집니다. 자유 상담이나 진단은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/cosmic-soul-meditation/02-four-intentions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-half-an-hour",
+      "title": "30분, 다섯 번의 전환.",
+      "src": "/feature-details/crafted/cosmic-soul-meditation/03-half-an-hour.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "30분,\n다섯 번의 전환.\n\n3분준비하고 긴장 내려놓기\n\n5분오래된 생각 살피기\n\n12분원하는 장면 떠올리기\n\n7분장면의 느낌에 머물기\n\n3분일상으로 돌아오기\n\n화면의 기술적인 단계 이름을\n실습 흐름으로 풀어 쓴 목차입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/cosmic-soul-meditation/03-half-an-hour-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-an-hour",
+      "title": "60분, 장면을 준비하는 시간까지.",
+      "src": "/feature-details/crafted/cosmic-soul-meditation/04-an-hour.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "60분, 장면을\n준비하는 시간까지.\n\n준비와 이완\n5분\n\n생각의 습관 살피기\n10분\n\n나의 모습 떠올리기\n10분\n\n원하는 감각에 집중\n15분\n\n장면을 구체화하기\n12분\n\n느낌에 머물기\n5분\n\n일상으로 돌아오기\n3분\n\n더 긴 코스가 더 큰 효과를 뜻하지는 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/cosmic-soul-meditation/04-an-hour-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-see-the-metaphor",
+      "title": "우주와 코드의 언어는 비유입니다.",
+      "src": "/feature-details/crafted/cosmic-soul-meditation/05-see-the-metaphor.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "우주와 코드의 언어는\n비유입니다.\n생각을 정리하고\n원하는 장면을 그린 뒤\n오늘의 행동으로 돌아오기.\n\n‘리셋’·‘렌더링’·‘배포’는\n그 흐름을 표현하는 장치예요.\n\n화면의 Hz 표시는 단계별 연출이며\n나의 뇌파를 측정한 수치가 아닙니다.\n\n양자 현상이나 세포 변화를 입증하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/cosmic-soul-meditation/05-see-the-metaphor-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-keep-your-place",
+      "title": "지금 어느 단계인지 알 수 있도록.",
+      "src": "/feature-details/crafted/cosmic-soul-meditation/06-keep-your-place.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "지금 어느 단계인지\n알 수 있도록.\n화면 문장과 진행 표시\n\n단계·타이머·진행 바를 보며\n순서대로 나타나는 글을 읽습니다.\n\n배경음과 조작\n\n세 가지 분위기, 재생·다음 곡,\n일시정지·재개·세션 종료.\n\n개인화된 음성 안내는 아닙니다.\n음악은 브라우저 재생 환경에 따라\n준비되지 않을 수 있습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/cosmic-soul-meditation/06-keep-your-place-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-from-scene-to-note",
+      "title": "끝난 뒤, 세 줄을 남겨보세요.",
+      "src": "/feature-details/crafted/cosmic-soul-meditation/07-from-scene-to-note.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "끝난 뒤,\n세 줄을 남겨보세요.\n\n완료 화면의 저널을 위한 가상 예시\n\n회의 전 잠깐 숨을 골랐다.\n말하고 싶은 한 문장을 골랐다.\n내일도 메모부터 펼쳐보겠다.\n\n선택한 의도에 맞는 기록 질문과\n작은 행동 안내가 표시됩니다.\n\n명상 효과의 증거나 고객 후기가 아닙니다.\n작성한 글을 AI가 분석하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/cosmic-soul-meditation/07-from-scene-to-note-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-where-your-journal-lives",
+      "title": "나의 브라우저에 남는 기록.",
+      "src": "/feature-details/crafted/cosmic-soul-meditation/08-where-your-journal-lives.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 브라우저에\n남는 기록.\n저널\n\n완료 화면에서 적고 저장한 글은\n이 브라우저에 최근 50개까지 남습니다.\n\n실습 표시\n\n완료 세션 수·시간·연속 일수도\n이 브라우저의 기록으로 표시합니다.\n\n계정 간·기기 간 동기화는 제공하지 않아요.\n브라우저 데이터를 지우면 사라질 수 있습니다.\n전체 기록 목록이나 PDF 내보내기는 없습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/cosmic-soul-meditation/08-where-your-journal-lives-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-before-choosing",
+      "title": "의도와 시간을 고르면 시작 준비.",
+      "src": "/feature-details/crafted/cosmic-soul-meditation/09-before-choosing.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "의도와 시간을 고르면\n시작 준비.\n\n로그인 후 의도 네 가지 중 하나와\n30분 또는 60분 코스를 선택합니다.\n\n준비된 화면 문장으로 진행하며\n생년월일·사연 분석은 하지 않습니다.\n\n두 코스의 이용 조건이 다릅니다.\n현재 선택한 코스의 안내를 확인하세요.\n\n코스별 이용 조건은\n현재 결제 안내에서 확인하세요.\nAI 상담이나 결과 리포트 구매가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/cosmic-soul-meditation/09-before-choosing-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-a-step-after-stillness",
+      "title": "고요한 시간 뒤, 작은 행동 하나.",
+      "src": "/feature-details/crafted/cosmic-soul-meditation/10-a-step-after-stillness.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "고요한 시간 뒤,\n작은 행동 하나.\n\n원하는 감각을 상상했다면\n오늘 할 수 있는 선택을 남겨보세요.\n\n마음에 남은 한 문장을\n작은 실천으로 이어가보세요.\n\n특정 수익·인연·건강의 변화나\n성취를 보장하는 서비스는 아닙니다.\n\n의료적 진단·치료 대신 사용하는\n프로그램이 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/cosmic-soul-meditation/10-a-step-after-stillness-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

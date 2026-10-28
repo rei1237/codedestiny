@@ -205,7 +205,11 @@ test("출생시간을 타이핑하면 기존 select 두 개가 함께 맞춰진�
     ["0835", "08:35", "8", "35"],
     ["08:35", "08:35", "8", "35"],
     ["8:35", "08:35", "8", "35"],
+    ["1430", "14:30", "14", "30"],
     ["2359", "23:59", "23", "59"],
+    ["0", "00:00", "0", "0"],
+    ["0000", "00:00", "0", "0"],
+    ["1200", "12:00", "12", "0"],
   ]) {
     text.value = typed;
     fire(window, text, "blur");
@@ -213,6 +217,11 @@ test("출생시간을 타이핑하면 기존 select 두 개가 함께 맞춰진�
     assert.equal(hour.value, h, `"${typed}" 의 시 동기화 실패`);
     assert.equal(minute.value, m, `"${typed}" 의 분 동기화 실패`);
   }
+});
+
+test("출생시간은 24시간제 한 칸이다 — 오전/오후 select 가 없다", () => {
+  assert.doesNotMatch(shell, /id="(?:compat)?[bB]irthTimePeriod"/, "오전/오후 select 가 다시 생겼다");
+  assert.doesNotMatch(profileJs, /BirthTimePeriod/, "destiny-profile.js 가 오전/오후 select 를 참조한다");
 });
 
 test("해석할 수 없는 시간은 select 를 건드리지 않고 되돌린다", async () => {

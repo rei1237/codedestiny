@@ -22,14 +22,15 @@
   outline: 3px solid var(--yn-gold);
   outline-offset: 4px;
 }
+/* 기본 버튼 = Secondary(라인). 금 채움 Primary 는 .checkoutButton·.primaryAction 만 쓴다(docs/design/yeongnyangi-night.md 버튼 등급). */
 .page button,
 .page .button {
   min-height: 48px;
-  border: 1px solid rgba(233, 199, 141, 0.7);
-  border-radius: 12px;
+  border: 1px solid var(--yn-line);
+  border-radius: var(--yn-btn-radius);
   padding: 12px 20px;
-  background: var(--yn-violet);
-  color: #fff;
+  background: var(--yn-night);
+  color: var(--yn-ivory);
   font: inherit;
   font-weight: 700;
   cursor: pointer;
@@ -45,8 +46,7 @@
 }
 .page button:not([aria-pressed]):not(.retryButton):hover:not(:disabled),
 .page .button:hover {
-  background: #8a53bf;
-  border-color: var(--yn-gold);
+  background: var(--yn-raised);
   transform: translateY(-1px);
 }
 .page button:disabled {
@@ -126,17 +126,19 @@
   scrollbar-width: thin;
   scrollbar-color: var(--yn-violet) transparent;
 }
-.tabs button {
+.tabs button, .tabs a {
   flex-shrink: 0;
   background: var(--yn-night);
   color: var(--yn-muted);
   border-color: var(--yn-line);
 }
+.tabs a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--yn-line); border-radius: var(--yn-btn-radius); font: inherit; text-decoration: none; }
+.tabs a:hover { background: var(--yn-raised); color: var(--yn-ivory); }
+.tabs a:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
 .tabs button[aria-pressed="true"] {
-  background: var(--yn-violet);
-  color: #fff;
+  background: var(--yn-raised);
+  color: var(--yn-ivory);
   border-color: var(--yn-gold);
-  box-shadow: 0 10px 28px rgba(117, 65, 173, 0.28);
 }
 .fishes {
   display: grid;
@@ -259,16 +261,22 @@
 .consultationReviews > summary { min-height:44px; padding:12px 2px; line-height:1.4; color:var(--yn-gold); font-size:.88rem; font-weight:800; cursor:pointer; }
 .consultationReviews > summary:focus-visible { outline:2px solid var(--yn-gold); outline-offset:2px; border-radius:8px; }
 .consultationReviews > p { margin:0 2px; color:var(--yn-muted); font-size:.8rem; line-height:1.7; }
+.readingSettings { grid-column:1/-1; margin-top:14px; padding:0 14px; border:1px solid var(--yn-line); border-radius:16px; background:var(--yn-night); }
+.readingSettings[open] { padding-bottom:14px; }
+.readingSettings > summary { min-height:44px; padding:12px 2px; line-height:1.4; color:var(--yn-muted); font-size:.88rem; font-weight:700; cursor:pointer; }
+.readingSettings > summary:focus-visible { outline:2px solid var(--yn-gold); outline-offset:2px; border-radius:8px; }
 .consultationForm { padding:30px; }
 .birthDetails { padding:2px 0 20px; }
 .questionSection { border-top:1px solid var(--yn-line); padding-top:24px; }
+.questionPose { display:flex; justify-content:center; margin:0 0 16px; padding:8px; border-radius:20px; background:var(--yn-ivory); }
+.questionPose img { display:block; width:auto; height:104px; max-width:100%; object-fit:contain; mix-blend-mode:multiply; }
 .questionSection h2,.questionIntro h2 { font-size:1.28rem; color:var(--yn-ivory); margin:0 0 10px; }
 .questionSection > p { margin:0 0 22px; }
 .consultationForm textarea { min-height:150px; line-height:1.8; }
 .askPeriod { margin-top:12px; word-break:keep-all; overflow-wrap:anywhere; }
 .periodChips { display:flex; flex-wrap:wrap; gap:8px; }
 .page .periodChips button { min-height:40px; padding:8px 14px; border-radius:999px; background:var(--yn-night); color:var(--yn-muted); border-color:var(--yn-line); font-weight:650; }
-.page .periodChips button[aria-pressed="true"] { background:var(--yn-violet); color:#fff; border-color:var(--yn-gold); }
+.page .periodChips button[aria-pressed="true"] { background:var(--yn-raised); color:var(--yn-ivory); border-color:var(--yn-gold); }
 .periodHint { margin:8px 2px 0; color:var(--yn-muted); font-size:.8rem; line-height:1.7; }
 .periodPreview { margin:10px 2px 0; color:var(--yn-ivory); font-size:.88rem; line-height:1.7; }
 .periodPreview strong { color:var(--yn-gold); margin-right:4px; }
@@ -283,17 +291,36 @@
 .checkoutTotal > strong { font-size:1.7rem; font-family:"Yeongnyangi Myeongjo",serif; color:var(--yn-gold); white-space:nowrap; }
 .checkoutTotal small { margin-left:4px; font:400 .9rem "Yeongnyangi Noto",sans-serif; }
 .checkoutTotal .totalPlanned { font:500 .9rem "Yeongnyangi Noto",sans-serif; color:var(--yn-muted); }
-.page .checkoutButton { width:100%; justify-content:space-between; margin-top:10px; min-height:52px; }
+.page .checkoutButton { width:100%; justify-content:space-between; margin-top:10px; min-height:var(--yn-btn-h); border-color:var(--yn-gold); border-radius:var(--yn-btn-radius); background:var(--yn-gold); color:var(--yn-deep); }
+.page button.checkoutButton:not([aria-pressed]):not(.retryButton):hover:not(:disabled) { background:var(--yn-gold-hover); border-color:var(--yn-gold-hover); transform:none; }
+.page button.checkoutButton:disabled { background:var(--yn-raised); border-color:var(--yn-line); color:var(--yn-muted); opacity:1; }
+/* 결제(미결제 결과 화면의 결제 링크) = Primary. */
+.page .primaryAction { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:var(--yn-btn-h); padding:12px 20px; border:1px solid var(--yn-gold); border-radius:var(--yn-btn-radius); background:var(--yn-gold); color:var(--yn-deep); font-weight:700; text-decoration:none; }
+.page a.primaryAction:hover { background:var(--yn-gold-hover); }
+/* 결제 버튼 뒤 보관함 = Tertiary 텍스트 링크. */
+.page .libraryLink { display:inline-flex; align-items:center; min-height:44px; margin-top:4px; color:var(--yn-muted); font-size:var(--yn-t-body); text-decoration:underline; text-underline-offset:4px; }
+.page .libraryLink:hover { color:var(--yn-ivory); }
 .inputHints { padding-left:20px; font-size:.85rem; color:var(--yn-muted); line-height:1.8; }
-.jongCheck { border-top:1px solid var(--yn-line); padding:22px 0 8px; }
-.jongCheck h2 { font-size:1.18rem; color:var(--yn-ivory); margin:0 0 10px; }
-.jongCheck fieldset { border:0; padding:0; margin:18px 0 0; min-width:0; }
-.jongCheck legend { padding:0; font-weight:650; color:#f8edf7; }
-.form .jongYears { margin:6px 0 2px; color:var(--yn-gold); font-size:.92rem; }
-.jongYear { white-space:nowrap; }
-.jongReplies { display:flex; flex-wrap:wrap; gap:0 22px; }
-.page .jongReplies label { display:inline-flex; align-items:center; min-height:44px; margin:2px 0; font-weight:500; }
-.page .jongCheck input[type="radio"] { display:inline-block; width:20px; height:20px; min-height:0; padding:0; margin:0 8px 0 0; accent-color:var(--yn-violet); }
+/* 요약 목록 항목 = 해당 칸으로 이동하는 텍스트 링크. 칸 옆 오류는 손댄 뒤에만 보인다. */
+.page .inputHints button { min-height:44px; padding:0; border:0; background:none; color:inherit; font-weight:500; text-align:left; text-decoration:underline; text-underline-offset:4px; }
+.page .inputHints button:not([aria-pressed]):not(.retryButton):hover:not(:disabled) { background:none; color:var(--yn-ivory); transform:none; }
+.page input[aria-invalid="true"],.page select[aria-invalid="true"],.page textarea[aria-invalid="true"] { border-color:#e7a3ad; }
+.fieldError { display:block; margin:6px 0 0; color:#ffd2c9; font-size:.875rem; font-weight:500; line-height:1.5; }
+/* 과거 경험 설문: 접힌 선택 입력. 결제를 막지 않는다. */
+.experienceSurvey { border-top:1px solid var(--yn-line); padding:18px 0 8px; }
+.experienceSurvey summary { min-height:44px; display:flex; align-items:center; cursor:pointer; font-size:1.05rem; font-weight:650; color:var(--yn-ivory); }
+.experienceSurvey > p { margin:8px 0; color:var(--yn-muted); line-height:1.7; }
+.experienceSurvey .experienceNote { font-size:.875rem; }
+.experienceRow { display:grid; grid-template-columns:repeat(auto-fit,minmax(124px,1fr)); gap:12px; border:1px solid var(--yn-line); border-radius:14px; padding:12px 14px; margin:14px 0 0; min-width:0; }
+.experienceRow legend { padding:0 4px; font-weight:650; color:var(--yn-gold); }
+.page .experienceRow label { display:grid; gap:6px; min-width:0; margin:0; font-weight:500; }
+.page .experienceRow select,.page .experienceRow input:not([type="checkbox"]) { margin-top:0; }
+.experienceRow .experienceWide { grid-column:1/-1; }
+.page .experienceRow .experienceCheck { display:inline-flex; align-items:center; gap:8px; min-height:44px; }
+.page .experienceRow input[type="checkbox"] { width:20px; height:20px; min-height:0; margin:0; accent-color:var(--yn-violet); }
+.experienceHint { grid-column:1/-1; margin:0; color:#ffd2c9; font-size:.875rem; }
+.page .experienceSurvey button { min-height:44px; margin-top:12px; background:var(--yn-raised); color:var(--yn-ivory); border:1px solid #7e6789; border-radius:12px; padding:0 16px; }
+.page .experienceRow button { grid-column:1/-1; justify-self:start; margin-top:0; }
 @media(min-width:1024px) { .consultationDesk { grid-template-columns:minmax(0,1fr) minmax(0,2fr); } .consultationGuide { border-right:1px solid var(--yn-line); } }
 @media(max-width:1023px) { .consultationGuide { display:grid; grid-template-columns:72px 1fr; gap:0 18px; align-items:center; padding:20px 24px; border-bottom:1px solid var(--yn-line); } .guideCat { width:72px; height:72px; margin:0; border-radius:16px; grid-row:1/3; } .consultationGuide h2 { font-size:1.25rem; margin:0; } .consultationGuide h2 br { display:none; } .consultationGuide > p { font-size:.82rem; margin:4px 0 0; } .consultationGuide > p br { display:none; } .consultationSummary { grid-column:1/-1; display:flex; gap:18px; flex-wrap:wrap; margin-top:16px; padding:14px 0 0; } .consultationSummary > div { margin:0; } .consultationSummary > div:nth-child(2),.consultationSummary > div:nth-child(3) { display:none; } .consultationGuide .guideNote { display:none; } }
 @media(max-width:767px) { .consultationRoom { padding:0 16px; margin-top:10px; } .consultationRoom .consultationHeader { padding-top:20px; } .consultationHeader > svg { width:26px; height:26px; margin:0; } .consultationForm { padding:22px 18px; } .consultationGuide { padding:18px; gap:0 14px; } .consultationSummary { gap:12px 20px; } .consultationDesk { border-radius:18px; } .consultationRoom .fishes { gap:10px; } .consultationRoom .fishes button { padding:14px 12px; } }
@@ -549,6 +576,7 @@
 .spiritIntro h1 { word-break:keep-all; font-size:clamp(1.6rem,4vw,2.35rem); line-height:1.45; text-wrap:balance; margin:0 0 16px; }
 .libraryIntro { word-break:keep-all; }
 .libraryIntro button { margin-top:16px; }
+.libraryIntro .primaryAction { margin-top:8px; }
 /* signup.webp 는 아래가 일직선으로 잘린 장면이라 바닥만 배경으로 흐린다. */
 .libraryFade { -webkit-mask-image:linear-gradient(to bottom,#000 86%,transparent); mask-image:linear-gradient(to bottom,#000 86%,transparent); }
 .spirit p { max-width:70ch; overflow-wrap:anywhere; }
@@ -586,8 +614,8 @@
 .resultBridge h2 { margin:0 0 8px; color:#fff2d7; font-size:1.18rem; line-height:1.45; }
 .resultBridge p { margin:0; color:#dccfe8; line-height:1.75; word-break:keep-all; }
 .resultBridge nav { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; }
-.resultBridge nav a { display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:10px 14px; border-radius:12px; color:#f6dfaa; font-weight:760; text-decoration:none; }
-.resultBridge nav a:not(.button) { border:1px solid rgba(233,199,141,.36); }
+.resultBridge nav a { display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:10px 14px; border-radius:var(--yn-btn-radius); color:var(--yn-ivory); font-weight:760; text-decoration:none; }
+.resultBridge nav a:not(.button) { min-height:44px; padding-inline:4px; text-decoration:underline; text-underline-offset:4px; }
 .portalArrival { position:fixed; inset:0; z-index:2147482600; pointer-events:none; background:radial-gradient(circle at 50% 48%,rgba(255,248,208,.92),rgba(159,129,255,.38) 30%,rgba(9,5,20,0) 72%); animation:ynPortalArrive .46s cubic-bezier(.16,1,.3,1) forwards; }
 @keyframes ynPortalArrive { 0% { opacity:1; transform:scale(1.04); } 100% { opacity:0; transform:scale(1); } }
 .shareEditor { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.75fr); gap:32px; padding-top:16px; }
@@ -603,7 +631,7 @@
 .kakaoExcerpt { font-size:.9rem; color:var(--yn-muted); overflow-wrap:anywhere; }
 .shareActions { display:flex; flex-wrap:wrap; gap:10px; margin:20px 0; }
 .shareActions button { display:flex; align-items:center; justify-content:center; gap:8px; flex:1 1 130px; padding:12px; }
-.shareActions button:first-child { flex-basis:100%; background:var(--yn-gold); color:var(--yn-night); }
+.shareActions button:first-child { flex-basis:100%; }
 .sharePreview { margin:0; align-self:start; }
 .sharePreview img { display:block; width:100%; height:auto; border-radius:12px; }
 .sharePreview figcaption { margin-top:12px; }
@@ -698,8 +726,8 @@
 .recoveryNotice h2 { margin:0 0 12px; color:#fff2d7; font-size:1.3rem; text-wrap:balance; }
 .reader .recoveryNotice [role="alert"] { margin:0; padding:0; border:0; background:transparent; color:#f5e9ff; }
 .recoveryHint { color:#ddcfe7; font-size:.94rem; line-height:1.7; }
-.page button.retryButton { min-height:48px; padding:13px 22px; border:1px solid var(--yn-gold); border-radius:12px; color:var(--yn-deep); background:var(--yn-gold); gap:10px; }
-.page button.retryButton:hover:not(:disabled) { background:#f4ddb0; transform:none; }
+.page button.retryButton { min-height:48px; padding:13px 22px; border:1px solid var(--yn-line); border-radius:var(--yn-btn-radius); color:var(--yn-ivory); background:var(--yn-night); gap:10px; }
+.page button.retryButton:hover:not(:disabled) { background:var(--yn-raised); transform:none; }
 .page button.retryButton:focus-visible { outline:3px solid var(--yn-gold); outline-offset:4px; }
 .page button.retryButton:disabled { opacity:.75; }
 @media(max-width:600px) { .recoveryNotice { flex-direction:column; align-items:flex-start; gap:12px; padding:22px; } .recoveryNotice > img { align-self:center; flex-basis:auto; } .page .recoveryNotice .retryButton { width:100%; } }
@@ -717,7 +745,7 @@
 @media (max-width: 480px) { .kindChoices button { flex: 1 1 140px; } }
 
 .selectionHeading { margin:28px 0 8px; font-size:1.3rem; }
-.fishPrice { font-size:1.2rem; font-variant-numeric:tabular-nums; }
+.fishes .fishPrice { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 10px; width:100%; margin-block:4px; padding-block:10px; border-block:1px solid var(--yn-line); color:var(--yn-gold); font:600 1.3rem/1.5 var(--font-serif,serif); font-variant-numeric:tabular-nums; }
 .fishScope { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; }
 .fishScope b { font-weight:700; color:var(--yn-ivory); }
 .orderTools { margin:12px 0; padding:0; color:var(--yn-muted); }

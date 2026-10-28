@@ -536,6 +536,45 @@ body.ph-night .fireflies{opacity:1}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .wx,.fireflies,.night-glows{display:none}
 }
+
+/* 무료 탐험 화면 — 풍경은 공통 연출, 궁/시기는 계산 결과. */
+#scrIsland{--island-sea:#101f35;--island-paper:#192c42;--island-ink:#f5f1e7;--island-muted:#c3d5df;--island-trail:#f1d293;color:var(--island-ink)}
+#scrIsland .map-canvas{background:var(--island-sea)}
+#scrIsland #mapSvg{filter:none}
+#scrIsland .sky-veil{display:none}
+.map-stop rect{fill:var(--island-sea);stroke:var(--island-trail);stroke-width:1.5}
+.map-stop text{fill:var(--island-ink);font:600 18px CodeDestinyBody,sans-serif;pointer-events:none}
+.map-stop circle{fill:var(--island-trail)}
+.map-stop:hover rect,.map-stop:focus rect{stroke-width:4;fill:var(--island-paper)}
+.map-stop:focus{outline:none}
+#scrIsland .hud-top{pointer-events:none}
+#scrIsland .hud-id,#scrIsland .chip{background:var(--island-sea);color:var(--island-ink);backdrop-filter:none}
+#scrIsland .hud-chips{display:none}
+#scrIsland .hud-bottom{bottom:max(16px,env(safe-area-inset-bottom));gap:8px}
+#scrIsland .hud-btn{min-height:46px;background:var(--island-sea);color:var(--island-ink);border-color:var(--island-muted);backdrop-filter:none}
+.map-help{position:absolute;z-index:19;left:0;right:0;bottom:155px;text-align:center;font-size:12px;color:var(--island-muted);pointer-events:none}
+.palace-dock{position:absolute;z-index:20;left:50%;bottom:82px;transform:translateX(-50%);width:min(94vw,880px);display:flex;gap:6px;overflow-x:auto;padding:8px;scrollbar-color:var(--island-trail) var(--island-sea);background:var(--island-sea);border-radius:16px}
+.palace-dock button{flex:0 0 auto;min-width:82px;min-height:58px;padding:8px 12px;color:var(--island-ink);background:transparent;border:1px solid var(--panel-line);border-radius:10px;font:600 14px CodeDestinyBody,sans-serif}
+.palace-dock small{display:block;font-size:11px;margin-top:4px;color:var(--island-muted)}
+.palace-dock .visited{border-color:var(--island-trail)}
+.palace-dock .visited:after{content:' · 방문';font-size:10px;color:var(--island-trail)}
+.travel-status{position:absolute;z-index:21;top:90px;left:50%;transform:translateX(-50%);background:var(--island-sea);padding:10px 16px;border-radius:14px;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.travel-status[hidden]{display:none}
+.travel-status button,.reading-actions button,.decade-list button,.journal-list button,#visitYear{min-height:46px;border:1px solid var(--panel-line);border-radius:12px;background:var(--ink-soft);color:var(--text);padding:10px 16px;font:inherit;cursor:pointer}
+.walking{animation:island-step .3s ease-in-out infinite alternate;transform-origin:0 0}
+@keyframes island-step{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-7px) rotate(5deg)}}
+#sheetPalaceDesc{width:min(780px,96vw);max-height:86dvh;background:var(--ink-deep);color:var(--text);backdrop-filter:none;padding:32px clamp(20px,5vw,48px);line-height:1.85}
+.reading-host{display:flex;align-items:center;gap:18px;padding-right:24px}.reading-host img{border-radius:20px}.reading-host h2{font-size:clamp(21px,4vw,29px);line-height:1.4}.reading-host p{color:var(--text-muted);margin:6px 0}
+.reading-lead{font-size:20px;line-height:1.7;margin:26px 0 18px;color:var(--gold)}
+.reading-basis{font-size:13px;color:var(--text-muted);line-height:1.8;margin:18px 0}
+.reading-section{margin:32px 0}.reading-section h3{font-size:20px;color:var(--gold);margin-bottom:14px}.reading-section p{font-size:16px;line-height:1.95;margin:14px 0;word-break:keep-all;overflow-wrap:anywhere}
+.reading-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}.reading-actions button{flex:1 1 170px}
+.year-picker{display:flex;align-items:center;gap:16px;margin:24px 0}.year-picker select{font:inherit;min-height:48px;padding:8px 20px;color:var(--text);background:var(--ink-soft);border:1px solid var(--panel-line);border-radius:12px}
+.decade-list{list-style:none;margin:24px 0;padding:0}.decade-list li{margin:8px 0}.decade-list button{width:100%;display:flex;gap:20px;text-align:left}.decade-list strong{min-width:95px;color:var(--gold)}.decade-list .current button{border-color:var(--gold)}
+.journal-list{display:flex;flex-direction:column;gap:10px;margin-top:24px}.journal-list button{display:flex;align-items:center;gap:16px;text-align:left}.journal-list button>span:last-child{margin-left:auto;font-size:12px;color:var(--gold)}.journal-list small{display:block;color:var(--text-muted)}.journal-list img{border-radius:14px}
+button:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+@media(max-width:640px){#scrIsland .map-canvas{bottom:300px;top:70px}#scrIsland .hud-id{max-width:90vw}.travel-status{top:78px;font-size:12px;padding:6px 10px;gap:8px}.palace-dock{bottom:78px;width:96vw;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.palace-dock button{min-width:0;min-height:58px;padding:6px 2px}.palace-dock small{font-size:10px}.palace-dock .visited:after{display:none}.map-help{bottom:284px;font-size:11px}.map-stop text{font-size:28px}.map-stop rect{width:104px;x:-52px}.map-stop.is-year rect{stroke-width:3}#travelerBody{scale:1.4}#scrIsland .hud-bottom{display:grid;grid-template-columns:1fr 1fr 1.25fr 44px;width:96vw;gap:5px}#scrIsland .hud-btn{font-size:11px;padding:8px 3px;min-width:0;white-space:nowrap;gap:3px}#btnQuest .hb-ic{display:none}#btnQuest .cnt{padding:2px 3px;font-size:10px}#sheetPalaceDesc{max-height:88dvh;padding-top:40px}.reading-host img{width:56px;height:56px}.decade-list button{gap:10px}.decade-list span{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.walking{animation:none}}
 </style>
 </head>
 <body class="ph-night">
@@ -546,17 +585,16 @@ body.ph-night .fireflies{opacity:1}
   <div class="gate-card">
     <div class="gate-hero">
       <picture>
-        <source media="(max-width: 640px)" srcset="/images/destiny-island/gate-hero-mobile-v2.webp" />
-        <img id="gateHeroImg" src="/images/destiny-island/gate-hero-desktop-v2.webp" srcset="/images/destiny-island/gate-hero-desktop-v2.webp 1x" alt="열두 궁의 구역이 불을 밝힌 밤바다 위 운명의 섬" fetchpriority="high" />
+        <source media="(max-width: 640px)" srcset="/images/service-introductions/destiny-island-640.webp" />
+        <img id="gateHeroImg" src="/images/service-introductions/destiny-island-960.webp" width="1536" height="1024" alt="열두 궁의 구역이 불을 밝힌 밤바다 위 운명의 섬" fetchpriority="high" />
       </picture>
     </div>
       <div class="gate-companions" aria-label="운명의 섬 안내자">
         <div class="guide-chip guide-chip--yeon"><span class="guide-chip__avatar" aria-hidden="true"><img src="/images/fortune-tea-house/flower-pig-single-a.webp" alt="" /></span><span><b>연이</b><small>별빛을 모아 섬을 피워요</small></span></div>
         <div class="guide-chip guide-chip--neo"><span class="guide-chip__avatar" aria-hidden="true"><img src="https://assets.code-destiny.com/cdn-cgi/image/width=180,quality=80,format=auto/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.webp" alt="" /></span><span><b>네오</b><small>궁의 판세를 읽어드리죠</small></span></div>
     </div>
-    <p class="gate-eyebrow">紫微斗數 · DESTINY ISLAND</p>
     <h1 class="gate-title">운명의 섬</h1>
-    <p class="gate-sub">태어난 순간의 별 배치가 하나의 섬이 됩니다. 12궁의 건물을 돌아보며 오늘의 흐름을 만나보세요.</p>
+    <p class="gate-sub">연이와 함께 열두 궁을 여행하세요. 나의 성향부터 10년의 흐름과 해마다의 주제까지, 모든 이야기를 무료로 읽을 수 있어요.</p>
     <div class="gate-picker" id="gatePicker" hidden>
       <p class="gate-picker__q">누구의 명반으로 섬을 볼까요?</p>
       <div class="gate-cards" id="gateCards" role="list"></div>
@@ -618,8 +656,8 @@ body.ph-night .fireflies{opacity:1}
     <!-- 게이트 히어로와 같은 그림인데 여기만 데스크톱본(312KB)을 무조건 받고 있었다.
          모바일은 게이트와 같은 소스(193KB)를 쓴다. -->
     <div class="intro-island" id="inIsland" aria-hidden="true"><div class="intro-island-orb"></div><picture>
-      <source media="(max-width: 640px)" srcset="/images/destiny-island/gate-hero-mobile-v2.webp" />
-      <img src="/images/destiny-island/gate-hero-desktop-v2.webp" alt="" decoding="async" />
+      <source media="(max-width: 640px)" srcset="/images/destiny-island/exploration-map-v3.webp" />
+      <img src="/images/destiny-island/exploration-map-v3.webp" alt="" decoding="async" />
     </picture></div>
     <p class="intro-caption" id="inCap" aria-live="polite"></p>
     <button class="intro-skip" id="inSkip" type="button">건너뛰기 ›</button>
@@ -663,9 +701,9 @@ body.ph-night .fireflies{opacity:1}
       <span class="chip" id="chipLuck" hidden></span>
     </div>
   </div>
-  <div class="hud-bottom">
+  <div class="travel-status" id="travelStatus" role="status" hidden><span id="travelText"></span><button id="skipTravel" type="button">바로 도착</button></div><p class="map-help">궁을 고르면 연이가 걸어가요 · 두 손가락으로 확대</p><nav class="palace-dock" id="palaceDock" aria-label="열두 궁 목적지"></nav><div class="hud-bottom">
     <button class="hud-btn" id="btnQuest" type="button" aria-label="오늘의 퀘스트 열기"><svg class="hb-ic" viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="-5" y="-6" width="10" height="12" rx="1.8"/><path d="M-2.5 -3h5M-2.5 0h5M-2.5 3h3"/></svg><span class="hb-label">퀘스트</span> <span class="cnt" id="questCnt">0/3</span></button>
-    <a class="hud-btn gold" id="btnZiweiAi" href="/island-consult" aria-label="12궁 특화 자미두수 상담으로 이동"><svg class="hb-ic" viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 -5A6 6 0 1 0 4 5.5A4.6 4.6 0 0 1 3 -5Z"/><path d="M-3.4 -4l.5 1.5 1.5 .5 -1.5 .5 -.5 1.5 -.5 -1.5 -1.5 -.5 1.5 -.5z"/></svg><span class="hb-label">오늘의 조언 더 듣기</span></a>
+    <button class="hud-btn gold" id="btnTiming" type="button">시기별 운세</button><button class="hud-btn" id="btnJournal" type="button">탐험 수첩 <span id="visitCount">0/12</span></button>
     <button class="hud-btn" id="btnSettings" type="button" aria-label="설정 열기"><svg class="hb-ic" viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="0" cy="0" r="2.4"/><path d="M0 -7v2.2M0 4.8v2.2M-7 0h2.2M4.8 0h2.2M-4.95 -4.95l1.55 1.55M3.4 3.4l1.55 1.55M4.95 -4.95l-1.55 1.55M-3.4 3.4l-1.55 1.55"/></svg></button>
   </div>
 </section>
@@ -700,7 +738,7 @@ body.ph-night .fireflies{opacity:1}
   <p class="sub">섬의 소리와 이름을 다듬어요.</p>
   <div class="set-row"><div><div class="t">배경 음악</div><div class="d">섬과 건물의 테마곡을 들려드려요.</div></div>
     <button class="toggle" id="setBgm" type="button" role="switch" aria-checked="false" aria-label="배경 음악 켜기/끄기"></button></div>
-  <div class="set-row"><div><div class="t">섬 이름 바꾸기</div><div class="d" id="setNameCur"></div></div>
+  <div class="set-row"><label for="reduceTravel">캐릭터 이동 바로 완료</label><input id="reduceTravel" type="checkbox"></div><div class="set-row"><div><div class="t">섬 이름 바꾸기</div><div class="d" id="setNameCur"></div></div>
     <button class="hud-btn" id="setRename" type="button">변경</button></div>
   <div class="set-row"><div><div class="t">섬 생성 장면 다시 보기</div><div class="d">처음 섬이 태어나던 순간을 다시 봐요.</div></div>
     <button class="hud-btn" id="setReplay" type="button">재생</button></div>
@@ -733,7 +771,7 @@ var MUSIC=(PROD||REMOTE_SHELL)?"https://music.code-destiny.com/DestinyWar/":"/co
 var MED  =(PROD||REMOTE_SHELL)?"https://music.code-destiny.com/Meditation/":"/codedestinyassets/music/Meditation/";
 var LUNAM=(PROD||REMOTE_SHELL)?"https://music.code-destiny.com/lunabloom/":"/codedestinyassets/music/lunabloom/";
 function enc(p){return p.split("/").map(encodeURIComponent).join("/");}
-var ISLAND_ART="/images/destiny-island/gate-hero-desktop-v2.webp";
+var ISLAND_ART="/images/destiny-island/exploration-map-v3.webp";
 
 /* 안내역 연이 — 노벨과 같은 자산·좌표(원작 그대로, 새 변형 없음) */
 var PIGSHEET="/images/novel/pig-expressions.webp"; /* 기존 꽃돼지 연이 표정 4×4 */
@@ -757,7 +795,7 @@ var BIOME_TRACK={forest:"forest",moonLake:"still",mistIsle:"still",goldenCliff:"
 /* ============================================================
    1) Layer 3 게임 상태 (localStorage) — 청사진(Layer 2)에 쓰기 접근 없음
    ============================================================ */
-var GKEY="cdIsland:v1", BKEY="cdIsland:blueprint:v2";
+var GKEY="cdIsland:v1", BKEY="cdIsland:blueprint:v3";
 function loadGame(){try{var o=JSON.parse(localStorage.getItem(GKEY)||"{}");return o&&typeof o==="object"?o:{};}catch(e){return {};}}
 function saveGame(){try{localStorage.setItem(GKEY,JSON.stringify(G));}catch(e){}}
 var G=loadGame();
@@ -829,21 +867,21 @@ function loadCachedBlueprint(pkey){
   if(c&&c.profileKey===pkey&&c.date===kstToday()&&c.blueprint)return c.blueprint;
   return null;
 }
-function fetchBlueprint(profile){
+function fetchBlueprint(profile,year){
   var pkey=profileKeyOf(profile);
-  var cached=loadCachedBlueprint(pkey);
-  if(cached)return Promise.resolve(cached);
+  var cached=year?null:loadCachedBlueprint(pkey);
+  if(cached&&cached.reading&&cached.timing)return Promise.resolve(cached);
   return fetch(API_BASE+"/api/ziwei-island/blueprint",{
     method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({birthDate:profile.birthDate,birthTime:profile.birthTimeUnknown?"":profile.birthTime,
+    body:JSON.stringify({date:year?String(year)+"-07-01":kstToday(),birthDate:profile.birthDate,birthTime:profile.birthTimeUnknown?"":profile.birthTime,
       birthTimeUnknown:profile.birthTimeUnknown,calendarType:profile.calendarType,
       isLeapMonth:profile.isLeapMonth,gender:profile.gender})
   }).then(function(res){
     if(!res.ok)throw new Error("HTTP_"+res.status);
     return res.json();
   }).then(function(data){
-    if(!data||!data.ok||!data.blueprint)throw new Error("BAD_PAYLOAD");
-    try{localStorage.setItem(BKEY,JSON.stringify({profileKey:pkey,date:kstToday(),blueprint:data.blueprint}));}catch(e){}
+    if(!data||!data.ok||!data.blueprint||!data.blueprint.reading||!data.blueprint.timing)throw new Error("BAD_PAYLOAD");
+    if(!year)try{localStorage.setItem(BKEY,JSON.stringify({profileKey:pkey,date:kstToday(),blueprint:data.blueprint}));}catch(e){}
     return data.blueprint;
   });
 }
@@ -1551,100 +1589,78 @@ function markerPicto(kind,IC){
   if(kind==="대운")return '<circle cx="0" cy="0" r="5.4" '+s+'/><path d="M0 -3.4 L2.2 2.4 L0 1 L-2.2 2.4 Z" '+s+'/>';
   return '<path d="M0 -6 L1.7 -1.9 L6 -1.9 L2.5 1 L4 5.6 L0 2.7 L-4 5.6 L-2.5 1 L-6 -1.9 L-1.7 -1.9 Z" '+s+'/>';
 }
-function renderMap(pop){
-  var pal0=biomePal(BP.biome.id);
-  document.body.dataset.biome=BP.biome.id;
-  /* 레터박스 여백을 바이옴 바다로 이어 붙여 '너른 바다 위 섬'으로 — 맵이 작아도 빈 공간 없이 채운다 */
-  try{var mc=$("mapCanvas");if(mc)mc.style.background='radial-gradient(120% 100% at 50% 34%,'+shade(pal0.water[0],0.14)+' 0%,'+pal0.water[0]+' 52%,'+pal0.water[1]+' 100%)';}catch(_){}
-  computeLayout(BP.signature||null);
+function renderMap(){
   var zoom=$("mapZoom");
-  var parts=[];
-  /* defs: 물 그라디언트 + 벽/지붕/지형 그라디언트 + 글로우 + 물 코스틱 텍스처 */
-  parts.push('<defs>'
-    +'<radialGradient id="wg" cx="50%" cy="38%" r="78%">'
-      +'<stop offset="0%" stop-color="'+shade(pal0.water[0],0.14)+'"/>'
-      +'<stop offset="52%" stop-color="'+pal0.water[0]+'"/>'
-      +'<stop offset="100%" stop-color="'+pal0.water[1]+'"/></radialGradient>'
-    +'<radialGradient id="landG" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="'+shade(pal0.land,0.18)+'"/><stop offset="1" stop-color="'+pal0.land+'"/></radialGradient>'
-    +'<radialGradient id="vig" cx="50%" cy="46%" r="72%"><stop offset="0%" stop-color="#000000" stop-opacity="0"/><stop offset="78%" stop-color="'+shade(pal0.water[1],-0.3)+'" stop-opacity="0"/><stop offset="100%" stop-color="'+shade(pal0.water[1],-0.35)+'" stop-opacity="0.5"/></radialGradient>'
-    +'<filter id="soft"><feGaussianBlur stdDeviation="1.1"/></filter>'
-    +'<filter id="glowF" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
-    +'<filter id="caustic" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.010 0.026" numOctaves="2" seed="7" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0.72  0 0 0 0 0.78  0 0 0 0 1  0 0 0 0.5 -0.32"/></filter>'
-    +'</defs>');
-  /* 물 + 코스틱 텍스처 + 웨이브 — 밑에 깊은물 솔리드를 넓게 깔아 모바일 레터박스 이음새 제거(가장자리색=wg 100% 정지색) */
-  parts.push('<rect x="-800" y="-800" width="2600" height="2400" fill="'+pal0.water[1]+'"/>');
-  parts.push('<rect x="-40" y="-40" width="1080" height="800" fill="url(#wg)"/>');
-  parts.push('<rect x="0" y="0" width="1000" height="720" filter="url(#caustic)" opacity="'+(reduceMotion?0:0.5)+'" class="caustic"/>');
-  var wave='<g class="wave" opacity=".24" stroke="'+shade(pal0.water[0],0.34)+'" stroke-width="1.3" fill="none">';
-  for(var wy=140;wy<700;wy+=64){wave+='<path d="M-20 '+wy+' q 60 -12 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0"/>';}
-  parts.push(wave+"</g>");
-  /* 물 위 반짝임(sparkle) — 아기자기 디테일 */
-  if(!reduceMotion){
-    var spk='<g class="sparkles">',SPK=[[180,250],[820,230],[300,560],[720,600],[500,150],[140,470],[880,520],[420,650],[600,300],[260,360]];
-    SPK.forEach(function(s,i){spk+='<g class="spk" style="animation-delay:'+(i*0.6).toFixed(1)+'s" transform="translate('+s[0]+','+s[1]+')"><path d="M0 -5 L1.1 -1.1 L5 0 L1.1 1.1 L0 5 L-1.1 1.1 L-5 0 L-1.1 -1.1 Z" fill="'+pal0.glow+'"/></g>';});
-    parts.push(spk+"</g>");
-  }
-  /* 라이트 비네트(가장자리 부드럽게) */
-  parts.push('<rect x="0" y="0" width="1000" height="720" fill="url(#vig)" pointer-events="none"/>');
-  /* 레이라인(공명) — 건물 아래에 먼저. 노이즈 억제: |weight|≥4 & 강한 순 상위 14개만 */
-  var ley='<g opacity=".82">';
-  var edges=(BP.edges||[]).filter(function(e){return LAYOUT[e.from]&&LAYOUT[e.to]&&Math.abs(e.weight)>=4;})
-    .sort(function(a,b){return Math.abs(b.weight)-Math.abs(a.weight);}).slice(0,14);
-  edges.forEach(function(e){
-    var a=palaceCenter(e.from),b=palaceCenter(e.to);
-    var mx=(a.cx+b.cx)/2,my=(a.cy+b.cy)/2-46;
-    /* 공명 타입별 색: 삼방=금(지지) · 대궁=바이올렛(축) · 사화=부호별 로즈금/danger */
-    var col=e.type==="triad"?"#e8d5a3":e.type==="opposite"?"#c4b5fd":e.type==="sihua"?(e.weight>=0?"#f4d6a4":"#f2a6bd"):(e.weight>0?"#e8d5a3":"#f2a6bd");
-    var op=Math.min(0.5,Math.abs(e.weight)/22+0.12);
-    var w=(1.4+Math.min(3,Math.abs(e.weight)/9)).toFixed(2);
-    var d="M"+a.cx+" "+(a.cy-8)+" Q "+mx+" "+my+" "+b.cx+" "+(b.cy-8);
-    /* 강한 공명(|w|>=8)엔 발광 하위 레이어 */
-    if(Math.abs(e.weight)>=8)ley+='<path class="leyline" d="'+d+'" stroke="'+col+'" stroke-width="'+(w*2.2).toFixed(1)+'" opacity="'+(op*0.5).toFixed(2)+'" filter="url(#glowF)"/>';
-    var cls=(e.weight>0&&!reduceMotion)?"leyline flow":"leyline";
-    ley+='<path class="'+cls+'" d="'+d+'" stroke="'+col+'" stroke-width="'+w+'" opacity="'+op.toFixed(2)+'"/>';
+  var parts=['<image href="'+ISLAND_ART+'" width="1000" height="720" preserveAspectRatio="xMidYMid slice"/>'];
+  BP.palaces.forEach(function(pal){
+    var d=PALACES[pal.name],x=d.x*10,y=d.y*7.2;
+    LAYOUT[pal.name]={cx:x,cy:y,scale:1};
+    var active=BP.timing&&BP.timing.yearly.palaceName===pal.name;
+    parts.push('<g class="palace map-stop'+(active?' is-year':'')+'" tabindex="0" role="button" data-palace="'+esc(pal.name)+'" aria-label="'+esc(pal.name+' '+d.title+' 무료 이야기로 이동')+'" transform="translate('+x+','+y+')"><rect x="-43" y="-20" width="86" height="42" rx="13"/><text text-anchor="middle" y="6">'+esc(pal.name)+'</text>'+(active?'<circle cx="35" cy="-16" r="5"/>':'')+'</g>');
   });
-  parts.push(ley+"</g>");
-  /* 중앙 컴퍼스 광장 */
-  parts.push('<g opacity=".5" transform="translate(500,506)">'
-    +'<ellipse cx="0" cy="0" rx="118" ry="34" fill="none" stroke="'+pal0.trim+'" stroke-width="1" opacity=".5"/>'
-    +'<ellipse cx="0" cy="0" rx="150" ry="44" fill="none" stroke="'+pal0.trim+'" stroke-width="1" opacity=".28"/></g>');
-  /* 궁: y 정렬(뒤→앞)로 겹침 자연스럽게 */
-  var order=BP.palaces.slice().sort(function(x,y){return palaceCenter(x.name).cy-palaceCenter(y.name).cy;});
-  var groups=[];
-  order.forEach(function(pal){
-    var def=PALACES[pal.name];if(!def)return;
-    var L=palaceCenter(pal.name);
-    var bld=buildingSVG(0,0,pal.tier,pal0,L.scale,pal.name==="명궁",pal.name);
-    var pinY=bld.apexY-18,pinX=14;
-    var tcol=pal.tier>=5?"#e8d5a3":pal.tier>=4?"#d4b96a":pal.tier>=3?"#a78bfa":"rgba(196,181,253,.62)";
-    var badges=markerBadge(pal),bstr="";
-    badges.forEach(function(m,i){var bx=pinX+i*17,by=pinY-19;
-      bstr+='<g class="mk-badge pulse" transform="translate('+bx+','+by.toFixed(1)+')">'
-        +'<path d="'+hexPath(0,0,8)+'" fill="#0a0818" fill-opacity=".88" stroke="'+tcol+'" stroke-width="1.3"/>'
-        +'<g transform="scale(0.78)">'+markerPicto(m[1],"#f4eeff")+'</g></g>';});
-    var glow=pal.tier>=4?' filter="url(#soft)"':"";
-    var aria=pal.name+" "+def.title+", "+pal.tierLabel+" 단계, 궁의 힘 "+pal.score+(badges.length?", "+badges.map(function(m){return m[1];}).join(" "):"");
-    var g='<g class="palace'+(pop?" pop":"")+'" tabindex="0" role="button" data-palace="'+esc(pal.name)+'" aria-label="'+esc(aria)+'" transform="translate('+L.cx+','+L.cy+')"'+(pop?' style="animation-delay:'+(groups.length*0.09).toFixed(2)+'s"':"")+'>'
-      +'<ellipse cx="0" cy="7" rx="'+(46*L.scale).toFixed(1)+'" ry="'+(14*L.scale).toFixed(1)+'" fill="#2a1e52" opacity=".26" filter="url(#soft)"/>'
-      +'<rect class="nreflect" x="-2.5" y="'+(30*L.scale).toFixed(0)+'" width="5" height="'+(42*L.scale).toFixed(0)+'" rx="2.5" fill="#ffc97a" filter="url(#glowF)"/>'
-      +'<g class="pbody"'+glow+'>'+bld.svg+"</g>"
-      +'<line x1="'+pinX+'" y1="'+(pinY+11)+'" x2="4" y2="'+(bld.apexY-2).toFixed(1)+'" stroke="'+tcol+'" stroke-width="1.4" opacity=".65"/>'
-      +'<path class="pin-halo" d="'+hexPath(pinX,pinY,13)+'" fill="#0a0818" fill-opacity=".84" stroke="'+tcol+'" stroke-width="2"/>'
-      +'<g transform="translate('+pinX+','+pinY+')" aria-hidden="true">'+picto(pal.name,"#f4eeff")+'</g>'
-      +bstr+ptipSVG(pal,def)+"</g>";
-    groups.push(g);
-  });
-  parts.push(groups.join(""));
-  zoom.innerHTML=parts.join("");
-  /* 인터랙션 배선 — 궁 선택 시 그 명반의 12궁 상담(/island-consult)으로 진입.
-     포인터 탭은 팬/줌 SVG가 setPointerCapture로 삼켜 자식 click이 안 뜨므로, 탭 해석은 initPanZoom의 pointerup에서 처리한다.
-     여기서는 키보드 접근성(포커스 + Enter/Space)만 배선한다. */
-  Array.prototype.forEach.call(zoom.querySelectorAll(".palace"),function(node){
-    var pal=palaceFromNode(node);
-    if(!pal)return;
-    node.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();openPalace(pal);}});
-  });
-  resetMapView();
+  parts.push('<g id="traveler" pointer-events="none" aria-hidden="true"><ellipse cx="0" cy="8" rx="18" ry="6" fill="black" opacity=".28"/><g id="travelerBody"><image href="/images/fortune-tea-house/flower-pig-single-a.webp" x="-25" y="-48" width="50" height="54"/></g></g>');
+  zoom.innerHTML=parts.join('');
+  zoom.querySelectorAll('.palace').forEach(function(node){node.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openPalace(palaceFromNode(node));}});});
+  travelerPos={x:500,y:490};setTraveler();renderDock();resetMapView();
+}
+var travelerPos={x:500,y:490},travelFrame=0,travelDone=null;
+function setTraveler(){var el=$("traveler");if(el)el.setAttribute('transform','translate('+travelerPos.x+','+travelerPos.y+')');}
+function visitedPalaces(){return (G.visits||{})[profileKeyOf(PROFILE)]||[];}
+function renderDock(){
+  var visited=visitedPalaces();
+  $("visitCount").textContent=visited.length+'/12';
+  $("palaceDock").innerHTML=BP.palaces.map(function(p){return '<button type="button" data-destination="'+esc(p.name)+'"'+(visited.indexOf(p.name)>=0?' class="visited"':'')+'>'+esc(p.name)+'<small>'+esc(PALACES[p.name].title)+'</small></button>';}).join('');
+  $("palaceDock").querySelectorAll('button').forEach(function(btn){btn.addEventListener('click',function(){openPalace(BP.palaces.find(function(p){return p.name===btn.dataset.destination;}));});});
+}
+function cancelTravel(){cancelAnimationFrame(travelFrame);travelDone=null;var body=$("travelerBody");if(body)body.classList.remove('walking');$("travelStatus").hidden=true;}
+function finishTravel(){if(travelDone){var done=travelDone;travelDone=null;cancelAnimationFrame(travelFrame);$("travelerBody").classList.remove('walking');$("travelStatus").hidden=true;done();}}
+function travelTo(pal){
+  if(travelDone){cancelAnimationFrame(travelFrame);travelDone=null;}
+  closeSheet();dlgClose();
+  var target=LAYOUT[pal.name],from={x:travelerPos.x,y:travelerPos.y},start=performance.now();
+  var via={x:(from.x+target.cx)/2,y:Math.max(from.y,target.cy)+22};
+  var duration=Math.min(1800,Math.max(650,Math.hypot(target.cx-from.x,target.cy-from.y)*4));
+  travelDone=function(){travelerPos={x:target.cx,y:target.cy+26};setTraveler();
+    G.visits=G.visits||{};var key=profileKeyOf(PROFILE),v=G.visits[key]||[];if(v.indexOf(pal.name)<0)v.push(pal.name);G.visits[key]=v;saveGame();renderDock();showReading(pal);};
+  if(reduceMotion||G.reducedTravel){finishTravel();return;}
+  $("travelText").textContent=PALACES[pal.name].title+'으로 걷고 있어요';$("travelStatus").hidden=false;$("travelerBody").classList.add('walking');
+  function step(now){var t=Math.min(1,(now-start)/duration),u=1-t;
+    travelerPos={x:u*u*from.x+2*u*t*via.x+t*t*target.cx,y:u*u*from.y+2*u*t*via.y+t*t*(target.cy+26)};setTraveler();
+    if(t<1)travelFrame=requestAnimationFrame(step);else finishTravel();}
+  travelFrame=requestAnimationFrame(step);
+}
+function showReading(pal){
+  var def=PALACES[pal.name],reading=BP.reading&&BP.reading.palaces[pal.name];
+  var html='<div class="reading-host"><img src="'+esc(def.npc.portrait)+'" alt="" width="72" height="72"><div><h2 id="pdTitle">'+esc(pal.name)+' · '+esc(def.title)+'</h2><p>'+esc(def.npc.name)+'의 이야기</p></div></div>';
+  html+='<p class="reading-lead">'+esc(reading?reading.focus:def.greet)+'</p>';
+  html+='<p class="reading-basis">'+esc(starLine(pal))+' 계산한 명반에 따라 준비된 해석을 조합했어요.</p>';
+  if(BP.timing.timeUnknown)html+='<p class="reading-basis">출생시간 미상: 정오 기준 참고 명반이에요. 실제 출생시각에 따라 궁과 시기 해석이 달라질 수 있어요.</p>';
+  if(reading)reading.sections.forEach(function(section){html+='<section class="reading-section"><h3>'+esc(section.title)+'</h3>'+String(section.body).split(/\n+/).filter(Boolean).map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</section>';});
+  html+='<p class="reading-basis">풍경과 방문 도장은 탐험 연출이에요. 궁의 점수는 사람의 가치나 미래의 성공 확률이 아니에요.</p><div class="reading-actions"><button type="button" id="readingTiming">이 궁과 시기 흐름 보기</button><button type="button" id="readingBasis">별의 근거 살펴보기</button><button type="button" id="readingNext">다음 궁으로 걷기</button></div>';
+  $("pdContent").innerHTML=html;openSheet('sheetPalaceDesc');
+  $("readingTiming").onclick=function(){showTiming(pal.name);};$("readingBasis").onclick=function(){openPalaceDescription(pal,def);};
+  $("readingNext").onclick=function(){var i=BP.palaces.indexOf(pal);openPalace(BP.palaces[(i+1)%BP.palaces.length]);};
+}
+var timingLoading=false,timingRequest=0;
+function showTiming(focus){
+  cancelTravel();
+  var timing=BP.timing,year=timing.year;
+  var html='<h2 id="pdTitle">시간을 따라 여행하기</h2><p>본명은 오래 이어지는 성향, 대한은 10년의 배경, 유년은 한 해에 살펴볼 주제예요. 세 흐름을 구분해 읽어보세요.</p><label class="year-picker">살펴볼 해 <select id="timingYear"'+(timingLoading?' disabled':'')+'>';
+  var birthYear=Number(PROFILE.birthDate.slice(0,4)),nowYear=Number(kstToday().slice(0,4));
+  for(var y=Math.max(birthYear,nowYear-10);y<=Math.min(2100,nowYear+20);y++)html+='<option value="'+y+'"'+(y===year?' selected':'')+'>'+y+'년</option>';
+  html+='</select></label><p id="timingStatus" role="status">'+(timingLoading?'선택한 해의 명반을 읽고 있어요.':'')+'</p><section class="reading-section"><h3>'+year+'년, '+esc(timing.yearly.palaceName)+'의 주제</h3><p>'+esc(PALACES[timing.yearly.palaceName].greet)+'</p><p>선택한 해의 지지와 같은 자리에 놓인 본명 궁을 안내해요. 이 표시는 그해의 모든 사건이나 월별 길흉을 예측하지 않아요.</p><button type="button" id="visitYear">이 해의 궁으로 걷기</button></section><h3>나의 10년 항로</h3><p>명반의 나이 구간을 사용해요. 한 궁만으로 시기의 좋고 나쁨을 단정하지 않아요.</p><ol class="decade-list">';
+  timing.decades.forEach(function(d){var current=BP.markers.currentMajorLuck&&BP.markers.currentMajorLuck.palaceName===d.palaceName;html+='<li'+(current?' class="current"':'')+'><button type="button" data-decade="'+esc(d.palaceName)+'"><strong>'+d.startAge+'–'+d.endAge+'세</strong><span>'+esc(d.palaceName)+' · '+esc(PALACES[d.palaceName].title)+(current?' · 선택 연도':'')+'</span></button></li>';});
+  html+='</ol><p class="reading-basis">'+(timing.timeUnknown?'출생시간 미상으로 정오를 사용한 참고 명반이에요. ':'')+'시기 해석은 자기 이해를 위한 참고이며 중요한 결정은 현실의 조건과 함께 살펴보세요.</p>';
+  $("pdContent").innerHTML=html;openSheet('sheetPalaceDesc');
+  $("visitYear").onclick=function(){openPalace(BP.palaces.find(function(p){return p.name===timing.yearly.palaceName;}));};
+  $("pdContent").querySelectorAll('[data-decade]').forEach(function(btn){btn.onclick=function(){openPalace(BP.palaces.find(function(p){return p.name===btn.dataset.decade;}));};});
+  $("timingYear").onchange=function(){var requested=Number(this.value),request=++timingRequest;timingLoading=true;this.disabled=true;$("timingStatus").textContent='선택한 해의 명반을 읽고 있어요.';
+    fetchBlueprint(PROFILE,requested).then(function(bp){if(request!==timingRequest||openedSheet!=="sheetPalaceDesc"||!$("timingYear"))return;BP=bp;timingLoading=false;renderMap();renderHud();showTiming(focus);}).catch(function(){if(request!==timingRequest)return;timingLoading=false;var select=$("timingYear");if(select){select.disabled=false;select.value=String(year);$("timingStatus").textContent='불러오지 못했어요. 해를 다시 선택해 주세요.';}});};
+}
+function showJournal(){
+  cancelTravel();
+  var visits=visitedPalaces();$("pdContent").innerHTML='<h2 id="pdTitle">열두 궁 탐험 수첩</h2><p>'+visits.length+' / 12곳을 둘러봤어요. 방문 도장은 이 기기에만 저장되고 운세에는 영향을 주지 않아요.</p><div class="journal-list">'+BP.palaces.map(function(p){return '<button type="button" data-journal="'+esc(p.name)+'"><img src="'+esc(PALACES[p.name].npc.portrait)+'" alt="" width="52" height="52"><span><strong>'+esc(p.name)+'</strong><small>'+esc(PALACES[p.name].title)+'</small></span><span>'+(visits.indexOf(p.name)>=0?'방문함':'탐험하기')+'</span></button>';}).join('')+'</div>';openSheet('sheetPalaceDesc');
+  $("pdContent").querySelectorAll('[data-journal]').forEach(function(btn){btn.onclick=function(){openPalace(BP.palaces.find(function(p){return p.name===btn.dataset.journal;}));};});
 }
 function renderNightBits(){
   var ff=$("ffLayer");ff.className="fireflies";ff.innerHTML="";
@@ -1672,34 +1688,13 @@ function scheduleMapTransform(){
 }
 function clampMap(){var mx=(_mapScale-1)*VBW,my=(_mapScale-1)*VBH;
   _mapTx=Math.min(0,Math.max(-mx,_mapTx));_mapTy=Math.min(0,Math.max(-my,_mapTy));}
-function mobileFitScale(){
-  try{var c=$("mapCanvas");if(!c)return 1;var r=c.getBoundingClientRect();
-    if(!r.width||!r.height)return 1;
-    var fitH=r.width*(VBH/VBW);            /* scale 1 표시 높이 */
-    if(r.height<=fitH*1.12)return 1;       /* 가로형/충분히 찬 화면은 전체 fit 유지 */
-    return Math.max(1,Math.min(r.height*0.86/fitH,1.34)); /* 세로 86%까지, 링 유지 상한 */
-  }catch(_){return 1;}
-}
+function mobileFitScale(){return 1;}
 function resetMapView(){_mapScale=mobileFitScale();
   var mx=(_mapScale-1)*VBW,my=(_mapScale-1)*VBH;_mapTx=-mx/2;_mapTy=-my/2;
   clampMap();applyMapTransform();}
 /* ---- 궁 선택 → 12궁 상담 진입(선택 명반을 세션으로 핸드오프해 상담 화면이 재입력 없이 프리필) ---- */
 function palaceFromNode(node){var nm=node&&node.getAttribute&&node.getAttribute("data-palace");return nm&&BP?BP.palaces.find(function(p){return p.name===nm;}):null;}
-function goPalaceConsult(pal,question){
-  if(!pal)return;
-  try{
-    if(PROFILE)sessionStorage.setItem("cdIslandConsultSeed",JSON.stringify({
-      name:PROFILE.name||"",gender:PROFILE.gender||"",
-      birthDate:PROFILE.birthDate||"",
-      birthTime:PROFILE.birthTimeUnknown?"":(PROFILE.birthTime||""),
-      birthTimeUnknown:!!PROFILE.birthTimeUnknown,
-      calendarType:PROFILE.calendarType||"solar",
-      isLeapMonth:!!PROFILE.isLeapMonth,
-      question:String(question||"").slice(0,400)
-    }));
-  }catch(_){}
-  location.href="/island-consult?palace="+encodeURIComponent(pal.name);
-}
+function goPalaceConsult(pal){showReading(pal);}
 /* 아무 궁도 못 맞혔을 때의 최근접 폴백. 궁의 히트영역은 SVG 실루엣 그 자체(투명 히트박스가 없다)라
    오목한 부분은 놓치기 쉽다. 🔴 투명 히트 rect 를 깔지 않는 이유: .palace 는 y 순 뒤→앞 렌더라
    앞 궁의 보이지 않는 rect 가 뒤 궁의 건물을 덮어 "정확히 눌렀는데 옆 궁이 열린다"가 된다. */
@@ -1872,7 +1867,7 @@ function updateNarrator(){_story=buildStory();showStory(dayNum());}
 function nextStory(){clearTimeout(_navAuto);showStory(_storyIdx+1);}
 function renderHud(){
   $("hudName").textContent=G.name||"운명의 섬";
-  $("hudMeta").textContent=BP.biome.label+" · "+BP.bureau.name+(PROFILE&&PROFILE.name?" · "+PROFILE.name+"님의 명반":"");
+  $("hudMeta").textContent="전체 무료 · "+BP.timing.year+"년 · "+(PROFILE&&PROFILE.name?PROFILE.name+"님의 명반":"나의 명반");
   var wx=WX_META[BP.weather.id]||["",BP.weather.label];
   $("chipWeather").innerHTML=chipIcon(WX_PICTO[BP.weather.id]||WX_PICTO.clear)+' '+esc(wx[1]);
   $("chipSeason").innerHTML=chipIcon(SEASON_PICTO[BP.season]||"")+' 대운의 계절 · '+esc(BP.season);
@@ -1883,12 +1878,12 @@ function renderHud(){
 }
 function enterIsland(pop){
   applyPhase();
-  renderMap(pop);renderNightBits();renderWeather();renderHud();refreshQuestCnt();
+  renderMap(pop);renderHud();refreshQuestCnt();
   initPanZoom();
   showScreen("scrIsland");
   try{requestAnimationFrame(resetMapView);}catch(_){resetMapView();}
   playTrack(BIOME_TRACK[BP.biome.id]||"main");
-  updateNarrator();
+  $("narrator").hidden=true;
   bumpStreak();
 }
 
@@ -1929,21 +1924,7 @@ function markerLine(pal){
     return "이곳은 당신의 신궁이기도 해요. 나이 들수록 점점 더 소중해지는 자리랍니다.";
   return "";
 }
-function openPalace(pal){
-  var def=PALACES[pal.name];
-  var npcBeat=function(text){return {name:def.npc.name,sprite:def.npc,yeon:!!def.npc.yeon,text:text};};
-  var yeonBeat=function(text){return {name:"연이",sprite:YEON_SPRITE,yeon:true,text:text};};
-  var beats=[
-    yeonBeat(pal.name+", "+def.title+"에 도착했어요. 인사 나눠보실래요?"),
-    npcBeat(def.greet),
-    npcBeat(starLine(pal)),
-    npcBeat(tierLine(pal,def))
-  ];
-  var extra=resonanceLine(pal);if(extra)beats.push(npcBeat(extra));
-  var mk=markerLine(pal);if(mk)beats.push(yeonBeat(mk));
-  beats.push(npcBeat(def.close));
-  dlgOpen(beats,function(){showPalaceChoices(pal,def);});
-}
+function openPalace(pal){if(pal)travelTo(pal);}
 function showPalaceChoices(pal,def){
   var detail=$("dlgDetail");
   var chips=pal.mainStars.map(function(s){var m=brightnessMark(pal.brightness[s]);return "<span>"+esc(s+(m||""))+"</span>";})
@@ -1969,7 +1950,7 @@ function showPalaceChoices(pal,def){
     b.addEventListener("click",function(){goPalaceConsult(pal,q);});qs.appendChild(b);});
   ask.appendChild(qs);detail.appendChild(ask);
   var a=document.createElement("button");a.type="button";
-  a.innerHTML="🔮 이 궁 수호자에게 깊이 묻기 <span class='go'>12궁 특화 ›</span>";
+  a.innerHTML="이 궁 이야기 읽기 <span class='go'>무료 ›</span>";
   a.addEventListener("click",function(){goPalaceConsult(pal);});box.appendChild(a);
   var qb=document.createElement("button");qb.type="button";
   qb.innerHTML="📜 오늘의 퀘스트 보기 <span class='go'>›</span>";
@@ -2174,22 +2155,33 @@ function bumpStreak(){
 /* ============================================================
    11) 시트 열기/닫기
    ============================================================ */
-var openedSheet=null;
+var openedSheet=null,sheetFocus=null;
 function openSheet(id){
+  cancelTravel();
+  timingRequest++;timingLoading=false;
+  if(!openedSheet)sheetFocus=document.activeElement;
+  if(openedSheet)$(openedSheet).classList.remove("on");
   openedSheet=id;
   $("backdrop").classList.add("on");
   $(id).classList.add("on");
+  $(id).scrollTop=0;$(id).querySelector("button").focus();
   if(id==="sheetQuest")renderQuests();
   if(id==="sheetSettings")$("setNameCur").textContent="현재: "+(G.name||"운명의 섬");
 }
 function closeSheet(){
+  timingRequest++;timingLoading=false;
   if(!openedSheet)return;
   $(openedSheet).classList.remove("on");
   $("backdrop").classList.remove("on");
-  openedSheet=null;
+  openedSheet=null;if(sheetFocus&&sheetFocus.isConnected)sheetFocus.focus();
 }
+document.addEventListener('keydown',function(e){if(!openedSheet)return;if(e.key==='Escape'){e.preventDefault();closeSheet();}if(e.key==='Tab'){var list=Array.from($(openedSheet).querySelectorAll('button,a,select,input,[tabindex="0"]')).filter(function(el){return !el.disabled&&el.getClientRects().length;});var first=list[0],last=list[list.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}});
 $("backdrop").addEventListener("click",closeSheet);
 document.querySelectorAll("[data-close]").forEach(function(b){b.addEventListener("click",closeSheet);});
+$("reduceTravel").checked=!!G.reducedTravel;$("reduceTravel").onchange=function(){G.reducedTravel=this.checked;saveGame();if(this.checked)finishTravel();};
+$("btnTiming").onclick=function(){showTiming();};
+$("btnJournal").onclick=showJournal;
+$("skipTravel").onclick=finishTravel;
 $("btnQuest").addEventListener("click",function(){openSheet("sheetQuest");});
 $("btnSettings").addEventListener("click",function(){openSheet("sheetSettings");});
 $("navAv").addEventListener("click",function(){if(typeof nextStory==="function")nextStory();});
@@ -2423,8 +2415,7 @@ function boot(profile,fresh){
     clearInterval(loadingTicker);
     BP=bp;
     if(fresh)G.name=G.name||"";
-    if(!G.hasSeenIntro||fresh){startIntro(false);}
-    else{enterIsland(false);}
+    G.hasSeenIntro=true;saveGame();enterIsland(false);
   }).catch(function(err){
     clearInterval(loadingTicker);
     console.warn("[island] blueprint failed",err);
@@ -2476,7 +2467,7 @@ function renderGatePicker(){
 seedStars();
 applyPhase();
 setInterval(applyPhase,60*1000);
-$("gateHeroImg").src=ISLAND_ART;
+$("gateHeroImg").src="/images/service-introductions/destiny-island-960.webp";
 renderGatePicker();
 syncBgmToggle();
 })();

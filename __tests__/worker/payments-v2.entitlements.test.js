@@ -16,6 +16,8 @@ import {
 import { USER_SCOPE_PROFILE_ID } from "../../worker/lib/content-unlocks.js";
 import {
   grantEntitlement,
+  findOwnedEntitlement,
+  findLegacyBirthUnlock,
   markUserFeatureUnlocked,
   resolveEntitlementIdentity,
   revokeEntitlementForOrder,
@@ -24,6 +26,8 @@ import { PaymentError } from "../../worker/payments/errors.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 import { buildAccessState } from "../../worker/lib/access-state.js";
 import {
+  BIRTH_SCOPED_UNLOCK_FEATURE_KEYS,
+  ACCOUNT_SCOPED_UNLOCK_FEATURE_KEYS,
   LEGACY_LOVE_CODE_FEATURE_KEYS,
   LOVE_CODE_FEATURE_KEY,
   LOVE_CODE_PRODUCT_ID,
@@ -79,18 +83,28 @@ describe("신원 키는 결정적이다", () => {
      ["sukuyo"]/["ziwei"]/["saju"] 로 필터해 영영 못 찾았다 — 결제해도 계속 잠긴 상태.
      레포에 serviceKey === featureKey 로 조회하는 리더는 하나도 없다. */
   describe("serviceKey 는 정본 유도표를 따른다", () => {
+    // 출생 기반 키는 서버가 해석한 출생 신원이 있어야 신원을 만든다(아래 별도 테스트).
+    const birthIdentity = { entitlementProfileId: `birth:${"a".repeat(64)}`, birthKey: "a".repeat(64) };
     test.each([
       ["sukyo_yearly_fortune_unlock", "sukuyo"],
       ["ziwei_decade_luck", "ziwei"],
       ["section_daewun", "saju"],
       ["premium-fpti-report", "fpti"],
     ])("%s → %s", (featureKey, expected) => {
-      expect(resolveEntitlementIdentity({ featureKey }).serviceKey).toBe(expected);
+      expect(resolveEntitlementIdentity({ featureKey, birthIdentity }).serviceKey).toBe(expected);
     });
 
     test("호출부가 serviceKey 를 명시하면 그것이 이긴다", () => {
-      const identity = resolveEntitlementIdentity({ featureKey: "sukyo_yearly_fortune_unlock", serviceKey: "custom" });
+      const identity = resolveEntitlementIdentity({ featureKey: "sukyo_yearly_fortune_unlock", serviceKey: "custom", birthIdentity });
       expect(identity.serviceKey).toBe("custom");
+    });
+
+    test("🔴 출생 기반 키는 출생 신원 없이 만들지 않고, 요청 scope·profileId 로 USER 에 내려앉지 않는다", () => {
+      let thrown = null;
+      try { resolveEntitlementIdentity({ featureKey: "section_daewun", profileId: "p1", scope: "USER" }); } catch (error) { thrown = error; }
+      expect(thrown).toMatchObject({ code: "MISSING_PROFILE_ID" });
+      expect(resolveEntitlementIdentity({ featureKey: "section_daewun", profileId: "p1", scope: "USER", birthIdentity }))
+        .toMatchObject({ scope: "BIRTH", profileId: birthIdentity.entitlementProfileId });
     });
 
     test("🔴 매핑 없는 기능은 건드리지 않는다 — paid_content 로 뭉뚱그리지 않는다", () => {
@@ -99,6 +113,70 @@ describe("신원 키는 결정적이다", () => {
       expect(resolveEntitlementIdentity({ featureKey: "master-love-codex" }).serviceKey).toBe("master-love-codex");
     });
   });
+});
+
+describe("이전 구매는 결제 전 다시 찾는다", () => {
+  const birthIdentity = { entitlementProfileId: `birth:${"a".repeat(64)}`, birthKey: "a".repeat(64) };
+  const product = { featureKey: "rpt_specialCharmCard", productId: "rpt_specialCharmCard", priceKRW: 1000, priceCoins: 10 };
+  test.each(["paid_content", "rpt_specialCharmCard"])("BIRTH 권한의 %s 서비스 키를 읽는다", async serviceKey => {
+    const db = makeFakePaymentDb();
+    await grantEntitlement(db, { userId: USER, product, orderId: ORDER, birthIdentity });
+    db.rows[0].serviceKey = serviceKey;
+    expect((await findOwnedEntitlement(db, { userId: USER, product, birthIdentity })).owned).toBe(true);
+    expect((await findOwnedEntitlement(db, { userId: USER, product, birthIdentity: { ...birthIdentity, entitlementProfileId: `birth:${"b".repeat(64)}` } })).owned).toBe(false);
+    expect((await findOwnedEntitlement(db, { userId: USER, product: { ...product, featureKey: "rpt_skillTreeCard" }, birthIdentity })).owned).toBe(false);
+  });
+  test.each([{status:"REFUNDED",expiresAt:null},{status:"ACTIVE",expiresAt:new Date("2000-01-01")}])("취소·만료 권한은 구매 근거가 아니다: %j", async changes => {
+    const db = makeFakePaymentDb();
+    await grantEntitlement(db, { userId: USER, product, orderId: ORDER, birthIdentity });
+    Object.assign(db.rows[0], { serviceKey: "paid_content", ...changes });
+    expect((await findOwnedEntitlement(db, { userId: USER, product, birthIdentity })).owned).toBe(false);
+  });
+  test("명시한 서비스 키는 다른 서비스의 같은 상품을 열지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    await grantEntitlement(db, { userId: USER, product, orderId: ORDER, birthIdentity });
+    db.rows[0].serviceKey = "paid_content";
+    expect((await findOwnedEntitlement(db, { userId: USER, product, birthIdentity, serviceKey:"explicit" })).owned).toBe(false);
+  });
+  test("정식 콘텐츠 키로 저장된 기본 사주 구매도 다시 지급하지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    const basic = { ...product, featureKey: "section_summary" };
+    await grantEntitlement(db, { userId: USER, product: basic, orderId: ORDER, birthIdentity });
+    db.rows[0].contentKey = "saju.fullReading";
+    expect((await findOwnedEntitlement(db, { userId: USER, product: basic, birthIdentity })).owned).toBe(true);
+    expect((await grantEntitlement(db, { userId: USER, product: basic, orderId: "new-request", birthIdentity, source: "MONTHLY" })).alreadyOwned).toBe(true);
+    expect(db.rows).toHaveLength(1);
+  });
+  test("과거 BIRTH 권한을 월정석 지급 경로에서 중복 지급하지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    await grantEntitlement(db, { userId: USER, product, orderId: ORDER, birthIdentity });
+    db.rows[0].serviceKey = "paid_content";
+    const replay = await grantEntitlement(db, { userId: USER, product, orderId: "new-request", birthIdentity, source: "MONTHLY" });
+    expect(replay.alreadyOwned).toBe(true);
+    expect(replay.identity.serviceKey).toBe("paid_content");
+    expect(db.rows).toHaveLength(1);
+    expect(db.rows[0].orderId).toBe(ORDER);
+  });
+  test.each(["paid_content", "rpt_specialCharmCard"])("이전 USER 권한의 %s 서비스 키를 읽는다", async serviceKey => {
+    const db = makeFakePaymentDb();
+    db.rows.push({ userId: USER, profileId: "__user__", scope: "USER", serviceKey, contentKey: product.featureKey, status: "ACTIVE", expiresAt: null });
+    expect(await findLegacyBirthUnlock(db, { userId: USER, product })).toBeTruthy();
+    expect(await findLegacyBirthUnlock(db, { userId: USER, product: { ...product, featureKey: "rpt_skillTreeCard" } })).toBeFalsy();
+  });
+});
+
+test("등록된 모든 영구 해금은 과거 서비스 키의 기존 권한을 중복 지급하지 않는다", async () => {
+  const birthIdentity = { entitlementProfileId: `birth:${"a".repeat(64)}`, birthKey: "a".repeat(64) };
+  for (const featureKey of [...BIRTH_SCOPED_UNLOCK_FEATURE_KEYS, ...ACCOUNT_SCOPED_UNLOCK_FEATURE_KEYS]) {
+    const product = { featureKey, productId: featureKey, priceKRW: 10000, priceCoins: 100 };
+    const db = makeFakePaymentDb();
+    const birth = BIRTH_SCOPED_UNLOCK_FEATURE_KEYS.includes(featureKey) ? birthIdentity : null;
+    await grantEntitlement(db, { userId: USER, product, orderId: ORDER, birthIdentity: birth });
+    db.rows[0].serviceKey = "paid_content";
+    const replay = await grantEntitlement(db, { userId: USER, product, orderId: "other-request", birthIdentity: birth, source: "MONTHLY" });
+    expect({ featureKey, alreadyOwned: replay.alreadyOwned, rows: db.rows.length }).toEqual({ featureKey, alreadyOwned: true, rows: 1 });
+    expect(db.rows[0].orderId).toBe(ORDER);
+  }
 });
 
 describe("지급은 멱등이다", () => {
@@ -239,47 +317,22 @@ describe("계정 해금 목록", () => {
   });
 });
 
-describe("러브 코드 영구 해금", () => {
-  const LOVE_CODE_PRODUCT = {
-    productId: LOVE_CODE_PRODUCT_ID,
-    featureKey: LOVE_CODE_FEATURE_KEY,
-    priceKRW: 10000,
-    priceCoins: 100,
-  };
-
-  test("canonical 상품은 1,000원 영구 해금이고 레거시 키는 읽기 별칭이다", () => {
+describe("러브 코드 회당 결제와 과거 해금 호환", () => {
+  test("canonical 상품은 회당 7,000원이고 레거시 키는 읽기 별칭이다", () => {
     const product = resolveProduct({ featureKey: "loveSimulation" });
     expect(product).toMatchObject({
       productId: LOVE_CODE_PRODUCT_ID,
       featureKey: LOVE_CODE_FEATURE_KEY,
-      priceKRW: 1000,
-      priceCoins: 10,
-      billingType: "unlock",
+      priceKRW: 7000,
+      priceCoins: 70,
+      billingType: "per_use",
     });
     expect(LEGACY_LOVE_CODE_FEATURE_KEYS).toContain("openLoveSimulation");
     expect(normalizePaidFeatureKey("loveSimulation")).toBe(LOVE_CODE_FEATURE_KEY);
     expect(normalizePaidFeatureKey("openLoveSimulation")).toBe(LOVE_CODE_FEATURE_KEY);
   });
 
-  test.each([CONTENT_ENTITLEMENT_SOURCES.PAYMENT, CONTENT_ENTITLEMENT_SOURCES.PASS, CONTENT_ENTITLEMENT_SOURCES.MONTHLY])(
-    "%s 최초 접근은 영구 entitlement 하나를 남긴다",
-    async (source) => {
-      const db = makeFakePaymentDb();
-      const first = await grantEntitlement(db, { userId: USER, product: LOVE_CODE_PRODUCT, orderId: `love-${source}`, source });
-      const replay = await grantEntitlement(db, { userId: USER, product: LOVE_CODE_PRODUCT, orderId: `love-${source}`, source });
-      expect(first.alreadyOwned).toBe(false);
-      expect(replay.alreadyOwned).toBe(true);
-      expect(db.rows).toHaveLength(1);
-      expect(db.rows[0]).toMatchObject({
-        featureKey: LOVE_CODE_FEATURE_KEY,
-        grantType: "permanent_unlock",
-        expiresAt: null,
-        amountKRW: 10000,
-      });
-    },
-  );
-
-  test("이용권 0회·월정석 만료와 무관하게 canonical entitlement가 접근 상태에 남는다", () => {
+  test("과거 영구 해금은 이용권·월정석 만료와 무관하게 계속 접근 상태에 남는다", () => {
     const state = buildAccessState({
       userId: USER,
       user: {

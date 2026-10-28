@@ -234,7 +234,7 @@ function stamens(count, len, tone, tipTone, random) {
   }
   /* 수술대는 path 하나에 subpath 로 몰고, 꽃밥은 <g fill> 로 묶는다. */
   return '<path d="' + filaments + '" stroke="' + tone + '" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".72"/>'
-    + '<g fill="' + tipTone + '">' + anthers + '</g>';
+    + '<g fill="' + tipTone + '" stroke="#3b2a4a" stroke-opacity=".4" stroke-width=".6">' + anthers + '</g>';
 }
 
 function stem(fromY, toY, tone, bend) {
@@ -569,36 +569,127 @@ function particles(kind, tone, pale, random) {
   return out + '</g>';
 }
 
-/* ── 소스별 배경 장식 ────────────────────────────────────────────────────── */
+/* ── 꽃잎 디테일 ─────────────────────────────────────────────────────────── */
 
-function sourceScenery(source, pale, deep, random) {
-  const moon = '<circle cx="266" cy="42" r="18" fill="' + rgba(pale, 0.44) + '"/>'
-    + '<circle cx="274" cy="37" r="16" fill="' + rgba(deep, 0.94) + '"/>';
-  const branch = '<path d="M18 218Q78 188 126 210T226 202T318 214" fill="none" stroke="' + rgba(pale, 0.18) + '" stroke-width="1.4" stroke-linecap="round"/>'
-    + '<path d="M76 198q-12-16-28-17M232 204q14-17 30-18" fill="none" stroke="' + rgba(pale, 0.16) + '" stroke-width="1.1" stroke-linecap="round"/>';
-  if (source === 'astrology') {
-    let stars = '';
-    for (let i = 0; i < 5; i += 1) {
-      const x = n2(24 + random() * 272);
-      const y = n2(18 + random() * 60);
-      stars += '<circle cx="' + x + '" cy="' + y + '" r="' + n2(1 + random() * 1.6) + '" fill="' + pale + '" opacity="0.7"/>';
-    }
-    return moon + '<circle cx="160" cy="120" r="104" fill="none" stroke="' + rgba(pale, 0.18) + '" stroke-width="1.2"/>'
-      + '<circle cx="160" cy="120" r="82" fill="none" stroke="' + rgba(pale, 0.12) + '" stroke-width="1"/>' + stars;
-  }
-  if (source === 'jamidusu') {
-    return moon + '<circle cx="160" cy="124" r="98" fill="none" stroke="' + rgba(pale, 0.16) + '" stroke-width="1.4" stroke-dasharray="5 9"/>'
-      + '<path d="M40 40L64 26L90 40L118 24L146 40" fill="none" stroke="' + rgba(pale, 0.28) + '" stroke-width="1.4" stroke-linecap="round"/>'
-      + '<path d="M176 34L204 20L232 34L258 22L284 34" fill="none" stroke="' + rgba(pale, 0.22) + '" stroke-width="1.4" stroke-linecap="round"/>';
-  }
-  if (source === 'sukuyo') {
-    return '<circle cx="252" cy="52" r="27" fill="' + rgba(pale, 0.42) + '"/>'
-      + '<circle cx="263" cy="47" r="24" fill="' + rgba(deep, 0.92) + '"/>'
-      + '<circle cx="160" cy="126" r="106" fill="none" stroke="' + rgba(pale, 0.14) + '" stroke-width="1.2"/>';
-  }
-  return moon + branch + '<path d="M0 214Q80 198,160 210T320 202V240H0Z" fill="' + rgba(deep, 0.3) + '"/>';
+/**
+ * 렌더러가 정의한 꽃잎 `<path id="pA">` 를 윤곽·결 그라디언트·잎맥이 붙은 `<g id="pA">` 로 감싼다.
+ * 렌더러 12개를 각각 고치지 않고 defs 한 곳에서 처리한다 — 링은 여전히 `<use href="#pA">` 로
+ * 반복하므로 디테일은 꽃잎 종류(최대 3)당 한 번만 마크업에 실린다(data-URI 예산).
+ * 채움은 바깥 <use>/<g> 의 fill 을 상속한다. 결(#sh)은 위에 한 겹 더 덮는 반투명 오버레이다.
+ */
+function detailPetalDefs(defs, deep) {
+  const outline = '" stroke="' + deep + '" stroke-opacity=".5" stroke-width=".7" stroke-linejoin="round"';
+  return defs
+    .replace(/<path id="(p[A-C])" d="([^"]+)"\/>/g, (m, id, d) => {
+      const nums = (d.match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+      let len = 0;
+      let wid = 0;
+      for (let i = 0; i + 1 < nums.length; i += 2) {
+        wid = Math.max(wid, Math.abs(nums[i]));
+        len = Math.max(len, -nums[i + 1]);
+      }
+      let vein = '';
+      if (len >= 14) {
+        vein = 'M0 ' + n2(-len * 0.08) + 'Q' + n2(wid * 0.08) + ' ' + n2(-len * 0.4) + ',0 ' + n2(-len * 0.72);
+        if (len >= 40 && wid >= 12) {
+          vein += 'M0 ' + n2(-len * 0.3) + 'Q' + n2(-wid * 0.3) + ' ' + n2(-len * 0.42) + ',' + n2(-wid * 0.42) + ' ' + n2(-len * 0.6);
+        }
+      }
+      return '<path id="' + id + 'd" d="' + d + '"/>'
+        + '<g id="' + id + '"><use href="#' + id + 'd' + outline + '/><use href="#' + id + 'd" fill="url(#sh)"/>'
+        + (vein ? '<path d="' + vein + '" fill="none" stroke="' + deep + '" stroke-opacity=".35" stroke-width=".8" stroke-linecap="round"/>' : '')
+        + '</g>';
+    })
+    /* 종·이삭·산방은 꽃 한 송이를 <g> 로 정의한다 — 윤곽만 상속시킨다(안쪽 자체 stroke 는 그대로 이긴다). */
+    .replace(/<g id="(bl|fs|fc)">/g, '<g id="$1' + outline + '>');
 }
 
+/* ── 소스별 배경 장식 (아침) ──────────────────────────────────────────────── */
+
+const GOLD = '#d4af6a';
+const SILVER = '#aeb6c8';
+
+/** 원 둘레 눈금 — subpath 하나로 몰아 data-URI 를 아낀다. */
+function ticks(count, cx, cy, r1, r2) {
+  let d = '';
+  for (let i = 0; i < count; i += 1) {
+    const a = (Math.PI * 2 * i) / count;
+    const sx = Math.sin(a);
+    const cy2 = -Math.cos(a);
+    d += 'M' + n2(cx + sx * r1) + ' ' + n2(cy + cy2 * r1) + 'L' + n2(cx + sx * r2) + ' ' + n2(cy + cy2 * r2);
+  }
+  return d;
+}
+
+function sourceScenery(source, pale, deep, random) {
+  if (source === 'astrology') {
+    /* 금빛 황도 원 + 12궁 눈금 + 별자리 선 */
+    let pts = '';
+    let dots = '';
+    for (let i = 0; i < 5; i += 1) {
+      const x = n2(22 + i * 26 + random() * 14);
+      const y = n2(22 + random() * 34);
+      pts += (i ? 'L' : 'M') + x + ' ' + y;
+      dots += '<circle cx="' + x + '" cy="' + y + '" r="' + n2(1.4 + random() * 1.2) + '"/>';
+    }
+    return '<g fill="none" stroke="' + GOLD + '"><circle cx="160" cy="124" r="104" stroke-opacity=".5" stroke-width="1.2"/>'
+      + '<circle cx="160" cy="124" r="90" stroke-opacity=".3"/>'
+      + '<path d="' + ticks(12, 160, 124, 90, 104) + '" stroke-opacity=".45"/>'
+      + '<path d="' + pts + '" stroke-opacity=".55" stroke-width=".9"/></g>'
+      + '<g fill="' + GOLD + '">' + dots + '</g>';
+  }
+  if (source === 'jamidusu') {
+    /* 점선 12궁 원반 + 북두칠성 */
+    const dipper = [[26, 32], [48, 27], [67, 33], [85, 41], [88, 60], [112, 64], [116, 44]];
+    let dots = '';
+    dipper.forEach((pt) => { dots += '<circle cx="' + pt[0] + '" cy="' + pt[1] + '" r="2"/>'; });
+    return '<circle cx="160" cy="124" r="98" fill="#f2b5c8" fill-opacity=".1" stroke="#c98aa0" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="2 6" stroke-linecap="round"/>'
+      + '<path d="' + ticks(12, 160, 124, 84, 98) + '" stroke="#c98aa0" stroke-opacity=".28"/>'
+      + '<path d="M26 32L48 27L67 33L85 41L88 60L112 64L116 44L85 41" fill="none" stroke="' + GOLD + '" stroke-opacity=".6" stroke-width="1"/>'
+      + '<g fill="' + GOLD + '">' + dots + '</g>';
+  }
+  if (source === 'sukuyo') {
+    /* 은빛 반달 + 28수 눈금 */
+    return '<circle cx="256" cy="50" r="30" fill="#e6e9f2" fill-opacity=".7"/>'
+      + '<path d="M256 28A22 22 0 0 1 256 72Z" fill="#dfe3ec" stroke="' + SILVER + '" stroke-width="1"/>'
+      + '<path d="M256 28A22 22 0 0 0 256 72" fill="none" stroke="' + SILVER + '" stroke-opacity=".5" stroke-dasharray="2 3"/>'
+      + '<circle cx="160" cy="126" r="106" fill="none" stroke="' + SILVER + '" stroke-opacity=".45"/>'
+      + '<path d="' + ticks(28, 160, 126, 100, 110) + '" stroke="' + SILVER + '" stroke-opacity=".6"/>';
+  }
+  /* 사주: 산 능선 + 아침 해무리 */
+  return '<circle cx="262" cy="48" r="32" fill="#ffe7b0" fill-opacity=".45"/>'
+    + '<circle cx="262" cy="48" r="16" fill="#ffe2a4"/>'
+    + '<path d="M0 188L40 164L70 178L112 146L150 176L190 158L226 172L270 150L320 170V240H0Z" fill="' + mix(deep, '#efe3f2', 0.82) + '"/>'
+    + '<path d="M0 206Q60 186,110 200T214 194T320 196V240H0Z" fill="' + mix(deep, '#f4ece6', 0.74) + '"/>';
+}
+
+/* ── 봉오리 (판정 대기 카드) ─────────────────────────────────────────────── */
+
+const SOURCE_ACCENT = { saju: '#f4b8a0', astrology: '#a9c8f0', jamidusu: '#f2b5c8', sukuyo: '#c9b8ec' };
+
+/**
+ * 판정 대기 카드에 빈 회색 칸 대신 소스 색 봉오리를 그린다. 결과가 아니므로 종·시드가 없다.
+ * @param {{source?: string, label?: string}} input
+ */
+export function buildBudSvg(input) {
+  const opts = input || {};
+  const accent = SOURCE_ACCENT[String(opts.source || '')] || SOURCE_ACCENT.saju;
+  const deep = mix(accent, '#3b2a4a', 0.45);
+  const label = String(opts.label || '').replace(/[<>&"']/g, '');
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="320" height="240" role="img" aria-label="' + label + '">'
+    + '<defs><radialGradient id="sky" cx="50%" cy="40%" r="75%"><stop offset="0%" stop-color="#fffaf2"/>'
+    + '<stop offset="100%" stop-color="' + mix(accent, '#fbf6ee', 0.82) + '"/></radialGradient>'
+    + '<linearGradient id="bd" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="' + mix(accent, deep, 0.3) + '"/>'
+    + '<stop offset="100%" stop-color="' + mix(accent, '#ffffff', 0.35) + '"/></linearGradient></defs>'
+    + '<rect width="320" height="240" rx="20" fill="url(#sky)"/>'
+    + '<ellipse cx="160" cy="214" rx="46" ry="6" fill="' + deep + '" fill-opacity=".14"/>'
+    + '<path d="M160 212Q156 176,160 146" stroke="#6f9a78" stroke-width="3" fill="none" stroke-linecap="round"/>'
+    + '<path d="M159 190C138 186,130 172,134 164C146 166,156 176,159 190ZM161 182C180 178,188 166,184 158C172 160,163 170,161 182Z" fill="#8bb594"/>'
+    + '<path d="M160 150C142 140,138 112,160 88C182 112,178 140,160 150Z" fill="url(#bd)" stroke="' + deep + '" stroke-opacity=".5" stroke-width=".8"/>'
+    + '<path d="M160 150C150 138,150 116,160 98" fill="none" stroke="' + deep + '" stroke-opacity=".35"/>'
+    + '<path d="M160 152C148 150,141 140,142 130C150 136,156 142,160 152ZM160 152C172 150,179 140,178 130C170 136,164 142,160 152Z" fill="#7aa884"/>'
+    + '</svg>';
+}
 /* ── 조립 ────────────────────────────────────────────────────────────────── */
 
 /**
@@ -626,33 +717,38 @@ export function buildFlowerSvg(input) {
   const deep = mix(primary, '#150a1e', 0.42);
   const pale = mix(secondary, '#ffffff', 0.6);
   const leaf = mix(mix(secondary, '#2f6b4f', 0.55), '#0f2418', 0.2);
-  /* 배경은 꽃 색조를 따라가되 밤 톤으로 강하게 눌러야 한다.
-     안 그러면 초록 꽃(아이비)이 초록 배경에 묻혀 형태가 아예 안 보인다. */
-  const skyTop = mix(deep, '#06040d', 0.62);
-  const skyMid = mix(back, '#0b0716', 0.7);
+  /* 새벽 정원: 하늘은 파스텔 크림에 꽃 색을 12%만 섞는다. 밝은 꽃(흰 연꽃)이 하늘에 묻히지 않게
+     꽃잎은 detailPetalDefs 가 deep 윤곽을 두른다. */
+  const skyTop = mix('#fbf6ee', front, 0.12);
+  const skyMid = mix('#f3e9f7', back, 0.12);
 
   const rendered = FORM_RENDERERS[form](
     { random, front, back, deep, pale, leaf, source },
   );
+  const petalDefs = detailPetalDefs(rendered.defs, deep);
 
   const label = String(opts.label || '').replace(/[<>&"']/g, '');
 
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="320" height="240" role="img" aria-label="' + label + '">'
     + '<defs>'
-    + '<radialGradient id="sky" cx="50%" cy="44%" r="72%">'
-    + '<stop offset="0%" stop-color="' + mix(skyMid, front, 0.14) + '"/>'
-    + '<stop offset="62%" stop-color="' + skyMid + '"/>'
-    + '<stop offset="100%" stop-color="' + skyTop + '"/>'
-    + '</radialGradient>'
+    + '<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0%" stop-color="' + skyTop + '"/>'
+    + '<stop offset="100%" stop-color="' + skyMid + '"/>'
+    + '</linearGradient>'
     + '<radialGradient id="halo" cx="50%" cy="52%" r="50%">'
-    + '<stop offset="0%" stop-color="' + rgba(pale, 0.24) + '"/>'
-    + '<stop offset="100%" stop-color="' + rgba(pale, 0) + '"/>'
+    + '<stop offset="0%" stop-color="#fff6dc" stop-opacity=".95"/>'
+    + '<stop offset="100%" stop-color="#fff6dc" stop-opacity="0"/>'
     + '</radialGradient>'
+    + '<linearGradient id="sh" x1="0" y1="1" x2="0" y2="0">'
+    + '<stop offset="0%" stop-color="' + deep + '" stop-opacity=".35"/>'
+    + '<stop offset="45%" stop-color="' + deep + '" stop-opacity="0"/>'
+    + '<stop offset="100%" stop-color="#fff" stop-opacity=".28"/>'
+    + '</linearGradient>'
     + '<radialGradient id="throat" cx="50%" cy="50%" r="50%">'
     + '<stop offset="0%" stop-color="' + mix(deep, '#1a0c14', 0.5) + '"/>'
     + '<stop offset="100%" stop-color="' + rgba(front, 0.1) + '"/>'
     + '</radialGradient>'
-    + rendered.defs
+    + petalDefs
     + (PARTICLE_STYLE[opts.particleType] === 'mist'
       ? '<radialGradient id="mistg"><stop offset="0%" stop-color="' + rgba(back, 0.7) + '"/>'
         + '<stop offset="100%" stop-color="' + rgba(back, 0) + '"/></radialGradient>'
@@ -662,8 +758,10 @@ export function buildFlowerSvg(input) {
     + '<rect width="320" height="240" rx="20" fill="url(#sky)"/>'
     + sourceScenery(source, pale, deep, random)
     + '<ellipse cx="160" cy="128" rx="102" ry="82" fill="url(#halo)"/>'
+    + '<ellipse cx="160" cy="226" rx="74" ry="7" fill="' + deep + '" fill-opacity=".16"/>'
     + rendered.body
-    + particles(opts.particleType, back, pale, random)
+    /* 밝은 하늘에서 pale 입자는 보이지 않는다 — 꽃 색을 눌러 쓴다. */
+    + particles(opts.particleType, back, mix(back, deep, 0.35), random)
     + '</svg>';
 }
 
@@ -673,6 +771,7 @@ export function registerFlowerArtGlobals(globalObject) {
   if (!target) return;
   target.CDFlowerArt = {
     buildFlowerSvg,
+    buildBudSvg,
     resolveFlowerForm,
     FLOWER_FORMS,
     FLOWER_FORM_BY_ID,

@@ -15,7 +15,7 @@ jest.unstable_mockModule('../../worker/lib/guardian-fortune-usage.js',()=>({buil
   hashGuardianFortuneGuestId:jest.fn(),mergeGuardianFortuneAnonymousUsage:jest.fn(),GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT:1,GUARDIAN_FORTUNE_PAID_FEATURE_KEY:"fortune-chat-consultation"}));
 jest.unstable_mockModule('../../worker/yeongnyangi/delivery.js',()=>({readAndContinueFortune:resume}));
 jest.unstable_mockModule('../../worker/yeongnyangi/retry.js',()=>({retryFortune:retry}));
-jest.unstable_mockModule('../../worker/yeongnyangi/per-use-access.js',()=>({CHAT_ACCESS_CHOICES:['pass','checkout']}));
+jest.unstable_mockModule('../../worker/yeongnyangi/per-use-access.js',()=>({CHAT_ACCESS_CHOICES:['pass','checkout','honey']}));
 jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({readRequest:read,ownerId:value=>value,YeongnyangiRequest:{find}}));
 jest.unstable_mockModule('../../worker/yeongnyangi/service.ts',()=>({prepareFortune:prepare,activateFortune:activate,drawTarotSpread:draw,presentFortune:row=>({id:row._id,state:row.state})}));
 jest.unstable_mockModule('../../worker/yeongnyangi/payments/catalog.ts',()=>({chatQuestionProducts:()=>[]}));
@@ -45,6 +45,12 @@ test('flag off still reads and continues a consultation already started',async()
   expect(response.status).toBe(200);expect(resume).toHaveBeenCalledWith({},userId,id);
   expect((await handleFortuneChatRoutes(request(`/${id}/generate`,'POST',{}),{})).status).toBe(202);
 });
+test('reading one consultation reports how it was opened',async()=>{
+  for(const [perUseSource,expected] of [['honey','honey'],['payment','payment'],[undefined,'']]){
+    resume.mockResolvedValueOnce({...chatRow,perUseSource});
+    expect((await (await handleFortuneChatRoutes(request(`/${id}`),on)).json()).consultation.perUseSource).toBe(expected);
+  }
+});
 test('create passes the persona as a server option and reports no new free use for unpaid rows',async()=>{
   const response=await handleFortuneChatRoutes(request('','POST',{persona:'neo',question:'이직해도 될까요?',fishId:'salmon',questionDecision:decision}),on);
   expect(response.status).toBe(201);
@@ -52,7 +58,7 @@ test('create passes the persona as a server option and reports no new free use f
   expect((await response.json()).consultation).toMatchObject({paidFeatureKey:'fortune-chat-consultation',paymentRequestId:`fc-${id}`,freeTrialAvailable:false});
   expect((await handleFortuneChatRoutes(request('','POST',{persona:'yeongnyangi'}),on)).status).toBe(400);
 });
-test.each([['pass','pass'],['free_trial',''],['checkout','checkout'],['family',''],[undefined,'']])('activate forwards access %p as %p',async(access,expected)=>{
+test.each([['pass','pass'],['free_trial',''],['checkout','checkout'],['honey','honey'],['family',''],[undefined,'']])('activate forwards access %p as %p',async(access,expected)=>{
   await handleFortuneChatRoutes(request(`/${id}/activate`,'POST',{access}),on);
   expect(activate).toHaveBeenCalledWith(on,userId,id,{access:expected});
 });

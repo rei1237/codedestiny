@@ -1,5 +1,12 @@
 "use client";
 
+import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
+import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
+import { getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
+import NextImage from "next/image";
+import { useLocale } from '@/lib/i18n/useT';
 import { useEffect, useRef, useState } from "react";
 import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import {
@@ -30,6 +37,8 @@ type HandRole = PalmHandRole;
 type AnalysisPurpose = PalmAnalysisPurpose;
 type UploadSource = "camera" | "gallery";
 type PalmFlowStep = "pick" | "preview" | "analyzing" | "result";
+/** 연이 로딩 대사가 따라가는 실제 제출 단계. 시간으로 넘기지 않고 handleStartAnalysis 의 지점에서만 바꾼다. */
+type PalmSubmitStage = "preparing" | "reading" | "paying" | "delivering";
 type PalmCardKey =
   | "lifeLine"
   | "headLine"
@@ -119,6 +128,7 @@ type PalmLandmarkState = {
   landmarks: Record<string, PalmVisionPoint> | null;
   region: { minX: number; minY: number; width: number; height: number } | null;
   handedness: string;
+  handednessScore: number;
 };
 
 type PalmSampleBounds = {
@@ -212,7 +222,7 @@ const {
     analysisPurpose: AnalysisPurpose | "";
     isSubmitting: boolean;
   }) => boolean;
-  mapPalmAnalyzeError: (input: { status: number; code: string; message: string; reasonCode?: string; reason?: string }) => string;
+  mapPalmAnalyzeError: (input: { status: number; code: string; message: string; reasonCode?: string; reason?: string; locale?: string }) => string;
   shouldShowPalmResult: (canonicalPalmReading: unknown) => boolean;
   revokeObjectUrls: (urls: Array<string | null | undefined>, revokeFn?: (url: string) => void) => number;
 };
@@ -520,41 +530,62 @@ async function analyzeImageQuality(file: File, copy: PalmDestinyCopy): Promise<P
       glareLow: glareRatio <= 0.16,
     };
 
-    const score = Object.values(checks).filter(Boolean).length;
-    const confidence: QualityConfidence = score >= 5 ? "높음" : score >= 3 ? "보통" : "낮음";
-    const warnings = [
-      !checks.resolution ? copy.qualityWarningResolution : null,
-      !checks.brightness ? copy.qualityWarningBrightness : null,
-      !checks.sharpness ? copy.qualityWarningSharpness : null,
-      !checks.palmLikely ? copy.qualityWarningPalmLikely : null,
-      !checks.fullPalmLikely ? copy.qualityWarningFullPalmLikely : null,
-      !checks.glareLow ? copy.qualityWarningGlareLow : null,
-    ].filter((item): item is string => Boolean(item));
-
-    const summary =
-      confidence === "높음"
-        ? copy.qualityConfidenceSummaryHigh
-        : confidence === "보통"
-        ? copy.qualityConfidenceSummaryMedium
-        : copy.qualityConfidenceSummaryLow;
-
-    return {
-      confidence,
-      score,
-      summary,
-      warnings,
-      checks,
-      metrics: {
-        width,
-        height,
-        brightnessMean: Number(averageLuminance.toFixed(2)),
-        edgeStrength: Number(edgeStrength.toFixed(2)),
-        glareRatio: Number(glareRatio.toFixed(4)),
-      },
-    };
+    return summarizeImageQuality(checks, {
+      width,
+      height,
+      brightnessMean: Number(averageLuminance.toFixed(2)),
+      edgeStrength: Number(edgeStrength.toFixed(2)),
+      glareRatio: Number(glareRatio.toFixed(4)),
+    }, copy);
   } finally {
     renderer.cleanup();
   }
+}
+
+/**
+ * 가로세로 비율로 짐작한 palmLikely 를 실제 손 검출 결과로 바꾼다.
+ * 검출기를 못 쓴 경우("unavailable")에만 비율 추정을 그대로 둔다.
+ */
+function withLandmarkPalmCheck(
+  quality: PalmImageQualityFeedback | null,
+  landmarkState: PalmLandmarkState,
+  copy: PalmDestinyCopy,
+): PalmImageQualityFeedback | null {
+  if (!quality || landmarkState.status === "unavailable") return quality;
+  return summarizeImageQuality({ ...quality.checks, palmLikely: landmarkState.status === "detected" }, quality.metrics, copy);
+}
+
+function summarizeImageQuality(
+  checks: PalmImageQualityFeedback["checks"],
+  metrics: PalmImageQualityFeedback["metrics"],
+  copy: PalmDestinyCopy,
+): PalmImageQualityFeedback {
+  const score = Object.values(checks).filter(Boolean).length;
+  const confidence: QualityConfidence = score >= 5 ? "높음" : score >= 3 ? "보통" : "낮음";
+  const warnings = [
+    !checks.resolution ? copy.qualityWarningResolution : null,
+    !checks.brightness ? copy.qualityWarningBrightness : null,
+    !checks.sharpness ? copy.qualityWarningSharpness : null,
+    !checks.palmLikely ? copy.qualityWarningPalmLikely : null,
+    !checks.fullPalmLikely ? copy.qualityWarningFullPalmLikely : null,
+    !checks.glareLow ? copy.qualityWarningGlareLow : null,
+  ].filter((item): item is string => Boolean(item));
+
+  const summary =
+    confidence === "높음"
+      ? copy.qualityConfidenceSummaryHigh
+      : confidence === "보통"
+      ? copy.qualityConfidenceSummaryMedium
+      : copy.qualityConfidenceSummaryLow;
+
+  return {
+    confidence,
+    score,
+    summary,
+    warnings,
+    checks,
+    metrics,
+  };
 }
 
 function mirrorPalmX(value: number, side: HandSide): number {
@@ -704,7 +735,7 @@ function detectPalmSampleBounds(data: Uint8ClampedArray, sampleWidth: number, sa
  * MediaPipe 를 못 쓰는 환경에서는 "unavailable" 로 떨어져 기존 근사 경로가 그대로 돈다.
  */
 async function detectHandForFile(file: File, side: HandSide): Promise<PalmLandmarkState> {
-  const unavailable: PalmLandmarkState = { status: "unavailable", landmarks: null, region: null, handedness: "" };
+  const unavailable: PalmLandmarkState = { status: "unavailable", landmarks: null, region: null, handedness: "", handednessScore: 0 };
   let renderer: Awaited<ReturnType<typeof createImageRenderer>> | null = null;
   try {
     renderer = await createImageRenderer(file);
@@ -727,6 +758,7 @@ async function detectHandForFile(file: File, side: HandSide): Promise<PalmLandma
       landmarks: toEngineLandmarkMap(detection.result),
       region: computePalmRegion(detection.result),
       handedness: detection.result.handedness,
+      handednessScore: detection.result.handednessScore,
     };
   } catch (error) {
     console.warn("[palm] landmark detection error", { side, message: (error as Error)?.message });
@@ -984,6 +1016,11 @@ async function extractPalmVisionPayload(
   } finally {
     renderer.cleanup();
   }
+}
+
+function toApiHandedness(state: PalmLandmarkState | null): { label: string; score: number } | null {
+  if (state?.status !== "detected" || (state.handedness !== "Left" && state.handedness !== "Right")) return null;
+  return { label: state.handedness, score: state.handednessScore };
 }
 
 function toApiImageQuality(quality: PalmImageQualityFeedback | null): Record<string, unknown> | null {
@@ -1605,6 +1642,7 @@ function buildCategoryConsultations(input: {
 
 export default function PalmDestinyMain() {
   const copy = usePalmDestinyCopy();
+  const detailLocale = useLocale();
   const HAND_ROLE_META = buildHandRoleMeta(copy);
   const DOMINANT_HAND_OPTIONS = buildDominantHandOptions(copy);
   const DOMINANT_HAND_HINT_LABEL = buildDominantHandHintLabel(copy);
@@ -1618,6 +1656,11 @@ export default function PalmDestinyMain() {
   const [analysisPurpose, setAnalysisPurpose] = useState<AnalysisPurpose>(DEFAULT_ANALYSIS_PURPOSE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [palmStage, setPalmStage] = useState<PalmSubmitStage>("preparing");
+  // 마지막으로 띄운 오류 문구. submitMessage 가 이 값일 때만 연이 오류 한 줄을 앞에 붙인다(다른 안내로 바뀌면 자연히 사라진다).
+  const [palmError, setPalmError] = useState("");
+  // 손금 라우트는 next/dynamic(lazy) 로 붙어 SSR 과 하이드레이션의 useId 경로가 어긋난다. MasterProfile(useId)은 마운트 뒤에만 그린다.
+  const [profileReady, setProfileReady] = useState(false);
   const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResultState | null>(null);
   const [activeCardKey, setActiveCardKey] = useState<PalmCardKey>("lifeLine");
@@ -1738,6 +1781,11 @@ export default function PalmDestinyMain() {
 
   const activeOverlayPaths: OverlayPathMap =
     (analysisResult?.overlayPathsBySide?.[overlaySide] as OverlayPathMap | null) || analysisResult?.overlayPaths || {};
+  // 오버레이 선은 사진 픽셀을 샘플링해 그리므로, 판독이 "확인 안 됨"이라 한 선도 그려질 수 있다.
+  // 그런 선은 점선으로 구분해 판독된 선처럼 보이지 않게 한다.
+  const undetectedOverlayLines: OverlayLineKey[] = activeHandReading
+    ? (["lifeLine", "headLine", "heartLine", "fateLine"] as const).filter((key) => activeHandReading.majorLines[key]?.detected === false)
+    : [];
 
   const hasCoordinatePaths = Boolean(
     analysisResult &&
@@ -1748,6 +1796,22 @@ export default function PalmDestinyMain() {
   );
 
   const loadingPhaseText = copy.loadingPhases[loadingPhaseIndex] ?? copy.loadingPhases[0];
+  // 손금 상담가 연이(소설 캐주얼 연이). 대사는 화면 상태에서만 고르고, 문구는 사실 안내를 대신하지 않는다.
+  const yeoniOn = isExpertCharacterEnabled("yeoni");
+  const yeoniHero = {
+    src: "/images/service-introductions/palm-reading-960.webp",
+    alt: "인간 연이가 손님의 펼친 손바닥을 받치고 지시봉으로 손금의 선을 함께 살피는 상담 장면",
+  };
+  const yeoniGreet = getExpertLine("yeoni", "hero", detailLocale);
+  const yeoniUpload = getExpertLine("yeoni", "upload", detailLocale);
+  const yeoniGuide = getExpertLine("yeoni", "guide", detailLocale);
+  const yeoniLoading = getExpertLine("yeoni", `loading.${palmStage}`, detailLocale);
+  const yeoniError = getExpertLine("yeoni", "error", detailLocale);
+  const yeoniResultOpen = getExpertLine("yeoni", "result.open", detailLocale);
+  const yeoniResultClose = getExpertLine("yeoni", "result.close", detailLocale);
+  const showYeoniError = Boolean(palmError) && submitMessage === palmError;
+
+  useEffect(() => setProfileReady(true), []);
 
   useEffect(() => {
     previewUrlsRef.current = {
@@ -1789,11 +1853,18 @@ export default function PalmDestinyMain() {
   const resetAnalysisState = () => {
     setAnalysisResult(null);
     setSubmitMessage("");
+    setPalmError("");
+    setPalmStage("preparing");
     setIsSubmitting(false);
     submitLockedRef.current = false;
     setLoadingPhaseIndex(0);
     setActiveCardKey("lifeLine");
     setOverlaySide("right");
+  };
+
+  const showPalmError = (message: string) => {
+    setPalmError(message);
+    setSubmitMessage(message);
   };
 
   const resetSessionForReanalysis = (options?: {
@@ -1867,12 +1938,12 @@ export default function PalmDestinyMain() {
     }
 
     if (!isLikelyImageFile(file)) {
-      setSubmitMessage(copy.unsupportedFileTypeMessage);
+      showPalmError(copy.unsupportedFileTypeMessage);
       return;
     }
 
     if (file.size > MAX_UPLOAD_FILE_BYTES) {
-      setSubmitMessage(copy.fileTooLargeMessage);
+      showPalmError(copy.fileTooLargeMessage);
       return;
     }
 
@@ -1911,13 +1982,13 @@ export default function PalmDestinyMain() {
         }
       }
 
+      // 실제 손 검출. 결과를 캐시해 분석 시작 때 재사용한다(같은 사진을 두 번 추론하지 않는다).
+      const landmarkCheck = await detectHandForFile(normalizedFile, side);
+      quality = withLandmarkPalmCheck(quality, landmarkCheck, copy);
       setQualityFeedbackBySide((prev) => ({
         ...prev,
         [side]: quality,
       }));
-
-      // 실제 손 검출. 결과를 캐시해 분석 시작 때 재사용한다(같은 사진을 두 번 추론하지 않는다).
-      const landmarkCheck = await detectHandForFile(normalizedFile, side);
       setLandmarkStateBySide((prev) => ({ ...prev, [side]: landmarkCheck }));
       // 새 사진이 들어왔으므로 이전 "그대로 진행" 판단은 무효다.
       setQualityOverride(false);
@@ -1925,7 +1996,7 @@ export default function PalmDestinyMain() {
       // MediaPipe 가 실제로 돌았는데 손이 없으면 여기서 막는다 — 과금 이전 지점이다.
       // 검출기를 못 쓴 경우(CDN 차단 등)는 막지 않고 기존 경로로 진행한다.
       if (landmarkCheck.status === "no-hand") {
-        setSubmitMessage(
+        showPalmError(
           copy.handNoHandDetectedMessage(side === "left" ? copy.handNameLeft : copy.handNameRight),
         );
         return;
@@ -1950,7 +2021,7 @@ export default function PalmDestinyMain() {
 
       setSubmitMessage(copy.imageLoadedMessage(sourceLabel));
     } catch (error) {
-      setSubmitMessage(
+      showPalmError(
         isHeicLikeFile(file)
           ? copy.heicUnreadableMessage
           : copy.imageLoadFailedMessage(error instanceof Error ? error.message : copy.unknownErrorLabel),
@@ -2149,10 +2220,10 @@ export default function PalmDestinyMain() {
   // 모바일 PortOne 리다이렉트로 handleStartAnalysis 의 await 가 죽은 뒤, 복귀한 새 문서에서 판독을 이어받는다.
   // 🔴 게이트를 다시 타지 않는다 — 분석은 결제 전에 이미 끝났고, 여기서 /api/palm/analyze 를 다시 부르면
   //    사진이 없어 실패하거나(복귀 문서엔 File 이 없다) 같은 판독에 두 번 값을 치른다.
-  const recoverPalm = async (requestId: string, signal?: AbortSignal) => {
+  const recoverPalm = async (requestId: string, signal?: AbortSignal, accessMethod = '') => {
     const token = getClientAuthToken();
     const owner = palmAccountId();
-    const payloadRoot = await readPaidPalmResult(requestId, token, signal);
+    const payloadRoot = await readPaidPalmResult(requestId, token, signal, accessMethod);
     if (signal?.aborted || owner !== palmAccountId() || token !== getClientAuthToken() || !payloadRoot) return false;
     const prepared = preparePalmResult(payloadRoot);
     if (!shouldShowPalmResult(prepared.canonical)) return false;
@@ -2204,7 +2275,7 @@ export default function PalmDestinyMain() {
     const pending = readPalmResumePayload('');
     if (pending?.analysisSaved && typeof pending.requestId === 'string') {
       try { if (await recoverPalm(pending.requestId)) return; }
-      catch { setSubmitMessage(copy.networkErrorMessage); return; }
+      catch { showPalmError(copy.networkErrorMessage); return; }
     }
 
     const leftSig =
@@ -2256,7 +2327,7 @@ export default function PalmDestinyMain() {
         status: "error",
         message,
       });
-      setSubmitMessage(message);
+      showPalmError(message);
 
       if (coinGateCode === "AUTH_REQUIRED" && typeof window !== "undefined") {
         const next = encodeURIComponent(window.location.pathname + window.location.search);
@@ -2275,6 +2346,7 @@ export default function PalmDestinyMain() {
     try {
       setIsSubmitting(true);
       setAnalysisResult(null);
+      setPalmStage("preparing");
       setSubmitMessage(copy.checkingImageQualityMessage);
 
       openPaidFeatureGate({
@@ -2315,12 +2387,16 @@ export default function PalmDestinyMain() {
         rightLineCandidates: rightVision?.lineCandidates ?? [],
         leftImageQuality: toApiImageQuality(qualityFeedbackBySide.left),
         rightImageQuality: toApiImageQuality(qualityFeedbackBySide.right),
+        // MediaPipe 원본 라벨. 서버가 사진 반전을 감안해 올린 칸과 비교만 한다(판독 기준은 칸).
+        leftHandedness: toApiHandedness(landmarkStateBySide.left),
+        rightHandedness: toApiHandedness(landmarkStateBySide.right),
         uploadedHandSide: leftHand.file && rightHand.file ? "both" : leftHand.file ? "left" : rightHand.file ? "right" : "",
         dominantHand,
         analysisPurpose: activeAnalysisPurpose,
         locale: aiLocale,
       });
 
+      setPalmStage("reading");
       setSubmitMessage(copy.readingGoldenLinesMessage);
 
       let response = await fetch("/api/palm/analyze", {
@@ -2388,9 +2464,9 @@ export default function PalmDestinyMain() {
           subFeatureKey: initialSubFeatureKey,
           requestId: billingRequestId,
           status: "error",
-          message: mapPalmAnalyzeError({ status: response.status, code, reasonCode, message, reason: serverReason }),
+          message: mapPalmAnalyzeError({ status: response.status, code, reasonCode, message, reason: serverReason, locale: aiLocale }),
         });
-        setSubmitMessage(mapPalmAnalyzeError({ status: response.status, code, reasonCode, message, reason: serverReason }));
+        showPalmError(mapPalmAnalyzeError({ status: response.status, code, reasonCode, message, reason: serverReason, locale: aiLocale }));
         return;
       }
 
@@ -2406,10 +2482,11 @@ export default function PalmDestinyMain() {
           status: "error",
           message: copy.palmNotFullyVisibleMessage,
         });
-        setSubmitMessage(copy.palmNotFullyVisibleRetryMessage);
+        showPalmError(copy.palmNotFullyVisibleRetryMessage);
         return;
       }
 
+      setPalmStage("paying");
       setSubmitMessage(copy.resultConfirmedCheckingPaymentMessage);
       // 모바일 PortOne 리다이렉트는 이 문서를 통째로 날린다 — 결제창을 열기 직전에 판독 영수증(requestId)을 이 탭에 남긴다.
       stashPalmResumePayload(billingRequestId, payloadRoot);
@@ -2447,7 +2524,10 @@ export default function PalmDestinyMain() {
         // ignore client-side storage failures
       }
 
-      if (!await recoverPalm(billingRequestId, controller.signal)) throw new Error('PAID_RESULT_NOT_CONFIRMED');
+      // 이용권으로 통과했으면 서버가 사용 기록을 기다리지 않고 이용권을 확정하게 알린다.
+      const passUsed = coinGateResult.data?.freeBySubscription === true;
+      setPalmStage("delivering");
+      if (!await recoverPalm(billingRequestId, controller.signal, passUsed ? 'pass' : '')) throw new Error('PAID_RESULT_NOT_CONFIRMED');
     } catch (error) {
       if (requestIdRef.current !== requestId) {
         return;
@@ -2473,7 +2553,7 @@ export default function PalmDestinyMain() {
           status: "error",
           message: copy.networkErrorStatusMessage,
         });
-        setSubmitMessage(copy.networkErrorMessage);
+        showPalmError(copy.networkErrorMessage);
         return;
       }
 
@@ -2484,7 +2564,7 @@ export default function PalmDestinyMain() {
         status: "error",
         message: copy.analysisErrorWithReasonMessage(error instanceof Error ? error.message : "unknown"),
       });
-      setSubmitMessage(copy.analysisErrorWithReasonMessage(error instanceof Error ? error.message : "unknown"));
+      showPalmError(copy.analysisErrorWithReasonMessage(error instanceof Error ? error.message : "unknown"));
     } finally {
       releasePaidFeatureGate(billingRequestId);
       if (requestIdRef.current === requestId) {
@@ -2543,53 +2623,53 @@ export default function PalmDestinyMain() {
         ref={setCardRef(card.key)}
         className={`cd-oriental-card cd-fade-in rounded-2xl border p-4 md:p-5 ${
           active
-            ? "border-[#c8a84b]/65"
-            : "border-[#c8a84b]/25"
+            ? "border-[#b53660]/35"
+            : "border-[#b53660]/20"
         }`}
         style={active ? {
-          background: "linear-gradient(145deg, rgba(10,5,5,0.98), rgba(20,8,8,0.97))",
-          boxShadow: "0 0 0 1px rgba(180,130,40,0.2), 0 0 28px rgba(139,0,0,0.2), inset 0 0 30px rgba(120,15,15,0.18)",
+          background: "#ffffff",
+          boxShadow: "0 0 0 2px rgba(181,54,96,0.28), 0 12px 28px rgba(64,42,56,0.10)",
         } : {
-          background: "linear-gradient(145deg, rgba(8,4,4,0.96), rgba(15,7,7,0.95))",
-          boxShadow: "0 0 0 1px rgba(180,130,40,0.08)",
+          background: "#ffffff",
+          boxShadow: "0 8px 22px rgba(64,42,56,0.06)",
         }}
       >
-        <header className="flex items-center justify-between gap-2 border-b border-[#c8a84b]/20 pb-3">
-          <h4 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{card.title}</h4>
+        <header className="flex items-center justify-between gap-2 border-b border-[#b53660]/15 pb-3">
+          <h4 className="text-sm font-black text-[#402a38] md:text-base cd-oriental-headline">{card.title}</h4>
           <button
             type="button"
             onClick={() => setActiveCardKey(card.key)}
-            className="cd-ghost-btn rounded-sm border border-[#c8a84b]/40 bg-[#0d0808] px-2 py-1 text-[11px] font-bold text-[#e8d090]"
+            className="cd-ghost-btn rounded-sm border border-[#b53660]/25 bg-[#ffffff] px-2 py-1 text-[11px] font-bold text-[#6b4d5e]"
           >
             {copy.selectButtonLabel}
           </button>
         </header>
 
-        <p className="mt-3 rounded-lg border border-[#9b1a1a]/40 bg-[#1a0808]/70 px-3 py-2 text-sm font-semibold leading-6 text-[#ffd8d0]">
+        <p className="mt-3 rounded-lg border border-[#b53660]/25 bg-[#f8e4ea] px-3 py-2 text-sm font-semibold leading-6 text-[#402a38]">
           {card.oneLiner}
         </p>
 
-        <section className="mt-3 rounded-lg border border-[#c8a84b]/22 bg-[#100808]/70 px-3 py-3">
-          <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
+        <section className="mt-3 rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-3">
+          <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#7e6028] md:text-sm">
             <span aria-hidden className="text-[8px]">◆</span>{copy.readSignalHeading}
           </h5>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             {cardSignalFacts.slice(0, 4).map((fact) => (
-              <div key={`${card.key}-signal-${fact.label}`} className="rounded-lg border border-[#c8a84b]/16 bg-[#090505]/70 px-3 py-2">
-                <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">{fact.label}</p>
-                <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">{fact.value}</p>
+              <div key={`${card.key}-signal-${fact.label}`} className="rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2">
+                <p className="text-[11px] font-black text-[#402a38] md:text-xs">{fact.label}</p>
+                <p className="mt-1 text-xs leading-5 text-[#402a38] md:text-sm">{fact.value}</p>
               </div>
             ))}
           </div>
         </section>
 
         <section className="mt-3">
-          <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
+          <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#7e6028] md:text-sm">
             <span aria-hidden className="text-[8px]">◆</span>{copy.interpretationHeading}
           </h5>
-          <ul className="mt-2 space-y-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+          <ul className="mt-2 space-y-2 text-xs leading-6 text-[#402a38] md:text-sm">
             {card.details.slice(0, 6).map((line, index) => (
-              <li key={`${card.key}-detail-${index}`} className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/65 px-3 py-2">
+              <li key={`${card.key}-detail-${index}`} className="rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2">
                 {line}
               </li>
             ))}
@@ -2598,12 +2678,12 @@ export default function PalmDestinyMain() {
 
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <section>
-            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-              <span aria-hidden className="text-[8px] text-green-400/70">◆</span>{copy.strengthHeading}
+            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#7e6028] md:text-sm">
+              <span aria-hidden className="text-[8px] text-[#4f8a5a]">◆</span>{copy.strengthHeading}
             </h5>
-            <ul className="mt-2 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+            <ul className="mt-2 space-y-1 text-xs leading-6 text-[#402a38] md:text-sm">
               {card.strengths.slice(0, 3).map((line, index) => (
-                <li key={`${card.key}-strength-${index}`} className="rounded-lg border border-[#4a7a30]/30 bg-[#0a1206]/60 px-3 py-2">
+                <li key={`${card.key}-strength-${index}`} className="rounded-lg border border-[#4f8a5a]/30 bg-[#edf6ea] px-3 py-2">
                   {line}
                 </li>
               ))}
@@ -2611,12 +2691,12 @@ export default function PalmDestinyMain() {
           </section>
 
           <section>
-            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-              <span aria-hidden className="text-[8px] text-red-400/70">◆</span>{copy.cautionHeading}
+            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#7e6028] md:text-sm">
+              <span aria-hidden className="text-[8px] text-[#b53660]">◆</span>{copy.cautionHeading}
             </h5>
-            <ul className="mt-2 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+            <ul className="mt-2 space-y-1 text-xs leading-6 text-[#402a38] md:text-sm">
               {card.cautions.slice(0, 3).map((line, index) => (
-                <li key={`${card.key}-caution-${index}`} className="rounded-lg border border-[#8b1a1a]/35 bg-[#140808]/60 px-3 py-2">
+                <li key={`${card.key}-caution-${index}`} className="rounded-lg border border-[#b53660]/25 bg-[#f8e4ea] px-3 py-2">
                   {line}
                 </li>
               ))}
@@ -2625,17 +2705,17 @@ export default function PalmDestinyMain() {
         </div>
 
         <section className="mt-3 space-y-2">
-          <div className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">
-            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
+          <div className="rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2">
+            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#7e6028] md:text-sm">
               <span aria-hidden className="text-[8px]">◆</span>{copy.todayAdviceHeading}
             </h5>
-            <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{card.todayAdvice}</p>
+            <p className="mt-1 text-xs leading-6 text-[#402a38] md:text-sm">{card.todayAdvice}</p>
           </div>
-          <div className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">
-            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
+          <div className="rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2">
+            <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#7e6028] md:text-sm">
               <span aria-hidden className="text-[8px]">◆</span>{copy.sevenDayPracticeHeading}
             </h5>
-            <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{card.sevenDayPractice}</p>
+            <p className="mt-1 text-xs leading-6 text-[#402a38] md:text-sm">{card.sevenDayPractice}</p>
           </div>
         </section>
       </article>
@@ -2660,8 +2740,8 @@ export default function PalmDestinyMain() {
     const quality = qualityFeedbackBySide[side];
     const detectionBadge = landmarkState
       ? landmarkState.status === "detected"
-        ? { text: copy.detectedBadge, className: "border-[#4f7a3a]/70 bg-[#12200f] text-[#c6e8ac]" }
-        : { text: copy.estimatedBadge, className: "border-[#8a6a2a]/70 bg-[#241a08] text-[#f0cf9a]" }
+        ? { text: copy.detectedBadge, className: "border-[#4f8a5a]/50 bg-[#edf6ea] text-[#356b3f]" }
+        : { text: copy.estimatedBadge, className: "border-[#c9a46a]/60 bg-[#fff3d6] text-[#7e6028]" }
       : null;
     const qualityConfidenceLabel: Record<QualityConfidence, string> = {
       높음: copy.qualityConfidenceBadgeHigh,
@@ -2673,41 +2753,41 @@ export default function PalmDestinyMain() {
           text: copy.photoQualityBadge(qualityConfidenceLabel[quality.confidence]),
           className:
             quality.confidence === "높음"
-              ? "border-[#4f7a3a]/70 bg-[#12200f] text-[#c6e8ac]"
+              ? "border-[#4f8a5a]/50 bg-[#edf6ea] text-[#356b3f]"
               : quality.confidence === "보통"
-              ? "border-[#8a6a2a]/70 bg-[#241a08] text-[#f0cf9a]"
-              : "border-[#9b1a1a]/70 bg-[#230a0a] text-[#ffc8c8]",
+              ? "border-[#c9a46a]/60 bg-[#fff3d6] text-[#7e6028]"
+              : "border-[#b53660]/35 bg-[#f8e4ea] text-[#b53660]",
         }
       : null;
     const qualityReasons = quality && quality.confidence !== "높음" ? quality.warnings.slice(0, 3) : [];
 
     return (
-      <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/45 bg-[linear-gradient(145deg,rgba(8,4,4,0.97),rgba(18,8,8,0.97))] p-4 md:p-5" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.14)" }}>
+      <section className="cd-oriental-card rounded-2xl border border-[#b53660]/25 bg-white p-4 md:p-5" style={{ boxShadow: "0 10px 30px rgba(64,42,56,0.06)" }}>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-extrabold text-[#f5d987] md:text-lg cd-oriental-headline">{title}</h2>
-          <span className="rounded-sm border border-[#9b1a1a]/75 bg-[#4a0808]/80 px-2 py-1 text-[11px] font-bold tracking-[0.1em] text-[#ffc8c8]">
+          <h2 className="text-base font-extrabold text-[#402a38] md:text-lg cd-oriental-headline">{title}</h2>
+          <span className="rounded-sm border border-[#b53660]/35 bg-[#f8e4ea] px-2 py-1 text-[11px] font-bold tracking-[0.1em] text-[#b53660]">
             {copy.palmInputBadge}
           </span>
         </div>
 
-        <p className="mt-2 text-xs leading-6 text-[#d8c090]/80 md:text-sm">
+        <p className="mt-2 text-xs leading-6 text-[#6b4d5e] md:text-sm">
           {copy.palmInputDescription}
         </p>
 
         {hasPreview ? (
-          <div className="mt-3 rounded-lg border border-[#c8a84b]/35 bg-[#0d0606]/80 px-3 py-2">
+          <div className="mt-3 rounded-lg border border-[#b53660]/25 bg-[#fff9f4] px-3 py-2">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className="inline-flex items-center gap-1 rounded-sm border border-[#4f7a3a]/70 bg-[#12200f] px-2 py-0.5 text-[11px] font-bold text-[#c6e8ac]">
+              <span className="inline-flex items-center gap-1 rounded-sm border border-[#4f8a5a]/50 bg-[#edf6ea] px-2 py-0.5 text-[11px] font-bold text-[#356b3f]">
                 <span aria-hidden>✓</span> {copy.registeredBadge}
               </span>
               {registeredLabel ? (
-                <span className="text-[11px] text-[#d8c090]/80">{registeredLabel}</span>
+                <span className="text-[11px] text-[#6b4d5e]">{registeredLabel}</span>
               ) : null}
             </div>
-            <p className="mt-2 text-xs font-bold text-[#f5d987] md:text-sm">
+            <p className="mt-2 text-xs font-bold text-[#402a38] md:text-sm">
               {handName} · {roleMeta.label}
             </p>
-            <p className="mt-1 text-xs text-[#d8c090]/80">{roleMeta.description}</p>
+            <p className="mt-1 text-xs text-[#6b4d5e]">{roleMeta.description}</p>
 
             {/* 실제 손 인식 결과와 품질 사전점검을 한자리에 모아 보여준다.
                 Phase 1 에서 만든 검출 상태가 화면에 안 나와 사용자가 알 수 없었다. */}
@@ -2725,7 +2805,7 @@ export default function PalmDestinyMain() {
             </div>
 
             {qualityReasons.length > 0 ? (
-              <ul className="mt-2 space-y-1 text-[11px] leading-5 text-[#f0cf9a]">
+              <ul className="mt-2 space-y-1 text-[11px] leading-5 text-[#7e6028]">
                 {qualityReasons.map((reason) => (
                   <li key={reason}>· {reason}</li>
                 ))}
@@ -2735,13 +2815,13 @@ export default function PalmDestinyMain() {
         ) : null}
 
         {/* 액자형 업로드 영역 */}
-        <div className="mt-4 overflow-hidden rounded-xl border-2 border-[#c8a84b]/50" style={{ background: "linear-gradient(140deg, #07040a 0%, #0d0606 60%, #100408 100%)", boxShadow: "inset 0 0 30px rgba(100,10,10,0.25), 0 0 0 1px rgba(180,130,40,0.08)" }}>
+        <div className="mt-4 overflow-hidden rounded-xl border-2 border-[#b53660]/35" style={{ background: "linear-gradient(140deg, #fff9f4 0%, #ffffff 55%, #fbeef2 100%)" }}>
           {/* 코너 장식 */}
           <div className="relative">
-            <span aria-hidden className="absolute left-2 top-2 text-[#c8a84b]/60 text-xs leading-none">╔</span>
-            <span aria-hidden className="absolute right-2 top-2 text-[#c8a84b]/60 text-xs leading-none">╗</span>
-            <span aria-hidden className="absolute left-2 bottom-2 text-[#c8a84b]/60 text-xs leading-none">╚</span>
-            <span aria-hidden className="absolute right-2 bottom-2 text-[#c8a84b]/60 text-xs leading-none">╝</span>
+            <span aria-hidden className="absolute left-2 top-2 text-[#6b4d5e] text-xs leading-none">╔</span>
+            <span aria-hidden className="absolute right-2 top-2 text-[#6b4d5e] text-xs leading-none">╗</span>
+            <span aria-hidden className="absolute left-2 bottom-2 text-[#6b4d5e] text-xs leading-none">╚</span>
+            <span aria-hidden className="absolute right-2 bottom-2 text-[#6b4d5e] text-xs leading-none">╝</span>
           </div>
           <div className="relative flex min-h-[220px] items-center justify-center px-6 py-6">
             {hasPreview ? (
@@ -2750,15 +2830,15 @@ export default function PalmDestinyMain() {
                 alt={copy.previewCaption(title)}
                 className="max-h-[300px] w-full rounded-lg object-contain"
                 onError={() => {
-                  setSubmitMessage(copy.previewLoadFailedMessage(handName));
+                  showPalmError(copy.previewLoadFailedMessage(handName));
                 }}
-                style={{ border: "1px solid rgba(200,168,75,0.4)", boxShadow: "0 0 20px rgba(0,0,0,0.5)" }}
+                style={{ border: "1px solid rgba(181,54,96,0.18)", boxShadow: "0 6px 18px rgba(64,42,56,0.12)" }}
               />
             ) : (
-              <div className="text-center text-[#c8a84b]">
+              <div className="text-center text-[#b53660]">
                 <p className="text-5xl opacity-60">🖐</p>
-                <p className="mt-3 text-sm font-bold text-[#e8d090] md:text-base">{copy.previewCaption(title)}</p>
-                <p className="mt-1 text-xs text-[#c8a84b]/70 md:text-sm">{copy.previewPlaceholder}</p>
+                <p className="mt-3 text-sm font-bold text-[#6b4d5e] md:text-base">{copy.previewCaption(title)}</p>
+                <p className="mt-1 text-xs text-[#6b4d5e] md:text-sm">{copy.previewPlaceholder}</p>
               </div>
             )}
           </div>
@@ -2787,8 +2867,8 @@ export default function PalmDestinyMain() {
           <button
             type="button"
             onClick={() => clearHandImage(side)}
-            className="cd-red-btn mt-2 min-h-[44px] w-full rounded-lg border border-[#9b1a1a]/65 px-3 py-2 text-sm font-bold text-[#ffd8d8] transition"
-            style={{ background: "linear-gradient(136deg, rgba(100,15,15,0.95), rgba(70,25,10,0.95))" }}
+            className="cd-red-btn mt-2 min-h-[44px] w-full rounded-lg border border-[#b53660]/35 px-3 py-2 text-sm font-bold text-[#402a38] transition"
+            style={{ background: "#f8e4ea" }}
             aria-label={copy.deletePhotoAriaLabel(handName)}
           >
             {copy.deletePhotoAction(handName)}
@@ -2823,75 +2903,37 @@ export default function PalmDestinyMain() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#03040a] text-[#f8edc8]">
-      {/* 심홍색+금색 배경 분위기 */}
+    <main className="relative min-h-screen overflow-hidden bg-[#fff9f4] text-[#402a38]">
+      {/* 연이 정원 — 아이보리 바탕에 옅은 분홍·라일락 햇살 */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at 75% 10%, rgba(180, 28, 28, 0.28), transparent 36%), radial-gradient(ellipse at 20% 85%, rgba(145, 20, 20, 0.22), transparent 40%), radial-gradient(ellipse at 50% 50%, rgba(8, 5, 2, 0.9), transparent 70%), linear-gradient(165deg, #030409 0%, #060c14 45%, #09040a 100%)",
+            "radial-gradient(ellipse at 82% 6%, rgba(248, 196, 214, 0.45), transparent 42%), radial-gradient(ellipse at 12% 88%, rgba(241, 234, 248, 0.9), transparent 46%), linear-gradient(180deg, #fff9f4 0%, #fff9f4 100%)",
         }}
       />
-      {/* 비단 격자 — 조금 더 촘촘 */}
+      {/* 꽃잎 점 장식 */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.12]"
+        className="pointer-events-none absolute inset-0 opacity-60"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(0deg, rgba(212, 176, 92, 0.55) 0, rgba(212, 176, 92, 0.55) 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, rgba(212, 176, 92, 0.35) 0, rgba(212, 176, 92, 0.35) 1px, transparent 1px, transparent 40px)",
-        }}
-      />
-      {/* 사선 비단 문양 */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.07]"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(45deg, rgba(190, 24, 24, 0.5) 0, rgba(190, 24, 24, 0.5) 1px, transparent 1px, transparent 28px), repeating-linear-gradient(-45deg, rgba(212, 176, 92, 0.4) 0, rgba(212, 176, 92, 0.4) 1px, transparent 1px, transparent 28px)",
-        }}
-      />
-      {/* 별빛 점 장식 */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-40"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 14% 26%, rgba(255, 225, 140, 0.55) 0 1px, transparent 2px), radial-gradient(circle at 77% 31%, rgba(255, 225, 140, 0.42) 0 1px, transparent 2px), radial-gradient(circle at 52% 72%, rgba(255, 225, 140, 0.38) 0 1px, transparent 2px), radial-gradient(circle at 34% 58%, rgba(255, 225, 140, 0.32) 0 1px, transparent 2px), radial-gradient(circle at 88% 62%, rgba(255, 180, 140, 0.3) 0 1px, transparent 2px), radial-gradient(circle at 6% 48%, rgba(255, 200, 140, 0.28) 0 1px, transparent 2px)",
-        }}
-      />
-      {/* 우상단 금빛 원형 후광 */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 opacity-30"
-        style={{
-          background: "radial-gradient(circle, rgba(212,176,92,0.55) 0%, rgba(175,28,28,0.22) 45%, transparent 70%)",
-          filter: "blur(12px)",
-        }}
-      />
-      {/* 좌하단 홍색 후광 */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 opacity-25"
-        style={{
-          background: "radial-gradient(circle, rgba(160,20,20,0.6) 0%, transparent 70%)",
-          filter: "blur(18px)",
+            "radial-gradient(circle at 14% 26%, rgba(233, 167, 188, 0.55) 0 2px, transparent 3px), radial-gradient(circle at 77% 31%, rgba(201, 164, 106, 0.45) 0 1.5px, transparent 2.5px), radial-gradient(circle at 52% 72%, rgba(233, 167, 188, 0.4) 0 2px, transparent 3px), radial-gradient(circle at 88% 62%, rgba(110, 90, 142, 0.25) 0 1.5px, transparent 2.5px), radial-gradient(circle at 6% 48%, rgba(201, 164, 106, 0.35) 0 1.5px, transparent 2.5px)",
         }}
       />
 
       {isSubmitting ? (
-        <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-[#06060d]/92 px-6"
-          role="status"
-          aria-live="polite"
-          aria-busy="true"
-        >
-          <div className="w-full max-w-md rounded-2xl border border-[#c8a84b]/45 bg-[#0f0a12] p-6 text-center shadow-[0_14px_60px_rgba(0,0,0,0.55)]">
-            <p className="text-2xl" aria-hidden>🖐</p>
-            <p className="mt-2 text-sm font-bold tracking-[0.12em] text-[#f5d987]">{copy.analyzingButtonLabel}</p>
-            <p className="mt-4 text-base leading-7 text-[#f6e6c5]">{loadingPhaseText}</p>
-            <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-[#2b1b1b]" aria-hidden>
-              <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-[#d4af37] to-[#b22222]" />
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#fff9f4]/90 px-6" aria-busy="true">
+          <div className="w-full max-w-md rounded-2xl border border-[#b53660]/25 bg-[#ffffff] p-6 text-center shadow-[0_18px_48px_rgba(64,42,56,0.16)]">
+            {/* 연이 대사는 실제 제출 단계(palmStage)만 따른다. 대사창이 스스로 aria-live 라 상태 문구와 영역을 나눈다. */}
+            <ExpertCharacterStage character="yeoni" mood={yeoniLoading.mood} line={yeoniLoading.text} placement="loading" locale={detailLocale} className="mb-4" />
+            <div role="status" aria-live="polite">
+              <p className="text-sm font-bold tracking-[0.12em] text-[#b53660]">{copy.analyzingButtonLabel}</p>
+              <p className="mt-3 text-base leading-7 text-[#402a38]">{loadingPhaseText}</p>
+            </div>
+            <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-[#f8e4ea]" aria-hidden>
+              <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-[#c9a46a] to-[#b53660]" />
             </div>
           </div>
         </div>
@@ -2902,89 +2944,94 @@ export default function PalmDestinyMain() {
       } ${isImmersiveView ? "cd-immersive-shell" : ""}`}>
         <article
           aria-busy={isSubmitting}
-          className={`cd-ink-card cd-hanji relative w-full overflow-hidden border-2 border-[#c8a84b]/55 bg-[linear-gradient(148deg,rgba(8,6,12,0.97),rgba(14,9,9,0.97)_50%,rgba(10,5,8,0.97)_100%)] shadow-[0_0_0_1px_rgba(180,130,40,0.2),0_32px_80px_rgba(0,0,0,0.75),inset_0_0_60px_rgba(140,20,20,0.08)] ${
+          className={`cd-ink-card cd-hanji relative w-full overflow-hidden border-2 border-[#b53660]/35 bg-white shadow-[0_24px_60px_rgba(64,42,56,0.08)] ${
             isImmersiveView ? "cd-immersive-card !rounded-none border-x-0 border-y-0 min-h-screen" : "rounded-[28px]"
           }`}
         >
           {isImmersiveView ? <div aria-hidden className="cd-immersive-aura pointer-events-none absolute inset-0" /> : null}
           {/* 카드 상단 금빛 장식선 */}
-          <div aria-hidden className="h-[3px] w-full" style={{ background: "linear-gradient(90deg, transparent, #c8a84b 20%, #f5d987 50%, #c8a84b 80%, transparent)" }} />
+          <div aria-hidden className="h-[3px] w-full" style={{ background: "linear-gradient(90deg, transparent, #e9a7bc 20%, #c9a46a 50%, #e9a7bc 80%, transparent)" }} />
 
-          <div className="relative border-b border-[#c8a84b]/25 px-5 py-8 md:px-10 md:py-12" style={{ background: "linear-gradient(180deg, rgba(120,15,15,0.18) 0%, transparent 60%)" }}>
+          <div className="relative border-b border-[#b53660]/20 px-5 py-8 md:px-10 md:py-12" style={{ background: "linear-gradient(180deg, rgba(248,228,234,0.75) 0%, rgba(255,249,244,0) 70%)" }}>
             {/* 우상단 팔각 문양 */}
             <div
               aria-hidden
               className="cd-orbital-mark absolute right-6 top-6 h-20 w-20 opacity-30"
               style={{
-                background: "conic-gradient(from 22.5deg, rgba(212,176,92,0.8) 0deg 45deg, transparent 45deg 90deg, rgba(212,176,92,0.8) 90deg 135deg, transparent 135deg 180deg, rgba(212,176,92,0.8) 180deg 225deg, transparent 225deg 270deg, rgba(212,176,92,0.8) 270deg 315deg, transparent 315deg 360deg)",
+                background: "conic-gradient(from 22.5deg, rgba(201,164,106,0.75) 0deg 45deg, transparent 45deg 90deg, rgba(201,164,106,0.75) 90deg 135deg, transparent 135deg 180deg, rgba(201,164,106,0.75) 180deg 225deg, transparent 225deg 270deg, rgba(201,164,106,0.75) 270deg 315deg, transparent 315deg 360deg)",
                 clipPath: "circle(50%)",
               }}
             />
             <div
               aria-hidden
               className="absolute right-6 top-6 h-20 w-20 rounded-full opacity-20"
-              style={{ border: "1.5px solid #d4b45c", boxShadow: "0 0 16px rgba(212,176,92,0.5)" }}
+              style={{ border: "1.5px solid #c9a46a" }}
             />
             <button
               type="button"
               onClick={() => setIsImmersiveView((value) => !value)}
               aria-label={isImmersiveView ? copy.fullscreenExitLabel : copy.fullscreenEnterLabel}
-              className="absolute left-4 top-4 rounded-lg border border-[#c8a84b]/35 bg-[#0d0808]/80 px-3 py-2 text-[11px] font-bold text-[#f5d987] transition hover:border-[#f5d987]/70 md:left-6 md:top-6"
+              className="absolute left-4 top-4 rounded-lg border border-[#b53660]/25 bg-[#ffffff] px-3 py-2 text-[11px] font-bold text-[#402a38] transition hover:border-[#b53660] md:left-6 md:top-6"
             >
               {isImmersiveView ? copy.fullscreenExitButton : copy.fullscreenEnterButton}
             </button>
 
             <div className="flex items-center gap-3">
-              <div aria-hidden className="h-px flex-1 opacity-50" style={{ background: "linear-gradient(90deg, transparent, #c8a84b)" }} />
-              <span className="cd-badge inline-flex items-center rounded-sm border border-[#9b1a1a]/80 bg-[#5a0a0a]/80 px-4 py-1.5 text-[11px] font-bold tracking-[0.22em] text-[#ffc8c8]">
+              <div aria-hidden className="h-px flex-1 opacity-50" style={{ background: "linear-gradient(90deg, transparent, #c9a46a)" }} />
+              <span className="cd-badge inline-flex items-center rounded-sm border border-[#b53660]/35 bg-[#f8e4ea] px-4 py-1.5 text-[11px] font-bold tracking-[0.22em] text-[#b53660]">
                 掌 紋 運 命　PALM DESTINY
               </span>
-              <div aria-hidden className="h-px flex-1 opacity-50" style={{ background: "linear-gradient(90deg, #c8a84b, transparent)" }} />
+              <div aria-hidden className="h-px flex-1 opacity-50" style={{ background: "linear-gradient(90deg, #c9a46a, transparent)" }} />
             </div>
 
             <h1
               className="cd-title mt-6 text-center text-5xl font-black leading-tight md:text-6xl"
               style={{
                 fontFamily: "var(--font-display), 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
-                background: "linear-gradient(175deg, #fff5d0 0%, #f5d987 35%, #c8a84b 65%, #8b6914 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                textShadow: "none",
-                filter: "drop-shadow(0 0 12px rgba(212,176,92,0.4))",
+                color: "#402a38",
               }}
             >
               {copy.pageTitle}
             </h1>
-            <p className="mt-3 text-center text-sm font-semibold tracking-[0.22em] text-[#d4b45c] md:text-base cd-oriental-kicker">
+            <p className="mt-3 text-center text-sm font-semibold tracking-[0.22em] text-[#7e6028] md:text-base cd-oriental-kicker">
               {copy.pageSubtitle}
             </p>
-            <div aria-hidden className="mx-auto mt-4 h-px max-w-xs" style={{ background: "linear-gradient(90deg, transparent, #c8a84b 30%, #f5d987 50%, #c8a84b 70%, transparent)" }} />
-            <p className="mt-4 text-center text-base font-semibold text-[#eedad0] md:text-lg">
+            <div aria-hidden className="mx-auto mt-4 h-px max-w-xs" style={{ background: "linear-gradient(90deg, transparent, #e9a7bc 30%, #c9a46a 50%, #e9a7bc 70%, transparent)" }} />
+            <p className="mt-4 text-center text-base font-semibold text-[#402a38] md:text-lg">
               {copy.pageTagline}
             </p>
-            <p className="mx-auto mt-4 max-w-3xl text-center text-sm leading-7 text-[#f0e4cc]/85 md:text-base">
+            <p className="mx-auto mt-4 max-w-3xl text-center text-sm leading-7 text-[#402a38] md:text-base">
               {copy.pageDescription}
             </p>
-            <p className="mx-auto mt-2 max-w-3xl text-center text-xs leading-6 text-[#e8d8b8]/75 md:text-sm">
+            <p className="mx-auto mt-2 max-w-3xl text-center text-xs leading-6 text-[#6b4d5e] md:text-sm">
               {copy.pageDescriptionSub}
             </p>
+            {yeoniOn ? (
+              <>
+                <div className="relative mx-auto mt-6 aspect-[3/2] w-full max-w-3xl overflow-hidden rounded-3xl border border-[#b53660]/15 bg-[#f8e4ea] shadow-[0_18px_40px_rgba(64,42,56,0.12)]">
+                  <NextImage src={yeoniHero.src} alt={yeoniHero.alt} fill priority sizes="(max-width: 820px) 100vw, 768px" className="object-cover" unoptimized />
+                </div>
+                <ExpertCharacterStage character="yeoni" mood={yeoniGreet.mood} line={yeoniGreet.text} placement="inline" locale={detailLocale} className="mx-auto mt-4 max-w-3xl" />
+              </>
+            ) : null}
           </div>
 
           <div className="relative space-y-5 px-5 py-7 md:px-10 md:py-9">
-            <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(22,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
-              <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
-                <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-              <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">{copy.captureSectionHeading}</h2>
+            {detailLocale === "ko" && <div style={{maxWidth:540,marginInline:"auto"}}><CraftedProductDisclosure featureKey="palm-reading-general"/></div>}
+            <section className="cd-oriental-card rounded-2xl border border-[#b53660]/35 bg-white p-4 md:p-6" style={{ boxShadow: "0 10px 30px rgba(64,42,56,0.06)" }}>
+              <div className="flex items-center gap-3 border-b border-[#b53660]/15 pb-3">
+                <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #e9a7bc, #b53660)" }} />
+              <h2 className="text-base font-black text-[#402a38] md:text-lg cd-oriental-headline">{copy.captureSectionHeading}</h2>
               </div>
-              <p className="mt-3 text-sm leading-7 text-[#f0dfc0]/90">{copy.captureSectionDescription}</p>
+              <p className="mt-3 text-sm leading-7 text-[#402a38]">{copy.captureSectionDescription}</p>
+              <ExpertCharacterStage character="yeoni" mood={yeoniUpload.mood} line={yeoniUpload.text} placement="inline" locale={detailLocale} className="mt-3" />
 
               {/* 한 손만으로도 분석된다는 사실을 명시한다.
                   종전에는 아래 '양손 비교 업로드(선택)' 제목으로만 암시돼, 양손을 다 올려야
                   하는 줄 알고 이탈하는 경로가 있었다. */}
-              <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/70 px-3 py-2 text-xs leading-6 text-[#f0dfc0]/90 md:text-sm">
-                <span className="font-black text-[#f5d987]">{copy.oneHandNoteMain}</span>
-                <span className="text-[#e8d8b0]/85">{copy.oneHandNoteSub}</span>
+              <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2 text-xs leading-6 text-[#402a38] md:text-sm">
+                <span className="font-black text-[#402a38]">{copy.oneHandNoteMain}</span>
+                <span className="text-[#402a38]">{copy.oneHandNoteSub}</span>
               </p>
 
               <div className="mt-4 grid grid-cols-2 gap-2 sm:w-fit">
@@ -2993,8 +3040,8 @@ export default function PalmDestinyMain() {
                   onClick={() => setSelectedCaptureSide("left")}
                   className={`cd-select-btn min-h-[46px] rounded-lg border px-3 py-2 text-sm font-bold ${
                     selectedCaptureSide === "left"
-                      ? "border-[#f5d987]/80 bg-[#341111] text-[#fff5c8]"
-                      : "border-[#c8a84b]/35 bg-[#0d0808] text-[#e8d090]"
+                      ? "border-[#b53660] bg-[#f8e4ea] text-[#b53660]"
+                      : "border-[#b53660]/25 bg-[#ffffff] text-[#6b4d5e]"
                   }`}
                   aria-pressed={selectedCaptureSide === "left"}
                 >
@@ -3005,8 +3052,8 @@ export default function PalmDestinyMain() {
                   onClick={() => setSelectedCaptureSide("right")}
                   className={`cd-select-btn min-h-[46px] rounded-lg border px-3 py-2 text-sm font-bold ${
                     selectedCaptureSide === "right"
-                      ? "border-[#f5d987]/80 bg-[#341111] text-[#fff5c8]"
-                      : "border-[#c8a84b]/35 bg-[#0d0808] text-[#e8d090]"
+                      ? "border-[#b53660] bg-[#f8e4ea] text-[#b53660]"
+                      : "border-[#b53660]/25 bg-[#ffffff] text-[#6b4d5e]"
                   }`}
                   aria-pressed={selectedCaptureSide === "right"}
                 >
@@ -3032,28 +3079,28 @@ export default function PalmDestinyMain() {
                 </label>
               </div>
 
-              <p className="mt-3 text-xs leading-6 text-[#e8d8b0]/85">
+              <p className="mt-3 text-xs leading-6 text-[#402a38]">
                 {copy.currentTargetLabel(selectedCaptureSide === "left" ? copy.handNameLeft : copy.handNameRight)}
               </p>
 
               <div className="mt-4 overflow-x-auto">
-                <div className="inline-flex min-w-full items-center gap-2 rounded-lg border border-[#c8a84b]/25 bg-[#0d0606]/70 px-3 py-2 text-[11px] text-[#e8d8b0]/85 md:text-xs">
-                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "pick" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>{copy.flowStepUpload}</span>
+                <div className="inline-flex min-w-full items-center gap-2 rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2 text-[11px] text-[#402a38] md:text-xs">
+                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "pick" ? "bg-[#b53660] text-white" : "bg-[#f8e4ea] text-[#6b4d5e]"}`}>{copy.flowStepUpload}</span>
                   <span>→</span>
-                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "preview" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>{copy.flowStepPreview}</span>
+                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "preview" ? "bg-[#b53660] text-white" : "bg-[#f8e4ea] text-[#6b4d5e]"}`}>{copy.flowStepPreview}</span>
                   <span>→</span>
-                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "analyzing" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>{copy.flowStepAnalyzing}</span>
+                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "analyzing" ? "bg-[#b53660] text-white" : "bg-[#f8e4ea] text-[#6b4d5e]"}`}>{copy.flowStepAnalyzing}</span>
                   <span>→</span>
-                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "result" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>{copy.flowStepResult}</span>
+                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "result" ? "bg-[#b53660] text-white" : "bg-[#f8e4ea] text-[#6b4d5e]"}`}>{copy.flowStepResult}</span>
                 </div>
               </div>
 
               {hasAnyPreview ? (
-                <div className="mt-4 rounded-xl border border-[#c8a84b]/35 bg-[#0d0606]/80 p-3 md:p-4">
-                  <p className="text-xs font-bold text-[#f5d987] md:text-sm">
+                <div className="mt-4 rounded-xl border border-[#b53660]/25 bg-[#fff9f4] p-3 md:p-4">
+                  <p className="text-xs font-bold text-[#402a38] md:text-sm">
                     {copy.previewOfHand(currentPreviewSide === "left" ? copy.handNameLeft : copy.handNameRight)}
                   </p>
-                  <div className="mt-3 overflow-hidden rounded-lg border border-[#c8a84b]/30 bg-[#050304]">
+                  <div className="mt-3 overflow-hidden rounded-lg border border-[#b53660]/20 bg-[#fff9f4]">
                     {currentPreviewState.previewUrl ? (
                       <img
                         src={currentPreviewState.previewUrl}
@@ -3063,24 +3110,24 @@ export default function PalmDestinyMain() {
                     ) : null}
                   </div>
 
-                  <div className="mt-3 grid gap-2 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
-                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">{copy.checklistFullPalm}</p>
-                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">{copy.checklistCreases}</p>
-                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">{copy.checklistGlare}</p>
-                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">{copy.checklistShake}</p>
+                  <div className="mt-3 grid gap-2 text-xs leading-6 text-[#402a38] md:grid-cols-2 md:text-sm">
+                    <p className="rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2">{copy.checklistFullPalm}</p>
+                    <p className="rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2">{copy.checklistCreases}</p>
+                    <p className="rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2">{copy.checklistGlare}</p>
+                    <p className="rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2">{copy.checklistShake}</p>
                   </div>
 
                   {currentQualityFeedback ? (
-                    <div className="mt-3 rounded-lg border border-[#c8a84b]/30 bg-[#100707]/80 px-3 py-2">
-                      <p className="text-xs font-bold text-[#f5d987] md:text-sm">{currentQualityFeedback.summary}</p>
+                    <div className="mt-3 rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2">
+                      <p className="text-xs font-bold text-[#402a38] md:text-sm">{currentQualityFeedback.summary}</p>
                       {currentQualityFeedback.warnings.length > 0 ? (
-                        <ul className="mt-2 space-y-1 text-xs leading-6 text-[#ffd9c9] md:text-sm">
+                        <ul className="mt-2 space-y-1 text-xs leading-6 text-[#402a38] md:text-sm">
                           {currentQualityFeedback.warnings.map((warning) => (
                             <li key={warning}>• {warning}</li>
                           ))}
                         </ul>
                       ) : (
-                        <p className="mt-1 text-xs text-[#e8d8b0]/90 md:text-sm">{copy.qualityOkMessage}</p>
+                        <p className="mt-1 text-xs text-[#402a38] md:text-sm">{copy.qualityOkMessage}</p>
                       )}
 
                       {/* 아래 CTA 가 비활성인 이유와 빠져나갈 길을 같은 자리에 둔다.
@@ -3089,7 +3136,7 @@ export default function PalmDestinyMain() {
                         <button
                           type="button"
                           onClick={() => setQualityOverride(true)}
-                          className="cd-ghost-btn mt-3 min-h-[44px] w-full rounded-lg border border-[#c8a84b]/45 bg-[#0d0808] px-3 py-2 text-xs font-bold text-[#f0d9a2] md:text-sm"
+                          className="cd-ghost-btn mt-3 min-h-[44px] w-full rounded-lg border border-[#b53660]/25 bg-[#ffffff] px-3 py-2 text-xs font-bold text-[#b53660] md:text-sm"
                         >
                           {copy.analyzeThisPhotoAction}
                         </button>
@@ -3104,21 +3151,21 @@ export default function PalmDestinyMain() {
                       disabled={!canStartAnalysis}
                       className={`cd-main-cta min-h-[48px] rounded-lg border px-3 py-2 text-sm font-bold ${
                         canStartAnalysis
-                          ? "border-[#d4af37]/70 bg-[linear-gradient(140deg,#8b0000_0%,#6b1a0a_35%,#5a1200_65%,#7a1800_100%)] text-[#fff8e0]"
-                          : "cursor-not-allowed border-[#7a6020]/40 bg-[#2a2010] text-[#ccb67d]"
+                          ? "border-[#b53660] bg-[#b53660] text-white"
+                          : "cursor-not-allowed border-[#b53660]/15 bg-[#f1e8ec] text-[#6b4d5e]"
                       }`}
                     >
                       {copy.analyzeThisPhotoAction}
                     </button>
                     <label
                       htmlFor={getGalleryInputId(currentPreviewSide)}
-                      className="cd-ghost-btn inline-flex min-h-[48px] cursor-pointer items-center justify-center rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-sm font-bold text-[#e8d090]"
+                      className="cd-ghost-btn inline-flex min-h-[48px] cursor-pointer items-center justify-center rounded-lg border border-[#b53660]/25 bg-[#ffffff] px-3 py-2 text-sm font-bold text-[#6b4d5e]"
                     >
                       {copy.chooseAnotherPhotoAction}
                     </label>
                     <label
                       htmlFor={getCameraInputId(currentPreviewSide)}
-                      className="cd-ghost-btn inline-flex min-h-[48px] cursor-pointer items-center justify-center rounded-lg border border-[#c8a84b]/40 bg-[#0e0608] px-3 py-2 text-sm font-bold text-[#e8d090]"
+                      className="cd-ghost-btn inline-flex min-h-[48px] cursor-pointer items-center justify-center rounded-lg border border-[#b53660]/25 bg-[#ffffff] px-3 py-2 text-sm font-bold text-[#6b4d5e]"
                     >
                       {copy.retakePhotoAction}
                     </label>
@@ -3127,31 +3174,31 @@ export default function PalmDestinyMain() {
               ) : null}
             </section>
 
-            <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/35 bg-[#0d0606]/70 p-4">
-              <h3 className="text-sm font-black text-[#f5d987]">{copy.bothHandsUploadHeading}</h3>
+            <section className="cd-oriental-card rounded-2xl border border-[#b53660]/25 bg-[#fff9f4] p-4">
+              <h3 className="text-sm font-black text-[#402a38]">{copy.bothHandsUploadHeading}</h3>
               <div className="mt-4 grid gap-4 md:grid-cols-2 md:gap-5">
                 {renderHandUploader("left", leftHand, leftUploadInputRef, leftCameraInputRef, copy.leftHandUploadTitle)}
                 {renderHandUploader("right", rightHand, rightUploadInputRef, rightCameraInputRef, copy.rightHandUploadTitle)}
               </div>
             </section>
 
-            <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(20,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
-              <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
-                <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">{copy.innateAcquiredHeading}</h2>
+            <section className="cd-oriental-card rounded-2xl border border-[#b53660]/35 bg-white p-4 md:p-6" style={{ boxShadow: "0 10px 30px rgba(64,42,56,0.06)" }}>
+              <div className="flex items-center gap-3 border-b border-[#b53660]/15 pb-3">
+                <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #e9a7bc, #b53660)" }} />
+                <h2 className="text-base font-black text-[#402a38] md:text-lg cd-oriental-headline">{copy.innateAcquiredHeading}</h2>
               </div>
-              <div className="mt-3 rounded-xl border border-[#9b1a1a]/60 bg-[#1e0808]/80 p-4 text-sm leading-7 text-[#ffe5c8]" style={{ boxShadow: "inset 0 0 20px rgba(100,10,10,0.3)" }}>
+              <div className="mt-3 rounded-xl border border-[#b53660]/35 bg-[#f8e4ea] p-4 text-sm leading-7 text-[#402a38]">
                 <p>{copy.innateAcquiredExplain1}</p>
                 <p className="mt-2">{copy.innateAcquiredExplain2}</p>
-                <p className="mt-2 font-semibold text-[#fde8c8]">{copy.innateAcquiredExplain3}</p>
+                <p className="mt-2 font-semibold text-[#402a38]">{copy.innateAcquiredExplain3}</p>
               </div>
             </section>
 
-            <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(18,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
+            <section className="cd-oriental-card rounded-2xl border border-[#b53660]/35 bg-white p-4 md:p-6" style={{ boxShadow: "0 10px 30px rgba(64,42,56,0.06)" }}>
               <fieldset>
-                <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
-                  <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                  <legend className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">{copy.dominantHandHeading}</legend>
+                <div className="flex items-center gap-3 border-b border-[#b53660]/15 pb-3">
+                  <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #e9a7bc, #b53660)" }} />
+                  <legend className="text-base font-black text-[#402a38] md:text-lg cd-oriental-headline">{copy.dominantHandHeading}</legend>
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {DOMINANT_HAND_OPTIONS.map((option) => {
@@ -3166,10 +3213,10 @@ export default function PalmDestinyMain() {
                         }}
                         className={`cd-select-btn min-h-[48px] rounded-lg border px-3 py-2 text-sm font-bold transition-all ${
                           active
-                            ? "cd-select-btn--active border-[#f5d987]/80 text-[#fff5c8]"
-                            : "border-[#c8a84b]/35 bg-[#0d0808] text-[#e8d090]"
+                            ? "cd-select-btn--active border-[#b53660] text-[#b53660]"
+                            : "border-[#b53660]/25 bg-[#ffffff] text-[#6b4d5e]"
                         }`}
-                        style={active ? { background: "linear-gradient(135deg, #5a1a00 0%, #3d1400 50%, #5a2800 100%)", boxShadow: "0 0 18px rgba(212,176,92,0.35), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
+                        style={active ? { background: "#f8e4ea", boxShadow: "inset 0 -2px 0 #b53660" } : {}}
                         aria-pressed={active}
                       >
                         <span className="block">{option.label}</span>
@@ -3180,29 +3227,43 @@ export default function PalmDestinyMain() {
                 </div>
               </fieldset>
 
-              <fieldset className="mt-6 rounded-lg border border-[#b8871f]/25 bg-[#0d0808]/80 p-4">
-                <p className="text-sm font-black text-[#f5d987] cd-oriental-kicker">
+              <fieldset className="mt-6 rounded-lg border border-[#c9a46a]/40 bg-[#ffffff] p-4">
+                <p className="text-sm font-black text-[#402a38] cd-oriental-kicker">
                   {copy.purposeFixedNote}
                 </p>
               </fieldset>
             </section>
 
-            <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(18,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
-              <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
-                <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">{copy.shootingGuideHeading}</h2>
+            <section className="cd-oriental-card rounded-2xl border border-[#b53660]/35 bg-white p-4 md:p-6" style={{ boxShadow: "0 10px 30px rgba(64,42,56,0.06)" }}>
+              <div className="flex items-center gap-3 border-b border-[#b53660]/15 pb-3">
+                <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #e9a7bc, #b53660)" }} />
+                <h2 className="text-base font-black text-[#402a38] md:text-lg cd-oriental-headline">{copy.shootingGuideHeading}</h2>
               </div>
-              <ul className="mt-3 space-y-2 text-sm leading-7 text-[#f0dfc0]/90">
-                {copy.shootingGuides.map((guide) => (
-                  <li key={guide} className="flex items-start gap-3 rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
-                    <span className="mt-0.5 shrink-0 text-[10px] font-black text-[#d4b45c]">◆</span>
-                    <span>{guide}</span>
-                  </li>
-                ))}
-              </ul>
+              <ExpertCharacterStage character="yeoni" mood={yeoniGuide.mood} line={yeoniGuide.text} placement="inline" locale={detailLocale} className="mt-3" />
+              <div className="mt-3 grid gap-4 md:grid-cols-[minmax(0,1fr)_200px] md:items-start">
+                <ul className="space-y-2 text-sm leading-7 text-[#402a38]">
+                  {copy.shootingGuides.map((guide) => (
+                    <li key={guide} className="flex items-start gap-3 rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2">
+                      <span aria-hidden className="mt-0.5 shrink-0 text-[10px] font-black text-[#b53660]">◆</span>
+                      <span>{guide}</span>
+                    </li>
+                  ))}
+                </ul>
+                {yeoniOn ? (
+                  <NextImage
+                    src="/images/expert-characters/yeoni/shooting-guide.webp"
+                    alt={detailLocale === "ko" ? "손목부터 손가락 끝까지 펼친 손바닥을 화면 가득 담는 촬영 예시" : "Example shot: an open palm filling the frame from wrist to fingertips"}
+                    width={720}
+                    height={720}
+                    sizes="(max-width: 767px) 60vw, 200px"
+                    className="mx-auto h-auto w-full max-w-[220px] rounded-2xl border border-[#b53660]/15 bg-[#fff9f4] md:order-none"
+                    unoptimized
+                  />
+                ) : null}
+              </div>
             </section>
 
-            <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(20,8,8,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
+            <section className="cd-oriental-card rounded-2xl border border-[#b53660]/35 bg-white p-4 md:p-6" style={{ boxShadow: "0 10px 30px rgba(64,42,56,0.06)" }}>
               <button
                 type="button"
                 onClick={handleStartAnalysis}
@@ -3210,19 +3271,19 @@ export default function PalmDestinyMain() {
                 aria-disabled={!canStartAnalysis}
                 className={`cd-main-cta inline-flex min-h-[56px] w-full items-center justify-center rounded-xl border px-4 py-3 text-sm font-black tracking-[0.08em] md:text-base ${
                   canStartAnalysis
-                    ? "border-[#d4af37]/70 text-[#fff8e0]"
-                    : "cursor-not-allowed border-[#7a6020]/40 text-[#c8b070] opacity-60"
+                    ? "border-[#b53660] text-white"
+                    : "cursor-not-allowed border-[#b53660]/15 text-[#6b4d5e] opacity-60"
                 }`}
                 style={canStartAnalysis ? {
-                  background: "linear-gradient(140deg, #8b0000 0%, #6b1a0a 35%, #5a1200 65%, #7a1800 100%)",
-                  boxShadow: "0 0 0 1px rgba(212,176,92,0.25), 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(139,0,0,0.4)",
+                  background: "#b53660",
+                  boxShadow: "0 12px 26px rgba(181,54,96,0.26)",
                 } : {
-                  background: "linear-gradient(140deg, rgba(80,60,20,0.5), rgba(40,30,10,0.6))",
+                  background: "#f1e8ec",
                 }}
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-3">
-                    <span aria-hidden className="cd-spinner inline-block h-5 w-5 rounded-full border-2 border-[#f5d987]/30 border-t-[#f5d987]" />
+                    <span aria-hidden className="cd-spinner inline-block h-5 w-5 rounded-full border-2 border-[#b53660]/30 border-t-[#b53660]" />
                     {copy.analyzingButtonLabel}
                   </span>
                 ) : (
@@ -3236,12 +3297,12 @@ export default function PalmDestinyMain() {
               {isQualityBlocked ? (
                 <div
                   role="status"
-                  className="mt-3 rounded-lg border border-[#9b1a1a]/60 bg-[#1e0808]/85 px-3 py-3"
+                  className="mt-3 rounded-lg border border-[#b53660]/35 bg-[#f8e4ea] px-3 py-3"
                 >
-                  <p className="text-xs font-black text-[#ffd8d8] md:text-sm">
+                  <p className="text-xs font-black text-[#402a38] md:text-sm">
                     {copy.lowQualityDetectedMessage(lowQualitySides.map((side) => (side === "left" ? copy.handNameLeft : copy.handNameRight)).join("·"))}
                   </p>
-                  <ul className="mt-2 space-y-1 text-[11px] leading-5 text-[#ffc8c8]/90 md:text-xs">
+                  <ul className="mt-2 space-y-1 text-[11px] leading-5 text-[#402a38] md:text-xs">
                     {Array.from(
                       new Set(lowQualitySides.flatMap((side) => qualityFeedbackBySide[side]?.warnings || [])),
                     )
@@ -3250,7 +3311,7 @@ export default function PalmDestinyMain() {
                         <li key={reason}>· {reason}</li>
                       ))}
                   </ul>
-                  <p className="mt-2 text-[11px] leading-5 text-[#e8d8b0]/85 md:text-xs">
+                  <p className="mt-2 text-[11px] leading-5 text-[#402a38] md:text-xs">
                     {copy.lowQualityAdviceMessage}
                   </p>
                   {/* 막다른 길 금지 — 사전점검은 휴리스틱이라 오탐이 난다.
@@ -3258,34 +3319,40 @@ export default function PalmDestinyMain() {
                   <button
                     type="button"
                     onClick={() => setQualityOverride(true)}
-                    className="cd-ghost-btn mt-3 min-h-[44px] w-full rounded-lg border border-[#c8a84b]/45 bg-[#0d0808] px-3 py-2 text-xs font-bold text-[#f0d9a2] md:text-sm"
+                    className="cd-ghost-btn mt-3 min-h-[44px] w-full rounded-lg border border-[#b53660]/25 bg-[#ffffff] px-3 py-2 text-xs font-bold text-[#b53660] md:text-sm"
                   >
                     {copy.analyzeThisPhotoAction}
                   </button>
                 </div>
               ) : (
-                <p className="mt-3 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">
+                <p className="mt-3 text-xs leading-6 text-[#7e6028] md:text-sm">
                   {copy.activeConditionMessage}
                 </p>
               )}
 
               {(leftHand.file || rightHand.file) && dominantHand ? (
-                <div className="mt-3 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/70 px-3 py-2 text-xs text-[#e8d090]/90 md:text-sm">
+                <div className="mt-3 rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2 text-xs text-[#6b4d5e] md:text-sm">
                   <p>{copy.leftHandRoleLabel(HAND_ROLE_META[handRoles.leftHandRole].label)}</p>
                   <p className="mt-1">{copy.rightHandRoleLabel(HAND_ROLE_META[handRoles.rightHandRole].label)}</p>
                 </div>
               ) : null}
 
+              {/* 오류일 때만 연이 한 줄을 사실 문구 앞에 둔다 — 결제·재시도 안내 문구는 그대로. */}
+              {showYeoniError ? (
+                <ExpertCharacterStage character="yeoni" mood={yeoniError.mood} line={yeoniError.text} placement="inline" locale={detailLocale} className="mt-3" />
+              ) : null}
               {submitMessage ? (
-                <p role="alert" aria-live="polite" className="mt-3 rounded-lg border border-[#9b1a1a]/60 bg-[#1e0808]/80 px-3 py-2 text-xs leading-6 text-[#ffd8d8] md:text-sm">
+                <p role="alert" aria-live="polite" className={`mt-3 rounded-lg border px-3 py-2 text-xs leading-6 text-[#402a38] md:text-sm ${
+                  showYeoniError ? "border-[#b53660]/35 bg-[#f8e4ea]" : "border-[#c9a46a]/40 bg-[#fff9f4]"
+                }`}>
                   {submitMessage}
                 </p>
               ) : null}
 
               {isSubmitting ? (
-                <div className="mt-3 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/80 px-3 py-3 text-xs text-[#e8d090]/92 md:text-sm">
-                  <p className="font-bold text-[#f5d987]">{copy.analyzingBanner}</p>
-                  <p className="mt-1 text-[#e8d090]">{loadingPhaseText}</p>
+                <div className="mt-3 rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-3 text-xs text-[#6b4d5e] md:text-sm">
+                  <p className="font-bold text-[#402a38]">{copy.analyzingBanner}</p>
+                  <p className="mt-1 text-[#6b4d5e]">{loadingPhaseText}</p>
                 </div>
               ) : null}
 
@@ -3293,51 +3360,55 @@ export default function PalmDestinyMain() {
                 <button
                   type="button"
                   onClick={handlePhotoReselect}
-                  className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-sm font-bold text-[#e8d090]"
+                  className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#b53660]/25 bg-[#ffffff] px-3 py-2 text-sm font-bold text-[#6b4d5e]"
                 >
                   {copy.reselectPhotoAction}
                 </button>
                 <button
                   type="button"
                   onClick={handleResetOnlyResult}
-                  className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-sm font-bold text-[#e8d090]"
+                  className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#b53660]/25 bg-[#ffffff] px-3 py-2 text-sm font-bold text-[#6b4d5e]"
                 >
                   {copy.reanalyzeAction}
                 </button>
               </div>
             </section>
 
+            {profileReady && yeoniOn && detailLocale === "ko" && !isSubmitting && !analysisResult ? <MasterProfile profile={masterProfiles.yeoniPalm} /> : null}
+
             {analysisResult ? (
-              <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.98),rgba(20,8,8,0.97))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 40px rgba(120,15,15,0.14)" }}>
-                <div className="mb-4 flex flex-col gap-3 border-b border-[#c8a84b]/25 pb-4 md:flex-row md:items-center md:justify-between">
+              <section className="cd-oriental-card rounded-2xl border border-[#b53660]/35 bg-white p-4 md:p-6" style={{ boxShadow: "0 10px 30px rgba(64,42,56,0.06)" }}>
+                <div className="mb-4 flex flex-col gap-3 border-b border-[#b53660]/20 pb-4 md:flex-row md:items-center md:justify-between">
                   <div>
                     <div className="flex items-center gap-3">
-                      <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                      <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">{copy.resultOverlayHeading}</h2>
+                      <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #e9a7bc, #b53660)" }} />
+                      <h2 className="text-base font-black text-[#402a38] md:text-lg cd-oriental-headline">{copy.resultOverlayHeading}</h2>
                     </div>
-                    <p className="mt-1 text-xs text-[#d4b45c]/85">{copy.resultOverlaySubheading}</p>
+                    <p className="mt-1 text-xs text-[#7e6028]">{copy.resultOverlaySubheading}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-[#c8a84b]/35 bg-[#0d0808]/80 px-2 py-1 text-[11px] font-bold text-[#e8d090]">
+                    <span className="rounded-full border border-[#b53660]/25 bg-[#ffffff] px-2 py-1 text-[11px] font-bold text-[#6b4d5e]">
                       {hasCoordinatePaths ? copy.coordinateBasedBadge : copy.symbolicGuideBadge}
                     </span>
                     <button
                       type="button"
                       onClick={handleRetryWithOtherHand}
-                      className="cd-ghost-btn min-h-11 rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-xs font-bold text-[#e8d090]"
+                      className="cd-ghost-btn min-h-11 rounded-lg border border-[#b53660]/25 bg-[#ffffff] px-3 py-2 text-xs font-bold text-[#6b4d5e]"
                     >
                       {copy.viewOtherHandAction}
                     </button>
                     <button
                       type="button"
                       onClick={handleBackToMain}
-                      className="cd-red-btn min-h-11 rounded-lg border border-[#9b1a1a]/70 px-3 py-2 text-xs font-bold text-[#ffd8d8]"
-                      style={{ background: "linear-gradient(136deg, rgba(100,15,15,0.95), rgba(70,25,10,0.95))" }}
+                      className="cd-red-btn min-h-11 rounded-lg border border-[#b53660]/35 px-3 py-2 text-xs font-bold text-[#402a38]"
+                      style={{ background: "#f8e4ea" }}
                     >
                       {copy.backToMainAction}
                     </button>
                   </div>
                 </div>
+
+                <ExpertCharacterStage character="yeoni" mood={yeoniResultOpen.mood} line={yeoniResultOpen.text} placement="result" locale={detailLocale} className="mb-4" />
 
                 <div className={`grid w-full max-w-full gap-4 overflow-hidden md:gap-6 ${
                   isImmersiveView ? "md:grid-cols-[minmax(360px,48vw)_1fr]" : "md:grid-cols-[minmax(300px,420px)_1fr]"
@@ -3350,10 +3421,10 @@ export default function PalmDestinyMain() {
                           onClick={() => setOverlaySide("left")}
                           className={`cd-select-btn min-h-[44px] rounded-lg border px-3 py-2 text-xs font-bold md:text-sm ${
                             overlaySide === "left"
-                              ? "border-[#f5d987]/70 text-[#fff5c8]"
-                              : "border-[#c8a84b]/30 bg-[#0d0808] text-[#e8d090]"
+                              ? "border-[#b53660] text-[#b53660]"
+                              : "border-[#b53660]/20 bg-[#ffffff] text-[#6b4d5e]"
                           }`}
-                          style={overlaySide === "left" ? { background: "linear-gradient(135deg, #5a1a00 0%, #3d1400 50%, #5a2800 100%)", boxShadow: "0 0 18px rgba(212,176,92,0.35), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
+                          style={overlaySide === "left" ? { background: "#f8e4ea", boxShadow: "inset 0 -2px 0 #b53660" } : {}}
                         >
                           {copy.viewLeftHandAction}
                         </button>
@@ -3362,10 +3433,10 @@ export default function PalmDestinyMain() {
                           onClick={() => setOverlaySide("right")}
                           className={`cd-select-btn min-h-[44px] rounded-lg border px-3 py-2 text-xs font-bold md:text-sm ${
                             overlaySide === "right"
-                              ? "border-[#f5d987]/70 text-[#fff5c8]"
-                              : "border-[#c8a84b]/30 bg-[#0d0808] text-[#e8d090]"
+                              ? "border-[#b53660] text-[#b53660]"
+                              : "border-[#b53660]/20 bg-[#ffffff] text-[#6b4d5e]"
                           }`}
-                          style={overlaySide === "right" ? { background: "linear-gradient(135deg, #5a1a00 0%, #3d1400 50%, #5a2800 100%)", boxShadow: "0 0 18px rgba(212,176,92,0.35), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
+                          style={overlaySide === "right" ? { background: "#f8e4ea", boxShadow: "inset 0 -2px 0 #b53660" } : {}}
                         >
                           {copy.viewRightHandAction}
                         </button>
@@ -3376,6 +3447,7 @@ export default function PalmDestinyMain() {
                       imageUrl={overlayImageUrl}
                       imageAlt={overlayImageAlt}
                       pathMap={activeOverlayPaths}
+                      undetectedLines={undetectedOverlayLines}
                       activeLine={activeCardKey in LINE_TO_CARD_KEY ? (activeCardKey as OverlayLineKey) : null}
                       immersive={isImmersiveView}
                       onSelectLine={handleOverlayLineSelect}
@@ -3383,51 +3455,51 @@ export default function PalmDestinyMain() {
                   </aside>
 
                   <div className={`w-full max-w-full overflow-hidden ${isImmersiveView ? "space-y-5" : "space-y-4"}`}>
-                    <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/85 p-4">
+                    <section className="cd-oriental-card rounded-xl border border-[#b53660]/20 bg-[#ffffff] p-4">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full border border-[#c8a84b]/45 bg-[#1a1006] px-3 py-1 text-xs font-bold text-[#f5d987]">
+                        <span className="rounded-full border border-[#b53660]/25 bg-[#fff3d6] px-3 py-1 text-xs font-bold text-[#402a38]">
                           {resultModeLabel(analysisResult.mode, copy)}
                         </span>
-                        <span className="rounded-full border border-[#c8a84b]/35 bg-[#120909] px-3 py-1 text-xs font-bold text-[#e8d090]">
+                        <span className="rounded-full border border-[#b53660]/25 bg-[#fff9f4] px-3 py-1 text-xs font-bold text-[#6b4d5e]">
                           {overlaySide === "left" ? copy.handNameLeft : copy.handNameRight} · {HAND_ROLE_META[activeHandRole].label}
                         </span>
-                        <span className="rounded-full border border-[#c8a84b]/35 bg-[#120909] px-3 py-1 text-xs font-bold text-[#e8d090]">
+                        <span className="rounded-full border border-[#b53660]/25 bg-[#fff9f4] px-3 py-1 text-xs font-bold text-[#6b4d5e]">
                           {resultPurposeLabel}
                         </span>
                       </div>
 
-                      <div className="mt-3 border-b border-[#c8a84b]/18 pb-3">
-                        <h3 className="text-base font-black leading-7 text-[#f5d987] md:text-lg cd-oriental-headline">
+                      <div className="mt-3 border-b border-[#b53660]/15 pb-3">
+                        <h3 className="text-base font-black leading-7 text-[#402a38] md:text-lg cd-oriental-headline">
                           {copy.readingHeadline}
                         </h3>
-                        <p className="mt-2 text-sm font-semibold leading-7 text-[#ffe1d6] md:text-base">
+                        <p className="mt-2 text-sm font-semibold leading-7 text-[#402a38] md:text-base">
                           {resultOneLiner}
                         </p>
                       </div>
 
                       <div className="mt-3 grid gap-2 md:grid-cols-4">
-                        <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
-                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">{copy.readSignalStat}</p>
-                          <p className="mt-1 text-sm font-bold text-[#f7e5bd]">{copy.signalCountUnit(readableSignalCount)}</p>
+                        <div className="rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2">
+                          <p className="text-[11px] font-black text-[#402a38] md:text-xs">{copy.readSignalStat}</p>
+                          <p className="mt-1 text-sm font-bold text-[#402a38]">{copy.signalCountUnit(readableSignalCount)}</p>
                         </div>
-                        <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
-                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">{copy.handShapeStat}</p>
-                          <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">
+                        <div className="rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2">
+                          <p className="text-[11px] font-black text-[#402a38] md:text-xs">{copy.handShapeStat}</p>
+                          <p className="mt-1 text-xs leading-5 text-[#402a38] md:text-sm">
                             {activeHandReading?.handShape.labelKo || copy.handShapeDefaultValue}
                           </p>
                         </div>
-                        <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
-                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">{copy.centerPointStat}</p>
-                          <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">{summarizeMountFocus(activeHandReading, copy)}</p>
+                        <div className="rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2">
+                          <p className="text-[11px] font-black text-[#402a38] md:text-xs">{copy.centerPointStat}</p>
+                          <p className="mt-1 text-xs leading-5 text-[#402a38] md:text-sm">{summarizeMountFocus(activeHandReading, copy)}</p>
                         </div>
-                        <div className="rounded-lg border border-[#4a7a30]/30 bg-[#091106]/70 px-3 py-2">
-                          <p className="text-[11px] font-black text-[#9fe273] md:text-xs">{copy.todayActionStat}</p>
-                          <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">{resultPrimaryAction}</p>
+                        <div className="rounded-lg border border-[#4f8a5a]/30 bg-[#edf6ea] px-3 py-2">
+                          <p className="text-[11px] font-black text-[#356b3f] md:text-xs">{copy.todayActionStat}</p>
+                          <p className="mt-1 text-xs leading-5 text-[#402a38] md:text-sm">{resultPrimaryAction}</p>
                         </div>
                       </div>
 
                       {analysisResult.warnings.length > 0 ? (
-                        <ul className="mt-3 space-y-1 text-xs leading-6 text-[#ffd9c9] md:text-sm">
+                        <ul className="mt-3 space-y-1 text-xs leading-6 text-[#402a38] md:text-sm">
                           {analysisResult.warnings.map((warning) => (
                             <li key={`warn-${warning}`}>• {warning}</li>
                           ))}
@@ -3435,19 +3507,19 @@ export default function PalmDestinyMain() {
                       ) : null}
 
                       {detectedSpecialPatterns.length > 0 ? (
-                        <section className="mt-3 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/75 px-3 py-3">
-                          <p className="text-xs font-black text-[#f5d987] md:text-sm">{copy.specialPatternHeading}</p>
+                        <section className="mt-3 rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-3">
+                          <p className="text-xs font-black text-[#402a38] md:text-sm">{copy.specialPatternHeading}</p>
                           <div className="mt-2 flex flex-wrap gap-2">
                             {detectedSpecialPatterns.map((pattern) => (
                               <span
                                 key={`special-${pattern.code}`}
-                                className="rounded-full border border-[#c8a84b]/45 bg-[#1a1006] px-3 py-1 text-[11px] font-bold text-[#f5d987]"
+                                className="rounded-full border border-[#b53660]/25 bg-[#fff3d6] px-3 py-1 text-[11px] font-bold text-[#402a38]"
                               >
                                 {pattern.label} ({Math.round(Number(pattern.confidence || 0) * 100)}%)
                               </span>
                             ))}
                           </div>
-                          <ul className="mt-2 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                          <ul className="mt-2 space-y-1 text-xs leading-6 text-[#402a38] md:text-sm">
                             {detectedSpecialPatterns.map((pattern) => (
                               <li key={`special-summary-${pattern.code}`}>• {pattern.summary}</li>
                             ))}
@@ -3456,9 +3528,9 @@ export default function PalmDestinyMain() {
                       ) : null}
 
                       {analysisResult.missingData.length > 0 ? (
-                        <div className="mt-3 rounded-lg border border-[#c8a84b]/20 bg-[#120909]/70 px-3 py-2">
-                          <p className="text-xs font-bold text-[#f5d987] md:text-sm">{copy.photoGuideHeading}</p>
-                          <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                        <div className="mt-3 rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2">
+                          <p className="text-xs font-bold text-[#402a38] md:text-sm">{copy.photoGuideHeading}</p>
+                          <p className="mt-1 text-xs leading-6 text-[#402a38] md:text-sm">
                             {copy.photoGuideMessage}
                           </p>
                         </div>
@@ -3466,58 +3538,58 @@ export default function PalmDestinyMain() {
                     </section>
 
                     {analysisResult.canonical.validation.qualityWarning ? (
-                      <div className="rounded-lg border border-[#b8860b]/60 bg-[#3a2800]/90 p-3 text-sm leading-6 text-[#ffd700] shadow-md">
+                      <div className="rounded-lg border border-[#c9a46a]/60 bg-[#fff3d6] p-3 text-sm leading-6 text-[#7e6028] shadow-md">
                         ⚠️ {analysisResult.canonical.validation.qualityWarning}
                       </div>
                     ) : null}
 
                     {analysisResult.interpretation?.focusSummary ? (
-                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 px-4 py-3">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{copy.focusSummaryHeading}</h3>
-                        <p className="mt-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                      <section className="cd-oriental-card rounded-xl border border-[#b53660]/20 bg-[#ffffff] px-4 py-3">
+                        <h3 className="text-sm font-black text-[#402a38] md:text-base cd-oriental-headline">{copy.focusSummaryHeading}</h3>
+                        <p className="mt-2 text-xs leading-6 text-[#402a38] md:text-sm">
                           {analysisResult.interpretation.focusSummary}
                         </p>
                       </section>
                     ) : null}
 
                     {bothHandsComparison ? (
-                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{copy.innateAcquiredComparisonHeading}</h3>
-                        <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">{copy.innateAcquiredComparisonSub}</p>
-                        <div className="mt-3 space-y-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
-                          <p className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2">{bothHandsComparison.innateSummary}</p>
-                          <p className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2">{bothHandsComparison.acquiredSummary}</p>
-                          <p className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2">{bothHandsComparison.differenceSummary}</p>
-                          <p className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2">{bothHandsComparison.growthSummary}</p>
+                      <section className="cd-oriental-card rounded-xl border border-[#b53660]/20 bg-[#ffffff] p-4">
+                        <h3 className="text-sm font-black text-[#402a38] md:text-base cd-oriental-headline">{copy.innateAcquiredComparisonHeading}</h3>
+                        <p className="mt-1 text-xs leading-6 text-[#7e6028] md:text-sm">{copy.innateAcquiredComparisonSub}</p>
+                        <div className="mt-3 space-y-2 text-xs leading-6 text-[#402a38] md:text-sm">
+                          <p className="rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2">{bothHandsComparison.innateSummary}</p>
+                          <p className="rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2">{bothHandsComparison.acquiredSummary}</p>
+                          <p className="rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2">{bothHandsComparison.differenceSummary}</p>
+                          <p className="rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2">{bothHandsComparison.growthSummary}</p>
                         </div>
                       </section>
                     ) : null}
 
                     {categoryConsultations.length > 0 ? (
                       <section className="space-y-3">
-                        <div className="border-b border-[#c8a84b]/20 pb-2">
-                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{copy.categoryReportHeading}</h3>
-                          <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">{copy.categoryReportSub}</p>
+                        <div className="border-b border-[#b53660]/15 pb-2">
+                          <h3 className="text-sm font-black text-[#402a38] md:text-base cd-oriental-headline">{copy.categoryReportHeading}</h3>
+                          <p className="mt-1 text-xs leading-6 text-[#7e6028] md:text-sm">{copy.categoryReportSub}</p>
                         </div>
 
                         <div className="grid gap-3 lg:grid-cols-2">
                           {categoryConsultations.map((item) => (
-                            <article key={`consult-${item.key}`} className="cd-oriental-card rounded-xl border border-[#c8a84b]/26 bg-[#0d0808]/82 p-4">
-                              <h4 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{item.title}</h4>
-                              <p className="mt-2 rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2 text-xs leading-6 text-[#e8d8b0]/92 md:text-sm">{item.summary}</p>
+                            <article key={`consult-${item.key}`} className="cd-oriental-card rounded-xl border border-[#b53660]/20 bg-[#ffffff] p-4">
+                              <h4 className="text-sm font-black text-[#402a38] md:text-base cd-oriental-headline">{item.title}</h4>
+                              <p className="mt-2 rounded-lg border border-[#b53660]/15 bg-[#fff9f4] px-3 py-2 text-xs leading-6 text-[#402a38] md:text-sm">{item.summary}</p>
 
                               <div className="mt-3 grid gap-3 xl:grid-cols-2">
                                 <div>
-                                  <p className="text-xs font-bold text-[#f5d987] md:text-sm">{copy.detailFlowHeading}</p>
-                                  <ul className="mt-1 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                                  <p className="text-xs font-bold text-[#402a38] md:text-sm">{copy.detailFlowHeading}</p>
+                                  <ul className="mt-1 space-y-1 text-xs leading-6 text-[#402a38] md:text-sm">
                                     {item.details.map((line) => (
                                       <li key={line}>• {line}</li>
                                     ))}
                                   </ul>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-bold text-[#8ade5f] md:text-sm">{copy.actionSuggestionHeading}</p>
-                                  <ul className="mt-1 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                                  <p className="text-xs font-bold text-[#356b3f] md:text-sm">{copy.actionSuggestionHeading}</p>
+                                  <ul className="mt-1 space-y-1 text-xs leading-6 text-[#402a38] md:text-sm">
                                     {item.actions.map((line) => (
                                       <li key={line}>• {line}</li>
                                     ))}
@@ -3531,9 +3603,9 @@ export default function PalmDestinyMain() {
                     ) : null}
 
                     {analysisResult.report ? (
-                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{copy.quickReportHeading}</h3>
-                        <div className="mt-3 grid gap-2 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
+                      <section className="cd-oriental-card rounded-xl border border-[#b53660]/20 bg-[#ffffff] p-4">
+                        <h3 className="text-sm font-black text-[#402a38] md:text-base cd-oriental-headline">{copy.quickReportHeading}</h3>
+                        <div className="mt-3 grid gap-2 text-xs leading-6 text-[#402a38] md:grid-cols-2 md:text-sm">
                           {[
                             [copy.quickReportRowOneLiner, String(analysisResult.report.oneLiner || copy.quickReportRowOneLinerDefault)],
                             [copy.quickReportRowOverall, String(analysisResult.report.summary || copy.quickReportRowOverallDefault)],
@@ -3545,32 +3617,32 @@ export default function PalmDestinyMain() {
                             [copy.quickReportRowRelationship, String(analysisResult.report.relationship || copy.quickReportRowRelationshipDefault)],
                             [copy.quickReportRowAdvice, String(analysisResult.report.advice || copy.quickReportRowAdviceDefault)],
                           ].map(([label, text]) => (
-                            <div key={`std-report-${label}`} className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/70 px-3 py-2">
-                              <p className="text-xs font-black text-[#f5d987] md:text-sm">{label}</p>
-                              <p className="mt-1 whitespace-pre-wrap text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{text}</p>
+                            <div key={`std-report-${label}`} className="rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2">
+                              <p className="text-xs font-black text-[#402a38] md:text-sm">{label}</p>
+                              <p className="mt-1 whitespace-pre-wrap text-xs leading-6 text-[#402a38] md:text-sm">{text}</p>
                             </div>
                           ))}
                         </div>
                       </section>
                     ) : null}
 
-                    <section className="space-y-3 rounded-xl border border-[#f5d987]/30 bg-[linear-gradient(145deg,rgba(22,8,8,0.95),rgba(30,12,12,0.94))] p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#c8a84b]/30 pb-3">
+                    <section className="space-y-3 rounded-xl border border-[#b53660]/30 bg-white p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#b53660]/20 pb-3">
                         <div>
-                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{copy.expertConsultHeading}</h3>
-                          <p className="mt-1 text-xs text-[#d4b45c]/85">{copy.expertConsultSub}</p>
+                          <h3 className="text-sm font-black text-[#402a38] md:text-base cd-oriental-headline">{copy.expertConsultHeading}</h3>
+                          <p className="mt-1 text-xs text-[#7e6028]">{copy.expertConsultSub}</p>
                         </div>
-                        <span className="rounded-full border border-[#f5d987]/45 bg-[#120909] px-2 py-1 text-[11px] font-bold text-[#f5d987]">{copy.expertConsultIncludedBadge}</span>
+                        <span className="rounded-full border border-[#b53660]/30 bg-[#fff9f4] px-2 py-1 text-[11px] font-bold text-[#402a38]">{copy.expertConsultIncludedBadge}</span>
                       </div>
 
                       {analysisResult.consultText ? (
-                        <div className="rounded-lg border border-[#c8a84b]/35 bg-[#0d0606]/75 px-3 py-3">
-                          <p className="whitespace-pre-wrap text-xs leading-7 text-[#e8d090] md:text-sm">
+                        <div className="rounded-lg border border-[#b53660]/25 bg-[#fff9f4] px-3 py-3">
+                          <p className="whitespace-pre-wrap text-xs leading-7 text-[#6b4d5e] md:text-sm">
                             {analysisResult.consultText}
                           </p>
                         </div>
                       ) : (
-                        <p className="rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/60 px-3 py-2 text-xs leading-6 text-[#d4b45c]/85">
+                        <p className="rounded-lg border border-[#b53660]/20 bg-[#fff9f4] px-3 py-2 text-xs leading-6 text-[#7e6028]">
                           {copy.expertConsultMissingMessage}
                         </p>
                       )}
@@ -3587,10 +3659,10 @@ export default function PalmDestinyMain() {
                               onClick={() => scrollToCard(card.key)}
                               className={`cd-select-btn min-h-[46px] shrink-0 rounded-lg border px-3 py-2 text-[12px] font-bold transition-all duration-200 ${
                                 active
-                                  ? "border-[#f5d987]/70 text-[#fff5c8]"
-                                  : "border-[#c8a84b]/30 bg-[#0d0808] text-[#e8d090]"
+                                  ? "border-[#b53660] text-[#b53660]"
+                                  : "border-[#b53660]/20 bg-[#ffffff] text-[#6b4d5e]"
                               }`}
-                              style={active ? { background: "linear-gradient(135deg, #4d0f0f 0%, #370a0a 50%, #4d1f1f 100%)", boxShadow: "0 0 14px rgba(180,30,30,0.35), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
+                              style={active ? { background: "#f8e4ea", boxShadow: "inset 0 -2px 0 #b53660" } : {}}
                             >
                               {CARD_KEY_TO_LABEL[card.key]}
                             </button>
@@ -3599,6 +3671,8 @@ export default function PalmDestinyMain() {
                       </div>
                       {interpretationCards.map((card) => renderInterpretationCard(card))}
                     </section>
+
+                    <ExpertCharacterStage character="yeoni" mood={yeoniResultClose.mood} line={yeoniResultClose.text} placement="result" locale={detailLocale} />
                   </div>
                 </div>
               </section>
@@ -3610,24 +3684,21 @@ export default function PalmDestinyMain() {
       <style jsx global>{`
         .cd-immersive-shell {
           background:
-            radial-gradient(1200px 500px at 8% -10%, rgba(180, 40, 30, 0.16), transparent 60%),
-            radial-gradient(1000px 520px at 92% -6%, rgba(212, 176, 92, 0.16), transparent 62%),
-            linear-gradient(180deg, rgba(4, 4, 8, 0.95), rgba(10, 6, 6, 0.96));
+            radial-gradient(1200px 500px at 8% -10%, rgba(248, 196, 214, 0.35), transparent 60%),
+            radial-gradient(1000px 520px at 92% -6%, rgba(241, 234, 248, 0.8), transparent 62%),
+            linear-gradient(180deg, #fff9f4, #fff9f4);
         }
 
         .cd-immersive-card {
           box-shadow:
-            0 0 0 1px rgba(180, 130, 40, 0.28),
-            0 38px 120px rgba(0, 0, 0, 0.78),
-            inset 0 0 80px rgba(140, 20, 20, 0.16);
+            0 0 0 1px rgba(181, 54, 96, 0.08);
         }
 
         .cd-immersive-aura {
           background-image:
-            radial-gradient(circle at 14% 18%, rgba(212, 176, 92, 0.12) 0 2px, transparent 3px),
-            radial-gradient(circle at 82% 74%, rgba(212, 176, 92, 0.1) 0 1.8px, transparent 2.8px),
-            radial-gradient(circle at 68% 22%, rgba(180, 34, 34, 0.1) 0 2.2px, transparent 3px),
-            repeating-linear-gradient(90deg, rgba(212, 176, 92, 0.03) 0, rgba(212, 176, 92, 0.03) 1px, transparent 1px, transparent 28px);
+            radial-gradient(circle at 14% 18%, rgba(233, 167, 188, 0.22) 0 2px, transparent 3px),
+            radial-gradient(circle at 82% 74%, rgba(201, 164, 106, 0.18) 0 1.8px, transparent 2.8px),
+            radial-gradient(circle at 68% 22%, rgba(110, 90, 142, 0.12) 0 2.2px, transparent 3px);
           opacity: 0.85;
           animation: cdAuraDrift 16s ease-in-out infinite alternate;
         }
@@ -3669,7 +3740,7 @@ export default function PalmDestinyMain() {
           }
         }
 
-        /* 한지 질감 오버레이 */
+        /* 꽃잎 점 질감 */
         .cd-oriental-card::before {
           content: "";
           position: absolute;
@@ -3677,33 +3748,26 @@ export default function PalmDestinyMain() {
           pointer-events: none;
           border-radius: inherit;
           background-image:
-            radial-gradient(circle at 12% 20%, rgba(212, 176, 92, 0.09) 0 1px, transparent 2px),
-            radial-gradient(circle at 78% 72%, rgba(212, 176, 92, 0.07) 0 1px, transparent 2px),
-            repeating-linear-gradient(0deg, rgba(212, 176, 92, 0.025) 0, rgba(212, 176, 92, 0.025) 1px, transparent 1px, transparent 6px);
+            radial-gradient(circle at 12% 20%, rgba(233, 167, 188, 0.12) 0 1px, transparent 2px),
+            radial-gradient(circle at 78% 72%, rgba(201, 164, 106, 0.1) 0 1px, transparent 2px);
           opacity: 1;
         }
 
-        /* 우상단 작은 금빛 도장 */
+        /* 우상단 작은 로즈골드 도장 */
         .cd-oriental-card::after {
           content: "◈";
           position: absolute;
           right: 14px;
           top: 10px;
           font-size: 10px;
-          color: rgba(200, 168, 75, 0.7);
-          text-shadow: 0 0 6px rgba(200, 168, 75, 0.5);
+          color: rgba(201, 164, 106, 0.85);
           pointer-events: none;
           line-height: 1;
         }
 
-        /* ──────────── 제목 금빛 광채 ──────────── */
+        /* ──────────── 제목 ──────────── */
         .cd-title {
-          animation: cdTitleGlow 4s ease-in-out infinite alternate;
-        }
-
-        @keyframes cdTitleGlow {
-          from { filter: drop-shadow(0 0 8px rgba(212, 176, 92, 0.3)); }
-          to   { filter: drop-shadow(0 0 22px rgba(212, 176, 92, 0.6)); }
+          letter-spacing: -0.01em;
         }
 
         /* ──────────── 배지 ──────────── */
@@ -3718,8 +3782,8 @@ export default function PalmDestinyMain() {
         }
 
         .cd-select-btn:hover {
-          box-shadow: 0 0 16px rgba(200, 168, 75, 0.35);
-          border-color: rgba(212, 176, 92, 0.65);
+          box-shadow: 0 6px 16px rgba(181, 54, 96, 0.16);
+          border-color: rgba(181, 54, 96, 0.45);
           transform: translateY(-1px);
         }
 
@@ -3728,8 +3792,8 @@ export default function PalmDestinyMain() {
         }
 
         @keyframes cdSelectPulse {
-          from { box-shadow: 0 0 14px rgba(200, 168, 75, 0.3), inset 0 -2px 0 rgba(245, 217, 135, 0.7); }
-          to   { box-shadow: 0 0 26px rgba(200, 168, 75, 0.55), inset 0 -2px 0 rgba(245, 217, 135, 0.9); }
+          from { box-shadow: 0 4px 10px rgba(181, 54, 96, 0.12), inset 0 -2px 0 #b53660; }
+          to   { box-shadow: 0 6px 18px rgba(181, 54, 96, 0.22), inset 0 -2px 0 #b53660; }
         }
 
         /* ──────────── 고스트 버튼 ──────────── */
@@ -3738,9 +3802,9 @@ export default function PalmDestinyMain() {
         }
 
         .cd-ghost-btn:hover {
-          box-shadow: 0 0 14px rgba(200, 168, 75, 0.28);
-          border-color: rgba(212, 176, 92, 0.6);
-          background: rgba(30, 15, 8, 0.9) !important;
+          box-shadow: 0 6px 14px rgba(181, 54, 96, 0.14);
+          border-color: rgba(181, 54, 96, 0.45);
+          background: #fdf0f4 !important;
           transform: translateY(-1px);
         }
 
@@ -3750,7 +3814,7 @@ export default function PalmDestinyMain() {
         }
 
         .cd-red-btn:hover {
-          box-shadow: 0 0 18px rgba(155, 26, 26, 0.55);
+          box-shadow: 0 6px 16px rgba(181, 54, 96, 0.22);
           transform: translateY(-1px);
         }
 
@@ -3771,9 +3835,7 @@ export default function PalmDestinyMain() {
 
         .cd-main-cta:hover:not(:disabled) {
           box-shadow:
-            0 0 0 1px rgba(212, 176, 92, 0.4),
-            0 16px 36px rgba(0, 0, 0, 0.55),
-            0 0 32px rgba(139, 0, 0, 0.5);
+            0 16px 32px rgba(181, 54, 96, 0.32);
           transform: translateY(-2px);
         }
 
@@ -3803,10 +3865,10 @@ export default function PalmDestinyMain() {
         /* ──────────── 레거시 호환 ──────────── */
         .cd-ink-card { backdrop-filter: blur(2px); }
         .cd-gold-btn { transition: box-shadow 0.2s ease, transform 0.2s ease; }
-        .cd-gold-btn:hover { box-shadow: 0 0 14px rgba(200,168,75,0.28); transform: translateY(-1px); }
+        .cd-gold-btn:hover { box-shadow: 0 6px 14px rgba(181,54,96,0.14); transform: translateY(-1px); }
         .cd-cta-btn { transition: box-shadow 0.24s ease, transform 0.24s ease; }
-        .cd-cta-btn:hover:enabled { box-shadow: 0 0 16px rgba(212,176,92,0.32), 0 10px 24px rgba(0,0,0,0.28); transform: translateY(-1px); }
-        .cd-soft-tab:hover { box-shadow: 0 0 10px rgba(200,168,75,0.22); }
+        .cd-cta-btn:hover:enabled { box-shadow: 0 10px 24px rgba(181,54,96,0.24); transform: translateY(-1px); }
+        .cd-soft-tab:hover { box-shadow: 0 4px 10px rgba(181,54,96,0.14); }
 
         /* 촬영/앨범 버튼의 기기별 우선순위.
            JS 로 기기를 판별하면 SSR 과 클라이언트 첫 렌더가 어긋나(hydration mismatch)
@@ -3823,22 +3885,22 @@ export default function PalmDestinyMain() {
           justify-content: center;
           gap: 8px;
           border-radius: 12px;
-          border: 1px solid rgba(200,168,75,0.45);
-          background: #0d0808;
+          border: 1px solid rgba(181,54,96,0.35);
+          background: #ffffff;
           padding: 12px 16px;
           font-size: 14px;
           font-weight: 900;
-          color: #f0d9a2;
+          color: #b53660;
           transition: box-shadow 0.2s ease, transform 0.2s ease;
         }
-        .cd-capture-cta:hover { box-shadow: 0 0 14px rgba(200,168,75,0.26); transform: translateY(-1px); }
-        .cd-capture-cta:focus-visible { outline: 2px solid #f5d987; outline-offset: 2px; }
+        .cd-capture-cta:hover { box-shadow: 0 6px 16px rgba(181,54,96,0.18); transform: translateY(-1px); }
+        .cd-capture-cta:focus-visible { outline: 2px solid #b53660; outline-offset: 2px; }
 
         /* 우선 수단은 실물 CTA 로, 보조 수단은 고스트로. */
         .cd-capture-cta--lead {
-          border-color: rgba(212,175,55,0.7);
-          background: linear-gradient(140deg, #8b0000 0%, #6b1a0a 35%, #5a1200 65%, #7a1800 100%);
-          color: #fff8e0;
+          border-color: #b53660;
+          background: #b53660;
+          color: #ffffff;
         }
 
         /* 터치 기기(휴대폰·태블릿): 촬영 우선 */
@@ -3846,9 +3908,9 @@ export default function PalmDestinyMain() {
           .cd-capture-actions__camera { order: 1; }
           .cd-capture-actions__gallery { order: 2; }
           .cd-capture-actions__camera.cd-capture-cta {
-            border-color: rgba(212,175,55,0.7);
-            background: linear-gradient(140deg, #8b0000 0%, #6b1a0a 35%, #5a1200 65%, #7a1800 100%);
-            color: #fff8e0;
+            border-color: #b53660;
+            background: #b53660;
+            color: #ffffff;
           }
         }
         /* 포인터 기기(데스크톱): 파일 선택 우선 — capture 속성이 파일 대화상자로 떨어지므로 */
@@ -3856,9 +3918,9 @@ export default function PalmDestinyMain() {
           .cd-capture-actions__gallery { order: 1; }
           .cd-capture-actions__camera { order: 2; }
           .cd-capture-actions__gallery.cd-capture-cta {
-            border-color: rgba(212,175,55,0.7);
-            background: linear-gradient(140deg, #8b0000 0%, #6b1a0a 35%, #5a1200 65%, #7a1800 100%);
-            color: #fff8e0;
+            border-color: #b53660;
+            background: #b53660;
+            color: #ffffff;
           }
         }
 

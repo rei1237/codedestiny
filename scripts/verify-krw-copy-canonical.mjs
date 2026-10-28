@@ -50,6 +50,7 @@ import {
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
 import { CURRENT_PASS_PLANS } from "../lib/payment/pass-policy.js";
 import { MUSIC_TRACK_UNLOCK_PRICE_KRW } from "../lib/music-access-policy.js";
+import { SERVICE_PACK_PLANS } from "../worker/payments/service-pack-policy.js";
 import { PASS_LIMITS_KRW, MONTHLY_PASS_LIMITS_KRW } from "../worker/lib/profile-limits.js";
 import { KRW_PER_COIN as COIN_TO_KRW, MEMBERSHIP_CREDIT_PER_COIN } from "../worker/lib/billing-policy.js";
 import { gateCovers as gateCoversAny, readGatePatterns } from "./lib/gate-trigger-coverage.mjs";
@@ -74,6 +75,8 @@ for (const won of Object.values(PASS_MONTHLY_WON)) add(won);
 for (const plan of Object.values(CURRENT_PASS_PLANS)) {
   add(plan.wonPrice); add(plan.maxCoveredCoin * 100); add(plan.monthlyLimitCoin * 100);
 }
+// 2026-10-16: 홈 이용권 배너가 영냥이 세트 가격을 보여 준다. 세트 가격 정본은 이 표 하나다.
+for (const plan of Object.values(SERVICE_PACK_PLANS)) add(plan.priceKRW);
 for (const won of Object.values(PASS_LIMITS_KRW)) add(won);
 for (const won of Object.values(MONTHLY_PASS_LIMITS_KRW)) add(won);
 
@@ -118,7 +121,8 @@ const SEP = "[.,\\u00a0\\u202f\\u2009 ]";
 const NUM = `\\d{1,3}(?:${SEP}\\d{3})+|\\d{4,}`;
 const SUFFIX_UNIT = "원|KRW|won|ウォン|韩元|韓元|वॉन";
 const PREFIX_UNIT = "₩|KRW";
-const MONEY = new RegExp(`(?:${NUM})\\s*(?:${SUFFIX_UNIT})|(?:${PREFIX_UNIT})\\s*(?:${NUM})`, "gi");
+// 🔴 접두 단위 앞이 영문·숫자·base64 문자면 단어가 아니다 — 인라인 이미지의 "…okRw3560…" 이 3,560원으로 잡혔다(2026-10-17 비밀의 집).
+const MONEY = new RegExp(`(?:${NUM})\\s*(?:${SUFFIX_UNIT})|(?<![A-Za-z0-9+/])(?:${PREFIX_UNIT})\\s*(?:${NUM})`, "gi");
 const MIN_AMOUNT = 1000; // 그 미만은 코인 수·개수 표기라 원화 금액이 아니다.
 
 // "3만원"·"5천원"·"5万ウォン" 처럼 자릿수 단위를 낀 표기를 숫자로 편다.
@@ -142,6 +146,8 @@ function amountsIn(raw) {
 // 추출기 self-test — 정규식이 죽어서 "미분류 0건"이 되는 것을 막는다.
 assert.deepStrictEqual(amountsIn("월 9,900원부터"), [9900], "추출기가 '9,900원' 을 못 잡습니다.");
 assert.deepStrictEqual(amountsIn("3만원 상당"), [30000], "추출기가 '3만원' 을 못 잡습니다.");
+assert.deepStrictEqual(amountsIn("Nxxo+kRw3560IM1Ct"), [], "추출기가 base64 조각 'kRw3560' 을 원화로 오인합니다.");
+assert.deepStrictEqual(amountsIn("가격 krw 3,560"), [3560], "추출기가 소문자 'krw 3,560' 을 못 잡습니다.");
 assert.deepStrictEqual(amountsIn("KRW 29,900 / month"), [29900], "추출기가 'KRW 29,900' 을 못 잡습니다.");
 assert.deepStrictEqual(amountsIn("5万ウォンの相談"), [50000], "추출기가 '5万ウォン' 을 못 잡습니다.");
 assert.deepStrictEqual(amountsIn("지원 1900~2100"), [], "추출기가 '지원 1900' 을 금액으로 오인합니다.");
@@ -155,7 +161,6 @@ assert.deepStrictEqual(amountsIn("a $35 consultation"), [], "추출기가 달러
 //    낡은 가격을 덮는 데 쓰지 말 것. 아래 ④ 단언이 더는 등장하지 않는 예외를 실패시킨다.
 const ALLOWED_NON_CANONICAL = [
   // ["app/_lib/serviceSections.js", 40000, "단품 30,000 + 궁합 10,000 합계"],
-  ["index.html", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
   ["i18n/authored/shellCopy-11.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
   ["public/i18n/de.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
   ["public/i18n/en.json", 300000, "네오 1:1 사람 상담 1회 실제 판매가(앱 상품 아님) — 신뢰 헤드라인 home.funnelCopy.offerTitle, 사용자 지정 2026-10-01"],
@@ -298,6 +303,7 @@ const READ_PATHS = [
   "lib/payment/coin-pricing.ts",
   "lib/music-access-policy.js",
   "worker/lib/profile-limits.js",
+  "worker/payments/service-pack-policy.js",
   "scripts/verify-krw-copy-canonical.mjs",
   ...readdirSync(resolve(root, "public/i18n")).filter((f) => f.endsWith(".json")).map((f) => `public/i18n/${f}`),
 ];

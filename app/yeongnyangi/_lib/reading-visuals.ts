@@ -84,7 +84,8 @@ export function timingRows(charts:ReadingChart[],today=new Date()):TimingRow[]{
  const current=today.getFullYear()+today.getMonth()/12+(today.getDate()-1)/365;
  const rows=charts.flatMap(chart=>chart.groups.filter(g=>g.kind==='timing').map(g=>{
   const item=(label:string)=>g.items.find(i=>i.label===label)?.value || '';
-  const start=item('시작'),end=item('끝'),from=yearValue(start),rawTo=yearValue(end);
+  // A 세운 row is a single 연도 (reading-presentation.ts) and spans that year.
+  const year=item('연도'),start=item('시작') || year,end=item('끝') || year,from=yearValue(start),rawTo=yearValue(end);
   // A bare end year covers that whole year.
   const to=rawTo!==undefined&&/^\d{4}$/.test(end.trim())?rawTo+1:rawTo;
   const valid=from!==undefined&&to!==undefined&&to>from;
@@ -115,10 +116,10 @@ export function sajuFacts(charts:ReadingChart[]){
  const pick=(label:string)=>saju.groups.find(g=>g.label===label&&!g.kind);
  const pillars=(['시주','일주','월주','년주'] as const).map(label=>{
   const g=pick(label);
-  return {label,ganji:g?.items.find(i=>i.label==='천간·지지')?.value || '',tenGod:g?.items.find(i=>i.label==='천간 십성')?.value || ''};
+  return {label,ganji:g?.items.find(i=>i.label==='천간·지지')?.value || '',tenGod:g?.items.find(i=>i.label==='천간 십성')?.value || '',hidden:g?.items.find(i=>i.label==='지장간')?.value || ''};
  });
  const elementGroup=saju.groups.find(g=>g.label.startsWith('오행 분포'));
  const elements:ElementRow[]=(elementGroup?.items || []).map(i=>({label:i.label,value:Number(i.value)})).filter(e=>Number.isFinite(e.value));
  if(!pillars.some(p=>p.ganji)&&!elements.length)return null;
- return {pillars,elements};
+ return {pillars,elements,surface:elementGroup?.label.endsWith('보이는 글자 기준')===true};
 }

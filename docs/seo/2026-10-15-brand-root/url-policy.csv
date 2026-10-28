@@ -1,0 +1,23 @@
+path,role,status,canonical,index,hreflang,sitemap,query_handling,notes
+/,공식 대표 홈(브랜드·운영자·공식 채널),200,https://code-destiny.com/,index,없음,포함(alternates 없음),"추적 키(utm_*, gclid, gbraid, wbraid, fbclid, msclkid)만 있으면 200. question만 있으면 302 /yeongnyangi/. 그 밖의 키(ref, lang, source, action, portone_redirect, paymentId, code, state 등)는 302 /ggulggul/ + 쿼리 보존","비한국어 사람 방문자는 302 로케일 홈. 봇은 국가와 무관하게 200"
+/index.html,루트 별칭,301,→ /,-,-,제외,쿼리 보존,
+/ggulggul/,상담 앱 입구(한국어),200,https://code-destiny.com/ggulggul/,index,"ko·en·ja·zh·zh-TW 클러스터 + x-default(HTML·사이트맵 모두 있음)",포함,앱 내부 상태 키를 그대로 처리,"앱 셸 이전과 301 전환은 별도 계획"
+/en/ /ja/ /zh/ /zh-tw/,로케일 앱 홈,200,self,index,ggulggul 클러스터,포함,-,
+/kkul-kkul-unse/,공식 주소·표기·이력 안내(FAQ 10),200,self,index,없음,포함,-,
+/about/,운영자 CODE DESTINY 소개,200,self,index,없음,포함,-,
+/faq/,이용 안내 FAQ,200,self,index,없음,포함,-,
+/yeongnyangi/,운세보는 영냥이 상담 입구(대표 이름 2026-10-16),200,self,index,없음,포함,question(질문 가이드 ID) 처리,
+/saju/ /tarot/ /ziwei/ /insights/ 등 공개 허브,주제 허브,200,self,index,경로별,포함,-,
+/login /signup /auth/*,인증,200,-,noindex,-,제외,"code·state 등 인증 키. robots Disallow /auth/",
+/records/*,나의 기록 보관함,200(로그인 필요),-,"noindex, nofollow",-,제외,-,개인 상담 결과
+/yeongnyangi/library/*,영냥이 상담 기록,200(로그인 필요),-,"noindex, nofollow",-,제외,-,개인 상담 결과
+/consultations/*,상담 기록,200(로그인 필요),-,"noindex, nofollow",-,제외,-,
+/payment/* /payments/* /checkout/* /success/* /fail/*,결제·결제 후 복귀,200,-,noindex,-,제외,"paymentId 등 결제 키. robots Disallow",
+/profile/* /me/* /my/* /account/*,회원 정보,200(로그인 필요),-,noindex,-,제외,-,
+/admin/* /neo-operation-room/*,관리자,인증 필요,-,"noindex, nofollow",-,제외,-,
+/api/*,API,-,-,"noindex, nofollow",-,제외,-,robots Disallow /api/ (예외 /api/og)
+/fortune/date/*,날짜별 보관 화면,200,-,"noindex, follow",-,제외,-,기간별 정본과 중복
+/robots.txt,크롤러 정책,200,-,-,-,-,-,"검색·AI 검색·사용자 요청형 허용, CCBot 학습 수집 Disallow 유지"
+/sitemap.xml,사이트맵,200,-,-,-,-,-,"루트 / 포함. noindex·리다이렉트 URL 제외"
+/llms.txt,AI 요약 안내,200,-,-,-,-,-,brand-facts에서 생성
+http://code-destiny.com/ · https://www.code-destiny.com/,호스트 정규화,301(Cloudflare),→ https://code-destiny.com/,-,-,-,-,"규칙 위치는 Cloudflare 대시보드(미확인). 홉 수는 운영 재실측으로 기록"

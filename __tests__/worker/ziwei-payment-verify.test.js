@@ -66,7 +66,6 @@ beforeAll(async () => {
   }));
   jest.unstable_mockModule("../../worker/lib/portone.js", () => ({ ...portone, fetchPortOnePayment }));
   routes["ziwei-ai"] = (await import("../../worker/routes/ziwei-ai.js")).__ziweiAiTestUtils;
-  routes["ziwei-island-ai"] = (await import("../../worker/routes/ziwei-island-ai.js")).__ziweiIslandTestUtils;
 });
 
 beforeEach(() => {
@@ -104,7 +103,7 @@ function writes() {
   return paymentFindByIdAndUpdate.mock.calls.map(([, update]) => update?.$set || {});
 }
 
-describe.each([["ziwei-ai"], ["ziwei-island-ai"]])("%s verifyPaymentForStart", (route) => {
+describe.each([["ziwei-ai"]])("%s verifyPaymentForStart", (route) => {
   test("우리 채널 결제는 확정하고, 원본이 아닌 요약본(channelCheck)만 남긴다", async () => {
     fetchPortOnePayment.mockResolvedValue(paidPg());
 

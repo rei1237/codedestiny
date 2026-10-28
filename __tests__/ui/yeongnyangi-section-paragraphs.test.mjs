@@ -138,7 +138,7 @@ test('a quality retry restates the failed rule; a first attempt or an unmapped c
  const first=await rulesFor(undefined);
  assert.equal(first.correction,undefined);
  assert.match(first.blockContract,/500자를 넘으면 문장 단위로 끊어 여러 문단/);
- for(const code of ['INVALID_CHAPTER_BLOCKS','INTERNAL_EVIDENCE_EXPOSED','TIER_SCOPE_VIOLATION','DUPLICATE_CHAPTER','CHAPTER_SECTION_TOO_SHORT','CHAPTER_TOO_SHORT','CHAPTER_EVIDENCE_INCOMPLETE','INVALID_EVIDENCE','UNSUPPORTED_READING_CLAIM','CHAPTER_DEPTH_INCOMPLETE']){
+ for(const code of ['INVALID_CHAPTER_BLOCKS','INTERNAL_EVIDENCE_EXPOSED','TIER_SCOPE_VIOLATION','DUPLICATE_CHAPTER','CHAPTER_SECTION_TOO_SHORT','CHAPTER_TOO_SHORT','CHAPTER_EVIDENCE_INCOMPLETE','INVALID_EVIDENCE','UNSUPPORTED_READING_CLAIM','CHAPTER_DEPTH_INCOMPLETE','CHAPTER_SUMMARY_REPEATED']){
   const {correction}=await rulesFor({code});
   assert.equal(correction.code,code);
   assert.ok(correction.instruction?.length>20,code);

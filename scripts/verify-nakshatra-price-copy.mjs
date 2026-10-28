@@ -88,9 +88,18 @@ function resolveAmountKrw(source) {
   return decl ? Number(decl[1]) : null;
 }
 
+const { buildSync } = require('esbuild');
+const pricingBundle = buildSync({ entryPoints: [resolve(root, 'app/nakshatra/_lib/pricing.ts')], bundle: true, write: false, platform: 'node', format: 'cjs' });
+const pricingModule = { exports: {} };
+new Function('module', 'exports', 'require', pricingBundle.outputFiles[0].text)(pricingModule, pricingModule.exports, require);
+const canonicalPricing = pricingModule.exports;
+assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICING.amountKRW, 20000);
+assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICE_LABEL, '20,000원');
 const amountBySlug = new Map();
 for (const { slug, rel } of clientFiles) {
-  const amount = resolveAmountKrw(read(rel));
+  const source = read(rel);
+  const amount = source.includes('amountKRW: NAKSHATRA_COMPAT_PRICING.amountKRW')
+    ? canonicalPricing.NAKSHATRA_COMPAT_PRICING.amountKRW : resolveAmountKrw(source);
   if (amount !== null) amountBySlug.set(slug, amount);
 }
 assert.ok(
@@ -168,6 +177,13 @@ const seenPerKey = new Map();
 const unclassified = [];
 
 copyLines.forEach((line, i) => {
+  if (/compatPriceLabel: NAKSHATRA_COMPAT_PRICE_LABEL,/.test(line)) {
+    assert.equal(expectedKrwByKey.get('compatPriceLabel'), canonicalPricing.NAKSHATRA_COMPAT_PRICING.amountKRW);
+    assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICE_LABEL, new Intl.NumberFormat('ko-KR').format(expectedKrwByKey.get('compatPriceLabel')) + '원');
+    assertions += 2;
+    seenPerKey.set('compatPriceLabel', (seenPerKey.get('compatPriceLabel') || 0) + 1);
+    return;
+  }
   const hasKrw = KRW_MENTION.test(line);
   const hasForeign = FOREIGN_SYMBOL.test(line);
   if (!hasKrw && !hasForeign) return;

@@ -66,10 +66,10 @@ const promptFeatures = [
 const freePromptFeatures = [];
 const promptFeatureCosts = {
   saju_ai_prompt_generator: 100,
-  ziwei_ai_prompt_generator: 50,
-  astrology_ai_prompt_generator: 50,
-  vedic_ai_prompt_generator: 50,
-  sukuyo_ai_prompt_generator: 50,
+  ziwei_ai_prompt_generator: 100,
+  astrology_ai_prompt_generator: 100,
+  vedic_ai_prompt_generator: 100,
+  sukuyo_ai_prompt_generator: 100,
 };
 
 for (const featureKey of promptFeatures) {

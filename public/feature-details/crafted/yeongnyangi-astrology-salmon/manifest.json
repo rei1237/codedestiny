@@ -1,0 +1,137 @@
+{
+  "id": "yeongnyangi-astrology-salmon",
+  "featureKey": "yeongnyangi-astrology-salmon",
+  "title": "영냥이 서양 점성술 연어 상담",
+  "notice": "서양 점성술 연어는 시험·진로·재물·이동 등 선택의 조건을 살피는 질문 상담입니다. 이 안내는 공부·시험 질문 11장과 별도 기본 성향 리포트 8장을 소개합니다. 행성·하우스·각의 출생 배치를 해석하며, 현재 구성에 실시간 트랜짓은 없습니다. 목차에 시기·올해가 있어도 합격일이나 월별 사건을 예측하지 않습니다. 질문에 따라 목차가 달라지며 예시는 가상 편집입니다. AI 작성 상담이고 가격과 추가 질문 조건은 기존 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-how-to-use-your-effort",
+      "title": "애쓰고 있는데, 준비는 왜 제자리일까요?",
+      "alt": "마법사 고양이 영냥이가 원형 출생차트와 행성 배치를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-astrology.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "애쓰고 있는데,\n준비는 왜 제자리일까요?\n\n노력의 양만 늘리기 전에,\n나에게 맞는 준비의 조건을 살펴봐요.\n\n영냥이 서양 점성술 · 연어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-look-at-the-process",
+      "title": "공부한 시간보다, 남은 과정을 살펴봐요.",
+      "alt": "계획이해반복세단계에서실제공부병목을질문으로구체화.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/02-look-at-the-process.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "공부한 시간보다,\n남은 과정을 살펴봐요.\n계획은 자세한데\n\n실제 시작까지 오래 걸리나요?\n\n설명은 이해했는데\n\n혼자 풀 때 같은 자리에서 막히나요?\n\n많이 반복했는데\n\n실수한 이유는 다시 보지 못했나요?\n\n목표 시험과 준비 단계,\n지금 바꾸고 싶은 한 가지를 알려 주세요.\n\n질문을 정리하는 편집 예시입니다.\n시험 결과를 예측하는 진단표는 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/02-look-at-the-process-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-ability-in-a-real-setting",
+      "title": "배우고, 버티고, 움직이는 나의 방식.",
+      "alt": "수성토성화성의쉬운해석과하우스각교차읽기를설명.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/03-ability-in-a-real-setting.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "배우고, 버티고,\n움직이는 나의 방식.\n수성 · 이해하고 말하는 방식\n정보를 정리하고 설명하는 과정.\n토성 · 책임과 반복의 태도\n기준을 세우고 오래 유지하는 힘.\n화성 · 행동으로 옮기는 에너지\n시작하고 밀어붙일 때의 속도.\n\n행성이 놓인 하우스와 서로 맺는 각을\n함께 읽고, 강점의 쓰임을 살펴봐요.\n\n한 행성으로 성적이나 적성을 확정하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/03-ability-in-a-real-setting-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-from-question-to-preparation",
+      "title": "공부 질문 11장, 준비의 우선순위를 찾으며.",
+      "alt": "실제공부질문앞8장의판단과현실비교목차를세단계로안내.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/04-from-question-to-preparation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "공부 질문 11장,\n준비의 우선순위를 찾으며.\n1–2장 · 나의 바탕\n\n출생 차트의 성향과 마음의 반응\n강점과 부담이 되는 순간\n\n3–5장 · 질문에 대한 판단\n\n준비의 우선순위 · 판단의 근거\n현재의 기회와 주의 조건\n\n6–8장 · 현실에서 비교할 일\n\n현재 위치와 적성 · 이동과 유지의 비교\n움직이기 좋은 시기\n\n공통 목차의 ‘시기’도 실제 근거 안에서 읽어요.\n합격 날짜나 점수를 만들어 내지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/04-from-question-to-preparation-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-beyond-one-test",
+      "title": "시험 바깥의 생활이, 준비를 지탱할 수 있게.",
+      "alt": "질문9~11장조건부두드러진영역올해종합실행과시기한계.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/05-beyond-one-test.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "시험 바깥의 생활이,\n준비를 지탱할 수 있게.\n9장 · 차트에서 두드러진 영역\n\n질문 밖에서도 살펴볼 단서를 읽어요.\n영역은 실제 근거에 따라 달라집니다.\n\n10장 · 올해의 흐름\n\n출생 배치의 성향과 현재 상황을 연결해요.\n실시간 트랜짓 예측은 포함되지 않아요.\n\n11장 · 종합 해석과 실행 계획\n\n먼저 바꿀 준비 방법과\n다시 점검할 기준을 정리해요.\n\n시험 결과를 약속하기보다,\n준비 과정에서 선택할 수 있는 일을 남겨요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/05-beyond-one-test-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-make-a-smaller-plan",
+      "title": "다음 계획표에는, 빈칸도 남겨두세요.",
+      "alt": "계획과복습의균형을구체화하는가상시험준비예시.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/06-make-a-smaller-plan.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다음 계획표에는,\n빈칸도 남겨두세요.\n\n이해를 돕기 위한 편집 예시\n\n꼼꼼한 계획이 오히려 부담이 된다면,\n분량을 더하는 일은 잠시 멈춰요.\n\n오늘 틀린 문제 하나를 골라\n왜 그 답을 택했는지 적어보세요.\n\n채우지 못한 칸을 세는 대신,\n반복된 실수 하나를 줄이는 거예요.\n\n실제 고객의 차트나 상담 결과가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/06-make-a-smaller-plan-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-eight-chapters-without-a-question",
+      "title": "질문 없이 펼치는, 여덟 가지 삶의 자리.",
+      "alt": "기본성향8장목차를정확한순서대로네묶음으로설명.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/07-eight-chapters-without-a-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문 없이 펼치는,\n여덟 가지 삶의 자리.\n1–2장 · 나와 마음\n\n상승점과 태양 · 달과 감정의 결\n\n3–4장 · 관계와 자원\n\n금성과 관계의 자리 · 목성과 돈의 흐름\n\n5–6장 · 사회와 배움\n\n토성·MC와 사회적 자리\n수성과 말·배움·모임\n\n7–8장 · 에너지의 연결\n\n화성과 몸의 에너지\n행성들이 주고받는 긴장과 조화\n\n기본 성향 8장과 질문 상담 11장은\n선택한 흐름에 따른 별도 구성입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/07-eight-chapters-without-a-question-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-bring-the-goal-and-the-constraints",
+      "title": "목표와 지금의 조건, 함께 놓고 시작해요.",
+      "alt": "출생시간지역준비단계목표기간제약과가격AI조건안내.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/08-bring-the-goal-and-the-constraints.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "목표와 지금의 조건,\n함께 놓고 시작해요.\n\n생년월일·출생시간·출생 지역과\n목표 시기, 준비 단계, 제약을 알려 주세요.\n\nAI가 계산 근거를 바탕으로 작성합니다.\n가격과 추가 질문 조건은 현재 화면에서,\n저장된 결과는 내 상담에서 다시 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-salmon/08-bring-the-goal-and-the-constraints-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

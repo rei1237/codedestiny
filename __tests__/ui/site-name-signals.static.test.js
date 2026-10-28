@@ -6,10 +6,10 @@
  *   - public/famous `og:site_name = "Code Destiny (꿀꿀 만세력)"` (구명 잔재 — 2026-09-06 홈 셸에서는 구명 표기를 뺐다)
  *   - public/fortune `og:site_name = "Code Destiny"`
  *   - app 라우트 400여 개 `og:site_name = "Code Destiny"` (siteSeo.siteName)
- *   - `WebSite` 스키마 `name = "꿀꿀 운세"` (siteSeo.brandName)
+ *   - `WebSite` 스키마 `name = "꿀꿀운세"` (siteSeo.brandName)
  *
- * 구글은 `WebSite.name` · `og:site_name` · `application-name` · title 접미사가 **서로 일치할 때만**
- * 사이트 이름을 채택한다. 갈려 있는 동안에는 어느 이름도 잡히지 않았고, 실제로 "꿀꿀 운세"로
+ * 구글은 `WebSite.name` · `og:site_name` · `application-name` · title 접미사가 **서로 일치하면**
+ * 사이트 이름 선호를 더 일관되게 전달할 수 있다. 채택은 검색엔진이 결정한다. 갈려 있는 동안에는 어느 이름도 잡히지 않았고, 실제로 "꿀꿀운세"로
  * 검색하면 이 사이트가 나오지 않았다(2026-08-28 검색 실측 — 경쟁사만 반환됐고 엔진은 "꿀꿀"을
  * 브랜드가 아니라 일반어로 처리했다).
  *
@@ -28,15 +28,10 @@ const path = require("node:path");
 
 const root = path.resolve(__dirname, "../..");
 
-/** 기대값의 정본. 상수로 복제하면 브랜드 변경 때 두 곳이 갈린다. */
-function readBrandName() {
-  const source = fs.readFileSync(path.join(root, "lib", "seo", "siteSeo.ts"), "utf8");
-  const match = /\bbrandName:\s*"([^"]+)"/.exec(source);
-  assert.ok(match, "lib/seo/siteSeo.ts 에서 brandName 을 읽지 못했습니다 — 구조가 바뀌었다면 이 가드를 함께 고치세요.");
-  return match[1];
-}
+/** 기대값의 정본은 lib/brand/brand-facts.mjs 다. 상수로 복제하면 브랜드 변경 때 두 곳이 갈린다. */
+const { BRAND_FACTS } = require("../../lib/brand/brand-facts.mjs");
 
-const BRAND = readBrandName();
+const BRAND = BRAND_FACTS.service.name;
 
 /**
  * 정적 셸이 있을 수 있는 곳. 존재하지 않는 경로는 건너뛰되, 전체가 비면 아래에서 실패한다.
@@ -49,11 +44,15 @@ const BRAND = readBrandName();
  *    로컬에서 이 테스트가 빨간불이면 낡은 산출물 탓으로 넘기지 말고 소스를 고친 뒤 다시 빌드한다.
  */
 const SHELL_ROOTS = [root, path.join(root, "public")];
+const ARCHIVE_DIRS = new Set(["build-cache", "output"]);
 
 function walkHtml(dir, out, depth = 0) {
   if (depth > 4 || !fs.existsSync(dir)) return out;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.name === "node_modules" || entry.name === ".git" || entry.name === ".next") continue;
+    // gitignore된 보관 스냅샷·워크트리(.claude/worktrees, .delivery-worktrees 등)는
+    // 현재 소스의 빌드가 아니다. dist/·out/ 은 현재 소스의 빌드라 계속 훑는다.
+    if (dir === root && (entry.name.startsWith(".") || ARCHIVE_DIRS.has(entry.name))) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walkHtml(full, out, depth + 1);
     else if (entry.isFile() && entry.name.endsWith(".html")) out.push(full);
@@ -213,10 +212,8 @@ test("app/ 라우트 title 접미사에 구명(꿀꿀 만세력)을 쓰지 않�
   assert.deepEqual(offenders, [], `title 접미사가 구명인 라우트(| ${BRAND} 로 바꾸세요):\n  ${offenders.join("\n  ")}`);
 });
 
-test("app/ 에 남은 비-브랜드 siteName 리터럴은 렌더되지 않는 비-한국어 카피 4개뿐이다", () => {
-  // 개수를 찍어 둔다 — 새 라우트가 브랜드명을 손으로 박으면 여기서 개수가 어긋나 걸린다.
-  // 남겨 둔 4개는 `sikojenLayoutCopy = ...ko` / `sajuGuardianLayoutCopy = ...ko` 처럼
-  // **ko 항목만 실제로 렌더**되는 파일의 en·ja 사본이라 사이트 이름 신호로 나가지 않는다.
+test("app/ 의 모든 siteName 리터럴은 공식 브랜드와 같다", () => {
+  // 모든 언어의 공개 브랜드는 같다. 미사용 카피도 이전 이름으로 회귀하지 않게 검사한다.
   const found = [];
 
   function walkSource(dir, depth = 0) {
@@ -241,19 +238,7 @@ test("app/ 에 남은 비-브랜드 siteName 리터럴은 렌더되지 않는 �
 
   walkSource(path.join(root, "app"));
 
-  assert.equal(
-    found.length,
-    4,
-    "app/ 의 비-브랜드 siteName 리터럴 개수가 달라졌습니다. 새로 생긴 것이라면 siteSeo.brandName 을 쓰세요:\n  " +
-      found.join("\n  "),
-  );
-  for (const entry of found) {
-    assert.match(
-      entry,
-      /(sikojen-povailu\/layout\.tsx|saju-guardian\/layout\.js)/,
-      `예상하지 못한 파일에 비-브랜드 siteName 리터럴이 있습니다: ${entry}`,
-    );
-  }
+  assert.deepEqual(found, [], "비-브랜드 siteName 리터럴:\n" + found.join("\n"));
 });
 
 

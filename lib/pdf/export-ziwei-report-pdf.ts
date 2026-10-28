@@ -4,7 +4,8 @@ import { createTypesetWriter, drawContentsPage, drawFooters, paintPaper, PdfFont
 import { CONTENT_WIDTH_MM, MARGIN_X_MM, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, lineHeightMm } from './typeset-metrics';
 import { ziweiReportBlocks, type ZiweiReportChapter } from './ziwei-report-plan';
 
-type ZiweiPdfOptions = { chapters: ZiweiReportChapter[]; title: string; date: string; fileName: string };
+// byline·coverArtSrc 는 선택 — 무성 캐릭터를 끄면 기존 천문도 표지 그대로다.
+type ZiweiPdfOptions = { chapters: ZiweiReportChapter[]; title: string; date: string; fileName: string; byline?: string; coverArtSrc?: string };
 
 /** 화면의 펼침 상태와 독립적으로 저장본 전체를 글자로 조판한다. */
 export function typesetZiweiReport(pdf: JsPDFInstance, fonts: PdfFonts, options: ZiweiPdfOptions, coverArt?: Uint8Array) {
@@ -27,6 +28,7 @@ export function typesetZiweiReport(pdf: JsPDFInstance, fonts: PdfFonts, options:
   pdf.setFont(fonts.body, 'normal'); pdf.setFontSize(10); pdf.setTextColor(214, 187, 128);
   pdf.text(`CODE DESTINY · 자미두수 상담 · ${options.chapters.length}장`, MARGIN_X_MM, 252);
   pdf.text(options.date, MARGIN_X_MM, 263);
+  if (options.byline) pdf.text(options.byline, MARGIN_X_MM, 274);
   pdf.addPage(); paintPaper(pdf);
   const writer = createTypesetWriter(pdf, fonts);
   const entries: { label: string; page: number }[] = [];
@@ -51,7 +53,7 @@ export async function exportZiweiReportPdf(options: ZiweiPdfOptions): Promise<vo
   if (!fonts) throw new PdfFontError();
   let art: Uint8Array | undefined;
   try {
-    const response = await fetch('/images/ziwei/celestial-atlas.webp');
+    const response = await fetch(options.coverArtSrc || '/images/ziwei/celestial-atlas.webp');
     if (response.ok) art = new Uint8Array(await response.arrayBuffer());
   } catch { /* 텍스트와 글꼴은 장식 요청과 독립적이다. */ }
   typesetZiweiReport(pdf, fonts, options, art);

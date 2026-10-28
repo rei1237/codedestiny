@@ -1,8 +1,11 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 
 import Image from "next/image";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { RefreshCw, Save, Share2 } from "lucide-react";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "../../hooks/usePaidResume";
@@ -1542,10 +1545,12 @@ export default function NumerologyTarotClient() {
         <header className={styles.topBar}>
           <strong className={styles.brand}>수비학 타로</strong>
           <div className={styles.actions}>
-            {isFullscreen && (<button type="button" className={styles.ghostBtn} onClick={() => router.push("/index.html")}>메인으로</button>)}
+            {isFullscreen && (<button type="button" className={styles.ghostBtn} onClick={() => router.push(SHELL_HOME_PATH)}>메인으로</button>)}
             <button type="button" className={styles.lightBtn} onClick={toggleFullscreen}>{isFullscreen ? "전체화면 해제" : "전체화면"}</button>
           </div>
         </header>
+
+        <div style={{ width: "100%", maxWidth: 540, margin: "0 auto 24px" }}><CraftedProductDisclosure featureKey="tarot-numerology-reading" /></div>
 
         <section className={styles.heroGrid}>
           <div className={styles.mainPanel}>
@@ -1562,7 +1567,7 @@ export default function NumerologyTarotClient() {
             </ol>
 
             <div className={styles.stage}>
-              <section className={styles.formCard}>
+              <section data-moonlit-form="" className={styles.formCard}>
                 <h2 className={styles.formTitle}>지금 가장 궁금한 이야기를 골라 주세요</h2>
 
                 <div className={styles.topicTabs}>
@@ -1594,6 +1599,7 @@ export default function NumerologyTarotClient() {
                   ))}
                 </div>
 
+                <SavedBirthProfilePicker calendarMode="solar" disabled={formLocked} onSelect={seed=>{setName(seed.name || "");setBirthDate(seed.birthDate || "");}} />
                 <div className={styles.formGrid}>
                   <label className={`${styles.field} ${styles.fieldWide}`}>
                     <span className={styles.label}>이름 (선택)</span>

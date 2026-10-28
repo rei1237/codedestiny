@@ -1,4 +1,4 @@
-.resultScene{max-width:1040px;margin:auto;padding:24px 20px;line-height:1.85;color:#303c31;overflow-wrap:anywhere}
+.resultScene{max-width:1040px;margin:auto;padding:24px 20px;font-family:var(--font-body);font-size:1.0625rem;line-height:1.9;color:#303c31;overflow-wrap:anywhere}
 .resultSheet{max-width:780px;margin:auto;min-width:0;background:#fffdf7;border:1px solid #dedbcc;border-radius:12px;padding:32px}
 .resultSheet h2,.resultSheet h3,.sajuResultPanel h3,.sukuyoResultPanel h3{font-family:var(--tea-font-premium),serif;line-height:1.5;color:#3c533b}
 .resultSheet h2{font-size:1.7rem}.resultSheet h3{font-size:1.24rem;margin:0 0 16px}.resultSheet h4{font-size:1rem}
@@ -25,3 +25,24 @@
 .actionDialogue{display:flex;gap:16px;align-items:flex-start}.actionDialogue>img{flex:0 0 72px;width:72px;height:84px;object-fit:contain}.actionDialogue>div{min-width:0;flex:1}@media(max-width:430px){.actionDialogue{gap:10px}.actionDialogue>img{flex-basis:54px;width:54px;height:68px}}
 
 @media(max-width:600px){.resultSectionTarotCard{float:none;margin:0 auto 20px}.resultActions{flex-direction:column}.resultActions>*{width:100%;min-width:0}.yeoniReadingItem{min-width:0}}
+
+.sajuReadingContents{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 28px;padding-bottom:20px;border-bottom:1px solid var(--cd-border)}
+.sajuReadingContents a{display:flex;align-items:center;min-height:44px;padding:8px 12px;color:inherit;text-decoration:underline;text-underline-offset:4px;border-radius:var(--cd-r-control);font-size:.9rem}
+.sajuReadingContents a:focus-visible{outline:2px solid currentColor;outline-offset:2px}.sajuDeepResultCard{scroll-margin-top:24px}.sajuDeepResultCard h4{font-size:var(--cd-t-card);line-height:1.6}
+.sajuContentsDisclosure{margin-block:24px}.sajuContentsDisclosure summary{min-height:44px;padding:12px 0;cursor:pointer}.sajuContentsDisclosure summary:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+
+.jointResultHero { margin: 0 0 24px; }
+.jointResultHero img { display: block; width: 100%; height: auto; border-radius: var(--cd-r-card); }
+.jointResultHero figcaption { margin-top: 12px; font-size: .9rem; line-height: 1.7; }
+.jointDialogue { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 18px; align-items: start; }
+.jointPortraits { display: grid; gap: 8px; position: sticky; top: 16px; }
+.jointPortraits img { width: 76px; height: 104px; object-fit: cover; object-position: center top; border-radius: var(--cd-r-control); }
+.jointSpeech { min-width: 0; padding: 16px 20px; background: var(--cd-surface); color: var(--cd-text); border: 1px solid var(--cd-border); border-radius: var(--cd-r-card); }
+.jointSpeech .jointSpeaker { margin: 0 0 6px; font-weight: 700; font-size: .85rem; }
+.jointSpeech h4 { margin-top: 0; }
+.jointSpeech p { line-height: 1.9; }
+@media (max-width: 600px) { .jointDialogue { grid-template-columns: 1fr; gap: 10px; } .jointPortraits { position: static; display: flex; } .jointPortraits img { width: 72px; height: 96px; } .jointSpeech { padding: 16px; } }
+
+.jointDialogue[data-speaker="together"] { grid-template-columns: 1fr; }
+.jointDialogue[data-speaker="together"] .jointPortraits { position: static; }
+.jointDialogue[data-speaker="together"] .jointPortraits img { width: min(100%, 320px); height: auto; }

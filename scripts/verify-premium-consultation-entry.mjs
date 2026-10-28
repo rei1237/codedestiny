@@ -25,7 +25,8 @@ try {
       }
       if (url.origin !== base && !(url.hostname === 'yeongnyangi-qa.example.invalid' && path.startsWith('/api/'))) return route.fulfill({ status: 403, body: 'QA_EXTERNAL_NETWORK_BLOCKED' });
       if (!path.startsWith('/api/')) return route.continue();
-      if (/(?:generate|prepare|purchase|payment|checkout|confirm)/i.test(path)) paidRequests.push(path);
+      // 출생 프로필 지급 대기 조회(js/destiny-profile.js _dpProbeBirthProfilePending)는 읽기 전용 GET이라 결제 요청이 아니다.
+      if (/(?:generate|prepare|purchase|payment|checkout|confirm)/i.test(path) && !(req.method() === 'GET' && path === '/api/payments/birth-profile-pending')) paidRequests.push(path);
       const send = (json, status = 200) => route.fulfill({ status, json, headers: { 'Access-Control-Allow-Origin': base, 'Access-Control-Allow-Credentials': 'true' } });
       if (path === '/api/auth/me') return send({ ok: true, authenticated: true, user: { id: 'qa-owner', _id: 'qa-owner', name: 'QA', role: 'user' } });
       if (path === '/api/billing/funnel-event') return send({ ok: true });

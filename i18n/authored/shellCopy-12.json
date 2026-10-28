@@ -98,18 +98,18 @@
     "ms": "Your readings are kept in each consultation. Jump straight there from here."
   },
   "home.gardenCopy.libraryChat": {
-    "ko": "연이·네오 상담 기록",
-    "en": "Yeoni & Neo chats",
-    "ja": "ヨニ・ネオの相談記録",
-    "zh-CN": "Yeoni·Neo 咨询记录",
-    "zh-TW": "Yeoni·Neo 諮詢紀錄",
-    "vi": "Yeoni & Neo chats",
-    "hi": "Yeoni & Neo chats",
-    "es": "Yeoni & Neo chats",
-    "fr": "Yeoni & Neo chats",
-    "de": "Yeoni & Neo chats",
-    "nl": "Yeoni & Neo chats",
-    "ms": "Yeoni & Neo chats"
+    "ko": "연이 상담 기록",
+    "en": "Yeoni chats",
+    "ja": "ヨニの相談記録",
+    "zh-CN": "Yeoni 咨询记录",
+    "zh-TW": "Yeoni 諮詢紀錄",
+    "vi": "Trò chuyện với Yeoni",
+    "hi": "Yeoni chats",
+    "es": "Chats con Yeoni",
+    "fr": "Discussions avec Yeoni",
+    "de": "Yeoni-Chats",
+    "nl": "Yeoni-chats",
+    "ms": "Sembang Yeoni"
   },
   "home.gardenCopy.libraryYeongnyangi": {
     "ko": "영냥이 나의 상담",
@@ -154,18 +154,18 @@
     "ms": "Library"
   },
   "shell.cdMobileBottomNav.cdMobileBottomNavMain.consultTab.ariaLabel": {
-    "ko": "운명 상담 고르기",
-    "en": "Choose a fortune consultation",
-    "ja": "運命相談を選ぶ",
-    "zh-CN": "选择命运咨询",
-    "zh-TW": "選擇命運諮詢",
-    "vi": "Choose a fortune consultation",
-    "hi": "Choose a fortune consultation",
-    "es": "Choose a fortune consultation",
-    "fr": "Choose a fortune consultation",
-    "de": "Choose a fortune consultation",
-    "nl": "Choose a fortune consultation",
-    "ms": "Choose a fortune consultation"
+    "ko": "대표 상담 고르기",
+    "en": "Choose a signature reading",
+    "ja": "代表相談を選ぶ",
+    "zh-CN": "选择代表咨询",
+    "zh-TW": "選擇代表諮詢",
+    "vi": "Chọn buổi tư vấn tiêu biểu",
+    "hi": "मुख्य परामर्श चुनें",
+    "es": "Elegir una consulta destacada",
+    "fr": "Choisir une consultation phare",
+    "de": "Signature-Deutung wählen",
+    "nl": "Kies een vast consult",
+    "ms": "Pilih konsultasi utama"
   },
   "shell.cdMobileBottomNav.cdMobileBottomNavMain.libraryTab.ariaLabel": {
     "ko": "내 보관함",
@@ -182,17 +182,17 @@
     "ms": "My library"
   },
   "shell.cdMobileBottomNav.cdMobileBottomNavMain.consult": {
-    "ko": "상담",
-    "en": "Chat",
-    "ja": "相談",
-    "zh-CN": "咨询",
-    "zh-TW": "諮詢",
-    "vi": "Chat",
-    "hi": "Chat",
-    "es": "Chat",
-    "fr": "Chat",
-    "de": "Chat",
-    "nl": "Chat",
-    "ms": "Chat"
+    "ko": "대표 상담",
+    "en": "Signature",
+    "ja": "代表相談",
+    "zh-CN": "代表咨询",
+    "zh-TW": "代表諮詢",
+    "vi": "Tiêu biểu",
+    "hi": "मुख्य",
+    "es": "Destacadas",
+    "fr": "Phares",
+    "de": "Signature",
+    "nl": "Uitgelicht",
+    "ms": "Utama"
   }
 }

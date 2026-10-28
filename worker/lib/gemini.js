@@ -5,6 +5,7 @@ import {
   createGeminiContextCache as createLLMContextCache,
   deleteGeminiContextCache as deleteLLMContextCache,
 } from "../../lib/llm-client.ts";
+import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { getAmbientAiLocale } from "./ai-locale-context.js";
 import { getPaidGenerationContext, capturePaidGenerationRaw } from "./paid-generation-context.js";
 
@@ -26,11 +27,11 @@ function normalizeProvider(provider) {
 }
 
 function toFailure(error, fallbackError = "llm_failed") {
+  // countTokens 단계 실패는 code 가 LLM_INPUT_TOKEN_COUNT_UNAVAILABLE 이라 한도 원인을 따로 싣는다.
   return {
     ok: false,
-    error: clean(error?.code || fallbackError),
-    status: Number(error?.status || 0) || null,
-    message: clean(error?.message || error || fallbackError, 500),
+    error: /^[A-Z][A-Z0-9_]{0,79}$/.test(error?.code || "") ? error.code : fallbackError,
+    ...safeGeminiFailure(error),
   };
 }
 
@@ -99,6 +100,7 @@ export function createGeminiContextCache(env, options = {}) {
     systemPrompt: clean(options.systemPrompt),
     locale: clean(options.locale) || getAmbientAiLocale() || undefined,
     model: clean(options.model),
+    reasoningTask: options.reasoningTask,
     ttlSeconds: Number(options.ttlSeconds) || undefined,
     timeoutMs: Number(options.timeoutMs) || undefined,
   }, env);
@@ -127,6 +129,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : undefined,
       taskType: normalizeTaskType(options),
       model: clean(options.model),
+      reasoningTask: options.reasoningTask,
       timeoutMs: Number(options.timeoutMs || 0) || undefined,
       maxProviderAttempts: getPaidGenerationContext() ? 1 : Number(options.maxProviderAttempts) || 1,
       responseMimeType: clean(options.responseMimeType) || undefined,

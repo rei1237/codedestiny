@@ -1,0 +1,180 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 284,
+          "right": 822
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 284,
+          "right": 822
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 284,
+          "right": 822
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 284,
+          "right": 822
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 284,
+          "right": 822
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 284,
+          "right": 822
+        }
+      ]
+    }
+  ],
+  "drawPosts": 0,
+  "authPosts": 0,
+  "otherPosts": 0,
+  "devPosts": 0,
+  "mockCalendarPosts": [
+    "/api/kasi/calendar",
+    "/api/kasi/calendar",
+    "/api/kasi/calendar",
+    "/api/kasi/calendar"
+  ],
+  "fallback": true,
+  "mode": "Mock APIs; actual free birth/result tile and detail gate; calendar requests separate; paid CTA trial only"
+}

@@ -1,28 +1,35 @@
 "use client";
+import Link from "next/link";
+import { TEA_SAJU_URL } from "@/js/core/saju/tea-entry.mjs";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { useAuthStore } from "@/app/_lib/auth-store";
 import { loginForCurrentPage } from "@/app/yeongnyangi/_lib/api";
 import { profileKey, useProfiles } from "@/app/yeongnyangi/_lib/use-profiles";
 import ProfileForm from "@/app/yeongnyangi/_components/ProfileForm";
-import { canOfferCheckout, canOfferFreeTrial, guardCheckout } from "./consultation-access";
+import { canOfferCheckout, canOfferHoney, guardCheckout, HONEY_COST } from "./consultation-access";
 import {
-  consultationApi, ConsultationApiError, isConsultationId,
-  type ChatConsultation, type ChatConsultationSummary, type ChatDomain, type ChatPersona, type ChatTarotKind,
+  consultationApi, ConsultationApiError, honeyApi, isConsultationId,
+  type ChatConsultation, type ChatConsultationSummary, type ChatDomain, type ChatPersona, type ChatTarotKind, type HoneyStatus,
 } from "./consultation-api";
+import ConsultationAccessPanel from "./ConsultationAccessPanel";
 import ConsultationResult from "./ConsultationResult";
 import { DOMAIN_ART, EMPTY_ROWS, MOMENT_ART, poseFor, refreshRow, showRow, TAROT_KINDS, type PersonaRows, type RoomMoment } from "./consultation-world";
 import { PersonaAvatar } from "./PersonaAvatar";
 import base from "./fortune-chat.module.css";
 import styles from "./consultation.module.css";
+import salon from "./yeoni-salon.module.css";
+import YeoniWelcome from "./YeoniWelcome";
+import ConsultationIntake from "./ConsultationIntake";
 
-// 가격 정본은 서버 레지스트리(fortune-chat-consultation)다. 아래 두 값은 결제창의 표시·스냅샷 선검사용으로,
-// 기존 대화형 상담(FortuneChatClient)과 같은 값을 쓴다.
-const COIN_PRICE = 30;
-const AMOUNT_KRW = 3000;
+// 표시와 결제 선검사는 서버와 동일한 가격 등록소를 사용한다.
+const PRICE = resolveServerFeaturePricing({ featureKey: "fortune-chat-consultation" });
+const COIN_PRICE = PRICE?.cost;
+const AMOUNT_KRW = PRICE?.amountKRW;
 const RESUME_KIND = "fortune-chat-consultation:engine";
 const QUESTION_MAX = 300;
 const POLL_MS = 1500;
@@ -35,6 +42,7 @@ const DRAFT_KEY = "fortune-chat:consultation-draft";
 const DRAFT_TTL_MS = 30 * 60 * 1000;
 
 // 상담자마다 세계가 다르다 — 연이는 마음부터, 네오(별빛 전략실)는 판단부터. 결과 순서는 consultation-world.ts.
+// 2026-10-13: 새 상담은 연이 하나로만 시작한다. 네오 항목은 지난 네오 상담(?consultation=)을 그대로 보여 주려고 남긴다.
 const PERSONAS: { id: ChatPersona; name: string; line: string; title: string; sub: string; placeholder: string }[] = [
   { id: "yeoni", name: "연이", line: "다정하게, 마음부터 살펴요", title: "연이의 운명 상담", sub: "명식을 바탕으로 질문 하나에 깊게 답해요", placeholder: "지금 가장 마음에 걸리는 질문 하나를 적어 주세요." },
   { id: "neo", name: "네오", line: "판단부터, 근거와 순서로 짚어요", title: "네오의 별빛 전략실", sub: "판단부터 짚고 근거와 할 일을 정리해요", placeholder: "정해야 할 것 하나를 적어 주세요. 판단부터 짚어 드릴게요." },
@@ -47,10 +55,12 @@ const DOMAINS: { id: ChatDomain; label: string }[] = [
   { id: "astrology", label: "서양 점성술" },
   { id: "tarot", label: "타로" },
 ];
-const SUGGESTIONS = ["올해 이직해도 괜찮을까요?", "지금 관계를 이어가도 될까요?", "요즘 돈 흐름은 어떤가요?", "올해 가장 조심할 시기는 언제예요?"];
 const STATE_LABEL: Record<string, string> = {
-  CREATED: "결제 전", PAID: "준비 중", GENERATING: "쓰는 중", PARTIAL: "이어 쓰는 중", COMPLETED: "완료", REFUNDED: "환불됨",
+  CREATED: "열기 전", PAID: "준비 중", GENERATING: "쓰는 중", PARTIAL: "이어 쓰는 중", COMPLETED: "완료", REFUNDED: "환불됨",
 };
+const stateLabel = (state: string, errorCode?: string) => (state === "REFUNDED" && errorCode === "HONEY_RESTORED" ? "꿀방울 반환" : STATE_LABEL[state] || state);
+// 기록 배지: 무엇으로 연 상담인지. 꿀방울만 따로 알리고 나머지 유료 열기는 한데 묶는다.
+const accessBadge = (h: ChatConsultationSummary) => (h.perUseSource === "honey" ? "꿀방울" : h.paid ? "결제·이용권" : "");
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const message = (error: unknown, fallback: string) => (error instanceof Error && error.message ? error.message : fallback);
@@ -113,11 +123,12 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
   const [question, setQuestion] = useState("");
   const [tarotKind, setTarotKind] = useState<ChatTarotKind>("choice");
   const tarot = domain === "tarot";
-  const kind = TAROT_KINDS.find((k) => k.id === tarotKind) || TAROT_KINDS[0];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [addingProfile, setAddingProfile] = useState(false);
+  const [honey, setHoney] = useState<HoneyStatus | null>(null);
+  const [honeyLoading, setHoneyLoading] = useState(false);
   const { profiles, profileId, select, saved, guest, loading: profilesLoading, refresh: refreshProfiles } = useProfiles();
   // 게스트는 계정 기록을 부르지 않는다(401 이 토큰 갱신 실패 → logout 이벤트로 번진다).
   const signedIn = useAuthStore().isAuthenticated;
@@ -139,7 +150,6 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
     let saved: { persona?: unknown; domain?: unknown; tarotKind?: unknown; question?: unknown; at?: unknown } | null = null;
     try { saved = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "null"); } catch { /* 초안은 보조 수단이다. */ }
     if (!saved || typeof saved.question !== "string" || !saved.question.trim() || !(Date.now() - Number(saved.at) < DRAFT_TTL_MS)) return;
-    if (saved.persona === "yeoni" || saved.persona === "neo") setPersona(saved.persona);
     const savedDomain = DOMAINS.find((d) => d.id === saved?.domain);
     if (savedDomain) setDomain(savedDomain.id);
     const savedKind = TAROT_KINDS.find((k) => k.id === saved?.tarotKind);
@@ -277,6 +287,26 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
     if (row?.state === "COMPLETED") void loadHistory(row.persona);
   }, [row?.state, row?.persona, loadHistory]);
 
+  /** 꿀방울 잔액(또는 오늘 출석). 실패해도 결제·이용권 카드는 그대로 쓸 수 있다. */
+  const loadHoney = useCallback(async (attend = false) => {
+    setHoneyLoading(true);
+    const next = attend ? await honeyApi.attend() : await honeyApi.status();
+    if (!mounted.current) return;
+    setHoneyLoading(false);
+    if (next) setHoney(next);
+    else if (attend) setError("출석을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
+  }, []);
+
+  // 꿀방울 카드가 보이는 동안만 잔액을 읽는다. 다른 화면에서 출석하면(cd:honey-refresh) 다시 읽는다.
+  const honeyWanted = signedIn && row?.persona === "yeoni" && canOfferCheckout(row);
+  useEffect(() => {
+    if (!honeyWanted) return undefined;
+    void loadHoney();
+    const onStorage = (event: StorageEvent) => { if (event.key === "cd:honey-refresh") void loadHoney(); };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [honeyWanted, loadHoney]);
+
   const create = async () => {
     const text = question.trim();
     if (busy || !text) return;
@@ -298,23 +328,6 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
       if (reason instanceof ConsultationApiError && reason.status === 404 && reason.code === "NOT_FOUND") {
         setError("새 상담 열기가 잠시 멈췄어요. 이미 시작한 상담은 기록에서 이어 볼 수 있어요.");
       } else fail(reason, "상담을 만들지 못했어요. 같은 내용으로 다시 시도해 주세요.");
-    } finally {
-      if (mounted.current) setBusy(false);
-    }
-  };
-
-  const openFreeTrial = async () => {
-    if (!row || busy || !canOfferFreeTrial(row)) return;
-    const id = row.id;
-    setBusy(true); setError(""); setNotice("");
-    try {
-      const next = same(await consultationApi.activate(id, "free_trial"), id);
-      if (mounted.current) refresh(next);
-    } catch (reason) {
-      if (reason instanceof ConsultationApiError && reason.code === "PG_PAYMENT_NOT_PAID") {
-        setError("이 상담은 결제창이 열려 있어요. 결제를 마치거나 취소한 뒤 다시 시도해 주세요.");
-      } else fail(reason, "무료 상담을 열지 못했어요. 잠시 후 다시 시도해 주세요.");
-      void readWithEvidence(id).then((next) => { if (mounted.current) refresh(next); }).catch(() => {});
     } finally {
       if (mounted.current) setBusy(false);
     }
@@ -355,6 +368,30 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
     }
   };
 
+  /** 꿀방울 30개로 연다. 서버 차감은 상담마다 한 번뿐이라, 응답이 늦어 다시 눌러도 두 번 쓰이지 않는다. */
+  const payHoney = async () => {
+    if (!row || busy || isPaying || row.persona !== "yeoni" || !canOfferHoney(row, honey?.balance)) return;
+    const id = row.id;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const next = same(await consultationApi.activate(id, "honey"), id);
+      if (!mounted.current) return;
+      refresh(next);
+      void loadHoney();
+    } catch (reason) {
+      if (reason instanceof ConsultationApiError && reason.code === "INSUFFICIENT_HONEY_DROPS") void loadHoney();
+      fail(reason, "꿀방울로 상담을 열지 못했어요. 꿀방울은 한 번만 쓰이니 같은 상담에서 다시 시도해 주세요.");
+    } finally {
+      if (mounted.current) setBusy(false);
+    }
+  };
+
+  const attendHoney = async () => {
+    if (honeyLoading) return;
+    setError(""); setNotice("");
+    await loadHoney(true);
+  };
+
   const retryGeneration = async () => {
     if (!row || busy) return;
     const id = row.id;
@@ -370,16 +407,11 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
   };
 
   const startNew = () => {
-    setRows((current) => ({ ...current, [persona]: null })); setError(""); setNotice(""); setConsultationParam("");
-    void loadHistory(persona);
+    // 지난 네오 상담을 보다가 새로 시작해도 새 상담은 연이와 한다.
+    setRows((current) => ({ ...current, [persona]: null })); setPersona("yeoni"); setError(""); setNotice(""); setConsultationParam("");
+    void loadHistory("yeoni");
   };
 
-  /** 모드 전환: 지금 보던 상담은 그 상담자 칸에 남고, 다른 상담자가 보던 상담(있으면)이 다시 열린다. */
-  const switchPersona = (next: ChatPersona) => {
-    if (next === persona || busy || isPaying) return;
-    setPersona(next); setError(""); setNotice("");
-    setConsultationParam(rows[next]?.id || "");
-  };
 
   const world = PERSONAS.find((p) => p.id === persona) || PERSONAS[0];
   const personaName = world.name;
@@ -387,56 +419,25 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
   const writing = !!row?.paid && row.state !== "COMPLETED" && row.state !== "REFUNDED";
   const held = writing && HELD.includes(row?.errorCode || "");
   const rowDomain = row?.product?.systems?.[0];
-
   return (
-    <main className={`${base.room}${persona === "neo" ? ` ${styles.starlight}` : ""}`} data-consultation-room data-persona={persona}>
-      <header className={base.header}>
-        <button type="button" className={`${base.backButton} ${styles.backButton}`} aria-label="뒤로" onClick={() => (row ? startNew() : window.history.back())}>←</button>
+    <main className={`${base.room}${persona === "neo" ? ` ${styles.starlight}` : ` ${salon.room}`}`} data-consultation-room data-persona={persona}>
+      <header className={`${base.header} ${salon.header}`}>
+        <button type="button" className={`${base.backButton} ${styles.backButton}`} aria-label="뒤로" onClick={() => (row ? startNew() : window.history.length > 1 ? window.history.back() : window.location.assign("/fortune-tea-house/"))}>←</button>
         <div className={base.brand}>
           <PersonaAvatar persona={persona} mood={poseFor(row, { failed: !!error, drafting: !!question.trim() })} size="sm" decorative />
           <div><strong>{world.title}</strong><span>{world.sub}</span></div>
         </div>
-        <div className={styles.modeSwitch} role="group" aria-label="상담자 바꾸기" data-consultation-mode>
-          {PERSONAS.map((p) => {
-            const kept = p.id !== persona && !!rows[p.id];
-            return (
-              <button key={p.id} type="button" aria-pressed={persona === p.id} disabled={busy || isPaying} onClick={() => switchPersona(p.id)}
-                aria-label={kept ? `${p.name} — 보던 상담이 있어요` : p.name} title={kept ? "보던 상담이 그대로 있어요" : undefined}>
-                {p.name}{kept && <i className={styles.keptDot} aria-hidden="true" />}
-              </button>
-            );
-          })}
-        </div>
+        <Link className={salon.headerLink} href="/records/" prefetch={false}>지난 상담</Link>
+        <Link className={salon.headerLink} href="/fortune-tea-house/" prefetch={false}>찻집</Link>
       </header>
 
-      <div className={base.timeline}>
-        {!row && (
-          <>
-            <section className={styles.panel} aria-labelledby="consultation-persona">
-              <h2 id="consultation-persona" className={styles.sectionTitle}>누구와 이야기할까요?</h2>
-              <div className={styles.personaPicker}>
-                {PERSONAS.map((p) => (
-                  <button key={p.id} type="button" aria-pressed={persona === p.id} disabled={busy || isPaying} onClick={() => switchPersona(p.id)}>
-                    <PersonaAvatar persona={p.id} mood="greet" size="sm" decorative />
-                    <span><strong>{p.name}</strong><small>{p.line}</small></span>
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className={styles.panel} aria-labelledby="consultation-domain">
-              <h2 id="consultation-domain" className={styles.sectionTitle}>어떤 운세로 볼까요?</h2>
-              <div className={`${base.chips} ${styles.chipWrap}`}>
-                {DOMAINS.map((d) => <button key={d.id} type="button" aria-pressed={domain === d.id} onClick={() => setDomain(d.id)}>{d.label}</button>)}
-              </div>
-              <DomainArt persona={persona} domain={domain} />
-              {tarot && <p className={styles.muted}>타로는 생년월일 없이 지금의 고민과 카드로 읽어요.</p>}
-            </section>
-
-            {!tarot && (
-              <section className={styles.panel} aria-labelledby="consultation-profile">
-                <h2 id="consultation-profile" className={styles.sectionTitle}>누구의 명식으로 볼까요?</h2>
-                {guest ? (
+      <div className={`${base.timeline} ${salon.timeline}`}>
+        {!row && <>
+          <YeoniWelcome />
+          <ConsultationIntake question={question} onQuestion={setQuestion} domain={domain} onDomain={setDomain}
+            tarotKind={tarotKind} onTarotKind={setTarotKind} guest={guest} busy={busy} enabled={enabled}
+            ready={guest || tarot || !!profileId} profileName={profiles.find((p) => profileKey(p) === profileId)?.name || ""}
+            onCreate={() => void create()} profile={<>{guest ? (
                   <div className={styles.actions}><button type="button" onClick={toLogin}>로그인하고 상담 시작하기</button></div>
                 ) : profilesLoading && !profiles.length ? (
                   <p className={styles.muted} role="status">프로필을 불러오는 중이에요.</p>
@@ -449,47 +450,37 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
                     </select>
                     <button type="button" className={styles.linkButton} onClick={() => setAddingProfile(true)}>새 프로필</button>
                   </div>
-                )}
-              </section>
-            )}
-
-            <section className={styles.panel} aria-labelledby="consultation-question">
-              <h2 id="consultation-question" className={styles.sectionTitle}>{tarot ? "어떤 고민을 카드로 볼까요?" : "무엇이 궁금한가요?"}</h2>
-              <div className={`${base.chips} ${styles.chipWrap}`}>
-                {tarot
-                  ? TAROT_KINDS.map((k) => <button key={k.id} type="button" aria-pressed={tarotKind === k.id} onClick={() => setTarotKind(k.id)}>{k.label}</button>)
-                  : SUGGESTIONS.map((s) => <button key={s} type="button" aria-pressed={question === s} onClick={() => setQuestion(s)}>{s}</button>)}
-              </div>
-              <textarea className={styles.textarea} rows={3} maxLength={QUESTION_MAX} value={question} onChange={(e) => setQuestion(e.target.value)}
-                placeholder={tarot ? kind.prompt : world.placeholder} aria-labelledby="consultation-question" />
-              <div className={styles.actions}>
-                <button type="button" disabled={busy || !question.trim() || (!guest && !tarot && !profileId) || enabled === false} onClick={() => void create()}>
-                  {busy ? "상담을 준비하는 중…" : guest ? "로그인하고 상담 시작하기" : "상담 준비하기"}
-                </button>
-              </div>
-              {enabled === false && <p className={styles.muted}>새 상담 열기가 잠시 멈췄어요. 이미 시작한 상담은 아래 기록에서 이어 볼 수 있어요.</p>}
-            </section>
-          </>
-        )}
+                )}</>} />
+          <details className={salon.support}><summary>상담 구성과 이용 방법</summary>
+            <p>사주·자미두수·숙요·베다점·서양 점성술·타로 중 하나로 질문을 살펴요. 각 체계의 근거를 섞지 않고 현재의 흐름과 현실적인 행동 조언을 정리해요.</p>
+            <p>준비된 상담을 확인한 뒤 이용권·월정석·단건 결제 등 사용 가능한 이용 방법을 선택해요. 완성된 상담은 지난 상담에서 다시 읽을 수 있어요.</p>
+          </details>
+        </>}
 
         {row && (
-          <section className={styles.panel} aria-labelledby="consultation-current">
-            <p className={styles.kicker} id="consultation-current">{DOMAINS.find((d) => d.id === row.product?.systems?.[0])?.label || "운명 상담"} · {STATE_LABEL[row.state] || row.state}</p>
+          <section className={`${styles.panel} ${salon.readingPanel}`} aria-labelledby="consultation-current">
+            <p className={styles.kicker} id="consultation-current">
+              {row.perUseSource === "honey" && <span className={styles.accessBadge} data-access="honey">꿀방울로 연 상담</span>}
+              {DOMAINS.find((d) => d.id === row.product?.systems?.[0])?.label || "운명 상담"} · {stateLabel(row.state, row.errorCode)}
+            </p>
             {!writing && !row.chapters?.length && DOMAINS.some((d) => d.id === rowDomain) && <DomainArt persona={row.persona} domain={rowDomain as ChatDomain} />}
             {row.consultation?.question && !row.chapters?.length && <blockquote className={styles.question}>{row.consultation.question}</blockquote>}
 
             {offerCheckout && (
-              <div className={styles.accessPanel} data-consultation-access>
-                <p>{rowDomain === "tarot" ? "질문에 맞춰 카드를 펼쳐 두었어요." : "질문과 명식을 확인했어요."} 상담을 열면 {personaName}가 바로 답을 쓰기 시작해요.</p>
-                <div className={styles.actions}>
-                  {canOfferFreeTrial(row) && <button type="button" disabled={busy || isPaying} onClick={() => void openFreeTrial()}>무료 상담 1회로 열기</button>}
-                  <button type="button" data-consultation-pay disabled={busy || isPaying} onClick={() => void pay()}>
-                    {isPaying ? "결제창을 여는 중…" : "상담 열기"}
-                  </button>
-                </div>
-                {/* 가격표 키는 서비스 등록 키다 — 상담별 결제 키(fc-<id>)는 가격표에 없어 "가격 확인 필요"가 뜬다. */}
-                <PriceBadge featureKey="fortune-chat-consultation" fallbackLabel="3,000원" prefix="1회 " className={base.priceBadge} />
-              </div>
+              <ConsultationAccessPanel
+                lead={`${rowDomain === "tarot" ? "질문에 맞춰 카드를 펼쳐 두었어요." : "질문과 명식을 확인했어요."} 상담을 열면 ${personaName}가 바로 답을 쓰기 시작해요.`}
+                showHoney={row.persona === "yeoni"}
+                honey={honey}
+                honeyLoading={honeyLoading}
+                busy={busy}
+                isPaying={isPaying}
+                onHoney={() => void payHoney()}
+                onAttend={() => void attendHoney()}
+                onPay={() => void pay()}
+              />
+            )}
+            {row.state === "REFUNDED" && row.errorCode === "HONEY_RESTORED" && (
+              <p className={styles.restored} role="status">상담을 완료하지 못해 사용한 꿀방울 {HONEY_COST}개를 돌려드렸어요.</p>
             )}
 
             {!row.paid && !offerCheckout && row.state !== "REFUNDED" && (
@@ -516,6 +507,13 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
           </Moment>
         )}
 
+        {!row && <aside className={styles.jointOffer}>
+          <h2>내 사주를 더 깊이 함께 읽고 싶다면</h2>
+          <p>연이·네오 공동 사주 상담은 별도 상품이에요. 기질과 생활 패턴부터 선택의 조건과 실행 계획까지 살펴봐요.</p>
+          <PriceBadge featureKey="fortune-tea-house-saju-joint-consultation" prefix="공동 상담 · " className={base.priceBadge} />
+          <a href={TEA_SAJU_URL}>연이·네오 공동 상담 자세히 보기</a>
+        </aside>}
+
         {!row && !guest && historyFor === persona && history.length === 0 && (
           <section className={styles.panel} aria-labelledby="consultation-history-empty">
             <Moment persona={persona} moment="empty">
@@ -533,7 +531,10 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
                 <li key={h.id}>
                   <button type="button" onClick={() => void open(h.id)} disabled={busy}>
                     <strong>{h.question || "질문 없는 상담"}</strong>
-                    <small>{DOMAINS.find((d) => d.id === h.domain)?.label || "운명 상담"} · {STATE_LABEL[h.state] || h.state}{h.totalChapters ? ` · ${h.completedChapters}/${h.totalChapters}` : ""}</small>
+                    <small>
+                      {accessBadge(h) && <span className={styles.accessBadge} data-access={h.perUseSource === "honey" ? "honey" : "paid"}>{accessBadge(h)}</span>}
+                      {DOMAINS.find((d) => d.id === h.domain)?.label || "운명 상담"} · {STATE_LABEL[h.state] || h.state}{h.totalChapters ? ` · ${h.completedChapters}/${h.totalChapters}` : ""}
+                    </small>
                   </button>
                 </li>
               ))}

@@ -1,0 +1,98 @@
+{
+  "id": "sukuyo-compatibility",
+  "featureKey": "compat-sukuyo-compatibility",
+  "title": "숙요 기본 궁합",
+  "notice": "기본 숙요 결과의 본명숙과 상대의 생년월일·양력/음력·시각·성별로 두 사람의 숙요 관계를 비교합니다. 시각의 기본값은 정오입니다. 관계 유형·거리·나와 상대의 역할, 관계 지도, 지표와 종합 해석, 대화 처방·주의 신호·회복 방향을 읽습니다. 관계 방향 데이터가 있을 때 관계 해설 14장과 전생의 상징적 이야기가 제공됩니다. 점수는 내부 참고값이며 성공 확률이 아닙니다. 근거리·중거리·원거리는 숙요에서 두 숙 사이를 분류한 거리이고 실제 거주지 간 거리가 아닙니다. 유명인 정보도 등록된 출생정보 범위 안의 비교이며 실제 감정이나 관계를 뜻하지 않습니다. 정밀 궁합 확장, 궁합 질문 AI 상담, 숙요 인연 레이더는 별도 상품입니다. 예시는 가상 편집이며 현재 화면의 결제 조건을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-two-seats",
+      "title": "같은 인연 안에서도, 서로 느끼는 자리는 달라요.",
+      "alt": "같은 인연 안에서도, 서로 느끼는 자리는 달라요.",
+      "src": "/feature-details/crafted/sukuyo-compatibility/01-two-seats.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 인연 안에서도,\n서로 느끼는 자리는 달라요.\n\n나에게 편안한 관계가\n상대에게는 어떤 역할로 다가오는지,\n숙요의 두 자리에서 읽어보세요.\n\n인연의 끈 · 숙요 기본 궁합"
+    },
+    {
+      "id": "02-a-direction-in-every-bond",
+      "title": "관계 이름 하나보다, 누가 어떻게 반응하는지.",
+      "alt": "관계 이름 하나보다, 누가 어떻게 반응하는지.",
+      "src": "/feature-details/crafted/sukuyo-compatibility/02-a-direction-in-every-bond.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "관계 이름 하나보다,\n누가 어떻게 반응하는지.\n나의 자리\n\n내가 먼저\n움직이는 방식과\n기대하는 반응\n\n상대의 자리\n\n상대가 받아들이는\n역할과\n반응의 방향\n\n같은 관계 유형도\n나 중심과 상대 중심으로 나눠 읽어요.\n\n역할은 우열이나 책임의 판정이 아니에요."
+    },
+    {
+      "id": "03-birth-and-mansion",
+      "title": "두 사람의 출생정보로, 숙요의 자리를 확인해요.",
+      "alt": "두 사람의 출생정보로, 숙요의 자리를 확인해요.",
+      "src": "/feature-details/crafted/sukuyo-compatibility/03-birth-and-mansion.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 사람의 출생정보로,\n숙요의 자리를 확인해요.\n나의 본명숙\n\n현재 기본 숙요 결과의 출생 기준\n\n상대의 정보\n\n생년월일 · 양력/음력 · 시각 · 성별\n\n등록된 유명인 비교\n\n제공된 출생정보의 범위 안에서 읽어요.\n\n시각 기본값은 정오예요.\n실제 입력값을 먼저 확인해 주세요."
+    },
+    {
+      "id": "04-first-reading",
+      "title": "처음에는, 관계의 전체 지도를 펼쳐요.",
+      "alt": "처음에는, 관계의 전체 지도를 펼쳐요.",
+      "src": "/feature-details/crafted/sukuyo-compatibility/04-first-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "처음에는,\n관계의 전체 지도를 펼쳐요.\n관계 유형과 거리\n\n두 숙의 관계와 방향 · 관계 지도\n\n요약과 참고 지표\n\n관계의 결 · 강점과 조율할 장면\n\n현실적인 관계 처방\n\n대화 예시 · 주의 신호 · 회복의 방향\n\n점수는 내부 참고값이며 성공 확률이 아니에요."
+    },
+    {
+      "id": "05-fourteen-chapters",
+      "title": "깊이 읽을 때는, 관계 해설 14장으로.",
+      "alt": "깊이 읽을 때는, 관계 해설 14장으로.",
+      "src": "/feature-details/crafted/sukuyo-compatibility/05-fourteen-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "깊이 읽을 때는,\n관계 해설 14장으로.\n관계를 이해하는 여섯 장\n\n본질 · 나의 역할 · 상대의 역할\n끌림 · 감정의 흐름 · 시간에 따른 변화\n\n함께 지내는 여덟 장\n\n연애 · 장기 관계와 결혼\n갈등 · 화해 · 친구 · 직장과 사업\n주의점 · 잘 쓰는 법\n\n관계 방향 데이터가 있을 때 제공돼요.\n같은 장에서도 두 사람의 관점을 나눠 읽어요."
+    },
+    {
+      "id": "06-distance-without-a-map",
+      "title": "가깝고 멀다는 말은, 두 숙 사이의 거리예요.",
+      "alt": "가깝고 멀다는 말은, 두 숙 사이의 거리예요.",
+      "src": "/feature-details/crafted/sukuyo-compatibility/06-distance-without-a-map.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "가깝고 멀다는 말은,\n두 숙 사이의 거리예요.\n숙요의 근거리·중거리·원거리\n\n27숙 안에서 분류한 관계의 거리예요.\n\n관계에서의 체감\n\n반응의 속도와 긴장·조율을\n읽는 하나의 기준으로 활용해요.\n\n실제 거주지 간 거리나\n상대의 마음 크기를 측정한 값은 아니에요."
+    },
+    {
+      "id": "07-a-story-not-a-verdict",
+      "title": "전생의 이야기는, 지금의 감정을 비추는 비유.",
+      "alt": "전생의 이야기는, 지금의 감정을 비추는 비유.",
+      "src": "/feature-details/crafted/sukuyo-compatibility/07-a-story-not-a-verdict.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "전생의 이야기는,\n지금의 감정을 비추는 비유.\n인연의 상징적 장면\n\n두 사람의 역할을 이야기로 읽어요.\n\n지금 남는 흔적과 과제\n\n익숙한 반응을 알아차리고\n관계에서 바꿔볼 태도를 살펴요.\n\n전생의 사실 여부를 입증하지 않아요.\n현재의 관계를 성찰하는 콘텐츠예요."
+    },
+    {
+      "id": "08-fictional-a-shared-effort",
+      "title": "늘 먼저 맞추는 마음에도, 확인하고 싶은 것이 있어요.",
+      "alt": "늘 먼저 맞추는 마음에도, 확인하고 싶은 것이 있어요.",
+      "src": "/feature-details/crafted/sukuyo-compatibility/08-fictional-a-shared-effort.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "늘 먼저 맞추는 마음에도,\n확인하고 싶은 것이 있어요.\n\n가상 편집 예시 · 실제 상담 결과 아님\n\n“내가 먼저 연락하고 챙기는 일이\n자연스러워도, 그 역할이\n언제나 내 몫일 필요는 없어요.\n\n잠깐 속도를 늦추고\n상대가 움직일 여지를 남겨보세요.\n서로 원하는 관계의 간격을\n말로 확인하는 것도 좋아요.”"
+    },
+    {
+      "id": "09-separate-next-readings",
+      "title": "기본 궁합 뒤의 선택도, 범위를 알고 이어가세요.",
+      "alt": "기본 궁합 뒤의 선택도, 범위를 알고 이어가세요.",
+      "src": "/feature-details/crafted/sukuyo-compatibility/09-separate-next-readings.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기본 궁합 뒤의 선택도,\n범위를 알고 이어가세요.\n이 상품 · 기본 궁합\n\n관계의 구조와 역할, 해설과 처방\n\n별도 · 정밀 궁합 확장\n\n목적별 상세·참고 일정·회복 루틴\n\n별도 · 궁합 질문 AI 상담\n\n구체적인 질문을 더해 받는 상담 답변\n\n숙요 인연 레이더도 별도 상품이에요."
+    },
+    {
+      "id": "10-leave-space-for-a-person",
+      "title": "관계의 이름을 읽은 뒤, 실제 사람의 말을 들어요.",
+      "alt": "관계의 이름을 읽은 뒤, 실제 사람의 말을 들어요.",
+      "src": "/feature-details/crafted/sukuyo-compatibility/10-leave-space-for-a-person.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "관계의 이름을 읽은 뒤,\n실제 사람의 말을 들어요.\n\n상대의 출생정보를 확인하고\n기본 궁합 보기로 이어가세요.\n\n유명인 비교로\n실제 인연·감정을 판정하지 않아요.\n현재 화면의 결제 조건을 확인해 주세요."
+    }
+  ]
+}

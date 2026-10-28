@@ -1,0 +1,116 @@
+{
+  "version": "yeongnyangi-offline-recheck-v1",
+  "reviewedAt": "2026-10-13T08:17:36.143Z",
+  "codeSha": "7c6b49f5b8fb137f916b4ef19aa95a27ac63d3e7",
+  "codeFingerprint": "3dbe917746f49881314dfa7d9c0978e954e29ce4bd2297e972739e489589d02b",
+  "mode": "saved-sample-offline",
+  "checkedRules": [
+    "precise dates",
+    "month pillars",
+    "relative years",
+    "yearly palaces",
+    "tarot timing and settled verdict"
+  ],
+  "newGeneration": "NOT_RUN",
+  "semanticReview": "NOT_VERIFIED",
+  "samples": [
+    {
+      "id": "Y1",
+      "generationAsOf": "2026-10-10",
+      "generationVersion": "question-consultation-20261007",
+      "layoutVersion": "question-consultation-20261010",
+      "originalVerdict": "판정: 불합격 (시기 근거 오류)",
+      "sampleHash": "76f879545f3c4ea92f323814be6483128a97efba8778796062e28cf206ad1839",
+      "chapters": 11,
+      "beforeErrors": [
+        {
+          "chapter": 6,
+          "code": "CHAPTER_YEAR_LABEL_MISMATCH"
+        }
+      ],
+      "afterErrors": [],
+      "changedChapters": [
+        1,
+        3,
+        4,
+        6,
+        7,
+        8,
+        9,
+        11
+      ],
+      "cardListing": [],
+      "mechanicalStatus": "PASS",
+      "overallStatus": "EDITORIAL_REVIEW_REQUIRED"
+    },
+    {
+      "id": "Z",
+      "generationAsOf": "2026-10-10",
+      "generationVersion": "question-consultation-20261007",
+      "originalVerdict": "판정: 불합격 (유년 사화 혼동, Y2와 같은 원인)",
+      "sampleHash": "8f4f44bd687dd85a4374b78a2b65b89aabf587f3f5c357fdcb47b0fa314cf801",
+      "chapters": 7,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "changedChapters": [],
+      "cardListing": [],
+      "mechanicalStatus": "PASS",
+      "overallStatus": "EDITORIAL_REVIEW_REQUIRED"
+    },
+    {
+      "id": "A",
+      "generationAsOf": "2026-10-10",
+      "generationVersion": "question-consultation-20261007",
+      "originalVerdict": "판정: 불합격 (시기 근거 없음)",
+      "sampleHash": "c158beb2e98be3cff8c0bbc82245b37c200c84adb3d1b48ee3aabf4b2ca6d8fa",
+      "chapters": 7,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "changedChapters": [],
+      "cardListing": [],
+      "mechanicalStatus": "PASS",
+      "overallStatus": "EDITORIAL_REVIEW_REQUIRED"
+    },
+    {
+      "id": "T",
+      "generationAsOf": "2026-10-11",
+      "generationVersion": "question-consultation-20261007",
+      "layoutVersion": "question-consultation-20261010",
+      "originalVerdict": "재판정 (2026-10-11, 통합 브랜치): 조건부 합격",
+      "sampleHash": "2477e0c5995ca9e56c04a95b54256a26abfa7472c741208caa093de3e749541d",
+      "chapters": 11,
+      "beforeErrors": [
+        {
+          "chapter": 1,
+          "code": "TAROT_UNGROUNDED_TIMING"
+        }
+      ],
+      "afterErrors": [],
+      "changedChapters": [
+        1
+      ],
+      "cardListing": [
+        {
+          "chapter": 2,
+          "block": "evidence",
+          "count": 9,
+          "limit": 7
+        },
+        {
+          "chapter": 3,
+          "block": "meaning",
+          "count": 8,
+          "limit": 7
+        },
+        {
+          "chapter": 7,
+          "block": "evidence",
+          "count": 9,
+          "limit": 7
+        }
+      ],
+      "mechanicalStatus": "PASS",
+      "overallStatus": "EDITORIAL_REVIEW_REQUIRED"
+    }
+  ]
+}

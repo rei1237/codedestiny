@@ -1,0 +1,41 @@
+{
+  "featureKey": "compat-ziwei-compatibility",
+  "status": "다음 제작 대상 조사",
+  "priceSource": "worker/lib/paid-feature-registry.js;js/saju-engine.js ZW_COMPAT_COST",
+  "entry": "js/saju-engine.js #zwCompatibility/_runZwCompatibility",
+  "inputs": [
+    "본인 명반",
+    "상대 양력 생년월일",
+    "시각 기본12:00",
+    "성별",
+    "도시;경도/DST 보정"
+  ],
+  "renderer": "js/saju-engine.js _runZwCompatibilityCore",
+  "contents": [
+    "관계의 큰 흐름",
+    "두 명반의 성향과 근거",
+    "사랑·생활·친구로서의 호흡",
+    "일과 협력의 방식",
+    "갈등을 줄이는 대화",
+    "시기의 흐름을 읽는 기준",
+    "두 사람의 실천 계획",
+    "참고 기록과 상징 이야기"
+  ],
+  "details": [
+    "6궁 주성 비교;명궁/부부궁/복덕궁/전택궁/관록궁/재백궁",
+    "연애/결혼/친구/직장/사업 5분야 내부지수+근거+행동",
+    "전생 이야기는 창작 상징",
+    "차성/화기/시기 해석은 실제자료조건"
+  ],
+  "extra": "CompatLlm.mountZiweiFromPayload → mountCard/getPrompt, 프롬프트 복사; 외부AI답변 포함으로 광고하지 않음",
+  "art": "public/images/ziwei/compatibility-atlas-v1.webp 직접 시각 확인",
+  "remaining": [
+    "10패널 개별 원고/렌더/통합/검수"
+  ],
+  "priceSnapshotKRW": 3000,
+  "conditions": [
+    "대한 비교는 나이 구간이며 달력 연도 교차 세운 아님; 만남/결혼 연도 예측 미포함",
+    "명궁/주성·화기 자료에 따라 근거문단조건부",
+    "정오 입력값 실제 시각 확인"
+  ]
+}

@@ -8,6 +8,10 @@
 // 테스트 환경에서는 스텁으로 대체한다.
 module.exports = {
   roots: ["<rootDir>/__tests__"],
+  // 직렬 실행을 유지하되 ESM 모듈이 한 프로세스에 계속 쌓이지 않게 파일 종료 후 재활용한다.
+  // runInBand는 worker 재활용을 우회하므로 전체 스위트의 기본 인수로 넣지 않는다.
+  maxWorkers: 1,
+  workerIdleMemoryLimit: "512MiB",
   // 🔴 실과금·실네트워크 차단은 러너가 아니라 **설정**이 진다. scripts/run-mock-tests.mjs 는
   //    NODE_OPTIONS 의 --require 로 이 가드를 넣지만, `npx jest <파일>` 처럼 러너를 우회하면
   //    보호가 통째로 사라진다 — 실측 2026-09-13: 직접 호출한 jest 안에서 요청이
@@ -16,6 +20,8 @@ module.exports = {
   //    덮으므로 그대로 둔다.
   //    🔴 이것을 CI 잡의 NODE_OPTIONS 로 올리지 말 것 — npm ci 까지 막힌다.
   setupFiles: ["<rootDir>/scripts/lib/mock-network-guard.cjs"],
+  // 결제 증빙 claim 메모리 대역을 매 테스트 전에 비운다(아래 billing-evidence-claim-store 매핑과 짝).
+  setupFilesAfterEnv: ["<rootDir>/scripts/lib/billing-evidence-claim-test-reset.cjs"],
   moduleNameMapper: {
     // 🔴 <rootDir>/node_modules 로 적지 말 것. 이 레포는 .claude/worktrees/ 아래 워크트리에서
     //    작업하는데, 워크트리에는 node_modules 가 없어서 그 경로가 통째로 빗나간다
@@ -32,6 +38,9 @@ module.exports = {
     // "항상 코드 기본값을 돌려준다"는 대역이 실제 동작과 정확히 같다.
     "(^|/)lib/cms/build-text(\\.ts)?$": "<rootDir>/__tests__/__mocks__/cms-build-text.js",
     "\\.wasm$": "<rootDir>/__tests__/__mocks__/swisseph-wasm-binary.js",
+    // 결제 증빙 claim 저장소(네이티브 컬렉션)는 테스트에서 메모리로 대역한다 — db.js 를 목으로 바꾼
+    // 라우트 테스트가 claim 때문에 실제 연결로 빠지지 않게. 로직(billing-evidence-claim.js)은 그대로 돈다.
+    "(^|/)billing-evidence-claim-store(\\.js)?$": "<rootDir>/__tests__/__mocks__/billing-evidence-claim-store.js",
   },
   // __tests__ 아래에 러너가 다른 파일들이 섞여 있다. 걸러내지 않으면 jest 가 이들을 테스트로
   // 수집해 "must contain at least one test"로 실패시키고, 그 상시 빨간불이 진짜 실패를 가린다.
@@ -41,6 +50,8 @@ module.exports = {
     "[\\\\/]__tests__[\\\\/]__mocks__[\\\\/]",
     "[\\\\/]__tests__[\\\\/]fixtures[\\\\/]",
     "[\\\\/]__tests__[\\\\/]guardian-fortune[\\\\/]contract\\.test\\.js$",
+    // 천문·기간 검증은 node:test와 실제 TS 로더를 사용한다. 아래 전용 러너에 등록한다.
+    "[\\\\/]__tests__[\\\\/]fortune[\\\\/]sky-and-range\\.test\\.mjs$",
     // node:test 로 작성된 정적 검사들. `npm run test:node` 가 돌린다.
     "[\\\\/]__tests__[\\\\/]ui[\\\\/]",
     // 릴리스 빌드 파이프라인 가드. 🔴 jest(= critical 티어) 에 두면 정작 그것이 지키는

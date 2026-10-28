@@ -23,6 +23,8 @@
 > - 위 "54개"는 손으로 센 값이라 **믿지 말 것.** 정본은 `npm run verify:guard-wiring` 이 계산한다(실측: `verify:*` 178개 중 88개 배선 / 90개 미배선 선언).
 > - 아래 G-5 표의 `verify:public-parity` 는 **오류**였다 — 실제로는 `scripts/build-cf-main.mjs` 안에서 `build:cf` 의 blocking 스텝으로 이미 돌고 있었다. 이런 "파일·배열 형태의 배선"을 손으로 세다 놓친 것이 애초에 숫자가 틀린 이유다.
 > - 배선한 것은 `verify:mobile-detail-nonintrusive` 하나뿐이다(문서가 이미 "CI 차단"이라 약속하고 있었다). 나머지는 사유와 함께 **미배선으로 선언**했다 — 게이트 추가는 사용자 승인 사항이기 때문이다.
+>
+> **후속 정정 (2026-10-13)** — 위 숫자(178개 중 88개 배선 / 90개 미배선)와 "나머지는 미배선" 서술은 2026-08-13 스냅샷이다. 그 뒤 41개가 shadow 레인에서 `pr-ci.yml` 로 승격돼(2026-09-13, 사용자 승인) 달라졌다. 정본은 계속 `npm run verify:guard-wiring` 의 출력과 `scripts/verify-guard-wiring.mjs` 의 `UNWIRED_BY_DESIGN` 이다. G-8 `verify:mobile-cdp-smoke` 는 여전히 `UNWIRED_BY_DESIGN`(로컬 개발 서버 필요)이다. 이 정정은 `pr-ci.yml`·가드 스크립트 대조로만 했고 브랜치 보호(머지 차단) 설정은 확인하지 않았다.
 
 ---
 
@@ -210,7 +212,7 @@ __tests__/worker/db.transaction-budget.test.js
 |---|---|---|
 | `verify:public-parity` | 셸 6종 ↔ `public/` 미러 정합 | ⚠️ **오판이었다** — `scripts/build-cf-main.mjs` 안에서 `build:cf` 의 blocking 스텝으로 이미 돌고 있었다. 손으로 세다 "파일·배열 형태의 배선"을 놓쳤다 |
 | `verify:mobile-detail-nonintrusive` | CLAUDE.md 가 "CI 차단"이라고 적어 둔 가드인데 배선이 없었다 | ✅ `pr-ci.yml` 에 배선됨 (문서가 이미 약속한 것이라 "빠진 칸 채우기"로 처리) |
-| `verify:auth-public-origin` · `verify:payment-service-boundary` · `verify:payment-choice-single-instance` · `verify:pass-check-retry` · `verify:static-asset-cache-keys` · `verify:route-await-dispatch` | OAuth origin 고정 · 결제 경계 · 결제창 단일 인스턴스 · 이용권 재시도 · 자산 캐시 키 · 라우트 await 디스패치 | 사유와 함께 `UNWIRED_BY_DESIGN` 에 **선언**됨. 배선은 게이트 추가이므로 사용자 승인 사항 |
+| `verify:auth-public-origin` · `verify:payment-service-boundary` · `verify:payment-choice-single-instance` · `verify:pass-check-retry` · `verify:static-asset-cache-keys` · `verify:route-await-dispatch` | OAuth origin 고정 · 결제 경계 · 결제창 단일 인스턴스 · 이용권 재시도 · 자산 캐시 키 · 라우트 await 디스패치 | 당시에는 사유와 함께 `UNWIRED_BY_DESIGN` 에 **선언**됐다(배선은 게이트 추가이므로 사용자 승인 사항). **이후 여섯 개 모두 `pr-ci.yml` 에 배선됐다** — 2026-09-13 shadow→PR 승격 41개에 포함, 사용자 승인(2026-10-13 대조) |
 
 **남아 있는 규칙** (이 항목이 닫힌 뒤에도 계속 적용된다):
 

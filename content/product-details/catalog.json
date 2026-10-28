@@ -1,0 +1,223 @@
+{
+  "products": {
+    "fortune-tea-house-tarot-consultation": "tea-tarot-three",
+    "fortune-tea-house-tarot-five-consultation": "tea-tarot-five",
+    "fusion-fortune-consultation": "fusion-fortune",
+    "yeongnyangi-saju-mackerel": "yeongnyangi-saju-mackerel",
+    "yeongnyangi-saju-salmon": "yeongnyangi-saju-salmon",
+    "yeongnyangi-saju-flounder": "yeongnyangi-saju-flounder",
+    "yeongnyangi-saju-tuna": "yeongnyangi-saju-tuna",
+    "life-book-ai-consultation": "life-book",
+    "life-fortune-ai-consultation": "life-fortune",
+    "master-love-codex": "master-love-codex",
+    "master-love-codex-compat": "master-love-codex-compat",
+    "love-secret-ai-consultation": "love-secret",
+    "fortune-tea-house-saju-consultation": "tea-saju",
+    "fortune-tea-house-saju-compatibility-consultation": "tea-saju-compat",
+    "fortune-tea-house-sukuyo-compatibility-consultation": "tea-sukuyo",
+    "neo-operation-room-consultation": "neo-operation-room",
+    "fortune-chat-consultation": "chat-yeoni",
+    "yeongnyangi-ziwei-mackerel": "yeongnyangi-ziwei-mackerel",
+    "yeongnyangi-ziwei-salmon": "yeongnyangi-ziwei-salmon",
+    "yeongnyangi-ziwei-flounder": "yeongnyangi-ziwei-flounder",
+    "yeongnyangi-ziwei-tuna": "yeongnyangi-ziwei-tuna",
+    "yeongnyangi-vedic-mackerel": "yeongnyangi-vedic-mackerel",
+    "yeongnyangi-vedic-salmon": "yeongnyangi-vedic-salmon",
+    "yeongnyangi-vedic-flounder": "yeongnyangi-vedic-flounder",
+    "yeongnyangi-vedic-tuna": "yeongnyangi-vedic-tuna",
+    "yeongnyangi-astrology-mackerel": "yeongnyangi-astrology-mackerel",
+    "yeongnyangi-astrology-salmon": "yeongnyangi-astrology-salmon",
+    "yeongnyangi-astrology-flounder": "yeongnyangi-astrology-flounder",
+    "yeongnyangi-astrology-tuna": "yeongnyangi-astrology-tuna",
+    "yeongnyangi-sukuyo-mackerel": "yeongnyangi-sukuyo-mackerel",
+    "yeongnyangi-sukuyo-salmon": "yeongnyangi-sukuyo-salmon",
+    "yeongnyangi-sukuyo-flounder": "yeongnyangi-sukuyo-flounder",
+    "yeongnyangi-sukuyo-tuna": "yeongnyangi-sukuyo-tuna",
+    "yeongnyangi-tarot-mackerel": "yeongnyangi-tarot-mackerel",
+    "yeongnyangi-tarot-salmon": "yeongnyangi-tarot-salmon",
+    "yeongnyangi-tarot-flounder": "yeongnyangi-tarot-flounder",
+    "yeongnyangi-tarot-tuna": "yeongnyangi-tarot-tuna",
+    "yeongnyangi-fusion-saju-ziwei": "yeongnyangi-fusion-saju-ziwei",
+    "yeongnyangi-fusion-sukuyo-vedic": "yeongnyangi-fusion-sukuyo-vedic",
+    "yeongnyangi-fusion-astrology-tarot": "yeongnyangi-fusion-astrology-tarot",
+    "yeongnyangi-fusion-all": "yeongnyangi-fusion-all",
+    "animal-destiny-unlock": "animal-destiny",
+    "animal-totem-basic": "animal-totem-basic",
+    "animal-totem-deep": "animal-totem-deep",
+    "astro_basic_deep_pack": "astro-basic-deep",
+    "astro_career_talent_deep": "astro-career-talent",
+    "astro_growth_shadow_deep": "astro-growth-shadow",
+    "astro_stellar_career_room": "astro-stellar-career",
+    "astro_stellar_relationship_room": "astro-stellar-relationship",
+    "astro_stellar_growth_room": "astro-stellar-growth",
+    "astro_stellar_talent_room": "astro-stellar-talent",
+    "astro_talent_attraction_deep": "astro-talent-attraction",
+    "astro_relationship_deep": "astro-relationship",
+    "astro_yearly_transit": "astro-yearly-transit",
+    "astrology_ai_prompt_generator": "astro-question-consultation",
+    "astrology-ai-consultation": "astrology-expert",
+    "compat-astro-direct-synastry": "astro-direct-synastry",
+    "compat-astro-synastry": "astro-celebrity-synastry",
+    "compat-saju-compatibility": "saju-compatibility",
+    "compat-sukuyo-compatibility": "sukuyo-compatibility",
+    "premium-sukuyo-compat-extra": "sukuyo-compatibility-precision",
+    "compat-ziwei-compatibility": "ziwei-compatibility",
+    "sukuyo-nature-deep-dive": "sukuyo-nature",
+    "sukuyo-relationship-encyclopedia": "sukuyo-encyclopedia",
+    "sukyo_yearly_fortune_unlock": "sukuyo-yearly",
+    "sukuyo-extreme-t-relationship": "extreme-t-relationship",
+    "sukuyo-past-life-reading": "sukuyo-bond-radar",
+    "sukuyo_ai_prompt_generator": "sukuyo-question-ai",
+    "sukuyo-compatibility-ai": "sukuyo-compatibility-expert",
+    "vedic-ai-consultation": "vedic-expert",
+    "vedic_ai_prompt_generator": "vedic-question-ai",
+    "vedic_basic_reading": "vedic-basic-reading",
+    "vedic-compatibility-per-use": "vedic-compatibility",
+    "ziwei-ai-consultation": "ziwei-expert",
+    "ziwei_ai_prompt_generator": "ziwei-question-ai",
+    "ziwei_twelve_palaces": "ziwei-twelve-palaces",
+    "ziwei_love_deep": "ziwei-spouse",
+    "ziwei_life_yearly_flow": "ziwei-life-yearly",
+    "ziwei_decade_luck": "ziwei-decade",
+    "ziwei_symbolic_layer": "ziwei-symbolic",
+    "ziwei-deep-pdf": "ziwei-deep-pdf",
+    "ziwei-island-deep-report": "island-report",
+    "ziwei-island-palace-consult": "island-palace-consult",
+    "saju_ai_question_prompt": "saju-question-ai",
+    "pet-saju-ai-consultation": "pet-saju-report",
+    "pet-compatibility-ai": "pet-compatibility",
+    "new-year-ai-consultation": "new-year-expert",
+    "dream-psycho-analysis": "dream-psycho",
+    "stonehenge-runes-single": "rune-single",
+    "stonehenge-runes-triad": "rune-triad",
+    "stonehenge-runes-deep": "rune-deep",
+    "stonehenge-runes-yearly": "rune-yearly",
+    "openGeomancyOracle": "geomancy-oracle",
+    "geomancy": "geomancy-oracle",
+    "maya-prompt-generator": "maya-prompt",
+    "openKemetModal": "kemet-oracle",
+    "royal-tea-oracle": "royal-tea-oracle",
+    "human-design-report": "human-design-report",
+    "palm-reading-general": "palm-reading",
+    "rpt_skillTreeCard": "life-skill-tree",
+    "rpt_specialCharmCard": "personal-charm",
+    "rpt_villainCard": "relationship-boundaries",
+    "rpt_quantumCard": "quantum-saju",
+    "rpt_energyCoordCard": "energy-travel",
+    "premium-naming-prompt": "naming-ai",
+    "relationship-boundary-test": "relationship-boundary-test",
+    "premium-fpti-report": "fpti-deep-report",
+    "fun.quantumLotto.ritualReport": "moon-lucky-ritual",
+    "premium-sibyl-dominator": "sibyl-dominator",
+    "tarot-numerology-reading": "numerology-tarot",
+    "tarot-ijik": "career-transition-tarot",
+    "tarot-celestial-harmony": "celestial-harmony",
+    "tarot-mindscan": "mindscan-tarot",
+    "tarot-crystal-soul-reading": "crystal-soul-tarot",
+    "saju-guardian-unlock": "saju-guardian",
+    "tarot-love-relationship": "love-relationship-tarot",
+    "tarot-reunion-reading": "reunion-tarot",
+    "tarot-year-fortune": "year-fortune-tarot",
+    "neville-meditation": "neville-meditation",
+    "cosmic-soul-meditation": "cosmic-soul-meditation",
+    "yoga-guru-per-use": "divya-yoga",
+    "karma-destiny-ai-consultation": "karma-destiny",
+    "tetogen_deep_report": "teto-egen-deep",
+    "destiny_meeting_place": "destiny-meeting-place",
+    "tarot-prompt-maker": "tarot-oracle-focus",
+    "tarot-prompt-maker-standard": "tarot-oracle-context",
+    "tarot-prompt-maker-deep": "tarot-oracle-depth",
+    "tarot-prompt-maker-master": "tarot-oracle-horizon",
+    "destiny-compass-crossroads": "compass-crossroads",
+    "destiny-compass-future-sim": "compass-future-sim",
+    "destiny-compass-life-voyage": "compass-life-voyage",
+    "destiny-compass-deep-report": "compass-deep-report",
+    "nakshatra-lord-report": "nakshatra-lord",
+    "nakshatra-dasha-map": "nakshatra-dasha",
+    "nakshatra-vvip-codex": "nakshatra-vvip",
+    "nakshatra-muhurta": "nakshatra-muhurta",
+    "nakshatra-ai-consultation": "nakshatra-ai",
+    "nakshatra-compat": "nakshatra-compat",
+    "love-code": "love-code",
+    "physiognomy-ogwan-mole-deep": "physiognomy-ogwan",
+    "physiognomy-compatibility": "physiognomy-compat",
+    "physiognomy-pastlife-compatibility": "physiognomy-pastlife",
+    "rpt_healthReportCard": "health-rhythm",
+    "rpt_secretHouseEntryCard": "secret-house",
+    "tarot-myeongri-three-card": "myeongri-tarot-three",
+    "olympus-fc": "olympus-oracle",
+    "ifa-oracle": "ifa-oracle",
+    "vedic_prashna_prompt": "vedic-prashna-prompt"
+  },
+  "introductions": {
+    "fusion-fortune": [
+      "fusion-fortune"
+    ],
+    "life-book-ai": [
+      "life-book"
+    ],
+    "love-secret-ai": [
+      "love-secret"
+    ],
+    "new-year-ai": [
+      "new-year-expert"
+    ],
+    "master-love-codex": [
+      "master-love-codex",
+      "master-love-codex-compat"
+    ],
+    "fortune-tea-house": [
+      "tea-saju",
+      "tea-saju-compat",
+      "tea-sukuyo",
+      "tea-tarot-three",
+      "tea-tarot-five"
+    ],
+    "neo-operation-room": [
+      "neo-operation-room"
+    ],
+    "fortune-chat": [
+      "chat-engine-yeoni",
+      "chat-engine-neo"
+    ],
+    "animal-destiny": [
+      "animal-destiny"
+    ],
+    "animal-totem": [
+      "animal-totem-basic",
+      "animal-totem-deep"
+    ],
+    "nakshatra-muhurta": [
+      "nakshatra-muhurta"
+    ],
+    "olympus-oracle": [
+      "olympus-oracle"
+    ],
+    "astrology-ai": [
+      "astrology-expert"
+    ],
+    "ziwei-ai": [
+      "ziwei-expert"
+    ],
+    "vedic-ai": [
+      "vedic-expert"
+    ],
+    "sukuyo-compatibility-ai": [
+      "sukuyo-compatibility-expert"
+    ],
+    "karma-destiny-ai": [
+      "karma-destiny"
+    ]
+  },
+  "variants": {
+    "fortune-chat-consultation": {
+      "yeoni": "chat-yeoni",
+      "neo": "chat-neo",
+      "engine-yeoni": "chat-engine-yeoni",
+      "engine-neo": "chat-engine-neo"
+    },
+    "yeongnyangi-saju-flounder": {
+      "prashna": "yeongnyangi-prashna"
+    }
+  }
+}

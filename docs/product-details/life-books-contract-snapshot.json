@@ -1,0 +1,62 @@
+{
+  "mode": "source constants extracted; no generated customer output",
+  "source": "worker/routes/life-book-ai.js",
+  "LIFE_BOOK_CHAPTER_TITLES": [
+    "타고난 사주의 원형",
+    "성격과 내면의 작동 방식",
+    "재능과 일의 방향",
+    "사랑과 인연",
+    "재물과 현실 기반",
+    "인간관계와 가족의 장",
+    "건강과 조후의 균형",
+    "대운으로 보는 인생의 큰 장면",
+    "가까운 시기의 세운 조언",
+    "인생의 책 마지막 문장"
+  ],
+  "LIFE_FORTUNE_CHAPTER_TITLES": [
+    "타고난 명식의 중심",
+    "성격과 마음의 결",
+    "재능과 일의 방향",
+    "재물과 생활 기반",
+    "사랑과 인연의 흐름",
+    "관계와 가족의 장",
+    "건강과 생활 리듬",
+    "대운으로 보는 큰 전환",
+    "가까운 세운의 흐름",
+    "앞으로 열릴 선택"
+  ],
+  "EXPERT_READING_SPECS": [
+    {
+      "title": "일간과 월지가 여는 중심 기질",
+      "evidenceRefs": [
+        "dayMaster",
+        "seasonalBalance",
+        "pillarDetails.month"
+      ]
+    },
+    {
+      "title": "오행과 조후가 청하는 보완",
+      "evidenceRefs": [
+        "fiveElements",
+        "seasonalBalance",
+        "usefulGod"
+      ]
+    },
+    {
+      "title": "십성으로 읽는 관계와 일의 방식",
+      "evidenceRefs": [
+        "tenGods",
+        "tenGodsByPillar",
+        "fortuneFacts.strongestTenGods"
+      ]
+    },
+    {
+      "title": "대운과 세운이 비추는 선택의 시기",
+      "evidenceRefs": [
+        "majorLuck",
+        "yearlyLuck",
+        "relationSummary"
+      ]
+    }
+  ]
+}

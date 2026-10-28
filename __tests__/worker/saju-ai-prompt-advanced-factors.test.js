@@ -378,7 +378,11 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     "겁재가 재성을 다투고 식상·관성의 조절이 부족한 경우에는 동업에서 손실이나 분쟁 가능성을 살핍니다. 다만 재성이 충분하고 정산과 역할이 분명하면 경쟁이 공동 성과로 이어질 여지도 있습니다.",
     "상관이 재성으로 이어지고 일간이 감당할 힘이 있는 경우에는 기술을 사업이나 부업으로 표현할 가능성을 살펴볼 수 있습니다. 수입 창출은 고객의 반응과 비용을 따로 확인해야 합니다.",
     "36세 대운의 재성이 원국의 식상을 이어받는다면 재물 기회를 넓히는 쪽으로 해석할 수 있습니다. 다만 일간의 지원이 부족하면 부담이 커질 수 있으므로 사업 확장 전 실제 자원과 비용을 확인하세요.",
-    "겁재의 경쟁과 동업 손실은 조건에 따라 달라집니다.\n\n계약 내용은 반드시 기록하고 역할과 정산 기준을 확인하세요."
+    "겁재의 경쟁과 동업 손실은 조건에 따라 달라집니다.\n\n계약 내용은 반드시 기록하고 역할과 정산 기준을 확인하세요.",
+    // B4 2026-10-11: 오행 인과 검사는 한 문장 안에서만 본다. 단어 일부("변화 기운")나 "장기 계획"은 오행·장기가 아니다.
+    "화(火) 기운이 약합니다.\n\n충동을 다스리는 규율은 실제 지출 기록으로 세우세요.",
+    "변화 기운이 강한 시기에는 승진 기회를 기록으로 점검하세요.",
+    "금 기운이 강한 해에는 장기 계획과 공공 기관 지원을 함께 점검하세요."
   ])("전통 명리의 조건부 해석을 결과 보장으로 오인하지 않는다", (traditionalReading) => {
     const built = buildCareerPrompt();
     const text = CONCISE_COMPLETE_CAREER_RESULT.replace("12. 마지막 한마디", traditionalReading + "\n\n12. 마지막 한마디");
@@ -402,10 +406,22 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     }
   });
 
+  test("생활 영역 그룹은 오행-연봉·장기 연결과 번호 소제목을 막는다 (B4 실측)", () => {
+    const group = sajuPrompt.SAJU_AI_SECTION_GROUPS.find(item => item.key === "life_domains");
+    const prompt = fortuneRoute.__sajuAiSectionTestUtils.buildSajuAISectionPrompt(buildCareerPrompt(), group);
+    expect(prompt).toContain("연봉·승진·재물의 증감이나 특정 장기·질환과 연결하지 마세요");
+    expect(prompt).toContain("불편이 이어지면 의료 확인을 권하는 데서 멈춥니다");
+    expect(prompt).toContain("소제목은 번호 없이 굵은 글씨로만");
+  });
+
   test.each([
     ["element-causality", "화 오행이 없어 재정 통제력이 약하고 충동 소비를 유발합니다."],
     ["element-causality", "화(火) 기운은 드러나 있지 않아 재물 관리가 즉흥적으로 흐를 수 있습니다."],
     ["element-health-causality", "화(火) 기운이 없다는 것은 심장과 혈액순환 기능이 약할 수 있음을 나타냅니다."],
+    // B4 2026-10-11 실측: 연봉·승진은 결과 목록에 없었고, 결과가 앞에 오는 순서도 놓쳤다.
+    ["element-causality", "화 기운의 부재는 현재 연봉 정체와 같은 직업적 고민의 한 원인이 될 수 있습니다."],
+    ["element-causality", "연봉 정체라는 고민은 명식에서 화 기운의 부재와 깊은 관련이 있습니다."],
+    ["element-health-causality", "목(木) 기운이 과다하면 소화기 기능이 약해질 수 있습니다."],
     ["specific-financial-product", "부동산, 채권, 배당주 같은 자산에 관심을 가져볼 수 있습니다."],
     ["specific-financial-product", "급등락이 심한 주식보다 배당주나 예금이 재산을 불리는 데 유리합니다."],
     ["specific-financial-product", "장기 계획에는 검증된 금융 상품을 이용하는 선택도 좋습니다."],
@@ -432,6 +448,40 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
   });
 });
 
+
+test("analysisResult sent to the model carries no birth clock, instant or place (B4)", () => {
+  const birth = { year: 1990, month: 3, day: 18, hour: 7, minute: 20 };
+  const meta = {
+    engineVersion: "saju-natal-v2", timeUnknown: false, termTimeAssumed: false, nightZiPolicy: "shift-day",
+    original: birth, civil: birth, corrected: { ...birth, minute: 48 }, termClock: birth, dayPillarCivilDate: "1990-03-18",
+    instant: { timestamp: 637707600000, iso: "1990-03-17T22:20:00.000Z" }, location: { latitude: 37.5665, longitude: 126.978 },
+  };
+  const base = makeSajuResult();
+  const input = {
+    ...base,
+    calculationMeta: meta,
+    snapshot: { ...base.snapshot, calculationMeta: meta },
+    analysisProfile: { ...base.profile, hour: null, minute: null },
+    bazi: { daewunBridge: { source: "korean-calendar-core-daeun", birthCivilYear: 1990, birth } },
+  };
+  const built = sajuPrompt.buildSajuAIPromptWithDomain({ question: "내 재물의 흐름을 알려 주세요", domain: "money", sajuResult: input });
+  const jsonLine = built.generatedPrompt.split("\n").find(line => line.startsWith('{"fortuneType":'));
+  const sent = JSON.parse(jsonLine).analysisResult;
+  const text = JSON.stringify(sent);
+  for (const raw of ["1990", "637707600000", "1990-03-17T", "37.5665", '"minute":48']) expect(text).not.toContain(raw);
+  expect(sent.calculationMeta).toEqual({ engineVersion: "saju-natal-v2", timeUnknown: false, termTimeAssumed: false, nightZiPolicy: "shift-day" });
+  expect(sent.snapshot.calculationMeta).toEqual(sent.calculationMeta);
+  expect(sent.bazi.daewunBridge).toEqual({ source: "korean-calendar-core-daeun" });
+  expect(input.calculationMeta.original).toBe(birth);
+});
+
+test("a birth profile without hour and minute is not sent as 00:00", () => {
+  const base = makeSajuResult();
+  const input = { ...base, profile: { ...base.profile, birth: { ...base.profile.birth, hour: null, minute: null } }, snapshot: { ...base.snapshot, birth: { ...base.snapshot.birth, hour: null, minute: null } } };
+  const built = sajuPrompt.buildSajuAIPromptWithDomain({ question: "내 재물의 흐름을 알려 주세요", domain: "money", sajuResult: input });
+  expect(built.generatedPrompt).not.toContain("00:00");
+  expect(built.generatedPrompt).toContain("생년월일/시간: 1990-03-18 제공되지 않음");
+});
 
 test("generation JSON preserves all computed opening rows while sending shared structures once", () => {
   const input = makeSajuResult({ daewun: [

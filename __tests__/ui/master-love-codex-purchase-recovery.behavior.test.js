@@ -64,13 +64,15 @@ test("redirect start failure retries the same paid run without a session or a se
   const context = vm.createContext(state);
   vm.runInContext(executable("resumePaidCodex"), context);
   context.resumePaidCodex = context.run;
-  const args = { idempotencyKey: "paid-run", payload: JSON.stringify({ birthInfo: { name: "owner", birthDate: "1993-05-14" }, partnerInfo: { name: "partner", birthDate: "1992-01-01" } }) };
+  const args = { idempotencyKey: "paid-run", payload: JSON.stringify({ consultation: { relationship: "reunion", questions: ["다시 연락할까요?"] }, birthInfo: { name: "owner", birthDate: "1993-05-14" }, partnerInfo: { name: "partner", birthDate: "1992-01-01" } }) };
   assert.equal(await context.resumePaidCodex(args, { paymentId: "paid-order" }), false);
   assert.equal(state.sessionIdRef.current, "");
   assert.equal(state.pendingResumeRef.current.args, args);
   vm.runInContext(executable("retryGeneration"), context);
   context.run();
   await new Promise(resolve => setImmediate(resolve));
+  assert.equal(events.find(event => event[0] === "birth")[1].consultation.questions[0], "다시 연락할까요?");
+  assert.equal(events.find(event => event[0] === "post")[2].consultation.questions[0], "다시 연락할까요?");
   assert.equal(state.sessionIdRef.current, "owned-book");
   assert.equal(state.pendingResumeRef.current, null);
   const posts = events.filter(row => row[0] === "post");
@@ -114,6 +116,7 @@ test("expired input retains the purchased order and new input bypasses payment g
   assert.ok(events.some(row => row[0] === "phase" && row[1] === "birth"));
   Object.assign(state, {
     birth: { gender: "female", birthDate: "1993-05-14", birthTime: "07:20", calendarType: "solar" },
+    EMPTY_CONSULTATION: { relationship: "new", situation: "", questions: [""], relationshipStartedAt: "", separatedAt: "" },
     locale: "ko", prologueChoice: "", masterLoveCodexBilling: () => ({ featureKey: purchase.featureKey }),
     beginPaidFeatureGateCheck: () => { throw new Error("a purchased run must not enter a payment gate"); },
   });

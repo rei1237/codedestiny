@@ -178,3 +178,45 @@ test("생성 SVG 위에 사진용 blend 를 다시 걸지 않는다", () => {
     );
   }
 });
+
+test("새벽 정원: 하늘은 밝은 파스텔이고 꽃잎에 윤곽·결이 붙는다", async () => {
+  const art = await loadArt();
+  const luminance = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    return (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+  };
+  const dark = [];
+  for (const s of species) {
+    const svg = svgFor(art, s, "saju");
+    const sky = /<linearGradient id="sky"[^>]*>((?:<stop[^>]*\/>)+)<\/linearGradient>/.exec(svg);
+    const stops = sky ? [...sky[1].matchAll(/stop-color="(#[0-9a-f]{6})"/g)].map((m) => m[1]) : [];
+    if (!stops.length || stops.some((c) => luminance(c) < 0.75)) dark.push(`${s.id}(${stops.join(",")})`);
+  }
+  assert.deepEqual(dark, [], `하늘이 밤 톤으로 남았다: ${dark.slice(0, 6).join(", ")}`);
+
+  /* 꽃잎을 <path id="pA"> 로 정의하는 계열은 윤곽(<use> stroke)과 결(#sh)을 입은 <g id="pA"> 로 감싸져야 한다. */
+  const rose = species.find((s) => art.resolveFlowerForm(s.id) === "rosette");
+  const svg = svgFor(art, rose, "saju");
+  assert.match(svg, /<g id="pA"><use href="#pAd" stroke="#[0-9a-f]{6}"/, "꽃잎 윤곽이 없다");
+  assert.match(svg, /<use href="#pAd" fill="url\(#sh\)"\/>/, "꽃잎 결 그라디언트가 없다");
+});
+
+test("배경 장식은 점술마다 다르고, 판정 대기 카드에는 봉오리를 그린다", async () => {
+  const art = await loadArt();
+  const s = species[0];
+  const bySource = ["saju", "astrology", "jamidusu", "sukuyo"].map((src) => svgFor(art, s, src));
+  assert.equal(new Set(bySource).size, 4, "네 점술의 배경 장식이 구분되지 않는다");
+
+  const buds = ["saju", "astrology", "jamidusu", "sukuyo"].map((source) => art.buildBudSvg({ source }));
+  assert.equal(new Set(buds).size, 4, "봉오리가 점술 색을 따르지 않는다");
+  for (const bud of buds) {
+    assert.ok(bud.startsWith("<svg ") && bud.endsWith("</svg>"), "봉오리 svg 래퍼가 없다");
+    assert.doesNotMatch(bud, /NaN|undefined|Infinity/);
+  }
+  const pending = runtimeSource.slice(runtimeSource.indexOf("function _dfRenderQuadCards"));
+  assert.match(
+    pending.slice(0, 2400),
+    /var budUri = _dfBuildBudDataUri\(source\);/,
+    `${RUNTIME_REL}: 판정 대기 카드가 봉오리 대신 빈 칸을 보인다`,
+  );
+});

@@ -9,8 +9,10 @@ import {
   normalizeZodiacName,
   resolveMansionIndex,
   mansionByIndex,
-  ziweiStarElement
+  ziweiStarElement,
+  flowerLanguageKo
 } from './destiny-flower-traits.js';
+import { DESTINY_FLOWER_SERVER_DICTIONARIES } from './destiny-flower-i18n.generated.js';
 
 const ELEMENT_KEYS = ['wood', 'fire', 'earth', 'metal', 'water'];
 
@@ -241,7 +243,44 @@ const DESTINY_FLOWER_KO_TEXT = Object.freeze({
   'saju.scenarios.ren.nightIntuition.title': '임수의 야간 직감 시나리오',
   'saju.scenarios.gui.coldWetPurifying.title': '계수의 한습 정화 시나리오',
   'saju.scenarios.gui.summerEmpathy.title': '계수의 하계 감응 시나리오',
-  'saju.scenarios.gui.subtleSignal.title': '계수의 미세 감지 시나리오'
+  'saju.scenarios.gui.subtleSignal.title': '계수의 미세 감지 시나리오',
+  'saju.rationale.dayMasterSame': '{dayMasterBadge} 일간과 같은 {element} 기운을 품은 꽃이에요.',
+  'saju.rationale.strengthRelease': '사주가 신강해 차오른 기운을 밖으로 풀어 주는 {elements} 기운의 꽃에 무게를 두었어요.',
+  'saju.rationale.strengthSupport': '사주가 신약해 일간을 북돋아 주는 {elements} 기운의 꽃에 무게를 두었어요.',
+  'saju.rationale.yongshin': '이 꽃에는 사주에 필요한 용신 기운이 담겨 있어요 — {elements}.',
+  'saju.rationale.johuWarm': '사주가 차고 습한 편이라 햇볕처럼 데워 줄 따뜻한 꽃에 무게를 두었어요.',
+  'saju.rationale.johuCool': '사주가 덥고 메마른 편이라 열기를 식혀 줄 물기 많은 꽃에 무게를 두었어요.',
+  'saju.rationaleLabel.dayMaster': '일간 기질',
+  'saju.rationaleLabel.strengthRelease': '신강',
+  'saju.rationaleLabel.strengthSupport': '신약',
+  'saju.rationaleLabel.yongshin': '용신',
+  'saju.rationaleLabel.johuWarm': '조후 · 한습',
+  'saju.rationaleLabel.johuCool': '조후 · 온조',
+  'common.rationaleLabel.verdict': '그래서 이 꽃',
+  'astro.rationaleLabel.sun': '태양궁',
+  'astro.rationaleLabel.risingMoon': '상승궁 · 달궁',
+  'sukuyo.rationaleLabel.mansion': '숙 · 달 위상',
+  'ziwei.natalVerdict': '명궁 {stars}의 기질로 읽은 당신의 꽃은 {flowerName}({scientificName})입니다.',
+  'ziwei.natalScenarioTitle': '명궁 주성 개화 시나리오',
+  'ziwei.rationale.lifeStar': '명궁에 {starsJosa} 자리하고 있어요.',
+  'ziwei.rationale.borrowedStar': '명궁에 주성이 없어 마주 보는 천이궁의 {starsObject} 빌려 읽었어요.',
+  'ziwei.rationale.personality': '{star}의 "{keyword}" — {personality}의 기질이에요.',
+  'ziwei.rationale.verdict': '그래서 지금 당신에게 건네는 꽃은 {flowerName}입니다.',
+  'ziwei.rationaleLabel.lifeStar': '명궁 주성',
+  'ziwei.rationaleLabel.personality': '타고난 성격',
+  'common.bloomLabel.seed': '씨앗 · 일간',
+  'common.bloomLabel.season': '계절 · 태어난 때',
+  'common.bloomLabel.bloom': '그래서 피어난 꽃',
+  'common.bloom.verdict': '그래서 피어난 꽃 — {title}.',
+  'saju.bloom.season': '{season}에 태어난 당신처럼, 이 꽃도 {season}에 가장 환하게 피어나요.',
+  'saju.flowerLanguage.yongshin': "'{language}' — 용신 {elements} 기운을 머금은 이 꽃이 당신에게 건네는 말이에요.",
+  'saju.flowerLanguage.dayMaster': "'{language}' — {dayMasterBadge} 일간인 당신에게 이 꽃이 건네는 말이에요.",
+  'common.flowerLanguage.anchor': "'{language}' — {anchor}의 당신에게 이 꽃이 건네는 말이에요.",
+  'common.flowerLanguage.plain': "'{language}' — 지금의 당신에게 이 꽃이 건네는 말이에요.",
+  'saju.shareHook.raritySeason': '{dayMasterBadge} 일간 · {season} 태생의 사주가 {total}송이 가운데 고른 한 송이',
+  'saju.shareHook.rarityDayMaster': '{dayMasterBadge} 일간의 사주가 {total}송이 가운데 고른 한 송이',
+  'saju.shareHook.rarityPlain': '내 사주가 {total}송이 가운데 고른 한 송이',
+  'common.shareHook.rarityAnchor': '{anchorWith} 읽어 낸 단 한 송이',
 });
 
 /**
@@ -265,6 +304,50 @@ function interpolateDestinyFlowerText(value, vars) {
   });
 }
 
+/**
+ * 서버 번역 로케일. 매칭은 워커에서만 도는데 엔진 문구 함수들은 로케일을 인자로 받지 않으므로,
+ * `withDestinyFlowerLocale` 가 동기 매칭 호출 동안만 사전을 걸어 둔다.
+ * 🔴 동기 구간에서만 건다 — 워커 한 isolate 가 여러 요청을 받아도 await 없는 구간은 끼어들 수 없다.
+ */
+let activeServerDictionary = null;
+
+function normalizeDestinyFlowerLang(lang) {
+  const raw = String(lang || '').trim().toLowerCase();
+  if (!raw) return '';
+  return Object.keys(DESTINY_FLOWER_SERVER_DICTIONARIES).find((code) => code.toLowerCase() === raw)
+    || Object.keys(DESTINY_FLOWER_SERVER_DICTIONARIES).find((code) => code.toLowerCase() === raw.split('-')[0])
+    || '';
+}
+
+export function withDestinyFlowerLocale(lang, run) {
+  const code = normalizeDestinyFlowerLang(lang);
+  const previous = activeServerDictionary;
+  activeServerDictionary = code ? DESTINY_FLOWER_SERVER_DICTIONARIES[code] : null;
+  try {
+    return run();
+  } finally {
+    activeServerDictionary = previous;
+  }
+}
+
+function serverDictionaryValue(dictionary, path) {
+  const value = String(path || '').split('.').reduce((acc, part) => (acc && part ? acc[part] : acc), dictionary);
+  return typeof value === 'string' ? value : null;
+}
+
+/** cd-lang-native 의 resolveVars 와 같은 동작 — `@경로` 변수값은 사전에서 풀어 준다. */
+function resolveServerVars(dictionary, vars) {
+  const prefix = '@' + DESTINY_FLOWER_I18N_NAMESPACE + '.';
+  const out = {};
+  for (const [name, raw] of Object.entries(vars || {})) {
+    const looked = typeof raw === 'string' && raw.startsWith(prefix)
+      ? serverDictionaryValue(dictionary, raw.slice(prefix.length))
+      : null;
+    out[name] = looked !== null ? looked : raw;
+  }
+  return out;
+}
+
 function destinyFlowerText(path, vars, fallback) {
   const key = DESTINY_FLOWER_I18N_NAMESPACE + '.' + path;
   const localFallback = typeof fallback === 'string' ? fallback : (DESTINY_FLOWER_KO_TEXT[path] || '');
@@ -274,6 +357,12 @@ function destinyFlowerText(path, vars, fallback) {
   const browserGlobal = globalThis.window;
   if (browserGlobal && typeof browserGlobal.cdTranslate === 'function') {
     return browserGlobal.cdTranslate(key, vars || {}, localFallback);
+  }
+  if (activeServerDictionary) {
+    // 로케일 사전에 없으면 en 으로 — 한국어 원문을 다른 로케일에 내보내지 않는다.
+    const translated = serverDictionaryValue(activeServerDictionary, path)
+      ?? serverDictionaryValue(DESTINY_FLOWER_SERVER_DICTIONARIES.en, path);
+    if (translated !== null) return interpolateDestinyFlowerText(translated, resolveServerVars(activeServerDictionary, vars));
   }
   return localFallback ? interpolateDestinyFlowerText(localFallback, vars || {}) : key;
 }
@@ -286,6 +375,7 @@ function localizeDestinyFlowerCopy(flower) {
     ...flower,
     name: destinyFlowerText(base + '.name', null, flower.name),
     symbolism: destinyFlowerText(base + '.symbolism', null, flower.symbolism),
+    flower_language: destinyFlowerText(base + '.flowerLanguage', null, flowerLanguageKo(id) || flower.symbolism),
     title: destinyFlowerText(base + '.title', null, flower.title || flower.name),
     description: destinyFlowerText(base + '.description', null, flower.description || flower.vibe_message || flower.symbolism),
     vibe_message: destinyFlowerText(base + '.vibeMessage', null, flower.vibe_message || flower.description || flower.symbolism)
@@ -300,6 +390,117 @@ function localizeDestinyFlowerCopy(flower) {
 
 function localizeDestinyFlowerList(flowers) {
   return Array.isArray(flowers) ? flowers.map((flower) => localizeDestinyFlowerCopy(flower)) : [];
+}
+
+/*
+ * 표시용 용어 라벨. 원본(한국어) 값은 엔진·런타임이 비교·파싱·키로 쓰므로 그대로 두고,
+ * 화면에 나가는 문장·배지에만 라벨을 쓴다. 한국어(사전 없음)에서는 원본을 그대로 돌려줘
+ * ko 출력이 바이트 단위로 같다.
+ */
+function isLocalizedDestinyFlowerLocale() {
+  return activeServerDictionary !== null;
+}
+
+/** 조사는 한국어에서만 붙인다 — 다른 로케일 템플릿은 같은 자리표시자에 낱말만 받는다. */
+function josa(word, withBatchim, withoutBatchim) {
+  return isLocalizedDestinyFlowerLocale() ? String(word || '').trim() : withJosa(word, withBatchim, withoutBatchim);
+}
+
+function destinyFlowerTermLabel(prefix, id, raw) {
+  if (!id || !raw) return raw;
+  return destinyFlowerText(prefix + id, null, raw);
+}
+
+const DAY_MASTER_LABEL_IDS = Object.freeze({
+  갑: 'jia', 을: 'yi', 병: 'bing', 정: 'ding', 무: 'wu', 기: 'ji', 경: 'geng', 신: 'xin', 임: 'ren', 계: 'gui'
+});
+
+/** '갑목(甲木)' → 'Jia Wood (甲木)'. 배지가 아닌 값(이미 라벨이거나 대기 문구)은 그대로 둔다. */
+function dayMasterLabel(badge) {
+  const raw = String(badge || '').trim();
+  const def = raw ? DAY_MASTER_DEFS.find((item) => item.badge === raw) : null;
+  return def ? destinyFlowerTermLabel('saju.dayMasters.', DAY_MASTER_LABEL_IDS[def.stem], def.badge) : badge;
+}
+
+function dayMasterStemLabel(stem) {
+  const raw = String(stem || '').trim();
+  return destinyFlowerTermLabel('saju.dayMasterStems.', DAY_MASTER_LABEL_IDS[raw], raw);
+}
+
+const ZIWEI_STAR_LABEL_IDS = Object.freeze({
+  자미: 'ziwei', 천기: 'tianji', 태양: 'taiyang', 무곡: 'wuqu', 천동: 'tiantong', 염정: 'lianzhen', 천부: 'tianfu',
+  태음: 'taiyin', 탐랑: 'tanlang', 거문: 'jumen', 천상: 'tianxiang', 천량: 'tianliang', 칠살: 'qisha', 파군: 'pojun',
+  문창: 'wenchang', 문곡: 'wenqu', 좌보: 'zuofu', 우필: 'youbi', 천마: 'tianma', 녹존: 'lucun', 록존: 'lucun',
+  천괴: 'tiankui', 천월: 'tianyue', 경양: 'qingyang', 타라: 'tuoluo', 지공: 'dikong', 지겁: 'dijie',
+  화성: 'huoxing', 영성: 'lingxing'
+});
+
+function ziweiStarLabel(star) {
+  const raw = String(star || '').trim();
+  return destinyFlowerTermLabel('ziwei.stars.', ZIWEI_STAR_LABEL_IDS[raw], raw);
+}
+
+/** 별 목록 표시. 한국어는 원래 구분자('·' 또는 ' · ')를, 다른 로케일은 띄운 ' · ' 를 쓴다. */
+function ziweiStarsLabel(stars, separator) {
+  const list = Array.isArray(stars) ? stars : [];
+  return list.map(ziweiStarLabel).join(isLocalizedDestinyFlowerLocale() ? ' · ' : separator);
+}
+
+const ZIWEI_PALACE_LABEL_IDS = Object.freeze({
+  명궁: 'life', 형제궁: 'siblings', 부부궁: 'spouse', 부처궁: 'spouse', 자녀궁: 'children', 재백궁: 'wealth',
+  질액궁: 'health', 천이궁: 'travel', 노복궁: 'friends', 관록궁: 'career', 전택궁: 'property',
+  복덕궁: 'fortune', 부모궁: 'parents'
+});
+
+function ziweiPalaceLabel(palace) {
+  const raw = String(palace || '').trim();
+  return destinyFlowerTermLabel('ziwei.palaces.', ZIWEI_PALACE_LABEL_IDS[raw], raw);
+}
+
+function ziweiPalaceTraitLabel(palace, trait) {
+  return destinyFlowerTermLabel('ziwei.palaceTraits.', ZIWEI_PALACE_LABEL_IDS[String(palace || '').trim()], trait);
+}
+
+/** 계산기 밝기 등급(묘·왕·득·리·평·불·함, 구표기 한) → 표시 라벨. 원본은 그대로 남긴다. */
+const ZIWEI_BRIGHTNESS_GRADE_IDS = Object.freeze({
+  묘: 'miao', 왕: 'wang', 득: 'de', 리: 'li', 이: 'li', 평: 'ping', 불: 'bu', 한: 'han', 함: 'xian'
+});
+
+function ziweiBrightnessGradeLabel(brightness) {
+  const raw = String(brightness || '').trim();
+  return destinyFlowerTermLabel('ziwei.brightness.', ZIWEI_BRIGHTNESS_GRADE_IDS[raw.charAt(0)], raw);
+}
+
+const SUKUYO_GROUP_LABEL_IDS = Object.freeze({
+  안중숙: 'anjung', 강성숙: 'gangseong', 경쾌숙: 'gyeongkwae', 지혜숙: 'jihye'
+});
+
+const SUKUYO_GUARDIAN_LABEL_IDS = Object.freeze({
+  학: 'crane', 용: 'dragon', 담비: 'marten', 토끼: 'rabbit', 여우: 'fox', 호랑이: 'tiger', 표범: 'leopard',
+  해태: 'haetae', 박쥐: 'bat', 쥐: 'rat', 제비: 'swallow', 돼지: 'pig', 고슴도치: 'hedgehog', 이리: 'wolf',
+  개: 'dog', 꿩: 'pheasant', 닭: 'rooster', 까마귀: 'crow', 원숭이: 'monkey', 유인원: 'ape', 들개: 'wildDog',
+  양: 'sheep', 노루: 'roeDeer', 말: 'horse', 사슴: 'deer', 뱀: 'snake', 지렁이: 'earthworm'
+});
+
+/** 27수는 이름이 겹치는 수(危·胃 모두 '위숙')가 있어 인덱스로 찾는다. */
+function sukuyoMansionLabel(mansion) {
+  if (!mansion) return '';
+  return destinyFlowerTermLabel('sukuyo.mansions.m', mansion.index, mansion.name);
+}
+
+function sukuyoGroupLabel(group) {
+  const raw = String(group || '').trim();
+  return destinyFlowerTermLabel('sukuyo.groups.', SUKUYO_GROUP_LABEL_IDS[raw], raw);
+}
+
+function sukuyoGroupBadgeLabel(group) {
+  const raw = String(group || '').trim();
+  return destinyFlowerTermLabel('sukuyo.groupLabels.', SUKUYO_GROUP_LABEL_IDS[raw], formatSukuyoGroupLabel(raw));
+}
+
+function sukuyoGuardianLabel(guardian) {
+  const raw = String(guardian || '').trim();
+  return destinyFlowerTermLabel('sukuyo.guardians.', SUKUYO_GUARDIAN_LABEL_IDS[raw], raw);
 }
 
 function safeNumber(value, fallback = 0) {
@@ -557,7 +758,7 @@ const ASTRO_SIGN_LABEL_KO = Object.freeze({
 
 function astroSignKo(sign) {
   const key = String(sign || '').trim();
-  return ASTRO_SIGN_LABEL_KO[key] || key;
+  return ASTRO_SIGN_LABEL_KO[key] ? destinyFlowerText('astro.signs.' + key.toLowerCase(), null, ASTRO_SIGN_LABEL_KO[key]) : key;
 }
 
 const ASTRO_ELEMENT_LABEL_KO = Object.freeze({
@@ -827,13 +1028,13 @@ export function getAstrologyFlower(chartData = {}) {
     flower_data: {
       sticker_label: destinyFlowerText('astro.stickerLabel'),
       day_master_badge: chart.sunSign
-        ? destinyFlowerText('astro.sunSignBadge', { sign: chart.sunSign })
+        ? destinyFlowerText('astro.sunSignBadge', { sign: astroSignKo(chart.sunSign) })
         : destinyFlowerText('astro.unknownSun'),
       season_label: chart.risingSign
-        ? destinyFlowerText('astro.risingSignBadge', { sign: chart.risingSign })
+        ? destinyFlowerText('astro.risingSignBadge', { sign: astroSignKo(chart.risingSign) })
         : destinyFlowerText('astro.unknownRising'),
       environment_label: chart.moonSign
-        ? destinyFlowerText('astro.moonSignBadge', { sign: chart.moonSign })
+        ? destinyFlowerText('astro.moonSignBadge', { sign: astroSignKo(chart.moonSign) })
         : destinyFlowerText('astro.unknownMoon'),
       scenario_title: destinyFlowerText('astro.scenarioTitle'),
       scenario_reason: narrative,
@@ -848,6 +1049,29 @@ export function getAstrologyFlower(chartData = {}) {
   };
 }
 
+/**
+ * 매칭을 바꾸지 않는 체계(점성술·숙요)의 근거 목록. 이미 쓰고 있는 narrative 를 문장 단위로 나눠
+ * 앞 문장들은 체계별 라벨로, 마지막 문장은 "그래서 이 꽃"으로 붙인다. 새 주장을 만들지 않는다.
+ */
+function narrativeRationalePoints(prefix, narrative, labels) {
+  const sentences = String(narrative || '')
+    .split(/(?<=[.!?。])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!sentences.length) return [];
+  const picked = sentences.length > 4 ? [...sentences.slice(0, 3), sentences[sentences.length - 1]] : sentences;
+  return picked.map((text, i) => {
+    const isVerdict = picked.length > 1 && i === picked.length - 1;
+    return {
+      key: prefix + (isVerdict ? '_verdict' : '_' + (i + 1)),
+      label: isVerdict
+        ? destinyFlowerText('common.rationaleLabel.verdict')
+        : (labels[i] || labels[labels.length - 1] || ''),
+      text
+    };
+  });
+}
+
 export function matchAstrologyFlower(userData = {}, options = {}) {
   const profile = userData && userData.schema === 'universal-destiny-profile' ? userData : parseDestinyProfile(userData);
   const chartData = {
@@ -860,15 +1084,25 @@ export function matchAstrologyFlower(userData = {}, options = {}) {
     profile.domains.saju && profile.domains.saju.day_master && astroMatch.chart && astroMatch.chart.sun_sign
   );
 
+  const astroPoints = narrativeRationalePoints('astro', astroMatch.narrative, [
+    destinyFlowerText('astro.rationaleLabel.sun'),
+    destinyFlowerText('astro.rationaleLabel.risingMoon')
+  ]);
+  const astroAnchor = astroMatch.chart && astroMatch.chart.sun_sign
+    ? destinyFlowerText('astro.sunSignBadge', { sign: astroSignKo(astroMatch.chart.sun_sign) })
+    : '';
+
   return {
     profile,
     ...astroMatch,
+    rationale_points: astroPoints,
+    ...buildSourceViralExtras(astroMatch.flower, astroPoints, astroAnchor),
     ultimate_destiny_flower: hasSajuAndAstro
       ? {
           enabled: true,
           title: destinyFlowerText('astro.ultimateTitle'),
           concept: destinyFlowerText('astro.ultimateConcept', {
-            dayMaster: profile.domains.saju.day_master,
+            dayMaster: dayMasterLabel(profile.domains.saju.day_master),
             sunSign: astroMatch.chart.sun_sign
           }),
           palette: {
@@ -1089,6 +1323,13 @@ function parseJamidusuPrimaryStars(starData) {
   return list.length ? list.slice(0, 2) : ['자미'];
 }
 
+/** parseJamidusuPrimaryStars 와 같은 정규화. 별이 없으면 빈 배열(기본 '자미'로 채우지 않는다). */
+function parseJamidusuStarList(raw) {
+  if (!raw) return [];
+  const list = parseJamidusuPrimaryStars({ mainStar: raw });
+  return list.length === 1 && list[0] === '자미' && !String(raw).includes('자미') ? [] : list;
+}
+
 function findJamidusuRule(starName, palace = '') {
   const normalized = String(starName || '').trim().toLowerCase();
   const directRule = normalized
@@ -1211,24 +1452,27 @@ export function getJamidusuFlower(starData = {}) {
   const primaryRuleKeyword = localizeJamidusuRuleField(primaryRule, 'keyword');
   const primaryRulePersonality = localizeJamidusuRuleField(primaryRule, 'personality');
   const secondaryRuleKeyword = secondaryRule ? localizeJamidusuRuleField(secondaryRule, 'keyword') : '';
-  const palaceTrait = palaceHint ? palaceHint.trait : destinyFlowerText('ziwei.coreFlow');
-  const palaceEnergy = palaceHint ? palaceHint.trait : destinyFlowerText('ziwei.coreEnergy');
+  const palaceTrait = palaceHint ? ziweiPalaceTraitLabel(palace, palaceHint.trait) : destinyFlowerText('ziwei.coreFlow');
+  const palaceEnergy = palaceHint ? ziweiPalaceTraitLabel(palace, palaceHint.trait) : destinyFlowerText('ziwei.coreEnergy');
+  const palaceText = ziweiPalaceLabel(palace);
+  const starsText = ziweiStarsLabel(stars, '·');
+  const starsSpacedText = ziweiStarsLabel(stars, ' · ');
 
   const jamidusuVerdict = destinyFlowerText('ziwei.verdict', {
     flowerName: displayPrimaryFlower.name,
     scientificName: displayPrimaryFlower.scientific_name,
-    palace,
+    palace: palaceText,
     palaceTrait,
-    stars: stars.join('·'),
+    stars: starsText,
     keyword: primaryRuleKeyword,
     brightness: intensity.label
   });
   const narrative = secondaryRule
     ? destinyFlowerText('ziwei.narrativeWithSecondary', {
-      palace,
-      palaceJosa: withJosa(palace, '은', '는'),
+      palace: palaceText,
+      palaceJosa: josa(palaceText, '은', '는'),
       palaceEnergy,
-      stars: stars.join('·'),
+      stars: starsText,
       title: primaryRuleTitle,
       personality: primaryRulePersonality,
       secondaryKeyword: secondaryRuleKeyword,
@@ -1236,11 +1480,11 @@ export function getJamidusuFlower(starData = {}) {
       flowerName: displayPrimaryFlower.name
     })
     : destinyFlowerText('ziwei.narrativeSingle', {
-      palace,
-      palaceJosa: withJosa(palace, '은', '는'),
+      palace: palaceText,
+      palaceJosa: josa(palaceText, '은', '는'),
       palaceEnergy,
-      star: stars[0],
-      starJosa: withJosa(stars[0], '은', '는'),
+      star: ziweiStarLabel(stars[0]),
+      starJosa: josa(ziweiStarLabel(stars[0]), '은', '는'),
       keyword: primaryRuleKeyword,
       personality: primaryRulePersonality,
       brightness: intensity.label,
@@ -1253,7 +1497,11 @@ export function getJamidusuFlower(starData = {}) {
       palace,
       primary_stars: stars,
       brightness: intensity.label,
-      brightness_code: brightnessCode
+      brightness_code: brightnessCode,
+      // 비한국어 로케일에서만 붙는 표시용 형제 필드 — 원본 palace/primary_stars 는 런타임이 비교한다.
+      ...(isLocalizedDestinyFlowerLocale()
+        ? { palace_label: palaceText, primary_stars_label: stars.map(ziweiStarLabel) }
+        : {})
     },
     flower: {
       ...displayPrimaryFlower,
@@ -1283,38 +1531,41 @@ export function getJamidusuFlower(starData = {}) {
         type: secondaryFlower ? secondaryFlower.particle_type : primaryFlower.particle_type,
         intensity: intensity.glow
       },
-      star_alignment: stars.join(' · ')
+      star_alignment: starsSpacedText
     },
     flower_data: {
       sticker_label: destinyFlowerText('ziwei.stickerLabel'),
-      day_master_badge: destinyFlowerText('ziwei.strongStarBadge', { stars: stars.join('·') }),
+      day_master_badge: destinyFlowerText('ziwei.strongStarBadge', { stars: starsText }),
       season_label: destinyFlowerText('ziwei.brightnessLabel', { brightness: intensity.label }),
-      environment_label: palace,
+      environment_label: palaceText,
       scenario_title: destinyFlowerText('ziwei.scenarioTitle'),
       scenario_reason: narrative,
       motion_preset: (stars.some((s) => /천기|태음/i.test(String(s))) ? 'water-flow' : 'wood-grow'),
-      focus_signal: stars.join(' · '),
+      focus_signal: starsSpacedText,
       ritual_tip: destinyFlowerText('ziwei.ritualTip', { keyword: primaryRuleKeyword }),
       relationship_theme: destinyFlowerText('ziwei.relationshipTheme'),
       career_theme: destinyFlowerText('ziwei.careerTheme'),
       growth_cycle: destinyFlowerText('ziwei.growthCycle'),
       fallback_note: secondaryRule
-        ? destinyFlowerText('ziwei.secondaryFallbackNote', { primaryStar: stars[0], secondaryStar: stars[1] })
-        : (palaceHint ? destinyFlowerText('ziwei.palaceFallbackNote', { palace, trait: palaceHint.trait }) : '')
+        ? destinyFlowerText('ziwei.secondaryFallbackNote', { primaryStar: ziweiStarLabel(stars[0]), secondaryStar: ziweiStarLabel(stars[1]) })
+        : (palaceHint ? destinyFlowerText('ziwei.palaceFallbackNote', { palace: palaceText, trait: palaceEnergy }) : '')
     }
   };
 }
 
+function cleanJamidusuStarName(raw) {
+  return String(raw || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\(차성\)/g, ' ')
+    .replace(/화록|화권|화과|화기/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')[0];
+}
+
 function chooseJamidusuStrongStar(zw) {
   const scoreMap = Object.freeze({ miao: 7, wang: 6, li: 5, de: 4, ping: 3, han: 2, xian: 1 });
-  const cleanStarName = (raw) =>
-    String(raw || '')
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/\(차성\)/g, ' ')
-      .replace(/화록|화권|화과|화기/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .split(' ')[0];
+  const cleanStarName = cleanJamidusuStarName;
   const getEntryName = (entry) => cleanStarName(entry && (entry.name || entry.star || entry.starName || entry.title || entry.label));
 
   const palaces = Array.isArray(zw && zw.palacesByIndex) ? zw.palacesByIndex : [];
@@ -1358,68 +1609,160 @@ function chooseJamidusuStrongStar(zw) {
   return best.star ? { star: best.star, palace: best.palace || '', brightness: best.brightness || '' } : null;
 }
 
+/**
+ * 명궁 주성을 읽는다. 명궁이 비면(공궁) 대궁인 천이궁 주성을 빌린다 — 자미두수의 차성(借星) 관례.
+ * 밝기는 그 별의 행에서 찾고, 없으면 궁의 첫 행 밝기를 쓴다.
+ */
+function readJamidusuNatalStars(zw) {
+  const palaces = Array.isArray(zw && zw.palacesByIndex) ? zw.palacesByIndex.map((p) => String(p || '').trim()) : [];
+  const read = (palaceName) => {
+    const idx = palaces.indexOf(palaceName);
+    if (idx < 0) return null;
+    const mainRaw = (zw.stars && zw.stars[idx] && Array.isArray(zw.stars[idx].main)) ? zw.stars[idx].main : [];
+    const stars = mainRaw.map(cleanJamidusuStarName).filter(Boolean);
+    if (!stars.length) return null;
+    const rows = (zw.palaceStarData && zw.palaceStarData[idx] && Array.isArray(zw.palaceStarData[idx].stars)) ? zw.palaceStarData[idx].stars : [];
+    const own = rows.find((row) => cleanJamidusuStarName(row && (row.name || row.star)) === stars[0]) || rows[0] || null;
+    return { stars, brightness: own ? String(own.strength || own.brightness || '') : '' };
+  };
+  const ming = read('명궁');
+  if (ming) return { ...ming, borrowed: false };
+  const travel = read('천이궁');
+  return travel ? { ...travel, borrowed: true } : null;
+}
+
+/** 차트 없이 온 payload 의 궁 요약(ziwei.palaces)에서 같은 규칙으로 명궁 → 천이궁을 읽는다. */
+function readJamidusuNatalRows(rows) {
+  const list = Array.isArray(rows) ? rows : [];
+  const read = (palaceName) => {
+    const row = list.find((r) => r && String(r.palace || '').trim() === palaceName);
+    const stars = row && Array.isArray(row.stars) ? row.stars.map(cleanJamidusuStarName).filter(Boolean) : [];
+    return stars.length ? { stars, brightness: String(row.brightness || '') } : null;
+  };
+  const ming = read('명궁');
+  if (ming) return { ...ming, borrowed: false };
+  const travel = read('천이궁');
+  return travel ? { ...travel, borrowed: true } : null;
+}
+
 export function matchJamidusuFlower(userData = {}, options = {}) {
   const profile = userData && userData.schema === 'universal-destiny-profile' ? userData : parseDestinyProfile(userData);
 
-  // --- 자미두수 "오늘의 강한 별" 최신화 ---
-  // 🔴 차트는 **호출자가 넘긴다**(`userData.ziweiChart`). 2026-08-24 이전에는 이 자리에서
-  //    `window.calcZiweiPalaces` 를 직접 불렀는데, 엔진이 워커로 옮겨 오면서 그 전역이 없어
-  //    보정이 통째로 죽는다. 명궁 별만 쓰는 결과로 조용히 퇴화하므로 입력으로 바꿨다.
-  //    셸의 `_jfResolveSelection` 이 같은 `zw` 객체를 실어 보낸다.
+  // 🔴 꽃은 **명궁 주성**(타고난 성격)으로 고른다. 2026-10-10 이전에는 차트 전체에서
+  //    "오늘의 강한 별"을 뽑아 꽃을 정했는데, 그러면 근거 문장이 성향이 아니라 그날의 별을 말한다.
+  //    차트는 여전히 호출자가 넘긴다(`userData.ziweiChart`, 셸의 `_dfAttachZiweiChart`). 강한 별은
+  //    꽃을 바꾸지 않는 보조 정보·배지로만 남는다.
+  let natal = null;
+  let strongStar = null;
   try {
     const zw = userData && userData.ziweiChart && typeof userData.ziweiChart === 'object'
       ? userData.ziweiChart
       : null;
     if (zw && zw.stars && zw.palacesByIndex) {
-      const picked = chooseJamidusuStrongStar(zw);
-      let mainStar = picked && picked.star ? picked.star : '';
-      let palace = picked && picked.palace ? picked.palace : '';
-      let brightness = picked && picked.brightness ? picked.brightness : '';
-
-      if (!mainStar) {
-        const mingIdx = zw.palacesByIndex.indexOf('명궁');
-        if (mingIdx >= 0 && zw.stars && zw.stars[mingIdx]) {
-          const mainList = zw.stars[mingIdx].main || [];
-          mainStar = mainList[0] || '';
-          palace = '명궁';
-        }
-        if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
-          brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
-        }
-      }
-      if (profile.domains && profile.domains.ziwei) {
-        profile.domains.ziwei.main_star = mainStar;
-        profile.domains.ziwei.stars = mainStar ? [mainStar] : [];
-        profile.domains.ziwei.palace = palace || profile.domains.ziwei.palace || '명궁';
-        if (brightness) profile.domains.ziwei.brightness = brightness;
-      }
+      strongStar = chooseJamidusuStrongStar(zw);
+      natal = readJamidusuNatalStars(zw);
     }
   } catch (e) { /* 무시: 브라우저/SSR 환경 차이 등 */ }
 
+  const ziweiDomain = profile.domains.ziwei;
+  if (!natal) {
+    const sent = parseJamidusuStarList(ziweiDomain.main_star);
+    natal = sent.length
+      ? { stars: sent, brightness: ziweiDomain.brightness || '', borrowed: false }
+      : readJamidusuNatalRows(userData && userData.ziwei && userData.ziwei.palaces);
+  }
+  if (natal) {
+    ziweiDomain.main_star = natal.stars.join('·');
+    ziweiDomain.stars = natal.stars;
+    ziweiDomain.palace = '명궁';
+    if (natal.brightness) ziweiDomain.brightness = natal.brightness;
+  }
+
   const ziweiData = {
-    mainStar: profile.domains.ziwei.main_star,
-    palace: profile.domains.ziwei.palace,
-    brightness: profile.domains.ziwei.brightness,
-    stars: profile.domains.ziwei.stars
+    mainStar: ziweiDomain.main_star,
+    palace: ziweiDomain.palace,
+    brightness: ziweiDomain.brightness,
+    stars: ziweiDomain.stars
   };
 
   const jamiMatch = getJamidusuFlower(ziweiData);
+  const stars = jamiMatch.ziwei.primary_stars;
+  const starsLabel = ziweiStarsLabel(stars, '·');
+  const rule = findJamidusuRule(stars[0], '명궁');
+  const flowerName = jamiMatch.flower.name;
+  // 별을 하나도 못 읽어 기본 별(자미)로 떨어졌으면 "명궁에 ○○" 문장은 만들지 않는다.
+  const rationalePoints = [
+    natal ? {
+      key: 'ziwei_life_star',
+      label: destinyFlowerText('ziwei.rationaleLabel.lifeStar'),
+      text: natal.borrowed
+        ? destinyFlowerText('ziwei.rationale.borrowedStar', { starsObject: josa(starsLabel, '을', '를') })
+        : destinyFlowerText('ziwei.rationale.lifeStar', { starsJosa: josa(starsLabel, '이', '가') })
+    } : null,
+    {
+      key: 'ziwei_personality',
+      label: destinyFlowerText('ziwei.rationaleLabel.personality'),
+      text: destinyFlowerText('ziwei.rationale.personality', {
+        star: ziweiStarLabel(stars[0]),
+        keyword: localizeJamidusuRuleField(rule, 'keyword'),
+        personality: localizeJamidusuRuleField(rule, 'personality')
+      })
+    },
+    {
+      key: 'ziwei_verdict',
+      label: destinyFlowerText('common.rationaleLabel.verdict'),
+      text: destinyFlowerText('ziwei.rationale.verdict', { flowerName })
+    }
+  ].filter(Boolean);
+  const narrative = rationalePoints.map((point) => point.text).join(' ');
+  const strongBadge = strongStar && strongStar.star
+    ? destinyFlowerText('ziwei.strongStarBadge', { stars: ziweiStarLabel(strongStar.star) })
+    : jamiMatch.flower_data.day_master_badge;
 
   return {
     profile,
     ...jamiMatch,
+    jamidusu_verdict: destinyFlowerText('ziwei.natalVerdict', {
+      stars: starsLabel,
+      flowerName,
+      scientificName: jamiMatch.flower.scientific_name
+    }),
+    narrative,
+    rationale_points: rationalePoints,
+    ...buildSourceViralExtras(jamiMatch.flower, rationalePoints, natal ? destinyFlowerText('ziwei.rationaleLabel.lifeStar') + ' ' + starsLabel : ''),
+    strong_star: strongStar && strongStar.star
+      ? {
+        star: strongStar.star,
+        palace: strongStar.palace,
+        brightness: strongStar.brightness,
+        // 비한국어 로케일에서만 — 원본 brightness 는 런타임이 함/한 여부로 비교한다.
+        ...(isLocalizedDestinyFlowerLocale()
+          ? {
+            star_label: ziweiStarLabel(strongStar.star),
+            palace_label: ziweiPalaceLabel(strongStar.palace),
+            brightness_label: ziweiBrightnessGradeLabel(strongStar.brightness)
+          }
+          : {})
+      }
+      : null,
+    flower_data: {
+      ...jamiMatch.flower_data,
+      day_master_badge: strongBadge,
+      scenario_title: destinyFlowerText('ziwei.natalScenarioTitle'),
+      scenario_reason: narrative
+    },
     hybrid_hint: {
       enabled: Boolean(profile.domains.saju && profile.domains.saju.day_master),
       description: profile.domains.saju && profile.domains.saju.day_master
         ? destinyFlowerText('ziwei.hybridHint', {
-          dayMaster: profile.domains.saju.day_master,
-          stars: jamiMatch.ziwei.primary_stars.join('·')
+          dayMaster: dayMasterLabel(profile.domains.saju.day_master),
+          stars: starsLabel
         })
         : ''
     },
     algorithm: {
-      version: '1.1.0-jamidusu-flower',
-      note: 'strong-star-palace-brightness-ziwei-flower-matcher',
+      version: '1.2.0-jamidusu-flower',
+      note: 'life-palace-main-star-ziwei-flower-matcher',
       source: options.source || 'jamidusu'
     }
   };
@@ -1785,12 +2128,15 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
   const displayFlower = localizeDestinyFlowerCopy(flower);
   const constellation = buildSukuyoConstellation(idx);
   const guardianParticle = SUKUYO_GUARDIAN_PARTICLE[mansion.guardian] || 'lunar_dust';
+  const mansionText = sukuyoMansionLabel(mansion);
+  const groupText = sukuyoGroupLabel(mansion.group);
+  const guardianText = sukuyoGuardianLabel(mansion.guardian);
   const narrativeCopy = destinyFlowerText('sukuyo.narrative', {
-    mansion: mansion.name,
-    group: mansion.group,
+    mansion: mansionText,
+    group: groupText,
     moon: moonStyle.label,
-    guardian: mansion.guardian,
-    guardianJosa: withJosa(mansion.guardian, '이', '가'),
+    guardian: guardianText,
+    guardianJosa: josa(guardianText, '이', '가'),
     symbolism: displayFlower.symbolism,
     flowerName: displayFlower.name
   });
@@ -1804,15 +2150,23 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
       guardian_animal: mansion.guardian,
       moon_phase: moonStyle.label,
       moon_style: moonStyle.mode,
-      constellation_points: constellation
+      constellation_points: constellation,
+      // 비한국어 로케일에서만 붙는 표시용 형제 필드 — 원본 이름은 런타임이 정규화·파싱한다.
+      ...(isLocalizedDestinyFlowerLocale()
+        ? {
+          mansion_label: mansionText,
+          group_label: sukuyoGroupBadgeLabel(mansion.group),
+          guardian_label: guardianText
+        }
+        : {})
     },
     flower: displayFlower,
     sukuyo_verdict: destinyFlowerText('sukuyo.verdict', {
       flowerName: displayFlower.name,
       scientificName: displayFlower.scientific_name,
-      mansion: mansion.name,
+      mansion: mansionText,
       moon: moonStyle.label,
-      guardian: mansion.guardian
+      guardian: guardianText
     }),
     narrative: narrativeCopy,
     visual_intensity: {
@@ -1839,16 +2193,16 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
     },
     flower_data: {
       sticker_label: destinyFlowerText('sukuyo.stickerLabel'),
-      day_master_badge: mansion.name + ' · ' + formatSukuyoGroupLabel(mansion.group),
+      day_master_badge: mansionText + ' · ' + sukuyoGroupBadgeLabel(mansion.group),
       season_label: destinyFlowerText('sukuyo.moonPhaseLabel', { moon: moonStyle.label }),
-      environment_label: destinyFlowerText('sukuyo.guardianLabel', { guardian: mansion.guardian }),
+      environment_label: destinyFlowerText('sukuyo.guardianLabel', { guardian: guardianText }),
       scenario_title: destinyFlowerText('sukuyo.scenarioTitle'),
       scenario_reason: narrativeCopy,
       motion_preset: groupTheme.motion,
-      focus_signal: mansion.name + ' · ' + mansion.guardian,
+      focus_signal: mansionText + ' · ' + guardianText,
       ritual_tip: destinyFlowerText('sukuyo.ritualTip'),
-      relationship_theme: destinyFlowerText('sukuyo.relationshipTheme', { group: mansion.group }),
-      career_theme: destinyFlowerText('sukuyo.careerTheme', { guardian: mansion.guardian }),
+      relationship_theme: destinyFlowerText('sukuyo.relationshipTheme', { group: groupText }),
+      career_theme: destinyFlowerText('sukuyo.careerTheme', { guardian: guardianText }),
       growth_cycle: destinyFlowerText('sukuyo.growthCycle'),
       fallback_note: ''
     }
@@ -1867,9 +2221,15 @@ export function matchSukuyoFlower(userData = {}, options = {}) {
   const phase = normalizeSukyoMoonPhase(options.moonPhase || sukuyo.phase || '', birth);
   const match = calculateSukyoFlower(mansionIndex, phase);
 
+  const sukuyoPoints = narrativeRationalePoints('sukuyo', match.narrative, [
+    destinyFlowerText('sukuyo.rationaleLabel.mansion')
+  ]);
+
   return {
     profile,
     ...match,
+    rationale_points: sukuyoPoints,
+    ...buildSourceViralExtras(match.flower, sukuyoPoints, match.sukuyo && (match.sukuyo.mansion_label || match.sukuyo.mansion_name)),
     algorithm: {
       version: '1.0.0-sukuyo-flower',
       note: '27숙 그룹/수호동물 + 달 위상(이클립스/풀글로우) 기반 숙요 운명꽃 매칭 엔진',
@@ -2015,7 +2375,7 @@ function resolveDayMasterContext(userData, dominantElement, yinYangBalance) {
       ...ziweiDayMaster,
       source: 'ziwei_fallback',
       fallbackUsed: true,
-      fallbackNote: '사주 일간 데이터가 부족해 자미두수 주성을 기준으로 일간 성질을 보정했습니다.'
+      fallbackNote: destinyFlowerText('saju.dayMasterFallback.ziwei', null, '사주 일간 데이터가 부족해 자미두수 주성을 기준으로 일간 성질을 보정했습니다.')
     };
   }
 
@@ -2029,7 +2389,7 @@ function resolveDayMasterContext(userData, dominantElement, yinYangBalance) {
       ...astroDayMaster,
       source: 'astrology_fallback',
       fallbackUsed: true,
-      fallbackNote: '사주 일간 데이터가 부족해 태양궁 성향으로 일간 성질을 대체했습니다.'
+      fallbackNote: destinyFlowerText('saju.dayMasterFallback.astrology', null, '사주 일간 데이터가 부족해 태양궁 성향으로 일간 성질을 대체했습니다.')
     };
   }
 
@@ -2038,8 +2398,32 @@ function resolveDayMasterContext(userData, dominantElement, yinYangBalance) {
     ...dominantFallback,
     source: 'dominant_element_fallback',
     fallbackUsed: true,
-    fallbackNote: '사주/자미/점성 핵심 지표가 부족해 우세 오행을 기준으로 일간 성질을 추정했습니다.'
+    fallbackNote: destinyFlowerText('saju.dayMasterFallback.dominant', null, '사주/자미/점성 핵심 지표가 부족해 우세 오행을 기준으로 일간 성질을 추정했습니다.')
   };
+}
+
+/**
+ * 신강·신약. 생산자(js/saju-engine.js 스냅샷)는 판정이 없으면 power_label 을 비우고
+ * is_strong 은 false 로 채운다 — 그래서 라벨을 먼저 보고, is_strong 은 true 일 때만 믿는다.
+ */
+function resolveSajuStrength(userData) {
+  const saju = userData.saju || {};
+  const analysis = userData.analysis || {};
+  const label = String(saju.power_label || analysis.power_label || '').trim();
+  if (label === '신강') return 'strong';
+  if (label === '신약') return 'weak';
+  if (saju.is_strong === true || analysis.isStrong === true) return 'strong';
+  return '';
+}
+
+/** 조후. G_JOHU.type 은 hot/warm/neutral/cool/cold — runtime _dfJohuLabel 과 같게 둘로 접는다. */
+function resolveSajuJohu(userData) {
+  const saju = userData.saju || {};
+  const analysis = userData.analysis || {};
+  const type = String(saju.johu_type || analysis.johuType || '').trim().toLowerCase();
+  if (type === 'cold' || type === 'cool') return 'cold';
+  if (type === 'hot' || type === 'warm') return 'hot';
+  return '';
 }
 
 export function parseDestinyProfile(userData = {}) {
@@ -2067,7 +2451,7 @@ export function parseDestinyProfile(userData = {}) {
     schemaVersion: '1.0.0',
     generatedAt: new Date().toISOString(),
     identity: {
-      name: userData.name || userData.profileName || '익명의 여행자',
+      name: userData.name || userData.profileName || destinyFlowerText('common.anonymousName', null, '익명의 여행자'),
       gender: userData.gender || '',
       birth
     },
@@ -2115,6 +2499,8 @@ export function parseDestinyProfile(userData = {}) {
           (userData.saju && (userData.saju.kishin_elements || userData.saju.kishinElements)) ||
           (userData.analysis && (userData.analysis.kishin_elements || userData.analysis.kishinElements))
         ),
+        strength: resolveSajuStrength(userData),
+        johu: resolveSajuJohu(userData),
         notes: normalizeSignalList((userData.saju && userData.saju.notes) || userData.sajuNotes)
       },
       ziwei: {
@@ -3397,25 +3783,25 @@ export function calculateDestinyFlower(profileData = {}) {
 
   let primaryFlowerId = 'lotus';
   let secondaryFlowerIds = [];
-  let reason = '당신의 일간이 지금의 오행 환경과 맞물리는 결을 살펴, 이 시기에 가장 잘 어울리는 꽃 한 송이를 골랐어요.';
-  let scenarioTitle = destinyFlowerText('saju.scenarios.default.title', { dayMasterBadge: dayMaster.badge });
+  let reason = destinyFlowerText('saju.scenarios.default.reason', null, '당신의 일간이 지금의 오행 환경과 맞물리는 결을 살펴, 이 시기에 가장 잘 어울리는 꽃 한 송이를 골랐어요.');
+  let scenarioTitle = destinyFlowerText('saju.scenarios.default.title', { dayMasterBadge: dayMasterLabel(dayMaster.badge) });
 
   switch (dayMaster.stem) {
     case '갑':
       if (season === 'Spring' && woodStrong) {
         primaryFlowerId = 'magnolia';
         secondaryFlowerIds = ['forsythia', 'delphinium'];
-        reason = '갑목(甲木)은 큰 나무처럼 곧게 위로 뻗는 기질이에요. 봄의 목기운이 그 성정과 맞아떨어지는 지금, 앞장서서 새 판을 여는 힘이 활짝 피어납니다.';
+        reason = destinyFlowerText('saju.scenarios.jia.springWood.reason', null, '갑목(甲木)은 큰 나무처럼 곧게 위로 뻗는 기질이에요. 봄의 목기운이 그 성정과 맞아떨어지는 지금, 앞장서서 새 판을 여는 힘이 활짝 피어납니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.jia.springWood.title');
       } else if (metalStrong && season === 'Autumn') {
         primaryFlowerId = 'bellflower';
         secondaryFlowerIds = ['gentian'];
-        reason = '가을 금기운이 갑목(甲木)을 눌러 오는 지금은, 곁가지를 쳐 내고 정말 중요한 줄기만 남길 때예요. 덜어 낼수록 오히려 더 단단해집니다.';
+        reason = destinyFlowerText('saju.scenarios.jia.autumnMetal.reason', null, '가을 금기운이 갑목(甲木)을 눌러 오는 지금은, 곁가지를 쳐 내고 정말 중요한 줄기만 남길 때예요. 덜어 낼수록 오히려 더 단단해집니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.jia.autumnMetal.title');
       } else if (isDry && fireStrong) {
         primaryFlowerId = 'mugunghwa';
         secondaryFlowerIds = ['sunflower'];
-        reason = '메마르고 뜨거운 기운 속에 놓인 갑목(甲木)에게 지금 필요한 건 뿌리의 체력이에요. 서두르기보다 길게 버티며 회복력을 키울 때, 무궁화처럼 끈질기게 다시 피어납니다.';
+        reason = destinyFlowerText('saju.scenarios.jia.dryFire.reason', null, '메마르고 뜨거운 기운 속에 놓인 갑목(甲木)에게 지금 필요한 건 뿌리의 체력이에요. 서두르기보다 길게 버티며 회복력을 키울 때, 무궁화처럼 끈질기게 다시 피어납니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.jia.dryFire.title');
       }
       break;
@@ -3424,22 +3810,22 @@ export function calculateDestinyFlower(profileData = {}) {
       if (metalStrong && waterStrong) {
         primaryFlowerId = 'lotus';
         secondaryFlowerIds = ['water_lily', 'lotus_white'];
-        reason = '을목(乙木)은 넝쿨과 화초처럼 부드럽게 스며드는 기질이에요. 금과 수의 기운이 강한 지금, 당신의 품위와 맑게 정화하는 힘이 가장 크게 살아납니다.';
+        reason = destinyFlowerText('saju.scenarios.yi.metalWater.reason', null, '을목(乙木)은 넝쿨과 화초처럼 부드럽게 스며드는 기질이에요. 금과 수의 기운이 강한 지금, 당신의 품위와 맑게 정화하는 힘이 가장 크게 살아납니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.yi.metalWater.title');
       } else if (earthStrong && isDry) {
         primaryFlowerId = 'cactus_flower';
         secondaryFlowerIds = ['marigold'];
-        reason = '건조한 토기운 위에 선 을목(乙木)에게 지금의 화두는 살아남는 힘이에요. 척박함을 뚫고 끝내 피어나는 선인장꽃처럼, 버티는 자리에서 오히려 빛이 납니다.';
+        reason = destinyFlowerText('saju.scenarios.yi.dryEarth.reason', null, '건조한 토기운 위에 선 을목(乙木)에게 지금의 화두는 살아남는 힘이에요. 척박함을 뚫고 끝내 피어나는 선인장꽃처럼, 버티는 자리에서 오히려 빛이 납니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.yi.dryEarth.title');
       } else if (season === 'Autumn') {
         primaryFlowerId = 'daisy';
         secondaryFlowerIds = ['cosmos'];
-        reason = '가을 금기운을 지나는 을목(乙木)은 섬세함을 차분한 질서로 바꾸는 시기예요. 흩어진 것을 고르게 정리할수록 마음도 함께 단정해집니다.';
+        reason = destinyFlowerText('saju.scenarios.yi.autumn.reason', null, '가을 금기운을 지나는 을목(乙木)은 섬세함을 차분한 질서로 바꾸는 시기예요. 흩어진 것을 고르게 정리할수록 마음도 함께 단정해집니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.yi.autumn.title');
       } else if (season === 'Spring' && isWet) {
         primaryFlowerId = 'wisteria';
         secondaryFlowerIds = ['sweet_pea'];
-        reason = '봄의 촉촉한 기운을 만난 을목(乙木)은 사람과 사람을 잇는 힘이 부쩍 커져요. 지금은 혼자보다 관계를 통해 뻗어 나갈 때입니다.';
+        reason = destinyFlowerText('saju.scenarios.yi.wetSpring.reason', null, '봄의 촉촉한 기운을 만난 을목(乙木)은 사람과 사람을 잇는 힘이 부쩍 커져요. 지금은 혼자보다 관계를 통해 뻗어 나갈 때입니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.yi.wetSpring.title');
       }
       break;
@@ -3448,17 +3834,17 @@ export function calculateDestinyFlower(profileData = {}) {
       if (season === 'Spring' && woodStrong) {
         primaryFlowerId = 'forsythia';
         secondaryFlowerIds = ['magnolia'];
-        reason = '병화(丙火)는 태양처럼 빠르게 불붙고 널리 퍼지는 기운이에요. 봄 목기운을 땔감 삼는 지금, 무언가를 새로 시작하고 알리는 힘이 강하게 타오릅니다.';
+        reason = destinyFlowerText('saju.scenarios.bing.springWood.reason', null, '병화(丙火)는 태양처럼 빠르게 불붙고 널리 퍼지는 기운이에요. 봄 목기운을 땔감 삼는 지금, 무언가를 새로 시작하고 알리는 힘이 강하게 타오릅니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.bing.springWood.title');
       } else if (season === 'Summer' && fireStrong) {
         primaryFlowerId = 'sunflower';
         secondaryFlowerIds = ['hibiscus'];
-        reason = '여름 화기운까지 겹친 병화(丙火)는 그 어느 때보다 밝게 타오릅니다. 앞에 나서서 사람들을 이끄는 힘이 최고조에 이르는 시기예요.';
+        reason = destinyFlowerText('saju.scenarios.bing.summerFire.reason', null, '여름 화기운까지 겹친 병화(丙火)는 그 어느 때보다 밝게 타오릅니다. 앞에 나서서 사람들을 이끄는 힘이 최고조에 이르는 시기예요.');
         scenarioTitle = destinyFlowerText('saju.scenarios.bing.summerFire.title');
       } else if (waterStrong) {
         primaryFlowerId = 'marigold';
         secondaryFlowerIds = ['narcissus'];
-        reason = '강한 수기운을 만난 병화(丙火)에게 지금 중요한 건 더 뜨거워지는 게 아니라 방향을 잘 잡는 일이에요. 현실 감각을 챙기며 불꽃을 지킬 때 그 빛이 오래갑니다.';
+        reason = destinyFlowerText('saju.scenarios.bing.waterControl.reason', null, '강한 수기운을 만난 병화(丙火)에게 지금 중요한 건 더 뜨거워지는 게 아니라 방향을 잘 잡는 일이에요. 현실 감각을 챙기며 불꽃을 지킬 때 그 빛이 오래갑니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.bing.waterControl.title');
       }
       break;
@@ -3467,17 +3853,17 @@ export function calculateDestinyFlower(profileData = {}) {
       if (season === 'Winter' || (waterStrong && !fireStrong)) {
         primaryFlowerId = 'camellia';
         secondaryFlowerIds = ['gardenia'];
-        reason = '정화(丁火)는 촛불처럼 안으로 조용히 빛나는 기운이에요. 춥고 습한 지금은 화려함보다, 그 온기를 오래도록 꺼뜨리지 않는 것이 가장 큰 힘이 됩니다.';
+        reason = destinyFlowerText('saju.scenarios.ding.coldWet.reason', null, '정화(丁火)는 촛불처럼 안으로 조용히 빛나는 기운이에요. 춥고 습한 지금은 화려함보다, 그 온기를 오래도록 꺼뜨리지 않는 것이 가장 큰 힘이 됩니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.ding.coldWet.title');
       } else if (season === 'Autumn' && metalStrong) {
         primaryFlowerId = 'dahlia';
         secondaryFlowerIds = ['foxglove'];
-        reason = '금기운을 만난 정화(丁火)는 손끝의 정밀함과 아름다움을 보는 눈이 예리해져요. 하나를 붙잡고 곱게 완성해 낼 때 가장 빛나는 시기입니다.';
+        reason = destinyFlowerText('saju.scenarios.ding.autumnMetal.reason', null, '금기운을 만난 정화(丁火)는 손끝의 정밀함과 아름다움을 보는 눈이 예리해져요. 하나를 붙잡고 곱게 완성해 낼 때 가장 빛나는 시기입니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.ding.autumnMetal.title');
       } else {
         primaryFlowerId = 'rose';
         secondaryFlowerIds = ['ranunculus'];
-        reason = '정화(丁火)는 감정의 결을 섬세하게 어루만져 관계를 깊게 만드는 기운이에요. 마음을 아끼지 말고 표현할수록 운의 길이 함께 열립니다.';
+        reason = destinyFlowerText('saju.scenarios.ding.resonance.reason', null, '정화(丁火)는 감정의 결을 섬세하게 어루만져 관계를 깊게 만드는 기운이에요. 마음을 아끼지 말고 표현할수록 운의 길이 함께 열립니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.ding.resonance.title');
       }
       break;
@@ -3486,17 +3872,17 @@ export function calculateDestinyFlower(profileData = {}) {
       if (earthStrong && fireStrong) {
         primaryFlowerId = 'peony';
         secondaryFlowerIds = ['chrysanthemum_gold'];
-        reason = '무토(戊土)는 큰 산처럼 넓고 든든한 기운이에요. 화와 토가 받쳐 주는 지금은, 크게 벌이고 크게 이루는 일에 유난히 힘이 실립니다.';
+        reason = destinyFlowerText('saju.scenarios.wu.fireEarth.reason', null, '무토(戊土)는 큰 산처럼 넓고 든든한 기운이에요. 화와 토가 받쳐 주는 지금은, 크게 벌이고 크게 이루는 일에 유난히 힘이 실립니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.wu.fireEarth.title');
       } else if (waterStrong && season === 'Winter') {
         primaryFlowerId = 'yarrow';
         secondaryFlowerIds = ['gentian'];
-        reason = '겨울 수기운을 만난 무토(戊土)에게 지금은 속도를 늦추고 바닥을 다질 때예요. 잠시 쉬어 가며 기초를 단단히 할수록 다음 걸음이 든든해집니다.';
+        reason = destinyFlowerText('saju.scenarios.wu.winterWater.reason', null, '겨울 수기운을 만난 무토(戊土)에게 지금은 속도를 늦추고 바닥을 다질 때예요. 잠시 쉬어 가며 기초를 단단히 할수록 다음 걸음이 든든해집니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.wu.winterWater.title');
       } else {
         primaryFlowerId = 'begonia';
         secondaryFlowerIds = ['carnation'];
-        reason = '무토(戊土)의 진짜 힘은 흔들리는 판을 가운데서 붙잡아 주는 중심력이에요. 매일의 루틴을 꾸준히 지켜 낼수록 성과가 차곡차곡 쌓입니다.';
+        reason = destinyFlowerText('saju.scenarios.wu.center.reason', null, '무토(戊土)의 진짜 힘은 흔들리는 판을 가운데서 붙잡아 주는 중심력이에요. 매일의 루틴을 꾸준히 지켜 낼수록 성과가 차곡차곡 쌓입니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.wu.center.title');
       }
       break;
@@ -3505,17 +3891,17 @@ export function calculateDestinyFlower(profileData = {}) {
       if (earthStrong && isWet) {
         primaryFlowerId = 'sweet_pea';
         secondaryFlowerIds = ['begonia'];
-        reason = '기토(己土)는 잘 일군 밭처럼 무언가를 정성껏 길러 내는 기운이에요. 촉촉한 지금은 함께 일하고 서로 돌보는 관계 속에서 결실이 커집니다.';
+        reason = destinyFlowerText('saju.scenarios.ji.wetEarth.reason', null, '기토(己土)는 잘 일군 밭처럼 무언가를 정성껏 길러 내는 기운이에요. 촉촉한 지금은 함께 일하고 서로 돌보는 관계 속에서 결실이 커집니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.ji.wetEarth.title');
       } else if (metalStrong) {
         primaryFlowerId = 'queen_anne_lace';
         secondaryFlowerIds = ['daisy'];
-        reason = '금기운과 만난 기토(己土)는 작은 부분까지 설계하고 정돈하는 감각이 살아나요. 완성도를 챙기는 일에서 당신의 강점이 도드라집니다.';
+        reason = destinyFlowerText('saju.scenarios.ji.metalDesign.reason', null, '금기운과 만난 기토(己土)는 작은 부분까지 설계하고 정돈하는 감각이 살아나요. 완성도를 챙기는 일에서 당신의 강점이 도드라집니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.ji.metalDesign.title');
       } else {
         primaryFlowerId = 'cosmos';
         secondaryFlowerIds = ['carnation'];
-        reason = '기토(己土)는 부드럽게 사이를 조율하며 분위기를 맞추는 데 뛰어난 기운이에요. 밀고 당기는 완급만 잘 조절하면 그것이 곧 행운이 됩니다.';
+        reason = destinyFlowerText('saju.scenarios.ji.balance.reason', null, '기토(己土)는 부드럽게 사이를 조율하며 분위기를 맞추는 데 뛰어난 기운이에요. 밀고 당기는 완급만 잘 조절하면 그것이 곧 행운이 됩니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.ji.balance.title');
       }
       break;
@@ -3524,17 +3910,17 @@ export function calculateDestinyFlower(profileData = {}) {
       if (metalStrong && earthStrong) {
         primaryFlowerId = 'edelweiss';
         secondaryFlowerIds = ['gentian'];
-        reason = '경금(庚金)은 다듬지 않은 원석처럼 굵고 단호하게 끊어 내는 기운이에요. 토와 금이 받쳐 주는 지금, 정한 원칙을 밀고 나가는 힘이 최고조에 이릅니다.';
+        reason = destinyFlowerText('saju.scenarios.geng.metalEarth.reason', null, '경금(庚金)은 다듬지 않은 원석처럼 굵고 단호하게 끊어 내는 기운이에요. 토와 금이 받쳐 주는 지금, 정한 원칙을 밀고 나가는 힘이 최고조에 이릅니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.geng.metalEarth.title');
       } else if (fireStrong && season === 'Summer') {
         primaryFlowerId = 'foxglove';
         secondaryFlowerIds = ['dahlia'];
-        reason = '뜨거운 불에 담금질된 경금(庚金)은 카리스마와 실력이 함께 단단해져요. 중요한 승부처에서 집중력이 유난히 날카롭게 서는 시기입니다.';
+        reason = destinyFlowerText('saju.scenarios.geng.fireTraining.reason', null, '뜨거운 불에 담금질된 경금(庚金)은 카리스마와 실력이 함께 단단해져요. 중요한 승부처에서 집중력이 유난히 날카롭게 서는 시기입니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.geng.fireTraining.title');
       } else {
         primaryFlowerId = 'bellflower';
         secondaryFlowerIds = ['iris'];
-        reason = '경금(庚金)의 강점은 핵심을 정확히 잘라 내는 판단력이에요. 기준을 분명히 세워 두면, 그 선명함이 그대로 성과로 이어집니다.';
+        reason = destinyFlowerText('saju.scenarios.geng.clearJudgment.reason', null, '경금(庚金)의 강점은 핵심을 정확히 잘라 내는 판단력이에요. 기준을 분명히 세워 두면, 그 선명함이 그대로 성과로 이어집니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.geng.clearJudgment.title');
       }
       break;
@@ -3543,17 +3929,17 @@ export function calculateDestinyFlower(profileData = {}) {
       if (metalStrong && waterStrong) {
         primaryFlowerId = 'cornflower';
         secondaryFlowerIds = ['iris'];
-        reason = '신금(辛金)은 잘 세공된 보석처럼 감각과 언어가 정제된 기운이에요. 금과 수가 어우러지는 지금, 분석하고 표현하는 힘이 한층 또렷해집니다.';
+        reason = destinyFlowerText('saju.scenarios.xin.metalWater.reason', null, '신금(辛金)은 잘 세공된 보석처럼 감각과 언어가 정제된 기운이에요. 금과 수가 어우러지는 지금, 분석하고 표현하는 힘이 한층 또렷해집니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.xin.metalWater.title');
       } else if (woodStrong && season === 'Spring') {
         primaryFlowerId = 'orchid';
         secondaryFlowerIds = ['bluebell'];
-        reason = '봄 목기운을 만난 신금(辛金)은 날을 세우기보다 부드럽게 조율할 때 더 멀리 갑니다. 감각으로 매만지는 일에서 성과가 나는 시기예요.';
+        reason = destinyFlowerText('saju.scenarios.xin.springWood.reason', null, '봄 목기운을 만난 신금(辛金)은 날을 세우기보다 부드럽게 조율할 때 더 멀리 갑니다. 감각으로 매만지는 일에서 성과가 나는 시기예요.');
         scenarioTitle = destinyFlowerText('saju.scenarios.xin.springWood.title');
       } else {
         primaryFlowerId = 'wild_chrysanthemum';
         secondaryFlowerIds = ['queen_anne_lace'];
-        reason = '신금(辛金)은 넓게 벌이기보다 하나를 곱게 완성해 낼 때 강한 기운이에요. 세부를 야무지게 마무리할수록 사람들의 신뢰가 쌓입니다.';
+        reason = destinyFlowerText('saju.scenarios.xin.completion.reason', null, '신금(辛金)은 넓게 벌이기보다 하나를 곱게 완성해 낼 때 강한 기운이에요. 세부를 야무지게 마무리할수록 사람들의 신뢰가 쌓입니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.xin.completion.title');
       }
       break;
@@ -3562,17 +3948,17 @@ export function calculateDestinyFlower(profileData = {}) {
       if (season === 'Summer') {
         primaryFlowerId = 'water_lily';
         secondaryFlowerIds = ['blue_lotus'];
-        reason = '임수(壬水)는 넓은 바다처럼 큰 흐름을 다루는 기운이에요. 여름의 열기를 시원하게 식히는 지금, 차분하게 집중하는 힘이 부쩍 올라갑니다.';
+        reason = destinyFlowerText('saju.scenarios.ren.summerCooling.reason', null, '임수(壬水)는 넓은 바다처럼 큰 흐름을 다루는 기운이에요. 여름의 열기를 시원하게 식히는 지금, 차분하게 집중하는 힘이 부쩍 올라갑니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.ren.summerCooling.title');
       } else if (season === 'Winter') {
         primaryFlowerId = 'glacier_bloom';
         secondaryFlowerIds = ['winter_plum', 'lotus_white'];
-        reason = '겨울 수기운과 공명하는 임수(壬水)는 얼음 아래 힘을 그러모으는 때예요. 겉으론 고요해 보여도, 빙하꽃처럼 속으로 단단한 잠재력이 여물어 갑니다.';
+        reason = destinyFlowerText('saju.scenarios.ren.winterCondensing.reason', null, '겨울 수기운과 공명하는 임수(壬水)는 얼음 아래 힘을 그러모으는 때예요. 겉으론 고요해 보여도, 빙하꽃처럼 속으로 단단한 잠재력이 여물어 갑니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.ren.winterCondensing.title');
       } else {
         primaryFlowerId = 'moonflower';
         secondaryFlowerIds = ['blue_lotus'];
-        reason = '임수(壬水)는 환한 낮보다 고요한 밤의 직감에서 길을 잘 찾는 기운이에요. 조급하게 답을 내기보다 자기 리듬을 따라 결정할 때 방향이 맞아떨어집니다.';
+        reason = destinyFlowerText('saju.scenarios.ren.nightIntuition.reason', null, '임수(壬水)는 환한 낮보다 고요한 밤의 직감에서 길을 잘 찾는 기운이에요. 조급하게 답을 내기보다 자기 리듬을 따라 결정할 때 방향이 맞아떨어집니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.ren.nightIntuition.title');
       }
       break;
@@ -3581,17 +3967,17 @@ export function calculateDestinyFlower(profileData = {}) {
       if (season === 'Winter' && (isWet || waterStrong)) {
         primaryFlowerId = 'lotus_white';
         secondaryFlowerIds = ['plum_blossom', 'water_lily'];
-        reason = '계수(癸水)는 새벽이슬처럼 미세한 것을 감지하고 맑게 씻어 내는 기운이에요. 춥고 습한 지금은 조용히 몰입하는 그 고요함이 곧 당신의 힘이 됩니다.';
+        reason = destinyFlowerText('saju.scenarios.gui.coldWetPurifying.reason', null, '계수(癸水)는 새벽이슬처럼 미세한 것을 감지하고 맑게 씻어 내는 기운이에요. 춥고 습한 지금은 조용히 몰입하는 그 고요함이 곧 당신의 힘이 됩니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.gui.coldWetPurifying.title');
       } else if (season === 'Summer' && fireStrong) {
         primaryFlowerId = 'hydrangea';
         secondaryFlowerIds = ['blue_lotus'];
-        reason = '여름 화열을 만난 계수(癸水)에게는 마음을 어루만지고 사람을 잇는 공감이 가장 큰 무기예요. 수국처럼 여럿의 온기를 모아 갈 때 길이 열립니다.';
+        reason = destinyFlowerText('saju.scenarios.gui.summerEmpathy.reason', null, '여름 화열을 만난 계수(癸水)에게는 마음을 어루만지고 사람을 잇는 공감이 가장 큰 무기예요. 수국처럼 여럿의 온기를 모아 갈 때 길이 열립니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.gui.summerEmpathy.title');
       } else {
         primaryFlowerId = 'anemone';
         secondaryFlowerIds = ['moonflower'];
-        reason = '계수(癸水)는 남들이 놓치는 작은 신호를 먼저 읽어 내는 기운이에요. 그 예민한 감각으로 타이밍만 잘 잡으면, 그 한 수가 성패를 가릅니다.';
+        reason = destinyFlowerText('saju.scenarios.gui.subtleSignal.reason', null, '계수(癸水)는 남들이 놓치는 작은 신호를 먼저 읽어 내는 기운이에요. 그 예민한 감각으로 타이밍만 잘 잡으면, 그 한 수가 성패를 가릅니다.');
         scenarioTitle = destinyFlowerText('saju.scenarios.gui.subtleSignal.title');
       }
       break;
@@ -3622,8 +4008,10 @@ export function calculateDestinyFlower(profileData = {}) {
     .filter(Boolean);
 
   return {
-    dayMasterBadge: dayMaster.badge,
+    dayMasterBadge: dayMasterLabel(dayMaster.badge),
     dayMasterStem: dayMaster.stem,
+    // 비한국어 로케일에서만 — dayMasterStem 원본(한글 천간)은 그대로 둔다.
+    ...(isLocalizedDestinyFlowerLocale() ? { dayMasterStemLabel: dayMasterStemLabel(dayMaster.stem) } : {}),
     dayMasterElement,
     dayMasterSource: parsedDayMaster ? 'saju' : 'fallback',
     fallbackUsed: !parsedDayMaster,
@@ -3677,7 +4065,7 @@ function buildFlowerDataSheet(profile, flower, scenario, matchedSignals) {
     Water: '연구·리서치·콘텐츠 설계에서 깊이가 빛납니다.'
   };
 
-  const dayMasterBadge = (scenario && scenario.dayMasterBadge) || (profile.domains.saju && profile.domains.saju.day_master) || '일간 판독 대기';
+  const dayMasterBadge = (scenario && scenario.dayMasterBadge) || dayMasterLabel(profile.domains.saju && profile.domains.saju.day_master) || destinyFlowerText('saju.dayMasterWaiting', null, '일간 판독 대기');
   const dayMasterElement = (scenario && scenario.dayMasterElement) || (profile.domains.saju && profile.domains.saju.day_master_element) || 'Wood';
   const rawSeason = (scenario && scenario.season) || profile.core.season;
   const rawEnvironment = (scenario && scenario.environment) || profile.core.environment;
@@ -3700,7 +4088,7 @@ function buildFlowerDataSheet(profile, flower, scenario, matchedSignals) {
     growth_cycle: destinyFlowerText('saju.growthCycle', null, '발아(기운 수집) → 신장(행동 증폭) → 개화(성과 표면화) → 결실(관계/자산 축적)'),
     fallback_note:
       (profile.domains.saju && profile.domains.saju.day_master_fallback_note) ||
-      ((scenario && scenario.fallbackUsed) ? destinyFlowerText('saju.fallbackNote', null, '일간 데이터 보강 로직이 적용되었습니다.') : '')
+      ((scenario && scenario.fallbackUsed) ? destinyFlowerText('saju.fallbackNote') : '')
   };
 }
 
@@ -3783,6 +4171,18 @@ function scoreAllElementLevels(corePercent, flowerElements) {
   return Number(score.toFixed(3));
 }
 
+const ELEMENT_GENERATES = Object.freeze({ Wood: 'Fire', Fire: 'Earth', Earth: 'Metal', Metal: 'Water', Water: 'Wood' });
+const ELEMENT_CONTROLS = Object.freeze({ Wood: 'Earth', Fire: 'Metal', Earth: 'Water', Metal: 'Wood', Water: 'Fire' });
+
+/** 신강이면 기운을 빼 주는 오행(식상·재성), 신약이면 받쳐 주는 오행(인성·비겁). */
+function sajuStrengthElements(dayMasterElement, strength) {
+  const dm = ELEMENT_LABELS[normalizeElement(dayMasterElement)];
+  if (!dm) return [];
+  if (strength === 'strong') return [ELEMENT_GENERATES[dm], ELEMENT_CONTROLS[dm]];
+  if (strength === 'weak') return [Object.keys(ELEMENT_GENERATES).find((key) => ELEMENT_GENERATES[key] === dm), dm];
+  return [];
+}
+
 function scoreFlower(profile, flower, dayMasterScenario) {
   const core = profile.core;
   const domains = profile.domains;
@@ -3820,6 +4220,19 @@ function scoreFlower(profile, flower, dayMasterScenario) {
       score -= 6;
       matchedSignals.push('kishin_penalty');
     }
+  }
+  const strengthElements = sajuStrengthElements(saju.day_master_element, saju.strength);
+  if (strengthElements.some((el) => elements.includes(el))) {
+    score += 8;
+    matchedSignals.push(saju.strength === 'strong' ? 'strength_release' : 'strength_support');
+  }
+  if (saju.johu === 'cold' && (elements.includes('Fire') || (Array.isArray(flower.seasons) && flower.seasons.includes('Summer')))) {
+    score += 8;
+    matchedSignals.push('johu_warm');
+  }
+  if (saju.johu === 'hot' && (elements.includes('Water') || (Array.isArray(flower.water_levels) && flower.water_levels.includes('high')))) {
+    score += 8;
+    matchedSignals.push('johu_cool');
   }
   if (Array.isArray(flower.seasons) && flower.seasons.includes(core.season)) {
     score += 16;
@@ -3901,6 +4314,168 @@ function scoreFlower(profile, flower, dayMasterScenario) {
   };
 }
 
+/** 꽃이 실제로 품은 오행만 골라 '화(火)·수(水)' 처럼 잇는다. */
+function sharedElementText(flower, list) {
+  const elements = normalizeFlowerElementList(flower.elements);
+  return (Array.isArray(list) ? list : [])
+    .filter((el, i, arr) => el && elements.includes(el) && arr.indexOf(el) === i)
+    .map((el) => {
+      const key = normalizeElement(el);
+      return destinyFlowerText('saju.elements.' + key, null, ELEMENT_KOREAN_LABELS[key]);
+    })
+    .join('·');
+}
+
+/**
+ * 점수에 실제로 더해진 사주 신호만 문장으로 만든다. 순서: 일간 기질 → 신강/신약 → 용신 → 조후.
+ * 신호가 안 든 문장을 만들면 근거가 꾸며낸 말이 되므로, scoreFlower 의 matchedSignals 를 그대로 따른다.
+ */
+function buildSajuSignalPoints(profile, flower, matchedSignals, dayMasterScenario) {
+  const signals = Array.isArray(matchedSignals) ? matchedSignals : [];
+  const saju = (profile.domains && profile.domains.saju) || {};
+  const elementText = (list) => sharedElementText(flower, list);
+  const point = (key, labelKey, text) => ({ key, label: destinyFlowerText(labelKey), text });
+  const points = [];
+
+  const dayMasterBadge = (dayMasterScenario && dayMasterScenario.dayMasterBadge) || dayMasterLabel(saju.day_master) || '';
+  if (signals.includes('day_master_environment_primary') || signals.includes('day_master_environment_secondary')) {
+    if (dayMasterScenario && dayMasterScenario.reason) {
+      points.push(point('day_master', 'saju.rationaleLabel.dayMaster', dayMasterScenario.reason));
+    }
+  } else if (signals.includes('day_master_element') && dayMasterBadge) {
+    points.push(point('day_master', 'saju.rationaleLabel.dayMaster', destinyFlowerText('saju.rationale.dayMasterSame', {
+      dayMasterBadge,
+      element: elementText([saju.day_master_element])
+    })));
+  }
+  if (signals.includes('strength_release') || signals.includes('strength_support')) {
+    const release = signals.includes('strength_release');
+    points.push(point(
+      release ? 'strength_release' : 'strength_support',
+      release ? 'saju.rationaleLabel.strengthRelease' : 'saju.rationaleLabel.strengthSupport',
+      destinyFlowerText(release ? 'saju.rationale.strengthRelease' : 'saju.rationale.strengthSupport', {
+        elements: elementText(sajuStrengthElements(saju.day_master_element, saju.strength))
+      })
+    ));
+  }
+  if (signals.includes('yongshin_element')) {
+    points.push(point('yongshin', 'saju.rationaleLabel.yongshin', destinyFlowerText('saju.rationale.yongshin', {
+      elements: elementText(saju.yongshin_elements || [])
+    })));
+  }
+  if (signals.includes('johu_warm')) {
+    points.push(point('johu_warm', 'saju.rationaleLabel.johuWarm', destinyFlowerText('saju.rationale.johuWarm')));
+  }
+  if (signals.includes('johu_cool')) {
+    points.push(point('johu_cool', 'saju.rationaleLabel.johuCool', destinyFlowerText('saju.rationale.johuCool')));
+  }
+  return points;
+}
+
+/** 최대 4개: 신호 문장 3개까지 + "그래서 이 꽃". */
+function buildRationalePoints(profile, flower, matchedSignals, dayMasterScenario) {
+  const points = buildSajuSignalPoints(profile, flower, matchedSignals, dayMasterScenario).slice(0, 3);
+  points.push({
+    key: 'verdict',
+    label: destinyFlowerText('common.rationaleLabel.verdict'),
+    text: destinyFlowerText('saju.rationale.verdict', {
+      flowerName: flower.name,
+      scientificName: flower.scientific_name
+    }, '그래서 지금 당신에게 건네는 꽃은 ' + flower.name + '(' + flower.scientific_name + ')입니다.')
+  });
+  return points;
+}
+
+function sajuSeasonLabel(season) {
+  const fallback = { Spring: '봄', Summer: '여름', Autumn: '가을', Winter: '겨울' }[season];
+  return fallback ? destinyFlowerText('saju.seasons.' + season, null, fallback) : '';
+}
+
+function bloomVerdictStage(flower) {
+  return {
+    stage: 'bloom',
+    label: destinyFlowerText('common.bloomLabel.bloom'),
+    text: destinyFlowerText('common.bloom.verdict', { title: flower.title || flower.name })
+  };
+}
+
+/**
+ * 개화 서사: 씨앗(일간) → 계절 → 햇빛과 물(신강약·용신·조후) → 그래서 피어난 꽃.
+ * buildSajuSignalPoints 와 같은 matchedSignals 만 따르고, 신호가 없는 단계는 통째로 뺀다.
+ */
+function buildSajuBloomStory(profile, flower, matchedSignals, dayMasterScenario) {
+  const signals = Array.isArray(matchedSignals) ? matchedSignals : [];
+  const points = buildSajuSignalPoints(profile, flower, signals, dayMasterScenario);
+  const story = [];
+  points.filter((p) => p.key === 'day_master').forEach((p) => {
+    story.push({ stage: 'seed', label: destinyFlowerText('common.bloomLabel.seed'), text: p.text });
+  });
+  const season = signals.includes('season') ? sajuSeasonLabel(profile.core && profile.core.season) : '';
+  if (season) {
+    story.push({ stage: 'season', label: destinyFlowerText('common.bloomLabel.season'), text: destinyFlowerText('saju.bloom.season', { season }) });
+  }
+  points.filter((p) => p.key !== 'day_master').forEach((p) => {
+    story.push({ stage: 'light', label: p.label, text: p.text });
+  });
+  story.push(bloomVerdictStage(flower));
+  return story;
+}
+
+/** 나의 꽃말: 전통 꽃말에 실제로 맞은 용신(없으면 일간)을 붙인다. */
+function buildSajuFlowerLanguage(profile, flower, matchedSignals, dayMasterScenario) {
+  const language = flower.flower_language || '';
+  if (!language) return '';
+  const signals = Array.isArray(matchedSignals) ? matchedSignals : [];
+  const saju = (profile.domains && profile.domains.saju) || {};
+  const yongshin = signals.includes('yongshin_element') ? sharedElementText(flower, saju.yongshin_elements || []) : '';
+  if (yongshin) return destinyFlowerText('saju.flowerLanguage.yongshin', { language, elements: yongshin });
+  const dayMasterBadge = (dayMasterScenario && dayMasterScenario.dayMasterBadge) || dayMasterLabel(saju.day_master) || '';
+  if (dayMasterBadge) return destinyFlowerText('saju.flowerLanguage.dayMaster', { language, dayMasterBadge });
+  return destinyFlowerText('common.flowerLanguage.plain', { language });
+}
+
+/** 공유 훅. 희소성 문장은 지어낸 확률 없이 실제 조건(일간·태어난 계절·후보 수)만 쓴다. */
+function buildSajuShareHook(profile, flower, dayMasterScenario) {
+  const saju = (profile.domains && profile.domains.saju) || {};
+  const dayMasterBadge = (dayMasterScenario && dayMasterScenario.dayMasterBadge) || dayMasterLabel(saju.day_master) || '';
+  const season = sajuSeasonLabel(profile.core && profile.core.season);
+  const rarityKey = dayMasterBadge
+    ? (season ? 'saju.shareHook.raritySeason' : 'saju.shareHook.rarityDayMaster')
+    : 'saju.shareHook.rarityPlain';
+  return {
+    headline: flower.title || flower.name,
+    one_liner: flower.vibe_message || '',
+    rarity_line: destinyFlowerText(rarityKey, { dayMasterBadge, season, total: flowerCatalog.length })
+  };
+}
+
+/**
+ * 점성술·자미두수·숙요의 개화 서사·나의 꽃말·공유 훅. 이미 만든 rationale_points 를 단계로 옮길 뿐
+ * 새 주장을 만들지 않는다. anchor 는 그 체계가 꽃을 고른 기준(태양궁·명궁 주성·본명숙)이다.
+ */
+function buildSourceViralExtras(flower, rationalePoints, anchor) {
+  const reasons = (Array.isArray(rationalePoints) ? rationalePoints : [])
+    .filter((p) => !/verdict$/.test(String(p.key || '')));
+  const story = reasons.map((p, i) => ({ stage: i === 0 ? 'seed' : 'light', label: p.label, text: p.text }));
+  story.push(bloomVerdictStage(flower));
+  const language = flower.flower_language || '';
+  let destinyLanguage = '';
+  if (language) {
+    destinyLanguage = anchor
+      ? destinyFlowerText('common.flowerLanguage.anchor', { language, anchor })
+      : destinyFlowerText('common.flowerLanguage.plain', { language });
+  }
+  return {
+    bloom_story: story,
+    destiny_flower_language: destinyLanguage,
+    share_hook: {
+      headline: flower.title || flower.name,
+      one_liner: flower.vibe_message || '',
+      rarity_line: anchor ? destinyFlowerText('common.shareHook.rarityAnchor', { anchor, anchorWith: josa(anchor, '으로', '로') }) : ''
+    }
+  };
+}
+
 function buildRationale(profile, flower, matchedSignals, dayMasterScenario) {
   const seasonKorean = {
     Spring: destinyFlowerText('saju.seasons.Spring', null, '봄'),
@@ -3938,7 +4513,7 @@ function buildRationale(profile, flower, matchedSignals, dayMasterScenario) {
   const environment = environmentKorean[profile.core.environment] || profile.core.environment;
   const dayMasterBadge =
     (dayMasterScenario && dayMasterScenario.dayMasterBadge) ||
-    (profile.domains.saju && profile.domains.saju.day_master) ||
+    dayMasterLabel(profile.domains.saju && profile.domains.saju.day_master) ||
     destinyFlowerText('saju.dayMasterWaiting', null, '일간 판독 대기');
   const sajuVerdict = destinyFlowerText('saju.rationale.verdict', {
     flowerName: flower.name,
@@ -3953,6 +4528,9 @@ function buildRationale(profile, flower, matchedSignals, dayMasterScenario) {
   if (dayMasterScenario && dayMasterScenario.reason) {
     lines.push(destinyFlowerText('saju.rationale.scenario', { reason: dayMasterScenario.reason }, dayMasterScenario.reason));
   }
+  buildSajuSignalPoints(profile, flower, matchedSignals, dayMasterScenario)
+    .filter((point) => point.key !== 'day_master')
+    .forEach((point) => lines.push(point.text));
   lines.push(sajuVerdict);
   if (flower.symbolism) {
     lines.push(destinyFlowerText('saju.rationale.symbolism', { symbolism: flower.symbolism }, flower.symbolism + '을 품은 이 꽃은, 지금 당신이 지나는 시기의 결과 놀랍도록 닮아 있어요.'));
@@ -3996,6 +4574,24 @@ export function findUnifiedFlowerById(flowerId) {
   const target = String(flowerId || '').trim().toLowerCase();
   if (!target) return null;
   return unifiedFlowerCatalog.find((f) => String(f.id || '').toLowerCase() === target) || null;
+}
+
+/** 친구 공유 링크용 공개 카드. 꽃 자체의 정보만 담고 받는 사람의 사주·생일은 다루지 않는다. */
+export function getPublicFlowerCard(flowerId) {
+  const found = /^[a-z0-9_]{1,40}$/.test(String(flowerId || '')) ? findUnifiedFlowerById(flowerId) : null;
+  if (!found) return null;
+  const flower = localizeDestinyFlowerCopy(found);
+  return {
+    id: flower.id,
+    name: flower.name,
+    scientific_name: flower.scientific_name || '',
+    title: flower.title || flower.name,
+    flower_language: flower.flower_language || '',
+    vibe_message: flower.vibe_message || '',
+    primary_color: flower.primary_color || '',
+    secondary_color: flower.secondary_color || '',
+    elements: normalizeFlowerElementList(flower.elements)
+  };
 }
 
 /**
@@ -4114,6 +4710,10 @@ export function matchDestinyFlower(userData = {}, options = {}) {
     flower_data: flowerData,
     saju_verdict: sajuVerdict,
     narrative: buildRationale(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    rationale_points: buildRationalePoints(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    bloom_story: buildSajuBloomStory(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    destiny_flower_language: buildSajuFlowerLanguage(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    share_hook: buildSajuShareHook(profile, displayFlower, dayMasterScenario),
     fallback_logic: {
       used: Boolean(profile.domains && profile.domains.saju && profile.domains.saju.day_master_fallback_used),
       source: profile.domains && profile.domains.saju && profile.domains.saju.day_master_source,
@@ -4197,6 +4797,8 @@ export function updateFlowerTheme(newData = {}, currentTheme = {}) {
     source: {
       dominant_element: profile.core.dominant_element,
       day_master: profile.domains.saju.day_master,
+      // 비한국어 로케일에서만 붙는 표시용 형제 필드.
+      ...(isLocalizedDestinyFlowerLocale() ? { day_master_label: dayMasterLabel(profile.domains.saju.day_master) } : {}),
       day_master_source: profile.domains.saju.day_master_source,
       season: profile.core.season,
       environment: profile.core.environment,

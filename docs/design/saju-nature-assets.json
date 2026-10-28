@@ -1,0 +1,142 @@
+[
+  {
+    "id": "gap",
+    "prompt": "Use case: stylized-concept. Generate one premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: a majestic straight pine tree rising above misty jade green foothills, the symbolic image of Gap wood. Fine mineral pigment painting on subtle silk texture, sophisticated restrained detail, luminous natural light, deep teal and fresh green, contemplative art-book quality. Full bleed, no frames, no text, no letters, no symbols, no mascot. Save the generated image.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-b0a3fa19-b325-4e79-96b5-b8f3d0f52821.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/gap-480.webp",
+      "public/images/saju/nature/gap-960.webp"
+    ]
+  },
+  {
+    "id": "eul",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: delicate winding flowering vines and wild grasses, fresh emerald leaves in a tranquil spring garden, flexible living stems; Eul yin wood. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-b5c6bc6a-0b8c-47e0-84ef-11e0f359553c.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/eul-480.webp",
+      "public/images/saju/nature/eul-960.webp"
+    ]
+  },
+  {
+    "id": "byeong",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: a brilliant rising sun above an open horizon and vermilion sunlit clouds, warm coral and gold; Byeong yang fire. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-a71dcca2-27e5-4910-b58b-38e204d46898.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/byeong-480.webp",
+      "public/images/saju/nature/byeong-960.webp"
+    ]
+  },
+  {
+    "id": "jeong",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: one elegant traditional oil lamp with a small steady flame in a quiet dusk room, ember amber and warm vermilion, intimate soft light; Jeong yin fire. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-faa2ce0a-e5b8-4374-998f-6b6b159b0e5c.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/jeong-480.webp",
+      "public/images/saju/nature/jeong-960.webp"
+    ]
+  },
+  {
+    "id": "mu",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: a massive dignified mountain massif with ochre cliffs and golden earth in clear light, grounded and spacious; Mu yang earth. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-49116e96-3301-4892-92b8-04c5e2d9d1bf.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/mu-480.webp",
+      "public/images/saju/nature/mu-960.webp"
+    ]
+  },
+  {
+    "id": "gi",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: fertile cultivated earth and gently terraced fields with small growing plants, warm ochre and golden soil; Gi yin earth. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-35ec17b6-9582-4b43-9b9a-2498e5fd130c.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/gi-480.webp",
+      "public/images/saju/nature/gi-960.webp"
+    ]
+  },
+  {
+    "id": "gyeong",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: rugged silver metallic mineral rock with sharp clean facets in a quiet mountain landscape, brushed steel and slate; Gyeong yang metal. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-9f388503-c1fc-496d-a420-7afbf1488367.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/gyeong-480.webp",
+      "public/images/saju/nature/gyeong-960.webp"
+    ]
+  },
+  {
+    "id": "sin",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: an exquisitely polished luminous pale gemstone resting on smooth silver stone, subtle refined reflections and pearl white light; Sin yin metal. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-1784f54a-9633-4dea-a9aa-d4542df4381e.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/sin-480.webp",
+      "public/images/saju/nature/sin-960.webp"
+    ]
+  },
+  {
+    "id": "im",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: a vast deep blue ocean with rolling powerful currents merging into the far horizon, ink blue and indigo; Im yang water. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-ac5639c3-7c67-474b-8ebd-48614c29ec59.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/im-480.webp",
+      "public/images/saju/nature/im-960.webp"
+    ]
+  },
+  {
+    "id": "gye",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: clear rain droplets on fine grasses beside a gentle mountain spring, translucent cool blue and silver, delicate and quiet; Gye yin water. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-909278bf-f2c8-40cd-82bb-42787b4684de.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/gye-480.webp",
+      "public/images/saju/nature/gye-960.webp"
+    ]
+  },
+  {
+    "id": "spring",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: spring Korean valley with budding branches and fresh jade green foliage, light mist, the beginning of growth. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-3ab084af-956d-475e-bfcf-b95e059e7c73.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/spring-480.webp",
+      "public/images/saju/nature/spring-960.webp"
+    ]
+  },
+  {
+    "id": "summer",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: lush Korean valley in summer, full green canopy and warm vermilion sunset, expansive light and vitality. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-3e5386b8-a888-4123-8004-f5080979014c.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/summer-480.webp",
+      "public/images/saju/nature/summer-960.webp"
+    ]
+  },
+  {
+    "id": "autumn",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: Korean valley in autumn with golden reeds and silver mist over stone ridges, restrained ochre foliage and clear sky. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-ab45a856-1f39-40ff-9fb3-9b4c35eec92e.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/autumn-480.webp",
+      "public/images/saju/nature/autumn-960.webp"
+    ]
+  },
+  {
+    "id": "winter",
+    "prompt": "Use case: stylized-concept. One premium Korean nature editorial illustration for a Saju reading, landscape 3:2. Subject: Korean valley in winter with snow covered slopes and deep indigo stream, quiet bare branches and pearly cold light. Fine mineral pigment painting on subtle silk texture, sophisticated realistic detail, luminous natural light, contemplative art-book quality. Full bleed, no frame, no text, no letters, no symbols, no mascot. Consistent elegant fine-art series.",
+    "source": "C:\\Users\\user\\.codex\\generated_images\\01a13c97-962c-75a1-9a5e-a1ad23476161\\exec-95140376-43ca-4108-9756-f7e527720ffa.png",
+    "tool": "built-in image_gen",
+    "outputs": [
+      "public/images/saju/nature/winter-480.webp",
+      "public/images/saju/nature/winter-960.webp"
+    ]
+  }
+]

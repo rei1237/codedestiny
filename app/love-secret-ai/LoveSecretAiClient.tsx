@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
@@ -38,6 +41,10 @@ import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume, type PaidResumeD
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ProductMasterStrip from "@/app/components/ProductMasterStrip";
+import { MasterProfileGroup } from "@/components/fortune/MasterProfile";
+import { masterProfiles, productMasters } from "@/components/fortune/master-profiles";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import {
   getActivePaidAttemptSession,
@@ -349,7 +356,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     heroTitle: "연애 비책 AI",
     heroSubtitle: "당신만을 위한 연애 컨설턴트",
     heroDescription: "사주 명식과 연애 심리를 함께 읽어, 오늘 무엇을 하고 무엇을 미뤄야 하는지까지 짚어 드립니다.",
-    heroStartCta: "상담 시작하기",
+    heroStartCta: "연애 비책 시작하기",
     progressGeneratingSrLabel: "상담 생성 진행률",
     progressFormSrLabel: "입력 진행률",
     stepLabelFormat: (step, title) => `${step}단계 · ${title}`,
@@ -1595,6 +1602,8 @@ const FOCUS_AREAS_KO: Array<{ value: FocusArea; label: string; desc: string }> =
 const FOCUS_VALUES: FocusArea[] = FOCUS_AREAS_KO.map((item) => item.value);
 
 const FORM_ANCHOR_ID = "love-secret-form";
+// 히어로 시작 버튼 — 고정 CTA 와 같은 행동이라, 이 버튼이 보이는 동안은 고정 CTA 를 숨긴다.
+const HERO_START_ID = "love-secret-hero-start";
 
 /**
  * 입력 스텝.
@@ -1930,8 +1939,9 @@ export default function LoveSecretAiPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
@@ -2297,7 +2307,8 @@ export default function LoveSecretAiPage() {
       <div className={`pointer-events-none fixed inset-0 ${theme.pageBg}`} aria-hidden="true" />
 
       <section className={`${intro.shell} flex flex-col gap-6`}>
-        <LoveSecretHero onStart={focusFirstStepField} busy={busy} />
+        <LoveSecretHero onStart={focusFirstStepField} busy={busy} mastersHref={!busy && !resultUrl ? `#${LOVE_MASTERS_ANCHOR_ID}` : undefined} />
+        {copy === LOVE_SECRET_CLIENT_COPY.ko && <CraftedProductDisclosure featureKey="love-secret-ai-consultation" />}
 
         <LoveSecretProgressRail
           mode={busy ? "generating" : "form"}
@@ -2307,7 +2318,7 @@ export default function LoveSecretAiPage() {
 
           <ExpertValueCards theme="love" points={[{ title: "내 마음의 속도", description: "지금 관계에서 내가 먼저 반응하는 지점과 원하는 거리를 살핍니다." }, { title: "상대와의 결", description: "상대의 마음을 단정하지 않고 관계의 패턴과 흐름으로 읽습니다." }, { title: "다음 대화", description: "불안을 키우기보다 지금 선택할 수 있는 대화와 간격을 정리합니다." }]} />
         <div className={styles.formLayout}>
-          <form onSubmit={handleSubmit} id={FORM_ANCHOR_ID} className={styles.entryForm}>
+          <form data-moonlit-form="" onSubmit={handleSubmit} id={FORM_ANCHOR_ID} className={styles.entryForm}>
             <div
               key={busy ? "busy" : activeStep.id}
               className={`${styles.stepEnter} rounded-lg border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5 sm:p-7`}
@@ -2330,14 +2341,7 @@ export default function LoveSecretAiPage() {
                       <p className="mt-1.5 text-sm leading-6 text-[var(--ls-text-muted)]">{copy.stepHelper[activeStep.id]}</p>
                     </div>
                     {activeStep.id === "me" && (
-                      <button
-                        type="button"
-                        onClick={loadFormFromProfileCard}
-                        className={`${theme.focusRing} shrink-0 rounded-xl border border-[var(--ls-line-control)] px-3 py-2 text-xs font-bold text-[var(--ls-accent)] transition hover:bg-[var(--ls-surface-sunken)]`}
-                        aria-label={copy.profileLoadAria}
-                      >
-                        {copy.profileLoadCta}
-                      </button>
+                      <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
                     )}
                   </header>
 
@@ -2478,13 +2482,21 @@ export default function LoveSecretAiPage() {
             )}
           </aside>
         </div>
-          <ExpertStickyCta theme="love" targetId={FORM_ANCHOR_ID} label="연애 비책 펼치기" price={<PriceBadge featureKey="love-secret-ai-consultation" prefix="상담 이용 가격 " />} />
+          <ExpertStickyCta theme="love" targetId={FORM_ANCHOR_ID} watchId={HERO_START_ID} label={copy.heroStartCta} price={<PriceBadge featureKey="love-secret-ai-consultation" prefix="상담 이용 가격 " />} />
       </section>
+      {/* 소개용 공동 마스터 프로필 — 상담 진행·결과 안내 중에는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
+      {copy === LOVE_SECRET_CLIENT_COPY.ko && !busy && !resultUrl && <MasterProfileGroup id={LOVE_MASTERS_ANCHOR_ID}
+        title="연애 비책을 함께 쓰는 두 마스터"
+        lead="연이가 당신의 마음과 다가가는 방법을, 서한비가 상대와 두 사람 사이의 거리·갈등·시기를 맡아 여섯 부를 나눠 씁니다."
+        profiles={LOVE_MASTERS} />}
     </main>
   );
 }
 
-function LoveSecretHero({ onStart, busy }: { onStart: () => void; busy: boolean }) {
+const LOVE_MASTERS_ANCHOR_ID = "love-secret-masters";
+const LOVE_MASTERS = [masterProfiles.yeoniLove, masterProfiles.hanbiLove];
+
+function LoveSecretHero({ onStart, busy, mastersHref }: { onStart: () => void; busy: boolean; mastersHref?: string }) {
   const copy = useLoveSecretClientCopy();
   return (
     <header className={intro.hero}>
@@ -2494,12 +2506,13 @@ function LoveSecretHero({ onStart, busy }: { onStart: () => void; busy: boolean 
       </div>
       <div className={intro.heroCopy}>
         <h2>{copy.heroTitle}</h2>
+        {copy === LOVE_SECRET_CLIENT_COPY.ko && <ProductMasterStrip label="연애 비책 공동 마스터" masters={productMasters.love} profileHref={mastersHref} />}
         <p className={intro.description}>{copy.heroDescription}</p>
         <ul className={intro.topics}>
           {copy.heroPromises.map((item) => <li key={item}>{item}</li>)}
         </ul>
         <div className={intro.actions}>
-          <button type="button" onClick={onStart} disabled={busy} className={intro.start}>
+          <button type="button" id={HERO_START_ID} onClick={onStart} disabled={busy} className={intro.start}>
             <MessageCircleHeart className="h-5 w-5" aria-hidden="true" />
             {copy.heroStartCta}
           </button>
@@ -2581,7 +2594,10 @@ function PersonFields({
   const fieldLabels = copy.personFieldLabels[variant];
   const inputClass = `${theme.focusRing} min-h-12 rounded-2xl border border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] px-4 text-[var(--ls-text)] outline-none transition placeholder:text-[var(--ls-text-muted)] disabled:opacity-55`;
   return (
-    <div className="grid gap-5">
+    <div data-moonlit-form="" className="grid gap-5">
+      <SavedBirthProfilePicker calendarMode="lunar" label={variant==="me"?"내 저장 프로필":"상대 저장 프로필"} disabled={disabled} onSelect={seed=>{
+        onChange("name",seed.name || "");onChange("gender",seed.gender || "");onChange("birthDate",seed.birthDate || "");onChange("birthTime",seed.birthTime || "");onChange("birthTimeUnknown",Boolean(seed.birthTimeUnknown));onChange("calendarType",seed.calendarType || "solar");
+      }} />
       <label className="grid gap-2">
         <span className="text-sm font-bold text-[var(--ls-text)]">{fieldLabels.nameOrNickname}</span>
         <input
@@ -2648,15 +2664,15 @@ function PersonFields({
         </FieldGroup>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div data-moonlit-form="" className="grid gap-4 sm:grid-cols-2">
         <label className="grid gap-2">
           <span className="text-sm font-bold text-[var(--ls-text)]">{fieldLabels.birthDate}</span>
           <input {...birthDateTextInputProps(value.birthDate, (nextBirthDate) => onChange("birthDate", nextBirthDate))} disabled={disabled} className={inputClass} />
         </label>
         <label className="grid gap-2">
           <span className="text-sm font-bold text-[var(--ls-text)]">{fieldLabels.birthTime}</span>
-          <input
-            type="time"
+          <BirthTimeInput
+
             value={value.birthTime}
             onChange={(event) => onChange("birthTime", event.target.value)}
             disabled={disabled || value.birthTimeUnknown}
@@ -2796,7 +2812,7 @@ function LoveSecretPromiseCard() {
           </li>
         ))}
       </ul>
-      <p className="mt-5 border-t border-[var(--ls-line)] pt-4 text-xs leading-6 text-[var(--ls-text-muted)]">
+      <p className="mt-5 border-t border-[var(--ls-line)] pt-4 text-sm leading-6 text-[var(--ls-text-muted)]">
         {copy.promiseCardFooter}
       </p>
     </section>

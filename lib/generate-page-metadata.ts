@@ -8,10 +8,10 @@
  *  3. OpenGraph / Twitter Card 기본값 병합
  *  4. SoftwareApplication JSON-LD 데이터 반환 (page.tsx에서 <script> 삽입용)
  *
- * 사용 예시 (app/saju/basic/page.tsx):
+ * 사용 예시 (app/saju/page.js):
  *   export async function generateMetadata() {
  *     return generatePageMetadata({
- *       path: "/saju/basic",
+ *       path: "/saju",
  *       title: pageCopy.title,
  *       description: pageCopy.description,
  *       keywords: pageCopy.keywords,
@@ -93,7 +93,7 @@ type HreflangPathMap = Partial<{
 }>;
 
 export interface FortunePageMeta {
-  /** 루트 기준 경로. 예: "/saju/basic" */
+  /** 루트 기준 경로. 예: "/saju" */
   path: string;
   title: string;
   description: string;

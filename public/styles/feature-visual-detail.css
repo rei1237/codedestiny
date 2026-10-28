@@ -1,154 +1,297 @@
-/* Shared editorial product surface. Display-only: payment controllers stay in their hosts. */
-.featureIntroductionPage{min-height:100dvh;padding:20px 20px calc(110px + env(safe-area-inset-bottom));background:#f7f4ee;color:#202b3e}
+@import "./consultation-editorial.css";
+@import './consultation-sample-guide.css';
+/* 달빛 예화 상세 표면 — 정적 팝업(#tilePvwOverlay)·SSG(/features/[slug]/)·React(.cd-detail-overlay)가 같은 시트를 쓴다.
+   표시 전용: 결제 컨트롤러는 각 호스트에 남는다. 모드 토큰(--fd-*) 한 벌만 바뀌고(연이=아이보리 달빛 종이, 네오=밤하늘),
+   --fortune-* 는 그 토큰을 가리키므로 테마·소재 규칙과 특이성 싸움이 없다. 금선(--cd-yehwa-line*)은 장식 전용. */
+:root{--fd-paper:#fdf6f0;--fd-raised:#fffdf9;--fd-glow:radial-gradient(120% 52% at 50% 0%,rgba(201,164,106,.09),transparent 62%);--fd-ink:#3d2a35;--fd-text:#55404c;--fd-quiet:#6e5664;--fd-gold:#7a5a24;--fd-line:rgba(169,123,62,.3);--fd-line-soft:rgba(169,123,62,.16);--fd-tint:rgba(201,164,106,.1);--fd-frame:rgba(169,123,62,.42);--fd-frame-inner:rgba(169,123,62,.2);--fd-ring:rgba(122,90,36,.5);--fd-rule:linear-gradient(90deg,rgba(169,123,62,.45) 0,rgba(169,123,62,.12) 62%,transparent);--fd-moon:radial-gradient(circle at 35% 35%,#f3dfb6 0,#c9a46a 60%,#a97b3e 100%);--fd-moon-halo:rgba(169,123,62,.16);--fd-scroll:#d7c2a3;--fd-sparkle:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%);--fd-rose:#8b3e59;--fd-emerald:#286453;--fd-violet:#65467e;--fd-indigo:#424c86;--fd-saffron:#885022;--fd-burgundy:#7b354b;--fd-navy:#344f75}
+html.neo-mode,body.neo-mode,html[data-cd-theme="neo"]{--fd-paper:#0d1325;--fd-raised:#141b33;--fd-glow:radial-gradient(120% 52% at 50% 0%,rgba(232,213,163,.075),transparent 62%);--fd-ink:#f6ecd6;--fd-text:#d8d4ca;--fd-quiet:#b3ad9f;--fd-gold:#e8d5a3;--fd-line:rgba(232,213,163,.22);--fd-line-soft:rgba(232,213,163,.12);--fd-tint:rgba(232,213,163,.07);--fd-frame:rgba(232,213,163,.26);--fd-frame-inner:rgba(232,213,163,.11);--fd-ring:rgba(232,213,163,.55);--fd-rule:linear-gradient(90deg,rgba(232,213,163,.42) 0,rgba(232,213,163,.1) 62%,transparent);--fd-moon:radial-gradient(circle at 35% 35%,#fffaef 0,#f2e2bc 55%,#c9b48a 100%);--fd-moon-halo:rgba(232,213,163,.16);--fd-scroll:#3a4466;--fd-rose:#f2b8c9;--fd-emerald:#9fd8c0;--fd-violet:#cdb4f0;--fd-indigo:#b4bdf2;--fd-saffron:#f0c993;--fd-burgundy:#eab0bf;--fd-navy:#b9c8e6}
+.featureIntroductionPage{min-height:100dvh;padding:20px 20px calc(110px + env(safe-area-inset-bottom));background:var(--fd-paper);color:var(--fd-ink)}
 .featureIntroductionNav{display:flex;justify-content:space-between;gap:16px;max-width:880px;margin:auto}
-.featureIntroductionNav a{display:flex;align-items:center;min-height:44px;color:#495770;text-decoration:none;font-size:14px}
-.featureIntroductionTitle{max-width:880px;margin:20px auto;font:600 16px/1.6 var(--font-body,system-ui)}
-.featureVisualDetail{--fortune-paper:#f7f4ee;--fortune-ink:#202b3e;--fortune-muted:#536078;--fortune-accent:#344f75;--fortune-tint:#e9edf2;--fortune-line:#cfd2d6;color:var(--fortune-ink);background:var(--fortune-paper);font:16px/1.75 var(--font-body,system-ui,sans-serif);overflow-wrap:anywhere;max-width:880px;margin:auto;isolation:isolate}
-.featureVisualDetail[data-fortune-theme=rose]{--fortune-accent:#8b3e59;--fortune-tint:#f0e2e5;--fortune-muted:#68505a;--fortune-line:#dbcccf}
-.featureVisualDetail[data-fortune-theme=emerald]{--fortune-accent:#286453;--fortune-tint:#e2ece5;--fortune-muted:#4e625b}
-.featureVisualDetail[data-fortune-theme=violet]{--fortune-accent:#65467e;--fortune-tint:#ebe5ef}
-.featureVisualDetail[data-fortune-theme=indigo]{--fortune-accent:#424c86;--fortune-tint:#e6e9f2}
-.featureVisualDetail[data-fortune-theme=saffron]{--fortune-accent:#885022;--fortune-tint:#f0e5d5}
-.featureVisualDetail[data-fortune-theme=burgundy]{--fortune-accent:#7b354b;--fortune-tint:#efe1e5}
+.featureIntroductionNav a{display:flex;align-items:center;min-height:44px;color:var(--fd-quiet);text-decoration:none;font-size:14px}
+.featureIntroductionTitle{max-width:880px;margin:20px auto;color:var(--fd-gold);font:700 16px/1.6 var(--font-serif,Georgia,serif)}
+.featureVisualDetail{--fortune-paper:var(--fd-paper);--fortune-raised:var(--fd-raised);--fortune-ink:var(--fd-ink);--fortune-muted:var(--fd-text);--fortune-quiet:var(--fd-quiet);--fortune-gold:var(--fd-gold);--fortune-accent:var(--fd-navy);--fortune-tint:var(--fd-tint);--fortune-line:var(--fd-line);--fortune-frame:var(--fd-frame);--fortune-frame-inner:var(--fd-frame-inner);color:var(--fortune-ink);background:var(--fd-glow) no-repeat,var(--fortune-paper);font:16px/1.85 var(--font-body,system-ui,sans-serif);overflow-wrap:anywhere;max-width:880px;margin:auto;padding-bottom:var(--cd-sp-lg,24px);isolation:isolate}
+/* 상품 테마색은 인장·숫자·인용부호·배지 같은 포인트에만 쓴다(Accent Budget). */
+.featureVisualDetail[data-fortune-theme=rose]{--fortune-accent:var(--fd-rose)}
+.featureVisualDetail[data-fortune-theme=emerald]{--fortune-accent:var(--fd-emerald)}
+.featureVisualDetail[data-fortune-theme=violet]{--fortune-accent:var(--fd-violet)}
+.featureVisualDetail[data-fortune-theme=indigo]{--fortune-accent:var(--fd-indigo)}
+.featureVisualDetail[data-fortune-theme=saffron]{--fortune-accent:var(--fd-saffron)}
+.featureVisualDetail[data-fortune-theme=burgundy]{--fortune-accent:var(--fd-burgundy)}
 .featureVisualDetail *{box-sizing:border-box}
-/* The two bound/paper products continue the same material as their actual reports. */
-.featureVisualDetail[data-fortune-material=book]{--fortune-paper:#f6f1e6;--fortune-ink:#20362a;--fortune-muted:#52624d;--fortune-accent:#285640;--fortune-tint:#e5e9dc;--fortune-line:#c9cbb7}
-.featureVisualDetail[data-fortune-material=letter]{--fortune-paper:#f6f2ed;--fortune-ink:#35262c;--fortune-muted:#71545f;--fortune-accent:#763d53;--fortune-tint:#efe5e1;--fortune-line:#e0d3cc}
-.featureVisualDetail[data-fortune-material] .featureDetailHero{display:grid;grid-template-columns:minmax(190px,280px) minmax(0,1fr);gap:28px;align-items:center;padding:36px 28px}
-.featureVisualDetail[data-fortune-material] .featureDetailHero .featureDetailBody{padding:0;background:transparent}
-.featureVisualDetail[data-fortune-material] .featureDetailHero .featureDetailBody:before{display:none}
-.featureVisualDetail[data-fortune-material=book] .featureDetailHero{background:#152721;--fortune-ink:#f6ecd7;--fortune-muted:#d3c7aa;--fortune-accent:#eddbaf;--fortune-price:#eddbaf}
-.featureVisualDetail[data-fortune-material] :is(.fortuneAction a,.fortuneAction button,.featureDetailConversion){background-image:none;box-shadow:none;border-radius:6px}
-.featureVisualDetail[data-fortune-material=book] .featureDetailHero :is(.fortuneAction a,.fortuneAction button,.featureDetailConversion){background:#eddbaf;color:#20362a}
-.featureVisualDetail[data-fortune-material] :is(.fortuneAction a,.fortuneAction button,.featureDetailConversion):after{border-color:currentColor}
+.featureVisualDetail ::selection{background:var(--fortune-accent);color:var(--fortune-paper)}
+.featureVisualDetail :is(button,a,summary,input):focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
+.featureVisualDetail :is(h2,h3){color:var(--fortune-ink);font:700 1.3rem/1.45 var(--font-serif,Georgia,serif);letter-spacing:-.02em;text-wrap:balance;word-break:keep-all;margin:0 0 var(--cd-sp-md,16px)}
+.featureVisualDetail p{color:var(--fortune-muted);font-size:1rem;line-height:1.85;word-break:keep-all;margin:0 0 var(--cd-sp-lg,24px)}
+.featureVisualDetail p:last-child{margin-bottom:0}
+.featureVisualDetail strong{color:var(--fortune-ink);font-weight:650}
+/* 히어로: 금선 이중 프레임(바깥 테두리 + inset 6px 안쪽 선). 그림은 안쪽 선 밖으로 나오지 않게 12px 여백 안에 둔다. */
+.featureVisualDetail .featureDetailPanel{margin:0;border:0;border-radius:0;background:transparent}
+.featureVisualDetail .featureDetailHero{position:relative;margin:var(--cd-sp-md,16px);border:1px solid var(--fortune-frame);border-radius:var(--cd-r-section,26px);background:var(--fortune-raised);overflow:hidden}
+.featureVisualDetail .featureDetailHero:before,.fortuneSamplePage:before{content:"";position:absolute;inset:6px;border:1px solid var(--fortune-frame-inner);border-radius:calc(var(--cd-r-section,26px) - 6px);pointer-events:none;z-index:1}
+.featureVisualDetail .featureDetailArt{display:block;width:100%;height:auto}
+.featureVisualDetail .featureDetailHero>:is(.featureDetailArt,.craftedHeroArt){width:calc(100% - 24px);margin:12px 12px 0;border-radius:calc(var(--cd-r-section,26px) - 12px)}
+.featureVisualDetail .craftedHero .craftedHeroArt{display:block;height:auto}
+.featureVisualDetail .featureDetailHero .featureDetailBody{position:relative;padding:22px 26px 28px;background:transparent}
+.featureVisualDetail .featureDetailHero :is(h2,h3){font-size:clamp(26px,3.6vw,32px);line-height:1.4;max-width:24ch;margin-bottom:14px}
+.featureVisualDetail .featureDetailHero p{margin-bottom:var(--cd-sp-md,16px)}
+.featureVisualDetail .featureDetailHero .fortuneCategory{display:flex;align-items:flex-start;gap:.55rem;margin-bottom:10px;color:var(--fortune-accent);font:700 13px/1.5 var(--font-body,system-ui);letter-spacing:.02em}
+.featureVisualDetail .featureDetailHero .fortuneEdition{color:var(--fortune-quiet);font-size:13px;line-height:1.7}
+/* 미니 달 라벨 — ServiceIntroSection h3 와 같은 7px 달 + 3px 달무리. */
+.featureVisualDetail .fortuneCategory:before,.fortuneSampleAction>strong:before{content:"";flex:0 0 7px;width:7px;height:7px;margin-top:calc(.75em - 3.5px);border-radius:50%;background:var(--fd-moon);box-shadow:0 0 0 3px var(--fd-moon-halo)}
+/* 책·편지 두 상품은 실제 결과물의 소재를 히어로와 미리보기 한 장에만 이어 쓴다. 나머지 본문은 예화 표면. */
+.featureVisualDetail[data-fortune-material=letter] :is(.featureDetailHero,.fortuneSamplePage){--fortune-paper:#f6f2ed;--fortune-raised:#f6f2ed;--fortune-ink:#35262c;--fortune-muted:#5c4450;--fortune-quiet:#71545f;--fortune-accent:#763d53;--fortune-gold:#7a5a24;--fortune-line:#e0d3cc;--fortune-frame:rgba(169,123,62,.42);--fortune-frame-inner:rgba(169,123,62,.2)}
+.featureVisualDetail[data-fortune-material=book] .fortuneSamplePage{--fortune-paper:#f6f1e6;--fortune-raised:#f6f1e6;--fortune-ink:#20362a;--fortune-muted:#3f4f3b;--fortune-quiet:#52624d;--fortune-accent:#285640;--fortune-gold:#6b5320;--fortune-line:#c9cbb7;--fortune-frame:rgba(40,86,64,.4);--fortune-frame-inner:rgba(40,86,64,.18)}
+.featureVisualDetail[data-fortune-material=book] .featureDetailHero{--fortune-paper:#152721;--fortune-raised:#152721;--fortune-ink:#f6ecd7;--fortune-muted:#d3c7aa;--fortune-quiet:#c2b796;--fortune-accent:#eddbaf;--fortune-gold:#eddbaf;--fortune-price:#eddbaf;--fortune-frame:rgba(237,219,175,.4);--fortune-frame-inner:rgba(237,219,175,.18)}
+.featureVisualDetail[data-fortune-material] .featureDetailHero{display:grid;grid-template-columns:minmax(190px,280px) minmax(0,1fr);gap:28px;align-items:center;padding:36px 32px}
+.featureVisualDetail[data-fortune-material] .featureDetailHero .featureDetailBody{padding:0}
+.featureVisualDetail[data-fortune-material=book] .featureDetailHero :is(.fortuneAction a,.fortuneAction button,.featureDetailConversion){background:#eddbaf;border-color:transparent;color:#20362a}
+.featureVisualDetail[data-fortune-material=book] .featureDetailHero :is(.fortuneAction a,.fortuneAction button,.featureDetailConversion):after{border-color:currentColor}
 .featureVisualDetail .fortuneObject{position:relative;width:100%;max-width:280px;margin:0;align-self:center}
 .featureVisualDetail .fortuneObject img{display:block;width:100%;height:auto}
 .featureVisualDetail .fortuneObject figcaption{position:absolute;inset:17% 16% auto 19%;margin:0;color:#f6e6b6;font:600 clamp(24px,3vw,32px)/1.65 var(--font-serif,Georgia,serif);text-align:center;word-break:keep-all;text-wrap:balance}
 .featureVisualDetail[data-fortune-material=letter] .fortuneObject figcaption{inset:20% 16% auto 13%;color:#51303e}
-.featureVisualDetail[data-fortune-material] .fortuneStory{border-top:1px solid var(--fortune-line)}
-.featureVisualDetail[data-fortune-material] .fortuneSamplePage{padding:36px 30px;border-radius:0;box-shadow:none;background:#fffdf8}
-.featureVisualDetail[data-fortune-material] .fortuneSamplePage>p:not(.fortuneSampleTitle){font-family:var(--font-serif,Georgia,serif);font-size:18px;line-height:2}
-.fortuneFounder a{display:block;min-height:44px;padding:14px 0;color:var(--fortune-accent);text-underline-offset:4px}
-.featureVisualDetail .fortuneFounderMethod{font-size:14px;line-height:1.8}
-@media(max-width:699px){
- .featureVisualDetail[data-fortune-material] .featureDetailHero{grid-template-columns:minmax(0,1fr);gap:24px;padding:24px 22px 32px}
- .featureVisualDetail .fortuneObject{width:190px;justify-self:center}
- .featureVisualDetail .fortuneObject figcaption{font-size:24px}
- .featureVisualDetail[data-fortune-material] .featureDetailHero .featureDetailBody{padding:0}
- .featureVisualDetail[data-fortune-material] .fortuneSamplePage{padding:28px 20px}
-}
-.featureVisualDetail ::selection{background:var(--fortune-accent);color:white}
-.featureVisualDetail :is(button,a,summary,input):focus-visible{outline:3px solid var(--fortune-accent);outline-offset:4px}
-.featureVisualDetail :is(h2,h3){color:var(--fortune-ink);font:600 24px/1.45 var(--font-serif,Georgia,serif);letter-spacing:-.025em;text-wrap:balance;word-break:keep-all;margin:0 0 24px}
-.featureVisualDetail p{color:var(--fortune-muted);font-size:16px;line-height:1.75;word-break:keep-all;margin:0 0 16px;max-width:65ch}
-.featureVisualDetail p:last-child{margin-bottom:0}
-.featureVisualDetail strong{color:var(--fortune-ink);font-weight:650}
-.featureVisualDetail .featureDetailPanel{margin:0;border:0;border-radius:0;background:transparent}
-.featureVisualDetail section.featureDetailPanel{padding:42px 28px;border-top:1px solid var(--fortune-line)}
-.featureVisualDetail .featureDetailHero{position:relative;overflow:hidden;background:var(--fortune-paper)}
-.featureVisualDetail .featureDetailArt{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
-.featureVisualDetail .featureDetailHero .featureDetailBody{position:relative;padding:32px 28px 36px;background:var(--fortune-paper)}
-.featureVisualDetail .featureDetailHero .featureDetailBody:before{content:'';position:absolute;left:0;right:0;top:-55px;height:56px;background:linear-gradient(transparent,var(--fortune-paper));pointer-events:none}
-.featureVisualDetail .featureDetailHero :is(h2,h3){font-size:clamp(28px,4vw,34px);line-height:1.4;max-width:24ch;margin-bottom:18px}
-.featureVisualDetail .fortuneCategory{font:600 13px/1.5 var(--font-body,system-ui);color:var(--fortune-accent);margin-bottom:12px}
-.featureVisualDetail .fortuneEdition{font-size:13px;line-height:1.65}
-/* 봉인 버튼: 상품 accent 위에 빛결 그라데이션 + 골드 헤어라인. 네이티브 회색 모양이 새지 않게 appearance·font 를 명시하고,
-   오래된 WebView 에서도 통째로 버려지지 않도록 기본 모양에는 :is()·:has()·color-mix() 를 쓰지 않는다. */
-.featureDetailConversion,.fortuneAction a,.fortuneAction button,.featureIntroductionActions>a,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn{-webkit-appearance:none;appearance:none;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;border:0;border-radius:14px;background-color:var(--fortune-accent,#344f75);background-image:linear-gradient(135deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 48%,rgba(0,0,0,.2) 100%);color:#fffaf0;font:800 16px/1.4 var(--font-body,system-ui);letter-spacing:-.01em;padding:15px 22px;text-decoration:none;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),inset 0 0 0 2px rgba(240,214,160,.18),0 10px 22px -16px var(--fortune-accent,#344f75);transition:transform 160ms ease-out,box-shadow 160ms ease-out,filter 160ms ease-out}
-.featureDetailConversion:after,.fortuneAction a:after,.fortuneAction button:after,.featureIntroductionActions>a:after,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:after{content:'';flex:0 0 auto;width:7px;height:7px;margin-left:2px;border-top:2px solid #f0d6a0;border-right:2px solid #f0d6a0;transform:rotate(45deg);transition:transform 180ms ease-out}
-@media(hover:hover){
- .featureDetailConversion:hover,.fortuneAction a:hover,.fortuneAction button:hover,.featureIntroductionActions>a:hover,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),inset 0 0 0 2px rgba(240,214,160,.28),0 14px 26px -16px var(--fortune-accent,#344f75)}
- .featureDetailConversion:hover:after,.fortuneAction a:hover:after,.fortuneAction button:hover:after,.featureIntroductionActions>a:hover:after,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:hover:after{transform:translateX(3px) rotate(45deg)}
-}
-.featureDetailConversion:active,.fortuneAction a:active,.fortuneAction button:active,.featureIntroductionActions>a:active,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:active{transform:translateY(1px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),inset 0 0 0 2px rgba(240,214,160,.18),0 6px 14px -12px var(--fortune-accent,#344f75)}
-.featureDetailConversion:focus-visible,.fortuneAction a:focus-visible,.fortuneAction button:focus-visible,.featureIntroductionActions>a:focus-visible,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:focus-visible{outline:2px solid #b8893a;outline-offset:3px}
-.featureDetailConversion{margin-top:20px}
-.fortuneAction{margin-top:22px}
-.fortuneAction p{font-size:14px;margin-bottom:10px}
-.fortuneAction>p:first-child{margin:0 0 12px;color:var(--fortune-price,#7a5a24);font:700 14px/1.5 var(--font-body,system-ui);letter-spacing:.01em}
-[data-fortune-hero-action]:has(.fortuneAction)>.featureDetailConversion{display:none}
-.fortuneBenefits ul{display:grid;grid-template-columns:1fr 1fr;list-style:none;gap:12px;padding:0;margin:0}
-.fortuneBenefits li{padding:18px 14px;background:var(--fortune-tint);border-radius:12px;color:var(--fortune-accent);font-size:15px;line-height:1.6}
-.featureDetailQuestions{list-style:none;padding:0;margin:0;display:grid;gap:20px}
-.featureDetailQuestions li{color:var(--fortune-ink);font:500 19px/1.65 var(--font-serif,Georgia,serif);word-break:keep-all}
-.featureDetailQuestions li:before{content:'“';display:inline-block;color:var(--fortune-accent);font-size:26px;margin-right:8px}
+/* 본문 칼럼 720px — 바깥 여백만 늘려 카드·이미지 폭은 칼럼을 따른다. 첫 섹션 뒤는 화면에 들어올 때만 그린다. */
+.featureVisualDetail section.featureDetailPanel,.featureVisualDetail .fortuneStory{margin:0;padding:var(--cd-sp-lg,24px) max(22px,calc((100% - 720px) / 2));background:transparent}
+.featureVisualDetail>section+section{content-visibility:auto;contain-intrinsic-size:auto 600px}
+/* 패널 제목: 금색 페이드 디바이더 + sparkle(ServiceIntroSection h2 규칙). */
+.featureVisualDetail section.featureDetailPanel>:is(h2,h3):first-child{position:relative;padding-top:24px;margin-bottom:20px}
+.featureVisualDetail section.featureDetailPanel>:is(h2,h3):first-child:before{content:"";position:absolute;top:0;left:18px;right:0;height:1px;background:var(--fd-rule)}
+.featureVisualDetail section.featureDetailPanel>:is(h2,h3):first-child:after{content:"";position:absolute;top:-5px;left:0;width:11px;height:11px;background:var(--cd-yehwa-line-deep,#a97b3e);clip-path:var(--fd-sparkle);opacity:.85}
+.fortuneBenefits ul,.featureDetailItems{display:grid;gap:14px 28px;list-style:none;padding:0;margin:0}
+.fortuneBenefits li,.featureDetailItems li{position:relative;padding-left:1.4rem;color:var(--fortune-muted);font-size:1rem;line-height:1.75;word-break:keep-all}
+.fortuneBenefits li:before,.featureDetailItems li:before{content:"";position:absolute;left:0;top:.55em;width:11px;height:11px;background:var(--cd-yehwa-line-deep,#a97b3e);clip-path:var(--fd-sparkle)}
+@media(min-width:600px){.fortuneBenefits ul{grid-template-columns:1fr 1fr}}
+.featureDetailQuestions{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+.featureDetailQuestions li{position:relative;padding:16px 18px 16px 46px;border:1px solid var(--fortune-line);border-radius:16px;background:var(--fortune-raised);color:var(--fortune-ink);font:500 1.0625rem/1.7 var(--font-serif,Georgia,serif);word-break:keep-all}
+.featureDetailQuestions li:before{content:"“";content:"“"/"";position:absolute;left:17px;top:12px;color:var(--fortune-accent);font:700 1.75rem/1 var(--font-serif,Georgia,serif)}
 .fortuneContents ol{padding:0;margin:0;list-style:none}
-.fortuneContents li{display:flex;gap:22px;padding:20px 0;border-bottom:1px solid var(--fortune-line)}
-.fortuneContents li>span{flex:0 0 2ch;white-space:nowrap;color:var(--fortune-accent);font:400 24px/1.3 var(--font-serif,Georgia,serif);font-variant-numeric:tabular-nums}
-.fortuneContents p{margin:6px 0 0;font-size:15px}
-.featureVisualDetail .fortuneStory{margin:0;background:var(--fortune-paper)}
-.fortuneStory>img{width:100%;height:auto;aspect-ratio:16/9;display:block;object-fit:cover}
-.fortuneStory>div{padding:32px 28px 40px}
-.fortuneSamplePage{background:#fffdf8;border:1px solid var(--fortune-line);padding:26px 22px;box-shadow:0 12px 28px -18px #202b3e50;border-radius:3px}
-.featureVisualDetail .fortuneSampleTitle{font:600 24px/1.5 var(--font-serif,Georgia,serif);color:var(--fortune-ink)}
-.fortuneEvidence{display:flex;flex-wrap:wrap;list-style:none;gap:8px;padding:0;margin:16px 0 24px}
-.fortuneEvidence li{font-size:12px;padding:5px 9px;color:var(--fortune-accent);background:var(--fortune-tint);border-radius:4px}
-.fortuneSampleAction{margin-top:24px;padding-top:20px;border-top:1px solid var(--fortune-line)}
-.fortuneSampleAction p{margin-top:8px}
-.featureVisualDetail .fortuneSampleNote{font-size:13px;margin-top:16px}
-.featureDetailItems{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:18px}
-.featureDetailItems li{color:var(--fortune-muted);font-size:16px;line-height:1.75}
-.featureDetailSteps{padding-left:24px;margin:20px 0 0;display:grid;gap:20px}
-.featureDetailSteps strong{display:block;margin-bottom:6px}
-.featureDetailSteps li::marker{color:var(--fortune-accent)}
+.fortuneContents li{display:flex;gap:16px;padding:18px 0;border-top:1px solid var(--fd-line-soft)}
+.fortuneContents li:first-child{border-top:0;padding-top:4px}
+.fortuneContents li>span{flex:0 0 auto;display:grid;place-items:center;width:2rem;height:2rem;border:1px solid var(--fd-ring);border-radius:50%;color:var(--fortune-gold);font:600 .78rem/1 var(--font-serif,Georgia,serif);font-variant-numeric:tabular-nums}
+.fortuneContents strong{display:block;font-size:1.0625rem;line-height:1.6;word-break:keep-all}
+.fortuneContents p{margin:4px 0 0;font-size:.9375rem;line-height:1.8}
+.fortuneEvidence{display:flex;flex-wrap:wrap;list-style:none;gap:8px;padding:0;margin:14px 0 20px}
+.fortuneEvidence li{padding:3px 10px;border:1px solid var(--fortune-line);border-radius:999px;color:var(--fortune-gold);font-size:12px;line-height:1.6}
+/* 결과 미리보기: 히어로와 함께 이중 프레임을 쓰는 단 두 곳 중 하나. */
+.fortuneSamplePage{position:relative;margin-top:16px;padding:30px 26px;border:1px solid var(--fortune-frame);border-radius:var(--cd-r-card,20px);background:var(--fortune-raised)}
+.fortuneSamplePage:before{border-radius:calc(var(--cd-r-card,20px) - 6px)}
+.featureVisualDetail .fortuneSampleTitle{margin-bottom:8px;color:var(--fortune-ink);font:700 1.25rem/1.5 var(--font-serif,Georgia,serif)}
+.featureVisualDetail .fortuneSamplePage>p:not(.fortuneSampleTitle){color:var(--fortune-ink);font-family:var(--font-serif,Georgia,serif);font-size:1.0625rem;line-height:1.95}
+.featureVisualDetail[data-fortune-material] .fortuneSamplePage{padding:34px 30px}
+.featureVisualDetail[data-fortune-material] .fortuneSamplePage>p:not(.fortuneSampleTitle){font-size:18px;line-height:2}
+.fortuneSampleAction{margin-top:22px;padding-top:18px;border-top:1px solid var(--fortune-line)}
+.fortuneSampleAction>strong{display:flex;align-items:flex-start;gap:.55rem;color:var(--fortune-gold);font-size:.95rem;line-height:1.5}
+.featureVisualDetail .fortuneSampleAction p{margin-top:6px}
+.featureVisualDetail .fortuneSampleNote{margin-top:12px;color:var(--fortune-quiet);font-size:13px;line-height:1.7}
+/* 대표 상담: 원본 비율 히어로 → 상담별 카드(실제 목차 + 그림 안내). 이미지는 어느 폭에서도 자르지 않는다. */
+.featureVisualDetail[data-crafted-introduction] .craftedDetail{max-width:540px;margin:24px auto;background:var(--fortune-paper);color:var(--fortune-ink)}
+.featureVisualDetail[data-crafted-introduction] .craftedDetail img{display:block;width:100%;height:auto}
+.featureVisualDetail[data-crafted-introduction] .craftedDetailNotice,.featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript{padding:0 16px;font-size:16px;line-height:1.85}
+.featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript p{white-space:pre-line}
+.featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript h3{font-size:1.2rem;line-height:1.5}
+.featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript section{margin-block:24px}
+.featureVisualDetail[data-crafted-introduction] .craftedDetailTranscript>summary{min-height:44px;padding:12px 16px;cursor:pointer;color:var(--fortune-gold);font-size:17px;font-weight:700;line-height:1.6;text-underline-offset:4px}
+.featureVisualDetail .craftedBadge{display:inline-flex;align-items:center;gap:8px;margin:4px 0 0;padding:6px 14px;border:1px solid var(--fortune-line);border-radius:999px;background:var(--fortune-tint);color:var(--fortune-accent);font:700 13px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail .craftedBadge svg{flex:0 0 auto}
+.featureVisualDetail .craftedEditionsLead{margin-top:-8px;color:var(--fortune-quiet);font-size:14px}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition{margin-top:14px;border:1px solid var(--fortune-line);border-radius:var(--cd-r-card,20px);background:var(--fortune-raised)}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition>summary{display:grid;grid-template-columns:72px minmax(0,1fr) 20px;gap:14px;align-items:center;min-height:44px;padding:14px 16px;border-radius:inherit;list-style:none;cursor:pointer;color:var(--fortune-ink)}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition>summary::-webkit-details-marker{display:none}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition[open]>summary{border-bottom:1px solid var(--fd-line-soft);border-radius:var(--cd-r-card,20px) var(--cd-r-card,20px) 0 0}
+.featureVisualDetail[data-crafted-introduction] .craftedCardCover{display:block;width:72px;height:auto;border:1px solid var(--fd-line-soft);border-radius:10px}
+.featureVisualDetail[data-crafted-introduction] .craftedCardText{display:grid;gap:4px;min-width:0}
+.featureVisualDetail[data-crafted-introduction] .craftedCardText strong{font:700 1.1rem/1.45 var(--font-serif,Georgia,serif);word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedCardHook{color:var(--fortune-muted);font-size:15px;line-height:1.65;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedCardMeta{color:var(--fortune-gold);font:600 13px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail[data-crafted-introduction] .craftedCardBadge{justify-self:start;margin-top:4px;padding:2px 10px;border:1px solid var(--fortune-line);border-radius:999px;color:var(--fortune-accent);font:700 12px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail[data-crafted-introduction] .craftedCardChevron{color:var(--fortune-accent);transition:transform 180ms ease-out}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition[open] .craftedCardChevron{transform:rotate(90deg)}
+.featureVisualDetail[data-crafted-introduction] .craftedEdition .craftedDetail{margin:0 auto;padding:18px 0 20px;background:transparent}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters{margin:0 16px 20px;padding:14px 18px 6px;border:1px solid var(--fd-line-soft);border-radius:14px}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersTitle{display:flex;justify-content:space-between;gap:12px;margin:0 0 6px;color:var(--fortune-ink);font:700 15px/1.5 var(--font-body,system-ui)}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersTitle span{color:var(--fortune-gold)}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters ol{margin:0;padding:0;list-style:none;counter-reset:chapter}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li{display:grid;grid-template-columns:1.75rem minmax(0,1fr);column-gap:12px;padding:10px 0;border-top:1px solid var(--fd-line-soft);counter-increment:chapter}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li:first-child{border-top:0}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li:before{content:counter(chapter,decimal-leading-zero);grid-row:span 2;align-self:start;display:grid;place-items:center;width:1.75rem;height:1.75rem;border:1px solid var(--fd-ring);border-radius:50%;color:var(--fortune-gold);font:600 .72rem/1 var(--font-serif,Georgia,serif);font-variant-numeric:tabular-nums}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters strong{font-size:16px;line-height:1.55;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedChapters li>span{grid-column:2;color:var(--fortune-muted);font-size:14px;line-height:1.7;word-break:keep-all}
+/* 대표 상담 마스터 — 상품 페이지 소개장(칭호·읽는 근거·맡는 부분·원칙)과 같은 결. 새 필드가 있는 상품만 이 마크업을 받는다.
+   마스터마다 포인트 색 하나(--master-accent)만 바꾸고, 아바타 고리·칭호·인용부호·근거 라벨·그 마스터가 쓰는 장 번호에만 쓴다.
+   색은 두 모드가 이미 AA 로 맞춘 --fd-* 를 빌린다(연이=장미, 서한비=인디고, 네오=남색, 윤달=서고의 초록). */
+.featureVisualDetail[data-crafted-introduction] [data-master]{--master-accent:var(--fortune-gold)}
+.featureVisualDetail[data-crafted-introduction] [data-master=yeoniLove]{--master-accent:var(--fd-rose)}
+.featureVisualDetail[data-crafted-introduction] [data-master=hanbiLove]{--master-accent:var(--fd-indigo)}
+.featureVisualDetail[data-crafted-introduction] [data-master=neoNewYear]{--master-accent:var(--fd-navy)}
+.featureVisualDetail[data-crafted-introduction] [data-master=yunLifeBook]{--master-accent:var(--fd-emerald)}
+.featureVisualDetail[data-crafted-introduction] :is(.craftedMastersLead,.craftedOutcomesTitle,.craftedPrinciplesTitle){display:flex;align-items:center;gap:10px;margin:0 0 14px;color:var(--fortune-gold);font:700 12px/1.5 var(--font-body,system-ui);letter-spacing:.14em;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] :is(.craftedMastersLead,.craftedOutcomesTitle,.craftedPrinciplesTitle):after{content:"";flex:1 1 24px;height:1px;background:var(--fd-rule)}
+.featureVisualDetail[data-crafted-introduction] .craftedMasters{container-type:inline-size;margin:0 16px 24px}
+.featureVisualDetail[data-crafted-introduction] .craftedMasters>ul{display:grid;gap:14px;margin:0;padding:0;list-style:none}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster{padding:20px 20px 18px;border:1px solid var(--fortune-line);border-radius:18px;background:var(--fortune-raised);box-shadow:inset 0 3px 0 var(--master-accent);word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster p{margin:0}
+.featureVisualDetail[data-crafted-introduction] .craftedMasterHead{display:grid;grid-template-columns:88px minmax(0,1fr);gap:16px;align-items:center}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster img{width:80px;height:80px;margin:4px;border-radius:50%;box-shadow:0 0 0 3px var(--fortune-raised),0 0 0 4px var(--master-accent)}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster .craftedMasterEpithet{color:var(--master-accent);font:700 12px/1.5 var(--font-body,system-ui);letter-spacing:.12em}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster .craftedMasterName{margin-top:2px}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster .craftedMasterName strong{font:700 1.5rem/1.35 var(--font-serif,Georgia,serif);letter-spacing:-.01em}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster .craftedMasterRole{margin-top:2px;color:var(--fortune-quiet);font-size:14px;line-height:1.6}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster blockquote{position:relative;margin:16px 0 0;padding:14px 0 0 30px;border-top:1px solid var(--fd-line-soft);color:var(--fortune-ink);font:500 16px/1.8 var(--font-serif,Georgia,serif)}
+.featureVisualDetail[data-crafted-introduction] .craftedMaster blockquote:before{content:"“";content:"“"/"";position:absolute;left:0;top:12px;color:var(--master-accent);font:700 2.2rem/1 var(--font-serif,Georgia,serif)}
+.featureVisualDetail[data-crafted-introduction] .craftedMasterDossier{margin:14px 0 0;border-top:1px solid var(--fd-line-soft)}
+.featureVisualDetail[data-crafted-introduction] .craftedMasterDossier>div{display:grid;grid-template-columns:5.5em minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--fd-line-soft)}
+.featureVisualDetail[data-crafted-introduction] .craftedMasterDossier>div:last-child{padding-bottom:0;border-bottom:0}
+.featureVisualDetail[data-crafted-introduction] .craftedMasterDossier dt{color:var(--master-accent);font:700 12px/1.95 var(--font-body,system-ui);letter-spacing:.08em}
+.featureVisualDetail[data-crafted-introduction] .craftedMasterDossier dd{margin:0;color:var(--fortune-muted);font-size:14px;line-height:1.75}
+@container (min-width:500px){.featureVisualDetail[data-crafted-introduction] .craftedMastersPair>ul{grid-template-columns:repeat(2,minmax(0,1fr))}.featureVisualDetail[data-crafted-introduction] .craftedMastersPair .craftedMasterHead{grid-template-columns:minmax(0,1fr);gap:10px}.featureVisualDetail[data-crafted-introduction] .craftedMastersPair .craftedMasterDossier>div{grid-template-columns:minmax(0,1fr);gap:2px}}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersGrouped{counter-reset:chapter}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersGrouped ol{counter-reset:none}
+.featureVisualDetail[data-crafted-introduction] .craftedChapterGroupTitle{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;margin:8px 0 0;padding-top:14px;border-top:1px solid var(--fd-line-soft);color:var(--fortune-gold);font:700 13px/1.5 var(--font-body,system-ui);letter-spacing:.02em;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersTitle+.craftedChapterGroup .craftedChapterGroupTitle{margin-top:0;padding-top:4px;border-top:0}
+.featureVisualDetail[data-crafted-introduction] .craftedChapterMaster{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 2px;border:1px solid var(--fortune-line);border-radius:999px;color:var(--fortune-ink);font:600 12px/1.5 var(--font-body,system-ui);letter-spacing:0}
+.featureVisualDetail[data-crafted-introduction] .craftedChapterMaster img{width:24px;height:24px;border-radius:50%}
+.featureVisualDetail[data-crafted-introduction] .craftedChapterGroup[data-master] .craftedChapterMaster{border-color:var(--master-accent)}
+.featureVisualDetail[data-crafted-introduction] .craftedChapterGroup[data-master] li:before{border-color:var(--master-accent);color:var(--master-accent)}
+.featureVisualDetail[data-crafted-introduction] .craftedChaptersMore>summary{display:flex;align-items:center;min-height:44px;padding:10px 0;border-top:1px solid var(--fd-line-soft);cursor:pointer;color:var(--fortune-gold);font:700 15px/1.5 var(--font-body,system-ui)}
+/* 산출물: 한 장의 목록처럼 묶고 로마 숫자로 차례를 매긴다. */
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes{margin:0 16px 24px}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes>ul{margin:0;padding:0 18px;list-style:none;counter-reset:outcome;border:1px solid var(--fortune-line);border-radius:16px;background:var(--fortune-raised)}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes li{display:grid;grid-template-columns:2rem minmax(0,1fr);column-gap:10px;padding:14px 0;border-top:1px solid var(--fd-line-soft);counter-increment:outcome;word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes li:first-child{border-top:0}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes li:before{content:counter(outcome,upper-roman);grid-row:span 2;color:var(--fortune-gold);font:600 1rem/1.55 var(--font-serif,Georgia,serif)}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes strong{display:block;font:700 1.02rem/1.55 var(--font-serif,Georgia,serif)}
+.featureVisualDetail[data-crafted-introduction] .craftedOutcomes li p{grid-column:2;margin:4px 0 0;color:var(--fortune-muted);font-size:15px;line-height:1.7}
+/* 원칙: 목차·산출물 뒤라 첫 화면 밖이다. 초상은 여기서만 lazy 로 그린다. */
+.featureVisualDetail[data-crafted-introduction] .craftedPrinciples{container-type:inline-size;margin:0 16px 24px}
+.featureVisualDetail[data-crafted-introduction] .craftedPrinciples>ul{display:grid;gap:14px;margin:0;padding:0;list-style:none}
+.featureVisualDetail[data-crafted-introduction] .craftedPrinciple{display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px;align-items:start;padding:16px;border:1px solid var(--fortune-line);border-radius:18px;background:var(--fortune-raised);word-break:keep-all}
+.featureVisualDetail[data-crafted-introduction] .craftedPrinciple img{width:72px;height:auto;border-radius:12px;box-shadow:0 0 0 3px var(--fortune-raised),0 0 0 4px var(--master-accent)}
+@container (min-width:500px){.featureVisualDetail[data-crafted-introduction] .craftedPrinciple{grid-template-columns:96px minmax(0,1fr);gap:16px}.featureVisualDetail[data-crafted-introduction] .craftedPrinciple img{width:96px}}
+.featureVisualDetail[data-crafted-introduction] .craftedPrinciple p{margin:0}
+.featureVisualDetail[data-crafted-introduction] .craftedPrincipleName{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;color:var(--fortune-quiet);font-size:12px;line-height:1.6;letter-spacing:.06em}
+.featureVisualDetail[data-crafted-introduction] .craftedPrincipleName strong{color:var(--fortune-ink);font:700 1.15rem/1.45 var(--font-serif,Georgia,serif);letter-spacing:0}
+.featureVisualDetail[data-crafted-introduction] .craftedPrinciple ul{display:grid;gap:6px;margin:10px 0 0;padding:0;list-style:none}
+.featureVisualDetail[data-crafted-introduction] .craftedPrinciple li{position:relative;padding-left:1.4em;color:var(--fortune-ink);font:500 15px/1.7 var(--font-serif,Georgia,serif)}
+.featureVisualDetail[data-crafted-introduction] .craftedPrinciple li:before{content:"";position:absolute;left:0;top:.55em;width:10px;height:10px;background:var(--master-accent);clip-path:var(--fd-sparkle)}
+.fortuneStory>img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:var(--cd-r-card,20px)}
+.fortuneStory>div{padding:22px 0 0}
+.fortuneFounder a{display:block;min-height:44px;padding:12px 0;color:var(--fortune-ink);font-weight:600;text-decoration:underline;text-decoration-color:var(--fd-ring);text-underline-offset:4px}
+.featureVisualDetail .fortuneFounderMethod{font-size:15px;line-height:1.85}
 .featureVisualDetail figure{margin:24px 0 0;max-width:100%}
 .featureVisualDetail figure img{display:block;width:100%;height:auto}
-.featureVisualDetail figcaption{font-size:13px;margin-top:12px;color:var(--fortune-muted)}
-.featureEditorial{margin-top:24px;background:var(--fortune-tint);padding:24px;border-radius:12px;color:var(--fortune-accent)}
-.featureEditorial>svg{display:block;width:100%;height:auto;max-height:220px}
-.featureEditorialCopy{margin-top:20px}
-.featureVisualDetail .featureEditorialTitle{font:500 24px/1.5 var(--font-serif,Georgia,serif);color:var(--fortune-ink)}
-.featureEditorial dl{margin:16px 0 0}
-.featureEditorial dl>div{padding:12px 0;border-top:1px solid var(--fortune-line);display:flex;gap:16px;justify-content:space-between;font-size:14px}
-.featureEditorial dt{font-weight:600;color:var(--fortune-ink)}
-.featureEditorial dd{margin:0;text-align:right;color:var(--fortune-muted)}
-.featureDetailFaq{border-bottom:1px solid var(--fortune-line);padding:10px 0}
-.featureDetailFaq summary{padding:12px 0;min-height:44px;font-size:16px;cursor:pointer;color:var(--fortune-ink)}
-.featureDetailFaq p{padding:12px 0}
+.featureVisualDetail figcaption{font-size:13px;margin-top:12px;color:var(--fortune-quiet)}
+/* FAQ: serif Q + 금색 쉐브론. 스크린리더에는 Q 를 읽히지 않는다. */
+.featureDetailFaq{border-top:1px solid var(--fd-line-soft)}
+.featureDetailFaq:last-child{border-bottom:1px solid var(--fd-line-soft)}
+.featureDetailFaq summary{display:flex;align-items:flex-start;gap:12px;min-height:44px;padding:14px 0;list-style:none;cursor:pointer;color:var(--fortune-ink);font-size:1rem;font-weight:600;line-height:1.6}
+.featureDetailFaq summary::-webkit-details-marker{display:none}
+.featureDetailFaq summary:before{content:"Q";content:"Q"/"";flex:0 0 auto;color:var(--fortune-gold);font:700 1.05rem/1.5 var(--font-serif,Georgia,serif)}
+.featureDetailFaq summary:after{content:"";flex:0 0 auto;width:7px;height:7px;margin:.5em 2px 0 auto;border-right:1.5px solid var(--fortune-gold);border-bottom:1.5px solid var(--fortune-gold);transform:rotate(45deg);transition:transform 180ms ease-out}
+.featureDetailFaq[open] summary:after{transform:rotate(225deg)}
+.featureVisualDetail .featureDetailFaq p{margin:0;padding:0 0 16px 1.6rem}
 .fortuneRelated>div{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.fortuneRelated a{text-decoration:none;color:var(--fortune-ink)}
-.fortuneRelated img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:10px;margin-bottom:12px}
-.fortuneRelated p{font-size:14px;margin-top:6px}
-.featureDetailShareActions{display:flex;flex-wrap:wrap;gap:12px}
-.featureDetailShareActions button{-webkit-appearance:none;appearance:none;min-height:44px;border:1px solid rgba(122,90,36,.38);background:rgba(255,255,255,.55);color:var(--fortune-accent);border-radius:12px;padding:10px 16px;font:inherit;font-weight:700;letter-spacing:-.005em;cursor:pointer;transition:background-color 160ms ease-out,border-color 160ms ease-out}
-@media(hover:hover){.featureDetailShareActions button:hover{background:var(--fortune-tint);border-color:var(--fortune-accent)}}
-.featureDetailShareActions button:focus-visible{outline:2px solid #b8893a;outline-offset:2px}
+.fortuneRelated a{display:block;text-decoration:none;color:var(--fortune-ink)}
+.fortuneRelated img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border:1px solid var(--fd-line-soft);border-radius:14px;margin-bottom:10px}
+.fortuneRelated strong{display:block;font:700 1rem/1.5 var(--font-serif,Georgia,serif);word-break:keep-all}
+.featureVisualDetail .fortuneRelated p{font-size:14px;line-height:1.7;margin-top:4px}
+@media(hover:hover){.fortuneRelated a:hover strong{text-decoration:underline;text-decoration-color:var(--fd-ring);text-underline-offset:4px}}
+.featureDetailShareActions{display:flex;flex-wrap:wrap;gap:10px}
+.featureDetailShareActions button{-webkit-appearance:none;appearance:none;min-height:44px;padding:10px 16px;border:1px solid var(--fortune-line);border-radius:var(--cd-r-control,12px);background:transparent;color:var(--fortune-gold);font:inherit;font-size:15px;font-weight:700;letter-spacing:-.005em;cursor:pointer;transition:border-color 160ms ease-out}
+@media(hover:hover){.featureDetailShareActions button:hover{border-color:var(--cd-yehwa-line-deep,#a97b3e)}}
 .featureVisualDetail input{width:100%;padding:12px;font-size:16px}
 .featureVisualDetail input[hidden]{display:none}
+/* 구매 버튼: 두 모드 모두 예화 기본 CTA 한 벌(--cd-cta-primary-*)이라 본문 밖 하단 바도 테마를 빌릴 필요가 없다.
+   네이티브 회색 모양이 새지 않게 appearance·font 를 명시하고, 오래된 WebView 에서 통째로 버려지지 않도록
+   이 기본 모양에는 :is()·:has() 를 쓰지 않는다. hover·active 는 transform 만 움직인다(그림자·필터 애니메이션 없음). */
+.featureDetailConversion,.fortuneAction a,.fortuneAction button,.featureIntroductionActions>a,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn{-webkit-appearance:none;appearance:none;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:var(--cd-btn-h,48px);padding:12px 22px;border:1px solid var(--cd-cta-hairline,rgba(234,208,137,.55));border-radius:var(--cd-r-control,12px);background:var(--cd-cta-primary-bg,#3a0e28);color:var(--cd-cta-primary-ink,#fff1f7);font:700 16px/1.4 var(--font-body,system-ui);letter-spacing:-.01em;text-decoration:none;cursor:pointer;box-shadow:0 10px 22px -18px rgba(26,8,20,.7);transition:transform 160ms ease-out,opacity 160ms ease-out}
+.featureDetailConversion:after,.fortuneAction a:after,.fortuneAction button:after,.featureIntroductionActions>a:after,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:after{content:'';flex:0 0 auto;width:7px;height:7px;margin-left:2px;border-top:2px solid var(--cd-yehwa-line,#c9a46a);border-right:2px solid var(--cd-yehwa-line,#c9a46a);transform:rotate(45deg);transition:transform 180ms ease-out}
+@media(hover:hover){
+ .featureDetailConversion:hover,.fortuneAction a:hover,.fortuneAction button:hover,.featureIntroductionActions>a:hover,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:hover{transform:translateY(-1px)}
+ .featureDetailConversion:hover:after,.fortuneAction a:hover:after,.fortuneAction button:hover:after,.featureIntroductionActions>a:hover:after,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:hover:after{transform:translateX(3px) rotate(45deg)}
+}
+.featureDetailConversion:active,.fortuneAction a:active,.fortuneAction button:active,.featureIntroductionActions>a:active,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:active{transform:translateY(1px)}
+.featureDetailConversion:focus-visible,.fortuneAction a:focus-visible,.fortuneAction button:focus-visible,.featureIntroductionActions>a:focus-visible,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
+.fortuneAction button:disabled,.fortuneAction a[aria-disabled="true"],#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:disabled{opacity:.55;cursor:default;transform:none;box-shadow:none}
+.fortuneAction button:disabled:after,.fortuneAction a[aria-disabled="true"]:after,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:disabled:after{display:none}
+.featureDetailConversion{margin-top:20px}
+.fortuneAction{margin-top:20px}
+.fortuneAction p{font-size:14px;margin-bottom:10px}
+.fortuneAction>p:first-child{margin:0 0 10px;color:var(--fortune-price,var(--fortune-gold,var(--fd-gold)));font:700 14px/1.5 var(--font-body,system-ui);letter-spacing:.01em}
+[data-fortune-hero-action]:has(.fortuneAction)>.featureDetailConversion{display:none}
 .featureIntroductionActions{max-width:880px;margin:24px auto}
-.fortuneSticky{position:fixed;bottom:0;left:0;right:0;z-index:80;background:#f7f4ee;border-top:1px solid #cfd2d6;padding:12px max(20px,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom));box-shadow:0 -8px 26px -22px #202b3e80}
+.fortuneSticky{position:fixed;bottom:0;left:0;right:0;z-index:80;background:var(--fd-paper);border-top:1px solid var(--fd-line);padding:12px max(20px,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom));box-shadow:0 -8px 26px -22px rgba(26,8,20,.5)}
 .fortuneSticky>div{max-width:824px;margin:auto;display:flex;gap:20px;align-items:center}
-.fortuneSticky p{margin:0;font-size:14px;color:#202b3e;min-width:85px}
-.fortuneSticky a{flex:1;min-height:48px}
+.fortuneSticky p{margin:0;font-size:14px;color:var(--fd-ink);min-width:85px}
+.fortuneSticky a,.fortuneSticky button{flex:1}
 .fortuneSticky[hidden]{display:none}
-/* The existing modal remains the sole focus, history and checkout owner. */
-.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-panel,#tilePvwOverlay.pvw-visual .tile-pvw-sheet{display:block;width:min(880px,calc(100vw - 40px));background:#f7f4ee;color:#202b3e;max-height:92dvh;overflow:hidden}
-.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-visual,#tilePvwOverlay.pvw-visual .tile-pvw-hero{display:none}
+/* 기존 모달이 포커스·히스토리·결제의 유일한 주인이다. 두 호스트 규칙을 나눠 :has 미지원 WebView 에서도 정적 팝업은 산다. */
+#tilePvwOverlay.pvw-visual{overflow:hidden}
+#tilePvwOverlay.pvw-visual .tile-pvw-sheet{display:block;width:min(880px,calc(100vw - 40px));max-height:92dvh;overflow:hidden;background:var(--fd-paper);color:var(--fd-ink)}
+#tilePvwOverlay.pvw-visual :is(.tile-pvw-hero,.tile-pvw-handle,.tile-pvw-divider){display:none}
+#tilePvwOverlay.pvw-visual .tile-pvw-column{display:flex;flex-direction:column;height:92dvh;max-height:inherit}
+#tilePvwOverlay.pvw-visual .tile-pvw-scroll{display:block;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-color:var(--fd-scroll) transparent}
+#tilePvwOverlay.pvw-visual .tile-pvw-content{padding:0!important}
+#tilePvwOverlay.pvw-visual #tilePvwTitle{margin:0;padding:20px 64px 18px 22px;color:var(--fd-ink);font:700 20px/1.4 var(--font-serif,Georgia,serif);letter-spacing:-.02em}
+#tilePvwOverlay.pvw-visual .tile-pvw-close{position:absolute;z-index:3;margin:0;top:8px;right:10px;left:auto;min-width:44px;min-height:44px;border-color:var(--fd-line);background:var(--fd-paper);color:var(--fd-ink);-webkit-backdrop-filter:none;backdrop-filter:none}
+#tilePvwOverlay.pvw-visual #tilePvwPriceSec{margin:32px 24px 0;padding:24px 0;border:0;border-top:1px solid var(--fd-line);border-radius:0;background:none}
+#tilePvwOverlay.pvw-visual #tilePvwPaywall{display:flex;align-items:flex-start;gap:14px;margin:0;padding:0;border:0;border-radius:0;background:none;color:var(--fd-ink)}
+#tilePvwOverlay.pvw-visual .tile-pvw-paywall-icon{display:none}
+#tilePvwOverlay.pvw-visual .tile-pvw-paywall-body{min-width:0}
+#tilePvwOverlay.pvw-visual .tile-pvw-paywall-title{display:block;margin:0;color:var(--fd-ink);font:700 1.1rem/1.5 var(--font-serif,serif);word-break:keep-all;overflow-wrap:anywhere}
+#tilePvwOverlay.pvw-visual .tile-pvw-paywall-desc{display:block;margin-top:8px;color:var(--fd-text);font-size:.95rem;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere}
+#tilePvwOverlay.pvw-visual .tile-pvw-assure{margin:0 24px 28px;padding:20px 0 0;border-top:1px solid var(--fd-line-soft);color:var(--fd-text)}
+#tilePvwOverlay.pvw-visual .tile-pvw-assure-title{margin:0 0 8px;color:var(--fd-ink);font-size:.95rem;font-weight:700;line-height:1.6}
+#tilePvwOverlay.pvw-visual .tile-pvw-assure .tile-pvw-paywall-note{margin:0;padding:0;border:0;color:var(--fd-quiet);font-size:.875rem;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere}
+#tilePvwOverlay.pvw-visual .tile-pvw-assure-link{display:inline-flex;align-items:center;min-height:44px;margin-top:4px;color:var(--fd-gold);font-size:.875rem;font-weight:600;text-decoration:underline;text-underline-offset:4px}
+#tilePvwOverlay.pvw-visual .tile-pvw-assure-link:focus-visible{outline:2px solid var(--fd-gold);outline-offset:3px}
+/* 모바일 셸·공통 시트가 바 배경·선을 !important 로 잡아 두어 같은 수단으로만 표면색에 맞출 수 있다. */
+#tilePvwOverlay.pvw-visual .tile-pvw-cta-sticky{background:var(--fd-paper)!important;border-top:1px solid var(--fd-line)!important;--cd-detail-muted:var(--fd-quiet)}
+/* 상세가 대신하는 레거시 섹션. JS 도 인라인으로 숨긴다 — 지연 로드되는 이 시트가 첫 열림보다 늦으면 레거시가 비치기 때문. */
+#tilePvwOverlay.pvw-visual :is(#tilePvwTagline,#tilePvwDesc,#tilePvwFeats,#tilePvwQuestionsSec,#tilePvwStepsSec,#tilePvwRecommendedSec,#tilePvwTrustSec,#tilePvwFaqSec,#tilePvwReceiveSec,#tilePvwOutlineSec,#tilePvwCmpSec,#tilePvwAudSec,#tilePvwQuestSec,#tilePvwScaleSec,#tilePvwPriceTitle){display:none!important}
+.fortuneCtaAtTop{display:none!important}
+.cd-detail-overlay [hidden]{display:none!important}
+.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-panel{display:block;width:min(880px,calc(100vw - 40px));max-height:92dvh;overflow:hidden;background:var(--fd-paper);color:var(--fd-ink)}
+.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-visual{display:none}
 .cd-detail-overlay:has(.featureVisualDetail) .cd-detail-column{height:92dvh;max-height:inherit;display:flex;flex-direction:column}
 .cd-detail-overlay:has(.featureVisualDetail) .cd-detail-content{padding:0}
-.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-header{padding:16px 24px;background:#f7f4ee;margin:0}
-.cd-detail-overlay:has(.featureVisualDetail) :is(.cd-detail-title,.cd-detail-close){color:#202b3e}
+.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-header{margin:0;padding:16px 24px;background:var(--fd-paper)}
+.cd-detail-overlay:has(.featureVisualDetail) :is(.cd-detail-title,.cd-detail-close){color:var(--fd-ink)}
+.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-title{font-family:var(--font-serif,Georgia,serif)}
 .cd-detail-overlay:has(.featureVisualDetail) :is(.cd-detail-eyebrow,.cd-detail-badge){display:none}
-.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-scroll{scrollbar-color:#bcc2cc #f7f4ee;overscroll-behavior:contain}
-#tilePvwOverlay.pvw-visual #tilePvwTitle{padding:18px 24px;color:#202b3e}
-#tilePvwOverlay.pvw-visual .tile-pvw-content{padding:0!important}
-#tilePvwOverlay.pvw-visual :is(#tilePvwTagline,#tilePvwDesc,#tilePvwFeats,#tilePvwQuestionsSec,#tilePvwStepsSec,#tilePvwRecommendedSec,#tilePvwTrustSec,#tilePvwFaqSec,#tilePvwReceiveSec,#tilePvwOutlineSec,#tilePvwCmpSec){display:none!important}
-#tilePvwOverlay.pvw-visual #tilePvwPaywall{margin:24px}
-#tilePvwOverlay.pvw-visual .tile-pvw-close{z-index:3}
+.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-scroll{scrollbar-color:var(--fd-scroll) transparent;overscroll-behavior:contain}
+.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-cta{background:var(--fd-paper);border-top:1px solid var(--fd-line);color:var(--fd-ink)}
+.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-cta-button{-webkit-appearance:none;appearance:none;border:1px solid var(--cd-cta-hairline,rgba(234,208,137,.55));border-radius:var(--cd-r-control,12px);background:var(--cd-cta-primary-bg,#3a0e28);color:var(--cd-cta-primary-ink,#fff1f7);font-weight:700;letter-spacing:-.01em;box-shadow:none}
+.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-price-row{color:var(--fd-ink);font-size:14px}
+/* 문서 스크롤 잠금 — 상세가 열린 동안만 JS 가 붙이는 클래스 하나(전역 :has 선택자 재계산 없음). */
+html.cd-detail-open{scrollbar-gutter:auto;overflow:hidden!important}
+@media(min-width:860px){
+ .featureVisualDetail:not([data-fortune-material]) .featureDetailHero{display:grid;grid-template-columns:1fr 1fr;align-items:center}
+ .featureVisualDetail:not([data-fortune-material]) .featureDetailHero>:is(.featureDetailArt,.craftedHeroArt){width:calc(100% - 20px);margin:20px 0 20px 20px;align-self:center}
+ .featureVisualDetail .featureDetailHero .featureDetailBody{padding:32px 32px 32px 28px}
+ .featureVisualDetail .featureDetailHero :is(h2,h3){font-size:30px}
+}
 @media(max-width:699px){
  .featureIntroductionPage{padding:12px 0 calc(110px + env(safe-area-inset-bottom))}
  .featureIntroductionNav,.featureIntroductionTitle{margin-left:20px;margin-right:20px}
- .featureVisualDetail section.featureDetailPanel{padding:36px 22px}
- .featureVisualDetail .featureDetailHero .featureDetailBody{padding:24px 22px 30px}
- .featureVisualDetail .featureDetailArt{aspect-ratio:4/3;object-position:45% center}
- .fortuneStory>div{padding:28px 22px 36px}
- .cd-detail-overlay:has(.featureVisualDetail),#tilePvwOverlay.pvw-visual{padding:0}
- .cd-detail-overlay:has(.featureVisualDetail) .cd-detail-panel,#tilePvwOverlay.pvw-visual .tile-pvw-sheet{width:100%;height:100dvh;max-height:100dvh;min-height:100dvh;border:0;border-radius:0}
+ .featureIntroductionTitle{margin-top:8px;margin-bottom:12px}
+ .featureIntroductionActions{padding:0 22px}
+ .featureVisualDetail .featureDetailHero{margin:12px}
+ .featureVisualDetail .featureDetailHero .featureDetailBody{padding:20px 20px 24px}
+ .featureVisualDetail[data-fortune-material] .featureDetailHero{grid-template-columns:minmax(0,1fr);gap:22px;padding:28px 22px 30px}
+ .featureVisualDetail[data-fortune-material] .featureDetailHero .featureDetailBody{padding:0}
+ .featureVisualDetail .fortuneObject{width:190px;justify-self:center}
+ .featureVisualDetail .fortuneObject figcaption{font-size:24px}
+ .featureVisualDetail section.featureDetailPanel.craftedEditions{padding-inline:16px}
+ .fortuneSamplePage,.featureVisualDetail[data-fortune-material] .fortuneSamplePage{padding:26px 20px}
+ #tilePvwOverlay.pvw-visual{padding:0}
+ #tilePvwOverlay.pvw-visual .tile-pvw-sheet{width:100%;height:100dvh;max-height:100dvh;min-height:100dvh;border:0;border-radius:0}
+ #tilePvwOverlay.pvw-visual .tile-pvw-column{height:100dvh}
+ .cd-detail-overlay:has(.featureVisualDetail){padding:0}
+ .cd-detail-overlay:has(.featureVisualDetail) .cd-detail-panel{width:100%;height:100dvh;max-height:100dvh;min-height:100dvh;border:0;border-radius:0}
  .cd-detail-overlay:has(.featureVisualDetail) .cd-detail-column{height:100dvh}
  .cd-detail-overlay:has(.featureVisualDetail) .cd-detail-header{padding-top:max(16px,env(safe-area-inset-top))}
- .featureIntroductionActions{padding:0 22px}
 }
-@media(prefers-reduced-motion:reduce){.featureDetailConversion,.fortuneAction a,.fortuneAction button,.featureIntroductionActions>a,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn,.featureDetailShareActions button{transition:none;transform:none}.featureDetailConversion:after,.fortuneAction a:after,.fortuneAction button:after,.featureIntroductionActions>a:after,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:after{transition:none;transform:rotate(45deg)}}
+@media(prefers-reduced-motion:reduce){.featureDetailConversion,.fortuneAction a,.fortuneAction button,.featureIntroductionActions>a,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn,.featureDetailShareActions button{transition:none;transform:none}.featureDetailConversion:after,.fortuneAction a:after,.fortuneAction button:after,.featureIntroductionActions>a:after,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:after{transition:none;transform:rotate(45deg)}.featureVisualDetail[data-crafted-introduction] .craftedCardChevron,.featureDetailFaq summary:after{transition:none}}
 /* Catalogue cards share the same product artwork, cropped only for their 16:9 slot. */
 
 .featureCatalogPage{min-height:100dvh;background:var(--cd-bg);color:var(--cd-text);padding:24px 20px 96px}
@@ -178,53 +321,12 @@
 .featureCatalogEmpty{margin:40px 0;padding:24px;background:var(--cd-surface);border-radius:var(--cd-r-section)}
 .featureCatalogEmpty button{min-height:44px;padding:10px 16px}
 @media(max-width:699px){.featureCatalogList{grid-template-columns:1fr;gap:24px}.featureCatalogList>li>a:first-child{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:16px;align-items:start}.featureCatalogList img{order:0;margin:0;grid-column:2;grid-row:1;aspect-ratio:1;object-fit:cover}.featureCatalogCopy h2{font-size:21px}.featureCatalogHeader{margin-top:24px}}
-.fortunePlanChoices{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.fortunePlanChoices .fortuneAction{padding:16px 0;border-top:1px solid #dbcccf}
-.fortunePlanChoices strong{font-size:14px}
+/* 마스터 인연의 서(CodexProductIntroduction)가 같은 소개 셸을 쓴다: 편 선택·가격·프롤로그 다시 보기. */
 .fortunePlanPrice{font-weight:650;color:inherit}
-.fortunePlanChoices .fortuneAction p{margin:10px 0;font-size:18px;color:#8b3e59}
-.fortuneReplay,.featureIntroductionNav button{min-height:44px;padding:10px 0;background:transparent;border:0;font:inherit;color:#495770;cursor:pointer}
-.fortuneSticky button{flex:1}
-@media(max-width:699px){.featureVisualDetail .featureDetailArt{aspect-ratio:16/10}.featureIntroductionTitle{margin-top:8px;margin-bottom:12px}.fortunePlanChoices{grid-template-columns:1fr;gap:0}.fortunePlanChoices .fortuneAction{margin-top:12px}.fortunePlanChoices button{min-height:48px}}
-@media(min-width:860px){.featureVisualDetail .featureDetailHero{display:grid;grid-template-columns:1fr 1fr;min-height:500px}.featureVisualDetail .featureDetailArt{height:100%;min-height:500px;aspect-ratio:auto;object-position:42% center}.featureVisualDetail .featureDetailHero .featureDetailBody{padding:36px 32px;align-self:center}.featureVisualDetail .featureDetailHero .featureDetailBody:before{top:0;bottom:0;left:-50px;width:51px;height:auto;right:auto;background:linear-gradient(90deg,transparent,var(--fortune-paper))}.featureVisualDetail .featureDetailHero :is(h2,h3){font-size:30px}}
-#tilePvwOverlay.pvw-visual .tile-pvw-column{display:flex;flex-direction:column;height:92dvh;max-height:inherit}
-#tilePvwOverlay.pvw-visual .tile-pvw-scroll{display:block;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
-@media(max-width:699px){#tilePvwOverlay.pvw-visual .tile-pvw-column{height:100dvh}}
+.fortuneReplay,.featureIntroductionNav button{min-height:44px;padding:10px 0;background:transparent;border:0;font:inherit;color:var(--fd-quiet);cursor:pointer}
+.fortuneEditionChoices{display:flex;gap:8px;max-width:880px;margin:16px auto;padding:0 20px}
+.fortuneEditionChoices button{flex:1;min-height:44px;padding:12px;border:1px solid var(--fd-line);border-radius:var(--cd-r-control,12px);background:transparent;color:var(--fd-gold);font:inherit;font-weight:600}
+.fortuneEditionChoices button[aria-pressed=true]{border-color:var(--cd-cta-hairline,rgba(234,208,137,.55));background:var(--cd-cta-primary-bg,#3a0e28);color:var(--cd-cta-primary-ink,#fff1f7)}
 
-.fortuneCtaAtTop{display:none!important}
-#tilePvwOverlay.pvw-visual :is(#tilePvwAudSec,#tilePvwQuestSec,#tilePvwScaleSec,#tilePvwPriceTitle){display:none!important}
-.fortuneEditionChoices{display:flex;gap:8px;max-width:880px;margin:16px auto;padding:0 20px}.fortuneEditionChoices button{flex:1;min-height:44px;padding:12px;border:1px solid #a6afb9;border-radius:8px;color:#344f75;background:#f7f4ee;font:inherit}.fortuneEditionChoices button[aria-pressed=true]{background:#344f75;color:white}
-
-html:has(#tilePvwOverlay.pvw-visual.pvw-open),html:has(.cd-detail-overlay .featureVisualDetail){scrollbar-gutter:auto;overflow:hidden!important}
-#tilePvwOverlay.pvw-visual{overflow:hidden}
-#tilePvwOverlay.pvw-visual :is(.tile-pvw-handle,.tile-pvw-divider){display:none}
-#tilePvwOverlay.pvw-visual #tilePvwTitle{padding:20px 64px 20px 22px;margin:0;font-size:20px;line-height:1.4}
-#tilePvwOverlay.pvw-visual .tile-pvw-close{position:absolute;margin:0;top:8px;right:10px;left:auto;background:#f7f4ee;color:#202b3e;min-width:44px;min-height:44px}
-
-.cd-detail-overlay [hidden]{display:none!important}
-
-.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-cta{background:#f7f4ee;border-top:1px solid #cfd2d6;color:#202b3e}
-.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-cta-button{-webkit-appearance:none;appearance:none;border:0;border-radius:14px;background-color:var(--fortune-accent,#344f75);background-image:linear-gradient(135deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 48%,rgba(0,0,0,.2) 100%);color:#fffaf0;font-weight:800;letter-spacing:-.01em;box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),inset 0 0 0 2px rgba(240,214,160,.18),0 10px 22px -16px var(--fortune-accent,#344f75)}
-.cd-detail-overlay:has(.featureVisualDetail) .cd-detail-price-row{color:#202b3e;font-size:14px}
-.fortuneAction button:disabled,.fortuneAction a[aria-disabled="true"],#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:disabled{opacity:.55;filter:saturate(.7);cursor:default;transform:none;box-shadow:inset 0 0 0 1px rgba(226,194,130,.35)}
-.fortuneAction button:disabled:after,.fortuneAction a[aria-disabled="true"]:after,#tilePvwOverlay.pvw-visual .tile-pvw-cta-btn:disabled:after{display:none}
-/* 하단 고정 CTA 는 본문 밖이라 --fortune-accent 를 상속받지 못한다. 본문 테마를 :has 로 빌려 hero 버튼과 같은 색을 쓴다.
-   :has 미지원이면 이 규칙만 버려지고 기본 남색으로 남는다(버튼 모양은 위 기본 규칙이 지킨다). */
-/* 모바일 셸·공통 시트가 바 배경·선을 !important(분홍 기조)로 잡아 두어 같은 수단으로만 종이색에 맞출 수 있다.
-   네오 모드여도 이 시트는 밝은 종이라, 바 안의 안내문도 밝은 바탕용 색 토큰을 쓴다. */
-#tilePvwOverlay.pvw-visual .tile-pvw-cta-sticky{background:#f7f4ee!important;border-top:1px solid #e0d6c4!important;--cd-detail-muted:#70445c}
-#tilePvwOverlay.pvw-visual:has([data-fortune-theme=rose]) .tile-pvw-cta-sticky,.cd-detail-overlay:has([data-fortune-theme=rose]) .cd-detail-cta{--fortune-accent:#8b3e59}
-#tilePvwOverlay.pvw-visual:has([data-fortune-theme=emerald]) .tile-pvw-cta-sticky,.cd-detail-overlay:has([data-fortune-theme=emerald]) .cd-detail-cta{--fortune-accent:#286453}
-#tilePvwOverlay.pvw-visual:has([data-fortune-theme=violet]) .tile-pvw-cta-sticky,.cd-detail-overlay:has([data-fortune-theme=violet]) .cd-detail-cta{--fortune-accent:#65467e}
-#tilePvwOverlay.pvw-visual:has([data-fortune-theme=indigo]) .tile-pvw-cta-sticky,.cd-detail-overlay:has([data-fortune-theme=indigo]) .cd-detail-cta{--fortune-accent:#424c86}
-#tilePvwOverlay.pvw-visual:has([data-fortune-theme=saffron]) .tile-pvw-cta-sticky,.cd-detail-overlay:has([data-fortune-theme=saffron]) .cd-detail-cta{--fortune-accent:#885022}
-#tilePvwOverlay.pvw-visual:has([data-fortune-theme=burgundy]) .tile-pvw-cta-sticky,.cd-detail-overlay:has([data-fortune-theme=burgundy]) .cd-detail-cta{--fortune-accent:#7b354b}
-/* 2026-10-03 연이의 운세 정원: 꿀꿀 운세 셸의 상세 시트(#tilePvwOverlay)만 연이 모드에서 정원 종이·자두 글자로 바꾼다.
-   App Router 상세(.featureIntroductionPage·다른 .cd-detail-overlay)와 네오 모드는 위 남색 종이 그대로.
-   제품별 테마 강조색(tint·장식)은 남기고, 구매 버튼만 정원 강조색 하나로 맞춘다. 결제 분기·DOM·가격은 건드리지 않는다. */
-body:not(.neo-mode) #tilePvwOverlay.pvw-visual .featureVisualDetail{--fortune-paper:#fff9f4;--fortune-ink:#402a38;--fortune-muted:#6b4d5e;--fortune-line:#ebd9df}
-body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-sheet{background:#fff9f4;color:#402a38}
-body:not(.neo-mode) #tilePvwOverlay.pvw-visual #tilePvwTitle{color:#402a38}
-body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-close{background:#fff9f4;color:#402a38}
-body:not(.neo-mode) #tilePvwOverlay.pvw-visual .tile-pvw-cta-sticky{background:#fff9f4!important;border-top-color:#ebd9df!important;--cd-detail-muted:#6b4d5e}
-body:not(.neo-mode) #tilePvwOverlay.pvw-visual :is(.tile-pvw-cta-btn,.fortuneAction a,.fortuneAction button){--fortune-accent:#b53660;background-color:#b53660;background-image:linear-gradient(135deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,0) 50%,rgba(64,42,56,.12) 100%)}
+/* Product-specific choices: readable amounts, no image overlays. */
+.fortunePriceOptions dl{margin:0;display:grid;gap:12px}.fortunePriceOptions dl>div{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px;padding-block:12px;border-bottom:1px solid var(--fortune-line)}.fortunePriceOptions dt{color:var(--fortune-ink);font-size:var(--cd-t-body);line-height:1.6}.fortunePriceOptions dd{margin:0;color:var(--fortune-ink);font-size:var(--cd-t-card);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}

@@ -1,4 +1,107 @@
+> 2026-10-24 사용자 승인: 영냥이 전용 횟수 이용권의 사용 기한을 없앱니다. 신규 v5 상품의 validityDays 및 지급/응답 expiresAt은 null입니다. 기존 v3/v4 주문 스냅샷과 저장된 만료일은 감사·결제 재개를 위해 보존하지만, 남은 횟수의 조회·차감에는 만료일을 적용하지 않습니다. 가격·횟수·지원 상담·환불 및 선물 수령 기한은 유지합니다. 아래 과거 기록의 30일 사용 기한보다 이 정책이 우선합니다. 운영 DB 일괄 수정은 필요하지 않습니다.
+
+## 2026-10-18 승인: 운세 프롬프트 꿀방울 1개 복원
+
+사용자 결정에 따라 운세 프롬프트 1회 생성을 다시 꿀방울 1개로 열 수 있다(2026-10-12 원래 정책). 같은 날 숙요 작업의 "종합 프롬프트 신규 꿀방울 사용 차단"을 프롬프트에 한해 뒤집는다. 상세는 [PAYMENT_POLICY.md](../../PAYMENT_POLICY.md#운세-프롬프트-허브--꿀방울과-대체-결제).
+
+- 허용: `spendPromptHubHoney`가 `isHoneyPromptHubSpend()` 전용 판정으로만 통과한다. `HONEY_UNLOCK_PRODUCTS`(홈 사용처 24상품)에는 넣지 않는다.
+- 유지: 3,000원 단건 결제(`fortune-prompt-hub-generate`, cost 30), 같은 `requestId` 재시도 무차감·다른 입력 409, 꿀편지·타로 앨범·프로필 정령 차단.
+- 실결제·운영 DB 검증은 포함하지 않으며 개발 검증은 mock 으로 한다.
+
+## 2026-10-18 승인: 연이 운명 상담 꿀방울 30개
+
+사용자 요청("꿀방울을 모아서 상담이 가능하도록")과 선택("30개", 이용권·5,000원 결제 유지)에 따라 연이 단독 운명 상담 1건을 꿀방울 30개로도 연다. 상세 규칙은 [PAYMENT_POLICY.md](../../PAYMENT_POLICY.md#연이-운명-상담--꿀방울-30개로-열기-2026-10-18).
+
+- 비율: 30방울 = `fortune-chat-consultation` 1회 5,000원. 가격 등록소 값은 바꾸지 않는다.
+- 순서: 기존 증빙(카드·코인·월정석·이용권·과거 무료 1회) 우선 → 열린 카드 결제가 없을 때만 꿀방울 차감. 차감과 요청 연결(`PER_USE`/`honey`)은 한 트랜잭션이고 카드 claim 충돌 시 롤백한다.
+- 환불: 전달 전 최종 실패만 30방울 1회 복원(`refundTerminalFamilyQuota` → `refundChatHoney`).
+- 범위: 연이 기본 상담 전용. 질문 티어·네오·공동 상담 제외. 실결제·운영 DB 검증은 이번 변경에 포함하지 않으며 개발 검증은 mock 으로 한다.
+
+## 2026-10-17 승인: 운명의 섬 무료 탐험 전환
+
+사용자 요청에 따라 운명의 섬 12궁 정적 해석과 시기 탐색을 무료 제공한다. 새 AI 상담 생성은 종료한다.
+
+- 신규 판매: ziwei-island-palace-consult, ziwei-island-deep-report의 saleEnabled: false. 과거 주문·환불·해금 조회를 위한 키와 가격은 유지한다.
+- 무료 전달: /api/ziwei-island/blueprint가 입력 명반의 정적 12궁 해석과 대한·유년 자료를 제공한다. 인증·DB·LLM 없이 계산한다.
+- 기존 상담: 소유자 확인과 환불 접근 회수를 유지한 GET 재열람만 제공한다. 새 생성 POST는 410이다. 미완료 저장 내용은 보존하며 자동 LLM 재생성 대상에서 제외한다. 미완료 구매의 운영 처리·환불은 이번 코드 변경에 포함하지 않는다.
+- 기존 정적 리포트 해금과 재열람 API를 유지한다. 다른 자미두수 상품의 가격·결제 구조·LLM은 변경하지 않는다.
+- 운영 승격과 실결제 검증은 별도이며, 개발 검증은 mock으로 한다.
+
+## 2026-10-15 관계 성향·궁합 가격 정합성
+
+사용자 최종 요청으로 `relationship-boundary-test` 서버 가격 회당 10,000원(cost 100)을 유지한다. 카드의 과거 5,000원 표시는 가격 정본에 맞춰 수정한다. 대상자 단독과 선택적 본인 정보를 더한 궁합 모드가 같은 상품·가격을 사용한다. 기존 주문 스냅샷·차감 증빙·완료 결과는 재가격 처리하지 않는다. 대시보드 금액은 `syncSajuReadingPrices`가 서버 레지스트리에서 생성한다. 운영 승격·실결제 검증은 포함하지 않는다.
+
 # 결제 시스템 & 잠금 콘텐츠 — 상세 규칙
+
+## 2026-10-14 승인: 월정석 최소 상품 금액 10,000원
+
+- 꿀꿀 운세·영냥이 신규 구매 모두 서버 카탈로그의 할인 전 가격이 10,000원 이상일 때만 월정석 전액 사용·부분 할인을 허용한다. 기존 월정석 제외 상품은 계속 제외한다.
+- 정본은 `paid-feature-registry.js`의 `MOONSTONE_MIN_PRODUCT_KRW`와 `getPaidFeaturePaymentPolicy`다. 표시 가격이나 클라이언트 전달 금액으로 우회하지 않는다.
+- 기존 확정 결제·구매 결과 재열람·예약분 취소 복원을 보존한다. 가격·이용권·환산율·보상액·만료일은 변경하지 않는다. 운영 승격은 별도다.
+
+### 2026-10-14 추가 정정: 신규 가입 월정석 500개
+
+- 사용자 승인으로 신규 가입 지급량은 `js/core/signup-benefit-policy.mjs`의 500개로 정정한다. 일반 환산 기준 5,000원 상당이며, 할인 전 10,000원 이상 대상 서비스 할인에만 사용할 수 있다고 안내한다.
+- 지급일부터 30일, 이용권 구매 제외, 상품별 기존 제외 조건은 유지한다. 이미 지급한 월정석과 구매 결과에 소급 변경하지 않는다. 이번 요청은 GitHub Actions 운영 승격을 포함한다.
+
+## 2026-10-12 승인: 마스터 인연의 서 개인 30,000원 · 궁합 50,000원
+
+사용자 결정("품질이 좋아 개인 3만원, 궁합 5만원으로 해도 문제없다"). 이 절이 아래 10-11 절과 이전 표기보다 우선한다.
+
+- `master-love-codex` 100 → 300코인(30,000원), `master-love-codex-compat` 300 → 500코인(50,000원). 정본 `paid-feature-registry.js`, 폴백 사본 `src/features/master-love-codex/constants.ts`.
+- 기존 주문의 가격 스냅샷과 지급된 `ContentEntitlement`는 그대로 둔다. 결제 진행 중 주문은 `hasPriceDrift` 경로로 새 가격을 다시 매긴다.
+- 이용권: 두 SKU 모두 건당 상한(standard 50·premium 100·vvip 200코인)을 넘으므로 standard·premium·vvip 이용권으로는 커버되지 않고 단건 결제로 넘어간다(이전에는 개인판 100코인을 premium·vvip가 커버했다). 상담 포함 횟수 표(`PREMIUM_QUOTA_INCLUDED_USES_BY_TIER`)는 2026-08-24부터 비어 있어 상한 우회가 없다. family는 건당 상한이 없어 월 이용 한도 안에서 두 SKU를 계속 커버한다. 최저 커버 가격 `MIN_PASS_COVERABLE_COIN`은 변하지 않는다.
+- Google Play: 개인판은 기존 `cd_content_tier_10`(30,000), 궁합판은 `cd_content_tier_17`(50,000)로 결제한다. 기존 SKU의 가격·상태는 바꾸지 않는다. `tier_17`이 Play Console에 활성화되기 전에는 앱의 궁합판 결제가 열리지 않는다.
+- 운영 승격은 별도 승인 대상이다.
+
+## 2026-10-11 프리미엄 가격 개편
+
+이 절이 아래의 이전 가격 표기보다 우선한다. 정본은 `worker/lib/paid-feature-registry.js`이며 기존 주문의 가격 스냅샷과 이미 지급된 `ContentEntitlement`는 다시 가격을 매기거나 회수하지 않는다.
+
+- 천원 운세는 `rpt_specialCharmCard`, `rpt_skillTreeCard`, `fun.quantumLotto.ritualReport` 3종과 프로필 카드 관리만 1,000원으로 유지한다. 지정 오라클류는 3,000원, 그 밖의 기존 1,000원 해금은 5,000원이다.
+- 기존 3,000원 상품은 5,000원, 기존 5,000원 상품은 AI 상담·궁합 10,000원 또는 계산형 리포트 7,000원으로 나눈다. 대운·종합 사주풀이는 30,000원이다.
+- 영냥이는 고등어 5,000원, 연어 10,000원, 광어 15,000원, 참치 30,000원, 모둠 50,000원, 오마카세 70,000원이다. 5회 팩은 각각 20,000원, 40,000원, 60,000원, 120,000원이다.
+- 운명 찻집 5종은 10,000원, 네오 팩폭 작전실은 30,000원이다. 이용권 가격과 월정석 환산 규칙은 바꾸지 않는다.
+- Google Play는 기존 SKU 가격을 바꾸지 않고 `cd_content_tier_15`~`18`만 새로 쓴다. 음악 트랙은 10코인이어도 앱에서 계속 무료이고, 천원 운세 3종과 프로필 카드 관리는 `tier_15`로 결제한다.
+- 운영 승격과 실결제는 별도 승인 대상이다. 개발 검증은 mock과 가격·정책 가드만 사용한다.
+
+## 2026-10-10 시행: 영구 해금은 "계정 + 생년월일" 단위
+
+이 절이 아래의 프로필·계정 단위 해금 서술보다 우선한다.
+
+- 🔴 **출생 기반 영구 해금의 신원은 `userId + birthKey + contentKey`다.** `birthKey`는 이 계정에 **저장된 프로필 카드**의 출생 정보(년·월·일·시·분·시간 모름·양력/음력/윤달·성별)의 sha256이다. 이름·출생지·profileId는 넣지 않는다. 서버만 계산한다(정본 `worker/lib/birth-key.js`, 신원 해석기 `worker/lib/birth-scoped-unlock-identity.js`). 요청 본문의 생년월일은 신원에 쓰지 않는다.
+- 대상 키는 `paid-feature-registry.js`의 `BIRTH_SCOPED_UNLOCK_FEATURE_KEYS`(사주 전체 풀이·대운·궁합, `rpt_*`, 자미두수 5종, 숙요 연운·숙요 해금, 낙샤트라 2종, 베딕 기본, 점성 해금, 운명의 섬 심층, 동물 운명, 사주 수호신, 시빌, FPTI, 여행·건강 리포트)다. 음악·테토겐·꽃/올림포스 운세 카드·RPG·사주 일기·비밀의 집·점술 팩은 `ACCOUNT_SCOPED_UNLOCK_FEATURE_KEYS`로 계정 단위를 유지한다. 둘 중 어디에도 없거나 둘 다에 있는 해금 키는 `assertUnlockScopeClassification()`이 막는다(새 해금 키를 추가하면 반드시 분류할 것). 회당 결제 키는 이 정책과 무관하다.
+- 같은 계정에서 생년월일·시각·성별이 같은 카드는 해금을 공유한다. 다른 계정은 같은 출생 정보라도 따로 산다. 카드의 생년월일을 고치면 다시 잠기고, 되돌리면 다시 열린다. 궁합은 본인 → 상대 순서의 두 birthKey 쌍이다(상대도 저장 프로필이어야 한다).
+- **구매는 이 계정 소유의 저장 프로필로만 한다.** profileId가 없으면 `400 MISSING_PROFILE_ID`, 남의 프로필·삭제된 프로필·합성 id면 `403 INVALID_PROFILE`이며 둘 다 `requiresProfile:true`를 싣는다. 이 확인은 어떤 차감·결제창보다 먼저다(웹 coin-gate, 단건 결제, V2 결제, Google Play intent 공통). 클라이언트는 직접 입력(저장하지 않은) 생년월일에서 서버를 부르지 않고 "프로필을 저장한 뒤 구매해 주세요"를 보여 준다.
+- 저장: `ContentEntitlement` 행을 `scope:"BIRTH"`, `profileId:"birth:<birthKey>"`로 쓰고 `birthKey`·`purchaseProfileId`(감사용)·궁합이면 `partnerBirthKey`·`purchasePartnerProfileId`를 남긴다. 기존 유니크 인덱스가 출생 정보 단위로 걸리고, 보조 유니크 인덱스 `{userId, birthKey, serviceKey, contentKey}`(BIRTH 한정)를 선언한다. 합성 profileId는 응답으로 내보내지 않는다.
+- 🔴 **USER 스코프 행, `__user__`, `User.unlockedFeatures/paidFeatures` 배열은 출생 기반 키의 근거가 아니다.** 배열은 되돌리기용으로 계속 쓰지만 읽지 않고, 응답에서도 뺀다.
+- 🔴 **예외 — 전환 이전 해금 유지(2026-10-11, 사용자 결정 "결제한 사람이 다시 잠기는 문제가 없도록"):** 출생 기반 키의 ACTIVE **레거시 행**은 계속 연다. 새 코드는 출생 기반 키에 USER·PROFILE 행을 쓰지 않으므로(`upsertContentUnlock`/`grantPermanentUnlock`가 BIRTH로 강제) 날짜가 아니라 scope 로만 레거시를 가린다.
+  - `scope:"USER"` 또는 `profileId:"__user__"` 행: 운영과 같이 **계정의 모든 프로필**에서 열린다. 저장 카드가 없거나 직접 입력 중이어도 열린다. 프로필 없이 다시 열어도 `already_unlocked`로 재과금하지 않는다(`billing.js` `hasLegacyBirthScopedUnlock`; coin-gate 의 월정석·이용권 갈래는 결제 V2 `findLegacyBirthUnlock`이 차감 전에 같은 판정을 한다).
+  - `scope:"PROFILE"` + 실제 profileId 행: **그 profileId 에서** 열린다. 그 카드의 생년월일을 고쳐도 열린다. 다른 카드·같은 생일의 다른 카드에서는 열리지 않는다.
+  - 정본: `worker/lib/content-unlocks.js` 레거시 판정(`isLegacyAccountUnlockRow` 등). 스냅샷은 `legacyAccountUnlockedFeatureIds`·`legacyProfileUnlockedFeatureIds`를 함께 내보내고, 브라우저는 서버가 준 `legacyAccountUnlockedFeatureIds`만 `window.cdIsLegacyAccountUnlockKey`로 계정 키처럼 다룬다(로컬 원장은 여전히 근거 아님).
+  - 남는 위험(허용, 사용자 결정): 레거시 PROFILE 행이 있는 카드는 생년월일을 바꿔 다른 사람 결과를 열 수 있다. 막지 않고 `handleUpdateProfile`이 `legacy_profile_unlock_birth_edit` 경고 로그·보안 로그를 남긴다. 2026-06 무렵 행은 `featureKey` 없이 `contentKey`만 있으니 조회·집계 때 `contentKey`에서 유도한다.
+- 이용권: 새 birthKey면 차감하고, 같은 birthKey면 차감 없이 열린다(보유 확인이 한도 확인보다 먼저). 단건 결제 중복 판정도 `userId + birthKey + contentKey`이며, 주문 `pricingSnapshot.birthKey`로 지급해 결제 도중 생년월일을 고쳐도 지급 대상이 바뀌지 않는다.
+- 브라우저: 출생 기반 키는 계정 단위 저장소(`cd_tile_locks`, `unlockedFeatures` 등)에 쓰지도 읽지도 않는다. 남는 캐시는 프로필 꼬리표가 붙은 두 가지뿐이다. access-store `cd_access_store_v4::<userId>::<profileId>` 스냅샷은 60초 동안 신선하고 `birthScopePolicy` 버전이 다르면 버린다. `cd_verified_unlock_grants_v1` 지급 기록은 72시간이며 출생 기반 키는 같은 profileId 기록만 믿는다. 둘 다 같은 profileId 에만 쓰이고 서버 응답이 덮어쓰며, 생년월일 수정(`birthChanged`) 때 비운다. 근거는 서버가 **현재 profileId**에 대해 돌려준 응답이며, 프로필 전환 때 해금 상태와 렌더 래치를 비우고 다시 조회한다. 신선 캐시로 이전 프로필에 돌아오면 access-store 가 `cd:unlocks-changed {source:"access-store-context"}`를 보내 관문을 다시 그린다. 잠금 문구는 "이 생년월일은 별도 구매가 필요합니다".
+- 🔴 **유지 보장: 한 번 열린 출생 기반 해금은 새로고침·프로필 전환 뒤 복귀·새 기기·재로그인에서도 그대로 열린다.** 근거가 서버 BIRTH 행이라 기기 상태와 무관하다. 다시 잠기는 경우는 그 카드의 생년월일을 고쳤을 때(되돌리면 다시 열림)와 환불뿐이다. 단, 위 레거시 행으로 열린 키는 생년월일을 고쳐도 닫히지 않는다(카드 수정 안내 문구도 "잠길 수 있습니다"로 둔다).
+- 저장된 결과(`/records/`) 재열람은 이 정책과 무관하게 무료다.
+- 🔴 **기존 구매는 사라지지 않는다.** 이관: `scripts/migrations/20261010-birth-scope-unlocks.mjs`(기본 dry-run, `--apply`, `--create-index`, `--check`). 구매 프로필의 **현재** 출생 정보로 BIRTH 행을 복사 생성하고 원본은 고치지 않는다. 근거 조회는 정본 키·`_`/`-` 변형·`PAID_FEATURE_KEY_ALIASES` 별칭·`:접미사`(연도 키) 표기를 모두 찾는다. 환불은 짝지어진 차감만 근거에서 뺀다(차감 자체의 환불 표식 → 환불의 원 차감 id `refundForPointHistoryId`·`sourceTransactionId` 등 → 같은 `requestId` 순, 짝 없는 환불은 같은 키의 최근 차감 하나만 상쇄). 레거시 유지 대상(USER 행 전부, 카드가 살아 있는 PROFILE 행 중 출생 정보 불완전·궁합 행)은 claim 을 만들지 않고 `stats.grandfathered`로 세며 표시도 하지 않는다. 같은 주문·같은 계정 키가 레거시 행으로 이미 열려 있으면 이용 내역·배열 출처도 claim 하지 않는다(`claimsCoveredByLegacyRow`). 삭제된 프로필·카드가 지워진 궁합 행·계정 배열이나 이용 내역에만 남은 키는 `birthScopeExcludedAt` 표시와 함께 `BirthScopeLegacyClaim`(`birth_scope_legacy_claims`, 출처당 1건, 재실행 안전)으로 옮겨 **프로필 선택 지급**을 기다린다. 환불하지 않고, 처음 고른 생년월일 하나로만 연다. 이관 뒤 열림 표본 확인은 `npm run verify:birth-scope-migrated-user -- --db <이름>`(읽기 전용). 🔴 운영 승격 전에 운영 DB `--apply`가 먼저다.
+- 소급 주문(출생 기반 전환 전 결제, 스냅샷 생년월일 없음): 저장 프로필이 살아 있으면 그 프로필의 **현재** 생년월일로 지급한다. 프로필이 없거나 지워졌으면 **환불하지 않고** 지급을 보류한다(`failureCode:"delivery_failed_manual_review"`; V2 크론은 `MISSING_PROFILE_ID`·`INVALID_PROFILE` 에서 재시도를 멈추고 같은 표식을 단다). 확정 응답은 `GRANT_PENDING` 에 `profileSelectionRequired:true` 를 싣고 "권한 정상 처리" 류 문구를 내지 않는다.
+- 보류 해소는 사용자가 한다: 로그인 뒤 `GET /api/payments/birth-profile-pending` 이 있으면 "결제한 콘텐츠를 열 프로필을 골라 주세요" 카드가 뜨고, 고른 저장 프로필로 `POST /api/payments/birth-profile-pending/:id/claim` 이 BIRTH 행을 지급한다(정본 `worker/payments/birth-profile-claim.js`). 한 주문은 처음 고른 생년월일 하나로만 지급된다. 이관이 만든 `BirthScopeLegacyClaim`도 같은 목록·같은 카드에 `orderId:"legacy-<claimId>"`로 나오고, 같은 claim 경로가 `source:"BACKFILL"` 행으로 지급하며 원 주문·결제 id 를 `mergedOrderIds`에 남긴다(원 주문이 환불되면 함께 회수). 관리자 주문 목록의 "지급 보류 · 프로필 선택 대기" 필터(주문만), 집계는 `scripts/audit-birth-scope-pending-orders.mjs --db <이름>`(읽기 전용, `legacyClaims` 대기·지급·사유별 포함).
+
+## 2026-10-09 가격·과금 유형 확정
+
+이 절이 아래 과거 가격 기록보다 우선한다. 신규 결제 가격은 `worker/lib/paid-feature-registry.js`가 정본이며, 기존 구매로 기록된 영구 해금 권한은 유지한다.
+
+- 종합 사주 풀이(`section_summary`): 5,000원, 영구 해금.
+- 그 사람의 바람끼는?(`relationship-boundary-test`): 회당 5,000원.
+- 퀀텀 명리 엔진(`rpt_quantumCard`): 10,000원, 영구 해금.
+- 사주로 보는 여행지(`rpt_energyCoordCard`): 5,000원, 영구 해금.
+- 퀀텀 로또 리포트(`fun.quantumLotto.ritualReport`): 회당 1,000원. 로또 번호 뽑기는 무료다.
+- 인연의 장소(`destiny_meeting_place`): 회당 5,000원.
+- 사주 동물 테스트(`animal-destiny-unlock`): 5,000원, 잠금 콘텐츠.
+- LOVE CODE(`love-code`): 회당 5,000원. 과거 영구 해금 권한은 기존 계정에서 계속 인정한다.
+
+천원 운세 허브의 재미 사주 콘텐츠는 여행지 리포트를 제외한 5종으로 유지한다. 퀀텀 로또 리포트는 번호 생성 무료/리포트 회당 결제를 분리해 표시한다. 이 가격 변경에는 실결제·운영 DB 쓰기·배포가 포함되지 않는다.
 
 ## 2026-10-08 승인: 상담 중심 구매와 5회권 판매
 
@@ -7,8 +110,8 @@
 - 영냥이는 질문 → 추천 범위 → 이번 상담 1회(기본) 또는 같은 범위 5회권으로 안내한다. 단건은 기존 공통 결제창에서 환불 동의와 결제 수단을 확인한다. 이용권·Family·월정석은 보유 혜택에서 사용자가 선택하며 사전 조회로 차감하지 않는다.
 - 신규 10·20회권 판매는 종료한다. 서버 정본의 SERVICE_PACK_PLANS는 과거 상품 해석용으로 보존하고 SERVICE_PACK_SALE_IDS만 판매 가능 목록으로 쓴다. 새 주문은 409 PRODUCT_SALE_ENDED로 막되, 판매 종료 전에 생성된 유효한 동일 주문·스냅샷의 복구, 결제 확인·웹훅 지급·선물 수령은 보존한다. 새 주문 ID로 재생성하는 우회는 허용하지 않는다.
 - 남기는 5회권은 현재 서버 등록소의 가격·30일·같은 등급 지원 상담 조건을 그대로 쓴다. 기존 10·20회권의 남은 횟수·만료일·범위·환불과 과거 결과 재열람 권리는 소급 변경하지 않는다.
-- 월간 4등급 판매는 영냥이 구매 화면에서만 제외하며 꿀꿀운세에서는 유지한다. 앱 판매 가능 여부·PG 경계도 유지하며 미지원 이용권을 웹 결제로 우회하지 않는다.
-- 재미있는 사주 콘텐츠는 기존 유료 11개만 1,000원, 무료 8개는 그대로다. 종합 사주 3,000원·궁합 5,000원과 주요 AI 상담 가격은 유지한다. 이번에 변경한 정본 키는 love-code, destiny_meeting_place, relationship-boundary-test다. UI와 생성 미러도 같은 가격을 표시한다.
+- 월간 4등급 판매는 영냥이 구매 화면에서만 제외하며 꿀꿀 사주에서는 유지한다. 앱 판매 가능 여부·PG 경계도 유지하며 미지원 이용권을 웹 결제로 우회하지 않는다.
+- 재미있는 사주 콘텐츠의 기존 1,000원 목록, 종합 사주 가격, 기타 기능 가격은 2026-10-09 가격·과금 유형 확정 절에서 일부 갱신했다.
 - 운명의 꽃은 로그인 후 무료다. 서버 인증·네 체계 계산은 유지하며 신규 결제·월정석 청구는 FEATURE_NOW_FREE로 차단한다. 과거 상품 정의·주문·원장을 삭제하지 않는다. 실결제·유료 LLM·운영 DB 쓰기·운영 승격은 이번 승인에 포함하지 않는다.
 
 ## 2026-10-05 가격 정정: 원래 생선 비율 1:3:5:10
@@ -47,15 +150,15 @@
 - [docs/payment-policy-flow.md](../payment-policy-flow.md) — 게이팅 우선순위, 결제 플로우, 변경 이력
 
 **핵심 요약**:
-- **이용권**(30일, 구독형이나 자동갱신 없음) → **월정석**(이벤트 지급, 구매 불가, 구독 아님) → **코인**(레거시 내부 단위) 순으로 게이팅
-- 🔴 **이용권은 30일 만료와 월 한도 소진 중 먼저 오는 쪽에서 끝난다**(2026-09-04). 한도 사이클 키가 이용권 자신의 만료일이라 기간 안에서 리셋되는 일이 없어, 다 쓴 이용권의 남은 기간은 가치가 0이었다 — 그래서 소진 시점에 `expiresAt` 을 `now` 로 당기고 등급을 free 로 내려 **즉시 종료**시킨다(정본 `worker/payments/passes.js` `terminatePassOnBudgetExhaustion`, 임계 `worker/lib/profile-limits.js` `MIN_PASS_COVERABLE_COIN`). 판정은 "잔여로 열 수 있는 유료 항목이 하나도 없을 때"이고, 남은 기간은 소멸하며 재구매는 그날부터 30일을 새로 준다. 🔴 **새 "소진 플래그"를 만들어 곳곳에서 검사하지 말 것** — 활성 판정이 전부 `expiresAt` 을 보므로 만료일을 당기는 것만으로 하위 판정이 전부 뒤집힌다(원칙 6). 🔴 문구에 "다음 달에 다시 열림"·"기간 내 리셋"을 쓰지 않는다(`scripts/verify-pass-tier-policy.mjs` 가 12개 로케일 + 셸 + React 를 전수로 막는다).
+- **이용권**(기간 없음·자동갱신 없음, 한도 소진 시 종료 — 2026-10-11) → **월정석**(이벤트 지급, 구매 불가, 구독 아님) → **코인**(레거시 내부 단위) 순으로 게이팅
+- 🔴 **이용권은 한도 소진으로만 끝난다**(2026-10-11, 아래 승인 절. 2026-09-04~10-10 에는 30일 만료와 소진 중 먼저 오는 쪽). `expiresAt` 은 활성화 + 100년 센티널(`PASS_OPEN_ENDED_MS`)이라 시간으로는 끝나지 않는다. 한도 사이클 키가 이용권 자신의 만료일이라 리셋되는 일이 없다 — 그래서 소진 시점에 `expiresAt` 을 `now` 로 당기고 등급을 free 로 내려 **즉시 종료**시킨다(정본 `worker/payments/passes.js` `terminatePassOnBudgetExhaustion`, 임계 `worker/lib/profile-limits.js` `MIN_PASS_COVERABLE_COIN`). 판정은 "잔여로 열 수 있는 유료 항목이 하나도 없을 때"이고, 소진 후 재구매는 새 이용권(새 한도)이다. 🔴 **새 "소진 플래그"를 만들어 곳곳에서 검사하지 말 것** — 활성 판정이 전부 `expiresAt` 을 보므로 만료일을 당기는 것만으로 하위 판정이 전부 뒤집힌다(원칙 6). 🔴 문구에 "다음 달에 다시 열림"·"기간 내 리셋"을 쓰지 않는다(`scripts/verify-pass-tier-policy.mjs` 가 12개 로케일 + 셸 + React 를 전수로 막는다).
 - 🔒 **[필수·예외없음] 모든 유료 결제 게이팅 순서** (2026-08-01 개정 — 축이 "언제 검사하는가"에서 "이용권 보유자가 어떤 경로로도 돈을 내지 않는가"로 바뀌었다). 신규/수정 불문 모든 유료 기능은 아래를 그대로 따른다. 벗어나는 결제 구현은 금지이며, 발견 시 즉시 사용자에게 보고한다(작업 중 우연히 마주쳐도 그냥 지나치지 말 것):
   1. **진입 판정은 로컬 스냅샷만** — 구독 스냅샷(`cd_subscription_snapshot_v2`, 판정 정본 `js/core/pass-verdict.js`)이 커버를 확답하면 서버 왕복 없이 **즉시 무료 통과**(낙관 grant, 서버 기록은 백그라운드). 확답하지 못하면 **기다리지 말고 결제창**을 연다. 🔴 **진입 시 서버 이용권 선검사를 되살리지 말 것** — 그 왕복(구 셸 6초 예산+재시도 2회, React 15초 프로브)이 결제창 앞 지연의 본체였다.
   2. **결제창이 이용권 검사 지점** — 결제창 첫 카드는 **[이용권으로 구매]**(`data-mode="pass-store"`)이고, 누르면 그 자리에서 서버에 물어 커버되면 결제 없이 무료로 열고, 아니면 이용권 상점으로 인계한다(`/points?plan=…` → 상점 화면에서 해당 플랜 강조, 결제 확인 모달은 사용자가 연다 — cdco=1 자동 오픈은 2026-09-03 제거 → 결제 후 원래 화면 복귀). 결제창에는 **[이용권으로 구매] · 단건결제(KRW, PortOne) · 월정석 3옵션이 항상 함께** 보이고, 단건/월정석은 동등 우선순위다(`equalPriorityMethods: ["DIRECT_KRW","MOONLIGHT_STONE"]`).
   3. **스냅샷 없는 이용권 보유자의 구제 지점은 2번(결제창 이용권 카드) 하나다** (2026-08-08 정정). 새 기기·시크릿창·저장소 삭제로 스냅샷이 없는 보유자는 진입에서 커버를 확답받지 못해 결제창을 보게 되는데, 거기서 **[이용권으로 구매]를 누르면 그 자리에서 서버가 판정**해 무료로 열어 준다. 🔴 **카드 주문 직전에 서버 이용권 재검사를 넣지 말 것** — `worker/routes/billing.js`의 호출자 없는 `grantPassFreeAccessBeforeCardIfAvailable`는 제거했고, `scripts/verify-billing-pass-policy.mjs`·`verify-paid-gate-ui-regression.mjs`가 checkout/confirm 경로에서 이 함수를 쓰면 **실패시킨다**("DIRECT_KRW prepare performs zero pass lookups"). 사용자가 단건을 명시적으로 고른 뒤의 왕복은 결제 임계경로를 늘리는 비용일 뿐이라 의도적으로 제거됐다. 죽은 함수를 되살리려면 그 verify 단언 4곳을 함께 뒤집어야 하며, 그건 정책 변경이므로 임의로 하지 말 것.
   4. **단건 결제(PortOne)는 사용자가 결제창에서 '단건'을 고른 이후에만** 실행(`_cdRunDirectKrwCheckout`/`_dpRunDirectKrwCheckout`에 도달). 🔴 2026-08-24부터 그 사이에 **결제수단 2단계**가 하나 더 있다 — 단건 카드를 누르면 같은 창에서 신용카드·간편결제 / 실시간 계좌이체 / 휴대폰 소액결제(**유일한 준비 중**) / 컬쳐랜드·도서문화·스마트문상 상품권 6종 + `[뒤로]` 로 바뀐다(계좌이체·상품권은 2026-08-29 개방). 정본은 `js/core/checkout-entry.js`의 `DIRECT_PAY_METHODS` 표 + `buildDirectPayMethodStepHtml` 하나이며, 세 렌더러는 그것을 호출만 한다. 🔴 **표의 키는 카드 id 이고 PortOne `payMethod` 는 항목 안에 있다** — 상품권 3종이 `GIFT_CERTIFICATE` 를 공유하고 `giftCertificateType` 이 필수라서다. 🔴 **2단계 노드에 `data-mode`를 붙이지 말 것**(선택 `data-pay-method`, 복귀 `data-pay-step="back"`) — `[data-mode]`는 "고르면 모달을 닫는" 노드라 붙이면 수단을 고르는 대신 창이 닫힌다. 🔴 **1단계 그리드를 innerHTML로 교체하거나 2단계 진입에서 카드를 잠그지 말 것** — `[뒤로]`로 돌아온 카드가 죽는다(둘 다 `verify:checkout-pass-card` ⑬이 실행으로 잡는다). 앱(Play Billing)에서는 2단계를 만들지 않는다. 반환 계약은 그대로 `'direct'`이고, 고른 값은 `resolveDirectPayFields()`를 거쳐 PortOne 요청의 `payMethod`(+ 상품권이면 `giftCertificate`)가 된다(서버 `getPortOnePublicConfig`의 `payMethod:"CARD"`는 폴백). 🔴 **2026-09-02 부터 `/points` 이용권(30일) 결제도 같은 표를 쓴다** — 결제 확인 모달의 옛 `[원화 결제]` 버튼 하나가 이 표를 map 한 타일 그리드로 바뀌었다(`app/points/PointsClient.tsx`). 다만 그 화면은 Tailwind 라 `buildDirectPayMethodStepHtml` 대신 마크업만 자기 어휘로 그리고 표는 접근자(`directPayMethodLabel`·`directPayMethodMeta`·`isDirectPayMethodEnabled`)로 읽는다 — `cd-direct-payment-*` CSS 를 `/points` 로 끌어오지 말 것(정본 CSS 배열의 4번째 소비자가 되면 parity 가드가 지키는 3렌더러 구도가 흐려진다). 고른 값은 결제창과 **같은 window 슬롯**(`setSelectedDirectPayMethod`, TTL 120초)으로 넘기고 `handleSubscribe` 진입에서 한 번만 푼다. 🔴 서버도 함께 열려 있어야 한다 — `worker/lib/entitlement-policy.js` 의 `PG_PAYMENT_METHODS` 가 표의 `orderMethod` 를 전부 `"pg"` 로 정규화하지 못하면 결제창은 뜨는데 prepare 가 `INVALID_PAYMENT_METHOD_FOR_PASS_PRODUCT` 로 죽는다(`verify:checkout-pass-card` ⑭ 가 표를 전수로 넣어 양끝을 대조하고, 월정석 계열이 그 목록에 새면 같은 블록이 실패시킨다). **앱 이용권 상점(Play Billing)은 여전히 별개다.** 상세: [payment-policy-flow.md](../payment-policy-flow.md).
   - **금지 패턴(=위반, 발견 시 보고 대상)**: ① 결제창에서 **[이용권으로 구매] 카드를 없애거나 단순 상점 링크로 되돌리기**(스냅샷 없는 보유자가 확인할 방법을 잃는다) ② 진입 경로에 서버 이용권 선검사 부활(`CD_PASS_FIRST_BUDGET_MS`·`CD_PASS_SLOW_NOTE` 부활 금지, `snapshotVerdictOnly` 제거 금지) ③ 카드 주문(checkout/confirm) 경로에 서버 이용권 조회 재삽입(`grantPassFreeAccessBeforeCardIfAvailable` 되살리기 포함 — verify 가드 4곳이 막는다) ④ 결제창에 단건 또는 월정석 한쪽만 노출 ⑤ 서버 runtimeGate/paymentPayload에 `paymentMode:"DIRECT_KRW"` 하드코딩(월정석 옵션 소거 — 과거 ziwei-ai에서 제거된 결함) ⑥ 공유 게이트(`useCoinGate`/`_cdOpenPaidServiceGate`/정적 결제 모달) 우회하는 커스텀 체크아웃 ⑦ 🔴 **앱에서 `/points`로 프로그래매틱 이동**(앱 번들에 없고 `app-payment-guard`는 앵커 클릭만 가로챈다 → 빈 화면). 반드시 `window.__cdOpenChargeModal`(가드가 `/app/store/`로 고정)을 먼저 타며, 판정 정본은 `js/core/checkout-entry.js`의 `shouldUseAppStoreEntry()`(애매하면 앱 경로로 폴백).
-  - **예외**: 프로필 카드 추가·삭제(D유형, `passExcluded`) **모두** 이용권 결제 불가라 이용권 옵션 없이 곧바로 결제창(단건/월정석)을 연다 — 그래도 두 결제수단은 동등 노출. **family 포함 모든 등급**이 이용권 커버 대상이 아니며(서버 정본은 `isPassExcludedPricing` 하나 — featureKey별 예외 분기 금지), family 무료는 이용권 결제가 아니라 정책 계층(`profile-card-mutation-policy.js`)의 0원 바이패스로 처리된다. 계정당 첫 카드도 등급 무관 무조건 무료. 상세는 [content-access D유형](../payment-policy-content-access.md#d-프로필-카드-추가삭제-고정-관리-수수료).
+  - **예외**: 프로필 카드 추가·삭제(D유형, `passExcluded`) **모두** 이용권 결제 불가라 이용권 옵션 없이 곧바로 결제창(단건/월정석)을 연다 — 그래도 두 결제수단은 동등 노출. **family 포함 모든 등급**이 이용권 커버 대상이 아니며(서버 정본은 `isPassExcludedPricing` 하나 — featureKey별 예외 분기 금지), family 무료는 이용권 결제가 아니라 정책 계층(`profile-card-mutation-policy.js`)의 0원 바이패스로 처리된다. 계정당 첫 카드도 등급 무관 무조건 무료. 금액은 건당 1,000원 / 월정석 100(코인 10) — 2026-10-10 인하: 5,000원(코인 50 · 월정석 500) → 1,000원(코인 10 · 월정석 100). 해금이 출생정보(birth) 단위로 묶여 프로필을 수정·재생성해도 기존 구매를 우회할 수 없게 되었기 때문이다. 인하 전 결제 증빙(5,000원 주문·월정석 500)은 `LEGACY_PROFILE_CARD_COSTS`로 계속 인정한다. 앱에서는 무료 구간 가격이지만 `APP_PAID_LOW_PRICE_FEATURE_KEYS`로 무료 통과를 막아 ₩1,000 SKU 등록 전까지 `APP_SKU_NOT_VERIFIED`. 상세는 [content-access D유형](../payment-policy-content-access.md#d-프로필-카드-추가삭제-고정-관리-수수료).
   - **영냥이 제휴 결제(2026-09-30 승인 반영)**: 영냥이 유료 상품28개는 **Family 이용권·월정석·단건 결제**를 받는다. Standard·Premium·VVIP의 적용 범위는 늘리지 않는다. 등록소의 기존 `paymentScope:"direct_or_family"`는 유지하되 `membershipCreditAllowed:true`, `membershipCreditMultiplier:5`와 `getPaidFeaturePaymentPolicy`가 실제 허용 수단을 결정한다. 월정석 차감은 `calculatePaidFeatureMembershipCreditCost` 정본을 사용하며 1,000원 상담은500개, 다른 가격도 같은 비율이다. Family는 기존 공용 한도와 `(featureKey, requestId)`당1회 차감 조건을 유지한다. 결제창은 세 선택지를 함께 표시하고 월정석이 영냥이 세계에서1/5 가치라는 제휴 안내를 제공한다. 같은 상담의 현금·Family·월정석 결제는 공용 funding claim으로 중복 차감을 막고, 저장 결과 재열람은 다시 차감하지 않는다. 결과가 전혀 없는 확정 생성 실패의 월정석 복원은 요청·사용 증거·잔액·복원 영수증을 한 트랜잭션으로 처리한다. 저장 장·초안·활성 생성 lease가 있으면 자동 복원하지 않는다. `verify:billing-pass-policy`와 월정석 회귀 검사가 이 경계를 검증한다. 전용 횟수권 판매 조건은 별도이며 이 조항으로 활성화되지 않는다.
   - **검증**: 결제 관련 수정 시 `npm run verify:billing-pass-policy`·`verify:portone-single-payment`·`verify:paid-gate-ui`·`verify:payment-choice-parity`·`verify:checkout-pass-card`·`verify:paid-feature-billing-policy`·`verify:ai-prompt-billing-policy`를 먼저 실행. `verify:checkout-pass-card`는 문자열이 아니라 **jsdom에서 이용권 카드를 실제로 눌러** 두 갈래(커버→무료 통과 / 미커버→상점 인계)와 앱 분기를 확인한다. 뒤 두 개는 가격/과금유형 정본(`paid-feature-registry.js`)과 프론트 게이트·워커 라우트의 정합성을 보는 가드로, GitHub Actions "Paid Flow Gates"에서도 차단한다. 상세 규칙은 [flow 문서 결제창 노출 규칙](../payment-policy-flow.md) 참고.
   - 🔴 **결제수단 선택창 UI는 단일 규격이다** — 렌더러가 3종(정적 셸 `index.html` `_cdChooseServicePaymentMode` + 5미러 / React `app/_lib/billing-client.ts` `openReactPaymentChoiceModalInner` / 독립 정적 폴백 `js/destiny-profile.js` `_dpRenderStandalonePaymentChoice` + `public/js` 사본)이지만 **정본은 셸 인라인 하나**다. CSS 정본은 `_cdEnsureDirectPaymentStyles`의 규칙 배열이고 클래스 프리픽스는 `cd-direct-payment-*`로 고정. 세 곳 모두 "달빛 결제 방식 선택" 제목 + 달 헤더 + **[이용권으로 구매]/단건 결제/월정석 3옵션**(이용권 카드가 맨 위 + `추천` 배지, 클릭 시 그 자리에서 서버 이용권 검사)를 렌더해야 하며, `npm run verify:payment-choice-parity`가 CSS 텍스트 동일성·구조 마커·**3옵션 설명 문구 동일성**을 강제한다(예전에는 문구가 렌더러마다 달라도 통과했다). 🔴 **결제창은 열릴 때 월정석 잔량을 조회하지 않는다**(2026-08-12, 자동 조회·잔여바·`월정석 재조회` 버튼 제거). 그 `/api/billing/balance` 왕복(22초 예산·재시도 없음)이 간헐 503과 "잔량 확인 중" 고착의 원인이었고, 월정석을 고르면 서버 `coin-gate`가 같은 1왕복 안에서 확인+차감하므로 열 때의 표시용 조회는 순수 부가 비용이었다. 세 렌더러 모두 **열 때는 호출부가 넘긴 잔량만** 쓴다 — 402 부족 후 재노출 경로가 lot 정본 잔량을 실어 보내면 그때만 월정석 카드가 회색이 된다. 🔴 **단, 잔량 표시 자체는 온디맨드로 돌아왔다**(2026-08-13): 월정석 카드 **아래 형제**로 `[보유 월정석 확인]` 버튼(`.cd-direct-payment-balance-check` + `data-monthly-balance-check`, 결과 줄 `data-monthly-balance-text`)이 항상 있고, **눌렀을 때만** 조회한다. 첫 클릭은 기존 캐시(셸 15초 memo + access-state 60초 스냅샷 / React `fetchBillingBalance` recent)를 그대로 허용해 값이 신선하면 네트워크 0회로 끝나고, 두 번째부터만 `fresh`로 서버 캐시를 우회한다. 조회 실패는 문구로만 알리고 **월정석 카드의 활성 상태를 절대 건드리지 않는다**(미확정 ≠ 부족). 🔴 **`data-mode`를 붙이지 말 것** — 세 렌더러가 `[data-mode]`를 "고르면 모달을 닫는" 노드로 일괄 처리하므로 붙이면 확인 버튼이 결제창을 닫는다. 옛 자동 조회 잔여바 마커(`cd-direct-payment-moonbal-current`·`data-mode="monthly-refresh"`·`data-monthly-current`)는 **계속 금지**이며 되살아나면 parity 가드가 실패시킨다. `verify:paid-gate-ui`는 각 렌더러의 잔량 조회 호출이 **정확히 1곳**이고 그 위치가 확인 버튼 마크업보다 뒤(=핸들러 안)인지까지 본다. 진입·복귀·계측 배관은 `js/core/checkout-entry.js` 하나를 공유한다. 페이지 전용 결제창을 새로 만들지 말 것(과거 `celestial-harmony.html`의 `.celestial-pay-*`는 이용권 상점 카드가 없어 제거됨 — 독립 정적 페이지는 `/js/destiny-profile.js`를 로드하면 정본 폴백이 자동 인계된다).
@@ -140,6 +243,19 @@
 - PENDING 주문에서 결제창을 닫거나 확인 응답이 유실됐다고 새 주문을 자동 생성하지 않는다. 같은 멱등키와 주문을 서버에서 재확인한다. 미승인·취소가 확정되지 않은 상태를 클라이언트만으로 결제 실패로 단정하지 않는다.
 - 구현·검증·남은 판매 정책은 [전용 세트 인수인계](../handoff/yeongnyangi-service-packs-2026-09-30.md)를 따른다. 이 기술 구현 승인은 실제 PG·운영 DB·환불 실행·배포 승인이 아니다.
 
+## 2026-10-11 승인: 이용권 기간 제거, 한도 소진으로만 중지, 프로필 상한 제거
+
+프로필 카드 개수 상한이 없어져(e6e8b5d54) 이용권의 30일 기간도 둘 이유가 없어졌다. 사용자 결정(2026-10-11):
+
+- 이용권에는 기간이 없다. 끝나는 조건은 한도(`monthlyLimitCoin`, 필드명은 레거시) 소진 하나다. 소진 판정·문턱(`isPassBudgetExhausted`, 레지스트리 최저가)은 그대로다.
+- 구현은 별도 활성 플래그 대신 `expiresAt = 활성화 + 100년`(`worker/lib/profile-limits.js` `PASS_OPEN_ENDED_MS`·`computePassExpiry`)이다. 기존 `expiresAt > now` 활성 판정·사이클 키(=만료일 ISO)·소진 CAS 가 그대로 동작한다. 남은 기간 > 10년(`isOpenEndedPassExpiry`)이면 UI 는 날짜 대신 "기간 제한 없음 · 한도 소진 시 종료"를 보인다.
+- 같은 등급 재구매 = 만료일·사이클 키 유지, 한도 누적·사용액 승계. 상위 등급 = 새 이용권 + 사용액 승계. 하위 등급 차단·소진 후 새 이용권은 그대로.
+- 환불 회수는 기간 되감기 대신 그 주문의 한도를 뺀다(`buildPassRefundRevokeFields`). 남은 한도로 열 수 있는 게 없으면 종료 필드로 내린다.
+- 기존 활성 이용권은 `scripts/migrations/20261011-pass-open-ended-expiry.mjs` 로 만료일을 해제한다(dry-run 기본, 운영 `--apply` 는 사용자 승인 후). 새 코드는 옛 만료일 문서도 그대로 활성으로 읽으므로 배포 → 마이그레이션 순서다.
+- 프로필 개수 상한 없음: `profileLimit` 응답은 0(=무제한, `resolveProfileLimitForClient`).
+- 앱 상품 ID `cd_pass_*_30d_vN` 은 바꿀 수 없으므로 유지한다(표시명만). 결제 금액·건당 한도·총 한도·결제 순서는 바뀌지 않는다.
+- 표시 이름을 '꿀단지 크기'로 바꿨다(같은 날 승인): standard=작은 꿀단지 · premium=중간 꿀단지 · vvip=큰 꿀단지 · family=패밀리 꿀단지(12개 로케일 표는 `i18n/authored/passNames-01.json`·`lib/payment/pass-eligibility.ts` `PASS_TIER_LABELS`). 내부 등급 ID·앱 상품 ID·가격·한도는 그대로이고, 옛 이름(스탠다드·프리미엄·VVIP·Code Destiny Family)을 읽는 등급 인식 코드(`worker/` 전체, `js/core/pass-verdict.js` `normalizeTier`)는 하위 호환으로 남긴다.
+
 ## 2026-09-30 승인: 꽃돼지 v4 및 영냥이 전용 횟수권 판매
 
 신규 웹 구매부터 flower-20260930 / *_1m_v4를 적용한다. Standard 9,900원 / 30일 한도 20,000원, Premium 29,900원 / 60,000원, VVIP 59,900원 / 120,000원, Family 149,000원 / 350,000원이다. 건당 적용 상한은 5,000원 / 10,000원 / 30,000원 / Family 기존 범위다. 기존 legacy·v2·v3의 구매 및 진행 중 주문은 원래 정책으로 판정하며, 기존 Family 500,000원 한도를 소급 축소하지 않는다. 활성 이용권에 다른 버전을 혼합하지 않는다. Play SKU 검증 전 앱 판매 제한은 유지한다.
@@ -163,3 +279,10 @@
 ## 2026-10-04 승인: 기본 사주 궁합 LLM 서비스화 + 5,000원
 
 `compat-saju-compatibility`(꿀꿀 운세 기본 사주 궁합)를 3,000원(cost 30)에서 5,000원(cost 50)으로 올린다. 사용자 결정(2026-10-04)이며, 같은 결정으로 이 상품은 브라우저 계산 결과에서 LLM 서술 결과로 바뀐다. 정본은 `worker/lib/paid-feature-registry.js`의 한 줄이고 화면·검증기·`PAYMENT_POLICY.md`는 이 값을 따른다. 결제 순서와 수단은 그대로다. 달빛 이용권이 있으면 먼저 쓰고, 그다음 월정석 500개, 그다음 단건 결제 5,000원 순이며, 단건은 사용자가 선택한 뒤에만 결제한다. 선결제이고 환불·정산 규칙은 바꾸지 않는다. 앱 결제 SKU는 코인 기준이라 `cd_content_tier_01`에서 `cd_content_tier_02`로 바뀐다(`worker/lib/app-store-pricing.js`의 coinPrices 대조). 레거시 숙요점 궁합(3,000원)과 숙요점 궁합 전문가 상담(30,000원)은 바꾸지 않는다. 이미 결제된 주문은 저장된 결제 금액으로 인정한다. 변경 전에 만든 3,000원 미결제 주문을 이어서 결제하는 경우의 금액 대조는 검증하지 않았다.
+
+
+## 2026-10-17 승인: 개인 사주 상담 찻집 통합
+
+2026-10-18 사용자 지정: 찻집 연이 단독 사주는 `fortune-tea-house-saju-consultation` 10,000원(cost 100), 타로 3카드는 5,000원(cost 50), 5카드는 7,000원(cost 70). 공동 상담은 별도 `fortune-tea-house-saju-joint-consultation`으로 분리하고 기존 15,000원(cost 150)을 유지한다. 실제 표시·월정석·이용권 적용 여부·앱 SKU는 기존 가격 등록소와 한도 판정으로 계산한다. 숙요·사주 궁합·공용 운명 상담 키의 가격은 변경하지 않는다. 기존 공동 상담 결과와 서버에 저장된 복구 요청은 원래 상품 키·증빙을 보존한다.
+
+기존 AI 사주·운명 상담의 개인 사주 신규 진입은 찻집으로 연결한다. 결제 완료·진행 중 상담과 저장 결과는 원래 경로·요청·가격 스냅샷으로 재개/재열람한다. 새 6그룹 상세 형식은 `saju-specialist-v1`이 있는 신규 개인 사주에만 적용한다. 실제 과금·운영 DB·LLM·배포 검증은 이 구현 승인에 포함하지 않는다.

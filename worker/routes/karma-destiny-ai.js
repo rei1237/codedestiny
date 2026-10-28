@@ -1,3 +1,4 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -20,6 +21,7 @@ import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { runWithConcurrency } from "../lib/concurrency.js";
+import { normalizeRelationshipContext, buildRelationshipAnalysis, buildRelationshipPrompt, RELATIONSHIP_PRINCIPLES } from "../lib/karma-relationship-analysis.js";
 
 // 결정적(생년월일+질문 기반) 생성 → 캐시 + in-flight dedup으로 재시도/새로고침 중복 과금 방지.
 // 초기 생성이 최대 3회(생성→교정→확장) 순차 호출이라 각 단계에 개별 키로 캐시를 건다.
@@ -28,7 +30,7 @@ function buildKarmaLlmCache(env, stageKey) {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: `karma-destiny-ai-v1-${stageKey}`,
+    keyExtra: `karma-destiny-ai-v2-relationship-${stageKey}`,
   };
 }
 import {
@@ -39,6 +41,7 @@ import {
   computeLensContribution,
 } from "../lib/karma-destiny-ai-calculations.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 const SERVICE_KEY = "karma-destiny-ai";
 const FEATURE_KEY = "karma-destiny-ai-consultation";
@@ -566,6 +569,8 @@ function normalizeConsultationInput(body = {}) {
   const focusArea = normalizeFocusArea(body.focusArea);
   const topic = clean(body.topic ?? body.consultationTopic ?? FOCUS_AREA_LABELS[focusArea], 100);
   const question = clean(body.question ?? body.userQuestion, 1600);
+  const relationship = normalizeRelationshipContext(body.relationshipContext);
+  if (!relationship.ok) return { ok: false, message: "관계 상황 입력의 형식과 길이를 확인해 주세요." };
 
   if (!gender) return { ok: false, message: INVALID_INPUT_MESSAGE };
   if (!isValidDateKey(birthDate)) return { ok: false, message: INVALID_INPUT_MESSAGE };
@@ -597,6 +602,7 @@ function normalizeConsultationInput(body = {}) {
     topic,
     question,
     userQuestion: question,
+    ...(relationship.context ? { relationshipContext: relationship.context } : {}),
     locale: clean(body.locale || "ko", 10),
   };
 
@@ -1008,6 +1014,7 @@ export async function buildAdminLabPrompt(body = {}, options = {}) {
     normalized.input.birthInfo,
     { lensUsageWeights: LENS_USAGE_WEIGHTS, requestUrl: options.requestUrl || "" },
   );
+  integratedResult.relationshipAnalysis = buildRelationshipAnalysis(normalized.input.relationshipContext, integratedResult.lenses);
 
   return {
     systemPrompt: buildSystemPrompt("initial"),
@@ -1019,6 +1026,7 @@ function buildSystemPrompt(mode = "initial") {
   const shared = [
     "당신은 오래 상담해 온 운명의 업 상담가입니다.",
     LENS_CONSTITUTION,
+    RELATIONSHIP_PRINCIPLES,
     "다섯 렌즈의 이름을 설명표처럼 나열하지 말고, 필요한 근거가 상담 문장 안에서 자연스럽게 드러나게 합니다.",
     "",
     "언어와 문체:",
@@ -1133,6 +1141,7 @@ function buildFirstPrompt(input, integratedResult) {
     "",
     "[상담 근거]",
     JSON.stringify(integratedResult),
+    buildRelationshipPrompt(integratedResult?.relationshipAnalysis),
     "",
     `위 계산 데이터를 바탕으로 ${PREMIUM_CHAPTERS.length}개 장을 순서대로 작성하고, 전체 상담문은 실제 사용자가 읽는 plain text 기준 ${INITIAL_CONSULTATION_MIN_LENGTH.toLocaleString("ko-KR")}자 이상으로 완성하세요.`,
     "각 장 제목은 지정된 순서와 한글 제목을 그대로 사용하되, 본문은 산문으로 이어 쓰세요.",
@@ -1159,6 +1168,7 @@ function buildFollowUpPrompt(consultation, question) {
     "[상담 근거]",
     // 후속 질문 프롬프트만 상한이 없어 이력과 함께 무제한으로 실렸다. 배치 경로와 같은 상한을 쓴다.
     serializeIntegratedResultForPrompt(consultation.integratedResult),
+    buildRelationshipPrompt(consultation.integratedResult?.relationshipAnalysis, "follow_up"),
     "",
     "[이전 대화]",
     history,
@@ -1943,6 +1953,7 @@ function buildChapterPrompt(consultation, definition, context = {}) {
     // (후속 질문 경로는 장 개념이 없어 #224 의 직렬화기를 그대로 쓴다.)
     "[계산 근거 · 다섯 렌즈]",
     buildLensDigest(consultation.integratedResult, definition),
+    buildRelationshipPrompt(consultation.integratedResult?.relationshipAnalysis, definition.id),
     "",
     "[이 장의 렌즈 구성]",
     describeLensRelay(definition, lensesForChapter),
@@ -2405,6 +2416,13 @@ async function handleEnsureAccess(request, env) {
   }, { status: 402 });
 }
 
+// 결제 증빙 1건 = 상담 1건(2026-10-16). 같은 구매를 차감 행·실행 기록·결제 행 어느 쪽 ID 로 내밀어도
+// 같은 claim 에 걸리도록 원 결제 요청 키(billingRequestId)도 함께 묶는다. 이용권·관리자는 ID 가 없어 건너뛴다.
+function startEvidenceIds(source = {}) {
+  const paymentId = clean(source.paymentId, 160);
+  return paymentId ? [paymentId, clean(source.billingRequestId, 180)] : [];
+}
+
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
   if (!mongoose.Types.ObjectId.isValid(String(auth.userId || ""))) return { ok: false, reason: "PAYMENT_REQUIRED", code: "START_ACCESS_CONFIRMATION_REQUIRED" };
   const token = clean(body?.accessToken || request.headers.get("x-karma-destiny-ai-access-token"));
@@ -2501,6 +2519,9 @@ async function handleStart(request, env, recoveryAuth = null) {
     if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
     return paymentVerifyFailed();
   }
+  const evidenceIds = startEvidenceIds(access);
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   logKarmaAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   logKarmaAi("LLM Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
 
@@ -2583,6 +2604,9 @@ async function handleStart(request, env, recoveryAuth = null) {
     logKarmaAi("LLM Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     const integratedResult = (resumable && existing?.integratedResult)
       || await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo, { lensUsageWeights: LENS_USAGE_WEIGHTS, requestUrl: request.url });
+    if (!resumable || !existing?.integratedResult) {
+      integratedResult.relationshipAnalysis = buildRelationshipAnalysis(normalized.input.relationshipContext, integratedResult.lenses);
+    }
     // 다섯 렌즈가 모두 계산되지 않았을 때만 실패다. 구 검사는 사주·서양·베다 세 개만 봐서
     // 좌표 미상으로 자미·숙요만 살아남은 정상 케이스를 실패로 오판했다.
     const usableLens = LENS_IDS.some((id) => clean(integratedResult?.lenses?.[id]?.confidence) !== "none");
@@ -2615,6 +2639,7 @@ async function handleStart(request, env, recoveryAuth = null) {
         },
       },
     ).catch(() => {});
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     logKarmaAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
     if (access.deferredUsage) {
       await cancelDeferredUsageIfNeeded({
@@ -2723,7 +2748,7 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
       consultation = await saveKarmaDelivery(filter, { llmMeta: { ...consultation.llmMeta, resumeBody, attempts } }, consultation.id);
       let queue = Promise.resolve();
       const results = await Promise.allSettled(targets.map(async definition => {
-        const row = await generateOneChapter(env, consultation, definition, { singleAttempt: true, retry: attempts[definition.id] > 1, previousSummaries: chapters.map(chapter => chapter.summary).slice(-8), siblingDefinitions: targets });
+        const row = await runWithAiLocale(storedAiLocale(consultation), async () => generateOneChapter(env, consultation, definition, { singleAttempt: true, retry: attempts[definition.id] > 1, previousSummaries: chapters.map(chapter => chapter.summary).slice(-8), siblingDefinitions: targets }));
         if (!row.ok || !karmaChapterReady(row.chapter, definition, true)) return;
         const save = queue.catch(() => {}).then(async () => {
           const prior = safeArray(consultation.chapters).find(chapter => chapter.id === definition.id);
@@ -2756,6 +2781,7 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE" || consultation.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(consultation.id)), { status: 503 });
     consultation = await saveKarmaDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, consultation.id);
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: clean(consultation.idempotencyKey || consultation.attemptId, 180), evidenceIds: startEvidenceIds(consultation) });
     await cancelDeferredUsageIfNeeded({ request, env, auth, consultation, error });
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {

@@ -9,6 +9,7 @@
 //   2) 인증이 DB 장애로 실패하면 401 이 아니라 503 이다 (로그아웃으로 세탁 금지)
 //   3) 예상 못 한 예외의 500 응답에는 requestId 가 실린다 (진단 가능)
 
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 
 let handleTarotRoutes;
@@ -42,7 +43,7 @@ beforeAll(async () => {
     canAccessPaidFeature: (...args) => canAccessPaidFeatureMock(...args),
     PAID_FEATURE_ACCESS_USER_PROJECTION: { role: 1 },
   }));
-  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({
     verifyPerUsePayment: (...args) => verifyPerUsePaymentMock(...args),
     logPerUsePaymentProof: jest.fn(),
   }));
@@ -129,12 +130,13 @@ describe("정상 경로", () => {
     expect(payload.interpretation?.cards).toHaveLength(5);
   });
 
-  test("이용권으로 커버되면 증빙 조회 없이 통과한다", async () => {
+  // 🔴 2026-10-16: 이용권 허용 판정은 읽기 전용이라 그것만으로 열면 차감 없이 무료였다. 이제 이번 requestId 로
+  //    증빙 조회(없으면 이용권 실제 차감)를 반드시 거친다.
+  test("이용권 허용 판정만으로는 열지 않고 이번 요청의 차감 증빙을 거친다", async () => {
     canAccessPaidFeatureMock.mockResolvedValueOnce({ allowed: true, accessSource: "PASS" });
-    const { response, payload } = await postReading(buildClientBody());
+    const { response } = await postReading(buildClientBody());
     expect(response.status).toBe(200);
-    expect(payload.accessSource).toBe("PASS");
-    expect(verifyPerUsePaymentMock).not.toHaveBeenCalled();
+    expect(verifyPerUsePaymentMock).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ featureKey: "tarot-numerology-reading" }));
   });
 });
 

@@ -34,7 +34,12 @@ export function chapterOutputTokenBudget(requested?: number, version?: string): 
 export class CodeDestinyProvider implements LLMProvider {
   receipt?: {provider:string;model:string;finishReason:string;inputTokens:number|null;outputTokens:number|null;estimated:boolean|null;thinkingTokens:number|null;durationMs:number;maxOutputTokens:number;status:number|null};
   constructor(private env: Record<string, unknown>, private logContext: Record<string, unknown> = {},
-    private cacheContext: {owner?:string;skipRead?:boolean}={}) {}
+    private cacheContext: {owner?:string;skipRead?:boolean}={},
+    // The order's tier timeout (chapterTimeoutMs); orders without the policy marker keep CHAPTER_TIMEOUT_MS.
+    private timeoutMs = CHAPTER_TIMEOUT_MS,
+    // Only server-classified synthesis chapters can opt into Pro.
+    // The question analysis stays on the default model because it runs with a zero thinking budget.
+    private model?: string, private reasoningTask?: 'tuna-synthesis') {}
   async analyzeQuestion(system: string, data: string): Promise<string> {
     if(getEnv(this.env,'LLM_DRY_RUN')==='true'||!getEnv(this.env,'GEMINIF_API_KEY'))throw new FortuneError('LLM_NOT_CONFIGURED',503);
     const response=await callGeminiText(this.env,data,{
@@ -67,7 +72,8 @@ export class CodeDestinyProvider implements LLMProvider {
       // The persona sets the speech level; keep the shared Korean directive from forcing 존댓말 over it.
       outputRegister:'persona',
       // The chapter lease reserves another 90 seconds for analysis, validation and persisted reread.
-      maxOutputTokens:cap,thinkingBudget:CHAPTER_THINKING_BUDGET,timeoutMs:CHAPTER_TIMEOUT_MS,
+      maxOutputTokens:cap,thinkingBudget:CHAPTER_THINKING_BUDGET,timeoutMs:this.timeoutMs,
+      ...(this.model?{model:this.model}:{}),reasoningTask:this.reasoningTask,
       preserveTermination:true,
       // The durable chapter counter owns retries. Hidden provider retries would
       // multiply calls behind one recorded attempt and delay queue recovery.
@@ -77,16 +83,18 @@ export class CodeDestinyProvider implements LLMProvider {
       cache:chapterResponseCache(this.env,this.cacheContext.owner,this.logContext.requestId,String(this.logContext.sectionGroup),this.cacheContext.skipRead),
       logContext:this.logContext,
     });
-    this.receipt={provider:response.provider || 'gemini',model:response.model || 'gemini-2.5-flash',
+    this.receipt={provider:response.provider || 'gemini',model:response.model || this.model || 'gemini-2.5-flash',
       finishReason:response.finishReason || '',inputTokens:response.usage?.inputTokens ?? null,outputTokens:response.usage?.outputTokens ?? null,
       estimated:response.usage?Boolean(response.usage.estimated):null,thinkingTokens:response.usage?.thinkingTokens ?? null,
       durationMs:Date.now()-startedAt,maxOutputTokens:cap,status:'status' in response?response.status:null};
     if (!response.ok || response.isMock || !response.text) {
       const code='error' in response ? String(response.error) : '';
-      console.warn('[yeongnyangi-provider]',JSON.stringify({code:code.replace(/[^A-Za-z0-9_]/g,'').slice(0,80),status:'status' in response?response.status:null}));
-      throw new FortuneError(/timeout|deadline/i.test(code)?'FORTUNE_PROVIDER_TIMEOUT':'FORTUNE_PROVIDER_FAILED',502);
+      // Spend-cap and billing outages travel as the audit detail so the hold alert names the cause.
+      const outage='providerCode' in response?String(response.providerCode||''):'';
+      console.warn('[yeongnyangi-provider]',JSON.stringify({code:code.replace(/[^A-Za-z0-9_]/g,'').slice(0,80),status:'status' in response?response.status:null,...(outage?{outage}:{})}));
+      throw new FortuneError(/timeout|deadline/i.test(code)?'FORTUNE_PROVIDER_TIMEOUT':'FORTUNE_PROVIDER_FAILED',502,outage||undefined);
     }
     if(response.truncated || /^(MAX_TOKENS|LENGTH)$/i.test(response.finishReason || ''))throw new FortuneError('CHAPTER_TRUNCATED',502);
-    return {result:response.text,provider:response.provider || 'gemini',model:response.model || 'gemini-2.5-flash'};
+    return {result:response.text,provider:response.provider || 'gemini',model:response.model || this.model || 'gemini-2.5-flash'};
   }
 }

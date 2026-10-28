@@ -35,12 +35,17 @@ import { isDbUnavailableError } from "../lib/http.js";
 export const PAYMENT_ERROR_TABLE = Object.freeze({
   // 400 — 요청 자체가 틀렸다. 재시도해도 같다.
   INVALID_REQUEST: { status: 400 },
+  PAYLOAD_TOO_LARGE: { status: 413 },
+  // 출생 기반 영구 해금은 저장된 내 프로필로만 산다(worker/lib/birth-scoped-unlock-identity.js).
+  MISSING_PROFILE_ID: { status: 400 },
   PAYPAL_NOT_CONFIGURED: { status: 409 },
   PAYPAL_FX_UNAVAILABLE: { status: 409, retryable: true },
   PAYPAL_ORDER_CONFLICT: { status: 409 },
   PAYPAL_REQUIRED_FOR_REGION: { status: 403 },
   PASS_SALE_ENDED: { status: 409 },
   PRODUCT_SALE_ENDED: { status: 409 },
+  PRODUCT_SALE_DISABLED: { status: 409 },
+  NEO_QUOTE_INVALID: { status: 409 },
   FEATURE_NOW_FREE: { status: 409 },
   PASS_SALE_NOT_READY: { status: 409 },
   PASS_POLICY_CONFLICT: { status: 409 },
@@ -71,6 +76,7 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
 
   // 402 — 신원은 맞는데 낼 것이 부족하다.
   INSUFFICIENT_MOONSTONE: { status: 402 },
+  MONTHLY_NOT_ALLOWED: { status: 402 },
   // direct_only 상품에 월정석·이용권 결제를 시도했다 — 셸이 단건 결제창으로 인계한다.
   DIRECT_ONLY_PAYMENT_REQUIRED: { status: 402 },
   // direct_or_family 상품은 Family 이용권 또는 원화 단건 결제만 허용한다.
@@ -78,6 +84,8 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
 
   // 403 — 신원은 맞는데 이 자원에 대한 권한이 없다.
   ORDER_FORBIDDEN: { status: 403 },
+  // profileId 가 이 계정의 저장 프로필이 아니거나 생년월일이 불완전하다.
+  INVALID_PROFILE: { status: 403 },
   PASS_NOT_APPLICABLE: { status: 403 },
   // 구매 정책 거부(entitlement-policy.validatePurchasePolicy). 구체 사유는 meta.reason 에 싣는다.
   PURCHASE_POLICY_DENIED: { status: 403 },
@@ -166,6 +174,7 @@ function isDbBusyError(error) {
  */
 export function classify(error) {
   if (error instanceof PaymentError) return contractFor(error.code, error.meta);
+  if (error?.code === "REQUEST_BODY_TOO_LARGE") return contractFor("PAYLOAD_TOO_LARGE");
 
   // 붐빔이 먼저다 — isDbUnavailableError 가 이름 정규식(/^Mongo/)으로 둘 다 삼키기 때문에
   // 순서를 뒤집으면 DB_BUSY 가 영영 나오지 않는다.

@@ -32,7 +32,7 @@ const KO = {
   answers: [
     { keywords: ["남자친구", "남친", "연애", "사귀"], answer: "꿀꿀~ 있었어요! 네오라는 백사자 오빠인데... 운세 상담사였다가 저한테 '평생 꿀 빨게 해줄게'라고 하더니 갑자기 회사 때려치우고 뭔가 열심히 만들고 있어요 🦁 응원은 하는데 언제 꿀 빨 수 있는 건지 모르겠어요~ 꿀꿀 💛" },
     { keywords: ["전남친", "헤어", "이별", "전 남자친구"], answer: "전남친은 아니고 현재진행형이에요! 네오 오빠가 저를 위해 code-destiny.com 만들고 있다고 하더라고요~ 뭔지는 잘 모르겠지만 열심히 하는 거 보면 귀엽긴 해요 🐾 꿀꿀~" },
-    { keywords: ["좋아하는 음식", "좋아하는 거", "뭐 좋아해", "음식"], answer: "당연히 꿀이죠! 🍯 진짜 꿀에 막 빠져 있어요. 꿀 케이크, 꿀 라떼, 꿀 떡볶이... 뭐든 꿀 들어가면 최고예요. 꿀꿀 그래서 제 이름도 꿀꿀 운세예요~" },
+    { keywords: ["좋아하는 음식", "좋아하는 거", "뭐 좋아해", "음식"], answer: "당연히 꿀이죠! 🍯 진짜 꿀에 막 빠져 있어요. 꿀 케이크, 꿀 라떼, 꿀 떡볶이... 뭐든 꿀 들어가면 최고예요. 꿀꿀 그래서 제 이름도 꿀꿀운세예요~" },
     { keywords: ["꿈", "장래희망", "되고 싶"], answer: "운명을 알려주는 꽃돼지로 계속 살고 싶어요! 🌸 사람들이 오늘 하루 조금 더 씩씩하게 살 수 있도록 달콤한 운세를 전해주는 거요~ 네오 오빠랑 같이 code-destiny.com 크게 키우는 것도 꿈이에요 💪 꿀꿀!" },
     { keywords: ["취미", "좋아하는 것"], answer: "저는요~ 달빛 아래에서 꽃 구경하기랑 🌙 연이 언니 노래 듣기를 엄청 좋아해요! 가끔 운세 카드도 뒤적이고요. 꿀꿀 최근엔 네오 오빠가 만든 숙요점 공부도 하고 있어요 📚" },
     { keywords: ["나이", "몇 살", "생일"], answer: "꽃돼지는 나이를 안 먹어요~ 🌸 꽃처럼 항상 봄이에요! 꿀꿀. 그냥 꽃이 피는 날이 제 생일이에요. 매년 봄마다 생일이니까 엄청 자주 오는 셈이죠 😆" },
@@ -63,23 +63,23 @@ const KO = {
   placeholder: "꽃돼지야~ 뭐든 물어봐요 ✨",
   sendAria: "꽃돼지에게 질문 보내기",
   albumOpen: "열림",
-  counterAria: "꿀방울 {count}개, 상담 혜택 보기",
+  counterAria: "꿀방울 {count}개, 사용 안내 보기",
   honeyLabel: "꿀방울",
   countValue: "{count}개",
   albumAriaUnlocked: "달빛 타로 앨범 보기",
-  albumAriaLocked: "달빛 타로 앨범 열기, 꿀방울 {progress}/10",
+  albumAriaLocked: "기존 달빛 타로 앨범 확인하기",
   albumText: "달빛 앨범",
   honeyModeClose: "꿀 모드 닫기",
   honeyModeOpen: "꿀 모드 활성화",
   albumTitleUnlocked: "달빛 타로 앨범이 손님 곁에 열려 있어요.",
-  albumTitleLocked: "꿀방울 10개면 연이의 비밀 카드첩을 열 수 있어요.",
+  albumTitleLocked: "꿀방울은 꿀꿀운세의 지정된 기본 해석에 사용해요.",
   albumDescUnlocked: "해금 완료 · 꿀방울이 0개여도 언제든 78장의 카드를 감상할 수 있어요.",
-  albumDescLocked: "보유 꿀방울 {count}개 / 해금 필요 10개. 운명의 찻집에서 상담을 마치면 꿀방울이 하나씩 모여요.",
+  albumDescLocked: "보유 꿀방울 {count}개. 꿀꿀운세의 꿀방울 사용처에서 필요한 개수를 확인해 주세요. 새 타로 앨범에는 사용할 수 없어요.",
   albumMeterAria: "달빛 타로 앨범 진행도 {progress}/10",
   albumBtnUnlocked: "앨범 감상하기",
   albumBtnLocked: "달빛 앨범 살펴보기",
   burstUnlocked: "꽃돼지의 꿀 모드도 함께 열려 있어요.",
-  burstLocked: "운명의 찻집에서 상담이 완성될 때마다 조용히 쌓이는 작은 보상이에요.",
+  burstLocked: "모은 꿀방울은 꿀꿀운세의 지정된 기본 해석에 사용할 수 있어요.",
 };
 
 // QUICK_QUESTIONS 는 KO.quickQuestions 로 옮겼다.
@@ -366,9 +366,6 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, 
                 ? copy.albumDescUnlocked
                 : copy.albumDescLocked.replace("{count}", String(count))}
             </p>
-            <div className={styles.honeyAlbumMeter} aria-label={copy.albumMeterAria.replace("{progress}", String(albumProgress))}>
-              <span style={{ width: `${albumProgress * 10}%` }} />
-            </div>
             <button type="button" className={styles.honeyAlbumPanelButton} onClick={onOpenTarotAlbum}>
               {tarotAlbumUnlocked ? copy.albumBtnUnlocked : copy.albumBtnLocked}
             </button>

@@ -1,0 +1,219 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        },
+        {
+          "loaded": true,
+          "width": 312,
+          "left": 24,
+          "right": 336
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        },
+        {
+          "loaded": true,
+          "width": 342,
+          "left": 24,
+          "right": 366
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 382,
+          "left": 24,
+          "right": 406
+        },
+        {
+          "loaded": true,
+          "width": 382,
+          "left": 24,
+          "right": 406
+        },
+        {
+          "loaded": true,
+          "width": 382,
+          "left": 24,
+          "right": 406
+        },
+        {
+          "loaded": true,
+          "width": 382,
+          "left": 24,
+          "right": 406
+        },
+        {
+          "loaded": true,
+          "width": 382,
+          "left": 24,
+          "right": 406
+        },
+        {
+          "loaded": true,
+          "width": 382,
+          "left": 24,
+          "right": 406
+        },
+        {
+          "loaded": true,
+          "width": 382,
+          "left": 24,
+          "right": 406
+        },
+        {
+          "loaded": true,
+          "width": 382,
+          "left": 24,
+          "right": 406
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 420,
+          "left": 808,
+          "right": 1228
+        },
+        {
+          "loaded": true,
+          "width": 420,
+          "left": 808,
+          "right": 1228
+        },
+        {
+          "loaded": true,
+          "width": 420,
+          "left": 808,
+          "right": 1228
+        },
+        {
+          "loaded": true,
+          "width": 420,
+          "left": 808,
+          "right": 1228
+        },
+        {
+          "loaded": true,
+          "width": 420,
+          "left": 808,
+          "right": 1228
+        },
+        {
+          "loaded": true,
+          "width": 420,
+          "left": 808,
+          "right": 1228
+        },
+        {
+          "loaded": true,
+          "width": 420,
+          "left": 808,
+          "right": 1228
+        },
+        {
+          "loaded": true,
+          "width": 420,
+          "left": 808,
+          "right": 1228
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "posts": 0,
+  "mode": "Native public expert form;all API mocked;no submit/payment/LLM;production-hidden dev tester excluded"
+}

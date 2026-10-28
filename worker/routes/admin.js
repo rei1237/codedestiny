@@ -1,4 +1,5 @@
 import { getEnv } from "../lib/env.js";
+import { isExplicitLocalDevEnv, isPlaceholderSecret } from "../lib/auth-secret.js";
 import { buildConfigErrorBody, buildRuntimeKeyMatrix } from "../lib/key-health.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { purgeCmsCache, readCmsThroughCache } from "../lib/cms-cache.js";
@@ -188,28 +189,10 @@ const ADMIN_PROMPT_COMMON_DOMAINS = new Set([
   "personality",
 ]);
 
-function isProductionAdminEnv(env) {
-  const value = String(
-    getEnv(env, "NODE_ENV")
-    || getEnv(env, "ENVIRONMENT")
-    || getEnv(env, "CF_PAGES_BRANCH")
-    || ""
-  ).trim().toLowerCase();
-  return value === "production" || value === "main";
-}
-
-function isPlaceholderAdminSecret(value) {
-  const normalized = String(value || "").trim().toLowerCase();
-  return !normalized
-    || normalized.includes("placeholder")
-    || normalized.includes("change_me")
-    || normalized.includes("your_")
-    || normalized.includes("example");
-}
-
 function resolveFlowerAdminSecret(env) {
   const secret = String(getEnv(env, "FLOWER_ADMIN_SECRET") || "").trim();
-  if (isProductionAdminEnv(env) && isPlaceholderAdminSecret(secret)) {
+  // 명시적 로컬 개발이 아니면 빈 값·placeholder 시크릿으로 관리자 토큰을 서명/검증하지 않는다(lib/auth.js와 동일 규칙).
+  if (isPlaceholderSecret(secret) && !isExplicitLocalDevEnv(env)) {
     throw createHttpError(503, "관리자 보안 키가 설정되지 않았습니다.", { code: "ADMIN_SECRET_NOT_CONFIGURED" });
   }
   return secret || "flower-admin-dev-secret-placeholder-000000";
@@ -4064,7 +4047,7 @@ async function verifyAdminEntryPassword(rawInput, env) {
   // 시크릿이 없으면 통과시키지 않는다(fail-closed). 예전 하드코딩 폴백으로 되돌리지 말 것 —
   // 그 값은 공개 레포에 남아 있어 이미 유출된 것으로 취급해야 한다.
   const encodedHash = String(getEnv(env, ADMIN_ENTRY_PASSWORD_HASH_KEY) || "").trim();
-  if (!encodedHash || isPlaceholderAdminSecret(encodedHash)) {
+  if (!encodedHash || isPlaceholderSecret(encodedHash)) {
     // 비밀번호 실패(404)와 설정 누락을 클라이언트에서는 구분하지 않지만, 운영자가 원인을
     // 추적할 수 있도록 서버 로그에는 남긴다. 값 자체는 절대 찍지 않는다.
     console.warn(`[admin-entry] ${ADMIN_ENTRY_PASSWORD_HASH_KEY} is not configured — entry password is disabled.`);
@@ -4086,7 +4069,7 @@ function describeAdminEntryHashProblem(env) {
   if (!encodedHash) {
     return { reason: "hash_missing", missingKeys: [ADMIN_ENTRY_PASSWORD_HASH_KEY], placeholderKeys: [] };
   }
-  if (isPlaceholderAdminSecret(encodedHash)) {
+  if (isPlaceholderSecret(encodedHash)) {
     return { reason: "hash_placeholder", missingKeys: [], placeholderKeys: [ADMIN_ENTRY_PASSWORD_HASH_KEY] };
   }
 
@@ -4584,6 +4567,7 @@ function toAdminReviewItem(doc) {
     aiFlagReason: reviewText(doc?.aiFlagReason),
     adminNote: reviewText(doc?.adminNote),
     reviewedBy: reviewText(doc?.reviewedBy),
+    socialProof: doc?.socialProof || null,
     reviewReward: {
       granted: Boolean(doc?.reviewReward?.granted),
       amount: Math.max(0, Math.floor(Number(doc?.reviewReward?.amount || 0))),
@@ -4907,6 +4891,11 @@ async function handleAdminReviewDelete(path, request, env) {
 
 async function handleSiteDeploy(request, env) {
   await authorizeAdminRequest(request, env);
+  const body = await readJson(request);
+  const mode = body?.mode || "preview";
+  if (!["preview", "production"].includes(mode)) {
+    throw createHttpError(400, "지원하지 않는 사이트 반영 방식입니다.", { code: "VALIDATION_ERROR" });
+  }
 
   const token = String(getEnv(env, "GITHUB_DEPLOY_TOKEN") || "").trim();
   if (!token) {
@@ -4927,7 +4916,7 @@ async function handleSiteDeploy(request, env) {
         "user-agent": "code-destiny-worker",
         "x-github-api-version": "2022-11-28",
       },
-      body: JSON.stringify({ ref: "main" }),
+      body: JSON.stringify({ ref: "main", inputs: { mode, allow_redeploy: true } }),
     });
   } catch (e) {
     throw createHttpError(502, "GitHub 배포 트리거 요청에 실패했습니다.", { code: "DEPLOY_DISPATCH_FAILED" });
@@ -4937,13 +4926,19 @@ async function handleSiteDeploy(request, env) {
     throw createHttpError(502, `GitHub 배포 트리거가 거부되었습니다. (status ${response.status})`, { code: "DEPLOY_DISPATCH_FAILED" });
   }
 
-  return json({ ok: true, repo, workflow, triggeredAt: new Date().toISOString() });
+  return json({ ok: true, repo, workflow, mode, triggeredAt: new Date().toISOString() });
 }
 
 export async function handleAdminRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/admin");
+
+    if (path === "/neo-consultations" || path.startsWith("/neo-consultations/")) {
+      const actor = await authorizeAdminRequest(request, env);
+      const { handleNeoRuntimeRequest } = await import("./neo-consultations.js");
+      return handleNeoRuntimeRequest(request, env, { id:actor.userId });
+    }
 
     if (method === "POST" && path === "/entry/password") {
       return await handleEntryPassword(request, env);
@@ -4996,6 +4991,13 @@ export async function handleAdminRoutes(request, env) {
       return await handleAdminOrderRoutes(path.slice("/orders".length) || "/", request, env, adminContext);
     }
 
+    // 별빛 운영본부(퀘스트·운영 XP·매출 사실). 결제 경로와 분리된 ops_* 컬렉션만 쓴다.
+    if (path === "/hq" || path.startsWith("/hq/")) {
+      const adminContext = await authorizeAdminRequest(request, env);
+      const { handleAdminHqRoutes } = await import("./admin-hq.js");
+      return await handleAdminHqRoutes(path.slice("/hq".length) || "/", request, env, adminContext);
+    }
+
     // 마케팅 월정석 지급은 관리자 인증을 거친 별도 네임스페이스에서만 허용한다.
     if (path === "/monthly-credits/grant") {
       const adminContext = await authorizeAdminRequest(request, env);
@@ -5020,6 +5022,12 @@ export async function handleAdminRoutes(request, env) {
       const adminContext = await authorizeAdminRequest(request, env);
       const { handleAdminKakaoCrmRoutes } = await import("./admin-kakao-crm.js");
       return await handleAdminKakaoCrmRoutes(path.slice("/kakao-crm".length) || "/", request, env, adminContext);
+    }
+
+    if (path === "/email-marketing" || path.startsWith("/email-marketing/")) {
+      const adminContext = await authorizeAdminRequest(request, env);
+      const { handleAdminEmailMarketingRoutes } = await import("./admin-email-marketing.js");
+      return await handleAdminEmailMarketingRoutes(path.slice("/email-marketing".length) || "/", request, env, adminContext);
     }
 
     if (path === "/sns-daily-post" || path.startsWith("/sns-daily-post/")) {

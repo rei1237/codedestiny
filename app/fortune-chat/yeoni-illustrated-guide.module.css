@@ -1,0 +1,11 @@
+.guide { margin:20px 0 24px; color:var(--cd-samples-ink); background:var(--cd-samples-paper); border:1px solid var(--cd-yehwa-line); border-radius:16px; overflow:hidden; }
+.guide>img { display:block; width:100%; height:auto; }
+.copy { padding:24px; }
+.copy h3 { margin:0 0 16px; color:inherit; font:700 1.2rem/1.6 var(--font-serif); word-break:keep-all; }
+.copy p,.copy li { font:400 .9375rem/1.85 var(--font-body); word-break:keep-all; overflow-wrap:anywhere; }
+.copy p { margin:0 0 16px; }
+.copy ol { padding-left:22px; margin:0; }
+.copy li { padding-left:4px; margin-bottom:16px; }
+.copy strong,.copy span { display:block; }
+.copy .note { font-size:.875rem; margin:20px 0 0; }
+@media(min-width:700px){.guide { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); align-items:start; }.guide>img { margin-top:24px; }}

@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 // 🔴 스크롤 잠금을 새로 만들지 않는다 — 공용 훅이 이미 잠금 카운트와 스크롤바 보정을 갖고 있고,
 //    여기서 또 만들면 결제 오버레이와 겹칠 때 서로의 복원값을 덮어쓴다(코딩 원칙 6).
+import { buildGuide, connectionGuide } from "../_copy/living-guide";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { CHANNELS, channelsOfGate } from "@/lib/human-design/channels";
 import { CENTER_GATES, centerOfGate } from "@/lib/human-design/centers";
@@ -70,6 +71,9 @@ export default function DetailSheet({ chart, locale, selection, onClose }: Props
 
   const completedById = new Map(chart.channels.map((channel) => [channel.channelId, channel]));
   const activeGates = new Set(chart.activeGates);
+  const guide = buildGuide(chart, locale);
+  const centerGuide = selection.kind === "center" ? guide?.centers.find(c => c.id === selection.center) : null;
+  const connection = selection.kind === "channel" || selection.kind === "gate" ? connectionGuide(chart, selection, locale) : null;
 
   let title = "";
   let subtitle = "";
@@ -194,6 +198,8 @@ export default function DetailSheet({ chart, locale, selection, onClose }: Props
         </button>
       </header>
 
+      {centerGuide && <section className={styles.block}><h4 className={styles.blockHeading}>{centerGuide.meme}</h4><p className={styles.listItem}>{centerGuide.label} · {centerGuide.summary}</p><h4 className={styles.blockHeading}>{guide?.ui.action}</h4><p className={styles.listItem}>{centerGuide.action}</p><p className={styles.listItem}>{centerGuide.question}</p></section>}
+      {connection && <section className={styles.block}><h4 className={styles.blockHeading}>{guide?.ui.everyday}</h4>{connection.lines.map(line => <p className={styles.listItem} key={line}>{line}</p>)}<p className={styles.listItem}>{connection.action}</p></section>}
       {rows.length ? (
         <dl className={styles.rows}>
           {rows.map((row) => (
@@ -214,7 +220,7 @@ export default function DetailSheet({ chart, locale, selection, onClose }: Props
         </section>
       ))}
 
-        <p className={styles.note}>{pick(UI_TEXT.interpretationPending, locale)}</p>
+        <p className={styles.note}>{guide?.ui.note}</p>
       </aside>
     </div>
   );

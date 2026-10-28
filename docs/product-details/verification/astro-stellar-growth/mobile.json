@@ -1,0 +1,373 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 313
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 265
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-stellar-archive__grid",
+          "width": 265
+        },
+        {
+          "tag": "SECTION",
+          "cls": "astro-stellar-archive",
+          "width": 293
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-body astro-readable cosmic-theme star-container is-easy astro-cosmic-restored notranslate",
+          "width": 315
+        },
+        {
+          "tag": "DIV",
+          "cls": "notranslate",
+          "width": 315
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 315
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 329,
+          "width": 313
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 343
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 295
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-stellar-archive__grid",
+          "width": 295
+        },
+        {
+          "tag": "SECTION",
+          "cls": "astro-stellar-archive",
+          "width": 323
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-body astro-readable cosmic-theme star-container is-easy astro-cosmic-restored notranslate",
+          "width": 345
+        },
+        {
+          "tag": "DIV",
+          "cls": "notranslate",
+          "width": 345
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 345
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 359,
+          "width": 343
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 383
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 335
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-stellar-archive__grid",
+          "width": 335
+        },
+        {
+          "tag": "SECTION",
+          "cls": "astro-stellar-archive",
+          "width": 363
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-body astro-readable cosmic-theme star-container is-easy astro-cosmic-restored notranslate",
+          "width": 385
+        },
+        {
+          "tag": "DIV",
+          "cls": "notranslate",
+          "width": 385
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 385
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        },
+        {
+          "loaded": true,
+          "left": 16,
+          "right": 399,
+          "width": 383
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 688
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 690
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-stellar-archive__grid",
+          "width": 690
+        },
+        {
+          "tag": "SECTION",
+          "cls": "astro-stellar-archive",
+          "width": 730
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-body astro-readable cosmic-theme star-container is-easy astro-cosmic-restored notranslate",
+          "width": 760
+        },
+        {
+          "tag": "DIV",
+          "cls": "notranslate",
+          "width": 760
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 1235
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "entry": "Existing openAstroModal invoked after mock saju input; render evidence, not isolated tile click",
+  "requests": [
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep"
+  ],
+  "mode": "All API mocked; basic-deep 402 pricing mock; no live purchase/LLM; production-hidden dev tester excluded"
+}

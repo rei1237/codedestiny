@@ -1,0 +1,747 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--modal",
+          "left": 41,
+          "right": 304,
+          "width": 263,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 41,
+          "right": 304,
+          "width": 263,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "sy-card sy-nature-lock-card",
+          "left": 20,
+          "right": 325,
+          "width": 305,
+          "overflow": "hidden",
+          "padding": "20px"
+        },
+        {
+          "tag": "DIV",
+          "id": "syNatureDeepDiveHost",
+          "cls": "",
+          "left": 20,
+          "right": 325,
+          "width": 305,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "syHouseDeeper",
+          "cls": "sy-house-deeper",
+          "left": 20,
+          "right": 325,
+          "width": 305,
+          "overflow": "visible",
+          "padding": "30px 0px 0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "lunarNexusApp",
+          "cls": "sy-container fr-report sy-reading-house",
+          "left": 0,
+          "right": 345,
+          "width": 345,
+          "overflow": "hidden",
+          "padding": "0px 20px 48px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoSection",
+          "cls": "",
+          "left": 0,
+          "right": 345,
+          "width": 345,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoCard",
+          "cls": "",
+          "left": 0,
+          "right": 345,
+          "width": 345,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "modal-content-inner-wide",
+          "left": 0,
+          "right": 345,
+          "width": 345,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoModalSheet",
+          "cls": "modal-sheet-base",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoModalOverlay",
+          "cls": "modal-overlay-shell modal-overlay-sukuyo MobileFeatureDetail fr-overlay fr-sukuyo",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion cd-overlay-shell-open cd-mobile-nav-hidden",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "cd-mobile-runtime mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "overflow": "hidden",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        },
+        {
+          "loaded": true,
+          "width": 304,
+          "left": 20.5,
+          "right": 324.5
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--modal",
+          "left": 41,
+          "right": 334,
+          "width": 293,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 41,
+          "right": 334,
+          "width": 293,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "sy-card sy-nature-lock-card",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "overflow": "hidden",
+          "padding": "20px"
+        },
+        {
+          "tag": "DIV",
+          "id": "syNatureDeepDiveHost",
+          "cls": "",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "syHouseDeeper",
+          "cls": "sy-house-deeper",
+          "left": 20,
+          "right": 355,
+          "width": 335,
+          "overflow": "visible",
+          "padding": "30px 0px 0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "lunarNexusApp",
+          "cls": "sy-container fr-report sy-reading-house",
+          "left": 0,
+          "right": 375,
+          "width": 375,
+          "overflow": "hidden",
+          "padding": "0px 20px 48px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoSection",
+          "cls": "",
+          "left": 0,
+          "right": 375,
+          "width": 375,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoCard",
+          "cls": "",
+          "left": 0,
+          "right": 375,
+          "width": 375,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "modal-content-inner-wide",
+          "left": 0,
+          "right": 375,
+          "width": 375,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoModalSheet",
+          "cls": "modal-sheet-base",
+          "left": 0,
+          "right": 390,
+          "width": 390,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoModalOverlay",
+          "cls": "modal-overlay-shell modal-overlay-sukuyo MobileFeatureDetail fr-overlay fr-sukuyo",
+          "left": 0,
+          "right": 390,
+          "width": 390,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion cd-overlay-shell-open cd-mobile-nav-hidden",
+          "left": 0,
+          "right": 390,
+          "width": 390,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "cd-mobile-runtime mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open",
+          "left": 0,
+          "right": 390,
+          "width": 390,
+          "overflow": "hidden",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        },
+        {
+          "loaded": true,
+          "width": 334,
+          "left": 20.5,
+          "right": 354.5
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--modal",
+          "left": 41,
+          "right": 374,
+          "width": 333,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 41,
+          "right": 374,
+          "width": 333,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "sy-card sy-nature-lock-card",
+          "left": 20,
+          "right": 395,
+          "width": 375,
+          "overflow": "hidden",
+          "padding": "20px"
+        },
+        {
+          "tag": "DIV",
+          "id": "syNatureDeepDiveHost",
+          "cls": "",
+          "left": 20,
+          "right": 395,
+          "width": 375,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "syHouseDeeper",
+          "cls": "sy-house-deeper",
+          "left": 20,
+          "right": 395,
+          "width": 375,
+          "overflow": "visible",
+          "padding": "30px 0px 0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "lunarNexusApp",
+          "cls": "sy-container fr-report sy-reading-house",
+          "left": 0,
+          "right": 415,
+          "width": 415,
+          "overflow": "hidden",
+          "padding": "0px 20px 48px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoSection",
+          "cls": "",
+          "left": 0,
+          "right": 415,
+          "width": 415,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoCard",
+          "cls": "",
+          "left": 0,
+          "right": 415,
+          "width": 415,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "modal-content-inner-wide",
+          "left": 0,
+          "right": 415,
+          "width": 415,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoModalSheet",
+          "cls": "modal-sheet-base",
+          "left": 0,
+          "right": 430,
+          "width": 430,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoModalOverlay",
+          "cls": "modal-overlay-shell modal-overlay-sukuyo MobileFeatureDetail fr-overlay fr-sukuyo",
+          "left": 0,
+          "right": 430,
+          "width": 430,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion cd-overlay-shell-open cd-mobile-nav-hidden",
+          "left": 0,
+          "right": 430,
+          "width": 430,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "cd-mobile-runtime mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open",
+          "left": 0,
+          "right": 430,
+          "width": 430,
+          "overflow": "hidden",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        },
+        {
+          "loaded": true,
+          "width": 374,
+          "left": 20.5,
+          "right": 394.5
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--modal",
+          "left": 173.5,
+          "right": 1091.5,
+          "width": 918,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 173.5,
+          "right": 1091.5,
+          "width": 918,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "sy-card sy-nature-lock-card",
+          "left": 152.5,
+          "right": 1112.5,
+          "width": 960,
+          "overflow": "hidden",
+          "padding": "20px"
+        },
+        {
+          "tag": "DIV",
+          "id": "syNatureDeepDiveHost",
+          "cls": "",
+          "left": 152.5,
+          "right": 1112.5,
+          "width": 960,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "syHouseDeeper",
+          "cls": "sy-house-deeper",
+          "left": 152.5,
+          "right": 1112.5,
+          "width": 960,
+          "overflow": "visible",
+          "padding": "30px 0px 0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "lunarNexusApp",
+          "cls": "sy-container fr-report sy-reading-house",
+          "left": 112.5,
+          "right": 1152.5,
+          "width": 1040,
+          "overflow": "hidden",
+          "padding": "0px 40px 64px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoSection",
+          "cls": "",
+          "left": 112.5,
+          "right": 1152.5,
+          "width": 1040,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoCard",
+          "cls": "",
+          "left": 32.5,
+          "right": 1232.5,
+          "width": 1200,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "modal-content-inner-wide",
+          "left": 32.5,
+          "right": 1232.5,
+          "width": 1200,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoModalSheet",
+          "cls": "modal-sheet-base",
+          "left": 0,
+          "right": 1280,
+          "width": 1280,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "sukuyoModalOverlay",
+          "cls": "modal-overlay-shell modal-overlay-sukuyo MobileFeatureDetail fr-overlay fr-sukuyo",
+          "left": 0,
+          "right": 1280,
+          "width": 1280,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion cd-overlay-shell-open",
+          "left": 0,
+          "right": 1280,
+          "width": 1280,
+          "overflow": "clip",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open",
+          "left": 0,
+          "right": 1280,
+          "width": 1280,
+          "overflow": "visible",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 362.5,
+          "right": 902.5
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "mockedGates": [],
+  "mode": "All API mocked;existing saved local profile and openSukuyoModal entry;no purchase or generation clicked"
+}

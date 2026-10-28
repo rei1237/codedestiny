@@ -455,3 +455,16 @@
   Cache-Control: no-store
   X-Robots-Tag: noindex, nofollow
   Referrer-Policy: no-referrer
+
+# Temporary discovery pause: keep existing saved-content access intact.
+/saju/love-simulation*
+  X-Robots-Tag: noindex, follow
+
+/secret-house_real*
+  X-Robots-Tag: noindex, follow
+
+/destiny-poker*
+  X-Robots-Tag: noindex, follow
+
+/mini-games*
+  X-Robots-Tag: noindex, follow

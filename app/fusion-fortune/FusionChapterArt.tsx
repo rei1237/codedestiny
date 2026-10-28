@@ -1,18 +1,24 @@
 "use client";
-
-import Image from "next/image";
-import { FUSION_ORB_BY_KEY, FUSION_CORE_ORB, type FusionSystemKey } from "./fusionOrbs";
+import { useState } from "react";
+import { FUSION_ART_KEYS, FUSION_DOMAIN_ART_KEYS } from "@/lib/fusion-premium-report";
 import { useFusionPremiumCopy } from "./_lib/premium-copy";
-import styles from "./fusion-fortune.module.css";
 
-/** Decorative, not calculation evidence. Text PDFs deliberately omit these dividers. */
-export function FusionChapterArt({ systemKey, closing = false }: { systemKey: FusionSystemKey | "fusion"; closing?: boolean }) {
+/**
+ * Nine editorial scenes in one cached atlas. Never calculation evidence.
+ * v2 영역별 장은 두 번째 아틀라스(3×3, 8칸 + 다섯 마스터 단체 장면)를 쓴다.
+ */
+export function FusionChapterArt({ systemKey, closing = false }: { systemKey: string; closing?: boolean }) {
   const copy = useFusionPremiumCopy();
-  const src = closing ? "/images/fusion-fortune/fusion-guardian-celestial-hero.webp"
-    : systemKey === "fusion" ? FUSION_CORE_ORB : FUSION_ORB_BY_KEY[systemKey].image;
-  // Tarot's actual saved cards are displayed by ExpertEvidence; do not invent a seventh card.
-  if (!src) return null;
-  return <div className={styles.chapterArt} data-closing={closing} aria-hidden="true" data-html2canvas-ignore="true" title={copy.art}>
-    <span /><Image src={src} alt="" width={closing ? 480 : 160} height={closing ? 240 : 160} loading="lazy" sizes={closing ? "(max-width: 640px) 240px, 360px" : "112px"} /><span />
-  </div>;
+  const [failed, setFailed] = useState(false);
+  const domainIndex = FUSION_DOMAIN_ART_KEYS.indexOf(systemKey);
+  const index = domainIndex >= 0 ? domainIndex : FUSION_ART_KEYS.indexOf(systemKey);
+  const atlas = domainIndex >= 0 ? "/images/fusion-fortune/premium-domains-v1.webp" : "/images/fusion-fortune/premium-chapters-v1.webp";
+  if (failed || index < 0) return null;
+  return <figure className="mx-auto my-8 w-full max-w-[360px]" data-html2canvas-ignore="true" data-fusion-art={systemKey}>
+    <div className="relative aspect-square overflow-hidden rounded-[var(--cd-r-section)]">
+      <img src={atlas} alt="" width={1254} height={1254} loading="lazy" decoding="async"
+        className="absolute !h-[300%] !w-[300%] !max-w-none" style={{ left: `${-(index % 3) * 100}%`, top: `${-Math.floor(index / 3) * 100}%` }} onError={() => setFailed(true)} />
+    </div>
+    {!closing && <figcaption className="mt-2 text-center text-xs text-[var(--fx-ink-3)]">{copy.art}</figcaption>}
+  </figure>;
 }

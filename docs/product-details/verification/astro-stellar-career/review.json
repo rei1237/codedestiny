@@ -1,0 +1,7 @@
+{
+  "original": "Independent SHIP24;career03/05 andgrowth02 orphans repaired",
+  "mobile": "Independent SHIP24 panels,18 mobile CTA/notices,3 transcripts,3 desktopCTA",
+  "checks": "4 widths load/bounds/imagefailure fallback PASS; normal stellar renderer mocked API; renderer7PASS;ESLintclean",
+  "limits": "No real payment/LLM; worktree only;main delivery pending",
+  "placementRegression": "Current saved mock profile path309/339/379/540 PASS; independent8panels+2CTA SHIP; basic transcript also reviewed"
+}

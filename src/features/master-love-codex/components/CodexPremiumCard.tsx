@@ -39,7 +39,7 @@ export default function CodexPremiumCard({ mode, featured = false, onSelect }: C
   const benefits = useCodexContentCopy("planBenefits", CODEX_PLAN_BENEFITS)[mode];
 
   return (
-    <article className={`${styles.premiumCard} ${featured ? styles.premiumCardFeatured : ""}`}>
+    <article id={`codex-plan-${mode}`} className={`${styles.premiumCard} ${featured ? styles.premiumCardFeatured : ""}`}>
       <div className="flex items-start justify-between gap-4">
         <p
           className={`${styles.numeral} text-[0.6875rem]`}

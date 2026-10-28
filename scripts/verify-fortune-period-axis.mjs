@@ -15,6 +15,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { verifyFortuneBuildDates } from "./lib/fortune-date-contract.mjs";
 
 const rootDir = fileURLToPath(new URL("..", import.meta.url));
 const read = (rel) => readFileSync(resolve(rootDir, rel), "utf8");
@@ -163,6 +164,13 @@ assert(/getLocalizedPeriodReading\(profile, period, locale/.test(viewSrc),
 const localePageSrc = read("app/[locale]/fortune/[period]/[sign]/page.tsx");
 assert(/buildFaqPageJsonLd\(faqs\)/.test(localePageSrc) && /buildPeriodFaqs\(profile, period, locale\)/.test(localePageSrc),
   "[period-faqs] 로케일 FAQPage 스키마가 화면의 기간별 FAQ 정본과 다르다.");
+
+const outputDir = process.argv.find(arg => arg.startsWith('--dist='))?.slice('--dist='.length);
+if (outputDir) {
+  const result = verifyFortuneBuildDates({ rootDir, outputDir, periods, signIds });
+  failures.push(...result.failures);
+  if (result.ok) console.log(`[fortune-period-axis] ${outputDir}: ${result.count} HTML title/H1/time/Article matches daily ${result.businessDate} (${result.dailySource}), range ${result.rangeBusinessDate} KST`);
+}
 
 if (failures.length) {
   console.error("[fortune-period-axis] 실패:");

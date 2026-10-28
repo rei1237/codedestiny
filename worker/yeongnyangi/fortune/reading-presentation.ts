@@ -1,4 +1,7 @@
 import {SAJU_ENGINE_VERSION} from "../../../lib/korean-calendar/index.js";
+import {NATAL_CORE_VERSION} from '../../../lib/saju/natal-core/version.mjs';
+// 네 기둥은 같고 격국·종격 판정 기준만 바뀐 저장본. 작성 당시 그대로 보여 주고 차트는 숨기지 않는다.
+const NATAL_BASIS_NOTE='이 보고서의 격국·종격 판정은 이전 계산 기준으로 작성되었습니다. 네 기둥은 같지만 현재 기준의 판정과 다를 수 있습니다.';
 import { getTarotCardByAnyId } from '../../../lib/tarot/tarot-cards.mjs';
 import { yeongnyangiCardArt } from '../../../lib/tarot/yeongnyangi-deck';
 import type { ChapterSpec, MasterAnalysis } from './book-contracts';
@@ -8,7 +11,7 @@ import { selectChapterFacts } from './chapter-facts';
 import { starStrength } from '../../../lib/ziwei-star-strength.js';
 import { ZIWEI_HANJA } from '../../lib/ziwei-hanja.js';
 import { enrichZiweiPalaces } from './ziwei/reading-facts';
-import { PLANET_KO } from './block-anchors';
+import { ELEMENT_KO, PLANET_KO } from './block-anchors';
 
 /** 자미 명반 한 칸. 저장 명반으로 표시할 때마다 다시 계산한다 — 강약 정본(lib/ziwei-star-strength.js)이 바뀌면 옛 결과 화면도 따라온다. */
 export interface ReadingZiweiStar{name:string;hanja:string|null;kind:'main'|'assistant'|'malefic';grade:string|null;gradeHanja:string|null;basis:'classical'|'modern-confirmed'|'disputed'|'modern-single'|null;hua?:string}
@@ -34,7 +37,7 @@ function ziweiPalace(p:any,enriched:any,f:Record<string,any>):ReadingZiweiPalace
     stars:[...strings(p.mainStars).map(n=>star(n,'main')),...strings(p.assistantStars).map(n=>star(n,'assistant')),...strings(p.maleficStars).map(n=>star(n,'malefic'))],
     notes:strings(enriched?.readingNotes)};
 }
-const names:Record<string,string>={...PLANET_KO,Aries:'양자리',Taurus:'황소자리',Gemini:'쌍둥이자리',Cancer:'게자리',Leo:'사자자리',Virgo:'처녀자리',Libra:'천칭자리',Scorpio:'전갈자리',Sagittarius:'사수자리',Capricorn:'염소자리',Aquarius:'물병자리',Pisces:'물고기자리',conjunction:'합',opposition:'충',trine:'삼분각',square:'사각',sextile:'육분각',wood:'목',fire:'화',earth:'토',metal:'금',water:'수'};
+const names:Record<string,string>={...PLANET_KO,Aries:'양자리',Taurus:'황소자리',Gemini:'쌍둥이자리',Cancer:'게자리',Leo:'사자자리',Virgo:'처녀자리',Libra:'천칭자리',Scorpio:'전갈자리',Sagittarius:'사수자리',Capricorn:'염소자리',Aquarius:'물병자리',Pisces:'물고기자리',conjunction:'합',opposition:'충',trine:'삼분각',square:'사각',sextile:'육분각',...ELEMENT_KO};
 function text(value:unknown):string {
   if(value===null||value===undefined)return '자료 없음';
   if(Array.isArray(value))return value.map(text).join(' · ')||'없음';
@@ -44,6 +47,7 @@ function text(value:unknown):string {
   }
   return names[String(value)] || String(value);
 }
+const day=(value:unknown)=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}T/.test(value)?value.slice(0,10):value;
 const titles:Record<DomainId,string>={saju:'나의 사주와 오행',ziwei:'열두 궁에 담긴 삶',sukuyo:'별 사이의 관계',vedic:'라시 차트와 별의 주기',astrology:'나의 출생 차트',tarot:'질문 위에 펼친 카드'};
 
 // Presentation is derived only from an owned saved snapshot, never a fresh calculation.
@@ -59,8 +63,10 @@ export function readingCharts(analysis:MasterAnalysis,manifest:ChapterSpec[]):Re
       groups.push({id:`${d}-${groups.length}`,label,items,chapterIds:related.map(s=>s.chapter.id),...extra});
     }
     if(d==='saju'){
-      for(const [key,label] of Object.entries({year:'년주',month:'월주',day:'일주',hour:'시주'}))add('pillars',label,[{label:'천간·지지',value:text(f.pillars?.[key])},{label:'천간 십성',value:text(f.tenGodsByPillar?.[key]?.stemTenGod)}]);
-      add('fiveElements','오행 분포 · 월령 가중치 포함',Object.entries(f.fiveElements?.counts || f.fiveElements || {}).filter(([,v])=>typeof v==='number').map(([k,v])=>({label:text(k),value:text(v)})));
+      // Surface counts leave the hidden stems out, so the board shows them under each pillar instead.
+      const hidden=f.fiveElements?.countBasis==='surface'?Object.fromEntries((f.fiveElements.hiddenStems || []).map((h:any)=>[h.pillar,(h.stems || []).map((s:any)=>s.stem).join('·')])):{};
+      for(const [key,label] of Object.entries({year:'년주',month:'월주',day:'일주',hour:'시주'}))add('pillars',label,[{label:'천간·지지',value:text(f.pillars?.[key])},{label:'천간 십성',value:text(f.tenGodsByPillar?.[key]?.stemTenGod)},...(hidden[key]?[{label:'지장간',value:hidden[key]}]:[])]);
+      add('fiveElements',f.fiveElements?.countBasis==='surface'?'오행 분포 · 보이는 글자 기준':'오행 분포 · 월령 가중치 포함',Object.entries(f.fiveElements?.counts || f.fiveElements || {}).filter(([,v])=>typeof v==='number').map(([k,v])=>({label:text(k),value:text(v)})));
       if(f.partnerChart){for(const [key,label] of Object.entries({year:'상대 년주',month:'상대 월주',day:'상대 일주',hour:'상대 시주'}))add('partnerChart',label,[{label:'천간·지지',value:text(f.partnerChart.pillars?.[key])}]);}
     }else if(d==='ziwei'){
       const palaces=Array.isArray(f.palaces)?f.palaces:[],enriched=enrichZiweiPalaces(palaces);
@@ -94,9 +100,14 @@ export function readingCharts(analysis:MasterAnalysis,manifest:ChapterSpec[]):Re
       const rows=key==='vimshottariDasha'?[value.currentMahadasha,value.currentAntardasha,...(value.periods || [])]:key==='majorLuck'?[value.currentCycle,...(value.cycles || [])]:Array.isArray(value)?value:[value];
       for(const r of rows.filter(Boolean)){
        const periodKey=JSON.stringify(r);if(periods.has(periodKey))continue;periods.add(periodKey);
-       add(key,'계산된 시기 · '+text(r.lord || r.planet || r.ganji || r.pillar || r.year),[{label:'주기',value:text(r.lord || r.planet || r.ganji || r.pillar || r.year)},{label:'시작',value:text(r.startDate || r.startYear || r.startAge)},{label:'끝',value:text(r.endDate || r.endYear || r.endAge)}],{kind:'timing'});
+       // Only empty cells change: the span before the first 교운 has no pillar, a dated 대운 is titled by its label like the
+       // body text, a 세운 row is one year, and a dasha may carry only start/end.
+       const name=r.lord || r.planet || r.ganji || r.pillar || r.year || (key==='majorLuck'?'대운 시작 전':null);
+       const start=r.startDate || r.startYear || r.startAge || day(r.start),end=r.endDate || r.endYear || r.endAge || day(r.end);
+       add(key,'계산된 시기 · '+(key==='majorLuck'&&typeof r.label==='string'?r.label:text(name)),[{label:'주기',value:text(name)},
+        ...(key==='yearlyLuck'&&r.year&&!start&&!end?[{label:'연도',value:text(r.year)}]:[{label:'시작',value:text(start)},{label:'끝',value:text(end)}])],{kind:'timing'});
       }
     }
-    return {domain:d,title:titles[d],groups,limitations:d==='saju'&&context.engineVersion!==SAJU_ENGINE_VERSION?[...context.limitations,'이 보고서는 이전 계산 기준으로 작성되었습니다. 원국과 관련 해석의 정정 여부를 확인해야 합니다.']:context.limitations,...(f.spreadId==='yeongnyangi_compatibility_six'?{relationship:true}:{}),source:d==='tarot'?'서버에 저장된 카드 배열':'구매 당시 저장된 계산 근거',...(d==='astrology'?{cusps:Array.isArray(f.houseCusps)?f.houseCusps.filter((n:unknown)=>typeof n==='number'):[]}: {})};
+    return {domain:d,title:titles[d],groups,limitations:d!=='saju'?context.limitations:context.engineVersion!==SAJU_ENGINE_VERSION?[...context.limitations,'이 보고서는 이전 계산 기준으로 작성되었습니다. 원국과 관련 해석의 정정 여부를 확인해야 합니다.']:context.natalCore?.version!==NATAL_CORE_VERSION?[...context.limitations,NATAL_BASIS_NOTE]:context.limitations,...(f.spreadId==='yeongnyangi_compatibility_six'?{relationship:true}:{}),source:d==='tarot'?'서버에 저장된 카드 배열':'구매 당시 저장된 계산 근거',...(d==='astrology'?{cusps:Array.isArray(f.houseCusps)?f.houseCusps.filter((n:unknown)=>typeof n==='number'):[]}: {})};
   });
 }

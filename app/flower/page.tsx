@@ -3,7 +3,7 @@ import { generatePageMetadata } from "../../lib/generate-page-metadata";
 
 const META = {
   path: "/flower",
-  title: "운명의 꽃 - 통합 아틀리에 | Code Destiny",
+  title: "운명의 꽃 - 통합 아틀리에 | 꿀꿀 운세",
   description:
     "사주의 오행과 십성, 점성술의 행성 배치, 자미두수의 명궁, 숙요점의 27수 — 네 학문이 각각 짚어낸 기운을 소스 탭으로 넘겨 보며, 나만의 운명 꽃 한 송이로 모읍니다.",
   keywords: ["운명의 꽃", "사주 꽃", "점성술 꽃", "자미두수 꽃", "숙요 꽃", "destiny flower"],
@@ -21,7 +21,7 @@ export function generateMetadata() {
 }
 
 const SERVICE = {
-  h1: "무료로 만나는 나의 운명의 꽃",
+  h1: "네 갈래 운세로 피우는 나의 운명의 꽃",
   description: META.description,
   ogImage: META.image,
   landingPoints: ["4개 운세 소스 탭 전환", "소스별 꽃·키워드·해석 패널", "프롬프트/저장/공유 도구"],

@@ -1,0 +1,92 @@
+{
+  "id": "physiognomy-ogwan",
+  "featureKey": "physiognomy-ogwan-mole-deep",
+  "title": "오관·점 정밀 분석",
+  "notice": "기본 관상 분석 결과 중 오관 및 피부·점 영역을 펼치는 회당 해금입니다. 눈썹·눈·코·입·귀의 유형·일치도·전통 설명과 후보 비교, 감지된 점의 위치별 설명 등을 표시합니다. 점 감지 여부·사진 품질에 따라 표시 내용이 달라집니다. 전통 관상에 기반한 오락적 콘텐츠로 외모만으로 성격·능력·인품·운명이나 건강을 확인할 수 없습니다. 일치도는 유형 분류값이며 예측 정확도가 아닙니다. 피부·점의 질병 위험을 진단하지 않습니다. 새 분석은 별도 이용 조건을 따릅니다. 관상 궁합·전생 궁합은 별도 상품이며 자유질문 AI 상담을 제공하지 않습니다. 설명용 도해·문장은 실제 결과·후기가 아닙니다. 가격·이용권·월정석·단건 결제는 기존 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-closer-look",
+      "title": "익숙한 얼굴을, 다른 문화의 언어로.",
+      "src": "/feature-details/crafted/physiognomy-ogwan/01-a-closer-look.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "익숙한 얼굴을,\n다른 문화의 언어로.\n눈썹 · 눈\n코 · 입 · 귀\n\n오관·점 정밀 분석\n\n기본 관상 결과에서 잠긴 두 영역을\n펼쳐 읽는 추가 해금입니다.\n전통 관상의 상징을 가볍게 살펴요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-ogwan/01-a-closer-look-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-what-opens",
+      "title": "기본 결과 다음, 두 영역을 더 읽어요.",
+      "src": "/feature-details/crafted/physiognomy-ogwan/02-what-opens.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기본 결과 다음,\n두 영역을 더 읽어요.\n오관 · 다섯 부위\n\n눈썹·눈·코·입·귀의 유형과\n전통 해석, 다른 후보 유형을 봅니다.\n\n피부와 점\n\n감지한 점이 있을 때 위치별 설명과\n종합 해석이 나타납니다.\n\n이미 촬영·분석한 결과의 추가 영역.\n새 사진 분석 때는 별도 이용이에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-ogwan/02-what-opens-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-read-a-type",
+      "title": "유형의 일치도를, 운명으로 읽지 않아요.",
+      "src": "/feature-details/crafted/physiognomy-ogwan/03-read-a-type.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "유형의 일치도를,\n운명으로 읽지 않아요.\n눈썹 · 눈 · 코 · 입 · 귀\n\n대표 유형과 설명\n\n비슷하게 계산된 다른 후보\n\n부위들을 함께 읽는 해석\n\n결과의 비율은 모델이 유형을\n분류하는 값입니다.\n\n성격·능력·인품을 확인한 수치나\n미래가 실현될 확률이 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-ogwan/03-read-a-type-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-example",
+      "title": "낯선 해석은, 가벼운 질문으로 남겨요.",
+      "src": "/feature-details/crafted/physiognomy-ogwan/04-example.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "낯선 해석은,\n가벼운 질문으로 남겨요.\n\n이해를 돕기 위한 활용 예시\n\n“나는 어떤 인상을\n전하고 싶을까?”\n\n전통의 유형 설명을 읽으며\n표정과 사진의 분위기를 돌아보세요.\n\n좋고 나쁜 유형으로 사람의 가치를\n판단할 수는 없습니다.\n관상은 문화적·오락적 해석이에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-ogwan/04-example-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-photo-conditions",
+      "title": "사진에서 읽을 수 있는 만큼만.",
+      "src": "/feature-details/crafted/physiognomy-ogwan/05-photo-conditions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "사진에서 읽을 수\n있는 만큼만.\n\n먼저 기본 관상 분석을 완료해요.\n\n밝고 가림이 적은 정면 사진이\n부위 확인에 도움이 됩니다.\n\n점이 감지되지 않으면\n위치별 목록이 없을 수 있어요.\n\n조명·각도·가림에 따라 결과가 달라요.\n피부 상태를 진단하는 기능이 아닙니다.\n실제 점의 위험도를 판정하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-ogwan/05-photo-conditions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-your-own-reading",
+      "title": "내 얼굴을 평가하기보다, 가볍게 읽어보세요.",
+      "src": "/feature-details/crafted/physiognomy-ogwan/06-your-own-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 얼굴을 평가하기보다,\n가볍게 읽어보세요.\n한 가지 해석이\n나를 정하지 않도록.\n\n기본 결과 안에서 이용 조건을\n확인한 뒤 잠긴 영역을 엽니다.\n\n두 사람의 관상 궁합과 전생 궁합은\n별도로 선택하는 상품입니다.\n자유질문 AI 상담은 포함하지 않아요.\n\n도해·문장은 설명용 가상 예시입니다.\n실제 분석 결과·후기가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-ogwan/06-your-own-reading-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

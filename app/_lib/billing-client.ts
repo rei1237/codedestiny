@@ -31,6 +31,7 @@ import passVerdict from "@/js/core/pass-verdict.js";
 import appContext from "@/js/core/app-context.js";
 import checkoutEntry, { type PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import bundledPaymentService from "@/js/core/payment-service.js";
+import { openTransientBackSurface } from "@/lib/navigation/transientBack";
 
 // 🔴 payment-service.js 는 classic script(window.CodeDestinyPaymentService)와 webpack import 두 경로로
 // 로드돼 **인스턴스가 둘**이다. 각 인스턴스는 자기만의 paymentWindowRenderer / commandInFlight 클로저를
@@ -464,7 +465,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-9c92542eb04f";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-2d81696a26c1";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -926,11 +927,11 @@ function formatCoinValueWon(amount: number): string {
  */
 function formatMembershipPassLimitLabel(tier: unknown, limit: number): string {
   const normalizedTier = toText(tier).toLowerCase();
-  if (normalizedTier === "family" || limit >= 999999999) return "이용권 대상 기능 전체가 월 이용 한도 안에서 열립니다.";
+  if (normalizedTier === "family" || limit >= 999999999) return "이용권 대상 기능 전체가 이용 한도 안에서 열립니다.";
   if (limit > 0) {
     const appCoverageKRW = isMobileAppRuntime() ? resolveAppPassCoverageKRW(limit) : null;
     const coverageLabel = appCoverageKRW ? formatPaymentWon(appCoverageKRW) : formatCoinValueWon(limit);
-    return `${coverageLabel} 이하 기능이 월 이용 한도 안에서 바로 열립니다.`;
+    return `${coverageLabel} 이하 기능이 이용 한도 안에서 바로 열립니다.`;
   }
   return "현재 서비스는 이용권 적용 범위 밖이라 결제가 필요합니다.";
 }
@@ -1164,19 +1165,19 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   // 한국어 인자는 ko 정본 폴백이며 public/i18n/*.json 12개와 함께 유지된다.
   const passBadgeLabel = checkoutEntry.text("payment.directModal.passBadge", "달빛 이용권");
   const familyPassStore = toText(opts.passStorePlan).toLowerCase() === "family";
-  const passLabel = familyPassStore ? "Family 이용권" : (hasActivePassTier ? `${passTier.toUpperCase()} ${passBadgeLabel}` : passBadgeLabel);
+  const passLabel = familyPassStore ? "패밀리 꿀단지 이용권" : (hasActivePassTier ? (formatPassTierLabel(passTier, getCurrentLoadingLocale()) || passBadgeLabel) : passBadgeLabel);
   const passStoreTitle = familyPassStore
-    ? "Family 이용권으로 열기"
+    ? "패밀리 꿀단지 이용권으로 열기"
     : hasActivePassTier
       ? checkoutEntry.text("payment.directModal.passUpgradeTitle", "이용권 등급 올리기")
       : checkoutEntry.text("payment.directModal.passBuyTitle", "이용권으로 열기");
   const passStoreHint = familyPassStore
     ? paymentPricing?.monthlyExcluded === false
-      ? "Family 이용권·월정석·단건 결제로 이용할 수 있어요. 이미 Family라면 눌러서 확인해 주세요."
-      : "영냥이 유료 리딩은 Family 이용권 또는 단건 결제로 이용할 수 있어요. 이미 Family라면 눌러서 확인해 주세요."
+      ? "패밀리 꿀단지 이용권·월정석·단건 결제로 이용할 수 있어요. 이미 패밀리 꿀단지가 있다면 눌러서 확인해 주세요."
+      : "영냥이 유료 리딩은 패밀리 꿀단지 이용권 또는 단건 결제로 이용할 수 있어요. 이미 패밀리 꿀단지가 있다면 눌러서 확인해 주세요."
     : hasActivePassTier
       ? checkoutEntry.text("payment.directModal.passHint.upgrade", "지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.")
-      : checkoutEntry.text("payment.directModal.passHint.store", "한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.");
+      : checkoutEntry.text("payment.directModal.passHint.store", "한 번 결제하고 이용 한도를 다 쓸 때까지 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.");
   // 한도 라벨은 등급을 실제로 아는 경우에만 덧붙인다. 미보유(=한도 미상)일 때 붙이면
   // "…바로 확인됩니다. 플랜별 기준 확인" 처럼 의미 없는 꼬리가 남는다.
   const passLimitHint = hasActivePassTier ? formatMembershipPassLimitLabel(passTier, passLimit) : "";
@@ -1338,6 +1339,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     let settled = false;
     // 세 렌더러가 공유하는 결제창 락 토큰(checkout-entry 소유). append 직후 획득, close 에서 해제.
     let sharedChoiceLockToken: ReturnType<typeof checkoutEntry.acquirePaymentChoiceLock> = null;
+    // 뒤로가기 연결(NavigationProvider). append 뒤 등록, close 에서 해제.
+    let releaseBackSurface: (() => void) | null = null;
     const modal = document.createElement("div");
     modal.className = "cd-direct-payment-modal is-open";
     modal.dataset.cdReactPaymentChoice = "1";
@@ -1383,6 +1386,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         checkoutEntry.releasePaymentChoiceLock(sharedChoiceLockToken);
         sharedChoiceLockToken = null;
       }
+      releaseBackSurface?.();
+      releaseBackSurface = null;
       // 🔴 'direct' 로 닫힐 때만 고른 결제수단을 남긴다(셸 close() 와 같은 계약). 다른 경로로
       // 닫혔는데 값이 남으면 다음 결제가 엉뚱한 수단으로 열린다.
       if (mode !== "direct") checkoutEntry.clearSelectedDirectPayMethod();
@@ -1594,10 +1599,10 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             // 월 한도 소진(decisionReason MONTHLY_PASS_LIMIT_EXCEEDED)은 이용권이 **있는** 상태다 — 상점으로 보내면
             // 이미 가진 이용권을 또 사라는 화면이 된다. 모달을 연 채 단건·월정석을 고르게 한다.
             if (passVerdict.isMonthlyLimitPayload(passDeniedPayload)) {
-            setStatus(checkoutEntry.text("payment.directModal.passMonthlyExhausted", "이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요."), true);
+            setStatus(checkoutEntry.text("payment.directModal.passMonthlyExhausted", "이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요."), true);
             return;
           }
-          setStatus(familyPassStore ? "Family 이용권이 필요해 이용권 상점으로 이동합니다." : "보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.");
+          setStatus(familyPassStore ? "패밀리 꿀단지 이용권이 필요해 이용권 상점으로 이동합니다." : "보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.");
           leavingForPassStore = true;
           close("cancel");
           openMembershipPassStore(coinPrice, passTier, passCheckFeatureKey, opts);
@@ -1658,6 +1663,16 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       });
     sharedChoiceLockToken = checkoutEntry.acquirePaymentChoiceLock("react");
     if (sharedChoiceLockToken) checkoutEntry.attachPaymentChoiceNode(sharedChoiceLockToken, modal);
+    // 뒤로가기 = 2단계면 [뒤로], 1단계면 [취소](셸·독립 정적과 같은 버튼 계약). 라우트가 바뀌면 취소로 닫는다.
+    if (!settled) {
+      releaseBackSurface = openTransientBackSurface({
+        onBack: () => {
+          checkoutEntry.stepBackOpenPaymentChoice(modal);
+          return modal.isConnected;
+        },
+        dismiss: () => close("cancel"),
+      });
+    }
     // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.
     checkoutEntry.trackCheckoutEvent("checkout_opened", {
       renderer: "react",
@@ -2491,8 +2506,8 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       return nativeAppStoreFailure(
         "APP_SKU_NOT_VERIFIED",
         resolveServerFeaturePricing({ ...input, featureKey })?.monthlyExcluded === false
-          ? "Google Play 판매를 준비하고 있습니다. 웹에서 Family 이용권·월정석·단건 결제를 이용해 주세요."
-          : "Google Play 판매를 준비하고 있습니다. 웹에서 Family 이용권 또는 단건 결제를 이용해 주세요.",
+          ? "Google Play 판매를 준비하고 있습니다. 웹에서 패밀리 꿀단지 이용권·월정석·단건 결제를 이용해 주세요."
+          : "Google Play 판매를 준비하고 있습니다. 웹에서 패밀리 꿀단지 이용권 또는 단건 결제를 이용해 주세요.",
       );
     }
     // Play 최저가를 밑도는 저가 콘텐츠는 앱에서 무료다 — 결제창을 띄우지 않는다.
@@ -2578,14 +2593,19 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
     // Preserve server verification and cancellation states across the legacy gate.
     const runtimeError = asRecord(error);
     const status = Number(runtimeError?.status);
+    // 호출부 약 10곳이 message 를 화면에 그대로 띄운다. 한국어 안내만 통과시키고
+    // "Failed to fetch" 같은 런타임 원문은 debugMessage 로만 남긴다(app/_lib/friendly-error.ts 와 같은 규칙).
+    const runtimeMessage = error instanceof Error ? error.message : "";
+    const userFacing = /[가-힣]/.test(runtimeMessage);
     return {
       ok: false,
       status: Number.isInteger(status) && status >= 400 && status <= 599 ? status : 500,
       data: null,
-      message: error instanceof Error ? error.message : billingClientText("billingClient.message.001"),
+      message: userFacing ? runtimeMessage : billingClientText("billingClient.message.001"),
       error: {
         code: toText(runtimeError?.code) || "PAYMENT_RUNTIME_ERROR",
-        message: error instanceof Error ? error.message : billingClientText("billingClient.message.002"),
+        message: userFacing ? runtimeMessage : billingClientText("billingClient.message.002"),
+        ...(runtimeMessage && !userFacing ? { debugMessage: runtimeMessage } : {}),
       },
       raw: {},
     };
@@ -2889,18 +2909,18 @@ function formatLoadingMessage(stage: LoadingStage, paymentType: PaymentType) {
 }
 
 const PASS_TIER_LABELS: Record<LoadingLocale, Record<"FAMILY" | "VVIP" | "PREMIUM" | "STANDARD", string>> = {
-  ko: { FAMILY: "FAMILY", VVIP: "VVIP", PREMIUM: "프리미엄", STANDARD: "스탠다드" },
-  en: { FAMILY: "Family", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standard" },
-  ja: { FAMILY: "ファミリー", VVIP: "VVIP", PREMIUM: "プレミアム", STANDARD: "スタンダード" },
-  "zh-CN": { FAMILY: "家庭", VVIP: "VVIP", PREMIUM: "高级", STANDARD: "标准" },
-  "zh-TW": { FAMILY: "家庭", VVIP: "VVIP", PREMIUM: "高級", STANDARD: "標準" },
-  vi: { FAMILY: "Gia đình", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Tiêu chuẩn" },
-  hi: { FAMILY: "Family", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standard" },
-  es: { FAMILY: "Familiar", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Estándar" },
-  fr: { FAMILY: "Famille", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standard" },
-  de: { FAMILY: "Familie", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standard" },
-  nl: { FAMILY: "Gezin", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standaard" },
-  ms: { FAMILY: "Keluarga", VVIP: "VVIP", PREMIUM: "Premium", STANDARD: "Standard" },
+  ko: { FAMILY: "패밀리 꿀단지", VVIP: "큰 꿀단지", PREMIUM: "중간 꿀단지", STANDARD: "작은 꿀단지" },
+  en: { FAMILY: "Family Honey Jar", VVIP: "Large Honey Jar", PREMIUM: "Medium Honey Jar", STANDARD: "Small Honey Jar" },
+  ja: { FAMILY: "ファミリーはちみつ壺", VVIP: "大きなはちみつ壺", PREMIUM: "中くらいのはちみつ壺", STANDARD: "小さなはちみつ壺" },
+  "zh-CN": { FAMILY: "家庭蜜罐", VVIP: "大蜜罐", PREMIUM: "中蜜罐", STANDARD: "小蜜罐" },
+  "zh-TW": { FAMILY: "家庭蜜罐", VVIP: "大蜜罐", PREMIUM: "中蜜罐", STANDARD: "小蜜罐" },
+  vi: { FAMILY: "Hũ mật ong gia đình", VVIP: "Hũ mật ong lớn", PREMIUM: "Hũ mật ong vừa", STANDARD: "Hũ mật ong nhỏ" },
+  hi: { FAMILY: "फ़ैमिली शहद जार", VVIP: "बड़ा शहद जार", PREMIUM: "मध्यम शहद जार", STANDARD: "छोटा शहद जार" },
+  es: { FAMILY: "Tarro de miel familiar", VVIP: "Tarro de miel grande", PREMIUM: "Tarro de miel mediano", STANDARD: "Tarro de miel pequeño" },
+  fr: { FAMILY: "Pot de miel familial", VVIP: "Grand pot de miel", PREMIUM: "Pot de miel moyen", STANDARD: "Petit pot de miel" },
+  de: { FAMILY: "Familien-Honigglas", VVIP: "Großes Honigglas", PREMIUM: "Mittleres Honigglas", STANDARD: "Kleines Honigglas" },
+  nl: { FAMILY: "Gezinshoningpot", VVIP: "Grote honingpot", PREMIUM: "Middelgrote honingpot", STANDARD: "Kleine honingpot" },
+  ms: { FAMILY: "Balang Madu Keluarga", VVIP: "Balang Madu Besar", PREMIUM: "Balang Madu Sederhana", STANDARD: "Balang Madu Kecil" },
 };
 
 function formatPassTierLabel(value: unknown, locale: LoadingLocale) {
@@ -2993,14 +3013,14 @@ function buildLicensePassOverlayMessage(data: BillingCoinGateData & Record<strin
   if (!gate) return "";
   if (gate.licenseTier === "FAMILY" || gate.reason === "family_all_access") {
     return [
-      "FAMILY 이용권이 적용되었습니다.",
-      "이 콘텐츠는 FAMILY 이용권으로 무료 이용됩니다.",
+      "패밀리 꿀단지 이용권이 적용되었습니다.",
+      "이 콘텐츠는 패밀리 꿀단지 이용권으로 무료 이용됩니다.",
       "이 기능은 추가 결제 없이 이용할 수 있어요.",
     ].join("\n");
   }
   if (gate.licenseTier === "VVIP") {
     return [
-      "VVIP 이용권이 적용되었습니다.",
+      "큰 꿀단지 이용권이 적용되었습니다.",
       "이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.",
       "추가 결제 없이 바로 열어드릴게요.",
     ].join("\n");
@@ -3162,7 +3182,7 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
   const status = String(payload.status || "checkingEntitlement");
   const copyFromStatus: Partial<Record<PaidFeatureGateRuntimeStatus, string>> = {
     opening: "결제 가능한 수단을 확인하고 있습니다.",
-    checkingEntitlement: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.",
+    checkingEntitlement: "보유한 이용권으로 바로 열 수 있는지 확인 중입니다.",
     hasEntitlement: "이용권 적용이 완료되었습니다.",
     noEntitlement: "결제가 필요합니다. 결제 페이지로 이동해 주세요.",
     loadingProducts: "결제 상품 정보를 확인하고 있습니다.",
@@ -3334,7 +3354,7 @@ export function openPaidFeatureGate(input: {
     featureKey: featureId,
     requestId,
     title: input.title,
-    message: input.message || "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.",
+    message: input.message || "보유한 이용권으로 바로 열 수 있는지 확인 중입니다.",
     status: input.status || "checkingEntitlement",
     cost: input.cost,
     paymentMode: input.paymentMode,
@@ -3482,10 +3502,10 @@ function normalizePassTier(value: unknown): PaymentEligibility["pass"]["tier"] {
 }
 
 function labelForPassTier(tier: PaymentEligibility["pass"]["tier"]) {
-  if (tier === "standard") return "스탠다드 달빛 이용권";
-  if (tier === "premium") return "프리미엄 달빛 이용권";
-  if (tier === "vvip") return "VVIP 달빛 이용권";
-  if (tier === "family") return "Code Destiny Family";
+  if (tier === "standard") return "작은 꿀단지";
+  if (tier === "premium") return "중간 꿀단지";
+  if (tier === "vvip") return "큰 꿀단지";
+  if (tier === "family") return "패밀리 꿀단지";
   return null;
 }
 
@@ -3979,7 +3999,15 @@ function disableOptimisticPassBriefly() { optimisticPassDisabledUntil = Date.now
 
 // 낙관적 즉시 허용 후 서버에 pass 사용을 기록(fire-and-forget). pass는 무료라 기록 실패해도 금전영향 0.
 // 서버가 미커버(402)로 응답하면 로컬 스냅샷이 낡은 것이므로 낙관적 허용을 잠시 끄고 세션을 갱신한다.
-async function recordMembershipPassInBackground(input: BillingCoinGateInput, attemptId: string) {
+// 5xx·타임아웃·네트워크 오류는 같은 attemptId 로 4·12·30초 뒤 최대 3번 다시 보낸다. 기록이 빠지면 결과는
+// 열렸는데 서버에 이용 증빙이 없어 보관함 저장 같은 후속 요청이 거절된다. 서버가 (기능, requestId) 소비
+// 마커로 멱등이라 이중 차감은 없다. 금전 결제 POST 의 자동 재시도 금지와는 별개다(이 경로는 무료다).
+const PASS_RECORD_RETRY_DELAYS_MS = [4_000, 12_000, 30_000];
+function schedulePassRecordRetry(input: BillingCoinGateInput, attemptId: string, retryAttempt: number) {
+  if (!attemptId || retryAttempt >= PASS_RECORD_RETRY_DELAYS_MS.length) return;
+  setTimeout(() => { void recordMembershipPassInBackground(input, attemptId, retryAttempt + 1); }, PASS_RECORD_RETRY_DELAYS_MS[retryAttempt]);
+}
+async function recordMembershipPassInBackground(input: BillingCoinGateInput, attemptId: string, retryAttempt = 0) {
   try {
     const { forceDeduct: _legacyForceDeduct, ...billingInput } = input;
     const response = await authFetchBilling("/api/billing/coin-gate", {
@@ -4042,9 +4070,11 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
         ).catch(() => null);
       }
     }
-    // 5xx/degraded는 일시장애 — 무시(재시도 불필요).
+    // 5xx/degraded(타임아웃은 합성 503 으로 온다)는 일시장애 — 다시 보낸다. 다른 4xx 는 다시 보내도 같다.
+    if (parsed.status >= 500) schedulePassRecordRetry(input, attemptId, retryAttempt);
   } catch {
-    // 네트워크 실패 무시.
+    // 네트워크 실패도 일시장애다.
+    schedulePassRecordRetry(input, attemptId, retryAttempt);
   }
 }
 
@@ -4382,7 +4412,7 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
         passOutcomeNote: toText(initialSnapshot?.source) === "pass_budget_exhausted"
           ? checkoutEntry.text(
             "payment.directModal.note.passMonthlyExhausted",
-            "이용권 월 한도를 모두 사용했어요. 이용권은 만료일까지 등급과 프로필 상한이 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.",
+            "이용 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 안내해 드릴게요.",
           )
           : "",
       });
@@ -4787,7 +4817,7 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
           passOutcomeNote: passVerdict.isMonthlyLimitPayload(parsed.raw)
             ? checkoutEntry.text(
               "payment.directModal.note.passMonthlyExhausted",
-              "이용권 월 한도를 모두 사용했어요. 이용권은 만료일까지 등급과 프로필 상한이 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.",
+              "이용 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 안내해 드릴게요.",
             )
             : "",
         });

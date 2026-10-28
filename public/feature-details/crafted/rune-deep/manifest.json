@@ -1,0 +1,128 @@
+{
+  "id": "rune-deep",
+  "featureKey": "stonehenge-runes-deep",
+  "title": "스톤헨지 5-룬 심층 리딩",
+  "notice": "과거·현재·미래·타고난 성향·주의의 다섯 자리에 25룬 중 서로 다른 다섯 룬을 뽑습니다. 각 룬의 이름·방향·핵심 뜻·관계·일·주의·행동·기억할 문장과 전체 이야기, 정방향·역방향 개수를 제공합니다. 대칭 룬·공백 룬에는 역방향이 없습니다. 준비된 해석을 조합하며 AI의 새 답변은 아닙니다. 현재 결과 기반 복사용 AI 질문문은 별도 결제 없이 로컬에서 만듭니다. 외부 AI의 답변·이용료는 포함하지 않습니다. 페이지 이탈·새로고침 뒤 결과 보관을 보장하지 않으며 공유는 페이지 링크입니다. 1/3/12룬은 별도 선택이고 새 뽑기 조건을 확인합니다. 예시는 가상 편집으로 실제 개인 결과·후기가 아니며 이미지는 분위기 연출입니다. 미래·성과·상대 마음을 확정하지 않습니다. 현재 이용권·월정석·단건 결제 조건은 결제창에서 확인합니다.",
+  "panels": [
+    {
+      "id": "01-why-the-same-choice-returns",
+      "title": "같은 선택 앞에서, 자꾸 망설여진다면.",
+      "alt": "같은 선택 앞에서, 자꾸 망설여진다면.",
+      "src": "/feature-details/crafted/rune-deep/01-why-the-same-choice-returns.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 선택 앞에서,\n자꾸 망설여진다면.\n\n시간의 흐름만으로 설명하기 어려운\n내 반응과 조심할 부분까지,\n다섯 자리의 룬으로 돌아봐요.\n\n스톤헨지 5-룬 심층 리딩\n이미지는 분위기 연출이에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-deep/01-why-the-same-choice-returns-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-the-first-three-positions",
+      "title": "지나온 일과 지금, 그리고 다음 방향.",
+      "alt": "지나온 일과 지금, 그리고 다음 방향.",
+      "src": "/feature-details/crafted/rune-deep/02-the-first-three-positions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "지나온 일과 지금,\n그리고 다음 방향.\n과거의 흐름\n\n지금의 선택에 남아 있는 흔적을 봐요.\n\n현재의 상태\n\n지금 어떤 태도와 조건을\n돌아볼지 읽어요.\n\n다가올 미래\n\n확정된 사건보다 앞으로 살필\n가능성과 방향을 생각해요.\n\n각 자리의 룬 이름·방향·핵심 해석이\n전체 풀이에 함께 제시돼요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-deep/02-the-first-three-positions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-two-positions-for-your-response",
+      "title": "나의 반응을 살피는, 두 자리가 더 있어요.",
+      "alt": "나의 반응을 살피는, 두 자리가 더 있어요.",
+      "src": "/feature-details/crafted/rune-deep/03-two-positions-for-your-response.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 반응을 살피는,\n두 자리가 더 있어요.\n타고난 성향 자리\n\n내가 자주 택하는 태도를\n상징에 비춰 생각해요.\n성격을 판정하는 검사는 아니에요.\n\n조심해야 할 부분\n\n현재의 선택에서 놓치기 쉬운\n조건을 한 번 더 살펴요.\n불행을 예고하는 자리가 아니에요.\n\n세 자리의 시간 흐름에 이 두 관점을 더한\n다섯 룬의 구성입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-deep/03-two-positions-for-your-response-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-a-pattern-is-a-question",
+      "title": "빠르게 움직이는 힘에도, 확인할 조건이 있어요.",
+      "alt": "빠르게 움직이는 힘에도, 확인할 조건이 있어요.",
+      "src": "/feature-details/crafted/rune-deep/04-a-pattern-is-a-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "빠르게 움직이는 힘에도,\n확인할 조건이 있어요.\n\n이해를 돕기 위한 예시 · 가상 편집\n\n시작이 빠른 편이라면,\n이번에도 혼자 먼저 달리고 있나요?\n주의 자리를 읽으며 역할과 일정을\n함께 확인해볼 수 있어요.\n\n상징을 내 경험과 비교하고,\n맞지 않는 해석은 그대로 받아들이기보다\n다른 가능성도 생각해보세요.\n\n실제 개인 결과나 고객 후기가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-deep/04-a-pattern-is-a-question-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-one-rune-many-practical-angles",
+      "title": "다섯 룬을 각각 열어, 생활의 언어로 읽어요.",
+      "alt": "다섯 룬을 각각 열어, 생활의 언어로 읽어요.",
+      "src": "/feature-details/crafted/rune-deep/05-one-rune-many-practical-angles.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다섯 룬을 각각 열어,\n생활의 언어로 읽어요.\n중심 뜻과 핵심 축\n\n룬의 이름·방향과 함께 읽어요.\n\n관계·일·주의점\n\n같은 상징을 생활의 다른 장면에\n적용해 생각할 수 있어요.\n\n실천과 기억할 문장\n\n행동 조언을 읽고, 상세 창에서\n이전·다음 룬으로 이동해요.\n\n뽑힌 룬을 누르면 상세 해석이 열려요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-deep/05-one-rune-many-practical-angles-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-the-whole-reading",
+      "title": "방향의 개수보다, 내게 필요한 점검을.",
+      "alt": "방향의 개수보다, 내게 필요한 점검을.",
+      "src": "/feature-details/crafted/rune-deep/06-the-whole-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "방향의 개수보다,\n내게 필요한 점검을.\n\n다섯 자리의 풀이와 전체 이야기,\n정방향·역방향 개수를 함께 봐요.\n\n역방향이 나왔다면,\n당장 포기할 이유보다\n확인할 조건을 찾아보세요.\n\n대칭 룬과 공백 룬에는 역방향이 없어요.\n방향 개수는 길흉 점수가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-deep/06-the-whole-reading-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-a-copyable-prompt",
+      "title": "읽고 남은 생각은, 질문문으로 정리해요.",
+      "alt": "읽고 남은 생각은, 질문문으로 정리해요.",
+      "src": "/feature-details/crafted/rune-deep/07-a-copyable-prompt.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "읽고 남은 생각은,\n질문문으로 정리해요.\n\n뽑힌 룬과 결과를 정리한\nAI 질문문을 만들고 복사할 수 있어요.\n\n이 기능은 질문문을 만들어요.\nAI의 새 답변을 제공하는\n추가 상담은 아니에요.\n\n해석은 룬·방향에 맞춘 준비된 내용이에요.\n현재 질문문 생성은 별도 결제 없이 동작해요.\n외부 AI의 답변·이용료는 포함하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-deep/07-a-copyable-prompt-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-five-positions-and-their-boundaries",
+      "title": "내 흐름과 반응을, 다섯 자리로 돌아봐요.",
+      "alt": "내 흐름과 반응을, 다섯 자리로 돌아봐요.",
+      "src": "/feature-details/crafted/rune-deep/08-five-positions-and-their-boundaries.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 흐름과 반응을,\n다섯 자리로 돌아봐요.\n이번 구성\n\n과거·현재·미래·성향·주의\n다섯 룬 상세·전체 풀이·질문문\n\n별도 구성\n\n1룬·3룬·12룬은 따로 선택해요.\n새 뽑기의 이용 조건을 확인해요.\n\n보관과 공유\n\n이탈 후 결과 보관을 보장하지 않아요.\n공유는 페이지 링크를 전달해요.\n\n미래·성과·상대의 마음을 확정하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-deep/08-five-positions-and-their-boundaries-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

@@ -50,6 +50,22 @@ const server=http.createServer((req,res)=>{
  await page.locator('#run-btn').click();
  await page.locator('[data-action="agreeAndCalculate"]').click();
  await page.waitForTimeout(7500);
+ // Capture the actual loading controller after the lazy saju engine has loaded.
+ for(const width of [390,1280]) {
+  await page.setViewportSize({width,height:900});
+  await page.evaluate(()=>window._sajuSetCalculationLoading(true,'calculating'));
+  await page.locator('#sajuCalcLoadingOverlay img').evaluate(img=>img.decode());
+  assert.equal(await page.locator('#sajuCalcLoadingOverlay img').evaluate(img=>getComputedStyle(img).backgroundColor),'rgba(0, 0, 0, 0)');
+  await page.screenshot({path:path.join(out,'flower-'+width+'.png')});
+  await page.evaluate(()=>window._sajuSetCalculationLoading(false,'idle'));
+ }
+ await page.evaluate(()=>window._sajuSetCalculationLoading(true,'calculating'));
+ await page.locator('#sajuCalcLoadingOverlay img').evaluate(img=>img.dispatchEvent(new Event('error')));
+ assert.equal(await page.locator('#sajuCalcLoadingOverlay img').evaluate(img=>getComputedStyle(img).display),'none');
+ assert.ok(await page.locator('#sajuCalcLoadingOverlay p').isVisible());
+ await page.evaluate(()=>window._sajuSetCalculationLoading(false,'error'));
+ await page.setViewportSize({width:390,height:844});
+
  const card=page.locator('#destinyAnatomyCard');
  await card.evaluate(el=>el.scrollIntoView({block:'start'}));await page.waitForTimeout(400);
  await page.screenshot({path:path.join(out,'initial.png')});
@@ -66,7 +82,7 @@ const server=http.createServer((req,res)=>{
  }
  await page.setViewportSize({width:390,height:900});
  await page.locator('[data-da-trigger]').focus(); await page.keyboard.press('Enter');
- assert.equal(await page.locator('[data-da-act="login"]').count(),1);
+ await page.locator('[data-da-act="login"]').waitFor({state:'attached'});
  await page.locator('[data-da-chapter="recovery"] > summary').click();
  await page.locator('[data-da-entry="chakra-root"] > summary').click();
  await page.locator('[data-da-sec="habits"]').screenshot({path:path.join(out,'habits.png')});
@@ -113,7 +129,13 @@ const server=http.createServer((req,res)=>{
     await page.evaluate(()=>window.scrollTo({top:window.scrollY+document.getElementById('destinyAnatomyCard').getBoundingClientRect().top-20,behavior:'instant'}));
     await page.waitForTimeout(180);await page.screenshot({path:path.join(out,'screen-'+width+'.png')});
    }
-   if(width===390){const d=page.waitForEvent('download');await page.locator('[data-da-act="save"]').click();await (await d).saveAs(path.join(out,'share-'+L+'.png'));}
+   if(width===390){
+    for(const format of ['feed','story']) {
+     await page.locator('[data-da-format="'+format+'"]').click();
+     const d=page.waitForEvent('download');await page.locator('[data-da-act="save"]').click();
+     await (await d).saveAs(path.join(out,'share-'+L+'-'+format+'.png'));
+    }
+   }
   }
  }
  const report={source:'real static shell, real saju calculation; authentication and chart responses mocked; all other API and external traffic blocked',capture:'content-visibility:auto optimization disabled for whole-element captures only',results,errors,apis};

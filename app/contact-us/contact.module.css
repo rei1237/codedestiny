@@ -1,0 +1,55 @@
+.page { --contact-on-accent: #fffaf7; }
+.page :global(.policy-doc__single) { max-width: none; }
+.page .hero { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 32px 8px 36px; }
+.page .hero h1 { font-size: clamp(1.8rem, 4.5vw, 2.8rem); }
+.page .hero p { margin: 16px 0 0; color: var(--pg-muted); line-height: 1.8; }
+.mascot { width: 112px; height: 112px; flex-shrink: 0; object-fit: contain; border-radius: 24px; }
+.channels { display: grid; grid-template-columns: 1.25fr 1fr; gap: 24px; margin-bottom: 28px; }
+.page .chat, .page .email { display: flex; flex-direction: column; align-items: flex-start; padding: clamp(24px, 4vw, 36px); border: 1px solid var(--pg-line); border-radius: 24px; scroll-margin-top: 88px; }
+.page .chat { background: var(--pg-surface); }
+.page .email { background: var(--pg-card); }
+.page .channelIcon { width: 30px; height: 30px; margin-bottom: 20px; color: var(--pg-accent); stroke-width: 1.6; }
+.page .channels h2 { font-size: clamp(1.25rem, 2.8vw, 1.6rem); margin: 0; }
+.page .channels p { margin: 12px 0 20px; color: var(--pg-muted); font-size: 0.94rem; line-height: 1.8; word-break: keep-all; }
+.hours { display: flex; gap: 12px; align-items: center; margin: 0 0 24px; color: var(--pg-ink); }
+.hours svg { width: 20px; height: 20px; color: var(--pg-accent); flex-shrink: 0; }
+.hours span { display: grid; gap: 2px; }
+.hours strong { font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+.hours small { font-size: 0.8rem; color: var(--pg-muted); }
+.page .primaryAction, .page .secondaryAction { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 52px; padding: 12px 20px; border-radius: 12px; font-size: 0.94rem; font-weight: 700; text-decoration: none; transition: background-color 160ms ease, color 160ms ease; }
+.page .chat .primaryAction { width: 100%; background: var(--pg-accent); color: var(--contact-on-accent); }
+.page .primaryAction:hover { background: color-mix(in srgb, var(--pg-accent) 88%, var(--pg-ink)); }
+.page .secondaryAction { margin-top: auto; border: 1px solid var(--pg-line); color: var(--pg-accent); }
+.page .secondaryAction:hover { background: var(--pg-surface); }
+.primaryAction svg, .secondaryAction svg, .emailAddress svg { width: 18px; height: 18px; flex-shrink: 0; }
+.page .caption, .page .channels .caption { margin: 14px 0 0; font-size: 0.8rem; line-height: 1.75; color: var(--pg-muted); }
+.page .emailAddress { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 0.95rem; font-weight: 700; overflow-wrap: anywhere; }
+.page .email .caption { margin: 8px 0 24px; }
+.prepare { display: flex; align-items: flex-start; gap: 16px; padding: 0 8px; margin: 0 0 24px; }
+.prepare > svg { width: 24px; height: 24px; flex-shrink: 0; margin-top: 3px; color: var(--pg-accent); }
+.page .prepare h2 { margin: 0 0 8px; font-size: 1rem; font-family: inherit; }
+.page .prepare p { margin: 0; max-width: 70ch; color: var(--pg-muted); font-size: 0.88rem; line-height: 1.85; }
+.page .prepare .caption { margin-top: 6px; }
+.quickLinks { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 12px 8px 24px; margin-bottom: 32px; border-bottom: 1px solid var(--pg-line); }
+.page .quickLinks a { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; font-size: 0.88rem; font-weight: 700; text-decoration: none; }
+.quickLinks svg, .sectionHeading svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--pg-accent); stroke-width: 1.6; }
+.page .sectionHeading { display: flex; align-items: flex-start; gap: 10px; }
+.sectionHeading svg { margin-top: 4px; }
+.page :global(#contact-form) { scroll-margin-top: 88px; }
+.page a:focus-visible { outline: 3px solid var(--pg-accent); outline-offset: 4px; }
+.page ::selection { background: var(--pg-accent); color: var(--contact-on-accent); }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (max-width: 600px) {
+  .page .hero { align-items: flex-start; gap: 12px; padding: 16px 4px 28px; }
+  .page .hero h1 { max-width: 11ch; }
+  .page .hero p { font-size: 0.9rem; }
+  .mascot { width: 72px; height: 72px; border-radius: 18px; }
+  .channels { grid-template-columns: 1fr; gap: 16px; }
+  .page .chat, .page .email { border-radius: 20px; padding: 24px; }
+  .page .channelIcon { margin-bottom: 14px; }
+  .page .secondaryAction { width: 100%; }
+  .quickLinks { gap: 4px 20px; }
+}
+@media (prefers-color-scheme: dark) { .page { --contact-on-accent: #21182a; } }
+:global(html.neo-mode) .page, :global(html[data-cd-theme="neo"]) .page { --contact-on-accent: #21182a; }
+@media (prefers-reduced-motion: reduce) { .page .primaryAction, .page .secondaryAction { transition: none; } }

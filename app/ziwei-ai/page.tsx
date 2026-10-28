@@ -11,7 +11,7 @@ import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/ziwei-ai/";
-const PAGE_TITLE = "자미두수 전문가 상담 | 명궁·사화·대운 풀이 — Code Destiny";
+const PAGE_TITLE = "자미두수 전문가 상담 | 명궁·사화·대운 풀이 — 꿀꿀 운세";
 const PAGE_DESCRIPTION =
   "명궁과 신궁, 사화와 대운의 흐름을 따라 지금의 고민을 읽는 자미두수 전문가 상담입니다. 12궁 명반 위에서 직업·인연·재물의 결을 풀어 드립니다.";
 

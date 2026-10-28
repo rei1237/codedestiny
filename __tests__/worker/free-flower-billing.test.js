@@ -1,21 +1,27 @@
 /** @jest-environment node */
-import {jest} from '@jest/globals';
 import {getBillingFeaturePricing,assertFeatureEnabled} from '../../worker/lib/billing-feature-registry.js';
 import {resolveLegacyProduct} from '../../worker/payments/legacy-pricing.js';
 import {createOrder} from '../../worker/payments/orders.js';
-import {spendMoonstone} from '../../worker/payments/moonstone.js';
+import {getPaidFeatureBillingType} from '../../worker/lib/paid-feature-registry.js';
+import {makeFakePaymentDb} from '../fixtures/fake-payment-db.mjs';
 
 const userId='507f1f77bcf86cd799439011';
-const product={featureKey:'flower-fc',priceKRW:1000,priceCoins:10,monthlyCost:10};
-test('historical flower pricing still resolves, while new purchases are disabled',()=>{
- expect(getBillingFeaturePricing({featureKey:'flower-fc'}).pricing.amountKRW).toBe(1000);
- expect(assertFeatureEnabled(product)).toMatchObject({ok:false,code:'FEATURE_NOW_FREE'});
- expect(()=>resolveLegacyProduct({featureKey:'openDestinyFlowerStudio'})).toThrow();
+const product={featureKey:'flower-fc',priceKRW:5000,priceCoins:50,monthlyCost:500};
+test('flower pricing resolves and new purchases are enabled',()=>{
+ expect(getBillingFeaturePricing({featureKey:'flower-fc'}).pricing.amountKRW).toBe(5000);
+ expect(assertFeatureEnabled(product)).toMatchObject({ok:true});
+ expect(resolveLegacyProduct({featureKey:'openDestinyFlowerStudio'})).toMatchObject({featureKey:'flower-fc',priceKRW:5000,priceCoins:50});
  expect(assertFeatureEnabled({featureKey:'olympus-fc'}).ok).toBe(true);
 });
-test('new flower orders and moonstone spends stop before writing or consuming',async()=>{
- const db={findOneAndUpdate:jest.fn(),insertOne:jest.fn()},consumeLots=jest.fn();
- await expect(createOrder(db,{userId,product,idempotencyKey:'flower-new'})).rejects.toMatchObject({code:'FEATURE_NOW_FREE'});
- await expect(spendMoonstone(db,{userId,product,purchaseId:'flower-new'},{consumeLots})).rejects.toMatchObject({code:'FEATURE_NOW_FREE'});
- expect(db.findOneAndUpdate).not.toHaveBeenCalled();expect(db.insertOne).not.toHaveBeenCalled();expect(consumeLots).not.toHaveBeenCalled();
+test('new flower orders use the restored 5,000 won snapshot',async()=>{
+ const db=makeFakePaymentDb();
+ const order=await createOrder(db,{userId,product,idempotencyKey:'flower-new'});
+ expect(order).toMatchObject({paymentAmount:5000,expectedChargedPoints:50,status:'pending'});
+ expect(order.pricingSnapshot).toMatchObject({priceKRW:5000,priceCoins:50});
+});
+test('bias destiny is a 5,000 won per-use product',()=>{
+ const pricing=getBillingFeaturePricing({featureKey:'destiny-bias-analyze'}).pricing;
+ expect(pricing).toMatchObject({featureKey:'destiny-bias-analyze',cost:50,amountKRW:5000});
+ expect(getPaidFeatureBillingType('destiny-bias-analyze')).toBe('per_use');
+ expect(assertFeatureEnabled(pricing)).toMatchObject({ok:true});
 });

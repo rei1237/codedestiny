@@ -18,6 +18,7 @@
  *   ④ UNWIRED_BACKLOG 가 가리키는 호출부가 없음  → 실패
  *   ⑤ 서술자 `kind` 에 등록된 핸들러가 없음      → 실패 ('지금 열기' 카드로만 떨어지는 상태)
  *   ⑥ 등록됐는데 아무도 안 쓰는 `kind`           → 실패 (리네임 뒤 남은 죽은 배선)
+ *   + 셸 단건 결제(`_cdRunDirectKrwCheckout`)로 사주 섹션을 영구 해금하는 자리가 서술자를 싣는지
  *   + 재개 계약 정본(js/core/checkout-entry.js · app/hooks/usePaidResume.ts)의 배선이 살아 있는지
  *   + 이 가드가 읽는 메커니즘 파일이 워크플로 트리거 paths 에 있는지 (원칙 10)
  *
@@ -107,6 +108,18 @@ const UNWIRED_BACKLOG = [
  * 정적 축에서만 대조한다. 여기 항목이 늘어나면 그만큼 "짝을 확인 못 한 kind" 가 있다는 뜻이다.
  */
 const UNRESOLVED_STATIC_KINDS = [];
+
+/**
+ * 셸 단건 결제 직접 호출 중 **사주 섹션 영구 해금**(라이트 사주 풀이·대운) 자리. [감싼 함수, featureKey 식별자].
+ * `_cdRunDirectKrwCheckout` 은 내부 재시도·전달자·회차 결제까지 아홉 곳에서 불려 전수 대상이 아니다.
+ * 이 두 자리는 위 게이트를 거치지 않고 단건으로 바로 가므로, 서술자가 빠지면 모바일 리다이렉트 복귀 뒤
+ * 산 섹션이 열리지 않고 빈 입력 폼이 남는다(2026-10-22 실제 결함).
+ * 🔴 항목마다 정확히 한 호출부와 만나고 resume 을 실어야 한다. 0곳·2곳이면 실패한다.
+ */
+const SHELL_DIRECT_CHECKOUT_SITES = [
+  ["tryUnlockFeature", "featureKey"],
+  ["", "tileLockKey"], // 보고서 타일 잠금 게이트 — 이름 없는 클릭 위임 핸들러 안에 있다
+];
 
 /* ────────────────────────────────────────────────────────────────────────────
    1. 파일 수집 — React 축(app·src·components) + 정적 축(index.html·루트 *.html·js/**)
@@ -415,6 +428,59 @@ assert.ok(
   `정적 축 유료 게이트 호출부를 하나도 찾지 못했습니다. STATIC_GATES 의 함수 이름(${[...STATIC_GATES.keys()].join(", ")})이 바뀌었는지 확인하세요 — 가드가 조용히 무력화된 상태입니다.`,
 );
 
+/** `(window._cdRunDirectKrwCheckout || _cdRunDirectKrwCheckout)(…)` 처럼 괄호·`||` 로 감싼 callee 도 푼다. */
+function calleeNames(expression) {
+  let node = expression;
+  while (ts.isParenthesizedExpression(node)) node = node.expression;
+  if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.BarBarToken) {
+    return [...calleeNames(node.left), ...calleeNames(node.right)];
+  }
+  if (ts.isIdentifier(node)) return [node.text];
+  if (ts.isPropertyAccessExpression(node) && ts.isIdentifier(node.name)) return [node.name.text];
+  return [];
+}
+
+const shellDirectKey = (fn, featureKey) => `${fn}::${featureKey}`;
+const shellDirectHits = new Map(SHELL_DIRECT_CHECKOUT_SITES.map(([fn, featureKey]) => [shellDirectKey(fn, featureKey), []]));
+for (const unit of staticUnits) {
+  const visit = (node) => {
+    if (ts.isCallExpression(node) && calleeNames(node.expression).includes("_cdRunDirectKrwCheckout")
+      && node.arguments[0] && ts.isObjectLiteralExpression(node.arguments[0])) {
+      const props = node.arguments[0].properties;
+      const valueOf = (key) => {
+        const prop = props.find((item) => ts.isPropertyAssignment(item) && ts.isIdentifier(item.name) && item.name.text === key);
+        return prop ? prop.initializer : null;
+      };
+      const featureKey = valueOf("featureKey");
+      const hits = featureKey && ts.isIdentifier(featureKey)
+        ? shellDirectHits.get(shellDirectKey(enclosingFunctionName(node), featureKey.text))
+        : null;
+      if (hits) {
+        const resume = valueOf("resume");
+        hits.push({
+          where: `${unit.rel}:${unit.line(node)}`,
+          hasResume: Boolean(resume) && resume.kind !== ts.SyntaxKind.NullKeyword
+            && !(ts.isIdentifier(resume) && resume.text === "undefined"),
+        });
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  ts.forEachChild(unit.sourceFile, visit);
+}
+
+const shellDirectFailures = [];
+for (const [fn, featureKey] of SHELL_DIRECT_CHECKOUT_SITES) {
+  const hits = shellDirectHits.get(shellDirectKey(fn, featureKey));
+  const label = `${fn || "(이름 없는 핸들러)"} · featureKey: ${featureKey}`;
+  if (hits.length !== 1) {
+    shellDirectFailures.push(`${label} — _cdRunDirectKrwCheckout 호출부가 ${hits.length}곳입니다(정확히 1곳이어야 합니다). 감싼 함수나 featureKey 식별자를 바꿨다면 SHELL_DIRECT_CHECKOUT_SITES 도 함께 고치세요.`);
+  } else if (!hits[0].hasResume) {
+    shellDirectFailures.push(`${hits[0].where} ${label} — 단건 결제에 resume 서술자를 싣지 않습니다. 모바일 리다이렉트 복귀 뒤 산 사주 섹션이 열리지 않습니다(_cdBuildSajuSectionUnlockResume).`);
+  }
+}
+assert.deepEqual(shellDirectFailures, [], `\n사주 섹션 단건 결제 자리의 재개 배선이 어긋났습니다:\n${shellDirectFailures.join("\n")}\n`);
+
 /* ────────────────────────────────────────────────────────────────────────────
    4. kind ↔ 핸들러 짝맞춤 (정적 축)
    ──────────────────────────────────────────────────────────────────────────── */
@@ -670,6 +736,7 @@ assert.deepEqual(unexpectedUnresolved, [], `\n재개 kind 를 정적으로 풀�
     "js/animal-totem-experience.js",
     "js/core/index-inline-runtime.js",
     "js/oracle-kcg.js",
+    "index.html",
     // 🔴 루트 자산이라 js/** 에 안 걸린다 — 위 정적 스캔이 루트 *.js 를 읽으므로 트리거에도 있어야 한다.
     "PhysiognomyUI.js",
     "PastLifeFaceUI.js",
@@ -687,7 +754,8 @@ assert.deepEqual(unexpectedUnresolved, [], `\n재개 kind 를 정적으로 풀�
 const wiredReact = reactSites.filter((site) => site.hasResume).length;
 const wiredStatic = staticSites.filter((site) => site.hasResume).length;
 console.log(
-  `[verify-paid-resume-wiring] PASS — 게이트 호출부 React ${wiredReact}/${reactSites.length} · 정적 ${wiredStatic}/${staticSites.length} 배선,`
+  `[verify-paid-resume-wiring] PASS — 게이트 호출부 React ${wiredReact}/${reactSites.length} · 정적 ${wiredStatic}/${staticSites.length}`
+  + ` · 사주 섹션 단건 ${SHELL_DIRECT_CHECKOUT_SITES.length}/${SHELL_DIRECT_CHECKOUT_SITES.length} 배선,`
   + ` 재개 kind ${registeredKinds.size}개가 핸들러와 짝을 이룹니다.`,
 );
 if (backlog.size > 0) {

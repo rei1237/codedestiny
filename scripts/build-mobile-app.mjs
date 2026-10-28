@@ -6,7 +6,7 @@
 // 하는 일:
 //   1) 모든 HTML의 <head> 최상단에 앱 가드를 주입한다
 //      — destiny-profile.js보다 먼저 실행돼야 PortOne 경로를 가로챌 수 있다.
-//   2) 앱에 없는 라우트를 산출물에서 제거한다(웹 결제 스토어 + SEO 전용 문서).
+//   2) 웹 결제 스토어만 제거한다(구매 내역과 읽기 콘텐츠는 유지).
 //   3) 죽은 자산을 제거한다(참조 0건 디렉터리 + webp 쌍이 있는 PNG 원본).
 //   4) 남아 있는 위반 지점을 검사하고, 발견되면 빌드를 실패시킨다.
 //
@@ -29,7 +29,8 @@ const BRIDGE_SOURCE = path.join(ROOT, "scripts", "app-native-bridge.js");
 const BRIDGE_PUBLIC_PATH = "/js/app-native-bridge.js";
 // 앱 번들은 https://localhost 출처에서 서빙되나 그 출처엔 서버가 없다. 모든 /api/* 호출이
 // 프로덕션 워커로 가도록 API base 를 가장 먼저 확정한다(가드·api-config 가 이 값을 읽음).
-const API_BASE_INLINE = `<script>window.CODE_DESTINY_API_BASE_URL=window.CODE_DESTINY_API_BASE_URL||"https://code-destiny.com";</script>`;
+// API 초기화는 외부 브릿지의 첫 실행으로 옮긴다. React가 소유한 head 앞에 인라인
+// 스크립트를 추가하면 기존 인라인 노드와 순서가 어긋나 hydration #418이 발생한다.
 // 앱은 https://localhost 출처라, assets.code-destiny.com 의 호트링크 보호(Cloudflare)가
 // Referer=https://localhost 인 프리미엄 캐릭터 컷아웃 요청을 403(error 1011)으로 막는다.
 // (webp·리사이즈 등 대부분은 통과하지만, 대형 -Photoroom.png 컷아웃과 노벨 CDN 자산이 걸린다.)
@@ -39,15 +40,14 @@ const API_BASE_INLINE = `<script>window.CODE_DESTINY_API_BASE_URL=window.CODE_DE
 const REFERRER_META = `<meta name="referrer" content="no-referrer">`;
 // 브릿지가 가드보다 먼저다 — 브릿지가 런타임 타깃 플래그를 심고 window.CodeDestinyNative를
 // 설치한다. (가드는 결제 시점에 지연 조회하므로 순서에 엄격하진 않지만, 명시적으로 둔다.)
-const GUARD_TAG = `${REFERRER_META}${API_BASE_INLINE}<script src="${BRIDGE_PUBLIC_PATH}"></script><script src="${GUARD_PUBLIC_PATH}"></script>`;
+const GUARD_TAG = `${REFERRER_META}<script src="${BRIDGE_PUBLIC_PATH}"></script><script src="${GUARD_PUBLIC_PATH}"></script>`;
 
 // 앱에 없는 라우트. scripts/app-payment-guard.js의 PRUNED_ROUTES와 짝을 이룬다 —
 // 여기서 파일을 지우고, 가드가 남은 링크를 제거한다. 한쪽만 하면 404가 난다.
 //
 //   points / premium-unlock : 웹 결제 스토어(PortOne). 앱은 /app/store를 쓴다.
-//   insights / famous-saju  : SEO 전용 문서. 앱 사용자는 도달할 일이 없는데
-//                             압축 후 28MB를 차지한다.
-const REMOVED_ROUTE_DIRS = ["points", "premium-unlock", "insights", "famous-saju"];
+//   points/history, insights, famous-saju : 동일 계정 기록과 읽기 콘텐츠이므로 보존한다.
+const REMOVED_ROUTE_DIRS = ["premium-unlock"];
 const LOCALE_PREFIXES = ["", "en", "ja", "zh", "zh-tw"];
 
 // 자산은 목록으로 지우지 않는다 — 반드시 참조 검사를 거친다.
@@ -94,7 +94,7 @@ async function installGuardAsset() {
   return targets;
 }
 
-function injectGuardTag(html) {
+export function injectGuardTag(html) {
   if (html.includes(GUARD_PUBLIC_PATH)) return { html, changed: false };
 
   // 다른 스크립트(특히 destiny-profile.js)보다 먼저 실행돼야 결제 경로를 가로챌 수 있다.
@@ -134,20 +134,30 @@ async function aliasStandaloneHtmlRoutes() {
   return aliased;
 }
 
-async function removeAppForbiddenRoutes() {
+export async function removeAppForbiddenRoutes(dist = DIST) {
   const removed = [];
   for (const prefix of LOCALE_PREFIXES) {
     for (const route of REMOVED_ROUTE_DIRS) {
-      const dir = path.join(DIST, prefix, route);
+      const dir = path.join(dist, prefix, route);
       if (!(await exists(dir))) continue;
       await fs.rm(dir, { recursive: true, force: true });
-      removed.push(path.relative(DIST, dir).replace(/\\/g, "/"));
+      removed.push(path.relative(dist, dir).replace(/\\/g, "/"));
     }
-    for (const route of REMOVED_ROUTE_DIRS) {
-      const file = path.join(DIST, prefix, `${route}.html`);
+    // /points/history 는 같은 서버 계정의 결제 내역이다. 웹 결제 진입 파일만 제거한다.
+    for (const route of [...REMOVED_ROUTE_DIRS, "points"]) {
+      const file = path.join(dist, prefix, `${route}.html`);
       if (!(await exists(file))) continue;
       await fs.rm(file, { force: true });
-      removed.push(path.relative(DIST, file).replace(/\\/g, "/"));
+      removed.push(path.relative(dist, file).replace(/\\/g, "/"));
+    }
+    const pointsDir = path.join(dist, prefix, "points");
+    if (await exists(pointsDir)) {
+      for (const entry of await fs.readdir(pointsDir, { withFileTypes: true })) {
+        if (entry.name === "history" && entry.isDirectory()) continue;
+        const target = path.join(pointsDir, entry.name);
+        await fs.rm(target, { recursive: true, force: true });
+        removed.push(path.relative(dist, target).replace(/\\/g, "/"));
+      }
     }
   }
   return removed;
@@ -223,6 +233,7 @@ async function removeDeadPngOriginals(referenced) {
   const pngFiles = await walk(DIST, (file) => file.toLowerCase().endsWith(".png"));
   const removed = [];
   for (const png of pngFiles) {
+    if (isTalismanOriginal(png, DIST)) continue;
     const webpTwin = `${png.slice(0, -4)}.webp`;
     if (!(await exists(webpTwin))) continue;
     const name = path.basename(png);
@@ -249,6 +260,9 @@ const RESIZABLE_EXTENSIONS = new Set([".webp", ".png", ".jpg", ".jpeg"]);
 // AVIF variants were copied at source quality and bypassed the mobile budget.
 // Keep every URL/format, including responsive alternatives; only encode the app copy.
 const OPTIMIZABLE_EXTENSIONS = new Set([...RESIZABLE_EXTENSIONS, ".avif"]);
+export function isTalismanOriginal(file, dist = DIST) {
+  return path.relative(dist, file).replace(/\\/g, "/").startsWith("assets/talismans/originals/");
+}
 export function mobileImageCacheKey(input, filename, versions) {
   const ext = path.extname(filename).toLowerCase();
   const quality = CRISP_PATTERNS.some(p => path.basename(filename).toLowerCase().includes(p)) ? IMAGE_QUALITY_CRISP : IMAGE_QUALITY_DEFAULT;
@@ -272,7 +286,7 @@ export async function removeRedundantImageCopies(referenced, dist = DIST) {
   const removed = [];
   for (const copies of byDigest.values()) {
     if (copies.length < 2) continue;
-    const dead = copies.filter((file) => !referenced.has(path.basename(file)));
+    const dead = copies.filter((file) => !isTalismanOriginal(file, dist) && !referenced.has(path.basename(file)));
     const drop = dead.length === copies.length ? dead.slice(1) : dead;
     for (const file of drop) {
       const bytes = (await fs.stat(file)).size;
@@ -307,6 +321,7 @@ export async function shrinkOversizedImages(dist = DIST) {
   async function resizeWorker() {
    while (cursor < images.length) {
     const image = images[cursor++];
+    if (isTalismanOriginal(image, dist)) { skipped += 1; continue; }
     const input = await fs.readFile(image);
     const before = input.length;
     const ext = path.extname(image).toLowerCase();

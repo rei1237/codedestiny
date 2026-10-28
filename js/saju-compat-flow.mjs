@@ -63,12 +63,12 @@ export function sajuCompatEvidenceFromGrant(grant, requestId) {
 }
 
 /** 생성 POST 본문. facts 는 엔진이 확정한 값 그대로(서버가 일관성을 다시 검증한다), 서술 필드는 없다. */
-export function buildSajuCompatBody({ selfPillars, partnerPillars, compatType, partnerName, compatFacts, pastLifeFacts, requestId, evidence }) {
+export function buildSajuCompatBody({ selfPillars, partnerPillars, selfTimeUnknown = false, partnerTimeUnknown = false, compatType, partnerName, compatFacts, pastLifeFacts, requestId, evidence }) {
   const body = {
     compatType: text(compatType) || "love",
     partnerName: Array.from(text(partnerName)).slice(0, PARTNER_NAME_MAX).join(""),
-    self: pillarsToWire(selfPillars),
-    partner: pillarsToWire(partnerPillars),
+    self: { ...pillarsToWire(selfPillars), ...(selfTimeUnknown ? { birthTimeUnknown: true } : {}) },
+    partner: { ...pillarsToWire(partnerPillars), ...(partnerTimeUnknown ? { birthTimeUnknown: true } : {}) },
     facts: { ...(compatFacts || {}), pastLife: pastLifeFacts },
   };
   const ev = evidence && typeof evidence === "object" ? evidence : {};

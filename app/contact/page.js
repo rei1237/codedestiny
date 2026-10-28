@@ -4,19 +4,19 @@ import ContactUsPage from "../contact-us/page";
 
 const CONTACT_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "Contact | 문의하기 — Code Destiny",
-    description: "Code Destiny 문의 페이지입니다. 이메일 폼으로 서비스 문의를 남길 수 있습니다.",
-    keywords: ["Contact", "문의하기", "Code Destiny"],
+    title: "Contact | 문의하기 — 꿀꿀 운세",
+    description: "꿀꿀운세 고객지원 페이지입니다. 서비스 이용, 결제 내역 확인, 개인정보 관련 요청을 채널톡 또는 이메일 문의 폼으로 접수하고 문의 유형별 안내를 확인하세요.",
+    keywords: ["Contact", "문의하기", "꿀꿀운세"],
   },
   en: {
-    title: "Contact | Code Destiny",
-    description: "Leave a service inquiry for Code Destiny through the email form.",
-    keywords: ["Contact", "Support", "Code Destiny"],
+    title: "Contact | 꿀꿀 운세",
+    description: "Leave a service inquiry for 꿀꿀운세 through the email form.",
+    keywords: ["Contact", "Support", "꿀꿀운세"],
   },
   ja: {
-    title: "お問い合わせ | Code Destiny",
-    description: "メールフォームからCode Destinyへのサービスお問い合わせを送信できます。",
-    keywords: ["お問い合わせ", "サポート", "Code Destiny"],
+    title: "お問い合わせ | 꿀꿀 운세",
+    description: "メールフォームから꿀꿀운세へのサービスお問い合わせを送信できます。",
+    keywords: ["お問い合わせ", "サポート", "꿀꿀운세"],
   },
 };
 

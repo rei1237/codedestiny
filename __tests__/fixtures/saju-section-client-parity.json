@@ -1,0 +1,3671 @@
+{
+ "now": "2026-10-12T03:00:00.000Z",
+ "cases": [
+  {
+   "id": "solar-m-1990",
+   "date": "1990-05-15",
+   "calType": "solar",
+   "hour": 14,
+   "minute": 30,
+   "gender": "M",
+   "name": "민수"
+  },
+  {
+   "id": "solar-f-1985",
+   "date": "1985-11-02",
+   "calType": "solar",
+   "hour": 6,
+   "minute": 5,
+   "gender": "F",
+   "name": "지은"
+  },
+  {
+   "id": "unknown-f-1978",
+   "date": "1978-02-04",
+   "calType": "solar",
+   "hour": null,
+   "minute": null,
+   "timeKnown": false,
+   "gender": "F"
+  },
+  {
+   "id": "lunar-m-1962",
+   "date": "1962-08-15",
+   "calType": "lunar",
+   "hour": 23,
+   "minute": 40,
+   "gender": "M",
+   "name": "Lee"
+  },
+  {
+   "id": "leap-f-2020",
+   "date": "2020-04-10",
+   "calType": "lunar_leap",
+   "hour": 0,
+   "minute": 15,
+   "gender": "F"
+  },
+  {
+   "id": "newyear-m-2001",
+   "date": "2001-01-01",
+   "calType": "solar",
+   "hour": 0,
+   "minute": 15,
+   "gender": "M"
+  },
+  {
+   "id": "ny-f-1995",
+   "date": "1995-07-20",
+   "calType": "solar",
+   "hour": 9,
+   "minute": 0,
+   "gender": "F",
+   "place": {
+    "name": "미국 (뉴욕)",
+    "longitude": -74,
+    "latitude": 40.7,
+    "timezone": "America/New_York",
+    "baseTzOffset": -5
+   }
+  },
+  {
+   "id": "old-m-1941",
+   "date": "1941-03-21",
+   "calType": "solar",
+   "hour": 18,
+   "minute": 45,
+   "gender": "M"
+  },
+  {
+   "id": "young-f-2015",
+   "date": "2015-12-31",
+   "calType": "solar",
+   "hour": 12,
+   "minute": 0,
+   "gender": "F"
+  },
+  {
+   "id": "jong-confirmed",
+   "date": "1953-05-07",
+   "calType": "solar",
+   "hour": 10,
+   "minute": 0,
+   "gender": "M",
+   "jong": "confirmed"
+  },
+  {
+   "id": "jong-rejected",
+   "date": "1953-05-07",
+   "calType": "solar",
+   "hour": 10,
+   "minute": 0,
+   "gender": "M",
+   "jong": "rejected"
+  },
+  {
+   "id": "jong-unverified",
+   "date": "1953-05-07",
+   "calType": "solar",
+   "hour": 10,
+   "minute": 0,
+   "gender": "M",
+   "jong": "unverified"
+  },
+  {
+   "id": "hwa-confirmed",
+   "date": "1953-01-23",
+   "calType": "solar",
+   "hour": 10,
+   "minute": 0,
+   "gender": "F",
+   "jong": "confirmed"
+  }
+ ],
+ "renders": [
+  {
+   "id": "solar-m-1990",
+   "mode": "pig",
+   "summary": "4c2c945c2b278e15e9dc8899021171343376d720629f866e23323023fd8dd53f",
+   "daewun": [
+    [
+     8,
+     "壬午",
+     "8d0fe846e09f2aa164419e8f2013eec722fd75d9e683cacafa4e42e6cdcfd80f"
+    ],
+    [
+     18,
+     "癸未",
+     "7eae437a9cc95936fad329d751f3d646099e090475b5b1adb6a173e3c33f8d3a"
+    ],
+    [
+     28,
+     "甲申",
+     "a379dfe39269a9935f48cc04f7adfec2f358c8ab1ab755b319fd0f7c1c05dc9f"
+    ],
+    [
+     38,
+     "乙酉",
+     "6ea49dc03c675b97199d919dd3bf9608ca66ef2ca841c106d796f39736cc1fbf"
+    ],
+    [
+     48,
+     "丙戌",
+     "eccf78f616f2eab97f63e4db08d188dc773950bc33d1c34f7d30385de622cf30"
+    ],
+    [
+     58,
+     "丁亥",
+     "a002084a4a7cc611be14763ebb3b9ff9221204b530430d908b26abc5a00c9f1c"
+    ],
+    [
+     68,
+     "戊子",
+     "885bb0a7d655ad9b0d51e81fef0ebf136797cb05c1d775ff3342392c7fa2c235"
+    ],
+    [
+     78,
+     "己丑",
+     "e4fd87479004f51cb2496aedc3b6050d1b3f6ef961ff9f4e88b2a5dab9f4d013"
+    ],
+    [
+     88,
+     "庚寅",
+     "7de302e21773aa670583649d96d20bb84fa6b5aed1156137ac88d9a0e9e7a5f8"
+    ]
+   ]
+  },
+  {
+   "id": "solar-m-1990",
+   "mode": "neo",
+   "summary": "662fa535a7b0a89c7a11aef9e9265521abd7babc6b260d8456ee8ac12b8722df",
+   "daewun": [
+    [
+     8,
+     "壬午",
+     "7b817055021b71d6b9dd970aa8a508547e11351bea17d438b1dde52625d22609"
+    ],
+    [
+     18,
+     "癸未",
+     "00d4376d07db2b1aff7fdb9d16de8fe3bba022122478b41654b2cd8aaf883887"
+    ],
+    [
+     28,
+     "甲申",
+     "cb2c6dd07af0c30b7e96661abde9003bc80e2432902b374b1eba8bac630de8a3"
+    ],
+    [
+     38,
+     "乙酉",
+     "f5d3971e3dd12a4b7528d624c6f1d8e03d036eef14d0a4684cd4343ccba94f5f"
+    ],
+    [
+     48,
+     "丙戌",
+     "05e6f23be744376f854fa4df367c1f4621d3f77bf5349d90fe3b3ea7c6c9fa63"
+    ],
+    [
+     58,
+     "丁亥",
+     "5526ea856ca2b109415804e27bb04ac643e4ed84243352c09867287f84d704bc"
+    ],
+    [
+     68,
+     "戊子",
+     "171c3f6ad7fb76fd039ecbb58d19b3f275bc74deb8dbbd25feeda5e8e1482ef7"
+    ],
+    [
+     78,
+     "己丑",
+     "6f555ce0ef7844460d919d26c43750c05a6e924a9512fda0b533bf35fdcd91c5"
+    ],
+    [
+     88,
+     "庚寅",
+     "e7e579ad4089fa5f01884798e02dd4831e8d627e8a98dab499316374b3ce7175"
+    ]
+   ]
+  },
+  {
+   "id": "solar-f-1985",
+   "mode": "pig",
+   "summary": "e25419491c456d629f721dbcf8d66879937914093f3ecf5aecfae3b72b28b3f6",
+   "daewun": [
+    [
+     3,
+     "丁亥",
+     "eb7d92f4b716896446e10738e8161c3a361201cdc4d1a5d92238296dc72ee063"
+    ],
+    [
+     13,
+     "戊子",
+     "8fea3ebd38636c1eaa653feeb4b9501459a72449f802a8cbdca760ce6658f9f0"
+    ],
+    [
+     23,
+     "己丑",
+     "f7416f25418427ee1e9e16ef6bcd2aef2c936e59e31cf85c85020ef557111438"
+    ],
+    [
+     33,
+     "庚寅",
+     "7d0b5c5b0c8a34b4f233375b1df38d20492931398642e75b935679d2dd79428d"
+    ],
+    [
+     43,
+     "辛卯",
+     "6c7a6739b0d7b9e6d4e53c6a76a432fdea6e776e287840755398db85c33a3abb"
+    ],
+    [
+     53,
+     "壬辰",
+     "25bc66daf978efcb753b4c76efa183487ac980050cb179fa13b15f7ec5c84e5a"
+    ],
+    [
+     63,
+     "癸巳",
+     "486efc90d80e240d367c82f9983dba73445777a043ad2e3d489c525746a70091"
+    ],
+    [
+     73,
+     "甲午",
+     "315a2844bd03c99af9901e803971409fada0b27555b9027653720146c360e6a0"
+    ],
+    [
+     83,
+     "乙未",
+     "d0528179ec4546611a0c4eae39360c4c0f131f1929ec66b4009ea24fbec07873"
+    ]
+   ]
+  },
+  {
+   "id": "solar-f-1985",
+   "mode": "neo",
+   "summary": "6ed679d0d8130efd736a8a338b694494028bc31a16c969c42dbaed2f68ba8ee8",
+   "daewun": [
+    [
+     3,
+     "丁亥",
+     "64f7c850c213e37bb191a5912b4c6225c007dab056e082f71abc93eb54dfa104"
+    ],
+    [
+     13,
+     "戊子",
+     "7995c5ebc095dcba8892b2b9d8957046c908efb16528be8c31b38cf543bb6dca"
+    ],
+    [
+     23,
+     "己丑",
+     "58db7c198e0377391683d33778243f129d815428af6b36bcc1f7a78396b8b3bb"
+    ],
+    [
+     33,
+     "庚寅",
+     "42a7a2e4a1d4d18034eff1c8cd08204185f5c4e23253655496acf1ee5f6d6d2f"
+    ],
+    [
+     43,
+     "辛卯",
+     "76300ed13da38511bf8cd46e7ab28d9dc96ab2bee8796612fd664670b9a6a480"
+    ],
+    [
+     53,
+     "壬辰",
+     "de53677145a7cda68b8e57aa5378c4f060189dfca8f0203e7165348cb211abe3"
+    ],
+    [
+     63,
+     "癸巳",
+     "a97ee5c29cff81513b5970960c8b9effaa94ef5596814a712a827f7f60163a04"
+    ],
+    [
+     73,
+     "甲午",
+     "0d7268877f8d76bf66512e96410a484abd3b82635615bdc10832b0e0b7381023"
+    ],
+    [
+     83,
+     "乙未",
+     "896f0ba09558fe56f406d981b17adb079488ba8c3133e5e133304511da59b2ff"
+    ]
+   ]
+  },
+  {
+   "id": "unknown-f-1978",
+   "mode": "pig",
+   "summary": "84267a1cda15620ea8a872a26dac41ff74be43a43e7b548bc09ed71645234dd0",
+   "daewun": []
+  },
+  {
+   "id": "unknown-f-1978",
+   "mode": "neo",
+   "summary": "10f00e5e7d5209612c13ed0e92ce705f4be2ac2a1b1e31483bc2b42738813942",
+   "daewun": []
+  },
+  {
+   "id": "lunar-m-1962",
+   "mode": "pig",
+   "summary": "792b51fe5a057d4603b2e096818b13357dc19aaa85b072fab7c9157d6d2db3fd",
+   "daewun": [
+    [
+     10,
+     "庚戌",
+     "84b91c27a6482102d9cc247a52d5ff6b691d25719a2f2ab8984027391cd1b4b7"
+    ],
+    [
+     20,
+     "辛亥",
+     "0e4b5fbadad3a24dca0197762daf0cd7c8d4987982251cccc4842c7b867476b0"
+    ],
+    [
+     30,
+     "壬子",
+     "a9c4f686a987cdad53f1741c46cb867efa1bdc33d045e1638b0289fd527c5ba1"
+    ],
+    [
+     40,
+     "癸丑",
+     "50596e151c14770cd7512a3a8214aa30d4f6a26c605b17ddff1b4bade0a13154"
+    ],
+    [
+     50,
+     "甲寅",
+     "2806b0b6396c821a219eaf479037523b9ba15b8342a4eb76b2ee858e21b0308f"
+    ],
+    [
+     60,
+     "乙卯",
+     "3954c19903f04379cdcb904fa47eb79acdc99c341dbcc0c63af41207a83ed00d"
+    ],
+    [
+     70,
+     "丙辰",
+     "ce2bf72ccfde38967c4c0ea7ccc66004e590c44e980504ed42bab93a3d1b9e48"
+    ],
+    [
+     80,
+     "丁巳",
+     "c9f1dbca9783b8a1e5534249c09d4181763709f3c4b53329c66d1b94216f90c0"
+    ],
+    [
+     90,
+     "戊午",
+     "15205481c14352058c3edaa3edd0636c46096218f8bcb3d74aaeb510191fd4cb"
+    ]
+   ]
+  },
+  {
+   "id": "lunar-m-1962",
+   "mode": "neo",
+   "summary": "f4e60c9b71c879bb7fb959541def9d0b2e496473a973262210aa2d9c4e25615a",
+   "daewun": [
+    [
+     10,
+     "庚戌",
+     "2f1359a2c191f32ed52119a02328ab509d1360e5851567a2a5d164c8a2859c64"
+    ],
+    [
+     20,
+     "辛亥",
+     "08fc27a1214f0ba849d5594bf8dae31745e992c380e73afdd072e1af8b81ceaa"
+    ],
+    [
+     30,
+     "壬子",
+     "d7662f77e54dad9596ff7e7558b9a82f7c7f55364100023e234b217974b766f2"
+    ],
+    [
+     40,
+     "癸丑",
+     "838a1446a693985ead4a4c08c3a05dad8c6b654e8fe59354dda6896ffb6b36c0"
+    ],
+    [
+     50,
+     "甲寅",
+     "5cce31246c7bccc7af64b72a2ce843f7c0f77cc9c1c46ae203d1feb5cf8ca853"
+    ],
+    [
+     60,
+     "乙卯",
+     "5c7362ec47cf12f05ec191613b2e5c1652898994ddbabb320c9cd505437d636d"
+    ],
+    [
+     70,
+     "丙辰",
+     "912cc571878a9f45815f450256a5316bee9413f9c4b1771f2845de50639b9228"
+    ],
+    [
+     80,
+     "丁巳",
+     "54f02e0b9936bec99bd2e34f0ca2ec87efb1927536727ded0c20c20531bc60f5"
+    ],
+    [
+     90,
+     "戊午",
+     "26eb44d2cf87ab072513f3e5097c948176ab96fa5cccbd5d3aec17c469089ce8"
+    ]
+   ]
+  },
+  {
+   "id": "leap-f-2020",
+   "mode": "pig",
+   "summary": "9cb6cc9b2e9e699d9be8292b1e707499a2d896b90a72c9e239912f03e166c879",
+   "daewun": [
+    [
+     10,
+     "庚辰",
+     "5331932ca4624c445d8462c1a1b24099a1395eae740640516f37bdf0a2f7f1f6"
+    ],
+    [
+     20,
+     "己卯",
+     "48c402cc0b80c16373b939f40aa825e475c1aca3405d25eec1e6e7b6a28c6657"
+    ],
+    [
+     30,
+     "戊寅",
+     "cfc3d25c61f07f9aea20b62ccdf50ab76e2f045919f5d0666298e38339a68a14"
+    ],
+    [
+     40,
+     "丁丑",
+     "dd383388237cf7676281025209fc44c4e4ff71dbd23dcbc99cbe365cb96d0455"
+    ],
+    [
+     50,
+     "丙子",
+     "140c5753ae5fc5f63d7b92d763fedfca9fa5e54ee88819006722db6e275812fb"
+    ],
+    [
+     60,
+     "乙亥",
+     "4786261815e2b75341d690df28ea8e7972c930021d2a066189b5f309db098fa6"
+    ],
+    [
+     70,
+     "甲戌",
+     "1ae68ee9dd2683b2a67d64be29f7aa79eaa368f8e94b2637ffdca32e794b319d"
+    ],
+    [
+     80,
+     "癸酉",
+     "58746c55a6e278e204d22c6c87cf862eb7a7880ac38be95c66f16946c5bcda9f"
+    ],
+    [
+     90,
+     "壬申",
+     "3fa5c1cba3204dd0ded8fd139cf1eb5f311f02f2d1934b6074e34830969ac318"
+    ]
+   ]
+  },
+  {
+   "id": "leap-f-2020",
+   "mode": "neo",
+   "summary": "222d1f768672f5d3eab59d7c43ba583867dca6929f964e82bf293049f49a0a49",
+   "daewun": [
+    [
+     10,
+     "庚辰",
+     "4bdee8ab886fe18d75c065bee2f9d1a2a21f95e072605281bad164438ad9e02c"
+    ],
+    [
+     20,
+     "己卯",
+     "8878386d0c3410d099ee816686ff8a0866d04cb9c0ee7c19d873a8a690f0c015"
+    ],
+    [
+     30,
+     "戊寅",
+     "d235010141e5dce28152a32975d7a635557a28fbf46f6c8202f5905e2279f45e"
+    ],
+    [
+     40,
+     "丁丑",
+     "f5b567bb2ab979dfa9e3b99ba7c66c7372e76367882709cbdab9115058b70136"
+    ],
+    [
+     50,
+     "丙子",
+     "4b2255acd610ae6318add28d59db4388d72acf2d7cca8a3faa2e236ac7098972"
+    ],
+    [
+     60,
+     "乙亥",
+     "e327cc0ccbfdcb33e6c429f7a94aa534394c743b9a2272521fedb0dfa0f3f66b"
+    ],
+    [
+     70,
+     "甲戌",
+     "311c3a05b1070128b87c828ac808ea95c3a9b98cb6decd6511f5eb2439e21e72"
+    ],
+    [
+     80,
+     "癸酉",
+     "f2b38fa64b2cf1f1a2d404a747e964fbec7a576c780b736497cac6da6b61b770"
+    ],
+    [
+     90,
+     "壬申",
+     "43abaa73cbb9e13b1f962e9c14d0e96dd2edb3ceee81d3907702d683e5a54471"
+    ]
+   ]
+  },
+  {
+   "id": "newyear-m-2001",
+   "mode": "pig",
+   "summary": "69ff4833ccd6ba30cc6e49f0c580b33c18935636d8f810a20d738734978e6e32",
+   "daewun": [
+    [
+     2,
+     "己丑",
+     "ecc7b312299560e4185f489962ba03e8a8df75b1b97d71134be4b3d2dce331a5"
+    ],
+    [
+     12,
+     "庚寅",
+     "0def6bd16dc8dbda5e474ef8f2f991f2d763a536d24d2cffbaf2e92793d16bb0"
+    ],
+    [
+     22,
+     "辛卯",
+     "1e9240e46e23ee7503b40290c22ccee674ec3de234b052218cb6adbe00a4c54f"
+    ],
+    [
+     32,
+     "壬辰",
+     "49407c120c266a346e9b2d37389570f4cd3f621c29292a879fdfe7da2d563cce"
+    ],
+    [
+     42,
+     "癸巳",
+     "1d17b4692083b0de5b91010fdae822cebcb820ef07745115bf7206dba2ec7eb3"
+    ],
+    [
+     52,
+     "甲午",
+     "bafc4d2c1bb68523702068ee31ff88ab977f468e4dae55d9e40e4284cb81ef1e"
+    ],
+    [
+     62,
+     "乙未",
+     "de5dc8a920a7db3a7a0d1e3fd081417bb6601b82c40895b070494c93b0b20fda"
+    ],
+    [
+     72,
+     "丙申",
+     "c04ebc36d99052b1195fd853ed43eac6b6d077437dca3aaafae5aad514a0c248"
+    ],
+    [
+     82,
+     "丁酉",
+     "5f420e6c3612baa097c577aeec558959bb46042164b46358f5f0566deaea4994"
+    ]
+   ]
+  },
+  {
+   "id": "newyear-m-2001",
+   "mode": "neo",
+   "summary": "5f2575dabad76a032a3496e2ef79fa5586cc402fba658c7570d2d322684c2971",
+   "daewun": [
+    [
+     2,
+     "己丑",
+     "122084be74425fc74e5b2282d0087547882ba0681fe3091b943617642148ed5c"
+    ],
+    [
+     12,
+     "庚寅",
+     "1a220fb57dbc63a560ace05f09d7bdbed63ec890e21e8f7cc8f3fad45f5cf5e7"
+    ],
+    [
+     22,
+     "辛卯",
+     "fcf703a3526ae1227d95fc34ef99c3239265ac9b02181869ad1aedbc4ba560b2"
+    ],
+    [
+     32,
+     "壬辰",
+     "5a9086d2bcb961cec3e3dc3aa7a4164dcb7f0a1bc928dc11a21fbda460c2110d"
+    ],
+    [
+     42,
+     "癸巳",
+     "c7b4e444d3939dd0b8e38f5ac2fa226a877e9897de3e6ea49e612cd393f43ed4"
+    ],
+    [
+     52,
+     "甲午",
+     "b345c4af7cbd0f1a71a021921a24565ca8b28d8d55a2a6d7886c37ea17a03514"
+    ],
+    [
+     62,
+     "乙未",
+     "a42f7cec31346bf26f5d67902ae9cf2b8959a92e76c73b1df35a2193d66eabba"
+    ],
+    [
+     72,
+     "丙申",
+     "ab8fb451a0a486d53dfee7eb803da923433c5fce1896e6f17c78fe77733d8706"
+    ],
+    [
+     82,
+     "丁酉",
+     "2a8c735d73213c6bfb3ef468a434576fec0c4383963c2177e71a45373e30670b"
+    ]
+   ]
+  },
+  {
+   "id": "ny-f-1995",
+   "mode": "pig",
+   "summary": "23d04ec57fa456423dd6c739221ed4af948ac2a815eb19a84b6c232dd893ee1f",
+   "daewun": [
+    [
+     7,
+     "甲申",
+     "15aa2ba0d4a855d5eabddb217c450e387a5b1382e62cedc5d587ac33fee779db"
+    ],
+    [
+     17,
+     "乙酉",
+     "e69faa1090d88af493ff585090f806f85e0c1ce73c5e4d5aeb5f21b8586e3f65"
+    ],
+    [
+     27,
+     "丙戌",
+     "167d0fc6f9c564fdeca8c36f238baf86557b925d7f65f680edf0b3922501aed6"
+    ],
+    [
+     37,
+     "丁亥",
+     "01fc843c6865db282f78733087260573efc7817a93e94fb3cdde38076d147561"
+    ],
+    [
+     47,
+     "戊子",
+     "d77927f48f8f36b68d23592de58fde367f892718a0352a27e2b0f96aee7af136"
+    ],
+    [
+     57,
+     "己丑",
+     "5e88fe8e0f6d36c065000445f9043fb55c7d065a40f55f1264f7ace183f9014a"
+    ],
+    [
+     67,
+     "庚寅",
+     "d1b3f5af9b4d72c5f0c91a1067fd0dfb0fa9d8a290595458b9294fe73726498d"
+    ],
+    [
+     77,
+     "辛卯",
+     "0268e8c94a80345551036690a2087c80b77c447fe18c6c2160b651165ff3cefe"
+    ],
+    [
+     87,
+     "壬辰",
+     "55276bb2b5ab426a2c461109c0afe1f46aaab32206612aff4432d703eba2f89e"
+    ]
+   ]
+  },
+  {
+   "id": "ny-f-1995",
+   "mode": "neo",
+   "summary": "e98633c6367c3648153dd1a3d8d46163b1a726a38f35cfe6c72546b1f780e69a",
+   "daewun": [
+    [
+     7,
+     "甲申",
+     "1e3045410fe14f04df824f15ccb4ffe5e9cfa6069a33c56ee9428b91cca4ab75"
+    ],
+    [
+     17,
+     "乙酉",
+     "0a3c8f0d0954cc0ab55d72b37376cd2742dbac76f7e586a17bd72d1a504e5314"
+    ],
+    [
+     27,
+     "丙戌",
+     "458ab23c73fac7952de5e13042d0c5c60f802853e49a19668f6236e8d9bafd71"
+    ],
+    [
+     37,
+     "丁亥",
+     "c6c1ebda1653fcc1ddbb02d56bcb80ad8059093b051d5d825fcf35f6d47fe096"
+    ],
+    [
+     47,
+     "戊子",
+     "c89c4f6a5d02244562ac81e8da03225f654a4558c52a23b37d556922e140a271"
+    ],
+    [
+     57,
+     "己丑",
+     "367eadd1356204c949a6348a4d8404ad3a76eaf3c0ec7395f1071ed625882eab"
+    ],
+    [
+     67,
+     "庚寅",
+     "67b63f3f3833b8d287bd3de9e0652ad2e1643f04feadf7b8da753c0808502288"
+    ],
+    [
+     77,
+     "辛卯",
+     "15de542a77eb5379a7264207ac5e73a835129f68a6c0954ec3de432b5ebfac8c"
+    ],
+    [
+     87,
+     "壬辰",
+     "45f450267469f261eddba30a2d19eaf5d65802567783b7f3ef406924d5105bf1"
+    ]
+   ]
+  },
+  {
+   "id": "old-m-1941",
+   "mode": "pig",
+   "summary": "dc9f87844f76c8edc3daea676b4fc412d860ea613dd5558aa33dcd81a7acc43a",
+   "daewun": [
+    [
+     6,
+     "庚寅",
+     "2af0283dc6ea9072d5e44464a364f0bf9fa956cabdaafddc8eedbba354cea908"
+    ],
+    [
+     16,
+     "己丑",
+     "70850028e434b402b18841aac6697dbe40e63c80c51fdae0c0b9a64bdf924760"
+    ],
+    [
+     26,
+     "戊子",
+     "f161a3466150891d271ba6248b18e7061d362c58070222eff811fd5df6a4cc15"
+    ],
+    [
+     36,
+     "丁亥",
+     "6f4b7a822fda1dd21c0ececbf83504061aba2e6817b20dfd74be9cd0a51d8c0c"
+    ],
+    [
+     46,
+     "丙戌",
+     "9e2db1313bcd5d26d2fc9e2a55a05add5202da891650ae3467d234040b3ad9c5"
+    ],
+    [
+     56,
+     "乙酉",
+     "f280a41385019f22feb376bc0f5389b2b5581ae73c949332191f1cf0cdd3996c"
+    ],
+    [
+     66,
+     "甲申",
+     "b81c29aaa4b9538d1e8280e5237cd6bea8441a02640343afa1ac8898ac746718"
+    ],
+    [
+     76,
+     "癸未",
+     "76376795807593f9b8dd7e4bcb60fe258433bbc40d18ff4c2b3e4c6d8c6951ff"
+    ],
+    [
+     86,
+     "壬午",
+     "cf76e2b5655aed1971d28837b040f1037d65133b51472831ebc6ccb136474586"
+    ]
+   ]
+  },
+  {
+   "id": "old-m-1941",
+   "mode": "neo",
+   "summary": "3356756ffa961c9776c7ed4be9de4e0910c5eb92f2886c544d71c063f5240488",
+   "daewun": [
+    [
+     6,
+     "庚寅",
+     "a155c64a11a8d9a01f5806e2a7040ad44ec720292b25e09c6bbabdbb0dbe4fff"
+    ],
+    [
+     16,
+     "己丑",
+     "4210311e192e899e76900e7819e412772c91851621db34fbb668737f0558c35e"
+    ],
+    [
+     26,
+     "戊子",
+     "8d09a62d2a1ca66367b6611cc5779042e7b8676cb089c352d6acd90f04cc5d4a"
+    ],
+    [
+     36,
+     "丁亥",
+     "419ae85f9c2cbb48609fd7219b9f9abfce14b8567c67b11db0c9006425f1d13f"
+    ],
+    [
+     46,
+     "丙戌",
+     "8c1da59bb3e1015e1e2361cac15a793a8adb307f21ebaeb10ebc3e7f7855c0bd"
+    ],
+    [
+     56,
+     "乙酉",
+     "799361a94ea77e2531b7312715388291594d1c2f50fc31c8fd2a17fef9baf369"
+    ],
+    [
+     66,
+     "甲申",
+     "30df5e21150a355c204d0fb1b4a389be1642445bff8530709c7d645bdac1a760"
+    ],
+    [
+     76,
+     "癸未",
+     "94f8062c2a84b49cdafa4214d53b0d80b9ea9e609ef184989e223136201a7bc3"
+    ],
+    [
+     86,
+     "壬午",
+     "55a16d3ee88f8cbe6456b8fcc375dbca302e9fddf0e853ee97a169ddc10743b8"
+    ]
+   ]
+  },
+  {
+   "id": "young-f-2015",
+   "mode": "pig",
+   "summary": "13d29185e1997b61cfa9b0d404cc21acee21d854d9c11d88dd236d65262606d7",
+   "daewun": [
+    [
+     3,
+     "己丑",
+     "82bb8dc62a1068ec21c9878197380141c0c8ddff9d4d098521f58cb486c1d3dc"
+    ],
+    [
+     13,
+     "庚寅",
+     "74b7650d707f1aea8d49618230a8892078609ec563cf1d81173a722112c7d4d6"
+    ],
+    [
+     23,
+     "辛卯",
+     "80a047ffe4051341b46a2db08111648961c30947b47575ba4a8738c380c592ba"
+    ],
+    [
+     33,
+     "壬辰",
+     "ef0e73e4e4e70a67de80d0d9f7c5f47a52ba4bd86f23a5339b592e246a2faa95"
+    ],
+    [
+     43,
+     "癸巳",
+     "402c544d50281386a411a7ff5598d85c35d64a8a637e0dcd576cbd4442050b75"
+    ],
+    [
+     53,
+     "甲午",
+     "9b8d859cdccf45c7d9e697b4312a1325a8de1562e868cfd275da6c4f6d085c49"
+    ],
+    [
+     63,
+     "乙未",
+     "607f2253ae7b7b022c866a8bfe51bcfffbc9863ed97bcf644eb8010f202d29a2"
+    ],
+    [
+     73,
+     "丙申",
+     "f8fc46cce87af4f7e97d14c0fbc3291b615592c11adce8e24c3e279884f729c1"
+    ],
+    [
+     83,
+     "丁酉",
+     "c0f6cdb151092c9fe9013f715a5653db06f936dfec9bcb4353db743db45968a9"
+    ]
+   ]
+  },
+  {
+   "id": "young-f-2015",
+   "mode": "neo",
+   "summary": "3e73989275bdd0938e71789933ad82c541a25b7d167220e09fda76a9f4f4cb85",
+   "daewun": [
+    [
+     3,
+     "己丑",
+     "074ef1526c9144fa72bb74f3008936b458fb3a630712ed5b7765db5aa4ccbe95"
+    ],
+    [
+     13,
+     "庚寅",
+     "1c1c8e3b028751a441366df03d899fdbdd085dedf83e9d3f25b0abd99165ab11"
+    ],
+    [
+     23,
+     "辛卯",
+     "ba17bd4249a69d87a7f0beaf4bab6bc15e1e76b61a593302c317cc8154360993"
+    ],
+    [
+     33,
+     "壬辰",
+     "560d1e27fe428e7e5d4365c9fa45e4fdf6e3e26a54bbcc3a46d359ebb1e2a03f"
+    ],
+    [
+     43,
+     "癸巳",
+     "2da73a01659509fd85abcb7b0c085566b44123df1bb86c328f532186cd52581a"
+    ],
+    [
+     53,
+     "甲午",
+     "2c5c2f91cebbf9aed16a3adac6f19d56527f0e6fc49ca807d85cbf0b633e6f67"
+    ],
+    [
+     63,
+     "乙未",
+     "bcce7f2c41f1265f2d8a893edd67d159cabcde1cb570f7d566239ce77bcc3c94"
+    ],
+    [
+     73,
+     "丙申",
+     "20bb52bc4d8944f41749e5b333014013f13f8664499ccbfbc80b7b37b944f136"
+    ],
+    [
+     83,
+     "丁酉",
+     "8c5de613580b20001e0d2f8081cad24f8de24da19fb3af3981115a3768635d37"
+    ]
+   ]
+  },
+  {
+   "id": "jong-confirmed",
+   "mode": "pig",
+   "summary": "75c816457f8aede78c0a6f216a9e74bb31fae80abfd9ab55b46bfceefad87841",
+   "daewun": [
+    [
+     1,
+     "丙辰",
+     "9fc3c1e6b0620da1fb0a693492299c686943f933b213b05be8d1fa954d26e5b9"
+    ],
+    [
+     11,
+     "乙卯",
+     "3fdb2537c959e71cd8b66af93079b9af79c827768af8146a529c0d9eb7872076"
+    ],
+    [
+     21,
+     "甲寅",
+     "d80639e128786ae346f0b06e3b9b105a7d6e5206b3393f71cf98796fd45dd330"
+    ],
+    [
+     31,
+     "癸丑",
+     "66b88840d747b553d1556a4c0b7ba47e54f70cd1126b4c2422c5da09ae5aa017"
+    ],
+    [
+     41,
+     "壬子",
+     "ceade0316e465b96801bf0a9679e13f510f2efd2f8267d21b02f5028cb738a4b"
+    ],
+    [
+     51,
+     "辛亥",
+     "fbeb1b43c6dbeaaa6d907471cd87fc7c76d04f98326485cef291a25ac204ef41"
+    ],
+    [
+     61,
+     "庚戌",
+     "f9253a8a068bf8a5ab52fd18cceae01b929567616223a6dbe31d63e596f13e65"
+    ],
+    [
+     71,
+     "己酉",
+     "4ee55a3d0b001cb2389b4670d13df8e4aad7f615a5a91be7dea9ae1b9a2c2528"
+    ],
+    [
+     81,
+     "戊申",
+     "873b8abeaefca48e345d41938128b9c59e71cc7c9b3c3cf7671165fcf040cf7d"
+    ]
+   ]
+  },
+  {
+   "id": "jong-confirmed",
+   "mode": "neo",
+   "summary": "9b18b3dbe460d70dbba7bc9f9c5e567ed6f755caa660a9e6f7ae0f705619e32d",
+   "daewun": [
+    [
+     1,
+     "丙辰",
+     "60f5ee75d5febe10120d0eaaeeb3b53c4fc1b2cdb4fd0ed6eb1879b2a1406e2a"
+    ],
+    [
+     11,
+     "乙卯",
+     "0442675c01680dd3040fa39b8b5b438adb06e196147a8fbd15d545add0e07161"
+    ],
+    [
+     21,
+     "甲寅",
+     "b13d79a692720d51b40329ea140bee9499366f84a18784c71b832db4339d1b58"
+    ],
+    [
+     31,
+     "癸丑",
+     "3abe56703b6f5568c75815606cecb15d3d21ad9a09b49583739cdee9fa4e8159"
+    ],
+    [
+     41,
+     "壬子",
+     "351b36795e45d4b962b02582fa41150cd578f8006e593ffa9c06232422441c51"
+    ],
+    [
+     51,
+     "辛亥",
+     "adbd6456fbe6c11be5429f08f27f7cb6edb05081176488e97938bd6cdf624ef7"
+    ],
+    [
+     61,
+     "庚戌",
+     "68fb667fce6797111c37faa460c1e8c8e8c97d9af3b890ab453b4feeeda64ba3"
+    ],
+    [
+     71,
+     "己酉",
+     "0896d342a1a5e742167174b24e91f3dd52e9f821198fa82885406abe3d590f26"
+    ],
+    [
+     81,
+     "戊申",
+     "a005fbb7b52881dfe741912d0c497898f154cdf765aa204e4b2e8860ec53883d"
+    ]
+   ]
+  },
+  {
+   "id": "jong-rejected",
+   "mode": "pig",
+   "summary": "75c816457f8aede78c0a6f216a9e74bb31fae80abfd9ab55b46bfceefad87841",
+   "daewun": [
+    [
+     1,
+     "丙辰",
+     "9fc3c1e6b0620da1fb0a693492299c686943f933b213b05be8d1fa954d26e5b9"
+    ],
+    [
+     11,
+     "乙卯",
+     "3fdb2537c959e71cd8b66af93079b9af79c827768af8146a529c0d9eb7872076"
+    ],
+    [
+     21,
+     "甲寅",
+     "d80639e128786ae346f0b06e3b9b105a7d6e5206b3393f71cf98796fd45dd330"
+    ],
+    [
+     31,
+     "癸丑",
+     "66b88840d747b553d1556a4c0b7ba47e54f70cd1126b4c2422c5da09ae5aa017"
+    ],
+    [
+     41,
+     "壬子",
+     "ceade0316e465b96801bf0a9679e13f510f2efd2f8267d21b02f5028cb738a4b"
+    ],
+    [
+     51,
+     "辛亥",
+     "fbeb1b43c6dbeaaa6d907471cd87fc7c76d04f98326485cef291a25ac204ef41"
+    ],
+    [
+     61,
+     "庚戌",
+     "f9253a8a068bf8a5ab52fd18cceae01b929567616223a6dbe31d63e596f13e65"
+    ],
+    [
+     71,
+     "己酉",
+     "4ee55a3d0b001cb2389b4670d13df8e4aad7f615a5a91be7dea9ae1b9a2c2528"
+    ],
+    [
+     81,
+     "戊申",
+     "873b8abeaefca48e345d41938128b9c59e71cc7c9b3c3cf7671165fcf040cf7d"
+    ]
+   ]
+  },
+  {
+   "id": "jong-rejected",
+   "mode": "neo",
+   "summary": "9b18b3dbe460d70dbba7bc9f9c5e567ed6f755caa660a9e6f7ae0f705619e32d",
+   "daewun": [
+    [
+     1,
+     "丙辰",
+     "60f5ee75d5febe10120d0eaaeeb3b53c4fc1b2cdb4fd0ed6eb1879b2a1406e2a"
+    ],
+    [
+     11,
+     "乙卯",
+     "0442675c01680dd3040fa39b8b5b438adb06e196147a8fbd15d545add0e07161"
+    ],
+    [
+     21,
+     "甲寅",
+     "b13d79a692720d51b40329ea140bee9499366f84a18784c71b832db4339d1b58"
+    ],
+    [
+     31,
+     "癸丑",
+     "3abe56703b6f5568c75815606cecb15d3d21ad9a09b49583739cdee9fa4e8159"
+    ],
+    [
+     41,
+     "壬子",
+     "351b36795e45d4b962b02582fa41150cd578f8006e593ffa9c06232422441c51"
+    ],
+    [
+     51,
+     "辛亥",
+     "adbd6456fbe6c11be5429f08f27f7cb6edb05081176488e97938bd6cdf624ef7"
+    ],
+    [
+     61,
+     "庚戌",
+     "68fb667fce6797111c37faa460c1e8c8e8c97d9af3b890ab453b4feeeda64ba3"
+    ],
+    [
+     71,
+     "己酉",
+     "0896d342a1a5e742167174b24e91f3dd52e9f821198fa82885406abe3d590f26"
+    ],
+    [
+     81,
+     "戊申",
+     "a005fbb7b52881dfe741912d0c497898f154cdf765aa204e4b2e8860ec53883d"
+    ]
+   ]
+  },
+  {
+   "id": "jong-unverified",
+   "mode": "pig",
+   "summary": "75c816457f8aede78c0a6f216a9e74bb31fae80abfd9ab55b46bfceefad87841",
+   "daewun": [
+    [
+     1,
+     "丙辰",
+     "9fc3c1e6b0620da1fb0a693492299c686943f933b213b05be8d1fa954d26e5b9"
+    ],
+    [
+     11,
+     "乙卯",
+     "3fdb2537c959e71cd8b66af93079b9af79c827768af8146a529c0d9eb7872076"
+    ],
+    [
+     21,
+     "甲寅",
+     "d80639e128786ae346f0b06e3b9b105a7d6e5206b3393f71cf98796fd45dd330"
+    ],
+    [
+     31,
+     "癸丑",
+     "66b88840d747b553d1556a4c0b7ba47e54f70cd1126b4c2422c5da09ae5aa017"
+    ],
+    [
+     41,
+     "壬子",
+     "ceade0316e465b96801bf0a9679e13f510f2efd2f8267d21b02f5028cb738a4b"
+    ],
+    [
+     51,
+     "辛亥",
+     "fbeb1b43c6dbeaaa6d907471cd87fc7c76d04f98326485cef291a25ac204ef41"
+    ],
+    [
+     61,
+     "庚戌",
+     "f9253a8a068bf8a5ab52fd18cceae01b929567616223a6dbe31d63e596f13e65"
+    ],
+    [
+     71,
+     "己酉",
+     "4ee55a3d0b001cb2389b4670d13df8e4aad7f615a5a91be7dea9ae1b9a2c2528"
+    ],
+    [
+     81,
+     "戊申",
+     "873b8abeaefca48e345d41938128b9c59e71cc7c9b3c3cf7671165fcf040cf7d"
+    ]
+   ]
+  },
+  {
+   "id": "jong-unverified",
+   "mode": "neo",
+   "summary": "9b18b3dbe460d70dbba7bc9f9c5e567ed6f755caa660a9e6f7ae0f705619e32d",
+   "daewun": [
+    [
+     1,
+     "丙辰",
+     "60f5ee75d5febe10120d0eaaeeb3b53c4fc1b2cdb4fd0ed6eb1879b2a1406e2a"
+    ],
+    [
+     11,
+     "乙卯",
+     "0442675c01680dd3040fa39b8b5b438adb06e196147a8fbd15d545add0e07161"
+    ],
+    [
+     21,
+     "甲寅",
+     "b13d79a692720d51b40329ea140bee9499366f84a18784c71b832db4339d1b58"
+    ],
+    [
+     31,
+     "癸丑",
+     "3abe56703b6f5568c75815606cecb15d3d21ad9a09b49583739cdee9fa4e8159"
+    ],
+    [
+     41,
+     "壬子",
+     "351b36795e45d4b962b02582fa41150cd578f8006e593ffa9c06232422441c51"
+    ],
+    [
+     51,
+     "辛亥",
+     "adbd6456fbe6c11be5429f08f27f7cb6edb05081176488e97938bd6cdf624ef7"
+    ],
+    [
+     61,
+     "庚戌",
+     "68fb667fce6797111c37faa460c1e8c8e8c97d9af3b890ab453b4feeeda64ba3"
+    ],
+    [
+     71,
+     "己酉",
+     "0896d342a1a5e742167174b24e91f3dd52e9f821198fa82885406abe3d590f26"
+    ],
+    [
+     81,
+     "戊申",
+     "a005fbb7b52881dfe741912d0c497898f154cdf765aa204e4b2e8860ec53883d"
+    ]
+   ]
+  },
+  {
+   "id": "hwa-confirmed",
+   "mode": "pig",
+   "summary": "f4f9dc4d6ce566d58767e2ae92ba6253e724ea774dac22cf29004c3e3d9b13ae",
+   "daewun": [
+    [
+     6,
+     "壬子",
+     "5424a784dc177e477345458e22ce1e82b0d0d923117477a5f5dae5473ab6757b"
+    ],
+    [
+     16,
+     "辛亥",
+     "e1ffd16d941cdbb4ed3a26b122b929d13a3c224056dd92acd4d3b29e6c28c933"
+    ],
+    [
+     26,
+     "庚戌",
+     "c8eeb2b6e5b459e6da10393a27ecb51d3d5ad5919f44a43187c5034911bc878c"
+    ],
+    [
+     36,
+     "己酉",
+     "30f23f43b061e489c3f5782053cf6ab4031a4a04c9504bfd679e15f5a415873e"
+    ],
+    [
+     46,
+     "戊申",
+     "b983029956a246ecf5fa6149eb1d086fa33d8ad0465db9f5d32bb6a45160c910"
+    ],
+    [
+     56,
+     "丁未",
+     "461815c9f7fbacf9bbeb192695fa6e3d4fbfa07eefe41eabe6bccdad6dccf881"
+    ],
+    [
+     66,
+     "丙午",
+     "3d023874789cd04a48397aa3d1ad2136bc81f5ce14350c026d1a7412ee42ce6b"
+    ],
+    [
+     76,
+     "乙巳",
+     "f818dd47d29a386816079231bfc8fe4f0b5ff5a96501eb01105387b20e166f0e"
+    ],
+    [
+     86,
+     "甲辰",
+     "913d2f52c32d42e4c4b46d34f6a6b967c14281cfb3e97ffa82605b6a3e175428"
+    ]
+   ]
+  },
+  {
+   "id": "hwa-confirmed",
+   "mode": "neo",
+   "summary": "b299db1b3ec8ee15950b165af78a8efb747822b322642ddd4cf3c2ed2406c5fd",
+   "daewun": [
+    [
+     6,
+     "壬子",
+     "859b8e73f167446b441171dadd889808602a148acec674dc9ac755bf275b24b3"
+    ],
+    [
+     16,
+     "辛亥",
+     "f98791b445f1917f0c86143e10cd6c2c8723df9099403b6f34c6c88332f5e062"
+    ],
+    [
+     26,
+     "庚戌",
+     "5f3a273c8dce2590e6641548a6b230293080d546513bee902c3a5bd7c59ae5ec"
+    ],
+    [
+     36,
+     "己酉",
+     "b0ff460ef5d80d5f0c7ead6d5bca8b711c6f6cdc6906d7d2913d989f8ab66101"
+    ],
+    [
+     46,
+     "戊申",
+     "291b89b1d0e732ecc4615e5c2e0935b03f33309adaa1dcf7208d55da8ce93716"
+    ],
+    [
+     56,
+     "丁未",
+     "b2900f552330d1d37cbd4775f0e4c705a9a504f792574de88eb9c6b76e11c2f6"
+    ],
+    [
+     66,
+     "丙午",
+     "83d6b46beae4a941929492087be43e471e767d57797fea81b2573c1b29e33518"
+    ],
+    [
+     76,
+     "乙巳",
+     "7d6717a7b3d65a183bbbdf9a36441eac3c953062610e18e6d4903928c0d31b5d"
+    ],
+    [
+     86,
+     "甲辰",
+     "213703f0116bd3f95e0ff9b5e14642fc004e1cc47cd8e2b72a4491f7004af787"
+    ]
+   ]
+  }
+ ],
+ "quantum": {
+  "solar-m-1990": "5ae315bd503dc73291333137c0e3b76d98f5035094c629562ccf63c232a55434",
+  "solar-f-1985": "2a15b7d1da1f9d20675f05f7a815e6d4343c2a300d7605812af1187bca6eeba2",
+  "unknown-f-1978": "43d994c395817ca0dbd388b3448bba125d4d438039623673375c9328b0f27ecb",
+  "lunar-m-1962": "cf43f28c4cdc03d979b3976b9d1dcb2286f7b5024a7658a2a24b7afb78cf5751",
+  "leap-f-2020": "199a913c42e6b6a613d0ac23becaa34113ff62c88ba4ac1c2cee53ebc31cc4b3",
+  "newyear-m-2001": "2ef9d46bb98bf2734d8386114724367aa52ecf1e2b1532e377b009ef06f43299",
+  "ny-f-1995": "6ab8ca6604c93f6933a577f223296ba183b51461348f200dc125bfc4d117fe17",
+  "old-m-1941": "69703078ebce8b2b19ab3da4fd892992f9669d317b09c8650260c026c50f2c36",
+  "young-f-2015": "5b665268c3277cbcf6c6c1835811e47b0265fd03d92b5af2d9d20cd4cecc065f",
+  "jong-confirmed": "6c53287d53a7ee708e6a956c60d0fbf3f2b8b0d67235f34ad9dba17168fd2e87",
+  "jong-rejected": "6c53287d53a7ee708e6a956c60d0fbf3f2b8b0d67235f34ad9dba17168fd2e87",
+  "jong-unverified": "6c53287d53a7ee708e6a956c60d0fbf3f2b8b0d67235f34ad9dba17168fd2e87",
+  "hwa-confirmed": "d8aab27801691f5d282e8a4104dd1332cd75f1be09a22cdbe8dd8acd7bac220a"
+ },
+ "extremeTCases": [
+  {
+   "id": "extreme-m-1974",
+   "date": "1974-11-03",
+   "calType": "solar",
+   "hour": 4,
+   "minute": 0,
+   "gender": "M"
+  }
+ ],
+ "extremeT": {
+  "solar-m-1990": {
+   "html": "a49d654a24045a0a88607ede5bce30ab5e8e1742871c727e95129f74cb33cab5",
+   "sajuBaseHtml": "fb75023017b7770467a92a54840245d0b5e95148d43631232265fda6e00042d9",
+   "prescriptionHtml": "7dc8b3d9c227e35c562b335cde9e0a5aa0f4620a135bfae29afb1daae37bc642"
+  },
+  "solar-f-1985": {
+   "html": "2b67f99e6a70f196e9c113bf1cc5613e0b0323779095497cb62592d6fa5777ca",
+   "sajuBaseHtml": "1ec510be2fb32c1ef51c15be866cc8ad45046f520771e3cfb229490892ff9790",
+   "prescriptionHtml": "9365375f349802cb3fa2f48ed62a1ffed3455ea309af090c72954433635233e6"
+  },
+  "unknown-f-1978": {
+   "html": "56c0071a5c486cf395a79b432683e47ca692f301c144dac65c74577f07aabf2d",
+   "sajuBaseHtml": "5b90c42bb4d4850e7cf6bccea653ab798eaf09582cd342d1e2c1c9d2be223d8f",
+   "prescriptionHtml": "9bf5ee0ccd6475844b7c8a257669986beb1ee91d7ccae97f05a7b865a19f305e"
+  },
+  "lunar-m-1962": {
+   "html": "7bca000f9713775176f2df280c7418591b62cc38f8fe52a84ebfe6312234d30e",
+   "sajuBaseHtml": "d2eca2b8ba2c2087310623ae7914c62e6d28c9c95ccaa4fd47093ae446c1953f",
+   "prescriptionHtml": "69a93a9b046c410ef4322303eab1313ece02382c8e0d6b246ce3b00b7f8db904"
+  },
+  "leap-f-2020": {
+   "html": "56c0071a5c486cf395a79b432683e47ca692f301c144dac65c74577f07aabf2d",
+   "sajuBaseHtml": "36318651c69e1036d2ebfb60fb46bd0fa3f737bed087b321ff9908b538480c88",
+   "prescriptionHtml": "9bf5ee0ccd6475844b7c8a257669986beb1ee91d7ccae97f05a7b865a19f305e"
+  },
+  "newyear-m-2001": {
+   "html": "7bca000f9713775176f2df280c7418591b62cc38f8fe52a84ebfe6312234d30e",
+   "sajuBaseHtml": "fa1f6bf37e8195c4ba77cb348efa5e76433003c5c97ee90581b31b66bb079264",
+   "prescriptionHtml": "69a93a9b046c410ef4322303eab1313ece02382c8e0d6b246ce3b00b7f8db904"
+  },
+  "ny-f-1995": {
+   "html": "7bca000f9713775176f2df280c7418591b62cc38f8fe52a84ebfe6312234d30e",
+   "sajuBaseHtml": "77a6d1dfebedf0d0ea58ae0c1f579953d1ee36ec1dcfefc1d6b99dc2f4c152c4",
+   "prescriptionHtml": "69a93a9b046c410ef4322303eab1313ece02382c8e0d6b246ce3b00b7f8db904"
+  },
+  "old-m-1941": {
+   "html": "a49d654a24045a0a88607ede5bce30ab5e8e1742871c727e95129f74cb33cab5",
+   "sajuBaseHtml": "572044f86df44a9c99a4a0091cadeadcc90e920b1ca3ed99bc74146f2479f278",
+   "prescriptionHtml": "7dc8b3d9c227e35c562b335cde9e0a5aa0f4620a135bfae29afb1daae37bc642"
+  },
+  "young-f-2015": {
+   "html": "56c0071a5c486cf395a79b432683e47ca692f301c144dac65c74577f07aabf2d",
+   "sajuBaseHtml": "1ef0e51ef7891437f0a6e16b63d70a3a4f1b7445a31a0fbe486da3cee312b72e",
+   "prescriptionHtml": "9bf5ee0ccd6475844b7c8a257669986beb1ee91d7ccae97f05a7b865a19f305e"
+  },
+  "jong-confirmed": {
+   "html": "2b67f99e6a70f196e9c113bf1cc5613e0b0323779095497cb62592d6fa5777ca",
+   "sajuBaseHtml": "a56443db1ac914146081a79fffbbc01df2a24372eac494126977ee2e973a4373",
+   "prescriptionHtml": "9365375f349802cb3fa2f48ed62a1ffed3455ea309af090c72954433635233e6"
+  },
+  "jong-rejected": {
+   "html": "2b67f99e6a70f196e9c113bf1cc5613e0b0323779095497cb62592d6fa5777ca",
+   "sajuBaseHtml": "a56443db1ac914146081a79fffbbc01df2a24372eac494126977ee2e973a4373",
+   "prescriptionHtml": "9365375f349802cb3fa2f48ed62a1ffed3455ea309af090c72954433635233e6"
+  },
+  "jong-unverified": {
+   "html": "2b67f99e6a70f196e9c113bf1cc5613e0b0323779095497cb62592d6fa5777ca",
+   "sajuBaseHtml": "a56443db1ac914146081a79fffbbc01df2a24372eac494126977ee2e973a4373",
+   "prescriptionHtml": "9365375f349802cb3fa2f48ed62a1ffed3455ea309af090c72954433635233e6"
+  },
+  "hwa-confirmed": {
+   "html": "2b67f99e6a70f196e9c113bf1cc5613e0b0323779095497cb62592d6fa5777ca",
+   "sajuBaseHtml": "6bdebcf548a226d2cd51769bc4ca1805f1485524fbcddc87ae33df44cc885caf",
+   "prescriptionHtml": "9365375f349802cb3fa2f48ed62a1ffed3455ea309af090c72954433635233e6"
+  },
+  "extreme-m-1974": {
+   "html": "9e28c4c77c2a1092a8822570735489acf909c243da71433b8e868b8183b48561",
+   "sajuBaseHtml": "36318651c69e1036d2ebfb60fb46bd0fa3f737bed087b321ff9908b538480c88",
+   "prescriptionHtml": "13e3efafc1f540707195b3c9ebdadf4efce58c2bd39da0df351348859d1d0f93"
+  }
+ },
+ "encyclopediaCases": [
+  {
+   "id": "idx0-default",
+   "lang": "ko",
+   "userName": "당신",
+   "userMansionIdx": 0,
+   "userMansion": "각숙"
+  },
+  {
+   "id": "idx1-name",
+   "lang": "ko",
+   "userName": "민수",
+   "userMansionIdx": 1,
+   "userMansion": "항숙"
+  },
+  {
+   "id": "idx7-escape",
+   "lang": "ko",
+   "userName": "<b>지&연</b>",
+   "userMansionIdx": 7,
+   "userMansion": "두숙"
+  },
+  {
+   "id": "idx13",
+   "lang": "ko",
+   "userName": "서연",
+   "userMansionIdx": 13,
+   "userMansion": "규숙"
+  },
+  {
+   "id": "idx20-raw-mansion",
+   "lang": "ko",
+   "userName": "하준",
+   "userMansionIdx": 20,
+   "userMansion": "심숙"
+  },
+  {
+   "id": "idx26",
+   "lang": "ko",
+   "userName": "당신",
+   "userMansionIdx": 26,
+   "userMansion": "진숙"
+  },
+  {
+   "id": "idx5-en",
+   "lang": "en",
+   "userName": "Alex",
+   "userMansionIdx": 5,
+   "userMansion": "미숙"
+  },
+  {
+   "id": "idx5-ja",
+   "lang": "ja",
+   "userName": "Alex",
+   "userMansionIdx": 5,
+   "userMansion": "미숙"
+  }
+ ],
+ "encyclopedia": {
+  "idx0-default": "3c04a498f67327fb3669166a6ab69b03bfbc1351fbf40b87a24dc538fc64c72c",
+  "idx1-name": "ead8a162ab0a50070fb7a715c1adedf50868dbd0fe9b3197a4c5a82d5a417da4",
+  "idx7-escape": "13782fcb4103a6279ea5313208902226ba585fdaef63f4e123280a99345cd03c",
+  "idx13": "e8314b115903c51c7503573fe3c5e46c2d52327c57e64a5f8c37542b17fba6bc",
+  "idx20-raw-mansion": "6bb453e451729d447e0ee1b60c3d8c648f54a6fdb0a3c3bd5a0efacaf9377218",
+  "idx26": "fd60cda0a26d14df06421d76d818f83266fcea931a10adcb4f450710f1d077b7",
+  "idx5-en": "1bd47161d7a209724ee8ff6430edd5b086f35347ae53a31bfebe497f0140529a",
+  "idx5-ja": "815600be1ad1229b3face73c3203e92aad0fa91da1504985fdfb8b3eaf82e3fc"
+ },
+ "natureCases": [
+  {
+   "id": "idx0-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 150,
+   "mansionIdx": 0
+  },
+  {
+   "id": "idx3-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 190,
+   "mansionIdx": 3
+  },
+  {
+   "id": "idx10-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 283,
+   "mansionIdx": 10
+  },
+  {
+   "id": "idx15-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 350,
+   "mansionIdx": 15
+  },
+  {
+   "id": "idx21-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 70,
+   "mansionIdx": 21
+  },
+  {
+   "id": "idx26-ko",
+   "lang": "ko",
+   "moonEclipticLongitude": 136.5,
+   "mansionIdx": 26
+  },
+  {
+   "id": "idx5-en",
+   "lang": "en",
+   "moonEclipticLongitude": 216.5,
+   "mansionIdx": 5
+  },
+  {
+   "id": "idx18-ja",
+   "lang": "ja",
+   "moonEclipticLongitude": 30,
+   "mansionIdx": 18
+  }
+ ],
+ "nature": {
+  "idx0-ko": "ae94ee6d7f6945cc9985c341ff9330406e1cf6ce23f36416bcca8e0a4876a3dd",
+  "idx3-ko": "a91fcb6b342869619c7146b028b783bbd596e159c851f0b5a3bbf5b9f1508934",
+  "idx10-ko": "d8febe7e88e06162f2de02d27d60f64bbdc56fc4f0323f69d723efbdeceec92e",
+  "idx15-ko": "3b2b5f1e1cd8e3438a2e5d9e12e4a30b15ca93103e914f0c107b9911a443ee06",
+  "idx21-ko": "468803b873ca5f3f74153fc6bb709a45928a1f8686a308a1d4d64c18869f615f",
+  "idx26-ko": "55262a8e9c13ca9cf0276111c58adb2548adbebd59ff72c89e60e3a628b77ab3",
+  "idx5-en": "dc08e76df92e2e26699b6b25804ec078c83b2d8d717a42c097b50dbfb50235a2",
+  "idx18-ja": "7112adf89a33ca2e9c1490c530ef2d1108fc00355662f0117cc31307289a5839"
+ },
+ "compatCases": [
+  {
+   "id": "m0-p0-F-M-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 150,
+   "partnerMoonEclipticLongitude": 150,
+   "myMansionIdx": 0,
+   "partnerMansionIdx": 0,
+   "partnerGender": "F",
+   "gender": "M"
+  },
+  {
+   "id": "m0-p1-F-M-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 150,
+   "partnerMoonEclipticLongitude": 163,
+   "myMansionIdx": 0,
+   "partnerMansionIdx": 1,
+   "partnerGender": "F",
+   "gender": "M"
+  },
+  {
+   "id": "m3-p12-M-F-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 190,
+   "partnerMoonEclipticLongitude": 310,
+   "myMansionIdx": 3,
+   "partnerMansionIdx": 12,
+   "partnerGender": "M",
+   "gender": "F"
+  },
+  {
+   "id": "m10-p19-OTHER-M-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 283,
+   "partnerMoonEclipticLongitude": 43,
+   "myMansionIdx": 10,
+   "partnerMansionIdx": 19,
+   "partnerGender": "OTHER",
+   "gender": "M"
+  },
+  {
+   "id": "m15-p6-F-F-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 350,
+   "partnerMoonEclipticLongitude": 230,
+   "myMansionIdx": 15,
+   "partnerMansionIdx": 6,
+   "partnerGender": "F",
+   "gender": "F"
+  },
+  {
+   "id": "m21-p4-M-M-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 70,
+   "partnerMoonEclipticLongitude": 203,
+   "myMansionIdx": 21,
+   "partnerMansionIdx": 4,
+   "partnerGender": "M",
+   "gender": "M"
+  },
+  {
+   "id": "m26-p13-F-OTHER-ko",
+   "lang": "ko",
+   "myMoonEclipticLongitude": 136.5,
+   "partnerMoonEclipticLongitude": 323,
+   "myMansionIdx": 26,
+   "partnerMansionIdx": 13,
+   "partnerGender": "F",
+   "gender": "OTHER"
+  },
+  {
+   "id": "m5-p17-M-F-en",
+   "lang": "en",
+   "myMoonEclipticLongitude": 216.5,
+   "partnerMoonEclipticLongitude": 16.5,
+   "myMansionIdx": 5,
+   "partnerMansionIdx": 17,
+   "partnerGender": "M",
+   "gender": "F"
+  },
+  {
+   "id": "m18-p9-F-M-ja",
+   "lang": "ja",
+   "myMoonEclipticLongitude": 30,
+   "partnerMoonEclipticLongitude": 270,
+   "myMansionIdx": 18,
+   "partnerMansionIdx": 9,
+   "partnerGender": "F",
+   "gender": "M"
+  }
+ ],
+ "compat": {
+  "m0-p0-F-M-ko": {
+   "html": "434a99ab51decdb17c79759f31c1aa8111daaf38ef989249ec4727dd74f6b496",
+   "precisionHtml": "69baa031fe19d73d5e517e34122c83d011ea920fbd5c3e1310d05170f9f23406",
+   "lastCompat": "7b1896e5522368d2ff22043c01064fde6681ced62e57ab53e54d731335457ef6",
+   "temperature": 78,
+   "relationLabel": "命",
+   "glowColor": "#6c5ce7"
+  },
+  "m0-p1-F-M-ko": {
+   "html": "c741a909b20c6eb8bfbb5d098d9ba208a410a819f24e05316e19fae0752aba53",
+   "precisionHtml": "581c6fac2bdf98a0251c277ceed673e43488dd4a7e40edf4412c9f18e67e5ddd",
+   "lastCompat": "8d7af5f4b373c200f6de348ab83b65e1cbf129f7fa2b07237d97d5986555da7c",
+   "temperature": 88,
+   "relationLabel": "榮親",
+   "glowColor": "#00b894"
+  },
+  "m3-p12-M-F-ko": {
+   "html": "e0a41bf33c21fcab49935b688adcbd13b14160faedcdf78e11ea825fbdd4ed32",
+   "precisionHtml": "70fbcd55da5a6ac828b2c39ec146ef4b2b3959794acb22a80f5fefa9fda314dc",
+   "lastCompat": "f726eea3e6f382893f3c192e63594aab2b35820ef60a6f3b65c847184ffde710",
+   "temperature": 70,
+   "relationLabel": "業胎",
+   "glowColor": "#e17055"
+  },
+  "m10-p19-OTHER-M-ko": {
+   "html": "a652064876368e6d5e2d89295a8d66cd22740450b8a45112bc83f20aceeaa61c",
+   "precisionHtml": "32063f7c9a24a2118cf2589b19e9a463c9acd58489cffba81a26f91ea6d8edc0",
+   "lastCompat": "71872418ab729769333ae7df1c3e1b8ef3d8785745fd535c98c07a42d2ce871c",
+   "temperature": 70,
+   "relationLabel": "業胎",
+   "glowColor": "#e17055"
+  },
+  "m15-p6-F-F-ko": {
+   "html": "60b8b949eaa4a09d94d8632575ff0197cb2fec988f8d1c934385f0675e68a7ff",
+   "precisionHtml": "b27110ac85732ec7ed4666e111996691c4205c92b5fb3eb13f6398f0bb0d89d6",
+   "lastCompat": "66c7acd20e971213dda8d9c1f0841743a8bd829035e6245fe4ed76d07df5397f",
+   "temperature": 70,
+   "relationLabel": "業胎",
+   "glowColor": "#e17055"
+  },
+  "m21-p4-M-M-ko": {
+   "html": "cba4016b2053657c646b159ee30a3fc5c1ed394693759151c44d31cb39988164",
+   "precisionHtml": "4268a1d154ba3a16ea7ba82c12a35bd6ec0ced5c46a0e9dee79b1eab2ba026c6",
+   "lastCompat": "39dc21e81d58bcc0ba55be488d6a69f3bd287c35eede16f2c9e90ec0b7369099",
+   "temperature": 80,
+   "relationLabel": "榮親",
+   "glowColor": "#00b894"
+  },
+  "m26-p13-F-OTHER-ko": {
+   "html": "94e1df1ce11809c12907aa9e885a29ae0ace438f76420966719c5f30e8d7b203",
+   "precisionHtml": "607a85cdd76e03bfa706687c19628beb79c050d83f5cca63dd6f8d6f8049aa5b",
+   "lastCompat": "c12c709f6f21d2f24dda79b7a28874ac50f839ec0ee06ca68c88f29059ce69fe",
+   "temperature": 58,
+   "relationLabel": "成危",
+   "glowColor": "#0984e3"
+  },
+  "m5-p17-M-F-en": {
+   "html": "52c6929576792bb9974543bb493928b1f66146641658a6502162a87251feb927",
+   "precisionHtml": "c36b2d5b7793c8efd4b3679fe389d8f838a9ce416a261c63b28abe63195ae4e6",
+   "lastCompat": "3a50dad78821dbcc5eef8c290b492a20726ed25569a76edd839350c61f8cd4f9",
+   "temperature": 77,
+   "relationLabel": "安壞",
+   "glowColor": "#d63031"
+  },
+  "m18-p9-F-M-ja": {
+   "html": "2db471a1ef7d92ef9ab14d3de1097cc3d28dddd5c693e649932d6cfec751593a",
+   "precisionHtml": "ab89029d3a5626561f98e1b7ce58c20a04b36f40cd019545694b9735fea35a3e",
+   "lastCompat": "436a33768acb24818c09587828cd52270c41d93edd164ca20d6f54745c499e6f",
+   "temperature": 70,
+   "relationLabel": "業胎",
+   "glowColor": "#e17055"
+  }
+ },
+ "energy": {
+  "solar-m-1990": "980f75d1b5943f533ad778a4df5be4918d18bae6edd1c675777185d40b80e9fc",
+  "solar-f-1985": "599ae4c6f81a739ab70a5e08780630ab9c6568c7147ee0e0ecc0947c1c272567",
+  "unknown-f-1978": "70db74267e17443001f4cba34d2b8ce562da54a0f26172351a48b5e5ccc3781e",
+  "lunar-m-1962": "f8ca050da544feaf707090047616173631cb6e7f44872ea214d514eca117e00f",
+  "leap-f-2020": "9b585312e03aeaf00c15dc558635dc575f729cf92947ad979edd359b1affc57a",
+  "newyear-m-2001": "a3d40243c7d5ac45abba1d6f62513e4076cc2b12cb028f15373898ed0b49828a",
+  "ny-f-1995": "cc82b5a88668996f0f04831fdeaad705069f9060d33b45fad8c73e95c98e7521",
+  "old-m-1941": "b47404adad02abceb957abe66f74d58ab328eafeaee291af093ec65d260d2332",
+  "young-f-2015": "19dfcadd6cb0753268c416ff1615cb5fbe2c494ab5dd3d32df94358f02ce17ee",
+  "jong-confirmed": "f099265eacd08b5af7ec2378013c914f2d61d6d13f7abeed049ede1e5f14de76",
+  "jong-rejected": "f099265eacd08b5af7ec2378013c914f2d61d6d13f7abeed049ede1e5f14de76",
+  "jong-unverified": "f099265eacd08b5af7ec2378013c914f2d61d6d13f7abeed049ede1e5f14de76",
+  "hwa-confirmed": "ff1f42d75998b1d177f4251331dc8d228a06b6846afdb9404f86a184d2f77f77"
+ },
+ "villain": {
+  "solar-m-1990": "c813513289284a6eca04b89fa7e186c900bfd73c84f1092703194bb2f1428960",
+  "solar-f-1985": "d9da830e6d1c5050c0342933e6cfd5e0d44ff8d0af3ae62723d0f4e717d5a285",
+  "unknown-f-1978": "061cbd72a198492cf9b232cf227f973b7aae8c1dc5e0dacbcdeeedd668ac5109",
+  "lunar-m-1962": "13d51b93f9d5e387224f83f2eb1f658c8aae3fee40aa2390c67bc29581da5fcd",
+  "leap-f-2020": "bf90df72f688b16430ef7183cd45b1efac98bfcd0936c26634597c3d999c6d52",
+  "newyear-m-2001": "72f84a12b336d3b3edfe470e9faf305fc6a51123f58b2e37c204d1e8f945210a",
+  "ny-f-1995": "be15a81c63d25083c36bdfc8cf2d3b320e85e5fd39017c18132284f22d302d2d",
+  "old-m-1941": "d5495df199fadfe1d37a627602511ef5daf450c1c662be8bfa6228018c8c5637",
+  "young-f-2015": "741c60bc319ca64ab33058279a69eb2cce9d1aa8a5782f9fea259c9edb21c90b",
+  "jong-confirmed": "0032734f3609f58f9e34ac9a32fea5f9e721f6f0e0b0a534b0813f7c28ab5922",
+  "jong-rejected": "0032734f3609f58f9e34ac9a32fea5f9e721f6f0e0b0a534b0813f7c28ab5922",
+  "jong-unverified": "0032734f3609f58f9e34ac9a32fea5f9e721f6f0e0b0a534b0813f7c28ab5922",
+  "hwa-confirmed": "99d64abf4f1217e86da6b50e1aa8098009d26afca02fad1d42841acb5aee8495"
+ },
+ "health": {
+  "solar-m-1990": "cc3c266528ab06a947193d57ceacf071cce6825bf06125ae465dc7fe4f57d92d",
+  "solar-f-1985": "4aeaad4a5d3ceeb69b219321d845c20c257c06075b0824e206330376a79417b4",
+  "unknown-f-1978": "dcaaa2a213c9c9d15a31e85c8a36e5595fb6f6854f366e64fa12f994d15be54f",
+  "lunar-m-1962": "4dddfee2aef549f68e01f5d1d39d21314084b43291861428c12135c07f8ac750",
+  "leap-f-2020": "db250c71951dda54bdf56af8940bf8678b437206fdb27e5c3367a6f334021916",
+  "newyear-m-2001": "730127b3f7b471bc13009e94c619c06049e06f79ecd7aecd6a20fb97ef543658",
+  "ny-f-1995": "e3206af38b84b55adfadd1e081466448a07ac53b93b1512239503d4ee26a1a7c",
+  "old-m-1941": "b04df7d503e14fb37420aa1c3c990c4e8e15b2dad8741c5342c30c59b283e96b",
+  "young-f-2015": "b302cce06751a4adfb1a8a0a9d7ff8efbe998ba7507c2e96b95b3bae39a7df4e",
+  "jong-confirmed": "d47a6f760819367f1bba692978017f7458eb7e548ff34c934f3272ab8b9e575f",
+  "jong-rejected": "d47a6f760819367f1bba692978017f7458eb7e548ff34c934f3272ab8b9e575f",
+  "jong-unverified": "d47a6f760819367f1bba692978017f7458eb7e548ff34c934f3272ab8b9e575f",
+  "hwa-confirmed": "eb05e3061636d03ad7dac07c1999c55033fb975cac81dd98879ab6db91fa0689"
+ },
+ "charm": {
+  "solar-m-1990": "9f0decbb37cf04dcc2fd2d6699a4d81a3e84cb28457f3a9f88255a2c1d28f700",
+  "solar-f-1985": "133f5c8748fd77f0f9dedd678f990f9b98d717a9397b23dbf38115976bcbc620",
+  "unknown-f-1978": "d67c458ccdbc02fb462de35a958fc801a5fb221031d7b663aa228ea3305e2b90",
+  "lunar-m-1962": "23d702827781e018d7e0345869654d56953a7d32ebe7d53c15f14b3c931abf2c",
+  "leap-f-2020": "63b37dc4984c6607cb0a2d1cddef0914cffe58588554aa00efa7113a3f77a8a9",
+  "newyear-m-2001": "9a220685bd89055a4d4075508dd7a2388eff466f14281216df3b2f6f09213e82",
+  "ny-f-1995": "edb7798e785b2551da7b99700f75707607dfe5dd4cd0ab2bf6f4e899b123ba38",
+  "old-m-1941": "29b01994d9f718ea39c683fb7c9f882f74b2d0d8f2b719985473fe998724e32f",
+  "young-f-2015": "461e8cd7d47e9ffca0f918b231f12f984f4a379f13296d5c31cf2c6211e481c0",
+  "jong-confirmed": "45cb0966fcc8fdb0d18a9e5a66c4ec352b2e82defb806577ea7e04a1ccf3596d",
+  "jong-rejected": "45cb0966fcc8fdb0d18a9e5a66c4ec352b2e82defb806577ea7e04a1ccf3596d",
+  "jong-unverified": "45cb0966fcc8fdb0d18a9e5a66c4ec352b2e82defb806577ea7e04a1ccf3596d",
+  "hwa-confirmed": "21c932c6fc25043040f87fca1c2c36c4319f620298c44879313242eca3c09aab"
+ },
+ "skill": {
+  "solar-m-1990": "76fe018e178d5f6a3f5dde8233988a95758975e56228f4c59f93ecf8b850822e",
+  "solar-f-1985": "0b7030b5fcb8b3e13074a6a7a538a5d349ae771e19439e82d72f86b28bf08301",
+  "unknown-f-1978": "15b0bf4ce859bdbbf41ea0f0068bf380fb08421273d7594c499e79bb428db8f2",
+  "lunar-m-1962": "3ee03d92292107c84b936e60877dce8335016109f31d46b49a371f11f4c65ee1",
+  "leap-f-2020": "3e663748eb11e087e63eca497cd4cf9b7d8f0167b907fb083bcce087b8aa2d73",
+  "newyear-m-2001": "383738c5f3b32ecad140744ad6aeae26c4d94b3ff7c182296ed7c55391501b49",
+  "ny-f-1995": "ce1cbd47d1e16cda167b691130bb5275438e252e225200b260194b498825828b",
+  "old-m-1941": "65191ed956ea341f31a3e22fdf0d943ee68ae77a19680c93237eeef8f3302e2f",
+  "young-f-2015": "96877341143416533b71f0fe56f27b476a22aff802bcf7ce2d35cdd006fbaafc",
+  "jong-confirmed": "2c9696eaf3db3e225464d8a0da11504cdd6c95c15691b82ded48807ef461908b",
+  "jong-rejected": "2c9696eaf3db3e225464d8a0da11504cdd6c95c15691b82ded48807ef461908b",
+  "jong-unverified": "2c9696eaf3db3e225464d8a0da11504cdd6c95c15691b82ded48807ef461908b",
+  "hwa-confirmed": "239ab2ad18448b379963af17d3f5d3c645d8bdba1cefcc54c1fc5855c517db47"
+ },
+ "secretHouse": [
+  {
+   "stem": "甲",
+   "branch": "子",
+   "history": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "finalCharId": "tree",
+   "sha256": "4b768984d5afbc9bd9c87b4b999ffccecdaeea6b273424520dde0001a7d36d93"
+  },
+  {
+   "stem": "甲",
+   "branch": "未",
+   "history": [
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "C",
+    "E",
+    "E",
+    "C",
+    "C",
+    "D"
+   ],
+   "finalCharId": "tree",
+   "sha256": "336eb8c97156a478e856baef1a792e046bfdf9944d8d12506426f722cc546d24"
+  },
+  {
+   "stem": "甲",
+   "branch": "卯",
+   "history": [
+    "D",
+    "A",
+    "C",
+    "E",
+    "B",
+    "D",
+    "A",
+    "C",
+    "H",
+    "B",
+    "D",
+    "C",
+    "A",
+    "C"
+   ],
+   "finalCharId": "fire",
+   "sha256": "0fc4067e42be5726c76f393a80ba9fe6f3f91eedf14f992b82f911f0aab0683d"
+  },
+  {
+   "stem": "甲",
+   "branch": "申",
+   "history": [
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B"
+   ],
+   "finalCharId": "soil",
+   "sha256": "f9abe58e65c3f832c7bccf0bc330ffcb4f8e46c52169802e3178ecfa72da476b"
+  },
+  {
+   "stem": "乙",
+   "branch": "未",
+   "history": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "finalCharId": "tree",
+   "sha256": "114f58023dcb1ec7b7bab392ad0386ea6143595732706076fe04cee03eaff116"
+  },
+  {
+   "stem": "乙",
+   "branch": "卯",
+   "history": [
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "C",
+    "E",
+    "E",
+    "C",
+    "C",
+    "D"
+   ],
+   "finalCharId": "fire",
+   "sha256": "af269caf9a819d7c840492be4921849870740b90057e93c1cd35aa5765d62392"
+  },
+  {
+   "stem": "乙",
+   "branch": "申",
+   "history": [
+    "D",
+    "A",
+    "C",
+    "E",
+    "B",
+    "D",
+    "A",
+    "C",
+    "H",
+    "B",
+    "D",
+    "C",
+    "A",
+    "C"
+   ],
+   "finalCharId": "soil",
+   "sha256": "0c3ef1d60f0c44845d25688632314d086bd9bd82f18b1d52917b3e9af7503928"
+  },
+  {
+   "stem": "乙",
+   "branch": "巳",
+   "history": [
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B"
+   ],
+   "finalCharId": "gold",
+   "sha256": "8b5bcf24b22e155a8c74871d9a4090ccead36f63c77c7895e1ac99da846cd29d"
+  },
+  {
+   "stem": "丙",
+   "branch": "卯",
+   "history": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "finalCharId": "fire",
+   "sha256": "3a67a678a59d65c5b0e62f40d300207e045a5b368dbccdfbf8ad8b2c2879ba5d"
+  },
+  {
+   "stem": "丙",
+   "branch": "申",
+   "history": [
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "C",
+    "E",
+    "E",
+    "C",
+    "C",
+    "D"
+   ],
+   "finalCharId": "soil",
+   "sha256": "decb7514c1a0e1c13f4723a081fde36bd5cf182c8c88f1a80ad4cfeb22f703da"
+  },
+  {
+   "stem": "丙",
+   "branch": "巳",
+   "history": [
+    "D",
+    "A",
+    "C",
+    "E",
+    "B",
+    "D",
+    "A",
+    "C",
+    "H",
+    "B",
+    "D",
+    "C",
+    "A",
+    "C"
+   ],
+   "finalCharId": "gold",
+   "sha256": "995f50ea66018d686de8cd923e9801b03679b7a008f285a77e78cf725b90f00a"
+  },
+  {
+   "stem": "丙",
+   "branch": "辰",
+   "history": [
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B"
+   ],
+   "finalCharId": "water",
+   "sha256": "9662aaefe89724a2ddd04198077787457d76c089ac0484637208b33706974455"
+  },
+  {
+   "stem": "丁",
+   "branch": "申",
+   "history": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "finalCharId": "soil",
+   "sha256": "7dffc6ff7953d356d095a29206f868f2b49d46a3df8c9cf0f01178906cee8f85"
+  },
+  {
+   "stem": "丁",
+   "branch": "巳",
+   "history": [
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "C",
+    "E",
+    "E",
+    "C",
+    "C",
+    "D"
+   ],
+   "finalCharId": "gold",
+   "sha256": "036b804cf4440c585e2ee954ce0379390ab2acc18a6e7dde237f2e59193282a3"
+  },
+  {
+   "stem": "丁",
+   "branch": "辰",
+   "history": [
+    "D",
+    "A",
+    "C",
+    "E",
+    "B",
+    "D",
+    "A",
+    "C",
+    "H",
+    "B",
+    "D",
+    "C",
+    "A",
+    "C"
+   ],
+   "finalCharId": "water",
+   "sha256": "69051b2adeac95d030ba8b05be5ea0fbf00dcf3d61e52df424b67e79af7b9d94"
+  },
+  {
+   "stem": "丁",
+   "branch": "子",
+   "history": [
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B"
+   ],
+   "finalCharId": "soil",
+   "sha256": "097a8acc5cfe52f36b7ffbcb5a20352923695016444fde9bea2085d7ed8aff00"
+  },
+  {
+   "stem": "戊",
+   "branch": "巳",
+   "history": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "finalCharId": "gold",
+   "sha256": "e8666a028274d146497de0d3deb91af2ae0fd6a1395f333ab16db24dc24a271f"
+  },
+  {
+   "stem": "戊",
+   "branch": "辰",
+   "history": [
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "C",
+    "E",
+    "E",
+    "C",
+    "C",
+    "D"
+   ],
+   "finalCharId": "water",
+   "sha256": "81a23619cddac6069d5426aa2e18d908f11f5ca89367806cba2794d0562c901d"
+  },
+  {
+   "stem": "戊",
+   "branch": "子",
+   "history": [
+    "D",
+    "A",
+    "C",
+    "E",
+    "B",
+    "D",
+    "A",
+    "C",
+    "H",
+    "B",
+    "D",
+    "C",
+    "A",
+    "C"
+   ],
+   "finalCharId": "gold",
+   "sha256": "22c71d93486817f3335cdb35da4c3281f700590a032b5a7768dc746be57c6005"
+  },
+  {
+   "stem": "戊",
+   "branch": "未",
+   "history": [
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B"
+   ],
+   "finalCharId": "tree",
+   "sha256": "e9b7f27bf27d5a584e0626223d09e417caa3d8812bbc42c9aa920bd383c47b66"
+  },
+  {
+   "stem": "己",
+   "branch": "辰",
+   "history": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "finalCharId": "water",
+   "sha256": "89bb889ba8fee864da001a89ab439878472108b42cc4a51d162e79e9a69e7bf3"
+  },
+  {
+   "stem": "己",
+   "branch": "子",
+   "history": [
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "C",
+    "E",
+    "E",
+    "C",
+    "C",
+    "D"
+   ],
+   "finalCharId": "gold",
+   "sha256": "2a7132ce02201cf0287983c32e14f3ca0699459f2134673066bd354bd2a283eb"
+  },
+  {
+   "stem": "己",
+   "branch": "未",
+   "history": [
+    "D",
+    "A",
+    "C",
+    "E",
+    "B",
+    "D",
+    "A",
+    "C",
+    "H",
+    "B",
+    "D",
+    "C",
+    "A",
+    "C"
+   ],
+   "finalCharId": "tree",
+   "sha256": "2e74a113eee6901be6ef1c6d46eb3acf62d60db7c7dbbfb9b79b97021fd0a7c8"
+  },
+  {
+   "stem": "己",
+   "branch": "卯",
+   "history": [
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B"
+   ],
+   "finalCharId": "fire",
+   "sha256": "5d4f31d3845027ae6e1b15c145dc24121a33f67af86352547d5d73867ad79161"
+  },
+  {
+   "stem": "庚",
+   "branch": "子",
+   "history": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "finalCharId": "tree",
+   "sha256": "9b5e164fbf2f51ef272001b2a16785e79a0013fa4847cad4b0f02cb78b5e62e4"
+  },
+  {
+   "stem": "庚",
+   "branch": "未",
+   "history": [
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "C",
+    "E",
+    "E",
+    "C",
+    "C",
+    "D"
+   ],
+   "finalCharId": "tree",
+   "sha256": "92cdb051174489810bd880aef4c6115c72a66f914ddd77ceddd292b399c87b97"
+  },
+  {
+   "stem": "庚",
+   "branch": "卯",
+   "history": [
+    "D",
+    "A",
+    "C",
+    "E",
+    "B",
+    "D",
+    "A",
+    "C",
+    "H",
+    "B",
+    "D",
+    "C",
+    "A",
+    "C"
+   ],
+   "finalCharId": "fire",
+   "sha256": "08115db9d7910b57983a13c572ae8ba728930b00f918306b84e0dc19e1b62e21"
+  },
+  {
+   "stem": "庚",
+   "branch": "申",
+   "history": [
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B"
+   ],
+   "finalCharId": "soil",
+   "sha256": "fbf668ff74b1c92e5ee1f7c72f8a38302ccda9ed5d39b314ce7a82f9cec46c4e"
+  },
+  {
+   "stem": "辛",
+   "branch": "未",
+   "history": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "finalCharId": "tree",
+   "sha256": "d69ccbad22578bbbbd726ac76f878b23e7eb5042ae1cb1a4c89ef2225ccc0b44"
+  },
+  {
+   "stem": "辛",
+   "branch": "卯",
+   "history": [
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "C",
+    "E",
+    "E",
+    "C",
+    "C",
+    "D"
+   ],
+   "finalCharId": "fire",
+   "sha256": "61529de37bee2a381e1aafecfe3e7a9605261e4930a8e836402f7542de37a2d4"
+  },
+  {
+   "stem": "辛",
+   "branch": "申",
+   "history": [
+    "D",
+    "A",
+    "C",
+    "E",
+    "B",
+    "D",
+    "A",
+    "C",
+    "H",
+    "B",
+    "D",
+    "C",
+    "A",
+    "C"
+   ],
+   "finalCharId": "soil",
+   "sha256": "a05bf0c2c44c2fbf0f0a6aa3ec2bdc57b7561f966ae40cf6b078cb9e0c1f266c"
+  },
+  {
+   "stem": "辛",
+   "branch": "巳",
+   "history": [
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B"
+   ],
+   "finalCharId": "gold",
+   "sha256": "fa3331ff148dd863bcb7fb22d394696a393398f7ec517168da24aca13c9d7c86"
+  },
+  {
+   "stem": "壬",
+   "branch": "卯",
+   "history": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "finalCharId": "fire",
+   "sha256": "8959dd0aa8ac05b2be30f0049676e62ac721c6c1d9c6fae2db537c3184e47586"
+  },
+  {
+   "stem": "壬",
+   "branch": "申",
+   "history": [
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "C",
+    "E",
+    "E",
+    "C",
+    "C",
+    "D"
+   ],
+   "finalCharId": "soil",
+   "sha256": "98bb483cf51e4755ffbb606f81f0100d0d3ceee10f643c96c99ce4b9ed4130d0"
+  },
+  {
+   "stem": "壬",
+   "branch": "巳",
+   "history": [
+    "D",
+    "A",
+    "C",
+    "E",
+    "B",
+    "D",
+    "A",
+    "C",
+    "H",
+    "B",
+    "D",
+    "C",
+    "A",
+    "C"
+   ],
+   "finalCharId": "gold",
+   "sha256": "3f4e666f0eb42fbeb6053ee85d88917bfc1ea1a7d61b040cfe4f04f604ef5c9f"
+  },
+  {
+   "stem": "壬",
+   "branch": "辰",
+   "history": [
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B"
+   ],
+   "finalCharId": "water",
+   "sha256": "4a7da74ecd69211d39a7f54bb74e419b7da8ed0afc5ab23345180250ca0751de"
+  },
+  {
+   "stem": "癸",
+   "branch": "申",
+   "history": [
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A",
+    "A"
+   ],
+   "finalCharId": "soil",
+   "sha256": "de29a6d38772a8117efe2453462dc06e15bb1f4a00cb2501db88eec273651d26"
+  },
+  {
+   "stem": "癸",
+   "branch": "巳",
+   "history": [
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "E",
+    "C",
+    "E",
+    "E",
+    "C",
+    "C",
+    "D"
+   ],
+   "finalCharId": "gold",
+   "sha256": "21cfc87dbdb6471714ba8e8bed359a570945cfc73711ec33f4f8c3d8ddfde9c6"
+  },
+  {
+   "stem": "癸",
+   "branch": "辰",
+   "history": [
+    "D",
+    "A",
+    "C",
+    "E",
+    "B",
+    "D",
+    "A",
+    "C",
+    "H",
+    "B",
+    "D",
+    "C",
+    "A",
+    "C"
+   ],
+   "finalCharId": "water",
+   "sha256": "00a8d7fd09b9acfbeb543c869e02ca3f21162826604469cb41d4897b918898fa"
+  },
+  {
+   "stem": "癸",
+   "branch": "子",
+   "history": [
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B",
+    "B"
+   ],
+   "finalCharId": "soil",
+   "sha256": "75dadada6f72c6ea01e6ad0e6904a530376f2910da8eed8a05765d459d2323ea"
+  },
+  {
+   "stem": "丙",
+   "branch": "",
+   "history": [
+    "D",
+    "A",
+    "C",
+    "E",
+    "B",
+    "D",
+    "A",
+    "C",
+    "H",
+    "B",
+    "D",
+    "C",
+    "A",
+    "C"
+   ],
+   "finalCharId": "gold",
+   "sha256": "98840b5463ee7141b4d55948958e47ab804749349ad2589ca463dbf136f3d376"
+  }
+ ],
+ "animal": {
+  "solar-m-1990": {
+   "animalId": "fawn",
+   "sha256": "a7a873adf98fa74b92868bd474a9e3bddaa25c53e1c904708d68828c3dfa9aa5"
+  },
+  "solar-f-1985": {
+   "animalId": "monkey",
+   "sha256": "c827eab7489120860dfd4d3932bde5a1a966f299a1e019ee87a95ce61e795dfa"
+  },
+  "unknown-f-1978": {
+   "animalId": "cheetah",
+   "sha256": "c743cbcd0a8887d018694e8bd22259a1ab7dd5ce5eae1fe8835b763490826e8a"
+  },
+  "lunar-m-1962": {
+   "animalId": "koala",
+   "sha256": "f3157d7e2c8bdf6cd90c1d62a91835af4e79a72a74f4be3b7698dd545464081c"
+  },
+  "leap-f-2020": {
+   "animalId": "elephant",
+   "sha256": "efd4b3fd86d2de623ac72e108bef6d49fa38f96e785f6f7cb634cc4f853fa217"
+  },
+  "newyear-m-2001": {
+   "animalId": "monkey",
+   "sha256": "72331fea842e5e22ce9b7001b973aa8b101bd1e9827c0081166391ee35dc90b0"
+  },
+  "ny-f-1995": {
+   "animalId": "tiger",
+   "sha256": "3c9bf99985193df431aa0a7816006750c747db72a24a2f3acd2cd6216a5283fa"
+  },
+  "old-m-1941": {
+   "animalId": "black-panther",
+   "sha256": "938e76d7b7c8c9e28c33822d097e6cb349f8a53e32389606ed7ad3c81fd197ce"
+  },
+  "young-f-2015": {
+   "animalId": "elephant",
+   "sha256": "ffe0db7ff44a9d7b9c178469ee1087e95a6e668aa7f778776c6871818321efbc"
+  },
+  "jong-confirmed": {
+   "animalId": "tiger",
+   "sha256": "a3468769a78345c7c61930420ed811283521556fa3bd57f10f713ee71e00cb55"
+  },
+  "jong-rejected": {
+   "animalId": "tiger",
+   "sha256": "a3468769a78345c7c61930420ed811283521556fa3bd57f10f713ee71e00cb55"
+  },
+  "jong-unverified": {
+   "animalId": "tiger",
+   "sha256": "a3468769a78345c7c61930420ed811283521556fa3bd57f10f713ee71e00cb55"
+  },
+  "hwa-confirmed": {
+   "animalId": "fawn",
+   "sha256": "741336af07427360893175c2322b42a03e967f8590cf889f36c80cee3bb6474e"
+  }
+ },
+ "animalStages": [
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲子",
+    "hour": "丙寅"
+   },
+   "animalId": "monkey",
+   "stageKey": "mogyok",
+   "sha256": "056360ea5b9a9302684e2eb944e520f4800ab5986227144ad9009cf399d70683"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲丑",
+    "hour": "丙寅"
+   },
+   "animalId": "black-panther",
+   "stageKey": "gwandae",
+   "sha256": "84285b539d871c63357a154d93ee27141572598cf808b6514d34fed66f9f0241"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲寅",
+    "hour": "丙寅"
+   },
+   "animalId": "koala",
+   "stageKey": "geonrok",
+   "sha256": "d2f3f3a18e52f8403f56b4b2faf952236178a2efa4bc7b260e496251247dec05"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲卯",
+    "hour": "丙寅"
+   },
+   "animalId": "tiger",
+   "stageKey": "jewang",
+   "sha256": "5cdadef77f39c1b3e08dca68baf50de49aa7b14b4338524c769adec0da784c7a"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲辰",
+    "hour": "丙寅"
+   },
+   "animalId": "raccoon",
+   "stageKey": "soe",
+   "sha256": "1dc8a977fd836c681f4eb59b4d05cabe8467bd4dc0cff85e2a886b505b61b4ec"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲巳",
+    "hour": "丙寅"
+   },
+   "animalId": "rhino",
+   "stageKey": "byeong",
+   "sha256": "6fac00f5271f2917d2a71b5162caccce8cda1f8f2380bbb1059cad9a301f20f4"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲午",
+    "hour": "丙寅"
+   },
+   "animalId": "elephant",
+   "stageKey": "sa",
+   "sha256": "60dfdfebaa051f02d7ec2d7ce2d83dc50cc747d328b94c562f3c67ce813aa39d"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲未",
+    "hour": "丙寅"
+   },
+   "animalId": "sheep",
+   "stageKey": "myo",
+   "sha256": "f43c92965bbb2dcb42355434d2ebffdd07688f1ae000727ab9792e7f151db3ff"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲申",
+    "hour": "丙寅"
+   },
+   "animalId": "pegasus",
+   "stageKey": "jeol",
+   "sha256": "6f3fc8d8c51179e14afc086032c108d4574c4fbbd97d5523124c8ee180495948"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲酉",
+    "hour": "丙寅"
+   },
+   "animalId": "wolf",
+   "stageKey": "tae",
+   "sha256": "c1f0b6a037f27f246e295f9fe503e947d93f9ac7a213f0a6068bd23f1d2e0a01"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲戌",
+    "hour": "丙寅"
+   },
+   "animalId": "fawn",
+   "stageKey": "yang",
+   "sha256": "8e1980a6af27f71d01a176a64b2332b5c67b1137854ccdfafc26a97d08c5e7d6"
+  },
+  {
+   "pillars": {
+    "year": "庚午",
+    "month": "辛巳",
+    "day": "甲亥",
+    "hour": "丙寅"
+   },
+   "animalId": "cheetah",
+   "stageKey": "jangsaeng",
+   "sha256": "5b4b9476987ce6fea0579a72c338691e82d0c79bc4d7d45a15cf889d690c7bfd"
+  }
+ ],
+ "ziwei": {
+  "solar-m-1990": {
+   "ziwei_decade_luck": "72f16b3ecb5612d6d16b6f36cd9bca4ee5afd1b2fdebf06c86f09d0913b1c12e",
+   "ziwei_decade_luck_inner": "970e5e7596461f2150b74b05545c4d44b5d146421be68bc4f6ce22ada5a8d63d",
+   "ziwei_twelve_palaces": "64e4cbe3456bde83d55dc21636782e95f1bb4bd0c8e32abaad6dce86e057eead",
+   "ziwei_love_deep": "3434cf22478d1ce9d2066ca8b5844f98b4abf803fadc2ef8cfad527a5e866067",
+   "ziwei_symbolic_layer": "1194ca99f3933f323490fd3bfa2cf4fe4825c9accdcffb6a098e10a3501d4aa7",
+   "ziwei_life_yearly_flow": "a58110086801a3e8afe62e8000ab15823c6b5f4c18d5aac3c4f4c335e71ee5fe"
+  },
+  "solar-f-1985": {
+   "ziwei_decade_luck": "1428265df0dc37c154d467bea0c0db79474d92119cf653cf14e918bc9ebe94c1",
+   "ziwei_decade_luck_inner": "c1308cd24493110411db2820ef0205b01872e84cebf8273b44cd10347b8d6576",
+   "ziwei_twelve_palaces": "2441c1a895670f4555497189af78494e40f1c252ea3736b3c14ddcdd8edc3ba4",
+   "ziwei_love_deep": "b87aa1df17b0b216438e323f0504a08bdf1f01c80fe2a13e62664138736826c0",
+   "ziwei_symbolic_layer": "eabc8a2a92b35347a5fbe7c5c72562e5c9024999cbe1d124d7e149adb460300e",
+   "ziwei_life_yearly_flow": "0c66fedc2d77f0b329a7b623465c7c2937903ad816bb28c113fefddb509f0d43"
+  },
+  "unknown-f-1978": {
+   "ziwei_decade_luck": "6e914cfcd7c9ea5d9b040336cf3702c55e96a97fef1fc228fdcaea5221eb8086",
+   "ziwei_decade_luck_inner": "f2da58c9edca7c2fac106f43bb4017e4e133ce51a0949a632d8a345fe4693993",
+   "ziwei_twelve_palaces": "655313cde02f543d91b39ce3c16a50ab25a12fb450406b2616fdd87f676959c1",
+   "ziwei_love_deep": "205f88d952233435fc3724d02653d45f03202d844013a7761dd1189ca67b5efa",
+   "ziwei_symbolic_layer": "2553725ef973ba561499cd2c4c4ae61ea982e5439c556aaa0c0de76a14534943",
+   "ziwei_life_yearly_flow": "b8dbe016f56e3636c0723599a4eaf9cb1bfd8acd0e7660917c556aee4bbfca2a"
+  },
+  "lunar-m-1962": {
+   "ziwei_decade_luck": "2f72d42618edb083f87f3cf9e5c5824abca0c0c55b0142d02d69f8a053fac4ad",
+   "ziwei_decade_luck_inner": "b32ac16a59cb3f9428361eedff3185100a65fde0af6dd3b00a976bde8bcee507",
+   "ziwei_twelve_palaces": "0972767fe70cc400ade20fd74313dee9e79af68b78c357863ae395f0d0c37e6d",
+   "ziwei_love_deep": "2fa3d29bcf27edceceebb4bb66c802305682e4a69605ee05d069068981feeae1",
+   "ziwei_symbolic_layer": "3c9b391555850378c5da3302b8f182129ed9f3e486b52e7b4d2d7665fbab1025",
+   "ziwei_life_yearly_flow": "188963902cab0755f6341690520a3dadd72520c25981a82140df956af2510ad0"
+  },
+  "leap-f-2020": {
+   "ziwei_decade_luck": "fc4ada6142b415858969de29926b5055fcd505f7c441b177f2698869c5db8a27",
+   "ziwei_decade_luck_inner": "a2f36f96e6f976f77b6f3b3e4633e3416a99eb55f5e8f06bd445dbb9e54cb0e1",
+   "ziwei_twelve_palaces": "5d6426b4ffa8ac5bf0cb07f0daae0de7976c6d4b507a5251191f142eefc3cf20",
+   "ziwei_love_deep": "c33db796543b74bf1576358f3f1bbb9e170acf68f1d8d5f08db8541be0636835",
+   "ziwei_symbolic_layer": "357d46f3ec119fa4fbdecd7be08e991f3e9690899e2cd7b546f9d08ad19a78fc",
+   "ziwei_life_yearly_flow": "073a1849094ea7033418f065bb3118fbb66d42f4f7549719e31a5150314ca3c4"
+  },
+  "newyear-m-2001": {
+   "ziwei_decade_luck": "eb2cd8f0d4e91f3b1d79d3e2dcf92e95923741e17df46a16ddee088272569737",
+   "ziwei_decade_luck_inner": "b7c29a7ef97f3d3e51f41f69d0d1fefc092c7a7b25d0875bf750c21799ce9e97",
+   "ziwei_twelve_palaces": "9b85c295960e057449cd4b95be953e5d6b024d998d798303a8ac80e26169bd2d",
+   "ziwei_love_deep": "875ceb30165449ff2aabd7199ab5e49ba4fe27e9514996a17909eb9a7db8f249",
+   "ziwei_symbolic_layer": "8ec302831ec1f0e4735c95c290292f0e74e7129228936ae54ae303516b20f5e2",
+   "ziwei_life_yearly_flow": "fff7e9373d6b177f5953c52e5ebc379f20762e5c0948ae8f9da45f1d21f1f467"
+  },
+  "ny-f-1995": {
+   "ziwei_decade_luck": "3d6cc74b5a1a239ec595aeb807f37cfaa3dca4cda1eab83349910b0c421924c6",
+   "ziwei_decade_luck_inner": "e55c0d779820dadbbbb077c8f9e52661b75286af313149c9b5f2126993b38de0",
+   "ziwei_twelve_palaces": "fda0599b29044bf66d22045fe510073892eeec6a4e6816a7941bcde184668709",
+   "ziwei_love_deep": "7ed619e3c034244b9556bdfa4bb2e10e07b08f0c48bce4b2eab9a1d9588045cf",
+   "ziwei_symbolic_layer": "daf6dd73e26f94c17f0807f49fc92568b461454344af777fa7a94174ce5cf051",
+   "ziwei_life_yearly_flow": "0dbdc921c67e7d3f9b6259e3e13c5ea6a9f5c72b99f40feeaeffc1b77903938c"
+  },
+  "old-m-1941": {
+   "ziwei_decade_luck": "6be409f6b832af41337bcbacf061974db6e7160bf8fbc118df4ec3abca6df402",
+   "ziwei_decade_luck_inner": "56cf268fbaad88721f03bbf57f6e8d12af3ca6e928fa73967c179564e8b305f2",
+   "ziwei_twelve_palaces": "95a914112fbbbf2e4094466568a81016abc768c1fcfdec5f739e33216f95fccc",
+   "ziwei_love_deep": "4b4ee65e1c460c959e31d3051de8d451401a45ca35807e64b8f110aad9068465",
+   "ziwei_symbolic_layer": "4a5d74c381fbe85b4c972f014f47021c5c631b9746e7a06497b1bb89d9bfd32a",
+   "ziwei_life_yearly_flow": "aac005abc70f6ccb8bc18184bd7a7ec4efa5152099329f64fcbba51cd05820ab"
+  },
+  "young-f-2015": {
+   "ziwei_decade_luck": "40ebfd4a03708d52a3fb71c5de5426a25c1fd379bee8d5527816578578853d7a",
+   "ziwei_decade_luck_inner": "c3c68faff5456b472f5eae60dcc0f68290e3a7064ab57160a6cc1149787436ad",
+   "ziwei_twelve_palaces": "d93fc84f8a197449a8326892f4b3016426517dcee3fcebecd923189f3ed65c41",
+   "ziwei_love_deep": "66255d5d27cc7bcc9b21f46fa23e4bca2064bf86956737cac484194842f0be13",
+   "ziwei_symbolic_layer": "0b7db4c1914cdbd6e13f0377ad0c73bb2e532e9c058050125c83a5697349c79c",
+   "ziwei_life_yearly_flow": "40e966ac21f4f8909c868a2d71aab367cccd0d104c0a6a8fa69ef11ccc472bc5"
+  },
+  "jong-confirmed": {
+   "ziwei_decade_luck": "9dce55792c7fff58b6905f927d497a8200cbe3d1f489b49ff4da27671d3eedbe",
+   "ziwei_decade_luck_inner": "97465a0e534421e32714e0feef3d664272e4a566977ddd7b0a49ea309d1adcfd",
+   "ziwei_twelve_palaces": "9c1fa30916a965ffcf8e1149c29d758a5f3844dd05abcfdd25b7175cf9054ba5",
+   "ziwei_love_deep": "384115aa9c1ccc8003f21e3415ebd4f1316605ff18efb735d0ef14afd6c30a64",
+   "ziwei_symbolic_layer": "c2cf73b259f467fa6d5898c6aa040be15a4940e991d0a05e854e05c20ea1ae87",
+   "ziwei_life_yearly_flow": "16c726950a7da61c82cb6fbb6201980aa3a0edf0284d150e146fde5645402b87"
+  },
+  "jong-rejected": {
+   "ziwei_decade_luck": "9dce55792c7fff58b6905f927d497a8200cbe3d1f489b49ff4da27671d3eedbe",
+   "ziwei_decade_luck_inner": "97465a0e534421e32714e0feef3d664272e4a566977ddd7b0a49ea309d1adcfd",
+   "ziwei_twelve_palaces": "9c1fa30916a965ffcf8e1149c29d758a5f3844dd05abcfdd25b7175cf9054ba5",
+   "ziwei_love_deep": "384115aa9c1ccc8003f21e3415ebd4f1316605ff18efb735d0ef14afd6c30a64",
+   "ziwei_symbolic_layer": "c2cf73b259f467fa6d5898c6aa040be15a4940e991d0a05e854e05c20ea1ae87",
+   "ziwei_life_yearly_flow": "16c726950a7da61c82cb6fbb6201980aa3a0edf0284d150e146fde5645402b87"
+  },
+  "jong-unverified": {
+   "ziwei_decade_luck": "9dce55792c7fff58b6905f927d497a8200cbe3d1f489b49ff4da27671d3eedbe",
+   "ziwei_decade_luck_inner": "97465a0e534421e32714e0feef3d664272e4a566977ddd7b0a49ea309d1adcfd",
+   "ziwei_twelve_palaces": "9c1fa30916a965ffcf8e1149c29d758a5f3844dd05abcfdd25b7175cf9054ba5",
+   "ziwei_love_deep": "384115aa9c1ccc8003f21e3415ebd4f1316605ff18efb735d0ef14afd6c30a64",
+   "ziwei_symbolic_layer": "c2cf73b259f467fa6d5898c6aa040be15a4940e991d0a05e854e05c20ea1ae87",
+   "ziwei_life_yearly_flow": "16c726950a7da61c82cb6fbb6201980aa3a0edf0284d150e146fde5645402b87"
+  },
+  "hwa-confirmed": {
+   "ziwei_decade_luck": "0be02a11c89c06bd523f5cd02b82d7ff76a6c0fcae7e5eb34bb72e3776b2b600",
+   "ziwei_decade_luck_inner": "409d472b830c6ba40466443a6af1ce148859ba257cbf81d02fd9f90d53111726",
+   "ziwei_twelve_palaces": "45a149286718b4e8fcaf1c936441135c9f9daa61aa172a35b2aa2e31f097d97c",
+   "ziwei_love_deep": "5b78d582ecaaaf7a5b2014f82a02464e4d426223edc822e69ba7fe3eecb3f0a7",
+   "ziwei_symbolic_layer": "11f6115341ee96f6d7b3c48b47d3b57933114775227ee71d163dd3e0f378cb44",
+   "ziwei_life_yearly_flow": "57b214f23440a5f50d80698b8fd0eb714343d83af216395c7302147ad7756472"
+  }
+ },
+ "ziweiCompatCases": [
+  {
+   "id": "m1990-seoul-f",
+   "me": "solar-m-1990",
+   "partner": {
+    "date": "1992-05-18",
+    "time": "09:30",
+    "gender": "F",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "f1985-seoul-midnight-m",
+   "me": "solar-f-1985",
+   "partner": {
+    "date": "2001-01-01",
+    "time": "00:15",
+    "gender": "M",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "unknown1978-ny-m",
+   "me": "unknown-f-1978",
+   "partner": {
+    "date": "1987-07-04",
+    "time": "23:50",
+    "gender": "M",
+    "city": {
+     "name": "미국 · 뉴욕주 · 뉴욕",
+     "timezone": "America/New_York",
+     "longitude": -74.006,
+     "latitude": 40.7128,
+     "baseTzOffset": -5
+    }
+   }
+  },
+  {
+   "id": "lunar1962-busan-other",
+   "me": "lunar-m-1962",
+   "partner": {
+    "date": "1960-03-10",
+    "time": "14:00",
+    "gender": "OTHER",
+    "city": {
+     "name": "대한민국 · 부산",
+     "timezone": "Asia/Seoul",
+     "longitude": 129.0756,
+     "latitude": 35.1796,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "ny1995-seoul-dst-f",
+   "me": "ny-f-1995",
+   "partner": {
+    "date": "1988-05-15",
+    "time": "01:10",
+    "gender": "F",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  },
+  {
+   "id": "leap2020-seoul-m",
+   "me": "leap-f-2020",
+   "partner": {
+    "date": "2019-12-31",
+    "time": "23:40",
+    "gender": "M",
+    "city": {
+     "name": "대한민국 · 서울",
+     "timezone": "Asia/Seoul",
+     "longitude": 126.978,
+     "latitude": 37.5665,
+     "baseTzOffset": 9
+    }
+   }
+  }
+ ],
+ "ziweiCompat": {
+  "m1990-seoul-f": {
+   "html": "2808bac19df222c1895ce03fb85110f26df61f7d07e7eab35057ce3a6a7e15cd",
+   "correctionMsg": "진태양시 보정 적용: 09:30 → 08:58 (경도 -32분, DST 0분, UTC+9)",
+   "correctedTime": "08:58",
+   "userLabel": "민수",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "자미 · 천상",
+    "partnerMingPalace": "염정 · 칠살",
+    "mySpousePalace": "탐랑",
+    "partnerSpousePalace": "천상",
+    "score": 89,
+    "loveScore": 50,
+    "marriageScore": 50,
+    "friendScore": 47,
+    "workScore": 49,
+    "businessScore": 48,
+    "pastLifeScore": 48
+   },
+   "llm": {
+    "overallScore": 89,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 85
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 84
+     },
+     {
+      "key": "친구 궁합",
+      "val": 78
+     },
+     {
+      "key": "직장 궁합",
+      "val": 82
+     },
+     {
+      "key": "사업 궁합",
+      "val": 81
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "자미",
+       "천상"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "염정",
+       "칠살"
+      ],
+      "aux": []
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "탐랑"
+      ],
+      "aux": [
+       "천마",
+       "녹존"
+      ]
+     },
+     "partner": {
+      "main": [
+       "천상"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     }
+    },
+    "scores": {
+     "love": 50,
+     "marriage": 50,
+     "friend": 47,
+     "work": 49,
+     "business": 48,
+     "pastLife": 48
+    }
+   }
+  },
+  "f1985-seoul-midnight-m": {
+   "html": "ed0248cadbcb798eda144d6441e3499ed7b43cf600abe6b6b53766d9a13799db",
+   "correctionMsg": "진태양시 보정 적용: 00:15 → 2000-12-31 23:43 (경도 -32분, DST 0분, UTC+9)",
+   "correctedTime": "23:43",
+   "userLabel": "지은",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "자미 · 파군",
+    "partnerMingPalace": "태양 · 태음",
+    "mySpousePalace": "염정 · 탐랑",
+    "partnerSpousePalace": "천량",
+    "score": 87,
+    "loveScore": 46,
+    "marriageScore": 47,
+    "friendScore": 47,
+    "workScore": 48,
+    "businessScore": 48,
+    "pastLifeScore": 46
+   },
+   "llm": {
+    "overallScore": 87,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 81
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 81
+     },
+     {
+      "key": "친구 궁합",
+      "val": 78
+     },
+     {
+      "key": "직장 궁합",
+      "val": 81
+     },
+     {
+      "key": "사업 궁합",
+      "val": 81
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "자미",
+       "파군"
+      ],
+      "aux": [
+       "문창",
+       "문곡"
+      ]
+     },
+     "partner": {
+      "main": [
+       "태양",
+       "태음"
+      ],
+      "aux": [
+       "천괴"
+      ]
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "염정",
+       "탐랑"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천량"
+      ],
+      "aux": [
+       "우필"
+      ]
+     }
+    },
+    "scores": {
+     "love": 46,
+     "marriage": 47,
+     "friend": 47,
+     "work": 48,
+     "business": 48,
+     "pastLife": 46
+    }
+   }
+  },
+  "unknown1978-ny-m": {
+   "html": "66e309a72468e4ba578ed2d7c0d5474751b866f184064dacf9d29ce90f4899c5",
+   "correctionMsg": "진태양시 보정 적용: 23:50 → 22:54 (경도 4분, DST 60분, UTC-4)",
+   "correctedTime": "22:54",
+   "userLabel": "사용자",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "천량",
+    "partnerMingPalace": "칠살",
+    "mySpousePalace": "거문",
+    "partnerSpousePalace": "염정 · 천상",
+    "score": 87,
+    "loveScore": 45,
+    "marriageScore": 48,
+    "friendScore": 47,
+    "workScore": 47,
+    "businessScore": 49,
+    "pastLifeScore": 48
+   },
+   "llm": {
+    "overallScore": 87,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 80
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 82
+     },
+     {
+      "key": "친구 궁합",
+      "val": 78
+     },
+     {
+      "key": "직장 궁합",
+      "val": 80
+     },
+     {
+      "key": "사업 궁합",
+      "val": 82
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "천량"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "칠살"
+      ],
+      "aux": []
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "거문"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "염정",
+       "천상"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     }
+    },
+    "scores": {
+     "love": 45,
+     "marriage": 48,
+     "friend": 47,
+     "work": 47,
+     "business": 49,
+     "pastLife": 48
+    }
+   }
+  },
+  "lunar1962-busan-other": {
+   "html": "4aaf2c9b9902fc1706c67264759fa3e4b0ccb863a0bbaeb59edf492416f8a4f3",
+   "correctionMsg": "진태양시 보정 적용: 14:00 → 14:06 (경도 6분, DST 0분, UTC+8.5)",
+   "correctedTime": "14:06",
+   "userLabel": "Lee",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "자미 · 탐랑",
+    "partnerMingPalace": "천동 · 천량",
+    "mySpousePalace": "천부",
+    "partnerSpousePalace": "천기",
+    "score": 82,
+    "loveScore": 48,
+    "marriageScore": 49,
+    "friendScore": 47,
+    "workScore": 47,
+    "businessScore": 47,
+    "pastLifeScore": 47
+   },
+   "llm": {
+    "overallScore": 82,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 77
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 78
+     },
+     {
+      "key": "친구 궁합",
+      "val": 74
+     },
+     {
+      "key": "직장 궁합",
+      "val": 75
+     },
+     {
+      "key": "사업 궁합",
+      "val": 75
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "자미",
+       "탐랑"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천동",
+       "천량"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "천부"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천기"
+      ],
+      "aux": []
+     }
+    },
+    "scores": {
+     "love": 48,
+     "marriage": 49,
+     "friend": 47,
+     "work": 47,
+     "business": 47,
+     "pastLife": 47
+    }
+   }
+  },
+  "ny1995-seoul-dst-f": {
+   "html": "3a5a8c29fcb71c5d7073896f8ae61716f7eddf6cb4dab0d4ae4a419ac8cacec0",
+   "correctionMsg": "진태양시 보정 적용: 01:10 → 1988-05-14 23:38 (경도 -32분, DST 60분, UTC+10)",
+   "correctedTime": "23:38",
+   "userLabel": "사용자",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "천동",
+    "partnerMingPalace": "태양",
+    "mySpousePalace": "천량",
+    "partnerSpousePalace": "천동 · 천량",
+    "score": 95,
+    "loveScore": 53,
+    "marriageScore": 58,
+    "friendScore": 48,
+    "workScore": 45,
+    "businessScore": 55,
+    "pastLifeScore": 54
+   },
+   "llm": {
+    "overallScore": 95,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 90
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 94
+     },
+     {
+      "key": "친구 궁합",
+      "val": 82
+     },
+     {
+      "key": "직장 궁합",
+      "val": 80
+     },
+     {
+      "key": "사업 궁합",
+      "val": 90
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "천동"
+      ],
+      "aux": [
+       "녹존"
+      ]
+     },
+     "partner": {
+      "main": [
+       "태양"
+      ],
+      "aux": [
+       "문곡"
+      ]
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "천량"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천동",
+       "천량"
+      ],
+      "aux": [
+       "천마"
+      ]
+     }
+    },
+    "scores": {
+     "love": 53,
+     "marriage": 58,
+     "friend": 48,
+     "work": 45,
+     "business": 55,
+     "pastLife": 54
+    }
+   }
+  },
+  "leap2020-seoul-m": {
+   "html": "61702fa44d03eb9b4bcf6ec15ba2efeffa5eeddc0a922fe022ff071ec7b3c4e0",
+   "correctionMsg": "진태양시 보정 적용: 23:40 → 23:08 (경도 -32분, DST 0분, UTC+9)",
+   "correctedTime": "23:08",
+   "userLabel": "사용자",
+   "partnerLabel": "상대방",
+   "archive": {
+    "myMingPalace": "천기",
+    "partnerMingPalace": "태양 · 태음",
+    "mySpousePalace": "태양 · 천량",
+    "partnerSpousePalace": "천동",
+    "score": 95,
+    "loveScore": 50,
+    "marriageScore": 51,
+    "friendScore": 55,
+    "workScore": 52,
+    "businessScore": 54,
+    "pastLifeScore": 53
+   },
+   "llm": {
+    "overallScore": 95,
+    "categoryScores": [
+     {
+      "key": "연애 궁합",
+      "val": 87
+     },
+     {
+      "key": "결혼 궁합",
+      "val": 87
+     },
+     {
+      "key": "친구 궁합",
+      "val": 89
+     },
+     {
+      "key": "직장 궁합",
+      "val": 87
+     },
+     {
+      "key": "사업 궁합",
+      "val": 89
+     }
+    ],
+    "mingPalace": {
+     "me": {
+      "main": [
+       "천기"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "태양",
+       "태음"
+      ],
+      "aux": []
+     }
+    },
+    "spousePalace": {
+     "me": {
+      "main": [
+       "태양",
+       "천량"
+      ],
+      "aux": []
+     },
+     "partner": {
+      "main": [
+       "천동"
+      ],
+      "aux": [
+       "우필"
+      ]
+     }
+    },
+    "scores": {
+     "love": 50,
+     "marriage": 51,
+     "friend": 55,
+     "work": 52,
+     "business": 54,
+     "pastLife": 53
+    }
+   }
+  }
+ }
+}

@@ -1,4 +1,5 @@
 "use client";
+import { recordReaderCopy } from '@/lib/records/reader-copy';
 import dynamic from 'next/dynamic';
 import { asRecord as object, asList as list, storedText as text } from '@/lib/records/reading-content';
 import { useLocale } from '@/lib/i18n/useT';
@@ -11,9 +12,10 @@ const NamingV2Report = dynamic(()=>import('@/app/naming-ai/v2/NamingV2Report'));
 const ANIMALS: Record<string,AnimalSymbolName>={cat:'cat',puppy:'dog',dog:'dog',rabbit:'rabbit',lion:'lion',pig:'pig',elephant:'elephant',deer:'deer',bluebird:'bird',bird:'bird',fox:'fox'};
 export function SavedYoga({row}:{row:Record<string,unknown>}) {
  const locale=useLocale(), meta=object(row.course_metadata), sequence=list(row.sequence);
+ const reader=recordReaderCopy(locale);
  if(!sequence.length)return <SavedChapters value={row}/>;
- return <div className={styles.practice}><header className={styles.practiceCover}><h2>{text(meta.title)}</h2><p>{[meta.deity_theme,meta.focus_area,meta.chakra_focus].filter(v=>typeof v==='string').join(' · ')}</p>{typeof meta.duration_min==='number'&&<p>{meta.duration_min} {locale==='ko'?'분':'min'}</p>}</header>
- {sequence.map((raw,index)=>{const step=object(raw);return <details className={styles.practiceStep} key={index} open={index===0}><summary><span>{index+1}</span><div><h3>{text(step.english_name)}</h3><p>{text(step.sanskrit_name)}</p></div>{typeof step.duration_seconds==='number'&&<span>{step.duration_seconds}{locale==='ko'?'초':'s'}</span>}</summary><div className={styles.practiceBody}><ol>{list(step.instructions).filter((v):v is string=>typeof v==='string').map((instruction,i)=><li key={i}>{instruction}</li>)}</ol><SavedChapters value={{breathing_guide:step.breathing_guide,benefits_physical:step.benefits_physical,benefits_spiritual:step.benefits_spiritual,caution:step.caution,visual_cue_ui:step.visual_cue_ui}} showEmpty={false}/></div></details>;})}
+ return <div className={styles.practice}><header className={styles.practiceCover}><h2>{text(meta.title)}</h2><p>{[meta.deity_theme,meta.focus_area,meta.chakra_focus].filter(v=>typeof v==='string').join(' · ')}</p>{typeof meta.duration_min==='number'&&<p>{meta.duration_min} {reader.minutes}</p>}</header>
+ {sequence.map((raw,index)=>{const step=object(raw);return <details className={styles.practiceStep} key={index} open={index===0}><summary><span>{index+1}</span><div><h3>{text(step.english_name)}</h3><p>{text(step.sanskrit_name)}</p></div>{typeof step.duration_seconds==='number'&&<span>{step.duration_seconds}{reader.seconds}</span>}</summary><div className={styles.practiceBody}><ol>{list(step.instructions).filter((v):v is string=>typeof v==='string').map((instruction,i)=><li key={i}>{instruction}</li>)}</ol><SavedChapters value={{breathing_guide:step.breathing_guide,benefits_physical:step.benefits_physical,benefits_spiritual:step.benefits_spiritual,caution:step.caution,visual_cue_ui:step.visual_cue_ui}} showEmpty={false}/></div></details>;})}
  <SavedChapters value={{closing_mantra:row.closing_mantra}} showEmpty={false}/>
  </div>;
 }

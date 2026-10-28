@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const source=fs.readFileSync(new URL('../../js/saju-engine-tarot-sukuyo-quantum.js',import.meta.url),'utf8');
-const quantumSource=source.slice(source.indexOf('function renderQuantumStrategy(p, natal, bazi){'));
+// 유료 본문 정본은 서버로 옮겼다(rpt_quantumCard). 운세 헬퍼(analyzeFortuneGZ)는 브라우저 타로 파일에 남는다.
+const quantumSource=fs.readFileSync(new URL('../../worker/lib/saju-section/paid-quantum.src.js',import.meta.url),'utf8');
 const fortuneSource=source.slice(source.indexOf('function analyzeFortuneGZ(gz, p, label){'),source.indexOf('function isNeoSajuModeActive()'));
 const GAN=Object.fromEntries([...'甲乙丙丁戊己庚辛壬癸'].map((g,i)=>[g,{e:['wood','fire','earth','metal','water'][Math.floor(i/2)],n:g,y:i%2?'-':'+'}]));
 const JI=Object.fromEntries([...'子丑寅卯辰巳午未申酉戌亥'].map((j,i)=>[j,{e:['water','earth','wood','wood','earth','fire','fire','earth','metal','metal','earth','water'][i]}]));
@@ -22,7 +23,7 @@ function render({rows=[],timeUnknown=false,canonicalTimeUnknown=false,mismatch=f
   }
   const p=clone(P);
   const context={
-    console,Date:KstDate,GAN,JI,EL_K:{wood:'목',fire:'화',earth:'토',metal:'금',water:'수'},EL_E:{},
+    console,Date:KstDate,ctx:{now:new KstDate(now)},GAN,JI,EL_K:{wood:'목',fire:'화',earth:'토',metal:'금',water:'수'},EL_E:{},
     SHENG:{wood:'fire',fire:'earth',earth:'metal',metal:'water',water:'wood'},
     G_PILLARS:mismatch?{...clone(P),y:{g:'乙',j:'子'}}:p,
     G_POWER:{yongshin:['fire'],kijishin:['water'],isStrong:true},G_JONG:null,G_JOHU:null,CURRENT_AGE:37,

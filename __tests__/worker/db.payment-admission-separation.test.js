@@ -56,17 +56,17 @@ test("🔴 공유 레인이 포화여도 결제 레인은 슬롯을 얻는다", 
   await expect(withMongoRetry(ENV, async () => ({ ok: true }), { retries: 0, admissionTimeoutMS: 100 }))
     .rejects.toMatchObject({ name: "MongoOperationOverloadedError" });
 
-  // 본론 — 결제 레인은 같은 순간에 통과한다.
-  const startedAt = Date.now();
-  await expect(withMongoRetry(
+  // 공유 슬롯이 여전히 점유된 순간, 결제 슬롯이 대기열 없이 즉시 예약되는지 확인한다.
+  // 벽시계 시간은 CI 스케줄링에 영향을 받지만 슬롯·대기열은 진입 동작을 직접 보여준다.
+  const payment = withMongoRetry(
     ENV,
     async () => ({ paid: true }),
     { retries: 0, admissionLane: "payment", admissionTimeoutMS: 100 },
-  )).resolves.toEqual({ paid: true });
-
-  // "통과했다"만으로는 부족하다 — 대기하다 겨우 들어간 것이면 결제창 앞 지연은 그대로다.
-  // 공유 슬롯은 아직 잡혀 있으므로, 즉시 통과가 아니면 여기서 걸린다.
-  expect(Date.now() - startedAt).toBeLessThan(100);
+  );
+  expect(globalThis.__mongoOperationAdmission.active).toBe(1);
+  expect(globalThis.__mongoPaymentAdmission.active).toBe(1);
+  expect(globalThis.__mongoPaymentAdmission.waiters).toHaveLength(0);
+  await expect(payment).resolves.toEqual({ paid: true });
 
   releaseShared({ ok: true });
   await expect(holder).resolves.toEqual({ ok: true });

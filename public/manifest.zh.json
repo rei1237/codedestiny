@@ -1,6 +1,6 @@
 {
-  "name": "Ggulggul Fortune — Code Destiny",
-  "short_name": "Ggulggul Fortune",
+  "name": "꿀꿀 운세",
+  "short_name": "꿀꿀 운세",
   "description": "今日运势与八字命理、合婚配对和塔罗的流向静静展开。",
   "start_url": "/zh/",
   "scope": "/",
@@ -45,7 +45,7 @@
       "name": "今日运势",
       "short_name": "运势",
       "description": "立即照见今天一整天的流向。",
-      "url": "/#today",
+      "url": "/ggulggul/#today",
       "icons": [
         {
           "src": "/icons/moonlight-garden-v1-192.png",
@@ -54,5 +54,6 @@
         }
       ]
     }
-  ]
+  ],
+  "id": "/"
 }

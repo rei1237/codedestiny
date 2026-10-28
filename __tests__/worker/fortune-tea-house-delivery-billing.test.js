@@ -50,3 +50,34 @@ test.each(["MEMBERSHIP_PASS", "MOONLIGHT_STONE", "DIRECT_KRW"])("%s apply respon
   expect(record.resultId).toBe("same-result");
   expect(consume).toHaveBeenCalledTimes(1);
 });
+
+
+test("legacy joint recovery uses only the server-owned result product", async () => {
+  const teaSource = fs.readFileSync(path.join(__dirname, "../../worker/routes/fortune-tea-house.js"), "utf8");
+  const tree = ts.createSourceFile("tea.js", teaSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+  const names = ["expectedFortuneTeaHouseFeatureKey", "resolveFortuneTeaHouseFeatureKey", "verifyFortuneTeaHouseConsultAccess", "resumeConsultationOnServer"];
+  const code = names.map(name => tree.statements.find(item => ts.isFunctionDeclaration(item) && item.name?.text === name).getText(tree).replace(/^export /, "")).join("\n");
+  const oldKey = "fortune-tea-house-saju-consultation";
+  const stored = { userId: "owner", featureKey: oldKey, generationCheckpoint: { requestBody: { featureKey: oldKey } } };
+  let filter;
+  const prices = [];
+  const context = {
+    Request, String, cleanText: value => String(value || "").trim(), FORTUNE_TEA_HOUSE_SCOPE: "FORTUNE_TEA_HOUSE",
+    FORTUNE_TEA_HOUSE_FEATURE_KEYS: { saju: oldKey, sajuJoint: "fortune-tea-house-saju-joint-consultation" },
+    FORTUNE_TEA_HOUSE_ALLOWED_FEATURE_KEYS: new Set([oldKey, "fortune-tea-house-saju-joint-consultation"]),
+    getBillingFeaturePricing: ({ featureKey }) => { prices.push(featureKey); return { ok: false }; },
+    json: (body, init) => ({ body, status: init?.status }),
+    withMongoRetry: async (_env, fn) => fn(),
+    honeyCollections: () => ({ results: { findOne: async query => { filter = query; return stored; } } }),
+    handleConsult: async (_request, _env, _ctx, auth) => auth,
+  };
+  vm.createContext(context); vm.runInContext(code, context);
+  const input = { consultationMode: "saju", sajuReportVersion: "saju-specialist-v2" };
+  const forged = await context.verifyFortuneTeaHouseConsultAccess({}, {}, { featureKey: oldKey, legacyFeatureKey: oldKey }, input);
+  expect(forged.response.status).toBe(400);
+  expect(prices).toEqual([]);
+  const auth = await context.resumeConsultationOnServer({}, { userId: "owner", resultId: "original" });
+  expect(filter).toEqual({ userId: "owner", resultId: "original", serviceScope: "FORTUNE_TEA_HOUSE" });
+  await context.verifyFortuneTeaHouseConsultAccess({}, {}, { featureKey: oldKey }, input, auth);
+  expect(prices).toEqual([oldKey]);
+});

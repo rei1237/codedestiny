@@ -79,10 +79,10 @@ export const TERMS_SECTIONS = [
     body: (
       <>
         <p>
-          이용자는 유효한 이용권 계약기간 동안 아래에서 정하는 비정상 이용에 해당하지 않는 한 추가 요금 없이 <strong>해당 등급의 적용 가격 범위(1회 정상 판매가 기준) 이하의 기능</strong>을 <strong>등급별 월 이용 한도 이내에서</strong> 이용할 수 있습니다(이하 &quot;정액 이용&quot;). 등급별 적용 가격 범위(스탠다드 5,000원 · 프리미엄 10,000원 · VVIP 꿀단지 20,000원 이하, Code Destiny Family 는 금액 상한 없음)와 월 이용 한도(스탠다드 30,000원 · 프리미엄 100,000원 · VVIP 꿀단지 200,000원 · Code Destiny Family 500,000원)는 결제 화면에 표시됩니다. 월 이용 한도에서 차감되는 금액은 <strong>해당 서비스의 정상 판매가</strong>이며, 할인·프로모션가가 적용된 경우에도 정상 판매가를 기준으로 합니다. 월 이용 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료되며, 종료 후에도 단건 결제 또는 월정석으로 계속 이용할 수 있어 서비스 이용이 차단되지 않습니다. Pass holders may use features whose standard list price is at or below their tier&apos;s coverage band (Standard KRW 5,000 · Premium KRW 10,000 · VVIP KRW 20,000; Code Destiny Family has no per-item cap) without additional charge, subject to each tier&apos;s monthly usage limit (Standard KRW 30,000 · Premium KRW 100,000 · VVIP KRW 200,000 · Code Destiny Family KRW 500,000), shown on the payment screen. The amount deducted from the monthly limit is the standard list price, even where a discounted or promotional price applies. When the monthly usage limit is fully used, the pass ends regardless of the days remaining; after it ends you can continue via single payment or Moonlight Stones, and access is never blocked.
+          이용자는 유효한 이용권 계약기간 동안 아래에서 정하는 비정상 이용에 해당하지 않는 한 추가 요금 없이 <strong>해당 등급의 적용 가격 범위(1회 정상 판매가 기준) 이하의 기능</strong>을 <strong>등급별 이용 한도 이내에서</strong> 이용할 수 있습니다(이하 &quot;정액 이용&quot;). 등급별 적용 가격 범위(작은 꿀단지 5,000원 · 중간 꿀단지 10,000원 · 큰 꿀단지 20,000원 이하, 패밀리 꿀단지는 금액 상한 없음)와 이용 한도(작은 꿀단지 30,000원 · 중간 꿀단지 100,000원 · 큰 꿀단지 200,000원 · 패밀리 꿀단지 500,000원)는 결제 화면에 표시됩니다. 이용 한도에서 차감되는 금액은 <strong>해당 서비스의 정상 판매가</strong>이며, 할인·프로모션가가 적용된 경우에도 정상 판매가를 기준으로 합니다. 이용 한도를 모두 사용하면 이용권이 종료되며(별도 이용 기간 없음), 종료 후에도 단건 결제 또는 월정석으로 계속 이용할 수 있어 서비스 이용이 차단되지 않습니다. Pass holders may use features whose standard list price is at or below their tier&apos;s coverage band (Small Honey Jar KRW 5,000 · Medium Honey Jar KRW 10,000 · Large Honey Jar KRW 20,000; the Family Honey Jar has no per-item cap) without additional charge, subject to each tier&apos;s usage limit (Small Honey Jar KRW 30,000 · Medium Honey Jar KRW 100,000 · Large Honey Jar KRW 200,000 · Family Honey Jar KRW 500,000), shown on the payment screen. The amount deducted from the usage limit is the standard list price, even where a discounted or promotional price applies. When the usage limit is fully used, the pass ends (there is no separate time limit); after it ends you can continue via single payment or Moonlight Stones, and access is never blocked.
         </p>
         <p>
-          <strong>Code Destiny Family 이용권은 1회 정상 판매가에 상한이 없어</strong>, 전문가 상담과 같은 고가 상품도 위 월 이용 한도(500,000원) 안에서 이용할 수 있습니다. 그 외 등급은 정상 판매가가 해당 등급의 적용 가격 범위를 넘는 상품을 단건 결제 또는 월정석으로 이용합니다. <strong>이용 횟수 자체를 세는 별도의 포함 횟수 제도는 두지 않으며, 판정 기준은 적용 가격 범위와 월 이용 한도 둘뿐입니다.</strong> 월 이용 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료되고, 이용권을 새로 구매하면 그날부터 30일과 월 이용 한도가 다시 시작됩니다. 남은 한도는 결제 화면에서 확인할 수 있고, 한도를 모두 사용해도 서비스 이용이 차단되지 않으며 초과분에 대한 결제수단이 안내됩니다. <strong>월 이용 한도는 이 조에서 정하는 &quot;비정상 이용&quot;과 무관한 상품 구성이며, 모두 사용한 사실만으로는 어떠한 제재도 이루어지지 않습니다.</strong> The Code Destiny Family pass has no per-item price cap, so high-priced products such as expert consultations are included within its monthly usage limit (KRW 500,000). For other tiers, products priced above the tier&apos;s coverage band are purchased via single payment or Moonlight Stones. There is no separate included-use count: eligibility is decided by the coverage band and the monthly usage limit alone. When the monthly limit is fully used the pass ends regardless of the days remaining, and buying a new pass restarts both the 30-day period and the monthly limit from that day. The remaining amount is shown on the payment screen. This allowance is a product term, not a sanction, and exhausting it never blocks access.
+          <strong>패밀리 꿀단지 이용권은 1회 정상 판매가에 상한이 없어</strong>, 전문가 상담과 같은 고가 상품도 위 이용 한도(500,000원) 안에서 이용할 수 있습니다. 그 외 등급은 정상 판매가가 해당 등급의 적용 가격 범위를 넘는 상품을 단건 결제 또는 월정석으로 이용합니다. <strong>이용 횟수 자체를 세는 별도의 포함 횟수 제도는 두지 않으며, 판정 기준은 적용 가격 범위와 이용 한도 둘뿐입니다.</strong> 이용 한도를 모두 사용하면 이용권이 종료되고, 이용권을 새로 구매하면 새 이용 한도로 다시 시작됩니다. 남은 한도는 결제 화면에서 확인할 수 있고, 한도를 모두 사용해도 서비스 이용이 차단되지 않으며 초과분에 대한 결제수단이 안내됩니다. <strong>이용 한도는 이 조에서 정하는 &quot;비정상 이용&quot;과 무관한 상품 구성이며, 모두 사용한 사실만으로는 어떠한 제재도 이루어지지 않습니다.</strong> The Family Honey Jar pass has no per-item price cap, so high-priced products such as expert consultations are included within its usage limit (KRW 500,000). For other tiers, products priced above the tier&apos;s coverage band are purchased via single payment or Moonlight Stones. There is no separate included-use count: eligibility is decided by the coverage band and the usage limit alone. When the usage limit is fully used the pass ends, and buying a new pass starts again with a new usage limit. The remaining amount is shown on the payment screen. This allowance is a product term, not a sanction, and exhausting it never blocks access.
         </p>
         <p>
           이용권은 <strong>계약자 1인이 사용하는 것을 전제로 제공되며, 제3자에게 양도·대여하거나 계정을 공유할 수 없습니다.</strong> 이는 정액 이용의 전제 조건이며, 이를 위반한 이용은 아래 비정상 이용 판단에서 함께 고려됩니다. A pass is provided for use by the contracting individual only and may not be transferred, lent, or shared.
@@ -147,16 +147,16 @@ export const TERMS_SECTIONS = [
     body: (
       <>
         <p>
-          Code Destiny의 유료 결제 상품은 30일 이용권과 상품별 원화 단건 결제입니다. 월정석은 이용권 또는 이벤트로 지급되는 보너스 혜택이며 별도 구매·충전 상품이 아니므로 현금 환불 대상 결제 상품으로 보지 않습니다.
+          Code Destiny의 유료 결제 상품은 이용권과 상품별 원화 단건 결제입니다. 월정석은 이용권 또는 이벤트로 지급되는 보너스 혜택이며 별도 구매·충전 상품이 아니므로 현금 환불 대상 결제 상품으로 보지 않습니다.
         </p>
         <p>
-          <strong>재화 등의 공급시기: 모든 유료 서비스는 결제(대금 지급)가 완료되어 승인이 확인되는 즉시 제공됩니다.</strong> 별도의 배송 절차 없이 결제 승인 시점부터 서비스 이용이 시작되며, 30일 이용권 역시 결제 검증이 완료된 시각부터 즉시 적용됩니다. Supply timing: all paid services are provided immediately upon confirmed payment approval, with no separate delivery step; the 30-day pass likewise takes effect immediately once payment is verified.
+          <strong>재화 등의 공급시기: 모든 유료 서비스는 결제(대금 지급)가 완료되어 승인이 확인되는 즉시 제공됩니다.</strong> 별도의 배송 절차 없이 결제 승인 시점부터 서비스 이용이 시작되며, 이용권 역시 결제 검증이 완료된 시각부터 즉시 적용됩니다. Supply timing: all paid services are provided immediately upon confirmed payment approval, with no separate delivery step; the pass likewise takes effect immediately once payment is verified.
         </p>
         <p>
           월정석은 <strong>각 지급분이 지급된 날로부터 30일간만 유효</strong>하며, 그 기간 내에 사용하지 않은 지급분은 자동으로 소멸합니다. 여러 번 나눠 지급받은 월정석은 각 지급분이 자기 지급일을 기준으로 개별 만료하고, 사용 시에는 먼저 만료되는(오래된) 지급분부터 차감됩니다. 소멸된 월정석은 복구되지 않으며 현금 환불 대상이 아닙니다.
         </p>
         <p>
-          30일 이용권은 서버 결제 검증 성공 시각부터 30일 동안 유지되는 일회성 디지털 이용권입니다. 자동결제 상품이 아니며 만료 후 사용자가 직접 다시 구매해야 합니다.
+          이용권은 서버 결제 검증 성공 시각부터 이용 한도를 모두 사용할 때까지 유지되는(별도 이용 기간 없음) 일회성 디지털 이용권입니다. 자동결제 상품이 아니며 한도를 모두 사용한 뒤 사용자가 직접 다시 구매해야 합니다.
         </p>
         <p>
           이용권 또는 단건 결제 상품은 결제일 또는 계약내용을 받은 날부터 7일 이내 청약철회 요청이 가능합니다. 다만 콘텐츠 생성, PDF 렌더링, 유료 리딩 열람, 이용권 혜택 사용 등 디지털콘텐츠 또는 유료 서비스 제공이 개시된 경우에는 제공이 개시된 부분에 대한 청약철회가 제한될 수 있습니다.
@@ -168,7 +168,7 @@ export const TERMS_SECTIONS = [
           개인 맞춤형 디지털 콘텐츠가 생성되었거나 결과 열람, PDF 렌더링, 유료 리딩 제공, 이용권 혜택 사용이 시작된 경우에는 디지털 콘텐츠 특성상 단순 변심 환불이 제한될 수 있습니다.
         </p>
         <p>
-          30일 이용권을 사용한 뒤 중도 해지를 요청하는 경우에는 이미 제공된 기간, 이용한 유료 기능, 지급·사용된 혜택을 확인한 뒤 법령상 환급 대상이 되는 미제공 부분이 있을 때 결제수단으로 환급합니다.
+          이용권을 사용한 뒤 중도 해지를 요청하는 경우에는 이미 사용한 이용 한도, 이용한 유료 기능, 지급·사용된 혜택을 확인한 뒤 법령상 환급 대상이 되는 미제공 부분이 있을 때 결제수단으로 환급합니다.
         </p>
         <p>
           결제 후 결과가 제공되지 않았거나 시스템 오류로 정상 이용이 불가능한 경우에는 장애 내역 확인 후 재생성, 이용 기간 조정, 부분 환불 또는 전액 환불 중 적절한 방식으로 처리합니다.
@@ -197,7 +197,7 @@ export const TERMS_SECTIONS = [
           무료 체험 기간 중이라도 멤버십 전용 콘텐츠를 열람하여 서비스 이용이 개시된 경우, 이후 동일 콘텐츠 또는 유료 이용권에 대한 단순 변심 환불은 제한될 수 있습니다. If service use starts during the free trial, withdrawal for the same digital content or paid pass may be restricted.
         </p>
         <p>
-          이용권 종류, 30일 이용 기간, 결제 금액, 만료일, 자동결제 여부와 환불 조건은 결제 화면에 고지되며, 이용자는 결제 완료 전 이를 확인할 책임이 있습니다.
+          이용권 종류, 결제 금액, 이용 한도, 자동결제 여부와 환불 조건은 결제 화면에 고지되며, 이용자는 결제 완료 전 이를 확인할 책임이 있습니다.
         </p>
         <p>다만 강행규정에 따라 환불이 필요한 경우에는 관계 법령 및 결제대행사 정책에 따라 처리합니다.</p>
       </>

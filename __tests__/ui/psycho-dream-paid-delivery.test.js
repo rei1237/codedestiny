@@ -27,7 +27,7 @@ test('one payment starts the original dream, storage retry preserves it, and res
   completed=true;return reply(200,data);
  });
  await pause();env.win.document.getElementById('psychoDreamInput').value=data.dreamText;
- assert.equal(await env.win.psychoDreamStartAnalysis(),true);assert.equal(env.gates.length,1);assert.equal(env.gates[0].cost,30);
+ assert.equal(await env.win.psychoDreamStartAnalysis(),true);assert.equal(env.gates.length,1);assert.equal(env.gates[0].cost,50);
  assert.deepEqual(posts[0],posts[1]);assert.equal(posts[0].dreamText,data.dreamText);assert.deepEqual(posts[2],{resumeResultId:data.resultId});
  assert.equal(env.gates[0].options.requestId,posts[0].requestId);assert.equal(env.gates[0].options.resume.args.dreamText,data.dreamText);
  assert.match(env.win.document.getElementById('psychoDreamResultMarkdown').textContent,/마지막 본문/);

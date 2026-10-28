@@ -4,6 +4,10 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 const { webcrypto } = require('node:crypto');
+const { supportRecoveryGenerationOptions, assertSupportRecoveryPreserved, supportRecoveryPartHash } = require('../../worker/lib/support-recovery-budget.js');
+const { consultationRefundResponse } = require('../../worker/lib/consultation-refund-state.js');
+const { runWithAiLocale, getAmbientAiLocale, storedAiLocale } = require('../../worker/lib/ai-locale-context.js');
+const { toAiLocale, AI_OUTPUT_LOCALES } = require('../../lib/i18n/ai-locale.js');
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const get = (value, key) => key.split('.').reduce((at, part) => at?.[part], value);
 function set(value, key, data) {
@@ -49,15 +53,23 @@ function fixture(accessType = 'pass') {
     updateOne: async (filter, update) => { if (!doc || !matches(doc, filter)) return; for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value); },
   };
   const plan = Array.from({ length: 15 }, (_, i) => ({ id: `section${i}`, kind: 'chapter', evidenceRefs: [], targetChars: 2600 }));
-  const ctx = vm.createContext({ Request, Response, Headers, Date, JSON, Map, crypto: webcrypto,
+  const ctx = vm.createContext({ runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto,
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
     clean: (v, max = 100000) => String(v || '').trim().slice(0, max), randomToken: () => String(++tick),
     readJson: request => request.json(), json: (body, init) => new Response(JSON.stringify(body), init),
     logLifeBookAi() {}, logLifeBookAction() {}, safeLogPayload: () => ({}), buildProviderLogContext: () => ({}),
+    safeGeminiFailure: error => ({ status: error.status || null, providerCode: error.providerCode || '', retryable: error.retryable !== false, message: 'Provider request failed.' }),
     getPricing: () => ({}), getConsultationOrderName: () => '인생의 책', getConsultationFeatureKey: () => 'life-book-ai',
     getOptionalUserFromRequest: async () => ({ userId: owner }), connectDb: async () => {},
     PAID_FEATURE_ACCESS_USER_PROJECTION: {}, BILLING_SNAPSHOT_USER_PROJECTION: {},
     readIdempotencyKey: (request, body) => body.idempotencyKey || request.headers.get('idempotency-key'),
+    // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
+    claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result,
+    reserveSupportRecoveryAttempt: async () => {},
+    supportRecoveryGenerationOptions, assertSupportRecoveryPreserved,
+    consultationRefundResponse,
+    isStoredPaidResultRevoked: async () => false,
+    settleLifeBookFailureRefund: async () => { assert.equal(doc.status, 'generation_failed'); assert.equal(doc.llmMeta.lockedAt, null); refunds++; return { ok: true, refundStatus: 'refunded' }; },
     normalizeConsultationInput: body => ({ ok: true, inputHash: body.inputHash || 'same-input', input: { birthInfo: { name: 'mock' }, consultationType: 'lifeBook', topic: '일생' } }),
     resolveStartAccess: async () => ({ ok: permitted, accessType, paymentId: 'original-receipt' }),
     calculateLifeBookAiSaju: () => ({ dayMaster: '壬' }), isLifeFortuneInput: () => false,
@@ -111,6 +123,100 @@ for (const accessType of ['pass', 'subscription', 'paid']) test(`${accessType}: 
   assert.equal(f.calls, calls);
   assert.equal(f.charges, consumed);
   assert.equal(f.refunds, 0);
+});
+
+test('life book deterministic provider rejection stops before generating other chapters', async () => {
+  const f = fixture(); let calls = 0;
+  f.ctx.SECTION_BATCH_SIZE = 1; f.ctx.SECTION_CONCURRENCY = 1;
+  f.ctx.generateSectionOnce = async () => { calls++; return { ok: false, body: null, error: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE',
+    failure: { code: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', status: 400, providerCode: 'GEMINI_API_KEY_INVALID', retryable: false, message: 'Provider request failed.' } }; };
+  assert.equal((await f.post()).status, 503);
+  assert.equal(f.doc.status, 'generation_failed');
+  assert.equal(f.doc.generationError.providerCode, 'GEMINI_API_KEY_INVALID');
+  assert.equal(Object.keys(f.doc.llmMeta.sections).length, 1);
+  assert.equal(calls, 1);
+});
+
+test('life book transient provider failure keeps the same chapter within its existing retry limit', async () => {
+  const f = fixture(); let calls = 0;
+  f.ctx.SECTION_BATCH_SIZE = 1; f.ctx.SECTION_CONCURRENCY = 1; f.ctx.LIFE_BOOK_MAX_SECTION_ATTEMPTS = 2;
+  f.ctx.generateSectionOnce = async () => { calls++; return { ok: false, body: null, error: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE',
+    failure: { code: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', status: 503, providerCode: 'GEMINI_UNAVAILABLE', retryable: true, message: 'Provider request failed.' } }; };
+  assert.equal((await f.post()).status, 503); assert.equal(f.doc.status, 'partial');
+  assert.equal((await f.post()).status, 503); assert.equal(f.doc.status, 'generation_failed');
+  assert.equal(Object.keys(f.doc.llmMeta.sections).length, 1);
+  assert.equal(calls, 2); assert.equal(f.refunds, 1);
+});
+
+const approvedSupportRecovery = () => ({ active: true, approvedProvider: 'gemini', approvedModel: 'gemini-2.5-flash', maxOutputTokens: 12000 });
+
+test('life book support recovery passes only approved provider options and caps output before calling the wrapper', async () => {
+  const f = fixture(); let options;
+  Object.assign(f.ctx, {
+    appendExpertPersona: async () => '', buildSystemPrompt: () => '', jsonSchemaFromExample: () => ({}), buildSectionSchema: () => ({}),
+    tokensRequiredForChars: () => 18000, resolveSectionTimeoutMs: () => 52000, isStagingLlmMockEnabled: () => false,
+    callGeminiText: async (_env, _prompt, supplied) => { options = supplied; return { ok: false, error: 'LLM_PROVIDER_UNAVAILABLE', retryable: false }; },
+  });
+  load(f.ctx, 'worker/routes/life-book-ai.js', ['generateSectionOnce']);
+  await f.ctx.generateSectionOnce({}, { kind: 'chapter', targetChars: 2600, maxOutputTokens: 7000, minChars: 2000 }, 'fixture', { supportRecovery: approvedSupportRecovery() });
+  assert.equal(options.model, 'gemini-2.5-flash');
+  assert.equal(options.maxOutputTokens, 12000);
+  assert.equal(options.maxProviderAttempts, 1);
+  assert.equal(options.fallbackToWorkersAI, false);
+  options = null;
+  await assert.rejects(f.ctx.generateSectionOnce({}, {}, 'fixture', { supportRecovery: { ...approvedSupportRecovery(), approvedModel: 'gemini-2.5-pro' } }), error => error.code === 'SUPPORT_RECOVERY_SCOPE_INVALID');
+  assert.equal(options, null);
+});
+
+test('life book support recovery excludes preserved chapters from pending and repair targets', async () => {
+  const f = fixture(); await f.post();
+  const original = clone(f.doc.llmMeta.sections.section0.body);
+  f.doc.llmMeta.supportRecovery = { ...approvedSupportRecovery(), preserved: { section0: supportRecoveryPartHash(original) } };
+  f.doc.llmMeta.sections.section0.needsRepair = true;
+  f.calls.length = 0;
+  f.ctx.getLifeBookReportQualityIssues = () => ['chapter_count_mismatch'];
+  f.ctx.mapIssuesToSections = () => ({ targets: ['section0'] });
+  await f.post();
+  assert.ok(!f.calls.includes('section0'));
+  assert.equal(supportRecoveryPartHash(f.doc.llmMeta.sections.section0.body), supportRecoveryPartHash(original));
+});
+
+for (const state of ['pending', 'refunded', 'manual_review']) test(`life book ${state} refund blocks resume and result delivery`, async () => {
+  const f = fixture(); await f.post(); const calls = f.calls.length;
+  f.doc.status = 'completed'; f.doc.llmMeta.deliveryRefund = { status: state };
+  assert.equal((await f.post({ resumeSessionId: f.doc.id })).status, state === 'refunded' ? 403 : 409);
+  load(f.ctx, 'worker/routes/life-book-ai.js', ['handleResult']);
+  const result = await f.ctx.handleResult(new Request(`https://fixture.invalid/api/life-book-ai/result?sessionId=${f.doc.id}`), {});
+  assert.equal(result.status, state === 'refunded' ? 403 : 409);
+  assert.equal((await result.json()).refundStatus, state);
+  assert.equal(f.calls.length, calls);
+});
+
+test('life book terminal support failure closes its approved job before settlement and keeps cleanup retryable', async () => {
+  const f = fixture(); await f.post(); let settled = 0;
+  f.doc.llmMeta.supportRecovery = { ...approvedSupportRecovery(), refundApproved: false };
+  f.ctx.generateSectionOnce = async () => ({ ok: false, body: null, failure: { status: 400, retryable: false, message: 'Provider rejected.' } });
+  f.ctx.settleLifeBookFailureRefund = async () => {
+    settled++;
+    assert.equal(f.doc.status, 'generation_failed'); assert.equal(f.doc.llmMeta.lockedAt, null);
+    assert.ok(f.doc.llmMeta.refundEligibleAt);
+    assert.equal(f.doc.llmMeta.supportRecovery.active, false);
+    assert.ok(f.doc.llmMeta.supportRecovery.finishedAt);
+    return { ok: false, refundStatus: '', reason: 'REFUND_NOT_AUTHORIZED', retryable: false };
+  };
+  assert.equal((await f.post()).status, 503); assert.equal(settled, 1);
+  assert.equal(f.refunds, 0);
+});
+
+test('a completed life book remains readable after its support job closes', async () => {
+  const f = fixture(); await f.post();
+  while (f.doc.status !== 'completed') await f.post({ resumeSessionId: f.doc.id });
+  const calls = f.calls.length;
+  f.doc.llmMeta.supportRecovery = { active: false, finishedAt: new Date().toISOString() };
+  assert.equal((await f.post({ resumeSessionId: f.doc.id })).status, 200);
+  load(f.ctx, 'worker/routes/life-book-ai.js', ['handleResult']);
+  assert.equal((await f.ctx.handleResult(new Request(`https://fixture.invalid/api/life-book-ai/result?sessionId=${f.doc.id}`), {})).status, 200);
+  assert.equal(f.calls.length, calls);
 });
 
 for (const accessType of ['pass', 'subscription', 'paid']) {
@@ -258,6 +364,17 @@ for (const repair of ['shorter', 'invalid']) test(`life book ${repair} length re
   for (let i = 0; i < 5 && f.doc.status !== 'completed'; i++) await f.post();
   assert.equal(f.doc.status, 'completed'); assert.equal(f.refunds, 0);
 });
+
+test('a failed repair keeps a structurally valid saved chapter when another chapter has a repetition issue', async () => {
+  const f = fixture(); await f.post();
+  const prior = clone(f.doc.llmMeta.sections.section0);
+  f.doc.llmMeta.sections.section0.needsRepair = true;
+  f.ctx.hasRepeatedReportPassage = () => true;
+  f.ctx.generateSectionOnce = async () => ({ ok: false, body: null, chars: 0, error: 'fixture unavailable' });
+  await f.post();
+  assert.equal(f.doc.llmMeta.sections.section0.body.content, prior.body.content);
+  assert.equal(f.doc.llmMeta.sections.section0.ok, true);
+});
 test('life book reserved length repair resumes without calling that section again', async () => {
   const f = fixture(); await f.post();
   Object.assign(f.doc.llmMeta.sections.section0, { needsRepair: true, repairKind: 'length', lengthRepair: true, attempts: 2 });
@@ -265,4 +382,21 @@ test('life book reserved length repair resumes without calling that section agai
   for (let i = 0; i < 5 && f.doc.status !== 'completed'; i++) await f.post();
   assert.equal(f.doc.status, 'completed'); assert.ok(!f.calls.includes('section0'));
   assert.equal(f.doc.llmMeta.sections.section0.attempts, 2);
+});
+
+for (const locale of AI_OUTPUT_LOCALES) test(`${locale}: resumes in the purchased language after the UI changes`, async () => {
+  const f = fixture();
+  const languages = [];
+  const original = f.ctx.generateSectionOnce;
+  f.ctx.generateSectionOnce = (...args) => { languages.push(getAmbientAiLocale()); return original(...args); };
+  await runWithAiLocale(locale, () => f.post({ locale }));
+  for (let wave = 0; wave < 20 && f.doc.status !== 'completed'; wave++) {
+    await runWithAiLocale(locale === 'en' ? 'ja' : 'en', () => f.post({ locale: 'en' }));
+  }
+  assert.equal(f.doc.status, 'completed');
+  assert.ok(languages.length > 0);
+  assert.ok(languages.every(value => value === locale), languages.join(','));
+  const count = languages.length;
+  await runWithAiLocale('ko', () => f.post());
+  assert.equal(languages.length, count);
 });

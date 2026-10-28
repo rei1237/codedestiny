@@ -1,0 +1,189 @@
+.stage {
+  --stage-accent: #e8d5a3;
+  --stage-ink: #fff8e9;
+  --stage-muted: rgba(236, 232, 255, .78);
+  --stage-surface: #12102a;
+  --stage-line: rgba(232, 213, 163, .3);
+  --stage-glow: rgba(232, 213, 163, .2);
+  margin: 0;
+  min-width: 0;
+}
+
+/* 윤달 — 남색 두루마기·초승달 은빛 */
+.stage[data-character="yun"] {
+  --stage-accent: #cdbcf2;
+  --stage-ink: #f6f1ff;
+  --stage-muted: rgba(226, 222, 255, .8);
+  --stage-surface: #0c1230;
+  --stage-line: rgba(205, 188, 242, .34);
+  --stage-glow: rgba(150, 130, 230, .34);
+}
+
+/* 무성 — 잿빛에서 금빛으로(化忌→化祿) */
+.stage[data-character="musung"] {
+  --stage-accent: #e9c46a;
+  --stage-ink: #fff7e2;
+  --stage-muted: rgba(232, 226, 210, .8);
+  --stage-surface: #14121f;
+  --stage-line: rgba(233, 196, 106, .32);
+  --stage-glow: rgba(233, 196, 106, .22);
+}
+
+/* 서한비 — 빗빛 인디고·은빛 비·옅은 금빛(버건디 금지) */
+.stage[data-character="hanbi"] {
+  --stage-accent: #dfe7f7;
+  --stage-ink: #f5f7ff;
+  --stage-muted: rgba(220, 228, 245, .8);
+  --stage-surface: #121a33;
+  --stage-line: rgba(205, 218, 242, .34);
+  --stage-glow: rgba(226, 204, 140, .2);
+}
+
+/* 연이 — 정원 아이보리·장밋빛. 무대가 라이트 화면(손금) 위에 놓인다. */
+.stage[data-character="yeoni"] {
+  --stage-accent: #b53660;
+  --stage-ink: #402a38;
+  --stage-muted: #6b4d5e;
+  --stage-surface: #ffffff;
+  --stage-line: rgba(181, 54, 96, .22);
+  --stage-glow: rgba(248, 196, 214, .55);
+}
+
+.stage[data-character="yeoni"] .bubble {
+  box-shadow: 0 8px 22px rgba(64, 42, 56, .08);
+}
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.stage[data-fit="card"] .frame {
+  border: 1px solid var(--stage-line);
+  border-radius: 12px;
+  background: var(--stage-surface);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, .28), 0 0 0 4px color-mix(in srgb, var(--stage-glow) 40%, transparent);
+}
+
+.stage[data-fit="cutout"] .frame {
+  background: radial-gradient(60% 55% at 50% 58%, var(--stage-glow), transparent 72%);
+}
+
+.sprite {
+  object-fit: cover;
+  object-position: top center;
+  animation: moodIn .32s ease-out both;
+}
+
+.stage[data-fit="cutout"] .sprite {
+  object-fit: contain;
+  object-position: bottom center;
+}
+
+/* 말하기 프레임: idle 컷 위에 겹쳐 두고 불투명도만 바꾼다. */
+.talk {
+  object-fit: contain;
+  object-position: bottom center;
+  opacity: 0;
+}
+
+.talk[data-on="true"] { opacity: 1; }
+
+.stage[data-motion="on"][data-placement="hero"] .frame,
+.stage[data-motion="on"][data-placement="loading"] .frame {
+  animation: breathe 6s ease-in-out infinite;
+}
+
+.bubble {
+  min-width: 0;
+  padding: 10px 13px 11px;
+  border: 1px solid var(--stage-line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--stage-surface) 90%, transparent);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .2);
+}
+
+.name {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--stage-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
+.bubble p {
+  margin: 0;
+  color: var(--stage-ink);
+  font-size: 15px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+/* hero: 세로 — 초상 + 대사 */
+.stage[data-placement="hero"] {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(100%, 280px);
+}
+
+.stage[data-placement="hero"][data-fit="cutout"] .frame { width: min(100%, 240px); }
+.stage[data-placement="hero"][data-fit="card"] .frame { width: min(100%, 220px); }
+.stage[data-placement="hero"] .bubble { width: 100%; }
+
+/* inline·result: 가로 — 작은 흉상 + 말풍선 */
+.stage[data-placement="inline"],
+.stage[data-placement="result"] {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stage[data-placement="inline"] .frame { flex: 0 0 64px; width: 64px; }
+.stage[data-placement="result"] .frame { flex: 0 0 80px; width: 80px; }
+.stage[data-placement="inline"] .bubble,
+.stage[data-placement="result"] .bubble { flex: 1 1 auto; }
+
+/* loading: 가운데 정렬 */
+.stage[data-placement="loading"] {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(100%, 340px);
+  margin-inline: auto;
+}
+
+.stage[data-placement="loading"] .frame { width: 112px; }
+
+/* 세로로 긴 컷(무성 깃털 240/870)은 폭을 줄여 높이를 표정 프레임과 비슷하게 맞춘다. */
+.stage[data-aspect="custom"] .sprite { object-fit: contain; object-position: center; }
+.stage[data-placement="loading"][data-aspect="custom"] .frame { width: 52px; }
+.stage[data-placement="result"][data-aspect="custom"] .frame { flex-basis: 34px; width: 34px; }
+.stage[data-placement="loading"] .bubble { width: 100%; text-align: center; }
+
+@keyframes moodIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@media (max-width: 720px) {
+  .stage[data-placement="hero"] { width: min(100%, 240px); }
+  .stage[data-placement="hero"][data-fit="cutout"] .frame { width: min(100%, 180px); }
+  .stage[data-placement="hero"][data-fit="card"] .frame { width: min(100%, 168px); }
+  .bubble p { font-size: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sprite,
+  .stage .frame {
+    animation: none !important;
+  }
+}

@@ -50,9 +50,13 @@ import { isBuildArtifactDir } from "./lib/source-scan-ignore.mjs";
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
 /** 🔴 부채 원장 — 2026-09-03 실측. **올리지 말 것.** 줄었으면 그만큼 낮춘다(가드가 숫자를 알려준다). */
+// 2026-10-10 출생 기반 해금 전환(사용자 승인): 같은 결제 웹훅 정산 경로(handleSinglePaymentComplete 그래프)에
+//   중복 결제 판정(hasExistingBirthScopedPaymentUnlock → findActivePaidContentUnlock)과 이관 행 환불 회수
+//   (revokeBackfilledBirthUnlocks)가 붙어 payments.js +1 · content-unlocks.js +4. 이 그래프를 감싸면
+//   Mongo 없이 도는 verify-portone-single-payment-regression.mjs 가 connectDb 에서 죽는다 — 별도 작업에서 함께 0 으로 내린다.
 const UNCOVERED_BASELINE = Object.freeze({
-  "worker/routes/payments.js": 15,
-  "worker/lib/content-unlocks.js": 4,
+  "worker/routes/payments.js": 16,
+  "worker/lib/content-unlocks.js": 8,
   "worker/lib/payment-refund.js": 2,
 });
 

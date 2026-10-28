@@ -65,7 +65,7 @@ try {
   await resetPage();
   await installFixture({ lockKey: LOCK_KEY, lockCost: 100, unlocked: false });
   const lockedFirst = await clickTileAndRead();
-  assert(lockedFirst.editorialImage.includes('quantum-saju-960.webp'), '잠금 타일 → 해당 상품의 새 Hero가 표시된다', lockedFirst);
+  assert(lockedFirst.editorialImage.includes('quantum-saju-480.webp'), '잠금 타일 → 해당 상품의 결과 구성 이미지가 표시된다', lockedFirst);
   assert(lockedFirst.previewOpen, "잠금 타일 클릭 → 기능 상세 팝업이 뜬다", lockedFirst);
   assert(!lockedFirst.blockOpen, "잠금 타일 클릭 → 카드가 펼쳐지지 않는다", lockedFirst);
   assert(!lockedFirst.paidGateOpen, "잠금 타일 클릭 → 결제 게이트로 직행하지 않는다", lockedFirst);
@@ -176,11 +176,44 @@ async function installFixture({ lockKey = "", lockCost = 0, coinCost = 0, featur
     document.body.insertBefore(wrap, document.body.firstChild);
     window.scrollTo(0, 0);
 
-    // 해금 상태는 셸이 window 로 내보낸 실제 맵(참조 공유)을 직접 조작한다.
+    // 이 하네스의 정적 서버에는 /api/billing/features가 없다. 실제 화면은 Worker 가격
+    // 카탈로그에서 영구 해금 상품 가격을 받으므로, 같은 정규화 결과를 캐시에 시드한다.
+    // (data-tile-lock-* 속성만 쓰는 reportDashboard 타일 계약은 그대로 유지한다.)
+    if (${JSON.stringify(lockKey)} && window.CodeDestinyFeaturePricingStore) {
+      window.CodeDestinyFeaturePricingStore.cache[${JSON.stringify(lockKey)}] = {
+        featureKey: ${JSON.stringify(lockKey)},
+        displayPrice: (${lockCost} * 100).toLocaleString('ko-KR') + '원',
+        amountKRW: ${lockCost} * 100,
+        coinPrice: ${lockCost},
+        cost: ${lockCost},
+        paymentMode: 'single_purchase',
+        billingType: 'unlock',
+        pricingPolicy: null,
+        categoryKey: '',
+        source: 'worker-registry-test-fixture'
+      };
+    }
+
+    // rpt_* 잠금 키는 출생 기반이다 — 저장 카드(profileId + 출생) 없이는 결제 CTA 가 alert 로 막히고
+    // (CDP 평가가 그 대화상자에 걸려 멈춘다) legacy map 플래그도 무시된다. 저장 카드를 두고,
+    // 해금은 그 카드에 묶인 검증 grant 로 시드한다.
+    window.__cdCurrentDestinyProfile = {
+      profileId: 'rpt-preview-profile',
+      birth: { year: 1990, month: 5, day: 15, hour: 12, minute: 0 }
+    };
     try {
-      if (window.unlockedFeatureMap) {
-        if (${unlocked ? "true" : "false"}) window.unlockedFeatureMap[${JSON.stringify(lockKey)}] = true;
-        else delete window.unlockedFeatureMap[${JSON.stringify(lockKey)}];
+      if (${unlocked ? "true" : "false"}) {
+        window._cdFinalizeUnlockState(${JSON.stringify(lockKey)}, {
+          data: {
+            featureKey: ${JSON.stringify(lockKey)},
+            profileId: 'rpt-preview-profile',
+            requestId: 'rpt-preview-unlocked',
+            accessGranted: true,
+            accessGrant: { featureKey: ${JSON.stringify(lockKey)}, profileId: 'rpt-preview-profile', evidenceId: 'rpt-preview-unlocked' }
+          }
+        });
+      } else if (window.unlockedFeatureMap) {
+        delete window.unlockedFeatureMap[${JSON.stringify(lockKey)}];
       }
     } catch (_) {}
 
@@ -236,7 +269,7 @@ function readState() {
     return {
       previewOpen: !!(overlay && overlay.classList.contains('pvw-open')),
       previewCtaLabel: (label && label.textContent || '').trim(),
-      editorialImage: overlay?.querySelector('.featureDetailArt')?.getAttribute('src') || '',
+      editorialImage: overlay?.querySelector('#tilePvwHeroImg[src], #tilePvwOutlineImg[src]')?.getAttribute('src') || '',
       paidGateOpen: !!(gate && gate.classList.contains('is-open')),
       blockOpen: !!(block && block.classList.contains('open')),
       toggleCalls: Number(window.__cdRptToggleCalls || 0),
@@ -332,6 +365,9 @@ async function launchReadyChrome() {
       "--headless=new",
       "--disable-gpu",
       "--disable-background-networking",
+      // This fixture uses only the loopback server. External analytics/CDN/SDK
+      // loads must fail locally rather than hold Page.loadEventFired open in CI.
+      "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1, EXCLUDE localhost",
       "--disable-default-apps",
       "--disable-extensions",
       "--disable-sync",

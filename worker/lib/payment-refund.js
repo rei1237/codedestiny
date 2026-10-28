@@ -15,7 +15,7 @@ import {
   PointHistory,
   User,
 } from "./models.js";
-import { buildPassRewindCycleFields } from "./profile-limits.js";
+import { buildPassRefundRevokeFields } from "./profile-limits.js";
 import { cancelPortOnePayment } from "./portone.js";
 import { revokePaymentContentAccess } from "./content-unlocks.js";
 import { ensureLotsForBalance } from "./monthly-credit-lots.js";
@@ -93,8 +93,9 @@ function isSinglePurchase(payment) {
 }
 
 // 이용권/구독: profileSubscription 은 단일 객체라 중첩 연장의 정확한 역산이 불가능하다.
-// 이 결제가 늘린 durationMonths 만큼 expiresAt 을 되감고, 과거가 되면 등급을 free 로 내린다.
-// 되감을 근거(durationMonths)가 없거나 이미 만료됐으면 손대지 않고 관리자 검토로 넘긴다.
+// 2026-10-11 부터 이용권에 기간이 없다. 이 결제가 더한 한도를 빼고, 남은 한도로 열 수 있는 게 없으면
+// 등급을 free 로 내린다(passes.js revokePassGrantForOrder 와 같은 규칙 — buildPassRefundRevokeFields).
+// 이용권 주문인지 판단할 근거(durationMonths)나 만료일이 없으면 손대지 않고 관리자 검토로 넘긴다.
 async function revokeMembershipPassGrant(payment) {
   const userId = payment?.userId;
   if (!userId) return { reverted: false, adminReviewRequired: true, reason: "MISSING_USER" };
@@ -114,26 +115,8 @@ async function revokeMembershipPassGrant(payment) {
     return { reverted: false, adminReviewRequired: true, reason: "NO_EXPIRY" };
   }
 
-  const rewound = new Date(currentExpiresAt);
-  rewound.setMonth(rewound.getMonth() - durationMonths);
-  const now = new Date();
-  const downgraded = rewound <= now;
-
-  // 되감은 만료일을 사이클 키로 다시 적는다 — 안 적으면 키가 어긋나 누적 사용액이 0 으로 읽혀,
-  // 연장분 환불이 이미 쓴 한도까지 되돌려준다(passes.js revokePassGrantForOrder 와 같은 규칙).
-  const rewindCycle = buildPassRewindCycleFields({ subscription: sub, rewoundExpiresAt: rewound });
-  const set = {
-    "profileSubscription.expiresAt": rewound,
-    "profileSubscription.premiumUseCycleKey": rewindCycle.premiumUseCycleKey,
-    "profileSubscription.monthlyLimitCoin": rewindCycle.monthlyLimitCoin,
-  };
-  if (downgraded) {
-    set["profileSubscription.tier"] = "free";
-    set["profileSubscription.passTier"] = "";
-    set["profileSubscription.passLimit"] = 0;
-    set["profileSubscription.maxCoveredCoin"] = 0;
-    set["profileSubscription.monthlyLimitCoin"] = 0;
-  }
+  const { downgraded, fields } = buildPassRefundRevokeFields({ subscription: sub, now: new Date() });
+  const set = Object.fromEntries(Object.entries(fields).map(([key, value]) => [`profileSubscription.${key}`, value]));
   await User.updateOne({ _id: userId }, { $set: set });
 
   // 이 결제로 지급된 월정석 회수. 지급 원장은 {userId, type, sourceId} 유니크이므로 sourceId 로 찾는다.
@@ -180,7 +163,7 @@ async function revokeMembershipPassGrant(payment) {
   return {
     reverted: true,
     downgraded,
-    rewoundTo: rewound.toISOString(),
+    monthlyLimitCoin: fields.monthlyLimitCoin,
     creditsRevoked,
     adminReviewRequired: creditShortfall,
     reason: creditShortfall ? "MONTHLY_CREDIT_ALREADY_SPENT" : "",
@@ -211,7 +194,7 @@ async function revokePointChargeGrant(payment) {
     merchantUid: payment?.merchantUid,
     paymentId: payment?._id,
     metadata: { source: "operator_refund" },
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("operator_refund_point_history", { paymentId: String(payment?._id || "") }));
   invalidatePaidAccessDecisionCacheForUser(userId);
   return { reverted: true, pointsRolledBack: chargedPoints, adminReviewRequired: false };
 }
@@ -287,7 +270,7 @@ export async function refundPaymentAsOperator({
         lastErrorAt: new Date(),
       },
       $inc: { confirmAttempts: 1 },
-    }).catch(() => {});
+    }).catch(logSwallowedPaymentError("operator_refund_cancel_request_failed", { paymentId: String(payment._id) }));
     return {
       ok: false,
       status: 502,
@@ -307,7 +290,7 @@ export async function refundPaymentAsOperator({
         lastErrorAt: new Date(),
       },
       $inc: { confirmAttempts: 1 },
-    }).catch(() => {});
+    }).catch(logSwallowedPaymentError("operator_refund_cancel_not_succeeded", { paymentId: String(payment._id) }));
     return { ok: false, status: 502, code: "PORTONE_CANCEL_NOT_SUCCEEDED", message: "PortOne cancellation was not successful." };
   }
 
@@ -398,6 +381,16 @@ export function isValidObjectId(value) {
 // 같은 취소·회수를 해야 한다. fortune.js 가 payments.js 를 통째로 import 하면 Worker 번들(1MB 제한)이
 // 커지므로, 이 파일 첫머리 주석의 원칙대로 "실제 취소/회수는 공용 코어에 위임"을 따라 여기로 옮겼다.
 // payments.js 는 이 모듈에서 다시 import 해 쓴다 — 동작은 그대로다.
+
+// 결제 본 흐름을 막지 않는 부수 쓰기(실패 기록·포인트 이력)의 거절을 `.catch(() => {})` 로 지우면 사후에
+// 무슨 일이 있었는지 알 수 없다. 흐름·응답은 그대로 두고 한 줄만 남긴다 — 로깅 자체가 던지지 않게 감싼다.
+export function logSwallowedPaymentError(stage, ids = {}) {
+  return (error) => {
+    try {
+      console.warn("[payment-swallowed]", JSON.stringify({ stage, ...ids, error: String(error?.message || error).slice(0, 200) }));
+    } catch (_) { /* 로깅 실패는 결제 흐름에 영향을 주지 않는다 */ }
+  };
+}
 
 export function buildSinglePaymentRefundIdempotencyKey(payment, jobId = "no-job") {
   const paymentId = String(payment?.impUid || payment?.merchantUid || payment?._id || "no-payment").trim();

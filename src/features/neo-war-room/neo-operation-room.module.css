@@ -105,6 +105,7 @@
 
 .shell[data-scene="command"] {
   padding-top: clamp(18px, 3vw, 36px);
+  overflow-x: clip;
 }
 
 .bgmAudio {
@@ -570,12 +571,12 @@
 
 .vnCharacter[data-scene="humanNeo"] .vnCharacterCrop {
   overflow: visible;
-  animation: neoHumanIdle 5.8s ease-in-out infinite;
+  animation: none;
   filter: drop-shadow(0 34px 44px rgba(0, 0, 0, 0.72)) drop-shadow(0 0 28px rgba(245, 212, 135, 0.2));
 }
 
 .vnCharacter[data-scene="humanNeo"] .vnCharacterCrop::after {
-  content: "";
+  content: none;
   position: absolute;
   inset: 7% 8% 4%;
   z-index: 2;
@@ -1593,7 +1594,7 @@
   border: 1px solid rgba(212, 183, 106, 0.28);
   border-radius: 8px;
   padding: clamp(18px, 3vw, 30px);
-  overflow: hidden;
+  overflow: clip;
   background:
     linear-gradient(180deg, rgba(7, 12, 24, 0.88), rgba(4, 7, 13, 0.95)),
     var(--neo-bg-desktop);
@@ -1978,6 +1979,10 @@
   object-position: center bottom !important;
 }
 
+.spriteActor[data-talk-portrait="true"] .spriteStage {
+  aspect-ratio: 1;
+}
+
 .spriteActor[data-variant="fullbody"] .spriteImage {
   object-fit: contain !important;
   object-position: center bottom !important;
@@ -2159,8 +2164,9 @@
 
 .methodGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
+  container-type: inline-size;
 }
 
 .methodCard,
@@ -2208,9 +2214,11 @@
   position: relative;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(124px, 38%) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
-  align-items: stretch;
+  align-items: start;
+  align-content: start;
+  min-width: 0;
   padding: 14px;
   text-align: left;
 }
@@ -2220,14 +2228,13 @@
    여기 값을 그쪽에 합치지 말 것. 합치면 02 주제·04 강도 버튼까지 한 줄씩 차지한다. */
 .methodCard[data-active="true"] {
   grid-column: 1 / -1;
-  grid-template-columns: minmax(220px, 32%) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
   gap: 20px;
   padding: 18px;
 }
 
 .methodCard[data-active="true"] .methodImageFrame {
-  min-height: 320px;
-  max-height: 460px;
+  width: min(100%, 280px);
 }
 
 .methodCard[data-active="true"] .methodMeta span:first-child {
@@ -2240,23 +2247,15 @@
 }
 
 .methodImageFrame {
-  width: 100%;
-  height: 100%;
-  min-height: 210px;
-  max-height: 320px;
+  justify-self: center;
+  width: min(100%, 180px);
+  height: auto;
+  min-height: 0;
   aspect-ratio: 1055 / 1491;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(3, 7, 14, 0.48) !important;
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
-}
-
-.methodImageFrame::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 42%, rgba(3, 7, 14, 0.36));
-  pointer-events: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .methodImage {
@@ -3528,8 +3527,7 @@
   }
 
   .methodCard[data-active="true"] .methodImageFrame {
-    min-height: 260px;
-    max-height: 380px;
+    width: min(100%, 240px);
   }
 
   .topicGrid {
@@ -3801,8 +3799,7 @@
     width: 100%;
     height: auto;
     min-height: 0;
-    max-height: 118px;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1055 / 1491;
   }
 
   .methodMeta {
@@ -3824,13 +3821,13 @@
   }
 
   .methodText strong {
-    font-size: 0.84rem;
-    line-height: 1.32;
+    font-size: 0.9375rem;
+    line-height: 1.5;
   }
 
   .methodText em {
-    font-size: 0.76rem;
-    line-height: 1.38;
+    font-size: 0.875rem;
+    line-height: 1.6;
   }
 
   .methodText small {
@@ -3850,7 +3847,6 @@
     justify-self: center;
     width: min(100%, 200px);
     min-height: 0;
-    max-height: 282px;
     aspect-ratio: 1055 / 1491;
   }
 
@@ -3992,8 +3988,7 @@
   }
 
   .methodCard[data-active="true"] .methodImageFrame {
-    width: min(100%, 170px);
-    max-height: 240px;
+    width: min(100%, 200px);
   }
 
   .startButton {
@@ -4927,4 +4922,8 @@
   .vnDialogueBox p[data-typing="true"]::after {
     animation: none;
   }
+}
+@container (max-width: 600px) {
+  .methodCard[data-active="true"] { grid-template-columns: minmax(0, 1fr); }
+  .methodCard[data-active="true"] .methodImageFrame { width: min(100%, 200px); }
 }

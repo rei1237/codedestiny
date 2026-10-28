@@ -1,26 +1,19 @@
 "use client";
 
 /**
- * 프롬프트 허브의 브라우저 저장소 세 가지 — 무료 체험 카운터, 로그인 재개 스냅샷, 보관함.
- *
- * 🔴 이 카운터는 접근 제어가 아니라 가입 UX 넛지다. 프롬프트 조립이 전부 클라이언트에서
- * 일어나므로(서버 라우트·LLM 호출 없음) 막을 서버 지점 자체가 없고, DevTools 로 이 키를
- * 지우면 그대로 우회된다. 나중에 진짜 강제가 필요해지면 아래 정책 상수를 서버 응답으로
- * 대체하고 게이트 판정을 워커로 옮기면 된다 — 호출부는 그대로 둘 수 있게 상수를 분리해 뒀다.
+ * 프롬프트 허브의 브라우저 저장소 두 가지 — 로그인 재개 스냅샷, 보관함.
+ * 생성 횟수 제한은 서버(꿀방울, /api/fortune/prompt-hub/generate)가 한다.
  */
 
-export const PROMPT_HUB_FREE_GENERATION_LIMIT = 1;
 export const PROMPT_HUB_LIBRARY_MAX_ITEMS = 20;
 export const PROMPT_HUB_LIBRARY_MAX_PROMPT_CHARS = 12000;
 export const PROMPT_HUB_RESUME_TTL_MS = 30 * 60 * 1000;
 const RESUME_MAX_SERIALIZED_BYTES = 20 * 1024;
 
-const FREE_USAGE_KEY = "cd:promptHub:freeUses:v1";
 const RESUME_KEY = "cd:promptHub:resume:v1";
 const LIBRARY_PREFIX = "cd:promptHub:library:v1:";
 
-// 사파리 프라이빗 모드는 스토리지 접근 자체가 throw 한다. 실패는 조용히 흡수한다 —
-// 저장이 안 되면 카운터가 늘 0 이라 무제한이 되는데, 소프트 게이트라 의도된 열화다.
+// 사파리 프라이빗 모드는 스토리지 접근 자체가 throw 한다. 실패는 조용히 흡수한다.
 function readRaw(store: "local" | "session", key: string): string | null {
   try {
     if (typeof window === "undefined") return null;
@@ -47,38 +40,6 @@ function removeRaw(store: "local" | "session", key: string) {
   } catch {
     /* noop */
   }
-}
-
-/* ── 무료 체험 카운터 (기기 단위, 도구 무관) ───────────────────────────── */
-
-export type PromptHubFreeUsage = { count: number; firstUsedAt: number };
-
-export function readFreeUsage(): PromptHubFreeUsage {
-  const raw = readRaw("local", FREE_USAGE_KEY);
-  if (!raw) return { count: 0, firstUsedAt: 0 };
-  try {
-    const parsed = JSON.parse(raw);
-    const count = Number(parsed?.count);
-    return {
-      count: Number.isFinite(count) && count > 0 ? Math.floor(count) : 0,
-      firstUsedAt: Number(parsed?.firstUsedAt) || 0,
-    };
-  } catch {
-    return { count: 0, firstUsedAt: 0 };
-  }
-}
-
-export function hasFreeGenerationLeft(): boolean {
-  return readFreeUsage().count < PROMPT_HUB_FREE_GENERATION_LIMIT;
-}
-
-export function recordFreeGeneration() {
-  const current = readFreeUsage();
-  writeRaw(
-    "local",
-    FREE_USAGE_KEY,
-    JSON.stringify({ count: current.count + 1, firstUsedAt: current.firstUsedAt || Date.now() }),
-  );
 }
 
 /* ── 로그인 재개 스냅샷 ────────────────────────────────────────────────

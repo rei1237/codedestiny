@@ -1,7 +1,14 @@
 ﻿import { requireAuth } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
+import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
+import { buildSajuSnapshotFromBirth } from "../lib/saju-snapshot-from-birth.js";
+import { buildSibylAnnual, sibylPreview, validateSibylYear } from '../lib/sibyl-annual.js';
+import { profileCardSolarBirth } from '../lib/paid-content-read-access.js';
+import { readOrGenerateSibyl } from '../lib/sibyl-report-store.js';
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
+
+const SIBYL_FEATURE_KEY = "premium-sibyl-dominator";
 
 const SIBYL_MIN_TOTAL_CHARS = 20000;
 const SIBYL_REPORT_MIN_CHAPTER_CHARS = 300;
@@ -380,6 +387,52 @@ function deterministicExpansionBlock(body = {}, category = {}, index = 0) {
   return lines.join("\n\n");
 }
 
+/**
+ * 요청 본문에서 출생·명식 파생값(profile.birth, pillars, canonicalData, normalizedProfile, 성별, 지배 오행)을 버리고
+ * 저장된 프로필 카드의 출생 정보로 서버에서 다시 계산한 값으로 채운다. 위험·적성 점수 등 출생 정보가 아닌
+ * 보조 값만 본문에서 받는다. 출생 정보가 불완전해 계산이 안 되면 null.
+ */
+function buildSibylBodyFromProfileBirth(rawBody, access) {
+  const birth = access?.birth;
+  if (!birth) return null;
+  const snapshot = buildSajuSnapshotFromBirth({
+    birthDate: birth.date,
+    birthTime: birth.time,
+    birthTimeUnknown: !birth.timeKnown,
+    calendarType: "solar",
+    gender: birth.gender,
+  });
+  if (!snapshot?.pillars?.d?.g) return null;
+  const toPillar = (pillar) => (pillar?.g && pillar?.j ? { g: pillar.g, j: pillar.j } : {});
+  const elements = snapshot?.natal?.elements || {};
+  const dominantEl = Object.entries(elements)
+    .filter(([, value]) => Number(value) > 0)
+    .sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] || "";
+  const source = rawBody && typeof rawBody === "object" ? rawBody : {};
+  return {
+    riskScore: source.riskScore,
+    aptCoeff: source.aptCoeff,
+    dominantTenStar: source.dominantTenStar,
+    dominantEl,
+    profile: {
+      id: clean(access?.card?.profileId),
+      gender: birth.gender,
+      birth: {
+        year: birth.year,
+        month: birth.month,
+        day: birth.day,
+        ...(birth.timeKnown ? { hour: birth.hour, minute: birth.minute } : {}),
+      },
+    },
+    pillars: {
+      year: toPillar(snapshot.pillars.y),
+      month: toPillar(snapshot.pillars.m),
+      day: toPillar(snapshot.pillars.d),
+      hour: toPillar(snapshot.pillars.h),
+    },
+  };
+}
+
 export async function handleSibylRoutes(request, env = {}) {
   try {
     const method = request.method.toUpperCase();
@@ -389,73 +442,52 @@ export async function handleSibylRoutes(request, env = {}) {
     }
 
     const path = getRoutePath(request, "/api/sibyl");
+    if (path === "/preview") {
+      const body = await readJson(request);
+      try {
+        const year = validateSibylYear(body.year);
+        const birth = profileCardSolarBirth(body.profile);
+        return json({ ok:true, preview:sibylPreview(buildSibylAnnual(birth,year)) });
+      } catch { return json({ok:false,code:"SIBYL_INPUT_UNAVAILABLE",message:"출생 정보와 분석 연도를 확인해 주세요."},{status:400}); }
+    }
     if (path !== "/report") return notFound();
 
     const auth = await requireAuth(request, env);
-    const body = await readJson(request);
-    const canonical = normalizeCanonicalSibylData(body);
-    const requestId = clean(body?.requestId || body?.paymentContext?.requestId || "").slice(0, 120) || `sibyl_${stableHash(JSON.stringify(body?.pillars || {})).slice(0, 8)}`;
-    const featureKey = clean(body?.featureKey || body?.paymentContext?.featureKey || "premium-sibyl-dominator");
-    const premiumAccessToken = clean(body?.premiumAccessToken || body?._premiumAccessToken || body?.payment?.premiumAccessToken || body?.consume?.premiumAccessToken || "");
-
-    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sibylDominator", {
-      ...body,
-      featureKey,
-      reportType: "sibylDominator",
-      premiumAccessToken: premiumAccessToken || undefined,
-      _accessRoute: "/api/sibyl/report",
-    });
-    if (!access?.ok) {
-      const status = Number(access?.status || 402);
-      return json({
-        ok: false,
-        code: access?.code || (status === 401 ? "UNAUTHORIZED" : "PAYMENT_REQUIRED"),
-        message: status === 401
-          ? "시빌라 도미네이터 리포트 생성을 위해 먼저 로그인해 주세요."
-          : "시빌라 도미네이터 리포트는 잠금 해제 후 이용할 수 있습니다.",
-      }, { status });
-    }
-    const profileValidation = {
-      ok: Array.isArray(canonical?.debug?.missingFields) ? canonical.debug.missingFields.length === 0 : true,
-      missingFields: Array.isArray(canonical?.debug?.missingFields) ? canonical.debug.missingFields : [],
-    };
-
-    // 시빌라 도미네이터 리포트는 LLM 생성을 쓰지 않고, 캐노니컬 사주 계산만으로
-    // 결정론적으로 챕터를 구성한다(buildCanonicalChapterText 기반).
-    const rich = { source: "deterministic", warnings: [], model: "" };
-    let reportStatus = "generated";
-
-    const mapped = mapToSibylChapters([], canonical);
+    const rawBody = await readJson(request);
+    const featureKey = SIBYL_FEATURE_KEY;
+    let access;
     try {
-      validateSibylReport(mapped.chapterMap);
-    } catch (e) {
-      reportStatus = "validation-warning";
-      rich.warnings = ["chapter validation warning"];
+      access = await readProfileBirthUnlock(withPdfFastDbEnv(env), {
+        userId: auth.userId, profileId: rawBody?.profileId, featureKey,
+      });
+    } catch {
+      return json({
+        ok: false, reason: "TEMPORARY_UNAVAILABLE", code: "TEMPORARY_UNAVAILABLE", retryable: true,
+        message: "구매 권한을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
     }
-
-    const totalChars = mapped.chapterList.reduce((sum, chapter) => sum + clean(chapter.content).length, 0);
-    console.log("[sibyl-report]", {
-      requestId,
-      featureKey,
-      hasUserId: Boolean(auth?.userId),
-      unlocked: true,
-      accessType: clean(access?.accessType || ""),
-      profileValidation,
-      reportStatus,
-      totalChars,
-      source: rich?.source || "unknown",
-    });
-    return json({
-      ...rich,
-      reportId: buildSibylFingerprint(body),
-      chapterMap: mapped.chapterMap,
-      chapters: mapped.chapterList,
-      canonical,
-      categoryCount: SIBYL_REPORT_CHAPTERS.length,
-      categories: SIBYL_REPORT_CHAPTERS.map((item) => item.title),
-      totalChars,
-      minTotalChars: Math.min(SIBYL_MIN_TOTAL_CHARS, Math.max(totalChars, 6000)),
-    });
+    if (!access.ok) {
+      const missing = access.reason === "MISSING_PROFILE_ID";
+      return json({
+        ok: false, reason: access.reason, code: access.reason, featureKey, requiresProfile: true,
+        message: missing ? "프로필을 저장한 뒤 구매해 주세요." : "저장된 내 프로필을 선택해 주세요.",
+      }, { status: missing ? 400 : 403 });
+    }
+    if (!access.unlocked) {
+      const { pricing } = getBillingFeaturePricing({ featureKey });
+      return json({
+        ok: false, reason: "PAYMENT_REQUIRED", code: "PAYMENT_REQUIRED", featureKey,
+        message: "이 생년월일은 별도 구매가 필요합니다.",
+        amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice,
+      }, { status: 402 });
+    }
+    try {
+      const result = await readOrGenerateSibyl(env, auth.userId, access, rawBody.year ?? rawBody.currentYear);
+      return json(result.body, { status:result.status });
+    } catch (error) {
+      const invalid = /SIBYL_INVALID_YEAR|SIBYL_INVALID_BIRTH_INPUT/.test(String(error?.message));
+      return json({ok:false,code:invalid ? "SIBYL_INVALID_INPUT" : "SIBYL_RETRYABLE",retryable:!invalid,message:invalid ? "출생 정보와 분석 연도를 확인해 주세요." : "리포트를 준비하지 못했어요. 구매 권한은 유지되며 다시 시도할 수 있어요."},{status:invalid?400:503});
+    }
   } catch (error) {
     console.warn("[sibyl-report:error]", {
       requestId: clean(error?.requestId || ""),

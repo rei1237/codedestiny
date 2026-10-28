@@ -1,5 +1,10 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
+import { sukuyoCompatAdviceTopics } from "@/js/recommendations-context.mjs";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -13,6 +18,7 @@ import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
@@ -42,6 +48,11 @@ import {
 } from "./_art/yehwaScene.generated";
 import { pickWelcomeQuote } from "./_data/welcomeQuotes";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
+import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
+import { getExpertCharacter, getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
+import Image from "next/image";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 const QUOTE_SEEN_STORAGE_KEY = "cd:sukuyo-compat-result:quote-seen:v1";
@@ -171,7 +182,7 @@ function getSukuyoCompatCopy(locale: LoadingLocale): SukuyoCompatCopy {
 }
 
 /** 이 파일 전용 로케일 훅 — 여러 하위 컴포넌트가 각자 useState+useEffect를 반복하지 않도록 공용화. */
-function useSukuyoCompatCopy(): SukuyoCompatCopy {
+function useSukuyoCompatLocale(): LoadingLocale {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
@@ -179,7 +190,11 @@ function useSukuyoCompatCopy(): SukuyoCompatCopy {
     window.addEventListener("cd:locale-ready", sync);
     return () => { window.removeEventListener("languagechange", sync); window.removeEventListener("cd:locale-ready", sync); };
   }, []);
-  return getSukuyoCompatCopy(locale);
+  return locale;
+}
+
+function useSukuyoCompatCopy(): SukuyoCompatCopy {
+  return getSukuyoCompatCopy(useSukuyoCompatLocale());
 }
 
 type CalendarType = "solar" | "lunar";
@@ -191,6 +206,7 @@ type PersonForm = {
   birthTime: string;
   birthTimeUnknown: boolean;
   calendarType: CalendarType;
+  isLeapMonth?: boolean;
 };
 type ConsultationMessage = {
   role: "user" | "assistant";
@@ -445,7 +461,8 @@ function applyProfileSeedToPerson(person: PersonForm, profile: AiPrefillSeed): P
     gender: (profile.gender as PersonForm["gender"]) || person.gender,
     birthDate: profile.birthDate || person.birthDate,
     birthTime: birthTimeUnknown ? "" : profile.birthTime || person.birthTime,
-    birthTimeUnknown: birthTimeUnknown || person.birthTimeUnknown,
+    birthTimeUnknown: profile.birthTimeUnknown ?? person.birthTimeUnknown,
+    isLeapMonth: profile.isLeapMonth ?? person.isLeapMonth,
     calendarType: profile.calendarType || person.calendarType,
   };
 }
@@ -461,8 +478,9 @@ const ERROR_TEXT: Record<string, string> = {
   PAYMENT_CANCELLED: "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.",
   INVALID_INPUT: "상담에 필요한 정보가 부족해요. 두 사람의 생년월일과 달력 기준을 다시 확인해 주세요.",
   CALCULATION_FAILED: "숙요점 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
-  SERVER_ERROR: "상담 준비 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
-  LLM_FAILED: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
+  SERVER_ERROR: "상담 준비 중 문제가 생겼어요. 결제가 완료되었다면 추가 결제하지 말고 고객센터에 문의해 주세요.",
+  LLM_FAILED: "상담문을 생성하는 중 문제가 생겼어요. 결제 내역 확인이 필요하면 고객센터에 문의해 주세요.",
+  REFUND_REVIEW_REQUIRED: "결제 내역 확인이 필요해요. 추가 결제하지 말고 고객센터에 문의해 주세요.",
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
   TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정해요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
   GENERATION_TIMEOUT: "상담문이 아직 완성되지 않았어요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
@@ -598,6 +616,7 @@ type StartResult = {
   reason?: string;
   message?: string;
   status?: string;
+  reviewRequired?: boolean;
   sessionId?: string;
   consultation?: Consultation;
 };
@@ -671,6 +690,8 @@ function buildFallbackReadingPages(consultation: Consultation): ResultViewerPage
 
 function MoonLoadingScreen({ basis }: { basis: AnalysisBasis | null }) {
   const reduceMotion = useReducedMotion() === true;
+  const locale = useSukuyoCompatLocale();
+  const hanbiLine = getExpertLine("hanbi", "loading", locale);
   useBodyScrollLock(true);
 
   return (
@@ -689,6 +710,10 @@ function MoonLoadingScreen({ basis }: { basis: AnalysisBasis | null }) {
           />
         ))}
       </div>
+      {/* 서한비 — 분위기 한 줄만. 진행 단계는 아래 AnalysisBasisLoading 이 실제 값으로 보여 준다. */}
+      {isExpertCharacterEnabled("hanbi") ? (
+        <ExpertCharacterStage character="hanbi" mood={hanbiLine.mood} line={hanbiLine.text} placement="loading" locale={locale} className={styles.hanbiLoadingStage} />
+      ) : (
       <div className={styles.loadingMoonWrap}>
         <LoadingBotanicalScene reduceMotion={reduceMotion} />
         <div className={styles.loadingMoon} aria-hidden="true">
@@ -705,6 +730,7 @@ function MoonLoadingScreen({ basis }: { basis: AnalysisBasis | null }) {
           </defs>
         </svg>
       </div>
+      )}
       {/* 달 애니메이션은 그대로 두고, 문구 자리는 서버가 실제로 계산한 두 본명숙과 방위 관계로 채운다.
           🔴 시간만 흐르는 가짜 단계 라벨을 여기에 두지 말 것 — AnalysisBasisLoading 이 실제 계산값을
           단계별로 드러내는 것이 이 프로젝트의 정본이다(components/fortune/AnalysisBasisLoading.tsx). */}
@@ -859,13 +885,17 @@ function CompatSummaryHeader({ meta }: { meta: CompatResult["meta"] }) {
 }
 
 function ChapterReadingArticle({ sectionKey, section }: { sectionKey: string; section: { title: string; body: string } }) {
+  const locale = useSukuyoCompatLocale();
+  // 마지막 편지에만 서명한다 — 화면과 PDF 가 같은 컴포넌트를 쓰므로 둘 다 남는다.
+  const signoff = sectionKey === "closingLetter" && isExpertCharacterEnabled("hanbi") ? getExpertLine("hanbi", "result.signoff", locale).text : "";
   return (
     <article className={styles.readingSection}>
       <div>
         <span>{SECTION_ICONS[sectionKey] || "✦"}</span>
         <h3>{section.title}</h3>
       </div>
-      <div className={styles.readingBody}><AiResultProse value={section.body} /></div>
+      <div className={styles.readingBody}><ConsultationReading kind="sukuyo" value={section.body} index={sectionKey === "closingLetter" ? 1 : 0} /></div>
+      {signoff && <p className={styles.hanbiSignoff}>{signoff}</p>}
     </article>
   );
 }
@@ -998,7 +1028,9 @@ function QuoteWelcomeCard({ quote }: { quote: string }) {
 }
 
 function CompatResultModal({ result, onClose, onDownloadError, basis = null, completed = false }: { completed?: boolean; result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void; basis?: AnalysisBasis | null }) {
-  const copy = useSukuyoCompatCopy();
+  const locale = useSukuyoCompatLocale();
+  const copy = getSukuyoCompatCopy(locale);
+  const hanbiOpen = getExpertLine("hanbi", "result.open", locale);
   const [isDownloading, setIsDownloading] = useState(false);
   const { meta, sections } = result;
   const readingPages = useMemo(() => chunkReadingSections(sections), [sections]);
@@ -1083,6 +1115,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
       </header>
 
       <div className={styles.modalBody}>
+        <ExpertCharacterStage character="hanbi" mood={hanbiOpen.mood} line={hanbiOpen.text} placement="result" locale={locale} />
         {mounted && !hasSeenQuote && (
           <QuoteWelcomeCard quote={pickWelcomeQuote(meta.person_a.name, meta.person_b.name)} />
         )}
@@ -1158,7 +1191,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
             />
           </div>
         </section>
-        {completed && <RecommendationResult service="sukuyo-compatibility-ai"/>}
+        {completed && <RecommendationResult service="sukuyo-compatibility-ai" practiceTags={sukuyoCompatAdviceTopics(result.sections)}/>}
       </div>
 
       {/* PDF 저장용 전체 렌더 — 화면 밖에 배치해 html2canvas 캡처에만 사용 */}
@@ -1213,7 +1246,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
         ))}
 
         <footer className={`${styles.modalFooter} ${styles.pdfPage} ${styles.pdfFooterPage}`} data-pdf-section>
-          <strong>Code Destiny</strong>
+          <strong>꿀꿀운세</strong>
           <span>숙요점 궁합 · {new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()])}</span>
           <p>이 해석은 숙요점 상징 체계를 바탕으로 관계의 흐름을 비추는 참고용 상담입니다. 현실의 선택, 동의, 경계, 건강과 법률·재정 판단은 당사자의 충분한 대화와 전문 검토를 함께 따라야 합니다.</p>
         </footer>
@@ -1245,7 +1278,14 @@ type RecentConsultation = {
 };
 
 export default function SukuyoCompatibilityAiClient() {
-  const copy = useSukuyoCompatCopy();
+  const locale = useSukuyoCompatLocale();
+  const copy = getSukuyoCompatCopy(locale);
+  // 서한비 — enabled 를 끄면 기존 예화 씬과 문구만 남는다.
+  const hanbiOn = isExpertCharacterEnabled("hanbi");
+  const hanbiHero = { ...getExpertCharacter("hanbi").hero, src: "/images/service-introductions/sukuyo-compatibility-ai-960.webp", alt: "서한비가 두 사람의 달 자리와 관계의 거리를 비교하는 숙요점 상담 장면" };
+  const hanbiGreet = getExpertLine("hanbi", "hero", locale);
+  const hanbiEmpty = getExpertLine("hanbi", "empty", locale);
+  const hanbiError = getExpertLine("hanbi", "error", locale);
   const reduceMotion = useReducedMotion() === true;
   const [personA, setPersonA] = useState<PersonForm>(() => buildInitialPersonA());
   const [personB, setPersonB] = useState<PersonForm>({ ...EMPTY_PERSON });
@@ -1270,7 +1310,7 @@ export default function SukuyoCompatibilityAiClient() {
     pendingGenerationRef.current = null; submitKeyRef.current = ""; submitLockRef.current = false;
     setConsultation(null); setRecentList([]); setError(""); setNotice(""); setPhase("idle"); setResumeEpoch(value => value + 1);
   });
-  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion } = useAiProfileSeed();
   const formTouchedRef = useRef(false);
 
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 본인(나의 별) 폼에 반영
@@ -1280,11 +1320,6 @@ export default function SukuyoCompatibilityAiClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadPersonAFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
-      if (seed) setPersonA((prev) => applyProfileSeedToPerson(prev, seed));
-    });
-  }
 
   const busy = phase === "access" || phase === "payment" || phase === "start";
   const consultationType: ConsultationType = "compatibility";
@@ -1408,6 +1443,8 @@ export default function SukuyoCompatibilityAiClient() {
     partnerGender: consultationType === "compatibility" ? personB.gender : "",
     partnerBirthDate: consultationType === "compatibility" ? personB.birthDate : "",
     partnerBirthTime: consultationType === "compatibility" ? (personB.birthTimeUnknown ? "" : personB.birthTime) : "",
+    isLeapMonth: personA.calendarType === "lunar" && Boolean(personA.isLeapMonth),
+    partnerIsLeapMonth: personB.calendarType === "lunar" && Boolean(personB.isLeapMonth),
     partnerCalendarType: consultationType === "compatibility" ? personB.calendarType : "",
     relationshipType,
     topic,
@@ -1483,6 +1520,11 @@ export default function SukuyoCompatibilityAiClient() {
       if (!data.ok) throw new Error(status === 402 && paymentWasRequired ? "PAYMENT_VERIFY_FAILED" : data.reason || "SERVER_ERROR");
       failures = 0;
       if (data.consultation) setConsultation(data.consultation);
+      if (data.reviewRequired) {
+        setNotice("저장된 내용은 보관되어 있어요. 나머지 상담을 확인할 수 있도록 고객센터에 문의해 주세요.");
+        setPhase("idle");
+        return false;
+      }
       if (status !== 202 && data.consultation && (!data.consultation.status || data.consultation.status === "completed")) {
         pendingGenerationRef.current = null; submitKeyRef.current = ""; setError(""); setNotice(""); setPhase("idle"); return true;
       }
@@ -1533,7 +1575,7 @@ export default function SukuyoCompatibilityAiClient() {
     const pending = pendingGenerationRef.current;
     if (pending) {
       try { await startConsultation(pending.key, pending.access, true, pending.sessionId ? { resumeSessionId: pending.sessionId } : pending.body); }
-      catch (error) { if (isCurrent()) { setError(error instanceof Error ? error.message : ERROR_TEXT.SERVER_ERROR); setPhase("idle"); } }
+      catch (error) { if (isCurrent()) { const code = error instanceof TypeError ? "NETWORK_ERROR" : error instanceof Error ? error.message : "SERVER_ERROR"; setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR); setPhase("idle"); } }
       return;
     }
     const previewState = readDevPreviewState();
@@ -1651,6 +1693,7 @@ export default function SukuyoCompatibilityAiClient() {
     ].filter(Boolean);
     return (
       <>
+        <SavedBirthProfilePicker label={target === "a" ? "나의 저장된 프로필" : "상대의 저장된 프로필"} disabled={busy} onSelect={seed => { formTouchedRef.current = true; (target === "a" ? setPersonA : setPersonB)(applyProfileSeedToPerson({ ...EMPTY_PERSON }, seed)); }} />
         <div className={`${styles.field} ${styles.primaryField}`}>
           <label htmlFor={`${prefix}-birth-date`}>생년월일</label>
           <input id={`${prefix}-birth-date`} {...birthDateTextInputProps(value.birthDate, (nextBirthDate) => updatePerson(target, { birthDate: nextBirthDate }))} disabled={busy} />
@@ -1685,7 +1728,7 @@ export default function SukuyoCompatibilityAiClient() {
                 <option value="unknown">비공개</option>
               </select>
             </div>
-            <div className={styles.field}>
+            <div data-moonlit-form="" className={styles.field}>
               <label htmlFor={`${prefix}-birth-time`}>
                 출생시간 <span className={styles.labelOptional}>선택</span>
               </label>
@@ -1710,9 +1753,9 @@ export default function SukuyoCompatibilityAiClient() {
                 </button>
               </div>
               {!value.birthTimeUnknown && (
-                <input
+                <BirthTimeInput
                   id={`${prefix}-birth-time`}
-                  type="time"
+
                   value={value.birthTime}
                   onChange={(event) => updatePerson(target, { birthTime: event.target.value })}
                   disabled={busy}
@@ -1723,6 +1766,7 @@ export default function SukuyoCompatibilityAiClient() {
             </div>
             <div className={styles.fieldWide}>
               <span>달력 기준</span>
+              {value.calendarType === "lunar" && <label><input type="checkbox" checked={Boolean(value.isLeapMonth)} onChange={event => updatePerson(target, {isLeapMonth:event.target.checked})} disabled={busy}/> 윤달</label>}
               <div className={styles.segmented} role="group" aria-label={`${owner} 달력 기준`}>
                 {(["solar", "lunar"] as CalendarType[]).map((calendarType) => (
                   <button
@@ -1745,9 +1789,10 @@ export default function SukuyoCompatibilityAiClient() {
   };
 
   return (
-    <main className={styles.screen} data-sukuyo-ai-consultation data-duo-linked={bothComplete ? "true" : undefined}>
+    <main className={styles.screen} data-sukuyo-ai-consultation data-duo-linked={bothComplete ? "true" : undefined} data-character={hanbiOn ? "hanbi" : undefined}>
       <div className={styles.threadLine} />
       <div className={styles.starField} aria-hidden="true" />
+      {!consultation && getCurrentLoadingLocale() === "ko" && <div className={styles.productGuide}><CraftedProductDisclosure featureKey="sukuyo-compatibility-ai" /></div>}
       <section className={`${styles.shell} mx-auto w-full`}>
         <m.aside
           className={styles.visualPanel}
@@ -1755,9 +1800,15 @@ export default function SukuyoCompatibilityAiClient() {
           animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className={styles.visualVeil} aria-hidden="true">
-            <SukuyoYehwaScene />
-          </div>
+          {hanbiOn ? (
+            <div className={styles.hanbiKeyArt}>
+              <Image src={hanbiHero.src} alt={hanbiHero.alt} fill priority sizes="(max-width: 900px) 100vw, 46vw" className={styles.hanbiKeyArtImage} unoptimized />
+            </div>
+          ) : (
+            <div className={styles.visualVeil} aria-hidden="true">
+              <SukuyoYehwaScene />
+            </div>
+          )}
           <m.div
             className={styles.visualCopy}
             initial={reduceMotion ? false : { opacity: 0, y: 10 }}
@@ -1771,6 +1822,7 @@ export default function SukuyoCompatibilityAiClient() {
             {/* 🔴 h1 은 page.tsx 의 서버 본문이 소유한다 — 여기는 h2 로 유지. */}
             <h2>우리의 인연은<br />어떤 달빛 아래에서<br />이어지고 있을까요?</h2>
             <p>끌림의 이유부터 반복되는 갈등까지. 27숙이 만드는 두 사람의 관계 리듬을 상담처럼 천천히 읽어드립니다.</p>
+            <ExpertCharacterStage character="hanbi" mood={hanbiGreet.mood} line={hanbiGreet.text} placement="inline" locale={locale} className={styles.hanbiHeroStage} />
           </m.div>
         </m.aside>
 
@@ -1789,14 +1841,7 @@ export default function SukuyoCompatibilityAiClient() {
                       <YehwaMotifArt motif={SUKUYO_SEAL} width={22} height={22} />
                     </span>
                     <strong className="min-w-0 flex-1">나의 별</strong>
-                    <button
-                      type="button"
-                      onClick={loadPersonAFromProfileCard}
-                      className="shrink-0 rounded-lg border border-[#ffe8b6]/30 bg-[#ffe8b6]/10 px-2 py-1 text-xs font-bold text-[#ffe8b6] transition hover:bg-[#ffe8b6]/20"
-                      aria-label={copy.profileLoadAria}
-                    >
-                      프로필 카드에서 불러오기
-                    </button>
+
                     <em>{personAComplete ? "자리 완성" : "채우는 중"}</em>
                   </header>
                   {renderPersonFields("a", personA)}
@@ -1825,7 +1870,7 @@ export default function SukuyoCompatibilityAiClient() {
               </div>
               <p className={styles.ctaNote}>
                 <span>태어난 시간은 필요하지 않습니다.</span>
-                <span>궁합을 점수로 매기지 않습니다. 두 사람이 반복해서 만나게 되는 관계의 리듬을 읽습니다.</span>
+                <span>관계 지표는 참고로 살피고, 두 사람이 반복해서 만나게 되는 관계의 리듬을 읽습니다.</span>
               </p>
               <div className={styles.heroMeta} aria-label={copy.heroMetaAria}>
                 <span><Orbit size={14} /> 27숙 본명숙</span>
@@ -1834,6 +1879,9 @@ export default function SukuyoCompatibilityAiClient() {
                 <span><Sparkles size={14} /> 전문가 상담문</span>
               </div>
               <FormProgressIndicator filled={filledCount} total={2} />
+              {filledCount === 1 && (
+                <ExpertCharacterStage character="hanbi" mood={hanbiEmpty.mood} line={hanbiEmpty.text} placement="inline" locale={locale} className={styles.hanbiInlineStage} />
+              )}
 
               <m.div
                 className={`${styles.resultTeaser}${bothComplete ? ` ${styles.resultTeaserReady}` : ""}`}
@@ -1953,6 +2001,10 @@ export default function SukuyoCompatibilityAiClient() {
             </div>
           )}
 
+          {/* 캐릭터 한 줄은 사실 문구 앞에만 둔다 — 오류 문구·재시도 흐름은 그대로. */}
+          {error && (
+            <ExpertCharacterStage character="hanbi" mood={hanbiError.mood} line={hanbiError.text} placement="inline" locale={locale} className={styles.hanbiInlineStage} />
+          )}
           {(phaseText || notice || error) && (
             <div className={error ? styles.statusError : styles.statusInfo} role="status">
               {phaseText && <span><HeartHandshake size={16} /> {phaseText}</span>}
@@ -1962,6 +2014,8 @@ export default function SukuyoCompatibilityAiClient() {
           )}
         </section>
       </section>
+      {/* 소개용 캐릭터 프로필 — 상담 진행·결과 화면에서는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
+      {hanbiOn && locale === "ko" && !busy && !result && <MasterProfile profile={masterProfiles.hanbi} />}
       {phase === "start" && !result && <MoonLoadingScreen basis={basis} />}
       {result && resultOpen && (
         <CompatResultModal

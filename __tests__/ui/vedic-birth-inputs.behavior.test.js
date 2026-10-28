@@ -1,0 +1,11 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
+const {JSDOM}=require('jsdom');
+function boot(){
+ const fields=prefix=>['name','year','month','day','hour','min','lat','lon','tz','gender'].map(key=>'<label><input id="'+(prefix==='v'?'v_'+(key==='min'?'minute':key):'c-'+key)+'"></label>').join('');
+ const dom=new JSDOM('<!doctype html><div id="page-input">'+fields('v')+'<input id="v_placeText"><select id="v_place"></select><p id="v-birth-status"></p></div><div class="card">'+fields('c')+'<input id="c-place"><p id="c-birth-status"></p></div>',{url:'https://example.invalid',runScripts:'outside-only'});
+ const w=dom.window;w.DestinyProfileManager={getTimeZoneOffsetHoursForDate:()=>0};w.eval(fs.readFileSync('js/vedic-birth-inputs.js','utf8'));w.cdRefreshVedicBirthInputs();
+ return {w,select(target,profile){w.document.dispatchEvent(new w.CustomEvent('cd:birth-profile-selected',{detail:{target,profile}}));},close(){dom.window.close();}};
+}
+const card={name:'예시',birth:{year:2000,month:2,day:29,hour:0,minute:0,calType:'solar'},location:{label:'Accra, Ghana',lat:0,lng:0,tz:'Africa/Accra'}};
+test('static self and partner restore separately; midnight and zero coordinates survive',()=>{const b=boot();try{b.select('vedic-self',card);b.select('vedic-partner',{...card,name:'상대',birth:{...card.birth,hour:12}});assert.equal(b.w.document.getElementById('v_hour').value,'0');assert.equal(b.w.document.getElementById('c-hour').value,'12');assert.equal(b.w.document.getElementById('v-period'),null);assert.equal(b.w.document.getElementById('c-period'),null);assert.equal(b.w.cdValidateVedicBirth('v'),'');assert.equal(b.w.cdValidateVedicBirth('c'),'');}finally{b.close();}});
+test('editing a birthplace invalidates its old location, unknown time blocks calculation',()=>{const b=boot();try{b.select('vedic-self',card);const input=b.w.document.getElementById('v_placeText');input.value='unknown';input.dispatchEvent(new b.w.Event('input',{bubbles:true}));assert.equal(b.w.document.getElementById('v_lat').value,'');assert.match(b.w.cdValidateVedicBirth('v'),/출생지/);b.select('vedic-self',{...card,birth:{...card.birth,timeUnknown:true}});assert.match(b.w.cdValidateVedicBirth('v'),/출생시간/);}finally{b.close();}});

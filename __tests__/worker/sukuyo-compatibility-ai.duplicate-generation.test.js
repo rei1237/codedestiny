@@ -36,6 +36,7 @@ let storageFault;
 let revokedAt = -1;
 let paidMode = "pass";
 let blockedFetch;
+let legacyRefund, monthlyRefund, restoreAllowed;
 
 /** 24-hex ObjectId 모양. 라우트가 /^[0-9a-f]{24}$/ 로 검사한다. */
 let objectIdCounter = 0;
@@ -178,6 +179,10 @@ beforeAll(async () => {
     canAccessPaidFeature: jest.fn(async () => ({ allowed: true, accessSource: "pass" })),
     PAID_FEATURE_ACCESS_USER_PROJECTION: "role",
   }));
+  // 이용권 허용은 이번 키로 정산(차감)해야 열린다 — 정산이 같은 판정을 따르게 둔다.
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+    settlePerUseAccessDecision: jest.fn(async (_env, args) => ({ allowed: args?.decision?.allowed === true, source: "pass", reason: "" })),
+  }));
 
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({
     SukuyoCompatibilityAiConsultation: store.model,
@@ -186,9 +191,16 @@ beforeAll(async () => {
     MonthlyCreditLedger: { find: () => ({ sort: () => ({ lean: async () => [] }) }), findOne: () => thenableWithLean(revokedAt === 3 ? { id: "revoked" } : null) },
     Payment: { findOne: () => thenableWithLean(revokedAt === 1 ? { id: "revoked" } : null), updateOne: jest.fn(async () => ({})) },
     PointHistory: { findOne: query => thenableWithLean(revokedAt === 2 ? { id: "revoked" } : paidMode === "paid" && query.kind === "deduct" ? { _id: "64b7f2a1c3d4e5f600000009", metadata: { accessType: "coin" } } : null), create: jest.fn(async () => ({})), updateOne: jest.fn(async () => ({})) },
+    ContentEntitlement: {},
+    ServiceExecutionTransaction: {},
   }));
 
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => paidMode === "subscription" ? { ledgerId: "64b7f2a1c3d4e5f600000008" } : null }));
+  legacyRefund = jest.fn(async () => true); monthlyRefund = jest.fn(async () => true);
+  const actualEligibility = await import("../../worker/lib/sukuyo-refund-eligibility.js");
+  jest.unstable_mockModule("../../worker/lib/sukuyo-refund-eligibility.js", () => ({ ...actualEligibility, canRestoreSukuyoDebit: async () => restoreAllowed }));
+  jest.unstable_mockModule("../../worker/lib/sukuyo-legacy-refund.js", () => ({ restoreSukuyoLegacyRefund: legacyRefund }));
+  jest.unstable_mockModule("../../worker/lib/sukuyo-monthly-refund.js", () => ({ restoreSukuyoMonthlyRefund: monthlyRefund }));
 
   jest.unstable_mockModule("../../worker/lib/monthly-credit-store.js", () => ({
     restoreMonthlyCreditLot: jest.fn(async () => ({ restored: false })),
@@ -219,11 +231,12 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  storageFault = null; revokedAt = -1; paidMode = "pass";
+  storageFault = null; revokedAt = -1; paidMode = "pass"; restoreAllowed = true;
   store.docs.length = 0;
   findCallArgs = [];
   callGeminiJsonWithRetryMock.mockReset();
   callGeminiTextMock.mockReset();
+  legacyRefund.mockClear(); monthlyRefund.mockClear();
   callGeminiTextMock.mockImplementation(async () => ({ ok: false, error: "not-called" }));
   testUtils.clearStartLocks();
 });
@@ -262,11 +275,70 @@ test("다른 isolate의 동시 요청도 한 묶음만 생성한다", async () =
   expect((await runWave()).status).toBe(202); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
   release(); expect((await first).status).toBe(202);
 });
+test('기존 증빙 claim이 없는 과거 부분 상담도 같은 결제의 새 생성을 막는다', async () => {
+  paidMode = 'paid'; mockSectionsResolvedImmediately();
+  expect((await runWave()).status).toBe(202);
+  const saved = structuredClone(store.docs[0].llmMeta.sections);
+  globalThis.__cdBillingEvidenceClaims.clear();
+  const before = callGeminiJsonWithRetryMock.mock.calls.length;
+  const response = await handleSukuyoCompatibilityAiRoutes(startRequest(KEY + '-different'), ENV);
+  expect(response.status).toBe(409); expect(await response.json()).toMatchObject({ reason: 'EVIDENCE_ALREADY_USED' });
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(before);
+  expect(store.docs).toHaveLength(1); expect(store.docs[0].llmMeta.sections).toEqual(saved);
+});
 test("짧은 결과는 세 번만 보완한 뒤 실패로 남긴다", async () => {
   callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: buildSectionPayload([]) }));
   for (let i = 0; i < 2; i++) expect((await runWave()).status).toBe(202);
   expect((await runWave()).status).toBe(503); expect(store.docs[0].status).toBe("generation_failed");
   expect((await runWave()).status).toBe(409); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(2);
+});
+test.each(['paid', 'subscription'])('%s: 복원 자격을 확인할 수 없으면 차감 증빙을 다른 요청에 풀지 않는다', async mode => {
+  paidMode = mode; restoreAllowed = false;
+  callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: 'gemini', text: buildSectionPayload([]) }));
+  await runWave(); await runWave(); const held = await runWave();
+  expect(held.status).toBe(409); expect(await held.json()).toMatchObject({ reason: 'REFUND_REVIEW_REQUIRED' });
+  expect(legacyRefund).not.toHaveBeenCalled(); expect(monthlyRefund).not.toHaveBeenCalled();
+  const claims = globalThis.__cdBillingEvidenceClaims;
+  expect([...claims.values()].some(row => row.userId === USER_ID && row.requestId === KEY)).toBe(true);
+  const replay = await runWave(); expect(replay.status).toBe(409);
+  expect(await replay.json()).toMatchObject({ reason: 'REFUND_REVIEW_REQUIRED' });
+});
+test.each(['paid', 'subscription'])('%s: 복원 완료 뒤에는 해당 요청의 증빙을 정리한다', async mode => {
+  paidMode = mode;
+  callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: 'gemini', text: buildSectionPayload([]) }));
+  await runWave(); await runWave(); expect((await runWave()).status).toBe(503);
+  expect(mode === 'paid' ? legacyRefund : monthlyRefund).toHaveBeenCalledTimes(1);
+  expect([...globalThis.__cdBillingEvidenceClaims.values()].some(row => row.userId === USER_ID && row.requestId === KEY)).toBe(false);
+});
+test('복원 응답을 확인하지 못하면 검토 상태와 원 증빙을 유지한다', async () => {
+  paidMode = 'paid'; legacyRefund.mockRejectedValueOnce(new Error('response lost'));
+  callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: 'gemini', text: buildSectionPayload([]) }));
+  await runWave(); await runWave(); const response = await runWave();
+  expect(response.status).toBe(409); expect(await response.json()).toMatchObject({ reason: 'REFUND_REVIEW_REQUIRED' });
+  expect(store.docs[0].generationError.code).toBe('REFUND_REVIEW_REQUIRED');
+  expect([...globalThis.__cdBillingEvidenceClaims.values()].some(row => row.userId === USER_ID && row.requestId === KEY)).toBe(true);
+  expect(await (await runWave()).json()).toMatchObject({ reason: 'REFUND_REVIEW_REQUIRED' });
+});
+test.each(["pass", "paid", "subscription"])("%s: 저장된 본문이 있으면 재시도 소진 시 본문과 결제를 보존한다", async mode => {
+  paidMode = mode;
+  mockSectionsResolvedImmediately();
+  expect((await runWave()).status).toBe(202);
+  const saved = structuredClone(store.docs[0].llmMeta.sections);
+  callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: buildSectionPayload([]) }));
+  expect((await runWave()).status).toBe(202);
+  expect((await runWave()).status).toBe(202);
+  const response = await runWave();
+  expect(response.status).toBe(202);
+  expect(await response.json()).toMatchObject({ status: "partial", retryable: false, reviewRequired: true });
+  expect(store.docs[0].status).toBe("partial");
+  expect(store.docs[0].llmMeta.sections).toEqual(saved);
+  expect(store.docs[0].llmMeta.recoveryReviewRequired).toBe(true);
+  const count = callGeminiJsonWithRetryMock.mock.calls.length;
+  const replay = await runWave();
+  expect(await replay.json()).toMatchObject({ status: "partial", reviewRequired: true });
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(count);
+  expect(legacyRefund).not.toHaveBeenCalled();
+  expect(monthlyRefund).not.toHaveBeenCalled();
 });
 test("예전 완료본은 현재 분량 검사나 추가 생성 없이 다시 읽는다", async () => {
   store.seed({ userId: USER_ID, idempotencyKey: KEY, personA: {}, personB: {}, sukuyoResult: {}, relationshipType: "연인", topic: "전체", accessType: "pass", messages: [{ role: "assistant", content: "과거 본문" }] });
@@ -366,6 +438,56 @@ test('P2 generates missing groups before reinforcing valid short sections', asyn
   expect(result.complete).toBe(false);
 });
 function p3SectionBody(key, size) { return key + Array.from({ length: size - key.length }, (_, i) => String.fromCharCode(0xac00 + i % 11172)).join(''); }
+
+test('one saved item in each group cannot complete a fifteen-item purchase', async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = testUtils.calculateSukuyo(input);
+  const sections = Object.fromEntries(testUtils.SUKUYO_SECTION_GROUPS.map((group, index) => [group.keys[0], {
+    body: p3SectionBody(`${group.keys[0]}-${index}`, 500),
+  }]));
+  const originals = structuredClone(sections);
+  mockSectionsResolvedImmediately();
+  const onReserve = jest.fn();
+  const result = await testUtils.createCompatibilityAnswer({}, input, calculation, {
+    sections, summary: { headline: 'saved' }, onReserve,
+  });
+  expect(result.complete).toBe(false);
+  expect(result.retryable).toBe(true);
+  expect(onReserve).toHaveBeenCalledWith(testUtils.SUKUYO_SECTION_GROUPS[0].id, 1, true);
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
+  expect(Object.keys(result.sections)).toHaveLength(7);
+  for (const [key, row] of Object.entries(originals)) expect(result.sections[key]).toEqual(row);
+});
+
+test('exhausted incomplete groups fail without accepting five of fifteen items', async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = testUtils.calculateSukuyo(input);
+  const sections = Object.fromEntries(testUtils.SUKUYO_SECTION_GROUPS.map(group => [group.keys[0], {
+    body: p3SectionBody(group.keys[0], 500),
+  }]));
+  const attempts = Object.fromEntries(testUtils.SUKUYO_SECTION_GROUPS.map(group => [group.id, 2]));
+  await expect(testUtils.createCompatibilityAnswer({}, input, calculation, {
+    sections, summary: { headline: 'saved' }, attempts,
+  })).rejects.toMatchObject({ code: 'LLM_FAILED', status: 503 });
+  expect(Object.keys(sections)).toHaveLength(5);
+  expect(callGeminiJsonWithRetryMock).not.toHaveBeenCalled();
+});
+
+test('a sub-minimum saved item is still missing while all other accepted items stay intact', async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = testUtils.calculateSukuyo(input);
+  const specs = testUtils.SUKUYO_SECTION_SPECS;
+  const sections = Object.fromEntries(specs.map(spec => [spec.key, { body: p3SectionBody(spec.key, 500) }]));
+  sections[specs[0].key] = { body: '초안' };
+  const originals = structuredClone(sections);
+  mockSectionsResolvedImmediately();
+  const result = await testUtils.createCompatibilityAnswer({}, input, calculation, {
+    sections, summary: { headline: 'saved' },
+  });
+  expect(result.complete).toBe(true);
+  expect(result.retryable).toBe(false);
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
+  expect(result.sections[specs[0].key].body.length).toBeGreaterThanOrEqual(40);
+  for (const spec of specs.slice(1)) expect(result.sections[spec.key]).toEqual(originals[spec.key]);
+});
+
 for (const repair of ['shorter', 'empty', 'truncated', 'repeat']) test(`P3 keeps valid short sections after ${repair} repair`, async () => {
   const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = testUtils.calculateSukuyo(input);
   const specs = testUtils.SUKUYO_SECTION_SPECS, group = testUtils.SUKUYO_SECTION_GROUPS[0];
@@ -389,4 +511,12 @@ test('P3 clamps oversized bodies but cannot hide repetition after the ceiling or
  callGeminiJsonWithRetryMock.mockResolvedValue({ok:true,provider:'gemini',text:JSON.stringify({[group.keys[0]]:{body},[group.keys[1]]:{body:[body]},[group.keys[2]]:{body:`${body}.\n${body}.`}})});
  const result=await testUtils.generateSectionGroup({},input,calculation,group,'test');
  expect(Object.keys(result.sections)).toEqual([group.keys[0]]);expect(result.sections[group.keys[0]].body.length).toBe(2250);
+});
+// 2026-10-15: 숙요 궁합 전문가 상담은 서한비 페르소나를 구조화 출력 지시 뒤에 붙인다.
+test("본문 묶음 생성은 서한비 페르소나를 시스템 프롬프트 끝에 붙인다", async () => {
+  mockSectionsResolvedImmediately();
+  await runWave();
+  const systemPrompt = String(callGeminiJsonWithRetryMock.mock.calls[0][2].systemPrompt);
+  expect(systemPrompt).toMatch(/\[상담자 페르소나 — 서한비\][\s\S]*$/u);
+  expect(systemPrompt).not.toMatch(/\d+년 경력/u);
 });

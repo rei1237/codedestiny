@@ -11,6 +11,7 @@ const terms:Record<string,readonly string[]>={
  '일주':['日柱','日柱','Trụ ngày','दिन स्तंभ','Pilar del día','Pilier du jour','Tagessäule','Dagpijler','Tiang hari'],
  '시주':['时柱','時柱','Trụ giờ','घंटा स्तंभ','Pilar de la hora','Pilier de l’heure','Stundensäule','Uurpijler','Tiang waktu'],
  '천간·지지':['天干与地支','天干與地支','Thiên can và địa chi','स्वर्गीय तना और पृथ्वी शाखा','Tronco celeste y rama terrestre','Tronc céleste et branche terrestre','Himmelsstamm und Erdzweig','Hemelse stam en aardse tak','Batang langit dan cabang bumi'],
+ '지장간':['藏干','藏干','Tàng can','छिपे तने','Troncos ocultos','Troncs cachés','Verborgene Stämme','Verborgen stammen','Batang tersembunyi'],
  '천간 십성':['天干十神','天干十神','Thập thần của thiên can','तने के दस संबंध','Diez relaciones del tronco','Dix relations du tronc','Zehn Beziehungen des Stamms','Tien relaties van de stam','Sepuluh hubungan batang'],
  '주성':['主星','主星','Chính tinh','मुख्य तारे','Estrellas principales','Étoiles principales','Hauptsterne','Hoofdsterren','Bintang utama'],
  '보조성':['辅星','輔星','Phụ tinh','सहायक तारे','Estrellas de apoyo','Étoiles secondaires','Begleitsterne','Ondersteunende sterren','Bintang sokongan'],
@@ -37,6 +38,8 @@ const terms:Record<string,readonly string[]>={
  '주기':['周期','週期','Chu kỳ','चक्र','Ciclo','Cycle','Zyklus','Cyclus','Kitaran'],
  '시작':['开始','開始','Bắt đầu','आरंभ','Inicio','Début','Beginn','Begin','Mula'],
  '끝':['结束','結束','Kết thúc','अंत','Fin','Fin','Ende','Einde','Tamat'],
+ '연도':['年份','年份','Năm','वर्ष','Año','Année','Jahr','Jaar','Tahun'],
+ '대운 시작 전':['大运开始前','大運開始前','Trước đại vận đầu tiên','पहली महादशा से पहले','Antes del primer gran ciclo','Avant le premier grand cycle','Vor dem ersten großen Zyklus','Vóór de eerste grote cyclus','Sebelum kitaran besar pertama'],
  '목':['木','木','Mộc','लकड़ी','Madera','Bois','Holz','Hout','Kayu'],
  '화':['火','火','Hỏa','अग्नि','Fuego','Feu','Feuer','Vuur','Api'],
  '토':['土','土','Thổ','पृथ्वी','Tierra','Terre','Erde','Aarde','Tanah'],
@@ -75,7 +78,7 @@ const chartText={
 };
 export function nativeChartTerm(value:string,locale:NativeLocale):string|undefined{
  const i=locales.indexOf(locale),c=chapterConcepts[locale];
- const direct:Record<string,string>={'태양':c.sun,'달':c.moon,'천왕성':c.uranus,'해왕성':c.neptune,'명왕성':c.pluto,'계산된 시기':c.timing,'두 사람의 흐름':c.relations,'오행 분포 · 월령 가중치 포함':c.useful,'나의 사주와 오행':`${localizedSystem('saju',locale)} · ${c.base}`,'열두 궁에 담긴 삶':`${localizedSystem('ziwei',locale)} · ${c.base}`,'별 사이의 관계':`${localizedSystem('sukuyo',locale)} · ${c.relations}`,'라시 차트와 별의 주기':`${localizedSystem('vedic',locale)} · Rashi`,'나의 출생 차트':`${localizedSystem('astrology',locale)} · ${c.base}`,'질문 위에 펼친 카드':c.question};
+ const direct:Record<string,string>={'태양':c.sun,'달':c.moon,'천왕성':c.uranus,'해왕성':c.neptune,'명왕성':c.pluto,'계산된 시기':c.timing,'두 사람의 흐름':c.relations,'오행 분포 · 월령 가중치 포함':c.useful,'오행 분포 · 보이는 글자 기준':c.useful,'나의 사주와 오행':`${localizedSystem('saju',locale)} · ${c.base}`,'열두 궁에 담긴 삶':`${localizedSystem('ziwei',locale)} · ${c.base}`,'별 사이의 관계':`${localizedSystem('sukuyo',locale)} · ${c.relations}`,'라시 차트와 별의 주기':`${localizedSystem('vedic',locale)} · Rashi`,'나의 출생 차트':`${localizedSystem('astrology',locale)} · ${c.base}`,'질문 위에 펼친 카드':c.question};
  if(direct[value])return direct[value];
  const positions:Record<string,string>={'원인':c.cause,'과정':c.process,'결과':c.outcome,'현재':c.current,'내면':c.mind,'장애물':c.obstacle,'주변 영향':c.relations,'선택':c.choice,'행동':readingScreenLocales[locale].action,'내가 바라보는 상대':c.myView,'관계에 대한 상대의 시선':c.theirView,'상대 감정의 가능성':c.theirMind,'다가올 의지의 가능성':c.intention,'관계의 핵심 장애물':c.obstacle,'가까운 선택의 방향':c.near,'카드의 자리':c.cards,'숙':locale.startsWith('zh')?'宿':'Sukuyo','라그나':locale==='hi'?'लग्न':'Lagna','나크샤트라':locale==='hi'?'नक्षत्र':'Nakshatra','파다':locale==='hi'?'पाद':'Pada','라후':locale==='hi'?'राहु':'Rahu','케투':locale==='hi'?'केतु':'Ketu','신궁':locale.startsWith('zh')?'身宮':c.base};
  if(positions[value])return positions[value];
@@ -92,7 +95,7 @@ export function nativeVisualCopy(locale:NativeLocale){
  const text=chartText[locale],c=readingScreenLocales[locale],concept=chapterConcepts[locale];
  return {glance:c.contents,glanceCaption:text.related,chapterCol:c.chapter,themeCol:c.questionSection,pointCol:c.intro,keyPoints:c.intro,
   timeline:c.timing,timelineCaption:text.timelineCaption,periodCol:nativeChartTerm('주기',locale)!,rangeCol:c.period,now:text.now,noRange:nativeChartTerm('자료 없음',locale)!,
-  pillars:localizedSystem('saju',locale),pillarRow:nativeChartTerm('천간·지지',locale)!,tenGodRow:nativeChartTerm('천간 십성',locale)!,elements:concept.useful,elementsCaption:text.sourceStored,
+  pillars:localizedSystem('saju',locale),pillarRow:nativeChartTerm('천간·지지',locale)!,tenGodRow:nativeChartTerm('천간 십성',locale)!,hiddenRow:nativeChartTerm('지장간',locale)!,elements:concept.useful,elementsCaption:text.sourceStored,elementsSurfaceCaption:text.sourceStored,
   elementCount:(label:string,n:number)=>`${label} ${n}`,says:c.intro,answerTable:c.reason,yearFocus:c.period,yearFocusCaption:c.context,yearLabel:(y:number)=>String(y),
   relative:(n:number)=>`${text.relative}: ${n>0?'+':''}${n}`,themes:{self:concept.base,wealth:concept.wealth,love:concept.love,career:concept.career,relations:concept.relations,timing:concept.timing,cross:concept.structure,action:c.action},
   pillarNames:Object.fromEntries(['시주','일주','월주','년주'].map(key=>[key,nativeChartTerm(key,locale)!]))};

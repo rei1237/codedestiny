@@ -21,8 +21,8 @@ import { REASONING_OUTPUT_RULE_LINES } from "../worker/lib/fortune-reasoning-con
 // 1차 브리핑이 상품 본편이라 홈 카드가 광고하는 분량(2만 자)을 그대로 계약값으로 박는다.
 // 2차 정예 명령은 후속 대화라 목표가 다르다 — 한 상수로 묶으면 1차를 올릴 때 2차 문턱까지
 // 같이 끌려 올라가 통과할 수 없는 가드가 된다.
-const INITIAL_TARGET_CHARS = 20000;
-const REFINED_TARGET_CHARS = 8000;
+const INITIAL_TARGET_CHARS = 26000;
+const REFINED_TARGET_CHARS = 10400;
 const failures = [];
 const ok = (cond, msg) => { if (!cond) failures.push(msg); };
 

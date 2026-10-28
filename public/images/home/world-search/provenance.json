@@ -1,0 +1,47 @@
+{
+  "source": "User-approved GGULGGUL_MASTER_ASSETS_WEBP.zip",
+  "purpose": "All-readings region navigation only; existing service portraits are preserved.",
+  "transformations": "320/960px WebP, 3:2 cover; archive uses the bottom-right decorative book panel.",
+  "records": [
+    {
+      "key": "world",
+      "source": "assets/world.webp",
+      "sha256": "6f36c45c5e2f71c21854e3b61df53fe2552acf481c312b28ae735bb525180340"
+    },
+    {
+      "key": "yeoni",
+      "source": "assets/yeoni.webp",
+      "sha256": "63959ff6560a2407dada2ef341d90fd6cdc3c860ea09103d197cc8af6f6ce04b"
+    },
+    {
+      "key": "neo",
+      "source": "assets/neo.webp",
+      "sha256": "b105f3e38350897ef66af64e11fefdabaa965ab3e778a9b9f7b7820272d92443"
+    },
+    {
+      "key": "musung",
+      "source": "assets/musung.webp",
+      "sha256": "81a331981544056ce63254317ba3bc54f1679b796f68e9f9dc58d0f250243ede"
+    },
+    {
+      "key": "hanbi",
+      "source": "assets/hanbi.webp",
+      "sha256": "73f43f5155f3d8136a25f8d733a193f88c4b7c5e25776d1ce42c247a05c15c54"
+    },
+    {
+      "key": "yun",
+      "source": "assets/yun.webp",
+      "sha256": "de82d3453ad7763278171a482ae96209498d2af02f20fd46100436d2f15b95b3"
+    },
+    {
+      "key": "master",
+      "source": "assets/master.webp",
+      "sha256": "8911faeefb6cbdf17e5a809eff42a69a0438a58a4208c5a204ad9ba9a656e5ae"
+    },
+    {
+      "key": "archive",
+      "source": "assets/feature.webp",
+      "sha256": "08dac6b09b4a6d018f62e59e4cfff55b3e55d107f86bb7257d9bccbeb2844cf1"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+[
+  {
+    "observedAt": "2026-10-13T09:08:24.447Z",
+    "path": "/ggulggul/",
+    "status": 200,
+    "url": "https://code-destiny.com/ggulggul/",
+    "title": "꿀꿀 사주 — 사주·궁합·타로",
+    "siteName": "꿀꿀 사주"
+  },
+  {
+    "observedAt": "2026-10-13T09:08:24.688Z",
+    "path": "/kkul-kkul-unse/",
+    "status": 200,
+    "url": "https://code-destiny.com/kkul-kkul-unse/",
+    "title": "꿀꿀 운세는 이제 꿀꿀 사주예요 | 브랜드 안내",
+    "siteName": "꿀꿀 사주"
+  },
+  {
+    "observedAt": "2026-10-13T09:08:24.950Z",
+    "path": "/saju/",
+    "status": 200,
+    "url": "https://code-destiny.com/saju/",
+    "title": "사주 풀이 | 나의 기질·연애·일의 흐름 | 꿀꿀 사주",
+    "siteName": "꿀꿀 사주"
+  },
+  {
+    "observedAt": "2026-10-13T09:08:25.225Z",
+    "path": "/tarot/",
+    "status": 200,
+    "url": "https://code-destiny.com/tarot/",
+    "title": "타로 상담 — 연애·관계·선택의 고민 | 꿀꿀 사주",
+    "siteName": "꿀꿀 사주"
+  },
+  {
+    "observedAt": "2026-10-13T09:08:25.392Z",
+    "path": "/version.json",
+    "status": 200,
+    "url": "https://code-destiny.com/version.json",
+    "title": null,
+    "siteName": null,
+    "version": {
+      "gitSha": "63ae9564903a789e867295a1c444520b3881c353",
+      "commit": "63ae9564903a789e867295a1c444520b3881c353",
+      "commitShort": "63ae9564903a",
+      "environment": "production",
+      "buildTime": "2026-10-12T23:41:47.582Z"
+    }
+  },
+  {
+    "observedAt": "2026-10-13T09:08:26.040Z",
+    "path": "/api/version",
+    "status": 200,
+    "url": "https://code-destiny.com/api/version",
+    "title": null,
+    "siteName": null,
+    "version": {
+      "gitSha": "63ae9564903a789e867295a1c444520b3881c353",
+      "commit": "63ae9564903a789e867295a1c444520b3881c353",
+      "commitShort": "63ae9564903a",
+      "environment": "production",
+      "buildTime": null
+    }
+  }
+]

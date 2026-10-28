@@ -1,0 +1,118 @@
+.profile {
+  --profile-ink: var(--codex-ink-text, var(--tea-ink, var(--cd-text)));
+  --profile-muted: var(--codex-ink-text-muted, var(--home-muted, var(--cd-text)));
+  --profile-line: var(--codex-rule, var(--cd-border));
+  --profile-accent: var(--codex-gold, var(--tea-rose, var(--cd-accent)));
+  position: relative;
+  width: calc(100% - 48px);
+  max-width: 1000px;
+  margin: 48px auto;
+  color: var(--profile-ink);
+  font-family: var(--font-body);
+  line-height: 1.8;
+}
+.introduction { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); align-items: center; gap: 40px; }
+.profile[data-theme="neo"] {
+  --profile-ink: var(--cd-cta-primary-ink);
+  --profile-muted: var(--cd-cta-primary-ink);
+  --profile-accent: var(--cd-cta-primary-ink);
+  --profile-line: var(--cd-cta-hairline);
+}
+/* 전문가 상담 캐릭터 — 세 랜딩 모두 다크 배경이라 라이트 테마 --cd-text 를 쓰면 묻힌다. ExpertCharacterStage 토큰과 맞춘다. */
+.profile[data-theme="yun"] {
+  --profile-ink: #f6f1ff;
+  --profile-muted: rgba(226, 222, 255, .8);
+  --profile-accent: #cdbcf2;
+  --profile-line: rgba(205, 188, 242, .34);
+}
+.profile[data-theme="musung"] {
+  --profile-ink: #fff7e2;
+  --profile-muted: rgba(232, 226, 210, .8);
+  --profile-accent: #e9c46a;
+  --profile-line: rgba(233, 196, 106, .32);
+}
+/* 서한비 — 빗빛 인디고·옅은 금빛(버건디 금지) */
+.profile[data-theme="hanbi"] {
+  --profile-ink: #f5f7ff;
+  --profile-muted: rgba(220, 228, 245, .8);
+  --profile-accent: #e2cc8c;
+  --profile-line: rgba(205, 218, 242, .34);
+}
+/* 손금 연이 — 연이 정원 라이트 팔레트(아이보리 바탕). 장미색은 흰·아이보리 위 4.5:1 이상. */
+.profile[data-theme="yeoniPalm"] {
+  --profile-ink: #402a38;
+  --profile-muted: #6b4d5e;
+  --profile-accent: #b53660;
+  --profile-line: rgba(181, 54, 96, .18);
+}
+/* 대표 상담 — 같은 캐릭터라도 상품 페이지 바탕(밝은 연애 비책·짙은 인생의 책·신년운세)을 따른다. 테마 규칙 뒤에 둬야 이긴다. */
+.profile[data-palette="page"] {
+  --profile-ink: var(--pe-ink, currentColor);
+  --profile-muted: var(--pe-muted, currentColor);
+  --profile-accent: var(--pe-accent, currentColor);
+  --profile-line: var(--pe-line, currentColor);
+}
+.portrait { width: 100%; height: auto; border-radius: var(--cd-r-card); }
+.copy { min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
+.copy .name { margin: 0; font-family: var(--font-display, var(--font-body)); font-size: var(--cd-t-display); line-height: 1.3; }
+.copy p { max-width: 60ch; margin: 16px 0 0; }
+.copy .role { color: var(--profile-accent); font-weight: 700; }
+.copy .note { color: var(--profile-muted); font-size: 1rem; margin-top: 24px; }
+.details { border-block: 1px solid var(--profile-line); margin-top: 28px; }
+.details summary { min-height: 48px; padding: 12px 0; cursor: pointer; color: var(--profile-accent); font-weight: 600; }
+.details summary:focus-visible, .sheet a:focus-visible { outline: 2px solid var(--profile-accent); outline-offset: 4px; }
+.sheet { padding-bottom: 24px; }
+.sheet p { margin: 0; }
+.sheet a { display: inline-flex; align-items: center; min-height: 44px; color: var(--profile-accent); text-underline-offset: 4px; }
+.sheet img { display: block; width: 100%; height: auto; margin-top: 12px; }
+/* 소개장(dossier) — 대표 상담 마스터. 권위는 꾸민 이력이 아니라 칭호·근거표·상담 원칙에서 나온다. 애니메이션 없음. */
+.profile[data-variant="dossier"] { --profile-accent-ink: var(--pe-accent-ink, var(--cd-cta-primary-bg, #1b1420)); --profile-serif: var(--font-serif, var(--font-display, var(--font-body))); }
+.profile[data-variant="dossier"] .introduction { align-items: start; }
+.frame { position: relative; padding: 10px; border: 1px solid color-mix(in srgb, var(--profile-accent) 60%, transparent); border-radius: var(--cd-r-card); }
+.frame::before { content: ""; position: absolute; inset: 6px; border: 1px solid color-mix(in srgb, var(--profile-accent) 28%, transparent); border-radius: calc(var(--cd-r-card) - 6px); pointer-events: none; }
+.frame .portrait { display: block; border-radius: calc(var(--cd-r-card) - 8px); background: color-mix(in srgb, var(--profile-accent) 10%, transparent); }
+.seal {
+  position: absolute; right: 18px; bottom: 18px;
+  display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%;
+  background: var(--profile-accent); color: var(--profile-accent-ink);
+  outline: 1px solid var(--profile-accent); outline-offset: 3px;
+  font: 700 1.3rem/1 var(--profile-serif);
+}
+.epithet { margin: 0 0 6px; color: var(--profile-accent); font-size: .8rem; font-weight: 700; letter-spacing: .14em; }
+.profile[data-variant="dossier"] .copy .name { font-family: var(--profile-serif); }
+.profile[data-variant="dossier"] .copy p.epithet { margin: 0 0 6px; }
+.profile[data-variant="dossier"] .copy p.role { margin-top: 6px; }
+.signature { margin: 20px 0 0; padding: 2px 0 2px 18px; border-left: 2px solid var(--profile-accent); }
+.copy .signature p { margin: 0; font: 600 1.12rem/1.75 var(--profile-serif); }
+.dossier { margin: 24px 0 0; border-top: 1px solid color-mix(in srgb, var(--profile-accent) 45%, transparent); }
+.dossier > div { display: grid; grid-template-columns: 9em minmax(0, 1fr); gap: 16px; padding: 14px 0; border-bottom: 1px solid color-mix(in srgb, var(--profile-accent) 26%, transparent); }
+.dossier dt { color: var(--profile-accent); font: 700 .95rem/1.8 var(--profile-serif); }
+.dossier dd { margin: 0; }
+.principlesTitle { margin: 26px 0 8px; color: var(--profile-accent); font-size: .8rem; font-weight: 700; letter-spacing: .14em; }
+.principles { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.principles li { position: relative; padding-left: 1.6em; }
+.principles li::before { content: "✦"; content: "✦" / ""; position: absolute; left: 0; color: var(--profile-accent); }
+/* 두 마스터 묶음(연애 비책) — 데스크톱 2열, 소개장 안은 초상 위·글 아래로 쌓는다. */
+/* 연애 비책 페이지는 fixed 배경 레이어가 깔려 있어, 위치 지정이 없으면 그룹 머리글이 그 아래에 그려진다(.profile 과 같은 이유). */
+.group { position: relative; width: calc(100% - 48px); max-width: 1120px; margin: 56px auto; color: var(--pe-ink, currentColor); word-break: keep-all; }
+.groupHead { max-width: 60ch; margin-bottom: 28px; }
+.groupHead h2 { margin: 0; font: 700 var(--cd-t-display)/1.3 var(--font-serif, var(--font-display, var(--font-body))); }
+.groupHead p { margin: 10px 0 0; color: var(--pe-muted, currentColor); line-height: 1.8; }
+.groupGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; align-items: start; }
+.groupGrid .profile { width: 100%; margin: 0; }
+.groupGrid .introduction { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.groupGrid .frame { max-width: 300px; }
+.profile ::selection { background: var(--profile-accent); color: var(--codex-ink, var(--home-bg, var(--cd-cta-primary-bg, var(--cd-bg)))); }
+@media (max-width: 700px) {
+  .profile { width: calc(100% - 40px); margin-block: 36px; }
+  .introduction { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .portrait { max-width: 280px; justify-self: center; }
+  .frame { width: min(100%, 300px); justify-self: center; }
+  .frame .portrait { max-width: none; }
+  .dossier > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .group { width: calc(100% - 40px); margin-block: 40px; }
+}
+@media (max-width: 900px) {
+  .groupGrid { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+  .groupGrid .frame { justify-self: center; }
+}

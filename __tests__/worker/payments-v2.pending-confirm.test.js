@@ -9,7 +9,7 @@ function setup(){
  db.rows.push(order);
  const ctx=createPaymentContext({requestId:'fixture',route:'test'});
  const reply=status=>({paymentId:order.merchantUid,status,amount:3000,currency:'KRW',pay_method:'card'});
- const confirm=fetchPayment=>core.confirmOrder(env,ctx,{orderId:order.merchantUid},{withDb:async(_env,_ctx,fn)=>fn(db),deps:{fetchPayment}});
+ const confirm=fetchPayment=>core.confirmOrder(env,ctx,{orderId:order.merchantUid,systemActor:true},{withDb:async(_env,_ctx,fn)=>fn(db),deps:{fetchPayment}});
  return {db,order,reply,confirm};
 }
 test('ready lookup keeps PENDING; a later paid response grants exactly once',async()=>{

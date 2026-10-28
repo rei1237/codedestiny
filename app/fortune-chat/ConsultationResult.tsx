@@ -1,4 +1,5 @@
 "use client";
+import { chapterAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import {shouldInvitePaidReview} from '@/js/review-reward-copy.mjs';
@@ -11,6 +12,7 @@ import type { ChatConsultation } from "./consultation-api";
 import { RESULT_ORDER, SECTION_LABEL, type ResultSection } from "./consultation-world";
 import { PersonaAvatar } from "./PersonaAvatar";
 import styles from "./consultation.module.css";
+import salon from "./yeoni-salon.module.css";
 
 type Answer = NonNullable<ChapterBody["questionAnswers"]>[number];
 const MODE_NOTE: Record<string, string> = {
@@ -141,7 +143,7 @@ export default function ConsultationResult({ row, onNew, readOnly = false }: { r
   };
 
   return (
-    <div className={styles.result} data-consultation-result data-persona={row.persona}>
+    <div className={`${styles.result} ${row.persona === "yeoni" ? salon.result : ""}`} data-consultation-result data-persona={row.persona}>
       {order.map((key) => sections[key]())}
 
       {!readOnly && shouldInvitePaidReview(row) && <ReviewRewardBanner afterResult/>}
@@ -161,7 +163,7 @@ export default function ConsultationResult({ row, onNew, readOnly = false }: { r
           </div>
         </section>
       )}
-      {row.state === "COMPLETED" && !readOnly && <RecommendationResult service="fortune-chat" brand={row.persona}/>}
+      {row.state === "COMPLETED" && !readOnly && <RecommendationResult service="fortune-chat" brand={row.persona} practiceTags={chapterAdviceTopics(row.chapters)}/>}
     </div>
   );
 }

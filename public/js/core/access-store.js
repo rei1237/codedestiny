@@ -31,6 +31,49 @@
     openLoveSimulation: 'love-code'
   };
 
+  /* 출생 기반 해금 키(서버 paid-feature-registry BIRTH_SCOPED_UNLOCK_FEATURE_KEYS 의 사본은
+     js/core/birth-scope-unlocks.js)는 "계정 + 저장 카드의 출생 정보" 단위다. 캐시 키가 이미
+     userId::profileId 라 카드 사이로는 새지 않지만, 정책 도입 전 캐시(계정 전체 해금이 섞여 있음)와
+     같은 카드의 출생 정보 수정은 여기서 따로 막는다. */
+  var BIRTH_SCOPE_POLICY_VERSION = 1;
+  function isBirthScopedKey(rawKey) {
+    var key = String(rawKey || '').trim();
+    if (!key) return false;
+    if (key === 'health-report') return true;
+    try {
+      return typeof global.cdIsBirthScopedUnlockKey === 'function' && global.cdIsBirthScopedUnlockKey(key) === true;
+    } catch (_) {
+      return false;
+    }
+  }
+  /* 출생 기반 전환 이전 USER/PROFILE 행으로 열린 키(레거시 유지, worker/lib/access-state.js
+     legacyAccountUnlockedFeatureIds · legacyProfileUnlockedFeatureIds). 서버 스냅샷에 실린 값만 믿는다.
+     계정 키는 저장 카드가 없어도 열리고, 둘 다 카드의 출생 정보를 고쳐도 지우지 않는다. */
+  function legacyUnlockKeyListed(field, rawKey) {
+    var snapshot = state && state.entitlementSnapshot;
+    var list = snapshot && Array.isArray(snapshot[field]) ? snapshot[field] : null;
+    if (!list) return false;
+    var key = normalizeFeatureKey(rawKey);
+    return list.some(function (entry) { return normalizeFeatureKey(entry) === key; });
+  }
+  function isLegacyAccountUnlockKey(rawKey) {
+    return legacyUnlockKeyListed('legacyAccountUnlockedFeatureIds', rawKey);
+  }
+  function isLegacyUnlockKey(rawKey) {
+    return isLegacyAccountUnlockKey(rawKey) || legacyUnlockKeyListed('legacyProfileUnlockedFeatureIds', rawKey);
+  }
+  function stripBirthScopedKeys(map) {
+    var removed = false;
+    if (!map || typeof map !== 'object') return removed;
+    Object.keys(map).forEach(function (key) {
+      if (isBirthScopedKey(key) && !isLegacyUnlockKey(key)) {
+        delete map[key];
+        removed = true;
+      }
+    });
+    return removed;
+  }
+
   function normalizeFeatureKey(rawKey) {
     var key = String(rawKey || '').trim();
     return FEATURE_KEY_ALIASES[key] || key;
@@ -365,6 +408,7 @@
         storageKey(state.cacheKey),
         JSON.stringify({
           version: STORAGE_VERSION,
+          birthScopePolicy: BIRTH_SCOPE_POLICY_VERSION,
           cacheKey: state.cacheKey,
           profileId: state.profileId,
           userId: state.userId,
@@ -420,6 +464,8 @@
       Object.keys(grants || {}).forEach(function (key) {
         var grant = grants[key];
         if (!grant || grant.profileId && profileId && String(grant.profileId) !== String(profileId)) return;
+        // 출생 기반 키는 같은 카드의 근거가 명시돼 있을 때만 믿는다(profileId 없는 옛 기록은 계정 전체였다).
+        if (isBirthScopedKey(key.split('::')[0]) && (!grant.profileId || !profileId || String(grant.profileId) !== String(profileId))) return;
         if (confirmedOnly && String(grant.mode || '') !== 'confirmed') return;
         var expiresAt = Number(grant.expiresAt || grant.expiry || 0);
         if (expiresAt && expiresAt < Date.now()) return;
@@ -474,6 +520,17 @@
       state.checkedAt = Number(restored.savedAt || 0);
       state.source = 'localStorage';
       state.status = cacheExpired || Date.now() - state.checkedAt > FRESH_TTL_MS ? 'degraded' : 'ready';
+      if (restored.birthScopePolicy !== BIRTH_SCOPE_POLICY_VERSION) {
+        /* 정책 도입 전 캐시: 출생 기반 키는 계정 전체 해금이 섞였을 수 있다. 버리고 서버에 다시 묻는다. */
+        var strippedPersistent = stripBirthScopedKeys(state.persistentUnlocks);
+        var strippedConfirmed = stripBirthScopedKeys(state.confirmedUnlocks);
+        var strippedGrants = stripBirthScopedKeys(state.unlockGrants);
+        var strippedOptimistic = stripBirthScopedKeys(state.optimistic);
+        if (strippedPersistent || strippedConfirmed || strippedGrants || strippedOptimistic) {
+          state.checkedAt = 0;
+          state.status = 'degraded';
+        }
+      }
       debug('cache hit', { cacheKey: key, ageMs: Date.now() - state.checkedAt });
     } else {
       state.persistentUnlocks = readLegacyLedger(profileId);
@@ -485,6 +542,7 @@
     }
     syncLegacyFeatureMap();
     notify();
+    return Boolean(restored);
   }
 
   function ensureContext(options) {
@@ -493,11 +551,16 @@
     var serviceKeys = normalizeServiceKeys(options || {});
     var key = makeCacheKey(userId, profileId);
     if (key !== contextKey) {
+      var previousKey = contextKey;
       abortCurrent('context-changed');
       contextKey = key;
       bootEpoch += 1;
       loadedEpoch = Object.create(null);
-      restoreCache(key, userId, profileId);
+      /* 프로필 전환 복귀(P→Q→P): 신선 캐시면 서버를 다시 묻지 않으므로, 화면이 Q 기준으로 그린 관문을
+         P 의 캐시로 다시 그리게 알린다. 첫 진입(이전 키 없음)은 부팅 경로가 그린다. */
+      if (restoreCache(key, userId, profileId) && previousKey) {
+        dispatch('cd:unlocks-changed', { source: 'access-store-context', profileId: profileId });
+      }
     }
     return { key: key, userId: userId, profileId: profileId, serviceKeys: serviceKeys };
   }
@@ -1216,7 +1279,9 @@
 
   function ensureLoaded(options) {
     var context = ensureContext(options || {});
-    if (!context.profileId || !hasSessionHint(options || {})) {
+    /* accountScope: 저장 카드가 없는 계정도 레거시 계정 해금(출생 기반 전환 이전 USER 행)을 받아야 한다.
+       그 호출만 profileId 없이 묻는다 — 서버가 계정 범위 행만 근거로 싣는다. */
+    if ((!context.profileId && (options || {}).accountScope !== true) || !hasSessionHint(options || {})) {
       state.status = hasUsableCache() ? 'ready' : 'ready';
       notify();
       return Promise.resolve({ ok: true, skipped: true, reason: 'NO_AUTH_PROFILE' });
@@ -1291,6 +1356,7 @@
       return { unlocked: isUnlocked(featureKey), status: state.status, error: state.error };
     },
     isUnlocked: isUnlocked,
+    isLegacyAccountUnlockKey: isLegacyAccountUnlockKey,
     ensureLoaded: ensureLoaded,
     revalidate: revalidate,
     refreshEntitlements: revalidate,
@@ -1334,6 +1400,9 @@
   };
 
   global.CodeDestinyAccessStore = store;
+  global.cdIsLegacyAccountUnlockKey = function (featureKey) {
+    return isLegacyAccountUnlockKey(featureKey) && isUnlocked(featureKey);
+  };
   global.addEventListener && global.addEventListener('cd:auth-changed', function (event) {
     var detail = event && event.detail || {};
     if (detail.type === 'logout' || detail.loggedIn === false || detail.user === null) {
@@ -1346,6 +1415,30 @@
     if (authEvent === 'subscription' || authSource === 'membership-cache') return;
     store.invalidateEntitlements('auth-changed');
   });
+  /* 같은 profileId 의 출생 정보가 바뀌면(카드 수정) 그 카드의 출생 기반 해금은 이전 출생 정보의 것이다.
+     캐시 키(userId::profileId)는 그대로라 restoreCache 로는 갈리지 않는다 — 여기서 비우고 다시 묻는다. */
+  var birthSignatureByProfileId = Object.create(null);
+  function profileBirthSignature(profile) {
+    try {
+      return typeof global.cdProfileBirthSignature === 'function' ? String(global.cdProfileBirthSignature(profile) || '') : '';
+    } catch (_) {
+      return '';
+    }
+  }
+  function purgeBirthScopedUnlocks(reason) {
+    var removed = false;
+    if (stripBirthScopedKeys(state.persistentUnlocks)) removed = true;
+    if (stripBirthScopedKeys(state.confirmedUnlocks)) removed = true;
+    if (stripBirthScopedKeys(state.unlockGrants)) removed = true;
+    if (stripBirthScopedKeys(state.optimistic)) removed = true;
+    if (!removed) return false;
+    snapshotCache = null;
+    syncLegacyFeatureMap();
+    saveCache();
+    notify();
+    dispatch('cd:unlocks-changed', { source: 'access-store-birth-scope', reason: reason || 'profile-birth-changed' });
+    return true;
+  }
   function handleProfileChanged(event) {
     var detail = event && event.detail || {};
     var profile = detail.profile && typeof detail.profile === 'object' ? detail.profile : detail;
@@ -1353,6 +1446,22 @@
     store.invalidateEntitlements('profile-changed');
     if (!profileId || !hasSessionHint({})) return;
     try { global.__cdCurrentProfileId = profileId; } catch (_) {}
+    var signature = profileBirthSignature(profile);
+    var previousSignature = birthSignatureByProfileId[profileId];
+    if (signature) birthSignatureByProfileId[profileId] = signature;
+    if (detail.birthChanged === true) {
+      /* 저장(PATCH)이 끝난 출생 정보 수정: 비우고 force 로 새 출생 정보의 해금을 받는다. */
+      ensureContext({ profileId: profileId, authenticated: true });
+      purgeBirthScopedUnlocks('profile-birth-edited');
+      store.revalidate({ profileId: profileId, authenticated: true, reason: 'profile-birth-edited' });
+      return;
+    }
+    if (signature && previousSignature && previousSignature !== signature) {
+      /* 출생 정보가 달라진 낙관 브로드캐스트(서버 저장 전): 이전 출생 정보의 해금을 비워 잠근다.
+         서버 재조회는 저장이 끝난 뒤의 birthChanged 이벤트가 맡는다(저장 전에 물으면 옛 출생 정보로 답한다). */
+      ensureContext({ profileId: profileId, authenticated: true });
+      purgeBirthScopedUnlocks('profile-birth-changed');
+    }
     /* force 를 주지 않는다. 정합성은 캐시 키(makeCacheKey(userId, profileId))가 이미 보장한다 —
        카드가 바뀌면 restoreCache 가 그 카드 전용 스냅샷으로 통째 교체된다. force 는 신선도만
        담당했는데, 그 때문에 A↔B 왕복 전환이 매번 access-state 를 강제 발사해 프로필 전환 PATCH 와

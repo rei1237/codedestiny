@@ -12,15 +12,21 @@ export type CheckoutCandidate = {
   paid?: boolean;
   state?: string;
   accessMethod?: string | null;
-  freeTrialAvailable?: boolean;
 };
 
 export function canOfferCheckout(row: CheckoutCandidate | null | undefined): boolean {
   return Boolean(row) && row!.paid !== true && row!.state === "CREATED" && !row!.accessMethod;
 }
 
-export function canOfferFreeTrial(row: CheckoutCandidate | null | undefined): boolean {
-  return canOfferCheckout(row) && row!.freeTrialAvailable === true;
+/** 연이 상담 1회를 여는 꿀방울 수. 서버 정본은 worker/lib/honey-wallet.js FORTUNE_CHAT_HONEY_COST. */
+export const HONEY_COST = 30;
+
+/**
+ * 꿀방울 카드를 누를 수 있는지. 결제 버튼과 같은 "아직 열리지 않은 상담" 조건에 잔액 30개 이상을 더한다.
+ * 잔액은 화면 표시용이고, 실제 차감 여부는 서버가 잔액 조건부 갱신으로 다시 판정한다.
+ */
+export function canOfferHoney(row: CheckoutCandidate | null | undefined, balance: number | null | undefined): boolean {
+  return canOfferCheckout(row) && Number.isFinite(balance) && Number(balance) >= HONEY_COST;
 }
 
 export type GuardedCheckout<Row, Result> =

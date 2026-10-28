@@ -1,7 +1,10 @@
+import { appendExpertPersona } from '../lib/expert-character-personas.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
+import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
+import { koreanizeExpertTerms, nakshatraKo } from "../lib/korean-term-gloss.js";
 import { createHash, randomUUID } from "node:crypto";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -34,6 +37,7 @@ import {
 import { buildVedicKnowledgeContext } from "../lib/vedic-ai-knowledge.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 const SERVICE_KEY = "vedic-ai";
 const FEATURE_KEY = "vedic-ai-consultation";
@@ -867,19 +871,25 @@ async function refundCardPaymentOnFailure(env, auth, access, error) {
   }
 }
 
+// 해석 어휘도 프롬프트 사본에서만 품위를 한국어로 바꾼다. 어휘 모듈의 필터는 영문 값을 쓴다.
+function knowledgeForPrompt(chart) {
+  const knowledge = buildVedicKnowledgeContext(chart);
+  return knowledge?.notableGrahas ? { ...knowledge, notableGrahas: withKoreanDignity(knowledge.notableGrahas) } : knowledge;
+}
+
 function compactChartForPrompt(chart) {
   return {
     calculationConfig: chart.calculationConfig,
     ayanamsa: chart.ayanamsa,
     lagna: chart.lagna,
     rashis: chart.rashis,
-    grahas: chart.grahas,
+    grahas: withKoreanDignity(chart.grahas),
     bhavas: chart.bhavas,
     moonNakshatra: chart.moonNakshatra,
     vimshottariDasha: chart.vimshottariDasha,
     moon: chart.moon,
     sun: chart.sun,
-    planets: chart.planets,
+    planets: withKoreanDignity(chart.planets),
     rahuKetu: chart.rahuKetu,
     houses: chart.houses,
     divisionalCharts: chart.divisionalCharts,
@@ -891,16 +901,51 @@ function compactChartForPrompt(chart) {
   };
 }
 
+// 빈쇼타리 순서. 마하다샤 안의 안타르다샤는 마하다샤 로드부터 이 순서로 돈다.
+const VIMSHOTTARI_ORDER = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"];
+const SIGNS_EN = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+const nextInOrder = (lord) => VIMSHOTTARI_ORDER[(VIMSHOTTARI_ORDER.indexOf(lord) + 1) % VIMSHOTTARI_ORDER.length];
+
+// R8 2026-10-10: 결론에 다음 안타르다샤 전환과 고차라를 쓰지 않았다. 둘 다 계산값으로 준다.
+// 현재 안타르다샤가 마하다샤 끝과 같이 끝나면 다음은 새 마하다샤의 첫 안타르다샤(= 새 마하다샤 로드)다.
+function nextAntardasha(dasha) {
+  const maha = dasha?.currentMahadasha;
+  const antar = dasha?.currentAntardasha;
+  if (!VIMSHOTTARI_ORDER.includes(maha?.lord) || !VIMSHOTTARI_ORDER.includes(antar?.lord) || !antar.endDate) return null;
+  const endsWithMaha = maha.endDate && antar.endDate >= maha.endDate;
+  return { lord: nextInOrder(endsWithMaha ? maha.lord : antar.lord), startDate: antar.endDate, newMahadasha: Boolean(endsWithMaha) };
+}
+
+// 고차라: 지금 토성·목성이 달의 라시에서 몇 번째 라시를 지나는가.
+function gocharaFromMoon(chart) {
+  const moonIndex = SIGNS_EN.indexOf(chart?.moon?.sign);
+  const gochara = chart?.transits?.gochara;
+  if (moonIndex < 0 || !gochara) return [];
+  return ["Saturn", "Jupiter"].map((name) => {
+    const index = SIGNS_EN.indexOf(gochara[name]?.sign);
+    return index < 0 ? "" : `${GRAHA_KO_MAP[name]} ${ALL_SIGNS_KO[index]}(달 기준 ${((index - moonIndex + 12) % 12) + 1}번째)`;
+  }).filter(Boolean);
+}
+
 function buildCanonicalFactsLine(chart) {
   const facts = [];
   if (chart?.lagna?.rashiKo) facts.push(`라그나=${chart.lagna.rashiKo}(${chart.lagna.sign})`);
-  if (chart?.moonNakshatra?.name) facts.push(`달의 나크샤트라=${chart.moonNakshatra.name}${chart.moonNakshatra.pada ? ` ${chart.moonNakshatra.pada}파다` : ""}`);
+  if (chart?.moonNakshatra?.name) facts.push(`달의 나크샤트라=${nakshatraKo(chart.moonNakshatra.name)}${chart.moonNakshatra.pada ? ` ${chart.moonNakshatra.pada}파다` : ""}`);
   const mahaLord = chart?.vimshottariDasha?.currentMahadasha?.lord;
   if (mahaLord) facts.push(`현재 마하다샤=${GRAHA_KO_MAP[mahaLord] || mahaLord}(${mahaLord})`);
   const antarLord = chart?.vimshottariDasha?.currentAntardasha?.lord;
   if (antarLord) facts.push(`현재 안타르다샤=${GRAHA_KO_MAP[antarLord] || antarLord}(${antarLord})`);
+  const nextAntar = nextAntardasha(chart?.vimshottariDasha);
+  if (nextAntar) facts.push(`다음 안타르다샤=${GRAHA_KO_MAP[nextAntar.lord]}(${nextAntar.startDate}부터${nextAntar.newMahadasha ? "·새 마하다샤 시작" : ""})`);
+  const gochara = gocharaFromMoon(chart);
+  if (gochara.length) facts.push(`고차라=${gochara.join(", ")}`);
   return facts.join(" · ");
 }
+
+// R8 2026-10-10: 품위가 영문(exalted, own sign) 그대로 본문에 옮겨졌다. 프롬프트·근거에는 한국어로 싣는다.
+const DIGNITY_KO = Object.freeze({ exalted: "고양", debilitated: "쇠약", "own sign": "자기 라시", "friendly sign": "우호 라시", "enemy sign": "적대 라시", neutral: "중립", moolatrikona: "물라트리코나" });
+const dignityKo = (dignity) => DIGNITY_KO[String(dignity || "").toLowerCase()] || dignity;
+const withKoreanDignity = (items) => (Array.isArray(items) ? items.map((item) => (item?.dignity ? { ...item, dignity: dignityKo(item.dignity) } : item)) : items);
 
 const DIGNITY_TONE = { exalted: "positive", "own sign": "positive", "friendly sign": "positive", debilitated: "caution", "enemy sign": "caution" };
 
@@ -913,16 +958,16 @@ function buildVedicAnalysisBasis(chart) {
 
   const coreItems = [
     basisItem("라그나", lagnaAvailable && chart?.lagna?.rashiKo ? `${chart.lagna.rashiKo}${chart.lagna.sign ? ` (${chart.lagna.sign})` : ""}` : "출생시간 미상으로 확정하지 않음", { term: "라그나", tone: lagnaAvailable ? "neutral" : "caution" }),
-    chart?.moon?.signKo || chart?.moon?.sign ? basisItem("달의 라시", `${chart.moon.signKo || chart.moon.sign}`) : null,
+    chart?.moon?.signKo || chart?.moon?.sign ? basisItem("달의 라시", `${chart.moon.signKo || ALL_SIGNS_KO[SIGNS_EN.indexOf(chart.moon.sign)] || chart.moon.sign}`) : null,
     chart?.moonNakshatra?.name
-      ? basisItem("나크샤트라", `${chart.moonNakshatra.name}${chart.moonNakshatra.pada ? ` · ${chart.moonNakshatra.pada}파다` : ""}`)
+      ? basisItem("나크샤트라", `${nakshatraKo(chart.moonNakshatra.name)}${chart.moonNakshatra.pada ? ` · ${chart.moonNakshatra.pada}파다` : ""}`)
       : null,
     chart?.ayanamsa ? basisItem("아야남사", String(chart.ayanamsa)) : null,
   ];
 
   const grahaItems = grahas.slice(0, 9).map((graha) => basisItem(
     graha.nameKo || graha.nameEn || "그라하",
-    [graha.rashiKo || graha.rashi, Number.isFinite(Number(graha.house)) ? `${graha.house}바바` : "", graha.dignity, graha.retrograde ? "역행" : ""].filter(Boolean).join(" · "),
+    [graha.rashiKo || graha.rashi, Number.isFinite(Number(graha.house)) ? `${graha.house}바바` : "", dignityKo(graha.dignity), graha.retrograde ? "역행" : ""].filter(Boolean).join(" · "),
     { tone: DIGNITY_TONE[String(graha.dignity || "").toLowerCase()] || "neutral" },
   ));
 
@@ -989,13 +1034,14 @@ function buildSectionEvidenceLines(chart) {
     `- karma_origin "${REQUIRED_SECTION_LABELS.karma_origin}": ${lagnaAvailable ? "lagna(라그나 라시와 도수)" : "출생시간이 없어 라그나는 확정하지 않는다고 밝히고 달 중심으로"}, moonNakshatra(이름·파다·로드), moon(라시)을 근거로 이 사람의 본질과 인생 전반의 방향, 되풀이되는 심리적 기질을 씁니다. 나크샤트라가 가리키는 業의 결을 운명 선고가 아니라 반복되는 패턴으로 설명하세요.`,
     `- dharma_artha "${REQUIRED_SECTION_LABELS.dharma_artha}": ${lagnaAvailable ? "bhavas 중 2·6·10·11번" : "출생시간이 없어 바바는 확정하지 않는다고 밝히고 그라하의 라시와 품위만"}, grahas의 dignity(품위)와 배치를 근거로 직업의 성격, 재물이 들어오고 나가는 방식, 그 사람의 다르마(마땅히 할 일)를 씁니다.${d10Line ? ` D10(직업 분차트) 참고값: ${d10Line}.` : ""}`,
     `- relationship_soul "${REQUIRED_SECTION_LABELS.relationship_soul}": ${d9Line ? `D9(나바암샤) 값을 반드시 본문에 인용하세요 — ${d9Line}.` : "divisionalCharts.d9 값이 비어 있으므로 D9 해석은 출생 정보 한계로 확정할 수 없다고 밝히고 지어내지 마세요."} D1(드러난 관계 방식)과 D9(내면의 잠재력·후반기·배우자의 실제 결)를 대조해, 두 차트가 어긋나는 지점 자체를 해석의 핵심으로 삼으세요.${lagnaAvailable ? " 7번 바바와 금성·목성의 배치도 함께 봅니다." : ""}`,
-    `- dasha_upaya "${REQUIRED_SECTION_LABELS.dasha_upaya}": ${dashaLine ? `현재 다샤를 반드시 본문에 인용하세요 — ${dashaLine}.` : "vimshottariDasha 값이 비어 있으므로 시기 예언을 지어내지 말고 확인이 제한된다고 밝히세요."} 지금 이 기간이 어떤 삶의 주제를 끌어올리는지, 언제까지 이어지는지 밝힌 뒤 우파야(개운법)로 마무리합니다. 우파야는 다샤 로드와 품위가 약한 그라하에 근거해 오늘 실행 가능한 행위로만 제시하고, 부적·유료 의식·공포 조장은 쓰지 마세요.`,
+    `- dasha_upaya "${REQUIRED_SECTION_LABELS.dasha_upaya}": ${dashaLine ? `현재 다샤를 반드시 본문에 인용하세요 — ${dashaLine}.` : "vimshottariDasha 값이 비어 있으므로 시기 예언을 지어내지 말고 확인이 제한된다고 밝히세요."} 지금 이 기간이 어떤 삶의 주제를 끌어올리는지, 언제까지 이어지는지 밝히고, 계산 확정값의 '다음 안타르다샤' 전환 시점과 '고차라'(토성·목성의 달 기준 위치)를 근거로 사용자의 질문에 대한 결론을 한 문단으로 분명히 말한 뒤 우파야(개운법)로 마무리합니다. 결론은 '~할 수도 있다'로 흐리지 말고, 언제 무엇을 해야 하는지를 날짜와 함께 답하세요. 우파야는 다샤 로드와 품위가 약한 그라하에 근거해 오늘 실행 가능한 행위로만 제시하고, 부적·유료 의식·공포 조장은 쓰지 마세요.`,
   ];
 }
 
-function buildGroupOutputExample(group) {
+// 응답 스키마는 이 예시의 값 타입(NUMBER)을 따른다. 프롬프트에 보이는 예시에만 점수 자리표시를 넣는다 — 0 을 그대로 베껴 냈다.
+function buildGroupOutputExample(group, score = 0) {
   return {
-    ...(group.includeScores ? { scores: { dharma: 0, artha: 0, kama: 0, moksha: 0, overall: 0 } } : {}),
+    ...(group.includeScores ? { scores: { dharma: score, artha: score, kama: score, moksha: score, overall: score } } : {}),
     sections: {
       ...Object.fromEntries((group.sectionKeys || []).map(key => [key, { title: REQUIRED_SECTION_LABELS[key], body: "제공된 계산값만 바탕으로 해석합니다." }])),
       ...(group.includeReasoning ? buildReasoningSectionSchema() : {}),
@@ -1028,7 +1074,7 @@ function buildGroupPrompt(input, chart, group, repairLines = []) {
     ...buildSectionEvidenceLines(chart).filter((line) => sectionKeys.some((key) => line.startsWith(`- ${key} `))),
     ...(canonicalFacts ? ["", `계산 확정값 (본문에서 이 값과 다르게 서술하는 것을 금지): ${canonicalFacts}`] : []),
     "",
-    `이름 또는 닉네임: ${input.birthInfo.name || "미입력"}`,
+    `이름 또는 닉네임: ${input.birthInfo.name || "없음 — 본문에서는 이름 없이 '당신'으로만 부른다"}`,
     `성별: ${input.birthInfo.gender}`,
     `생년월일: ${input.birthInfo.birthDate}`,
     `출생시간: ${input.birthInfo.birthTimeUnknown ? "모름" : input.birthInfo.birthTime}`,
@@ -1042,14 +1088,16 @@ function buildGroupPrompt(input, chart, group, repairLines = []) {
     "이번 부분이 낼 sections 키와 title:",
     JSON.stringify(Object.fromEntries(sectionKeys.map((key) => [key, REQUIRED_SECTION_LABELS[key]]))),
     "",
+    // R8 2026-10-10: 예시가 0 이고 채점 기준이 없어 scores 가 모두 0 으로 나갔다.
+    group.includeScores ? "scores 채점: 각 값은 1~100 정수입니다. dharma 는 라그나·9·10바바와 목성의 품위, artha 는 2·11바바와 그 로드의 품위, kama 는 7바바와 금성·달, moksha 는 12바바와 케투·토성을 근거로 매기고, overall 은 네 값의 평균을 반올림합니다. 근거가 엇갈리면 50 근처로 두고, 0 은 쓰지 마세요." : "",
     "반환 JSON 형식 (아래 키만 내고, 다른 키는 넣지 마세요):",
-    JSON.stringify(buildGroupOutputExample(group)),
+    JSON.stringify(buildGroupOutputExample(group, "1~100 정수")),
     "",
     "계산된 VedicChartResult 데이터:",
     JSON.stringify(compactChartForPrompt(chart)),
     "",
     "전통 조티시 해석 어휘 (계산값에만 적용):",
-    JSON.stringify(buildVedicKnowledgeContext(chart)),
+    JSON.stringify(knowledgeForPrompt(chart)),
     "",
     // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
     ...buildEvidenceRuleLines(buildVedicAnalysisBasis(chart)),
@@ -1066,8 +1114,8 @@ function sanitizeAssistantText(value) {
   text = text.replace(/\bjob\b/gi, "상담");
   text = text.replace(/\bprogress\b/gi, "진행");
   text = text.replace(/프롬프트/g, "질문");
-  text = text.replace(/시스템/g, "상담 기준");
-  return text.trim();
+  text = text.replace(SYSTEM_INSTRUCTION_TERM_PATTERN, "상담 기준");
+  return koreanizeExpertTerms(text).trim();
 }
 
 function readingTextLength(value) {
@@ -1118,7 +1166,8 @@ function validateChartConsistency(content, chart) {
 
   const nakshatraName = clean(chart?.moonNakshatra?.name, 40);
   const nakshatraBody = sectionBody("karma_origin");
-  if (nakshatraName && nakshatraBody && !nakshatraBody.includes(nakshatraName)) {
+  // The body writes the Korean name (R8 2026-10-11); an English one still counts.
+  if (nakshatraName && nakshatraBody && !nakshatraBody.includes(nakshatraName) && !nakshatraBody.includes(nakshatraKo(nakshatraName))) {
     issues.push("consistency.moon_nakshatra_unstated");
   }
 
@@ -1387,7 +1436,7 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
   const groupBaseTokens = modelConfig.maxOutputTokens ?? VEDIC_GROUP_MAX_OUTPUT_TOKENS;
   try {
     const result = await callGeminiJsonWithRetry(env, buildGroupPrompt(input, chart, group, repairLines), {
-      systemPrompt: await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT),
+      systemPrompt: await appendExpertPersona(env, "yunVedic", await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT)),
       taskType: "fortune",
       // 재작성 웨이브는 온도를 낮춰 부른다 — 오버라이드가 있어도 그 관계는 유지한다.
       temperature: repairLines.length
@@ -1472,7 +1521,11 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
         && !hasRepeatedReportPassage(text)
         && !validateConsultationQuality(row.text).issues.some(issue => ["raw_leak", "mechanical_label"].includes(issue));
     };
-    const accepted = group => valid(group, rows[group.key]);
+    // A group under minChars gets one length repair within its attempts; after that it is delivered as is
+    // (ai-and-db.md: length shortfall is never fatal). R8 2026-10-10 shipped under 15,000 chars without one.
+    const accepted = group => valid(group, rows[group.key])
+      && (countPaidReportBodyChars(bodies(rows[group.key].text)) >= group.minChars
+        || Boolean(attempts[`${group.key}:lengthRepair`]) || Number(attempts[group.key] || 0) >= 2);
     const pending = VEDIC_SECTION_GROUPS.filter(group => !accepted(group));
     if (pending.some(group => Number(attempts[group.key] || 0) >= 2)) throw Object.assign(new Error("LLM_QUALITY_FAILED"), { code: "LLM_QUALITY_FAILED" });
     const group = pending[0];
@@ -1510,8 +1563,9 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
     }
     const content = mergeVedicGroupPayloads(VEDIC_SECTION_GROUPS.map(group => rows[group.key]).filter(Boolean));
     const complete = VEDIC_SECTION_GROUPS.every(accepted);
-    const quality = validateConsultationQuality(content, { ...qualityOptions, minTotalChars: 0 });
-    // Detailed quality diagnostics are advisory once every group has usable prose.
+    // Detailed quality diagnostics are advisory once every group has usable prose, but a result under
+    // MIN_INITIAL_READING_CHARS must not be recorded as ok.
+    const quality = validateConsultationQuality(content, qualityOptions);
     const first = Object.values(rows)[0];
     return { content, complete, meta: { provider: first?.provider || "", model: first?.model || "", quality, groups: rows, attempts } };
   }
@@ -1602,6 +1656,10 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   if (existing?.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED" }, { status: 409 });
   const access = await resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing });
   if (!access) return paymentVerifyFailed();
+  // 결제 증빙 1건 = 상담 1건(2026-10-16). 이용권·관리자는 paymentId 가 없어 건너뛴다.
+  const evidenceIds = [access.paymentId];
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: String(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   logVedicAi("LLM Payment Guard Passed", { ...context, accessCheckResult: access.source || access.accessType });
   const sessionId = existing?.id || `vedic-ai-${randomUUID()}`;
   const owner = { id: sessionId, userId: String(auth.userId) };
@@ -1655,6 +1713,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     await saveVedicDelivery(locked, { status: "generation_failed", generationError: { code: error?.code || "LLM_FAILED", message: clean(error?.message, 500) } }, sessionId);
+    await releaseRequestBillingEvidence(env, { userId: String(auth.userId), requestId: idempotencyKey, evidenceIds });
     await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
     await refundCardPaymentOnFailure(env, auth, access, error);
     return serverError(MESSAGES.llmFailed, 503, "LLM_FAILED");

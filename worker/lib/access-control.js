@@ -4,7 +4,8 @@ import {
   findActivePaidContentUnlock,
   upsertPaidContentUnlock,
 } from "./content-unlocks.js";
-import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { FEATURE_KEY_PRICE_TABLE, PAID_FEATURE_BILLING_TYPES, getPaidFeatureBillingType, isBirthScopedUnlockFeatureKey, isPerUsePaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { claimBillingEvidence } from "./billing-evidence-claim.js";
 import { verifyPremiumAccessToken } from "./premium-access-token.js";
 import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
 
@@ -26,12 +27,14 @@ function uniqueStrings(values) {
   ));
 }
 
+// 저장된 ProfileCard 의 profileId 만 돌려준다. 계정 표식("__user__")·합성 출생 id("birth:…")는
+// 프로필이 아니므로 버린다 — 출생 기반 키가 그 값으로 계정(USER) 행이나 남의 출생 행을 찾지 못하게.
 function extractPaidContentProfileId(source = {}) {
   const payment = source && typeof source.payment === "object" ? source.payment : {};
   const alt = source && typeof source._paymentContext === "object" ? source._paymentContext : {};
   const consume = source && typeof source.consume === "object" ? source.consume : {};
   const grant = source && typeof source.accessGrant === "object" ? source.accessGrant : {};
-  return String(
+  const profileId = String(
     source.profileId
       || source.selectedProfileId
       || source.currentProfileId
@@ -44,6 +47,8 @@ function extractPaidContentProfileId(source = {}) {
       || grant.profileId
       || "",
   ).trim();
+  if (profileId === "__user__" || profileId.startsWith("birth:")) return "";
+  return profileId;
 }
 
 function buildPremiumUnlockCandidateKeys({
@@ -67,6 +72,8 @@ function buildPremiumUnlockCandidateKeys({
 async function findPremiumContentEntitlement({ userId, profileId, candidateKeys = [], env = {} } = {}) {
   for (let i = 0; i < candidateKeys.length; i += 1) {
     const featureKey = candidateKeys[i];
+    // 출생 기반 키는 요청이 실은 저장 프로필(=그 출생 정보)로 판정한다. 프로필이 없으면 출생 전환 이전의
+    // 레거시 USER 행만 근거다(content-unlocks 의 출생 분기가 그렇게 조회한다).
     const unlock = await withMongoRetry(env, () => findActivePaidContentUnlock({ userId, profileId, featureKey }));
     if (unlock?._id) return { unlock, featureKey };
   }
@@ -158,6 +165,82 @@ function resolvePremiumPassReportAccess(user = {}, {
     chargedCoins: 0,
     coveredCoinLimit: maxCoveredCoin,
     requestedCoinCost,
+  };
+}
+
+// 결제 게이트(/coin-gate/pass-check)가 라우트와 다른 키로 이용권을 차감하는 기능. 정산은 게이트 키로 해야 재생이 맞는다.
+const PREMIUM_PASS_GATE_FEATURE_KEYS = Object.freeze({ geomancy: "openGeomancyOracle" });
+
+/**
+ * 이용권 허용 판정을 실제 차감으로 정산한다(이용권 허용 = 차감 완료).
+ * 프론트 결제 게이트가 이미 같은 (기능 키, requestId)로 차감했으면 그 차감을 재생하고(이중 차감 없음),
+ * 게이트를 건너뛴 직접 호출이면 여기서 차감한다. 재열람·폴링도 저장된 같은 requestId 로 와서 재생된다.
+ * 기능 키·가격은 서버 규칙에서만 정한다(본문 값 미사용). requestId 가 없으면 거부한다(fail-closed).
+ * 영구 해금형(FPTI 등)은 여기서 차감하지 않는다 — 게이트가 출생 신원 해금 행을 남기고 위쪽 해금 분기가 그 행으로 연다.
+ */
+async function settlePremiumPassReportAccess(env, { userId, profileId, normalizedReportType, requestBody = {}, alternativeRules = [], unlockPolicy = [] } = {}) {
+  const ruleKeys = uniqueStrings(alternativeRules.map((item) => String(item?.featureKey || "").trim()));
+  const routeKey = ruleKeys.find((key) => key !== "coin-gate-per-use") || String(unlockPolicy[0] || normalizedReportType || "").trim();
+  const featureKey = PREMIUM_PASS_GATE_FEATURE_KEYS[routeKey] || routeKey;
+  const coinPrice = Math.max(
+    0,
+    ...alternativeRules.map((item) => Number(item?.minCost || 0)),
+    Number(FEATURE_KEY_PRICE_TABLE[featureKey]?.cost || 0),
+    Number(FEATURE_KEY_PRICE_TABLE[routeKey]?.cost || 0),
+  );
+  const nested = ["payment", "consume", "_paymentContext", "accessGrant"].map((key) => (requestBody && typeof requestBody[key] === "object" ? requestBody[key] : {}));
+  const requestId = String([requestBody?.requestId, ...nested.map((item) => item?.requestId)].find((value) => String(value || "").trim()) || "").trim();
+  const base = { featureKey, coinPrice, requestId };
+  if (getPaidFeatureBillingType(routeKey) === PAID_FEATURE_BILLING_TYPES.UNLOCK) return { ...base, allowed: false, reason: "UNLOCK_REQUIRES_GATE" };
+  if (!featureKey || coinPrice <= 0) return { ...base, allowed: false, reason: "PRICE_UNRESOLVED" };
+  if (!requestId) return { ...base, allowed: false, reason: "NO_REQUEST_ID" };
+
+  // nakshatra-paid-access 는 db·auth 를 끌고 온다. 이 모듈을 모킹하는 테스트가 깨지지 않도록 쓸 때만 불러온다.
+  const { settlePerUseAccessDecision } = await import("./nakshatra-paid-access.js");
+  const common = { userId: String(userId || ""), coinPrice, requestId, profileId };
+  // 게이트가 다른 규칙 키로 차감했을 수 있다 — 차감 없이 재생만 먼저 확인한다.
+  for (const replayKey of uniqueStrings([featureKey, ...ruleKeys]).filter((key) => key !== featureKey)) {
+    const replay = await settlePerUseAccessDecision(env, { ...common, featureKey: replayKey, decision: { allowed: false }, acceptSettled: true });
+    if (replay.allowed === null) return { ...base, ...replay };
+    if (replay.allowed) return { ...base, ...replay, featureKey: replayKey };
+  }
+  const settled = await settlePerUseAccessDecision(env, { ...common, featureKey, decision: { allowed: true, accessSource: "license_pass" } });
+  return { ...base, ...settled };
+}
+
+const RECENT_WINDOW_CLAIM_CANDIDATES = 5;
+
+function premiumReportRequestId(requestBody = {}) {
+  const nested = ["payment", "consume", "_paymentContext", "accessGrant"].map((key) => (requestBody && typeof requestBody[key] === "object" ? requestBody[key] : {}));
+  return String([requestBody?.requestId, ...nested.map((item) => item?.requestId)].find((value) => String(value || "").trim()) || "").trim();
+}
+
+/**
+ * 🔴 회당 리포트: 결제·차감 증빙 1건은 요청 1건에만 쓴다(billing-evidence-claim.js, 2026-10-16).
+ * 예전에는 같은 차감 행을 requestId 만 바꿔 몇 번이든 내밀 수 있었다(본문 증빙·최근 결제 창).
+ * 이미 다른 요청이 쓴 증빙이면 "used" — 호출부는 그 경로를 건너뛰고 다음 경로를 본다(끝까지 없으면 평소의 402).
+ * 영구 해금형(FPTI 등)은 대상이 아니다(perUse=false). DB 오류는 "unavailable" → 503(결제한 사람을 402로 막지 않는다).
+ */
+async function claimPremiumReportEvidence(env, { perUse, userId, claimRequestId, featureKey = "", evidenceId }) {
+  if (!perUse) return "ok";
+  const id = String(evidenceId || "").trim();
+  if (!id) return "used";
+  try {
+    const claimed = await claimBillingEvidence(env, { userId: String(userId || ""), featureKey, requestId: claimRequestId, evidenceIds: [id], kind: "premium-report" });
+    return claimed.ok ? "ok" : "used";
+  } catch (error) {
+    console.warn("[premium-access] evidence claim unavailable", { featureKey, message: String(error?.message || error) });
+    return "unavailable";
+  }
+}
+
+function premiumEvidenceUnavailableResult(reportType) {
+  return {
+    ok: false,
+    status: 503,
+    code: "PAYMENT_VERIFY_UNAVAILABLE",
+    message: "결제 확인이 잠시 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+    reportType,
   };
 }
 
@@ -338,7 +421,8 @@ export function buildRequiredPaymentRules(reportType, requestBody = {}) {
   return [];
 }
 
-async function findRecentDeductionEvidence(userId, rule) {
+// excludeIds: 이미 다른 요청이 쓴 차감 행 — 창 안의 다음(더 오래된) 행을 본다.
+async function findRecentDeductionEvidence(userId, rule, { excludeIds = [] } = {}) {
   const minutes = Number(rule?.windowMinutes || 30);
   const minCost = Number(rule?.minCost || 0);
   const createdAtMin = new Date(Date.now() - minutes * 60 * 1000);
@@ -353,6 +437,7 @@ async function findRecentDeductionEvidence(userId, rule) {
     featureKey: featureKeys.length > 1 ? { $in: featureKeys } : String(rule?.featureKey || "").trim(),
     createdAt: { $gte: createdAtMin },
   };
+  if (excludeIds.length) baseQuery._id = { $nin: excludeIds };
 
   if (minCost > 0) {
     baseQuery.delta = { $lte: -Math.floor(minCost) };
@@ -782,7 +867,19 @@ function buildPaymentRequiredResult(reportType, requiredRules = [], requestBody 
   };
 }
 
-export async function requirePremiumReportAccess(env, userId, reportType, requestBody = {}) {
+// 출생 기반 키를 저장 프로필 없이 물었으면 잠금 사유를 "프로필 필요"로 바꿔 알린다(상태는 402 유지 —
+// 이번 결제 증빙 경로는 여전히 열 수 있으므로 요청 자체가 잘못된 건 아니다).
+function markMissingBirthProfile(denied, { profileId = "", candidateKeys = [] } = {}) {
+  if (profileId || !candidateKeys.some((key) => isBirthScopedUnlockFeatureKey(key))) return denied;
+  return {
+    ...denied,
+    reason: "MISSING_PROFILE_ID",
+    requiresProfile: true,
+    message: "프로필을 저장한 뒤 구매해 주세요.",
+  };
+}
+
+export async function requirePremiumReportAccess(env, userId, reportType, requestBody = {}, options = {}) {
   const normalizedReportType = String(reportType || "").trim();
   const isPerUsePdfReportType = normalizedReportType === "ziweiPremium";
   const unlockPolicy = uniqueStrings(PREMIUM_UNLOCK_POLICY[normalizedReportType] || []);
@@ -800,6 +897,13 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     || "",
   ).trim();
   const logSajuAccessResolved = () => {};
+  // 증빙 claim(1건 = 요청 1건)은 회당 리포트에만 건다. options.claimBindingKey 는 같은 requestId 안에서도
+  // 결과가 달라지는 리포트(숙요 전생 리딩 = 상대 조합)가 그 조합까지 묶을 때 쓴다.
+  const perUseReport = alternativeRules.some((rule) => isPerUsePaidFeatureKey(rule?.featureKey));
+  const baseClaimRequestId = premiumReportRequestId(requestBody);
+  const claimBindingKey = String(options?.claimBindingKey || "").trim();
+  const claimRequestId = baseClaimRequestId && claimBindingKey ? `${baseClaimRequestId}|${claimBindingKey}` : baseClaimRequestId;
+  const claimEvidence = (evidenceId, featureKey) => claimPremiumReportEvidence(env, { perUse: perUseReport, userId, claimRequestId, featureKey, evidenceId });
   const premiumAccessToken = String(
     requestBody?.premiumAccessToken
     || requestBody?._premiumAccessToken
@@ -821,16 +925,20 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       const tokenTransactionId = String(tokenPayload.transactionId || requestBody?.sourceTransactionId || requestBody?.transactionId || "").trim();
       const tokenFeatureKey = String(tokenPayload.featureKey || requestBody?.featureKey || "").trim();
       const tokenChargedCoins = Math.max(0, Math.abs(Number(tokenPayload.chargedCoins || requestBody?.chargedCoins || 0)));
-      const allowed = {
-        ok: true,
-        accessType: "signed-payment-token",
-        reportType: normalizedReportType,
-        matchedTransactionId: tokenTransactionId,
-        featureKey: tokenFeatureKey,
-        chargedCoins: tokenChargedCoins,
-      };
-      logSajuAccessResolved(allowed);
-      return allowed;
+      const tokenClaim = await claimEvidence(tokenTransactionId, tokenFeatureKey);
+      if (tokenClaim === "unavailable") return premiumEvidenceUnavailableResult(normalizedReportType);
+      if (tokenClaim === "ok") {
+        const allowed = {
+          ok: true,
+          accessType: "signed-payment-token",
+          reportType: normalizedReportType,
+          matchedTransactionId: tokenTransactionId,
+          featureKey: tokenFeatureKey,
+          chargedCoins: tokenChargedCoins,
+        };
+        logSajuAccessResolved(allowed);
+        return allowed;
+      }
     }
 
     // 결제 토큰은 유효하지만 cost/feature 정규화가 맞지 않는 경우, DB 증빙으로 최종 확인한다.
@@ -847,7 +955,9 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       };
 
       const tokenBoundEvidence = await findEvidenceByPaymentTokens(userId, tokenEvidenceRequest, alternativeRules);
-      if (tokenBoundEvidence) {
+      const tokenBoundClaim = tokenBoundEvidence ? await claimEvidence(tokenBoundEvidence._id, tokenBoundEvidence.featureKey) : "used";
+      if (tokenBoundClaim === "unavailable") return premiumEvidenceUnavailableResult(normalizedReportType);
+      if (tokenBoundEvidence && tokenBoundClaim === "ok") {
         logPremiumAccessDecision({
           route: requestBody?._accessRoute,
           userId,
@@ -891,10 +1001,10 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 
   await connectDb(env);
 
-  // requestBody._userDoc: 호출부가 인증 단계에서 이미 이 필드셋(또는 상위집합)으로 읽어 둔 User
-  // 문서. _id가 판정 대상 userId와 정확히 같을 때만 채택해 아래 조회를 건너뛴다(RC-13) — 다른
-  // 사용자의 문서로 프리미엄 접근이 열리는 일이 구조적으로 불가능하도록 한다.
-  const preloadedUserDoc = requestBody && typeof requestBody._userDoc === "object" ? requestBody._userDoc : null;
+  // options.preloadedUserDoc: 호출부가 인증 단계에서 서버에서 직접 읽어 둔 User 문서. _id가 판정
+  // 대상 userId와 같을 때만 채택해 아래 조회를 건너뛴다(RC-13). 요청 본문(requestBody._userDoc)은
+  // 클라이언트가 위조할 수 있으므로 절대 읽지 않는다 — 위조 문서 하나로 유료 리포트가 열렸다.
+  const preloadedUserDoc = options && typeof options.preloadedUserDoc === "object" ? options.preloadedUserDoc : null;
   const user = (preloadedUserDoc && String(preloadedUserDoc._id || "") === String(userId || ""))
     ? preloadedUserDoc
     : await User.findById(userId)
@@ -920,29 +1030,14 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     return denied;
   }
 
-  const passAccess = resolvePremiumPassReportAccess(user, {
-    normalizedReportType,
-    requestBody,
-    requiredRules,
-    alternativeRules,
-    unlockPolicy,
-    receivedFeatureKey,
-  });
-  if (passAccess?.ok) {
-    logPremiumAccessDecision({
-      route: requestBody?._accessRoute,
-      userId,
-      reportType: normalizedReportType,
-      featureKey: passAccess.featureKey,
-      accessSource: passAccess.accessType,
-      entitlementId: passAccess.passTier,
-    });
-    logSajuAccessResolved(passAccess);
-    return passAccess;
-  }
+  // 🔴 이용권 허용은 해금·결제 증빙을 모두 본 뒤 맨 끝(아래 settlePremiumPassReportAccess)에서 실제 차감과 함께만 준다.
+  // 예전에는 여기서 차감 없이 바로 열어, 이용권만 있으면 8개 리포트가 몇 번이든 무료였다(2026-10-16).
 
+  // 🔴 User.unlockedFeatures 는 계정 배열이라 출생 기반 키의 근거가 아니다(같은 계정의 다른 생년월일까지 열린다).
+  // 계정 기반 키만 이 배열로 판정하고, 출생 기반 키는 아래 findPremiumContentEntitlement(BIRTH 행 + 레거시 USER/PROFILE 행)로만 연다.
+  const accountUnlockPolicy = unlockPolicy.filter((key) => !isBirthScopedUnlockFeatureKey(key));
   const unlockSet = new Set(uniqueStrings(user.unlockedFeatures || []));
-  const hasUnlock = unlockPolicy.some((key) => unlockSet.has(key));
+  const hasUnlock = accountUnlockPolicy.some((key) => unlockSet.has(key));
 
   // 메모리에 이미 있는 판정(hasUnlock)을 앞당겨, 그 아래 findPremiumContentEntitlement DB 조회를
   // 건너뛴다(RC-15d). requiredRules가 있으면 앞당기지 않는다 — 그 결제 바인딩은 hasUnlock 과
@@ -953,15 +1048,15 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       route: requestBody?._accessRoute,
       userId,
       reportType: normalizedReportType,
-      featureKey: unlockPolicy[0] || "",
+      featureKey: accountUnlockPolicy[0] || "",
       accessSource: "unlock",
-      entitlementId: unlockPolicy[0] || "",
+      entitlementId: accountUnlockPolicy[0] || "",
     });
     const allowed = {
       ok: true,
       accessType: "unlock",
       reportType: normalizedReportType,
-      entitlementId: unlockPolicy[0] || "",
+      entitlementId: accountUnlockPolicy[0] || "",
     };
     logSajuAccessResolved(allowed);
     return allowed;
@@ -1012,7 +1107,10 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
           accessSource: "denied",
           deniedReason: "REQUIRED_PAYMENT_BINDING_NOT_MATCHED",
         });
-        const denied = buildPaymentRequiredResult(normalizedReportType, requiredRules, requestBody);
+        const denied = markMissingBirthProfile(
+          buildPaymentRequiredResult(normalizedReportType, requiredRules, requestBody),
+          { profileId, candidateKeys: entitlementCandidateKeys },
+        );
         logSajuAccessResolved(denied);
         return denied;
       }
@@ -1032,22 +1130,24 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       route: requestBody?._accessRoute,
       userId,
       reportType: normalizedReportType,
-      featureKey: unlockPolicy[0] || "",
+      featureKey: accountUnlockPolicy[0] || "",
       accessSource: "unlock",
-      entitlementId: unlockPolicy[0] || "",
+      entitlementId: accountUnlockPolicy[0] || "",
     });
     const allowed = {
       ok: true,
       accessType: "unlock",
       reportType: normalizedReportType,
-      entitlementId: unlockPolicy[0] || "",
+      entitlementId: accountUnlockPolicy[0] || "",
     };
     logSajuAccessResolved(allowed);
     return allowed;
   }
 
   const tokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules);
-  if (tokenEvidence) {
+  const tokenEvidenceClaim = tokenEvidence ? await claimEvidence(tokenEvidence._id, tokenEvidence.featureKey) : "used";
+  if (tokenEvidenceClaim === "unavailable") return premiumEvidenceUnavailableResult(normalizedReportType);
+  if (tokenEvidence && tokenEvidenceClaim === "ok") {
     if (!isPerUsePdfReportType) {
       await upsertPremiumContentEntitlementFromEvidence({
         userId: user._id,
@@ -1076,9 +1176,76 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     return allowed;
   }
 
+  const passAccess = resolvePremiumPassReportAccess(user, {
+    normalizedReportType,
+    requestBody,
+    requiredRules,
+    alternativeRules,
+    unlockPolicy,
+    receivedFeatureKey,
+  });
+  if (passAccess?.ok) {
+    const settled = await settlePremiumPassReportAccess(env, {
+      userId: user._id,
+      profileId,
+      normalizedReportType,
+      requestBody,
+      alternativeRules,
+      unlockPolicy,
+    });
+    if (settled.allowed === null) {
+      const degraded = {
+        ok: false,
+        status: 503,
+        code: "PAYMENT_VERIFY_UNAVAILABLE",
+        message: "결제 확인이 잠시 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+        reportType: normalizedReportType,
+      };
+      logSajuAccessResolved(degraded);
+      return degraded;
+    }
+    // 이용권 차감은 (기능 키, requestId)별이라 그 자체로 1회다. 바인딩 키가 있으면 같은 requestId 로
+    // 다른 조합을 여는 재생까지 막는다(차감 1건 = 조합 1건).
+    const passClaim = settled.allowed && claimBindingKey
+      ? await claimEvidence(`pass-use:${String(user._id)}:${settled.featureKey}:${baseClaimRequestId}`, settled.featureKey)
+      : "ok";
+    if (passClaim === "unavailable") return premiumEvidenceUnavailableResult(normalizedReportType);
+    if (settled.allowed && passClaim === "ok") {
+      const allowed = { ...passAccess, featureKey: settled.featureKey, chargedCoins: settled.coinPrice, settledSource: settled.source };
+      logPremiumAccessDecision({
+        route: requestBody?._accessRoute,
+        userId,
+        reportType: normalizedReportType,
+        featureKey: settled.featureKey,
+        accessSource: passAccess.accessType,
+        entitlementId: passAccess.passTier,
+      });
+      logSajuAccessResolved(allowed);
+      return allowed;
+    }
+    logPremiumAccessDecision({
+      route: requestBody?._accessRoute,
+      userId,
+      reportType: normalizedReportType,
+      featureKey: settled.featureKey,
+      accessSource: "denied",
+      deniedReason: `PASS_NOT_SETTLED:${settled.reason || "PAYMENT_REQUIRED"}`,
+    });
+  }
+
   if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse", "sajuCompatBasic", "petSajuReport", "petCompatReport", "destinyCompassDeepReport"].includes(normalizedReportType) && alternativeRules.length) {
     for (let i = 0; i < alternativeRules.length; i += 1) {
-      const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
+      // 창 안의 차감이 이미 다른 요청에 쓰였으면 다음(더 오래된) 차감을 본다 — 최대 5건.
+      const tried = [];
+      let evidence = null;
+      while (tried.length < RECENT_WINDOW_CLAIM_CANDIDATES) {
+        const candidate = await findRecentDeductionEvidence(user._id, alternativeRules[i], { excludeIds: tried });
+        if (!candidate?._id) break;
+        const claim = await claimEvidence(candidate._id, candidate.featureKey);
+        if (claim === "unavailable") return premiumEvidenceUnavailableResult(normalizedReportType);
+        if (claim === "ok") { evidence = candidate; break; }
+        tried.push(candidate._id);
+      }
       if (!evidence) continue;
       logPremiumAccessDecision({
         route: requestBody?._accessRoute,
@@ -1109,12 +1276,16 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     accessSource: "denied",
     deniedReason: "STRICT_PAYMENT_BINDING_NOT_MATCHED",
   });
-  const denied = buildPaymentRequiredResult(normalizedReportType, alternativeRules.length ? alternativeRules : unlockPolicy, requestBody);
+  const denied = markMissingBirthProfile(
+    buildPaymentRequiredResult(normalizedReportType, alternativeRules.length ? alternativeRules : unlockPolicy, requestBody),
+    { profileId, candidateKeys: entitlementCandidateKeys },
+  );
   logSajuAccessResolved(denied);
   return denied;
 }
 
 export const __accessControlTestUtils = {
+  extractPaidContentProfileId,
   buildAlternativePaymentRules,
   buildRequiredPaymentRules,
   extractPaymentLookupTokens,

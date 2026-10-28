@@ -21,7 +21,11 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
+// 이용권 정산 모듈은 db 트랜잭션 옵션까지 끌고 와 쓸 때만 불러온다(이 라우트를 db 대역으로 띄우는 테스트 보호).
+const loadPerUsePaidAccess = () => import("../lib/nakshatra-paid-access.js");
 import { callGeminiText } from "../lib/gemini.js";
+import { getAmbientAiLocale, runWithAiLocale } from "../lib/ai-locale-context.js";
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import {SYNC_LLM_TIMEOUT_CEILING_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -46,6 +50,7 @@ import {
 import { assembleNakshatraCompat } from "../lib/nakshatra-compat.js";
 import { buildNeoAstroSynastry } from "../lib/neo-synastry.js";
 import { scopeConnection } from "../lib/db-scope-connection.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 import {
   buildPreviousAdviceLog,
   neoCompatInitialSections,
@@ -56,6 +61,7 @@ import {
   parseNeoSectionResponse,
   mergeNeoInitialSections,
   mergeNeoRefinedSections,
+  neoRegisterDrift,
 } from "../lib/neo-operation-room-prompt.js";
 
 const SERVICE_KEY = "neo-operation-room";
@@ -508,7 +514,8 @@ async function hasMonthlyConsume(env, auth, ctx, idempotencyKey) {
     featureKeys: [FEATURE_KEY, SERVICE_KEY],
     tokens: [idempotencyKey, ctx.requestId, ctx.ledgerId, ctx.transactionId, ctx.paymentId],
   });
-  return Boolean(evidence);
+  // 정본 원장 행을 돌려준다 — 결제 증빙 claim 은 본문 토큰이 아니라 이 ledgerId 로 잡는다.
+  return evidence || null;
 }
 
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
@@ -548,11 +555,13 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     };
   }
   {
-    if (await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey))) {
+    const monthlyEvidence = await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey));
+    if (monthlyEvidence) {
       return {
         ok: true,
         accessType: "subscription",
         paymentId: ctx.transactionId || ctx.ledgerId || idempotencyKey,
+        claimEvidenceId: clean(monthlyEvidence.ledgerId, 160),
         source: "billing-gate",
         executionSourceTransactionId: ctx.transactionId,
         executionPayment: body.payment,
@@ -566,6 +575,13 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user });
   if (isReusablePaidFeatureAccess(decision) && mapPaidFeatureAccessType(decision) === "pass") {
     if ((!ctx.featureKey || ctx.featureKey === FEATURE_KEY) && (!ctx.requestId || ctx.requestId === idempotencyKey)) {
+      // 🔴 이용권 허용 판정은 읽기 전용이다(2026-10-16). 이번 키로 이용권을 실제로 차감해야 연다.
+      //    재개·재확인은 같은 키라 이미 차감한 기록을 인정한다(acceptSettled).
+      const { settlePerUseAccessDecision } = await loadPerUsePaidAccess();
+  const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: FEATURE_KEY,
+        coinPrice: pricing.coinPrice, requestId: idempotencyKey, acceptSettled: true });
+      if (settled.allowed === null) throw resultStorageUnavailable(idempotencyKey);
+      if (!settled.allowed) return { ok: false, reason: "PAYMENT_REQUIRED" };
       return {
         ok: true,
         accessType: "pass",
@@ -642,7 +658,7 @@ function summarizeSaju(chart) {
     method: "saju",
     summary: "사주 엔진이 산출한 사주팔자, 일간, 오행 분포, 십성 분포, 용신, 합충, 대운과 세운 흐름을 근거로 삼는다.",
     evidenceSummary: [
-      `연월일시 기둥: ${[chart.yearPillar, chart.monthPillar, chart.dayPillar, chart.hourPillar].filter(Boolean).join(" / ")}`,
+      chart.dayPillar ? `일주: ${chart.dayPillar}` : "",
       chart.dayMaster ? `일간: ${chart.dayMaster}` : "",
       chart.strength ? `신강약 판단: ${chart.strength}` : "",
       currentCycle?.pillar ? `현재 대운: ${currentCycle.pillar} (${currentCycle.startAge}-${currentCycle.endAge}세, ${majorLuck.direction || ""})`.trim() : "",
@@ -1637,14 +1653,21 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   let access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
   if (existing?.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  // 결제 증빙 1건 = 상담 1건(2026-10-16). 서버가 찾은 결제 문서·월정석 원장 ID 만 묶는다(이용권·관리자는 건너뜀).
+  const evidenceIds = [access.paymentDocId, access.claimEvidenceId];
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   const sessionId = existing?.id || `neoop_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}`;
-  const resumeBody = { ...body, idempotencyKey };
+  const locale = toAiLocale(existing
+    ? existing.llmMeta?.locale || existing.llmMeta?.resumeBody?.locale || "ko"
+    : getAmbientAiLocale() || body.locale);
+  const resumeBody = { ...body, idempotencyKey, locale };
   delete resumeBody.accessToken;
   if (!existing) {
     try {
       await NeoOperationRoomConsultation.create({ id: sessionId, userId: auth.userId, idempotencyKey, inputHash: normalized.inputHash,
         ...normalized.input, accessType: access.accessType, paymentId: access.paymentId || "", status: "generating",
-        llmMeta: { resumeBody, sections: {}, attempts: {} } });
+        llmMeta: { locale, resumeBody, sections: {}, attempts: {} } });
       existing = await NeoOperationRoomConsultation.findOne({ id: sessionId, userId: auth.userId }).lean();
       if (!existing) throw resultStorageUnavailable(sessionId);
     } catch (error) {
@@ -1670,16 +1693,26 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
       doc = await saveNeoDelivery(filter, { methodSummary, llmMeta: { ...doc.llmMeta, resumeBody } }, sessionId);
     }
     const sections = doc.methodSummary?.compat ? neoCompatInitialSections(normalized.input.selectedMethod) : NEO_INITIAL_SECTIONS;
-    const accepted = section => neoSectionReady(section, doc.llmMeta.sections?.[section.id], normalized.input, doc.methodSummary,
-      true);
-    const sectionChars = row => countPaidReportBodyChars(neoBody(mergeNeoInitialSections(row ? [row] : [], normalized.input, { ...doc.methodSummary, evidenceSummary: "", summary: "" })));
+    const sectionText = row => neoBody(mergeNeoInitialSections(row ? [row] : [], normalized.input, { ...doc.methodSummary, evidenceSummary: "", summary: "" }));
+    const sectionChars = row => countPaidReportBodyChars(sectionText(row));
+    const usable = (section, row) => neoSectionReady(section, row, normalized.input, doc.methodSummary, true);
+    const drifted = row => neoRegisterDrift(sectionText(row));
+    // 완결 = 분량 기준 충족 + 반말 한 어조. 미달이지만 쓸 수 있는 초안은 2회 상한 안에서 한 번만 보강하고
+    // (ai-and-db.md: 분량 미달 시 1회 보강 후 확정), 보강 뒤에는 더 나은 쪽을 그대로 전달한다.
+    const complete = (section, row) => neoSectionReady(section, row, normalized.input, doc.methodSummary, false) && !drifted(row);
+    const accepted = section => {
+      const row = doc.llmMeta.sections?.[section.id];
+      if (complete(section, row)) return true;
+      const tries = doc.llmMeta.attempts || {};
+      return usable(section, row) && Boolean(tries[`${section.id}:lengthRepair`] || Number(tries[section.id] || 0) >= 2);
+    };
     const missing = sections.filter(section => !accepted(section));
     if (missing.some(section => Number(doc.llmMeta.attempts?.[section.id] || 0) >= 2)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (missing.length) {
       const selected = missing.slice(0, PAID_LLM_PARTS_PER_REQUEST);
       const attempts = { ...doc.llmMeta.attempts };
       selected.forEach(section => {
-        if (neoSectionReady(section, doc.llmMeta.sections?.[section.id], normalized.input, doc.methodSummary, true)) attempts[`${section.id}:lengthRepair`] = 1;
+        if (usable(section, doc.llmMeta.sections?.[section.id])) attempts[`${section.id}:lengthRepair`] = 1;
         attempts[section.id] = Number(attempts[section.id] || 0) + 1;
       });
       doc = await saveNeoDelivery(filter, { llmMeta: { ...doc.llmMeta, resumeBody, attempts } }, sessionId);
@@ -1687,12 +1720,21 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
       const context = { ...normalized.input, birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true, methodSummary: doc.methodSummary };
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {
-        const prompt = buildNeoInitialSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`] ? "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다." : "") + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
-        const row = await generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true);
-        if (!neoSectionReady(section, row, normalized.input, doc.methodSummary, true)) return;
+        const previousDraft = attempts[`${section.id}:lengthRepair`] ? doc.llmMeta.sections?.[section.id] : null;
+        const repairNotes = previousDraft ? [
+          neoSectionReady(section, previousDraft, normalized.input, doc.methodSummary, false) ? "" : "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다.",
+          drifted(previousDraft) ? "\n[어조 보강] 이전 초안이 존댓말(습니다·세요·당신)로 쓰였다. 처음부터 끝까지 해라체 반말로 쓰고, 사용자는 너로 부른다." : "",
+        ].join("") : "";
+        const prompt = buildNeoInitialSectionPrompt(section, context) + repairNotes + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
+        const row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true));
+        if (!usable(section, row)) return;
         const write = queue.catch(() => {}).then(async () => {
           const previous = doc.llmMeta.sections?.[section.id];
-          if (neoSectionReady(section, previous, normalized.input, doc.methodSummary, true) && sectionChars(previous) >= sectionChars(row)) return;
+          if (usable(section, previous)) {
+            const rowComplete = complete(section, row), previousComplete = complete(section, previous);
+            if (previousComplete && !rowComplete) return;
+            if (previousComplete === rowComplete && sectionChars(previous) >= sectionChars(row)) return;
+          }
           const candidate = { ...doc.llmMeta.sections, [section.id]: row };
           const briefing = mergeNeoInitialSections(Object.values(candidate), normalized.input, doc.methodSummary);
           if (hasRepeatedReportPassage(neoBody(briefing))) return;
@@ -1722,6 +1764,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;
     await saveNeoDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
     const refund = await refundCardPaymentOnFailure(env, auth, access, error);
     return json({ ok: false, reason: "LLM_ERROR", message: refund.refunded ? CARD_REFUNDED_MESSAGE : LLM_ERROR_MESSAGE }, { status: 503 });
@@ -1858,7 +1901,8 @@ async function handleRefine(request, env) {
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {
         const prompt = buildNeoRefinedSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`] ? "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다." : "") + `\n[완료 기준] 제목·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 현실 점검 답변과 계산값에 근거하고 앞 영역을 반복하지 않는다.`;
-        const row = await generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true);
+        const locale = toAiLocale(doc.llmMeta?.locale || doc.llmMeta?.resumeBody?.locale || "ko");
+        const row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true));
         if (!neoRefinedSectionReady(section, row, doc, true)) return;
         const write = queue.catch(() => {}).then(async () => {
           const previous = doc.llmMeta.refinement.sections[section.id];

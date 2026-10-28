@@ -1,4 +1,5 @@
 "use client";
+import { recordReaderCopy } from '@/lib/records/reader-copy';
 import dynamic from 'next/dynamic';
 import chatTheme from '@/app/fortune-chat/fortune-chat.module.css';
 import consultationTheme from '@/app/fortune-chat/consultation.module.css';
@@ -42,6 +43,7 @@ function IncompleteBiasReading({ row, notice, noBody }: { row: Record<string, un
 }
 export default function StoredReading({ source, serviceId, value, status }: { source: string; serviceId: string; value: unknown; status?: string }) {
   const locale = useLocale(), c = recordsCopy(locale), row = object(value);
+  const reader = recordReaderCopy(locale);
   const canonical = object(row.canonical), vm = object(canonical.viewModel);
   if (source === 'destiny-bias' && canonical.version === 'destiny-bias-record-v1' && Object.prototype.hasOwnProperty.call(canonical,'chemiReport')) {
     if (!isStoredChemiReport(canonical.chemiReport)) return <IncompleteBiasReading row={row} notice={c.formatUnavailable} noBody={c.noBody} />;
@@ -56,11 +58,11 @@ export default function StoredReading({ source, serviceId, value, status }: { so
   if (source === 'chat-consultation' && Array.isArray(row.chapters) && Array.isArray(row.manifest)) return <div data-saved-consultation className={`${chatTheme.room} ${row.persona === 'neo' ? consultationTheme.starlight : ''}`} style={{height:'auto',display:'block',overflow:'visible',padding:20,borderRadius:20}}><ConsultationResult row={row as ChatConsultation} readOnly onNew={() => window.location.assign('/fortune-chat/')} /></div>;
   if (source === 'fusion' && Object.keys(object(row.result)).some(key => key.endsWith('Section'))) return <SavedFusionReading result={row.result as FusionResult} />;
   if (source === 'neo' && row.initialBriefing) return <div className={styles.night}><SavedNeoDocuments session={row as NeoResultSession} locale={locale as LoadingLocale} /><SavedChapters showEmpty={false} value={Object.fromEntries(Object.entries(row).filter(([key]) => !['initialBriefing','refinedOrder','question','selectedMethod','topic','compatSummary'].includes(key)))} /></div>;
-  if (source === 'codex' && Array.isArray(row.chapters)) return <><div className={styles.codex}><CodexReader chapters={row.chapters as CodexChapter[]} loveDna={row.loveDna as CodexLoveDna || null} name="" birthLine="" totalCharCount={Number(row.totalCharCount) || 0} sessionId={String(row.id || '')} mode={row.mode === 'compat' ? 'compat' : 'solo'} completed={row.status === 'completed'} /></div><SavedChapters showEmpty={false} value={Object.fromEntries(Object.entries(row).filter(([key]) => !['chapters','loveDna'].includes(key)))} /></>;
+  if (source === 'codex' && Array.isArray(row.chapters)) return <><div className={styles.codex}><CodexReader consultation={row.consultation as import("@/src/features/master-love-codex/_lib/consultation").CodexConsultation | null} chapters={row.chapters as CodexChapter[]} loveDna={row.loveDna as CodexLoveDna || null} name="" birthLine="" totalCharCount={Number(row.totalCharCount) || 0} sessionId={String(row.id || '')} mode={row.mode === 'compat' ? 'compat' : 'solo'} completed={row.status === 'completed'} /></div><SavedChapters showEmpty={false} value={Object.fromEntries(Object.entries(row).filter(([key]) => !['chapters','loveDna','consultation','consultationHash'].includes(key)))} /></>;
   if (source === 'nakshatra' && row.decks) return <><AiConsultDecks decks={row.decks as Decks} natal={row.natal as NatalIdentity || null} question={typeof row.question === 'string' ? row.question : undefined} /><SavedChapters showEmpty={false} value={Object.fromEntries(Object.entries(row).filter(([key]) => !['decks','natal','question'].includes(key)))} /></>;
   if (source === 'chat' && Array.isArray(row.messages)) return <ol className={styles.dialogue}>{row.messages.map((message,index) => {
     const entry = object(message), role = entry.role || entry.speaker;
-    return <li key={index} className={styles.message} data-role={String(role)}><p className={styles.speaker}>{role === 'user' ? (locale==='ko'?'나의 질문':'My question') : role === 'system' ? (locale==='ko'?'상담 안내':'Guidance') : row.characterId === 'neo' ? '네오' : '연이'}</p><ChatMessage value={entry.content || entry.text || entry.message}/><ChatMessage value={entry.detail}/></li>;
+    return <li key={index} className={styles.message} data-role={String(role)}><p className={styles.speaker}>{role === 'user' ? reader.myQuestion : role === 'system' ? reader.guidance : row.characterId === 'neo' ? reader.neo : reader.yeoni}</p><ChatMessage value={entry.content || entry.text || entry.message}/><ChatMessage value={entry.detail}/></li>;
   })}</ol>;
   if (!Object.keys(row).length && typeof value !== 'string') return <p>{c.noBody}</p>;
   return <div data-saved-service={serviceId} className={styles.reader}><SavedServiceReading source={source} serviceId={serviceId} status={status} value={value}/></div>;

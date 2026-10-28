@@ -4,25 +4,25 @@ import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 
 const DISCLAIMER_METADATA_COPY = {
   ko: {
-    title: "면책 고지 | Code Destiny",
+    title: "면책 고지 | 꿀꿀 운세",
     description:
       "Code Destiny 운세, 상담형 콘텐츠, 건강·재물·관계 해석의 한계와 전문가 상담 필요성을 안내하는 면책 고지입니다.",
     keywords: ["면책 고지", "운세 면책", "건강 고지", "재물운 고지", "전문가 상담"],
   },
   en: {
-    title: "Disclaimer | Code Destiny",
+    title: "Disclaimer | 꿀꿀 운세",
     description:
       "Code Destiny's disclaimer explains the limits of fortune, consultation-style content, and health, money, and relationship readings, including when to seek professional advice.",
     keywords: ["disclaimer", "fortune disclaimer", "health notice", "financial reading notice", "professional advice"],
   },
   ja: {
-    title: "免責事項 | Code Destiny",
+    title: "免責事項 | 꿀꿀 운세",
     description:
       "Code Destinyの占い・相談型コンテンツ、健康・金運・人間関係の解釈に関する限界と、専門家への相談が必要な場合を案内する免責事項です。",
     keywords: ["免責事項", "占い免責", "健康に関する注意", "金運の注意", "専門家相談"],
   },
   zh: {
-    title: "免责声明 | Code Destiny",
+    title: "免责声明 | 꿀꿀 운세",
     description:
       "Code Destiny 免责声明说明运势、咨询式内容以及健康、财富、关系解读的限制，并提示需要专业咨询的情形。",
     keywords: ["免责声明", "运势免责声明", "健康提示", "财富解读提示", "专业咨询"],
@@ -61,7 +61,7 @@ export default function DisclaimerPage() {
             <section className="policy-embed-section">
               <h2 className="policy-embed-heading">2. 콘텐츠의 성격</h2>
               <p>
-                Code Destiny의 해석은 전통 상징 체계와 현대적 상담 언어를 바탕으로 한 엔터테인먼트 및 자기 성찰용 참고 정보입니다. 결과 문구는 미래의 확정된 사실이나 특정 사건의 보장을 뜻하지 않으며, 개인의 현실 조건에 따라 다르게 받아들여질 수 있습니다.
+                Code Destiny의 해석은 전통 상징 체계와 현대적 상담 언어를 바탕으로 한 자기 성찰용 참고 정보입니다. 결과 문구는 미래의 확정된 사실이나 특정 사건의 보장을 뜻하지 않으며, 개인의 현실 조건에 따라 다르게 받아들여질 수 있습니다.
               </p>
             </section>
 

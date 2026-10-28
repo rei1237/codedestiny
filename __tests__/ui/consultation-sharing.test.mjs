@@ -4,13 +4,13 @@ import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 const output = await build({ entryPoints: ['lib/consultation-sharing.ts'], bundle: true, platform: 'node', format: 'esm', write: false });
 const { teaHouseShareChoices, neoShareChoices, masterLoveCodexShareChoices, karmaShareChoices, namingShareChoices, compassShareChoices, humanDesignShareChoices, astrologyShareChoices, vedicShareChoices, consultationInvitationUrl, trimShareText } = await import('data:text/javascript;base64,' + Buffer.from(output.outputFiles[0].text).toString('base64'));
-const tea = { resultId: 'PRIVATE_ID', questionSummary: 'PRIVATE_QUESTION', birthDate: 'PRIVATE_BIRTH', synthesis: { summary: '내 속도를 지켜도 괜찮아요.' }, actionPrescription: '오늘 한 가지를 적어보세요.', closingLine: '조금씩 나아가요.' };
+const tea = { resultId: 'PRIVATE_ID', questionSummary: 'PRIVATE_QUESTION', birthDate: 'PRIVATE_BIRTH', synthesis: { summary: '내 속도를 지켜도 괜찮아요.' }, actionPrescription: '오늘 한 가지를 적어보세요.', closingLine: '조금씩 나아가요.', followUps: [{ question: 'PRIVATE_FOLLOW_UP', answer: { directAnswer: 'PRIVATE_FOLLOW_UP_ANSWER' } }] };
 const neo = { sessionId: 'PRIVATE_ID', status: 'completed', question: 'PRIVATE_QUESTION', initialBriefing: { frontlineSummary: '먼저 기준을 세워라.', actionOrders: ['작은 실행부터 시작해라.'] }, pendingRefinedOrder: { thisWeekFirstStep: 'PRIVATE_PENDING' } };
 
 test('every canonical tea product shares only saved excerpts, without private fields', async () => {
   const pricing = await build({ entryPoints: ['src/features/fortune-tea-house/data/consultPricing.ts'], bundle: true, platform: 'node', format: 'esm', write: false });
   const { fortuneTeaHouseConsultPricing } = await import('data:text/javascript;base64,' + Buffer.from(pricing.outputFiles[0].text).toString('base64'));
-  assert.equal(Object.keys(fortuneTeaHouseConsultPricing).length, 5);
+  assert.equal(Object.keys(fortuneTeaHouseConsultPricing).length, 6);
   for (const [consultationMode, { featureKey }] of Object.entries(fortuneTeaHouseConsultPricing)) {
     const choices = teaHouseShareChoices({ ...tea, consultationMode, featureKey });
     assert.equal(choices.length, 3);

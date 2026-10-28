@@ -81,7 +81,7 @@ function decision({ pass = null, coinCost, monthlyBalance = 0, monthlySpendCoin,
       coinPrice: coinCost,
       cost: coinCost,
       membershipCreditCost: coinCost * 10,
-      featureKey: `test-${coinCost}`,
+      featureKey: "master-love-codex" // Registered moonstone-eligible product; coinCost varies to exercise pass limits.,
     },
     profileSubscription,
   );
@@ -89,13 +89,13 @@ function decision({ pass = null, coinCost, monthlyBalance = 0, monthlySpendCoin,
 
 function assertPassFree(result, label) {
   assert.equal(result.canUseByPass, true, `${label}: canUseByPass`);
-  assert.equal(result.canUseByMonthly, true, `${label}: raw monthly availability remains visible`);
+  assert.equal(result.canUseByMonthly, true, `${label}: eligible product monthly availability`);
   assert.equal(result.canUseByCard, true, `${label}: raw card availability remains visible`);
 }
 
 function assertPaidFallback(result, label) {
   assert.equal(result.canUseByPass, false, `${label}: pass must not cover`);
-  assert.equal(result.canUseByMonthly, true, `${label}: monthly fallback`);
+  assert.equal(result.canUseByMonthly, true, `${label}: eligible product monthly availability`);
   assert.equal(result.canUseByCard, true, `${label}: card fallback`);
 }
 
@@ -295,7 +295,7 @@ for (const featureKey of listServerPricedFeatureKeys()) {
     const allowedMethods = ["FAMILY", "DIRECT_KRW", ...(monthlyAllowed ? ["MOONLIGHT_STONE"] : [])];
     const paidMethods = ["DIRECT_KRW", ...(monthlyAllowed ? ["MOONLIGHT_STONE"] : [])];
     if (featureKey.startsWith("yeongnyangi-")) {
-      assert.equal(monthlyAllowed, true, `${featureKey}: 승인된 영냥이 월정석 결제 유지`);
+      assert.equal(monthlyAllowed, pricing.amountKRW >= 10000, `${featureKey}: 승인된 영냥이 월정석 결제 유지`);
       assert.equal(membershipCreditCost, coinCost * 10, `${featureKey}: 월정석 1개당 10원 복원 정책`);
     }
     for (const [label, decisionForTier] of [
@@ -359,7 +359,7 @@ for (const featureKey of listServerPricedFeatureKeys()) {
       );
       assert.deepEqual(
         decisionForTier.hiddenMethods,
-        [],
+        paymentPolicy.monthlyExcluded ? ["MOONLIGHT_STONE"] : [],
         `${featureKey}: 이용권 제외 기능은 결제수단을 숨기면 안 된다(${label}) — 단건/월정석이 항상 보여야 한다`,
       );
       assert.equal(
@@ -420,7 +420,7 @@ const smallPdfDecision = __billingTestUtils.buildPassPaymentDecision(
 assert.equal(smallPdfUnchanged.coinPrice, 60, "standard pass leaves small PDF price unchanged");
 assert.equal(smallPdfUnchanged.passDiscount, undefined, "standard pass does not attach small PDF pass discount");
 assert.equal(smallPdfDecision.canUseByPass, false, "small PDF over standard pass limit requires payment");
-assert.equal(smallPdfDecision.canUseByMonthly, true, "small PDF can still use internal entitlement fallback");
+assert.equal(smallPdfDecision.canUseByMonthly, false, "unregistered small PDF cannot use moonstones");
 
 const premiumSmallPdfDecision = __billingTestUtils.buildPassPaymentDecision(
   activePass(PASS_TIERS.PREMIUM),
@@ -430,9 +430,9 @@ const premiumSmallPdfDecision = __billingTestUtils.buildPassPaymentDecision(
 assert.equal(premiumSmallPdfDecision.canUseByPass, true, "small PDF within premium pass limit bypasses payment");
 assert.equal(premiumSmallPdfDecision.decisionReason, "PASS_COVERED", "small PDF premium pass returns covered decision");
 
-// ── 이용권은 30일짜리다: tier × 만료 매트릭스 ──────────────────────────────
-// 기존엔 vvip 하나만 만료 테스트가 있었다. family(₩300,000 무제한 등급)가 30일에 멈춘다는 걸
-// 고정하는 단언이 어디에도 없었으므로 4개 tier 전부 덮는다.
+// ── tier × 만료 매트릭스 ──────────────────────────────────────────────────
+// 2026-10-11 부터 이용권은 기간이 없다(만료일 = 활성화 + 100년). 그래도 과거 만료일은
+// "끝난 이용권"(소진 종료가 expiresAt 을 now 로 당긴다)이므로 커버하면 안 된다 — 4개 tier 전부 덮는다.
 for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PASS_TIERS.FAMILY]) {
   const withinLimit = tier === PASS_TIERS.FAMILY ? 690 : PASS_LIMITS[tier];
   assert.equal(
@@ -443,7 +443,7 @@ for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PA
   assert.equal(
     canUseByPass(activePass(tier, pastDate()), withinLimit),
     false,
-    `${tier}: 만료된 이용권은 한도 이하라도 커버하면 안 된다(30일 정책)`,
+    `${tier}: 끝난(만료일이 지난) 이용권은 한도 이하라도 커버하면 안 된다`,
   );
   const expiredDecision = decision({ pass: activePass(tier, pastDate()), coinCost: withinLimit });
   assert.equal(expiredDecision.canUseByPass, false, `${tier}: 만료 후 결제창도 이용권 무료를 제시하면 안 된다`);
@@ -472,13 +472,13 @@ for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PA
 }
 
 // ── pass 제외: 프로필 카드 추가/삭제 (D유형) ────────────────────────────────
-// 정책: 건당 5,000원 단건결제 또는 월정석 500으로만 결제 가능하며, 이용권으로는 어떤 등급도 결제 불가.
+// 정책: 건당 1,000원 단건결제 또는 월정석 100으로만 결제 가능하며(2026-10-10 5,000원에서 인하), 이용권으로는 어떤 등급도 결제 불가.
 // (family 무료는 '이용권으로 결제'가 아니라 '가격이 0원'인 정책 바이패스이며 worker/routes/profile.js가
 //  판정한다 — coin-gate 이용권 경로와 무관하다.) docs/payment-policy-content-access.md D유형 참고.
 for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PASS_TIERS.FAMILY]) {
   const profileCardDecision = __billingTestUtils.buildPassPaymentDecision(
     activePass(tier),
-    { featureKey: "profile-card-manage", coinPrice: 50, cost: 50, membershipCreditCost: 500 },
+    { featureKey: "profile-card-manage", coinPrice: 10, cost: 10, membershipCreditCost: 100 },
     { tier, passTier: tier, expiresAt: futureDate(), isActive: true, membershipCreditBalance: 500 },
   );
   assert.equal(
@@ -488,12 +488,12 @@ for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PA
   );
   assert.deepEqual(
     profileCardDecision.hiddenMethods,
-    [],
+    ["MOONLIGHT_STONE"],
     `${tier}: 프로필 카드 결제창은 결제수단을 숨기면 안 된다 — 숨기면 결제할 방법이 없는 막다른 길이 된다`,
   );
   assert.deepEqual(
     profileCardDecision.equalPriorityMethods,
-    ["DIRECT_KRW", "MOONLIGHT_STONE"],
+    ["DIRECT_KRW"],
     `${tier}: 프로필 카드는 단건 결제와 월정석이 동등 노출되어야 한다`,
   );
 }
@@ -549,7 +549,7 @@ assert.equal(
 );
 assert.deepEqual(
   musicNoPassDecision.equalPriorityMethods,
-  ["DIRECT_KRW", "MOONLIGHT_STONE"],
+  ["DIRECT_KRW"],
   "음악 트랙 결제창은 단건 결제와 월정석이 동등 노출되어야 한다",
 );
 
@@ -681,8 +681,8 @@ const subscriptionCancelStart = pointsSource.indexOf("const handleSubscriptionCa
 assert.ok(handleSubscribeStart >= 0 && subscriptionCancelStart > handleSubscribeStart, "points page subscription handlers found");
 const cardSubscriptionSource = pointsSource.slice(handleSubscribeStart, subscriptionCancelStart);
 // 대기 문구는 결제수단 라벨을 앞에 붙인다(withSubscriptionMethod) — 카카오페이·카드가 같은 문구를 보이지 않는다.
-assertContains(cardSubscriptionSource, 'withSubscriptionMethod(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요.\\n중복 결제를 시도하지 말아 주세요.", { wait: true }),', "card subscription prepare uses method-aware checkout wait copy");
-assertBefore(cardSubscriptionSource, 'withSubscriptionMethod(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요.', '"checkout",', "card subscription prepare uses checkout wait UI");
+assertContains(cardSubscriptionSource, 'withSubscriptionMethod(orderMethod, "이용권 결제 정보를 준비하고 있어요.\\n중복 결제를 시도하지 말아 주세요.", { wait: true }),', "card subscription prepare uses method-aware checkout wait copy");
+assertBefore(cardSubscriptionSource, 'withSubscriptionMethod(orderMethod, "이용권 결제 정보를 준비하고 있어요.', '"checkout",', "card subscription prepare uses checkout wait UI");
 // 🔴 수단별 "지금 할 일" 한 줄은 **결제창을 띄우기 직전 단계에서만** 켠다. 정본은 checkout-entry 의 표다 —
 // /points 가 자기 문구를 따로 쓰면 셸·dp 와 갈라지고, 카카오페이처럼 앱으로 이탈하는 수단에서 사용자가
 // 멈춘 줄 알고 창을 닫는다(그 순간 결제는 승인되고 화면만 사라진다).
@@ -712,9 +712,9 @@ const legacyPdfDiscountCopy = [
   "할인",
 ].join("");
 assertNotContains(pointsSource, legacyPdfDiscountCopy, "standard pass legacy pricing UI removed");
-assertContains(pointsSource, "프로필 추가·수정·삭제 무료, 제한 없음", "family profile unlimited UI");
+assertNotContains(pointsSource, "프로필 최대", "pass plans no longer advertise a profile card cap (2026-10-11)");
 assertContains(pointsSource, "formatSubscriptionPlanPolicy", "subscription pass policy formatter");
-assertContains(statusCardSource, "Family 이용권으로 모든 서비스가 무료 처리됩니다.", "family status card policy");
+assertContains(statusCardSource, "패밀리 꿀단지 이용권으로 모든 서비스가 무료 처리됩니다.", "family status card policy");
 assertContains(statusCardSource, "한도 초과 서비스와 PDF는 상품별 원화 단건 결제로 이용할 수 있습니다.", "non-family paid service/PDF status policy");
 assertNotContains(paymentsSource, '"profileSubscription.membershipCreditBalance": 0,\n        "profileSubscription.membershipCreditGranted": 0,\n        "profileSubscription.membershipCreditUsed": 0,', "card pass confirm must preserve monthly credit ledger");
 
@@ -880,7 +880,7 @@ assertContains(indexSource, "단건 결제가 완료되어 열람되었습니다
 assertContains(indexSource, "월정석 사용이 완료되었습니다.", "monthly event currency success copy");
 assertContains(indexSource, "월정석 이벤트 재화로 열람되었습니다.", "monthly event currency access success copy");
 assertContains(indexSource, "월정석은 이벤트성 선불 재화입니다.", "monthly event currency disclaimer copy");
-assertContains(indexSource, "FAMILY 이용권이 적용되었습니다.", "static family license pass success copy");
+assertContains(indexSource, "패밀리 꿀단지 이용권이 적용되었습니다.", "static family license pass success copy");
 assertContains(indexSource, 'href="/points/?source=flower-membership"', "the concise home pass offer links to the shop");
 assertContains(indexSource, "나에게 맞는 이용권 확인하기", "restored Yeoni guide links to pass comparison");
 assertContains(indexSource, "기존에 구매한 이용권은 구매 당시 조건을 유지합니다", "static offer preserves historical pass rights");
@@ -894,9 +894,12 @@ assertContains(indexSource, "_cdShouldForceFreshPaidPassCheck(content, cached.re
 assertContains(indexSource, "_cdShouldForceFreshPaidPassCheck(content, result)", "paid precheck does not store stale pass payment-required results");
 // 2026-09-03: 셸의 등급 한도 삼항표(family 999999999 / vvip 100 …)는 정본 pass-verdict 위임으로 바뀌었다.
 // 리터럴이 돌아오면 verify:pass-tier-policy 의 0건 단언이 잡는다.
-assertContains(indexSource, "_policyPassLimitApi.passLimitForTier(_subTier)", "main shell policy pass limit delegates to pass-verdict");
+// 2026-10-16: 서버 passLimit 가 없을 때만 표를 읽고, 그때도 이용권 정책 버전으로 읽는다(구 표 덮어쓰기 금지).
+assertContains(indexSource, "_policyPassLimitApi.passLimitForPolicy(_subTier, user.profileSubscription.passPolicyVersion)", "main shell policy pass limit delegates to pass-verdict");
 assertNotContains(indexSource, "_subTier === 'family' ? 999999999", "main shell no longer carries a literal family pass limit ladder");
-assertContains(indexSource, "Code Destiny Family 30일", "main shell family payment modal copy");
+// 2026-10-11: 이용권에 기간이 없어져 상품명에서 "30일"을 뺐고, 표시 이름을 '꿀단지 크기'(작은·중간·큰·패밀리 꿀단지)로 바꿨다.
+assertContains(indexSource, "family:'패밀리 꿀단지'", "main shell family payment modal copy");
+assertNotContains(indexSource, "패밀리 꿀단지 30일", "main shell family pass name carries no 30-day period");
 // 결제창 상단 요약은 '무엇을 얼마에 여는가'만 말한다. 예전 문구("월정석 이벤트 재화 기준 · N원")는
 // 내부 재화 단위를 기준처럼 노출해 오히려 혼란스러웠고 2026-08-11 개편에서 금액 표기로 바뀌었다.
 assertContains(indexSource, "결제 금액 {amount}", "main shell payment amount summary copy");
@@ -987,7 +990,7 @@ assertContains(indexSource, "console.log('[이용권 체크]'", "static paid gat
 assertContains(billingClientSource, "runtimeData.freeBySubscription === true", "React billing client treats server pass responses as entitlement success");
 assertNotContains(billingClientSource, ["pass", "Total", "Uses"].join(""), "React billing client does not restore service-use counters from pass payloads");
 assertNotContains(billingClientSource, ["pass", "Remaining", "Uses"].join(""), "React billing client does not restore remaining service-use counters from pass payloads");
-assertContains(billingClientSource, "FAMILY 이용권이 적용되었습니다.", "React family license pass success copy");
+assertContains(billingClientSource, "패밀리 꿀단지 이용권이 적용되었습니다.", "React family license pass success copy");
 assertContains(billingClientSource, "deniedStatuses.has(status)", "runtime gate rejects failure statuses");
 assertContains(billingClientSource, "isPositiveObject(payload.consume)", "runtime gate validates consume object");
 assertNotContains(billingClientSource, "|| Boolean(payload.consume)", "runtime gate must not accept consume object alone");

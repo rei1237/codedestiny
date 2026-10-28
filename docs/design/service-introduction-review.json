@@ -1,0 +1,1036 @@
+{
+  "reviewedBy": "visual-checker",
+  "criteria": "기능 의미, 담당 외형, 체계 구별, 가짜 문자·숫자, 손 오류. 룬·괘 등 고유 도상 허용. 판단은 source 파일에 한정.",
+  "reviews": [
+    {
+      "slug": "master-love-codex",
+      "status": "pass",
+      "reason": "현재 재편집본은 중앙이 빈 사각 열두 궁(위4·아래4·좌2·우2)과 담당 외형을 유지합니다. 320px에 관계 상담 도구와 얼굴이 보이고 문자·손 오류가 없습니다.",
+      "source": "exec-97d2e942-3318-411e-959c-3d4e4d2a3c43.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "fortune-tea-house",
+      "status": "pass",
+      "reason": "연이 외형 유지, 찻잔과 카드 공개 행동 명확.",
+      "source": "exec-8d4f2c2d-df97-4ec4-89c6-35d7fea30f94.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "love-secret-ai",
+      "status": "pass",
+      "reason": "연이와 한비 외형 유지, 두 사람 관계 상징을 공동 해석.",
+      "source": "exec-a04e23c4-6c8e-4294-9f6e-eb4e7d12dd46.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "fortune-chat",
+      "status": "pass",
+      "reason": "연이와 네오 외형 유지, 차와 해석 도구를 사이에 둔 상담 장면.",
+      "source": "exec-78d246c9-d7c7-4e5c-a127-77f4c91caea4.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot-love-relationship",
+      "status": "pass",
+      "reason": "현재 수정본은 인간 연이의 외형과 여섯 카드·두 상담자 의자 구도를 유지하며 카드 글자를 제거했습니다. 펼친 손과 두 잔·갈림길 등의 관계 도상이 320px에도 식별됩니다.",
+      "source": "exec-eda783ed-e50e-48ee-b317-29ef9e1626f7.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot-reunion",
+      "status": "pass",
+      "reason": "현재 수정본은 떨어진 두 사람·등대·문·다리 카드와 보내지 않은 편지로 재회와 연락의 흐름을 전달합니다. 320px에도 카드 배열이 남고 기존 가짜 카드 라벨은 제거됐습니다.",
+      "source": "exec-a3652731-88af-44a6-991b-9cbccf80c1a2.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot-mindscan",
+      "status": "pass",
+      "reason": "현재 수정본은 반영된 얼굴·가면 속 파도·열린 길 세 카드로 속마음과 선택을 구별합니다. 기존 로마숫자는 제거됐고 320px에 세 상징이 명확하며 손 오류는 없습니다.",
+      "source": "exec-b38a6d74-4114-4117-b672-ce040fa37a59.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "nakshatra-compat",
+      "status": "pass",
+      "reason": "현재 수정본은 동물 황도 대신 북인도식 마름모 차트·쌍으로 배치한 여덟 보석군·두 달과 별 경로를 표현합니다. 320px에도 베다식 관계 비교가 구별되고 문자는 없습니다.",
+      "source": "exec-ea0c39ae-5e88-4752-afc7-18d6a5df1c69.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "neo-operation-room",
+      "status": "pass",
+      "reason": "네오 외형 유지, 전략 지도와 말·깃발로 실행 전략 전달.",
+      "source": "exec-77b8a3b8-29fd-45bd-a164-1c289eebd5a3.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "destiny-compass",
+      "status": "pass",
+      "reason": "나침반과 지도·여러 경로가 선택 방향을 전달.",
+      "source": "exec-eb4dbcb6-a0fd-46f4-99d4-050134ea5e82.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "saju-sibyl",
+      "status": "pass",
+      "reason": "계절 흐름과 돈·연애·관계·일의 네 영역이 구별됨.",
+      "source": "exec-ee9728a2-92ad-484e-9c62-cfb585c308f8.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "new-year-ai",
+      "status": "pass",
+      "reason": "네오 외형 유지, 계절별 지도와 한 해 흐름 전달.",
+      "source": "exec-30fb7bb9-cd62-4bae-a399-7922165fe068.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot-ijik",
+      "status": "pass",
+      "reason": "일곱 카드와 현직·새 경로 비교가 구별됨.",
+      "source": "exec-ca467d1d-eb3d-46d4-967d-8b8754af4cb5.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "life-book-ai",
+      "status": "pass",
+      "reason": "윤달 외형 유지, 펼친 책 속 성장·일·관계 장면으로 인생 총운 전달.",
+      "source": "exec-7ed9b7de-4938-4aab-a78c-7c9e04297c3f.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "karma-destiny-ai",
+      "status": "pass",
+      "reason": "네오와 한비 외형 유지, 얽힌 붉은 매듭으로 반복 관계 패턴 전달.",
+      "source": "exec-efeb5ba4-b3bb-4389-ada9-8965cff25445.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "saju-guardian",
+      "status": "pass",
+      "reason": "오행 구슬과 여러 수호신이 핵심 장면으로 구별됨.",
+      "source": "exec-3a524cc1-f2e1-4b96-8828-3b76a2b7d5ce.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "naming-ai",
+      "status": "pass",
+      "reason": "현재 수정본은 오행 다섯 상징을 세 개의 빈 이름패와 연결하고 펜·붓을 두어 작명을 전달합니다. 금속도 독립적으로 식별되며 320px에 이름패와 오행이 남고 가짜 글자가 없습니다.",
+      "source": "exec-af90c31a-6477-4c57-8fb0-6f003b9de1e6.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "fusion-fortune",
+      "status": "pass",
+      "reason": "현재 재편집본은 무성 앞에 사각 열두 궁, 윤달 앞에 원형 행성판과 북인도식 차트를 배치하여 담당 도구 뒤바뀜을 해소했습니다. 320px에도 다섯 마스터와 각 상담 도구가 구별되고 문자는 없습니다.",
+      "source": "exec-475861a1-81a3-430f-9bac-735e97f7b7dd.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot-year-fortune",
+      "status": "pass",
+      "reason": "현재 수정본은 동물 전용덱 대신 바보·마법사·여사제·황제·연인 등 메이저 아르카나를 펼치고 바깥에 십이지 동물 소품을 배치했습니다. 320px에도 타로와 띠 상징이 나뉘고 가짜 문자·카드 번호가 없습니다.",
+      "source": "exec-494650fe-ec13-44ba-a891-c5e5bc33a4f3.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot-celestial-harmony",
+      "status": "pass",
+      "reason": "천체 상징과 카드 조합이 명확함.",
+      "source": "exec-6716b15b-fa99-44f1-b00c-3cb93ba2c8a6.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "nakshatra-muhurta",
+      "status": "pass",
+      "reason": "현재 재편집본은 길일표에 보석을 놓는 동작을 유지하고 옆 차트를 중앙 네 마름모·외곽 여덟 삼각형으로 수정했습니다. 320px에 선택 장면과 베다 도구가 보이고 문자는 없습니다.",
+      "source": "exec-a12a124f-3219-4526-a929-a633793118a9.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "saju",
+      "status": "pass",
+      "reason": "현재 수정본은 돼지 연이가 네 두루마리를 가리키며 앞에 목화토금수 실물을 펼쳤습니다. 320px에 담당과 오행 도구가 함께 보이고 기존 가짜 한자 글줄은 제거됐습니다.",
+      "source": "exec-f1f94540-156c-47e7-bfe4-07802d03e9b5.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot",
+      "status": "pass",
+      "reason": "현재 수정본은 펼친 덱에서 한 장을 직접 들어 올리는 장면이며 태양 도상이 320px에서도 크게 보입니다. 기존 카드 숫자·문구는 제거됐고 손 구조에 명확한 오류가 없습니다.",
+      "source": "exec-490fa606-7418-4350-9317-30442a40894b.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "ziwei",
+      "status": "pass",
+      "reason": "현재 수정본은 무성의 보라 눈·긴 머리·금빛 깃펜과 중앙이 빈 사각 열두 궁 명반을 함께 보여 줍니다. 320px에서도 담당과 체계가 구별되고 원형 차트 혼동·가짜 문자가 해소됐습니다.",
+      "source": "exec-1a0ea4d5-a529-4122-9eb9-62fbb7b5bda3.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "sukuyo",
+      "status": "pass",
+      "reason": "한비 외형 유지, 떨어진 두 달의 연결과 거리 전달.",
+      "source": "exec-7a021a56-175d-43f1-ac1e-691fd0bf6f28.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "vedic",
+      "status": "pass",
+      "reason": "윤달 외형 유지, 마름모 구획 차트가 서양 원형 도구와 구별됨.",
+      "source": "exec-91111dd5-5a86-46bb-8821-1cc79d64e25e.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "astrology",
+      "status": "pass",
+      "reason": "윤달 외형 유지, 원형 차트·행성 모형·망원경이 핵심.",
+      "source": "exec-48ca2fef-c864-416d-9243-e0f7e87e274d.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "human-design",
+      "status": "pass",
+      "reason": "센터와 채널을 갖춘 몸 도표, 성향들의 비교가 구별됨.",
+      "source": "exec-42ed714a-f4e2-49b5-b3cb-af9b07e22f90.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "nakshatra",
+      "status": "pass",
+      "reason": "현재 재편집본은 개수가 잘못된 완결 링 대신 달 주변 열린 별흐름으로 표현했습니다. 베다 명반과 관측 도구가 320px에 남고 동물 황도·가짜 문자 혼입은 없습니다.",
+      "source": "exec-dac9a7bc-f793-4b86-afd1-09dab544f29a.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "maya",
+      "status": "pass",
+      "reason": "석판 문양·달력·유적으로 다른 체계와 구별됨. 고유 도상은 문구로 보지 않음.",
+      "source": "exec-3677fa0e-a381-4ad1-a3fd-4cfcc6df7939.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "daily-fortune",
+      "status": "pass",
+      "reason": "아침과 간결한 하루 두루마리가 중심.",
+      "source": "exec-b1e267b1-fbed-400b-8d92-53239b52c902.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "today-hub",
+      "status": "pass",
+      "reason": "돈·관계·일 등 주제 선택 장면 전달.",
+      "source": "exec-3042a580-8143-4c70-a96d-882359ae89fd.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "palm-reading",
+      "status": "pass",
+      "reason": "인간 연이 외형 유지, 손가락 이상 없음. 320px에서도 얼굴·펼친 손·지시봉 상담 식별. 미세 손금 선은 작게 보임.",
+      "source": "exec-bd13b094-a3dc-4f09-ac7a-3115f3b99d80.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "physiognomy",
+      "status": "pass",
+      "reason": "거울과 눈·코·입·귀 도해로 관상 식별.",
+      "source": "exec-eaf6d092-3fc2-4909-acf5-1f845c068c2a.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "dream",
+      "status": "pass",
+      "reason": "꿈속 상징을 떠올리고 기록하는 장면 명확.",
+      "source": "exec-87c23d4b-54dc-4249-a671-321020c83a4b.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "psychotest",
+      "status": "pass",
+      "reason": "장면·상징 선택과 자기 성찰 전달.",
+      "source": "exec-277c6ae2-574d-4fbb-acac-ba87238364af.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "manse",
+      "status": "pass",
+      "reason": "네 기둥과 오행 연결·시간 흐름이 구별됨.",
+      "source": "exec-a076d0c5-3464-4a6d-bb46-905af33cda11.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "famous-saju",
+      "status": "pass",
+      "reason": "인물 초상과 오행 성향 비교가 명확. 실존 인물 식별을 요구하지 않는 소개 상징으로 검수.",
+      "source": "exec-5b0ea85f-b075-4ee0-b7ec-f6991ff7d8ba.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "animal-destiny",
+      "status": "pass",
+      "reason": "동물 도감과 대표 동물·성향 상징이 잘 전달됨.",
+      "source": "exec-5b5c0025-a1ca-4d25-8c2a-1b1f36c10412.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "kemet-oracle",
+      "status": "pass",
+      "reason": "이집트 신화 카드 세 장, 나일강 배경이 명확. 고유 상형 도상은 문구와 구분.",
+      "source": "exec-92519f1f-e20c-4fa4-93c1-433ab94b4b17.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "ifa-oracle",
+      "status": "pass",
+      "reason": "서아프리카 배경과 점복 패를 다루는 손이 구별됨. 손의 추가·융합 없음.",
+      "source": "exec-fa37744d-9d73-4e0a-b433-eeb69421fac7.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "juyuk-turtle",
+      "status": "pass",
+      "reason": "거북 등껍질과 괘·동전이 핵심. 괘 도상은 허용.",
+      "source": "exec-c4cea4ab-89fb-4005-ad1c-aaf9b9a36fd6.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "neville-meditation",
+      "status": "pass",
+      "reason": "원하는 장면을 상상하는 구체적 풍경과 명상 도구가 구별됨.",
+      "source": "exec-3d6c0561-a8d2-4b4f-b469-424f1deef606.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yoga-guru",
+      "status": "pass",
+      "reason": "현재 수정본은 여섯 요가 자세와 매트·볼스터로 기능을 전달하며 기존 카드 숫자를 제거했습니다. 320px에 자세 차이가 남고 명확한 사지 오류가 없습니다.",
+      "source": "exec-e507a2f5-6e48-46d7-b9f5-9093d3665995.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot-numerology",
+      "status": "pass",
+      "reason": "현재 재편집본은 뒤 펼친 카드들을 문자 없는 뒷면으로 바꾸어 가짜 라벨을 제거했습니다. 앞 두 카드와 서로 다른 구슬 계산 도구는 320px에도 구별됩니다.",
+      "source": "exec-e9336824-1d72-4a27-9de3-afc09c89f54b.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "dream-psycho-analysis",
+      "status": "pass",
+      "reason": "현재 수정본은 두 관점의 인물 초상과 어두운 숲·하늘을 나는 고래의 꿈을 대비시켰습니다. 320px에서도 두 꿈 장면과 분석 구도가 남고 기존 종이의 글줄은 제거됐습니다.",
+      "source": "exec-ac577f58-22f8-4771-bc21-a57ba6a6de47.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "animal-totem",
+      "status": "pass",
+      "reason": "수호 동물과 동물 카드가 일치하고 주제가 명확함.",
+      "source": "exec-d0e8eaa2-9580-4894-916c-c230a86884cc.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "mbti-animal-compat",
+      "status": "pass",
+      "reason": "서로 다른 두 동물과 두 사람의 성향 비교가 명확함.",
+      "source": "exec-d3e48965-19ac-4872-8da4-e14dc6bdd3aa.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot-crystal-soul",
+      "status": "pass",
+      "reason": "원석 선택 손과 다섯 장 카드가 구별됨. 손가락의 명백한 이상 없음.",
+      "source": "exec-6009bfc5-38d1-4f8e-bcc5-eb70c730deb4.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "royal-tea-oracle",
+      "status": "pass",
+      "reason": "잔 안의 찻잎 형상이 크게 보이며 차점으로 식별됨.",
+      "source": "exec-e4bc077c-fa70-4641-aa19-395c960b5f87.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "geomancy-oracle",
+      "status": "pass",
+      "reason": "현재 재편집본은 15개 방패의 8-4-2-1 계층과 각 점괘의 네 행을 모두 표현합니다. 모래에 점을 던지는 동작이 320px에도 보이고 문자·손 오류가 없습니다.",
+      "source": "exec-cd2cdab2-4bfa-407c-b9db-76b217053e8b.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "stonehenge-runes",
+      "status": "pass",
+      "reason": "세 룬 돌과 스톤헨지 배경 명확. 룬은 기능 고유 도상으로 허용.",
+      "source": "exec-bf687821-2885-4976-96f6-0c417174f2ed.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "luck-sync-diary",
+      "status": "pass",
+      "reason": "현재 수정본은 문자 없는 달력 칸과 감정 도상·세 색 추세선을 나란히 보여 운과 기록 비교를 전달합니다. 320px에 일기와 그래프가 선명하고 기존 날짜·요일 글자가 제거됐습니다.",
+      "source": "exec-c01209f9-f3ca-48a8-9b04-b50e2dee624b.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "sukyo",
+      "status": "pass",
+      "reason": "두 구체의 거리와 겹침, 관계 장면 카드로 궁합 의미 전달.",
+      "source": "exec-ace8af69-ceb2-4580-a97e-edfcd3a91ec8.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot-prompt-maker",
+      "status": "pass",
+      "reason": "카드를 직접 선택해 배치하는 장면과 여러 스프레드 도구가 명확. 손의 명백한 이상 없음.",
+      "source": "exec-33e27eb4-9fd6-4671-bd71-05a20f1e6650.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "face-reading",
+      "status": "pass",
+      "reason": "거울 속 얼굴과 다양한 동물 표정으로 동물상 관상이 명확.",
+      "source": "exec-82d5f5d5-86d9-48ac-bd14-2ec2017a33e0.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "bias-destiny",
+      "status": "pass",
+      "reason": "두 인물 포토카드와 다섯 축 비교·무드 이미지가 구별됨.",
+      "source": "exec-a5817a41-21d2-4d20-ba9c-25070cb9796f.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "love-code",
+      "status": "pass",
+      "reason": "현재 수정본은 다섯 관계 축의 도상과 두 설문지·두 하트를 연결해 관계 진단을 전달합니다. 320px에서도 다섯 색과 두 사람의 연결이 보이며 기존 가짜 글자·숫자가 제거됐습니다.",
+      "source": "exec-af048e7a-381b-48f4-a271-a23fe9400d86.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "omikuji",
+      "status": "pass",
+      "reason": "쪽지를 뽑아 펼치는 손과 쪽지함이 명확. 손의 명백한 이상 없음.",
+      "source": "exec-5f0f7cf7-3574-43fb-9502-04b75594b246.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "saju-animal",
+      "status": "pass",
+      "reason": "수호 동물 카드와 오행색 연결이 구별되고 십이지 동물 도감과 다른 구성.",
+      "source": "exec-41016adb-232d-4ffb-af08-42cf15e7303a.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "destiny-meeting-place",
+      "status": "pass",
+      "reason": "국가별 장소·계절·지도가 인연의 장소 탐색을 전달.",
+      "source": "exec-96230098-fd55-4f15-85db-ec7408bffb5b.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "ziwei-ai",
+      "status": "pass",
+      "reason": "현재 수정본은 무성이 내담자에게 중앙이 빈 사각 열두 궁을 설명하는 장면입니다. 320px에서도 일반 자미두수 이미지와 상담 구도가 구별되고 기존 원형 차트 오류·문자가 없습니다.",
+      "source": "exec-3b5c01cb-fd61-4031-85d8-1f9ea2179b03.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "destiny-flower",
+      "status": "pass",
+      "reason": "다섯 오행색과 꽃이 연결되고 다른 꽃 기능과 구별됨.",
+      "source": "exec-1041c0b3-02d5-4b67-906d-39bce55f263a.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "astrology-flower",
+      "status": "pass",
+      "reason": "태양·달·황도 원판과 꽃 조합이 명확. 고유 점성 도상은 일반 문구와 구분.",
+      "source": "exec-94179db0-b7cd-478b-b20b-6692c9e161ba.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "ziwei-flower",
+      "status": "pass",
+      "reason": "현재 수정본은 사각 열두 궁 각각에 꽃과 별군을 배치해 꽃으로 보는 자미두수를 전달합니다. 320px에도 꽃과 명반이 함께 보이고 원형 체계 오류·문자가 없습니다.",
+      "source": "exec-10e304b7-ad35-46cb-b8ba-79c0cdfc6728.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "sukuyo-flower",
+      "status": "pass",
+      "reason": "본명숙을 연상시키는 달 중심 별 자리와 꽃 연결이 명확.",
+      "source": "exec-986fe06b-bc2a-44e9-b0cd-01ca75749ed2.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "cosmic-soul-meditation",
+      "status": "pass",
+      "reason": "의도 카드·싱잉볼·모래시계·저널이 안내 명상과 기록 흐름을 전달.",
+      "source": "exec-89285215-f690-4d21-8f7f-3c685f5b69fd.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "olympus-oracle",
+      "status": "pass",
+      "reason": "그리스 신화 조각과 태양·달·행성 모형이 기능을 구별함.",
+      "source": "exec-0eba8980-a805-4fb9-9187-d057095d4836.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "sukuyo-compatibility-ai",
+      "status": "pass",
+      "reason": "한비 외형 유지. 두 달 도표와 연결선을 읽는 행동으로 관계 흐름 전달.",
+      "source": "exec-8dd68f99-cbdb-4ac5-90ec-3869d2960bbe.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "astrology-ai",
+      "status": "pass",
+      "reason": "윤달 외형 유지. 원형 출생차트와 행성 연결 각도를 짚어 상담 기능 전달.",
+      "source": "exec-fba731fd-2bbe-4303-9850-f3af621f265f.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "vedic-ai",
+      "status": "pass",
+      "reason": "윤달 외형 유지. 마름모 차트와 시간축 구슬을 설명하는 자세가 일반 점성술과 구별됨.",
+      "source": "exec-2774f86b-d7ff-4a38-9a68-3b3d676d356e.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "nakshatra-ai",
+      "status": "pass",
+      "reason": "현재 수정본은 북인도식 중앙 네 마름모·외곽 여덟 삼각형 차트와 달이 지나는 열린 별군 띠, 상담자와 내담자의 비교 동작을 보여줍니다. 320px에 도구와 상담이 구별되고 동물 황도 혼입·가짜 글자가 해소됐습니다.",
+      "source": "exec-0a7cbd0a-9536-480f-9cf0-b094a5a89f06.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "nakshatra-vvip-codex",
+      "status": "pass",
+      "reason": "현재 재편집본은 올바른 북인도식 명반을 유지하고 잘못된 개수의 별군 링을 달과 열린 별흐름으로 대체했습니다. 320px에도 두 펼친 페이지의 전문 도구가 구별되고 문자는 없습니다.",
+      "source": "exec-fe05c84d-3b3d-4e4a-8a53-a1336f3f7700.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "fortune-prompt-hub",
+      "status": "pass",
+      "reason": "현재 수정본은 빈 작업노트와 펜 주변에 네 기둥형 표본·별판·마름모판·타로·말풍선 도구를 놓아 여러 점술 질문을 정리하는 작업대를 전달합니다. 320px에 다양한 도구가 남으며 기존 지도 가짜 글줄이 제거됐습니다.",
+      "source": "exec-a4a08cfb-0bc0-4a22-b2d3-a450518b9106.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot-healing",
+      "status": "pass",
+      "reason": "네 카드가 지친 인물·마음의 개화·햇빛·작은 길로 회복 흐름을 전달합니다. 320px에도 네 장과 새벽빛이 구별되고 문자나 손 오류가 없습니다.",
+      "source": "exec-c0ec9832-30fa-4911-be42-e3d5210945c0.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tarot-self-esteem",
+      "status": "pass",
+      "reason": "다섯 카드에 얽힌 길·위축된 마음·자기 회복·타인에게 경계 세우기·새 길이 나뉘며 빈 노트에 기준을 쓰는 동작이 보입니다. 320px에 카드 수와 자기돌봄 분위기가 유지되고 문자는 없습니다.",
+      "source": "exec-bd07bed2-bebf-4302-801c-26a90ece9ac9.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "hwatu",
+      "status": "pass",
+      "reason": "붉은 뒷면과 꽃·달·단풍 화투패를 뒤집는 동작이 320px에서도 즉시 보입니다. 손의 명확한 구조 오류나 문자는 없습니다.",
+      "source": "exec-ed799969-8f79-4654-93f2-710017fade06.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "sikojen-povailu",
+      "status": "pass",
+      "reason": "연꽃 장식과 보라 스카프의 돼지 연이가 물그릇의 은색 주석 형상을 들고 벽 그림자를 살핍니다. 금전·사랑·행운 주머니와 주석/그림자 구별이 320px에도 남고 문자가 없습니다.",
+      "source": "exec-c2cf102f-f3be-48b4-9c53-647d00b5a074.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "destiny-island",
+      "status": "pass",
+      "reason": "현재 수정본은 네오와 돼지 연이의 외형을 유지하며 서로 다른 궁전 섬을 탐색하는 모형과 깃발을 보여줍니다. 실제 명반인 듯한 방사형 차트는 사라지고 탐험 모형으로 표현됐습니다. 320px에 두 담당과 섬 탐험이 함께 보이고 문자·손 오류가 없습니다.",
+      "source": "exec-46a3971e-f700-4262-ad36-f234da26dca7.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "life-fortune-ai",
+      "status": "pass",
+      "reason": "개인 기질·연애·일과 재물·앞으로의 길 네 주제가 별 흐름 지도 주변에 분명히 나뉩니다. 320px에서도 복수 인생 영역을 읽는 장면이며 명확한 가짜 문구나 해부학 오류가 없습니다.",
+      "source": "exec-ac18cec5-939d-4cd6-9a6b-b4e27f8d8714.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "pet-saju",
+      "status": "pass",
+      "reason": "현재 수정본은 보호자와 강아지·고양이의 친밀감에 두루마리와 목화토금수 실물을 연결했습니다. 320px에 반려동물·보호자·사주 도구가 구별되고 기존 가짜 한자·동물 원형판 혼동은 제거됐습니다.",
+      "source": "exec-18dffa67-87a3-4fa7-ad92-88725c982be2.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yeon-star-hug",
+      "status": "pass",
+      "reason": "돼지 연이의 연꽃·스카프 외형을 유지하며 별을 안고 달과 별자리 아래 위로하는 장면입니다. 320px에서 포옹과 편안한 표정이 보이고 문자와 손 오류가 없습니다.",
+      "source": "exec-07e80057-ce30-48f5-a24a-8164e764c89c.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yeongnyangi-saju",
+      "status": "pass",
+      "reason": "현재 수정본은 영냥이 외형을 유지하고 목화토금수 다섯 실물을 선명하게 배치했습니다. 특히 금속이 구름 대신 은색 금속으로 수정됐고 문자는 없습니다. 320px에서도 얼굴과 오행이 함께 보입니다.",
+      "source": "exec-267112dc-aa48-4c7b-87fe-bbbba866972d.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yeongnyangi-tarot",
+      "status": "pass",
+      "reason": "영냥이의 흰 털·남색 달 모자·보라 보석을 유지하며 직접 카드를 들고 펼친 카드에 발을 얹었습니다. 320px에서도 타로가 명확하고 번호·문구 혼입이나 발 오류가 없습니다.",
+      "source": "exec-221c85ef-18b2-466e-bd01-8e27f01f8c77.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yeongnyangi-ziwei",
+      "status": "pass",
+      "reason": "현재 수정본은 영냥이가 중앙이 빈 사각 열두 궁 별판을 직접 가리킵니다. 서양 황도 도상이 제거되고 별군으로 구별되며 320px에도 얼굴·지시봉·명반이 남습니다.",
+      "source": "exec-4877fcc2-289e-491e-a092-82cda5b2c70e.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yeongnyangi-astrology",
+      "status": "pass",
+      "reason": "영냥이가 지시봉으로 원형 하우스·행성·교차 각도선을 짚어 서양 점성술이 320px에도 명확합니다. 장식적 천문 기호는 기능 도상으로 판단하며 문장 형태의 가짜 문구나 발 오류는 없습니다.",
+      "source": "exec-6bbd4949-4bac-407c-b2d6-8e22de99204a.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yeongnyangi-vedic",
+      "status": "pass",
+      "reason": "영냥이가 마름모 분할 차트를 짚고 옆에 달의 위상과 행성 순서 두루마리가 있어 서양 원형 차트와 구별됩니다. 320px에 담당과 핵심 차트가 남고 명확한 글자·발 오류가 없습니다.",
+      "source": "exec-efc76592-20d0-47ae-9590-435a964fe313.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yeongnyangi-sukuyo",
+      "status": "pass",
+      "reason": "영냥이가 두 사람의 달 초상 사이 연결선과 거리를 짚어 관계 상담을 전달합니다. 320px에도 두 사람과 연결 경로가 보이고 명확한 문구 혼입이나 발 오류가 없습니다.",
+      "source": "exec-05aedb75-23fa-4c7a-b7fb-67dad1a84f84.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yeongnyangi-fusion-saju-ziwei",
+      "status": "pass",
+      "reason": "현재 수정본은 영냥이가 사주 네 기둥과 오행 실물, 중앙이 빈 사각 열두 궁을 양손으로 비교합니다. 320px에서도 두 체계가 구별되며 가짜 문자와 기존 아홉 칸 오류가 제거됐습니다.",
+      "source": "exec-37a9e1ae-f813-437c-bd0f-9ad2d07a8389.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yeongnyangi-fusion-sukuyo-vedic",
+      "status": "pass",
+      "reason": "현재 수정본은 두 달의 관계선과 북인도식 중앙 네 마름모·외곽 여덟 삼각형 차트를 나란히 보여줍니다. 영냥이가 두 도구를 소개하며 320px에도 체계가 구별되고 문자가 없습니다.",
+      "source": "exec-a7563d93-618d-40c3-b097-6a8fab71b9b0.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yeongnyangi-fusion-astrology-tarot",
+      "status": "pass",
+      "reason": "영냥이가 서양 원형 별자리판을 짚고 옆에 세 타로 카드를 나란히 둬 두 체계를 비교하는 기능이 320px에서도 보입니다. 카드 가장자리 작은 표장은 장식 도상으로 보이며 명확한 가짜 문구·발 오류는 없습니다.",
+      "source": "exec-fd0228f5-267c-4de7-8316-22080b71e587.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "yeongnyangi-fusion-all",
+      "status": "pass",
+      "reason": "현재 재편집본은 베다 명반을 중앙 네 마름모·외곽 여덟 삼각형으로 수정했습니다. 영냥이와 사주 네 기둥·사각 열두 궁·서양 원형 차트·두 달 관계·타로가 320px에도 구별되고 문자는 없습니다.",
+      "source": "exec-0f3b959d-54a2-4747-a5bd-dfda26376e3c.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "neo-consultation",
+      "status": "pass",
+      "reason": "은발·푸른 눈·남색 금장 제복의 네오가 편지와 봉투를 정리해 상담 답신을 준비합니다. 320px에 얼굴과 편지 동작이 함께 남고 명확한 문자·손 오류가 없습니다.",
+      "source": "exec-73b901a0-52f0-454a-9238-0b42543c7b1c.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "fortune-chat-yeoni",
+      "status": "pass",
+      "reason": "분홍 웨이브 머리와 꽃 장식의 인간 연이, 돼지 연이가 찻잔과 펼친 상담책 앞에서 맞이합니다. 빈 맞은편 의자로 대화 진입을 전달하며 320px에도 두 연이와 상담 도구가 보입니다. 문자·손 오류가 없습니다.",
+      "source": "exec-41213fcc-6a03-4d94-81eb-ef9034fdf58b.png",
+      "inspected": [
+        "original",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tea-saju",
+      "status": "pass",
+      "reason": "인간 연이의 분홍 웨이브 머리·꽃 장식·크림 꽃 한복을 유지하고 네 기둥 그림과 오행 표장을 가리킵니다. 320px에 얼굴과 사주 도구가 함께 남고 명확한 문자·손 오류가 없습니다.",
+      "source": "exec-2d3f1853-bdfa-4672-aeb5-7586a5ecd5a1.png",
+      "inspected": [
+        "source PNG",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tea-tarot",
+      "status": "pass",
+      "reason": "인간 연이가 태양·달·꽃 세 카드 중 하나를 짚어 찻집 타로 상담을 전달합니다. 320px에 표정과 세 카드가 구별되고 문자·손 오류가 없습니다.",
+      "source": "exec-850a6295-e826-4ed3-859e-a5ac543a3b4b.png",
+      "inspected": [
+        "source PNG",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tea-sukuyo",
+      "status": "pass",
+      "reason": "인간 연이가 크기와 거리가 다른 두 달을 잇는 실을 살펴 관계 거리 상담을 전달합니다. 320px에 얼굴·두 달·연결선이 남고 문자·손 오류가 없습니다.",
+      "source": "exec-104e9ae6-da49-4d65-85a1-03392154b744.png",
+      "inspected": [
+        "source PNG",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tea-saju-joint",
+      "status": "pass",
+      "reason": "인간 연이와 네오가 같은 네 기둥 그림·오행 실물·빈 계획 노트를 함께 살핍니다. 두 인물 외형과 별개의 손이 자연스럽고 320px에도 공동 사주 상담이 구별되며 문자는 없습니다.",
+      "source": "exec-b36cfec1-48e7-444d-991d-86956d8656a4.png",
+      "inspected": [
+        "source PNG",
+        "320px"
+      ]
+    },
+    {
+      "slug": "neo-saju",
+      "status": "pass",
+      "reason": "은발·푸른 눈·남색 금장 제복의 네오가 네 기둥 그림과 다섯 원소를 가리키고 전략 소품을 곁들였습니다. 320px에도 사주 분석 장면이 보이고 문자·손 오류가 없습니다.",
+      "source": "exec-098dab5c-2d99-4fa5-9f9d-e0332b84f98f.png",
+      "inspected": [
+        "source PNG",
+        "320px"
+      ]
+    },
+    {
+      "slug": "neo-vedic",
+      "status": "pass",
+      "reason": "네오가 북인도식 마름모·삼각형 명반과 시기 구슬을 비교합니다. 서양 원형 차트와 구별되고320px에도 담당과 베다 도구가 남으며 명확한 문자·손 오류가 없습니다.",
+      "source": "exec-0253dbc0-bd98-4e2c-866e-dafcc5014fed.png",
+      "inspected": [
+        "source PNG",
+        "320px"
+      ]
+    },
+    {
+      "slug": "neo-ziwei",
+      "status": "pass",
+      "reason": "네오가 중앙이 빈 사각 열두 궁에 별 말뚝을 놓습니다. 위4·아래4·좌2·우2 구조와 손동작이 원본에서 명확하며320px에도 담당과 자미두수가 구별되고 문자는 없습니다.",
+      "source": "exec-6fc716e1-37b0-4fff-a45e-a0e6ae077adc.png",
+      "inspected": [
+        "source PNG",
+        "320px"
+      ]
+    },
+    {
+      "slug": "neo-astrology",
+      "status": "pass",
+      "reason": "최종 수정본은 천구의 금색 띠와 차트 바깥 테두리의 가짜 글줄을 제거했습니다. 네오의 외형·천구의를 돌리는 손동작·서양 원형 하우스와 행성 각도선이320px에도 구별되며 남은 기호는 점성술 도상입니다.",
+      "source": "exec-daf6e21f-be00-474a-bca0-bc700b22872e.png",
+      "inspected": [
+        "source PNG",
+        "320px"
+      ]
+    },
+    {
+      "slug": "tea-saju-compat",
+      "status": "pass",
+      "reason": "인간 연이가 두 사람을 뜻하는 네 기둥 두 세트를 나란히 비교하며 붉은 실로 연결합니다. 320px에도 두세트·담당·관계 연결이 보이고 펼친 두 손과 문구 없는 도상이 자연스럽습니다.",
+      "source": "exec-879039a0-70ab-4108-88db-5b15cb64d345.png",
+      "inspected": [
+        "source PNG",
+        "320px"
+      ]
+    }
+  ]
+}

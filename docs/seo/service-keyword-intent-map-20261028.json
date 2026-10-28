@@ -1,0 +1,2107 @@
+{
+  "observedAt": "2026-10-28 KST 16:55–17:20",
+  "source": "https://tool.keywordcockpit.com/",
+  "method": "무료 화면의 네이버 최근 30일 검색량·광고 경쟁도 직접 조회 및 최대 15개 연관어 확인. 원본 API 직접 호출 없음.",
+  "limitations": [
+    "도구가 PC/모바일 각각 <10을 5로 치환하므로 <10으로 복원하고 정확한 합계는 null로 남김.",
+    "광고 경쟁도는 자연 검색 난도가 아님. 노출·유입·순위 보장 없음.",
+    "MBTI궁합의 직접 조회 경쟁도는 중간, MBTI 연관 목록은 높음으로 상충. 직접 조회를 기록하고 재확인 필요.",
+    "블로그 발행량과 검색량은 모집단이 달라 기회 지수를 예상 방문자로 사용하지 않음.",
+    "existing_catalog_unmeasured/editorial_expansion_unmeasured는 검색량 미측정 편집 후보. 수량을 늘리려고 가짜 지표를 넣지 않음.",
+    "세부 심리테스트 기존 noindex 유지. 색인 대상 허브의 안내와 내부 링크를 개선."
+  ],
+  "priorities": [
+    "HSP·정신연령·공감능력 → 무료 심리테스트 허브",
+    "휴먼 디자인 차트·무료 → 공개 가이드",
+    "MBTI 연애 궁합 → 기존 동물 궁합",
+    "꿀꿀운세·운세보는 영냥이·네오사주 → 브랜드 소유 페이지",
+    "헤이지니·양홍원 → 출처 연결된 편집 초안, 공개 승인 전 noindex"
+  ],
+  "items": [
+    {
+      "keyword": "네오사주",
+      "origin": "direct_query",
+      "pc": 40,
+      "mobile": 130,
+      "total": 170,
+      "adCompetition": "낮음",
+      "adIndex": 7,
+      "owner": "/about/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "사주성지",
+      "origin": "direct_query",
+      "pc": "<10",
+      "mobile": 70,
+      "total": null,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/about/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "사주적성",
+      "origin": "direct_query",
+      "pc": "<10",
+      "mobile": "<10",
+      "total": null,
+      "adCompetition": "낮음",
+      "adIndex": 20,
+      "owner": "/saju/career-style/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "사주성격",
+      "origin": "direct_query",
+      "pc": "<10",
+      "mobile": 20,
+      "total": null,
+      "adCompetition": "낮음",
+      "adIndex": 20,
+      "owner": "/saju/career-style/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "진로사주",
+      "origin": "direct_query",
+      "pc": 20,
+      "mobile": 110,
+      "total": 130,
+      "adCompetition": "중간",
+      "adIndex": 47,
+      "owner": "/saju/career-style/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "사주직업",
+      "origin": "direct_query",
+      "pc": 10,
+      "mobile": 130,
+      "total": 140,
+      "adCompetition": "높음",
+      "adIndex": 67,
+      "owner": "/saju/career-style/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "직업운",
+      "origin": "direct_query",
+      "pc": 680,
+      "mobile": 150,
+      "total": 830,
+      "adCompetition": "높음",
+      "adIndex": 67,
+      "owner": "/saju/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "휴먼디자인",
+      "origin": "direct_query",
+      "pc": 220,
+      "mobile": 2520,
+      "total": 2740,
+      "adCompetition": "낮음",
+      "adIndex": 20,
+      "owner": "/human-design/guide/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "MBTI",
+      "origin": "direct_query",
+      "pc": 16400,
+      "mobile": 89400,
+      "total": 105800,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/psychotest/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "꿀꿀운세",
+      "origin": "direct_query",
+      "pc": 10,
+      "mobile": 20,
+      "total": 30,
+      "adCompetition": "낮음",
+      "adIndex": 7,
+      "owner": "/about/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "운세보는영냥이",
+      "origin": "direct_query",
+      "pc": "<10",
+      "mobile": "<10",
+      "total": null,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/yeongnyangi/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "MBTI궁합",
+      "origin": "direct_query",
+      "pc": 2340,
+      "mobile": 19700,
+      "total": 22040,
+      "adCompetition": "중간",
+      "adIndex": 47,
+      "owner": "/animal/mbti/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "심리테스트",
+      "origin": "direct_query",
+      "pc": 3460,
+      "mobile": 12600,
+      "total": 16060,
+      "adCompetition": "높음",
+      "adIndex": 67,
+      "owner": "/psychotest/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "휴먼디자인무료",
+      "origin": "direct_query",
+      "pc": "<10",
+      "mobile": 190,
+      "total": null,
+      "adCompetition": "낮음",
+      "adIndex": 13,
+      "owner": "/human-design/guide/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "유명인사주",
+      "origin": "direct_query",
+      "pc": 20,
+      "mobile": 50,
+      "total": 70,
+      "adCompetition": "낮음",
+      "adIndex": 20,
+      "owner": "/insights/famous-saju/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "연예인사주",
+      "origin": "direct_query",
+      "pc": 60,
+      "mobile": 530,
+      "total": 590,
+      "adCompetition": "중간",
+      "adIndex": 27,
+      "owner": "/insights/famous-saju/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "헤이지니사주",
+      "origin": "direct_query",
+      "pc": 30,
+      "mobile": 320,
+      "total": 350,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/insights/famous-saju/hey-jini/",
+      "status": "draft_noindex"
+    },
+    {
+      "keyword": "양홍원사주",
+      "origin": "direct_query",
+      "pc": 290,
+      "mobile": 4480,
+      "total": 4770,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/insights/famous-saju/yang-hong-won/",
+      "status": "draft_noindex"
+    },
+    {
+      "keyword": "박위사주",
+      "origin": "direct_query",
+      "pc": "<10",
+      "mobile": "<10",
+      "total": null,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/insights/famous-saju/park-wi/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "HSP테스트",
+      "origin": "direct_query",
+      "pc": 760,
+      "mobile": 7100,
+      "total": 7860,
+      "adCompetition": "낮음",
+      "adIndex": 7,
+      "owner": "/psychotest/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "정신연령테스트",
+      "origin": "direct_query",
+      "pc": 210,
+      "mobile": 2000,
+      "total": 2210,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/psychotest/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "연애심리테스트",
+      "origin": "direct_query",
+      "pc": 220,
+      "mobile": 1650,
+      "total": 1870,
+      "adCompetition": "높음",
+      "adIndex": 67,
+      "owner": "/psychotest/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "성격테스트",
+      "origin": "direct_query",
+      "pc": 500,
+      "mobile": 3410,
+      "total": 3910,
+      "adCompetition": "높음",
+      "adIndex": 67,
+      "owner": "/psychotest/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "직장인테스트",
+      "origin": "direct_query",
+      "pc": "<10",
+      "mobile": 20,
+      "total": null,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/psychotest/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "휴먼디자인차트",
+      "origin": "direct_query",
+      "pc": 50,
+      "mobile": 650,
+      "total": 700,
+      "adCompetition": "낮음",
+      "adIndex": 7,
+      "owner": "/human-design/guide/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "무료심리테스트",
+      "origin": "direct_query",
+      "pc": 160,
+      "mobile": 430,
+      "total": 590,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/psychotest/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "MBTI테스트",
+      "origin": "direct_query",
+      "pc": 2270,
+      "mobile": 19000,
+      "total": 21270,
+      "adCompetition": "높음",
+      "adIndex": 67,
+      "owner": "/psychotest/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "MBTI연애궁합",
+      "origin": "direct_query",
+      "pc": 40,
+      "mobile": 490,
+      "total": 530,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/animal/mbti/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "예민도테스트",
+      "origin": "direct_query",
+      "pc": 20,
+      "mobile": 210,
+      "total": 230,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/psychotest/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "공감능력테스트",
+      "origin": "direct_query",
+      "pc": 70,
+      "mobile": 470,
+      "total": 540,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/psychotest/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "휴먼디자인해석",
+      "origin": "direct_query",
+      "pc": "<10",
+      "mobile": "<10",
+      "total": null,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/human-design/guide/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "휴먼디자인프로젝터",
+      "origin": "direct_query",
+      "pc": "<10",
+      "mobile": 10,
+      "total": null,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/human-design/guide/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "영냥이",
+      "origin": "direct_query",
+      "pc": "<10",
+      "mobile": 20,
+      "total": null,
+      "adCompetition": "낮음",
+      "adIndex": 0,
+      "owner": "/yeongnyangi/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "타로",
+      "origin": "direct_query",
+      "pc": 4690,
+      "mobile": 30100,
+      "total": 34790,
+      "adCompetition": "높음",
+      "adIndex": 67,
+      "owner": "/tarot/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "사주",
+      "origin": "direct_query",
+      "pc": 12400,
+      "mobile": 83500,
+      "total": 95900,
+      "adCompetition": "높음",
+      "adIndex": 67,
+      "owner": "/saju/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "꿈해몽",
+      "origin": "direct_query",
+      "pc": 3920,
+      "mobile": 58200,
+      "total": 62120,
+      "adCompetition": "높음",
+      "adIndex": 67,
+      "owner": "/dream/",
+      "status": "existing_page"
+    },
+    {
+      "keyword": "MBTI검사",
+      "origin": "related_query",
+      "parent": "MBTI",
+      "pc": 32900,
+      "mobile": 303000,
+      "total": 335900,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "MBTI검사무료",
+      "origin": "related_query",
+      "parent": "MBTI",
+      "pc": 13900,
+      "mobile": 130200,
+      "total": 144100,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "엠비티아이검사",
+      "origin": "related_query",
+      "parent": "MBTI",
+      "pc": 4550,
+      "mobile": 79900,
+      "total": 84450,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "MBTI유형",
+      "origin": "related_query",
+      "parent": "MBTI",
+      "pc": 3030,
+      "mobile": 28300,
+      "total": 31330,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "우울증테스트",
+      "origin": "related_query",
+      "parent": "MBTI",
+      "pc": 1800,
+      "mobile": 22300,
+      "total": 24100,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "무료MBTI검사",
+      "origin": "related_query",
+      "parent": "MBTI",
+      "pc": 1980,
+      "mobile": 16900,
+      "total": 18880,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "NBTI테스트",
+      "origin": "related_query",
+      "parent": "MBTI",
+      "pc": 750,
+      "mobile": 9180,
+      "total": 9930,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "MBTI검사사이트",
+      "origin": "related_query",
+      "parent": "MBTI",
+      "pc": 1360,
+      "mobile": 8360,
+      "total": 9720,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "MMPI검사",
+      "origin": "related_query",
+      "parent": "MBTI",
+      "pc": 920,
+      "mobile": 4820,
+      "total": 5740,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "스트레스지수테스트",
+      "origin": "related_query",
+      "parent": "MBTI",
+      "pc": 460,
+      "mobile": 3680,
+      "total": 4140,
+      "adCompetition": "낮음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "DISC검사",
+      "origin": "related_query",
+      "parent": "MBTI",
+      "pc": 810,
+      "mobile": 2760,
+      "total": 3570,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "서울가볼만한곳",
+      "origin": "related_query",
+      "parent": "심리테스트",
+      "pc": 13800,
+      "mobile": 107700,
+      "total": 121500,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "연인",
+      "origin": "related_query",
+      "parent": "심리테스트",
+      "pc": 4530,
+      "mobile": 37300,
+      "total": 41830,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "공황장애증상",
+      "origin": "related_query",
+      "parent": "심리테스트",
+      "pc": 3340,
+      "mobile": 37500,
+      "total": 40840,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "나르시시스트",
+      "origin": "related_query",
+      "parent": "심리테스트",
+      "pc": 3880,
+      "mobile": 32400,
+      "total": 36280,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "서울놀거리",
+      "origin": "related_query",
+      "parent": "심리테스트",
+      "pc": 5720,
+      "mobile": 30200,
+      "total": 35920,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "자율신경실조증",
+      "origin": "related_query",
+      "parent": "심리테스트",
+      "pc": 3860,
+      "mobile": 29800,
+      "total": 33660,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "엄마친구아들",
+      "origin": "related_query",
+      "parent": "심리테스트",
+      "pc": 2640,
+      "mobile": 28000,
+      "total": 30640,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "퍼스널컬러진단",
+      "origin": "related_query",
+      "parent": "심리테스트",
+      "pc": 2970,
+      "mobile": 26500,
+      "total": 29470,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "성수놀거리",
+      "origin": "related_query",
+      "parent": "심리테스트",
+      "pc": 2970,
+      "mobile": 23300,
+      "total": 26270,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "PTSD",
+      "origin": "related_query",
+      "parent": "심리테스트",
+      "pc": 5160,
+      "mobile": 19400,
+      "total": 24560,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "결혼",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 4280,
+      "mobile": 18300,
+      "total": 22580,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "남자친구",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 1110,
+      "mobile": 16800,
+      "total": 17910,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "연애",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 1880,
+      "mobile": 9660,
+      "total": 11540,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "결혼식",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 2130,
+      "mobile": 9380,
+      "total": 11510,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "결정사",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 2460,
+      "mobile": 8230,
+      "total": 10690,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "결혼정보회사",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 3130,
+      "mobile": 7460,
+      "total": 10590,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "소개팅",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 1800,
+      "mobile": 6090,
+      "total": 7890,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "웨딩",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 1580,
+      "mobile": 5120,
+      "total": 6700,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "사별",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 670,
+      "mobile": 4000,
+      "total": 4670,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "잘생긴남자",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 540,
+      "mobile": 4000,
+      "total": 4540,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "커플",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 740,
+      "mobile": 3600,
+      "total": 4340,
+      "adCompetition": "낮음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "배우자",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 850,
+      "mobile": 2340,
+      "total": 3190,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "이상형테스트",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 470,
+      "mobile": 2700,
+      "total": 3170,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "소개",
+      "origin": "related_query",
+      "parent": "연애심리테스트",
+      "pc": 750,
+      "mobile": 2120,
+      "total": 2870,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 147700,
+      "mobile": 1742200,
+      "total": 1889900,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "띠별운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 163900,
+      "mobile": 1213600,
+      "total": 1377500,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "별자리운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 117200,
+      "mobile": 737800,
+      "total": 855000,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "오늘운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 98400,
+      "mobile": 500500,
+      "total": 598900,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "띠별오늘의운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 7010,
+      "mobile": 70600,
+      "total": 77610,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "오늘의띠별운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 4190,
+      "mobile": 41100,
+      "total": 45290,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "인터넷사주",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 4250,
+      "mobile": 33200,
+      "total": 37450,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "무료사주",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 4700,
+      "mobile": 25800,
+      "total": 30500,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "물병자리운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 6840,
+      "mobile": 17000,
+      "total": 23840,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "내일의운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 1900,
+      "mobile": 21900,
+      "total": 23800,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "전갈자리운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 7020,
+      "mobile": 16200,
+      "total": 23220,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "천칭자리운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 6260,
+      "mobile": 16700,
+      "total": 22960,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "물고기자리운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 7350,
+      "mobile": 15300,
+      "total": 22650,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "오늘에운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 400,
+      "mobile": 19200,
+      "total": 19600,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "처녀자리운세",
+      "origin": "related_query",
+      "parent": "타로",
+      "pc": 6010,
+      "mobile": 12500,
+      "total": 18510,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "오늘의운세",
+      "origin": "related_query",
+      "parent": "사주",
+      "pc": 386900,
+      "mobile": 4988700,
+      "total": 5375600,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "손없는날",
+      "origin": "related_query",
+      "parent": "사주",
+      "pc": 15100,
+      "mobile": 77100,
+      "total": 92200,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "식전영상",
+      "origin": "related_query",
+      "parent": "사주",
+      "pc": 11900,
+      "mobile": 15900,
+      "total": 27800,
+      "adCompetition": "중간",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "영어이름",
+      "origin": "related_query",
+      "parent": "사주",
+      "pc": 6060,
+      "mobile": 10000,
+      "total": 16060,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "신점",
+      "origin": "related_query",
+      "parent": "사주",
+      "pc": 1590,
+      "mobile": 13300,
+      "total": 14890,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "자미두수",
+      "origin": "related_query",
+      "parent": "사주",
+      "pc": 1690,
+      "mobile": 10400,
+      "total": 12090,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "사주팔자",
+      "origin": "related_query",
+      "parent": "사주",
+      "pc": 3180,
+      "mobile": 8090,
+      "total": 11270,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "심리상담",
+      "origin": "related_query",
+      "parent": "사주",
+      "pc": 1720,
+      "mobile": 9280,
+      "total": 11000,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "excluded",
+      "reason": "검색 의도가 실제 서비스 범위와 다르거나 전문 진단으로 오인할 우려"
+    },
+    {
+      "keyword": "연애운",
+      "origin": "related_query",
+      "parent": "사주",
+      "pc": 1730,
+      "mobile": 9250,
+      "total": 10980,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "무료꿈해몽풀이",
+      "origin": "related_query",
+      "parent": "사주",
+      "pc": 780,
+      "mobile": 10200,
+      "total": 10980,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "닭띠오늘의운세",
+      "origin": "related_query",
+      "parent": "사주",
+      "pc": 750,
+      "mobile": 9770,
+      "total": 10520,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "쥐띠운세",
+      "origin": "related_query",
+      "parent": "꿈해몽",
+      "pc": 12600,
+      "mobile": 35200,
+      "total": 47800,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "용띠운세",
+      "origin": "related_query",
+      "parent": "꿈해몽",
+      "pc": 11500,
+      "mobile": 36100,
+      "total": 47600,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "원숭이띠운세",
+      "origin": "related_query",
+      "parent": "꿈해몽",
+      "pc": 11200,
+      "mobile": 35300,
+      "total": 46500,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "말띠운세",
+      "origin": "related_query",
+      "parent": "꿈해몽",
+      "pc": 11300,
+      "mobile": 34500,
+      "total": 45800,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "개띠운세",
+      "origin": "related_query",
+      "parent": "꿈해몽",
+      "pc": 10600,
+      "mobile": 33100,
+      "total": 43700,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "양띠운세",
+      "origin": "related_query",
+      "parent": "꿈해몽",
+      "pc": 10500,
+      "mobile": 31100,
+      "total": 41600,
+      "adCompetition": "높음",
+      "owner": null,
+      "status": "candidate_needs_intent_review"
+    },
+    {
+      "keyword": "사이코패스 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/psycho/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "사이코패스 성향",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/psycho/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "성격 심리테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/psycho/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "PCL-R",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/psycho/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "나르시시스트 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/narcissist/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "자기애 성향",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/narcissist/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "나르시시즘 검사",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/narcissist/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "대인관계 심리",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/narcissist/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "성격 유형",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/narcissist/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "분노 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/chihuahua/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "성격 테스트 재미",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/chihuahua/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "감정 조절 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/chihuahua/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "치와와 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/chihuahua/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "스트레스 성향",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/chihuahua/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "아우라 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/aura/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "컬러 성격 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/aura/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "감성 심리테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/aura/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "분위기 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/aura/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "힐링 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/aura/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "T 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/ttest/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "F 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/ttest/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "사고형 감정형",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/ttest/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "MBTI 성향",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/ttest/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "논리 공감 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/ttest/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "페르소나 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/persona/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "겉과 속 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/persona/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "자아 성향",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/persona/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "사회성 심리",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/persona/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "성격 진단",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/persona/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "스릴러 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/thriller/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "상황판단 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/thriller/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "캐릭터 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/thriller/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "심리 유형",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/thriller/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "재미 심리테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/thriller/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "회사 심리테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/office/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "직장 생존",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/office/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "직장 스트레스",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/office/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "오피스 유형",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/office/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "연애 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/seven/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "매력 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/seven/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "호감도 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/seven/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "연애 심리",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/seven/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "커플 성향",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/seven/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "감각 민감성",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/hsp/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "심리 예민함",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/hsp/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "힐링 심리",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/hsp/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "TCI 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/tci/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "기질 검사",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/tci/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "계획 성향 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/tci/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "자기계발 심리",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/tci/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "공감 유형",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/empathy/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "대인관계 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/empathy/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "심리 공감",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/empathy/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "감정 이해",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/empathy/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "심리 나이 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/mental/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "성숙도 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/mental/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "재미 심리검사",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/mental/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "연령 심리",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/mental/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "연애 추구미 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/romance/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "연애 스타일 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/romance/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "썸 성향",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/romance/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "커플 심리",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/romance/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "로맨스 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/romance/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "MBTI 성격 경향",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/mbti/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "나의 연애 언어",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/lovelang/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "전생 직업 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/pastlife/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "나의 도파민 유형",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/dopamine/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "눈치력 테스트",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/nunchi/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "나의 멘탈 강도",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/mentalfit/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "내 안의 빌런 유형",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/villain/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "나의 이상형 시그널",
+      "origin": "existing_catalog_unmeasured",
+      "owner": "/psychotest/",
+      "detail": "/psychotest/idealsignal/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "휴먼 디자인 타입",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/human-design/guide/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "휴먼 디자인 권위",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/human-design/guide/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "휴먼 디자인 전략",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/human-design/guide/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "휴먼 디자인 바디그래프",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/human-design/guide/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "휴먼 디자인 제너레이터",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/human-design/guide/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "휴먼 디자인 매니페스팅 제너레이터",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/human-design/guide/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "휴먼 디자인 매니페스터",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/human-design/guide/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "휴먼 디자인 리플렉터",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/human-design/guide/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "휴먼 디자인 출생시간",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/human-design/guide/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "휴먼 디자인 프로필",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/human-design/guide/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "사주 진로 적성",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/saju/career-style/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "사주 일 스타일",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/saju/career-style/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "월지 직업",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/saju/career-style/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "십성 성향",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/saju/career-style/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "대학생 진로 고민",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/saju/career-style/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "나에게 맞는 업무 환경",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/saju/career-style/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "코드 데스티니",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/about/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "꽃돼지 연이",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/about/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "종합 운세 플랫폼",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/about/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "명리학자 박병하",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/about/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "숙요점",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/sukuyo/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "숙요점 계산기",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/sukuyo/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "숙요점 궁합",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/sukuyo/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "본명숙 찾기",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/sukuyo/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "안괴 궁합",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/sukuyo/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "영친 관계",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/sukuyo/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "베다점",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/vedic/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "인도 점성술",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/vedic/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "베다점 차트",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/vedic/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "나크샤트라",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/vedic/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "라그나",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/vedic/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "다샤",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/vedic/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "자미두수 명반",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/ziwei/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "자미두수 계산기",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/ziwei/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "자미두수 사주 차이",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/ziwei/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    },
+    {
+      "keyword": "자미두수 12궁",
+      "origin": "editorial_expansion_unmeasured",
+      "owner": "/ziwei/",
+      "total": null,
+      "adCompetition": null,
+      "status": "semantic_candidate"
+    }
+  ],
+  "counts": {
+    "total": 210,
+    "direct": 36,
+    "related": 67,
+    "unmeasured": 107,
+    "excluded": 18
+  }
+}

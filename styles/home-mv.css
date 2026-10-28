@@ -1,0 +1,462 @@
+/* 꿀꿀운세 홈 「달빛 운명여행」 뮤직비디오 쇼케이스 (cdh-mv-moonlight-destiny-v20261015)
+ * 짙은 밤빛 극장 패널. 색은 전부 테마 토큰이라 연이=딥 플럼, 네오=보라 밤색으로 저절로 바뀐다(새 hex 없음).
+ * 대비: 본문 --cd-cta-primary-ink 는 패널 바탕 위 15:1(theme-tokens.css 실측), 금색 --cd-gold 는 11:1 안팎이다.
+ * 꽃 장식(public/images/home/mv/ornament-*)은 글자가 없는 모서리에만 두어 대비 계산에 끼지 않게 했다. */
+.cdh-mv {
+  --cdh-mv-bg: var(--cd-cta-primary-bg);
+  --cdh-mv-bg-2: var(--cd-cta-primary-bg-2);
+  --cdh-mv-ink: var(--cd-cta-primary-ink);
+  --cdh-mv-muted: color-mix(in srgb, var(--cd-cta-primary-ink) 80%, var(--cd-cta-primary-bg));
+  --cdh-mv-gold: var(--cd-gold);
+  --cdh-mv-gold-soft: var(--cd-gold-soft);
+  --cdh-mv-line: color-mix(in srgb, var(--cd-gold) 40%, transparent);
+  /* 버튼 테두리는 비텍스트 대비 3:1 을 넘기도록 더 진하게 쓴다. */
+  --cdh-mv-line-strong: color-mix(in srgb, var(--cd-gold) 62%, transparent);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "head" "stage" "aside";
+  gap: clamp(20px, 2.6vw, 30px);
+  padding: clamp(30px, 4vw, 52px) clamp(20px, 4vw, 52px) clamp(24px, 3.6vw, 44px);
+  overflow: hidden;
+  border: 1px solid var(--cdh-mv-line);
+  border-radius: 28px;
+  background:
+    radial-gradient(ellipse 58% 40% at 50% 0%, color-mix(in srgb, var(--cdh-mv-gold) 16%, transparent), transparent 72%),
+    radial-gradient(ellipse 60% 50% at 50% 100%, color-mix(in srgb, var(--cdh-mv-gold) 6%, transparent), transparent 76%),
+    linear-gradient(165deg, var(--cdh-mv-bg), var(--cdh-mv-bg-2));
+  box-shadow: 0 26px 60px -34px color-mix(in srgb, var(--cdh-mv-bg-2) 80%, transparent);
+  color: var(--cdh-mv-ink);
+  scroll-margin-top: 90px;
+}
+/* 안쪽 한 겹 금선 — 액자처럼 두 줄 테를 만든다. */
+.cdh-mv::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  z-index: 0;
+  border: 1px solid color-mix(in srgb, var(--cdh-mv-gold) 18%, transparent);
+  border-radius: 21px;
+  pointer-events: none;
+}
+/* 제목 둘레에서 천천히 반짝이는 금빛 별 네 개(예화 sparkle 마스크 한 장에 네 겹). */
+.cdh-mv::after {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  z-index: 0;
+  width: min(520px, 72%);
+  height: 150px;
+  transform: translateX(-50%);
+  background: var(--cdh-mv-gold);
+  opacity: .6;
+  pointer-events: none;
+  -webkit-mask: var(--cd-yehwa-mask-sparkle) 6% 30% / 15px 15px no-repeat, var(--cd-yehwa-mask-sparkle) 94% 16% / 12px 12px no-repeat, var(--cd-yehwa-mask-sparkle) 86% 86% / 9px 9px no-repeat, var(--cd-yehwa-mask-sparkle) 15% 92% / 10px 10px no-repeat;
+  mask: var(--cd-yehwa-mask-sparkle) 6% 30% / 15px 15px no-repeat, var(--cd-yehwa-mask-sparkle) 94% 16% / 12px 12px no-repeat, var(--cd-yehwa-mask-sparkle) 86% 86% / 9px 9px no-repeat, var(--cd-yehwa-mask-sparkle) 15% 92% / 10px 10px no-repeat;
+  animation: cdh-mv-twinkle 4.8s ease-in-out infinite;
+}
+
+.cdh-mv img { background-color: transparent; }
+.cdh-mv__orn {
+  position: absolute;
+  top: 0;
+  z-index: 0;
+  width: clamp(104px, 19vw, 260px);
+  height: auto;
+  pointer-events: none;
+}
+.cdh-mv__orn--start { left: 0; }
+.cdh-mv__orn--end { right: 0; transform: scaleX(-1); }
+
+.cdh-mv__head {
+  grid-area: head;
+  position: relative;
+  z-index: 1;
+  max-width: 520px;
+  margin-inline: auto;
+  text-align: center;
+}
+.cdh-mv__crest {
+  display: block;
+  width: 168px;
+  height: auto;
+  margin: 0 auto 8px;
+}
+.cdh-mv__eyebrow {
+  margin: 0;
+  color: var(--cdh-mv-gold);
+  font-family: CodeDestinySerifLatin, Georgia, serif;
+  font-size: 12px;
+  letter-spacing: .2em;
+  text-wrap: balance;
+}
+.cdh-mv .cdh-mv__head h2 {
+  margin: 8px 0 0;
+  color: var(--cdh-mv-ink);
+  font-family: "CodeDestinySerifKR", var(--font-premium, "Nanum Myeongjo", "Gowun Batang", serif);
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 740;
+  line-height: 1.3;
+  letter-spacing: -.01em;
+  text-shadow: 0 0 24px color-mix(in srgb, var(--cdh-mv-gold) 28%, transparent);
+  text-wrap: balance;
+}
+.cdh-mv__lead {
+  max-width: 30em;
+  margin: 10px auto 0;
+  color: var(--cdh-mv-muted);
+  font-size: 15px;
+  line-height: 1.75;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+.cdh-mv__meta {
+  display: inline-flex;
+  margin: 14px 0 0;
+  padding: 4px 14px;
+  border: 1px solid var(--cdh-mv-line);
+  border-radius: 999px;
+  color: var(--cdh-mv-gold);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.cdh-mv__stage {
+  grid-area: stage;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+/* 영상 틀 바깥 두 모서리에 예화 금선 가지를 얹는다(오른쪽 위 원형, 왼쪽 아래 180° 회전). */
+.cdh-mv__stage::before,
+.cdh-mv__stage::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 150px;
+  height: 116px;
+  background: var(--cdh-mv-gold);
+  opacity: .62;
+  pointer-events: none;
+  -webkit-mask: var(--cd-yehwa-mask-branch-corner) center / contain no-repeat;
+  mask: var(--cd-yehwa-mask-branch-corner) center / contain no-repeat;
+}
+.cdh-mv__stage::before { top: -34px; right: -30px; }
+.cdh-mv__stage::after { bottom: -34px; left: -30px; transform: rotate(180deg); }
+.cdh-mv__screen {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--cdh-mv-line-strong);
+  border-radius: 18px;
+  background: var(--cdh-mv-bg-2);
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--cdh-mv-gold) 8%, transparent),
+    0 0 46px -6px color-mix(in srgb, var(--cdh-mv-gold) 26%, transparent),
+    0 28px 56px -30px color-mix(in srgb, var(--cdh-mv-bg-2) 90%, transparent);
+}
+.cdh-mv__video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--cdh-mv-bg-2);
+}
+.cdh-mv__video:focus-visible {
+  outline: 3px solid var(--cdh-mv-gold);
+  outline-offset: -3px;
+}
+/* 가사 자막: 글꼴과 크기만 바꾼다. iOS 전체 화면에서는 시스템 자막 스타일이 우선한다. */
+.cdh-mv__video::cue {
+  font-family: "CodeDestinySerifKR", var(--font-premium, "Nanum Myeongjo", serif);
+  font-size: clamp(15px, 2.1vw, 22px);
+}
+.cdh-mv__cover {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: var(--cdh-mv-bg-2);
+  color: var(--cdh-mv-ink);
+  cursor: pointer;
+}
+.cdh-mv__cover[hidden] { display: none; }
+.cdh-mv__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cdh-mv__cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(0deg, color-mix(in srgb, var(--cdh-mv-bg-2) 62%, transparent), transparent 44%);
+  pointer-events: none;
+}
+/* 바깥 포커스 링은 화면의 overflow 에 잘리므로 안쪽에 어두운 테 + 금색 테로 그린다. */
+.cdh-mv__cover:focus-visible { outline: 3px solid transparent; outline-offset: -3px; }
+.cdh-mv__cover:focus-visible::after {
+  box-shadow: inset 0 0 0 4px var(--cdh-mv-bg-2), inset 0 0 0 7px var(--cdh-mv-gold);
+}
+/* 재생 표시는 두 사람의 얼굴을 가리지 않게 어두운 하단 띠 위 왼쪽에 둔다. */
+.cdh-mv__cta {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100% - 32px);
+  padding: 6px 18px 6px 6px;
+  border: 1px solid var(--cdh-mv-line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cdh-mv-bg-2) 84%, transparent);
+  color: var(--cdh-mv-ink);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: left;
+}
+.cdh-mv__play {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  padding-left: 3px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 34% 28%, var(--cdh-mv-gold-soft), var(--cdh-mv-gold) 64%);
+  color: var(--cdh-mv-bg-2);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--cdh-mv-gold) 22%, transparent), 0 0 24px color-mix(in srgb, var(--cdh-mv-gold) 42%, transparent);
+  transition: transform .2s ease-out;
+}
+.cdh-mv__cover:hover .cdh-mv__play { transform: scale(1.06); }
+.cdh-mv__cta-text--loading,
+.cdh-mv__cta-text--error,
+.cdh-mv__screen:is([data-state=loading], [data-state=error]) .cdh-mv__cta-text--idle { display: none; }
+.cdh-mv__screen[data-state=loading] .cdh-mv__cta-text--loading,
+.cdh-mv__screen[data-state=error] .cdh-mv__cta-text--error { display: inline; }
+.cdh-mv__screen[data-state=loading] .cdh-mv__play { animation: cdh-mv-breathe 1.2s ease-in-out infinite; }
+
+.cdh-mv__aside {
+  grid-area: aside;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-width: 0;
+}
+.cdh-mv__chapters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cdh-mv__chapters > li { min-width: 0; margin: 0; }
+.cdh-mv__chapter {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "img img" "time name";
+  align-items: baseline;
+  gap: 8px 8px;
+  width: 100%;
+  height: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 6px 8px 10px 6px;
+  border: 1px solid color-mix(in srgb, var(--cdh-mv-gold) 24%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cdh-mv-ink) 4%, transparent);
+  color: var(--cdh-mv-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .2s ease, background-color .2s ease;
+}
+.cdh-mv__chapter img {
+  grid-area: img;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 9px;
+  object-fit: cover;
+}
+.cdh-mv__ch-time {
+  grid-area: time;
+  padding-left: 4px;
+  color: var(--cdh-mv-gold);
+  font-family: CodeDestinySerifLatin, Georgia, serif;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+}
+.cdh-mv__ch-name {
+  grid-area: name;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+.cdh-mv__chapter:hover {
+  border-color: var(--cdh-mv-line-strong);
+  background: color-mix(in srgb, var(--cdh-mv-gold) 9%, transparent);
+}
+.cdh-mv__chapter[aria-current=time] {
+  border-color: var(--cdh-mv-gold);
+  background: color-mix(in srgb, var(--cdh-mv-gold) 14%, transparent);
+}
+.cdh-mv :is(.cdh-mv__chapter, .cdh-mv__lyrics, .cdh-mv__more):focus-visible {
+  outline: 2px solid var(--cdh-mv-gold);
+  outline-offset: 3px;
+}
+
+.cdh-mv__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+.cdh-mv .cdh-mv__lyrics {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 16px 8px 10px;
+  border: 1px solid var(--cdh-mv-line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--cdh-mv-ink);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cdh-mv__switch {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 24px;
+  border: 1.5px solid var(--cdh-mv-muted);
+  border-radius: 999px;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+.cdh-mv__switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--cdh-mv-muted);
+  transition: transform .2s ease;
+}
+.cdh-mv__lyrics[aria-pressed=true] .cdh-mv__switch {
+  border-color: var(--cdh-mv-gold);
+  background: var(--cdh-mv-gold);
+}
+.cdh-mv__lyrics[aria-pressed=true] .cdh-mv__switch::after {
+  background: var(--cdh-mv-bg-2);
+  transform: translateX(16px);
+}
+.cdh-mv .cdh-mv__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 4px;
+  color: var(--cdh-mv-gold);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.cdh-mv .cdh-mv__more:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+/* 1200px 이상: 영상 | 장면 목록 2단. 장면은 세로 목록이 된다. */
+@media (min-width: 1200px) {
+  .cdh-mv {
+    grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr);
+    grid-template-areas: "head head" "stage aside";
+    column-gap: clamp(30px, 3vw, 44px);
+  }
+  .cdh-mv__chapters { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .cdh-mv__chapter {
+    grid-template-columns: 96px auto minmax(0, 1fr);
+    grid-template-areas: "img time name";
+    align-items: center;
+    gap: 12px;
+    padding: 5px 12px 5px 5px;
+  }
+  .cdh-mv__chapter img { width: 96px; border-radius: 9px; }
+  .cdh-mv__ch-time { padding-left: 0; }
+}
+/* 600px 이하: 한 단, 장면은 가로로 넘겨 본다. */
+@media (max-width: 600px) {
+  .cdh-mv {
+    gap: 18px;
+    padding: 32px 16px 18px;
+    border-radius: 22px;
+  }
+  .cdh-mv::before { inset: 6px; border-radius: 17px; }
+  .cdh-mv__orn { width: 84px; }
+  .cdh-mv__crest { width: 124px; margin-bottom: 6px; }
+  .cdh-mv__eyebrow { font-size: 10.5px; letter-spacing: .16em; }
+  .cdh-mv .cdh-mv__head h2 { font-size: 26px; }
+  .cdh-mv__lead { font-size: 14px; line-height: 1.7; }
+  .cdh-mv__stage::before,
+  .cdh-mv__stage::after { width: 96px; height: 74px; }
+  .cdh-mv__stage::before { top: -22px; right: -14px; }
+  .cdh-mv__stage::after { bottom: -22px; left: -14px; }
+  .cdh-mv__screen { border-radius: 14px; }
+  .cdh-mv__cta { left: 10px; bottom: 10px; gap: 8px; max-width: calc(100% - 20px); padding: 4px 14px 4px 4px; font-size: 13px; }
+  .cdh-mv__play { width: 44px; height: 44px; }
+  .cdh-mv__play svg { width: 19px; height: 19px; }
+  .cdh-mv__chapters {
+    display: flex;
+    gap: 10px;
+    margin-inline: -16px;
+    padding: 2px 16px 6px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 16px;
+    scrollbar-width: none;
+  }
+  .cdh-mv__chapters::-webkit-scrollbar { display: none; }
+  .cdh-mv__chapters > li { flex: 0 0 136px; scroll-snap-align: start; }
+}
+/* 360px 이하: 재생 알약이 한 줄에 들어가게 줄인다(누르는 면은 포스터 전체라 44px 기준과 무관). */
+@media (max-width: 360px) {
+  .cdh-mv__cta { gap: 6px; padding-right: 12px; font-size: 12px; }
+  .cdh-mv__play { width: 38px; height: 38px; }
+  .cdh-mv__play svg { width: 16px; height: 16px; }
+}
+
+@keyframes cdh-mv-twinkle { 0%, 100% { opacity: .3; } 50% { opacity: .8; } }
+@keyframes cdh-mv-breathe { 50% { transform: scale(.9); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cdh-mv::after { animation: none; opacity: .6; }
+  .cdh-mv__screen[data-state=loading] .cdh-mv__play { animation: none; }
+  .cdh-mv__play,
+  .cdh-mv__chapter,
+  .cdh-mv__switch,
+  .cdh-mv__switch::after { transition: none; }
+  .cdh-mv__cover:hover .cdh-mv__play { transform: none; }
+}

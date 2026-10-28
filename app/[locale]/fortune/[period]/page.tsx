@@ -11,10 +11,10 @@ export const dynamicParams = false;
 const LOCALE_PARAMS = ["en", "ja", "zh", "zh-tw"];
 function resolveLocale(value: string): FortuneLocale | null { return LOCALE_PARAMS.includes(value) ? normalizeFortuneLocale(value === "zh" ? "zh-CN" : value === "zh-tw" ? "zh-TW" : value) : null; }
 function periodPageTitle(label: string, locale: FortuneLocale): string {
-  if (locale === "ja") return `${label}の星座・十二支運勢 | Code Destiny`;
-  if (locale === "zh-CN") return `${label}星座与生肖运势 | Code Destiny`;
-  if (locale === "zh-TW") return `${label}星座與生肖運勢 | Code Destiny`;
-  return `${label} Zodiac & Chinese Zodiac Fortune | Code Destiny`;
+  if (locale === "ja") return `${label}の星座・十二支運勢 | 꿀꿀 운세`;
+  if (locale === "zh-CN") return `${label}星座与生肖运势 | 꿀꿀 운세`;
+  if (locale === "zh-TW") return `${label}星座與生肖運勢 | 꿀꿀 운세`;
+  return `${label} Zodiac & Chinese Zodiac Fortune | 꿀꿀 운세`;
 }
 function periodDescription(label: string, locale: FortuneLocale): string {
   if (locale === "ja") return `${label}の${FORTUNE_COPY[locale].fortune}。12星座と12生肖それぞれの総合運・恋愛運・金運・健康運・仕事運を比較できます。日柱・月柱・節気・月の位置から導いた計算根拠もあわせて確認できます。`;

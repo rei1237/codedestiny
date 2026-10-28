@@ -54,7 +54,7 @@
     meditationCycleCount: 0,
     lightbox: null,
   };
-  var REUNION_COIN_COST = 30;
+  var REUNION_COIN_COST = 50;
   var REUNION_REASON = "재회운 타로 리딩";
   var REUNION_FEATURE_KEY = "tarot-reunion-reading";
   var TAROT_API_TIMEOUT_MS = 12000;
@@ -849,6 +849,7 @@
     ensureMeditationPrepared();
     bindTarotReunionStaticActions();
     resetTarotReunionFlow();
+    import('/js/core/oracle/crafted-details.mjs').then(function(module){module.mountOracleCraftedDetails(overlay.querySelector('.tarot-reunion-shell'),{target:'.tarot-reunion-panel',id:'reunion-tarot',title:'재회운 타로'});}).catch(function(){});
   }
 
   function bindTarotReunionStaticActions() {

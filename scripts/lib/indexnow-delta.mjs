@@ -20,6 +20,19 @@ export function buildSubmissionState(entries, ledger, host) {
   return {version:1,host,urls};
 }
 
+// 429·5xx·시간 초과(status null)만 다시 보낸다. 그 밖의 4xx 는 키·호스트 문제라 다시 보내도 같은 답이 온다.
+// Retry-After(초 또는 HTTP 날짜)를 먼저 따르고, 없으면 2·4·8초로 늘린다. 어느 쪽이든 60초를 넘기지 않는다.
+export const INDEXNOW_MAX_RETRIES=3;
+export function indexNowRetryDelayMs(status, retryAfter, attempt, now=Date.now()) {
+  if(attempt>=INDEXNOW_MAX_RETRIES)return null;
+  if(status!==null && status!==429 && !(status>=500 && status<=599))return null;
+  const fallback=Math.min(60000,2000*2**attempt);
+  const header=String(retryAfter||'').trim();
+  if(!header)return fallback;
+  const ms=/^\d+$/.test(header)?Number(header)*1000:Date.parse(header)-now;
+  return Number.isFinite(ms)?Math.min(60000,Math.max(0,ms)):fallback;
+}
+
 export function selectSubmissionDelta(current, previous, extra=[]) {
   if(previous && (previous.version!==1 || previous.host!==current.host || !previous.urls))throw new Error('[indexnow] Invalid submission checkpoint');
   const before=previous?.urls || {};

@@ -1,0 +1,11 @@
+{
+  "sourceReference": "public/assets/yeongnyangi/original/hero-800.webp",
+  "tool": "built-in image_gen",
+  "generatedSheet": "expression-candidate-sheet.png",
+  "export": "Lossless equal-cell extraction only; no drawing, alignment or recoloring",
+  "cellSize": 724,
+  "hasAlpha": true,
+  "status": "candidate; identity and position switching require review; not production approved",
+  "firstAttempt": "rejected: standalone talking generation changed scale versus reference; not used",
+  "userRevision": "2026-10-21 final steering: new pose holding a small book, original chic but cute expression; preserve costume and identity"
+}

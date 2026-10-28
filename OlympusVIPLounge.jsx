@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
+import CraftedProductDisclosure from "./app/components/CraftedProductDisclosure";
+import { detectLocale } from "./lib/i18n/dictionary";
 
 /* ════════════════════════════════════════════════════════
    SIGN TABLE
@@ -1624,10 +1626,11 @@ function Intro({onStart,onOracle}){
       <h1 className="cind glow ov-main-title" style={{fontWeight:700,letterSpacing:4,lineHeight:1.2,marginBottom:6}}>OLYMPUS</h1>
       <h2 className="cin ov-main-subtitle" style={{fontWeight:400,color:'#C9A84C',letterSpacing:6,marginBottom:4}}>VIP LOUNGE</h2>
       <p style={{fontSize:13,color:'rgba(239,228,192,.45)',letterSpacing:4,marginBottom:30}}>별로 보는 인생 스포일러</p>
+      {detectLocale()==="ko" && <div style={{width:"100%",maxWidth:540,minWidth:0,margin:"0 auto 24px",background:"#f2eee5",color:"#27354f",borderRadius:12,textAlign:"left"}}><CraftedProductDisclosure featureKey="olympus-fc" summaryLabel="올림푸스 신탁 상세 안내" /></div>}
       <div className="gbx ov-shell" style={{borderRadius:20,padding:'28px 24px',background:'rgba(4,2,26,.98)',marginBottom:22}}>
-        <p className="cin ov-label" style={{letterSpacing:4,marginBottom:14}}>스위스 천문력 기반 8대 배치 분석</p>
+        <p className="cin ov-label" style={{letterSpacing:4,marginBottom:14}}>여덟 배치로 읽는 신화와 성향</p>
         <div style={{marginBottom:18}}>
-          {[["☀️","태양/달/상승","나의 본질 — 실측 천문 계산"],["📐","밸런스/어스펙트","원소·모달리티와 행성 각도"],["💘","금성/화성","사랑과 욕망"],["🃏","타짜","인생 베팅 스타일"],["👹","악마","운명의 계약서"],["🧭","아스트로맵","오피스 생존기 & 세계 여행 스팟"]].map(([e,t,s],i,a)=>(
+          {[["☀️","태양/달/상승","본질과 감정, 첫인상의 차이"],["📐","밸런스/어스펙트","원소·모달리티와 행성 각도"],["💘","금성/화성","사랑과 욕망"],["🃏","타짜","인생 베팅 스타일"],["👹","악마","운명의 계약서"],["🧭","아스트로맵","오피스 생존기 & 세계 여행 스팟"]].map(([e,t,s],i,a)=>(
             <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:i<a.length-1?'1px solid rgba(201,168,76,.07)':'none'}}>
               <span style={{fontSize:18,minWidth:26}}>{e}</span>
               <div style={{textAlign:'left'}}>

@@ -804,6 +804,7 @@ function resetKemetOracle() {
 }
 
 function openKemetModal() {
+  import('/js/core/oracle/crafted-details.mjs').then(({mountOracleCraftedDetails})=>mountOracleCraftedDetails(document.getElementById('kemetOracleSection'),{target:'#kemetSearchBox',id:'kemet-oracle',title:'이집트 신탁'})).catch(()=>{});
   const m = document.getElementById('kemetOracleOverlay');
   if(m) {
     m.style.display = 'block';
@@ -823,7 +824,7 @@ function closeKemetModal() {
 }
 
 function consumeKemetPerUseCoin(question) {
-  var COST = 10;
+  var COST = 30;
   var REASON = getKemetOracleCopy().readingReason;
   var qStr = String(question || '').trim();
 
@@ -1209,3 +1210,4 @@ function showKemetSpread(userInput, selectedIndices) {
     setTimeout(function() { overlayEl.scrollTo({ top: 0, behavior: 'smooth' }); }, 100);
   }
 }
+

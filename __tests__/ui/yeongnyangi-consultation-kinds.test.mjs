@@ -308,22 +308,21 @@ test('new paid compatibility and timing chapters satisfy existing v5 quality and
   assert.equal(previous.length,row.snapshot.manifest.length);
  }
 });
-test('종격 answers change only premium saju requests; no answer keeps the legacy request id',async()=>{
+test('an old 종격 answer never changes a saju request, its id or its analysis',async()=>{
+ // 종격·강약은 원국으로만 판정한다. 옛 클라이언트가 보낸 jongCheck는 받기만 하고 쓰지 않는다.
  const jong={...body,profileId:'jong',consultationKind:'personal'};
- assert.deepEqual(await jongCheckFortune(env,'owner',{...jong,productId:'saju_mackerel'}),{check:null});
- const {check}=await jongCheckFortune(env,'owner',{...jong,productId:'saju_tuna'});
- assert.ok(check.best.length>=2&&check.worst.length>=2);
- const answer=reply=>({best:reply,worst:reply,bestYears:check.best.map(y=>y.year),worstYears:check.worst.map(y=>y.year)});
- const lower=await prepareFortune(env,'owner',{...jong});
- assert.equal((await prepareFortune(env,'owner',{...jong,jongCheck:answer('no')}))._id,lower._id,'lower tiers drop the answer');
- assert.equal((await prepareFortune(env,'owner',{...jong,jongCheck:'malformed'}))._id,lower._id);
- const tuna={...jong,productId:'saju_tuna'};
- const plain=await prepareFortune(env,'owner',tuna);
- const rejected=await prepareFortune(env,'owner',{...tuna,jongCheck:answer('no')});
- assert.notEqual(rejected._id,plain._id);
- assert.ok(JSON.stringify(rejected.snapshot.analysis).includes('rejectedByUser')&&!JSON.stringify(plain.snapshot.analysis).includes('rejectedByUser'));
- assert.equal((await prepareFortune(env,'owner',{...tuna,jongCheck:answer('unsure')}))._id!==plain._id,true,'every answer is its own request');
- await assert.rejects(prepareFortune(env,'owner',{...tuna,jongCheck:{best:'no'}}),{code:'INVALID_JONG_CHECK'});
+ for(const productId of ['saju_mackerel','saju_tuna'])assert.deepEqual(await jongCheckFortune(env,'owner',{...jong,productId}),{check:null});
+ const answer=reply=>({best:reply,worst:reply,bestYears:[2006,2009,2018],worstYears:[2020,2022,2023]});
+ for(const productId of [undefined,'saju_tuna']){
+  const req=productId?{...jong,productId}:jong;
+  const plain=await prepareFortune(env,'owner',req);
+  for(const jongCheck of [answer('no'),answer('yes'),answer('unsure'),{best:'no'},'malformed']){
+   const row=await prepareFortune(env,'owner',{...req,jongCheck});
+   assert.equal(row._id,plain._id);
+   assert.deepEqual(row.snapshot.analysis,plain.snapshot.analysis);
+  }
+  assert.doesNotMatch(JSON.stringify(plain.snapshot.analysis),/rejectedByUser|confirmedByUser|flippedByUser/);
+ }
 });
 
 test('new v7 purchases leave a paid v6 result and its original price untouched',async()=>{
@@ -343,10 +342,10 @@ test('new v7 purchases leave a paid v6 result and its original price untouched',
 test('new question contracts preserve prices, scope, original purchase and punctuation-independent intent',async()=>{
  const base={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'현재 상황',options:'선택지',period:'현재와 다음 대운',constraints:'없음',confirmed:true};
  for(const [fish,limit,price,decision,question] of [
-  ['mackerel',0,3000,base,'거절할 때 어떻게 말할까? 같은 고민의 설명이에요.'],
-  ['salmon',1,9000,{...base,category:'job_change',period:'2026년'},'이직을 준비해도 될까?'],
+  ['mackerel',0,5000,base,'거절할 때 어떻게 말할까? 같은 고민의 설명이에요.'],
+  ['salmon',1,10000,{...base,category:'job_change',period:'2026년'},'이직을 준비해도 될까?'],
   ['flounder',2,15000,{...base,category:'compatibility',target:'pair',relationshipType:'romantic_adults'},'두 사람의 생활 방식과 돈 관리에서 무엇을 조율할까?'],
-  ['tuna',4,30000,{...base,category:'timing',horizon:'transition'},'현재와 다음 대운의 일 방향은 어떻게 달라질까?'],
+  ['tuna',6,30000,{...base,category:'timing',horizon:'transition'},'현재와 다음 대운의 일 방향은 어떻게 달라질까?'],
  ]){
   const row=await prepareFortune(env,'new-question-'+fish,{...body,productId:'saju_'+fish,questionDecision:decision,question,...(fish==='flounder'?{partnerProfileId:'partner'}:{})});
   assert.equal(row.snapshot.questionContract.version,base.version);assert.equal(row.snapshot.questionContract.followups,limit);assert.equal(row.snapshot.questionContract.readingBudget.followups,limit);
@@ -381,6 +380,30 @@ test('new question generation keeps expert evidence through the actual provider 
   const previous=[];
   for(const chapter of row.snapshot.manifest){const chapterInput={chapter,analysis:row.snapshot.analysis,previous,locale:'ko'};const result=await new loaded.exports.MockChapterProvider().generateChapter(chapterInput);loaded.exports.validateChapter(result,chapterInput);previous.push(result);}
  }
+});
+
+test('D7 mackerel question chapters get distinct tasks and scenes; layout chapters carry earlier year judgments',async()=>{
+ const base={version:'question-consultation-20261007',target:'self',horizon:'current',situation:'현재 상황',options:'선택지',period:'2027년',constraints:'없음',confirmed:true};
+ const capture=async(chapter,analysis,previous=[])=>{
+  let captured;
+  await new loaded.exports.StructuredChapterProvider({generate:async req=>{captured=req;throw new Error('captured');}}).generateChapter({chapter,analysis,previous,locale:'ko'}).catch(()=>{});
+  assert.ok(captured,chapter.id);return JSON.parse(captured.domainRules);
+ };
+ const mackerel=await prepareFortune(env,'d7-mackerel',{...body,productId:'saju_mackerel',questionDecision:{...base,category:'self'},question:'거절할 때 어떻게 말할까?'});
+ assert.equal(mackerel.snapshot.manifest.length,8);
+ const rules=[];for(const chapter of mackerel.snapshot.manifest)rules.push(await capture(chapter,mackerel.snapshot.analysis));
+ assert.equal(new Set(rules.map(r=>r.narrativeTask)).size,8);
+ assert.ok(rules.every(r=>!r.narrativeTask.startsWith('이번 장의 고유 질문')));
+ assert.equal(new Set(rules.map(r=>r.exampleScene)).size,8);assert.ok(rules.every(r=>r.exampleScene));
+ const salmon=await prepareFortune(env,'d7-salmon',{...body,productId:'saju_salmon',questionDecision:{...base,category:'money'},question:'재물 관리에서 무엇을 준비할까?'});
+ const claim='2027년에는 옮기기보다 준비를 다지는 편이 유리합니다.';
+ const previous=[{summary:'요약',example:'',topics:[],blocks:[{id:'meaning',title:'답',paragraphs:[claim+' 다른 문장입니다.',claim]}]}];
+ const later=await capture(salmon.snapshot.manifest[3],salmon.snapshot.analysis,previous);
+ assert.match(later.narrativeTask,/^이번 장의 고유 질문/);assert.equal(later.exampleScene,undefined);
+ assert.deepEqual(later.previousYearClaims.claims,[claim]);
+ // Chapters without the D7 layout marker keep their previous prompt.
+ const legacy=await capture({...salmon.snapshot.manifest[3],consultationLayout:undefined},salmon.snapshot.analysis,previous);
+ assert.equal(legacy.previousYearClaims,undefined);
 });
 
 test('new question retries read the immutable intent before profile changes and provider readiness',async()=>{

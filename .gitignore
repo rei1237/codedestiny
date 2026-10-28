@@ -81,6 +81,8 @@ _temp*.js
 
 # build artifacts & temp logs
 build_output.txt
+# 로컬 스크립트 산출물(android UI mock, llm-review 등). 수만 개라 check:fast 의 untracked 수집을 막는다.
+/output/
 build_last.log
 latest_build.log
 latest_cf_build.log

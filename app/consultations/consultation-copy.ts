@@ -10,6 +10,10 @@ export const hubTranslations: Record<string, Record<string, [string, string, str
     codex: ['Master Book of Connections', 'When you want to understand your relationship patterns or compatibility', 'Personal or compatibility edition · chapter report'],
   },
   ja: {
+    'new-year': ['新年の運勢相談', '一年の流れを知り、これからの選択を考えたいとき', '一年の見通しと時期ごとのアドバイス'],
+    karma: ['運命のパターン', '繰り返すパターンや、自分の選択の意味を振り返りたいとき', '占術の根拠を添えた章別解説と総合リーディング'],
+    'love-secret': ['恋愛のヒント', '恋愛で繰り返す傾向や、今の悩みを整理したいとき', '四柱推命をもとに、恋愛の質問を読み解く相談'],
+    'life-book': ['人生の本', '生まれ持った気質と人生の方向を、長い視点で見つめたいとき', '四柱推命をもとに人生を章ごとに読み解くレポート'],
     tea: ['ヨニの運命の茶屋', '複雑な気持ちや状況を落ち着いて整理したいとき', '質問に沿った解釈と行動のヒント・カードや命式'],
     neo: ['ネオの戦略室', '繰り返す問題を見直し、次の行動を決めたいとき', '状況の整理と実践的な戦略'],
     fusion: ['超融合占い', '複数の占術で今の状況を深く見つめたいとき', '六つの体系別解釈と総合レポート'],
@@ -33,17 +37,17 @@ export const hubTranslations: Record<string, Record<string, [string, string, str
 // Display-only descriptions; navigation and pricing remain in the service registry.
 export const expertCopy: Record<string, Record<string, [string, string, string]>> = {
   ko: {
-    ziwei: ['자미두수 전문가 상담', '타고난 성향과 삶의 여러 자리를 살펴보고 싶다면', '명반에 담긴 별의 배치와 질문별 해석'],
-    astrology: ['점성술 전문가 상담', '나의 성향과 지금의 변화를 함께 읽고 싶다면', '출생 차트와 행성의 흐름을 바탕으로 한 해석'],
+    ziwei: ['자미두수 전문가 상담', '타고난 성향과 삶의 여러 자리를 살펴보고 싶다면', '판결자 무성이 명반의 막힌 별을 짚고 풀어 갈 길을 처방하는 해석'],
+    astrology: ['점성술 전문가 상담', '나의 성향과 지금의 변화를 함께 읽고 싶다면', '생시부터 묻는 점성술사 윤달이 읽는 출생 차트와 행성의 흐름'],
     vedic: ['베다점 전문가 상담', '인생의 주기와 선택의 방향을 돌아보고 싶다면', '인도 점성술의 출생 차트와 시기별 흐름'],
-    'sukuyo-compat': ['숙요점 궁합 상담', '서로 다른 두 사람의 관계를 이해하고 싶다면', '27숙으로 살펴보는 관계의 성향과 거리'],
+    'sukuyo-compat': ['숙요점 궁합 상담', '서로 다른 두 사람의 관계를 이해하고 싶다면', '서한비가 27숙으로 재어 보는 두 사람의 거리'],
     'legacy-naming': ['훈민정음 작명소', '오래 불릴 이름에 어떤 뜻을 담고 싶으세요?', '사주와 성명학을 바탕으로 이름 후보와 풀이를 살펴보세요.'],
   },
   en: {
-    ziwei: ['Ziwei Consultation', 'Explore your temperament and different areas of life', 'A reading of your Ziwei chart and questions'],
-    astrology: ['Astrology Consultation', 'Understand your nature and the changes around you', 'Guidance based on your natal chart and planetary cycles'],
+    ziwei: ['Ziwei Consultation', 'Explore your temperament and different areas of life', 'Museong explores tensions in your chart and possible ways forward'],
+    astrology: ['Astrology Consultation', 'Understand your nature and the changes around you', 'Yundal starts from your birth minute and reads your natal chart'],
     vedic: ['Vedic Consultation', 'Reflect on life cycles and the direction of your choices', 'Indian astrology birth chart and timing guidance'],
-    'sukuyo-compat': ['Sukuyo Compatibility', 'Understand the differences between two people', 'Relationship patterns through the 27 lunar mansions'],
+    'sukuyo-compat': ['Sukuyo Compatibility', 'Understand the differences between two people', 'Seo Hanbi measures the distance between two lunar mansions'],
     'legacy-naming': ['Hunminjeongeum Naming Studio', 'What meaning would you like a lasting name to carry?', 'Explore name candidates and readings based on saju and naming traditions.'],
   },
   ja: {
@@ -71,25 +75,23 @@ export const expertCopy: Record<string, Record<string, [string, string, string]>
 
 const ko = {
   title: '지금, 어떤 이야기를 풀어볼까요?', lead: '마음에 남은 고민부터, 삶을 깊이 읽는 이야기까지. 나에게 맞는 상담을 골라보세요.',
-  navigation: '상담 종류', mind: '마음 상담', experts: '전문가 상담', naming: '작명', reports: '심층 리포트',
-  mindTitle: '마음과 선택을 정리하는 시간', mindLead: '다정하게 풀어보거나, 다음 행동을 또렷하게 정리하거나.',
-  expertsTitle: '나를 읽는 서로 다른 시선', expertsLead: '각 운세 체계의 계산과 해석 기준을 바탕으로 AI가 풀어주는 전문가 상담이에요.',
-  namingTitle: '이름에 담는 첫 이야기', reportsTitle: '조금 더 깊이, 나의 이야기', reportsLead: '관계와 올해의 흐름, 반복되는 패턴을 한 편의 리포트로 만나보세요.',
-  action: '상담 살펴보기', namingAction: '작명소 살펴보기', personal: '개인판', compatibility: '궁합판',
+  navigation: '상담 종류', signature: '대표 상담', others: '다른 상담',
+  signatureTitle: '대표 상담 여섯 장', signatureLead: '처음이라면 이 여섯 장 가운데 마음이 가는 한 장을 펼쳐 보세요.',
+  othersTitle: '다른 상담도 있어요', othersLead: '보고 싶은 방식이나 주제가 이미 정해져 있다면 여기서 골라보세요.',
+  firstAction: '{name} 시작하기', open: '살펴보기', namingAction: '작명소 살펴보기', personal: '개인판', compatibility: '궁합판',
 };
 type HubCopy = typeof ko;
 const en: HubCopy = {
   title: 'What would you like to talk through?', lead: 'From a concern on your mind to a deeper view of life. Find the consultation that fits you.',
-  navigation: 'Consultation categories', mind: 'Heart & choices', experts: 'Expert readings', naming: 'Naming', reports: 'In-depth reports',
-  mindTitle: 'Make room for your next choice', mindLead: 'Untangle your feelings, or get clear on your next step.',
-  expertsTitle: 'Different ways to understand yourself', expertsLead: 'AI-guided consultations based on the calculations and interpretation methods of each tradition.',
-  namingTitle: 'The first story in a name', reportsTitle: 'Read your story more deeply', reportsLead: 'Explore relationships, the year ahead and recurring patterns in a detailed report.',
-  action: 'Explore consultation', namingAction: 'Explore naming studio', personal: 'Personal', compatibility: 'Compatibility',
+  navigation: 'Consultation categories', signature: 'Signature', others: 'More readings',
+  signatureTitle: 'Six signature readings', signatureLead: 'New here? Open whichever of these six cards speaks to you.',
+  othersTitle: 'More readings to explore', othersLead: 'If you already know the tradition or topic you want, choose it here.',
+  firstAction: 'Start {name}', open: 'Explore', namingAction: 'Explore naming studio', personal: 'Personal', compatibility: 'Compatibility',
 };
 const copies: Record<string, HubCopy> = {
   ko, en,
-  ja: { title: '今、どんな話を紐解きましょうか？', lead: '心に残る悩みから人生を深く読む物語まで。自分に合う相談を選んでください。', navigation: '相談の種類', mind: '心の相談', experts: '専門相談', naming: '命名', reports: '詳細レポート', mindTitle: '心と選択を整理する時間', mindLead: '気持ちを優しく紐解くか、次の一歩を明確にするか。', expertsTitle: '自分を知るさまざまな視点', expertsLead: '各占術の計算と解釈基準に基づいてAIが読み解く専門相談です。', namingTitle: '名前に込める最初の物語', reportsTitle: '自分の物語を、もっと深く', reportsLead: '関係、今年の流れ、繰り返すパターンをレポートで読み解きます。', action: '相談を見る', namingAction: '命名所を見る', personal: '個人版', compatibility: '相性版' },
-  'zh-CN': { title: '现在，想聊聊什么呢？', lead: '从心中的烦恼到人生的深层故事，选择适合自己的咨询。', navigation: '咨询分类', mind: '心事咨询', experts: '专业咨询', naming: '起名', reports: '深度报告', mindTitle: '整理心情与选择的时光', mindLead: '温柔梳理情绪，或清晰规划下一步。', expertsTitle: '从不同角度认识自己', expertsLead: 'AI根据各占卜体系的计算与解读标准提供专业咨询。', namingTitle: '名字中的第一个故事', reportsTitle: '更深入地读懂自己的故事', reportsLead: '通过详细报告了解关系、今年的走向与反复出现的模式。', action: '了解咨询', namingAction: '了解起名所', personal: '个人版', compatibility: '合盘版' },
-  'zh-TW': { title: '現在，想聊聊什麼呢？', lead: '從心中的煩惱到人生的深層故事，選擇適合自己的諮詢。', navigation: '諮詢分類', mind: '心事諮詢', experts: '專業諮詢', naming: '命名', reports: '深度報告', mindTitle: '整理心情與選擇的時光', mindLead: '溫柔梳理情緒，或清晰規劃下一步。', expertsTitle: '從不同角度認識自己', expertsLead: 'AI根據各占卜體系的計算與解讀標準提供專業諮詢。', namingTitle: '名字中的第一個故事', reportsTitle: '更深入地讀懂自己的故事', reportsLead: '透過詳細報告了解關係、今年的走向與反覆出現的模式。', action: '了解諮詢', namingAction: '了解命名所', personal: '個人版', compatibility: '合盤版' },
+  ja: { title: '今、どんな話を紐解きましょうか？', lead: '心に残る悩みから人生を深く読む物語まで。自分に合う相談を選んでください。', navigation: '相談の種類', signature: '代表相談', others: 'ほかの相談', signatureTitle: '代表相談の六枚', signatureLead: '初めてなら、六枚の中から気になる一枚を開いてみてください。', othersTitle: 'ほかの相談もあります', othersLead: '見たい占術やテーマが決まっているなら、こちらから選べます。', firstAction: '{name}を始める', open: '見てみる', namingAction: '命名所を見る', personal: '個人版', compatibility: '相性版' },
+  'zh-CN': { title: '现在，想聊聊什么呢？', lead: '从心中的烦恼到人生的深层故事，选择适合自己的咨询。', navigation: '咨询分类', signature: '代表咨询', others: '其他咨询', signatureTitle: '六张代表咨询', signatureLead: '第一次来的话，从这六张里翻开最吸引你的一张吧。', othersTitle: '还有其他咨询', othersLead: '如果已经想好占卜方式或主题，可以在这里选择。', firstAction: '开始{name}', open: '查看', namingAction: '了解起名所', personal: '个人版', compatibility: '合盘版' },
+  'zh-TW': { title: '現在，想聊聊什麼呢？', lead: '從心中的煩惱到人生的深層故事，選擇適合自己的諮詢。', navigation: '諮詢分類', signature: '代表諮詢', others: '其他諮詢', signatureTitle: '六張代表諮詢', signatureLead: '第一次來的話，從這六張裡翻開最吸引你的一張吧。', othersTitle: '還有其他諮詢', othersLead: '如果已經想好占卜方式或主題，可以在這裡選擇。', firstAction: '開始{name}', open: '查看', namingAction: '了解命名所', personal: '個人版', compatibility: '合盤版' },
 };
 export const consultationCopy = (locale: string): HubCopy => copies[locale] || en;

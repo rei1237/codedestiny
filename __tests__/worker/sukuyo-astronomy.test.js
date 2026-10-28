@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
 import { describe, expect, test } from "@jest/globals";
 import {
   buildSukuyoFromMoonLongitude,
@@ -51,4 +53,14 @@ describe("숙요 천문 공통 코어", () => {
     expect(context.trueSolar.longitudeCorrectionMinutes).toBeCloseTo(3.976, 6);
     expect(context.julianDate).toBeCloseTo(2460493.1666666665, 8);
   });
+});
+
+
+test('브라우저와 서버는 27숙 모든 경계의 전후와 정확한 경계에서 일치한다', () => {
+  const context=vm.createContext({window:{}});
+  vm.runInContext(fs.readFileSync('js/core/sukuyo-astronomy.js','utf8'),context);
+  for(let i=0;i<27;i++) for(const delta of [-1e-9,0,1e-9]) {
+    const longitude=i*360/27+delta;
+    expect(context.window.__cdBuildSukuyoFromMoonLongitude(longitude).mansionIdx).toBe(buildSukuyoFromMoonLongitude(longitude).mansionIdx);
+  }
 });

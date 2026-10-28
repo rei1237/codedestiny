@@ -1,0 +1,92 @@
+{
+  "id": "compass-crossroads",
+  "featureKey": "destiny-compass-crossroads",
+  "title": "운명의 갈림길 · 기운 비교",
+  "notice": "운명의 지도에서 기존 생년 정보와 고민으로 계산된 자료를 준비한 뒤, 40자 이내 선택지 두 개를 적어 여는 별도 유료 비교 화면입니다. 총점/체계별 점수/추천 표시/짧은 안내를 제공합니다. 점수는 지도 계산 자료와 입력 문구를 규칙적으로 수치화한 상징 지표이며 선택지의 뜻이나 현실적 장단점을 AI로 분석하지 않습니다. 문구를 바꾸면 점수가 달라질 수 있고 성공 확률이나 결정의 정답을 뜻하지 않습니다. 새 장문 AI 상담은 생성하지 않습니다. 결제 확인 후 점수와 안내를 보관함에 저장하며 저장 실패 시 기록을 확인해야 합니다. PDF 저장 기능은 없습니다. 지도 심층 AI 리포트/미래 시뮬레이션/삶의 항로는 각각 별도 상품입니다. 도식과 문장은 구성 설명 및 가상 입력 예시입니다. 기존 가격과 이용권·월정석·단건 결제 조건을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-two-roads",
+      "title": "두 선택지를, 한 화면에 놓아보세요.",
+      "src": "/feature-details/crafted/compass-crossroads/01-two-roads.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 선택지를,\n한 화면에 놓아보세요.\nA\n\n지금의 길\n\nB\n\n다른 길\n\n운명의 지도 안에서 여는\n갈림길 기운 비교 화면입니다.\n두 선택지의 상징 점수를 나란히 봅니다.\n\n선택의 타당성이나 성공 확률을\n평가하는 기능은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/compass-crossroads/01-two-roads-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-what-opens",
+      "title": "열리는 것은, 두 길의 비교표.",
+      "src": "/feature-details/crafted/compass-crossroads/02-what-opens.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "열리는 것은,\n두 길의 비교표.\n\n선택지 이름\n내가 적은 A와 B\n\n총 기운 점수\n두 선택지의 숫자와 추천 표시\n\n체계별 점수\n사용된 체계의 막대 비교\n\n짧은 안내\n추천된 선택지를 담은 메시지\n\n새 장문 AI 상담을 생성하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/compass-crossroads/02-what-opens-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-read-the-score",
+      "title": "점수를 읽기 전에, 계산 방식을 알아두세요.",
+      "src": "/feature-details/crafted/compass-crossroads/03-read-the-score.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "점수를 읽기 전에,\n계산 방식을 알아두세요.\n\n기존 운명의 지도 계산 자료와\n입력한 선택지 문구를 정해진 규칙으로\n숫자에 반영하는 상징적 비교입니다.\n\n같은 조건은 같은 점수를 만들지만,\n선택지의 표현을 바꾸면\n점수도 달라질 수 있습니다.\n\n선택지의 뜻이나 현실적 장단점을\nAI가 분석하는 방식이 아닙니다.\n높은 점수가 더 좋은 결정을 뜻하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/compass-crossroads/03-read-the-score-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-give-each-choice-a-name",
+      "title": "두 갈래에, 내가 고민하는 이름을.",
+      "src": "/feature-details/crafted/compass-crossroads/04-give-each-choice-a-name.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 갈래에,\n내가 고민하는 이름을.\n\nA현재 프로젝트 이어가기\n\nB다른 활동 시작하기\n\n각 선택지는 40자까지 입력합니다.\n두 칸을 채운 뒤 기존 결제 화면에서\n이용 조건을 확인합니다.\n\n입력 방식을 보여주는 가상 예시입니다.\n예시의 점수나 추천 결과를\n미리 정해 둔 것은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/compass-crossroads/04-give-each-choice-a-name-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-beside-the-numbers",
+      "title": "중요한 선택의 근거는, 현실에서도 확인하세요.",
+      "src": "/feature-details/crafted/compass-crossroads/05-beside-the-numbers.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "중요한 선택의 근거는,\n현실에서도 확인하세요.\n내가 지키고 싶은 것\n\n시간, 생활 리듬, 관계의 우선순위.\n\n실제로 확인할 것\n\n조건과 비용, 되돌릴 수 있는 범위.\n\n상징 점수는 비교의 계기로 참고하고,\n최종 선택은 확인한 사실과\n나의 기준을 함께 놓고 결정하세요.\n\n별도 장단점 분석표는 제공하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/compass-crossroads/05-beside-the-numbers-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-before-the-crossroad",
+      "title": "기존 지도에서, 비교 화면으로.",
+      "src": "/feature-details/crafted/compass-crossroads/06-before-the-crossroad.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기존 지도에서,\n비교 화면으로.\n\n생년 정보와 고민으로 운명의 지도를\n준비한 뒤 ‘운명의 갈림길’을 엽니다.\n\n결제 확인 후 결과의 점수와\n짧은 안내를 보관함에 저장합니다.\n저장 오류가 나면 기록을 확인해 주세요.\n\n심층 AI 리포트·미래 시뮬레이션·삶의 항로는\n각각 별도 상품입니다.\nPDF는 제공하지 않습니다.\n현재 이용권·월정석·단건 결제 조건은\n기존 결제 화면을 따릅니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/compass-crossroads/06-before-the-crossroad-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

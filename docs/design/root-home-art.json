@@ -1,0 +1,309 @@
+{
+  "tool": "Codex CLI 0.156.1 codex exec → built-in image_gen (ChatGPT login). Model name, quality and seed are not reported by the tool.",
+  "date": "2026-10-16",
+  "purpose": "Root / main page hero: 꿀꿀 운세(꽃돼지 연이) day garden and 운세보는 영냥이 night study meeting at one tea table at dusk.",
+  "status": "2026-10-16 \"직관성\": / 는 카드 두 장만 보여 이 히어로 그림(root-duo-dusk-*)은 더 이상 화면에 쓰이지 않는다. 파일은 남겨 둔다.",
+  "references": [
+    "public/images/home/illustrated/yeoni-character-800.webp (Yeoni identity, mandatory)",
+    "public/assets/yeongnyangi/original/hero-800.webp (Yeongnyangi identity, mandatory; original unchanged)",
+    "public/images/home/illustrated/yeoni-room-1280.webp (day room style)",
+    "public/assets/yeongnyangi/night/consultation-room.webp (night study style)",
+    "public/images/brand/yeoni-yeongnyangi-loading-v2-1024.webp (approved duo painting style)"
+  ],
+  "referenceNote": "References were attached to codex exec with -i in the order above (converted to PNG). The exec log does not show the image_gen argument list.",
+  "prompt": "Use case: illustration-story. Production web hero image for the Korean fortune service \"꿀꿀 운세\" (Ggulggul Unse) and its sister cat consultation service. Wide landscape 1536x1024.\n\nReference images (attached, in order):\n- image 1 = YEONI the flower pig. MANDATORY identity reference: pink chibi pig, one huge pink LOTUS flower on the top-left of her head (viewer's left), glossy dark-brown eyes, round pink snout, soft purple/lavender neck scarf tied in a bow, short rounded body, little curled tail. Keep exactly these proportions, colours and shapes.\n- image 2 = YEONGNYANGI the white cat. MANDATORY identity reference: fluffy long-haired white cat with pink inner ears, half-lidded calm violet-indigo eyes, navy/black pointed wizard hood-hat decorated with a gold crescent moon and small gold stars and a gold tassel, black robe with gold trim and purple lining, dark collar with a round blue gem pendant, pink paw pads, big fluffy white tail. Keep exactly this face, fur, hat, robe and eye colour. Any hanging tag on the robe must be completely blank (no letters).\n- image 3 = style of the warm DAY room (cream walls, wooden lattice frames, sheer pink curtains, round moon-gate window to a lotus pond, low tea table).\n- image 4 = style of the NIGHT consultation study (deep navy walls, dark wooden desk, brass armillary sphere, arched window with full moon over misty mountains).\n- image 5 = the approved painting style of both characters together (high-end cute storybook illustration, softly shaded 3D-like characters, painterly details, delicate light).\n\nScene \"two doors at dusk\": one continuous room that is half day garden and half moonlit study.\n- LEFT half: Yeoni's warm daytime garden room in the style of image 3 — soft peach-cream sunlight, sheer pink curtain, round moon-gate window with pink lotus pond and blossoms, a few pink lotus flowers in the foreground.\n- RIGHT half: Yeongnyangi's night consultation study in the style of image 4 — deep navy and indigo, arched window with a full moon and stars, warm amber paper lantern glow, a few star sparkles.\n- The two halves blend softly through the middle like twilight (gentle peach-to-indigo gradient, no hard seam, no wall dividing them).\n- CENTER: one low round wooden tea table with a small celadon teapot, two cups and an open cream book. Yeoni sits on the LEFT side of the table, Yeongnyangi sits on the RIGHT side; they face each other three-quarter toward the viewer, both gently smiling, sharing tea, friendly and calm.\n- Both characters and the table must stay inside the central 50% of the width and the middle of the height, full bodies visible, nothing cropped, comfortable margin above the hat and lotus — so that a centred square crop still shows both characters completely.\n- Character size: each character about 35-40% of the image height.\n\nStrictly: no words, no letters, no Korean or Latin characters, no numbers, no logos, no UI, no borders, no frames, no watermark, no signature. No extra characters or people. Calm, premium, warm; not a purple tarot cliche.",
+  "candidates": [
+    {
+      "id": 1,
+      "original": "C:/Users/user/.codex/generated_images/01a142c9-59bf-7a12-8c21-416bdd2595fa/exec-8cf25bb8-f7b3-4450-881a-ca83bb146a72.png",
+      "size": "1536x1024",
+      "sha256": "68c675a4384a96eb725fb5efd373d672a3ed796f8d59ab9997e0b8687675f025",
+      "decision": "not used — identity matched, but the day/night boundary reads as a wall and curtain rather than a dusk transition"
+    },
+    {
+      "id": 2,
+      "original": "C:/Users/user/.codex/generated_images/01a142c9-5bd9-71e2-ab96-ccac2923a593/exec-4556d7d3-c685-475e-8861-54451fdee50e.png",
+      "size": "1536x1024",
+      "sha256": "60997cf54f7d8196145c2b14db57a3e5568de09c21578f24a2f369903c7d2815",
+      "decision": "superseded — 영냥이가 찻잔 2개(든 잔 + 앞발 아래 탁자 위 잔)로 보여 2026-10-16 사용자 검토에서 반려. 원인: 생성 프롬프트의 \"two cups\""
+    },
+    {
+      "id": 3,
+      "editOf": 2,
+      "original": "C:/Users/user/.codex/generated_images/01a14403-f70a-7462-80df-91ad9c6ee2c1/exec-98d62817-3d52-468d-a87c-3f551b90ecf6.png",
+      "size": "1536x1024",
+      "sha256": "1c871b575a9e81c402954c94a34294320a2cd7fbcf56fa1bc36814ab1bf347dd",
+      "references": [
+        "candidate 2 original (edit base)",
+        "public/images/home/illustrated/yeoni-character-800.webp (identity)",
+        "public/assets/yeongnyangi/original/hero-800.webp (identity)"
+      ],
+      "prompt": "Use your built-in image generation tool to EDIT the first attached image (ref1-approved.png). This is a partial edit, not a redraw.\n\nProblem to fix: the black-and-white cat character on the right (영냥이, wearing a hat) currently has TWO teacups: one cup raised in its paw, and a second cup on the table directly under its other front paw (the paw on the viewer's right side, resting on the table).\n\nRequired edit:\n- Remove the second teacup under the cat's other paw completely. Its paw should rest naturally and flat on the empty wooden table edge, with natural paw shape (no extra toes, no cup handle remnants).\n- Keep exactly ONE teacup for the cat: the one it is holding up.\n- The pig character on the left keeps exactly one teacup as it is.\n- Keep everything else identical: composition, both characters' faces, hat, eye colors, lotus flower, scarf, teapot, books, snack plate, background (warm day garden on the left, moonlit room on the right), lighting, colors, art style.\n- Output size 1536x1024 landscape. No text, no letters, no logos, no watermark, no border.\n\nImages 2 and 3 are identity references only (image 2 = the pig character 연이, image 3 = the cat character 영냥이). Do not copy their poses; use them only to keep the characters' identity accurate.\n\nSave the result and print the absolute path of the generated PNG file.",
+      "decision": "approved — partial edit of candidate 2: the second cup under Yeongnyangi's paw is removed and the paw rests on the table edge; each character holds exactly one cup. A parallel edit (generated_images/01a14403-fc1a-…/exec-df034ab4-….png) also passed but was not used (slightly less clean sleeve line)."
+    }
+  ],
+  "review": {
+    "method": "Side-by-side sheet of each candidate with yeoni-character-800 and hero-800, plus a zoom of the table, book and robe tag.",
+    "yeoni": "pink lotus on the top-left of the head, lavender neck bow, glossy dark-brown eyes, pink body and curled tail match the original",
+    "yeongnyangi": "white long fur, navy hood-hat with gold crescent and tassel, black robe with gold trim and purple lining, blue gem pendant, violet-indigo half-lidded eyes and pink paw pads match the original; expression is a calm smile instead of the original's deadpan, as prompted",
+    "text": "robe tag blank; book pages show only illegible decorative strokes, no readable letters",
+    "crop": "mobile 4:3 crop (left 330, top 176, 1024x768) keeps both characters, the table and the cat's tail inside the frame",
+    "cups": "candidate 3: Yeoni one cup, Yeongnyangi one cup (raised paw); no other cups on the table"
+  },
+  "build": "node scripts/build-root-home-assets.mjs --source <candidate 3 original png>",
+  "outputs": [
+    {
+      "path": "public/images/home/illustrated/root-duo-dusk-768.webp",
+      "bytes": 75804
+    },
+    {
+      "path": "public/images/home/illustrated/root-duo-dusk-768.avif",
+      "bytes": 52548
+    },
+    {
+      "path": "public/images/home/illustrated/root-duo-dusk-1280.webp",
+      "bytes": 157460
+    },
+    {
+      "path": "public/images/home/illustrated/root-duo-dusk-1280.avif",
+      "bytes": 98174
+    },
+    {
+      "path": "public/images/home/illustrated/root-duo-dusk-1536.webp",
+      "bytes": 198118
+    },
+    {
+      "path": "public/images/home/illustrated/root-duo-dusk-1536.avif",
+      "bytes": 119564
+    },
+    {
+      "path": "public/images/home/illustrated/root-duo-dusk-mobile-480.webp",
+      "bytes": 38958
+    },
+    {
+      "path": "public/images/home/illustrated/root-duo-dusk-mobile-480.avif",
+      "bytes": 27296
+    },
+    {
+      "path": "public/images/home/illustrated/root-duo-dusk-mobile-800.webp",
+      "bytes": 83142
+    },
+    {
+      "path": "public/images/home/illustrated/root-duo-dusk-mobile-800.avif",
+      "bytes": 53963
+    }
+  ],
+  "optimization": "sharp WebP q80 and AVIF q50 effort 5; generated original retained outside the repository",
+  "cards": {
+    "version": 2,
+    "date": "2026-10-16",
+    "purpose": "Root / tarot card pair \"I 해 · II 달\": I 꿀꿀 운세 (꽃돼지 연이, 종합 운세) and II 운세보는 영냥이 (질문 상담). Front-facing, symmetric, one symbol per card. Gold double frame, numerals and all text are HTML/CSS (app/home-main.module.css); the art has none.",
+    "tool": "Codex CLI 0.156.1 codex exec → built-in image_gen (ChatGPT login), reasoning effort medium. Model name, quality and seed are not reported by the tool.",
+    "references": [
+      "public/images/home/illustrated/yeoni-character-800.webp (Yeoni identity, mandatory) → ref-yeoni.png",
+      "public/assets/yeongnyangi/original/hero-800.webp (Yeongnyangi identity, mandatory; original unchanged) → ref-yeongnyangi.png",
+      "public/assets/yeongnyangi/tarot/v1/back-240.webp (tarot card back held by Yeongnyangi) → ref-tarot-back.png"
+    ],
+    "referenceNote": "Converted to PNG under D:/꿀꿀운세_카드아트_2026-10-16/refs and attached with -i: yeoni = [ref-yeoni]; yeongnyangi = [ref-yeongnyangi, ref-tarot-back]. Each run asked for two images.",
+    "yeoni": {
+      "prompt": "Perform the following tasks:\n1. Look carefully at the attached reference image ref-yeoni.png. It is the official character \"Yeoni\". Her identity must be reproduced exactly.\n2. Use the built-in image_gen tool to generate 2 separate images (call it twice, size 1024x1536 portrait, quality high), using the attached character reference.\n3. Prompt for each image:\n\"Premium luxury illustrated tarot card art, card I 'The Sun'. Full-bleed vertical illustration. ABSOLUTELY NO text, letters, numbers, title banner, border or frame anywhere.\nCHARACTER (must match the reference image exactly): Yeoni, a soft pink chibi piglet. One large pink lotus blossom worn on top of the head on the VIEWER'S LEFT side (same placement as reference). Big glossy dark-brown eyes with bright sparkle highlights, rosy blush cheeks, gentle small open smile, floppy pink ears, lavender silk scarf tied in a bow at the neck, a curly pink tail, darker rose-brown hoof tips. Same proportions, face shape and rendering style as the reference.\nPOSE AND COMPOSITION: perfectly centered, front-facing, calm and dignified, symmetric. Yeoni sits upright on a large open pale lotus leaf, both front hooves held gently together at the chest. Whole body visible. The character occupies the central 55 percent of the image height, placed slightly below center, with generous empty margin on every side (the image will be cropped to 3:4).\nBACKGROUND (one symbol only): a large luminous champagne-gold sun disc directly behind her head like a halo, with many fine thin radiating gold ray lines; a soft ivory and cream dawn sky with very subtle warm peach haze; below, a calm mirror-like pond with three or four pink lotus flowers and soft reflections.\nPALETTE: ivory, cream, champagne gold, blush pink; lavender only in the scarf.\nSTYLE: refined high-end illustrated tarot with Art Nouveau elegance, delicate gold-leaf linework accents, soft painterly shading matching the reference character, clean and uncluttered, lots of breathing room, soft diffused morning light, luxurious and serene.\nAVOID: purple gradients, shelves, furniture, crystals, books, teacups, busy props, extra characters, text, watermark, frame, border.\"\n4. Save the two generated images into the current working directory as 'yeoni-a.png' and 'yeoni-b.png' (do not overwrite existing files; if they exist use yeoni-c.png, yeoni-d.png).\n5. Print the saved file paths and pixel sizes.",
+      "candidates": [
+        {
+          "id": "A",
+          "original": "D:/꿀꿀운세_카드아트_2026-10-16/yeoni-a.png",
+          "codexOriginal": "C:/Users/user/.codex/generated_images/01a14513-fba4-7861-8267-a769f1c86eac/exec-339b02fe-58cc-4049-be4b-7e15dd8ab56f.png",
+          "size": "1086x1448",
+          "sha256": "cd046fcc8e541ff408e253e973cf1a418f16c005c9b45fa48d18e9ef98f305ad",
+          "decision": "alternate — identity matches; the sun disc crowds the top edge"
+        },
+        {
+          "id": "B",
+          "original": "D:/꿀꿀운세_카드아트_2026-10-16/root-card-yeoni-v2-original.png",
+          "codexOriginal": "C:/Users/user/.codex/generated_images/01a14513-fba4-7861-8267-a769f1c86eac/exec-5aa096b2-ff4e-4c4d-a375-7200ba4653d6.png",
+          "size": "1086x1448",
+          "sha256": "0410c011a1b2cf463a611016d3a535eb27798eb2af393e7a8f402c819268db13",
+          "decision": "approved — lotus on the viewer's left, dark-brown eyes, lavender scarf bow at the centre, curled tail match the original; hooves together on a lotus leaf; fine gold ray and geometric lines with more margin around the sun; no text"
+        }
+      ],
+      "crop": null,
+      "cropNote": "The tool returned 3:4 (1086x1448) instead of 1024x1536, so the original is used whole.",
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/root-card-yeoni-360.webp",
+          "bytes": 28144
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeoni-360.avif",
+          "bytes": 17943
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeoni-600.webp",
+          "bytes": 64880
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeoni-600.avif",
+          "bytes": 38077
+        }
+      ]
+    },
+    "yeongnyangi": {
+      "prompt": "Perform the following tasks:\n1. Look carefully at the attached reference images. ref-yeongnyangi.png is the official character \"Yeongnyangi\"; its identity must be reproduced exactly. ref-tarot-back.png is the official tarot card back design.\n2. Use the built-in image_gen tool to generate 2 separate images (call it twice, size 1024x1536 portrait, quality high), using the attached references.\n3. Prompt for each image:\n\"Premium luxury illustrated tarot card art, card II 'The Moon'. Full-bleed vertical illustration. ABSOLUTELY NO text, letters, numbers, name tags, title banner, border or frame anywhere.\nCHARACTER (must match the reference image exactly): Yeongnyangi, a fluffy white long-haired chibi cat with pink inner ears, half-closed cool sleepy eyes whose irises are violet-blue on top fading to amber-gold at the bottom, a small unimpressed pout, white whiskers. Wears a black pointed wizard hat with gold trim, a gold crescent moon and small gold stars on it, and a gold tassel hanging on the side; a black robe with gold trim edges and deep purple lining; a round blue-violet gem pendant on a black collar at the chest; pink paw pads. Same face shape, fur rendering and proportions as the reference. Do NOT include the wooden name tag.\nPOSE AND COMPOSITION: perfectly centered, front-facing, symmetric, calm and mysterious. Yeongnyangi sits upright, holding one face-down tarot card in front of the chest with both front paws; the card back follows the reference card back (deep navy with gold crescent moons, stars and a central eye motif). Fluffy tail curled around the side. Whole body visible. The character occupies the central 55 percent of the image height, placed slightly below center, with generous empty margin on every side (the image will be cropped to 3:4).\nBACKGROUND (one symbol only): a large softly glowing pale-gold crescent moon directly behind the head, a deep midnight navy night sky with fine thin gold constellation lines and tiny stars, a faint silver mist at the bottom.\nPALETTE: midnight navy, ink black, antique gold, white fur; purple only in the robe lining and gem.\nSTYLE: refined high-end illustrated tarot with Art Nouveau elegance, delicate gold-leaf linework accents, soft painterly shading matching the reference character, clean and uncluttered, lots of breathing room, moonlit glow, luxurious and mysterious.\nAVOID: purple gradient background, desks, candles, furniture, shelves, busy props, extra characters, text, watermark, name tag, frame, border.\"\n4. Save the two generated images into the current working directory as 'yeongnyangi-a.png' and 'yeongnyangi-b.png' (do not overwrite existing files; if they exist use yeongnyangi-c.png, yeongnyangi-d.png).\n5. Print the saved file paths and pixel sizes.",
+      "candidates": [
+        {
+          "id": "A",
+          "original": "D:/꿀꿀운세_카드아트_2026-10-16/yeongnyangi-a.png",
+          "codexOriginal": "C:/Users/user/.codex/generated_images/01a14513-fba4-7e30-817a-9ec87184c09b/exec-418f6e25-8dac-4c25-b275-d815dec9f003.png",
+          "size": "1024x1536",
+          "sha256": "8eff8ba826a242e760ada90b482531afce13d6d26b97d252cc308aed3b80e276",
+          "decision": "alternate — identity matches, but the card covers the blue gem pendant"
+        },
+        {
+          "id": "B",
+          "original": "D:/꿀꿀운세_카드아트_2026-10-16/root-card-yeongnyangi-v2-original.png",
+          "codexOriginal": "C:/Users/user/.codex/generated_images/01a14513-fba4-7e30-817a-9ec87184c09b/exec-8ece5eb9-ed79-4cb1-b5ee-e2d43bfbfaa2.png",
+          "size": "1024x1536",
+          "sha256": "b2748926a0c19f6a912ba51d6999f38199341096f8022b0109ee26d14656c9ce",
+          "decision": "approved — white long fur, violet-over-amber half-lidded eyes and pout, black hat with gold crescent, stars and tassel on the viewer's left, black robe with gold trim and purple lining, blue gem pendant, pink paw pads match the original; one face-down card with the deck back motif; no name tag, no text"
+        }
+      ],
+      "crop": {
+        "left": 0,
+        "top": 60,
+        "width": 1024,
+        "height": 1365
+      },
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/root-card-yeongnyangi-360.webp",
+          "bytes": 39146
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeongnyangi-360.avif",
+          "bytes": 25232
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeongnyangi-600.webp",
+          "bytes": 91408
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeongnyangi-600.avif",
+          "bytes": 55283
+        }
+      ]
+    },
+    "review": "Side-by-side sheet D:/꿀꿀운세_카드아트_2026-10-16/비교시트_원본-이전-신규.png (original character, v1 card, candidate A, candidate B) plus / screenshots at 390px and 1280px.",
+    "build": "node scripts/build-root-home-assets.mjs --card yeoni|yeongnyangi --source <approved original png>",
+    "optimization": "sharp (3:4 originals whole, 1024x1536 originals cropped by CARD_CROPS), WebP q80 and AVIF q50 effort 5 at 360/600 px; generated originals retained outside the repository"
+  },
+  "cardsV1": {
+    "date": "2026-10-16",
+    "purpose": "Root / mode-select tarot cards: I 꿀꿀 운세 (꽃돼지 연이의 종합 운세 백화점) and II 운세보는 영냥이 (질문 특화 상담). Frame, numerals and text are HTML/CSS; the art has none.",
+    "tool": "Codex CLI 0.156.1 codex exec → built-in image_gen (ChatGPT login). Model name, quality and seed are not reported by the tool.",
+    "why": "Existing tarot backs are back patterns only (no front art) and the Yeoni backs are a deep purple close to the DESIGN.md purple-gradient ban; no existing asset showed a department store or a single-question consultation.",
+    "references": [
+      "public/images/home/illustrated/yeoni-character-800.webp (Yeoni identity, mandatory)",
+      "public/assets/yeongnyangi/original/hero-800.webp (Yeongnyangi identity, mandatory; original unchanged)",
+      "root hero candidate 3 original (style reference, see candidates above)",
+      "public/assets/yeongnyangi/tarot/v1/back-240.webp (Yeongnyangi palette only)"
+    ],
+    "referenceNote": "Attached to codex exec with -i (converted to PNG): yeoni card = [yeoni identity, hero style]; yeongnyangi card = [yeongnyangi identity, hero style, tarot back palette].",
+    "yeoni": {
+      "prompt": "Use your built-in image generation tool to create ONE new illustration (do not edit the attached images).\n\nPurpose: the face art of a luxurious tarot-style \"mode select\" card titled \"종합 운세 백화점\" (a grand fortune department store) on a Korean fortune-telling website. The card frame and all text are added later in HTML, so the image itself must contain NO text, letters, numbers, logos, labels, signage, watermark, frame or border.\n\nScene: Inside an elegant, luxurious fortune emporium hall with warm golden lamplight, ivory marble and polished rosewood, arched display niches and glass vitrines. The pink piglet character 연이 (image 1 = identity reference) stands at the center, welcoming the viewer with one front hoof raised in a friendly gesture. On the shelves and vitrines on both sides, beautifully arranged fortune goods suggest many choices from simple to premium: neat tarot decks, rolled saju scrolls tied with ribbon, a celestial star-chart globe, a crystal ball on a gold stand, small ceramic honey jars, an elegant tea set, lotus flowers. Abundant but orderly, premium boutique feeling. Palette: ivory, blush rose, champagne gold, soft warm light. Absolutely no purple gradient background.\n\nCharacter identity (must match image 1 exactly): chubby pink piglet, big glossy brown eyes, a large pink lotus flower on the upper-left of the head, lilac/purple scarf tied at the neck, soft pink body. Exactly two front hooves, natural anatomy, no extra limbs. The piglet holds nothing in its hooves.\n\nStyle: same painterly, high-detail, soft-glow anime illustration style and lighting quality as image 2 (style reference only; do not copy its composition or the cat).\n\nComposition: portrait 1024x1536. Keep the piglet fully inside the central upper 60% of the image (head to feet visible, centered horizontally), so a centered 3:4 crop keeps the character intact. Background detail may extend to the edges.\n\nSave the result and print the absolute path of the generated PNG file.",
+      "candidates": [
+        {
+          "id": 1,
+          "original": "D:/Development/codedestiny-review/root-home-20261016-r3/originals/root-card-yeoni-original.png",
+          "codexOriginal": "C:/Users/user/.codex/generated_images/01a1443f-97b5-7492-87b7-959e44d21ee5/exec-178b1d40-385d-4349-9d5c-0de1c5bcae19.png",
+          "size": "1024x1536",
+          "sha256": "e0ae85751c8cbebf8298f8bdd5a8925c9adf2c61256ee0d9460dd91a0a6b5eff",
+          "decision": "approved — lotus on the top-left, lilac neck scarf, brown eyes, pink body match the original; one raised hoof, empty hooves; shelves of tarot decks, scrolls, crystal ball, honey jars and tea set; no text"
+        }
+      ],
+      "crop": {
+        "left": 40,
+        "top": 120,
+        "width": 880,
+        "height": 1173
+      },
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/root-card-yeoni-360.webp",
+          "bytes": 58820
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeoni-360.avif",
+          "bytes": 21156
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeoni-600.webp",
+          "bytes": 148462
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeoni-600.avif",
+          "bytes": 39913
+        }
+      ]
+    },
+    "yeongnyangi": {
+      "prompt": "Use your built-in image generation tool to create ONE new illustration (do not edit the attached images).\n\nPurpose: the face art of a luxurious tarot-style \"mode select\" card for a one-on-one consultation focused on a single question, on a Korean fortune-telling website. The card frame and all text are added later in HTML, so the image must contain NO text, letters, Korean characters, numbers, runes, logos, labels, name tags, watermark, frame or border.\n\nMOST IMPORTANT - character style lock: the cat must be drawn as the SAME cute chibi anime mascot character as image 1 (영냥이), NOT a realistic cat and NOT a real Persian cat. Copy image 1's character design exactly:\n- chibi / super-deformed proportions: very big round head, small round body, short stubby limbs, big fluffy white tail\n- pure white fluffy fur drawn with clean anime line art and soft cel shading (no photorealistic fur)\n- large half-lidded, slightly sleepy-grumpy cool eyes with violet/purple irises and a small pout mouth, pink inner ears\n- a slouched black wizard nightcap (soft, bending to one side, not a tall stiff witch hat) with a gold crescent moon and tiny gold stars and a gold tassel\n- black robe with purple lining and thin gold trim, a dark collar with a round deep-blue gem at the throat\n- pink paw pads; exactly two front paws, natural anatomy\n- remove the name tag on the robe from image 1 (no writing anywhere)\n\nScene: an intimate moonlit consultation desk by a tall arched window with a crescent moon and deep navy night sky. 영냥이 sits behind the desk facing the viewer, calm and attentive, and with ONE front paw holds up a single tarot card toward the viewer (card back side: navy with a simple gold crescent, no text). On the desk: exactly one lit candle in a brass holder and exactly one folded blank letter with no writing. Nothing duplicated, no teacups. Quiet, focused, premium mood. Palette: deep navy, midnight blue, warm candle gold, ivory highlights (image 3 = palette reference only).\n\nRendering: soft-glow painterly anime background with warm candle light, matching the illustration quality of image 2 (style/lighting reference only; do not copy its composition or the pig). The character itself stays in image 1's chibi anime design.\n\nComposition: portrait 1024x1536. The cat (including hat tip and tail) and the held card stay fully inside the central upper 60% of the image, centered horizontally, so a centered 3:4 crop keeps them intact.\n\nSave the result as yn-card-N.png in the current working directory and print its absolute path.",
+      "firstPrompt": "Use your built-in image generation tool to create ONE new illustration (do not edit the attached images).\n\nPurpose: the face art of a luxurious tarot-style \"mode select\" card titled \"질문 상담\" (one-on-one consultation focused on a single question) on a Korean fortune-telling website. The card frame and all text are added later in HTML, so the image itself must contain NO text, letters, numbers, runes, logos, labels, watermark, frame or border.\n\nScene: An intimate moonlit consultation desk by a tall arched window with a crescent moon and a deep navy night sky. The white fluffy cat character 영냥이 (image 1 = identity reference) sits behind the desk, calm and attentive, facing the viewer, and with ONE front paw gently holds up a single tarot card toward the viewer (card shows its back side: navy with a simple gold moon motif, no text). On the desk: exactly one lit candle in a brass holder, and exactly one folded blank letter (a question, no writing) under a small crescent paperweight. Nothing else is duplicated. Focused, quiet, premium atmosphere. Palette: deep navy, midnight blue, warm candle gold, ivory highlights, like image 3 (palette reference only).\n\nCharacter identity (must match image 1 exactly): white fluffy long-haired cat, violet/purple eyes, dark navy wizard hat with a gold crescent moon and small stars and a gold tassel, navy robe with gold star trim, same face shape and expression style as image 1. Exactly two front paws, natural anatomy, no extra limbs or extra cards.\n\nStyle: same painterly, high-detail, soft-glow anime illustration style and lighting quality as image 2 (style reference only; do not copy its composition or the pig).\n\nComposition: portrait 1024x1536. Keep the cat (including hat tip) and the held card fully inside the central upper 60% of the image, centered horizontally, so a centered 3:4 crop keeps them intact. Background detail may extend to the edges.\n\nSave the result and print the absolute path of the generated PNG file.",
+      "candidates": [
+        {
+          "id": 1,
+          "original": "D:/Development/codedestiny-review/root-home-20261016-r3/originals/rejected-yeongnyangi-realistic.png",
+          "size": "1024x1536",
+          "sha256": "82f06fcbade78a3c79ce6bca1efa7c000bf9e246c83aba37a03e2a8999ac8f9e",
+          "prompt": "firstPrompt",
+          "decision": "rejected — drawn as a realistic Persian cat instead of the chibi mascot; prompt rewritten with an explicit chibi style lock"
+        },
+        {
+          "id": 2,
+          "original": "D:/Development/codedestiny-review/root-home-20261016-r3/originals/alt-yeongnyangi-candidate2.png",
+          "size": "1024x1536",
+          "sha256": "29d134d455a3f3a7adb3bb055a62f90031d5511896691d2b38213844e97cf849",
+          "decision": "alternate — identity matches; kept for comparison"
+        },
+        {
+          "id": 3,
+          "original": "D:/Development/codedestiny-review/root-home-20261016-r3/originals/root-card-yeongnyangi-original.png",
+          "size": "1024x1536",
+          "sha256": "45aa97a1a2f71c1af219dec6cbee717957f1d41bb651a37f9bf4dfb3707de3bb",
+          "decision": "approved — chibi white cat, violet half-lidded eyes, slouched black nightcap with gold crescent and tassel, black robe with purple lining and gold trim, blue gem; one paw holds one card; exactly one candle and one blank letter; no name tag, no text"
+        }
+      ],
+      "codexOriginals": [
+        "C:/Users/user/.codex/generated_images/01a1443f-97b5-7a40-ab41-2944f26f644c/exec-13dcc378-bc2c-4859-9271-d34bf879f709.png (candidate 1)",
+        "C:/Users/user/.codex/generated_images/01a14442-50ba-7b21-af37-e1a692c74b23/exec-4075ef53-b11d-4338-bd0f-4b5d305d952c.png",
+        "C:/Users/user/.codex/generated_images/01a14442-5082-70d2-91cd-8028d651e4ef/exec-16024e0c-13c8-411f-9e66-428129c86b03.png"
+      ],
+      "crop": {
+        "left": 32,
+        "top": 150,
+        "width": 960,
+        "height": 1280
+      },
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/root-card-yeongnyangi-360.webp",
+          "bytes": 23808
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeongnyangi-360.avif",
+          "bytes": 14883
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeongnyangi-600.webp",
+          "bytes": 46710
+        },
+        {
+          "path": "public/images/home/illustrated/root-card-yeongnyangi-600.avif",
+          "bytes": 26339
+        }
+      ]
+    },
+    "review": "Side-by-side sheets of each candidate with yeoni-character-800 / hero-800 and the root hero, plus a 3:4 crop preview; judged for identity, anatomy, duplicated props and text.",
+    "build": "node scripts/build-root-home-assets.mjs --card yeoni|yeongnyangi --source <approved original png>",
+    "optimization": "sharp 3:4 extract, WebP q80 and AVIF q50 effort 5 at 360/600 px; generated originals retained outside the repository (D:/Development/codedestiny-review/root-home-20261016-r3/originals)",
+    "decision": "superseded 2026-10-16 — 사용자 검토 \"너무 구려\": 상점 홀·책상 장면이 복잡해 작은 카드에서 캐릭터가 묻히고 타로 카드로 읽히지 않음. 같은 파일명(root-card-*)을 v2 가 덮어썼다."
+  }
+}

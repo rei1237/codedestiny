@@ -1,11 +1,12 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 /**
  * STEP 7 운명의 갈림길 — 두 선택지(A/B)의 기운을 결정론 비교(computeCrossroad).
  * 정답 단정이 아니라 '두 길의 기운' 비교 연출 + 꽃돼지 해설.
  */
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import type { PaidResumeArgs, PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
 import { Starfield } from "./Starfield";
@@ -13,6 +14,7 @@ import { PigFace } from "./PigFace";
 import { computeCrossroad } from "../_engine/crossroad";
 import { redirectToLoginOnAuthRequired, makeGateRequestId } from "./paidGate";
 import { useDestinyCompassCopy } from "../_lib/copy";
+import { saveCompassArchive } from "../_lib/archive";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import styles from "./map.module.css";
@@ -29,7 +31,7 @@ export function Crossroads({
   /** 결제 복귀 재개 서술자 생성기. 핸들러 등록은 항상 떠 있는 CompassApp 이 한다. */
   buildResume?: (args?: PaidResumeArgs) => PaidResumeDescriptor;
   /** 결제 복귀로 열렸으면 결제 직전에 입력했던 두 선택지를 되살려 바로 비교를 보여준다. */
-  resumed?: { a: string; b: string } | null;
+  resumed?: { a: string; b: string; requestId?: string } | null;
 }) {
   const copy = useDestinyCompassCopy();
   const priceLabel = formatKrwFromCoins(lookupServerCoinPrice("destiny-compass-crossroads")!, detectLocale());
@@ -43,18 +45,45 @@ export function Crossroads({
     () => (compared && a.trim() && b.trim() ? computeCrossroad(field, a, b) : null),
     [compared, field, a, b],
   );
-  const systems = field.sources.length ? field.sources : (["saju", "ziwei"] as SystemKey[]);
+  const systems = useMemo(
+    () => (field.sources.length ? field.sources : (["saju", "ziwei"] as SystemKey[])),
+    [field.sources],
+  );
+  // 결제가 끝나 아직 보관함에 보내지 않은 결제. 비교가 그려지면 한 번 보내고 비운다.
+  const paidRef = useRef<{ requestId: string; accessMethod?: string } | null>(
+    resumed?.requestId ? { requestId: resumed.requestId } : null,
+  );
+
+  useEffect(() => {
+    const paid = paidRef.current;
+    if (!result || !paid) return;
+    paidRef.current = null;
+    const [optA, optB] = result.options;
+    const rec = result.options.find((o) => o.id === result.recommended) ?? optA;
+    saveCompassArchive("destiny-compass-crossroads", {
+      ...paid,
+      facts: { optionA: optA.labelKey, optionB: optB.labelKey, recommended: rec.labelKey, score: rec.total, scoreA: optA.total, scoreB: optB.total },
+      sections: [
+        ...result.options.map((opt) => ({
+          title: opt.id === result.recommended ? `${opt.labelKey} · ${copy.recommendedBadge}` : opt.labelKey,
+          body: [`${copy.totalEnergyLabel} ${opt.total}`, ...systems.map((sys) => `${copy.systemLabel[sys]} ${opt.systemScores[sys] ?? 0}`)].join("\n"),
+        })),
+        { title: copy.pigSpeakerName, body: copy.crossroadsResultPigLine(rec.labelKey) },
+      ],
+    });
+  }, [result, copy, systems]);
 
   // 결제 게이트: 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등) → 통과 후에만 비교 노출.
   const compare = useCallback(async () => {
     if (!a.trim() || !b.trim() || isPaying) return;
     setError(null);
+    const requestId = makeGateRequestId("destiny-compass-crossroads");
     const r = await ensurePaidAccess({
       featureKey: "destiny-compass-crossroads",
       coinPrice: lookupServerCoinPrice("destiny-compass-crossroads")!,
       amountKRW: lookupServerCoinPrice("destiny-compass-crossroads")! * 100,
       reason: copy.crossroadsGateReason,
-      requestId: makeGateRequestId("destiny-compass-crossroads"),
+      requestId,
       // 🔴 비교 대상 두 줄을 서술자에 실어야 한다 — 복귀 문서의 입력칸은 비어 있어
       //    여기서 다시 읽으면 결제만 되고 아무것도 비교되지 않는다.
       resume: buildResume?.({ a, b }),
@@ -69,6 +98,7 @@ export function Crossroads({
       }
       return;
     }
+    paidRef.current = { requestId, ...(r.code === "PASS_FREE" ? { accessMethod: "pass" } : {}) };
     setCompared(true);
   }, [a, b, isPaying, ensurePaidAccess, copy, buildResume]);
 
@@ -81,6 +111,7 @@ export function Crossroads({
       </header>
 
       <div className={styles.resultBody}>
+        {!result && detectLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"0 auto 24px",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="destiny-compass-crossroads" summaryLabel="갈림길 기운 비교 상세 안내" /></div>}
         {!result ? (
           <>
             <div className={styles.resultSpeak}>

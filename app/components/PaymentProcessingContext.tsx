@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -493,7 +494,7 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
   if (normalizedMode === "refund") return "refund";
 
   const normalizedMessage = String(message || "");
-  if (/이용권을 적용|이용권 적용|이용권 확인|이용권 혜택|이용권 결제|이용권이 활성화|30일 이용권|이용권 권한|membership_pass|pass_applied|달빛 결제 시스템/i.test(normalizedMessage)) return "pass-checking";
+  if (/이용권을 적용|이용권 적용|이용권 확인|이용권 혜택|이용권 결제|이용권이 활성화|30일 이용권|보유한 이용권으로|이용권 권한|membership_pass|pass_applied|달빛 결제 시스템/i.test(normalizedMessage)) return "pass-checking";
   if (/결제창|주문|checkout|prepare|연결|열고/i.test(normalizedMessage)) return "checkout";
   if (/결제 결과|결제 승인|카드 승인|서버 검증|검증|승인|confirm|복귀 신호/i.test(normalizedMessage)) return "confirm";
   if (/moonlight[\s_-]*stone|moonstone|monthly_credit|membership_credit/i.test(normalizedMessage)) return "monthly";
@@ -517,7 +518,7 @@ function resolvePaymentLoadingStage(variant: PaymentLoadingVariant, message?: st
 
 function resolvePaymentLoadingType(variant: PaymentLoadingVariant, message?: string): PaymentType {
   const normalizedMessage = String(message || "");
-  if (/이용권을 확인하는 중이에요|이용권 확인|이용권을 확인했어요|이용권 적용|이용권 혜택|이용권이 활성화|30일 이용권으로/.test(normalizedMessage)) return "pass";
+  if (/이용권을 확인하는 중이에요|이용권 확인|이용권을 확인했어요|이용권 적용|이용권 혜택|이용권이 활성화|30일 이용권으로|보유한 이용권으로/.test(normalizedMessage)) return "pass";
   if (/월정석/.test(normalizedMessage)) return "subscription";
   if (/단건|결제가 완료됐어요|결제를 처리하고 있어요/.test(normalizedMessage)) return "single";
   // 🔴 variant 'subscription' = 이용권 결제 승인/활성화, 'monthly' = 월정석. 두 재화는 별개다.
@@ -1153,6 +1154,8 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
 export function PaymentProcessingProvider({
   children,
 }: PaymentProcessingProviderProps) {
+  const pathname = usePathname();
+  const profileOnly = pathname?.replace(/\/$/, "") === "/saju/career-style";
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingVariant, setProcessingVariant] = useState<PaymentLoadingVariant>("payment");
   const processingVariantRef = useRef<PaymentLoadingVariant>("payment");
@@ -1170,7 +1173,7 @@ export function PaymentProcessingProvider({
   // warmSubscriptionSnapshotOnEntry가 조기 반환하므로 실제 요청은 TTL당 1회다.
   // billing-client/auth-store는 동적 import로만 참조한다 — 루트 레이아웃 번들을 키우지 않기 위해서다.
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || profileOnly) return;
     let cancelled = false;
     let unsubscribe: (() => void) | null = null;
     let idleHandle: number | null = null;
@@ -1222,7 +1225,7 @@ export function PaymentProcessingProvider({
         idleWindow.cancelIdleCallback(idleHandle);
       }
     };
-  }, []);
+  }, [profileOnly]);
 
   // 유료 CTA 클릭 "전"에 결제 런타임(/js/destiny-profile.js, ~400KB — 결제 선택창을 여는 코드)을
   // 미리 받아 둔다. app/hooks/useCoinGate.ts 는 자기 마운트 시점에 이미 이걸 하지만, 그 훅을 쓰지
@@ -1232,7 +1235,7 @@ export function PaymentProcessingProvider({
   // idle 콜백으로 걸어 두면 화면마다 배선할 필요가 없다 — loadPaidServiceRuntimeGate 는 이미 멱등
   // (중복 로드 방지)이라 useCoinGate 와 겹쳐 불려도 안전하다.
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || profileOnly) return;
     let cancelled = false;
     let idleHandle: number | null = null;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -1264,7 +1267,7 @@ export function PaymentProcessingProvider({
       }
       if (timer !== null) clearTimeout(timer);
     };
-  }, []);
+  }, [profileOnly]);
 
   const setPaymentLoadingVariant = useCallback((variant: PaymentLoadingVariant) => {
     processingVariantRef.current = variant;
@@ -1292,30 +1295,41 @@ export function PaymentProcessingProvider({
     if (typeof message === "string" && message.trim()) {
       setProcessingMessageState(message);
     }
+    overlayStateRef.current = { open: true, message: message || DEFAULT_PROCESSING_MESSAGE, mode: variant || resolvePaymentLoadingVariant(message) };
     setPaymentLoadingVariant(variant || resolvePaymentLoadingVariant(message));
     setIsProcessing(true);
-  }, [clearCompletionCloseTimer, setPaymentLoadingVariant]);
+    if (isPaymentCompletionVariant(variant || resolvePaymentLoadingVariant(message))) {
+      // Loading the deferred renderer must not consume the visible welcome time.
+      completionCloseTimerRef.current = setTimeout(closeProcessingNow, 10000);
+    }
+  }, [clearCompletionCloseTimer, setPaymentLoadingVariant, closeProcessingNow]);
 
   const stopProcessing = useCallback(() => {
     if (isPaymentCompletionVariant(processingVariantRef.current) && typeof window !== "undefined") {
-      clearCompletionCloseTimer();
-      completionCloseTimerRef.current = setTimeout(() => {
-        closeProcessingNow();
-      }, processingVariantRef.current === "pass-applied" ? 800 : 700);
+      // A confirmed welcome closes from its presentation timer, not onPaid completion.
       return;
     }
     closeProcessingNow();
   }, [clearCompletionCloseTimer, closeProcessingNow]);
 
+  const onCompletionPresented = useCallback(() => {
+    if (!isPaymentCompletionVariant(processingVariantRef.current)) return;
+    clearCompletionCloseTimer();
+    completionCloseTimerRef.current = setTimeout(closeProcessingNow, 1500);
+  }, [clearCompletionCloseTimer, closeProcessingNow]);
+
   const setProcessingMessage = useCallback((message: string) => {
     if (!message || !message.trim()) {
+      clearCompletionCloseTimer();
       setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
       setPaymentLoadingVariant("payment");
       return;
     }
     setProcessingMessageState(message);
-    setPaymentLoadingVariant(resolvePaymentLoadingVariant(message));
-  }, [setPaymentLoadingVariant]);
+    const nextVariant = resolvePaymentLoadingVariant(message);
+    if (nextVariant !== processingVariantRef.current) clearCompletionCloseTimer();
+    setPaymentLoadingVariant(nextVariant);
+  }, [setPaymentLoadingVariant, clearCompletionCloseTimer]);
 
   useEffect(() => {
     return () => clearCompletionCloseTimer();
@@ -1332,11 +1346,14 @@ export function PaymentProcessingProvider({
       if (previous.open && previous.message === nextMessage && previous.mode === nextMode) return;
       overlayStateRef.current = { open: true, message: nextMessage, mode: nextMode };
       closeStaticPaymentOverlay();
-      clearCompletionCloseTimer();
       const nextVariant = resolvePaymentLoadingVariant(nextMessage, nextMode);
+      if (!(isPaymentCompletionVariant(nextVariant) && processingVariantRef.current === nextVariant && completionCloseTimerRef.current)) clearCompletionCloseTimer();
       setPaymentLoadingVariant(nextVariant);
       setProcessingMessageState(nextMessage);
       setIsProcessing(true);
+      if (isPaymentCompletionVariant(nextVariant) && !completionCloseTimerRef.current) {
+        completionCloseTimerRef.current = setTimeout(closeProcessingNow, 10000);
+      }
       return;
     }
     if (!previous.open) {
@@ -1452,6 +1469,7 @@ export function PaymentProcessingProvider({
             statusMessage={processingMessage}
             actionLabel={processingAction?.label}
             onAction={processingAction?.onClick}
+            onCompletionPresented={onCompletionPresented}
           />
         ) : null}
       </PaidFeatureGateProvider>

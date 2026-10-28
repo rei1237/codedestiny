@@ -65,6 +65,10 @@
 | `cd_content_tier_09` | `20000` | 운세 콘텐츠 20,000원 | 선택하신 궁합·심화 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_10` | `30000` | AI 상담 30,000원 | 선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_14` | `7000` | 운세 콘텐츠 7,000원 | 선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
+| `cd_content_tier_15` | `1000` | 운세 콘텐츠 1,000원 | 선택하신 운세 콘텐츠 또는 프로필 카드 관리 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
+| `cd_content_tier_16` | `15000` | 운세 콘텐츠 15,000원 | 선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
+| `cd_content_tier_17` | `50000` | AI 상담 50,000원 | 선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
+| `cd_content_tier_18` | `70000` | AI 상담 70,000원 | 선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 
 > **2026-08-12 가격 티어 정비로 6개 SKU(`tier_03`·`04`·`05`·`07`·`08`·`12`)가 판매 중단됐다.**
 > 대응하는 코인가가 레지스트리에서 사라졌기 때문이며, 남은 SKU의 **가격은 한 건도 바뀌지 않았다.**
@@ -85,24 +89,30 @@
 
 **각 티어가 실제로 커버하는 기능** (레지스트리 실측 — 참고용, Play Console 입력 불필요)
 
+집계 기준(2026-10-12): `worker/lib/paid-feature-registry.js`의 `FEATURE_KEY_PRICE_TABLE`과 `UNLOCK_PRODUCT_BY_FEATURE_KEY` 합집합 182개 키를 `worker/lib/app-store-pricing.js`의 `isAppFreeFeature` → `resolveAppContentTier` 순서로 분류했다. 앱 무료 0개, 티어 미배정 0개.
+
 | 상품 ID | 웹가 | 앱가 | 대상 기능 수 | 대표 기능 |
 |---|---|---|---|---|
-| `cd_content_tier_01` | 3,000 | 3,000 | 18 | tarot-numerology-reading, animal-totem-basic |
-| `cd_content_tier_02` | 5,000 | 5,000 | 58 | tarot-love-relationship, royal-tea-oracle, physiognomy-*, animal-totem-deep |
-| `cd_content_tier_14` | 7,000 | 7,000 | 1 | tarot-prompt-maker-deep (타로 오라클 상담 8~10카드) |
-| `cd_content_tier_06` | 10,000 | 10,000 | 50 | tarot-year-fortune, fortune-tea-house-saju-consultation, ziwei_love_deep |
-| `cd_content_tier_09` | 20,000 | 20,000 | 10 | cosmic-soul-meditation, life-book-ai-consultation, master-love-codex |
-| `cd_content_tier_10` | 30,000 | 30,000 | 18 | vedic-ai-consultation, karma-destiny-ai-consultation, fusion-fortune-consultation |
+| `cd_content_tier_01` | 3,000 | 3,000 | 17 | daily-fortune-reading, royal-tea-oracle, ifa-oracle, stonehenge-runes-* |
+| `cd_content_tier_02` | 5,000 | 5,000 | 74 | astro_basic_deep_pack, animal-totem-basic·deep, compat-ziwei-compatibility, physiognomy-* |
+| `cd_content_tier_14` | 7,000 | 7,000 | 14 | destiny-compass-*, human-design-report, love-code, saju-guardian-unlock |
+| `cd_content_tier_06` | 10,000 | 10,000 | 35 | fortune-tea-house-*-consultation 5종, tarot-year-fortune, cosmic-soul-meditation, life-book-ai-consultation, 영냥이 연어 |
+| `cd_content_tier_09` | 20,000 | 20,000 | 1 | nakshatra-compat |
+| `cd_content_tier_10` | 30,000 | 30,000 | 24 | section_daewun·section_summary(사주 대운·종합), master-love-codex(개인판), vedic-ai-consultation, 영냥이 참치 |
+| `cd_content_tier_15` | 1,000 | 1,000 | 4 | profile-card-manage, fun.quantumLotto.ritualReport, rpt_skillTreeCard, rpt_specialCharmCard |
+| `cd_content_tier_16` | 15,000 | 15,000 | 7 | 영냥이 광어 6종, fortune-chat-question-flounder |
+| `cd_content_tier_17` | 50,000 | 50,000 | 5 | master-love-codex-compat(궁합판), fusion-fortune-consultation, 영냥이 생선 모둠 3종 |
+| `cd_content_tier_18` | 70,000 | 70,000 | 1 | yeongnyangi-fusion-all(생선 오마카세) |
 
 ### 2-2. 이용권 4개
 
-**이용권은 30일 기간이고, 자동 갱신이 없으며, 등급별 월 이용 한도가 있다.** 커버 범위 안의 기능은
-그 한도(스탠다드 3만·프리미엄 10만·VVIP 20만·family 50만원)까지 추가 결제 없이 열린다.
+**이용권은 기간이 없고(2026-10-11), 자동 갱신이 없으며, 등급별 이용 한도가 있다.** 한도를 다 쓰면 종료된다. 커버 범위 안의 기능은
+그 한도(작은 꿀단지 3만·중간 꿀단지 10만·큰 꿀단지 20만·패밀리 꿀단지 50만원)까지 추가 결제 없이 열린다.
 🔴 **"횟수 제한 없음"·"무제한"으로 쓰지 말 것**(2026-08-24) — 모든 등급에 월 이용 한도가 있어 그 표현은
 실제 정책과 모순이고, 한도를 다 쓴 사용자가 "제한이 없다더니"를 겪는다.
-🔴 **한도를 다 쓰면 이용권이 그 자리에서 끝난다**(2026-09-04) — 남은 기간이 며칠이든 종료되고, 새로 구매하면
-그날부터 30일과 한도가 다시 시작된다. 서비스가 막히지는 않고 이후 이용은 단건 결제·월정석으로 넘어간다.
-"기간 내 리셋"·"다음 달에 다시 열림"으로 쓰지 말 것 — 한도 사이클 키가 이용권 자신의 만료일이라 기간 안에서
+🔴 **한도를 다 쓰면 이용권이 그 자리에서 끝난다**(2026-09-04, 2026-10-11 부터 유일한 종료 조건) — 새로 구매하면
+새 한도로 다시 시작된다. 서비스가 막히지는 않고 이후 이용은 단건 결제·월정석으로 넘어간다.
+"리셋"·"다음 달에 다시 열림"으로 쓰지 말 것 — 한도 사이클 키가 이용권 자신의 만료일(활성화 + 100년 센티널)이라
 리셋되는 일 자체가 없다(`worker/lib/profile-limits.js` `resolvePremiumQuotaCycleKey`).
 
 **커버 금액은 앱 기준으로 표기한다.** 2026-08-29 부터 앱가 = 웹가라 두 표기가 같은 값이지만, 파생
@@ -116,10 +126,19 @@
 
 | 상품 ID | 가격(KRW) | 이름 | 설명 |
 |---|---|---|---|
-| `cd_pass_standard_30d` | `9900` | 스탠다드 꿀 (30일) | 30일간 5,000원 이하 유료 기능을 월 최대 30,000원 상당까지 이용합니다. 프로필 3개. 월 최대 금액을 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 자동 갱신되지 않습니다. |
-| `cd_pass_premium_30d` | `29900` | 프리미엄 꿀 (30일) | 30일간 10,000원 이하 유료 기능을 월 최대 100,000원 상당까지 이용합니다. 프로필 7개. 월 최대 금액을 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 자동 갱신되지 않습니다. |
-| `cd_pass_vvip_30d` | `59000` | VVIP 꿀단지 (30일) | 30일간 20,000원 이하 유료 기능을 월 최대 200,000원 상당까지 이용합니다. 프로필 15개. 월 최대 금액을 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 자동 갱신되지 않습니다. |
-| `cd_pass_family_30d` | `149000` | Code Destiny Family (30일) | 30일간 이용권 대상 유료 기능 전체를 월 최대 500,000원 상당까지 이용합니다. 프로필 무제한. 월 최대 금액을 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 자동 갱신되지 않습니다. |
+| `cd_pass_standard_30d` | `9900` | 작은 꿀단지 | 5,000원 이하 유료 기능을 최대 30,000원 상당까지 이용합니다. 기간 제한이 없으며, 최대 금액을 모두 사용하면 이용권이 종료됩니다. 자동 갱신되지 않습니다. |
+| `cd_pass_premium_30d` | `29900` | 중간 꿀단지 | 10,000원 이하 유료 기능을 최대 100,000원 상당까지 이용합니다. 기간 제한이 없으며, 최대 금액을 모두 사용하면 이용권이 종료됩니다. 자동 갱신되지 않습니다. |
+| `cd_pass_vvip_30d` | `59000` | 큰 꿀단지 | 20,000원 이하 유료 기능을 최대 200,000원 상당까지 이용합니다. 기간 제한이 없으며, 최대 금액을 모두 사용하면 이용권이 종료됩니다. 자동 갱신되지 않습니다. |
+| `cd_pass_family_30d` | `149000` | 패밀리 꿀단지 | 이용권 대상 유료 기능 전체를 최대 500,000원 상당까지 이용합니다. 기간 제한이 없으며, 최대 금액을 모두 사용하면 이용권이 종료됩니다. 자동 갱신되지 않습니다. |
+| `cd_pass_standard_30d_v2` | `9900` | 작은 꿀단지 | 5,000원 이하 유료 기능을 이용하는 이전 정책 상품입니다. 자동 갱신되지 않습니다. |
+| `cd_pass_premium_30d_v2` | `29900` | 중간 꿀단지 | 10,000원 이하 유료 기능을 이용하는 이전 정책 상품입니다. 자동 갱신되지 않습니다. |
+| `cd_pass_vvip_30d_v2` | `59900` | 큰 꿀단지 | 30,000원 이하 유료 기능을 이용하는 이전 정책 상품입니다. 자동 갱신되지 않습니다. |
+| `cd_pass_standard_30d_v3` | `14900` | 작은 꿀단지 | 5,000원 이하 유료 기능을 이용하는 이전 정책 상품입니다. 자동 갱신되지 않습니다. |
+| `cd_pass_premium_30d_v3` | `39900` | 중간 꿀단지 | 10,000원 이하 유료 기능을 이용하는 이전 정책 상품입니다. 자동 갱신되지 않습니다. |
+| `cd_pass_vvip_30d_v3` | `79900` | 큰 꿀단지 | 30,000원 이하 유료 기능을 이용하는 이전 정책 상품입니다. 자동 갱신되지 않습니다. |
+| `cd_pass_standard_30d_v4` | `9900` | 작은 꿀단지 | 5,000원 이하 유료 기능을 최대 20,000원 상당까지 이용합니다. 자동 갱신되지 않습니다. |
+| `cd_pass_premium_30d_v4` | `29900` | 중간 꿀단지 | 10,000원 이하 유료 기능을 최대 60,000원 상당까지 이용합니다. 자동 갱신되지 않습니다. |
+| `cd_pass_vvip_30d_v4` | `59900` | 큰 꿀단지 | 30,000원 이하 유료 기능을 최대 120,000원 상당까지 이용합니다. 자동 갱신되지 않습니다. |
 
 **가격 근거 — 이용권가는 앱·웹이 같다**(2026-08-24 개정). 2026-08-29 에 콘텐츠 티어까지 같아지면서
 이제 앱의 모든 SKU 가 웹가와 동일하다 — Play 수수료 15%를 그대로 부담한다는 뜻이고, 의도된 선택이다.

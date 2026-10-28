@@ -1,12 +1,16 @@
 .guide {color:var(--yn-ivory);text-align:left;line-height:1.75;font-size:16px;overflow-wrap:anywhere}
-.guide :is(h2,h3) {font-size:20px;color:var(--yn-gold);margin:30px 0 10px;font-family:var(--serif)}
+.guide :is(h2,h3) {font-size:var(--yn-t-card);line-height:1.5;color:var(--yn-ivory);margin:30px 0 10px;font-family:var(--serif)}
+.guide > section > :is(h2,h3) {font-size:var(--yn-t-section);line-height:1.4}
+/* 금 제목은 첫 상담 안내 하나만. */
+.guide > .offer > :is(h2,h3) {color:var(--yn-gold)}
 .guide p {margin:12px 0;line-height:1.75}
 .guide .offerHook {margin:16px 0 8px;color:var(--yn-ivory);font:700 24px/1.45 var(--serif);text-wrap:balance}
 .guide a {color:var(--yn-gold);text-decoration:underline;text-underline-offset:4px;display:inline-block;padding:10px 0}
 .tiers {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;scroll-margin-top:24px}
 .tiers button {display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;min-width:0;min-height:64px;border:1px solid var(--yn-line);border-radius:12px;background:var(--yn-surface);color:var(--yn-ivory);padding:14px;font:inherit;cursor:pointer;text-align:left}
 .tiers button span {display:block;font-size:14px}
-.tiers button[aria-pressed=true] {background:var(--yn-gold);color:var(--yn-deep);border-color:var(--yn-gold)}
+.tiers button > span:first-of-type {margin-top:8px;padding-top:10px;border-top:1px solid var(--yn-line);width:100%;color:var(--yn-gold);font:600 1.3rem/1.5 var(--serif);font-variant-numeric:tabular-nums}
+.tiers button[aria-pressed=true] {background:var(--yn-raised);color:var(--yn-ivory);border-color:var(--yn-gold)}
 .tiers .tierDepth {font-size:14px;line-height:1.6;margin-top:8px}
 .chapters {padding-left:24px;margin:16px 0}
 .chapters li {padding:5px 0}
@@ -23,7 +27,15 @@
 .guide .note {font-size:14px;color:var(--yn-muted)}
 .offer {margin:24px 0;padding:20px;background:var(--yn-surface);border-radius:var(--yn-radius)}
 .offer strong {font-size:24px;color:var(--yn-gold);font-variant-numeric:tabular-nums}
-.guide .cta {display:block;text-align:center;background:var(--yn-gold);color:var(--yn-deep);border-radius:12px;padding:14px 12px;text-decoration:none;font-weight:700;min-height:48px}
+.guide .cta {display:block;text-align:center;background:var(--yn-gold);color:var(--yn-deep);border:1px solid var(--yn-gold);border-radius:var(--yn-btn-radius);padding:14px 12px;text-decoration:none;font-weight:700;min-height:var(--yn-btn-h)}
+.guide .cta:hover {background:var(--yn-gold-hover)}
+.guide .ctaSecondary {display:block;text-align:center;background:var(--yn-night);color:var(--yn-ivory);border:1px solid var(--yn-line);border-radius:var(--yn-btn-radius);padding:12px;text-decoration:none;font-weight:700;min-height:var(--yn-btn-h-sm)}
+.guide .ctaSecondary:hover {background:var(--yn-raised)}
 .guide :is(a,button,summary):focus-visible {outline:3px solid var(--yn-gold);outline-offset:4px}
 .guide ::selection {background:var(--yn-gold);color:var(--yn-deep)}
 @media(max-width:380px){.tiers {grid-template-columns:minmax(0,1fr)}}
+.comparison {width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;line-height:1.6;table-layout:fixed}
+.comparison caption {text-align:left;color:var(--yn-gold);font-weight:700;padding-bottom:8px}
+.comparison :is(th,td) {border-top:1px solid var(--yn-line);padding:10px 8px;text-align:left;vertical-align:top}
+.comparison thead th {color:var(--yn-gold)}
+.comparison tbody th {width:28%;color:var(--yn-muted);font-weight:600}

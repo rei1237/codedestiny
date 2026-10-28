@@ -159,13 +159,14 @@ describe("fpti deep report quality", () => {
     expect(source.includes("상담 섹션")).toBe(false);
   });
 
-  test("워커 deep-report 라우트에 스키마 버전/구아카이브 재생성 가드가 있어야 한다", () => {
+  test("구매 원본은 스키마 버전이 달라도 자동 재생성하지 않는다", () => {
     const source = read("worker/routes/fpti.js");
     expect(source.includes('const FPTI_DEEP_SCHEMA_VERSION = "fpti-deep-v3.0.0"')).toBe(true);
     expect(source.includes('reportType: "FPTI_DEEP_REPORT"')).toBe(true);
     expect(source.includes("function isArchivedReportUsable")).toBe(true);
     expect(source.includes("schema_version_mismatch")).toBe(true);
-    expect(source.includes('source: "regenerated"')).toBe(true);
+    expect(source.includes('source: "regenerated"')).toBe(false);
+    expect(source.includes('code: "REPORT_NEEDS_REFRESH"')).toBe(false);
   });
 
   test("MLBR/AHFV/ALBR/MHFV 심층 리포트는 내부 키 노출 없이 상담체 품질을 충족해야 한다", () => {

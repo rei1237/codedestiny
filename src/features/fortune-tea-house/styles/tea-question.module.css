@@ -22,13 +22,13 @@
 .questionInvitation h2 { font-family: var(--tea-font-premium), serif; font-size: clamp(1.75rem,3.3vw,2.5rem); line-height: 1.5; font-weight: 500; margin: 14px 0; text-wrap: balance; word-break: keep-all; }
 .questionInvitation > p:last-child { color: #e9ccd8; margin: 0; max-width: 32ch; }
 .chosenTea { color: #efd39e; font-size: .875rem; margin: 0; }
-.questionPanel { min-width: 0; background: var(--question-paper); padding: 36px 42px 0; border: 1px solid var(--question-border); border-top: 0; border-radius: 0 0 22px 22px; }
+.questionPanel { min-width: 0; background: var(--question-paper); padding: 36px 42px 0; box-shadow: 0 20px 60px #30112314; border: 1px solid var(--question-border); border-top: 0; border-radius: 0 0 22px 22px; }
 .questionPanel h3 { font-family: var(--tea-font-premium), serif; font-size: 1.375rem; font-weight: 600; line-height: 1.5; margin: 0; word-break: keep-all; }
 .sceneEyebrow { font-size: .875rem; color: var(--question-rose); margin: 0 0 8px; }
 .sceneDescription { color: var(--question-muted); margin: 0; max-width: 65ch; }
 .questionFormSection { padding: 32px 0; border-bottom: 1px solid var(--question-border); }
-.questionSectionHeader { display: flex; gap: 14px; margin-bottom: 24px; align-items: baseline; }
-.questionSectionHeader > span { font-size: .875rem; color: #936948; flex-shrink: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.questionSectionHeader { display: flex; gap: 14px; margin-bottom: 24px; align-items: start; }
+.questionSectionHeader > span { display:grid; place-items:center; width:32px; height:32px; border:1px solid #bb945d80; border-radius:50%; background:#f6ede0; font-size:.75rem; color:#78552e; flex-shrink:0; font-variant-numeric:tabular-nums; }
 .questionSectionHeader p { margin: 6px 0 0; color: var(--question-muted); font-size: .9375rem; max-width: 65ch; }
 .questionLabel { display: grid; gap: 9px; font-size: .9375rem; font-weight: 600; min-width: 0; margin-bottom: 20px; }
 .questionInput, .questionTextarea, .sukuyoSituationTextarea { width: 100%; min-width: 0; min-height: 50px; padding: 13px 15px; border: 1px solid #ba989e; border-radius: 10px; background: #fffefd; color: var(--question-ink); font: inherit; font-size: 16px; font-weight: 400; }
@@ -37,11 +37,11 @@
 .questionScene :is(button,input,select,textarea):focus-visible { outline: 3px solid var(--question-rose); outline-offset: 4px; }
 .questionScene button { min-height: 48px; cursor: pointer; font: inherit; }
 .questionScene :is(button,input,select,textarea):disabled { cursor: default; opacity: .55; }
-.consultModeGrid { display: grid; gap: 0; border-top: 1px solid var(--question-border); }
-.consultModeCard { position: relative; display: grid; grid-template-columns: 156px minmax(0,1fr) 28px; gap: 24px; align-items: center; min-width: 0; width: 100%; padding: 20px 14px 20px 0; border: 0; border-bottom: 1px solid var(--question-border); border-radius: 0; background: transparent; color: var(--question-ink); text-align: left; }
-.consultModeCard[data-selected=true] { background: #f5e5e5; box-shadow: inset 0 1px #c89b6d, inset 0 -1px #c89b6d; }
+.consultModeGrid { display: grid; gap: 16px; padding-top:20px; }
+.consultModeCard { position: relative; display: grid; grid-template-columns: 156px minmax(0,1fr) 28px; gap: 24px; align-items: center; min-width: 0; width: 100%; padding: 16px; border: 1px solid var(--question-border); border-radius: 28px 10px 28px 10px; background: #fffdf9; color: var(--question-ink); text-align: left; }
+.consultModeCard[data-selected=true] { border-color:var(--question-rose); background: #f7e9ed; box-shadow: inset 0 0 0 1px var(--question-rose),0 6px 18px #48233a0c; }
 .consultModeVisual { display: block; min-width: 0; align-self: stretch; }
-.consultModeVisual .consultModeImage { display: block; width: 100%; height: 100%; min-height: 164px; border-radius: 0 14px 14px 0; overflow: hidden; }
+.consultModeVisual .consultModeImage { display: block; width: 100%; height: 100%; min-height: 164px; border-radius: 20px 6px 20px 6px; overflow: hidden; }
 .consultModeImage .consultModeArtwork { object-fit: cover; object-position: center 24%; }
 .consultModeCopy { display: grid; gap: 10px; min-width: 0; padding: 4px 0; }
 .consultModeCopy > strong { font-family: var(--tea-font-premium), serif; font-size: 1.375rem; line-height: 1.5; font-weight: 600; }
@@ -58,22 +58,24 @@
 .birthTimeUnknownToggle { display: flex; align-items: center; gap: 10px; min-height: 48px; }
 .birthTimeUnknownToggle input { width: 20px; height: 20px; accent-color: var(--question-rose); }
 .birthOptionalNotice, .profileLoadNotice, .sukuyoAutoQuestionHint, .optionalFieldMark { font-size: .875rem; color: var(--question-muted); font-weight: 400; }
-.profileLoadPanel { padding: 20px; background: #f6e9e5; border: 1px solid var(--question-border); border-radius: 12px; margin-bottom: 24px; }
+.profileLoadPanel { padding: 20px; background: #f7efeb; border: 1px solid #dfcbbf; border-radius: 12px; margin-bottom: 24px; }
 .profileLoadHeader { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
 .profileLoadPanel button { background: #fff9f3; border: 1px solid #ba9297; border-radius: 10px; padding: 10px 16px; color: var(--question-rose); }
 .tarotSpreadSelector { border: 0; padding: 0; margin: 24px 0 0; min-width: 0; }
 .tarotSpreadSelector legend { padding: 0; margin-bottom: 14px; font-family: var(--tea-font-premium), serif; font-size: 1.125rem; }
 .tarotSpreadOptions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
-.tarotSpreadOption { display: flex; flex-direction: column; gap: 12px; text-align: left; padding: 20px; border: 1px solid #c8a5a8; border-radius: 12px; background: #fffdf9; color: var(--question-ink); }
-.tarotSpreadOption[data-selected=true] { border-color: #aa7547; background: #f3e2e4; box-shadow: inset 0 0 0 1px #aa7547; }
+.tarotSpreadOption { display: flex; flex-direction: column; gap: 12px; text-align: left; padding: 20px; border: 1px solid #c8a5a8; border-radius: 26px 8px 26px 8px; background: #fffdf9; color: var(--question-ink); }
+.tarotSpreadOption::before { content:""; width:44px; height:44px; background:url('/images/fortune-tea-house/moonlight-lotus-ornament-360.webp') center/contain no-repeat; pointer-events:none; }
+.tarotSpreadOption[data-selected=true] { border-color: var(--question-rose); background: #f7e9ed; box-shadow: inset 0 0 0 1px var(--question-rose); }
 .tarotSpreadOption > strong { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; font-family: var(--tea-font-premium), serif; font-size: 1.125rem; }
 .tarotSpreadOption > span { font-size: .875rem; color: var(--question-muted); }
 .tarotSpreadOption .spreadPrice { font-size: 1rem; color: var(--question-rose); margin-top: auto; padding-top: 4px; font-variant-numeric: tabular-nums; font-weight: 600; }
 .spreadCheck { visibility: hidden; flex-shrink: 0; color: var(--question-rose); }
 .tarotSpreadOption[data-selected=true] .spreadCheck { visibility: visible; }
 .storyActions { display: flex; gap: 16px; justify-content: space-between; align-items: stretch; flex-wrap: wrap; padding: 24px 0; position: relative; background: var(--question-paper); border-top: 1px solid var(--question-border); }
-.storyActions .primaryAction { min-height: 54px; padding: 14px 24px; border: 1px solid #bb945d; border-radius: 12px; background: #773552; color: #fff4e8; box-shadow: 0 5px 14px #48233a18; font-weight: 600; }
-.storyActions .secondaryAction { min-height: 54px; padding: 14px 20px; border: 1px solid #bb929a; border-radius: 12px; background: #fff9f3; color: #743b56; box-shadow: none; }
+.storyActions .primaryAction { min-height: 54px; padding: 14px 50px 14px 24px; border: 1px solid #bb945d; border-radius: 26px 8px 26px 8px; background: #773552; color: #fff4e8; box-shadow: 0 5px 14px #48233a18; font-weight: 600; }
+.storyActions .primaryAction::after { width:32px; height:36px; top:calc(50% - 18px); background:url('/images/fortune-tea-house/moonlight-lotus-ornament-360.webp') center/contain no-repeat; mask:none; -webkit-mask:none; opacity:1; }
+.storyActions .secondaryAction { min-height: 54px; padding: 14px 20px; border: 1px solid #bb929a; border-radius: 26px 8px 26px 8px; background: #fff9f3; color: #743b56; box-shadow: none; }
 .questionError, .profileLoadError, .questionSubmitErrorCard { padding: 16px; border: 1px solid #b96e69; border-radius: 10px; background: #fff0eb; color: #863932; }
 @media (hover:hover) {
  .consultModeCard:not(:disabled):hover { background: #f7ece7; }
@@ -95,7 +97,7 @@
  .questionInvitation > p:last-child { max-width: none; font-size: .9375rem; }
  .questionPanel { padding: 26px 20px 0; }
  .questionPanel h3 { font-size: 1.25rem; }
- .consultModeCard { grid-template-columns: 104px minmax(0,1fr); gap: 14px; padding: 18px 12px 18px 0; }
+ .consultModeCard { grid-template-columns: 80px minmax(0,1fr); gap: 12px; padding: 16px 12px; }
  .consultModeVisual .consultModeImage { min-height: 178px; }
  .consultModeCopy { padding-right: 0; gap: 9px; }
  .consultModeCopy > strong { font-size: 1.125rem; padding-right: 20px; }
@@ -111,3 +113,18 @@
  .tarotSpreadOption { padding: 18px; }
  .questionSectionHeader { gap: 10px; }
 }
+
+.modeDisclosure > summary { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:76px; padding:16px 20px 16px 76px; border:1px solid #c8a5a8; border-radius:28px 8px 28px 8px; background:#fff5ee url('/images/fortune-tea-house/moonlight-lotus-ornament-360.webp') 16px center/44px 44px no-repeat; cursor:pointer; color:var(--question-ink); box-shadow:0 4px 14px #48233a08; }
+.modeDisclosure > summary strong { font-family:var(--tea-font-premium),serif; font-weight:600; }
+.modeDisclosure > summary span { font-size:.875rem; flex-shrink:0; text-decoration:underline; text-underline-offset:4px; color:var(--question-rose); }
+.modeDisclosure[open] > summary { border-color:var(--question-rose); background-color:#f7e9ed; }
+@media(hover:hover) { .modeDisclosure > summary:hover { border-color:var(--question-rose); } }
+@media(max-width:430px) { .modeDisclosure > summary { flex-wrap:wrap; gap:4px 12px; padding-inline-start:64px; background-size:36px; background-position:14px center; } }
+.modeDisclosure > summary:focus-visible { outline:3px solid var(--question-rose); outline-offset:4px; }
+
+.questionPanel :is(input:not([type=checkbox]):not([type=hidden]),select,textarea) { background-color:#fffefd; border-color:#cfb4b4; box-shadow:0 2px 3px #48233a04; transition:border-color .15s ease; }
+.questionPanel :is(input,select,textarea):focus { border-color:#7e395c; }
+.questionPanel :is(input,select,textarea):disabled { background:#eee7e2; box-shadow:none; }
+.modeDisclosure { border:0; padding:0; background:transparent; }
+.modeDisclosure[open] { background:transparent; }
+@media(prefers-reduced-motion:reduce) { .questionPanel :is(input,select,textarea) { transition:none; } }

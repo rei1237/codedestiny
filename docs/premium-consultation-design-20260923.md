@@ -63,6 +63,8 @@ next: "상세 소개·팝업 공용 패널 확장의 main CI를 확인하고, �
 | 작명·휴먼디자인·손금 | 기존 개별 결과 Client | 이름·바디그래프·손금 관찰이 중심인 상담별 기록. 동일한 장식 카드로 복제하지 않음 |
 | 나크샤트라·초융합·자미두수·전문가 프레임 | 기존 공유 적용표 파일 목록 | 체계별 결과 구조·차트·요약을 먼저 읽고 개선. 아직 구현/검증 완료 아님 |
 
+> **2026-10-15 갱신 — 캐릭터 적용으로 일부 대체.** 서양 점성술·자미두수(+심층 PDF)·숙요점 궁합 전문가 상담은 라이트노벨 캐릭터(윤달·무성·서한비)를 안내자로 쓴다. 위 표의 서양 점성술·자미두수 행은 화면 톤과 아트를 이 캐릭터 정본에 맞춘다. 정본: `src/features/expert-characters/`, `app/components/expert-consulting/ExpertCharacterStage.tsx`, `worker/lib/expert-character-personas.js`. 결과 구조·차트 위계·저장/공유 원칙은 그대로 유지한다.
+
 ## 구매 전 화면·나머지 상담의 구체적 재개 위치
 
 - 인생의 책 구매 전 **완료**: app/life-book-ai/LifeBookAiClient.tsx와 공통 PremiumConsultationIntro.module.css. 실제 책 표지·한국어 명조 소개·상담 범위·registry 가격·폼 이동을 연결했다. 준비 안내와 입력 폼의 폭을 교정했고 submit, 프로필 채우기, mode와 가격 데이터는 유지했다.

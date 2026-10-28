@@ -1,3 +1,4 @@
+import { buildNakshatraBirthEvidence, validNakshatraBirth } from '../lib/nakshatra-birth-evidence.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 // 나크샤트라 결정판 통합 상담 — 결제·생성 라우트 (두 전통 교차 해석, 9개 장)
 //
@@ -43,6 +44,8 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { getAmbientAiLocale, runWithAiLocale, storedAiLocale } from "../lib/ai-locale-context.js";
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import {
@@ -53,6 +56,7 @@ import {
 import { getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
 import { assembleNatalCodex } from "../lib/nakshatra-codex.js";
 import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 import {
   NAKSHATRA_SECTIONS,
   NAKSHATRA_PHASE_CONSULTATION,
@@ -124,7 +128,7 @@ function readIdempotencyKey(request, body = {}) {
 // ── 입력 정규화 — 나크샤트라는 수치 생년월일(+출생지) + 선택 질문 ────────────────────────
 function normalizeBirthInput(source = {}) {
   const src = asObject(source.birthInput || source.birthInfo || source.birth || source);
-  const timeUnknown = Boolean(src.timeUnknown === true || src.timeUnknown === "true" || src.birthTimeUnknown === true);
+  const timeUnknown = Boolean(src.hour == null || src.hour === "" || src.timeUnknown === true || src.timeUnknown === "true" || src.birthTimeUnknown === true);
   const gender = clean(src.gender).toLowerCase();
   return {
     year: Math.trunc(Number(src.year)),
@@ -140,16 +144,7 @@ function normalizeBirthInput(source = {}) {
   };
 }
 
-function isValidBirthInput(b) {
-  return (
-    Number.isInteger(b.year) && b.year >= 1900 && b.year <= 2100 &&
-    Number.isInteger(b.month) && b.month >= 1 && b.month <= 12 &&
-    Number.isInteger(b.day) && b.day >= 1 && b.day <= 31 &&
-    Number.isFinite(b.hour) && b.hour >= 0 && b.hour <= 23 &&
-    Number.isFinite(b.minute) && b.minute >= 0 && b.minute <= 59 &&
-    Number.isFinite(b.timezone) && Number.isFinite(b.lat) && Number.isFinite(b.lon)
-  );
-}
+function isValidBirthInput(b) { return validNakshatraBirth(b); }
 
 function normalizeInput(body = {}) {
   const birthInfo = normalizeBirthInput(body);
@@ -432,7 +427,8 @@ async function hasMonthlyConsume(env, auth, ctx, idempotencyKey) {
     featureKeys: [FEATURE_KEY, SERVICE_KEY],
     tokens: [idempotencyKey, ctx.requestId, ctx.ledgerId, ctx.transactionId, ctx.paymentId],
   });
-  return Boolean(evidence);
+  // 정본 원장 행을 돌려준다 — 결제 증빙 claim 은 본문 토큰이 아니라 이 ledgerId 로 잡는다.
+  return evidence || null;
 }
 
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
@@ -475,11 +471,13 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     };
   }
   {
-    if (await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey))) {
+    const monthlyEvidence = await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey));
+    if (monthlyEvidence) {
       return {
         ok: true,
         accessType: "subscription",
         paymentId: ctx.transactionId || ctx.ledgerId || idempotencyKey,
+        claimEvidenceId: clean(monthlyEvidence.ledgerId, 160),
         source: "billing-gate",
         executionSourceTransactionId: ctx.transactionId,
         executionPayment: body.payment,
@@ -681,7 +679,8 @@ async function computeNatalFacts(env, normalized, request) {
   }
   const lunar = lunarFromInput(input);
   const birthUtc = birthUtcFromInput(input);
-  const codex = assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown: input.timeUnknown, now: new Date() });
+  const codex = assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown: input.timeUnknown, now: new Date(),
+    ...await buildNakshatraBirthEvidence(env, input, swiss, request.url) });
   const { summaryText, evidenceTokens } = buildFactContext(codex, normalized.input.question);
   const identity = {
     sukuyoKo: clean(codex?.dongyang?.nameKo),
@@ -811,7 +810,8 @@ async function handleEnsureAccess(request, env) {
 }
 
 async function handleStart(request, env) {
-  const body = await readJson(request);
+  const received = await readJson(request);
+  const body = { ...received, locale: toAiLocale(getAmbientAiLocale() || received?.locale) };
   const normalized = normalizeInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
@@ -848,6 +848,10 @@ async function handleStart(request, env) {
       message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
     }, { status: isCalculationError ? 422 : 503 });
   }
+  // 결제 증빙 1건 = 상담 1건(2026-10-16). 서버가 찾은 결제 문서·월정석 원장 ID 만 묶는다(이용권·관리자는 건너뜀).
+  const evidenceIds = [access.paymentDocId, access.claimEvidenceId];
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
 
   const sessionId = existing?.id || `nakai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}`;
   const now = new Date();
@@ -870,7 +874,7 @@ async function handleStart(request, env) {
     messages: [],
     status: "generating",
     generationError: null,
-    llmMeta: { resumeBody: { ...body, accessToken: undefined, idempotencyKey }, attempts: {} },
+    llmMeta: { resumeBody: { ...body, accessToken: undefined, idempotencyKey }, attempts: {}, evidenceIds: evidenceIds.filter(Boolean) },
   };
   if (existing) {
     await saveNakshatraDelivery({ id: existing.id, userId: auth.userId, status: { $ne: "completed" } }, { ...seed, updatedAt: now }, sessionId);
@@ -947,8 +951,8 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
       const outcomes = await Promise.allSettled(missing.map(async section => {
         const prompt = buildSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`]
           ? `\n[분량 보강] 기존 계산 근거를 유지하고 새로운 생활 장면과 행동 조언을 더해 공백 제외 본문 ${Math.ceil(section.minChars / 0.8)}자 이상의 완결된 JSON으로 작성하세요. 반복으로 채우지 마세요.` : "");
-        const row = await generateSectionOnce(env, section, prompt, { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 2592000,
-          minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` });
+        const row = await runWithAiLocale(storedAiLocale(session), () => generateSectionOnce(env, section, prompt, { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 2592000,
+          minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` }));
         const identity = session.factSummary?.identity;
         if (!isSectionSettled(row, {}, true) || (identity?.nakshatraKo && !row.vedicEvidence.includes(identity.nakshatraKo)) || (identity?.sukuyoKo && !row.sukuyoEvidence.includes(identity.sukuyoKo))) { await recordGenerationFailure(section.id); return; }
         const write = queue.catch(() => {}).then(async () => {
@@ -985,6 +989,7 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;
     await saveNakshatraDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED"), message: clean(error?.message, 500) } }, sessionId);
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: session.llmMeta?.evidenceIds });
     await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {

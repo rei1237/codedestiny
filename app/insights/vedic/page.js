@@ -5,15 +5,15 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 const path = "/insights/vedic";
 const INSIGHTS_VEDIC_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "베다점성술 인사이트 허브 · 라그나·다샤 | Code Destiny",
+    title: "베다점성술 인사이트 허브 · 라그나·다샤 | 꿀꿀 운세",
     description: "베다점성술, 베다점, 라그나, 나크샤트라, 다샤 해석을 한국어로 정리한 베다점성술 허브입니다.",
     keywords: ["라그나", "다샤 뜻", "베다 점성술 용어", "조티쉬 용어"],
-    breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "베다점성술 인사이트"],
+    breadcrumbs: ["꿀꿀운세 홈", "운세 인사이트", "베다점성술 인사이트"],
     archiveTitle: "베다점성술 인사이트 허브",
     intro: "라그나, 나크샤트라, 다샤 흐름을 한국어 사용자 기준으로 이해하기 쉽게 정리한 베다점 허브입니다.",
   },
   en: {
-    title: "Vedic Astrology Insights Hub · Lagna and Dasha Guide | Code Destiny",
+    title: "Vedic Astrology Insights Hub · Lagna and Dasha Guide | 꿀꿀 운세",
     description: "A Vedic astrology hub explaining Jyotish, Lagna, Nakshatra, and Dasha flow for Korean readers.",
     keywords: ["Vedic astrology", "Jyotish", "Lagna", "Nakshatra", "Dasha"],
     breadcrumbs: ["Home", "Fortune Insights", "Vedic Astrology Insights"],
@@ -21,7 +21,7 @@ const INSIGHTS_VEDIC_PAGE_TEXT_TRANSLATIONS = {
     intro: "A Jyotish hub that explains Lagna, Nakshatra, and Dasha flow in a clear way for Korean-language users.",
   },
   ja: {
-    title: "ヴェーダ占星術インサイトハブ · ラグナ・ダシャー解釈ガイド | Code Destiny",
+    title: "ヴェーダ占星術インサイトハブ · ラグナ・ダシャー解釈ガイド | 꿀꿀 운세",
     description: "ヴェーダ占星術、ジョーティッシュ、ラグナ、ナクシャトラ、ダシャー解釈を韓国語で整理したヴェーダ占星術ハブです。",
     keywords: ["ヴェーダ占星術", "ジョーティッシュ", "ラグナ", "ナクシャトラ", "ダシャー"],
     breadcrumbs: ["ホーム", "運勢インサイト", "ヴェーダ占星術インサイト"],

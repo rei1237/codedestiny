@@ -14,6 +14,7 @@
 // 🔴 화면이 리포트 문장을 만들지 않는다. 모든 본문은 lib/human-design/report-plan.js 가 만든
 //    블록에서 오고, PDF 는 같은 함수의 같은 배열을 조판한다.
 
+import { humanDesignAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -33,6 +34,7 @@ import ReportCover from "./_components/ReportCover";
 import ReportDownload from "./_components/ReportDownload";
 import GenerationProgress from "./_components/GenerationProgress";
 import ReportChapter from "./_components/ReportChapter";
+import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
 import ReportLockedPanel from "./_components/ReportLockedPanel";
 import ReportRail from "./_components/ReportRail";
 import { say } from "./_lib/copy";
@@ -210,6 +212,8 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
         </section>
       )}
 
+      {chart && phase === "locked" && locale === "ko" && <div style={{maxWidth:540,marginInline:"auto"}}><CraftedProductDisclosure featureKey="human-design-report"/></div>}
+
       {chart && phase === "locked" && (
         <ReportLockedPanel
           locale={locale}
@@ -263,7 +267,7 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
               ))}
             </article>
           </div>
-          {phase === "reading" && doc?.status === "completed" && <RecommendationResult service="human-design-report" locale={locale}/>}
+          {phase === "reading" && doc?.status === "completed" && <RecommendationResult service="human-design-report" practiceTags={humanDesignAdviceTopics(plan?.chapters)} locale={locale}/>}
         </div>
       )}
     </main>

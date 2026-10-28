@@ -41,7 +41,9 @@
 .bookObject {
   aspect-ratio: 3 / 4;
   padding: 18% 14% 10% 18%;
-  background-image: url('/images/expert-consulting/life-book-cover-20260923.webp');
+  /* /life-book-ai/ 의 LCP. 원본(1086w, 410KB) 대신 표시 폭(최대 390px)에 맞춘 변형 — scripts/design/build-hero-variants.mjs */
+  background-image: url('/images/expert-consulting/life-book-cover-20260923-600.webp');
+  background-image: image-set(url('/images/expert-consulting/life-book-cover-20260923-600.webp') 1x, url('/images/expert-consulting/life-book-cover-20260923-800.webp') 2x);
   color: #f6e6b6;
 }
 .letterObject {
@@ -139,7 +141,7 @@
   .shell { padding: 80px 20px 112px; }
   .hero { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-bottom: 32px; margin-bottom: 32px; }
   .bookObject, .letterObject { width: 220px; justify-self: center; }
-  .bookObject { padding: 38px 30px 24px 38px; }
+  .bookObject { padding: 38px 30px 24px 38px; background-image: url('/images/expert-consulting/life-book-cover-20260923-600.webp'); }
   .letterObject { padding: 48px 38px 55px 29px; }
   .coverTitle { font-size: 23px; }
   .coverSubtitle { font-size: 12px; margin-top: 12px; }

@@ -37,14 +37,11 @@ function getCurrentHomeServiceLocale(): LoadingLocale {
 }
 
 const MAIN_ACTION_ROUTE_MAP: Record<string, string> = {
-  "/saju/basic": "/?action=cdOneStepFreeSajuEntry",
+  "/saju": "/?action=cdOneStepFreeSajuEntry",
   "/manse": "/index.html",
   "/compatibility": "/index.html?action=runCompat",
   "/tarot/mingri": "/tarot/mingri",
   "/ziwei/chart": "/ziwei/chart",
-  "/oracle/sukuyo": "/oracle/sukuyo",
-  "/astrology/cosmic": "/astrology/cosmic",
-  "/vedic/jyotish": "/vedic/jyotish",
   "/dream": "/index.html?action=openDreamModal",
   "/animal/physio": "/index.html?action=openPhysiognomyApp",
   "/premium": "/index.html",
@@ -110,7 +107,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
 }> = {
   ko: {
     title: "꿀꿀 만세력",
-    defaultIntro: "무료 사주 만세력·자미두수·명리학 타로·점성술·주역·숙요점·화투점·동물 관상·MBTI 궁합·운명의 꽃·드림 타로 등 운세 서비스를 한곳에서 이용할 수 있습니다. 아래 카테고리에서 원하는 항목을 눌러 네이티브 페이지로 이동하세요.",
+    defaultIntro: "사주 만세력·자미두수·명리학 타로·점성술·주역·숙요점·화투점·동물 관상·MBTI 궁합·운명의 꽃·드림 타로 등 운세 서비스를 한곳에서 이용할 수 있습니다. 아래 카테고리에서 원하는 항목을 눌러 네이티브 페이지로 이동하세요.",
     belowLegacyIntro: "위 화면에서 기존 메인과 동일하게 카드·모달로 이용할 수 있습니다. 검색·내부 링크용으로 서비스별 네이티브 페이지로 바로 갈 수 있는 목록입니다.",
     legacyCta: "전체 기능 화면 열기 (레거시 메인)",
     legacyNote: "카드·모달이 한 화면에 모여 있는 기존 메인입니다.",

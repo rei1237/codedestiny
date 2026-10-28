@@ -33,6 +33,8 @@ export default function AnimalDestinyPage() {
     calculate,
     calculateCompatibility,
     reset,
+    paid,
+    loadPaid,
   } = useAnimalDestinyStore();
 
   const { isExporting, exportCard, shareCard } = useAnimalCardExport();
@@ -166,6 +168,8 @@ export default function AnimalDestinyPage() {
                 onSaveCard={handleSaveCard}
                 onShareCard={handleShareCard}
                 isExporting={isExporting}
+                paid={paid}
+                onRetryPaid={loadPaid}
               />
             ) : null}
           </div>

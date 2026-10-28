@@ -1,0 +1,272 @@
+[
+  {
+    "path": "/ggulggul/",
+    "js": false,
+    "status": 200,
+    "title": "꿀꿀 운세 — 사주·궁합·타로",
+    "viewport": 390,
+    "width": 360,
+    "brand": "꿀꿀 운세",
+    "canonical": "https://code-destiny.com/ggulggul/",
+    "h1": [
+      {
+        "text": "꿀꿀 운세에서차근차근 풀어봐요",
+        "visible": true
+      }
+    ],
+    "links": [
+      {
+        "text": "고객센터",
+        "href": "/contact/",
+        "visible": false
+      },
+      {
+        "text": "만드는 사람과 검수 기준 보기",
+        "href": "/about/",
+        "visible": true
+      },
+      {
+        "text": "사주",
+        "href": "/saju/",
+        "visible": true
+      },
+      {
+        "text": "타로",
+        "href": "/tarot/",
+        "visible": true
+      },
+      {
+        "text": "서비스 소개",
+        "href": "/about/",
+        "visible": true
+      },
+      {
+        "text": "문의하기",
+        "href": "/contact/",
+        "visible": false
+      },
+      {
+        "text": "서비스 소개",
+        "href": "/about/",
+        "visible": true
+      }
+    ]
+  },
+  {
+    "path": "/ggulggul/",
+    "js": true,
+    "status": 200,
+    "title": "꿀꿀 운세 — 사주·궁합·타로",
+    "viewport": 390,
+    "width": 360,
+    "brand": "꿀꿀 운세",
+    "canonical": "https://code-destiny.com/ggulggul/",
+    "h1": [
+      {
+        "text": "꿀꿀 운세에서차근차근 풀어봐요",
+        "visible": true
+      }
+    ],
+    "links": [
+      {
+        "text": "만드는 사람과 검수 기준 보기",
+        "href": "/about/",
+        "visible": true
+      },
+      {
+        "text": "사주",
+        "href": "/saju/",
+        "visible": true
+      },
+      {
+        "text": "타로",
+        "href": "/tarot/",
+        "visible": true
+      },
+      {
+        "text": "서비스 소개",
+        "href": "/about/",
+        "visible": true
+      },
+      {
+        "text": "문의하기",
+        "href": "/contact/",
+        "visible": false
+      },
+      {
+        "text": "서비스 소개",
+        "href": "/about/",
+        "visible": true
+      },
+      {
+        "text": "고객센터",
+        "href": "/contact/",
+        "visible": false
+      }
+    ]
+  },
+  {
+    "path": "/ggulggul/",
+    "js": true,
+    "status": 200,
+    "title": "꿀꿀 운세 — 사주·궁합·타로",
+    "viewport": 1280,
+    "width": 1250,
+    "brand": "꿀꿀 운세",
+    "canonical": "https://code-destiny.com/ggulggul/",
+    "h1": [
+      {
+        "text": "꿀꿀 운세에서차근차근 풀어봐요",
+        "visible": true
+      }
+    ],
+    "links": [
+      {
+        "text": "만드는 사람과 검수 기준 보기",
+        "href": "/about/",
+        "visible": true
+      },
+      {
+        "text": "사주",
+        "href": "/saju/",
+        "visible": true
+      },
+      {
+        "text": "타로",
+        "href": "/tarot/",
+        "visible": true
+      },
+      {
+        "text": "서비스 소개",
+        "href": "/about/",
+        "visible": true
+      },
+      {
+        "text": "문의하기",
+        "href": "/contact/",
+        "visible": true
+      },
+      {
+        "text": "서비스 소개",
+        "href": "/about/",
+        "visible": true
+      },
+      {
+        "text": "고객센터",
+        "href": "/contact/",
+        "visible": false
+      }
+    ]
+  },
+  {
+    "path": "/en/",
+    "js": false,
+    "status": 200,
+    "title": "Korean Saju, Tarot & Birth Charts | 꿀꿀 운세",
+    "viewport": 390,
+    "width": 360,
+    "brand": "꿀꿀 운세",
+    "canonical": "https://code-destiny.com/en/",
+    "h1": [
+      {
+        "text": "꿀꿀 운세에서차근차근 풀어봐요",
+        "visible": true
+      }
+    ],
+    "links": []
+  },
+  {
+    "path": "/en/",
+    "js": true,
+    "status": 200,
+    "title": "Korean Saju, Tarot & Birth Charts | 꿀꿀 운세",
+    "viewport": 390,
+    "width": 360,
+    "brand": "꿀꿀 운세",
+    "canonical": "https://code-destiny.com/en/",
+    "h1": [
+      {
+        "text": "Korean Saju & tarotfor your next step",
+        "visible": true
+      }
+    ],
+    "links": []
+  },
+  {
+    "path": "/ja/",
+    "js": false,
+    "status": 200,
+    "title": "四柱推命・宿曜・タロット占い｜꿀꿀 운세",
+    "viewport": 390,
+    "width": 360,
+    "brand": "꿀꿀 운세",
+    "canonical": "https://code-destiny.com/ja/",
+    "h1": [
+      {
+        "text": "꿀꿀 운세에서차근차근 풀어봐요",
+        "visible": true
+      }
+    ],
+    "links": []
+  },
+  {
+    "path": "/zh/",
+    "js": false,
+    "status": 200,
+    "title": "八字排盘·紫微斗数·塔罗占卜｜꿀꿀 운세",
+    "viewport": 390,
+    "width": 360,
+    "brand": "꿀꿀 운세",
+    "canonical": "https://code-destiny.com/zh/",
+    "h1": [
+      {
+        "text": "꿀꿀 운세에서차근차근 풀어봐요",
+        "visible": true
+      }
+    ],
+    "links": []
+  },
+  {
+    "path": "/zh-tw/",
+    "js": false,
+    "status": 200,
+    "title": "八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세",
+    "viewport": 390,
+    "width": 360,
+    "brand": "꿀꿀 운세",
+    "canonical": "https://code-destiny.com/zh-tw/",
+    "h1": [
+      {
+        "text": "꿀꿀 운세에서차근차근 풀어봐요",
+        "visible": true
+      }
+    ],
+    "links": [
+      {
+        "text": "고객센터",
+        "href": "/contact/",
+        "visible": false
+      },
+      {
+        "text": "만드는 사람과 검수 기준 보기",
+        "href": "/about/",
+        "visible": true
+      },
+      {
+        "text": "서비스 소개",
+        "href": "/about/",
+        "visible": true
+      },
+      {
+        "text": "문의하기",
+        "href": "/contact/",
+        "visible": false
+      },
+      {
+        "text": "서비스 소개",
+        "href": "/about/",
+        "visible": true
+      }
+    ]
+  }
+]

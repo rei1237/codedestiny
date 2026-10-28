@@ -3,16 +3,25 @@ import { connectDb, withMongoRetry } from '../lib/db.js';
 import { User } from '../lib/models.js';
 import { CrmPreference, CrmRelationship } from '../lib/kakao-crm-models.js';
 import { json, readJson, getRoutePath, handleRouteError, createHttpError, notFound, methodNotAllowed } from '../lib/http.js';
-import { KAKAO_CHANNEL, CRM_CONSENT_TEXT, CRM_CONSENT_VERSION, CRM_SOURCES } from '../../lib/marketing/kakao-crm.mjs';
+import { KAKAO_CHANNEL, CRM_CONSENT_TEXT, CRM_CONSENT_VERSION, CRM_SOURCES, crmConsentTextForVersion } from '../../lib/marketing/kakao-crm.mjs';
 
-function checkOrigin(request) {
+export function checkOrigin(request) {
   const origin = request.headers.get('Origin');
   const own = new URL(request.url).origin;
   if (!origin || ![own, 'https://code-destiny.com', 'https://staging.code-destiny.com'].includes(origin)) throw createHttpError(403, 'Invalid origin');
 }
+// 길이가 다르면 즉시 거부하고, 같은 길이는 XOR 누적으로 상수 시간 비교한다.
+function timingSafeTextEqual(left, right) {
+  const a = new TextEncoder().encode(String(left || ''));
+  const b = new TextEncoder().encode(String(right || ''));
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a[i] ^ b[i];
+  return diff === 0;
+}
 async function webhook(request, env) {
   const key = String(env.KAKAO_CHANNEL_ADMIN_KEY || '');
-  if (!key || request.headers.get('Authorization') !== `KakaoAK ${key}`) return json({ error: 'unauthorized' }, { status: 401 });
+  if (!key || !timingSafeTextEqual(request.headers.get('Authorization'), `KakaoAK ${key}`)) return json({ error: 'unauthorized' }, { status: 401 });
   const body = await readJson(request);
   const at = new Date(body.updated_at);
   const resourceId = request.headers.get('X-Kakao-Resource-ID');
@@ -68,8 +77,10 @@ export async function handleKakaoCrmRoutes(request, env) {
       if (body.action === 'dismiss') {
         await withMongoRetry(env, () => CrmPreference.updateOne({ _id: auth.userId }, { $set: { dismissed: true } }, { upsert: true }));
       } else {
-        if (typeof body.granted !== 'boolean' || body.version !== CRM_CONSENT_VERSION || !CRM_SOURCES.includes(body.source)) return json({ error: 'invalid_consent' }, { status: 400 });
-        const consent = { granted: body.granted, at: new Date(), source: body.source, version: CRM_CONSENT_VERSION, text: CRM_CONSENT_TEXT };
+        const at = new Date();
+        const text = crmConsentTextForVersion(body.version, at.getTime());
+        if (typeof body.granted !== 'boolean' || !text || !CRM_SOURCES.includes(body.source)) return json({ error: 'invalid_consent' }, { status: 400 });
+        const consent = { granted: body.granted, at, source: body.source, version: body.version, text };
         await withMongoRetry(env, () => CrmPreference.updateOne({ _id: auth.userId }, { $set: { consent, dismissed: true }, $push: { history: consent } }, { upsert: true }));
       }
     }

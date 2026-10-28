@@ -4,6 +4,10 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 const { webcrypto } = require('node:crypto');
+const { supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } = require('../../worker/lib/support-recovery-budget.js');
+const { consultationRefundResponse } = require('../../worker/lib/consultation-refund-state.js');
+const { runWithAiLocale, getAmbientAiLocale, storedAiLocale } = require('../../worker/lib/ai-locale-context.js');
+const { toAiLocale, AI_OUTPUT_LOCALES } = require('../../lib/i18n/ai-locale.js');
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const get = (value, key) => key.split('.').reduce((at, part) => at?.[part], value);
 function set(value, key, data) {
@@ -48,12 +52,20 @@ function fixture(accessType = 'pass', currentSections = null) {
     updateOne: async (filter, update) => { if (doc && matches(doc, filter)) for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value); },
   };
   const plan = currentSections || ['overview', 'wealth', 'romance', 'monthly', 'health'].map(key => ({ key, label: key, minChars: 4000, maxChars: 5000 }));
-  const ctx = vm.createContext({ Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {} },
+  const ctx = vm.createContext({ runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {} },
+    // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
+    claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'new-year-ai-consultation',
+    reserveSupportRecoveryAttempt: async () => {},
+    supportRecoveryGenerationOptions, assertSupportRecoveryPreserved,
+    consultationRefundResponse,
+    isStoredPaidResultRevoked: async () => false,
+    settleNewYearFailureRefund: async () => { assert.equal(doc.status, 'generation_failed'); assert.equal(doc.llmMeta.lockedAt, null); return { ok: true, refundStatus: 'refunded' }; },
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
     clean: (v, max = 100000) => String(v || '').trim().slice(0, max), cleanForbiddenResult: v => v,
     randomToken: () => String(++tick), readJson: request => request.json(), json: (body, init) => new Response(JSON.stringify(body), init),
     getRoutePath: request => new URL(request.url).pathname.replace('/api/new-year-ai', ''),
     logNewYearAi() {}, safeLogPayload: () => ({}), getPricing: () => ({}),
+    safeGeminiFailure: error => ({ status: error.status || null, providerCode: error.providerCode || '', retryable: error.retryable !== false, message: 'Provider request failed.' }),
     getOptionalUserFromRequest: async () => ({ userId: owner }), connectDb: async () => {}, BILLING_SNAPSHOT_USER_PROJECTION: {},
     readIdempotencyKey: (request, body) => body.idempotencyKey || request.headers.get('idempotency-key'),
     normalizeConsultationInput: body => ({ ok: true, inputHash: body.inputHash || 'same-input', input: { birthInfo: {}, year: 2026, topic: '신년' } }),
@@ -62,7 +74,7 @@ function fixture(accessType = 'pass', currentSections = null) {
     loginRequired: () => new Response('', { status: 401 }), notFound: () => new Response('', { status: 404 }), invalidInput: (_message, status = 422) => new Response('', { status }),
     paymentVerifyFailed: () => new Response('', { status: 402 }), serverError: () => new Response('server', { status: 500 }),
     NEW_YEAR_AI_GENERATING_FRESH_MS: 120000, NEW_YEAR_AI_LLM_BUDGET_MS: 82000, NEW_YEAR_AI_SECTION_TIMEOUT_MS: 52000,
-    NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS: 18000, NEW_YEAR_AI_MIN_TOTAL_CHARS: 20000, NEW_YEAR_AI_MAX_TOTAL_CHARS: currentSections ? 33000 : 26000,
+    NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS: 18000, NEW_YEAR_AI_SECTION_MAX_ATTEMPTS: 2, NEW_YEAR_AI_SECTION_MIN_LENGTH: 300, NEW_YEAR_AI_MIN_TOTAL_CHARS: 20000, NEW_YEAR_AI_MAX_TOTAL_CHARS: currentSections ? 33000 : 26000,
     NEW_YEAR_AI_SECTIONS: plan, LLM_ERROR_MESSAGE: 'generation failed', SERVER_ERROR_MESSAGE: 'server error',
     publicSession: row => ({ ok: true, sessionId: row.id, status: row.status, saved: row.status === 'completed', messages: row.messages }),
     callDeferredUsageRoute: async ({ path, idempotencyKey }) => {
@@ -83,8 +95,9 @@ function fixture(accessType = 'pass', currentSections = null) {
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
-  load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText']);
-  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'generateNewYearWave', 'assembleConsultationSections', 'saveNewYearState', 'finishNewYearDelivery']);
+  load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
+  load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText', 'lastSentenceBoundary']);
+  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds']);
   ctx.generateConsultationText = ctx.generateNewYearWave;
   const post = (body = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
@@ -92,6 +105,88 @@ function fixture(accessType = 'pass', currentSections = null) {
   return { ctx, post, get doc() { return doc; }, get calls() { return calls; }, get charges() { return charges; }, get refunds() { return refunds; },
     fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; }, loseApply: () => { lostApply = true; } };
 }
+
+test('deterministic provider rejection stops after one reserved section and preserves its cause', async () => {
+  const f = fixture('paid'); let calls = 0;
+  f.ctx.generateConsultationSection = async (_env, { section }) => { calls++; return { key: section.key, ok: false, text: '',
+    reason: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', failure: { code: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', status: 400, providerCode: 'GEMINI_API_KEY_INVALID', retryable: false, message: 'Provider request failed.' } }; };
+  assert.equal((await f.post()).status, 503);
+  assert.equal(f.doc.status, 'generation_failed');
+  assert.equal(calls, 1);
+  assert.deepEqual(f.doc.llmMeta.attempts, { overview: 1 });
+  assert.equal(f.doc.llmMeta.savedSections[0].reason, 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE');
+  assert.equal(f.doc.generationError.providerCode, 'GEMINI_API_KEY_INVALID');
+  assert.equal((await f.post()).status, 409);
+  assert.equal(calls, 1);
+});
+
+test('temporary provider failure resumes the same section with a bounded saved budget', async () => {
+  const f = fixture('paid'); let calls = 0;
+  f.ctx.generateConsultationSection = async (_env, { section }) => { calls++; return { key: section.key, ok: false, text: '',
+    reason: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', failure: { code: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', status: 503, providerCode: 'GEMINI_UNAVAILABLE', retryable: true, message: 'Provider request failed.' } }; };
+  for (let i = 1; i <= 3; i++) {
+    const response = await f.post(i > 1 ? { resumeSessionId: f.doc.id } : {});
+    assert.equal(response.status, 503);
+    assert.equal(f.doc.status, i < 3 ? 'partial' : 'generation_failed');
+    assert.deepEqual(f.doc.llmMeta.attempts, { overview: i });
+  }
+  assert.equal(calls, 3);
+  assert.equal((await f.post()).status, 409);
+  assert.equal(f.refunds, 1);
+});
+
+test('a provider failure in the next section does not erase an accepted chapter', async () => {
+  const f = fixture('paid'); await f.post();
+  const preserved = f.doc.llmMeta.savedSections[0].text;
+  f.ctx.generateConsultationSection = async () => ({ ok: false, failure: { code: 'LLM_PROVIDER_UNAVAILABLE', status: 400, retryable: false, message: 'Provider request failed.' } });
+  await f.post({ resumeSessionId: f.doc.id });
+  assert.equal(f.doc.llmMeta.savedSections[0].text, preserved);
+  assert.equal(f.doc.llmMeta.savedSections[0].ok, true);
+});
+
+test('a support-recovery budget refusal happens before the next provider call', async () => {
+  const f = fixture('paid'); let reservations = 0;
+  f.ctx.reserveSupportRecoveryAttempt = async () => { if (++reservations > 1) throw Object.assign(new Error('support limit'), { code: 'SUPPORT_RECOVERY_BUDGET_EXHAUSTED' }); };
+  await f.post(); const prior = f.doc.llmMeta.savedSections[0].text;
+  assert.equal((await f.post({ resumeSessionId: f.doc.id })).status, 503);
+  assert.equal(f.calls, 1);
+  assert.equal(f.doc.llmMeta.savedSections[0].text, prior);
+  assert.equal(f.doc.generationError.code, 'SUPPORT_RECOVERY_BUDGET_EXHAUSTED');
+});
+
+for (const state of ['pending', 'refunded', 'manual_review']) test(`new year ${state} refund blocks resume and result delivery`, async () => {
+  const f = fixture('paid'); await f.post(); const calls = f.calls;
+  f.doc.status = 'completed'; f.doc.llmMeta.deliveryRefund = { status: state };
+  const started = await f.post({ resumeSessionId: f.doc.id });
+  assert.equal(started.status, state === 'refunded' ? 403 : 409);
+  load(f.ctx, 'worker/routes/new-year-ai.js', ['handleResult']);
+  const result = await f.ctx.handleResult(new Request(`https://fixture.invalid/api/new-year-ai/result?sessionId=${f.doc.id}`), {});
+  assert.equal(result.status, state === 'refunded' ? 403 : 409);
+  assert.equal((await result.json()).refundStatus, state);
+  assert.equal(f.calls, calls);
+});
+
+test('new year terminal failure records refund eligibility before unlocking and settling', async () => {
+  const f = fixture('paid'); let settled = 0;
+  f.ctx.generateConsultationSection = async () => ({ ok: false, failure: { status: 400, retryable: false, message: 'Provider rejected.' } });
+  f.ctx.settleNewYearFailureRefund = async () => {
+    settled++;
+    assert.equal(f.doc.status, 'generation_failed'); assert.equal(f.doc.llmMeta.lockedAt, null);
+    assert.ok(f.doc.llmMeta.refundEligibleAt);
+    return { ok: false, refundStatus: 'pending', retryable: true };
+  };
+  assert.equal((await f.post()).status, 503); assert.equal(settled, 1);
+  assert.ok(f.doc.llmMeta.refundEligibleAt);
+});
+
+test('a completed new year report remains readable after its support job closes', async () => {
+  const f = fixture('paid'); await f.post(); const calls = f.calls;
+  f.doc.status = 'completed'; f.doc.llmMeta.supportRecovery = { active: false, finishedAt: new Date().toISOString() };
+  assert.equal((await f.post({ resumeSessionId: f.doc.id })).status, 200);
+  load(f.ctx, 'worker/routes/new-year-ai.js', ['handleResult']);
+  assert.equal((await f.ctx.handleResult(new Request(`https://fixture.invalid/api/new-year-ai/result?sessionId=${f.doc.id}`), {})).status, 200);
+  assert.equal(f.calls, calls);
+});
 for (const accessType of ['pass', 'subscription', 'paid']) test(`${accessType}: 브라우저 종료 뒤 서버가 저장된 상담만 이어 완성하고 재열람은 재생성·중복 차감하지 않는다`, async () => {
   const f = fixture(accessType);
   await f.post();
@@ -182,7 +277,7 @@ test('실제 신년 화면은 부분 결과를 완료로 오인하지 않고 결
   function visit(node) { if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'startConsultation') callback = node.initializer.arguments[0]; ts.forEachChild(node, visit); }
   visit(ast); assert.ok(callback);
   const requests = [], states = [], pendingGenerationRef = { current: null };
-  const ctx = vm.createContext({ document: { hidden: false }, captureDeliveryScope: () => () => true,
+  const ctx = vm.createContext({ document: { hidden: false }, captureDeliveryScope: () => () => true, READING_SECTION_TOTAL: 6,
     setStatus() {}, setNotice() {}, pendingGenerationRef, applyResult: result => states.push(result.status),
     postJson: async (_path, payload, key) => {
       requests.push({ payload, key });
@@ -214,9 +309,9 @@ test('P2 initial and repair calls retain expanded token budget and timeout', asy
   const file = 'worker/routes/new-year-ai.js';
   const ast = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
   const calls = [];
-  const ctx = vm.createContext({ console, Math,
+  const ctx = vm.createContext({ console, Math, supportRecoveryGenerationOptions,
     clean: value => String(value || '').trim(), isStagingLlmMockEnabled: () => false,
-    buildSectionPrompt: () => 'mock prompt', buildSystemPrompt: () => 'mock system',
+    buildSectionPrompt: () => 'mock prompt', buildSystemPrompt: () => 'mock system', appendExpertPersona: async (_env, _key, base) => base,
     callGeminiText: async (_env, _prompt, options) => { calls.push(options); return { ok: true, provider: 'gemini', text: '본문'.repeat(300) }; },
   });
   for (const name of ['NEW_YEAR_AI_SECTIONS', 'NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS', 'NEW_YEAR_AI_SECTION_MIN_LENGTH', 'NEW_YEAR_AI_SECTION_TIMEOUT_MS']) {
@@ -294,4 +389,40 @@ for (const accessType of ['pass', 'subscription', 'paid']) test(accessType + ': 
   assert.equal(f.calls, 6);
   assert.equal(f.charges, 1);
   assert.equal(f.refunds, 0);
+});
+
+test('대기 화면 진행 단계는 서버 생성 섹션과 같은 순서·같은 수다', () => {
+  const declarations = (file, kind, names) => {
+    const ast = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, kind);
+    return names.map(name => {
+      const row = ast.statements.filter(ts.isVariableStatement).flatMap(statement => [...statement.declarationList.declarations]).find(node => node.name.getText(ast) === name);
+      assert.ok(row, name);
+      return `var ${row.getText(ast)};`;
+    }).join('\n');
+  };
+  const ctx = vm.createContext({});
+  vm.runInContext(ts.transpileModule(declarations('app/new-year-ai-consultation/_lib/answer-sections.ts', ts.ScriptKind.TS, ['DOMAIN_CARDS', 'READING_STEPS', 'READING_SECTION_TOTAL']), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
+  vm.runInContext(declarations('worker/routes/new-year-ai.js', ts.ScriptKind.JS, ['NEW_YEAR_AI_SECTIONS']), ctx);
+  assert.deepEqual(ctx.READING_STEPS.map(step => step.key), ctx.NEW_YEAR_AI_SECTIONS.map(section => section.key));
+  assert.equal(ctx.READING_SECTION_TOTAL, ctx.NEW_YEAR_AI_SECTIONS.length);
+  const source = fs.readFileSync('app/new-year-ai-consultation/NewYearAiClient.tsx', 'utf8');
+  assert.doesNotMatch(source, /progress\?\.total \|\| \d/);
+  assert.doesNotMatch(source, /DOMAIN_CARDS\.length\}개 분야/);
+});
+
+for (const locale of AI_OUTPUT_LOCALES) test(`${locale}: resumes in the purchased language after the UI changes`, async () => {
+  const f = fixture();
+  const languages = [];
+  const original = f.ctx.generateConsultationText;
+  f.ctx.generateConsultationText = (...args) => { languages.push(getAmbientAiLocale()); return original(...args); };
+  await runWithAiLocale(locale, () => f.post({ locale }));
+  for (let wave = 0; wave < 20 && f.doc.status !== 'completed'; wave++) {
+    await runWithAiLocale(locale === 'en' ? 'ja' : 'en', () => f.post({ locale: 'en' }));
+  }
+  assert.equal(f.doc.status, 'completed');
+  assert.ok(languages.length > 0);
+  assert.ok(languages.every(value => value === locale), languages.join(','));
+  const count = languages.length;
+  await runWithAiLocale('ko', () => f.post());
+  assert.equal(languages.length, count);
 });

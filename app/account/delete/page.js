@@ -5,7 +5,7 @@ import AccountDeleteActions from "./AccountDeleteActions";
 
 const ACCOUNT_DELETE_METADATA_COPY = {
   ko: {
-    title: "계정 삭제 안내 | Code Destiny",
+    title: "계정 삭제 안내 | 꿀꿀 운세",
     description:
       "Code Destiny 계정 삭제 절차 안내입니다. 삭제되는 데이터와 법령에 따라 보관되는 데이터, 삭제 요청 방법, 처리 기간을 확인할 수 있습니다.",
     keywords: ["계정 삭제", "회원 탈퇴", "데이터 삭제", "Code Destiny 계정", "개인정보 파기"],
@@ -85,7 +85,7 @@ export default function AccountDeletePage() {
                 <li>서비스 이용 중 저장된 설정값과 기기 캐시</li>
               </ul>
               <p>
-                남아 있는 이용권 기간이나 사용하지 않은 월정석이 있어도 삭제와 동시에 소멸하며 현금으로 환급되지 않습니다. 환불이 필요하다면 계정을 삭제하기 전에{" "}
+                남아 있는 이용권 이용 한도나 사용하지 않은 월정석이 있어도 삭제와 동시에 소멸하며 현금으로 환급되지 않습니다. 환불이 필요하다면 계정을 삭제하기 전에{" "}
                 <Link href="/terms#refund-policy">이용약관의 환불 및 청약철회 안내</Link>를 확인하고 먼저 문의해 주세요.
               </p>
             </section>

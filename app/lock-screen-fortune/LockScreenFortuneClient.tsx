@@ -28,6 +28,7 @@ import {
   type DailyFortuneSystem,
 } from "@/lib/lock-screen-daily-fortune";
 import { isMobileAppRuntime } from "../_lib/auth-client";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 // ── 꽃돼지(연이) 마스코트 — R1: 앱 번들 로컬 '단일 컷' 이미지(오프라인 동작) ──
@@ -145,7 +146,7 @@ const LOCK_SCREEN_COPY_EN: LockScreenCopy = {
   readlistMenuValue: (count) => `${count}`,
   changeOnLaunchLabel: "Change sentence every app launch",
   changeOnLaunchDesc: "Refresh with a new line the next time you open the app.",
-  footerBrandLine: "Code Destiny · Lock screen fortune",
+  footerBrandLine: "꿀꿀운세 · Lock screen fortune",
   alarmsHint: "We'll notify you with today's line at the times you set. (Notification/exact alarm permission may be required on your device.)",
   dailyFortuneSystemHeading: "Daily fortune method",
   dailyFortuneSystemDesc: "Choose how the first lock screen card reads your daily fortune.",
@@ -194,7 +195,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     readlistMenuValue: (count) => `${count}개`,
     changeOnLaunchLabel: "앱 켤 때마다 문장 바꾸기",
     changeOnLaunchDesc: "다음 실행 때 새 문장으로 갱신합니다.",
-    footerBrandLine: "Code Destiny · 잠금화면 운세",
+    footerBrandLine: "꿀꿀운세 · 잠금화면 운세",
     alarmsHint: "설정한 시간에 알림으로 오늘의 문장을 전해드립니다. (기기에서 알림·정확한 알람 권한이 필요할 수 있어요.)",
     dailyFortuneSystemHeading: "오늘의 운세 점술",
     dailyFortuneSystemDesc: "잠금화면 첫 카드에서 볼 오늘의 운세 방식을 고르세요.",
@@ -242,7 +243,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     readlistMenuValue: (count) => `${count}件`,
     changeOnLaunchLabel: "アプリを開くたびに文章を変える",
     changeOnLaunchDesc: "次回起動時に新しい文章に更新します。",
-    footerBrandLine: "Code Destiny · ロック画面占い",
+    footerBrandLine: "꿀꿀운세 · ロック画面占い",
     alarmsHint: "設定した時間に通知で今日の文章をお届けします。(端末の通知・正確なアラーム権限が必要な場合があります。)",
     dailyFortuneSystemHeading: "今日の運勢の占術",
     dailyFortuneSystemDesc: "ロック画面の最初のカードで見る占いの方式を選んでください。",
@@ -289,7 +290,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     readlistMenuValue: (count) => `${count}个`,
     changeOnLaunchLabel: "每次打开应用更换句子",
     changeOnLaunchDesc: "下次启动时更新为新句子。",
-    footerBrandLine: "Code Destiny · 锁屏运势",
+    footerBrandLine: "꿀꿀운세 · 锁屏运势",
     alarmsHint: "将在您设置的时间以通知形式送达今日句子。(设备上可能需要通知/精确闹钟权限。)",
     dailyFortuneSystemHeading: "今日运势占卜方式",
     dailyFortuneSystemDesc: "选择锁屏首张卡片显示的今日运势方式。",
@@ -336,7 +337,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     readlistMenuValue: (count) => `${count}個`,
     changeOnLaunchLabel: "每次開啟應用程式更換句子",
     changeOnLaunchDesc: "下次啟動時更新為新句子。",
-    footerBrandLine: "Code Destiny · 鎖定畫面運勢",
+    footerBrandLine: "꿀꿀운세 · 鎖定畫面運勢",
     alarmsHint: "將在您設定的時間以通知形式送達今日句子。(裝置上可能需要通知/精確鬧鐘權限。)",
     dailyFortuneSystemHeading: "今日運勢占卜方式",
     dailyFortuneSystemDesc: "選擇鎖定畫面首張卡片顯示的今日運勢方式。",
@@ -383,7 +384,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     readlistMenuValue: (count) => `${count}`,
     changeOnLaunchLabel: "Đổi câu mỗi lần mở ứng dụng",
     changeOnLaunchDesc: "Làm mới bằng câu mới vào lần chạy tiếp theo.",
-    footerBrandLine: "Code Destiny · Vận mệnh màn hình khóa",
+    footerBrandLine: "꿀꿀운세 · Vận mệnh màn hình khóa",
     alarmsHint: "Chúng tôi sẽ gửi câu của hôm nay bằng thông báo vào giờ bạn đặt. (Có thể cần quyền thông báo/báo thức chính xác trên thiết bị.)",
     dailyFortuneSystemHeading: "Phương pháp xem vận mệnh hôm nay",
     dailyFortuneSystemDesc: "Chọn cách xem vận mệnh hôm nay sẽ hiển thị ở thẻ đầu tiên trên màn hình khóa.",
@@ -430,7 +431,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     readlistMenuValue: (count) => `${count}`,
     changeOnLaunchLabel: "हर बार ऐप खोलने पर वाक्य बदलें",
     changeOnLaunchDesc: "अगली बार शुरू होने पर नए वाक्य से अपडेट करें।",
-    footerBrandLine: "Code Destiny · लॉक स्क्रीन किस्मत",
+    footerBrandLine: "꿀꿀운세 · लॉक स्क्रीन किस्मत",
     alarmsHint: "आपके तय समय पर सूचना के ज़रिए आज का वाक्य भेजा जाएगा। (डिवाइस पर सूचना/सटीक अलार्म अनुमति आवश्यक हो सकती है।)",
     dailyFortuneSystemHeading: "आज की किस्मत की ज्योतिष विधि",
     dailyFortuneSystemDesc: "लॉक स्क्रीन के पहले कार्ड में दिखने वाली आज की किस्मत की विधि चुनें।",
@@ -477,7 +478,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     readlistMenuValue: (count) => `${count}`,
     changeOnLaunchLabel: "Cambiar la frase cada vez que abras la app",
     changeOnLaunchDesc: "Se actualizará con una nueva frase la próxima vez que abras la app.",
-    footerBrandLine: "Code Destiny · Fortuna en pantalla de bloqueo",
+    footerBrandLine: "꿀꿀운세 · Fortuna en pantalla de bloqueo",
     alarmsHint: "Te enviaremos la frase de hoy mediante notificación a la hora que elijas. (Puede requerir permiso de notificaciones/alarma exacta en tu dispositivo.)",
     dailyFortuneSystemHeading: "Método de fortuna diaria",
     dailyFortuneSystemDesc: "Elige cómo quieres ver tu fortuna diaria en la primera tarjeta de la pantalla de bloqueo.",
@@ -524,7 +525,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     readlistMenuValue: (count) => `${count}`,
     changeOnLaunchLabel: "Changer de phrase à chaque ouverture de l'appli",
     changeOnLaunchDesc: "Se met à jour avec une nouvelle phrase au prochain lancement.",
-    footerBrandLine: "Code Destiny · Horoscope de l'écran verrouillé",
+    footerBrandLine: "꿀꿀운세 · Horoscope de l'écran verrouillé",
     alarmsHint: "Nous vous enverrons la phrase du jour par notification aux heures que vous avez définies. (Une autorisation de notification/alarme précise peut être requise sur votre appareil.)",
     dailyFortuneSystemHeading: "Méthode de l'horoscope du jour",
     dailyFortuneSystemDesc: "Choisissez comment lire votre horoscope du jour sur la première carte de l'écran de verrouillage.",
@@ -571,7 +572,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     readlistMenuValue: (count) => `${count}`,
     changeOnLaunchLabel: "Satz bei jedem App-Start ändern",
     changeOnLaunchDesc: "Aktualisiert beim nächsten Start mit einem neuen Satz.",
-    footerBrandLine: "Code Destiny · Sperrbildschirm-Horoskop",
+    footerBrandLine: "꿀꿀운세 · Sperrbildschirm-Horoskop",
     alarmsHint: "Wir senden Ihnen den heutigen Satz per Benachrichtigung zu den von Ihnen festgelegten Zeiten. (Benachrichtigungs-/Weckerberechtigung auf dem Gerät kann erforderlich sein.)",
     dailyFortuneSystemHeading: "Methode für das heutige Horoskop",
     dailyFortuneSystemDesc: "Wählen Sie, wie Ihr heutiges Horoskop auf der ersten Karte des Sperrbildschirms gelesen wird.",
@@ -618,7 +619,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     readlistMenuValue: (count) => `${count}`,
     changeOnLaunchLabel: "Zin bij elke app-start wijzigen",
     changeOnLaunchDesc: "Wordt bij de volgende start bijgewerkt met een nieuwe zin.",
-    footerBrandLine: "Code Destiny · Vergrendelscherm-fortuin",
+    footerBrandLine: "꿀꿀운세 · Vergrendelscherm-fortuin",
     alarmsHint: "We sturen je de zin van vandaag via een melding op de tijden die je instelt. (Melding-/exacte alarmtoestemming kan vereist zijn op je apparaat.)",
     dailyFortuneSystemHeading: "Methode voor dagelijks fortuin",
     dailyFortuneSystemDesc: "Kies hoe je dagelijkse fortuin wordt getoond op de eerste kaart van het vergrendelscherm.",
@@ -665,7 +666,7 @@ const LOCK_SCREEN_COPY: Partial<Record<LoadingLocale, LockScreenCopy>> = {
     readlistMenuValue: (count) => `${count}`,
     changeOnLaunchLabel: "Tukar ayat setiap kali membuka aplikasi",
     changeOnLaunchDesc: "Kemas kini dengan ayat baharu pada permulaan seterusnya.",
-    footerBrandLine: "Code Destiny · Tuah skrin kunci",
+    footerBrandLine: "꿀꿀운세 · Tuah skrin kunci",
     alarmsHint: "Kami akan menghantar ayat hari ini melalui pemberitahuan pada masa yang anda tetapkan. (Kebenaran pemberitahuan/penggera tepat mungkin diperlukan pada peranti anda.)",
     dailyFortuneSystemHeading: "Kaedah tuah harian",
     dailyFortuneSystemDesc: "Pilih cara kad pertama skrin kunci memaparkan tuah harian anda.",
@@ -879,7 +880,7 @@ export default function LockScreenFortuneClient() {
     if (typeof window === "undefined") return;
     if (!isMobileAppRuntime()) {
       setRuntimeOk(false);
-      try { window.location.replace("/"); } catch { /* noop */ }
+      try { window.location.replace(SHELL_HOME_PATH); } catch { /* noop */ }
       return;
     }
     setRuntimeOk(true);

@@ -1,9 +1,11 @@
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import {jest} from '@jest/globals';
 import mongoose from 'mongoose';
 import {CHAPTER_DELIVERY_VERSION as deliveryVersion} from '../../worker/yeongnyangi/chapter-delivery-contract.js';
 const owner='507f1f77bcf86cd799439011', other='507f1f77bcf86cd799439022';
 let loseStoredDraftAtClaim=false;
 let loseDraftAcknowledgement=false;
+let honey={wallets:[],ledgers:[]};
 let requests=[],payments=[],evidences=[],accounts=[],familyUser=null,failWrite=false,failFinalRead=false,failFinalComplete=false,refundBeforeFinalization=false,tail=Promise.resolve(),activeOperations=0;
 const consumePass=jest.fn(),refundPass=jest.fn(),refundMoonstone=jest.fn(),verifyPerUse=jest.fn();
 const get=(row,key)=>key.split('.').reduce((v,k)=>v?.[k],row);
@@ -90,6 +92,14 @@ function model(source,kind) {
   };
 }
 const RequestModel=model(()=>requests,'request'), Payment=model(()=>payments,'payment');
+// Raw driver collections behind honey-wallet.js (honeyCollections reads mongoose.connection.db outside a request scope).
+const honeyCollection=name=>{
+  const rows=()=>honey[name.endsWith('_wallets')?'wallets':'ledgers'];
+  return {...model(rows,'honey'),insertOne:async doc=>{
+    if(rows().some(row=>row._id===doc._id))throw Object.assign(new Error('duplicate key'),{code:11000});
+    rows().push({...doc});return {insertedId:doc._id};
+  }};
+};
 const User={findById:()=>query(()=>familyUser),findOne:filter=>query(()=>familyUser&&matches(familyUser,filter)?familyUser:null),collection:{}}, PointHistory=model(()=>evidences,'history');
 const txOptions={maxCommitTimeMS:12000};
 const startSession=async()=>{
@@ -97,11 +107,11 @@ const startSession=async()=>{
   return {endSession:async()=>{expect(activeOperations).toBeGreaterThan(0);},withTransaction:async(callback,options)=>{
   expect(options).toEqual(txOptions);
   const previous=tail;let release;tail=new Promise(r=>{release=r;});await previous;
-  const backup=JSON.parse(JSON.stringify({requests,payments,accounts}));
-  try{return await callback();}catch(error){requests=backup.requests;payments=backup.payments;accounts=backup.accounts;throw error;}finally{release();}
+  const backup=JSON.parse(JSON.stringify({requests,payments,accounts,honey}));
+  try{return await callback();}catch(error){requests=backup.requests;payments=backup.payments;accounts=backup.accounts;honey=backup.honey;throw error;}finally{release();}
 }};};
 jest.unstable_mockModule('../../worker/lib/db.js',()=>({
-  mongoose:{...mongoose,models:{YeongnyangiRequest:RequestModel},startSession},
+  mongoose:{...mongoose,models:{YeongnyangiRequest:RequestModel},startSession,connection:{db:{collection:honeyCollection}}},
   connectDb:async()=>{},withMongoRetry:async(_env,fn,options={})=>{
     activeOperations++;try{return await fn();}catch(error){
       if(error.transientDraft && options.retries!==0)return await fn();throw error;
@@ -115,7 +125,7 @@ jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHi
 jest.unstable_mockModule('../../worker/lib/entitlement-policy.js',()=>({resolveCanonicalEntitlement:user=>user?.profileSubscription || {}}));
 jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePassForFeature:consumePass,refundPassCoverage:refundPass,refundYeongnyangiMoonstone:refundMoonstone,
   consultationRefundDb:session=>{expect(activeOperations).toBeGreaterThan(0);expect(session.withTransaction).toEqual(expect.any(Function));return {session};}}));
-jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:verifyPerUse}));
+jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:verifyPerUse}));
 jest.unstable_mockModule('../../worker/payments/passes.js',()=>({passUsageEvidenceId:()=> '507f1f77bcf86cd799439099'}));
 let repo;
 const tossEvidence=jest.fn(async(row,userId)=>String(userId)===owner&&row.paymentClaimOrderId==='toss-order'?{_id:'toss-order'}:null);
@@ -153,7 +163,7 @@ test('tuna stops at item 9 of 15 and resumes from item 9 under concurrent recove
 beforeEach(()=>{
   tossEvidence.mockClear();
   loseStoredDraftAtClaim=false;requests=[];payments=[{_id:'pay1',requestId:'yn-id',userId:owner,featureKey:values.featureKey,paymentType:'digital_content',status:'paid',paymentAmount:1000,metadata:{}}];
-  evidences=[];accounts=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();refundMoonstone.mockReset();verifyPerUse.mockReset();
+  evidences=[];accounts=[];honey={wallets:[],ledgers:[]};familyUser=null;consumePass.mockReset();refundPass.mockReset();refundMoonstone.mockReset();verifyPerUse.mockReset();
   failWrite=false;failFinalRead=false;failFinalComplete=false;refundBeforeFinalization=false;tail=Promise.resolve();
 });
 
@@ -772,7 +782,7 @@ test('stored-only completion keeps the existing paid proof and does not claim an
 });
 
 describe('fortune-chat per-use access',()=>{
-  test.each([['mackerel',3000],['salmon',9000],['flounder',15000],['tuna',30000]])('tier %s pins its own paid evidence and amount',async(fish,amount)=>{
+  test.each([['mackerel',5000],['salmon',10000],['flounder',15000],['tuna',30000]])('tier %s pins its own paid evidence and amount',async(fish,amount)=>{
     const featureKey='fortune-chat-question-'+fish;
     payments.push({_id:'pay-tier',requestId:'fc-id',userId:owner,featureKey,status:'paid',metadata:{}});
     verifyPerUse.mockResolvedValue({proven:true,source:'payment',transactionId:'pay-tier'});
@@ -781,10 +791,10 @@ describe('fortune-chat per-use access',()=>{
     expect(verifyPerUse).toHaveBeenCalledWith({},{userId:owner,featureKey,coinPrice:amount/100,requestId:'fc-id',requireExisting:true});
     expect((await repo.claimChapter({},owner,'id')).token).toBeTruthy();
   });
-  const chat={...values,productId:'chat_saju',featureKey:'fortune-chat-consultation',amountKRW:3000,persona:'yeoni'};
+  const chat={...values,productId:'chat_saju',featureKey:'fortune-chat-consultation',amountKRW:5000,persona:'yeoni'};
   const chatPayment={_id:'pay-fc',requestId:'fc-id',userId:owner,featureKey:chat.featureKey,status:'paid',metadata:{}};
   const passReceipt={_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:chat.featureKey,kind:'deduct',metadata:{requestId:'fc-id',accessMethod:'FAMILY'}};
-  const activate=(access,id='id')=>repo.attachPayment({},owner,id,3000,{currentAmountKRW:3000,...(access?{access}:{})});
+  const activate=(access,id='id')=>repo.attachPayment({},owner,id,5000,{currentAmountKRW:5000,...(access?{access}:{})});
 
   test('an existing fc- payment is pinned, generates, and a later refund stops it',async()=>{
     payments.push({...chatPayment});
@@ -794,7 +804,7 @@ describe('fortune-chat per-use access',()=>{
     expect(row).toMatchObject({accessMethod:'PER_USE',perUseSource:'payment',perUseEvidenceId:'pay-fc',state:'PAID'});
     expect(row.paymentId).toBeFalsy();
     expect(verifyPerUse).toHaveBeenCalledTimes(1);
-    expect(verifyPerUse).toHaveBeenCalledWith({},{userId:owner,featureKey:chat.featureKey,coinPrice:30,requestId:'fc-id',requireExisting:true});
+    expect(verifyPerUse).toHaveBeenCalledWith({},{userId:owner,featureKey:chat.featureKey,coinPrice:50,requestId:'fc-id',requireExisting:true});
     expect((await repo.claimChapter({},owner,'id')).token).toBeTruthy();
     expect(payments.find(p=>p._id==='pay1').metadata.consumedBy).toBeUndefined();
     payments.find(p=>p._id==='pay-fc').status='refunded';
@@ -915,7 +925,7 @@ describe('fortune-chat per-use access',()=>{
 
   test('a changed chat price is confirmed before any proof is read',async()=>{
     await repo.createRequest({},owner,'id',chat);
-    await expect(repo.attachPayment({},owner,'id',3000,{currentAmountKRW:5000})).rejects.toMatchObject({status:409,code:'PRICE_CHANGED'});
+    await expect(repo.attachPayment({},owner,'id',5000,{currentAmountKRW:6000})).rejects.toMatchObject({status:409,code:'PRICE_CHANGED'});
     expect(verifyPerUse).not.toHaveBeenCalled();
   });
 
@@ -990,6 +1000,66 @@ describe('fortune-chat per-use access',()=>{
     expect(error.payload).toMatchObject({paidFeatureKey:chat.featureKey,paymentRequestId:'fc-id2'});
     expect(requests[1].accessMethod).toBeFalsy();
     expect(accounts[0]).toMatchObject({freeUsed:1,trialRequestIds:['fc-id']});
+  });
+
+  const wallet=balance=>honey.wallets.push({userId:owner,serviceScope:'FORTUNE_TEA_HOUSE',balance,totalSpent:0});
+  const receipt='fortune-chat:'+owner+':fc-id';
+  test('thirty honey drops open Yeoni once; a retry spends nothing and a revoked receipt stops generation',async()=>{
+    wallet(45);nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    expect(await activate('honey')).toMatchObject({accessMethod:'PER_USE',perUseSource:'honey',perUseEvidenceId:receipt,state:'PAID'});
+    expect(honey.wallets[0]).toMatchObject({balance:15,totalSpent:30});
+    expect(honey.ledgers).toEqual([expect.objectContaining({_id:receipt,type:'spend',amount:30,featureKey:chat.featureKey,reason:'FORTUNE_CHAT_HONEY_SPEND'})]);
+    expect(onlyExistingChecks()).toBe(true);
+    expect((await activate('honey')).perUseSource).toBe('honey');
+    expect(honey.wallets[0].balance).toBe(15);
+    expect((await repo.claimChapter({},owner,'id')).token).toBeTruthy();
+    honey.ledgers[0].refundedAt=new Date();
+    await expect(repo.readRequest({},owner,'id')).rejects.toMatchObject({status:409});
+  });
+
+  test('too few drops answer 402 and change nothing',async()=>{
+    wallet(29);nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    await expect(activate('honey')).rejects.toMatchObject({status:402,payload:{code:'INSUFFICIENT_HONEY_DROPS',required:30}});
+    expect(requests[0].accessMethod).toBeFalsy();
+    expect(honey.wallets[0].balance).toBe(29);expect(honey.ledgers).toHaveLength(0);
+  });
+
+  test('existing paid evidence wins over drops',async()=>{
+    wallet(30);payments.push({...chatPayment});
+    verifyPerUse.mockResolvedValue({proven:true,source:'payment',reason:'',transactionId:'pay-fc'});
+    await repo.createRequest({},owner,'id',chat);
+    expect(await activate('honey')).toMatchObject({perUseSource:'payment',perUseEvidenceId:'pay-fc'});
+    expect(honey.wallets[0].balance).toBe(30);expect(honey.ledgers).toHaveLength(0);
+  });
+
+  test('an open card window, a card claim racing the spend, Neo or a question tier never spend drops',async()=>{
+    wallet(30);nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    payments.push({_id:'pg-open',requestId:'fc-id',userId:owner,paymentType:'digital_content',status:'pending'});
+    await expect(activate('honey')).rejects.toMatchObject({status:409,code:'PG_PAYMENT_NOT_PAID'});
+    payments.pop();
+    requests[0].paymentClaimOrderId='card:fc-id';
+    await expect(activate('honey')).rejects.toMatchObject({status:409,code:'PG_PAYMENT_NOT_PAID'});
+    expect(requests[0].accessMethod).toBeFalsy();
+    await repo.createRequest({},owner,'neo',{...chat,persona:'neo'});
+    await expect(activate('honey','neo')).rejects.toMatchObject({status:409,code:'HONEY_NOT_AVAILABLE'});
+    await repo.createRequest({},owner,'tier',{...chat,productId:'chat_saju_salmon',featureKey:'fortune-chat-question-salmon',amountKRW:10000});
+    await expect(repo.attachPayment({},owner,'tier',10000,{currentAmountKRW:10000,access:'honey'})).rejects.toMatchObject({status:409,code:'HONEY_NOT_AVAILABLE'});
+    expect(honey.wallets[0].balance).toBe(30);expect(honey.ledgers).toHaveLength(0);
+  });
+
+  test('a honey consultation that delivered nothing gives the 30 drops back once',async()=>{
+    wallet(30);nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    await activate('honey');
+    await failEmpty();
+    expect(requests[0]).toMatchObject({state:'REFUNDED',errorCode:'HONEY_RESTORED',perUseSource:'honey'});
+    expect(honey.wallets[0]).toMatchObject({balance:30,totalSpent:0});
+    expect(honey.ledgers.filter(row=>row.type==='refund')).toEqual([expect.objectContaining({_id:'refund:'+receipt,amount:30})]);
+    expect(honey.ledgers[0].refundedAt).toBeTruthy();
+    await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
   });
 
   test('a legacy fortune-chat reservation in flight holds the same free use',async()=>{

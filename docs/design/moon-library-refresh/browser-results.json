@@ -1,0 +1,206 @@
+{
+  "environment": "Chromium desktop emulation, mock APIs; physical devices unverified",
+  "results": [
+    {
+      "name": "famous",
+      "width": 320,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": [],
+      "firstCard": 705.6875
+    },
+    {
+      "name": "famous",
+      "width": 360,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": [],
+      "firstCard": 689
+    },
+    {
+      "name": "famous",
+      "width": 390,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": [],
+      "firstCard": 689
+    },
+    {
+      "name": "famous",
+      "width": 430,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": [],
+      "firstCard": 689
+    },
+    {
+      "name": "famous",
+      "width": 1280,
+      "overflow": false,
+      "nav": "rgba(0, 0, 0, 0)",
+      "brokenImages": [],
+      "firstCard": 652
+    },
+    {
+      "name": "insights",
+      "width": 320,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": []
+    },
+    {
+      "name": "insights",
+      "width": 360,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": []
+    },
+    {
+      "name": "insights",
+      "width": 390,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": []
+    },
+    {
+      "name": "insights",
+      "width": 430,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": []
+    },
+    {
+      "name": "insights",
+      "width": 1280,
+      "overflow": false,
+      "nav": "rgba(0, 0, 0, 0)",
+      "brokenImages": []
+    },
+    {
+      "name": "home",
+      "width": 320,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": [
+        "",
+        "",
+        "",
+        "",
+        "http://127.0.0.1:15734/ggulggul/",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "name": "home",
+      "width": 360,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": [
+        "",
+        "",
+        "",
+        "",
+        "http://127.0.0.1:15734/ggulggul/",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "name": "home",
+      "width": 390,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": [
+        "",
+        "",
+        "",
+        "",
+        "http://127.0.0.1:15734/ggulggul/",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "name": "home",
+      "width": 430,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": [
+        "",
+        "",
+        "",
+        "",
+        "http://127.0.0.1:15734/ggulggul/",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "name": "home",
+      "width": 1280,
+      "overflow": false,
+      "nav": "rgba(0, 0, 0, 0)",
+      "brokenImages": [
+        "",
+        "",
+        "",
+        "",
+        "http://127.0.0.1:15734/ggulggul/",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "name": "article",
+      "width": 320,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": []
+    },
+    {
+      "name": "article",
+      "width": 360,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": []
+    },
+    {
+      "name": "article",
+      "width": 390,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": []
+    },
+    {
+      "name": "article",
+      "width": 430,
+      "overflow": false,
+      "nav": "rgb(255, 249, 244)",
+      "brokenImages": []
+    },
+    {
+      "name": "article",
+      "width": 1280,
+      "overflow": false,
+      "nav": "rgba(0, 0, 0, 0)",
+      "brokenImages": []
+    }
+  ],
+  "search": "RESCENE: five unique profiles; URL reload and back restored"
+}

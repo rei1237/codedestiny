@@ -17,7 +17,8 @@ const targetFiles = [
 const requiredMarkers = [
   '.prem-card>div:first-child *{pointer-events:none}',
   'href="/blood-type-app.html"',
-  'alt="혈액형 테스트 대표 이미지"',
+  // 2026-10-17 "직관성" 단순화로 혈액형 대표 이미지 타일은 홈에서 빠져 /mini-games/ 로 옮겼다.
+  // 셸에는 전체 운세 시트의 링크(위 href)만 남으므로 이미지 alt 표식은 더 묻지 않는다.
   'id="authQuickLinks"',
   'cd-user-card__avatar-ring::before',
   'animation:cdPlanetRingDrift 5.4s ease-in-out infinite',

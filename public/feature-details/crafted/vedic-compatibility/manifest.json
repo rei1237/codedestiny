@@ -1,0 +1,128 @@
+{
+  "id": "vedic-compatibility",
+  "featureKey": "vedic-compatibility-per-use",
+  "title": "베다 아쉬타쿠타 궁합",
+  "notice": "나의 베다 출생 차트를 계산한 뒤 상대의 이름·성별·생년월일·시각·출생지 위경도·시간대를 입력해 두 사람의 달 나크샤트라를 비교합니다. 서비스의 아쉬타쿠타 규칙을 적용한 36점 만점 총점과 환산 비율, 종합 해석, 바르나·바시야·타라·요니·그라하 마이트리·가나·바쿠트·나디의 여덟 항목 점수와 이유를 제공합니다. 조건에 맞는 강점·주의 항목과 마지막 조언이 표시됩니다. 전통 체계의 항목을 서비스 계산 규칙으로 단순화한 참고 해석이며 모든 베다 기법을 통합한 전문가 감정은 아닙니다. 비율은 총점의 환산값이며 결혼·재회 성공 확률이 아닙니다. 체질·건강·자녀 관련 전통 분류는 의학적 진단이나 임신 가능성의 판단 근거가 아닙니다. 계층에 관한 전통 명칭은 사람의 가치나 관계의 자격을 뜻하지 않습니다. 출생 정보의 정확도를 확인해 주세요. 결과 아래 추가 AI 상담과 질문 상담, 전문가 종합 상담은 별도 상품입니다. 예시는 이해를 돕기 위한 가상 편집이며 실제 결과나 고객 후기가 아닙니다. 현재 결제 조건을 확인해 주세요.",
+  "panels": [
+    {
+      "id": "01-two-people-one-rhythm",
+      "title": "마음은 가까운데, 생활의 속도는 왜 다를까요?",
+      "alt": "마음은 가까운데, 생활의 속도는 왜 다를까요?",
+      "src": "/feature-details/crafted/vedic-compatibility/01-two-people-one-rhythm.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "마음은 가까운데,\n생활의 속도는 왜 다를까요?\n\n애정을 표현하는 방식과 결정의 속도.\n두 사람의 달 나크샤트라를 비교하며\n함께 맞춰갈 지점을 살펴보세요.\n\n베다 출생 차트에서 이어지는\n아쉬타쿠타 궁합 분석.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/vedic-compatibility/01-two-people-one-rhythm-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-two-moon-patterns",
+      "title": "두 사람의 달을, 여덟 기준으로 비교해요.",
+      "alt": "두 사람의 달을, 여덟 기준으로 비교해요.",
+      "src": "/feature-details/crafted/vedic-compatibility/02-two-moon-patterns.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 사람의 달을,\n여덟 기준으로 비교해요.\n나의 자료\n\n먼저 계산한\n베다 출생 차트\n\n상대 자료\n\n새로 입력하는\n상대 출생 정보\n\n나크샤트라는 달의 위치를 나누어\n기질을 읽는 베다의 별자리 구분이에요.\n\n서비스의 아쉬타쿠타 계산 규칙으로\n항목별 점수와 그 이유를 확인해요.\n\n서양 점성술의 시나스트리나\n숙요 궁합과는 다른 비교 체계예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/vedic-compatibility/02-two-moon-patterns-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-how-to-read-the-number",
+      "title": "36점 만점의 지표, 관계의 합격표는 아니에요.",
+      "alt": "36점 만점의 지표, 관계의 합격표는 아니에요.",
+      "src": "/feature-details/crafted/vedic-compatibility/03-how-to-read-the-number.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "36점 만점의 지표,\n관계의 합격표는 아니에요.\n8가지 기준\n36점\n아쉬타쿠타 총점의 범위\n\n총점과 비율, 종합 해석을 함께 봐요.\n화면의 비율은 총점을 환산한 값이며\n결혼 성공률이나 재회 확률이 아니에요.\n\n높은 점수도 갈등이 없다는 보장은 아니고,\n낮은 점수도 관계의 결론은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/vedic-compatibility/03-how-to-read-the-number-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-influence-closeness-and-timing",
+      "title": "기대와 끌림, 서로 다른 간격을 살펴요.",
+      "alt": "기대와 끌림, 서로 다른 간격을 살펴요.",
+      "src": "/feature-details/crafted/vedic-compatibility/04-influence-closeness-and-timing.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기대와 끌림,\n서로 다른 간격을 살펴요.\n바르나 · 바시야\n\n역할의 기대와 상호 영향력을\n읽는 전통 항목이에요.\n\n타라\n\n두 나크샤트라의 관계를 통해\n서로의 흐름을 비교해요.\n\n요니\n\n친밀감을 느끼고 표현하는\n방식의 차이를 살펴요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/vedic-compatibility/04-influence-closeness-and-timing-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-understanding-daily-life",
+      "title": "대화와 기질, 함께 사는 리듬을 읽어요.",
+      "alt": "대화와 기질, 함께 사는 리듬을 읽어요.",
+      "src": "/feature-details/crafted/vedic-compatibility/05-understanding-daily-life.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "대화와 기질,\n함께 사는 리듬을 읽어요.\n그라하 마이트리 · 가나\n\n지배 행성의 관계와 기질을 통해\n대화·판단·반응의 차이를 읽어요.\n\n바쿠트\n\n관계와 생활 기반을 살피는\n전통 항목을 참고해요.\n\n나디\n\n전통적인 체질 분류를 비교해요.\n건강·임신 가능성을 진단하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/vedic-compatibility/05-understanding-daily-life-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-the-explanation-beside-the-score",
+      "title": "숫자 옆의 이유가, 대화의 시작이 되도록.",
+      "alt": "숫자 옆의 이유가, 대화의 시작이 되도록.",
+      "src": "/feature-details/crafted/vedic-compatibility/06-the-explanation-beside-the-score.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "숫자 옆의 이유가,\n대화의 시작이 되도록.\n종합 해석\n\n두 사람의 나크샤트라와\n전체 판단을 연결해 읽어요.\n\n여덟 항목의 상세 점수\n\n항목별 기준과 해설을 비교하고\n엇갈리는 부분을 짚어요.\n\n강점 · 주의점 · 조언\n\n해당하는 강점과 주의 항목,\n마지막 관계 조언을 확인해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/vedic-compatibility/06-the-explanation-beside-the-score-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-a-small-agreement",
+      "title": "답을 빨리 원하는 사람, 시간이 필요한 사람.",
+      "alt": "답을 빨리 원하는 사람, 시간이 필요한 사람.",
+      "src": "/feature-details/crafted/vedic-compatibility/07-a-small-agreement.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "답을 빨리 원하는 사람,\n시간이 필요한 사람.\n\n이해를 돕기 위한 예시 · 가상 편집\n\n나의 기대\n\n“바로 이야기해야\n안심이 돼요.”\n\n상대의 속도\n\n“생각을 정리할\n시간이 필요해요.”\n\n“잠깐 쉬었다가 오늘 저녁에\n다시 이야기하자.”\n기다림의 끝을 함께 정해보세요.\n\n실제 결과나 고객 후기가 아니에요.\n상대의 속마음을 확정하는 예시도 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/vedic-compatibility/07-a-small-agreement-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-prepare-both-birth-records",
+      "title": "다름을 확인하고, 맞춰갈 방법을 고르세요.",
+      "alt": "다름을 확인하고, 맞춰갈 방법을 고르세요.",
+      "src": "/feature-details/crafted/vedic-compatibility/08-prepare-both-birth-records.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다름을 확인하고,\n맞춰갈 방법을 고르세요.\n\n나의 베다 차트를 먼저 계산하고,\n상대의 생년월일·시간·출생지 정보를\n확인해 궁합 계산으로 이어가세요.\n\n이 상품은 기본 궁합 계산이에요.\n추가 AI 해설·질문 상담은 별도예요.\n기존 궁합 계산 버튼의 조건을 확인하세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/vedic-compatibility/08-prepare-both-birth-records-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

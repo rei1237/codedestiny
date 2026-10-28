@@ -11,9 +11,9 @@ import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/karma-destiny-ai/";
-const PAGE_TITLE = "업보 운세 | 반복되는 인생 패턴 리딩 — 운명의 업";
+const PAGE_TITLE = "네오와 서한비의 붉은 실 | 운명의 업 전문가 상담";
 const PAGE_DESCRIPTION =
-  "사주·자미두수·숙요 27수·서양 점성술·베다 다섯 관점을 하나의 운명 지도로 잇는 상담입니다. 되풀이되는 선택의 결을 관점별로 짚어 하나로 모읍니다.";
+  "네오와 서한비의 붉은 실. 사주·자미두수·점성술·베다·숙요로 타고난 성향과 반복되는 관계를 살피고, 경계의 말과 인연을 풀어갈 행동을 정리합니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -29,17 +29,21 @@ export const metadata: Metadata = {
     siteName: siteSeo.brandName,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "운명의 업 전문가 상담" }],
+    images: [{ url: "/feature-details/assets/karma-destiny-ai-og.webp", width: 1200, height: 630, alt: "네오와 서한비의 붉은 실 · 운명의 업 상담" }],
   },
   twitter: {
     card: siteSeo.twitterCard,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [siteSeo.defaultOgImage],
+    images: ["/feature-details/assets/karma-destiny-ai-og.webp"],
   },
 };
 
 const karmaFaqItems = [
+  {
+    question: "특정 상대와 되풀이되는 나쁜 관계도 살펴볼 수 있나요?",
+    answer: "상대의 별칭과 관계, 반복되는 장면, 나와 상대의 반응을 선택 입력할 수 있습니다. 본인의 계산된 성향과 보고한 상황을 연결해 반복 고리, 초기 신호, 경계의 말과 거리 조절 기준을 살핍니다. 상대의 속마음이나 전생의 빚을 단정하거나 상대 명식 없이 궁합을 계산하지 않습니다.",
+  },
   {
     question: "운명의 업 전문가 상담은 무엇을 봐주나요?",
     answer:
@@ -84,7 +88,7 @@ const karmaFaqItems = [
 
 const karmaJsonLd = [
   buildServiceJsonLd({
-    name: "운명의 업 전문가 상담",
+    name: "네오와 서한비의 붉은 실 · 운명의 업 전문가 상담",
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "운명 패턴 상담 서비스",
@@ -108,9 +112,9 @@ export default function KarmaDestinyAiPage() {
       />
             <KarmaDestinyAiRouteClient />
             <ServiceIntroSection label="운명의 업 전문가 상담 안내">
-        <h1>업보 운세 — 반복되는 인생 패턴 리딩</h1>
+        <h1>네오와 서한비의 붉은 실 — 운명의 업 상담</h1>
         <p>
-          운명의 업은 삶에서 되풀이되는 문양을 읽는 전문가 상담입니다. 다섯 개의 운세를 각각
+          네오와 서한비의 붉은 실은 삶에서 되풀이되는 문양을 읽는 운명의 업 상담입니다. 다섯 개의 운세를 각각
           보여 드리는 것이 아니라, 하나의 운명을 다섯 개의 렌즈로 바라봅니다. 사주 명식에서 힘이
           몰린 십성의 자리가 기질과 결정 구조를 세우고, 자미두수의 명궁과 12궁이 그 구조가 펼쳐지는
           무대를 지정하며, 숙요 27수가 사람과 사람 사이에서 서게 되는 자리를 알려 줍니다.

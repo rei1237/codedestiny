@@ -1,3 +1,4 @@
+import ResultSamples from '@/app/components/ResultSamples';
 import roomStyles from "@/src/features/fortune-tea-house/styles/tea-room.module.css";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -8,7 +9,7 @@ import { createHreflangFromRoutes } from "@/lib/seo/createHreflang";
 import { introductionRoutes } from "@/lib/i18n/feature-introductions.mjs";
 
 export const metadata: Metadata = {
-  title: "연이의 운명 찻집 · 사주·타로·숙요점 상담 | Code Destiny",
+  title: "연이의 운명 찻집 · 사주·타로·숙요점 상담 | 꿀꿀 운세",
   description:
     "꽃돼지 연이와 고민을 나누고 사주·타로·숙요점으로 근거와 행동 방향을 살펴보세요. 상담 결과는 내 상담함에서 다시 읽을 수 있습니다.",
   alternates: {
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
     languages: createHreflangFromRoutes(introductionRoutes("fortune-tea-house")),
   },
   openGraph: {
-    title: "연이의 운명 찻집 · 사주·타로·숙요점 상담 | Code Destiny",
+    title: "연이의 운명 찻집 · 사주·타로·숙요점 상담 | 꿀꿀 운세",
     description: "말하지 못했던 고민을 내려놓고, 사주·타로·숙요점으로 내 삶과 관계의 흐름을 차분히 읽는 연이의 운명 찻집.",
     url: "https://code-destiny.com/fortune-tea-house",
     siteName: siteSeo.brandName,
@@ -24,10 +25,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp",
-        width: 1440,
-        height: 960,
-        alt: "따뜻한 찻집에서 꽃돼지 연이가 차를 건네는 장면",
+        url: "/images/service-introductions/fortune-tea-house.webp",
+        width: 1536,
+        height: 1024,
+        alt: "따뜻한 찻집에서 카드를 펼쳐 마음의 이야기를 듣는 연이",
       },
     ],
   },
@@ -63,9 +64,8 @@ const teaHouseFaqItems = [
 
 export default function Page() {
   return (
-    <>
-      <FortuneTeaHouseClient />
-      <div className={roomStyles.publicGuide}><ServiceIntroSection label="운명의 찻집 안내" tone="yeoni">
+    <FortuneTeaHouseClient>
+      <div className={roomStyles.publicGuide}><ResultSamples ids={['yeoni']}/><ServiceIntroSection label="운명의 찻집 안내" tone="yeoni">
         <h2>연이의 운명 찻집 이용 안내</h2>
         <p>
           운명의 찻집은 달빛이 머무는 자리에 놓인 작은 상담소입니다. 문을 열면 꽃돼지 연이가 손님을
@@ -126,6 +126,6 @@ export default function Page() {
           <Link href="/records/" className="inline-flex min-h-11 items-center underline">나의 기록 보관함</Link>
         </nav>
       </ServiceIntroSection></div>
-    </>
+    </FortuneTeaHouseClient>
   );
 }

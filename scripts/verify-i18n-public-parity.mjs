@@ -1,5 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
+
+// 번역문 안에 한글로 남아도 되는 고유명사: 공식 서비스명과 별칭(lib/brand/brand-facts.mjs).
+const BRAND_PROPER_NOUNS = [BRAND_FACTS.service.name, ...BRAND_FACTS.service.alternateNames];
+const withoutBrandNames = (value) => BRAND_PROPER_NOUNS.reduce((text, name) => text.replaceAll(name, ""), value);
 
 const rootDir = process.cwd();
 const i18nDir = resolve(rootDir, "public", "i18n");
@@ -86,7 +91,8 @@ for (const fileName of targetFiles) {
     if (typeof value !== "string") return false;
     if (LEGAL_VERBATIM_KEY.test(key)) return false;
     if (HANGUL_QUOTE_ALLOWED_KEYS.has(key)) return false;
-    return /[가-힣]/.test(value);
+    // User-approved proper noun; this does not exempt untranslated surrounding text.
+    return /[가-힣]/.test(withoutBrandNames(value));
   });
   // 법정 표기는 "한글이면 실패"가 아니라 "ko 와 다르면 실패"다.
   const driftedLegalValues = Object.entries(flat).filter(([key, value]) => {

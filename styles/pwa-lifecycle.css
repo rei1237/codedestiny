@@ -1,0 +1,46 @@
+/* Installation banner keeps its existing presentation. */
+.cd-moon-install{font-family:Pretendard,sans-serif;color:#242139;background:#fffdf8;border:1px solid #b3935b;box-shadow:0 12px 36px #24213926;font-size:16px;line-height:1.75;position:fixed;bottom:calc(var(--cd-mobile-nav-h, env(safe-area-inset-bottom, 0px)) + 12px);left:16px;right:16px;max-width:650px;margin:auto;z-index:1000;border-radius:18px;padding:12px;display:flex;align-items:center;gap:10px}
+.cd-moon-install img{object-fit:contain;border-radius:12px}.cd-moon-install strong{font-size:15px}.cd-moon-install p{font-size:14px;margin:0}.cd-moon-install div{flex:1;min-width:0}
+.cd-moon-install button{font:inherit;min-height:44px;padding:8px 12px;border:1px solid #b9afc6;border-radius:12px;background:#ede7f5;color:#242139;cursor:pointer}.cd-moon-install button:focus-visible{outline:3px solid #635080;outline-offset:3px}
+
+/* A self-contained paper palette: this dialog also opens outside themed routes. */
+.cd-moon-letter{
+  --letter-paper:#fffdf8;
+  --letter-fold:#faf7f1;
+  --letter-ink:#242139;
+  --letter-muted:#635080;
+  --letter-gold:#b3935b;
+  --letter-seal:#ead089;
+  --letter-line:color-mix(in srgb,var(--letter-gold) 38%,var(--letter-paper));
+  box-sizing:border-box;width:min(460px,calc(100% - 32px));max-height:calc(100dvh - 32px);
+  margin:auto;padding:32px 36px 24px;overflow:auto;
+  border:1px solid var(--letter-line);border-radius:6px;
+  background:linear-gradient(135deg,var(--letter-paper),var(--letter-fold));color:var(--letter-ink);
+  box-shadow:0 32px 80px color-mix(in srgb,var(--letter-ink) 32%,transparent),0 4px 12px color-mix(in srgb,var(--letter-ink) 12%,transparent),inset 0 0 0 7px var(--letter-paper),inset 0 0 0 8px var(--letter-line);
+  font-family:var(--font-body,Pretendard,sans-serif);font-size:15px;line-height:1.85;
+  scrollbar-color:var(--letter-gold) var(--letter-paper);
+}
+.cd-moon-letter::backdrop{background:color-mix(in srgb,var(--letter-ink) 64%,transparent);backdrop-filter:blur(4px)}
+.cd-moon-letter__art{position:relative;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 0 28px;border-bottom:1px solid var(--letter-line)}
+/* A small embossed crescent seal, drawn without a font glyph. */
+.cd-moon-letter__art::after{content:"";position:absolute;bottom:-14px;left:calc(50% - 14px);width:26px;height:26px;border:1px solid var(--letter-gold);border-radius:50%;background:var(--letter-seal);box-shadow:0 2px 4px color-mix(in srgb,var(--letter-gold) 24%,transparent),inset 0 0 0 3px var(--letter-seal),inset 0 0 0 4px var(--letter-gold)}
+.cd-moon-letter__art::before{content:"";position:absolute;z-index:1;bottom:-8px;left:calc(50% - 8px);width:16px;height:16px;background:var(--letter-ink);mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17.8 16.7A8.6 8.6 0 0 1 7.3 6.2a8.6 8.6 0 1 0 10.5 10.5Z'/%3E%3C/svg%3E") center/contain no-repeat;opacity:.7}
+.cd-moon-letter__art img{box-sizing:border-box;order:1;flex:none;width:64px;height:76px;object-fit:contain;padding:4px;border:1px solid var(--letter-line);outline:1px solid var(--letter-line);outline-offset:3px;background:var(--letter-paper);transform:rotate(4deg)}
+.cd-moon-letter__art p{max-width:10em;margin:0;color:var(--letter-muted);font-family:'CodeDestinySerifKR','Batang',serif;font-size:16px;line-height:1.8;letter-spacing:.05em;word-break:keep-all}
+.cd-moon-letter h2{margin:36px 0 24px;color:var(--letter-ink);font-family:'CodeDestinySerifKR','Batang',serif;font-size:28px;font-weight:600;line-height:1.55;letter-spacing:-.035em;word-break:keep-all;text-wrap:balance}
+.cd-moon-letter>p{margin:16px 0;overflow-wrap:anywhere}
+.cd-moon-letter>ul{margin:0 0 28px;padding-left:18px;list-style:disc}
+.cd-moon-letter li{padding-left:4px;margin:12px 0;overflow-wrap:anywhere}
+.cd-moon-letter li::marker{color:var(--letter-gold);font-size:.75em}
+.cd-moon-letter [role="status"]:empty{display:none}
+.cd-moon-letter button{display:block;width:100%;min-height:48px;margin-top:10px;padding:10px 16px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--letter-muted);font:inherit;cursor:pointer}
+.cd-moon-letter>button:first-of-type{background:var(--letter-ink);border-color:var(--letter-ink);color:var(--letter-paper);box-shadow:inset 0 0 0 3px var(--letter-ink),inset 0 0 0 4px color-mix(in srgb,var(--letter-gold) 50%,var(--letter-ink))}
+.cd-moon-letter button:hover{background:var(--letter-fold);color:var(--letter-ink)}
+.cd-moon-letter>button:first-of-type:hover{background:var(--letter-muted);border-color:var(--letter-muted);color:var(--letter-paper)}
+.cd-moon-letter:focus-visible{outline:1px solid var(--letter-gold);outline-offset:4px}
+.cd-moon-letter :focus-visible{outline:3px solid var(--letter-muted);outline-offset:3px}
+.cd-moon-letter details{margin-top:12px;padding-top:8px;border-top:1px solid var(--letter-line);color:var(--letter-muted);font-size:13px;overflow-wrap:anywhere}
+.cd-moon-letter summary{min-height:44px;display:list-item;align-content:center;cursor:pointer}
+.cd-moon-letter::selection,.cd-moon-letter ::selection{background:var(--letter-seal);color:var(--letter-ink)}
+@media(max-width:600px){.cd-moon-letter{padding:28px;margin:auto;max-height:calc(100dvh - 32px - env(safe-area-inset-bottom))}.cd-moon-letter h2{font-size:26px}.cd-moon-install{flex-wrap:wrap}.cd-moon-install div{flex-basis:calc(100% - 65px)}.cd-moon-install button{flex:1}}
+@media(prefers-reduced-motion:no-preference){.cd-moon-letter[open]{animation:moon-letter-in .25s ease-out}@keyframes moon-letter-in{from{transform:translateY(12px);opacity:.5}to{transform:translateY(0);opacity:1}}}

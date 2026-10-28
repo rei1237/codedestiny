@@ -1,0 +1,9 @@
+{
+  "original": "Independent crafted_finish_review SHIP after optional-question clarification, reading-path replacement, balanced closing headline",
+  "mobile": "Independent SHIP: 10 actual360 panels plus CTA/notice3widths, transcript3positions",
+  "developerTester": "DevPaymentTester is hidden when NODE_ENV=production; floating credit-card icon is not a production defect",
+  "limits": [
+    "No real LLM/payment",
+    "Local actual browser renders; no production deployment"
+  ]
+}

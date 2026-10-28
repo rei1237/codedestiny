@@ -1,5 +1,6 @@
 "use client";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
+import { adviceTopics } from "@/js/recommendations-context.mjs";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -27,7 +28,7 @@ import {
 import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
-import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
@@ -37,7 +38,8 @@ import theme from "../love-secret-theme.module.css";
 import styles from "./LoveSecretAiResultClient.module.css";
 import LoveSecretChecklist, { type ActionSecret } from "./LoveSecretChecklist";
 import PremiumResultShare from "@/components/fortune/PremiumResultShare";
-import { groupLoveSections, type LoveCardVariant, type LoveSectionGroup } from "./love-secret-sections";
+import { groupLoveSections, resolveLoveSpeaker, type LoveCardVariant, type LoveSectionGroup, type LoveSpeaker } from "./love-secret-sections";
+import LoveSecretResultSection, { LoveSpeakerChip } from "./LoveReadingChapter";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type LoveSecretResultCopy = {
@@ -69,6 +71,8 @@ type LoveSecretResultCopy = {
   deckLabel: string;
   finalWordLabel: string;
   yeoniSignature: string;
+  /** 섹션 화자 칩의 이름. 표기가 정해진 언어에만 둔다 — 없으면 칩을 그리지 않는다. */
+  speakerNames?: Record<LoveSpeaker, string>;
   newQuestionLabel: string;
   collapseLabel: string;
   expandLabel: string;
@@ -108,7 +112,8 @@ const LOVE_SECRET_RESULT_EN: LoveSecretResultCopy = {
   tocAria: "Reading table of contents",
   deckLabel: "Love Strategy Reading",
   finalWordLabel: "💌 One Last Word",
-  yeoniSignature: "With love, Yeoni",
+  yeoniSignature: "With love, Yeoni & Seo Hanbi",
+  speakerNames: { yeoni: "Yeoni", hanbi: "Seo Hanbi" },
   newQuestionLabel: "Ask a new question",
   collapseLabel: "Collapse",
   expandLabel: "Expand",
@@ -149,7 +154,8 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
     tocAria: "상담 결과 목차",
     deckLabel: "연애 비책 상담 결과",
     finalWordLabel: "💌 마지막 한마디",
-    yeoniSignature: "연이 드림",
+    yeoniSignature: "연이 · 서한비 드림",
+    speakerNames: { yeoni: "연이", hanbi: "서한비" },
     newQuestionLabel: "새로운 질문으로 다시 상담하기",
     collapseLabel: "접기",
     expandLabel: "펼치기",
@@ -189,7 +195,8 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
     tocAria: "鑑定結果の目次",
     deckLabel: "恋愛秘策 鑑定結果",
     finalWordLabel: "💌 最後のひとこと",
-    yeoniSignature: "ヨニより",
+    yeoniSignature: "ヨニとソ・ハンビより",
+    speakerNames: { yeoni: "ヨニ", hanbi: "ソ・ハンビ" },
     newQuestionLabel: "新しい質問でもう一度相談する",
     collapseLabel: "閉じる",
     expandLabel: "開く",
@@ -228,7 +235,8 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
     tocAria: "咨询结果目录",
     deckLabel: "恋爱秘诀咨询结果",
     finalWordLabel: "💌 最后一句话",
-    yeoniSignature: "妍伊 敬上",
+    yeoniSignature: "妍伊・徐寒菲 敬上",
+    speakerNames: { yeoni: "妍伊", hanbi: "徐寒菲" },
     newQuestionLabel: "用新问题重新咨询",
     collapseLabel: "收起",
     expandLabel: "展开",
@@ -267,7 +275,8 @@ const LOVE_SECRET_RESULT_COPY: Partial<Record<LoadingLocale, LoveSecretResultCop
     tocAria: "諮詢結果目錄",
     deckLabel: "戀愛秘訣諮詢結果",
     finalWordLabel: "💌 最後一句話",
-    yeoniSignature: "妍伊 敬上",
+    yeoniSignature: "妍伊・徐寒菲 敬上",
+    speakerNames: { yeoni: "妍伊", hanbi: "徐寒菲" },
     newQuestionLabel: "用新問題重新諮詢",
     collapseLabel: "收合",
     expandLabel: "展開",
@@ -991,6 +1000,7 @@ export default function LoveSecretAiResultClient() {
           // 캡처 시점의 실제 모드로 해석한다(하드코딩하면 라이트 사용자가 검은 배경을 받는다).
           backgroundColor: prefersDark() ? "#24081a" : "#fffaf7",
           cover: {
+            theme: "love",
             title: summaryTitle,
             subtitle: oneLine,
             date: new Date().toISOString().slice(0, 10),
@@ -1113,7 +1123,7 @@ export default function LoveSecretAiResultClient() {
             expandForExport={exporting}
           />
         )}
-        {isShareReady && <RecommendationResult service="love-secret-ai"/>}
+        {isShareReady && <RecommendationResult service="love-secret-ai" practiceTags={adviceTopics([...(consultation?.reading?.actionSecrets || []).slice(0,8).map(item => parseActionSecret(item).action), ...(consultation?.reading?.sevenDayGuide || []).slice(0,7)])}/>}
       </section>
     </main>
   );
@@ -1161,7 +1171,7 @@ function LoveSecretResultPageContent({
         pages.push({
           id: `love-secret-${group.spec.id}-${index}`,
           label: toDisplayText(section.title).slice(0, 12) || copy.chapterFallback(pages.length + 1),
-          content: <LoveSecretResultSection index={pages.length} section={section} />,
+          content: <LoveSecretResultSection index={pages.length} section={section} speakerNames={copy.speakerNames} />,
           groupId: group.spec.id,
         });
       });
@@ -1383,8 +1393,11 @@ function LoveSecretGroupCard({
           <div className="grid gap-5">
             {group.sections.map((section, index) => (
               <article key={`${group.spec.id}-${index}`}>
-                <h3 className="text-base font-black text-[var(--ls-text)]">{section.title}</h3>
-                <AiResultProse value={section.body} className={`${styles.chapterProse} mt-2 text-[var(--ls-text-muted)]`} />
+                <div className={styles.sectionHead}>
+                  <h3 className="text-base font-black text-[var(--ls-text)]">{section.title}</h3>
+                  <LoveSpeakerChip title={section.title} names={copy.speakerNames} />
+                </div>
+                <ConsultationReading kind="love" value={section.body} index={index} speaker={resolveLoveSpeaker(section.title)} className={`${styles.chapterProse} mt-2 text-[var(--ls-text-muted)]`} />
               </article>
             ))}
           </div>
@@ -1530,20 +1543,6 @@ function SajuChartCard({ label, chart }: { label: string; chart?: SajuChartSumma
         ) : null}
         {chart.lovePattern && <p className="whitespace-pre-wrap">{chart.lovePattern}</p>}
       </div>
-    </article>
-  );
-}
-
-function LoveSecretResultSection({ index, section }: { index: number; section: ResultSection }) {
-  return (
-    <article className={styles.letterChapter}>
-      <div className={styles.letterChapterHeading}>
-        <span>
-          {String(index + 1).padStart(2, "0")}
-        </span>
-        <h3>{section.title}</h3>
-      </div>
-      <AiResultProse value={section.body} className={`${styles.chapterProse} text-[var(--ls-text-muted)]`} />
     </article>
   );
 }

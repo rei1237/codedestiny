@@ -1,0 +1,138 @@
+{
+  "mode": "Current imported local catalog and source renderer; no customer/LLM result",
+  "spreads": [
+    {
+      "id": "yn_knot_three",
+      "title": "막힌 상황을 푸는 실마리",
+      "cardCount": 3,
+      "positions": [
+        {
+          "id": "knot",
+          "label": "현재의 매듭"
+        },
+        {
+          "id": "resource",
+          "label": "활용할 자원"
+        },
+        {
+          "id": "next_action",
+          "label": "다음 행동"
+        }
+      ]
+    },
+    {
+      "id": "yn_contact_first",
+      "title": "먼저 연락해도 괜찮을까?",
+      "cardCount": 5,
+      "positions": [
+        {
+          "id": "my_wish",
+          "label": "내가 바라는 것"
+        },
+        {
+          "id": "current_communication",
+          "label": "현재 소통 양상"
+        },
+        {
+          "id": "approach_barrier",
+          "label": "접근의 걸림돌"
+        },
+        {
+          "id": "boundary",
+          "label": "존중할 경계"
+        },
+        {
+          "id": "if_contact",
+          "label": "연락을 선택했을 때의 흐름"
+        }
+      ]
+    },
+    {
+      "id": "yn_new_bond_five",
+      "title": "새로운 인연을 맞이하는 문",
+      "cardCount": 5,
+      "positions": [
+        {
+          "id": "readiness",
+          "label": "현재 준비 상태"
+        },
+        {
+          "id": "charm",
+          "label": "드러낼 매력"
+        },
+        {
+          "id": "let_go",
+          "label": "내려놓을 패턴"
+        },
+        {
+          "id": "widen",
+          "label": "만남을 넓힐 행동"
+        },
+        {
+          "id": "begin_advice",
+          "label": "관계를 시작할 때의 조언"
+        }
+      ]
+    },
+    {
+      "id": "yn_money_pattern_five",
+      "title": "돈을 대하는 내 패턴",
+      "cardCount": 5,
+      "positions": [
+        {
+          "id": "attitude",
+          "label": "현재 태도"
+        },
+        {
+          "id": "resource_use",
+          "label": "자원 활용"
+        },
+        {
+          "id": "drain_pattern",
+          "label": "소모 패턴"
+        },
+        {
+          "id": "missed_task",
+          "label": "놓친 관리 과제"
+        },
+        {
+          "id": "habit",
+          "label": "실천할 습관"
+        }
+      ]
+    },
+    {
+      "id": "trad_past_present_future",
+      "title": "과거·현재·미래",
+      "cardCount": 3,
+      "positions": [
+        {
+          "id": "past",
+          "label": "과거"
+        },
+        {
+          "id": "present",
+          "label": "현재"
+        },
+        {
+          "id": "future",
+          "label": "미래"
+        }
+      ]
+    }
+  ],
+  "cardFields": [
+    "coreMeaning",
+    "currentSituation",
+    "questionLink",
+    "advice",
+    "caution"
+  ],
+  "conditions": [
+    "cardInteractions.length>0",
+    "choiceSimulation.length>0",
+    "actionPrescription or previewKeywords",
+    "tea-v2 hides legacy emotional percentages and heart scent"
+  ],
+  "save": "Text file through saveResultAsTextFile; tarot album PDF belongs to separate album feature"
+}

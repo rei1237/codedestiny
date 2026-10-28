@@ -21,3 +21,11 @@ test('transient auth errors retain retry semantics and are not converted into lo
  globalThis.__fortuneFetch=async()=>new Response(JSON.stringify({code:'AUTH_REFRESH_UNAVAILABLE',message:'잠시 후',retryable:true}),{status:503,headers:{'Retry-After':'2'}});
  await assert.rejects(()=>fortuneApi('requests'),error=>error.status===503&&error.retryable&&error.retryAfterSeconds===2);
 });
+test('network failures surface a retryable notice instead of the raw fetch message',async()=>{
+ globalThis.__fortuneFetch=async()=>{throw new TypeError('Failed to fetch');};
+ await assert.rejects(()=>fortuneApi('requests'),error=>error.code==='NETWORK_ERROR'&&error.retryable&&!/Failed to fetch/.test(error.message));
+});
+test('a non-JSON gateway page keeps the retry contract without leaking the parse error',async()=>{
+ globalThis.__fortuneFetch=async()=>new Response('<html>502 Bad Gateway</html>',{status:502,headers:{'Content-Type':'text/html'}});
+ await assert.rejects(()=>fortuneApi('requests'),error=>error.status===502&&error.retryable&&/[가-힣]/.test(error.message)&&!/Unexpected token|JSON/.test(error.message));
+});

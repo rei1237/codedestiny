@@ -18,6 +18,10 @@ import { normalizeNarrativeBody } from "./paid-narrative-candidate.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { jsonSchemaFromExample } from "./json-text-repair.js";
 import { callGeminiText } from "./gemini.js";
+import { appendExpertPersona } from "./expert-character-personas.js";
+import { getAmbientAiLocale } from "./ai-locale-context.js";
+import { buildOutputLanguageDirective } from "../../lib/i18n/ai-locale.js";
+import { palmCopy } from "./palm-locale-copy.js";
 import { tokensRequiredForChars } from "./llm-budget.js";
 
 // 심층 해석의 쓰기 목표(공백 포함). 합격선이 아니다 — 프롬프트에 목표로만 싣는다.
@@ -52,7 +56,7 @@ export function dataUrlToBase64(dataUrl) {
  * 프롬프트
  * ------------------------------------------------------------------ */
 
-export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손금학(Palm-Astro)을 함께 다루는 최고 수준의 손금 판독 전문가입니다.
+export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손금학(Palm-Astro)을 함께 다루는 손금 판독가입니다.
 업로드된 손바닥 사진을 보고 손금을 판독하세요.
 
 [근거 원칙 — 가장 중요]
@@ -70,13 +74,24 @@ export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손�
    - 우세선(Dominant Line): 생명선·두뇌선·감정선 중 가장 길고 뚜렷한 선
    - 손바닥 곡률 유형(Palm Type): "곡선형/표현형", "균형형", "직선형/실용형" 중 하나
    - 직업 변화 지표(Career Shift): 두뇌선의 꺾임과 생명선-두뇌선 시작점 관계 기반
-10. 건강·수명·사고·재난·질병을 단정하지 마세요. 의학적 진단을 하지 마세요. 조언은 현실적인 행동 지침으로 쓰세요.
+10. 건강·수명·사고·재난·질병, 결혼 시기·상대, 재물 액수를 단정하지 마세요. 의학적 진단을 하지 마세요. 선의 모양은 분명하게 쓰되, 앞날은 가능성과 현실적인 행동 지침으로 쓰세요.
 11. summary 는 키워드 나열이 아니라, 전문가가 마주 앉아 설명하듯 구체적인 문장으로 쓰세요.
-12. 설명·인사말·코드펜스 없이 아래 JSON 스키마로만 응답하세요.
+12. scores 는 영역마다 따로 매긴 0~100 정수입니다. 아래 [점수 기준]을 따르세요.
+13. imageQuality.palmCoverage 는 손바닥(손가락 제외)이 잘리거나 가려지지 않고 보이는 정도입니다(0.0~1.0). 손바닥 전체가 들어오면 0.9 이상, 가장자리가 잘리면 0.5~0.8, 절반 이상 잘리거나 가려지면 0.5 미만으로 두세요.
+14. 설명·인사말·코드펜스 없이 아래 JSON 스키마로만 응답하세요.
+
+[점수 기준]
+- 영역별 근거: love=감정선·금성구·결혼선, career=운명선·두뇌선·목성구, wealth=태양선·재물선·수성구, vitality=생명선·화성구·손목선, creativity=두뇌선 곡률·태양구·월구, communication=수성구·수성선·감정선
+- 85~100: 근거 선이 길고 깊으며 끊김 없이 뚜렷하고, 관련 언덕도 도톰합니다.
+- 70~84: 근거 선이 뚜렷하지만 길이·깊이 중 하나가 약하거나 작은 끊김이 있습니다.
+- 55~69: 근거가 보통이거나, 강한 근거와 약한 근거가 섞여 있습니다.
+- 35~54: 근거 선이 옅고 짧거나 끊김·갈라짐이 많습니다.
+- 근거 선이 이번 사진에서 확인되지 않은 영역은 50 으로 두세요. 이 50 은 나쁘다는 뜻이 아니라 판단 보류입니다.
+- 점수는 판독한 근거에서만 나옵니다. 여섯 점수를 비슷하게 맞추거나 보기 좋게 올리지 마세요.
 
 {
   "palmDetected": true,
-  "handSide": "right | left",
+  "handSide": "left | right | unknown",
   "notPalmReason": "palmDetected=false 일 때만 이유를 한 문장으로. 아니면 빈 문자열",
   "handShape": {
     "type": "earth|fire|air|water|mixed",
@@ -114,7 +129,7 @@ export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손�
     "mercury": { "fullness": "medium", "summary": "수성구 (기지·사업)" },
     "mars":    { "fullness": "medium", "summary": "화성구 (투지·회복력)" }
   },
-  "scores": { "love": 75, "career": 80, "wealth": 70, "vitality": 85, "creativity": 78, "communication": 72 },
+  "scores": { "love": "0-100", "career": "0-100", "wealth": "0-100", "vitality": "0-100", "creativity": "0-100", "communication": "0-100" },
   "overall": {
     "title": "판독을 관통하는 핵심 제목",
     "summary": "우세선과 손바닥 곡률 유형을 포함한 종합 설명 (5문장 이상)",
@@ -128,7 +143,7 @@ export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손�
   "imageQuality": {
     "brightness": "good|normal|dark",
     "sharpness": "good|normal|blurry",
-    "palmCoverage": 0.85,
+    "palmCoverage": "0.0-1.0",
     "notes": "판독을 제한한 사진 문제가 있으면 한 문장"
   },
   "purposeAnalysis": {
@@ -149,14 +164,24 @@ export const PALM_VISION_SYSTEM_PROMPT = `당신은 전통 손금과 현대 손�
 }`;
 
 // The literal output example above is code-owned, never customer or model text.
-export const PALM_VISION_RESPONSE_SCHEMA = jsonSchemaFromExample(JSON.parse(
+const visionSchema = jsonSchemaFromExample(JSON.parse(
   PALM_VISION_SYSTEM_PROMPT.slice(PALM_VISION_SYSTEM_PROMPT.indexOf('{'), PALM_VISION_SYSTEM_PROMPT.lastIndexOf('}') + 1),
 ));
+// 점수·coverage 예시는 자리표시 문자열이다(숫자 예시는 모델이 그대로 베꼈다). 응답 타입은 숫자로 고정한다.
+for (const key of Object.keys(visionSchema.properties.scores.properties)) visionSchema.properties.scores.properties[key] = { type: "NUMBER" };
+visionSchema.properties.imageQuality.properties.palmCoverage = { type: "NUMBER" };
+export const PALM_VISION_RESPONSE_SCHEMA = visionSchema;
+
+// 2026-10-15 까지 프롬프트 JSON 예시에 박혀 있던 숫자다. 응답이 이 값을 그대로 내면 채점이 아니라
+// 예시를 베낀 것이므로 측정값으로 쓰지 않고 모름(null)으로 둔다.
+const COPIED_SCORE_EXAMPLE = Object.freeze({ love: 75, career: 80, wealth: 70, vitality: 85, creativity: 78, communication: 72 });
+const COPIED_COVERAGE_EXAMPLE = 0.85;
 
 function buildVisionUserPrompt(declaredSide, analysisPurpose) {
   const purposeText = PURPOSE_KO[analysisPurpose] || PURPOSE_KO.general;
   const sideText = declaredSide === "left" ? "왼손" : "오른손";
-  return `이 사진은 ${sideText} 바닥입니다. 사용자의 분석 목적은 '${purposeText}'입니다.
+  return `사용자는 이 사진을 ${sideText} 칸에 올렸습니다. 사용자의 분석 목적은 '${purposeText}'입니다.
+handSide 는 이 안내를 옮겨 적지 말고, 사진에 보이는 엄지 위치와 손바닥 방향으로 직접 판단해 "left" 또는 "right" 로 쓰세요. 판단하기 어려우면 "unknown" 으로 두세요.
 
 이 목적에 맞춰 각 손금 영역을 깊이 있게 풀이하세요. summary 는 키워드 나열이 아니라 전문가가 대면 상담하듯 구체적인 문장으로 작성하세요.
 반드시 우세선·손바닥 곡률 유형·커리어 변화 지표 3가지를 명시하세요.
@@ -195,6 +220,18 @@ function unit(v) {
   return Math.max(0, Math.min(1, n));
 }
 
+// 0~100 밖이거나 숫자가 아니면(자리표시 "0-100" 을 그대로 낸 경우 포함) 모름(null)이다.
+function score(v) {
+  if (v == null || v === "" || typeof v === "boolean") return null;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? Math.round(n) : null;
+}
+
+function isCopiedScoreExample(raw) {
+  const sc = asObj(raw);
+  return Object.entries(COPIED_SCORE_EXAMPLE).filter(([key, value]) => score(sc[key]) === value).length >= 4;
+}
+
 function asObj(v) {
   return v && typeof v === "object" && !Array.isArray(v) ? v : {};
 }
@@ -220,7 +257,7 @@ function measuredFields(raw, defaults) {
   return { values, defaultedFields };
 }
 
-function majorLine(raw, defaults) {
+function majorLine(raw) {
   const o = asObj(raw);
   const detected = bool(o.detected, false);
   return {
@@ -231,21 +268,28 @@ function majorLine(raw, defaults) {
     branches: num(o.branches, 0),
     startPoint: str(o.startPoint, ""),
     endPoint: str(o.endPoint, ""),
-    summary: str(o.summary, defaults.summary),
-    advice: str(o.advice, defaults.advice),
+    summary: str(o.summary, ""),
+    advice: str(o.advice, ""),
+    defaultedFields: textDefaultedFields(o, ["summary", "advice"]),
   };
 }
 
-function minorLine(raw, defaultSummary) {
+function minorLine(raw) {
   const o = asObj(raw);
   const detected = bool(o.detected, false);
   return {
     detected,
     confidence: detected ? unit(o.confidence) : 0,
     strength: detected ? str(o.strength, "medium") : "none",
-    summary: str(o.summary, defaultSummary),
-    defaultedFields: detected && !str(o.strength, "") ? ["strength"] : [],
+    summary: str(o.summary, ""),
+    defaultedFields: [...(detected && !str(o.strength, "") ? ["strength"] : []), ...textDefaultedFields(o, ["summary"])],
   };
+}
+
+// 모델이 쓰지 않은 해설·조언은 지어 넣지 않는다("결혼선을 분석했습니다." 같은 자리채움이
+// 유료 본문에 섞였다). 비워 두고 defaultedFields 로 알린다 — mount 와 같은 규칙.
+function textDefaultedFields(o, keys) {
+  return keys.filter((key) => !str(o[key], ""));
 }
 
 const SPECIAL_MARK_LABELS = {
@@ -294,25 +338,14 @@ export function geminiResultToHandReading(g) {
   const mn = asObj(g.minorLines);
   const mt = asObj(g.mounts);
   const sc = asObj(g.scores);
+  const copiedScores = isCopiedScoreExample(g.scores);
   const ov = asObj(g.overall);
   const hs = asObj(g.handShape);
 
-  const lifeLine = majorLine(ml.lifeLine, {
-    summary: "생명선을 판독했습니다.",
-    advice: "규칙적인 생활 리듬을 유지하세요.",
-  });
-  const headLine = majorLine(ml.headLine, {
-    summary: "두뇌선을 판독했습니다.",
-    advice: "명확한 목표 설정이 도움이 됩니다.",
-  });
-  const heartLine = majorLine(ml.heartLine, {
-    summary: "감정선을 판독했습니다.",
-    advice: "감정 표현을 솔직하게 하는 연습이 도움이 됩니다.",
-  });
-  const fateLine = majorLine(ml.fateLine, {
-    summary: "운명선을 판독했습니다.",
-    advice: "꾸준한 노력이 결실을 맺습니다.",
-  });
+  const lifeLine = majorLine(ml.lifeLine);
+  const headLine = majorLine(ml.headLine);
+  const heartLine = majorLine(ml.heartLine);
+  const fateLine = majorLine(ml.fateLine);
   const lifeShape = measuredFields(ml.lifeLine, { length: "medium", depth: "medium", curvature: "normal" });
   const headShape = measuredFields(ml.headLine, {
     length: "medium",
@@ -334,31 +367,32 @@ export function geminiResultToHandReading(g) {
       labelKo: str(hs.labelKo, "혼합형"),
       palmRatio: str(hs.palmRatio, "normal"),
       fingerRatio: str(hs.fingerRatio, "normal"),
-      summary: str(hs.summary, "손 형태를 분석했습니다."),
+      summary: str(hs.summary, ""),
     },
     majorLines: {
-      lifeLine: { ...lifeLine, ...lifeShape.values, defaultedFields: lifeShape.defaultedFields },
-      headLine: { ...headLine, ...headShape.values, defaultedFields: headShape.defaultedFields },
-      heartLine: { ...heartLine, ...heartShape.values, defaultedFields: heartShape.defaultedFields },
+      lifeLine: { ...lifeLine, ...lifeShape.values, defaultedFields: [...lifeLine.defaultedFields, ...lifeShape.defaultedFields] },
+      headLine: { ...headLine, ...headShape.values, defaultedFields: [...headLine.defaultedFields, ...headShape.defaultedFields] },
+      heartLine: { ...heartLine, ...heartShape.values, defaultedFields: [...heartLine.defaultedFields, ...heartShape.defaultedFields] },
       fateLine: {
         ...fateLine,
         ...fateShape.values,
         strength: fateLine.detected ? fateShape.values.strength : "none",
-        defaultedFields: fateLine.detected
-          ? fateShape.defaultedFields
-          : fateShape.defaultedFields.filter((key) => key !== "strength"),
+        defaultedFields: [
+          ...fateLine.defaultedFields,
+          ...(fateLine.detected ? fateShape.defaultedFields : fateShape.defaultedFields.filter((key) => key !== "strength")),
+        ],
       },
     },
     minorLines: {
-      sunLine: minorLine(mn.sunLine, "태양선을 분석했습니다."),
-      moneyLine: minorLine(mn.moneyLine, "재물선을 분석했습니다."),
-      marriageLine: minorLine(mn.marriageLine, "결혼선을 분석했습니다."),
-      mercuryLine: minorLine(mn.mercuryLine, "수성선을 분석했습니다."),
-      healthLine: minorLine(mn.healthLine, "건강선을 분석했습니다."),
-      intuitionLine: minorLine(mn.intuitionLine, "직관선을 분석했습니다."),
-      girdleOfVenus: minorLine(mn.girdleOfVenus, "금성대를 분석했습니다."),
-      travelLine: minorLine(mn.travelLine, "여행선을 분석했습니다."),
-      braceletLine: minorLine(mn.braceletLine, "손목선을 분석했습니다."),
+      sunLine: minorLine(mn.sunLine),
+      moneyLine: minorLine(mn.moneyLine),
+      marriageLine: minorLine(mn.marriageLine),
+      mercuryLine: minorLine(mn.mercuryLine),
+      healthLine: minorLine(mn.healthLine),
+      intuitionLine: minorLine(mn.intuitionLine),
+      girdleOfVenus: minorLine(mn.girdleOfVenus),
+      travelLine: minorLine(mn.travelLine),
+      braceletLine: minorLine(mn.braceletLine),
     },
     specialMarks: normalizeSpecialMarks(g.specialMarks),
     mounts: {
@@ -370,17 +404,10 @@ export function geminiResultToHandReading(g) {
       mercury: mount(mt.mercury),
       mars: mount(mt.mars),
     },
-    scores: {
-      love: num(sc.love, null),
-      career: num(sc.career, null),
-      wealth: num(sc.wealth, null),
-      vitality: num(sc.vitality, null),
-      creativity: num(sc.creativity, null),
-      communication: num(sc.communication, null),
-    },
+    scores: Object.fromEntries(Object.keys(COPIED_SCORE_EXAMPLE).map((key) => [key, copiedScores ? null : score(sc[key])])),
     overall: {
       title: str(ov.title, "손금 분석 결과"),
-      summary: str(ov.summary, "손금을 분석했습니다."),
+      summary: str(ov.summary, ""),
       dominantLine: str(ov.dominantLine, ""),
       palmType: str(ov.palmType, ""),
       careerShift: str(ov.careerShift, ""),
@@ -494,9 +521,14 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
   }
 
   const userPrompt = buildVisionUserPrompt(declaredSide, analysisPurpose);
+  // geminiParts 가 user 턴을 통째로 대신하므로 공통 경로가 프롬프트 꼬리에 붙이는 출력 언어
+  // 지시가 여기서는 빠진다(systemInstruction 에만 남음). 판독 해설·거부 이유가 화면 언어로
+  // 오도록 user 턴에도 직접 붙인다. 한국어는 프롬프트가 이미 한국어라 붙이지 않는다.
+  const locale = getAmbientAiLocale() || "ko";
+  const languageNote = locale === "ko" ? "" : buildOutputLanguageDirective(locale);
   const parts = [
     { text: PALM_VISION_SYSTEM_PROMPT },
-    { text: userPrompt },
+    { text: languageNote ? `${userPrompt}\n\n${languageNote}` : userPrompt },
     { inline_data: { mime_type: imageInfo.mimeType, data: imageInfo.data } },
   ];
 
@@ -537,22 +569,37 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
   const detectedLineKeys = extractDetectedLineKeys(handReading);
   // palmDetected=false 는 모델의 명시적 거부다. 존중한다 — 선이 몇 개 잡혔다고 뒤집지 않는다.
   // (기존 route.ts 는 여기서 뒤집어, 손이 아닌 사진도 판독이 나오는 원인 중 하나였다.)
-  const palmDetected = parsed.palmDetected === false ? false : parsed.palmDetected === true || detectedLineKeys.length > 0;
+  // "false" 같은 문자열도 거부로 읽는다. 주요선이 하나도 없는 "손바닥"은 판독 근거가 없고,
+  // 모델이 판정을 빼먹었으면 주요선이 둘 이상 잡혔을 때만 손바닥으로 본다.
+  const declaredPalm = bool(parsed.palmDetected, null);
+  const majorCount = majorLineDetectedCount(handReading);
+  const palmDetected = declaredPalm === false ? false : declaredPalm === true ? majorCount > 0 : majorCount >= 2;
 
   const iq = asObj(parsed.imageQuality);
+  const copiedExample = isCopiedScoreExample(parsed.scores);
+  if (copiedExample) console.warn("[palm-vision] score example copied", { side: declaredSide });
+  // 점수를 베낀 응답의 coverage 0.85 도 같은 예시에서 온 값이다.
+  const palmCoverage =
+    iq.palmCoverage == null || iq.palmCoverage === "" || !Number.isFinite(Number(iq.palmCoverage)) ||
+    (copiedExample && Number(iq.palmCoverage) === COPIED_COVERAGE_EXAMPLE)
+      ? null
+      : unit(iq.palmCoverage);
   const imageQuality = {
     isPalmDetected: palmDetected,
-    handSide: str(parsed.handSide, declaredSide),
+    // 판독 기준은 사용자가 올린 칸이다. 모델이 본 손은 따로 두고 덮어쓰지 않는다(compareHandSides).
+    handSide: declaredSide === "left" ? "left" : "right",
+    observedHandSide: normalizeHandSide(parsed.handSide),
     brightness: str(iq.brightness, "normal"),
     sharpness: str(iq.sharpness, "normal"),
     // 모델이 coverage 를 빼면 모름(null)이다. 예전 기본값 0.58/0.36 은 품질 문턱 0.42 양쪽에 걸려
     // 판정을 "선이 하나라도 잡혔나"로 바꿔 버렸다. null 은 품질 문턱을 통과하지 못하고(fail-closed)
     // 판정은 선 검출 근거가 맡는다.
-    palmCoverage: iq.palmCoverage == null || iq.palmCoverage === "" || !Number.isFinite(Number(iq.palmCoverage)) ? null : unit(iq.palmCoverage),
+    palmCoverage,
     rotation: 0,
     notes: str(iq.notes, ""),
     warnings: [],
-    defaultedFields: ["brightness", "sharpness", "palmCoverage"].filter((key) => iq[key] == null || iq[key] === ""),
+    defaultedFields: ["brightness", "sharpness", "palmCoverage"].filter((key) =>
+      key === "palmCoverage" ? palmCoverage === null : iq[key] == null || iq[key] === ""),
   };
 
   const purposeAnalysis = asObj(parsed.purposeAnalysis);
@@ -565,10 +612,45 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
     raw: parsed,
     detectedLineKeys,
     qualityScore: computeQualityScore({ imageQuality, detectedLineKeys, palmDetected }),
-    notPalmReason: str(parsed.notPalmReason, ""),
+    // 모델은 손바닥이라 했는데 주요선이 안 잡혀 거부한 경우, 모델 사유는 비어 있다.
+    notPalmReason: palmDetected ? "" : str(parsed.notPalmReason, declaredPalm === false ? "" : palmCopy().noMajorLines),
     provider: ai.provider,
     model: ai.model,
   };
+}
+
+function normalizeHandSide(v) {
+  const s = String(v ?? "").trim().toLowerCase();
+  if (s === "left" || s === "왼손") return "left";
+  if (s === "right" || s === "오른손") return "right";
+  return "unknown";
+}
+
+/**
+ * 클라이언트 MediaPipe handedness → 실제 손. MediaPipe 는 셀피(좌우 반전) 입력을 가정하는데,
+ * 업로드는 후면 카메라(capture="environment")·갤러리 사진이라 반전되지 않은 경우가 대부분이다.
+ * 그래서 라벨을 뒤집는다. 반전된 셀피라면 틀리므로 혼자서는 불일치를 확정하지 못한다.
+ */
+export function clientHandSide(raw) {
+  const label = String(raw?.label || "");
+  if (!(Number(raw?.score) >= 0.8)) return "unknown";
+  return label === "Left" ? "right" : label === "Right" ? "left" : "unknown";
+}
+
+/**
+ * 사용자가 올린 칸(declared)·비전 모델이 본 손·MediaPipe 가 본 손을 비교한다. 판독 기준은 늘 declared 다.
+ * mismatch 는 비전이 다른 손으로 보고 MediaPipe 가 반박하지 않을 때만이다(둘 다 사진 반전을 모른다).
+ */
+export function compareHandSides(declared, vision, client) {
+  const known = [vision, client].filter((side) => side === "left" || side === "right");
+  const status = known.length === 0
+    ? "unverified"
+    : known.every((side) => side === declared)
+      ? "match"
+      : vision !== declared && vision !== "unknown" && known.every((side) => side === vision)
+        ? "mismatch"
+        : "uncertain";
+  return { declared, vision, client, status };
 }
 
 /**
@@ -576,9 +658,8 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
  */
 export function visionToSideAnalysis(vision, side) {
   if (!vision) return null;
-  const resolvedSide = String(vision.imageQuality?.handSide || side).toLowerCase() === "left" ? "left" : "right";
   return {
-    side: resolvedSide,
+    side: side === "left" ? "left" : "right",
     source: "gemini",
     handReading: vision.handReading,
     palmDetected: vision.palmDetected,
@@ -603,13 +684,13 @@ export function visionToSideAnalysis(vision, side) {
  * 심층 해석 (구 palm-reading-ai-consult — 이제 기본 분석에 통합)
  * ------------------------------------------------------------------ */
 
-const DEEP_CONSULT_SYSTEM_PROMPT = `당신은 30년 경력의 손금 상담 전문가입니다. 이미 판독이 끝난 손금 데이터를 받아, 내담자가 마주 앉아 듣는 것 같은 깊이 있는 상담문을 씁니다.
+const DEEP_CONSULT_SYSTEM_PROMPT = `당신은 손금 상담가입니다. 이미 판독이 끝난 손금 데이터를 받아, 내담자가 마주 앉아 듣는 것 같은 깊이 있는 상담문을 씁니다.
 
 [작성 규칙]
 1. 주어진 판독 데이터에 있는 근거만 사용하세요. 사진을 다시 추측하지 마세요.
 2. detected=false 인 선과 문양은 "이번 사진에서는 확인되지 않았다"고 쓰거나 아예 언급하지 마세요. 있는 것처럼 쓰지 마세요.
-3. 사람이 쓴 조언처럼 직설적이고 구체적으로 쓰세요. "~할 수도 있습니다" 같은 애매한 표현 대신 "~하세요"로 쓰세요.
-4. 건강·수명·질병·사고를 단정하지 마세요. 의학적 진단 금지.
+3. 판독 데이터에 있는 선의 모양은 분명하고 구체적으로 말하세요. 그 선이 가리키는 앞날, 특히 결혼·인연, 건강·활력, 향후 변화는 확정 예언 대신 가능성과 바로 해 볼 수 있는 행동 제안으로 쓰세요. 같은 말을 흐리게 되풀이하지 마세요.
+4. 건강·수명·질병·사고, 결혼 시기·상대, 재물 액수를 단정하지 마세요. 공포를 키우는 표현과 의학적 진단은 금지입니다.
 5. 각 항목은 3~5문장, 추상적 덕담이 아니라 이 사람의 판독 결과에 붙는 내용이어야 합니다.
 6. 마크다운 제목(#) 없이, 아래 형식의 일반 텍스트로 쓰세요. ■ 제목 줄 바로 다음 줄부터 본문을 쓰고, 빈 줄은 항목 사이에만 두세요.
 7. 전체 분량은 공백 포함 ${PALM_CONSULT_MIN_CHARS.toLocaleString("en-US")}~${PALM_CONSULT_MAX_CHARS.toLocaleString("en-US")}자를 목표로 하세요.
@@ -639,7 +720,14 @@ const DEEP_CONSULT_SYSTEM_PROMPT = `당신은 30년 경력의 손금 상담 전�
  * fallbackMinChars 로 "짧은 폴백이 유료 결과로 나가는 것"을 막는다.
  * 실패해도 throw 하지 않는다 — 결제 후 결과는 항상 전달한다(degrade-not-throw).
  */
+// 선별 불확실성: 사진에서 보였지만 모델이 해설을 쓰지 않은 선. 빈 해설을 상담이 지어 채우지 않게 따로 알린다.
+function uncertainLineKeys(reading) {
+  const lines = { ...reading?.majorLines, ...reading?.minorLines };
+  return Object.keys(lines).filter((key) => lines[key]?.detected && lines[key].defaultedFields?.includes("summary"));
+}
+
 export async function buildPalmDeepConsult(env, input, logContext = {}) {
+  const uncertainLines = { left: uncertainLineKeys(input.leftHandReading), right: uncertainLineKeys(input.rightHandReading) };
   const context = JSON.stringify(
     {
       analysisPurpose: input.analysisPurpose,
@@ -654,6 +742,7 @@ export async function buildPalmDeepConsult(env, input, logContext = {}) {
       bothHandsComparison: input.bothHandsComparison,
       specialMarks: input.specialMarks,
       missingData: input.missingData,
+      uncertainLines,
     },
     null,
     2,
@@ -663,16 +752,20 @@ export async function buildPalmDeepConsult(env, input, logContext = {}) {
     Array.isArray(input.uploadedHands) && input.uploadedHands.length >= 2
       ? "양손이 모두 등록되어 선천(비주로 쓰는 손)과 후천(주로 쓰는 손)의 차이를 함께 짚어 주세요."
       : "한 손만 등록되었습니다. 그 손의 역할(선천/후천)을 명시하고, 없는 손을 추측해 쓰지 마세요.";
+  const uncertainNote = uncertainLines.left.length + uncertainLines.right.length > 0
+    ? "\nuncertainLines 의 선은 사진에서 보였지만 판독 해설이 비어 있습니다. 그 선의 의미를 지어내지 말고, 이번 사진에서는 자세히 읽지 못했다고만 짧게 쓰세요.\n"
+    : "";
 
   const userPrompt = `아래 손금 판독 데이터를 바탕으로 심층 상담문을 작성하세요.
 
 ${handsNote}
-
+${uncertainNote}
 판독 데이터:
 ${context}`;
 
   const ai = await callGeminiText(env, userPrompt, {
-    systemPrompt: DEEP_CONSULT_SYSTEM_PROMPT,
+    // 연이 페르소나는 작성 규칙·■ 형식 뒤에 붙는다(말투·태도만 정한다). CMS 키: expert-persona-yeoni.
+    systemPrompt: await appendExpertPersona(env, "yeoni", DEEP_CONSULT_SYSTEM_PROMPT, { locale: getAmbientAiLocale() || "ko" }),
     maxOutputTokens: PALM_CONSULT_MAX_OUTPUT_TOKENS,
     temperature: 0.75,
     taskType: "fortune",
@@ -689,6 +782,10 @@ ${context}`;
 
   // "■ 제목" 줄이 빈 줄로 떨어져 단독 문단이 되면 문장부호가 없어 normalizeNarrativeBody 가 버린다.
   // 거부 대신 결정적으로 교정한다: 제목 문단을 다음 문단에 붙인다.
-  const text = normalizeNarrativeBody(String(ai.text || "").trim().replace(/^(■[^\n]*)\n\s*\n/gmu, "$1\n"));
-  return text.replace(/\s/g, '').length >= PALM_CONSULT_FALLBACK_MIN_CHARS && /[.!?。？！]["'”’)]?\s*$/u.test(text) ? { text, rawText: ai.rawText || ai.text, provider: ai.provider, model: ai.model } : null;
+  const body = normalizeNarrativeBody(String(ai.text || "").trim().replace(/^(■[^\n]*)\n\s*\n/gmu, "$1\n"));
+  // 마지막 문단이 근거 인용·안내 라벨로 끝나도 상담 전체를 버리지 않는다(원칙 17 전달 우선).
+  // 마지막 완결 문장까지 잘라 전달한다.
+  const lastSentence = [...body.matchAll(/[.!?。？！]["'”’)\]」』]*(?=\s|$)/gu)].at(-1);
+  const text = lastSentence ? body.slice(0, lastSentence.index + lastSentence[0].length) : "";
+  return text.replace(/\s/g, '').length >= PALM_CONSULT_FALLBACK_MIN_CHARS ? { text, rawText: ai.rawText || ai.text, provider: ai.provider, model: ai.model } : null;
 }

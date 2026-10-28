@@ -1,3 +1,4 @@
+import {FUSION_BOOK_CHAPTERS} from '@/worker/yeongnyangi/fortune/fusion-book';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 
 const fusionDescriptions:Record<string,string>={
@@ -10,3 +11,5 @@ export function consultationTitle(product:Product){
  return product.readingKind==='all'?'오마카세 초융합 운세':product.name;
 }
 export function fusionDescription(product:Product){return fusionDescriptions[product.id];}
+
+export const fusionChapterCount=(product:Product)=>product.fishId==='assorted'||product.fishId==='omakase'?FUSION_BOOK_CHAPTERS[product.fishId]:product.chapterCount;

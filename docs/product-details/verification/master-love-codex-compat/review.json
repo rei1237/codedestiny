@@ -1,0 +1,14 @@
+{
+  "disposition": "ship",
+  "scope": "Independent visual inspection of 10 source panels, actual 360px panels, CTA and notices at 360/390/430; mock only",
+  "fixes": [
+    "heading orphan removed",
+    "secondary text contrast 5.12:1",
+    "official compatibility illustration",
+    "floating CTA hidden while detail is open"
+  ],
+  "limits": [
+    "No real LLM, payment, or PDF export",
+    "Existing pricing card typography not changed"
+  ]
+}

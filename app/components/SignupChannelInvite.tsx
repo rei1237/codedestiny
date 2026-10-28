@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '../_lib/auth-store';
 import KakaoChannelInvite from './KakaoChannelInvite';
+import EmailMarketingPreference from './EmailMarketingPreference';
 export default function SignupChannelInvite() {
   const { user, isAuthenticated } = useAuthStore();
   const path = usePathname();
@@ -16,5 +17,5 @@ export default function SignupChannelInvite() {
       if(hint?.scope===scope && Date.now()-hint.at>=0 && Date.now()-hint.at<5*60000) setShow(true);
     } catch { /* signup never depends on this optional hint */ }
   },[user,isAuthenticated,path]);
-  return show ? <KakaoChannelInvite source="signup_complete"/> : null;
+  return show ? <><EmailMarketingPreference source="signup_complete"/><KakaoChannelInvite source="signup_complete"/></> : null;
 }

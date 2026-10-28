@@ -22,12 +22,16 @@ export const RECORD_METADATA_PROJECTION = Object.freeze({
   'metadata.paidNarrative.body.topic': 1, 'metadata.archive.title': 1,
   'result.title': 1, 'result.sessionTitle': 1, 'result.question': 1, 'result.questionSummary': 1, 'initialBriefing.operationTitle': 1,
   'inputSummary.topic': 1, 'llmMeta.input.consultationType': 1,
+  'llmMeta.deliveryRefund.status': 1,
 });
 export const readRecordField = (doc, path) => path.split('.').reduce((value, key) => value?.[key], doc);
 const clean = (value, size = 600) => typeof value === 'string' ? value.trim().slice(0, size) : '';
 const questionFields = ['question', 'userQuestion', 'questionSummary', 'selectedTopic', 'snapshot.analysis.consultation.question', 'inputSummary.topic', 'metadata.paidNarrative.body.question', 'metadata.paidNarrative.body.userQuestion', 'result.question', 'result.questionSummary'];
 const titleFields = ['title', 'result.title', 'result.sessionTitle', 'initialBriefing.operationTitle', 'metadata.archive.title', 'metadata.paidNarrative.body.topic', 'topic'];
 export function recordStatus(doc, source) {
+  const refund = doc.llmMeta?.deliveryRefund?.status;
+  if (refund === 'refunded') return 'revoked';
+  if (['pending', 'manual_review'].includes(refund)) return 'refund_pending';
   const status = clean(doc.state || doc.premiumStatus || doc.generationStatus || doc.status, 40).toLowerCase();
   if (['refunded', 'cancelled', 'canceled', 'revoked'].includes(doc.status)) return 'revoked';
   if(status!=='refunded'&&(doc.refundStatus==='pending'||doc.generationCheckpoint?.deliveryRefund?.status==='pending'))return 'refund_pending';
@@ -62,8 +66,8 @@ export function recordMetadata(source, doc) {
     createdAt: doc.createdAt && Number.isFinite(Date.parse(doc.createdAt)) ? new Date(doc.createdAt).toISOString() : null,
     status, group: source.dynamic ? variant?.group || source.group : source.group, character: clean(doc.persona || doc.characterId || source.character, 30),
     href: savedRecordPath(source.id, id), startHref: variant?.href || product?.href || source.href,
-    recoveryHref: source.id === 'tea' ? `/fortune-tea-house/?recoverResultId=${encodeURIComponent(id)}` : source.resultPath && source.group !== 'chat' ? source.resultPath + encodeURIComponent(id) : '/points/history/',
-    nativeHref: status === 'completed' && source.resultPath && doc[source.idField] ? source.resultPath + encodeURIComponent(id) : '',
+    recoveryHref: featureKey === 'premium-sibyl-dominator' ? savedRecordPath(source.id,id) : source.id === 'tea' ? `/fortune-tea-house/?recoverResultId=${encodeURIComponent(id)}` : source.resultPath && source.group !== 'chat' ? source.resultPath + encodeURIComponent(id) : '/points/history/',
+    nativeHref: status === 'completed' && featureKey === 'nakshatra-compat' && doc.metadata?.nakshatraCompat ? '/nakshatra/compat/?resultId=' + encodeURIComponent(id) : status === 'completed' && source.resultPath && doc[source.idField] ? source.resultPath + encodeURIComponent(id) : '',
   };
 }
 export function ownerQuery(userId) {
@@ -227,7 +231,7 @@ export async function readRecord(userId, sourceId, id) {
   }
   let content = source.id === 'executions' ? doc.metadata?.result || doc.metadata?.archive || doc.metadata?.palmResult || doc.metadata?.celestialDelivery?.reading || {} :
     source.id === 'paid-results' ? doc.result : source.id === 'legacy-naming' ? doc.namingPrompt || doc.pricingSnapshot?.namingPrompt : doc;
-  if (source.id === 'codex') content = { ...doc, status: record.status };
+  if (source.id === 'codex') content = { ...doc, status: record.status, consultationHash: undefined, consultation: doc.consultation ? { ...doc.consultation, records: undefined } : null };
   if (source.id === 'chat-consultation') {
     const { presentFortune } = await import('../yeongnyangi/service.ts');
     content = { ...presentFortune(doc), persona: doc.persona };

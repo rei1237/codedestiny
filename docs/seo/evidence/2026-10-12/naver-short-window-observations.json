@@ -1,0 +1,115 @@
+{
+  "observedAt": "2026-10-12T02:51:35+09:00",
+  "source": "Naver Search Advisor visible UI, manually transcribed; rounded display totals, not daily CSV",
+  "property": "https://code-destiny.com",
+  "reportUpdated": "2026-10-10",
+  "device": "PC + Mobile",
+  "exactPeriodDates": null,
+  "last7Display": {
+    "impressions": "25.2만",
+    "impressionsChangeVsPreviousWeek": "-16.4%",
+    "clicks": "1.2천",
+    "clicksChangeVsPreviousWeek": "+13.8%",
+    "averagePageCtr": "0.5%"
+  },
+  "last1Display": {
+    "impressions": "1.9만",
+    "impressionsChangeVsPreviousDay": "-12%",
+    "clicks": "1.3백",
+    "clicksChangeVsPreviousDay": "-20.4%",
+    "averagePageCtr": "0.6%"
+  },
+  "last7TopPagesSample": [
+    {
+      "path": "/fortune/tomorrow/rat/",
+      "clicks": 108,
+      "impressions": 11626
+    },
+    {
+      "path": "/fortune/tomorrow/snake/",
+      "clicks": 85,
+      "impressions": 11884
+    },
+    {
+      "path": "/fortune/tomorrow/tiger/",
+      "clicks": 57,
+      "impressions": 10944
+    },
+    {
+      "path": "/fortune/tomorrow/rooster/",
+      "clicks": 56,
+      "impressions": 11726
+    },
+    {
+      "path": "/fortune/tomorrow/pig/",
+      "clicks": 55,
+      "impressions": 14636
+    },
+    {
+      "path": "/fortune/tomorrow/libra/",
+      "clicks": 39,
+      "impressions": 5917
+    },
+    {
+      "path": "/fortune/tomorrow/ox/",
+      "clicks": 28,
+      "impressions": 3661
+    },
+    {
+      "path": "/fortune/today/",
+      "clicks": 28,
+      "impressions": 3595
+    },
+    {
+      "path": "/fortune/tomorrow/scorpio/",
+      "clicks": 27,
+      "impressions": 5101
+    },
+    {
+      "path": "/fortune/tomorrow/goat/",
+      "clicks": 26,
+      "impressions": 6130
+    }
+  ],
+  "duplicateTitleSample": {
+    "group": "운세 인사이트 허브 | 사주·자미두수·숙요점·타로 가이드 | Code Destiny",
+    "urlCount": 20,
+    "pattern": "/insights/?v=<build> or /insights/?topic=tarot&v=<build>",
+    "currentProbe": "/insights/?topic=tarot&v=d0f0a89812b4",
+    "status": 200,
+    "canonical": "https://code-destiny.com/insights/",
+    "versionedAnchorCount": 0,
+    "limitation": "one duplicate group; not all 351 URLs"
+  },
+  "missingDescriptionRecheck": {
+    "paths": [
+      "/celestial-harmony",
+      "/codedestiny-novel",
+      "/destiny-island",
+      "/neville-meditation",
+      "/fortune-teller-fish"
+    ],
+    "result": "all 5 return 200 with meta and HTTP noindex; intentional excluded tools, not indexable landing defects",
+    "personalQueryUrl": "sixth row contained birth/location input; query not copied or requested"
+  },
+  "submissions": {
+    "sitemapIndexRegistered": "26.10.12 01:59:45",
+    "sitemapRegistered": "26.08.14 06:18:13",
+    "brandRequestsRetained": [
+      "/ggulggul/",
+      "/kkul-kkul-unse/"
+    ],
+    "processing": "UI shows registration/history only, not processing or indexing success",
+    "newSubmissionsThisPass": 0
+  },
+  "conclusion": "Recent week and day impressions fell despite the increasing 30-day aggregate. Cause and recovery remain unproven.",
+  "naverUrlInspection": {
+    "path": "/fortune/tomorrow/rat/",
+    "liveInspection": "200 OK; robots allowed; meta allows indexing; title and description for 2026-10-13",
+    "indexInspection": "문서가 성공적으로 색인됐습니다. 해당 문서를 검색할 수 있습니다.",
+    "indexedMetadataDate": "2026-10-12",
+    "liveMetadataDate": "2026-10-13",
+    "interpretation": "indexed snapshot lags the current daily page by one content date; not proof of deindexing, prolonged crawl failure, or cause of lost impressions",
+    "crawlRequested": false
+  }
+}

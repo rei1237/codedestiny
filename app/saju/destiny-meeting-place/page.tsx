@@ -2,25 +2,26 @@ import type { Metadata } from "next";
 import DestinyMeetingPlaceRouteClient from "./DestinyMeetingPlaceRouteClient";
 import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
 import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
+import YehwaCard from "../../components/service-intro/YehwaCard";
 
 const DESTINY_MEETING_PLACE_METADATA_COPY = {
   ko: {
-    title: "사주로 보는 인연의 장소 | Code Destiny",
+    title: "사주로 보는 인연의 장소 | 꿀꿀 운세",
     description:
       "생년월일 기반 사주 에너지로 인연이 열리는 장소, 도시, 타이밍, 스타일을 별빛 지도처럼 안내하는 프리미엄 감성 리포트",
   },
   en: {
-    title: "Destiny Meeting Place by Saju | Code Destiny",
+    title: "Destiny Meeting Place by Saju | 꿀꿀 운세",
     description:
       "A premium emotional report that reads your birth-based saju energy and maps places, cities, timing, and style where meaningful connections may open.",
   },
   ja: {
-    title: "四柱推命で見る縁の場所 | Code Destiny",
+    title: "四柱推命で見る縁の場所 | 꿀꿀 운세",
     description:
       "生年月日にもとづく四柱推命エネルギーから、縁が開く場所・都市・タイミング・スタイルを星明かりの地図のように案内するプレミアム感性リポートです。",
   },
   zh: {
-    title: "用四柱看见缘分之地 | Code Destiny",
+    title: "用四柱看见缘分之地 | 꿀꿀 운세",
     description:
       "依据出生信息中的四柱能量，以星光地图般的方式指引缘分开启的地点、城市、时机与风格。",
   },
@@ -48,8 +49,12 @@ export default function Page() {
   return (
     <>
       <RouteMetadataLocaleSync entries={DESTINY_MEETING_PLACE_METADATA_COPY} />
-      <section className="sr-only" aria-label="사주로 보는 인연의 장소 안내">
+      <section className="relative z-10 mx-auto w-full max-w-3xl px-4 py-6" aria-label="사주로 보는 인연의 장소 안내">
+        <YehwaCard ornament={false}>
         <h1>사주로 보는 인연의 장소</h1>
+        <p>생년월일에 담긴 오행과 계절의 흐름으로 편안하게 사람을 만날 수 있는 공간과 분위기를 살펴봅니다. 만남을 준비하는 참고로 읽어보세요.</p>
+        <details className="mt-4">
+          <summary className="min-h-11 cursor-pointer py-3 font-semibold text-[var(--si-heading)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current">인연의 장소 리포트 해석 안내</summary>
         <p>
           인연은 늘 같은 얼굴로 오지 않습니다. 어떤 사람에게는 물가와 가까운 길에서, 어떤 사람에게는 오래된 골목과 조용한 서점에서,
           또 어떤 사람에게는 낯선 도시의 저녁빛 속에서 마음이 열립니다. 사주로 보는 인연의 장소는 생년월일에 담긴 계절과 오행의 흐름을 따라,
@@ -88,6 +93,8 @@ export default function Page() {
           이 상담은 만남을 서두르라는 신호보다, 마음을 열어도 덜 다치는 방향을 먼저 가리킵니다.
           인연이 다가오는 장소에는 늘 사람의 기운과 공간의 기운이 함께 머물며, 그 둘이 부드럽게 맞물릴 때 대화는 훨씬 오래 남습니다.
         </p>
+        </details>
+        </YehwaCard>
       </section>
       <DestinyMeetingPlaceRouteClient />
       <ImmersiveRelatedLinks fromPath="/saju/destiny-meeting-place" />

@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>의식의 재프로그래밍 — 네빌 고다드</title>
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
+<script src="/js/core/pass-verdict.js?v=build-1711b2150559"></script>
+<script src="/js/core/checkout-entry.js?v=build-1711b2150559"></script>
   <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-9c92542eb04f"></script>
+<script src="/js/destiny-profile.js?v=build-2d81696a26c1"></script>
 <style>
     :root {
       --bg: #02030E;
@@ -737,16 +737,16 @@ button,input,select,textarea{font-family:var(--font-body)!important}
   <div class="title-block">
     <div class="eyebrow"><span class="neville" style="font-size:0.9rem;letter-spacing:0.25em;">Neville Goddard</span> &nbsp;·&nbsp; 잠재의식의 법칙</div>
     <h1 class="h1">의식의<br><em>재프로그래밍</em></h1>
-    <p class="subtitle">잠재의식의 문을 열고<br>이미 이루어진 현실을 수신하라</p>
-    <p class="author-intro"><span class="neville">네빌 고다드</span>는 "상상은 미래가 아니라 현재의 창조 행위"라고 말했습니다.<br>당신이 지금 느끼는 성취의 감정이 곧 현실의 설계도가 됩니다.</p>
+    <p class="subtitle">몸의 긴장을 풀고<br>원하는 일상의 한 장면을 떠올려보세요</p>
+    <p class="author-intro"><span class="neville">네빌 고다드</span>의 상상 연습 관점을 따라가는 화면 안내형 실습입니다.<br>원하는 장면을 떠올리되, 실제 성취나 현실의 변화를 보장하지 않습니다.</p>
   </div>
 
   <div class="cards">
     <div class="card" onclick="startCourse(30)">
       <div class="card-corner"></div>
       <div class="card-dur">30<span>분</span></div>
-      <div class="card-title">에센셜 명상<br>현실의 즉각적 전환</div>
-      <div class="card-desc">짧은 시간 안에 뇌파를 낮추고<br>잠재의식의 문을 여는 코스<br>이용료: 3,000원</div>
+      <div class="card-title">에센셜 명상<br>한 장면에 머무는 시간</div>
+      <div class="card-desc">몸을 이완하고 원하는 장면을<br>차분히 떠올리는 네 단계<br>이용료: 5,000원</div>
       <div class="phase-dots">
         <div class="phase-dot" style="background:#4A7C9E"></div>
         <div class="phase-dot" style="background:#7B5EA7"></div>
@@ -758,8 +758,8 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     <div class="card" onclick="startCourse(60)">
       <div class="card-corner"></div>
       <div class="card-dur">60<span>분</span></div>
-      <div class="card-title">마스터 명상<br>의식의 완전한 재편</div>
-      <div class="card-desc">의식의 층위를 가장 깊은 곳까지<br>안내하는 완전한 마스터 코스<br>이용료: 3,000원</div>
+      <div class="card-title">마스터 명상<br>여유를 두고 이어가는 실습</div>
+      <div class="card-desc">이완과 상상에 시간을 더 두고<br>일상으로 돌아오는 다섯 단계<br>이용료: 5,000원</div>
       <div class="phase-dots">
         <div class="phase-dot" style="background:#4A7C9E"></div>
         <div class="phase-dot" style="background:#7B5EA7;flex:3"></div>
@@ -1594,7 +1594,7 @@ async function startCourse(mins) {
   _sessionBootInFlight = true;
   _sessionBootStartedAt = Date.now();
   try {
-    var cost = 30;
+    var cost = 50;
     // 결제 전에 고른 코스를 서술자로 굳혀 둔다 — 복귀 문서는 이 값 없이는 어느 코스였는지 모른다.
     var paid = await _consumeMeditationCoin(cost, 'openNevilleMeditationPage ' + mins + '분 코스', buildNevilleResumeDescriptor(mins));
     if (!paid) return;
@@ -1793,6 +1793,10 @@ function backToLanding() {
   pauseTheta();
   showScreen('landing');
 }
+</script>
+<script type="module">
+import {mountOracleCraftedDetails} from "/js/core/oracle/crafted-details.mjs";
+mountOracleCraftedDetails(document.getElementById("landing"),{target:".cards",id:"neville-meditation",title:"네빌 명상 실습"});
 </script>
 </body>
 </html>

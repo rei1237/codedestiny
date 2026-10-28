@@ -13,26 +13,24 @@ test("Yeoni chat keeps a unified character choice and neutral usage label", () =
   assert.doesNotMatch(client, /계정당 총 3회/);
   assert.match(client, /type Character = "yeoni" \| "neo"/);
   assert.doesNotMatch(client, /\["flower_pig", "yeoni", "neo"\]/);
-  assert.match(client, /usage\.dailyFreeRemaining/);
-  assert.match(client, /무료 상담/);
+  assert.doesNotMatch(client, /무료 상담|1회 무료|무료로 시작/);
 });
 
-test("a ?character= link opens that consultant and the saved session does not override it", () => {
-  // 홈의 대화형 상담 문은 지금 테마(연이·네오)를 ?character= 로 넘긴다(js/core/home-funnel.js).
+test("new chats always open with Yeoni, even from an old ?character=neo link", () => {
+  // 2026-10-13: 네오 상담을 걷어 냈다. 라이트·다크 모드와 상관없이 새 상담은 연이와 한다.
   const client = read("app/fortune-chat/FortuneChatClient.tsx");
-  for (const snippet of [
-    'value === "neo" || value === "yeoni" ? value : ""',
-    'useState<Character>(() => requestedCharacter(params) || "yeoni")',
-    'useState<Message[]>(() => welcome(requestedCharacter(params) || "yeoni"))',
-    "if (payload.session?.characterId && !requested) setCharacter(storedCharacter)",
-  ]) assert.ok(client.includes(snippet), snippet);
-  // 플래그가 켜진 로그인 사용자의 새 상담실도 같은 값으로 시작한다.
+  assert.ok(client.includes('useState<Character>("yeoni")'));
+  assert.ok(client.includes('useState<Message[]>(() => welcome("yeoni"))'));
+  assert.doesNotMatch(client, /switchCharacter|characterPicker/);
   const entry = read("app/fortune-chat/FortuneChatEntry.tsx");
-  assert.ok(entry.includes('character === "neo" || character === "yeoni" ? character : undefined'));
+  assert.ok(entry.includes('const requested: ChatPersona = "yeoni"'));
   assert.ok(entry.includes("initialPersona={requested}"));
-  assert.ok(read("app/fortune-chat/ConsultationRoom.tsx").includes("useState<ChatPersona>(initialPersona)"));
+  const room = read("app/fortune-chat/ConsultationRoom.tsx");
+  assert.ok(room.includes("useState<ChatPersona>(initialPersona)"));
+  assert.doesNotMatch(room, /data-consultation-mode|switchPersona/);
   const funnel = read("js/core/home-funnel.js");
-  assert.ok(funnel.includes("'/fortune-chat/?character=' + (doc.classList.contains('neo-mode') ? 'neo' : 'yeoni')"));
+  assert.ok(funnel.includes("'/fortune-chat/?character=yeoni'"));
+  assert.ok(!funnel.includes("? 'neo' : 'yeoni'"));
 });
 
 test("suggested questions are offered, never typed into the box for the user", () => {
@@ -165,9 +163,9 @@ test("dev refresh keeps shared UMD billing boundaries out of ESM-only HMR output
   const nextConfig = read("next.config.mjs");
 
   assert.match(nextConfig, /LEGACY_SHARED_BROWSER_MODULE/);
-  assert.match(nextConfig, /checkout-entry\|pass-verdict\|payment-service/);
+  assert.match(nextConfig, /checkout-entry\|pass-verdict\|payment-service\|play-display-price/);
   assert.match(nextConfig, /name\.includes\("react-refresh"\)/);
-  assert.match(nextConfig, /visitWebpackRules\(config\.module\?\.rules\)/);
+  assert.match(nextConfig, /visitWebpackRules\(config\.module\?\.rules, dev\)/);
 });
 
 test("the free reading closes with the product the server picked for that topic", () => {
@@ -188,9 +186,12 @@ test("the free reading closes with the product the server picked for that topic"
   assert.doesNotMatch(client, /targetPath: "/);
   // 계측은 기존 앵커 위임에 얹는다 — 같은 노드에 리스너를 겹치지 않는다(코딩 원칙 6).
   assert.match(client, /data-cd-cross-sell="\/fortune-chat"/);
-  // 앵커가 primary 스타일을 받도록 CSS 가 열려 있어야 한다. 안 열면 링크가 맨몸 텍스트로 나온다.
+  // 앵커도 버튼 모양을 받도록 CSS 가 열려 있어야 한다. 안 열면 링크가 맨몸 텍스트로 나온다.
   assert.match(css, /\.actions button,\.actions a,\.input button\{/);
-  assert.match(css, /\.actions a\+button\{/);
+  // 2026-10-16 Button Tiers: 채움(Primary)은 데이터와 무관하게 초융합 버튼 하나로 고정한다.
+  // 예전 `.actions a+button` 규칙은 앵커가 있으면 앵커가, 없으면 초융합이 채움을 받아 서버 응답에 따라 주 버튼이 바뀌었다.
+  assert.match(css, /\.actions a\{[^}]*border:1px solid var\(--line\);background:transparent;color:var\(--ink\)\}/);
+  assert.doesNotMatch(css, /\.actions a\+button\{/);
 });
 
 test("guests open the new room from the public flag and keep their question through login", () => {
@@ -213,4 +214,37 @@ test("guests open the new room from the public flag and keep their question thro
   assert.ok(room.includes("sessionStorage.setItem(DRAFT_KEY"));
   assert.ok(create.includes("sessionStorage.removeItem(DRAFT_KEY)"));
   assert.doesNotMatch(room, /onClick={loginForCurrentPage}/);
+});
+
+
+test("personal saju keeps the solo product and joint consultation is an explicit link", () => {
+  const room = read("app/fortune-chat/ConsultationRoom.tsx");
+  const create = room.slice(room.indexOf("const create = async"), room.indexOf("const pay ="));
+  assert.doesNotMatch(create, /location\.assign|writeSajuTeaDraft/);
+  assert.match(create, /consultationApi\.create/);
+  const client = read("app/fortune-chat/FortuneChatClient.tsx");
+  assert.doesNotMatch(client, /opensTeaSaju|fortune-tea-house-saju-consultation/);
+  assert.match(room, /href=\{TEA_SAJU_URL\}/);
+});
+
+test("Yeoni opens with thirty honey drops beside the pass and per-use checkout", () => {
+  // 2026-10-18: 꿀방울 30개로도 연이 상담을 연다. 이용권·1회 결제는 그대로이고 네오에는 꿀방울 카드가 없다.
+  const room = read("app/fortune-chat/ConsultationRoom.tsx");
+  const panel = read("app/fortune-chat/ConsultationAccessPanel.tsx");
+  const payHoney = room.slice(room.indexOf("const payHoney = async"), room.indexOf("const attendHoney"));
+  assert.match(payHoney, /row\.persona !== "yeoni" \|\| !canOfferHoney\(row, honey\?\.balance\)/);
+  assert.match(payHoney, /consultationApi\.activate\(id, "honey"\)/);
+  assert.match(room, /showHoney=\{row\.persona === "yeoni"\}/);
+  assert.match(room, /guardCheckout\(\(\) => readWithEvidence\(id\)/);
+  assert.match(panel, /data-consultation-pay/);
+  assert.match(panel, /data-consultation-honey /);
+  assert.match(read("app/fortune-chat/consultation-api.ts"), /"\/api\/honey\/attendance"/);
+});
+
+test("an open consultation shows when it was opened with honey drops", () => {
+  const room = read("app/fortune-chat/ConsultationRoom.tsx");
+  const start = room.indexOf('id="consultation-current"');
+  const kicker = room.slice(start, room.indexOf("</p>", start));
+  assert.match(kicker, /row\.perUseSource === "honey" && <span className=\{styles\.accessBadge\} data-access="honey">꿀방울로 연 상담<\/span>/);
+  assert.match(read("app/fortune-chat/consultation-api.ts"), /paymentRequestId: string;[\s\S]*?perUseSource\?: string;/);
 });

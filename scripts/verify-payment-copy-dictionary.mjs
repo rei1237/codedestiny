@@ -282,7 +282,7 @@ const ZH_PAIRS = [
 
 // 🔴 상한은 실측값이고 **내려가기만 한다**. 올려서 통과시키지 않는다.
 const ZH_CN_TRAD_CEILING = 0;
-const ZH_TW_SIMP_CEILING = 93;
+const ZH_TW_SIMP_CEILING = 87;
 const ZH_PAIR_FLOOR = 500;
 
 const zhSimplifiedOnly = new Set();

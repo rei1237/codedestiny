@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -16,6 +19,10 @@ import {
 } from "lucide-react";
 import intro from "@/app/components/expert-consulting/PremiumConsultationIntro.module.css";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ProductMasterStrip from "@/app/components/ProductMasterStrip";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles, productMasters } from "@/components/fortune/master-profiles";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { toDisplayText } from "@/lib/llm-text";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
@@ -1268,11 +1275,11 @@ function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed):
   }
   return {
     ...form,
-    name: profile.name || form.name,
-    gender: (profile.gender as ConsultationForm["gender"]) || form.gender,
-    birthDate: profile.birthDate || form.birthDate,
+    name: profile.name ?? form.name,
+    gender: (profile.gender as ConsultationForm["gender"]) ?? form.gender,
+    birthDate: profile.birthDate ?? form.birthDate,
     birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
-    birthTime: profile.birthTimeUnknown === true ? "" : (profile.birthTime || form.birthTime),
+    birthTime: profile.birthTimeUnknown === true ? "" : (profile.birthTime ?? form.birthTime),
     calendarType: profile.calendarType || form.calendarType,
   };
 }
@@ -1413,8 +1420,9 @@ export default function LifeBookAiClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
@@ -1564,7 +1572,7 @@ export default function LifeBookAiClient() {
       return await runGeneration(payload, requestId, access);
     } catch (err) {
       if (!isCurrent()) return false;
-      const message = friendlyErrorMessage(err instanceof Error ? err.message : SERVER_ERROR_MESSAGE, SERVER_ERROR_MESSAGE);
+      const message = friendlyErrorMessage(err, SERVER_ERROR_MESSAGE);
       setRefunded((err as { refunded?: boolean })?.refunded === true);
       setError(message);
       setStatus("error");
@@ -1692,12 +1700,10 @@ export default function LifeBookAiClient() {
     } catch (err) {
       if (!isCurrent()) return false;
       // 🔴 개발자 문구가 화면에 뜨지 않게 마지막 안전망을 통과시킨다(한글 없는 메시지는 콘솔로만 간다).
-      const raw = err instanceof TypeError
+      // Error 객체를 그대로 넘긴다. 문자열을 넘기면 늘 폴백이 돼 결제 취소·네트워크 안내까지 "서버 오류"로 바뀌었다.
+      const message = err instanceof TypeError
         ? NETWORK_ERROR_MESSAGE
-        : err instanceof Error
-          ? err.message
-          : SERVER_ERROR_MESSAGE;
-      const message = friendlyErrorMessage(raw, SERVER_ERROR_MESSAGE);
+        : friendlyErrorMessage(err, SERVER_ERROR_MESSAGE);
       const paymentCancelled = message === PAYMENT_CANCELLED_MESSAGE;
       setRefunded((err as { refunded?: boolean })?.refunded === true);
       setError(message);
@@ -1735,7 +1741,7 @@ export default function LifeBookAiClient() {
       await runGeneration(stashed.payload, stashed.requestId, stashed.access);
     } catch (err) {
       if (!isCurrent()) return false;
-      const message = friendlyErrorMessage(err instanceof Error ? err.message : SERVER_ERROR_MESSAGE, SERVER_ERROR_MESSAGE);
+      const message = friendlyErrorMessage(err, SERVER_ERROR_MESSAGE);
       setError(message);
       setStatus("error");
     } finally {
@@ -1753,16 +1759,17 @@ export default function LifeBookAiClient() {
         <header className={intro.hero}>
           <div className={intro.bookObject} aria-hidden="true">
             <p className={intro.coverTitle}>{copy.modeOptions[form.mode].label}</p>
-            <p className={intro.coverSubtitle}>Code Destiny</p>
+            <p className={intro.coverSubtitle}>꿀꿀운세</p>
           </div>
           <div className={intro.heroCopy}>
             <h2>{copy.heroTitle}</h2>
+            {copy === LIFE_BOOK_CLIENT_COPY.ko && <ProductMasterStrip label="인생의 책 마스터" masters={productMasters.lifeBook} profileHref={!isBusy && !resultUrl ? "#life-book-master" : undefined} />}
             <p className={intro.description}>{copy.heroDescription}</p>
             <ul className={intro.topics}>
               {copy.heroBadges.map((badge) => <li key={badge}>{badge}</li>)}
             </ul>
             <div className={intro.actions}>
-              <a href="#life-book-form" className={intro.start}>
+              <a href="#life-book-form" id="life-book-hero-start" className={intro.start}>
                 <BookOpen className="h-5 w-5" aria-hidden="true" />
                 {copy.openCta(form.mode)}
               </a>
@@ -1770,6 +1777,7 @@ export default function LifeBookAiClient() {
             </div>
           </div>
         </header>
+        {copy === LIFE_BOOK_CLIENT_COPY.ko && <CraftedProductDisclosure featureKey={MODE_FEATURE_KEY[form.mode]} />}
         <div className={intro.formLayout}>
           <aside className={intro.preparation}>
             <div className="flex items-start justify-between gap-3">
@@ -1785,7 +1793,7 @@ export default function LifeBookAiClient() {
 
           <section className="grid content-start gap-4">
             <ExpertValueCards theme="lifeBook" points={[{ title: "타고난 기질", description: "생년월일과 질문을 바탕으로 반복되는 선택의 결을 정리합니다." }, { title: "삶의 장면", description: "일·관계·회복의 흐름을 한 권의 목차처럼 연결해 봅니다." }, { title: "다음 장면", description: "지금 할 수 있는 작고 현실적인 다음 선택을 남깁니다." }]} />
-            <form id="life-book-form" onSubmit={submit} className={intro.bookForm}>
+            <form data-moonlit-form="" id="life-book-form" onSubmit={submit} className={intro.bookForm}>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0 basis-full">
                   <h2 className="mt-1 text-2xl font-semibold text-amber-50">{copy.formHeading}</h2>
@@ -1793,14 +1801,7 @@ export default function LifeBookAiClient() {
                     {copy.formDescription}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={loadFormFromProfileCard}
-                  className="shrink-0 rounded-lg border border-amber-200/30 bg-amber-50/10 px-3 py-2 text-xs font-bold text-amber-100 transition hover:bg-amber-100/20"
-                  aria-label={copy.profileLoadAria}
-                >
-                  {copy.profileLoadCta}
-                </button>
+                <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
                 <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-black/20 px-3 py-1 text-sm font-bold text-amber-100">
                   {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <BookOpen className="h-4 w-4" aria-hidden="true" />}
                   {statusLabel}
@@ -1818,7 +1819,7 @@ export default function LifeBookAiClient() {
                     className={`rounded-2xl border px-4 py-3 text-left transition ${form.mode === value ? "border-amber-200 bg-amber-200/15" : "border-amber-100/15 bg-[#14271e] hover:border-amber-200/45"}`}
                   >
                     <span className={`block text-sm font-semibold ${form.mode === value ? "text-amber-100" : "text-[#f4dfbd]"}`}>{copy.modeOptions[value].label}</span>
-                    <span className="mt-1 block text-xs leading-5 text-[#e7d2b5]">{copy.modeOptions[value].desc}</span>
+                    <span className="mt-1 block text-sm leading-6 text-[#e7d2b5]">{copy.modeOptions[value].desc}</span>
                   </button>
                 ))}
               </div>
@@ -1869,7 +1870,7 @@ export default function LifeBookAiClient() {
               <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                 <label className="grid gap-2 text-sm font-bold">
                   <span className="flex items-center gap-2 text-[#f6e6c4]"><Clock3 className="h-4 w-4" aria-hidden="true" /> {copy.birthTimeFieldLabel}</span>
-                  <input type="time" value={form.birthTime} onChange={(event) => updateField("birthTime", event.target.value)} disabled={form.birthTimeUnknown} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#14271e] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33] disabled:opacity-50" />
+                  <BirthTimeInput  value={form.birthTime} onChange={(event) => updateField("birthTime", event.target.value)} disabled={form.birthTimeUnknown} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#14271e] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33] disabled:opacity-50" />
                 </label>
                 <label className="flex min-h-11 items-center gap-3 rounded-full border border-amber-100/15 bg-[#14271e] px-4 text-sm font-bold text-[#eadfc9]">
                   <input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => updateField("birthTimeUnknown", event.target.checked)} className="h-4 w-4 accent-[#e7bd62]" />
@@ -1883,7 +1884,7 @@ export default function LifeBookAiClient() {
                   {FOCUS_AREA_VALUES.map((value) => (
                     <button key={value} type="button" onClick={() => updateField("focusArea", value)} className={`rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 ${form.focusArea === value ? "border-amber-200/55 bg-amber-100/15 shadow-lg shadow-amber-200/10" : "border-amber-100/15 bg-[#0b1020aa]"}`}>
                       <span className="block text-sm font-semibold text-amber-50">{copy.focusLabel[value]}</span>
-                      <span className="mt-1 block text-xs leading-5 text-[#d8c6a7]">{copy.focusHint[value]}</span>
+                      <span className="mt-1 block text-sm leading-6 text-[#d8c6a7]">{copy.focusHint[value]}</span>
                     </button>
                   ))}
                 </div>
@@ -1892,7 +1893,7 @@ export default function LifeBookAiClient() {
               <div className="mt-4 flex items-center justify-end">
                 <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix={copy.priceLabelPrefix} />
               </div>
-              <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c68d31] via-[#f2d07a] to-[#b47b25] px-5 font-semibold text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f2d07a] px-5 font-semibold text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:bg-[#f6dc95] hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
                 {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <WalletCards className="h-5 w-5" aria-hidden="true" />}
                 {isBusy ? copy.openingCta : copy.openCta(form.mode || "lifeBook")}
               </button>
@@ -1923,7 +1924,7 @@ export default function LifeBookAiClient() {
                 </div>
               )}
             </form>
-            <ExpertStickyCta theme="lifeBook" targetId="life-book-form" label="인생의 책 펼치기" price={<PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix="상담 이용 가격 " />} />
+            <ExpertStickyCta theme="lifeBook" targetId="life-book-form" watchId="life-book-hero-start" label={copy.openCta(form.mode || "lifeBook")} price={<PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix="상담 이용 가격 " />} />
 
             {!isBusy && status !== "completed" && (
               <section className="rounded-lg border border-amber-200/20 bg-[#20362a] p-4 shadow-2xl shadow-black/20  sm:p-5">
@@ -2024,6 +2025,8 @@ export default function LifeBookAiClient() {
           </section>
         </div>
       </section>
+      {/* 소개용 마스터 프로필 — 상담 진행·결과 안내 중에는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
+      {copy === LIFE_BOOK_CLIENT_COPY.ko && !isBusy && !resultUrl && <MasterProfile id="life-book-master" palette="page" profile={masterProfiles.yunLifeBook} />}
     </main>
   );
 }

@@ -1,0 +1,10 @@
+{
+  "original": "Independent SHIP all10",
+  "mobile": "Independent SHIP all10 panels,3width CTA/notice,3transcript viewports,introduction,entered actualform",
+  "correction": "Initial mock blocked absent local hero asset; officialCDN allowed. Form screenshot now scrolled to question heading after entry click.",
+  "limits": [
+    "CTA360 screenshot does not prove character visible;390/430 do",
+    "Local UI; all APIs mocked, official public image GET only",
+    "No payment or LLM"
+  ]
+}

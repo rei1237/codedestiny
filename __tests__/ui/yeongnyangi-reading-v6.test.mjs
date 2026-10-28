@@ -2,7 +2,7 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-const built=await build({stdin:{contents:`export {readingManifestV6} from './worker/yeongnyangi/fortune/reading-v6'; export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {sectionFloor,chapterFloor,bodyCharacterCount} from './worker/yeongnyangi/fortune/reading-quality'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
+const built=await build({stdin:{contents:`export {readingManifestV6} from './worker/yeongnyangi/fortune/reading-v6'; export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {sectionFloor,chapterFloor,bodyCharacterCount} from './worker/yeongnyangi/fortune/reading-quality'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {pruneRestatements,REPEAT_POLICY} from './worker/yeongnyangi/fortune/reading-restatement';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
 const m=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 // Pin the purchased v6 contract independently of the current new-order rollout.
 const legacyManifest=(p,k)=>m.readingManifestV6(p,k?.topic||'general',k?.partner?'compatibility':'personal',k);
@@ -145,7 +145,7 @@ test('v6 provider uses section schema and adequate budget; old v4/v5 schemas rem
   const fixture=await new m.MockChapterProvider().generateChapter(requestInput);
   let request;
   await new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:fixture,provider:'mock',model:'test'};}}).generateChapter(requestInput);
-  assert.equal(request.promptVersion,version.replace('destiny-book','chapter')+'-grounded-recognition-20261007');
+  assert.equal(request.promptVersion,version.replace('destiny-book','chapter')+'-grounded-recognition-20261007-reader-counsel-20261009');
   assert.ok(request.maxOutputTokens>=c.outputTokens);
   assert.equal(Boolean(request.outputSchema.properties.blocks.items.properties.id),version!==m.READING_VERSION);
   assert.doesNotThrow(()=>m.validateChapter(fixture,requestInput));
@@ -197,4 +197,21 @@ test('a length repair is never rejected for length again; its other checks still
  }
  assert.throws(()=>m.validateChapter(hollow,input),{code:'CHAPTER_SECTION_TOO_SHORT'});
  assert.throws(()=>m.validateChapter(hollow,{...input,repair:{code:'INVALID_EVIDENCE'}}),{code:'CHAPTER_SECTION_TOO_SHORT'});
+});
+test('repeat policy drops copied sentences before the duplicate check and restatements after it, never under the floor',()=>{
+ const copy='이 문장은 같은 장 안에서 그대로 되풀이되어 읽는 사람이 같은 말을 여러 번 보게 만드는 문장입니다.';
+ const repeated=structuredClone(good);repeated.blocks[0].paragraphs.push(copy,copy,copy);
+ assert.throws(()=>m.validateChapter(repeated,input),{code:'DUPLICATE_CHAPTER'});
+ const kept=m.validateChapter(repeated,{...input,chapter:{...chapter,repeatPolicy:m.REPEAT_POLICY}});
+ assert.equal(kept.blocks.flatMap(b=>b.paragraphs).filter(p=>p.includes(copy)).length,1);
+ const said='올해는 일간의 힘을 아껴 쓰면서 관계의 속도를 천천히 맞추는 편이 마음의 부담을 줄여 준다.';
+ const earlier={...structuredClone(good),blocks:[{id:'evidence',title:'근거',paragraphs:[said]}]};
+ const restated=structuredClone(good);restated.blocks[1].paragraphs.push('올해는 일간의 힘을 아껴 쓰면서 관계의 속도를 천천히 맞추는 편이 마음의 부담을 많이 줄여 준다.');
+ const pruned=m.pruneRestatements(restated,[earlier],chapter);
+ assert.equal(pruned.previous,1);
+ assert.ok(!pruned.body.blocks[1].paragraphs.some(p=>p.includes('많이 줄여')));
+ assert.deepEqual(pruned.body.blocks.map(b=>b.sources),restated.blocks.map(b=>b.sources));
+ const total=m.bodyCharacterCount(restated);
+ const floored=m.pruneRestatements(restated,[earlier],{...chapter,minimumChars:total,targetChars:[total*2,total*3]});
+ assert.equal(floored.previous,0);assert.equal(floored.kept,1);assert.equal(floored.body,restated);
 });

@@ -119,6 +119,17 @@ export async function verifyJwt(token, secret, options = {}) {
 
   const now = Math.floor(Date.now() / 1000);
 
+  // opt-in(C5): exp 가 없거나 숫자가 아니면 아래 만료 검사를 그대로 통과한다.
+  // 인증 토큰 검증처는 requireExp 로 "만료 없는 서명 토큰"을 거부한다(기본값은 기존 동작 유지).
+  if (options.requireExp === true) {
+    const exp = Number(payload.exp);
+    if (!Number.isFinite(exp) || exp <= 0) {
+      const error = new Error("jwt exp required");
+      error.name = "JsonWebTokenError";
+      throw error;
+    }
+  }
+
   if (payload.exp && Number(payload.exp) <= now) {
     const error = new Error("jwt expired");
     error.name = "TokenExpiredError";

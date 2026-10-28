@@ -82,7 +82,7 @@ try{
    const share=await f.page.evaluate(()=>window.__anonymousShare);assert.doesNotMatch(JSON.stringify(share),/재회할까요|QA 고객|1990|id=|차단/);
    assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    await f.page.screenshot({path:`${output}/result-${mode}-${width}.png`,fullPage:true});
-   await f.page.getByRole('link',{name:'내 상담 기록',exact:true}).click();await f.page.getByRole('heading',{name:'내 상담 기록',exact:true}).waitFor();
+   await f.page.getByRole('link',{name:'영냥이 보관함',exact:true}).click();await f.page.getByRole('heading',{name:'영냥이 보관함',exact:true}).waitFor();
    await f.page.getByRole('link').filter({hasText:title}).click();await f.page.getByRole('heading',{name:'영냥이의 마무리',exact:true}).waitFor();
    assert.equal(f.state.generates,0);assert.equal(f.state.sdk.length,0);assert.deepEqual(f.state.errors,[]);
    results.push({mode,width,status:'PASS',partialReload:true,libraryReread:true,anonymousShare:true,realLlmCalls:0,realPgCalls:0});

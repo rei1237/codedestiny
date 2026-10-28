@@ -5,6 +5,7 @@
  * selects a payment method, creates an order, confirms payment, or mutates data.
  */
 import { chromium } from "@playwright/test";
+import { findFormerBrandNames } from "../lib/brand/brand-facts.mjs";
 
 function valueAfter(name) {
   const index = process.argv.indexOf(name);
@@ -307,7 +308,27 @@ async function checkPages() {
     }
   }
 
-  const routes = ["/", "/login", "/saju/basic", "/fortune-tea-house", "/app", "/app/store", "/lock-screen-fortune"];
+  // 루트는 두 동작을 모두 정상으로 본다: 예전 배포는 /ggulggul/ 로 보내고, 대표 홈 배포는 / 에서 200 이다.
+  // 자동 롤백이 이 스모크로 판정하므로, 어느 한쪽만 통과시키면 승격·롤백 중 한 방향이 오판된다.
+  async function checkRootLanding(response) {
+    if (response && response.status() !== 200) fail("root landing returned HTTP " + response.status());
+    const canonicals = await page.locator('link[rel="canonical"]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href") || ""));
+    if (canonicals.length !== 1) fail("root landing must have exactly one canonical, found " + canonicals.length);
+    else if (new URL(canonicals[0], base).pathname !== "/" || new URL(canonicals[0], base).search) fail("root landing canonical is not the root: " + canonicals[0]);
+    const h1Count = await page.locator("h1").count();
+    if (h1Count !== 1) fail("root landing must have exactly one h1, found " + h1Count);
+    if (!(await page.locator('a[href="/ggulggul/"]').count())) fail("root landing has no link to the /ggulggul/ app entry");
+  }
+
+  // 과거 브랜드명은 이력 문단에만 남는다. 런타임 i18n 이 제목을 다시 쓴 뒤에도 사이트명 신호에 돌아오면 안 된다.
+  async function checkBrandSignals(route) {
+    await page.waitForTimeout(1500);
+    const signals = await page.evaluate(() => [document.title, document.querySelector('meta[property="og:site_name"]')?.content || ""].join(" "));
+    const former = findFormerBrandNames(signals);
+    if (former.length) fail("route " + route + " shows a former brand name in title/og:site_name: " + former.join(", "));
+  }
+
+  const routes = ["/", "/ggulggul/", "/login", "/saju", "/fortune-tea-house", "/app", "/app/store", "/lock-screen-fortune"];
   for (const route of routes) {
     try {
       const nav = await gotoSettled(route);
@@ -316,18 +337,22 @@ async function checkPages() {
       }
       await page.waitForTimeout(250);
       if (route === "/") {
-        // The home entry hydrates before redirecting to the static shell. Inspect
-        // its settled destination, never the transient document between navigations.
-        await page.waitForURL(new URL("/ggulggul/", base).href, { waitUntil: "domcontentloaded", timeout: 15000 });
-        await checkAssets(page);
+        // A legacy deploy redirects to the static shell; the brand landing stays on /.
+        // Inspect the settled document, never the transient one between navigations.
+        await page.waitForURL(new URL("/ggulggul/", base).href, { waitUntil: "domcontentloaded", timeout: 8000 }).catch(() => {});
+        const settledPath = new URL(page.url()).pathname;
+        if (settledPath === "/") await checkRootLanding(nav.interrupted ? null : nav.response);
+        else if (settledPath !== "/ggulggul/") fail("route / settled on unexpected path " + settledPath);
       }
+      if (route === "/" || route === "/ggulggul/") await checkBrandSignals(route);
+      if (route === "/ggulggul/") await checkAssets(page);
     } catch (error) {
       fail("route " + route + " failed: " + error.message);
     }
   }
 
   try {
-    await gotoSettled("/");
+    await gotoSettled("/ggulggul/");
     const cookieAccept = page.locator("#cdCookieAcceptBtn, #cdCookieEssentialBtn").first();
     if (await cookieAccept.isVisible().catch(() => false)) {
       await cookieAccept.click({ timeout: 10000 });

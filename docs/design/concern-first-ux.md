@@ -19,7 +19,7 @@ status: done
 
 | 화면 | 모드 | 유지할 계약 | 구현 정본 |
 |---|---|---|---|
-| 꿀꿀운세 홈 | Persuade | 첫 행동은 **내 고민 상담하기**. 오늘의 무료 운세와 모든 운세는 보조 링크로 둔다. 고민 → 범위·가격 → 답·근거·다음 행동 순서로 설명한다. | `templates/home-funnel.html`, `styles/concern-first-home.css` |
+| 꿀꿀운세 홈 | Persuade | 첫 행동은 **내 고민 상담하기**. 고민 입구는 연애·궁합, 일·돈, 시기·선택 3개이고 각각 가격과 함께 상품 상세로 바로 간다. 그 아래 결과 예시, 신뢰 기록, 후기, 대표 상담 순서로 두고 체계별 운세·영냥이 등급·이용권·즐길거리는 전체 운세(`#cdhMore`)에 둔다. "무료" 문구는 실제 무료 기능에만 쓴다. | `templates/home-funnel.html`, `styles/concern-first-home.css` |
 | 홈 이용권 안내 | Persuade | 첫 상담 전에 반복 구매 상품을 비교시키지 않고, 이용권 안내와 기존 확인 경로를 간결하게 노출한다. | 홈 템플릿의 `cdhPassSlot`, `.cdh-pass--simple` |
 | 영냥이 질문 입력 | Operate | 질문과 현재 상황, 필요한 선택지·조건·기간을 먼저 받는다. 대상·장기 흐름·해석 체계 조정은 접힌 상세 설정에서 제공하며, 추천 범위·가격·추가 질문 수와 부족한 입력을 함께 보여준다. | `app/yeongnyangi/_components/QuestionScope.tsx`, `question-scope.module.css` |
 | 영냥이 상품 안내 | Persuade | 질문 상담과 가상의 상담 예시를 먼저 보여준다. 생선별 전체 성향 리포트 비교는 **질문 없이 전체 성향 리포트 고르기**를 펼쳤을 때 노출한다. | `app/yeongnyangi/_components/ProductGuide.tsx`, `product-guide.module.css` |

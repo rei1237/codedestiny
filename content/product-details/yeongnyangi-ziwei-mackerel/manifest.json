@@ -1,0 +1,95 @@
+{
+  "id": "yeongnyangi-ziwei-mackerel",
+  "featureKey": "yeongnyangi-ziwei-mackerel",
+  "title": "영냥이 자미두수 고등어 상담",
+  "notice": "자미두수 고등어 질문 상담은 일상과 개인의 관계 고민 한 가지를 다룹니다. 질문 상담 6장과 질문 없이 고르는 기본 성향 리포트 5장은 서로 다른 구성입니다. 주제에 따라 목차가 바뀌며 궁합 비교나 장기 대한 상담이 자동 포함되지 않습니다. 출생시간과 성별이 필요합니다. 안내의 해설은 편집 예시이며 실제 고객 명반이나 결과가 아닙니다. 계산 근거를 바탕으로 AI가 작성하며, 가격과 추가 질문 조건은 상담 준비 화면에서 확인합니다.",
+  "panels": [
+    {
+      "id": "01-where-you-stand",
+      "title": "같은 나인데, 왜 자리마다 달라질까요?",
+      "alt": "마법사 고양이 영냥이가 사각 열두 궁 명반의 별을 짚는 장면",
+      "src": "/images/service-introductions/yeongnyangi-ziwei.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "같은 나인데,\n왜 자리마다\n달라질까요?\n\n사람 앞에서는 단단한데,\n혼자 돌아오면 흔들리는 마음.\n\n영냥이 자미두수 · 고등어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-a-small-role",
+      "title": "늘 맡게 되는 역할에, 내 마음도 있나요?",
+      "alt": "일상의 역할을 묻는 구체적인 상황과 자기이해 질문 노트.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-mackerel/02-a-small-role.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "늘 맡게 되는 역할에,\n내 마음도 있나요?\n\n모임의 일정은 늘 제가 정해요.\n\n믿어주는 건 고마운데,\n정작 제가 원하는 건\n말하지 못할 때가 많아요.\n\n“왜 나만 이러지?”에서 한 걸음.\n\n어떤 기대를 받으면 움직이는지,\n어디서 부담이 쌓이는지 살펴요.\n\n내가 반복하는 반응을 알아보는 질문입니다.\n상대 명반과 비교하는 궁합은 별도 범위예요."
+    },
+    {
+      "id": "03-palaces-in-plain-words",
+      "title": "별의 이름보다, 내 삶의 자리를 읽어요.",
+      "alt": "명궁 신궁 관록궁 부부궁 재백궁의 쉬운 설명.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-mackerel/03-palaces-in-plain-words.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "별의 이름보다,\n내 삶의 자리를 읽어요.\n명궁 · 신궁\n삶의 중심과 행동이 향하는 자리.\n관록궁\n역할과 재능, 일하는 방식.\n부부궁\n가까운 관계에서 기대하는 방식.\n재백궁\n자원을 얻고 관리하는 태도.\n\n궁은 삶의 영역을 가리켜요.\n한 궁의 별 하나만으로 좋고 나쁨을\n정하지 않고 주변 연결도 함께 읽습니다."
+    },
+    {
+      "id": "04-your-question-in-six",
+      "title": "한 질문을, 여섯 장의 흐름으로.",
+      "alt": "자기이해 질문 상담의 실제 여섯 목차를 읽기 쉽게 편집.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-mackerel/04-your-question-in-six.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 질문을,\n여섯 장의 흐름으로.\n\n성향·자기이해 질문의 구성 예\n\n명궁과 별로 읽는 자미두수의 바탕\n나의 강점과 부담이 되는 순간\n마음과 선택을 이해하는 실마리\n판단의 근거와 달라지는 조건\n현재의 기회와 주의 조건\n종합 해석과 실행 계획\n\n질문에 따라 제목과 해석의 초점이 달라져요.\n성격 설명에서 멈추지 않고\n지금 해볼 행동으로 이어집니다."
+    },
+    {
+      "id": "05-another-reading-path",
+      "title": "질문이 아직 없다면, 기본 성향부터.",
+      "alt": "질문 상담과 구분한 전체 성향 리포트 기본 다섯 목차.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-mackerel/05-another-reading-path.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문이 아직 없다면,\n기본 성향부터.\n\n‘전체 성향 리포트’를 선택하면\n다음 다섯 장을 펼쳐요.\n\n명궁·신궁으로 읽는 삶의 중심\n관록궁으로 읽는 역할과 재능\n부부궁으로 읽는 관계의 방식\n재백궁으로 읽는 자원 관리\n지금의 선택과 실행 계획\n\n앞 장의 질문 상담과 다른 구성입니다.\n다른 상담 종류를 고르면\n결제 전에 해당 목차를 다시 확인해요."
+    },
+    {
+      "id": "06-a-role-you-can-adjust",
+      "title": "잘하는 역할에도, 쉬어갈 틈은 필요해요.",
+      "alt": "신뢰를 받는 강점과 역할 부담을 함께 읽는 가상 해설.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-mackerel/06-a-role-you-can-adjust.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "잘하는 역할에도,\n쉬어갈 틈은 필요해요.\n\n이해를 돕기 위한 편집 예시\n\n사람들이 네 판단을 기다린다면,\n믿음직한 면이 보이는 걸 거야.\n그렇다고 모든 결정을\n네가 맡아야 하는 건 아니야.\n다음 모임에서는 이렇게.\n\n“나는 토요일이 편해.\n장소는 네가 골라줄래?”\n\n실제 고객 명반·생성 결과가 아닙니다.\n강점과 부담을 함께 설명하는 예시예요."
+    },
+    {
+      "id": "07-prepare-the-coordinates",
+      "title": "별지도의 시작은, 정확한 출생 정보.",
+      "alt": "자미두수의 필수 출생시간 성별 달력과 상담 범위 경계.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-mackerel/07-prepare-the-coordinates.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "별지도의 시작은,\n정확한 출생 정보.\n생년월일과 달력\n양력·음력과 윤달 여부를 확인해요.\n출생시간과 성별\n현재 자미두수 상담에는 필요해요.\n시간을 모르면 먼저 확인해 주세요.\n지금의 상황과 한 질문\n언제, 누구 앞에서 반복되는 일인지\n실제 경험을 알려 주세요.\n\n중요한 진로·재물 선택, 두 사람 비교,\n현재와 다음 대한의 전환은\n그 범위를 다루는 구성을 따로 확인해요."
+    },
+    {
+      "id": "08-one-small-change",
+      "title": "나를 설명하는 말이, 오늘의 행동이 되도록.",
+      "alt": "공식 영냥이와 AI 해설·기록 다시읽기·기존가격 안내.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-mackerel/08-one-small-change.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나를 설명하는 말이,\n오늘의 행동이 되도록.\n\n계산한 명반의 근거를\nAI가 생활의 언어로 풀어냅니다.\n\n읽은 내용을 내 경험과 맞춰 보고,\n바꿔볼 행동 하나를 골라 보세요.\n\n가격과 이용 조건을 확인한 뒤 시작해요.\n저장된 결과는 같은 계정의 내 상담에서\n다시 열어 읽을 수 있어요."
+    }
+  ]
+}

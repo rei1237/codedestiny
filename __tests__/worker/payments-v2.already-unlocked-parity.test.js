@@ -12,14 +12,23 @@
  * 부수 효과로 재열람은 차감·원장 기록을 통째로 건너뛰어 더 빠르다.
  */
 import { handlePaymentsContext } from "../../worker/payments/index.js";
-import { listProducts } from "../../worker/payments/catalog.js";
+import { listProducts, resolveProduct } from "../../worker/payments/catalog.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
+import { testCard } from "../fixtures/profile-card-model.mjs";
+import { isBirthScopedUnlockFeatureKey } from "../../worker/lib/paid-feature-registry.js";
 
 const USER = "64b000000000000000000001";
 const ENV = { JWT_ACCESS_SECRET: "test-access-secret-value-0123456789" };
 
 // 영구 해금형(per_use 가 아닌) 상품을 레지스트리에서 고른다.
-const UNLOCK_ITEM = listProducts().find((p) => p.billingType !== "per_use" && Number(p.priceCoins) > 0);
+const UNLOCK_ITEM = listProducts().find((p) => p.billingType !== "per_use" && !p.monthlyExcluded && Number(p.priceCoins) > 0);
+// 출생 기반 해금은 이 계정의 저장 프로필로만 산다. p2 는 p1 과 출생 정보가 같고, p3 는 다르다.
+const CARDS = [
+  testCard("p1", { userId: USER }),
+  testCard("p2", { userId: USER }),
+  testCard("p3", { userId: USER, day: 18 }),
+];
+const makeDb = (options = {}) => makeFakePaymentDb({ ...options, profileCards: CARDS });
 
 async function tokenFor(userId) {
   const { signAuthToken } = await import("../../worker/lib/auth.js");
@@ -48,11 +57,11 @@ function seedFundedUser(db) {
   return user;
 }
 
-async function postMoonstone(db, requestId) {
+async function postMoonstone(db, requestId, profileId = "p1") {
   const request = new Request("https://code-destiny.com/api/payments/coin-gate/moonstone", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${await tokenFor(USER)}` },
-    body: JSON.stringify({ featureKey: UNLOCK_ITEM.featureKey, paymentMode: "MOONLIGHT_STONE", requestId }),
+    body: JSON.stringify({ featureKey: UNLOCK_ITEM.featureKey, paymentMode: "MOONLIGHT_STONE", requestId, ...(profileId ? { profileId } : {}) }),
   });
   const opsBefore = db.ctx.ops;
   const response = await handlePaymentsContext(request, ENV, {
@@ -85,7 +94,7 @@ function seedBrokeUser(db) {
 
 test("🔴 월정석: 첫 결제는 차감하고, 같은 콘텐츠 재열람은 다시 깎지 않는다", async () => {
   if (!UNLOCK_ITEM) return;
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   const user = seedFundedUser(db);
 
   const first = await postMoonstone(db, "unlock-buy-1");
@@ -109,6 +118,24 @@ test("🔴 월정석: 첫 결제는 차감하고, 같은 콘텐츠 재열람은 
   expect(second.ops).toBeLessThan(first.ops);
 });
 
+test("과거 서비스 키의 출생 권한은 월정석 재열람에서 다시 차감하지 않는다", async () => {
+  expect(isBirthScopedUnlockFeatureKey(UNLOCK_ITEM.featureKey)).toBe(true);
+  const db = makeDb();
+  const user = seedFundedUser(db);
+  const first = await postMoonstone(db, "historical-key-buy");
+  expect(first.response.status).toBe(200);
+  const row = db.rows.find(item => item.grantType === "permanent_unlock");
+  expect(row).toBeTruthy();
+  row.serviceKey = "paid_content";
+  const balance = user.profileSubscription.membershipCreditBalance;
+  const second = await postMoonstone(db, "historical-key-reopen", "p2");
+  expect(second.response.status).toBe(200);
+  expect(second.payload.data.consume).toMatchObject({ alreadyUnlocked: true, membershipCreditCost: 0 });
+  expect(user.profileSubscription.membershipCreditBalance).toBe(balance);
+  expect(ledgerCount(db)).toBe(1);
+  expect(entitlementCount(db)).toBe(1);
+});
+
 /**
  * 🔴 위 규칙의 뒷면. "한 번 결제하면 계속 열린다"는 **결제가 실제로 일어났을 때만** 성립한다.
  *
@@ -118,7 +145,7 @@ test("🔴 월정석: 첫 결제는 차감하고, 같은 콘텐츠 재열람은 
  */
 test("🔴 월정석 잔액이 부족하면 해금이 남지 않는다 — 402 를 받고 무료로 열리면 안 된다", async () => {
   if (!UNLOCK_ITEM) return;
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   const user = seedBrokeUser(db);
 
   const denied = await postMoonstone(db, "broke-attempt-1");
@@ -137,9 +164,42 @@ test("🔴 월정석 잔액이 부족하면 해금이 남지 않는다 — 402 �
   expect(entitlementCount(db)).toBe(0);
 });
 
+test("🔴 월정석 출생 단위: 같은 출생의 다른 프로필은 다시 깎지 않고, 다른 출생은 새로 차감한다", async () => {
+  if (!UNLOCK_ITEM || !isBirthScopedUnlockFeatureKey(UNLOCK_ITEM.featureKey)) return;
+  const db = makeDb();
+  const user = seedFundedUser(db);
+  await postMoonstone(db, "birth-buy-1", "p1");
+  const afterFirst = Number(user.profileSubscription.membershipCreditBalance);
+
+  const sameBirth = await postMoonstone(db, "birth-same-2", "p2");
+  expect(sameBirth.payload.data.consume.alreadyUnlocked).toBe(true);
+  expect(Number(user.profileSubscription.membershipCreditBalance)).toBe(afterFirst);
+
+  const otherBirth = await postMoonstone(db, "birth-other-3", "p3");
+  expect(otherBirth.response.status).toBe(200);
+  expect(otherBirth.payload.data.consume.alreadyUnlocked).toBe(false);
+  expect(Number(user.profileSubscription.membershipCreditBalance)).toBeLessThan(afterFirst);
+  expect(ledgerCount(db)).toBe(2);
+});
+
+test("🔴 월정석 출생 단위: profileId 가 없거나 남의 프로필이면 차감 전에 거절한다", async () => {
+  if (!UNLOCK_ITEM || !isBirthScopedUnlockFeatureKey(UNLOCK_ITEM.featureKey)) return;
+  const db = makeDb();
+  const user = seedFundedUser(db);
+  const missing = await postMoonstone(db, "no-profile-1", "");
+  expect(missing.response.status).toBe(400);
+  expect(missing.payload.code).toBe("MISSING_PROFILE_ID");
+  const foreign = await postMoonstone(db, "foreign-profile-2", "someone-elses");
+  expect(foreign.response.status).toBe(403);
+  expect(foreign.payload.code).toBe("INVALID_PROFILE");
+  expect(Number(user.profileSubscription.membershipCreditBalance)).toBe(100000);
+  expect(ledgerCount(db)).toBe(0);
+  expect(entitlementCount(db)).toBe(0);
+});
+
 test("재열람 응답은 모르는 잔액을 0 으로 싣지 않는다 — 해금 증빙은 그대로 싣는다", async () => {
   if (!UNLOCK_ITEM) return;
-  const db = makeFakePaymentDb();
+  const db = makeDb();
   seedFundedUser(db);
   await postMoonstone(db, "unlock-buy-3");
   const { payload } = await postMoonstone(db, "unlock-reopen-4");
@@ -150,15 +210,81 @@ test("재열람 응답은 모르는 잔액을 0 으로 싣지 않는다 — 해�
 });
 
 
-test('profile moonstone adapter retains operation metadata and replays without deducting twice',async()=>{
- const db=makeFakePaymentDb({uniqueKeys:[['userId','type','sourceId']]});const user=seedFundedUser(db);
+test('profile moonstone adapter rejects new subminimum purchases without debit',async()=>{
+ const db=makeDb({uniqueKeys:[['userId','type','sourceId']]});const user=seedFundedUser(db);
  const requestId='profile-card:delete:yn_test:adapter';
  async function send(actionType='profile_card_delete') {
   return handlePaymentsContext(new Request('https://code-destiny.com/api/payments/coin-gate/moonstone',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${await tokenFor(USER)}`},body:JSON.stringify({featureKey:'profile-card-manage',paymentMode:'MOONLIGHT_STONE',profileId:'yn_test',requestId,actionType})}),ENV,{prefix:'/api/payments',withDb:(_e,_c,fn)=>fn(db)});
  }
- expect((await send()).status).toBe(200);expect((await send()).status).toBe(200);
- const spends=db.rows.filter(r=>r.type==='MONTHLY_CREDIT_SPEND');expect(spends).toHaveLength(1);
- expect(spends[0].metadata).toMatchObject({profileAction:'delete',profileId:'yn_test',requestId});
- expect(spends[0].amount).toBe(500);expect(user.profileSubscription.membershipCreditBalance).toBe(99500);
- expect((await send('profile_card_update')).status).toBe(409);
+ expect((await send()).status).toBe(402);expect((await send()).status).toBe(402);
+ expect(db.rows.filter(r=>r.type==='MONTHLY_CREDIT_SPEND')).toHaveLength(0);
+ expect(user.profileSubscription.membershipCreditBalance).toBe(100000);
+ expect((await send('profile_card_update')).status).toBe(402);
+});
+
+/**
+ * 🔴 출생 기반 전환 이전에 산 고객(레거시 USER·PROFILE 행)은 월정석·이용권을 골라도 다시 깎이지 않는다.
+ * coin-gate 의 월정석·이용권 갈래는 billing.js 를 거치지 않고 여기로 오므로 같은 레거시 규칙을 따로 고정한다.
+ * 2026-06 무렵 행은 featureKey 없이 contentKey 만 있다.
+ */
+describe("레거시 해금 행(출생 기반 전환 이전 구매)", () => {
+  const DAEWUN = resolveProduct({ featureKey: "section_daewun" });
+  const legacyRow = (extra) => ({ userId: USER, serviceKey: "saju", contentKey: "saju.daeunAnalysis", status: "ACTIVE", expiresAt: null, grantType: "permanent_unlock", ...extra });
+
+  async function post(db, path, body) {
+    const request = new Request(`https://code-destiny.com/api/payments/coin-gate/${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${await tokenFor(USER)}` },
+      body: JSON.stringify({ featureKey: DAEWUN.featureKey, ...body }),
+    });
+    const response = await handlePaymentsContext(request, ENV, { prefix: "/api/payments", withDb: (_env, _ctx, fn) => fn(db) });
+    return { response, payload: await response.json() };
+  }
+
+  test.each([
+    ["USER 행 · 프로필 없음", { scope: "USER", profileId: "__user__" }, ""],
+    ["USER 행 · 다른 출생 카드", { scope: "USER", profileId: "__user__" }, "p3"],
+    ["PROFILE 행 · 그 카드", { scope: "PROFILE", profileId: "p1" }, "p1"],
+  ])("월정석: %s 는 차감 없이 already_unlocked", async (_label, row, profileId) => {
+    const db = makeDb();
+    const user = seedFundedUser(db);
+    db.rows.push(legacyRow(row));
+    const { response, payload } = await post(db, "moonstone", { paymentMode: "MOONLIGHT_STONE", requestId: `legacy-${profileId || "none"}`, ...(profileId ? { profileId } : {}) });
+    expect(response.status).toBe(200);
+    expect(payload.data.consume.alreadyUnlocked).toBe(true);
+    expect(Number(user.profileSubscription.membershipCreditBalance)).toBe(100000);
+    expect(ledgerCount(db)).toBe(0);
+  });
+
+  test.each(["saju", "section_daewun", "paid_content"])("이용권: 과거 USER 권한 %s는 다시 소비하지 않는다", async serviceKey => {
+    const db = makeDb();
+    const pass = { tier: "family", passTier: "family", isActive: true, expiresAt: new Date(Date.now() + 10 * 86400000) };
+    const user = { _id: USER, points: 0, profileSubscription: pass };
+    db.rows.push(user, legacyRow({ scope: "USER", profileId: "__user__", serviceKey }));
+    const { response, payload } = await post(db, "pass-check", { paymentMode: "MEMBERSHIP_PASS", requestId: `legacy-pass-${serviceKey}` });
+    expect(response.status).toBe(200);
+    expect(payload.data.consume.alreadyUnlocked).toBe(true);
+    expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
+  });
+
+  test("월정석: 다른 카드의 레거시 PROFILE 행으로는 열리지 않고 새로 차감한다", async () => {
+    const db = makeDb();
+    const user = seedFundedUser(db);
+    db.rows.push(legacyRow({ scope: "PROFILE", profileId: "p1" }));
+    const { response, payload } = await post(db, "moonstone", { paymentMode: "MOONLIGHT_STONE", requestId: "legacy-other-card", profileId: "p3" });
+    expect(response.status).toBe(200);
+    expect(payload.data.consume.alreadyUnlocked).toBe(false);
+    expect(Number(user.profileSubscription.membershipCreditBalance)).toBeLessThan(100000);
+  });
+
+  test("이용권: 레거시 USER 행이면 저장 프로필 없이도 예산을 깎지 않는다", async () => {
+    const db = makeDb();
+    const pass = { tier: "family", passTier: "family", isActive: true, expiresAt: new Date(Date.now() + 10 * 86400000) };
+    const user = { _id: USER, points: 0, profileSubscription: pass };
+    db.rows.push(user, legacyRow({ scope: "USER", profileId: "__user__" }));
+    const { response, payload } = await post(db, "pass-check", { paymentMode: "MEMBERSHIP_PASS", requestId: "legacy-pass" });
+    expect(response.status).toBe(200);
+    expect(payload.data.consume.alreadyUnlocked).toBe(true);
+    expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
+  });
 });

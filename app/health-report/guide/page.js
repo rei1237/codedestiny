@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "명리 헬스 리포트 사용 시 주의사항 | Code Destiny",
+    "metadata.title": "명리 헬스 리포트 사용 시 주의사항 | 꿀꿀 운세",
     heading: "명리 헬스 리포트 사용 시 주의사항",
     "section.scope": "헬스 리포트가 살피는 것",
     "section.inputs": "필요한 입력값",
@@ -19,7 +19,7 @@ const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
     "section.medicalNotice": "의료 고지",
   },
   en: {
-    "metadata.title": "Myeongri Health Report Notice | Code Destiny",
+    "metadata.title": "Myeongri Health Report Notice | 꿀꿀 운세",
     heading: "Myeongri Health Report Notice",
     "section.scope": "What the Health Report Looks At",
     "section.inputs": "Required Inputs",
@@ -31,7 +31,7 @@ const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
     "section.medicalNotice": "Medical Notice",
   },
   ja: {
-    "metadata.title": "命理ヘルスレポート利用時の注意事項 | Code Destiny",
+    "metadata.title": "命理ヘルスレポート利用時の注意事項 | 꿀꿀 운세",
     heading: "命理ヘルスレポート利用時の注意事項",
     "section.scope": "ヘルスレポートが見るもの",
     "section.inputs": "必要な入力項目",
@@ -43,7 +43,7 @@ const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
     "section.medicalNotice": "医療に関する注意",
   },
   "zh-CN": {
-    "metadata.title": "命理健康报告使用注意事项 | Code Destiny",
+    "metadata.title": "命理健康报告使用注意事项 | 꿀꿀 운세",
     heading: "命理健康报告使用注意事项",
     "section.scope": "健康报告会观察什么",
     "section.inputs": "需要输入的信息",
@@ -55,7 +55,7 @@ const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
     "section.medicalNotice": "医疗提示",
   },
   "zh-TW": {
-    "metadata.title": "命理健康報告使用注意事項 | Code Destiny",
+    "metadata.title": "命理健康報告使用注意事項 | 꿀꿀 운세",
     heading: "命理健康報告使用注意事項",
     "section.scope": "健康報告會觀察什麼",
     "section.inputs": "需要輸入的資訊",
@@ -78,7 +78,7 @@ export function generateMetadata() {
     title: healthReportGuideText("metadata.title"),
     description:
       "명리 헬스 리포트가 생활 리듬을 어떻게 참고하는지와 입력값, 해석 흐름, 의료 고지, 샘플 리딩을 안내합니다.",
-    keywords: ["명리 헬스 리포트", "오행 건강", "생활 리듬", "건강 운세", "의료 고지", "Code Destiny"],
+    keywords: ["명리 헬스 리포트", "오행 건강", "생활 리듬", "건강 운세", "의료 고지", "꿀꿀운세"],
   });
 }
 
@@ -137,7 +137,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "오행 가이드",
-      keywords: ["명리 헬스 리포트", "오행 건강", "생활 리듬", "건강 운세", "의료 고지", "Code Destiny"],
+      keywords: ["명리 헬스 리포트", "오행 건강", "생활 리듬", "건강 운세", "의료 고지", "꿀꿀운세"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),
@@ -151,7 +151,7 @@ export default function HealthReportGuidePage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">{healthReportGuideText("heading")}</h1>
         <p className="cd-main-intro">
-          명리 헬스 리포트는 사주의 오행과 계절 흐름을 바탕으로 생활 리듬을 돌아보는 참고 자료입니다. Code Destiny는 건강을 두려움으로 몰아가지 않고, 수면과 휴식, 식사와 움직임처럼 현실에서 확인할 수 있는 습관을 차분히 살피도록 안내합니다.
+          명리 헬스 리포트는 사주의 오행과 계절 흐름을 바탕으로 생활 리듬을 돌아보는 참고 자료입니다. 꿀꿀운세는 건강을 두려움으로 몰아가지 않고, 수면과 휴식, 식사와 움직임처럼 현실에서 확인할 수 있는 습관을 차분히 살피도록 안내합니다.
         </p>
       </header>
 
@@ -220,7 +220,7 @@ export default function HealthReportGuidePage() {
       <section className="cd-card">
         <h2>{healthReportGuideText("section.medicalNotice")}</h2>
         <p>
-          명리 헬스 리포트는 엔터테인먼트와 생활 리듬 점검을 위한 참고 자료이며 의료 진단, 치료, 처방, 예방 지침이 아닙니다. 건강, 법률, 투자, 진로처럼 중대한 결정의 유일한 근거로 사용하지 말고, 통증, 증상, 질환 의심, 약물 복용, 검사 결과, 응급 상황은 반드시 의료 전문가와 의료기관의 판단을 따라야 합니다.
+          명리 헬스 리포트는 생활 리듬 점검을 위한 참고 자료이며 의료 진단, 치료, 처방, 예방 지침이 아닙니다. 건강, 법률, 투자, 진로처럼 중대한 결정의 유일한 근거로 사용하지 말고, 통증, 증상, 질환 의심, 약물 복용, 검사 결과, 응급 상황은 반드시 의료 전문가와 의료기관의 판단을 따라야 합니다.
         </p>
       </section>
 
@@ -239,7 +239,7 @@ export default function HealthReportGuidePage() {
         <Link href="/saju/five-elements" className="cd-chip">오행 가이드</Link>
         <Link href="/saju/guide" className="cd-chip">사주 기본 가이드</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
-        <Link href="/privacy-policy" className="cd-chip">개인정보처리방침</Link>
+        <Link href="/privacy/" className="cd-chip">개인정보처리방침</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>
       </nav>
     </main>

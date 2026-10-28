@@ -1,0 +1,6 @@
+{
+  "from": "life-book",
+  "to": "life-fortune",
+  "correctDetail": true,
+  "mode": "UI only; no generate or payment click"
+}

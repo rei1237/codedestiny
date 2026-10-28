@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 let route,docs,provider,revoked,userId,fault,lost,external,kind,mode;
 let serial=0;let owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
@@ -19,7 +20,7 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),structured=await import('../../worker/lib/structured-consultation.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async(_env,input)=>{proofs.push(input);return {proven:mode==='denied'?false:true,source:mode};},logPerUsePaymentProof:()=>{}}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async(_env,input)=>{proofs.push(input);return {proven:mode==='denied'?false:true,source:mode};},logPerUsePaymentProof:()=>{}}));
  jest.unstable_mockModule('../../worker/lib/cms-prompts.js',()=>({cmsPromptText:async(_env,_key,fallback)=>fallback}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));
@@ -87,4 +88,26 @@ test.each(['missing','wrong-slot','invented-animal','truncated'])('%s optional d
  const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);if(fail==='missing')delete value.action_plan;if(fail==='wrong-slot')value.card_bridges[0].slot='invented';if(fail==='invented-animal')value.closing=prose('호랑이',2);return {...ai,truncated:fail==='truncated',text:JSON.stringify(value)};});
  expect((await start()).status).toBe(200);expect((await resume()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);
  const value=JSON.parse(docs[0].metadata.paidNarrative.parts.narrative);expect(value.question_answer).toContain('본문');if(fail==='wrong-slot')expect(value.card_bridges).toBeUndefined();if(fail==='invented-animal')expect(value.closing).toBeUndefined();
+});
+
+// B3: one 913-char paragraph, hurt feelings blamed on the user's stubbornness, weak counter-conditions.
+const cardNames=()=>docs[0].metadata.paidNarrative.input.cards.map(card=>card.animalName);
+const answerWith=answer=>{const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);value.question_answer=answer(cardNames());return {...ai,text:JSON.stringify(value)};});};
+const savedAnswer=()=>JSON.parse(docs[0].metadata.paidNarrative.parts.narrative).question_answer;
+test('the prompt contract asks for card paragraphs, a relational pattern instead of blame, and explicit change conditions',async()=>{
+ await start();const prompt=provider.mock.calls[0][1];
+ expect(prompt).toMatch(/- question_answer:[^\n]*문단/);expect(prompt).toMatch(/- question_answer:[^\n]*\(\\n\\n\)/);
+ expect(prompt).toMatch(/[^\n]*(고집|성격|잘못)[^\n]*돌리지 않는다/);expect(prompt).toContain('관계의 패턴');
+ expect(prompt).toMatch(/[^\n]*라면[^\n]*달라집니다/);
+});
+test('a single-paragraph answer is split at each card and gains a change condition without another provider call',async()=>{
+ answerWith(names=>['요즘 정말 많이 지치셨겠어요.',...names.flatMap((name,i)=>[`${name} 카드는 ${i+1}번째 자리에서 일의 속도와 사람 사이의 거리를 다시 살피라고 말합니다.`,...Array.from({length:4},(_,j)=>`${i+1}-${j+1} 장면에서 서로의 기대가 어긋나는 순간을 적어 보면 마음이 조금 가벼워집니다.`)])].join(' '));
+ expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);
+ const names=cardNames(),paragraphs=savedAnswer().split(/\n\s*\n/);
+ expect(paragraphs.length).toBeGreaterThanOrEqual(names.length+1);names.forEach(name=>expect(paragraphs.some(text=>text.startsWith(`${name} 카드는`))).toBe(true));
+ expect(paragraphs.at(-1)).toMatch(/면[\s,][^.]*달라/);
+});
+test('an answer that already has paragraphs and a change condition is kept as written',async()=>{
+ const written=names=>[...names.map((name,i)=>`${name} 카드는 ${i+1}번째 자리에서 일과 관계의 속도를 다시 맞추라고 말합니다. ${'서로의 역할이 어긋나는 장면을 하나씩 짚어 봅니다'} ${i+1}번째로요.`),'다만 한 주가 지나도 피로가 줄지 않는다면 이 방향은 달라집니다. 그때는 맡은 일의 범위부터 다시 정해 보세요.'].join('\n\n');
+ answerWith(written);expect((await start()).status).toBe(200);expect(savedAnswer()).toBe(written(cardNames()));
 });

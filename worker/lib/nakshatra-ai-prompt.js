@@ -4,12 +4,13 @@
 // 베다 나크샤트라의 서로 다른 관점으로 통합해 읽는 역할만 한다. 두 체계를
 // 1:1로 대응하거나 LLM이 별자리를 추측하게 하지 않는다.
 
+import { CHAKRA_REFLECTIONS } from "./nakshatra-life-reading.js";
 import { getNakshatraAttributes } from "../../constants/nakshatra-attributes.js";
 
 export const NAKSHATRA_PERSONA = Object.freeze({
   integrated:
     "너는 숙요점(宿曜占)의 27숙과 베다 점성학(Jyotish)의 나크샤트라를 함께 연구해 온 프리미엄 상담가다. " +
-    "두 전통이 같은 체계이거나 서로 정확히 대응한다고 단정하지 않는다. 숙요는 본명숙·방위·사신·오행의 언어로, " +
+    "두 전통이 같은 체계이거나 서로 정확히 대응한다고 단정하지 않는다. 숙요는 일본 구력의 본명숙과 관계 역할의 언어로, " +
     "베다는 달의 나크샤트라·파다·지배성·샥티의 언어로 이 사람을 읽는다는 차이를 존중한다. " +
     "계산된 사실을 근거로 하되, 전문용어를 바로 생활의 장면으로 번역하고 따뜻하면서도 현실적인 존댓말로 상담한다.",
 });
@@ -35,10 +36,10 @@ export const INTEGRATED_SECTIONS = Object.freeze([
     ],
   },
   {
-    id: "outerVsInner", deck: "consultation", topic: "inner-life", title: "겉으로 보이는 나와 아무도 모르는 나", minChars: 2400,
+    id: "outerVsInner", deck: "consultation", topic: "inner-life", title: "내면의 리듬과 차크라 돌봄", minChars: 2400,
     scope: "처음 만난 사람 앞, 친해진 뒤, 혼자 있을 때, 스트레스를 받을 때의 모습을 구분해 외부 인상과 내면 욕구의 간격을 상담한다.",
     rules: [
-      "감정·행동·관계 반응을 실제 생활 장면으로 쓴다.",
+      "감정·행동·관계 반응을 실제 생활 장면으로 쓴다. ### 차크라와 몸·마음 돌봄 아래 제공된 차크라 관찰 질문과 일상 실천을 다룬다. 차크라를 차트로 측정하거나 질병·장기·임신·수명·건강 점수를 추정하지 않는다.",
       "coreIdentity에서 이미 정의한 기질을 반복하지 말고, 그 기질이 압박에서 어떻게 달라지는지 다룬다.",
     ],
   },
@@ -46,7 +47,7 @@ export const INTEGRATED_SECTIONS = Object.freeze([
     id: "loveAndRelationships", deck: "consultation", topic: "relationship", title: "나는 어떤 사랑을 원하는 사람일까?", minChars: 2800,
     scope: "끌리는 사람, 사랑할 때의 모습, 관계에서 원하는 안전감, 오해받기 쉬운 부분, 반복하기 쉬운 패턴과 건강한 관계의 조건을 답한다.",
     rules: [
-      "상대의 마음이나 특정 궁합을 확정하지 않는다.",
+      "상대의 마음이나 특정 궁합을 확정하지 않는다. ### 연애와 감정 표현, ### 결혼과 함께 사는 생활 두 소제목으로 나누고 결혼에서는 돈·집안일·가족과의 경계·갈등 회복을 다룬다. 7하우스·D9는 계산 근거가 있을 때만 사용한다.",
       "숙요의 관계·거리 관점과 베다의 본능·정서 관점을 각각 근거로 하되, 연애운 일반론으로 흐르지 않는다.",
     ],
   },
@@ -150,6 +151,9 @@ export function buildFactContext(codex, question) {
   ].map((token) => String(token || "").trim()).filter((token) => token.length >= 2);
   return {
     summaryText: [
+      "【계산 방식과 입력 한계】", JSON.stringify(codex?.transparency || {}),
+      "【주제별 근거와 돌봄 안내】", JSON.stringify(codex?.lifeReading || []), "【차크라 자기 관찰 질문】", JSON.stringify(CHAKRA_REFLECTIONS),
+      "【확인된 행성·하우스·D9】", JSON.stringify(codex?.natalEvidence || {}),
       "【숙요 27숙의 계산 근거】", sukuyoLines,
       "", "【베다 나크샤트라의 계산 근거】", vedicLines,
       "", "【통합 원칙】",

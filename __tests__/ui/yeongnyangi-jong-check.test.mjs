@@ -5,132 +5,118 @@ import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 const require=createRequire(import.meta.url),Module=require('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/saju/jong-check'; export * from './worker/yeongnyangi/fortune/saju/jong-check-policy'; export {calculateScreenSaju} from './worker/yeongnyangi/fortune/saju/runtime'; export {saju} from './worker/yeongnyangi/fortune/saju'; export {getProduct} from './worker/yeongnyangi/payments/catalog';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/saju/experience-policy'; export * from './worker/yeongnyangi/fortune/saju/experience'; export {calculateScreenSaju} from './worker/yeongnyangi/fortune/saju/runtime'; export {saju} from './worker/yeongnyangi/fortune/saju'; export {getProduct} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {readingCharts} from './worker/yeongnyangi/fortune/reading-presentation';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const loaded=new Module(path.resolve('jong-check-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,loaded.id);
-const {jongCheckYears,strengthCheckYears,parseJongAnswer,jongCheckApplies,calculateScreenSaju,saju,getProduct}=loaded.exports;
+const {experienceCheckApplies,experienceCheck,parseExperience,calculateScreenSaju,saju,getProduct,readingManifest,selectChapterFacts,readingCharts}=loaded.exports;
 
-const gokjik={isJong:true,name:'곡직격(曲直格)',dominant:'wood',parEl:'water',dayEl:'wood'};
-const years=list=>list.map(y=>y.year);
-
-test('question years: strict stem+branch matches only, most recent three, shown ascending',()=>{
-  const check=jongCheckYears(gokjik,{birthYear:1984,asOfYear:2026});
-  assert.deepEqual(years(check.best),[2022,2023]);
-  assert.deepEqual(years(check.worst),[2017,2018,2021]);
-  assert.equal(check.best[0].ganji,'壬寅(임인)');
-  // 甲辰·乙巳 match only one side of 용신 — the original filled with them, the port does not.
-  assert.ok(!years(check.best).includes(2024)&&!years(check.best).includes(2025));
-  assert.equal(jongCheckYears({isJong:false},{birthYear:1984,asOfYear:2026}),null);
+test('only the three tiers that keep 대운·용신 evidence offer the experience survey',()=>{
+  assert.deepEqual(['saju_mackerel','saju_salmon','saju_flounder','saju_tuna','fusion_saju_ziwei','fusion_sukuyo_vedic','fusion_all'].filter(id=>experienceCheckApplies(getProduct(id))),['saju_tuna','fusion_saju_ziwei','fusion_all']);
 });
 
-test('question years: counted from the consultation year and the real birth year, skipped under two',()=>{
-  assert.equal(jongCheckYears(gokjik,{birthYear:1984,asOfYear:2023}),null,'only 2022 is left on the good side');
-  assert.deepEqual(years(jongCheckYears(gokjik,{birthYear:2008,asOfYear:2026}).worst),[2017,2018,2021]);
-  assert.equal(jongCheckYears(gokjik,{birthYear:2010,asOfYear:2026}),null,'years up to age 8 are not asked');
-});
-
-test('answer body: absent stays absent, malformed fails closed, unknown keys are dropped',()=>{
-  assert.equal(parseJongAnswer(undefined),undefined);
-  assert.deepEqual(parseJongAnswer({best:'no',worst:'unsure',bestYears:[2022,2023],worstYears:[2017],extra:1}),{best:'no',worst:'unsure',bestYears:[2022,2023],worstYears:[2017]});
-  for(const bad of [{best:'yes'},{best:'maybe',worst:'no',bestYears:[2022],worstYears:[2017]},{best:'yes',worst:'no',bestYears:[],worstYears:[2017]},{best:'yes',worst:'no',bestYears:['2022'],worstYears:[2017]},'yes'])
-    assert.throws(()=>parseJongAnswer(bad),{code:'INVALID_JONG_CHECK'});
-});
-
-test('only the three tiers that keep 종격 evidence ask the question',()=>{
-  assert.deepEqual(['saju_mackerel','saju_salmon','saju_flounder','saju_tuna','fusion_saju_ziwei','fusion_sukuyo_vedic','fusion_all'].filter(id=>jongCheckApplies(getProduct(id))),['saju_tuna','fusion_saju_ziwei','fusion_all']);
-});
-
-// 1975-01-22 14:00 is a 가색격 candidate: good 2006·2009·2018, hard 2020·2022·2023 as of 2026.
+// 1975-01-22 14:00 (甲寅 丁丑 戊辰 己未): 丑 정기 己는 戊의 겁재라 월겁격(일반격). 연간 甲과 시간 己는 붙어 있지 않아 합화하지 않는다.
+// 1971-03-10 08:00·14:00은 옛 신강/신약 뒤집기 질문을 받던 경계 명식이다.
 const person={birthDate:'1975-01-22',birthTime:'14:00',calendarType:'solar',gender:'female'};
-const asked=calculateScreenSaju(person,new Date('2026-09-27')).jongCheck;
-const answer=(best,worst,shift=0)=>({best,worst,bestYears:years(asked.best).map(y=>y+shift),worstYears:years(asked.worst)});
-const run=async jongAnswer=>{
-  const c=await saju.calculate(saju.validateInput({personA:person}),{asOf:'2026-09-27',jongAnswer});
-  return {fact:label=>c.facts.find(f=>f.label===label)?.value,limitations:c.limitations};
-};
-
-test('saju reading: both "no" reverts to 억부, both "yes" confirms, anything else keeps the conditional note',async()=>{
-  assert.deepEqual(years(asked.best),[2006,2009,2018]);
-  const base=await run();
-  assert.equal(base.fact('jong').confirmationRequired,true);
-  assert.ok(base.limitations.some(l=>l.includes('조건부')));
-
-  const rejected=await run(answer('no','no'));
-  assert.equal(rejected.fact('jong').isJong,false);
-  assert.equal(rejected.fact('jong').rejectedByUser,true);
-  assert.equal(rejected.fact('jong').candidateName,base.fact('jong').name);
-  assert.notDeepEqual(rejected.fact('usefulGod'),base.fact('usefulGod'));
-  assert.ok(rejected.fact('strengthHeuristic').eokbuYongshin.every(el=>rejected.fact('usefulGod').includes(el)));
-  assert.ok(rejected.limitations.some(l=>l.includes('일반격(억부)'))&&!rejected.limitations.some(l=>l.includes('조건부')));
-
-  const confirmed=await run(answer('yes','yes'));
-  assert.equal(confirmed.fact('jong').confirmedByUser,true);
-  assert.equal(confirmed.fact('jong').confirmationRequired,false);
-  assert.deepEqual(confirmed.fact('usefulGod'),base.fact('usefulGod'));
-  assert.ok(!confirmed.limitations.some(l=>l.includes('조건부')||l.includes('일반격')));
-
-  for(const unchanged of [answer('yes','no'),answer('unsure','no'),answer('no','no',1)]){
-    const r=await run(unchanged);
-    assert.deepEqual(r.fact('jong'),base.fact('jong'));
-    assert.deepEqual(r.limitations,base.limitations);
-  }
-});
-
-test('saju reading: the partner chart never receives the answer',async()=>{
-  const c=await saju.calculate(saju.validateInput({personA:person,personB:person,readingMode:'compatibility'}),{asOf:'2026-09-27',jongAnswer:answer('no','no')});
-  assert.ok(c.limitations.some(l=>l.includes('일반격(억부)')));
-  assert.ok(c.limitations.some(l=>l.startsWith('상대: ')&&l.includes('조건부')));
-});
-
-// 1971-03-10: 08:00 scores 33 (신강), 14:00 scores 26 (신약) on the same day stem, so each is the other's flipped reading.
 const strongSide={...person,birthDate:'1971-03-10',birthTime:'08:00'},weakSide={...strongSide,birthTime:'14:00'};
-const readAs=async(profile,best,worst,shift=0)=>{
-  const check=calculateScreenSaju(profile,new Date('2026-09-27')).jongCheck;
-  const c=await saju.calculate(saju.validateInput({personA:profile}),{asOf:'2026-09-27',jongAnswer:best&&{best,worst,bestYears:years(check.best).map(y=>y+shift),worstYears:years(check.worst)}});
-  return {fact:label=>c.facts.find(f=>f.label===label)?.value,limitations:c.limitations};
+const oldAnswers=[
+  {best:'no',worst:'no',bestYears:[2006,2009,2018],worstYears:[2020,2022,2023]},
+  {best:'yes',worst:'yes',bestYears:[2006,2009,2018],worstYears:[2020,2022,2023]},
+  {best:'unsure',worst:'no',bestYears:[2007],worstYears:[2021]},
+];
+const read=async(profile,jongAnswer,experience)=>{
+  const c=await saju.calculate(saju.validateInput({personA:profile}),{asOf:'2026-09-27',...(jongAnswer?{jongAnswer}:{}),...(experience?{experience}:{})});
+  return {facts:c.facts,limitations:c.limitations};
 };
+const without=(facts,label)=>facts.filter(f=>f.label!==label);
+// 甲寅 丁丑 戊辰 己未: 대운 甲戌(2000~)·癸酉(2010~)·壬申(2020~). 질문 연도는 날짜로만 고른다(2025부터 거꾸로 6개).
+const survey=[{year:2004,domain:'career',outcome:'good',note:'승진 발표'},{year:2013,domain:'career',outcome:'good'},{year:2006,domain:'money',outcome:'bad'},
+  {year:2022,domain:'relationship',outcome:'ordinary',source:'prompted'},{year:2023,outcome:'skip',source:'prompted'}];
 
-test('strength question: a non-종격 chart within one 7-point step of the 신강 line (23..36)',()=>{
-  const at=score=>strengthCheckYears({score,yongshin:['wood','water'],kijishin:['metal','earth','fire']},{birthYear:1984,asOfYear:2026});
-  assert.deepEqual([22,23,36,37].map(score=>at(score)?.kind??null),[null,'strength','strength',null]);
-  assert.deepEqual(years(at(30).best),[2022,2023]);
-  const now=new Date('2026-09-27');
-  assert.equal(calculateScreenSaju(strongSide,now).jongCheck.kind,'strength');
-  assert.equal(calculateScreenSaju(weakSide,now).jongCheck.kind,'strength');
-  assert.equal(calculateScreenSaju({...person,birthDate:'1970-01-22',birthTime:'08:00'},now).jongCheck,null,'score -34 is not on the line');
-  assert.equal(asked.kind,'jong');
-  // 합의 짝만으로 합화시켜 만든 종격을 유지하지 않는다. 이 명식은 합화 조건을
-  // 충족하지 않으므로 일반격의 기존 신강/신약 경계 질문을 그대로 적용한다.
-  const conditionalChart=calculateScreenSaju({...person,birthDate:'1984-05-15',birthTime:'02:00'},now);
-  assert.equal(conditionalChart.jong.isJong,false);
-  assert.equal(conditionalChart.strength.score,27);
-  assert.equal(conditionalChart.jongCheck.kind,'strength');
+test('the screen chart carries no past-year question and no user verdict',()=>{
+  const chart=calculateScreenSaju(person,new Date('2026-09-27'));
+  assert.equal(chart.jongCheck,undefined);
+  assert.equal(chart.jongVerdict,undefined);
+  assert.equal(chart.strengthVerdict,undefined);
+  assert.equal(chart.jong.isJong,false);
+  for(const key of ['rejectedByUser','confirmedByUser','flippedByUser'])assert.equal(chart.jong[key],undefined);
 });
 
-test('saju reading: both "no" flips a boundary 신강/신약, both "yes" confirms, anything else changes nothing',async()=>{
-  const strongBase=await readAs(strongSide),weakBase=await readAs(weakSide);
-  assert.equal(strongBase.fact('strengthHeuristic').isStrong,true);
-  assert.equal(weakBase.fact('strengthHeuristic').isStrong,false);
-  for(const [side,base,other] of [[strongSide,strongBase,weakBase],[weakSide,weakBase,strongBase]]){
-    const flipped=await readAs(side,'no','no'),power=flipped.fact('strengthHeuristic');
-    assert.equal(power.isStrong,!base.fact('strengthHeuristic').isStrong);
-    assert.equal(power.flippedByUser,true);
-    assert.equal(power.calculatedIsStrong,base.fact('strengthHeuristic').isStrong);
-    assert.equal(power.score,base.fact('strengthHeuristic').score);
-    // calcPower's own other branch for the same day stem.
-    assert.deepEqual([power.eokbuYongshin,power.eokbuKijishin],[other.fact('strengthHeuristic').eokbuYongshin,other.fact('strengthHeuristic').eokbuKijishin]);
-    assert.notDeepEqual(flipped.fact('usefulGod'),base.fact('usefulGod'));
-    assert.deepEqual(flipped.fact('jong'),base.fact('jong'));
-    assert.ok(flipped.limitations.some(l=>l.includes('신강·신약 판단을 반대로'))&&!flipped.limitations.some(l=>l.includes('일반격(억부)')));
+test('an old 종격 answer never changes the natal reading',async()=>{
+  for(const profile of [person,strongSide,weakSide]){
+    const base=await read(profile);
+    const fact=label=>base.facts.find(f=>f.label===label)?.value;
+    assert.ok(fact('jong')&&fact('strengthHeuristic')&&fact('usefulGod'));
+    assert.equal(fact('strengthHeuristic').flippedByUser,undefined);
+    assert.ok(!base.limitations.some(l=>/일반격\(억부\)|조건부|반대로/.test(l)));
+    for(const answer of oldAnswers)assert.deepEqual(await read(profile,answer),base);
   }
-  const confirmed=await readAs(strongSide,'yes','yes');
-  assert.equal(confirmed.fact('strengthHeuristic').confirmedByUser,true);
-  assert.deepEqual(confirmed.fact('usefulGod'),strongBase.fact('usefulGod'));
-  assert.deepEqual(confirmed.limitations,strongBase.limitations);
-  for(const [best,worst,shift] of [['yes','no'],['unsure','no'],['no','no',1]]){
-    const r=await readAs(strongSide,best,worst,shift);
-    assert.deepEqual(r.fact('strengthHeuristic'),strongBase.fact('strengthHeuristic'));
-    assert.deepEqual(r.limitations,strongBase.limitations);
+});
+
+test('the partner chart reads the same with or without an old answer',async()=>{
+  const input=saju.validateInput({personA:person,personB:strongSide,readingMode:'compatibility'});
+  const plain=await saju.calculate(input,{asOf:'2026-09-27'});
+  const answered=await saju.calculate(input,{asOf:'2026-09-27',jongAnswer:oldAnswers[0]});
+  assert.deepEqual(answered.facts,plain.facts);
+  assert.deepEqual(answered.limitations,plain.limitations);
+});
+
+test('survey years are picked by date only, and untimed charts are not asked',()=>{
+  const chart=calculateScreenSaju(person,new Date('2026-09-27'));
+  assert.deepEqual(experienceCheck(chart,true).years,[2025,2024,2023,2022,2021,2020]);
+  assert.equal(experienceCheck(chart,false),null);
+  assert.equal(experienceCheck(calculateScreenSaju({...person,birthDate:'2012-05-01'},new Date('2026-09-27')),true),null);
+});
+
+test('experience answers add one calibration fact and leave every natal fact unchanged',async()=>{
+  for(const profile of [person,strongSide,weakSide]){
+    const base=await read(profile);
+    const answered=await read(profile,undefined,parseExperience(survey,2026));
+    assert.deepEqual(without(answered.facts,'experienceCalibration'),base.facts);
+    assert.deepEqual(answered.limitations,base.limitations);
+    const fact=answered.facts.find(f=>f.label==='experienceCalibration').value;
+    assert.match(fact.rule,/격국·종격·신강\/신약·조후·용신을 바꾸거나 다시 판정하지 않는다/);
+    for(const key of ['gyeokguk','jong','strength','usefulGod','yongshin'])assert.equal(key in fact,false,key);
+    assert.equal(JSON.stringify(fact).includes('승진'),false);
   }
-  // A 종격 answer never touches 신강/신약.
-  assert.equal((await run(answer('no','no'))).fact('strengthHeuristic').flippedByUser,undefined);
+  const untimed=await read({...person,birthTime:''},undefined,parseExperience(survey,2026));
+  assert.equal(untimed.facts.some(f=>f.label==='experienceCalibration'),false);
+});
+
+test('the parser is strict and the partner chart never sees the buyer survey',async()=>{
+  assert.equal(parseExperience(undefined,2026),undefined);
+  assert.equal(parseExperience([],2026),undefined);
+  for(const bad of [{},[{year:2004,domain:'career',outcome:'no'}],[{year:2027,domain:'career',outcome:'good'}]])assert.throws(()=>parseExperience(bad,2026),e=>e.code==='INVALID_EXPERIENCE'&&e.status===400);
+  const input=saju.validateInput({personA:person,personB:strongSide,readingMode:'compatibility'});
+  const plain=await saju.calculate(input,{asOf:'2026-09-27'});
+  const answered=await saju.calculate(input,{asOf:'2026-09-27',experience:parseExperience(survey,2026)});
+  assert.deepEqual(without(answered.facts,'experienceCalibration'),plain.facts);
+});
+
+test('the calibration fact rides only on 대운·세운 chapters and leaves the manifest unchanged',async()=>{
+  const c=await saju.calculate(saju.validateInput({personA:person}),{asOf:'2026-09-27',experience:parseExperience(survey,2026)});
+  const context={domain:'saju',engineVersion:c.engineVersion,calculatedAt:'2026-09-27T00:00:00.000Z',facts:c.facts,limitations:c.limitations};
+  for(const id of ['saju_tuna','saju_mackerel']){
+    const manifest=readingManifest(getProduct(id));
+    assert.equal(JSON.stringify(manifest).includes('experienceCalibration'),false,id);
+    for(const chapter of manifest){
+      const labels=selectChapterFacts(context,chapter).map(f=>f.label);
+      const luck=['majorLuck','yearlyLuck','luckOverlap'].some(l=>(chapter.factSelectors?.saju||[]).includes(l));
+      assert.equal(labels.includes('experienceCalibration'),id==='saju_tuna'&&luck,`${id} ${chapter.key}`);
+    }
+  }
+  assert.ok(readingManifest(getProduct('saju_tuna')).some(chapter=>selectChapterFacts(context,chapter).some(f=>f.label==='experienceCalibration')));
+});
+
+test('the natal-core basis is stored once per chart, survey answers keep it, and older snapshots are marked as an earlier basis',async()=>{
+  const input=saju.validateInput({personA:person});
+  const plain=await saju.calculate(input,{asOf:'2026-09-27'});
+  const answered=await saju.calculate(input,{asOf:'2026-09-27',experience:parseExperience(survey,2026)});
+  assert.deepEqual(Object.keys(plain.natalCore),['version','ruleProfile','analysisId']);
+  assert.deepEqual(answered.natalCore,plain.natalCore);
+  const fact=answered.facts.find(f=>f.label==='experienceCalibration').value;
+  assert.equal(fact.natalAnalysisId,plain.natalCore.analysisId);
+  const note=context=>readingCharts({contexts:{saju:context}},[])[0].limitations.some(l=>l.includes('격국·종격 판정은 이전 계산 기준'));
+  const {natalCore,...older}=plain;
+  assert.equal(note(plain),false);
+  assert.equal(note(older),true);
+  assert.equal(note({...plain,natalCore:{...natalCore,version:'natal-core-v0'}}),true);
 });

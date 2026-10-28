@@ -44,7 +44,6 @@ const TARGETS = [
   "public/static/index.html",
   "lib/seo/siteSeo.ts",
   "app/page.js",
-  "app/kkul-kkul-unse/page.js",
   "app/guides/[slug]/page.js",
 ];
 

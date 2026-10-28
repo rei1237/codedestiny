@@ -7,7 +7,8 @@ import { FEATURE_INTRODUCTIONS } from '../lib/i18n/feature-introductions.mjs';
  * 공개 서비스 정보를 정리하는 선택적 안내 파일입니다. 검색 순위·AI 인용이나 추천을 보장하지 않습니다.
  * 검색 노출의 기반은 색인 가능한 본문과 링크, 접근 허용, 정확한 서비스 설명입니다.
  *
- * 🔴 손으로 쓰지 않는다. 문구는 lib/seo/entity-registry.mjs 에서 **파생**한다 —
+ * 🔴 손으로 쓰지 않는다. 서비스명·운영자·공식 주소·이름 이력은 lib/brand/brand-facts.mjs 에서,
+ *    허브 문구는 lib/seo/entity-registry.mjs 에서 **파생**한다 —
  *    그 레지스트리가 브랜드 별칭·허브 의도의 정본이고 verify:seo-entity-registry 가 지킨다.
  *    여기에 설명을 다시 적으면 두 벌이 되어 조용히 갈라진다(CLAUDE.md 원칙 10).
  *
@@ -30,6 +31,7 @@ const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace
 const { SEO_BRAND_ENTITY, SEO_ROUTE_PROFILES } = await import(
   pathToFileURL(resolve(rootDir, "lib/seo/entity-registry.mjs")).href
 );
+const { BRAND_FACTS } = await import(pathToFileURL(resolve(rootDir, "lib/brand/brand-facts.mjs")).href);
 
 /**
  * 이 순서로 묶는다. 경로는 레지스트리에 실재해야 하며, 없으면 실패시킨다 —
@@ -55,7 +57,7 @@ const SECTIONS = [
   },
   {
     heading: "브랜드",
-    paths: ["/kkul-kkul-unse"],
+    paths: ["/"],
   },
 ];
 
@@ -70,25 +72,35 @@ function profileFor(path) {
   return profile;
 }
 
-const aliasLine = SEO_BRAND_ENTITY.aliases.join(", ");
+const { service, operator } = BRAND_FACTS;
+const aliasLine = SEO_BRAND_ENTITY.aliases.map((name) => `"${name}"`).join(", ");
 
 const lines = [];
-lines.push(`# ${SEO_BRAND_ENTITY.displayName} (${SEO_BRAND_ENTITY.koreanName})`);
+lines.push(`# ${service.name}`);
 lines.push("");
 
 // 첫 문단은 자립형 정의다 — AI 는 페이지가 아니라 구절을 뽑아 간다.
 lines.push(
-  "> 생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 " +
+  `> ${service.name}는 ${operator.name}(${operator.nameKo})가 운영하는 사주·타로·자미두수 운세 상담 서비스입니다. ` +
+    "생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 " +
     "운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.",
 );
 lines.push("");
-lines.push(`- 꿀꿀운세 연이·네오 공식 입구: ${siteBaseUrl}/ggulggul/`);
-lines.push(`- 꿀꿀운세 영냥이 공식 입구: ${siteBaseUrl}/yeongnyangi/`);
-lines.push(`- 다른 이름: ${aliasLine}`);
-lines.push(`- 운영자: 박병하(네오). 공개 분석 활동: https://blog.naver.com/neosaju · 소개: ${siteBaseUrl}/about/#author`);
-lines.push(`- 공식 서비스 블로그: https://blog.naver.com/neosaju`);
-lines.push(`- 캐릭터 브랜드: ${SEO_BRAND_ENTITY.characterBrand}`);
+lines.push(`- 공식 홈페이지: ${service.homeUrl}`);
+lines.push(`- 상담 앱 입구(꽃돼지 연이·네오): ${siteBaseUrl}${service.appEntryPath}`);
+const yeongnyangi = BRAND_FACTS.characters.find((character) => character.key === "yeongnyangi");
+lines.push(`- ${yeongnyangi.serviceName}(영냥이 상담) 입구: ${siteBaseUrl}${yeongnyangi.path}`);
+lines.push(`- 표기: 공식 서비스명은 "${service.name}"이고, 붙여 쓴 ${aliasLine}도 같은 서비스입니다.`);
+lines.push(`- 운영자: ${operator.name}(${operator.nameKo}). 대표 박병하(활동명 네오). 소개: ${siteBaseUrl}/about/#author`);
+lines.push(`- 공식 외부 채널: ${BRAND_FACTS.sameAs.map((profile) => profile.url).join(" · ")}`);
+lines.push(`- 캐릭터: ${BRAND_FACTS.characters.map((character) => `${character.serviceName ?? character.name}(${character.role})`).join(", ")}`);
 lines.push(`- 언어: 한국어(기본), 일본어 \`/ja/\`, 중국어 간체 \`/zh/\`, 중국어 번체 \`/zh-tw/\`, 영어 \`/en/\``);
+lines.push("");
+
+// 과거 이름은 이 절에만 쓴다. 다른 줄에 나오면 brand-search-identity 테스트가 실패한다.
+lines.push("## 이름 이력");
+lines.push("");
+lines.push(BRAND_FACTS.historyKo);
 lines.push("");
 
 // 🔴 성격과 한계를 먼저 밝힌다. 운세는 신뢰성 판단이 까다로운 카테고리이고,
@@ -112,7 +124,7 @@ for (const section of SECTIONS) {
   }
   for (const path of section.paths) {
     const profile = profileFor(path);
-    lines.push(`- [${profile.title}](${siteBaseUrl}${path}/): ${profile.topicSummary}`);
+    lines.push(`- [${profile.title}](${siteBaseUrl}${path === "/" ? "/" : `${path}/`}): ${profile.topicSummary}`);
   }
   lines.push("");
 }

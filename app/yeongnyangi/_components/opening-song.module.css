@@ -1,0 +1,22 @@
+.opening{width:min(760px,100% - 40px);margin:36px auto 0;color:var(--yn-ivory)}
+.head{margin:0 0 14px}
+.eyebrow{margin:0 0 4px;font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--yn-gold)}
+.head h2{margin:0;font-family:"Yeongnyangi Myeongjo",serif;font-size:clamp(1.6rem,3.2vw,2.1rem);line-height:1.35;letter-spacing:-.02em;color:var(--yn-ivory)}
+.lead{margin:6px 0 0;font-size:15px;line-height:1.7;color:var(--yn-muted);word-break:keep-all}
+.screen{position:relative;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--yn-line);border-radius:var(--yn-radius);background:var(--yn-night)}
+.video{position:absolute;inset:0;display:block;width:100%;height:100%;background:var(--yn-deep)}
+.video:focus-visible{outline:3px solid var(--yn-gold);outline-offset:-3px}
+.cover{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;border:0;border-radius:inherit;background:var(--yn-night);color:var(--yn-ivory);cursor:pointer}
+.cover img{display:block;width:100%;height:100%;object-fit:cover}
+.cover::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(0deg,color-mix(in srgb,var(--yn-deep) 55%,transparent),transparent 40%);pointer-events:none}
+/* 전역 .ynOriginal button:focus-visible(바깥 5px)은 .screen 의 overflow 에 잘리므로 안쪽에 어두운 테+금색 테로 그린다. */
+.screen .cover:focus-visible{outline:3px solid transparent;outline-offset:-3px}
+.screen .cover:focus-visible::after{box-shadow:inset 0 0 0 4px var(--yn-deep),inset 0 0 0 7px var(--yn-gold)}
+.cta{position:absolute;left:14px;bottom:14px;z-index:1;display:flex;align-items:center;gap:10px;max-width:calc(100% - 28px);padding:5px 16px 5px 5px;border-radius:999px;background:color-mix(in srgb,var(--yn-deep) 84%,transparent);font-size:14px;font-weight:700;line-height:1.5;text-align:left;color:var(--yn-ivory)}
+.play{display:grid;flex:none;place-items:center;width:46px;height:46px;padding-left:3px;border-radius:999px;background:var(--yn-gold);color:var(--yn-deep);box-shadow:0 0 18px color-mix(in srgb,var(--yn-gold) 35%,transparent);transition:transform .2s ease-out}
+.cover:hover .play{transform:scale(1.06)}
+.screen[data-state=loading] .play{animation:breathe 1.2s ease-in-out infinite}
+.srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@keyframes breathe{50%{transform:scale(.9)}}
+@media(max-width:699px){.opening{margin-top:28px}.cta{left:10px;bottom:10px;gap:8px;max-width:calc(100% - 20px);padding:4px 14px 4px 4px;font-size:13px}.play{width:40px;height:40px}.play svg{width:19px;height:19px}}
+@media(prefers-reduced-motion:reduce){.play{transition:none}.cover:hover .play{transform:none}.screen[data-state=loading] .play{animation:none}}

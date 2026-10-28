@@ -1,0 +1,248 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-19T12:46:45.008Z",
+  "title": "Design System: 영냥이 질문 후 결제 화면",
+  "extensions": {
+    "scope": "질문 후 결제 화면 전용. 전역 DESIGN.md와 .impeccable/design.json을 대체하지 않는다.",
+    "sources": [
+      "app/checkout/YeongnyangiCheckout.tsx",
+      "app/checkout/yeongnyangi-checkout.module.css",
+      "app/yeongnyangi/_components/QuestionCheckout.tsx",
+      "app/yeongnyangi/_components/question-checkout.module.css",
+      "app/yeongnyangi/night-tokens.css"
+    ],
+    "colorMeta": {
+      "yn-night": {
+        "role": "neutral",
+        "displayName": "푸른 밤 바탕"
+      },
+      "yn-deep": {
+        "role": "neutral",
+        "displayName": "짙은 청색 패널과 입력"
+      },
+      "yn-surface": {
+        "role": "neutral",
+        "displayName": "결제 범위 상속 표면"
+      },
+      "yn-muted": {
+        "role": "neutral",
+        "displayName": "청회색 보조 글자"
+      },
+      "yn-line": {
+        "role": "neutral",
+        "displayName": "청회색 경계"
+      },
+      "yn-gold": {
+        "role": "primary",
+        "displayName": "기존 키를 유지한 달빛 청색"
+      },
+      "yn-ivory": {
+        "role": "neutral",
+        "displayName": "밝은 본문"
+      },
+      "pay-fill": {
+        "role": "primary",
+        "displayName": "밝은 청색 행동 버튼"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "결제 제목",
+        "purpose": "기존 --font-serif 참조. 모바일 1.65rem, 최대 8ch. 운영 서체 미검증."
+      },
+      "question": {
+        "displayName": "제출 질문",
+        "purpose": "줄바꿈 보존. 760px 이하 1.1rem."
+      }
+    },
+    "shadows": [
+      {
+        "name": "summary",
+        "value": "0 18px 40px #030a172b",
+        "purpose": "상담 요약"
+      },
+      {
+        "name": "pay",
+        "value": "0 6px 16px #040b1729",
+        "purpose": "활성 CTA"
+      },
+      {
+        "name": "mobile-action",
+        "value": "0 -8px 28px #030a172b",
+        "purpose": "모바일 고정 바"
+      },
+      {
+        "name": "cat-art",
+        "value": "drop-shadow(0 12px 24px #05101e60)",
+        "purpose": "투명 고양이 이미지"
+      }
+    ],
+    "motion": [
+      {
+        "name": "pay-hover",
+        "value": "transform:translateY(-1px)",
+        "purpose": "활성 CTA hover"
+      },
+      {
+        "name": "reduced-motion",
+        "value": "@media(prefers-reduced-motion:reduce){transition:none;transform:none}",
+        "purpose": "CTA 전환과 hover 이동 제거. 장식 반복 애니메이션 없음."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "mobile-checkout",
+        "value": "760px"
+      }
+    ],
+    "focus": {
+      "checkoutControls": "outline:2px solid var(--yn-gold);outline-offset:4px",
+      "detailControls": "outline:2px solid var(--yn-gold);outline-offset:3px",
+      "entry": "내용 래퍼 focus() 후 scrollIntoView({block:'start'}).",
+      "recovery": "message가 있고 busy가 false이면 role=status 안내에 focus({preventScroll:true}) 후 scrollIntoView({block:'center'})."
+    },
+    "artwork": {
+      "path": "public/assets/yeongnyangi/checkout-moonblue.webp",
+      "promptSidecar": "public/assets/yeongnyangi/checkout-moonblue.webp.json",
+      "dimensions": [
+        640,
+        640
+      ],
+      "bytes": 142410,
+      "format": "transparent WebP",
+      "subject": "푸른 구슬을 품은 흰 장모 마법사 고양이",
+      "desktop": {
+        "container": "260px 240px",
+        "image": "260px 260px"
+      },
+      "mobile": {
+        "container": "140px 185px",
+        "image": "170px 185px",
+        "marginLeft": "-20px"
+      },
+      "decorations": {
+        "fishCount": 2,
+        "fishBody": "31px 15px",
+        "fishZIndex": 2,
+        "imageZIndex": 1,
+        "pawCount": 3,
+        "pawSize": "27px 30px",
+        "trailOpacity": 0.12
+      },
+      "accessibility": "그림·CSS 장식은 aria-hidden, 이미지 alt는 빈 문자열, pointer-events:none."
+    },
+    "behavior": {
+      "selectionOrder": [
+        "사용 가능한 패밀리 이용권",
+        "현재 상품에 적용 가능하고 remainingUses > 0인 첫 보유 이용권",
+        "단건 결제"
+      ],
+      "restore": "같은 owner와 feature key, 한 시간 이내, 여전히 사용 가능한 명시적 이전 선택을 복원한다.",
+      "pending": "혜택 조회 중 이용 방법과 CTA 비활성, 금액 확인 중 표시. pay()도 checking을 검사한다.",
+      "debit": "자동 선택만으로 차감하지 않는다. CTA 이후 준비된 상담과 계정을 확인하고 기존 quote/consume 또는 결제 게이트로 진행한다.",
+      "cta": {
+        "signedOut": "로그인하고 이어가기",
+        "checking": "이용권 확인 중",
+        "busy": "상담 준비 중",
+        "funded": "상담 시작하기",
+        "direct": "결제하고 상담 시작하기"
+      },
+      "policy": "기존 가격 정본·이용권·월정석·단건 결제·서버 확인 경로와 checkout noindex 유지."
+    },
+    "evidence": {
+      "screenshots": [
+        "build-cache/yeongnyangi-checkout/checkout-360.png",
+        "build-cache/yeongnyangi-checkout/checkout-390.png",
+        "build-cache/yeongnyangi-checkout/checkout-430.png",
+        "build-cache/yeongnyangi-checkout/checkout-1440.png"
+      ],
+      "recoveryScreenshot": "build-cache/yeongnyangi-checkout/checkout-error-390.png",
+      "mainPreservedScreenshots": [
+        "build-cache/yeongnyangi-checkout/blue-checkout-360.png",
+        "build-cache/yeongnyangi-checkout/blue-checkout-390.png",
+        "build-cache/yeongnyangi-checkout/blue-checkout-430.png",
+        "build-cache/yeongnyangi-checkout/blue-checkout-1440.png"
+      ],
+      "mainRecoveryScreenshot": "build-cache/yeongnyangi-checkout/blue-checkout-error-390.png",
+      "browser": "mock 연동 실제 React 브라우저 360·390·430·1440px 통과.",
+      "reviewScope": "독립 리뷰의 CSS 물고기 가림 한 건을 z-index 2로 수정. 최종 재확인은 390px 해당 항목에 한정.",
+      "reviewVerdict": "resolved · ship",
+      "detector": [],
+      "unknowns": [
+        "운영 환경 실제 서체 선택과 렌더링",
+        "실결제 및 운영 DB 동작",
+        "실측 명암비"
+      ],
+      "tonalRamps": "구현에 없는 색상 단계는 생성하지 않았다."
+    }
+  },
+  "components": [
+    {
+      "name": "상담 시작 CTA",
+      "kind": "button",
+      "refersTo": "button-pay",
+      "description": "이용권·월정석 선택 시 문구. 실제 서버 동작을 포함하지 않은 시각 샘플.",
+      "html": "<button class=\"ds-pay\" type=\"button\">상담 시작하기</button>",
+      "css": ".ds-pay{width:100%;min-height:54px;background:#b3e4f5;color:#10243b;border:1px solid #cfedf8;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 6px 16px #040b1729}.ds-pay:hover:not(:disabled){background:#d4f1fc;transform:translateY(-1px)}.ds-pay:disabled{background:#263e55;border-color:#48627a;color:#b8cbe0;cursor:not-allowed;box-shadow:none}.ds-pay:focus-visible{outline:2px solid #a4dcf4;outline-offset:4px}@media(prefers-reduced-motion:reduce){.ds-pay{transition:none}.ds-pay:hover:not(:disabled){transform:none}}"
+    },
+    {
+      "name": "상담 상세 입력",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "기존 상세 입력이 결제 루트의 청색 토큰을 상속한다.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-period\">살펴볼 기간<input class=\"ds-field\" id=\"ds-period\" placeholder=\"예: 올해 안, 현재와 다음 대운\"></label>",
+      "css": ".ds-field-label{display:block;color:#f3f4ef;font-size:.95rem;line-height:1.65;margin:12px 0}.ds-field{width:100%;min-height:46px;font-size:16px;color:#f3f4ef;background:#101e36;border:1px solid #38516c;border-radius:10px;padding:10px 12px;margin-top:6px;caret-color:#a4dcf4}.ds-field:focus-visible{outline:2px solid #a4dcf4;outline-offset:3px}"
+    },
+    {
+      "name": "상담 요약 패널",
+      "kind": "card",
+      "refersTo": "summary",
+      "description": "기존 상품 물고기·상품·이용 방법을 담는 표면.",
+      "html": "<aside class=\"ds-summary\" aria-label=\"상담과 결제 요약\">상담과 결제 요약</aside>",
+      "css": ".ds-summary{min-width:0;background:#101e36;color:#f3f4ef;border:1px solid #38516c;border-radius:20px;padding:26px;box-shadow:0 18px 40px #030a172b}@media(max-width:760px){.ds-summary{padding:22px 18px;border-radius:16px}}"
+    },
+    {
+      "name": "이용 방법 선택",
+      "kind": "custom",
+      "description": "이용 가능 여부와 선택 상태를 표시하는 네이티브 라디오 행.",
+      "html": "<label class=\"ds-choice\"><input type=\"radio\" name=\"ds-method\" checked><span><strong>패밀리 이용권</strong><small>사용 가능 · 추가 결제 없음</small></span></label>",
+      "css": ".ds-choice{display:flex;gap:12px;align-items:flex-start;padding:15px 0;min-height:48px;border-bottom:1px solid #38516c;cursor:pointer;color:#f3f4ef}.ds-choice input{padding:0;min-height:20px;display:block;width:20px;height:20px;flex-shrink:0;accent-color:#a4dcf4;margin-top:2px}.ds-choice strong,.ds-choice small{display:block}.ds-choice small{font-size:.85rem;line-height:1.6;color:#b8cbe0;margin-top:5px}.ds-choice:has(input:checked) strong{color:#a4dcf4}.ds-choice:has(input:disabled){cursor:default}.ds-choice:has(input:disabled) strong{color:#b8cbe0}.ds-choice input:focus-visible{outline:2px solid #a4dcf4;outline-offset:4px}"
+    },
+    {
+      "name": "선택 정보 펼침",
+      "kind": "custom",
+      "description": "선택 정보는 접고, 필수 준비 항목은 valid와 pending에 따라 연다.",
+      "html": "<details class=\"ds-section\"><summary>더 정확한 상담을 위해 · 선택</summary><p>질문에 없는 상황 보충</p></details>",
+      "css": ".ds-section{padding:20px 0;border-bottom:1px solid #38516c;min-width:0;color:#f3f4ef}.ds-section summary{cursor:pointer;min-height:44px;line-height:1.65;padding:6px 0}.ds-section summary:focus-visible{outline:2px solid #a4dcf4;outline-offset:4px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "마음을 맡길 준비 — 푸른 달빛",
+    "overview": "짙은 청색 바탕과 밝은 청색 행동 버튼, 푸른 구슬을 품은 흰 장모 마법사 고양이로 상담 준비를 안내한다. CSS 물고기와 옅은 발자국은 제목 주변을 장식한다.",
+    "keyCharacteristics": [
+      "사용 가능한 이용권을 먼저 선택하되 유효한 이전 선택을 존중한다.",
+      "조회 중에는 결제를 막고 자동 선택만으로 차감하지 않는다.",
+      "모바일 요약 우선과 고정 CTA를 유지한다.",
+      "실패·취소 안내로 포커스를 옮긴다."
+    ],
+    "rules": [
+      {
+        "name": "The Scoped Palette Rule",
+        "body": "결제 루트의 --yn-*만 재정의한다. 상세 입력 CSS와 공유 밤 토큰은 유지한다.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do 청색 팔레트를 결제 루트에 한정한다.",
+      "Do 자동 선택과 차감을 구분한다.",
+      "Do 가격 정책과 서버 확인 경로를 유지한다.",
+      "Do CSS 물고기 z-index 2를 유지한다.",
+      "Do mock 검증과 부분 재리뷰의 범위를 명시한다."
+    ],
+    "donts": [
+      "Don't 전역 페르소나 토큰으로 확장하지 않는다.",
+      "Don't 표시 잔액·자동 선택을 결제 완료로 취급하지 않는다.",
+      "Don't 운영 서체·실결제 검증을 주장하지 않는다."
+    ]
+  }
+}

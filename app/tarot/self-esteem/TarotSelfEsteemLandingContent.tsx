@@ -961,7 +961,7 @@ export default function TarotSelfEsteemLandingContent() {
           <div className="group relative overflow-hidden rounded-3xl border border-slate-200/20 bg-slate-900/50 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/10 via-transparent to-pink-400/10 opacity-0 transition group-hover:opacity-100" />
             <Image
-              src="/fuctionassets/jajongam.webp"
+              src="/images/service-introductions/tarot-self-esteem-960.webp"
               alt={copy.imageAlt}
               width={900}
               height={1100}

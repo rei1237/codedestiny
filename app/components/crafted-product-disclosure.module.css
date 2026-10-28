@@ -1,0 +1,12 @@
+/* 예화 버튼형 펼침: 금 hairline·serif 라벨·쉐브론. 글자색은 상품 화면을 그대로 따라 밝은·어두운 화면 모두에서 읽힌다.
+   금선 토큰은 테두리·쉐브론 장식에만 쓴다. */
+.disclosure { margin-block: 24px; }
+.disclosure > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--cd-btn-h, 48px); padding: 12px 18px; border: 1px solid var(--cd-yehwa-line, #c9a46a); border-radius: var(--cd-r-control, 12px); list-style: none; cursor: pointer; font: 700 17px/1.5 var(--font-serif, Georgia, serif); letter-spacing: -.01em; word-break: keep-all; }
+.disclosure > summary::-webkit-details-marker { display: none; }
+.disclosure > summary::after { content: ""; flex: 0 0 auto; width: 7px; height: 7px; margin: -4px 4px 0 0; border-right: 1.5px solid var(--cd-yehwa-line-deep, #a97b3e); border-bottom: 1.5px solid var(--cd-yehwa-line-deep, #a97b3e); transform: rotate(45deg); transition: transform 180ms ease-out; }
+.disclosure[open] > summary::after { margin-top: 4px; transform: rotate(225deg); }
+.disclosure > summary:focus-visible { outline: 2px solid var(--cd-focus-ring, #b31955); outline-offset: 3px; }
+@media(max-width:600px){
+ .disclosure :global(.craftedDetail) > div { width:var(--crafted-mobile-width,calc(100vw - 32px)); margin-inline:calc((100% - var(--crafted-mobile-width,calc(100vw - 32px))) / 2); }
+}
+@media (prefers-reduced-motion: reduce) { .disclosure > summary::after { transition: none; } }

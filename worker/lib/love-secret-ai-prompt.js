@@ -244,10 +244,25 @@ function groupJsonSkeleton(group) {
   return lines.join("\n");
 }
 
-/** 그룹별로 시스템 프롬프트에 담당 범위를 덧붙인다(기본 페르소나는 CMS 오버라이드가 소유). */
-export function buildLoveSecretGroupSystemPrompt(basePrompt, group) {
+// 연애 비책은 연이·서한비 공동 마스터다. 마음과 실천(core·self·action)은 연이, 상대·위험·시기(partner·risk·timing)는 서한비가 쓴다.
+// 결과 화면 화자 칩(app/love-secret-ai/result/love-secret-sections.ts)이 이 매핑을 섹션 제목으로 따라간다.
+export const LOVE_SPEAKER_BY_GROUP = Object.freeze({
+  core: "yeoni", self: "yeoni", partner: "hanbi", risk: "hanbi", timing: "hanbi", action: "yeoni",
+});
+const LOVE_SPEAKER_NAMES = Object.freeze({ yeoni: "연이", hanbi: "서한비" });
+
+/**
+ * 그룹별로 시스템 프롬프트에 담당 범위를 덧붙인다(기본 페르소나는 CMS 오버라이드가 소유).
+ * persona 는 이 그룹 화자의 페르소나 원문이다. 비어 있으면 예전 출력과 바이트 단위로 같다.
+ */
+export function buildLoveSecretGroupSystemPrompt(basePrompt, group, persona = "") {
+  const speaker = LOVE_SPEAKER_NAMES[LOVE_SPEAKER_BY_GROUP[group.key]];
+  const voice = persona && speaker
+    ? ["", `이 상담은 연이와 서한비가 부를 나눠 씁니다. 이번 부는 ${speaker}가 씁니다. 다른 상담자의 말투를 섞지 않고, 상대 상담자를 언급하지 않습니다.`, persona]
+    : [];
   return [
     clean(basePrompt),
+    ...voice,
     "",
     `이번 응답에서는 상담의 한 부분 — "${group.label}" — 만 씁니다. 나머지 부분은 같은 상담의 다른 곳에서 이미 다루므로 여기서 반복하지 않습니다.`,
     "계산되지 않은 날짜·간지·신살을 만들어 쓰지 않습니다. 제공된 계산 확정값 안에서만 해석합니다.",
@@ -541,6 +556,11 @@ export function scanConsultationTextIssues(text) {
   return issues;
 }
 
+/** 정밀지표 영문 키가 "매력(attraction)" 처럼 한국어 뒤 괄호로 새어 나온 꼬리를 지운다. */
+function stripMetricKeyTails(text) {
+  return String(text ?? "").replace(/(?<=[가-힣])\((?:attraction|stability|communication|conflict|confidence)\)/gi, "");
+}
+
 /** 토큰 상한에 걸려 문장 중간에 끊긴 본문을 마지막 완결 문장까지 되돌린다. */
 function trimToLastCompleteSentence(text) {
   const value = clean(text);
@@ -595,7 +615,7 @@ export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false
 
   if (!sections.length) return { ...base, reason: "NO_SECTIONS", issues: ["SECTION_EMPTY"] };
 
-  const trimmed = sections.map((section) => ({ title: section.title, body: trimToLastCompleteSentence(section.body) }));
+  const trimmed = sections.map((section) => ({ title: section.title, body: trimToLastCompleteSentence(stripMetricKeyTails(section.body)) }));
   const chars = countSectionBodyChars(trimmed);
   const issues = scanConsultationTextIssues(trimmed.map((section) => section.body).join("\n"));
   const sectionFloor = Math.ceil(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.7 / Math.max(1, titles.length));

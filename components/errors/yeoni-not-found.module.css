@@ -1,0 +1,19 @@
+.page { min-height:100dvh; background:var(--cd-samples-paper,#fff9f4); color:var(--cd-samples-ink,#402a38); padding:24px; font-family:var(--font-body,"CodeDestinyBody",sans-serif); }
+.wrap { max-width:1180px; margin-inline:auto; }
+.brand { display:inline-flex; align-items:center; min-height:48px; color:inherit; font-weight:800; text-decoration:none; }
+.scene { display:grid; grid-template-columns:1.15fr 1fr; align-items:center; gap:clamp(28px,5vw,64px); margin:32px 0; }
+.art { overflow:hidden; border-radius:28px 28px 96px 28px; border:1px solid #e5d2c2; box-shadow:0 20px 48px #6d403219; }
+.art img { display:block; width:100%; height:auto; }
+.copy h1 { margin:0 0 24px; color:inherit; font-family:var(--font-display,"Noto Serif KR",serif); font-size:clamp(2.1rem,4.2vw,3.6rem); font-weight:700; letter-spacing:-.035em; line-height:1.35; text-wrap:balance; }
+.copy p { margin:0 0 16px; color:#705365; font-size:clamp(.95rem,1.4vw,1.08rem); line-height:1.85; }
+.actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; }
+.actions a { display:inline-flex; justify-content:center; align-items:center; min-height:52px; padding:12px 22px; border-radius:16px; border:1px solid #b994a2; font-weight:750; text-decoration:none; transition:background-color .15s ease; }
+.primary { background:#a52e54; color:#fff; border-color:#a52e54!important; box-shadow:0 8px 18px #a52e541c; }
+.primary:hover { background:#872343; }
+.secondary { color:#742440; background:#fff; }
+.secondary:hover { background:#fbe8ed; }
+.page a:focus-visible { outline:3px solid #a52e54; outline-offset:5px; }
+.code { display:block; margin-top:22px; color:#765867; font-size:.78rem; }
+.related { display:flex; flex-wrap:wrap; justify-content:center; gap:8px 28px; padding:20px 0; border-top:1px solid #e6d3d8; }
+.related a { display:inline-flex; align-items:center; min-height:44px; color:#742440; font-size:.9rem; text-underline-offset:5px; }
+@media(max-width:700px) { .page { padding:16px 20px; } .brand { min-height:44px; } .scene { grid-template-columns:1fr; gap:26px; margin:16px 0 28px; } .art { max-width:480px; border-radius:20px 20px 64px 20px; } .copy h1 { font-size:2.1rem; margin-bottom:18px; } .copy p { margin-bottom:12px; } .desktopBreak { display:none; } .actions { margin-top:22px; } .actions a { flex:1 1 100%; padding:12px 16px; } .related { justify-content:flex-start; gap:4px 22px; } }

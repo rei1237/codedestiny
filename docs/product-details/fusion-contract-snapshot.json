@@ -1,0 +1,46 @@
+{
+  "mode": "Source contracts only; no customer result/paid LLM/payment",
+  "sources": [
+    "app/fusion-fortune/FusionResultThread.tsx",
+    "app/fusion-fortune/ExpertEvidence.tsx",
+    "worker/lib/fusion-expert-contract.js",
+    "app/fusion-fortune/FusionFortuneClient.tsx"
+  ],
+  "contents": [
+    "도입",
+    "핵심 요약",
+    "사주",
+    "자미두수",
+    "베다점성술",
+    "숙요점",
+    "서양점성술",
+    "타로",
+    "종합 해석",
+    "시기와 행동",
+    "카드 여섯 자리",
+    "근거 비교",
+    "최종 판단",
+    "마지막 메시지"
+  ],
+  "conditions": [
+    "본문 있는 항목만 표시; 생성 중/이전 저장본 차이",
+    "tarotCards.length===6일 때 카드 뒤집기",
+    "같은 domain/period의 비교 가능한 signals가 있을 때 근거 비교",
+    "최종 판단: finalVerdict 있고 expertMeta.complete!==false",
+    "구형 visualization은 expertMeta가 없을 때만; 새 상세에서 보장하지 않음"
+  ],
+  "tarotPositions": [
+    "현재 상황",
+    "내면",
+    "장애물",
+    "외부 영향",
+    "선택",
+    "다음 행동"
+  ],
+  "comparison": "same domain+period; system evidence references; count is not probability",
+  "inputs": [
+    "생년월일·정확한 생시·출생지·양음력",
+    "상담 주제 선택",
+    "고민·질문·성별·별칭 선택 입력"
+  ]
+}

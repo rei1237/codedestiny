@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "서양 점성술 기본 구조 | Code Destiny",
+    "metadata.title": "서양 점성술 기본 구조 | 꿀꿀 운세",
     heading: "서양 점성술 기본 구조",
     "section.scope": "점성술이 살피는 것",
     "section.inputs": "필요한 입력값",
@@ -20,7 +20,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "해석 시 주의할 점",
   },
   en: {
-    "metadata.title": "Western Astrology Basics | Code Destiny",
+    "metadata.title": "Western Astrology Basics | 꿀꿀 운세",
     heading: "Western Astrology Basics",
     "section.scope": "What Astrology Looks At",
     "section.inputs": "Required Inputs",
@@ -33,7 +33,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "What to Keep in Mind",
   },
   ja: {
-    "metadata.title": "西洋占星術の基本構造 | Code Destiny",
+    "metadata.title": "西洋占星術の基本構造 | 꿀꿀 운세",
     heading: "西洋占星術の基本構造",
     "section.scope": "占星術が見つめるもの",
     "section.inputs": "必要な入力項目",
@@ -46,7 +46,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解釈時の注意点",
   },
   "zh-CN": {
-    "metadata.title": "西洋占星术基础结构 | Code Destiny",
+    "metadata.title": "西洋占星术基础结构 | 꿀꿀 운세",
     heading: "西洋占星术基础结构",
     "section.scope": "占星术会观察什么",
     "section.inputs": "需要输入的信息",
@@ -59,7 +59,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解读时的注意事项",
   },
   "zh-TW": {
-    "metadata.title": "西洋占星術基礎結構 | Code Destiny",
+    "metadata.title": "西洋占星術基礎結構 | 꿀꿀 운세",
     heading: "西洋占星術基礎結構",
     "section.scope": "占星術會觀察什麼",
     "section.inputs": "需要輸入的資訊",
@@ -83,7 +83,7 @@ export function generateMetadata() {
     title: astrologyGuideText("metadata.title"),
     description:
       "서양 점성술의 출생 차트, 행성, 별자리, 하우스, 애스펙트를 어떻게 읽는지와 입력값, 샘플 리딩, 주의사항을 안내합니다.",
-    keywords: ["서양 점성술 가이드", "출생 차트", "하우스", "애스펙트", "점성술", "Code Destiny"],
+    keywords: ["서양 점성술 가이드", "출생 차트", "하우스", "애스펙트", "점성술", "꿀꿀운세"],
   });
 }
 
@@ -153,7 +153,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "점성술 서비스",
-      keywords: ["서양 점성술 가이드", "출생 차트", "하우스", "애스펙트", "점성술", "Code Destiny"],
+      keywords: ["서양 점성술 가이드", "출생 차트", "하우스", "애스펙트", "점성술", "꿀꿀운세"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),
@@ -167,7 +167,7 @@ export default function AstrologyGuidePage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">{astrologyGuideText("heading")}</h1>
         <p className="cd-main-intro">
-          서양 점성술은 태어난 순간의 하늘을 하나의 차트로 펼쳐, 행성의 위치와 서로의 각도를 통해 기질과 관계, 선택의 리듬을 살피는 상징 체계입니다. Code Destiny는 차트를 확정적 예언이 아니라 자기 이해를 돕는 지도처럼 읽습니다.
+          서양 점성술은 태어난 순간의 하늘을 하나의 차트로 펼쳐, 행성의 위치와 서로의 각도를 통해 기질과 관계, 선택의 리듬을 살피는 상징 체계입니다. 꿀꿀운세는 차트를 확정적 예언이 아니라 자기 이해를 돕는 지도처럼 읽습니다.
         </p>
       </header>
 
@@ -248,7 +248,7 @@ export default function AstrologyGuidePage() {
       <section className="cd-card">
         <h2>{astrologyGuideText("section.caution")}</h2>
         <p>
-          점성술은 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 소송, 진로처럼 중대한 결정은 차트 결과만으로 정하지 말고, 현실 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
+          점성술은 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 소송, 진로처럼 중대한 결정은 차트 결과만으로 정하지 말고, 현실 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
         </p>
       </section>
 
@@ -265,7 +265,7 @@ export default function AstrologyGuidePage() {
 
       <nav className="cd-chip-wrap" aria-label="점성술 가이드 관련 링크">
         <Link href="/astrology" className="cd-chip">점성술 서비스</Link>
-        <Link href="/astrology/cosmic" className="cd-chip">코즈믹 차트</Link>
+        <Link href="/astrology" className="cd-chip">코즈믹 차트</Link>
         <Link href="/insights/astrology" className="cd-chip">점성술 인사이트</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>

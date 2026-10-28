@@ -1,0 +1,152 @@
+{
+  "id": "yeongnyangi-sukuyo-salmon",
+  "featureKey": "yeongnyangi-sukuyo-salmon",
+  "title": "영냥이 숙요 연어 상담",
+  "notice": "숙요 연어는 본명숙의 기질과 사람 사이에서 드러나는 역할을 바탕으로 선택의 조건을 읽습니다. 이 안내의 이직 질문 상담은 11장, 기본 본명숙 리포트는 6장입니다. 기본 리포트의 관계 이름은 본인에게 대응하는 숙의 유형을 설명하며 특정인의 속마음·등장 시기·궁합을 확인한 결과가 아닙니다. 실제 두 사람 비교에는 두 사람의 출생 정보가 필요합니다. 숙요의 장기 시기 전환은 현재 질문 추천에서 지원하지 않으며 근거 없는 월별 사건을 만들지 않습니다. 천문식 27숙 계산에 출생시간·지역·시간대가 필요합니다. 가상 편집 예시와 AI 작성 상담이며 가격·추가 질문 조건은 기존 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-role-that-fits",
+      "title": "새로운 자리에서, 어떤 역할을 맡을까요?",
+      "alt": "마법사 고양이 영냥이가 두 달 자리의 관계 거리를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-sukuyo.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "새로운 자리에서,\n어떤 역할을 맡을까요?\n\n조건표에 적힌 자리만큼,\n사람 사이에서 쓰일 나의 힘도 살펴봐요.\n\n영냥이 숙요 · 연어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-the-work-between-people",
+      "title": "제안하는 일과, 이어주는 일 사이에서.",
+      "alt": "이직역할의제안조율두작업차이를가상장면으로구체화.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/02-the-work-between-people.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "제안하는 일과,\n이어주는 일 사이에서.\n새 방향을 제안하는 자리\n\n먼저 의견을 내고,\n다른 사람을 설득해야 하는 일.\n\n흩어진 의견을 잇는 자리\n\n각자의 생각을 정리하고,\n함께 움직일 순서를 만드는 일.\n\n새 직장에서 맡게 될 일을\n실제 장면으로 적어 주세요.\n\n역할을 비교하기 위한 가상 예시예요.\n숙의 이름으로 직업을 지정하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/02-the-work-between-people-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-read-the-direction-of-a-bond",
+      "title": "같은 관계 안에서도, 맡는 역할은 달라요.",
+      "alt": "숙요관계의방향별역할과개인질문두사람비교차이.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/03-read-the-direction-of-a-bond.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 관계 안에서도,\n맡는 역할은 달라요.\n내 쪽에서 느끼는 관계\n\n어떤 기대를 품고, 어떻게 다가가는지.\n\n상대 쪽에서 느끼는 관계\n\n다른 역할과 반응이 생길 수 있어요.\n\n실제 두 사람 비교에서는 본명숙과\n방향별 거리·역할을 함께 읽어요.\n\n개인 질문에서는 본인의 기질을 읽습니다.\n상대 정보 없이 역할을 추정하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/03-read-the-direction-of-a-bond-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-before-changing-your-place",
+      "title": "옮길지 남을지, 나의 선택 기준을 먼저.",
+      "alt": "이직질문1~5장실제목차를바탕과판단으로구분.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/04-before-changing-your-place.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "옮길지 남을지,\n나의 선택 기준을 먼저.\n\n이직 질문 · 11장 중 1–5장\n\n1–2장 · 나의 바탕\n\n본명숙의 마음과 관계 리듬\n강점과 부담이 되는 순간\n\n3–5장 · 질문에 대한 판단\n\n남을지 옮길지, 이직의 판단 기준\n판단의 근거와 달라지는 조건\n기회와 주의 조건\n\n조건을 바꾸면 판단도 달라질 수 있어요.\n실제 제안 내용과 중요한 제약을 알려 주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/04-before-changing-your-place-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-compare-then-prepare",
+      "title": "비교한 다음에는, 준비할 일을 남겨요.",
+      "alt": "이직질문6~11장비교시기조건부영역실행목차.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/05-compare-then-prepare.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "비교한 다음에는,\n준비할 일을 남겨요.\n6–8장 · 선택을 구체적으로\n\n현재 위치와 적성 · 이동과 유지의 비교\n움직이기 좋은 시기\n\n9–10장 · 질문 밖의 흐름\n\n차트에서 두드러진 영역 · 올해의 흐름\n\n11장 · 종합 해석과 실행 계획\n\n먼저 확인할 조건과 다음 행동\n\n시기 제목이 이직 날짜 예측을 뜻하지 않아요.\n현재 지원하지 않는 장기 전환이나\n월별 사건을 만들어 내지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/05-compare-then-prepare-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-a-six-part-relationship-map",
+      "title": "질문 없는 여섯 장, 인연의 유형을 넓게 읽어요.",
+      "alt": "기본6장안괴영친성위우쇠명업태목차와개인지도한계.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/06-a-six-part-relationship-map.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문 없는 여섯 장,\n인연의 유형을 넓게 읽어요.\n1장 · 본명숙이 말하는 나\n\n내 기질의 바탕\n\n2–3장 · 끌림과 오래 함께함\n\n강하게 끌리고 부딪히는 안괴\n오래 함께할 인연을 다루는 영친\n\n4–6장 · 협력과 거리, 얽힘\n\n일의 성위 · 친구와 거리의 우쇠\n운명처럼 얽히는 명·업·태\n\n관계 이름은 해석의 유형입니다.\n특정 인연의 등장이나 성공을 보장하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/06-a-six-part-relationship-map-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-a-condition-you-can-check",
+      "title": "새 자리에 가기 전, 한 가지를 확인해 보세요.",
+      "alt": "협업책임권한확인을구체적질문으로제안하는가상이직조언.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/07-a-condition-you-can-check.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "새 자리에 가기 전,\n한 가지를 확인해 보세요.\n\n이해를 돕기 위한 편집 예시\n\n사람들의 의견을 잘 모으는 힘이\n새 자리에서도 도움이 될 수 있어요.\n\n다만 조율의 책임만 맡게 되는지,\n결정할 권한도 있는지 확인해 보세요.\n\n“의견이 갈릴 때,\n최종 결정은 누가 맡나요?”\n\n실제 고객 결과가 아닌 가상 예시입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/07-a-condition-you-can-check-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-prepare-the-right-information",
+      "title": "본인의 정보부터, 지금의 선택지까지.",
+      "alt": "출생시간지역필수와질문조건두사람비교별도범위안내.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/08-prepare-the-right-information.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "본인의 정보부터,\n지금의 선택지까지.\n천문식 27숙을 위한 정보\n생년월일·출생시간·출생 지역.\n시간대와 좌표를 확인합니다.\n내 선택의 조건\n현재 상황, 실제 제안, 목표 기간,\n지키고 싶은 조건을 알려 주세요.\n두 사람 자체를 비교한다면\n관계의 질문과 두 사람 입력을 확인하는\n별도 흐름으로 안내받게 됩니다.\n\n기본 6장과 이직 질문 11장은 별도 구성이에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/08-prepare-the-right-information-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-a-role-you-can-grow-in",
+      "title": "나의 힘을 쓰면서, 오래 지낼 수 있는 자리로.",
+      "alt": "공식숙요영냥이와현재가격추가질문AI저장결과마무리.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/09-a-role-you-can-grow-in.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 힘을 쓰면서,\n오래 지낼 수 있는 자리로.\n\n인연의 이름보다,\n실제로 함께할 조건을 살펴보세요.\n\nAI가 계산 근거를 바탕으로 작성합니다.\n가격과 추가 질문 조건은 현재 화면에서,\n저장된 결과는 내 상담에서 다시 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-salmon/09-a-role-you-can-grow-in-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

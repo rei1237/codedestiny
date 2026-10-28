@@ -2,6 +2,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { runInNewContext } from "node:vm";
+import sharp from "sharp";
 import { buildNovelPayload, MANIFEST_PATH, SCENE_MATRIX_PATH, readLegacyRanges, EFFECTS, SPEAKERS, INSTRUMENTAL_TRACKS } from "./build-novel-runtime.mjs";
 import { FORBIDDEN_STORY_NAMES } from "./lib/novel-constraints.mjs";
 
@@ -15,7 +16,10 @@ const EVENT_BACKGROUNDS = [
 ];
 const YEON_SPRITE_DIR = resolve(ROOT, "public/images/novel/remaster/yeon");
 const YEON_SPRITES = ["base", "left", "right", "sideL", "sideR", "fear", "angry", "smile", "sleep", "cry", "onigiri", "disappoint"];
-const MOKA_SHEET = resolve(ROOT, "public/images/novel/remaster/moka-sheet.webp");
+const YEONI_V2_DIR = resolve(ROOT, "public/images/novel/remaster/v2/yeoni");
+const MOKA_V2_DIR = resolve(ROOT, "public/images/novel/remaster/v2/moka");
+const YEONI_V2 = ["neutral", "soft-smile", "talk", "laugh", "shy", "surprise", "flustered", "fear", "sad", "cry", "angry", "determined", "think", "wave", "cheer", "run", "vine-magic", "hug", "sleep", "wedding"];
+const MOKA_V2 = ["neutral", "talk", "rap", "angry", "moved", "laugh", "cook", "performance", "pot-beat", "fire-attack", "swim-rescue", "wedding-rap"];
 const CROW_SPRITES = ["base", "alt"];
 
 function fail(message) {
@@ -141,7 +145,15 @@ for (const sprite of YEON_SPRITES) {
   if (!existsSync(spritePath) || statSync(spritePath).size === 0) fail(`transparent Yeon sprite missing: ${sprite}`);
   if (!html.includes(`/images/novel/remaster/yeon/${sprite}.webp`)) fail(`player does not use local Yeon sprite: ${sprite}`);
 }
-if (!existsSync(MOKA_SHEET) || statSync(MOKA_SHEET).size > 360_000 || !html.includes("/images/novel/remaster/moka-sheet.webp")) fail("transparent Moka expression sheet is missing or unused");
+for (const [dir, names, actor, maxBytes] of [[YEONI_V2_DIR, YEONI_V2, "Yeoni", 240_000], [MOKA_V2_DIR, MOKA_V2, "Moka", 450_000]]) {
+  for (const name of names) {
+    const file = resolve(dir, `${name}.webp`);
+    if (!existsSync(file) || statSync(file).size === 0 || statSync(file).size > maxBytes) fail(`${actor} v2 sprite missing or over budget: ${name}`);
+    const meta = await sharp(file).metadata();
+    if (!meta.hasAlpha || Math.max(meta.width ?? 0, meta.height ?? 0) < 1300) fail(`${actor} v2 sprite needs alpha and a 1300px long edge: ${name}`);
+  }
+}
+if (!html.includes("YEONI_V2+") || !html.includes("MOKA_V2+")) fail("player does not route Yeoni and Moka to v2 individual sprites");
 for (const sprite of CROW_SPRITES) {
   const spritePath = resolve(ROOT, `public/images/novel/remaster/crow/${sprite}.webp`);
   if (!existsSync(spritePath) || !html.includes(`/images/novel/remaster/crow/${sprite}.webp`)) fail(`transparent Crow sprite missing or unused: ${sprite}`);
@@ -154,7 +166,7 @@ for (const [index, source] of inlineScripts.entries()) {
 }
 
 // 정본(content/novel/episodes.source.json)의 총 비트 수. 비트를 더하거나 빼는 개편마다 같은 커밋에서 갱신한다.
-const EXPECTED_BEAT_COUNT = 7674;
+const EXPECTED_BEAT_COUNT = 7844;
 const runtime = buildNovelPayload();
 const mobileAssets = JSON.parse(readFileSync(resolve(ROOT, "content/novel/mobile-assets.json"), "utf8"));
 const mobileSpriteMap = JSON.parse(html.match(/var MOBILE_SPRITES=(\{[^\n]+\});/)?.[1] || "{}");
@@ -197,7 +209,7 @@ const yunExprMatch = html.match(/var YUN_EXPR=\[([^\]]*)\];/);
 const yunExprs = yunExprMatch ? [...yunExprMatch[1].matchAll(/"([a-z]+)"/g)].map(m => m[1]) : [];
 if (yunExprs.length < 8 || !yunExprs.includes("base")) fail("player YUN_EXPR list is missing or incomplete");
 // nm(이름 모르는 인물의 표시명)은 대사창·로그·텍스트 리더가 모두 화자 이름보다 먼저 읽어야 한다 — 하나라도 빠지면 정체가 미리 드러난다.
-if (!html.includes("spkName.textContent=b.nm||NAME[spk]") || !html.includes("escapeHtml(r.nm||NAME[r.s]") || !readFileSync(resolve(ROOT, "app/stories/[episode]/page.tsx"), "utf8").includes("beat.nm ?? STORY_SPEAKERS")) fail("beat display-name override (nm) is not honoured by the player, log, or text reader");
+if (!html.includes("spkName.textContent=b.nm||speakerName(spk") || !html.includes("escapeHtml(r.nm||NAME[r.s]") || !readFileSync(resolve(ROOT, "app/stories/[episode]/page.tsx"), "utf8").includes("beat.nm ?? STORY_SPEAKERS")) fail("beat display-name override (nm) is not honoured by the player, log, or text reader");
 if (!html.includes('if(who==="yun")return {url:"/images/novel/remaster/yun/"+(YUN_EXPR.indexOf(expr)>=0?expr:"base")+".webp",cls:"yun"};')) fail("player does not route yun to the local sprites");
 for (const expr of yunExprs) {
   const file = resolve(ROOT, `public/images/novel/remaster/yun/${expr}.webp`);
@@ -206,8 +218,8 @@ for (const expr of yunExprs) {
 if (runtime.episodes.some(episode => episode.beats.some(beat => !beat.id))) fail("stable story IDs are required");
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
 const matrix = JSON.parse(readFileSync(SCENE_MATRIX_PATH, "utf8"));
-if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 70 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
-  fail(`manifest is not synchronized with the 70-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
+if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 73 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
+  fail(`manifest is not synchronized with the 73-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
 }
 // 🔴 emotionPath 가 아예 없으면 undefined < 3 이 false 라 통과했다(fail-open). 배열 여부를 먼저 본다.
 if (matrix.sourceHash !== runtime.sourceHash || matrix.episodes?.length !== runtime.episodeCount || matrix.episodes.some((episode) => !Array.isArray(episode.emotionPath) || episode.emotionPath.length < 3 || !episode.visualCues?.every((cue) => cue.accessibility))) {
@@ -227,6 +239,16 @@ manifest.episodes.forEach((meta, index) => {
    기다릴 수 없다. 그 표가 정본과 어긋나면 "쭉 읽으면 사람, 목차로 들어가면 꽃돼지"가 되므로,
    정본 비트를 전수 스캔해 다시 만든 목록과 완전 일치를 요구한다(파싱 실패도 실패). */
 const canonicalFormMarks = [];
+const neoMarks = runtime.episodes.flatMap((episode, ep) => episode.beats.flatMap((beat, bi) => beat.neoForm ? [{ ep, bi, form: beat.neoForm }] : []));
+const neoSource = html.match(/var NEO_FORM_MARKS=(\[[^\]]*\]);/);
+if (!neoSource || JSON.stringify(JSON.parse(neoSource[1])) !== JSON.stringify(neoMarks)) fail("Neo appearance registry is not synchronized");
+if (neoMarks.length !== 1 || runtime.episodes[neoMarks[0].ep].id !== "ep-27" || neoMarks[0].form !== "human") fail("Neo must return after Yeoni in EP.27 and remain human");
+const neoAssets = JSON.parse(readFileSync(resolve(ROOT, "public/images/novel/yeongnyangi/assets.json"), "utf8"));
+if (neoAssets.frames.length !== 8) fail("Yeongnyangi needs eight expression frames");
+for (const asset of neoAssets.frames) {
+  const path = resolve(ROOT, "public/images/novel/yeongnyangi", asset.expression + ".webp");
+  if (!existsSync(path) || statSync(path).size !== asset.bytes || asset.bytes > 80_000 || asset.width * asset.height > 240_000) fail(`Yeongnyangi mobile frame budget or file drift: ${asset.expression}`);
+}
 runtime.episodes.forEach((episode, episodeIndex) => {
   episode.beats.forEach((beat, beatIndex) => {
     if (beat.form) canonicalFormMarks.push(`${episodeIndex}:${beatIndex}:${beat.form}`);

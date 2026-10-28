@@ -120,6 +120,8 @@ ADMIN_MONTHLY_CREDIT_GRANT_ENABLED = "true"
 # without it the real-LLM flags below are necessary but not sufficient and the
 # route silently falls back to the mock generator).
 ENABLE_GUARDIAN_FORTUNE_API = "true"
+# 연이·네오 공유 상담 엔진. 새 상담 진입만 제어하며 기존 결과 읽기/이어 쓰기는 유지한다.
+ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"
 ENABLE_GUARDIAN_FORTUNE_SHARE = "true"
 # 🔴 정적 셸(타로·사주) 결과 공유 스냅샷의 킬 스위치 ENABLE_RESULT_SHARE 는 프로덕션 toml 에서
 # **일부러 비워 둔다**. POST /api/fortune/share 와 GET /api/fortune/share/{sr_id} 가 이 스위치에
@@ -286,7 +288,8 @@ SNS_DAILY_POST_ENABLED = "1"
 #    베다 16:00(Asia/Seoul, 코드 기본값 — THREADS_*_TIME 으로 덮어쓸 수 있다)부터 60분 창 안에서 1건씩 발행한다.
 #    텔레그램은 무관하다. 🔴 원복은 "1"(07:00 체인). 별도 스위치 변수를 두지 않는 이유는
 #    워커 텍스트 바인딩 예산(128, 여유 2 유지)이 이미 꽉 차 있어서다 — scripts/lib/worker-binding-budget.mjs.
-SNS_THREADS_POST_ENABLED = "split"
+# 2026-10-21: WordPress 집중 운영에 따라 Threads만 중지. 재개 승인 시 이전 값 "split" 복원.
+SNS_THREADS_POST_ENABLED = "0"
 # Threads 문안을 AI 가 쓸지(worker/lib/threads-ai-writer.js). 2026-09-01 추가.
 # 🔴 십성·십이운성·신살·좋은 글자는 **언제나 정본 표가 계산한다** — 이 스위치는 그 사실을
 #    문장으로 옮기는 일만 모델에게 맡길지를 정한다. 꺼도 발행은 결정론 문안으로 그대로 나간다.

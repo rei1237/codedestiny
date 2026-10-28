@@ -1,0 +1,167 @@
+{
+  "id": "yeongnyangi-ziwei-flounder",
+  "featureKey": "yeongnyangi-ziwei-flounder",
+  "title": "영냥이 자미두수 광어 상담",
+  "notice": "자미두수 광어 질문 상담은 두 사람의 명반과 성향·표현·생활·돈·책임을 비교합니다. 여기서는 성인 연인·배우자의 궁합 질문 15장을 읽기 순서대로 소개합니다. 관계 유형과 질문에 따라 초점이 달라지고 상대의 마음이나 관계 지속을 확정하지 않습니다. 질문 없이 고르는 기본 성향 리포트 13장과 별도 궁합 종류의 목차는 질문 상담과 다릅니다. 두 사람의 출생시간·성별·지역을 포함한 정보를 확인합니다. 대화와 비교는 편집 예시이며 실제 고객 결과가 아닙니다. AI가 계산 근거를 풀어 쓰며 가격과 추가 질문 조건은 기존 화면에서 확인합니다.",
+  "panels": [
+    {
+      "id": "01-two-ways-to-care",
+      "title": "같은 마음이어도, 돌보는 방식은 다르니까.",
+      "alt": "마법사 고양이 영냥이가 사각 열두 궁 명반의 별을 짚는 장면",
+      "src": "/images/service-introductions/yeongnyangi-ziwei.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "같은 마음이어도,\n돌보는 방식은\n다르니까.\n\n끌림 뒤에 남는 표현과 생활,\n함께 지킬 약속을 살펴봅니다.\n\n영냥이 자미두수 · 광어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-two-voices",
+      "title": "“준비해 뒀어.” “먼저 물어봐 줘.”",
+      "alt": "도움을 주는 방식과 선택권을 원하는 방식의 가상 대화.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/02-two-voices.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "“준비해 뒀어.”\n“먼저 물어봐 줘.”\n미리 챙겨주는 사람\n\n네가 힘들까 봐\n내가 먼저 정리했어.\n\n함께 고르고 싶은 사람\n\n고마워. 그래도 내 선택을\n먼저 물어봐 주면 좋겠어.\n\n좋은 의도가 서로에게 어떻게 닿는지,\n두 사람의 표현과 기대를 비교해요.\n\n관계의 차이를 보여주는 편집 예시입니다.\n실제 두 사람의 마음을 단정한 대화가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/02-two-voices-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-a-palace-is-not-the-partner",
+      "title": "부부궁 해석과 두 명반 비교는 달라요.",
+      "alt": "한 사람 관계성향과 실제 두 명반 비교를 구분하는 해석 설명.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/03-a-palace-is-not-the-partner.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "부부궁 해석과\n두 명반 비교는 달라요.\n각자가 관계를 맺는 방식\n\n명궁·신궁과 관계의 근거에서\n기질과 표현의 기대를 읽어요.\n\n함께 놓았을 때의 차이\n\n맞물리는 강점과 마찰을 살펴\n생활·돈·책임으로 풀어냅니다.\n\n부부궁은 관계를 읽는 한 자리예요.\n그것만으로 실제 상대의 성격과 속마음을\n모두 안다고 말하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/03-a-palace-is-not-the-partner-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-first-five-chapters",
+      "title": "질문의 바탕과, 두 사람에 대한 답.",
+      "alt": "궁합 질문 실제 앞 5목차.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/04-first-five-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문의 바탕과,\n두 사람에 대한 답.\n\n두 사람 궁합 질문 · 앞부분 5장\n\n자미두수의 바탕 · 명궁과 별의 성향\n강점과 부담이 되는 순간\n잘 맞는 점과 조율할 차이\n판단의 근거와 달라지는 조건\n현재의 기회와 주의 조건\n\n점수 하나보다 읽는 과정이 중요해요.\n왜 잘 맞고, 어디서 조율이 필요한지\n근거와 함께 확인합니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/04-first-five-chapters-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-five-places-to-negotiate",
+      "title": "끌림 다음에, 함께 조율할 다섯 자리.",
+      "alt": "궁합 질문 6~10장의 관계 구조·충돌·책임·시기·회복 목차.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/05-five-places-to-negotiate.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "끌림 다음에,\n함께 조율할 다섯 자리.\n\n두 사람 궁합 질문 · 가운데 5장\n\n6–7장 · 다름을 먼저 알아보기\n\n두 사람의 구조 → 끌림과 충돌\n\n8장 · 생활의 약속으로\n\n역할과 책임의 분담\n\n9–10장 · 흔들려도 돌아올 길\n\n관계가 흔들리는 시기 → 회복의 조건\n\n시기는 확인 가능한 근거 안에서 읽으며,\n이별이나 재회의 날짜를 확정하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/05-five-places-to-negotiate-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-the-life-around-the-relationship",
+      "title": "관계 밖의 생활도, 관계 안으로 들어오니까.",
+      "alt": "궁합 질문 마지막 5장과 현재관계·성인친밀감 조건부범위.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/06-the-life-around-the-relationship.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "관계 밖의 생활도,\n관계 안으로\n들어오니까.\n\n두 사람 궁합 질문 · 마지막 5장\n\n질문 밖의 재물 흐름\n질문 밖의 일과 적성\n건강 리듬과 회복\n올해의 흐름\n종합 해석과 실행 계획\n\n건강 해석은 생활 리듬의 참고예요.\n성인 연인·배우자로 선택한 경우에는\n가까워지는 속도·대화·경계도 살펴요.\n성적 특성이나 만족도를 지어내지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/06-the-life-around-the-relationship-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-turn-a-difference-into-an-agreement",
+      "title": "다름을 설명한 뒤에는, 작은 합의를.",
+      "alt": "돈과생활의 의사결정차이를 합의로 바꾸는 가상 조언.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/07-turn-a-difference-into-an-agreement.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다름을 설명한 뒤에는,\n작은 합의를.\n\n이해를 돕기 위한 편집 예시\n\n한 사람은 미리 정해야 편하고,\n한 사람은 여지를 남겨야 편하다면\n누가 더 옳은지보다\n함께 정할 범위를 나눠 보자.\n생활의 약속으로 옮기면\n\n공동 지출은 함께 확인하고,\n각자의 작은 선택에는 여유를 남기기.\n\n실제 고객 명반·생성 결과가 아닙니다.\n해석을 합의로 연결하는 편집 예시예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/07-turn-a-difference-into-an-agreement-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-a-different-thirteen",
+      "title": "혼자 읽는 기본 성향은, 다른 열세 장입니다.",
+      "alt": "질문없이선택하는 기본성향리포트13장 실제 목차를 두 묶음으로 구분.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/08-a-different-thirteen.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "혼자 읽는 기본 성향은,\n다른 열세 장입니다.\n\n전체 성향 리포트 · 기본 구성\n\n명궁·신궁, 연애의 즐거움\n배우자 자리, 돈을 쌓는 방식\n집과 자산, 일과 사회적 자리\n바깥 무대와 이동\n형제·동료·친구, 부모와 윗사람\n자녀와 아랫사람\n몸의 약한 고리와 회복\n올해와 내년, 앞으로 8년의 유년\n\n관련 장끼리 묶어 적은 목차입니다.\n유년은 해마다의 흐름을 뜻해요.\n궁합 질문 15장과 다른 선택이에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/08-a-different-thirteen-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-bring-both-profiles",
+      "title": "두 사람의 정보를, 같은 기준으로.",
+      "alt": "자미두수 광어 두사람필수출생정보와 관계유형·장기시기 별도범위 안내.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/09-bring-both-profiles.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 사람의 정보를,\n같은 기준으로.\n각자에게 필요한 필수 정보\n생년월일·달력·시간·성별·지역.\n상대 프로필의 정보도 확인해요.\n두 사람의 관계\n성인 연인·배우자, 가족 등\n실제 관계 유형을 골라 주세요.\n함께 풀고 싶은 질문\n같은 갈등이 언제 반복되는지,\n무엇을 바꾸고 싶은지 적어 주세요.\n\n두 사람 궁합과 장기 대한 전환은\n먼저 다룰 범위를 나눠 선택해요.\n자동으로 묶어 제공하는 상담은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/09-bring-both-profiles-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-make-room-for-a-conversation",
+      "title": "결론을 들이밀기보다, 대화를 여는 한 문장.",
+      "alt": "공식영냥이와 AI작성·기록보관·가격조건·관계단정금지 안내.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/10-make-room-for-a-conversation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "결론을 들이밀기보다,\n대화를 여는 한 문장.\n\n“우리는 이럴 때 다르게 느끼는 것 같아.”\n읽은 내용을 대화의 시작으로 써 보세요.\n\nAI가 계산 근거를 풀어 쓴 참고 상담입니다.\n상대의 속마음이나\n관계의 지속을 보장하지 않아요.\n\n가격과 추가 질문 조건은 기존 화면에서,\n저장된 결과는 같은 계정의 내 상담에서\n확인할 수 있어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-flounder/10-make-room-for-a-conversation-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

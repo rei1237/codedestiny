@@ -1,0 +1,158 @@
+{
+  "id": "sukuyo-bond-radar",
+  "featureKey": "sukuyo-past-life-reading",
+  "title": "숙요 인연 레이더",
+  "notice": "두 사람의 본명숙과 27숙 관계법을 바탕으로 읽는 숙요 인연 레이더입니다. 기준 프로필, 상대의 생년월일과 달력·시간, 관계 목적을 확인합니다. 관계명·거리·방향·각자의 성향·끌림과 갈등·반복 패턴·생활 조언·30일 실행 플랜·대화 예시를 로컬 규칙과 작성된 해석 자료로 구성합니다. 생활과 현실의 해설 및 서로의 역할 행동은 해당 데이터가 있는 경우 표시됩니다. 9개 축의 레이더와 10개 참고 지표는 서비스 내부 지표이며 성공·재회 확률이나 전생의 증거가 아닙니다. 전생 서사는 상징적 이야기로, 실제 과거 생애를 확인한 결과가 아닙니다. 관계 거리는 27숙 안의 관계 분류이며 실제 거주 거리가 아닙니다. 30일 계획은 네 주의 행동 제안이며 날짜별 사건 예측이 아닙니다. AI에 이어 물을 질문문과 복사·외부 AI 열기 기능이 포함되지만, 외부 AI의 답변이나 이용 요금은 포함하지 않습니다. 기본·정밀 궁합, 인연 도감, 서비스 내 AI 상담은 별도 상품입니다. 예시는 이해를 돕기 위한 가상 편집이며 고객 결과나 구매 후기가 아닙니다. 상대와 관계 목적에 따른 현재 구매 조건을 확인해 주세요.",
+  "panels": [
+    {
+      "id": "01-why-this-connection-lingers",
+      "title": "유난히 끌리는데, 왜 같은 장면에서 지칠까요?",
+      "alt": "끌림과 반복되는 감정 패턴을 함께 살피는 숙요 인연 레이더",
+      "src": "/feature-details/crafted/sukuyo-bond-radar/01-why-this-connection-lingers.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "유난히 끌리는데,\n왜 같은 장면에서 지칠까요?\n\n편안한 점과 마음이 쓰이는 지점을\n한 관계 안에서 함께 읽어요.\n지금의 두 사람에게 필요한 말까지.\n\n두 본명숙과 관계 목적을 바탕으로 읽는\n숙요 인연 레이더.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-bond-radar/01-why-this-connection-lingers-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-a-reading-beyond-attraction",
+      "title": "끌림을 읽은 다음, 어떻게 지낼지를 살펴요.",
+      "alt": "관계 구조 반복 패턴 실천 조언으로 나눈 실제 목차",
+      "src": "/feature-details/crafted/sukuyo-bond-radar/02-a-reading-beyond-attraction.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "끌림을 읽은 다음,\n어떻게 지낼지를 살펴요.\n두 사람을 이해하기\n\n각자의 성향 · 관계명 · 거리와 방향\n끌림 · 부딪힘 · 강점과 그림자\n\n반복을 알아차리기\n\n익숙함 · 상징적 전생 서사\n감정 버튼 · 미완의 숙제 · 관계 과제\n\n오늘의 태도로 옮기기\n\n관계 목적별 조언 · 30일 계획\n위험 신호 · 회복 행동 · 대화 문장",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-bond-radar/02-a-reading-beyond-attraction-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-the-distance-between-two-mansions",
+      "title": "관계의 이름, 거리, 서로가 서 있는 방향.",
+      "alt": "27숙의 여섯 관계 유형과 거리 방향의 해석",
+      "src": "/feature-details/crafted/sukuyo-bond-radar/03-the-distance-between-two-mansions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "관계의 이름, 거리,\n서로가 서 있는 방향.\n\n명 · 업태 · 영친\n우쇠 · 안괴 · 성위\n\n두 본명숙의 위치를 비교하고,\n관계 유형과 거리·방향을\n말을 주고받는 방식으로 풀어요.\n\n관계를 읽는 참고 언어\n\n같은 유형이어도 각자의 기질과\n선택한 관계 목적을 함께 살펴요.\n\n숙요의 거리는 27숙 안의 분류예요.\n사는 곳이 가까운지 먼지를 뜻하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-bond-radar/03-the-distance-between-two-mansions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-two-people-and-their-patterns",
+      "title": "나와 상대를 먼저 읽고, 맞물리는 지점을 찾아요.",
+      "alt": "본명숙 성향 끌림 갈등 오행 강점그림자와 조건부 생활 해설",
+      "src": "/feature-details/crafted/sukuyo-bond-radar/04-two-people-and-their-patterns.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나와 상대를 먼저 읽고,\n맞물리는 지점을 찾아요.\n나라는 사람 · 상대라는 사람\n\n각자의 본명숙 해설로\n관계를 대하는 기본 결을 살펴요.\n\n끌림과 부딪힘\n\n서로 당기는 부분과 마찰의 지점,\n오행의 결 · 강점과 그림자\n\n생활에서 맞춰갈 것\n\n자료가 있는 경우 생활·현실의 해설과\n서로의 역할 행동도 함께 보여줘요.\n\n상대의 속마음을 확인한 사실이 아니라,\n대화를 시작하는 해석의 단서예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-bond-radar/04-two-people-and-their-patterns-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-how-to-read-the-radar",
+      "title": "지표가 말하는 것은, 관계의 여러 면이에요.",
+      "alt": "레이더 아홉 축과 열 개 내부 참고 지표의 의미와 한계",
+      "src": "/feature-details/crafted/sukuyo-bond-radar/05-how-to-read-the-radar.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "지표가 말하는 것은,\n관계의 여러 면이에요.\n서로의 힘\n\n끌림 · 안정 · 소모\n장기 인연 · 성장\n\n되풀이와 회복\n\n전생감 · 미완의 숙제\n반복 패턴 · 치유 가능성\n\n현실 지속 가능성까지 더해\n열 개의 참고 지표를 읽어요.\n\n점수는 내부 해석 규칙의 표현이에요.\n관계의 성공 확률이나 전생의 증거,\n심리·건강의 측정값은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-bond-radar/05-how-to-read-the-radar-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-a-story-for-a-familiar-feeling",
+      "title": "전생이라는 이야기를, 지금의 마음을 읽는 언어로.",
+      "alt": "전생 서사의 상징성을 밝히는 가상 해석 예시",
+      "src": "/feature-details/crafted/sukuyo-bond-radar/06-a-story-for-a-familiar-feeling.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "전생이라는 이야기를,\n지금의 마음을 읽는 언어로.\n\n이해를 돕기 위한 예시 · 가상 편집\n\n“오래된 약속처럼 느껴져도,\n지금 서로 지킬 수 있는 약속부터\n한 가지씩 확인해 보세요.”\n\n서사의 익숙함을 현재의 반복 패턴과\n감정 버튼을 살피는 계기로 삼아요.\n\n전생은 상징적 이야기예요.\n실제 과거 생애를 확인한 결과가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-bond-radar/06-a-story-for-a-familiar-feeling-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-the-question-changes-with-the-relationship",
+      "title": "연애에서 묻는 것과, 함께 일할 때 묻는 것은.",
+      "alt": "전체 연애 재회 결혼 짝사랑 친구 가족 동업 직장의 아홉 목적",
+      "src": "/feature-details/crafted/sukuyo-bond-radar/07-the-question-changes-with-the-relationship.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "연애에서 묻는 것과,\n함께 일할 때 묻는 것은.\n마음의 거리\n\n연애 · 재회 · 결혼 · 짝사랑\n\n일상의 관계\n\n친구 · 가족\n\n함께 만드는 일\n\n동업·비즈니스 · 직장 관계\n\n전체 분석을 포함한 아홉 목적 중\n지금 궁금한 관계를 선택해요.\n목적별 리딩과 조언으로 이어져요.\n\n재회·결혼·사업의 결과를 보장하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-bond-radar/07-the-question-changes-with-the-relationship-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-four-weeks-of-small-actions",
+      "title": "한 번에 결론 내리기보다, 네 주 동안 살펴볼 행동.",
+      "alt": "30일 실행 플랜과 대화 문장의 활용",
+      "src": "/feature-details/crafted/sukuyo-bond-radar/08-four-weeks-of-small-actions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 번에 결론 내리기보다,\n네 주 동안 살펴볼 행동.\n30일 실행 플랜\n\n관계 유형에 맞춘 네 주의 제안과\n목적에 따른 추가 조언을 읽어요.\n\n위험 신호 · 회복 행동\n\n반복되는 불편함을 알아차리고,\n지킬 경계와 실천을 정리해요.\n\n실제로 건넬 수 있는 말\n\n대화 예시를 나의 상황에 맞게 바꿔\n서로의 기대부터 확인해 보세요.\n\n날짜별 사건이나 연락 시점의 예측이 아닌,\n생활에 적용할 행동 계획이에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-bond-radar/08-four-weeks-of-small-actions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-a-prompt-to-take-with-you",
+      "title": "읽은 내용을 바탕으로, 더 묻고 싶은 질문까지.",
+      "alt": "리포트에 포함되는 AI 질문문과 외부 답변의 구분",
+      "src": "/feature-details/crafted/sukuyo-bond-radar/09-a-prompt-to-take-with-you.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "읽은 내용을 바탕으로,\n더 묻고 싶은 질문까지.\n리포트에 포함\n\n두 사람의 숙요 해석을 담은 질문문,\n질문문 복사 · 외부 AI 열기\n\n직접 이어가는 대화\n\n복사한 문장을 원하는 AI에 붙여 넣고\n나의 상황을 더해 질문할 수 있어요.\n\n함께 결제되는 것은 아니에요\n\n외부 AI의 답변·이용 요금,\n서비스 내 별도 AI 상담은 미포함\n\n질문문을 제공하는 기능과\nAI가 답변을 생성하는 기능을 구분해 주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-bond-radar/09-a-prompt-to-take-with-you-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-prepare-for-this-connection",
+      "title": "인연의 이름보다, 지금의 태도를 함께 봐요.",
+      "alt": "기준 프로필 상대 출생정보 관계 목적 준비와 기존 분석 버튼 안내",
+      "src": "/feature-details/crafted/sukuyo-bond-radar/10-prepare-for-this-connection.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "인연의 이름보다,\n지금의 태도를 함께 봐요.\n\n기준 프로필과 상대의 출생 정보,\n달력·시간·관계 목적을 확인해요.\n이번 관계의 조건을 살펴 선택하세요.\n\n현재 구매 조건을 확인한 뒤\n인연 레이더 분석하기에서 이어가세요.\n기본·정밀 궁합과 도감은 별도 상품이에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-bond-radar/10-prepare-for-this-connection-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

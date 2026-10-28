@@ -2,13 +2,12 @@
 
 import { useMemo } from "react";
 import type { RefObject } from "react";
-import { buildDetailedInterpretation } from "../lib/animalInterpretation";
 import { getFourPillarStageItems } from "../lib/twelveStages";
 import type { FourPillarStageItem } from "../lib/twelveStages";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import AnimalCompatibilityPanel from "@/components/fortune/animal-twelve/AnimalCompatibilityPanel";
 import type { AnimalDestinyData, AnimalDestinyInput, PartnerResult, SajuEngineResult, TwelveStagePillars } from "../lib/types";
-import { resolveTwelveGrowthAnimalResult } from "../lib/twelveGrowthAnimalResults";
+import type { AnimalPaidState } from "../lib/paidReading";
 import TwelveAnimalAdviceCard from "./TwelveAnimalAdviceCard";
 import TwelveAnimalDexGrid from "./TwelveAnimalDexGrid";
 import TwelveAnimalResultCard from "./TwelveAnimalResultCard";
@@ -27,6 +26,8 @@ type Props = {
   onSaveCard: () => void;
   onShareCard: () => void;
   isExporting: boolean;
+  paid: AnimalPaidState;
+  onRetryPaid: () => void;
 };
 
 type PillarKey = "year" | "month" | "day" | "hour";
@@ -46,6 +47,7 @@ function buildDetailedReportSections(copy: AnimalDestinyCopy) {
 }
 
 // Legacy static-test markers: buildAnimalNarrativeInsights, buildDetailedInterpretation, TAB_LABELS
+// 결과 카드 문장·10개 탭·심층 리포트·도감 설명·루틴·요약 카드는 유료(animal-destiny-unlock)라 서버 응답(paid.reading)으로만 그린다.
 // 네 기둥 십이운성 카드 / 오늘의 대표 동물 프로필 / 사주 근거 요약
 
 function buildPillarMeta(copy: AnimalDestinyCopy): Record<PillarKey, { label: string; title: string; meaning: string; focus: string }> {
@@ -127,6 +129,50 @@ function cleanReportText(text: string) {
   return text.replace(/\s+/g, " ").trim();
 }
 
+function PaidLockPanel({ copy, paid, onRetry }: { copy: AnimalDestinyCopy; paid: AnimalPaidState; onRetry: () => void }) {
+  if (paid.status === "ready") return null;
+  const busy = paid.status === "idle" || paid.status === "loading";
+  const coinPrice = paid.status === "locked" && typeof paid.coinPrice === "number" ? paid.coinPrice : null;
+  return (
+    <section
+      data-animal-paid-lock={paid.status}
+      className="rounded-[30px] border border-dashed border-[#c7dceb] bg-[linear-gradient(160deg,#fbfeff_0%,#f6fbff_58%,#fff8ea_100%)] p-6 text-center shadow-[0_14px_34px_rgba(42,83,121,0.10)]"
+    >
+      {busy ? (
+        <p className="text-sm font-black text-[#3e6d93]">{copy.paidLoadingText}</p>
+      ) : (
+        <>
+          <h3 className="text-lg font-black text-[#224c70]">{copy.paidLockTitle}</h3>
+          <p className="mx-auto mt-2 max-w-xl text-sm font-semibold leading-relaxed text-[#557b9a]">
+            {paid.status === "login" ? copy.paidLoginDesc : paid.status === "error" ? (paid.message || copy.paidErrorDesc) : copy.paidLockDesc}
+          </p>
+          {coinPrice !== null ? (
+            <p className="mt-3 inline-flex rounded-full border border-[#d7c48a] bg-[#fff7df] px-3 py-1 text-xs font-black text-[#8a6b2f]">{copy.paidLockPrice(coinPrice)}</p>
+          ) : null}
+          <div className="mt-4 flex flex-wrap justify-center gap-3">
+            {paid.status === "error" ? (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="min-h-11 rounded-2xl bg-[linear-gradient(130deg,#1d5c74,#1f4566)] px-5 text-sm font-black text-white shadow-lg transition-transform active:scale-95"
+              >
+                {copy.paidRetryButton}
+              </button>
+            ) : (
+              <a
+                href="/"
+                className="inline-flex min-h-11 items-center rounded-2xl bg-[linear-gradient(130deg,#1d5c74,#1f4566)] px-5 text-sm font-black text-white shadow-lg transition-transform active:scale-95"
+              >
+                {copy.paidUnlockButton}
+              </a>
+            )}
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
 export default function AnimalResultScreen({
   animal,
   twelveStages,
@@ -138,11 +184,13 @@ export default function AnimalResultScreen({
   onSaveCard,
   onShareCard,
   isExporting,
+  paid,
+  onRetryPaid,
 }: Props) {
   const copy = useAnimalDestinyCopy();
   const pillarMeta = useMemo(() => buildPillarMeta(copy), [copy]);
   const detailedReportSections = useMemo(() => buildDetailedReportSections(copy), [copy]);
-  const refined = useMemo(() => resolveTwelveGrowthAnimalResult(animal), [animal]);
+  const reading = paid.status === "ready" ? paid.reading : null;
 
   const pillarItems = useMemo<Record<"year" | "month" | "day" | "hour", FourPillarStageItem>>(() => {
     if (sajuResult) return getFourPillarStageItems(sajuResult);
@@ -154,10 +202,6 @@ export default function AnimalResultScreen({
     };
   }, [sajuResult, twelveStages]);
 
-  const detailedReport = useMemo(() => buildDetailedInterpretation({
-    animal,
-    pillars: pillarItems,
-  }), [animal, pillarItems]);
   const stageRhythm = useMemo(() => buildStageRhythm(copy, pillarItems, timeUnknown), [copy, pillarItems, timeUnknown]);
 
   const representativeStage = twelveStages.day || twelveStages.primary || animal.saju_stage;
@@ -174,7 +218,7 @@ export default function AnimalResultScreen({
     <section className="mx-auto w-full max-w-5xl space-y-6 pb-20">
       <TwelveAnimalResultCard
         animal={animal}
-        result={refined}
+        result={reading?.result}
         representativeStage={representativeStage}
       />
 
@@ -245,47 +289,53 @@ export default function AnimalResultScreen({
         </div>
       </div>
 
-      <TwelveAnimalTabs result={refined} />
+      {reading ? (
+        <>
+          <TwelveAnimalTabs animalName={reading.result.animalName} sections={reading.sections} />
 
-      <section className="rounded-[30px] border border-[#c7dceb] bg-[linear-gradient(160deg,#fbfeff_0%,#f6fbff_58%,#fff8ea_100%)] p-5 shadow-[0_14px_34px_rgba(42,83,121,0.13)] sm:p-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-black text-[#224c70]">{copy.deepReportTitle}</h3>
-            <p className="mt-1 text-xs font-semibold leading-relaxed text-[#557b9a]">
-              {copy.deepReportDesc}
-            </p>
-          </div>
-          <span className="rounded-full border border-[#c9deef] bg-white px-3 py-1 text-xs font-black text-[#426d90]">
-            {animal.animal_ko} · {representativeStage}
-          </span>
-        </div>
+          <section className="rounded-[30px] border border-[#c7dceb] bg-[linear-gradient(160deg,#fbfeff_0%,#f6fbff_58%,#fff8ea_100%)] p-5 shadow-[0_14px_34px_rgba(42,83,121,0.13)] sm:p-6">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-black text-[#224c70]">{copy.deepReportTitle}</h3>
+                <p className="mt-1 text-xs font-semibold leading-relaxed text-[#557b9a]">
+                  {copy.deepReportDesc}
+                </p>
+              </div>
+              <span className="rounded-full border border-[#c9deef] bg-white px-3 py-1 text-xs font-black text-[#426d90]">
+                {animal.animal_ko} · {representativeStage}
+              </span>
+            </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {detailedReportSections.map((section) => (
-            <article key={section.key} className="rounded-2xl border border-[#c8def0] bg-white/88 p-4">
-              <p className="text-xs font-black text-[#3e6d93]">{section.title}</p>
-              <p className="mt-2 text-sm font-semibold leading-[1.85] text-[#315d82]">
-                {cleanReportText(detailedReport[section.key])}
-              </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {detailedReportSections.map((section) => (
+                <article key={section.key} className="rounded-2xl border border-[#c8def0] bg-white/88 p-4">
+                  <p className="text-xs font-black text-[#3e6d93]">{section.title}</p>
+                  <p className="mt-2 text-sm font-semibold leading-[1.85] text-[#315d82]">
+                    {cleanReportText(reading.detailed[section.key])}
+                  </p>
+                </article>
+              ))}
+            </div>
+
+            <article className="mt-3 rounded-2xl border border-[#d9d3a2] bg-[#fff9e8] p-4">
+              <p className="text-xs font-black text-[#806e2e]">{copy.growthRoutineTitle}</p>
+              <div className="mt-2 grid gap-2 md:grid-cols-3">
+                {reading.detailed.growthMissions.map((mission, index) => (
+                  <p key={`${index}-${mission}`} className="rounded-xl bg-white/85 p-3 text-xs font-semibold leading-relaxed text-[#6a5425]">
+                    <span className="mr-1 font-black">{index + 1}.</span>{mission}
+                  </p>
+                ))}
+              </div>
             </article>
-          ))}
-        </div>
+          </section>
+        </>
+      ) : (
+        <PaidLockPanel copy={copy} paid={paid} onRetry={onRetryPaid} />
+      )}
 
-        <article className="mt-3 rounded-2xl border border-[#d9d3a2] bg-[#fff9e8] p-4">
-          <p className="text-xs font-black text-[#806e2e]">{copy.growthRoutineTitle}</p>
-          <div className="mt-2 grid gap-2 md:grid-cols-3">
-            {detailedReport.growthMissions.map((mission, index) => (
-              <p key={`${index}-${mission}`} className="rounded-xl bg-white/85 p-3 text-xs font-semibold leading-relaxed text-[#6a5425]">
-                <span className="mr-1 font-black">{index + 1}.</span>{mission}
-              </p>
-            ))}
-          </div>
-        </article>
-      </section>
+      <TwelveAnimalDexGrid currentAnimal={animal} dex={reading?.dex} />
 
-      <TwelveAnimalDexGrid currentAnimal={animal} />
-
-      <TwelveAnimalAdviceCard result={refined} />
+      {reading ? <TwelveAnimalAdviceCard result={reading.result} /> : null}
 
       <AnimalCompatibilityPanel
         animal={animal}
@@ -293,29 +343,31 @@ export default function AnimalResultScreen({
         onAnalyze={onSubmitPartner}
       />
 
-      <div className="space-y-4 rounded-[2.5rem] border border-[#d9ccab] bg-white/90 p-6 shadow-[0_20px_46px_rgba(20,42,72,0.14)]">
-        <h3 className="text-xl font-black text-[#203c5d]">{copy.resultSummaryCardTitle}</h3>
-        <div className="overflow-hidden rounded-3xl border-2 border-[#c8def0] shadow-inner">
-          <TwelveAnimalShareCard ref={shareCardRef} result={refined} />
+      {reading ? (
+        <div className="space-y-4 rounded-[2.5rem] border border-[#d9ccab] bg-white/90 p-6 shadow-[0_20px_46px_rgba(20,42,72,0.14)]">
+          <h3 className="text-xl font-black text-[#203c5d]">{copy.resultSummaryCardTitle}</h3>
+          <div className="overflow-hidden rounded-3xl border-2 border-[#c8def0] shadow-inner">
+            <TwelveAnimalShareCard ref={shareCardRef} result={reading.result} />
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              onClick={onSaveCard}
+              disabled={isExporting}
+              className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(130deg,#1d5c74,#1f4566)] font-black text-white shadow-lg transition-transform active:scale-95 disabled:opacity-50"
+            >
+              <DestinyIcon name="animalPaw" size={20} />
+              {copy.saveImageButton}
+            </button>
+            <button
+              onClick={onShareCard}
+              disabled={isExporting}
+              className="flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-[#1f4566] font-black text-[#1f4566] transition-transform active:scale-95 disabled:opacity-50"
+            >
+              {copy.shareResultButton}
+            </button>
+          </div>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <button
-            onClick={onSaveCard}
-            disabled={isExporting}
-            className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(130deg,#1d5c74,#1f4566)] font-black text-white shadow-lg transition-transform active:scale-95 disabled:opacity-50"
-          >
-            <DestinyIcon name="animalPaw" size={20} />
-            {copy.saveImageButton}
-          </button>
-          <button
-            onClick={onShareCard}
-            disabled={isExporting}
-            className="flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-[#1f4566] font-black text-[#1f4566] transition-transform active:scale-95 disabled:opacity-50"
-          >
-            {copy.shareResultButton}
-          </button>
-        </div>
-      </div>
+      ) : null}
 
       <div className="text-center">
         <p className="text-xs font-bold text-[#5f7590]">{copy.disclaimerLine}</p>

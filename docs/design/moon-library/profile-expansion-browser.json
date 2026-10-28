@@ -1,0 +1,76 @@
+[
+  {
+    "query": "박위 사주",
+    "slug": "park-wi",
+    "matched": true
+  },
+  {
+    "query": "WERACLE",
+    "slug": "park-wi",
+    "matched": true
+  },
+  {
+    "query": "이말년",
+    "slug": "chimchakman",
+    "matched": true
+  },
+  {
+    "query": "곽준빈",
+    "slug": "kwaktube",
+    "matched": true
+  },
+  {
+    "query": "이상혁",
+    "slug": "faker",
+    "matched": true
+  },
+  {
+    "query": "입짧은 햇님",
+    "slug": "haetnim",
+    "matched": true
+  },
+  {
+    "query": "민규 사주",
+    "slug": "seventeen-mingyu",
+    "matched": true
+  },
+  {
+    "query": "조승연",
+    "slug": "woodz",
+    "matched": true
+  },
+  {
+    "query": "추영우 사주",
+    "slug": "choo-young-woo",
+    "matched": true
+  },
+  {
+    "query": "Kim Yoo-jung",
+    "slug": "kim-yoo-jung",
+    "matched": true
+  },
+  {
+    "width": 320,
+    "overflow": false
+  },
+  {
+    "width": 360,
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "overflow": false
+  },
+  {
+    "width": 430,
+    "overflow": false
+  },
+  {
+    "width": 1280,
+    "overflow": false
+  },
+  {
+    "reloadAndBack": true,
+    "creatorFilterAndPagination": true
+  }
+]

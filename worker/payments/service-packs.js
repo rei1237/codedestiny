@@ -63,7 +63,7 @@ function storedPackSnapshot(order) {
   const features=servicePackFeatures(snapshot?.fishId);
   if(!snapshot||snapshot.planId!==order.productId||!snapshot.policyVersion||features.length!==6
     ||!Number.isSafeInteger(snapshot.totalUses)||snapshot.totalUses<=0
-    ||!Number.isSafeInteger(snapshot.validityDays)||snapshot.validityDays<=0
+    ||(snapshot.validityDays!==null&&(!Number.isSafeInteger(snapshot.validityDays)||snapshot.validityDays<=0))
     ||!Array.isArray(snapshot.eligibleFeatureKeys)||snapshot.eligibleFeatureKeys.length!==6
     ||!features.every(key=>snapshot.eligibleFeatureKeys.includes(key)))
     throw paymentError('INVALID_REQUEST','주문에 저장된 이용권 구성을 확인하지 못했어요.');
@@ -82,7 +82,7 @@ export async function grantServicePackInTransaction(tx,order,{recipientUserId=''
       {$set:{'metadata.servicePackGrantGuard':String(order.merchantUid)}},{returnDocument:'after'});
     if(!verified)throw paymentError('INVALID_REQUEST','승인된 이용권 주문을 확인하지 못했어요.');
     const snapshot=storedPackSnapshot(verified),_id=packId(verified.merchantUid);
-    const paidAt=new Date(claimedAt||verified.paidAt),expiresAt=new Date(paidAt.getTime()+snapshot.validityDays*86400000);
+    const paidAt=new Date(claimedAt||verified.paidAt),expiresAt=null;
     if(!Number.isFinite(paidAt.getTime()))throw paymentError('INVALID_REQUEST','결제 시각을 확인하지 못했어요.');
     const right=await tx.findOneAndUpdate(PurchaseEntitlement,{_id},{$setOnInsert:{
       _id,entitlementId:'purchase:'+verified.merchantUid,userId:String(recipientUserId||verified.userId),
@@ -110,7 +110,7 @@ export async function findServicePackUseEvidence(db,{userId,requestId,featureKey
     userId:String(userId),type:'service_pack',status:'granted'});
   if(!right)return null;
   const order=await findPackFunding(db,right,userId,commitMarker);
-  // Expiry controls unused rights; a completed, paid consultation remains readable.
+  // Paid proof is required for both unused rights and completed consultations.
   if(!order)return null;
   if(commitMarker) {
     const marked=await db.findOneAndUpdate(PointHistory,{_id:evidence._id,'metadata.refundedForServiceExecution':{$ne:true}},
@@ -148,7 +148,7 @@ export async function consumeServicePack(db,{userId,entitlementId,requestId,now=
     const paid=await findPackFunding(tx,right,userId,requestId);
     if(!paid)throw paymentError('INVALID_REQUEST','이용권 결제 증빙을 확인하지 못했어요.');
     const updated=await tx.findOneAndUpdate(PurchaseEntitlement,{_id:right._id,userId:String(userId),
-      type:'service_pack',status:'granted',remainingUses:{$gte:1},expiresAt:{$gt:now}},
+      type:'service_pack',status:'granted',remainingUses:{$gte:1}},
       {$inc:{remainingUses:-1},$set:{updatedAt:now}},{returnDocument:'after'});
     if(!updated)throw paymentError('SERVICE_PACK_EXHAUSTED','남은 이용 횟수를 다시 확인해 주세요.');
     const receipt=await tx.findOneAndUpdate(PointHistory,{_id:receiptId},{$setOnInsert:{
@@ -200,7 +200,7 @@ export function presentPack(right,paid,now=new Date()) {
   const snap=right.packSnapshot||{},coverage=servicePackCoverage(right,snap.eligibleFeatureKeys?.[0],snap.unitPriceKRW,now);
   return {entitlementId:String(right._id),orderId:right.orderId,planId:right.productId,label:snap.label,fishId:snap.fishId,
     totalUses:Number(right.totalUses),remainingUses:Number(right.remainingUses),eligibleFeatureKeys:snap.eligibleFeatureKeys||[],
-    expiresAt:right.expiresAt,status:right.status,available:Boolean(paid&&coverage.covered),
+    expiresAt:null,status:right.status,available:Boolean(paid&&coverage.covered),
     unavailableReason:paid?(coverage.reason||''):'PAYMENT_NOT_ACTIVE'};
 }
 export async function listOwnedServicePacks(db,{userId,before='',now=new Date()}) {
@@ -223,7 +223,7 @@ export async function quoteServicePack(db,{userId,requestId,now=new Date()}) {
   if(row.accessMethod||row.paymentId||row.state!=='CREATED')return {requestId,featureKey:row.featureKey,accessMethod:row.accessMethod,
     candidates:[],status:row.state==='REFUNDED'?'restored':'paid',existingUse:null};
   const rights=await db.find(PurchaseEntitlement,{userId:String(userId),type:'service_pack',status:'granted',
-    'packSnapshot.eligibleFeatureKeys':row.featureKey,remainingUses:{$gt:0},expiresAt:{$gt:now}},{sort:{expiresAt:1},limit:100});
+    'packSnapshot.eligibleFeatureKeys':row.featureKey,remainingUses:{$gt:0}},{sort:{grantedAt:1,_id:1},limit:100});
   const paidIds=await fundedOrderIds(db,rights,userId);
   const candidates=rights.filter(r=>paidIds.has(r.orderId)&&servicePackCoverage(r,row.featureKey,row.amountKRW,now).covered)
     .map(r=>presentPack(r,true,now));

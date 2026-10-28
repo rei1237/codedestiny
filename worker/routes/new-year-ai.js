@@ -1,3 +1,4 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import {calculateNatalSaju} from "../../lib/korean-calendar/index.js";
 import { buildSajuNatalAnalysis, SAJU_ELEMENT_KO } from "../lib/saju-natal-analysis.js";
 import { buildLuckNatalInteractions } from '../lib/life-book-ai-saju.js';
@@ -6,6 +7,7 @@ import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { dedupeCodexBody } from "../lib/master-love-codex-quality.js";
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -20,10 +22,15 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
+import { reserveSupportRecoveryAttempt, supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } from "../lib/support-recovery-budget.js";
+import { consultationRefundResponse } from "../lib/consultation-refund-state.js";
+import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 // 🔴 년주·월주는 **절기 프레임**이고 그 경계는 코어의 KST 절기표에서만 나온다.
 // 예전에는 월주를 lunar-javascript `getMonthInGanZhi()` 로 잡았는데, 그 라이브러리의 절기 시각은
@@ -148,6 +155,8 @@ const NEW_YEAR_AI_SECTION_TIMEOUT_MS = 52000;
 const NEW_YEAR_AI_LLM_BUDGET_MS = 82000;
 // 결손 섹션 재생성/압축을 시작하려면 최소 이만큼 남아 있어야 한다. 모자라면 있는 것으로 조립해 전달한다.
 const NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS = 18000;
+// 섹션당 품질 보완 시도 한도. 본문이 끝내 비면 구조 시도 1회를 더 준다(generateNewYearWave).
+const NEW_YEAR_AI_SECTION_MAX_ATTEMPTS = 2;
 // 섹션 응답이 이 길이 미만이면 실패로 본다(전체 기준 minLength 1000은 섹션 단위에 맞지 않는다).
 const NEW_YEAR_AI_SECTION_MIN_LENGTH = 300;
 // 구 조립 경로에서 이 개수 이상 살아 있으면 degraded로 전달한다. 그 미만이면 실패로 돌려
@@ -1160,6 +1169,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
         ok: true,
         accessType: normalizeBillingAccessType(pointHistory?.metadata?.accessType || signal),
         paymentId: clean(pointHistory._id, 160),
+        evidenceRequestId: clean(pointHistory?.metadata?.requestId, 180),
         prepaid: true,
       };
     }
@@ -1175,7 +1185,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
     tokens,
   });
   if (monthlyEvidence) {
-    return { ok: true, accessType: "subscription", paymentId: clean(monthlyEvidence.ledgerId, 160), prepaid: true };
+    return { ok: true, accessType: "subscription", paymentId: clean(monthlyEvidence.ledgerId, 160), evidenceRequestId: clean(monthlyEvidence.sourceId, 180), prepaid: true };
   }
 
   const deferredClauses = deferredTokenClauses(tokens);
@@ -1318,7 +1328,7 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const fortuneData = calculateNewYearFortuneData(normalized.input);
 
   return {
-    systemPrompt: buildSystemPrompt(section),
+    systemPrompt: [buildSystemPrompt(section), expertPersonaText("neoNewYear")].filter(Boolean).join("\n\n"),
     prompt: buildFirstPrompt(normalized.input, fortuneData, section),
   };
 }
@@ -1340,7 +1350,7 @@ function buildSystemPrompt(section = null) {
     "5. 무조건 성공한다, 반드시 망한다 같은 단정적 표현을 쓰지 않습니다.",
     "6. 사용자가 당장 실천할 수 있는 조언을 구체적인 행동과 시기 감각으로 포함합니다.",
     "7. 같은 문장을 반복하지 않습니다.",
-    "8. “AI로 생성되었습니다”, “프롬프트”, “시스템” 같은 표현은 결과에 노출하지 않습니다.",
+    "8. “AI로 생성되었습니다”, “프롬프트”, “시스템” 같은 표현은 결과에 노출하지 않습니다. 생년월일·출생시간 숫자도 본문에 그대로 적지 않습니다(일간·월령·기둥 간지로 말합니다).",
     "9. 사용자가 처음 입력한 더 깊게 보고 싶은 흐름이 있으면 그 주제를 가장 깊게 다룹니다.",
     "10. 답변 마지막에는 추가 질문을 유도하지 말고, 새해를 여는 한 줄 조언으로 마무리합니다.",
     "11. PDF, 챕터, progress, job이라는 단어를 쓰지 않습니다.",
@@ -1519,7 +1529,7 @@ function buildFirstPrompt(input, fortuneData, section = null) {
       "[사용자가 직접 남긴 질문 — 최우선으로 답할 것]",
       `"${input.question}"`,
       "이 질문은 사용자가 가장 궁금해하는 개인화된 질문입니다. 아래 답변 맨 앞에 반드시 소제목 **질문에 대한 답변**을 굵게 쓰고, 그 아래에 이 질문에 대한 직접적이고 구체적인 결론을 먼저 씁니다. 범용적인 총론과 겹치지 않게, 이 질문의 단어와 맥락에 특화된 근거와 조언을 담으세요.",
-      "첫 2~3문장에서 질문에 답하세요. 선택 질문이면 권하는 방향과 조건, 시기 질문이면 계산된 기간 안의 구체적인 시기와 이유, 관계 질문이면 확인 가능한 흐름과 대화 방법을 제시합니다. 계산이나 입력만으로 판단할 수 없는 부분은 무엇이 부족한지 분명히 밝히고, 그래도 지금 할 수 있는 행동을 답합니다.",
+      "첫 2~3문장에서 질문에 답하세요. 선택 질문이면 권하는 방향과 조건, 시기 질문이면 계산된 기간 안의 구체적인 시기와 이유, 관계 질문이면 확인 가능한 흐름과 대화 방법을 제시합니다. 선택지가 둘 이상이면 하나를 먼저 권하거나 '어떤 조건이면 무엇을 먼저'처럼 순서를 정하고, '둘 다 장단점이 있다'로 끝내지 않습니다. 그 결론의 이유를 첫 두 문단 안에서 계산값(목표 연도 세운의 십성, 현재 대운, 원국의 십성 구성)으로 직접 짚습니다. 계산이나 입력만으로 판단할 수 없는 부분은 무엇이 부족한지 분명히 밝히고, 그래도 지금 할 수 있는 행동을 답합니다.",
       "",
     ] : []),
     // 다른 분야 섹션에는 질문을 맥락으로만 준다 — 답변 소제목은 만들지 않는다.
@@ -1691,17 +1701,21 @@ function describeConsistencyIssuesForRepair(issues = [], fortuneData = null) {
 }
 
 // 재생성은 "처음부터 다시"가 아니라 "직전 결과를 살리며 보강"이다 — 살릴 내용을 잃지 않는다.
-function buildSectionPrompt(input, fortuneData, section, repairLines = [], previousText = "") {
-  const base = buildFirstPrompt(input, fortuneData, section);
+function buildSectionPrompt(input, fortuneData, section, repairLines = [], previousText = "", priorSections = []) {
+  const opening = priorSections.find(row => row.key === "opening" && clean(row.text));
+  const decision = section.key !== "opening" && opening
+    ? ["", "[앞 장의 질문 답변 — 판단의 연속성]", clean(opening.text).split(/\*\*타고난 성향/)[0].slice(0, 2000),
+      "위 답변은 앞 장에서 이미 제시한 판단입니다. 이번 장의 권고 방향·우선순위·시기를 그 판단과 연결하세요. 병행·준비 단계와 최종 선택을 구분하고, 다른 선택지가 더 낫다고 결론을 뒤집지 마세요. 달라지는 조건이 있다면 그 조건을 명시하세요. 앞 장 문장을 반복하지 마세요."]
+    : [];
+  const base = [buildFirstPrompt(input, fortuneData, section), ...decision].join("\n");
   if (!repairLines.length) return base;
+  // 첫 시도에는 직전 본문이 없다 — 빈 "다시 쓰세요" 블록을 붙이지 않는다.
   return [
     base,
     "",
     "[이번에 반드시 고칠 점]",
     ...repairLines,
-    "",
-    "[직전에 쓴 이 부분 — 살릴 내용은 유지하고 위 지적을 반영해 다시 쓰세요]",
-    previousText,
+    ...(clean(previousText) ? ["", "[직전에 쓴 이 부분 — 살릴 내용은 유지하고 위 지적을 반영해 다시 쓰세요]", previousText] : []),
   ].join("\n");
 }
 
@@ -1865,13 +1879,14 @@ function buildMockConsultationText(options = {}) {
 // 섹션 하나를 생성한다. **절대 throw 하지 않는다** — 실패를 값으로 돌려주어
 // 한 섹션의 실패가 나머지 세 섹션까지 죽이지 못하게 한다(master-love-codex의 챕터 폴백과 같은 철학).
 async function generateConsultationSection(env, options) {
-  const { input, fortuneData, section, cache, timeoutMs, logContext, repairLines = [], previousText = "" } = options;
+  const { input, fortuneData, section, cache, timeoutMs, logContext, repairLines = [], previousText = "", priorSections = [] } = options;
+  const recoveryOptions = supportRecoveryGenerationOptions(options.supportRecovery);
   const base = { key: section.key, section, provider: "", model: "", truncated: false, isMock: false };
   // 예산이 바닥났으면 호출 자체를 건너뛴다(직전 텍스트가 있으면 그대로 살린다).
   if (!(timeoutMs > 0)) return { ...base, text: previousText, ok: false, reason: "BUDGET_EXHAUSTED" };
   try {
-    const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText), {
-      systemPrompt: buildSystemPrompt(section),
+    const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections), {
+      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(section)),
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
@@ -1883,18 +1898,21 @@ async function generateConsultationSection(env, options) {
       fallbackMinChars: Math.round(section.minChars * 0.4),
       cache,
       logContext,
+      ...recoveryOptions,
     });
     const provider = clean(ai?.provider || ai?.model || "gemini");
     const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
     const text = clean(ai?.text);
     if (!ai?.ok || isMock || (options.allowShortDraft ? typeof ai?.text !== "string" || !countPaidReportBodyChars(text) : text.length < NEW_YEAR_AI_SECTION_MIN_LENGTH)) {
-      return { ...base, text: previousText, ok: false, isMock, reason: clean(ai?.error || ai?.message || "SECTION_FAILED", 120) };
+      const failure = !ai?.ok ? { code: /^[A-Z][A-Z0-9_]{0,79}$/.test(ai?.error || "") ? ai.error : "LLM_PROVIDER_UNAVAILABLE", ...safeGeminiFailure(ai) } : null;
+      return { ...base, text: previousText, ok: false, isMock, reason: failure?.code || (isMock ? "MOCK_PROVIDER_BLOCKED" : "SECTION_CONTENT_EMPTY"), failure };
     }
     // ai.truncated(finishReason === "MAX_TOKENS")를 여기서 처음으로 실제로 읽는다.
-    return { ...base, text, ok: true, truncated: ai?.truncated === true, provider, model: clean(ai?.model), reason: "" };
+    return { ...base, text, ok: true, truncated: ai?.truncated === true, provider, model: clean(ai?.model), reason: "", failure: null };
   } catch (error) {
-    console.error("[new-year-ai] section", section.key, clean(error?.message, 200));
-    return { ...base, text: previousText, ok: false, reason: clean(error?.code || error?.message, 120) };
+    const failure = { code: "LLM_PROVIDER_UNAVAILABLE", ...safeGeminiFailure(error) };
+    console.error("[new-year-ai] section", section.key, failure);
+    return { ...base, text: previousText, ok: false, reason: failure.code, failure };
   }
 }
 
@@ -2010,7 +2028,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
     const overflow = quality.totalChars - maxTotalChars;
     const targetMaxChars = Math.max(longest.section.minChars, countConsultationChars(longest.text) - overflow - 200);
     const compressed = await callGeminiText(env, buildConsultationCompressionPrompt(longest.text, longest.section.minChars, targetMaxChars), {
-      systemPrompt: buildSystemPrompt(longest.section),
+      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(longest.section)),
       taskType: "fortune",
       temperature: 0.52,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
@@ -2305,6 +2323,13 @@ async function handleEnsureAccess(request, env) {
   }, { status: 402 });
 }
 
+// 결제 증빙 1건 = 상담 1건(2026-10-16). 같은 구매를 차감 행·실행 기록·결제 행 어느 쪽 ID 로 내밀어도
+// 같은 claim 에 걸리도록 원 결제 요청 키도 함께 묶는다. 이용권·관리자는 ID 가 없어 건너뛴다.
+function startEvidenceIds(access = {}) {
+  const paymentId = clean(access.paymentId, 160);
+  return paymentId ? [paymentId, clean(access.evidenceRequestId || access.billingRequestId, 180)] : [];
+}
+
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
   const token = clean(body?.accessToken || request.headers.get("x-new-year-ai-access-token"));
   if (token) {
@@ -2343,6 +2368,10 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
 async function generateNewYearWave(env, input, fortuneData, options) {
   const results = NEW_YEAR_AI_SECTIONS.map(section => ({ key: section.key, text: '', ok: false,
     ...(options.savedSections || []).find(row => row.key === section.key), section }));
+  const recovery = options.supportRecovery;
+  supportRecoveryGenerationOptions(recovery);
+  const preserved = new Set(Object.keys(recovery?.preserved || {}));
+  assertSupportRecoveryPreserved(recovery, results.map(row => ({ key: row.key, body: row.text })));
   const attempts = options.attempts || {};
   const qualityOptions = { minTotalChars: NEW_YEAR_AI_MIN_TOTAL_CHARS, maxTotalChars: NEW_YEAR_AI_MAX_TOTAL_CHARS,
     fortuneData, hasCustomQuestion: options.hasCustomQuestion };
@@ -2351,9 +2380,21 @@ async function generateNewYearWave(env, input, fortuneData, options) {
     .flatMap(issue => /^MISSING_(EXPERT_TOPICS|CATEGORIES|MONTHS):/.test(issue)
       ? issue.slice(issue.indexOf(":") + 1).split(/[|,]/).map(item => `${issue.split(":")[0]}:${item}`)
       : issue.startsWith("SECTION_COUNT:") ? ["SECTION_COUNT"] : [issue]);
+  // 수치가 붙은 카운터 이슈는 이름으로 묶고 수치로 비교한다. 문자열 그대로 비교하면
+  // MONTHLY_PILLAR_CITATIONS:0/12 → 3/12 같은 개선도 새 이슈가 되어 섹션이 끝내 채택되지 않는다.
+  const issueKey = issue => issue.startsWith("MONTHLY_PILLAR_CITATIONS:") ? "MONTHLY_PILLAR_CITATIONS" : issue;
+  const issueScore = issue => issueKey(issue) === issue ? 0 : Number(issue.split(":")[1].split("/")[0]) || 0;
+  const isNewIssue = (issue, before) => !before.some(prior => issueKey(prior) === issueKey(issue) && issueScore(issue) >= issueScore(prior));
+  const improves = (after, before) => after.length < before.length
+    || after.some(issue => before.some(prior => issueKey(prior) === issueKey(issue) && issueScore(issue) > issueScore(prior)));
   const valid = row => row.ok && !row.truncated && !row.isMock && countPaidReportBodyChars(row.text) > 0
     && !hasRepeatedReportPassage(row.text);
   const accepted = row => valid(row);
+  // 섹션 하나 때문에 상담 전체를 버리지 않는다. 보완은 섹션당 2회까지이고, 한도를 쓴 섹션은 남은 이슈를 안고
+  // 배달한다. 끝내 본문이 없는 섹션만 다른 섹션이 정리된 뒤 구조 시도 1회를 더 받는다.
+  const used = key => Number(attempts[key] || 0);
+  const open = row => !preserved.has(row.key) && used(row.key) < NEW_YEAR_AI_SECTION_MAX_ATTEMPTS;
+  const rescuable = row => !preserved.has(row.key) && !accepted(row) && used(row.key) < NEW_YEAR_AI_SECTION_MAX_ATTEMPTS + 1;
   const assess = () => {
     const quality = validateConsultationQuality(assembleConsultationSections(results), qualityOptions);
     quality.issues = contentIssues(results);
@@ -2368,20 +2409,28 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       if (repeated) targets.set(repeated.key, ['DUPLICATE_NARRATIVE']);
     }
     if (quality.issues.length && !targets.size) targets.set('overview', quality.issues);
-    quality.ok = quality.issues.length === 0 && results.every(accepted) && targets.size === 0;
+    for (const key of preserved) targets.delete(key);
+    quality.ok = results.every(accepted) && results.every(row => !targets.has(row.key) || !open(row));
     return { quality, targets };
   };
   let { quality, targets } = assess();
-  const candidate = results.find(row => !row.text) || results.find(row => targets.has(row.key));
+  const blocked = results.find(row => row.failure && !preserved.has(row.key));
+  if (blocked && (blocked.failure.retryable === false || used(blocked.key) >= NEW_YEAR_AI_SECTION_MAX_ATTEMPTS + 1)) {
+    throw Object.assign(new Error(blocked.failure.message), blocked.failure, { code: "LLM_PROVIDER_UNAVAILABLE", retryable: false });
+  }
+  const candidate = blocked || results.find(row => !row.text && open(row)) || results.find(row => targets.has(row.key) && open(row))
+    || results.find(rescuable);
+  if (!candidate && !results.every(accepted)) {
+    throw Object.assign(new Error('신년운세 해당 분야의 생성 한도 안에서 품질을 확인하지 못했습니다.'), { code: 'LLM_QUALITY_CHECK_FAILED' });
+  }
   if (candidate) {
-    if (Number(options.attempts?.[candidate.key] || 0) >= 2) {
-      throw Object.assign(new Error('신년운세 해당 분야의 생성 한도 안에서 품질을 확인하지 못했습니다.'), { code: 'LLM_QUALITY_CHECK_FAILED' });
-    }
     const remaining = Number(options.deadlineAt) - Date.now();
     if (remaining > NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS) {
       await options.onReserve(candidate.key, valid(candidate) && !mapIssuesToSections({ issues: contentIssues(results) }, results).has(candidate.key));
       const generated = await generateConsultationSection(env, {
         input, fortuneData, section: candidate.section, allowShortDraft: true,
+        supportRecovery: recovery,
+        priorSections: results.filter(row => row.key !== candidate.key && row.ok && !row.truncated && !row.isMock),
         timeoutMs: Math.min(NEW_YEAR_AI_SECTION_TIMEOUT_MS, remaining),
         cache: null, logContext: options.logContext,
         repairLines: [
@@ -2390,6 +2439,23 @@ async function generateNewYearWave(env, input, fortuneData, options) {
         ],
         previousText: candidate.text,
       });
+      if (generated.failure) {
+        // A provider rejection affects the request, not the other five fields.
+        // Keep any accepted draft and its last error before ending this attempt.
+        candidate.failure = generated.failure;
+        candidate.reason = generated.reason;
+        await options.onCheckpoint(results);
+        throw Object.assign(new Error(generated.failure.message), generated.failure, {
+          code: "LLM_PROVIDER_UNAVAILABLE",
+          retryable: generated.failure.retryable && used(candidate.key) < NEW_YEAR_AI_SECTION_MAX_ATTEMPTS + 1,
+        });
+      }
+      // 본문이 없는 섹션의 마지막 시도는 무엇이든 살린다: 새 이슈가 생겨도 채택하고, 잘린 응답은 완결 문장까지 남긴다.
+      const lastChance = !valid(candidate) && used(candidate.key) >= NEW_YEAR_AI_SECTION_MAX_ATTEMPTS;
+      if (lastChance && generated.ok && generated.truncated) Object.assign(generated, { truncated: false, text: trimToLastCompleteSentence(generated.text) });
+      // 월운처럼 같은 틀을 12번 쓰는 섹션은 상투 문장이 글자 그대로 되풀이되기 쉽다. 문장 하나 때문에 응답을 버리지 않고
+      // (원칙 17) 이 섹션 안과 다른 섹션에 이미 있는 문장만 반복 검사와 같은 키로 지운다(NY1 실호출 2026-10-10).
+      if (generated.ok) generated.text = dedupeCodexBody(generated.text, results.filter(row => row !== candidate).map(row => row.text));
       if (valid(generated)) {
         const index = results.indexOf(candidate);
         const before = contentIssues(results);
@@ -2397,16 +2463,16 @@ async function generateNewYearWave(env, input, fortuneData, options) {
         const trimmed = { ...generated, text: trimPaidReportText(generated.text, candidate.section.maxChars) };
         const next = results.map((row, i) => i === index ? trimmed : row);
         const after = contentIssues(next);
-        const noNewIssues = contentIssues(sourceRows).every(issue => before.includes(issue)) && after.every(issue => before.includes(issue));
-        if (valid(trimmed) && noNewIssues && !hasRepeatedReportPassage(assembleConsultationSections(sourceRows))
+        const noNewIssues = [...contentIssues(sourceRows), ...after].every(issue => !isNewIssue(issue, before));
+        if (valid(trimmed) && (lastChance || noNewIssues && !hasRepeatedReportPassage(assembleConsultationSections(sourceRows))
           && !hasRepeatedReportPassage(assembleConsultationSections(next))
-          && (!valid(candidate) || after.length < before.length || countPaidReportBodyChars(trimmed.text) > countPaidReportBodyChars(candidate.text))) Object.assign(candidate, trimmed);
+          && (!valid(candidate) || improves(after, before) || countPaidReportBodyChars(trimmed.text) > countPaidReportBodyChars(candidate.text)))) Object.assign(candidate, trimmed);
       }
       await options.onCheckpoint(results);
       ({ quality, targets } = assess());
     }
   }
-  return { complete: quality.ok, retryable: [...targets.keys()].some(key => Number(attempts[key] || 0) < 2), text: quality.text, quality, savedSections: results,
+  return { complete: quality.ok, retryable: results.some(row => targets.has(row.key) && open(row) || rescuable(row)), text: quality.text, quality, savedSections: results,
     sections: results.filter(row => row.text).map(row => ({ key: row.key, label: row.section.label, text: cleanForbiddenResult(row.text) })),
     provider: clean(results.find(row => row.provider)?.provider), model: clean(results.find(row => row.model)?.model),
   };
@@ -2431,9 +2497,22 @@ async function finishNewYearDelivery({ request, env, auth, access, pending }) {
   } catch (cause) {
     throw Object.assign(new Error('이용 처리 확인 중입니다. 같은 상담에서 다시 시도해 주세요.'), { code: 'RESULT_DELIVERY_PENDING', resultId: pending.id, cause });
   }
-  const completed = await saveNewYearState({ id: pending.id, userId: auth.userId, lockToken: pending.llmMeta.lockToken || '', status: 'delivery_pending', values: { status: 'completed', usageAppliedAt: new Date() } });
+  const completed = await saveNewYearState({ id: pending.id, userId: auth.userId, lockToken: pending.llmMeta.lockToken || '', status: 'delivery_pending', values: {
+    status: 'completed', usageAppliedAt: new Date(),
+    ...(pending.llmMeta?.supportRecovery ? { 'llmMeta.supportRecovery.active': false, 'llmMeta.supportRecovery.finishedAt': new Date().toISOString() } : {}),
+  } });
   logNewYearAi("Generate Success", { requestId: pending.idempotencyKey, sessionId: pending.id, totalChars: pending.llmMeta?.quality?.totalChars, qualityStatus: 'passed', persisted: true });
   return completed;
+}
+
+async function settleNewYearFailureRefund(env, id, userId) {
+  try {
+    const { settleFailedConsultationRefund } = await import('../lib/consultation-delivery-refund.js');
+    return await settleFailedConsultationRefund(env, { service: 'new-year-ai', id, userId });
+  } catch {
+    console.warn('[new-year-ai] refund settlement pending');
+    return { ok: false, refundStatus: 'pending', retryable: true };
+  }
 }
 
 async function handleStart(request, env, _routeContext = null, recoveryAuth = null) {
@@ -2446,6 +2525,8 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   if (body.resumeSessionId) {
     const stored = await NewYearAiConsultation.findOne({ id: clean(body.resumeSessionId), userId: clean(auth.userId) }).lean();
     if (!stored) return notFound();
+    const refund = consultationRefundResponse(stored);
+    if (refund) return json(refund.body, { status: refund.status });
     if (stored.status === 'completed') return json(publicSession(stored));
     if (!stored.llmMeta?.resumeBody) return invalidInput('원래 상담 정보를 확인하지 못했습니다.', 409);
     body = { ...stored.llmMeta.resumeBody, idempotencyKey: stored.idempotencyKey, requestId: stored.idempotencyKey };
@@ -2457,12 +2538,17 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   const normalized = normalizeConsultationInput(body);
   if (!normalized.ok || idempotencyKey.length < 12) return invalidInput(normalized.message || '요청 키를 확인하지 못했습니다.');
   const existing = await NewYearAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+  const refund = consultationRefundResponse(existing);
+  if (refund) return json(refund.body, { status: refund.status });
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput('같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.', 409);
   if (existing?.status === 'completed') return json(publicSession(existing));
   if (existing?.status === 'generation_failed') return json({ ok: false, reason: 'GENERATION_FAILED', message: LLM_ERROR_MESSAGE }, { status: 409 });
   const pricing = getPricing();
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) return access.reason === 'LOGIN_REQUIRED' ? loginRequired() : paymentVerifyFailed();
+  const evidenceIds = startEvidenceIds(access);
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   const sessionId = existing?.id || `nyai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
   if (existing?.status === 'delivery_pending') return json(publicSession(await finishNewYearDelivery({ request, env, auth, access, pending: existing })));
   if (existing?.status === 'generating' && existing.llmMeta?.lockedAt && Date.now() - new Date(existing.llmMeta.lockedAt).getTime() < NEW_YEAR_AI_GENERATING_FRESH_MS) {
@@ -2471,6 +2557,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   let fortuneData;
   try { fortuneData = existing?.llmMeta?.fortuneData || calculateNewYearFortuneData(normalized.input); }
   catch (error) {
+    if (!existing) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if (!existing && access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'cancel', idempotencyKey, sessionId,
       code: clean(error?.code || 'FORTUNE_DATA_FAILED', 80), message: clean(error?.message, 500) }).catch(() => {});
     return serverError(SERVER_ERROR_MESSAGE, 500);
@@ -2485,6 +2572,8 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     } catch (error) {
       if (error?.code !== 11000) throw resultStorageUnavailable(sessionId);
       const duplicate = await NewYearAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+      const refund = consultationRefundResponse(duplicate);
+      if (refund) return json(refund.body, { status: refund.status });
       if (duplicate?.status === 'completed') return json(publicSession(duplicate));
       return json({ ok: true, sessionId: duplicate?.id, status: 'generating' }, { status: 202 });
     }
@@ -2500,24 +2589,31 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   if (!claimed) {
     const current = await NewYearAiConsultation.findOne({ id: sessionId, userId: clean(auth.userId) }).lean();
     if (!current) throw resultStorageUnavailable(sessionId);
+    const refund = consultationRefundResponse(current);
+    if (refund) return json(refund.body, { status: refund.status });
     if (current.status === 'completed') return json(publicSession(current));
     return json({ ok: true, sessionId, status: 'generating' }, { status: 202 });
   }
+  let refundAfterUnlock = false;
   try {
     const attempts = { ...(claimed.llmMeta?.attempts || {}) };
-    const generated = await generateConsultationText(env, normalized.input, fortuneData, {
+    const generated = await runWithAiLocale(storedAiLocale(claimed), async () => generateConsultationText(env, normalized.input, fortuneData, {
       hasCustomQuestion: clean(normalized.input.question).length >= 2, deadlineAt: startedAt + NEW_YEAR_AI_LLM_BUDGET_MS,
       savedSections: claimed.llmMeta?.savedSections || [], attempts,
+      supportRecovery: claimed.llmMeta?.supportRecovery,
       onReserve: async (key, lengthRepair) => {
+        await reserveSupportRecoveryAttempt({ Model: NewYearAiConsultation, id: sessionId, userId: auth.userId, lockToken });
         if (lengthRepair) attempts[`${key}:lengthRepair`] = 1;
         attempts[key] = Number(attempts[key] || 0) + 1;
         await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { 'llmMeta.attempts': attempts } });
       },
       onCheckpoint: async savedSections => {
+        assertSupportRecoveryPreserved(claimed.llmMeta?.supportRecovery, savedSections.map(row => ({ key: row.key, body: row.text })));
         await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { 'llmMeta.savedSections': savedSections } });
       },
       logContext: safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
-    });
+    }));
+    assertSupportRecoveryPreserved(claimed.llmMeta?.supportRecovery, generated.savedSections.map(row => ({ key: row.key, body: row.text })));
     const stored = await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: {
       status: generated.complete ? 'delivery_pending' : 'partial',
       messages: [{ role: 'user', content: normalized.input.topic, createdAt: new Date(startedAt) }, { role: 'assistant', content: generated.text, createdAt: new Date() }],
@@ -2530,15 +2626,31 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     return json(publicSession(await finishNewYearDelivery({ request, env, auth, access: freshAccess, pending: stored })));
   } catch (error) {
     if (['RESULT_STORAGE_UNAVAILABLE', 'RESULT_DELIVERY_PENDING'].includes(error?.code)) throw error;
-    await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { status: 'generation_failed', generationError: {
+    const failure = error?.code === 'LLM_PROVIDER_UNAVAILABLE' ? safeGeminiFailure(error) : {};
+    if (error?.code === 'LLM_PROVIDER_UNAVAILABLE' && error.retryable) {
+      await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { status: 'partial', generationError: {
+        code: error.code, ...failure, at: new Date().toISOString(),
+      } } });
+      return json({ ok: false, reason: error.code, retryable: true, sessionId, message: LLM_ERROR_MESSAGE }, { status: 503 });
+    }
+    const failedAt = new Date().toISOString();
+    await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { status: 'generation_failed', 'llmMeta.refundEligibleAt': failedAt,
+      ...(claimed.llmMeta?.supportRecovery ? { 'llmMeta.supportRecovery.active': false, 'llmMeta.supportRecovery.finishedAt': failedAt } : {}), generationError: {
       code: clean(error?.code || 'LLM_GENERATION_FAILED', 80), message: clean(error?.message, 500), at: new Date().toISOString(),
+      ...failure,
     } } });
-    if (access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'cancel', idempotencyKey, sessionId,
-      code: clean(error?.code || 'LLM_GENERATION_FAILED', 80), message: clean(error?.message, 500) }).catch(() => {});
+    refundAfterUnlock = true;
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
+    if (access.deferredUsage) {
+      const cleanup = await callDeferredUsageRoute({ request, env, auth, path: 'cancel', idempotencyKey, sessionId,
+        code: clean(error?.code || 'LLM_GENERATION_FAILED', 80), message: clean(error?.message, 500) }).then(() => true, () => false);
+      await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, status: 'generation_failed', values: { 'llmMeta.billingCleanupPending': !cleanup } });
+    }
     return json({ ok: false, reason: 'LLM_ERROR', message: LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {
-    await NewYearAiConsultation.updateOne({ id: sessionId, userId: clean(auth.userId), 'llmMeta.lockToken': lockToken },
-      { $set: { 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '' } }).catch(() => {});
+    const released = await NewYearAiConsultation.findOneAndUpdate({ id: sessionId, userId: clean(auth.userId), 'llmMeta.lockToken': lockToken },
+      { $set: { 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '' } }, { new: true }).lean().catch(() => null);
+    if (refundAfterUnlock && released?.status === 'generation_failed') await settleNewYearFailureRefund(env, sessionId, auth.userId);
   }
 }
 
@@ -2606,6 +2718,8 @@ async function handleResult(request, env) {
     id: sessionId,
   }).lean();
   if (!doc) return notFound();
+  const refund = consultationRefundResponse(doc);
+  if (refund) return json(refund.body, { status: refund.status });
   // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
   if (["generating", "partial", "delivery_pending"].includes(doc.status)) {
     if (doc.llmMeta?.resumeBody) {

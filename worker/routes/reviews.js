@@ -34,13 +34,15 @@ import {
 } from "../lib/review-eligibility.js";
 import { screenReviewText } from "../lib/review-moderation.js";
 import { maskDisplayName } from "../lib/mask-display-name.js";
-import { REVIEW_REWARD_AMOUNT } from "../lib/review-reward.js";
+import { REVIEW_REWARD_AMOUNT, REVIEW_REWARD_KRW } from "../lib/review-reward.js";
+
+import { normalizeReviewSocialProof } from "../../js/review-sharing.mjs";
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
 const PUBLIC_CACHE_HEADERS = Object.freeze({ "Cache-Control": "public, max-age=60" });
 const PUBLIC_REVIEW_PROJECTION = "authorName authorImage productId productName rating title body locale isVerifiedPurchase usageSource displayedAt";
-const OWN_REVIEW_PROJECTION = `${PUBLIC_REVIEW_PROJECTION} status adminNote createdAt`;
+const OWN_REVIEW_PROJECTION = `${PUBLIC_REVIEW_PROJECTION} status adminNote createdAt socialProof reviewReward`;
 
 // 공개 조회(목록·요약)는 엣지 캐시를 지난다. TTL 은 위 Cache-Control 과 같은 60초라 클라이언트가
 // 보던 신선도 계약은 그대로다. 바뀌는 것은 "그 60초를 누가 지키느냐" 뿐이다 — 지금까지는 아무도
@@ -116,6 +118,8 @@ export function toOwnReview(doc) {
     //    가릴 이유가 없고, 가리면 "내 후기" 목록에서 어느 것이 무엇인지 식별이 어려워진다.
     //    이 한 줄이 spread 뒤에 와야 마스킹을 덮는다.
     authorName: toText(doc?.authorName),
+    socialProof: normalizeReviewSocialProof(doc?.socialProof?.platform, doc?.socialProof?.url),
+    reviewReward: { granted: Boolean(doc?.reviewReward?.granted), amount: Number(doc?.reviewReward?.amount || 0), grantedAt: doc?.reviewReward?.grantedAt || null },
     status: toText(doc?.status),
     adminNote: toText(doc?.adminNote),
     createdAt: doc?.createdAt ? new Date(doc.createdAt).toISOString() : "",
@@ -252,7 +256,7 @@ async function handleProducts(env) {
 
   return json({
     ok: true,
-    rewardPolicy: { amount: REVIEW_REWARD_AMOUNT, currency: "moonstone", trigger: "approved" },
+    rewardPolicy: { amount: REVIEW_REWARD_AMOUNT, valueKRW: REVIEW_REWARD_KRW, currency: "moonstone", trigger: "approved" },
     items: products.map((product) => ({
       ...product,
       total: statsByProduct.get(product.productId)?.total || 0,
@@ -294,6 +298,11 @@ async function handleCreate(request, env) {
   await connectDb(env);
 
   const body = await readJson(request);
+  const submissionId = toText(body?.submissionId);
+  if (submissionId && !/^[a-f0-9]{24}$/.test(submissionId)) throw createHttpError(400, "신청 정보를 새로고침한 뒤 다시 제출해 주세요.", { code: "INVALID_SUBMISSION_ID" });
+  const socialProof = normalizeReviewSocialProof(body?.socialProof?.platform, body?.socialProof?.url);
+  if (!socialProof) throw createHttpError(400, "선택한 SNS의 HTTPS 후기 게시글 주소를 입력해 주세요.", { code: "INVALID_SOCIAL_PROOF" });
+  if (socialProof.url && body?.socialProof?.disclosed !== true) throw createHttpError(400, "SNS 후기에 보상 이벤트 참여 사실을 표시해 주세요.", { code: "DISCLOSURE_REQUIRED" });
   const productId = toText(body?.productId);
   const product = getReviewProduct(productId);
   if (!product) {
@@ -337,6 +346,8 @@ async function handleCreate(request, env) {
 
   try {
     const doc = await Review.create({
+      ...(submissionId ? { _id: submissionId } : {}),
+      socialProof: { ...socialProof, disclosed: Boolean(socialProof.url && body?.socialProof?.disclosed === true) },
       userId: String(auth.userId),
       authorName: authorName.slice(0, 40),
       authorImage: toText(userDoc?.profileImage).slice(0, 500),
@@ -364,7 +375,13 @@ async function handleCreate(request, env) {
     }, { status: 201 });
   } catch (error) {
     if (Number(error?.code) === 11000) {
-      throw createHttpError(409, "이미 이 상품에 리뷰를 남기셨습니다.", { code: "DUPLICATE_REVIEW" });
+      if (submissionId) {
+        const existing = await Review.findOne({ _id: submissionId, userId: String(auth.userId) }).select("productId rating title body status socialProof").lean();
+        if (existing && existing.productId === productId && existing.rating === rating && existing.title === title && existing.body === reviewBody && (existing.socialProof?.url || "") === socialProof.url && (existing.socialProof?.platform || "") === socialProof.platform) {
+          return json({ ok: true, id: submissionId, status: existing.status, idempotent: true });
+        }
+      }
+      throw createHttpError(409, "이미 접수된 신청인지 내역을 확인해 주세요. 새 후기 제출이 계속 안 되면 고객센터로 문의해 주세요.", { code: "DUPLICATE_REVIEW" });
     }
     throw error;
   }

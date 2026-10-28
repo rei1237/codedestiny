@@ -14,10 +14,10 @@ const RESULT = "app/fusion-fortune/FusionResultThread.tsx";
 test("fusion fortune renders the premium flow and optimized hero asset", () => {
   const client = read(CLIENT);
   assert.match(client, /여섯 체계 교차 판정/);
-  assert.match(client, /여섯 체계의 독립 해석/);
-  assert.match(client, /fusion-guardian-celestial-hero\.webp/);
+  assert.match(client, /체계별 6장 · 영역별 8장/);
+  assert.match(client, /fusion-fortune-masters-v3-960\.webp/);
   assert.match(client, /priority/);
-  assert.ok(fs.existsSync(path.join(root, "public/images/fusion-fortune/fusion-guardian-celestial-hero.webp")));
+  assert.ok(fs.existsSync(path.join(root, "public/images/service-introductions/fusion-fortune-masters-v3-960.webp")));
 });
 
 test("fusion fortune charges through the shared coin gate, not its own PortOne flow", () => {
@@ -28,8 +28,8 @@ test("fusion fortune charges through the shared coin gate, not its own PortOne f
   assert.match(client, /ensurePaidAccess/);
   // 결제 게이트와 생성이 같은 requestId 를 써야 증빙이 잡힌다.
   assert.match(client, /paidRequestIdRef/);
-  assert.match(client, /Family 이용권 또는 단건 결제만 이용할 수 있어요/);
-  assert.match(client, /Standard·Premium·VVIP와 월정석은 적용되지 않습니다/);
+  assert.match(client, /패밀리 꿀단지 이용권 또는 단건 결제만 이용할 수 있어요/);
+  assert.match(client, /작은·중간·큰 꿀단지와 월정석은 적용되지 않습니다/);
   // 페이지 전용 결제창을 되살리지 말 것 — 공용 게이트만 이용권 카드를 띄운다.
   assert.doesNotMatch(client, /cdn\.portone\.io/);
   assert.doesNotMatch(client, /fusion_fortune_ticket_1/);
@@ -161,7 +161,7 @@ test("fusion hero describes chapter roles without a hard length promise", () => 
   const client = read(CLIENT);
   const prompt = read("worker/lib/fusion-fortune-prompt.js");
   // 50,000원 상품의 분량 계약이 화면 문구와 서버 계약에서 어긋나면 안 된다.
-  assert.match(client, /여섯 체계의 독립 해석/);
+  assert.match(client, /체계별 6장 · 영역별 8장/);
   assert.doesNotMatch(client, /30,000자 이상|20,000자 이상|10,000~15,000자/);
   assert.match(prompt, /FUSION_EXPERT_CHAPTER_CHARS/);
 });
@@ -190,22 +190,21 @@ test("family shop copy states the real fusion coverage", () => {
   assert.doesNotMatch(points, /Fusion Fortune excluded/);
   assert.doesNotMatch(points, /별도 상담권/);
   assert.doesNotMatch(points, /모든 유료 서비스(?:를)? 이용/);
-  assert.match(html, /이용권 대상 전체\(초융합 심층 리딩 포함\) · 월 최대 50만원 상당/);
+  // 2026-10-11 기간 없는 이용권: "월 최대" → "최대". index.html(별도 작업) 갱신 전후 모두 허용.
+  assert.match(html, /이용권 대상 전체\(초융합 심층 리딩 포함\) · (?:월 )?최대 50만원 상당/);
   assert.doesNotMatch(html, /모든 유료 서비스(?:를)? 이용/);
   // 🔴 월 이용 한도가 있는 등급에 '무제한'·'월 누적'을 쓰지 않는다(2026-08-24 문구 정책).
   assert.doesNotMatch(points, /상담 10회|무제한\(월/);
   assert.doesNotMatch(html, /기능 무제한|월 누적/);
 });
 
-test("the destiny gate states the free quota before the paid price", () => {
+test("the conversational reading states the per-session price with no free quota", () => {
   const html = read("index.html");
-  // 🔴 계정 무료 3회는 총량이다(worker/lib/guardian-fortune-usage.js: "lifetime-scoped").
-  //    "매일" 로 쓰면 매일 지급을 약속하는 문구가 된다.
-  // 태그에 속성을 허용한다 — i18n 마커(data-cd-trans)가 붙어도 계약은 그대로다.
-  // 텍스트만 어디 있어도 통과하는 형태로 풀지는 않는다: 굵게 표시되는지까지가 계약이다.
-  assert.match(html, /<b[^>]*>회원가입 무료 1회<\/b>/);
-  assert.match(html, /이후 1회 3,000원/);
-  assert.doesNotMatch(html, /매일 무료|하루 무료|매일 3회/);
+  // 연이 상담은 무료 횟수 없이 1회 5,000원이다. 무료 문구가 되살아나면 없는 혜택을 약속하게 된다.
+  // 2026-10-17 "직관성": 가격을 적던 홈의 운명의 문 카드는 걷어냈다. 1회 가격은 상담 화면이 결제 정본에서 읽는다.
+  // 2026-10-18: 결제 카드는 꿀방울 카드와 나란히 ConsultationAccessPanel 로 옮겼다.
+  assert.match(read("app/fortune-chat/ConsultationAccessPanel.tsx"), /<PriceBadge featureKey="fortune-chat-consultation" fallbackLabel="5,000원" prefix="1회 "/);
+  assert.doesNotMatch(html, /회원가입 무료 1회|이후 1회 5,000원|매일 무료|하루 무료|매일 3회/);
 });
 
 test("a finished reading is saved and can be reopened without paying again", () => {
@@ -262,7 +261,7 @@ test("the result screen can be exported to PDF without blank pages", () => {
   // 🔴 캡처 전에 접힌 섹션을 모두 펼치고 두 프레임을 기다린다 — 접힌 섹션은 display:none 이
   //    아니라 아예 렌더되지 않으므로 그냥 캡처하면 본문이 통째로 빠진다.
   assert.match(client, /requestAnimationFrame\(\(\) => requestAnimationFrame/);
-  assert.match(resultThread, /exporting \|\| openSection === key/);
+  assert.match(resultThread, /exporting \|\| readOnly \|\| openSections\.has\(key\)/);
 
   // 🔴 content-visibility 와 진입 애니메이션은 html2canvas 클론에서 빈 상자·백지를 만든다.
   assert.match(thread, /deferRender && !exporting/);

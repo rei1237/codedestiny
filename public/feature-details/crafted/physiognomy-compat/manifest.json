@@ -1,0 +1,120 @@
+{
+  "id": "physiognomy-compat",
+  "featureKey": "physiognomy-compatibility",
+  "title": "두 사람의 관상 궁합",
+  "notice": "먼저 내 기본 관상 분석을 완료하고 기존 이용 확인 뒤 상대 사진을 분석해 두 결과를 비교합니다. 종합점수·동물상 조합·얼굴형 오행·상중하 구간 비율·눈눈썹코입귀·보완 해설·관계조언과 요약을 표시합니다. 전통 관상을 소재로 한 규칙형 오락 콘텐츠이며 외모만으로 성격·인품·능력·실제 관계나 미래를 확인할 수 없습니다. 점수는 성공 확률이 아닙니다. 사진 품질에 따라 분류가 달라질 수 있습니다. 상대 사진의 이용 동의를 확인해주세요. 오관·점 해금과 전생 궁합은 별도 상품이며 자유질문 AI 상담이 아닙니다. 도해·문장은 이해를 돕는 가상 예시로 실제 고객 결과·후기가 아닙니다. 가격·이용권·월정석·단건 결제는 현재 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-two-impressions",
+      "title": "우리의 다른 인상을, 함께 읽어본다면.",
+      "src": "/feature-details/crafted/physiognomy-compat/01-two-impressions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "우리의 다른 인상을,\n함께 읽어본다면.\n나\n상대\n\n두 사람의 관상 궁합\n\n내 기본 관상 결과에 상대 사진을 더해\n동물상·얼굴형·부위를 나란히 읽는\n전통 관상 기반의 오락 콘텐츠입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-compat/01-two-impressions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-a-light-conversation",
+      "title": "닮은 점을 찾다가, 대화가 시작돼요.",
+      "src": "/feature-details/crafted/physiognomy-compat/02-a-light-conversation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "닮은 점을 찾다가,\n대화가 시작돼요.\n“우리는 어떤 분위기로\n보일까?”\n\n기본 관상은 한 사람의 유형을,\n관상 궁합은 두 결과의 조합을 읽어요.\n\n서로의 사진을 함께 보며\n전통 해석의 표현을 즐기는 용도예요.\n인품이나 실제 관계를 판정하는\n검사로 사용하지는 마세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-compat/02-a-light-conversation-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-a-map-of-the-report",
+      "title": "조합을 읽고, 부위를 비교하고.",
+      "src": "/feature-details/crafted/physiognomy-compat/03-a-map-of-the-report.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "조합을 읽고,\n부위를 비교하고.\n\n종합 궁합 점수 · 유형 설명\n\n얼굴형을 오행으로 읽는 조합\n\n상·중·하 세 구간의 비율 비교\n\n눈 · 눈썹 · 코 · 입 · 귀 비교\n\n장점·부족함의 전통적 해석\n관계 조언 · 두 관상 요약\n\n계산된 콘텐츠의 항목입니다.\n실제 관계 성공률이나 사실 확인이 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-compat/03-a-map-of-the-report-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-three-levels",
+      "title": "얼굴의 구간을, 도식으로 살펴요.",
+      "src": "/feature-details/crafted/physiognomy-compat/04-three-levels.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "얼굴의 구간을,\n도식으로 살펴요.\n\n상정 · 위쪽 구간\n\n중정 · 가운데 구간\n\n하정 · 아래쪽 구간\n\n삼정은 얼굴을 세 구간으로 나누는\n전통 관상의 이름입니다.\n\n비율 비교와 관상식 해설을 보여줘요.\n실제 생애를 예측하는 값은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-compat/04-three-levels-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-parts",
+      "title": "다섯 부위의 조합을, 따로 펼쳐봐요.",
+      "src": "/feature-details/crafted/physiognomy-compat/05-parts.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다섯 부위의 조합을,\n따로 펼쳐봐요.\n눈\n눈썹\n코\n입\n귀\n\n전체 분위기 뒤에 부위별 해석이\n이어져 어떤 요소를 읽는지 보여요.\n\n조명과 각도, 가려진 부위에 따라\n분류와 해석은 달라질 수 있습니다.\n점수로 상대를 평가하기보다\n그림을 읽는 마음으로 살펴보세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-compat/05-parts-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-example",
+      "title": "결과보다, 서로의 이야기를 들어요.",
+      "src": "/feature-details/crafted/physiognomy-compat/06-example.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "결과보다,\n서로의 이야기를 들어요.\n\n이해를 돕기 위한 활용 예시\n\n“사진에서는 차분해 보이네.\n실제로는 어떤 순간에\n가장 편안해?”\n\n설명에 공감되는지 물어보고,\n맞지 않는 부분은 가볍게 넘겨요.\n\n사진에서 성격이나 마음을\n사실로 알아낸 결과는 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-compat/06-example-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-the-second-photo",
+      "title": "내 결과 다음에, 상대 사진을 준비해요.",
+      "src": "/feature-details/crafted/physiognomy-compat/07-the-second-photo.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 결과 다음에,\n상대 사진을 준비해요.\n먼저 내 기본 관상 분석\n\n첫 번째 분석 결과가 있어야\n두 사람 비교를 시작할 수 있어요.\n\n이용 확인 뒤 두 번째 분석\n\n상대 사진을 촬영하거나 올립니다.\n사진 이용 동의를 먼저 확인하세요.\n\n사진 분석이 완료되어야 비교할 수 있어요.\n밝고 가림이 적은 정면 사진을 준비해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-compat/07-the-second-photo-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-keep-it-light",
+      "title": "서로를 정하는 점수보다, 함께 웃는 시간.",
+      "src": "/feature-details/crafted/physiognomy-compat/08-keep-it-light.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "서로를 정하는 점수보다,\n함께 웃는 시간.\n사람을 알아가는 일은\n실제 대화 속에서.\n\n준비된 분류와 해석을 조합하며\n자유질문 AI 상담은 제공하지 않아요.\n\n오관·점 해금과 전생 관상 궁합은\n별도 상품입니다. 이용 조건은\n기존 관상 결과 화면에서 확인하세요.\n\n도식·문장은 설명용 가상 예시입니다.\n실제 고객 결과·후기가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/physiognomy-compat/08-keep-it-light-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

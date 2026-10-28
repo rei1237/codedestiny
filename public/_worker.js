@@ -18,7 +18,15 @@ const CONSOLIDATED_PAGE_REDIRECTS = {
   "/fortune-planner": "/diary/",
   "/luck-sync-diary": "/diary/",
   "/face-reading": "/physiognomy/",
-  "/sukyo": "/sukuyo/"
+  "/sukyo": "/sukuyo/",
+  "/kkul-kkul-unse": "/",
+  "/saju/basic": "/saju/",
+  "/oracle/sukuyo": "/sukuyo/",
+  "/vedic/jyotish": "/vedic/",
+  "/astrology/cosmic": "/astrology/",
+  "/contact-us": "/contact/",
+  "/privacy-policy": "/privacy/",
+  "/terms-of-service": "/terms/"
 };
 
 const DEFAULT_API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.dev";
@@ -69,7 +77,7 @@ function visitorLocaleContext(request, url) {
   if (!["GET", "HEAD"].includes(request.method) || /^\/(?:api|app)(?:\/|$)/.test(url.pathname)) return null;
   if (/\.[a-z0-9]+$/i.test(url.pathname) && !/\.html$/i.test(url.pathname)) return null;
   // Keep canonical URLs and their hreflang alternatives independently crawlable.
-  if (/bot|crawler|spider|slurp|facebookexternalhit|kakaotalk-scrap/i.test(request.headers.get("User-Agent") || "")) return null;
+  if (/bot|crawler|spider|slurp|yeti|facebookexternalhit|kakaotalk-scrap/i.test(request.headers.get("User-Agent") || "")) return null;
   if (!request.headers.get("Accept")?.includes("text/html") && request.headers.get("Sec-Fetch-Dest") !== "document") return null;
   const country = String(request.cf?.country || "").toUpperCase();
   const countryLocale = Object.entries(COUNTRY_LANGUAGE_GROUPS).find(([, countries]) => countries.split(" ").includes(country))?.[0] || "en";
@@ -99,6 +107,58 @@ function localizedEntryPath(pathname, locale) {
   if (LOCALIZED_ENTRY_TOPICS.has(topic) || ["saju-compatibility", "sukuyo-compatibility"].includes(topic)
       || (locale !== "zh-TW" && CORE_LANGUAGE_ENTRY_TOPICS.has(topic))) return `/${prefix}/${topic}/`;
   return null;
+}
+
+// Campaign attribution only. These never change what the home shows.
+const HOME_CAMPAIGN_KEY = /^(utm_.+|gclid|gbraid|wbraid|fbclid|msclkid)$/;
+// Historical document cache-busters are not content identifiers. Only public
+// reading routes are eligible; assets, APIs, payment/auth and saved results keep
+// their full URLs. Preserve every other query byte (including signed values).
+function removePublicContentVersion(request, url) {
+  if (!["GET", "HEAD"].includes(request.method) || !url.searchParams.has("v")) return false;
+  if ([...url.searchParams.keys()].some(key => /^(?:code|state|token|access_token|id_token|signature|sig|paymentId|payment_id|orderId|order_id|transactionId)$/i.test(key))) return false;
+  const path = url.pathname.replace(/^\/(?:en|ja|zh|zh-tw)(?=\/|$)/, "").replace(/\/$/, "") || "/";
+  const publicEntry = /^\/(?:saju|manse|ziwei|sukuyo|vedic|astrology|tarot|today|fortune|compatibility|love|dream|naming-ai|nakshatra|fusion-fortune|yeongnyangi|about|faq|contact|methodology|insights|guides)$/.test(path);
+  const publicReading = /^\/(?:insights|guides)\/[^.]+$/.test(path)
+    || /^\/(?:saju|ziwei|sukuyo|vedic|astrology)\/(?:guide|compatibility|five-elements|ten-gods)$/.test(path)
+    || /^\/fortune\/(?:today|tomorrow|weekly|monthly)(?:\/[a-z-]+)?$/.test(path)
+    || /^\/fortune\/date\/\d{4}-\d{2}-\d{2}\/[a-z-]+$/.test(path);
+  // Root functional inputs belong to the app/consultation compatibility router.
+  const publicHome = ["/", "/ggulggul", "/index.html"].includes(path) && [...url.searchParams.keys()].every(key => key === "v" || HOME_CAMPAIGN_KEY.test(key));
+  if (!publicHome && !publicEntry && !publicReading) return false;
+  if (publicHome && url.pathname === "/index.html") url.pathname = "/";
+  url.search = url.search.slice(1).split("&").filter(part => {
+    try { return decodeURIComponent(part.split("=")[0].replace(/\+/g, " ")) !== "v"; } catch { return true; }
+  }).join("&");
+  return true;
+}
+
+// Inputs that still keep a question guide on Yeongnyangi instead of the Ggulggul app.
+const HOME_GUIDE_KEY = /^(utm_.+|gclid|gbraid|wbraid|fbclid|msclkid|ref|question|lang)$/;
+
+// `/` is the brand home (2026-10-15): plain and campaign-only GET/HEAD visits get it with 200,
+// crawlers included. App inputs (payment and OAuth returns, ref, lang, question guides) still
+// move on, and overseas visitors still land on their locale home. Returns null to serve `/`.
+function brandHomeRedirect(request, url, visitorLocale) {
+  const keys = [...url.searchParams.keys()];
+  const target = new URL(url);
+  target.pathname = keys.every(key => HOME_GUIDE_KEY.test(key)) && url.searchParams.get("question")
+    ? "/yeongnyangi/"
+    : "/ggulggul/";
+  const localizedHome = visitorLocale && localizedEntryPath(target.pathname, visitorLocale.locale);
+  if (localizedHome) {
+    target.pathname = localizedHome;
+  } else if (keys.every(key => HOME_CAMPAIGN_KEY.test(key)) && ["GET", "HEAD"].includes(request.method)) {
+    if (url.pathname === "/") return null;
+    target.pathname = "/";
+    return new Response(null, { status: 301, headers: { Location: target.toString(), "Cache-Control": "no-store" } });
+  }
+  // Keep the query verbatim. Browsers inherit the original fragment when Location has none,
+  // preserving existing service/result deep links. 302: the target depends on the request.
+  return new Response(null, {
+    status: 302,
+    headers: visitorLocaleHeaders(new Headers({ Location: target.toString(), "Cache-Control": "no-store" }), visitorLocale),
+  });
 }
 
 // 🔴 /fortune/** 레거시 리다이렉트가 _redirects 가 아니라 여기 있는 이유.
@@ -618,33 +678,29 @@ async function serveGuardianShareCard(request, env, ctx, url, shareId) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // Temporarily remove play-only entry points from the fortune service.
+    if (/^\/(?:mini-games|destiny-poker|secret-house_real|saju\/love-simulation)(?:\.html|\/index\.html)?\/?$/.test(url.pathname)) {
+      return new Response(null, { status: 302, headers: { Location: new URL('/ggulggul/', url).toString(), 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
+    }
+    if (/^\/tadagochi(?:\.html)?\/?$/.test(url.pathname)) {
+      return Response.redirect(new URL('/ggulggul/#dpMasterCard', url), 301);
+    }
     const consolidatedPath = url.pathname.replace(/\/$/, '');
     const consolidatedTarget = Object.hasOwn(CONSOLIDATED_PAGE_REDIRECTS, consolidatedPath) ? CONSOLIDATED_PAGE_REDIRECTS[consolidatedPath] : null;
     if (consolidatedTarget) {
       url.pathname = consolidatedTarget;
+      removePublicContentVersion(request, url);
       return new Response(null, { status: 301, headers: { Location: url.toString(), 'Cache-Control': 'no-store' } });
     }
+    if (removePublicContentVersion(request, url)) {
+      return new Response(null, { status: 301, headers: { Location: url.toString(), "Cache-Control": "no-store" } });
+    }
     const visitorLocale = visitorLocaleContext(request, url);
-    // Resolve the home before serving HTML: waiting for React's useEffect
-    // briefly paints the introductory page before the actual main screen.
+    // Resolve app inputs before serving HTML: waiting for React's useEffect
+    // briefly paints the brand home before the app screen they belong to.
     if (url.pathname === "/" || url.pathname === "/index.html") {
-      const hasLegacyInput = [...url.searchParams.keys()].some(
-        key => !/^(utm_.+|gclid|fbclid|msclkid|ref|question|lang)$/.test(key),
-      );
-      url.pathname = !hasLegacyInput && url.searchParams.get("question")
-        ? "/yeongnyangi/"
-        : "/ggulggul/";
-      const localizedHome = visitorLocale && localizedEntryPath(url.pathname, visitorLocale.locale);
-      if (localizedHome) url.pathname = localizedHome;
-      // Keep the query verbatim. Browsers inherit the original fragment when
-      // Location has none, preserving existing service/result deep links.
-      // 301, not 302: /ggulggul/ is the one canonical ggulggul URL (2026-10-02), so search
-      // engines must consolidate "/" into it instead of keeping "/" indexed with this content.
-      // no-store keeps browsers from pinning the permanent redirect if the home ever changes.
-      return new Response(null, {
-        status: visitorLocale ? 302 : 301,
-        headers: visitorLocaleHeaders(new Headers({ Location: url.toString(), "Cache-Control": "no-store" }), visitorLocale),
-      });
+      const homeRedirect = brandHomeRedirect(request, url, visitorLocale);
+      if (homeRedirect) return homeRedirect;
     }
     const localizedEntry = visitorLocale && localizedEntryPath(url.pathname, visitorLocale.locale);
     if (localizedEntry) {

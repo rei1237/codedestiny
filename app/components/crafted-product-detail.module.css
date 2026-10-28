@@ -1,0 +1,79 @@
+/* 목차는 회색 상자 대신 금 hairline 카드 — 배경은 옅은 금빛만 얹어 어떤 상품 화면 위에서도 글자 대비가 호스트 그대로 남는다. */
+.detail { max-width: 540px; margin: 24px auto; }
+.detail :global(.craftedDetail img) { display: block; width: 100%; height: auto; }
+.detail :global(.craftedDetailNotice),
+.detail :global(.craftedDetailTranscript) { font-size: 16px; line-height: 1.85; padding: 0 16px; word-break: keep-all; overflow-wrap: anywhere; }
+.detail :global(.craftedDetailTranscript > summary) { min-height: 44px; cursor: pointer; padding-block: 12px; font-weight: 700; text-decoration: underline; text-decoration-color: var(--cd-yehwa-line, #c9a46a); text-underline-offset: 5px; }
+.detail :global(.craftedDetailTranscript section) { margin-block: 24px; }
+.detail :global(.craftedDetailTranscript h3) { font-family: var(--font-serif, Georgia, serif); font-size: 1.2rem; line-height: 1.5; }
+.detail :global(.craftedDetailTranscript p) { white-space: pre-line; }
+.detail :global(.craftedChapters) { margin: 0 16px 20px; padding: 14px 18px 6px; border: 1px solid rgba(201, 164, 106, .45); border-radius: 14px; background: rgba(201, 164, 106, .06); }
+.detail :global(.craftedChaptersTitle) { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 6px; font-weight: 700; font-size: 15px; line-height: 1.5; }
+.detail :global(.craftedChaptersTitle span) { font-family: var(--font-serif, Georgia, serif); font-weight: 600; }
+.detail :global(.craftedChapters ol) { margin: 0; padding: 0; list-style: none; counter-reset: chapter; }
+.detail :global(.craftedChapters li) { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); column-gap: 12px; padding: 10px 0; border-top: 1px solid rgba(201, 164, 106, .25); counter-increment: chapter; word-break: keep-all; }
+.detail :global(.craftedChapters li:first-child) { border-top: 0; }
+.detail :global(.craftedChapters li::before) { content: counter(chapter, decimal-leading-zero); grid-row: span 2; align-self: start; display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border: 1px solid var(--cd-yehwa-line, #c9a46a); border-radius: 50%; font: 600 .72rem/1 var(--font-serif, Georgia, serif); font-variant-numeric: tabular-nums; }
+.detail :global(.craftedChapters strong) { font-size: 16px; line-height: 1.55; }
+.detail :global(.craftedChapters li > span) { grid-column: 2; font-size: 14px; line-height: 1.7; }
+/* 대표 상담 마스터·묶음 목차·산출물·원칙 — 글자색은 호스트 그대로 두고 금 hairline 만 얹는다. 마스터 포인트 색은 장식(고리·윗선·별)에만 쓴다.
+   아바타·초상은 위 100% 규칙보다 뒤에서 크기를 고정한다. 상품 페이지는 원본 manifest 를 받아 마스터를 그리지 않지만 마크업은 팝업과 같다. */
+.detail :global([data-master]) { --master-accent: var(--cd-yehwa-line, #c9a46a); }
+.detail :global([data-master="yeoniLove"]) { --master-accent: #b53660; }
+.detail :global([data-master="hanbiLove"]) { --master-accent: #5b67a8; }
+.detail :global([data-master="neoNewYear"]) { --master-accent: #4f6c96; }
+.detail :global([data-master="yunLifeBook"]) { --master-accent: #3d7d68; }
+.detail :global(.craftedMastersLead),
+.detail :global(.craftedOutcomesTitle),
+.detail :global(.craftedPrinciplesTitle) { margin: 0 0 12px; font-size: 12px; font-weight: 700; line-height: 1.5; letter-spacing: .14em; }
+.detail :global(.craftedMasters) { container-type: inline-size; margin: 0 16px 24px; }
+.detail :global(.craftedMasters > ul) { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.detail :global(.craftedMaster) { padding: 20px 20px 18px; border: 1px solid rgba(201, 164, 106, .45); border-radius: 18px; background: rgba(201, 164, 106, .06); box-shadow: inset 0 3px 0 var(--master-accent); word-break: keep-all; }
+.detail :global(.craftedMaster p) { margin: 0; }
+.detail :global(.craftedMasterHead) { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 16px; align-items: center; }
+.detail :global(.craftedDetail .craftedMaster img) { width: 80px; height: 80px; margin: 4px; border-radius: 50%; box-shadow: 0 0 0 3px transparent, 0 0 0 4px var(--master-accent); }
+.detail :global(.craftedMasterEpithet) { font-size: 12px; font-weight: 700; line-height: 1.5; letter-spacing: .12em; }
+.detail :global(.craftedMasterName strong) { font: 700 1.5rem/1.35 var(--font-serif, Georgia, serif); }
+.detail :global(.craftedMasterRole) { margin-top: 2px; font-size: 14px; line-height: 1.6; }
+.detail :global(.craftedMaster blockquote) { position: relative; margin: 16px 0 0; padding: 14px 0 0 30px; border-top: 1px solid rgba(201, 164, 106, .25); font: 500 16px/1.8 var(--font-serif, Georgia, serif); }
+.detail :global(.craftedMaster blockquote::before) { content: "“"; content: "“" / ""; position: absolute; left: 0; top: 12px; color: var(--master-accent); font: 700 2.2rem/1 var(--font-serif, Georgia, serif); }
+.detail :global(.craftedMasterDossier) { margin: 14px 0 0; border-top: 1px solid rgba(201, 164, 106, .25); }
+.detail :global(.craftedMasterDossier > div) { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(201, 164, 106, .25); }
+.detail :global(.craftedMasterDossier > div:last-child) { padding-bottom: 0; border-bottom: 0; }
+.detail :global(.craftedMasterDossier dt) { font-size: 12px; font-weight: 700; line-height: 1.95; letter-spacing: .08em; }
+.detail :global(.craftedMasterDossier dd) { margin: 0; font-size: 14px; line-height: 1.75; }
+@container (min-width: 500px) {
+  .detail :global(.craftedMastersPair > ul) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .detail :global(.craftedMastersPair .craftedMasterHead) { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .detail :global(.craftedMastersPair .craftedMasterDossier > div) { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}
+.detail :global(.craftedChaptersGrouped) { counter-reset: chapter; }
+.detail :global(.craftedChaptersGrouped ol) { counter-reset: none; }
+.detail :global(.craftedChapterGroupTitle) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; margin: 8px 0 0; padding-top: 14px; border-top: 1px solid rgba(201, 164, 106, .45); font-size: 13px; font-weight: 700; line-height: 1.5; word-break: keep-all; }
+.detail :global(.craftedChaptersTitle + .craftedChapterGroup .craftedChapterGroupTitle) { margin-top: 0; padding-top: 4px; border-top: 0; }
+.detail :global(.craftedChapterMaster) { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 2px; border: 1px solid rgba(201, 164, 106, .45); border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 1.5; }
+.detail :global(.craftedDetail .craftedChapterMaster img) { width: 24px; height: 24px; border-radius: 50%; }
+.detail :global(.craftedChapterGroup[data-master] .craftedChapterMaster) { border-color: var(--master-accent); }
+.detail :global(.craftedChapterGroup[data-master] li::before) { border-color: var(--master-accent); }
+.detail :global(.craftedChaptersMore > summary) { display: flex; align-items: center; min-height: 44px; padding-block: 10px; border-top: 1px solid rgba(201, 164, 106, .45); cursor: pointer; font-size: 15px; font-weight: 700; text-decoration: underline; text-decoration-color: var(--cd-yehwa-line, #c9a46a); text-underline-offset: 5px; }
+.detail :global(.craftedOutcomes) { margin: 0 16px 24px; }
+.detail :global(.craftedOutcomes > ul) { margin: 0; padding: 0 18px; list-style: none; counter-reset: outcome; border: 1px solid rgba(201, 164, 106, .45); border-radius: 16px; background: rgba(201, 164, 106, .06); }
+.detail :global(.craftedOutcomes li) { display: grid; grid-template-columns: 2rem minmax(0, 1fr); column-gap: 10px; padding: 14px 0; border-top: 1px solid rgba(201, 164, 106, .25); counter-increment: outcome; word-break: keep-all; }
+.detail :global(.craftedOutcomes li:first-child) { border-top: 0; }
+.detail :global(.craftedOutcomes li::before) { content: counter(outcome, upper-roman); grid-row: span 2; font: 600 1rem/1.55 var(--font-serif, Georgia, serif); }
+.detail :global(.craftedOutcomes strong) { display: block; font: 700 1.02rem/1.55 var(--font-serif, Georgia, serif); }
+.detail :global(.craftedOutcomes li p) { grid-column: 2; margin: 4px 0 0; font-size: 15px; line-height: 1.7; }
+.detail :global(.craftedPrinciples) { container-type: inline-size; margin: 0 16px 24px; }
+.detail :global(.craftedPrinciples > ul) { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.detail :global(.craftedPrinciple) { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px; border: 1px solid rgba(201, 164, 106, .45); border-radius: 18px; background: rgba(201, 164, 106, .06); word-break: keep-all; }
+.detail :global(.craftedDetail .craftedPrinciple img) { width: 72px; height: auto; border-radius: 12px; box-shadow: 0 0 0 3px transparent, 0 0 0 4px var(--master-accent); }
+@container (min-width: 500px) {
+  .detail :global(.craftedPrinciple) { grid-template-columns: 96px minmax(0, 1fr); gap: 16px; }
+  .detail :global(.craftedDetail .craftedPrinciple img) { width: 96px; }
+}
+.detail :global(.craftedPrinciple p) { margin: 0; }
+.detail :global(.craftedPrincipleName) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 12px; line-height: 1.6; letter-spacing: .06em; }
+.detail :global(.craftedPrincipleName strong) { font: 700 1.15rem/1.45 var(--font-serif, Georgia, serif); letter-spacing: 0; }
+.detail :global(.craftedPrinciple ul) { display: grid; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.detail :global(.craftedPrinciple li) { position: relative; padding-left: 1.4em; font: 500 15px/1.7 var(--font-serif, Georgia, serif); }
+.detail :global(.craftedPrinciple li::before) { content: "✦"; content: "✦" / ""; position: absolute; left: 0; color: var(--master-accent); }

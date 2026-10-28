@@ -32,6 +32,8 @@ export interface DomainContext {
   calculatedAt: string;
   facts: Evidence[];
   limitations: string[];
+  /** 사주만. 원국 판정 기준(lib/saju/natal-core). 없거나 다르면 이전 기준으로 계산된 저장본이다. */
+  natalCore?: { version: string; ruleProfile: string; analysisId: string };
 }
 export interface FortuneResult {
   title: string;
@@ -63,7 +65,7 @@ export interface FortuneLLMResponse {
 export interface LLMProvider {
   generate(request: FortuneLLMRequest): Promise<FortuneLLMResponse>;
 }
-export interface CalculationOptions { runtimeEnv?: Record<string, unknown>; asOf?: string; /** Order instant (ISO); saju compares 입춘·절입 with it. */ asOfInstant?: string; tarotFusion?: boolean; relationshipReading?: boolean; jongAnswer?: import('../saju/jong-check').JongAnswer; }
+export interface CalculationOptions { runtimeEnv?: Record<string, unknown>; asOf?: string; /** Order instant (ISO); saju compares 입춘·절입 with it. */ asOfInstant?: string; tarotFusion?: boolean; relationshipReading?: boolean; /** 과거 경험 설문(정규화됨). 대운·세운 해석 보정에만 쓴다. */ experience?: import('../saju/experience').ExperienceAnswer[]; }
 
 export interface FortuneDomain {
   id: DomainId;

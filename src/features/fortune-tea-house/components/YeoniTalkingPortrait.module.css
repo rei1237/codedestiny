@@ -1,0 +1,7 @@
+.portrait{position:relative;display:block;width:100%;aspect-ratio:1;overflow:hidden}
+.portrait .sheet{position:absolute;inset:0 auto auto 0;display:block;width:200%;height:200%;max-width:none;object-fit:fill;border-radius:0;opacity:0}
+.portrait[data-ready="true"] .sheet{opacity:1}
+.portrait .expression{transform:translate(var(--yeoni-talk-x,0%),var(--yeoni-talk-y,0%))}
+.face{position:absolute;inset:0;mask-image:radial-gradient(ellipse 8% 4.5% at 54% 35%,#000 65%,transparent 100%)}
+.portrait[data-blink="true"] .face{mask-image:radial-gradient(ellipse 15% 7% at 52% 28%,#000 65%,transparent 100%)}
+.portrait .fallback{object-fit:contain;object-position:center bottom;border-radius:0}

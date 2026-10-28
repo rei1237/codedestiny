@@ -4,6 +4,7 @@
 
 ## AI & API
 
+- **Pro 사용 범위(2026-10-13)**: `lib/gemini-model-policy.js`가 모델 선택의 정본이다. 일반 본문·후속 설명은 Flash를 사용하며, Pro 환경값도 일반 호출에서는 Flash로 제한한다. 서버가 지정한 `fusion-integration`·`fusion-verdict`·`tuna-synthesis`만 Pro를 사용한다. 사용자 질문이나 상품 가격으로 Pro 사용을 결정하지 않는다. 참치의 종합 장도 실행 계획만 정리하는 `action` 장은 제외한다. 실제 명식·천문 계산은 기존 계산 엔진을 유지한다. 재시도는 같은 분류를 따르고, 명시적 컨텍스트 캐시는 모델별로 생성·해제한다. 기존 저장 결과와 본문 분량·품질 기준은 유지한다.
 - 🔴🔴 **검증은 mock 기본, 실호출은 사전 허락 필수** — 절대 규칙 1번(LLM 실호출 금지, 최우선)이 이 섹션 전체에 적용된다. 프롬프트·분량·폴백을 고쳤다고 실제 Gemini/Workers AI 를 부르지 말 것. mock 정본은 `scripts/verify-mindscan-reading.mjs`(`fetchImpl` 주입)·`scripts/verify-workers-ai-fallback.mjs`(키 제거), 실호출은 `--live` + **사용자 허락 1회 한정**.
 - **Gemini 호출**: `lib/llm-client.ts` (실제 구현체, `worker/lib/gemini.js`·`gemini-client.js`는 얇은 래퍼). 모델 `gemini-2.5-flash`, REST `generateContent` 엔드포인트 직접 호출(SDK 미사용). API 키는 `GEMINIF_API_KEY` 단일 키만 사용(다른 키 이름 참조는 제거됨).
 - 🔴 **Gemini 입력은 생성 전에 50,000토큰으로 하드 차단**한다 — 정본 `lib/gemini-input-token-limit.mjs`가 비과금 `models.countTokens`로 전체 `GenerateContentRequest`(시스템 지시·멀티모달 포함)를 확인한다. 50,000 초과는 다른 공급자로도 우회하지 않고, 계산 실패는 Gemini 생성만 막은 뒤 기존 Workers AI 폴백 계약을 따른다. 공통 `llm-client`뿐 아니라 직접 REST를 쓰는 love-reading·mindscan·oracle 3경로에도 같은 정본을 사용한다. 환경값으로 상한을 올리는 우회는 두지 않는다.

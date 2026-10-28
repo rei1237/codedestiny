@@ -897,8 +897,9 @@ describe("fusion length drafts and bounded repairs", () => {
       expect(providerCall.mock.calls.length-calls).toBeLessThanOrEqual(2);
     }
     expect(first.deliverable).toBe(true);
-    expect(snapshot.attempts.saju).toBe(1);
-    expect(snapshot.lengthRepairs.saju).toBeUndefined();
+    // R5: a short group gets its one length repair in a later request (2 calls max for the group).
+    expect(snapshot.attempts.saju).toBe(2);
+    expect(snapshot.lengthRepairs.saju).toBe(true);
     expect(first.result.sajuSection.content).toBe(fusionFiller("short valid saju", 1000));
     providerCall.mockClear();
     const resumed = await generateFusionFortuneWithRealLLM({ ...args, priorResult: first.result, priorSnapshot: snapshot });
@@ -944,7 +945,7 @@ it("total repair keeps longer saved groups and marks a depth-only repair once", 
  const snapshot={attempts:{},lengthRepairs:{}};
  const providerCall=jest.fn(async(_env,_prompt,options)=>({ok:true,text:JSON.stringify(buildFusionGroupPayload(FUSION_SECTION_GROUP_SPECS.find(g=>g.id===options.logContext.sectionGroup)))}));
  const first=await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:prior,providerCall,onAttempt:async(id,opts)=>{reservations.push([id,opts]);if(opts.lengthRepair)snapshot.lengthRepairs[id]=true;return snapshot.attempts[id]=(snapshot.attempts[id]||0)+1;}});
- expect(reservations).toEqual([]);
+ expect(reservations).toContainEqual(["verdict",{lengthRepair:true}]);
  expect(first.result.finalVerdict.rationale).toBe(prior.finalVerdict.rationale);
  providerCall.mockClear();
  await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:first.result,priorSnapshot:snapshot,providerCall});
@@ -964,8 +965,70 @@ it("total repair keeps longer saved groups and marks a depth-only repair once", 
 });
 
 
+it("labels a report that stays short after its repairs as degraded, not full", async () => {
+ const prior=Object.assign({}, ...FUSION_SECTION_GROUP_SPECS.map(group=>buildFusionGroupPayload(group)));
+ prior.integratedReading={...prior.integratedReading,content:fusionFiller("short integration",1000)};
+ const env={ENABLE_FUSION_FORTUNE_REAL_LLM:"true",ALLOW_FUSION_FORTUNE_REAL_LLM:"true",GEMINIF_API_KEY:"mock-only",GEMINI_CONTEXT_CACHE:"false"};
+ const providerCall=jest.fn();
+ const result=await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:prior,providerCall,priorSnapshot:{attempts:{integration:2,action:2,verdict:2}},onCheckpoint:async()=>{}});
+ expect(providerCall).not.toHaveBeenCalled();
+ expect(result).toMatchObject({deliverable:true,qualityTier:"degraded"});
+ expect(result.qualityIssues).toContain("section_depth");
+ expect(result.qualityNotice).not.toContain("추가 결제 없이");
+});
+
+describe("final verdict stance contract (R5: systemVerdicts arrived as adapt/pause/advance)", () => {
+  const verdictGroup = FUSION_SECTION_GROUP_SPECS.find(group => group.id === "verdict");
+  it.each([["legacy", { birthTimeKnown: true }], ["expert", { birthTimeKnown: true, locale: "ko", version: "fusion-expert.v2" }]])("%s verdict schema pins the verdict stance vocabulary", (_name, context) => {
+    const prompt = buildFusionSectionGroupPrompt({ context, group: verdictGroup, priorSections: {} });
+    expect(prompt.geminiSchema.properties.finalVerdict.properties.systemVerdicts.items.properties.stance.enum).toEqual(["agree", "conditional", "caution"]);
+  });
+  it("expert verdict prompt separates the verdict stance from first-stage signals", () => {
+    const prompt = buildFusionSectionGroupPrompt({ context: { birthTimeKnown: true, locale: "ko", version: "fusion-expert.v2" }, group: verdictGroup, priorSections: {}, schemaInPrompt: false });
+    expect(prompt.userPrompt).toContain("systemVerdicts[].stance는 agree·conditional·caution");
+    expect(prompt.userPrompt).toContain("advance·pause·adapt");
+  });
+  it("delivers the normalized verdict stance and label instead of the raw model value", async () => {
+    const prior = Object.assign({}, ...FUSION_SECTION_GROUP_SPECS.map(group => buildFusionGroupPayload(group)));
+    const raw = ["adapt", "pause", "advance", "agree", "caution", "conditional"];
+    prior.finalVerdict = { ...prior.finalVerdict, systemVerdicts: prior.finalVerdict.systemVerdicts.map((item, index) => ({ key: item.key, stance: raw[index], note: item.note })) };
+    const env = { ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINIF_API_KEY: "mock-only", GEMINI_CONTEXT_CACHE: "false" };
+    const providerCall = jest.fn();
+    const result = await generateFusionFortuneWithRealLLM({ context: { birthTimeKnown: true, birthPlaceKnown: true }, env, stage: 2, priorResult: prior, providerCall });
+    expect(providerCall).not.toHaveBeenCalled();
+    const verdicts = result.result.finalVerdict.systemVerdicts;
+    expect(verdicts.map(item => item.stance)).toEqual(["conditional", "conditional", "conditional", "agree", "caution", "conditional"]);
+    expect(verdicts.every(item => item.label)).toBe(true);
+    expect(result.result.finalVerdict.headline).toBe(prior.finalVerdict.headline);
+  });
+});
+
 it("keeps both total floors independently", () => {
  expect(fusionReportMeetsTotalFloor({openingMessage:"가".repeat(24000)})).toBe(false);
  expect(fusionReportMeetsTotalFloor({openingMessage:"가 ".repeat(16000)})).toBe(false);
  expect(fusionReportMeetsTotalFloor({openingMessage:"가".repeat(30000)})).toBe(true);
+});
+
+describe("fusion premium v2 (domain chapters)", () => {
+  const v2 = { ...input, reportVersion: "fusion-premium.v2" };
+  const capture = () => jest.fn(async () => ({ result: { sajuSection: { content: "saved" } }, deliverable: false, generationSource: "gemini_partial" }));
+  it("passes v2 through and rolls new requests back to v1 only when the env switch is off", async () => {
+    const on = capture(), off = capture();
+    await generateFusionFortuneRequest({ input: v2, userId: "user", requestId: "v2-on", store: emptyStore(), resolvePaidAccess: paidAccess, contextBuilder, generator: on });
+    await generateFusionFortuneRequest({ input: v2, userId: "user", requestId: "v2-off", store: emptyStore(), resolvePaidAccess: paidAccess, contextBuilder, generator: off, env: { FUSION_PREMIUM_V2_ENABLED: "false" } });
+    expect(on.mock.calls[0][0].input.reportVersion).toBe("fusion-premium.v2");
+    expect(off.mock.calls[0][0].input.reportVersion).toBe("fusion-premium.v1");
+  });
+  it("keeps the saved version when a started v2 request resumes under rollback", async () => {
+    const store = emptyStore(); let snapshot;
+    await generateFusionFortuneRequest({ input: v2, userId: "user", requestId: "v2-resume", store, resolvePaidAccess: paidAccess, contextBuilder, onSnapshot: async value => { snapshot = value; }, generator: capture() });
+    const resumed = capture();
+    await generateFusionFortuneRequest({ input: v2, userId: "user", requestId: "v2-resume", store, resolvePaidAccess: paidAccess, contextBuilder, priorSnapshot: snapshot, generator: resumed, env: { FUSION_PREMIUM_V2_ENABLED: "false" } });
+    expect(resumed.mock.calls[0][0].input.reportVersion).toBe("fusion-premium.v2");
+  });
+  it("v1 reports ignore the domain chapter specs", async () => {
+    const v1 = await generateFusionFortuneWithMockLLM({ context: { birthTimeKnown: true, birthPlaceKnown: true, reportVersion: "fusion-premium.v1" } });
+    expect(v1.loveSection).toBeUndefined();
+    expect(validateFusionFortuneResult({ ...v1, reportVersion: "fusion-premium.v1" }, { ignoreLength: true }).issues || []).not.toContain("domain_chapter_missing");
+  });
 });

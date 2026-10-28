@@ -30,24 +30,24 @@ const tarotLoveSource = source("js/tarot-love-experience.js");
 const tarotReunionSource = source("js/tarot-reunion-experience.js");
 
 const expectedCosts = {
-  "tarot-year-fortune": 50,
-  "tarot-love-relationship": 30,
-  "tarot-reunion-reading": 30,
-  openJuyukModal: 10,
-  openKemetModal: 10,
-  "animal-totem-basic": 30,
-  "animal-totem-deep": 30,
-  "sukuyo-symbolic-comparison": 30,
-  "compat-astro-synastry": 30,
-  "compat-astro-direct-synastry": 30,
-  "compat-ziwei-compatibility": 30,
-  "compat-saju-compatibility": 50,
-  "compat-sukuyo-compatibility": 30,
-  "premium-sukuyo-compat-extra": 30,
-  "sukuyo-relationship-encyclopedia": 30,
-  "physiognomy-compatibility": 30,
-  "physiognomy-pastlife-compatibility": 30,
-  "profile-card-manage": 50,
+  "tarot-year-fortune": 100,
+  "tarot-love-relationship": 50,
+  "tarot-reunion-reading": 50,
+  openJuyukModal: 30,
+  openKemetModal: 30,
+  "animal-totem-basic": 50,
+  "animal-totem-deep": 50,
+  "sukuyo-symbolic-comparison": 50,
+  "compat-astro-synastry": 50,
+  "compat-astro-direct-synastry": 50,
+  "compat-ziwei-compatibility": 50,
+  "compat-saju-compatibility": 100,
+  "compat-sukuyo-compatibility": 50,
+  "premium-sukuyo-compat-extra": 50,
+  "sukuyo-relationship-encyclopedia": 50,
+  "physiognomy-compatibility": 50,
+  "physiognomy-pastlife-compatibility": 50,
+  "profile-card-manage": 10,
   // 작명(훈민정음 작명소) — 300코인 = 30,000원. 워커 라우트(worker/routes/naming-prompt.js)와
   // 프론트(app/naming-ai/NamingAiClient.tsx)가 이 값을 상수로 들고 있어 정본과 어긋나면
   // verifyPaymentShape 의 금액 대조가 400 으로 결제를 되돌린다.
@@ -58,7 +58,7 @@ for (const [featureKey, cost] of Object.entries(expectedCosts)) {
   assert.equal(FEATURE_KEY_PRICE_TABLE[featureKey]?.cost, cost, `${featureKey} must be priced by server registry`);
 }
 
-assert.equal(FEATURE_KEY_PRICE_TABLE["tarot-year-fortune"]?.amountKRW, 5000, "tarot-year-fortune must use KRW 5,000 for new purchases");
+assert.equal(FEATURE_KEY_PRICE_TABLE["tarot-year-fortune"]?.amountKRW, 10000, "tarot-year-fortune must use KRW 10,000 for new purchases");
 
 for (const featureKey of [
   "tarot-year-fortune",
@@ -100,6 +100,9 @@ for (const featureKey of [
   "compat-ziwei-compatibility",
   "compat-saju-compatibility",
   "compat-sukuyo-compatibility",
+  "love-code",
+  "relationship-boundary-test",
+  "fun.quantumLotto.ritualReport",
   "sukuyo-symbolic-comparison",
   "vedic-compatibility-per-use",
   "physiognomy-compatibility",
@@ -129,13 +132,32 @@ for (const featureKey of [
   "flower-fc",
   "olympus-fc",
   "animal-destiny-unlock",
+  "rpt_quantumCard",
+  "rpt_energyCoordCard",
   "rpt_specialCharmCard",
-  "fun.quantumLotto.ritualReport",
   "sukuyo-relationship-encyclopedia",
   "premium-fpti-report",
 ]) {
   assert.equal(getPaidFeatureBillingType(featureKey), PAID_FEATURE_BILLING_TYPES.UNLOCK, `${featureKey} must be an unlock feature`);
   assert.equal(isUnlockPaidFeatureKey(featureKey), true, `${featureKey} must persist unlock entitlement`);
+}
+
+for (const [featureKey, expected] of Object.entries({
+  section_summary: { cost: 100, amountKRW: 10000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
+  section_daewun: { cost: 200, amountKRW: 20000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
+  "relationship-boundary-test": { cost: 100, amountKRW: 10000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
+  rpt_quantumCard: { cost: 100, amountKRW: 10000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
+  rpt_energyCoordCard: { cost: 70, amountKRW: 7000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
+  "fun.quantumLotto.ritualReport": { cost: 10, amountKRW: 1000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
+  destiny_meeting_place: { cost: 70, amountKRW: 7000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
+  "animal-destiny-unlock": { cost: 70, amountKRW: 7000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
+  "love-code": { cost: 70, amountKRW: 7000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
+})) {
+  assert.deepEqual(
+    { cost: (FEATURE_KEY_PRICE_TABLE[featureKey] || UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey])?.cost, amountKRW: (FEATURE_KEY_PRICE_TABLE[featureKey] || UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey])?.amountKRW, billingType: getPaidFeatureBillingType(featureKey) },
+    expected,
+    `${featureKey} must match its confirmed price and billing type`,
+  );
 }
 
 // 타로 오라클 상담(구 "타로 프롬프트 라이브러리"): 1회 ₩10,000 영구 해금 → 회당 ₩5,000으로 다시 전환.

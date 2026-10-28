@@ -1,4 +1,4 @@
-import {CHAPTER_LEASE_MS} from './chapter-delivery-contract.js';
+import {chapterLeaseMs} from './chapter-delivery-contract.js';
 import { connectDb, withMongoRetry } from '../lib/db.js';
 import { YeongnyangiRequest } from './repository.js';
 import { hasRequestAccess } from './access-methods.js';
@@ -23,7 +23,7 @@ export async function enqueueConsultation(env, row) {
   const claimed = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate({
     _id:row._id, state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},
     $or:[{queuedUntil:null},{queuedUntil:{$lte:now}},{queuedChapter:{$ne:row.chapters.length}}],
-  }, {$set:{queuedChapter:row.chapters.length,queuedUntil:new Date(now.getTime()+CHAPTER_LEASE_MS)}}, {new:true}).lean());
+  }, {$set:{queuedChapter:row.chapters.length,queuedUntil:new Date(now.getTime()+chapterLeaseMs(row))}}, {new:true}).lean());
   if (!claimed) {
     const pending=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({
       _id:row._id,queuedChapter:row.chapters.length,queuedUntil:{$gt:now},

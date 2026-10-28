@@ -16,7 +16,7 @@
 
 - **ads.txt는 삭제 금지 파일**(레코드: `google.com, pub-9863227498729828, DIRECT, f08c47fec0942fa0`). 과거 대량 "sync local development state" 커밋(`2fbe1502`)이 실수로 지운 사건이 있어, `scripts/ensure-ads-txt.mjs`가 `prebuild:cf` 맨 앞에서 root·`public`의 ads.txt를 **자가치유**(누락·불일치 시 재기록)하고, `npm run verify:ads-txt`(= ensure `--check`)가 CI("Deploy Cloudflare Pages")와 postbuild(`verify-adsense-readiness`의 4위치 단언)에서 존재를 강제한다. git에서 지워져도 빌드 산출물엔 항상 존재한다. **root·public의 `ads.txt`를 지우지 말 것.**
 - **`google-adsense-account` 검증 메타태그**(`ca-pub-9863227498729828`)는 소유권 확인용(광고 미서빙)이라 `app/layout.js`의 `metadata.other`와 **6개 정적 셸 `<head>` 전부**에 둔다. 광고 **서빙 코드**(`adsbygoogle.js`/`<ins class=adsbygoogle>`/`adsbygoogle.push`)만 `app/components/DeferredAdsense.tsx`로 중앙화 강제된다 — `verify-adsense-readiness.mjs`의 `embedsAdsenseCode()`가 검증 메타태그(HTML `<meta>` + layout JS 선언)를 걷어낸 뒤에만 광고코드를 검사하므로, 검증 메타태그는 어느 페이지·셸에 있어도 게이트를 통과한다(다른 파일에 실제 광고코드를 넣으면 게이트가 여전히 막는다).
-- **브랜드 대표 URL은 꿀꿀 운세 `/ggulggul/`, 영냥이 `/yeongnyangi/` 두 개다**(2026-10-02). 운영 `/`는 `public/_worker.js`가 쿼리를 유지해 `/ggulggul/`로 **301** 하고 sitemap 에 넣지 않는다. `app/page.js`(canonical `/ggulggul/`)는 폴백이다. `/yeongnyangi/`는 서버 렌더 안내(`YeongnyangiGuide`, 가격은 결제 카탈로그에서 빌드 시 읽음)로 색인 대상이 됐다(그 전엔 noindex). "사주 보는 고양이"·"사주보는고양이" 질의는 이 페이지가 받는다. 아래 설명의 "홈 `/`"은 이 폴백 페이지를 뜻한다. (이력: 2026-09-21 `3a9a0378d` 전환, 2026-09-24 정정 — 그 전에는 정적 셸 `index.html`의 승격본이었다.) `scripts/promote-static-shell-to-root.mjs`는 `public/`을 `dist/`에 복사한 뒤 셸 경로 6개(`ggulggul/`·`static/`·`en/`·`ja/`·`zh/`·`zh-tw/`)를 뺀 모든 라우트 HTML(루트 포함)을 Next 산출물로 되돌린다. 따라서 **홈 콘텐츠·메타는 `app/page.js`와 `app/yeongnyangi/_components/`에 둔다.** 운세 입문 콘텐츠 섹션(`.cd-home-guide`, theme-tokens `--cd-*` 사용)은 정적 셸 마크업(루트 `index.html`과 미러 전부, 2026-09-24 실측)에만 있고 React 홈에는 없어서, 지금은 `/`가 아니라 `/ggulggul/`·로케일 셸에서 보인다(숨김 금지). en/ja/zh 셸 현지화 콘텐츠는 후속 과제.
+- **대표 홈은 `/`(200·자기 canonical·사이트맵 포함), 꽃돼지 앱은 `/ggulggul/`, 영냥이 상담은 `/yeongnyangi/`다**(2026-10-18 승인 계획). 대표 홈의 원본은 `app/page.js`, 꽃돼지 정적 셸은 `index.html`이다. `/kkul-kkul-unse/`의 브랜드·이용 안내를 메인으로 흡수하고 301로 통합했다. 기능 쿼리·결제 복귀·기존 해시 링크는 앱으로 가는 기존 동작을 보존한다. 메인의 두 캐릭터 카드 아래에는 분야·고민·공개 결과 예시·체계 차이·FAQ를 서버 HTML로 제공한다. 대표 주소는 `lib/brand/brand-facts.mjs`와 `lib/seo/entity-registry.mjs`를 함께 확인한다. 과거 root301 서술을 현재 규칙으로 적용하지 않는다.
 
 ## 정적 셸 사본 라우트 — 2개만 남았다 (2026-08-23 확정)
 
@@ -166,3 +166,47 @@
 - **남은 문제:** 홈 모바일 LCP 11.90→13.33초, 오늘 데스크톱 LCP 3.65→4.17초. 전체 성능 개선으로 결론 내리지 않는다. 홈의 큰 legacy DOM/CSS/JS 비용, 실사용자 지표와 변경 후 CTR은 후속 확인 대상이다. 최초 기준선과 각 회차 원본도 남겼다.
 - CTR 자동화 `10-8-ctr-d-14-d-30` 활성: D+14 **10/22**, D+30 **11/07**, KST 10:40 확인. 측정일 전과 변화 없는 기간에는 알리지 않는다. 갱신 지연이면 완전한 배포 후 30일이 쌓일 때 다시 확인하며 저노출은 판단 유보. 홈·오늘·내일 허브/상세·인사이트·유명인 군을 분리한다. 최근 30일 기준선을 28일로 바꾸지 않으며 상세 title 기존 실험은 유지한다.
 - 원시 수치·전후 메타·화면 근거: `D:/Development/code-destiny/output/release-20261008-measurement/release-results.md`, `comparison.json`, `visual/production-result.json`. 지속 기록은 [SEO_STATE.json](../seo/SEO_STATE.json)의 `naver20261008.releaseMeasurement`. 측정 자체의 API·결제 정책·DB 스키마 변경 없음.
+
+## 2026-10-13 공식명 복원
+
+공식 서비스명은 모든 언어에서 **꿀꿀 운세**다. **꿀꿀운세**는 띄어쓰기 없는 검색 변형이며 WebSite.alternateName에만 사용한다. Organization의 공개 name은 꿀꿀 운세, legalName은 기존 사업자 정보 정본으로 분리한다. 10/10 개명 지침은 아래 이력으로만 남기며 현재 명칭 기준으로 적용하지 않는다. 대표 URL·법적 상호·결제 정책은 유지한다. 진단과 검증 기록은 [브랜드 검색 정비](../seo/2026-10-13-ggulggul-brand-search.md)를 따른다.
+
+## 2026-10-10 꿀꿀 사주 개명 (이력; 현재 지침 아님)
+
+- 한국어 서비스 공식명은 **꿀꿀 사주**(별칭 꿀꿀사주)다. 꿀꿀 운세·꿀꿀운세는 옛 이름이다. WebSite.name·og:site_name·application-name·manifest·한국어 title 접미사가 모두 "꿀꿀 사주"이며, og:site_name과 WebSite.name은 전 로케일에서 같다. CODE DESTINY(Organization)·법적 상호·경로·저장 키는 바꾸지 않았다.
+- 옛 이름은 `/kkul-kkul-unse/` 전환 안내와 alternateName에만 남긴다. 모든 title이나 푸터에 옛 이름을 나열하지 않는다. 의도적으로 남긴 곳과 이유, GSC·네이버 수동 작업, 관찰표는 [개명 문서](../seo/2026-10-10-ggulggul-saju-rename.md)가 정본이다.
+- 10/08 제목 변경과 기간이 겹친다. CTR 자동화 D+14(10/22)·D+30(11/07) 수치를 개명 단독 효과로 해석하지 않는다.
+
+
+## 변경 동반 SEO 점검
+
+2026-10-18 사용자 요청: 앞으로 기능이나 콘텐츠가 바뀔 때 관련 SEO도 같은 작업에서 점검한다. 별도 SEO 작업 요청을 기다리지 않는다. 작업 시작 시 영향받는 공개 URL과 검색 의도를 적고, 아래 중 관련 항목을 기존 정본에서 확인한다.
+
+- 본문·기능 변경: 첫 문단과 H1이 실제 제공 범위를 설명하는지, title/description이 본문과 맞는지, 설명 중복·과장·미구현 혜택이 없는지 확인한다. 바뀔 이유가 없는 메타는 유지한다.
+- 탐색·URL 변경: 실제 href가 있는 내부 링크, 정규 URL·HTTP 상태, canonical, 의도된 noindex, 기존 sitemap 선별 정책을 함께 확인한다. 인증·결제·개인 결과를 검색 대상으로 만들지 않는다.
+- 다국어 변경: 본문·FAQ·이미지 속 문구·alt·CTA를 해당 언어로 확인하고, 실제 존재하는 번역 URL만 hreflang과 내부 링크에 사용한다. 번역되지 않은 목적지를 번역 페이지처럼 안내하지 않는다.
+- 이미지·레이아웃 변경: 이미지 크기/비율·대체 텍스트·로딩 방식과 모바일 가독성, 콘텐츠 이동·버튼/광고 혼동 여부를 확인한다. 실사용자 CWV와 실험실 검사를 구분한다.
+- 구조화 데이터·광고: 보이는 본문과 동일한 데이터 소스를 사용하고 허구의 저자/리뷰/FAQ를 만들지 않는다. 유료 결과·로딩·로그인·결제 화면 광고 차단을 보존한다.
+
+검증은 기존 check:fast 계획과 관련 대상 검사부터 수행한다. 생성 미러와 sitemap lastmod는 기존 생성기로만 갱신하며, 실제 콘텐츠 변경 없이 날짜만 새롭게 만들지 않는다. PR/배포마다 전체 사이트 크롤링을 추가하지 않는다. 전체 HTTP 감사는 기존 예약 작업을 유지한다.
+
+완료 기록에는 영향 URL, 바꾼 내용과 이유, 유지한 색인 정책, 실행한 검증, 미검증 항목을 적는다. SEO_STATE.json의 현재 실적 관측일·검색 수치를 코드 수정일로 덮지 않는다. 사용자에게 제공되는 실제 품질 개선과 검색순위/CTR 개선은 별도로 보고한다. 운영 배포·계정 제출·아웃리치 발송 권한은 확대하지 않는다.
+
+공식 기준: [Google의 사람 중심 콘텐츠](https://developers.google.com/search/docs/fundamentals/creating-helpful-content), [다국어 사이트 관리](https://developers.google.com/search/docs/specialty/international/managing-multi-regional-sites).
+
+
+### 2026-10-22 D+14 네이버 중간 관찰
+
+- 로그인된 서치어드바이저에서 10/21 갱신 PC+Mobile 최근30일·7일의 웹문서 TOP30 각3페이지를 직접 읽었다. 14일 필터는 없고 집계 시작·종료일도 UI 미표시여서 미확인이다. 30일에는 배포 전 기간이 섞인다.
+- 최근30일 표시 전체 클릭 3.5천→4.3천, 노출78.1만→88.3만, 평균 문서CTR0.4→0.5%. 반올림 값이며 네이버 평균 문서CTR을 합산 클릭/노출 CTR로 바꾸지 않는다.
+- 내일 허브55클릭/5,374노출/1.0%→100/7,686/1.3%; 아이유 원시 ?v= URL38/1,844/2.1%→44/1,879/2.3%. 정국 원시 ?v= URL52/1,038/5.0%, 기준선 미확인. 유명인 전체 합계가 아니다.
+- 최근7일 약900클릭/12.4만노출/평균CTR0.7%, 전주 대비 클릭-16.8%·노출-28.1%. CTR 상승을 유입 증가·제목 단독 효과로 단정하지 않는다.
+- /ggulggul/, /today/, /insights/, /insights/famous-saju/는 TOP30 밖으로 미확인. /kkul-kkul-unse/·/fortune/today/로 대체하지 않는다. 내일 상세 TOP30 부분집합은18개2,278클릭/455,896노출/가중CTR0.500%; 기준선과 동일 URL 집합인지는 미확인이다.
+- 관측 정본: [SEO_STATE.json](../seo/SEO_STATE.json)의 naver20261008.d14Measurement(각기간 원문30행 포함). 읽기 전용 측정만 했고 운영 설정·기능·메타·결제·API·DB·배포 변경 없음. D+14 관찰 완료, 11/07 D+30 자동화 유지.
+
+### 2026-10-22 D+14 수집·색인 확인과 읽기 경로 개선
+
+- 네이버 URL 검사 및 색인 상태 UI에서 `/fortune/tomorrow/pig/`, `/fortune/tomorrow/snake/` 모두 200·수집 허용/완료·색인 허용/완료 확인. 최종 업데이트 표시는 각각 `1시간 전`, `8시간 전`이며 절대 시각으로 환산하지 않았다. 현재 색인 누락 증거는 없고 과거 노출 감소 원인은 미확정이다. 수집 요청은 제출하지 않았다.
+- 한국어 돼지띠·뱀띠 내일 상세에 계산 근거·분야별 점수를 읽고 약속/지출/질문을 준비하는 고유 가이드를 추가했다. 날짜별 예언이나 새 계산을 만들지 않는다. i18n 문구 정본은 `lib/i18n/search-reading-paths.mjs`다.
+- 자미두수 관련 링크의 앞 3개에 명반 가이드·자미두수 인사이트·사주 비교를 배치했다. 인사이트 허브에는 접지 않은 가시 링크를, 유명인 상세의 기존 CTA에는 명리 읽는 법·체계 비교·개인 명반 경로를 제공한다. 유명인 공개/검수 필터와 noindex는 유지한다.
+- 10/03 상세 title 실험과 title/description 생성, URL·canonical·hreflang·robots·sitemap 선별 정책·이미지·광고 정책은 변경하지 않았다. 결제·인증·API·DB·운세 계산은 변경하지 않았다. main 전달과 운영 배포는 구분하며, 이번 변경의 CTR 효과는 후속 관찰 대상이다.

@@ -1,6 +1,7 @@
 import { connectDb, withMongoRetry } from "./db.js";
 import { getBillingFeaturePricing } from "./billing-feature-registry.js";
 import {
+  isBirthScopedUnlockFeatureKey,
   isDirectOrFamilyPaidFeatureKey,
   isDirectOnlyPaidFeatureKey,
   isPerUsePaidFeatureKey,
@@ -10,7 +11,7 @@ import {
 import { Payment, User } from "./models.js";
 import { getUnlockedContentSnapshot } from "./content-unlocks.js";
 import { PermissionService } from "./permission-service.js";
-import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
+import { canUseByPass, normalizeHoneyPassEntitlement } from "./profile-limits.js";
 import { resolveFeatureAccessPolicy } from "./entitlement-policy.js";
 
 const SINGLE_PAYMENT_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
@@ -254,7 +255,8 @@ function resolveDecisionFromUserDoc(userId, user, spec, hasPurchase) {
   const familyPassOnly = featureCandidates.some((key) => isDirectOrFamilyPaidFeatureKey(key));
   const activeTier = cleanText(directLicense.tier || pass.passTier || pass.tier).toLowerCase();
   const passExcluded = isPassExcluded(featureCandidates) || (familyPassOnly && activeTier !== "family");
-  if (!passExcluded && directLicense.active) {
+  // 🔴 라이선스도 이용권과 같은 건당 상한을 따른다(2026-10-16). 예전에는 licenses[tier]>0 이면 가격을 보지 않았다.
+  if (!passExcluded && directLicense.active && canUseByPass({ isActive: true, passTier: directLicense.tier }, coinCost)) {
     return buildDecision({
       allowed: true,
       reason: resolveLicenseReason(directLicense.tier),
@@ -426,10 +428,13 @@ export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = 
      ziwei-deep-pdf)이 현재 **회당 결제 증빙으로 쓰고 있는** 경로라, 여기서 같이 막으면
      방금 카드로 결제한 사용자가 402 를 받는다. 그 경로를 요청 단위로 좁히는 것은 별도 작업이다
      (그것이 "한 번 사면 영원히 무료"의 나머지 절반이다). */
+  /* 🔴 출생 기반 키(isBirthScopedUnlockFeatureKey)도 계정 배열에서 걸러 낸다. 그 배열은 어느 생년월일로
+     샀는지 모른다 — 프로필 A(출생 a)로 산 기록이 같은 계정의 프로필 B(출생 b)까지 열게 된다.
+     출생 기반 키는 아래 스냅샷(요청 profileId 의 BIRTH 행)으로만 판정한다. 배열 쓰기는 되돌리기용으로 남아 있다. */
   const grantedKeySet = new Set([
     ...(Array.isArray(user.paidFeatures) ? user.paidFeatures : []),
     ...(Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : []),
-  ].map((key) => cleanText(key)).filter((key) => key && !isPerUsePaidFeatureKey(key)));
+  ].map((key) => cleanText(key)).filter((key) => key && !isPerUsePaidFeatureKey(key) && !isBirthScopedUnlockFeatureKey(key)));
 
   const needsUnlockSnapshot = pendingSpecs.some((spec) => isUnlockPaidFeatureKey(spec.effectiveFeatureKey)
     && !spec.featureCandidates.some((key) => grantedKeySet.has(key)));
@@ -461,6 +466,8 @@ export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = 
   const perUseLookupCandidates = new Set();
   for (const spec of pendingSpecs) {
     if (spec.featureCandidates.some((key) => grantedKeySet.has(key))) continue;
+    // 출생 기반 키의 Payment 행은 계정 단위 기록이라(어느 출생인지 모른다) 근거가 아니다 — 위 BIRTH 스냅샷만 본다.
+    if (isBirthScopedUnlockFeatureKey(spec.effectiveFeatureKey)) continue;
     const bucket = isPerUsePaidFeatureKey(spec.effectiveFeatureKey)
       ? perUseLookupCandidates
       : unlockLookupCandidates;

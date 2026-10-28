@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
-const files = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean);
+const files = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }).split('\0').filter(Boolean);
 const excluded = /^(?:node_modules|\.claude|\.codex|\.cleanup|reports|docs|__tests__)\//;
 const verificationScript = /^scripts\/(?:verify-|audit-|test-|benchmark-|run-|check-|lib\/mock)/;
 const gateways = /^(?:callLLM|callGeminiText|callGeminiJsonWithRetry)$/;

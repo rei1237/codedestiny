@@ -343,11 +343,12 @@ for (const [name, ratio, lead] of [
     for (let i = 0; body.length < target; i++) body += `${chapter.id}의 ${i}번째 고유 근거로 생활 장면과 대응을 구체적으로 정리합니다.\n`;
     return { status: 'ok', chapter: { id: chapter.id, title: chapter.title, order: chapter.order, symbol: chapter.symbol, body, chars: body.length, ok: true } };
   });
-  for (let wave = 0; wave < 8 && docs[0].status !== 'completed'; wave++) await generate();
+  for (let wave = 0; wave < 12 && docs[0].status !== 'completed'; wave++) await generate();
   expect(docs[0].deliveryMeta.reviewRequired).not.toBe(true);
   expect(docs[0].status).toBe('completed');
   expect(docs[0].chapters).toHaveLength(20);
-  expect(provider).toHaveBeenCalledTimes(20);
+  // Under minChars (ratio 0.76) each chapter spends its one length repair, never more (rule L2).
+  expect(provider).toHaveBeenCalledTimes(ratio < 1 ? 40 : 20);
   expect(hasRepeatedReportPassage(docs[0].chapters.map(row => row.body).join('\n'))).toBe(false);
   expect(refund).not.toHaveBeenCalled();
 });
@@ -378,16 +379,38 @@ for (const mode of ['solo', 'compat']) for (const repair of ['shorter', 'longer'
     });
     for (let wave = 0; wave < 8 && docs[0].status !== 'completed'; wave++) await generate();
     expect(docs[0].status).toBe('completed');
-    expect(draftCalls).toBe(1);
+    expect(draftCalls).toBe(2);
     const { isCodexArchiveComplete } = await import('../../worker/routes/master-love-codex.js');
     expect(isCodexArchiveComplete(docs[0])).toBe(true);
     expect(isCodexArchiveComplete({ ...docs[0], chapters: docs[0].chapters.slice(1) })).toBe(false);
     const body = docs[0].chapters.find(row => row.id === first.id).body;
-    expect(body).toBe(lengthCandidate(first, 650, '초안').chapter.body.trim());
+    expect(body).toBe(lengthCandidate(first, repair === 'longer' ? 1100 : 650, repair === 'longer' ? '보강' : '초안').chapter.body.trim());
     expect(docs[0].deliveryMeta.failures[first.id] || 0).toBe(0);
     expect(refund).not.toHaveBeenCalled();
   });
 }
+
+// R3/R4 (2026-10-09): chapters at 73~76% of minChars cleared the 0.7 acceptance floor and
+// shipped without the one length repair rule L2 promises.
+it('sends a chapter above the acceptance floor but under minChars through one length repair within the cap', async () => {
+  const { MODES } = await utils();
+  const first = MODES.solo.chapters[0];
+  const normal = provider.getMockImplementation();
+  const calls = [];
+  provider.mockImplementation(async (env, input) => {
+    if (input.chapter.id !== first.id) return normal(env, input);
+    calls.push(input.previousError);
+    return lengthCandidate(first, Math.ceil(first.minChars * (calls.length === 1 ? 0.75 : 1.05)), calls.length === 1 ? '초안' : '보강');
+  });
+  for (let wave = 0; wave < 10 && docs[0].status !== 'completed'; wave++) await generate();
+  expect(docs[0].status).toBe('completed');
+  expect(calls).toEqual(['', 'LLM_OUTPUT_TOO_SHORT']);
+  expect(docs[0].deliveryMeta.attempts[first.id]).toBe(2);
+  expect(docs[0].deliveryMeta.attempts[`${first.id}:lengthRepair`]).toBe(1);
+  expect(docs[0].chapters.find(row => row.id === first.id).body).toBe(lengthCandidate(first, Math.ceil(first.minChars * 1.05), '보강').chapter.body.trim());
+  expect(provider).toHaveBeenCalledTimes(21);
+  expect(refund).not.toHaveBeenCalled();
+});
 
 it('resumes a lost final length-repair reservation without another provider call', async () => {
   const { MODES } = await utils();
@@ -413,14 +436,14 @@ it('accepts a structurally valid short chapter on its last existing attempt', as
   expect(refund).not.toHaveBeenCalled();
 });
 
-it('delivers all usable short chapters once without length regeneration', async () => {
+it('delivers all usable short chapters after exactly one bounded length repair each', async () => {
   provider.mockImplementation(async (_env, { chapter }) => lengthCandidate(chapter, 650));
-  for (let wave = 0; wave < 5; wave++) await generate();
+  for (let wave = 0; wave < 12 && docs[0].status !== 'completed'; wave++) await generate();
   expect(docs[0].status).toBe('completed');
   expect(docs[0].chapters).toHaveLength(20);
-  expect(provider).toHaveBeenCalledTimes(20);
+  expect(provider).toHaveBeenCalledTimes(40);
   expect((await generate()).status).toBe(200);
-  expect(provider).toHaveBeenCalledTimes(20);
+  expect(provider).toHaveBeenCalledTimes(40);
   expect(refund).not.toHaveBeenCalled();
 });
 
@@ -466,4 +489,26 @@ for (const floor of ['paid body', 'legacy aggregate']) it(`keeps the independent
   expect((await generate()).status).toBe(200);
   expect(docs[0].status).toBe('completed');
   expect(provider).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+});
+
+it('resumed waves retain the frozen question snapshot and bind checkpoints to its content hash', async () => {
+ const consultation={version:'codex-consultation-v1',referenceDate:'2026-10-14',relationship:'reunion',questions:[{id:'q1',text:'다시 연락해도 될까요?',chapterOrder:15}],periods:[],years:[],records:[]};
+ docs[0].consultation=consultation;
+ docs[0].consultationHash='question-content-a';
+ await generate();
+ expect(provider).toHaveBeenCalled();
+ const first=provider.mock.calls[0][1];
+ expect(first.consultation).toEqual(consultation);
+ const keyA=first.snapshotKey;
+ const chapterId=first.chapter.id;
+ docs[0].chapters=[];
+ docs[0].deliveryMeta={};
+ docs[0].generationProgress=null;
+ docs[0].consultationHash='question-content-b';
+ provider.mockClear();
+ await generate();
+ const next=provider.mock.calls.find(([,args])=>args.chapter.id===chapterId)[1];
+ expect(next.consultation).toEqual(consultation);
+ expect(next.snapshotKey).not.toBe(keyA);
+ expect(refund).not.toHaveBeenCalled();
 });

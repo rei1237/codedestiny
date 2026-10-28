@@ -60,7 +60,7 @@
   --nm-l-e8d5a3-70: rgba(232, 213, 163, 0.7);
   --nm-progress: linear-gradient(90deg, #a78bfa, #c4b5fd, #e8d5a3);
   --nm-r-c4b5fd-50: rgba(196, 181, 253, 0.5);
-  --nm-seal-fill: linear-gradient(135deg, #c4b5fd, #e8d5a3);
+  --nm-seal-fill: linear-gradient(#c4b5fd, #c4b5fd);
   --nm-t-0a0818: #0a0818;
   --nm-t-a294cf: #a294cf;
   --nm-t-c4b5fd: #c4b5fd;
@@ -140,7 +140,7 @@
   --nm-l-e8d5a3-70: rgb(201, 164, 106);
   --nm-progress: linear-gradient(90deg, #8e3f63, #b31955, #c9a46a);
   --nm-r-c4b5fd-50: rgba(179, 25, 85, 0.5);
-  --nm-seal-fill: linear-gradient(135deg, #b31955, #8e3f63);
+  --nm-seal-fill: linear-gradient(#b31955, #b31955);
   --nm-t-0a0818: rgb(255, 250, 247);
   --nm-t-a294cf: rgb(112, 68, 92);
   --nm-t-c4b5fd: rgb(142, 63, 99);

@@ -1,0 +1,273 @@
+{
+  "id": "fusion-fortune",
+  "surface": "introduction",
+  "rows": [
+    {
+      "width": 360,
+      "scrollWidth": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "scrollWidth": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "scrollWidth": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        }
+      ]
+    }
+  ],
+  "missingImageOpensTranscript": true,
+  "mode": "Local mock; prices from local registry; no external traffic, payment, or LLM",
+  "entryEvidence": "Existing UI"
+}

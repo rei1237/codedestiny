@@ -1,5 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
+
+// 번역문 안에 한글로 남아도 되는 고유명사: 공식 서비스명과 별칭(lib/brand/brand-facts.mjs).
+const BRAND_PROPER_NOUNS = [BRAND_FACTS.service.name, ...BRAND_FACTS.service.alternateNames];
+const withoutBrandNames = (value) => BRAND_PROPER_NOUNS.reduce((text, name) => text.replaceAll(name, ""), value);
 
 const rootDir = process.cwd();
 const indexPath = resolve(rootDir, "index.html");
@@ -164,7 +169,8 @@ function findBadValues(flat, koFlat) {
       return registered === undefined || stripSeparator(value) !== stripSeparator(registered);
     }
     if (HANGUL_QUOTE_ALLOWED_KEYS.has(key)) return false;
-    return /^\?+$/.test(value) || value.includes("\uFFFD") || /[\uAC00-\uD7A3]/u.test(value);
+    // The approved brand is a proper noun; surrounding Korean still fails translation coverage.
+    return /^\?+$/.test(value) || value.includes("\uFFFD") || /[\uAC00-\uD7A3]/u.test(withoutBrandNames(value));
   }).map(([key]) => key);
 }
 

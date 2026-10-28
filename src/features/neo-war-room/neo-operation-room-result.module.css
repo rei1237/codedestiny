@@ -852,10 +852,10 @@
 .neoLetterBody p {
   margin: 0;
   color: rgba(255, 248, 229, 0.92);
-  font-family: var(--font-premium);
-  font-size: 1.02rem;
-  font-weight: 760;
-  line-height: 1.8;
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.95;
   word-break: keep-all;
 }
 
@@ -980,7 +980,7 @@
 .chapter summary svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--nr-accent); transition: transform var(--cd-dur-base) var(--cd-ease-out); }
 .chapter[open] summary svg { transform: rotate(180deg); }
 .chapter summary:hover { color: var(--nr-accent); }
-.chapterBody { display: grid; gap: 24px; padding-block: 12px 28px; }
+.chapterBody { display: grid; gap: 28px; max-width: 66ch; padding-block: 16px 32px; font-family: var(--font-body); line-height: 1.9; }
 .chapterReader[data-export="true"] summary svg { display: none; }
 
 @media (max-width: 680px) {
@@ -1187,8 +1187,8 @@
   }
 
   .neoLetterBody p {
-    font-size: 0.96rem;
-    line-height: 1.72;
+    font-size: 1rem;
+    line-height: 1.9;
   }
 
   .primaryCta,

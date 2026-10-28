@@ -14,7 +14,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     home: "홈",
     breadcrumb: "운세 콘텐츠 방법론과 면책 고지",
     title: "운세 콘텐츠 방법론과 면책 고지",
-    intro: "Code Destiny의 운세 해석은 전통 상징 체계와 현대적인 자기성찰 문장을 결합해 제공합니다.\n검색엔진과 사용자에게 같은 본문, 같은 고지, 같은 내부 링크를 보여주는 것을 원칙으로 합니다.",
+    intro: "꿀꿀운세의 운세 해석은 전통 상징 체계와 현대적인 자기성찰 문장을 결합해 제공합니다.\n검색엔진과 사용자에게 같은 본문, 같은 고지, 같은 내부 링크를 보여주는 것을 원칙으로 합니다.",
     relatedAria: "방법론 관련 링크",
     faq: "자주 묻는 질문",
     insightGuide: "운세 인사이트 가이드",
@@ -25,7 +25,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     sections: [
       {
         title: "콘텐츠 작성 기준",
-        body: "사주, 타로, 자미두수, 점성술, 숙요점은 서로 다른 상징 체계를 사용합니다. Code Destiny는 각 체계의 기본 개념을 분리해 설명하고, 결과 문장은 사용자가 현실의 선택지를 점검할 수 있도록 작성합니다.",
+        body: "사주, 타로, 자미두수, 점성술, 숙요점은 서로 다른 상징 체계를 사용합니다. 꿀꿀운세는 각 체계의 기본 개념을 분리해 설명하고, 결과 문장은 사용자가 현실의 선택지를 점검할 수 있도록 작성합니다.",
       },
       {
         title: "검증과 업데이트",
@@ -65,7 +65,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
       },
       {
         title: "한계와 반증 가능성",
-        body: "운세 해석은 반증 가능한 과학적 예측이 아닙니다. 같은 명식을 두 사람이 읽으면 강조점이 달라질 수 있고, 맞았다고 느끼는 문장은 누구에게나 해당하는 서술일 수 있습니다. Code Destiny는 이 한계를 감추지 않는 것을 원칙으로 하며, 해석을 읽을 때 맞은 문장과 틀린 문장을 함께 세어 보기를 권합니다. 결과가 현실 판단을 대신하도록 쓰이는 순간, 이 콘텐츠는 의도한 용도에서 벗어납니다.",
+        body: "운세 해석은 반증 가능한 과학적 예측이 아닙니다. 같은 명식을 두 사람이 읽으면 강조점이 달라질 수 있고, 맞았다고 느끼는 문장은 누구에게나 해당하는 서술일 수 있습니다. 꿀꿀운세는 이 한계를 감추지 않는 것을 원칙으로 하며, 해석을 읽을 때 맞은 문장과 틀린 문장을 함께 세어 보기를 권합니다. 결과가 현실 판단을 대신하도록 쓰이는 순간, 이 콘텐츠는 의도한 용도에서 벗어납니다.",
       },
       {
         title: "검수자와 검수 기준",
@@ -73,7 +73,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
       },
       {
         title: "면책 고지",
-        body: "운세 콘텐츠는 오락과 자기성찰 목적의 참고 자료입니다. 의료, 법률, 금융, 투자, 진로 계약처럼 중대한 결정은 해당 분야의 전문가와 상담해야 합니다.",
+        body: "운세 콘텐츠는 각 체계의 이론에 근거한 참고 해석입니다. 의료, 법률, 금융, 투자, 진로 계약처럼 중대한 결정은 해당 분야의 전문가와 상담해야 합니다.",
       },
       {
         title: "사용자 보호 원칙",
@@ -85,7 +85,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     home: "Home",
     breadcrumb: "Fortune Content Methodology and Disclaimer",
     title: "Fortune Content Methodology and Disclaimer",
-    intro: "Code Destiny combines traditional symbolic systems with modern self-reflection language.\nThe same body text, notices, and internal links are shown to search engines and users.",
+    intro: "꿀꿀운세 combines traditional symbolic systems with modern self-reflection language.\nThe same body text, notices, and internal links are shown to search engines and users.",
     relatedAria: "Methodology related links",
     faq: "FAQ",
     insightGuide: "Fortune Insight Guide",
@@ -93,10 +93,10 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     disclaimer: "Disclaimer",
     contact: "Contact",
     sections: [
-      { title: "Content Standards", body: "Saju, tarot, Zi Wei Dou Shu, astrology, and Sukuyo use different symbolic systems. Code Destiny explains the basic concepts separately and writes result text so users can review real choices." },
+      { title: "Content Standards", body: "Saju, tarot, Zi Wei Dou Shu, astrology, and Sukuyo use different symbolic systems. 꿀꿀운세 explains the basic concepts separately and writes result text so users can review real choices." },
       { title: "Review and Updates", body: "Public guides and FAQs are checked so broken copy, exaggerated wording, and internal work notes are not exposed. When policies or features change, related documents and internal links are updated together." },
       { title: "What the engine computes and what AI writes", body: "The underlying values — birth chart, planetary positions, the 27 lunar mansions — come from deterministic calculation engines, not from AI. The same birth data always produces the same values. Generative AI is used at the next step, turning those values into readable explanations, and published documents are checked against our standards for exaggeration, anxiety-inducing wording, and phrasing that could be mistaken for medical, legal, or financial advice. Full production and review standards are set out in our content and AI disclosure." },
-      { title: "Disclaimer", body: "Fortune content is reference material for entertainment and self-reflection. Important decisions such as medical, legal, financial, investment, or career contracts should be discussed with qualified professionals." },
+      { title: "Disclaimer", body: "Fortune content is interpretive reference material grounded in each system's theory. Important decisions such as medical, legal, financial, investment, or career contracts should be discussed with qualified professionals." },
       { title: "User Protection Principles", body: "We avoid wording that stirs anxiety or pressures a specific action. Results guide possibilities and observation points, while making clear that final choices and responsibility remain with the user." },
     ],
   },
@@ -104,7 +104,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     home: "ホーム",
     breadcrumb: "運勢コンテンツの方法論と免責",
     title: "運勢コンテンツの方法論と免責",
-    intro: "Code Destinyの運勢解釈は、伝統的な象徴体系と現代的な自己省察の言葉を組み合わせて提供します。\n検索エンジンとユーザーに、同じ本文、同じ告知、同じ内部リンクを示すことを原則とします。",
+    intro: "꿀꿀운세の運勢解釈は、伝統的な象徴体系と現代的な自己省察の言葉を組み合わせて提供します。\n検索エンジンとユーザーに、同じ本文、同じ告知、同じ内部リンクを示すことを原則とします。",
     relatedAria: "方法論関連リンク",
     faq: "よくある質問",
     insightGuide: "運勢インサイトガイド",
@@ -112,7 +112,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     disclaimer: "免責事項",
     contact: "お問い合わせ",
     sections: [
-      { title: "コンテンツ作成基準", body: "四柱推命、タロット、紫微斗数、占星術、宿曜はそれぞれ異なる象徴体系を用います。Code Destinyは各体系の基本概念を分けて説明し、結果文は現実の選択肢を見直せるように作成します。" },
+      { title: "コンテンツ作成基準", body: "四柱推命、タロット、紫微斗数、占星術、宿曜はそれぞれ異なる象徴体系を用います。꿀꿀운세は各体系の基本概念を分けて説明し、結果文は現実の選択肢を見直せるように作成します。" },
       { title: "検証と更新", body: "公開ガイドとFAQは、表現ミス、誇張表現、内部作業用の文言が露出しないよう点検します。サービス方針や機能が変わる場合は、関連文書と内部リンクもあわせて更新します。" },
       { title: "計算とAIの役割", body: "命式・天体位置・二十七宿といった基礎値は、AIではなく決定論的な計算エンジンが算出します。同じ生年月日時を入力すれば常に同じ値になります。その値を読みやすい解説文に移す段階で生成AIを使用し、公開文書は掲載前に誇張表現、不安をあおる表現、医療・法律・金融の助言と誤解されうる文章を基準に沿って点検します。詳しい制作・検収基準はコンテンツ制作およびAI活用の告知に記載しています。" },
       { title: "免責事項", body: "運勢コンテンツは娯楽と自己省察を目的とした参考資料です。医療、法律、金融、投資、進路契約など重要な判断は、該当分野の専門家に相談してください。" },

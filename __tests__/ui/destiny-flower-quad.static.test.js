@@ -76,6 +76,24 @@ test("카드를 누르면 그 체계로 상세가 바뀐다(액션 배선)", () 
   }
 });
 
+test("점성술 탭은 천문 데이터를 기다린 뒤 사용자 선택으로 바로 연동한다", () => {
+  const reloadAt = runtimeCode.indexOf("function _dfReloadSourceData");
+  const reloadBody = runtimeCode.slice(reloadAt, runtimeCode.indexOf("\nfunction ", reloadAt + 10));
+  assert.match(
+    reloadBody,
+    /return __cdEnsureSwissEphLoaded\(\)\.catch\(/,
+    "점성술 계산은 SwissEph 준비 Promise를 기다려야 한다",
+  );
+
+  const tabAt = runtimeCode.indexOf("function setDestinyFlowerSourceTab");
+  const tabBody = runtimeCode.slice(tabAt, runtimeCode.indexOf("\nfunction ", tabAt + 10));
+  assert.match(
+    tabBody,
+    /_dfFetchSourceOnDemand\(normalized,\s*\{\s*force:\s*true,\s*userInitiated:\s*true\s*\}\)/,
+    "생년월일이 있는 사용자가 점성술 탭을 누르면 연동을 바로 시작해야 한다",
+  );
+});
+
 test("렌더러가 소스 갱신 경로에 배선돼 있다", () => {
   assert.ok(
     /function _dfRenderQuadCards\(/.test(runtimeCode),
@@ -131,4 +149,81 @@ test("4-up 그리드가 좁은 화면에서 무너지지 않는다", () => {
     /@media \(max-width: 480px\)[\s\S]{0,200}\.df-studio-quad[\s\S]{0,140}minmax\(0, 1fr\)/.test(narrow),
     "480px 이하 1열 분기가 없다",
   );
+});
+
+test("카드 한 줄은 엔진이 맞춘 첫 근거 문장을 쓰고, 없을 때만 꽃말로 물러난다", () => {
+  const at = runtimeCode.indexOf("function _dfRenderQuadCards");
+  assert.ok(at >= 0, "_dfRenderQuadCards 를 찾지 못했다");
+  const body = runtimeCode.slice(at, runtimeCode.indexOf("\nfunction ", at + 10));
+  assert.match(body, /_dfToArray\(selection\.matched && selection\.matched\.rationale_points\)\[0\]/, "카드 한 줄이 rationale_points 를 읽지 않는다");
+  assert.match(body, /lineEl\.textContent = pointText \|\| symbolism \|\|/, "근거 → 꽃말 순서의 폴백이 아니다");
+});
+
+test("상세에 '왜 이 꽃일까요?' 근거 목록이 배선돼 있다", () => {
+  assert.match(shell, /<section id="dfStudioWhy" class="df-studio-why" hidden>/, "셸에 근거 섹션이 없다(기본 hidden)");
+  assert.match(shell, /<ol id="dfStudioWhyList"/, "셸에 근거 목록이 없다");
+  const at = runtimeCode.indexOf("function _dfApplyStudioSelection");
+  const body = runtimeCode.slice(at, runtimeCode.indexOf("\nfunction ", at + 10));
+  assert.match(body, /_dfRenderStudioWhy\(selection\);/, "_dfApplyStudioSelection 이 근거 목록을 그리지 않는다");
+  const why = runtimeCode.slice(runtimeCode.indexOf("function _dfRenderStudioWhy"));
+  assert.match(why.slice(0, 900), /\.slice\(0, 4\)/, "근거는 최대 4개");
+  assert.match(why.slice(0, 900), /_dfEscapeHtml/, "근거 문장을 이스케이프하지 않는다");
+  assert.match(why.slice(0, 900), /wrap\.hidden = points\.length === 0;/, "근거가 없을 때 섹션을 숨기지 않는다");
+});
+
+/** 런타임에서 이름으로 함수·상수 정의를 잘라 vm 에서 돌린다(실제 코드 그대로). */
+/** ko 페이지의 cdTranslate 와 같은 동작: ko 원문에 변수를 넣고, `@경로` 변수는 ko 사전에서 푼다. */
+const koDict = JSON.parse(read("public/i18n/ko.json"));
+function koTranslate(_key, vars, ko) {
+  const lookup = (p) => p.split(".").reduce((node, k) => (node && typeof node === "object" ? node[k] : undefined), koDict);
+  return String(ko).replace(/{(w+)}/g, (m, name) => {
+    const raw = vars && vars[name];
+    if (raw == null) return m;
+    const looked = typeof raw === "string" && raw.startsWith("@") ? lookup(raw.slice(1)) : undefined;
+    return typeof looked === "string" ? looked : String(raw);
+  });
+}
+
+function loadRuntimePieces(names) {
+  const vm = require("node:vm");
+  const src = names.map((name) => {
+    const head = name.startsWith("_DF_") ? "var " + name + " = {" : "function " + name + "(";
+    const at = runtime.indexOf("\n" + head);
+    assert.ok(at >= 0, name + " 정의를 찾지 못했다");
+    const end = runtime.indexOf(name.startsWith("_DF_") ? "\n};" : "\n}\n", at + 1);
+    return runtime.slice(at, end + 3);
+  }).join("\n");
+  const ctx = { window: { cdTranslate: koTranslate } };
+  vm.runInNewContext(src, ctx);
+  return ctx;
+}
+
+test("닫기 버튼은 꽃잎 로제트지만 닫기 히트테스트가 기대는 클래스·액션·라벨은 그대로다", () => {
+  const close = shell.match(/<button class="df-studio-close"[^>]*>[\s\S]*?<\/button>/);
+  assert.ok(close, "닫기 버튼이 없다");
+  assert.match(close[0], /data-action="closeDestinyFlowerStudio"/);
+  assert.match(close[0], /aria-label="운명의 꽃 아틀리에 닫기"/);
+  assert.match(close[0], /class="df-close-rosette"/, "로제트 SVG 가 없다");
+  assert.equal((close[0].match(/<ellipse /g) || []).length, 5, "꽃잎은 다섯 장");
+  assert.doesNotMatch(close[0], /✕/, "글자 ✕ 가 남아 있다");
+});
+
+test("개화 타임라인은 bloom_story 를 쓰고, 없으면 rationale_points 를 단계로 옮긴다", () => {
+  const ctx = loadRuntimePieces(["_dfToArray", "_DF_BLOOM_STAGE_ICON", "_dfBloomStage", "_dfBloomSteps"]);
+  const story = ctx._dfBloomSteps({ matched: {
+    bloom_story: [{ stage: "seed", label: "씨앗", text: "갑목" }, { stage: "season", label: "계절", text: " " }, { stage: "bloom", label: "꽃", text: "목련" }],
+    rationale_points: [{ key: "x", text: "무시" }]
+  } });
+  assert.deepEqual(story.map((s) => s.stage), ["seed", "bloom"], "빈 단계는 버리고 서사를 우선한다");
+  const legacy = ctx._dfBloomSteps({ matched: { rationale_points: [{ key: "a", text: "일간" }, { key: "b", text: "용신" }, { key: "astro.verdict", text: "결론" }] } });
+  assert.deepEqual(legacy.map((s) => s.stage), ["seed", "light", "bloom"]);
+});
+
+test("운명 꽃다발 해석은 같은 꽃 > 공통 오행 > 다채로운 결 순이고 조사가 맞다", () => {
+  const ctx = loadRuntimePieces(["_dfToArray", "_dfElementLabelKo", "_dfHasBatchim", "_dfJoinSourceSubject", "_dfUiText", "_dfSourceListText", "_dfElementVar", "_dfBouquetReading"]);
+  const item = (label, id, elements) => ({ label, selection: { flower: { id, name: id === "magnolia" ? "목련" : id, elements } } });
+  assert.equal(ctx._dfBouquetReading([item("사주", "magnolia", ["Wood"]), item("점성술", "rose", ["Wood", "Fire"])]), "사주와 점성술이 모두 목(木) 기운을 가리켰어요.");
+  assert.match(ctx._dfBouquetReading([item("점성술", "magnolia", ["Wood"]), item("숙요점", "magnolia", ["Wood"])]), /^점성술과 숙요점이 같은 꽃, 목련을 골랐어요/);
+  assert.match(ctx._dfBouquetReading([item("사주", "a", ["Fire"]), item("자미두수", "b", ["Water"])]), /^서로 다른 결/);
+  assert.equal(ctx._dfJoinSourceSubject(["사주", "점성술", "자미두수", "숙요점"]), "네 갈래 점술이");
 });

@@ -32,6 +32,9 @@ import {
   writeFeatureSessionDraft,
 } from "@/app/_lib/feature-session-draft";
 import { useDestinyBiasTouchGuard } from "./lib/destinyBiasTouchGuard";
+import { useCoinGate } from "@/app/hooks/useCoinGate";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import ChemiHook from "./components/chemi/ChemiHook";
 import IdolPicker from "./components/chemi/IdolPicker";
 import MyInfoPanel, { type MyInfoValue } from "./components/chemi/MyInfoPanel";
@@ -75,6 +78,8 @@ type StoredAuthUser = { id?: string; userId?: string; birthDate?: string } | nul
 type Draft = { step: Step; partnerRef: ChemiPartnerRef | null };
 
 const DESTINY_BIAS_DRAFT_FEATURE_KEY = "saju-destiny-bias";
+const DESTINY_BIAS_ANALYZE_FEATURE_KEY = "destiny-bias-analyze";
+const DESTINY_BIAS_ANALYZE_PRICING = resolveServerFeaturePricing({ featureKey: DESTINY_BIAS_ANALYZE_FEATURE_KEY });
 const FUNNEL = "destiny_bias_chemi";
 const FEATURE_PATH = "/saju/destiny-bias/";
 const COMPUTING_MIN_MS = 650;
@@ -211,6 +216,7 @@ async function downloadBlob(blob: Blob, filename: string) {
 
 export default function DestinyBiasClient() {
   const router = useRouter();
+  const { ensurePaidAccess, isPaying } = useCoinGate();
   // 정적 export 에서 useSearchParams 는 Suspense 경계를 요구하므로 마운트 시 location 을 직접 읽는다.
   const [searchParams] = useState(() => (typeof window === "undefined" ? null : new URLSearchParams(window.location.search)));
   const reduceMotion = useReducedMotion();
@@ -339,7 +345,7 @@ export default function DestinyBiasClient() {
     [trackClick, trackFunnelStep],
   );
 
-  const compute = useCallback(
+  const computeCore = useCallback(
     async (target: ChemiPartnerRecord, infoValue: MyInfoValue, source: "form" | "switch" | "replay") => {
       const digits = infoValue.birthDateInput;
       const validation = validateBirthInput(digits);
@@ -409,6 +415,58 @@ export default function DestinyBiasClient() {
       });
     },
     [from, moods, reduceMotion, themeKey, trackClick, trackFunnelStep],
+  );
+
+  const buildAnalyzeResume = usePaidResume(DESTINY_BIAS_ANALYZE_FEATURE_KEY, async (args) => {
+    const payload = unpackPaidResumeArg<{
+      partner: ChemiPartnerRef;
+      info: MyInfoValue;
+      source: "form" | "switch" | "replay";
+    }>(args.payload);
+    if (!payload) return false;
+    const resumedPartner = resolvePartner(payload.partner);
+    if (!resumedPartner || validateBirthInput(payload.info?.birthDateInput)) return false;
+    setPartner(resumedPartner);
+    setInfo(payload.info);
+    await computeCore(resumedPartner, payload.info, payload.source);
+    return true;
+  });
+
+  const compute = useCallback(
+    async (target: ChemiPartnerRecord, infoValue: MyInfoValue, source: "form" | "switch" | "replay") => {
+      if (isPaying) return;
+      const validation = validateBirthInput(infoValue.birthDateInput);
+      if (validation) {
+        setInfoError(validation);
+        setStep("info");
+        return;
+      }
+      if (!DESTINY_BIAS_ANALYZE_PRICING) {
+        setInfoError("결제 가격을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        setStep("info");
+        return;
+      }
+      const gate = await ensurePaidAccess({
+        resume: buildAnalyzeResume({
+          payload: packPaidResumeArg({ partner: { kind: target.kind, id: target.id }, info: infoValue, source }),
+        }),
+        featureKey: DESTINY_BIAS_ANALYZE_FEATURE_KEY,
+        coinPrice: DESTINY_BIAS_ANALYZE_PRICING.cost,
+        cost: DESTINY_BIAS_ANALYZE_PRICING.cost,
+        amountKRW: DESTINY_BIAS_ANALYZE_PRICING.amountKRW,
+        reason: "최애운명 케미 분석",
+        requestId: `${DESTINY_BIAS_ANALYZE_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      });
+      if (!gate.ok) {
+        if (gate.code !== "PAYMENT_CANCELLED") {
+          setInfoError(gate.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        }
+        setStep("info");
+        return;
+      }
+      await computeCore(target, infoValue, source);
+    },
+    [buildAnalyzeResume, computeCore, ensurePaidAccess, isPaying],
   );
 
   /** 무드를 바꾸면 같은 입력으로 리포트만 다시 만든다(계산 화면·스크롤 이동 없음). */
@@ -739,7 +797,7 @@ export default function DestinyBiasClient() {
           <button
             type="button"
             className={styles.ctaPrimary}
-            disabled={shareBusy}
+            disabled={shareBusy || isPaying}
             onClick={(event) => {
               if (shouldBlockClick()) {
                 event.preventDefault();
@@ -748,7 +806,7 @@ export default function DestinyBiasClient() {
               stickyAction();
             }}
           >
-            {stickyLabel}
+            {isPaying ? "이용권 확인 중" : stickyLabel}
           </button>
         </div>
       ) : null}

@@ -1,0 +1,44 @@
+{
+  "recordedAt": "2026-10-13T09:22:38.099Z",
+  "command": "npm run check:fast -- --committed-head --base=main",
+  "exitCode": 0,
+  "codeCandidate": "9d7a92315",
+  "paidGateSuite": {
+    "passed": 88,
+    "failed": 0
+  },
+  "node": {
+    "passed": 3210,
+    "failed": 0
+  },
+  "jest": {
+    "suitesPassed": 395,
+    "testsPassed": 6033,
+    "failed": 0
+  },
+  "browser": {
+    "casesPassed": 8,
+    "actualViewportWidths": [
+      390,
+      1280
+    ],
+    "externalRequests": "blocked",
+    "api": "mock"
+  },
+  "otherPassed": [
+    "lint",
+    "typecheck",
+    "verify:sitemap-drift",
+    "build:worker (dry-run)",
+    "verify:entry-encoding",
+    "verify:payment-freeze",
+    "verify:business-identity",
+    "verify-i18n-public-parity --all"
+  ],
+  "earlierFailures": [
+    "reviewed manuscript hash restored; exact-brand translation exception and dictionary alias fixed",
+    "sitemap regenerated after final source edits",
+    "obsolete siteName allowance removed; remaining locale siteNames aligned"
+  ],
+  "scope": "No paid LLM, real payment, production DB write or production deployment."
+}

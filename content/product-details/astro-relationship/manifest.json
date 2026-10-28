@@ -1,0 +1,62 @@
+{
+  "id": "astro-relationship",
+  "featureKey": "astro_relationship_deep",
+  "title": "점성술 관계·궁합 개별 해석",
+  "notice": "점성술 대체 결과 화면의 관계·궁합 개별 해금 항목입니다. 본인 출생차트의 금성·화성·7하우스를 세 설명 카드로 읽습니다. 시너스트리에서 상대 행성을 참고하는 방식도 설명하지만 상대 정보로 계산한 실제 두 사람 궁합 결과는 아닙니다. 정상 화면의 봉인된 별의 방 관계의 문과 별도 항목입니다. 출생시간·지역이 하우스 해석에 영향을 줍니다. 가상 편집 예시이며 기존 가격·해금 정책을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-your-side-of-a-relationship",
+      "title": "관계가 어려울 때, 내 쪽의 언어부터 살펴요.",
+      "alt": "관계가 어려울 때, 내 쪽의 언어부터 살펴요.",
+      "src": "/feature-details/crafted/astro-relationship/01-your-side-of-a-relationship.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "관계가 어려울 때,\n내 쪽의 언어부터 살펴요.\n\n마음이 열리는 취향과 다가가는 속도,\n관계에서 되풀이되는 선택을 읽어요.\n\n관계·궁합 · 개인 차트 해석"
+    },
+    {
+      "id": "02-a-different-pace",
+      "title": "호감은 있어도, 다가가는 속도는 달라요.",
+      "alt": "호감은 있어도, 다가가는 속도는 달라요.",
+      "src": "/feature-details/crafted/astro-relationship/02-a-different-pace.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "호감은 있어도,\n다가가는 속도는 달라요.\n편안함의 조건\n\n어떤 분위기에서 머물고 싶은가\n\n표현의 속도\n\n원하는 것을 어떻게 행동으로 옮기는가\n\n관계의 거울\n\n어떤 상대상에 마음이 움직이는가\n\n내 성향을 돌아보기 위한 질문이에요.\n상대의 속마음을 확정하지 않아요."
+    },
+    {
+      "id": "03-three-relationship-cards",
+      "title": "결과의 세 카드, 서로 다른 질문을 맡아요.",
+      "alt": "결과의 세 카드, 서로 다른 질문을 맡아요.",
+      "src": "/feature-details/crafted/astro-relationship/03-three-relationship-cards.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "결과의 세 카드,\n서로 다른 질문을 맡아요.\n금성 · 마음이 열리는 취향\n\n자연스럽게 머물고 싶은 분위기\n\n화성 · 끌림이 행동이 되는 속도\n\n욕구가 켜지고 표현되는 지점\n\n7하우스 · 관계의 거울\n\n상대상과 궁합을 이어 보는 기준\n\n하우스는 삶의 영역을 뜻해요.\n시간과 지역에 따라 해석이 달라져요."
+    },
+    {
+      "id": "04-a-personal-guide",
+      "title": "개인의 관계 설명과, 두 사람의 궁합은 구분해요.",
+      "alt": "개인의 관계 설명과, 두 사람의 궁합은 구분해요.",
+      "src": "/feature-details/crafted/astro-relationship/04-a-personal-guide.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "개인의 관계 설명과,\n두 사람의 궁합은 구분해요.\n이 항목에서\n\n내 차트의 세 가지 관계 근거를 읽고\n시너스트리의 참고 기준을 살펴요.\n\n실제 상대와 비교하려면\n\n상대 정보와\n해당 궁합 기능이 필요해요.\n\n별의 방의 아홉 문단 리딩이나\n두 사람 궁합 결과를 포함하지 않아요."
+    },
+    {
+      "id": "05-fictional-an-invitation",
+      "title": "먼저 내 마음을, 상대가 알 수 있는 말로.",
+      "alt": "먼저 내 마음을, 상대가 알 수 있는 말로.",
+      "src": "/feature-details/crafted/astro-relationship/05-fictional-an-invitation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "먼저 내 마음을,\n상대가 알 수 있는 말로.\n\n가상 편집 예시 · 실제 개인 결과가 아닙니다\n\n“자주 만나고 싶은 마음이 들어도\n상대가 같은 속도라고\n짐작할 필요는 없어요.\n이번 주에 편한 날이 있는지 물어보고,\n내가 바라는 만남의 간격도 말해보세요.\n추측을 줄이는 작은 질문이\n조율의 시작이 될 수 있어요.”"
+    },
+    {
+      "id": "06-a-language-for-a-conversation",
+      "title": "정해진 결론보다, 대화를 시작할 단서를.",
+      "alt": "정해진 결론보다, 대화를 시작할 단서를.",
+      "src": "/feature-details/crafted/astro-relationship/06-a-language-for-a-conversation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "정해진 결론보다,\n대화를 시작할 단서를.\n\n내 출생정보로 펼친 설명을\n최근의 관계 경험과 비교해보세요.\n\n개인의 관계 해석이며 실제 궁합은 별도예요.\n다른 패키지·개별 항목과 구분됩니다.\n현재 화면의 개별 해금 조건을 따릅니다."
+    }
+  ]
+}

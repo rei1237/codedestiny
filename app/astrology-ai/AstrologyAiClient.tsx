@@ -1,5 +1,10 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthPlaceInput from "@/app/components/BirthPlaceInput";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
 
+
+import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
 import CurrentLocationButton from '@/app/components/CurrentLocationButton';
 import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
@@ -11,6 +16,11 @@ import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-see
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
+import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
+import { getExpertCharacter, getExpertCharacterName, getExpertCharacterTitle, getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
+import Image from "next/image";
 import { AlertCircle, CalendarDays, CheckCircle2, ExternalLink, Loader2, MapPin, Moon, RotateCcw, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
@@ -1358,7 +1368,8 @@ function getAstrologyClientCopy(locale: LoadingLocale): AstrologyClientCopy {
   return ASTROLOGY_CLIENT_COPY[locale] || ASTROLOGY_CLIENT_EN;
 }
 
-function useAstrologyClientCopy(): AstrologyClientCopy {
+// 윤달 대사(getExpertLine)도 같은 로케일을 써야 해서 문구 대신 로케일을 돌려준다.
+function useAstrologyClientLocale(): LoadingLocale {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
@@ -1369,7 +1380,7 @@ function useAstrologyClientCopy(): AstrologyClientCopy {
       window.removeEventListener("cd:locale-ready", sync);
     };
   }, []);
-  return getAstrologyClientCopy(locale);
+  return locale;
 }
 
 const FEATURE_KEY = "astrology-ai-consultation";
@@ -1443,19 +1454,19 @@ const applyProfileSeedToForm = (form: FormState, profile: AiPrefillSeed): FormSt
   }
   return {
     ...form,
-    name: profile.name || form.name,
-    gender: profile.gender || form.gender,
-    birthDate: profile.birthDate || form.birthDate,
+    name: profile.name ?? form.name,
+    gender: profile.gender ?? form.gender,
+    birthDate: profile.birthDate ?? form.birthDate,
     birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
     birthTime:
       profile.birthTimeUnknown === true
         ? ""
-        : profile.birthTime || form.birthTime,
-    timezone: profile.timezone || form.timezone,
-    city: profile.city || form.city,
-    country: profile.country || form.country,
-    latitude: profile.latitude || form.latitude,
-    longitude: profile.longitude || form.longitude,
+        : profile.birthTime ?? form.birthTime,
+    timezone: profile.timezone ?? form.timezone,
+    city: profile.city ?? form.city,
+    country: profile.country ?? form.country,
+    latitude: profile.latitude ?? form.latitude,
+    longitude: profile.longitude ?? form.longitude,
     placeKey: profile.city ? "custom" : form.placeKey,
   };
 };
@@ -1568,7 +1579,8 @@ function pointLabel(point: ChartPoint | null | undefined, copy: AstrologyClientC
 }
 
 export default function AstrologyAiClient() {
-  const copy = useAstrologyClientCopy();
+  const locale = useAstrologyClientLocale();
+  const copy = getAstrologyClientCopy(locale);
   const [form, setForm] = useState<FormState>(buildInitialForm);
   const [phase, setPhase] = useState<FlowPhase>("idle");
   const [notice, setNotice] = useState("");
@@ -1628,8 +1640,9 @@ export default function AstrologyAiClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
@@ -1696,7 +1709,7 @@ export default function AstrologyAiClient() {
 
   function validateForm() {
     if (!form.gender || !form.birthDate || (!form.birthTimeUnknown && !form.birthTime)) return false;
-    if (!form.city.trim() || !Number.isFinite(Number(form.latitude)) || !Number.isFinite(Number(form.longitude)) || !form.timezone.trim()) return false;
+    if (!form.city.trim() || !form.latitude.trim() || !form.longitude.trim() || !Number.isFinite(Number(form.latitude)) || !Number.isFinite(Number(form.longitude)) || !form.timezone.trim()) return false;
     if (!form.topic || form.userQuestion.trim().length < 2) return false;
     return true;
   }
@@ -1949,6 +1962,14 @@ export default function AstrologyAiClient() {
 
   const activeStep = phase === "ready" ? copy.progressSteps.length - 1 : Math.min(progressIndex, copy.progressSteps.length - 1);
   const progressPercent = phase === "idle" ? 8 : Math.round(((activeStep + 1) / copy.progressSteps.length) * 100);
+  // 윤달 — enabled 를 끄면 기존 Moon 궤도 헤더와 문구만 남는다.
+  const yunOn = isExpertCharacterEnabled("yun");
+  const yunHero = { ...getExpertCharacter("yun").hero, src: "/images/service-introductions/astrology-ai-960.webp", alt: "윤달이 서양 점성술 출생차트의 행성과 하우스를 짚는 상담 장면" };
+  const yunGreet = getExpertLine("yun", "hero", locale);
+  const yunBirth = getExpertLine("yun", form.birthTimeUnknown ? "birth.unknown" : form.birthTime ? "birth.known" : "hero.sub", locale);
+  // 시간 기반 가짜 진행 없이 실제 단계만 본다: 근거가 오기 전은 계산, 온 뒤는 상담 생성.
+  const yunLoading = getExpertLine("yun", basis ? "loading.generating" : "loading.calculating", locale);
+  const yunError = getExpertLine("yun", "error", locale);
 
   return (
     <main className="astro-ai-page relative min-h-screen overflow-hidden bg-[#050816] text-slate-100 [font-family:var(--font-body)]">
@@ -1960,9 +1981,25 @@ export default function AstrologyAiClient() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_390px]">
           <div className="space-y-6">
             <header className="overflow-hidden rounded-lg border border-white/10 bg-[#0b1027]/[0.82] p-6 shadow-2xl shadow-black/30 ring-1 ring-white/[0.03] backdrop-blur sm:p-8">
-              <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-center">
+              {yunOn && (
+                <div className="relative -mx-6 -mt-6 mb-6 aspect-[3/2] overflow-hidden sm:-mx-8 sm:-mt-8">
+                  <Image
+                    src={yunHero.src}
+                    alt={yunHero.alt}
+                    fill
+                    priority
+                    sizes="(min-width: 1280px) 830px, (min-width: 1024px) 64vw, 100vw"
+                    className="object-cover object-center"
+                    unoptimized
+                  />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#0b1027] to-transparent" aria-hidden="true" />
+                </div>
+              )}
+              <div className={yunOn ? undefined : "grid gap-7 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-center"}>
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#f5d487]">Western Astrology Salon</p>
+                  <p className={yunOn ? "text-sm font-bold tracking-[0.08em] text-[#cdbcf2]" : "text-sm font-semibold uppercase tracking-[0.18em] text-[#f5d487]"}>
+                    {yunOn ? `${getExpertCharacterName("yun", locale)} · ${getExpertCharacterTitle("yun", locale)}` : "Western Astrology Salon"}
+                  </p>
                   <h1 className="mt-3 text-4xl font-black leading-tight text-white [font-family:var(--font-premium)] sm:text-5xl">
                     {copy.heroTitle}
                   </h1>
@@ -1977,7 +2014,9 @@ export default function AstrologyAiClient() {
                       </div>
                     ))}
                   </div>
+                  <ExpertCharacterStage character="yun" mood={yunGreet.mood} line={yunGreet.text} placement="inline" locale={locale} className="mt-6" />
                 </div>
+                {!yunOn && (
                 <div className="relative mx-auto grid aspect-square w-48 place-items-center sm:w-56 lg:mx-0">
                   <div className="absolute inset-0 rounded-full border border-[#f5d487]/40" />
                   <div className="absolute inset-5 rounded-full border border-white/10" />
@@ -1988,11 +2027,13 @@ export default function AstrologyAiClient() {
                     <Moon className="h-12 w-12 text-[#f5d487]" aria-hidden="true" />
                   </div>
                 </div>
+                )}
               </div>
             </header>
 
-            <ExpertValueCards theme="astrology" points={[{ title: "차트의 중심", description: "태양·달·상승궁이 보여주는 기질과 감정의 리듬을 정리합니다." }, { title: "지금의 하늘", description: "행성과 하우스의 흐름을 현재의 질문과 맞물려 읽습니다." }, { title: "선택의 타이밍", description: "변화를 밀어붙일 때와 숨을 고를 때를 구체적으로 나눠 봅니다." }]} />
-            <form id="astrology-ai-form" onSubmit={handleSubmit} className="space-y-5">
+            {getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey="astrology-ai-consultation" />}
+            <ExpertValueCards theme={yunOn ? "yun" : "astrology"} points={[yunOn ? { title: "생시부터 묻는 이유", description: "태어난 분까지 알면 상승궁과 열두 하우스가 또렷해지고, 태양·달과 함께 기질의 중심을 정확히 잡습니다." } : { title: "차트의 중심", description: "태양·달·상승궁이 보여주는 기질과 감정의 리듬을 정리합니다." }, { title: "지금의 하늘", description: "행성과 하우스의 흐름을 현재의 질문과 맞물려 읽습니다." }, { title: "선택의 타이밍", description: "변화를 밀어붙일 때와 숨을 고를 때를 구체적으로 나눠 봅니다." }]} />
+            <form data-moonlit-form="" id="astrology-ai-form" onSubmit={handleSubmit} className="space-y-5">
               <section className={PANEL_CLASS}>
                 <div className="mb-5 flex items-start gap-3">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
@@ -2002,14 +2043,7 @@ export default function AstrologyAiClient() {
                     <h2 className="text-lg font-black text-white">{copy.birthInfoHeading}</h2>
                     <p className="mt-1 text-sm leading-6 text-slate-300">{copy.birthInfoDesc}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={loadFormFromProfileCard}
-                    className="shrink-0 rounded-lg border border-[#f5d487]/35 bg-[#f5d487]/10 px-3 py-2 text-xs font-bold text-[#f5d487] transition hover:bg-[#f5d487]/20"
-                    aria-label={copy.profileLoadAria}
-                  >
-                    {copy.profileLoadCta}
-                  </button>
+                  <SavedBirthProfilePicker calendarMode="solar" onSelect={loadFormFromProfileCard} />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -2033,7 +2067,7 @@ export default function AstrologyAiClient() {
                   <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
                     <label className={LABEL_CLASS}>
                       {copy.birthTimeLabel}
-                      <input className={FIELD_CLASS} type="time" value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTime: event.target.value })} />
+                      <BirthTimeInput className={FIELD_CLASS}  value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTime: event.target.value })} />
                     </label>
                     <label className="flex min-h-12 items-end gap-2 pb-3 text-sm font-semibold text-slate-200">
                       <input className="h-4 w-4 accent-[#f5d487]" type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTimeUnknown: event.target.checked })} />
@@ -2041,6 +2075,7 @@ export default function AstrologyAiClient() {
                     </label>
                   </div>
                 </div>
+                <ExpertCharacterStage character="yun" mood={yunBirth.mood} line={yunBirth.text} placement="inline" locale={locale} className="mt-4" />
                 {form.birthTimeUnknown && (
                   <p className="mt-4 rounded-lg border border-[#f5d487]/25 bg-[#f5d487]/10 px-4 py-3 text-sm leading-6 text-amber-50">
                     {copy.birthTimeUnknownNote}
@@ -2068,30 +2103,13 @@ export default function AstrologyAiClient() {
                       <option value="custom">{copy.customInputOption}</option>
                     </select>
                   </label>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className={LABEL_CLASS}>
-                      {copy.cityLabel}
-                      <input className={FIELD_CLASS} value={form.city} onChange={(event) => patchForm({ city: event.target.value, placeKey: "custom" })} placeholder={copy.cityPlaceholder} />
-                    </label>
-                    <label className={LABEL_CLASS}>
-                      {copy.countryLabel}
-                      <input className={FIELD_CLASS} value={form.country} onChange={(event) => patchForm({ country: event.target.value, placeKey: "custom" })} placeholder={copy.countryPlaceholder} />
-                    </label>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <label className={LABEL_CLASS}>
-                      {copy.latitudeLabel}
-                      <input className={FIELD_CLASS} inputMode="decimal" value={form.latitude} onChange={(event) => patchForm({ latitude: event.target.value, placeKey: "custom" })} placeholder="37.5665" />
-                    </label>
-                    <label className={LABEL_CLASS}>
-                      {copy.longitudeLabel}
-                      <input className={FIELD_CLASS} inputMode="decimal" value={form.longitude} onChange={(event) => patchForm({ longitude: event.target.value, placeKey: "custom" })} placeholder="126.9780" />
-                    </label>
-                    <label className={LABEL_CLASS}>
-                      {copy.timezoneLabel}
-                      <input className={FIELD_CLASS} value={form.timezone} onChange={(event) => patchForm({ timezone: event.target.value, placeKey: "custom" })} placeholder="Asia/Seoul" />
-                    </label>
-                  </div>
+                  <label className={LABEL_CLASS}>
+                    {copy.birthPlaceHeading}
+                    <BirthPlaceInput className={FIELD_CLASS} value={form.city} required disabled={busy}
+                      confirmed={Boolean(form.latitude.trim() && form.longitude.trim() && form.timezone.trim())}
+                      onChange={city => patchForm({ city, country: "", placeKey: "custom" })}
+                      onResolved={place => patchForm({ latitude: place ? String(place.lat) : "", longitude: place ? String(place.lng) : "", timezone: place?.timezone || "" })} />
+                  </label>
                 </div>
               </section>
 
@@ -2147,7 +2165,6 @@ export default function AstrologyAiClient() {
               </div>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                 <button type="submit" disabled={busy} className="group relative inline-flex min-h-14 items-center justify-center gap-2 overflow-hidden rounded-lg bg-[#f5d487] px-6 text-base font-black text-[#161019] shadow-xl shadow-[#f5d487]/20 transition hover:bg-[#ffe6a8] focus:outline-none focus:ring-2 focus:ring-[#f5d487]/40 disabled:cursor-not-allowed disabled:opacity-60">
-                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-0 transition group-hover:opacity-100" aria-hidden="true" />
                   <span className="relative inline-flex items-center gap-2">
                     {busy ? <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Sparkles className="h-5 w-5" aria-hidden="true" />}
                     {copy.submitCta}
@@ -2159,7 +2176,7 @@ export default function AstrologyAiClient() {
                 </button>
               </div>
             </form>
-            <ExpertStickyCta theme="astrology" targetId="astrology-ai-form" label="별빛 상담 시작" price={<PriceBadge featureKey="astrology-ai-consultation" prefix="상담 이용 가격 " />} />
+            <ExpertStickyCta theme={yunOn ? "yun" : "astrology"} targetId="astrology-ai-form" label="별빛 상담 시작" price={<PriceBadge featureKey="astrology-ai-consultation" prefix="상담 이용 가격 " />} />
           </div>
 
           <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
@@ -2215,6 +2232,9 @@ export default function AstrologyAiClient() {
 
               {/* 기다리는 동안 실제로 계산된 차트 값을 단계별로 드러낸다. 근거 조회가 실패하면
                   기존 진행 단계 문구로 되돌아갈 뿐, 생성 흐름에는 영향을 주지 않는다. */}
+              {phase === "reading" && !consultation && (
+                <ExpertCharacterStage character="yun" mood={yunLoading.mood} line={yunLoading.text} placement="loading" locale={locale} className="mt-5" />
+              )}
               {busy && !consultation && (
                 <div className="mt-5 text-slate-200 [--cd-basis-popover-bg:#0b1027]">
                   <AnalysisBasisLoading
@@ -2243,6 +2263,8 @@ export default function AstrologyAiClient() {
               {notice && <p className="mt-4 rounded-lg border border-[#f5d487]/25 bg-[#f5d487]/10 p-3 text-sm leading-6 text-amber-50">{notice}</p>}
               {error && (
                 <div className="mt-4 rounded-lg border border-rose-300/30 bg-rose-400/10 p-4 text-sm text-rose-50">
+                  {/* 캐릭터 한 줄은 사실 문구 앞에만 둔다 — 결제·재시도 안내는 그대로. */}
+                  <ExpertCharacterStage character="yun" mood={yunError.mood} line={yunError.text} placement="inline" locale={locale} className="mb-3" />
                   <div className="flex gap-2">
                     <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                     <p className="leading-6">{error}</p>
@@ -2261,6 +2283,8 @@ export default function AstrologyAiClient() {
           </aside>
         </div>
       </section>
+      {/* 소개용 캐릭터 프로필 — 상담 진행 중에는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
+      {yunOn && locale === "ko" && !busy && <MasterProfile profile={masterProfiles.yun} />}
     </main>
   );
 }

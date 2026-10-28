@@ -5,7 +5,6 @@
   background: #152721;
   color: #f5f0e5;
   font-family: var(--font-body);
-  --cd-prose-font-family: var(--font-premium);
 }
 .readingRoom ::selection { background: #d3bd83; color: #152721; }
 .readingShell { position: relative; width: min(100%, 1240px); margin: auto; padding: 84px 24px 116px; }
@@ -73,6 +72,7 @@
 
 /* ── 종이 내지(세피아) — 해석(AI 상담문) 전용 표면 ───────────── */
 .paperPage {
+  --book-reading-accent: #8a5a2b;
   background: #faf7ef;
   color: #302d26;
   border: 1px solid #d7d0bf;
@@ -90,7 +90,7 @@
 }
 
 .paperAccent {
-  color: #8a5a2b;
+  color: var(--book-reading-accent, #8a5a2b);
 }
 
 .paperDivider {
@@ -98,7 +98,7 @@
 }
 
 /* 챕터 오프닝 첫 문단 드롭캡 — 첫 블록이 일반 문단(p)일 때만 자연스럽게 적용된다 */
-.chapterProse { max-width: 70ch; font-size: 17px; line-height: 1.95; }
+.chapterProse { max-width: 66ch; font-family: var(--font-body); font-size: 17px; line-height: 1.95; }
 
 @media (prefers-reduced-motion: no-preference) {
   .chapterProse :global(p:first-of-type)::first-letter {

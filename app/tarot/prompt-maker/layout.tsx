@@ -3,19 +3,19 @@ import type { ReactNode } from "react";
 
 const TAROT_PROMPT_MAKER_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
-    title: "타로 오라클 상담 | Code Destiny",
+    title: "타로 오라클 상담 | 꿀꿀 운세",
     description: "질문과 카드 흐름으로 AI가 타로·레노먼드 상담 결과를 작성합니다(회당 3,000~5,000원). 프롬프트도 함께 열람할 수 있고, 의료·법률·투자 판단은 전문가와 확인하세요.",
     ogDescription: "질문, 스프레드, 카드 흐름을 실제 AI 타로 상담으로 완성해 해석의 방향을 차분히 잡습니다.",
     keywords: ["타로 오라클 상담", "AI 타로", "레노먼드", "타로 스프레드", "타로 프롬프트"],
   },
   en: {
-    title: "Tarot Oracle Consultation | Code Destiny",
+    title: "Tarot Oracle Consultation | 꿀꿀 운세",
     description: "An AI writes a real tarot or Lenormand consultation from your question and card flow (3,000~5,000 KRW per session). The prompt behind the consultation is also available to read. Consult professionals for medical, legal, or investment decisions.",
     ogDescription: "Turn a question, spread, and card flow into a real AI tarot consultation that gently frames the direction of the reading.",
     keywords: ["tarot oracle consultation", "AI tarot", "Lenormand", "tarot spread", "tarot prompt"],
   },
   ja: {
-    title: "タロットオラクル相談 | Code Destiny",
+    title: "タロットオラクル相談 | 꿀꿀 운세",
     description: "質問とカードの流れをもとに、AIが実際のタロット・ルノルマン相談結果を作成するサービスです(1回3,000~5,000ウォン)。相談に使われたプロンプトも確認できます。医療・法律・投資判断は専門家の助言と併せて確認してください。",
     ogDescription: "質問、スプレッド、カードの流れを実際のAIタロット相談に仕上げ、解釈の方向を落ち着いて定めます。",
     keywords: ["タロットオラクル相談", "AIタロット", "ルノルマン", "タロットスプレッド", "タロットプロンプト"],
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     // 사이트 기본 OG 이미지(lib/seo/siteSeo.ts 의 defaultOgImage)와 같은 자산을 쓴다.
     images: [
       {
-        url: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85",
+        url: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=aa88d371b4",
         width: 1200,
         height: 630,
         alt: tarotPromptMakerLayoutCopy.title,

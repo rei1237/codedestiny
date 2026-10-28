@@ -424,4 +424,4 @@
     period: period,
     _calc: { BODIES: BODIES, ECLIPSES: ECLIPSES, ORB: ORB, PHASES: PHASES, sdiff: sdiff, houseOf: houseOf, when: when, solve: solve }
   };
-})(typeof window !== 'undefined' ? window : globalThis);
+})(typeof module === 'object' && module.exports ? module.exports : typeof window !== 'undefined' ? window : globalThis);

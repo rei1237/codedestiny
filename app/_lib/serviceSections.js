@@ -3,14 +3,13 @@ const SERVICE_SECTION_DEFINITIONS = [
     id: "saju",
     fallbackTitle: "사주 & 명리",
     items: [
-      { href: "/saju/basic", fallbackTitle: "사주 만세력 기본 해석", fallbackDesc: "오행·십성 기반 명식 분석 · 무료", isStaticCanonical: true },
+      { href: "/saju", fallbackTitle: "사주 만세력 기본 해석", fallbackDesc: "오행·십성 기반 명식 분석 · 무료", isStaticCanonical: true },
       { href: "/saju/sibyl", fallbackTitle: "시빌라 시스템", fallbackDesc: "사주 기반 진로 적성 × 운명 위험 계수 · 기본 무료", isStaticCanonical: true },
-      { href: "/life-book-ai", aliases: ["/saju/lifebook"], fallbackTitle: "인생의 책 전문가 상담", fallbackDesc: "삶의 흐름을 읽는 1:1 상담 · 10,000원 / 인생 총운 30,000원", isStaticCanonical: true },
+      { href: "/life-book-ai", aliases: ["/saju/lifebook"], fallbackTitle: "인생의 책 전문가 상담", fallbackDesc: "삶의 흐름을 읽는 1:1 상담 · 30,000원 / 인생 총운 30,000원", isStaticCanonical: true },
       { href: "/love-secret-ai", fallbackTitle: "연애 비책 전문가 상담", fallbackDesc: "명리학 기반 1:1 연애 상담 · 30,000원" },
-      { href: "/master-love-codex", fallbackTitle: "마스터 인연의 서", fallbackDesc: "사주×자미두수 융합 20장 연애 전략서 · 개인 1회 10,000원 / 상대와의 궁합 30,000원" },
+      { href: "/master-love-codex", fallbackTitle: "마스터 인연의 서", fallbackDesc: "사주×자미두수 융합 20장 연애 전략서 · 개인 1회 30,000원 / 상대와의 궁합 50,000원" },
       { href: "/naming-ai", fallbackTitle: "훈민정음 작명소", fallbackDesc: "사주 맞춤 프리미엄 전문가 작명 · 30,000원" },
-      { href: "/saju/love-simulation", fallbackTitle: "LOVE CODE", fallbackDesc: "사주 연애 시뮬레이션 · 잠금 해제 5,000원", isStaticCanonical: true },
-      { href: "/saju/destiny-bias", fallbackTitle: "최애운명", fallbackDesc: "내 최애와 나의 케미 포토카드 · 무료" },
+      { href: "/saju/destiny-bias", fallbackTitle: "최애운명", fallbackDesc: "내 최애와 나의 케미 포토카드 · 단건 결제 5,000원" },
       { href: "/saju/animal-destiny", aliases: ["/saju/animal-test"], fallbackTitle: "십이운성 동물점", fallbackDesc: "사주 속 십이운성으로 깨어나는 나만의 수호 동물 · 해금 5,000원", isStaticCanonical: true },
       { href: "/saju/destiny-meeting-place", fallbackTitle: "사주로 보는 인연의 장소", fallbackDesc: "인연 장소·도시·타이밍 독립 분석 · 1회 5,000원", isStaticCanonical: true },
     ],
@@ -20,8 +19,8 @@ const SERVICE_SECTION_DEFINITIONS = [
     fallbackTitle: "동서양 명리",
     items: [
       { href: "/ziwei/chart", fallbackTitle: "자미두수 명반", fallbackDesc: "기본 서비스 무료 · 궁합 3,000원", isStaticCanonical: true },
-      { href: "/astrology/cosmic", fallbackTitle: "점성술 코즈믹", fallbackDesc: "기본 서비스 무료 · 궁합 3,000원", isStaticCanonical: true },
-      { href: "/vedic/jyotish", fallbackTitle: "베다 점성술", fallbackDesc: "명반 무료 · 해석 3,000원 · 궁합 3,000원", isStaticCanonical: true },
+      { href: "/astrology", fallbackTitle: "점성술 코즈믹", fallbackDesc: "기본 서비스 무료 · 궁합 3,000원", isStaticCanonical: true },
+      { href: "/vedic", fallbackTitle: "베다 점성술", fallbackDesc: "명반 무료 · 해석 3,000원 · 궁합 3,000원", isStaticCanonical: true },
     ],
   },
   {
@@ -56,11 +55,10 @@ const SERVICE_SECTION_DEFINITIONS = [
       { href: "/ifa-oracle.html", aliases: ["/oracle/ifa"], fallbackTitle: "IFA 오라클", fallbackDesc: "요루바 256 오두 신탁 · 3,000원", isStaticCanonical: true },
       { href: "/oracle/kemet", fallbackTitle: "고대 이집트 신탁", fallbackDesc: "케멧 오라클 리딩" },
       { href: "/oracle/juyuk", fallbackTitle: "주역 거북점", fallbackDesc: "64괘 상징 해석", isStaticCanonical: true },
-      { href: "/oracle/sukuyo", fallbackTitle: "숙요점", fallbackDesc: "기본 서비스 무료 · 궁합 3,000원", isStaticCanonical: true },
+      { href: "/sukuyo", fallbackTitle: "숙요점", fallbackDesc: "기본 서비스 무료 · 궁합 3,000원", isStaticCanonical: true },
       { href: "/oracle/rune", fallbackTitle: "스톤헨지 룬 오라클", fallbackDesc: "고대 룬 상징 리딩" },
       { href: "/geomancy-oracle-v4.html", fallbackTitle: "지오맨시 흙점", fallbackDesc: "대지의 징후 16행 신탁" },
       { href: "/royal-tea-oracle.html", fallbackTitle: "타세오그래피 찻잎 점", fallbackDesc: "런던 로열 컵 문양 리딩" },
-      { href: "/destiny-poker.html", fallbackTitle: "데스티니 포커", fallbackDesc: "신들과 벌이는 운명의 카드 대결" },
       { href: "/dream/tarot", fallbackTitle: "드림 타로", fallbackDesc: "꿈 문장 AI 프롬프트" },
       { href: "/dream/psycho", fallbackTitle: "정신분석 해몽", fallbackDesc: "프로이트 관점 해석" },
     ],
@@ -69,7 +67,6 @@ const SERVICE_SECTION_DEFINITIONS = [
     id: "special",
     fallbackTitle: "특별 콘텐츠",
     items: [
-      { href: "/secret-house_real.html", fallbackTitle: "나는 솔로 시크릿 하우스", fallbackDesc: "자동 일간 캐치 연애 시뮬" },
       { href: "/animal/physio", fallbackTitle: "전문가 동물 관상", fallbackDesc: "셀카 얼굴형 분석" },
       { href: "/animal/mbti", fallbackTitle: "MBTI 동물 궁합", fallbackDesc: "16유형 케미 분석" },
       { href: "/animal/totem", fallbackTitle: "애니멀 토템", fallbackDesc: "수호 동물 메시지" },
@@ -91,10 +88,10 @@ const SERVICE_SECTION_DEFINITIONS = [
       { href: "/neo-operation-room", fallbackTitle: "네오 전략실", fallbackDesc: "네오와 짜는 실행 전략 상담" },
       { href: "/palm-reading", fallbackTitle: "손금 리딩", fallbackDesc: "손바닥 선으로 읽는 기질과 흐름" },
       { href: "/saju-guardian", fallbackTitle: "사주 수호신", fallbackDesc: "십성으로 찾는 나의 수호신" },
-      { href: "/ziwei-ai", fallbackTitle: "자미두수 전문가 상담", fallbackDesc: "명반 기반 1:1 심층 상담" },
-      { href: "/astrology-ai", fallbackTitle: "점성술 전문가 상담", fallbackDesc: "출생 차트 기반 1:1 상담" },
+      { href: "/ziwei-ai", fallbackTitle: "자미두수 전문가 상담", fallbackDesc: "무성과 막힌 별을 푸는 명반 상담" },
+      { href: "/astrology-ai", fallbackTitle: "점성술 전문가 상담", fallbackDesc: "윤달과 생시부터 읽는 출생 차트 상담" },
       { href: "/vedic-ai", fallbackTitle: "베다 점성술 전문가 상담", fallbackDesc: "다샤·나크샤트라 심층 상담" },
-      { href: "/sukuyo-compatibility-ai", fallbackTitle: "숙요 궁합 전문가 상담", fallbackDesc: "27수 기반 관계 상담" },
+      { href: "/sukuyo-compatibility-ai", fallbackTitle: "숙요 궁합 전문가 상담", fallbackDesc: "서한비와 두 사람의 거리를 재는 궁합 상담" },
     ],
   },
 ];
@@ -106,7 +103,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Basic Saju Manse Calendar Reading", "Five elements and Ten Gods birth chart analysis · Free"],
         ["Sibyl System", "Saju career aptitude and destiny risk coefficient · Basic free"],
-        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 10,000"],
+        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 30,000"],
         ["Love Secret Strategy", "Saju-based love strategy · KRW 30,000"],
         ["LOVE CODE", "Saju love simulation · Unlock KRW 5,000"],
         ["Destiny Bias", "Saju-based fandom resonance analysis · Free"],
@@ -175,7 +172,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["四柱推命 万歳暦 基本解釈", "五行・十神にもとづく命式分析 · 無料"],
         ["シビュラシステム", "四柱推命ベースの適職適性 × 運命リスク係数 · 基本無料"],
-        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 10,000"],
+        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 30,000"],
         ["恋愛秘策", "四柱推命ベースの恋愛戦略 · 30,000ウォン"],
         ["LOVE CODE", "四柱推命恋愛シミュレーション · 解錠 5,000ウォン"],
         ["推し運命", "四柱推命ベースのファンダム共鳴分析 · 無料"],
@@ -244,7 +241,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["八字万年历基础解读", "五行·十神命式分析 · 免费"],
         ["西比拉系统", "基于八字的职业适性 × 命运风险系数 · 基础免费"],
-        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 10,000"],
+        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 30,000"],
         ["恋爱秘籍", "八字恋爱策略 · 30,000韩元"],
         ["LOVE CODE", "八字恋爱模拟 · 解锁5,000韩元"],
         ["本命偏爱", "基于八字的粉丝共鸣分析 · 免费"],
@@ -313,7 +310,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["八字萬年曆基礎解讀", "五行·十神命式分析 · 免費"],
         ["西比拉系統", "基於八字的職業適性 × 命運風險係數 · 基礎免費"],
-        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 10,000"],
+        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 30,000"],
         ["戀愛祕策", "八字戀愛策略 · 30,000韓元"],
         ["LOVE CODE", "八字戀愛模擬 · 解鎖5,000韓元"],
         ["本命偏愛", "基於八字的粉絲共鳴分析 · 免費"],
@@ -382,7 +379,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Luận Saju Manse cơ bản", "Phân tích mệnh cục theo ngũ hành và Thập Thần · Miễn phí"],
         ["Hệ thống Sibyl", "Năng khiếu nghề nghiệp và hệ số rủi ro vận mệnh dựa trên Saju · Cơ bản miễn phí"],
-        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 10,000"],
+        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 30,000"],
         ["Bí quyết tình yêu", "Chiến lược tình yêu dựa trên Saju · 30.000 KRW"],
         ["LOVE CODE", "Mô phỏng tình yêu Saju · Mở khóa 5.000 KRW"],
         ["Destiny Bias", "Phân tích cộng hưởng fandom dựa trên Saju · Miễn phí"],
@@ -451,7 +448,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Lectura básica de Saju Manse", "Análisis de carta por cinco elementos y Diez Dioses · Gratis"],
         ["Sistema Sibyl", "Aptitud profesional y coeficiente de riesgo del destino basado en Saju · Básico gratis"],
-        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 10,000"],
+        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 30,000"],
         ["Estrategia secreta del amor", "Estrategia amorosa basada en Saju · 30.000 KRW"],
         ["LOVE CODE", "Simulación amorosa de Saju · Desbloqueo 5.000 KRW"],
         ["Destiny Bias", "Análisis de resonancia fandom basado en Saju · Gratis"],
@@ -520,7 +517,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Lecture Saju Manse de base", "Analyse de thème par cinq éléments et Dix Dieux · Gratuit"],
         ["Système Sibyl", "Aptitudes professionnelles et coefficient de risque du destin selon Saju · Base gratuite"],
-        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 10,000"],
+        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 30,000"],
         ["Stratégie secrète d'amour", "Stratégie amoureuse selon Saju · 30 000 KRW"],
         ["LOVE CODE", "Simulation amoureuse Saju · Déblocage 5 000 KRW"],
         ["Destiny Bias", "Analyse de résonance fandom selon Saju · Gratuit"],
@@ -589,7 +586,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Basisdeutung Saju Manse", "Geburtschartanalyse mit fünf Elementen und Zehn Göttern · Kostenlos"],
         ["Sibyl-System", "Saju-basierte Berufseignung und Schicksalsrisiko · Basis kostenlos"],
-        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 10,000"],
+        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 30,000"],
         ["Liebesgeheimnis", "Saju-basierte Liebesstrategie · 30.000 KRW"],
         ["LOVE CODE", "Saju-Liebessimulation · Freischaltung 5.000 KRW"],
         ["Destiny Bias", "Saju-basierte Fandom-Resonanzanalyse · Kostenlos"],
@@ -658,7 +655,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Saju Manse मूल रीडिंग", "पाँच तत्व और दश देवों पर आधारित जन्मपत्र विश्लेषण · मुफ्त"],
         ["Sibyl प्रणाली", "Saju आधारित करियर क्षमता और भाग्य जोखिम गुणांक · मूल सेवा मुफ्त"],
-        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 10,000"],
+        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 30,000"],
         ["प्रेम रहस्य रणनीति", "Saju आधारित प्रेम रणनीति · 30,000 KRW"],
         ["LOVE CODE", "Saju प्रेम सिमुलेशन · 5,000 KRW में अनलॉक"],
         ["Destiny Bias", "Saju आधारित फैनडम अनुनाद विश्लेषण · मुफ्त"],
@@ -727,7 +724,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Basis Saju Manse lezing", "Analyse van geboortechart met vijf elementen en Ten Gods · Gratis"],
         ["Sibyl-systeem", "Saju-gebaseerde beroepsaanleg en bestemmingsrisico · Basis gratis"],
-        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 10,000"],
+        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 30,000"],
         ["Liefdesgeheimstrategie", "Saju-gebaseerde liefdesstrategie · KRW 30.000"],
         ["LOVE CODE", "Saju liefdessimulatie · unlock KRW 5.000"],
         ["Bestemmingsbias", "Saju-gebaseerde fandomresonantieanalyse · Gratis"],
@@ -796,7 +793,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Bacaan asas Saju Manse", "Analisis carta dengan lima unsur dan Ten Gods · Percuma"],
         ["Sistem Sibyl", "Aptitud kerjaya dan pekali risiko takdir berasaskan Saju · Asas percuma"],
-        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 10,000"],
+        ["Life Book AI Consultation", "One-on-one life-flow consultation - KRW 30,000"],
         ["Strategi Rahsia Cinta", "Strategi cinta berasaskan Saju · KRW 30,000"],
         ["LOVE CODE", "Simulasi cinta Saju · buka kunci KRW 5,000"],
         ["Destiny Bias", "Analisis resonans fandom berasaskan Saju · Percuma"],

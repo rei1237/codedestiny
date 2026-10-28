@@ -3,6 +3,7 @@ import { connectDb, mongoose, withMongoRetry } from "../db.js";
 import { getOptionalUserFromRequest } from "../auth.js";
 import { getEnv } from "../env.js";
 import { getRequestMeta, json } from "../http.js";
+import { readBoundedText } from "../request-body.js";
 import * as consultationModels from "../models.js";
 import {
   AbuseScore,
@@ -70,9 +71,11 @@ export function getSecuritySubjectHash({ request, env, userId = "", endpoint = "
 }
 
 function safeObject(value, depth = 0) {
-  if (!value || typeof value !== "object" || depth > 2) return value;
+  if (typeof value === "string") return value.slice(0, 500);
+  if (!value || typeof value !== "object") return value;
+  if (depth > 2) return "[omitted]";
   if (Array.isArray(value)) return value.slice(0, 20).map((entry) => safeObject(entry, depth + 1));
-  const output = {};
+  const output = Object.create(null);
   for (const [key, entry] of Object.entries(value).slice(0, 40)) {
     if (/password|secret|token|authorization|cookie/i.test(key)) {
       output[key] = "[redacted]";
@@ -255,16 +258,16 @@ export async function addAbuseScore({ env, request, userId = "", endpoint = "", 
 // 🔴 이 가드의 Mongo 작업들은 재시도도 per-op 타임아웃도 없이 드라이버 기본값
 // (서버선택 8s / 소켓 20s)에만 묶여 있었다. 공유혀 Atlas 가 느려지면 두 작업이 각각 8~10초 창에
 // 걸려, **인증조차 없어 거절될 POST /api/billing/checkout 이 21.7초**를 소비했다(프로덕션 실측).
-// 이 가드는 원래 실패 시 fail-open 이므로(아래 catch), 짧은 시간 상한을 걸어도 정책이 바뀌지 않는다 —
-// 단지 "느린 DB 때문에 모든 결제 요청이 20초 느려지는" 것을 막는다.
+// 짧은 시간 상한은 유지한다. enforce 모드의 필수 호출 제한은 확인 실패 시 503으로 끝내고,
+// 관측용 로그·남용 점수 기록 실패는 정상 인증·결제 DB 작업으로 전파하지 않는다.
 const SECURITY_DB_TIMEOUT_MS = 1000;
 
 // 🔴 이 가드는 admission 슬롯을 인증·결제와 동등하게 먹으면 안 된다.
 // acquireMongoOperationSlot 은 대기자마다 자기 limit 을 들고 비교하므로(active >= waiter.limit),
 // 여기만 낮은 limit 을 주면 **기존 메커니즘 그대로** 우선순위 레인이 생긴다: 전역이 2슬롯 이상
 // 차 있으면 보안 가드는 250ms 만 기다리고 포기하고, 남은 슬롯은 인증·결제가 쓴다.
-// 포기해도 정책은 안 바뀐다 — 이 가드는 원래 실패 시 fail-open 이다(아래 catch). 반대로 이걸
-// 안 두면, 어차피 fail-open 될 조회가 로그인/결제의 슬롯을 뺏어 503 을 만든다.
+// 로그·점수 기록은 실패를 허용하되 호출 제한 확인 실패는 enforce 모드에서 503으로 반환한다.
+// 이 제한을 없애면 보안 계측이 로그인/결제의 슬롯까지 점유한다.
 const SECURITY_DB_MAX_CONCURRENT = 2;
 const SECURITY_DB_ADMISSION_TIMEOUT_MS = 250;
 
@@ -278,8 +281,22 @@ const SECURITY_DB_OPERATION_OPTIONS = Object.freeze({
   admissionTimeoutMS: SECURITY_DB_ADMISSION_TIMEOUT_MS,
 });
 
-function withSecurityDbOperation(env, operation) {
-  return withMongoRetry(env, operation, SECURITY_DB_OPERATION_OPTIONS);
+// Admin entry cold connections measured 1.28–1.73s in production.
+// Only its required counter gets 3s; telemetry and all other guards retain 1s.
+const ADMIN_ENTRY_RATE_LIMIT_DB_OPTIONS = Object.freeze({
+  ...SECURITY_DB_OPERATION_OPTIONS,
+  attemptTimeoutMS: 3000,
+});
+
+// Required tea counters include connection setup. Keep telemetry/admission limits
+// unchanged; a healthy cold connection must not be rejected at the old 1s mark.
+const TEA_RATE_LIMIT_DB_OPTIONS = Object.freeze({
+  ...SECURITY_DB_OPERATION_OPTIONS,
+  attemptTimeoutMS: 3000,
+});
+
+function withSecurityDbOperation(env, operation, options = SECURITY_DB_OPERATION_OPTIONS) {
+  return withMongoRetry(env, operation, options);
 }
 
 function withSecurityDbTimeout(promise) {
@@ -373,8 +390,13 @@ export async function enforceRateLimit({
         },
       },
       { upsert: true, new: true, setDefaultsOnInsert: true },
-    ).lean());
-    const count = Number(doc?.score || 0);
+    ).lean(), endpoint === "admin:/entry/password"
+      ? ADMIN_ENTRY_RATE_LIMIT_DB_OPTIONS
+      : endpoint.startsWith("ai:fortune-tea-house:")
+        ? TEA_RATE_LIMIT_DB_OPTIONS
+        : SECURITY_DB_OPERATION_OPTIONS);
+    const count = Number(doc?.score);
+    if (!doc || !Number.isSafeInteger(count) || count < 1) throw new Error("INVALID_RATE_LIMIT_COUNTER");
     if (count <= Number(limit || 60)) return { ok: true, count };
     const retryAfter = String(Math.max(1, Math.ceil((windowStart + windowMs - nowMs) / 1000)));
     await writeSecurityLog({ env, request, userId, endpoint, reason: "RATE_LIMIT_EXCEEDED", metadata: { count, limit, windowSeconds } });
@@ -382,8 +404,18 @@ export async function enforceRateLimit({
     return shouldEnforce(env)
       ? { ok: false, response: securityResponse(429, "RATE_LIMIT_EXCEEDED", SECURITY_MESSAGES.RATE_LIMIT_EXCEEDED, { "Retry-After": retryAfter }) }
       : { ok: true, monitored: true, count };
-  } catch (_) {
-    return { ok: true };
+  } catch (error) {
+    if (endpoint === "admin:/entry/password" || endpoint.startsWith("ai:fortune-tea-house:")) {
+      const detail = String(error?.message || "");
+      const reason = /admission|slot|concurren/i.test(detail) ? "admission"
+        : /timed? ?out|timeout|deadline/i.test(detail) ? "timeout"
+          : detail === "INVALID_RATE_LIMIT_COUNTER" ? "invalid_counter" : "database";
+      const label = endpoint === "admin:/entry/password" ? "[admin-entry]" : "[fortune-tea-house]";
+      console.warn(`${label} rate limit unavailable`, { endpoint, reason });
+    }
+    return shouldEnforce(env)
+      ? { ok: false, response: securityResponse(503, "RATE_LIMIT_UNAVAILABLE", "요청 한도를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", { "Retry-After": "1" }) }
+      : { ok: true, monitored: true };
   }
 }
 
@@ -421,10 +453,23 @@ export async function enforceSensitiveEndpointSecurity(options = {}) {
     skipOrigin = false,
     rateLimit = null,
     rateLimitKey = "",
-    maxPayloadBytes,
+    maxPayloadBytes = 256 * 1024,
   } = options;
   const validation = await validateSensitiveRequest({ request, env, userId, endpoint, allowedMethods, requireJson, skipOrigin });
   if (!validation.ok) return validation;
+
+  if (shouldEnforce(env)) {
+    try {
+      // Preserve the original body for JSON parsing, multipart uploads and signature checks.
+      if (Number(request.headers.get("content-length")) > maxPayloadBytes) {
+        return { ok: false, response: securityResponse(413, "PAYLOAD_TOO_LARGE", SECURITY_MESSAGES.INVALID_REQUEST) };
+      }
+      if (request.body) await readBoundedText(request.clone(), maxPayloadBytes);
+    } catch (error) {
+      if (error?.code !== "REQUEST_BODY_TOO_LARGE") throw error;
+      return { ok: false, response: securityResponse(413, "PAYLOAD_TOO_LARGE", SECURITY_MESSAGES.INVALID_REQUEST) };
+    }
+  }
 
   // 🔴 예전에는 checkSoftBlock → detectAbusePattern → enforceRateLimit 을 **직렬**로 await 했다.
   // 두 Mongo 작업이 서로 독립인데도 순서대로 기다려서, 공유혀 Atlas 에서 각 상한(1s)이 꽉 차면
@@ -539,7 +584,7 @@ export function aiActionFromPath(path = "", serviceKey = "", method = "GET") {
   if (/\/basis$/.test(normalized)) return "basis";
   if (/\/(unlock|unlock-benefits)$/.test(normalized)) return "unlock";
   // 계정·화면·온라인 복귀 때 한 번 조회하며 생성은 하지 않는다. 기존 read 100회/분 한도 적용.
-  if (service === "astrology-ai" && normalized === "/api/astrology-ai/pending") return "read";
+  if ((service === "astrology-ai" || service === "fortune-tea-house") && normalized === `/api/${service}/pending`) return "read";
   if (/\/(plan|badges|honey-drops|balance)$/.test(normalized)) return "read";
   // 서비스 루트(`/api/<service>` · 후행 슬래시 포함) — 일부 서비스가 `/plan` 별칭으로 쓴다.
   if (service && (normalized === `/api/${service}` || normalized === `/api/${service}/`)) return "read";
@@ -565,8 +610,8 @@ const CHECKPOINT_RESUME_MODELS = Object.freeze({
 
 // Only a small server-ID resume envelope can change the quota classification. The
 // original request stream remains available to the route's ownership/payment checks.
-async function readCheckpointResumeBody(request) {
-  if (Number(request.headers.get("content-length") || 0) > 4096) return null;
+async function readCheckpointResumeBody(request, maxBytes = 4096) {
+  if (Number(request.headers.get("content-length") || 0) > maxBytes) return null;
   let reader;
   try {
     reader = request.clone().body?.getReader();
@@ -576,7 +621,7 @@ async function readCheckpointResumeBody(request) {
       const { value, done } = await reader.read();
       if (done) break;
       bytes += value.byteLength;
-      if (bytes > 4096) return null;
+      if (bytes > maxBytes) return null;
       chunks.push(value);
     }
     const buffer = new Uint8Array(bytes); let offset = 0;
@@ -587,6 +632,15 @@ async function readCheckpointResumeBody(request) {
 }
 
 async function isOwnedCheckpointResume(request, env, serviceKey, userId) {
+  if (serviceKey === "fortune-tea-house" && userId && request.method === "POST"
+    && new URL(request.url).pathname === "/api/fortune-tea-house/consult") {
+    const body = await readCheckpointResumeBody(request, 256 * 1024);
+    if (!body) return false;
+    try {
+      const { isOwnedFortuneTeaHouseResume } = await import("../../routes/fortune-tea-house.js");
+      return await withSecurityDbOperation(env, () => isOwnedFortuneTeaHouseResume(body, userId), TEA_RATE_LIMIT_DB_OPTIONS);
+    } catch { return false; }
+  }
   const modelName = CHECKPOINT_RESUME_MODELS[serviceKey];
   if (!modelName || !userId || request.method !== "POST") return false;
   const body = await readCheckpointResumeBody(request);

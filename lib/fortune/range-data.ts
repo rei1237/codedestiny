@@ -23,7 +23,7 @@ import {
 } from "@/lib/korean-calendar";
 // 달의 궁·위상은 scripts/lib/moon-sky.mjs 가 astronomy-engine 으로 실계산한다.
 // 같은 계산을 여기 다시 쓰지 않는다(코딩 원칙 6).
-import { moonSkyForDate } from "@/scripts/lib/moon-sky.mjs";
+import { moonSkyForDate, parseSkyDate } from "@/scripts/lib/moon-sky.mjs";
 
 /**
  * 🔴 주 시작 요일 — 이 레포에 규약이 없어 2026-08-16 에 새로 정한 값이다.
@@ -87,6 +87,13 @@ function ymdOf(y: number, m: number, d: number): string {
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
+function rangeAnchor(anchorYmd?: string): { y: number; m: number; d: number } {
+  if (anchorYmd === undefined) return kstToday();
+  const parsed = parseSkyDate(anchorYmd);
+  if (!parsed) throw new RangeError(`잘못된 운세 기준 날짜: ${anchorYmd}`);
+  return parsed;
+}
+
 type CoreTerm = { index: number; year: number; month: number; day: number };
 
 /** 코어가 그 날짜를 답하지 못하면 조용히 중국 달력으로 떨어지지 않고 멈춘다. */
@@ -132,8 +139,8 @@ function buildDayCell(y: number, m: number, d: number): DayCell {
 }
 
 /** KST 기준 이번 주(월~일). WEEK_STARTS_ON_MONDAY 를 끄면 일~토가 된다. */
-export function loadWeekRange(): WeekRange {
-  const { y, m, d } = kstToday();
+export function loadWeekRange(anchorYmd?: string): WeekRange {
+  const { y, m, d } = rangeAnchor(anchorYmd);
   const anchor = new Date(Date.UTC(y, m - 1, d));
   const dow = anchor.getUTCDay(); // 일=0
   const offsetToStart = WEEK_STARTS_ON_MONDAY ? (dow === 0 ? -6 : 1 - dow) : -dow;
@@ -149,8 +156,8 @@ export function loadWeekRange(): WeekRange {
 }
 
 /** KST 기준 이번 달. 월건·절기는 한국 음양력 코어(KST)의 값이다. */
-export function loadMonthRange(): MonthRange {
-  const { y, m, d } = kstToday();
+export function loadMonthRange(anchorYmd?: string): MonthRange {
+  const { y, m, d } = rangeAnchor(anchorYmd);
   const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
 
   const days: DayCell[] = [];

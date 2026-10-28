@@ -18,6 +18,9 @@
 import { publicRecordCopy, PUBLIC_RECORD_PATH } from '../../lib/seo/public-record-copy.mjs';
 
 export const INSIGHT_SEO_TITLES = {
+  'rescene-members-saju-reading-guide': '리센느 멤버 사주 읽기 | 꿀꿀 운세',
+  'tarot-question-journal-before-redraw': '타로 질문 기록법 | 꿀꿀 운세',
+  'same-day-pillar-different-season-reading': '같은 일주, 다른 계절 | 꿀꿀 운세',
   "sukuyo-three-group-types-guide": "숙요점 근·중·원거리 — 표지 읽는 법",
   [PUBLIC_RECORD_PATH.split('/').filter(Boolean).at(-1)]: publicRecordCopy.ko.title,
   "ten-gods-beginner-map": "십성 입문: 일간·오행·음양의 관계",

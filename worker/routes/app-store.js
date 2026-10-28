@@ -1,12 +1,20 @@
 import { currentPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import { getEnv } from "../lib/env.js";
-import { Payment, User } from "../lib/models.js";
+import { CONTENT_ENTITLEMENT_SOURCES, CONTENT_ENTITLEMENT_STATUSES, Payment, User } from "../lib/models.js";
 import { requireAuth } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
+import { getBillingFeaturePricing, assertFeatureEnabled } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { getPaidFeatureBillingType, isPerUsePaidFeatureKey, PAID_FEATURE_BILLING_TYPES } from "../lib/paid-feature-registry.js";
+import {
+  getPaidFeatureBillingType,
+  isBirthScopedUnlockFeatureKey,
+  isPerUsePaidFeatureKey,
+  PAID_FEATURE_BILLING_TYPES,
+} from "../lib/paid-feature-registry.js";
+import { isBirthUnlockIdentityError, resolveBirthUnlockIdentity } from "../lib/birth-scoped-unlock-identity.js";
+import { toBirthEntitlementProfileId } from "../lib/birth-key.js";
+import { findActivePaidContentUnlock, grantPermanentUnlock, revokePaymentContentAccess } from "../lib/content-unlocks.js";
 import {
   APP_PASS_DURATION_DAYS,
   findAppStoreProductById,
@@ -148,8 +156,9 @@ function readProductMap(env) {
   }
 }
 
-function resolveProductCoinPrice(pricing, body = {}) {
-  const coinPrice = Math.floor(Number(pricing?.coinPrice ?? pricing?.cost ?? body?.coinPrice ?? body?.cost ?? 0));
+// 가격은 서버 정본(pricing)만 쓴다 — 클라이언트 body.coinPrice/cost 는 상품 선택 근거가 아니다.
+function resolveProductCoinPrice(pricing) {
+  const coinPrice = Math.floor(Number(pricing?.coinPrice ?? pricing?.cost ?? 0));
   return Number.isFinite(coinPrice) && coinPrice > 0 ? coinPrice : 0;
 }
 
@@ -162,8 +171,9 @@ function resolveProductCoinPrice(pricing, body = {}) {
  */
 function resolveProduct(pricing, env, body = {}) {
   const featureKey = cleanText(pricing?.featureKey || body.featureKey);
+  if (featureKey === 'neo-email-consultation') throw Object.assign(new Error('이 상담은 앱 내 결제를 지원하지 않습니다.'), {status:409,code:'APP_PRODUCT_UNAVAILABLE'});
   const billingType = getPaidFeatureBillingType(featureKey);
-  const coinPrice = resolveProductCoinPrice(pricing, body);
+  const coinPrice = resolveProductCoinPrice(pricing);
 
   // 웹 ₩500 이하 기능은 인상해도 Play KRW 최저 판매가를 밑돌 수 있어 SKU를 만들지 않고
   // 앱에서만 무료로 통과시킨다(웹은 유료 그대로). 영냥이·천원 사주 콘텐츠는 예외(isAppFreeFeature).
@@ -261,7 +271,7 @@ function resolveAppPassPurchaseProduct(body = {}) {
     subscriptionTier: pass.passTier,
     passTier: pass.passTier,
     durationDays: APP_PASS_DURATION_DAYS,
-    // 이용권은 기간만 있고 사용 횟수 제한이 없다.
+    // durationDays 는 구 앱 카탈로그 호환 값이다. 이용권 자체에는 기간이 없다(2026-10-11) — 사용 횟수 제한도 없다.
     usageLimited: false,
     coverageCoin: isUnlimited ? null : coinLimit,
     coverageKRW: isUnlimited ? null : resolveAppPassCoverageKRW(coinLimit),
@@ -293,14 +303,11 @@ function shouldConsumePurchase(product) {
 /**
  * productId → 서버 기능 역해석.
  *
- * 가격대 티어 SKU라 productId 하나에 여러 featureKey가 매달린다(예: cd_content_tier_02 ←
- * 50코인 기능 54개). 따라서 티어 SKU는 "이 유저가 이 상품으로 열어둔 결제 의도"를 먼저 보고,
- * 그것만으로 확정한다. 후보를 순회해 아무거나 첫 매치를 고르면 엉뚱한 기능을 지급하게 된다.
- *
- * 명시적 featureKey(= verify 정상 경로)가 있으면 그대로 쓰고, 없을 때(= 고아 구매 복구)만
- * 의도 기록을 조회한다.
+ * 가격대 티어 SKU 하나에 여러 기능이 연결되므로 Google 영수증의 원래 구매 의도 또는
+ * 이미 기록된 주문으로만 기능을 확정한다. 클라이언트의 featureKey나 같은 가격대의
+ * 최신 의도는 원래 주문의 증거가 아니며, 근거가 없으면 검토 대상으로 보류한다.
  */
-async function resolveProductByProductId(env, body = {}, auth = null) {
+async function resolveProductByProductId(env, body = {}, auth = null, receiptIntent = null) {
   const requestedProductId = cleanText(body.productId);
   if (!requestedProductId) {
     const error = new Error("Google Play productId is required.");
@@ -309,16 +316,29 @@ async function resolveProductByProductId(env, body = {}, auth = null) {
     throw error;
   }
 
-  if (cleanText(body.featureKey)) {
-    const pricing = resolvePricing(body);
-    const product = resolveProduct(pricing, env, body);
-    if (product.productId === requestedProductId) return { pricing, product, intent: null };
+  if (receiptIntent) {
+    if (cleanText(body.featureKey) && cleanText(body.featureKey) !== receiptIntent.featureKey) {
+      throw Object.assign(new Error("Purchase does not match the original consultation."), { code: "APP_STORE_INTENT_MISMATCH", status: 409 });
+    }
+    if (!receiptIntent.passTier) {
+      const saved = receiptIntent.recordedPayment?.pricingSnapshot;
+      const pricing = saved?.appBillingType ? saved : resolvePricing({ featureKey: receiptIntent.featureKey });
+      const product = saved?.appBillingType ? {
+        kind: saved.appProductKind || "content", featureKey: receiptIntent.featureKey,
+        productId: requestedProductId, productType: saved.productType || "inapp",
+        billingType: saved.appBillingType, amountKRW: saved.amountKRW,
+      } : resolveProduct(pricing, env, { featureKey: receiptIntent.featureKey });
+      if (product.productId !== requestedProductId) {
+        throw Object.assign(new Error("Purchase pricing needs review. Do not purchase again."), { code: "APP_STORE_INTENT_PRICE_CHANGED", status: 409 });
+      }
+      return { pricing, product, intent: receiptIntent };
+    }
   }
 
   const knownProduct = findAppStoreProductById(requestedProductId);
   if (knownProduct?.kind === "pass") {
     const product = resolveAppPassPurchaseProduct({ passTier: knownProduct.passTier, productId: knownProduct.productId });
-    return { pricing: buildPassPricingShape(knownProduct), product, intent: null };
+    return { pricing: buildPassPricingShape(knownProduct), product, intent: receiptIntent };
   }
 
   // env 오버라이드 매핑(기존 호환) — 1:1 매핑이라 역해석이 안전하다.
@@ -332,14 +352,9 @@ async function resolveProductByProductId(env, body = {}, auth = null) {
     if (product.productId === requestedProductId) return { pricing, product, intent: null };
   }
 
-  const intent = auth ? await findOpenPurchaseIntent(env, auth.userId, requestedProductId) : null;
-  if (intent) {
-    const pricing = resolvePricing({ ...body, featureKey: intent.featureKey });
-    const product = resolveProduct(pricing, env, { ...body, featureKey: intent.featureKey });
-    if (product.productId === requestedProductId) return { pricing, product, intent };
-  }
-
-  const error = new Error("Google Play purchase could not be matched to a feature. Open the feature again to retry.");
+  // 같은 가격대의 최신 의도는 원래 주문의 증거가 아니다. 구형 미기록 영수증은
+  // 검토 대상으로 남기고 다른 상담에 지급하거나 소비하지 않는다.
+  const error = new Error("Original purchase needs review. Do not purchase again.");
   error.code = "APP_STORE_INTENT_NOT_FOUND";
   error.status = 409;
   throw error;
@@ -363,16 +378,8 @@ function buildPassPricingShape(pass) {
   };
 }
 
-async function findOpenPurchaseIntent(env, userId, productId) {
-  await connectDb(env);
-  return AppPurchaseIntent.findOne({
-    userId: new mongoose.Types.ObjectId(String(userId)),
-    productId: cleanText(productId),
-    status: "OPEN",
-  }).sort({ createdAt: -1 }).lean();
-}
-
-async function settlePurchaseIntent(env, userId, productId, tokenHash) {
+async function settlePurchaseIntent(env, userId, productId, tokenHash, intentId = "") {
+  if (!intentId) return;
   try {
     await connectDb(env);
     await AppPurchaseIntent.findOneAndUpdate(
@@ -380,6 +387,7 @@ async function settlePurchaseIntent(env, userId, productId, tokenHash) {
         userId: new mongoose.Types.ObjectId(String(userId)),
         productId: cleanText(productId),
         status: "OPEN",
+        ...(intentId ? { _id: new mongoose.Types.ObjectId(String(intentId)) } : {}),
       },
       { $set: { status: "SETTLED", settledPurchaseTokenHash: cleanText(tokenHash) } },
       { sort: { createdAt: -1 } },
@@ -390,21 +398,170 @@ async function settlePurchaseIntent(env, userId, productId, tokenHash) {
   }
 }
 
+// ── 출생 기반 영구 해금(userId + birthKey + contentKey) ──
+// 대상 키는 Play 결제창을 열기 전(의도 기록)에 이 계정의 저장 프로필로 신원을 만들고, 그 스냅샷(birthKey)으로
+// BIRTH 행을 지급한다. 계정 배열(unlockedFeatures/paidFeatures)은 회수 호환을 위해 그대로 쓰지만,
+// 출생 기반 키의 해금 근거가 아니다. 신원을 못 만들면 계정 단위(USER) 행으로 대체 지급하지 않고 관리자 검토로 남긴다.
+function isBirthScopedProduct(product) {
+  return product?.kind !== "pass" && !isPerUseProduct(product) && isBirthScopedUnlockFeatureKey(product?.featureKey);
+}
+
+function cleanProfileId(value) {
+  return cleanText(value).slice(0, 80);
+}
+
+function birthIdentityErrorResponse(error) {
+  const code = cleanText(error?.code);
+  const missing = code === "MISSING_PROFILE_ID";
+  return json({
+    ok: false,
+    code,
+    reason: missing ? "missing_profile_id" : "invalid_profile",
+    requiresProfile: true,
+    message: cleanText(error?.message),
+  }, { status: missing ? 400 : 403 });
+}
+
+// 서버가 저장해 둔 스냅샷(의도 기록·결제 pricingSnapshot)의 출생 신원. 결제 도중 생년월일을 고쳐도 지급 대상이 움직이지 않는다.
+function birthIdentityFromSnapshot(snapshot = {}) {
+  const birthKey = cleanText(snapshot?.birthKey);
+  const entitlementProfileId = toBirthEntitlementProfileId(birthKey);
+  if (!entitlementProfileId) return null;
+  return {
+    entitlementProfileId,
+    birthKey,
+    partnerBirthKey: cleanText(snapshot?.partnerBirthKey),
+    profileId: cleanProfileId(snapshot?.profileId || snapshot?.selectedProfileId),
+    partnerProfileId: cleanProfileId(snapshot?.partnerProfileId),
+  };
+}
+
+function birthSnapshotFields(identity) {
+  if (!identity) return {};
+  return {
+    profileId: identity.profileId,
+    selectedProfileId: identity.profileId,
+    birthKey: identity.birthKey,
+    ...(identity.partnerProfileId ? { partnerProfileId: identity.partnerProfileId } : {}),
+    ...(identity.partnerBirthKey ? { partnerBirthKey: identity.partnerBirthKey } : {}),
+  };
+}
+
+async function findOpenBirthIntent(userId, productId, featureKey) {
+  return AppPurchaseIntent.findOne({
+    userId: new mongoose.Types.ObjectId(String(userId)),
+    productId: cleanText(productId),
+    featureKey: cleanText(featureKey),
+    status: "OPEN",
+  }).sort({ createdAt: -1 }).lean();
+}
+
+/**
+ * 새 결제의 출생 신원. 의도 스냅샷(birthKey)이 정본이다. 스냅샷 이전에 만든 레거시 의도나 의도가 없는
+ * 경우에만 기록된 profileId 를 이 계정 소유 프로필로 다시 해석한다. 못 만들면 { identity: null, error }.
+ */
+async function resolveGoogleBirthUnlock({ auth, product, body = {}, intent = null }) {
+  const matchedIntent = intent && cleanText(intent.featureKey) === product.featureKey
+    ? intent
+    : await findOpenBirthIntent(auth.userId, product.productId, product.featureKey);
+  const fromIntent = birthIdentityFromSnapshot(matchedIntent);
+  if (fromIntent) return { identity: fromIntent, error: null };
+  const profileId = cleanProfileId(matchedIntent?.profileId || body.profileId || body.selectedProfileId);
+  const partnerProfileId = cleanProfileId(matchedIntent?.partnerProfileId || body.partnerProfileId);
+  try {
+    const identity = await resolveBirthUnlockIdentity({
+      userId: auth.userId,
+      profileId,
+      partnerProfileId,
+      featureKey: product.featureKey,
+    });
+    return { identity, error: null };
+  } catch (error) {
+    if (!isBirthUnlockIdentityError(error)) throw error;
+    return { identity: null, error };
+  }
+}
+
+/** 결제 스냅샷의 신원으로 BIRTH 행을 지급한다(upsert — 같은 토큰 재검증에도 안전). */
+async function grantGoogleBirthUnlock({ payment, product, pricing, identity, holdCode = "" }) {
+  if (!identity) {
+    return {
+      granted: false,
+      adminReviewRequired: true,
+      code: cleanText(holdCode || payment?.pricingSnapshot?.birthUnlockHoldCode) || "MISSING_PROFILE_ID",
+    };
+  }
+  await grantPermanentUnlock({
+    userId: String(payment.userId),
+    profileId: identity.profileId,
+    partnerProfileId: identity.partnerProfileId,
+    featureKey: product.featureKey,
+    source: CONTENT_ENTITLEMENT_SOURCES.PAYMENT,
+    orderId: cleanText(payment.merchantUid),
+    paymentId: String(payment._id || ""),
+    evidenceId: String(payment._id || ""),
+    coinAmount: Number(pricing?.coinPrice || pricing?.cost || 0),
+    unlockedAt: payment.paidAt || payment.createdAt || new Date(),
+    birthIdentity: identity,
+  });
+  return { granted: true, adminReviewRequired: false, code: "" };
+}
+
 /**
  * 계정 대조. obfuscatedAccountId는 launchBillingFlow에서 앱이 주입한 userId 해시다.
  * 이게 없으면 남의 purchaseToken을 먼저 POST하는 쪽이 콘텐츠를 가져갈 수 있다
  * (Payment.impUid 유니크는 '두 번째'만 막지 '첫 번째 선점'은 막지 못한다).
  */
-async function assertPurchaseBelongsToUser(auth, googlePurchase) {
+async function assertPurchaseBelongsToUser(auth, googlePurchase, env, purchaseToken) {
   const claimed = cleanText(googlePurchase?.obfuscatedExternalAccountId);
-  // 이 가드 도입 이전 클라이언트가 만든 구매는 값이 비어 있다 — 하위호환으로 통과시킨다.
-  if (!claimed) return;
+  // 구형 영수증은 이미 서버에 기록된 소유자만 복원할 수 있다. 빈 계정 식별자를
+  // 새 구매로 선점시키지 않는다. 기존 계정/주문은 병합하거나 다시 만들지 않는다.
+  if (!claimed) {
+    await connectDb(env);
+    const existing = await Payment.findOne({ impUid: `google:${await purchaseTokenHash(purchaseToken)}` }).lean();
+    if (existing && String(existing.userId) === String(auth.userId)) return;
+    throw Object.assign(new Error("Purchase account could not be verified. Check the original purchase account."), {
+      code: "GOOGLE_PLAY_PURCHASE_ACCOUNT_UNVERIFIED", status: 409,
+    });
+  }
   const expected = await obfuscatedAccountIdForUser(auth.userId);
   if (claimed === expected) return;
   const error = new Error("Google Play purchase belongs to a different account.");
   error.code = "GOOGLE_PLAY_PURCHASE_ACCOUNT_MISMATCH";
   error.status = 409;
   throw error;
+}
+
+// Google가 검증해 준 식별자만 사용한다. 클라이언트의 intentId/featureKey는
+// 늦게 완료된 다른 결제의 연결 근거가 될 수 없다.
+async function findReceiptPurchaseIntent(env, auth, googlePurchase, productId, purchaseToken) {
+  await connectDb(env);
+  const tokenHash = await purchaseTokenHash(purchaseToken);
+  const recorded = await Payment.findOne({ impUid: `google:${tokenHash}` }).lean();
+  if (recorded && String(recorded.userId) === String(auth.userId) &&
+      cleanText(recorded.productId || recorded.pricingSnapshot?.productId) === cleanText(productId)) {
+    // 임시 의도의 TTL과 무관하게 이미 기록된 동일 계정의 주문을 복원한다.
+    return {
+      ...recorded.pricingSnapshot, featureKey: recorded.featureKey, productId,
+      requestId: recorded.requestId, reportId: recorded.reportId, sessionId: recorded.sessionId,
+      passTier: recorded.subscriptionTier || "", recordedPayment: recorded,
+    };
+  }
+  const reference = cleanText(googlePurchase?.obfuscatedExternalProfileId);
+  if (!reference.startsWith("cd-intent:")) return null; // 이전 앱의 featureKey 식별자 호환
+  const intentId = reference.slice("cd-intent:".length);
+  if (!/^[a-f0-9]{24}$/i.test(intentId)) {
+    throw Object.assign(new Error("Purchase intent reference is invalid."), { code: "APP_STORE_INTENT_MISMATCH", status: 409 });
+  }
+  const intent = await AppPurchaseIntent.findOne({
+    _id: new mongoose.Types.ObjectId(intentId),
+    userId: new mongoose.Types.ObjectId(String(auth.userId)),
+    productId: cleanText(productId),
+  }).sort({ createdAt: -1 }).lean();
+  if (!intent || (intent.status === "SETTLED" && intent.settledPurchaseTokenHash !== tokenHash)) {
+    throw Object.assign(new Error("Original purchase needs review. Do not purchase again."), { code: "APP_STORE_INTENT_NOT_FOUND", status: 409 });
+  }
+  return intent;
 }
 
 export async function obfuscatedAccountIdForUser(userId) {
@@ -415,7 +572,11 @@ export async function obfuscatedAccountIdForUser(userId) {
 
 function resolvePricing(input = {}) {
   const result = getBillingFeaturePricing(input);
-  if (result?.ok && result.pricing) return result.pricing;
+  if (result?.ok && result.pricing) {
+    const enabled = assertFeatureEnabled(result.pricing);
+    if (!enabled.ok) throw Object.assign(new Error(enabled.message), { code: enabled.code, status: 409 });
+    return result.pricing;
+  }
   const error = new Error("Paid product pricing was not found.");
   error.code = "APP_STORE_PRODUCT_NOT_FOUND";
   error.status = 404;
@@ -449,7 +610,9 @@ function isVerifiedPurchase(payload, productType) {
     if (expiryTime && expiryTime <= Date.now()) return false;
     return paymentState === 1 || paymentState === 2 || expiryTime > Date.now();
   }
-  return Number(payload.purchaseState || 0) === 0;
+  // Play Developer API: 0=PURCHASED, 1=CANCELED, 2=PENDING.
+  // 누락/null/빈 문자열을 0으로 바꾸면 검증 실패를 결제 완료로 지급하게 된다.
+  return payload.purchaseState === 0;
 }
 
 async function fetchGooglePurchase(env, { packageName, productId, productType, purchaseToken }) {
@@ -631,6 +794,40 @@ async function handleGoogleIntent(request, env) {
   }
 
   await connectDb(env);
+  // 🔴 출생 기반 키는 Play 결제창을 열기 전에 이 계정 저장 프로필(궁합은 상대 프로필도)로 신원을 만든다.
+  // 프로필 없이 결제가 끝나면 지급 대상이 없어 돈만 받고 해금을 못 쓰는 주문이 된다.
+  let birthIdentity = null;
+  if (isBirthScopedProduct(product)) {
+    try {
+      birthIdentity = await resolveBirthUnlockIdentity({
+        userId: auth.userId,
+        profileId: cleanProfileId(body.profileId || body.selectedProfileId),
+        partnerProfileId: cleanProfileId(body.partnerProfileId),
+        featureKey: product.featureKey,
+      });
+    } catch (error) {
+      if (!isBirthUnlockIdentityError(error)) throw error;
+      return birthIdentityErrorResponse(error);
+    }
+    // 같은 계정·같은 출생 정보로 이미 산 콘텐츠면 Play 결제창을 열지 않는다(중복 결제 방지).
+    // 응답 모양은 웹 단건 결제 준비(payments.js)의 alreadyUnlocked 응답과 같다.
+    const owned = await findActivePaidContentUnlock({
+      userId: String(auth.userId),
+      profileId: birthIdentity.profileId,
+      partnerProfileId: birthIdentity.partnerProfileId,
+      featureKey: product.featureKey,
+      birthIdentity,
+    });
+    if (owned) {
+      return json({
+        ok: true,
+        alreadyUnlocked: true,
+        profileId: birthIdentity.profileId,
+        featureKey: product.featureKey,
+        data: { alreadyUnlocked: true, featureKey: product.featureKey, unlockMap: { [product.featureKey]: true } },
+      });
+    }
+  }
   const now = Date.now();
   const intent = await AppPurchaseIntent.create({
     userId: new mongoose.Types.ObjectId(String(auth.userId)),
@@ -639,7 +836,12 @@ async function handleGoogleIntent(request, env) {
     productType: product.productType,
     passTier: cleanText(product.passTier),
     requestId: cleanText(body.requestId || body.idempotencyKey).slice(0, 120),
-    profileId: cleanText(body.profileId || body.selectedProfileId).slice(0, 120),
+    profileId: birthIdentity ? birthIdentity.profileId : cleanText(body.profileId || body.selectedProfileId).slice(0, 120),
+    ...(birthIdentity ? {
+      partnerProfileId: birthIdentity.partnerProfileId,
+      birthKey: birthIdentity.birthKey,
+      partnerBirthKey: birthIdentity.partnerBirthKey,
+    } : {}),
     reportId: cleanText(body.reportId).slice(0, 120),
     sessionId: cleanText(body.sessionId || body.reportSessionId).slice(0, 120),
     status: "OPEN",
@@ -651,6 +853,7 @@ async function handleGoogleIntent(request, env) {
     data: {
       provider: "GOOGLE_PLAY",
       intentId: String(intent._id || ""),
+      obfuscatedProfileId: `cd-intent:${String(intent._id)}`,
       product,
       // 앱은 이 값을 launchBillingFlow의 obfuscatedAccountId로 주입해야 한다.
       obfuscatedAccountId: await obfuscatedAccountIdForUser(auth.userId),
@@ -668,14 +871,14 @@ function buildAccessGrant({ payment, pricing, requestId, body }) {
     merchantUid: cleanText(payment?.merchantUid),
     featureKey: cleanText(pricing?.featureKey || body.featureKey),
     requestId,
-    reportId: cleanText(body.reportId),
-    sessionId: cleanText(body.sessionId || body.reportSessionId),
+    reportId: cleanText(payment?.reportId),
+    sessionId: cleanText(payment?.sessionId),
     evidenceId: String(payment?._id || ""),
     paidAt: payment?.paidAt ? new Date(payment.paidAt).toISOString() : new Date().toISOString(),
   };
 }
 
-async function persistGooglePurchase({ auth, env, pricing, product, body, googlePurchase }) {
+async function persistGooglePurchase({ auth, env, pricing, product, body, googlePurchase, intent = null }) {
   await connectDb(env);
   const userId = new mongoose.Types.ObjectId(String(auth.userId));
   const now = new Date();
@@ -696,9 +899,23 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       error.status = 409;
       throw error;
     }
+    if (existing.status === "cancelled" || existing.status === "refunded") {
+      throw Object.assign(new Error("This purchase was refunded."), { code: "GOOGLE_PLAY_PURCHASE_REVOKED", status: 409 });
+    }
     const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now, passOrderId: impUid });
-    return { payment: existing, user, requestId: existing.requestId || requestId, idempotent: true };
+    // 재검증은 **이 결제에 저장된 스냅샷**으로만 다시 지급한다(지급 도중 실패한 결제의 복구). 스냅샷이 없는
+    // 결제(보류·전환 이전 기록)는 지금 프로필로 다시 계산하지 않는다 — 관리자 검토·마이그레이션 몫이다.
+    const birthUnlock = isBirthScopedProduct(product)
+      ? await grantGoogleBirthUnlock({ payment: existing, product, pricing, identity: birthIdentityFromSnapshot(existing.pricingSnapshot) })
+      : null;
+    return { payment: existing, user, requestId: existing.requestId || requestId, idempotent: true, birthUnlock };
   }
+
+  const birthResolution = isBirthScopedProduct(product)
+    ? await resolveGoogleBirthUnlock({ auth, product, body, intent })
+    : null;
+  const birthIdentity = birthResolution?.identity || null;
+  const birthHoldCode = birthResolution && !birthIdentity ? cleanText(birthResolution.error?.code) || "MISSING_PROFILE_ID" : "";
 
   const payment = await Payment.create({
     userId,
@@ -731,6 +948,8 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       cashPrice: appAmountKRW,
       appBillingType: product.billingType || "",
       appProductKind: product.kind || "content",
+      ...birthSnapshotFields(birthIdentity),
+      ...(birthHoldCode ? { birthUnlockReviewRequired: true, birthUnlockHoldCode: birthHoldCode } : {}),
     },
     metadata: {
       provider: "GOOGLE_PLAY",
@@ -748,11 +967,21 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       purchaseTokenHash: tokenHash,
       googlePurchase,
     },
+    // 출생 기반 키인데 지급할 프로필이 없다: Play 결제는 이미 끝났으므로 계정 단위로 대체 지급하지 않고 관리자 검토로 남긴다.
+    ...(birthHoldCode ? {
+      failureCode: "delivery_failed_manual_review",
+      failureStage: "google_birth_unlock_identity",
+      failureMessage: `Birth-scoped unlock has no owned profile (${birthHoldCode}).`,
+    } : {}),
   });
 
   const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now, passOrderId: impUid });
+  const paymentDoc = payment.toObject ? payment.toObject() : payment;
+  const birthUnlock = birthResolution
+    ? await grantGoogleBirthUnlock({ payment: paymentDoc, product, pricing, identity: birthIdentity, holdCode: birthHoldCode })
+    : null;
 
-  return { payment: payment.toObject ? payment.toObject() : payment, user, requestId, idempotent: false };
+  return { payment: paymentDoc, user, requestId, idempotent: false, birthUnlock };
 }
 
 const USER_ENTITLEMENT_PROJECTION = { points: 1, unlockedFeatures: 1, profileSubscription: 1 };
@@ -774,25 +1003,24 @@ function buildEntitlementUpdate({ product, googlePurchase, now, priorSubscriptio
     },
   };
 
-  // 이용권은 30일·자동갱신 없음이라 Play `inapp`으로 판다. `subs`가 아니므로
+  // 이용권은 기간·자동갱신 없음(한도 소진 시 종료)이라 Play `inapp`으로 판다. `subs`가 아니므로
   // productType이 아니라 passTier로 판정해야 한다.
   const passTier = normalizePassTier(cleanText(product.passTier || product.subscriptionTier));
   if (product.kind === "pass" && passTier) {
     // 🔴 재실행 가드. verify 는 같은 purchaseToken 으로 여러 번 들어온다(재전송·복원). 예전에는
-    // 만료를 now+30일로 **덮어썼기** 때문에 재실행이 무해했지만, 아래에서 기간·한도를 쌓게 된
-    // 뒤로는 재실행 한 번이 30일을 공짜로 얹는다. 웹 카드 결제와 같은 필드로 막는다
+    // 만료를 now+30일로 **덮어썼기** 때문에 재실행이 무해했지만, 아래에서 한도를 쌓게 된
+    // 뒤로는 재실행 한 번이 한도 1회분을 공짜로 얹는다. 웹 카드 결제와 같은 필드로 막는다
     // (worker/payments/passes.js activatePassSubscription lastPassOrderId).
     if (passOrderId && String(priorSubscription?.lastPassOrderId || "") === String(passOrderId)) {
       return update;
     }
-    // 같은 등급을 활성 중에 다시 사면 기간이 이어붙고 한도도 함께 쌓인다 — 웹 카드 결제와
+    // 같은 등급을 활성 중에 다시 사면 한도가 쌓인다(이용권 기간은 없다, 2026-10-11) — 웹 카드 결제와
     // 정확히 같은 규칙이다(profile-limits.js computePassExpiry · buildPassCycleFields).
-    // 예전에는 만료를 now+30일로 덮어써 남은 기간이 사라졌다(2026-09-05 정정).
     if (isPassPolicyMix(priorSubscription || {}, product, now)) throw Object.assign(new Error("현재 이용권이 종료된 후 수령해 주세요."), { code: "PASS_POLICY_CONFLICT", status: 409 });
     const transition = evaluatePassTierTransition(priorSubscription, passTier, now);
     const expiresAt = googlePurchase?.expiryTimeMillis
       ? new Date(Number(googlePurchase.expiryTimeMillis))
-      : computePassExpiry({ transition, paidAt: now, now, durationDays: APP_PASS_DURATION_DAYS });
+      : computePassExpiry({ transition, paidAt: now, now });
     const cycle = buildPassCycleFields({ priorSubscription, tier: passTier, expiresAt, now, passPolicyVersion: passPolicyVersion(product) });
     update.$set = {
       "profileSubscription.tier": passTier,
@@ -859,6 +1087,8 @@ async function handleGoogleVerify(request, env) {
   const requestedProductId = cleanText(body.productId);
   const purchaseToken = cleanText(body.purchaseToken);
   const packageName = cleanText(body.packageName || getEnv(env, "GOOGLE_PLAY_PACKAGE_NAME") || getEnv(env, "CODE_DESTINY_ANDROID_PACKAGE_ID") || "com.codedestiny.app");
+  const expectedPackage = cleanText(getEnv(env, "GOOGLE_PLAY_PACKAGE_NAME") || getEnv(env, "CODE_DESTINY_ANDROID_PACKAGE_ID") || "com.codedestiny.app");
+  if (packageName !== expectedPackage) return json({ ok: false, code: "GOOGLE_PLAY_PACKAGE_MISMATCH" }, { status: 400 });
 
   // 앱에서 무료로 통과시키는 저가 콘텐츠는 Play 상품 자체가 없다.
   if (product.freeInApp) {
@@ -875,16 +1105,27 @@ async function handleGoogleVerify(request, env) {
     productType: product.productType,
     purchaseToken,
   });
-  await assertPurchaseBelongsToUser(auth, googlePurchase);
+  await assertPurchaseBelongsToUser(auth, googlePurchase, env, purchaseToken);
+  const receiptIntent = await findReceiptPurchaseIntent(env, auth, googlePurchase, product.productId, purchaseToken);
+  if (receiptIntent && receiptIntent.featureKey !== product.featureKey) {
+    throw Object.assign(new Error("Purchase does not match the original consultation."), { code: "APP_STORE_INTENT_MISMATCH", status: 409 });
+  }
   const persisted = await persistGooglePurchase({
     auth,
     env,
     pricing,
     product,
-    body: { ...body, packageName },
+    body: { ...body, packageName, ...(receiptIntent ? {
+      requestId: receiptIntent.requestId,
+      profileId: receiptIntent.profileId,
+      partnerProfileId: receiptIntent.partnerProfileId,
+      reportId: receiptIntent.reportId,
+      sessionId: receiptIntent.sessionId,
+    } : {}) },
     googlePurchase,
+    intent: receiptIntent,
   });
-  await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken));
+  await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken), receiptIntent?._id);
   const acknowledged = await acknowledgeGooglePurchase(env, {
     packageName,
     productId: product.productId,
@@ -899,13 +1140,20 @@ async function handleGoogleVerify(request, env) {
     body,
   });
   const unlockedFeatures = Array.isArray(persisted.user?.unlockedFeatures) ? persisted.user.unlockedFeatures : [product.featureKey];
+  // 출생 기반 키가 보류(관리자 검토)되면 결제는 확정됐지만 해금은 아직 없다 — 열린 것처럼 안내하지 않는다.
+  const birthUnlockHeld = persisted.birthUnlock?.adminReviewRequired === true;
 
   return json({
     ok: true,
-    message: "Google Play purchase verified.",
+    message: birthUnlockHeld
+      ? "결제는 확인됐고 열람할 프로필 확인이 필요합니다. 환불은 진행되지 않았습니다."
+      : "Google Play purchase verified.",
     data: {
       provider: "GOOGLE_PLAY",
       idempotent: persisted.idempotent,
+      ...(persisted.birthUnlock ? { birthUnlock: persisted.birthUnlock } : {}),
+      // 보류 주문은 프로필 선택 지급 목록(birth-profile-claim.js)에 잡힌다 — 사용자가 직접 프로필을 고른다.
+      ...(birthUnlockHeld ? { adminReviewRequired: true, profileSelectionRequired: true } : {}),
       pricing,
       consume: {
         transactionId: String(persisted.payment?._id || ""),
@@ -927,7 +1175,7 @@ async function handleGoogleVerify(request, env) {
         profileSubscription: persisted.user?.profileSubscription || null,
       },
       unlockedFeatures,
-      unlockMap: { [product.featureKey]: true },
+      unlockMap: { [product.featureKey]: !birthUnlockHeld },
       payment: {
         id: String(persisted.payment?._id || ""),
         provider: "GOOGLE_PLAY",
@@ -966,6 +1214,10 @@ async function handleGoogleRestore(request, env) {
       const packageName = cleanText(nativePurchase?.packageName || packageNameFallback);
 
       try {
+        const expectedPackage = cleanText(getEnv(env, "GOOGLE_PLAY_PACKAGE_NAME") || getEnv(env, "CODE_DESTINY_ANDROID_PACKAGE_ID") || "com.codedestiny.app");
+        if (packageName !== expectedPackage) {
+          throw Object.assign(new Error("Purchase package does not match this app."), { code: "GOOGLE_PLAY_PACKAGE_MISMATCH", status: 400 });
+        }
         if (!productId || !purchaseToken) {
           const error = new Error("Google Play productId and purchaseToken are required.");
           error.code = "PURCHASE_RESTORE_INPUT_INVALID";
@@ -973,19 +1225,17 @@ async function handleGoogleRestore(request, env) {
           throw error;
         }
 
+        const googlePurchase = await verifyGooglePurchase(env, {
+          packageName, productId, productType, purchaseToken,
+        });
+        await assertPurchaseBelongsToUser(auth, googlePurchase, env, purchaseToken);
+        const receiptIntent = await findReceiptPurchaseIntent(env, auth, googlePurchase, productId, purchaseToken);
         const { pricing, product, intent } = await resolveProductByProductId(env, {
           ...body,
           ...nativePurchase,
           productId,
           productType,
-        }, auth);
-        const googlePurchase = await verifyGooglePurchase(env, {
-          packageName,
-          productId: product.productId,
-          productType: product.productType,
-          purchaseToken,
-        });
-        await assertPurchaseBelongsToUser(auth, googlePurchase);
+        }, auth, receiptIntent);
         const persisted = await persistGooglePurchase({
           auth,
           env,
@@ -998,16 +1248,19 @@ async function handleGoogleRestore(request, env) {
             // A Play receipt has no consultation request ID. Recover the original
             // server-side intent before consuming the purchase, so a killed app
             // can still attach this payment to the same saved consultation.
-            requestId: intent?.requestId || nativePurchase?.requestId || body.requestId,
-            profileId: intent?.profileId || nativePurchase?.profileId || body.profileId,
-            reportId: intent?.reportId || nativePurchase?.reportId || body.reportId,
-            sessionId: intent?.sessionId || nativePurchase?.sessionId || body.sessionId,
+            requestId: intent ? intent.requestId : nativePurchase?.requestId || body.requestId,
+            profileId: intent ? intent.profileId : nativePurchase?.profileId || body.profileId,
+            partnerProfileId: intent ? intent.partnerProfileId : nativePurchase?.partnerProfileId || body.partnerProfileId,
+            reportId: intent ? intent.reportId : nativePurchase?.reportId || body.reportId,
+            sessionId: intent ? intent.sessionId : nativePurchase?.sessionId || body.sessionId,
+            reportSessionId: intent ? intent.sessionId : nativePurchase?.reportSessionId || body.reportSessionId,
             productId: product.productId,
             productType: product.productType,
             purchaseToken,
             idempotencyKey: cleanText(nativePurchase?.orderId) || cleanText(body?.idempotencyKey),
           },
           googlePurchase,
+          intent,
         });
         const acknowledged = await acknowledgeGooglePurchase(env, {
           packageName,
@@ -1016,7 +1269,7 @@ async function handleGoogleRestore(request, env) {
           purchaseToken,
           googlePurchase,
         });
-        await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken));
+        await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken), intent?._id);
         restoredPurchases.push({
           id: String(persisted.payment?._id || ""),
           featureKey: product.featureKey,
@@ -1026,6 +1279,7 @@ async function handleGoogleRestore(request, env) {
           // 고아 구매는 지급 후 반드시 소비시켜야 다음 구매가 열린다(티어 SKU 공유).
           shouldConsume: shouldConsumePurchase(product),
           purchaseToken,
+          ...(persisted.birthUnlock ? { birthUnlock: persisted.birthUnlock } : {}),
         });
       } catch (error) {
         failedPurchases.push({
@@ -1186,8 +1440,14 @@ async function updateActiveGoogleEntitlement({ payment, googlePurchase, notifica
       update.$set["profileSubscription.expiresAt"] = new Date(Number(googlePurchase.expiryTimeMillis));
     }
   }
-  if (!Object.keys(update).length) return;
-  await User.findByIdAndUpdate(payment.userId, update);
+  if (Object.keys(update).length) await User.findByIdAndUpdate(payment.userId, update);
+  // 출생 기반 키는 결제에 저장된 신원 스냅샷이 있을 때만 BIRTH 행을 다시 맞춘다(없으면 계정 단위로 대체하지 않는다).
+  const birthIdentity = isBirthScopedUnlockFeatureKey(featureKey) && !isPerUsePaidFeatureKey(featureKey)
+    ? birthIdentityFromSnapshot(payment.pricingSnapshot)
+    : null;
+  if (birthIdentity) {
+    await grantGoogleBirthUnlock({ payment, product: { featureKey }, pricing: payment.pricingSnapshot, identity: birthIdentity });
+  }
 }
 
 async function revokeGoogleEntitlement({ payment, googlePurchase, notification }) {
@@ -1225,6 +1485,15 @@ async function revokeGoogleEntitlement({ payment, googlePurchase, notification }
     };
   }
   if (Object.keys(update).length) await User.findByIdAndUpdate(payment.userId, update);
+  // 출생 기반 키는 BIRTH 행이 해금 근거다 — 계정 배열만 빼면 환불 뒤에도 열린 채로 남는다.
+  // 회수 대상은 이 결제(id) 행과 결제 시점 birthKey 스냅샷의 행뿐이다(content-unlocks 공용 회수기).
+  if (featureKey && isBirthScopedUnlockFeatureKey(featureKey)) {
+    await revokePaymentContentAccess({
+      payment,
+      revokedStatus: CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+      reason: "google_play_voided",
+    });
+  }
 }
 
 async function handleGoogleRtdn(request, env) {

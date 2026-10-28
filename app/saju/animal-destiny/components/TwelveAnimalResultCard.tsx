@@ -48,9 +48,10 @@ function compactText(text: string, max = 82) {
   return `${normalized.slice(0, max - 1)}…`;
 }
 
+// result(유료 결과 카드 문장)는 해금 뒤 서버 응답으로만 온다. 없으면 무료 동물 정보로 미리보기만 그린다.
 type Props = {
   animal: AnimalDestinyData;
-  result: TwelveGrowthAnimalResult;
+  result?: TwelveGrowthAnimalResult | null;
   representativeStage: TwelveStage;
 };
 
@@ -59,9 +60,15 @@ export default function TwelveAnimalResultCard({ animal, result, representativeS
   const stageTone = buildStageTone(copy)[representativeStage];
   const quickNotes = [
     { label: copy.quickNoteRhythmLabel, title: stageTone.label, body: stageTone.action },
-    { label: copy.todayPracticeLabel, title: copy.smallStepTitle, body: compactText(result.todayAction) },
-    { label: copy.recoveryHintLabel, title: copy.heartRechargeTitle, body: compactText(result.recoveryGuide) },
+    ...(result ? [
+      { label: copy.todayPracticeLabel, title: copy.smallStepTitle, body: compactText(result.todayAction) },
+      { label: copy.recoveryHintLabel, title: copy.heartRechargeTitle, body: compactText(result.recoveryGuide) },
+    ] : []),
   ];
+  const animalName = result?.animalName || animal.animal_ko;
+  const stageName = result?.stageName || animal.saju_stage;
+  const summary = result?.summary || animal.titleLine || animal.short_copy;
+  const keywords = result?.keywords || animal.keywords || [];
 
   return (
     <m.section
@@ -89,13 +96,13 @@ export default function TwelveAnimalResultCard({ animal, result, representativeS
 
           <div>
             <p className="text-sm font-bold text-[#3c6689]">{copy.yourAnimalLabel}</p>
-            <h3 className="text-3xl font-black text-[#214c6f]">{result.animalName}</h3>
-            <p className="mt-1 text-sm font-semibold text-[#487195]">{copy.stagePrefix} {result.stageName}</p>
-            <p className="mt-3 text-sm font-semibold leading-relaxed text-[#315d82]">{result.summary}</p>
+            <h3 className="text-3xl font-black text-[#214c6f]">{animalName}</h3>
+            <p className="mt-1 text-sm font-semibold text-[#487195]">{copy.stagePrefix} {stageName}</p>
+            <p className="mt-3 text-sm font-semibold leading-relaxed text-[#315d82]">{summary}</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {result.keywords.slice(0, 5).map((tag) => (
+            {keywords.slice(0, 5).map((tag) => (
               <span key={tag} className="rounded-full border border-[#c4ddef] bg-white/92 px-3 py-1 text-xs font-bold text-[#325f83]">
                 #{tag}
               </span>
@@ -109,7 +116,7 @@ export default function TwelveAnimalResultCard({ animal, result, representativeS
             </p>
           </div>
 
-          <div className="grid gap-2 md:grid-cols-3">
+          <div className={quickNotes.length > 1 ? "grid gap-2 md:grid-cols-3" : "grid gap-2"}>
             {quickNotes.map((note) => (
               <div key={note.label} className="rounded-2xl border border-[#d7e6f3] bg-white/82 p-3">
                 <p className="text-[11px] font-black text-[#6b86a0]">{note.label}</p>
@@ -119,10 +126,14 @@ export default function TwelveAnimalResultCard({ animal, result, representativeS
             ))}
           </div>
 
-          <div className="rounded-2xl border border-[#d9d5a2] bg-[#fff8de]/82 p-3">
-            <p className="text-xs font-black text-[#8e7b34]">{copy.weeklyMissionLabel}</p>
-            <p className="mt-1 text-sm font-semibold leading-relaxed text-[#67562a]">{compactText(result.growthMission, 118)}</p>
-          </div>
+          {result ? (
+            <div className="rounded-2xl border border-[#d9d5a2] bg-[#fff8de]/82 p-3">
+              <p className="text-xs font-black text-[#8e7b34]">{copy.weeklyMissionLabel}</p>
+              <p className="mt-1 text-sm font-semibold leading-relaxed text-[#67562a]">{compactText(result.growthMission, 118)}</p>
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-dashed border-[#d9d5a2] bg-[#fff8de]/60 p-3 text-xs font-semibold leading-relaxed text-[#8e7b34]">{copy.paidTeaserNote}</p>
+          )}
         </div>
       </div>
     </m.section>

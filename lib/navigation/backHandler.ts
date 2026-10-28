@@ -157,6 +157,16 @@ function isCurrentGuardState(pathname: string, policyKind: BackPolicyKind) {
   );
 }
 
+/** 임시 가드에서 한 칸 내려온 자리(가드가 아닌 transient 기준 엔트리)인가. */
+export function isTransientBaseState(pathname: string) {
+  const state = getHistoryState();
+  return (
+    state[BACK_GUARD_FLAG] === false &&
+    state[BACK_PATH_FLAG] === pathname &&
+    state[BACK_POLICY_FLAG] === "transient"
+  );
+}
+
 export function ensureGuardState(pathname: string, policyKind: BackPolicyKind) {
   if (typeof window === "undefined" || policyKind === "none") return;
   if (isCurrentGuardState(pathname, policyKind)) return;

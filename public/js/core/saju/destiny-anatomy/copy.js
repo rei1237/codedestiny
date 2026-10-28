@@ -20,7 +20,7 @@
       title: '운명 구조도', subtitle: 'DESTINY ANATOMY', free: 'FREE',
       intro: '방금 본 사주로 내 머릿속 사고 엔진부터 에너지 구조까지 한 장의 설계도로 펼쳐 봤어요.',
       explore: '무료 리포트 전체 펼쳐 보기', exploreNote: '한눈에 요약부터 다섯 사고 엔진, 에너지 구조, 교차 해석, AI 상담 질문까지 한 권으로 정리했어요.',
-      brainTitle: '내 뇌구조 (사주 ver.)',
+      brainTitle: '나의 뇌구조',
       brainHeadline: '내 머릿속 지분 1위는 {name}',
       brainHeadlineBalanced: '다섯 엔진이 사이좋게 지분을 나눠 가졌어요',
       memeHot: '과열', memeCombo: '조합 별명', memeCaption: '칸 크기는 사주 십성 비중 그대로예요 · 재미로 보는 뇌구조',
@@ -54,7 +54,7 @@
       shareTitle: '내 운명 구조도 공유하기', shareSub: '나라는 사람의 운명 구조도',
       shareAction: '공유하기', saveAction: '이미지 저장', copyAction: '링크 복사', copied: '링크를 복사했어요',
       ctaTitle: '이 구조, 더 깊이 보고 싶다면',
-      nyangLabel: '연이의 한마디', nyangSign: '— 연이', brand: '꿀꿀 운세 · 연이',
+      nyangLabel: '연이의 한마디', nyangSign: '— 연이', brand: '꿀꿀운세 · 연이',
       reportLabel: 'FREE REPORT', tocTitle: '이 리포트에 담긴 것',
       toc: {summary: '한눈에 요약', circuit: '사고회로', engines: '다섯 사고 엔진', elements: '에너지의 재료', decision: '결정 방식', body: '에너지 바디', vedic: '베다 마음·몸', fusion: '교차 해석', ask: 'AI와 이어서 상담'},
       askTitle: '나는 어떤 사람이야? — AI와 이어서 상담하기',
@@ -4258,17 +4258,6 @@
       ask: Y.ask.base
     };
 
-    // Selection is a traditional reflection theme, never a physical assessment.
-    var routineByElement = {wood: 2, fire: 0, earth: 3, metal: 5, water: 8};
-    var evenElements = (el.ratios[hiEl] || 0) - (el.ratios[loEl] || 0) < 10;
-    var habitRows = (evenElements ? [hiEl] : [hiEl, loEl]).map(function (e, i) {
-      var r = C.recovery.routines[routineByElement[e]];
-      return {id: e, title: r.title,
-        basis: (evenElements ? C.recovery.even : (i === 0 ? C.recovery.strong : C.recovery.low)) + ' · ' +
-          (evenElements ? elementsText.items.map(function (x) { return x.name + ' ' + Math.round(x.ratio) + '%'; }).join(' · ')
-            : C.elements[e].name + ' ' + Math.round(el.ratios[e]) + '% · ' + C.elements[e].words),
-        check: r.check, action: r.action};
-    });
     model.locale = L;
     model.text = {
       ui: C.ui,
@@ -4298,7 +4287,7 @@
       recovery: C.recovery,
       charts: Object.assign({}, CHART_COPY[L] || CHART_COPY.en, {vedic: simple.vedic, show: simple.show, house: simple.house, lagna: simple.lagna, sixth: simple.sixth, ruler: simple.ruler, vedicNote: simple.note}),
       vedicChart: vedic && vedic.available && vedic.lagna ? {lagna: MB.sign[vedic.lagna], sixth: MB.sign[vedic.sixthSign], ruler: MB.graha[vedic.sixthLord], houses: root.DestinyAnatomyEngine._canon.SIGNS.map(function (_, i, signs) { return {house: i + 1, sign: MB.sign[signs[(signs.indexOf(vedic.lagna) + i) % 12]]}; })} : null,
-      habits: habitRows,
+      habits: [],
       insights: insights,
       mindLine: mindLine,
       summary: summaryRows,
@@ -4306,6 +4295,7 @@
       yeoni: yeoniText,
       cta: C.cta
     };
+    enrichLivingCopy(model, L, C);
     model.text.aiPrompt = aiPrompt(model);
     return model;
   }
@@ -4317,7 +4307,7 @@
     ko: {
       head: '[나는 어떤 사람이야?]',
       ask: [
-        '아래는 꿀꿀 운세 \'운명 구조도\'가 내 사주 원국(십성·오행)과 지금 대운으로 이미 계산한 값이에요. 이 값만 근거로 나는 어떤 사람인지 알려 주세요.',
+        '아래는 꿀꿀운세 \'운명 구조도\'가 내 사주 원국(십성·오행)과 지금 대운으로 이미 계산한 값이에요. 이 값만 근거로 나는 어떤 사람인지 알려 주세요.',
         '1. 나를 한 문장으로 요약해 주세요.',
         '2. 강점 3가지와 각각 어느 값에서 나왔는지 알려 주세요.',
         '3. 빠지기 쉬운 함정 2가지와 다루는 방법을 알려 주세요.',
@@ -4447,6 +4437,97 @@
 };
   LOCALES.forEach(function (locale) { COPY[locale].ui.entry = ENTRY_COPY[locale]; });
 
+  // Ordered: normal, leading, overloaded, supporting. Interpretation is selected by
+  // existing engine state; never by a random seed or a new personality score.
+  var LIVING_MEMES = {
+    selfDrive: [
+      ['내 속도로 접속 중','내 인생 결재권은 나한테','팀플인데 혼자 풀가동','필요할 땐 나도 할 말 있음'],
+      ['Checking my pace','My pace, my rules','Doing it all myself','My view counts too'],
+      ['自分のペース確認中','ペースは自分で決める','全部ひとりで抱え中','私の意見もひとつ'],
+      ['确认自己的节奏','节奏由我来定','又想一个人扛','也说说我的想法'],
+      ['確認自己的節奏','節奏由我來定','又想一個人扛','也說說我的想法']],
+    expression: [
+      ['일단 저장, 실행은 미래의 나','아이디어는 이미 시즌 3','취미를 시작하는 게 취미','가끔 던진 한마디가 킬포'],
+      ['Looking for the spark','Idea cart overflowing','Too many projects open','An occasional bright idea'],
+      ['面白さを探索中','アイデアのカート満杯','広げたタブが多すぎる','ときどき光る一手'],
+      ['寻找有趣的事','灵感购物车满了','开的项目太多了','偶尔灵光一闪'],
+      ['尋找有趣的事','靈感購物車滿了','開的專案太多了','偶爾靈光一閃']],
+    reality: [
+      ['좋은데… 그래서 가성비는?','장바구니에도 전략이 있음','쉬면서도 생산성 체크 중','쓸 땐 쓰고 따질 땐 따짐'],
+      ['What comes of this?','Value radar on','Pricing my rest time','Calculator when needed'],
+      ['何が残るかな？','コスパレーダー作動','休み時間も損益計算','必要なときに計算機'],
+      ['这样能留下什么？','性价比雷达启动','休息也在算收益','需要时再按计算器'],
+      ['這樣能留下什麼？','性價比雷達啟動','休息也在算收益','需要時再按計算機']],
+    structure: [
+      ['일단 일정부터 맞춰볼까','쉬는 날도 계획은 있어야 함','쉬는 나에게도 결재 요청','중요한 약속은 캘린더에'],
+      ['Checking the criteria','Committed to my planner','Permission to rest?','Checking key promises'],
+      ['まず基準を確認','予定表には本気','休むのも許可が必要？','大事な約束は確認'],
+      ['先确认一下标准','认真对待计划表','休息也要批准？','重要约定要记住'],
+      ['先確認一下標準','認真對待計畫表','休息也要批准？','重要約定要記住']],
+    reflection: [
+      ['검색 하나로 탭 열일곱 개','답장 하나에 뇌내 회의 세 번','새벽에 혼자 대화 복기 중','필요할 때 켜지는 분석 모드'],
+      ['Let me think again','Three meetings per reply','Closing mental tabs','Reviewing what I need'],
+      ['もう一度考えるね','返信ひとつに会議三回','思考タブを閉じる中','必要な分だけ復習'],
+      ['让我再想一想','回条消息开三次会','正在关闭脑内标签','只复盘需要的部分'],
+      ['讓我再想一想','回則訊息開三次會','正在關閉腦內分頁','只複習需要的部分']]
+  };
+  var RHYTHMS = [
+    {id:'sleep', element:'water', axis:'reflection',
+      title:['잠들기 전 생각의 속도','Thoughts before sleep','眠る前の思考の速度','睡前思绪的速度','睡前思緒的速度'],
+      pattern:['멈추고 돌아보는 물의 상징을 저녁의 생각 정리와 연결해요. 생각을 충분히 살피는 장점과, 마침표를 미루는 습관을 함께 돌아봐요.','Water is used as a symbol of pausing and reflection. Notice both useful review and the habit of leaving thoughts unfinished.','水の立ち止まる象徴を夜の振り返りに結びます。丁寧に考える良さと区切りを延ばす習慣を観察します。','用水的停顿与回顾象征，观察晚间整理思绪的方式，也留意迟迟不收尾的习惯。','用水的停頓與回顧象徵，觀察晚間整理思緒的方式，也留意遲遲不收尾的習慣。'],
+      check:['잠들기 전 해결하려는 일이 실제로 오늘 끝내야 하는 일인가요?','Does that bedtime problem really need solving today?','寝る前のその問題は今日解く必要がありますか？','睡前想解决的问题，真的必须今天完成吗？','睡前想解決的問題，真的必須今天完成嗎？'],
+      action:['미완료 생각을 한 줄씩 적고, 내일 다시 볼 시간을 정해 보세요. 밤마다 같은 작은 마무리로 하루를 닫아요.','Write unfinished thoughts down and choose a time tomorrow to revisit them. Try a small, familiar closing routine.','未完の考えをメモして明日見る時間を決め、いつもの小さな締めくくりで一日を閉じます。','记下未完的想法，定好明天再看的时间，用小小的固定收尾结束一天。','記下未完的想法，定好明天再看的時間，用小小的固定收尾結束一天。']},
+    {id:'tension',element:'metal',axis:'structure',
+      title:['긴장과 기준의 간격','Space around standards','緊張と基準の間隔','紧张与标准之间','緊張與標準之間'],
+      pattern:['금의 정리와 경계라는 상징으로 기준을 세우는 방식을 읽어요. 꼼꼼함을 살리되 모든 일에 같은 엄격함을 적용하는지 돌아봐요.','Metal offers a theme of boundaries and order. Keep useful care while noticing where every task gets the same strict standard.','金の整理と境界の象徴から基準を振り返ります。丁寧さを活かし、すべてに同じ厳しさを課していないか観察します。','以金的整理与边界象征回看标准，保留细致，也观察是否事事都要求同样严格。','以金的整理與邊界象徵回看標準，保留細緻，也觀察是否事事都要求同樣嚴格。'],
+      check:['오늘의 기준은 내게 필요한 선인가요, 남의 기대까지 떠안은 선인가요?','Is this standard useful to you, or carrying someone else’s expectations?','今日の基準は自分に必要なもの？他人の期待まで背負っていませんか？','今天的标准是自己需要的，还是承接了别人的期待？','今天的標準是自己需要的，還是承接了別人的期待？'],
+      action:['한 가지 일에 “이 정도면 완료” 기준을 먼저 써 보세요. 집중 사이에는 알림을 내려놓는 짧은 틈을 남겨요.','Write a good-enough finish line for one task. Leave a short notification-free pause between focused blocks.','一つの仕事に「ここまでで完了」を書き、集中の合間に通知から離れる時間を。','为一件事写下做到哪里就算完成，在专注之间留出不看通知的间隙。','為一件事寫下做到哪裡就算完成，在專注之間留出不看通知的間隙。']},
+    {id:'meals',element:'earth',axis:'reality',
+      title:['식사와 일상의 중심','Meals and daily anchors','食事と日々の軸','饮食与日常支点','飲食與日常支點'],
+      pattern:['토의 유지와 돌봄이라는 상징을 반복되는 생활 시간에 연결해요. 다른 일을 챙기느라 자신의 기본 일정을 뒤로 미루는지 살펴봐요.','Earth is a symbol of maintaining and caring. Notice whether looking after other tasks pushes your own routine aside.','土の維持とケアの象徴を日々の時間へ。ほかの用事を優先して自分の基本を後回しにしていませんか。','以土的维持与照顾象征观察日常安排，看看是否照顾其他事务时忽略了自己的基本节奏。','以土的維持與照顧象徵觀察日常安排，看看是否照顧其他事務時忽略了自己的基本節奏。'],
+      check:['일정이 바쁜 날 가장 먼저 사라지는 내 시간은 무엇인가요?','Which personal routine disappears first on a busy day?','忙しい日に最初に消える自分の時間は何ですか？','忙碌时最先被挤掉的个人时间是什么？','忙碌時最先被擠掉的個人時間是什麼？'],
+      action:['편하게 식사할 시간을 일정에 먼저 남겨 보세요. 특정 음식을 처방하기보다 내가 유지할 수 있는 시간과 환경을 골라요.','Reserve a comfortable meal break. Choose a sustainable time and setting rather than a prescribed food.','落ち着いて食事する時間を先に確保。食べ物の処方ではなく続けられる時間と環境を選びます。','先安排从容吃饭的时间，选择可持续的时段和环境，不指定食物处方。','先安排從容吃飯的時間，選擇可持續的時段和環境，不指定食物處方。']},
+    {id:'movement',element:'wood',axis:'expression',
+      title:['시작과 활동의 속도','Starting and moving','始めることと活動の速度','开始与活动的节奏','開始與活動的節奏'],
+      pattern:['목의 뻗어나가는 상징을 시작과 방향 전환으로 읽어요. 여러 일을 벌이는 힘이 실제로 마무리할 여유와 균형을 이루는지 돌아봐요.','Wood symbolizes starting and reaching outward. Compare the drive to begin several things with the room you have to finish them.','木の伸びる象徴を開始と方向転換に。始める力と終える余裕の釣り合いを振り返ります。','以木的伸展象征观察启动与转向，看看开始许多事的动力与收尾余量是否平衡。','以木的伸展象徵觀察啟動與轉向，看看開始許多事的動力與收尾餘量是否平衡。'],
+      check:['지금 필요한 것은 새 출발인가요, 이미 시작한 일의 한 단계인가요?','Do you need a fresh start or the next step of something already begun?','今必要なのは新しい開始？始めたことの次の一歩？','现在需要重新开始，还是完成已开始的一小步？','現在需要重新開始，還是完成已開始的一小步？'],
+      action:['가능한 날에는 몸 상태에 맞는 가벼운 움직임으로 일 사이를 나눠 보세요. 불편하면 멈추고, 해야 할 일도 한 단계만 골라요.','If comfortable, separate tasks with gentle movement suited to you. Stop if uncomfortable, and choose just one next step.','無理のない軽い動きで作業を区切ってみて。不快なら止め、次の一歩も一つだけに。','身体允许时，用适合自己的轻松活动分隔任务；不适就停，下一步也只选一个。','身體允許時，用適合自己的輕鬆活動分隔任務；不適就停，下一步也只選一個。']},
+    {id:'rest',element:'fire',axis:'selfDrive',
+      title:['열정 뒤에 남길 회복','Recovery after enthusiasm','熱中の後の回復時間','热情之后的恢复','熱情之後的恢復'],
+      pattern:['화의 밝아지고 퍼지는 상징을 몰입과 교류로 읽어요. 즐거운 일정도 이어지면 쉬는 틈이 사라질 수 있어, 활기와 여백을 함께 살펴봐요.','Fire symbolizes engagement and exchange. Even enjoyable plans can crowd out pauses; look at enthusiasm and space together.','火の広がる象徴を没頭や交流に。楽しい予定でも休む隙間が減るので、活気と余白を一緒に見ます。','以火的明亮与扩展象征观察投入和交流，即使愉快的安排也需要留白。','以火的明亮與擴展象徵觀察投入和交流，即使愉快的安排也需要留白。'],
+      check:['약속 뒤에 혼자 돌아올 시간까지 내 일정에 들어 있나요?','Does your calendar include a pause after social plans?','約束の後にひと息つく時間も予定にありますか？','约定结束后，日程里也留了独处缓冲吗？','約定結束後，日程裡也留了獨處緩衝嗎？'],
+      action:['다음 약속 사이에 짧은 빈칸을 넣고, 당장 답하지 않아도 되는 연락 하나를 구분해 보세요.','Leave a small gap before the next plan and identify one message that does not need an immediate reply.','次の予定との間に余白をつくり、すぐ返さなくてもよい連絡を一つ見つけて。','在下个安排前留出空档，分清一条不必立即回复的消息。','在下個安排前留出空檔，分清一則不必立即回覆的訊息。']}
+  ];
+  function enrichLivingCopy(model, L, C) {
+    var lang = Math.max(0, LOCALES.indexOf(L)), tr = function (v) { return v[lang]; }, s = model.saju, t = model.text;
+    t.shareFormats = {feed: tr(['피드형','Feed','フィード','动态','動態']), story: tr(['스토리형','Story','ストーリー','限时动态','限時動態'])};
+    function enrich(c) {
+      var state = s.overloadPatterns.indexOf(c.axis) >= 0 ? 2 : !s.balanced && c.axis === s.ranked[0] ? 1 : s.ranked.indexOf(c.axis) >= 3 ? 3 : 0;
+      c.line = LIVING_MEMES[c.axis][lang][state];
+      c.shortLine = L === 'ko' ? {selfDrive:['내 속도 접속 중','내 인생 결재권','혼자 풀가동','나도 할 말 있음'],expression:['일단 저장','아이디어 시즌 3','취미가 취미','가끔 킬포'],reality:['그래서 가성비는?','장바구니 전략','휴식도 생산성?','따질 땐 따짐'],structure:['일정부터 확인','휴식도 계획적','휴식 결재 요청','약속은 캘린더'],reflection:['탭 열일곱 개','뇌내 회의 중','새벽 대화 복기','분석 모드 ON']}[c.axis][state] : c.label;
+      c.explanation = (state === 2 ? C.axes[c.axis].strong.concat(C.axes[c.axis].over) : C.axes[c.axis].strong).join(' ');
+      if (L === 'ko' && state === 3) c.explanation = '비중이 작다고 이 힘이 없는 것은 아니에요. 필요할 때 꺼내 쓰는 방식으로 살펴봐요.';
+      return c;
+    }
+    if (t.meme) { t.meme.cells.forEach(enrich); t.meme.legend.forEach(enrich); }
+    t.engines.forEach(function (e) { var c = enrich({axis:e.axis}); e.meme = c.line; e.explanation = c.explanation; });
+    var basis = model.rhythmBasis || {}, el = model.elementLayer;
+    var johu = {cold:['차가운','cool','冷たい','偏冷','偏冷'],cool:['서늘한','cool','涼しい','偏凉','偏涼'],warm:['따뜻한','warm','暖かい','偏暖','偏暖'],hot:['뜨거운','hot','熱い','偏热','偏熱'],balanced:['균형적인','balanced','均衡した','平衡','平衡']};
+    t.recovery.pattern = tr(['일상에서 읽는 패턴','Everyday pattern','日常で読むパターン','日常模式','日常模式']);
+    t.habits = RHYTHMS.map(function (r) {
+      var ratio = Math.round(el.ratios[r.element] || 0), high = r.element === el.dominant, low = r.element === el.weakest;
+      var evidence = C.elements[r.element].name + ' ' + ratio + '% · ' + (high ? C.recovery.strong : low ? C.recovery.low : tr(['오행 비중','Element share','五行の割合','五行比例','五行比例']));
+      var context = high ? tr(['자주 쓰는 방식이 지나치게 계속되는지 살펴봐요.','Notice when a familiar approach keeps running too long.','慣れた方法を続けすぎていないか観察します。','观察常用方式是否持续过久。','觀察常用方式是否持續過久。']) : low ? tr(['낮은 비중은 신체의 부족이 아니라, 의식적으로 돌아볼 상징적 주제예요.','A smaller share is a reflection theme, not a bodily deficiency.','小さな割合は身体の不足ではなく振り返る象徴です。','较低比例是反思主题，不是身体缺陷。','較低比例是反思主題，不是身體缺陷。']) : '';
+      if (s.overloadPatterns.indexOf(r.axis) >= 0) { evidence += ' · ' + C.axes[r.axis].name + ' / ' + tr(['성향의 과사용','overused habit','傾向の使いすぎ','习惯用力过多','習慣用力過多']); context += ' ' + tr(['오행 비중과 별개로, 십성에서는 다음 습관을 함께 돌아봐요.','Separately from element shares, the ten-god pattern suggests reflecting on this habit.','五行の割合とは別に、通変星では次の習慣も振り返ります。','与五行比例分开，十神还提示回看以下习惯。','與五行比例分開，十神還提示回看以下習慣。']) + ' ' + C.axes[r.axis].over.join(' '); }
+      if ((r.id === 'rest' || r.id === 'movement') && basis.strength) { evidence += ' · ' + tr(basis.strength === 'strong' ? ['신강','strong day master','身強','身强','身強'] : ['신약','weak day master','身弱','身弱','身弱']); context += ' ' + tr(['신강·신약은 사주 안의 힘 관계예요. 체력의 강약과 동일하지 않으며 활동과 여백을 돌아보는 보조 근거로만 읽어요.','Chart strength describes symbolic relationships, not physical stamina. Use it only to reflect on effort and space.','身強・身弱は命式内の関係で、体力の強弱ではありません。活動と余白を振り返る補助にします。','身强身弱描述命盘关系，并非体力强弱，仅用于回看活动与留白。','身強身弱描述命盤關係，並非體力強弱，僅用於回看活動與留白。']); }
+      if (r.id === 'sleep' && johu[basis.johu]) { evidence += ' · ' + tr(['조후','Seasonal balance','調候','调候','調候']) + ': ' + tr(johu[basis.johu]); context += ' ' + tr(['조후는 태어난 계절의 한난을 읽는 값이에요. 실제 체온이나 증상이 아니라 생활 속 속도와 환경을 돌아보는 비유로 사용해요.','Seasonal balance reads symbolic warmth or coolness, not temperature or symptoms; reflect on pace and surroundings.','調候は生まれた季節の寒暖の象徴。体温や症状ではなく、ペースと環境を振り返る比喩です。','调候是出生季节寒暖的象征，不是体温或症状，可用于回看节奏与环境。','調候是出生季節寒暖的象徵，不是體溫或症狀，可用於回看節奏與環境。']); }
+      return {id:r.id,title:tr(r.title),basis:evidence,pattern:tr(r.pattern) + ' ' + context,check:tr(r.check),action:tr(r.action)};
+    });
+    if (t.hd && root.DestinyAnatomyLivingGuide) {
+      t.hd.guide = root.DestinyAnatomyLivingGuide.buildGuide(model.humanDesign, L);
+      if (t.hd.guide) t.hd.centers.forEach(function (c) { c.guide = t.hd.guide.centers.filter(function (v) {return v.id === c.id;})[0]; });
+    }
+  }
   var api = {LOCALES: LOCALES, AXES: AXES, COPY: COPY, resolveLocale: resolveLocale, compose: compose, aiPrompt: aiPrompt};
   root.DestinyAnatomyCopy = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

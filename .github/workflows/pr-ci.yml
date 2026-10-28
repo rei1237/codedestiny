@@ -220,22 +220,22 @@ jobs:
       - name: Run the static UI guards the release runs
         run: |
           npm run test:node
+          npm run verify:neo-consultation-ui
           npm run verify:quantum-card-cascade
           # 종합 사주 풀이 해금 본문이 모바일·데스크탑 두 셸에서 실제로 보이는지 확인한다.
           # 이 잡만 Chromium 을 설치하므로 브라우저 검증기의 제자리는 여기다.
           npm run verify:saju-summary-browser
           npm run verify:saju-result-login
+          # 홈 유료 카드가 결제 없이 상세를 먼저 열고, 닫기·CTA·뒤로가기가 이어지는지 본다(public/ 자체 서빙).
+          npm run verify:detail-first-entry
 
       # 숙요는 음력 일자표가 아니라 UTC/JD와 연속적인 Swiss 달 황경을 정본으로
       # 사용한다. 시간 경계·27숙 매핑·공개 astronomy 경로를 실제 파일로 확인한다.
       - name: Verify continuous Sukuyo astronomy core
         run: npm run verify:sukuyo-astronomy
 
-      # 오늘의 운세 허브: 프로필 카드가 없으면 길흉을 그리지 않고, 셸이 일진·27수를 스스로
-      # 계산하지 않는다(fetch 를 막아도 결과가 나오면 실패). 7셸 미러 일치도 본다. jsdom·네트워크 0,
-      # 실측 1.2초. 2026-10-01 사용자 승인으로 배선(운세 로직 축).
-      - name: Verify today fortune hub gate
-        run: npm run verify:today-hub-gate
+      # 2026-10-17 "직관성": 홈 셸의 오늘의 운세 허브 블록(#cdTodayHub)을 걷어내며
+      # verify:today-hub-gate 도 은퇴했다. 오늘의 운세는 /today/ 화면이 맡는다.
 
       # 🔴 이것은 **fast 잡**이어야 한다. 사이트맵을 어긋나게 만드는 것은 라우트 추가만이
       # 아니라 글 한 편, 공용 컴포넌트 한 줄이다(lastmod 서명이 소스 파일에서 나온다).
@@ -268,6 +268,7 @@ jobs:
           npm run verify:famous-saju-editorial
           npm run verify:famous-saju-multisystem
           npm run verify:famous-saju-magazine
+          npm run verify:moon-library
 
       # 🔴 이 두 가드는 **fast 잡**에 있어야 한다. 입력이 CSS·정적 셸·package.json 이라
       # build/critical 잡에 두면 `styles/mobile-lite.css` 한 줄 수정에는 깨어나지 않는데,
@@ -685,6 +686,8 @@ jobs:
       # 변경에서 한 번도 돌지 않았다. jsdom 으로 analytics.js 를 실행할 뿐 네트워크는 0건이다.
       - name: Verify GA4 instrumentation contract
         run: npm run verify:analytics-events
+      - name: Verify public SEO inventory safety and classification
+        run: npm run verify:seo-public-inventory
 
       # 🔴 이것도 **fast 잡**이어야 한다 — 2026-08-23 에 critical 잡에서 옮겨 왔다.
       # public/ 미러가 소스보다 낡으면 테스트는 전부 통과하고 사용자만 옛 화면을 본다.
@@ -835,6 +838,7 @@ jobs:
           WORKERS_AI_ENABLED: "false"
         run: |
           npm run verify:payment-service-boundary
+          npm run verify:birth-scope-client-mirror
           npm run verify:payment-choice-single-instance
           npm run verify:payment-p0-inventory
           npm run verify:pass-check-retry
@@ -865,6 +869,7 @@ jobs:
           npm run verify:profile-client-first
           npm run verify:profile-new-user
           npm run verify:profile-card-level
+          node scripts/verify-profile-characters.mjs
           npm run verify:auth-card-theme
           npm run verify:hero-contrast
           npm run verify:rpt-preview-cta
@@ -995,10 +1000,10 @@ jobs:
 
       # /fortune/{period}/{sign} 96개가 기간마다 실제로 다른 글을 내보내는지 본다.
       # 소스에서 sign 을 전수 발견하므로 sign 을 늘리고 기간 문안을 빠뜨리면 여기서 걸린다.
-      # out/ 을 읽지 않으므로 빌드 앞에 두어도 되지만, 같은 성격의 SEO 가드끼리 모아 둔다.
+      # 생성된 HTML의 제목·본문·Article 날짜도 같은 기준으로 확인한다.
       - name: Verify fortune period axis
         if: needs.classify.outputs.runs_build == 'true'
-        run: npm run verify:fortune-period-axis
+        run: npm run verify:fortune-period-axis -- --dist=out
 
       # /fortune 의 회전 문장은 data-cd-trans 로 사전 템플릿을 가리키고, 변수 값이 `@키` 면
       # 런타임이 그 값도 사전에서 풀어 넣는다. 키가 하나라도 없으면 그 자리만 조용히

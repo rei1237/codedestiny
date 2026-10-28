@@ -5,6 +5,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePaidResume, type PaidResumeGrant } from "@/app/hooks/usePaidResume";
+import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import { useCompassSession, type CompassStep } from "../_hooks/useCompassSession";
 import { JourneyHub } from "./JourneyHub";
 import { SavedCompassReport } from "./SavedCompassReport";
@@ -22,6 +23,18 @@ import { DIRECTION_TO_REGION, regionByKey } from "./mapRegions";
 import { useDestinyCompassCopy } from "../_lib/copy";
 import map from "./map.module.css";
 
+// 브라우저 뒤로가기는 화면에서 본 바로 앞 단계로 돌아간다. 잎 화면은 각 화면의 '돌아가기'와 같은 곳(결과)으로 간다.
+const COMPASS_PREVIOUS_STEP: Partial<Record<CompassStep, CompassStep>> = {
+  map: "hub",
+  reveal: "map",
+  result: "reveal",
+  crossroad: "result",
+  futureSim: "result",
+  voyage: "result",
+  today: "result",
+  arrival: "today",
+};
+
 export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
   const copy = useDestinyCompassCopy();
   const [savedReportId, setSavedReportId] = useState("");
@@ -38,29 +51,33 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
    * 생년·고민·field 는 세션 스냅샷에서 되살리고, 없으면 false 를 돌려 '지금 열기' 카드로 떨어뜨린다.
    */
   const [resumedStep, setResumedStep] = useState<CompassStep | null>(null);
-  const [resumedCrossroad, setResumedCrossroad] = useState<{ a: string; b: string } | null>(null);
+  const [resumedCrossroad, setResumedCrossroad] = useState<{ a: string; b: string; requestId: string } | null>(null);
+  // 결제 복귀의 결제 requestId — 잎 화면이 보관함 저장 증빙으로 쓴다.
+  const [resumedRequestId, setResumedRequestId] = useState("");
   const [resumedReportGrant, setResumedReportGrant] = useState<PaidResumeGrant | null>(null);
 
-  const buildCrossroadResume = usePaidResume("destiny-compass-crossroads", (args) => {
+  const buildCrossroadResume = usePaidResume("destiny-compass-crossroads", (args, grant) => {
     if (!s.restoreSnapshot()) return false;
     const a = typeof args.a === "string" ? args.a : "";
     const b = typeof args.b === "string" ? args.b : "";
     if (!a.trim() || !b.trim()) return false;
-    setResumedCrossroad({ a, b });
+    setResumedCrossroad({ a, b, requestId: grant?.requestId || "" });
     setResumedStep("crossroad");
     s.setStep("crossroad");
     return true;
   });
 
-  const buildFutureSimResume = usePaidResume("destiny-compass-future-sim", () => {
+  const buildFutureSimResume = usePaidResume("destiny-compass-future-sim", (_args, grant) => {
     if (!s.restoreSnapshot()) return false;
+    setResumedRequestId(grant?.requestId || "");
     setResumedStep("futureSim");
     s.setStep("futureSim");
     return true;
   });
 
-  const buildVoyageResume = usePaidResume("destiny-compass-life-voyage", () => {
+  const buildVoyageResume = usePaidResume("destiny-compass-life-voyage", (_args, grant) => {
     if (!s.restoreSnapshot()) return false;
+    setResumedRequestId(grant?.requestId || "");
     setResumedStep("voyage");
     s.setStep("voyage");
     return true;
@@ -90,6 +107,7 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
   const clearResumeMarks = useCallback(() => {
     setResumedStep(null);
     setResumedCrossroad(null);
+    setResumedRequestId("");
     setResumedReportGrant(null);
   }, []);
 
@@ -100,6 +118,20 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
     },
     [clearResumeMarks, s],
   );
+
+  const previousStep = savedReportId ? undefined : COMPASS_PREVIOUS_STEP[s.step];
+  useBackNavigation({
+    scope: "wizard",
+    // 처리 중에는 뒤로가기를 받아 두기만 한다(결과 계산이 끝나면 이어서 받는다).
+    enabled: Boolean(previousStep) || (!savedReportId && s.step === "processing"),
+    isLocked: s.step === "processing",
+    canGoBack: Boolean(previousStep),
+    onBack: () => {
+      if (!previousStep) return false;
+      goStep(previousStep);
+      return true;
+    },
+  });
 
   if (savedReportId) return <SavedCompassReport reportId={savedReportId} />;
 
@@ -183,6 +215,7 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
         onBack={() => goStep("result")}
         buildResume={buildFutureSimResume}
         autoRevealed={resumedStep === "futureSim"}
+        resumeRequestId={resumedStep === "futureSim" ? resumedRequestId : ""}
       />
     );
   }
@@ -194,6 +227,7 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
         onBack={() => goStep("result")}
         buildResume={buildVoyageResume}
         autoRevealed={resumedStep === "voyage"}
+        resumeRequestId={resumedStep === "voyage" ? resumedRequestId : ""}
       />
     );
   }

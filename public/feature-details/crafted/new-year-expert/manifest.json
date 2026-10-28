@@ -1,0 +1,228 @@
+{
+  "id": "new-year-expert",
+  "featureKey": "new-year-ai-consultation",
+  "title": "신년운세 전문가 상담",
+  "hook": "한 해의 기대와 걱정을 펼쳐 놓고, 준비할 일과 힘을 아낄 때를 살펴보세요.",
+  "chaptersLabel": "네오의 신년 작전 브리핑 목차",
+  "masters": [
+    {
+      "key": "neoNewYear",
+      "name": "네오",
+      "epithet": "신년운세 마스터",
+      "signature": "올해 판세, 내가 먼저 읽어 주지. 넌 움직이기만 하면 된다.",
+      "role": "한 해의 판세를 짜는 운명 사령관",
+      "part": "질문과 타고난 성향 · 올해의 총운 · 재물과 직업 · 애정과 대인관계 · 1월~12월 월별 흐름 · 건강과 개운법 — 여섯 장 전부",
+      "basis": "네 명식의 격국·용신·조후, 대운 위에 올해 세운이 닿는 자리, 달마다 바뀌는 월별 흐름",
+      "principles": [
+        "듣기 좋은 말보다 쓸 수 있는 말",
+        "단정 대신 조건으로 말한다",
+        "깎아내리지 않는다"
+      ],
+      "avatar": "/images/master-profiles/avatars/neo-new-year.webp",
+      "portrait": "/images/master-profiles/neo-new-year-portrait.webp",
+      "portraitSrcSet": "/images/master-profiles/neo-new-year-portrait-360.webp 360w, /images/master-profiles/neo-new-year-portrait.webp 600w"
+    }
+  ],
+  "chapters": [
+    {
+      "title": "질문과 타고난 성향",
+      "detail": "판세 브리핑",
+      "gain": "네 질문의 결론부터 말하고, 타고난 기질과 지금의 마음을 짚는다"
+    },
+    {
+      "title": "올해의 총운",
+      "detail": "판세 브리핑",
+      "gain": "올해 세운이 네 일간을 돕는지 누르는지 판정하고, 학업·성장까지 본다"
+    },
+    {
+      "title": "재물과 직업",
+      "detail": "분야별 작전",
+      "gain": "돈이 모이는 달과 새는 달을 월 숫자로 짚고, 투자·이직의 판단 기준을 준다"
+    },
+    {
+      "title": "애정과 대인관계",
+      "detail": "분야별 작전",
+      "gain": "귀인이 나타날 자리와 인연이 가까워지는 달, 구설을 피하는 법을 짚는다"
+    },
+    {
+      "title": "1월~12월 월별 흐름",
+      "detail": "열두 달 작전표",
+      "gain": "열두 달을 하나도 빼지 않고, 달마다 월주 간지와 핵심 키워드를 단다"
+    },
+    {
+      "title": "1월",
+      "detail": "열두 달 작전표",
+      "gain": "1월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "2월",
+      "detail": "열두 달 작전표",
+      "gain": "2월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "3월",
+      "detail": "열두 달 작전표",
+      "gain": "3월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "4월",
+      "detail": "열두 달 작전표",
+      "gain": "4월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "5월",
+      "detail": "열두 달 작전표",
+      "gain": "5월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "6월",
+      "detail": "열두 달 작전표",
+      "gain": "6월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "7월",
+      "detail": "열두 달 작전표",
+      "gain": "7월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "8월",
+      "detail": "열두 달 작전표",
+      "gain": "8월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "9월",
+      "detail": "열두 달 작전표",
+      "gain": "9월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "10월",
+      "detail": "열두 달 작전표",
+      "gain": "10월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "11월",
+      "detail": "열두 달 작전표",
+      "gain": "11월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "12월",
+      "detail": "열두 달 작전표",
+      "gain": "12월의 월주 간지와 키워드, 기회·주의·정비 판정에 맞춘 작전을 준다"
+    },
+    {
+      "title": "건강과 개운법",
+      "detail": "몸의 리듬과 개운",
+      "gain": "몸이 먼저 지치는 자리를 짚고, 색·방향·생활 리듬·마음가짐 개운법을 준다"
+    }
+  ],
+  "outcomes": [
+    {
+      "title": "12개월 운세 캘린더",
+      "text": "분기 요약과 달마다 기회·주의·정비 판정. 달을 누르면 그달의 총운·재물·애정·직업·건강과 조언이 열린다.",
+      "evidence": "app/new-year-ai-consultation/NewYearAiClient.tsx"
+    },
+    {
+      "title": "열두 통의 월별 편지",
+      "text": "달마다 간지와 키워드를 제목으로 단 편지를 한 통씩 펼쳐 읽는다.",
+      "evidence": "app/new-year-ai-consultation/NewYearAiClient.tsx"
+    },
+    {
+      "title": "분야별 상담 카드",
+      "text": "성향·총운·재물과 직업·애정과 관계·건강과 개운을 카드로 나눠, 필요한 것부터 펼쳐 본다.",
+      "evidence": "app/new-year-ai-consultation/NewYearAiClient.tsx"
+    },
+    {
+      "title": "PDF와 공유 카드",
+      "text": "상담 전체를 PDF로 저장하고, 올해 판세를 공유 카드 이미지로 만든다.",
+      "evidence": "app/new-year-ai-consultation/NewYearAiClient.tsx"
+    }
+  ],
+  "notice": "삽화 속 마스터는 상담을 안내하는 캐릭터이며, 상담 내용은 AI가 생성합니다. 사람이 결과마다 직접 작성하는 상담이 아닙니다. 소개 문장은 풀이 방식을 설명하는 편집 예시이며 고객의 실제 결과·후기가 아닙니다. 실제 내용은 입력 정보와 생성된 결과에 따라 달라집니다. 미래나 상대의 마음을 확정하지 않습니다. 제작자의 과거 직접 1:1 상담 후기는 이 디지털 상품의 구매 후기가 아닙니다.",
+  "panels": [
+    {
+      "id": "editorial-1",
+      "title": "올해의 판세를 읽고, 나의 작전을 세웁니다.",
+      "text": "한 해의 기대와 걱정을 펼쳐 놓고, 준비할 일과 힘을 아낄 때를 살펴보세요.",
+      "src": "/images/service-introductions/new-year-ai.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "네오의 신년운세 상담 장면",
+      "variants": [
+        {
+          "src": "/images/service-introductions/new-year-ai-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/new-year-ai-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/new-year-ai-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "editorial-2",
+      "title": "어떤 근거로 풀어 주나요?",
+      "text": "명식과 대운 위에 올해 세운과 월별 흐름을 함께 놓고 읽습니다. 기회만 부풀리지 않고 준비할 조건과 주의할 지점을 함께 설명합니다.",
+      "src": "/images/consultation-editorial/year.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/year-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-3",
+      "title": "상담에서 읽게 될 내용",
+      "text": "한 해의 총운과 달별 흐름, 일·재물·관계·생활에서 적용할 행동 방향을 읽습니다.",
+      "src": "/images/consultation-editorial/year.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/year-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-4",
+      "title": "풀이를 일상으로 가져오는 방법",
+      "text": "편집 예시 · 실제 개인 결과가 아닙니다.\n\n지금의 패턴을 알아차리는 것부터 시작해 보세요. 같은 상황에서 어떤 선택을 반복했는지 적고, 다음에는 바꿔 볼 행동을 하나 정해 보는 방식으로 풀이를 일상에 연결할 수 있습니다.",
+      "src": "/images/consultation-editorial/year.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/year-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-5",
+      "title": "상담을 준비해 주세요",
+      "text": "출생 정보와 올해 집중하고 싶은 목표를 준비해 주세요.\n\n이용권·월정석·단건 결제의 적용 여부와 금액은 기존 결제 화면에서 확인해 주세요.",
+      "src": "/images/consultation-editorial/year.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/year-768.webp",
+          "width": 768
+        }
+      ]
+    }
+  ],
+  "layout": "editorial"
+}

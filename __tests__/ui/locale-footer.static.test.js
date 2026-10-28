@@ -16,6 +16,7 @@ const test = require("node:test");
 
 const ROOT = path.resolve(__dirname, "../..");
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), "utf8");
+const { BRAND_FACTS } = require("../../lib/brand/brand-facts.mjs");
 
 /** `export const X = [...]` / `{...}` 를 괄호 균형으로 잘라 온다(이름 grep 으로 판단하지 않는다). */
 function sliceBalanced(source, startMarker, open, close) {
@@ -88,7 +89,8 @@ test("푸터 카피는 5개 로케일이 모두 채워져 있고 ko 외에는 �
   const koStart = table.indexOf("ko: {");
   const koBlock = sliceBalanced(table.slice(koStart), "ko: {", "{", "}");
   const withoutKo = table.replace(koBlock, "");
-  const leftoverHangul = withoutKo.match(/[가-힣]+/g) || [];
+  const brandNames = [BRAND_FACTS.service.name, ...BRAND_FACTS.service.alternateNames];
+  const leftoverHangul = brandNames.reduce((text, name) => text.replaceAll(name, ''), withoutKo).match(/[가-힣]+/g) || [];
   // 사업자 정보 '값'은 등록 원문이라 LocaleFooterHub 쪽에 있고 이 표에는 없어야 한다.
   assert.deepEqual(
     leftoverHangul,
@@ -99,12 +101,23 @@ test("푸터 카피는 5개 로케일이 모두 채워져 있고 ko 외에는 �
 
 test("LocaleFooterHub 는 SiteFooterHub 의 내부 링크를 하나도 잃지 않는다", () => {
   const koFooter = read("app/components/SiteFooterHub.jsx");
+  const koFooterSpec = read("lib/brand/site-footer.ts");
   const localeCopy = read("lib/i18n/siteFooterHubCopy.ts");
 
+  // 2026-10-16: 한국어 정책 링크는 모든 푸터가 공유하는 lib/brand/site-footer.ts 에 있다.
+  assert.match(koFooter, /FOOTER_LINKS\.map/, "SiteFooterHub 가 정책 링크를 렌더하지 않는다");
+  assert.match(koFooter, /FOOTER_TRUST_LINKS\.map/, "SiteFooterHub 가 신뢰 링크를 렌더하지 않는다");
+
   const koSeo = hrefsIn(sliceBalanced(koFooter, "const SEO_LINK_GROUPS", "[", "]"));
-  const koPolicy = hrefsIn(sliceBalanced(koFooter, "const POLICY_LINKS", "[", "]"));
+  const koPolicy = new Set([
+    ...hrefsIn(sliceBalanced(koFooterSpec, "export const FOOTER_LINKS", "[", "]")),
+    ...hrefsIn(sliceBalanced(koFooterSpec, "export const FOOTER_TRUST_LINKS", "[", "]")),
+  ]);
   const localeSeo = hrefsIn(sliceBalanced(localeCopy, "export const FOOTER_LINK_GROUPS", "[", "]"));
-  const localePolicy = hrefsIn(sliceBalanced(localeCopy, "export const FOOTER_POLICY_HREFS", "[", "]"));
+  const localePolicy = new Set([
+    ...hrefsIn(sliceBalanced(localeCopy, "export const FOOTER_POLICY_HREFS", "[", "]")),
+    ...hrefsIn(sliceBalanced(localeCopy, "export const FOOTER_TRUST_HREFS", "[", "]")),
+  ]);
 
   assert.ok(koSeo.size >= 40, `SiteFooterHub SEO 링크가 ${koSeo.size}개뿐이다 — 파싱이 깨졌다`);
 
@@ -148,25 +161,19 @@ test("AppChrome 은 로케일 경로에서만 한국어 푸터를 건너뛴다",
   assert.ok(chrome.includes("{!hideChrome && <DisclaimerBanner />"));
 });
 
-test("LocaleFooterHub 는 서버 컴포넌트이고 법률 번역을 새로 만들지 않는다", () => {
+test("LocaleFooterHub 는 서버 컴포넌트이고 한국어 푸터와 같은 최소 규격이다", () => {
   const footer = read("app/components/LocaleFooterHub.jsx");
 
   // 'use client' 가 붙는 순간 번역 테이블이 클라이언트 번들로 간다(A안이 기각된 이유).
   assert.ok(!/^\s*["']use client["']/m.test(footer), "LocaleFooterHub 에 'use client' 가 붙었다");
 
-  // 환불 본문은 이용약관 12조를 그대로 읽어야 한다 — 요약하면 1,800자 게이트 마진이 사라진다.
-  assert.ok(footer.includes("getRefundSection(locale)"), "환불 본문을 getRefundSection 으로 읽지 않는다");
-  assert.ok(
-    footer.includes("LEGAL_TRANSLATION_NOTICE"),
-    "기계 보조 번역 고지를 공유 상수에서 읽지 않는다",
-  );
-
-  // SocialFooter 는 한국어 푸터와 공유하는 컴포넌트다. 카피를 안 넘기면 로케일 페이지에
-  // "유튜브·쓰레드·인스타그램·블로그"가 한국어로 남는다(2026-08-16 실측으로 발견).
-  assert.ok(
-    /<SocialFooter\s+copy=\{copy\.social\}/.test(footer),
-    "LocaleFooterHub 가 SocialFooter 에 로케일 카피를 넘기지 않는다",
-  );
+  // 2026-10-16 "직관성": 전문성 한 줄·정책 링크·안내 한 줄·사업자 정보만 펼쳐 둔다.
+  // 환불·면책 전문은 각 정책 페이지에 있고, 푸터에 다시 싣지 않는다.
+  for (const field of ["copy.byline", "copy.notice", "copy.businessLabels", "copy.allServicesLabel"]) {
+    assert.ok(footer.includes(field), `LocaleFooterHub 가 ${field} 를 렌더하지 않는다`);
+  }
+  assert.ok(!footer.includes("getRefundSection"), "환불 전문이 다시 푸터에 들어왔다");
+  assert.ok(!footer.includes("SocialFooter"), "SNS 블록이 다시 푸터에 들어왔다");
 });
 
 test("WebSite 엔티티 이름이 셸과 정본에서 같다", () => {
@@ -183,13 +190,13 @@ test("WebSite 엔티티 이름이 셸과 정본에서 같다", () => {
   const shellName = (shell.match(/"@type":\s*"WebSite"[\s\S]{0,200}?"name":\s*"([^"]+)"/) || [])[1];
   assert.ok(shellName, "정적 셸에서 WebSite name 을 찾지 못했다");
 
-  const brandName = (siteSeoSource.match(/brandName:\s*"([^"]+)"/) || [])[1];
-  assert.ok(brandName, "lib/seo/siteSeo.ts 에서 brandName 을 찾지 못했다");
+  const brandName = BRAND_FACTS.service.name;
+  assert.match(siteSeoSource, /brandName:\s*BRAND_FACTS\.service\.name/, "siteSeo.brandName 은 brand-facts 에서 파생해야 한다");
 
   assert.equal(
     shellName,
     brandName,
-    `WebSite name 이 갈렸다 — 셸 "${shellName}" vs siteSeo.brandName "${brandName}". 같은 @id 다.`,
+    `WebSite name 이 갈렸다 — 셸 "${shellName}" vs brand-facts "${brandName}". 같은 @id 다.`,
   );
 
   const layoutOverride = layout.match(/BRAND_WEBSITE_JSON_LD\s*=\s*\{[\s\S]{0,300}?\bname:\s*"/);
@@ -198,10 +205,10 @@ test("WebSite 엔티티 이름이 셸과 정본에서 같다", () => {
     "app/layout.js 가 WebSite name 을 다시 손으로 적고 있다 — 정본은 siteSeo.brandName 하나여야 한다",
   );
 
-  // 브랜드(WebSite)와 회사(Organization)는 서로 다른 엔티티다. 같은 값으로 되돌리지 말 것.
-  const orgName = (siteSeoSource.match(/organization:\s*\{[\s\S]{0,200}?name:\s*"([^"]+)"/) || [])[1];
-  assert.ok(orgName, "lib/seo/siteSeo.ts 에서 organization.name 을 찾지 못했다");
-  assert.notEqual(orgName, brandName, "브랜드와 회사 이름이 같아졌다 — 두 엔티티가 한 덩어리로 읽힌다");
+  // 2026-10-15: 조직은 운영자 CODE DESTINY, WebSite 는 서비스 꿀꿀 운세다. 등록 상호는 legalName으로 따로 보존한다.
+  assert.match(siteSeoSource, /organization:\s*\{[\s\S]{0,300}?name:\s*BRAND_FACTS\.operator\.name/, "siteSeo.organization.name 은 운영자명(brand-facts)이어야 한다");
+  assert.notEqual(BRAND_FACTS.operator.name, brandName, "운영자와 서비스 이름을 다시 합치지 않는다");
+  assert.match(read("lib/structured-data.ts"), /legalName: BUSINESS_IDENTITY.companyName/, "법적 운영자명은 사업자 정본을 사용해야 한다");
 });
 
 test("로케일 푸터는 같은 언어 목적지 링크를 제공한다", () => {
@@ -228,11 +235,11 @@ test("로케일 푸터는 같은 언어 목적지 링크를 제공한다", () =>
 });
 
 test("클라이언트 번들에 로케일 카피 테이블이 새지 않는다", () => {
-  // 🔴 이 테스트가 막는 회귀: SocialFooter 는 SiteFooterHub -> AppChrome("use client") 경로에 있어
+  // 🔴 이 테스트가 막는 회귀: SiteFooterHub 는 AppChrome("use client") 경로에 있어
   // 클라이언트 번들에 포함된다. 거기서 5개 로케일 카피 테이블을 import 하면 layout 청크가
   // 41,007B -> 63,469B(+22KB)로 커진다(2026-08-16 실측). 로케일 페이지는 429개 중 41개인데
   // 비용은 전 사용자가 낸다 — 핸드오프에서 A안이 기각된 바로 그 이유다.
-  for (const rel of ["app/_components/SocialFooter.js", "app/components/SiteFooterHub.jsx"]) {
+  for (const rel of ["app/components/SiteFooterHub.jsx", "lib/brand/site-footer.ts"]) {
     const source = read(rel);
     assert.ok(
       !/from\s+["'][^"']*siteFooterHubCopy["']/.test(source),
@@ -244,16 +251,5 @@ test("클라이언트 번들에 로케일 카피 테이블이 새지 않는다",
   assert.ok(
     /from\s+["'][^"']*siteFooterHubCopy["']/.test(read("app/components/LocaleFooterHub.jsx")),
     "LocaleFooterHub 가 카피 테이블을 읽지 않는다",
-  );
-
-  // 주석의 한국어는 사용자에게 나가지 않으므로 걷어내고 코드만 본다.
-  const socialCode = read("app/_components/SocialFooter.js")
-    .replace(/\/\*[\s\S]*?\*\//g, " ")
-    .replace(/^\s*\/\/.*$/gm, " ");
-  const socialHangul = socialCode.match(/[가-힣]+/g) || [];
-  assert.deepEqual(
-    socialHangul,
-    [],
-    `SocialFooter 코드에 한국어 리터럴이 남아 있다(카피는 호출자가 prop 으로 넘긴다): ${socialHangul.join(", ")}`,
   );
 });

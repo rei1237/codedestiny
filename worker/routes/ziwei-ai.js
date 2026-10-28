@@ -1,7 +1,10 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
+import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
+import { koreanizeExpertTerms } from "../lib/korean-term-gloss.js";
 import { createHash, randomUUID } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -10,6 +13,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
+import { appendExpertPersona } from "../lib/expert-character-personas.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { MonthlyCreditLedger, Payment, PointHistory, PaidExecutionRecord, User, ZiweiAiConsultation } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
@@ -18,6 +22,7 @@ import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 import { isAllowedConsultTokenAccessType, normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { getPortOnePublicConfig } from "../lib/portone.js";
@@ -167,7 +172,7 @@ const SECTION_TITLES = Object.freeze({
 
 // 섹션별 작성 규칙. 그룹 프롬프트는 자기가 맡은 섹션의 규칙만 싣는다.
 const SECTION_RULES = Object.freeze({
-  reading_guide: "reading_guide는 이 명반을 어떤 순서로 읽으면 좋은지 안내하는 3~4문장입니다. '한 폭의 그림처럼'류의 상투적·일반론적 도입 대신, 실제 명궁 주성·신궁 위치·현재 대운궁을 직접 짚어 '먼저 명궁의 OO별로 타고난 성향을, 신궁으로 후천의 힘을 보고, 질문과 가까운 OO궁과 삼방사정으로 이어 읽으세요'처럼 이 사람의 명반에 맞춘 구체적 길잡이로 쓰세요. 이 문단만은 3단 구조를 적용하지 않습니다.",
+  reading_guide: "reading_guide는 3~4문장입니다. 첫 문장은 사용자의 질문에 대한 답을 결론부터 한 문장으로 말하고, 이어서 이 명반을 어떤 순서로 읽으면 좋은지 안내하세요. '한 폭의 그림처럼'류의 상투적·일반론적 도입 대신, 실제 명궁 주성·신궁 위치·현재 대운궁을 직접 짚어 '먼저 명궁의 OO별로 타고난 성향을, 신궁으로 후천의 힘을 보고, 질문과 가까운 OO궁과 삼방사정으로 이어 읽으세요'처럼 이 사람의 명반에 맞춘 구체적 길잡이로 쓰세요. 이 문단만은 3단 구조를 적용하지 않습니다.",
   personality_profile: "personality_profile은 [핵심 성향 Context]에 따라 이 명반 전체를 종합해 '이 사람은 기본적으로 어떤 사람인가'를 서술하는 자리입니다. 명궁·신궁·삼방사정·사화에서 반복되는 성향을 우선하여, 핵심 성격 → 겉과 속의 차이 → 장점과 그림자 → 인간관계를 맺는 방식과 화났을 때·상처받을 때의 반응 → 사고방식(직관형/분석형, 결정 속도) 순으로 자연스럽게 엮으세요. 이후 essence 이하 섹션들이 참조할 전제이므로, 개별 별의 사전적 정의 나열이 아니라 통합된 사람의 모습으로 마무리하세요.",
   essence: "essence는 personality_profile에서 정리한 핵심 성향을 전제로, 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고 신궁·보성·살성의 영향까지 통합하세요.",
   flow: "flow는 화록·화권·화과·화기 네 별을 모두 별 이름으로 직접 언급하고, 계산 확정값의 궁 위치 그대로 각 사화가 놓인 궁의 욕망, 힘, 인정, 막힘을 현실적인 언어로 풀어주세요.",
@@ -750,6 +755,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
         prepaid: true,
         evidenceType: "direct_payment",
         evidenceId: clean(payment._id, 160),
+        claimEvidenceIds: [clean(payment._id, 160), clean(payment.requestId || payment.idempotencyKey, 180)],
       };
     }
   }
@@ -774,6 +780,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
         evidenceId: clean(pointHistory._id, 160),
         amount: Math.max(0, Math.floor(Math.abs(Number(pointHistory.delta || pointHistory?.metadata?.chargedCoins || pricing.coinPrice || 0)))),
         purchaseId: clean(pointHistory?.metadata?.purchaseId || pointHistory?.metadata?.idempotencyKey || pointHistory?.metadata?.orderId || "", 180),
+        claimEvidenceIds: [clean(pointHistory._id, 160), clean(pointHistory?.metadata?.requestId, 180)],
       };
     }
   }
@@ -795,6 +802,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
       evidenceId: clean(monthlyEvidence.ledgerId, 160),
       amount: Math.max(0, Math.floor(Number(monthlyEvidence.amount || pricing.membershipCreditCost || 0))),
       purchaseId: clean(monthlyEvidence.sourceId, 180),
+      claimEvidenceIds: [clean(monthlyEvidence.ledgerId, 160), clean(monthlyEvidence.sourceId, 180)],
     };
   }
 
@@ -1039,14 +1047,15 @@ export function getDefaultSystemPrompt() {
   return buildSystemPrompt();
 }
 
-/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. */
-function resolveSystemPrompt(env) {
-  return cmsPromptText(env, "ziwei-ai", buildSystemPrompt());
+/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. 캐릭터(무성) 페르소나는 그 뒤에 붙는다. */
+async function resolveSystemPrompt(env, locale = "ko") {
+  const base = await cmsPromptText(env, "ziwei-ai", buildSystemPrompt());
+  return appendExpertPersona(env, "musung", base, { locale });
 }
 
 function buildSystemPrompt() {
   return [
-    "당신은 30년 경력의 자미두수(紫微斗數) 명인입니다. 눈앞에 앉은 사람의 명반을 손끝으로 짚어 가며, 따뜻하지만 정확하게 짚어 주는 현역 상담가처럼 답합니다.",
+    "당신은 자미두수(紫微斗數) 상담가입니다. 눈앞에 앉은 사람의 명반을 손끝으로 짚어 가며, 따뜻하지만 정확하게 짚어 주는 현역 상담가처럼 답합니다.",
     "",
     "대만·홍콩 정통 파계를 기반으로 하되, 현대인의 삶에 실용적으로 적용하는 심화 독법으로 상담합니다.",
     "정확도는 계산된 명반 데이터에 둡니다. 없는 별, 없는 궁, 확인되지 않은 사건은 만들지 말고, 근거가 약한 부분은 부드러운 가능성으로 말합니다.",
@@ -1061,7 +1070,8 @@ function buildSystemPrompt() {
     "② 왜 그런가(근거) — 성요·강약·사화·삼방사정을 근거로 '명궁의 자미가 삼방에서 천부를 회조하니…'처럼 논리를 노출해 2~3문장.",
     "③ 그래서 삶에서는 — 추상론이 아니라 지금 실행할 수 있는 행동 제안 1~2문장.",
     "",
-    "표기 규칙: 별·용어는 한자를 한 번 병기하고(예: 자미(紫微), 화기(化忌)), 초심자도 읽히게 그 자리에서 한 번은 쉬운 말로 풀어 줍니다.",
+    // R6 2026-10-10: 여기서는 한자 병기를, 공통 규칙은 한자 금지를 시켜 지시가 반대였다. 병기는 서버(ziwei-hanja.js)가 붙인다.
+    "표기 규칙: 별·용어는 한글로만 적고(한자 병기는 서버가 붙입니다), 초심자도 읽히게 그 자리에서 한 번은 쉬운 말로 풀어 줍니다.",
     "",
     "그 밖의 원칙:",
     "1. 보고서처럼 딱딱하게 쓰지 말고, 실제 상담사가 명반을 놓고 설명하듯 자연스럽게 답변합니다.",
@@ -1106,6 +1116,8 @@ function starsWithBrightness(palace, stars) {
   return list.map((name) => formatStarWithBrightness(name, brightness[name])).join(", ");
 }
 
+const YEAR_BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+
 function buildCanonicalZiweiFacts(chart) {
   const lines = [];
   const palaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
@@ -1118,7 +1130,7 @@ function buildCanonicalZiweiFacts(chart) {
   const sihuaLine = Object.values(sihua)
     .map((item) => `${item.label}=${item.star}${item.palace ? `(${item.palace})` : ""}`)
     .join(" · ");
-  if (sihuaLine) lines.push(`사화: ${sihuaLine}`);
+  if (sihuaLine) lines.push(`생년사화(태어난 해 천간 기준): ${sihuaLine}`);
   if (chart?.bureau?.name) lines.push(`오행국: ${chart.bureau.name} (첫 대한 ${chart.bureau.number}세 시작)`);
 
   // 삼방사정 회조 — 엔진이 이미 계산해 두는데(chart.sanFangSiZheng) 확정값 줄에는 없었다.
@@ -1138,7 +1150,7 @@ function buildCanonicalZiweiFacts(chart) {
     .filter((palace) => Array.isArray(palace.selfTransformations) && palace.selfTransformations.length)
     .map((palace) => `${palace.name}=${palace.selfTransformations.join(",")}`)
     .join(" · ");
-  if (selfLine) lines.push(`자화: ${selfLine}`);
+  if (selfLine) lines.push(`자화: ${selfLine} (그 궁의 궁간사화가 자기 궁 별에 떨어진 것 — 생년사화와 별개)`);
 
   const currentLuck = resolveCurrentMajorLuckByChartAge(chart);
   if (currentLuck) {
@@ -1149,6 +1161,18 @@ function buildCanonicalZiweiFacts(chart) {
     }
   }
 
+  // R6 2026-10-10: 기준 연도도 세운 줄도 없어 모델이 "내년 2026"이라고 썼다. 올해·내년 세운궁을 확정값으로 준다.
+  // 세운궁은 그 해 지지(연도-4 를 12로 나눈 자리)의 궁이다(ziwei-ai-chart.js yearlyLuckFor 와 같은 규칙).
+  // chart.yearlyLuck.transformations 는 생년사화 사본이라 유년사화로 싣지 않는다.
+  const year = Number(chart?.yearlyLuck?.year);
+  if (Number.isFinite(year) && palaces.length) {
+    for (const [label, y] of [["올해", year], ["내년", year + 1]]) {
+      const branch = YEAR_BRANCHES[(((y - 4) % 12) + 12) % 12];
+      const palace = palaces.find((item) => item.earthlyBranch === branch);
+      if (palace) lines.push(`세운(${label} ${y}년 ${branch}년): ${palace.name}(${branch}) 주성 ${starsWithBrightness(palace, palace.mainStars)}`);
+    }
+  }
+
   const minor = chart?.minorLuck?.current;
   if (minor) {
     lines.push(`소한: ${minor.year}년 ${minor.ganji} · ${minor.age}세 · ${minor.branch}궁 = ${minor.palaceName}`);
@@ -1156,6 +1180,7 @@ function buildCanonicalZiweiFacts(chart) {
 
   if (palaces.length) {
     lines.push(`12궁 강약 — ${ZIWEI_STRENGTH_LEGEND}`);
+    lines.push("강약 등급 '함'은 별이 약한 자리라는 뜻이고, 보좌성 '함지'(도화성)와는 다른 말이다. '문창이 함 자리'와 '함지가 부부궁에 있다'를 섞지 않는다.");
     for (const palace of palaces) {
       const allStars = [...(palace.mainStars || []), ...(palace.assistantStars || []), ...(palace.maleficStars || [])];
       if (!allStars.length) continue;
@@ -1291,6 +1316,7 @@ function enforceZiweiChartFacts(text, chart) {
   const sihua = resolveSihuaPlacements(chart);
   const meta = parsed.meta && typeof parsed.meta === "object" ? parsed.meta : {};
 
+  if (typeof meta.name === "string" && /미입력|^없음/u.test(meta.name)) meta.name = "";
   meta.mingong = {
     ...(meta.mingong && typeof meta.mingong === "object" ? meta.mingong : {}),
     branch: lifeData?.earthlyBranch || "",
@@ -1375,7 +1401,8 @@ function buildConsultationHeaderLines(input, chart) {
   const domainTemplate = getZiweiPromptTemplate(domain);
   return [
     "[상담 정보]",
-    `이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
+    // R6 2026-10-11: 대체값 "이름 미입력"이 meta.name 으로 저장됐다.
+    `이름 또는 닉네임: ${birth.name || "없음 — 본문에서는 이름 없이 '당신'으로만 부른다"}`,
     `성별: ${birth.gender}`,
     `생년월일: ${birth.birthDate}`,
     `출생시간: ${birth.birthTimeUnknown ? "모름" : birth.birthTime}`,
@@ -1383,6 +1410,7 @@ function buildConsultationHeaderLines(input, chart) {
     `윤달 여부: ${birth.isLeapMonth ? "윤달" : "아님"}`,
     `상담 주제: ${input.topic}`,
     `현재 가장 궁금한 질문: ${input.userQuestion || "자미두수 명반의 전체 흐름을 알고 싶습니다."}`,
+    Number.isFinite(Number(chart?.yearlyLuck?.year)) ? `기준 연도: 올해 ${chart.yearlyLuck.year}년 · 내년 ${Number(chart.yearlyLuck.year) + 1}년 ('올해'·'내년'은 이 연도로만 씁니다)` : "",
     "",
     "[계산된 자미두수 명반 데이터]",
     JSON.stringify(chart),
@@ -1533,7 +1561,7 @@ function buildMetaOutputExample(input = {}) {
   const birth = input.birthInfo || {};
   return {
       meta: {
-        name: birth.name || "이름 미입력",
+        name: birth.name || "",
         gender: birth.gender || "미입력",
         mingong: {
           branch: "명궁 지지",
@@ -1597,7 +1625,7 @@ function buildFirstPrompt(input, chart) {
 }
 
 function cleanForbiddenResult(text) {
-  return clean(text)
+  return koreanizeExpertTerms(clean(text))
     .replace(/\bAI\b/gi, "상담")
     .replace(/PDF/gi, "상담")
     .replace(/챕터/g, "흐름")
@@ -1605,7 +1633,7 @@ function cleanForbiddenResult(text) {
     .replace(/\bprogress\b/gi, "흐름")
     .replace(/\bjob\b/gi, "상담")
     .replace(/프롬프트/g, "질문")
-    .replace(/시스템/g, "상담 흐름");
+    .replace(SYSTEM_INSTRUCTION_TERM_PATTERN, "상담 흐름");
 }
 
 function bodyCharRangeProblem(bodyChars, minBodyChars, maxBodyChars) {
@@ -1648,7 +1676,7 @@ async function generateConsultationText(env, prompt, options = {}) {
   // callGeminiJsonWithRetry 가 잘림 재시도를 하므로 한 그룹이 timeout×attempts 를 쓸 수 있기 때문이다.
   const ziweiTimeoutMs = clampSyncLlmTimeoutMs(Number(options.timeoutMs) || Number(env?.ZIWEI_AI_TIMEOUT_MS) || 240000);
   const ziweiCallOptions = {
-    systemPrompt: await resolveSystemPrompt(env),
+    systemPrompt: await resolveSystemPrompt(env, options.locale),
     taskType: "fortune",
     // 호출부가 CMS 오버라이드(클램프 후)를 넘기면 그 값을 쓴다. follow-up 처럼 안 넘기면 기본값.
     temperature: options.temperature ?? 0.72,
@@ -1708,7 +1736,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     "",
     text,
   ].filter(Boolean).join("\n"), {
-    systemPrompt: await resolveSystemPrompt(env),
+    systemPrompt: await resolveSystemPrompt(env, options.locale),
     taskType: "fortune",
     // 금칙어 재작성 웨이브는 본 생성보다 뜨겁지 않아야 한다 — 오버라이드가 낮게 내려와도 그 관계를 지킨다.
     temperature: Math.min(ziweiCallOptions.temperature, 0.58),
@@ -1827,7 +1855,11 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
   const valid = (group, value) => Object.keys(value || {}).some(key => group.sections.includes(key)
     && typeof value[key]?.body === 'string' && countPaidReportBodyChars(value[key].body) >= 40)
     && !hasRepeatedReportPassage(ziweiSectionBody(value)) && !collectZiweiCrossSectionDuplicates(value).length;
-  const accepted = group => valid(group, groups[group.id]);
+  // A group under minChars gets one length repair within its attempts; after that it is delivered as is
+  // (ai-and-db.md: length shortfall is never fatal). R6 2026-10-10 shipped short groups without one.
+  const accepted = group => valid(group, groups[group.id])
+    && (countPaidReportBodyChars(ziweiSectionBody(groups[group.id])) >= group.minChars
+      || Boolean(attempts[`${group.id}:lengthRepair`]) || Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS);
   const group = SECTION_GROUP_SPECS.find(row => !accepted(row) || repairIds.includes(row.id));
   if (group) {
     if (Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS) {
@@ -1847,7 +1879,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
         ...(repairIds.includes(group.id) ? describeZiweiGroundingIssues(grounding.issues, chart) : []),
         ...(repairing ? [`직전 본문은 공백 제외 ${countPaidReportBodyChars(ziweiSectionBody(groups[group.id]))}자입니다. 같은 문장 반복 없이 계산 근거와 행동 조언을 보강해 완결된 JSON으로 다시 작성하세요.`] : []),
       ].join("\n"), {
-        systemPrompt: await resolveSystemPrompt(env), taskType: "fortune", responseMimeType: "application/json",
+        systemPrompt: await resolveSystemPrompt(env, input.locale), taskType: "fortune", responseMimeType: "application/json",
         responseSchema: jsonSchemaFromExample({ sections: buildSectionSchemaFor(group.sections) }),
         temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
         baseTokens: Math.max(SECTION_GROUP_TARGET_TOKENS, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / SECTION_GROUP_SPECS.length)),
@@ -1892,7 +1924,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     attempts.meta = 1;
     await checkpoint({ groups, attempts, meta, rawResponses });
     const generated = await callGeminiJsonWithRetry(env, buildMetaPrompt(input, chart), {
-      systemPrompt: await resolveSystemPrompt(env), attempts: 1, timeoutMs: 45000,
+      systemPrompt: await resolveSystemPrompt(env, input.locale), attempts: 1, timeoutMs: 45000,
       baseTokens: 2600, capTokens: 2600, fallbackToWorkersAI: false,
       responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ meta: buildMetaOutputExample(input).meta }), logContext: { ...logContext, sectionGroup: "meta" },
     }).catch(() => null); // Optional meta failure keeps the saved body deliverable.
@@ -1949,6 +1981,7 @@ async function generateInitialConsultation(env, { input, chart, logContext = {},
       fallbackMinChars: groupMinChars,
       renderableMinChars: groupMinChars,
       cacheKeyExtra: group.id,
+      locale: input.locale,
       logContext: { ...logContext, sectionGroup: group.id },
     });
   };
@@ -1966,6 +1999,7 @@ async function generateInitialConsultation(env, { input, chart, logContext = {},
       renderableMinChars: 120,
       responseSchema: jsonSchemaFromExample({ meta: buildMetaOutputExample(input).meta }),
       cacheKeyExtra: "meta",
+      locale: input.locale,
       logContext: { ...logContext, sectionGroup: "meta" },
     }),
     ...SECTION_GROUP_SPECS.map((group) => runGroup(group)),
@@ -2336,8 +2370,8 @@ async function applyUsageOnce({ userId, sessionId, accessType, pricing, prepaid 
       requestId,
       coinCost: pricing.coinPrice,
     });
-    const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
-    if (denial) {
+    const denial = consumed.covered ? "" : (passDenialCode(consumed.reason) || "PAYMENT_REQUIRED");
+    if (!consumed.covered) {
       const error = new Error(denial);
       error.code = denial;
       throw error;
@@ -2565,6 +2599,10 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   const now = new Date();
   const pending = doc => json({ ...publicConsultation(doc), status: doc.status, retryable: true }, { status: 202 });
   if (existing?.status === "generating" && !existing.llmMeta?.resumeBody && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATING_FRESHNESS_MS) return pending(existing);
+  // 결제창 증빙 1건 = 상담 1건. 카드 직접 결제(verifyPaymentForStart)는 이미 이번 키에 묶여 있고, 이용권은 전달 때 이번 키로 차감한다.
+  const evidenceIds = access.claimEvidenceIds;
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   let doc;
   try {
     if (existing) {
@@ -2589,13 +2627,13 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
       const chart = doc.llmMeta?.chartSnapshot || calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
       doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
-      const generated = await generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses,
+      const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses,
         checkpoint: async ({ groups, attempts, meta, rawResponses }) => {
           const sections = Object.assign({}, ...Object.values(groups));
           const content = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart).text;
           doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, groups, attempts, reportMeta: meta, rawResponses }, messages: [{ role: "assistant", content, createdAt: now }] }, sessionId);
         },
-      });
+      }));
       doc = await saveZiweiDelivery(locked, { status: generated.complete ? "delivery_pending" : "partial", llmMeta: { ...doc.llmMeta, ...generated.meta }, messages: [{ role: "user", content: normalized.input.userQuestion || normalized.input.topic, createdAt: now }, { role: "assistant", content: generated.text, createdAt: now }] }, sessionId);
       if (!generated.complete) return pending(doc);
     }
@@ -2611,6 +2649,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     if (doc.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
     await saveZiweiDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_GENERATION_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
     const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds }).catch(() => null);
     const refund = await refundCardPaymentOnFailure(env, auth, access, error);
     logZiweiAi("Refund Or Restore", { route, requestId: idempotencyKey, restored, refunded: refund.refunded === true });
     return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });

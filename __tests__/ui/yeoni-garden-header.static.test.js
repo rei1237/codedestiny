@@ -23,5 +23,6 @@ test("모드 토글은 이름과 터치 영역이 확보된 두 칸 세그먼트
   assert.match(pill[0], /width:100%!important;height:48px!important/);
   for (const rule of toggleRules) assert.doesNotMatch(rule, /linear-gradient|width:184px|height:50px/);
   assert.match(css, /#cdhThemeSlot \.tsp-name\{[^}]*clip-path:none/);
-  assert.match(template, /<div class="cdh-mode-row"><div id="cdhThemeSlot"><\/div><\/div>/);
+  // 2026-10-17 "직관성": 모드 토글은 헤더 한 줄(.cdh-top)의 도구 묶음으로 올라갔다.
+  assert.match(template, /<div class="cdh-tools"><div id="cdhThemeSlot"><\/div><div id="cdhLanguageSlot"><\/div><\/div>/);
 });

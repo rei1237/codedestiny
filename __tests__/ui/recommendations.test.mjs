@@ -1,16 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cleanProduct, reviewProduct, selectProducts, validateAffiliateUrl, normalizeContext, cleanEvent, isEnabled, DEFAULT_SETTINGS, RECOMMENDATIONS_RELEASED, currentPrice, serviceRule } from '../../js/recommendations-core.mjs';
+import { cleanProduct, reviewProduct, selectProducts as select, validateAffiliateUrl, normalizeContext, cleanEvent, isEnabled, DEFAULT_SETTINGS, RECOMMENDATIONS_RELEASED, currentPrice, serviceRule } from '../../js/recommendations-core.mjs';
 import { recommendationCopy, RECOMMENDATION_COPY_LOCALES } from '../../js/recommendations-copy.mjs';
 const NOW = Date.parse('2026-10-07T00:00:00Z');
 const checks = { account: true, facts: true, image: true, allowedCategory: true };
 // Synthetic in-memory validator fixture. Never fetched or included in the operational catalogue.
-const draft = overrides => cleanProduct({ id: 'fixture-book', category: 'books', kind: 'book', title: '검증 전용 fixture', reason: '기록 용도 테스트', interests: ['journaling'], topicTags: ['saju'], affiliateUrl: 'https://link.coupang.com/a/FixtureOnly?original=kept', imageUrl: '/images/fixture.png', imageSource: 'unit-test-only', evidence: 'unit-test-only', ...overrides });
+const draft = overrides => cleanProduct({ id: 'fixture-book', category: 'books', kind: 'book', title: '검증 전용 fixture', reason: '기록 용도 테스트', interests: ['journaling'], topicTags: ['saju'], practiceTags:['journaling'], topicReasons:{journaling:'검증용 기록 실천'}, book:{author:'fixture',publisher:'fixture',edition:'fixture',language:'ko',format:'paper',editionEvidence:'fixture',contentsEvidence:'fixture',audience:'fixture',perspective:'practical'}, affiliateUrl: 'https://link.coupang.com/a/FixtureOnly?original=kept', imageUrl: '/images/fixture.png', imageSource: 'unit-test-only', evidence: 'unit-test-only', ...overrides });
+const selectProducts = (p, c = {}, now) => select(p, {practiceTags:['journaling'], ...c}, now);
 const active = overrides => reviewProduct(draft(overrides), checks, NOW);
-test('approval-pending build is closed even with toggled database settings', () => {
-  assert.equal(RECOMMENDATIONS_RELEASED, false);
-  assert.equal(isEnabled({ enabled: true, approved: true, mediaRegistered: true }, 'legacy-saju'), false);
+test('release still respects global and service controls', () => {
+  assert.equal(RECOMMENDATIONS_RELEASED, true);
+  assert.equal(isEnabled({ enabled: true, approved: true, mediaRegistered: true }, 'legacy-saju'), true);
   assert.equal(isEnabled(DEFAULT_SETTINGS, 'legacy-saju', true), false);
   assert.equal(isEnabled({ enabled: true, approved: true, mediaRegistered: true, disabledServices: ['legacy-saju'] }, 'legacy-saju', true), false);
 });
@@ -23,6 +24,17 @@ test('exact official link bytes survive draft/review/public projection', () => {
 test('malicious schemes, spoofed hosts, credentials, ports and encoded control bytes are rejected', () => {
   const bad = ['javascript:alert(1)','data:text/html,a','file:///tmp/a','intent://link.coupang.com/a/x','//link.coupang.com/a/x','https://link.coupang.com.evil.invalid/a/x','https://evilcoupang.com/a/x','https://link.coupang.com@evil.invalid/a/x','https://user@link.coupang.com/a/x','https://link.coupang.com:444/a/x','https://link.coupang.com/a/x\r\nX: y','https://link.coupang.com/a/x?x=%0D%0A','https://link.coupang.com/a/x?x=%250a','https://link.coupang.com/a/../x','https://link.coupang.com/a/x#fragment',' https://link.coupang.com/a/x','https://link.coupang.com/a/x?x=%5c'];
   for (const url of bad) assert.equal(validateAffiliateUrl(url), false, url);
+});
+
+test('non-book products do not expose inherited admin book defaults', () => {
+  const journal = active({ id: 'fixture-journal', kind: 'journal' });
+  const timer = active({ id: 'fixture-timer', category: 'daily-life', kind: 'timer' });
+  for (const product of [journal, timer]) {
+    const rows = selectProducts([product], { service: 'recommendations', source: 'browse' }, NOW);
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].book, null);
+  }
+  assert.equal(selectProducts([active()], {}, NOW)[0].book.perspective, 'practical');
 });
 test('all edits require renewed review and unverified links stay drafts', () => {
   const p = active(); const edited = cleanProduct({ ...p, title: '수정 fixture' });
@@ -45,9 +57,9 @@ test('albums require the exact selected group; general supplies remain identifie
   assert.throws(() => reviewProduct(draft({ category: 'fandom', kind: 'album' }), checks, NOW));
 });
 test('different fortune systems do not silently become interchangeable books', () => {
-  const ziwei = active({ id: 'ziwei-book', topicTags: ['ziwei'] });
-  const vedic = active({ id: 'vedic-book', topicTags: ['vedic'] });
-  assert.deepEqual(selectProducts([ziwei,vedic], { service: 'ziwei-ai-consultation' }, NOW).map(p=>p.id), ['ziwei-book']);
+  const ziwei = active({ id: 'ziwei-book', topicTags: ['ziwei'], practiceTags:['ziwei-study'], topicReasons:{'ziwei-study':'fixture'} });
+  const vedic = active({ id: 'vedic-book', topicTags: ['vedic'], practiceTags:['vedic-study'], topicReasons:{'vedic-study':'fixture'} });
+  assert.deepEqual(selectProducts([ziwei,vedic], { service: 'ziwei-ai-consultation', practiceTags:['ziwei-study'] }, NOW).map(p=>p.id), ['ziwei-book']);
   assert.deepEqual(selectProducts([ziwei,vedic], { service: 'unknown-service' }, NOW), []);
 });
 test('health only follows explicit everyday purpose, not arbitrary health/result data', () => {
@@ -98,4 +110,87 @@ test('direct anchors remain independent of analytics and existing mobile router 
   const start=route.indexOf('if (path === "/recommendations"');
   assert.ok(start>0); const block=route.slice(start,start+550);
   assert.ok(block.indexOf('authorizeAdminRequest')<block.indexOf('handleAdminRecommendationRoutes'));
+});
+
+test('initial release suppresses articles and result symbolism', () => {
+ const p=active({affiliateUrl:'https://link.coupang.com/a/FixtureOnly'});
+ assert.equal(selectProducts([p],{source:'article'},NOW).length,0);
+ const symbol=active({affiliateUrl:'https://link.coupang.com/a/FixtureOnly',category:'daily-life',kind:'bracelet',practiceTags:['symbolism'],topicReasons:{symbolism:'색상 선택'},colors:['purple']});
+ assert.equal(selectProducts([symbol],{source:'result',practiceTags:['symbolism'],color:'purple'},NOW).length,0);
+ assert.equal(selectProducts([symbol],{source:'browse',practiceTags:['symbolism'],color:'purple'},NOW).length,1);
+});
+test('supplements require product evidence and explicit browsing, never element inference',()=>{
+ const base={affiliateUrl:'https://link.coupang.com/a/FixtureOnly',providerId:'coupang',category:'daily-life',kind:'health-supplement',practiceTags:['supplement-information'],topicReasons:{'supplement-information':'표시 정보 확인'}};
+ assert.throws(()=>active(base));
+ const p=active({...base,evidence:'fixture https://www.foodsafetykorea.go.kr/ product record',attributes:['인정 정보: 검증용 제품 번호','기능성: 검증용 표시 정보','섭취 주의사항: 검증용 주의 정보']});
+ assert.equal(selectProducts([p],{source:'browse',practiceTags:['supplement-information']},NOW).length,1);
+ for(const c of [{source:'result',practiceTags:['supplement-information']},{source:'browse',element:'wood',practiceTags:[]},{service:'rpt_healthReportCard',interests:['rest']}])assert.equal(selectProducts([p],c,NOW).length,0);
+});
+
+test('legacy results cap cards, retain result actions and hide failed requests', async () => {
+ const { JSDOM } = await import('jsdom');
+ const dom = new JSDOM('<html lang="ko"><body><main><p>결과 본문</p><button id="save">결과 저장</button></main></body></html>', {url:'http://localhost/'});
+ const names=['window','document','sessionStorage','location','fetch','setInterval','clearInterval'];
+ const saved=Object.fromEntries(names.map(k=>[k,globalThis[k]]));
+ try {
+  for(const k of ['window','document','sessionStorage','location'])globalThis[k]=k==='window'?dom.window:dom.window[k];
+  globalThis.setInterval=()=>0;globalThis.clearInterval=()=>{};
+  const products=Array.from({length:3},(_,i)=>({id:String(i),category:'books',title:'검증 도서 '+i,reason:'기록 실천',affiliateUrl:'https://link.coupang.com/a/FixtureOnly',price:null}));
+  globalThis.fetch=async()=>({ok:true,json:async()=>({enabled:true,products})});
+  const { mountRecommendation, mountSajuRecommendation }=await import('../../js/recommendations-legacy.mjs');
+  const host=document.querySelector('main'),save=document.querySelector('#save');
+  await mountRecommendation(host,{service:'legacy-tarot',source:'result'},save);
+  assert.equal(host.querySelectorAll('article').length,2);
+  assert.equal(save.nextElementSibling?.dataset.recommendationBlock,'true');
+  assert.ok(host.firstElementChild.classList.contains('cd-recommendations-disclosure'));
+  assert.equal(host.querySelector('.cd-recommendations h2')?.textContent,'연이의 작은 추천 서가');
+  assert.equal(host.querySelector('.cd-recommendations-lead'),null);
+  const advice=document.createElement('ul');advice.id='iljuAdviceList';advice.innerHTML='<li>집중 시간을 확보하세요.</li>';host.prepend(advice);
+  let requested;
+  globalThis.fetch=async url=>{requested=new URL(url,'http://localhost');return {ok:true,json:async()=>({enabled:true,products:requested.searchParams.has('topic')?products:[]})};};
+  await mountSajuRecommendation(host,save);
+  assert.equal(requested.searchParams.get('topic'),'focus');
+  assert.equal(requested.searchParams.get('service'),'legacy-saju');
+  assert.equal(requested.searchParams.has('advice'),false);
+  assert.equal(host.querySelectorAll('article').length,2);
+  // 실천 조언에서 고른 추천은 그 사실을 한 줄로 알리고, 가격 미확인 카드는 CTA 하나가 가격 확인을 맡는다.
+  assert.equal(host.querySelector('.cd-recommendations-lead')?.textContent,'풀이의 실천 조언에 맞춰 골랐어요.');
+  const cta=host.querySelector('article a');
+  assert.equal(cta.className,'cd-recommendations-cta');
+  assert.equal(cta.textContent,'쿠팡에서 현재 가격 확인 ↗');
+  assert.equal(host.querySelector('article').textContent.split('현재 가격 확인').length,2);
+  assert.equal(save.nextElementSibling?.dataset.recommendationBlock,'true');
+  advice.innerHTML='<li>상대방은 일기를 기록하세요.</li>';
+  await mountSajuRecommendation(host,save);
+  assert.equal(host.querySelectorAll('[data-recommendation-block]').length,0);
+  globalThis.fetch=async()=>({ok:false,json:async()=>({enabled:true,products})});
+  await mountRecommendation(host,{source:'result'},save);
+  assert.equal(host.querySelectorAll('[data-recommendation-block]').length,0);
+  assert.equal(save.textContent,'결과 저장');
+ } finally {for(const k of names){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}dom.window.close();}
+});
+
+test('legacy refresh keeps the cards a reader is looking at when nothing changed', async () => {
+ const { JSDOM } = await import('jsdom');
+ const dom = new JSDOM('<html lang="ko"><body><main><button id="save">결과 저장</button></main></body></html>', {url:'http://localhost/',pretendToBeVisual:true});
+ const names=['window','document','sessionStorage','location','fetch','setInterval','clearInterval'];
+ const saved=Object.fromEntries(names.map(k=>[k,globalThis[k]]));
+ try {
+  for(const k of ['window','document','sessionStorage','location'])globalThis[k]=k==='window'?dom.window:dom.window[k];
+  let tick;globalThis.setInterval=fn=>{tick=fn;return 0;};globalThis.clearInterval=()=>{};
+  let calls=0,enabled=true;
+  const products=[{id:'a',category:'books',title:'검증 도서',reason:'기록 실천',affiliateUrl:'https://link.coupang.com/a/FixtureOnly',price:null}];
+  globalThis.fetch=async()=>{calls++;return {ok:true,json:async()=>({enabled,products})};};
+  const { mountRecommendation }=await import('../../js/recommendations-legacy.mjs');
+  const host=document.querySelector('main');
+  await mountRecommendation(host,{service:'rpt_healthReportCard',source:'result',interests:['rest']},document.querySelector('#save'));
+  const card=host.querySelector('article');
+  assert.ok(card);
+  tick();await new Promise(r=>setTimeout(r,20));
+  assert.equal(calls,2);
+  assert.equal(host.querySelector('article'),card);
+  // 관리자가 끄면 다음 갱신에서 사라진다.
+  enabled=false;tick();await new Promise(r=>setTimeout(r,20));
+  assert.equal(host.querySelectorAll('[data-recommendation-block]').length,0);
+ } finally {for(const k of names){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}dom.window.close();}
 });

@@ -1,0 +1,134 @@
+{
+  "id": "nakshatra-compat",
+  "featureKey": "nakshatra-compat",
+  "title": "동서 통합 궁합",
+  "notice": "두 사람의 출생정보로 베다 아쉬타쿠타 8항목과 일본 숙요의 관계 유형·거리·행동 안내를 비교하는 규칙형 결과입니다. 두 체계의 점수를 평균하지 않으며 점수는 성공률·건강·임신 가능성을 뜻하지 않습니다. 시간 미상은 가능한 달 구간과 불확실성 안내가, 전통 성별 역할 미지정은 방향별 점수 범위가 표시될 수 있습니다. 숙요 및 역할 안내는 계산 결과에 따라 표시됩니다. 완료 결과는 같은 계정의 결과 주소로 다시 읽으며 환불·접근 회수 등 기존 정책을 따릅니다. 새 비교는 현재 화면의 이용 조건을 확인합니다. 초대 링크에는 출생정보가 담기므로 공유 범위를 확인합니다. 자유질문 AI 상담·PDF는 포함하지 않습니다. AI 상담과 통합서는 별도 상품입니다. 그림·문장은 이해를 돕기 위한 가상 예시로 실제 고객 결과·후기가 아닙니다. 가격·이용권·월정석·단건 결제는 기존 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-two-people",
+      "title": "잘 맞는 순간과, 어긋나는 이유를 함께.",
+      "src": "/feature-details/crafted/nakshatra-compat/01-two-people.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "잘 맞는 순간과,\n어긋나는 이유를 함께.\n나의\n리듬\n대화\n상대의\n리듬\n\n동서 통합 궁합\n\n두 사람의 출생정보로 살펴보는\n베다의 여덟 항목과 숙요의 관계.\n점수 뒤에 있는 대화 주제를 찾아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-compat/01-two-people-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-real-question",
+      "title": "마음은 같은데, 왜 자꾸 엇갈릴까요?",
+      "src": "/feature-details/crafted/nakshatra-compat/02-real-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "마음은 같은데,\n왜 자꾸 엇갈릴까요?\n나는 바로 이야기하고 싶고,\n상대는 혼자 정리하고 싶어요.\n\n차이를 애정의 크기로만 읽으면\n같은 서운함을 반복하기 쉬워요.\n\n이 궁합은 기질과 생활 리듬,\n관계에서 맡기 쉬운 역할을 나눠\n함께 살펴보는 규칙형 해석입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-compat/02-real-question-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-two-systems",
+      "title": "두 가지 해석을, 한 점수로 섞지 않아요.",
+      "src": "/feature-details/crafted/nakshatra-compat/03-two-systems.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 가지 해석을,\n한 점수로 섞지 않아요.\n베다 · 나크샤트라\n\n출생 때 달의 위치를 바탕으로\n기질과 생활의 여덟 항목을 비교해요.\n\n일본 숙요 · 본명숙\n\n달력 기준으로 정한 두 본명숙에서\n관계 유형과 거리, 역할을 읽어요.\n\n서로 다른 척도를 평균하지 않습니다.\n점수는 관계의 성공 확률이 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-compat/03-two-systems-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-eight-topics",
+      "title": "베다는, 여덟 갈래로 들여다봐요.",
+      "src": "/feature-details/crafted/nakshatra-compat/04-eight-topics.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "베다는, 여덟 갈래로\n들여다봐요.\n\n바르나 · 가치와 역할\n바샤 · 끌림과 주도\n\n타라 · 관계의 리듬\n요니 · 본능과 친밀감\n\n그라하 마이트리 · 정신과 가치관\n가나 · 기질\n\n바쿠트 · 가정과 생활\n나디 · 전통적 기질 분류\n\n36점 척도의 항목별 점수와 설명.\n건강·임신 가능성을 판정하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-compat/04-eight-topics-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-roles",
+      "title": "숙요에서는, 서로의 역할을 살펴요.",
+      "src": "/feature-details/crafted/nakshatra-compat/05-roles.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "숙요에서는,\n서로의 역할을 살펴요.\n관계 유형 · 거리\n\n두 본명숙의 위치를 읽고\n\n내 행동 · 상대의 행동\n\n서로가 해볼 일을 나눕니다.\n\n관계 안내가 있는 경우에는\n대화를 다시 시작할 문장도 보여요.\n\n상대를 규정하는 꼬리표보다\n우리에게 맞는 거리와 표현을\n이야기하는 계기로 사용하세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-compat/05-roles-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-example",
+      "title": "해석을, 두 사람의 말로 바꾸면.",
+      "src": "/feature-details/crafted/nakshatra-compat/06-example.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "해석을,\n두 사람의 말로 바꾸면.\n\n이해를 돕기 위한 가상 대화 예시\n\n“잠깐 혼자 생각할 시간이\n필요한 거라면 말해줘.\n언제 다시 이야기할지도\n함께 정하면 좋겠어.”\n\n결과에서 편안한 항목과\n대화할 항목을 하나씩 골라보세요.\n실제로 있었던 장면을 곁들이면\n서로의 차이를 설명하기 쉬워져요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-compat/06-example-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-uncertainty",
+      "title": "모르는 정보는, 모르는 채로 남겨요.",
+      "src": "/feature-details/crafted/nakshatra-compat/07-uncertainty.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "모르는 정보는,\n모르는 채로 남겨요.\n출생시간을 모를 때\n\n가능한 달 구간과 불확실성 안내가\n표시될 수 있습니다.\n\n전통 성별 역할을 정하지 않을 때\n\n방향에 따라 달라지는 베다 점수는\n두 방향의 범위로 함께 보여줘요.\n\n하나의 숫자로 억지로 결론내리지 않고\n해석할 수 있는 범위를 확인합니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-compat/07-uncertainty-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-prepare",
+      "title": "두 사람의 정보를 준비해 주세요.",
+      "src": "/feature-details/crafted/nakshatra-compat/08-prepare.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 사람의 정보를\n준비해 주세요.\n\n이름 · 생년월일\n출생시각 또는 시간 모름\n\n성별 선택 · 출생 도시\n내 정보는 저장 프로필 활용\n\n입력 확인 · 기존 결제 화면\n관계 결과 읽기\n\n초대 링크에는 내 출생정보가 담겨요.\n입력 정보를 나눌 상대에게만 전달하세요.\n자유질문을 새로 생성하는 AI 상담과\nPDF 내보내기는 이 상품에 없어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-compat/08-prepare-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-read-together",
+      "title": "좋은 궁합보다, 잘 이야기하는 우리.",
+      "src": "/feature-details/crafted/nakshatra-compat/09-read-together.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "좋은 궁합보다,\n잘 이야기하는 우리.\n같은 점은 기대고,\n다른 점은 의논하며.\n\n완료된 결과는 결과 주소에서\n같은 계정으로 다시 읽을 수 있어요.\n\n새로운 두 사람의 비교는\n기존 화면의 이용 조건을 확인하세요.\n숙요·베다 AI 상담과 통합서는\n별도로 선택하는 상품입니다.\n\n도해와 문장은 설명용 예시입니다.\n실제 고객 결과나 구매 후기가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-compat/09-read-together-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 "use client";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
+import { reportAdviceTopics } from "@/js/recommendations-context.mjs";
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import Link from "next/link";
@@ -13,12 +14,14 @@ import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
-import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
 import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildAstrologyPreviewPayload } from "@/lib/dev-preview/fixtures/astrology";
 import AstrologyChartWheel from "@/components/fortune/AstrologyChartWheel";
+import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import { getExpertLine } from "@/src/features/expert-characters";
 import type { RawPlanetLike, RawWesternChart } from "@/types/astrology";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -240,7 +243,8 @@ function getAstrologyResultCopy(locale: LoadingLocale): AstrologyResultCopy {
   return ASTROLOGY_RESULT_COPY[locale] || ASTROLOGY_RESULT_EN;
 }
 
-function useAstrologyResultCopy(): AstrologyResultCopy {
+// 윤달 대사(getExpertLine)도 같은 로케일을 써야 해서 문구 대신 로케일을 돌려준다.
+function useAstrologyResultLocale(): LoadingLocale {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
@@ -251,7 +255,7 @@ function useAstrologyResultCopy(): AstrologyResultCopy {
       window.removeEventListener("cd:locale-ready", sync);
     };
   }, []);
-  return getAstrologyResultCopy(locale);
+  return locale;
 }
 
 type ChartPoint = { sign?: string; signKo?: string; degree?: number; house?: number | null };
@@ -465,7 +469,10 @@ function safeFilePart(value: string) {
 }
 
 export default function AstrologyAiResultClient() {
-  const copy = useAstrologyResultCopy();
+  const locale = useAstrologyResultLocale();
+  const copy = getAstrologyResultCopy(locale);
+  const yunOpen = getExpertLine("yun", "result.open", locale);
+  const yunClose = getExpertLine("yun", "result.close", locale);
   const [resultId, setResultId] = useState("");
   const [queryReady, setQueryReady] = useState(false);
   const [consultation, setConsultation] = useState<Consultation | null>(null);
@@ -609,6 +616,7 @@ export default function AstrologyAiResultClient() {
         fileName: `code-destiny-astrology-ai-${safeFilePart(userName)}-${date}.pdf`,
         backgroundColor: "#060817",
         cover: {
+          theme: "astrology",
           title: `${userName}님의 별자리 상담`,
           subtitle: toText(consultation?.topic) || "전체 차트 해석",
           name: userName,
@@ -672,7 +680,7 @@ export default function AstrologyAiResultClient() {
           <div id="astrology-ai-result-document" className="relative grid gap-6 rounded-lg border border-white/10 bg-[#060817] p-4 shadow-2xl shadow-black/40 ring-1 ring-white/[0.03] sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px]">
             <article className="space-y-6">
               <header className={`${RESULT_PANEL_CLASS} overflow-hidden p-6 sm:p-8`}>
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#f5d487]">Code Destiny Astrology</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#f5d487]">꿀꿀운세 Astrology</p>
                 <h1 className="mt-3 break-keep text-3xl font-black leading-tight text-white [font-family:var(--font-premium)] sm:text-5xl">
                   {userName}님의 별자리 상담
                 </h1>
@@ -688,6 +696,7 @@ export default function AstrologyAiResultClient() {
                     ))}
                   </div>
                 )}
+                <ExpertCharacterStage character="yun" mood={yunOpen.mood} line={yunOpen.text} placement="result" locale={locale} className="mt-6" />
               </header>
 
               <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -720,8 +729,8 @@ export default function AstrologyAiResultClient() {
                     label: toText(section.title).slice(0, 12) || `${index + 1}장`,
                     content: (
                       <div className={`${RESULT_PANEL_CLASS} p-5 sm:p-6`}>
-                        <h3 className="text-lg font-black leading-7 text-[#f5d487]">{section.title}</h3>
-                        <AiResultProse value={section.body} className="mt-5 text-slate-100" />
+                        <h3 className="break-keep text-lg font-black leading-7 text-[#f5d487]">{section.title}</h3>
+                        <ConsultationReading kind="astrology" value={section.body} index={index} className="mt-5 text-slate-100" />
                       </div>
                     ),
                   }))}
@@ -731,6 +740,7 @@ export default function AstrologyAiResultClient() {
                   expandForExport={exportExpand}
                 />
               </section>
+              <ExpertCharacterStage character="yun" mood={yunClose.mood} line={yunClose.text} placement="result" locale={locale} />
             </article>
 
             <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
@@ -814,13 +824,13 @@ export default function AstrologyAiResultClient() {
             </aside>
           </div>
         )}
-        {!loading && consultation && <PaidResultImageGuide domain="astrology" status={consultation.status} content={assistantContent} basis={consultation.analysisBasis} />}
         {!loading && shareChoices.length > 0 && (
           <div className="mt-6 max-w-3xl">
             <ConsultationShare brand="astrology" choices={shareChoices} />
           </div>
         )}
-        {!loading && consultation?.status === "completed" && !error && <RecommendationResult service="astrology-ai-consultation"/>}
+        {!loading && consultation && <PaidResultImageGuide domain="astrology" status={consultation.status} content={assistantContent} basis={consultation.analysisBasis} />}
+        {!loading && consultation?.status === "completed" && !error && <RecommendationResult service="astrology-ai-consultation" practiceTags={reportAdviceTopics(assistantContent)}/>}
       </section>
     </main>
   );

@@ -39,6 +39,8 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "section_compat",
       "rpgCharacter",
       "fun.quantumLotto.ritualReport",
+      "daily-fortune-reading",
+      "fortune-prompt-hub-generate",
     ]),
   },
   {
@@ -175,6 +177,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "nakshatra-vvip-codex",
       "nakshatra-lord-report",
       "nakshatra-dasha-map",
+      "nakshatra-basic-reading",
     ]),
   },
   {
@@ -272,6 +275,13 @@ export const REVIEW_PRODUCTS = Object.freeze([
     ]),
   },
   {
+    productId: "tea-saju-joint",
+    name: "연이·네오 공동 사주 상담",
+    summary: "명식과 질문을 두 사람의 관점으로 살펴보는 공동 상담",
+    href: "/fortune-tea-house/?mode=saju&reading=joint",
+    featureKeys: Object.freeze(["fortune-tea-house-saju-joint-consultation"]),
+  },
+  {
     productId: "oracle",
     name: "오라클·룬 리딩",
     summary: "주역·이집트 신탁·룬·지오맨시 등 고전 점술 리딩",
@@ -296,6 +306,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "animal-totem-deep",
       "olympus-fc",
       "premiumDivinationPack",
+      "dream-prompt-generator",
     ]),
   },
   {
@@ -307,6 +318,8 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "premium-fpti-report",
       "tetogen_deep_report",
       "premium-sibyl-dominator",
+      "psychotest-reading",
+      "mbti-animal-compat",
     ]),
   },
   {
@@ -336,6 +349,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
     summary: "최애와 나의 운명을 겹쳐 보는 심화 분석",
     href: "/saju/destiny-bias",
     featureKeys: Object.freeze([
+      "destiny-bias-analyze",
     ]),
   },
   {
@@ -401,6 +415,8 @@ export const REVIEW_PRODUCTS = Object.freeze([
 // 테스트(__tests__/worker/review-catalog-moderation.test.js)가 "미분류"를 잡아내므로,
 // 의도적으로 뺀 키는 반드시 여기에 사유와 함께 등록한다.
 export const REVIEW_EXCLUDED_FEATURE_KEYS = Object.freeze([
+  // 판매 차단 mock 상품. 실제 상담 완료·후기 정책은 출시 전에 연결한다.
+  "neo-email-consultation",
   // 레거시 호환 전용 — Fortune Planner가 이 키를 읽거나 과금하지 않는다(paid-feature-registry.js 주석).
   "sajuDiary",
   // 프로필 카드 추가/수정/삭제라는 UI 조작 과금이라 "상담·리포트 후기" 성격과 맞지 않는다.

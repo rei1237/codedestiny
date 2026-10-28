@@ -107,6 +107,20 @@ const TERM_PATTERN = new RegExp(
 
 const EMPTY_PAREN_PATTERN = /[（(][\s　]*[）)]/g;
 
+// 일상어와 철자가 같은 용어. 앞(before)·뒤(after) 문맥이 일상어면 병기하지 않는다.
+// R6 2026-10-10: "환경에 대한(大限)" — 조사 '에 대한'을 대한(大限)으로 병기했다.
+const HOMOGRAPH_GUARDS = Object.freeze({
+  대한: (before, after) => /에\s*$/u.test(before) || after.startsWith("민국"),
+  세운: (before, after) => /[을를]\s*$/u.test(before) || /^[다던]/u.test(after),
+  유년: (_before, after) => /^\s*(?:시절|기)/u.test(after),
+  영성: (_before, after) => after.startsWith("적"),
+});
+
+// 성요가 '함지에 있다'처럼 자리로 쓰이면 약한 자리 함지(陷地)다. 도화성 함지(咸池)가 아니다.
+function hanjaFor(term, after) {
+  return term === "함지" && /^에(?:서)?\s/u.test(after) ? "陷地" : ZIWEI_HANJA[term];
+}
+
 /**
  * 모델이 남긴 빈 괄호를 지운다. 앞 공백까지 함께 정리해 `거문 :` 같은 잔재가 남지 않게 한다.
  * 이미 DB에 저장된 과거 상담의 재열람 경로에도 적용해야 화면에서 사라진다.
@@ -116,6 +130,12 @@ export function stripEmptyParens(text) {
   return String(text).replace(EMPTY_PAREN_PATTERN, "").replace(/[ 　]+([,.:;、·])/g, "$1");
 }
 
+// R6 2026-10-10: 본문에 "**연애**<br><br>현재 흐름" 처럼 HTML 줄바꿈이 그대로 나왔다. 두 개 이상은 문단, 하나는 줄바꿈으로 옮긴다.
+export function stripHtmlBreaks(text) {
+  if (!text) return "";
+  return String(text).replace(/[ \t]*(?:<br\s*\/?>[ \t]*)+/giu, (run) => ((run.match(/<br/giu) || []).length > 1 ? "\n\n" : "\n"));
+}
+
 /**
  * 용어의 첫 등장 1회에만 한자를 병기한다. `seen` 을 넘기면 여러 섹션에 걸쳐 1회를 보장한다.
  * 이미 뒤에 괄호가 열려 있으면(사람이 쓴 병기, 강약 표기 `최상(◎)` 등) 건드리지 않는다.
@@ -123,12 +143,16 @@ export function stripEmptyParens(text) {
 export function annotateZiweiHanja(text, seen = new Set()) {
   if (!text) return "";
   return String(text).replace(TERM_PATTERN, (term, offset, whole) => {
-    if (seen.has(term)) return term;
-    seen.add(term);
+    const before = whole.slice(Math.max(0, offset - 4), offset);
+    const after = whole.slice(offset + term.length, offset + term.length + 4);
+    // 일상어는 seen 에 넣지 않는다 — 뒤에 나오는 진짜 용어의 첫 등장이 병기를 받아야 한다.
+    if (HOMOGRAPH_GUARDS[term]?.(before, after)) return term;
+    const hanja = hanjaFor(term, after);
+    if (seen.has(hanja)) return term;
+    seen.add(hanja);
     // 뒤가 곧바로 괄호면 이미 무언가 병기·표기된 자리다(강약 표기 `최상(◎)` 포함). 중복으로 열지 않는다.
-    const tail = whole[offset + term.length];
-    if (tail === "(" || tail === "（") return term;
-    return `${term}(${ZIWEI_HANJA[term]})`;
+    if (after[0] === "(" || after[0] === "（") return term;
+    return `${term}(${hanja})`;
   });
 }
 
@@ -148,15 +172,15 @@ export function applyZiweiHanjaToStructuredText(text) {
     parsed = null;
   }
   if (!parsed || typeof parsed !== "object" || !parsed.sections || typeof parsed.sections !== "object") {
-    return stripEmptyParens(source);
+    return stripEmptyParens(stripHtmlBreaks(source));
   }
 
   const seen = new Set();
   for (const section of Object.values(parsed.sections)) {
     if (!section || typeof section !== "object") continue;
-    if (typeof section.title === "string") section.title = stripEmptyParens(section.title);
+    if (typeof section.title === "string") section.title = stripEmptyParens(stripHtmlBreaks(section.title)).replace(/\s+/gu, " ").trim();
     if (typeof section.body === "string") {
-      section.body = annotateZiweiHanja(stripEmptyParens(section.body), seen);
+      section.body = annotateZiweiHanja(stripEmptyParens(stripHtmlBreaks(section.body)), seen);
     }
   }
   return JSON.stringify(parsed, null, 2);

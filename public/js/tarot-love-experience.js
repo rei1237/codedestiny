@@ -21,9 +21,11 @@
   var state = { cards: [], revealedCount: 0, reading: null, hasAccess: false, paymentInFlight: false, readingPromise: null, readingResult: null };
   // 리셋/모달 닫힘 이후 도착하는 늦은 draw·프리페치 응답이 새 세션을 덮지 않도록 하는 세대 카운터.
   var flowSeq = 0;
-  var LOVE_COIN_COST = 30;
+  var LOVE_COIN_COST = 50;
   var LOVE_REASON = "우리는 무슨 사이? 타로 리딩";
   var LOVE_FEATURE_KEY = "tarot-love-relationship";
+  // The server's final refusals of paid cards that are not its held draw (worker/lib/paid-tarot-draw.js).
+  var LOVE_REDRAW_REASONS = ['TAROT_DRAW_REQUIRED', 'TAROT_CARDS_FORGED', 'TAROT_DRAW_OWNER_MISMATCH'];
   var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
   var TAROT_API_TIMEOUT_MS = 12000;
   // 생성은 45초 제공자 호출 묶음과 저장 확인을 기다리며, 다음 요청은 저장된 부분부터 이어 간다.
@@ -66,6 +68,8 @@
       checkingPayment: "결제를 확인하는 중입니다...",
       checkoutFailed: "결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요.",
       gateUnavailable: "결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.",
+      drawUnavailable: "카드를 받아오지 못했습니다. 잠시 후 다시 뽑아 주세요.",
+      redrawRequired: "카드를 다시 뽑아 주세요. 이미 결제한 요청으로 이어지며 추가 결제는 없습니다.",
       loginConfirm: "🔒 로그인이 필요합니다. 로그인 페이지로 이동할까요?",
       krwFailed: "원화 결제 확인에 실패했습니다.",
       serverAccessFailed: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
@@ -141,6 +145,8 @@
       checkingPayment: "Checking your payment...",
       checkoutFailed: "Payment could not be completed. Please check your payment method and try again.",
       gateUnavailable: "The payment gate could not be loaded. Please refresh and try again.",
+      drawUnavailable: "The cards could not be dealt. Please draw again in a moment.",
+      redrawRequired: "Please draw the cards again. The reading continues on your existing payment with no new charge.",
       loginConfirm: "🔒 Login is required. Go to the login page?",
       krwFailed: "KRW payment verification failed.",
       serverAccessFailed: "Server access verification failed. Please check your payment history and try again.",
@@ -216,6 +222,8 @@
       checkingPayment: "決済を確認しています...",
       checkoutFailed: "決済を完了できませんでした。お支払い方法を確認して、もう一度お試しください。",
       gateUnavailable: "決済ゲートを読み込めませんでした。更新してもう一度お試しください。",
+      drawUnavailable: "カードを受け取れませんでした。少し待ってからもう一度引いてください。",
+      redrawRequired: "カードをもう一度引いてください。お支払い済みのリクエストで続けるため、追加の支払いはありません。",
       loginConfirm: "🔒 ログインが必要です。ログインページへ移動しますか？",
       krwFailed: "ウォン決済の確認に失敗しました。",
       serverAccessFailed: "サーバー権限の検証に失敗しました。決済履歴を確認してからもう一度お試しください。",
@@ -1082,6 +1090,7 @@
     if (window._perf && window._perf.lockBody) window._perf.lockBody();
     else document.body.style.overflow = "hidden";
     resetTarotLoveFlow();
+    import('/js/core/oracle/crafted-details.mjs').then(function(module){module.mountOracleCraftedDetails(overlay.querySelector('.tarot-love-shell'),{target:'.tarot-love-panel',id:'love-relationship-tarot',title:'우리는 무슨 사이?'});}).catch(function(){});
     triggerSubtitleTypewriter();
     void recoverLoveDelivery();
   }
@@ -1109,6 +1118,7 @@
 
   function resetTarotLoveFlow() {
     flowSeq++;
+    state.drawId='';state.drawReady=false;
     state.requestId='';state.deliveryEntry=null;state.delivery=null;state.deliveryBusy=false;state.lastChargeTransactionId='';
     state.cards = [];
     state.revealedCount = 0;
@@ -1130,17 +1140,26 @@
     if (promptPanel) promptPanel.remove();
   }
 
+  function newLoveDrawId() {
+    var random = "";
+    try { random = window.crypto.randomUUID(); } catch (e) {}
+    return "tarot-love-draw:" + (random || Date.now().toString(36) + "-" + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+  }
+
   function startTarotLoveReading() {
     var intro = byId("tarotLoveIntroStage");
     var draw = byId("tarotLoveDrawStage");
     if (!intro || !draw) return;
 
     var seq = ++flowSeq;
-    state.requestId='';state.deliveryEntry=null;state.delivery=null;state.deliveryBusy=false;state.lastChargeTransactionId='';state.hasAccess=false;
+    state.drawId = newLoveDrawId();state.drawReady = false;
+    // A refused draw's paid request (askLoveRedraw) continues on this draw without a second checkout.
+    var carry = state.redrawCarry && state.redrawCarry.owner === loveAccount() ? state.redrawCarry : null;
+    state.requestId=carry?carry.body.requestId:'';state.deliveryEntry=null;state.delivery=null;state.deliveryBusy=false;state.lastChargeTransactionId=carry?carry.lastChargeTransactionId:'';state.hasAccess=!!carry;
     var panel = document.querySelector(".tarot-love-panel");
     if (panel) panel.classList.add("ritual-burst");
 
-    // 클릭 즉시 로컬 덱으로 뽑아 화면을 전환한다 — 서버 draw 왕복(비로그인 401 재시도 포함)을 기다리지 않는다.
+    // 클릭 즉시 로컬 뒷면으로 화면을 전환한다 — 서버 카드 왕복을 기다리지 않는다. 뒤집기는 서버 카드가 온 뒤에만 된다.
     state.cards = normalizeRelationshipCards(createLocalRelationshipCards());
     state.revealedCount = 0;
     state.readingPromise = null;
@@ -1155,19 +1174,23 @@
       setTimeout(function () { panel.classList.remove("ritual-burst"); }, 800);
     }
 
-    // 서버 78장 덱은 백그라운드로 받아, 아직 카드를 한 장도 뒤집기 전이면 교체한다(전부 뒷면이라 시각 변화 없음).
-    callTarotApi("draw", { spreadType: "relationship_six_card" })
+    // 🔴 유료 리딩은 서버가 나눠 준 카드만 읽는다. 서버가 덱을 섞어 drawId 로 저장하고(worker/lib/paid-tarot-draw.js),
+    //    결제 후 요청의 카드가 그 기록과 다르면 거절한다. 그래서 로컬 카드는 뒷면 자리표시일 뿐이고 실패하면 다시 뽑는다.
+    callTarotApi("paid-draw", { featureKey: LOVE_FEATURE_KEY, drawId: state.drawId, auto: true })
       .then(function (data) {
-        if (seq !== flowSeq || state.revealedCount > 0) return;
+        if (seq !== flowSeq) return;
         var normalizedCards = normalizeRelationshipCards(data.cards);
-        if (normalizedCards.length !== 6) return;
+        if (normalizedCards.length !== 6) throw new Error("Tarot Love paid draw returned " + normalizedCards.length + " cards");
         state.cards = normalizedCards;
+        state.drawReady = true;
         renderTarotLoveCards();
         updateTarotLoveSpreadGuide();
       })
       .catch(function (err) {
-        // 로컬 카드로 이미 진행 중이므로 조용히 무시한다.
+        if (seq !== flowSeq) return;
         console.error("Tarot Love draw error:", err);
+        window.alert(getTarotLoveCopy().drawUnavailable);
+        resetTarotLoveFlow();
       });
   }
 
@@ -1264,7 +1287,7 @@
     if (isNaN(idx) || idx < 0 || idx >= 6) return;
     var order = GUIDE_ORDER || [0, 1, 2, 3, 4, 5];
     var expectedIdx = order[state.revealedCount];
-    if (idx !== expectedIdx) return;
+    if (idx !== expectedIdx || !state.drawReady) return;
     var grid = byId("tarotLoveCardGrid");
     var cardEl = grid ? grid.querySelector('.tarot-love-slot[data-slot-index="' + idx + '"] .tarot-love-card') : null;
     if (!cardEl || cardEl.getAttribute("data-revealed") === "1") return;
@@ -1274,7 +1297,7 @@
     ensureLoveFrontImage(cardEl, state.cards[idx]);
 
     state.revealedCount++;
-    // 첫 장을 뒤집는 순간 카드가 확정되므로(서버 덱 교체는 미플립 상태에서만),
+    // 서버 카드가 온 뒤에만 뒤집을 수 있으므로 첫 장을 뒤집을 때 카드는 이미 확정돼 있다.
     // 결제 진행과 겹치도록 리딩 생성을 미리 시작해 결제 후 대기를 줄인다.
     if (state.revealedCount === 1) prefetchTarotLoveReading();
     updateTarotLoveSpreadGuide();
@@ -1311,7 +1334,7 @@
       kind: LOVE_RESUME_KIND,
       // 셸의 기존 딥링크(index-inline-runtime 의 __cdLazyActionLoaders). 새 라우팅을 만들지 않는다.
       action: "openTarotLoveModal",
-      args: { cards: packed, requestId: state.requestId, locale: getTarotLoveLocale() },
+      args: { cards: packed, requestId: state.requestId, drawId: state.drawId, locale: getTarotLoveLocale() },
     };
   }
 
@@ -1344,8 +1367,9 @@
       if (intro) intro.classList.remove("is-active");
       flowSeq++;
       state.requestId = String(args.requestId);
+      state.drawId = String(args.drawId || "");
       state.cards = normalizeRelationshipCards(restored);
-      state.deliveryEntry = { body: { requestId: state.requestId, cards: state.cards.map(function(c){return {cardId:c.cardId,position:c.position,orientation:c.orientation};}), clientCards: state.cards, locale: String(args.locale || getTarotLoveLocale()) } };
+      state.deliveryEntry = { body: { requestId: state.requestId, drawId: state.drawId, cards: state.cards.map(function(c){return {cardId:c.cardId,position:c.position,orientation:c.orientation};}), clientCards: state.cards, locale: String(args.locale || getTarotLoveLocale()) } };
       rememberLoveDelivery(state.deliveryEntry);
       state.revealedCount = state.cards.length;
       state.readingPromise = null;
@@ -1367,8 +1391,9 @@
   function showTarotLoveFinalReading() {
     if (state.revealedCount < 6 || !state.cards.length) return;
     if (!state.requestId) state.requestId = "tarot-love:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
-    if (!state.deliveryEntry) state.deliveryEntry = { body: { requestId: state.requestId, cards: normalizeRelationshipCards(state.cards).map(function(c){return {cardId:c.cardId,position:c.position,orientation:c.orientation};}), clientCards: state.cards, locale: getTarotLoveLocale() } };
+    if (!state.deliveryEntry) state.deliveryEntry = { body: { requestId: state.requestId, drawId: state.drawId, cards: normalizeRelationshipCards(state.cards).map(function(c){return {cardId:c.cardId,position:c.position,orientation:c.orientation};}), clientCards: state.cards, locale: getTarotLoveLocale() } };
     rememberLoveDelivery(state.deliveryEntry);
+    state.redrawCarry = null;
     requireLoveAccess(buildLoveResumeDescriptor()).then(function (ok) {
       if (!ok) return;
       _runTarotLoveFinalReading();
@@ -1417,7 +1442,7 @@
     await window.CDPaidNarrativeReader.run(entry.resultId ? { resumeResultId: entry.resultId } : entry.body, {
       active: function(){return seq === flowSeq && loveAccount() === owner;},
       visible: function(){var overlay=byId('tarotLoveOverlay');return !!(overlay && overlay.classList.contains('is-open') && !document.hidden);},
-      post: function(body){return loveDeliveryRequest('POST','tarot/love-reading',body);},
+      post: function(body){return loveDeliveryRequest('POST','tarot/love-reading',body).then(function(reply){if(LOVE_REDRAW_REASONS.indexOf(reply.payload && reply.payload.reason)>=0)state.drawRefused=true;return reply;});},
       get: function(){return loveDeliveryRequest('GET','tarot/love-result');},
       wait: function(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});},
       persist: function(_body,id){entry.resultId=id;rememberLoveDelivery(entry);},
@@ -1444,7 +1469,9 @@
       if(reply.status===401 || reply.status===403)return;
       if(reply.payload.ok && reply.payload.resumeInputs)entry={body:reply.payload.resumeInputs,resultId:reply.payload.resultId,lastChargeTransactionId:entry && entry.lastChargeTransactionId};
       if(!entry || !entry.body || !entry.body.requestId)return;
-      state.deliveryEntry=entry;state.requestId=entry.body.requestId;state.lastChargeTransactionId=entry.lastChargeTransactionId || '';
+      // Saved before the server draw (or a refused draw's carry): the paid request continues on a new draw.
+      if(!entry.resultId && !entry.body.drawId){askLoveRedraw(entry);return;}
+      state.deliveryEntry=entry;state.requestId=entry.body.requestId;state.drawId=entry.body.drawId || '';state.lastChargeTransactionId=entry.lastChargeTransactionId || '';
       state.cards=normalizeRelationshipCards(entry.body.clientCards || entry.body.cards);state.revealedCount=6;state.hasAccess=true;
       ['tarotLoveIntroStage','tarotLoveDrawStage'].forEach(function(id){var el=byId(id);if(el)el.classList.remove('is-active');});
       byId('tarotLoveResultStage').classList.add('is-active');
@@ -1501,9 +1528,22 @@
     }
   }
 
+  // The server refuses paid cards that are not its held draw before any payment lookup (worker/lib/paid-tarot-draw.js).
+  // The paid requestId and charge wait in a carry that replaces the saved entry, so the next server draw finishes the
+  // same request without a second checkout, and a reopened page asks again instead of resending the refused body.
+  function askLoveRedraw(entry) {
+    var owner = loveAccount();
+    var carry = { owner: owner, body: { requestId: entry.body.requestId, locale: entry.body.locale || getTarotLoveLocale() }, lastChargeTransactionId: entry.lastChargeTransactionId || '' };
+    resetTarotLoveFlow();
+    state.redrawCarry = carry;
+    try { if (owner) localStorage.setItem(loveDeliveryKey(owner), JSON.stringify({ body: carry.body, lastChargeTransactionId: carry.lastChargeTransactionId })); } catch (_) {}
+    window.alert(getTarotLoveCopy().redrawRequired);
+  }
+
   function _runTarotLoveFinalReading() {
     if (!state.hasAccess || state.deliveryBusy) return;
     var seq=flowSeq, owner=loveAccount();
+    state.drawRefused=false;
     state.owner=owner;
     var draw=byId('tarotLoveDrawStage'), result=byId('tarotLoveResultStage');
     if(draw)draw.classList.remove('is-active');if(result)result.classList.add('is-active');
@@ -1511,6 +1551,8 @@
     if(state.delivery)showLoveDelivery(state.delivery);else renderTarotLoveLoading();
     state.readingPromise=requestTarotLoveReading().catch(function(error){
       if(seq!==flowSeq || owner!==loveAccount())return;
+      // A draw refusal is not a failed generation: nothing was spent server-side, and the paid request continues on a redraw.
+      if(state.drawRefused && state.deliveryEntry){askLoveRedraw({body:state.deliveryEntry.body,lastChargeTransactionId:state.lastChargeTransactionId});return;}
       // Storage/transport failures preserve the paid request. Only a confirmed
       // exhausted generation with a known original charge uses the existing refund path.
       if(state.delivery && state.delivery.retryable===false && state.lastChargeTransactionId){

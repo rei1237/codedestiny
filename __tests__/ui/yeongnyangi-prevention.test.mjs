@@ -145,3 +145,22 @@ test('new year adds a question opening and keeps annual prevention in the overvi
  const old={...data};delete old.prevention;
  assert.ok(!u.buildFirstPrompt(input,old).includes(m.PREVENTION_VERSION));
 });
+test('premium saju prevention packet sends only the luck range it judges and keeps every stored fact',()=>{
+ const p=m.products.find(p=>p.id==='saju_tuna'),ctx=context('saju');
+ const cycle=n=>({pillar:'丙戌',startAge:n,interpretation:{summary:'대운 해석',annual:Array.from({length:10},(_,i)=>({year:2020+i,text:'연도별 해석'.repeat(40)}))}});
+ ctx.facts.push(fact('saju','majorLuck',{currentCycle:cycle(36),cycles:Array.from({length:10},(_,i)=>cycle(i*10+6))}));
+ ctx.facts.find(f=>f.label==='yearlyLuck').value=Array.from({length:12},(_,i)=>({year:2026+i,pillar:['丙午','丁未','戊申','己酉'][i%4]}));
+ const a={contexts:{saju:ctx},signals:[],themes:[],topicId:'love'};
+ const c=m.withPreventionReading(m.consultationManifest(p,{id:'love'}),a,'tuna').at(-1);
+ const stored=JSON.stringify(ctx.facts.find(f=>f.label==='preventionEvidence'));
+ const sent=m.selectChapterFacts(ctx,c)[0].value,anchor=l=>sent.anchors.find(f=>f.label===l).value;
+ assert.equal(anchor('majorLuck').cycles,undefined);
+ assert.equal(anchor('majorLuck').currentCycle.pillar,'丙戌');
+ assert.equal(anchor('majorLuck').currentCycle.interpretation.annual,undefined);
+ assert.equal(anchor('yearlyLuck').length,10);
+ const original=JSON.parse(stored).value.saju.candidates;
+ assert.equal(sent.saju.candidates.length,original.length);
+ for(const [i,cand] of sent.saju.candidates.entries())for(const k of ['opportunity','burden','observe','action','buffering','limitation'])
+   assert.deepEqual(sent.saju.guides[cand.guide][k],original[i][k],`${cand.key}.${k}`);
+ assert.equal(JSON.stringify(ctx.facts.find(f=>f.label==='preventionEvidence')),stored,'stored evidence is untouched');
+});

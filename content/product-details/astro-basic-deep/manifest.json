@@ -1,0 +1,80 @@
+{
+  "id": "astro-basic-deep",
+  "featureKey": "astro_basic_deep_pack",
+  "title": "점성술 기본 차트 심층 패키지",
+  "notice": "서양 점성술 출생차트의 서버 계산과 준비된 해석 규칙으로 구성하는 상세 해석입니다. 성향 이야기·생활 여섯 영역·행성·각·시기·균형·계산 근거를 읽습니다. 출생시간을 모르면 정오 차트를 사용하며 하우스와 축은 제외합니다. 시기 항목은 실제 계산되는 피르다리아·프로펙션 범위이며 별도 월간·연간 트랜짓 상품과 다릅니다. PDF 저장은 상세 해석 확인 후 브라우저 인쇄 기능으로 제공합니다. 예시는 가상 편집입니다. 가격·이용권·월정석·단건 결제 조건은 기존 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-more-than-a-sign",
+      "title": "같은 별자리인데, 왜 이렇게 다를까요?",
+      "alt": "같은 별자리인데, 왜 이렇게 다를까요?",
+      "src": "/feature-details/crafted/astro-basic-deep/01-more-than-a-sign.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 별자리인데,\n왜 이렇게 다를까요?\n\n태양 별자리 하나로 담기지 않는 나를\n행성과 삶의 영역으로 자세히 읽어요.\n\n점성술 기본 차트 심층 패키지"
+    },
+    {
+      "id": "02-a-personal-portrait",
+      "title": "겉으로 보이는 나와, 안에서 움직이는 마음.",
+      "alt": "겉으로 보이는 나와, 안에서 움직이는 마음.",
+      "src": "/feature-details/crafted/astro-basic-deep/02-a-personal-portrait.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "겉으로 보이는 나와,\n안에서 움직이는 마음.\n겉과 속\n\n자신을 드러내는 방식과\n마음이 반응하는 결을 읽어요.\n\n에너지의 결\n\n쉽게 쓰는 힘과\n조절이 필요한 방향을 살펴요.\n\n내 안의 연결\n\n행성 사이의 긴장과 재능을\n하나의 성향 이야기로 이어가요.\n\n차트의 실제 배치에 따라 설명이 달라져요."
+    },
+    {
+      "id": "03-six-areas",
+      "title": "성향을 알았다면, 생활 속 모습도 살펴요.",
+      "alt": "성향을 알았다면, 생활 속 모습도 살펴요.",
+      "src": "/feature-details/crafted/astro-basic-deep/03-six-areas.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "성향을 알았다면,\n생활 속 모습도 살펴요.\n사랑과 사람\n\n연애 · 인간관계\n\n일과 자원\n\n일 · 재물\n\n내면과 변화\n\n마음과 회복 · 성장\n\n잘하는 점과 부담이 생기는 조건을\n각 영역에서 구체적으로 읽어요.\n\n연애 해석은 특정 상대의 속마음이 아니에요."
+    },
+    {
+      "id": "04-planets-in-conversation",
+      "title": "행성의 자리와, 서로 맺는 관계까지.",
+      "alt": "행성의 자리와, 서로 맺는 관계까지.",
+      "src": "/feature-details/crafted/astro-basic-deep/04-planets-in-conversation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "행성의 자리와,\n서로 맺는 관계까지.\n행성 열 개\n\n각 행성의 별자리와 성향을\n펼쳐서 자세히 읽어요.\n\n행성끼리의 대화\n\n각도라는 연결을 통해\n함께 움직이는 힘을 살펴요.\n\n원소와 기질의 균형\n\n어느 성향에 무게가 실리는지\n분포와 설명을 함께 봐요.\n\n원소 비율은 성격 검사의 점수가 아니에요."
+    },
+    {
+      "id": "05-time-with-boundaries",
+      "title": "삶의 시기는, 계산되는 범위에서 읽어요.",
+      "alt": "삶의 시기는, 계산되는 범위에서 읽어요.",
+      "src": "/feature-details/crafted/astro-basic-deep/05-time-with-boundaries.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "삶의 시기는,\n계산되는 범위에서 읽어요.\n인생 시기 지도\n\n피르다리아: 낮·밤 출생에 따라\n행성의 시기 순서를 읽는 방식\n\n올해의 주제 집\n\n프로펙션: 나이에 따라\n강조되는 삶의 영역을 읽는 방식\n\n출생시간 등 근거가 있을 때 제공돼요.\n별도 월간·연간 트랜짓과는 다른 해석이에요.\n특정 사건이나 날짜를 보장하지 않아요."
+    },
+    {
+      "id": "06-if-time-is-unknown",
+      "title": "시간이 흐릿하다면, 해석의 경계도 분명하게.",
+      "alt": "시간이 흐릿하다면, 해석의 경계도 분명하게.",
+      "src": "/feature-details/crafted/astro-basic-deep/06-if-time-is-unknown.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "시간이 흐릿하다면,\n해석의 경계도 분명하게.\n출생시간을 아는 경우\n\n출생지역·시간대로 계산한\n하우스와 축을 함께 읽어요.\n\n출생시간을 모르는 경우\n\n정오 차트로 계산하고\n하우스와 축은 제외해요.\n\n달이 그날 별자리를 옮겼다면,\n가능한 두 별자리를 함께 살펴요.\n\n‘어떻게 계산했나요’에서 근거를 확인해요."
+    },
+    {
+      "id": "07-fictional-inner-tension",
+      "title": "두 마음이 부딪힐 때, 한쪽을 지우지 않아도 돼요.",
+      "alt": "두 마음이 부딪힐 때, 한쪽을 지우지 않아도 돼요.",
+      "src": "/feature-details/crafted/astro-basic-deep/07-fictional-inner-tension.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 마음이 부딪힐 때,\n한쪽을 지우지 않아도 돼요.\n\n가상 편집 예시 · 실제 개인 결과가 아닙니다\n\n“새로운 것을 배우고 싶지만,\n익숙한 리듬도 지키고 싶을 수 있어요.\n생활을 전부 바꾸기 전에,\n배움에 쓸 시간을 작게 정해보세요.\n호기심과 안정이 함께 머물 자리를\n먼저 마련하는 거예요.”"
+    },
+    {
+      "id": "08-a-report-to-return-to",
+      "title": "다시 읽을수록, 내 생활의 예가 늘어나도록.",
+      "alt": "다시 읽을수록, 내 생활의 예가 늘어나도록.",
+      "src": "/feature-details/crafted/astro-basic-deep/08-a-report-to-return-to.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다시 읽을수록,\n내 생활의 예가 늘어나도록.\n\n계정의 구매 권한을 확인한 뒤\n상세 해석을 읽고 PDF로 저장할 수 있어요.\n\nPDF는 브라우저 인쇄로 저장해요.\n일·관계 등 별도 해금 상품은 따로 확인해요.\n현재 화면의 가격과 이용 조건을 따릅니다."
+    }
+  ]
+}

@@ -9,6 +9,7 @@
 *.svg text eol=lf
 *.md text eol=lf
 *.txt text eol=lf
+*.vtt text eol=lf
 
 *.bat text eol=crlf
 *.cmd text eol=crlf

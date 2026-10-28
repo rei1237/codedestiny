@@ -1,3 +1,4 @@
+import ResultSamples from "@/app/components/ResultSamples";
 import type { Metadata } from "next";
 import MasterLoveCodexRouteClient from "./MasterLoveCodexRouteClient";
 import {
@@ -11,9 +12,9 @@ import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/master-love-codex/";
-const PAGE_TITLE = "사주 연애 리포트 · 자미두수 융합 20장 | 마스터 인연의 서";
+const PAGE_TITLE = "사주 연애운·궁합 리포트 | 마스터 인연의 서";
 const PAGE_DESCRIPTION =
-  "내 다음 연애는 언제 시작될까? 사주와 자미두수로 연애 성향·끌림·갈등·결혼운을 20장으로 읽는 연애 리포트입니다.";
+  "왜 비슷한 연애가 반복될까요? 사주와 자미두수로 끌림·표현·갈등을 읽습니다. 나의 패턴을 보는 개인판과 두 사람을 비교하는 궁합판의 결과 예시를 확인하세요.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -119,7 +120,7 @@ const masterLoveCodexFaqItems = [
   {
     question: "이용권으로 볼 수 있나요?",
     answer:
-      "패밀리 등급 이용권은 이 상담을 무료로 커버합니다. 그 외 등급은 이용권 커버 한도를 넘는 금액이라 단건 결제 또는 월정석으로 이용하실 수 있으며, 결제 화면에서 두 방법을 함께 확인하실 수 있습니다.",
+      "패밀리 꿀단지 이용권은 이 상담을 무료로 커버합니다. 그 외 등급은 이용권 커버 한도를 넘는 금액이라 단건 결제 또는 월정석으로 이용하실 수 있으며, 결제 화면에서 두 방법을 함께 확인하실 수 있습니다.",
   },
   {
     question: "결과를 그대로 믿어도 되나요?",
@@ -158,14 +159,15 @@ export default function MasterLoveCodexPageRoute() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(masterLoveCodexJsonLd) }}
       />
       <MasterLoveCodexRouteClient />
+      <ResultSamples ids={["codex"]}/>
       <ServiceIntroSection label="마스터 인연의 서 안내">
-        <h1><span>사주 연애 리포트 — 자미두수와 함께 읽는 스무 장의 연애 전략서</span>내 다음 연애는 언제 시작될까?</h1>
+        <h1><span>사주와 자미두수로 읽는 연애 리포트</span>사람은 바뀌는데, 연애의 고민은 왜 비슷할까?</h1>
         <p>
           마스터 인연의 서는 Code Destiny가 제공하는 최상위 프리미엄 상담입니다. 사주 명식(일간과
           십성, 오행의 균형과 조후, 대운과 세운의 흐름)과 자미두수 명반(명궁·부부궁·복덕궁을 비롯한
           열두 궁과 생년사화, 삼방사정)을 한자리에 펼쳐 두고, 두 체계를 서로 맞춰 가며 당신이 사랑에서
           반복하는 방식을 스무 장에 걸쳐 읽어 내려갑니다. 짧은 요약이나 몇 줄의 총평이 아니라,
-          한 권의 책으로 읽는 경험을 목표로 만들어졌습니다.
+          총 5만 자를 목표로 한 권의 책처럼 구성합니다. 20개 챕터는 페이지 수가 아닌 목차의 수이며, 실제 글 길이와 PDF 페이지 수는 생성 결과와 편집에 따라 달라집니다.
         </p>
         <p>
           이야기를 들려주는 사람은 연애 고수입니다. 신비의 도서관에서 당신을 맞이한 뒤, 아직 아무도

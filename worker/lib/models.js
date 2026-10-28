@@ -119,7 +119,7 @@ const userSchema = new mongoose.Schema({
   destinyProfilesCurrentIdUpdatedAt: { type: Date, default: null },
   destinyProfilesLockedCurrentId: { type: String, default: "" },
   destinyProfilesLockedAt: { type: Date, default: null },
-  tamagotchi: { type: mongoose.Schema.Types.Mixed, default: null },
+
   twoFA: {
     enabled: { type: Boolean, default: false, index: true },
     totpSecret: { type: String, default: "" },
@@ -460,6 +460,8 @@ export const CONTENT_ENTITLEMENT_SERVICE_KEYS = Object.freeze({
 export const CONTENT_ENTITLEMENT_SCOPES = Object.freeze({
   PROFILE: "PROFILE",
   USER: "USER",
+  // 출생 정보 단위 영구 해금. profileId 자리에 "birth:<sha256>" 합성값이 들어간다(worker/lib/birth-key.js).
+  BIRTH: "BIRTH",
 });
 
 export const CONTENT_ENTITLEMENT_STATUSES = Object.freeze({
@@ -469,6 +471,7 @@ export const CONTENT_ENTITLEMENT_STATUSES = Object.freeze({
 });
 
 export const CONTENT_ENTITLEMENT_SOURCES = Object.freeze({
+  HONEY: "HONEY",
   COIN: "COIN",
   PAYMENT: "PAYMENT",
   PASS: "PASS",
@@ -501,6 +504,20 @@ const contentEntitlementSchema = new mongoose.Schema({
   unlockedAt: { type: Date, required: true, default: Date.now, index: true },
   grantedAt: { type: Date, required: true, default: Date.now },
   expiresAt: { type: Date, default: null, index: true },
+  // ── 출생 정보 단위 해금(scope BIRTH) ──
+  // birthKey: 서버가 ProfileCard 로 계산한 sha256. 궁합은 본인→상대 순서의 결합 해시다.
+  birthKey: { type: String, default: undefined, trim: true, maxlength: 64 },
+  partnerBirthKey: { type: String, default: undefined, trim: true, maxlength: 64 },
+  // 실제로 결제한 프로필(감사용). 신원에는 쓰지 않는다 — 같은 출생 정보의 다른 프로필도 열린다.
+  purchaseProfileId: { type: String, default: undefined, trim: true, maxlength: 80 },
+  purchasePartnerProfileId: { type: String, default: undefined, trim: true, maxlength: 80 },
+  // 마이그레이션 기록(scripts/migrations/20261010-birth-scope-unlocks.mjs).
+  sourceEntitlementIds: { type: [String], default: undefined },
+  mergedOrderIds: { type: [String], default: undefined },
+  birthScopeExcludedAt: { type: Date, default: undefined },
+  birthScopeExcludedReason: { type: String, default: undefined, trim: true, maxlength: 80 },
+  // 병합된 BACKFILL 행의 주문별 회수 표식(revokeBackfilledBirthUnlocks 한 호출 안에서만 의미가 있다).
+  birthBackfillRevokeMarker: { type: String, default: undefined, maxlength: 120 },
 }, { timestamps: true, collection: "content_entitlements" });
 
 contentEntitlementSchema.index(
@@ -522,6 +539,47 @@ contentEntitlementSchema.index(
     partialFilterExpression: { featureKey: { $exists: true, $type: "string", $gt: "" } },
   },
 );
+
+// 출생 정보 단위 해금의 신원. profileId("birth:<birthKey>")가 이미 같은 값을 담지만, 정책의 정본 신원을
+// 명시적으로 고정한다. autoIndex:false — 생성은 20261010-birth-scope-unlocks.mjs --create-index.
+contentEntitlementSchema.index(
+  { userId: 1, birthKey: 1, serviceKey: 1, contentKey: 1 },
+  {
+    unique: true,
+    name: "birth_unlock_identity",
+    partialFilterExpression: { scope: "BIRTH", birthKey: { $type: "string" } },
+  },
+);
+
+// 구매 프로필을 몰라 BIRTH 행으로 옮기지 못한 기존 출생 기반 해금(마이그레이션 20261010 이 만든다).
+// 사용자가 저장 프로필을 고르면 그 생년월일 하나로 지급한다(worker/payments/birth-profile-claim.js) — 환불 없음.
+// 해금 판정 경로는 이 컬렉션을 읽지 않는다. claimId 는 userId·sourceKind·sourceId 의 해시(클라이언트 노출 id).
+const birthScopeLegacyClaimSchema = new mongoose.Schema({
+  claimId: { type: String, required: true, trim: true, maxlength: 64 },
+  userId: { type: String, required: true, trim: true },
+  sourceKind: { type: String, enum: ["entitlement", "payment", "point_history", "user_array"], required: true },
+  sourceId: { type: String, required: true, trim: true, maxlength: 180 },
+  reason: { type: String, default: "", trim: true, maxlength: 80 },
+  featureKey: { type: String, required: true, trim: true, maxlength: 160 },
+  serviceKey: { type: String, default: "", trim: true, maxlength: 80 },
+  contentKey: { type: String, default: "", trim: true, maxlength: 160 },
+  orderId: { type: String, default: "", trim: true, maxlength: 160 },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160 },
+  priceKRW: { type: Number, default: 0, min: 0 },
+  priceCoins: { type: Number, default: 0, min: 0 },
+  paidAt: { type: Date, default: null },
+  claim: {
+    profileId: { type: String, default: undefined, trim: true, maxlength: 80 },
+    partnerProfileId: { type: String, default: undefined, trim: true, maxlength: 80 },
+    birthKey: { type: String, default: undefined, trim: true, maxlength: 64 },
+    claimedAt: { type: Date, default: undefined },
+    grantedAt: { type: Date, default: undefined },
+  },
+}, { timestamps: true, collection: "birth_scope_legacy_claims" });
+
+// autoIndex:false — 생성은 20261010-birth-scope-unlocks.mjs --create-index.
+birthScopeLegacyClaimSchema.index({ userId: 1, sourceKind: 1, sourceId: 1 }, { unique: true, name: "legacy_claim_source" });
+birthScopeLegacyClaimSchema.index({ claimId: 1 }, { unique: true, name: "legacy_claim_id" });
 
 const refreshTokenSessionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
@@ -1221,6 +1279,8 @@ const masterLoveCodexSchema = new mongoose.Schema({
     isLeapMonth: { type: Boolean, default: false },
   },
   partnerInfo: { type: masterLoveCodexPartnerSchema, default: null },
+  consultation: { type: mongoose.Schema.Types.Mixed, default: null },
+  consultationHash: { type: String, default: "", maxlength: 80 },
   prologueChoice: { type: String, default: "", trim: true, maxlength: 20 },
   sajuResult: { type: mongoose.Schema.Types.Mixed, default: null },
   ziweiChart: { type: mongoose.Schema.Types.Mixed, default: null },
@@ -1969,6 +2029,8 @@ export const MonthlyCreditLedger = scopedModel(mongoose.models.MonthlyCreditLedg
   || mongoose.model("MonthlyCreditLedger", monthlyCreditLedgerSchema));
 export const ContentEntitlement = scopedModel(mongoose.models.ContentEntitlement
   || mongoose.model("ContentEntitlement", contentEntitlementSchema));
+export const BirthScopeLegacyClaim = scopedModel(mongoose.models.BirthScopeLegacyClaim
+  || mongoose.model("BirthScopeLegacyClaim", birthScopeLegacyClaimSchema));
 export const PaymentFailureLog = scopedModel(mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema));
 export const PaymentWebhookEvent = scopedModel(mongoose.models.PaymentWebhookEvent
   || mongoose.model("PaymentWebhookEvent", paymentWebhookEventSchema));

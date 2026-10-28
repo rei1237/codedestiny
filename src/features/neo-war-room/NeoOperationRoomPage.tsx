@@ -1,5 +1,9 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
 
+
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
@@ -21,6 +25,7 @@ import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import NeoFactPunch from "./components/NeoFactPunch";
 import NeoSpriteActor from "./components/NeoSpriteActor";
+import NeoTalkingPortrait from "./components/NeoTalkingPortrait";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import NeoCompatSummaryCard, { type NeoCompatSummary } from "./components/NeoCompatSummaryCard";
 import {
@@ -80,6 +85,8 @@ import {
 } from "./data/form-copy";
 import type { NeoWarRoomEmotionState } from "./data/sprite-states";
 import styles from "./neo-operation-room.module.css";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles } from "@/components/fortune/master-profiles";
 
 type IntensityId = NeoWarRoomIntensityId;
 type FlowPhase = "idle" | "invalid" | "checking" | "payment" | "generating" | "completed" | "failed";
@@ -1097,7 +1104,7 @@ export default function NeoOperationRoomPage() {
       if (document.visibilityState === "hidden" || !navigator.onLine) return;
       const response = await authFetch("/api/neo-operation-room/result").catch(() => null);
       const data = await response?.json().catch(() => null);
-      if (isCurrent() && response?.status === 202 && data?.sessionId) window.location.assign(`/neo-operation-room/result?attemptId=${encodeURIComponent(data.sessionId)}`);
+      if (isCurrent() && response?.status === 202 && data?.sessionId) window.location.replace(`/neo-operation-room/result?attemptId=${encodeURIComponent(data.sessionId)}`);
     };
     void recover();
     window.addEventListener("online", recover);
@@ -2216,6 +2223,8 @@ export default function NeoOperationRoomPage() {
                   <span className={styles.vnMorphParticles} />
                   <span className={styles.vnMorphFlash} />
                 </div>
+              ) : activeHeroCharacter === "humanNeo" ? (
+                <NeoTalkingPortrait talking={isPrologueActive && heroTypewriter.isTyping && activePrologueLine?.speaker === "neo"} />
               ) : (
                 <div className={styles.vnCharacterImageLayer}>
                   <NeoWarRoomAssetImage
@@ -2298,6 +2307,8 @@ export default function NeoOperationRoomPage() {
       </section>
       ) : null}
 
+      {!hasActiveWarRoomEntry && !showCommandDeck && !showOperationMap && !displayBriefing && !displayRefinedOrder && dialogueLocale === "ko" && <MasterProfile profile={masterProfiles.neo} />}
+
       {!showOperationMap && !displayBriefing && !displayRefinedOrder && <section className={styles.consultationValue} aria-label={welcome.results}>
         <div className={styles.consultationValueIntro}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2305,6 +2316,7 @@ export default function NeoOperationRoomPage() {
           <div><h2>{welcome.results}</h2><p>{welcome.lead}</p><Link href="/neo-operation-room/strategy-books/">{bookCopy.title} →</Link><p className={styles.strategyBookHint}>{bookCopy.rule}</p></div>
         </div>
         <ExpertValueCards theme="neo" points={welcome.points} />
+        {dialogueLocale === "ko" && <CraftedProductDisclosure featureKey={FEATURE_KEY} />}
       </section>}
 
       {showOperationMap ? (
@@ -2380,7 +2392,7 @@ export default function NeoOperationRoomPage() {
       {showCommandDeck ? (
       <>
 
-      <form id="neo-operation-command-deck" className={styles.commandDeck} data-entered="true" onSubmit={handleSubmit}>
+      <form data-moonlit-form="" id="neo-operation-command-deck" className={styles.commandDeck} data-entered="true" onSubmit={handleSubmit}>
         <NeoWarRoomAssetImage
           asset={neoWarRoomAssets.decor.asset1}
           alt=""
@@ -2493,10 +2505,8 @@ export default function NeoOperationRoomPage() {
                     <NeoWarRoomAssetImage
                       asset={item.coverAsset}
                       alt={`${item.label} ${methodSectionText.imageAltSuffix}`}
-                      sizes="(max-width: 720px) 92vw, (max-width: 1200px) 44vw, 380px"
-                      // 표시 폭은 데스크톱 380px / 모바일 92vw(≈390px). 실측 곡선상 760(레티나 2배)은
-                      // 176KB 인데 640 은 122KB 라, 4장을 함께 받는 선택 화면에서는 640 이 균형점이다.
-                      resizeWidth={640}
+                      sizes={method === item.mode ? "(max-width: 720px) 200px, 280px" : "(max-width: 720px) 38vw, 180px"}
+                      responsiveSrcSet={`/neo-operation-room/methods/${item.mode}-textless-v2-320.webp 320w, /neo-operation-room/methods/${item.mode}-textless-v2-640.webp 640w`}
                       loading="lazy"
                       className={styles.methodImageFrame}
                       imageClassName={styles.methodImage}
@@ -2546,6 +2556,7 @@ export default function NeoOperationRoomPage() {
                 <h2 id="neo-profile-title">{formCopy["birthInfo.title"]}</h2>
               </div>
               <p className={styles.sectionCopy}>{formCopy["birthInfo.sectionCopy"]}</p>
+              <SavedBirthProfilePicker calendarMode="lunar" onSelect={seed=>{resetPendingFlow();setLastCommandChoice(null);const birth:NeoWarRoomBirthInput=({name:seed.name || "",gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "",birthDate:seed.birthDate || "",birthTime:seed.birthTime || "",birthTimeUnknown:Boolean(seed.birthTimeUnknown),calendarType:seed.calendarType || "solar",city:seed.city || "",country:seed.country || "",timezone:seed.timezone || "",latitude:seed.latitude || "",longitude:seed.longitude || ""});setBirthState(previous=>({...previous,profileMode:"manual",hasSavedProfile:true,savedBirth:birth,birth}));}} />
               <div className={styles.profileModeGrid} role="group" aria-label={formCopy["birthInfo.modeGroupAria"]}>
                 <button
                   type="button"
@@ -2600,8 +2611,8 @@ export default function NeoOperationRoomPage() {
                 </label>
                 <label className={styles.fieldLabel}>
                   {formCopy["birthInfo.birthTime"]}
-                  <input
-                    type="time"
+                  <BirthTimeInput
+
                     value={birthState.birth.birthTime}
                     disabled={birthFieldsDisabled || birthState.birth.birthTimeUnknown}
                     onChange={(event) => updateBirthInput("birthTime", event.target.value)}
@@ -2696,6 +2707,7 @@ export default function NeoOperationRoomPage() {
                           </button>
                         ))}
                       </div>
+                      <SavedBirthProfilePicker calendarMode="lunar" label="상대의 저장된 프로필" onSelect={seed=>{resetPendingFlow();setLastCommandChoice(null);const birth:NeoWarRoomBirthInput=({name:seed.name || "",gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "",birthDate:seed.birthDate || "",birthTime:seed.birthTime || "",birthTimeUnknown:Boolean(seed.birthTimeUnknown),calendarType:seed.calendarType || "solar",city:seed.city || "",country:seed.country || "",timezone:seed.timezone || "",latitude:seed.latitude || "",longitude:seed.longitude || ""});setPartnerState(previous=>({...previous,birth}));}} />
                       <div className={styles.birthGrid}>
                         <label className={styles.fieldLabel}>
                           {formCopy["partner.name"]}
@@ -2725,8 +2737,8 @@ export default function NeoOperationRoomPage() {
                         </label>
                         <label className={styles.fieldLabel}>
                           {formCopy["birthInfo.birthTime"]}
-                          <input
-                            type="time"
+                          <BirthTimeInput
+
                             value={partnerState.birth.birthTime}
                             disabled={partnerState.birth.birthTimeUnknown}
                             onChange={(event) => updatePartnerBirthInput("birthTime", event.target.value)}
@@ -3398,7 +3410,8 @@ export default function NeoOperationRoomPage() {
               sheetFrame={commandActorSheetFrame}
               assetOverride={commandActorAsset}
               talkFrames={commandActorTalkFrames}
-              talking={commandActorIsTalking}
+              useTalkingPortrait={!displayBriefing && !displayRefinedOrder}
+              talking={!displayBriefing && !displayRefinedOrder ? isCommandTyping : commandActorIsTalking}
               talkFrameIntervalMs={NEO_TRANSPARENT_TALK_INTERVAL_MS}
               className={styles.commandActor}
             />

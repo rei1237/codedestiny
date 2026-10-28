@@ -93,6 +93,17 @@ test('Neo source selection pages only owned Neo records and isolates its cursor'
   expect((await route(request(`?cursor=${encodeURIComponent(first.nextCursor)}`),{})).status).toBe(400);
   expect((await route(request('?source=unknown'),{})).status).toBe(400);
 });
+test('Sibyl archives preserve old years and incomplete recovery stays with its original record',async()=>{
+  const archive={title:'2020 시빌라 연간 대비 리포트',year:2020,chapters:[{key:'coreMatrix',content:'당시 저장한 상담 원문'}],analysis:{version:'annual-v1'}};
+  stores.serviceexecutiontransactions=[seed('1','01',{featureKey:'premium-sibyl-dominator',executionKey:'sibyl:birth:2020',status:'success',premiumStatus:'completed',metadata:{archive}})];
+  const result=await (await route(request('/detail?source=executions&id=sibyl%3Abirth%3A2020'))).json();
+  expect(result.content).toMatchObject(archive);expect(result.record.status).toBe('completed');
+  stores.serviceexecutiontransactions[0].status='failed';stores.serviceexecutiontransactions[0].premiumStatus='generating';
+  const pending=await (await route(request('/detail?source=executions&id=sibyl%3Abirth%3A2020'))).json();
+  expect(pending.record.status).toBe('generating');expect(pending.record.recoveryHref).toBe(pending.record.href);
+  user=foreign;expect((await route(request('/detail?source=executions&id=sibyl%3Abirth%3A2020'))).status).toBe(404);
+});
+
 test('coverage: every owned consultation model and raw result store is registered',async()=>{
   const {RECORD_SERVICES}=await import('../../lib/records/service-registry.js');
   expect(new Set(RECORD_SERVICES.map(source=>source.id)).size).toBe(RECORD_SERVICES.length);
@@ -156,6 +167,19 @@ test('partial, generating, failed and revoked states never masquerade as complet
   for(const status of ['generating','partial','generation_failed','refunded'])expect(library.recordMetadata(source,seed('1','01',{status})).nativeHref).toBe('');
   stores.neoOperationRoomConsultations=[seed('1','01')];revoked=true;expect((await route(request('/detail?source=neo&id=record-1'))).status).toBe(403);
 });
+
+test('consultation refund reservation and settlement remain visible without a result link',async()=>{
+  const {recordService}=await import('../../lib/records/service-registry.js');
+  for (const id of ['new-year','life-book']) {
+    const source=recordService(id);
+    for (const [refund,status] of [['pending','refund_pending'],['manual_review','refund_pending'],['refunded','revoked']]) {
+      const doc=seed('1','01',{status:'completed',llmMeta:{deliveryRefund:{status:refund}}});
+      const item=library.recordMetadata(source,doc);
+      expect(item.status).toBe(status);
+      expect(item.nativeHref).toBe('');
+    }
+  }
+});
 test('foreign, malformed and search-mismatched cursors are rejected',async()=>{
   const page=await library.listRecords(owner,new URLSearchParams({limit:'1'}),async source=>source.id==='neo'?[seed('1','01'),seed('2','02')]:[]);
   await expect(library.listRecords(foreign,new URLSearchParams({cursor:page.nextCursor}))).rejects.toMatchObject({status:400});
@@ -187,6 +211,21 @@ test('partial shared deliveries expose accepted parts and stored cards, without 
   const detail=await library.readRecord(owner,'executions','part-fixture');expect(detail.content.chapters[0].body).toBe('저장된 첫 장');expect(detail.content.cards[0].nameKo).toBe('바보');expect(JSON.stringify(detail.content)).not.toContain('never expose');
   revoked=true;expect((await route(request('/detail?source=executions&id=part-fixture'))).status).toBe(403);
 });
+test('tea archives keep the follow-up answer read-only, without its lease or provider',async()=>{
+  stores.fortune_tea_house_results=[seed('1','01',{resultId:'tea-follow-up',featureKey:'fortune-tea-house-tarot-consultation',result:{questionSummary:'질문'},followUps:[{id:'f1',question:'언제 움직일까요?',answer:{directAnswer:'다음 달이 좋아요.'},provider:'gemini'}],leaseFollowUp:{token:'lease-token',clientQuestionId:'client-question-1'}})];
+  const {content}=await library.readRecord(owner,'tea','tea-follow-up');
+  expect(content.followUps[0]).toEqual({id:'f1',question:'언제 움직일까요?',answer:{directAnswer:'다음 달이 좋아요.'}});expect(content.leaseFollowUp).toBeUndefined();
+});
+test('sukuyo per-use compat archives are listed by product name and reopen with the saved sections',async()=>{
+  // worker/routes/sukuyo-archive.js 가 쓰는 저장 모양.
+  const result={title:'숙요점 궁합',summary:'안괴 · 근거리',sukuyoResult:{mansion:'나 각숙 · 상대 항숙',relation:'안괴'},sections:[{title:'인연 요약',body:'저장된 궁합 본문'}]};
+  stores.serviceexecutiontransactions=[seed('1','01',{featureKey:'compat-sukuyo-compatibility',executionKey:'compat:owner:card-a:sig',status:'success',premiumStatus:'completed',profileId:'card-a',idempotencyKey:'sukuyo-paid:compat-sukuyo-compatibility|card-a',metadata:{accessType:'payment',archive:{reportType:'sukuyo-compatibility',title:'숙요점 궁합',result,payload:{}}}})];
+  const listed=await library.listRecords(owner,new URLSearchParams());
+  expect(listed.items.map(row=>[row.serviceId,row.serviceName,row.title])).toEqual([['compat-sukuyo-compatibility','숙요점 궁합','숙요점 궁합']]);
+  const detail=await library.readRecord(owner,'executions','compat:owner:card-a:sig');
+  expect(JSON.stringify(detail.content)).toContain('저장된 궁합 본문');
+  revoked=true;expect((await route(request('/detail?source=executions&id='+encodeURIComponent('compat:owner:card-a:sig')))).status).toBe(403);
+});
 test('saved HTML preserves tables and removes script, handlers and unsafe URLs',async()=>{
   const {sanitizePublicInsightHtml}=await import('../../app/insights/_lib/sanitizePublicHtml.js');
   const safe=sanitizePublicInsightHtml('<table onclick="danger()"><tr><td>저장된 표</td></tr></table><script>danger()</script><a href="javascript:danger()">링크</a><img src="/fixture.webp" onerror="danger()">',{tables:true});
@@ -212,6 +251,13 @@ test('shared Codex and life-book stores retain the actual billing variant and di
   expect(library.recordMetadata(recordService('codex'),{id:'compat',mode:'compat'}).serviceId).toBe('master-love-codex-compat');
   const legacy=library.recordMetadata(recordService('life-book'),{id:'legacy',llmMeta:{input:{consultationType:'lifeFortune'}},featureKey:'life-book-ai-consultation'});
   expect(legacy.serviceName).toBe('인생 총운');expect(legacy.serviceId).toBe('life-book-ai-consultation');
+});
+
+test('compass AI reports carry the deep-report billing key so refund revocation checks the right product',async()=>{
+  const {recordService}=await import('../../lib/records/service-registry.js');
+  const {FEATURE_KEY_PRICE_TABLE}=await import('../../worker/lib/paid-feature-registry.js');
+  const compass=library.recordMetadata(recordService('compass'),{id:'r1',status:'completed'});
+  expect(compass.serviceId).toBe('destiny-compass-deep-report');expect(FEATURE_KEY_PRICE_TABLE[compass.serviceId]).toBeTruthy();
 });
 
 test('every shared product retains its display identity and complete saved body',async()=>{

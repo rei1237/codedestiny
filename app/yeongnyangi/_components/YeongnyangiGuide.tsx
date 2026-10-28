@@ -4,6 +4,12 @@ import {questionScopes,FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/q
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import SampleExposure from './SampleExposure';
 import styles from './yeongnyangi-guide.module.css';
+import CraftedProductDetail from '@/app/components/CraftedProductDetail';
+import craftedOverview from '@/content/product-details/yeongnyangi-overview/manifest.json';
+import resultSamples from '@/lib/marketing/result-samples.json';
+import {FUSION_BOOK_CHAPTERS,FUSION_BOOK_TARGETS} from '@/worker/yeongnyangi/fortune/fusion-book';
+import {consultationBudget} from '@/worker/yeongnyangi/fortune/consultation-budget';
+import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
 
 // Server-rendered guide for the indexed /yeongnyangi/ landing ("사주 보는 고양이" brand query).
 // 🔴 Prices come from the payment catalog; scope and followups from the question policy — never type them here.
@@ -15,60 +21,63 @@ const single=(domain:DomainId,fish:string)=>{const p=products.find(item=>item.re
 const tierRows=TIERS.map(tier=>{const items=DOMAINS.map(domain=>single(domain,tier));const prices=[...new Set(items.map(p=>p.priceKRW))];if(prices.length!==1)throw new Error(`영냥이 ${tier} 가격이 체계마다 다르다: ${prices.join(',')}`);return {tier,name:packages[tier].name,price:prices[0],depth:questionScopes[tier],followups:FOLLOWUP_LIMITS[tier]};});
 export const LOWEST_PRICE=won(tierRows[0].price);
 const SYSTEMS=DOMAINS.map(domain=>systemNames[domain]).join(', ');
+const tarotExcerpts=(()=>{
+ const excerpts=resultSamples.find(sample=>sample.id==='yn-tarot')?.excerpts;
+ if(!excerpts||excerpts.length<4)throw new Error('Yeongnyangi tarot sample requires four source excerpts.');
+ return excerpts;
+})();
 
 export const YEONGNYANGI_FAQS=[
- {question:'사주 보는 고양이 영냥이는 어떤 서비스인가요?',answer:`영냥이는 꿀꿀 운세(CODE DESTINY)가 운영하는 유료 운세 상담 캐릭터예요. ${SYSTEMS} 중 하나를 골라 한 가지 고민을 챕터로 나눠 읽어 줘요. "사주보는고양이"처럼 붙여 써서 찾아도 같은 서비스예요.`},
+ {question:'사주 보는 고양이 영냥이는 어떤 서비스인가요?',answer:`영냥이는 꿀꿀운세(CODE DESTINY)가 운영하는 유료 운세 상담 캐릭터예요. ${SYSTEMS} 중 하나를 골라 고민의 답과 근거, 생활 속 선택과 실천을 챕터로 나눠 살펴봐요. "사주보는고양이"처럼 붙여 써서 찾아도 같은 서비스예요.`},
+ {question:'운세보는 영냥이와 꿀꿀 운세는 어떤 관계인가요?',answer:'운세보는 영냥이는 꿀꿀 운세 안의 사주보는 고양이 상담 서비스예요. 운영자는 CODE DESTINY(코드 데스티니)로 같고, 공식 홈페이지는 https://code-destiny.com/, 영냥이 상담 입구는 https://code-destiny.com/yeongnyangi/예요.'},
  {question:'가장 저렴한 상담은 얼마인가요?',answer:`고등어 상담이 ${LOWEST_PRICE}이고, 여섯 체계 모두 같은 가격이에요. 결제창에서 총액과 적용 수단을 한 번 더 확인한 뒤에 결제돼요.`},
  {question:'결제하고 나면 결과는 언제, 어디서 보나요?',answer:'결제가 확인되면 영냥이가 상담을 쓰기 시작해요. 보통 몇 분 안에 완성되고, 화면을 닫아도 같은 계정의 내 상담에서 이어서 확인하고 다시 열 수 있어요.'},
  {question:'상담이 만들어지지 않으면 어떻게 되나요?',answer:'내 상담 화면에서 진행 상태를 확인할 수 있어요. 문제가 계속되면 결제 내역과 함께 문의하기로 알려 주세요. 환불 기준은 환불 정책을 따라요.'},
- {question:'꿀꿀 운세의 무료 운세와는 무엇이 다른가요?',answer:'무료 페이지는 정해진 항목의 계산 결과와 기본 풀이를 보여 줘요. 영냥이 상담은 같은 계산을 출발점으로 삼아 내가 고른 주제와 질문을 반영한 글을 새로 쓰고, 결과를 계정에 보관해요.'},
+ {question:'꿀꿀운세의 무료 운세와는 무엇이 다른가요?',answer:'무료 페이지는 정해진 항목의 계산 결과와 기본 풀이를 보여 줘요. 영냥이 상담은 같은 계산을 출발점으로 삼아 내가 고른 주제와 질문을 반영한 글을 새로 쓰고, 결과를 계정에 보관해요.'},
 ];
 
+const fishRows=[...tierRows.map(row=>({...row,href:'/yeongnyangi/fortune/?flow=question&domain=saju&fish='+row.tier})),...(['assorted','omakase'] as const).map(tier=>{const product=products.find(p=>p.fishId===tier)!;return {tier,name:packages[tier].name,price:product.priceKRW,followups:consultationBudget(tier).followups,depth:tier==='assorted'?'두 체계의 해석과 생활 분야를 엮은 상세 상담서':'여섯 체계의 해석과 삶의 흐름을 담은 초융합 상담서',href:tier==='omakase'?'/yeongnyangi/fortune/?product=fusion_all':'/yeongnyangi/fortune/?domain=fusion'};})];
+
+// 2026-10-28 단순화: 가격은 한 줄 행, 예시·깊은 구성·FAQ는 "결제 전에 알아두기" 한 묶음으로 접어 둔다. 접힌 본문도 서버 HTML에 남아 색인된다.
 export default function YeongnyangiGuide(){
- return <article className={styles.guide} aria-labelledby="yn-guide-title">
-  <section>
-   <p className={styles.kicker}>사주 보는 고양이 · 영냥이 안내</p>
-   <h2 id="yn-guide-title">사주 보는 고양이 영냥이는 이런 곳이에요</h2>
-   <p>영냥이는 꿀꿀 운세가 운영하는 달빛 점술방의 고양이예요. 생선 한 마리 값으로 {SYSTEMS} 가운데 한 체계를 골라, 지금 마음에 걸린 한 가지 고민을 천천히 읽어 줘요. 각 체계의 계산 엔진이 먼저 명식과 차트를 만들고, 그 계산을 근거로 AI가 영냥이의 말투로 해설을 써요.</p>
-   <p>상담은 짧은 한 줄 운세가 아니에요. 왜 그렇게 읽었는지 근거를 먼저 보여 주고, 그 흐름이 생활에서 어떻게 드러나는지, 오늘 해볼 수 있는 행동이 무엇인지까지 챕터로 이어서 정리해요. 결과는 미래를 정해 주는 답이 아니라 선택을 돕는 참고 자료예요.</p>
-  </section>
-
-  <section id="yn-receive" aria-labelledby="yn-receive-title">
-   <h2 id="yn-receive-title">결제하면 받는 것</h2>
-   <ul className={styles.receive}>
-    <li><strong>질문에 답하는 상담 글</strong> 모든 생선에서 질문에 대한 답과 계산 근거, 생활 속 예시, 실천할 행동을 담아요. 생선별로 다루는 상담 범위와 추가 질문 횟수가 달라요.</li>
-    <li><strong>몇 분 안에 완성</strong> 결제가 확인되면 바로 쓰기 시작하고 보통 몇 분 안에 끝나요. 기다리는 동안 화면을 닫아도 상담은 계속 만들어져요.</li>
-    <li><strong>내 상담에 보관</strong> 같은 CODE DESTINY 계정으로 로그인하면 <a href="/yeongnyangi/library/">내 상담</a>에서 언제든 다시 열 수 있어요.</li>
-    <li><strong>문제가 생기면</strong> 진행 상태는 내 상담에서 확인하고, 해결되지 않으면 <a href="/contact/">문의하기</a>로 알려 주세요. 환불은 <a href="/refund-policy/">환불 정책</a>을 따라요.</li>
-   </ul>
-  </section>
-
-  <PublicRecordLink />
-  <section id="yn-example" aria-labelledby="yn-example-title">
-   <h2 id="yn-example-title">상담 예시 한 단락</h2>
-   <p className={styles.note}>아래는 가상 입력으로 만든 편집 예시예요. 실제 고객 데이터나 AI가 생성한 상담 원문이 아니에요.</p>
-   <blockquote className={styles.sample}>
-    <p>질문 · 선택할 때마다 오래 망설여요. 어떻게 결정하는 연습을 하면 좋을까요?</p>
-    <p>영냥이 · 세부적인 차이를 살피는 태도는 네 장점이야. 다만 모든 불확실성이 사라질 때까지 기다리지는 말자. 되돌릴 수 있는 작은 선택부터 기한을 정해 두면, 결정하는 감각이 조금씩 몸에 붙을 거야.</p>
-   </blockquote>
-   <p><a href="/yeongnyangi/1000-won-fortune/#example">상담 예시와 체계별 목차 자세히 보기</a></p>
-   <SampleExposure targetId="yn-example" itemId={single('saju','mackerel').cdFeatureKey}/>
-  </section>
-
+ return <article className={styles.guide} aria-labelledby="yn-prices-title">
   <section id="yn-prices" aria-labelledby="yn-prices-title">
-   <h2 id="yn-prices-title">생선별 상담 가격</h2>
-   <p>새 질문 상담은 질문의 주제·판단 대상·계산 근거에 맞춰 생선을 안내해요. 기본 답변의 품질은 같아요. 참치의 장기 흐름은 사주·자미두수·베다에서 제공하며, 기존 해석 메뉴와 구매 결과는 원래 계약을 유지해요.</p>
-   <div className={styles.tableWrap}><table>
-    <caption>영냥이 단일 체계 상담 가격과 구성</caption>
-    <thead><tr><th scope="col">생선</th><th scope="col">가격</th><th scope="col">추가 질문</th><th scope="col">질문 상담 범위</th></tr></thead>
-    <tbody>{tierRows.map(row=><tr key={row.tier}><th scope="row">{row.name}</th><td>{won(row.price)}</td><td>{row.followups}회</td><td>{row.depth}</td></tr>)}</tbody>
-   </table></div>
+   <h2 id="yn-prices-title">상담 가격</h2>
+   <p>모든 생선에서 답과 근거, 생활 속 예시와 행동 조언을 담아요. 생선마다 다루는 범위와 추가 질문 횟수가 달라요.</p>
+   <ul className={styles.fishList}>{fishRows.map(row=><li key={row.tier}><a className={styles.fishRow} href={row.href}>
+    <img src={'/assets/yeongnyangi/fish/reaction-'+row.tier+'.webp'} width={128} height={128} alt="" loading="lazy"/>
+    <span className={styles.fishText}><strong>{row.name}</strong><span className={styles.fishMeta}>{EXPANDED_CHAPTERS[row.tier]+'챕터 · '}{row.followups?'추가 질문 '+row.followups+'회':'추가 질문 없음'}{['tuna','assorted','omakase'].includes(row.tier)?' · PDF':''}</span></span>
+    <span className={styles.fishPrice}>{won(row.price)}</span>
+   </a></li>)}</ul>
+   <details className={styles.panel}><summary>생선별로 살펴보는 범위</summary><dl className={styles.fishDepth}>{fishRows.map(row=><div key={row.tier}><dt>{row.name}</dt><dd>{row.tier==='mackerel'?'한 가지 고민도 답과 근거, 생활 속 해석과 지금 해볼 행동까지 챕터별로 충분히 살펴봐요.':row.depth}</dd></div>)}</dl></details>
+   <p className={styles.note}>챕터 수는 신규 한국어 질문 상담 기준이며 상담 종류와 기존 구매에 따라 달라질 수 있어요. 추가 질문은 저장된 상담 근거로 답할 수 있는 범위에서 이용해요. PDF는 한국어 상담 완료 후 저장할 수 있어요.</p>
   </section>
 
-  <section id="yn-faq" aria-labelledby="yn-faq-title">
-   <h2 id="yn-faq-title">영냥이 자주 묻는 질문</h2>
-   <div className={styles.faq}>{YEONGNYANGI_FAQS.map(item=><section key={item.question}><h3>{item.question}</h3><p>{item.answer}</p></section>)}</div>
-   <p className={styles.note}>함께 보기: <a href="/ggulggul/">꿀꿀 운세 홈</a> · <a href="/yeongnyangi/1000-won-fortune/">천원 운세·천원사주</a> · <a href="/yeongnyangi/library/">내 상담</a> · <a href="/privacy-policy/">개인정보 처리방침</a></p>
+  <section id="yn-before" aria-labelledby="yn-guide-title">
+   <h2 id="yn-guide-title">결제 전에 알아두기</h2>
+   <details id="yn-example" className={styles.panel}><summary>실제 상담 예시 · “지금 회사에 남을까, 다른 길로 옮길까?”</summary>
+    <p className={styles.note}>가상 프로필로 생성한 영냥이 타로·연어 샘플에서 발췌했어요. 전체 샘플은 약 3.5만 자이며 아래는 그 일부예요. 실제 고객 후기가 아니며 현재 상품의 보장 분량을 뜻하지 않아요.</p>
+    <blockquote className={styles.sample} data-sample-exposure="">
+     <h3>카드가 보여주는 마음의 흐름</h3>
+     <p>{tarotExcerpts[0]}</p>
+     <h3>현실의 조건과 다음 행동</h3><p>{tarotExcerpts[2]}</p>
+     <details><summary>영냥이의 해석 더 읽기</summary><p>{tarotExcerpts[1]}</p><p>{tarotExcerpts[3]}</p><a href="https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV" target="_blank" rel="noopener noreferrer">가상 프로필 상담 원문 모음 읽기 (새 창)</a></details>
+    </blockquote>
+    <p><a href="/yeongnyangi/fortune/?domain=tarot">타로 상담 구성 보기</a> · <a href="/consultation-samples/">다른 상담 결과 예시 보기</a></p>
+    <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey}/>
+   </details>
+   <details id="yn-receive" className={styles.panel}><summary>한 가지 질문에서, 차분히 읽는 한 권까지</summary>
+    <p>궁금한 점의 답부터 읽고, 그 판단의 근거와 반복되는 패턴, 지금 해볼 행동을 챕터별로 살펴보세요. 사주·자미두수·숙요점·베다점·점성술·타로 가운데 원하는 방식으로 시작할 수 있어요.</p>
+    <p>여러 관점으로 깊이 읽고 싶다면 <a href="/yeongnyangi/fortune/?product=fusion_all">오마카세 전체 리포트</a>에서 여섯 체계의 독립 해석과 인생 전반, 실행·점검 계획을 이어 읽어요.</p>
+    <p className={styles.volume}><strong>{FUSION_BOOK_CHAPTERS.omakase}개 챕터</strong><span>오마카세 본문 {(FUSION_BOOK_TARGETS.omakase[1]/10000).toFixed(1)}만 자까지 목표로 구성</span></p>
+    <p className={styles.note}>오마카세 기준이며 모든 상담에 같은 분량이 적용되지는 않아요. 실제 글 길이는 질문과 생성 결과에 따라, PDF 페이지 수는 편집에 따라 달라져요. 선택한 상담의 구성과 가격은 결제 전에 확인해요.</p>
+   </details>
+   <div id="yn-faq" className={styles.faqBlock}>
+    <h3>자주 묻는 질문</h3>
+    <div className={styles.faq}>{YEONGNYANGI_FAQS.map(item=><details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
+    <details className={styles.craftedOverview}><summary>상담 방식과 전체 구성 자세히 보기</summary><CraftedProductDetail detail={craftedOverview}/><PublicRecordLink/></details>
+    <p className={styles.note}>함께 보기: <a href="/ggulggul/">꿀꿀운세 홈</a> · <a href="/yeongnyangi/1000-won-fortune/">천원 사주 리포트</a> · <a href="/yeongnyangi/library/">내 상담</a> · <a href="/privacy/">개인정보 처리방침</a></p>
+   </div>
   </section>
  </article>;
 }

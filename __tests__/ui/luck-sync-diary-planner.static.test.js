@@ -31,31 +31,10 @@ test("fortune planner entry cuts over to the /diary app", () => {
   assert.doesNotMatch(runtime, /location\.assign\('\/fortune-planner'\)/);
   assert.doesNotMatch(runtime, /mountFortunePlannerHomeCard/);
   assert.doesNotMatch(runtime, /cdFortunePlannerCard/);
-  // 2026-09-07: 홈 진입점을 <button data-action> 에서 앵커로 바꿨다 — data-action 은 상세
-  // 마케팅 카드를 한 번 거쳐 두 번 눌러야 /diary 에 닿았다. 지킬 것은 "홈 진입점이 /diary 로
-  // 곧장 간다"이므로 검사 범위를 그 섹션 안으로 좁히고, data-action 이 되살아나면 실패시킨다.
-  const diaryEntry = html.match(/<section class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"[\s\S]*?<\/section>/);
-  assert.ok(diaryEntry, "#cdDiaryPlannerEntry 섹션을 찾지 못했다");
-  assert.match(diaryEntry[0], /<a class="cd-diary-planner-entry__action" href="\/diary\/"/);
-  assert.doesNotMatch(diaryEntry[0], /data-action=/);
-  // 제목 안의 마크업은 고정하지 않는다 — 이 가드가 지키려는 것은 "다이어리 모달 진입점이
-  // 이 문구를 단다"이지 문구가 요소의 첫 바이트라는 사실이 아니다. i18n 마킹이 각 줄을
-  // <span data-cd-trans> 로 감싸면서 인접이 깨졌는데, 그건 회귀가 아니라 로케일화의 정상
-  // 산물이다. 대신 검사 범위를 제목 요소 안으로 좁혀 가드가 느슨해지지 않게 한다.
-  const diaryTitle = html.match(/id="cdDiaryPlannerTitle">([\s\S]*?)<\/h2>/);
-  assert.ok(diaryTitle, "#cdDiaryPlannerTitle 을 찾지 못했다");
-  assert.match(diaryTitle[1], /운기·기일 다이어리와[\s\S]*나의 운세 플래너/);
-  // 2026-09-12(6fc160f56, FORTUNE GATE 6카드 개편): #cdHomeSecondaryPanel 래퍼와
-  // .cd-home-secondary-panel 접기/펼치기 CSS 는 이 개편에서 함께 지워졌다 — 접이식 보조
-  // 패널이라는 개념 자체가 없어졌다(실측: index.html 에 두 선택자 모두 0개). 지킬 것은
-  // 여전히 "다이어리 진입이 살아 있고, 오늘의 운세 다음 순서를 지키는 것"이다.
-  // 2026-10-07: 첫 화면의 고민 진입은 짧은 주제 링크로 통합한다. 상세 고민·다이어리는
-  // 전체 탐색(#cdhGardenBody)에 보존하며 기존 직접 진입은 유지한다.
-  assert.match(html, /<section class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
-  assert.ok(html.indexOf('id="cdhDiarySlot"') < html.indexOf('id="cdDiaryPlannerEntry"'));
-  assert.ok(html.indexOf('class="cdh-topics"') < html.indexOf('id="cdhGardenBody"'));
-  assert.ok(html.indexOf('id="cdhConcern"') > html.indexOf('id="cdhGardenBody"'));
-  assert.ok(html.indexOf('id="cdhGardenBody"') < html.indexOf('id="cdDiaryPlannerEntry"'));
+  // 2026-10-17 "직관성": 홈의 다이어리 진입 카드(#cdDiaryPlannerEntry)는 걷어냈다.
+  // /diary/ 는 모든 운세 시트(service-registry)가 곧장 연다 — data-action 으로 상세 카드를 한 번 더 거치지 않는다.
+  assert.doesNotMatch(html, /id="cdDiaryPlannerEntry"/);
+  assert.match(read("js/core/service-registry.js"), /href: "\/diary\/"/);
   assert.doesNotMatch(html, /id="cdHomeSecondaryPanel"/);
   assert.doesNotMatch(html, /\.cd-home-secondary-panel\{/);
   // 2026-09-08(home-existing-assets-reassembly): 대표 상담은 홈 정보 구조 안으로 승격됐고,
@@ -71,8 +50,6 @@ test("fortune planner entry cuts over to the /diary app", () => {
   assert.ok(html.indexOf('id="dpDestinyPanel"') < html.indexOf('id="destinyCardForm"'));
   assert.match(html, /\.dp-destiny-panel:not\(\.is-form-open\) > #destinyCardForm\{display:none!important\}/);
   assert.doesNotMatch(html, /<section class="card input-section moon-destiny-form" id="destinyCardForm"[^>]*data-cd-home-secondary/);
-  // 다이어리는 오늘의 운세 다음, 연이의 정원 안에 있다.
-  assert.ok(html.indexOf('id="cdhTodaySlot"') < html.indexOf('id="cdDiaryPlannerEntry"'));
   /* 2026-08-21: 온보딩 레일 앵커(__cdRailAnchor)를 요구하던 단언을 걷어냈다.
      b44bd7862 'remove empty onboarding rail' 이 그 줄을 통째로 지웠는데 이 단언은 남아
      **main 이 빨간 채로** 머지됐다(PR #869 가 그 실패를 상속해 막혔다).
@@ -103,7 +80,7 @@ test("relationship temptation card embeds the self-gated target report", () => {
 
   assert.match(dashboard, /label:'그 사람의 바람끼는\?'/);
   assert.doesNotMatch(dashboard, /action:'openRelationshipBoundaryTestRoute'/);
-  assert.match(dashboard, /target:'relationshipBoundaryTestEntry', coinCost:10, selfGated:true/);
+  assert.match(dashboard, /target:'relationshipBoundaryTestEntry', coinCost:100, selfGated:true/);
   assert.match(dashboard, /src="\/relationship-boundary-test\/inline\/"/);
   assert.match(dashboard, /window\.openRelationshipBoundaryTestRoute = function\(\)/);
   assert.doesNotMatch(dashboard, /target:'relationshipTemptationCard'.*?label:'사주로 보는/);
@@ -122,10 +99,9 @@ test("diary calendar adds local schedules without an entitlement dependency", ()
 });
 
 test("diary energy waits for a real saju profile instead of rendering uniform defaults", () => {
-  const html = read("index.html");
   const diary = read("js/luck-sync-diary.js");
 
-  assert.match(html, /luck-sync-diary-v2\.webp/);
+  // 2026-10-17 "직관성": 이 그림을 쓰던 홈 다이어리 카드는 걷어냈다. 파일은 /diary 화면용으로 남는다.
   assert.ok(fs.existsSync(path.join(root, "public/fuctionassets/luck-sync-diary-v2.webp")));
   assert.match(diary, /function _activeProfilePillars\(/);
   assert.match(diary, /__cdEnsureDestinyProfileLoaded/);

@@ -213,7 +213,7 @@ function assertScopedCopyTranslated({ root, hookName, namespace, featureDir, com
           assert.notEqual(value.trim(), "", `${locale}.json 의 ${key} 가 비어 있다 (${file})`);
           // ko 만 한국어다. 나머지 로케일에 한국어가 남아 있으면 번역이 빠진 것이다.
           if (locale !== "ko") {
-            assert.ok(!HANGUL.test(value), `${locale}.json 의 ${key} 에 한국어가 남아 있다: ${value.slice(0, 40)}`);
+            assert.ok(!HANGUL.test(value.replaceAll('꿀꿀운세', '')), `${locale}.json 의 ${key} 에 한국어가 남아 있다: ${value.slice(0, 40)}`);
             // 🔴 자리표시자는 **배포되는 사전**에서 검사한다. 저작 파일(i18n/authored/*.json)만 보는
             //    검사는 병합 사고나 사전 직접 편집을 놓친다(2026-08-25 음성 테스트에서 실제로 빠져나갔다).
             //    formatTemplate 은 못 채운 {…} 를 빈 문자열로 지우므로, 빠지면 값이 화면에서 통째로 사라진다.

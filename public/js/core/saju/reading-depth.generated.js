@@ -23,9 +23,11 @@ var SajuReadingDepth = (() => {
   __export(reading_depth_exports, {
     DAY_KEYS: () => DAY_KEYS,
     MONTH_NOTES: () => MONTH_NOTES,
+    MONTH_NOTES_NEO: () => MONTH_NOTES_NEO,
     MONTH_ORDER: () => MONTH_ORDER,
     PILLAR_NOTES: () => PILLAR_NOTES,
-    STEM_ORDER: () => STEM_ORDER,
+    PILLAR_NOTES_NEO: () => PILLAR_NOTES_NEO,
+    STEM_ORDER: () => STEM_ORDER2,
     buildDepthFacts: () => buildDepthFacts,
     contextualReading: () => contextualReading,
     cycleActions: () => cycleActions,
@@ -34,7 +36,823 @@ var SajuReadingDepth = (() => {
     promptDepthLines: () => promptDepthLines
   });
 
+  // lib/saju/natal-core/tables.mjs
+  var STEM_ORDER = [..."甲乙丙丁戊己庚辛壬癸"];
+  var BRANCH_ORDER = [..."子丑寅卯辰巳午未申酉戌亥"];
+  var ELEMENTS = ["wood", "fire", "earth", "metal", "water"];
+  var EL_KO = { wood: "목", fire: "화", earth: "토", metal: "금", water: "수" };
+  var EL_HAN = { wood: "木", fire: "火", earth: "土", metal: "金", water: "水" };
+  var STEM_KO = { 甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계" };
+  var BRANCH_KO = { 子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해" };
+  var STEM_EL = { 甲: "wood", 乙: "wood", 丙: "fire", 丁: "fire", 戊: "earth", 己: "earth", 庚: "metal", 辛: "metal", 壬: "water", 癸: "water" };
+  var STEM_YANG = { 甲: true, 乙: false, 丙: true, 丁: false, 戊: true, 己: false, 庚: true, 辛: false, 壬: true, 癸: false };
+  var BRANCH_EL = { 子: "water", 丑: "earth", 寅: "wood", 卯: "wood", 辰: "earth", 巳: "fire", 午: "fire", 未: "earth", 申: "metal", 酉: "metal", 戌: "earth", 亥: "water" };
+  var HIDDEN = {
+    子: ["壬", "癸"],
+    丑: ["癸", "辛", "己"],
+    寅: ["戊", "丙", "甲"],
+    卯: ["甲", "乙"],
+    辰: ["乙", "癸", "戊"],
+    巳: ["戊", "庚", "丙"],
+    午: ["丙", "己", "丁"],
+    未: ["丁", "乙", "己"],
+    申: ["戊", "壬", "庚"],
+    酉: ["庚", "辛"],
+    戌: ["辛", "丁", "戊"],
+    亥: ["戊", "甲", "壬"]
+  };
+  var GENERATES = { wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood" };
+  var CONTROLS = { wood: "earth", fire: "metal", earth: "water", metal: "wood", water: "fire" };
+  var parentOf = (el) => ELEMENTS.find((k) => GENERATES[k] === el) || "";
+  var controllerOf = (el) => ELEMENTS.find((k) => CONTROLS[k] === el) || "";
+  var ROK = { 甲: "寅", 乙: "卯", 丙: "巳", 丁: "午", 戊: "巳", 己: "午", 庚: "申", 辛: "酉", 壬: "亥", 癸: "子" };
+  var YANGIN = { 甲: "卯", 丙: "午", 戊: "午", 庚: "酉", 壬: "子" };
+  var STEM_HAP = { 甲: ["己", "earth"], 己: ["甲", "earth"], 乙: ["庚", "metal"], 庚: ["乙", "metal"], 丙: ["辛", "water"], 辛: ["丙", "water"], 丁: ["壬", "wood"], 壬: ["丁", "wood"], 戊: ["癸", "fire"], 癸: ["戊", "fire"] };
+  var STEM_CHUNG = { 甲: "庚", 庚: "甲", 乙: "辛", 辛: "乙", 丙: "壬", 壬: "丙", 丁: "癸", 癸: "丁" };
+  var BRANCH_LIUHE = { 子: ["丑", "earth"], 丑: ["子", "earth"], 寅: ["亥", "wood"], 亥: ["寅", "wood"], 卯: ["戌", "fire"], 戌: ["卯", "fire"], 辰: ["酉", "metal"], 酉: ["辰", "metal"], 巳: ["申", "water"], 申: ["巳", "water"], 午: ["未", "fire"], 未: ["午", "fire"] };
+  var BRANCH_CHUNG = { 子: "午", 午: "子", 丑: "未", 未: "丑", 寅: "申", 申: "寅", 卯: "酉", 酉: "卯", 辰: "戌", 戌: "辰", 巳: "亥", 亥: "巳" };
+  var SAMHAP = [
+    { members: ["申", "子", "辰"], el: "water" },
+    { members: ["亥", "卯", "未"], el: "wood" },
+    { members: ["寅", "午", "戌"], el: "fire" },
+    { members: ["巳", "酉", "丑"], el: "metal" }
+  ];
+  var BANGHAP = [
+    { members: ["寅", "卯", "辰"], el: "wood" },
+    { members: ["巳", "午", "未"], el: "fire" },
+    { members: ["申", "酉", "戌"], el: "metal" },
+    { members: ["亥", "子", "丑"], el: "water" }
+  ];
+  var POSITIONS = ["y", "m", "d", "h"];
+  function hiddenLayers(branch) {
+    const list = HIDDEN[branch] || [];
+    return list.map((stem, i) => ({ stem, el: STEM_EL[stem], layer: i === list.length - 1 ? "정기" : i === 0 ? "여기" : "중기" }));
+  }
+  var mainHidden = (branch) => (HIDDEN[branch] || []).slice(-1)[0] || "";
+  function relationOf(dayEl, el) {
+    if (!dayEl || !el) return "";
+    if (el === dayEl) return "self";
+    if (GENERATES[el] === dayEl) return "parent";
+    if (GENERATES[dayEl] === el) return "output";
+    if (CONTROLS[dayEl] === el) return "wealth";
+    if (CONTROLS[el] === dayEl) return "officer";
+    return "";
+  }
+  var TEN_GOD = { self: ["비견", "겁재"], output: ["식신", "상관"], wealth: ["편재", "정재"], officer: ["편관", "정관"], parent: ["편인", "정인"] };
+  function tenGod(dayStem, stem) {
+    const rel = relationOf(STEM_EL[dayStem], STEM_EL[stem]);
+    if (!rel) return "";
+    return TEN_GOD[rel][STEM_YANG[dayStem] === STEM_YANG[stem] ? 0 : 1];
+  }
+  var ELEMENT_OF_RELATION = (dayEl, rel) => ({
+    self: dayEl,
+    parent: parentOf(dayEl),
+    output: GENERATES[dayEl],
+    wealth: CONTROLS[dayEl],
+    officer: controllerOf(dayEl)
+  })[rel] || "";
+
+  // lib/saju/natal-core/relations.mjs
+  var STEM_SET = new Set(STEM_ORDER);
+  var BRANCH_SET = new Set(BRANCH_ORDER);
+  var CHUNG_ROOT_FACTOR = 0.5;
+  function normalizeChart(p = {}) {
+    const chart = {};
+    for (const pos of POSITIONS) {
+      const g = String(p?.[pos]?.g || "").trim();
+      const j = String(p?.[pos]?.j || "").trim();
+      chart[pos] = { g: STEM_SET.has(g) ? g : "", j: BRANCH_SET.has(j) ? j : "" };
+    }
+    chart.hourKnown = Boolean(chart.h.g && chart.h.j);
+    if (!chart.hourKnown) chart.h = { g: "", j: "" };
+    chart.monthKnown = Boolean(chart.m.g && chart.m.j);
+    chart.dayKnown = Boolean(chart.d.g && chart.d.j);
+    return chart;
+  }
+  function possibleHourPillars(dayStem) {
+    const dayIndex = STEM_ORDER.indexOf(dayStem);
+    if (dayIndex < 0) return [];
+    return BRANCH_ORDER.map((j, bi) => ({ g: STEM_ORDER[(dayIndex * 2 + bi) % 10], j }));
+  }
+  var pillarText = (chart, pos) => chart[pos].g && chart[pos].j ? chart[pos].g + chart[pos].j : null;
+  function knownStems(chart) {
+    return POSITIONS.filter((pos) => chart[pos].g).map((pos) => ({ pos, char: chart[pos].g, el: STEM_EL[chart[pos].g] }));
+  }
+  function knownBranches(chart) {
+    return POSITIONS.filter((pos) => chart[pos].j).map((pos) => ({ pos, char: chart[pos].j, el: BRANCH_EL[chart[pos].j] }));
+  }
+  var adjacent = (a, b) => Math.abs(POSITIONS.indexOf(a) - POSITIONS.indexOf(b)) === 1;
+  function branchChungPairs(chart) {
+    const rows = knownBranches(chart), out = [];
+    for (let i = 0; i < rows.length; i++) for (let k = i + 1; k < rows.length; k++) {
+      if (BRANCH_CHUNG[rows[i].char] === rows[k].char) out.push({ a: rows[i].pos, b: rows[k].pos, chars: rows[i].char + rows[k].char, adjacent: adjacent(rows[i].pos, rows[k].pos) });
+    }
+    return out;
+  }
+  function hiddenStemsOf(chart) {
+    const dayStem = chart.d.g;
+    const chung = branchChungPairs(chart);
+    const out = {};
+    for (const pos of POSITIONS) {
+      const j = chart[pos].j;
+      const hitBy = chung.filter((c) => c.a === pos || c.b === pos).map((c) => c.chars);
+      out[pos] = j ? hiddenLayers(j).map((h) => ({
+        ...h,
+        tenGod: tenGod(dayStem, h.stem),
+        weakenedBy: hitBy.length ? ["충"] : [],
+        chung: hitBy,
+        factor: hitBy.length ? CHUNG_ROOT_FACTOR : 1
+      })) : [];
+    }
+    return out;
+  }
+  function rootsOf(hidden, el) {
+    const rows = [];
+    for (const pos of POSITIONS) for (const h of hidden[pos] || []) if (h.el === el) rows.push({ pos, stem: h.stem, layer: h.layer, weakenedBy: h.weakenedBy, factor: h.factor });
+    return rows;
+  }
+  var isEffectiveRoot = (r) => (r.layer === "정기" || r.layer === "중기") && !r.weakenedBy.length;
+  function rootSummary(hidden, el) {
+    const list = rootsOf(hidden, el);
+    return { list, effective: list.filter(isEffectiveRoot).length, weak: list.filter((r) => !isEffectiveRoot(r)).length, any: list.length };
+  }
+  function stemCombinations(chart, hidden) {
+    const stems = knownStems(chart), out = [];
+    const monthMainEl = chart.m.j ? STEM_EL[mainHidden(chart.m.j)] : "";
+    for (let i = 0; i < stems.length; i++) for (let k = i + 1; k < stems.length; k++) {
+      const a = stems[i], b = stems[k];
+      if (!STEM_HAP[a.char] || STEM_HAP[a.char][0] !== b.char) continue;
+      const el = STEM_HAP[a.char][1];
+      const others = stems.filter((s) => s !== a && s !== b);
+      const competing = others.some((s) => s.char === a.char || s.char === b.char);
+      const clashed = others.some((s) => STEM_CHUNG[a.char] === s.char || STEM_CHUNG[b.char] === s.char);
+      const seasonal = monthMainEl === el;
+      const rootedA = rootsOf(hidden, a.el).length > 0, rootedB = rootsOf(hidden, b.el).length > 0;
+      const row = {
+        pair: a.char + b.char,
+        positions: [a.pos, b.pos],
+        el,
+        adjacent: adjacent(a.pos, b.pos),
+        involvesDay: a.pos === "d" || b.pos === "d",
+        checks: { seasonal, competing, clashed, rootedA, rootedB },
+        removed: null
+      };
+      if (row.involvesDay) row.state = "일간합";
+      else if (!row.adjacent) row.state = "합(원격)";
+      else if (seasonal && !competing && !clashed && !rootedA && !rootedB) row.state = "합화";
+      else if (rootedA !== rootedB) {
+        row.state = "합거";
+        row.removed = rootedA ? b.pos : a.pos;
+      } else row.state = "합반";
+      out.push(row);
+    }
+    return out;
+  }
+  function branchRelations(chart) {
+    const rows = knownBranches(chart), chars = rows.map((r) => r.char);
+    const liuhe = [];
+    for (let i = 0; i < rows.length; i++) for (let k = i + 1; k < rows.length; k++) {
+      if (BRANCH_LIUHE[rows[i].char]?.[0] === rows[k].char) liuhe.push({ pair: rows[i].char + rows[k].char, positions: [rows[i].pos, rows[k].pos], el: BRANCH_LIUHE[rows[i].char][1], adjacent: adjacent(rows[i].pos, rows[k].pos), state: "합(기록)" });
+    }
+    const samhap = SAMHAP.map((g) => {
+      const present = g.members.filter((c) => chars.includes(c));
+      const state = present.length === 3 ? "full" : present.length === 2 && present.includes(g.members[1]) ? "half" : present.length ? "partial" : "none";
+      return { members: g.members.join(""), el: g.el, present: present.join(""), state };
+    }).filter((r) => r.state !== "none");
+    const banghap = BANGHAP.map((g) => {
+      const present = g.members.filter((c) => chars.includes(c));
+      return { members: g.members.join(""), el: g.el, present: present.join(""), state: present.length === 3 ? "full" : present.length ? "partial" : "none" };
+    }).filter((r) => r.state !== "none");
+    return { liuhe, samhap, banghap, chung: branchChungPairs(chart) };
+  }
+  function visibleCounts(chart) {
+    const byEl = Object.fromEntries(ELEMENTS.map((e) => [e, 0]));
+    let total = 0;
+    for (const s of knownStems(chart)) {
+      byEl[s.el]++;
+      total++;
+    }
+    for (const b of knownBranches(chart)) {
+      const w = b.pos === "m" ? 2 : 1;
+      byEl[b.el] += w;
+      total += w;
+    }
+    const dayEl = STEM_EL[chart.d.g];
+    const byRel = { self: 0, parent: 0, output: 0, wealth: 0, officer: 0 };
+    for (const e of ELEMENTS) {
+      const rel = relationOf(dayEl, e);
+      if (rel) byRel[rel] += byEl[e];
+    }
+    return { byEl, byRel, total, basis: "천간 4 + 지지 본기 4, 월지 2배(9칸)" };
+  }
+  function visibleByRelation(chart, rel) {
+    const dayEl = STEM_EL[chart.d.g];
+    const stems = knownStems(chart).filter((s) => s.pos !== "d" && relationOf(dayEl, s.el) === rel);
+    const branches = knownBranches(chart).filter((b) => relationOf(dayEl, b.el) === rel);
+    return { stems, branches, count: stems.length + branches.length };
+  }
+
+  // lib/saju/natal-core/special.mjs
+  var ck = (id, ok, note) => ({ id, ok, note });
+  function statusOf(checks) {
+    if (checks.some((c) => c.ok === false)) return "fail";
+    if (checks.some((c) => c.ok === null)) return "unknown";
+    return "pass";
+  }
+  var pct = (n) => `${Math.round(n * 100)}%`;
+  function context(chart) {
+    const hidden = hiddenStemsOf(chart);
+    const dayEl = STEM_EL[chart.d.g];
+    return {
+      chart,
+      hidden,
+      dayEl,
+      counts: visibleCounts(chart),
+      combos: stemCombinations(chart, hidden),
+      branches: branchRelations(chart),
+      monthRel: chart.m.j ? relationOf(dayEl, STEM_EL[mainHidden(chart.m.j)]) : "",
+      el: (rel) => ELEMENT_OF_RELATION(dayEl, rel)
+    };
+  }
+  var fullGroup = (ctx, el) => ctx.branches.samhap.some((g) => g.el === el && g.state === "full") || ctx.branches.banghap.some((g) => g.el === el && g.state === "full");
+  var share = (ctx, rels) => rels.reduce((n, r) => n + ctx.counts.byRel[r], 0) / (ctx.counts.total || 1);
+  var FOLLOW = {
+    wealth: { support: "output", other: "officer", trueName: "종재격(從財格)", falseName: "가종재격(假從財格)" },
+    officer: { support: "wealth", other: "wealth", trueName: "종살격(從殺格)", falseName: "가종살격(假從殺格)" }
+  };
+  function followChecks(ctx, target, profile) {
+    const f = FOLLOW[target], { byRel } = ctx.counts;
+    const dominance = target === "wealth" ? byRel.wealth > 0 && byRel.wealth >= byRel.officer : byRel.officer > 0 && byRel.officer > byRel.wealth;
+    const monthOk = !ctx.chart.m.j ? null : ctx.monthRel === target || fullGroup(ctx, ctx.el(target));
+    const s = share(ctx, [target, f.support]);
+    return [
+      ck("J0-DOMINANT", dominance, `${target === "wealth" ? "재성" : "관살"}이 따를 세력의 중심인지(재 ${byRel.wealth} / 관 ${byRel.officer})`),
+      ck("J1-MONTH", monthOk, monthOk === null ? "월지 미상" : `월령 본기 관계: ${ctx.monthRel || "없음"}`),
+      ck("J2-SHARE", s >= profile.followShare, `따를 세력 비중 ${pct(s)} (개발 정책 기준 ${pct(profile.followShare)})`)
+    ];
+  }
+  function evaluateFollow(ctx, target, profile) {
+    const f = FOLLOW[target];
+    const base = followChecks(ctx, target, profile);
+    const dayRoots = rootSummary(ctx.hidden, ctx.dayEl);
+    const parentEl = parentOf(ctx.dayEl);
+    const helperStems = knownStems(ctx.chart).filter((s) => s.pos !== "d" && (s.el === ctx.dayEl || s.el === parentEl));
+    const parentRoots = rootsOf(ctx.hidden, parentEl);
+    const trueChecks = [
+      ...base,
+      ck("J3-NO-DAY-ROOT", dayRoots.any === 0, `일간 오행의 지장간 뿌리 ${dayRoots.any}개`),
+      ck("J4-NO-HELPER-STEM", helperStems.length === 0, helperStems.length ? `인비 천간 ${helperStems.map((s) => s.char).join("")}` : "인비 천간 없음"),
+      ck("J5-NO-PARENT-ROOT", parentRoots.length === 0, `인성 오행의 지장간 ${parentRoots.length}개`)
+    ];
+    const trueStatus = statusOf(trueChecks);
+    const ineffectiveStem = (s) => rootsOf(ctx.hidden, s.el).length === 0 || ctx.combos.some((c) => c.state === "합거" && c.removed === s.pos);
+    const helperMains = ["y", "m", "d", "h"].filter((pos) => {
+      const j = ctx.chart[pos].j;
+      return j && (BRANCH_EL[j] === ctx.dayEl || BRANCH_EL[j] === parentEl);
+    });
+    const liveHelperMain = helperMains.filter((pos) => !ctx.hidden[pos].slice(-1)[0]?.weakenedBy.length);
+    const effectiveParent = parentRoots.filter(isEffectiveRoot);
+    const falseChecks = [
+      ...base,
+      ck("F3-NO-EFFECTIVE-DAY-ROOT", dayRoots.effective === 0, `일간 실효 뿌리(충 없는 정기·중기) ${dayRoots.effective}개, 약한 뿌리 ${dayRoots.weak}개`),
+      ck("F4-HELPER-STEMS-INEFFECTIVE", helperStems.every(ineffectiveStem), helperStems.length ? `인비 천간 ${helperStems.map((s) => s.char + (ineffectiveStem(s) ? "(무근·합거)" : "(유근)")).join(" ")}` : "인비 천간 없음"),
+      ck("F5-HELPER-BRANCHES-WEAKENED", liveHelperMain.length === 0 && effectiveParent.length === 0, liveHelperMain.length || effectiveParent.length ? "충을 받지 않은 인비 본기·인성 실효 뿌리가 남음" : "인비 지지 본기는 없거나 충으로 약화됨"),
+      ck("F6-RESIDUAL-HELP", trueStatus !== "pass", trueStatus === "pass" ? "남은 도움이 없어 진종으로 판정" : "약한 도움이 남아 있음")
+    ];
+    return [
+      { id: `JONG-TRUE-${target}`, ruleId: "JONG-TRUE", family: "follow", name: f.trueName, dominant: ctx.el(target), second: ctx.el(f.support), isGa: false, status: trueStatus, checks: trueChecks },
+      { id: `JONG-FALSE-${target}`, ruleId: "JONG-FALSE", family: "follow", name: f.falseName, dominant: ctx.el(target), second: ctx.el(f.support), isGa: true, status: statusOf(falseChecks), checks: falseChecks }
+    ];
+  }
+  function evaluateOutput(ctx, profile) {
+    const { byRel } = ctx.counts;
+    const wealth = visibleByRelation(ctx.chart, "wealth"), officer = visibleByRelation(ctx.chart, "officer"), parent = visibleByRelation(ctx.chart, "parent");
+    const largest = byRel.output >= profile.outputMin && byRel.output > byRel.parent && byRel.output > byRel.wealth && byRel.output > byRel.officer;
+    const checks = [
+      ck("E1-MONTH-OUTPUT", !ctx.chart.m.j ? null : ctx.monthRel === "output", "식상이 월령(提綱)에 있는지"),
+      ck("E2-OUTPUT-DOMINANT", largest, `식상 ${byRel.output}칸 (개발 정책: ${profile.outputMin}칸 이상이며 인·재·관보다 많음)`),
+      ck("E3-WEALTH-PRESENT", wealth.count > 0, `재성 ${wealth.count}위`),
+      ck("E4-NO-OFFICER", officer.count === 0, `관살 ${officer.count}위`),
+      ck("E5-NO-PARENT", parent.count === 0, `인성 ${parent.count}위`)
+    ];
+    return { id: "JONG-ER", ruleId: "JONG-ER", family: "follow-output", name: "종아격(從兒格)", dominant: ctx.el("output"), second: ctx.el("wealth"), isGa: false, status: statusOf(checks), checks };
+  }
+  var ZW = {
+    wood: { ruleId: "ZW-QUZHI", name: "곡직격(曲直格)", samhap: "亥卯未" },
+    fire: { ruleId: "ZW-YANSHANG", name: "염상격(炎上格)", samhap: "寅午戌" },
+    earth: { ruleId: "ZW-JIASE", name: "가색격(稼穡格)" },
+    metal: { ruleId: "ZW-CONGGE", name: "종혁격(從革格)", samhap: "巳酉丑" },
+    water: { ruleId: "ZW-RUNXIA", name: "윤하격(潤下格)", samhap: "申子辰" }
+  };
+  var outsideJu = (row, ju) => ({ ...row, branches: row.branches.filter((b) => !(ju || "").includes(b.char)), get count() {
+    return this.stems.length + this.branches.length;
+  } });
+  function officerLimit(ctx, ju) {
+    const off = outsideJu(visibleByRelation(ctx.chart, "officer"), ju);
+    if (off.count === 0) return ck("ZW-OFFICER", true, "관살 없음");
+    if (off.count >= 2) return ck("ZW-OFFICER", false, `관살 ${off.count}위가 독립적으로 작용`);
+    const rooted = off.branches.length > 0 || rootsOf(ctx.hidden, off.stems[0].el).length > 0;
+    return ck("ZW-OFFICER", !rooted, rooted ? "뿌리 있는 관살 1위가 작용" : "무근 관살 1위(개발 정책상 허용)");
+  }
+  function evaluateVigorous(ctx, profile) {
+    const z = ZW[ctx.dayEl];
+    const s = share(ctx, ["self", "parent"]);
+    const checks = [ck("ZW-SHARE", s >= profile.followShare, `비겁·인성 비중 ${pct(s)} (개발 정책 기준 ${pct(profile.followShare)})`)];
+    const mj = ctx.chart.m.j;
+    if (ctx.dayEl === "earth") {
+      checks.unshift(ck(
+        "ZW-JIASE-MONTH",
+        !mj ? null : "辰未".includes(mj) ? true : "戌丑".includes(mj) ? null : false,
+        !mj ? "월지 미상" : "戌丑".includes(mj) ? `${mj}월: 사계월이지만 秋土·冬土 不成器 조목과 충돌하는 이설` : `${mj}월이 사계월(辰戌丑未)인지`
+      ));
+      const wood = visibleByRelation(ctx.chart, "officer");
+      checks.push(ck("ZW-JIASE-WOOD", wood.count <= 1, wood.count <= 1 ? `목 ${wood.count}위(一木 허용)` : `목 ${wood.count}위: 木多則土虛`));
+    } else {
+      const full = ctx.branches.samhap.some((g) => g.members === z.samhap && g.state === "full");
+      checks.unshift(ck(`${z.ruleId}-JU`, full, `${z.samhap} 국이 온전한지`));
+      if (ctx.dayEl === "metal") {
+        const fire = visibleByRelation(ctx.chart, "officer");
+        checks.push(ck("ZW-CONGGE-FIRE", fire.count >= 1 && fire.count <= 2, `화 ${fire.count}위 (丙丁巳午 一二位)`));
+        checks.push(ck("ZW-CONGGE-MONTH", !mj ? null : mj !== "午", mj === "午" ? "五月(午月) 생" : "午월 아님"));
+      } else checks.push(officerLimit(ctx, z.samhap));
+    }
+    const wealth = outsideJu(visibleByRelation(ctx.chart, "wealth"), z.samhap);
+    checks.push(ck("ZW-WEALTH", wealth.count <= 1, `재성 ${wealth.count}위 (개발 정책: 2위 이상이면 독립 작용)`));
+    return { id: z.ruleId, ruleId: z.ruleId, family: "vigorous", name: z.name, dominant: ctx.dayEl, second: ctx.el("parent"), isGa: false, status: statusOf(checks), checks };
+  }
+  function evaluateWang(ctx, profile, zw) {
+    const s = share(ctx, ["self", "parent"]);
+    const wealth = visibleByRelation(ctx.chart, "wealth"), officer = visibleByRelation(ctx.chart, "officer");
+    const selfMore = ctx.counts.byRel.self >= ctx.counts.byRel.parent;
+    const checks = [
+      ck("W1-MONTH", !ctx.chart.m.j ? null : ctx.monthRel === "self" || ctx.monthRel === "parent", `월령 본기 관계: ${ctx.monthRel || "미상"}`),
+      ck("W2-NO-WEALTH-OFFICER", wealth.count === 0 && officer.count === 0, `재성 ${wealth.count}위 / 관살 ${officer.count}위`),
+      ck("W3-SHARE", s >= profile.followShare, `비겁·인성 비중 ${pct(s)}`)
+    ];
+    if (selfMore && zw.status === "unknown") checks.push(ck("W4-ZW-UNRESOLVED", null, `${zw.name} 이설 보류와 같은 근거`));
+    return { id: "JONG-WANG", ruleId: "JONG-QIANG-WANG", family: "vigorous", name: selfMore ? "종왕격(從旺格)" : "종강격(從强格)", dominant: selfMore ? ctx.dayEl : ctx.el("parent"), second: selfMore ? ctx.el("parent") : ctx.dayEl, isGa: false, status: statusOf(checks), checks };
+  }
+  function evaluateHua(ctx) {
+    const d = ctx.chart.d.g, [partner, el] = STEM_HAP[d] || [];
+    const others = knownStems(ctx.chart).filter((s) => s.pos !== "d");
+    const partners = others.filter((s) => s.char === partner);
+    const adjacentPartner = partners.length === 1 && (partners[0].pos === "m" || partners[0].pos === "h");
+    const rest = others.filter((s) => s !== partners[0]);
+    const blockers = rest.filter((s) => s.el !== el && ["parent", "self", "officer"].includes(relationOf(ctx.dayEl, s.el)));
+    const clashed = rest.some((s) => STEM_CHUNG[d] === s.char || STEM_CHUNG[partner] === s.char);
+    const dayRoots = rootSummary(ctx.hidden, ctx.dayEl);
+    const checks = [
+      ck("HUA-ADJACENT-SINGLE", adjacentPartner, partners.length === 0 ? `${partner} 없음` : partners.length > 1 ? `${partner} ${partners.length}위` : `${partner}이 ${partners[0].pos === "y" ? "년간(인접 아님)" : "인접 천간"}`),
+      ck("HUA-MONTH", !ctx.chart.m.j ? null : BRANCH_EL[ctx.chart.m.j] === el, `화신 ${EL_KO[el]}이 월령에 통하는지`),
+      ck("HUA-NO-BLOCKER", blockers.length === 0, blockers.length ? `인·비겁·관 천간 ${blockers.map((s) => s.char).join("")}` : "방해 천간 없음"),
+      ck("HUA-NO-CLASH", !clashed, clashed ? "합하는 천간이 충을 받음" : "천간충 없음"),
+      ck("HUA-DAY-ROOTLESS", dayRoots.any === 0, `일간 오행 뿌리 ${dayRoots.any}개 (개발 정책: 뿌리가 없어야 함)`)
+    ];
+    return { id: "HUA-01", ruleId: "HUA-01", family: "transform", name: `화${EL_KO[el]}격(化${EL_HAN[el]}格)`, dominant: el, second: parentOf(el), isGa: false, status: statusOf(checks), checks, partner };
+  }
+  var SPECIAL_PRIORITY = ["HUA-01", "ZW", "JONG-WANG", "JONG-TRUE", "JONG-ER", "JONG-FALSE"];
+  var priorityOf = (c) => SPECIAL_PRIORITY.indexOf(c.ruleId.startsWith("ZW-") ? "ZW" : c.ruleId === "JONG-QIANG-WANG" ? "JONG-WANG" : c.ruleId);
+  function evaluateSpecialFull(chart, profile) {
+    const ctx = context(chart);
+    if (!ctx.dayEl) return [];
+    const zw = evaluateVigorous(ctx, profile);
+    return [
+      evaluateHua(ctx),
+      zw,
+      evaluateWang(ctx, profile, zw),
+      ...evaluateFollow(ctx, "wealth", profile),
+      ...evaluateFollow(ctx, "officer", profile),
+      evaluateOutput(ctx, profile)
+    ].sort((a, b) => priorityOf(a) - priorityOf(b));
+  }
+  function mergeHourVariants(variants) {
+    const [first] = variants;
+    return first.map((cand, i) => {
+      const rows = variants.map((v) => v[i]);
+      const statuses = new Set(rows.map((r) => r.status));
+      const checks = cand.checks.map((c, k) => {
+        const oks = new Set(rows.map((r) => r.checks[k].ok));
+        return oks.size === 1 ? { ...c, note: `${c.note} (시주와 무관)` } : { id: c.id, ok: null, note: "시주에 따라 달라짐" };
+      });
+      const status = statuses.size === 1 ? [...statuses][0] : "unknown";
+      const names = [...new Set(rows.filter((r) => r.status !== "fail").map((r) => r.name))];
+      return { ...cand, name: names.length === 1 ? names[0] : cand.name, status, checks, hourDependent: statuses.size > 1 };
+    });
+  }
+  function decideSpecial(candidates) {
+    const passed = candidates.filter((c) => c.status === "pass");
+    if (passed.length) return { decision: "special", adopted: passed[0] };
+    const unknown = candidates.filter((c) => c.status === "unknown");
+    if (unknown.length) return { decision: "pending", adopted: null, pending: unknown.map((c) => c.name) };
+    return { decision: "general", adopted: null };
+  }
+
+  // lib/saju/natal-core/gyeokguk.mjs
+  var GEOK_BY_TEN_GOD = { 정관: "정관격", 편관: "편관격", 정재: "정재격", 편재: "편재격", 식신: "식신격", 상관: "상관격", 정인: "정인격", 편인: "편인격" };
+  var SUB_USE = { 정관: "用官", 편관: "用煞", 정재: "用財", 편재: "用財", 식신: "用食傷", 상관: "用食傷" };
+  function pickMonthStem(monthBranch, dayStem, exposed) {
+    const layers = hiddenLayers(monthBranch);
+    const main = layers[layers.length - 1];
+    const isExposed = (h) => exposed.has(h.stem);
+    if ("子午卯酉".includes(monthBranch)) return { ...main, exposed: isExposed(main), rule: "왕지는 정기" };
+    if ("寅申巳亥".includes(monthBranch)) {
+      if (isExposed(main)) return { ...main, exposed: true, rule: "생지 정기 투간" };
+      const other = layers.slice(0, -1).reverse().find((h) => isExposed(h) && relationOf(STEM_EL[dayStem], h.el) !== "self");
+      return other ? { ...other, exposed: true, rule: "생지 정기 미투, 투간한 중기·여기" } : { ...main, exposed: false, rule: "생지 비겁 외 투간 없음, 정기" };
+    }
+    const order = [...layers].reverse();
+    const nonSelf = order.find((h) => isExposed(h) && relationOf(STEM_EL[dayStem], h.el) !== "self");
+    const any = order.find(isExposed);
+    const chosen = nonSelf || any;
+    return chosen ? { ...chosen, exposed: true, rule: "고지 투간 글자" } : { ...main, exposed: false, rule: "고지 투간 없음, 정기" };
+  }
+  function monthStructure(chart) {
+    const d = chart.d.g, mb = chart.m.j;
+    if (!d || !mb) return { status: "unknown", name: "", kind: "", reason: "월지 또는 일간 미상" };
+    const exposedRows = knownStems(chart).filter((s) => s.pos !== "d");
+    const exposed = new Set(exposedRows.map((s) => s.char));
+    const base = { status: "pass", monthBranch: mb, hidden: hiddenLayers(mb).map((h) => ({ ...h, tenGod: tenGod(d, h.stem), exposed: exposed.has(h.stem) })) };
+    let row;
+    if (ROK[d] === mb) row = { ...base, name: "건록격", kind: "rok", ruleId: "GK-ROK", reason: `월지 ${mb}가 일간 ${d}의 녹(ROK-01)` };
+    else if (STEM_YANG[d] && YANGIN[d] === mb) row = { ...base, name: "양인격", kind: "yangin", ruleId: "GK-YANGIN", reason: `월지 ${mb}가 양간 ${d}의 양인(YANGIN-01)` };
+    else {
+      const pick = pickMonthStem(mb, d, exposed);
+      const god = tenGod(d, pick.stem);
+      if (god === "비견" || god === "겁재") row = { ...base, name: "월겁격", kind: "yuejie", ruleId: "GK-ROK", chosen: pick, tenGod: god, reason: `월령에서 취한 ${pick.stem}(${pick.layer})이 ${god}` };
+      else row = { ...base, name: GEOK_BY_TEN_GOD[god], kind: "regular", ruleId: "GK-REGULAR", chosen: pick, tenGod: god, reason: `월령에서 취한 ${pick.stem}(${pick.layer}, ${pick.rule})이 ${god}`, confident: pick.exposed };
+    }
+    if (row.kind !== "regular") row.subUses = rokSubUses(chart);
+    return row;
+  }
+  function rokSubUses(chart) {
+    const d = chart.d.g, out = [];
+    for (const s of knownStems(chart)) {
+      if (s.pos === "d") continue;
+      const god = tenGod(d, s.char);
+      if (SUB_USE[god]) out.push({ use: SUB_USE[god], tenGod: god, char: s.char, pos: s.pos, source: "천간 투출" });
+    }
+    for (const b of knownBranches(chart)) {
+      if (b.pos === "m") continue;
+      const main = hiddenLayers(b.char).slice(-1)[0];
+      const god = tenGod(d, main.stem);
+      if (SUB_USE[god]) out.push({ use: SUB_USE[god], tenGod: god, char: b.char, pos: b.pos, source: "지지 본기" });
+    }
+    return out;
+  }
+  var FAMILY_KO = { general: "일반격", follow: "종격(종재·종살)", "follow-output": "종아격", vigorous: "전왕 계열", transform: "화기격", pending: "판정 보류" };
+  function finalGyeokguk(month, special) {
+    const general = month.status === "pass" ? month.name : "";
+    if (special.decision === "special") {
+      const a = special.adopted;
+      return { name: a.name, family: a.family, type: "특수격", ruleId: a.ruleId, isGa: a.isGa, monthStructure: general, reason: `${a.name}의 필수조건을 모두 충족` };
+    }
+    return {
+      name: general || "미정",
+      family: "general",
+      type: general ? "일반격" : "참고",
+      ruleId: month.ruleId || "",
+      isGa: false,
+      monthStructure: general,
+      pendingSpecial: special.decision === "pending" ? special.pending : [],
+      reason: general ? month.reason : "월령 정보가 부족해 격을 세우지 않음"
+    };
+  }
+  function josa(word, withBatchim, withoutBatchim) {
+    const text = String(word || "").replace(/\([^)]*\)$/, "");
+    const code = text.charCodeAt(text.length - 1) - 44032;
+    const batchim = code >= 0 && code <= 11171 ? code % 28 : 0;
+    return String(word || "") + (batchim && !(batchim === 8 && withBatchim === "으로") ? withBatchim : withoutBatchim);
+  }
+  var SUB_USE_KO = { 用官: "용관(用官)", 用煞: "용살(用煞)", 用財: "용재(用財)", 用食傷: "용식상(用食傷)" };
+  function gyeokgukView(core) {
+    if (!core || core.status !== "ok" || core.monthStructure?.status !== "pass") {
+      return {
+        name: "미정",
+        type: "참고",
+        family: "",
+        familyKo: "",
+        ruleId: "",
+        isGa: false,
+        monthStructure: "",
+        subUses: [],
+        pendingSpecial: [],
+        confident: false,
+        reason: "월지 정보가 부족해 격을 세우지 않고, 억부·조후 흐름으로 보완해 읽습니다.",
+        reasonNeo: "월지 정보가 부족해서 격을 세우지 않고, 억부·조후 흐름으로 보완해 읽어."
+      };
+    }
+    const g = core.gyeokguk, m = core.monthStructure, d = core.dayMaster.stem;
+    const mbKo = BRANCH_KO[m.monthBranch] || m.monthBranch, dKo = STEM_KO[d] || d;
+    const uses = [...new Set((m.subUses || []).map((u) => SUB_USE_KO[u.use]).filter(Boolean))];
+    const useText = uses.length ? `다른 자리의 재·관·식상 쓰임인 ${josa(uses.join("·"), "을", "를")} 함께 봅니다.` : "다른 자리에 재·관·식상이 드러나지 않아 억부·조후로 쓰임을 정합니다.";
+    const useTextNeo = uses.length ? `다른 자리의 재·관·식상 쓰임인 ${josa(uses.join("·"), "을", "를")} 같이 봐.` : "다른 자리에 재·관·식상이 드러나지 않아서 억부·조후로 쓰임을 정해.";
+    let reason = "", reasonNeo = "", confident = true;
+    if (g.type === "특수격") {
+      const adopted = core.special.candidates.find((c) => c.id === core.special.adopted) || {};
+      reason = `원국이 ${g.name}의 필수 조건을 모두 충족해 ${josa(g.familyKo, "으로", "로")} 봅니다.`;
+      reasonNeo = `원국이 ${g.name}의 필수 조건을 모두 채워서 ${josa(g.familyKo, "으로", "로")} 봐.`;
+      if (adopted.isGa) {
+        reason += " 일간을 돕는 글자가 있어도 실제 뿌리로 작용하지 못하는 가종(假從)의 조건입니다.";
+        reasonNeo += " 일간을 돕는 글자가 있어도 실제 뿌리로 작용하지 못하는 가종(假從)의 조건이야.";
+      }
+    } else if (m.kind === "rok") {
+      reason = `월지 ${josa(mbKo, "이", "가")} 일간 ${dKo}의 건록 자리라 건록격으로 봅니다. 건록격은 일반격이며, ${useText}`;
+      reasonNeo = `월지 ${josa(mbKo, "이", "가")} 일간 ${dKo}의 건록 자리라 건록격으로 봐. 건록격은 일반격이고, ${useTextNeo}`;
+    } else if (m.kind === "yangin") {
+      reason = `월지 ${josa(mbKo, "이", "가")} 양간 일간 ${dKo}의 양인 자리라 양인격으로 봅니다. 양인격은 일반격이며, ${useText}`;
+      reasonNeo = `월지 ${josa(mbKo, "이", "가")} 양간 일간 ${dKo}의 양인 자리라 양인격으로 봐. 양인격은 일반격이고, ${useTextNeo}`;
+    } else if (m.kind === "yuejie") {
+      const picked = josa(`${STEM_KO[m.chosen.stem] || m.chosen.stem}(${m.chosen.layer})`, "이", "가"), god = josa(m.tenGod, "이라", "라");
+      reason = `월령에서 취한 ${picked} ${god} 월겁격으로 봅니다. 월겁격은 일반격이며, ${useText}`;
+      reasonNeo = `월령에서 취한 ${picked} ${god} 월겁격으로 봐. 월겁격은 일반격이고, ${useTextNeo}`;
+    } else {
+      const god = m.tenGod;
+      if (m.chosen.exposed) {
+        reason = `월지 ${mbKo} 지장간의 ${josa(god, "이", "가")} 천간에 투출되어 ${josa(m.name, "이", "가")} 뚜렷합니다.`;
+        reasonNeo = `월지 ${mbKo} 지장간의 ${josa(god, "이", "가")} 천간에 투출돼서 ${josa(m.name, "이", "가")} 뚜렷해.`;
+      } else {
+        reason = `월지 ${mbKo} 지장간의 ${josa(god, "을", "를")} 기준으로 ${josa(m.name, "으로", "로")} 보되, 투출이 약해 확정도는 낮습니다.`;
+        reasonNeo = `월지 ${mbKo} 지장간의 ${josa(god, "을", "를")} 기준으로 ${josa(m.name, "으로", "로")} 보되, 투출이 약해서 확정도는 낮아.`;
+        confident = false;
+      }
+    }
+    if (m.hourSensitive && g.type !== "특수격") {
+      reason += ` 시주에 따라 월령 구조가 ${josa(m.alternatives.join("·"), "으로", "로")} 갈려 확정하지 않습니다.`;
+      reasonNeo += ` 시주에 따라 월령 구조가 ${josa(m.alternatives.join("·"), "으로", "로")} 갈려서 확정하지 않아.`;
+      confident = false;
+    }
+    const pending = g.pendingSpecial || [];
+    if (pending.length) {
+      reason += ` 특수격 후보(${pending.join("·")})는 시주나 문헌 이설 때문에 판정을 보류하고 일반격 기준으로 읽습니다.`;
+      reasonNeo += ` 특수격 후보(${pending.join("·")})는 시주나 문헌 이설 때문에 판정을 보류하고 일반격 기준으로 읽어.`;
+    }
+    return {
+      name: g.name,
+      type: g.type,
+      family: g.family,
+      familyKo: g.familyKo,
+      ruleId: g.ruleId,
+      isGa: g.isGa === true,
+      monthStructure: g.monthStructure,
+      subUses: m.subUses || [],
+      pendingSpecial: pending,
+      confident,
+      reason,
+      reasonNeo
+    };
+  }
+
+  // lib/saju/natal-core/climate.mjs
+  var BRANCH_TEMP = { 子: -4, 丑: -4, 寅: -1, 卯: 1, 辰: 2, 巳: 3, 午: 4, 未: 4, 申: 1, 酉: -1, 戌: -2, 亥: -3 };
+  var SEASON = { 寅: "봄", 卯: "봄", 辰: "봄", 巳: "여름", 午: "여름", 未: "여름", 申: "가을", 酉: "가을", 戌: "가을", 亥: "겨울", 子: "겨울", 丑: "겨울" };
+  var JOHU_NEED = {
+    hot: ["water", "metal"],
+    warm: ["water", "metal"],
+    cold: ["fire", "wood"],
+    cool: ["fire", "wood"],
+    dry: ["water", "wood"],
+    wet: ["fire", "earth"]
+  };
+  function score(chart) {
+    let temp = BRANCH_TEMP[chart.m.j];
+    let moist = 0, dry = 0;
+    const counts = { fc: 0, wc: 0, wdc: 0, mc: 0 };
+    for (const pos of ["y", "m", "d", "h"]) for (const c of [chart[pos].g, chart[pos].j]) {
+      if (!c) continue;
+      const e = STEM_EL[c] || BRANCH_EL[c];
+      if (e === "fire") {
+        temp += 1.5;
+        counts.fc++;
+        dry++;
+      } else if (e === "water") {
+        temp -= 1.5;
+        counts.wc++;
+        moist++;
+      } else if (e === "wood") {
+        temp += 0.5;
+        counts.wdc++;
+        moist++;
+      } else if (e === "metal") {
+        temp -= 0.5;
+        counts.mc++;
+        dry++;
+      }
+      if (BRANCH_EL[c]) {
+        if (c === "辰" || c === "丑") moist++;
+        if (c === "戌" || c === "未") dry++;
+      }
+    }
+    return { temp, moist, dry, diff: moist - dry, counts };
+  }
+  var tempType = (s) => s >= 5 ? "hot" : s >= 2 ? "warm" : s >= -2 ? "neutral" : s >= -5 ? "cool" : "cold";
+  var moistType = (d) => d >= 3 ? "wet" : d <= -3 ? "dry" : "balanced";
+  var NEED = { hot: "high", cold: "high", warm: "some", cool: "some", neutral: "low" };
+  var moistNeed = (d) => Math.abs(d) >= 5 ? "high" : Math.abs(d) >= 3 ? "some" : "low";
+  function analyzeClimate(p) {
+    const chart = normalizeChart(p);
+    const insufficient = (reason) => ({ type: "insufficient", reason });
+    if (!chart.monthKnown || !chart.dayKnown || !(chart.m.j in BRANCH_TEMP)) {
+      return { complete: false, hourKnown: chart.hourKnown, season: "", hanNan: insufficient("월지 미상"), joSeup: insufficient("월지 미상"), needLevel: { hanNan: "unknown", joSeup: "unknown" }, supplements: {} };
+    }
+    const variants = chart.hourKnown ? [chart] : possibleHourPillars(chart.d.g).map((h) => ({ ...chart, h }));
+    const rows = variants.map(score);
+    if (rows.some((r) => !Number.isFinite(r.temp) || !Number.isFinite(r.diff))) {
+      return { complete: false, hourKnown: chart.hourKnown, season: SEASON[chart.m.j], hanNan: insufficient("계산 실패"), joSeup: insufficient("계산 실패"), needLevel: { hanNan: "unknown", joSeup: "unknown" }, supplements: {} };
+    }
+    const temps = [...new Set(rows.map((r) => tempType(r.temp)))];
+    const moists = [...new Set(rows.map((r) => moistType(r.diff)))];
+    const base = chart.hourKnown ? rows[0] : score(chart);
+    const hourNote = chart.hourKnown ? "" : "시주 미상";
+    const hanNan = temps.length === 1 ? { type: temps[0], score: rows[0].temp, basis: [`월지 ${chart.m.j}(${SEASON[chart.m.j]}) ${BRANCH_TEMP[chart.m.j]}`, `화 ${base.counts.fc} · 수 ${base.counts.wc} · 목 ${base.counts.wdc} · 금 ${base.counts.mc}`], ...hourNote ? { note: `${hourNote}: 가능한 12개 시주 모두 같은 판정` } : {} } : { type: "insufficient", reason: `${hourNote}: 시주에 따라 ${temps.join("/")}로 갈림`, possible: temps };
+    const joSeup = moists.length === 1 ? { type: moists[0], diff: rows[0].diff, moistCnt: rows[0].moist, dryCnt: rows[0].dry, basis: [`습 ${base.moist} · 조 ${base.dry} (辰丑 습, 戌未 조 포함)`], ...hourNote ? { note: `${hourNote}: 가능한 12개 시주 모두 같은 판정` } : {} } : { type: "insufficient", reason: `${hourNote}: 시주에 따라 ${moists.join("/")}로 갈림`, possible: moists };
+    const counts = visibleCounts(chart).byEl;
+    const present = (type) => Object.fromEntries((JOHU_NEED[type] || []).map((e) => [e, counts[e]]));
+    return {
+      complete: chart.hourKnown,
+      hourKnown: chart.hourKnown,
+      season: SEASON[chart.m.j],
+      hanNan,
+      joSeup,
+      needLevel: { hanNan: NEED[hanNan.type] || "unknown", joSeup: joSeup.type === "insufficient" ? "unknown" : moistNeed(joSeup.diff) },
+      supplements: { hanNan: { needed: JOHU_NEED[hanNan.type] || [], presentInChart: present(hanNan.type) }, joSeup: { needed: JOHU_NEED[joSeup.type] || [], presentInChart: present(joSeup.type) } },
+      legacyScore: { score: base.temp, diff: base.diff, moistCnt: base.moist, dryCnt: base.dry, ...base.counts }
+    };
+  }
+
+  // lib/saju/natal-core/strength.mjs
+  var elOf = (c) => STEM_EL[c] || BRANCH_EL[c] || "";
+  function strengthOf(chart, hidden) {
+    const dayEl = STEM_EL[chart.d.g];
+    if (!dayEl) return null;
+    const parEl = parentOf(dayEl);
+    let score2 = 0;
+    const mjEl = BRANCH_EL[chart.m.j];
+    if (mjEl) {
+      if (mjEl === dayEl) score2 += 40;
+      else if (mjEl === parEl) score2 += 27;
+      else if (CONTROLS[mjEl] === dayEl) score2 -= 27;
+      else if (GENERATES[dayEl] === mjEl) score2 -= 10;
+    }
+    const djEl = BRANCH_EL[chart.d.j];
+    if (djEl) {
+      if (djEl === dayEl || djEl === parEl) score2 += 13;
+      else if (CONTROLS[djEl] === dayEl) score2 -= 9;
+    }
+    for (const c of [chart.y.g, chart.y.j, chart.m.g, chart.h.g, chart.h.j]) {
+      const ce = elOf(c);
+      if (!ce) continue;
+      if (ce === dayEl || ce === parEl) score2 += 7;
+      else if (CONTROLS[ce] === dayEl) score2 -= 7;
+    }
+    const isStrong = score2 >= 30;
+    const drain = GENERATES[dayEl];
+    const yongshin = isStrong ? [drain, GENERATES[drain], controllerOf(dayEl)] : [dayEl, parEl];
+    const kijishin = isStrong ? [dayEl, parEl] : [GENERATES[dayEl], controllerOf(dayEl), CONTROLS[dayEl]];
+    const roots = rootSummary(hidden, dayEl);
+    return {
+      isStrong,
+      score: score2,
+      yongshin,
+      kijishin,
+      dayEl,
+      parEl,
+      complete: chart.hourKnown && Boolean(mjEl),
+      evidence: {
+        deukryeong: mjEl ? relationOf(dayEl, mjEl) : "unknown",
+        dayRoots: { effective: roots.effective, weak: roots.weak },
+        parentRoots: rootSummary(hidden, parEl).any,
+        threshold: 30,
+        basis: "calcPower: 월지 ±40/27/10, 일지 ±13/9, 나머지 ±7"
+      }
+    };
+  }
+
+  // lib/saju/natal-core/version.mjs
+  var NATAL_CORE_VERSION = "natal-core-v1";
+
+  // lib/saju/natal-core/index.mjs
+  var NATAL_RULE_PROFILE = Object.freeze({
+    id: "rok-yangin-strictjong-v1",
+    // 개발 정책 보조값. 고전 원문의 수치가 아니다.
+    followShare: 0.7,
+    outputMin: 3,
+    chungRootFactor: 0.5
+  });
+  function deepFreeze(value) {
+    if (value && typeof value === "object" && !Object.isFrozen(value)) {
+      Object.freeze(value);
+      for (const v of Object.values(value)) deepFreeze(v);
+    }
+    return value;
+  }
+  function fnv(text, seed) {
+    let h = seed >>> 0;
+    for (let i = 0; i < text.length; i++) {
+      h ^= text.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h.toString(16).padStart(8, "0");
+  }
+  var stableHash = (text) => fnv(String(text), 2166136261) + fnv(String(text), 3735928559);
+  function natalAnalysisKeyMaterial({ pillars, ruleProfileId = NATAL_RULE_PROFILE.id, birthKey = "", engineVersion = "" } = {}) {
+    const chart = normalizeChart(pillars);
+    const text = POSITIONS.map((pos) => pillarText(chart, pos) || "-").join("");
+    return [NATAL_CORE_VERSION, ruleProfileId, engineVersion, birthKey, text, chart.hourKnown ? "hour" : "no-hour"].join("|");
+  }
+  var natalAnalysisId = (opts) => `nc1-${stableHash(natalAnalysisKeyMaterial(opts))}`;
+  function tonggwan(counts) {
+    const top = [...ELEMENTS].sort((a2, b2) => counts.byEl[b2] - counts.byEl[a2]).slice(0, 2);
+    const [a, b] = top;
+    if (counts.byEl[a] < 3 || counts.byEl[b] < 3) return { status: "none", note: "맞서는 두 세력이 뚜렷하지 않음" };
+    const controller = CONTROLS[a] === b ? a : CONTROLS[b] === a ? b : "";
+    if (!controller) return { status: "none", note: "상위 두 오행이 극 관계가 아님" };
+    const controlled = controller === a ? b : a;
+    return { status: "candidate", elements: [GENERATES[controller]], note: `${EL_KO[controller]}·${EL_KO[controlled]}이 맞서 ${EL_KO[GENERATES[controller]]}이 잇는다` };
+  }
+  function yongshinBreakdown({ strength, climate, month, special, counts, profile }) {
+    const adopted = special.decision === "special" ? special.adopted : null;
+    const johu = {
+      hanNan: { type: climate.hanNan.type, elements: JOHU_NEED[climate.hanNan.type] || [] },
+      joSeup: { type: climate.joSeup.type, elements: JOHU_NEED[climate.joSeup.type] || [] }
+    };
+    const gyeok = month.status !== "pass" ? { status: "unknown" } : month.kind === "regular" ? { status: "not-evaluated", structure: month.name, note: "상신 선택은 이 버전에서 자동화하지 않음" } : { status: "candidates", structure: month.name, subUses: month.subUses, wealthOfficerRole: "not-kishin-by-rok" };
+    const conflicts = [];
+    const avoid = new Set(strength?.kijishin || []);
+    for (const axis of ["hanNan", "joSeup"]) for (const el of johu[axis].elements) {
+      if (avoid.has(el)) conflicts.push({ between: ["eokbu", `johu.${axis}`], element: el, note: `${EL_KO[el]}: 억부에서는 꺼리고 조후에서는 필요` });
+    }
+    return {
+      eokbu: strength ? { useful: strength.yongshin, avoid: strength.kijishin, isStrong: strength.isStrong, applies: !adopted } : null,
+      johu,
+      gyeokguk: gyeok,
+      tonggwan: tonggwan(counts),
+      byeongyak: { status: "not-evaluated" },
+      special: adopted ? { name: adopted.name, follow: [adopted.dominant, adopted.second] } : null,
+      conflicts,
+      // 충돌은 평균 내지 않고 함께 표시한다. 우선순위는 프로필이 정한다.
+      priority: adopted ? ["special", "johu"] : ["gyeokguk", "eokbu", "johu", "tonggwan"],
+      profile: profile.id
+    };
+  }
+  function analyzeNatalCore(pillars, { ruleProfile = NATAL_RULE_PROFILE } = {}) {
+    const chart = normalizeChart(pillars);
+    const profile = ruleProfile;
+    const head = {
+      version: NATAL_CORE_VERSION,
+      ruleProfile: profile.id,
+      input: { pillars: Object.fromEntries(POSITIONS.map((pos) => [pos, pillarText(chart, pos)])), hourKnown: chart.hourKnown, monthKnown: chart.monthKnown },
+      analysisId: natalAnalysisId({ pillars: chart, ruleProfileId: profile.id })
+    };
+    if (!chart.dayKnown) return deepFreeze({ ...head, status: "invalid", limitations: ["일주 미상"] });
+    const hidden = hiddenStemsOf(chart);
+    const counts = visibleCounts(chart);
+    const variants = chart.hourKnown ? [chart] : possibleHourPillars(chart.d.g).map((h) => ({ ...chart, h, hourKnown: true }));
+    const candidates = variants.length === 1 ? evaluateSpecialFull(chart, profile) : mergeHourVariants(variants.map((v) => evaluateSpecialFull(v, profile)));
+    const special = decideSpecial(candidates);
+    const month = monthStructure(chart);
+    const monthByHour = new Set(variants.map((v) => monthStructure(v).name));
+    if (!chart.hourKnown && monthByHour.size > 1) {
+      month.hourSensitive = true;
+      month.alternatives = [...monthByHour];
+    }
+    const gyeokguk = finalGyeokguk(month, special);
+    const strength = strengthOf(chart, hidden);
+    const climate = analyzeClimate(chart);
+    const dayEl = STEM_EL[chart.d.g];
+    const limitations = [];
+    if (!chart.hourKnown) limitations.push("시주 미상: 시주에 따라 갈리는 판정은 보류합니다.");
+    if (!chart.monthKnown) limitations.push("월주 미상: 월령 판정을 하지 않습니다.");
+    if (special.decision === "pending") limitations.push(`특수격 판정 보류: ${special.pending.join(", ")}`);
+    return deepFreeze({
+      ...head,
+      status: "ok",
+      dayMaster: { stem: chart.d.g, el: dayEl, yang: STEM_YANG[chart.d.g] },
+      hidden,
+      counts,
+      roots: { day: rootSummary(hidden, dayEl) },
+      relations: { stems: stemCombinations(chart, hidden), branches: branchRelations(chart) },
+      monthStructure: month,
+      special: { decision: special.decision, adopted: special.adopted ? special.adopted.id : null, candidates },
+      gyeokguk: { ...gyeokguk, familyKo: FAMILY_KO[gyeokguk.family] },
+      strength,
+      climate,
+      yongshin: yongshinBreakdown({ strength, climate, month, special, counts, profile }),
+      limitations
+    });
+  }
+
   // worker/lib/saju-gyeokguk.js
+  function natalCoreFromPillarRows(pillarRows, dayStem) {
+    const rows = Array.isArray(pillarRows) ? pillarRows : [];
+    const natalPillars = {};
+    for (const [position, key] of [["year", "y"], ["month", "m"], ["day", "d"], ["hour", "h"]]) {
+      const row = rows.find((r) => r?.position === position);
+      if (row) natalPillars[key] = { g: normalizeStemChar(row.stem), j: normalizeBranchChar(row.branch) };
+    }
+    const day = normalizeStemChar(dayStem);
+    if (day && !natalPillars.d?.g) natalPillars.d = { ...natalPillars.d, g: day };
+    return analyzeNatalCore(natalPillars);
+  }
   var STEM_ELEMENT_KEY = Object.freeze({
     甲: "wood",
     乙: "wood",
@@ -59,7 +877,7 @@ var SajuReadingDepth = (() => {
     壬: "yang",
     癸: "yin"
   });
-  var STEM_KO = Object.freeze({
+  var STEM_KO2 = Object.freeze({
     甲: "갑",
     乙: "을",
     丙: "병",
@@ -71,7 +889,7 @@ var SajuReadingDepth = (() => {
     壬: "임",
     癸: "계"
   });
-  var BRANCH_KO = Object.freeze({
+  var BRANCH_KO2 = Object.freeze({
     子: "자",
     丑: "축",
     寅: "인",
@@ -239,7 +1057,7 @@ var SajuReadingDepth = (() => {
     癸巳: "태",
     癸辰: "양"
   });
-  var GEOK_BY_TEN_GOD = Object.freeze({
+  var GEOK_BY_TEN_GOD2 = Object.freeze({
     정관: "정관격",
     편관: "편관격",
     정재: "정재격",
@@ -291,23 +1109,17 @@ var SajuReadingDepth = (() => {
     if (ELEMENT_CONTROLS[targetElement] === dayElement) return samePolarity ? "편관" : "정관";
     return "";
   }
-  function getTwelveLifeStage(dayStem, branch) {
-    const day = normalizeStemChar(dayStem);
-    const zhi = normalizeBranchChar(branch);
-    if (!day || !zhi) return "";
-    return TWELVE_LIFE_STAGE_MAP[`${day}${zhi}`] || "";
-  }
   function collectAllTenGods(pillarRows, hiddenStems, dayStem) {
     const present = /* @__PURE__ */ new Set();
     const day = normalizeStemChar(dayStem);
     (Array.isArray(pillarRows) ? pillarRows : []).forEach((row) => {
       if (row?.position === "day") return;
-      const tenGod = getTenGodFromDayMaster(day, row?.stem);
-      if (tenGod) present.add(tenGod);
+      const tenGod2 = getTenGodFromDayMaster(day, row?.stem);
+      if (tenGod2) present.add(tenGod2);
     });
     (Array.isArray(hiddenStems) ? hiddenStems : []).forEach((item) => {
-      const tenGod = item?.tenGodFromDayMaster || getTenGodFromDayMaster(day, item?.hiddenStem);
-      if (tenGod) present.add(tenGod);
+      const tenGod2 = item?.tenGodFromDayMaster || getTenGodFromDayMaster(day, item?.hiddenStem);
+      if (tenGod2) present.add(tenGod2);
     });
     return present;
   }
@@ -357,25 +1169,25 @@ var SajuReadingDepth = (() => {
     const day = normalizeStemChar(dayStem) || normalizeStemChar(rows.find((r) => r?.position === "day")?.stem);
     const monthRow = rows.find((r) => r?.position === "month") || {};
     const monthBranch = normalizeBranchChar(monthRow.branch);
-    const monthBranchKo = BRANCH_KO[monthBranch] || "";
+    const monthBranchKo = BRANCH_KO2[monthBranch] || "";
     const exposedSet = new Set(
       (Array.isArray(hiddenStemExposures) ? hiddenStemExposures : []).filter((row) => row?.exposedInNatalHeavenlyStem).map((row) => normalizeStemChar(row?.hiddenStem)).filter(Boolean)
     );
     const monthHidden = (Array.isArray(hiddenStems) ? hiddenStems : []).filter((item) => item?.position === "month" && normalizeBranchChar(item?.branch) === monthBranch).map((item) => {
       const hiddenStem = normalizeStemChar(item?.hiddenStem);
-      const tenGod = item?.tenGodFromDayMaster || getTenGodFromDayMaster(day, hiddenStem);
+      const tenGod2 = item?.tenGodFromDayMaster || getTenGodFromDayMaster(day, hiddenStem);
       const exposed = exposedSet.has(hiddenStem);
       const layerWeight = LAYER_WEIGHT[item?.layer] ?? 0.35;
-      const geok = GEOK_BY_TEN_GOD[tenGod] || null;
-      const score = Number((layerWeight + (exposed ? EXPOSURE_BONUS : 0)).toFixed(2));
+      const geok = GEOK_BY_TEN_GOD2[tenGod2] || null;
+      const score2 = Number((layerWeight + (exposed ? EXPOSURE_BONUS : 0)).toFixed(2));
       return {
         hiddenStem,
-        hiddenStemKo: STEM_KO[hiddenStem] || "",
+        hiddenStemKo: STEM_KO2[hiddenStem] || "",
         layer: item?.layer || "",
-        tenGod,
+        tenGod: tenGod2,
         exposed,
         geok,
-        score
+        score: score2
       };
     });
     const monthHiddenSummary = monthHidden.map((row) => ({
@@ -392,41 +1204,13 @@ var SajuReadingDepth = (() => {
       exposed: row.exposed,
       score: row.score
     }));
-    const mainQi = monthHidden.find((row) => row.layer === "정기") || monthHidden[0] || null;
-    const monthStage = getTwelveLifeStage(day, monthBranch);
-    const dayIsYang = STEM_POLARITY[day] === "yang";
-    let finalGyeokguk = "";
-    let finalType = "일반격";
-    let judgmentReason = "";
-    let confident = true;
-    if (jong && jong.isJong) {
-      finalGyeokguk = String(jong.name || "종격").trim() || "종격";
-      finalType = "특수격";
-      judgmentReason = "일간이 극도로 편중되어 종격(특수격)으로 성립합니다. 정기·투출보다 세력의 종속이 우선입니다.";
-    } else if (mainQi && (mainQi.tenGod === "비견" || mainQi.tenGod === "겁재")) {
-      if (monthStage === "건록") {
-        finalGyeokguk = "건록격";
-        judgmentReason = `월지 ${monthBranchKo}가 일간 ${STEM_KO[day] || day}의 건록 자리라 건록격으로 봅니다.`;
-      } else if (monthStage === "제왕" && dayIsYang) {
-        finalGyeokguk = "양인격";
-        judgmentReason = `월지 ${monthBranchKo}가 양간 일간의 제왕(양인) 자리라 양인격으로 봅니다.`;
-      } else {
-        finalGyeokguk = "월겁격";
-        judgmentReason = `월령 본기가 ${mainQi.tenGod}이라 정규 격 대신 월겁격(신강 구조)으로 봅니다.`;
-      }
-      finalType = "특수격";
-    } else if (candidates.length) {
-      const best = candidates[0];
-      finalGyeokguk = best.name;
-      finalType = "일반격";
-      judgmentReason = best.exposed ? `월지 ${monthBranchKo} 지장간의 ${best.tenGod}이 천간에 투출되어 ${best.name}이 뚜렷합니다.` : `월지 ${monthBranchKo} 지장간의 ${best.tenGod}을 기준으로 ${best.name}으로 보되, 투출이 약해 확정도는 낮습니다.`;
-      if (!best.exposed) confident = false;
-    } else {
-      finalGyeokguk = "미정";
-      finalType = "참고";
-      judgmentReason = "월지 지장간에서 뚜렷한 정규 격이 성립하지 않아, 억부·조후 흐름으로 보완해 읽습니다.";
-      confident = false;
-    }
+    const natalCore = natalCoreFromPillarRows(rows, day);
+    const view = gyeokgukView(natalCore);
+    const finalGyeokguk2 = view.name;
+    const finalType = view.type;
+    const judgmentReason = view.reason;
+    const judgmentReasonNeo = view.reasonNeo;
+    const confident = view.confident;
     const breakFactors = [];
     const presentTenGods = collectAllTenGods(rows, hiddenStems, day);
     if (presentTenGods.has("정관") && presentTenGods.has("편관")) {
@@ -436,7 +1220,7 @@ var SajuReadingDepth = (() => {
       const chungTarget = CHUNG_PAIRS[monthBranch];
       const chungHit = rows.some((r) => r?.position !== "month" && normalizeBranchChar(r?.branch) === chungTarget);
       if (chungHit) {
-        breakFactors.push({ type: "월지충", detail: `월지 ${monthBranchKo}가 ${BRANCH_KO[chungTarget] || chungTarget}와 충하여 격의 뿌리가 흔들립니다.` });
+        breakFactors.push({ type: "월지충", detail: `월지 ${monthBranchKo}가 ${BRANCH_KO2[chungTarget] || chungTarget}와 충하여 격의 뿌리가 흔들립니다.` });
       }
     }
     if (doChung && doChung.exists) {
@@ -448,16 +1232,26 @@ var SajuReadingDepth = (() => {
     }
     const luckTiming = buildLuckTiming(luckRows, power, jong, day);
     return {
-      finalGyeokguk,
+      finalGyeokguk: finalGyeokguk2,
       finalType,
       judgmentReason,
+      judgmentReasonNeo,
       confident,
       monthBranch,
       monthBranchKo,
       monthHiddenStems: monthHiddenSummary,
       candidates: candidates.slice(0, 3),
       breakFactors,
-      luckTiming
+      luckTiming,
+      family: view.family,
+      familyKo: view.familyKo,
+      isGa: view.isGa,
+      ruleId: view.ruleId,
+      monthStructure: view.monthStructure,
+      subUses: view.subUses,
+      pendingSpecial: view.pendingSpecial,
+      natalAnalysisId: natalCore.analysisId,
+      natalCoreVersion: natalCore.version
     };
   }
 
@@ -696,13 +1490,19 @@ var SajuReadingDepth = (() => {
   var XUN_KONG = Object.freeze(["戌亥", "申酉", "午未", "辰巳", "寅卯", "子丑"]);
 
   // lib/saju/reading-depth.mjs
-  var STEM_ORDER = [..."甲乙丙丁戊己庚辛壬癸"];
+  var STEM_ORDER2 = [..."甲乙丙丁戊己庚辛壬癸"];
   var MONTH_ORDER = [..."寅卯辰巳午未申酉戌亥子丑"];
-  var BRANCH_ORDER = [..."子丑寅卯辰巳午未申酉戌亥"];
+  var BRANCH_ORDER2 = [..."子丑寅卯辰巳午未申酉戌亥"];
   var GOD_KO = { 比肩: "비견", 劫财: "겁재", 食神: "식신", 伤官: "상관", 偏财: "편재", 正财: "정재", 七杀: "편관", 正官: "정관", 偏印: "편인", 正印: "정인" };
   var ELEMENT_KO = { wood: "목", fire: "화", earth: "토", metal: "금", water: "수" };
   var POS = { y: "year", m: "month", d: "day", h: "hour" };
   var POS_KO = { y: "년주", m: "월주", d: "일주", h: "시주" };
+  function jo(word, withBatchim, withoutBatchim) {
+    const value = String(word ?? ""), code = value.charCodeAt(value.length - 1) - 44032;
+    const batchim = code >= 0 && code <= 11171 ? code % 28 : -1;
+    if (batchim < 0) return `${withBatchim}(${withoutBatchim})`;
+    return batchim === 0 || batchim === 8 && withoutBatchim === "로" ? withoutBatchim : withBatchim;
+  }
   var STEMS = {
     甲: ["갑목", "뿌리를 내리고 위로 자라는 나무", "스스로 방향을 정하고 끝까지 성장하려는 마음", "기준을 세우고 앞장서는 힘이 있어요. 그 기준이 굳어지면 도움을 받아도 간섭처럼 느낄 수 있어요.", "목표와 책임이 분명한 일을 맡되, 중간 점검에서 다른 사람의 방법도 받아들여 보세요.", "존중받는다는 느낌이 중요해요. 상대에게 방향을 제시하기 전에 어떤 도움을 원하는지 물어보세요.", "성장 가능성을 보고 자원을 오래 묶어둘 수 있어요. 기대하는 미래와 지금 감당할 비용을 따로 적어 보세요.", "완수한 일과 아직 자라는 일을 나눠 적고, 끝내지 못한 일을 모두 실패로 묶지 않아 보세요."],
     乙: ["을목", "환경을 살피며 뻗는 덩굴과 풀", "관계를 해치지 않으면서 나의 자리를 확보하려는 마음", "상황을 읽고 방법을 바꾸는 힘이 있어요. 적응이 길어지면 정작 내가 원하는 것을 놓치기 쉬워요.", "조율·편집·연결 역할에서 능력을 시험하되, 맡은 범위와 최종 결정권을 먼저 정해 보세요.", "작은 말과 분위기를 섬세하게 읽을 수 있어요. 짐작한 마음을 사실처럼 다루기 전에 대화로 확인해 보세요.", "관계나 생활의 필요 때문에 지출이 늘 수 있어요. 다른 사람을 위한 비용에도 자신만의 한도를 두세요.", "오늘 맞춰 준 일 가운데 다음에는 거절해도 될 일 하나를 골라 보세요."],
@@ -729,6 +1529,34 @@ var SajuReadingDepth = (() => {
     戌: ["술", "지켜야 할 가치와 경계를 먼저 살피는", "믿음을 행동으로 확인하기", "혼자 책임지며 경계심을 높이기", "내가 맡을 몫과 함께 해결할 몫을 구분해 보세요."],
     亥: ["해", "경험을 넓게 받아들이고 안에서 연결하는", "판단받지 않고 이야기할 공간", "생각과 감정을 안으로 오래 모으기", "받아들인 정보 가운데 오늘 쓸 한 가지만 남겨 보세요."]
   };
+  var STEMS_NEO = {
+    甲: ["기준을 세우고 앞장서는 힘이 있어. 그 기준이 굳어지면 도움을 받아도 간섭처럼 느낄 수 있어.", "목표와 책임이 분명한 일을 맡되, 중간 점검 때는 다른 사람 방법도 받아들여 봐.", "존중받는다는 느낌이 너한테 중요해. 상대에게 방향을 제시하기 전에 어떤 도움을 원하는지 먼저 물어봐.", "성장 가능성을 보고 자원을 오래 묶어 둘 수 있어. 기대하는 미래와 지금 감당할 비용을 따로 적어 봐.", "끝낸 일과 아직 자라는 일을 나눠 적어 봐. 끝내지 못한 일을 전부 실패로 묶을 필요는 없어."],
+    乙: ["상황을 읽고 방법을 바꾸는 힘이 있어. 적응이 길어지면 정작 네가 원하는 걸 놓치기 쉬워.", "조율·편집·연결 역할에서 능력을 시험해 보되, 맡은 범위와 최종 결정권부터 정해 둬.", "작은 말과 분위기를 섬세하게 읽을 수 있어. 짐작한 마음을 사실처럼 다루기 전에 대화로 확인해 봐.", "관계나 생활의 필요 때문에 지출이 늘 수 있어. 다른 사람을 위한 비용에도 너만의 한도를 둬.", "오늘 맞춰 준 일 가운데 다음엔 거절해도 될 일 하나를 골라 봐."],
+    丙: ["기회를 알리고 사람을 움직이는 힘이 있어. 열정이 앞서면 상대의 속도나 마무리를 놓치기 쉬워.", "발표·설명·기획처럼 드러나는 역할에 실행 담당과 점검 일정을 같이 붙여 봐.", "마음을 표현하는 데 솔직한 편일 수 있어. 큰 표현만이 아니라 작은 약속을 지키는 걸로 온기를 이어 가 봐.", "가능성이 보이면 먼저 쓰고 싶어질 수 있어. 시작 비용과 유지 비용을 나눠서 확인해 봐.", "사람을 안 만나는 시간을 미리 정해 두고, 오늘 받은 반응으로 네 가치를 매기지 않아도 돼."],
+    丁: ["관찰하고 몰입하는 힘이 있어. 속으로 오래 품다 보면 작은 실망도 쉽게 소진으로 이어질 수 있어.", "연구·제작·돌봄처럼 깊이 쌓는 일을 하되, 완성 기준과 도움을 청할 시점을 정해 봐.", "세심하게 챙기는 만큼 알아주길 바랄 수 있어. 네가 바라는 배려를 상대가 알아맞히게 두지 말고 말로 꺼내 봐.", "가치 있다고 느끼는 데에는 꾸준히 투자할 수 있어. 애착과 실제 쓰임을 나눠서 점검해 봐.", "혼자 정리할 시간을 가진 다음엔, 믿을 만한 한 사람에게 필요한 도움을 구체적으로 말해 봐."],
+    戊: ["책임을 맡고 버티는 힘이 있어. 버티는 게 익숙해지면 바꿔야 할 조건까지 지키고 있을 수 있어.", "운영·관리·장기 프로젝트에서 역할을 시험해 보되, 유지할 것과 바꿀 것을 주기적으로 나눠 봐.", "말보다 오래 함께하는 행동으로 신뢰를 보여 주는 편일 수 있어. 침묵이 무관심으로 읽히지 않게 설명을 한마디 더해 줘.", "안정적인 자산과 익숙한 방식에 마음이 갈 수 있어. 안전하다는 느낌과 실제 유동성은 구분해서 봐.", "네 책임이 아닌 일까지 품고 있진 않은지 적어 보고, 그중 하나는 원래 담당자에게 돌려줘 봐."],
+    己: ["세부를 챙기고 현실에 맞게 다듬는 힘이 있어. 돌볼 게 많아지면 네 필요를 뒤로 미룰 수 있어.", "지원·설계·운영처럼 여러 조건을 맞추는 일을 하되, 남을 돕는 시간도 업무로 계산해.", "생활을 같이 챙기는 방식으로 친밀감을 쌓을 수 있어. 돌봄이 의무가 되기 전에 서로의 몫을 이야기해 봐.", "작은 낭비를 줄이는 데 강해. 아끼느라 필요한 배움이나 휴식까지 미루고 있진 않은지 살펴봐.", "해야 할 일 목록에 너를 위한 한 칸도 같은 무게로 넣어 봐."],
+    庚: ["판단하고 정리하는 힘이 있어. 빨리 결론을 내는 만큼 상대의 사정은 뒤늦게 보일 수 있어.", "문제 해결·기술·의사결정 역할에서 능력을 시험해 보되, 판단 전에 반대 근거도 하나 확인해 봐.", "일관된 행동과 약속을 중요하게 여길 수 있어. 문제를 고쳐 주는 것과 마음을 들어 주는 건 구분해 봐.", "효율과 성과가 분명한 지출을 좋아할 수 있어. 숫자로 바로 안 드러나는 유지 비용도 살펴봐.", "당장 결론 낼 필요가 없는 일은 시간을 정해 두고 보류해 봐."],
+    辛: ["차이를 알아보고 정교하게 다듬는 힘이 있어. 기준이 높아지면 시작 자체가 늦어질 수 있어.", "검수·분석·디자인처럼 정밀함을 쓰는 일을 하되, 초안과 최종본의 기준은 다르게 잡아 봐.", "말의 온도와 예의를 중요하게 느낄 수 있어. 상처를 오래 곱씹기보다 어떤 말이 힘들었는지 설명해 봐.", "질 좋은 걸 오래 쓰는 선택에 마음이 갈 수 있어. 취향을 위한 지출과 꼭 필요한 비용은 구분해 둬.", "완벽하지 않아도 보여 줄 수 있는 작은 초안을 만들어 봐. 평가와 네 가치는 분리해서 봐."],
+    壬: ["변화를 읽고 연결하는 힘이 있어. 선택지가 늘어나면 한곳에 힘을 모으기 어려울 수 있어.", "조사·기획·이동·연결 역할을 시험해 보되, 탐색이 끝나는 날짜와 첫 결과물을 정해 둬.", "함께 성장할 여지와 자유를 중요하게 여길 수 있어. 거리가 필요하다고 말하지 않으면 회피로 읽힐 수도 있어.", "새로운 흐름과 기회에 관심이 갈 수 있어. 관심 목록과 실제로 감당할 자원은 나눠 둬.", "열어 둔 선택지 가운데 이번 주엔 확인하지 않을 것부터 정해 봐."],
+    癸: ["관찰하고 기억하며 세밀하게 연결하는 힘이 있어. 생각을 오래 품으면 움직일 때를 놓칠 수 있어.", "자료 분석·기록·상담·세밀한 제작에서 능력을 시험해 보되, 관찰한 걸 확인할 작은 실험을 붙여 봐.", "상대 기분을 빨리 알아차릴 수 있어. 상대 마음까지 대신 책임지지 말고, 확인한 사실부터 나눠 봐.", "앞일을 모를 때를 대비해 여유를 남겨 두고 싶을 수 있어. 대비 자금과 실제로 쓸 비용을 구분해 둬.", "걱정을 사실·추측·지금 할 수 있는 일로 나눠 적고, 마지막 항목 하나만 해 봐."]
+  };
+  var BRANCH_ACTION_NEO = {
+    子: "확인할 질문 하나를 실제 대화로 옮겨 봐.",
+    丑: "부담이 작을 때 필요한 조정을 먼저 말해 봐.",
+    寅: "시작한 일의 마무리 날짜도 같이 적어 봐.",
+    卯: "양보할 것과 지킬 것을 하나씩 정해 봐.",
+    辰: "아이디어 하나를 작게 완성해서 실제 반응을 확인해 봐.",
+    巳: "추측 대신 직접 확인할 수 있는 근거를 찾아봐.",
+    午: "급한 답은 잠깐 두고 상대 사정도 들어 봐.",
+    未: "어떤 도움이 필요한지 한 문장으로 부탁해 봐.",
+    申: "효율적인 답과 마음 편한 답이 어떻게 다른지 적어 봐.",
+    酉: "중요하지 않은 차이 하나는 그냥 둬 봐.",
+    戌: "네가 맡을 몫과 같이 풀 몫을 나눠 봐.",
+    亥: "받아들인 정보 가운데 오늘 쓸 한 가지만 남겨 봐."
+  };
+  var neoStem = (k) => [...STEMS[k].slice(0, 3), ...STEMS_NEO[k]];
+  var neoBranch = (k) => [...BRANCHES[k].slice(0, 4), BRANCH_ACTION_NEO[k]];
   var PILLAR_NOTES = {
     甲子: "스스로 정한 방향을 지키려는 갑목과 먼저 생각을 모으는 자수의 결이 만나요. 겉으로 결단한 뒤에도 속으로는 충분한 근거를 찾고 있을 수 있어요.",
     乙丑: "유연하게 관계를 잇는 을목이 축토의 축적하는 결을 만나면 천천히 신뢰를 쌓는 모습으로 읽혀요. 적응과 인내가 내 선택을 미루는 일이 되지 않는지 살펴보세요.",
@@ -791,6 +1619,68 @@ var SajuReadingDepth = (() => {
     壬戌: "탐색하는 임수와 가치를 지키는 술토가 만나요. 자유롭게 움직이고 싶으면서도 책임을 놓기 어려울 수 있으니 바꿀 범위를 합의해 보세요.",
     癸亥: "세밀한 계수와 수용하는 해수가 이어져요. 풍부한 생각과 공감을 밖으로 연결하려면 결론을 작게 내리고 시험하는 과정이 도움이 돼요."
   };
+  var PILLAR_NOTES_NEO = {
+    甲子: "스스로 정한 방향을 지키려는 갑목이랑 먼저 생각을 모으는 자수의 결이 만났어. 겉으론 결단한 뒤에도 속으로는 충분한 근거를 계속 찾고 있을 수도 있어.",
+    乙丑: "유연하게 관계를 잇는 을목이 축토의 쌓아 가는 결을 만나면, 천천히 신뢰를 쌓는 모습으로 읽혀. 적응과 인내가 네 선택을 미루는 일이 되고 있진 않은지 한번 살펴봐.",
+    丙寅: "밝게 드러내는 병화랑 새 출발을 향하는 인목이 만나서 시작하는 힘이 커질 수 있어. 사람을 모으는 그 힘을 유지하려면 실행 순서도 같이 챙겨야 해.",
+    丁卯: "한곳을 세심하게 비추는 정화랑 관계의 결을 살피는 묘목이 만났어. 남의 작은 변화를 알아채는 건 좋지만, 그 마음을 전부 대신 짊어질 필요는 없어.",
+    戊辰: "큰 틀을 지키는 무토랑 여러 가능성을 품는 진토가 만났어. 겉으론 안정적으로 보여도 속으로는 언제, 어떻게 바꿀지 오래 고민하고 있을 수도 있어.",
+    己巳: "생활을 챙기는 기토랑 목표를 향해 집중하는 사화가 만났어. 꼼꼼히 준비하는 힘이, 계획이 완벽해질 때까지 출발을 미루는 쪽으로 바뀌지 않게 해 봐.",
+    庚午: "분명한 결론을 원하는 경금이랑 표현이 빠른 오화가 만났어. 실행 속도는 장점이 될 수 있지만, 상대가 이해할 시간을 남겨 두면 네 힘이 더 잘 전해져.",
+    辛未: "기준이 정밀한 신금이랑 관계를 돌보는 미토가 만났어. 다정하게 챙기면서도 속으로는 서로의 책임이 공평한지 따져 보고 있을 수 있어.",
+    壬申: "넓게 흐르는 임수랑 방법을 바꾸는 신금의 결이 만났어. 낯선 환경을 읽는 능력을 여러 시도로 흩뜨리지 말고 결과물 하나에 모아 봐.",
+    癸酉: "미묘함을 읽는 계수랑 세부를 고르는 유금이 만났어. 관찰이 정확한 건 강점이지만, 충분히 알아야만 말할 수 있다는 부담은 좀 내려놔도 돼.",
+    甲戌: "자라려는 갑목이랑 가치를 지키려는 술토가 만났어. 앞으로 나가고 싶은 마음과 약속을 지켜야 한다는 마음 사이에서 우선순위를 정하는 연습이 도움이 될 거야.",
+    乙亥: "환경을 잇는 을목이랑 경험을 받아들이는 해수가 만났어. 남의 관점을 잘 이해하는 만큼 네 의견을 따로 남겨 두면, 관계 속에서도 너를 잃지 않아.",
+    丙子: "밖으로 표현하는 병화랑 안에서 곱씹는 자수가 같이 있어. 밝게 말한 뒤에 혼자 되짚는 시간이 필요할 수 있으니까, 두 속도를 다 인정해 줘.",
+    丁丑: "집중하는 정화랑 차근차근 쌓는 축토가 만났어. 조용한 지속력은 강점이지만, 오래 참는 걸 관계의 유일한 방법으로 삼지 않아도 돼.",
+    戊寅: "큰 틀을 지키는 무토랑 시작을 여는 인목이 만났어. 안전한 기반 위에서 넓혀 가려는 모습으로 읽히니까, 맡을 책임보다 지원 조건부터 확인해 봐.",
+    己卯: "돌보는 기토랑 세심한 묘목이 만났어. 사람 사이를 매끄럽게 잇는 재능을 쓰되, 모두를 편하게 해 주려다 네 일정이 무너지지 않게 해 봐.",
+    庚辰: "정리하는 경금이랑 가능성을 모으는 진토가 만났어. 복잡한 일을 구조로 바꾸는 데 끌릴 수 있어. 결론이 안 난 영역도 좀 남겨 둬.",
+    辛巳: "정교함을 좇는 신금이랑 집중하는 사화가 만났어. 실력을 보여 주고 싶은 마음과 평가에 대한 긴장이 같이 생길 수 있어서, 초안으로 실험할 공간이 중요해.",
+    壬午: "탐색하는 임수랑 반응이 빠른 오화가 만났어. 생각의 폭과 행동 속도가 같이 커질 수 있으니까, 즉흥적인 약속은 감당할 수 있는 범위에서만 해 봐.",
+    癸未: "스며드는 계수랑 오래 돌보는 미토가 만났어. 말 안 한 필요까지 잘 살필 수 있지만, 배려가 서운함으로 바뀌기 전에 네가 바라는 걸 꺼내 봐.",
+    甲申: "자라려는 갑목이랑 효율을 묻는 신금이 만났어. 이상을 현실 조건에 맞추는 과정이 중요해. 제약을 곧 네 한계로 받아들일 필요는 없어.",
+    乙酉: "유연한 을목이랑 기준이 선명한 유금이 만났어. 관계를 지키면서도 그냥 넘기기 어려운 선이 있을 수 있어. 그 선은 차분하게 말로 알려 줘.",
+    丙戌: "밝게 나누는 병화랑 책임을 지키는 술토가 만났어. 사람을 위한 행동이 네 의무로 굳어지지 않게, 오래 할 수 있는 몫을 정해 봐.",
+    丁亥: "한곳을 비추는 정화랑 넓게 받아들이는 해수가 만났어. 감정과 생각을 많이 품을 수 있으니까, 관심을 줄이는 게 오히려 깊이를 지키는 방법이 될 수도 있어.",
+    戊子: "겉의 안정감을 중시하는 무토랑 속에서 관찰을 이어 가는 자수가 만났어. 흔들림 없어 보여도 속으론 여러 가능성을 따지고 있을 수 있어.",
+    己丑: "생활을 다듬는 기토랑 쌓아 가는 축토가 만났어. 반복으로 신뢰를 만드는 힘이 있지만, 익숙하다는 이유로 필요한 변경까지 미루지 않게 해 봐.",
+    庚寅: "결론을 내는 경금이랑 새로운 시도를 원하는 인목이 만났어. 어려운 일을 맡아 풀려는 힘을 쓰되, 시작 전에 같이할 사람과 자원부터 확인해 봐.",
+    辛卯: "세부를 고르는 신금이랑 분위기를 읽는 묘목이 만났어. 취향과 배려를 둘 다 챙기려면, 옳고 그름으로 가를 일과 그냥 취향이 다른 일을 구분하는 게 좋아.",
+    壬辰: "흐름을 넓게 보는 임수랑 가능성을 품는 진토가 만났어. 생각이 큰 만큼 실행 단위를 작게 쪼개면, 구상이 손에 잡히는 결과로 이어지기 쉬워.",
+    癸巳: "차분히 살피는 계수랑 목표를 향하는 사화가 만났어. 조용해 보여도 속의 집중은 높을 수 있어. 충분히 생각한 건 작은 행동으로 확인해 봐.",
+    甲午: "자라는 갑목이랑 표현하는 오화가 만났어. 생각을 드러내고 사람들과 같이 움직일 때 힘이 날 수 있지만, 성과를 내는 속도와 회복하는 속도는 달라.",
+    乙未: "유연한 을목이랑 돌보는 미토가 만났어. 관계를 오래 가꾸는 힘을 쓰되, 이미 들인 노력 때문에 불편한 조건까지 계속 받아들이고 있진 않은지 살펴봐.",
+    丙申: "표현하는 병화랑 방법을 바꾸는 신금이 만났어. 전달력과 실용성을 같이 살릴 수 있어. 빠른 반응을 좇다가 처음 목적이 바뀌지 않았는지 확인해 봐.",
+    丁酉: "집중하는 정화랑 정돈하는 유금이 만났어. 섬세한 완성도에서 만족을 느낄 수 있으니까, 잘된 부분까지 고치느라 못 끝내는 일은 줄여 봐.",
+    戊戌: "지탱하는 무토랑 경계를 지키는 술토가 만났어. 믿고 맡길 수 있는 사람으로 읽히지만, 네 방식만 안전하다고 느껴지는 순간엔 한 걸음 물러나 봐.",
+    己亥: "현실을 돌보는 기토랑 경험을 받아들이는 해수가 만났어. 사람 사정을 이해하는 능력을 쓰면서도, 네가 감당할 수 있는 도움의 범위는 지켜 줘.",
+    庚子: "결단하는 경금이랑 곱씹는 자수가 만났어. 겉으론 간결한 답 뒤에 많은 검토가 숨어 있을 수 있어. 결론만 던지지 말고 판단 근거도 하나 덧붙여 봐.",
+    辛丑: "정밀한 신금이랑 쌓아 두는 축토가 만났어. 오래 다듬은 실력이 자산이 될 수 있지만, 준비가 다 끝나야만 내보일 수 있다는 기준은 좀 낮춰도 괜찮아.",
+    壬寅: "넓게 탐색하는 임수랑 출발하는 인목이 만났어. 새 가능성을 발견하면 바로 시도로 이어 가기 쉬워. 시도마다 끝낼 기준도 같이 정해 봐.",
+    癸卯: "세밀한 계수랑 관계를 살피는 묘목이 만났어. 작은 변화를 잘 읽는 만큼, 상대가 말하지 않은 뜻까지 못 박지 않게 확인하는 대화가 필요해.",
+    甲辰: "곧게 자라는 갑목이랑 변화를 품는 진토가 만났어. 계획을 오래 준비하는 힘을 쓰되, 먼 목표와 오늘 끝낼 일을 따로 정해 봐.",
+    乙巳: "관계를 잇는 을목이랑 집중하는 사화가 만났어. 말은 부드러워도 목표에는 집요할 수 있어. 상대를 설득하는 일과 동의를 기다리는 일을 구분해 봐.",
+    丙午: "병화의 표현과 오화의 행동력이 같은 방향으로 이어져. 존재감이 드러나기 쉽지만, 늘 밝고 빠르게 반응해야 한다는 의무까지 만들 필요는 없어.",
+    丁未: "집중하는 정화랑 세심하게 돌보는 미토가 만났어. 정성을 오래 쏟는 관계나 작업에 힘을 쓰되, 네 노력이 상대에게 어떻게 닿는지도 확인해 봐.",
+    戊申: "기반을 지키는 무토랑 효율을 찾는 신금이 만났어. 안정 속에서도 방법은 바꿀 수 있는 모습이야. 바꿀 도구와 지킬 원칙을 나눠 봐.",
+    己酉: "현실을 다듬는 기토랑 기준을 고르는 유금이 만났어. 작은 오차를 줄이는 능력을 쓰되, 모든 걸 네가 직접 검수해야 한다는 부담은 나눠 봐.",
+    庚戌: "단호한 경금이랑 가치를 지키는 술토가 만났어. 불합리한 조건을 정리하는 힘을 쓰되, 옳은 결론과 받아들여질 수 있는 전달 방식도 같이 생각해 봐.",
+    辛亥: "정교한 신금이랑 넓게 받아들이는 해수가 만났어. 세밀한 관찰에서 새로운 연결을 찾을 수 있어. 생각을 오래 다듬기보다 작은 기록으로 밖에 남겨 봐.",
+    壬子: "넓게 흐르는 임수랑 안으로 깊어지는 자수가 만났어. 탐색과 숙고가 풍부한 만큼, 방향을 정하는 작은 마감이 도움이 될 수 있어.",
+    癸丑: "스며드는 계수랑 오래 쌓아 가는 축토가 만났어. 드러내지 않아도 쌓이는 감정과 역량이 있을 수 있으니까, 필요한 도움은 참기 전에 말해 봐.",
+    甲寅: "자라려는 갑목과 시작하는 인목의 방향이 이어져. 앞에서 이끄는 힘을 쓰되, 네 속도와 다른 사람의 속도가 다를 수 있다는 여지는 남겨 둬.",
+    乙卯: "유연하게 뻗는 을목과 관계를 살피는 묘목이 이어져. 적응력은 강점이 될 수 있지만, 관계에 따라 흔들리지 않을 네 기준도 하나 필요해.",
+    丙辰: "표현하는 병화랑 가능성을 모으는 진토가 만났어. 큰 구상을 설명하는 데서 한 걸음 더 나가서, 실제로 확인할 작은 결과물을 만들어 봐.",
+    丁巳: "집중하는 정화와 목표를 향하는 사화가 이어져. 한 가지를 깊이 파는 힘을 쓰되, 멈추는 시간을 잊으면 일의 성과와 마음의 여유가 벌어질 수 있어.",
+    戊午: "지탱하는 무토랑 표현하는 오화가 만났어. 따뜻하게 책임을 맡는 모습으로 읽히니까, 부탁을 받아들이기 전에 지금 여력이 얼마나 되는지부터 확인해 봐.",
+    己未: "돌보는 기토와 관계를 오래 가꾸는 미토가 이어져. 세심하게 유지하는 능력을 쓰되, 돌봄의 대가를 알아주길 기다리기보다 역할을 나눠 봐.",
+    庚申: "결단하는 경금과 효율을 찾는 신금이 이어져. 빨리 판단하고 바꾸는 힘을 쓰되, 상대에겐 그 변화에 적응할 설명이 필요할 수 있어.",
+    辛酉: "신금의 정교함과 유금의 기준이 이어져. 완성도를 지키는 능력이 돋보일 수 있지만, 작은 결점 하나가 전체 가치를 지우게 두지 않아도 돼.",
+    壬戌: "탐색하는 임수랑 가치를 지키는 술토가 만났어. 자유롭게 움직이고 싶으면서도 책임을 놓기 어려울 수 있으니까, 바꿀 범위를 같이 합의해 봐.",
+    癸亥: "세밀한 계수와 받아들이는 해수가 이어져. 풍부한 생각과 공감을 밖으로 잇고 싶다면, 결론을 작게 내리고 시험해 보는 과정이 도움이 돼."
+  };
   var MONTHS = {
     寅: ["인", "입춘 뒤 아직 찬 기운이 남은 시작의 계절", "새 일을 열기 전에 준비와 실행의 간격을 살피기"],
     卯: ["묘", "봄의 성장과 확장이 활발한 계절", "새로 늘어난 일을 끝낼 순서로 정리하기"],
@@ -817,8 +1707,45 @@ var SajuReadingDepth = (() => {
     壬: ["흐름이 새 성장으로 이어져요. 많은 가능성 가운데 실제로 키울 하나를 골라요.", "표현과 확장으로 힘을 쓰는 배경이에요. 밖으로 쓰는 만큼 돌아올 자원도 확인해요.", "물이 머무를 기반과 길을 살펴요. 구상에만 고이지 않도록 작은 출구를 만들어요.", "활동의 열과 흐름이 만나요. 기회를 넓히기 전에 유지할 자원을 확인해요.", "열이 높은 배경에서는 움직이는 데 드는 비용을 살펴요. 속도보다 지속성을 먼저 확인해요.", "현실의 책임이 흐름을 조절해요. 제약을 피하기보다 감당할 범위를 합의해요.", "배움과 이동의 재료가 늘어요. 탐색을 언제 결과로 바꿀지 정해요.", "정돈된 정보가 흐름을 도울 수 있어요. 더 모으기보다 쓸 기준을 골라요.", "경계와 방향을 정할 배경이에요. 넓게 흐르는 힘을 하나의 책임에 연결해요.", "수용과 탐색이 깊어져요. 많은 가능성을 모두 열어 두기보다 마감이 있는 실험을 해요.", "물의 흐름과 한기가 함께 커져요. 활발한 생각을 실제 행동으로 연결할 온도와 기반을 살펴요.", "차가운 축적 속에서 흐름이 느려질 수 있어요. 계획의 막힌 곳 하나를 작게 움직여요."],
     癸: ["작은 관찰이 새 시작의 재료가 돼요. 준비한 생각을 구체적인 질문으로 꺼내요.", "섬세한 생각이 표현으로 이어져요. 상대의 반응을 읽는 것과 내 말을 하는 균형을 살펴요.", "습한 흙에 생각이 머무를 수 있어요. 모은 자료를 한 가지 판단으로 정리해요.", "활동이 늘며 작은 자원이 빨리 쓰일 수 있어요. 의욕보다 회복과 지원을 확인해요.", "열이 높은 배경에서 섬세함을 지킬 조건이 중요해요. 모든 요구에 반응하기보다 범위를 줄여요.", "건조한 흙의 요구와 작은 물의 흐름을 함께 살펴요. 나눠 맡을 책임과 도움의 통로가 필요해요.", "배움과 정보가 생각을 도와요. 자료를 더 모으기 전에 시험할 질문을 정해요.", "정밀한 기준과 세밀한 관찰이 만나요. 확인된 사실과 해석을 구분해 말해요.", "건조한 경계 안에서 표현할 통로를 살펴요. 마음을 오래 쌓기보다 짧은 대화를 이어가요.", "경험을 넓게 받아들이는 배경이에요. 공감과 자신의 책임을 구분해요.", "생각과 한기가 깊어지는 배경이에요. 숙고가 멈춤으로 굳지 않도록 작은 실행의 리듬을 살펴요.", "축적과 기다림이 길어질 수 있어요. 충분함의 기준을 정하고 준비한 것을 꺼내 보세요."]
   };
-  function dayReading(key) {
+  var MONTH_NOTES_NEO = {
+    甲: ["뿌리가 움직이기 시작해. 서두르는 성장보다 남은 추위와 실제 지원을 같이 살펴봐.", "자라는 힘이 왕성한 배경이야. 방향 없이 넓히기보다 가지를 고르는 과정이 중요해.", "자랄 재료가 모이지만 습한 흙에 머물러 버릴 수도 있어. 구상을 밖으로 옮길 통로를 찾아봐.", "표현과 활동에 힘을 쓰기 쉬운 배경이야. 성과를 내는 만큼 너를 지탱할 자원도 필요해.", "성장하는 힘이 밖으로 많이 쓰이는 계절이야. 더 나가기 전에 오래 버틸 기반부터 살펴봐.", "결과를 내라는 요구가 커져. 일을 늘리기보다 뿌리가 감당할 범위를 먼저 확인해 봐.", "성장과 정리의 요구가 같이 와. 제약을 활용할 규칙과 너를 지탱할 지원을 나눠서 봐.", "가지치기처럼 기준이 선명해져. 평가에 맞추는 동안에도 네가 키울 목표는 놓치지 않는 게 중요해.", "성과를 남기고 기반을 정리하는 배경이야. 이미 쌓인 책임 때문에 다음 성장이 막히지 않는지 살펴봐.", "배움과 준비가 성장의 재료가 될 수 있어. 많이 받아들이는 것과 실제로 뿌리내리는 건 구분해 봐.", "찬 물이 많은 계절이라 준비가 움직임으로 이어질 조건을 살펴야 해. 생각만 하다가 출발을 놓치지 않게 해 봐.", "추위와 축적이 같이 남아 있어. 오래 준비한 걸 작은 환경에서 시험할 기회를 만들어 봐."],
+    乙: ["여린 싹처럼 환경의 도움과 방향이 중요해. 관계를 넓히기보다 자리 잡을 기반부터 살펴봐.", "연결하고 뻗어 가기 쉬운 배경이야. 주변에 맞춰 뻗는 만큼 너만의 경계도 필요해.", "여러 조건에 적응할 수 있지만 흙에 묶일 수도 있어. 도움과 부담을 구분해 봐.", "표현으로 이어질 기회가 늘어. 맞춰 주는 일은 줄이고, 드러낼 전문성을 정해 봐.", "활동의 열기가 유연함을 깎아 먹을 수 있어. 모든 요청에 반응하지 않을 여백을 남겨 둬.", "관계와 현실의 책임이 얽힐 수 있어. 맡은 역할을 줄이거나 나눌 조건을 살펴봐.", "새 규칙에 적응하는 힘을 쓰는 배경이야. 유연함이 일방적인 양보가 되지 않게 해 봐.", "선명한 평가와 섬세한 반응이 만나. 잘 맞추려는 마음보다 지켜야 할 기준을 먼저 확인해 봐.", "오래된 관계와 책임을 정리할 배경이야. 유지하는 이유와 바꾸고 싶은 조건을 나눠 봐.", "경험과 도움을 넓게 받아들일 수 있어. 지원받는 것과 결정권을 넘기는 건 구분해.", "생각과 감정이 안으로 모이기 쉬워. 따뜻한 교류와 작은 실천을 이어 봐.", "더디게 자리 잡는 배경이야. 오래 참는 능력보다 필요한 도움을 제때 청하는 방법을 찾아봐."],
+    丙: ["새 출발을 비추는 힘을 살펴볼 때야. 밝은 전망과 실제로 갖춘 준비를 같이 확인해 봐.", "표현을 돕는 성장의 재료가 있어. 사람을 모은 다음 구체적인 역할로 이어 가는 게 중요해.", "밝은 구상과 습한 축적이 만나. 알고 있는 걸 실제 설명과 결과물로 바꿔 봐.", "열과 활동이 같이 커지는 배경이야. 주목받는 일과 계속 감당할 일을 구분해 봐.", "표현의 온도가 높은 배경이야. 더 밝아지기보다 쉴 틈과 상대의 속도를 살펴봐.", "열기가 결과와 책임으로 남아. 성과를 보여 준 뒤에 따라오는 유지 비용을 확인해 봐.", "드러내는 힘과 실용적인 기준이 만나. 받은 주목이 실제 쓰임으로 이어지는지 점검해 봐.", "완성도와 성과를 확인하는 배경이야. 사람들 반응만이 아니라 구체적인 결과도 남겨 둬.", "활동의 결과를 모아 정리할 때야. 끝낸 일은 인정해 주고, 새 약속의 수는 조절해 봐.", "차가운 환경에서 빛을 쓰는 조건을 살펴봐. 의욕만으로 밀기보다 도움과 실제 역할을 이어 봐.", "한기가 깊은 배경이라 온기를 이어 갈 재료가 중요해. 짧게 타오르기보다 꾸준한 루틴을 찾아봐.", "찬 흙에 가려진 표현을 꺼낼 통로가 필요해. 준비한 생각을 작은 자리에서 나눠 봐."],
+    丁: ["집중을 돕는 재료가 생겨. 관심 대상을 좁히고 꾸준히 이어 갈 조건을 살펴봐.", "배움과 관계가 등불의 재료가 될 수 있어. 남을 챙기느라 네 집중이 흩어지지 않게 해 봐.", "습한 배경이라 생각이 오래 머물 수 있어. 기록과 작은 완성으로 빛을 밖에 남겨 봐.", "집중과 활동이 이어지는 배경이야. 몰입의 장점을 쓰되 끝나는 시간을 정해 둬.", "주변의 열기가 강해. 더 크게 드러내기보다 네가 오래 지킬 불빛을 골라 봐.", "정성과 책임이 쌓여. 헌신을 오래 이어 가려면 역할과 회복 시간을 나누는 게 중요해.", "정밀한 결과로 집중을 보여 줄 배경이야. 조건이 바뀌면 작업 방법도 같이 조절해 봐.", "작은 차이를 다듬는 힘이 중요해져. 완벽한 마무리 때문에 공유를 미루지 않게 해 봐.", "남은 열을 어떻게 쓸지 살펴봐. 지난 작업을 정리하고 계속할 것 하나만 남겨 봐.", "찬 기운 속에서 집중을 이어 갈 기반이 중요해. 도움받을 관계와 실제 루틴을 확인해 봐.", "한기가 깊어질수록 혼자 속을 태우지 않는 게 중요해. 작게 표현하고 반응을 확인해 봐.", "차곡차곡 쌓은 재료를 쓸 때를 살펴봐. 생각을 완성하기보다 작게 드러내는 연습을 해 봐."],
+    戊: ["성장을 받쳐 줄 책임이 생기는 배경이야. 지탱할 자원과 맡을 범위부터 확인해 봐.", "성장하려는 요구가 기반을 흔들 수 있어. 버티는 힘과 바꿔야 할 규칙을 구분해 봐.", "흙의 축적이 강한 배경이야. 품기만 하기보다 막힌 일의 흐름을 열어 주는 게 중요해.", "따뜻함이 기반을 돕지만 책임도 늘 수 있어. 지원받는 만큼 역할을 정리해 봐.", "열을 많이 받는 배경이야. 계속 버티기보다 메말라 가는 관계와 여유를 살펴봐.", "유지와 축적이 강조돼. 안전하다는 이유만으로 자원을 한곳에 묶고 있진 않은지 확인해 봐.", "쌓은 걸 기술과 결과로 옮길 배경이야. 오래 지킨 방식도 목적에 맞게 바꿔 봐.", "정리와 완성의 통로를 살펴봐. 기준을 지키면서도 실제 쓰임을 확인하는 게 중요해.", "흙의 경계가 단단해지는 배경이야. 지킬 책임과 이미 끝난 책임을 나눠 봐.", "여러 요구를 받아들이는 배경이야. 다 품기보다 흐름을 조절할 약속을 정해 봐.", "차가움과 흐름이 큰 배경이야. 굳게 막기보다 실제로 유지할 기반과 지원을 살펴봐.", "찬 흙에 축적이 남아 있어. 오래 버틴 일도 작은 변경으로 움직일 여지를 만들어 봐."],
+    己: ["새 일을 기를 준비가 필요해. 남의 성장과 네 여력을 같이 살펴봐.", "돌볼 대상이 늘기 쉬운 배경이야. 필요한 배려와 지나친 간섭 사이에 선을 그어 봐.", "여러 재료를 품는 배경이야. 손에 쥔 일을 목록으로 만들고 우선순위를 나눠 봐.", "따뜻함이 준비를 돕는 배경이야. 돌보는 일을 성과로 잇는 순서를 정해 봐.", "열이 높아서 생활의 여유가 마를 수 있어. 쉬지 않고 챙기는 습관을 좀 조절해 봐.", "기르는 힘과 책임이 같이 쌓여. 유지 비용을 확인하고 나눌 역할을 찾아봐.", "세부를 다듬어 결과로 내놓기 좋아. 준비만 되풀이하기보다 쓰는 사람의 반응을 확인해 봐.", "정확함을 살릴 배경이야. 오차를 전부 없애기보다 중요한 기준을 골라 봐.", "남은 일을 정리하는 배경이야. 오래 돌본 대상이라도 계속할 이유를 다시 확인해 봐.", "많은 사정과 정보를 받아들여. 네가 처리할 것과 돌려줄 것을 나눠 봐.", "찬 기운 속에서는 준비를 시작으로 바꿀 조건이 필요해. 작은 루틴으로 일의 온도를 살펴봐.", "축적이 강조되는 배경이야. 조용히 참고 기다리기보다 도움을 청할 시점을 정해 봐."],
+    庚: ["새로 자라려는 요구와 정리하는 힘이 만나. 문제를 잘라 내기 전에 구조부터 이해해 봐.", "관계의 유연함과 분명한 기준을 같이 살펴봐. 빠른 결론보다 받아들여질 설명이 중요해.", "기반과 재료가 모이는 배경이야. 가진 자원을 실제 도구와 기술로 꺼내 써 봐.", "열을 만나 쓰임을 다듬는 배경이야. 압박을 그저 견디기보다 단련할 범위를 정해 봐.", "역할과 평가의 압력이 커질 수 있어. 성과를 내기 전에 감당할 지원부터 확인해 봐.", "열이 남은 흙에서 단련의 조건을 살펴봐. 책임과 회복을 같이 배치해 둬.", "자기 기준을 세우는 힘이 선명해져. 경쟁보다 완성할 작업에 힘을 모아 봐.", "정리하는 성질이 강한 배경이야. 너무 골라내다가 협력할 기회까지 줄이지 않게 해 봐.", "지켜 온 기준을 결과로 남겨 봐. 익숙한 결론도 바뀐 조건에 맞는지 다시 확인해.", "정리한 생각을 밖으로 전할 배경이야. 판단 근거를 설명하는 연습을 해 봐.", "차가운 사고가 이어지기 쉬워. 판단과 행동 사이에 실제 경험을 끼워 넣어 봐.", "찬 흙 속의 기반을 살펴봐. 쌓아 둔 기술을 작은 과제로 꺼내서 시험해 봐."],
+    辛: ["새 환경에서 기준을 세울 배경이야. 완성도보다 적응에 필요한 지원부터 확인해 봐.", "성장하라는 요구 속에서 정교함을 어디에 쓸지 살펴봐. 관계까지 전부 평가 대상으로 삼을 필요는 없어.", "습한 흙은 보호가 되기도 하고 가림막이 되기도 해. 준비가 실력 공개를 미루는 이유가 되고 있진 않은지 살펴봐.", "열과 평가 속에서 다듬는 힘을 살펴봐. 세심함은 쓰되, 지나친 긴장을 덜어 줄 환경이 필요해.", "강한 열기 속에서 기준을 지키는 부담을 살펴봐. 압박을 성과의 유일한 조건으로 삼지 않아도 돼.", "건조한 흙에 정교함이 묻히지 않게 해 봐. 자원을 늘리기보다 표현하고 교류할 통로를 찾아봐.", "기술과 기준을 비교하며 다듬는 배경이야. 남의 완성본과 네 초안을 같은 잣대로 재지 않아도 돼.", "신금의 기준이 선명한 배경이야. 장점을 실제 쓰임으로 내놓고, 완벽주의의 범위는 조절해 봐.", "건조함과 축적이 같이 있어. 평가를 쌓아 두기보다 대화와 작은 수정으로 풀어 봐.", "섬세한 관찰이 표현으로 이어질 수 있어. 많은 생각 가운데 전할 핵심을 골라 봐.", "찬 기운에 생각이 길어질 수 있어. 평가를 기다리기보다 작게 공유할 자리를 만들어 봐.", "차가운 흙 속에서 실력을 쌓는 배경이야. 준비와 지원을 확인하되 드러낼 시점도 정해 둬."],
+    壬: ["흐름이 새 성장으로 이어져. 많은 가능성 가운데 실제로 키울 하나를 골라 봐.", "표현과 확장에 힘을 쓰는 배경이야. 밖으로 쓰는 만큼 돌아올 자원도 확인해 봐.", "물이 머물 기반과 길을 살펴봐. 구상에만 고이지 않게 작은 출구를 만들어 봐.", "활동의 열과 흐름이 만나. 기회를 넓히기 전에 유지할 자원부터 확인해 봐.", "열이 높은 배경이라 움직이는 데 드는 비용을 살펴야 해. 속도보다 지속성을 먼저 확인해 봐.", "현실의 책임이 흐름을 조절해. 제약을 피하기보다 감당할 범위를 합의해 봐.", "배움과 이동의 재료가 늘어. 탐색을 언제 결과로 바꿀지 정해 봐.", "정돈된 정보가 흐름을 도울 수 있어. 더 모으기보다 쓸 기준을 골라 봐.", "경계와 방향을 정할 배경이야. 넓게 흐르는 힘을 책임 하나에 이어 봐.", "받아들이고 탐색하는 힘이 깊어져. 가능성을 다 열어 두기보다 마감이 있는 실험을 해 봐.", "물의 흐름과 한기가 같이 커져. 활발한 생각을 실제 행동으로 이을 온도와 기반을 살펴봐.", "차가운 축적 속에서 흐름이 느려질 수 있어. 계획에서 막힌 곳 하나를 작게 움직여 봐."],
+    癸: ["작은 관찰이 새 시작의 재료가 돼. 준비한 생각을 구체적인 질문으로 꺼내 봐.", "섬세한 생각이 표현으로 이어져. 상대 반응을 읽는 것과 네 말을 하는 것 사이의 균형을 살펴봐.", "습한 흙에 생각이 머물 수 있어. 모은 자료를 판단 하나로 정리해 봐.", "활동이 늘면서 작은 자원이 빨리 쓰일 수 있어. 의욕보다 회복과 지원을 먼저 확인해 봐.", "열이 높은 배경에서는 섬세함을 지킬 조건이 중요해. 모든 요구에 반응하기보다 범위를 줄여 봐.", "건조한 흙의 요구와 작은 물줄기를 같이 살펴봐. 나눠 맡을 책임과 도움받을 통로가 필요해.", "배움과 정보가 생각을 도와. 자료를 더 모으기 전에 시험해 볼 질문을 정해 봐.", "정밀한 기준과 세밀한 관찰이 만나. 확인된 사실과 해석을 나눠서 말해 봐.", "건조한 경계 안에서 표현할 통로를 살펴봐. 마음을 오래 쌓아 두기보다 짧은 대화를 이어 가 봐.", "경험을 넓게 받아들이는 배경이야. 공감과 네 책임은 구분해 둬.", "생각과 한기가 깊어지는 배경이야. 숙고가 멈춤으로 굳지 않게 작은 실행의 리듬을 찾아봐.", "축적과 기다림이 길어질 수 있어. 충분함의 기준을 정하고 준비한 걸 꺼내 봐."]
+  };
+  function dayReadingNeo(key) {
+    const s = neoStem(key[0]), b = neoBranch(key[1]), note = PILLAR_NOTES_NEO[key];
+    return { key, title: `${s[0][0]}${b[0]}일주`, summary: note, sections: [
+      { key: "nature", title: "기질과 내면의 동기", text: `${s[1]}의 물상은 ${s[2]}을 설명하는 비유야. 일지에 놓인 ${key[1]}, 이건 ${b[1]} 생활의 결로 읽을 수 있어. ${note}` },
+      { key: "strength", title: "강점과 과해질 때의 모습", text: `${s[3]} 일지의 ${b[1]} 방식까지 겹치면 익숙한 반응을 되풀이할 수도 있어. 장점을 더 쓰는 연습이랑 잠깐 멈추는 연습을 같이 해 봐.` },
+      { key: "relationships", title: "관계에서 반복되는 패턴", text: `가까운 관계에서는 ${b[2]}, 이게 꽤 중요하게 느껴질 수 있어. 밖에서는 ${s[2]}이 앞서도, 편한 자리에서는 일지의 반응이 더 잘 드러날 수 있어. ${b[4]}` },
+      { key: "love", title: "연애와 친밀감", text: `${s[5]} 일지 쪽에서 보면 ${b[2]}도 너한테 중요한 조건일 수 있어. 이건 상대의 속마음이나 결혼의 결과를 정해 버리는 말이 아니야. 네가 편안함을 느끼는 조건을 찾는 단서야.` },
+      { key: "work", title: "일하는 방식과 환경", text: `${s[4]} ${b[1]} 습관을 실제 작업에 어떻게 쓰고 있는지도 지켜봐. 특정 직업을 정답으로 고르기보다, 자율성·협업 방식·평가 주기가 너한테 맞는지 확인하는 편이 나아.` },
+      { key: "money", title: "돈을 다루는 습관", text: `${s[6]} 일주 성향만으로 수입이나 투자 성과를 알 수는 없어. ${b[1]} 방식이 지출과 결정에서도 반복되는지, 지난 한 달 기록에서 확인해 봐.` },
+      { key: "recovery", title: "스트레스와 회복", text: `부담이 커지면 ${b[3]} 쪽으로 반응할 수 있어. ${s[7]} 이건 건강 상태를 판단하는 말이 아니라, 일상에서 힘을 나눠 쓰자는 제안이야.` },
+      { key: "action", title: "오늘 해볼 작은 실천", text: `${b[4]} 해 본 다음엔 마음이 편해졌는지만 보지 말고, 시간·비용·관계의 부담이 줄었는지도 적어 둬. 같은 일주라도 태어난 달과 원국의 지원에 따라 이 성향을 쓰는 방식은 달라져.` }
+    ] };
+  }
+  function monthReadingNeo(stem, month) {
+    const m = MONTHS[month], note = MONTH_NOTES_NEO[stem]?.[MONTH_ORDER.indexOf(month)];
+    if (!STEMS[stem] || !m || !note) return null;
+    const s = neoStem(stem);
+    return { key: stem + month, title: `${m[0]}월(${month}月)의 ${s[0]}`, basis: "양력·음력 달 번호가 아니라, 계산된 절기 기준 월지로 읽은 거야.", sections: [
+      { key: "season", title: "태어난 계절과 일간의 만남", text: `너는 ${m[1]}, ${m[0]}월에 태어났어. ${s[1]}에 빗대는 ${s[0]}, 이 일간이 그 환경에서 어떻게 힘을 쓰는지 같이 볼게. ${note}` },
+      { key: "condition", title: "힘을 살리는 조건과 주의점", text: `첫 질문은 '${m[2]}'로 잡아 봐. 계절 요구에 맞추려다 원래 가진 ${s[2]}을 너무 누르거나 밀어붙이고 있진 않은지 살펴봐. 계절만으로 용신을 정하진 않아. 원국의 뿌리·도움·소모와 조후·억부 판정을 같이 확인해야 해.` },
+      { key: "work", title: "일과 돈에 연결하면", text: `${s[4]} ${s[6]} 태어난 달의 '${m[2]}'라는 주제를 실제 일정과 비용에 대입해서, 지금 유지할 수 있는 작은 단위부터 시험해 봐.` },
+      { key: "relation", title: "관계와 일상에 연결하면", text: `${s[5]} ${s[7]} 계절 비유를 성격의 결론으로 받아들이기보다, 반복되는 상황 하나에서 너한테 맞는 방법인지 확인해 봐.` }
+    ] };
+  }
+  function dayReading(key, persona) {
     if (!PILLAR_NOTES[key]) return null;
+    if (persona === "neo") return dayReadingNeo(key);
     const s = STEMS[key[0]], b = BRANCHES[key[1]];
     return { key, title: `${s[0][0]}${b[0]}일주`, summary: PILLAR_NOTES[key], sections: [
       { key: "nature", title: "기질과 내면의 동기", text: `${s[1]}의 물상은 ${s[2]}을 설명하는 비유예요. 일지 ${key[1]}는 ${b[1]} 생활의 결로 읽어요. ${PILLAR_NOTES[key]}` },
@@ -831,17 +1758,18 @@ var SajuReadingDepth = (() => {
       { key: "action", title: "오늘 해볼 작은 실천", text: `${b[4]} 실행한 뒤 마음이 편해졌는지뿐 아니라 시간·비용·관계의 부담이 줄었는지도 기록해 보세요. 같은 일주라도 태어난 월과 원국의 지원에 따라 이 성향을 쓰는 방식은 달라져요.` }
     ] };
   }
-  function monthReading(stem, month) {
+  function monthReading(stem, month, persona) {
+    if (persona === "neo") return monthReadingNeo(stem, month);
     const s = STEMS[stem], m = MONTHS[month], note = MONTH_NOTES[stem]?.[MONTH_ORDER.indexOf(month)];
     if (!s || !m || !note) return null;
     return { key: stem + month, title: `${m[0]}월(${month}月)의 ${s[0]}`, basis: "양력·음력의 달 번호가 아닌, 계산된 절기 기준 월지로 읽어요.", sections: [
-      { key: "season", title: "태어난 계절과 일간의 만남", text: `${m[0]}월은 ${m[1]}이에요. ${s[1]}로 비유하는 ${s[0]}이 이 환경에서 어떻게 힘을 쓰는지 살펴요. ${note}` },
+      { key: "season", title: "태어난 계절과 일간의 만남", text: `${m[0]}월은 ${m[1]}이에요. ${s[1]}${jo(s[1], "으로", "로")} 비유하는 ${s[0]}이 이 환경에서 어떻게 힘을 쓰는지 살펴요. ${note}` },
       { key: "condition", title: "힘을 살리는 조건과 주의점", text: `${m[2]}를 첫 질문으로 삼아 보세요. 계절의 요구에 맞추려다 원래 가진 ${s[2]}을 지나치게 누르거나 밀어붙이지 않는지 살펴요. 계절만으로 용신을 정하지 않고 원국의 뿌리·도움·소모와 조후·억부 판정을 함께 확인해야 해요.` },
       { key: "work", title: "일과 돈에 연결하면", text: `${s[4]} ${s[6]} 이 달의 ${m[2]}라는 주제를 실제 일정과 비용에 대입해, 지금 유지할 수 있는 작은 단위부터 시험해 보세요.` },
       { key: "relation", title: "관계와 일상에 연결하면", text: `${s[5]} ${s[7]} 계절의 비유를 성격의 결론으로 받아들이기보다, 반복되는 상황 하나에서 자신에게 맞는 방법인지 확인해 보세요.` }
     ] };
   }
-  function buildDepthFacts(facts) {
+  function buildDepthFacts(facts, persona) {
     const p = facts?.p;
     if (!p?.d?.g || !p?.m?.j) return null;
     const keys = Object.keys(POS).filter((k) => p[k]?.g && p[k]?.j && !(k === "h" && facts.unknown));
@@ -850,9 +1778,10 @@ var SajuReadingDepth = (() => {
     const hiddenStemExposures = hiddenStems.map((row) => ({ ...row, exposedInNatalHeavenlyStem: pillarRows.some((pillar) => pillar.stem === row.hiddenStem) }));
     const gyeokguk = facts.gyeokguk || buildGyeokgukAnalysis({ pillarRows, dayStem: p.d.g, hiddenStems, hiddenStemExposures, power: facts.power, jong: facts.jong });
     const roots = keys.filter((k) => (ZHI_HIDE_GAN[p[k].j] || []).some((s) => WU_XING_GAN[s] === WU_XING_GAN[p.d.g])).map((k) => `${POS_KO[k]} ${p[k].j}`);
-    return { month: monthReading(p.d.g, p.m.j), gyeokguk, roots, unknown: !!facts.unknown };
+    return { month: monthReading(p.d.g, p.m.j, persona), gyeokguk, roots, unknown: !!facts.unknown };
   }
-  function contextualReading(facts) {
+  function contextualReading(facts, persona) {
+    if (persona === "neo") return contextualReadingNeo(facts);
     const d = buildDepthFacts(facts);
     if (!d) return [];
     const g = d.gyeokguk, pw = facts.power, j = facts.johu;
@@ -871,7 +1800,27 @@ var SajuReadingDepth = (() => {
     if (d.unknown) out.push({ key: "unknown", title: "출생시간을 모를 때의 읽기 범위", text: "시주는 격국의 투간·통근 근거에서 제외했어요. 정오를 대입한 기존 강약·조후 계산은 참고로만 읽으며, 시간에 따라 달라질 수 있는 용신과 세부 판단은 확정하지 않아요." });
     return out;
   }
-  function cycleActions(input) {
+  function contextualReadingNeo(facts) {
+    const d = buildDepthFacts(facts, "neo");
+    if (!d) return [];
+    const g = d.gyeokguk, pw = facts.power, j = facts.johu;
+    const uncertain = d.unknown || !g.confident || facts.jong?.isGaJong;
+    const candidates = uncertain ? (g.candidates || []).map((c) => `${c.name}(${c.layer}${c.exposed ? "·투간 확인" : "·투간 미확인"})`) : [];
+    const out = [{ key: "gyeok", title: "격국과 뿌리에서 달라지는 점", text: `지금 계산으로는 격국을 ${g.finalGyeokguk}${uncertain ? " 후보로 읽어" : "으로 읽어"}. ${g.judgmentReasonNeo} 격국은 좋고 나쁨의 등급이 아니라, 월령의 어떤 역할이 중심으로 드러나는지 보는 틀이야. ${d.roots.length ? `일간과 같은 오행이 지장간에 들어 있는 자리는 ${d.roots.join(" · ")}, 여기서 뿌리를 찾을 수 있어. 뿌리가 있다는 사실과 충분히 강하다는 판단은 구분해서 봐.` : "확인한 기둥에서는 일간과 같은 오행의 뿌리가 안 보여. 그렇다고 무능하거나 불리하다는 뜻은 아니야."} 실제 생활에서 그 역할을 맡을 자원과 지원이 있는지 확인해 봐.` }];
+    if (candidates.length) out[0].text += ` 함께 남아 있는 후보로는 ${candidates.join(" · ")}도 있어. 투간은 지장간의 역할이 천간에 드러난다는 뜻이고, 시간 미상이거나 성립 조건이 남아 있으면 직업·성과의 결론으로 못 박지 않아.`;
+    if (pw && typeof pw.isStrong === "boolean") out.push({ key: "capacity", title: "감당할 힘에 맞춰 쓰는 방법", text: facts.jong?.isJong ? `${facts.jong.name || "종격"}에서는 한 방향으로 모인 기세부터 살펴. 일반적인 신강·신약 조언을 그대로 갖다 대지 않고, 기존 계산이 내놓은 용신과 조건을 확인해. 큰 전환 전에는 지금 잘 유지되는 일과 무너지는 일을 나눠서 적어 봐.` : pw.isStrong ? "기존 억부 계산에서는 일간을 돕는 힘이 비교적 큰 쪽이야. 혼자 버티는 장점을 결과물과 협업으로 이어 봐. 이번 주 맡은 일 하나의 기준을 공유하고 일부를 나눈 다음, 진행 속도와 충돌이 어떻게 달라지는지 확인해 봐." : "기존 억부 계산에서는 주변 요구에 비해 일간을 돕는 힘을 보완할 필요가 있는 쪽이야. 능력이 부족하다는 뜻은 아니야. 새 역할을 늘리기 전에 필요한 기술·시간·도움을 적어 보고, 지원받을 조건이 갖춰진 작은 과제부터 시작해 봐." });
+    if (j) {
+      const temp = { cold: "차가운", cool: "서늘한", hot: "뜨거운", warm: "따뜻한" }[j.type] || "한쪽으로 단정하기 어려운";
+      const jy = (j.yongshin || (/^(cold|cool)$/.test(j.type) ? ["fire", "wood"] : /^(hot|warm)$/.test(j.type) ? ["water", "metal"] : [])).map((el) => ELEMENT_KO[el] || el), py = (pw?.yongshin || []).map((el) => ELEMENT_KO[el] || el);
+      const conflict = jy.length && py.length && !jy.some((el) => py.includes(el));
+      const picks = [jy.length ? `조후 보완 후보는 ${jy.join("·")} 기운` : "", py.length ? `억부 보완 후보는 ${py.join("·")} 기운` : ""].filter(Boolean);
+      out.push({ key: "climate", title: "조후와 억부를 함께 읽으면", text: `조후 계산은 ${temp} 계절 조건을 가리켜. 조후는 온도와 습도의 균형, 억부는 감당할 힘의 균형을 묻는 서로 다른 관점이야. ${picks.length ? `${picks.join(", ")}이야. ` : ""}${conflict ? "두 후보가 달라서 한쪽에 도움이 되는 게 다른 쪽엔 부담이 될 수도 있어. 하나만 정답으로 덮지 말고 활동량과 지원 조건을 같이 조절해 봐." : "두 관점이 비슷해도 그 기운을 많이 늘리는 게 늘 유리한 건 아니야."} 활동·휴식·도움의 조건을 하나씩 바꿔 보고, 실제로 감당하기 편해지는지 살펴봐.` });
+    }
+    if (g.breakFactors?.length) out.push({ key: "structure", title: "구조를 유지하려면 살필 점", text: `계산에서는 ${g.breakFactors.map((x) => x.type).join(" · ")} 같은 조건도 같이 표시됐어. 격이 깨진다는 말을 인생의 실패로 받아들일 필요는 없어. 역할과 환경이 안 맞는 상황이 반복되는지 살피고, 일의 범위·책임·협력 방식을 조정하는 질문으로 써 봐.` });
+    if (d.unknown) out.push({ key: "unknown", title: "출생시간을 모를 때의 읽기 범위", text: "시주는 격국의 투간·통근 근거에서 뺐어. 정오를 넣어 계산한 기존 강약·조후는 참고로만 보고, 시간에 따라 달라질 수 있는 용신과 세부 판단은 확정하지 않아." });
+    return out;
+  }
+  function cycleActions(input, persona) {
     if (!input?.stem || !input?.branch) return [];
     const weak = input.power?.isStrong === false && !input.jong?.isJong;
     const burden = input.stem.balance === "bad" || input.branch.balance === "bad";
@@ -879,6 +1828,13 @@ var SajuReadingDepth = (() => {
     const action = /재/.test(god) ? "작은 수익·업무 기회 하나를 골라 필요한 시간과 유지 비용을 적고 시험해 보세요." : /관/.test(god) ? "맡을 역할의 책임·권한·지원 인력을 문서로 정리하고 작은 범위에서 먼저 합의해 보세요." : /인/.test(god) ? "현재 필요한 기술 하나를 정해 배우고, 배운 내용을 실제 과제 하나에 적용해 보세요." : /식신|상관/.test(god) ? "보여 줄 결과물 하나와 완성 날짜를 정하고, 작은 규모로 공개해 사용자의 반응을 받아 보세요." : "혼자 결정할 일과 함께 결정할 일을 나누고, 협업의 역할·비용·성과 배분을 먼저 합의해 보세요.";
     const month = input.depth?.month?.title || (input.month ? `${input.month}월의 원국` : "원국");
     const geok = input.depth?.gyeokguk?.finalGyeokguk;
+    if (persona === "neo") {
+      const neoAction = /재/.test(god) ? "작은 수익·업무 기회 하나를 골라서 필요한 시간과 유지 비용을 적고 시험해 봐." : /관/.test(god) ? "맡을 역할의 책임·권한·지원 인력을 문서로 정리하고, 작은 범위에서 먼저 합의해 봐." : /인/.test(god) ? "지금 필요한 기술 하나를 정해서 배우고, 배운 걸 실제 과제 하나에 적용해 봐." : /식신|상관/.test(god) ? "보여 줄 결과물 하나와 완성 날짜를 정하고, 작은 규모로 공개해서 반응을 받아 봐." : "혼자 결정할 일과 함께 결정할 일을 나누고, 협업의 역할·비용·성과 배분부터 합의해 봐.";
+      return [
+        { title: "이번 대운에서 먼저 해 볼 일", text: `${input.stem.char}${input.branch.char} 대운의 ${input.stem.god}·${input.branch.god}을 ${month}${geok ? `, ${geok}의 역할` : ""}과 함께 읽어 볼게. ${neoAction} ${weak ? "지금은 지원부터 확보하고, 기존 일을 줄인 만큼만 새 일을 넣는 순서가 좋아." : burden ? "기회가 보여도 이미 부담이 되는 조건까지 같이 늘리지 않도록 범위를 정해 둬." : "기존 기반을 지킬 수 있는 범위에서 새 시도를 하나씩 더해 봐."}` },
+        { title: "시작할 조건, 그리고 신중히 고를 선택", text: `${weak ? "도움받을 사람·쓸 시간·배울 범위가 정해졌는지 먼저 확인해 봐. 혼자 모든 역할을 떠안는 확대는 신중하게 해." : burden ? "같은 기운이 더해지면 부담이 커질 수도 있어. 일정과 비용의 상한을 정하고, 기존 약속을 지키기 어려워지면 규모를 줄여." : "작은 시도가 실제로 이어지는지 확인한 뒤에 다음 단계를 정해. 대운 점수만 보고 직장·관계·투자를 한꺼번에 바꾸지는 마."} 한 달 뒤에는 완성한 결과, 쓴 시간, 관계에서 반복된 갈등을 비교해서 유지할 것과 조절할 것을 정해 봐.` }
+      ];
+    }
     return [
       { title: "이번 대운에서 먼저 해볼 일", text: `${input.stem.char}${input.branch.char} 대운의 ${input.stem.god}·${input.branch.god}을 ${month}${geok ? `, ${geok}의 역할` : ""}과 함께 읽어요. ${action} ${weak ? "현재는 지원을 먼저 확보하고 기존 일을 줄인 만큼 새 일을 넣는 순서가 좋아요." : burden ? "기회가 보여도 이미 부담이 되는 조건을 함께 늘리지 않도록 범위를 제한해요." : "기존 기반을 유지할 수 있는 범위에서 새 시도를 하나씩 더해요."}` },
       { title: "시작할 조건과 신중히 할 선택", text: `${weak ? "도움을 받을 사람·사용할 시간·학습 범위가 정해졌는지 먼저 확인하세요. 혼자 모든 역할을 떠안는 확대는 신중히 해요." : burden ? "같은 기운이 더해질 때 부담이 커질 수 있어요. 일정과 비용의 상한을 정하고, 기존 약속을 지키기 어려워지면 규모를 줄여요." : "작은 시도가 실제로 지속되는지 확인한 뒤 다음 단계를 정해요. 대운 점수만 보고 직장·관계·투자를 한 번에 바꾸지 않아요."} 한 달 뒤에는 완성한 결과, 소모한 시간, 관계에서 반복된 갈등을 비교해 유지할 것과 조절할 것을 정해 보세요.` }
@@ -897,6 +1853,6 @@ var SajuReadingDepth = (() => {
       "행동은 대상·작은 실행 범위·점검 기준이 있어야 한다. 기존 챕터 안에 배치하고 같은 응원이나 조언을 반복하여 분량을 늘리지 않는다."
     ];
   }
-  var DAY_KEYS = Array.from({ length: 60 }, (_, i) => STEM_ORDER[i % 10] + BRANCH_ORDER[i % 12]);
+  var DAY_KEYS = Array.from({ length: 60 }, (_, i) => STEM_ORDER2[i % 10] + BRANCH_ORDER2[i % 12]);
   return __toCommonJS(reading_depth_exports);
 })();

@@ -38,19 +38,55 @@ const SUKUYO_STATIC_PRODUCTS = [
 
 export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
   sameSurface(
+    "destiny-bias-analyze",
+    "per_use",
+    "app/saju/destiny-bias/DestinyBiasClient.tsx",
+    "featureKey: DESTINY_BIAS_ANALYZE_FEATURE_KEY",
+    "const report = buildChemiReport({",
+  ),
+  sameSurface(
+    "daily-fortune-reading",
+    "per_use",
+    "app/today/TodayHubClient.tsx",
+    "featureKey: TODAY_FEATURE_KEY",
+    "setData(payload)",
+  ),
+  sameSurface(
+    "fortune-prompt-hub-generate",
+    "per_use",
+    "app/fortune/prompt-hub/PromptHubClient.tsx",
+    "featureKey: PROMPT_HUB_GENERATE_FEATURE_KEY",
+    "await runPromptGeneration(shortfall.toolId, shortfall.draft, requestId)",
+  ),
+  sameSurface(
+    "dream-prompt-generator",
+    "per_use",
+    "js/dream-ledger.js",
+    "featureKey: 'dream-prompt-generator'",
+    "openDreamModalCore",
+  ),
+  sameSurface(
+    "mbti-animal-compat",
+    "per_use",
+    "js/astral-soul.js",
+    "featureKey: 'mbti-animal-compat'",
+    "openMbtiModalCore",
+  ),
+  sameSurface(
+    "nakshatra-basic-reading",
+    "per_use",
+    "app/nakshatra/NakshatraFormClient.tsx",
+    "featureKey: BASIC_READING_FEATURE_KEY",
+    "resolveReading(body)",
+  ),
+  sameSurface(
     "love-code",
-    "unlock",
+    "per_use",
     "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
     "runPaidAccessGate({",
     "startSimulationScene(",
   ),
-  sameSurface(
-    "ziwei-island-deep-report",
-    "unlock",
-    "app/island-consult/IslandConsultClient.tsx",
-    "featureKey: REPORT_FEATURE_KEY",
-    "setReport(data.report)",
-  ),
+
   {
     featureKey: "vedic_basic_reading",
     billingType: "unlock",
@@ -199,39 +235,35 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     'featureKey: "destiny-compass-life-voyage",',
     "const phase = field.timeline[key];",
   ),
-  sameSurface(
-    "ziwei_decade_luck",
-    "unlock",
-    "js/saju-engine.js",
-    "zwBasicPaidGateHtml('ziwei_decade_luck', 10,",
-    "zwDahanPremiumShellHtml(dahanTimelineHtml)",
-  ),
-  sameSurface(
-    "ziwei_love_deep",
-    "unlock",
-    "js/saju-engine.js",
-    "zwBasicPaidGateHtml('ziwei_love_deep', 10,",
-    "buildZwSpouseDeepHtml(pd)",
-  ),
-  sameSurface(
-    "ziwei_twelve_palaces",
-    "unlock",
-    "js/saju-engine.js",
-    "zwBasicPaidGateHtml('ziwei_twelve_palaces', 10,",
-    "buildZwTwelvePalaceDeepHtml(pd)",
-  ),
-  sameSurface(
-    "ziwei_symbolic_layer",
-    "unlock",
-    "js/saju-engine.js",
-    "zwBasicPaidGateHtml('ziwei_symbolic_layer', 10,",
-    "buildZwSymbolicDeepHtml({",
-  ),
+  {
+    featureKey: "ziwei_decade_luck",
+    billingType: "unlock",
+    cta: { file: "js/saju-engine.js", marker: "zwBasicPaidGateHtml('ziwei_decade_luck', 50," },
+    consumer: { file: "worker/lib/saju-section/paid-ziwei.src.js", marker: "html: dahanTimelineHtml," },
+  },
+  {
+    featureKey: "ziwei_love_deep",
+    billingType: "unlock",
+    cta: { file: "js/saju-engine.js", marker: "zwBasicPaidGateHtml('ziwei_love_deep', 50," },
+    consumer: { file: "worker/lib/saju-section/paid-ziwei.src.js", marker: "ziwei_love_deep: sec_love_compat_spread + sec_love + buildZwSpouseDeepHtml(pd)" },
+  },
+  {
+    featureKey: "ziwei_twelve_palaces",
+    billingType: "unlock",
+    cta: { file: "js/saju-engine.js", marker: "zwBasicPaidGateHtml('ziwei_twelve_palaces', 50," },
+    consumer: { file: "worker/lib/saju-section/paid-ziwei.src.js", marker: "ziwei_twelve_palaces: sec2," },
+  },
+  {
+    featureKey: "ziwei_symbolic_layer",
+    billingType: "unlock",
+    cta: { file: "js/saju-engine.js", marker: "zwBasicPaidGateHtml('ziwei_symbolic_layer', 50," },
+    consumer: { file: "worker/lib/saju-section/paid-ziwei.src.js", marker: "ziwei_symbolic_layer: sec_olympus_ziwei," },
+  },
   sameSurface(
     "ziwei_life_yearly_flow",
     "unlock",
     "js/saju-engine.js",
-    "zwBasicPaidGateHtml('ziwei_life_yearly_flow', 10,",
+    "zwBasicPaidGateHtml('ziwei_life_yearly_flow', 50,",
     "buildZwYearlyFlowDeepHtml(pd)",
   ),
   {
@@ -364,37 +396,37 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     featureKey: "rpt_specialCharmCard",
     billingType: "unlock",
     cta: { file: "js/core/saju/reportDashboard.js", marker: "target:'specialCharmCard'" },
-    consumer: { file: "js/saju-engine.js", marker: "function renderSpecialCharm(p, natal)" },
+    consumer: { file: "worker/lib/saju-section/paid-charm.src.js", marker: "function renderSpecialCharm(p, natal)" },
   },
   {
     featureKey: "rpt_quantumCard",
     billingType: "unlock",
     cta: { file: "js/core/saju/reportDashboard.js", marker: "lockKey:'rpt_quantumCard'" },
-    consumer: { file: "js/saju-engine-tarot-sukuyo-quantum.js", marker: "function renderQuantumStrategy(p, natal, bazi)" },
+    consumer: { file: "worker/lib/saju-section/paid-quantum.src.js", marker: "function renderQuantumStrategy(p, natal, bazi)" },
   },
   {
     featureKey: "rpt_healthReportCard",
     billingType: "unlock",
     cta: { file: "js/core/saju/reportDashboard.js", marker: "target:'healthReportCard'" },
-    consumer: { file: "js/entertain-engine.js", marker: "w.renderHealthReport = function" },
+    consumer: { file: "worker/lib/saju-section/paid-health.src.js", marker: "w.renderHealthReport = function" },
   },
   {
     featureKey: "rpt_skillTreeCard",
     billingType: "unlock",
     cta: { file: "js/core/saju/reportDashboard.js", marker: "target:'skillTreeCard'" },
-    consumer: { file: "js/entertain-engine.js", marker: "w.renderSkillTree = function" },
+    consumer: { file: "worker/lib/saju-section/paid-skill.src.js", marker: "function renderSkillTree(p, natal){" },
   },
   {
     featureKey: "rpt_energyCoordCard",
     billingType: "unlock",
     cta: { file: "js/core/saju/reportDashboard.js", marker: "target:'energyCoordCard'" },
-    consumer: { file: "js/saju-engine-tarot-sukuyo-quantum.js", marker: "function renderEnergyCoord(natal)" },
+    consumer: { file: "worker/lib/saju-section/paid-energy.src.js", marker: "function renderEnergyCoord(natal)" },
   },
   {
     featureKey: "rpt_villainCard",
     billingType: "unlock",
     cta: { file: "js/core/saju/reportDashboard.js", marker: "target:'villainCard'" },
-    consumer: { file: "js/saju-engine.js", marker: "function renderVillain(p, power)" },
+    consumer: { file: "worker/lib/saju-section/paid-villain.src.js", marker: "function renderVillain(p, power)" },
   },
   sameSurface(
     "rpt_secretHouseEntryCard",
@@ -405,14 +437,29 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
   ),
   sameSurface(
     "fun.quantumLotto.ritualReport",
-    "unlock",
+    "per_use",
     "js/saju-engine-tarot-sukuyo-quantum.js",
-    "data-tile-lock-key=\"'+LOTTO_RITUAL_FEATURE_KEY+'\"",
+    "data-feature-key=\"'+LOTTO_RITUAL_FEATURE_KEY+'\" data-coin-cost=\"10\"",
     "function buildLottoRitualReport(state)",
   ),
 ]);
 
 export const HISTORICAL_PAID_FEATURE_FIXTURES = Object.freeze([
+  { featureKey: "psychotest-reading", billingType: "per_use", retained: { file: "worker/lib/paid-feature-registry.js", marker: '"psychotest-reading": { cost: 30' }, replacement: { file: "app/psychotest/_components/PaidPsychotestLink.tsx", marker: "PSYCHOTEST_FREE_ENTRY" } },
+  { featureKey: "ziwei-island-palace-consult", billingType: "per_use",
+    retained: { file: "worker/routes/ziwei-island-ai.js", marker: "async function handleResult(" },
+    replacement: { file: "worker/routes/ziwei-island.js", marker: "blueprint.reading = buildIslandDeepReport" } },
+  { featureKey: "ziwei-island-deep-report", billingType: "unlock",
+    retained: { file: "worker/routes/ziwei-island-report.js", marker: "buildIslandDeepReport" },
+    replacement: { file: "worker/routes/ziwei-island.js", marker: "blueprint.reading = buildIslandDeepReport" } },
+  {
+    // 2026-10-11: 프로필 카드 추가·수정·삭제가 무료가 되어 결제 CTA 가 사라졌다. 정책 변경 전 주문의
+    // 모바일 복귀와 증빙 대조를 위해 가격 키만 남는다.
+    featureKey: "profile-card-manage",
+    billingType: "per_use",
+    retained: { file: "worker/lib/profile-card-mutation-policy.js", marker: "아래 가격 상수는 정책 변경 전에 이미 만들어진 주문·월정석 차감 증빙을 대조하는 용도로만 남긴다" },
+    replacement: { file: "worker/lib/profile-card-mutation-policy.js", marker: 'reason: "PROFILE_CARD_MUTATION_FREE"' },
+  },
   {
     featureKey: "palm-reading-ai-consult",
     billingType: "per_use",
@@ -446,12 +493,6 @@ export const REGISTRY_ONLY_NON_LLM_KEYS = Object.freeze([
 ]);
 
 export const PAID_NON_RESULT_FIXTURES = Object.freeze([
-  {
-    featureKey: "profile-card-manage",
-    billingType: "per_use",
-    cta: { file: "js/destiny-profile.js", marker: "window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST, reason," },
-    consumer: { file: "worker/routes/profile.js", marker: "async function findProfileMutationPaymentEvidence(" },
-  },
 ]);
 
 export const ACTIVE_NON_LLM_ALIAS_FIXTURES = Object.freeze([

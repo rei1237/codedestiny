@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 // Stress fixture: preserve multi-part storage/lease failures at the former batch width.
 // Production's one-part contract is covered by paid-llm-sequential.test.js.
@@ -44,7 +45,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId:owner}),getOptionalUserFromRequest:async()=>({userId:owner})}));
  jest.unstable_mockModule('../../worker/lib/security/index.js',()=>({enforceSensitiveEndpointSecurity:async input=>{security.push(input);return {ok:true};},enforceAiRouteSecurity:async()=>({ok:true}),writeSecurityLog:async()=>{},getSecuritySubjectHash:()=>''}));
  jest.unstable_mockModule('../../worker/lib/paid-feature-access.js',()=>({PAID_FEATURE_ACCESS_USER_PROJECTION:{},canAccessPaidFeature:async()=>({allowed:false,reason:'PAYMENT_REQUIRED'}),canAccessPaidFeaturesBatch:async()=>({})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({logPerUsePaymentProof:()=>{},verifyPerUsePayment:async(_env,input)=>{proofs.push(input);
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({logPerUsePaymentProof:()=>{},verifyPerUsePayment:async(_env,input)=>{proofs.push(input);
   return paid===null?{proven:null}:paid==='admin'?{proven:true,source:'admin',transactionId:''}:paid?{proven:true,source:'single',transactionId:'pay-1'}:{proven:false,reason:'NO_EXISTING_CONSUMPTION'};}}));
  jest.unstable_mockModule('../../worker/lib/cms-prompts.js',()=>({cmsPromptText:async(_env,_key,fallback)=>fallback,cmsPromptModelConfig:async()=>null,primePromptTemplateOverrides:async()=>{}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
@@ -57,7 +58,7 @@ beforeAll(async()=>{
  intent=await import('../../worker/lib/paid-narrative-intent.js');adapters=await import('../../worker/lib/paid-narrative-adapters.js');
 });
 beforeEach(()=>{docs=[];serial=0;revoked=false;paid=false;fault=null;proofs=[];security=[];writes=[];
- provider=jest.fn(async(_env,prompt)=>{const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1],label=prompt.split('[이번 호출]\n')[1].split('\n')[0].replace(/[.!?]/g,'');
+ provider=jest.fn(async(_env,prompt)=>{const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)?.[1],label=prompt.split('[이번 호출]\n')[1].split('\n')[0].replace(/[.!?]/g,'');
   return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body:Array.from({length:25},(_,i)=>`${label} ${i}번째 관찰에서는 꿈의 장면과 마음의 리듬을 함께 살펴보며 안정과 회복의 조건을 확인할 수 있습니다. ${label} ${i}번째 성찰은 현실에서 경험한 감정과 꿈속 표현의 차이를 기록하고 여러 가능한 의미를 비교해 보는 방법입니다.`).join('\n\n')})};});
  logs=jest.spyOn(console,'log').mockImplementation(()=>{});warns=jest.spyOn(console,'warn').mockImplementation(()=>{});
  external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});

@@ -1,3 +1,4 @@
+import { publicProfiles, getPublicProfile } from "./public-profiles";
 import famousOverridesJson from "./overrides.generated.json";
 
 export type BirthStatus = "verified" | "public" | "uncertain" | "unknown";
@@ -44,6 +45,7 @@ export type CelebritySajuSeed = {
   gender?: "male" | "female" | "unknown";
   birthDateStatus: BirthStatus;
   birthTimeStatus: BirthTimeStatus;
+  reportedBirthTime?: string | null;
   isBirthTimeKnown: boolean;
   isHistoricalDateUncertain?: boolean;
   shortBio: string;
@@ -56,6 +58,9 @@ export type CelebritySajuSeed = {
 };
 
 export const famousSajuCategories = [
+  "유튜버·크리에이터",
+  "방송·예능",
+  "셰프·요리",
   "역사 위인",
   "왕족·정치인",
   "K-스타",
@@ -82,6 +87,10 @@ type RawCelebritySeed = [
 ];
 
 const rawSeeds: RawCelebritySeed[] = [
+  ...publicProfiles.map((p): RawCelebritySeed => [p.slug, p.name, p.category, p.country, p.birthDate, null, p.fields, p.nameEn]),
+  ["grace-hopper", "그레이스 호퍼", "사상가·예술가", "US", "1906-12-09", null, ["컴퓨터", "과학", "프로그래밍"], "Grace Hopper"],
+  ["alan-turing", "앨런 튜링", "사상가·예술가", "UK", "1912-06-23", null, ["컴퓨터", "과학", "수학"], "Alan Turing"],
+  ["katherine-johnson", "캐서린 존슨", "사상가·예술가", "US", "1918-08-26", null, ["과학", "수학", "우주"], "Katherine Johnson"],
   ["king-sejong", "세종대왕", "역사 위인", "KR", "1397-05-15", null, ["학문", "창조", "통치"]],
   ["yi-sun-sin", "이순신", "역사 위인", "KR", "1545-04-28", null, ["전략", "책임", "리더십"]],
   ["yu-gwan-sun", "유관순", "역사 위인", "KR", "1902-12-16", null, ["신념", "용기", "독립운동"]],
@@ -122,11 +131,11 @@ const rawSeeds: RawCelebritySeed[] = [
   ["aespa-karina", "에스파 카리나", "K-스타", "KR", "2000-04-11", null, ["퍼포먼스", "이미지", "리더"]],
   ["aespa-winter", "에스파 윈터", "K-스타", "KR", "2001-01-01", null, ["보컬", "무대", "선명함"]],
   // 2026-08 확장 — 최신 화제 아이돌·배우 (생년월일: app/saju/destiny-bias/lib/celebrityProfiles.ts 교차검증 데이터 재사용)
-  ["rescene-wonyi", "리센느 원이", "K-스타", "KR", "2004-05-25", null, ["보컬", "리더십", "안정감"]],
-  ["rescene-liv", "리센느 리브", "K-스타", "KR", "2006-10-11", null, ["비주얼", "랩", "포즈"]],
-  ["rescene-minami", "리센느 미나미", "K-스타", "JP", "2006-11-29", null, ["춤", "일본", "매력"]],
-  ["rescene-mei", "리센느 메이", "K-스타", "KR", "2008-08-19", null, ["춤", "막내", "에너지"]],
-  ["rescene-zena", "리센느 제나", "K-스타", "KR", "2008-11-27", null, ["보컬", "막내", "순수함"]],
+  ["rescene-wonyi", "리센느 원이", "K-스타", "KR", "2004-05-25", null, ["리센느", "RESCENE", "보컬", "리더십"], "WONI"],
+  ["rescene-liv", "리센느 리브", "K-스타", "KR", "2006-10-11", null, ["리센느", "RESCENE", "보컬"], "LIV"],
+  ["rescene-minami", "리센느 미나미", "K-스타", "JP", "2006-11-29", null, ["리센느", "RESCENE", "춤"], "MINAMI"],
+  ["rescene-mei", "리센느 메이", "K-스타", "KR", "2008-08-19", null, ["리센느", "RESCENE", "춤"], "MAY"],
+  ["rescene-zena", "리센느 제나", "K-스타", "KR", "2008-11-27", null, ["리센느", "RESCENE", "보컬"], "ZENA"],
   ["illit-minju", "아일릿 민주", "K-스타", "KR", "2004-05-11", null, ["리더십", "보컬", "청순"]],
   ["illit-wonhee", "아일릿 원희", "K-스타", "KR", "2007-06-26", null, ["비주얼", "랩", "분위기"]],
   ["kissoflife-natty", "키스오브라이프 나띠", "K-스타", "KR", "2002-05-30", null, ["글로벌", "퍼포먼스", "카리스마"]],
@@ -263,6 +272,8 @@ function toFamousSajuCategory(category: string): FamousSajuCategory {
   if (category === "왕족·정치인") return "politics";
   if (category === "스포츠") return "sports";
   if (category === "기업인") return "business";
+  if (category === "유튜버·크리에이터" || category === "셰프·요리") return "creator";
+  if (category === "방송·예능") return "entertainer";
   if (category === "감독·작가" || category === "사상가·예술가") return "creator";
   if (category === "K-스타" || category === "배우" || category === "가수") return "entertainer";
   return "other";
@@ -284,7 +295,7 @@ export function normalizeCelebrityLookupKey(value: string) {
 
 function buildAliases(slug: string, nameKo: string, nameEn?: string) {
   const slugText = slug.replace(/-/g, " ");
-  return uniqueText([nameKo, nameEn, slugText, ...(extraAliasesBySlug[slug] || [])]);
+  return uniqueText([nameKo, nameEn, slugText, ...(extraAliasesBySlug[slug] || []), ...(getPublicProfile(slug)?.aliases || [])]);
 }
 
 function isDateUncertain(category: string, birthDate: string) {
@@ -314,8 +325,9 @@ export const celebritySajuSeeds: CelebritySajuSeed[] = rawSeeds.map(([slug, name
   const categoryKey = toFamousSajuCategory(category);
   const aliases = buildAliases(slug, name, nameEn);
   const birthCalendar: FamousSajuBirthCalendar = "solar";
-  const isBirthTimeKnown = Boolean(birthTime);
+  const isBirthTimeKnown = false; // No field-specific time source is stored in the legacy tuple.
   const shortDescription = famousSajuOverrides[slug]?.shortDescription
+    || getPublicProfile(slug)?.intro
     || `${name}의 공개 생년월일을 바탕으로 일간, 오행, 직업적 흐름을 살펴보는 유명인 사주 분석입니다.`;
 
   return {
@@ -330,12 +342,13 @@ export const celebritySajuSeeds: CelebritySajuSeed[] = rawSeeds.map(([slug, name
     country,
     birthDate,
     birthCalendar,
-    birthTime: birthTime || null,
+    reportedBirthTime: birthTime || null,
+    birthTime: null,
     birthPlace: null,
     calendarType: "solar",
     gender: "unknown",
     birthDateStatus: "public",
-    birthTimeStatus: isBirthTimeKnown ? "verified" : "unknown",
+    birthTimeStatus: birthTime ? "estimated_not_used" : "unknown",
     isBirthTimeKnown,
     isHistoricalDateUncertain: isDateUncertain(category, birthDate),
     shortBio: shortDescription,
@@ -372,6 +385,9 @@ export const famousSajuPeople: FamousSajuPerson[] = publishedCelebritySajuSeeds.
 
 export function categoryToSlug(category: string) {
   const table: Record<string, string> = {
+    "유튜버·크리에이터": "youtube-creator",
+    "방송·예능": "broadcast",
+    "셰프·요리": "chef",
     "역사 위인": "history",
     "왕족·정치인": "politics",
     "K-스타": "k-star",

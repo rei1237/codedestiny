@@ -1,5 +1,8 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { trimPaidReportText } from "../lib/paid-report-length.js";
+import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
+import { koreanizeExpertTerms } from "../lib/korean-term-gloss.js";
 import { createHash, randomUUID } from "node:crypto";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -26,6 +29,7 @@ import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../li
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
+import { appendExpertPersona } from "../lib/expert-character-personas.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -38,6 +42,7 @@ import {
   startServiceExecution,
 } from "../lib/service-execution-task.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 const SERVICE_KEY = "astrology-ai";
 const FEATURE_KEY = "astrology-ai-consultation";
@@ -111,7 +116,7 @@ const PLANET_LABELS = {
 const MAJOR_PLANETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 const TIMING_TRANSIT_PLANETS = ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 const TRANSIT_TARGETS = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"];
-const FORBIDDEN_RESULT_PATTERNS = [/\bPDF\b/gi, /챕터|chapter/gi, /\bjob\b/gi, /\bprogress\b/gi, /\bprompt\b/gi, /프롬프트/g, /시스템/g, /\bAI\b/g, /이 기능은|이 결과는|분석 결과는/g];
+const FORBIDDEN_RESULT_PATTERNS = [/\bPDF\b/gi, /챕터|chapter/gi, /\bjob\b/gi, /\bprogress\b/gi, /\bprompt\b/gi, /프롬프트/g, SYSTEM_INSTRUCTION_TERM_PATTERN, /\bAI\b/g, /이 기능은|이 결과는|분석 결과는/g];
 const BROKEN_RESULT_TEXT_PATTERN = /\uFFFD|\\uFFFD|Ã|Â|ì|í|ê|ë|ð/;
 const ASTROLOGY_EXPERT_PARTS = [
   { id: "core_identity", label: "태양·달·상승궁의 중심축", pattern: /(태양[\s\S]{0,1400}달|달[\s\S]{0,1400}태양|상승궁|Ascendant|출생시간 미상)/ },
@@ -562,7 +567,8 @@ async function hasMonthlyConsume(env, auth, ctx, idempotencyKey) {
     featureKeys: [FEATURE_KEY, SERVICE_KEY],
     tokens: [idempotencyKey, ctx.requestId, ctx.ledgerId, ctx.transactionId, ctx.paymentId],
   });
-  return Boolean(evidence);
+  // 정본 원장 행을 돌려준다 — 결제 증빙 claim 은 본문 토큰이 아니라 이 ledgerId 로 잡는다.
+  return evidence || null;
 }
 
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
@@ -606,11 +612,13 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   }
 
   {
-    if (await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey))) {
+    const monthlyEvidence = await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey));
+    if (monthlyEvidence) {
       return {
         ok: true,
         accessType: "subscription",
         paymentId: ctx.transactionId || ctx.ledgerId || idempotencyKey,
+        claimEvidenceId: clean(monthlyEvidence.ledgerId, 160),
         source: "billing-gate",
         executionSourceTransactionId: ctx.transactionId,
         executionPayment: body.payment,
@@ -730,6 +738,22 @@ function keywordsFromChart(chart, topic) {
 // 트랜싯 계산을 건너뛰라는 내부 신호. 진짜 실패와 구분해 경고 로그를 남기지 않기 위한 표식이다.
 class SkipTransitsSignal extends Error {}
 
+const TRANSIT_QUARTER_MONTHS = Object.freeze([0, 3, 6, 9]);
+
+function addUtcMonths(date, months) {
+  const next = new Date(date.getTime());
+  const day = next.getUTCDate();
+  next.setUTCDate(1);
+  next.setUTCMonth(next.getUTCMonth() + months);
+  const lastDay = new Date(Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 0)).getUTCDate();
+  next.setUTCDate(Math.min(day, lastDay));
+  return next;
+}
+
+function utcDateText(date) {
+  return date.toISOString().slice(0, 10);
+}
+
 async function calculateAstrologyChart(env, normalized, requestUrl, options = {}) {
   const { input } = normalized;
   const natalRaw = await getSwissWesternChart(env, input.calculationInput, {
@@ -777,6 +801,8 @@ async function calculateAstrologyChart(env, normalized, requestUrl, options = {}
       sign: signName(signIndex),
       signKo: signKo(signIndex),
       cuspDegree: Math.round((((Number(longitude) % 30) + 30) % 30) * 100) / 100,
+      // 하우스 룰러(커스프 별자리의 지배 행성). R7 2026-10-10 상담이 하우스 주제를 룰러 없이 읽었다.
+      ruler: SIGN_META[signName(signIndex)]?.ruler || "",
       planets: planets.filter((planet) => Number(planet.house) === idx + 1).map((planet) => planet.name),
     };
   });
@@ -790,36 +816,51 @@ async function calculateAstrologyChart(env, normalized, requestUrl, options = {}
 
   const now = new Date();
   let transits = null;
-  // 트랜싯은 Swiss 계산을 한 번 더 돈다. 근거 미리보기(/basis)는 대기 화면을 빨리 채우는 것이 목적이라 건너뛴다.
+  // 트랜싯은 분기 시작 시점마다 Swiss 계산을 네 번 더 돈다. 근거 미리보기(/basis)는 대기 화면을 빨리 채우는 것이 목적이라 건너뛴다.
   try {
     if (options.skipTransits) throw new SkipTransitsSignal();
-    const transitRaw = await getSwissWesternChart(env, {
-      year: now.getUTCFullYear(),
-      month: now.getUTCMonth() + 1,
-      day: now.getUTCDate(),
-      hour: now.getUTCHours(),
-      minute: now.getUTCMinutes(),
-      timezone: 0,
-      lat: input.calculationInput.lat,
-      lon: input.calculationInput.lon,
-    }, { premium: true, strictSwiss: true, allowFallback: false, requestUrl });
-    const transitPlanets = MAJOR_PLANETS.map((name) => ({
-      name,
-      label: PLANET_LABELS[name] || name,
-      ...positionFromNode(transitRaw.planets?.[name]),
-      retrograde: transitRaw.planets?.[name]?.retrograde === true,
-    })).filter((planet) => planet.sign);
-    const transitAspects = [];
-    for (const transit of transitPlanets.filter((planet) => TIMING_TRANSIT_PLANETS.includes(planet.name))) {
-      for (const natal of planets.filter((planet) => TRANSIT_TARGETS.includes(planet.name))) {
-        const hit = aspectBetween(transit.absoluteDegree, natal.absoluteDegree);
-        if (hit) transitAspects.push({ transitPlanet: transit.name, aspect: hit.type, natalPlanet: natal.name, orb: hit.orb });
+    const snapshot = async (at) => {
+      const transitRaw = await getSwissWesternChart(env, {
+        year: at.getUTCFullYear(),
+        month: at.getUTCMonth() + 1,
+        day: at.getUTCDate(),
+        hour: at.getUTCHours(),
+        minute: at.getUTCMinutes(),
+        timezone: 0,
+        lat: input.calculationInput.lat,
+        lon: input.calculationInput.lon,
+      }, { premium: true, strictSwiss: true, allowFallback: false, requestUrl });
+      const transitPlanets = MAJOR_PLANETS.map((name) => ({
+        name,
+        label: PLANET_LABELS[name] || name,
+        ...positionFromNode(transitRaw.planets?.[name]),
+        retrograde: transitRaw.planets?.[name]?.retrograde === true,
+      })).filter((planet) => planet.sign);
+      const transitAspects = [];
+      for (const transit of transitPlanets.filter((planet) => TIMING_TRANSIT_PLANETS.includes(planet.name))) {
+        for (const natal of planets.filter((planet) => TRANSIT_TARGETS.includes(planet.name))) {
+          const hit = aspectBetween(transit.absoluteDegree, natal.absoluteDegree);
+          if (hit) transitAspects.push({ transitPlanet: transit.name, aspect: hit.type, natalPlanet: natal.name, orb: hit.orb });
+        }
       }
-    }
+      return { planets: transitPlanets, majorAspectsToNatal: transitAspects.slice(0, 12) };
+    };
+    // R7 2026-10-10: '앞으로 1년의 분기별 흐름'을 쓰게 하면서 트랜짓은 오늘 한 시점뿐이라 분기 단정이 근거 없이 나왔다.
+    // 각 분기의 시작 시점(오늘·+3·+6·+9개월)을 따로 계산해 분기마다 확정값을 준다.
+    const quarterStarts = TRANSIT_QUARTER_MONTHS.map((months) => addUtcMonths(now, months));
+    const snapshots = await Promise.all(quarterStarts.map(snapshot));
     transits = {
       calculatedAt: now.toISOString(),
-      planets: transitPlanets,
-      majorAspectsToNatal: transitAspects.slice(0, 12),
+      ...snapshots[0],
+      quarters: snapshots.map((item, index) => ({
+        quarter: index + 1,
+        from: utcDateText(quarterStarts[index]),
+        to: utcDateText(new Date(addUtcMonths(now, TRANSIT_QUARTER_MONTHS[index] + 3).getTime() - 86400000)),
+        slowPlanets: item.planets
+          .filter((planet) => TIMING_TRANSIT_PLANETS.includes(planet.name))
+          .map((planet) => `${planet.label} ${planet.signKo}${planet.retrograde ? " 역행" : ""}`),
+        majorAspectsToNatal: item.majorAspectsToNatal,
+      })),
     };
   } catch (error) {
     if (!(error instanceof SkipTransitsSignal)) {
@@ -871,14 +912,15 @@ export function getDefaultSystemPrompt() {
   return buildSystemPrompt();
 }
 
-/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. */
-function resolveSystemPrompt(env) {
-  return cmsPromptText(env, "astrology-ai", buildSystemPrompt());
+/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. 캐릭터(윤달) 페르소나는 그 뒤에 붙는다. */
+async function resolveSystemPrompt(env) {
+  const base = await cmsPromptText(env, "astrology-ai", buildSystemPrompt());
+  return appendExpertPersona(env, "yun", base);
 }
 
 function buildSystemPrompt() {
   return [
-    "당신은 30년 경력의 서양 점성술 상담가입니다.",
+    "당신은 서양 점성술 상담가입니다.",
     "사용자의 생년월일, 성별, 출생시간, 출생지 정보와 계산된 점성술 차트 데이터를 바탕으로 삶의 흐름을 깊고 자연스럽게 상담합니다.",
     "보고서처럼 딱딱하게 쓰지 말고, 실제 상담실에서 차트를 펼쳐 놓고 말하듯 따뜻하고 선명하게 답변합니다.",
     "Sun, Moon, Ascendant, Chart Ruler, Houses, Aspects, Element Balance, Modality Balance, Transits의 의미를 정확하게 반영합니다.",
@@ -897,7 +939,7 @@ function buildSystemPrompt() {
     "각 흐름은 짧은 운세가 아니라 사용자의 질문에 직접 닿는 상담 문장으로 충분히 펼칩니다.",
     "문체는 전문적이고 신비롭되 과장하지 않으며, 사용자의 마음을 안정시키는 상담가의 목소리를 유지합니다.",
     "도구명, 작성 지시, 내부 절차, 저장 파일 형식, 진행 상태처럼 상담의 바깥을 드러내는 표현은 쓰지 않습니다.",
-    "마지막에는 사용자가 추가 질문을 할 수 있도록 자연스럽게 상담을 이어갑니다.",
+    "상담문 전체의 마지막에서 한 번만, 사용자가 추가 질문을 할 수 있도록 자연스럽게 상담을 이어갑니다.",
     "문단 사이는 빈 줄로 구분하고, 핵심 문구는 **굵게** 표시합니다. 필요할 때만 '-' 목록을 쓰고, 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 않습니다.",
   ].join("\n");
 }
@@ -987,7 +1029,7 @@ const ASTROLOGY_SECTIONS = Object.freeze([
     hardMaxChars: 6000,
     reasoningKeys: [],
     expertParts: [],
-    guide: "현재 트랜짓을 근거로 앞으로 1년을 네 분기로 나눠, 각 분기마다 무엇이 열리고 무엇이 조여드는지를 따로 써 주세요. 분기마다 '이 시기에 하면 유리한 일'과 '미루는 편이 나은 일'을 구체적인 행동으로 구분해 주고, 계산 데이터에 없는 트랜짓은 지어내지 말고 없으면 출생 차트의 행성 배치가 만드는 리듬으로 대신하세요. 앞선 부분의 '지금의 시기감'과 겹치지 않도록, 여기서는 지금이 아니라 **앞으로의 순서**만 다루세요. 네 분기가 서로 같은 말이 되지 않게 각 분기의 초점을 다르게 잡으세요.",
+    guide: "계산된 차트 데이터의 transits.quarters 에 담긴 분기별 트랜짓(분기 시작 시점의 느린 행성 별자리·역행과 출생 행성에 맺는 각도)을 근거로 앞으로 1년을 네 분기로 나눠, 각 분기마다 무엇이 열리고 무엇이 조여드는지를 따로 써 주세요. 분기 제목에는 그 분기의 from~to 날짜를 그대로 쓰고, 각 분기의 판단은 그 분기 항목의 값만 근거로 삼으세요. 분기마다 '이 시기에 하면 유리한 일'과 '이 시기에는 보류할 일'을 구체적인 행동으로 구분해 주고, 계산 데이터에 없는 트랜짓은 지어내지 말고 그 분기 값이 없으면 사건을 단정하지 말고 출생 차트의 행성 배치가 만드는 리듬으로 대신하세요. 앞선 부분의 '지금의 시기감'과 겹치지 않도록, 여기서는 지금이 아니라 **앞으로의 순서**만 다루세요. 네 분기가 서로 같은 말이 되지 않게 각 분기의 초점을 다르게 잡으세요.",
   },
 ]);
 
@@ -995,7 +1037,8 @@ const ASTROLOGY_SECTIONS = Object.freeze([
 function buildSharedContextLines(input, chart) {
   return [
     "[사용자 입력]",
-    `이름 또는 닉네임: ${input.birthInfo.name || "미입력"}`,
+    // R7 2026-10-10: 대체값 "미입력"을 이름으로 읽어 "미입력 님"이 12번 나왔다.
+    `이름 또는 닉네임: ${input.birthInfo.name || "없음 — 본문에서는 이름 없이 '당신'으로만 부른다"}`,
     `성별: ${input.birthInfo.gender}`,
     `생년월일: ${input.birthInfo.birthDate}`,
     `출생시간: ${input.birthInfo.birthTimeUnknown ? "모름" : input.birthInfo.birthTime}`,
@@ -1101,18 +1144,32 @@ function sanitizeConsultationText(text) {
   FORBIDDEN_RESULT_PATTERNS.forEach((pattern) => {
     result = result.replace(pattern, "");
   });
-  return result.replace(/\n{3,}/g, "\n\n").trim();
+  return koreanizeExpertTerms(result).replace(/\n{3,}/g, "\n\n").trim();
+}
+
+// R7 2026-10-11: inner parts still ended by inviting questions, so the reading closed three times.
+const LAST_SENTENCE = /\s*([^.!?\n]+[.!?])\s*$/u;
+const isClosingInvitation = (sentence) => /궁금|질문|이야기해|문의/u.test(sentence) && /언제든|편하게|있으신가요|있으시다면|있다면/u.test(sentence);
+function dropClosingInvitation(text) {
+  let body = String(text || "").trimEnd();
+  for (let hit = LAST_SENTENCE.exec(body); hit && isClosingInvitation(hit[1]) && body.length > hit[0].length; hit = LAST_SENTENCE.exec(body)) {
+    body = body.slice(0, hit.index).trimEnd();
+  }
+  return body;
 }
 
 function buildSectionPrompt(input, chart, section, repairLines = []) {
   const reasoningLines = section.reasoningKeys
     .map((key) => getReasoningSectionSpec(key))
     .filter(Boolean)
-    .map((spec) => `- ${spec.title}: ${spec.guide} (최소 ${spec.minChars.toLocaleString("ko-KR")}자)`);
+    .map((spec) => `- 소제목 「${spec.title}」 — 담을 내용: ${spec.guide} (최소 ${spec.minChars.toLocaleString("ko-KR")}자)`);
 
   return [
     "아래 사용자의 입력과 서버에서 계산된 서양 점성술 차트 데이터만 근거로, 긴 상담문 중 **지정된 한 부분만** 작성하세요.",
-    "이 글은 다른 부분과 이어 붙여 하나의 상담문이 됩니다. 인사말·전체 요약·맺음말을 새로 쓰지 말고 지정된 부분의 본문만 쓰세요.",
+    // 시스템 지시는 마무리·추가 질문 안내를 요구하므로, 마지막 부분에만 맺음말을 허용해 두 지시가 부딪히지 않게 한다.
+    section.key === ASTROLOGY_SECTIONS.at(-1).key
+      ? "이 글은 상담문의 마지막 부분입니다. 인사말·전체 요약을 새로 쓰지 말고, 본문을 마친 뒤 1~2문장으로 상담을 맺으며 추가 질문을 자연스럽게 청하세요."
+      : "이 글은 다른 부분과 이어 붙여 하나의 상담문이 됩니다. 인사말·전체 요약·맺음말을 새로 쓰지 말고 지정된 부분의 본문만 쓰세요.",
     "행성 이름을 나열하는 대신 차트의 긴장, 재능, 반복 패턴, 현실 조언을 상담형 문장으로 풀어 주세요.",
     "",
     ...buildSharedContextLines(input, chart),
@@ -1123,7 +1180,7 @@ function buildSectionPrompt(input, chart, section, repairLines = []) {
     "분량을 채우려고 같은 문장을 반복하지 말고, 새로 짚을 장면과 판단 기준을 더하세요.",
     "도구명, 작성 지시, 내부 절차, 진행 상태처럼 상담의 바깥을 드러내는 표현은 쓰지 마세요.",
     reasoningLines.length ? "" : "",
-    reasoningLines.length ? "[이 부분에 반드시 담을 근거 흐름 — 아래 제목을 그대로 소제목으로 써 주세요]" : "",
+    reasoningLines.length ? "[이 부분에 반드시 담을 근거 흐름 — 「」 안의 제목만 소제목으로 쓰고, '담을 내용'의 설명 문구는 소제목이나 본문에 옮겨 적지 마세요]" : "",
     ...reasoningLines,
     "",
     ...buildEvidenceRuleLines(buildAstrologyAnalysisBasis(chart)),
@@ -1176,7 +1233,9 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       error.status = 503;
       throw error;
     }
-    return { section, ok: ai?.ok === true, rawText: ai?.rawText || ai?.text || "", text: options.checkpoint ? normalizeNarrativeBody(sanitizeConsultationText(ai?.text || "")) : sanitizeConsultationText(ai?.text || ""), provider, model };
+    const sanitized = sanitizeConsultationText(ai?.text || "");
+    const text = section.key === ASTROLOGY_SECTIONS.at(-1).key ? sanitized : dropClosingInvitation(sanitized);
+    return { section, ok: ai?.ok === true, rawText: ai?.rawText || ai?.text || "", text: options.checkpoint ? normalizeNarrativeBody(text) : text, provider, model };
   };
 
   // 웨이브 1 — 전 섹션 동시 생성. 벽시계는 섹션 시간의 합이 아니라 가장 느린 섹션 하나.
@@ -1189,7 +1248,11 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       && !hasRepeatedReportPassage(text)
       && !getConsultationQualityIssues(text).length;
     const valid = section => validText(section, sections[section.key]?.text || "");
-    const accepted = section => valid(section);
+    // A section under minChars gets one length repair within its attempts; after that it is delivered as is
+    // (ai-and-db.md: length shortfall is never fatal). R7 2026-10-10 shipped short sections without one.
+    const accepted = section => valid(section)
+      && (countPaidReportBodyChars(sections[section.key].text) >= section.minChars
+        || Boolean(attempts[`${section.key}:lengthRepair`]) || Number(attempts[section.key] || 0) >= 2);
     const pending = ASTROLOGY_SECTIONS.filter(section => !accepted(section));
     if (pending.some(section => Number(attempts[section.key] || 0) >= 2)) {
       throw Object.assign(new Error("LLM_QUALITY_CHECK_FAILED"), { code: "LLM_QUALITY_CHECK_FAILED" });
@@ -1630,13 +1693,13 @@ function buildAstrologyAnalysisBasis(chart) {
   ];
 
   const aspectItems = (Array.isArray(chart?.majorAspects) ? chart.majorAspects : []).slice(0, 8).map((aspect) => basisItem(
-    `${aspect.planetA} ${ASPECT_KO[aspect.aspect] || aspect.aspect} ${aspect.planetB}`,
+    `${PLANET_LABELS[aspect.planetA] || aspect.planetA} ${ASPECT_KO[aspect.aspect] || aspect.aspect} ${PLANET_LABELS[aspect.planetB] || aspect.planetB}`,
     Number.isFinite(Number(aspect.orb)) ? `오브 ${Number(aspect.orb).toFixed(2)}°` : "정확 각도",
     { term: "어스펙트", tone: ASPECT_TONE[aspect.aspect] || "neutral" },
   ));
 
   const transitItems = (chart?.transits?.majorAspectsToNatal || []).slice(0, 6).map((aspect) => basisItem(
-    `T.${PLANET_LABELS[aspect.transitPlanet] || aspect.transitPlanet} ${ASPECT_KO[aspect.aspect] || aspect.aspect} N.${PLANET_LABELS[aspect.natalPlanet] || aspect.natalPlanet}`,
+    `트랜짓 ${PLANET_LABELS[aspect.transitPlanet] || aspect.transitPlanet} ${ASPECT_KO[aspect.aspect] || aspect.aspect} 출생 ${PLANET_LABELS[aspect.natalPlanet] || aspect.natalPlanet}`,
     Number.isFinite(Number(aspect.orb)) ? `오브 ${Number(aspect.orb).toFixed(2)}°` : "접근 중",
     { term: "트랜싯", tone: ASPECT_TONE[aspect.aspect] || "neutral" },
   ));
@@ -1771,6 +1834,10 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   const pricing = getPricing();
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
+  // 결제 증빙 1건 = 상담 1건(2026-10-16). 서버가 찾은 결제 문서·월정석 원장 ID 만 묶는다(이용권·관리자는 건너뜀).
+  const evidenceIds = [access.paymentDocId, access.claimEvidenceId];
+  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   const sessionId = existing?.id || `astroai_${randomUUID()}`;
   const lease = randomUUID();
   const now = new Date();
@@ -1801,7 +1868,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       }
       const chart = doc.astrologyChart || await calculateAstrologyChart(env, normalized, request.url);
       doc = await saveAstrologyDelivery(locked, { astrologyChart: chart }, sessionId);
-      const generated = await generateSectionedConsultation(env, normalized.input, chart, {
+      const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateSectionedConsultation(env, normalized.input, chart, {
         minLength: ASTROLOGY_AI_MIN_RESULT_CHARS, maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
         sectionMaxOutputTokens: ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS, fallbackToWorkersAI: false,
         sections: doc.llmMeta?.sections, attempts: doc.llmMeta?.attempts, rawResponses: doc.llmMeta?.rawResponses,
@@ -1812,7 +1879,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
             messages: [{ role: "user", content: normalized.input.userQuestion || normalized.input.topic, createdAt: now }, { role: "assistant", content, createdAt: now }],
           }, sessionId);
         },
-      });
+      }));
       doc = await saveAstrologyDelivery(locked, {
         status: generated.complete ? "delivery_pending" : "partial",
         llmMeta: { ...doc.llmMeta, provider: generated.provider, model: generated.model, quality: generated.quality },
@@ -1831,6 +1898,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     await saveAstrologyDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "GENERATION_FAILED", 80) } }, sessionId);
+    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
     const refund = await refundCardPaymentOnFailure(env, auth, access, error);
     const calculationError = clean(error?.code).startsWith("ASTRO_") || Number(error?.status) === 400;
@@ -1964,6 +2032,7 @@ export const __astrologyAiTestUtils = {
   buildSectionPrompt,
   generateSectionedConsultation,
   sanitizeConsultationText,
+  dropClosingInvitation,
   getConsultationQualityIssues,
   ASTROLOGY_AI_MIN_RESULT_CHARS,
   ASTROLOGY_AI_MAX_RESULT_CHARS,

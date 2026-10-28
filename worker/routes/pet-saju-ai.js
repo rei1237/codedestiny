@@ -29,6 +29,7 @@ const SYSTEM_PROMPT = [
   "당신은 반려동물 행동과 명리학을 함께 다루는 상담가입니다.",
   "주어진 [사실] 수치는 이미 확정된 계산 결과입니다. 절대 바꾸거나 새 수치를 만들지 마세요.",
   "의학적 진단·처방·질병명은 쓰지 말고, 생활 관리와 보호자의 행동 제안으로만 표현하세요.",
+  "반려동물에게 사람의 재물운·수입·투자·직업운을 적용하거나 '재물처럼'에 빗대지 마세요. 오행 관계는 놀이 자극·생활환경·휴식·보호자의 관찰로만 풀어 쓰세요.",
   "문장은 보호자에게 직접 말하듯 가능성과 관찰 조건을 구분해 담백하게 씁니다. 과장·미사여구·이모지는 쓰지 마세요.",
   "반드시 JSON 객체 하나만 출력하세요.",
 ].join("\n");
@@ -99,7 +100,7 @@ function buildReportFacts(blueprint) {
     `명식=${blueprint.natal.pillars.year} ${blueprint.natal.pillars.month} ${blueprint.natal.pillars.day} ${blueprint.natal.pillars.hour || "(시주 미상)"}`,
     `오행분포=${elements}`,
     `가장 강한 기운=${blueprint.balance.excessElement} / 가장 부족한 기운=${blueprint.balance.usefulElement}`,
-    `오늘 일진=${blueprint.today.ganji}(${blueprint.today.element}) — 부족 기운과의 관계: ${blueprint.today.relation}`,
+    `오늘 일진=${blueprint.today.ganji}(${blueprint.today.element}) — 부족 기운과의 관계: ${blueprint.today.relation === "재" ? "부족 기운이 오늘 기운을 제어하는 관계 (금전 해석 아님)" : blueprint.today.relation}`,
     `8지표=${metrics}`,
     `오늘의 운세=${daily}`,
     `추천 환경 5곳:`,
@@ -126,22 +127,12 @@ export function buildAdminLabPrompt(body = {}) {
   };
 }
 
+// 부분 호출용 seed. 리포트 전체 JSON 스키마를 넣으면 모델이 한 부분 본문에 리포트 전체 JSON 을 담아 보낸다
+// (2026-10-11 실호출 0/13). 부분 범위와 출력 형식은 전달 엔진이 붙인다.
+const NARRATION_RULE = "위 사실만 근거로 이번 호출 범위를 서술하세요. 수치·점수·등급·장소는 사실 그대로 인용하고 새로 만들지 마세요.";
+
 function buildReportPrompt(blueprint) {
-  return [
-    buildReportFacts(blueprint),
-    "",
-    "위 사실만 근거로 아래 JSON 스키마를 채우세요. 수치는 사실 그대로 인용하고 새로 만들지 마세요.",
-    JSON.stringify({
-      personality: ["문단1", "문단2", "문단3"],
-      habitats: [{ id: "사실의 장소 id 그대로", reading: "왜 이 장소가 이 아이에게 맞는지 2~3문장" }],
-      plays: ["놀이 제안 1", "놀이 제안 2", "놀이 제안 3"],
-      coach: "오늘 보호자가 할 행동 1가지를 2문장으로",
-      care: "생활 관리 관점의 컨디션 조언 3~4문장 (진단·질병명 금지)",
-      closing: "보호자에게 건네는 마무리 2문장",
-    }),
-    "",
-    "personality는 각 문단 3~5문장. habitats는 사실에 나온 5곳 전부를 같은 순서로 채우세요.",
-  ].join("\n");
+  return [buildReportFacts(blueprint), "", NARRATION_RULE].join("\n");
 }
 
 // ── 궁합 ──────────────────────────────────────────────────────
@@ -168,21 +159,7 @@ function buildCompatFacts(compat, blueprintA, blueprintB) {
 }
 
 function buildCompatPrompt(compat, blueprintA, blueprintB) {
-  return [
-    buildCompatFacts(compat, blueprintA, blueprintB),
-    "",
-    "위 사실만 근거로 아래 JSON 스키마를 채우세요. 점수·등급·장소는 사실 그대로 쓰고 새로 만들지 마세요.",
-    JSON.stringify({
-      verdict: "두 아이 관계를 한 문장으로",
-      overview: ["문단1", "문단2"],
-      dimensions: [{ key: "사실의 5축 key 그대로", reading: "이 축이 왜 이 점수인지 2문장" }],
-      places: [{ id: "사실의 장소 id 그대로", reading: "두 아이가 함께 있을 때 이 장소가 좋은 이유 2문장" }],
-      cautions: ["주의할 상황 1", "주의할 상황 2"],
-      routine: "두 아이가 함께 지내는 하루 루틴 제안 3~4문장",
-    }),
-    "",
-    "dimensions는 5축 전부를 같은 순서로 채우세요. places는 사실에 나온 장소 전부를 채우세요.",
-  ].join("\n");
+  return [buildCompatFacts(compat, blueprintA, blueprintB), "", NARRATION_RULE].join("\n");
 }
 
 // The route and the server resume task share render and the provider timeout.

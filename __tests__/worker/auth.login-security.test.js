@@ -13,7 +13,8 @@ const mockVerifyPassword = jest.fn(async () => false);
 // 맞아야 로드되므로, 빠진 이름 하나가 이 파일 전체를 로드 실패로 떨어뜨린다.
 jest.unstable_mockModule("../../worker/lib/db.js", () => ({
   connectDb: mockConnectDb,
-  mongoose: { connection: { name: "test" } },
+  // Types.ObjectId: resolveActiveUserAuth 가 findOne 전에 new mongoose.Types.ObjectId(userId) 를 만든다.
+  mongoose: { connection: { name: "test" }, Types: { ObjectId: function ObjectId(value) { this.value = value; } } },
   resetMongooseConnection: mockResetMongooseConnection,
   requestPoolRecovery: mockResetMongooseConnection,
   resolveMongoDbName: jest.fn(() => "test"),
@@ -125,6 +126,36 @@ describe("auth production secret guard", () => {
     expect(auth).toBeNull();
   });
 
+  describe("Mongo URI 누락 시 JWT claim-only 인증", () => {
+    async function authenticateWithMissingMongoUri(nodeEnv) {
+      const { signJwt } = await import("../../worker/lib/jwt.js");
+      const env = {
+        NODE_ENV: nodeEnv,
+        JWT_ACCESS_SECRET: "test-access-secret-0123456789",
+        JWT_REFRESH_SECRET: "test-refresh-secret-0123456789",
+      };
+      const userId = "507f1f77bcf86cd799439011";
+      const token = await signJwt(
+        { userId, sub: userId, role: "user" },
+        authLib.getAccessTokenSecret(env),
+        { expiresIn: "10m", issuer: authLib.JWT_ISSUER, audience: authLib.getJwtAudience(env) },
+      );
+      // 실제로는 withMongoRetry → connectDb 가 던지는 오류를 사용자 조회 지점에서 재현한다.
+      mockFindOne.mockRejectedValueOnce(new Error("Mongo URI is required (MONGO_URI, MONGODB_URI, MONGO_URL, or DATABASE_URL)"));
+      const request = new Request("https://example.com/api/fortune", { headers: { authorization: `Bearer ${token}` } });
+      return authLib.getOptionalUserFromRequest(request, env);
+    }
+
+    test("운영 런타임에서는 통과시키지 않는다", async () => {
+      await expect(authenticateWithMissingMongoUri("production")).resolves.toBeNull();
+    });
+
+    test("명시적 로컬 개발(NODE_ENV=test)에서는 기존대로 claim 인증을 허용한다", async () => {
+      const auth = await authenticateWithMissingMongoUri("test");
+      expect(auth?.userId).toBe("507f1f77bcf86cd799439011");
+    });
+  });
+
   test("refresh token fingerprint keeps the existing peppered SHA-256 format", () => {
     const env = { AUTH_SECRET: "test-auth-secret", JWT_ACCESS_SECRET: "fallback-access-secret" };
     const expected = createHash("sha256").update("refresh-token|test-auth-secret").digest("hex");
@@ -167,6 +198,16 @@ describe("login enumeration and brute-force guard", () => {
     expect(status).toBe(401);
     expect(payload.code).toBe("invalid_credentials");
     expect(payload.message).toBe("Email or password is incorrect.");
+  });
+
+  test("OAuth-only accounts cannot use email login or reveal their provider", async () => {
+    mockFindOne.mockResolvedValue({ _id: "64f0a1b2c3d4e5f678901234", email: "tester@example.com", localAuth: { enabled: false }, oauthProvider: "kakao" });
+    const response = await authRoutes.__authTestUtils.handleLogin(buildLoginRequest(), env);
+    const { status, payload } = await readResponse(response);
+    expect(status).toBe(401);
+    expect(payload.code).toBe("invalid_credentials");
+    expect(payload.message).toBe("Email or password is incorrect.");
+    expect(mockVerifyPassword).not.toHaveBeenCalled();
   });
 
   test("withdrawn local account returns generic invalid_credentials", async () => {

@@ -9,7 +9,7 @@ import ServiceIntroSection from "../components/ServiceIntroSection";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/reviews/";
-const PAGE_TITLE = "실시간 사용자 리뷰 | 구매 인증 후기 모음 — Code Destiny";
+const PAGE_TITLE = "실시간 사용자 리뷰 | 구매 인증 후기 모음 — 꿀꿀 운세";
 const PAGE_DESCRIPTION =
   "코드데스티니를 실제로 이용한 분들이 남긴 후기입니다. 사주·타로·자미두수·점성술 상품별 평점과 구매 인증 리뷰를 확인하고 직접 후기를 남길 수 있습니다.";
 
@@ -62,7 +62,7 @@ const reviewsFaqItems = [
   {
     question: "한 상품에 후기를 여러 번 쓸 수 있나요?",
     answer:
-      "한 상품당 한 번만 작성할 수 있습니다. 이미 작성한 상품은 목록에 '작성 완료'로 표시되며, 내용을 고치고 싶다면 고객센터로 문의해 주세요.",
+      "네. 후기 작성 기한과 계정·상품별 참여 횟수 제한은 없습니다. 새 후기를 제출할 때마다 관리자가 검토하고, 승인된 신청별로 월정석을 지급합니다. 같은 신청을 다시 승인해도 보상이 중복 지급되지는 않습니다. 좋은 점과 아쉬운 점을 솔직하게 남겨 주세요.",
   },
   {
     question: "작성한 후기를 삭제할 수 있나요?",

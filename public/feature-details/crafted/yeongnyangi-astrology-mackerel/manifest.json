@@ -1,0 +1,137 @@
+{
+  "id": "yeongnyangi-astrology-mackerel",
+  "featureKey": "yeongnyangi-astrology-mackerel",
+  "title": "영냥이 서양 점성술 고등어 상담",
+  "notice": "서양 점성술 고등어는 출생 차트의 태양·달·상승점과 행성의 배치에서 일상 질문을 읽는 상담입니다. 자기이해 질문은 6장, 질문 없이 읽는 기본 성향 리포트는 5장으로 다릅니다. 출생시간·지역·시간대가 필요하며, 현재 출생 차트에 실시간 트랜짓은 포함되지 않습니다. 별자리 하나로 성격이나 미래 사건을 확정하지 않습니다. 설명용 사례는 가상 편집이며 AI가 계산 근거를 바탕으로 작성합니다. 가격과 추가 질문 조건은 기존 화면에서 확인하세요.",
+  "panels": [
+    {
+      "id": "01-more-than-one-sign",
+      "title": "괜찮다고 말한 뒤, 왜 마음이 남을까요?",
+      "alt": "마법사 고양이 영냥이가 원형 출생차트와 행성 배치를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-astrology.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "괜찮다고 말한 뒤,\n왜 마음이 남을까요?\n\n겉으로 보이는 나와 마음속 반응을,\n출생 차트의 여러 자리에서 읽어요.\n\n영냥이 서양 점성술 · 고등어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-three-ways-of-being-me",
+      "title": "나를 설명하는 별은, 하나만 있지 않아요.",
+      "alt": "태양달상승점역할을세층으로설명하는시각구성.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/02-three-ways-of-being-me.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나를 설명하는 별은,\n하나만 있지 않아요.\n태양 · 내가 향하는 방향\n\n무엇을 중요하게 여기고\n어떤 모습으로 살아가려 하는지.\n\n달 · 마음이 쉬는 자리\n\n어떤 상황에서 안심하고,\n무엇에 예민하게 반응하는지.\n\n상승점 · 세상을 만나는 첫 태도\n\n낯선 상황에 들어설 때\n드러나는 나의 반응과 분위기.\n\n세 가지를 함께 읽으면,\n서로 모순처럼 보이던 모습도 맥락이 생겨요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/02-three-ways-of-being-me-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-a-question-with-a-scene",
+      "title": "성격 이름 대신, 마음에 남은 장면 하나.",
+      "alt": "부탁거절후걱정이라는구체적질문작성예시.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/03-a-question-with-a-scene.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "성격 이름 대신,\n마음에 남은 장면 하나.\n\n“저는 왜 이렇게 예민할까요?”\n\n“부탁을 거절한 뒤에도\n상대가 실망했을까 계속 생각해요.\n어떻게 말하면 덜 힘들까요?”\n\n내가 한 말과 마음속에 남은 생각을\n함께 적어 주세요.\n\n질문을 구체화하는 가상 예시예요.\n입력하지 않은 사연을 사실로 만들지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/03-a-question-with-a-scene-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-six-chapters-to-an-action",
+      "title": "마음의 반응을 읽고, 다음 말을 준비해요.",
+      "alt": "실제자기이해6장목차를두장씩세단계로정리.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/04-six-chapters-to-an-action.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "마음의 반응을 읽고,\n다음 말을 준비해요.\n\n자기이해 질문 · 6장\n\n1–2장 · 나의 바탕\n\n출생 차트의 바탕 · 마음의 반응\n강점과 부담이 되는 순간\n\n3–4장 · 이 질문의 실마리\n\n내 마음과 선택의 실마리\n판단의 근거와 달라지는 조건\n\n5–6장 · 현실로 가져올 일\n\n현재의 기회와 주의 조건\n종합 해석과 실행 계획\n\n읽은 흐름을 행동으로 옮겨 봐요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/04-six-chapters-to-an-action-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-a-strength-with-an-edge",
+      "title": "배려가 내 자리를, 지우지 않도록.",
+      "alt": "거절표현에서배려와경계를함께남기는가상조언.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/05-a-strength-with-an-edge.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "배려가 내 자리를,\n지우지 않도록.\n\n이해를 돕기 위한 편집 예시\n\n상대의 실망을 미리 헤아리는 힘은\n관계를 세심하게 만드는 장점이에요.\n\n다만 내가 감당할 몫까지\n대신 정해줄 필요는 없어요.\n\n“오늘은 어렵지만, 내일은 가능해요.”\n가능한 범위를 함께 말해 보세요.\n\n실제 출생 차트나 고객 결과가 아닌 예시입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/05-a-strength-with-an-edge-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-a-five-chapter-portrait",
+      "title": "질문 없이 읽는다면, 다섯 장의 나의 초상.",
+      "alt": "기본성향5장실제목차를번호로제공.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/06-a-five-chapter-portrait.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문 없이 읽는다면,\n다섯 장의 나의 초상.\n태양·달·상승점으로 보는 나\n감정과 안정감을 만드는 조건\n재능과 표현 방식\n사랑과 친밀감의 방식\n지금의 선택과 실행 계획\n\n이 목차는 기본 성향 리포트예요.\n질문 상담 6장과 함께 묶인 구성은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/06-a-five-chapter-portrait-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-the-chart-needs-a-time",
+      "title": "태어난 시간과 장소, 차트를 읽는 출발점.",
+      "alt": "출생시간지역시간대필수와서양출생차트의시기한계안내.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/07-the-chart-needs-a-time.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "태어난 시간과 장소,\n차트를 읽는 출발점.\n준비할 정보\n\n생년월일과 출생시간·출생 지역.\n지역의 시간대와 좌표를 확인해요.\n\n어떤 차트를 읽나요?\n\n서양 출생 차트를 읽습니다.\n베다의 다샤를 섞지 않아요.\n\n현재 하늘의 변화도 보나요?\n\n현재 구성에 실시간 트랜짓은 없어요.\n출생 배치로 사건 날짜를 만들지 않아요.\n\n출생시간을 모르면 임의로 채우지 마세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/07-the-chart-needs-a-time-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-find-a-language-for-yourself",
+      "title": "마음을 설명할 말이, 하나 더 생기도록.",
+      "alt": "공식영냥이와AI해석가격조건결과기록마무리.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/08-find-a-language-for-yourself.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "마음을 설명할 말이,\n하나 더 생기도록.\n\n성격을 고정하는 이름보다,\n나를 편하게 대할 방법을 찾아보세요.\n\nAI가 계산 근거를 바탕으로 작성합니다.\n가격과 이용 조건은 현재 화면에서 확인해요.\n저장된 결과는 내 상담에서 다시 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-mackerel/08-find-a-language-for-yourself-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

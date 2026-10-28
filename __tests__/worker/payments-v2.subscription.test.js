@@ -303,7 +303,7 @@ describe("prepare — 구 계약 승계", () => {
 });
 
 describe("confirm — 활성화·멱등·경계", () => {
-  test("정상 결제(PortOne paid + 금액 일치): 이용권 30일 활성화 + 구 응답 키", async () => {
+  test("정상 결제(PortOne paid + 금액 일치): 기간 없는 이용권 활성화 + 구 응답 키", async () => {
     const db = makeFakePaymentDb();
     const user = seedUser(db);
     const order = await prepareOrder(db, "standard", "sub-confirm-fresh");
@@ -317,7 +317,7 @@ describe("confirm — 활성화·멱등·경계", () => {
     // 클라이언트 소비 키(PointsClient 4085-4099): tier·source·isActive·startedAt·expiresAt·profileLimit…
     expect(payload.subscription).toMatchObject({ tier: "standard", source: "pass", isActive: true, cancelAtPeriodEnd: false });
     const expiresInDays = Math.round((new Date(payload.subscription.expiresAt).getTime() - Date.now()) / DAY_MS);
-    expect(expiresInDays).toBe(30);
+    expect(expiresInDays).toBeGreaterThan(3650); // 2026-10-11 기간 없음 — 한도 소진으로만 끝난다
     expect(payload.payment).toMatchObject({ merchantUid: order.merchantUid, paymentType: "membership_pass", paymentAmount: 9900 });
     // DB 반영: 주문 paid + 지급 스탬프 + User.profileSubscription flat $set (중첩 반영)
     const paidOrder = db.rows.find((r) => r.merchantUid === order.merchantUid);
@@ -345,7 +345,7 @@ describe("confirm — 활성화·멱등·경계", () => {
     expect(new Date(user.profileSubscription.expiresAt).getTime()).toBe(firstExpiry); // 연장 스택 재적용 금지
   });
 
-  test("같은 등급 연장: 기존 만료에 이어 붙는다(스택)", async () => {
+  test("같은 등급 재구매(기간 있던 옛 이용권): 기간 없는 이용권으로 바뀌고 한도가 쌓인다", async () => {
     const db = makeFakePaymentDb();
     const user = seedUser(db, {
       tier: "standard", expiresAt: new Date(Date.now() + 10 * DAY_MS), lastPassOrderId: "sub_s1m_prior",
@@ -356,10 +356,10 @@ describe("confirm — 활성화·멱등·경계", () => {
       impUid: order.merchantUid, merchantUid: order.merchantUid,
     }));
     const expiresInDays = Math.round((new Date(user.profileSubscription.expiresAt).getTime() - Date.now()) / DAY_MS);
-    expect(expiresInDays).toBe(40); // 10일 잔여 + 30일
+    expect(expiresInDays).toBeGreaterThan(3650);
   });
 
-  test("업그레이드: 남은 기간 소멸, 결제 시점부터 30일 (구 정책 그대로)", async () => {
+  test("업그레이드: 새 등급의 기간 없는 이용권으로 시작한다", async () => {
     const db = makeFakePaymentDb();
     const user = seedUser(db, {
       tier: "standard", expiresAt: new Date(Date.now() + 20 * DAY_MS), lastPassOrderId: "sub_s1m_prior",
@@ -371,7 +371,7 @@ describe("confirm — 활성화·멱등·경계", () => {
     }));
     expect(user.profileSubscription.tier).toBe("premium");
     const expiresInDays = Math.round((new Date(user.profileSubscription.expiresAt).getTime() - Date.now()) / DAY_MS);
-    expect(expiresInDays).toBe(30); // 20일 잔여가 50일로 스택되면 안 된다
+    expect(expiresInDays).toBeGreaterThan(3650);
   });
 
   test("남의 이용권 주문 confirm: 403", async () => {
@@ -420,7 +420,7 @@ describe("webhook·크론 주체 — grantOrderEntitlement 이용권 분기", ()
     const runConfirm = (handle, ctx, input, deps) =>
       confirmOrder(ENV, ctx, input, { withDb: (_env, _ctx, fn) => fn(handle), deps });
     const ctx = { mongoOps: 0 };
-    const result = await runConfirm(db, ctx, { orderId: order.merchantUid }, {
+    const result = await runConfirm(db, ctx, { orderId: order.merchantUid, systemActor: true }, {
       fetchPayment: async () => ({
         paymentId: order.merchantUid, status: "paid", amount: 59000, currency: "KRW",
         pay_method: "card", paid_at: Math.floor(Date.now() / 1000),

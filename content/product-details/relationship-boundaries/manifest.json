@@ -1,0 +1,80 @@
+{
+  "id": "relationship-boundaries",
+  "featureKey": "rpt_villainCard",
+  "title": "빌런 블랙리스트 · 관계의 경계",
+  "notice": "기존 사주 결과를 바탕으로 관계에서 소모되기 쉬운 패턴을 상징 원형으로 읽는 해금 리포트입니다. 열 가지 원형을 규칙으로 점수화해 다섯 또는 일곱 유형을 보여줍니다. 최상위 유형·취약 축·방어 키워드 요약과 유형별 점수·랭크, 감지 이유, 접근 패턴, 레드 플래그, 방어 루틴, 관계별 주의 구역, 충돌 트리거, 복사 가능한 멘트 세 개, 체크리스트 다섯 문항, 연이·네오의 준비된 조언을 읽습니다. 체크 결과는 선택한 문항 수에 따른 안내로 심리 검사나 타인에 대한 진단이 아닙니다. 상대 정보나 실제 행동을 분석하여 특정인을 찾아내는 기능이 아니며, 점수는 실제 위험 확률이나 범죄·성격 판정이 아닙니다. 실제 행동·기록·내 상태와 함께 참고합니다. 새 AI 상담·PDF 제공은 포함하지 않습니다. 가상 편집 예시는 실제 결과·후기가 아니며 이미지는 분위기 연출입니다. 현재 이용권·월정석·단건 결제 및 해금 범위는 결제창을 확인하세요.",
+  "panels": [
+    {
+      "id": "01-when-a-relationship-drains-you",
+      "title": "만나고 나면 지치는 관계, 어디에 선을 그을까요.",
+      "alt": "만나고 나면 지치는 관계, 어디에 선을 그을까요.",
+      "src": "/feature-details/crafted/relationship-boundaries/01-when-a-relationship-drains-you.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "만나고 나면 지치는 관계,\n어디에 선을 그을까요.\n\n반복되는 부탁과 불편한 약속,\n거절 뒤에 남는 마음까지.\n나의 관계 경계를 돌아보세요.\n\n빌런 블랙리스트 · 분위기 연출 이미지"
+    },
+    {
+      "id": "02-patterns-not-a-person",
+      "title": "누군가를 지목하기보다, 반복되는 패턴을 살펴요.",
+      "alt": "누군가를 지목하기보다, 반복되는 패턴을 살펴요.",
+      "src": "/feature-details/crafted/relationship-boundaries/02-patterns-not-a-person.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "누군가를 지목하기보다,\n반복되는 패턴을 살펴요.\n나의 사주에서 출발\n\n익숙하게 소모될 수 있는 지점을\n관계 원형으로 풀어요.\n\n다섯 또는 일곱 유형\n\n열 가지 원형 중 사주 규칙으로\n선정한 유형을 보여줘요.\n\n상대의 진단은 아니에요\n\n상대 정보와 실제 행동을\n분석해 찾아내는 기능은 아니에요."
+    },
+    {
+      "id": "03-three-summary-cards",
+      "title": "세 장의 요약으로, 먼저 점검할 곳을 잡아요.",
+      "alt": "세 장의 요약으로, 먼저 점검할 곳을 잡아요.",
+      "src": "/feature-details/crafted/relationship-boundaries/03-three-summary-cards.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "세 장의 요약으로,\n먼저 점검할 곳을 잡아요.\n오늘의 최종 보스\n\n가장 높은 점수의 관계 원형.\n\n내 사주의 취약 버튼\n\n눌리기 쉬운 축을 요약해요.\n\n생존 주문\n\n방어 키워드와 주의 영역을 봐요.\n\n게임 같은 표현으로 만든 상징 카드.\n누군가의 위험 확률은 아니에요."
+    },
+    {
+      "id": "04-open-the-pattern-dossier",
+      "title": "유형을 펼치면, 신호와 대응이 이어져요.",
+      "alt": "유형을 펼치면, 신호와 대응이 이어져요.",
+      "src": "/feature-details/crafted/relationship-boundaries/04-open-the-pattern-dossier.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "유형을 펼치면,\n신호와 대응이 이어져요.\n\n사주 감지 이유 · 접근 패턴\n\n핵심 레드 플래그 세 가지\n\n방어 루틴 세 가지\n\n돈 · 연애 · 일 · 가족 · 친구\n\n충돌 트리거 세 가지\n\n원형별 도감에서 읽는 내용이에요.\n실제 행동과 비교하며 살펴보세요."
+    },
+    {
+      "id": "05-find-words-for-your-boundary",
+      "title": "말문이 막히는 순간, 준비된 문장을 참고해요.",
+      "alt": "말문이 막히는 순간, 준비된 문장을 참고해요.",
+      "src": "/feature-details/crafted/relationship-boundaries/05-find-words-for-your-boundary.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "말문이 막히는 순간,\n준비된 문장을 참고해요.\n긴급 퇴치 멘트 세 개\n\n유형별 문장을 한 번에 복사해\n내 상황에 맞게 다듬어 써요.\n\n연이의 조언\n\n다정함을 잃지 않으면서\n기준을 세우는 말을 읽어요.\n\n네오의 조언\n\n지금 정리할 행동을\n직설적인 문장으로 살펴요.\n\n실시간 캐릭터 상담은 아니에요."
+    },
+    {
+      "id": "06-a-boundary-in-one-sentence",
+      "title": "길게 해명하기 전에, 내 기준부터 전해보세요.",
+      "alt": "길게 해명하기 전에, 내 기준부터 전해보세요.",
+      "src": "/feature-details/crafted/relationship-boundaries/06-a-boundary-in-one-sentence.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "길게 해명하기 전에,\n내 기준부터 전해보세요.\n\n가상 편집 예시 · 실제 결과·후기 아님\n\n“부탁을 받으면 거절하기 어려워\n내 일정이 자꾸 밀려요.”\n\n“이번에는 맡기 어려워요.\n제가 할 수 있는 범위는\n여기까지예요.”\n\n공격하는 말보다\n범위를 분명히 하는 문장으로요."
+    },
+    {
+      "id": "07-check-your-own-response",
+      "title": "다섯 문항으로, 나의 방어 상태를 돌아봐요.",
+      "alt": "다섯 문항으로, 나의 방어 상태를 돌아봐요.",
+      "src": "/feature-details/crafted/relationship-boundaries/07-check-your-own-response.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다섯 문항으로,\n나의 방어 상태를 돌아봐요.\n\n각 유형의 체크리스트에서\n지금 나에게 해당하는 항목을 고르고\n‘방어 상태 점검하기’를 눌러요.\n\n선택한 문항 수에 따라\n기준을 유지하거나\n다시 정리할 방향을 안내해요.\n\n체크는 나의 대응을 돌아보는 도구.\n타인의 성격이나 관계의 안전을\n판정하는 검사는 아니에요."
+    },
+    {
+      "id": "08-open-with-your-own-judgment",
+      "title": "관계의 답보다, 나의 기준을 세우도록.",
+      "alt": "관계의 답을 대신 정하지 않고, 나의 기준을 세우도록.",
+      "src": "/feature-details/crafted/relationship-boundaries/08-open-with-your-own-judgment.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "관계의 답보다,\n나의 기준을 세우도록.\n\n사주 규칙과 준비된 설명으로\n패턴을 읽는 화면 리포트예요.\n새 AI 상담·PDF는 포함하지 않아요.\n\n해금 범위 확인\n\n이용권·월정석·단건 결제는\n현재 결제창을 기준으로 해요.\n\n실제 행동·기록·내 상태와 함께\n관계의 경계를 판단해 주세요."
+    }
+  ]
+}

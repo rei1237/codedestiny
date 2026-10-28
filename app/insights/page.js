@@ -11,6 +11,7 @@ import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-
 import { publishedCelebritySajuSeeds } from "../../lib/famous-saju/celebrity-saju-service";
 import { getCelebrityEditorial } from "../../lib/famous-saju/celebrity-editorial";
 import { INSIGHT_DISCOVERY_COPY } from "./discovery-copy.mjs";
+import { SEARCH_READING_PATHS } from "../../lib/i18n/search-reading-paths.mjs";
 import { getPexelsSectionImage, resolvePexelsInsightImageRequest } from "../../lib/server/pexels";
 
 const discoveryCopy = INSIGHT_DISCOVERY_COPY.ko;
@@ -69,7 +70,7 @@ function toClientInsightItem(item) {
     publishedAt: String(item?.publishedAt || "").trim(),
     updatedAt: String(item?.updatedAt || "").trim(),
     viewCount: null,
-    readingTime: Math.max(1, Number(item?.readingTime || 0) || 1),
+    readingTime: item?.contentHtml || item?.body ? Math.max(1, Math.ceil(String(item.contentHtml || item.body).replace(/<[^>]+>/g, " ").length / 500)) : item?.readingTime || null,
   };
 }
 
@@ -114,7 +115,7 @@ function buildFamousSajuInsightItems() {
     publishedAt: null,
     updatedAt: null,
     viewCount: null,
-    readingTime: person.isBirthTimeKnown ? 7 : 6,
+    readingTime: getCelebrityEditorial(person.slug)?.narrative ? Math.max(1, Math.ceil(getCelebrityEditorial(person.slug).narrative.join(" ").length / 500)) : null,
   }));
 }
 
@@ -161,7 +162,7 @@ export default async function InsightsPage() {
     path: "/insights",
   });
   const breadcrumb = buildBreadcrumbJsonLd([
-    { name: "꿀꿀 운세 홈", path: "/" },
+    { name: "꿀꿀운세 홈", path: "/" },
     { name: "운세 인사이트 허브", path: "/insights" },
   ]);
 
@@ -188,7 +189,7 @@ export default async function InsightsPage() {
   ];
 
   return (
-    <>
+    <div className="moon-insights-root">
       {/*
         인터랙티브 허브는 클라이언트 전용(ssr:false)이라 페이지의 H1 과 요약은 서버에서 렌더한다.
         2026-09-05 까지는 이 섹션이 클라이언트 그리드 **아래** `sr-only` 였다 — JS 없이 보면 허브
@@ -197,11 +198,28 @@ export default async function InsightsPage() {
         CLS 0.275 이력이 있어 클라이언트에서만 나타나는 블록을 위에 두지 않는다).
         🔴 H1 은 이 하나뿐이어야 한다 — InsightsCosmicClient 의 제목은 h2 다.
       */}
-      <section className="mx-auto w-full max-w-6xl px-4 pt-8 pb-4 md:px-6 md:pt-10">
+      <header className="moon-container moon-hero"><div><a href="/ggulggul/">꿀꿀운세</a><h1>운세 인사이트</h1><p>내 사주를 이해하는 달빛 지식 서재</p></div><Image src="/images/feature-details/fusion-fortune-hero-v2.webp" width={640} height={420} alt="" priority /></header>
+      <section className="moon-container cd-guide-index" aria-labelledby="insight-reading-next">
+        <h2 id="insight-reading-next" className="cd-guide-index__title">{SEARCH_READING_PATHS.ko.heading}</h2>
+        <p className="cd-guide-index__lede">{SEARCH_READING_PATHS.ko.lead}</p>
+        <ul className="cd-guide-index__grid">
+          {SEARCH_READING_PATHS.ko.links.map((link) => <li key={link.href}><a className="cd-guide-index__link" href={link.href}>{link.label}</a></li>)}
+        </ul>
+      </section>
+      <InsightsCosmicRouteClient
+        initialItems={initialItems}
+        initialAllItems={initialAllItems}
+        initialRecommended={initialRecommended}
+        initialCategories={categories}
+        initialTags={tags}
+        initialTotalCount={initialAllItems.length}
+        initialFamousSajuItems={initialFamousSajuItems.slice(0, 6)}
+      >
+      <details className="moon-container moon-method"><summary>서재의 분야와 읽는 방법</summary>      <section className="mx-auto w-full max-w-6xl px-4 pt-8 pb-4 md:px-6 md:pt-10">
         <div className="cd-guide-index">
-          <h1 className="cd-guide-index__title cd-guide-index__title--hero">
+          <h2 className="cd-guide-index__title cd-guide-index__title--hero">
             운세 인사이트 허브 — 사주·자미두수·숙요점·타로 가이드
-          </h1>
+          </h2>
           <p className="cd-guide-index__lede">
             사주팔자의 오행과 십성, 자미두수 12궁 명반, 숙요점 27숙, 타로 카드 해석, 서양·베다
             점성술까지 — 처음 접하는 사람도 흐름을 읽을 수 있도록 정리한 운세 지식 아카이브입니다.
@@ -209,7 +227,8 @@ export default async function InsightsPage() {
           </p>
         </div>
       </section>
-      <section className="mx-auto w-full max-w-6xl px-4 pb-6 md:px-6" aria-labelledby="insight-reading-paths">
+</details>
+      <section className="mx-auto w-full max-w-6xl px-4 pb-6 md:px-6" aria-labelledby="insight-reading-paths"><details><summary className="moon-reading-summary">처음이라면 · 질문별 추천 읽기</summary>
         <div className="cd-guide-index">
           <h2 id="insight-reading-paths" className="cd-guide-index__title">어디서부터 읽을까요?</h2>
           <p className="cd-guide-index__lede">계산 기준, 해석 순서, 체계 간 차이를 중심으로 읽는 길을 안내합니다. 글별 제작·검수 안내와 <a href="/methodology/">방법론</a>도 함께 확인해 주세요.</p>
@@ -227,8 +246,8 @@ export default async function InsightsPage() {
             ))}
           </div>
         </div>
-      </section>
-      <section className="mx-auto w-full max-w-6xl px-4 pb-6 md:px-6" aria-labelledby="insight-famous-reading">
+      </details></section>
+      <section className="mx-auto w-full max-w-6xl px-4 pb-6 md:px-6" aria-labelledby="insight-famous-reading"><details><summary className="moon-reading-summary">같은 일주, 다른 삶 · 인물 사례 읽기</summary>
         <div className="cd-guide-index">
           <h2 id="insight-famous-reading" className="cd-guide-index__title">{discoveryCopy.reviewedTitle}</h2>
           <Image src="/images/feature-details/famous-saju-hero-v2.webp" width={1200} height={675} sizes="(min-width:768px) 672px, 100vw" alt="" loading="lazy" className="mb-5 aspect-video w-full max-w-2xl rounded-xl object-cover" />
@@ -240,16 +259,8 @@ export default async function InsightsPage() {
           </ul>
           <a className="cd-guide-index__link" href="/insights/famous-saju/">{discoveryCopy.allFamous}</a>
         </div>
-      </section>
-      <InsightsCosmicRouteClient
-        initialItems={initialItems}
-        initialAllItems={initialAllItems}
-        initialRecommended={initialRecommended}
-        initialCategories={categories}
-        initialTags={tags}
-        initialTotalCount={initialAllItems.length}
-        initialFamousSajuItems={initialFamousSajuItems.slice(0, 6)}
-      />
+      </details></section>
+      </InsightsCosmicRouteClient>
       {/*
         기능 가이드 12종은 사이트에서 가장 품질이 높은 자산인데(상호 공통 문장 0개)
         2026-07 실측에서 10개가 내부 링크로 도달 불가능했다. 눈에 보이는 섹션으로
@@ -332,6 +343,6 @@ export default async function InsightsPage() {
       <PublicReadingGuide locale="ko" topic="insights" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPage) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
-    </>
+    </div>
   );
 }

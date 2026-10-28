@@ -11,9 +11,9 @@ import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/vedic-ai/";
-const PAGE_TITLE = "베다 점성술 상담 · 나크샤트라·다샤 해석 | Code Destiny";
+const PAGE_TITLE = "윤달의 베다점 전문가 상담 | 나크샤트라·다샤 해석";
 const PAGE_DESCRIPTION =
-  "인도 조티쉬 전통의 나크샤트라와 행성 배치, 다샤 주기로 지금의 질문을 읽는 베다 점성술 상담입니다. 달이 머문 나크샤트라와 현재의 다샤 흐름을 풀어 드립니다.";
+  "마스터 윤달이 안내하는 베다점 상담실입니다. 조티쉬의 라그나·나크샤트라·다샤를 바탕으로 기질과 시기의 흐름을 삶의 언어로 풀어드립니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -29,13 +29,13 @@ export const metadata: Metadata = {
     siteName: siteSeo.brandName,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "베다 점성술 전문가 상담" }],
+    images: [{ url: "/feature-details/assets/vedic-ai-og.webp", width: 1200, height: 630, alt: "윤달의 베다점 전문가 상담" }],
   },
   twitter: {
     card: siteSeo.twitterCard,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [siteSeo.defaultOgImage],
+    images: ["/feature-details/assets/vedic-ai-og.webp"],
   },
 };
 
@@ -79,7 +79,7 @@ const vedicAiFaqItems = [
 
 const vedicAiJsonLd = [
   buildServiceJsonLd({
-    name: "베다 점성술 전문가 상담",
+    name: "윤달의 베다점 전문가 상담",
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "베다 점성술 상담 서비스",
@@ -104,9 +104,9 @@ export default function VedicAiPage() {
       />
             <VedicAiRouteClient />
             <ServiceIntroSection label="베다 점성술 전문가 상담 안내">
-        <h1>베다 점성술 전문가 상담 — 나크샤트라와 다샤의 흐름</h1>
+        <h1>윤달의 베다점 전문가 상담 — 나크샤트라와 다샤의 흐름</h1>
         <p>
-          베다 점성술 전문가 상담은 인도 조티쉬 전통을 따라 사이더리얼 황도대 위에 라시 차트를 세우고,
+          윤달이 안내하는 베다점 전문가 상담은 인도 조티쉬 전통을 따라 사이더리얼 황도대 위에 라시 차트를 세우고,
           달이 머문 나크샤트라의 결, 행성들의 배치, 지금 지나는 다샤의 주기를 함께 읽습니다.
           관계와 일, 마음의 방향처럼 오래 머문 질문을 시기의 흐름 위에서 비춰 드립니다.
         </p>

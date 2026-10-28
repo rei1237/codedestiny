@@ -5,6 +5,39 @@ export function sitemapDirectives(text) {
   ).filter(Boolean))];
 }
 
+// Read declared indexes as well as URL sets; never follow an off-site reference.
+export async function collectSitemapUrls(declared, base, get) {
+  const pending = [...declared];
+  const visited = new Set();
+  const urls = new Set();
+  const issues = [];
+  const files = [];
+  while (pending.length) {
+    const url = pending.shift();
+    if (visited.has(url)) continue;
+    visited.add(url);
+    if (visited.size > 50) { issues.push('sitemap file budget exceeded (50)'); break; }
+    let parsed;
+    try { parsed = new URL(url); } catch { issues.push(`invalid sitemap URL: ${url}`); continue; }
+    if (parsed.origin !== base || parsed.search || parsed.hash) {
+      issues.push(`unexpected declared sitemap URL: ${url}`);
+      continue;
+    }
+    const entry = await get(parsed.pathname);
+    const isIndex = /<sitemapindex\b/.test(entry.html);
+    const isUrlset = /<urlset\b/.test(entry.html);
+    if (entry.status !== 200 || (!isIndex && !isUrlset)) {
+      issues.push(`declared sitemap missing or invalid: ${url}`);
+      continue;
+    }
+    const locations = [...entry.html.matchAll(/<loc>\s*([^<]+)\s*<\/loc>/g)].map(m => m[1].trim());
+    files.push({ url, status: entry.status, type: isIndex ? 'index' : 'urlset', count: locations.length });
+    if (isIndex) pending.push(...locations);
+    else locations.forEach(location => urls.add(location));
+  }
+  return { urls, issues, files };
+}
+
 export function attributes(tag) {
   return Object.fromEntries([...tag.matchAll(/\s([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g)]
     .map(m => [m[1].toLowerCase(), m[2] ?? m[3] ?? m[4]]));
@@ -23,11 +56,16 @@ export function inspectPage({ url, status, html, xRobots = '', indexable = true 
   const canonical = links.filter(l => /(?:^|\s)canonical(?:\s|$)/i.test(l.rel || ''));
   if (canonical.length !== 1) issues.push(`canonical count ${canonical.length}`);
   else if (canonical[0].href !== url) issues.push(`canonical mismatch: ${canonical[0].href}`);
-  if (!/<title\b[^>]*>\s*[^<\s]/i.test(head)) issues.push('missing title');
-  if (!metas.some(m => m.name?.toLowerCase() === 'description' && m.content?.trim())) issues.push('missing description');
+  const titles = [...head.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi)];
+  if (!titles.some(m => m[1].trim())) issues.push('missing title');
+  if (titles.length > 1) issues.push(`title count ${titles.length}`);
+  const descriptions = metas.filter(m => m.name?.toLowerCase() === 'description');
+  if (!descriptions.some(m => m.content?.trim())) issues.push('missing description');
+  if (descriptions.length > 1) issues.push(`description count ${descriptions.length}`);
   return issues;
 }
 export function robotsAllows(text, pathname, agent = 'googlebot') {
+  agent = agent.toLowerCase();
   const groups = [];
   let group = { agents: [], rules: [], hasDirectives: false };
   for (const line of text.split(/\r?\n/)) {

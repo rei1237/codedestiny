@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildSubmissionState,selectSubmissionDelta,publicNotificationUrl} from '../../scripts/lib/indexnow-delta.mjs';
+import {buildSubmissionState,selectSubmissionDelta,publicNotificationUrl,indexNowRetryDelayMs} from '../../scripts/lib/indexnow-delta.mjs';
 const host='code-destiny.com',url=`https://${host}/saju/`;
 const state=(signature,lastmod='2026-01-01')=>buildSubmissionState([{loc:url,lastmod}],{routes:{'/saju/':{signature}}},host);
 test('delayed deployment and same-day edits are selected by deployed signatures',()=>{
@@ -14,6 +14,14 @@ test('failed submission preserves previous checkpoint for retry and successful r
 });
 test('removed public URLs are notified from the successful prior sitemap',()=>{
   assert.deepEqual(selectSubmissionDelta({version:1,host,urls:{}},state('a')),[url]);
+});
+test('only rate limits, server errors and timeouts are retried, three times, Retry-After first and capped at 60s',()=>{
+  assert.deepEqual([0,1,2,3].map(attempt=>indexNowRetryDelayMs(503,null,attempt)),[2000,4000,8000,null]);
+  assert.equal(indexNowRetryDelayMs(null,null,0),2000);
+  assert.equal(indexNowRetryDelayMs(429,'7',0),7000);
+  assert.equal(indexNowRetryDelayMs(429,'600',0),60000);
+  assert.equal(indexNowRetryDelayMs(429,'Thu, 15 Oct 2026 12:00:10 GMT',0,Date.parse('Thu, 15 Oct 2026 12:00:00 GMT')),10000);
+  for(const status of [400,403,422])assert.equal(indexNowRetryDelayMs(status,'1',0),null);
 });
 test('extra URLs must belong to current or prior public sitemap',()=>{
   for(const extra of ['https://evil.test/saju/',`https://${host}/saju/?token=secret`,`https://${host}/yeongnyangi/result/`,`https://${host}/unlisted/`]){

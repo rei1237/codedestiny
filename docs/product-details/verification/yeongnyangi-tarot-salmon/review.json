@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP29 panels; mackerel03/04 orphan lines fixed; fixed-menu distinctions added",
+  "mobile": "Independent SHIP58 panels,36 CTA/notice,12 transcript viewports; production-omitted dev tester excluded and representative images reinspected",
+  "checks": "4widths both flows load/bounds/fallback PASS; existing tarot v3 tests14 PASS",
+  "limits": "All API/network mock; no real payment or LLM; main delivery pending"
+}

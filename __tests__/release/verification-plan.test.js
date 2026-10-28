@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { readFileSync, mkdtempSync, writeFileSync, rmSync } = require('node:fs');
+const { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 const { spawnSync } = require('node:child_process');
@@ -102,9 +102,14 @@ test('git collector includes staged renames, deleted paths, untracked files and 
     git('-c', 'user.email=test@invalid', '-c', 'user.name=test', 'commit', '-m', 'fixture');
     git('mv', 'before.js', 'after.js');
     writeFileSync(join(dir, 'untracked.js'), 'new');
+    // 안에 .git 이 있는 미추적 폴더는 별도 저장소라 변경 파일로 세지 않는다.
+    mkdirSync(join(dir, 'nested'));
+    spawnSync('git', ['init'], { cwd: join(dir, 'nested') });
+    writeFileSync(join(dir, 'nested', 'skill.md'), 'other session');
     const changes = collectChanges({ root: dir, base: 'HEAD' });
     assert.equal(changes.complete, true);
     assert.deepEqual(changes.files, ['after.js', 'before.js', 'untracked.js']);
+    assert.deepEqual(changes.embeddedRepos, ['nested/']);
     assert.equal(collectChanges({ root: dir, base: 'missing-base' }).complete, false);
     git('reset', '--hard', 'HEAD');
     rmSync(join(dir, 'before.js'));
@@ -137,6 +142,10 @@ test('smoke is omitted only when both full suites provably contain every target'
   const jestConfig = { roots: ['<rootDir>/__tests__'], testPathIgnorePatterns: ['/__tests__/ui/'] };
   assert.equal(fullSuitesCoverSmoke(scripts, jestConfig), true);
   assert.equal(fullSuitesCoverSmoke({ ...scripts, 'test:jest': 'node scripts/run-mock-tests.mjs jest', 'test:node': 'node scripts/run-mock-tests.mjs node' }, jestConfig), true);
+  for (const command of ['jest --runInBand --testEnvironment node', 'jest --testEnvironment node']) {
+    assert.equal(fullSuitesCoverSmoke({ ...scripts, 'test:jest': command }, jestConfig), true);
+  }
+  assert.equal(fullSuitesCoverSmoke({ ...scripts, 'test:jest': 'jest --testEnvironment node __tests__/one.test.js' }, jestConfig), false);
   const plan = createVerificationPlan(input(['worker/routes/payments.js']), { scripts, jestConfig });
   assert.ok(!plan.steps.some((step) => step.name === 'smoke:core'));
   assert.ok(plan.steps.some((step) => step.name === 'test:jest'));

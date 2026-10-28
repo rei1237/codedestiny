@@ -3,16 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<link rel="stylesheet" href="/styles/theme-tokens.css">
+<link rel="stylesheet" href="/styles/moonlit-birth-form.css">
+<script defer src="/js/core/korean-calendar.js"></script>
+<script defer src="/js/vedic-birth-inputs.js"></script>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-000000000000">
+<link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-0ef0b8407d64">
 <script src="/js/core/feature-pricing-store.js"></script>
-<script src="/js/core/fortune-consultation-ui.js?v=build-000000000000"></script>
-<title>베다 점성술 — 별들의 지도</title>
-<script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-9c92542eb04f"></script>
+<script src="/js/core/fortune-consultation-ui.js?v=build-ddb3fe27ed29"></script>
+<link rel="stylesheet" href="/styles/saju-reading.css?v=build-bd986bf8da8a">
+<script defer src="/js/prompt-hub-honey.js?v=build-85a24ee1c4b6"></script>
+<title>윤달의 베다 점성술 — 별들의 지도</title>
+<script src="/js/core/standalone-ai-locale.js?v=build-f8479810eaec"></script>
+<script src="/js/core/pass-verdict.js?v=build-6300332e3d54"></script>
+<script src="/js/core/checkout-entry.js?v=build-baea5719c05c"></script>
+<script src="/js/core/payment-service.js?v=build-86f76b083b39"></script>
+<script src="/js/destiny-profile.js?v=build-5a1066da4d34"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" onerror="this.remove()">
 <style>
 /* ── 오프라인 폴백 폰트 스택 ─────────────────────────────
@@ -296,13 +302,13 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .vedic-lock-teaser span:nth-child(3){width:72%}
 .vedic-lock-teaser span:nth-child(4){width:94%}
 .vedic-lock-teaser span:nth-child(5){width:64%}
-.vedic-lock-body{position:relative;margin-top:64px;text-align:center}
+.vedic-lock-body{position:relative;text-align:left}
 .vedic-lock-badge{display:inline-block;font-size:11px;letter-spacing:0.06em;padding:4px 10px;border-radius:999px;border:1px solid var(--bordergold);color:var(--gold2);background:rgba(212,175,55,0.1)}
 .vedic-lock-title{margin-top:10px;font-size:15px;font-weight:700;color:var(--text)}
 .vedic-lock-desc{margin-top:6px;font-size:13px;line-height:1.65;color:var(--text2)}
-.vedic-lock-free{margin-top:8px;font-size:12px;line-height:1.6;color:var(--text3)}
-.vedic-lock .vedic-lock-cta{margin-top:14px}
-.vedic-lock-note{margin-top:8px;font-size:11px;color:var(--text3)}
+.vedic-lock-free{margin-top:12px;font-size:13px;line-height:1.7;color:var(--text)}
+.vedic-lock>.vedic-lock-cta{margin-top:14px}
+.vedic-lock-note{margin-top:12px;font-size:13px;line-height:1.7;color:var(--text)}
 
 /* 아코디언 */
 .acc-item{border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-bottom:8px;overflow:hidden}
@@ -601,6 +607,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div class="section-head" style="margin-bottom:10px">출생 정보 입력</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div style="grid-column:1 / -1">
+          <div class="cd-saved-birth-profile"><label for="vedicSavedProfile">저장된 프로필</label><select id="vedicSavedProfile" data-cd-profile-target="vedic-self"><option value="">저장된 프로필 선택하기</option></select><p>프로필을 고른 뒤 필요한 정보만 보완해 주세요.</p></div>
           <label for="v_name">이름</label>
           <input id="v_name" placeholder="예: 홍길동">
         </div>
@@ -637,6 +644,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div style="margin-bottom:10px">
         <label for="v_placeText">태어난 장소 선택 (자동 위도/경도)</label>
         <input type="text" id="v_placeText" list="v_placeDatalist" placeholder="예: 서울, 도쿄, 뉴욕" style="width:100%" autocomplete="off">
+        <button type="button" data-vedic-place-check="v">출생지 확인</button><p id="v-birth-status" role="status"></p>
         <datalist id="v_placeDatalist"></datalist>
         <select id="v_place" style="display:none" aria-hidden="true" tabindex="-1">
           <option value="" data-long="126.9780" data-lat="37.5665" data-tz="9" data-base-tz="9">장소를 선택하세요 (기본: 서울)</option>
@@ -1085,8 +1093,8 @@ function vedicSyncPlaceSelectFromText(){
       return;
     }
   }
-  /* 목록에 없는 자유 입력은 select 를 그대로 두고(마지막 유효 선택 유지) 텍스트만 사용자가
-     친 대로 둔다 — 기존 select 의 기본값(서울) 폴백 동작과 같다. */
+  sel.selectedIndex=-1;
+  ['v_lat','v_lon','v_tz'].forEach(function(id){var field=document.getElementById(id);if(field)field.value='';});
 }
 
 function vedicApplySelectedPlace(){
@@ -3368,7 +3376,7 @@ async function copyCurrentVedicDataSnapshot(){
   }
 }
 
-const VEDIC_AI_PROMPT_COST=50;
+const VEDIC_AI_PROMPT_COST=100;
 const VEDIC_AI_QUESTION_TYPE_LABELS={
   compatibility:'궁합/관계',
   love:'연애/결혼',
@@ -3408,7 +3416,7 @@ function vedicAiCreateState(chartKey){
     question:'',
     prompt:'',
     questionType:'general',
-    statusMessage:'궁금한 흐름을 입력하면 현재 차트 기반 상담 질문을 정리합니다. 생성 성공 시 5,000원 결제가 확인됩니다.',
+    statusMessage:'궁금한 흐름을 입력하면 현재 차트 기반 상담 질문을 정리합니다. 생성 성공 시 10,000원 결제가 확인됩니다.',
     statusError:false,
     inFlight:false,
     lastChargedCoins:0,
@@ -3428,7 +3436,7 @@ function vedicAiEnsureState(){
 }
 
 const VEDIC_AI_PROMPT_FEATURE_KEY='vedic_ai_prompt_generator';
-const VEDIC_AI_PROMPT_AMOUNT_KRW=5000;
+const VEDIC_AI_PROMPT_AMOUNT_KRW=10000;
 
 /* 이 페이지는 js/saju-engine.js 를 로드하지 않아 공용 _cdAIPromptBuildRequestId 를 쓸 수 없다.
    같은 알고리즘을 페이지 로컬로 둔다 — 대안(공용 파일 신설 + 전 페이지 script 태그)은 파급이 훨씬 크다. */
@@ -3586,7 +3594,7 @@ function vedicAiResetForChart(chart){
 function vedicAiStatusText(code, fallbackMessage){
   const msg=String(fallbackMessage||'').trim();
   if(code==='AUTH_REQUIRED') return '로그인이 필요합니다. 로그인 후 다시 시도해 주세요.';
-  if(code==='INSUFFICIENT_COINS') return '원화 결제 확인이 필요합니다. 5,000원 결제 후 다시 시도해 주세요.';
+  if(code==='INSUFFICIENT_COINS') return '원화 결제 확인이 필요합니다. 10,000원 결제 후 다시 시도해 주세요.';
   if(code==='INVALID_QUESTION') return '질문은 5자 이상 1000자 이하로 입력해 주세요.';
   if(code==='MISSING_VEDIC_RESULT') return '기본 베다 분석 결과가 없어 상담 질문을 정리할 수 없습니다.';
   if(code==='MISSING_COMPATIBILITY_RESULT') return '궁합 질문은 먼저 베다 궁합 계산을 완료해야 합니다.';
@@ -3819,7 +3827,7 @@ async function vedicAiGeneratePromptCore(resumeGate, resumeRequestId){
 
   state.inFlight=true;
   state.statusError=false;
-  state.statusMessage='상담 답변을 작성 중입니다. 최대 1~2분 정도 걸릴 수 있고, 생성 성공 시에만 5,000원 결제가 확인됩니다.';
+  state.statusMessage='상담 답변을 작성 중입니다. 최대 1~2분 정도 걸릴 수 있고, 생성 성공 시에만 10,000원 결제가 확인됩니다.';
   vedicAiRefreshUi();
   _vedicSetPaymentPending(true,'베다 AI 상담 결제/생성 확인 중입니다...');
 
@@ -4124,8 +4132,8 @@ async function vedicAiCopyPrompt(){
 }
 
 const VEDIC_PRASHNA_FEATURE_KEY='vedic_prashna_prompt';
-const VEDIC_PRASHNA_AMOUNT_KRW=3000;
-const VEDIC_PRASHNA_PRICE=30;
+const VEDIC_PRASHNA_AMOUNT_KRW=5000;
+const VEDIC_PRASHNA_PRICE=50;
 const VEDIC_PRASHNA_STEPS=[
   '결제를 확인하고 있습니다.',
   '질문 시각과 위치를 고정했습니다.',
@@ -4623,7 +4631,7 @@ function vedicPrashnaRefreshUi(){
   }
   if(btn){
     btn.disabled=!!state.inFlight;
-    btn.textContent=state.inFlight?'처리 중...':'프라슈나 프롬프트 생성 · 3,000원';
+    btn.textContent=state.inFlight?'처리 중...':'프라슈나 프롬프트 생성 · 5,000원';
   }
   if(modal){
     modal.style.display=state.confirmOpen?'flex':'none';
@@ -4636,7 +4644,7 @@ function vedicPrashnaRefreshUi(){
       ['기준 시각',state.snapshot.capturedAtLocal],
       ['시간대',state.snapshot.timezone],
       ['위치',Number(state.snapshot.latitude).toFixed(6)+', '+Number(state.snapshot.longitude).toFixed(6)],
-      ['사용 가격','3,000원']
+      ['사용 가격','5,000원']
     ].map(function(row){
       return '<div style="display:grid;grid-template-columns:82px 1fr;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)"><strong style="color:#fde68a;font-size:12px">'+hEsc(row[0])+'</strong><span style="color:#e2e8f0;font-size:12px;line-height:1.55;word-break:break-word">'+hEsc(row[1])+'</span></div>';
     }).join('');
@@ -4657,7 +4665,7 @@ function renderVedicPrashnaSection(){
         <div class="section-head section-head-kr" style="margin-bottom:4px;color:#99f6e4">프라슈나 프롬프트</div>
         <div style="font-size:18px;font-weight:900;color:#ecfeff;line-height:1.35">프라슈나 질문 차트 준비</div>
       </div>
-      <span class="tag" style="background:rgba(251,191,36,0.16);color:#fde68a;border:1px solid rgba(251,191,36,0.36);white-space:nowrap">1회 3,000원</span>
+      <span class="tag" style="background:rgba(251,191,36,0.16);color:#fde68a;border:1px solid rgba(251,191,36,0.36);white-space:nowrap">1회 5,000원</span>
     </div>
     <div class="body-text" style="margin-bottom:10px;line-height:1.72;color:#e2e8f0">출생정보 대신 질문이 선명해진 순간의 시각과 위치로 프라슈나 차트를 세웁니다. 라그나·달·바바 로드·낙샤트라 등 실제 산출값을 담은 복사용 분석 프롬프트를 생성합니다.</div>
     <div class="info-box" style="margin-bottom:12px">프라슈나는 출생정보가 아니라 질문이 분명해진 순간의 시각과 현재 위치를 기준으로 판단합니다. 질문을 하나로 좁히고, 차트를 생성할 위치를 확인해 주세요.</div>
@@ -4692,7 +4700,7 @@ function renderVedicPrashnaSection(){
         질문 시각은 직접 고르지 않습니다. 생성 버튼을 누르는 순간의 서버 시각과 입력한 위치의 현지 시간대를 자동으로 기록합니다.<br>
         결제가 완료되면 처음 기록된 동일한 시각과 위치를 기준으로 차트를 생성합니다.
       </div>
-      <button class="btn-primary" id="vedicPrashnaCreateBtn" type="button" onclick="vedicPrashnaCreateSnapshot()" style="background:linear-gradient(135deg,#14b8a6,#0f766e 58%,#f59e0b);border:1px solid rgba(153,246,228,0.4);color:#ecfeff;box-shadow:0 10px 26px rgba(20,184,166,0.24)">${state.inFlight?'처리 중...':'프라슈나 프롬프트 생성 · 3,000원'}</button>
+      <button class="btn-primary" id="vedicPrashnaCreateBtn" type="button" onclick="vedicPrashnaCreateSnapshot()" style="background:linear-gradient(135deg,#14b8a6,#0f766e 58%,#f59e0b);border:1px solid rgba(153,246,228,0.4);color:#ecfeff;box-shadow:0 10px 26px rgba(20,184,166,0.24)">${state.inFlight?'처리 중...':'프라슈나 프롬프트 생성 · 5,000원'}</button>
       <div class="body-text" style="font-size:12px;color:var(--text2);line-height:1.7">1회 결제로 하나의 질문, 하나의 프라슈나 차트, 하나의 복사용 분석 프롬프트가 생성됩니다. 같은 결과를 다시 열람하거나 복사하는 데에는 추가 결제가 발생하지 않습니다. 질문, 시각 또는 위치를 바꾸어 새로운 차트를 생성하는 경우에는 별도의 1회 이용으로 처리합니다.</div>
       <div class="tips">의료, 법률, 재무, 투자, 계약처럼 손실이나 위험이 큰 결정은 이 결과만으로 확정하지 말고 관련 전문가와 현실적인 자료를 함께 검토하세요.</div>
       <div id="vedicPrashnaStatus" style="font-size:12px;color:${statusColor};line-height:1.65">${hEsc(state.statusMessage)}</div>
@@ -4723,7 +4731,7 @@ function renderVedicPrashnaSection(){
         </label>
         <div style="display:flex;gap:8px">
           <button class="btn-sm" type="button" onclick="vedicPrashnaCloseConfirm()" style="flex:1">다시 확인</button>
-          <button class="btn-primary" id="vedicPrashnaPayBtn" type="button" onclick="vedicPrashnaConfirmGenerate()" style="flex:1;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#1f2937" ${state.confirmed?'':'disabled'}>3,000원 결제하고 생성</button>
+          <button class="btn-primary" id="vedicPrashnaPayBtn" type="button" onclick="vedicPrashnaConfirmGenerate()" style="flex:1;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#1f2937" ${state.confirmed?'':'disabled'}>5,000원 결제하고 생성</button>
         </div>
       </div>
     </div>
@@ -5520,6 +5528,9 @@ function profileToForm(profile){
 
 // ─── CALCULATE FROM PROFILE (로컬 Swiss 라이브러리 계산) ───────
 function doCalculateFromProfile(profile){
+  G.honeyProfileId=String(profile.profileId||profile.id||'');
+  _vedicBasicUnlocked=false;
+  window.dispatchEvent(new CustomEvent('cd:profile-changed'));
   const f=profileToForm(profile);
   if(isNaN(f.year)||isNaN(f.month)||isNaN(f.day)){alert('생년월일을 확인해 주세요. (연도:'+f.year+', 월:'+f.month+', 일:'+f.day+')');return;}
   if(isNaN(f.lat)||isNaN(f.lon)){alert('위도/경도를 확인해 주세요. 장소를 선택하거나 수동으로 입력해 주세요.');return;}
@@ -5772,37 +5783,13 @@ function _readProfileFromStorage(){
   return null;
 }
 function _fillInputFromProfile(profile){
-  try{
-    var b=(profile&&profile.birth)||{};
-    var l=(profile&&profile.location)||{};
-    function setV(id,v){ var el=document.getElementById(id); if(el&&v!=null&&v!=='') el.value=String(v); }
-    setV('v_name',profile&&profile.name);
-    setV('v_year',b.year);
-    setV('v_month',b.month);
-    setV('v_day',b.day);
-    setV('v_hour',b.hour!=null?b.hour:12);
-    setV('v_minute',b.minute!=null?b.minute:0);
-    if(profile&&profile.gender){ var genEl=document.getElementById('v_gender'); if(genEl) genEl.value=String(profile.gender); }
-    var lat=(l.lat!=null&&!isNaN(parseFloat(l.lat)))?l.lat:37.5665;
-    var lng=(l.lng!=null&&!isNaN(parseFloat(l.lng)))?l.lng:(l.lon!=null&&!isNaN(parseFloat(l.lon))?l.lon:126.978);
-    var tz=(l.baseTzOffset!=null&&!isNaN(l.baseTzOffset))?l.baseTzOffset:(l.tzOffset!=null&&!isNaN(l.tzOffset)?l.tzOffset:9);
-    setV('v_lat',lat);
-    setV('v_lon',lng);
-    setV('v_tz',tz);
-
-    var matchedPlace=_selectBirthPlaceByProfile(l);
-    if(!matchedPlace){
-      try{ vedicApplySelectedPlace(); }catch(_){ }
-      setV('v_lat',lat);
-      setV('v_lon',lng);
-      setV('v_tz',tz);
-    }
-
-    try{ _syncVedicToProfileCardCompatFields(); }catch(_){ }
-  }catch(_){}
+  // Reuse the same read-only adapter for automatic restore and explicit selection.
+  if(window.cdRefreshVedicBirthInputs)window.cdRefreshVedicBirthInputs();
+  document.dispatchEvent(new CustomEvent('cd:birth-profile-selected',{detail:{target:'vedic-self',profile:profile||{}}}));
 }
 
 function initVedicPage(){
+  if(window.cdRefreshVedicBirthInputs)window.cdRefreshVedicBirthInputs();
   try{ vedicInitLanguageBridge(); }catch(_){}
   // URL payload 우선 처리: storage 접근 실패 환경에서도 프로필 카드 진입 보장
   var _qp=null;
@@ -6030,6 +6017,7 @@ function vedicValidCalendarDate(y,m,d){
 }
 
 function vedicReadManualProfile(){
+  var birthError=window.cdValidateVedicBirth&&window.cdValidateVedicBirth("v");if(birthError)return {error:birthError};
   var yEl=document.getElementById('v_year');
   var mEl=document.getElementById('v_month');
   var dEl=document.getElementById('v_day');
@@ -6616,8 +6604,8 @@ function renderResult(){
   <div class="reveal reveal-delay-2" style="margin-top:14px">
     <div class="glass" style="padding:14px;border:1px solid rgba(236,72,153,0.22)">
       <div class="section-head section-head-kr" style="color:var(--pink);margin-bottom:8px">💞 베다 궁합 계산</div>
-      <div class="body-text" style="margin-bottom:10px">아쉬타쿠타 밀란 8항목으로 두 사람의 궁합을 계산합니다. 궁합 계산은 1회 3,000원 결제로 열립니다.</div>
-      <button class="btn-primary" onclick="showDetail('compat')">💕 궁합 계산기 열기 (1회 3,000원)</button>
+      <div class="body-text" style="margin-bottom:10px">아쉬타쿠타 밀란 8항목으로 두 사람의 궁합을 계산합니다. 궁합 계산은 1회 5,000원 결제로 열립니다.</div>
+      <button class="btn-primary" onclick="showDetail('compat')">💕 궁합 계산기 열기 (1회 5,000원)</button>
     </div>
   </div>`;
   const tabMoneyWork=renderWealth(report.wealth, insights)+renderCareer(report.career, insights);
@@ -6633,6 +6621,7 @@ function renderResult(){
   </div>
 
   <!-- HERO -->
+  ${window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.guide('vedic') : ''}
   <div style="background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(6,182,212,0.12));border:1px solid rgba(139,92,246,0.3);border-radius:20px;padding:20px;margin-bottom:16px;text-align:center" class="reveal">
     <div class="hero-name">${chart.f.name}</div>
     <div class="hero-sub" style="margin:6px 0">
@@ -6676,6 +6665,9 @@ function renderResult(){
     initReveal();
     syncOpenAccordions(document.getElementById('result-content'));
     vedicAiRefreshUi();
+    import('/js/core/vedic/crafted-details.mjs').then(function(module){
+      module.mountVedicCraftedDetails(document.getElementById('result-content'));
+    }).catch(function(error){console.warn('[vedic] detail guide unavailable',error);});
     updateTabBarState();
   },100);
 }
@@ -6731,6 +6723,9 @@ function showDetail(id){
   else if(id==='vimshottari')html=renderVimshottari(c,ins);
   document.getElementById('detail-content').innerHTML=decorateBhavaTerms(html);
   syncOpenAccordions(document.getElementById('detail-content'));
+  import('/js/core/vedic/crafted-details.mjs').then(function(module){
+    module.mountVedicCraftedDetails(document.getElementById('detail-content'));
+  }).catch(function(error){console.warn('[vedic] detail guide unavailable',error);});
   showPage('detail');
 }
 
@@ -7323,7 +7318,7 @@ function renderRomance(r,chart,ins){
 function renderCompatInput(){
   return detailHeader('👫','궁합 계산기','Ashtakoot Milan · 8 Koota')+`
   <div class="sage-text reveal" style="margin-bottom:16px">아쉬타쿠타 밀란(Ashtakoot Milan)은 두 영혼의 달 낙샤트라를 8가지 기준으로 분석하여 36점 만점으로 궁합을 측정하는 베다 점성술의 핵심 결혼 궁합 시스템입니다.</div>
-  <div class="sage-text reveal" style="margin-bottom:10px;color:#fde68a">🔒 궁합 계산은 1회 3,000원 결제로 열립니다. (기본 명반 계산은 무료)</div>
+  <div class="sage-text reveal" style="margin-bottom:10px;color:#fde68a">🔒 궁합 계산은 1회 5,000원 결제로 열립니다. (기본 명반 계산은 무료)</div>
   <div class="glass reveal reveal-delay-1" style="padding:16px;margin-bottom:12px">
     <div class="section-head form-subhead" style="margin-bottom:12px">두 번째 인물 출생 정보</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
@@ -7336,6 +7331,7 @@ function renderCompatInput(){
       <div><label>일</label><input id="c-day" type="number" value="15" min="1" max="31"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div class="cd-saved-birth-profile" style="grid-column:1/-1"><label for="vedicPartnerProfile">상대의 저장된 프로필</label><select id="vedicPartnerProfile" data-cd-profile-target="vedic-partner"><option value="">저장된 프로필 선택하기</option></select></div>
       <div><label>시</label><input id="c-hour" type="number" value="12" min="0" max="23"></div>
       <div><label>분</label><input id="c-min" type="number" value="30" min="0" max="59"></div>
       <div><label>UTC+</label><input id="c-tz" type="number" value="9" min="-12" max="14"></div>
@@ -7344,12 +7340,14 @@ function renderCompatInput(){
       <div><label>위도</label><input id="c-lat" value="37.5665"></div>
       <div><label>경도</label><input id="c-lon" value="126.978"></div>
     </div>
-    <button class="btn-primary" onclick="doCompatCalc()">💕 궁합 계산하기 (3,000원)</button>
+    <label for="c-place">태어난 도시와 국가</label><input id="c-place" placeholder="예: 미국 뉴욕"><button type="button" data-vedic-place-check="c">출생지 확인</button><p id="c-birth-status" role="status"></p>
+    <button class="btn-primary" onclick="doCompatCalc()">💕 궁합 계산하기 (5,000원)</button>
   </div>
   <div id="compat-result"></div>`;
+  if(window.cdRefreshVedicBirthInputs)window.cdRefreshVedicBirthInputs();
 }
 
-const VEDIC_COMPAT_COST=30;
+const VEDIC_COMPAT_COST=50;
 let _vedicCompatChargeInFlight=false;
 
 function _vedicSetPaymentPending(show, message){
@@ -7454,6 +7452,7 @@ async function doCompatCalc(){
   }catch(err){
     console.warn('[vedic compat] Swiss bridge timeout; continue with fallback engine', err);
   }
+  var birthError=window.cdValidateVedicBirth&&window.cdValidateVedicBirth('c');if(birthError){var status=document.getElementById('c-birth-status');if(status)status.textContent=birthError;return false;}
   var f2Now=readVedicCompatForm();
   var ok = await _vedicCompatCoinGate(VEDIC_COMPAT_COST, '베다점 궁합 계산', buildVedicCompatResumeDescriptor(f2Now));
   if (!ok) return false;
@@ -7468,11 +7467,11 @@ function readVedicCompatForm(){
     year:parseInt(document.getElementById('c-year').value)||1992,
     month:parseInt(document.getElementById('c-month').value)||3,
     day:parseInt(document.getElementById('c-day').value)||15,
-    hour:parseInt(document.getElementById('c-hour').value)||12,
-    minute:parseInt(document.getElementById('c-min').value)||30,
-    lat:parseFloat(document.getElementById('c-lat').value)||37.5665,
-    lon:parseFloat(document.getElementById('c-lon').value)||126.978,
-    timezone:parseInt(document.getElementById('c-tz').value)||9
+    hour:Number(document.getElementById('c-hour').value),
+    minute:Number(document.getElementById('c-min').value),
+    lat:Number(document.getElementById('c-lat').value),
+    lon:Number(document.getElementById('c-lon').value),
+    timezone:Number(document.getElementById('c-tz').value)
   };
 }
 
@@ -7657,7 +7656,7 @@ function runVedicCompatResume(descriptor){
   }).then(function(ok){ return ok!==false; }).catch(function(){ return false; });
 }
 
-/* ─── 베다 기본 해석 유료 잠금 (vedic_basic_reading · 1,000원 · 영구 해금) ──────
+/* ─── 베다 기본 해석 유료 잠금 (vedic_basic_reading · 5,000원 · 영구 해금) ──────
    무료: 출생 차트·행성 배치표·라그나/나크샤트라/파다/현재 대운 태그·종합 탭 요약 카드.
    잠금: 종합 탭의 해석 카드 묶음, 성향·관계·재물일·다샤·에너지·심화 6탭 본문, 상세 8종.
    🔴 CSS blur 로만 가리지 않는다 — 잠긴 동안 본문 HTML 을 문서에 아예 넣지 않는다.
@@ -7667,11 +7666,16 @@ function runVedicCompatResume(descriptor){
    _cdGateBody() 를 쓸 수 없으므로 같은 계약을 페이지 안에 복제한다.
    ────────────────────────────────────────────────────────────────────────────────────── */
 var VEDIC_BASIC_FEATURE_KEY='vedic_basic_reading';
-var VEDIC_BASIC_COST=10;
-var VEDIC_BASIC_AMOUNT_KRW=1000;
+var VEDIC_BASIC_COST=50;
+var VEDIC_BASIC_AMOUNT_KRW=5000;
 var VEDIC_BASIC_RESUME_KIND='vedic-basic-reading';
 var _vedicBasicUnlocked=false;
 var _vedicBasicGateBusy=false;
+window.cdHoneyCurrentProfileId=function(){return G.honeyProfileId||'';};
+window.addEventListener('cd:honey-updated',function(event){
+  if(event.detail?.featureKey===VEDIC_BASIC_FEATURE_KEY && event.detail.profileId===G.honeyProfileId) _vedicBasicApplyUnlock(G.vedicBasicDetailId||'');
+});
+window.addEventListener('cd:auth-changed',function(){_vedicBasicUnlocked=false;refreshVedicBasicUnlockStatus().then(function(){if(G.chart)renderResult();});});
 
 var VEDIC_BASIC_LOCK_LABELS={
   overview:'종합 해석 카드',
@@ -7696,13 +7700,12 @@ function _vedicBasicLockCard(sectionId){
   var label=VEDIC_BASIC_LOCK_LABELS[sectionId]||'심층 해석';
   return ''
     +'<div class="vedic-lock" data-vedic-lock="'+hEsc(sectionId)+'">'
-    +  '<div class="vedic-lock-teaser" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>'
     +  '<div class="vedic-lock-body">'
     +    '<div class="vedic-lock-badge">🔒 '+hEsc(label)+'</div>'
-    +    '<div class="vedic-lock-title">전체 해석은 한 번만 열면 계속 볼 수 있습니다</div>'
+    +    '<div class="vedic-lock-title">내 기질과 관계, 시기의 흐름을 한눈에</div>'
     +    '<div class="vedic-lock-desc">성향·관계·재물·다샤·에너지·심화 6개 탭의 해석 본문과 상세 8종이 함께 열립니다. 회당 결제가 아니라 이 기능의 영구 해금입니다.</div>'
     +    '<div class="vedic-lock-free">출생 차트·행성 배치표·라그나·낙샤트라·현재 대운은 계속 무료입니다.</div>'
-    +    '<button type="button" class="btn-primary vedic-lock-cta" onclick="openVedicBasicUnlock()">🔓 전체 해석 열기 · '+VEDIC_BASIC_AMOUNT_KRW.toLocaleString('ko-KR')+'원</button>'
+    +    '<button type="button" class="btn-primary vedic-lock-cta" data-honey-cash-key="vedic_basic_reading" onclick="openVedicBasicUnlock()">🔓 전체 해석 열기 · '+VEDIC_BASIC_AMOUNT_KRW.toLocaleString('ko-KR')+'원</button>'
     +    '<div class="vedic-lock-note">달빛 이용권을 가지고 있으면 추가 결제 없이 열립니다.</div>'
     +  '</div>'
     +'</div>';
@@ -7724,10 +7727,12 @@ function _vedicBasicAuthHeaders(){
 
 /** 서버에 영구 해금 보유 여부를 물어 상태만 갱신한다(결제 진입 판정이 아니다). */
 function refreshVedicBasicUnlockStatus(){
-  return fetch('/api/billing/unlock-status?featureKey='+encodeURIComponent(VEDIC_BASIC_FEATURE_KEY),{headers:_vedicBasicAuthHeaders(),credentials:'include'})
+  var requestedProfile=G.honeyProfileId||'';
+  return fetch('/api/billing/unlock-status?featureKey='+encodeURIComponent(VEDIC_BASIC_FEATURE_KEY)+'&profileId='+encodeURIComponent(requestedProfile),{headers:_vedicBasicAuthHeaders(),credentials:'include'})
     .then(function(res){ return res.ok?res.json().catch(function(){return null;}):null; })
     .then(function(payload){
       var data=(payload&&(payload.data||payload))||{};
+      if(requestedProfile!==(G.honeyProfileId||''))return false;
       if(data.unlocked===true||data.alreadyUnlocked===true||data.hasUnlock===true){ _vedicBasicUnlocked=true; }
       return _vedicBasicUnlocked;
     })

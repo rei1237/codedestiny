@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP all26 panels across3 products; flounder08 orphan note shortened",
+  "mobile": "Independent SHIP both entry flows all52 panels,36 CTA/notice,12 transcript viewports",
+  "checks": "All8 rows per product load/bounds/fallback PASS; shared contracts unchanged from previous15 targeted tests",
+  "limits": "Mock only; no actual LLM or payment; main delivery pending"
+}

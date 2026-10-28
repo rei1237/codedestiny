@@ -4,6 +4,7 @@ import { listProducts } from "../../worker/payments/catalog.js";
 import {
   LLM_SALE_KEY_ALIASES,
   buildPaidDeliveryInventory,
+  inventoryIsComplete,
 } from "../../scripts/lib/paid-delivery-inventory.mjs";
 
 const report = buildPaidDeliveryInventory();
@@ -43,5 +44,14 @@ test("다른 키로 생성되는 LLM 판매 키는 CTA와 전달 키의 경로�
       generation: delivery.generation,
       serverRecovery: delivery.serverRecovery,
     });
+  }
+});
+
+
+test("카탈로그의 LLM 상품은 제공 완료 전 서버 복구 경로가 없으면 검증에 실패한다", () => {
+  expect(report.backgroundRecoveryNotMapped).toEqual([]);
+  expect(report.llmWithoutServerRecovery).toEqual([]);
+  for (const field of ['backgroundRecoveryNotMapped', 'llmWithoutServerRecovery']) {
+    expect(inventoryIsComplete({ ...report, [field]: ['unrecoverable-probe'] })).toBe(false);
   }
 });

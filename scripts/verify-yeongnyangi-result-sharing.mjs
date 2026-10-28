@@ -50,7 +50,7 @@ try{
    assert.equal(f.state.generates,0);assert.equal(f.state.confirm,0);
    if(width===360){
     const complete=f.row.chapters;f.state.holdGeneration=true;f.row.chapters=complete.slice(0,2);f.row.state='GENERATING';
-    await f.page.reload();await f.page.getByText('남은 상담은 서버에서 자동으로 이어져요. 창을 닫아도 내 상담 기록에서 다시 확인할 수 있어요.',{exact:true}).waitFor();
+    await f.page.reload();await f.page.getByText('남은 상담은 서버에서 자동으로 이어져요. 창을 닫아도 영냥이 보관함에서 다시 확인할 수 있어요.',{exact:true}).waitFor();
     assert.equal(await f.page.getByText('마음에 남은 상담 공유하기',{exact:false}).count(),0);
     f.row.chapters=complete;await f.page.reload();await f.page.getByText('저장된 상담을 최종 확인하고 있어요.',{exact:true}).waitFor();
     assert.equal(await f.page.locator('progress').getAttribute('value'),'5');assert.equal(await f.page.locator('progress').getAttribute('max'),'6');

@@ -4,10 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>IFA Oracle - Sacred Odu Reading</title>
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
+<script src="/js/core/pass-verdict.js?v=build-1711b2150559"></script>
+<script src="/js/core/checkout-entry.js?v=build-1711b2150559"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-9c92542eb04f"></script>
+<script src="/js/destiny-profile.js?v=build-2d81696a26c1"></script>
 <style>
 :root{
   --bg-void:#080503;
@@ -203,7 +203,7 @@ html,body{margin:0;padding:0;background:#040200;color:var(--text);font-family:Ge
     <div class="divider" aria-hidden="true"><span class="line"></span><span class="gem">◈</span><span class="line"></span></div>
 
     <section class="action">
-      <button id="castBtn" class="btn-cast" type="button">운명 확인하기 (1,000원) • Consult the Oracle</button>
+      <button id="castBtn" class="btn-cast" type="button">운명 확인하기 (3,000원) • Consult the Oracle</button>
       <div id="miniBtns" class="mini">
         <button id="saveBtn" type="button">결과 저장</button>
         <button id="resetBtn" type="button">새 점괘</button>
@@ -280,7 +280,7 @@ let audioCtx=null;
 let ambienceTimer=null;
 let typingRunId=0;
 let lastOracleText="";
-const IFA_COIN_COST=10;
+const IFA_COIN_COST=30;
 
 function el(id){return document.getElementById(id);} 
 
@@ -624,7 +624,7 @@ function resetAll(){
   typingRunId++;
   lastOracleText="";
   setPhase("질문을 품고, 오리샤의 바람을 들으세요");
-  el("castBtn").textContent="운명 확인하기 (1,000원) • Consult the Oracle";
+  el("castBtn").textContent="운명 확인하기 (3,000원) • Consult the Oracle";
   el("castBtn").disabled=false;
   el("reveal").style.display="none";
   el("oracleBox").style.display="none";
@@ -703,5 +703,6 @@ initCategory();
 initField();
 initBackground();
 </script>
+<script type="module">import {mountOracleCraftedDetails} from '/js/core/oracle/crafted-details.mjs';mountOracleCraftedDetails(document.querySelector('.wrap'),{target:'.cat-box',id:'ifa-oracle',title:'IFÀ 오라클'});</script>
 </body>
 </html>

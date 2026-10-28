@@ -1,0 +1,158 @@
+{
+  "id": "ziwei-deep-pdf",
+  "featureKey": "ziwei-deep-pdf",
+  "title": "심화 자미두수 PDF 리포트",
+  "notice": "심화 명반 화면에서 관심분야와 개인질문을 담아 생성하는 AI 리포트입니다. 질문과 전체개관·명궁·형제궁·부부궁·자녀궁·재백궁·질액궁·천이궁·노복궁·관록궁·전택궁·복덕궁·부모궁·사화삼방사정·대한유년종합전략의15챕터를 제공합니다. 화면의 표지·장별요약·펼침본문과 PDF 저장,저장된 리포트 다시 열기를 지원하며 부분과 완성 상태를 구분합니다. 이름·성별·생년월일·양음력·윤달·출생시각 또는 미상 자료를 사용하고,전체/성격/직업/돈/연애/관계/건강/직접질문을 선택합니다. 직접질문 선택시 질문 입력이 필요합니다. 출생시간 미상은 해석 한계가 있으며 결과분량·예측의 적중·재물성과·의료진단을 보장하지 않습니다. AI가 작성하며 실물 배송이 아닙니다. 별도19주제 전문가 상담·기본해금·질문AI와 구분되며 새 리포트는 별도이용입니다. 예시는 가상편집으로 실제AI응답·고객후기가 아니며 이미지는 분위기연출입니다. 현재 이용조건을 확인해 주세요.",
+  "panels": [
+    {
+      "id": "01-a-question-across-fifteen-chapters",
+      "title": "한 가지 고민에서, 삶의 여러 자리를 읽어요.",
+      "alt": "한 가지 고민에서 시작해, 삶의 여러 자리를 읽어요.",
+      "src": "/feature-details/crafted/ziwei-deep-pdf/01-a-question-across-fifteen-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 가지 고민에서,\n삶의 여러 자리를 읽어요.\n\n일의 선택이 돈과 관계를 바꾸고,\n관계의 변화가 마음의 리듬을 흔들 때.\n열다섯 장의 해설로 연결을 살펴요.\n\n관심 분야와 질문을 담는\n심화 자미두수 PDF 리포트.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-deep-pdf/01-a-question-across-fifteen-chapters-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-a-chart-before-a-story",
+      "title": "계산된 명반의 근거로, AI가 해설을 이어갑니다.",
+      "alt": "계산된 명반의 근거로, AI가 해설을 이어갑니다.",
+      "src": "/feature-details/crafted/ziwei-deep-pdf/02-a-chart-before-a-story.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "계산된 명반의 근거로,\nAI가 해설을 이어갑니다.\n\n출생 정보로 계산한 12궁과 주성,\n별의 강약·사화·대한 자료를 바탕으로\n각 장의 질문을 풀어 읽어요.\n\n지금 바꾸고 싶은 것은\n일 자체일까,\n일을 맡는 방식일까?\n\n관심 분야와 개인 질문을 중심으로\n삶의 영역을 연결해 해석해요.\n\n사람이 직접 작성하는 상담이 아닌\n명반 근거를 활용한 AI 리포트예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-deep-pdf/02-a-chart-before-a-story-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-the-opening-five-chapters",
+      "title": "질문에서 출발해, 나와 관계의 바탕을 읽어요.",
+      "alt": "질문에서 출발해, 나와 관계의 바탕을 읽어요.",
+      "src": "/feature-details/crafted/ziwei-deep-pdf/03-the-opening-five-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문에서 출발해,\n나와 관계의 바탕을 읽어요.\n내 질문과 명반의 답\n\n전체 흐름을 여는 서장\n\n나는 어떤 사람인가\n\n명궁의 성향과 핵심 동기\n\n함께할 때의 엇갈림\n\n형제·동료·협업의 패턴\n\n사랑에서 반복하는 것\n\n부부궁과 관계의 운영\n\n돌보고 만들어내는 힘\n\n자녀·후배·창작과 프로젝트",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-deep-pdf/03-the-opening-five-chapters-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-work-money-and-the-world",
+      "title": "돈과 일, 몸의 리듬과 바깥의 관계.",
+      "alt": "돈과 일, 몸의 리듬과 바깥의 관계.",
+      "src": "/feature-details/crafted/ziwei-deep-pdf/04-work-money-and-the-world.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "돈과 일, 몸의 리듬과\n바깥의 관계.\n돈을 벌고 지키는 방식\n\n재백궁의 자원 관리\n\n덜 지치는 생활 리듬\n\n질액궁의 자기 돌봄\n\n새로운 환경의 변화\n\n천이궁과 바깥 무대\n\n마음이 편안한 관계\n\n노복궁과 사람 사이의 거리\n\n내 힘이 살아나는 일\n\n관록궁과 역할·적성",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-deep-pdf/04-work-money-and-the-world-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-a-foundation-and-a-direction",
+      "title": "머물 기반을 읽고, 앞으로의 방향을 정리해요.",
+      "alt": "머물 기반을 읽고, 앞으로의 방향을 정리해요.",
+      "src": "/feature-details/crafted/ziwei-deep-pdf/05-a-foundation-and-a-direction.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "머물 기반을 읽고,\n앞으로의 방향을 정리해요.\n오래 머물 기반\n\n전택궁과 생활의 토대\n\n마음이 회복되는 곳\n\n복덕궁과 만족·휴식\n\n가족의 기대와 내 선택\n\n부모궁과 지원·경계\n\n기회와 부담의 연결\n\n사화와 삼방사정\n\n앞으로 선택할 방향\n\n대한·유년과 종합 실행 전략",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-deep-pdf/05-a-foundation-and-a-direction-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-the-palaces-speak-together",
+      "title": "궁 하나의 뜻을 넘어, 서로 영향을 주는 구조.",
+      "alt": "궁 하나의 뜻을 넘어, 서로 영향을 주는 구조.",
+      "src": "/feature-details/crafted/ziwei-deep-pdf/06-the-palaces-speak-together.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "궁 하나의 뜻을 넘어,\n서로 영향을 주는 구조.\n일을 바꾸면\n\n관록궁의 역할과\n재백궁의 운용을\n함께 살펴요.\n\n관계를 읽으면\n\n부부궁의 기대와\n복덕궁의 마음을\n함께 살펴요.\n\n삼방사정은 연결된 궁을 함께 보는\n읽기 방식이에요. 사화는\n기회·힘·평판·부담의 변화 신호로\n쉽게 풀어 설명해요.\n\n궁과 별은 상징적 해석의 근거이며\n미래 사건의 확정된 증거가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-deep-pdf/06-the-palaces-speak-together-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-before-you-change-your-role",
+      "title": "이직을 묻는 질문이, 역할의 경계를 비춰줄 때.",
+      "alt": "이직을 묻는 질문이, 역할의 경계를 비춰줄 때.",
+      "src": "/feature-details/crafted/ziwei-deep-pdf/07-before-you-change-your-role.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "이직을 묻는 질문이,\n역할의 경계를 비춰줄 때.\n\n이해를 돕는 가상 편집 예시\n\n“새로운 회사만 찾기 전에,\n지금 맡은 일과 책임의 범위를\n먼저 적어보세요.”\n\n일에서 인정받는 방식과\n자원을 쓰는 습관을 함께 읽으면,\n환경을 옮길지 역할을 조율할지\n생각을 나누는 데 도움이 될 수 있어요.\n\n실제 AI 응답이나 고객 후기가 아니에요.\n취업·이직·수익을 보장하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-deep-pdf/07-before-you-change-your-role-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-read-on-screen-keep-a-pdf",
+      "title": "화면에서 장을 펼치고, PDF로 다시 읽어요.",
+      "alt": "화면에서 장을 펼치고, PDF로 다시 읽어요.",
+      "src": "/feature-details/crafted/ziwei-deep-pdf/08-read-on-screen-keep-a-pdf.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "화면에서 장을 펼치고,\nPDF로 다시 읽어요.\n\n표지와 장별 요약으로 흐름을 잡고,\n각 장의 본문을 펼쳐 읽어요.\n표시된 리포트를 PDF로 저장해\n나중에 천천히 돌아볼 수 있어요.\n\n첫 번째는 전체 흐름을,\n두 번째는 내 질문과 닿는 장을.\n\n저장된 리포트 목록에서 다시 열며,\n부분 생성과 완성 상태를 구분해요.\n새 리포트 요청은 별도 이용이에요.\n\n실물 책 배송이 아닌 디지털 리포트예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-deep-pdf/08-read-on-screen-keep-a-pdf-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-before-the-reading",
+      "title": "출생 정보를 확인하고, 질문의 초점을 골라요.",
+      "alt": "출생 정보를 확인하고, 질문의 초점을 골라요.",
+      "src": "/feature-details/crafted/ziwei-deep-pdf/09-before-the-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "출생 정보를 확인하고,\n질문의 초점을 골라요.\n\n심화 명반을 계산한 뒤,\n전체·성격·직업·재물·연애·관계·건강\n또는 직접 질문 중에서 선택해요.\n\n출생 정보\n\n이름·성별·생년월일·양음력과 윤달,\n출생시각 또는 시간 미상\n\n개인 질문\n\n고민의 상황과 선택지를 적어요.\n직접 질문은 입력이 필요해요.\n\n시간 미상은 궁 배치 해석에 한계가 있어요.\n건강은 생활 참고이며 의료 진단이 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-deep-pdf/09-before-the-reading-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-a-report-for-your-next-choice",
+      "title": "열다섯 장의 이야기에서, 다음 선택의 기준을.",
+      "alt": "열다섯 장의 이야기에서, 다음 선택의 기준을.",
+      "src": "/feature-details/crafted/ziwei-deep-pdf/10-a-report-for-your-next-choice.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "열다섯 장의 이야기에서,\n다음 선택의 기준을.\n\n나의 질문에서 출발해\n12궁의 해설과 사화의 연결,\n대한·유년의 종합 전략을 읽어요.\n\n지금 붙잡을 것과\n조금 더 살펴볼 것을 나누세요.\n\n이 리포트는 15챕터 상품이에요.\n별궁 전문가 상담의 19주제 구성,\n기본 궁별 해금·질문 AI와는 별도예요.\n\n아래에서 현재 이용 조건을 확인하세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-deep-pdf/10-a-report-for-your-next-choice-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

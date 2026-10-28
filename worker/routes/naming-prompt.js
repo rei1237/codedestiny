@@ -7,6 +7,7 @@ import { connectDb, withMongoRetry } from "../lib/db.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
+import { settlePerUseAccessDecision } from "../lib/nakshatra-paid-access.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
@@ -1209,6 +1210,21 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
     evidence = await verifyMonthlyEvidence(env, auth, ctx);
   } else if (isPassAccess(accessType, accessMethod, decision)) {
     evidence = await verifyPassEvidence(env, auth, ctx);
+  }
+  if (!evidence) {
+    // 🔴 이용권·라이선스·월구독 허용은 읽기 전용이다(2026-10-16). 차감 증빙이 없으면 이번 요청 ID로
+    //    결제를 찾거나 이용권을 실제로 차감해야 연다. 같은 ID 재요청은 이미 차감한 기록으로 통과한다.
+    const settleRequestId = firstClean(ctx.accessGrant.requestId, ctx.consume.requestId, ctx.payload.requestId, body.requestId);
+    const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: FEATURE_KEY,
+      coinPrice: COIN_PRICE, requestId: settleRequestId });
+    if (settled.allowed === null) throw createHttpError(503, "결제 확인이 잠시 지연되고 있어요. 잠시 후 다시 시도해 주세요.", { code: "PAYMENT_VERIFY_UNAVAILABLE" });
+    if (!settled.allowed) {
+      throw pendingPaymentMiss || createHttpError(402, "결제 또는 이용권 차감 확인 후에만 프롬프트를 생성할 수 있습니다.", {
+        code: "NAMING_ACCESS_REQUIRED",
+        reason: settled.reason,
+      });
+    }
+    evidence = { source: settled.source, evidenceId: settleRequestId };
   }
 
   const fallbackEvidence = readContextEvidenceId(ctx, body) || `${method}:${auth.userId}:${inputHash}`;

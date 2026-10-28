@@ -1,3 +1,4 @@
+import { MOON_LIBRARY_ARTICLES } from './moon-library-articles';
 import { PUBLIC_RECORD_ARTICLE } from './public-record-article';
 import { actualContentDate } from "../../lib/content/editorial-review.mjs";
 import { INSIGHT_ARTICLES } from "./articles";
@@ -271,7 +272,7 @@ function normalizeTags(article) {
 }
 
 function resolveServiceLink(categoryLabel) {
-  if (categoryLabel === "사주") return "/saju/basic";
+  if (categoryLabel === "사주") return "/saju";
   if (categoryLabel === "자미두수") return "/ziwei";
   if (categoryLabel === "숙요점") return "/compatibility";
   if (categoryLabel === "타로") return "/tarot";
@@ -933,6 +934,7 @@ function buildSeedArticle(article, index) {
     canonicalUrl: `https://code-destiny.com/insights/${encodeURIComponent(slug)}`,
     seoTitle,
     seoDescription,
+    displayDescription: useOriginalContent ? String(article.description || article.excerpt || seoDescription).trim() : seoDescription,
     serviceLink: ctaServiceRoute,
     ctaLabel,
     ogImage: toAbsoluteAssetUrl(
@@ -955,7 +957,7 @@ function buildSeedArticle(article, index) {
   };
 }
 
-const MERGED_INSIGHT_ARTICLES = [PUBLIC_RECORD_ARTICLE, ...SEO_GROWTH_ARTICLES, ...INSIGHT_ARTICLES];
+const MERGED_INSIGHT_ARTICLES = [...MOON_LIBRARY_ARTICLES, PUBLIC_RECORD_ARTICLE, ...SEO_GROWTH_ARTICLES, ...INSIGHT_ARTICLES];
 
 export const INSIGHT_SEED_ARTICLES = Array.from(
   new Map(

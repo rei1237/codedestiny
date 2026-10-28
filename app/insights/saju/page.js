@@ -5,15 +5,15 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 const path = "/insights/saju";
 const INSIGHTS_SAJU_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "사주 인사이트 허브 · 사주팔자·만세력 | Code Destiny",
+    title: "사주 인사이트 허브 · 사주팔자·만세력 | 꿀꿀 운세",
     description: "사주 공부, 사주풀이, 만세력 보는 법, 오행·십성 해석을 깊이 있게 정리한 사주 인사이트 아카이브입니다.",
     keywords: ["사주 공부", "사주 용어", "사주 독학", "명식 읽는 순서"],
-    breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "사주 인사이트"],
+    breadcrumbs: ["꿀꿀운세 홈", "운세 인사이트", "사주 인사이트"],
     archiveTitle: "사주 인사이트 허브",
     intro: "사주팔자, 만세력, 일간, 십성, 대운 해석을 단계별로 정리한 사주 전용 아카이브입니다.",
   },
   en: {
-    title: "Saju Insights Hub · Four Pillars and Manse Calendar Guide | Code Destiny",
+    title: "Saju Insights Hub · Four Pillars and Manse Calendar Guide | 꿀꿀 운세",
     description: "A Saju insights archive covering Four Pillars study, readings, Manse calendar use, Five Elements, and Ten Gods interpretation.",
     keywords: ["Saju study", "Four Pillars reading", "Manse calendar guide", "Five Elements", "Ten Gods"],
     breadcrumbs: ["Home", "Fortune Insights", "Saju Insights"],
@@ -21,7 +21,7 @@ const INSIGHTS_SAJU_PAGE_TEXT_TRANSLATIONS = {
     intro: "A dedicated Saju archive organized step by step around Four Pillars, the Manse calendar, day master, Ten Gods, and major luck.",
   },
   ja: {
-    title: "四柱推命インサイトハブ · 四柱八字と万歳暦解釈ガイド | Code Destiny",
+    title: "四柱推命インサイトハブ · 四柱八字と万歳暦解釈ガイド | 꿀꿀 운세",
     description: "四柱推命の学び、命式鑑定、万歳暦の見方、五行・十神解釈を深く整理した四柱推命インサイトアーカイブです。",
     keywords: ["四柱推命 学習", "四柱推命 鑑定", "万歳暦の見方", "五行", "十神"],
     breadcrumbs: ["ホーム", "運勢インサイト", "四柱推命インサイト"],

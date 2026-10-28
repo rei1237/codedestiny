@@ -91,7 +91,7 @@ for (const tier of listAppContentTiers()) {
   const orphan = tier.coinPrices.filter((coinPrice) => !registryCoinPrices.has(coinPrice));
   if (orphan.length === tier.coinPrices.length) {
     // 이미 Play Console에 등록된 7천원·2만원 티어는 과거 영수증 복원을 위해 ID를 보존한다.
-    if (["cd_content_tier_14", "cd_content_tier_09"].includes(tier.productId)) notes.push(`복원 전용 보존 SKU ${tier.productId}: 현행 레지스트리 상품 없음`);
+    if (["cd_content_tier_14", "cd_content_tier_09", "cd_content_tier_18"].includes(tier.productId)) notes.push(`복원 전용 보존 SKU ${tier.productId}: 현행 레지스트리 상품 없음`);
     else failures.push(`앱 티어 ${tier.productId}: 레지스트리에 존재하지 않는 가격대(${tier.coinPrices.join(", ")}코인) — 사용되지 않는 SKU`);
   }
 }
@@ -174,7 +174,7 @@ for (const product of [...listAppContentTiers(), ...listAppPassProducts()]) {
   }
 
   // 이용권 구매 화면이 서버의 shouldConsume 을 실제로 이행하는지.
-  // (여기가 빠져 있으면 이용권이 30일 뒤 재구매 불가가 된다 — 갱신 매출 전멸)
+  // (여기가 빠져 있으면 이용권이 끝난 뒤 재구매 불가가 된다 — 갱신 매출 전멸)
   const passStoreSource = readSource("app/app/store/AppPassStoreClient.tsx");
   if (!passStoreSource) {
     failures.push("app/app/store/AppPassStoreClient.tsx 를 읽지 못했다 — 이용권 소비를 검증할 수 없다");

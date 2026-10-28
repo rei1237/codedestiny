@@ -177,7 +177,7 @@ export function buildRomanceTiming({ gender = '', tenGodsByPillar = {}, shinsal 
   }
   const current = majorLuck?.currentCycle;
   const next = current ? rows(majorLuck?.cycles).find(c => c.index === current.index + 1) : null;
-  const cycle = c => c?.pillar ? {pillar:c.pillar, ageRange:`${c.startAge}-${c.endAge}`,
+  const cycle = c => c?.pillar ? {pillar:c.pillar, ageRange:c.ageRange || `${c.startAge}-${c.endAge}`,
     signals:[...(spouse ? luckStars(c, spouse.gods).map(g => `배우자성 ${g}`) : []),
       ...dayLinks(c.natalInteractions, 'branchCombinations'), ...dayLinks(c.natalInteractions, 'branchClashes')]} : null;
   const major = current ? {current:cycle(current), ...(next ? {next:cycle(next)} : {})} : null;

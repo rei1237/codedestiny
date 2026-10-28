@@ -3,30 +3,13 @@
    캐시 이름에 타임스탬프 포함 → 배포 시 자동 캐시 무효화
 */
 
-const SW_VERSION = new URL(self.location.href).searchParams.get('v') || 'dev';
+const SW_VERSION = 'moon-library-1';
 const CACHE_PREFIX = 'kkul-mansaeryeok-';
 const CACHE_NAME = `${CACHE_PREFIX}${SW_VERSION}`;
 
-// ── Install: 즉시 활성화 (waiting 없음) ─────────────────────────
-self.addEventListener('install', (event) => {
-  // precache 없음: 구버전 캐시 고착 방지
-  self.skipWaiting();
-});
-
-// ── Activate: 이전 버전 캐시 전부 삭제 ───────────────────────────
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((cacheNames) =>
-        Promise.all(
-          cacheNames
-            .filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME)
-            .map((name) => caches.delete(name))
-        )
-      )
-      .then(() => self.clients.claim())
-  );
-});
+// Wait normally. Existing tabs retain their assets and controller until consent.
+self.addEventListener('install', () => {});
+self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
 
 // ── Error 보고 ────────────────────────────────────────────────
 function reportError(message, error) {
@@ -46,14 +29,23 @@ self.addEventListener('unhandledrejection', (event) => {
   if (event && typeof event.preventDefault === 'function') event.preventDefault();
 });
 
-// ── Message: SKIP_WAITING 지원 ────────────────────────────────
-self.addEventListener('message', (event) => {
-  if (!event || !event.data) return;
-  if (event.data.type === 'SKIP_WAITING') {
-    event.waitUntil(
-      Promise.resolve(self.skipWaiting()).then(() => self.clients.claim())
-    );
-  }
+// Ask EVERY current window, including older clients. Silence is unsafe.
+self.addEventListener('message', event => {
+ if (event.data?.type === 'CD_VERSION') { event.ports[0]?.postMessage({version:SW_VERSION}); return; }
+ if (event.data?.type !== 'CD_ACTIVATE_SAFE' || !event.ports[0]) return;
+ event.waitUntil((async () => {
+  const clients = await self.clients.matchAll({type:'window',includeUncontrolled:true});
+  const results = await Promise.all(clients.map(client => new Promise(resolve => {
+   const channel = new MessageChannel();
+   const timer = setTimeout(() => {channel.port1.close();resolve(false);},2500);
+   channel.port1.onmessage = reply => {clearTimeout(timer);channel.port1.close();resolve(reply.data?.safe === true);};
+   client.postMessage({type:'CD_CHECK_SAFE'},[channel.port2]);
+  })));
+  const current = await self.clients.matchAll({type:'window',includeUncontrolled:true});
+  const safe = clients.length > 0 && results.every(Boolean) && current.every(c => clients.some(old => old.id === c.id));
+  event.ports[0].postMessage({safe});
+  if(safe) await self.skipWaiting();
+ })());
 });
 
 // ── Offline fallback 응답 생성 ────────────────────────────────
@@ -125,8 +117,7 @@ self.addEventListener('fetch', (event) => {
     pathname === '/version.json' ||
     pathname === '/status.json' ||
     pathname === '/manifest.json' ||
-    pathname === '/manifest-neo.json' ||
-    pathname === '/manifest-tadagochi.json'
+    pathname === '/manifest-neo.json'
   ) {
     event.respondWith(
       fetch(event.request, { cache: 'no-store' }).catch(() =>

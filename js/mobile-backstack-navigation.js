@@ -4,33 +4,30 @@
   if (typeof window === 'undefined' || window.__cdMobileBackNavBooted) return;
   window.__cdMobileBackNavBooted = true;
 
-  var BACK_GUARD_FLAG = '__cdStaticBackGuardV1';
-  var BACK_SURFACE_FLAG = '__cdStaticBackSurfaceV1';
-  var BACK_STAMP_FLAG = '__cdStaticBackStampV1';
+  const BACK_GUARD_FLAG = '__cdStaticBackGuardV1';
+  const BACK_SURFACE_FLAG = '__cdStaticBackSurfaceV1';
+  const BACK_STAMP_FLAG = '__cdStaticBackStampV1';
 
-  var MAIN_DOUBLE_BACK_MS = 2000;
-  var POP_DEBOUNCE_MS = 170;
+  const POP_DEBOUNCE_MS = 170;
 
-  var state = {
+  const state = {
     surface: 'main',
     feature: '',
-    firstMainBackAt: 0,
     lastPopAt: 0,
-    allowNativeBackOnce: false,
-    toastTimer: null
+    allowNativeBackOnce: false
   };
 
   // 사주 화면은 오버레이가 아니라 셸 안에서 자리를 바꾸는 #resultPage 다. 그래서 여기에 여는
   // 액션만 있고 대응하는 오버레이 id 는 없다 — KNOWN_OVERLAY_IDS 에 없으니 아래 일괄 닫기에도
   // 걸리지 않아 하위 기능을 열어도 사주 결과는 그대로 남는다.
-  var SAJU_MAIN_ACTIONS = {
+  const SAJU_MAIN_ACTIONS = {
     checkPrivacyAndCalculate: true,
     agreeAndCalculate: true,
     calculate: true,
     runCompat: true
   };
 
-  var SAJU_SUB_ACTIONS = {
+  const SAJU_SUB_ACTIONS = {
     openSajuFunFeature: true,
     openLuckSyncDiary: true,
     // 사주 결과 화면 안에서 여는 이전 버전 다이어리 모달. 사주 결과 위에 얹히는 하위 화면이라
@@ -38,7 +35,7 @@
     openLegacyLuckSyncDiary: true
   };
 
-  var FEATURE_OPEN_ACTIONS = {
+  const FEATURE_OPEN_ACTIONS = {
     openPhysiognomyApp: true,
     openPastLifeFaceApp: true,
     openMbtiModal: true,
@@ -77,7 +74,7 @@
     openGoldenGrainCharge: true
   };
 
-  var CLOSE_ACTIONS = {
+  const CLOSE_ACTIONS = {
     closeCurrentPage: true,
     closeModal: true,
     closeTarotModal: true,
@@ -103,7 +100,7 @@
     closeLuckSyncDiary: true
   };
 
-  var ACTION_TO_OVERLAY_ID = {
+  const ACTION_TO_OVERLAY_ID = {
     openSukuyoModal: 'sukuyoModalOverlay',
     openZiweiModal: 'ziweiModalOverlay',
     openAstroModal: 'astroModalOverlay',
@@ -127,7 +124,7 @@
     gotoNamingPremium: 'namingBookModal'
   };
 
-  var KNOWN_OVERLAY_IDS = [
+  const KNOWN_OVERLAY_IDS = [
     'tilePvwOverlay',
     'tsModal',
     'sukuyoModalOverlay',
@@ -172,30 +169,14 @@
     return Date.now();
   }
 
-  function isMobileRuntime() {
-    try {
-      var hasMatchMedia = typeof window.matchMedia === 'function';
-      var coarse = hasMatchMedia && (
-        window.matchMedia('(pointer:coarse)').matches ||
-        window.matchMedia('(any-pointer:coarse)').matches
-      );
-      var maxTouchPoints = typeof navigator.maxTouchPoints === 'number' ? navigator.maxTouchPoints : 0;
-      var touchCapable = coarse || maxTouchPoints > 0;
-      if (touchCapable) return true;
-      return /android|iphone|ipad|ipod|mobile/i.test(String(navigator.userAgent || ''));
-    } catch (_) {
-      return false;
-    }
-  }
-
   function getHistoryState() {
-    var s = window.history.state;
+    const s = window.history.state;
     if (!s || typeof s !== 'object') return {};
     return s;
   }
 
   function buildHistoryState(isGuard) {
-    var base = getHistoryState();
+    const base = getHistoryState();
     base[BACK_SURFACE_FLAG] = state.surface;
     base[BACK_GUARD_FLAG] = !!isGuard;
     base[BACK_STAMP_FLAG] = now();
@@ -203,7 +184,7 @@
   }
 
   function isGuardState() {
-    var s = getHistoryState();
+    const s = getHistoryState();
     return !!(s && s[BACK_GUARD_FLAG] === true);
   }
 
@@ -212,33 +193,33 @@
       if (isGuardState()) return;
       window.history.replaceState(buildHistoryState(false), '', window.location.href);
       window.history.pushState(buildHistoryState(true), '', window.location.href);
-    } catch (_) {}
+    } catch {}
   }
 
   function rearmGuardState() {
     try {
       if (isGuardState()) return;
       window.history.pushState(buildHistoryState(true), '', window.location.href);
-    } catch (_) {}
+    } catch {}
   }
 
   // 시빌라 모달의 sb-open 등 개봉 클래스. 빼 주지 않으면 감춰졌는데도 클래스상으론
   // 계속 "열림"이라 다음 개봉·스크롤락 해제 판정이 모두 어긋난다.
-  var OPEN_CLASSES = ['open', 'is-open', 'pvw-open', 'pvw-prem', 'sb-open', 'active'];
+  const OPEN_CLASSES = ['open', 'is-open', 'pvw-open', 'pvw-prem', 'sb-open', 'active'];
 
   function isOverlayOpen(node) {
-    for (var i = 0; i < OPEN_CLASSES.length; i += 1) {
+    for (let i = 0; i < OPEN_CLASSES.length; i += 1) {
       if (node.classList.contains(OPEN_CLASSES[i])) return true;
     }
-    var inline = node.style.display;
+    const inline = node.style.display;
     return !!inline && inline !== 'none';
   }
 
   function isRendered(node) {
     try {
-      var cs = window.getComputedStyle(node);
+      const cs = window.getComputedStyle(node);
       return cs.display !== 'none' && cs.visibility !== 'hidden';
-    } catch (_) {
+    } catch {
       return true;
     }
   }
@@ -250,20 +231,20 @@
     if (!node) return;
     try {
       if (!isOverlayOpen(node)) return;
-      for (var i = 0; i < OPEN_CLASSES.length; i += 1) node.classList.remove(OPEN_CLASSES[i]);
+      for (let i = 0; i < OPEN_CLASSES.length; i += 1) node.classList.remove(OPEN_CLASSES[i]);
       // 클래스로만 보이던 막(tarotFocusOverlay 등)은 클래스 제거로 충분하다.
       // 거기에 display:none 을 박으면 클래스만 다시 붙이는 개봉 경로가 영구히 막힌다.
       if (isRendered(node)) node.style.display = 'none';
       node.setAttribute('aria-hidden', 'true');
       if (node.hasAttribute('inert')) node.removeAttribute('inert');
-    } catch (_) {}
+    } catch {}
   }
 
   function closeAllKnownOverlays(exceptId) {
-    for (var i = 0; i < KNOWN_OVERLAY_IDS.length; i += 1) {
-      var id = KNOWN_OVERLAY_IDS[i];
+    for (let i = 0; i < KNOWN_OVERLAY_IDS.length; i += 1) {
+      const id = KNOWN_OVERLAY_IDS[i];
       if (exceptId && id === exceptId) continue;
-      var node = document.getElementById(id);
+      const node = document.getElementById(id);
       if (!node) continue;
       hideOverlayNode(node);
     }
@@ -284,7 +265,7 @@
         document.body.style.top = '';
         document.body.style.width = '';
       }
-    } catch (_) {}
+    } catch {}
   }
 
   function setSurface(nextSurface, feature) {
@@ -302,8 +283,7 @@
     // 상태만 원래 홈 표면으로 돌린다.
     try {
       window.history.replaceState(buildHistoryState(false), '', window.location.href);
-    } catch (_) {}
-    state.firstMainBackAt = 0;
+    } catch {}
   }
 
   function resetToSaju() {
@@ -311,125 +291,23 @@
     setSurface('saju', 'saju');
   }
 
-  function ensureToastNode() {
-    var toast = document.getElementById('cdExitIntentToast');
-    if (toast) return toast;
-
-    toast = document.createElement('div');
-    toast.id = 'cdExitIntentToast';
-    toast.style.position = 'fixed';
-    toast.style.left = '50%';
-    toast.style.bottom = '96px';
-    toast.style.transform = 'translateX(-50%) translateY(10px)';
-    toast.style.background = 'rgba(15, 23, 42, 0.92)';
-    toast.style.color = '#f8fafc';
-    toast.style.padding = '11px 16px';
-    toast.style.borderRadius = '999px';
-    toast.style.fontSize = '13px';
-    toast.style.fontWeight = '600';
-    toast.style.letterSpacing = '0.01em';
-    toast.style.zIndex = '100160';
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity .18s ease, transform .18s ease';
-    toast.style.pointerEvents = 'none';
-    document.body.appendChild(toast);
-    return toast;
-  }
-
-  function showMainExitToast() {
-    if (typeof window.showToast === 'function') {
-      try {
-        window.showToast('한 번 더 누르면 종료됩니다');
-        return;
-      } catch (_) {}
-    }
-
-    var toast = ensureToastNode();
-    toast.textContent = '한 번 더 누르면 종료됩니다';
-    toast.style.opacity = '1';
-    toast.style.transform = 'translateX(-50%) translateY(0)';
-
-    if (state.toastTimer) {
-      clearTimeout(state.toastTimer);
-      state.toastTimer = null;
-    }
-
-    state.toastTimer = setTimeout(function () {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateX(-50%) translateY(10px)';
-      state.toastTimer = null;
-    }, MAIN_DOUBLE_BACK_MS);
-  }
-
-  function attemptAppExit() {
-    try {
-      if (window.Android && typeof window.Android.exitApp === 'function') {
-        window.Android.exitApp();
-        return true;
-      }
-
-      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.exitApp && typeof window.webkit.messageHandlers.exitApp.postMessage === 'function') {
-        window.webkit.messageHandlers.exitApp.postMessage({ source: 'code-destiny' });
-        return true;
-      }
-
-      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.exitApp === 'function') {
-        window.Capacitor.Plugins.App.exitApp();
-        return true;
-      }
-
-      if (window.cordova && window.cordova.plugins && window.cordova.plugins.App && typeof window.cordova.plugins.App.exitApp === 'function') {
-        window.cordova.plugins.App.exitApp();
-        return true;
-      }
-
-      if (window.navigator && window.navigator.app && typeof window.navigator.app.exitApp === 'function') {
-        window.navigator.app.exitApp();
-        return true;
-      }
-
-      if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'EXIT_APP', source: 'code-destiny', ts: now() }));
-        return true;
-      }
-    } catch (_) {}
-
+  function leaveToPreviousPage() {
     try {
       if (window.history.length > 1) {
         state.allowNativeBackOnce = true;
+        // 더 돌아갈 기록이 없으면 popstate 가 오지 않는다 — 플래그가 남아 다음 뒤로가기를 삼키지 않게 푼다.
+        setTimeout(function () { state.allowNativeBackOnce = false; }, 1000);
         window.history.back();
         return true;
       }
-    } catch (_) {}
-
-    try {
-      window.close();
-      if (window.closed) return true;
-    } catch (_) {}
-
-    try {
-      if (window.navigator && typeof window.navigator.vibrate === 'function') {
-        window.navigator.vibrate(18);
-      }
-    } catch (_) {}
-
+    } catch {}
     return false;
   }
 
   function handleMainBack() {
-    var t = now();
-    if (t - state.firstMainBackAt <= MAIN_DOUBLE_BACK_MS) {
-      state.firstMainBackAt = 0;
-      var handled = attemptAppExit();
-      if (!handled) {
-        rearmGuardState();
-      }
-      return;
-    }
-
-    state.firstMainBackAt = t;
-    showMainExitToast();
-    rearmGuardState();
+    // 셸 가드만 소비한 뒤 웹·PWA의 원래 이탈을 이어 간다. 루트 가드를 다시 쌓지 않는다.
+    // 실제 앱 종료는 app-native-bridge 한 곳이 맡는다.
+    leaveToPreviousPage();
   }
 
   function handleSurfaceBack() {
@@ -450,7 +328,7 @@
 
   function parseActionPrimaryArg(actionEl) {
     if (!actionEl || typeof actionEl.getAttribute !== 'function') return '';
-    var raw = String(actionEl.getAttribute('data-action-args') || '').trim();
+    const raw = String(actionEl.getAttribute('data-action-args') || '').trim();
     if (!raw) return '';
     return raw.split(',')[0].trim();
   }
@@ -467,13 +345,13 @@
       return;
     }
 
-    var keepOverlay = ACTION_TO_OVERLAY_ID[action] || '';
+    const keepOverlay = ACTION_TO_OVERLAY_ID[action] || '';
     if (FEATURE_OPEN_ACTIONS[action] || SAJU_MAIN_ACTIONS[action] || SAJU_SUB_ACTIONS[action]) {
       closeAllKnownOverlays(keepOverlay || null);
     }
 
     if (SAJU_SUB_ACTIONS[action]) {
-      var targetId = parseActionPrimaryArg(actionEl);
+      const targetId = parseActionPrimaryArg(actionEl);
       setSurface('saju-feature', targetId || 'saju-feature');
       return;
     }
@@ -490,10 +368,10 @@
   }
 
   function wrapFunction(fnName, onBefore, onAfter) {
-    var retries = 0;
-    var maxRetries = 80;
-    var timer = setInterval(function () {
-      var original = window[fnName];
+    let retries = 0;
+    const maxRetries = 80;
+    const timer = setInterval(function () {
+      const original = window[fnName];
       if (typeof original !== 'function') {
         retries += 1;
         if (retries >= maxRetries) clearInterval(timer);
@@ -504,14 +382,14 @@
         return;
       }
 
-      var wrapped = function () {
-        var args = Array.prototype.slice.call(arguments);
+      const wrapped = function () {
+        const args = Array.prototype.slice.call(arguments);
         if (typeof onBefore === 'function') {
-          try { onBefore(args); } catch (_) {}
+          try { onBefore(args); } catch {}
         }
-        var result = original.apply(this, args);
+        const result = original.apply(this, args);
         if (typeof onAfter === 'function') {
-          try { onAfter(args, result); } catch (_) {}
+          try { onAfter(args, result); } catch {}
         }
         return result;
       };
@@ -525,7 +403,7 @@
 
   function bindFunctionHooks() {
     wrapFunction('_dpOpenFortuneType', null, function (args) {
-      var type = args && args.length ? String(args[0] || '') : '';
+      const type = args && args.length ? String(args[0] || '') : '';
       if (!type) return;
       if (type === 'saju') {
         setSurface('saju', 'saju');
@@ -535,7 +413,7 @@
     });
 
     wrapFunction('openSajuFunFeature', function (args) {
-      var targetId = args && args.length ? String(args[0] || '') : '';
+      const targetId = args && args.length ? String(args[0] || '') : '';
       setSurface('saju-feature', targetId || 'saju-feature');
     }, null);
 
@@ -548,20 +426,74 @@
     });
   }
 
-  function onPopState() {
-    if (!isMobileRuntime()) return;
+  // 표면(main/saju/feature)과 따로 떠 있는 임시 창. 열 때 기록을 쌓지 않으므로 여기서 먼저 닫지 않으면
+  // 뒤로가기가 창은 그대로 둔 채 홈 종료 처리나 표면 전환으로 넘어간다.
+  // 위에 뜨는 것부터 본다: 결제 선택창 → 셸 시트 → 타일 미리보기. 돌려주는 값은 그 창을 닫는 함수다.
+  function findTopTransientSurface() {
+    try {
+      // 결제 선택창: 2단계면 1단계로, 1단계면 [취소](checkout-entry 의 세 렌더러 공용 버튼 계약).
+      // 고른 뒤 잠긴 동안에도 이번 뒤로가기는 결제창이 소비한다 — 처리 중에 표면이 바뀌면 안 된다.
+      const checkoutEntry = window.__cdCheckoutEntry;
+      if (checkoutEntry && typeof checkoutEntry.hasOpenPaymentChoiceModal === 'function'
+        && typeof checkoutEntry.stepBackOpenPaymentChoice === 'function'
+        && checkoutEntry.hasOpenPaymentChoiceModal()) {
+        return function () { checkoutEntry.stepBackOpenPaymentChoice(); };
+      }
+    } catch {}
+    try {
+      const sheet = document.querySelector('dialog[data-cd-sheet][open]');
+      const sheets = window.CodeDestinyShellSheet;
+      if (sheet && sheets && typeof sheets.close === 'function') {
+        return function () { sheets.close(sheet.id); };
+      }
+    } catch {}
+    try {
+      const preview = document.getElementById('tilePvwOverlay');
+      if (preview && preview.classList.contains('pvw-open') && typeof window._cdCloseTilePreview === 'function') {
+        return function () { window._cdCloseTilePreview(); };
+      }
+    } catch {}
+    try {
+      const dialogs = document.querySelectorAll('dialog[open]');
+      const dialog = dialogs[dialogs.length - 1];
+      if (dialog) return function () {
+        if (dialog.dispatchEvent(new Event('cancel', { cancelable: true }))) dialog.close();
+      };
+    } catch {}
+    return null;
+  }
+
+  function closeTopTransientSurface() {
+    const close = findTopTransientSurface();
+    if (!close) return false;
+    try { close(); } catch {}
+    return true;
+  }
+
+  function onPopState(event) {
 
     if (state.allowNativeBackOnce) {
       state.allowNativeBackOnce = false;
       return;
     }
 
-    var t = now();
+    // 루트 이탈에는 연속 입력 방지용 가드도 다시 쌓지 않는다.
+    if (state.surface === 'main' && !(event && event.__cdBackConsumed) && !findTopTransientSurface()) {
+      handleMainBack();
+      return;
+    }
+    const t = now();
     if (t - state.lastPopAt < POP_DEBOUNCE_MS) {
       rearmGuardState();
       return;
     }
     state.lastPopAt = t;
+
+    // 자기 popstate 리스너로 먼저 닫힌 창(전체 운세 컬렉션)이 이번 뒤로가기를 이미 썼다.
+    if ((event && event.__cdBackConsumed) || closeTopTransientSurface()) {
+      rearmGuardState();
+      return;
+    }
 
     handleSurfaceBack();
   }
@@ -576,6 +508,8 @@
       markFeature: function (name) { setSurface('feature', name || 'feature'); },
       markSajuMain: function () { setSurface('saju', 'saju'); },
       markSajuFeature: function (name) { setSurface('saju-feature', name || 'saju-feature'); },
+      // 전체 운세 컬렉션은 자기 popstate 로 닫힌다. 그 위에 임시 창이 떠 있으면 이번 뒤로가기는 그 창 몫이다.
+      hasTopTransientSurface: function () { return !!findTopTransientSurface(); },
       getState: function () {
         return {
           surface: state.surface,
@@ -584,11 +518,18 @@
       }
     };
 
-    if (!isMobileRuntime()) return;
 
     setSurface('main', '');
     ensureGuardState();
     window.addEventListener('popstate', onPopState);
+    window.addEventListener('cd:app-back', function (event) {
+      const overlay = event.detail && event.detail.scope === 'overlay';
+      if (overlay ? !findTopTransientSurface() : state.surface === 'main') return;
+      event.preventDefault();
+      // 기존 popstate 경로가 결제 단계/잠금과 화면 복원을 소유한다.
+      ensureGuardState();
+      window.history.back();
+    });
   }
 
   if (document.readyState === 'loading') {

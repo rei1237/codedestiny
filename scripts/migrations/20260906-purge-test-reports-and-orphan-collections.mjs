@@ -24,6 +24,8 @@
  *   node scripts/migrations/20260906-purge-test-reports-and-orphan-collections.mjs --self-test
  *   npm run verify:purge-test-reports        # --check, 읽기 전용, 지울 것이 있으면 exit 1
  *   npm run migrate:purge-test-reports -- --apply --expect <n>   # n = 문서 건수 + 드롭 컬렉션 수
+ *   node scripts/migrations/20260906-purge-test-reports-and-orphan-collections.mjs --dry-run --records-only
+ *     --before 2026-10-01T00:00:00.000Z --email <주소>
  */
 
 import { config } from "dotenv";
@@ -33,6 +35,7 @@ const APPLY = process.argv.includes("--apply");
 const CHECK = process.argv.includes("--check");
 const SELF_TEST = process.argv.includes("--self-test");
 const DRY_RUN = process.argv.includes("--dry-run");
+const RECORDS_ONLY = process.argv.includes("--records-only");
 
 const OPERATION_ID = "20260906-purge-test-reports-and-orphan-collections";
 const BATCH_SIZE = 500;
@@ -191,6 +194,13 @@ async function runAgainstDatabase() {
   }
   const expectRaw = String(argValue("--expect", "any"));
   const expect = expectRaw === "any" ? null : Number(expectRaw);
+  const beforeRaw = String(argValue("--before", "")).trim();
+  const before = beforeRaw ? new Date(beforeRaw) : null;
+  if (before && !Number.isFinite(before.getTime())) {
+    console.error("❌ --before 는 유효한 ISO 날짜여야 합니다.");
+    process.exitCode = 1;
+    return;
+  }
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
   const models = Object.values(mongoose.models);
@@ -221,7 +231,10 @@ async function runAgainstDatabase() {
     const reportTargets = [];
     let docTotal = 0;
     for (const { model, userIdType } of picked) {
-      const filter = { userId: userIdFilterValue(userIdType, user._id) };
+      const filter = {
+        userId: userIdFilterValue(userIdType, user._id),
+        ...(before ? { createdAt: { $lt: before } } : {}),
+      };
       const [count, all] = await Promise.all([model.countDocuments(filter), model.estimatedDocumentCount()]);
       reportTargets.push({ model, filter, count, all });
       docTotal += count;
@@ -231,11 +244,11 @@ async function runAgainstDatabase() {
     console.log(`  합계 ${docTotal}건`);
 
     // ── 2) 고아 컬렉션 현황 ─────────────────────────────────────────────────
-    const existing = new Set((await db.listCollections({}, { nameOnly: true }).toArray()).map((c) => c.name));
+    const existing = RECORDS_ONLY ? new Set() : new Set((await db.listCollections({}, { nameOnly: true }).toArray()).map((c) => c.name));
     const orphanTargets = [];
     let blocked = 0;
     console.log("\n== 고아 컬렉션(코드 참조 0 재검증)");
-    for (const name of ORPHAN_COLLECTIONS) {
+    for (const name of (RECORDS_ONLY ? [] : ORPHAN_COLLECTIONS)) {
       const reasons = orphanReferenceReasons(name, { modelCollections, grepHits: gitGrepHits(name, root) });
       if (reasons.length) { blocked += 1; console.log(`  ${name}: 🔴 참조 있음 → 건너뜀 (${reasons.join(" / ")})`); continue; }
       if (!existing.has(name)) { console.log(`  ${name}: 이미 없음`); continue; }
@@ -257,6 +270,8 @@ async function runAgainstDatabase() {
     }
     if (CHECK || DRY_RUN || !APPLY) {
       console.log("\n🔍 읽기 전용 — 아무것도 쓰지 않았습니다.");
+      if (before) console.log(`   기준: createdAt < ${before.toISOString()}`);
+      if (RECORDS_ONLY) console.log("   범위: 대상 계정의 상담·리포트 기록만(고아 컬렉션 제외)");
       console.log(`   지울 것: 문서 ${docTotal}건 + 컬렉션 ${orphanTargets.length}개 = ${pending}`);
       console.log(`   🔴 --apply 전에 백업을 확보하세요: npm run backup:mongo -- --out <레포 밖 경로>`);
       console.log(`   적용: npm run migrate:purge-test-reports -- --apply --expect ${pending}`);
@@ -282,7 +297,9 @@ async function runAgainstDatabase() {
       for (const doc of docs) rows.push(toBeforeImageRow(t.name, doc));
     }
     const imagePath = writeBeforeImage(OPERATION_ID, rows, {
-      why: "테스트 계정의 상담·리포트 결과 + 코드 참조 0 고아 컬렉션",
+      why: RECORDS_ONLY
+        ? `테스트 계정의 ${before ? before.toISOString() + " 이전 " : ""}상담·리포트 결과`
+        : "테스트 계정의 상담·리포트 결과 + 코드 참조 0 고아 컬렉션",
       testAccountDocs: docTotal,
       orphanCollections: orphanTargets.map((t) => `${t.name}:${t.count}`),
     });

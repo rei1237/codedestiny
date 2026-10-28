@@ -73,8 +73,9 @@ for (const episode of source.episodes) for (const beat of episode.beats) {
   for (const actor of cast) for (const form of ["human", "pig"]) {
     if (!["yeon", "neo", "ln", "lns", "rab", "moka"].includes(actor.who)) continue;
     const sp = (context.spriteMaster || context.spriteFor)(actor.who, actor.x, form);
-    if (!sp.sheet) continue;
-    const key = sp.cls + "|" + (sp.size || "") + "|" + (sp.pos || "");
+    const directV2 = !sp.sheet && sp.url.startsWith("/images/novel/remaster/v2/");
+    if (!sp.sheet && !directV2) continue;
+    const key = sp.sheet ? sp.cls + "|" + (sp.size || "") + "|" + (sp.pos || "") : sp.cls + "|" + sp.url;
     if (sprites[key]) continue;
     if (!masters.has(sp.url)) {
       const bytes = sp.url.startsWith("/") ? await readFile(resolve(root, "public", sp.url.slice(1))) : await (async () => {
@@ -85,6 +86,14 @@ for (const episode of source.episodes) for (const beat of episode.beats) {
       masters.set(sp.url, bytes);
     }
     const bytes = masters.get(sp.url), meta = await sharp(bytes).metadata();
+    if (directV2) {
+      const name = `${actor.who}-${createHash("sha256").update(key).digest("hex").slice(0, 10)}.webp`;
+      const result = await sharp(bytes).resize({ width: 400, height: 600, fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 84, alphaQuality: 100, effort: 6 }).toBuffer({ resolveWithObject: true });
+      await writeFile(resolve(output, name), result.data);
+      sprites[key] = { path: `/images/novel/mobile/${name}`, width: result.info.width, height: result.info.height, bytes: result.data.length };
+      continue;
+    }
     const sizes = (sp.size || "418% 418%").split(" ").map(Number.parseFloat);
     const pos = (sp.pos || "0% 0%").split(" ").map(Number.parseFloat);
     const width = Math.round(meta.width * 100 / sizes[0]), height = Math.round(meta.height * 100 / sizes[1]);

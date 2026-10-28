@@ -18,11 +18,12 @@ function fixture(order, existing = null) {
 }
 for (const mode of ['solo', 'compat']) test(`${mode}: approved purchase creates a session after the document closes before /start`, async () => {
   const birthInfo = { birthDate: '1990-05-12', birthTime: '09:30', gender: 'female', calendarType: 'solar' };
-  const input = { birthInfo, locale: 'ja', ...(mode === 'compat' ? { partnerInfo: { ...birthInfo, birthDate: '1991-02-03' } } : {}) };
+  const input = { birthInfo, consultation: { relationship: 'reunion', questions: ['다시 연락해도 될까요?'], situation: '현재는 연락을 쉬고 있어요.' }, locale: 'ja', ...(mode === 'compat' ? { partnerInfo: { ...birthInfo, birthDate: '1991-02-03' } } : {}) };
   const order = { merchantUid: 'owned-payment', userId: 'owned-user', requestId: 'original-key', featureKey: mode === 'solo' ? 'master-love-codex' : 'master-love-codex-compat', status: 'paid' };
   order.metadata = { paidResume: await prepareResumeContext({ originPath: '/master-love-codex', resume: { kind: 'master-love-codex', args: { idempotencyKey: 'original-key', payload: JSON.stringify(input) } } }, { ...order, env }) };
   const { options, orders } = fixture(order);
   expect(await bootstrapPaidCodexSessions(env, options)).toEqual([{ orderId: 'owned-payment', sessionId: 'original-book', outcome: 'session_created' }]);
+  expect(options.startCodexSession.mock.calls[0][3].consultation).toEqual(input.consultation);
   expect(options.startCodexSession.mock.calls[0][2]).toEqual({ userId: 'owned-user' });
   expect(options.startCodexSession.mock.calls[0][3]).toMatchObject({ ...input, paymentId: 'owned-payment', idempotencyKey: 'original-key' });
   expect(options.ensureExecution).toHaveBeenCalledTimes(1);

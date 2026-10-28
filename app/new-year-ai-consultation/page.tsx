@@ -1,3 +1,4 @@
+import ResultSamples from "@/app/components/ResultSamples";
 import type { Metadata } from "next";
 import NewYearAiRouteClient from "./NewYearAiRouteClient";
 import {
@@ -11,14 +12,17 @@ import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/new-year-ai-consultation/";
-const PAGE_TITLE = "신년운세 보는 곳 | 새해 월별 운세·재물운·연애운 풀이";
+// 🔴 시즌 연도. 상담 화면의 기본 대상 연도(NewYearAiClient: 올해+1)와 같은 해를 적는다.
+//    2027 신년운세·토정비결 2027·정미년 운세 자동완성 근거(docs/seo/keyword-research-2026-10). 2027년 입춘 뒤 다음 해로 갱신한다.
+const SEASON_YEAR = "2027";
+const PAGE_TITLE = `${SEASON_YEAR} 신년운세 보는 곳 | 정미년 월별·재물·연애운 풀이`;
 const PAGE_DESCRIPTION =
-  "올해 나에게 가장 중요한 일은 뭘까? 그해 세운이 내 명식과 만나는 자리와 재물·연애·월별 흐름을 짚는 신년운세입니다.";
+  `${SEASON_YEAR}년 정미년, 나에게 가장 중요한 일은 뭘까? 정미년 세운이 내 명식과 만나는 자리와 재물·연애·월별 흐름을 짚는 신년운세입니다.`;
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
   description: PAGE_DESCRIPTION,
-  keywords: ["신년운세", "새해 운세", "무료 신년운세", "월별 운세", "토정비결", "신년 사주", "전문가 신년운세"],
+  keywords: ["신년운세", "2027 신년운세", "2027년 신년운세", "정미년 운세", "2027 운세", "새해 운세", "무료 신년운세", "월별 운세", "토정비결", "토정비결 2027", "토정비결 사주 차이", "신년 사주", "전문가 신년운세"],
   alternates: {
     canonical: `${siteSeo.siteUrl}${PAGE_PATH}`,
   },
@@ -46,9 +50,19 @@ const newYearFaqItems = [
       "새해 한 해의 큰 흐름을 사주 명식의 세운(歲運) 관점에서 읽어 드립니다. 재물·관계·커리어의 결이 어느 계절에 열리고 어느 시기에 숨을 고르면 좋은지, 월별 체크포인트와 함께 상담 문장으로 정리합니다.",
   },
   {
-    question: "토정비결과는 무엇이 다른가요?",
+    question: "2027 토정비결과 사주 신년운세는 무엇이 다른가요?",
     answer:
-      "토정비결이 정해진 괘 풀이를 찾아 읽는 방식이라면, 신년운세 전문가 상담은 내 생년월일로 세운 사주 명식과 그 해의 간지가 만나는 흐름을 개인별로 계산해 해석합니다. 같은 해라도 사람마다 다른 결의 풀이가 나옵니다.",
+      "토정비결은 나이와 음력 생월·생일로 세 자리 괘를 뽑아 144괘 가운데 하나의 정해진 풀이를 읽는 방식입니다. 신년운세 전문가 상담은 생년월일시로 세운 사주 명식 위에 그해의 간지(2027년은 정미)가 만드는 세운을 겹쳐 개인별로 계산합니다. 같은 괘를 받은 사람끼리도 명식이 다르면 풀이가 갈립니다.",
+  },
+  {
+    question: "2027년 정미년은 어떤 해인가요?",
+    answer:
+      "2027년은 천간 丁(정화, 음의 불)과 지지 未(미토, 양띠)가 만나는 정미년입니다. 같은 정미 세운이라도 일간에 따라 작용이 다릅니다. 예를 들어 甲·乙 일간에게 丁화는 표현과 결과물을 뜻하는 식상이고, 壬·癸 일간에게는 재물과 현실 감각을 뜻하는 재성입니다. 그래서 띠나 해의 이름만으로 한 해를 판단하지 않고 내 명식과의 관계로 읽습니다.",
+  },
+  {
+    question: "2027년 신년운세는 언제부터 보면 되나요?",
+    answer:
+      "지금 바로 볼 수 있습니다. 상담 화면의 기본 대상 연도가 다가올 해로 맞춰져 있어 연말에 미리 한 해를 준비할 수 있습니다. 사주에서 해가 바뀌는 기준은 양력 1월 1일이 아니라 입춘(2027년은 2월 4일 무렵)이라, 1월은 아직 2026년 병오년 세운의 끝자락으로 읽습니다.",
   },
   {
     question: "연말이 아니어도 볼 수 있나요?",
@@ -107,11 +121,13 @@ export default function NewYearAiConsultationPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(newYearJsonLd) }}
       />
             <NewYearAiRouteClient />
+      <ResultSamples ids={["new-year"]}/>
             <ServiceIntroSection label="신년운세 전문가 상담 안내">
-        <h1><span>신년운세 보는 곳 — 새해 흐름과 월별 운세 풀이</span>올해 나에게 가장 중요한 일은 뭘까?</h1>
+        {/* 문서 H1은 이 서버 영역의 하나뿐이다. 위 상담 화면은 클라이언트에서 그려져 서버 HTML(verify:seo-heading-integrity)에 없고, 그 화면 제목을 h1로 올리면 하이드레이션 뒤 H1이 2개가 된다(verify:hydrated-h1-integrity). 그래서 화면 제목은 h2로 둔다. */}
+        <h1><span>{SEASON_YEAR} 신년운세 보는 곳 — 정미년 흐름과 월별 운세 풀이</span>올해 나에게 가장 중요한 일은 뭘까?</h1>
         <p>
           신년운세 전문가 상담은 생년월일로 세운 사주 명식 위에 새해의 간지가 만드는 세운의 흐름을
-          겹쳐 읽습니다. 한 해의 재물운과 관계운, 일과 커리어의 결이 어느 달에 열리는지,
+          겹쳐 읽습니다. {SEASON_YEAR}년 정미년이라면 丁화와 未토가 내 일간과 어떤 관계를 맺는지부터 계산합니다. 한 해의 재물운과 관계운, 일과 커리어의 결이 어느 달에 열리는지,
           어느 시기에 무리하지 않고 숨을 고르는 편이 좋은지 월별 체크포인트로 정리해 드립니다.
         </p>
         <p>

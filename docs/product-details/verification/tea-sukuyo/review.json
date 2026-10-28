@@ -1,0 +1,10 @@
+{
+  "original": "Independent SHIP; all27 panels checked",
+  "mobile": "Independent SHIP; actual360 all panels,360/390/430 price CTA notice, transcript360, introduction360",
+  "evidence": "4 widths load/bounds, mocked404 opens transcript; POST0",
+  "limits": [
+    "Local mock not real payment/LLM",
+    "Native missing404 initially timed out under local dev compile; deterministic mock404 used",
+    "Notice direction word changed after review; panel pixels unchanged"
+  ]
+}

@@ -14,6 +14,7 @@
  *
  * 🔴 게이트를 mock 으로 건너뛰지 말 것. 여기서 가는 것은 인증·증빙 조회뿐이고 분기는 실제 라우트가 돈다.
  */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 // 🔴 실제 requireAuth 는 HttpError 를 던진다. 평범한 Error 는 handleRouteError 가 상태를 못 읽어
 //    500 이 되고, 그러면 테스트가 제품이 아니라 픽스처를 재게 된다.
@@ -29,9 +30,20 @@ let mindscanBuilt = 0;
 let crystalBuilt = 0;
 
 let handleTarotRoutes;
+// A paid mindscan body names a server-held draw, checked before the payment gate (worker/lib/paid-tarot-draw.js).
+// The store is in memory; the binding itself is the real one.
+let draws = [];
+const same = (doc, filter) => Object.entries(filter).every(([key, value]) => doc[key] === value);
+const drawStore = {
+  findOne: async (filter) => { const doc = draws.find((d) => same(d, filter)); return doc ? { ...doc } : null; },
+  updateOne: async (filter, update) => { const doc = draws.find((d) => same(d, filter)); if (doc) Object.assign(doc, update.$set || {}); return { matchedCount: doc ? 1 : 0 }; },
+};
+let paidTarotDrawKey;
 
 beforeAll(async () => {
+  const db = await import("../../worker/lib/db.js");
   await Promise.all([
+    jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, fn) => fn() })),
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
       requireAuth: async () => {
         if (!authResult) {
@@ -43,7 +55,7 @@ beforeAll(async () => {
       getOptionalUserFromRequest: async () => null,
       PAID_FEATURE_ACCESS_USER_PROJECTION: "",
     })),
-    jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+    jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({
       verifyPerUsePayment: async (env, input) => {
         verifyCalls.push(input);
         return proofResult;
@@ -61,6 +73,9 @@ beforeAll(async () => {
         return new Response(JSON.stringify({ ok: true, sections: [{ title: "t", body: "b" }] }), { headers: { "Content-Type": "application/json" } });
       },
     })),
+    jest.unstable_mockModule("../../worker/lib/paid-tarot-draw-store.js", () => ({
+      paidTarotDrawCollection: async () => drawStore,
+    })),
     jest.unstable_mockModule("../../lib/tarot/crystal-soul-reading.mjs", () => ({
       buildCrystalSoulV3Reading: () => {
         crystalBuilt += 1;
@@ -71,6 +86,7 @@ beforeAll(async () => {
 
   const mod = await import("../../worker/routes/tarot.js");
   handleTarotRoutes = mod.handleTarotRoutes;
+  ({ paidTarotDrawKey } = await import("../../worker/lib/paid-tarot-draw.js"));
 });
 
 beforeEach(() => {
@@ -80,6 +96,10 @@ beforeEach(() => {
   verifyCalls = [];
   mindscanBuilt = 0;
   crystalBuilt = 0;
+  draws = [{
+    _id: paidTarotDrawKey("tarot-mindscan", MINDSCAN_BODY.drawId), featureKey: "tarot-mindscan", drawId: MINDSCAN_BODY.drawId, owner: "",
+    cards: Array.from({ length: 10 }, (_, i) => ({ cardId: `M${String(i).padStart(2, "0")}`, orientation: "upright" })),
+  }];
 });
 
 function post(path, body) {
@@ -97,7 +117,8 @@ const CRYSTAL_BODY = {
   requestId: "tarot-crystal-soul-reading:req:1755300000000-abc1234",
 };
 const MINDSCAN_BODY = {
-  pairs: [{ a: "M00", b: "M01" }],
+  pairs: Array.from({ length: 5 }, (_, i) => ({ slot: i + 1, mainCardId: i, subCardId: i + 5 })),
+  drawId: "unauth-gate-mindscan-draw",
   question: "요즘 마음이 어지럽습니다",
   requestId: "tarot-mindscan:req:1755300000000-abc1234",
 };
@@ -169,11 +190,13 @@ describe("/mindscan", () => {
     expect(mindscanBuilt).toBe(0);
   });
 
-  test("이용권 커버는 차감 기록 없이 통과한다", async () => {
+  // 🔴 2026-10-16: 이용권 허용 판정(읽기 전용)만으로는 열지 않는다 — 차감 증빙을 거친다.
+  test("이용권 허용 판정만으로는 차감 증빙 없이 열리지 않는다", async () => {
     accessDecision = { allowed: true, accessSource: "pass" };
+    proofResult = { proven: false, source: "", reason: "NO_RECORD" };
     const res = await handleTarotRoutes(post("/mindscan", MINDSCAN_BODY), {});
-    expect(res.status).toBe(200);
-    expect(verifyCalls).toHaveLength(0);
-    expect(mindscanBuilt).toBe(1);
+    expect(res.status).toBe(402);
+    expect(verifyCalls).toHaveLength(1);
+    expect(mindscanBuilt).toBe(0);
   });
 });

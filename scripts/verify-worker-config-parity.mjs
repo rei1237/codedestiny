@@ -94,10 +94,6 @@ const STAGING_ONLY_KEYS = new Set([
   //    정적 셸 공유 버튼을 배선해 프로덕션에서 켤 때는, 이 줄을 빼기 전에 먼저 바인딩 한 자리를
   //    비워야 한다 — 선례 02560ce64.
   "vars.ENABLE_RESULT_SHARE",
-  // 연이·네오 상담 엔진의 새 상담 스위치(2026-10-01 스테이징 검증). 프로덕션 승격은 별도 결정이라 이
-  // 선언이 우연한 유입을 막는다. 옮길 때는 워커 텍스트 바인딩 128 한도(위 ENABLE_RESULT_SHARE)의 남은
-  // 자리를 먼저 확인한 뒤 이 줄을 지운다.
-  "vars.ENABLE_FORTUNE_CHAT_CONSULTATIONS",
   // 무료 운명 구조도 문장 다듬기 LLM 스위치(2026-10-06). 운영 활성화는 별도 결정이고, 옮길 때는 위와 같이
   // 워커 텍스트 바인딩 128 한도의 남은 자리를 먼저 확인한다. 코드는 없는 값을 꺼짐으로 읽는다.
   "vars.ENABLE_DESTINY_ANATOMY_REAL_LLM",
@@ -418,6 +414,7 @@ const BASE_PRODUCTION = [
   '',
   '[vars]',
   'NODE_ENV = "production"',
+  'ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"',
   'SITE_BASE_URL = "https://code-destiny.com"',
   'AUTH_API_BASE_URL = "https://code-destiny.com"',
   'AUTH_FRONTEND_BASE_URL = "https://code-destiny.com"',

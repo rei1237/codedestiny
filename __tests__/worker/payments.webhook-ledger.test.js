@@ -8,6 +8,7 @@ let PaymentWebhookEvent;
 let PaymentFailureLog;
 let ContentEntitlement;
 let User;
+let ProfileCard;
 let originalFetch;
 let originals;
 
@@ -54,6 +55,7 @@ beforeAll(async () => {
   PaymentFailureLog = modelsMod.PaymentFailureLog;
   ContentEntitlement = modelsMod.ContentEntitlement;
   User = modelsMod.User;
+  ProfileCard = modelsMod.ProfileCard;
 
   originalFetch = global.fetch;
   originals = {
@@ -70,7 +72,17 @@ beforeAll(async () => {
     entitlementFindOneAndUpdate: ContentEntitlement.findOneAndUpdate,
     entitlementUpdateMany: ContentEntitlement.updateMany,
     userUpdateOne: User.updateOne,
+    profileCardFindOne: ProfileCard.findOne,
   };
+});
+
+// 출생 기반 키(section_summary 등)의 지급은 이 계정 저장 프로필의 출생 정보로 신원을 만든다.
+beforeEach(() => {
+  ProfileCard.findOne = jest.fn((filter = {}) => queryResult(filter.profileId ? {
+    profileId: filter.profileId,
+    gender: "F",
+    birth: { year: 1990, month: 5, day: 17, hour: 9, minute: 30, timeUnknown: false, calType: "solar" },
+  } : null));
 });
 
 afterEach(() => {
@@ -88,6 +100,7 @@ afterEach(() => {
   ContentEntitlement.findOneAndUpdate = originals.entitlementFindOneAndUpdate;
   ContentEntitlement.updateMany = originals.entitlementUpdateMany;
   User.updateOne = originals.userUpdateOne;
+  ProfileCard.findOne = originals.profileCardFindOne;
   jest.restoreAllMocks();
 });
 
@@ -129,6 +142,24 @@ describe("PortOne webhook event ledger", () => {
     expect(duplicateResult.payload.duplicate).toBe(true);
     expect(duplicateResult.payload.ignored).toBe(true);
     expect(Payment.findOneAndUpdate).not.toHaveBeenCalled();
+  });
+
+  test("원장 'processed' 기록 쓰기가 거절돼도 웹훅 응답은 그대로이고 삼켜진 오류가 로그에 남는다", async () => {
+    const body = { type: "Transaction.Failed", data: { paymentId: "pay_ledger_write_001" } };
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    PaymentWebhookEvent.create = jest.fn().mockResolvedValue({ _id: "evt-doc-ledger-write" });
+    PaymentWebhookEvent.findByIdAndUpdate = jest.fn().mockRejectedValue(new Error("mongo ledger write timeout"));
+    Payment.findOneAndUpdate = jest.fn().mockReturnValue(queryResult({ merchantUid: "pay_ledger_write_001" }));
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+
+    const result = await readResponse(await testUtils.handleWebhook(await buildWebhookRequest(body), env));
+
+    expect(result.status).toBe(200);
+    expect(result.payload.status).toBe("FAILED");
+    const line = warn.mock.calls.map((call) => call.join(" ")).find((text) => text.startsWith("[payment-swallowed]") && text.includes("webhook_event_mark_processed"));
+    expect(line).toContain("evt-doc-ledger-write");
+    expect(line).toContain("mongo ledger write timeout");
   });
 
   test("Transaction.Paid webhook with ctx returns an immediate ack and defers heavy work to waitUntil", async () => {
@@ -491,6 +522,10 @@ describe("single payment entitlement consistency", () => {
     expect(parsed.payload.code).toBe("UNLOCK_RECORD_DEFERRED_ADMIN_REVIEW");
     expect(parsed.payload.refundStatus).toBe("not_refunded");
     expect(parsed.payload.adminReviewRequired).toBe(true);
+    // 출생 기반 키는 계정 배열로 열리지 않는다 — "권한 정상 처리" 오안내 금지, 프로필 선택 안내로 대신한다.
+    expect(parsed.payload.profileSelectionRequired).toBe(true);
+    expect(parsed.payload.message).not.toContain("정상 처리");
+    expect(parsed.payload.message).toContain("프로필");
     // 🔴 PortOne 단건 조회 1회뿐 — 취소 호출이 늘면 사용자 돈이 되돌아간 것이다.
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(String(global.fetch.mock.calls[0][0])).not.toContain("/cancel");
@@ -728,6 +763,23 @@ describe("single payment entitlement consistency", () => {
       { _id: order._id, status: "pending" },
       { $set: expect.objectContaining({ status: "cancelled", failureCode: "cancelled", failureStage: "client_report" }) },
     );
+  });
+
+  test("B2c: 실패 보고의 대기→실패 쓰기가 거절돼도 응답은 그대로 200 이고 삼키지 않고 로그에 남긴다", async () => {
+    Payment.findOne = jest.fn(() => queryResult({ ...order, status: "pending" }));
+    Payment.findOneAndUpdate = jest.fn().mockRejectedValue(new Error("mongo write timeout"));
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    const parsed = await readResponse(await testUtils.handleReportFailure(
+      buildReportFailureRequest({ merchantUid: order.merchantUid, reasonCode: "cancelled" }), env, auth,
+    ));
+
+    expect(parsed.status).toBe(200);
+    const line = warn.mock.calls.map((call) => call.join(" ")).find((text) => text.startsWith("[payment-swallowed]"));
+    expect(line).toContain("report_failure_cas");
+    expect(line).toContain(order._id);
+    expect(line).toContain("mongo write timeout");
   });
 
   test("full cancellation webhook revokes entitlement and paid feature access", async () => {

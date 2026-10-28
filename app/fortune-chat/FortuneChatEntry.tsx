@@ -2,9 +2,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
-import FortuneChatClient from "./FortuneChatClient";
-import ConsultationRoom from "./ConsultationRoom";
+import dynamic from "next/dynamic";
+import ConsultationEntrance from "./ConsultationEntrance";
 import { consultationApi, isConsultationId, type ChatPersona } from "./consultation-api";
+const entryLoading = () => <ConsultationEntrance />;
+const FortuneChatClient = dynamic(() => import("./FortuneChatClient"), { loading: entryLoading });
+const ConsultationRoom = dynamic(() => import("./ConsultationRoom"), { loading: entryLoading });
 
 const HINT_KEY = "fortune-chat:consultation-room";
 
@@ -21,16 +24,17 @@ const HINT_KEY = "fortune-chat:consultation-room";
 export default function FortuneChatEntry() {
   const params = useSearchParams();
   const linked = params?.get("consultation") || "";
-  // 홈의 상담 입구는 지금 테마의 상담자를 ?character= 로 넘긴다. 기존 상담방(FortuneChatClient)도 같은 값을 읽는다.
-  const character = params?.get("character");
-  const requested: ChatPersona | undefined = character === "neo" || character === "yeoni" ? character : undefined;
+  const legacySession = params?.get("session") || "";
+  // 새 상담의 상담자는 연이 하나다. 예전 홈 링크의 ?character=neo 도 연이로 연다(지난 네오 상담은 ?consultation= 으로 그대로 열린다).
+  const requested: ChatPersona = "yeoni";
   const auth = useAuthStore();
   const userKey = String(auth.user?.id || auth.user?.userId || "");
-  const [room, setRoom] = useState(() => isConsultationId(linked));
+  const [room, setRoom] = useState<boolean | null>(() => isConsultationId(linked) ? true : legacySession ? false : null);
 
   useEffect(() => { if (!getAuthState().authReady) void refreshAuth({ silent: true }).catch(() => {}); }, []);
 
   useEffect(() => {
+    if (legacySession && !isConsultationId(linked)) { setRoom(false); return undefined; }
     if (isConsultationId(linked)) { setRoom(true); return undefined; }
     let alive = true;
     try { if (sessionStorage.getItem(HINT_KEY) === "1") setRoom(true); } catch { /* 힌트는 깜빡임을 줄이는 보조 수단이다. */ }
@@ -40,8 +44,12 @@ export default function FortuneChatEntry() {
       try { sessionStorage.setItem(HINT_KEY, on ? "1" : "0"); } catch { /* 선택 사항 */ }
     });
     return () => { alive = false; };
-  }, [linked]);
+  }, [linked, legacySession]);
+
+  if (room === null && !isConsultationId(linked) && !legacySession) return entryLoading();
 
   // 계정이 바뀌면 상담실을 새로 연다 — 이전 계정의 기록·상담이 남지 않게.
-  return room ? <ConsultationRoom key={userKey} initialId={isConsultationId(linked) ? linked : ""} initialPersona={requested} /> : <FortuneChatClient />;
+  return isConsultationId(linked) || (!legacySession && room)
+    ? <ConsultationRoom key={userKey} initialId={isConsultationId(linked) ? linked : ""} initialPersona={requested} />
+    : <FortuneChatClient key={userKey} />;
 }

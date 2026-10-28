@@ -1,0 +1,14 @@
+.entrance { min-height: 100svh; display: grid; place-items: center; padding: 40px 24px; position: relative; isolation: isolate; }
+.entrance::before, .entrance::after { content: ""; position: absolute; width: min(42vw, 320px); height: 220px; background: var(--tea-rose); mask: url('/icons/yehwa-branch.svg') center / contain no-repeat; opacity: .22; pointer-events: none; z-index: -1; }
+.entrance::before { top: 0; right: 0; transform: rotate(160deg); }
+.entrance::after { bottom: 0; left: 0; }
+.scene { display: grid; justify-items: center; width: min(100%, 620px); text-align: center; }
+.moon { color: var(--tea-rose); margin-bottom: 12px; }
+.portrait { display: block; width: min(100%, 300px); height: 200px; object-fit: contain; }
+.scene h1 { margin: 24px 0 16px; color: var(--tea-ink); font-family: var(--font-display, var(--font-body)), serif; font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 500; line-height: 1.5; letter-spacing: -.025em; word-break: keep-all; }
+.invitation { margin: 0; color: var(--home-muted); font-size: 1rem; line-height: 1.9; }
+.status { display: flex; align-items: center; gap: 10px; margin: 32px 0 0; color: var(--tea-rose); font-size: .875rem; }
+.status span { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: breathe 2s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .status span { animation: none; } }
+@media (max-height: 650px) { .entrance { padding-block: 24px; } .portrait { height: 140px; } .moon { width: 32px; height: 32px; } }

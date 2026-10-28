@@ -425,7 +425,8 @@ const validationOptions = {
       return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(groupPayload(groupById(groupId), { shortBy })) };
     },
   });
-  check("읽을 수 있는 짧은 그룹은 재생성하지 않음", (attempts.get("action") || 0) === 1, `action attempts=${attempts.get("action")}`);
+  // 690ccfea5가 1회로 바꿨다가 R5(28,650자·보완 0회 "full")에서 되돌린다 — 길이 규칙 L2(보완 1회).
+  check("미달 그룹은 재생성", (attempts.get("action") || 0) === 2, `action attempts=${attempts.get("action")}`);
   check("충분한 그룹은 재생성하지 않음", (attempts.get("saju") || 0) === 1 && (attempts.get("verdict") || 0) === 1, `saju=${attempts.get("saju")} verdict=${attempts.get("verdict")}`);
   check("짧은 본문을 전달 가능한 계약으로 유지", second.deliverable && validateFusionFortuneResult(second.result || {}, { ...validationOptions, ignoreLength: true }).ok);
   console.log("[retry] 목표의 80% 미만 그룹만 1회 재생성");
@@ -626,3 +627,7 @@ if (failures.length) {
   process.exit(1);
 }
 console.log("\n[verify-fusion-fortune-quality] PASS (mock only — 실제 모델 호출 없음)");
+
+// Premium report contract shares this existing CI gate.
+await import("./verify-fusion-fortune-premium.mjs");
+await import("./verify-fusion-fortune-premium-v2.mjs");

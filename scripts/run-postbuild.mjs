@@ -21,6 +21,12 @@ const steps = [
   "scripts/fix-locale-html-lang.mjs",
   "scripts/prerender-locale-shell-translations.mjs",
   "scripts/verify-adsense-readiness.mjs",
+  // 대표 페이지 4개(/ /ggulggul/ /about/ /faq/)의 title·canonical·JSON-LD 이름을
+  // lib/brand/brand-facts.mjs 와 맞춰 본다. 가공 전 산출물을 읽어야 하므로 externalize·minify 앞에 둔다.
+  "scripts/verify-home-identity.mjs",
+  // 사이트맵 loc 의 dist 페이지가 self canonical·색인 가능이고, 내부 링크가 리다이렉트 원천을 가리키지
+  // 않는지 본다. canonical·robots 메타·<a href> 만 읽으므로 externalize·minify 앞이든 뒤든 결과가 같다.
+  "scripts/verify-sitemap-canonical.mjs",
   // 아래 둘은 **검증이 끝난 뒤 배포 바이트만** 고치는 최적화 단계다. 소스(index.html·js/)와
   // 미러(public/)는 건드리지 않으므로, 셸을 문자열로 읽는 가드 61개는 계속 원본을 읽는다.
   // 🔴 반드시 verify-adsense-readiness **뒤**에 둘 것 — 그 검증기가 dist 셸의 본문 텍스트와
@@ -58,6 +64,10 @@ if (String(process.env.CD_DEPLOY_TARGET || "").trim().toLowerCase() === "staging
 //    배열에서 지우지 않고 여기서 빼는 이유: verify-guard-wiring 이 steps 의 리터럴 경로로 배선을 본다.
 if (process.env.NEXT_PUBLIC_RUNTIME_TARGET === "mobile-app") {
   steps.splice(steps.indexOf("scripts/verify-adsense-readiness.mjs"), 1);
+  // 앱 번들의 / 는 /ggulggul/ 로 바로 넘기는 진입 셸이고 대표 홈이 아니다. 웹 빌드가 CI 에서 같은 검사를 돈다.
+  steps.splice(steps.indexOf("scripts/verify-home-identity.mjs"), 1);
+  // 앱 번들은 색인 대상이 아니다. build-mobile-app.mjs 가 뒤에서 sitemap.xml 을 지우고, 같은 커밋의 웹 빌드가 같은 검사를 돈다.
+  steps.splice(steps.indexOf("scripts/verify-sitemap-canonical.mjs"), 1);
 }
 
 function wait(ms) {

@@ -5,12 +5,16 @@ const ts = require("typescript");
 const { webcrypto } = require("node:crypto");
 const prompt = require("../../worker/lib/saju-ai-prompt.js");
 const quality = require("../../worker/lib/paid-report-quality.js");
+const { toAiLocale, AI_OUTPUT_LOCALES } = require("../../lib/i18n/ai-locale.js");
 const { isCompleteLlmResponse } = require("../../worker/lib/llm-result-delivery.js");
+const gyeokgukGuard = require("../../lib/saju/gyeokguk-claim-guard.mjs");
+const { NATAL_CORE_VERSION } = require("../../lib/saju/natal-core/version.mjs");
 const source = fs.readFileSync(require.resolve("../../worker/routes/fortune.js"), "utf8");
 const ast = ts.createSourceFile("fortune.js", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
 const names = new Set([
   "handleSajuAIPrompt", "beginSajuAIConsultationGeneratingRecord", "saveSajuAIConsultationResultRecord",
   "sajuStorageError", "saveSajuAISectionCheckpoint", "validateSajuAISection", "validateSajuAIResultText", "findSajuAIUnsupportedAdvice",
+  "dropSajuAIUnsupportedSentences", "buildSajuAIUnsupportedRepairLines", "buildSajuAISectionRetryLines",
   "runSajuAISectionWaves", "buildSajuAISectionPrompt", "buildSajuAISectionPromptPrefix", "buildSajuAISectionPromptSuffix",
   "formatSajuAIGroupChapterLines", "formatSajuAIOtherChapterTitles", "resolveSajuAIResultRubric", "formatSajuAIResultRubric",
   "normalizeSajuAIResultText", "normalizeSajuAIPersonaSummaryField", "extractSajuAIPersonaSummaries", "countSajuAIVisibleChars", "countSajuAIRequiredChapters", "hasSajuAINaturalEnding",
@@ -22,6 +26,12 @@ const constants = new Set([
   "SAJU_AI_REQUIRED_CHAPTER_PATTERNS",
   "SAJU_AI_INCOMPLETE_TAIL_PATTERNS",
   "SAJU_AI_RESULT_FORBIDDEN_PATTERNS",
+  "SAJU_AI_ELEMENT",
+  "SAJU_AI_ELEMENT_STATE",
+  "SAJU_AI_SENTENCE",
+  "SAJU_AI_ELEMENT_MONEY",
+  "SAJU_AI_ELEMENT_ORGAN",
+  "sajuAIElementCausality",
   "SAJU_AI_RESULT_UNSUPPORTED_PATTERNS",
   "SAJU_AI_PROGRESS_STEPS",
   "SAJU_AI_PERSONA_SUMMARY_START",
@@ -67,7 +77,8 @@ function harness(mode = "single") {
   const charges = new Set();
   const calls = [];
   const ctx = {
-    ...prompt, ...quality, isCompleteLlmResponse, Request, Response, Headers, Date, crypto: webcrypto,
+    toAiLocale, getAmbientAiLocale: () => 'ko',
+    ...prompt, ...quality, ...gyeokgukGuard, NATAL_CORE_VERSION, isCompleteLlmResponse, Request, Response, Headers, Date, crypto: webcrypto,
     console: { info() {}, warn() {}, error() {} },
     SAJU_AI_PROMPT_ACCESS_MODE: "per_use", SAJU_AI_PROMPT_AMOUNT_KRW: 20000,
     SAJU_AI_RESULT_SYSTEM_PROMPT: "mock", FEATURE_AI_LLM_BUDGET_MS: 80000,
@@ -143,6 +154,18 @@ function harness(mode = "single") {
     post: (input = body, owner = "owner") => ctx.handleSajuAIPrompt(new Request("https://mock.invalid/create", { method: "POST", body: JSON.stringify(input) }), { userId: owner }, {}),
   };
 }
+
+test.each(AI_OUTPUT_LOCALES)('saved Saju language %s overrides later request language',async(locale)=>{
+ const h=harness('pass');h.ctx.getAmbientAiLocale=()=>locale;
+ await h.post();expect(h.record().result.resumeBody.locale).toBe(locale);
+ h.ctx.getAmbientAiLocale=()=>locale==='ko'?'ja':'ko';
+ for(let i=0;i<4;i++)await h.post();
+ expect(h.record().status).toBe('completed');
+ expect(h.ctx.callGeminiText.mock.calls).toHaveLength(5);
+ for(const args of h.ctx.callGeminiText.mock.calls)expect(args[2].locale).toBe(locale);
+ await h.post();expect(h.ctx.callGeminiText.mock.calls).toHaveLength(5);
+ expect(h.charges.size).toBe(1);
+});
 
 describe.each(["pass", "monthly", "single"])("%s saved paid report", (mode) => {
   test("five stages preserve prior chapters, complete only after confirmed save and reuse without generation", async () => {
@@ -274,5 +297,39 @@ describe("length-only chapter recovery", () => {
     expect((await res.json()).saved).toBe(true);
     expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(calls);
     expect(h.ctx.refundSajuAIPromptMonthlyCredit).not.toHaveBeenCalled();
+  });
+});
+
+describe("rejected section recovery", () => {
+  const first = prompt.SAJU_AI_SECTION_GROUPS[0];
+  const withSentence = (text, sentence) => text.replace(/\n/, `\n${sentence}\n`);
+  test("numbered sub-headings inside a chapter are body text", () => {
+    const h = harness();
+    const group = prompt.SAJU_AI_SECTION_GROUPS.find(g => g.key === "life_domains");
+    const text = groupBody(group).replace(/\n/, "\n**1) 일(직업) 리듬**\n").replace(/\n(?=[^\n]*\n[^\n]*$)/, "\n2. 돈의 흐름\n");
+    expect(h.ctx.validateSajuAISection(text, group, {}, { lengthRepair: true })).toBe(true);
+    expect(h.ctx.validateSajuAISection(`${text}\n\n1. ${prompt.SAJU_AI_SECTION_GROUPS[0].chapters[0].title}\n본문`, group, {}, { lengthRepair: true })).toBe(false);
+  });
+  test("a sentence-scoped unsupported claim is dropped instead of discarding the draft", async () => {
+    const h = harness();
+    const claim = "금 기운이 강해 연봉이 오르고 승진이 빨라집니다.";
+    h.ctx.callGeminiText.mockReset().mockResolvedValueOnce({ ok: true, text: withSentence(groupBody(first), claim) });
+    expect((await h.post()).status).toBe(202);
+    expect(h.record().result.sections[0]).toMatchObject({ valid: true, attempts: 1 });
+    expect(h.record().result.sections[0].text).not.toContain(claim);
+    expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(1);
+  });
+  test("the second attempt is told why the first was rejected, within two calls", async () => {
+    const h = harness();
+    const claim = "부동산 시장의 흐름을 함께 봅니다. 이 시기에는 그 선택이 현명하다고 추천합니다.";
+    h.ctx.callGeminiText.mockReset()
+      .mockResolvedValueOnce({ ok: true, text: withSentence(groupBody(first), claim) })
+      .mockResolvedValueOnce({ ok: true, text: groupBody(first) });
+    expect((await h.post()).status).toBe(503);
+    expect(h.record().result.sections[0]).toMatchObject({ valid: false, attempts: 1, lastFailure: "specific-financial-product" });
+    expect((await h.post()).status).toBe(202);
+    expect(h.ctx.callGeminiText.mock.calls[1][1]).toContain("specific-financial-product 유형의 근거 밖 인과·조언");
+    expect(h.record().result.sections[0]).toMatchObject({ valid: true, attempts: 2 });
+    expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(2);
   });
 });

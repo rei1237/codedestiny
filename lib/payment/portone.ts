@@ -2,6 +2,7 @@ import { authFetch } from "../../app/_lib/auth-client";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import checkoutEntry from "@/js/core/checkout-entry.js";
 import type { PaypalCharge } from "@/js/core/checkout-entry.js";
+import { resolveInternalRedirectUrl } from "./redirect-url.mjs";
 
 type AuthPortOneUser = {
   id?: string;
@@ -441,7 +442,7 @@ export async function requestPortOneSinglePayment(
       // 🔴 안 보내면 PG 가 한국어 결제창을 연다 — 결제창까지 영어로 온 사용자가
       //    마지막 화면에서 한국어를 만난다. 값의 범위는 PG 가 정한다(pgWindowLocale 머리주석).
       locale: checkoutEntry.pgWindowLocale(),
-      redirectUrl: new URL(redirectPath, window.location.origin).toString(),
+      redirectUrl: resolveInternalRedirectUrl(redirectPath, window.location.origin),
       customer,
       customData,
     };

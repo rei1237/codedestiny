@@ -1,18 +1,18 @@
 {
   "_comment": "정적 셸 마크업과 뜻이 어긋난 사전 값 교정 — 11키. 셸 마크업이 정본이고 ko 는 런타임에서 사전을 건너뛰므로(js/cd-lang-native.js), 아래 키들은 한국어 화면만 멀쩡하고 나머지 11개 로케일이 옛 뜻을 서빙하고 있었다. 특히 tarotPromptMaker* 3키는 '타로 프롬프트 라이브러리'(10,000원 해금)를 'AI 상담'으로 잘못 설명했고, passMini.chipShareReward 는 '범위 밖 단건결제' 자리에 '카카오톡 공유 보상'을 내고 있었다. 🔴 이 네임스페이스(shellCopy)를 따로 둔 이유: --namespace shell 로 병합하면 shell-01.json 의 낡은 kerryje 항목까지 함께 나가 마크업에 없는 키의 값이 뒤집힌다. ko 는 셸 마크업과 글자까지 일치시킨다.",
   "home.passMini.terminationNote": {
-    "ko": "월 최대 한도가 0이 되어도 이용권의 만료일·등급·프로필 상한은 유지됩니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.",
-    "en": "Even when the monthly allowance reaches zero, the pass expiry date, tier, and profile limit remain. Additional paid content is available by one-time payment or monthly pass.",
-    "ja": "月の利用上限が0になっても、利用券の有効期限・ランク・プロフィール上限は維持されます。追加の有料コンテンツは都度払いまたは月額パスで利用できます。",
-    "zh-CN": "即使每月额度变为0，通行证的到期日、等级和个人资料上限仍会保留。额外付费内容可通过单次付费或月度通行证使用。",
-    "zh-TW": "即使每月額度變為0，通行證的到期日、等級和個人資料上限仍會保留。額外付費內容可透過單次付費或月度通行證使用。",
-    "vi": "Ngay cả khi hạn mức tháng về 0, ngày hết hạn, hạng và giới hạn hồ sơ của vé vẫn được giữ nguyên. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc vé tháng.",
-    "hi": "मासिक सीमा शून्य होने पर भी पास की समाप्ति तिथि, स्तर और प्रोफ़ाइल सीमा बनी रहती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मासिक पास से उपलब्ध है।",
-    "es": "Aunque el límite mensual llegue a cero, se mantienen la fecha de vencimiento, el nivel y el límite de perfiles del pase. El contenido adicional de pago está disponible con un pago único o un pase mensual.",
-    "fr": "Même lorsque la limite mensuelle atteint zéro, la date d'expiration, le niveau et la limite de profils du pass sont conservés. Les contenus payants supplémentaires sont accessibles par paiement à l'unité ou pass mensuel.",
-    "de": "Auch wenn das Monatslimit null erreicht, bleiben Ablaufdatum, Stufe und Profilgrenze des Passes erhalten. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder Monatspass verfügbar.",
-    "nl": "Ook wanneer de maandelijkse limiet nul bereikt, blijven de vervaldatum, het niveau en de profiellimiet van de pas behouden. Extra betaalde content is beschikbaar via eenmalige betaling of maandpas.",
-    "ms": "Walaupun had bulanan mencapai sifar, tarikh luput, peringkat dan had profil pas kekal. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau pas bulanan."
+    "ko": "이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.",
+    "en": "When the usage limit is fully used, the pass ends. Buying again starts you with a new usage limit. Additional paid content is available by one-time payment or moonstones.",
+    "ja": "利用上限をすべて使い切ると利用券は終了します。再度購入すると新しい利用上限で始まります。追加の有料コンテンツは都度払いまたは月精石で利用できます。",
+    "zh-CN": "用完使用额度后，通行证即结束。再次购买将以新的使用额度开始。额外付费内容可通过单次付费或月精石使用。",
+    "zh-TW": "用完使用額度後，通行證即結束。再次購買將以新的使用額度開始。額外付費內容可透過單次付費或月精石使用。",
+    "vi": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch.",
+    "hi": "उपयोग सीमा पूरी तरह इस्तेमाल हो जाने पर पास समाप्त हो जाता है। दोबारा खरीदने पर नई उपयोग सीमा से शुरुआत होती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मूनलाइट स्टोन से उपलब्ध है।",
+    "es": "Cuando se agota el límite de uso, el pase termina. Si lo vuelves a comprar, empiezas con un nuevo límite de uso. El contenido adicional de pago está disponible con un pago único o Piedras de Luz Lunar.",
+    "fr": "Lorsque la limite d'utilisation est épuisée, le pass prend fin. Un nouvel achat repart avec une nouvelle limite d'utilisation. Les contenus payants supplémentaires sont accessibles par paiement à l'unité ou avec des Pierres de Clair de Lune.",
+    "de": "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Bei einem erneuten Kauf beginnst du mit einem neuen Nutzungslimit. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder mit Mondlichtsteinen verfügbar.",
+    "nl": "Zodra de gebruikslimiet op is, stopt de pas. Koop je opnieuw, dan begin je met een nieuwe gebruikslimiet. Extra betaalde content is beschikbaar via eenmalige betaling of Maanlichtstenen.",
+    "ms": "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau Batu Cahaya Bulan."
   },
   "home.passMini.chipShareReward": {
     "ko": "범위 밖 단건결제",
@@ -57,18 +57,18 @@
     "ms": "Teruskan bacaan yang paling kerap anda kembali kepadanya di dalam Moonlight Pass anda"
   },
   "home.passMini.desc": {
-    "ko": "달빛 이용권은 30일 동안 반복해서 찾는 리딩을 정해진 범위 안에서 먼저 열어 주는 문라이트 패스예요. 오늘의 징조를 멈추지 않고 차분히 이어볼 수 있습니다.",
-    "en": "The moonlight pass opens the readings you return to often, within a set range, for 30 days. Today's signs keep unfolding without interruption.",
-    "ja": "月明かりの利用券は、30日のあいだ、繰り返し訪れるリーディングを決められた範囲の中で先に開いてくれるムーンライトパスです。今日の兆しを止めずに、静かに読み継ぐことができます。",
-    "zh-CN": "月光通行证会在 30 天里，把您常回来看的解读，先在设定的范围内为您打开。今日的征兆不必中断，可以安静地一路读下去。",
-    "zh-TW": "月光通行證會在 30 天裡，把您常回來看的解讀，先在設定的範圍內為您打開。今日的徵兆不必中斷，可以安靜地一路讀下去。",
-    "vi": "Moonlight Pass mở trước những bài đọc bạn hay quay lại, trong một phạm vi đã định, suốt 30 ngày. Điềm báo hôm nay cứ thế tiếp diễn mà không bị ngắt quãng.",
-    "hi": "मूनलाइट पास 30 दिनों तक, एक तय दायरे में, उन रीडिंग को पहले खोल देता है जिन पर आप बार-बार लौटते हैं। आज के संकेत बिना रुके शांति से आगे बढ़ते रहते हैं।",
-    "es": "El Moonlight Pass abre durante 30 días, dentro de un rango definido, las lecturas a las que vuelves con frecuencia. Las señales de hoy siguen su curso sin interrupciones.",
-    "fr": "Le Moonlight Pass ouvre pendant 30 jours, dans une portée définie, les lectures que vous consultez souvent. Les signes du jour se poursuivent sans interruption.",
-    "de": "Der Moonlight Pass öffnet 30 Tage lang – innerhalb eines festgelegten Bereichs – die Readings, zu denen du oft zurückkehrst. Die Zeichen des Tages laufen ohne Unterbrechung weiter.",
-    "nl": "De Moonlight Pass opent 30 dagen lang, binnen een vastgesteld bereik, de readings waar je vaak naar terugkeert. De tekenen van vandaag lopen ononderbroken door.",
-    "ms": "Moonlight Pass membuka bacaan yang kerap anda kembali kepadanya, dalam julat yang ditetapkan, selama 30 hari. Petanda hari ini terus mengalir tanpa terputus."
+    "ko": "달빛 이용권은 이용 한도를 다 쓸 때까지 반복해서 찾는 리딩을 정해진 범위 안에서 먼저 열어 주는 문라이트 패스예요. 오늘의 징조를 멈추지 않고 차분히 이어볼 수 있습니다.",
+    "en": "The moonlight pass opens the readings you return to often, within a set range, until you use up its usage limit. Today's signs keep unfolding without interruption.",
+    "ja": "月明かりの利用券は、利用上限を使い切るまで、繰り返し訪れるリーディングを決められた範囲の中で先に開いてくれるムーンライトパスです。今日の兆しを止めずに、静かに読み継ぐことができます。",
+    "zh-CN": "月光通行证会在额度用完之前，把您常回来看的解读，先在设定的范围内为您打开。今日的征兆不必中断，可以安静地一路读下去。",
+    "zh-TW": "月光通行證會在額度用完之前，把您常回來看的解讀，先在設定的範圍內為您打開。今日的徵兆不必中斷，可以安靜地一路讀下去。",
+    "vi": "Moonlight Pass mở trước những bài đọc bạn hay quay lại, trong một phạm vi đã định, cho đến khi bạn dùng hết hạn mức sử dụng. Điềm báo hôm nay cứ thế tiếp diễn mà không bị ngắt quãng.",
+    "hi": "मूनलाइट पास, उपयोग सीमा खत्म होने तक, एक तय दायरे में, उन रीडिंग को पहले खोल देता है जिन पर आप बार-बार लौटते हैं। आज के संकेत बिना रुके शांति से आगे बढ़ते रहते हैं।",
+    "es": "El Moonlight Pass abre, dentro de un rango definido y hasta que agotes su límite de uso, las lecturas a las que vuelves con frecuencia. Las señales de hoy siguen su curso sin interrupciones.",
+    "fr": "Le Moonlight Pass ouvre, dans une portée définie et jusqu'à épuisement de sa limite d'utilisation, les lectures que vous consultez souvent. Les signes du jour se poursuivent sans interruption.",
+    "de": "Der Moonlight Pass öffnet – innerhalb eines festgelegten Bereichs, bis sein Nutzungslimit aufgebraucht ist – die Readings, zu denen du oft zurückkehrst. Die Zeichen des Tages laufen ohne Unterbrechung weiter.",
+    "nl": "De Moonlight Pass opent, binnen een vastgesteld bereik en tot de gebruikslimiet op is, de readings waar je vaak naar terugkeert. De tekenen van vandaag lopen ononderbroken door.",
+    "ms": "Moonlight Pass membuka bacaan yang kerap anda kembali kepadanya, dalam julat yang ditetapkan, sehingga had penggunaannya habis. Petanda hari ini terus mengalir tanpa terputus."
   },
   "home.passMini.familyLine": {
     "ko": "이용권 대상 전체",
@@ -85,18 +85,18 @@
     "ms": "Semua kandungan yang dilindungi pas"
   },
   "home.passMini.familyBenefit1": {
-    "ko": "월 최대 35만원 상당",
-    "en": "Up to KRW 350,000 worth per month",
-    "ja": "月あたり最大350,000ウォン相当",
-    "zh-CN": "每月最多350,000韩元",
-    "zh-TW": "每月最多350,000韓元",
-    "vi": "Tối đa 350.000 KRW mỗi tháng",
-    "hi": "हर महीने KRW 350,000 तक",
-    "es": "Hasta 350.000 KRW al mes",
-    "fr": "Jusqu'à 350 000 KRW par mois",
-    "de": "Bis zu 350.000 KRW pro Monat",
-    "nl": "Tot KRW 350.000 per maand",
-    "ms": "Sehingga KRW 350,000 sebulan"
+    "ko": "최대 35만원 상당",
+    "en": "Up to KRW 350,000 worth",
+    "ja": "最大350,000ウォン相当",
+    "zh-CN": "最多350,000韩元",
+    "zh-TW": "最多350,000韓元",
+    "vi": "Tối đa 350.000 KRW",
+    "hi": "KRW 350,000 तक",
+    "es": "Hasta 350.000 KRW",
+    "fr": "Jusqu'à 350 000 KRW",
+    "de": "Bis zu 350.000 KRW",
+    "nl": "Tot KRW 350.000",
+    "ms": "Sehingga KRW 350,000"
   },
   "home.tiles.tarotPromptMakerTitle": {
     "ko": "💘 타로 프롬프트 라이브러리",
@@ -166,6 +166,6 @@
     "fr": "Quatre fleurs : Saju, astrologie, Zi Wei et Sukuyo",
     "de": "Vier Blüten: Saju, Astrologie, Zi Wei und Sukuyo",
     "nl": "Vier bloemen: Saju, astrologie, Zi Wei en Sukuyo",
-    "ms": "Empat kuntum: Saju, astrologi, Zi Wei dan Sukuyo"
+    "ms": "Empat kuntum: Empat Tiang, astrologi, Zi Wei dan Sukuyo"
   }
 }

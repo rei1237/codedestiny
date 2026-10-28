@@ -84,7 +84,7 @@ for (const mode of ["solo", "compat"]) {
     // 미완 장을 "시도 가능 / 소진"으로 가르는 규칙은 테스트에 복제하지 않고 실제 함수를 꺼내 쓴다
     // — 웨이브·조회·크론이 같은 판정을 본다는 것이 이 수정의 핵심이다.
     const quality = await import("../../worker/lib/paid-report-quality.js");
-    const { codexChapterFloor, codexDedupedChapterFloor } = await import("../../worker/lib/master-love-codex-quality.js");
+    const { codexChapterFloor, codexChapterRepairFloor, codexDedupedChapterFloor } = await import("../../worker/lib/master-love-codex-quality.js");
     const codexTotalReady = runFunction("worker/routes/master-love-codex.js", "codexTotalReady", { ...quality, codexDedupedChapterFloor });
     const savedChapterRows = runFunction("worker/routes/master-love-codex.js", "savedChapterRows", { ...quality, codexDedupedChapterFloor });
     const splitPendingChapters = runFunction("worker/routes/master-love-codex.js", "splitPendingChapters", { CHAPTER_ATTEMPT_LIMIT: 3, codexTotalReady });
@@ -96,7 +96,7 @@ for (const mode of ["solo", "compat"]) {
       expectedChapters: () => chapters, CHAPTER_ATTEMPT_LIMIT: 3,
       saveCodexDelivery: save, resultStorageUnavailable: storageError,
       hasRepeatedReportPassage: () => false, dedupeChapterAgainst: chapter => chapter,
-      codexChapterFloor, codexDedupedChapterFloor, countPaidReportBodyChars: quality.countPaidReportBodyChars,
+      codexChapterFloor, codexChapterRepairFloor, codexDedupedChapterFloor, countPaidReportBodyChars: quality.countPaidReportBodyChars,
       MasterLoveCodexSession: model, CHAPTER_BATCH_SIZE: 3, CHAPTER_CONCURRENCY: 3,
       buildMemory: () => "", runWithConcurrency: (items, _count, fn) => Promise.all(items.map(fn)),
       recoverCodexSession: async () => ({ session: stored }),

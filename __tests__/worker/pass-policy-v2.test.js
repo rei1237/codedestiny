@@ -36,12 +36,18 @@ describe("versioned flower passes", () => {
     expect(isPassPolicyMix({ tier: "vvip", expiresAt }, currentPassPlan("vvip"), now)).toBe(true);
     expect(isPassPolicyMix({ tier: "vvip", expiresAt: "2026-09-01" }, currentPassPlan("vvip"), now)).toBe(false);
   });
-  test("approved web prices open web sales while Play remains closed without verified SKUs", () => {
+  test("approved prices open registered Play passes while Family and historical policies stay closed", () => {
     for (const tier of ["standard", "premium", "vvip", "family"]) {
       expect(auditPassSale(tier, "web")).toEqual({ eligible: true, reason: "APPROVED_WEB_PRICE_POLICY" });
-      expect(auditPassSale(tier, "googlePlay").eligible).toBe(false);
       expect(() => assertPassSaleAllowed(currentPassPlan(tier), "web")).not.toThrow();
-      expect(() => assertPassSaleAllowed(currentPassPlan(tier), "googlePlay")).toThrow();
+      if (tier === "family") {
+        expect(auditPassSale(tier, "googlePlay")).toEqual({ eligible: false, reason: "APP_SKU_NOT_VERIFIED" });
+        expect(() => assertPassSaleAllowed(currentPassPlan(tier), "googlePlay")).toThrow();
+      } else {
+        expect(auditPassSale(tier, "googlePlay")).toEqual({ eligible: true, reason: "APPROVED_GOOGLE_PLAY_PRICE_POLICY" });
+        expect(() => assertPassSaleAllowed(currentPassPlan(tier), "googlePlay")).not.toThrow();
+        expect(() => assertPassSaleAllowed(previousPassPlan(tier), "googlePlay")).toThrow();
+      }
     }
     expect(() => assertPassSaleAllowed({ tier: "family" })).toThrow();
   });
@@ -54,13 +60,23 @@ describe("versioned flower passes", () => {
     expect(isPassBudgetExhausted("family", 4991, 5000, family)).toBe(true);
     expect(isPassBudgetExhausted("family", 5000, 5000, family)).toBe(true);
   });
-  test("three-card, five-card, saju and compatibility teas cost 5,000", () => {
+  test("tea consultation prices match the approved separate products", () => {
     const tea = Object.entries(FEATURE_KEY_PRICE_TABLE).filter(([key]) => key.startsWith("fortune-tea-house-"));
-    expect(tea).toHaveLength(5);
-    expect(tea.every(([, value]) => value.amountKRW === 5000 && value.cost === 50)).toBe(true);
+    const amounts = {
+      "fortune-tea-house-tarot-consultation": 5000,
+      "fortune-tea-house-tarot-five-consultation": 7000,
+      "fortune-tea-house-saju-consultation": 10000,
+      "fortune-tea-house-saju-joint-consultation": 15000,
+      "fortune-tea-house-saju-compatibility-consultation": 10000,
+      "fortune-tea-house-sukuyo-compatibility-consultation": 10000,
+    };
+    expect(tea).toHaveLength(Object.keys(amounts).length);
+    for (const [key, value] of tea) {
+      expect(value).toMatchObject({amountKRW: amounts[key], cost: amounts[key] / 100});
+    }
     expect(FEATURE_KEY_PRICE_TABLE["fusion-fortune-consultation"]).toMatchObject({ cost: 500, amountKRW: 50000 });
-    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(3000);
-    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 800, amountKRW: 80000, paymentScope: "direct_or_family" });
+    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(5000);
+    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 600, amountKRW: 60000, paymentScope: "direct_or_family" });
     for (const key of ["yeongnyangi-fusion-saju-ziwei", "yeongnyangi-fusion-sukuyo-vedic", "yeongnyangi-fusion-astrology-tarot"]) {
       expect(FEATURE_KEY_PRICE_TABLE[key].amountKRW).toBe(50000);
     }
@@ -98,7 +114,7 @@ test("public offers expose four approved web offers and cost coverage includes r
   const playResponse = await __paymentsContextTestUtils.ROUTES["GET /pass-offers"].handle({ request: new Request("https://code-destiny.com/api/payments/pass-offers?channel=googlePlay") });
   const playBody = await playResponse.json();
   expect(playBody.offers.map(p => [p.tier, p.wonPrice, p.saleEnabled])).toEqual([
-    ["standard", 9900, false], ["premium", 29900, false], ["vvip", 59900, false], ["family", 149000, false],
+    ["standard", 9900, true], ["premium", 29900, true], ["vvip", 59900, true], ["family", 149000, false],
   ]);
   const catalog = listPassCostProducts(currentPassPlan("vvip"));
   expect(catalog.some(p => p.featureKey.includes("::"))).toBe(true);
@@ -142,7 +158,7 @@ test("VVIP consumes one 30,000 reading exactly, preserves gift version, and Yeon
   expect(evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 30 }).covered).toBe(true);
   const other = { profileSubscription: { ...plan, isActive: true, expiresAt } };
   const yn = resolveProduct({ featureKey: "yeongnyangi-saju-mackerel" });
-  expect(yn).toMatchObject({ familyPassOnly: true, monthlyExcluded: false, passExcluded: false, allowedPaymentMethods: ["FAMILY", "DIRECT_KRW", "MOONLIGHT_STONE"] });
+  expect(yn).toMatchObject({ familyPassOnly: true, monthlyExcluded: true, passExcluded: false, allowedPaymentMethods: ["FAMILY", "DIRECT_KRW"] });
   expect(describePassEligibility({ user: other, entitlement: other.profileSubscription, product: { ...yn, passExcluded: true } }).eligible).toBe(false);
 });
 

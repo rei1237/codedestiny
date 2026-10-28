@@ -30,7 +30,7 @@ export default function InsightCardClient({id}:{id:string}) {
     return()=>{cancelled=true;window.removeEventListener('pageshow',refresh);};
   },[id,retry]);
   const trial='/today/?utm_medium=share&utm_source=card&utm_campaign=insight_'+(card?insightAudience(card.brand):'ggulggul')+'#daily-tarot';
-  return <main className={styles.landing} lang={card?.locale||'ko'}><p className={styles.wordmark}>CODE DESTINY</p><article className={styles.receiver}>
+  return <main className={styles.landing} lang={card?.locale||'ko'}><p className={styles.wordmark}>꿀꿀운세</p><article className={styles.receiver}>
     <h1>{state==='ready'?copy.received:state==='missing'?copy.missing:state==='error'?copy.error:'카드를 불러오는 중이에요.'}</h1>
     {card&&<><figure className={styles.postcard}><figcaption>{INSIGHT_BRANDS[card.brand]}<time>{card.day}</time></figcaption><blockquote>{card.text}</blockquote><div className={styles.artWindow}><img src={insightArtwork(card.brand)} width={1080} height={1080} alt="" fetchPriority="high"/></div></figure><p className={styles.context}>{copy.context}</p></>}
     {state==='error'&&<button type="button" onClick={()=>setRetry(x=>x+1)}>{copy.retry}</button>}

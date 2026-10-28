@@ -27,6 +27,18 @@
     '손위풍','태위택','풍수환','수택절','풍택중부','뇌산소과','수화기제','화수미제'
   ];
 
+  // 문왕괘서 번호(1~64). 행=상괘, 열=하괘; TRIGRAMS의 건·태·리·진·손·감·간·곤 순서.
+  var HEXAGRAM_NUMBERS = [
+    [1, 10, 13, 25, 44, 6, 33, 12],
+    [43, 58, 49, 17, 28, 47, 31, 45],
+    [14, 38, 30, 21, 50, 64, 56, 35],
+    [34, 54, 55, 51, 32, 40, 62, 16],
+    [9, 61, 37, 42, 57, 59, 53, 20],
+    [5, 60, 63, 3, 48, 29, 39, 8],
+    [26, 41, 22, 27, 18, 4, 52, 23],
+    [11, 19, 36, 24, 46, 7, 15, 2]
+  ];
+
   /* ── 괘별 상세 지혜 메시지 ── */
   var HEXAGRAM_WISDOM = {
     '중천건': {summary:'순양(純陽)의 기운이 충만합니다. 강한 의지로 전진하면 크게 성취합니다.', advice:'과유불급(過猶不及). 강함 속에 유연함을 잃지 마십시오.'},
@@ -297,7 +309,7 @@
   var _pressInterval = null;
   var _heatPct = 0;
   var _PRESS_DURATION = 2200; // ms
-  var _TC_COIN_COST = 10;
+  var _TC_COIN_COST = 30;
   var _TC_FEATURE_KEY = 'openJuyukModal';
   var TC_TEXT_TRANSLATIONS = {
     ko: {
@@ -575,12 +587,12 @@
 
     // 괘 선택 (seed 기반)
     var rng2 = (function(s) {
-      return function() { s = (s * 1664525 + 1013904223) & 0xFFFFFFFF; return (s >>> 0) / 0xFFFFFFFF; };
+      return function() { s = (s * 1664525 + 1013904223) & 0xFFFFFFFF; return (s >>> 0) / 0x100000000; };
     })(seed ^ 0xCAFEBABE);
 
     var upIdx = Math.floor(rng2() * 8);
     var dnIdx = Math.floor(rng2() * 8);
-    var hexIdx = Math.floor(rng2() * 64);
+    var hexIdx = HEXAGRAM_NUMBERS[upIdx][dnIdx] - 1;
     var upper = TRIGRAMS[upIdx];
     var lower = TRIGRAMS[dnIdx];
     var hexChar = String.fromCharCode(0x4DC0 + hexIdx);

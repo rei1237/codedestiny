@@ -14,8 +14,11 @@ import {
 import {
   findActivePaidContentUnlock,
   getUnlockedContentSnapshot,
+  isBirthScopedContentTarget,
+  resolveUnlockedFeatureKeyFromContentKey,
   upsertContentUnlock,
 } from "../lib/content-unlocks.js";
+import { resolveBirthUnlockIdentity, tryResolveBirthUnlockIdentity } from "../lib/birth-scoped-unlock-identity.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
 
 const ZIWEI_SERVICE_KEY = "ziwei";
@@ -234,6 +237,25 @@ function toEntitlementBodyFromEvidence({ userId, profileId, serviceKey, contentK
   };
 }
 
+// ── 출생 기반 영구 해금(userId + birthKey + contentKey) ──
+// 이 라우트가 쓰는 출생 기반 키는 전부 이 계정 저장 프로필의 출생 신원(BIRTH 행)으로만 쓴다.
+// 프로필이 없으면 계정 단위(USER) 행으로 대체하지 않는다.
+function resolveBirthFeatureKey({ featureKey = "", contentKey = "" } = {}) {
+  if (!isBirthScopedContentTarget({ featureKey, contentKey })) return "";
+  return isBirthScopedContentTarget({ featureKey }) ? featureKey : resolveUnlockedFeatureKeyFromContentKey(contentKey);
+}
+
+// 증빙(결제 pricingSnapshot·차감 기록 metadata)에 서버가 저장한 birthKey 가 있으면 지금 프로필의 출생 신원과 같아야 한다.
+// 결제 뒤 생년월일을 고친 프로필로 옛 출생 정보의 구매를 옮겨 붙이지 않기 위해서다. 스냅샷이 없는 옛 증빙은 profileId 일치로 본다.
+function evidenceMatchesBirthIdentity(evidence, identity) {
+  if (!identity) return true;
+  const recorded = [
+    evidence?.payment?.pricingSnapshot?.birthKey,
+    evidence?.history?.metadata?.birthKey,
+  ].map((value) => String(value || "").trim()).filter(Boolean);
+  return recorded.every((birthKey) => birthKey === identity.birthKey);
+}
+
 async function findPaymentForHistory(history) {
   const metadata = history?.metadata && typeof history.metadata === "object" ? history.metadata : {};
   const candidates = [
@@ -404,10 +426,29 @@ async function findBackfillEvidenceBatch({ userId, profileId, contentKeys }) {
   return result;
 }
 
-async function upsertBackfillUnlocksBatch(records) {
-  if (!records.length) return [];
+// 출생 기반 키의 백필은 BIRTH 행으로만 쓴다. 신원을 못 만들거나(궁합은 상대 프로필을 알 수 없다) 증빙의 birthKey 가
+// 지금 출생 정보와 다르면 건너뛴다. 이미 있는 행은 다시 쓰지 않는다(백필은 insert-only).
+async function upsertBirthBackfillUnlock({ userId, profileId, serviceKey, contentKey, evidence }) {
+  const featureKey = resolveBirthFeatureKey({ contentKey });
+  const identity = await tryResolveBirthUnlockIdentity({ userId, profileId, featureKey });
+  if (!identity || !evidenceMatchesBirthIdentity(evidence, identity)) return null;
+  const existing = await findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey, featureKey, birthIdentity: identity });
+  if (existing) return existing;
+  const body = toEntitlementBodyFromEvidence({ userId, profileId, serviceKey, contentKey, evidence });
+  return upsertContentUnlock({ ...body, featureKey, birthIdentity: identity });
+}
+
+async function upsertBackfillUnlocksBatch(allRecords) {
+  if (!allRecords.length) return [];
+  const birthDocs = [];
+  for (const record of allRecords.filter((item) => isBirthScopedContentTarget({ contentKey: item.contentKey }))) {
+    const doc = await upsertBirthBackfillUnlock(record);
+    if (doc) birthDocs.push(doc);
+  }
+  const records = allRecords.filter((item) => !isBirthScopedContentTarget({ contentKey: item.contentKey }));
+  if (!records.length) return birthDocs;
   if (!ContentEntitlement || typeof ContentEntitlement.bulkWrite !== "function") {
-    const created = [];
+    const created = [...birthDocs];
     for (const record of records) {
       const doc = await upsertBackfillUnlock(record);
       if (doc) created.push(doc);
@@ -453,7 +494,7 @@ async function upsertBackfillUnlocksBatch(records) {
     };
   });
   await ContentEntitlement.bulkWrite(operations, { ordered: false });
-  return ContentEntitlement.find({
+  const accountDocs = await ContentEntitlement.find({
     userId: records[0].userId,
     profileId: records[0].profileId,
     serviceKey: { $in: Array.from(new Set(records.map((record) => record.serviceKey))) },
@@ -461,6 +502,7 @@ async function upsertBackfillUnlocksBatch(records) {
     scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
   }).select("contentKey serviceKey source unlockedAt expiresAt orderId paymentId").lean();
+  return birthDocs.concat(accountDocs || []);
 }
 
 async function backfillMissingUnlocksForServices({ userId, profileId, serviceKeys, existingDocs }) {
@@ -568,8 +610,25 @@ async function handleConfirm(request, env) {
   if (!source) throw createHttpError(400, "Unlock source is invalid.", { code: "INVALID_UNLOCK_SOURCE" });
 
   await connectDb(env);
+  // 🔴 출생 기반 키는 이 계정 저장 프로필(궁합은 상대 프로필도)의 출생 신원으로만 읽고 쓴다.
+  // 신원을 못 만들면 MISSING_PROFILE_ID(400) / INVALID_PROFILE(403)로 끝난다 — USER 행으로 대체하지 않는다.
+  const birthFeatureKey = resolveBirthFeatureKey({ featureKey, contentKey });
+  const partnerProfileId = sanitizeAccessKey(body.partnerProfileId, 100);
+  let birthIdentity = null;
   const existing = await withMongoRetry(env, async () => {
     await verifyProfileOwnership({ userId, profileId });
+    if (birthFeatureKey) {
+      birthIdentity = await resolveBirthUnlockIdentity({ userId, profileId, partnerProfileId, featureKey: birthFeatureKey });
+      return findActivePaidContentUnlock({
+        userId,
+        profileId,
+        partnerProfileId,
+        serviceKey,
+        contentKey,
+        featureKey: birthFeatureKey,
+        birthIdentity,
+      });
+    }
     return findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey, featureKey });
   });
   if (existing) {
@@ -582,7 +641,9 @@ async function handleConfirm(request, env) {
   }
   if (source !== CONTENT_ENTITLEMENT_SOURCES.ADMIN) {
     const evidence = await findBackfillEvidence({ userId, profileId, contentKey });
-    if (!evidence) throw createHttpError(409, "Unlock evidence was not found.", { code: "UNLOCK_EVIDENCE_NOT_FOUND" });
+    if (!evidence || !evidenceMatchesBirthIdentity(evidence, birthIdentity)) {
+      throw createHttpError(409, "Unlock evidence was not found.", { code: "UNLOCK_EVIDENCE_NOT_FOUND" });
+    }
   }
 
   const doc = await upsertContentUnlock({
@@ -597,6 +658,7 @@ async function handleConfirm(request, env) {
     unlockedBy: source === CONTENT_ENTITLEMENT_SOURCES.ADMIN ? userId : "",
     unlockedAt: new Date(),
     expiresAt: null,
+    ...(birthIdentity ? { featureKey: birthFeatureKey, partnerProfileId, birthIdentity } : {}),
   });
 
   return json(toUnlockStatusPayload({ userId, profileId, serviceKey, contentKey, doc }));

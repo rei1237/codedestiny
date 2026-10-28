@@ -1,0 +1,152 @@
+{
+  "id": "yeongnyangi-sukuyo-tuna",
+  "featureKey": "yeongnyangi-sukuyo-tuna",
+  "title": "영냥이 숙요 참치 리포트",
+  "notice": "숙요 참치의 기본 개인 리포트는 본명숙과 인연 유형을 읽는 10장입니다. 안·괴·영·친·성·위·우·쇠·명·업·태는 관계를 설명하는 전통적 이름이며 사람을 좋고 나쁜 등급으로 분류하지 않습니다. 개인 지도는 본인의 숙에서 대응하는 숙들을 묶은 것으로 특정 상대의 마음이나 실제 궁합을 관찰한 결과가 아닙니다. 기존 메뉴의 두 사람 궁합·관계 유지는 각각 15장으로 별도 선택하고 두 사람 정보를 사용합니다. 현재 숙요 장기 시기 전환은 질문 추천에서 지원하지 않습니다. 천문식 계산에 출생시간·지역·시간대가 필요합니다. 예시는 가상 편집이고 AI 작성 리포트입니다. 가격·이용 조건은 기존 화면에서 확인하세요.",
+  "panels": [
+    {
+      "id": "01-different-relationships-different-me",
+      "title": "누구와 있느냐에 따라, 왜 다른 내가 될까요?",
+      "alt": "마법사 고양이 영냥이가 두 달 자리의 관계 거리를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-sukuyo.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "누구와 있느냐에 따라,\n왜 다른 내가 될까요?\n\n편안함과 긴장, 협력과 소모의 차이를\n본명숙의 관계 지도에서 읽어요.\n\n영냥이 숙요 · 참치",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-the-same-person-in-two-rooms",
+      "title": "편하게 말하는 나와, 분위기를 살피는 나.",
+      "alt": "친구앞자유로운말과다른모임조율역할을가상대조.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/02-the-same-person-in-two-rooms.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "편하게 말하는 나와,\n분위기를 살피는 나.\n있는 그대로 말해도 편한 자리\n\n내 의견을 먼저 꺼내고\n작은 실수도 웃으며 넘길 수 있어요.\n\n계속 균형을 맞추게 되는 자리\n\n누가 불편하지 않을지 살피며\n말하기 전 여러 번 생각하게 돼요.\n\n관계에 따라 달라지는 모습을 그린 예시예요.\n어느 사람이 나쁘다는 결론으로 쓰지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/02-the-same-person-in-two-rooms-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-a-map-not-a-list-of-people",
+      "title": "인연의 지도, 만남의 명단은 아니에요.",
+      "alt": "본인본명숙에서대응숙역할로만드는개인지도와실제비교구분.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/03-a-map-not-a-list-of-people.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "인연의 지도,\n만남의 명단은 아니에요.\n출발점 · 나의 본명숙\n\n천문식 27숙에서 나의 자리를 계산해요.\n\n연결 · 관계 역할별 숙의 묶음\n\n내 숙에서 대응하는 숙들을\n역할별로 나누어 관계의 결을 설명해요.\n\n실제 두 사람을 비교하려면\n\n상대의 정보도 있어야 합니다.\n개인 지도만으로 궁합을 정하지 않아요.\n\n특정 인연의 등장 시기나 속마음을\n알려주는 명단이 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/03-a-map-not-a-list-of-people-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-the-first-five-chapters",
+      "title": "나의 바탕과 끌림, 성장과 친밀함의 이야기.",
+      "alt": "개인1~5장본명숙안괴영친실제목차.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/04-the-first-five-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 바탕과 끌림,\n성장과 친밀함의 이야기.\n\n기본 개인 리포트 · 10장 중 1–5장\n\n1장 · 본명숙이 말하는 나\n\n기질과 강점, 부담이 되는 순간\n\n2–3장 · 안과 괴\n\n편안하게 끌리는 인연\n깨지며 배우는 인연\n\n4–5장 · 영과 친\n\n서로를 키우는 인연\n가족 같은 인연\n\n관계 이름에는 힘과 부담이 함께 있어요.\n끌림이나 편안함이 결과를 보장하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/04-the-first-five-chapters-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-cooperation-tension-and-distance",
+      "title": "협력과 긴장, 친구와 거리의 다른 얼굴.",
+      "alt": "개인6~10장성위우쇠명업태실제목차와부정표현해설.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/05-cooperation-tension-and-distance.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "협력과 긴장,\n친구와 거리의 다른 얼굴.\n6–7장 · 성과 위\n\n함께 이루는 인연 · 긴장을 주는 인연\n\n8–9장 · 우와 쇠\n\n편한 친구 · 기운을 빼는 인연\n\n10장 · 명·업·태\n\n운명처럼 얽히는 인연\n\n목차의 ‘기운을 빼는’ 같은 표현도\n누군가를 피하라는 낙인으로 읽지 않아요.\n\n어떤 조건에서 부담이 생기는지,\n경계와 역할을 어떻게 조절할지 살펴봅니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/05-cooperation-tension-and-distance-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-a-name-is-not-a-sentence",
+      "title": "관계 이름을 알았다면, 실제 장면을 다시 봐요.",
+      "alt": "부담을주는협업에서요청범위를나누는가상조언.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/06-a-name-is-not-a-sentence.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "관계 이름을 알았다면,\n실제 장면을 다시 봐요.\n\n이해를 돕기 위한 편집 예시\n\n함께 일할 때 힘이 빠진다면,\n그 사람의 이름표부터 붙이지 말아요.\n\n요청이 갑자기 늘어나는지,\n내 일이 자주 밀리는지 살펴보세요.\n\n“이 일은 여기까지 맡을 수 있어요.”\n구체적인 범위를 먼저 나누는 거예요.\n\n실제 고객 결과가 아닌 가상 예시입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/06-a-name-is-not-a-sentence-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-when-two-people-are-the-subject",
+      "title": "두 사람을 직접 읽는, 별도의 열다섯 장.",
+      "alt": "선택궁합15와관계유지15의핵심실제범위및별도제공구분.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/07-when-two-people-are-the-subject.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 사람을 직접 읽는,\n별도의 열다섯 장.\n기존 메뉴 · 두 사람의 궁합 15장\n\n기질과 역할 · 끌림과 표현 · 속도\n일상·돈·경계 · 회복 · 부담과 자기 보호\n오래 함께할 합의와 점검\n\n기존 메뉴 · 관계 유지 15장\n\n거리와 역할 · 대화와 경계 · 회복\n부담 나누기 · 양방향 역할의 비대칭\n신뢰와 합의를 다시 살필 신호\n\n두 사람의 입력으로 읽는 선택 구성입니다.\n기본 개인 10장과 모두 묶여 제공되지는 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/07-when-two-people-are-the-subject-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-a-careful-start",
+      "title": "정확한 입력과, 해석할 수 있는 범위.",
+      "alt": "천문식필수입력개인쌍방조건과장기질문미지원안내.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/08-a-careful-start.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "정확한 입력과,\n해석할 수 있는 범위.\n천문식 27숙 계산\n생년월일·출생시간·출생 지역.\n시간대와 좌표를 확인해요.\n개인 지도와 두 사람 비교\n선택한 구성에 따라 본인 또는\n두 사람 각각의 정보를 사용해요.\n시기 예측의 한계\n현재 숙요 장기 전환 질문은 지원하지 않아요.\n월별 사건이나 관계 결말을 만들지 않아요.\n\n모르는 출생시간은 임의로 채우지 마세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/08-a-careful-start-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-a-map-you-can-use",
+      "title": "인연의 이름을 넘어, 편안하게 지내는 방법으로.",
+      "alt": "공식숙요영냥이와AI가격조건기록확인마무리.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/09-a-map-you-can-use.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "인연의 이름을 넘어,\n편안하게 지내는 방법으로.\n\n관계마다 달라지는 나를 이해하고,\n내가 정할 수 있는 경계를 찾아보세요.\n\nAI가 계산 근거를 바탕으로 작성합니다.\n가격과 이용 조건은 현재 화면에서 확인해요.\n저장된 결과는 내 상담에서 다시 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-tuna/09-a-map-you-can-use-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

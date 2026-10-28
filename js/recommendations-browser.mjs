@@ -25,6 +25,19 @@ export function observeRecommendation(node, onVisible) {
   document.addEventListener('visibilitychange', schedule);
   return () => { clear(); observer.disconnect(); document.removeEventListener('visibilitychange', schedule); };
 }
+// The caller owns this Set for one displayed surface, including refreshes/filters.
+export function observeRecommendationProducts(host, seen, onVisible) {
+  const cleanups = Array.from(host?.querySelectorAll('[data-recommendation-product]') || []).map(node => {
+    const id = node.dataset.recommendationProduct;
+    if (seen.has(id)) return () => {};
+    return observeRecommendation(node, () => {
+      if (seen.has(id) || !node.isConnected) return;
+      seen.add(id);
+      onVisible(id);
+    });
+  });
+  return () => cleanups.forEach(cleanup => cleanup());
+}
 export function rememberRecommendationContext(context) {
   try {
     sessionStorage.setItem('cd:recommendations:context', JSON.stringify(normalizeContext(context)));
@@ -45,7 +58,9 @@ export function recommendationReturnPath(fallback = '/ggulggul/') {
   } catch { return fallback; }
 }
 export function recommendationQuery(context) {
-  const c = normalizeContext(context), q = new URLSearchParams({ service: c.service });
+  const c = normalizeContext(context), q = new URLSearchParams({ service: c.service, source: c.source, currency: c.currency });
+  c.practiceTags.forEach(x => q.append('topic', x));
+  for (const k of ['color','motif']) if(c[k]) q.set(k,c[k]);
   for (const k of ['category', 'species', 'maxPrice']) if (c[k]) q.set(k, String(c[k]));
   if (c.groupId) q.set('group', c.groupId);
   c.interests.forEach(x => q.append('interest', x));

@@ -11,16 +11,16 @@ const TEXT = new Set(['.css', '.csv', '.html', '.js', '.json', '.jsx', '.md', '.
 const BINARY = new Set(['.png', '.webp', '.jpg', '.jpeg', '.svg', '.ico', '.gif', '.avif']);
 // 유명인 사주 데이터 속 정치인은 신뢰 문구가 아니라 인물 데이터라 유지한다(2026-10-01 사용자 결정). 숫자는 정확히 맞아야 해서, 새 문구는 허용목록에 묻히지 않는다.
 const ALLOWED = {
+  'app/neo-consultation/NeoConsultationClient.tsx': { count: 7, reason: '2026-10-28 사용자 승인: 2025년 공개 기록 두 건과 한계를 함께 설명하고 원문 비교에 연결' },
   'app/yeongnyangi/_original/home-data.ts': { count: 14, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
-  'app/yeongnyangi/_original/Room.tsx': { count: 1, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
-  'app/yeongnyangi/_original/FortuneHome.tsx': { count: 1, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'app/components/FounderTrust.tsx': { count: 1, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'app/components/TrustStories.tsx': { count: 4, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'lib/brand/trust-stories.mjs': { count: 26, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
+  'lib/brand/differentiation-faqs.mjs': { count: 6, reason: '2026-10-22 사용자 요청: 차별점 FAQ에 대통령 공개 기록 제작자 소개. 주석 1건 포함, 적중률·보장 표현 제외' },
+  'app/faq/page.js': { count: 1, reason: '2026-10-22 사용자 요청: 차별점 FAQ가 가리키는 공개 분석 기록 칩 1건' },
   'app/insights/[slug]/page.js': { count: 1, reason: '공개 기록 페이지에만 가시 FAQ와 일치하는 schema 적용' },
-  'lib/seo/public-record-copy.mjs': { count: 15, reason: '2026-10-05 사용자 승인: 공개 분석 3건의 시점·방식·원문 보존 한계를 함께 명시' },
+  'lib/seo/public-record-copy.mjs': { count: 17, reason: '2026-10-28 사용자 요청: 종합 운세 플랫폼 제작자 소개를 공개 원문 비교와 연결. 적중률이나 사건 방식의 일치 보장 없음' },
   'app/insights/public-record-article.js': { count: 3, reason: '2026-10-05 승인한 원문 3건의 날짜·사건·일치 한계 비교 문서' },
-  'templates/home-funnel.html': { count: 1, reason: '2026-10-06 사용자 요청: 중복 정치 사례 소개 제거, 상단 공개 기록 페이지 경로만 유지' },
   'i18n/authored/globalReading-01.json': { count: 2, reason: '2026-10-05 해외 현지화 요청: 기존 공개 기록 소개 번역, 미래 적중 보장 제외' },
   'i18n/authored/homeOverseas-01.json': { count: 3, reason: '2026-10-06 현지화 요청: 기존 공개 기록 제목·설명을 번역 키로 이동. 아래에서 기존 원문과 정확히 대조' },
   'app/saju/destiny-bias/lib/celebrityProfiles.ts': { count: 2, reason: '유명인 사주 데이터(정치인 프로필) — 인물 데이터, 유지' },

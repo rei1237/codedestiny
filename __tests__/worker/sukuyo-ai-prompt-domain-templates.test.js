@@ -30,6 +30,13 @@ function buildBasicResult() {
   };
 }
 
+test('기본 숙요 AI 상담은 기존 서한비 페르소나와 라이트 상담 범위를 사용한다', () => {
+  const result = sukuyoPrompt.buildSukuyoAIPromptWithDomain({question:'관계에서 지치지 않으려면 어떻게 해야 하나요?',basicResult:buildBasicResult()});
+  expect(result.generatedPrompt).toContain('[상담자 페르소나 — 서한비]');
+  expect(result.generatedPrompt).toContain('라이트 상담');
+  expect(result.generatedPrompt).toContain('느리고 우아한 존댓말');
+});
+
 function buildCompatibilityResult() {
   return {
     myIdx: 9,

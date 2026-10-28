@@ -14,7 +14,7 @@ const DESTINY_BIAS_COPY_TRANSLATIONS = {
         "두 사람의 생년월일로 케미를 읽고, 업로드 이미지까지 합성한 글래스 포토카드를 만들어드려요. 덕질 모드에 딱 맞는 결과를 한 번에!",
       ctaPrimary: "운명 연결 시작하기",
       ctaSecondary: "Cosmic Stage 입장",
-      coinBadge: "무료 · 글래스 포토카드 포함",
+      coinBadge: "단건 결제 5,000원 · 글래스 포토카드 포함",
     },
   },
   en: {

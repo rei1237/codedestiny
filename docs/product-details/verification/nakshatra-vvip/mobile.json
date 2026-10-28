@@ -1,0 +1,275 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        },
+        {
+          "loaded": true,
+          "width": 328,
+          "left": 16,
+          "right": 344
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "loaded": true,
+          "width": 358,
+          "left": 16,
+          "right": 374
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        },
+        {
+          "loaded": true,
+          "width": 398,
+          "left": 16,
+          "right": 414
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        }
+      ]
+    }
+  ],
+  "drawPosts": 0,
+  "authPosts": 0,
+  "otherPosts": 0,
+  "devPosts": 0,
+  "calendarPosts": 0,
+  "mockedEntryPosts": [
+    "/api/nakshatra/resolve",
+    "/api/nakshatra/resolve"
+  ],
+  "fallback": true,
+  "mode": "Mock APIs; saved profile; free natal calculation mocked separately; unlock CTA trial only; no paid result or AI reading"
+}

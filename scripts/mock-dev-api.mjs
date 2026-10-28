@@ -59,7 +59,7 @@ export function createMockApiServer() {
       }
       const body = raw ? JSON.parse(raw) : {};
       const route = `${req.method} ${path}`;
-      if (recommendationMock(route, body, req.headers['x-admin-token'], send)) return;
+      if (recommendationMock(route, body, req.headers['x-admin-token'], send, url.searchParams)) return;
       if (await teaMock(route, body, loggedIn ? 'mock-user' : null, send)) return;
       if (route === 'GET /api/payments/pass-offers') {
         const { listCurrentPassOffers } = await import('../worker/lib/pass-sale-policy.js');

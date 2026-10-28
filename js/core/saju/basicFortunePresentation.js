@@ -119,21 +119,19 @@
       button.addEventListener('click', function () { syReadingJump(document.getElementById(item[0])); });
       nav.appendChild(button);
     });
-    var banner = node('section', 'sy-house-banner');
-    var art = node('img'); art.src = '/images/sukuyo/moon-garden.webp'; art.alt = ''; art.width = 1440; art.height = 960; art.decoding = 'async';
-    var bannerCopy = node('div', 'sy-house-banner-copy');
-    bannerCopy.appendChild(node('h2', '', labels[5])); bannerCopy.appendChild(node('p', '', labels[6]));
-    var read = node('button', 'sy-house-primary', labels[7]); read.type = 'button'; read.addEventListener('click', function () { syReadingJump(document.getElementById('syHouseNatal')); });
-    bannerCopy.appendChild(read); banner.append(art, bannerCopy); root.prepend(nav, banner);
+    root.prepend(nav);
     var hero = root.querySelector('.sy-intro-card');
     if (hero) {
       hero.classList.add('fr-hero');
       var title = hero.querySelector('.sy-intro-title');
       if (title) title.textContent = data.mansion;
       var badges = node('div', 'fr-tags');
+      var heroBody = hero.querySelector('.sy-master-reading') || hero;
       if (data.displayIndex) badges.appendChild(node('span', '', data.displayIndex + ' / 27'));
-      if (data.guardian && data.guardian.name) badges.appendChild(node('span', '', data.guardian.name));
-      hero.appendChild(badges);
+      // Animal symbols belong in the optional drawer, not the natal facts.
+      heroBody.appendChild(badges);
+      heroBody.appendChild(node('p', 'fr-caption', '라히리 항성 달 황경을 27등분한 서비스 기준이에요. 전통 음력 날짜표 방식과 결과가 다를 수 있어요.'));
+      if (window._astroBirth && (window._astroBirth.unknownHour || window._astroBirth.timeDefault)) heroBody.appendChild(node('p', 'fr-caption', '출생 시각 미상으로 정오를 적용했어요. 숙의 경계일에는 실제 출생 시각에 따라 본명숙이 달라질 수 있어요.'));
     }
     var reading = syReadingBody(data.traits, labels, true); reading.id = 'syHouseNatal';
     if (hero) hero.after(reading); else root.appendChild(reading);
@@ -157,8 +155,7 @@
     var paidCount = 0;
     // 노드를 옮기기만 한다. 다시 만들면 onclick·data-sy* 가 사라져 결제 흐름이 끊긴다
     // (verify-sukuyo-reading-house.mjs:61 이 원본 컨트롤을 통째로 대조한다).
-    extras.forEach(function (el) { if (isPaid(el)) { paidCount++; deeperSection.appendChild(el); } else toolsSection.appendChild(el); });
-    root.appendChild(toolsSection);
+    extras.forEach(function (el) { if (el.matches('.sy-compat-card')) { el.id = 'syHouseCompatibility'; reading.after(el); } else if (isPaid(el)) { paidCount++; deeperSection.appendChild(el); } else toolsSection.appendChild(el); });
     if (paidCount) {
       root.appendChild(deeperSection);
       // 구역이 실제로 생겼을 때만 점프 버튼을 낸다 — 눌러도 갈 곳이 없는 버튼을 만들지 않는다(§3).
@@ -167,8 +164,36 @@
       // 이 구역은 명반·상세 바로 뒤에 온다. 내비 차례도 문서 차례와 같아야 길을 잃지 않는다.
       nav.insertBefore(deepButton, nav.children[2] || null);
     }
-    root.appendChild(syMansionDirectory(data, labels));
-    root.appendChild(syArticleLibrary(root, labels));
+    root.appendChild(toolsSection);
+    var guardian = toolsSection.querySelector('.sy-guardian-card');
+    if (guardian) {
+      var animal = fold(toolsSection, '달빛 동물 이야기', [guardian], 'syHouseAnimal');
+      animal.querySelector('.fr-disclosure-body').prepend(node('p', 'fr-caption', '본명숙을 친근하게 표현한 상징 콘텐츠예요. 숙과 궁합의 계산 근거는 아니에요.'));
+    }
+    [['syHouseDirectory', labels[3], function () { return syMansionDirectory(data, labels); }],
+     ['syHouseJournal', labels[4], function () { return syArticleLibrary(root, labels); }]].forEach(function (entry) {
+      var drawer = fold(root, entry[1], [], entry[0]);
+      drawer.addEventListener('toggle', function () {
+        if (!drawer.open || drawer.dataset.loaded) return;
+        drawer.dataset.loaded = 'true';
+        var content = entry[2](); content.removeAttribute('id');
+        drawer.querySelector('.fr-disclosure-body').appendChild(content);
+      });
+    });
+    root.querySelectorAll('.fr-disclosure').forEach(syDisclosureControl);
+    var compatNav = node('button', '', '무료 궁합'); compatNav.type = 'button';
+    compatNav.addEventListener('click', function () { syReadingJump(document.getElementById('syHouseCompatibility')); });
+    nav.insertBefore(compatNav, nav.children[1] || null);
+    performance.mark('sukuyo:reading-ready');
+  }
+  function syDisclosureControl(details) {
+    var summary = details.querySelector(':scope > summary');
+    var copy = node('span', 'sy-disclosure-copy');
+    copy.append(node('span', 'sy-disclosure-title', summary.textContent), node('small', 'sy-disclosure-hint', '선택하면 내용을 읽을 수 있어요'));
+    var action = node('span', 'sy-disclosure-action');
+    summary.replaceChildren(copy, action);
+    function update() { action.textContent = details.open ? '접기' : '내용 펼치기'; }
+    update(); details.addEventListener('toggle', update);
   }
   function syReadingLabels() {
     var lang = document.documentElement.lang || 'ko';
@@ -184,6 +209,7 @@
   }
   function syReadingJump(target) {
     if (!target) return;
+    if (target.tagName === 'DETAILS') target.open = true;
     target.tabIndex = -1; target.focus({ preventScroll: true }); target.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
   // collapsible 은 본명숙 결과에서만 켠다. 도감 리더는 사용자가 "이 숙을 읽겠다" 고 방금 누른
@@ -269,10 +295,10 @@
       retry.hidden=true; status.textContent=labels[25];
       fetch('/data/sukuyo-reading/index.json',{cache:'no-store'}).then(function(response){if(!response.ok)throw new Error('Catalogue unavailable');return response.json();}).then(function(items){
         if(!root.isConnected) return;
-        articles=items.filter(function(a){return /^[a-z0-9-]+$/.test(a.slug)&&a.href==='/insights/'+a.slug+'/'&&/^[a-z0-9-]+\.json$/.test(a.body);}); renderList();
+        articles=items.filter(function(a){return /^[a-z0-9-]+$/.test(a.slug)&&a.href==='/insights/'+a.slug+'/'&&/^[a-z0-9-]+\.json$/.test(a.body);}); renderList(); performance.mark('sukuyo:articles-ready');
       }).catch(function(){if(!root.isConnected)return;status.textContent=labels[26];retry.hidden=false;});
     }
-    input.addEventListener('input',renderList); retry.addEventListener('click',load); load(); return section;
+    input.addEventListener('input',renderList); retry.addEventListener('click',load); performance.mark('sukuyo:articles-start'); load(); return section;
   }
   // One catalogue reader for every fr-* surface. Only the data source, ids and class prefix differ.
   function readingLibrary(root, options) {
@@ -517,6 +543,7 @@
     if (!setUp('ziwei', area) || !data) return;
     var hero = node('section', 'fr-hero');
     hero.appendChild(node('p', 'fr-brand', '紫微斗數 / MY STAR ATLAS'));
+    if (window.CodeDestinyConsultationUI) hero.insertAdjacentHTML('beforeend', window.CodeDestinyConsultationUI.guide('ziwei'));
     hero.appendChild(node('h2', 'fr-title', t('myRecord')));
     var facts = node('dl', 'fr-facts');
     [[19, data.meng, 20], [21, data.shen, 22], [23, data.juInfo, 24]].forEach(function (item) {
@@ -636,6 +663,7 @@
     });
     hero.after(nav);
     var consult = dashboard.querySelector('#zwDeepAiPromptPanel');
+    var consultGuide = dashboard.querySelector('[data-crafted-static-offer="ziwei_ai_prompt_generator"]');
     var factsTable = dashboard.querySelector('.zw-fact-tables');
     if (factsTable) {
       // The engine tags these tables detail-only so the 간소 chart stays sparse, then hides them with
@@ -645,7 +673,7 @@
       factsTable.classList.remove('zw-detail-only');
       foldIfContent(dashboard, t('chartTables'), [factsTable]);
     }
-    var extra = Array.from(dashboard.children).filter(function (el) { return !el.matches('.fr-reading,.fr-disclosure,.fr-chart-section,.zw-fact-tables,#zwDeepAiPromptPanel'); });
+    var extra = Array.from(dashboard.children).filter(function (el) { return !el.matches('.fr-reading,.fr-disclosure,.fr-chart-section,.zw-fact-tables,#zwDeepAiPromptPanel,[data-crafted-static-offer="ziwei_ai_prompt_generator"]'); });
     if (extra.length) foldIfContent(dashboard, t('explore'), extra, 'fr-ziwei-explore');
     var full = area.querySelector('#zwComprehensiveReport');
     if (full) {
@@ -675,8 +703,37 @@
       preview.appendChild(node('p', 'fr-caption', '연도별 기회와 주의점, 시기별 행동 해석은 아래 리포트의 「대한 10년운」에서 이어집니다. 잠긴 항목은 기존 이용권·결제 안내를 확인한 뒤 열 수 있습니다.'));
       var continueLink = node('a', 'fr-flow-link', '대한 10년운 상세 안내'); continueLink.href = '#ziweiDecadeLuckGate'; preview.appendChild(continueLink);
       flow.appendChild(preview);
-      foldIfContent(flow, t('fullReading'), [full]);
       area.appendChild(flow);
+      var reportSection = node('section', 'fr-ziwei-report-section');
+      reportSection.id = 'fr-ziwei-report';
+      reportSection.appendChild(heading('전체 해석과 참고 기록'));
+      reportSection.appendChild(node('p', 'fr-caption', '기본 해석은 순서대로 읽고, 더 궁금한 주제는 각 장을 펼쳐 확인해 보세요.'));
+      reportSection.appendChild(full);
+      area.appendChild(reportSection);
+      var compatEntry = node('a', 'fr-compat-entry');
+      compatEntry.href = '#zwCompatibility';
+      compatEntry.innerHTML = '<img src="/images/ziwei/compatibility-atlas-v1.webp" width="960" height="640" loading="lazy" decoding="async" alt="금빛 실로 이어진 두 사람의 자미두수 명반"><span><strong>두 사람의 자미두수 궁합</strong><span>서로의 성향부터 사랑, 생활, 일의 호흡까지. 두 명반을 하나의 관계 리포트로 읽어보세요.</span><b>상대 정보 입력하기</b></span>';
+      compatEntry.addEventListener('click', function(event) {
+        event.preventDefault();
+        var form = area.querySelector('#zwCompatibility');
+        if (!form && typeof window._openZwComprehensiveReport === 'function') {
+          window._openZwComprehensiveReport();
+          form = area.querySelector('#zwCompatibility');
+        }
+        if (!form) return;
+        for (var parent = form.parentElement; parent && parent !== area; parent = parent.parentElement) {
+          if (parent.tagName === 'DETAILS') parent.open = true;
+        }
+        form.scrollIntoView({ block: 'start', behavior: 'instant' });
+        var input = form.querySelector('input');
+        if (input) input.focus({ preventScroll: true });
+      });
+      reportSection.before(compatEntry);
+      [['fr-ziwei-report', '전체 해석'], ['zwCompatibility', '궁합']].forEach(function(item) {
+        var link = node('a', '', item[1]); link.href = '#' + item[0];
+        if (item[0] === 'zwCompatibility') link.addEventListener('click', function(event) { event.preventDefault(); compatEntry.click(); });
+        nav.appendChild(link);
+      });
     }
     // Explain existing paid chapters after the basic reading; never clone an unlock button or change its gate.
     var nextReading = node('aside', 'fr-reading-next');
@@ -703,11 +760,12 @@
       nextReading.appendChild(node('p', 'fr-caption', '이용권·월정석·단건 결제의 적용 여부와 금액은 각 상세 안내에서 확인해 주세요.'));
       reading.appendChild(nextReading);
     }
+    if (consultGuide) area.appendChild(consultGuide);
     if (consult) area.appendChild(consult);
     area.appendChild(ziweiArticleLibrary(area));
     // The atlas is the sole decorative artwork on this surface. Keep text/captions.
     // The consultation entry scene is product imagery, not decoration — it must stay visible.
-    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.fc-entry__scene,.zwla-illustration')) img.hidden = true; });
+    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.fc-entry__scene,.zwla-illustration,.fr-compat-entry,[data-crafted-static-offer="ziwei_ai_prompt_generator"]')) img.hidden = true; });
     cells.forEach(function (cell) {
       cell.setAttribute('aria-label', cell.querySelector('.zw-palace-name').textContent + ' · ' + cell.querySelector('.zw-branch-name').textContent);
     });
@@ -734,11 +792,12 @@
         var top = nav.getBoundingClientRect().bottom, bottom = window.innerHeight;
         var current = null, seen = 0, nearest = null, nearestGap = Infinity;
         spy.forEach(function (item) {
+          item.section = document.getElementById(item.link.getAttribute('href').slice(1)) || item.section;
           var rect = item.section.getBoundingClientRect();
           // 화면에 가장 많이 걸쳐 있는 구간이 지금 읽는 구간이다. 구간 사이 여백에 기준선이 걸려도
           // 위아래 중 실제로 보이는 쪽이 뽑히므로, 이미 지나간 구간을 가리키는 일이 없다.
           var overlap = Math.min(rect.bottom, bottom) - Math.max(rect.top, top);
-          if (overlap > seen) { seen = overlap; current = item; }
+          if (overlap > seen || (overlap > 0 && overlap === seen && current && current.section.contains(item.section))) { seen = overlap; current = item; }
           var gap = rect.top > top ? rect.top - top : top - rect.bottom;
           if (gap < nearestGap) { nearestGap = gap; nearest = item; }
         });
@@ -783,6 +842,7 @@
     var hero = node('section', 'fr-hero astro-house-hero');
     hero.appendChild(emblem('astro'));
     hero.appendChild(node('p', 'fr-brand', 'WESTERN ASTROLOGY / MY BIRTH CHART'));
+    if (window.CodeDestinyConsultationUI) hero.insertAdjacentHTML('beforeend', window.CodeDestinyConsultationUI.guide('astrology'));
     hero.appendChild(node('h2', 'fr-title', t('myRecord')));
     var facts = node('dl', 'fr-facts');
     var big3 = root.querySelector('#astroBig3Snapshot');
@@ -807,7 +867,11 @@
       var section = node('section', 'astro-house-section'); section.id = id;
       section.appendChild(heading(label));
       selectors.forEach(function (selector) {
-        root.querySelectorAll(selector).forEach(function (el) { section.appendChild(el); });
+        root.querySelectorAll(selector).forEach(function (el) {
+          // Keep an optional product guide beside its original purchase section.
+          var pair = el.closest('.astro-crafted-pair');
+          section.appendChild(pair && root.contains(pair) ? pair : el);
+        });
       });
       return section.children.length > 1 ? section : null;
     }
@@ -879,7 +943,7 @@
       // ?v= 를 빌려 써서 CSS 만 고친 커밋이 URL 을 못 돌렸다(실측: 44eac0f68 은 기존 방문자에게 도달하지
       // 못했다). 리터럴로 박아 두면 sync:public 이 CSS 자신의 내용 해시로 다시 쓴다 — 손으로 찍지 말 것.
       // 이 파일은 그래서 sync-legacy-static-to-public.mjs 의 MODULE_IMPORT_CACHE_KEY_FILES 에 등록돼 있다.
-      link.href = '/styles/basic-fortune-library.css?v=build-a0f3ad0d5814'; document.head.appendChild(link);
+      link.href = '/styles/basic-fortune-library.css?v=build-01d5373b2b78'; document.head.appendChild(link);
     }
     // 점성술 "나의 이야기" 층(#asStory). 위 시트 뒤에 붙여 같은 특정성에서 이긴다. ?v= 는 위와 같은 규칙.
     if (!document.getElementById('astroReadingStyle')) {
@@ -891,6 +955,7 @@
       if (overlay) {
         overlay.classList.add('fr-overlay', 'fr-' + type);
         overlay.setAttribute('role', 'dialog');
+        if (type === 'sukuyo') { var close = overlay.querySelector('.modal-nav-close-sukuyo'); if (close) { close.textContent = '결과 닫기'; close.setAttribute('aria-label', '숙요점 결과 닫기'); close.removeAttribute('data-cd-trans'); close.removeAttribute('data-key'); close.removeAttribute('data-cd-trans-attr'); } }
         overlay.setAttribute('aria-label', t(['sukuyo', 'astro', 'ziwei'].indexOf(type)));
         overlay.setAttribute('aria-hidden', overlay.style.display === 'flex' ? 'false' : 'true');
       }

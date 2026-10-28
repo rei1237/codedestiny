@@ -17,7 +17,7 @@
 
   var COPY = {};
   COPY.en = {
-    voice: ['Yeoni', 'Neo'],
+    voice: ['Yeoni', 'Yeongnyangi'],
     el: {wood:'Wood (木)', fire:'Fire (火)', earth:'Earth (土)', metal:'Metal (金)', water:'Water (水)'},
     fam: {same:'Peers (比劫)', parent:'Resource (印星)', drain:'Output (食傷)', wealth:'Wealth (財星)', control:'Authority (官星)'},
     famMeaning: {same:['Energy like your own', 'allies and self-reliance'], parent:['Energy that supports you', 'learning and backing'], drain:['Energy you give out', 'expression and talent'], wealth:['Energy you manage', 'resources and practical results'], control:['Energy that shapes you', 'duty and structure']},
@@ -67,7 +67,7 @@
     rxLabel: ['Energy to add', 'Colours', 'Direction', 'Activities', 'Ease off', 'Moisture balance'],
     climate: {
       tempBadge:'Temperature score {s}',
-      lead:['What Yeoni read in the climate', 'Neo’s assessment of the climate'], env:['Your environment by climate', 'Environment type by climate'], parts:'Temperature and moisture by character', count:'The four energies that move temperature',
+      lead:['What Yeoni read in the climate', 'Yeongnyangi’s assessment of the climate'], env:['Your environment by climate', 'Environment type by climate'], parts:'Temperature and moisture by character', count:'The four energies that move temperature',
       verdict:['You were born in a {season} month. The season sets a base temperature of {base}; adding the warmth and cold of the eight characters gives a temperature score of {score}, which reads as: {type}. Moisture shows {wet} damp signals and {dry} dry signals: {moist}.', 'Verdict: {type}; moisture: {moist}. Base for a {season} month {base}, plus each character’s contribution, gives a temperature score of {score}; damp {wet}, dry {dry}.'],
       versus:['Climate balance and strength balance', 'Climate balance versus strength balance'], rx:'Climate balance guide · everyday adjustments',
       rxIntro:['Traditional charts fill what is missing with symbols; here they are turned into everyday language. Pick just one that appeals and try it for about a week.', 'These are everyday ways to supplement what is missing. Pick one, do it for a week and note how your condition changes.'],
@@ -88,7 +88,7 @@
 
     /* ── strength ── */
     stage: ['Very weak', 'Weak', 'Weak, near balance', 'Strong, near balance', 'Strong', 'Very strong'],
-    strengthLead: ['What Yeoni read in your strength', 'Neo’s assessment of strength'],
+    strengthLead: ['What Yeoni read in your strength', 'Yeongnyangi’s assessment of strength'],
     str: {
       jongHead:['Following structure (從格)', 'Following structure'],
       jongLead:['Your chart gathers {dom} energy {pct}into what was examined as a {name}. A structure like this is not measured with the ordinary strong-or-weak ruler; it is read by following the gathered momentum.', 'Verdict: {name}. {dom} energy {pct}leads the chart. The ordinary strong/weak formula is not applied.'],
@@ -98,7 +98,7 @@
       kindHead:['Your structure', 'Structure type'], dirHead:'Direction of cycles',
       dirText:['When a cycle feeds {dom} energy, the flow tends to continue smoothly; in cycles that run against that momentum, more adjustment may be needed. Rather than spreading strength thin, deepening one inborn strength fits this structure.', 'Cycles that feed {dom} energy tend to run smoothly; cycles that oppose it add adjustment. Concentrate on one strength.'],
       gaHead:'Partial following (假從格)', jinHead:'Close to a true following structure (眞從格)',
-      gaText:['A weak root that supports the day stem remains, so with the cycles the chart may settle into a following structure or return to an ordinary one. Compare it with what you actually lived through.', 'A weak supporting root remains. Depending on cycles it can settle into a following structure or return to an ordinary one. Check it against your history.'],
+      gaText:['Characters that support the day stem are present but do not work as real roots, so the chart meets the conditions for partial following (假從) of the dominant element.', 'Supporting characters are present but give no working root, so it meets the partial-following (假從) conditions.'],
       jinText:['The flow of following the dominant element is clear.', 'Following the dominant element is clear.'],
       leadNormal:['Your strength score is {score}, read as {stage}. The line between strong and weak is 30, and your {stem} day stem sits {gap} points {dir} it.', 'Verdict: {stage} ({sw}). Strength score {score}, {gap} points {dir} the 30 baseline.'],
       above:'above', below:'below', strongWord:'strong', weakWord:'weak',
@@ -126,7 +126,7 @@
     /* ── ten gods ── */
     godName: {'비견':'Peer (比肩)', '겁재':'Rival (劫財)', '식신':'Gentle Output (食神)', '상관':'Sharp Output (傷官)', '편재':'Roving Wealth (偏財)', '정재':'Steady Wealth (正財)', '편관':'Pressure (偏官)', '정관':'Order (正官)', '편인':'Insight (偏印)', '정인':'Care (正印)'},
     ten: {
-      lead:['How the ten gods weigh in, as Yeoni sees it', 'Neo’s assessment of the ten gods'], most:['Most frequent group {n}', 'Leading {n}'], mostBadge:['Most frequent group: {n} characters', 'Leading: {n} characters'], noneBadge:['Empty: {list}', 'Absent: {list}'], allBadge:['All five groups present', 'No group absent'],
+      lead:['How the ten gods weigh in, as Yeoni sees it', 'Yeongnyangi’s assessment of the ten gods'], most:['Most frequent group {n}', 'Leading {n}'], mostBadge:['Most frequent group: {n} characters', 'Leading: {n} characters'], noneBadge:['Empty: {list}', 'Absent: {list}'], allBadge:['All five groups present', 'No group absent'],
       leadText:['Among the seven characters other than the day stem, the most weight sits on {top}. The grain of {meaning} tends to show through daily life. {tail}', 'Verdict: {top} leads ({n} of the seven characters other than the day stem). {tail}'],
       tailNone:['By contrast {list} did not show on the surface.', 'Absent: {list}.'], tailAll:['All five groups show on the surface, so your toolbox is evenly stocked.', 'All five groups are present.'],
       distHead:['The five groups, spread out', 'Distribution by group'], distCap:'Ten-god distribution', cols:['Group', 'Surface', 'Hidden stems', 'Detailed gods', 'In strength'],
@@ -166,7 +166,7 @@
 
     /* ── ilju ── */
     il: {
-      leadHead:['The four pillars Yeoni laid out', 'Neo’s assessment'], dayBadge:'{name} day stem', branchBadge:'Day branch {god}', stageBadge:'Twelve stage {stage}',
+      leadHead:['The four pillars Yeoni laid out', 'Yeongnyangi’s assessment'], dayBadge:'{name} day stem', branchBadge:'Day branch {god}', stageBadge:'Twelve stage {stage}',
       leadText:['Your centre is the {name} ({dg}) day stem, and just below it the day branch {dj} sits as {god} in the {stage} position. Spreading out the four pillars, it reads like this.', '{name} ({dg}) day stem, day branch {dj} ({god} · {stage}). The table below is the basis.'],
       cap:'The four pillars', cols:['Pillar', 'Stem · god', 'Branch · god', 'Hidden stems', 'Twelve stage', 'Palace'], dayStemMe:'Day stem (self)',
       note:['The twelve stages are read from the day stem; yin stems run in reverse (the yin-born, yang-dead standard). The ages for the palaces are the traditional root, sprout, flower and fruit split.', 'Twelve stages follow the day stem, with yin stems running backwards. Palace ages are the traditional root–fruit division.'],
@@ -178,7 +178,7 @@
       gmHead:'Void branches (空亡)', gmText:['Void branches are the two branches left without a partner in the ten-day cycle the day pillar belongs to; the energy in those places is said to feel empty. Yours are {list}. {hit}', 'Void branches: {list}. {hit}'],
       gmHit:['In your chart, {list} fall on void branches. Those areas may not fill as much as you hope, but used for the spiritual side or for learning they are read as deepening.', 'In the chart: {list}. Expect weaker felt results there than hoped; spend it on substance and study instead of gain.'], gmMiss:['No other place in your chart falls on a void branch.', 'No place in the chart is affected.'],
       gmNote:['Schools weigh void branches differently, so please read them as a reference only.', 'Weight on void branches differs by school. Use as a reference only.'],
-      wordHead:['Yeoni’s word', 'Neo’s one-line summary'],
+      wordHead:['Yeoni’s word', 'Yeongnyangi’s one-line summary'],
       word:{'甲':['A straight-growing tree does not get big all at once. This week, cut one big goal into a step you can take today.', 'Direction-setting is a strength. Break the big goal into this week’s units.'], '乙':['Vines reach far by finding something to lean on. Asking for help is also your strength, so reach out first to one person this week.', 'Connection is a strength. Ask one collaborator first this week.'], '丙':['The sun shines on its own but the night of rest matters too. Book one slot today for the rest you postponed while lighting others.', 'Expression is a strength. Put rest in the schedule first to avoid burn-out.'], '丁':['A lamp is warmest when it lights a near place for a long time. Today tell one person beside you, concretely, that you are grateful.', 'Focus is a strength. Narrow the scope and finish one thing.'], '戊':['A mountain gives trust by not moving. Sometimes let the wind pass too: answer “yes” to one new proposal this week.', 'Stability is a strength. Test one new proposal this week.'], '己':['A field changes with what is planted. In the field you tilled for others, plant one seed for yourself today.', 'Practicality is a strength. Assign one resource this week to investing in yourself.'], '庚':['Iron meets fire and becomes a useful tool. Today, do not avoid one hardship that tempers you: handle a little of it.', 'Decisiveness is a strength. Start one hard task you postponed today.'], '辛':['A jewel shines more when it takes care of itself. Say to yourself once today that it is fine not to be perfect.', 'Your standards are high. Practise sharing at 80% done.'], '壬':['A great water flows far only with banks. From the interests you have spread wide, pick the one to hold this week.', 'Your view is wide. Fix one priority this week.'], '癸':['Dew is small but wets exactly where it is needed. Jot down one gut feeling from today and it will guide you later.', 'Intuition is a strength. Note your reasons and check them.']}},
 
     /* ── flow ── */
@@ -192,7 +192,7 @@
       family: {same:['A cycle of energy like your own, so the wish to decide and stand alone tends to grow. Competition with colleagues can grow too, so setting shares first helps.', 'Peers cycle: independence and competition issues increase. Set shares and rules for shared resources first.'], drain:['A cycle of pouring what is inside out, so expressing, making and teaching tend to go well. A lot of energy leaves, so plan recovery time as well.', 'Output cycle: expression and production grow. Raise output but set a standard for managing drain.'], wealth:['A cycle when practical results and money catch the eye. It is a good time to widen the work, and writing down the range you can handle in numbers steadies the mind.', 'Wealth cycle: results and finance issues grow. Fix the ceiling of expansion in numbers.'], control:['A cycle in which duty and roles get heavier. Chances of recognition come along with bigger burdens, so sort what to take on from what to put down.', 'Authority cycle: duty and evaluation pressure grow. Separate roles to accept from roles to decline.'], parent:['A cycle when learning and help arrive. Studying, gaining qualifications or meeting a good adviser comes easily, so turn what you receive into small actions.', 'Resource cycle: learning and support arrive. Schedule turning input into action.']},
       noRel: ['No place directly combines or clashes with the characters in your chart.', 'No direct combination or clash with the chart.'],
       tone: {open:['The flow reads as smooth. Try the things you have prepared on a small scale first. The score is a reference for comparison and does not promise a result.', 'An easier band on the assessment. Run prepared work at small scale. The score does not guarantee results.'], even:['It reads as an ordinary flow that neither pushes nor pulls hard. Keep going with what you do and just check the direction now and then. The score is a reference for comparison and does not promise a result.', 'A middle band on the assessment. Keep ongoing work and check the direction. The score does not guarantee results.'], care:['It reads as a flow that needs adjusting. Lower the speed and tidy roles and schedules, and the same period becomes much easier. Please do not make big decisions on the score alone.', 'An adjustment band on the assessment. Tidy schedules and roles and keep options open. Do not conclude from the score alone.']},
-      free: '※ Everything up to here is free. The full ten-year flow, the details of each annual cycle and the comprehensive reading continue in Premium below.'},
+      continueReading: 'After reviewing your current period and year, select a period in the chart below to explore its annual details.'},
 
     /* ── daily ── */
     da: {
@@ -203,11 +203,11 @@
       boostHead: 'Lucky booster', boostLabel: 'Element to add', boostNote: ['A light everyday tip for adding what is lacking. Enjoy it as a small change of mood.', 'An everyday tip for supplementing the key balance element. No effect is guaranteed.'],
       god: {'비견':['A time when your own judgement gets clearer. Deciding alone is fine, but write the reason in one line so you do not waver later.', 'Independent judgement is favourable. Record the reason in one line.'], '겁재':['Competitiveness and drive rise together. Postpone impulsive spending or bets by a day and you will feel easier.', 'Competition and impulse grow. Hold impulsive spending for a day.'], '식신':['Joy and ideas well up. Make one idea you have into something, however small, right away.', 'Productivity rises. Move one idea into an action step now.'], '상관':['Words and expression carry weight. Good for presentations and creative work; read a contract or an official statement once more before sending it out.', 'Expression strengthens. Recheck official documents and statements before release.'], '편재':['Chances and swings grow together. Start with small things you have confirmed rather than big bets.', 'Chance and volatility are both large. Proceed with small, verified items.'], '정재':['A time when careful practical work shines. Sorting income and spending once will lighten your mind.', 'Accuracy rises. Sort your income and spending records.'], '편관':['You may feel pressure. Rather than shouldering all of it, pick one thing you will keep and hold on, and it returns as trust.', 'Pressure comes. Focusing on one core duty returns as trust.'], '정관':['A time when duty and trust show. Good for official papers and procedures.', 'Suited to official procedures. Make your scope of responsibility clear.'], '편인':['Intuition grows sharp. Jot down the hunches that come and check them in a small way.', 'Intuition leads. Record hunches and run a small check.'], '정인':['A good time for learning and sorting things out. Asking a trusted person for advice makes your thinking clear.', 'Learning and analysis are efficient. Ask a trusted adviser.']},
       tone: {open:['Energy comes in with some strength. Pick one thing to do and finish it first, and you can ride the flow well.', 'Energy-surplus band. Finish one top-priority item first.'], care:['A time to look after your inner battery first. Slow down a little, and mistakes drop and relationships ease.', 'Energy-care band. Lower the speed and add one more check step.']},
-      sumHead: ['Yeoni’s word', 'Neo’s summary']}
+      sumHead: ['Yeoni’s word', 'Yeongnyangi’s summary']}
   };
 
   COPY.ja = {
-    voice: ['Yeoni', 'Neo'],
+    voice: ['Yeoni', 'Yeongnyangi'],
     sep: '、',
     el: {wood:'木', fire:'火', earth:'土', metal:'金', water:'水'},
     fam: {same:'比劫（仲間）', parent:'印星（支え）', drain:'食傷（表現）', wealth:'財星（現実）', control:'官星（責任）'},
@@ -260,7 +260,7 @@
     rxLabel: ['足す気', '色', '方角', '行動', '控えめに', '湿度のバランス'],
     climate: {
       tempBadge:'温度スコア {s}',
-      lead:['Yeoniが読んだ気候', 'Neoの気候判定'], env:['気候で見るあなたの環境', '気候による環境タイプ'], parts:'文字別の温度と湿度', count:'温度を動かす四つの気',
+      lead:['Yeoniが読んだ気候', 'Yeongnyangiの気候判定'], env:['気候で見るあなたの環境', '気候による環境タイプ'], parts:'文字別の温度と湿度', count:'温度を動かす四つの気',
       verdict:['あなたは{season}の月に生まれました。季節が決める基準温度は{base}で、八字の暖かさと冷たさを足すと温度スコアは{score}、「{type}」と読めます。湿り気は湿の兆し{wet}・乾の兆し{dry}で、{moist}です。', '判定：{type}、湿度：{moist}。{season}の月の基準{base}に各文字の寄与を足して温度スコア{score}。湿{wet}・乾{dry}。'],
       versus:['気候のバランスと強弱のバランス', '気候バランスと強弱バランスの比較'], rx:'気候バランスのガイド · 日常でできる調整',
       rxIntro:['伝統的な命式では足りないものを象徴で補いますが、ここでは日常の言葉に置き換えました。気に入ったものを一つだけ選んで、一週間ほど試してみてください。', '足りないものを補う日常の方法です。一つ選んで一週間続け、体調の変化を記録してください。'],
@@ -281,7 +281,7 @@
 
     /* ── strength ── */
     stage: ['非常に弱い', '弱い', '弱め（均衡に近い）', '強め（均衡に近い）', '強い', '非常に強い'],
-    strengthLead: ['Yeoniが読んだ強弱', 'Neoの強弱判定'],
+    strengthLead: ['Yeoniが読んだ強弱', 'Yeongnyangiの強弱判定'],
     str: {
       jongHead:['従格（從格）', '従格'],
       jongLead:['あなたの命式は、{dom}の気が{pct}集まり、{name}として見立てました。このような構造は一般的な強弱の物差しでは測らず、集まった勢いに従って読みます。', '判定：{name}。{dom}の気{pct}が命式を主導。通常の強弱の公式は適用しない。'],
@@ -291,7 +291,7 @@
       kindHead:['あなたの構造', '構造タイプ'], dirHead:'運の方向',
       dirText:['{dom}の気を養う運のときは流れが滑らかに続きやすく、その勢いに逆らう運では調整がより必要になることがあります。力を広く散らすより、生まれ持った強みを一つ深める方がこの構造に合います。', '{dom}の気を養う運は順調に流れやすく、逆らう運は調整が増える。強みを一つに集中する。'],
       gaHead:'仮従格（假從格）', jinHead:'真従格（眞從格）に近い構造',
-      gaText:['日干を支える弱い根が残っているため、運とともに従格として落ち着くことも、通常の構造に戻ることもあります。実際に歩んできた経験と照らし合わせてみてください。', '弱い支えの根が残る。運によって従格に定まるか通常構造に戻るか分かれる。経歴と照合する。'],
+      gaText:['日干を支える字はありますが、実際の根として働かないため、優勢な五行に従う仮従（假從）の条件を満たしています。', '支える字はあるが実際の根として働かず、仮従（假從）の条件を満たす。'],
       jinText:['優勢な五行に従う流れがはっきりしています。', '優勢な五行に従う流れが明確。'],
       leadNormal:['あなたの強弱スコアは{score}で、{stage}と読みます。強弱の境は30で、{stem}の日干はそれより{gap}点{dir}にあります。', '判定：{stage}（{sw}）。強弱スコア{score}、基準30から{gap}点{dir}。'],
       above:'上', below:'下', strongWord:'強', weakWord:'弱',
@@ -319,7 +319,7 @@
     /* ── ten gods ── */
     godName: {'비견':'比肩（ひけん）', '겁재':'劫財（ごうざい）', '식신':'食神（しょくじん）', '상관':'傷官（しょうかん）', '편재':'偏財（へんざい）', '정재':'正財（せいざい）', '편관':'偏官（へんかん）', '정관':'正官（せいかん）', '편인':'偏印（へんいん）', '정인':'正印（せいいん）'},
     ten: {
-      lead:['Yeoniが見た十神の重み', 'Neoの十神判定'], most:['最多のグループ {n}', '最多 {n}'], mostBadge:['最多のグループ：{n}字', '最多：{n}字'], noneBadge:['空：{list}', '不在：{list}'], allBadge:['五つのグループがそろう', '欠けるグループなし'],
+      lead:['Yeoniが見た十神の重み', 'Yeongnyangiの十神判定'], most:['最多のグループ {n}', '最多 {n}'], mostBadge:['最多のグループ：{n}字', '最多：{n}字'], noneBadge:['空：{list}', '不在：{list}'], allBadge:['五つのグループがそろう', '欠けるグループなし'],
       leadText:['日干を除く七字のうち、最も比重が置かれているのは{top}です。{meaning}の質感が日常に表れやすいでしょう。{tail}', '判定：{top}が主導（日干を除く七字のうち{n}字）。{tail}'],
       tailNone:['一方、{list}は表には表れていません。', '不在：{list}。'], tailAll:['五つのグループがすべて表に出ているので、道具箱はバランスよくそろっています。', '五つのグループすべてが存在。'],
       distHead:['五つのグループの分布', 'グループ別の分布'], distCap:'十神の分布', cols:['グループ', '表', '蔵干', '細かい十神', '強弱での役割'],
@@ -359,7 +359,7 @@
 
     /* ── ilju ── */
     il: {
-      leadHead:['Yeoniが広げた四柱', 'Neoの判定'], dayBadge:'{name}の日干', branchBadge:'日支 {god}', stageBadge:'十二運 {stage}',
+      leadHead:['Yeoniが広げた四柱', 'Yeongnyangiの判定'], dayBadge:'{name}の日干', branchBadge:'日支 {god}', stageBadge:'十二運 {stage}',
       leadText:['あなたの中心は{name}の日干で、そのすぐ下の日支{dj}は、{stage}の位置にある{god}です。四柱を広げて読むと次のようになります。', '{name}の日干、日支{dj}（{god}・{stage}）。下の表が根拠。'],
       cap:'四柱', cols:['柱', '干・十神', '支・十神', '蔵干', '十二運', '宮'], dayStemMe:'日干（自分）',
       note:['十二運は日干から読み、陰干は逆行します（陰は生で陽は死とする基準）。宮の年齢は、根・芽・花・実という伝統的な区分です。', '十二運は日干基準で、陰干は逆行。宮の年齢は伝統的な根・実の区分。'],
@@ -371,7 +371,7 @@
       gmHead:'空亡', gmText:['空亡は、日柱が属する十日の周期で相手のないまま残った二つの支のことで、そこにある気は空虚に感じられるとされます。あなたの空亡は{list}です。{hit}', '空亡：{list}。{hit}'],
       gmHit:['あなたの命式では、{list}が空亡にあたります。そこは期待したほど満たされないかもしれませんが、精神面や学びに使うと深まると読みます。', '命式では：{list}。期待より体感の成果が弱い。利益ではなく中身と学びに使う。'], gmMiss:['命式の他の場所は空亡にあたりません。', '命式で影響を受ける場所はない。'],
       gmNote:['空亡の重みは流派によって異なるので、参考程度にお読みください。', '空亡の比重は流派で異なる。参考としてのみ使う。'],
-      wordHead:['Yeoniのひとこと', 'Neoの一行要約'],
+      wordHead:['Yeoniのひとこと', 'Yeongnyangiの一行要約'],
       word:{'甲':['まっすぐ伸びる木は一度に大きくならない。今週、大きな目標を、今日できる一歩に切り分けてみましょう。', '方向を定めるのが強み。大きな目標を今週の単位に分ける。'], '乙':['蔓は寄りかかれるものを見つけて遠くまで届く。助けを求めるのもあなたの強みなので、今週は誰か一人に先に連絡してみましょう。', 'つながりが強み。今週は協力者に先に頼む。'], '丙':['太陽は自ら輝くけれど、休む夜も大切。人を照らして先延ばしにしてきた休息を、今日一枠だけ予約しましょう。', '表現が強み。燃え尽きを避けるため、先に休息を予定に入れる。'], '丁':['灯は近くを長く照らすときが一番温かい。今日、そばにいる一人に、感謝を具体的に伝えてみましょう。', '集中が強み。範囲を絞って一つ終わらせる。'], '戊':['山は動かないことで信頼を与える。ときには風を通してもいい。今週、新しい提案に一つ「はい」と答えてみましょう。', '安定が強み。今週は新しい提案を一つ試す。'], '己':['畑は植えるものによって変わる。人のために耕した畑に、今日は自分のための種を一つ蒔きましょう。', '現実性が強み。今週は資源を一つ、自分への投資に割り当てる。'], '庚':['鉄は火に出会って役に立つ道具になる。今日、自分を鍛える困難を一つ避けずに、少しだけ引き受けてみましょう。', '決断力が強み。先延ばしにしてきた難しい仕事を今日始める。'], '辛':['宝石は手入れをするほど輝く。今日一度、完璧でなくても大丈夫と自分に言ってあげましょう。', '基準が高い。八割できた段階で共有する練習をする。'], '壬':['大きな水は岸があってこそ遠くへ流れる。広げた関心の中から、今週抱えるものを一つ選びましょう。', '視野が広い。今週は優先事項を一つ固定する。'], '癸':['露は小さくても、必要な場所をちょうど濡らす。今日の直感を一つ書き留めておくと、後で道しるべになります。', '直感が強み。理由を書き留めて確認する。']}},
 
     /* ── flow ── */
@@ -385,7 +385,7 @@
       family: {same:['自分と同じ気の運なので、自分で決めて自分で立ちたい気持ちが強まりやすい時期です。同僚との競争も増えやすいので、先に取り分を決めておくと助けになります。', '比劫の運：自立と競争の課題が増える。共有資源の取り分とルールを先に決める。'], drain:['内側のものを外へ注ぎ出す運なので、表現する・作る・教えることがうまくいきやすい時期です。多くの気が出ていくので、回復の時間も計画してください。', '食傷の運：表現と生産が増える。出力を上げつつ、消耗管理の基準を持つ。'], wealth:['現実的な成果とお金が目に入る運です。仕事を広げるのに良い時期で、扱える範囲を数字で書き出すと気持ちが安定します。', '財星の運：成果と財務の課題が増える。拡大の上限を数字で決める。'], control:['責任と役割が重くなる運です。認められる機会は、より大きな負担と一緒に来るので、引き受けることと手放すことを分けてください。', '官星の運：責任と評価の圧力が増える。受ける役割と断る役割を分ける。'], parent:['学びと助けが届く運です。勉強・資格取得・良い相談相手との出会いが得やすいので、受け取ったものを小さな行動に変えてください。', '印星の運：学びと支援が届く。インプットを行動に変える予定を入れる。']},
       noRel: ['あなたの命式の文字と直接合や衝になる場所はありません。', '命式との直接の合・衝はなし。'],
       tone: {open:['順調な流れと読みます。準備してきたことを、まず小さな規模で試してみてください。スコアは比較のための参考で、結果を約束するものではありません。', '判定上は楽な帯。準備したことを小規模で動かす。スコアは結果を保証しない。'], even:['強く押すことも引くこともない、普通の流れと読みます。今していることを続けながら、ときどき方向だけ確かめてください。スコアは比較のための参考で、結果を約束するものではありません。', '判定上は中間の帯。進行中のことを続け、方向を確認する。スコアは結果を保証しない。'], care:['調整が必要な流れと読みます。速度を落とし、役割とスケジュールを整えると、同じ時期がずっと楽になります。スコアだけで大きな決断はしないでください。', '判定上は調整の帯。スケジュールと役割を整え、選択肢を残す。スコアだけで結論しない。']},
-      free: '※ ここまではすべて無料です。十年運の全体の流れ、各歳運の詳細、総合的な解釈は、下のプレミアムで続きます。'},
+      continueReading: '今の大運と今年の流れを確認したら、下の大運表から時期を選び、年ごとの変化を続けてお読みください。'},
 
     /* ── daily ── */
     da: {
@@ -396,11 +396,11 @@
       boostHead: 'ラッキーブースター', boostLabel: '足す五行', boostNote: ['足りないものを足す、軽い日常のヒントです。小さな気分転換として楽しんでください。', '要の調和の五行を補う日常のヒント。効果を保証するものではない。'],
       god: {'비견':['自分の判断が明確になる時期です。一人で決めても構いませんが、あとで迷わないよう、理由を一行で書いておきましょう。', '自立した判断が有利。理由を一行で記録する。'], '겁재':['競争心と意欲が一緒に高まります。衝動的な出費や賭けは一日延ばすと、気持ちが楽になります。', '競争と衝動が増す。衝動的な出費は一日保留する。'], '식신':['喜びとアイデアがわいてきます。思いついたアイデアを一つ、小さくてもすぐに形にしてみましょう。', '生産性が上がる。アイデアを一つ今すぐ行動のステップにする。'], '상관':['言葉と表現に重みが出ます。発表や創作に向いていますが、契約書や公式な声明は、出す前にもう一度読み返してください。', '表現が強まる。公式文書と声明は公開前に再確認する。'], '편재':['機会と変動が一緒に大きくなります。大きな賭けより、確認済みの小さなことから始めましょう。', '機会も変動も大きい。確認済みの小さな案件で進める。'], '정재':['丁寧な実務が光る時期です。収入と支出を一度整理すると、心が軽くなります。', '正確さが上がる。収支の記録を整理する。'], '편관':['圧力を感じるかもしれません。すべてを背負うより、守ると決めたことを一つ選んで持ち続けると、信頼として返ってきます。', '圧力が来る。核心の責任を一つに絞ると信頼として返る。'], '정관':['責任と信頼が表れる時期です。公式な書類や手続きに向いています。', '公式な手続きに向く。責任の範囲を明確にする。'], '편인':['直感が冴えます。浮かんだ予感を書き留め、小さく確かめてみましょう。', '直感が主導。予感を記録し、小さく検証する。'], '정인':['学びと整理に良い時期です。信頼できる人に助言を求めると、考えがはっきりします。', '学びと分析が効率的。信頼できる相談相手に聞く。']},
       tone: {open:['気がある程度の強さで入ってきます。やることを一つ選んでまず終わらせれば、流れにうまく乗れます。', '気の余剰帯。最優先の一件を先に終える。'], care:['内なるバッテリーを先に労る時期です。少しゆっくりすると、ミスが減って人間関係も和らぎます。', '気のケア帯。速度を落とし、確認の段階を一つ増やす。']},
-      sumHead: ['Yeoniのひとこと', 'Neoの要約']}
+      sumHead: ['Yeoniのひとこと', 'Yeongnyangiの要約']}
   };
 
   COPY['zh-CN'] = {
-    voice: ['Yeoni', 'Neo'],
+    voice: ['Yeoni', 'Yeongnyangi'],
     sep: '、',
     el: {wood:'木', fire:'火', earth:'土', metal:'金', water:'水'},
     fam: {same:'比劫（同伴）', parent:'印星（助力）', drain:'食伤（表达）', wealth:'财星（财务）', control:'官星（责任）'},
@@ -452,7 +452,7 @@
     rxLabel: ['要补的能量', '颜色', '方位', '行动', '适度减少', '湿度平衡'],
     climate: {
       tempBadge:'温度分数 {s}',
-      lead:['Yeoni 读到的气候', 'Neo 的气候判断'], env:['从气候看你的环境', '气候对应的环境类型'], parts:'各字的温度与湿度', count:'推动温度的四种能量',
+      lead:['Yeoni 读到的气候', 'Yeongnyangi 的气候判断'], env:['从气候看你的环境', '气候对应的环境类型'], parts:'各字的温度与湿度', count:'推动温度的四种能量',
       verdict:['你出生在{season}月。季节决定的基准温度是{base}，加上八字的暖与寒，温度分数为{score}，读作“{type}”。湿度方面有{wet}个潮湿信号、{dry}个干燥信号，属于{moist}。', '判断：{type}；湿度：{moist}。{season}月基准{base}，加上各字贡献，温度分数{score}；潮湿{wet}、干燥{dry}。'],
       versus:['气候平衡与强弱平衡', '气候平衡与强弱平衡对比'], rx:'气候平衡指南 · 日常调整',
       rxIntro:['传统命盘用象征来补足缺失的部分，这里把它换成日常语言。挑一个你喜欢的，试上一周左右。', '这是补足缺失部分的日常方法。选一个坚持一周，记录状态的变化。'],
@@ -473,7 +473,7 @@
 
     /* ── strength ── */
     stage: ['极弱', '偏弱', '偏弱（接近均衡）', '偏强（接近均衡）', '偏强', '极强'],
-    strengthLead: ['Yeoni 读到的强弱', 'Neo 的强弱判断'],
+    strengthLead: ['Yeoni 读到的强弱', 'Yeongnyangi 的强弱判断'],
     str: {
       jongHead:['从格', '从格'],
       jongLead:['你的命盘把{dom}能量{pct}聚集起来，被判定为{name}。这样的结构不用一般的强弱尺度来衡量，而是顺着聚集的势头来读。', '判断：{name}。{dom}能量{pct}主导命盘。不适用一般的强弱公式。'],
@@ -483,7 +483,7 @@
       kindHead:['你的结构', '结构类型'], dirHead:'运势的方向',
       dirText:['当运势滋养{dom}能量时，流势往往顺畅延续；逆着这股势头的运势里，可能需要更多调整。与其把力量分散，不如把天生的一项强处做深，这更适合此结构。', '滋养{dom}能量的运势往往顺畅，逆着它的运势会增加调整。集中在一项强处上。'],
       gaHead:'假从格', jinHead:'接近真从格',
-      gaText:['还残留着一点支撑日干的弱根，所以随着运势，命盘可能稳定为从格，也可能回到一般结构。请对照你实际走过的经历。', '仍有微弱的支撑根。随运势可能定为从格，也可能回到一般结构。对照自己的经历查验。'],
+      gaText:['虽有帮扶日干的字，但不能作为真正的根起作用，因此符合顺从优势五行的假从条件。', '有帮扶的字但不成实根，符合假从条件。'],
       jinText:['顺从优势五行的流向很清晰。', '顺从优势五行的流向清晰。'],
       leadNormal:['你的强弱分数是{score}，读作{stage}。强与弱的分界线是30，你的{stem}日干比它{dir}{gap}分。', '判断：{stage}（{sw}）。强弱分数{score}，比基准30{dir}{gap}分。'],
       above:'高', below:'低', strongWord:'强', weakWord:'弱',
@@ -511,7 +511,7 @@
     /* ── ten gods ── */
     godName: {'비견':'比肩', '겁재':'劫财', '식신':'食神', '상관':'伤官', '편재':'偏财', '정재':'正财', '편관':'偏官', '정관':'正官', '편인':'偏印', '정인':'正印'},
     ten: {
-      lead:['Yeoni 眼中十神的分量', 'Neo 的十神判断'], most:['最多的一组 {n}', '最多 {n}'], mostBadge:['最多的一组：{n}个字', '最多：{n}个字'], noneBadge:['缺：{list}', '缺失：{list}'], allBadge:['五组齐全', '五组无缺'],
+      lead:['Yeoni 眼中十神的分量', 'Yeongnyangi 的十神判断'], most:['最多的一组 {n}', '最多 {n}'], mostBadge:['最多的一组：{n}个字', '最多：{n}个字'], noneBadge:['缺：{list}', '缺失：{list}'], allBadge:['五组齐全', '五组无缺'],
       leadText:['在日干以外的七个字里，分量最重的是{top}。{meaning}的质地容易在日常中显现。{tail}', '判断：{top}主导（日干以外七字中占{n}个）。{tail}'],
       tailNone:['相对地，{list}没有显现在表面。', '缺失：{list}。'], tailAll:['五组都显现在表面，你的工具箱配得很均衡。', '五组齐全。'],
       distHead:['五组的分布', '各组分布'], distCap:'十神分布', cols:['组', '表面', '藏干', '细分十神', '在强弱中'],
@@ -551,7 +551,7 @@
 
     /* ── ilju ── */
     il: {
-      leadHead:['Yeoni 为你排开的四柱', 'Neo 的判断'], dayBadge:'{name}日干', branchBadge:'日支 {god}', stageBadge:'十二长生 {stage}',
+      leadHead:['Yeoni 为你排开的四柱', 'Yeongnyangi 的判断'], dayBadge:'{name}日干', branchBadge:'日支 {god}', stageBadge:'十二长生 {stage}',
       leadText:['你的中心是{name}日干，其下的日支{dj}是{stage}位上的{god}。把四柱铺开来读，是这样的。', '{name}日干，日支{dj}（{god} · {stage}）。下表是依据。'],
       cap:'四柱', cols:['柱', '干 · 十神', '支 · 十神', '藏干', '十二长生', '宫位'], dayStemMe:'日干（自己）',
       note:['十二长生以日干为准来读，阴干逆行（阴生阳死的标准）。宫位对应的年龄是传统的根、苗、花、果划分。', '十二长生以日干为准，阴干逆行。宫位年龄为传统的根至果划分。'],
@@ -563,7 +563,7 @@
       gmHead:'空亡', gmText:['空亡是日柱所属的十天周期里没有配对的两个地支，据说落在那里的能量会感到空虚。你的空亡是{list}。{hit}', '空亡：{list}。{hit}'],
       gmHit:['在你的命盘里，{list}落在空亡上。这些方面可能不如期望的那样充实，但用在精神层面或学习上，则被读作加深。', '命盘中：{list}。那里实际感受到的成果可能弱于期待；把它用在内涵与学习上，而不是求利。'], gmMiss:['命盘中的其他位置都不落在空亡上。', '命盘中没有位置受影响。'],
       gmNote:['各流派对空亡的看重程度不同，请仅作参考。', '空亡的权重因流派而异。仅作参考。'],
-      wordHead:['Yeoni 的话', 'Neo 的一句话总结'],
+      wordHead:['Yeoni 的话', 'Yeongnyangi 的一句话总结'],
       word:{'甲':['笔直生长的树不会一下子长大。这周，把一个大目标切成今天就能迈出的一步。', '定方向是强项。把大目标拆成本周的单位。'], '乙':['藤蔓找到可以依靠的东西，才能伸得很远。求助也是你的强项，这周先联系一个人吧。', '联结是强项。这周先向一位合作者开口。'], '丙':['太阳自己会发光，但休息的夜晚也很重要。今天为那段一直推迟的休息预约一个时段吧。', '表达是强项。先把休息排进日程，避免耗尽。'], '丁':['灯在长时间照亮近处时最温暖。今天，具体地向身边的一个人说声谢谢。', '专注是强项。缩小范围，做完一件事。'], '戊':['山以不动给人信任。有时也让风吹过：这周对一个新提议回答“好”。', '稳定是强项。这周试一个新提议。'], '己':['田地会因所种之物而变。在你为别人耕耘的田里，今天为自己种下一粒种子。', '务实是强项。这周分配一项资源用于投资自己。'], '庚':['铁遇火成为有用的工具。今天，不要回避一件磨炼你的难事：接下一点。', '果断是强项。今天开始一件拖延已久的难事。'], '辛':['珠宝经过打理才更闪亮。今天对自己说一次：不完美也没关系。', '标准很高。练习做到八成就拿出来分享。'], '壬':['大水有堤岸才能流得远。从你铺开的诸多兴趣里，选出这周要守住的那一个。', '视野宽广。这周固定一个优先事项。'], '癸':['露水虽小，却恰好润湿需要的地方。记下今天的一个直觉，之后它会成为指引。', '直觉是强项。记下理由并核对。']}},
 
     /* ── flow ── */
@@ -577,7 +577,7 @@
       family: {same:['与自己相同的能量之运，想自己拿主意、自己站稳的心往往会增强。与同事的竞争也可能增多，先定好分成会有帮助。', '比劫运：自立与竞争的议题增多。先为共享资源定好分成与规则。'], drain:['把内在向外倾注的运势，表达、创作、教学往往顺利。很多能量会流出，也请规划恢复的时间。', '食伤运：表达与产出增多。提高输出，同时设定管理耗损的标准。'], wealth:['现实成果与金钱引人注目的运势。适合拓展工作，把能承担的范围写成数字，心会更稳。', '财星运：成果与财务议题增多。用数字定下扩张上限。'], control:['责任与角色变重的运势。获得认可的机会会和更大的负担一同到来，分清哪些要接、哪些要放下。', '官星运：责任与评价压力增大。区分要接受的角色与要拒绝的角色。'], parent:['学习与帮助到来的运势。学习、考取资格或遇到好顾问都比较容易，把收到的东西变成小小的行动。', '印星运：学习与支持到来。排好把输入转为行动的计划。']},
       noRel: ['没有任何位置与你命盘中的字直接相合或相冲。', '与命盘没有直接的合或冲。'],
       tone: {open:['读作顺畅的运势。先小规模尝试你准备好的事。分数是比较用的参考，并不承诺结果。', '判断上属较轻松的区间。把准备好的事小规模推进。分数不保证结果。'], even:['读作既不用力推也不用力拉的一般运势。继续做手头的事，不时确认方向即可。分数是比较用的参考，并不承诺结果。', '判断上属中间区间。保持进行中的事，确认方向。分数不保证结果。'], care:['读作需要调整的运势。放慢速度，理顺角色与日程，同一段时期会轻松得多。请不要只凭分数做重大决定。', '判断上属调整区间。理顺日程与角色，保留选择余地。不要只凭分数下结论。']},
-      free: '※ 到这里为止都是免费的。完整的十年运势、各个流年的详细内容与综合解读，将在下方的会员内容中继续。'},
+      continueReading: '看过当前大运和今年的走势后，可在下方大运表中选择时期，继续了解逐年的变化。'},
 
     /* ── daily ── */
     da: {
@@ -588,11 +588,11 @@
       boostHead: '幸运加成', boostLabel: '要补的五行', boostNote: ['补充所缺的轻松日常小提示。当作一点小小的心情调剂来享受吧。', '补充关键平衡五行的日常提示。不保证任何效果。'],
       god: {'비견':['自己的判断会更清晰的时期。独自决定也可以，但用一句话写下理由，以免之后动摇。', '独立判断有利。用一句话记录理由。'], '겁재':['好胜心与干劲一起上升。把冲动的花销或赌注推迟一天，心里会更轻松。', '竞争与冲动增强。冲动的花销搁置一天。'], '식신':['喜悦与点子涌现。把你想到的一个点子，哪怕很小，立刻做成点什么。', '产出力上升。现在就把一个点子化为行动步骤。'], '상관':['言语与表达有分量。适合演讲与创作；合同或正式声明发出前，请再读一遍。', '表达增强。正式文件与声明发布前再次确认。'], '편재':['机会与波动同时变大。先从确认过的小事开始，而不是大的赌注。', '机会与波动都大。以小而已验证的事项推进。'], '정재':['细致务实的工作发光的时期。梳理一遍收入与支出，心会变轻。', '准确度上升。整理收支记录。'], '편관':['你可能感到压力。与其全部扛下，不如选一件你要坚守的事，坚持住，它会以信任的形式回来。', '压力来临。聚焦一项核心责任，会以信任的形式回报。'], '정관':['责任与信任显现的时期。适合办理正式文件和手续。', '适合办理正式手续。明确责任范围。'], '편인':['直觉变得敏锐。记下浮现的预感，并小范围地验证。', '直觉主导。记录预感并小范围验证。'], '정인':['适合学习与整理的好时机。向信任的人请教，思路会变清晰。', '学习与分析高效。请教可信赖的顾问。']},
       tone: {open:['能量以不弱的力度进来。挑一件要做的事先做完，就能顺势而行。', '能量富余区间。先完成最优先的一件事。'], care:['先照顾好内在电量的时期。稍微放慢，失误会减少，人际也会缓和。', '能量养护区间。降低速度，多加一个确认步骤。']},
-      sumHead: ['Yeoni 的话', 'Neo 的总结']}
+      sumHead: ['Yeoni 的话', 'Yeongnyangi 的总结']}
   };
 
   COPY['zh-TW'] = {
-    voice: ['Yeoni', 'Neo'],
+    voice: ['Yeoni', 'Yeongnyangi'],
     sep: '、',
     el: {wood:'木', fire:'火', earth:'土', metal:'金', water:'水'},
     fam: {same:'比劫（同伴）', parent:'印星（助力）', drain:'食傷（表達）', wealth:'財星（財務）', control:'官星（責任）'},
@@ -644,7 +644,7 @@
     rxLabel: ['要補的能量', '顏色', '方位', '行動', '適度減少', '濕度平衡'],
     climate: {
       tempBadge:'溫度分數 {s}',
-      lead:['Yeoni 讀到的氣候', 'Neo 的氣候判斷'], env:['從氣候看你的環境', '氣候對應的環境類型'], parts:'各字的溫度與濕度', count:'推動溫度的四種能量',
+      lead:['Yeoni 讀到的氣候', 'Yeongnyangi 的氣候判斷'], env:['從氣候看你的環境', '氣候對應的環境類型'], parts:'各字的溫度與濕度', count:'推動溫度的四種能量',
       verdict:['你出生在{season}月。季節決定的基準溫度是{base}，加上八字的暖與寒，溫度分數為{score}，讀作「{type}」。濕度方面有{wet}個潮濕訊號、{dry}個乾燥訊號，屬於{moist}。', '判斷：{type}；濕度：{moist}。{season}月基準{base}，加上各字貢獻，溫度分數{score}；潮濕{wet}、乾燥{dry}。'],
       versus:['氣候平衡與強弱平衡', '氣候平衡與強弱平衡對比'], rx:'氣候平衡指南 · 日常調整',
       rxIntro:['傳統命盤用象徵來補足缺少的部分，這裡把它換成日常語言。挑一個你喜歡的，試上一週左右。', '這是補足缺少部分的日常方法。選一個堅持一週，記錄狀態的變化。'],
@@ -665,7 +665,7 @@
 
     /* ── strength ── */
     stage: ['極弱', '偏弱', '偏弱（接近均衡）', '偏強（接近均衡）', '偏強', '極強'],
-    strengthLead: ['Yeoni 讀到的強弱', 'Neo 的強弱判斷'],
+    strengthLead: ['Yeoni 讀到的強弱', 'Yeongnyangi 的強弱判斷'],
     str: {
       jongHead:['從格', '從格'],
       jongLead:['你的命盤把{dom}能量{pct}聚集起來，被判定為{name}。這樣的結構不用一般的強弱尺度來衡量，而是順著聚集的勢頭來讀。', '判斷：{name}。{dom}能量{pct}主導命盤。不適用一般的強弱公式。'],
@@ -675,7 +675,7 @@
       kindHead:['你的結構', '結構類型'], dirHead:'運勢的方向',
       dirText:['當運勢滋養{dom}能量時，流勢往往順暢延續；逆著這股勢頭的運勢裡，可能需要更多調整。與其把力量分散，不如把天生的一項強處做深，這更適合此結構。', '滋養{dom}能量的運勢往往順暢，逆著它的運勢會增加調整。集中在一項強處上。'],
       gaHead:'假從格', jinHead:'接近真從格',
-      gaText:['還殘留著一點支撐日干的弱根，所以隨著運勢，命盤可能穩定為從格，也可能回到一般結構。請對照你實際走過的經歷。', '仍有微弱的支撐根。隨運勢可能定為從格，也可能回到一般結構。對照自己的經歷查驗。'],
+      gaText:['雖有幫扶日干的字，但不能作為真正的根起作用，因此符合順從優勢五行的假從條件。', '有幫扶的字但不成實根，符合假從條件。'],
       jinText:['順從優勢五行的流向很清晰。', '順從優勢五行的流向清晰。'],
       leadNormal:['你的強弱分數是{score}，讀作{stage}。強與弱的分界線是30，你的{stem}日干比它{dir}{gap}分。', '判斷：{stage}（{sw}）。強弱分數{score}，比基準30{dir}{gap}分。'],
       above:'高', below:'低', strongWord:'強', weakWord:'弱',
@@ -703,7 +703,7 @@
     /* ── ten gods ── */
     godName: {'비견':'比肩', '겁재':'劫財', '식신':'食神', '상관':'傷官', '편재':'偏財', '정재':'正財', '편관':'偏官', '정관':'正官', '편인':'偏印', '정인':'正印'},
     ten: {
-      lead:['Yeoni 眼中十神的分量', 'Neo 的十神判斷'], most:['最多的一組 {n}', '最多 {n}'], mostBadge:['最多的一組：{n}個字', '最多：{n}個字'], noneBadge:['缺：{list}', '缺失：{list}'], allBadge:['五組齊全', '五組無缺'],
+      lead:['Yeoni 眼中十神的分量', 'Yeongnyangi 的十神判斷'], most:['最多的一組 {n}', '最多 {n}'], mostBadge:['最多的一組：{n}個字', '最多：{n}個字'], noneBadge:['缺：{list}', '缺失：{list}'], allBadge:['五組齊全', '五組無缺'],
       leadText:['在日干以外的七個字裡，分量最重的是{top}。{meaning}的質地容易在日常中顯現。{tail}', '判斷：{top}主導（日干以外七字中占{n}個）。{tail}'],
       tailNone:['相對地，{list}沒有顯現在表面。', '缺失：{list}。'], tailAll:['五組都顯現在表面，你的工具箱配得很均衡。', '五組齊全。'],
       distHead:['五組的分布', '各組分布'], distCap:'十神分布', cols:['組', '表面', '藏干', '細分十神', '在強弱中'],
@@ -743,7 +743,7 @@
 
     /* ── ilju ── */
     il: {
-      leadHead:['Yeoni 為你排開的四柱', 'Neo 的判斷'], dayBadge:'{name}日干', branchBadge:'日支 {god}', stageBadge:'十二長生 {stage}',
+      leadHead:['Yeoni 為你排開的四柱', 'Yeongnyangi 的判斷'], dayBadge:'{name}日干', branchBadge:'日支 {god}', stageBadge:'十二長生 {stage}',
       leadText:['你的中心是{name}日干，其下的日支{dj}是{stage}位上的{god}。把四柱鋪開來讀，是這樣的。', '{name}日干，日支{dj}（{god} · {stage}）。下表是依據。'],
       cap:'四柱', cols:['柱', '干 · 十神', '支 · 十神', '藏干', '十二長生', '宮位'], dayStemMe:'日干（自己）',
       note:['十二長生以日干為準來讀，陰干逆行（陰生陽死的標準）。宮位對應的年齡是傳統的根、苗、花、果劃分。', '十二長生以日干為準，陰干逆行。宮位年齡為傳統的根至果劃分。'],
@@ -755,7 +755,7 @@
       gmHead:'空亡', gmText:['空亡是日柱所屬的十天週期裡沒有配對的兩個地支，據說落在那裡的能量會感到空虛。你的空亡是{list}。{hit}', '空亡：{list}。{hit}'],
       gmHit:['在你的命盤裡，{list}落在空亡上。這些方面可能不如期望的那樣充實，但用在精神層面或學習上，則被讀作加深。', '命盤中：{list}。那裡實際感受到的成果可能弱於期待；把它用在內涵與學習上，而不是求利。'], gmMiss:['命盤中的其他位置都不落在空亡上。', '命盤中沒有位置受影響。'],
       gmNote:['各流派對空亡的看重程度不同，請僅作參考。', '空亡的權重因流派而異。僅作參考。'],
-      wordHead:['Yeoni 的話', 'Neo 的一句話總結'],
+      wordHead:['Yeoni 的話', 'Yeongnyangi 的一句話總結'],
       word:{'甲':['筆直生長的樹不會一下子長大。這週，把一個大目標切成今天就能邁出的一步。', '定方向是強項。把大目標拆成本週的單位。'], '乙':['藤蔓找到可以依靠的東西，才能伸得很遠。求助也是你的強項，這週先聯絡一個人吧。', '聯結是強項。這週先向一位合作者開口。'], '丙':['太陽自己會發光，但休息的夜晚也很重要。今天為那段一直延後的休息預約一個時段吧。', '表達是強項。先把休息排進行程，避免耗盡。'], '丁':['燈在長時間照亮近處時最溫暖。今天，具體地向身邊的一個人說聲謝謝。', '專注是強項。縮小範圍，做完一件事。'], '戊':['山以不動給人信任。有時也讓風吹過：這週對一個新提議回答「好」。', '穩定是強項。這週試一個新提議。'], '己':['田地會因所種之物而變。在你為別人耕耘的田裡，今天為自己種下一粒種子。', '務實是強項。這週分配一項資源用於投資自己。'], '庚':['鐵遇火成為有用的工具。今天，不要迴避一件磨練你的難事：接下一點。', '果斷是強項。今天開始一件拖延已久的難事。'], '辛':['珠寶經過打理才更閃亮。今天對自己說一次：不完美也沒關係。', '標準很高。練習做到八成就拿出來分享。'], '壬':['大水有堤岸才能流得遠。從你鋪開的諸多興趣裡，選出這週要守住的那一個。', '視野寬廣。這週固定一個優先事項。'], '癸':['露水雖小，卻恰好潤濕需要的地方。記下今天的一個直覺，之後它會成為指引。', '直覺是強項。記下理由並核對。']}},
 
     /* ── flow ── */
@@ -769,7 +769,7 @@
       family: {same:['與自己相同的能量之運，想自己拿主意、自己站穩的心往往會增強。與同事的競爭也可能增多，先定好分成會有幫助。', '比劫運：自立與競爭的議題增多。先為共享資源定好分成與規則。'], drain:['把內在向外傾注的運勢，表達、創作、教學往往順利。很多能量會流出，也請規劃恢復的時間。', '食傷運：表達與產出增多。提高輸出，同時設定管理耗損的標準。'], wealth:['現實成果與金錢引人注目的運勢。適合拓展工作，把能承擔的範圍寫成數字，心會更穩。', '財星運：成果與財務議題增多。用數字定下擴張上限。'], control:['責任與角色變重的運勢。獲得認可的機會會和更大的負擔一同到來，分清哪些要接、哪些要放下。', '官星運：責任與評價壓力增大。區分要接受的角色與要拒絕的角色。'], parent:['學習與幫助到來的運勢。學習、考取證照或遇到好顧問都比較容易，把收到的東西變成小小的行動。', '印星運：學習與支持到來。排好把輸入轉為行動的計畫。']},
       noRel: ['沒有任何位置與你命盤中的字直接相合或相沖。', '與命盤沒有直接的合或沖。'],
       tone: {open:['讀作順暢的運勢。先小規模嘗試你準備好的事。分數是比較用的參考，並不承諾結果。', '判斷上屬較輕鬆的區間。把準備好的事小規模推進。分數不保證結果。'], even:['讀作既不用力推也不用力拉的一般運勢。繼續做手頭的事，不時確認方向即可。分數是比較用的參考，並不承諾結果。', '判斷上屬中間區間。保持進行中的事，確認方向。分數不保證結果。'], care:['讀作需要調整的運勢。放慢速度，理順角色與行程，同一段時期會輕鬆得多。請不要只憑分數做重大決定。', '判斷上屬調整區間。理順行程與角色，保留選擇餘地。不要只憑分數下結論。']},
-      free: '※ 到這裡為止都是免費的。完整的十年運勢、各個流年的詳細內容與綜合解讀，將在下方的會員內容中繼續。'},
+      continueReading: '看過當前大運和今年的走勢後，可在下方大運表中選擇時期，繼續了解逐年的變化。'},
 
     /* ── daily ── */
     da: {
@@ -780,7 +780,7 @@
       boostHead: '幸運加成', boostLabel: '要補的五行', boostNote: ['補充所缺的輕鬆日常小提示。當作一點小小的心情調劑來享受吧。', '補充關鍵平衡五行的日常提示。不保證任何效果。'],
       god: {'비견':['自己的判斷會更清晰的時期。獨自決定也可以，但用一句話寫下理由，以免之後動搖。', '獨立判斷有利。用一句話記錄理由。'], '겁재':['好勝心與幹勁一起上升。把衝動的花費或賭注延後一天，心裡會更輕鬆。', '競爭與衝動增強。衝動的花費擱置一天。'], '식신':['喜悅與點子湧現。把你想到的一個點子，哪怕很小，立刻做成點什麼。', '產出力上升。現在就把一個點子化為行動步驟。'], '상관':['言語與表達有分量。適合演講與創作；合約或正式聲明發出前，請再讀一遍。', '表達增強。正式文件與聲明發布前再次確認。'], '편재':['機會與波動同時變大。先從確認過的小事開始，而不是大的賭注。', '機會與波動都大。以小而已驗證的事項推進。'], '정재':['細緻務實的工作發光的時期。梳理一遍收入與支出，心會變輕。', '準確度上升。整理收支記錄。'], '편관':['你可能感到壓力。與其全部扛下，不如選一件你要堅守的事，堅持住，它會以信任的形式回來。', '壓力來臨。聚焦一項核心責任，會以信任的形式回報。'], '정관':['責任與信任顯現的時期。適合辦理正式文件和手續。', '適合辦理正式手續。明確責任範圍。'], '편인':['直覺變得敏銳。記下浮現的預感，並小範圍地驗證。', '直覺主導。記錄預感並小範圍驗證。'], '정인':['適合學習與整理的好時機。向信任的人請教，思路會變清晰。', '學習與分析高效。請教可信賴的顧問。']},
       tone: {open:['能量以不弱的力度進來。挑一件要做的事先做完，就能順勢而行。', '能量富餘區間。先完成最優先的一件事。'], care:['先照顧好內在電量的時期。稍微放慢，失誤會減少，人際也會緩和。', '能量養護區間。降低速度，多加一個確認步驟。']},
-      sumHead: ['Yeoni 的話', 'Neo 的總結']}
+      sumHead: ['Yeoni 的話', 'Yeongnyangi 的總結']}
   };
 
   var CACHE = {};
@@ -1002,7 +1002,7 @@
         return section(title, body, 'saju-rich__lead saju-flow saju-flow--' + (year ? 'year' : 'period'));
       }).join('');
       if (!html) return '';
-      return wrap(mode, html + '<p class="saju-rich__note">' + esc(f.free) + '</p>', facts);
+      return wrap(mode, html + '<p class="saju-rich__note">' + esc(f.continueReading) + '</p>', facts);
     }
 
     /* ── daily ── */

@@ -1,24 +1,4 @@
 /**
- * 모바일 하단 네비게이션 스킨 — **App Router 전용**이다.
- *
- * 🔴 정적 셸은 이 파일을 쓰지 않는다. 셸에는 자기 탭바(#cdMobileBottomNav /
- *    .cd-mobile-bottom-nav)가 index.html 인라인 CSS 로 따로 있고 클래스를 하나도 공유하지
- *    않는다(실측 2026-08-24: index.html 의 `cd-mnav__` 히트 0). 그래서 여기를 고쳐도 셸
- *    홈은 변하지 않는다 — 예전 주석이 "셸과 공용"이라고 적어 두어 반대로 읽히던 자리다.
- * 탭 정의 정본은 app/_lib/mobile-tabs.ts (렌더러는 app/components/MobileBottomNav.tsx).
- *
- * 팔레트가 따르는 축은 OS 선호도가 아니라 **그 화면이 칠한 표면**이다.
- *   - 기본: 네오 미드나잇. App Router 의 body 는 styles/globals.css 에서 #0a0818 로 고정이고
- *     이 탭바가 뜨는 라우트는 거의 전부 그 위에 그려진다.
- *   - 예외: 자기 표면을 연이로 칠하는 화면(/fortune/{period} 계열). 그쪽은 아래
- *     `body:has(main.cd-yeoni-surface)` 스코프가 연이 스킨으로 되돌린다.
- *   - /app/** 는 styles/app-shell.css 가 `.cd-app-shell .cd-mnav` 로 앱 팔레트를 덮는다.
- *
- * 🔴 표면·테두리·잉크·활성 상태는 반드시 한 세트로 바꾼다. 배경만 덮으면 반대 팔레트의
- *    잉크가 남아 대비가 무너진다 — CLAUDE.md 가 "반쪽 오버라이드"로 금지한 패턴이다.
- */
-
-/**
  * 하단 네비가 차지하는 높이. 자체 sticky CTA 를 가진 화면이 이 값만큼 위로 올라오면 된다.
  * 소비처가 11곳이라(app/app/_components/AppShell.tsx · master-love-codex · neo-war-room ·
  * destiny-compass …) 데스크탑 접힘도 **이 변수 하나만** 바꿔 전파한다 — 소비처를 따로 고치지 않는다.
@@ -29,7 +9,7 @@
  */
 :root {
   /* 렌더된 바의 **바깥 높이**다 — 토큰이 아니라 실측값이다.
-     모바일(기본): 상단 패딩 6 + 손잡이 줄 16 + 링크 50 + 하단 여유 12 = 84
+     모바일(기본): 패널 실측 약 86 + 바닥 간격 6 = 92
      접힌 상태에는 44px 손잡이만 남아 다시 펼칠 수 있다.
      데스크탑(아래 769px 블록)은 바닥에서 띄운 도크라 따로 준다.
      🔴 예전 값 56px 는 바 자신의 패딩 14px 를 빼먹은 값이라, --cd-mnav-offset 을 쓰는
@@ -38,7 +18,7 @@
      .cd-mnav 의 패딩이나 .cd-mnav__link 의 높이를 바꾸면 여기도 다시 재서 고친다.
      🔴 기본값은 반드시 **큰 쪽(모바일)** 이어야 한다 — __tests__/ui/mobile-bottom-nav-geometry
      .static.test.js 가 이 :root 블록 하나만 읽어 부품 합과 대조하기 때문이다. */
-  --cd-mnav-bar-h: 84px;
+  --cd-mnav-bar-h: 92px;
   --cd-mnav-handle-h: 44px;
   --cd-mnav-offset: calc(var(--cd-mnav-bar-h) + env(safe-area-inset-bottom, 0px));
 }
@@ -58,24 +38,26 @@ body.cd-mnav-mounted .cd-feature-nav {
 
 .cd-mnav {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: max(15px, env(safe-area-inset-left, 0px));
+  right: max(15px, env(safe-area-inset-right, 0px));
+  bottom: 6px;
   z-index: 960;
   display: block;
   /* 🔴 기하 정적 테스트가 이 shorthand 의 첫 값을 px 숫자로 읽는다 — 단위 없는 0 은 못 읽는다. */
   padding: 6px max(12px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px))
     max(12px, env(safe-area-inset-left, 0px));
-  background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(13, 10, 30, 0.98));
-  border-top: 1px solid rgba(196, 181, 253, 0.22);
+  background: var(--cd-nav-bg);
+  border-top: 1px solid var(--cd-nav-line);
   /* Glow-Not-Shadow: rest 는 앰비언트 없이 shade + 얇은 내부 하이라이트만 */
-  box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(228, 214, 255, 0.08);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--cd-nav-shadow);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transform: translateY(0);
   opacity: 1;
   transition: transform 0.2s ease, opacity 0.2s ease;
   will-change: transform;
+  border-radius: 20px;
+  border: 1px solid var(--cd-nav-line);
 }
 
 .cd-mnav__list {
@@ -102,13 +84,13 @@ body.cd-mnav-mounted .cd-feature-nav {
   min-height: 48px;
   padding: 4px 2px;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: 14px;
   background: transparent;
-  color: rgba(222, 215, 245, 0.88);
+  color: var(--cd-nav-muted);
   font: inherit;
-  font-size: 0.6875rem; /* 11px */
-  font-weight: 800;
-  line-height: 1.1;
+  font-size: 0.75rem; /* clear 12px labels, within the existing dock height */
+  font-weight: 600;
+  line-height: 1;
   text-align: center;
   text-decoration: none;
   touch-action: manipulation;
@@ -123,9 +105,6 @@ body.cd-mnav-mounted .cd-feature-nav {
   font-size: 1.125rem;
   line-height: 24px;
 }
-
-/* 접기 손잡이는 모바일에서는 바 안쪽의 짧은 조작 줄로 둔다. 현재 네비의
-   미드나잇/연이 표면은 유지하고, 손잡이는 접힌 상태에서만 작은 판으로 보인다. */
 .cd-mnav__handle {
   position: relative;
   display: flex;
@@ -139,7 +118,7 @@ body.cd-mnav-mounted .cd-feature-nav {
   padding: 0;
   border: 0;
   background: transparent;
-  color: rgba(222, 215, 245, 0.88);
+  color: var(--cd-nav-muted);
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -156,7 +135,7 @@ body.cd-mnav-mounted .cd-feature-nav {
 }
 
 .cd-mnav__handle:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--cd-nav-active);
   outline-offset: 2px;
 }
 
@@ -180,23 +159,31 @@ body.cd-mnav-mounted .cd-feature-nav {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-/* 활성 탭 — accent 는 트와일라잇 바이올렛 하나로 끝낸다(One Accent Rule).
-   상태가 바뀌는 자리이므로 여기서만 글로우를 쓴다.
-   달빛 예화 장식 ③(달무리): 마지막 그림자가 넓고 옅은 후광이다. 🔴 **색상은 손대지 않는다** —
-   기존 강조색(바이올렛)의 알파만 퍼뜨리므로 One Accent Rule·Hue-Stays Rule 에 걸리지 않는다. */
+/* 좁은 폭에서 "재밌는 운세" 같은 긴 라벨이 말줄임되지 않게 한다 — 바 높이는 그대로 두고
+   칸 사이 간격·좌우 여백만 줄이고(400 이하), 자간(360 이하)과 글자 크기(340 이하)를 단계로 낮춘다.
+   실측(11px/800): "재밌는 운세" 59px, 칸 안쪽 폭 320=49 · 360=56 · 390=59. */
+@media (max-width: 400px) {
+  .cd-mnav__list { gap: 2px; }
+  .cd-mnav__link { padding-inline: 0; }
+}
+@media (max-width: 360px) {
+  .cd-mnav__label { letter-spacing: -0.04em; }
+}
+@media (max-width: 340px) {
+  .cd-mnav__link { font-size: 0.625rem; }
+  .cd-mnav__label { letter-spacing: -0.08em; }
+}
 .cd-mnav__link[aria-current="page"],
 .cd-mnav__link.is-active {
-  transform: translateY(-2px);
-  border-color: rgba(196, 181, 253, 0.52);
-  background: rgba(196, 181, 253, 0.16);
-  color: #f7f3ff;
-  box-shadow: 0 6px 18px -8px rgba(167, 139, 250, 0.5), inset 0 1px 0 rgba(228, 214, 255, 0.14),
-    0 0 22px -4px rgba(196, 181, 253, 0.38);
+  transform: none;
+  border-color: var(--cd-nav-line);
+  background: var(--cd-nav-active-bg);
+  color: var(--cd-nav-active);
+  box-shadow: none;
 }
 
 .cd-mnav__link:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 2px solid var(--cd-nav-active);
   outline-offset: 2px;
 }
 
@@ -247,97 +234,16 @@ body.cd-mnav-collapsed .cd-mnav__handle {
   width: 88px;
   height: var(--cd-mnav-handle-h);
   margin: 0 auto;
-  border: 1px solid rgba(196, 181, 253, 0.22);
+  border: 1px solid var(--cd-nav-line);
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(13, 10, 30, 0.98));
-  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.34);
+  background: var(--cd-nav-bg);
+  box-shadow: var(--cd-nav-shadow);
   pointer-events: auto;
 }
 
 body.cd-mnav-collapsed .cd-mnav__chevron {
   top: 20px;
   transform: rotate(-135deg);
-}
-
-/*
- * 연이 표면을 직접 칠하는 화면의 탭바 — 현재는 /fortune/{period} 계열 둘뿐이다
- * (app/fortune/[period]/page.tsx · app/fortune/[period]/[sign]/SignFortuneView.tsx).
- * 그 화면들은 <main> 에 .cd-yeoni-surface 를 달고, body:has() 로 여기까지 신호를 올린다
- * (styles/globals.css 의 `body:has(main.moon-shop)` 과 같은 방식).
- *
- * 🔴 이 스코프가 OS 선호도(prefers-color-scheme)를 그대로 쓰는 이유: 그 화면들의 배경이
- *    Tailwind `dark:` 로 갈리는데 이 저장소는 darkMode 설정이 없어 media 전략이다. 즉 표면
- *    자체가 OS 를 따르므로 탭바도 같은 축을 써야 짝이 맞는다.
- *    반대로 기본 스킨은 OS 를 보면 안 된다 — body 가 #0a0818 고정이라 OS 가 라이트든 다크든
- *    미드나잇이기 때문이다. 예전에는 기본 스킨이 OS 를 따라서, 네오 페이지 아래에 크림 바
- *    (라이트) 나 플럼 바(다크) 가 붙었다.
- */
-body:has(main.cd-yeoni-surface) .cd-mnav {
-  background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 241, 224, 0.96));
-  border-top-color: rgba(244, 190, 209, 0.42);
-  box-shadow: 0 -12px 28px rgba(179, 25, 85, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.86);
-}
-
-body:has(main.cd-yeoni-surface) .cd-mnav__link {
-  color: #7a3457;
-}
-
-body:has(main.cd-yeoni-surface) .cd-mnav__link[aria-current="page"],
-body:has(main.cd-yeoni-surface) .cd-mnav__link.is-active {
-  border-color: rgba(244, 190, 209, 0.66);
-  background: linear-gradient(150deg, rgba(255, 248, 220, 0.96), rgba(244, 190, 209, 0.72));
-  color: #7a1038;
-  /* 달무리 — 기존 로즈 강조색의 알파만 퍼뜨린다(색상 축 불변). */
-  box-shadow: 0 8px 20px rgba(179, 25, 85, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.88),
-    0 0 22px -4px rgba(244, 190, 209, 0.72);
-}
-
-body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
-  outline-color: #b31955;
-}
-
-body:has(main.cd-yeoni-surface).cd-mnav-collapsed .cd-mnav__handle {
-  border-color: rgba(244, 190, 209, 0.42);
-  background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 245, 230, 0.96));
-  color: #7a3457;
-  box-shadow: 0 -6px 18px rgba(179, 25, 85, 0.18);
-}
-
-body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
-  outline-color: #b31955;
-}
-
-/* 연이 다크(딥 플럼) — DESIGN.md "연이 Dark" 팔레트. 표면·텍스트·강조를 한 세트로 바꾼다. */
-@media (prefers-color-scheme: dark) {
-  body:has(main.cd-yeoni-surface) .cd-mnav {
-    background: linear-gradient(180deg, #3a0e28, #24081a);
-    border-top-color: rgba(244, 190, 209, 0.16);
-    box-shadow: 0 -12px 28px rgba(174, 45, 104, 0.32), inset 0 1px 0 rgba(255, 214, 232, 0.14);
-  }
-
-  body:has(main.cd-yeoni-surface) .cd-mnav__link {
-    color: rgba(255, 214, 232, 0.86);
-  }
-
-  body:has(main.cd-yeoni-surface) .cd-mnav__link[aria-current="page"],
-  body:has(main.cd-yeoni-surface) .cd-mnav__link.is-active {
-    border-color: rgba(255, 196, 222, 0.5);
-    background: linear-gradient(150deg, rgba(179, 25, 85, 0.62), rgba(174, 45, 104, 0.36));
-    color: #fff1f7;
-    box-shadow: 0 8px 20px rgba(174, 45, 104, 0.42), inset 0 1px 0 rgba(255, 214, 232, 0.2),
-      0 0 22px -4px rgba(255, 196, 222, 0.4);
-  }
-
-  body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
-    outline-color: #f4bed1;
-  }
-
-  body:has(main.cd-yeoni-surface).cd-mnav-collapsed .cd-mnav__handle {
-    border-color: rgba(244, 190, 209, 0.38);
-    background: linear-gradient(180deg, #3a0e28, #2c0a20);
-    color: rgba(255, 214, 232, 0.86);
-    box-shadow: 0 -6px 18px rgba(174, 45, 104, 0.34);
-  }
 }
 
 /* 데스크탑 표현 — 바닥에서 띄운 도크 패널. */
@@ -364,6 +270,10 @@ body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
     -webkit-backdrop-filter: none;
     /* 도크 좌우의 빈 폭이 아래 콘텐츠 클릭을 먹지 않게 한다. 표적은 리스트에서 되살린다. */
     pointer-events: none;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 0;
   }
 
   .cd-mnav__handle {
@@ -374,11 +284,11 @@ body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
     width: 72px;
     height: var(--cd-mnav-handle-h);
     margin: 0 0 0 -36px;
-    border: 1px solid rgba(196, 181, 253, 0.22);
+    border: 1px solid var(--cd-nav-line);
     border-bottom: 0;
     border-radius: 10px 10px 0 0;
-    background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(18, 14, 40, 0.98));
-    color: rgba(222, 215, 245, 0.88);
+    background: var(--cd-nav-bg);
+    color: var(--cd-nav-muted);
   }
 
   .cd-mnav__handle::before {
@@ -390,8 +300,8 @@ body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
   }
 
   .cd-mnav__handle:hover {
-    background: linear-gradient(180deg, rgba(34, 28, 68, 0.98), rgba(24, 20, 52, 0.98));
-    color: #f7f3ff;
+    background: var(--cd-nav-bg);
+    color: var(--cd-nav-muted);
   }
 
   body.cd-mnav-collapsed .cd-mnav__handle {
@@ -411,60 +321,15 @@ body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
     max-width: 620px;
     padding: 6px;
     gap: 6px;
-    border: 1px solid rgba(196, 181, 253, 0.24);
+    border: 1px solid var(--cd-nav-line);
     border-radius: 22px;
-    background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(13, 10, 30, 0.98));
-    box-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(228, 214, 255, 0.08);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: var(--cd-nav-bg);
+    box-shadow: var(--cd-nav-shadow);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   /* 패널 상단 가름선은 두지 않는다 — 패널이 이미 4면 테두리를 갖는다. */
-
-  /* 연이 표면(/fortune/{period} 계열) — 표면·테두리·잉크를 한 세트로 맞춘다. */
-  body:has(main.cd-yeoni-surface) .cd-mnav__list {
-    border-color: rgba(244, 190, 209, 0.42);
-    background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 245, 230, 0.96));
-    box-shadow: 0 18px 44px -18px rgba(122, 52, 87, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  }
-
-  body:has(main.cd-yeoni-surface) .cd-mnav__handle {
-    border-color: rgba(244, 190, 209, 0.42);
-    background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 245, 230, 0.96));
-    color: #7a3457;
-  }
-
-  body:has(main.cd-yeoni-surface) .cd-mnav__handle:hover {
-    background: linear-gradient(180deg, #fffdf7, rgba(255, 248, 236, 0.98));
-    color: #7a1038;
-  }
-
-  body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
-    outline-color: #b31955;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    body:has(main.cd-yeoni-surface) .cd-mnav__list {
-      border-color: rgba(244, 190, 209, 0.38);
-      background: linear-gradient(180deg, #3a0e28, #2c0a20);
-      box-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 214, 232, 0.12);
-    }
-
-    body:has(main.cd-yeoni-surface) .cd-mnav__handle {
-      border-color: rgba(244, 190, 209, 0.38);
-      background: linear-gradient(180deg, #3a0e28, #2c0a20);
-      color: rgba(255, 214, 232, 0.86);
-    }
-
-    body:has(main.cd-yeoni-surface) .cd-mnav__handle:hover {
-      background: linear-gradient(180deg, #47122f, #3a0e28);
-      color: #fff1f7;
-    }
-
-    body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
-      outline-color: #f4bed1;
-    }
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -484,3 +349,5 @@ body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
     transform: none;
   }
 }
+
+.cd-mnav__icon--home{background:currentColor;mask:url("/images/navigation/home.svg?v=flower-20261028") center/contain no-repeat}

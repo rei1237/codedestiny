@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const SUKUYO_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    metaTitle: "숙요 27숙과 궁합 구조 | Code Destiny",
+    metaTitle: "숙요 27숙과 궁합 구조 | 꿀꿀 운세",
     observe: "숙요점이 살피는 것",
     inputs: "필요한 입력값",
     useCases: "언제 참고하면 좋은가",
@@ -29,7 +29,7 @@ export function generateMetadata() {
     title: sukuyoGuideText("metaTitle"),
     description:
       "숙요점의 27숙 구조, 본명숙과 상대 숙의 관계, 업태관계·영친·안괴·성위의 차이, 무료·유료 해석 범위를 안내합니다.",
-    keywords: ["숙요점 가이드", "27숙", "숙요 궁합", "본명숙", "업태관계 뜻", "영친·안괴·성위", "Code Destiny"],
+    keywords: ["숙요점 가이드", "27숙", "숙요 궁합", "본명숙", "업태관계 뜻", "영친·안괴·성위", "꿀꿀운세"],
   });
 }
 
@@ -57,7 +57,7 @@ const faqItems = [
   {
     question: "생년월일만으로 충분한가요?",
     answer:
-      "현재 Code Destiny는 출생 순간의 달 항성황경을 사용합니다. 생년월일만 입력하면 화면의 기본 시각을 사용한 참고 결과로 읽어야 합니다. 출생시간을 모르면 확정값으로 인용하지 말고, 다른 도구와 비교할 때 시각·시간대와 음력 날짜표 사용 여부를 확인하세요.",
+      "현재 꿀꿀운세는 출생 순간의 달 항성황경을 사용합니다. 생년월일만 입력하면 화면의 기본 시각을 사용한 참고 결과로 읽어야 합니다. 출생시간을 모르면 확정값으로 인용하지 말고, 다른 도구와 비교할 때 시각·시간대와 음력 날짜표 사용 여부를 확인하세요.",
   },
   {
     question: "상대의 동의 없이 궁합을 봐도 되나요?",
@@ -88,7 +88,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "숙요점 서비스",
-      keywords: ["숙요점 가이드", "27숙", "숙요 궁합", "본명숙", "업태관계 뜻", "영친·안괴·성위", "Code Destiny"],
+      keywords: ["숙요점 가이드", "27숙", "숙요 궁합", "본명숙", "업태관계 뜻", "영친·안괴·성위", "꿀꿀운세"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),
@@ -102,7 +102,7 @@ export default function SukuyoGuidePage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">숙요 27숙과 궁합 구조</h1>
         <p className="cd-main-intro">
-          숙요점은 달의 별자리 흐름을 27개의 숙으로 나누어 사람의 기질과 관계의 거리를 읽는 동양 점술 체계입니다. Code Destiny의 숙요 해석은 관계를 겁주거나 단정하지 않고, 서로 다른 리듬을 이해하는 상담 언어로 풀어냅니다.
+          숙요점은 달의 별자리 흐름을 27개의 숙으로 나누어 사람의 기질과 관계의 거리를 읽는 동양 점술 체계입니다. 꿀꿀운세의 숙요 해석은 관계를 겁주거나 단정하지 않고, 서로 다른 리듬을 이해하는 상담 언어로 풀어냅니다.
         </p>
       </header>
 
@@ -171,7 +171,7 @@ export default function SukuyoGuidePage() {
       <section className="cd-card">
         <h2>{sukuyoGuideText("caution")}</h2>
         <p>
-          숙요 궁합은 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 결혼, 이혼, 이별, 재회, 소송, 치료, 투자처럼 중대한 결정은 숙요 결과만으로 정하지 말고 현실 정보와 전문가 조언을 함께 확인해야 합니다.
+          숙요 궁합은 자기 성찰을 위한 참고 자료입니다. 결혼, 이혼, 이별, 재회, 소송, 치료, 투자처럼 중대한 결정은 숙요 결과만으로 정하지 말고 현실 정보와 전문가 조언을 함께 확인해야 합니다.
         </p>
       </section>
 
@@ -189,7 +189,7 @@ export default function SukuyoGuidePage() {
       <nav className="cd-chip-wrap" aria-label="숙요점 가이드 관련 링크">
         <Link href="/sukuyo" className="cd-chip">숙요점 서비스</Link>
         <Link href="/sukuyo/compatibility" className="cd-chip">숙요 궁합</Link>
-        <Link href="/oracle/sukuyo" className="cd-chip">숙요 오라클</Link>
+        <Link href="/sukuyo" className="cd-chip">숙요 오라클</Link>
         <Link href="/insights/sukuyo" className="cd-chip">숙요 인사이트</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>

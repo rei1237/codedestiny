@@ -1,0 +1,113 @@
+{
+  "id": "yeongnyangi-saju-tuna",
+  "featureKey": "yeongnyangi-saju-tuna",
+  "title": "영냥이 사주 참치 상담",
+  "notice": "장기 흐름 도식과 대화는 이해를 돕기 위한 편집 예시이며 실제 고객 결과가 아닙니다. 질문 상담과 전체 성향 리포트는 별도 선택 흐름입니다. 대운·세운은 미래 사건의 확정 날짜나 성공 확률이 아닙니다. 계산 가능한 출생 정보와 시기 근거 안에서 해석합니다. 가격과 추가 질문 조건은 기존 상담 준비 화면에서 확인해 주세요.",
+  "panels": [
+    {
+      "id": "01-next-season",
+      "title": "다음 시기에도, 지금처럼 살아도 될까요.",
+      "alt": "마법사 고양이 영냥이가 네 기둥과 다섯 원소를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-saju.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "다음 시기에도,\n지금처럼 살아도 될까요.\n\n하나의 결정 너머,\n일과 관계와 생활의 방향을 묻고 싶다면.\n\n영냥이 사주 · 참치\n지금과 다음 시기를 이어 읽는 상담.",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-saju-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-saju-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-saju-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-time-map",
+      "title": "한 해의 날씨와, 긴 계절의 배경을 나눠요.",
+      "alt": "원국, 대운, 세운을 바탕, 긴 시기의 배경, 해마다의 변화로 구분하는 개념 시간지도.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-tuna/02-time-map.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 해의 날씨와,\n긴 계절의 배경을 나눠요.\n\n시간을 읽는 개념도 · 개인 계산값 아님\n\n원국\n\n타고난 바탕과 반복되는 습관\n\n대운\n\n약 10년 주기로 바뀌는 배경\n\n세운\n\n해마다 더해지는 변화\n\n같은 기질도 시기에 따라\n쓰임과 부담이 달라질 수 있어요.\n\n출생 시간 등 계산 조건이 부족하면\n시점을 단정하지 않고 한계를 설명해요."
+    },
+    {
+      "id": "03-transition-question",
+      "title": "긴 흐름을 묻는 질문은, 현재의 과제에서 시작해요.",
+      "alt": "장기 전환 질문 상담 앞부분의 기질, 강점, 답과 근거, 주기와 전환, 회복과 시나리오 대응 목차.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-tuna/03-transition-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "긴 흐름을 묻는 질문은,\n현재의 과제에서 시작해요.\n\n질문 상담 · 장기 흐름 질문의 구성 예\n\n나의 바탕과 질문의 답\n\n기질과 오행 · 강점과 부담.\n지금과 다음 시기에 달라지는 과제,\n판단의 근거와 기회·주의 조건.\n\n전환을 지나가는 방법\n\n지금의 주기 · 전환점 · 생활 리듬.\n무리하지 않을 시기와 회복 루틴,\n시나리오별 대응을 살펴요.\n\n변화의 날짜를 만들어 내지 않아요.\n근거가 있을 때 시기를 함께 설명합니다."
+    },
+    {
+      "id": "04-question-life",
+      "title": "질문 하나를 풀면서, 삶의 여러 면도 함께.",
+      "alt": "장기 질문 상담에서 인생 전반의 열두 영역과 마지막 종합 실행 계획을 살핀다.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-tuna/04-question-life.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문 하나를 풀면서,\n삶의 여러 면도 함께.\n\n질문 상담 · 삶의 영역\n\n성향이 삶에 미치는 영향\n재물 · 직업과 적성\n연애와 결혼 · 가족과 대인 관계\n건강 리듬\n\n10년 주기의 흐름\n올해의 월별 흐름 · 내년 예고\n강점을 활용하는 법\n주의할 시기 · 운을 여는 실행\n\n마지막은 종합 해석과 실행 계획.\n\n지원되는 계산 범위와 입력 조건에\n따라 시기 해석의 구체성이 달라집니다."
+    },
+    {
+      "id": "05-personal-foundation",
+      "title": "질문 없이 나를 읽는다면, 기질에서 일과 돈까지.",
+      "alt": "별도 기본 사주 전체 성향 리포트의 첫 열 목차. 일간, 오행, 사랑, 표현, 결혼, 재물, 책임과 압박.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-tuna/05-personal-foundation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문 없이 나를 읽는다면,\n기질에서 일과 돈까지.\n\n전체 성향 리포트 · 기본 사주 1~10장\n\n타고난 중심과 힘의 균형\n넘치는 기운과 모자란 기운\n타고난 연애 스타일\n다정하게 전하는 마음(식신)\n날이 선 매력(상관)\n결혼운과 배우자 자리\n지키고 쌓는 돈(정재)\n굴리고 불리는 돈(편재)\n조직과 책임(정관)\n압박과 돌파(편관)"
+    },
+    {
+      "id": "06-personal-relations",
+      "title": "배우고, 관계 맺고, 나를 돌보는 방식.",
+      "alt": "기본 성향 리포트 11~19장의 배움, 동료, 가족, 회복, 귀인과 보완 기운 목차.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-tuna/06-personal-relations.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "배우고, 관계 맺고,\n나를 돌보는 방식.\n\n전체 성향 리포트 · 기본 사주 11~19장\n\n정석의 배움(정인)\n직관과 비주류 배움(편인)\n나란히 걷는 사람(비견)\n겨루는 사람(겁재)\n부모와 뿌리\n자녀와 인생 후반\n몸의 리듬과 회복\n귀인과 강한 기운의 신호\n나를 살리는 기운\n(용신·종격 판정)"
+    },
+    {
+      "id": "07-personal-timing",
+      "title": "큰 시기와 가까운 변화, 다른 눈금으로 읽어요.",
+      "alt": "기본 성향 리포트 20~28장의 대운, 연간과 월간 흐름, 연애와 결혼, 이동 목차.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-tuna/07-personal-timing.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "큰 시기와 가까운 변화,\n다른 눈금으로 읽어요.\n\n전체 성향 리포트 · 기본 사주 20~28장\n\n대운으로 보는 인생의 굴곡\n지금의 대운\n다음 대운과 준비\n올해와 내년\n앞으로 12개월\n앞으로 8년의 세운\n연애운의 흐름\n결혼운이 움직이는 시기\n이동수와 해외운\n\n기본 성향 28장의 목차예요.\n질문 상담에 합산되는 항목이 아닙니다."
+    },
+    {
+      "id": "08-scenario",
+      "title": "전환이 온다는 말 뒤에, 내가 준비할 것을 남겨요.",
+      "alt": "다음 시기를 기다리며 현실의 일과 생활을 작은 시도로 점검하는 가상의 문장 예시.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-tuna/08-scenario.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "전환이 온다는 말 뒤에,\n내가 준비할 것을 남겨요.\n\n이해를 돕기 위한 편집 예시\n\n다음 시기를 기다리는 동안,\n바꾸고 싶은 일을\n작은 규모로 먼저 해 보자.\n\n실제 고객 결과가 아닌 행동 예시예요.\n대운의 변화를 성공의 보장으로\n해석하지 않습니다."
+    },
+    {
+      "id": "09-reading-method",
+      "title": "많은 분야를, 하나의 삶으로 연결하도록.",
+      "alt": "제작자의 경력과 AI 해설을 구분하고 십성, 용신 등 용어를 생활 선택으로 해석하는 방법.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-tuna/09-reading-method.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "많은 분야를,\n하나의 삶으로 연결하도록.\n\n10년 경력 운세 상담사·명리학자가\n만든 서비스입니다.\n\n용어를 생활의 말로\n\n십성은 역할과 관계의 방식으로,\n용신은 균형을 돕는 방향으로 읽어요.\n\n강점과 그림자를 함께\n\n기운이 많다고 더 좋은 것은 아니에요.\n과할 때 생기는 부담도 살펴요.\n\n계산 결과를 바탕으로 AI가 해설해요.\n사람이 결과마다 직접 답하지 않습니다.\n건강 해석은 의료적 진단이 아닙니다."
+    },
+    {
+      "id": "10-ready",
+      "title": "다음 계절을 묻는 지금, 첫 질문을 준비해 주세요.",
+      "alt": "기차역 이미지와 함께 출생 정보, 현재 고민, 살펴볼 기간을 준비하도록 마무리한다.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-tuna/10-ready.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다음 계절을 묻는 지금,\n첫 질문을 준비해 주세요.\n\n출생 정보와 현재의 고민,\n살펴보고 싶은 기간을 확인해 주세요.\n\n두 사람을 함께 비교하는 질문은\n관계 범위의 다른 구성을 살펴봐요.\n\n영냥이 사주 · 참치\n미래를 정해 두기보다,\n오늘의 선택을 넓히는 시간."
+    }
+  ]
+}

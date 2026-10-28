@@ -1,6 +1,6 @@
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { isDbUnavailableError, HttpError, json, methodNotAllowed, readJson } from "../lib/http.js";
-import { hasPurchasedAccountContentAccess } from "../lib/paid-content-read-access.js";
+import { readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { buildBasicDeepReport, toNatalReadingChart, validateBasicDeepInput } from "../lib/astro-basic-deep-report.js";
 import { calculateBasicAstrologyChart, normalizeBasicAstrologyInput } from "./astro.js";
@@ -26,22 +26,38 @@ export async function handleAstroBasicDeep(request, env = {}) {
       ok: false, reason: "LOGIN_REQUIRED", message: "로그인 후 상세 해석을 확인해 주세요.",
     }, { status: 401 });
 
-    let unlocked;
+    const body = await readJson(request);
+    let access;
     try {
-      unlocked = await hasPurchasedAccountContentAccess(env, { userId: auth.userId, featureKey: FEATURE_KEY });
+      access = await readProfileBirthUnlock(env, { userId: auth.userId, profileId: body?.profileId, featureKey: FEATURE_KEY });
     } catch {
       return degraded();
     }
-    if (!unlocked) {
+    if (!access.ok) {
+      const missing = access.reason === "MISSING_PROFILE_ID";
+      return json({
+        ok: false, reason: access.reason, code: access.reason, featureKey: FEATURE_KEY, requiresProfile: true,
+        message: missing ? "프로필을 저장한 뒤 구매해 주세요." : "저장된 내 프로필을 선택해 주세요.",
+      }, { status: missing ? 400 : 403 });
+    }
+    if (!access.unlocked) {
       const { pricing } = getBillingFeaturePricing({ featureKey: FEATURE_KEY });
       return json({
         ok: false, reason: "PAYMENT_REQUIRED", featureKey: FEATURE_KEY,
-        message: "이용권·월정석·단건 결제로 해금한 뒤 상세 해석을 확인해 주세요.",
+        message: "이 생년월일은 별도 구매가 필요합니다.",
         amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice,
       }, { status: 402 });
     }
+    if (!access.birth) throw new HttpError(400, "프로필의 출생 정보를 확인해 주세요.", { code: "ASTRO_INVALID_BIRTH_INPUT" });
 
-    const input = validateBasicDeepInput(await readJson(request));
+    // 🔴 해금은 프로필의 출생 정보 단위다 — 계산도 저장된 프로필의 생년월일·시각으로만 한다(본문 값 무시).
+    //    출생지·시간대는 신원(birthKey)에 들어가지 않으므로 요청 값을 쓴다.
+    const input = validateBasicDeepInput({
+      ...(body && typeof body === "object" ? body : {}),
+      date: access.birth.date,
+      time: access.birth.time,
+      timeKnown: access.birth.timeKnown,
+    });
     const normalized = normalizeBasicAstrologyInput(input);
     if (!normalized.ok) throw new HttpError(400, "출생 정보와 시간대를 확인해 주세요.", { code: "ASTRO_INVALID_BIRTH_INPUT" });
     const chart = await calculateBasicAstrologyChart(normalized.value, request, env);

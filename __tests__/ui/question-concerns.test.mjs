@@ -19,7 +19,7 @@ test('102 unique concerns keep legacy identifiers, valid catalog contracts and s
  for(const q of m.concernGuides.slice(m.questionGuides.length))assert.equal(m.questionOffer(q).kind.question,true);
 });
 test('question entry quotes the scope price and leaves confirmation to the user',()=>{
- for(const [id,fish,price] of [['mind','mackerel',3000],['career','salmon',9000],['money','salmon',9000],['distance','flounder',15000]]){
+ for(const [id,fish,price] of [['mind','mackerel',5000],['career','salmon',10000],['money','salmon',10000],['distance','flounder',15000]]){
   const entry=m.questionScopeEntry(m.getQuestionGuide(id));
   assert.equal(entry.product.fishId,fish);assert.equal(entry.product.priceKRW,price);
   assert.equal(entry.decision.confirmed,false);assert.ok(entry.plan.missing.length>0);
@@ -30,7 +30,7 @@ test('question entry quotes the scope price and leaves confirmation to the user'
 test('home question links quote the same recommended product as the question entry',()=>{
  const html=readFileSync('index.html','utf8');
  const links=[...html.matchAll(/<a\b[^>]*href="\/yeongnyangi\/\?question=([^"&#]+)[^"]*"[^>]*data-cd-price-key="([^"]+)"[^>]*>/g)];
- assert.ok(links.length>0);
+ // 2026-10-17 "직관성": 홈의 질문 링크는 걷어냈다. 다시 생기면 질문 입구와 같은 상품을 가리켜야 한다.
  for(const [,id,key] of links)assert.equal(key,m.questionScopeEntry(m.getQuestionGuide(id)).product.cdFeatureKey,id);
 });
 test('search, empty state, categories, pagination and selected consultation work without logging search text',async()=>{

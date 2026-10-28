@@ -8,7 +8,7 @@ import { resolveLocale } from "../_lib";
 
 const PAGE_COPY = {
   en: {
-    title: "Terms of Service | Code Destiny",
+    title: "Terms of Service | 꿀꿀 운세",
     description:
       "Code Destiny's Terms of Service: service rules, disclaimers, liability limits, refund and withdrawal policy, and dispute handling principles.",
     heading: "Terms of Service",
@@ -22,8 +22,8 @@ const PAGE_COPY = {
     translationNotice: "This page is a machine-assisted translation for reference. In case of any discrepancy, the Korean-language original at /terms-of-service governs.",
   },
   ja: {
-    title: "利用規約 | Code Destiny",
-    description: "Code Destinyの利用規約です。サービス利用ルール、免責、責任制限、返金・契約解除ポリシー、紛争処理の原則を案内します。",
+    title: "利用規約 | 꿀꿀 운세",
+    description: "꿀꿀운세の利用規約です。サービス利用ルール、免責、責任制限、返金・契約解除ポリシー、紛争処理の原則を案内します。",
     heading: "利用規約",
     lede: "本サービスの利用条件、有料商品の返金・契約解除基準、当社と利用者の権利・義務を整理した文書です。",
     toc: "目次",
@@ -35,8 +35,8 @@ const PAGE_COPY = {
     translationNotice: "本ページは参考用の機械補助翻訳です。内容に相違がある場合は、韓国語原文（/terms-of-service）が優先します。",
   },
   zh: {
-    title: "服务条款 | Code Destiny",
-    description: "Code Destiny 服务条款说明服务使用规则、免责声明、责任限制、退款与撤回政策与争议处理原则。",
+    title: "服务条款 | 꿀꿀 운세",
+    description: "꿀꿀운세 服务条款说明服务使用规则、免责声明、责任限制、退款与撤回政策与争议处理原则。使用服务前请阅读完整条款与相关政策，了解各项条件的适用范围。",
     heading: "服务条款",
     lede: "本文档说明 Code Destiny 服务的使用条件、付费商品的退款与撤回标准，以及公司与用户之间的权利义务。",
     toc: "目录",
@@ -48,8 +48,8 @@ const PAGE_COPY = {
     translationNotice: "本页面为参考用的机器辅助翻译。如与韩语原文（/terms-of-service）存在出入，以韩语原文为准。",
   },
   "zh-TW": {
-    title: "服務條款 | Code Destiny",
-    description: "Code Destiny 服務條款說明服務使用規則、免責聲明、責任限制、退款與撤回政策與爭議處理原則。",
+    title: "服務條款 | 꿀꿀 운세",
+    description: "꿀꿀운세 服務條款說明服務使用規則、免責聲明、責任限制、退款與撤回政策與爭議處理原則。使用服務前請閱讀完整條款與相關政策，了解各項條件的適用範圍。",
     heading: "服務條款",
     lede: "本文件說明 Code Destiny 服務之使用條件、付費商品之退款與撤回標準，以及公司與使用者之間之權利義務。",
     toc: "目錄",

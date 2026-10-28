@@ -6,10 +6,14 @@ import bothHandsComparisonLib from "../../lib/palm/both-hands-comparison.js";
 import {
   analyzeHandWithGeminiVision,
   buildPalmDeepConsult,
+  clientHandSide,
+  compareHandSides,
   majorLineDetectedCount,
   resolveAnalysisMode,
   visionToSideAnalysis,
 } from "../lib/palm-vision.js";
+import { palmCopy } from "../lib/palm-locale-copy.js";
+import { readBoundedText } from "../lib/request-body.js";
 
 const { analyzePalmHandInput, applySafetyExpressionFilter } = palmMapEngine;
 const { buildBothHandsComparison } = bothHandsComparisonLib;
@@ -50,28 +54,23 @@ function hasImage(sideData) {
 
 /**
  * 본문 크기 상한을 건 JSON 리더.
- * 공용 readJson 은 무제한 request.text() 라 이 라우트(이미지 2장)에는 쓰지 않는다.
+ * 이미지 2장의 기존 72 MiB 상한을 공용 JSON 상한과 별도로 유지한다.
  */
 async function readJsonWithLimit(request, maxBytes) {
-  const declared = Number(request.headers.get("Content-Length") || 0);
-  if (Number.isFinite(declared) && declared > maxBytes) {
-    throw createHttpError(413, "이미지 용량이 너무 큽니다. 더 작은 사진으로 다시 시도해 주세요.", {
-      code: "IMAGE_TOO_LARGE",
-    });
-  }
-
-  const text = await request.text();
-  if (text.length > maxBytes) {
-    throw createHttpError(413, "이미지 용량이 너무 큽니다. 더 작은 사진으로 다시 시도해 주세요.", {
-      code: "IMAGE_TOO_LARGE",
-    });
+  const copy = palmCopy();
+  let text;
+  try {
+    text = await readBoundedText(request, maxBytes);
+  } catch (error) {
+    if (error?.code !== "REQUEST_BODY_TOO_LARGE") throw error;
+    throw createHttpError(413, copy.imageTooLarge, { code: "IMAGE_TOO_LARGE" });
   }
   if (!text.trim()) return {};
 
   try {
     return JSON.parse(text);
   } catch (e) {
-    throw createHttpError(400, "Request body must be valid JSON.", { code: "INVALID_JSON" });
+    throw createHttpError(400, copy.invalidJson, { code: "INVALID_JSON" });
   }
 }
 
@@ -85,11 +84,11 @@ async function requirePalmAuth(request, env) {
     return await requireAuth(request, env);
   } catch (error) {
     if (isAuthDbInfraError(error)) {
-      throw createHttpError(503, "일시적인 접속 문제로 확인이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.", {
+      throw createHttpError(503, palmCopy().authUnavailable, {
         code: "AUTH_TEMPORARILY_UNAVAILABLE",
       });
     }
-    throw createHttpError(401, "로그인이 필요합니다.", { code: "LOGIN_REQUIRED" });
+    throw createHttpError(401, palmCopy().loginRequired, { code: "LOGIN_REQUIRED" });
   }
 }
 
@@ -99,7 +98,14 @@ function toSide(payload, side) {
     landmarks: side === "left" ? payload.leftHandLandmarks : payload.rightHandLandmarks,
     candidates: side === "left" ? payload.leftLineCandidates : payload.rightLineCandidates,
     quality: side === "left" ? payload.leftImageQuality : payload.rightImageQuality,
+    handedness: side === "left" ? payload.leftHandedness : payload.rightHandedness,
   };
+}
+
+// 판독은 올린 칸 기준으로 그대로 두고, 다른 손처럼 보였다는 사실만 알린다.
+function handSideMismatchWarning(check) {
+  const copy = palmCopy();
+  return copy.handSideMismatch(copy.hand[check.declared], copy.hand[check.vision]);
 }
 
 function isEnoughQuality(recognition) {
@@ -124,6 +130,8 @@ function pickRepresentativeImageQuality(analyses) {
   for (let i = 0; i < analyses.length; i += 1) {
     const list = analyses[i]?.recognitionData?.extraction?.warnings;
     if (Array.isArray(list)) warnings.push(...list.map((w) => String(w)));
+    const check = analyses[i]?.recognitionData?.handSideCheck;
+    if (check?.status === "mismatch") warnings.push(handSideMismatchWarning(check));
   }
 
   return {
@@ -194,7 +202,8 @@ function buildCanonical(params) {
     canonical.imageQuality.brightness !== "dark" &&
     canonical.imageQuality.palmCoverage >= 0.42;
 
-  const hasEnoughQuality = qualityByImage || hasMajorLines;
+  // 손바닥 판정 없이 선만 있는 경우는 품질 충족이 아니다.
+  const hasEnoughQuality = hasPalm && (qualityByImage || hasMajorLines);
 
   if (!canonical.imageQuality.isPalmDetected) missingFields.push("imageQuality.isPalmDetected");
   if (!hasMajorLines && canonical.imageQuality.palmCoverage < 0.42) {
@@ -215,7 +224,8 @@ export async function handlePalmRoutes(request, env) {
   if (request.method === 'GET' && new URL(request.url).pathname.endsWith('/result')) {
     try {
       const auth = await requirePalmAuth(request, env);
-      return json(await readPaidPalmAnalysis(env, auth.userId, new URL(request.url).searchParams.get('requestId') || ''));
+      const params = new URL(request.url).searchParams;
+      return json(await readPaidPalmAnalysis(env, auth.userId, params.get('requestId') || '', params.get('accessMethod') || ''));
     } catch (error) { return handleRouteError(error, { request, env }); }
   }
   if (request.method.toUpperCase() !== "POST") {
@@ -233,6 +243,7 @@ export async function handlePalmRoutes(request, env) {
     const auth = await requirePalmAuth(request, env);
 
     const body = await readJsonWithLimit(request, MAX_REQUEST_BODY_BYTES);
+    const copy = palmCopy();
 
     const payload = {
       leftPalmImage: body.leftPalmImage ?? null,
@@ -243,26 +254,28 @@ export async function handlePalmRoutes(request, env) {
       rightLineCandidates: toCandidateArray(body.rightLineCandidates),
       leftImageQuality: toObject(body.leftImageQuality),
       rightImageQuality: toObject(body.rightImageQuality),
+      leftHandedness: toObject(body.leftHandedness),
+      rightHandedness: toObject(body.rightHandedness),
       dominantHand: normalizeDominantHand(body.dominantHand),
       analysisPurpose: normalizeAnalysisPurpose(body.analysisPurpose),
     };
 
     if (!payload.dominantHand) {
-      throw createHttpError(400, "dominantHand 입력이 필요합니다.", { code: "MISSING_DOMINANT_HAND" });
+      throw createHttpError(400, copy.missingDominantHand, { code: "MISSING_DOMINANT_HAND" });
     }
     if (!payload.analysisPurpose) {
-      throw createHttpError(400, "analysisPurpose 입력이 필요합니다.", { code: "MISSING_ANALYSIS_PURPOSE" });
+      throw createHttpError(400, copy.missingAnalysisPurpose, { code: "MISSING_ANALYSIS_PURPOSE" });
     }
     // 본문은 저장본(GET /result)으로만 전달되므로 저장 키가 없으면 비전 호출 전에 거절한다.
     if (typeof body.requestId !== "string" || body.requestId.length < 8 || body.requestId.length > 120) {
-      throw createHttpError(422, "판독 요청 ID가 필요합니다.", { code: "REQUEST_ID_REQUIRED" });
+      throw createHttpError(422, copy.requestIdRequired, { code: "REQUEST_ID_REQUIRED" });
     }
 
     const leftInput = toSide(payload, "left");
     const rightInput = toSide(payload, "right");
 
     if (!hasMeaningfulInput(leftInput) && !hasMeaningfulInput(rightInput)) {
-      throw createHttpError(400, "left/right 입력 중 최소 하나는 이미지 또는 인식 데이터(lineCandidates/handLandmarks)가 필요합니다.", {
+      throw createHttpError(400, copy.missingImage, {
         code: "MISSING_IMAGE",
       });
     }
@@ -297,6 +310,7 @@ export async function handlePalmRoutes(request, env) {
 
       const local = runLocalEngine(side, input);
       const visionSide = visionToSideAnalysis(vision, side);
+      const handSideCheck = compareHandSides(side, vision?.imageQuality?.observedHandSide || "unknown", clientHandSide(input.handedness));
 
       // Gemini 가 "손이 아니다"라고 명시적으로 판정하면 그 판정을 존중한다.
       // 결정론 엔진은 조작 랜드마크만으로도 palmDetected 를 내주기 때문에,
@@ -313,6 +327,7 @@ export async function handlePalmRoutes(request, env) {
           handReading: visionSide.handReading,
           recognitionData: {
             ...visionSide.recognitionData,
+            handSideCheck,
             extraction: local?.recognitionData?.extraction || null,
             sections: local?.recognitionData?.sections || [],
           },
@@ -332,8 +347,8 @@ export async function handlePalmRoutes(request, env) {
         source: visionRejected ? "vision-rejected" : "local",
         handReading: local.handReading,
         recognitionData: visionRejected
-          ? { ...local.recognitionData, palmDetected: false }
-          : local.recognitionData,
+          ? { ...local.recognitionData, palmDetected: false, handSideCheck }
+          : { ...local.recognitionData, handSideCheck },
         overlayPaths: local.overlayPaths,
         hasMajorDetected: visionRejected ? false : local.hasMajorDetected,
         handRole: local.handRole,
@@ -358,22 +373,28 @@ export async function handlePalmRoutes(request, env) {
           ok: false,
           code: "PALM_VISION_UNAVAILABLE",
           retryable: true,
-          error: "손금 판독이 잠시 원활하지 않아요. 같은 사진으로 다시 시도해 주세요.",
+          error: copy.visionUnavailable,
         },
         { status: 503 },
       );
     }
-    if (!palmDetectedAny) {
+    // 한쪽 사진만 손바닥이 아니어도 막는다. 안 막으면 그 칸이 결정론 엔진 판독으로 채워져
+    // 손이 아닌 사진이 결과에 들어간다. 판독 저장·결제 전이라 다시 올리면 된다.
+    const rejectedSide = palmDetectedAny ? analyses.find((a) => a.source === "vision-rejected") : null;
+    if (!palmDetectedAny || rejectedSide) {
       // Gemini 가 이유를 말해줬으면 그대로 전달한다("손이 아닌 사진입니다" 등).
       // 종전에는 어떤 경우든 "손바닥 인식에 실패했습니다" 하나뿐이라 사용자가
       // 무엇을 고쳐야 하는지 알 수 없었다.
-      const visionReason = analyses.map((a) => a.notPalmReason).find((reason) => reason) || "";
+      const modelReason = (rejectedSide ? [rejectedSide] : analyses).map((a) => a.notPalmReason).find((reason) => reason) || "";
+      const visionReason = rejectedSide
+        ? `${copy.rejectedSlot(copy.hand[rejectedSide.side])} ${modelReason || copy.rejectedSlotFallback}`
+        : modelReason;
       return json(
         {
           ok: false,
           code: "PALM_NOT_DETECTED",
           reasonCode: "NO_PALM",
-          error: visionReason || "손바닥 인식에 실패했습니다.",
+          error: visionReason || copy.palmNotDetected,
           reason: visionReason,
           checks: analyses.map((item) => ({
             side: item.side,
@@ -386,15 +407,19 @@ export async function handlePalmRoutes(request, env) {
       );
     }
 
-    const hasEnoughQualityAny = analyses.some((a) => isEnoughQuality(a.recognitionData));
-    const hasLineEvidenceAny = analyses.some((a) => a.hasMajorDetected);
-    if (!hasEnoughQualityAny && !hasLineEvidenceAny) {
+    // 선 근거는 coverage 를 모를 때만 품질을 대신한다. 판독이 손바닥이 절반 넘게
+    // 가려졌다고(0.42 미만) 답했으면 선 몇 개가 잡혔다고 넘기지 않는다.
+    const hasLineEvidence = (a) => {
+      const coverage = a?.recognitionData?.imageQuality?.palmCoverage;
+      return a.hasMajorDetected && !(a.source === "gemini" && typeof coverage === "number" && coverage < 0.42);
+    };
+    if (!analyses.some((a) => isEnoughQuality(a.recognitionData) || hasLineEvidence(a))) {
       return json(
         {
           ok: false,
           code: "IMAGE_QUALITY_LOW",
           reasonCode: "LOW_CONFIDENCE",
-          error: "이미지 품질이 부족합니다.",
+          error: copy.imageQualityLow,
           checks: analyses.map((item) => ({
             side: item.side,
             brightness: item?.recognitionData?.imageQuality?.brightness,
@@ -543,7 +568,7 @@ export async function handlePalmRoutes(request, env) {
       || null;
 
     if ((hasImage(leftInput) || hasImage(rightInput)) && (!usedVision || !consultText)) {
-      return json({ ok: false, code: 'PALM_INTERPRETATION_INCOMPLETE', retryable: true, error: '판독을 완료하지 못했어요. 사진과 연결 상태를 확인한 뒤 다시 시도해 주세요.' }, { status: 503 });
+      return json({ ok: false, code: 'PALM_INTERPRETATION_INCOMPLETE', retryable: true, error: copy.interpretationIncomplete }, { status: 503 });
     }
     const result = {
       ...canonical,

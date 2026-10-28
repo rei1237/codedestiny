@@ -9,6 +9,7 @@ const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 // pass-store/direct 카드의 CSS 선언 순서 검사는 이 파일을 봐야 한다.
 const checkoutEntrySource = readFileSync(resolve(root, "js/core/checkout-entry.js"), "utf8");
 const staticIndexSource = readFileSync(resolve(root, "public/static/index.html"), "utf8");
+const homeFunnelCssSource = readFileSync(resolve(root, "styles/home-funnel.css"), "utf8");
 const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
 const paymentProcessingContextSource = readFileSync(resolve(root, "app/components/PaymentProcessingContext.tsx"), "utf8");
 const paymentLoadingSource = readFileSync(resolve(root, "app/components/common/PaymentLoading.tsx"), "utf8");
@@ -228,7 +229,7 @@ assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "Rea
 // 키가 3종(build-a300cf84f0f5 · build-4b96ba87f36f · 셸 키)으로 갈라져 있었고, destiny-profile.js
 // 를 고쳐도 그 참조들은 엣지 캐시(/*.js max-age 7일)의 옛 파일을 계속 받았다.
 // 지금은 셋을 셸 키로 통일했다. destiny-profile.js 를 고치면 이 값도 함께 올려야 한다.
-assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-9c92542eb04f"', "React paid runtime cache key carries the moonstone reward guidance");
+assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-2d81696a26c1"', "React paid runtime cache key carries the profile home-return fix");
 assertNotContains(billingClientSource, "build-20260622-inicis-phone", "React paid runtime must not load stale Inicis phone runtime");
 assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");
@@ -542,9 +543,14 @@ for (const source of [indexSource, staticIndexSource]) {
       source.includes('href="/styles/home-funnel.css') || source.includes('data-cd-home-funnel-critical="1"'),
       "replacement home critical stylesheet",
     );
+    // 퍼널 홈의 모바일 배치는 차단 시트 home-funnel.css 가 맡는다. 셸 안의 860px 마커는 2026-10-17
+    // 홈 단순화로 지운 후기(.cd-reviews) 블록에만 있던 우연한 일치였다.
+    assertContains(homeFunnelCssSource, "@media (max-width:640px)", "mobile critical layout");
   }
-  else assertContains(source, ".moon-hero{grid-template-columns", "desktop critical layout");
-  assertContains(source, "@media (max-width:860px)", "mobile critical layout");
+  else {
+    assertContains(source, ".moon-hero{grid-template-columns", "desktop critical layout");
+    assertContains(source, "@media (max-width:860px)", "mobile critical layout");
+  }
   assertContains(source, ".cd-fortune-pick__grid{grid-template-columns:1fr", "mobile card layout fallback");
   assertContains(source, '<link rel="stylesheet" href="/styles/core-ui.css', "core CSS blocking stylesheet");
   // 🔴 fortune-ui 는 a8565083a(2026-08-15) 부터 두 갈래로 나간다 — 홈이 실제로 매칭하는 부분집합

@@ -28,7 +28,7 @@
     requestId: "",
     resultId: ""
   };
-  var YEAR_COIN_COST = 50;
+  var YEAR_COIN_COST = 100;
   var YEAR_REASON = "십이지신 천운 타로";
   var YEAR_FEATURE_KEY = "tarot-year-fortune";
   // 워커의 Mongo 단일 시도 상한은 최소 11.5초다(worker/lib/db.js — serverSelection 8000 + 3500).
@@ -677,6 +677,7 @@
       else document.body.style.overflow = "hidden";
       resetTarotYearFortuneFlow();
       bindTarotYearStaticActions();
+      import("./core/oracle/crafted-details.mjs").then(function (m) { m.mountOracleCraftedDetails(overlay.querySelector(".tarot-year-shell"), { target: ".tarot-year-panel", id: "year-fortune-tarot", title: "십이지신 천운 타로" }); });
       restoreStoredYearResult();
     } catch (err) {
       console.error("[Tarot Year Fortune] openTarotYearFortuneModal error:", err);

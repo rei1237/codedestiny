@@ -168,9 +168,9 @@
   //    지금은 달·아치문·별밭을 전부 CSS 로 그린다. 기법의 정본은 styles/cosmic-main.css 의 .moon-hero.
   //    사진을 다시 깔지 말 것 — verify:past-life-face 가 막는다.
 
-  // 정본은 worker/lib/paid-feature-registry.js 의 physiognomy-pastlife-compatibility (cost: 30 = 3,000원).
+  // 정본은 worker/lib/paid-feature-registry.js 의 physiognomy-pastlife-compatibility (cost: 50 = 5,000원).
   // featureKey 는 결제 게이트 호출부에 리터럴로 둔다 — verify:paid-feature-billing-policy 가 리터럴을 찾는다.
-  const PLF_COMPAT_COIN_COST = 30;
+  const PLF_COMPAT_COIN_COST = 50;
   const PLF_SHARE_CONTENT_ID = 'pastlifeface';
 
   // 순차 공개의 긴장감은 이 티커가 맡는다 — 결과 화면은 공유 카드가 캡처 대상이라
@@ -1867,14 +1867,14 @@
 
     // 심화 CTA — 신규 유료 기능이 아니라 기존 기능으로 인계한다.
     '.plf-deeper{margin:20px 0 0;border:1px solid var(--plf-border-strong);border-radius:18px;padding:18px;',
-    '  background:linear-gradient(160deg,rgba(46,34,88,.92),rgba(18,14,38,.94));}',
+    '  background:var(--plf-surface-2);}',
     '.plf-deeper__title{margin:0;font-size:1rem;font-weight:800;color:var(--plf-text);}',
     '.plf-deeper__grid{margin:14px 0 0;display:grid;gap:9px;grid-template-columns:1fr;}',
     '@media (min-width:520px){.plf-deeper__grid{grid-template-columns:1fr 1fr;}}',
     '.plf-deepcard{display:grid;gap:3px;text-align:left;width:100%;min-height:44px;cursor:pointer;',
     '  border:1px solid var(--plf-border);border-radius:14px;padding:13px 15px;font-family:inherit;',
     '  background:var(--plf-surface-2);transition:border-color .18s ease-out,background .18s ease-out;}',
-    '.plf-deepcard:hover{border-color:var(--plf-border-strong);background:rgba(196,181,253,.1);}',
+    '.plf-deepcard:hover{border-color:var(--plf-border-strong);background:var(--plf-surface);}',
     '.plf-deepcard:focus-visible{outline:2px solid var(--plf-accent);outline-offset:2px;}',
     '.plf-deepcard--paid{border-color:var(--plf-gold);}',
     '.plf-deepcard__price{font-size:.72rem;font-weight:800;letter-spacing:.02em;color:var(--plf-gold);}',
@@ -3337,17 +3337,18 @@
    * mode:'compat' 은 이 모달 안의 기존 유료 게이트, 나머지는 외부 이동이라 모달을 먼저 닫는다.
    */
   const PLF_DEEPER_CTAS = [
-    { mode: 'compat', emoji: '🌘', title: '전생의 인연', desc: '전생에 나와 이 사람은 어떤 사이였을까?', price: '3,000원' },
+    { mode: 'compat', emoji: '🌘', title: '전생의 인연', desc: '전생에 나와 이 사람은 어떤 사이였을까?', price: '5,000원' },
     { href: '/love-secret-ai', emoji: '💕', title: '전생의 사랑', desc: '전생부터 이어진 사랑의 방식이 궁금하다면', price: '30,000원' },
     { href: '/karma-destiny-ai', emoji: '⚖️', title: '전생의 업(業)', desc: '이번 생으로 넘어온 숙제를 깊게 풀어보기', price: '30,000원' },
     { href: '/destiny-island.html', emoji: '🏝️', title: '전생의 장소', desc: '내 운명의 지도 위에서 내 자리를 찾기', price: '무료' },
-    { href: '/?action=openSukuyoModal', emoji: '🔮', title: '전생의 인연도', desc: '생년월일로 보는 숙요 인연 레이더', price: '3,000원' }
+    { href: '/?action=openSukuyoModal', emoji: '🔮', title: '전생의 인연도', desc: '생년월일로 보는 숙요 인연 레이더', price: '10,000원' }
   ];
 
   function plfDeeperHtml() {
     return [
       '<div class="plf-deeper plf-reveal-item">',
       '  <h3 class="plf-deeper__title">🔮 당신의 전생을 더 깊게 열어보기</h3>',
+      '  <div data-crafted-static-offer="physiognomy-pastlife-compatibility" style="width:100%;max-width:540px;margin:16px auto;background:#eee6ed;color:#4d405d;border-radius:12px"></div>',
       '  <div class="plf-deeper__grid">',
       PLF_DEEPER_CTAS.map(function (cta, index) {
         // 전생 인연 궁합(유료)은 id 를 유지한다 — 검증 스크립트와 외부 진입점이 이 id 를 잡는다.
@@ -3399,6 +3400,9 @@
       plfBindStoryImages();
       plfBindSceneReveal();
       plfBindDeeperCtas();
+      import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
+        plfEl('plfRevealBody').querySelectorAll('[data-crafted-static-offer]').forEach(function(el) { if (el.isConnected) module.mountCraftedStaticOffer(el); });
+      });
     }
     plfApplyStagger();
     plfShowStage('reveal');

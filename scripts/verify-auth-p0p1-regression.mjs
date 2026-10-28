@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const authRouteSource = readFileSync(resolve(root, "worker/routes/auth.js"), "utf8");
 const authLibSource = readFileSync(resolve(root, "worker/lib/auth.js"), "utf8");
+const authSecretSource = readFileSync(resolve(root, "worker/lib/auth-secret.js"), "utf8");
 const modelsSource = readFileSync(resolve(root, "worker/lib/models.js"), "utf8");
 const loginClientSource = readFileSync(resolve(root, "app/login/LoginClient.tsx"), "utf8");
 const signupClientSource = readFileSync(resolve(root, "app/signup/SignupClient.tsx"), "utf8");
@@ -52,7 +53,13 @@ assertContains(registerSource, "User.create(", "register creates user through Us
 assertContains(registerSource, "error && error.code === 11000", "register duplicate key race guard");
 assertContains(registerSource, '"duplicate_email"', "register duplicate email response");
 
-assertContains(authLibSource, "function isProductionAuthEnv", "production secret environment guard");
+// dev-secret 대체는 명시적 로컬 개발 신호(NODE_ENV·ENVIRONMENT)에서만 열린다 — 환경을 모르면 닫힌다.
+// (2026-10-13 보강: 예전 isProductionAuthEnv 는 "운영이 아니면 dev-secret" 이라 환경 오판 시 위조 가능 토큰을 만들었다.)
+assertContains(authSecretSource, "export function isExplicitLocalDevEnv", "explicit local-dev environment guard");
+assertContains(authSecretSource, "if (!isExplicitLocalDevEnv(env)) {", "dev secret fallback is opt-in to explicit local dev only");
+assertContains(authSecretSource, "throw new Error(fallbackErrorMessage);", "unknown environment fails closed");
+assertNotContains(authLibSource, "function isProductionAuthEnv", "production-only guard must not come back");
+assertContains(authLibSource, "resolveRequiredAuthSecret(", "access/refresh secrets go through the fail-closed resolver");
 assertContains(authLibSource, "JWT access token secret is required in production.", "access secret fail closed");
 assertContains(authLibSource, "JWT refresh token secret is required in production.", "refresh secret fail closed");
 

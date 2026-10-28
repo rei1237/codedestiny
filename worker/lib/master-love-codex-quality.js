@@ -1,3 +1,4 @@
+import { assertCodexConsultation } from "./master-love-codex-consultation.js";
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 import { assertCodexEvidence } from "./master-love-codex-evidence.js";
 import { countPaidReportBodyChars, paidReportBody, reportSentenceKey } from "./paid-report-quality.js";
@@ -16,7 +17,7 @@ export function buildCodexEditorialContract(chapter, compatibility) {
     "evidence는 이 장의 핵심 3~6개만 고른다. 실제 제공된 간지·궁·성요를 쓰고, 궁합에서는 본인/상대/교차 근거 중 누구의 것인지 label에 표시한다. 각 explanation은 해당 배치의 쉬운 뜻 한 문장이다.",
     "자미(묘) 같은 괄호 강약 표기는 독자용 문장에 그대로 복사하지 말고 쉬운 말로 풀어라. 제공되지 않은 별·사화·합충을 만들지 마라. 원국 내부의 합과 두 사람 사이의 합을 혼동하지 마라.",
     "actions는 2~3개다. 각 항목에 언제 실행할지, 실제로 할 행동, 말할 문장 또는 확인할 기준을 포함한다. '서로 존중하세요/노력하세요/소통하세요'만으로 끝내지 마라.",
-    "caution은 나쁜 사건 예언이 아니라 문제가 커지는 조건과 멈출 신호다. 진단명·상대의 속마음·결혼/이별 시점·성공 확률을 확정하지 않는다. 출생시각 미상 명반은 정오 가정임을 해당 해석에서 명시한다.",
+    "caution은 나쁜 사건 예언이 아니라 문제가 커지는 조건과 멈출 신호다. 진단명·상대의 속마음·결혼/이별 시점·성공 확률을 확정하지 않는다.",
     "JSON의 요약·본문·지표·시각화는 같은 결론이어야 한다. 장별 범위를 지키고 앞 장의 핵심을 다시 늘어놓지 않는다. 점수는 해석 보조 지표이며 확률이나 실측 심리검사 결과가 아니다.",
     ...(axes.length ? [
       "[궁합 계산의 방향 — 아래 판정을 수사적 표현으로 뒤집지 마라]",
@@ -66,6 +67,17 @@ export function codexChapterFloor(chapter) {
 }
 
 /**
+ * A draft under minChars earns exactly one length repair inside the existing attempt cap (rule L2,
+ * docs/handoff/2026-09-27-llm-length-never-fatal.md). It is a repair trigger, never a rejection:
+ * the 0.7 acceptance floor above stays, so a repair (or a last attempt) is delivered at any length
+ * and the longest valid candidate wins. Without it, R3/R4 (2026-10-09) shipped 10~11 of 20 chapters
+ * at 73~76% of minChars with no repair, because 0.7 alone let them through silently.
+ */
+export function codexChapterRepairFloor(chapter) {
+  return Number(chapter?.minChars) || 2400;
+}
+
+/**
  * Floor for a chapter after sentences shared with earlier chapters are cut. The model's own output
  * must still clear codexChapterFloor; judging the cut body by that floor failed chapter 2 on every
  * retry (shared chart facts) and closed the whole paid book after three waves (production, 2026-09-17).
@@ -106,6 +118,7 @@ export function assertCodexChapterQuality(parsed, chapter, metricDefs = [], evid
     return;
   }
   if (evidenceContract) assertCodexEvidence(source, evidenceContract);
+  assertCodexConsultation(source, evidenceContract);
   const hasText = value => typeof value === "string" && value.trim().length > 0;
   if (!["narration", "insight", "keySentence", "caution", "bridge"].every(key => hasText(source[key]))
       || !Array.isArray(source.evidence) || !source.evidence.some(item => hasText(item?.label) && hasText(item?.system) && hasText(item?.explanation))
@@ -169,9 +182,14 @@ export async function generateCodexChapterResponse(call, prompt, { chapter, metr
   for (let attempt = 0; attempt < Math.min(2, Math.max(1, maxAttempts)); attempt += 1) {
     const remaining = deadlineAt - Date.now();
     if (remaining < minBudgetMs) throw failure || new Error("GENERATION_BUDGET_EXCEEDED");
-    const instruction = failure ? `\n[재작성] 이전 응답은 ${failure.message} 기준을 통과하지 못했다. JSON 문자열을 올바르게 닫고, body의 최소 분량·계산 근거·필수 필드를 지켜 완성된 새 응답을 작성하라.` : "";
+    const minChars = Number(chapter?.minChars) || 2400;
+    const instruction = !failure ? ""
+      : failure.message === "LLM_OUTPUT_TOO_SHORT"
+        // A length repair must name the target; a generic rewrite returned the same ~75% length.
+        ? `\n[재작성] 이전 응답은 LLM_OUTPUT_TOO_SHORT: body가 최소 ${minChars}자에 못 미쳤다. 앞의 근거와 같은 문장을 반복하지 말고 생활 장면·대화 예시·대응 기준을 새로 더해 body를 ${minChars + 300}~${minChars + 900}자로 완성하라. 나머지 필드와 JSON 형식은 그대로 지켜라.`
+        : `\n[재작성] 이전 응답은 ${failure.message} 기준을 통과하지 못했다. JSON 문자열을 올바르게 닫고, body의 최소 분량·계산 근거·필수 필드를 지켜 완성된 새 응답을 작성하라.`;
     const ai = await call(prompt + instruction, {
-      ...options, attempts: 1, maxProviderAttempts: 1, baseTokens: Math.max(failure?.message === "LLM_OUTPUT_TRUNCATED" ? 11000 : 8000, tokensRequiredForChars((chapter.minChars || 2400) + 900)), capTokens: 14000, thinkingBudget: 0,
+      ...options, attempts: 1, maxProviderAttempts: 1, baseTokens: Math.max(failure?.message === "LLM_OUTPUT_TRUNCATED" ? 11000 : 8000, tokensRequiredForChars((chapter.minChars || 2400) + 900 + (evidenceContract?.consultation ? (evidenceContract.consultation.forecast ? 5000 : evidenceContract.consultation.questions.length * 1600) : 0))), capTokens: evidenceContract?.consultation ? 24000 : 14000, thinkingBudget: 0,
       timeoutMs: Math.min(Number(options.timeoutMs) || remaining, remaining),
     });
     if (ai?.ok === false) {

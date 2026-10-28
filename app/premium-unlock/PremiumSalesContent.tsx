@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
@@ -21,6 +24,7 @@ import {
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { DeliverableSpec } from "@/app/components/DeliverableSpec";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -1279,14 +1283,14 @@ function applyProfileSeedToForm(form: LifeFortuneForm, profile: AiPrefillSeed): 
   if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType && profile.birthTimeUnknown === undefined) {
     return form;
   }
-  const gender: GenderType = profile.gender === "male" || profile.gender === "female" ? profile.gender : form.gender;
+  const gender: GenderType = profile.gender === "male" || profile.gender === "female" ? profile.gender : profile.gender === undefined ? form.gender : "";
   return {
     ...form,
-    name: profile.name || form.name,
+    name: profile.name ?? form.name,
     gender,
-    birthDate: profile.birthDate || form.birthDate,
+    birthDate: profile.birthDate ?? form.birthDate,
     birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
-    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime || form.birthTime,
+    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime ?? form.birthTime,
     calendarType: profile.calendarType || form.calendarType,
   };
 }
@@ -1556,8 +1560,9 @@ export default function PremiumSalesContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  const loadFormFromProfileCard = useCallback(() => {
-    void reloadProfileSeed().then((seed) => {
+  const loadFormFromProfileCard = useCallback((selectedSeed?: AiPrefillSeed) => {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }, [reloadProfileSeed]);
@@ -1865,20 +1870,14 @@ export default function PremiumSalesContent() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_18%,rgba(242,207,130,0.18),transparent_32%),linear-gradient(115deg,rgba(5,6,7,0.94)_0%,rgba(16,13,10,0.86)_48%,rgba(6,37,27,0.82)_100%)]" />
       </div>
       <section className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-6 md:grid-cols-[minmax(320px,430px)_1fr] md:px-6 lg:px-8">
-        <form onSubmit={handleGenerateClick} className="self-start rounded-lg border border-[#d8b56d]/25 bg-[#12172b]/90 p-5 shadow-2xl shadow-black/30 backdrop-blur md:sticky md:top-6">
+        {copy === PREMIUM_SALES_COPY.ko && <div className="md:col-span-2"><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
+        <form data-moonlit-form="" onSubmit={handleGenerateClick} className="self-start rounded-lg border border-[#d8b56d]/25 bg-[#12172b]/90 p-5 shadow-2xl shadow-black/30 backdrop-blur md:sticky md:top-6">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-[#f2cf82]">
               <Sparkles className="h-5 w-5" aria-hidden="true" />
               <p className="text-sm font-bold">{copy.formKicker}</p>
             </div>
-            <button
-              type="button"
-              onClick={loadFormFromProfileCard}
-              className="shrink-0 rounded-lg border border-[#f2cf82]/35 bg-[#f2cf82]/10 px-3 py-2 text-xs font-bold text-[#f2cf82] transition hover:bg-[#f2cf82]/20"
-              aria-label={copy.profileLoadAria}
-            >
-              {copy.profileLoadCta}
-            </button>
+            <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
           </div>
           <h1 className="mt-4 text-3xl font-black leading-tight md:text-4xl" style={{ fontFamily: "CodeDestinyDisplay, CodeDestinyPremium, serif" }}>
             {copy.formHeading}
@@ -1920,7 +1919,7 @@ export default function PremiumSalesContent() {
                     key={value}
                     type="button"
                     onClick={() => updateForm("gender", value as GenderType)}
-                    className={`min-h-11 border px-2 text-sm font-black transition ${form.gender === value ? "border-[#f2cf82] bg-[#f2cf82] text-[#171007]" : "border-[#d8b56d]/25 bg-black/20 text-[#f4dfb7] hover:border-[#f2cf82]/60"}`}
+                    className={`min-h-11 border px-2 text-sm font-black transition ${form.gender === value ? "border-[#f2cf82] bg-[#2a2113] text-[#fff3d6] shadow-[0_0_0_1px_#f2cf82,0_6px_16px_rgba(0,0,0,0.45)]" : "border-[#d8b56d]/25 bg-black/20 text-[#f4dfb7] hover:border-[#f2cf82]/60"}`}
                   >
                     {label}
                   </button>
@@ -1935,8 +1934,8 @@ export default function PremiumSalesContent() {
               </label>
               <label className="grid gap-2 text-sm font-bold text-[#f4dfb7]">
                 {copy.birthTimeLabel}
-                <input
-                  type="time"
+                <BirthTimeInput
+
                   value={form.birthTime}
                   onChange={(event) => updateForm("birthTime", event.target.value)}
                   disabled={form.birthTimeUnknown}
@@ -1954,7 +1953,7 @@ export default function PremiumSalesContent() {
                   key={value}
                   type="button"
                   onClick={() => updateForm("calendarType", value as CalendarType)}
-                  className={`min-h-11 border px-3 text-sm font-black transition ${form.calendarType === value ? "border-[#a7f3d0] bg-[#a7f3d0] text-[#06251b]" : "border-[#d8b56d]/25 bg-black/20 text-[#f4dfb7] hover:border-[#a7f3d0]/60"}`}
+                  className={`min-h-11 border px-3 text-sm font-black transition ${form.calendarType === value ? "border-[#f2cf82] bg-[#2a2113] text-[#fff3d6] shadow-[0_0_0_1px_#f2cf82,0_6px_16px_rgba(0,0,0,0.45)]" : "border-[#d8b56d]/25 bg-black/20 text-[#f4dfb7] hover:border-[#f2cf82]/60"}`}
                 >
                   {label}
                 </button>
@@ -1979,9 +1978,8 @@ export default function PremiumSalesContent() {
             <button
               type="submit"
               disabled={isBusy}
-              className="group relative inline-flex min-h-12 items-center justify-center gap-2 overflow-hidden border border-[#ffe0a3] bg-gradient-to-r from-[#f2cf82] via-[#ffd98a] to-[#b88933] px-4 text-sm font-black text-[#171007] shadow-[0_0_28px_rgba(242,207,130,0.24)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-65 sm:text-base"
+              className="inline-flex min-h-12 items-center justify-center gap-2 border border-[#f2cf82] bg-[#f2cf82] px-4 text-sm font-black text-[#171007] shadow-[0_8px_20px_rgba(0,0,0,0.35)] transition-colors hover:bg-[#ffd98a] disabled:cursor-not-allowed disabled:opacity-65 sm:text-base"
             >
-              <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.36),transparent_34%)] opacity-0 transition duration-500 group-hover:opacity-40" aria-hidden="true" />
               {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <BookOpen className="h-5 w-5" aria-hidden="true" />}
               <span>{isChecking ? copy.submitCheckingLabel : isGenerating ? copy.submitGeneratingLabel : copy.submitIdleLabel}</span>
             </button>

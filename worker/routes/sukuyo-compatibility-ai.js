@@ -1,9 +1,11 @@
+import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { trimPaidReportText } from "../lib/paid-report-length.js";
 // 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
 // UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
 import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
+import { resolveRequiredAuthSecret } from "../lib/auth-secret.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -11,15 +13,17 @@ import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
+// 이용권 정산 모듈은 db 트랜잭션 옵션까지 끌고 와 쓸 때만 불러온다(이 라우트를 db 대역으로 띄우는 테스트 보호).
+const loadPerUsePaidAccess = () => import("../lib/nakshatra-paid-access.js");
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
-import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { buildSukuyoAiCompatibility, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
+import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { extractReadableTextFromJsonLike } from "../../lib/llm-text.js";
@@ -27,6 +31,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
 import { RELATIONSHIP_ANALYSIS_DOMAINS, buildDomainAnalysisRuleLines, buildEvidenceRuleLines } from "../lib/fortune-reasoning-contract.js";
+import { claimRequestBillingEvidence, evidenceAlreadyUsedResult, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 const FEATURE_KEY = "sukuyo-compatibility-ai";
 const TITLE = "숙요점 전문가 상담";
@@ -152,7 +157,8 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const variant = variants.find((item) => item.key === options.variant) || variants[0];
 
   return {
-    systemPrompt: variant.key === "json" ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT,
+    // 운영과 같게 캐릭터(서한비) 페르소나 기본값을 붙여 보여 준다(CMS 오버라이드는 반영하지 않는다).
+    systemPrompt: [variant.key === "json" ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT, expertPersonaText("hanbi")].filter(Boolean).join("\n\n"),
     prompt: "",
     partial: true,
     partialReason: "사용자 프롬프트는 계산된 본명숙과 두 사람의 관계 거리를 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
@@ -181,7 +187,7 @@ const SYSTEM_PROMPT = [
 ].join("\n");
 
 const COMPATIBILITY_JSON_SYSTEM_PROMPT = [
-  "당신은 20년 경력의 숙요점(宿曜占) 전문 역술가이자, 관계 상담에 능한 카운슬러입니다.",
+  "당신은 숙요점(宿曜占) 전문 상담가이자, 관계 상담에 능한 카운슬러입니다.",
   "인도에서 기원하여 당나라를 거쳐 한국에 전해진 27숙 체계로 두 사람의 궁합을 정밀하게 독해합니다.",
   "서버가 제공한 본명숙, 숙 그룹, 음양, 오행, 수호신, 관계 거리, 양방향 관계 유형, 점수는 확정값입니다.",
   "확정값을 바꾸거나 새로 계산하지 말고, 주어진 JSON 뼈대의 meta 값은 그대로 유지합니다.",
@@ -912,7 +918,12 @@ async function sha256Text(text) {
 }
 
 function tokenSecret(env = {}) {
-  return clean(env.SUKUYO_COMPAT_AI_ACCESS_SECRET || env.JWT_ACCESS_SECRET || env.AUTH_SECRET || "dev-sukuyo-compat-ai-secret");
+  // 운영(명시적 로컬 개발이 아닌 환경)에서는 공개 문자열 폴백 없이 시크릿 누락 시 서명·검증을 거부한다.
+  return resolveRequiredAuthSecret(
+    env,
+    ["SUKUYO_COMPAT_AI_ACCESS_SECRET", "JWT_ACCESS_SECRET", "AUTH_SECRET"],
+    "Sukuyo compatibility AI access secret is required in production.",
+  );
 }
 
 async function signTokenPayload(env, payload) {
@@ -1030,8 +1041,9 @@ function paymentIdFromBody(body = {}) {
   );
 }
 
-async function hasPaidPayment(env, auth, paymentId) {
-  if (!paymentId) return false;
+// 찾은 결제 문서의 _id 를 돌려준다(증빙 claim 은 본문 토큰이 아니라 이 정본 ID 에 건다).
+async function findPaidPaymentId(env, auth, paymentId) {
+  if (!paymentId) return "";
   await connectDb(env);
   const payment = await withMongoRetry(env, () => Payment.exists({
     userId: auth.userId,
@@ -1045,7 +1057,7 @@ async function hasPaidPayment(env, auth, paymentId) {
     paymentType: "digital_content",
     status: { $in: ["paid", "success", "fulfilled"] },
   }));
-  return Boolean(payment);
+  return payment?._id ? String(payment._id) : "";
 }
 
 function collectBillingEvidenceIds(body = {}) {
@@ -1147,6 +1159,7 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
       ok: true,
       accessType: accessType === "membership_credit" ? "subscription" : accessType === "membership_pass" || accessType === "family" ? "pass" : "paid",
       paymentId: String(pointHistory._id || paymentIdFromBody(body) || ""),
+      claimEvidenceId: String(pointHistory._id || ""),
     };
   }
   // 월정석 증빙 정본은 worker/lib/moonstone-spend-proof.js 하나다(미정산 예약행 배제·구 원장 호환 포함).
@@ -1156,7 +1169,7 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
     tokens: ids,
   });
   if (monthlyEvidence) {
-    return { ok: true, accessType: "subscription", paymentId: String(monthlyEvidence.ledgerId || paymentIdFromBody(body) || "") };
+    return { ok: true, accessType: "subscription", paymentId: String(monthlyEvidence.ledgerId || paymentIdFromBody(body) || ""), claimEvidenceId: clean(monthlyEvidence.ledgerId, 160) };
   }
   return null;
 }
@@ -1276,9 +1289,16 @@ async function resolveStartAccess(request, env, auth, body, normalized, accessHa
   const billingEvidence = await withMongoRetry(env, () => resolveBillingUsageEvidence(env, auth, { ...body, idempotencyKey }));
   if (billingEvidence?.ok) return billingEvidence;
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc, requestId: idempotencyKey });
-  if (decision.allowed) return { ok: true, accessType: mapAccessType(decision, user || {}), paymentId: paymentIdFromBody(body) };
+  // 🔴 이용권·라이선스·월구독 허용은 읽기 전용이다(2026-10-16). 이번 키로 결제를 찾거나 이용권을 실제로 차감해야 연다.
+  //    재확인·재개는 같은 키라 이미 차감한 기록을 인정한다(acceptSettled).
+  const { settlePerUseAccessDecision } = await loadPerUsePaidAccess();
+  const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: FEATURE_KEY,
+    coinPrice: COIN_PRICE, requestId: idempotencyKey, acceptSettled: true });
+  if (settled.allowed === null) throw resultStorageUnavailable(idempotencyKey);
+  if (settled.allowed) return { ok: true, accessType: mapAccessType(decision, user || {}), paymentId: paymentIdFromBody(body) };
   const paidPaymentId = paymentIdFromBody(body);
-  if (await hasPaidPayment(env, auth, paidPaymentId)) return { ok: true, accessType: "paid", paymentId: paidPaymentId };
+  const paidPaymentDocId = await findPaidPaymentId(env, auth, paidPaymentId);
+  if (paidPaymentDocId) return { ok: true, accessType: "paid", paymentId: paidPaymentId, claimEvidenceId: paidPaymentDocId };
   return { ok: false };
 }
 
@@ -1567,8 +1587,8 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
   const attempts = { ...(options.attempts || {}) };
   const valid = key => typeof sections[key]?.body === "string" && countPaidReportBodyChars(sections[key].body) > 0 && !hasRepeatedReportPassage(sections[key].body);
   const rawResponses = { ...(options.rawResponses || {}) };
-  const isComplete = valid;
-  const groupComplete = group => group.keys.some(key => valid(key) && countPaidReportBodyChars(sections[key].body) >= 40);
+  const isComplete = key => valid(key) && countPaidReportBodyChars(sections[key].body) >= 40;
+  const groupComplete = group => group.keys.every(isComplete);
   const pending = SUKUYO_SECTION_GROUPS.filter(group => !groupComplete(group));
   const group = pending[0];
   if (group && Number(attempts[group.id] || 0) >= 2) throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
@@ -1580,12 +1600,12 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
     if (lengthRepair) attempts[`${group.id}:lengthRepair`] = 1;
     attempts[group.id] = attempt;
     await options.onReserve?.(group.id, attempt, lengthRepair);
-    const systemPrompt = await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT);
+    const systemPrompt = await appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT));
     const generated = await generateSectionGroup(env, input, calculation, group, systemPrompt, attempt, sections);
     for (const [key, row] of Object.entries(generated.sections)) {
       const others = Object.entries(sections).filter(([other]) => other !== key).map(([, value]) => value.body).join("\n");
       if (hasRepeatedReportPassage(`${others}\n${row.body}`)) continue;
-      if (!valid(key) || countPaidReportBodyChars(row.body) > countPaidReportBodyChars(sections[key].body)) sections[key] = row;
+      if (!isComplete(key) && (!valid(key) || countPaidReportBodyChars(row.body) > countPaidReportBodyChars(sections[key].body))) sections[key] = row;
     }
     rawResponses[group.id] = generated.rawText || "";
     provider = generated.provider; model = generated.model;
@@ -1594,7 +1614,7 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
   if (!group && !summary && !attempts.summary) {
     attempts.summary = 1;
     await options.onReserve?.('summary', 1, false);
-    const systemPrompt = await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT);
+    const systemPrompt = await appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT));
     summary = await generateSummary(env, input, calculation, systemPrompt);
     await options.onCheckpoint?.({ sections, summary, rawResponses });
   }
@@ -1617,7 +1637,7 @@ async function saveSukuyoCheckpoint(sessionId, userId, generationLease, values) 
 /** 개인 상담(단일 텍스트)은 예전 그대로 한 번에 만든다 — 분량이 4천 토큰대라 배치가 필요 없다. */
 async function createPersonalAnswer(env, input, calculation) {
   const ai = await callGeminiText(env, buildFirstPrompt(input, calculation), {
-    systemPrompt: await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT),
+    systemPrompt: await appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT)),
     taskType: "fortune",
     temperature: 0.74,
     timeoutMs: clampSyncLlmTimeoutMs(Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 55000),
@@ -1712,7 +1732,7 @@ function executionAccessMethod(accessType) {
 
 // 선차감(코인/월정석)된 접근에서 생성이 실패하면 차감을 되돌린다.
 // vedic-ai.js의 restorePrepaidAccessOnFailure와 동일한 멱등 환급 규약을 따른다.
-async function restorePrepaidAccessOnFailure(env, auth, access, error) {
+async function restorePrepaidAccessOnFailure(env, auth, access, error, requestId = "") {
   const accessType = clean(access?.accessType).toLowerCase();
   // 이용권/월정석 커버(pass/family/license)·관리자·토큰 접근은 차감이 없으므로 환급 대상 아님.
   if (!["paid", "subscription"].includes(accessType)) return false;
@@ -1720,75 +1740,18 @@ async function restorePrepaidAccessOnFailure(env, auth, access, error) {
   if (!isObjectIdLike(evidenceId)) return false; // PG 직접결제(merchantUid 문자열)는 재시도로 자가복구되므로 제외.
 
   const userId = String(auth?.userId || "");
-  const now = new Date();
   const failureMessage = clean(error?.message || error || "sukuyo compatibility generation failed", 500);
 
   try {
+    const { canRestoreSukuyoDebit } = await import("../lib/sukuyo-refund-eligibility.js");
+    if (!await canRestoreSukuyoDebit(env, { userId, evidenceId, requestId })) return false;
     if (accessType === "subscription") {
-      const ledger = await MonthlyCreditLedger.findOne({
-        _id: evidenceId,
-        userId,
-        type: "MONTHLY_CREDIT_SPEND",
-        serviceKey: FEATURE_KEY,
-        "metadata.refundedForServiceExecution": { $ne: true },
-      }).lean();
-      if (!ledger) return false;
-      const refundCredit = Math.max(0, Math.floor(Number(ledger.amount || 0)));
-      // "metadata.refundedForUnlockFailure" 는 키 해제 계약 표식이다 — billing.js 의
-      // readIdempotentSpendResult 가 이 표식만 배제하고 releaseRefundedSpendSourceId 도 이것으로만
-      // 환불 원장을 고른다. 없으면 재구매가 "이미 결제됨"으로 replay 돼 402 로 막힌다.
-      const marked = await MonthlyCreditLedger.updateOne(
-        { _id: ledger._id, userId, "metadata.refundedForServiceExecution": { $ne: true } },
-        { $set: { "metadata.refundedForServiceExecution": true, "metadata.refundedForUnlockFailure": true, "metadata.serviceExecutionRefundedAt": now, "metadata.serviceExecutionFailureMessage": failureMessage } },
-      );
-      if (!marked.modifiedCount) return false;
-      if (refundCredit > 0) {
-        // 복원분은 신규 30일 lot으로 재적립(lotId=원장 id로 멱등).
-        // 🔴 pullRequestId 는 선택 인자가 아니다 — 차감 때 recentConsumeRequestIds 에 들어간 purchaseId
-        // (= 원장의 sourceId)를 빼 주지 않으면 재구매가 applyLotDeduction 에서 ALREADY_PROCESSED 로
-        // 402 를 맞고, E11000 이 안 나므로 키 해제 경로조차 돌지 않는다.
-        await restoreMonthlyCreditLot({
-          userId,
-          lotId: `sukuyo-refund:${String(ledger._id)}`,
-          amount: refundCredit,
-          pullRequestId: clean(ledger.sourceId, 180) || "",
-        }).catch(() => {});
-      }
-      return true;
+      const { restoreSukuyoMonthlyRefund } = await import("../lib/sukuyo-monthly-refund.js");
+      return await restoreSukuyoMonthlyRefund(env, { userId, evidenceId, failureMessage });
     }
 
-    // accessType === "paid" → 코인 PointHistory 차감 역계산.
-    const history = await PointHistory.findOne({
-      _id: evidenceId,
-      userId,
-      kind: "deduct",
-      featureKey: FEATURE_KEY,
-      "metadata.refundedForServiceExecution": { $ne: true },
-    }).lean();
-    if (!history) return false;
-    const refundCoins = Math.max(0, Math.floor(Math.abs(Number(history.delta || history?.metadata?.chargedCoins || COIN_PRICE || 0))));
-    const marked = await PointHistory.updateOne(
-      { _id: history._id, userId, "metadata.refundedForServiceExecution": { $ne: true } },
-      { $set: { "metadata.refundedForServiceExecution": true, "metadata.serviceExecutionRefundedAt": now, "metadata.serviceExecutionFailureMessage": failureMessage } },
-    );
-    if (!marked.modifiedCount) return false;
-    if (refundCoins > 0) {
-      const updated = await User.findByIdAndUpdate(userId, { $inc: { points: refundCoins } }, { new: true, projection: { points: 1 } }).lean();
-      await PointHistory.create({
-        userId,
-        kind: "refund",
-        delta: refundCoins,
-        balanceAfter: Math.max(0, Math.floor(Number(updated?.points || 0))),
-        reason: `${COMPATIBILITY_TITLE} 생성 실패 환급`,
-        featureKey: FEATURE_KEY,
-        metadata: {
-          refundedForServiceExecution: true,
-          originalPointHistoryId: String(history._id || ""),
-          failureMessage,
-        },
-      }).catch(() => {});
-    }
-    return true;
+    const { restoreSukuyoLegacyRefund } = await import("../lib/sukuyo-legacy-refund.js");
+    return await restoreSukuyoLegacyRefund(env, { userId, evidenceId, failureMessage });
   } catch (restoreError) {
     logSukyoAi("[Sukyo AI LLM Refund Failed]", {
       route: "/api/sukuyo-compatibility-ai/generate",
@@ -1912,7 +1875,8 @@ async function handleStart(request, env, recoveryAuth = null) {
         { status: 202 },
       );
     }
-    if (existingStatus === "generation_failed") return json({ ok: false, reason: "LLM_FAILED" }, { status: 409 });
+    if (existingStatus === "generation_failed") return json({ ok: false,
+      reason: existing?.generationError?.code === "REFUND_REVIEW_REQUIRED" ? "REFUND_REVIEW_REQUIRED" : "LLM_FAILED" }, { status: 409 });
     const accessHash = await inputHash(normalized);
     if (existing?.inputHash && existing.inputHash !== accessHash) return json({ ok: false, reason: "REQUEST_CONFLICT", message: "기존 상담과 입력이 달라요. 저장된 상담에서 이어서 시도해 주세요." }, { status: 409 });
     logSukyoAi("[Sukyo AI LLM Access Check Start]", {
@@ -1930,10 +1894,31 @@ async function handleStart(request, env, recoveryAuth = null) {
       });
       return json({ ok: false, reason: "PAYMENT_REQUIRED", paymentPayload: buildPaymentPayload(idempotencyKey), message: MESSAGES.paymentRequired }, { status: 402 });
     }
+    if (existingStatus === "partial" && existing?.llmMeta?.recoveryReviewRequired === true) {
+      return json({ ok: true, saved: false, status: "partial", retryable: false, reviewRequired: true,
+        sessionId: String(existing._id), resumeSessionId: String(existing._id), idempotencyKey,
+        consultation: await serializeConsultation(existing) }, { status: 202 });
+    }
     if (existingStatus === "delivery_pending") {
       const completed = await confirmSukuyoDelivery(auth.userId, String(existing._id), existing.messages, existing.generationLease);
       await recordSuccessfulUsage(auth, idempotencyKey, access, completed, new Date()).catch(() => {});
       return json({ ok: true, consultation: await serializeConsultation(completed), reused: true });
+    }
+    // 결제 증빙 1건 = 상담 1건. 이용권 차감은 이미 이번 키에 묶여 있어 claim 할 ID 가 없다.
+    const evidenceIds = [clean(access.claimEvidenceId, 160)];
+    const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+    if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+    const releaseEvidence = () => releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds }).catch(() => null);
+    if (access.claimEvidenceId) {
+      try {
+        const { findOtherSukuyoDelivery } = await import("../lib/sukuyo-refund-eligibility.js");
+        const linked = await findOtherSukuyoDelivery({ userId: auth.userId,
+          evidenceIds: [access.claimEvidenceId, access.paymentId], requestId: idempotencyKey });
+        if (linked) { await releaseEvidence(); return json(evidenceClaimErrorBody(evidenceAlreadyUsedResult()), { status: 409 }); }
+      } catch {
+        await releaseEvidence();
+        throw resultStorageUnavailable(idempotencyKey);
+      }
     }
     logSukyoAi("[Sukyo AI LLM Access Check Success]", {
       route: "/api/sukuyo-compatibility-ai/generate",
@@ -1947,13 +1932,16 @@ async function handleStart(request, env, recoveryAuth = null) {
       calculation = existing?.llmMeta?.calculation || await calculateSukuyo(normalized, env, request.url);
     } catch (calcError) {
       // 아직 시드가 없다 — 뒤집을 문서가 없으므로 기존과 동일하게 환급 후 전파한다.
-      const restored = await restorePrepaidAccessOnFailure(env, auth, access, calcError).catch(() => false);
+      const restored = await restorePrepaidAccessOnFailure(env, auth, access, calcError, idempotencyKey).catch(() => false);
+      const prepaid = ["paid", "subscription"].includes(clean(access.accessType).toLowerCase()) && isObjectIdLike(clean(access.paymentId));
+      if (restored || !prepaid) await releaseEvidence();
       logSukyoAi("[Sukyo AI LLM Refund Or Restore]", {
         route: "/api/sukuyo-compatibility-ai/generate",
         requestId: idempotencyKey,
         consultationType: normalized.consultationType,
         restored,
       }, restored ? null : calcError, env);
+      if (prepaid && !restored) return json({ ok: false, reason: "REFUND_REVIEW_REQUIRED" }, { status: 409 });
       throw calcError;
     }
     const now = new Date();
@@ -2054,19 +2042,45 @@ async function handleStart(request, env, recoveryAuth = null) {
       firstAnswer = normalized.consultationType === "compatibility"
         // 궁합은 웨이브 1만 만들고 응답한다. 나머지 4웨이브는 /continue 가 이어 받는다 —
         // 20장을 한 요청에 몰면 엣지 100초 컷에 걸려 결제만 되고 결과가 사라진다.
-        ? await createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation, {
+        ? await runWithAiLocale(storedAiLocale(existing || seedFields), async () => createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation, {
           sections: existing?.llmMeta?.sections || {}, attempts: existing?.llmMeta?.attempts || {}, summary: existing?.llmMeta?.summary, rawResponses: existing?.llmMeta?.rawResponses,
           onReserve: (groupId, attempt, lengthRepair) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { [`llmMeta.attempts.${groupId}`]: attempt, ...(lengthRepair ? { [`llmMeta.attempts.${groupId}:lengthRepair`]: 1 } : {}) }),
           onCheckpoint: ({ sections, summary, rawResponses }) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { 'llmMeta.sections': sections, 'llmMeta.summary': summary, 'llmMeta.rawResponses': rawResponses }),
-        })
-        : await createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation);
+        }))
+        : await runWithAiLocale(storedAiLocale(existing || seedFields), async () => createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation));
     } catch (genError) {
       if (genError?.code === "RESULT_STORAGE_UNAVAILABLE") throw genError;
+      // A later group can exhaust its attempts after earlier groups were saved.
+      // Retain the original payment and checkpoint for review instead of refunding
+      // or discarding already-delivered material.
+      let checkpoint;
+      try { checkpoint = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId }).lean(); }
+      catch { throw resultStorageUnavailable(sessionId); }
+      if (!checkpoint) throw resultStorageUnavailable(sessionId);
+      const savedSections = checkpoint.llmMeta?.sections || {};
+      if (Object.values(savedSections).some(row => typeof row?.body === "string" && row.body.trim())) {
+        const partial = await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, {
+          status: "partial", generationLease: "", "llmMeta.recoveryReviewRequired": true,
+          generationError: { code: clean(genError?.code || "LLM_GENERATION_FAILED", 80), at: new Date().toISOString() },
+        });
+        return json({ ok: true, saved: false, status: "partial", retryable: false, reviewRequired: true,
+          sessionId, resumeSessionId: sessionId, idempotencyKey, consultation: await serializeConsultation(partial) }, { status: 202 });
+      }
       // 실패 확정도 현재 생성 잠금을 소유한 요청만 수행한다. 저장 장애는 환불로 보내지 않는다.
+      const prepaid = ["paid", "subscription"].includes(clean(access.accessType).toLowerCase()) && isObjectIdLike(clean(access.paymentId));
       await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { status: "generation_failed", generationError: {
-        code: clean(genError?.code || "LLM_GENERATION_FAILED", 80), message: clean(genError?.message || genError, 500), at: new Date().toISOString(),
+        code: prepaid ? "REFUND_REVIEW_REQUIRED" : clean(genError?.code || "LLM_GENERATION_FAILED", 80), message: clean(genError?.message || genError, 500), at: new Date().toISOString(),
       } });
-      await restorePrepaidAccessOnFailure(env, auth, access, genError).catch(() => false);
+      const restored = await restorePrepaidAccessOnFailure(env, auth, access, genError, idempotencyKey).catch(() => false);
+      if (prepaid && !restored) {
+        return json({ ok: false, reason: "REFUND_REVIEW_REQUIRED", sessionId }, { status: 409 });
+      }
+      if (prepaid && restored) {
+        const marked = await SukuyoCompatibilityAiConsultation.updateOne({ _id: sessionId, userId: auth.userId, status: "generation_failed" },
+          { $set: { "generationError.code": clean(genError?.code || "LLM_GENERATION_FAILED", 80) } });
+        if (!marked?.matchedCount) throw resultStorageUnavailable(sessionId);
+      }
+      await releaseEvidence();
       throw genError;
     }
     const messages = [
@@ -2175,7 +2189,7 @@ async function handleMessage(request, env) {
     return json({ ok: false, sessionId, status: consultationState, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
   }
   const ai = await callGeminiText(env, buildFollowupPrompt(consultation, content), {
-    systemPrompt: await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT),
+    systemPrompt: await appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT)),
     taskType: "fortune",
     temperature: 0.72,
     maxOutputTokens: 2600,
@@ -2317,6 +2331,7 @@ export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
 
 // 검증 하네스(verify-analysis-basis-contract)가 순수 계산 경로만 따로 돌려 보기 위한 노출.
 export const __sukuyoCompatibilityAiTestUtils = {
+  restorePrepaidAccessOnFailure,
   FEATURE_KEY,
   normalizeInput,
   calculateSukuyo,

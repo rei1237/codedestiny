@@ -58,7 +58,15 @@ const WORKER_RUNTIME_GLOBALS = [
 ];
 
 const SURFACES = [
-  { key: "worker", patterns: ["worker/**/*.js"], globals: WORKER_RUNTIME_GLOBALS },
+  {
+    key: "worker",
+    patterns: ["worker/**/*.js"],
+    globals: WORKER_RUNTIME_GLOBALS,
+    // paid-*.src.js 는 모듈이 아니라 사주 셸 전역(G_POWER·GAN·window…) 위에서 도는 조각이다.
+    // scripts/extract-saju-section-runtime.mjs 가 runtime.generated.mjs 로 감싸고,
+    // __tests__/worker/saju-section.test.js 가 그 결과를 실제로 실행해 검사한다.
+    ignore: ["worker/lib/saju-section/paid-*.src.js"],
+  },
   {
     key: "lib",
     patterns: ["lib/**/*.js", "lib/**/*.mjs"],
@@ -69,27 +77,44 @@ const SURFACES = [
   },
 ];
 
-function buildEslint(globalNames) {
+function buildEslint(globalNames, ignore = []) {
   return new ESLint({
     cwd: root,
     useEslintrc: false,
     overrideConfig: {
       parserOptions: { ecmaVersion: 2023, sourceType: "module" },
+      // Node 24 JSON imports use `with { type: 'json' }`. The bundled Espree 9
+      // cannot parse import attributes; keep no-undef active with the installed
+      // parser already used by the project's TypeScript lint configuration.
+      overrides: [{ files: ["**/*.js", "**/*.mjs"], parser: "@typescript-eslint/parser" }],
       env: { es2022: true },
       globals: Object.fromEntries(globalNames.map((name) => [name, "readonly"])),
       rules: { "no-undef": "error" },
       // 레포에 .eslintignore 가 없어서, 산출물이 표면 안에 떨어지면 13 MiB 번들을 그대로
       // lint 한다(번들에는 window·document 가 인라인돼 있어 no-undef 가 수백 건 터진다).
-      ignorePatterns: BUILD_ARTIFACT_DIRS.map((dir) => `**/${dir}/**`),
+      ignorePatterns: [...BUILD_ARTIFACT_DIRS.map((dir) => `**/${dir}/**`), ...ignore],
     },
   });
+}
+
+if (process.argv.includes("--self-test")) {
+  const { strict: assert } = await import("node:assert");
+  const eslint = buildEslint(WORKER_RUNTIME_GLOBALS);
+  for (const extension of ['js', 'mjs']) {
+  const lint = async code => (await eslint.lintText(code, { filePath: `lib/guard-fixture.${extension}` }))[0].messages;
+  assert.deepEqual(await lint("import data from './data.json' with {type:'json'}; console.log(data);"), []);
+  assert.ok((await lint("import data from './data.json' with {type:'json'}; console.log(missingName);")).some(m => m.ruleId === 'no-undef'));
+  assert.ok((await lint("import data from './data.json' with {type: ;")).some(m => m.fatal));
+  }
+  console.log('[verify-worker-no-undef] parser self-test PASS: import attributes, undefined name, invalid syntax');
+  process.exit(0);
 }
 
 const violations = [];
 let scanned = 0;
 
 for (const surface of SURFACES) {
-  const results = await buildEslint(surface.globals).lintFiles(surface.patterns);
+  const results = await buildEslint(surface.globals, surface.ignore).lintFiles(surface.patterns);
   scanned += results.length;
   for (const result of results) {
     const file = relative(root, result.filePath).replace(/\\/g, "/");

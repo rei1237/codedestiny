@@ -15,7 +15,7 @@ const mockDbExports={mongoose:{...mongoose,startSession:async()=>({
 jest.unstable_mockModule('../../worker/lib/db.js',()=>mockDbExports);
 const repository=import('../../worker/yeongnyangi/repository.js');
 const USER='507f1f77bcf86cd799439011',ID='d'.repeat(64),RID='yn-'+ID;
-const product=resolveProduct({featureKey:'yeongnyangi-saju-mackerel'}),STONES=product.monthlyCost;
+const product=resolveProduct({featureKey:'yeongnyangi-saju-salmon'}),STONES=product.monthlyCost;
 function chain(run) {
  const query={session:()=>query,select:()=>query,sort:()=>query,limit:()=>query,
   lean:run,then:(yes,no)=>Promise.resolve().then(run).then(yes,no)};
@@ -26,9 +26,9 @@ async function withFixture(run,chat=null,purchasedProduct=product) {
  const purchasedStones=purchasedProduct.monthlyCost;
  const expiresAt=new Date('2099-10-30');
  db.rows.push({_id:USER,recentConsumeRequestIds:[],profileSubscription:{
-  membershipCreditBalance:purchasedStones,membershipCreditUsed:0,membershipCreditLotsVersion:0,
-  membershipCreditLots:[{lotId:'signup',amount:purchasedStones,remaining:purchasedStones,grantedAt:new Date(),expiresAt}]}},
- {_id:ID,userId:USER,featureKey:(chat||product).featureKey,amountKRW:chat?3000:product.priceKRW,state:'CREATED',paymentId:null,
+  membershipCreditBalance:Math.max(purchasedStones,STONES),membershipCreditUsed:0,membershipCreditLotsVersion:0,
+  membershipCreditLots:[{lotId:'signup',amount:Math.max(purchasedStones,STONES),remaining:Math.max(purchasedStones,STONES),grantedAt:new Date(),expiresAt}]}},
+ {_id:ID,userId:USER,featureKey:(chat||product).featureKey,amountKRW:(chat||product).priceKRW,state:'CREATED',paymentId:null,
   accessMethod:null,paymentClaimOrderId:'',chapters:[],completedChapters:0,chapterAttempts:{},attempts:0,
   leaseUntil:null,nextAttemptAt:null,snapshot:{manifest:[{},{}]}});
  active={db,get row(){return db.rows.find(r=>r._id===ID)},get user(){return db.rows.find(r=>String(r._id)===USER)}};
@@ -41,7 +41,15 @@ async function withFixture(run,chat=null,purchasedProduct=product) {
   Model.updateOne=(filter,update)=>chain(()=>db.updateOne(Model,filter,update));
  }
  try {
-  const spent=await spendMoonstone(db,{userId:USER,product:chat||product,purchaseId:chat?'fc-'+ID:RID});
+  let spent;
+  if(chat) {
+   // Persisted pre-policy chat charge: new subminimum purchases are forbidden.
+   const proof={_id:new mongoose.Types.ObjectId(),userId:USER,type:'MONTHLY_CREDIT_SPEND',sourceId:'fc-'+ID,serviceKey:chat.featureKey,amount:chat.monthlyCost,settledAt:new Date(),createdAt:new Date(),metadata:{}};
+   db.rows.push(proof);spent={ledgerId:String(proof._id)};
+   active.user.profileSubscription.membershipCreditBalance-=chat.monthlyCost;
+   active.user.profileSubscription.membershipCreditUsed=chat.monthlyCost;
+   active.user.profileSubscription.membershipCreditLots[0].remaining-=chat.monthlyCost;
+  } else spent=await spendMoonstone(db,{userId:USER,product,purchaseId:RID});
   if(purchasedProduct!==product){
    // Reconstruct persisted historical proof. Never ask today's purchase API to
    // charge an obsolete price, which it correctly rejects.
@@ -144,10 +152,10 @@ test('terminal update racing chapter transaction rolls back late content before 
  expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES);
 }));
 test('a fortune-chat consultation paid with stones gets them back once when it delivered nothing',()=>withFixture(async f=>{
- expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES-300);
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES-500);
  terminal(f);
  const first=await refundTerminalMoonstone(f.db,{userId:USER,requestId:ID,perUse:true});
- expect(first).toMatchObject({refunded:true,replayed:false,amount:300});
+ expect(first).toMatchObject({refunded:true,replayed:false,amount:500});
  expect(f.row).toMatchObject({state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED'});
  expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES);
  const receipt=f.db.rows.find(r=>r.type==='MONTHLY_CREDIT_GRANT');

@@ -26,6 +26,9 @@ import * as mongooseModule from "mongoose";
 import { makeFakePaymentDb, matches } from "../fixtures/fake-payment-db.mjs";
 import { ORACLE_CONSULTATION_TIERS } from "../../lib/tarot/oracle-consultation-pricing.mjs";
 
+import { getPaidFeaturePaymentPolicy } from "../../worker/lib/paid-feature-registry.js";
+import { SUKUYO_COMPAT_FEATURE_KEYS } from "../../worker/lib/saju-section/report.js";
+
 const USER_ID = "507f1f77bcf86cd799439011";
 const FUSION_FEATURE_KEY = "fusion-fortune-consultation";
 const OTHER_FEATURE_KEY = "fortune-chat-consultation";
@@ -118,6 +121,16 @@ beforeEach(() => {
 async function runWriter({ product = PRODUCT, purchaseId = REQUEST_ID, consumeLots } = {}) {
   const db = makeLedgerDb();
   const deduct = consumeLots || (async () => ({ ok: true, reason: "OK", balance: 5000, user: null }));
+  // Below-minimum/retired keys remain readable using persisted pre-policy evidence.
+  // New writes must fail without invoking the debit dependency.
+  if (getPaidFeaturePaymentPolicy(product.featureKey).monthlyExcluded) {
+    const debit = jest.fn();
+    await expect(spendMoonstone(db, {userId:USER_ID, product, purchaseId}, {consumeLots:debit})).rejects.toMatchObject({code:'MONTHLY_NOT_ALLOWED'});
+    expect(debit).not.toHaveBeenCalled();
+    const row = {_id:new (mongooseModule.default || mongooseModule).Types.ObjectId(), userId:USER_ID, type:'MONTHLY_CREDIT_SPEND', sourceId:purchaseId, serviceKey:product.featureKey, amount:product.monthlyCost, settledAt:new Date(), createdAt:new Date(), afterBalance:5000, metadata:{productId:product.productId,purchaseId}};
+    db.rows.push(row);ledgerRows.push(row);
+    return {db,spend:{ledgerId:String(row._id),balance:5000,replayed:true}};
+  }
   let spend = null;
   try {
     spend = await spendMoonstone(db, { userId: USER_ID, product, purchaseId }, { consumeLots: deduct });
@@ -282,6 +295,8 @@ function importedKeyConsts(source) {
 //    tarot 오라클 상담은 카드 수 구간마다 키가 갈리고 서버가 런타임에 역산한다(PR #1171).
 const DYNAMIC_ROUTE_KEYS = Object.freeze({
   tarot: () => ORACLE_CONSULTATION_TIERS.map((tier) => tier.featureKey),
+  // saju-section 은 해금 본문 라우트이고, 회당 결제 증빙을 읽는 것은 숙요 기본/정밀 궁합 두 키뿐이다(본문 렌더러 정본의 표).
+  "saju-section": () => [...SUKUYO_COMPAT_FEATURE_KEYS],
 });
 
 function readRouteFeatureKeys(routeName) {

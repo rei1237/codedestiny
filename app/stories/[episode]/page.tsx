@@ -12,6 +12,7 @@ import {
   getArcForIndex,
   getEpisodeBySlug,
   getEpisodeIndex,
+  getEpisodeNeighbors,
   readingMinutes,
 } from "../../../lib/stories/vn";
 
@@ -48,8 +49,7 @@ export default function StoryEpisodePage({ params }: { params: { episode: string
   const index = getEpisodeIndex(episode.slug);
   const arc = getArcForIndex(index);
   const guide = arc ? ARC_GUIDE_LINKS[arc.key] : null;
-  const previous = index > 0 ? STORY_EPISODES[index - 1] : null;
-  const next = index < STORY_EPISODES.length - 1 ? STORY_EPISODES[index + 1] : null;
+  const { previous, next } = getEpisodeNeighbors(episode.slug);
 
   // 화면 빵부스러기(아래 nav)와 같은 계층을 구조화 데이터로도 내보낸다. 구글은 둘이
   // 일치할 때만 검색 결과에 경로를 그려 주고, 색인이 돼도 이게 없으면 맨 URL 로 나온다.
@@ -105,6 +105,15 @@ export default function StoryEpisodePage({ params }: { params: { episode: string
               ) : (
                 <p className="mt-5 break-keep text-sm leading-8 text-slate-300 md:text-base">{beat.t}</p>
               )}
+              {beat.choice ? (
+                <div className="mt-6 grid gap-3 sm:grid-cols-2" role="group" aria-label="결말 선택">
+                  {beat.choice.options.map((option) => (
+                    <Link key={option.id} href={`/stories/${option.target}/`} className="rounded-2xl border border-amber-200/30 bg-amber-100/[0.06] px-5 py-4 text-center font-semibold text-amber-100 transition hover:-translate-y-0.5 hover:border-amber-200/60 hover:bg-amber-100/[0.1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200">
+                      {option.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
             </div>
           );
         })}
@@ -126,6 +135,15 @@ export default function StoryEpisodePage({ params }: { params: { episode: string
           <span />
         )}
       </nav>
+
+      {episode.ending ? (
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-center">
+          <p className="text-sm text-slate-300">{episode.ending.label}을 다 읽었어요. 다른 선택도 결말이 어떤지 바로 확인할 수 있어요.</p>
+          <Link href={episode.branch === "reality" ? "/stories/ep-51s/" : "/stories/ep-51/"} className="mt-4 inline-flex rounded-xl border border-amber-200/40 bg-amber-100/[0.08] px-4 py-2 text-sm font-semibold text-amber-100 hover:bg-amber-100/[0.14]">
+            {episode.branch === "reality" ? "운세 세계 엔딩 보기" : "현실 세계 엔딩 보기"}
+          </Link>
+        </div>
+      ) : null}
 
       <div className="mt-6 flex flex-wrap gap-2">
         <Link

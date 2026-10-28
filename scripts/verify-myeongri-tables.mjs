@@ -355,6 +355,29 @@ let compareHiddenStemTable = null;
       allowExtraResidual: true,
       divergent: ["丑", "辰", "未", "戌"],
     }],
+    // 사주 종합·대운 서버 렌더러용 생성물. extract-saju-section-runtime.mjs --check가 셸 원본과 축자 일치를 검증한다.
+    ["worker/lib/saju-section/runtime.generated.mjs::CD_JANGGAN", {
+      order: "residual-first",
+      allowExtraResidual: true,
+      divergent: ["丑", "辰", "未", "戌"],
+    }],
+    // 원국 판정(natal-core) 정본 표. 셸 CD_JANGGAN 과 같은 방향·같은 예외다. 아래 두 생성 번들은
+    // build-saju-natal-core.mjs / build-saju-reading-depth.mjs 가 이 모듈을 import 해 싣는 사본이다.
+    ["lib/saju/natal-core/tables.mjs::HIDDEN", {
+      order: "residual-first",
+      allowExtraResidual: true,
+      divergent: ["丑", "辰", "未", "戌"],
+    }],
+    ["js/core/saju/natal-core.generated.js::HIDDEN", {
+      order: "residual-first",
+      allowExtraResidual: true,
+      divergent: ["丑", "辰", "未", "戌"],
+    }],
+    ["js/core/saju/reading-depth.generated.js::HIDDEN", {
+      order: "residual-first",
+      allowExtraResidual: true,
+      divergent: ["丑", "辰", "未", "戌"],
+    }],
     // 🔴 이 표만 층 가중치가 **자리로** 정해져 있다(0.6/0.25/0.15). 그래서 巳 를 정본 순서로
     // 고치는 것이 곧 庚 0.15→0.25 · 戊 0.25→0.15 이고, 신강약·통근·격국이 함께 움직였다
     // (실측 2026-08-28, 표본 1,032건: 巳 포함 304건 중 신강약 6건 1.97% · 격국 11건 3.62%).

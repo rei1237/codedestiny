@@ -12,8 +12,9 @@
 import { jest } from "@jest/globals";
 import mongoose from "mongoose";
 import { refundPassCoverage as restoreQuota } from "../../worker/lib/pass-consumption.js";
-import "../../worker/payments/db.js";
+import { toObjectId } from "../../worker/payments/db.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
+import { passUsageEvidenceId } from "../../worker/payments/passes.js";
 
 const USER_ID = "64b7f2a1c3d4e5f601234567";
 const EXECUTION_ID = "64b7f2a1c3d4e5f6012345aa";
@@ -56,6 +57,8 @@ function applySet(target, update) {
 }
 
 beforeAll(async () => {
+  jest.unstable_mockModule('../../worker/payments/db.js', () => ({toObjectId, createPaymentContext:x=>x,withPaymentDb:async(_e,_c,fn)=>fn({transaction:async cb=>cb({findOne:async()=>null})})}));
+  jest.unstable_mockModule("../../worker/payments/passes.js", () => ({ passUsageEvidenceId }));
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ refundPassCoverage: input => { refundDb.rows.splice(0, users.length, ...users); return restoreQuota({ ...input, db: refundDb }); } }));
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     connectDb: jest.fn(async () => {}),
@@ -69,6 +72,7 @@ beforeAll(async () => {
   }));
 
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+    PaidExecutionRecord: { findOne: () => ({lean: async () => null}) },
     CONTENT_ENTITLEMENT_STATUSES: { REFUNDED: "refunded" },
     ServiceExecutionTransaction: {
       findById: (id) => thenableWithLean(executions.find((doc) => String(doc._id) === String(id)) || null),
@@ -156,6 +160,54 @@ beforeEach(() => {
     _id: USER_ID,
     profileSubscription: { premiumUseCycleKey: CYCLE_KEY, monthlySpendCoin: 30 },
   }];
+  refundDb.rows.push(users[0], { _id: passUsageEvidenceId(USER_ID, 'human-design-premium-report', REQUEST_ID),
+    userId: new mongoose.Types.ObjectId(USER_ID), kind: 'deduct', featureKey: 'human-design-premium-report',
+    metadata: { requestId: REQUEST_ID, passCycleKey: CYCLE_KEY, coinCost: 30 } });
+});
+
+test('사용 원장 증빙이 없으면 이용권 사용량을 복원하지 않는다', async () => {
+  refundDb.rows.splice(1, 1);
+  await failServiceExecution({}, USER_ID, { executionKey: `human-design-premium-report:${REQUEST_ID}`,
+    reasonCode: 'generation_failed', forceRefundOnClose: true });
+  expect(users[0].profileSubscription.monthlySpendCoin).toBe(30);
+  expect(executions[0].compensation.adminReviewRequired).toBe(true);
+});
+test('이용권 증빙 확인이 필요하면 연결된 현금 취소도 시도하지 않는다', async () => {
+  refundDb.rows.splice(1, 1);
+  executions[0].paymentRef = { merchantUid: 'synthetic-payment' };
+  const { Payment } = await import('../../worker/lib/models.js');
+  const lookup = jest.spyOn(Payment, 'findOne');
+  await failServiceExecution({}, USER_ID, { executionKey: `human-design-premium-report:${REQUEST_ID}`,
+    reasonCode: 'generation_failed', forceRefundOnClose: true });
+  expect(lookup).not.toHaveBeenCalled();
+  expect(executions[0].compensation.adminReviewRequired).toBe(true);
+  lookup.mockRestore();
+});
+
+test.each(['featureKey','requestId','coinCost'])('사용 증빙의 %s 불일치는 복원하지 않는다', async field => {
+  const source=refundDb.rows[1];
+  if(field==='featureKey')source.featureKey='other-feature';
+  if(field==='requestId')source.metadata.requestId='other-request';
+  if(field==='coinCost')source.metadata.coinCost=29;
+  await failServiceExecution({}, USER_ID, { executionKey: `human-design-premium-report:${REQUEST_ID}`,
+    reasonCode: 'generation_failed', forceRefundOnClose: true });
+  expect(users[0].profileSubscription.monthlySpendCoin).toBe(30);
+  expect(executions[0].compensation.adminReviewRequired).toBe(true);
+});
+test('다른 계정의 사용 증빙으로는 복원하지 않는다', async () => {
+  refundDb.rows[1].userId = new mongoose.Types.ObjectId('64b7f2a1c3d4e5f601234568');
+  await failServiceExecution({}, USER_ID, { executionKey: `human-design-premium-report:${REQUEST_ID}`,
+    reasonCode: 'generation_failed', forceRefundOnClose: true });
+  expect(users[0].profileSubscription.monthlySpendCoin).toBe(30);
+});
+test('실행의 완료 표식이 유실돼도 원본 영수증으로 중복 복원을 막는다', async () => {
+  const input={executionKey:`human-design-premium-report:${REQUEST_ID}`,reasonCode:'generation_failed',forceRefundOnClose:true};
+  await failServiceExecution({}, USER_ID, input);
+  expect(users[0].profileSubscription.monthlySpendCoin).toBe(0);
+  users[0].profileSubscription.monthlySpendCoin=30;
+  executions[0].status='pending';delete executions[0].metadata.passRefund.refundedAt;
+  await failServiceExecution({}, USER_ID, input);
+  expect(users[0].profileSubscription.monthlySpendCoin).toBe(30);
 });
 
 test("이용권 커버로 차감된 monthlySpendCoin 이 생성 실패 시 되돌아간다", async () => {

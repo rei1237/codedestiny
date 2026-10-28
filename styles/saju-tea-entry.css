@@ -1,0 +1,15 @@
+.saju-tea-entry{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:center;gap:var(--cd-space-6,24px);padding:clamp(20px,4vw,40px);margin-block:32px;background:var(--cd-surface);color:var(--cd-text);border:1px solid var(--cd-border);border-radius:var(--cd-r-section);box-shadow:0 12px 32px color-mix(in srgb,var(--cd-text) 9%,transparent)}
+.saju-tea-entry__art{display:block;align-self:center;min-width:0}.saju-tea-entry__art img{background:transparent;display:block;width:100%;height:auto}
+.saju-tea-entry__copy{min-width:0}#sajuQuestionPromptGeneratorCard .saju-tea-entry h3{font-family:var(--font-serif);font-size:var(--cd-t-display);line-height:1.4;margin:0 0 12px;text-wrap:balance;color:var(--cd-text)}
+.saju-tea-entry p{font-size:var(--cd-t-body);line-height:1.8;margin:12px 0;word-break:keep-all;overflow-wrap:anywhere}
+.saju-tea-entry__product{font-weight:700;color:var(--cd-accent)}
+.saju-tea-entry__roles{margin:20px 0 24px;display:grid;gap:10px}.saju-tea-entry__roles>div{display:flex;gap:12px;align-items:baseline}.saju-tea-entry dt{font-weight:700;flex-shrink:0}.saju-tea-entry dd{margin:0;word-break:keep-all;font-size:var(--cd-t-body);line-height:1.7}
+#sajuQuestionPromptGeneratorCard .saju-tea-entry__cta{display:flex;justify-content:center;align-items:center;gap:12px;min-height:52px;padding:14px 18px;background:var(--cd-accent);color:var(--cd-on-accent,var(--cd-bg));border-radius:var(--cd-r-control);font:700 var(--cd-t-body)/1.5 var(--font-body);text-decoration:none;text-align:center;word-break:keep-all}
+.saju-tea-entry__cta:hover{filter:brightness(.94)}.saju-tea-entry__cta:focus-visible,.saju-tea-entry summary:focus-visible{outline:3px solid var(--cd-accent);outline-offset:4px}
+.saju-tea-entry .saju-tea-entry__price,.saju-tea-entry .saju-tea-entry__note{font-size:var(--cd-t-caption);color:var(--cd-text-muted)}
+.saju-tea-entry__details{margin-top:16px;border-top:1px solid var(--cd-border)}.saju-tea-entry summary{display:flex;align-items:center;min-height:44px;cursor:pointer;text-decoration:underline;text-underline-offset:4px;font-size:var(--cd-t-body)}
+.consultation-saju[data-tea-consolidated] .consultation-entry,.consultation-saju[data-tea-consolidated] .consultation-form{display:none}
+.consultation-saju[data-tea-consolidated]>.saju-consultation-disclosure{margin-top:12px}
+#daewunCard #currentSeasonCard{margin:24px 0;padding:0;border:0;box-shadow:none;background:transparent}
+#daewunCard #currentSeasonCard .sec-title{font-size:var(--cd-t-card)}
+@media(max-width:759px){.saju-tea-entry{grid-template-columns:minmax(0,1fr);gap:16px;padding:24px 20px}.saju-tea-entry__art{max-width:440px;justify-self:center}#sajuQuestionPromptGeneratorCard .saju-tea-entry__cta{width:100%;box-sizing:border-box}.saju-tea-entry__roles{margin-block:16px 20px}#sajuQuestionPromptGeneratorCard .saju-tea-entry h3{font-size:max(24px,var(--cd-t-section))}}

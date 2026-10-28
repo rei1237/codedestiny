@@ -1,5 +1,6 @@
 "use client";
 
+import ConsultationMasterIntro from "@/app/components/ConsultationMasterIntro";
 import Link from "next/link";
 import { authFetch } from "@/app/_lib/auth-client";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
@@ -7,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
-import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationReading from "@/components/fortune/ConsultationReading";
 import ConsultationShare from "@/components/fortune/ConsultationShare";
 import { karmaShareChoices } from "@/lib/consultation-sharing";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -1078,6 +1079,7 @@ function KarmaDestinyResultInner() {
         fileName: `karma-destiny-report_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`,
         backgroundColor: "#060A18",
         cover: {
+          theme: "karma",
           title: copy.pdfCoverTitle(userName),
           subtitle: result?.userInput?.topic || copy.defaultTopic,
           name: userName,
@@ -1165,6 +1167,8 @@ function KarmaDestinyResultInner() {
   return (
     <main className="kdai-result-page">
       {notice && <div className="kdai-toast">{notice}</div>}
+
+      <ConsultationMasterIntro kind="karma" compact />
 
       {isGenerating && (
         <ObservatoryLoader
@@ -1283,7 +1287,7 @@ function KarmaDestinyResultInner() {
                     {report.synthesis.highlightQuotes?.[0] && (
                       <blockquote className="kdo-quote">{report.synthesis.highlightQuotes[0]}</blockquote>
                     )}
-                    <AiResultProse
+                    <ConsultationReading kind="karma" index={1}
                       value={report.synthesis.content}
                       highlight={report.synthesis.highlightQuotes}
                       className="kdo-prose"
@@ -1372,7 +1376,7 @@ function KarmaDestinyResultInner() {
                           {!summaryMode && (
                             <>
                               <div className={`kdai-chapter__prose ${clamp ? "is-clamped" : ""}`.trim()}>
-                                <AiResultProse
+                                <ConsultationReading kind="karma" index={index}
                                   value={chapter.content}
                                   highlight={chapter.highlightQuotes}
                                   className="kdo-prose"
@@ -1425,7 +1429,7 @@ function KarmaDestinyResultInner() {
                 {report.letter && (
                   <div className="kdo-letter">
                     <span className="kdo-kicker">{report.letter.title}</span>
-                    <AiResultProse value={report.letter.content} className="kdo-prose" />
+                    <ConsultationReading kind="karma" value={report.letter.content} index={1} className="kdo-prose" />
                   </div>
                 )}
               </section>

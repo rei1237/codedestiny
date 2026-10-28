@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP8",
+  "mobile": "Independent SHIP8+notice+transcript+CTA4;final corrections confirmed",
+  "checks": "304/334/374/540 load/all clipping ancestors/fallback PASS;static display2 PASS;ESLint/syntax PASS",
+  "limits": "All API mocked;no purchase or generation;main/CI pending"
+}

@@ -5,7 +5,9 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { getAuthState } from "@/app/_lib/auth-store";
 import { teaSpreads, recommendTeaSpread } from "@/lib/fortune-tea-house/tarot-contract.mjs";
 import { teaSpreadCopy } from "../data/teaSpreadCopy";
-import { getFortuneTeaHouseConsultPriceLabel } from "../data/consultPricing";
+import { getFortuneTeaHouseConsultPriceLabel, getFortuneTeaHouseConsultFeatureKey } from "../data/consultPricing";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { useLocale } from "@/lib/i18n/useT";
 import type { FortuneTeaHouseQuestionInput } from "../data/consult";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import TeaHouseButton from "./TeaHouseButton";
@@ -14,7 +16,7 @@ import styles from "../styles/tea-confirm.module.css";
 const KO = {
  information:"사용할 정보",unknown:"출생시간 미상",solar:"양력",lunar:"음력",leap:"윤달",
  titleKo:"상담 내용을 확인해 주세요", question:"내 질문", price:"단건 기준",
- scope:"핵심 답변 · 해석 근거 · 행동 조언 · 연이의 편지", policy:"이용권·월정석 적용 여부는 다음 단계에서 확인해요. 추가 질문은 현재 상품에 포함된 권한이 있을 때만 이용할 수 있어요.",
+ scope:"핵심 답변 · 해석 근거 · 행동 조언 · 연이의 편지 · 추가 질문 1회", policy:"이용권·월정석 적용 여부는 다음 단계에서 확인해요. 결과를 받은 뒤 같은 상담 근거(명식·카드·본명숙)로 추가 질문 1회를 추가 비용 없이 할 수 있어요.",
  edit:"질문 수정하기", continue:"권한 확인하고 상담 시작", prepare:"이 질문으로 카드 준비하기",
  spread:"질문에 맞는 카드 배열", draw:"카드 선택 확정", auto:"자동으로 선택하기",
  drawHelp:"서버에서 78장을 한 번 섞고 방향을 고정해요. 고른 순서대로 각 자리에 놓이며, 결제 복귀와 재시도에도 같은 카드를 읽어요.",
@@ -25,6 +27,7 @@ const KO = {
 type Draft={attemptId:string;status:string;deckSize:number;cards?:unknown[];spread:{cardCount:number;title:string;positions:{id:string;label:string}[]}};
 export default function TeaConsultConfirmation({input,cupId,onConfirm,onBack,busy=false}:{input:FortuneTeaHouseQuestionInput;cupId:string;onConfirm:(input:FortuneTeaHouseQuestionInput)=>void;onBack:()=>void;busy?:boolean}){
  const copy=useTeaHouseCopy("confirmation",KO);
+ const locale=useLocale();
  const spreadsCopy=useTeaHouseCopy("spreadV2",teaSpreadCopy);
  const isTarot=input.consultationMode==="tarot";
  const [spreadId,setSpreadId]=useState(()=>teaSpreads.find(s=>s.id===input.tarotSpreadId)?.id||recommendTeaSpread(input.question,input.tarotSpread)?.id||"yn_knot_three");
@@ -56,12 +59,13 @@ export default function TeaConsultConfirmation({input,cupId,onConfirm,onBack,bus
  }
  return <section className={styles.confirm} aria-labelledby="tea-confirm-title">
   <h2 id="tea-confirm-title">{copy.titleKo}</h2><p>{copy.question}</p><blockquote>{input.question}</blockquote>
-  <p>{copy.scope}</p><p>{copy.price}: <strong>{getFortuneTeaHouseConsultPriceLabel(input.consultationMode,isTarot?size:undefined)}</strong></p><p>{copy.policy}</p>
+  <p>{copy.scope}</p><p>{copy.price}: <strong>{getFortuneTeaHouseConsultPriceLabel(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion)}</strong></p><p>{copy.policy}</p>
+  {locale==="ko"&&<CraftedProductDisclosure featureKey={getFortuneTeaHouseConsultFeatureKey(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion)}/>}
   {!isTarot&&<div><h3>{copy.information}</h3><ul>{people.map((person,index)=>person&&<li key={index}>{[
     "name" in person ? person.name : input.nickname,person.birthDate,
     person.calendarType==="lunar" ? copy.lunar : copy.solar,person.isLeapMonth ? copy.leap : "",
     input.consultationMode!=="sukuyo" ? ("birthTime" in person && person.birthTime ? person.birthTime : copy.unknown) : "",
-    person.timezone,person.longitude == null ? "" : String(person.longitude)+"°",
+    "birthPlace" in person ? person.birthPlace : "",
   ].filter(Boolean).join(" · ")}</li>)}</ul></div>}
   <TeaCalculationPolicy mode={input.consultationMode}/>
   {isTarot&&<><label>{copy.spread}<select value={spreadId} disabled={!!draft||loading} onChange={e=>setSpreadId(e.target.value)}>{teaSpreads.map(s=><option key={s.id} value={s.id}>{spreadsCopy[s.id as keyof typeof spreadsCopy].title} · {s.cardCount}</option>)}</select></label>

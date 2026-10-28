@@ -1,0 +1,58 @@
+{
+  "provenance": "ImageGen identity-preserving edit of public/images/novel/mobile/neo-cef04fde61.webp; 2026-10-09. Original character identity explicitly retained by user request.",
+  "master": "expressions.webp",
+  "grid": [
+    4,
+    2
+  ],
+  "frames": [
+    {
+      "expression": "neutral",
+      "bytes": 36492,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "soft",
+      "bytes": 35816,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "calm",
+      "bytes": 36962,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "surprise",
+      "bytes": 37104,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "serious",
+      "bytes": 35710,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "talk",
+      "bytes": 37034,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "sad",
+      "bytes": 36376,
+      "width": 360,
+      "height": 480
+    },
+    {
+      "expression": "smile",
+      "bytes": 35700,
+      "width": 360,
+      "height": 480
+    }
+  ]
+}

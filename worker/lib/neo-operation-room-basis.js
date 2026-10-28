@@ -65,6 +65,48 @@ function group(key, items) {
 }
 
 // ─── 사주 ──────────────────────────────────────────────────────────────────
+// 🔴 valuesOf 로 뭉개면 "오행 분포: 1 0 2 4 1" 처럼 어느 수치가 어느 오행인지 사라지고(R2),
+//    합충 객체는 2단 중첩이라 아예 빈 값이 된다. 사주 표만은 라벨을 직접 붙인다.
+//    붙이는 이름은 엔진이 쓰는 한글 키(목·화, 비견·편인…)뿐이다 — 영문 키는 여전히 싣지 않는다.
+const HANGUL_KEY = /^[가-힣]+$/;
+
+function countLine(counts) {
+  if (!counts || typeof counts !== "object") return "";
+  return Object.entries(counts)
+    .filter(([name, value]) => HANGUL_KEY.test(name) && Number.isFinite(Number(value)) && !isBlank(value))
+    .map(([name, value]) => `${name}${Number(value)}`)
+    .join(" ");
+}
+
+function seasonLine(balance) {
+  if (!balance || typeof balance !== "object") return valuesOf(balance);
+  const month = balance.monthBranch
+    ? `월지 ${balance.monthBranch}${[balance.season, balance.seasonElement].filter(Boolean).length ? `(${[balance.season, balance.seasonElement].filter(Boolean).join(", ")})` : ""}`
+    : "";
+  return [
+    month,
+    balance.climate ? `계절감 ${balance.climate}` : "",
+    balance.dayMasterSeasonalState || "",
+    balance.dayElement ? `일간 오행 ${balance.dayElement}` : "",
+    balance.adjustment ? `조후 보완 ${balance.adjustment}` : "",
+  ].filter(Boolean).join(" · ");
+}
+
+function interactionLine(interactions) {
+  if (!interactions || typeof interactions !== "object") return valuesOf(interactions);
+  const entries = Object.values(interactions).flatMap(asArray).filter((entry) => entry?.label);
+  if (!entries.length) return Object.keys(interactions).length ? "두드러진 합·충·형·파·해 없음" : "";
+  return entries.map((entry) => {
+    const where = asArray(entry.pillarLabels).filter(Boolean).join("·");
+    const notes = [where, entry.element].filter(Boolean).join(", ");
+    return `${entry.type ? `${entry.type} ` : ""}${entry.label}${notes ? `(${notes})` : ""}`;
+  }).join(" · ");
+}
+
+function luckPillar(entry) {
+  return `${entry?.pillar || ""}${entry?.stemTenGod ? `(${entry.stemTenGod})` : ""}`;
+}
+
 function sajuGroups(summary) {
   const pillars = summary.pillars || {};
   const majorLuck = summary.majorLuck || {};
@@ -72,27 +114,28 @@ function sajuGroups(summary) {
   const yearly = asArray(summary.yearlyLuck);
   return [
     group("core", [
-      item("사주 네 기둥", [pillars.year, pillars.month, pillars.day, pillars.hour].filter(Boolean).join(" / ")),
+      // 네 기둥을 다 실으면 본문이 연·월·일·시주를 그대로 나열한다(R2). 해석의 축인 일주만 둔다.
+      item("일주", pillars.day),
       item("일간", pillars.dayMaster),
       item("신강약", summary.strength),
       item("용신", summary.usefulGod),
       item("기신", summary.unfavorableGod),
     ]),
     group("strength", [
-      item("오행 분포", summary.fiveElements),
-      item("십성 분포", summary.tenGods),
-      item("조후", summary.seasonalBalance),
-      item("원국 합충", summary.natalInteractions),
+      item("오행 분포", countLine(summary.fiveElements) || summary.fiveElements),
+      item("십성 분포", countLine(summary.tenGods) || summary.tenGods),
+      item("조후", seasonLine(summary.seasonalBalance)),
+      item("원국 합충", interactionLine(summary.natalInteractions)),
     ]),
     group("topic", [
       item("가장 강한 십성", asArray(summary.strongestTenGods).map((entry) => valuesOf(entry)).filter(Boolean).join(" · ")),
     ]),
     group("timing", [
-      item("현재 대운", current ? `${current.pillar || ""} (${current.startAge ?? "?"}-${current.endAge ?? "?"}세)`.trim() : ""),
+      item("현재 대운", current ? `${current.pillar || ""} (${current.startAge ?? "?"}-${current.endAge ?? "?"}세${current.stemTenGod ? `, 천간 ${current.stemTenGod}` : ""})`.trim() : ""),
       item("대운 방향", majorLuck.direction),
-      item("대운 흐름", asArray(majorLuck.cycles).map((cycle) => `${cycle?.pillar || ""}(${cycle?.startAge ?? "?"}세~)`).filter((line) => line.length > 4).join(" · ")),
+      item("대운 흐름", asArray(majorLuck.cycles).filter((cycle) => cycle?.pillar).map((cycle) => `${cycle.pillar}(${cycle.startAge ?? "?"}세~${cycle.stemTenGod ? `, ${cycle.stemTenGod}` : ""})`).join(" · ")),
       item("올해 세운", yearly[0] ? `${yearly[0].year || ""}년 ${yearly[0].pillar || ""}${yearly[0].stemTenGod ? ` (${yearly[0].stemTenGod})` : ""}`.trim() : ""),
-      item("다가오는 세운", yearly.slice(1).map((entry) => `${entry?.year || ""}년 ${entry?.pillar || ""}`.trim()).filter(Boolean).join(" · ")),
+      item("다가오는 세운", yearly.slice(1).filter((entry) => entry?.pillar).map((entry) => `${entry.year || ""}년 ${luckPillar(entry)}`.trim()).join(" · ")),
     ]),
     compatGroup("saju", summary.compat),
   ];

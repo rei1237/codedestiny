@@ -638,6 +638,8 @@ html.neo-mode body .fortune-gateway__doors--duo .fortune-gateway__door--chat:not
   .fortune-gateway__doors--duo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fortune-gateway__doors--duo .fortune-gateway__door { grid-template-columns: minmax(0, 1fr) 168px; }
   .fortune-gateway__doors--duo .fortune-gateway__door-art { width: 168px; height: 168px; }
+  /* 네오 상담 문을 걷어 낸 뒤 연이 문 하나만 남는다 — 반쪽 칸이 비지 않게 한 줄로 펼친다. */
+  .fortune-gateway__doors--duo.fortune-gateway__doors--solo { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* 접두 이유는 .fortune-gateway__entry-shell .fortune-gateway__eyebrow 주석 참고(.logo-area p 가 덮는다). */
@@ -836,6 +838,18 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
   font-weight: 900;
   letter-spacing: 0.08em;
 }
+/* 사주 의도일 때 결과 위 한 줄 링크(3차) — 사주 모아보기 /saju/#services. */
+.fortune-gateway__saju-all {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #9f1c52;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+html.neo-mode body .fortune-gateway__saju-all { color: #c9a84c; }
 .fortune-gateway__recs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
@@ -866,6 +880,11 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
   background: linear-gradient(135deg, rgba(126, 16, 57, .14), rgba(212, 183, 124, .18));
 }
 .fortune-gateway__rec-media img { object-fit: cover; }
+/* 2026-10-17 마스터 초상(5:6)을 16:9 창에 넣을 때 얼굴이 잘리지 않게 위쪽을 잡고, 금빛 hairline 액자를 두른다. */
+.fortune-gateway__rec-media.is-master { position: relative; background: radial-gradient(circle at 50% 30%, #fff7e8, #f6e3d0); }
+.fortune-gateway__rec-media.is-master img { object-position: 50% 22%; background: none; }
+.fortune-gateway__rec-media.is-master::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(201, 164, 106, .55), inset 0 0 0 4px rgba(255, 255, 255, .35), inset 0 0 0 5px rgba(201, 164, 106, .3); pointer-events: none; }
+html.neo-mode body .fortune-gateway__rec-media.is-master { background: radial-gradient(circle at 50% 30%, #2a2242, #171126); }
 .fortune-gateway__rec:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(60, 24, 48, 0.1);

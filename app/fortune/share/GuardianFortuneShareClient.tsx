@@ -290,7 +290,7 @@ export default function GuardianFortuneShareClient() {
     return (
       <main className={styles.page}>
         <section className={styles.errorCard} role="alert">
-          <p className={styles.kicker}>CODE DESTINY</p>
+          <p className={styles.kicker}>꿀꿀운세</p>
           <h1>이 공유 운세를 찾을 수 없어요.</h1>
           <p>링크가 만료되었거나 더 이상 공개되지 않는 결과예요.</p>
           <a className={styles.primaryButton} href="/">오늘의 귀인 운세로 돌아가기</a>
@@ -307,7 +307,7 @@ export default function GuardianFortuneShareClient() {
     <main className={`${styles.page} ${snapshot.mode === "neo" ? styles.neo : styles.yeoni}`}>
       <div className={styles.shell}>
         <header className={styles.header}>
-          <a className={styles.brand} href="/">CODE DESTINY</a>
+          <a className={styles.brand} href="/">꿀꿀운세</a>
           <span className={styles.headerLabel}>공유된 오늘의 귀인 운세</span>
         </header>
 

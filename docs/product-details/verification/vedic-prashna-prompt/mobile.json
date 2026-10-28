@@ -1,0 +1,219 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "loaded": true,
+          "width": 326,
+          "left": 17,
+          "right": 343
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "loaded": true,
+          "width": 356,
+          "left": 17,
+          "right": 373
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "loaded": true,
+          "width": 396,
+          "left": 17,
+          "right": 413
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 446,
+          "left": 417,
+          "right": 863
+        },
+        {
+          "loaded": true,
+          "width": 446,
+          "left": 417,
+          "right": 863
+        },
+        {
+          "loaded": true,
+          "width": 446,
+          "left": 417,
+          "right": 863
+        },
+        {
+          "loaded": true,
+          "width": 446,
+          "left": 417,
+          "right": 863
+        },
+        {
+          "loaded": true,
+          "width": 446,
+          "left": 417,
+          "right": 863
+        },
+        {
+          "loaded": true,
+          "width": 446,
+          "left": 417,
+          "right": 863
+        },
+        {
+          "loaded": true,
+          "width": 446,
+          "left": 417,
+          "right": 863
+        },
+        {
+          "loaded": true,
+          "width": 446,
+          "left": 417,
+          "right": 863
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "posts": 0,
+  "mode": "Native standalone Vedic chart calculated locally from fictional profile;all API mocked and external network blocked;question and manual coordinates filled; create CTA trial only; no snapshot/submit/payment/LLM"
+}

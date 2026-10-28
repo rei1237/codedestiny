@@ -1,4 +1,5 @@
 "use client";
+import { readSajuTeaDraft } from "@/js/core/saju/tea-entry.mjs";
 // These light styles are shared by lazy consultation scenes and must be available
 // before a saved result is restored directly (without mounting the question form).
 import "./styles/tea-report.module.css";
@@ -99,6 +100,7 @@ type FortuneTeaBillingGateData = NonNullable<FortuneTeaBillingGateResult["data"]
 const DestinyCafeTarotAlbum = lazy(() => import("./components/DestinyCafeTarotAlbum"));
 const TeaHouseHistoryPanel = lazy(() => import("./components/TeaHouseHistoryPanel"));
 const QuestionInputScene = lazy(() => import("./components/QuestionInputScene"));
+const TeaCompletionGreeting = lazy(() => import("./components/TeaCompletionGreeting"));
 const ScentLoadingScene = lazy(() => import("./components/ScentLoadingScene"));
 const TarotRevealScene = lazy(() => import("./components/TarotRevealScene"));
 const TeaCupRitualScene = lazy(() => import("./components/TeaCupRitualScene"));
@@ -154,12 +156,13 @@ type FortuneTeaConsultPostBody = FortuneTeaHouseConsultRequest & Record<string, 
 // 서버(worker/routes/fortune-tea-house.js)는 요청의 tarotSpread에서 키를 다시 유도하고
 // 불일치하면 거부하므로, 클라이언트도 같은 규칙으로 키를 만든다.
 type FortuneTeaFeatureKeySource = {
+  sajuReportVersion?: string;
   consultationMode: FortuneTeaHouseConsultMode;
   tarotSpread?: FortuneTeaTarotSpread;
 };
 
 function resolveFortuneTeaFeatureKey(source: FortuneTeaFeatureKeySource) {
-  return getFortuneTeaHouseConsultFeatureKey(source.consultationMode, source.tarotSpread);
+  return getFortuneTeaHouseConsultFeatureKey(source.consultationMode, source.tarotSpread, source.sajuReportVersion);
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -198,7 +201,7 @@ function buildFortuneTeaBillingGateInput(payload: FortuneTeaHouseConsultApiRespo
   const featureKey = toText(runtimeGate.featureKey ?? payload.featureKey ?? pricing.featureKey) || resolveFortuneTeaFeatureKey(source);
   // 이용권 확인이 실패해 서버가 가격 payload 를 못 실어 준 경우에도 결제창은 떠야 한다.
   // 새 상수를 만들지 않고 클라이언트 가격표 정본(consultPricing)과 공용 환산 상수로 채운다.
-  const fallbackAmountKRW = fortuneTeaHouseConsultPricing[resolveFortuneTeaHousePriceKey(source.consultationMode, source.tarotSpread)]?.amountKRW ?? 0;
+  const fallbackAmountKRW = fortuneTeaHouseConsultPricing[resolveFortuneTeaHousePriceKey(source.consultationMode, source.tarotSpread, source.sajuReportVersion)]?.amountKRW ?? 0;
   const coinPrice = Math.floor(toNumber(runtimeGate.coinPrice ?? runtimeGate.cost ?? pricing.coinPrice ?? pricing.cost)) || Math.floor(fallbackAmountKRW / KRW_PER_COIN);
   const amountKRW = Math.floor(toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? runtimeGate.paymentAmount ?? pricing.amountKRW ?? pricing.paymentAmount)) || fallbackAmountKRW;
   const membershipCreditCost = Math.floor(toNumber(runtimeGate.membershipCreditCost ?? pricing.membershipCreditCost)) || Math.floor(fallbackAmountKRW / KRW_PER_MONTHLY_CREDIT);
@@ -321,6 +324,7 @@ function buildFortuneTeaQuestionInputFromRequestPayload(payload: FortuneTeaConsu
     attemptId: payload.attemptId,
     tarotSpreadId: payload.tarotSpreadId,
     consultationVersion: payload.consultationVersion,
+    sajuReportVersion: payload.sajuReportVersion,
     isLeapMonth: payload.isLeapMonth,
     longitude: payload.longitude,
     sukuyo: payload.sukuyo,
@@ -338,6 +342,8 @@ async function pollFortuneTeaConsultResult(body: FortuneTeaConsultPostBody, isCa
     if (next.payload.completedSections) onProgress?.(next.payload);
     if (next.payload.retryable === false && isFortuneTeaGenerationPending(next.response,next.payload)) throw buildFortuneTeaGenerationPendingError("저장된 내용을 보존했어요. 생성 한도에 도달해 추가 확인이 필요합니다.");
     if (next.response.status === 429) return next; // rate-limit: 폴링 종료, 호출부에서 일반 처리
+    // Keep the same bounded polling loop and original evidence on temporary failures.
+    if (next.response.status === 503) continue;
     if (!isFortuneTeaGenerationPending(next.response, next.payload)) return next;
   }
   return null; // 상한 소진 — 여전히 생성 중
@@ -568,11 +574,12 @@ export default function FortuneTeaHousePage() {
   const authState = useAuthStore();
   const recoveryOwner = toText(authState.user?.id || authState.user?.userId || authState.user?._id || authState.user?.uid);
   const [stage, setStage] = useState<TeaHouseStage>("landing");
+  const [teaGreetingDismissed, setTeaGreetingDismissed] = useState(false);
   const [notice, setNotice] = useState("");
   const [isEnteringTeaHouse, setIsEnteringTeaHouse] = useState(false);
   const [hasSeenEntryPrologue, setHasSeenEntryPrologue] = useState(false);
   const [isEntryPrologueSkipped, setIsEntryPrologueSkipped] = useState(false);
-  const [bgmEnabled, setBgmEnabled] = useState(false);
+  const [bgmEnabled, setBgmEnabled] = useState(true);
   const [isBgmPreferenceReady, setIsBgmPreferenceReady] = useState(false);
   const [bgmStatus, setBgmStatus] = useState<"idle" | "playing" | "blocked" | "off">("idle");
   const [selectedCup, setSelectedCup] = useState<TeaHouseCup | null>(null);
@@ -581,6 +588,29 @@ export default function FortuneTeaHousePage() {
   useEffect(() => {
     if (!authState.authReady || draftRestored.current) return;
     draftRestored.current = true;
+    const entryParams = new URLSearchParams(window.location.search);
+    const openingStoredResult = ['resultId', 'recoverResultId', 'history'].some(key => entryParams.has(key));
+    if (openingStoredResult) return;
+    if (entryParams.get('mode') === 'saju') {
+      let entryDraft: Partial<FortuneTeaHouseQuestionInput> | null = null;
+      try {
+        entryDraft = readSajuTeaDraft(sessionStorage, recoveryOwner || '');
+        if (!entryDraft) {
+          const saved = JSON.parse(sessionStorage.getItem('cd_tea_question_draft') || 'null');
+          if ((saved?.owner === (recoveryOwner || 'guest') || saved?.owner === 'guest') && Date.now() >= saved.at && Date.now() - saved.at < 86400000 && saved.input?.consultationMode === 'saju') {
+            entryDraft = { ...saved.input, ...(saved.owner === 'guest' ? { profileId: undefined } : {}) };
+          }
+        }
+      } catch { /* Direct entry also works with storage disabled. */ }
+      const cup = getTeaHouseCupById('star-black-tea');
+      if (cup) {
+        setSelectedCup(cup);
+        setQuestionInput({ consultationMode: 'saju', concernTopic: cup.topic, question: '', ...entryDraft, sajuReportVersion: entryParams.get('reading') === 'joint' ? 'saju-specialist-v2' : undefined });
+        setStage('questionInput');
+        trackEvent('tea_input_started', { method: 'saju', entry: 'saju-analysis' });
+        return;
+      }
+    }
     try {
       const saved = JSON.parse(sessionStorage.getItem("cd_tea_question_draft") || "null");
       if (saved && (saved.owner === (recoveryOwner || "guest") || saved.owner === "guest") && Date.now() - saved.at < 86400000) {
@@ -690,6 +720,13 @@ export default function FortuneTeaHousePage() {
       setStage("questionInput");
     } else {
       if (!previousOwner) {
+        // The auth-ready entry effect has already restored the new saju draft.
+        // Only an existing paid recovery above may replace that initial entry.
+        const initialEntry = new URLSearchParams(window.location.search);
+        if (initialEntry.get('mode') === 'saju' && !['resultId', 'recoverResultId', 'history'].some(key => initialEntry.has(key))) {
+          if (recoveryOwner) void probeFortuneTeaPending(recoveryOwner);
+          return;
+        }
         try {
           const draft = JSON.parse(sessionStorage.getItem("cd_tea_question_draft") || "null");
           const cup = draft && getTeaHouseCupById(draft.cupId);
@@ -760,7 +797,7 @@ export default function FortuneTeaHousePage() {
   const startGenerationProgress = useCallback((mode: FortuneTeaHouseConsultMode) => {
     clearGenerationProgressTimer();
     progressStartedAtRef.current = Date.now();
-    let stepIndex = 0;
+    setTeaGreetingDismissed(false);
     const firstStep = FORTUNE_TEA_PROGRESS_STEPS[0];
     setGenerationProgress({
       percent: firstStep.percent,
@@ -770,24 +807,8 @@ export default function FortuneTeaHousePage() {
     });
     progressTimerRef.current = window.setInterval(() => {
       const elapsed = Date.now() - progressStartedAtRef.current;
-      stepIndex = Math.min(FORTUNE_TEA_PROGRESS_STEPS.length - 1, stepIndex + 1);
-      const step = FORTUNE_TEA_PROGRESS_STEPS[stepIndex];
-      setGenerationProgress((current) => {
-        const softPercent = elapsed > 12000
-          ? Math.min(95, Math.max(current.percent, current.percent + 1))
-          : step.percent;
-        return {
-          percent: Math.min(95, Math.max(current.percent, softPercent)),
-          label: step.percent > current.percent ? step.label : current.label,
-          message: step.percent > current.percent ? progressMessageForMode(step, mode) : current.message,
-          delayed: elapsed > 18000,
-          status: "running",
-        };
-      });
-      if (stepIndex >= FORTUNE_TEA_PROGRESS_STEPS.length - 1 && elapsed > 12000) {
-        stepIndex = FORTUNE_TEA_PROGRESS_STEPS.length - 2;
-      }
-    }, 1450);
+      setGenerationProgress((current) => ({ ...current, delayed: elapsed > 18000 }));
+    }, 6000);
   }, [clearGenerationProgressTimer]);
 
   const markGenerationComplete = useCallback(() => {
@@ -815,7 +836,7 @@ export default function FortuneTeaHousePage() {
 
     try {
       const savedPreference = window.localStorage.getItem(FORTUNE_TEA_BGM_STORAGE_KEY);
-      if (savedPreference === "off") setBgmEnabled(false);
+      setBgmEnabled(savedPreference !== "off");
     } catch {
       void 0;
     }
@@ -990,6 +1011,7 @@ export default function FortuneTeaHousePage() {
   }
 
   function toggleBgm() {
+    if (bgmEnabled && bgmStatus === "blocked") { void playBgm(true); return; }
     const nextEnabled = !bgmEnabled;
     setBgmEnabled(nextEnabled);
     try {
@@ -1159,6 +1181,7 @@ export default function FortuneTeaHousePage() {
         tarotSpread: nextQuestionInput.tarotSpread,
         tarotSpreadId: nextQuestionInput.tarotSpreadId,
         consultationVersion: nextQuestionInput.consultationVersion,
+        sajuReportVersion: nextQuestionInput.consultationMode === 'saju' ? nextQuestionInput.sajuReportVersion : undefined,
         sukuyo: nextQuestionInput.sukuyo,
         sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,
@@ -1207,6 +1230,7 @@ export default function FortuneTeaHousePage() {
         tarotSpread: nextQuestionInput.tarotSpread,
         tarotSpreadId: nextQuestionInput.tarotSpreadId,
         consultationVersion: nextQuestionInput.consultationVersion,
+        sajuReportVersion: nextQuestionInput.consultationMode === 'saju' ? nextQuestionInput.sajuReportVersion : undefined,
         sukuyo: nextQuestionInput.sukuyo,
         sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,
@@ -1344,6 +1368,7 @@ export default function FortuneTeaHousePage() {
       // 다음 화면(scentLoading)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다(찻집 로딩과 이중 표시 방지).
       void releaseFortuneTeaAccessGate(attemptId);
       goToStage("scentLoading");
+      setGenerationProgress(current => ({ ...current, label: "상담문 준비 중", message: "연이가 당신의 질문과 운의 흐름을 함께 살피고 있어요." }));
 
       logSubmitStep("api result start");
       const abortController = new AbortController();
@@ -1363,13 +1388,13 @@ export default function FortuneTeaHousePage() {
         setGenerationProgress(previous => ({
           ...previous,
           percent: Math.min(95, Math.round(completed / Math.max(1, total) * 95)),
-          label: `${completed}/${total} 부분 저장`,
-          message: "저장된 부분을 읽는 동안 나머지를 작성하고 있어요.",
+          label: completed ? (total ? `${completed}/${total} 부분 저장` : `${completed}개 장 저장`) : "상담문 준비 중",
+          message: completed ? "저장된 부분을 읽는 동안 나머지를 작성하고 있어요." : "입력한 질문과 근거를 차분히 살펴보고 있어요.",
         }));
       };
-      if (isFortuneTeaGenerationPending(response, payload)) {
-        showPartial(payload);
-        if (payload.retryable === false) throw buildFortuneTeaGenerationPendingError("저장된 내용을 보존했어요. 생성 한도에 도달해 추가 확인이 필요합니다.");
+      if (isFortuneTeaGenerationPending(response, payload) || response.status === 503) {
+        if (payload.completedSections) showPartial(payload);
+        if (payload.retryable === false && isFortuneTeaGenerationPending(response, payload)) throw buildFortuneTeaGenerationPendingError("저장된 내용을 보존했어요. 생성 한도에 도달해 추가 확인이 필요합니다.");
         const polled = await pollFortuneTeaConsultResult(consultPollBody, () => consultRunRef.current !== consultRunId, showPartial);
         if (consultRunRef.current !== consultRunId) return;
         if (polled) ({ response, payload } = polled);
@@ -1395,6 +1420,14 @@ export default function FortuneTeaHousePage() {
       }
       if (!response.ok || !payload.ok || !payload.result) {
         const submitError = new Error(payload.message || "연이가 상담문을 엮는 중 잠시 멈췄어요. 다시 한 번만 건네주세요.");
+        // 서버가 한도 복구를 확정한 요청만 종료한다. 응답 유실·저장 지연은 기존 증빙을 유지한다.
+        if (payload.reason === "PASS_ALREADY_REFUNDED") {
+          clearFortuneTeaRecovery(attemptOwnerId, attemptId);
+          if (unusedPaidAttemptRef.current?.attemptId === attemptId) unusedPaidAttemptRef.current = null;
+          setQuestionInput({ ...nextQuestionInput, attemptId: undefined });
+          setPartialSections([]);
+          (submitError as Error & { paymentRequired?: boolean }).paymentRequired = true;
+        }
         if (payload.paymentRequired) {
           (submitError as Error & { paymentRequired?: boolean }).paymentRequired = true;
         }
@@ -1526,13 +1559,13 @@ export default function FortuneTeaHousePage() {
         className={roomStyles.soundToggle}
         type="button"
         data-active={bgmEnabled && bgmStatus === "playing" ? "true" : "false"}
-        aria-label={bgmEnabled ? "운명의 찻집 배경 음악 끄기" : "운명의 찻집 배경 음악 켜기"}
+        aria-label={bgmEnabled && bgmStatus !== "blocked" ? "운명의 찻집 배경 음악 끄기" : "운명의 찻집 배경 음악 켜기"}
         aria-pressed={bgmEnabled}
         onClick={toggleBgm}
       >
         <span aria-hidden>{bgmEnabled && bgmStatus === "playing" ? <Volume2 size={14} strokeWidth={2.4} /> : <VolumeX size={14} strokeWidth={2.4} />}</span>
         <strong>BGM</strong>
-        <em>{bgmEnabled ? (bgmStatus === "playing" ? "ON" : "READY") : "OFF"}</em>
+        <em>{bgmEnabled && bgmStatus === "playing" ? "음악 끄기" : "음악 켜기"}</em>
       </button>;
 
   function renderScene() {
@@ -1566,7 +1599,14 @@ export default function FortuneTeaHousePage() {
 
     if (stage === "questionInput" && selectedCup) {
       return (
-        <>{renderSavedSections()}<QuestionInputScene
+        <>{submitError && unusedPaidAttemptRef.current && <section className={styles.consultErrorCard} role="status">
+          <h2>이전 상담을 이어갈 수 있어요</h2>
+          <p>입력한 내용과 원래 요청을 보관했어요. 같은 상담으로 다시 확인해 주세요.</p>
+          <div className={styles.storyActions}>
+            <TeaHouseButton disabled={isSubmitting} onClick={() => { const saved = unusedPaidAttemptRef.current; if (saved) void submitQuestion(saved.questionInput); }}>상담 이어가기</TeaHouseButton>
+            <a href="/fortune-tea-house/?history=1">내 상담함 확인하기</a>
+          </div>
+        </section>}{renderSavedSections()}<QuestionInputScene
           key={`${recoveryOwner}:${questionInput.attemptId || "draft"}`}
           selectedCup={selectedCup}
           initialInput={questionInput}
@@ -1593,7 +1633,8 @@ export default function FortuneTeaHousePage() {
     }
 
     if (stage === "result" && consultResult) {
-      return (
+      return (<>
+        {generationProgress.status === "complete" && !teaGreetingDismissed && <TeaCompletionGreeting onDismiss={() => setTeaGreetingDismissed(true)} />}
         <TeaHouseResultSheet
           result={consultResult}
           honeyDrops={honeyDrops}
@@ -1602,7 +1643,7 @@ export default function FortuneTeaHousePage() {
           onEditBirthInfo={() => goToStage("questionInput")}
           onHoneyDropsChange={setHoneyDrops}
           onResultUpdate={setConsultResult}
-        />
+        /></>
       );
     }
 

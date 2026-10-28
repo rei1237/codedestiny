@@ -23,9 +23,9 @@ const REFUND_SECTION = TERMS_SECTIONS.find((section) => section.id === "refund-p
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/refund-policy",
-    title: "환불 및 청약철회 정책 | Refund Policy — Code Destiny",
+    title: "환불 및 청약철회 정책 | Refund Policy — 꿀꿀 운세",
     description:
-      "Code Destiny의 30일 이용권과 원화 단건 결제 환불·청약철회 기준입니다. 철회 기간, 디지털 콘텐츠 제공 개시에 따른 제한, 월정석 취급, 환급 기간을 안내합니다.",
+      "Code Destiny의 이용권과 원화 단건 결제 환불·청약철회 기준입니다. 철회 기간, 디지털 콘텐츠 제공 개시에 따른 제한, 월정석 취급, 환급 기간을 안내합니다.",
     keywords: ["환불 정책", "청약철회", "이용권 환불", "단건 결제 환불", "전자상거래법"],
     hreflangPaths: I18N_POLICY_ROUTE_MAP.refundPolicy,
   });
@@ -37,7 +37,7 @@ export default function RefundPolicyPage() {
       <PolicyGuide
         kind="refund"
         title="환불·취소 안내"
-        description="단건 결제와 30일 이용권의 환불·청약철회 기준입니다. 아래 전문은 이용약관 제12조와 동일합니다."
+        description="단건 결제와 이용권의 환불·청약철회 기준입니다. 아래 전문은 이용약관 제12조와 동일합니다."
         meta={`시행일 ${TERMS_EFFECTIVE_DATE}`}
       />
 

@@ -1,3 +1,4 @@
+import { buildSajuRelationshipEvidence } from '../lib/saju-relationship-evidence.js';
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getOptionalUserFromRequest } from "../lib/auth.js";
@@ -31,6 +32,7 @@ function normalize(body = {}) {
   const target = body.targetInfo && typeof body.targetInfo === "object" ? body.targetInfo : {};
   const normalized = normalizeLoveSecretAiInput({
     myInfo: target,
+    partnerInfo: body.selfInfo,
     relationshipStatus: "상대방 마음이 궁금한 상태",
     topic: "전체 연애 흐름",
     userQuestion: "관계 경계와 외부 자극에 흔들릴 수 있는 경향",
@@ -39,7 +41,11 @@ function normalize(body = {}) {
   if (target.calendarType === "lunar" && typeof target.isLeapMonth !== "boolean") {
     return { ok: false, message: "음력 입력은 윤달 여부를 함께 확인해 주세요." };
   }
-  return { ok: true, targetInfo: { ...normalized.input.myInfo, isLeapMonth: target.calendarType === "lunar" && Boolean(target.isLeapMonth) }, normalized, inputHash: hash(normalized.input.myInfo) };
+  if (body.selfInfo !== undefined) {
+    const own = normalizeLoveSecretAiInput({ myInfo: body.selfInfo, relationshipStatus: "상대방 마음이 궁금한 상태", topic: "전체 연애 흐름" });
+    if (!own.ok || (body.selfInfo.calendarType === "lunar" && typeof body.selfInfo.isLeapMonth !== "boolean")) return { ok: false, message: "본인의 생년 정보와 음력 윤달 여부를 확인해 주세요." };
+  }
+  return { mode: body.selfInfo ? "couple" : "target", selfInfo: body.selfInfo || null, ok: true, targetInfo: { ...normalized.input.myInfo, isLeapMonth: target.calendarType === "lunar" && Boolean(target.isLeapMonth) }, normalized, inputHash: hash(body.selfInfo ? { version: 2, mode: "couple", target: { ...normalized.input.myInfo, isLeapMonth: target.isLeapMonth === true }, self: { ...normalized.input.partnerInfo, isLeapMonth: body.selfInfo.isLeapMonth === true } } : normalized.input.myInfo) };
 }
 
 function pricing() {
@@ -112,18 +118,27 @@ const SECTION_SPECS = Object.freeze([
   Object.freeze({ title: "에필로그: 현실적인 선택", focus: "오늘부터 할 수 있는 합의와 순서를 단계별로 정리한다. 감시·시험·압박이 아닌 방식만 제안한다." }),
 ]);
 
+const COUPLE_SECTION_SPECS = Object.freeze([
+  { title: "우리 관계의 큰 흐름", focus: "두 사람의 일간과 오행·조후 근거로 관계 총평을 쓴다. 대상자 경계 지수를 궁합 점수로 바꾸지 않는다." },
+  { title: "끌림과 소통의 결", focus: "일간 상생상극 방향과 년월주 교차 근거로 끌림·표현·사회생활의 호흡을 설명하고 대화 예시를 제시한다." },
+  { title: "긴장과 관계의 경계", focus: "일지와 실제 형충파해·원진·귀문 근거가 있는 경우만 생활의 마찰과 완충 조건을 해석한다. 외도를 단정하지 않는다." },
+  { title: "생활을 나누고 신뢰를 쌓는 법", focus: "년주 배경 → 월주 사회생활 → 일주 가까운 관계 → 시주 미래 계획의 기승전결로 생활 리듬·신뢰·책임을 연결한다. 시각 미상은 시주를 제외한다." },
+  { title: "함께할 미래와 오늘의 선택", focus: "장기 관계의 강점과 조율 과제를 정리하고 실행 행동·확인 기준·판단을 바꿀 조건을 제안한다. 결혼·이별 시기를 예언하지 않는다." },
+]);
+const sectionSpecs = saju => saju.relationshipEvidence ? COUPLE_SECTION_SPECS : SECTION_SPECS;
 const SECTION_TITLES = Object.freeze(SECTION_SPECS.map((spec) => spec.title));
 
 const GUARDRAILS = [
   "당신은 명리학 근거를 심리 스릴러 웹툰의 내레이션처럼 풀어 쓰는 관계 상담가입니다.",
   "제공된 계산 사실 밖의 신살·점수·사건을 만들지 말고, 외도 사실·타인의 마음·관계 결말을 단정하지 마세요.",
   "감시, 압박, 시험, 집착을 조언하지 마세요.",
-  "만원 유료 리포트에 맞게 요약을 반복하지 말고, 본문을 충분히 풍부하게 작성하세요. 단순 반복으로 분량을 채우지 마세요.",
+  "관계 상담 리포트에 맞게 요약을 반복하지 말고, 본문을 충분히 풍부하게 작성하세요. 단순 반복으로 분량을 채우지 마세요.",
 ];
 
 /** 🔴 6개 프롬프트가 모두 같은 앵커를 봐야 장면들이 한 사람의 이야기로 이어진다. */
 function anchors(saju, result, targetGender) {
   return [
+    ...(saju.relationshipEvidence ? [`[두 사람 모드] myChart는 대상자, partnerChart는 본인입니다. relationshipEvidence의 self는 본인, partner는 대상자입니다. 대상자 성향 점수는 외도 확률이나 궁합 점수가 아닙니다. 원국 내부와 교차 작용을 구분하고 합화·관계 결말을 단정하지 마세요.`, `[본인 명식] ${JSON.stringify(saju.partnerChart)}`, `[두 사람 궁합] ${JSON.stringify(saju.compatibility)}`, `[기둥 교차 근거] ${JSON.stringify(saju.relationshipEvidence)}`] : []),
     `[확정 점수] ${result.score}/100, 등급=${result.grade}`,
     `[대상자 성별] ${targetGender === "female" ? "여성" : "남성"}`,
     `[점수대 연출] 장면=${result.storyDirection.scene}; 긴장=${result.storyDirection.tension}; 보호 행동=${result.storyDirection.action}`,
@@ -135,8 +150,8 @@ function anchors(saju, result, targetGender) {
 }
 
 function buildSectionPrompt(saju, result, targetGender, index) {
-  const spec = SECTION_SPECS[index];
-  const others = SECTION_TITLES.filter((_, i) => i !== index);
+  const spec = sectionSpecs(saju)[index];
+  const others = sectionSpecs(saju).map(item => item.title).filter((_, i) => i !== index);
   return [
     ...GUARDRAILS,
     ...anchors(saju, result, targetGender),
@@ -154,7 +169,7 @@ function prompt(saju, result, targetGender) {
     "결과는 JSON 하나만 반환하세요.",
     ...anchors(saju, result, targetGender),
     "대상자 성별과 점수대 연출을 참고해, 이 사람만의 재미있는 웹툰 캐릭터명(8~18자)과 소개 한 줄을 새로 지으세요. 고정된 별명이나 유명 인물 이름을 반복하지 마세요. 캐릭터명은 비난·낙인·외도 단정 없이, 선택과 관계의 분위기를 표현해야 합니다.",
-    `[본문 다섯 장면이 이미 맡은 주제] ${SECTION_TITLES.join(" / ")}`,
+    `[본문 다섯 장면이 이미 맡은 주제] ${sectionSpecs(saju).map(item => item.title).join(" / ")}`,
     "summary는 본문 장면을 되풀이하지 말고 6~8문장으로 전체를 꿰어 씁니다. finalMessage는 4~6문장으로 씁니다.",
     JSON.stringify({ character: { title: "웹툰 캐릭터명", caption: "한 문장 소개" }, summary: "6~8문장", finalMessage: "4~6문장" }),
   ].join("\n");
@@ -214,10 +229,13 @@ async function handleStart(request, env, recoveryAuth = null) {
       requireExisting: Boolean(supplied.resumeSessionId || recoveryAuth) }),
     seed: input => {
       const saju = calculateLoveSecretAiSaju(input.normalized), boundary = scoreBoundary(saju);
+      if (input.mode === "couple") saju.relationshipEvidence = buildSajuRelationshipEvidence(
+        { ...saju.partnerChart, birthTimeUnknown: input.normalized.input.partnerInfo?.birthTimeUnknown },
+        { ...saju.myChart, birthTimeUnknown: input.normalized.input.myInfo.birthTimeUnknown });
       return {
         fields: { ...boundary, character: fallback(boundary).character, sajuFacts: { dayMaster: saju.myChart?.dayMaster, dayPillar: saju.myChart?.dayPillar } },
         // scoreAnchor 는 품질 게이트가 본문을 대조할 계산값이다. 프롬프트에 실리는 확정 점수와 같은 출처다.
-        meta: { facts: saju, titles: SECTION_TITLES, scoreAnchor: { score: boundary.score, grade: boundary.grade }, framePrompt: prompt(saju, boundary, input.targetInfo.gender), sectionPrompts: SECTION_SPECS.map((_, i) => buildSectionPrompt(saju, boundary, input.targetInfo.gender, i)) },
+        meta: { schemaVersion: 2, mode: input.mode, sceneIds: input.mode === "couple" ? ["overview", "communication", "boundary", "trust", "future"] : ["opening", "attention", "tension", "trust", "choice"], facts: saju, titles: sectionSpecs(saju).map(item => item.title), scoreAnchor: { score: boundary.score, grade: boundary.grade }, framePrompt: prompt(saju, boundary, input.targetInfo.gender), sectionPrompts: SECTION_SPECS.map((_, i) => buildSectionPrompt(saju, boundary, input.targetInfo.gender, i)) },
       };
     },
     open: (...args) => openRefundableExecution(env, ...args),

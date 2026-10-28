@@ -1,5 +1,6 @@
 import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+import { stripPromptBirth } from "./prompt-birth.js";
 import {
   VEDIC_PROMPT_TEMPLATES,
   getVedicPromptTemplate,
@@ -7,6 +8,19 @@ import {
 } from "./vedic-ai-prompt-templates.mjs";
 
 const DEFAULT_TEXT = "제공되지 않음";
+const VEDIC_SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+const VEDIC_SIGN_LORDS = ["Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter"];
+const VEDIC_LORD_KO = { Sun: "태양", Moon: "달", Mars: "화성", Mercury: "수성", Jupiter: "목성", Venus: "금성", Saturn: "토성" };
+
+// Whole-sign house lords counted from the lagna. Given only placements, the model read
+// "Mars in the 3rd" as "Mars rules the 3rd" and gave the Moon the 2nd instead of the 5th (B7).
+function computeHouseRulers(vedicResult) {
+  const lagnaIndex = VEDIC_SIGNS.indexOf(String(vedicResult?.lagna?.sign || "").trim());
+  if (lagnaIndex < 0) return null;
+  const houses = Object.fromEntries(Object.values(VEDIC_LORD_KO).map((name) => [name, []]));
+  for (let house = 1; house <= 12; house += 1) houses[VEDIC_LORD_KO[VEDIC_SIGN_LORDS[(lagnaIndex + house - 1) % 12]]].push(`${house}H`);
+  return Object.fromEntries(Object.entries(houses).map(([name, list]) => [name, list.join("·")]));
+}
 
 export const VEDIC_AI_PROMPT_FEATURE_KEY = "vedic_ai_prompt_generator";
 export const VEDIC_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(VEDIC_AI_PROMPT_FEATURE_KEY)].cost;
@@ -683,7 +697,6 @@ export function buildVedicAIPrompt({ question, vedicResult, compatibilityResult 
   const compatibilityLines = compatibility
     ? [
       `- 상대 이름: ${compatibility.partnerName}`,
-      compatibility.partnerBirth ? `- 상대 생년월일: ${toText(compatibility.partnerBirth.year, "")}-${toText(compatibility.partnerBirth.month, "")}-${toText(compatibility.partnerBirth.day, "")}` : "- 상대 생년월일: 미제공",
       `- 아쉬타쿠타 점수: ${compatibility.total}/${compatibility.totalMax} (${compatibility.pct}%)`,
       `- 판정: ${compatibility.verdict}`,
       `- 종합 사유: ${compatibility.overallReason}`,
@@ -698,6 +711,7 @@ export function buildVedicAIPrompt({ question, vedicResult, compatibilityResult 
     ];
 
   const guidanceLines = createGuidanceByQuestionType(questionType, Boolean(compatibility), profile.birthTimeKnown);
+  const houseRulers = computeHouseRulers(vedicResult);
 
   const domainDataLines = [
     `질문 유형: ${questionTypeLabel}`,
@@ -706,6 +720,7 @@ export function buildVedicAIPrompt({ question, vedicResult, compatibilityResult 
     `카라카: AK ${karakas.atmakaraka}, AmK ${karakas.amatyakaraka}, DK ${karakas.darakaraka}`,
     `주요 요가: ${yogas.length ? yogas.join(", ") : DEFAULT_TEXT}`,
     `행성 집중 하우스: ${topBhava.length ? topBhava.join(" · ") : DEFAULT_TEXT}`,
+    ...(houseRulers ? [`행성별 지배 하우스: ${Object.entries(houseRulers).map(([name, list]) => `${name} ${list}`).join(", ")} (라그나 기준 계산값. 행성이 놓인 하우스와 지배하는 하우스는 다르며, 이 목록에 없는 지배 관계는 쓰지 않음)`] : []),
     `활성 다샤: ${activeDasha ? `${activeDasha.planet} ${activeDasha.start}~${activeDasha.end}` : DEFAULT_TEXT}`,
     `주제 인사이트(재물/직업/관계): ${domain.wealth.join(" | ")} / ${domain.career.join(" | ")} / ${domain.romance.join(" | ")}`,
     `궁합 컨텍스트: ${compatibilityLines.join(" | ")}`,
@@ -717,9 +732,9 @@ export function buildVedicAIPrompt({ question, vedicResult, compatibilityResult 
     fortuneLabel: "베다 점성술",
     expertLabel: "베다 점성술(Jyotish) 실전 상담 전문가",
     userQuestion: normalizedQuestion,
-    analysisResult: vedicResult,
-    profile,
-    compatibilityTarget: compatibility || undefined,
+    analysisResult: stripPromptBirth(vedicResult),
+    profile: { name: profile.name, gender: profile.gender, birthTimeKnown: profile.birthTimeKnown, timezone: profile.timezone },
+    compatibilityTarget: compatibility ? stripPromptBirth(compatibility) : undefined,
     mode: questionType,
     questionTypeLabel,
     analysisAngles: buildVedicAngles(questionType),
@@ -761,6 +776,7 @@ export function buildVedicAIPrompt({ question, vedicResult, compatibilityResult 
     caution: promptPackage.caution,
     questionType,
     digestSource,
+    houseRulers,
     compatibilityUsed: Boolean(compatibility),
     compatibilityHint,
   };

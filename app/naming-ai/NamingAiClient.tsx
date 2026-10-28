@@ -1,5 +1,9 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
 
+
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -372,9 +376,9 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     gateCheckingTitle: "이용권 확인",
     gateCheckedTitle: "이용권 확인 완료",
     defaultBirthPlace: "대한민국",
-    heroBadge: "사주 맞춤 프리미엄 전문가 작명",
+    heroBadge: "사주 맞춤 프리미엄 작명",
     heroTitle: "훈민정음 작명소",
-    heroDescription: "사주에서 검증한 용신·희신을 바탕으로 소리와 한자의 뜻을 엮어 전문가가 직접 이름을 짓고, 그 작명첩을 만든 프롬프트 원문까지 함께 드립니다. 입력과 초안 추천은 무료입니다.",
+    heroDescription: "사주와 입력 조건을 바탕으로 AI가 이름 후보와 작명 해설을 구성합니다. 입력과 초안 추천은 무료이며, 별도 유료 작명에서 상세 작명서와 프롬프트 원문을 확인할 수 있습니다.",
     heroPills: ["용신·희신 검증", "소리오행 흐름", "원형이정 수리 4격", "결과 PDF 소장"],
     stepsAriaLabel: "작명 준비 단계",
     stepLabels: ["출생 정보", "성씨와 이름 조건", "세부 취향 (선택)"],
@@ -2023,7 +2027,7 @@ const PHASE_PROGRESS: Record<Phase, number> = {
 export default function NamingAiClient() {
   const locale = useNamingLocale();
   const copy = getNamingCopy(locale);
-  const { seed, reload } = useAiProfileSeed();
+  const { seed } = useAiProfileSeed();
   const [form, setForm] = useState<FormState>(() => ({ ...INITIAL_FORM, birthPlace: copy.defaultBirthPlace }));
   const [engineOptIn] = useState(readNamingEngineOptIn);
   const defaultBirthPlaceRef = useRef(form.birthPlace);
@@ -2184,7 +2188,7 @@ export default function NamingAiClient() {
     void authFetch("/api/naming-prompt/result/pending").then(async response => {
       const data = await response.json();
       if (alive && !busyRef.current && !retryRef.current && response.status === 202 && data.executionId) {
-        window.location.assign(`/naming-ai/result?executionId=${encodeURIComponent(data.executionId)}`);
+        window.location.replace(`/naming-ai/result?executionId=${encodeURIComponent(data.executionId)}`);
       }
     }).catch(() => {});
     return () => { alive = false; };
@@ -2276,7 +2280,8 @@ export default function NamingAiClient() {
     // 결과 페이지가 원래 실행 ID로 저장된 장 이후를 이어 생성한다.
     stashNamingRetryPayload(executionId, { input, inputHash, access });
     retryRef.current = null;
-    window.location.assign(`/naming-ai/result?executionId=${encodeURIComponent(executionId)}`);
+    // 결과에서 뒤로가기가 이미 쓴 입력 화면으로 돌아가지 않게 히스토리를 바꿔 넣는다.
+    window.location.replace(`/naming-ai/result?executionId=${encodeURIComponent(executionId)}`);
     return genRes.status === 200 || genRes.status === 201;
   }
 
@@ -2463,10 +2468,16 @@ export default function NamingAiClient() {
           </div>
         </header>
 
+        {locale === "ko" && !showGeneratingCard && (
+          <div style={{ width: "100%", maxWidth: 540, margin: "0 auto" }}>
+            <CraftedProductDisclosure featureKey={FEATURE_KEY} />
+          </div>
+        )}
+
         {showGeneratingCard ? (
           <NamingGeneratingCard phase={phase} />
         ) : (
-          <form
+          <form data-moonlit-form=""
             className="grid gap-6 lg:grid-cols-[1.12fr_0.88fr]"
             onSubmit={(event) => {
               event.preventDefault();
@@ -2511,14 +2522,7 @@ export default function NamingAiClient() {
                 <section className={`${PANEL} p-6 sm:p-7`}>
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5">
                     <h2 className="text-lg font-black text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-display)]">{copy.step0Heading}</h2>
-                    <button
-                      type="button"
-                      onClick={() => void reload()}
-                      className="rounded-full border border-[color:var(--nm-l-c4b5fd-30)] bg-[color:var(--nm-b-c4b5fd-10)] px-3.5 py-1.5 text-xs font-bold text-[color:var(--nm-t-dcd2fb)] transition hover:border-[color:var(--nm-l-c4b5fd-60)] hover:bg-[color:var(--nm-b-c4b5fd-20)]"
-                      aria-label={copy.reloadButtonAria}
-                    >
-                      {copy.reloadButton}
-                    </button>
+                    <SavedBirthProfilePicker calendarMode="lunar" onSelect={next => setForm(prev => ({...prev, gender:next.gender === "male" ? "M" : next.gender === "female" ? "F" : "", birthDate:next.birthDate || "", birthTime:next.birthTime || "", birthTimeUnknown:Boolean(next.birthTimeUnknown), calendarType:next.calendarType || "solar", birthPlace:next.region || "", timezone:next.timezone || ""}))} />
                   </div>
                   <div className="grid gap-3.5 sm:grid-cols-2">
                     <label className={LABEL}>
@@ -2541,8 +2545,8 @@ export default function NamingAiClient() {
                     </label>
                     <label className={LABEL}>
                       {copy.birthTimeLabel}
-                      <input
-                        type="time"
+                      <BirthTimeInput
+
                         value={form.birthTime}
                         onChange={(event) => updateForm({ birthTime: event.target.value })}
                         disabled={busy || form.birthTimeUnknown}

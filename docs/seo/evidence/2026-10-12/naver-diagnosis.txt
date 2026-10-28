@@ -1,0 +1,13 @@
+유형	상태arrow_upward	페이지 수arrow_upward
+
+색인된 페이지
+	색인	8.3백
+리다이렉션된 페이지	수집제한	29
+접근 불가한 페이지	수집제한	14
+meta robots으로 색인에서 제외된 페이지	색인제외	9.4백
+<meta name="description"> 설명 누락	SEO	6
+<title> 요소가 2개 이상 발견	SEO	1
+<title> 요소에 동일한 제목인 웹문서 다수 발견	SEO	3.5백
+<meta name="description"> 태그에 동일 설명문 발견	SEO	3.5백
+<H1> 요소가 2개 이상 발견	SEO	4
+Alt 속성 누락	SEO	32

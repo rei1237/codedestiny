@@ -1,0 +1,118 @@
+/* 꿀꿀 운세 홈 카드 I(app/home-main.module.css .card)를 영냥이 밤 토큰으로 옮겼다. 기울기 변수는 lib/navigation/mv-card-motion.mjs 가 쓴다.
+   버튼 규칙은 전역 .ynOriginal button(테두리·배경 초기화)을 이기도록 두 클래스로 쓴다. */
+.cinema{--mv-angle:-3deg;--mv-radius:var(--cd-r-card,20px);--mv-ease:cubic-bezier(.16,1,.3,1);position:relative;isolation:isolate;display:grid;justify-items:center;width:min(760px,100% - 40px);margin:40px auto 12px;padding:22px 0 8px;color:var(--yn-ivory)}
+.cinema::before{content:"";position:absolute;inset:0 6% 18%;z-index:-1;background:radial-gradient(ellipse at 50% 42%,color-mix(in srgb,var(--yn-gold) 16%,transparent),color-mix(in srgb,var(--yn-violet) 10%,transparent) 42%,transparent 68%);pointer-events:none}
+.deck{width:min(300px,78vw);perspective:1200px}
+.card{position:relative;isolation:isolate;display:flex;flex-direction:column;padding:8px;border:1px solid var(--yn-gold);border-radius:var(--mv-radius);background:var(--yn-night);color:var(--yn-ivory);box-shadow:0 18px 32px -16px color-mix(in oklab,var(--yn-deep) 85%,transparent);transform:rotate(var(--mv-angle));transition:transform 450ms var(--mv-ease),box-shadow 450ms var(--mv-ease)}
+.card[data-deal=pending]{opacity:0;transform:translateY(24px) rotate(0) scale(.96)}
+.card[data-deal=go]{animation:dealCard 750ms var(--mv-ease) backwards}
+.card::before{content:"";position:absolute;inset:4px;z-index:2;border:1px solid var(--yn-gold);border-radius:calc(var(--mv-radius) - 4px);pointer-events:none}
+.numeral{position:absolute;top:-15px;left:50%;z-index:3;display:grid;place-items:center;min-width:48px;height:26px;padding-inline:12px;border:1px solid var(--yn-gold);border-radius:999px;transform:translateX(-50%);background:var(--yn-night);color:var(--yn-gold);font:700 .8125rem/1 "Yeongnyangi Myeongjo",serif;letter-spacing:.14em}
+.art{display:block;flex:none;width:100%;aspect-ratio:4/5;overflow:hidden;border:1px solid var(--yn-gold);border-radius:calc(var(--mv-radius) - 8px);background:var(--yn-deep)}
+.art img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 40%;transform:translate(var(--mv-px,0px),var(--mv-py,0px)) scale(1.04);transition:transform 450ms var(--mv-ease)}
+.copy{display:flex;flex-direction:column;align-items:center;padding:14px 10px 2px;text-align:center}
+.copy::before{content:"";width:28px;height:1px;margin-bottom:10px;background:var(--yn-gold)}
+.cinema .eyebrow{margin:0;font-size:var(--yn-t-caption);font-weight:700;line-height:1.5;letter-spacing:.08em;color:var(--yn-gold)}
+.cinema .name{margin:4px 0 0;font:700 clamp(1.4rem,5.4vw,1.65rem)/1.3 "Yeongnyangi Myeongjo",serif;letter-spacing:.05em;color:var(--yn-ivory)}
+.cinema .cardLink{padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;cursor:pointer}
+.cinema .cardLink::after{content:"";position:absolute;inset:0;z-index:4;border-radius:var(--mv-radius)}
+.cinema .cardLink:focus-visible{outline:none}
+.card:has(.cardLink:focus-visible){outline:3px solid var(--yn-gold);outline-offset:6px;transform:translateY(-12px) rotate(0) scale(1.025)}
+.cinema .line{margin:8px 0 0;font:400 .9375rem/1.65 "Yeongnyangi Myeongjo",serif;color:var(--yn-ivory);word-break:keep-all;text-wrap:balance}
+.cinema .meta{margin:6px 0 0;font-size:var(--yn-t-caption);line-height:1.5;color:var(--yn-muted)}
+.action{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin-top:2px;color:var(--yn-gold);font-size:.8125rem;font-weight:700;letter-spacing:.02em}
+.foil{position:absolute;inset:8px 8px auto;aspect-ratio:4/5;z-index:3;overflow:hidden;border-radius:calc(var(--mv-radius) - 8px);pointer-events:none}
+.foil::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at var(--mv-shine-x,50%) var(--mv-shine-y,30%),color-mix(in srgb,var(--yn-gold) 30%,transparent),transparent 65%),linear-gradient(115deg,transparent 35%,color-mix(in srgb,var(--yn-gold) 14%,transparent) 49%,transparent 63%);opacity:0;transition:opacity 450ms ease-out}
+.card[data-hovered]{transform:translateY(-12px) rotateX(var(--mv-rx,0deg)) rotateY(var(--mv-ry,0deg)) scale(1.025);transition-duration:140ms;box-shadow:var(--mv-shadow-x,0px) 26px 42px -18px color-mix(in oklab,var(--yn-deep) 92%,transparent)}
+.card[data-hovered] .art img{transition-duration:140ms}
+.card:is([data-hovered],[data-pressed]):not([data-selected]) .foil::after,.card:has(.cardLink:focus-visible) .foil::after,.card[data-selected] .foil::after{opacity:1}
+.card[data-pressed],.card:active{transform:translateY(-4px) rotate(0) scale(.985);transition-duration:100ms}
+.deck .card[data-selected]{z-index:5;animation:drawCard 280ms var(--mv-ease) both}
+.srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@keyframes drawCard{0%{transform:translateY(-4px) rotate(0) scale(.985)}35%{transform:translateY(-10px) rotate(0) scale(1.015)}100%{transform:translateY(-28px) rotateX(3deg) rotate(0) scale(1.045)}}
+@keyframes dealCard{from{opacity:0;transform:translateY(24px) rotate(0) scale(.96)}to{opacity:1;transform:rotate(var(--mv-angle))}}
+
+/* 극장: 화면 전체를 덮는 모달. 영상·도구·챕터가 한 화면(1440×900)에 들어오도록 영상 폭을 화면 높이로도 제한한다. */
+.cinema .theatre{position:fixed;inset:0;box-sizing:border-box;width:100%;max-width:none;height:100%;max-height:none;margin:0;padding:clamp(12px,3vw,32px);border:0;background:transparent;color:var(--yn-ivory);overflow:auto;overscroll-behavior:contain}
+.cinema .theatre[open]{display:grid;grid-template-columns:minmax(0,1fr);place-items:center;animation:theatreIn 280ms ease-out both}
+.cinema .theatre::backdrop{background:color-mix(in srgb,var(--yn-deep,#0b1220) 94%,transparent);animation:theatreIn 280ms ease-out both}
+.stage{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;min-width:0;width:min(1120px,100%,max(320px,calc((100vh - 340px) * 16 / 9)));width:min(1120px,100%,max(320px,calc((100dvh - 340px) * 16 / 9)))}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.cinema .kicker{margin:0;font-size:var(--yn-t-caption);font-weight:700;line-height:1.5;letter-spacing:.08em;color:var(--yn-gold)}
+.cinema .bar h2{margin:2px 0 0;font:700 clamp(1.25rem,3vw,1.75rem)/1.3 "Yeongnyangi Myeongjo",serif;letter-spacing:.05em;color:var(--yn-ivory)}
+.cinema .close{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:1px solid var(--yn-line);border-radius:999px;background:var(--yn-night);color:var(--yn-ivory)}
+.screen{position:relative;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--yn-line);border-radius:var(--yn-radius);background:var(--yn-deep)}
+.video{position:absolute;inset:0;display:block;width:100%;height:100%;background:var(--yn-deep)}
+/* 가사 자막은 글꼴·크기·바탕만 바꾼다. iOS 전체 화면에서는 시스템 자막 스타일이 우선한다. */
+.video::cue{font-family:"Yeongnyangi Myeongjo",serif;font-size:clamp(15px,2.1vw,22px);background:color-mix(in srgb,var(--yn-deep) 72%,transparent)}
+.video:focus-visible{outline:3px solid var(--yn-gold);outline-offset:-3px}
+.cinema .cover{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;border:0;border-radius:inherit;background:linear-gradient(0deg,color-mix(in srgb,var(--yn-deep) 60%,transparent),transparent 45%);color:var(--yn-ivory);cursor:pointer}
+.cinema .cover:focus-visible{outline:3px solid transparent;outline-offset:-3px;box-shadow:inset 0 0 0 4px var(--yn-deep),inset 0 0 0 7px var(--yn-gold)}
+.cta{position:absolute;left:14px;bottom:14px;display:flex;align-items:center;gap:10px;max-width:calc(100% - 28px);padding:5px 16px 5px 5px;border-radius:999px;background:color-mix(in srgb,var(--yn-deep) 84%,transparent);font-size:14px;font-weight:700;line-height:1.5;text-align:left;color:var(--yn-ivory)}
+.play{display:grid;flex:none;place-items:center;width:46px;height:46px;padding-left:3px;border-radius:999px;background:var(--yn-gold);color:var(--yn-deep);box-shadow:0 0 18px color-mix(in srgb,var(--yn-gold) 35%,transparent);transition:transform .2s ease-out}
+.screen[data-state=loading] .play{animation:breathe 1.2s ease-in-out infinite}
+/* 영상 끝: 검게 닫힌 마지막 화면 위에서 운세로 잇는다. 다시 재생하면 사라진다. */
+.end{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:14px;padding:16px;background:radial-gradient(ellipse at 50% 50%,color-mix(in srgb,var(--yn-gold) 12%,transparent),transparent 62%),color-mix(in srgb,var(--yn-deep) 80%,transparent);text-align:center;animation:theatreIn 600ms ease-out both}
+.end::before{content:"";width:28px;height:1px;background:var(--yn-gold)}
+.cinema .endTitle{margin:0;font:700 clamp(1.125rem,3vw,1.75rem)/1.35 "Yeongnyangi Myeongjo",serif;letter-spacing:.04em;color:var(--yn-ivory);word-break:keep-all}
+.endActions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 10px}
+.cinema .endPrimary,.cinema .endSecondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid var(--yn-gold);border-radius:var(--yn-btn-radius);background:var(--yn-gold);color:var(--yn-deep);font-size:.9375rem;font-weight:700}
+.cinema .endPrimary{box-shadow:0 0 18px color-mix(in srgb,var(--yn-gold) 35%,transparent)}
+.cinema .endSecondary{border-color:var(--yn-line);background:color-mix(in srgb,var(--yn-night) 72%,transparent);color:var(--yn-ivory)}
+.tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+.cinema .toggle{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid var(--yn-line);border-radius:var(--yn-btn-radius);background:none;color:var(--yn-ivory);font-size:.875rem;font-weight:700}
+.cinema .toggle[aria-pressed=true]{border-color:var(--yn-gold);color:var(--yn-gold)}
+.links{display:flex;flex-wrap:wrap;align-items:center;gap:0 20px}
+.cinema .music,.cinema .ask{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--yn-gold);font-size:.875rem;font-weight:700;text-decoration:underline;text-underline-offset:4px}
+.chapters{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(132px,1fr);gap:10px;margin:0;padding:0 0 4px;list-style:none;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity}
+.chapters li{scroll-snap-align:start}
+.cinema .chapter{display:grid;align-content:start;gap:6px;width:100%;height:100%;padding:6px;border:1px solid var(--yn-line);border-radius:12px;background:var(--yn-night);color:var(--yn-ivory);font:inherit;text-align:left}
+.cinema .chapter[aria-current]{border-color:var(--yn-gold);box-shadow:inset 0 0 0 1px var(--yn-gold)}
+.chapter img{display:block;width:100%;height:auto;aspect-ratio:16/9;border-radius:8px;background:var(--yn-deep);object-fit:cover}
+.chapterName{display:grid;gap:1px;padding:0 4px 2px;font-size:.875rem;line-height:1.4;word-break:keep-all}
+.chapterName small{color:var(--yn-gold);font-size:.75rem;font-weight:700}
+@keyframes theatreIn{from{opacity:0}to{opacity:1}}
+@keyframes breathe{50%{transform:scale(.9)}}
+
+@media (hover:hover){
+ .cinema .close:hover,.cinema .toggle:hover,.cinema .chapter:hover,.cinema .endSecondary:hover{border-color:var(--yn-gold)}
+ .cinema .endPrimary:hover{background:color-mix(in srgb,var(--yn-gold) 85%,var(--yn-ivory))}
+ .cinema .close:hover{color:var(--yn-gold)}
+ .cover:hover .play{transform:scale(1.06)}
+}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+ .deck:not([data-selecting]) .card:hover:not([data-hovered]):not([data-pressed]):not([data-selected]){transform:translateY(-12px) rotate(0) scale(1.025)}
+ .card:hover .foil::after{opacity:1}
+}
+@media (max-width:699px){
+ .cinema{margin-top:32px}
+ .cta{left:10px;bottom:10px;gap:8px;max-width:calc(100% - 20px);padding:4px 14px 4px 4px;font-size:13px}
+ .play{width:40px;height:40px}
+ .end{gap:8px;padding:12px}
+ .end::before{display:none}
+ .cinema .endPrimary,.cinema .endSecondary{padding:0 14px;font-size:.875rem}
+}
+@media (prefers-reduced-motion:reduce){
+ .card,.card[data-deal],.deck .card[data-selected],.art img,.foil::after,.play,.cinema .theatre[open],.cinema .theatre::backdrop,.end{animation:none;transition:none}
+ .card[data-deal=pending]{opacity:1}
+ .foil{display:none}
+ .deck .card,.deck .card:hover,.deck .card:active,.deck .card:has(.cardLink:focus-visible),.deck .card[data-deal]{transform:rotate(var(--mv-angle))}
+ .card:hover{outline:2px solid var(--yn-gold);outline-offset:3px}
+ .art img,.cover:hover .play{transform:none}
+ .screen[data-state=loading] .play{animation:none}
+}
+
+/* 2026-10-28 홈 상단 배치: 세로 타로 카드 대신 썸네일·제목·재생 한 줄의 가로 카드. 위 규칙과 미디어 규칙을 이 블록이 덮는다. */
+.cinema{--mv-angle:0deg;width:min(560px,100% - 32px);margin:20px auto 4px;padding:0}
+.cinema::before{inset:-12% 4%}
+.deck{width:100%}
+.card{flex-direction:row;align-items:center;gap:14px}
+.numeral{top:-13px;left:56px}
+.art{width:96px}
+.copy{flex:1;min-width:0;align-items:flex-start;padding:2px 8px 2px 0;text-align:left}
+.copy::before{display:none}
+.cinema .name{font-size:1.35rem}
+.cinema .line{margin-top:4px;font-size:.875rem;line-height:1.55;text-wrap:pretty}
+.cinema .meta{margin-top:2px}
+.action{min-height:32px;margin-top:2px}
+.foil{inset:8px auto 8px 8px;width:96px;aspect-ratio:auto}

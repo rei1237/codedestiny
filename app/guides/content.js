@@ -23,7 +23,7 @@ const HIGH_VALUE_CONTENT_TEXT_TRANSLATIONS = {
     "highValueContent.021": "연애운 무료 보기",
     "highValueContent.022": "운세 서비스를 안전하게 이용하는 FAQ",
     "highValueContent.023": "오늘의 운세 무료 보기",
-    "highValueContent.024": "Code Destiny 자주 묻는 질문",
+    "highValueContent.024": "꿀꿀운세 자주 묻는 질문",
   },
 };
 
@@ -76,7 +76,7 @@ export const HIGH_VALUE_PAGES = [
     disclaimer: "사주 해석은 마음의 흐름을 비추는 참고 자료에 머무릅니다. 건강, 법률, 재무처럼 중요한 현실 결정은 해당 분야 전문가의 조언과 함께 살펴야 합니다.",
     serviceLinks: [
       { href: "/manse", label: highValueContentText("highValueContent.008") },
-      { href: "/saju/basic", label: highValueContentText("highValueContent.009") },
+      { href: "/saju", label: highValueContentText("highValueContent.009") },
     ],
     faq: [
       {

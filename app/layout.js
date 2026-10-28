@@ -1,6 +1,7 @@
 import "../styles/press-coverage.css";
 import "../styles/globals.css";
 import "../styles/theme-tokens.css";
+import "../styles/moonlit-birth-form.css";
 import "../styles/feature-marketing-detail.css";
 import "../styles/mobile-bottom-nav.css";
 import "../styles/yehwa-motifs-nav.css";
@@ -15,6 +16,7 @@ import RuntimeClientGuards from "./components/RuntimeClientGuards";
 import ShellHomeHardNavGuard from "./components/ShellHomeHardNavGuard";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 import { siteSeo } from "../lib/seo/siteSeo";
+import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
 import {
   buildOrganizationJsonLd,
   buildWebsiteJsonLd,
@@ -24,22 +26,22 @@ const notoSansKRVariable = "font-noto-sans-kr-offline";
 
 const ROOT_LAYOUT_COPY = {
   ko: {
-    insightsRssTitle: "Code Destiny Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
   en: {
-    insightsRssTitle: "Code Destiny Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
   ja: {
-    insightsRssTitle: "Code Destiny Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
   zh: {
-    insightsRssTitle: "Code Destiny Insights RSS",
+    insightsRssTitle: "꿀꿀 운세 Insights RSS",
   },
 };
 
 const ROOT_SEO = {
-  title: "꿀꿀 운세 | 사주·타로·영냥이 상담 — Code Destiny",
-  description: "꿀꿀 운세는 Code Destiny의 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
+  title: "꿀꿀 운세 | 사주·타로·영냥이 상담",
+  description: "꿀꿀 운세는 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
   ogTitle: siteSeo.defaultTitle,
   ogDescription: siteSeo.defaultDescription,
 };
@@ -109,7 +111,7 @@ export const metadata = {
         url: siteSeo.defaultOgImage,
         width: 1200,
         height: 630,
-        alt: "Code Destiny 무료 사주 타로 오늘의 운세 플랫폼",
+        alt: "꿀꿀 운세 사주·타로 상담 서비스",
       },
     ],
   },
@@ -152,12 +154,12 @@ export const viewport = {
   colorScheme: "dark light",
 };
 
-// 🔴 name 을 여기에 손으로 적지 않는다. 정본은 lib/seo/siteSeo.ts 의 brandName 이다.
+// 🔴 name 을 여기에 손으로 적지 않는다. 정본은 lib/brand/brand-facts.mjs 이고 lib/seo/siteSeo.ts 의 brandName 으로 내려온다.
 //
 // 같은 @id(https://code-destiny.com/#website)를 홈(승격된 정적 셸)과 나머지 400여 Next 라우트
 // (이 레이아웃)가 각각 선언하므로 두 값이 글자 단위로 같아야 한다. 예전에는 여기 이름을 손으로
-// 적어 두는 바람에 **3중 드리프트**가 났다 — 셸 "CODE DESTINY (꿀꿀 운세)" vs 여기
-// "꿀꿀 운세 — Code Destiny" vs buildWebsiteJsonLd 기본값 "Code Destiny"(2026-08-16 실측).
+// 적어 두는 바람에 **3중 드리프트**가 났다 — 셸 "CODE DESTINY (꿀꿀운세)" vs 여기
+// "꿀꿀운세 — Code Destiny" vs buildWebsiteJsonLd 기본값 "Code Destiny"(2026-08-16 실측).
 // 이제 override 를 없애 세 번째 값이 생길 자리를 아예 지웠다. 셸과의 일치는
 // __tests__/ui/locale-footer.static.test.js 가 강제한다.
 const BRAND_WEBSITE_JSON_LD = buildWebsiteJsonLd("ko");
@@ -175,13 +177,16 @@ const jsonLdGraph = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko" dir="ltr" className={notoSansKRVariable}>
+    // 프리페인트 스크립트가 하이드레이션 전에 data-cd-theme 를 찍는다. 이 요소의 속성 불일치만 허용한다(자식에는 번지지 않음).
+    <html lang="ko" dir="ltr" className={notoSansKRVariable} suppressHydrationWarning>
       <head>
-        <Script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38" strategy="beforeInteractive" />
+        <script src="/js/pwa-lifecycle.js?v=moon-library-1" defer />
+        <Script src="/js/core/pass-verdict.js?v=build-1711b2150559" strategy="beforeInteractive" />
         <Script src="/js/core/auth-hint.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
         {/* 앱 판별 정본. checkout-entry 가 진입 분기에서 읽으므로 그보다 먼저 둔다. */}
         <Script src="/js/core/app-context.js?v=20260812-app-context-v1" strategy="beforeInteractive" />
-        <Script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38" strategy="beforeInteractive" />
+        <Script src="/js/core/play-display-price.js" strategy="beforeInteractive" />
+        <Script src="/js/core/checkout-entry.js?v=build-1711b2150559" strategy="beforeInteractive" />
         <Script src="/js/core/access-store.js?v=20260804-access-v3" strategy="beforeInteractive" />
         <Script src="/js/core/payment-service.js?v=20260804" strategy="beforeInteractive" />
         {/* GA4 측정 ID 는 공개 식별자다. 값이 없으면 analytics.js 가 통째로 no-op 이 되므로
@@ -194,7 +199,7 @@ export default function RootLayout({ children }) {
             }}
           />
         ) : null}
-        <Script src="/js/core/analytics.js?v=20260814-ga4-v1" strategy="afterInteractive" />
+        <Script src="/js/core/analytics.js?v=20261021-origin-guard-v2" strategy="afterInteractive" />
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
         {/* hreflang / og:site_name / og:locale 을 여기서 하드코딩하지 말 것.
             이 layout 은 모든 Next 라우트의 <head> 이므로, 홈 기준 값을 박으면 전 페이지가
@@ -202,8 +207,8 @@ export default function RootLayout({ children }) {
             canonical=/saju/ 인데 hreflang ko=/ 를 함께 내보내는 자기모순 상태였다).
             로케일 대체 URL 은 metadata.alternates.languages 가, og 는 metadata.openGraph 가
             페이지별로 생성한다. */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdGraph) }} />
-        {/* 정적 셸과 동일한 연이/네오 테마 키 공유 — hydration 전에 html 속성으로 반영 (FOUC 방지).
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLdGraph) }} />
+        {/* 정적 셸과 동일한 라이트/다크 테마 키 공유(저장값 neo = 다크, 페르소나는 늘 연이) — hydration 전에 html 속성으로 반영 (FOUC 방지).
 
             예전에는 Capacitor 앱이면 저장값이 없을 때 네오(다크)를 기본으로 강제했다. 그때는 앱이
             /app 허브(다크)를 띄웠기 때문이다. 지금 앱은 셸(연이 라이트)을 띄우므로 그 강제가

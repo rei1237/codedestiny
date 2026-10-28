@@ -1,6 +1,14 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
+import { fusionAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import { FUSION_PREMIUM_V2 } from "@/lib/fusion-premium-report";
+import { useFusionSections } from "./_lib/useFusionSections";
+import { PaymentPigVisual } from "../components/common/PaymentPigVisual";
 import { useFusionExpertCopy } from "./ExpertEvidence";
 
 import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
@@ -29,6 +37,8 @@ import { FusionResultRail } from "./FusionResultRail";
 import { FusionResultThread } from "./FusionResultThread";
 import { FusionConvergence } from "./FusionConvergence";
 import SavedRecordLink from "@/components/fortune/SavedRecordLink";
+import ProductMasterStrip from "@/app/components/ProductMasterStrip";
+import { productMasters } from "@/components/fortune/master-profiles";
 import {
   buildFusionStages,
   initialStageStates,
@@ -106,6 +116,7 @@ const FUSION_HANDOFF_KEY = "cdGuardianFusionHandoffV1";
 type FusionRequestBody = {
   locale?: string;
   contextVersion?: number;
+  reportVersion?: string;
   birthDate?: string;
   birthTime?: string;
   birthTimeUnknown?: boolean;
@@ -423,7 +434,7 @@ const FUSION_FORTUNE_EN: FusionFortuneCopy = {
   heroFirstCome: "Six-system cross reading",
   heroPriceFallback: "₩50,000",
   heroPricePrefix: "per reading ",
-  heroWordCount: "Six independent readings",
+  heroWordCount: "Six systems · eight life areas",
   heroSaveNote: "Saved · Reopenable · PDF",
   chatLead: "Fusion AI tells you, right on this screen, as each of the six systems finishes.",
   heroFormCta: "Start my reading",
@@ -436,7 +447,7 @@ const FUSION_FORTUNE_EN: FusionFortuneCopy = {
   statusScopeNote: "Reads Saju, Ziwei Doushu, Vedic astrology, Sukuyo, Western astrology, and Tarot separately, then cross-reads them at the end.",
   statusMethodLabel: "How it's billed",
   statusMethodValue: "Paid per reading",
-  statusMethodNote: "Only a Family pass or one-time payment is available. Standard, Premium, VVIP, and Moonstones are not accepted.",
+  statusMethodNote: "Only a Family Honey Jar pass or one-time payment is available. Small, Medium, and Large Honey Jars and Moonstones are not accepted.",
   coreButtonLabel: "See how Fusion Core works",
   formIntroHeading: "Connect all six systems with your exact birth time",
   formIntroDesc: "The information you enter isn't exposed in the result text or the shared summary.",
@@ -541,7 +552,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     pdfCoverFallbackTitle: "초융합 운세",
     pdfCoverSubtitle: (topic) => `여섯 체계 교차 판정 · ${topic}`,
     pdfSavedNotice: "PDF 로 저장했어요.",
-    pdfFailedMessage: "PDF 를 만들지 못했어요. 잠시 후 다시 시도해 주세요.",
+    pdfFailedMessage: "PDF를 저장하지 못했어요. 상담 결과는 그대로 있어요. 잠시 후 PDF 저장을 다시 눌러 주세요.",
     buttonLoadingLabel: "여섯 전문가의 흐름을 엮는 중…",
     buttonPayingLabel: "결제를 확인하고 있어요",
     buttonLoginLabel: "로그인하고 시작하기",
@@ -560,7 +571,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "여섯 체계 교차 판정",
     heroPriceFallback: "50,000원",
     heroPricePrefix: "1회 ",
-    heroWordCount: "여섯 체계의 독립 해석",
+    heroWordCount: "체계별 6장 · 영역별 8장",
     heroSaveNote: "저장 · 재열람 · PDF",
     chatLead: "Fusion AI가 여섯 체계의 완료 흐름을 이 화면에서 차례로 알려드려요.",
     heroFormCta: "나의 초융합 리딩 시작하기",
@@ -573,7 +584,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "사주·자미두수·베다점·숙요점·점성술·타로를 각각 읽고 마지막에 교차 판정합니다.",
     statusMethodLabel: "이용 방식",
     statusMethodValue: "회당 결제",
-    statusMethodNote: "Family 이용권 또는 단건 결제만 이용할 수 있어요. Standard·Premium·VVIP와 월정석은 적용되지 않습니다.",
+    statusMethodNote: "패밀리 꿀단지 이용권 또는 단건 결제만 이용할 수 있어요. 작은·중간·큰 꿀단지와 월정석은 적용되지 않습니다.",
     coreButtonLabel: "Fusion Core 진행 방식 보기",
     formIntroHeading: "정확한 생시로 여섯 체계를 연결해요",
     formIntroDesc: "입력 정보는 결과 본문과 공유 요약에 노출하지 않습니다.",
@@ -709,7 +720,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "四柱推命・紫微斗数・ヴェーダ占星術・宿曜・西洋占星術・タロットをそれぞれ読み解き、最後にクロス判定します。",
     statusMethodLabel: "利用方式",
     statusMethodValue: "都度決済",
-    statusMethodNote: "Familyパスまたは都度決済のみ利用できます。Standard・Premium・VVIPと月精石は対象外です。",
+    statusMethodNote: "ファミリーはちみつ壺の利用券または都度決済のみ利用できます。小さな・中くらいの・大きなはちみつ壺と月精石は対象外です。",
     coreButtonLabel: "Fusion Coreの進め方を見る",
     formIntroHeading: "正確な出生時刻で六体系をつなげます",
     formIntroDesc: "入力情報は結果本文や共有要約には表示されません。",
@@ -844,7 +855,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "分别解读命理、紫微斗数、吠陀占星术、宿曜、西方占星术、塔罗，最后进行交叉判定。",
     statusMethodLabel: "使用方式",
     statusMethodValue: "按次付费",
-    statusMethodNote: "仅可使用Family通行证或单次付款。Standard、Premium、VVIP与月精石不适用。",
+    statusMethodNote: "仅可使用家庭蜜罐通行证或单次付款。小蜜罐、中蜜罐、大蜜罐与月精石不适用。",
     coreButtonLabel: "查看Fusion Core的运作方式",
     formIntroHeading: "以准确的出生时间连接六大体系",
     formIntroDesc: "您输入的信息不会显示在结果正文或分享摘要中。",
@@ -979,7 +990,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "分別解讀命理、紫微斗數、吠陀占星術、宿曜、西方占星術、塔羅，最後進行交叉判定。",
     statusMethodLabel: "使用方式",
     statusMethodValue: "按次付費",
-    statusMethodNote: "僅可使用Family通行證或單次付款。Standard、Premium、VVIP與月精石不適用。",
+    statusMethodNote: "僅可使用家庭蜜罐通行證或單次付款。小蜜罐、中蜜罐、大蜜罐與月精石不適用。",
     coreButtonLabel: "查看Fusion Core的運作方式",
     formIntroHeading: "以準確的出生時間連接六大體系",
     formIntroDesc: "您輸入的資訊不會顯示在結果正文或分享摘要中。",
@@ -1114,7 +1125,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Đọc riêng Tứ Trụ, Tử Vi Đẩu Số, chiêm tinh Vệ Đà, Sukuyo, chiêm tinh Phương Tây và Tarot, sau đó đọc chéo vào cuối.",
     statusMethodLabel: "Cách tính phí",
     statusMethodValue: "Trả phí theo mỗi lần đọc",
-    statusMethodNote: "Chỉ có thể dùng thẻ Family hoặc thanh toán một lần. Standard, Premium, VVIP và Đá Mặt Trăng không áp dụng.",
+    statusMethodNote: "Chỉ có thể dùng Hũ mật ong gia đình hoặc thanh toán một lần. Hũ mật ong nhỏ, vừa, lớn và Đá Mặt Trăng không áp dụng.",
     coreButtonLabel: "Xem cách Fusion Core hoạt động",
     formIntroHeading: "Kết nối cả sáu hệ thống với giờ sinh chính xác của bạn",
     formIntroDesc: "Thông tin bạn nhập không hiển thị trong nội dung kết quả hoặc bản tóm tắt chia sẻ.",
@@ -1249,7 +1260,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "साजू, ज़िवेई दोशु, वैदिक ज्योतिष, सुक्यो, पाश्चात्य ज्योतिष और टैरो को अलग-अलग पढ़ता है, फिर अंत में उन्हें क्रॉस-रीड करता है।",
     statusMethodLabel: "इसका बिल कैसे बनता है",
     statusMethodValue: "प्रति रीडिंग भुगतान",
-    statusMethodNote: "केवल Family पास या एकल भुगतान उपलब्ध है। Standard, Premium, VVIP और मूनस्टोन लागू नहीं होते।",
+    statusMethodNote: "केवल फ़ैमिली शहद जार या एकल भुगतान उपलब्ध है। छोटा, मध्यम और बड़ा शहद जार तथा मूनस्टोन लागू नहीं होते।",
     coreButtonLabel: "देखें कि Fusion Core कैसे काम करता है",
     formIntroHeading: "अपने सटीक जन्म समय के साथ सभी छह प्रणालियों को जोड़ें",
     formIntroDesc: "आपके द्वारा दर्ज की गई जानकारी परिणाम पाठ या साझा सारांश में प्रदर्शित नहीं होती है।",
@@ -1384,7 +1395,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Lee Saju, Ziwei Doushu, astrología védica, Sukuyo, astrología occidental y Tarot por separado, y luego los lee de forma cruzada al final.",
     statusMethodLabel: "Cómo se factura",
     statusMethodValue: "Se paga por lectura",
-    statusMethodNote: "Solo se admite el pase Family o el pago único. Standard, Premium, VVIP y las Piedras Lunares no se aplican.",
+    statusMethodNote: "Solo se admite el Tarro de miel familiar o el pago único. Los tarros de miel pequeño, mediano y grande y las Piedras Lunares no se aplican.",
     coreButtonLabel: "Ver cómo funciona Fusion Core",
     formIntroHeading: "Conecta los seis sistemas con tu hora de nacimiento exacta",
     formIntroDesc: "La información que ingresas no se muestra en el texto del resultado ni en el resumen compartido.",
@@ -1519,7 +1530,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Lit séparément le Saju, le Ziwei Doushu, l'astrologie védique, le Sukuyo, l'astrologie occidentale et le Tarot, puis les lit de manière croisée à la fin.",
     statusMethodLabel: "Mode de facturation",
     statusMethodValue: "Facturé par lecture",
-    statusMethodNote: "Seuls le pass Family ou le paiement unique sont acceptés. Standard, Premium, VVIP et les Pierres de Lune ne s’appliquent pas.",
+    statusMethodNote: "Seuls le Pot de miel familial ou le paiement unique sont acceptés. Les petit, moyen et grand pots de miel et les Pierres de Lune ne s’appliquent pas.",
     coreButtonLabel: "Voir comment fonctionne Fusion Core",
     formIntroHeading: "Connectez les six systèmes avec votre heure de naissance exacte",
     formIntroDesc: "Les informations que vous saisissez ne sont pas affichées dans le texte du résultat ni dans le résumé partagé.",
@@ -1654,7 +1665,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Liest Saju, Ziwei Doushu, vedische Astrologie, Sukuyo, westliche Astrologie und Tarot separat und liest sie am Ende dann kreuzweise.",
     statusMethodLabel: "Abrechnungsart",
     statusMethodValue: "Pro Deutung bezahlt",
-    statusMethodNote: "Nur der Family-Pass oder eine Einmalzahlung sind möglich. Standard, Premium, VVIP und Mondsteine gelten nicht.",
+    statusMethodNote: "Nur das Familien-Honigglas oder eine Einmalzahlung sind möglich. Kleines, mittleres und großes Honigglas sowie Mondsteine gelten nicht.",
     coreButtonLabel: "Sehen, wie Fusion Core funktioniert",
     formIntroHeading: "Verbinden Sie alle sechs Systeme mit Ihrer genauen Geburtszeit",
     formIntroDesc: "Die von Ihnen eingegebenen Informationen werden weder im Ergebnistext noch in der geteilten Zusammenfassung angezeigt.",
@@ -1789,7 +1800,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Leest Saju, Ziwei Doushu, Vedische astrologie, Sukuyo, Westerse astrologie en Tarot afzonderlijk, en leest ze aan het einde kruiselings.",
     statusMethodLabel: "Hoe het wordt gefactureerd",
     statusMethodValue: "Per lezing betaald",
-    statusMethodNote: "Alleen de Family-pas of een eenmalige betaling is mogelijk. Standard, Premium, VVIP en Maanstenen gelden niet.",
+    statusMethodNote: "Alleen de Gezinshoningpot of een eenmalige betaling is mogelijk. De kleine, middelgrote en grote honingpot en Maanstenen gelden niet.",
     coreButtonLabel: "Bekijk hoe Fusion Core werkt",
     formIntroHeading: "Verbind alle zes systemen met je exacte geboortetijd",
     formIntroDesc: "De informatie die je invoert wordt niet weergegeven in de resultaattekst of de gedeelde samenvatting.",
@@ -1924,7 +1935,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Membaca Saju, Ziwei Doushu, astrologi Veda, Sukuyo, astrologi Barat dan Tarot secara berasingan, kemudian membaca secara silang pada akhirnya.",
     statusMethodLabel: "Cara pengebilan",
     statusMethodValue: "Dibayar setiap bacaan",
-    statusMethodNote: "Hanya pas Family atau bayaran sekali dibenarkan. Standard, Premium, VVIP dan Batu Bulan tidak terpakai.",
+    statusMethodNote: "Hanya Balang Madu Keluarga atau bayaran sekali dibenarkan. Balang Madu Kecil, Sederhana, Besar dan Batu Bulan tidak terpakai.",
     coreButtonLabel: "Lihat cara Fusion Core berfungsi",
     formIntroHeading: "Hubungkan kesemua enam sistem dengan masa lahir anda yang tepat",
     formIntroDesc: "Maklumat yang anda masukkan tidak dipaparkan dalam teks hasil atau ringkasan yang dikongsi.",
@@ -2051,7 +2062,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   const requestAbortRef = useRef<AbortController | null>(null);
   const profileTouchedRef = useRef(false);
   const coreDialogRef = useRef<HTMLDialogElement>(null);
-  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion } = useAiProfileSeed();
   const [stageStates, setStageStates] = useState<Record<FusionStageKey, FusionStageState>>(initialStageStates);
   /** 융합 단계의 하위 진행 — 서버가 네 그룹을 병렬로 쓰고 끝나는 대로 알려 준다.
    *  phase 가 "repair" 면 미달 묶음을 보완하는 국면이라 카운터의 총량이 다르다. */
@@ -2069,7 +2080,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   const [qualityNotice, setQualityNotice] = useState("");
   /** 재열람으로 연 보관본의 입력 요약. PDF 표지가 폼 대신 이걸 본다. */
   const [openedSummary, setOpenedSummary] = useState<{ topic?: string; nickname?: string } | null>(null);
-  const [openSection, setOpenSection] = useState<string>("");
+  const { openSections, openSection, toggleSection } = useFusionSections();
+  const [questionDetails, setQuestionDetails] = useState({ situation: "", choices: "", timing: "", worry: "" });
   /** 생성 실패는 폼이 아니라 대화 안에 남는다 — 어디까지 진행됐는지와 함께 봐야 재시도를 고른다. */
   const [failure, setFailure] = useState<{ message: string; retryable: boolean; reason?: string } | null>(null);
   // 2단계 생성: 여섯 체계 섹션(1단계)은 받았는데 종합·판정(2단계)이 끝나지 않은 상태.
@@ -2235,12 +2247,12 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     // 강등 배달이었으면 다시 열었을 때도 같은 안내가 붙는다 — 화면에서만 알리면 근거가 사라진다.
     setQualityNotice(consultation.qualityTier === "degraded" ? (consultation.qualityNotice || "") : "");
     setFailure(null);
-    setOpenSection("");
+    toggleSection("all");
     // 1단계만 저장된 보관본(partial)은 완성본이 아니다 — 재열람 링크(?cid=)를 남기지 않는다.
     if (consultation.status === "partial") return;
     setOpenedConsultationId(consultation.id);
     rememberConsultationUrl(consultation.id);
-  }, [setResult]);
+  }, [setResult, toggleSection]);
 
   /**
    * 결제 키로 보관본을 되찾는다. 찾았으면 화면에 올리고 true.
@@ -2461,6 +2473,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     // 결제 전에 한 번 만들어 둔다 — 재개 서술자가 이 입력을 그대로 싣고 리다이렉트를 건너간다.
     const formRequestBody: FusionRequestBody = {
       contextVersion: 2,
+      reportVersion: FUSION_PREMIUM_V2,
       locale: getCurrentLoadingLocale(),
       birthDate: form.birthDate,
       birthTime: form.birthTimeUnknown ? "" : form.birthTime,
@@ -2469,7 +2482,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       gender: form.gender,
       nickname: form.nickname,
       topic: form.topic,
-      concern: form.concern,
+      concern: [form.concern, ...Object.entries(questionDetails).filter(([,value]) => value.trim()).map(([key,value]) => `${({ situation: "현재 상황", choices: "비교 중인 선택지", timing: "원하는 시점", worry: "가장 걱정되는 점" } as Record<string,string>)[key]}: ${value.trim()}`)].filter(Boolean).join("\n"),
       ...(selectedPlace ? { birthPlace: { city: selectedPlace.label, country: selectedPlace.country, latitude: selectedPlace.lat, longitude: selectedPlace.lon, timezone: selectedPlace.tz } } : {}),
     };
     if (!requestId) {
@@ -2544,7 +2557,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       rememberPaidRequest(requestId, requestBody);
       let payload: Record<string, unknown> = {};
       let stage: 1 | 2 = startStage;
-      for (let wave = 0; wave < 12; wave += 1) {
+      // v2 는 분야 8장이 더해져 2단계만 4물결이다 — 1단계 4물결 + 보완을 합쳐 20 안에서 끝난다.
+      for (let wave = 0; wave < 20; wave += 1) {
         if (document.visibilityState === "hidden" || navigator.onLine === false) {
           setStageTwoFailed(true); return false;
         }
@@ -2590,7 +2604,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ append: true, mode: "fusion_deep_reading", paymentStatus: "completed", generationStatus: "completed", messages: [{ id: `fusion-${payload.requestId || Date.now()}`, speaker: "assistant", kind: "fusion_result", text: streamResult.openingMessage, detail: streamResult.executiveSummary, result: streamResult }] }),
         }, { retryOn401: true, apiBase });
-        window.setTimeout(() => { if (scope.isCurrent()) window.location.assign(`/fortune-chat?session=${encodeURIComponent(fortuneChatSessionId)}`); }, 300);
+        window.setTimeout(() => { if (scope.isCurrent()) window.location.replace(`/fortune-chat?session=${encodeURIComponent(fortuneChatSessionId)}`); }, 300);
       }
       // 결과를 받았으면 이 결제는 소진됐다. 다음 상담은 새로 결제한다.
       rememberPaidRequest("");
@@ -2775,7 +2789,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
             name: openedSummary?.nickname || form.nickname || undefined,
             date: new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]),
           },
-          watermarkText: "CODE DESTINY",
+          watermarkText: "꿀꿀운세",
         });
       }
       setNotice(copy.pdfSavedNotice);
@@ -2823,7 +2837,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     observer.observe(formNode);
     return () => observer.disconnect();
   }, []);
-  const toggleSection = (key: string) => setOpenSection((current) => current === key ? "" : key);
+
   const completedStageCount = useMemo(
     () => fusionStages.filter((stage) => stage.key !== "fusion" && (stageStates[stage.key] === "completed" || Boolean(result?.[`${stage.key}Section` as keyof Result]))).length,
     [fusionStages, stageStates, result],
@@ -2849,7 +2863,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       <Link href="/#fortuneGatewayEntry">{copy.navHome}</Link>
     </nav>
     <section ref={heroRef} className={styles.hero}>
-      <Image className={styles.heroImage} src="/images/fusion-fortune/fusion-guardian-celestial-hero.webp" alt="" fill priority sizes="(max-width: 720px) 100vw, 960px" />
+      <Image className={styles.heroImage} src="/images/service-introductions/fusion-fortune-masters-v3-960.webp" alt="다섯 마스터가 여섯 점술 체계의 근거를 함께 살피는 초융합 상담" fill priority sizes="(max-width: 720px) 100vw, 960px" />
       <div className={styles.heroVeil} />
       <div className={styles.heroCopy}>
         {/* 귀인 배지는 실제로 「오늘의 귀인」에서 넘어온 세션에만 맞는 문구다. 직접 들어온
@@ -2867,6 +2881,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </div>
         {/* reviewFlow("분석이 완료되면 이 화면에서 확인") 는 결과 대기 안내라 구매 전 히어로에
             맥락이 없다. 신뢰 한 줄(10년차 명리학자 설계)을 CTA 바로 위로 올린다. */}
+        {copy === FUSION_FORTUNE_COPY.ko && <ProductMasterStrip label="초융합 운세 마스터" masters={productMasters.fusion} />}
         <p className={styles.expertTrust}>{splitTrustLine(expertCopy.trust).map((part, index) => part && <span key={index} className={index === 0 ? styles.expertTrustLabel : undefined}>{part}</span>)}</p>
         <a className={styles.heroCta} href="#fusion-form">{copy.heroFormCta}</a>
       </div>
@@ -2893,6 +2908,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       </div>
     </section>
 
+    {getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey={PAID_FEATURE_KEY} />}
     {valuePreview}
 
     <ExpertValueCards theme="fusion" points={expertCopy.valuePoints} />
@@ -2940,7 +2956,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         <div><span>{copy.statusMethodLabel}</span><strong>{copy.statusMethodValue}</strong><small>{copy.statusMethodNote}</small></div>
         <button className={styles.coreButton} type="button" onClick={() => coreDialogRef.current?.showModal()} aria-haspopup="dialog">{copy.coreButtonLabel}</button>
       </div>
-      {<form id="fusion-form" ref={formRef} className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
+      {<form data-moonlit-form="" id="fusion-form" ref={formRef} className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
         <div className={styles.formIntro}>
           <h2>{copy.formIntroHeading}</h2>
           <p>{copy.formIntroDesc}</p>
@@ -2954,7 +2970,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
             </span>
           </p>
           {guardianHandoff && <p className={styles.handoffNotice}>{copy.guardianHandoffPrefix}<strong>{guardianHandoff.topic}</strong>{copy.guardianHandoffSuffix}</p>}
-          <button className={styles.profileReload} type="button" onClick={() => void reloadProfileSeed()}>{copy.profileReloadCta}</button>
+          <SavedBirthProfilePicker calendarMode="lunar" disabled={loading} onSelect={seed => { profileTouchedRef.current = true; setForm(previous => ({...previous, birthDate:seed.birthDate || "", birthTime:seed.birthTimeUnknown ? "" : seed.birthTime || "", birthTimeUnknown:Boolean(seed.birthTimeUnknown), calendarType:seed.calendarType || "solar", gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "unspecified", nickname:seed.name || "", birthPlaceKey:""})); }} />
         </div>
         {/* "무엇을 받는가" 를 폼 **맨 앞**에 둔다. 히어로 CTA 가 가치 섹션을 건너뛰고 이 폼으로
             바로 점프하기 때문에, 전에는 이 카드가 제출 버튼 바로 위에 있어 사용자가 입력을
@@ -2968,7 +2984,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </ul>
         <p className={styles.formSectionFirst}>{copy.formSectionBirth}</p>
         <label><span className={styles.labelRow}>{copy.birthDateLabel}<FieldSystems field="birthDate" copy={copy} /></span><input required {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => setForm({ ...form, birthDate: nextBirthDate }))} /></label>
-        <label><span className={styles.labelRow}>{copy.birthTimeLabel}<FieldSystems field="birthTime" copy={copy} /></span><input type="time" required={!form.birthTimeUnknown} disabled={Boolean(pendingPaidRequest) && form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value, birthTimeUnknown: false })} />{pendingPaidRequest && <span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> {copy.birthTimeUnknownLabel}</span>}<small>{expertCopy.required}</small></label>
+        <label><span className={styles.labelRow}>{copy.birthTimeLabel}<FieldSystems field="birthTime" copy={copy} /></span><BirthTimeInput  required={!form.birthTimeUnknown} disabled={Boolean(pendingPaidRequest) && form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value, birthTimeUnknown: false })} />{pendingPaidRequest && <span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> {copy.birthTimeUnknownLabel}</span>}<small>{expertCopy.required}</small></label>
         <label><span className={styles.labelRow}>{copy.birthPlaceLabel}<FieldSystems field="birthPlace" copy={copy} /></span><select required={!pendingPaidRequest} value={form.birthPlaceKey} onChange={(event) => setForm({ ...form, birthPlaceKey: event.target.value })}><option value="">{pendingPaidRequest ? copy.birthPlaceUnknownOption : expertCopy.selectPlace}</option>{birthPlaces.map((place) => <option key={`${place.label}-${place.lat}-${place.lon}`} value={place.label}>{place.label}</option>)}</select><small>{copy.birthPlaceNote}</small></label>
         <fieldset><legend><span className={styles.labelRow}>{copy.calendarTypeLabel}<FieldSystems field="calendarType" copy={copy} /></span></legend><label><input type="radio" checked={form.calendarType === "solar"} onChange={() => setForm({ ...form, calendarType: "solar" })} /> {copy.calendarSolarLabel}</label><label><input type="radio" checked={form.calendarType === "lunar"} onChange={() => setForm({ ...form, calendarType: "lunar" })} /> {copy.calendarLunarLabel}</label></fieldset>
         <label><span className={styles.labelRow}><span>{copy.genderLabel}<em>{copy.optionalTag}</em></span><FieldSystems field="gender" copy={copy} /></span><select value={form.gender} onChange={(event) => setForm({ ...form, gender: event.target.value })}><option value="unspecified">{copy.genderUnspecifiedOption}</option><option value="female">{copy.genderFemaleOption}</option><option value="male">{copy.genderMaleOption}</option></select></label>
@@ -2976,6 +2992,13 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         <label>{copy.nicknameLabel}<em>{copy.optionalTag}</em><input maxLength={40} value={form.nickname} onChange={(event) => setForm({ ...form, nickname: event.target.value })} placeholder={copy.nicknamePlaceholder} /></label>
         <label><span className={styles.labelRow}>{copy.topicLabel}<FieldSystems field="topic" copy={copy} /></span><select value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })}><option value="삶의 전반적인 흐름">{copy.topicOptionOverall}</option><option value="연애와 관계">{copy.topicOptionLove}</option><option value="일과 돈">{copy.topicOptionWorkMoney}</option><option value="마음과 회복">{copy.topicOptionMind}</option></select></label>
         <label className={styles.wide}><span className={styles.labelRow}><span>{copy.concernLabel}<em>{copy.optionalTag}</em></span><FieldSystems field="concern" copy={copy} /></span><textarea maxLength={1000} value={form.concern} onChange={(event) => setForm({ ...form, concern: event.target.value })} placeholder={copy.concernPlaceholder} /></label>
+        {getCurrentLoadingLocale() === "ko" && <details className={styles.wide}>
+          <summary className="min-h-11 cursor-pointer py-3">상담을 더 구체적으로 준비하기 · 선택</summary>
+          <div className="grid gap-4 py-3 sm:grid-cols-2">
+            {([["situation", "현재 상황"], ["choices", "비교 중인 선택지"], ["timing", "원하는 시점"], ["worry", "가장 걱정되는 점"]] as const).map(([key,label]) =>
+              <label key={key}>{label}<textarea maxLength={200} value={questionDetails[key]} onChange={event => setQuestionDetails(current => ({ ...current, [key]: event.target.value }))} /></label>)}
+          </div>
+        </details>}
         {status.message && <p className={styles.notice}>{status.message}</p>}{notice && <p className={styles.success} role="status">{notice}</p>}
         {/* 결제는 끝났는데 결과를 못 받은 요청이 남아 있으면 그것부터 알린다 — 이 안내가 없으면
             사용자는 처음부터 다시 하는 줄 알고 결제를 한 번 더 한다. */}
@@ -3025,6 +3048,11 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </div>
       </header>
 
+      {!exporting && loading && <div className="mx-4 my-5 flex items-center gap-4 rounded-[var(--cd-r-section)] border border-white/20 p-4 sm:mx-9" role="status">
+        <PaymentPigVisual tone="pass" className="!m-0 !h-24 !w-24 shrink-0" />
+        <div><p className="font-display text-[var(--fx-ink-1)]">{getCurrentLoadingLocale() === "ko" ? "연이가 질문에 맞춰 상담을 준비하고 있어요." : copy.buttonLoadingLabel}</p>
+        <p className="mt-2 text-sm text-[var(--fx-ink-2)]">{completedStageCount} / 6 · {getCurrentLoadingLocale() === "ko" ? "완료한 해석부터 아래에서 읽을 수 있어요." : copy.stageDefaultProgressMessage}</p></div>
+      </div>}
       {!exporting && (loading || stageTwoFailed) && <FusionConvergence stageStates={stageStates} result={result} loading={loading} composeProgress={composeProgress} />}
 
       {result && stageTwoFailed && !loading && <div role="status" className={styles.recoveryNotice}>
@@ -3059,7 +3087,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
 
-        {result && <FusionResultThread result={result} openSection={openSection} onToggleSection={toggleSection} exporting={exporting} stageTwoGenerating={loading} />}
+        {result && <FusionResultThread result={result} openSections={openSections} onToggleSection={toggleSection} exporting={exporting} stageTwoGenerating={loading} />}
         {result && !loading && !stageTwoFailed && <SavedRecordLink source="fusion" id={openedConsultationId} />}
 
 
@@ -3076,7 +3104,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
       </ol>
-      {result && <FusionResultRail result={result} generating={loading} exporting={exporting} onOpenSection={(key) => setOpenSection(key)} scopeRef={threadRef} storageKey={deliveryOwnerId && readingRequestId ? `cdFusionReading:${encodeURIComponent(deliveryOwnerId)}:${encodeURIComponent(readingRequestId)}` : ""} />}
+      {result && <FusionResultRail result={result} generating={loading} exporting={exporting} onOpenSection={openSection} scopeRef={threadRef} storageKey={deliveryOwnerId && readingRequestId ? `cdFusionReading:${encodeURIComponent(deliveryOwnerId)}:${encodeURIComponent(readingRequestId)}` : ""} />}
       </div>
       {result && !loading && !stageTwoFailed && openedConsultationId && <ReviewRewardBanner afterResult/>}
 
@@ -3097,7 +3125,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
             </div>
           </>}
       </footer>}
-      {result && !loading && !stageTwoFailed && result.expertMeta?.complete !== false && <RecommendationResult service="fusion-fortune-consultation" brand="neo"/>}
+      {result && !loading && !stageTwoFailed && result.expertMeta?.complete !== false && <RecommendationResult service="fusion-fortune-consultation" practiceTags={fusionAdviceTopics(result)} brand="neo"/>}
     </section>}
     {/* 생성 중이거나 결과가 떠 있으면 띄우지 않는다 — 그때 화면 아래는 결과 도킹 바의 자리다. */}
     {!loading && !result && !failure && <div className={styles.orderBar} data-visible={orderBarVisible ? "true" : "false"}>

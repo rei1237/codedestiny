@@ -1,0 +1,158 @@
+{
+  "id": "saju-compatibility",
+  "featureKey": "compat-saju-compatibility",
+  "title": "사주 궁합 분석",
+  "notice": "본인 사주와 상대의 이름·생년월일·양력/음력 구분·시각, 선택한 관계 유형을 바탕으로 읽는 사주 궁합입니다. 점수·등급·합충 관계와 그 근거를 바탕으로 AI가 관계의 패턴과 조율 방법을 서술합니다. 총평, 에너지 조화, 감정·갈등·현실·장기 흐름, 궁합 포인트, 현실적인 패턴과 처방, 전생 인연의 상징적 이야기를 담습니다. 연애·결혼 심화는 해당 유형에만 표시되며, 근거 항목은 두 사람의 계산 결과에 따라 달라집니다. 시각이 비어 있으면 정오 기본값으로 계산하므로 정확한 시각을 모를 때는 해석에 한계가 있습니다. 전생 인연은 사실 판정이 아닌 재미와 성찰을 위한 콘텐츠이며 점수는 관계 성공 확률이 아닙니다. 예시는 가상 편집입니다. 운명의 찻집·연애 총서·다른 체계의 궁합은 별도 상품이고, 가격과 결제 조건은 현재 구매 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-relationship-worth-understanding",
+      "title": "좋아하는 마음 다음에, 함께 살아갈 방식을 읽어요.",
+      "alt": "좋아하는 마음 다음에, 함께 살아갈 방식을 읽어요.",
+      "src": "/feature-details/crafted/saju-compatibility/01-a-relationship-worth-understanding.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "좋아하는 마음 다음에,\n함께 살아갈 방식을 읽어요.\n\n두 사람의 사주에서\n편안한 지점과 부딪히는 지점을 찾아\n관계의 다음 대화를 준비해요.\n\n사주 궁합 · 연애·사업·친구",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-compatibility/01-a-relationship-worth-understanding-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-three-kinds-of-us",
+      "title": "우리가 맺은 관계에 따라, 물어야 할 것도 달라져요.",
+      "alt": "우리가 맺은 관계에 따라, 물어야 할 것도 달라져요.",
+      "src": "/feature-details/crafted/saju-compatibility/02-three-kinds-of-us.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "우리가 맺은 관계에 따라,\n물어야 할 것도 달라져요.\n연애·결혼\n\n마음을 주고받는 방식과\n함께하는 일상의 조율\n\n사업·동업\n\n역할과 기대를 나누는 방식,\n협업에서 반복되는 긴장\n\n친구·동료\n\n편안한 거리와 신뢰,\n다름을 받아들이는 방식",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-compatibility/02-three-kinds-of-us-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-two-birth-records",
+      "title": "관계를 고르고, 두 사람의 정보를 확인해요.",
+      "alt": "관계를 고르고, 두 사람의 정보를 확인해요.",
+      "src": "/feature-details/crafted/saju-compatibility/03-two-birth-records.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "관계를 고르고,\n두 사람의 정보를 확인해요.\n나의 사주\n\n현재 선택한 본인 출생정보\n\n상대의 정보\n\n이름·생년월일·양력/음력·시각\n\n궁합 유형\n\n연애/결혼 · 사업/동업 · 친구/동료\n\n시각이 비면 정오 기본값으로 계산해요.\n모르는 시각을 정확한 정보로 보지는 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-compatibility/03-two-birth-records-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-a-score-with-reasons",
+      "title": "점수만 남기지 않고, 그 이유를 따라 읽어요.",
+      "alt": "점수만 남기지 않고, 그 이유를 따라 읽어요.",
+      "src": "/feature-details/crafted/saju-compatibility/04-a-score-with-reasons.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "점수만 남기지 않고,\n그 이유를 따라 읽어요.\n먼저\n점수·등급과 총평\n\n두 사람의 관계를 한눈에 보고\n전체 해석의 방향을 잡아요.\n\n이어서\n근거를 풀어 쓴 AI 해석\n\n사주에서 계산한 관계를 바탕으로\n감정과 생활의 장면을 읽어요.\n\n높은 점수가 행복을 보장하거나,\n낮은 점수가 이별을 뜻하지는 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-compatibility/04-a-score-with-reasons-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-reading-the-pattern",
+      "title": "첫 번째 읽기, 우리 사이의 반복 패턴.",
+      "alt": "첫 번째 읽기, 우리 사이의 반복 패턴.",
+      "src": "/feature-details/crafted/saju-compatibility/05-reading-the-pattern.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "첫 번째 읽기,\n우리 사이의 반복 패턴.\n에너지 조화\n\n조후 · 일간 오행 · 월지 계절 · 십성\n\n세부 궁합\n\n감정 리듬 · 갈등 스위치\n현실 운영 · 장기 전망\n\n궁합 포인트\n\n두 사주에서 확인한 합충과\n관계의 근거를 풀어 읽어요.\n\n근거 항목은 두 사람의 사주에 따라 달라요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-compatibility/05-reading-the-pattern-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-reading-the-next-step",
+      "title": "두 번째 읽기, 앞으로 바꿔볼 관계의 습관.",
+      "alt": "두 번째 읽기, 앞으로 바꿔볼 관계의 습관.",
+      "src": "/feature-details/crafted/saju-compatibility/06-reading-the-next-step.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 번째 읽기,\n앞으로 바꿔볼 관계의 습관.\n현실적인 관계 패턴\n\n강점·긴장·반복 장면과 회복의 단서\n\n유형에 맞는 처방\n\n관계 조언 · 갈등 조율\n함께 세워볼 성장 목표\n\n연애·결혼 심화\n\n해당 유형을 선택했을 때\n추가로 읽는 관계 이야기",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-compatibility/06-reading-the-next-step-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-plain-language-for-saju",
+      "title": "어려운 사주 용어를, 우리의 생활 언어로.",
+      "alt": "어려운 사주 용어를, 우리의 생활 언어로.",
+      "src": "/feature-details/crafted/saju-compatibility/07-plain-language-for-saju.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "어려운 사주 용어를,\n우리의 생활 언어로.\n조후 · 온도와 습도의 균형\n\n관계의 분위기를 읽는 전통적 기준\n\n일간 오행 · 나를 나타내는 기운\n\n서로의 방식이 돕거나 자극하는 지점\n\n십성 · 관계 속 역할의 패턴\n\n기대하는 것과 반응하는 방식\n\n한 가지 기운으로 성격을 단정하지 않고,\n실제 두 사람의 경험과 함께 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-compatibility/07-plain-language-for-saju-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-fictional-an-agreement",
+      "title": "같은 갈등을 반복한다면, 약속의 형태를 바꿔봐요.",
+      "alt": "같은 갈등을 반복한다면, 약속의 형태를 바꿔봐요.",
+      "src": "/feature-details/crafted/saju-compatibility/08-fictional-an-agreement.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 갈등을 반복한다면,\n약속의 형태를 바꿔봐요.\n\n가상 편집 예시 · 실제 상담 결과 아님\n\n“한 사람은 바로 결론을 원하고,\n다른 사람은 생각할 시간이 필요해요.\n설득을 더 세게 하기보다\n다시 이야기할 시간을 먼저 정해보세요.\n\n대화를 미루는 것이 아니라,\n서로 감당할 수 있는 속도로\n이어가는 약속이 될 수 있어요.”",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-compatibility/08-fictional-an-agreement-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-past-life-as-a-story",
+      "title": "전생 인연은, 관계를 비춰보는 이야기로.",
+      "alt": "전생 인연은, 관계를 비춰보는 이야기로.",
+      "src": "/feature-details/crafted/saju-compatibility/09-past-life-as-a-story.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "전생 인연은,\n관계를 비춰보는 이야기로.\n\n서로에게 향하는 인연의 상징과\n관계 이야기, 처방을 읽고\n세 가지 성찰 질문을 만나보세요.\n\n전생의 사실 여부를 확인하는 분석이 아니에요.\n익숙한 감정과 반복을 돌아보는\n재미·성찰 콘텐츠로 읽어주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-compatibility/09-past-life-as-a-story-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-begin-a-better-conversation",
+      "title": "잘 맞는지 묻는 데서, 잘 지내는 방법까지.",
+      "alt": "잘 맞는지 묻는 데서, 잘 지내는 방법까지.",
+      "src": "/feature-details/crafted/saju-compatibility/10-begin-a-better-conversation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "잘 맞는지 묻는 데서,\n잘 지내는 방법까지.\n\n입력과 관계 유형을 확인한 뒤\n기존 상담 시작 버튼으로 이어가세요.\n\n운명의 찻집·연애 총서·다른 궁합은 별도예요.\n현재 화면의 이용권·월정석·단건 결제\n조건을 확인해 주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/saju-compatibility/10-begin-a-better-conversation-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

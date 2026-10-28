@@ -1,0 +1,98 @@
+{
+  "id": "rune-single",
+  "featureKey": "stonehenge-runes-single",
+  "title": "스톤헨지 1-룬 리딩",
+  "notice": "퓨사크24룬과 공백룬위르드의25룬 구성에서 하나를 뽑습니다. 대칭룬·위르드는 역방향이 없습니다. 실제결과는 이름·방향·핵심축과 뜻,관계·일·주의의 상세,행동조언·기억할문장,중심메시지와실천포인트입니다. 준비된해석을 뽑힌룬과방향에맞춰조합하며 AI새답변이 아닙니다. 결과기반복사용AI질문문은 현재별도결제없이로컬생성하지만 외부AI답변·이용료는포함하지않습니다. 결과는페이지상태에있으며 새로고침·이탈후보관을보장하지않습니다. 공유는페이지링크입니다. 3/5/12룬은별도선택이며 새뽑기조건을확인합니다. 예시는가상편집으로 실제개인결과·후기가아니고 이미지는분위기연출입니다. 미래·성과·상대마음을확정하지않습니다. 현재이용권·월정석·단건결제조건은결제창에서확인합니다.",
+  "panels": [
+    {
+      "id": "01-one-stone-one-point-of-attention",
+      "title": "오늘의 고민 앞에, 룬 하나를 놓아보세요.",
+      "alt": "오늘의 고민 앞에, 룬 하나를 놓아보세요.",
+      "src": "/feature-details/crafted/rune-single/01-one-stone-one-point-of-attention.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "오늘의 고민 앞에,\n룬 하나를 놓아보세요.\n\n여러 답을 한꺼번에 찾기보다,\n지금 돌아볼 한 가지를 골라요.\n뽑힌 룬의 중심 메시지와\n생활에서 해볼 행동을 읽어보세요.\n\n스톤헨지 1-룬 리딩\n이미지는 의식의 분위기 연출이에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-single/01-one-stone-one-point-of-attention-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-open-the-stone-and-read-the-details",
+      "title": "돌 하나 안에, 여러 방향의 해석이 있어요.",
+      "alt": "돌 하나 안에, 여러 방향의 해석이 있어요.",
+      "src": "/feature-details/crafted/rune-single/02-open-the-stone-and-read-the-details.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "돌 하나 안에,\n여러 방향의 해석이 있어요.\n핵심 축과 중심 메시지\n\n룬의 이름·방향·의미를 읽어요.\n\n관계와 일의 관점\n\n같은 상징이 관계와 업무에서\n어떻게 쓰이는지 살펴요.\n\n주의점과 실천\n\n행동 조언과 기억할 문장을\n상세 창에서 확인해요.\n\n뽑힌 돌을 누르면 자세한 해석이 열려요.\nAI 새 답변이 아닌 준비된 해석을 조합해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-single/02-open-the-stone-and-read-the-details-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-reversed-does-not-mean-doomed",
+      "title": "역방향도, 돌아볼 조건을 읽는 상징.",
+      "alt": "역방향도, 돌아볼 조건을 알려주는 상징.",
+      "src": "/feature-details/crafted/rune-single/03-reversed-does-not-mean-doomed.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "역방향도,\n돌아볼 조건을 읽는 상징.\n정방향과 역방향\n\n같은 룬을 펼쳐 쓰는 관점과\n안으로 점검하는 관점으로 읽어요.\n\n방향이 없는 룬도 있어요\n\n대칭 룬과 공백 룬은\n역방향을 따로 만들지 않아요.\n\n공백 룬 위르드\n\n정해지지 않은 여지의 상징으로,\n답을 서둘러 못 박지 않아요.\n\n퓨사크 24룬에 공백 룬을 더한\n서비스의 25룬 구성에서 하나를 뽑아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-single/03-reversed-does-not-mean-doomed-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-a-symbol-becomes-a-question",
+      "title": "‘교환’의 상징으로, 주고받는 균형을 살펴요.",
+      "alt": "‘교환’이라는 상징을 만났다면.",
+      "src": "/feature-details/crafted/rune-single/04-a-symbol-becomes-a-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "‘교환’의 상징으로,\n주고받는 균형을 살펴요.\n\n게보 룬 적용 예시 · 가상 편집\n\n내가 주는 것과 받는 것의\n균형은 어떤가요?\n관계를 위해 당연하게 맡아온\n역할을 다시 말해볼 수 있을까요?\n\n상징 하나를 내 상황에 비춰보고,\n오늘 확인할 질문 하나를 남겨보세요.\n\n실제 개인 결과나 고객 후기가 아니에요.\n상대의 속마음을 확정하는 답도 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-single/04-a-symbol-becomes-a-question-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-a-prompt-made-from-the-draw",
+      "title": "더 생각해보고 싶다면, 질문문으로 옮겨요.",
+      "alt": "더 생각해보고 싶다면, 질문문으로 옮겨요.",
+      "src": "/feature-details/crafted/rune-single/05-a-prompt-made-from-the-draw.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "더 생각해보고 싶다면,\n질문문으로 옮겨요.\n\n결과 화면에서 뽑힌 룬과 해석을\n정리한 AI 질문문을 만들고,\n복사해 따로 활용할 수 있어요.\n\n질문문을 만드는 기능과\nAI의 답변을 받는 일은 달라요.\n이 화면에서 추가 AI 상담문을\n생성해 주는 상품은 아니에요.\n\n현재 질문문 생성에는 별도 결제창이 없어요.\n외부 AI의 이용 조건과 비용은 포함하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-single/05-a-prompt-made-from-the-draw-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-check-the-reading-you-choose",
+      "title": "한 개의 룬으로, 지금의 중심을 짚어요.",
+      "alt": "한 개의 룬으로, 지금의 중심을 짚어요.",
+      "src": "/feature-details/crafted/rune-single/06-check-the-reading-you-choose.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 개의 룬으로,\n지금의 중심을 짚어요.\n이 리딩에 포함되는 것\n\n룬 하나·방향별 상세·중심 메시지\n실천과 주의점·복사용 질문문\n\n다른 배치는 별도\n\n3룬의 시간 흐름, 5룬의 심층 구성,\n12룬의 월별 흐름은 따로 선택해요.\n\n읽을 때 확인해 주세요\n\n페이지를 나가면 결과가 유지되지 않아요.\n공유 기능은 이 페이지 링크를 전달해요.\n\n새 뽑기의 이용 조건을 확인해 주세요.\n미래나 성과를 보장하는 해석이 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/rune-single/06-check-the-reading-you-choose-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

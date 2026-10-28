@@ -6,12 +6,34 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { tmpdir, freemem } from 'node:os';
+import { buildSajuSectionHtml } from '../worker/lib/saju-section/report.js';
+import { HONEY_UNLOCK_PRODUCTS } from '../worker/lib/honey-unlock-catalog.js';
 
 const root = process.cwd();
 const server = createServer(async (req, res) => {
   const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
   // This suite tests a member's paid summary; guest/result access is covered by verify-saju-result-login.mjs.
   if (pathname === '/api/auth/me') { res.writeHead(200, {'content-type':'application/json'}); res.end(JSON.stringify({ok:true,authenticated:true,user:{id:'summary-race-user',name:'회귀검증'}})); return; }
+  if (pathname === '/api/saju/section') {
+    // 종합·대운 본문은 서버가 만든다. 해금 판정은 워커 테스트가 맡고, 여기서는 같은 렌더러로 배달 흐름만 본다.
+    let raw = '';
+    for await (const chunk of req) raw += chunk;
+    let status = 200, payload;
+    try {
+      const body = JSON.parse(raw || '{}');
+      const birth = body.birth || {};
+      const result = buildSajuSectionHtml({
+        featureKey: body.featureKey,
+        birth: {calendarDate: birth.date, calType: birth.calType, timeKnown: birth.timeKnown !== false, hour: birth.hour, minute: birth.minute},
+        gender: body.gender, name: body.name, mode: body.mode, lang: body.lang, place: body.place, daewun: body.daewun,
+      });
+      payload = {ok:true, unlocked:true, featureKey:body.featureKey, ...result};
+    } catch (error) { status = 400; payload = {ok:false, message:error.message}; }
+    sectionRequests.push({ case: activeCase, featureKey: payload.featureKey, status, message: payload.message });
+    res.writeHead(status, {'content-type':'application/json'}); res.end(JSON.stringify(payload)); return;
+  }
+  if (pathname === '/api/honey/catalog') { res.writeHead(200, {'content-type':'application/json'}); res.end(JSON.stringify({ok:true,products:HONEY_UNLOCK_PRODUCTS,otherUses:[]})); return; }
+  if (pathname === '/api/honey/attendance') { res.writeHead(200, {'content-type':'application/json'}); res.end(JSON.stringify({ok:true,balance:0,attended:false})); return; }
   if (pathname.startsWith('/api/')) { res.writeHead(200, {'content-type':'application/json'}); res.end('{"ok":true,"unlocks":[],"profiles":[]}'); return; }
   const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
   if (!file.startsWith(root + '/') && !file.startsWith(root + '\\')) { res.writeHead(403); res.end(); return; }
@@ -29,6 +51,8 @@ const fingerprints = async () => Object.fromEntries(await Promise.all(inputs.map
 const before = await fingerprints();
 let activePage;
 let activeCase = '';
+// 실패 진단용: 검증 서버가 받은 본문 요청.
+const sectionRequests = [];
 const browserErrors = [];
 
 async function settleScroll(page) {
@@ -105,7 +129,25 @@ try {
   await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"]').click();
   await page.locator('#nameInput').fill('회귀검증');
   await page.locator('#birthDate').fill('1990-05-15');
-  if (alreadyUnlocked) await page.evaluate(() => { window.unlockedFeatureMap.section_summary = true; });
+  if (alreadyUnlocked) await page.evaluate(() => {
+    // 출생 기반 해금은 저장된 프로필(profileId)이 있어야만 열린다 — 프로필 없이 legacy map 에 쓰면 무시된다.
+    const birth = {year: 1990, month: 5, day: 15, hour: 12, minute: 0};
+    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race', birth };
+    window.__cdActiveBirthProfile = { profileId: 'profile-summary-race', birth };
+    window._cdFinalizeUnlockState('section_summary', {
+      data: {
+        featureKey: 'section_summary',
+        profileId: 'profile-summary-race',
+        requestId: 'summary-previously-unlocked',
+        accessGranted: true,
+        accessGrant: {
+          featureKey: 'section_summary',
+          profileId: 'profile-summary-race',
+          evidenceId: 'summary-previously-unlocked'
+        }
+      }
+    });
+  });
   await page.locator('#run-btn').click();
   await page.waitForFunction(() => window.__cdLastSummaryArgs, {timeout:30000});
   if (!alreadyUnlocked) {
@@ -142,21 +184,47 @@ try {
   await page.evaluate(() => {
     // Simulate a restored profile with current engine data but no transient calculate arguments.
     delete window.__cdLastSummaryArgs;
-    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race' };
+    // 저장 카드는 출생 정보를 가진다 — 결과 화면이 활성 프로필을 입력값으로 바꿔도 같은 출생으로 대조된다.
+    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race', birth: {year: 1990, month: 5, day: 15, hour: 12, minute: 0} };
     window.__cdActiveBirthProfile = { profileId: 'profile-summary-race', birth: {year: 1990, month: 5, day: 15, hour: 12, minute: 0} };
-    window.unlockedFeatureMap.section_summary = true;
+    // section_summary 는 출생 기반 키다 — 프로필이 바뀌면 legacy map 플래그는 지워지므로
+    // 현재 profileId 에 묶인 검증 grant 로 복원한다(서버가 그 프로필에 대해 준 증거와 같은 경로).
+    window._cdFinalizeUnlockState('section_summary', {
+      data: {
+        featureKey: 'section_summary',
+        profileId: 'profile-summary-race',
+        requestId: 'summary-restored-entitlement',
+        accessGranted: true,
+        accessGrant: {
+          featureKey: 'section_summary',
+          profileId: 'profile-summary-race',
+          evidenceId: 'summary-restored-entitlement'
+        }
+      }
+    });
   });
   // A restored entitlement may open the report before a redundant button tap.
-  // Emit the same notification as access restoration, then require a readable report.
+  // Restored birth-scoped access arrives as a verified grant for the current profileId, not
+  // through the shared legacy map. Emit the access-restoration notification, then require a readable report.
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('cd:unlocks-changed',{detail:{source:'mock-restored-entitlement'}})));
+  // 본문은 서버 응답으로 늦게 온다 — 배달된 본문이나 보이는 해금 버튼 중 하나가 나올 때까지 기다린다.
+  await page.waitForFunction(() => {
+    if (document.querySelector('#summaryArea .saju-summary-report')) return true;
+    const button = document.querySelector('#summaryGate button[data-unlock-key]');
+    return !!button && !!(button.offsetWidth || button.offsetHeight || button.getClientRects().length);
+  }, undefined, {timeout:15000});
   if (!await page.locator('#summaryArea .saju-summary-report').count()) {
-    await page.locator('#summaryGate button[data-unlock-key]').click();
+    // 해금 알림이 버튼을 숨긴 뒤에 본문이 오면 누를 버튼이 없다 — 그때는 아래에서 본문을 기다린다.
+    const gateButton = page.locator('#summaryGate button[data-unlock-key]');
+    await gateButton.click({timeout:5000}).catch(async (error) => {
+      if (await gateButton.isVisible()) throw error;
+    });
   }
   }
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
   await page.evaluate((alreadyUnlocked) => {
     if (alreadyUnlocked) return;
-    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race' };
+    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race', birth: {year: 1990, month: 5, day: 15, hour: 12, minute: 0} };
     try {
       window._cdFinalizeUnlockState('section_summary', {
         data: {
@@ -220,6 +288,22 @@ try {
   }
   // Same local mock boundary: verify the actual paid daeun renderer and recovery button.
   assert.equal(await page.locator('#dwGrid .dw-item').count(), 0, 'locked daeun must not contain paid rows');
+  if (!alreadyUnlocked && shell.label === 'mobile') {
+    // Purchase offers belong to the locked state; confirmed access hides them.
+    const initialMode = await page.locator('#sajuReadingHeader [data-saju-mode][aria-pressed="true"]').getAttribute('data-saju-mode');
+    const shots = resolve(tmpdir(), 'cd-saju-moonlight');
+    await mkdir(shots, {recursive:true});
+    for (const width of [360,390,430,1280]) {
+      await page.setViewportSize({width,height:900});
+      for (const mode of ['pig','neo']) {
+        await page.evaluate(mode => document.querySelector('#sajuReadingHeader [data-saju-mode="'+mode+'"]').click(), mode);
+        await page.locator('[data-saju-offer="section_daewun"]').scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => {const img=document.querySelector('[data-saju-offer="section_daewun"] img');return img?.complete && img.naturalWidth>0;});
+        await page.screenshot({path:resolve(shots,'offer-'+mode+'-'+width+'.png')});
+      }
+    }
+    await page.evaluate(mode => document.querySelector('#sajuReadingHeader [data-saju-mode="'+mode+'"]').click(), initialMode);
+  }
   const daeunGrant = await page.evaluate(() => {
     const profileId = String(window.__cdCurrentDestinyProfile?.profileId || window.__cdActiveBirthProfile?.profileId || 'profile-summary-race');
     window.__cdCurrentDestinyProfile = {...window.__cdCurrentDestinyProfile, profileId};
@@ -255,6 +339,8 @@ try {
     await daewunButton.click();
   }
   await page.waitForFunction(() => document.querySelectorAll('#dwGrid .dw-item').length > 0, undefined, {timeout:10000});
+  await page.locator('#dwGrid .dw-item').first().scrollIntoViewIfNeeded();
+  await settleScroll(page);
   await page.locator('#dwGrid .dw-item').first().click();
   await page.locator('#dwDetail .saju-cycle-guide').waitFor({state:'visible'});
   assert.equal(await page.locator('#yearList .year-row').count(), 10, 'paid cycle supplies all ten annual readings');
@@ -267,7 +353,11 @@ try {
   await page.locator('#dwGrid .dw-item').nth(1).click();
   await page.waitForFunction(() => Number(document.querySelector('.saju-cycle-guide')?.dataset.cycleAge) === Number(window.G_DAEWUN[1].age));
   assert.notEqual(await page.locator('.saju-cycle-guide').innerText(), firstCycle, 'another cycle has its own consultation');
-  assert.equal(await page.locator('.saju-cycle-guide dt').count(), 12);
+  assert.equal(await page.locator('.saju-cycle-guide dt').count(), 14);
+  assert.deepEqual((await page.locator('.saju-cycle-guide dt').allTextContents()).slice(-2), [
+    '13. 선택지 비교 — 넓힐 것과 남겨둘 것',
+    '14. 건강과 회복 — 감당할 수 있는 생활 리듬',
+  ]);
   assert.match(await page.locator('.saju-cycle-guide').innerText(), /시작할 조건과 신중히 할 선택/);
   assert.match(await page.locator('.saju-cycle-guide').innerText(), /일간.*월지/);
   for (const width of [360,390,430,1280]) {
@@ -282,12 +372,11 @@ try {
         // Poll the current DOM node; missing or broken assets still time out.
         await page.waitForFunction(() => {const img=document.querySelector('#sajuReadingHeader img');return img?.complete && img.naturalWidth>0;});
         await page.screenshot({path:resolve(shots,'header-'+mode+'-'+width+'.png')});
-        await page.locator('[data-saju-offer="section_daewun"]').scrollIntoViewIfNeeded();
-        await page.waitForFunction(() => {const img=document.querySelector('[data-saju-offer="section_daewun"] img');return img?.complete && img.naturalWidth>0;});
-        await page.screenshot({path:resolve(shots,'offer-'+mode+'-'+width+'.png')});
       }
+      assert.equal(await page.locator('[data-saju-offer="section_daewun"]').isVisible(),false,'confirmed paid access hides the purchase offer');
       assert.equal(await page.locator('#sajuReadingHeader .saju-reading-compare').count(),0);
-      assert.match(await page.locator('.saju-cycle-guide > p').first().textContent(), mode === 'neo' ? /핵심은/ : /살펴볼게요/);
+      // 모드를 바꾸면 펼친 대운을 서버에서 새 말투로 다시 받는다 — 도착할 때까지 기다린다.
+      await page.waitForFunction(word => (document.querySelector('.saju-cycle-guide > p')?.textContent || '').includes(word), mode === 'neo' ? '핵심은' : '살펴볼게요');
       assert.equal(await page.locator('#dwGrid .dw-item').count() > 0,true,'persona switch preserves paid access');
     }
     const firstDwItem = page.locator('#dwGrid .dw-item').first();
@@ -307,6 +396,22 @@ try {
     console.error('SUMMARY DOM:', await activePage.locator('#summaryCard').evaluate(el => ({ classes: el.className, rect: el.getBoundingClientRect().toJSON(), viewport: innerHeight, scrollY, opacity: getComputedStyle(el).opacity })).catch(() => null));
     await activePage.screenshot({ path: resolve(directory, 'failure.png') }).catch(() => {});
   }
-  console.error('SUMMARY DIAGNOSTICS:', JSON.stringify({ case: activeCase, directory, freeMemory: freemem(), before, after: await fingerprints(), browserErrors }));
+  // 게이트·해금·본문 칸 상태 — CI 에서만 나는 실패를 로그만으로 읽을 수 있게 남긴다.
+  const state = activePage && !activePage.isClosed() ? await activePage.evaluate(() => {
+    const gate = document.querySelector('#summaryGate');
+    const button = gate && gate.querySelector('button[data-unlock-key]');
+    const area = document.querySelector('#summaryArea');
+    const style = button && getComputedStyle(button);
+    return {
+      gateClass: gate && gate.className,
+      button: button && { rect: button.getBoundingClientRect().toJSON(), visibility: style.visibility, display: style.display },
+      area: area && area.innerHTML.slice(0, 300),
+      unlocked: typeof window.isTileKeyUnlocked === 'function' ? window.isTileKeyUnlocked('section_summary') : null,
+      gateUnlocked: typeof window._cdSajuGateUnlocked === 'function' ? window._cdSajuGateUnlocked('section_summary') : null,
+      profileId: typeof window.cdBirthScopeCurrentProfileId === 'function' ? window.cdBirthScopeCurrentProfileId() : null,
+      hasInput: !!window.__cdSajuSectionInput,
+    };
+  }).catch((error) => String(error)) : null;
+  console.error('SUMMARY DIAGNOSTICS:', JSON.stringify({ case: activeCase, directory, freeMemory: freemem(), state, sectionRequests, before, after: await fingerprints(), browserErrors }));
   throw error;
 } finally { await browser.close(); server.close(); }

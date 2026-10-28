@@ -1,4 +1,5 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -175,7 +176,7 @@ export default function ZiweiAnimalDestinyClient() {
   }
 
   return (
-    <section className={`${styles.surface} ${styles.animalSurface} font-body relative min-h-[100dvh] overflow-hidden px-4 py-6 sm:px-6 lg:px-8`}>
+    <section data-moonlit-form="" className={`${styles.surface} ${styles.animalSurface} font-body relative min-h-[100dvh] overflow-hidden px-4 py-6 sm:px-6 lg:px-8`}>
       <div className="relative mx-auto flex min-h-[100dvh] max-w-3xl items-center py-[calc(1rem+env(safe-area-inset-top))]">
         <div className="relative z-10 w-full rounded-xl border border-[var(--zw-rule)] bg-[var(--zw-surface)] p-5 sm:p-7 lg:p-8">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--zw-gold)]">{copy.heroEyebrow}</p>
@@ -188,7 +189,8 @@ export default function ZiweiAnimalDestinyClient() {
             </p>
           ) : null}
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <SavedBirthProfilePicker onSelect={next=>{touchedRef.current=true;setError("");setForm(applySeed({...EMPTY_FORM},next));}} />
+          <div className="mt-6 grid gap-4 sm:grid-cols-2" data-birth-fields="">
             <label className="block space-y-2">
               <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldGenderLabel}</span>
               <select

@@ -4,26 +4,15 @@
  */
 
 
-/* ═══ Background: Deep Cosmic Nebula ═══ */
+/* ═══ Background: 새벽 정원 (Dawn Garden) ═══
+   최종 색은 파일 끝 "새벽 정원 최종 팔레트" 블록이 정한다. 여기는 그 블록이 없을 때의 기본값. */
 .df-studio-overlay {
-  background:
-    radial-gradient(ellipse 120% 80% at 20% 10%, rgba(15, 23, 52, 0.98) 0%, transparent 50%),
-    radial-gradient(ellipse 100% 100% at 80% 20%, rgba(30, 58, 95, 0.85) 0%, transparent 45%),
-    radial-gradient(ellipse 90% 70% at 50% 90%, rgba(59, 48, 98, 0.9) 0%, transparent 50%),
-    radial-gradient(ellipse 80% 60% at 70% 70%, rgba(16, 94, 86, 0.6) 0%, transparent 45%),
-    linear-gradient(165deg,
-      #0a0e1a 0%,
-      #0f1729 18%,
-      #1e293b 35%,
-      #0f1729 55%,
-      #1e1b4b 75%,
-      #0f1729 100%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  animation: dfCosmicNebulaShift 18s ease-in-out infinite;
+  background: linear-gradient(170deg, #FBF6EE 0%, #F7EFF2 52%, #F3E9F7 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-/* 별 가루·성운 패턴 */
+/* 아침 꽃가루 */
 .df-studio-overlay::before {
   content: "";
   position: fixed;
@@ -31,52 +20,32 @@
   pointer-events: none;
   z-index: 0;
   background-image:
-    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(1.5px 1.5px at 28% 42%, rgba(200, 220, 255, 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 45% 25%, rgba(255, 240, 220, 0.45), transparent),
-    radial-gradient(1.5px 1.5px at 62% 68%, rgba(220, 200, 255, 0.5), transparent),
-    radial-gradient(1.5px 1.5px at 78% 35%, rgba(180, 255, 240, 0.4), transparent),
-    radial-gradient(1.5px 1.5px at 88% 72%, rgba(255, 230, 200, 0.45), transparent);
-  background-size: 200px 200px, 180px 220px, 220px 180px, 190px 210px, 210px 190px, 200px 200px;
-  opacity: 0.7;
-  animation: dfStarDustTwinkle 8s ease-in-out infinite;
+    radial-gradient(2px 2px at 12% 18%, rgba(232, 201, 138, 0.55), transparent),
+    radial-gradient(2px 2px at 46% 26%, rgba(242, 181, 200, 0.5), transparent),
+    radial-gradient(2px 2px at 78% 36%, rgba(169, 200, 240, 0.5), transparent),
+    radial-gradient(2px 2px at 62% 70%, rgba(201, 184, 236, 0.5), transparent);
+  background-size: 200px 200px, 180px 220px, 220px 180px, 190px 210px;
+  opacity: 0.6;
 }
 
-@keyframes dfCosmicNebulaShift {
-  0%, 100% { filter: hue-rotate(0deg) brightness(1); }
-  50% { filter: hue-rotate(5deg) brightness(1.02); }
-}
-
-@keyframes dfStarDustTwinkle {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 0.85; }
-}
-
-/* ═══ Container: Glassmorphism ═══ */
+/* ═══ Container ═══ */
 .df-studio-sheet {
-  background: linear-gradient(155deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.06) 45%,
-    rgba(255, 255, 255, 0.08) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow:
-    0 25px 60px rgba(0, 0, 0, 0.45),
-    0 0 80px rgba(99, 102, 241, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.72), rgba(255, 252, 247, 0.6));
+  border: 1px solid #E8C98A;
+  box-shadow: 0 24px 56px rgba(120, 92, 140, 0.16), inset 0 1px 0 #fff;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .df-studio-sheet::before {
   background:
-    radial-gradient(ellipse at 15% 25%, rgba(99, 102, 241, 0.15), transparent 55%),
-    radial-gradient(ellipse at 85% 75%, rgba(16, 185, 129, 0.12), transparent 55%),
-    radial-gradient(ellipse at 50% 50%, rgba(168, 85, 247, 0.08), transparent 65%);
+    radial-gradient(ellipse at 15% 20%, rgba(244, 184, 160, 0.18), transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(201, 184, 236, 0.18), transparent 58%);
   filter: blur(20px);
 }
 
 .df-studio-sheet::after {
-  background: radial-gradient(ellipse at 50% 100%, rgba(99, 102, 241, 0.1), transparent 60%);
+  background: radial-gradient(ellipse at 50% 100%, rgba(232, 201, 138, 0.14), transparent 62%);
 }
 
 /* ═══ Close (X) Icon ═══ */
@@ -617,135 +586,684 @@
     radial-gradient(circle at 74% 34%, rgba(99, 102, 241, 0.2), transparent 60%);
 }
 
-/* Final moonlit Ye-hwa palette: keep every atelier surface in the original dark luxury world. */
+/* 운명의 꽃 아틀리에 — 새벽 정원(Dawn Garden) 최종 팔레트.
+   같은 블록이 destiny-flower-cosmic.css·fortune-ui.css 끝에 있고, fortune-ui-home.css·index.html 에는
+   초기 페인트용 부분집합이 있다. 지연 시트가 어느 순서로 와도 같은 톤이 되도록 값을 맞춰 고친다.
+   본문 #6B5A78 은 배경 #FBF6EE·#F3E9F7·흰 카드 위에서 모두 4.5:1 이상(AA)이다.
+   파스텔 강조색은 글자색으로 쓰지 않는다(대비 미달) — 테두리·띠·칩 배경에만 쓴다. */
 #destinyFlowerStudioOverlay {
+  --dfd-bg-a: #FBF6EE;
+  --dfd-bg-b: #F3E9F7;
+  --dfd-card: rgba(255, 255, 255, 0.78);
+  --dfd-card-strong: rgba(255, 255, 255, 0.92);
+  --dfd-gold: #E8C98A;
+  --dfd-gold-ink: #8A6A2F;
+  --dfd-ink: #3B2A4A;
+  --dfd-text: #6B5A78;
+  --dfd-shadow: 0 10px 26px rgba(120, 92, 140, 0.12);
+  --dfd-saju: #F4B8A0;
+  --dfd-astrology: #A9C8F0;
+  --dfd-jamidusu: #F2B5C8;
+  --dfd-sukuyo: #C9B8EC;
   background:
-    radial-gradient(ellipse 120% 80% at 18% 8%, rgba(201, 164, 106, 0.14), transparent 52%),
-    radial-gradient(ellipse 100% 90% at 86% 18%, rgba(91, 72, 132, 0.18), transparent 48%),
-    radial-gradient(ellipse 90% 70% at 50% 96%, rgba(169, 123, 62, 0.1), transparent 52%),
-    linear-gradient(165deg, #070611 0%, #0d0a1a 42%, #151027 74%, #090813 100%) !important;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+    radial-gradient(ellipse 90% 60% at 16% 6%, rgba(244, 184, 160, 0.22), transparent 55%),
+    radial-gradient(ellipse 80% 70% at 88% 14%, rgba(169, 200, 240, 0.2), transparent 50%),
+    radial-gradient(ellipse 90% 60% at 50% 100%, rgba(201, 184, 236, 0.22), transparent 55%),
+    linear-gradient(170deg, #FBF6EE 0%, #F7EFF2 52%, #F3E9F7 100%) !important;
+  color: var(--dfd-ink);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: none;
 }
 #destinyFlowerStudioOverlay::before {
   background-image:
-    radial-gradient(1.5px 1.5px at 12% 18%, rgba(253, 246, 240, 0.34), transparent),
-    radial-gradient(1.5px 1.5px at 28% 42%, rgba(232, 213, 163, 0.24), transparent),
-    radial-gradient(1.5px 1.5px at 45% 25%, rgba(253, 246, 240, 0.22), transparent),
-    radial-gradient(1.5px 1.5px at 62% 68%, rgba(196, 181, 253, 0.2), transparent),
-    radial-gradient(1.5px 1.5px at 88% 72%, rgba(232, 213, 163, 0.24), transparent);
-  opacity: 0.42;
+    radial-gradient(2px 2px at 12% 18%, rgba(232, 201, 138, 0.55), transparent),
+    radial-gradient(2px 2px at 46% 26%, rgba(242, 181, 200, 0.5), transparent),
+    radial-gradient(2px 2px at 78% 36%, rgba(169, 200, 240, 0.5), transparent),
+    radial-gradient(2px 2px at 62% 70%, rgba(201, 184, 236, 0.5), transparent);
+  opacity: 0.6;
 }
 #destinyFlowerStudioOverlay .df-studio-sheet {
-  border-color: rgba(201, 164, 106, 0.34);
-  background: linear-gradient(160deg, rgba(22, 17, 38, 0.98), rgba(9, 8, 19, 0.99)) !important;
-  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(201, 164, 106, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-color: var(--dfd-gold) !important;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.72), rgba(255, 252, 247, 0.6)) !important;
+  box-shadow: 0 24px 56px rgba(120, 92, 140, 0.16), inset 0 1px 0 #fff;
 }
 #destinyFlowerStudioOverlay .df-studio-sheet::before {
   background:
-    radial-gradient(ellipse at 15% 25%, rgba(201, 164, 106, 0.1), transparent 55%),
-    radial-gradient(ellipse at 85% 75%, rgba(91, 72, 132, 0.14), transparent 58%),
-    radial-gradient(ellipse at 50% 50%, rgba(196, 181, 253, 0.05), transparent 68%);
+    radial-gradient(ellipse at 15% 20%, rgba(244, 184, 160, 0.18), transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(201, 184, 236, 0.18), transparent 58%);
 }
-#destinyFlowerStudioOverlay .df-studio-sheet::after {
-  background: radial-gradient(ellipse at 50% 100%, rgba(201, 164, 106, 0.1), transparent 62%);
-}
+#destinyFlowerStudioOverlay .df-studio-sheet::after { background: radial-gradient(ellipse at 50% 100%, rgba(232, 201, 138, 0.14), transparent 62%); }
 #destinyFlowerStudioOverlay .df-studio-close {
-  background: rgba(27, 23, 52, 0.96);
-  border-color: rgba(201, 164, 106, 0.52);
-  color: #fdf6f0;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.42);
+  background: var(--dfd-card-strong);
+  border-color: var(--dfd-gold);
+  color: var(--dfd-ink);
+  box-shadow: var(--dfd-shadow);
 }
 #destinyFlowerStudioOverlay .df-studio-close:hover,
 #destinyFlowerStudioOverlay .df-studio-close:focus-visible {
-  background: rgba(45, 34, 64, 0.98);
-  border-color: var(--cd-yehwa-line-2);
-  box-shadow: 0 10px 24px rgba(201, 164, 106, 0.2), 0 0 0 3px rgba(201, 164, 106, 0.12);
+  background: #fff;
+  border-color: var(--dfd-gold-ink);
+  color: var(--dfd-ink);
+  box-shadow: 0 0 0 3px rgba(232, 201, 138, 0.4);
 }
 #destinyFlowerStudioOverlay .df-studio-title,
 #destinyFlowerStudioOverlay .df-studio-hero h2,
 #destinyFlowerStudioOverlay #dfStudioTitle {
-  color: #f8eddb !important;
+  color: var(--dfd-ink) !important;
   background: none;
-  -webkit-text-fill-color: #f8eddb;
-  text-shadow: 0 4px 18px rgba(201, 164, 106, 0.18);
+  -webkit-text-fill-color: var(--dfd-ink);
+  text-shadow: none;
   filter: none;
 }
-#destinyFlowerStudioOverlay .df-studio-kicker { color: rgba(232, 213, 163, 0.82); }
+#destinyFlowerStudioOverlay .df-studio-kicker { color: var(--dfd-gold-ink); }
 #destinyFlowerStudioOverlay .df-studio-source-desc,
-#destinyFlowerStudioOverlay .df-studio-narrative { color: rgba(239, 226, 215, 0.82) !important; }
-#destinyFlowerStudioOverlay .df-studio-hero::after { background: linear-gradient(90deg, transparent, rgba(201, 164, 106, 0.5), rgba(232, 213, 163, 0.24), transparent); }
+#destinyFlowerStudioOverlay .df-studio-narrative { color: var(--dfd-text) !important; text-shadow: none; }
+#destinyFlowerStudioOverlay .df-studio-hero::after { background: linear-gradient(90deg, transparent, var(--dfd-gold), transparent); }
 #destinyFlowerStudioOverlay .df-studio-source-tabs .df-source-tab {
-  background: linear-gradient(145deg, rgba(42, 30, 58, 0.94), rgba(16, 12, 29, 0.98)) !important;
-  border-color: rgba(201, 164, 106, 0.3) !important;
-  color: rgba(246, 235, 218, 0.9) !important;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  background: var(--dfd-card) !important;
+  border-color: rgba(232, 201, 138, 0.7) !important;
+  color: var(--dfd-text) !important;
+  box-shadow: 0 4px 12px rgba(120, 92, 140, 0.08);
 }
 #destinyFlowerStudioOverlay .df-studio-source-tabs .df-source-tab:hover,
 #destinyFlowerStudioOverlay .df-studio-source-tabs .df-source-tab:focus-visible,
 #destinyFlowerStudioOverlay .df-studio-source-tabs .df-source-tab.is-active {
-  background: linear-gradient(145deg, rgba(57, 42, 70, 0.98), rgba(23, 17, 39, 0.98)) !important;
-  border-color: var(--cd-yehwa-line-2) !important;
-  color: #fdf6f0 !important;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(201, 164, 106, 0.16);
+  background: var(--dfd-card-strong) !important;
+  border-color: var(--dfd-tab-accent, var(--dfd-gold)) !important;
+  color: var(--dfd-ink) !important;
+  box-shadow: inset 0 -3px 0 var(--dfd-tab-accent, var(--dfd-gold)), var(--dfd-shadow);
 }
-#destinyFlowerStudioOverlay .df-saju-badge {
-  background: rgba(255, 255, 255, 0.06) !important;
-  border-color: rgba(201, 164, 106, 0.28);
-  color: rgba(246, 235, 218, 0.9);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.24);
-}
+#destinyFlowerStudioOverlay [data-df-source-tab="saju"], #destinyFlowerStudioOverlay [data-df-quad="saju"] { --dfd-tab-accent: var(--dfd-saju); }
+#destinyFlowerStudioOverlay [data-df-source-tab="astrology"], #destinyFlowerStudioOverlay [data-df-quad="astrology"] { --dfd-tab-accent: var(--dfd-astrology); }
+#destinyFlowerStudioOverlay [data-df-source-tab="jamidusu"], #destinyFlowerStudioOverlay [data-df-quad="jamidusu"] { --dfd-tab-accent: var(--dfd-jamidusu); }
+#destinyFlowerStudioOverlay [data-df-source-tab="sukuyo"], #destinyFlowerStudioOverlay [data-df-quad="sukuyo"] { --dfd-tab-accent: var(--dfd-sukuyo); }
+/* 탭 하단 꽃잎 광채: .df-bloom-btn::before 의 top:50% 때문에 글자 가운데를 긋던 선을 아래로 되돌리고 소스 색으로. */
+#destinyFlowerStudioOverlay .df-studio-source-tabs .df-source-tab::before { top: auto; bottom: 2px; transform: translateX(-50%); background: radial-gradient(ellipse at center, color-mix(in srgb, var(--dfd-tab-accent, #E8C98A) 70%, transparent), transparent); }
+#destinyFlowerStudioOverlay .df-saju-badge,
 #destinyFlowerStudioOverlay .df-saju-badge.is-strength,
 #destinyFlowerStudioOverlay .df-saju-badge.is-yongshin,
-#destinyFlowerStudioOverlay .df-saju-badge.is-johu { background: rgba(255, 255, 255, 0.06) !important; }
-#destinyFlowerStudioOverlay .df-saju-badge b { color: rgba(232, 213, 163, 0.92); }
-#destinyFlowerStudioOverlay .df-saju-badge em { color: rgba(253, 246, 240, 0.82); }
+#destinyFlowerStudioOverlay .df-saju-badge.is-johu {
+  background: var(--dfd-card) !important;
+  border-color: rgba(232, 201, 138, 0.7);
+  color: var(--dfd-text);
+  box-shadow: none;
+}
+#destinyFlowerStudioOverlay .df-saju-badge b { color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-saju-badge em { color: var(--dfd-ink); }
 #destinyFlowerStudioOverlay .df-studio-main {
-  border-color: rgba(201, 164, 106, 0.28);
-  background: radial-gradient(circle at 14% 18%, rgba(91, 72, 132, 0.2), transparent 42%), radial-gradient(circle at 86% 14%, rgba(201, 164, 106, 0.08), transparent 42%), linear-gradient(145deg, rgba(29, 21, 47, 0.98), rgba(12, 9, 23, 0.98)) !important;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-color: var(--dfd-gold) !important;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.82), rgba(255, 250, 244, 0.74)) !important;
+  box-shadow: var(--dfd-shadow);
 }
-#destinyFlowerStudioOverlay .df-studio-main::before { display: none; }
-#destinyFlowerStudioOverlay .df-studio-aura { background: radial-gradient(circle at 22% 50%, rgba(201, 164, 106, 0.16), transparent 58%), radial-gradient(circle at 74% 34%, rgba(91, 72, 132, 0.2), transparent 60%); }
-#destinyFlowerStudioOverlay .df-studio-visual { border-color: rgba(201, 164, 106, 0.26); background: linear-gradient(150deg, rgba(31, 23, 50, 0.96), rgba(8, 7, 17, 0.98)); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.48); }
-#destinyFlowerStudioOverlay .df-studio-visual::after { background: radial-gradient(circle, rgba(201, 164, 106, 0.22), transparent 68%); }
+#destinyFlowerStudioOverlay .df-studio-main::before { display: none !important; }
+#destinyFlowerStudioOverlay .df-studio-aura { background: radial-gradient(circle at 22% 50%, rgba(244, 184, 160, 0.22), transparent 58%), radial-gradient(circle at 74% 34%, rgba(201, 184, 236, 0.24), transparent 60%) !important; }
+#destinyFlowerStudioOverlay .df-studio-visual {
+  border-color: rgba(232, 201, 138, 0.8) !important;
+  background: linear-gradient(160deg, #FFFDF8, #F7EEF6) !important;
+  box-shadow: var(--dfd-shadow);
+}
+#destinyFlowerStudioOverlay .df-studio-visual::after { background: radial-gradient(circle, rgba(232, 201, 138, 0.2), transparent 68%) !important; }
 #destinyFlowerStudioOverlay .df-studio-insight h3,
-#destinyFlowerStudioOverlay #dfStudioName { color: #f8eddb !important; text-shadow: 0 3px 14px rgba(0, 0, 0, 0.46); }
-#destinyFlowerStudioOverlay .df-studio-latin { color: rgba(232, 213, 163, 0.78) !important; }
-#destinyFlowerStudioOverlay .df-studio-symbolism { color: rgba(239, 226, 215, 0.84) !important; }
-#destinyFlowerStudioOverlay .df-studio-keywords { color: rgba(196, 181, 253, 0.72) !important; }
-#destinyFlowerStudioOverlay .df-panel {
-  border-color: rgba(201, 164, 106, 0.22) !important;
-  background: linear-gradient(145deg, rgba(35, 26, 54, 0.94), rgba(14, 11, 27, 0.98)) !important;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.34);
+#destinyFlowerStudioOverlay #dfStudioName { color: var(--dfd-ink) !important; text-shadow: none; }
+#destinyFlowerStudioOverlay .df-studio-latin { color: var(--dfd-gold-ink) !important; }
+#destinyFlowerStudioOverlay .df-studio-daymaster,
+#destinyFlowerStudioOverlay #dfStudioDayMasterBadge { color: var(--dfd-ink) !important; border-color: var(--dfd-gold); background: rgba(232, 201, 138, 0.2); }
+#destinyFlowerStudioOverlay .df-studio-symbolism { color: var(--dfd-text) !important; }
+#destinyFlowerStudioOverlay .df-studio-keywords { color: var(--dfd-text) !important; }
+#destinyFlowerStudioOverlay .df-studio-empty {
+  border-color: var(--dfd-gold);
+  background: radial-gradient(circle at 22% 14%, rgba(244, 184, 160, 0.2), transparent 44%), radial-gradient(circle at 84% 88%, rgba(169, 200, 240, 0.2), transparent 40%), var(--dfd-card-strong);
+  box-shadow: var(--dfd-shadow);
 }
-#destinyFlowerStudioOverlay .df-panel::after { background: radial-gradient(circle, rgba(201, 164, 106, 0.12), transparent 70%); }
-#destinyFlowerStudioOverlay .df-panel::before { background: linear-gradient(112deg, transparent 0%, rgba(232, 213, 163, 0.12) 42%, transparent 66%); }
-#destinyFlowerStudioOverlay .df-panel:hover { box-shadow: 0 16px 34px rgba(0, 0, 0, 0.48); }
-#destinyFlowerStudioOverlay .df-panel h4 { color: rgba(246, 235, 218, 0.94) !important; }
+#destinyFlowerStudioOverlay .df-studio-empty-message { color: var(--dfd-text) !important; text-shadow: none; }
+#destinyFlowerStudioOverlay .df-panel,
+#destinyFlowerStudioOverlay .df-studio-panels > .df-panel:nth-child(n),
+#destinyFlowerStudioOverlay .df-flower-letter {
+  border-color: rgba(232, 201, 138, 0.75) !important;
+  background: var(--dfd-card) !important;
+  color: var(--dfd-text) !important;
+  box-shadow: var(--dfd-shadow);
+}
+#destinyFlowerStudioOverlay .df-panel::after { background: radial-gradient(circle, rgba(232, 201, 138, 0.16), transparent 70%); }
+#destinyFlowerStudioOverlay .df-panel::before { background: linear-gradient(112deg, transparent 0%, rgba(255, 255, 255, 0.5) 42%, transparent 66%); }
+#destinyFlowerStudioOverlay .df-panel:hover { box-shadow: 0 14px 30px rgba(120, 92, 140, 0.16); }
+#destinyFlowerStudioOverlay .df-panel h4,
+#destinyFlowerStudioOverlay .df-studio-history-head h4,
+#destinyFlowerStudioOverlay .df-flower-letter summary { color: var(--dfd-ink) !important; }
 #destinyFlowerStudioOverlay .df-panel p,
-#destinyFlowerStudioOverlay .df-panel-list li { color: rgba(239, 226, 215, 0.8) !important; }
-#destinyFlowerStudioOverlay .df-panel--gardener,
-#destinyFlowerStudioOverlay .df-panel:has(#dfStudioDataSummary),
-#destinyFlowerStudioOverlay .df-panel:has(#dfStudioJournal),
-#destinyFlowerStudioOverlay .df-panel:has(#dfStudioRecipe),
-#destinyFlowerStudioOverlay .df-panel:has(#dfStudioFlowerLanguage),
-#destinyFlowerStudioOverlay .df-panel:has(#dfStudioSynergy),
-#destinyFlowerStudioOverlay .df-studio-panels > .df-panel:nth-child(4),
-#destinyFlowerStudioOverlay .df-studio-panels > .df-panel:nth-child(5),
-#destinyFlowerStudioOverlay .df-studio-panels > .df-panel:nth-child(6),
-#destinyFlowerStudioOverlay .df-studio-panels > .df-panel:nth-child(7),
-#destinyFlowerStudioOverlay .df-studio-panels > .df-panel:nth-child(8) { border-color: rgba(201, 164, 106, 0.24) !important; background: linear-gradient(145deg, rgba(39, 29, 57, 0.94), rgba(14, 11, 27, 0.98)) !important; }
+#destinyFlowerStudioOverlay .df-panel-list li,
+#destinyFlowerStudioOverlay .df-palette-row p,
+#destinyFlowerStudioOverlay .df-flower-letter p { color: var(--dfd-text) !important; }
+#destinyFlowerStudioOverlay .df-flower-letter { margin: 20px; padding: 18px; border: 1px solid; border-radius: 16px; }
+#destinyFlowerStudioOverlay .df-flower-letter details { border-top-color: rgba(232, 201, 138, 0.6); }
+#destinyFlowerStudioOverlay .df-flower-letter summary:focus-visible { outline-color: var(--dfd-gold-ink); }
 #destinyFlowerStudioOverlay .df-studio-history,
-#destinyFlowerStudioOverlay .df-history-item { background: rgba(255, 255, 255, 0.04); border-color: rgba(201, 164, 106, 0.2); }
+#destinyFlowerStudioOverlay .df-history-item { background: var(--dfd-card); border-color: rgba(232, 201, 138, 0.6); }
+#destinyFlowerStudioOverlay .df-history-item-name,
+#destinyFlowerStudioOverlay .df-history-item-keywords { color: var(--dfd-ink) !important; }
+#destinyFlowerStudioOverlay .df-history-item-time,
+#destinyFlowerStudioOverlay .df-studio-status { color: var(--dfd-text) !important; }
 #destinyFlowerStudioOverlay .df-studio-chip,
-#destinyFlowerStudioOverlay .df-history-btn { background: rgba(255, 255, 255, 0.06); border-color: rgba(201, 164, 106, 0.26); color: rgba(246, 235, 218, 0.9); }
-#destinyFlowerStudioOverlay .df-studio-promptbox { background: rgba(7, 6, 16, 0.5) !important; border-color: rgba(201, 164, 106, 0.22); }
+#destinyFlowerStudioOverlay .df-history-btn,
+#destinyFlowerStudioOverlay .df-studio-ai-cta { background: var(--dfd-card-strong); border-color: rgba(232, 201, 138, 0.8); color: var(--dfd-ink); box-shadow: none; }
+#destinyFlowerStudioOverlay .df-studio-chip:hover,
+#destinyFlowerStudioOverlay .df-studio-chip:focus-visible,
+#destinyFlowerStudioOverlay .df-history-btn:hover,
+#destinyFlowerStudioOverlay .df-studio-ai-cta:hover,
+#destinyFlowerStudioOverlay .df-studio-ai-cta:focus-visible { background: #fff; border-color: var(--dfd-gold-ink); color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-studio-chip--danger { color: #A33A3A; }
+#destinyFlowerStudioOverlay .df-studio-promptbox { background: rgba(255, 255, 255, 0.9) !important; border-color: rgba(232, 201, 138, 0.8); color: var(--dfd-ink) !important; }
 #destinyFlowerStudioOverlay .df-studio-prompt-label,
-#destinyFlowerStudioOverlay .df-studio-prompt-guide { color: rgba(239, 226, 215, 0.82) !important; }
+#destinyFlowerStudioOverlay .df-studio-prompt-guide { color: var(--dfd-text) !important; }
 #destinyFlowerStudioOverlay .df-studio-btn--primary,
-#destinyFlowerStudioOverlay .df-studio-link-btn.df-bloom-btn { background: linear-gradient(145deg, rgba(201, 164, 106, 0.28), rgba(169, 123, 62, 0.18)) !important; border-color: var(--cd-yehwa-line-2); color: #fdf6f0 !important; box-shadow: 0 12px 26px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
-#destinyFlowerStudioOverlay .df-studio-btn--secondary { background: rgba(255, 255, 255, 0.06) !important; border-color: rgba(201, 164, 106, 0.28); color: rgba(246, 235, 218, 0.9) !important; }
-#destinyFlowerStudioOverlay .df-flower-letter { margin: 20px; padding: 18px; border: 1px solid rgba(201, 164, 106, 0.24); border-radius: 16px; background: linear-gradient(145deg, rgba(32, 24, 49, 0.96), rgba(13, 10, 25, 0.98)); color: rgba(239, 226, 215, 0.86); }
-#destinyFlowerStudioOverlay .df-flower-letter details { border-top-color: rgba(201, 164, 106, 0.2); }
-#destinyFlowerStudioOverlay .df-flower-letter summary:focus-visible { outline-color: var(--cd-yehwa-line-2); }
+#destinyFlowerStudioOverlay .df-studio-link-btn.df-bloom-btn {
+  background: linear-gradient(145deg, #FBEFD3, var(--dfd-gold)) !important;
+  border-color: var(--dfd-gold-ink) !important;
+  color: var(--dfd-ink) !important;
+  text-shadow: none;
+  box-shadow: 0 8px 20px rgba(138, 106, 47, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+#destinyFlowerStudioOverlay .df-studio-btn--primary:hover,
+#destinyFlowerStudioOverlay .df-studio-btn--primary:focus-visible,
+#destinyFlowerStudioOverlay .df-studio-link-btn.df-bloom-btn:hover,
+#destinyFlowerStudioOverlay .df-studio-link-btn.df-bloom-btn:focus-visible { background: linear-gradient(145deg, #FDF5E2, #EDD49F) !important; color: var(--dfd-ink) !important; box-shadow: 0 0 0 3px rgba(232, 201, 138, 0.45), 0 10px 22px rgba(138, 106, 47, 0.2); }
+#destinyFlowerStudioOverlay .df-studio-btn--secondary { background: var(--dfd-card-strong) !important; border-color: var(--dfd-gold); color: var(--dfd-ink) !important; }
+#destinyFlowerStudioOverlay .df-studio-quad {
+  border-color: var(--dfd-gold);
+  background: radial-gradient(circle at 10% 4%, rgba(244, 184, 160, 0.2), transparent 30%), radial-gradient(circle at 92% 12%, rgba(201, 184, 236, 0.24), transparent 34%), rgba(255, 255, 255, 0.5);
+  box-shadow: var(--dfd-shadow);
+}
+#destinyFlowerStudioOverlay .df-studio-quad::before { background: var(--dfd-gold); opacity: 0.35; }
+#destinyFlowerStudioOverlay .df-studio-quad::after { background: #FFF4D6; box-shadow: 0 0 26px rgba(232, 201, 138, 0.6); }
+#destinyFlowerStudioOverlay .df-quad-card {
+  border-color: rgba(232, 201, 138, 0.75);
+  background: var(--dfd-card);
+  box-shadow: inset 0 3px 0 var(--dfd-tab-accent, var(--dfd-gold)), var(--dfd-shadow);
+}
+#destinyFlowerStudioOverlay .df-quad-card:hover,
+#destinyFlowerStudioOverlay .df-quad-card:focus-visible { border-color: var(--dfd-gold); box-shadow: inset 0 3px 0 var(--dfd-tab-accent, var(--dfd-gold)), 0 14px 28px rgba(120, 92, 140, 0.16); }
+#destinyFlowerStudioOverlay .df-quad-card.is-active { border-color: var(--dfd-gold-ink); background: var(--dfd-card-strong); box-shadow: inset 0 3px 0 var(--dfd-tab-accent, var(--dfd-gold)), 0 0 0 2px var(--dfd-tab-accent, var(--dfd-gold)), 0 14px 28px rgba(120, 92, 140, 0.16); }
+#destinyFlowerStudioOverlay .df-quad-card.is-pending { opacity: 1; }
+#destinyFlowerStudioOverlay .df-quad-source { color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-quad-emoji { filter: none; }
+#destinyFlowerStudioOverlay .df-quad-visual {
+  border-color: rgba(232, 201, 138, 0.6);
+  background: linear-gradient(165deg, #FFFDF8, #F6ECF4);
+  box-shadow: inset 0 1px 0 #fff;
+}
+#destinyFlowerStudioOverlay .df-quad-image { filter: none; }
+#destinyFlowerStudioOverlay .df-quad-name { color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-quad-latin { color: var(--dfd-gold-ink); }
+/* 홈은 fortune-ui.css 대신 fortune-ui-home.css(생성 서브셋)를 받는데 거기엔 .df-quad-badge 기본 레이아웃이 없어
+   라벨과 값이 간격 없이 붙고 em 이 기울었다. 기본 레이아웃(fortune-ui.css .df-quad-badge)을 여기서 보장한다. */
+#destinyFlowerStudioOverlay .df-quad-badge { display: inline-flex; align-items: baseline; gap: 4px; padding: 2px 7px; border-radius: 999px; border: 1px solid rgba(232, 201, 138, 0.7); background: rgba(255, 255, 255, 0.9); font-size: 0.62rem; line-height: 1.5; }
+#destinyFlowerStudioOverlay .df-quad-badge b { font-weight: 800; color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-quad-badge em { font-style: normal; color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-quad-line { color: var(--dfd-text); }
+#destinyFlowerStudioOverlay { scrollbar-gutter: auto; }
+html:has(#destinyFlowerStudioOverlay.is-show) { scrollbar-gutter: auto !important; }
+#destinyFlowerStudioOverlay { left: 0; right: auto; width: 100vw; box-sizing: border-box; }
+#destinyFlowerStudioOverlay.df-studio-overlay.is-show { left: 0 !important; right: auto !important; width: 100vw !important; min-width: 100vw !important; max-width: none !important; }
+
+/* 4-up 체계 칩 아이콘(인라인 SVG) — 이모지 대신 소스 색을 눌러 쓴 선 아이콘. */
+#destinyFlowerStudioOverlay .df-quad-emoji { display: inline-flex; width: 1.05em; height: 1.05em; color: #8a6a2f; color: color-mix(in srgb, var(--dfd-tab-accent, #e8c98a) 45%, #3b2a4a); }
+#destinyFlowerStudioOverlay .df-quad-emoji svg { width: 100%; height: 100%; }
+
+/* "왜 이 꽃일까요?" 근거 목록 */
+#destinyFlowerStudioOverlay .df-studio-why { margin-top: 12px; padding: 12px 14px; border: 1px solid rgba(232, 201, 138, 0.75); border-radius: 14px; background: rgba(255, 255, 255, 0.7); }
+#destinyFlowerStudioOverlay .df-studio-why[hidden] { display: none; }
+#destinyFlowerStudioOverlay .df-studio-why h4 { margin: 0 0 6px; font-size: 0.92rem; color: var(--dfd-ink, #3b2a4a); }
+#destinyFlowerStudioOverlay .df-studio-why-list { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; color: var(--dfd-text, #6b5a78); font-size: 0.86rem; line-height: 1.55; }
+#destinyFlowerStudioOverlay .df-studio-why-list b { color: var(--dfd-gold-ink, #8a6a2f); font-weight: 700; }
+
+/* ═══ 보태니컬 표본 UI — 꽃잎 로제트 닫기·표본 카드·채집 라벨·개화 타임라인·운명 꽃다발·선 아이콘 ═══
+   지연 시트라 순서가 바뀌어도 이기도록 #overlay .df-studio-sheet 로 한 단계 더 좁힌다.
+   글자색은 --dfd-ink/--dfd-text/--dfd-gold-ink 만 쓴다(흰·#FBF6EE 위 4.5:1 이상). 파스텔은 테두리·면에만. */
+#destinyFlowerStudioOverlay {
+  --dfd-paper: #FFFDF8;
+  --dfd-petal: #FBEFD3;
+  --dfd-hairline: rgba(232, 201, 138, 0.75);
+  --dfd-serif: 'CodeDestinySerifKR', 'Nanum Myeongjo', 'AppleMyungjo', serif;
+}
+
+/* 닫기: 다섯 꽃잎 로제트. 가리키면 꽃잎이 접히며 돌고, 누르면 오므라든다. */
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-close {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  color: var(--dfd-ink);
+}
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-close:hover,
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-close:focus-visible { background: transparent; box-shadow: none; transform: none; }
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-close:focus-visible { outline: 2px solid var(--dfd-gold-ink); outline-offset: 2px; }
+#destinyFlowerStudioOverlay .df-close-rosette {
+  display: block;
+  width: 44px;
+  height: 44px;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 10px rgba(120, 92, 140, 0.18));
+}
+#destinyFlowerStudioOverlay .df-close-petals {
+  fill: var(--dfd-petal);
+  stroke: var(--dfd-gold);
+  stroke-width: 1;
+  transform-box: view-box;
+  transform-origin: 22px 22px;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), fill 0.3s ease;
+}
+#destinyFlowerStudioOverlay .df-close-heart { fill: #fff; stroke: var(--dfd-gold); stroke-width: 1; }
+#destinyFlowerStudioOverlay .df-close-x { fill: none; stroke: var(--dfd-ink); stroke-width: 1.6; stroke-linecap: round; transition: stroke 0.3s ease; }
+#destinyFlowerStudioOverlay .df-studio-close:hover .df-close-petals,
+#destinyFlowerStudioOverlay .df-studio-close:focus-visible .df-close-petals { transform: rotate(36deg) scale(0.9); fill: #fff; stroke: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-studio-close:hover .df-close-x,
+#destinyFlowerStudioOverlay .df-studio-close:focus-visible .df-close-x { stroke: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-studio-close:active .df-close-petals { transform: rotate(36deg) scale(0.78); transition-duration: 0.12s; }
+
+/* 표본 카드: 금 헤어라인 두 겹 + 네 모서리 덩굴. */
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-main {
+  outline: 1px solid var(--dfd-hairline);
+  outline-offset: -7px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44' fill='none' stroke='%238A6A2F' stroke-opacity='.5' stroke-width='1' stroke-linecap='round'%3E%3Cpath d='M5 39C5 20 20 5 39 5'/%3E%3Cpath d='M6.4 25c3.6-.3 6.3 1.7 6.8 5.3-3.6.3-6.3-1.7-6.8-5.3zM25 6.4c-.3 3.6 1.7 6.3 5.3 6.8.3-3.6-1.7-6.3-5.3-6.8z' fill='%23E8C98A' fill-opacity='.5'/%3E%3Cpath d='M14.4 14.4l3.4 3.4'/%3E%3Ccircle cx='19' cy='19' r='1.9' fill='%23F2B5C8' fill-opacity='.7'/%3E%3Ccircle cx='5' cy='39' r='1.3'/%3E%3Ccircle cx='39' cy='5' r='1.3'/%3E%3C/svg%3E") top 3px left 3px / 44px 44px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44' fill='none' stroke='%238A6A2F' stroke-opacity='.5' stroke-width='1' stroke-linecap='round'%3E%3Cg transform='translate(44 0) scale(-1 1)'%3E%3Cpath d='M5 39C5 20 20 5 39 5'/%3E%3Cpath d='M6.4 25c3.6-.3 6.3 1.7 6.8 5.3-3.6.3-6.3-1.7-6.8-5.3zM25 6.4c-.3 3.6 1.7 6.3 5.3 6.8.3-3.6-1.7-6.3-5.3-6.8z' fill='%23E8C98A' fill-opacity='.5'/%3E%3Cpath d='M14.4 14.4l3.4 3.4'/%3E%3Ccircle cx='19' cy='19' r='1.9' fill='%23F2B5C8' fill-opacity='.7'/%3E%3Ccircle cx='5' cy='39' r='1.3'/%3E%3Ccircle cx='39' cy='5' r='1.3'/%3E%3C/g%3E%3C/svg%3E") top 3px right 3px / 44px 44px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44' fill='none' stroke='%238A6A2F' stroke-opacity='.5' stroke-width='1' stroke-linecap='round'%3E%3Cg transform='translate(0 44) scale(1 -1)'%3E%3Cpath d='M5 39C5 20 20 5 39 5'/%3E%3Cpath d='M6.4 25c3.6-.3 6.3 1.7 6.8 5.3-3.6.3-6.3-1.7-6.8-5.3zM25 6.4c-.3 3.6 1.7 6.3 5.3 6.8.3-3.6-1.7-6.3-5.3-6.8z' fill='%23E8C98A' fill-opacity='.5'/%3E%3Cpath d='M14.4 14.4l3.4 3.4'/%3E%3Ccircle cx='19' cy='19' r='1.9' fill='%23F2B5C8' fill-opacity='.7'/%3E%3Ccircle cx='5' cy='39' r='1.3'/%3E%3Ccircle cx='39' cy='5' r='1.3'/%3E%3C/g%3E%3C/svg%3E") bottom 3px left 3px / 44px 44px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44' fill='none' stroke='%238A6A2F' stroke-opacity='.5' stroke-width='1' stroke-linecap='round'%3E%3Cg transform='translate(44 44) scale(-1 -1)'%3E%3Cpath d='M5 39C5 20 20 5 39 5'/%3E%3Cpath d='M6.4 25c3.6-.3 6.3 1.7 6.8 5.3-3.6.3-6.3-1.7-6.8-5.3zM25 6.4c-.3 3.6 1.7 6.3 5.3 6.8.3-3.6-1.7-6.3-5.3-6.8z' fill='%23E8C98A' fill-opacity='.5'/%3E%3Cpath d='M14.4 14.4l3.4 3.4'/%3E%3Ccircle cx='19' cy='19' r='1.9' fill='%23F2B5C8' fill-opacity='.7'/%3E%3Ccircle cx='5' cy='39' r='1.3'/%3E%3Ccircle cx='39' cy='5' r='1.3'/%3E%3C/g%3E%3C/svg%3E") bottom 3px right 3px / 44px 44px no-repeat,
+    linear-gradient(150deg, rgba(255, 255, 255, 0.86), rgba(255, 250, 244, 0.78)) !important;
+  padding: 22px;
+}
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-main.is-empty { outline: 0; }
+#destinyFlowerStudioOverlay .df-studio-sheet #dfStudioName {
+  font-family: var(--dfd-serif) !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-latin {
+  margin-top: -2px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--dfd-hairline);
+  font-family: var(--dfd-serif);
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+/* 채집 라벨: 표본 아래 붙이는 종이 라벨. */
+#destinyFlowerStudioOverlay .df-specimen-label {
+  margin: 4px 0 0;
+  padding: 8px 14px;
+  border: 1px solid var(--dfd-gold);
+  border-radius: 4px 4px 14px 4px;
+  background: var(--dfd-paper);
+  box-shadow: inset 0 0 0 3px var(--dfd-paper), inset 0 0 0 4px var(--dfd-hairline);
+}
+#destinyFlowerStudioOverlay .df-specimen-label[hidden] { display: none; }
+#destinyFlowerStudioOverlay .df-specimen-row {
+  display: grid;
+  grid-template-columns: 3.6em minmax(0, 1fr);
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--dfd-hairline);
+}
+#destinyFlowerStudioOverlay .df-specimen-row:last-child { border-bottom: 0; }
+#destinyFlowerStudioOverlay .df-specimen-row dt { margin: 0; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; line-height: 1.7; color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-specimen-row dd { margin: 0; font-family: var(--dfd-serif); font-size: 0.88rem; line-height: 1.55; color: var(--dfd-ink); overflow-wrap: anywhere; }
+
+/* 개화 서사: 줄기 하나에 씨앗→잎→봉오리→꽃 마디. */
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-why { padding: 14px 14px 10px; background: var(--dfd-paper); border-color: var(--dfd-hairline); }
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-why h4 { font-family: var(--dfd-serif); font-size: 0.96rem; margin-bottom: 10px; }
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-why-list { list-style: none; padding-left: 0; gap: 0; }
+#destinyFlowerStudioOverlay .df-bloom-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: 10px;
+  padding-bottom: 12px;
+}
+#destinyFlowerStudioOverlay .df-bloom-step::before {
+  content: "";
+  position: absolute;
+  left: 13.5px;
+  top: 28px;
+  bottom: 0;
+  width: 1.5px;
+  border-radius: 1px;
+  background: linear-gradient(var(--dfd-gold), var(--dfd-hairline));
+}
+#destinyFlowerStudioOverlay .df-bloom-step:last-child { padding-bottom: 0; }
+#destinyFlowerStudioOverlay .df-bloom-step:last-child::before { display: none; }
+#destinyFlowerStudioOverlay .df-bloom-node {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--dfd-gold);
+  background: #fff;
+  color: var(--dfd-gold-ink);
+}
+#destinyFlowerStudioOverlay .df-bloom-node svg { width: 16px; height: 16px; }
+#destinyFlowerStudioOverlay .df-bloom-step[data-stage="bloom"] .df-bloom-node { background: linear-gradient(145deg, var(--dfd-petal), var(--dfd-gold)); border-color: var(--dfd-gold-ink); color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-bloom-body { padding-top: 3px; }
+#destinyFlowerStudioOverlay .df-bloom-body b { display: block; margin-bottom: 1px; font-size: 0.74rem; letter-spacing: 0.04em; }
+#destinyFlowerStudioOverlay .df-bloom-body span { color: var(--dfd-text); }
+#destinyFlowerStudioOverlay .df-bloom-step[data-stage="bloom"] .df-bloom-body span { font-family: var(--dfd-serif); font-weight: 700; color: var(--dfd-ink); }
+
+/* 운명 꽃다발: 체계별 꽃을 부채꼴로 묶고 금 리본 한 줄. */
+#destinyFlowerStudioOverlay .df-bouquet {
+  position: relative;
+  margin-top: 16px;
+  padding: 22px 16px 16px;
+  border: 1px solid var(--dfd-gold);
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(242, 181, 200, 0.18), transparent 60%), var(--dfd-card-strong);
+  box-shadow: var(--dfd-shadow);
+  text-align: center;
+}
+#destinyFlowerStudioOverlay .df-bouquet[hidden] { display: none; }
+#destinyFlowerStudioOverlay .df-bouquet::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 54px;
+  height: 18px;
+  transform: translateX(-50%);
+  border-radius: 9px;
+  background: var(--dfd-paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='54' height='18' viewBox='0 0 54 18' fill='none' stroke='%238A6A2F' stroke-width='1' stroke-linecap='round'%3E%3Cpath d='M4 9h16M34 9h16'/%3E%3Cpath d='M27 15c-4.4-1.1-6.2-3.9-5.6-7.6 2.8.7 4.6 2.4 5.6 4.8 1-2.4 2.8-4.1 5.6-4.8.6 3.7-1.2 6.5-5.6 7.6z' fill='%23E8C98A' fill-opacity='.55'/%3E%3C/svg%3E") center / 54px 18px no-repeat;
+}
+#destinyFlowerStudioOverlay .df-bouquet-title { margin: 0; font-family: var(--dfd-serif); font-size: 1.02rem; color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-bouquet-sub { margin: 4px 0 10px; font-size: 0.8rem; color: var(--dfd-text); }
+#destinyFlowerStudioOverlay .df-bouquet-stems {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 6px 0 18px;
+  list-style: none;
+}
+#destinyFlowerStudioOverlay .df-bouquet-stems::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: min(220px, 70%);
+  height: 6px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--dfd-gold) 18%, var(--dfd-gold) 82%, transparent);
+}
+#destinyFlowerStudioOverlay .df-bouquet-stem {
+  flex: 0 1 84px;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  --dfd-tilt: 0deg;
+  transform: rotate(var(--dfd-tilt));
+  transform-origin: 50% 120%;
+}
+#destinyFlowerStudioOverlay .df-bouquet-stem:first-child { --dfd-tilt: -8deg; }
+#destinyFlowerStudioOverlay .df-bouquet-stem:last-child { --dfd-tilt: 8deg; }
+#destinyFlowerStudioOverlay .df-bouquet-stem:only-child { --dfd-tilt: 0deg; }
+#destinyFlowerStudioOverlay [data-df-bouquet="saju"] { --dfd-tab-accent: var(--dfd-saju); }
+#destinyFlowerStudioOverlay [data-df-bouquet="astrology"] { --dfd-tab-accent: var(--dfd-astrology); }
+#destinyFlowerStudioOverlay [data-df-bouquet="jamidusu"] { --dfd-tab-accent: var(--dfd-jamidusu); }
+#destinyFlowerStudioOverlay [data-df-bouquet="sukuyo"] { --dfd-tab-accent: var(--dfd-sukuyo); }
+#destinyFlowerStudioOverlay .df-bouquet-bloom {
+  display: block;
+  width: min(72px, 100%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid var(--dfd-gold);
+  background: linear-gradient(165deg, #fff, var(--dfd-bg-b));
+  box-shadow: 0 0 0 3px var(--dfd-tab-accent, var(--dfd-gold)), 0 8px 16px rgba(120, 92, 140, 0.14);
+}
+#destinyFlowerStudioOverlay .df-bouquet-bloom img { display: block; width: 100%; height: 100%; object-fit: cover; }
+#destinyFlowerStudioOverlay .df-bouquet-stem b { margin-top: 6px; max-width: 100%; font-family: var(--dfd-serif); font-size: 0.84rem; color: var(--dfd-ink); overflow-wrap: anywhere; }
+#destinyFlowerStudioOverlay .df-bouquet-stem small { font-size: 0.7rem; font-weight: 700; color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-bouquet-reading { margin: 6px auto 0; max-width: 36em; font-family: var(--dfd-serif); font-size: 0.9rem; line-height: 1.6; color: var(--dfd-ink); }
+
+/* 선 아이콘(이모지 대신): 패널 제목·탭·기록 칩·홈 버튼. */
+#destinyFlowerStudioOverlay .df-ico { flex: none; width: 1em; height: 1em; vertical-align: -0.14em; }
+#destinyFlowerStudioOverlay .df-head-ico { display: inline-flex; color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-tab-emoji .df-ico { width: 1.05em; height: 1.05em; color: color-mix(in srgb, var(--dfd-tab-accent, #e8c98a) 45%, #3b2a4a); }
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-chip { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; }
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-chip .df-ico { color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-chip--danger .df-ico { color: currentColor; }
+#destinyFlowerStudioOverlay .df-studio-sheet .df-studio-btn--primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; }
+
+@media (max-width: 640px) {
+  #destinyFlowerStudioOverlay .df-studio-sheet .df-studio-main { padding: 20px 16px; }
+  #destinyFlowerStudioOverlay .df-bouquet-stem { flex-basis: 72px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #destinyFlowerStudioOverlay .df-close-petals,
+  #destinyFlowerStudioOverlay .df-close-x { transition: none; }
+  #destinyFlowerStudioOverlay .df-studio-close:hover .df-close-petals,
+  #destinyFlowerStudioOverlay .df-studio-close:focus-visible .df-close-petals,
+  #destinyFlowerStudioOverlay .df-studio-close:active .df-close-petals { transform: none; }
+}
+
+/* ═══ 꽃 공유 — 하단 공유 시트·9:16 스토리 카드·친구 꽃·꽃 궁합 ═══
+   공유 시트와 카드는 시트(.df-studio-sheet, 자체 스크롤·backdrop-filter) 밖, 오버레이 바로 아래에 붙는다.
+   스토리 카드는 html2canvas 로 찍으므로 color-mix·aspect-ratio·backdrop-filter 를 쓰지 않는다. */
+#destinyFlowerStudioOverlay .df-share-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+#destinyFlowerStudioOverlay .df-share-layer[hidden] { display: none; }
+#destinyFlowerStudioOverlay .df-share-scrim { position: absolute; inset: 0; background: rgba(59, 42, 74, 0.38); }
+#destinyFlowerStudioOverlay .df-share-panel {
+  position: relative;
+  box-sizing: border-box;
+  width: min(480px, 100%);
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border: 1px solid var(--dfd-hairline);
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(180deg, var(--dfd-paper), var(--dfd-bg-a));
+  box-shadow: 0 -12px 32px rgba(59, 42, 74, 0.18), inset 0 0 0 4px var(--dfd-paper), inset 0 0 0 5px var(--dfd-hairline);
+  color: var(--dfd-text);
+  animation: dfShareRise 0.28s ease-out;
+}
+@keyframes dfShareRise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+#destinyFlowerStudioOverlay .df-share-grip { display: block; width: 40px; height: 4px; margin: 2px auto 12px; border-radius: 2px; background: var(--dfd-gold); }
+#destinyFlowerStudioOverlay .df-share-title { margin: 0; text-align: center; font-family: var(--dfd-serif); font-size: 1.12rem; color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-share-sub { margin: 4px 0 14px; text-align: center; font-size: 0.86rem; color: var(--dfd-gold-ink); overflow-wrap: anywhere; }
+#destinyFlowerStudioOverlay .df-share-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+#destinyFlowerStudioOverlay .df-share-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid var(--dfd-hairline);
+  border-radius: 16px;
+  background: var(--dfd-card-strong);
+  color: var(--dfd-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+#destinyFlowerStudioOverlay .df-share-action:hover,
+#destinyFlowerStudioOverlay .df-share-action:focus-visible { border-color: var(--dfd-gold); box-shadow: var(--dfd-shadow); transform: translateY(-1px); }
+#destinyFlowerStudioOverlay .df-share-action:focus-visible,
+#destinyFlowerStudioOverlay .df-share-cancel:focus-visible { outline: 2px solid var(--dfd-gold-ink); outline-offset: 2px; }
+#destinyFlowerStudioOverlay .df-share-action:active { transform: scale(0.98); }
+#destinyFlowerStudioOverlay .df-share-action-ico {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--dfd-gold);
+  background: var(--dfd-petal);
+  color: var(--dfd-gold-ink);
+  font-size: 1.1rem;
+}
+#destinyFlowerStudioOverlay .df-share-action[data-df-share="kakao"] .df-share-action-ico { background: #FEE500; border-color: #E6CF00; color: #3B1E1E; }
+#destinyFlowerStudioOverlay .df-share-action-text { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+#destinyFlowerStudioOverlay .df-share-action-text b { font-size: 0.92rem; color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-share-action-text small { font-size: 0.74rem; line-height: 1.35; color: var(--dfd-text); }
+#destinyFlowerStudioOverlay .df-share-note { min-height: 1.4em; margin: 12px 0 4px; text-align: center; font-size: 0.82rem; color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-share-cancel {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--dfd-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 9:16 스토리 카드 — 화면 밖에 두고 2배로 찍어 1080×1920 PNG 가 된다. */
+#destinyFlowerStudioOverlay .df-share-card {
+  position: fixed;
+  left: -12000px;
+  top: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 540px;
+  height: 960px;
+  padding: 52px 44px 40px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 22%, #FFFFFF 0%, rgba(255, 255, 255, 0) 55%), linear-gradient(170deg, #FBF6EE 0%, #F3E9F7 100%);
+  color: #6B5A78;
+  font-family: var(--dfd-serif);
+  text-align: center;
+  pointer-events: none;
+}
+#destinyFlowerStudioOverlay .df-share-card::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  bottom: 18px;
+  left: 18px;
+  border: 1px solid #E8C98A;
+  border-radius: 28px;
+  box-shadow: inset 0 0 0 5px #FFFDF8, inset 0 0 0 6px rgba(232, 201, 138, 0.75);
+}
+#destinyFlowerStudioOverlay .df-share-card > * { position: relative; }
+#destinyFlowerStudioOverlay .df-sc-kicker { margin: 0; font-size: 17px; letter-spacing: 0.32em; color: #8A6A2F; }
+#destinyFlowerStudioOverlay .df-sc-bloom {
+  display: block;
+  flex: none;
+  width: 232px;
+  height: 232px;
+  margin: 22px 0 14px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #E8C98A;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 8px #FFFDF8, 0 0 0 9px rgba(232, 201, 138, 0.75), 0 18px 36px rgba(120, 92, 140, 0.18);
+}
+#destinyFlowerStudioOverlay .df-sc-bloom img { display: block; width: 100%; height: 100%; object-fit: cover; }
+#destinyFlowerStudioOverlay .df-sc-name { margin: 0; font-size: 46px; line-height: 1.15; color: #3B2A4A; }
+#destinyFlowerStudioOverlay .df-sc-latin { margin: 6px 0 0; font-size: 17px; font-style: italic; color: #8A6A2F; }
+#destinyFlowerStudioOverlay .df-sc-rarity { margin: 10px 0 0; font-family: system-ui, sans-serif; font-size: 15px; color: #6B5A78; }
+#destinyFlowerStudioOverlay .df-sc-lang {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 8px 20px;
+  border: 1px solid #E8C98A;
+  border-radius: 999px;
+  background: #FBEFD3;
+  font-size: 22px;
+  color: #3B2A4A;
+}
+#destinyFlowerStudioOverlay .df-sc-lang span { font-family: system-ui, sans-serif; font-size: 14px; font-weight: 700; color: #8A6A2F; }
+#destinyFlowerStudioOverlay .df-sc-story { width: 100%; margin: 22px 0 0; padding: 0; list-style: none; text-align: left; }
+#destinyFlowerStudioOverlay .df-sc-story li {
+  position: relative;
+  margin: 0 0 10px;
+  padding: 0 0 0 26px;
+  font-family: system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #6B5A78;
+}
+#destinyFlowerStudioOverlay .df-sc-story li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid #8A6A2F;
+  background: #FFFDF8;
+}
+#destinyFlowerStudioOverlay .df-sc-story li[data-stage="bloom"] { color: #3B2A4A; font-weight: 700; }
+#destinyFlowerStudioOverlay .df-sc-story li[data-stage="bloom"]::before { background: #E8C98A; }
+#destinyFlowerStudioOverlay .df-sc-personal { margin: 8px 0 0; padding: 14px 18px; border-top: 1px solid rgba(232, 201, 138, 0.75); border-bottom: 1px solid rgba(232, 201, 138, 0.75); font-size: 18px; line-height: 1.55; color: #3B2A4A; }
+#destinyFlowerStudioOverlay .df-sc-bouquet { display: flex; justify-content: center; gap: 18px; margin: 20px 0 0; padding: 0; list-style: none; }
+#destinyFlowerStudioOverlay .df-sc-bouquet li { display: flex; flex-direction: column; align-items: center; width: 78px; }
+#destinyFlowerStudioOverlay .df-sc-bouquet span { display: block; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; border: 1px solid #E8C98A; background: #FFFFFF; }
+#destinyFlowerStudioOverlay .df-sc-bouquet img { display: block; width: 100%; height: 100%; object-fit: cover; }
+#destinyFlowerStudioOverlay .df-sc-bouquet b { margin-top: 6px; font-size: 14px; color: #3B2A4A; }
+#destinyFlowerStudioOverlay .df-sc-bouquet small { font-family: system-ui, sans-serif; font-size: 11px; font-weight: 700; color: #8A6A2F; }
+#destinyFlowerStudioOverlay .df-sc-foot { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: auto 0 0; font-family: system-ui, sans-serif; font-size: 14px; color: #8A6A2F; }
+#destinyFlowerStudioOverlay .df-sc-foot b { font-family: var(--dfd-serif); font-size: 24px; color: #3B2A4A; }
+
+/* 친구가 보낸 꽃 → 내 꽃 피우기 → 꽃 궁합 */
+#destinyFlowerStudioOverlay .df-friend {
+  position: relative;
+  margin: 16px 0;
+  padding: 18px 16px 16px;
+  border: 1px solid var(--dfd-gold);
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 0% 0%, rgba(244, 184, 160, 0.2), transparent 55%), var(--dfd-card-strong);
+  box-shadow: var(--dfd-shadow), inset 0 0 0 4px var(--dfd-paper), inset 0 0 0 5px var(--dfd-hairline);
+}
+#destinyFlowerStudioOverlay .df-friend[hidden] { display: none; }
+#destinyFlowerStudioOverlay .df-friend-kicker { margin: 0 0 10px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-friend-row { display: flex; align-items: center; gap: 14px; }
+#destinyFlowerStudioOverlay .df-friend-bloom { flex: none; width: 84px; height: 84px; border-radius: 50%; overflow: hidden; border: 1px solid var(--dfd-gold); background: #fff; box-shadow: 0 0 0 4px var(--dfd-paper), 0 0 0 5px var(--dfd-hairline); }
+#destinyFlowerStudioOverlay .df-friend-bloom img { display: block; width: 100%; height: 100%; object-fit: cover; }
+#destinyFlowerStudioOverlay .df-friend-text { min-width: 0; }
+#destinyFlowerStudioOverlay .df-friend-name { margin: 0; font-family: var(--dfd-serif); font-size: 1.24rem; color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-friend-lang { margin: 4px 0 0; font-size: 0.88rem; color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-friend-title { margin: 4px 0 0; font-size: 0.84rem; line-height: 1.45; color: var(--dfd-text); overflow-wrap: anywhere; }
+#destinyFlowerStudioOverlay .df-friend-note { margin: 14px 0 10px; font-size: 0.88rem; color: var(--dfd-text); }
+#destinyFlowerStudioOverlay .df-friend-cta { width: 100%; min-height: 44px; }
+#destinyFlowerStudioOverlay .df-compat { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--dfd-hairline); text-align: center; }
+#destinyFlowerStudioOverlay .df-compat-pair { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0; font-family: var(--dfd-serif); color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-compat-pair span { color: var(--dfd-gold-ink); }
+#destinyFlowerStudioOverlay .df-compat-title { margin: 8px 0 0; font-family: var(--dfd-serif); font-size: 1.12rem; color: var(--dfd-ink); }
+#destinyFlowerStudioOverlay .df-compat-line { margin: 6px auto 12px; max-width: 32em; font-size: 0.9rem; line-height: 1.6; color: var(--dfd-text); }
+
+@media (max-width: 380px) {
+  #destinyFlowerStudioOverlay .df-share-actions { grid-template-columns: minmax(0, 1fr); }
+  #destinyFlowerStudioOverlay .df-share-action { min-height: 56px; }
+  #destinyFlowerStudioOverlay .df-friend-bloom { width: 68px; height: 68px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #destinyFlowerStudioOverlay .df-share-panel { animation: none; }
+  #destinyFlowerStudioOverlay .df-share-action { transition: none; }
+  #destinyFlowerStudioOverlay .df-share-action:hover,
+  #destinyFlowerStudioOverlay .df-share-action:focus-visible,
+  #destinyFlowerStudioOverlay .df-share-action:active { transform: none; }
+}

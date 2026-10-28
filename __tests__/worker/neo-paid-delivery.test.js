@@ -1,5 +1,7 @@
 /** @jest-environment node */
 import { jest } from "@jest/globals";
+import { AI_OUTPUT_LOCALES } from '../../lib/i18n/ai-locale.js';
+import { getAmbientAiLocale, runWithAiLocale } from '../../worker/lib/ai-locale-context.js';
 // Stress fixture: preserve multi-part storage/lease failures at the former batch width.
 // Production's one-part contract is covered by paid-llm-sequential.test.js.
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
@@ -58,8 +60,8 @@ const model = {
 };
 
 function prose(seed, length) {
-  let value = `${seed} 양자리 라그나와 Ashwini의 계산 근거를 살펴봅니다. `;
-  for (let i = 0; value.replace(/\s/g, "").length < length; i++) value += `${seed}의 ${i}번째 관찰은 현재 생활에서 반복되는 선택을 돌아보고 작은 행동으로 확인하는 과정을 설명합니다. `;
+  let value = `${seed} 양자리 라그나와 Ashwini의 계산 근거를 살펴본다. `;
+  for (let i = 0; value.replace(/\s/g, "").length < length; i++) value += `${seed}의 ${i}번째 관찰은 현재 생활에서 반복되는 선택을 돌아보고 작은 행동으로 확인하는 과정을 설명한다. `;
   return value;
 }
 let definitions, refinedDefinitions;
@@ -77,6 +79,7 @@ beforeAll(async () => {
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null) },
   }));
   jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({ canAccessPaidFeature: async () => ({ allowed: mode === "pass", accessSource: "family_pass" }), PAID_FEATURE_ACCESS_USER_PROJECTION: "id" }));
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({ settlePerUseAccessDecision: async (_env, args) => ({ allowed: args?.decision?.allowed === true, source: "pass", reason: args?.decision?.allowed ? "" : "PAYMENT_REQUIRED" }) }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? {} : null }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({ callGeminiText: (...args) => provider(...args) }));
   jest.unstable_mockModule("../../worker/lib/life-book-ai-saju.js", () => ({ calculateLifeBookAiSaju: (...args) => chart(...args) }));
@@ -138,6 +141,24 @@ it('overlapping requests acquire only one generation lease',async()=>{let releas
 
 async function refine(extra) { return route(new Request('https://mock.test/api/neo-operation-room/refine',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(extra || {sessionId:docs[0].id})}),{}); }
 async function initialComplete() { for(let i=0;i<4;i++) await start(); expect(docs[0].status).toBe('completed'); }
+it.each(AI_OUTPUT_LOCALES)('retains purchase locale %s through resume and reality checks',async(locale)=>{
+ const seen=[],original=provider.getMockImplementation();
+ provider.mockImplementation((...args)=>{seen.push(getAmbientAiLocale());return original(...args);});
+ await runWithAiLocale(locale,start);
+ expect(docs[0].llmMeta.locale).toBe(locale);
+ expect(docs[0].llmMeta.resumeBody.locale).toBe(locale);
+ await runWithAiLocale(locale==='ko'?'ja':'ko',initialComplete);
+ expect(seen.length).toBeGreaterThan(4);
+ expect(seen.every(value=>value===locale)).toBe(true);
+ await runWithAiLocale('ko',()=>refine({sessionId:docs[0].id,freeform:'작은 행동부터 바꾸겠습니다.'}));
+ await runWithAiLocale('en',()=>refine());
+ expect(docs[0].refinementStatus).toBe('completed');
+ expect(seen.every(value=>value===locale)).toBe(true);
+ expect(usage).toHaveBeenCalledTimes(1);
+ const calls=provider.mock.calls.length;
+ await runWithAiLocale('ja',start);
+ expect(provider).toHaveBeenCalledTimes(calls);
+});
 it('two reality-check rounds preserve both answers and block a third without provider calls',async()=>{
  await initialComplete();
  const initial=structuredClone(docs[0].initialBriefing);
@@ -155,7 +176,9 @@ it('two reality-check rounds preserve both answers and block a third without pro
  expect((await refine({sessionId:docs[0].id,freeform:'세 번째 질문입니다.'})).status).toBe(409);
  expect(provider).toHaveBeenCalledTimes(calls);
 });
-for (const repair of ['shorter', 'empty', 'repeated']) it(`preserves the short initial draft without ${repair} repair`, async () => {
+// 계약(ai-and-db.md:125): 짧은 초안은 기존 2회 상한 안에서 분량 보강을 딱 한 번 받고,
+// 보강이 더 나쁘면 저장된 초안을 그대로 배달한다(bbeeaf78a 의 "보강 없음"을 되돌림).
+for (const repair of ['shorter', 'empty', 'repeated']) it(`repairs the short initial draft once and keeps it after a ${repair} repair`, async () => {
   const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0, draft;
   provider.mockImplementation(async (...args) => {
     if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
@@ -168,19 +191,41 @@ for (const repair of ['shorter', 'empty', 'repeated']) it(`preserves the short i
   });
   await start(); expect(docs[0].llmMeta.sections[section.id]?.parsed).toEqual(draft);
   for (let i = 0; i < 7 && docs[0].status !== 'completed'; i++) await start();
-  expect(docs[0].status).toBe('completed'); expect(tries).toBe(1);
+  expect(docs[0].status).toBe('completed'); expect(tries).toBe(2);
   expect(docs[0].llmMeta.sections[section.id].parsed).toEqual(draft);
-  expect(docs[0].llmMeta.attempts[section.id]).toBe(1);
+  expect(docs[0].llmMeta.attempts[section.id]).toBe(2);
+  expect(docs[0].llmMeta.attempts[`${section.id}:lengthRepair`]).toBe(1);
 });
-it('delivers all usable short sections without further generation', async () => {
+it('gives every usable short section exactly one repair inside the two-attempt cap, then delivers', async () => {
+  // 0.45 배율이면 meta(750자)는 고정 필드만으로 이미 하한을 넘는다. 14챕터 모두 미달이 되도록 0.3 을 쓴다.
+  const prompts = [];
   provider.mockImplementation(async (_env, prompt) => {
+    prompts.push(prompt);
     const section = definitions.find(row => prompt.includes(`제목: ${row.title}\n`));
-    return { ok: true, provider: 'gemini', text: JSON.stringify(fixture({ ...section, minChars: section.minChars * 0.45 })) };
+    return { ok: true, provider: 'gemini', text: JSON.stringify(fixture({ ...section, minChars: section.minChars * 0.3 })) };
   });
-  for (let i = 0; i < 3; i++) expect((await start()).status).toBe(202);
+  for (let i = 0; i < 7; i++) expect((await start()).status).toBe(202);
   expect((await start()).status).toBe(200);
-  expect(provider).toHaveBeenCalledTimes(definitions.length);
+  expect(provider).toHaveBeenCalledTimes(definitions.length * 2);
+  expect(prompts.filter(prompt => prompt.includes('[분량 보강]'))).toHaveLength(definitions.length);
+  for (const section of definitions) expect(docs[0].llmMeta.attempts[section.id]).toBe(2);
   expect(usage).toHaveBeenCalledTimes(1); expect(refund).not.toHaveBeenCalled();
+});
+it('repairs a full-length section written in the formal register once, then keeps the banmal rewrite', async () => {
+  const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0, repairPrompt = '';
+  provider.mockImplementation(async (...args) => {
+    if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
+    tries++;
+    const text = JSON.stringify(fixture(section));
+    if (tries === 1) return { ok: true, provider: 'gemini', text: text.replaceAll('살펴본다.', '살펴봅니다.').replaceAll('설명한다.', '설명합니다.') };
+    repairPrompt = args[1];
+    return { ok: true, provider: 'gemini', text };
+  });
+  for (let i = 0; i < 7 && docs[0]?.status !== 'completed'; i++) await start();
+  expect(docs[0].status).toBe('completed'); expect(tries).toBe(2);
+  expect(repairPrompt).toContain('[어조 보강]');
+  expect(repairPrompt).not.toContain('[분량 보강]');
+  expect(JSON.stringify(docs[0].initialBriefing)).not.toContain('설명합니다');
 });
 for (const stage of ['reserved', 'last']) it(`initial short draft respects the ${stage} attempt`, async () => {
   const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0;
@@ -212,3 +257,4 @@ it('refinement saves four sections per request and reuses the same answer',async
 for(const kind of ['null','throw','confirm']) it(`refinement final ${kind} preserves the initial report and saved sections`,async()=>{await initialComplete();const initial=structuredClone(docs[0].initialBriefing);await refine({sessionId:docs[0].id,freeform:'우선 작은 선택을 바꾸겠습니다.'});fault={refinementStatus:'completed',kind};const response=await refine();expect(response.status).toBe(503);expect(await response.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',retryable:true});expect(docs[0].status).toBe('completed');expect(docs[0].initialBriefing).toEqual(initial);const calls=provider.mock.calls.length;expect((await refine()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(calls);expect(refund).not.toHaveBeenCalled();expect(docs[0].versionHistory).toHaveLength(1)});
 it('refinement short output is bounded and never changes completed initial delivery',async()=>{await initialComplete();provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));expect((await refine({sessionId:docs[0].id,freeform:'작게 바꾸겠습니다.'})).status).toBe(202);for(let i=0;i<1;i++)expect((await refine()).status).toBe(202);expect((await refine()).status).toBe(503);expect(docs[0].status).toBe('completed');expect(docs[0].refinementStatus).toBe('generation_failed');expect(provider).toHaveBeenCalledTimes(22);expect(refund).not.toHaveBeenCalled()});
 it('refinement lease, owner and revoked proof block extra provider calls',async()=>{await initialComplete();await refine({sessionId:docs[0].id,freeform:'작은 선택부터 바꿉니다.'});const calls=provider.mock.calls.length;docs[0].llmMeta.refineLockedAt=new Date();docs[0].llmMeta.refineLockToken='other';expect((await refine()).status).toBe(202);userId='other';expect((await refine()).status).toBe(404);userId=uid;blocked=0;expect((await refine()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(calls)});
+it('saju basis and fallback card name only the day pillar, never all four pillars',async()=>{const {buildNeoBasisPayload}=await import('../../worker/lib/neo-operation-room-basis.js');const summary=utils.summarizeSaju({yearPillar:'갑자',monthPillar:'을축',dayPillar:'병인',hourPillar:'정묘',dayMaster:'병'});const core=buildNeoBasisPayload(summary).groups.find(group=>group.key==='core');const text=[summary.evidenceSummary,...core.items.map(item=>`${item.label} ${item.value}`)].join('\n');expect(text).toContain('병인');expect(text).not.toMatch(/갑자|을축|정묘|네 기둥|연월일시/)});

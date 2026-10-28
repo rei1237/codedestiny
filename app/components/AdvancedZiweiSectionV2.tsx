@@ -1,4 +1,6 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
 
 // ┌───────────────────────────────────────────────────────────────────────────┐
 // │ [심화(深化/advanced) 자미두수 명반] 라우트 /ziwei/chart 가 마운트하는 본체.  │
@@ -759,7 +761,7 @@ export default function AdvancedZiweiSectionV2({
 
   if (step === "form") {
     return (
-      <section className={`${styles.surface} font-body relative min-h-[100dvh] overflow-hidden px-4 py-6 text-slate-100 sm:px-6 lg:px-8`}>
+      <section data-moonlit-form="" className={`${styles.surface} font-body relative min-h-[100dvh] overflow-hidden px-4 py-6 text-slate-100 sm:px-6 lg:px-8`}>
 
         <div className="relative mx-auto flex min-h-[100dvh] max-w-5xl items-center py-[calc(1rem+env(safe-area-inset-top))]">
           <StagePanel className="relative z-10 w-full p-5 sm:p-7 lg:p-8">
@@ -792,7 +794,8 @@ export default function AdvancedZiweiSectionV2({
 
             <fieldset className={styles.inputTopics}><legend>{ui.choose}</legend><p>{ui.chooseHint}</p><div className={styles.topicOptions}>{counselingTracks.map(track => <label key={track.key}><input type="radio" name="ziwei-topic" value={track.key} checked={activeTrackId === track.key} onChange={() => setActiveTrackId(track.key)} />{track.title}</label>)}</div></fieldset>
             {inputError ? <p role="alert" className={styles.error}>{inputError}</p> : null}
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <SavedBirthProfilePicker onSelect={(_seed,profile)=>applyCurrentProfileSeed(profile)} />
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
               <label className="space-y-2">
                 <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldNameLabel}</span>
                 <input
@@ -848,16 +851,10 @@ export default function AdvancedZiweiSectionV2({
               </label>
               <label className="space-y-2">
                 <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldBirthHourLabel}</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={2}
-                  placeholder="HH"
-                  value={form.birthHour}
-                  onChange={(e) => setForm((prev) => ({ ...prev, birthHour: digitsOnly(e.target.value, 2) }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-slate-500"
-                  disabled={form.unknownHour}
-                />
+                <BirthTimeInput
+                  value={form.birthHour === "" ? "" : String(form.birthHour).padStart(2, "0") + ":" + String(form.birthMinute || "0").padStart(2, "0")}
+                  onChange={e => { const [birthHour = "", birthMinute = "0"] = e.target.value.split(":"); setForm(prev => ({ ...prev, birthHour, birthMinute })); }}
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none" disabled={form.unknownHour} />
               </label>
               <label className="space-y-2">
                 <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldCalendarLabel}</span>

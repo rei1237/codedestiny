@@ -33,6 +33,7 @@ function assertExcludes(file, text, message = `${file} should not include ${text
 const pageSourcePath = exists("app/new-year-ai-consultation/NewYearAiClient.tsx")
   ? "app/new-year-ai-consultation/NewYearAiClient.tsx"
   : "app/new-year-ai-consultation/page.tsx";
+const answerSectionsSourcePath = "app/new-year-ai-consultation/_lib/answer-sections.ts";
 
 const oldAccessRetryCopy = Buffer.from(
   "6rKw7KCcIOq2jO2VnCDtmZXsnbgg7KSRIOusuOygnOqwgCDrsJzsg53tlojsirXri4jri6QuIOyLoOuFhOyatOyEuCBBSSDsg4Hri7Qg67Cb6riw66W8IOuLpOyLnCDriIzrn6wg6raM7ZWc7J2EIO2ZleyduO2VtCDso7zshLjsmpQu",
@@ -230,7 +231,7 @@ assert(
 
 // 클라이언트: 분야별 구조화 응답을 쓰되 구버전 세션용 폴백 파서를 유지해야 한다.
 assertIncludes(pageSourcePath, "serverSections", "client should consume the server section payload");
-assertIncludes(pageSourcePath, "groupSectionsByDomain", "client should keep the legacy assembled-text fallback parser");
+assertIncludes(answerSectionsSourcePath, "groupSectionsByDomain", "answer parser should keep the legacy assembled-text fallback parser");
 assertIncludes(pageSourcePath, "DOMAIN_CARDS", "client should render the domain consultation cards");
 assertIncludes(pageSourcePath, "ReadingProgressPanel", "client should show generation progress");
 assertIncludes(pageSourcePath, 'data-pdf-section={`domain-${card.key}`}', "domain cards should stay in the PDF capture set");

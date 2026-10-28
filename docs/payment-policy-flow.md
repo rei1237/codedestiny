@@ -87,10 +87,25 @@
 - `ContentEntitlement`, `User.unlockedFeatures`, `PointHistory`, `daehan_purchases`는 삭제하지 않으며, 과거 거래 복구만 레거시 원장을 사용한다.
 - 메인 진입과 잠금 상태 표시에서는 잔액 API를 예열하지 않는다. 잔액과 월정석 잔액은 결제 선택창을 열었을 때만 조회한다.
 
+## 유료 접근 무결성 원칙 (2026-10-16)
+
+> 계기: 2026-10-15 운명 찻집 상담이 입금 없이 열렸다는 보고. 감사 기록은 [인수인계 문서](handoff/fortune-tea-pass-billing-holes-20261016.md)에 있다.
+> 사용자 지시: 유료 상담·콘텐츠가 결제 없이 열리거나 개발자 콘솔 등으로 조작되어서는 안 된다.
+
+1. **증빙 1건 = 요청 1건.** 결제·차감·월정석 원장·실행 기록 ID는 한 요청에만 쓰인다. 정본은 `worker/lib/billing-evidence-claim.js`(컬렉션 `billing_evidence_claims`)다. 같은 계정·같은 요청의 재시도는 통과하고, 다른 요청이 같은 증빙을 내밀면 409 `EVIDENCE_ALREADY_USED`다. 생성이 최종 실패해 본문을 전달하지 못했을 때만 claim을 푼다.
+2. **이용권 허용 = 실제 차감.** 이용권·Family·라이선스·월구독 판정만으로는 회당 상품을 열지 않는다. `settlePerUseAccessDecision`(`worker/lib/nakshatra-paid-access.js`)이 정본 `verifyPerUsePayment`로 넘겨 이번 requestId로 차감한 뒤에만 연다.
+3. **유료 본문은 서버만 만든다.** 클라이언트가 보낸 사용자 문서·accessType·가격·플래그·localStorage(`unlockedFeatureMap`, `cd_verified_unlock_grants_v1`, access-store 캐시)는 권한 근거가 아니라 화면 힌트다. 브라우저에서 계산되는 유료 본문은 서버 엔드포인트로 옮기고 번들에서 뺀다(예: `/api/saju/section`). 남은 상품 목록은 인수인계 문서 D단계에 있다.
+
+- 코인 자동 환불(`/api/billing/refund` → `/api/fortune/pig-coin/refund`)은 전달되지 않은 결제만 돌려준다. 정본은 `worker/lib/coin-refund-eligibility.js`다. 풀리지 않은 증빙 claim, 완료·부분 전달 실행 기록, 영구 해금이 있으면 409 `REFUND_NOT_ELIGIBLE`(고객센터 안내)이고, 확인 실패는 503이다. 해금은 해지하지 않는다.
+- 장애는 결제 거절로 바꾸지 않는다. 저장소·DB 일시 장애는 503이고, 402는 증빙이 정말 없을 때만 낸다(결제한 사람의 전달이 최우선).
+- 화면 가격은 서버 정본(`worker/lib/paid-feature-registry.js`)과 같아야 한다. 서버는 featureKey로 정본 가격을 청구하고 클라이언트가 보낸 가격을 무시한다.
+- 가드: `verify:paid-access-integrity`(본문 `_userDoc` 읽기, `PER_USE_ENFORCE = false`, 차감 없는 이용권 허용, claim 없는 증빙 사용을 잡는다).
+
 ## 변경 이력
 
 | 날짜 | 변경 내용 |
 |---|---|
+| 2026-10-16 | **유료 접근 무결성 원칙 3가지 명문화**(증빙 1건 = 요청 1건 · 이용권 허용 = 실제 차감 · 유료 본문은 서버만 생성). 본문 `_userDoc` 신뢰 제거, 낙샤트라 회당 결제 강제, 13개 AI 라우트와 프리미엄 리포트의 증빙 claim, 이용권·라이선스·월구독 무차감 허용 제거. 위 "유료 접근 무결성 원칙" 절이 정본이다. |
 | 2026-09-15 | **영냥이(SoulCat) 상품 28종을 `paymentScope:"direct_only"` 로 등록.** 세 번째 결제 범위 상태 — 이용권·월정석 모두 불가, 단건 결제만. 카탈로그 `directOnly`(passExcluded 포함) 정본 하나로 v2 pass-check·coin-gate/moonstone·moonstone/spend 와 v1 billing.js 판정(`equalPriorityMethods:["DIRECT_KRW"]`, `hiddenMethods` 에 월정석·이용권)을 fail-closed 로 막았다. `verify:billing-pass-policy` 가 세 번째 상태를 단언하고 리뷰 카탈로그는 이 키를 명시 제외한다. 결제창 호스트 `/checkout/` 와 홈 밴드 안내는 같은 1단계의 후속 커밋. |
 | 2026-08-29 | **결제창 2단계에 실시간 계좌이체·상품권 3종 활성화.** KG이니시스가 계좌이체·상품권 지불수단 추가를 처리완료(2026-08-24)해 `TRANSFER` 와 상품권을 열었다. 상품권은 PortOne V2 가 `giftCertificate.giftCertificateType` 을 필수로 요구해 종류별 카드가 필요하므로 정본 표의 **키를 카드 id 로 승격**하고(`GIFT_CULTURELAND`·`GIFT_BOOKNLIFE`·`GIFT_SMART_MUNSANG`) 항목이 `payMethod` 를 들게 했다. 요청 조립부 2곳(셸·독립 정적)은 `resolveDirectPayFields()` 가 준 묶음을 얹는다. `MOBILE` 은 이니시스에서 처리불가(결제경로 미발송) 후 재신청 중이라 계속 잠금. 해피머니·`CULTURE_GIFT` 는 PortOne V2 이니시스 경로에 대응 값이 없어 제외. |
 | 2026-08-29 | **앱(Play) 콘텐츠 티어 가격을 웹가와 동일하게 인하.** 8개 SKU 를 3,900→3,000 / 6,000→5,000 / 8,900→7,000 / 13,000→10,000 / 25,000→20,000 / 39,000→30,000 / 49,000→39,000 / 89,000→70,000 으로 내렸다. 이용권 4종은 2026-08-24 에 이미 동일가였으므로 이제 **앱의 모든 SKU 가 웹가와 같다** — Play 수수료 15%를 그대로 부담한다는 뜻이고 의도된 선택이다. 종전의 "콘텐츠 티어 20~30% 인상" 밴드 검사는 `verify:app-store-pricing`·`verify:app-store-billing-policy` 에서 **동일가 단언(오차 0)** 으로 교체했다. 상품 이름에 금액이 박혀 있어 이름 8개도 함께 내렸다. 🔴 Play Console 등록가 인하가 코드 배포보다 **먼저** 끝나 있어야 한다(사용자가 2026-08-29 확인). 반대 순서면 그 사이가 "앱 표시가 < 실제 청구가" 정책 위반 구간이다. |

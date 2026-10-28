@@ -39,11 +39,17 @@
   // ACTIVE_STALE_MAX_MS(35일)를 재사용하지 않는 이유는, 만료 근거가 전혀 없는 기록을 그렇게 오래
   // 들고 있으면 배지 등 UI 표면에서 '보유 중'이 과하게 오래 남기 때문이다.
   var ACTIVE_NO_EXPIRY_KEEP_MAX_MS = 24 * 60 * 60 * 1000;
-  // 이용권 최장 기간(30일) + 여유. expiresAt 이 비정상적으로 먼 미래여도 이 상한을 넘기면 폐기한다.
+  // 마지막 서버 확인(checkedAt)에서 35일이 지난 활성 기록은 폐기한다. 이용권은 기간이 없어 expiresAt 이
+  // 먼 미래(기간 없음 센티널)이므로, 오래된 캐시를 끊는 기준은 확인 시각뿐이다.
   // 보안 통제가 아니라 sanity bound 다 — 권위는 서버의 402 이고 localStorage 는 어차피 사용자 제어다.
   var ACTIVE_STALE_MAX_MS = 35 * 24 * 60 * 60 * 1000;
   // checkedAt 이 미래로 적힌 스냅샷(시계 조작·다른 기기 시계 오차)은 age 가 음수가 되어 영원히 신선해진다.
   var FUTURE_CLOCK_SKEW_MAX_MS = 24 * 60 * 60 * 1000;
+  // 🔴 이용권은 2026-10-11 부터 기간이 없다(이용 한도를 모두 쓰면 종료). 서버는 expiresAt 에
+  // "활성화 + 100년" 센티널을 싣는다. 남은 기간이 이 값보다 길면 기간 없는 이용권으로 보고
+  // 만료일·D-day 대신 "기간 제한 없음"을 보여 준다. 서버 정본: worker/lib/profile-limits.js
+  // PASS_OPEN_ENDED_THRESHOLD_MS · isOpenEndedPassExpiry (셸은 워커 모듈을 불러오지 못해 사본이다).
+  var PASS_OPEN_ENDED_THRESHOLD_MS = 10 * 365 * 24 * 60 * 60 * 1000;
 
   // 서버 정본은 worker/lib/profile-limits.js 의 PASS_LIMITS(건당 적용 가격 범위, coin 단위).
   // 2026-08-24: 50 / 100 / 200 = 5,000원 / 10,000원 / 20,000원 (이전 30/50/100).
@@ -104,6 +110,27 @@
   function passLimitForTier(tier) {
     var limit = PASS_LIMIT_BY_TIER[normalizeTier(tier)];
     return Number.isFinite(limit) ? limit : 0;
+  }
+
+  // 정책 버전별 건당 상한(coin). 서버 정본은 lib/payment/pass-policy.js 의 *_PASS_PLANS.maxCoveredCoin.
+  // 대조 가드: scripts/verify-pass-tier-policy.mjs. PASS_LIMIT_BY_TIER 는 legacy 정책 전용이다 —
+  // 현행 큰 꿀단지(300)를 legacy 표(200)로 읽으면 홈·결제 화면이 실제 차감보다 좁게 보인다.
+  var PASS_LIMIT_BY_POLICY = {
+    "flower-20260930": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
+    "flower-cost-20260921": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
+    "flower-20260921": { standard: 50, premium: 100, vvip: 300 }
+  };
+
+  // 모르는 정책 버전이면 0 — 추측하지 않고 서버 값으로 넘긴다.
+  function positiveCoinOrNull(value) {
+    var n = Math.floor(Number(value));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+    function passLimitForPolicy(tier, policyVersion) {
+    var table = PASS_LIMIT_BY_POLICY[policyVersion];
+    if (table) return table[normalizeTier(tier)] || 0;
+    if (policyVersion && policyVersion !== "legacy") return 0;
+    return passLimitForTier(tier);
   }
 
   function monthlyLimitForTier(tier) {
@@ -223,6 +250,7 @@
         state: state,
         tier: state === "active" ? tier : "free",
         passPolicyVersion: text(parsed.passPolicyVersion) || "legacy",
+        passLimitCoin: state === "active" ? positiveCoinOrNull(parsed.passLimitCoin) : null,
         expiresAt: state === "active" ? expiresAt : null,
         checkedAt: checkedAt,
         purchaseVersion: text(parsed.purchaseVersion),
@@ -350,6 +378,8 @@
       state: state,
       tier: state === "active" ? tier : "free",
       passPolicyVersion: text(data.passPolicyVersion || (data.profileSubscription || {}).passPolicyVersion || nested.passPolicyVersion || membership.passPolicyVersion) || "legacy",
+      // 서버가 계산한 건당 상한(정책 버전 반영). 있으면 판정은 이 값을 먼저 쓴다.
+      passLimitCoin: state === "active" ? positiveCoinOrNull(data.passLimit ?? data.maxCoveredCoin ?? nested.passLimit ?? nested.maxCoveredCoin ?? (data.profileSubscription || {}).passLimit) : null,
       expiresAt: state === "active" ? expiresAt : null,
       checkedAt: Date.now(),
       purchaseVersion: text(
@@ -400,6 +430,7 @@
         state: snapshot.state,
         tier: snapshot.tier,
         passPolicyVersion: snapshot.passPolicyVersion || "legacy",
+        passLimitCoin: positiveCoinOrNull(snapshot.passLimitCoin),
         expiresAt: snapshot.expiresAt || null,
         checkedAt: Number(snapshot.checkedAt) || Date.now(),
         purchaseVersion: text(snapshot.purchaseVersion),
@@ -482,13 +513,7 @@
       return result;
     }
     if (snapshot.state !== "active") return result;
-    var policyCoverageLimits = {
-      "flower-20260930": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
-      "flower-cost-20260921": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
-      "flower-20260921": { standard: 50, premium: 100, vvip: 300 }
-    };
-    var policyCoverageLimit = policyCoverageLimits[snapshot.passPolicyVersion];
-    var limit = policyCoverageLimit ? (policyCoverageLimit[snapshot.tier] || 0) : snapshot.passPolicyVersion && snapshot.passPolicyVersion !== "legacy" ? 0 : passLimitForTier(snapshot.tier);
+    var limit = positiveCoinOrNull(snapshot.passLimitCoin) || passLimitForPolicy(snapshot.tier, snapshot.passPolicyVersion);
     result.passLimit = limit;
     result.hasActivePass = true;
     if (!(limit > 0)) return result;
@@ -628,6 +653,14 @@
     return String(reason || "").trim().toUpperCase() === "MONTHLY_PASS_LIMIT_EXCEEDED";
   }
 
+  // 기간 없는 이용권(expiresAt = 센티널)인지 판정한다. 날짜를 보여 주는 표면만 쓴다 — 활성 판정에는 쓰지 않는다.
+  function isOpenEndedPassExpiry(expiresAt, now) {
+    if (!expiresAt) return false;
+    var expiresMs = new Date(expiresAt).getTime();
+    var nowMs = now instanceof Date ? now.getTime() : (now == null ? Date.now() : Number(now));
+    return Number.isFinite(expiresMs) && Number.isFinite(nowMs) && expiresMs - nowMs > PASS_OPEN_ENDED_THRESHOLD_MS;
+  }
+
   return {
     VERSION: 1,
     KEY_PREFIX: KEY_PREFIX,
@@ -641,6 +674,7 @@
     REASON_NONE: REASON_NONE,
     normalizeTier: normalizeTier,
     passLimitForTier: passLimitForTier,
+    passLimitForPolicy: passLimitForPolicy,
     monthlyLimitForTier: monthlyLimitForTier,
     normalizeUserId: normalizeUserId,
     snapshotKey: snapshotKey,
@@ -656,5 +690,7 @@
     storeMonthlyQuotaFromAccessState: storeMonthlyQuotaFromAccessState,
     markPassEndedFromPayload: markPassEndedFromPayload,
     isMonthlyLimitPayload: isMonthlyLimitPayload,
+    PASS_OPEN_ENDED_THRESHOLD_MS: PASS_OPEN_ENDED_THRESHOLD_MS,
+    isOpenEndedPassExpiry: isOpenEndedPassExpiry,
   };
 });

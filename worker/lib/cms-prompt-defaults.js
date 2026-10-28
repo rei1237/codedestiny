@@ -62,6 +62,62 @@ const SYSTEM_PROMPT_SOURCES = [
     service: "숙요",
     load: async () => (await import("../routes/sukuyo-compatibility-ai.js")).getDefaultCompatibilityJsonSystemPrompt(),
   },
+  // 전문가 상담 캐릭터 페르소나 — 위 라우트 지시문 뒤에 덧붙는다(덮어쓰기와 별개로 유지).
+  {
+    key: "expert-persona-yun-vedic",
+    label: "베다점 캐릭터 페르소나 (윤달)",
+    service: "베다점",
+    load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("yunVedic"),
+  },
+  {
+    key: "expert-persona-yun",
+    label: "점성술 캐릭터 페르소나 (윤달)",
+    service: "서양 점성술",
+    load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("yun"),
+  },
+  {
+    key: "expert-persona-musung",
+    label: "자미두수 캐릭터 페르소나 (무성)",
+    service: "자미두수",
+    load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("musung"),
+  },
+  {
+    key: "expert-persona-hanbi",
+    label: "숙요 궁합 캐릭터 페르소나 (서한비)",
+    service: "숙요",
+    load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("hanbi"),
+  },
+  {
+    key: "expert-persona-yeoni",
+    label: "손금 캐릭터 페르소나 (연이)",
+    service: "손금",
+    load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("yeoni"),
+  },
+  // 대표 상담 마스터 페르소나 — 연애 비책은 부마다 연이·서한비 중 한 명이 붙는다.
+  {
+    key: "expert-persona-yeoni-love",
+    label: "연애 비책 마스터 페르소나 (연이)",
+    service: "연애",
+    load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("yeoniLove"),
+  },
+  {
+    key: "expert-persona-hanbi-love",
+    label: "연애 비책 마스터 페르소나 (서한비)",
+    service: "연애",
+    load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("hanbiLove"),
+  },
+  {
+    key: "expert-persona-neo-new-year",
+    label: "신년운세 마스터 페르소나 (네오)",
+    service: "신년운세",
+    load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("neoNewYear"),
+  },
+  {
+    key: "expert-persona-yun-life-book",
+    label: "인생의 책 마스터 페르소나 (윤달)",
+    service: "인생의 책",
+    load: async () => (await import("./expert-character-personas.js")).getDefaultExpertPersona("yunLifeBook"),
+  },
   // sukuyo.js 의 SUKYO_COMPAT_AI_SYSTEM_PROMPT 는 선언만 있고 호출부가 없다(데드코드).
   // 편집해도 서비스에 영향이 없으므로 일부러 목록에서 뺀다 — 상수 자체는 손대지 않았다.
   {

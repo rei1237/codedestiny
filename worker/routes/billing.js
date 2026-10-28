@@ -1,4 +1,4 @@
-import { getRequestMeta, getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { HttpError, getRequestMeta, getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { handleFortuneRoutes } from "./fortune.js";
 import { handlePaymentRoutes } from "./payments.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
@@ -16,6 +16,7 @@ import {
   calculatePaidFeatureMembershipCreditCost,
   getPaidFeaturePaymentPolicy,
   isDirectOrFamilyPaidFeatureKey,
+  isBirthScopedUnlockFeatureKey,
   isDirectOnlyPaidFeatureKey,
   isPerUsePaidFeatureKey,
   isUnlockPaidFeatureKey,
@@ -30,6 +31,8 @@ import {
 } from "../lib/service-execution-task.js";
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { consultationRefundResponse } from "../lib/consultation-refund-state.js";
+import { withPaymentDb, createPaymentContext, toObjectId } from "../payments/db.js";
 import {
   collectDeferredEvidenceIds,
   deferredAccessType,
@@ -41,6 +44,8 @@ import {
   CONTENT_ENTITLEMENT_SOURCES,
   CheckoutFunnelEvent,
   MonthlyCreditLedger,
+  NewYearAiConsultation,
+  LifeBookAiConsultation,
   PaidExecutionRecord,
   Payment,
   PointHistory,
@@ -62,15 +67,17 @@ import {
   upsertPaidContentUnlock,
 } from "../lib/content-unlocks.js";
 import { hasUserScopedPermanentUnlock } from "../lib/paid-content-read-access.js";
+import { isBirthUnlockIdentityError, resolveBirthUnlockIdentity } from "../lib/birth-scoped-unlock-identity.js";
 import {
   buildPassTerminationFields,
+  computePassExpiry,
   isPassBudgetExhausted,
   normalizePassTier,
   PASS_LIMITS,
   resolvePassPolicy,
-  HONEY_PASS_POLICY,
   resolveMonthlySpendQuota,
   resolvePremiumQuota,
+  resolveProfileLimitForClient,
 } from "../lib/profile-limits.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
 import {
@@ -473,13 +480,15 @@ function resolveSajuProfileUnlockReadContentKey(featureKey, contentKey = "") {
 
 // contentKey 를 안 넘기면 featureKey 로 유도된 키(연도 없음)로 조회한다 — 1년운은 행이 연도별이라
 // 그 조회가 절대 매칭되지 않아 이미 산 연도를 다시 결제시킨다.
-async function findActiveSajuProfileUnlock(env, { userId, profileId, featureKey, contentKey = "" }) {
+async function findActiveSajuProfileUnlock(env, { userId, profileId, partnerProfileId = "", featureKey, contentKey = "", birthIdentity = null }) {
   await connectDb(env);
   const readContentKey = resolveSajuProfileUnlockReadContentKey(featureKey, contentKey);
   return findActivePaidContentUnlock({
     userId,
     profileId,
+    partnerProfileId,
     featureKey,
+    ...(birthIdentity ? { birthIdentity } : {}),
     ...(readContentKey ? { contentKey: readContentKey } : {}),
   });
 }
@@ -496,6 +505,7 @@ async function upsertSajuProfileUnlockEntitlement(env, {
   coinAmount = 0,
   unlockedAt = null,
   session = null,
+  birthIdentity = null,
 }) {
   if (!userId) {
     const error = new Error("User id is required for profile-scoped unlock entitlement.");
@@ -522,6 +532,7 @@ async function upsertSajuProfileUnlockEntitlement(env, {
     coinAmount,
     unlockedAt,
     session,
+    ...(birthIdentity ? { birthIdentity } : {}),
   }).catch((error) => {
     throw createUnlockEntitlementSaveError(error);
   });
@@ -1061,7 +1072,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     recommendedMethods: passCovered ? ["PASS"] : equalPriorityPaidMethods,
     equalPriorityMethods: passCovered ? [] : equalPriorityPaidMethods,
     paymentPriority: passCovered ? "PASS_FIRST" : "USER_CHOICE_EQUAL",
-    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : (directOnly ? ["PASS", "COIN", "MOONLIGHT_STONE"] : (familyPassOnly ? ["COIN", ...(monthlyExcluded ? ["MOONLIGHT_STONE"] : [])] : [])),
+    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : (directOnly ? ["PASS", "COIN", "MOONLIGHT_STONE"] : (familyPassOnly ? ["COIN", ...(monthlyExcluded ? ["MOONLIGHT_STONE"] : [])] : (monthlyExcluded ? ["MOONLIGHT_STONE"] : []))),
     // 포함 횟수를 다 쓴 경우에도 결제수단은 그대로 동등 노출된다(위 equalPriorityPaidMethods).
     // 클라이언트가 "이용권이 없어서"가 아니라 "포함 횟수를 다 써서"라고 안내할 수 있도록
     // 사유와 잔여 횟수를 함께 내린다.
@@ -1291,13 +1302,15 @@ async function resolvePaidContentAccess(env, {
   // 호출자가 이번 요청에서 이미 읽은 User.unlockedFeatures. 있으면 같은 필드를 다시 조회하지 않는다.
   accountUnlockedFeatures = null,
   body = {},
+  birthIdentity = null,
 } = {}) {
   const priceCoin = resolvePricingCoinCost(pricing);
   const featureKey = String(pricing?.featureKey || "").trim();
   const unlockReadContentKey = resolveSajuProfileUnlockReadContentKey(featureKey, body?.contentKey);
   const cacheKey = buildPaidAccessDecisionCacheKey({
     userId,
-    profileId,
+    // 출생 신원을 알면 키에 넣는다 — 같은 프로필이라도 생년월일을 고치면 다른 판정이다.
+    profileId: birthIdentity?.entitlementProfileId ? `${profileId}#${birthIdentity.entitlementProfileId}` : profileId,
     featureKey,
     contentKey: unlockReadContentKey,
     coinPrice: priceCoin,
@@ -1314,7 +1327,10 @@ async function resolvePaidContentAccess(env, {
     });
   }
 
-  if (resolveSajuProfileUnlockContentKey(featureKey) && !profileId) {
+  const birthScopedKey = isBirthScopedUnlockFeatureKey(featureKey);
+  const profileRequired = Boolean(resolveSajuProfileUnlockContentKey(featureKey)) || birthScopedKey;
+  // 출생 기반 키는 프로필 없이도 레거시 USER 행(전환 이전 결제)으로 열릴 수 있어 아래 조회까지 간다.
+  if (profileRequired && !profileId && !birthScopedKey) {
     return buildPaidContentAccessDecision({
       reason: "invalid_profile",
       priceCoin,
@@ -1325,7 +1341,14 @@ async function resolvePaidContentAccess(env, {
     // 결제 게이팅의 핵심 판정(이미 해금됐는지·이용권이 커버하는지). 일시적 풀 초기화에도
     // '일시 불가'로 떨어지지 않고 정확히 판정하도록 재시도로 감싼다(타임아웃 degrade는 유지).
     const [existingUnlock, userPermanentUnlock, existingPass] = await withMongoRetry(env, () => withDbAccessTimeout(Promise.all([
-      findActiveSajuProfileUnlock(env, { userId, profileId, featureKey, contentKey: unlockReadContentKey }),
+      findActiveSajuProfileUnlock(env, {
+        userId,
+        profileId,
+        partnerProfileId: cleanProfileId(body?.partnerProfileId),
+        featureKey,
+        contentKey: unlockReadContentKey,
+        birthIdentity,
+      }),
       hasUserScopedPermanentUnlock(env, { userId, featureKey, unlockedFeatures: accountUnlockedFeatures }),
       Promise.resolve(subscriptionPass || getActiveMembershipPassForUser(env, userId)),
     ]), PAID_ACCESS_DECISION_DB_TIMEOUT_MS, "UNLOCK_ACCESS_DECISION_TIMEOUT"));
@@ -1336,6 +1359,12 @@ async function resolvePaidContentAccess(env, {
         unlockId: String(existingUnlock?._id || `user:${featureKey}`),
         priceCoin,
       }), priceCoin);
+    }
+    if (profileRequired && !profileId) {
+      return buildPaidContentAccessDecision({
+        reason: "invalid_profile",
+        priceCoin,
+      });
     }
 
     const activePass = existingPass || {
@@ -2385,7 +2414,7 @@ async function markDeferredPaymentFulfilled(record, authUserId) {
         { requestId: paymentId },
       ],
     };
-  await Payment.updateOne(query, {
+  await Payment.updateOne({ ...query, status: { $in: ["paid", "success", "fulfilled"] } }, {
     $set: {
       status: "fulfilled",
       orderState: "UNLOCKED",
@@ -2393,23 +2422,36 @@ async function markDeferredPaymentFulfilled(record, authUserId) {
   }).catch(() => {});
 }
 
-async function completeDeferredUsageRecord(record, authUserId, resultId, applyResult = null) {
+async function completeDeferredUsageRecord(record, authUserId, resultId, applyResult = null, env = {}) {
   const now = new Date();
+  const filter = { _id: record._id, userId: String(authUserId || ""), status: { $nin: ["refunded", "cancelled"] } };
+  const update = { $set: { status: "completed", consumedAt: record.consumedAt || now, completedAt: now,
+    resultId: String(resultId || ""), "result.applyResult": applyResult, "result.completedAt": now.toISOString() } };
+  const model = record.featureId === "new-year-ai-consultation" ? NewYearAiConsultation
+    : ["life-book-ai-consultation", "life-fortune-ai-consultation"].includes(record.featureId) ? LifeBookAiConsultation : null;
+  const snapshot = deferredUsageSnapshot(record);
+  if (model && normalizeDeferredPaymentMethod(snapshot.paymentMethod) === "DIRECT_KRW") {
+    const blocked = () => Object.assign(new HttpError(409, "결제 취소·환불 상태를 확인 중입니다.", { code: "DEFERRED_USAGE_REVOKED" }), { code: "DEFERRED_USAGE_REVOKED" });
+    const ctx = createPaymentContext({ requestId: record.requestId, route: "billing-deferred-apply" });
+    return withPaymentDb(env, ctx, db => db.transaction(async tx => {
+      const consultation = await tx.findOne(model, { userId: String(authUserId), idempotencyKey: String(record.requestId) });
+      if (!consultation || consultationRefundResponse(consultation) || !["delivery_pending", "completed"].includes(consultation.status)) throw blocked();
+      const tokens = [...new Set([snapshot.paymentId, snapshot.evidence?.paymentId, record.paymentId, record.orderId].map(value => String(value || "").trim()).filter(Boolean))];
+      const payment = await tx.findOneAndUpdate(Payment, { userId: toObjectId(authUserId), featureKey: record.featureId,
+        status: { $in: ["paid", "success", "fulfilled"] }, $and: [
+          { $or: [{ requestId: record.requestId }, { idempotencyKey: record.requestId }, { merchantUid: { $in: tokens } }, { impUid: { $in: tokens } },
+            { _id: { $in: tokens.map(toObjectId).filter(Boolean) } }] },
+          { $or: [{ refundLock: null }, { refundLock: { $exists: false } }] },
+        ] }, { $set: { status: "fulfilled", orderState: "UNLOCKED", updatedAt: now } }, { returnDocument: "after", includeResultMetadata: false });
+      if (!payment) throw blocked();
+      const completed = await tx.findOneAndUpdate(PaidExecutionRecord, filter, update, { returnDocument: "after", includeResultMetadata: false });
+      if (!completed) throw blocked();
+      return completed;
+    }));
+  }
+  const updated = await PaidExecutionRecord.findOneAndUpdate(filter, update, { new: true }).lean();
+  if (!updated) throw Object.assign(new HttpError(409, "이용 처리가 취소되었거나 확인 중입니다.", { code: "DEFERRED_USAGE_REVOKED" }), { code: "DEFERRED_USAGE_REVOKED" });
   await markDeferredPaymentFulfilled(record, authUserId);
-  const updated = await PaidExecutionRecord.findOneAndUpdate(
-    { _id: record._id, userId: String(authUserId || "") },
-    {
-      $set: {
-        status: "completed",
-        consumedAt: record.consumedAt || now,
-        completedAt: now,
-        resultId: String(resultId || ""),
-        "result.applyResult": applyResult,
-        "result.completedAt": now.toISOString(),
-      },
-    },
-    { new: true },
-  ).lean();
   return updated;
 }
 
@@ -2423,6 +2465,18 @@ async function handleDeferredUsageApply(request, env) {
   const featureKey = String(pricingResult.pricing?.featureKey || body?.featureKey || "").trim();
   const record = await findDeferredUsageRecord(env, authCheck.auth.userId, featureKey, requestId, body);
   if (!record) return failure(404, "DEFERRED_USAGE_NOT_FOUND", "보류된 이용 권한을 찾을 수 없습니다.");
+  const consultationModel = record.featureId === "new-year-ai-consultation" ? NewYearAiConsultation
+    : ["life-book-ai-consultation", "life-fortune-ai-consultation"].includes(record.featureId) ? LifeBookAiConsultation : null;
+  if (consultationModel) {
+    const consultation = await consultationModel.findOne({ userId: String(authCheck.auth.userId), idempotencyKey: String(record.requestId) })
+      .select("status llmMeta.deliveryRefund").lean();
+    const refund = consultationRefundResponse(consultation);
+    if (refund) return json(refund.body, { status: refund.status });
+    if (!consultation || !["delivery_pending", "completed"].includes(consultation.status)) {
+      return failure(409, "RESULT_NOT_READY", "상담 결과의 완료 상태를 확인한 뒤 이용 처리를 확정합니다.");
+    }
+  }
+  if (["refunded", "cancelled"].includes(record.status)) return failure(403, "DEFERRED_USAGE_REVOKED", "취소된 이용 처리는 다시 확정할 수 없습니다.");
   if (record.status === "completed") {
     return success({ deferredUsage: true, executionId: record.executionId, status: "completed" }, "이용 권한이 이미 확정되었습니다.");
   }
@@ -2438,7 +2492,7 @@ async function handleDeferredUsageApply(request, env) {
     });
   }
   if (snapshot.source === "verified_payment" || snapshot.evidence) {
-    const completed = await completeDeferredUsageRecord(record, authCheck.auth.userId, body?.resultId || body?.sessionId || "", { source: snapshot.source, evidence: snapshot.evidence || null });
+    const completed = await completeDeferredUsageRecord(record, authCheck.auth.userId, body?.resultId || body?.sessionId || "", { source: snapshot.source, evidence: snapshot.evidence || null }, env);
     return success({ deferredUsage: true, executionId: completed?.executionId || record.executionId, status: "completed" }, "이용 권한이 확정되었습니다.");
   }
 
@@ -2454,7 +2508,7 @@ async function handleDeferredUsageApply(request, env) {
   const applyResponse = await processCoinGateFromPricing(request, env, applyBody, pricingResult);
   const applyPayload = await readPayloadSafe(applyResponse);
   if (!applyResponse.ok || applyPayload?.ok !== true) return applyResponse;
-  const completed = await completeDeferredUsageRecord(record, authCheck.auth.userId, body?.resultId || body?.sessionId || "", applyPayload?.data || applyPayload);
+  const completed = await completeDeferredUsageRecord(record, authCheck.auth.userId, body?.resultId || body?.sessionId || "", applyPayload?.data || applyPayload, env);
   return success({
     ...(applyPayload?.data && typeof applyPayload.data === "object" ? applyPayload.data : {}),
     deferredUsage: true,
@@ -2480,8 +2534,10 @@ async function handleDeferredUsageCancel(request, env) {
     {
       $set: {
         status: "generation_failed",
-        "error.code": String(body?.code || "GENERATION_FAILED").slice(0, 80),
-        "error.message": String(body?.message || "").slice(0, 500),
+        error: {
+          code: String(body?.code || "GENERATION_FAILED").slice(0, 80),
+          message: String(body?.message || "").slice(0, 500),
+        },
       },
     },
   );
@@ -2536,14 +2592,18 @@ async function resolveProfileScopedUnlocks(authUserId, profileId, accountFeature
       profileId: normalizedProfileId,
     }),
   ]);
+  // 🔴 출생 기반 키의 PointHistory 차감 기록은 profileId 에 묶여 있어 생년월일을 고친 뒤에도 남는다 —
+  // 근거로 쓰지 않는다(이관 스크립트가 BIRTH 행으로 옮긴다). 출생 기반 키는 BIRTH 스냅샷으로만 열린다.
   const legacyProfileKeys = keys
     .map((key) => String(key || "").trim())
-    .filter(isProfileScopedUnlockKey);
+    .filter(isProfileScopedUnlockKey)
+    .filter((key) => !isBirthScopedUnlockFeatureKey(key));
   // 계정 전역 배열(User.unlockedFeatures/paidFeatures)은 어떤 프로필에서 구매했는지 모른다.
   // 프로필 스코프 키(예: section_daewun)까지 여기서 그대로 union하면 프로필 A의 구매가
   // 프로필 B 조회에도 해제로 새어나간다 — 계정 전역으로 취급해도 되는 키만 union한다.
   const unlockedFeatures = Array.from(new Set([
-    ...normalizeUnlockedFeatureList(accountFeatureKeys).filter((key) => !isProfileScopedUnlockKey(key)),
+    ...normalizeUnlockedFeatureList(accountFeatureKeys).filter((key) => !isProfileScopedUnlockKey(key))
+      .filter((key) => !isBirthScopedUnlockFeatureKey(key)),
     ...legacyProfileKeys,
     ...normalizeUnlockedFeatureList(entitlementSnapshot.featureKeys),
   ]));
@@ -3405,6 +3465,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || resolvePaidReportSessionFallback(pricing, reportId, requestId)).trim();
   const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
+  // 🔴 출생 기반 영구 해금은 "계정 + 생년월일" 단위다. 요청이 고른 저장 프로필만 받고,
+  // destinyProfilesCurrentId(현재 프로필) 폴백은 쓰지 않는다 — 다른 사람 출생 정보로 지급되는 것을 막는다.
+  const birthScopedGate = persistProfileUnlockEntitlement && isBirthScopedUnlockFeatureKey(pricing?.featureKey);
   // 이용권/프로필 조회(READ)도 일시적 풀 초기화(MongoPoolClearedError)에 '일시 불가'로
   // 떨어지지 않도록 재시도로 감싼다(재시도 소진 시 degrade 마커는 기존 유지).
   const lookupStartedAt = Date.now();
@@ -3450,6 +3513,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   if (authCheck?.auth?.userId && !isPassLookupUnavailableMarker(subscriptionPassLookupResult)) {
     if (explicitBillingProfileId) {
       profileLookupResult = explicitBillingProfileId;
+    } else if (birthScopedGate) {
+      profileLookupResult = "";
     } else if (subscriptionPassLookupResult?.__userDocFresh === true) {
       profileLookupResult = cleanProfileId(subscriptionPassLookupResult.destinyProfilesCurrentId);
     } else {
@@ -3505,18 +3570,87 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
   });
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
-  if (persistProfileUnlockEntitlement && !profileId) {
-    return failure(403, "MISSING_PROFILE_ID", "Profile selection is required before unlocking this paid section.", undefined, {
-      pricing,
-      reason: "missing_profile_id",
-      accessGrant: null,
-      paymentOptions: buildPassPaymentDecision(
-        subscriptionPassForDecision?.entitlement,
+  // 레거시 유지: 출생 기반 전환 이전 USER/PROFILE 행으로 이미 산 고객은 프로필 확인 실패로 막지 않는다.
+  // 아래 resolvePaidContentAccess 가 그 행으로 already_unlocked 를 돌려준다(재잠금·재과금 방지).
+  // 조회 오류는 false — 종전처럼 프로필 오류로 끝난다.
+  const hasLegacyBirthScopedUnlock = async () => {
+    if (!birthScopedGate) return false;
+    try {
+      return Boolean(await withMongoRetry(env, () => findActiveSajuProfileUnlock(env, {
+        userId: authCheck.auth.userId,
+        profileId,
+        partnerProfileId: cleanProfileId(body?.partnerProfileId),
+        featureKey: pricing.featureKey,
+        contentKey: body?.contentKey,
+      })));
+    } catch {
+      return false;
+    }
+  };
+  if (persistProfileUnlockEntitlement && !profileId && !(await hasLegacyBirthScopedUnlock())) {
+    return failure(
+      birthScopedGate ? 400 : 403,
+      "MISSING_PROFILE_ID",
+      birthScopedGate ? "프로필을 저장한 뒤 구매해 주세요." : "Profile selection is required before unlocking this paid section.",
+      undefined,
+      {
         pricing,
-        subscriptionPassForDecision?.profileSubscription,
-      ),
-      requiresProfile: true,
-    });
+        reason: "missing_profile_id",
+        accessGrant: null,
+        paymentOptions: buildPassPaymentDecision(
+          subscriptionPassForDecision?.entitlement,
+          pricing,
+          subscriptionPassForDecision?.profileSubscription,
+        ),
+        requiresProfile: true,
+      },
+    );
+  }
+  // 🔴 소유 확인은 어떤 차감·지급보다 먼저다. 이 계정의 저장 프로필이 아니면(다른 계정·삭제·합성 id)
+  // 403, 궁합 상대가 없으면 400. 여기서 만든 신원(birthKey)으로 판정하고 지급한다.
+  let birthUnlockIdentity = null;
+  if (birthScopedGate && profileId) {
+    try {
+      birthUnlockIdentity = await withMongoRetry(env, async () => {
+        await connectDb(env);
+        return withDbAccessTimeout(
+          resolveBirthUnlockIdentity({
+            userId: authCheck.auth.userId,
+            profileId,
+            partnerProfileId: cleanProfileId(body?.partnerProfileId),
+            featureKey: pricing.featureKey,
+          }),
+          PAID_ACCESS_DECISION_DB_TIMEOUT_MS,
+          "COIN_GATE_BIRTH_IDENTITY_TIMEOUT",
+        );
+      });
+    } catch (error) {
+      if (!isBirthUnlockIdentityError(error)) {
+        if (!isDatabaseUnavailableError(error)) throw error;
+        return buildPassStatusTemporarilyUnavailableFailure(pricing, {
+          scope: "birth_identity_lookup",
+          cause: paidAccessErrorStage(error),
+          errorDetails: buildBillingErrorDetails("coin-gate-birth-identity", error, {
+            featureKey: String(pricing?.featureKey || ""),
+            requestId,
+          }),
+        });
+      }
+      if (!(await hasLegacyBirthScopedUnlock())) {
+        const missing = error.code === "MISSING_PROFILE_ID";
+        return failure(missing ? 400 : 403, error.code, error.message, undefined, {
+          pricing,
+          reason: missing ? "missing_profile_id" : "invalid_profile",
+          accessGrant: null,
+          paymentOptions: buildPassPaymentDecision(
+            subscriptionPassForDecision?.entitlement,
+            pricing,
+            subscriptionPassForDecision?.profileSubscription,
+          ),
+          requiresProfile: true,
+        });
+      }
+    }
   }
   let paymentDecision = buildPassPaymentDecision(null, pricing, null);
   let accessDecision = buildPaidContentAccessDecision({
@@ -3568,6 +3702,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         ]
         : null,
       body: scopedBody,
+      birthIdentity: birthUnlockIdentity,
     });
     accessDecisionElapsedMs = Date.now() - accessDecisionStartedAt;
   }
@@ -3639,6 +3774,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           source: CONTENT_ENTITLEMENT_SOURCES.PASS,
           passId: `membership:${subscriptionPassForDecision?.tier || paymentDecision.passTier || "pass"}:${requestId}`,
           coinAmount: 0,
+          birthIdentity: birthUnlockIdentity,
         });
         logPaidAccessStage("UNLOCK_SAVE_SUCCESS", {
           requestId,
@@ -3898,6 +4034,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             source: CONTENT_ENTITLEMENT_SOURCES.PASS,
             passId: `membership:${subscriptionPass.tier}:${requestId}`,
             coinAmount: 0,
+            birthIdentity: birthUnlockIdentity,
           });
           logPaidAccessStage("UNLOCK_SAVE_SUCCESS", {
             requestId,
@@ -4120,6 +4257,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             paymentId: String(history?._id || ledger?._id || requestId),
             coinAmount: resolvePricingCoinCost(pricing),
             session,
+            birthIdentity: birthUnlockIdentity,
           })
           : null,
       }));
@@ -4153,9 +4291,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
               orderId: membershipConsume.purchaseId || requestId,
               paymentId: membershipConsume.transactionId || requestId,
               coinAmount: Number(membershipConsume.coinPrice || 0),
+              birthIdentity: birthUnlockIdentity,
             });
           } catch (error) {
-            const repairIsClientFault = error?.code === "MISSING_PROFILE_ID";
+            const repairIsClientFault = error?.code === "MISSING_PROFILE_ID" || error?.code === "INVALID_PROFILE";
             return failure(
               repairIsClientFault ? 403 : 503,
               "UNLOCK_ENTITLEMENT_REPAIR_FAILED",
@@ -4415,7 +4554,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   if (passExcludedForPricing && coinPaymentRequested) {
     // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출(부족 시 클라이언트가 비활성 처리).
     // 이용권 제외 기능 공용 경로(프로필 카드 추가/삭제 + 음악 트랙) — 문구·변수명을 기능 중립으로 둔다.
-    const passExcludedPaymentMethods = directOnlyForPricing ? ["DIRECT_KRW"] : ["DIRECT_KRW", "MOONLIGHT_STONE"];
+    const passExcludedPaymentMethods = getPaidFeaturePaymentPolicy(pricing?.featureKey).monthlyExcluded ? ["DIRECT_KRW"] : ["DIRECT_KRW", "MOONLIGHT_STONE"];
     return failure(402, "PAYMENT_REQUIRED", directOnlyForPricing ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 기능은 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
       pricing,
       ...paymentDecision,
@@ -4425,7 +4564,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         recommendedMethod: "PAYMENT_CHOICE",
         recommendedMethods: passExcludedPaymentMethods,
         equalPriorityMethods: passExcludedPaymentMethods,
-        hiddenMethods: directOnlyForPricing ? ["PASS", "COIN", "MOONLIGHT_STONE"] : ["PASS", "COIN"],
+        hiddenMethods: getPaidFeaturePaymentPolicy(pricing?.featureKey).monthlyExcluded ? ["PASS", "COIN", "MOONLIGHT_STONE"] : ["PASS", "COIN"],
         paymentPriority: "USER_CHOICE_EQUAL",
       },
       accessDecision,
@@ -4624,8 +4763,9 @@ function requireDevPaymentTesterAccess(env) {
 function buildDevPassPatch(tier, now) {
   const normalizedTier = normalizePassTier(tier);
   const passLimit = Number(PASS_LIMITS[normalizedTier] || 0);
-  const profileLimit = Number(HONEY_PASS_POLICY[normalizedTier]?.maxProfiles ?? 1);
-  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const profileLimit = resolveProfileLimitForClient();
+  // 실결제와 같은 표현(기간 없음 — 한도 소진 시 종료)으로 맞춘다.
+  const expiresAt = computePassExpiry({ transition: { code: "NEW" }, paidAt: now, now });
   return {
     tier: normalizedTier,
     source: "event",
@@ -4761,6 +4901,8 @@ async function handlePaidAccessCheck(request, env) {
     // 회당 결제는 "이번 요청의 결제"만 근거가 된다. 이 조회가 게이트와 다른 답을 내면 화면과
     // 서버 판정이 갈라지므로, 호출자가 준 요청 키를 그대로 넘겨 같은 질문을 하게 한다.
     requestId: body?.requestId || body?.idempotencyKey || url.searchParams.get("requestId") || "",
+    // 출생 기반 키는 "보고 있는 프로필"의 생년월일로 판정한다(없으면 현재 프로필).
+    profileId: cleanProfileId(body?.profileId || body?.selectedProfileId || url.searchParams.get("profileId") || url.searchParams.get("selectedProfileId") || ""),
   });
   const status = decision.reason === "LOGIN_REQUIRED" ? 401 : 200;
   return json({ ok: decision.allowed, data: decision, code: decision.reason }, { status });
@@ -5288,7 +5430,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       freeLimit: entitlement.maxCoveredCoin,
       passLimit: entitlement.maxCoveredCoin,
       maxCoveredCoin: entitlement.maxCoveredCoin,
-      profileLimit: entitlement.maxProfiles,
+      profileLimit: resolveProfileLimitForClient(), // 2026-10-11 프로필 개수 상한 없음(0 = 무제한)
       source: entitlement.source,
       expiresAt: entitlement.expiresAt || sub?.expiresAt || null,
       monthlyStoneBalance: membershipCreditBalance,
@@ -5678,9 +5820,14 @@ async function handleUnlockStatus(request, env) {
       paidAccessRetryableHeaders("snapshot"),
     );
   }
-  const unlockMap = data.unlockMap && typeof data.unlockMap === "object" ? data.unlockMap : {};
+  // 🔴 사본을 쓴다 — 아래에서 이 맵에 쓰는데, data 는 캐시된 스냅샷일 수 있다.
+  const unlockMap = data.unlockMap && typeof data.unlockMap === "object" ? { ...data.unlockMap } : {};
   let pricing = pricingResult.pricing;
-  let unlocked = Boolean(unlockMap[pricing.featureKey]);
+  // 출생 기반 키는 스냅샷 맵(현재 카드 기준 + 계정 배열 합집합)을 근거로 쓰지 않는다. 요청한 profileId 의
+  // 출생으로 판정하는 아래 resolvePaidContentAccess(BIRTH 행 + 레거시 USER/PROFILE 행)만 unlocked 를 켤 수 있다.
+  const birthScopedStatus = isBirthScopedUnlockFeatureKey(pricing.featureKey);
+  if (birthScopedStatus) delete unlockMap[pricing.featureKey];
+  let unlocked = birthScopedStatus ? false : Boolean(unlockMap[pricing.featureKey]);
   const currentBalance = null;
   const subscription = data.subscription || { isActive: false, tier: "free", passTier: null, freeLimit: 0 };
   const subscriptionEntitlement = {
@@ -5882,7 +6029,7 @@ async function handleLegacyRefund(request, env) {
   }
 
   if (!delegatedResponse.ok) {
-    const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
+    const mapped = /^REFUND_(?:NOT_ELIGIBLE|VERIFY_UNAVAILABLE)$/.test(String(payload?.code || "")) ? { status: delegatedResponse.status, code: payload.code, message: String(payload.message || "") } : mapCoinGateFailure(delegatedResponse.status, payload); // 전달 완료 409·확인 불가 503 은 접지 않는다(409→400·503→500 방지)
     return failure(mapped.status, mapped.code, mapped.message, mapped.debugMessage);
   }
 

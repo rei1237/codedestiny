@@ -8,6 +8,8 @@ import {askPhase5Copy} from '../_lib/ask-phase5-copy';
 import {journeyCopy} from '../_lib/journey-copy';
 import {v7Label,v7PartHead} from '../_lib/reading-v7-copy';
 import ReadingCharts from './ReadingCharts';
+import ReportIllustration from './ReportIllustration';
+import {readingPartHeading,readingBodyBlocks} from '@/lib/pdf/yeongnyangi-report-plan';
 import {TarotSpreadResult,spreadCards} from './tarot/TarotSpreadReveal';
 import BlockChartHints from './BlockChartHints';
 import {AtAGlance,AnswerTable,Interlude,KeyPoints,MascotBubble,SajuBoard,SceneArt,TimingTimeline,YearFocus} from './ReadingVisuals';
@@ -26,6 +28,7 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
   document.querySelectorAll('[data-reading-chapter]').forEach(el=>observer.observe(el));
   return ()=>observer.disconnect();
  },[storageKey,row.chapters.length]);
+ const fusion=row.product.readingKind!=='single';
  const copy=readingCopy(row.locale),journey=journeyCopy(row.locale),focusCopy=readingFocusCopy(row.locale);
  const first=row.chapters[0],firstAnswer=first?.questionAnswers?.[0];
  const firstQuestion=firstAnswer?row.consultation?.questions?.find(q=>q.id===firstAnswer.questionId)?.text:undefined;
@@ -62,16 +65,17 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
     <div><dt>{firstAnswer.mode?answerCopy.reason:copy.reason}</dt><dd>{firstAnswer.reason}</dd></div>
     <div><dt>{firstAnswer.mode?answerCopy.timing:copy.timing}</dt><dd>{firstAnswer.timing}</dd></div>
     <div className={styles.focusAction}><dt>{firstAnswer.mode?answerCopy.action:copy.action}</dt><dd>{firstAnswer.action}</dd></div>
-    {firstAnswer.review&&<div className={styles.answerReview}><dt>{answerCopy.review}</dt><dd>{firstAnswer.review}</dd></div>}
+    {firstAnswer.review&&<div className={styles.answerReview}><dt>{fusion&&(!row.locale||row.locale==='ko')?'판단을 바꿀 조건':answerCopy.review}</dt><dd>{firstAnswer.review}</dd></div>}
    </dl>:first.advice&&<div className={styles.focusAction}><h3>{copy.next}</h3><p>{first.advice}</p></div>}
   </section>}
-  <aside className={styles.navigation}><details open={open} onToggle={e=>setOpen(e.currentTarget.open)}><summary>{ask?answerCopy.answer:`${copy.contents} · ${Math.max(1,row.manifest.findIndex(c=>`chapter-${c.id}`===current)+1)} / ${row.manifest.length}`}</summary>
+  <aside className={styles.navigation}><details open={open} onToggle={e=>setOpen(e.currentTarget.open)}><summary>{ask&&!fusion?answerCopy.answer:!row.chapters.length?copy.contents:`${copy.contents} · ${Math.max(1,row.manifest.findIndex(c=>`chapter-${c.id}`===current)+1)} / ${row.manifest.length}`}</summary>
    <nav aria-label={copy.contents}>{row.manifest.map((chapter,i)=>{
-    const head=v7PartHead(row.manifest,i,row.locale);
-     return <Fragment key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}<a href={available.has(chapter.id)?`#chapter-${chapter.id}`:'#reading-progress'} aria-current={current===`chapter-${chapter.id}`?'location':undefined}>{ask?'':`${i+1}. `}{title(i)}<span className={styles.chapterStatus}>{available.has(chapter.id)?journey.saved:recovery?journey.recovery:journey.preparing}</span></a></Fragment>;
+    const head=v7PartHead(row.manifest,i,row.locale)||(row.product.readingKind!=='single'&&(!row.locale||row.locale==='ko')?readingPartHeading(row.manifest,i):undefined);
+     return <Fragment key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}<a href={available.has(chapter.id)?`#chapter-${chapter.id}`:'#reading-progress'} aria-current={current===`chapter-${chapter.id}`?'location':undefined}>{ask&&!fusion?'':`${i+1}. `}{title(i)}<span className={styles.chapterStatus}>{available.has(chapter.id)?journey.saved:recovery?journey.recovery:journey.preparing}</span></a></Fragment>;
    })}</nav>
   </details>{saved&&row.manifest.some(c=>`chapter-${c.id}`===saved)&&<a className={styles.resume} href={`#${saved}`}>{copy.resume}</a>}</aside>
   <div className={styles.body}>
+   {row.chapters.length>0&&<ReportIllustration scene="cover"/>}
    {rich&&<details className={styles.reference}><summary>{visualCopy(row.locale).glance}</summary><AtAGlance manifest={row.manifest} chapters={row.chapters} title={title} locale={row.locale}/></details>}
    {!!row.charts?.length&&<details className={styles.reference} data-reading-evidence><summary>{chartCopy(row.locale).section}</summary><ReadingCharts charts={row.charts} available={available} titles={Object.fromEntries(row.manifest.map((c,i)=>[c.id,title(i)]))} locale={row.locale}/></details>}
    {row.chapters.map((chapter,index)=><Fragment key={row.manifest[index].id}><article data-reading-chapter id={`chapter-${row.manifest[index].id}`} className={styles.chapter} tabIndex={-1}>
@@ -82,12 +86,13 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
     {chapter.questionAnswers?.filter(answer=>answer!==firstAnswer).map(answer=><section key={answer.questionId}><h3>{row.consultation?.questions?.find(q=>q.id===answer.questionId)?.text || (answer.mode?answerCopy.answer:copy.answer)}</h3>
      {answer.mode&&<div className={styles.answerStatus} data-mode={answer.mode} role="note"><strong>{answerCopy[answer.mode]}</strong>{answer.mode==='limited'&&<p>{answerCopy.limitedHint}</p>}{answer.mode==='care'&&<p>{answerCopy.careHint}</p>}</div>}
      <p>{answer.answer}</p>{visual?<AnswerTable label={answer.mode?answerCopy.answer:copy.answer} rows={[[answer.mode?answerCopy.reason:copy.reason,answer.reason],[answer.mode?answerCopy.timing:copy.timing,answer.timing],[answer.mode?answerCopy.action:copy.action,answer.action]]}/>:<><h4>{answer.mode?answerCopy.reason:copy.reason}</h4><p>{answer.reason}</p><h4>{answer.mode?answerCopy.timing:copy.timing}</h4><p>{answer.timing}</p><h4>{answer.mode?answerCopy.action:copy.action}</h4><p>{answer.action}</p></>}{answer.review&&<div className={styles.answerReview}><h4>{answerCopy.review}</h4><p>{answer.review}</p></div>}</section>)}
-    {chapter.blocks?.length?chapter.blocks.map((block,b)=><section key={block.id || b}><h3>{block.title}</h3>{block.id?scene(index,block.id):null}<BlockChartHints block={block} charts={row.charts} locale={row.locale}/>{block.paragraphs.map((text,i)=><p key={i}>{text}</p>)}</section>):chapter.analysis.map((text,i)=><p key={i}>{text}</p>)}
+    {readingBodyBlocks(chapter).map((block,b)=><section key={block.id || b}>{block.title&&<h3>{block.title}</h3>}{block.id?scene(index,block.id):null}<BlockChartHints block={block} charts={row.charts} locale={row.locale}/>{block.paragraphs.map((text,i)=><p key={i}>{text}</p>)}</section>)}
     {chapter.example&&<section><h3>{copy.example}</h3>{scene(index)}<p>{chapter.example}</p></section>}{chapter.advice&&(index>0||!!firstAnswer)&&<section><h3>{copy.next}</h3><p>{chapter.advice}</p></section>}
     {index===timingAt&&timingLate&&<TimingTimeline rows={timing} focus={focus} locale={row.locale}/>}
-    {visual&&index===0&&saju&&<SajuBoard pillars={saju.pillars} elements={saju.elements} locale={row.locale}/>}
+    {visual&&index===0&&saju&&<SajuBoard pillars={saju.pillars} elements={saju.elements} surface={saju.surface} locale={row.locale}/>}
     {visual&&chapter.persona?<MascotBubble expression={expressionFor(row.manifest[index].theme,index)} text={chapter.persona} locale={row.locale}/>:<blockquote>{chapter.persona}</blockquote>}<a href="#reading-progress">{copy.top}</a>
-   </article>{index===0&&row.tarotSpread&&spreadMap&&<TarotSpreadResult spread={row.tarotSpread} locale={row.locale} cards={spreadMap}/>}{breaks.has(index)&&<Interlude art={breaks.get(index)!}/>}</Fragment>)}
+   </article>{index===0&&row.tarotSpread&&spreadMap&&<TarotSpreadResult spread={row.tarotSpread} locale={row.locale} cards={spreadMap}/>}{index===0&&row.chapters.length>1?<ReportIllustration scene="insight"/>:index===Math.floor(row.chapters.length/2)&&row.chapters.length>3?<ReportIllustration scene="choices"/>:breaks.has(index)&&<Interlude art={breaks.get(index)!}/>}</Fragment>)}
+   {row.state==='COMPLETED'&&row.chapters.length>0&&<ReportIllustration scene="closing"/>}
   </div>
  </div>;
 }

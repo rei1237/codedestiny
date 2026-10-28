@@ -652,6 +652,61 @@
      3. 공개 빌더
      ══════════════════════════════════════════════ */
 
+  // 학습 조언은 기존 원국 계산을 읽는다. 능력·의학적 지표를 새로 추정하지 않는다.
+  var STUDY_ELEMENTS = {
+    wood: { name: '목(木)', title: '질문에서 출발하는 탐구', strength: '새로운 연결을 찾고 큰 방향을 세우는 힘으로 읽습니다.', shadow: '관심이 여러 갈래로 뻗으면 시작한 일을 마무리하기 어려울 수 있어요.', method: '단원을 질문 하나로 바꾸고, 개념 지도를 그린 뒤 답을 한 문단으로 정리해 보세요.', focus: '오늘 풀 질문 하나만 펼쳐두고, 떠오른 다른 주제는 별도 메모에 남겨두세요.', balance: '새 자료를 더 찾기 전에 지금 읽은 내용의 결론 한 줄을 완성해 보세요.' },
+    fire: { name: '화(火)', title: '말하며 이해하는 표현', strength: '배운 것을 표현하고 반응을 주고받는 힘으로 읽습니다.', shadow: '반응과 성취감을 자주 찾으면 조용히 반복하는 시간이 지루할 수 있어요.', method: '짧게 읽은 뒤 책을 덮고 누군가에게 설명하듯 말해 보세요. 막힌 부분만 다시 확인하세요.', focus: '알림을 끄고 설명할 핵심 세 가지를 적어두세요. 공부를 마친 뒤 피드백을 받아보세요.', balance: '이해했다는 느낌과 실제로 설명할 수 있는 내용을 구분해 보세요.' },
+    earth: { name: '토(土)', title: '반복으로 쌓는 이해', strength: '배운 내용을 생활의 맥락에 붙이고 꾸준히 쌓는 힘으로 읽습니다.', shadow: '익숙한 방식에 오래 머물면 아는 내용만 반복하기 쉬워요.', method: '같은 시간에 짧게 복습하되, 익숙한 예제 다음에는 조건이 다른 문제 하나를 풀어보세요.', focus: '시작하는 자리와 준비 순서를 일정하게 두고, 끝낼 분량을 작게 정해보세요.', balance: '반복 횟수보다 새 문제에도 적용할 수 있는지 확인해 보세요.' },
+    metal: { name: '금(金)', title: '구조로 정리하는 학습', strength: '핵심을 구분하고 기준에 맞춰 정리하는 힘으로 읽습니다.', shadow: '정답이나 완성도에 힘이 몰리면 첫 시도 자체가 늦어질 수 있어요.', method: '개념을 비교표로 정리하고 문제를 풀어보세요. 오답은 원인을 한 줄로 남기세요.', focus: '자료는 한 개만 열어두고, 정리 시간과 문제 풀이 시간을 나누어 보세요.', balance: '노트를 완벽히 꾸미기 전에 미완성 답안이라도 먼저 써보세요.' },
+    water: { name: '수(水)', title: '맥락을 잇는 깊은 사고', strength: '정보 사이의 맥락을 읽고 충분히 생각하는 힘으로 읽습니다.', shadow: '생각과 자료 수집이 깊어질수록 실제 답을 쓰는 시점이 늦어질 수 있어요.', method: '원리를 자신의 말로 요약하고, 책을 덮은 채 예시 하나를 만들어 보세요.', focus: '추가 검색을 멈출 지점을 정하고, 마지막에는 생각을 글이나 풀이로 남겨보세요.', balance: '더 알아야 한다는 마음이 들 때도 지금 아는 것으로 답 한 개를 먼저 만들어 보세요.' }
+  };
+
+  function buildStudyGuide(p, natal, sig) {
+    var keys = Object.keys(STUDY_ELEMENTS);
+    var ratios = natal && natal.ratios;
+    var valid = !!ratios && keys.every(function (key) {
+      return typeof ratios[key] === 'number' && isFinite(ratios[key]) && ratios[key] >= 0 && ratios[key] <= 100;
+    }) && keys.reduce(function (sum, key) { return sum + ratios[key]; }, 0) > 0;
+    var rows = keys.map(function (key) {
+      return { key: key, name: STUDY_ELEMENTS[key].name, value: valid ? ratios[key] : null };
+    });
+    var ranked = rows.slice().sort(function (a, b) { return b.value - a.value; });
+    var leaders = valid ? ranked.filter(function (row) { return Math.abs(row.value - ranked[0].value) < 0.1; }) : [];
+    var balanced = leaders.length === keys.length;
+    var lead = leaders.length && !balanced ? STUDY_ELEMENTS[leaders[0].key] : null;
+    var day = p.d && ((w.GAN || {})[p.d.g]);
+    var month = p.m && ((w.JI || {})[p.m.j]);
+    var dayElement = day && STUDY_ELEMENTS[day.e];
+    var monthElement = month && STUDY_ELEMENTS[month.e];
+    var evidence = [];
+    if (dayElement) evidence.push({ title: '일간 · 나를 읽는 기준', text: day.n + ' 일간은 ' + dayElement.strength + ' ' + dayElement.focus });
+    if (monthElement) evidence.push({ title: '월지 · 계절의 배경', text: p.m.j + ' 월지는 ' + monthElement.name + '의 계절적 배경으로 함께 읽습니다. 일간 하나로 학습 방식을 정하지 않고 원국 전체 분포와 함께 살펴보세요. ' + monthElement.balance });
+    var groups = [
+      { value: sig.insung, title: '인성 · 받아들이고 이해하는 흐름', text: '자료를 읽고 의미를 정리하는 쪽에 힘이 실립니다. 읽기만 이어가기보다 책을 덮고 핵심을 떠올리는 단계를 붙여보세요.' },
+      { value: sig.sik + sig.sang, title: '식상 · 표현하며 익히는 흐름', text: '생각을 말과 결과물로 꺼내는 쪽에 힘이 실립니다. 설명 녹음이나 짧은 문제 풀이로 이해한 내용을 확인해 보세요.' },
+      { value: sig.gwanAll, title: '관성 · 기준과 순서를 따르는 흐름', text: '분명한 기준과 마감이 공부의 틀이 될 수 있어요. 작은 체크리스트를 쓰되 틀린 문제를 평가보다 수정의 재료로 삼아보세요.' },
+      { value: sig.jae, title: '재성 · 활용과 결과를 살피는 흐름', text: '배운 내용의 쓰임이 보이면 동기를 잡기 쉬운 흐름입니다. 실제 사례나 기출 한 문제에서 출발해 필요한 개념으로 돌아가 보세요.' },
+      { value: sig.bigyeop, title: '비겁 · 스스로 방향을 잡는 흐름', text: '자기 기준으로 선택할 여지가 동기가 될 수 있어요. 공부할 순서를 직접 고르고 타인과의 경쟁보다 어제의 풀이와 비교해 보세요.' }
+    ].sort(function (a, b) { return b.value - a.value; });
+    if (groups[0].value > 0) evidence.push({ title: groups[0].title, text: groups[0].text });
+    if (!p.h || !p.h.g || !p.h.j) evidence.push({ title: '출생 시간 미입력', text: '시주가 빠진 원국을 바탕으로 읽었습니다. 시간에 따라 오행 분포와 세부 해석은 달라질 수 있어요.' });
+    var summary = !valid ? '오행 분포를 확인한 뒤 맞춤 공부법을 읽어보세요.' : balanced
+      ? '오행이 고르게 나타납니다. 한 가지 공부법보다 이해·표현·복습을 번갈아 시도해 보세요.'
+      : leaders.map(function (row) { return row.name; }).join('·') + '의 비중이 가장 크게 나타납니다. ' + (leaders.length > 1 ? '비슷한 비중의 방식들을 함께 시도해 보세요.' : lead.strength);
+    return {
+      title: leaders.length > 1 ? '여러 강점을 잇는 학습 리듬' : lead ? lead.title : '나에게 맞는 학습 리듬 찾기', summary: summary, rows: rows, valid: valid,
+      method: lead ? leaders.map(function (row) { return STUDY_ELEMENTS[row.key].method; }).join(' ') : '짧게 읽고, 책을 덮어 떠올리고, 문제 하나에 적용하는 순서로 시도해 보세요.',
+      focus: lead ? lead.focus : '알림과 펼쳐둔 자료를 줄이고 오늘 끝낼 분량 하나를 정해보세요.',
+      caution: lead ? lead.shadow + ' ' + lead.balance : '고른 분포가 집중력을 보장하지는 않습니다. 실제 학습 기록을 기준으로 방식을 조절해 보세요.',
+      evidence: evidence,
+      elements: rows.map(function (row) {
+        var item = STUDY_ELEMENTS[row.key];
+        return { key: row.key, name: item.name, value: row.value, title: item.title, text: item.strength + ' ' + item.shadow, method: item.method,
+          note: !valid ? '분포 미확인: 일반적인 오행별 해석입니다.' : row.value === 0 ? '원국 분포에서 드러나지 않아도 이 능력이 없다는 뜻은 아닙니다. 연습 방법의 선택지로 참고하세요.' : '비중은 능력 점수가 아닙니다. 기운이 과하면 장점도 분산이나 부담으로 나타날 수 있어요.' };
+      })
+    };
+  }
+
   function buildDopamineResult(input) {
     input = input || {};
     var p = input.p || {};
@@ -672,11 +727,14 @@
     var daySeed = _dpSeed(identity + '|' + _dpTodayKey());
 
     /* 신강·신약은 점수가 아니라 말투만 바꾼다 */
-    var staminaNote = sig.isStrong
-      ? '한 번 불이 붙으면 밀어붙이는 힘도 함께 있어, 시작한 것을 끝까지 끌고 갈 여력이 있는 편입니다.'
-      : '자극에는 쉽게 끌리지만 회복이 느린 편이라, 벌여둔 판이 많아지면 금세 지칩니다. 개수 관리가 곧 체력 관리입니다.';
+    var staminaNote = !power || typeof power.isStrong !== 'boolean'
+      ? '몰입의 지속 시간은 실제 컨디션과 환경을 함께 살펴 조절해 보세요.'
+      : sig.isStrong
+        ? '신강은 자기 기운의 지지가 있는 구조를 뜻합니다. 한 가지 과제에 힘을 모으는 방식으로 시도하되 실제 체력과 동일하게 해석하지는 마세요.'
+        : '신약은 주변 기운과의 관계에서 자기 기운의 지지가 적은 구조를 뜻합니다. 과제를 작게 나누어 시도하되 집중력이 약하다는 뜻으로 받아들이지는 마세요.';
 
     return {
+      study: buildStudyGuide(p, natal, sig),
       score: score,
       grade: band.grade,
       typeName: band.typeName,
@@ -753,7 +811,6 @@
      5. 렌더
      ══════════════════════════════════════════════ */
 
-  var NEON_CHIPS = ['🎮 게임', '📱 SNS', '🛍️ 쇼핑', '✈️ 여행', '🎧 음악', '🎬 영상', '🍜 야식', '💘 연애', '💡 아이디어', '🏃 도전'];
 
   var LOADING_STEPS = [
     '사주 흐름을 읽는 중…',
@@ -762,6 +819,8 @@
   ];
 
   var _dpResult = null;
+  var _dpTimer = null;
+  var _dpProgressTimer = null;
 
   function _dpPrefersReducedMotion() {
     try {
@@ -772,18 +831,13 @@
   }
 
   function _dpIntroHtml() {
-    var chips = NEON_CHIPS.map(function (chip, idx) {
-      return '<span class="dp-chip" style="--dp-chip-i:' + idx + '">' + _dpEscape(chip) + '</span>';
-    }).join('');
-
     return ''
       + '<div class="dp-wrap dp-wrap--intro">'
-      + '  <div class="dp-neon-field" aria-hidden="true">' + chips + '</div>'
       + '  <div class="dp-intro">'
-      + '    <span class="dp-kicker">✦ 자극 추구 성향 리포트</span>'
-      + '    <h4 class="dp-intro-title">당신은 새로운 자극을 쫓는 사람일까요,<br>아니면 안정감을 더 사랑하는 사람일까요?</h4>'
-      + '    <p class="dp-intro-sub">중독을 진단하는 기능이 아닙니다. 사주 흐름으로 당신이 어디에서 에너지를 얻고, 어디에서 금세 지치는지를 읽어드립니다.</p>'
-      + '    <button type="button" class="dp-btn dp-btn--start" data-dp-start="1" aria-label="도파민 성향 분석 시작">🧠 분석 시작</button>'
+      + '<div class="dp-intro-scene"><div><h4 class="dp-intro-title">마음을 빼앗기는 순간에서,<br>깊이 몰입하는 시간으로</h4><p class="dp-intro-promise">나의 오행으로 찾는<br>집중과 배움의 리듬</p></div><div class="dp-portrait"><img src="/fuctionassets/%EB%8F%84%ED%8C%8C%EB%AF%BC%20%EC%A4%91%EB%8F%85.webp" width="1659" height="948" alt="" loading="lazy" decoding="async"></div></div>'
+      + '    <p class="dp-intro-sub">사주의 오행과 원국으로 자극에 끌리는 성향, 집중 환경, 나에게 맞는 공부법을 함께 읽어보세요.</p>'
+      + '    <button type="button" class="dp-btn dp-btn--start" data-dp-start="1">나의 몰입과 공부법 보기</button>'
+      + '    <p class="dp-disclaimer">사주를 활용한 자기 탐색 콘텐츠입니다. 중독·ADHD 진단이나 실제 집중력·학습 능력 측정이 아닙니다.</p>'
       + '  </div>'
       + '</div>';
   }
@@ -794,7 +848,7 @@
       + '  <div class="dp-loading">'
       + '    <p class="dp-loading-step" data-dp-step>' + _dpEscape(LOADING_STEPS[0]) + '</p>'
       + '    <div class="dp-progress" role="progressbar" aria-label="분석 진행률"><span class="dp-progress-bar" data-dp-bar></span></div>'
-      + '    <p class="dp-loading-hint">자극을 즐기는 타입인지, 안정을 더 좋아하는 타입인지 맞춰보는 중입니다.</p>'
+      + '    <p class="dp-loading-hint">오행과 원국에서 몰입의 단서를 정리하고 있어요.</p>'
       + '  </div>'
       + '</div>';
   }
@@ -821,6 +875,43 @@
     }).join('');
   }
 
+  function _dpStudyArt() {
+    return '<svg class="dp-study-art" viewBox="0 0 320 300" width="320" height="300" aria-hidden="true" focusable="false">'
+      + '<g class="dp-orbit" fill="none" stroke="currentColor"><circle cx="160" cy="145" r="109"/><circle cx="160" cy="145" r="96" stroke-dasharray="1 9"/><path d="M160 36 264 111 224 233 96 233 56 111Z M160 36 224 233 56 111 264 111 96 233Z"/></g>'
+      + '<g class="dp-orbit-book" transform="translate(48 85) scale(.7)">'
+      + '<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'
+      + '<path d="M160 144C130 123 93 121 53 133V65c40-12 77-10 107 11 30-21 67-23 107-11v68c-40-12-77-10-107 11Z"/>'
+      + '<path d="M160 76v68M66 81c29-7 56-4 78 8M66 97c29-7 56-4 78 8M176 89c22-12 49-15 78-8M176 105c22-12 49-15 78-8M45 143c47-12 84-9 115 12 31-21 68-24 115-12"/>'
+      + '<path d="M99 44c17-28 105-28 122 0" stroke-dasharray="2 7"/><circle cx="160" cy="23" r="5"/><circle cx="125" cy="29" r="4"/><circle cx="195" cy="29" r="4"/><circle cx="99" cy="44" r="3"/><circle cx="221" cy="44" r="3"/>'
+      + '</g></g>'
+      + '<g class="dp-orbit-node dp-element-wood"><circle cx="160" cy="36" r="20"/><text x="160" y="43">木</text></g>'
+      + '<g class="dp-orbit-node dp-element-fire"><circle cx="264" cy="111" r="20"/><text x="264" y="118">火</text></g>'
+      + '<g class="dp-orbit-node dp-element-earth"><circle cx="224" cy="233" r="20"/><text x="224" y="240">土</text></g>'
+      + '<g class="dp-orbit-node dp-element-metal"><circle cx="96" cy="233" r="20"/><text x="96" y="240">金</text></g>'
+      + '<g class="dp-orbit-node dp-element-water"><circle cx="56" cy="111" r="20"/><text x="56" y="118">水</text></g></svg>';
+  }
+
+  function _dpStudyHtml(study) {
+    var bars = study.rows.map(function (row) {
+      return '<li class="dp-element-' + row.key + '"><span>' + _dpEscape(row.name) + '</span><span class="dp-element-track"><span style="width:' + (row.value || 0) + '%"></span></span><b>' + (row.value === null ? '—' : Math.round(row.value) + '%') + '</b></li>';
+    }).join('');
+    return '<section class="dp-study" aria-labelledby="dp-study-title">'
+      + '<header class="dp-study-head">' + _dpStudyArt() + '<div><h4 id="dp-study-title" tabindex="-1">' + _dpEscape(study.title) + '</h4><p>' + _dpEscape(study.summary) + '</p></div></header>'
+      + '<p class="dp-disclaimer">사주를 활용한 자기 탐색용 해석입니다. 중독·ADHD를 진단하거나 집중력·학습 능력을 측정하지 않습니다. 공부법은 실제로 시도한 결과에 맞춰 조절하세요.</p>'
+      + '<section class="dp-study-section"><h5>내 오행의 학습 지도</h5><p>원국의 오행 분포를 읽기 쉽게 옮겼습니다. 비중이 크다고 더 뛰어난 능력을 뜻하지 않아요.</p><ul class="dp-element-bars">' + bars + '</ul>'
+      + '<div class="dp-element-readings">' + study.elements.map(function (item) {
+        return '<details class="dp-element-' + item.key + '"><summary>' + _dpEscape(item.name + ' · ' + item.title) + '</summary><p>' + _dpEscape(item.text) + '</p><p>' + _dpEscape(item.method) + '</p><p class="dp-disclaimer">' + _dpEscape(item.note) + '</p></details>';
+      }).join('') + '</div></section>'
+      + '<section class="dp-study-section"><h5>원국에서 읽는 공부의 단서</h5>' + (study.evidence.length ? study.evidence.map(function (item) {
+        return '<div class="dp-evidence"><h6>' + _dpEscape(item.title) + '</h6><p>' + _dpEscape(item.text) + '</p></div>';
+      }).join('') : '<p>일간과 월지 정보를 확인할 수 없어 원국별 세부 해석은 생략했습니다.</p>') + '</section>'
+      + '<section class="dp-study-section"><h5>오늘 시도할 집중 루틴</h5><ol class="dp-study-steps">'
+      + '<li><h6>환경부터 정리하기</h6><p>' + _dpEscape(study.focus) + '</p></li>'
+      + '<li><h6>나에게 맞는 방식으로 한 단원</h6><p>' + _dpEscape(study.method) + '</p></li>'
+      + '<li><h6>막힌 지점에서 조절하기</h6><p>' + _dpEscape(study.caution) + '</p></li></ol>'
+      + '<p class="dp-study-check"><strong>확인 기준</strong> · 오늘 마친 분량, 책을 덮고 떠올린 내용, 중간에 다른 일을 한 횟수를 짧게 적어보세요. 며칠 시도해도 부담만 커진다면 분량을 줄이거나 다른 오행의 공부법으로 바꿔보세요.</p></section></section>';
+  }
+
   function _dpResultHtml(result) {
     var radarLegend = result.radar.map(function (row) {
       return '<li class="dp-legend-row"><span>' + _dpEscape(row.label) + '</span><b>' + row.value + '</b></li>';
@@ -833,23 +924,23 @@
 
     return ''
       + '<div class="dp-wrap dp-wrap--result">'
-      + '  <div class="dp-neon-field dp-neon-field--dim" aria-hidden="true">'
-      + NEON_CHIPS.map(function (chip, idx) { return '<span class="dp-chip" style="--dp-chip-i:' + idx + '">' + _dpEscape(chip) + '</span>'; }).join('')
-      + '  </div>'
+      + _dpStudyHtml(result.study)
+      + '<details class="dp-stimulus"><summary>자극 성향 리포트 함께 보기</summary><p class="dp-disclaimer">아래 점수와 등급은 사주 해석을 위한 상대적 표현입니다. 중독 위험도나 실제 행동을 측정한 수치가 아닙니다.</p>'
 
       /* ── 점수 카드(공유 캡처 영역) ── */
       + '  <div class="dp-score-card" data-dp-capture="1">'
-      + '    <div class="dp-score-head"><span class="dp-brand">CODE DESTINY</span><span class="dp-score-tag">자극 추구 성향</span></div>'
+      + '    <div class="dp-score-head"><span class="dp-brand">꿀꿀운세</span><span class="dp-score-tag">자극 추구 성향</span></div>'
       + '    <p class="dp-score-label">당신의 자극 추구 성향</p>'
       + '    <p class="dp-score-stars" aria-hidden="true">' + _dpEscape(result.starLine) + '</p>'
       + '    <p class="dp-score-value"><b>' + result.score + '</b><span>점</span></p>'
       + '    <p class="dp-score-type"><span class="dp-grade">' + _dpEscape(result.grade) + '</span> ' + _dpEscape(result.typeName) + '</p>'
       + '    <p class="dp-score-headline">' + _dpEscape(result.headline) + '</p>'
+      + '    <p class="dp-disclaimer">사주 기반 참고용 지수 · 의학적 진단이 아닙니다</p>'
       + '  </div>'
 
       /* ── 성향 설명 ── */
       + '  <section class="dp-sec">'
-      + '    <h5 class="dp-sec-title">AI가 보는 당신</h5>'
+      + '    <h5 class="dp-sec-title">사주로 읽는 자극 성향</h5>'
       + result.narrative.map(function (para) { return '<p class="dp-para">' + _dpEscape(para) + '</p>'; }).join('')
       + '    <p class="dp-para dp-para--note">' + _dpEscape(result.staminaNote) + '</p>'
       + '  </section>'
@@ -891,7 +982,7 @@
 
       /* ── 집중 환경 ── */
       + '  <section class="dp-sec">'
-      + '    <h5 class="dp-sec-title">집중력이 높아지는 환경</h5>'
+      + '    <h5 class="dp-sec-title">시도해 볼 집중 환경</h5>'
       + '    <ul class="dp-bar-list">' + _dpBarRows(result.focusEnv, 'is-focus') + '</ul>'
       + '  </section>'
 
@@ -918,14 +1009,22 @@
       + '    <button type="button" class="dp-btn" data-dp-save="1" aria-label="결과 카드 이미지로 저장">결과 카드 저장</button>'
       + '    <button type="button" class="dp-btn dp-btn--share" data-dp-share="1" aria-label="결과 공유 문구 보내기">공유 문구 보내기</button>'
       + '  </div>'
+      + '</details>'
       + '</div>';
   }
 
   function _dpRunAnalysis(host) {
     if (!_dpResult) return;
+    w.clearInterval(_dpTimer);
+    w.clearTimeout(_dpProgressTimer);
+    function reveal() {
+      host.innerHTML = _dpResultHtml(_dpResult);
+      var heading = host.querySelector('#dp-study-title');
+      if (heading) heading.focus({ preventScroll: true });
+    }
 
     if (_dpPrefersReducedMotion()) {
-      host.innerHTML = _dpResultHtml(_dpResult);
+      reveal();
       return;
     }
 
@@ -936,14 +1035,14 @@
 
     if (barEl) {
       /* 초기 상태가 반영된 뒤에 올려야 트랜지션이 실제로 걸린다 */
-      w.setTimeout(function () { barEl.classList.add('is-full'); }, 30);
+      _dpProgressTimer = w.setTimeout(function () { barEl.classList.add('is-full'); }, 30);
     }
 
-    var timer = w.setInterval(function () {
+    _dpTimer = w.setInterval(function () {
       step += 1;
       if (step >= LOADING_STEPS.length) {
-        w.clearInterval(timer);
-        host.innerHTML = _dpResultHtml(_dpResult);
+        w.clearInterval(_dpTimer);
+        reveal();
         return;
       }
       if (stepEl) stepEl.textContent = LOADING_STEPS[step];
@@ -1019,6 +1118,8 @@
 
   function renderDopamineReport(p, natal, power, johu) {
     var host = document.getElementById('dopamineResult');
+    w.clearInterval(_dpTimer);
+    w.clearTimeout(_dpProgressTimer);
     if (!host || !p || !p.d || !p.d.g) return;
 
     _dpResult = buildDopamineResult({ p: p, natal: natal, power: power, johu: johu });

@@ -77,7 +77,6 @@ const PII_PATHS = new Set([
   "destinyProfiles",
   "destinyProfilesCurrentId",
   "destinyProfilesLockedCurrentId",
-  "tamagotchi",
   "profileSubscription.customerUid",
   "profileSubscription.lastPassOrderId",
   "recentConsumeRequestIds",

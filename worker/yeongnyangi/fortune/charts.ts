@@ -59,7 +59,7 @@ export function chartView(c: DomainContext, source = "local"): ChartView {
       }),
     );
     groups.push({
-      label: "오행 · 월령 가중치 포함",
+      label: f.fiveElements?.countBasis === "surface" ? "오행 · 보이는 글자 기준" : "오행 · 월령 가중치 포함",
       items: Object.entries(f.fiveElements?.counts || f.fiveElements || {})
         .filter(([, v]) => typeof v === "number")
         .map(([label, value]) => ({

@@ -1,6 +1,8 @@
 import { brandCopy } from '../lib/seo/brand-copy.mjs';
+import { BRAND_FACTS } from '../lib/brand/brand-facts.mjs';
 import { localizeHubLinks } from '../lib/i18n/localized-hub-links.mjs';
-import { syncSajuReadingPrices, syncYeongnyangiFishPrices } from './lib/sync-saju-reading-prices.mjs';
+import { syncSajuReadingPrices } from './lib/sync-saju-reading-prices.mjs';
+import './sync-flower-price-copy.mjs';
 /**
  * Copies root static assets → public/ (Cloudflare / static hosting).
  * 사주 엔진은 js/saju-engine.js + tarot-sukuyo-quantum + core/saju/reportDashboard + continuation 순서로 index.html에 로드됨.
@@ -11,6 +13,7 @@ import "./build-astro-reading-library.mjs";
 import "./build-sukuyo-reading-library.mjs";
 import "./build-ziwei-reading-library.mjs";
 import "./build-saju-reading-depth.mjs";
+import "./build-saju-natal-core.mjs";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync, rmSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, resolve, join } from "node:path";
@@ -103,8 +106,7 @@ const staticTargets = [
 ];
 
 const staleTadagochiPwaTargets = [
-  "manifest-tadagochi.json",
-  "tadagochi-sw.js",
+
 ];
 
 const staleLifeBookPdfTargets = [
@@ -462,6 +464,43 @@ const MODULE_IMPORT_CACHE_KEY_FILES = [
   ["js", "core", "saju", "basicFortunePresentation.js"],
 ];
 
+/** 다른 자산을 `?v=` 로 싣는 루트 로더 파일. 셸은 이 파일들의 내용 해시를 키로 문다. */
+const ROOT_LOADER_RESTAMP_FILES = [
+  ...MODULE_IMPORT_CACHE_KEY_FILES.map((parts) => parts.join("/")),
+  "js/mobile-interaction-patch.js",
+  "js/core/uiBindings.js",
+  "js/core/index-inline-runtime.js",
+];
+
+/**
+ * 루트 로더 파일의 `?v=` 를 셸·미러보다 **먼저**, 더 바뀌지 않을 때까지 다시 쓴다.
+ *
+ * 🔴 키는 내용 해시라 사슬을 탄다 — mobile-backstack-navigation.js 가 바뀌면 patch 안의 참조가
+ *    바뀌고, 그래서 patch 의 해시가 바뀌고, 그래서 셸의 patch 참조가 바뀐다(app.js → init.js →
+ *    bootstrapDestinyFlower.js 도 같다). 예전에는 셸을 먼저 찍고 루트 로더를 맨 끝에 다시 써서
+ *    셸이 patch 의 **옛** 해시를 물었고, sync:public 을 두 번 돌려야 수렴했다(2026-10-23 재현).
+ *    루트 bare 자산 키도 이 파일들 안에 있으므로 먼저 맞춘다.
+ */
+function restampRootLoaderFiles(fallbackKey) {
+  syncRootAssetCacheKeys();
+  for (let pass = 1; pass <= 8; pass += 1) {
+    const keys = createAssetCacheKeys(rootDir);
+    const changed = [];
+    for (const rel of ROOT_LOADER_RESTAMP_FILES) {
+      const abs = resolve(rootDir, rel);
+      if (!existsSync(abs)) continue;
+      const source = readFileSync(abs, "utf8");
+      const stamped = restampAssetCacheRefs(source, rel, fallbackKey, keys);
+      if (stamped === source) continue;
+      writeFileSync(abs, stamped);
+      changed.push(rel);
+    }
+    if (!changed.length) return;
+    console.log(`[sync-legacy-static-to-public] Updated root loader cache keys (pass ${pass}): ${changed.join(", ")}`);
+  }
+  throw new Error("[sync-legacy-static-to-public] 루트 로더 캐시 키가 8회 안에 수렴하지 않았습니다. `?v=` 참조 순환을 확인하세요.");
+}
+
 // 로케일 랜딩 셸(/ja, /zh, /en)의 head 를 해당 언어로 현지화한다.
 // 본문은 런타임에 cd-lang-native.js 가 /i18n/{lang}.json 사전으로 번역하고
 // (경로 프리픽스 자동 감지), head 메타는 여기서 빌드 타임에 교체한다.
@@ -471,14 +510,14 @@ const LOCALE_SHELL_SEO = {
     lang: "ja",
     ogLocale: "ja_JP",
     language: "Japanese",
-    title: "四柱推命・宿曜・タロット占い｜Code Destiny",
+    title: `四柱推命・宿曜・タロット占い｜${BRAND_FACTS.service.name}`,
     description:
       "韓国式四柱推命の命式、宿曜の本命宿と相性、紫微斗数の十二宮を日本語で。占術ごとの見方と必要な入力を確認し、今の悩みに合う占いを選べます。",
     keywords:
       "四柱推命 無料, 占い 無料, タロット占い 無料, 今日の運勢, 相性占い, 紫微斗数, 宿曜占星術, 誕生日占い, 恋愛占い, 韓国 占い, 無料鑑定",
-    appTitle: "Ggulggul Fortune",
+    appTitle: BRAND_FACTS.service.name,
     imageAlt:
-      "ハニーピッグ占い HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード",
+      "꿀꿀운세 HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード",
     dictionaryFile: "ja.json",
     // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
     ogImage: "code-destiny-og-ja.png",
@@ -487,14 +526,14 @@ const LOCALE_SHELL_SEO = {
     lang: "zh-CN",
     ogLocale: "zh_CN",
     language: "Chinese",
-    title: "八字排盘·紫微斗数·塔罗占卜｜Code Destiny",
+    title: `八字排盘·紫微斗数·塔罗占卜｜${BRAND_FACTS.service.name}`,
     description:
       "从四柱八字、紫微斗数十二宫到宿曜关系与塔罗问题解读。用简体中文了解不同体系的输入与看盘顺序，选择适合自己的命盘或咨询入口。",
     keywords:
       "免费算命, 八字算命, 生辰八字, 塔罗牌占卜, 今日运势, 合婚配对, 紫微斗数, 宿曜占星, 星座运势, 姻缘测算",
-    appTitle: "Ggulggul Fortune",
+    appTitle: BRAND_FACTS.service.name,
     imageAlt:
-      "蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡",
+      "꿀꿀운세 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-cn.json",
     // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
     ogImage: "code-destiny-og-zh.png",
@@ -505,14 +544,14 @@ const LOCALE_SHELL_SEO = {
     lang: "zh-TW",
     ogLocale: "zh_TW",
     language: "Chinese",
-    title: "八字排盤·紫微斗數·塔羅占卜｜Code Destiny",
+    title: `八字排盤·紫微斗數·塔羅占卜｜${BRAND_FACTS.service.name}`,
     description:
       "從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。",
     keywords:
       "免費算命, 八字算命, 生辰八字, 塔羅牌占卜, 今日運勢, 合婚配對, 紫微斗數, 宿曜占星, 星座運勢, 姻緣測算",
-    appTitle: "Ggulggul Fortune",
+    appTitle: BRAND_FACTS.service.name,
     imageAlt:
-      "蜜豚運勢 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡",
+      "꿀꿀운세 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-tw.json",
     // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
     ogImage: "code-destiny-og-zh-tw.png",
@@ -521,14 +560,14 @@ const LOCALE_SHELL_SEO = {
     lang: "en",
     ogLocale: "en_US",
     language: "English",
-    title: "Korean Saju, Tarot & Birth Charts | Code Destiny",
+    title: `Korean Saju, Tarot & Birth Charts | ${BRAND_FACTS.service.name}`,
     description:
       "Explore Korean Saju, Zi Wei Dou Shu, Sukuyo and tarot in English. Compare traditions, check birth-chart inputs and choose a reading for your question.",
     keywords:
       "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
-    appTitle: "Ggulggul Fortune",
+    appTitle: BRAND_FACTS.service.name,
     imageAlt:
-      "Honey Pig Fortune HONEY FORTUNE — a CODE DESTINY calling card with a cameo of Yeoni the flower pig and an overview of the service",
+      "꿀꿀운세 HONEY FORTUNE — a CODE DESTINY calling card with a cameo of Yeoni the flower pig and an overview of the service",
     dictionaryFile: "en.json",
     // 공유 미리보기 카드(scripts/og/render-og-card.mjs ggulggul-*) — 한국어 문구 카드 대신 이 로케일 문구 카드.
     ogImage: "code-destiny-og-en.png",
@@ -562,8 +601,8 @@ function resolveLocaleShellTitle(seo) {
  */
 const LOCALE_MANIFEST = {
   "/ja": {
-    name: "Ggulggul Fortune — Code Destiny",
-    short_name: "Ggulggul Fortune",
+    name: BRAND_FACTS.service.name,
+    short_name: BRAND_FACTS.service.name,
     description: "今日の運勢と四柱推命、相性とタロットの流れが静かに開きます。",
     lang: "ja",
     shortcut: {
@@ -573,8 +612,8 @@ const LOCALE_MANIFEST = {
     },
   },
   "/zh": {
-    name: "Ggulggul Fortune — Code Destiny",
-    short_name: "Ggulggul Fortune",
+    name: BRAND_FACTS.service.name,
+    short_name: BRAND_FACTS.service.name,
     description: "今日运势与八字命理、合婚配对和塔罗的流向静静展开。",
     lang: "zh-CN",
     shortcut: {
@@ -585,8 +624,8 @@ const LOCALE_MANIFEST = {
   },
   // 기존 public/manifest.zh-tw.json 의 문구를 그대로 유지한다(재생성해도 값이 바뀌지 않게).
   "/zh-tw": {
-    name: "Ggulggul Fortune — Code Destiny",
-    short_name: "Ggulggul Fortune",
+    name: BRAND_FACTS.service.name,
+    short_name: BRAND_FACTS.service.name,
     description: "今日運勢與四柱八字、合婚配對和塔羅的流向靜靜展開。",
     lang: "zh-TW",
     shortcut: {
@@ -596,8 +635,8 @@ const LOCALE_MANIFEST = {
     },
   },
   "/en": {
-    name: "Ggulggul Fortune — Code Destiny",
-    short_name: "Ggulggul Fortune",
+    name: BRAND_FACTS.service.name,
+    short_name: BRAND_FACTS.service.name,
     description: "Today's fortune, Four Pillars, compatibility, and tarot — read with a calm, steady hand.",
     lang: "en",
     shortcut: {
@@ -629,6 +668,22 @@ function writeLocaleManifest(localePath) {
   return fileName;
 }
 
+// 셸 JSON-LD 의 서비스·운영자 이름이 lib/brand/brand-facts.mjs 와 다르면 빌드를 멈춘다(fail-closed).
+// WebSite 는 서비스(꿀꿀 운세), Organization 은 운영자(CODE DESTINY)다.
+function assertShellBrandIdentity(node, canonicalUrl) {
+  const fail = (field, actual) => {
+    throw new Error(`[sync-legacy-static-to-public] ${node["@type"]}.${field} must come from brand-facts (${canonicalUrl}): ${JSON.stringify(actual)}`);
+  };
+  if (node["@type"] === "WebSite") {
+    if (node.name !== BRAND_FACTS.service.name) fail("name", node.name);
+    if (JSON.stringify(node.alternateName) !== JSON.stringify(BRAND_FACTS.service.alternateNames)) fail("alternateName", node.alternateName);
+  }
+  if (node["@type"] === "Organization") {
+    if (node.name !== BRAND_FACTS.operator.name) fail("name", node.name);
+    if (JSON.stringify(node.alternateName) !== JSON.stringify(BRAND_FACTS.operator.alternateNames)) fail("alternateName", node.alternateName);
+  }
+}
+
 // Each shell owns its WebPage; the shared WebSite and publisher keep their global IDs.
 function applyShellPageIdentity(indexHtml, canonicalUrl) {
   const headEnd = indexHtml.indexOf("</head>");
@@ -644,9 +699,16 @@ function applyShellPageIdentity(indexHtml, canonicalUrl) {
     throw new Error(`[sync-legacy-static-to-public] Missing shell page metadata: ${canonicalUrl}`);
   }
   let pageCount = 0;
+  let siteCount = 0;
+  let organizationCount = 0;
   const html = indexHtml.replace(/(<script\b[^>]*\btype=["']application\/ld\+json["'][^>]*>)([\s\S]*?)(<\/script>)/gi, (full, open, source, close) => {
     const data = JSON.parse(source);
     const nodes = data["@graph"] || [data];
+    for (const node of nodes) {
+      assertShellBrandIdentity(node, canonicalUrl);
+      if (node["@type"] === "WebSite") siteCount += 1;
+      if (node["@type"] === "Organization") organizationCount += 1;
+    }
     const pages = nodes.filter((node) => node["@type"] === "WebPage");
     if (!pages.length) return full;
     for (const page of pages) {
@@ -656,6 +718,9 @@ function applyShellPageIdentity(indexHtml, canonicalUrl) {
     return `${open}\n${JSON.stringify(data, null, 2).replace(/</g, "\\u003c")}\n${close}`;
   });
   if (pageCount !== 1) throw new Error(`[sync-legacy-static-to-public] Expected one WebPage for ${canonicalUrl}; found ${pageCount}`);
+  if (siteCount !== 1 || organizationCount !== 1) {
+    throw new Error(`[sync-legacy-static-to-public] Expected one WebSite and one Organization for ${canonicalUrl}; found ${siteCount}/${organizationCount}`);
+  }
   return html
     .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
     .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`);
@@ -851,6 +916,11 @@ function cpSyncWithRetry(sourcePath, destinationPath, options) {
   }
 }
 
+// 캐시 키는 자산별 내용 해시로 찍는다(scripts/lib/asset-cache-keys.mjs).
+// buildTimestamp 는 레포에 파일이 없는 참조(이미지·외부 URL)에만 쓰는 대비값이다.
+const buildTimestamp = resolveDeterministicCacheKey();
+restampRootLoaderFiles(buildTimestamp);
+
 for (const target of staticTargets) {
   const sourcePath = resolve(rootDir, target);
   const destinationPath = resolve(publicDir, target);
@@ -880,7 +950,6 @@ syncStylesDir();
 
 // Keep public/index.html as the source of truth for production shell.
 // If public shell is severely mojibake-corrupted, auto-heal from root index with safe redirect normalization.
-syncYeongnyangiFishPrices(rootDir);
 if (existsSync(rootIndexPath)) {
   const rootIndexBuf = stripLeadingBom(readFileSync(rootIndexPath));
   const rootIndexHtml = rootIndexBuf.toString("utf8");
@@ -982,9 +1051,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     console.log("[sync-legacy-static-to-public] Stripped legacy public-only blocks from canonical shell");
   }
 
-  // 캐시 키는 자산별 내용 해시로 찍는다(scripts/lib/asset-cache-keys.mjs).
-  // buildTimestamp 는 레포에 파일이 없는 참조(이미지·외부 URL)에만 쓰는 대비값이다.
-  const buildTimestamp = resolveDeterministicCacheKey();
+  // 루트 로더는 restampRootLoaderFiles 가 이미 수렴시켰으니 여기서 새로 계산한 키가 최종값이다.
   const assetKeys = createAssetCacheKeys(rootDir);
   const cacheBustedIndexHtml = restampAssetCacheRefs(baseIndexHtml, "index.html", buildTimestamp, assetKeys);
   if (cacheBustedIndexHtml !== baseIndexHtml) {
@@ -1102,63 +1169,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     `[sync-legacy-static-to-public] Locale landing pages: /${localeLandingDirs.join(", /")}/index.html`,
   );
 
-  // Sync back the auto cache-busted versions to root to maintain consistency for verification
-  const rootInlineRuntimePath = resolve(rootDir, "js", "core", "index-inline-runtime.js");
-  if (existsSync(rootInlineRuntimePath)) {
-    let rootRuntimeJs = readFileSync(rootInlineRuntimePath, "utf8");
-    const bustedRootRuntimeJs = restampAssetCacheRefs(
-      rootRuntimeJs,
-      "js/core/index-inline-runtime.js",
-      buildTimestamp,
-      assetKeys,
-    );
-    if (bustedRootRuntimeJs !== rootRuntimeJs) {
-      writeFileSync(rootInlineRuntimePath, bustedRootRuntimeJs);
-      console.log("[sync-legacy-static-to-public] Updated root index-inline-runtime.js cache keys");
-    }
-  }
-
-  const rootUiBindingsPath = resolve(rootDir, "js", "core", "uiBindings.js");
-  if (existsSync(rootUiBindingsPath)) {
-    const rootUiBindingsJs = readFileSync(rootUiBindingsPath, "utf8");
-    const bustedRootUiBindingsJs = restampAssetCacheRefs(
-      rootUiBindingsJs,
-      "js/core/uiBindings.js",
-      buildTimestamp,
-      assetKeys,
-    );
-    if (bustedRootUiBindingsJs !== rootUiBindingsJs) {
-      writeFileSync(rootUiBindingsPath, bustedRootUiBindingsJs);
-      console.log("[sync-legacy-static-to-public] Updated root uiBindings.js PDF/runtime loader cache keys");
-    }
-  }
-
-  const rootMobilePatchPath = resolve(rootDir, "js", "mobile-interaction-patch.js");
-  if (existsSync(rootMobilePatchPath)) {
-    const rootMobilePatchJs = readFileSync(rootMobilePatchPath, "utf8");
-    const bustedRootMobilePatchJs = restampAssetCacheRefs(
-      rootMobilePatchJs,
-      "js/mobile-interaction-patch.js",
-      buildTimestamp,
-      assetKeys,
-    );
-    if (bustedRootMobilePatchJs !== rootMobilePatchJs) {
-      writeFileSync(rootMobilePatchPath, bustedRootMobilePatchJs);
-      console.log("[sync-legacy-static-to-public] Updated root mobile-interaction-patch.js loader cache keys");
-    }
-  }
-
-  for (const parts of MODULE_IMPORT_CACHE_KEY_FILES) {
-    const rootModulePath = resolve(rootDir, ...parts);
-    if (!existsSync(rootModulePath)) continue;
-    const rootModuleJs = readFileSync(rootModulePath, "utf8");
-    const bustedRootModuleJs = restampAssetCacheRefs(rootModuleJs, parts.join("/"), buildTimestamp, assetKeys);
-    if (bustedRootModuleJs !== rootModuleJs) {
-      writeFileSync(rootModulePath, bustedRootModuleJs);
-      console.log(`[sync-legacy-static-to-public] Updated root ${parts.join("/")} module import cache keys`);
-    }
-  }
-
+  // 루트 로더(런타임·uiBindings·patch·모듈)는 restampRootLoaderFiles 가 맨 앞에서 맞췄다.
   if (existsSync(rootIndexPath)) {
     let rootHtml = readFileSync(rootIndexPath, "utf8");
     const bustedRootHtml = restampAssetCacheRefs(rootHtml, "index.html", buildTimestamp, assetKeys);
@@ -1170,6 +1181,16 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
       console.log("[sync-legacy-static-to-public] Updated root index.html cache keys");
     }
   }
+  // The standalone Vedic result uses the same master UI assets as the shell.
+  // A fixed placeholder key kept the old guide cached after a release.
+  for (const page of ['vedic-astrology.html']) {
+    const sourcePath = resolve(rootDir, page);
+    if (!existsSync(sourcePath)) continue;
+    const source = readFileSync(sourcePath, 'utf8');
+    const stamped = restampAssetCacheRefs(source, page, buildTimestamp, assetKeys);
+    if (stamped !== source) writeFileSyncWithRetry(sourcePath, Buffer.from(stamped, 'utf8'));
+    writeFileSyncWithRetry(resolve(publicDir, page), Buffer.from(stamped, 'utf8'));
+  }
 }
 
 /**
@@ -1178,8 +1199,10 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
  * 🔴 반드시 다른 모든 캐시버스트 **뒤에** 돌아야 한다. 예전엔 위쪽이 무차별 치환
  * (`replace(/\?v=[a-zA-Z0-9_-]+/g, buildTimestamp)`)이라 index-inline-runtime.js 의
  * `/HwatuFortune.js?v=` 까지 덮어써서, 먼저 돌면 그 값이 되돌아갔다. 지금은
- * restampAssetCacheRefs 가 bare 참조를 `keep` 으로 분류해 건드리지 않지만(소유권이
- * 여기 있다는 뜻), 순서 의존을 되살리지 않도록 뒤에 두는 계약은 그대로 지킨다.
+ * restampAssetCacheRefs 가 bare 참조(앞 `/` 가 붙은 것 포함)를 `keep` 으로 분류해 건드리지
+ * 않지만(소유권이 여기 있다는 뜻), 순서 의존을 되살리지 않도록 뒤에 두는 계약은 그대로 지킨다.
+ * restampRootLoaderFiles 가 맨 앞에서 한 번 더 부른다 — 이 키가 로더 파일 내용에 들어가므로
+ * 셸이 로더 해시를 묻기 전에 맞아 있어야 한다. 여기 끝의 호출은 그 뒤로 바뀐 것이 없으면 그대로 통과한다.
  *
  * 이 자산들이 디렉터리 없는 bare 파일명이라는 점이 2026-08-08 전생 관상 장애의 원인이었다.
  */

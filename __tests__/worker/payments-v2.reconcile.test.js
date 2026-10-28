@@ -64,6 +64,30 @@ describe("PAID 인데 권한이 없는 주문", () => {
     expect(row.metadata.fulfillmentAttempts).toBe(2);
     expect(row.metadata.fulfillmentLastError).toBe("INTERNAL_ERROR");
   });
+  test.each(["MISSING_PROFILE_ID", "INVALID_PROFILE"])("🔴 지급 대상 결손(%s)은 무한 재시도 대신 프로필 선택 대기로 종결한다", async (code) => {
+    // 출생 기반 전환 전 주문(스냅샷 생년월일 없음)의 프로필이 사라지면 재시도해도 풀리지 않는다.
+    const db = makeFakePaymentDb();
+    await seed(db, [
+      { merchantUid: "retro", status: "paid", entitlementGrantedAt: null, updatedAt: ago(10 * 60_000) },
+      { merchantUid: "other", status: "paid", entitlementGrantedAt: null, updatedAt: ago(10 * 60_000) },
+    ]);
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const grant = async (order) => {
+      if (order.merchantUid === "retro") throw Object.assign(new Error("no profile"), { code });
+      throw Object.assign(new Error("boom"), { code: "INTERNAL_ERROR" });
+    };
+    expect(await regrantUnfulfilledOrders(db, { grant, now: NOW })).toMatchObject({ scanned: 2, failed: 2 });
+    const retro = db.rows.find((r) => r.merchantUid === "retro");
+    expect(retro).toMatchObject({ status: "paid", failureCode: "delivery_failed_manual_review", failureStage: "birth_profile_required" });
+    expect(retro.metadata.fulfillmentLastError).toBe(code);
+    expect(retro.metadata.fulfillmentRetryAt).toBeUndefined();
+    // 다음 틱: 종결 주문은 다시 돌지 않고, 일시 장애 주문만 재시도 시각 뒤에 다시 만난다.
+    const seen = [];
+    await regrantUnfulfilledOrders(db, { grant: async (o) => seen.push(o.merchantUid), now: new Date(NOW.getTime() + 5 * 60_000) });
+    errorSpy.mockRestore();
+    expect(seen).toEqual(["other"]);
+  });
+
   test("🔴 다시 지급한다 — 돈은 받았는데 안 열리는 상태를 사람이 찾지 않아도 된다", async () => {
     const db = makeFakePaymentDb();
     await seed(db, [

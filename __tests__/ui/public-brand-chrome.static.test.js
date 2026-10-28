@@ -12,10 +12,13 @@ test("공개 페이지 공통 헤더와 푸터가 꽃돼지 브랜드를 공유�
 
   for (const source of [header, footer, localeFooter]) {
     assert.match(source, /\/icons\/moonlight-garden-v1-512\.webp/);
-    assert.match(source, /CODE DESTINY/);
+    assert.match(source, /꿀꿀 운세/);
   }
-  assert.match(header, /꿀꿀 운세/);
-  assert.match(footer, /오늘의 마음이 조금 가벼워지는 곳/);
+  // 2026-10-16: 푸터는 정서 문구 대신 전문성 한 줄(lib/brand/founder.ts byline)을 단다.
+  assert.match(footer, /\{FOOTER_BYLINE\}/);
+  assert.match(localeFooter, /\{copy\.byline\}/);
+  // LocaleRuntimeBridge 는 ko 에서 data-cd-trans(-attr) 요소의 textContent 를 원문으로 되돌린다 — 링크를 품은 nav 에 달면 링크가 사라진다.
+  assert.doesNotMatch(footer, /<nav[^>]*data-cd-trans/);
 });
 
 test("유명인 사주 상세도 공통 사이트 헤더와 푸터를 숨기지 않는다", () => {

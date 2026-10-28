@@ -93,10 +93,10 @@ export default function ResultShareClient() {
     return (
       <main className={styles.page}>
         <section className={styles.errorCard} role="alert">
-          <p className={styles.kicker}>CODE DESTINY</p>
+          <p className={styles.kicker}>꿀꿀운세</p>
           <h1>이 공유 결과를 찾을 수 없어요.</h1>
           <p>링크가 만료되었거나 더 이상 공개되지 않는 결과예요.</p>
-          <a className={styles.primaryButton} href="/">꿀꿀 운세 홈으로 가기</a>
+          <a className={styles.primaryButton} href="/">꿀꿀운세 홈으로 가기</a>
         </section>
       </main>
     );
@@ -108,7 +108,7 @@ export default function ResultShareClient() {
     <main className={styles.page}>
       <div className={styles.shell}>
         <header className={styles.header}>
-          <a className={styles.brand} href="/">CODE DESTINY</a>
+          <a className={styles.brand} href="/">꿀꿀운세</a>
           <span className={styles.headerLabel}>공유된 {copy.label} 결과</span>
         </header>
 

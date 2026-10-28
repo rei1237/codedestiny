@@ -61,7 +61,7 @@ export default function EnvironmentPanel({ entries, enabled, onToggle }: Environ
           <p className={`text-[12px] ${INK_MUTED}`}>
             {copy.envPrivacyPrefix}
             <Link
-              href="/privacy-policy"
+              href="/privacy/"
               className={`font-bold underline underline-offset-2 ${ACCENT}`}
             >
               {copy.envPrivacyLinkText}

@@ -1465,6 +1465,32 @@
     }
   }
 
+  /**
+   * 뒤로가기 = 결제창의 [뒤로]/[취소]. 2단계(결제수단)가 보이면 1단계로 돌리고, 아니면 취소로 닫는다.
+   * 세 렌더러가 같은 마크업 계약([data-choice-step]·[data-pay-step="back"]·[data-mode="cancel"])을 쓰므로
+   * 버튼을 눌러 각자의 close 경로를 그대로 탄다. 고른 뒤 잠긴(disabled) 버튼은 누르지 않는다.
+   * 결제창이 떠 있었으면 true — 누를 버튼이 잠겨 있어도 이번 뒤로가기는 결제창이 소비한 것이다.
+   */
+  function stepBackOpenPaymentChoice(root) {
+    if (typeof document === "undefined") return false;
+    var modal = root || null;
+    if (!modal) {
+      try {
+        var nodes = document.querySelectorAll(CHOICE_MODAL_SELECTOR);
+        modal = nodes.length ? nodes[nodes.length - 1] : null;
+      } catch (_queryError) {
+        modal = null;
+      }
+    }
+    if (!modal || !modal.querySelector) return false;
+    var methods = modal.querySelector('[data-choice-step="methods"]');
+    var button = methods && !methods.hidden
+      ? methods.querySelector('[data-pay-step="back"]')
+      : modal.querySelector('[data-mode="cancel"]');
+    if (button && !button.disabled) button.click();
+    return true;
+  }
+
   function sessionStore() {
     try {
       if (typeof sessionStorage === "undefined" || !sessionStorage) return null;
@@ -2128,6 +2154,7 @@
     getPaymentChoiceLockNode: getPaymentChoiceLockNode,
     sweepOrphanChoiceModals: sweepOrphanChoiceModals,
     hasOpenPaymentChoiceModal: hasOpenPaymentChoiceModal,
+    stepBackOpenPaymentChoice: stepBackOpenPaymentChoice,
     text: checkoutText,
     displayLocale: displayLocale,
     isDesktopPgWindow: isDesktopPgWindow,

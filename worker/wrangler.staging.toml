@@ -173,8 +173,8 @@ ADMIN_MONTHLY_CREDIT_GRANT_ENABLED = "true"
 ENABLE_GUARDIAN_FORTUNE_API = "true"
 ENABLE_GUARDIAN_FORTUNE_SHARE = "true"
 # 연이·네오 상담 엔진(/api/fortune-chat/consultations)의 새 상담 만들기·열기 스위치. 켜지면 로그인
-# 사용자의 /fortune-chat 이 새 상담실로 열린다(app/fortune-chat/FortuneChatEntry.tsx). 읽기·이어 쓰기는
-# 이 값과 무관하다. 프로덕션 승격은 별도 결정이라 STAGING_ONLY_KEYS 에 선언돼 있다.
+# 여부와 무관하게 /fortune-chat 이 새 상담실로 열린다(app/fortune-chat/FortuneChatEntry.tsx).
+# 읽기·이어 쓰기는 이 값과 무관하다. 운영과 스테이징이 같은 스위치를 사용한다.
 ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"
 # 정적 셸(타로·사주) 결과 공유 스냅샷의 킬 스위치 — POST /api/fortune/share 와
 # GET /api/fortune/share/{sr_id} 가 이 한 줄에 달려 있다. 이 엔드포인트는 레포에서 유일하게
@@ -328,7 +328,8 @@ SNS_DAILY_POST_ENABLED = "1"
 #    베다 16:00(Asia/Seoul, 코드 기본값 — THREADS_*_TIME 으로 덮어쓸 수 있다)부터 60분 창 안에서 1건씩 발행한다.
 #    텔레그램은 무관하다. 🔴 원복은 "1"(07:00 체인). 별도 스위치 변수를 두지 않는 이유는
 #    워커 텍스트 바인딩 예산(128, 여유 2 유지)이 이미 꽉 차 있어서다 — scripts/lib/worker-binding-budget.mjs.
-SNS_THREADS_POST_ENABLED = "split"
+# 2026-10-21: Threads 발행 중지 정책을 비운영 환경에도 유지한다.
+SNS_THREADS_POST_ENABLED = "0"
 # Threads AI 문안 스위치. 값을 프로덕션과 같게 두는 이유는 드리프트 가드
 # (verify:worker-config-parity)가 [vars] 의 값 불일치를 실패로 보기 때문이다.
 # 🔴 스테이징은 crons = [] 이고 THREADS_ACCESS_TOKEN 도 없어 이 경로 자체가 안 돈다 —

@@ -7,8 +7,8 @@ import { json } from "./http.js";
 import { getAmbientAiLocale, runWithAiLocale } from "./ai-locale-context.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { isPaidResultRevoked } from "./paid-result-revocation.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
-import { selectNarrativeCandidate, narrativeRepairTask, normalizeNarrativeBody, NARRATIVE_RESPONSE_SCHEMA } from "./paid-narrative-candidate.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "./paid-report-quality.js";
+import { selectNarrativeCandidate, narrativeRepairTask, narrativePriorDigest, normalizeNarrativeBody, narrativeTextFromJson, NARRATIVE_RESPONSE_SCHEMA } from "./paid-narrative-candidate.js";
 import { runWithPaidGenerationContext, getPaidGenerationRaw } from "./paid-generation-context.js";
 
 const hash = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -80,7 +80,7 @@ function respond(doc, render, busy = false, measure) {
 
 // Uses the existing execution collection; no provider call survives beyond its own
 // bounded request, and every accepted part is confirmed before the next wave.
-export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, measureBody, completeBody, recoverSavedPart, savedOnly = false, timeoutMs = 45000, generationOrigin = "" }) {
+export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, measureBody, completeBody, recoverSavedPart, repairShortParts = false, savedOnly = false, timeoutMs = 45000, generationOrigin = "" }) {
   const userId = auth.userId;
   const params = new URL(request.url).searchParams;
   const resumeId = request.method === "GET" ? params.get("resultId") : body.resumeResultId;
@@ -120,6 +120,11 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (doc.lock.token !== token) return respond(doc, render, true, measureBody);
   const filter = { userId, executionKey, status: "pending", "lock.token": token };
   let state = doc.metadata.paidNarrative;
+  // With repairShortParts a short complete answer is a draft for the part's second (repair)
+  // attempt; only the last attempt keeps it, so a paid result is never refunded for length alone.
+  // Other adapters keep delivering a short complete answer without buying a repair.
+  const longEnough = (task, body) => Boolean(body) && (measureBody || countPaidReportBodyChars)(body) >= (task.minChars || 0);
+  const finalAttempt = task => !repairShortParts || (state.attempts[task.id] || 0) >= 2;
   const persist = async () => { doc = await save(env, filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null,
     // A crash after the checkpoint must not turn a saved-only review into a paid resume.
     paidNarrativeRecovery: savedOnly ? { ...doc.metadata.paidNarrativeRecovery, reviewRequired: true, code: "DELIVERY_REVIEW_REQUIRED" } : null },
@@ -129,10 +134,19 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
       const draft = state.drafts?.[task.id] || (!state.parts[task.id] && recoverSavedPart?.(task, state));
       if (!state.parts[task.id] && draft) {
         const candidate = selectNarrativeCandidate(null, draft, { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) });
-        if (candidate && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + candidate)) { state.parts[task.id] = candidate; await persist(); }
+        if (candidate && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + candidate)) {
+          if (longEnough(task, candidate) || finalAttempt(task)) state.parts[task.id] = candidate;
+          else if (state.drafts?.[task.id] !== candidate) state.drafts = { ...state.drafts, [task.id]: candidate };
+          else continue;
+          await persist();
+        }
       }
     }
-    const missing = savedOnly ? [] : state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
+    // Once an unrecoverable part has exhausted its budget, preserve any
+    // delivered parts for review. Stored drafts above can still be repaired
+    // without another provider call.
+    const partialReview = limited(state) && Object.keys(state.parts).length > 0;
+    const missing = savedOnly || partialReview ? [] : state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
     for (const task of missing) state.attempts[task.id] = (state.attempts[task.id] || 0) + 1;
     if (missing.length) await persist();
     let queue = Promise.resolve();
@@ -143,7 +157,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     }, async () => {
       const draft = state.drafts?.[originalTask.id];
       const task = narrativeRepairTask(originalTask, draft);
-      const prompt = `${state.prompt}\n\n[이번 호출 범위]\n${task.prompt}\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"} 하나만 출력하세요. 본문은 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자입니다. 확정 계산값을 바꾸지 말고 근거 → 생활 패턴 → 반대 조건·주의점 → 행동 조언 순으로 짧은 문단을 나누세요. 반복으로 분량을 채우지 마세요.`;
+      const prompt = `${state.prompt}\n\n[이번 호출 범위]\n${task.prompt}${narrativePriorDigest(state, task)}\nJSON {"body":"본문"} 하나만 출력하세요. 본문은 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자입니다. 확정 계산값을 바꾸지 말고 근거 → 생활 패턴 → 반대 조건·주의점 → 행동 조언 순으로 짧은 문단을 나누세요. 반복으로 분량을 채우지 마세요.`;
       let ai, value;
       try {
         if (produce) {
@@ -164,15 +178,24 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
       const accept = async () => {
         const raw = getPaidGenerationRaw() || ai?.rawText || ai?.text || (value ? JSON.stringify(value) : "");
         if (raw) state.rawResponses = { ...state.rawResponses, [task.id]: raw };
-        const edited = valid && !/^\s*[\[{]/.test(value.body)
-          ? normalizeNarrativeBody(value.body) : value?.body;
+        // Prose drops a sentence already given (here or in an earlier part) instead of
+        // discarding the whole part; JSON products keep their adapter's validation.
+        const prior = Object.values(state.parts).join("\n");
+        const dedupe = text => typeof text === "string" && !/^\s*[\[{]/.test(text) ? dropRepeatedReportSentences(text, prior) : text;
+        // Without completeBody a part is prose: a JSON document (a whole-report schema
+        // filled in one part) is not a part result; the last attempt delivers its text.
+        const jsonDocument = valid && !completeBody && /^\s*[\[{]/.test(value.body);
+        const text = jsonDocument ? ((state.attempts[task.id] || 0) >= 2 ? narrativeTextFromJson(value.body) : "") : value?.body;
+        const edited = valid ? dedupe(/^\s*[\[{]/.test(text) ? text : normalizeNarrativeBody(text)) : value?.body;
         const body = valid && !hasRepeatedReportPassage(edited)
-          && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + edited) ? edited : null;
-        const previous = draft && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + draft) ? draft : null;
+          && !hasRepeatedReportPassage(prior + "\n" + edited) ? edited : null;
+        const kept = dedupe(draft);
+        const previous = kept && !hasRepeatedReportPassage(prior + "\n" + kept) ? kept : null;
         const candidate = selectNarrativeCandidate(previous, body, { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) });
         // Preserve the existing producer acceptance for full structured results.
         // Short narratives/structured adapters use their own completeness check.
-        const accepted = body && (measureBody || countPaidReportBodyChars)(body) >= task.minChars ? candidate || body : candidate;
+        const accepted = longEnough(task, body) ? candidate || body
+          : candidate && (longEnough(task, candidate) || finalAttempt(task)) ? candidate : null;
         const chosen = accepted || candidate;
         if (!chosen || hasRepeatedReportPassage(chosen) || hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + chosen)) { await persist(); return; }
         state = { ...state,
@@ -184,7 +207,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     })));
     const rejected = calls.find(call => call.status === "rejected"); if (rejected) throw rejected.reason;
     if (!ready(state, measureBody)) {
-      if (!savedOnly && limited(state) && onExhausted) {
+      if (!savedOnly && limited(state) && onExhausted && Object.keys(state.parts).length === 0) {
         // Persist a single refund claim before any external side effect. An
         // uncertain refund response is for reconciliation, never another refund.
         state = { ...state, exhaustionClaimed: true };

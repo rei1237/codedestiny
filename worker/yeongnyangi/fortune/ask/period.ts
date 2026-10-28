@@ -8,10 +8,11 @@ type YearResolver = (text: string, asOf: string) => { year: number; label: strin
 // Same week policy as lib/fortune/range-data.ts (WEEK_STARTS_ON_MONDAY): Monday to Sunday.
 const WEEK = /이번\s*주|다음\s*주|차주/gu;
 const MONTH_WORD = /이번\s*달|이달|다음\s*달|내달/gu;
-const YEAR_MONTH = /(20\d{2})\s*년\s*(\d{1,2})\s*(?:월\s*)?(?:[~～–-]\s*(\d{1,2})\s*)?월/gu;
-const RELATIVE_MONTH = /(올해|금년|이번\s*해|내년|다음\s*해|명년)\s*(\d{1,2})\s*(?:월\s*)?(?:[~～–-]\s*(\d{1,2})\s*)?월/gu;
-const BARE_MONTH = /(?<![\d년])(\d{1,2})\s*(?:월\s*)?(?:[~～–-]\s*(\d{1,2})\s*)?월(?!\s*\d)/gu;
+const YEAR_MONTH = /(20\d{2})\s*년\s*(\d{1,2})\s*(?:월\s*)?(?:(?:[~～–-]|부터)\s*(\d{1,2})\s*)?월(?:까지)?/gu;
+const RELATIVE_MONTH = /(올해|금년|이번\s*해|내년|다음\s*해|명년)\s*(\d{1,2})\s*(?:월\s*)?(?:(?:[~～–-]|부터)\s*(\d{1,2})\s*)?월(?:까지)?/gu;
+const BARE_MONTH = /(?<![\d년])(\d{1,2})\s*(?:월\s*)?(?:(?:[~～–-]|부터)\s*(\d{1,2})\s*)?월(?:까지)?(?!\s*\d)/gu;
 const BARE_MONTH_DAY = /(?<![\d년])(\d{1,2})\s*월\s*\d{1,2}\s*일/gu;
+const HALF_QUARTER = /(?:(20\d{2})\s*년\s*|(올해|금년|이번\s*해|내년|다음\s*해|명년)\s*)?(?:(상|하)반기|([1-4])\s*분기)/gu;
 
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 const utc = (asOf: string) => new Date(`${asOf}T00:00:00Z`);
@@ -32,6 +33,8 @@ function months(y: number, a: number, b = a): Omit<AskPeriodRange, 'label' | 'sc
 /** Every week, month and year range the question names, in text order, deduplicated. */
 export function resolveAskPeriods(question: string, asOf: string, resolveYears: YearResolver): AskPeriodRange[] {
   const base = Number(asOf.slice(0, 4)), currentMonth = Number(asOf.slice(5, 7));
+  const namedYears = resolveYears(question, asOf);
+  const namedYear = namedYears.length === 1 ? namedYears[0].year : undefined;
   const found: (AskPeriodRange & { at: number })[] = [];
   let rest = question;
   // Consumed text is blanked so '내년 3월' is one month range, not also the whole of next year.
@@ -44,6 +47,12 @@ export function resolveAskPeriods(question: string, asOf: string, resolveYears: 
       return ' '.repeat(m[0].length);
     });
   };
+  // '2026년 4분기', '내년 상반기': calendar halves and quarters. Without a year, the next time it comes, counting now.
+  take(HALF_QUARTER, m => {
+    const [a, b] = m[3] ? (m[3] === '상' ? [1, 6] : [7, 12]) : [Number(m[4]) * 3 - 2, Number(m[4]) * 3];
+    const y = m[1] ? Number(m[1]) : m[2] ? base + (/내년|다음\s*해|명년/.test(m[2]) ? 1 : 0) : namedYear ?? (b >= currentMonth ? base : base + 1);
+    return { scale: 'month', label: m[0].replace(/\s+/g, ' '), ...months(y, a, b)! };
+  });
   take(YEAR_MONTH, m => { const r = months(Number(m[1]), Number(m[2]), m[3] ? Number(m[3]) : undefined);
     return r && { scale: 'month', label: m[0].replace(/\s+/g, ' '), ...r }; });
   take(RELATIVE_MONTH, m => { const offset = /내년|다음\s*해|명년/.test(m[1]) ? 1 : 0;
@@ -52,7 +61,7 @@ export function resolveAskPeriods(question: string, asOf: string, resolveYears: 
   // A month without a year is the next time that month comes, counting the current month.
   const bare = (m: RegExpMatchArray, second?: string) => {
     const a = Number(m[1]), b = second ? Number(second) : a;
-    const r = months(a >= currentMonth ? base : base + 1, a, b);
+    const r = months(namedYear ?? (a >= currentMonth ? base : base + 1), a, b);
     return r && { scale: 'month' as const, label: m[0].replace(/\s+/g, ' '), ...r };
   };
   take(BARE_MONTH_DAY, m => bare(m));

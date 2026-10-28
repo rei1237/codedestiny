@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-28",
+  "delivery": "local only; no push, deployment or outreach",
+  "keywordResearch": {
+    "source": "https://tool.keywordcockpit.com/",
+    "uniqueCandidates": 210,
+    "directQueries": 36,
+    "relatedQueries": 67,
+    "unmeasuredExpansion": 107,
+    "data": "service-keyword-intent-map-20261028.json",
+    "limitations": "광고 경쟁도와 자연 검색 난도는 다르다. 10 미만 수치는 정확한 합계로 환산하지 않았다. 검색량을 확인하지 않은 확장 후보는 별도 표시했다.",
+    "appliedTo": ["대표 홈·브랜드 안내", "공통 FAQ의 네오사주·사주 성지 검색 의도", "MBTI 궁합", "심리테스트 허브", "휴먼 디자인 가이드", "진로 사주 리포트 소개", "96개 기간별 띠·별자리 페이지"]
+  },
+  "fortuneLogic": {
+    "sun": "고정 날짜표 대신 기존 Astronomy Engine으로 한국시간 정오의 태양 황경을 계산한다. 개인 출생 별자리 계산과는 별개다.",
+    "date": "주간·월간 범위가 일간 패키지와 동일한 빌드 기준 날짜를 사용한다. 윤일·연말·잘못된 날짜를 검사했다.",
+    "animal": "지지 두 개가 같은 삼합 그룹에 속하는 것과 삼합 완성·합화 판정을 구분한다. 점수와 설명·번역을 함께 갱신했다.",
+    "faq": "띠 운세의 간지 관계와 별자리 운세의 태양·달 계산을 분리해 설명한다. 주간 평균·월간 기준 시점의 의미를 명시했다.",
+    "tests": ["6개 연도 × 춘분·하지·추분·동지 24개 경계", "12띠 × 12일지 144개 조합", "24개 띠·별자리 × 4개 기간 96개 FAQ", "번역 12개 로케일의 변수·템플릿 슬롯 정합"]
+  },
+  "ui": {
+    "widths": [360, 390, 430, 1440],
+    "horizontalOverflow": 0,
+    "welcome": "모바일 그리드 안에서 환영 화면 높이가 0으로 축소되는 문제 수정",
+    "font": "CodeDestinySerifKR, CodeDestinyHan, CodeDestinyBody, CodeDestinyDisplay 실제 로드 확인",
+    "savedReading": "가상 저장 결과 재열람, 입력 수정, 프로필 없는 타로 선택, 실패 후 입력 보존 확인",
+    "networkScope": "로컬 앱 응답을 code-destiny.com 원점으로 재생해 폰트 CDN의 실제 CORS 조건을 확인했다. 폰트 정적 자산 외 모든 API는 mock이며 운영 계정·결제·LLM 검증을 하지 않았다.",
+    "visualReview": "독립 화면 검수 완료. 결과 예시의 빈 근거 카드는 근거를 넣지 않은 mock fixture의 한계이며 운영 결함으로 판정하지 않았다."
+  },
+  "celebrity": {
+    "addedDrafts": ["hey-jini", "yang-hong-won"],
+    "preservedExisting": "park-wi",
+    "birthTime": "새 초안은 출생시간 미상, 원 달력 확인 보류. 시주·정확한 출생지 추정 없음.",
+    "approval": "발행자·승인일·발행일을 임의 생성하지 않았다. 새 초안은 발행 승인과 색인 대상에 포함하지 않는다."
+  },
+  "verification": {
+    "checkFastPlan": "실행함. 추가 수정 후 계획을 비교했고 검증 명령 집합은 동일했다.",
+    "checkFast": "90개 회귀 묶음과 lint·사이트맵 검사는 통과. 타입 검사에서 새 초안의 null 발행일 처리 문제가 발견되어 중단됐다. 기존 발행 판정을 JSDoc 타입 가드로 명시한 뒤 typecheck가 통과했고, 이후 계획의 미실행 검사를 모두 완료했다. 이미 통과한 동일 검사는 재사용했다.",
+    "focused": "상담·JSON 18개, 하늘·범위 5개, 다국어 4개 테스트 통과. 정치 문구 범위, 96개 기간 원고, 유명인 발행·원고 엔진·출처·중복도 검사 통과.",
+    "production": "배포 승인 전이므로 실제 회원의 운영 재열람 및 운영 페이지 반영은 미검증. 최종 CI도 원격 전송 전이므로 미실행."
+  },
+  "preserved": ["이용권·월정석·단건 결제 정책", "인증·계정 소유권", "API 응답과 DB 스키마", "기존 구매 결과", "검색 제외 페이지의 noindex 정책"],
+  "references": [
+    "https://developers.google.com/search/docs/appearance/snippet",
+    "https://github.com/cosinekitty/astronomy/blob/master/source/js/README.md#SunPosition"
+  ],
+  "continuation": {
+    "date": "2026-10-28",
+    "baseline": "1c8f19fac3772dfbd9faebd656292d6a9f5eb4cc",
+    "applicationChanges": false,
+    "localStatus": "done",
+    "finalRepositoryCheck": "npm run check:fast -- --plan selected whitespace and verify:doc-freshness; npm run check:fast exited 0 for the final documentation-only scope.",
+    "scopeDecision": "One-off browser verifier retained with local evidence, not added as repository tooling. Full suite runs triggered during the provisional script change were interrupted, not passed. Existing baseline regression evidence is reused; final repository change is documentation and JSON evidence only.",
+    "render": {
+      "passed": 17,
+      "indexable": 13,
+      "noindex": 4,
+      "evidence": "career-discovery-render-20261028.json",
+      "command": "node C:/Users/user/.codex/visualizations/2026/10/28/01a181d7-be99-7db0-bf84-7a6774e04a34/verify-career-discovery-render.mjs http://127.0.0.1:3128 OUTPUT.json",
+      "preparation": "CD_MOCK_DEV=1; LOCAL_DEV_AUTH_API_PORT=3199; npm run fortune:build-data; local Next server on port 3128",
+      "checks": [
+        "HTTP 200",
+        "server HTML title/description/H1",
+        "self canonical and sitemap for 13 indexable pages",
+        "FAQ schema matches SSR body",
+        "selected discovery links in sitemap",
+        "four existing noindex pages excluded from sitemap"
+      ],
+      "dateEvidence": {
+        "today": "2026-10-28",
+        "tomorrow": "2026-10-29",
+        "week": "2026-10-26 through 2026-11-01",
+        "month": "2026-10"
+      },
+      "limitations": [
+        "Development SSR, not production export or live account validation",
+        "JavaScript disabled; existing interactive/mobile evidence reused",
+        "Internal-link checks cover selected discovery links, not a full crawl",
+        "Existing Next params synchronous-access warnings observed; runtime 200 after data generation; no routing edits"
+      ]
+    },
+    "campaign": {
+      "document": "../marketing/career-campus-campaign-20261028.md",
+      "candidates": 20,
+      "universities": 14,
+      "universityContacts": 18,
+      "platforms": 2,
+      "sent": 0,
+      "posts": 0,
+      "notes": "Concurrent main commit 5017f2bdc supplied 11 candidates and platform-rule evidence; its text is preserved. Nine distinct university contacts from this review were added, total 20. This session could not independently access platform-rule bodies. Contact availability is not publication permission."
+    },
+    "pending": [
+      "Explicit approval for push triggering staging and remote CI",
+      "Designated real test-account read-only verification with permission",
+      "Separate production promotion approval",
+      "Approved recipient, sender identity and final text before outreach; channel permission before posting"
+    ]
+  }
+}

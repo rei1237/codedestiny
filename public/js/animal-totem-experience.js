@@ -116,19 +116,19 @@
         hint: "장수가 아니라 '어떻게 읽을지'가 다릅니다.",
         one: {
           title: "달빛 한 장",
-          price: "3,000원",
+          price: "5,000원",
           tagline: "동물 한 마리를 끝까지 정독",
           perks: ["본질 · 속삭임 전문 수록", "실천 5가지 + 치유 리추얼", "저널링 3문항 · 그림자 · 확언"]
         },
         three: {
           title: "숲의 세 길",
-          price: "3,000원",
+          price: "5,000원",
           tagline: "과거 → 현재 → 통합의 흐름",
           perks: ["세 마리가 만드는 하나의 서사", "카드마다 질문 연결 해설", "오늘의 실천 플랜 3가지"]
         },
         five: {
           title: "별자리 다섯 동물",
-          price: "3,000원",
+          price: "5,000원",
           tagline: "이성 · 감정 · 그림자 · 선물 · 행동",
           perks: ["다섯 자리 전체 심층 리딩", "그림자 ↔ 선물 통합 해설", "오늘의 실천 플랜 3가지"]
         },
@@ -242,19 +242,19 @@
         hint: "It is not about the number of cards — it is how they are read.",
         one: {
           title: "One Moonlit Card",
-          price: "KRW 3,000",
+          price: "KRW 5,000",
           tagline: "One animal, read all the way through",
           perks: ["Full essence and whisper text", "5 practices + healing ritual", "3 journaling prompts, shadow, affirmation"]
         },
         three: {
           title: "Three Paths in the Forest",
-          price: "KRW 3,000",
+          price: "KRW 5,000",
           tagline: "Past → Present → Integration",
           perks: ["One story woven from three animals", "Each card tied to your question", "3 practical steps for today"]
         },
         five: {
           title: "Five Constellation Animals",
-          price: "KRW 3,000",
+          price: "KRW 5,000",
           tagline: "Mind · Heart · Shadow · Gift · Action",
           perks: ["Deep reading across all five seats", "Shadow ↔ Gift synthesis", "3 practical steps for today"]
         },
@@ -368,19 +368,19 @@
         hint: "枚数ではなく「どう読むか」が違います。",
         one: {
           title: "月明かりの一枚",
-          price: "3,000ウォン",
+          price: "5,000ウォン",
           tagline: "一匹をとことん読み込む",
           perks: ["本質・ささやきを全文収録", "実践5つ＋癒しのリチュアル", "ジャーナリング3問・影・アファメーション"]
         },
         three: {
           title: "森の三つの道",
-          price: "3,000ウォン",
+          price: "5,000ウォン",
           tagline: "過去 → 現在 → 統合の流れ",
           perks: ["三匹が織りなす一つの物語", "カードごとに質問と接続", "今日の実践プラン3つ"]
         },
         five: {
           title: "星座の五つの動物",
-          price: "3,000ウォン",
+          price: "5,000ウォン",
           tagline: "理性・感情・影・贈り物・行動",
           perks: ["五つの席すべてを深く読む", "影 ↔ 贈り物の統合解説", "今日の実践プラン3つ"]
         },
@@ -498,19 +498,19 @@
     zh.modes.hint = "差别不在张数，而在如何解读。";
     zh.modes.one = {
       title: "月光一张",
-      price: "3,000韩元",
+      price: "5,000韩元",
       tagline: "把一只动物读到底",
       perks: ["本质与低语全文收录", "5项实践 + 疗愈仪式", "3道书写问题・阴影・肯定语"]
     };
     zh.modes.three = {
       title: "森林三径",
-      price: "3,000韩元",
+      price: "5,000韩元",
       tagline: "过去 → 当下 → 整合",
       perks: ["三只动物织成一个故事", "每张卡都连接你的问题", "今日3项可行步骤"]
     };
     zh.modes.five = {
       title: "星座五兽",
-      price: "3,000韩元",
+      price: "5,000韩元",
       tagline: "理性・情感・阴影・礼物・行动",
       perks: ["五个位置全面深读", "阴影 ↔ 礼物整合解说", "今日3项可行步骤"]
     };
@@ -614,21 +614,21 @@
     one: {
       subFeatureKey: "basic",
       featureKey: "animal-totem-basic",
-      cost: 30,
+      cost: 50,
       reasonKey: "billing.reasonBasic",
       labelKey: "billing.oneLabel"
     },
     three: {
       subFeatureKey: "basic",
       featureKey: "animal-totem-basic",
-      cost: 30,
+      cost: 50,
       reasonKey: "billing.reasonBasic",
       labelKey: "billing.threeLabel"
     },
     five: {
       subFeatureKey: "deep",
       featureKey: "animal-totem-deep",
-      cost: 30,
+      cost: 50,
       reasonKey: "billing.reasonDeep",
       labelKey: "billing.fiveLabel"
     }

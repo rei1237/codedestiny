@@ -9,9 +9,9 @@ import {
 import { FEATURE_KEY_PRICE_TABLE, isPerUsePaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
 
 describe("Guardian Fortune credit retirement", () => {
-  it("prices the consultation at 30 coins (3,000 KRW) as a per-use feature", () => {
+  it("prices the consultation at 50 coins (5,000 KRW) as a per-use feature", () => {
     expect(GUARDIAN_FORTUNE_PAID_FEATURE_KEY).toBe("fortune-chat-consultation");
-    expect(FEATURE_KEY_PRICE_TABLE[GUARDIAN_FORTUNE_PAID_FEATURE_KEY]).toMatchObject({ cost: 30, amountKRW: 3000 });
+    expect(FEATURE_KEY_PRICE_TABLE[GUARDIAN_FORTUNE_PAID_FEATURE_KEY]).toMatchObject({ cost: 50, amountKRW: 5000 });
     expect(isPerUsePaidFeatureKey(GUARDIAN_FORTUNE_PAID_FEATURE_KEY)).toBe(true);
   });
 
@@ -26,5 +26,7 @@ describe("Guardian Fortune credit retirement", () => {
   it("still sends a logged-out guest to login rather than to a payment gate", () => {
     const cta = buildGuardianFortuneLimitCta(GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED, false);
     expect(cta).toMatchObject({ targetPath: "/auth/login" });
+    // 가입 무료 1회는 없어졌다. 로그인 안내가 없는 혜택을 약속하면 안 된다.
+    expect(`${cta.label} ${cta.reason}`).not.toContain("무료");
   });
 });

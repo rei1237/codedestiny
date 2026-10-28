@@ -111,8 +111,8 @@ check("🔴 폴백 수용 문턱이 전 유닛에서 최소 분량의 40% 다 (�
 // 결제 정합성
 const entry = registry.FEATURE_KEY_PRICE_TABLE["human-design-report"];
 check("유료 레지스트리에 human-design-report 가 있다", Boolean(entry));
-check("레지스트리 가격이 50코인 / ₩5,000 다",
-  Number(entry?.cost) === 50 && Number(entry?.amountKRW) === 5000, JSON.stringify(entry || {}));
+check("레지스트리 가격이 70코인 / ₩7,000 다",
+  Number(entry?.cost) === 70 && Number(entry?.amountKRW) === 7000, JSON.stringify(entry || {}));
 check("회당 결제로 등록돼 있다", registry.isPerUsePaidFeatureKey("human-design-report"));
 check("🔴 영구 해금이 아니다 (1회 결제로 모든 출생 데이터가 열리는 것을 막는다)",
   !registry.isUnlockPaidFeatureKey("human-design-report"));
@@ -547,9 +547,9 @@ check("조판 상수가 A4 이고 본문 폭·하단선이 유도값이다",
   && metrics.CONTENT_WIDTH_MM === 166 && metrics.CONTENT_BOTTOM_MM === 271,
   `${metrics.CONTENT_WIDTH_MM} / ${metrics.CONTENT_BOTTOM_MM}`);
 
-// 🔴 추출 전 초융합 writer 의 값 그대로여야 한다. 이 숫자가 바뀌면 살아 있는 상품의 페이지
-//    나눔이 조용히 달라진다(추출 시 실측 대조: 2026-08-24).
-const FUSION_PINNED = { lead: [11.5, 1.8], body: [10.5, 1.78], heading: [11.5, 1.4], caption: [8.5, 1.5], bullets: [10, 1.7] };
+// 2026-10-27 승인된 결과/PDF 가독성 규격. 본문·제목·캡션 확대 뒤에도 원문 보존과
+// 페이지 넘침 산술 검사는 아래에서 같은 실제 조판기로 검증한다.
+const FUSION_PINNED = { lead: [11.5, 1.8], body: [11.3, 1.85], heading: [12.5, 1.5], caption: [9, 1.6], bullets: [10, 1.7] };
 for (const [kind, [sizePt, factor]] of Object.entries(FUSION_PINNED)) {
   const style = metrics.BLOCK_STYLE[kind];
   check(`🔴 초융합 조판 규격 유지 — ${kind}`,

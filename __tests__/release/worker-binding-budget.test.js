@@ -6,9 +6,13 @@ const { readFileSync } = require("node:fs");
 const config = (count) => '[vars]\n' + Array.from({ length: count }, (_, i) => `VAR_${i} = "1"`).join('\n');
 const secrets = Array.from({ length: 69 }, (_, i) => ({ name: `SECRET_${i}`, type: "secret_text" }));
 
+// Read-only production metadata on 2026-10-11: 51 secrets, no vars overlap.
+// deploy-safe re-reads the live inventory before every upload. Keep the synthetic
+// 69-secret boundary cases below independent of this observed snapshot.
+const observedSecrets = Array.from({ length: 51 }, (_, i) => ({ name: `OBSERVED_SECRET_${i}`, type: "secret_text" }));
 test("tracked production vars preserve headroom against the observed secret inventory", async () => {
   const { assertWorkerBindingBudget } = await load();
-  assert.ok(assertWorkerBindingBudget(readFileSync("worker/wrangler.toml", "utf8"), secrets).remaining >= 2);
+  assert.ok(assertWorkerBindingBudget(readFileSync("worker/wrangler.toml", "utf8"), observedSecrets).remaining >= 2);
   const auth = readFileSync("worker/routes/auth.js", "utf8");
   assert.match(auth, /getEnv\(env, "AUTH_OPERATION_TIMEOUT_MS", "12000"\)/);
   const celestial = readFileSync("worker/lib/celestial-report-delivery.js", "utf8");

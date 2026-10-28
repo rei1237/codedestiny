@@ -80,7 +80,7 @@ const SERVER_CASES = [
     label: "시빌라 도미네이터 리포트",
     source: SIBYL,
     kind: "sibyl-dominator-report",
-    gate: "resume: { kind: SIBYL_RESUME_KIND, action: 'openSibylModal', args: {} }",
+    gate: "resume: { kind: SIBYL_RESUME_KIND, action: 'openSibylModal', args: {year:_annualYear()} }",
     sharedCore: "_generateDominatorReport",
   },
   {

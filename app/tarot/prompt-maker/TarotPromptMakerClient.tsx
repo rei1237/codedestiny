@@ -1,5 +1,6 @@
 "use client";
 
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { AnimatePresence, m } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -982,7 +983,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     guideArticles: [
       { title: "무엇을 정리하나요", paragraphs: ["질문의 주제, 선택한 스프레드, 카드의 방향을 한 문장씩 엮어 타로 상담에 바로 쓸 수 있는 프롬프트 흐름으로 정리합니다. 레노먼드는 사건의 순서와 행동 단서를, 타로는 마음의 층과 상징의 결을 더 깊게 비춥니다."] },
       { title: "어떻게 읽으면 좋나요", paragraphs: ["질문을 구체적으로 적을수록 결과는 막연한 길흉보다 현재 상황, 반복 신호, 전환 단서, 현실 행동 쪽으로 선명해집니다. 무료 레노먼드는 흐름 정리에, 유료 오라클 프롬프트는 더 긴 상담 문장과 조율 지시에 어울립니다."] },
-      { title: "주의할 점", paragraphs: ["결과는 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 의료, 법률, 투자, 임신, 합격 여부처럼 손실이 큰 결정은 이 리딩만으로 확정하지 말고 현실 정보와 전문가 상담을 함께 확인하세요. 프롬프트는 판단을 대신하지 않고 질문을 더 맑게 정리하는 도구로 읽어 주세요."] },
+      { title: "주의할 점", paragraphs: ["결과는 자기 성찰을 위한 참고 자료입니다. 의료, 법률, 투자, 임신, 합격 여부처럼 손실이 큰 결정은 이 리딩만으로 확정하지 말고 현실 정보와 전문가 상담을 함께 확인하세요. 프롬프트는 판단을 대신하지 않고 질문을 더 맑게 정리하는 도구로 읽어 주세요."] },
       { title: "좋은 질문을 만드는 법", paragraphs: ["“그 사람이 돌아올까요”처럼 결말을 묻는 질문보다 “지금 이 관계에서 내가 확인해야 할 신호는 무엇인가요”처럼 마음과 행동을 함께 묻는 문장이 더 안정적으로 읽힙니다. 프롬프트를 복사한 뒤에는 카드 이름만 나열하기보다, 현재 상황, 상대와 나의 감정, 현실적으로 할 수 있는 선택지를 함께 적어 두면 해석이 덜 단정적이고 더 상담답게 열립니다.", "같은 카드 조합이라도 질문의 시점과 태도에 따라 메시지는 달라질 수 있으니, 결과를 압박으로 받아들이기보다 오늘 정리할 한 문장과 줄여야 할 행동 하나를 고르는 방식으로 사용해 주세요.", "타로 초보자는 1장 또는 3장 스프레드로 질문의 방향을 먼저 잡고, 복잡한 관계나 커리어 고민은 5장 이상의 스프레드로 배경과 행동 단서를 나누어 보는 편이 좋습니다. 결과가 마음에 들지 않더라도 같은 질문을 반복해서 뽑기보다, 질문을 더 정확하게 다듬거나 하루 정도 시간을 둔 뒤 다시 읽으면 상징이 더 차분하게 다가옵니다.", "입력값은 질문 문장, 고민 주제, 선택한 스프레드, 뽑은 카드입니다. 질문 문장은 상담의 초점을 정하고, 고민 주제는 사랑·일·돈·건강처럼 해석에서 조심해야 할 경계를 알려 줍니다. 스프레드는 시간의 흐름이나 관계의 위치를 나누고, 카드는 그 자리에 놓인 상징을 비춥니다."] },
     ],
     spreadLibraryTitle: "다른 스프레드 보기",
@@ -1045,7 +1046,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     guideArticles: [
       { title: "What is organized", paragraphs: ["The question topic, chosen spread, and card direction are woven into a prompt flow ready for tarot consultation. Lenormand reads sequence and action clues; tarot looks deeper into emotional layers and symbolic texture."] },
       { title: "How to read it", paragraphs: ["The more specific the question, the clearer the result becomes around current situation, repeated signs, turning clues, and realistic action instead of vague luck. Free Lenormand suits flow sorting; the paid oracle prompt suits longer consultation language and tuning instructions."] },
-      { title: "Important note", paragraphs: ["The result is for entertainment and self-reflection. For high-impact decisions involving medicine, law, investment, pregnancy, or admissions, do not decide from this reading alone. Check real-world information and consult a qualified expert."] },
+      { title: "Important note", paragraphs: ["The result is a reference for self-reflection. For high-impact decisions involving medicine, law, investment, pregnancy, or admissions, do not decide from this reading alone. Check real-world information and consult a qualified expert."] },
       { title: "How to ask well", paragraphs: ["Questions that ask about heart and action together read more steadily than questions asking only for an ending. After copying the prompt, add the current situation, both people's emotions, and realistic options rather than listing card names only.", "Even with the same cards, the message changes with timing and attitude. Use the result by choosing one sentence to clarify today and one action to reduce.", "Beginners can start with one-card or three-card spreads; complex relationships or career concerns often benefit from five or more cards to separate background and action clues.", "Inputs include the question, concern category, chosen spread, and drawn cards. The prompt does not decide for you; it clears the question so judgment can breathe."] },
     ],
     spreadLibraryTitle: "View other spreads",
@@ -3306,6 +3307,7 @@ export default function TarotPromptMakerPage() {
                   transition={{ duration: 0.35, ease: "easeOut" }}
                   className="max-w-2xl mx-auto"
                 >
+                  {!isLenormandMode && locale === "ko" && <div style={{width:"100%",maxWidth:540,margin:"0 auto 24px",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey={oracleTierFeatureKey} summaryLabel="선택한 카드 수의 상담 상세 안내" /></div>}
                   {/* Question card */}
                   <div
                     className="rounded-3xl p-6 sm:p-8 border border-[#7c3aed]/40"

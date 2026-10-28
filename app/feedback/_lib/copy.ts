@@ -143,7 +143,7 @@ export interface FeedbackCopy {
 }
 
 const FEEDBACK_COPY_EN: FeedbackCopy = {
-  heroEyebrow: "CODE DESTINY LAB",
+  heroEyebrow: "꿀꿀운세 LAB",
   heroTitle: "Bug Report Room",
   heroBodyLine1: "When something looks off, a result feels strange, or you think “I wish this existed.”",
   heroBodyLine2: "Even one line helps — the lab reads it directly.",
@@ -207,7 +207,7 @@ const FEEDBACK_COPY_EN: FeedbackCopy = {
 
   successImageAlt: "A flower-pig thanking you with a hug",
   successTitle: "Thank you!",
-  successBody: "Your feedback helps make CODE DESTINY a better service. Our developers will review it carefully and reflect it in an update.",
+  successBody: "Your feedback helps make 꿀꿀운세 a better service. Our developers will review it carefully and reflect it in an update.",
   ticketNoLabel: "Ticket number",
   ticketCopyAriaLabel: "Copy ticket number",
   writeAnotherButton: "Send another one",
@@ -328,7 +328,7 @@ const FEEDBACK_COPY_EN: FeedbackCopy = {
 
 const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
   ko: {
-    heroEyebrow: "CODE DESTINY 연구소",
+    heroEyebrow: "꿀꿀운세 연구소",
     heroTitle: "버그 제보실",
     heroBodyLine1: "화면이 이상하거나, 결과가 어색하거나, “이런 게 있었으면” 싶을 때.",
     heroBodyLine2: "한 줄이라도 좋으니 알려주세요 — 연구소가 직접 읽습니다.",
@@ -392,7 +392,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
 
     successImageAlt: "고맙다는 인사를 건네는 꽃돼지 연이",
     successTitle: "감사합니다!",
-    successBody: "보내주신 의견은 CODE DESTINY를 더 좋은 서비스로 만드는 데 큰 도움이 됩니다. 개발자가 꼼꼼히 확인한 뒤 업데이트에 반영하겠습니다.",
+    successBody: "보내주신 의견은 꿀꿀운세를 더 좋은 서비스로 만드는 데 큰 도움이 됩니다. 개발자가 꼼꼼히 확인한 뒤 업데이트에 반영하겠습니다.",
     ticketNoLabel: "접수 번호",
     ticketCopyAriaLabel: "접수 번호 복사",
     writeAnotherButton: "또 다른 의견 보내기",
@@ -504,7 +504,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
     },
   },
   ja: {
-    heroEyebrow: "CODE DESTINY 研究所",
+    heroEyebrow: "꿀꿀운세 研究所",
     heroTitle: "バグ報告室",
     heroBodyLine1: "画面がおかしい、結果が不自然、または“こんな機能があれば”と思ったとき。",
     heroBodyLine2: "一行だけでも構いません — 研究所が直接読みます。",
@@ -568,7 +568,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
 
     successImageAlt: "感謝のハグを送る花豚ヨニ",
     successTitle: "ありがとうございます!",
-    successBody: "お寄せいただいた意見は、CODE DESTINYをより良いサービスにするための大きな助けになります。開発者が入念に確認したうえでアップデートに反映します。",
+    successBody: "お寄せいただいた意見は、꿀꿀운세をより良いサービスにするための大きな助けになります。開発者が入念に確認したうえでアップデートに反映します。",
     ticketNoLabel: "受付番号",
     ticketCopyAriaLabel: "受付番号をコピー",
     writeAnotherButton: "別の意見を送る",
@@ -680,7 +680,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
     },
   },
   "zh-CN": {
-    heroEyebrow: "CODE DESTINY 研究所",
+    heroEyebrow: "꿀꿀운세 研究所",
     heroTitle: "问题反馈室",
     heroBodyLine1: "当画面出现异常、结果感觉不对,或是想到“要是有这个功能就好了”的时候。",
     heroBodyLine2: "哪怕一句话也好,请告诉我们 — 研究所会亲自阅读。",
@@ -744,7 +744,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
 
     successImageAlt: "送上感谢拥抱的花猪连伊",
     successTitle: "谢谢您!",
-    successBody: "您的反馈对让CODE DESTINY变得更好有很大帮助。开发者会仔细确认后反映到更新中。",
+    successBody: "您的反馈对让꿀꿀운세变得更好有很大帮助。开发者会仔细确认后反映到更新中。",
     ticketNoLabel: "受理编号",
     ticketCopyAriaLabel: "复制受理编号",
     writeAnotherButton: "发送其他反馈",
@@ -856,7 +856,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
     },
   },
   "zh-TW": {
-    heroEyebrow: "CODE DESTINY 研究所",
+    heroEyebrow: "꿀꿀운세 研究所",
     heroTitle: "問題回報室",
     heroBodyLine1: "當畫面出現異常、結果感覺不對,或是想到“要是有這個功能就好了”的時候。",
     heroBodyLine2: "哪怕一句話也好,請告訴我們 — 研究所會親自閱讀。",
@@ -920,7 +920,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
 
     successImageAlt: "送上感謝擁抱的花豬連伊",
     successTitle: "謝謝您!",
-    successBody: "您的意見對讓CODE DESTINY變得更好有很大幫助。開發者會仔細確認後反映到更新中。",
+    successBody: "您的意見對讓꿀꿀운세變得更好有很大幫助。開發者會仔細確認後反映到更新中。",
     ticketNoLabel: "受理編號",
     ticketCopyAriaLabel: "複製受理編號",
     writeAnotherButton: "發送其他意見",
@@ -1032,7 +1032,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
     },
   },
   vi: {
-    heroEyebrow: "PHÒNG NGHIÊN CỨU CODE DESTINY",
+    heroEyebrow: "PHÒNG NGHIÊN CỨU 꿀꿀운세",
     heroTitle: "Phòng Báo Cáo Lỗi",
     heroBodyLine1: "Khi màn hình có vẻ lạ, kết quả cảm thấy kỳ, hoặc bạn nghĩ “giá mà có tính năng này”.",
     heroBodyLine2: "Chỉ một dòng cũng được — phòng nghiên cứu sẽ đọc trực tiếp.",
@@ -1096,7 +1096,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
 
     successImageAlt: "Chú heo hoa gửi lời cảm ơn bằng cái ôm",
     successTitle: "Cảm ơn bạn!",
-    successBody: "Phản hồi của bạn giúp CODE DESTINY trở thành dịch vụ tốt hơn. Đội ngũ phát triển sẽ xem xét kỹ lưỡng và phản ánh vào bản cập nhật.",
+    successBody: "Phản hồi của bạn giúp 꿀꿀운세 trở thành dịch vụ tốt hơn. Đội ngũ phát triển sẽ xem xét kỹ lưỡng và phản ánh vào bản cập nhật.",
     ticketNoLabel: "Số phiếu",
     ticketCopyAriaLabel: "Sao chép số phiếu",
     writeAnotherButton: "Gửi phản hồi khác",
@@ -1208,7 +1208,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
     },
   },
   hi: {
-    heroEyebrow: "CODE DESTINY लैब",
+    heroEyebrow: "꿀꿀운세 लैब",
     heroTitle: "बग रिपोर्ट रूम",
     heroBodyLine1: "जब स्क्रीन अजीब लगे, परिणाम अटपटा लगे, या आपको लगे “काश यह फ़ीचर होता”।",
     heroBodyLine2: "एक लाइन भी काफी है — लैब इसे सीधे पढ़ती है।",
@@ -1272,7 +1272,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
 
     successImageAlt: "गले लगाकर धन्यवाद देता फूल-सुअर योनी",
     successTitle: "धन्यवाद!",
-    successBody: "आपकी प्रतिक्रिया CODE DESTINY को बेहतर सेवा बनाने में बहुत मदद करती है। डेवलपर सावधानीपूर्वक जांच के बाद इसे अपडेट में शामिल करेंगे।",
+    successBody: "आपकी प्रतिक्रिया 꿀꿀운세 को बेहतर सेवा बनाने में बहुत मदद करती है। डेवलपर सावधानीपूर्वक जांच के बाद इसे अपडेट में शामिल करेंगे।",
     ticketNoLabel: "टिकट नंबर",
     ticketCopyAriaLabel: "टिकट नंबर कॉपी करें",
     writeAnotherButton: "एक और फीडबैक भेजें",
@@ -1384,7 +1384,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
     },
   },
   es: {
-    heroEyebrow: "LABORATORIO CODE DESTINY",
+    heroEyebrow: "LABORATORIO 꿀꿀운세",
     heroTitle: "Sala de Reportes de Errores",
     heroBodyLine1: "Cuando la pantalla se ve mal, un resultado se siente extraño, o piensas “ojalá existiera esto”.",
     heroBodyLine2: "Aunque sea una línea, ayuda — el laboratorio la lee directamente.",
@@ -1448,7 +1448,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
 
     successImageAlt: "Un cerdito de flores agradeciendo con un abrazo",
     successTitle: "¡Gracias!",
-    successBody: "Tu comentario ayuda a que CODE DESTINY sea un mejor servicio. Nuestros desarrolladores lo revisarán cuidadosamente y lo reflejarán en una actualización.",
+    successBody: "Tu comentario ayuda a que 꿀꿀운세 sea un mejor servicio. Nuestros desarrolladores lo revisarán cuidadosamente y lo reflejarán en una actualización.",
     ticketNoLabel: "Número de ticket",
     ticketCopyAriaLabel: "Copiar número de ticket",
     writeAnotherButton: "Enviar otro comentario",
@@ -1560,7 +1560,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
     },
   },
   fr: {
-    heroEyebrow: "LABORATOIRE CODE DESTINY",
+    heroEyebrow: "LABORATOIRE 꿀꿀운세",
     heroTitle: "Salle de Signalement de Bugs",
     heroBodyLine1: "Quand un écran a l'air étrange, un résultat semble bizarre, ou vous pensez “j'aimerais que cette fonctionnalité existe”.",
     heroBodyLine2: "Même une ligne aide — le laboratoire la lit directement.",
@@ -1624,7 +1624,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
 
     successImageAlt: "Un petit cochon fleur remerciant avec un câlin",
     successTitle: "Merci!",
-    successBody: "Votre commentaire aide à faire de CODE DESTINY un meilleur service. Nos développeurs l'examineront attentivement et le prendront en compte dans une mise à jour.",
+    successBody: "Votre commentaire aide à faire de 꿀꿀운세 un meilleur service. Nos développeurs l'examineront attentivement et le prendront en compte dans une mise à jour.",
     ticketNoLabel: "Numéro de ticket",
     ticketCopyAriaLabel: "Copier le numéro de ticket",
     writeAnotherButton: "Envoyer un autre commentaire",
@@ -1736,7 +1736,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
     },
   },
   de: {
-    heroEyebrow: "CODE DESTINY LABOR",
+    heroEyebrow: "꿀꿀운세 LABOR",
     heroTitle: "Fehlermelde-Raum",
     heroBodyLine1: "Wenn ein Bildschirm seltsam aussieht, ein Ergebnis sich merkwürdig anfühlt oder du denkst “ich wünschte, es gäbe diese Funktion”.",
     heroBodyLine2: "Selbst eine Zeile hilft — das Labor liest sie direkt.",
@@ -1800,7 +1800,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
 
     successImageAlt: "Ein Blumenschwein, das sich mit einer Umarmung bedankt",
     successTitle: "Danke!",
-    successBody: "Dein Feedback hilft dabei, CODE DESTINY zu einem besseren Service zu machen. Unsere Entwickler prüfen es sorgfältig und berücksichtigen es in einem Update.",
+    successBody: "Dein Feedback hilft dabei, 꿀꿀운세 zu einem besseren Service zu machen. Unsere Entwickler prüfen es sorgfältig und berücksichtigen es in einem Update.",
     ticketNoLabel: "Ticketnummer",
     ticketCopyAriaLabel: "Ticketnummer kopieren",
     writeAnotherButton: "Weiteres Feedback senden",
@@ -1912,7 +1912,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
     },
   },
   nl: {
-    heroEyebrow: "CODE DESTINY LAB",
+    heroEyebrow: "꿀꿀운세 LAB",
     heroTitle: "Bugmeldingsruimte",
     heroBodyLine1: "Als een scherm er raar uitziet, een resultaat vreemd aanvoelt, of je denkt “was deze functie er maar”.",
     heroBodyLine2: "Zelfs één regel helpt — het lab leest het direct.",
@@ -1976,7 +1976,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
 
     successImageAlt: "Een bloemenvarken dat je bedankt met een knuffel",
     successTitle: "Bedankt!",
-    successBody: "Je feedback helpt om CODE DESTINY een betere service te maken. Onze ontwikkelaars bekijken het zorgvuldig en verwerken het in een update.",
+    successBody: "Je feedback helpt om 꿀꿀운세 een betere service te maken. Onze ontwikkelaars bekijken het zorgvuldig en verwerken het in een update.",
     ticketNoLabel: "Ticketnummer",
     ticketCopyAriaLabel: "Ticketnummer kopiëren",
     writeAnotherButton: "Nog een reactie versturen",
@@ -2088,7 +2088,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
     },
   },
   ms: {
-    heroEyebrow: "MAKMAL CODE DESTINY",
+    heroEyebrow: "MAKMAL 꿀꿀운세",
     heroTitle: "Bilik Laporan Pepijat",
     heroBodyLine1: "Apabila skrin kelihatan pelik, keputusan terasa ganjil, atau anda terfikir “andai kata ada ciri ini”.",
     heroBodyLine2: "Walaupun satu baris pun membantu — makmal membacanya secara terus.",
@@ -2152,7 +2152,7 @@ const FEEDBACK_COPY: Partial<Record<LoadingLocale, FeedbackCopy>> = {
 
     successImageAlt: "Babi bunga yang berterima kasih dengan pelukan",
     successTitle: "Terima kasih!",
-    successBody: "Maklum balas anda membantu menjadikan CODE DESTINY perkhidmatan yang lebih baik. Pembangun kami akan menyemak dengan teliti dan memasukkannya dalam kemas kini.",
+    successBody: "Maklum balas anda membantu menjadikan 꿀꿀운세 perkhidmatan yang lebih baik. Pembangun kami akan menyemak dengan teliti dan memasukkannya dalam kemas kini.",
     ticketNoLabel: "Nombor tiket",
     ticketCopyAriaLabel: "Salin nombor tiket",
     writeAnotherButton: "Hantar maklum balas lain",

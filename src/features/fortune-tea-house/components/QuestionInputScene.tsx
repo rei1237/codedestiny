@@ -1,4 +1,9 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+import BirthPlaceInput from "@/app/components/BirthPlaceInput";
+
+import { PriceBadge } from "@/app/components/PriceBadge";
 import TeaConsultConfirmation from "./TeaConsultConfirmation";
 import { SAJU_CATEGORIES, resolveQuestionCategory } from "@/lib/fortune-tea-house/saju-category";
 
@@ -21,7 +26,7 @@ import { type TeaHouseCup } from "../data/teaCups";
 import AssetImage from "./AssetImage";
 import TeaHouseButton from "./TeaHouseButton";
 import styles from "../styles/tea-question.module.css";
-
+
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 type QuestionInputSceneProps = {
   selectedCup: TeaHouseCup;
@@ -150,6 +155,7 @@ type TeaHouseProfileOption = {
   birthTimeUnknown: boolean;
   calendarType: FortuneTeaHouseCalendarType;
   birthPlace: string;
+  longitude?: number;
   timezone: string;
 };
 
@@ -227,6 +233,7 @@ function mapProfileToTeaHouseOption(profile: DestinyProfileCard): TeaHouseProfil
     birthTimeUnknown: isProfileBirthTimeUnknown(normalized, birthTime),
     calendarType: normalizeProfileCalendarType(normalized),
     birthPlace: cleanProfileText(normalized.location?.label || normalized.birthRegion),
+    longitude: normalized.location?.lng == null ? undefined : Number(normalized.location.lng),
     timezone: cleanProfileText(normalized.location?.tz) || "Asia/Seoul",
   };
 }
@@ -237,7 +244,8 @@ const CATEGORY_KO = { love: "연애·재회", compatibility: "궁합·관계", m
 const KO = {
   welcomeNote: "말하기 어려웠던 고민도 괜찮아요. 질문에 맞는 근거를 함께 살펴볼게요.",
   stepLabel: "질문과 정보 · 1 / 3", questionTitle: "어떤 고민을 함께 읽어볼까요?",
-  questionGuide: "질문을 먼저 적고 상담 방식을 골라 주세요. 선택한 방식에 필요한 정보만 받아요.",
+  changeMode: "상담 방식 바꾸기",
+  questionGuide: "저장된 프로필이나 필요한 출생정보를 확인한 뒤, 상담 질문을 적어 주세요.",
   reviewButton: "상담 내용과 가격 확인", leapMonth: "음력 윤달", longitudeLabel: "출생지 경도 (선택)",
   longitudeHelp: "도시명만으로 좌표를 추정하지 않아요. 기본값은 서울 126.978°이며, 해외 출생은 해당 지역 경도를 입력해 주세요.",
 
@@ -394,10 +402,11 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   const copy = useTeaHouseCopy("questionInput", KO);
   const categories = useTeaHouseCopy("questionCategories", CATEGORY_KO);
   const [consultationMode, setConsultationMode] = useState<FortuneTeaHouseConsultMode>(initialInput?.consultationMode || "tarot");
+  const jointSaju = consultationMode === "saju" && initialInput?.sajuReportVersion === "saju-specialist-v2";
   const priceLabelForMode = useCallback(
     (mode: FortuneTeaHouseConsultMode, spread?: FortuneTeaTarotSpread) =>
-      priceLabels[mode] || getFortuneTeaHouseConsultPriceLabel(mode, spread),
-    [priceLabels],
+      priceLabels[mode] || getFortuneTeaHouseConsultPriceLabel(mode, spread, jointSaju ? "saju-specialist-v2" : undefined),
+    [priceLabels, jointSaju],
   );
   const [nickname, setNickname] = useState(initialInput?.nickname || "");
   const [profileId, setProfileId] = useState(initialInput?.profileId || "");
@@ -421,6 +430,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     user: {
       name: initialInput?.sukuyo?.user?.name || initialInput?.nickname || "",
       birthDate: initialInput?.sukuyo?.user?.birthDate || "",
+      birthTime: initialInput?.sukuyo?.user?.birthTime || "",
+      birthTimeUnknown: Boolean(initialInput?.sukuyo?.user?.birthTimeUnknown),
       calendarType: initialInput?.sukuyo?.user?.calendarType || "solar",
       isLeapMonth: Boolean(initialInput?.sukuyo?.user?.isLeapMonth),
       gender: initialInput?.sukuyo?.user?.gender || "",
@@ -428,6 +439,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     partner: {
       name: initialInput?.sukuyo?.partner?.name || "",
       birthDate: initialInput?.sukuyo?.partner?.birthDate || "",
+      birthTime: initialInput?.sukuyo?.partner?.birthTime || "",
+      birthTimeUnknown: Boolean(initialInput?.sukuyo?.partner?.birthTimeUnknown),
       calendarType: initialInput?.sukuyo?.partner?.calendarType || "solar",
       isLeapMonth: Boolean(initialInput?.sukuyo?.partner?.isLeapMonth),
       gender: initialInput?.sukuyo?.partner?.gender || "",
@@ -446,6 +459,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       isLeapMonth: Boolean(initialInput?.sajuCompatibility?.user?.isLeapMonth),
       timezone: initialInput?.sajuCompatibility?.user?.timezone || "Asia/Seoul",
       longitude: initialInput?.sajuCompatibility?.user?.longitude,
+      birthPlace: initialInput?.sajuCompatibility?.user?.birthPlace || "",
       gender: initialInput?.sajuCompatibility?.user?.gender || "",
     },
     partner: {
@@ -457,6 +471,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       isLeapMonth: Boolean(initialInput?.sajuCompatibility?.partner?.isLeapMonth),
       timezone: initialInput?.sajuCompatibility?.partner?.timezone || "Asia/Seoul",
       longitude: initialInput?.sajuCompatibility?.partner?.longitude,
+      birthPlace: initialInput?.sajuCompatibility?.partner?.birthPlace || "",
       gender: initialInput?.sajuCompatibility?.partner?.gender || "",
     },
     relationshipType: initialInput?.sajuCompatibility?.relationshipType || copy.kfa7vknq,
@@ -491,6 +506,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     setGender(option.gender);
     setCalendarType(option.calendarType);
     setBirthPlace(option.birthPlace);
+    setLongitude(option.longitude == null ? "" : String(option.longitude));
     setTimezone(option.timezone || "Asia/Seoul");
     setSukuyoInput((current) => ({
       ...current,
@@ -498,6 +514,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
         ...current.user,
         name: option.name || current.user.name,
         birthDate: option.birthDate || current.user.birthDate,
+        birthTime: option.birthTimeUnknown ? "" : option.birthTime || current.user.birthTime,
+        birthTimeUnknown: option.birthTimeUnknown,
         calendarType: option.calendarType || current.user.calendarType,
         gender: option.gender || current.user.gender,
       },
@@ -512,6 +530,9 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
         birthTimeUnknown: option.birthTimeUnknown,
         calendarType: option.calendarType || current.user.calendarType,
         gender: option.gender || current.user.gender,
+        birthPlace: option.birthPlace,
+        longitude: option.longitude,
+        timezone: option.timezone,
       },
     }));
     if (announce) {
@@ -525,6 +546,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     let alive = true;
 
     async function applyFallbackProfile() {
+      if (initialInput?.profileId) {
+        setProfileId('');
+        setSelectedProfileOptionId('');
+        setProfileNotice('현재 계정의 프로필을 확인한 뒤 직접 선택해 주세요.');
+        return;
+      }
       const fallback = readCurrentDestinyProfile();
       const option = fallback ? mapProfileToTeaHouseOption(fallback) : null;
       if (!alive) return;
@@ -556,9 +583,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             .filter((option): option is TeaHouseProfileOption => Boolean(option));
           setProfileOptions(options);
           const currentOption = options.find((option) => option.profileId && option.profileId === currentId);
-          const nextOption = currentOption || (options.length === 1 ? options[0] : null);
+          const requestedId = initialInput?.profileId;
+          const requestedOption = requestedId ? options.find(option => option.profileId === requestedId) : null;
+          const nextOption = requestedId ? requestedOption : currentOption || (options.length === 1 ? options[0] : null);
           if (nextOption) {
             applyProfileOption(nextOption);
+          } else if (requestedId) {
+            setProfileId('');
+            setSelectedProfileOptionId('');
+            setProfileNotice('이 사주에서 사용한 프로필을 확인해 주세요. 현재 계정의 프로필을 직접 선택해 주세요.');
           } else if (options.length > 1) {
             setProfileNotice(copy.k0hw8pcd);
           } else {
@@ -604,6 +637,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       user: {
         name: sukuyoInput.user.name?.trim(),
         birthDate: sukuyoInput.user.birthDate,
+        birthTime: sukuyoInput.user.birthTimeUnknown ? "" : sukuyoInput.user.birthTime,
+        birthTimeUnknown: Boolean(sukuyoInput.user.birthTimeUnknown),
         calendarType: sukuyoInput.user.calendarType || "solar",
         isLeapMonth: sukuyoInput.user.calendarType === "lunar" && Boolean(sukuyoInput.user.isLeapMonth),
         gender: sukuyoInput.user.gender,
@@ -611,6 +646,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       partner: {
         name: sukuyoInput.partner.name?.trim(),
         birthDate: sukuyoInput.partner.birthDate,
+        birthTime: sukuyoInput.partner.birthTimeUnknown ? "" : sukuyoInput.partner.birthTime,
+        birthTimeUnknown: Boolean(sukuyoInput.partner.birthTimeUnknown),
         calendarType: sukuyoInput.partner.calendarType || "solar",
         isLeapMonth: sukuyoInput.partner.calendarType === "lunar" && Boolean(sukuyoInput.partner.isLeapMonth),
         gender: sukuyoInput.partner.gender,
@@ -661,6 +698,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
         isLeapMonth: sajuCompatInput.user.calendarType === "lunar" && Boolean(sajuCompatInput.user.isLeapMonth),
         timezone: sajuCompatInput.user.timezone || "Asia/Seoul",
         longitude: sajuCompatInput.user.longitude,
+        birthPlace: sajuCompatInput.user.birthPlace,
         gender: sajuCompatInput.user.gender,
       },
       partner: {
@@ -672,6 +710,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
         isLeapMonth: sajuCompatInput.partner.calendarType === "lunar" && Boolean(sajuCompatInput.partner.isLeapMonth),
         timezone: sajuCompatInput.partner.timezone || "Asia/Seoul",
         longitude: sajuCompatInput.partner.longitude,
+        birthPlace: sajuCompatInput.partner.birthPlace,
         gender: sajuCompatInput.partner.gender,
       },
       relationshipType: sajuCompatInput.relationshipType || copy.kfa7vknq,
@@ -718,6 +757,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       .join(" ");
     return {
       consultationMode,
+      sajuReportVersion: jointSaju ? "saju-specialist-v2" : undefined,
       attemptId: initialInput?.question === question ? initialInput?.attemptId : undefined,
       tarotSpreadId: initialInput?.question === question ? initialInput?.tarotSpreadId : undefined,
       nickname: consultationMode === "sukuyo" ? nextSukuyoInput.user.name || nickname.trim() : isCompat ? nextSajuCompatInput.user.name || nickname.trim() : nickname.trim(),
@@ -751,15 +791,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
           : question.trim()
       : question.trim();
     if (nextQuestion.length < 4) {
-      setError(copy.kmvgimc7);
+      setError(copy.kmvgimc7); document.getElementById("fortuneTeaQuestion")?.focus();
       return;
     }
     if (consultationMode === "saju" && resolveQuestionCategory({ questionCategory, question: nextQuestion }).needsClarification) {
-      setError(copy.categoryClarify);
+      setError(copy.categoryClarify); document.getElementById("tea-question-category")?.focus();
       return;
     }
     if (consultationMode === "saju" && !birthDate) {
-      setError(copy.k2h1euzc);
+      setError(copy.k2h1euzc); document.getElementById("fortuneTeaBirthDate")?.focus();
       return;
     }
     if (consultationMode === "sajuCompatibility") {
@@ -797,19 +837,644 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   return (
     <section className={`${styles.questionScene}`} aria-labelledby="teaQuestionTitle">
       <div className={styles.questionActor}>
-        <img className={styles.yeoniPortrait} src="/images/fortune-tea-house/yeoni-moonlight-novel.webp" alt="" width="1536" height="1024" />
+        <img className={styles.yeoniPortrait} src={jointSaju ? "/images/consultation/saju-yeoni-neo-joint-v1-640.webp" : "/images/fortune-tea-house/yeoni-moonlight-novel.webp"} alt={jointSaju ? "명식을 함께 살펴보는 연이와 네오" : ""} width="1536" height="1024" />
         <div className={styles.questionInvitation}>
+          {consultationMode === "saju" && <PriceBadge featureKey={jointSaju ? "fortune-tea-house-saju-joint-consultation" : "fortune-tea-house-saju-consultation"} prefix={jointSaju ? "공동 상담 · 단건 " : "연이 사주 상담 · 단건 "} className="inline-flex rounded-full border border-[var(--cd-border)] bg-[var(--cd-surface)] px-3 py-2 text-sm font-bold text-[var(--cd-text)]" />}
           <p className={styles.chosenTea}>{selectedCup.name} · {selectedCup.topic}</p>
-          <h2 id="teaQuestionTitle">{copy.questionTitle}</h2>
-          <p>{copy.welcomeNote}</p>
+          <h2 id="teaQuestionTitle">{jointSaju ? "연이·네오 공동 사주 상담" : consultationMode === "saju" ? "연이의 사주 상담" : copy.questionTitle}</h2>
+          <p>{jointSaju ? "연이는 마음과 반복 패턴을, 네오는 선택의 이득과 부담을 짚어요. 내 질문과 명식의 근거를 연결해 직업·재물·관계·회복 리듬부터 30일 실행 계획까지 함께 정리합니다." : consultationMode === "saju" ? "연이가 내 질문과 명식의 근거를 연결해 현재의 흐름과 현실적인 선택을 함께 살펴봐요." : copy.welcomeNote}</p>
         </div>
       </div>
-      <form id="tea-question-form" className={`${styles.questionPanel}`} onSubmit={handleSubmit}>
+      <form data-moonlit-form="" id="tea-question-form" className={`${styles.questionPanel}`} onSubmit={handleSubmit}>
         <p className={styles.sceneEyebrow}>{copy.stepLabel}</p>
         <p className={styles.sceneDescription}>{copy.questionGuide}</p>
-        <section className={`${styles.questionFormSection}`} aria-labelledby="tarotQuestionSectionTitle">
+        <section className={`${styles.questionFormSection}`} aria-labelledby="consultModeSectionTitle">
           <div className={`${styles.questionSectionHeader}`}>
             <span>01</span>
+            <div>
+              <h3 id="consultModeSectionTitle">{copy.ku0ockkt}</h3>
+              <p>{copy.kax27tqj}</p>
+            </div>
+          </div>
+          <details className={styles.modeDisclosure}>
+            <summary><strong>{copy[consultModeOptions.find(option => option.id === consultationMode)!.titleKey]}</strong><span>{copy.changeMode}</span></summary>
+          <div className={`${styles.consultModeGrid}`} role="radiogroup" aria-label={copy.kxzymxwz}>
+            {consultModeOptions.filter((option) => !jointSaju || option.id === "saju").map((option) => {
+              const selected = consultationMode === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  aria-label={`${copy[option.titleKey]}. ${copy[option.descriptionKey]}. ${copy[option.suitedForKey]}. ${option.id === "tarot"
+                    ? copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
+                    : priceLabelForMode(option.id)}`}
+                  className={`${styles.consultModeCard}`}
+                  data-mode={option.id}
+                  data-selected={selected ? "true" : "false"}
+                  onClick={() => setConsultationMode(option.id)}
+                  disabled={isSubmitting}
+                >
+                  <span className={styles.consultModeVisual}>
+                    <AssetImage className={styles.consultModeImage} imageClassName={styles.consultModeArtwork} src={option.image} alt="" />
+                  </span>
+                  <span className={styles.consultModeCopy}>
+                    <strong>{jointSaju ? "연이·네오 공동 사주 상담" : copy[option.titleKey]}</strong>
+                    <span className={styles.consultModeDescription}>{copy[option.descriptionKey]}</span>
+                    <span className={styles.consultModeDetails}>
+                      <span>
+                        <b>{copy.ksa9e9pj}</b>
+                        {option.id === "tarot"
+                          ? copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
+                          : priceLabelForMode(option.id)}
+                      </span>
+                    </span>
+                  </span>
+                  <span className={styles.consultModeMark} aria-hidden="true">{selected ? <Check size={18} /> : null}</span>
+                </button>
+              );
+            })}
+          </div>
+          </details>
+        </section>
+
+
+        {consultationMode === "saju" ? (
+        <section className={`${styles.questionFormSection}`} aria-labelledby="sajuBirthSectionTitle">
+          <div className={`${styles.questionSectionHeader}`}>
+            <span>02</span>
+            <div>
+              <h3 id="sajuBirthSectionTitle">{copy.kadrsxnd}</h3>
+              <p>{copy.kjprno0f}</p>
+            </div>
+          </div>
+          <section className={styles.profileLoadPanel} aria-label={copy.k4jywo6n}>
+            <div className={styles.profileLoadHeader}>
+              <span>{copy.k4jywo6n}</span>
+
+            </div>
+            {profileLoading ? (
+              <p className={styles.profileLoadNotice}>{copy.kykwvjex}</p>
+            ) : profileOptions.length > 1 ? (
+              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaProfileSelect">
+
+                {copy.kaiikl3r}
+                <select
+                  id="fortuneTeaProfileSelect"
+                  className={`${styles.questionInput}`}
+                  value={selectedProfileOptionId}
+                  onChange={(event) => {
+                    const nextProfile = profileOptions.find((option) => option.optionId === event.target.value);
+                    if (nextProfile) applyProfileOption(nextProfile);
+                  }}
+                  disabled={isSubmitting}
+                >
+                  <option value="">{copy.kozwdtol}</option>
+                  {profileOptions.map((option) => (
+                    <option key={option.optionId} value={option.optionId}>
+                      {option.name} · {option.birthDate} · {option.calendarType === "lunar" ? copy.kpbfcw5q : copy.kekiagaw}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : profileOptions.length === 1 ? (
+              <p className={styles.profileLoadNotice}>
+                {copy.profileLoadedNotice.replace("{name}", profileOptions[0].name)}
+              </p>
+            ) : (
+              !profileNotice && !profileError ? <p className={styles.profileLoadNotice}>{copy.kbaa8yer}</p> : null
+            )}
+            {profileNotice ? <p className={styles.profileLoadNotice}>{profileNotice}</p> : null}
+            {profileError ? <p className={styles.profileLoadError}>{profileError}</p> : null}
+          </section>
+          <div className={`${styles.questionFieldGrid} ${styles.birthInfoGrid}`}>
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaBirthDate">
+
+              {copy.kmfvupic}
+              <input id="fortuneTeaBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(birthDate, (nextBirthDate) => setBirthDate(nextBirthDate))} disabled={isSubmitting} />
+            </label>
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaBirthTime">
+
+              {copy.kcmffks2}
+              <BirthTimeInput
+                id="fortuneTeaBirthTime"
+                className={`${styles.questionInput}`}
+
+                value={birthTime}
+                onChange={(event) => {
+                  setBirthTime(event.target.value);
+                  if (event.target.value) setBirthTimeUnknown(false);
+                }}
+                disabled={isSubmitting || birthTimeUnknown}
+              />
+            </label>
+            <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaBirthTimeUnknown">
+              <input
+                id="fortuneTeaBirthTimeUnknown"
+                type="checkbox"
+                checked={birthTimeUnknown}
+                onChange={(event) => {
+                  const checked = event.target.checked;
+                  setBirthTimeUnknown(checked);
+                  if (checked) setBirthTime("");
+                }}
+                disabled={isSubmitting}
+              />
+              <span>{copy.kh6vmzkk}</span>
+            </label>
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaGender">
+
+              {copy.kd3n64c3}
+              <select id="fortuneTeaGender" className={`${styles.questionInput}`} value={gender} onChange={(event) => setGender(event.target.value)} disabled={isSubmitting}>
+                <option value="">{copy.k7rysb4s}</option>
+                <option value="female">{copy.k3vw2jji}</option>
+                <option value="male">{copy.kkgzlpaa}</option>
+              </select>
+            </label>
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaCalendarType">
+
+              {copy.ksxyz0up}
+              <select
+                id="fortuneTeaCalendarType"
+                className={`${styles.questionInput}`}
+                value={calendarType}
+                onChange={(event) => setCalendarType(event.target.value === "lunar" ? "lunar" : "solar")}
+                disabled={isSubmitting}
+              >
+                <option value="solar">{copy.kekiagaw}</option>
+                <option value="lunar">{copy.kpbfcw5q}</option>
+              </select>
+            </label>
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaBirthPlace">
+
+              {copy.kxljhkhu}
+              <BirthPlaceInput id="fortuneTeaBirthPlace" className={styles.questionInput} value={birthPlace}
+                onChange={setBirthPlace} confirmed={longitude !== "" && Boolean(timezone)} disabled={isSubmitting}
+                onResolved={place => { setLongitude(place ? String(place.lng) : ""); setTimezone(place?.timezone || ""); }} />
+            </label>
+            {calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={isLeapMonth} onChange={e => setIsLeapMonth(e.target.checked)} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
+          </div>
+          <p className={styles.birthOptionalNotice}>
+
+            {copy.k0ikly8b}
+          </p>
+        </section>
+        ) : consultationMode === "sajuCompatibility" ? (
+          <section className={`${styles.questionFormSection}`} aria-labelledby="sajuCompatBirthSectionTitle">
+            <div className={`${styles.questionSectionHeader}`}>
+              <span>02</span>
+              <div>
+                <h3 id="sajuCompatBirthSectionTitle">{copy.kquxx9hu}</h3>
+                <p>{copy.kfeelhij}</p>
+              </div>
+            </div>
+
+            <div className={styles.sukuyoPairGrid}>
+              <article className={`${styles.sukuyoPersonCard}`}>
+                <span>{copy.kqpkxeui}</span>
+                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
+                  <SavedBirthProfilePicker disabled={isSubmitting} label={copy.kqpkxeui} onSelect={seed => updateSajuCompatPerson("user", {name:seed.name || "", birthDate:seed.birthDate || "", birthTime:seed.birthTime || "", birthTimeUnknown:Boolean(seed.birthTimeUnknown), calendarType:seed.calendarType || "solar", isLeapMonth:Boolean(seed.isLeapMonth), gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "", birthPlace: seed.region || "", timezone: seed.timezone || "", longitude: seed.longitude ? Number(seed.longitude) : undefined})} />
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserName">
+
+                    {copy.kmkn5ed2}
+                    <input
+                      id="fortuneTeaSajuCompatUserName"
+                      className={`${styles.questionInput}`}
+                      value={sajuCompatInput.user.name || ""}
+                      onChange={(event) => updateSajuCompatPerson("user", { name: event.target.value })}
+                      placeholder={copy.kgr4ck0r}
+                      autoComplete="nickname"
+                      disabled={isSubmitting}
+                    />
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserBirthDate">
+
+                    {copy.kmfvupic}
+                    <input id="fortuneTeaSajuCompatUserBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sajuCompatInput.user.birthDate || "", (nextBirthDate) => updateSajuCompatPerson("user", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserBirthTime">
+
+                    {copy.kcmffks2}
+                    <BirthTimeInput
+                      id="fortuneTeaSajuCompatUserBirthTime"
+                      className={`${styles.questionInput}`}
+
+                      value={sajuCompatInput.user.birthTime || ""}
+                      onChange={(event) => updateSajuCompatPerson("user", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sajuCompatInput.user.birthTimeUnknown })}
+                      disabled={isSubmitting || sajuCompatInput.user.birthTimeUnknown}
+                    />
+                  </label>
+                  <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaSajuCompatUserTimeUnknown">
+                    <input
+                      id="fortuneTeaSajuCompatUserTimeUnknown"
+                      type="checkbox"
+                      checked={Boolean(sajuCompatInput.user.birthTimeUnknown)}
+                      onChange={(event) => updateSajuCompatPerson("user", { birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : sajuCompatInput.user.birthTime })}
+                      disabled={isSubmitting}
+                    />
+                    <span>{copy.k4te8nd5}</span>
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserCalendar">
+
+                    {copy.ksxyz0up}
+                    <select
+                      id="fortuneTeaSajuCompatUserCalendar"
+                      className={`${styles.questionInput}`}
+                      value={sajuCompatInput.user.calendarType || "solar"}
+                      onChange={(event) => updateSajuCompatPerson("user", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="solar">{copy.kekiagaw}</option>
+                      <option value="lunar">{copy.kpbfcw5q}</option>
+                    </select>
+                  </label>
+                  {sajuCompatInput.user.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sajuCompatInput.user.isLeapMonth)} onChange={e => updateSajuCompatPerson("user", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
+                  <label className={styles.questionLabel}>{copy.kxljhkhu}
+                    <BirthPlaceInput value={sajuCompatInput.user.birthPlace || ""} className={styles.questionInput}
+                      confirmed={Number.isFinite(sajuCompatInput.user.longitude) && Boolean(sajuCompatInput.user.timezone)}
+                      onChange={birthPlace => updateSajuCompatPerson("user", { birthPlace })}
+                      onResolved={place => updateSajuCompatPerson("user", { longitude: place?.lng, timezone: place?.timezone || "" })}
+                      disabled={isSubmitting} />
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserGender">
+
+                    {copy.kd3n64c3}
+                    <select
+                      id="fortuneTeaSajuCompatUserGender"
+                      className={`${styles.questionInput}`}
+                      value={sajuCompatInput.user.gender || ""}
+                      onChange={(event) => updateSajuCompatPerson("user", { gender: event.target.value })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="">{copy.kcbceqsz}</option>
+                      <option value="female">{copy.k3vw2jji}</option>
+                      <option value="male">{copy.kkgzlpaa}</option>
+                    </select>
+                  </label>
+                </div>
+              </article>
+
+              <article className={`${styles.sukuyoPersonCard}`}>
+                <span>{copy.kalghzsn}</span>
+                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
+                  <SavedBirthProfilePicker disabled={isSubmitting} label={copy.partnerFallback} onSelect={seed => updateSajuCompatPerson("partner", {name:seed.name || "", birthDate:seed.birthDate || "", birthTime:seed.birthTime || "", birthTimeUnknown:Boolean(seed.birthTimeUnknown), calendarType:seed.calendarType || "solar", isLeapMonth:Boolean(seed.isLeapMonth), gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "", birthPlace: seed.region || "", timezone: seed.timezone || "", longitude: seed.longitude ? Number(seed.longitude) : undefined})} />
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerName">
+
+                    {copy.kmkn5ed2}
+                    <input
+                      id="fortuneTeaSajuCompatPartnerName"
+                      className={`${styles.questionInput}`}
+                      value={sajuCompatInput.partner.name || ""}
+                      onChange={(event) => updateSajuCompatPerson("partner", { name: event.target.value })}
+                      placeholder={copy.kdjowvdd}
+                      autoComplete="off"
+                      disabled={isSubmitting}
+                    />
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerBirthDate">
+
+                    {copy.kmfvupic}
+                    <input id="fortuneTeaSajuCompatPartnerBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sajuCompatInput.partner.birthDate || "", (nextBirthDate) => updateSajuCompatPerson("partner", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerBirthTime">
+
+                    {copy.kcmffks2}
+                    <BirthTimeInput
+                      id="fortuneTeaSajuCompatPartnerBirthTime"
+                      className={`${styles.questionInput}`}
+
+                      value={sajuCompatInput.partner.birthTime || ""}
+                      onChange={(event) => updateSajuCompatPerson("partner", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sajuCompatInput.partner.birthTimeUnknown })}
+                      disabled={isSubmitting || sajuCompatInput.partner.birthTimeUnknown}
+                    />
+                  </label>
+                  <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaSajuCompatPartnerTimeUnknown">
+                    <input
+                      id="fortuneTeaSajuCompatPartnerTimeUnknown"
+                      type="checkbox"
+                      checked={Boolean(sajuCompatInput.partner.birthTimeUnknown)}
+                      onChange={(event) => updateSajuCompatPerson("partner", { birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : sajuCompatInput.partner.birthTime })}
+                      disabled={isSubmitting}
+                    />
+                    <span>{copy.k4te8nd5}</span>
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerCalendar">
+
+                    {copy.ksxyz0up}
+                    <select
+                      id="fortuneTeaSajuCompatPartnerCalendar"
+                      className={`${styles.questionInput}`}
+                      value={sajuCompatInput.partner.calendarType || "solar"}
+                      onChange={(event) => updateSajuCompatPerson("partner", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="solar">{copy.kekiagaw}</option>
+                      <option value="lunar">{copy.kpbfcw5q}</option>
+                    </select>
+                  </label>
+                  {sajuCompatInput.partner.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sajuCompatInput.partner.isLeapMonth)} onChange={e => updateSajuCompatPerson("partner", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
+                  <label className={styles.questionLabel}>{copy.kxljhkhu}
+                    <BirthPlaceInput value={sajuCompatInput.partner.birthPlace || ""} className={styles.questionInput}
+                      confirmed={Number.isFinite(sajuCompatInput.partner.longitude) && Boolean(sajuCompatInput.partner.timezone)}
+                      onChange={birthPlace => updateSajuCompatPerson("partner", { birthPlace })}
+                      onResolved={place => updateSajuCompatPerson("partner", { longitude: place?.lng, timezone: place?.timezone || "" })}
+                      disabled={isSubmitting} />
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerGender">
+
+                    {copy.kd3n64c3}
+                    <select
+                      id="fortuneTeaSajuCompatPartnerGender"
+                      className={`${styles.questionInput}`}
+                      value={sajuCompatInput.partner.gender || ""}
+                      onChange={(event) => updateSajuCompatPerson("partner", { gender: event.target.value })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="">{copy.kcbceqsz}</option>
+                      <option value="female">{copy.k3vw2jji}</option>
+                      <option value="male">{copy.kkgzlpaa}</option>
+                    </select>
+                  </label>
+                </div>
+              </article>
+            </div>
+
+            <div className={styles.sukuyoMetaGrid}>
+              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatRelationship">
+
+                {copy.kbsnqume}
+                <select
+                  id="fortuneTeaSajuCompatRelationship"
+                  className={`${styles.questionInput}`}
+                  value={sajuCompatInput.relationshipType || copy.kfa7vknq}
+                  onChange={(event) => updateSajuCompatMeta({ relationshipType: event.target.value })}
+                  disabled={isSubmitting}
+                >
+                  {sukuyoRelationshipTypes.map((item) => (
+                    <option key={item} value={item}>{copy[SUKUYO_RELATIONSHIP_LABEL[item]]}</option>
+                  ))}
+                </select>
+              </label>
+              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatFocus">
+
+                {copy.kydjxdvs}
+                <select
+                  id="fortuneTeaSajuCompatFocus"
+                  className={`${styles.questionInput}`}
+                  value={sajuCompatInput.focus || copy.k0y7lflt}
+                  onChange={(event) => updateSajuCompatMeta({ focus: event.target.value })}
+                  disabled={isSubmitting}
+                >
+                  {sukuyoFocusOptions.map((item) => (
+                    <option key={item} value={item}>{copy[SUKUYO_FOCUS_LABEL[item]]}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatSituation">
+
+              {copy.k2jt4pbo} <span className={styles.optionalFieldMark}>{copy.kcbceqsz}</span>
+              <textarea
+                id="fortuneTeaSajuCompatSituation"
+                className={`${styles.questionTextarea} ${styles.sukuyoSituationTextarea}`}
+                value={sajuCompatInput.currentSituation || ""}
+                onChange={(event) => updateSajuCompatMeta({ currentSituation: event.target.value })}
+                placeholder={copy.ksvgqqtb}
+                rows={3}
+                disabled={isSubmitting}
+              />
+            </label>
+            <p className={styles.birthOptionalNotice}>
+
+              {copy.kexsvdzm}
+            </p>
+          </section>
+        ) : consultationMode === "sukuyo" ? (
+          <section className={`${styles.questionFormSection}`} aria-labelledby="sukuyoBirthSectionTitle">
+            <div className={`${styles.questionSectionHeader}`}>
+              <span>02</span>
+              <div>
+                <h3 id="sukuyoBirthSectionTitle">{copy.kjtex1ko}</h3>
+                <p>{copy.k65h6i0u}</p>
+              </div>
+            </div>
+
+            <div className={styles.sukuyoPairGrid}>
+              <article className={`${styles.sukuyoPersonCard}`}>
+                <span>{copy.keqlnlem}</span>
+                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
+                  <SavedBirthProfilePicker disabled={isSubmitting} label={copy.kqpkxeui} onSelect={seed => updateSukuyoPerson("user", {name:seed.name || "", birthDate:seed.birthDate || "", birthTime:seed.birthTime || "", birthTimeUnknown:Boolean(seed.birthTimeUnknown), calendarType:seed.calendarType || "solar", isLeapMonth:Boolean(seed.isLeapMonth), gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : ""})} />
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserName">
+
+                    {copy.kmkn5ed2}
+                    <input
+                      id="fortuneTeaSukuyoUserName"
+                      className={`${styles.questionInput}`}
+                      value={sukuyoInput.user.name || ""}
+                      onChange={(event) => updateSukuyoPerson("user", { name: event.target.value })}
+                      placeholder={copy.kgr4ck0r}
+                      autoComplete="nickname"
+                      disabled={isSubmitting}
+                    />
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserBirthDate">
+
+                    {copy.kmfvupic}
+                    <input id="fortuneTeaSukuyoUserBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sukuyoInput.user.birthDate || "", (nextBirthDate) => updateSukuyoPerson("user", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserBirthTime">
+                    {copy.kcmffks2}
+                    <BirthTimeInput
+                      id="fortuneTeaSukuyoUserBirthTime"
+                      className={`${styles.questionInput}`}
+
+                      value={sukuyoInput.user.birthTime || ""}
+                      onChange={(event) => updateSukuyoPerson("user", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sukuyoInput.user.birthTimeUnknown })}
+                      disabled={isSubmitting || sukuyoInput.user.birthTimeUnknown}
+                    />
+                  </label>
+                  <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaSukuyoUserTimeUnknown">
+                    <input
+                      id="fortuneTeaSukuyoUserTimeUnknown"
+                      type="checkbox"
+                      checked={Boolean(sukuyoInput.user.birthTimeUnknown)}
+                      onChange={(event) => updateSukuyoPerson("user", { birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : sukuyoInput.user.birthTime })}
+                      disabled={isSubmitting}
+                    />
+                    <span>{copy.k4te8nd5}</span>
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserCalendar">
+
+                    {copy.ksxyz0up}
+                    <select
+                      id="fortuneTeaSukuyoUserCalendar"
+                      className={`${styles.questionInput}`}
+                      value={sukuyoInput.user.calendarType || "solar"}
+                      onChange={(event) => updateSukuyoPerson("user", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="solar">{copy.kekiagaw}</option>
+                      <option value="lunar">{copy.kpbfcw5q}</option>
+                    </select>
+                  </label>
+                  {sukuyoInput.user.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sukuyoInput.user.isLeapMonth)} onChange={e => updateSukuyoPerson("user", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserGender">
+
+                    {copy.kd3n64c3}
+                    <select
+                      id="fortuneTeaSukuyoUserGender"
+                      className={`${styles.questionInput}`}
+                      value={sukuyoInput.user.gender || ""}
+                      onChange={(event) => updateSukuyoPerson("user", { gender: event.target.value })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="">{copy.kcbceqsz}</option>
+                      <option value="female">{copy.k3vw2jji}</option>
+                      <option value="male">{copy.kkgzlpaa}</option>
+                    </select>
+                  </label>
+                </div>
+              </article>
+
+              <article className={`${styles.sukuyoPersonCard}`}>
+                <span>{copy.k2lelfhi}</span>
+                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
+                  <SavedBirthProfilePicker disabled={isSubmitting} label={copy.partnerFallback} onSelect={seed => updateSukuyoPerson("partner", {name:seed.name || "", birthDate:seed.birthDate || "", birthTime:seed.birthTime || "", birthTimeUnknown:Boolean(seed.birthTimeUnknown), calendarType:seed.calendarType || "solar", isLeapMonth:Boolean(seed.isLeapMonth), gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : ""})} />
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerName">
+
+                    {copy.kmkn5ed2}
+                    <input
+                      id="fortuneTeaSukuyoPartnerName"
+                      className={`${styles.questionInput}`}
+                      value={sukuyoInput.partner.name || ""}
+                      onChange={(event) => updateSukuyoPerson("partner", { name: event.target.value })}
+                      placeholder={copy.kdjowvdd}
+                      autoComplete="off"
+                      disabled={isSubmitting}
+                    />
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerBirthDate">
+
+                    {copy.kmfvupic}
+                    <input id="fortuneTeaSukuyoPartnerBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sukuyoInput.partner.birthDate || "", (nextBirthDate) => updateSukuyoPerson("partner", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerBirthTime">
+                    {copy.kcmffks2}
+                    <BirthTimeInput
+                      id="fortuneTeaSukuyoPartnerBirthTime"
+                      className={`${styles.questionInput}`}
+
+                      value={sukuyoInput.partner.birthTime || ""}
+                      onChange={(event) => updateSukuyoPerson("partner", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sukuyoInput.partner.birthTimeUnknown })}
+                      disabled={isSubmitting || sukuyoInput.partner.birthTimeUnknown}
+                    />
+                  </label>
+                  <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaSukuyoPartnerTimeUnknown">
+                    <input
+                      id="fortuneTeaSukuyoPartnerTimeUnknown"
+                      type="checkbox"
+                      checked={Boolean(sukuyoInput.partner.birthTimeUnknown)}
+                      onChange={(event) => updateSukuyoPerson("partner", { birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : sukuyoInput.partner.birthTime })}
+                      disabled={isSubmitting}
+                    />
+                    <span>{copy.k4te8nd5}</span>
+                  </label>
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerCalendar">
+
+                    {copy.ksxyz0up}
+                    <select
+                      id="fortuneTeaSukuyoPartnerCalendar"
+                      className={`${styles.questionInput}`}
+                      value={sukuyoInput.partner.calendarType || "solar"}
+                      onChange={(event) => updateSukuyoPerson("partner", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="solar">{copy.kekiagaw}</option>
+                      <option value="lunar">{copy.kpbfcw5q}</option>
+                    </select>
+                  </label>
+                  {sukuyoInput.partner.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sukuyoInput.partner.isLeapMonth)} onChange={e => updateSukuyoPerson("partner", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
+                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerGender">
+
+                    {copy.kd3n64c3}
+                    <select
+                      id="fortuneTeaSukuyoPartnerGender"
+                      className={`${styles.questionInput}`}
+                      value={sukuyoInput.partner.gender || ""}
+                      onChange={(event) => updateSukuyoPerson("partner", { gender: event.target.value })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="">{copy.kcbceqsz}</option>
+                      <option value="female">{copy.k3vw2jji}</option>
+                      <option value="male">{copy.kkgzlpaa}</option>
+                    </select>
+                  </label>
+                </div>
+              </article>
+            </div>
+
+            <div className={styles.sukuyoMetaGrid}>
+              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoRelationship">
+
+                {copy.kbsnqume}
+                <select
+                  id="fortuneTeaSukuyoRelationship"
+                  className={`${styles.questionInput}`}
+                  value={sukuyoInput.relationshipType || copy.ktclbui2}
+                  onChange={(event) => updateSukuyoMeta({ relationshipType: event.target.value })}
+                  disabled={isSubmitting}
+                >
+                  {sukuyoRelationshipTypes.map((item) => (
+                    <option key={item} value={item}>{copy[SUKUYO_RELATIONSHIP_LABEL[item]]}</option>
+                  ))}
+                </select>
+              </label>
+              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoFocus">
+
+                {copy.kydjxdvs}
+                <select
+                  id="fortuneTeaSukuyoFocus"
+                  className={`${styles.questionInput}`}
+                  value={sukuyoInput.focus || copy.k0y7lflt}
+                  onChange={(event) => updateSukuyoMeta({ focus: event.target.value })}
+                  disabled={isSubmitting}
+                >
+                  {sukuyoFocusOptions.map((item) => (
+                    <option key={item} value={item}>{copy[SUKUYO_FOCUS_LABEL[item]]}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoSituation">
+
+              {copy.k2jt4pbo} <span className={styles.optionalFieldMark}>{copy.kcbceqsz}</span>
+              <textarea
+                id="fortuneTeaSukuyoSituation"
+                className={`${styles.questionTextarea} ${styles.sukuyoSituationTextarea}`}
+                value={sukuyoInput.currentSituation || ""}
+                onChange={(event) => updateSukuyoMeta({ currentSituation: event.target.value })}
+                placeholder={copy.k4wmutlu}
+                rows={3}
+                disabled={isSubmitting}
+              />
+            </label>
+            <p className={styles.birthOptionalNotice}>
+
+              {copy.khkt6xha}
+            </p>
+          </section>
+        ) : (
+          <p className={styles.birthOptionalNotice}>
+
+            {copy.kkxbjbaz}
+          </p>
+        )}
+        <section className={`${styles.questionFormSection}`} aria-labelledby="tarotQuestionSectionTitle">
+          <div className={`${styles.questionSectionHeader}`}>
+            <span>{consultationMode === "tarot" ? "02" : "03"}</span>
             <div>
               <h3 id="tarotQuestionSectionTitle">{copy.kuyuobkw}</h3>
               <p>
@@ -910,590 +1575,6 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
           ) : null}
 
         </section>
-        <section className={`${styles.questionFormSection}`} aria-labelledby="consultModeSectionTitle">
-          <div className={`${styles.questionSectionHeader}`}>
-            <span>02</span>
-            <div>
-              <h3 id="consultModeSectionTitle">{copy.ku0ockkt}</h3>
-              <p>{copy.kax27tqj}</p>
-            </div>
-          </div>
-          <div className={`${styles.consultModeGrid}`} role="radiogroup" aria-label={copy.kxzymxwz}>
-            {consultModeOptions.map((option) => {
-              const selected = consultationMode === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  aria-label={`${copy[option.titleKey]}. ${copy[option.descriptionKey]}. ${copy[option.suitedForKey]}. ${option.id === "tarot"
-                    ? copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
-                    : priceLabelForMode(option.id)}`}
-                  className={`${styles.consultModeCard}`}
-                  data-mode={option.id}
-                  data-selected={selected ? "true" : "false"}
-                  onClick={() => setConsultationMode(option.id)}
-                  disabled={isSubmitting}
-                >
-                  <span className={styles.consultModeVisual}>
-                    <AssetImage className={styles.consultModeImage} imageClassName={styles.consultModeArtwork} src={option.image} alt="" />
-                  </span>
-                  <span className={styles.consultModeCopy}>
-                    <strong>{copy[option.titleKey]}</strong>
-                    <span className={styles.consultModeDescription}>{copy[option.descriptionKey]}</span>
-                    <span className={styles.consultModeDetails}>
-                      <span>
-                        <b>{copy.ksa9e9pj}</b>
-                        {option.id === "tarot"
-                          ? copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
-                          : priceLabelForMode(option.id)}
-                      </span>
-                    </span>
-                  </span>
-                  <span className={styles.consultModeMark} aria-hidden="true">{selected ? <Check size={18} /> : null}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-
-        {consultationMode === "saju" ? (
-        <section className={`${styles.questionFormSection}`} aria-labelledby="sajuBirthSectionTitle">
-          <div className={`${styles.questionSectionHeader}`}>
-            <span>C</span>
-            <div>
-              <h3 id="sajuBirthSectionTitle">{copy.kadrsxnd}</h3>
-              <p>{copy.kjprno0f}</p>
-            </div>
-          </div>
-          <section className={styles.profileLoadPanel} aria-label={copy.k4jywo6n}>
-            <div className={styles.profileLoadHeader}>
-              <span>{copy.k4jywo6n}</span>
-              <strong>{copy.khxnyk5k}</strong>
-              <p>{copy.k4vt1f3z}</p>
-            </div>
-            {profileLoading ? (
-              <p className={styles.profileLoadNotice}>{copy.kykwvjex}</p>
-            ) : profileOptions.length > 1 ? (
-              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaProfileSelect">
-                
-                {copy.kaiikl3r}
-                <select
-                  id="fortuneTeaProfileSelect"
-                  className={`${styles.questionInput}`}
-                  value={selectedProfileOptionId}
-                  onChange={(event) => {
-                    const nextProfile = profileOptions.find((option) => option.optionId === event.target.value);
-                    if (nextProfile) applyProfileOption(nextProfile);
-                  }}
-                  disabled={isSubmitting}
-                >
-                  <option value="">{copy.kozwdtol}</option>
-                  {profileOptions.map((option) => (
-                    <option key={option.optionId} value={option.optionId}>
-                      {option.name} · {option.birthDate} · {option.calendarType === "lunar" ? copy.kpbfcw5q : copy.kekiagaw}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : profileOptions.length === 1 ? (
-              <p className={styles.profileLoadNotice}>
-                {copy.profileLoadedNotice.replace("{name}", profileOptions[0].name)}
-              </p>
-            ) : (
-              <p className={styles.profileLoadNotice}>{copy.kbaa8yer}</p>
-            )}
-            {profileNotice ? <p className={styles.profileLoadNotice}>{profileNotice}</p> : null}
-            {profileError ? <p className={styles.profileLoadError}>{profileError}</p> : null}
-          </section>
-          <div className={`${styles.questionFieldGrid} ${styles.birthInfoGrid}`}>
-            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaBirthDate">
-              
-              {copy.kmfvupic}
-              <input id="fortuneTeaBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(birthDate, (nextBirthDate) => setBirthDate(nextBirthDate))} disabled={isSubmitting} />
-            </label>
-            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaBirthTime">
-              
-              {copy.kcmffks2}
-              <input
-                id="fortuneTeaBirthTime"
-                className={`${styles.questionInput}`}
-                type="time"
-                value={birthTime}
-                onChange={(event) => {
-                  setBirthTime(event.target.value);
-                  if (event.target.value) setBirthTimeUnknown(false);
-                }}
-                disabled={isSubmitting || birthTimeUnknown}
-              />
-            </label>
-            <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaBirthTimeUnknown">
-              <input
-                id="fortuneTeaBirthTimeUnknown"
-                type="checkbox"
-                checked={birthTimeUnknown}
-                onChange={(event) => {
-                  const checked = event.target.checked;
-                  setBirthTimeUnknown(checked);
-                  if (checked) setBirthTime("");
-                }}
-                disabled={isSubmitting}
-              />
-              <span>{copy.kh6vmzkk}</span>
-            </label>
-            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaGender">
-              
-              {copy.kd3n64c3}
-              <select id="fortuneTeaGender" className={`${styles.questionInput}`} value={gender} onChange={(event) => setGender(event.target.value)} disabled={isSubmitting}>
-                <option value="">{copy.k7rysb4s}</option>
-                <option value="female">{copy.k3vw2jji}</option>
-                <option value="male">{copy.kkgzlpaa}</option>
-              </select>
-            </label>
-            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaCalendarType">
-              
-              {copy.ksxyz0up}
-              <select
-                id="fortuneTeaCalendarType"
-                className={`${styles.questionInput}`}
-                value={calendarType}
-                onChange={(event) => setCalendarType(event.target.value === "lunar" ? "lunar" : "solar")}
-                disabled={isSubmitting}
-              >
-                <option value="solar">{copy.kekiagaw}</option>
-                <option value="lunar">{copy.kpbfcw5q}</option>
-              </select>
-            </label>
-            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaBirthPlace">
-              
-              {copy.kxljhkhu}
-              <input
-                id="fortuneTeaBirthPlace"
-                className={`${styles.questionInput}`}
-                value={birthPlace}
-                onChange={(event) => setBirthPlace(event.target.value)}
-                placeholder={copy.kcsiugqf}
-                disabled={isSubmitting}
-              />
-            </label>
-            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaTimezone">
-              
-              {copy.kd9cotur}
-              <input
-                id="fortuneTeaTimezone"
-                className={`${styles.questionInput}`}
-                value={timezone}
-                onChange={(event) => setTimezone(event.target.value)}
-                placeholder="Asia/Seoul"
-                disabled={isSubmitting}
-              />
-            </label>
-            {calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={isLeapMonth} onChange={e => setIsLeapMonth(e.target.checked)} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
-            <label className={styles.questionLabel}>{copy.longitudeLabel}<input className={styles.questionInput} type="number" min="-180" max="180" step="0.001" value={longitude} onChange={e => setLongitude(e.target.value)} placeholder="126.978" disabled={isSubmitting}/><small>{copy.longitudeHelp}</small></label>
-          </div>
-          <p className={styles.birthOptionalNotice}>
-            
-            {copy.k0ikly8b}
-          </p>
-        </section>
-        ) : consultationMode === "sajuCompatibility" ? (
-          <section className={`${styles.questionFormSection}`} aria-labelledby="sajuCompatBirthSectionTitle">
-            <div className={`${styles.questionSectionHeader}`}>
-              <span>C</span>
-              <div>
-                <h3 id="sajuCompatBirthSectionTitle">{copy.kquxx9hu}</h3>
-                <p>{copy.kfeelhij}</p>
-              </div>
-            </div>
-
-            <div className={styles.sukuyoPairGrid}>
-              <article className={`${styles.sukuyoPersonCard}`}>
-                <span>{copy.kqpkxeui}</span>
-                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserName">
-                    
-                    {copy.kmkn5ed2}
-                    <input
-                      id="fortuneTeaSajuCompatUserName"
-                      className={`${styles.questionInput}`}
-                      value={sajuCompatInput.user.name || ""}
-                      onChange={(event) => updateSajuCompatPerson("user", { name: event.target.value })}
-                      placeholder={copy.kgr4ck0r}
-                      autoComplete="nickname"
-                      disabled={isSubmitting}
-                    />
-                  </label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserBirthDate">
-                    
-                    {copy.kmfvupic}
-                    <input id="fortuneTeaSajuCompatUserBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sajuCompatInput.user.birthDate || "", (nextBirthDate) => updateSajuCompatPerson("user", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
-                  </label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserBirthTime">
-                    
-                    {copy.kcmffks2}
-                    <input
-                      id="fortuneTeaSajuCompatUserBirthTime"
-                      className={`${styles.questionInput}`}
-                      type="time"
-                      value={sajuCompatInput.user.birthTime || ""}
-                      onChange={(event) => updateSajuCompatPerson("user", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sajuCompatInput.user.birthTimeUnknown })}
-                      disabled={isSubmitting || sajuCompatInput.user.birthTimeUnknown}
-                    />
-                  </label>
-                  <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaSajuCompatUserTimeUnknown">
-                    <input
-                      id="fortuneTeaSajuCompatUserTimeUnknown"
-                      type="checkbox"
-                      checked={Boolean(sajuCompatInput.user.birthTimeUnknown)}
-                      onChange={(event) => updateSajuCompatPerson("user", { birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : sajuCompatInput.user.birthTime })}
-                      disabled={isSubmitting}
-                    />
-                    <span>{copy.k4te8nd5}</span>
-                  </label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserCalendar">
-                    
-                    {copy.ksxyz0up}
-                    <select
-                      id="fortuneTeaSajuCompatUserCalendar"
-                      className={`${styles.questionInput}`}
-                      value={sajuCompatInput.user.calendarType || "solar"}
-                      onChange={(event) => updateSajuCompatPerson("user", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
-                      disabled={isSubmitting}
-                    >
-                      <option value="solar">{copy.kekiagaw}</option>
-                      <option value="lunar">{copy.kpbfcw5q}</option>
-                    </select>
-                  </label>
-                  {sajuCompatInput.user.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sajuCompatInput.user.isLeapMonth)} onChange={e => updateSajuCompatPerson("user", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
-                  <label className={styles.questionLabel}>{copy.kd9cotur}<input className={styles.questionInput} value={sajuCompatInput.user.timezone || "Asia/Seoul"} onChange={e => updateSajuCompatPerson("user", {timezone:e.target.value})} disabled={isSubmitting}/></label>
-                  <label className={styles.questionLabel}>{copy.longitudeLabel}<input className={styles.questionInput} type="number" min="-180" max="180" step="0.001" value={sajuCompatInput.user.longitude ?? ""} onChange={e => updateSajuCompatPerson("user", {longitude:e.target.value === "" ? undefined : Number(e.target.value)})} disabled={isSubmitting}/><small>{copy.longitudeHelp}</small></label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatUserGender">
-                    
-                    {copy.kd3n64c3}
-                    <select
-                      id="fortuneTeaSajuCompatUserGender"
-                      className={`${styles.questionInput}`}
-                      value={sajuCompatInput.user.gender || ""}
-                      onChange={(event) => updateSajuCompatPerson("user", { gender: event.target.value })}
-                      disabled={isSubmitting}
-                    >
-                      <option value="">{copy.kcbceqsz}</option>
-                      <option value="female">{copy.k3vw2jji}</option>
-                      <option value="male">{copy.kkgzlpaa}</option>
-                    </select>
-                  </label>
-                </div>
-              </article>
-
-              <article className={`${styles.sukuyoPersonCard}`}>
-                <span>{copy.kalghzsn}</span>
-                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerName">
-                    
-                    {copy.kmkn5ed2}
-                    <input
-                      id="fortuneTeaSajuCompatPartnerName"
-                      className={`${styles.questionInput}`}
-                      value={sajuCompatInput.partner.name || ""}
-                      onChange={(event) => updateSajuCompatPerson("partner", { name: event.target.value })}
-                      placeholder={copy.kdjowvdd}
-                      autoComplete="off"
-                      disabled={isSubmitting}
-                    />
-                  </label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerBirthDate">
-                    
-                    {copy.kmfvupic}
-                    <input id="fortuneTeaSajuCompatPartnerBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sajuCompatInput.partner.birthDate || "", (nextBirthDate) => updateSajuCompatPerson("partner", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
-                  </label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerBirthTime">
-                    
-                    {copy.kcmffks2}
-                    <input
-                      id="fortuneTeaSajuCompatPartnerBirthTime"
-                      className={`${styles.questionInput}`}
-                      type="time"
-                      value={sajuCompatInput.partner.birthTime || ""}
-                      onChange={(event) => updateSajuCompatPerson("partner", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sajuCompatInput.partner.birthTimeUnknown })}
-                      disabled={isSubmitting || sajuCompatInput.partner.birthTimeUnknown}
-                    />
-                  </label>
-                  <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaSajuCompatPartnerTimeUnknown">
-                    <input
-                      id="fortuneTeaSajuCompatPartnerTimeUnknown"
-                      type="checkbox"
-                      checked={Boolean(sajuCompatInput.partner.birthTimeUnknown)}
-                      onChange={(event) => updateSajuCompatPerson("partner", { birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : sajuCompatInput.partner.birthTime })}
-                      disabled={isSubmitting}
-                    />
-                    <span>{copy.k4te8nd5}</span>
-                  </label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerCalendar">
-                    
-                    {copy.ksxyz0up}
-                    <select
-                      id="fortuneTeaSajuCompatPartnerCalendar"
-                      className={`${styles.questionInput}`}
-                      value={sajuCompatInput.partner.calendarType || "solar"}
-                      onChange={(event) => updateSajuCompatPerson("partner", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
-                      disabled={isSubmitting}
-                    >
-                      <option value="solar">{copy.kekiagaw}</option>
-                      <option value="lunar">{copy.kpbfcw5q}</option>
-                    </select>
-                  </label>
-                  {sajuCompatInput.partner.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sajuCompatInput.partner.isLeapMonth)} onChange={e => updateSajuCompatPerson("partner", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
-                  <label className={styles.questionLabel}>{copy.kd9cotur}<input className={styles.questionInput} value={sajuCompatInput.partner.timezone || "Asia/Seoul"} onChange={e => updateSajuCompatPerson("partner", {timezone:e.target.value})} disabled={isSubmitting}/></label>
-                  <label className={styles.questionLabel}>{copy.longitudeLabel}<input className={styles.questionInput} type="number" min="-180" max="180" step="0.001" value={sajuCompatInput.partner.longitude ?? ""} onChange={e => updateSajuCompatPerson("partner", {longitude:e.target.value === "" ? undefined : Number(e.target.value)})} disabled={isSubmitting}/><small>{copy.longitudeHelp}</small></label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatPartnerGender">
-                    
-                    {copy.kd3n64c3}
-                    <select
-                      id="fortuneTeaSajuCompatPartnerGender"
-                      className={`${styles.questionInput}`}
-                      value={sajuCompatInput.partner.gender || ""}
-                      onChange={(event) => updateSajuCompatPerson("partner", { gender: event.target.value })}
-                      disabled={isSubmitting}
-                    >
-                      <option value="">{copy.kcbceqsz}</option>
-                      <option value="female">{copy.k3vw2jji}</option>
-                      <option value="male">{copy.kkgzlpaa}</option>
-                    </select>
-                  </label>
-                </div>
-              </article>
-            </div>
-
-            <div className={styles.sukuyoMetaGrid}>
-              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatRelationship">
-                
-                {copy.kbsnqume}
-                <select
-                  id="fortuneTeaSajuCompatRelationship"
-                  className={`${styles.questionInput}`}
-                  value={sajuCompatInput.relationshipType || copy.kfa7vknq}
-                  onChange={(event) => updateSajuCompatMeta({ relationshipType: event.target.value })}
-                  disabled={isSubmitting}
-                >
-                  {sukuyoRelationshipTypes.map((item) => (
-                    <option key={item} value={item}>{copy[SUKUYO_RELATIONSHIP_LABEL[item]]}</option>
-                  ))}
-                </select>
-              </label>
-              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatFocus">
-                
-                {copy.kydjxdvs}
-                <select
-                  id="fortuneTeaSajuCompatFocus"
-                  className={`${styles.questionInput}`}
-                  value={sajuCompatInput.focus || copy.k0y7lflt}
-                  onChange={(event) => updateSajuCompatMeta({ focus: event.target.value })}
-                  disabled={isSubmitting}
-                >
-                  {sukuyoFocusOptions.map((item) => (
-                    <option key={item} value={item}>{copy[SUKUYO_FOCUS_LABEL[item]]}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSajuCompatSituation">
-              
-              {copy.k2jt4pbo} <span className={styles.optionalFieldMark}>{copy.kcbceqsz}</span>
-              <textarea
-                id="fortuneTeaSajuCompatSituation"
-                className={`${styles.questionTextarea} ${styles.sukuyoSituationTextarea}`}
-                value={sajuCompatInput.currentSituation || ""}
-                onChange={(event) => updateSajuCompatMeta({ currentSituation: event.target.value })}
-                placeholder={copy.ksvgqqtb}
-                rows={3}
-                disabled={isSubmitting}
-              />
-            </label>
-            <p className={styles.birthOptionalNotice}>
-              
-              {copy.kexsvdzm}
-            </p>
-          </section>
-        ) : consultationMode === "sukuyo" ? (
-          <section className={`${styles.questionFormSection}`} aria-labelledby="sukuyoBirthSectionTitle">
-            <div className={`${styles.questionSectionHeader}`}>
-              <span>C</span>
-              <div>
-                <h3 id="sukuyoBirthSectionTitle">{copy.kjtex1ko}</h3>
-                <p>{copy.k65h6i0u}</p>
-              </div>
-            </div>
-
-            <div className={styles.sukuyoPairGrid}>
-              <article className={`${styles.sukuyoPersonCard}`}>
-                <span>{copy.keqlnlem}</span>
-                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserName">
-                    
-                    {copy.kmkn5ed2}
-                    <input
-                      id="fortuneTeaSukuyoUserName"
-                      className={`${styles.questionInput}`}
-                      value={sukuyoInput.user.name || ""}
-                      onChange={(event) => updateSukuyoPerson("user", { name: event.target.value })}
-                      placeholder={copy.kgr4ck0r}
-                      autoComplete="nickname"
-                      disabled={isSubmitting}
-                    />
-                  </label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserBirthDate">
-                    
-                    {copy.kmfvupic}
-                    <input id="fortuneTeaSukuyoUserBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sukuyoInput.user.birthDate || "", (nextBirthDate) => updateSukuyoPerson("user", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
-                  </label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserCalendar">
-                    
-                    {copy.ksxyz0up}
-                    <select
-                      id="fortuneTeaSukuyoUserCalendar"
-                      className={`${styles.questionInput}`}
-                      value={sukuyoInput.user.calendarType || "solar"}
-                      onChange={(event) => updateSukuyoPerson("user", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
-                      disabled={isSubmitting}
-                    >
-                      <option value="solar">{copy.kekiagaw}</option>
-                      <option value="lunar">{copy.kpbfcw5q}</option>
-                    </select>
-                  </label>
-                  {sukuyoInput.user.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sukuyoInput.user.isLeapMonth)} onChange={e => updateSukuyoPerson("user", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoUserGender">
-                    
-                    {copy.kd3n64c3}
-                    <select
-                      id="fortuneTeaSukuyoUserGender"
-                      className={`${styles.questionInput}`}
-                      value={sukuyoInput.user.gender || ""}
-                      onChange={(event) => updateSukuyoPerson("user", { gender: event.target.value })}
-                      disabled={isSubmitting}
-                    >
-                      <option value="">{copy.kcbceqsz}</option>
-                      <option value="female">{copy.k3vw2jji}</option>
-                      <option value="male">{copy.kkgzlpaa}</option>
-                    </select>
-                  </label>
-                </div>
-              </article>
-
-              <article className={`${styles.sukuyoPersonCard}`}>
-                <span>{copy.k2lelfhi}</span>
-                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerName">
-                    
-                    {copy.kmkn5ed2}
-                    <input
-                      id="fortuneTeaSukuyoPartnerName"
-                      className={`${styles.questionInput}`}
-                      value={sukuyoInput.partner.name || ""}
-                      onChange={(event) => updateSukuyoPerson("partner", { name: event.target.value })}
-                      placeholder={copy.kdjowvdd}
-                      autoComplete="off"
-                      disabled={isSubmitting}
-                    />
-                  </label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerBirthDate">
-                    
-                    {copy.kmfvupic}
-                    <input id="fortuneTeaSukuyoPartnerBirthDate" className={`${styles.questionInput}`} {...birthDateTextInputProps(sukuyoInput.partner.birthDate || "", (nextBirthDate) => updateSukuyoPerson("partner", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
-                  </label>
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerCalendar">
-                    
-                    {copy.ksxyz0up}
-                    <select
-                      id="fortuneTeaSukuyoPartnerCalendar"
-                      className={`${styles.questionInput}`}
-                      value={sukuyoInput.partner.calendarType || "solar"}
-                      onChange={(event) => updateSukuyoPerson("partner", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
-                      disabled={isSubmitting}
-                    >
-                      <option value="solar">{copy.kekiagaw}</option>
-                      <option value="lunar">{copy.kpbfcw5q}</option>
-                    </select>
-                  </label>
-                  {sukuyoInput.partner.calendarType === "lunar" && <label className={styles.birthTimeUnknownToggle}><input type="checkbox" checked={Boolean(sukuyoInput.partner.isLeapMonth)} onChange={e => updateSukuyoPerson("partner", {isLeapMonth: e.target.checked})} disabled={isSubmitting}/><span>{copy.leapMonth}</span></label>}
-                  <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoPartnerGender">
-                    
-                    {copy.kd3n64c3}
-                    <select
-                      id="fortuneTeaSukuyoPartnerGender"
-                      className={`${styles.questionInput}`}
-                      value={sukuyoInput.partner.gender || ""}
-                      onChange={(event) => updateSukuyoPerson("partner", { gender: event.target.value })}
-                      disabled={isSubmitting}
-                    >
-                      <option value="">{copy.kcbceqsz}</option>
-                      <option value="female">{copy.k3vw2jji}</option>
-                      <option value="male">{copy.kkgzlpaa}</option>
-                    </select>
-                  </label>
-                </div>
-              </article>
-            </div>
-
-            <div className={styles.sukuyoMetaGrid}>
-              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoRelationship">
-                
-                {copy.kbsnqume}
-                <select
-                  id="fortuneTeaSukuyoRelationship"
-                  className={`${styles.questionInput}`}
-                  value={sukuyoInput.relationshipType || copy.ktclbui2}
-                  onChange={(event) => updateSukuyoMeta({ relationshipType: event.target.value })}
-                  disabled={isSubmitting}
-                >
-                  {sukuyoRelationshipTypes.map((item) => (
-                    <option key={item} value={item}>{copy[SUKUYO_RELATIONSHIP_LABEL[item]]}</option>
-                  ))}
-                </select>
-              </label>
-              <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoFocus">
-                
-                {copy.kydjxdvs}
-                <select
-                  id="fortuneTeaSukuyoFocus"
-                  className={`${styles.questionInput}`}
-                  value={sukuyoInput.focus || copy.k0y7lflt}
-                  onChange={(event) => updateSukuyoMeta({ focus: event.target.value })}
-                  disabled={isSubmitting}
-                >
-                  {sukuyoFocusOptions.map((item) => (
-                    <option key={item} value={item}>{copy[SUKUYO_FOCUS_LABEL[item]]}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <label className={`${styles.questionLabel}`} htmlFor="fortuneTeaSukuyoSituation">
-              
-              {copy.k2jt4pbo} <span className={styles.optionalFieldMark}>{copy.kcbceqsz}</span>
-              <textarea
-                id="fortuneTeaSukuyoSituation"
-                className={`${styles.questionTextarea} ${styles.sukuyoSituationTextarea}`}
-                value={sukuyoInput.currentSituation || ""}
-                onChange={(event) => updateSukuyoMeta({ currentSituation: event.target.value })}
-                placeholder={copy.k4wmutlu}
-                rows={3}
-                disabled={isSubmitting}
-              />
-            </label>
-            <p className={styles.birthOptionalNotice}>
-              
-              {copy.khkt6xha}
-            </p>
-          </section>
-        ) : (
-          <p className={styles.birthOptionalNotice}>
-            
-            {copy.kkxbjbaz}
-          </p>
-        )}
         {error ? <p className={styles.questionError}>{error}</p> : null}
         {submitError ? (
           <section className={styles.questionSubmitErrorCard} role="alert" aria-live="assertive">
@@ -1503,7 +1584,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
         ) : null}
         <div className={`${styles.storyActions}`}>
           <TeaHouseButton className={styles.secondaryAction} variant="ghost" onClick={onBack} disabled={isSubmitting}>
-            
+
             {copy.kchbatkz}
           </TeaHouseButton>
           <TeaHouseButton className={styles.primaryAction} type="submit" loading={isSubmitting}>

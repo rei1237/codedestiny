@@ -1,0 +1,120 @@
+{
+  "id": "moon-lucky-ritual",
+  "featureKey": "fun.quantumLotto.ritualReport",
+  "title": "달빛 럭키 리추얼",
+  "notice": "기본 다섯 게임 번호 뽑기와 별도 리포트는 구분됩니다. 리포트는 금전 흐름의 상징 해석·세 가지 조언, 다섯 항목 루틴 카드, 첫 게임의 여섯 번호별 상징과 행동, 공유 카드, 세 가지 회고 질문으로 구성됩니다. 준비된 규칙을 사용하는 오락·자기성찰용 콘텐츠이며 실시간 AI 상담이나 통계적·과학적 당첨 예측이 아닙니다. 당첨이나 확률 향상, 재물 증가를 보장하지 않습니다. 현재 사주 분석과 생성한 번호를 사용합니다. 저장 버튼은 계정·프로필·주차별로 같은 브라우저의 로컬 저장소에 최대24개 주차 기록을 보관하며, 다른 기기 자동 동기화나 PDF를 제공하지 않습니다. 브라우저 데이터 삭제·변경 시 로컬 기록을 확인하지 못할 수 있습니다. 공유는 기기 지원에 따라 이미지 저장·기기 공유·문구 복사로 제공됩니다. 가상 편집 예시는 실제 결과·후기가 아니며 도식은 구성 설명입니다. 현재 이용권·월정석·단건 결제와 회차별 범위는 결제창을 확인하세요.",
+  "panels": [
+    {
+      "id": "01-a-small-pause",
+      "title": "기대를 잠시 내려놓고, 이번 주 소비를 돌아봐요.",
+      "src": "/feature-details/crafted/moon-lucky-ritual/01-a-small-pause.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기대를 잠시 내려놓고,\n이번 주 소비를 돌아봐요.\n이번 주\n기록한도쉼표\n\n상징 번호를 읽는 재미에서\n작은 금전 습관을 정리하는 시간으로.\n달빛 럭키 리추얼 리포트입니다.\n\n오락·자기성찰용 구성 설명 도식\n당첨 예측이나 확률 향상 기능이 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/moon-lucky-ritual/01-a-small-pause-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-what-you-open",
+      "title": "번호 뽑기 다음, 해석과 루틴을 펼쳐요.",
+      "src": "/feature-details/crafted/moon-lucky-ritual/02-what-you-open.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "번호 뽑기 다음,\n해석과 루틴을 펼쳐요.\n기본 번호 뽑기\n\n다섯 게임의 상징 번호는\n기본 화면에서 확인해요.\n\n별도 리포트에서 읽는 것\n\n대표 여섯 번호의 상징 해석과\n이번 주 소비를 돌아보는 조언.\n\n금액보다 습관에 집중\n\n당첨에 유리한 번호를 파는 상품이\n아니며 추가 확률을 제공하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/moon-lucky-ritual/02-what-you-open-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-five-parts",
+      "title": "이번 주를 위한, 다섯 부분의 리포트.",
+      "src": "/feature-details/crafted/moon-lucky-ritual/03-five-parts.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "이번 주를 위한,\n다섯 부분의 리포트.\n\n01 금전 흐름과 세 가지 조언\n\n02 다섯 항목의 행운 루틴 카드\n\n03 대표 번호별 상징 해석\n\n04 나의 이번 주 공유 카드\n\n05 회차 후 세 가지 회고 질문\n\n준비된 해석 규칙으로 구성해요.\n실시간 AI 상담은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/moon-lucky-ritual/03-five-parts-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-six-symbols",
+      "title": "여섯 번호에 붙인, 의미와 작은 행동.",
+      "src": "/feature-details/crafted/moon-lucky-ritual/04-six-symbols.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "여섯 번호에 붙인,\n의미와 작은 행동.\n대표 번호를 기준으로\n\n첫 게임의 여섯 번호 각각에\n오행의 상징과 의미를 붙여요.\n\n일상에서 바꿔볼 행동\n\n한도 적기, 영수증 정리처럼\n짧고 구체적인 행동을 함께 읽어요.\n\n해석의 범위\n\n번호의 의미는 이 콘텐츠의 규칙이며\n통계적·과학적 예측값이 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/moon-lucky-ritual/04-six-symbols-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-a-weekly-routine",
+      "title": "행운을 기다리는 동안, 내 기준을 먼저 적어요.",
+      "src": "/feature-details/crafted/moon-lucky-ritual/05-a-weekly-routine.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "행운을 기다리는 동안,\n내 기준을 먼저 적어요.\n\n곁에 둘 상징 색상\n\n정리하면 좋을 지출\n\n피하면 좋을 소비 패턴\n\n스스로 정하는 한도 선언\n\n잠시 숨을 고르는 행운 액션\n\n색상과 행동은 생활의 상징 장치이며\n재물 증가나 당첨을 보장하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/moon-lucky-ritual/05-a-weekly-routine-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-an-example-of-reflection",
+      "title": "번호를 맞히는 대신, 내 습관에 질문해봐요.",
+      "src": "/feature-details/crafted/moon-lucky-ritual/06-an-example-of-reflection.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "번호를 맞히는 대신,\n내 습관에 질문해봐요.\n\n이해를 위한 가상 편집 예시\n\n“기대가 커질수록\n금액을 늘리고 싶었다면,\n이번에는 처음 정한 한도를\n다시 적고 잠시 멈춰보세요.”\n\n충동 지출을 줄였는지,\n한도를 지켰는지, 재미로 즐겼는지.\n세 질문으로 한 주를 돌아봐요.\n\n실제 결과나 이용 후기가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/moon-lucky-ritual/06-an-example-of-reflection-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-save-and-revisit",
+      "title": "같은 브라우저에서, 이번 주 기록을 꺼내요.",
+      "src": "/feature-details/crafted/moon-lucky-ritual/07-save-and-revisit.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 브라우저에서,\n이번 주 기록을 꺼내요.\n이번 주 리포트 저장\n\n현재 계정·프로필과 주차를 기준으로\n이 브라우저에 기록을 저장해요.\n\n공유 카드와 문구\n\n요약 카드 이미지 저장,\n기기 공유 또는 문구 복사를 지원해요.\n\n저장 범위를 확인해요\n\n다른 기기 자동 동기화나 PDF는\n제공하지 않아요. 브라우저 삭제에 주의해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/moon-lucky-ritual/07-save-and-revisit-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-keep-your-own-pace",
+      "title": "작은 재미가, 내 생활을 넘지 않도록.",
+      "src": "/feature-details/crafted/moon-lucky-ritual/08-keep-your-own-pace.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "작은 재미가,\n내 생활을 넘지 않도록.\n나의 기준\n기록한도쉼표\n\n사주와 상징 번호를 참고해\n지금의 소비 습관을 살펴보는 콘텐츠.\n실제 판단은 생활의 여건과 함께해요.\n\n결제 전 확인\n\n현재 이용권·월정석·단건 결제와\n회차별 범위는 결제창을 확인해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/moon-lucky-ritual/08-keep-your-own-pace-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

@@ -18,6 +18,8 @@ import { peekAccessTokenUserId, requireAuth } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { scopeConnection } from "../lib/db-scope-connection.js";
+import { getProfileSpirits, unlockProfileSpirit, equipProfileSpirit, profileSpiritExp } from "../lib/profile-spirits.js";
+import { profileCharacterPreview } from "../lib/profile-character-preview.js";
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const KST_DAY_MS = 24 * 60 * 60 * 1000;
@@ -1106,11 +1108,14 @@ async function loadRpgProgress(userId, profileId, session = null) {
     createdAt: now,
     updatedAt: now,
   };
-  const created = session
-    ? await UserRpgProgress.create([createdDoc], { session })
-    : await UserRpgProgress.create([createdDoc]);
-
-  return created[0]?.toObject ? created[0].toObject() : created[0];
+  await UserRpgProgress.updateOne(
+    { userId, profileId },
+    { $setOnInsert: createdDoc },
+    { upsert: true, ...(session ? { session } : {}) },
+  );
+  const seeded = UserRpgProgress.findOne({ userId, profileId });
+  if (session) seeded.session(session);
+  return seeded.lean();
 }
 
 function buildProgressResponse(progressDoc) {
@@ -1523,7 +1528,9 @@ async function applyRpgAward(env, userId, kind, rawKey = "", expOverride = null)
   const baseRule = AWARD_RULES[kind];
   if (!baseRule) return { status: 400, body: { ok: false, message: "허용되지 않은 적립 종류입니다." } };
   // 연속 출석은 단계마다 EXP 가 달라 표에서 받아온다. 그 외에는 화이트리스트 값만 쓴다.
-  const rule = expOverride == null ? baseRule : { ...baseRule, exp: Math.max(0, toSafeNumber(expOverride, 0)) };
+  const rule = expOverride == null
+    ? { ...baseRule, exp: await profileSpiritExp(env, userId, kind, baseRule.exp) }
+    : { ...baseRule, exp: Math.max(0, toSafeNumber(expOverride, 0)) };
 
   const dateKey = kstDateKey();
   const awardKey = toSafeString(rawKey, 80) || dateKey;
@@ -1531,85 +1538,49 @@ async function applyRpgAward(env, userId, kind, rawKey = "", expOverride = null)
   const now = new Date();
   const auth = { userId };
 
-  const progress = await withMongoRetry(env, () => loadRpgProgress(auth.userId, ACCOUNT_PROFILE_SCOPE));
-  const sameKindLogs = await withMongoRetry(env, () => UserDailyQuestLog.find({
-    userId: auth.userId,
-    profileId: ACCOUNT_PROFILE_SCOPE,
-    questDateKst: dateKey,
-    questType: rule.questType,
-  }).lean());
+  // Seed once, then serialize the daily-limit check, log and EXP increment together.
+  await withMongoRetry(env, () => loadRpgProgress(auth.userId, ACCOUNT_PROFILE_SCOPE));
+  let progress, refreshed, prevLevel, prevStreakDays, nextStreakDays, rejection;
+  await withMongoRetry(env, async () => {
+    const session = await (scopeConnection() || mongoose).startSession();
+    try {
+      await session.withTransaction(async () => {
+        rejection = null;
+        const scope = { userId: auth.userId, profileId: ACCOUNT_PROFILE_SCOPE };
+        progress = await UserRpgProgress.findOne(scope).session(session).lean();
+        const sameKindLogs = await UserDailyQuestLog.find({ ...scope, questDateKst: dateKey, questType: rule.questType }).session(session).lean();
+        const alreadyGranted = sameKindLogs.some(log => String(log.questId || '') === questId);
+        if (alreadyGranted || sameKindLogs.length >= rule.dailyLimit) {
+          rejection = alreadyGranted ? 'ALREADY_GRANTED' : 'DAILY_LIMIT_REACHED';
+          return;
+        }
+        prevStreakDays = toSafeNumber(progress?.streakDays, 0);
+        nextStreakDays = prevStreakDays;
+        let lastDateKst = toSafeString(progress?.lastQuestDateKst, 10);
+        if (kind === 'checkin' && lastDateKst !== dateKey) {
+          nextStreakDays = lastDateKst === yesterdayKstDateKey() ? Math.max(1, prevStreakDays + 1) : 1;
+          lastDateKst = dateKey;
+        }
+        prevLevel = calculateLevelState(progress?.totalExp).currentLevel;
+        const nextState = calculateLevelState(toSafeNumber(progress?.totalExp) + rule.exp);
+        await UserRpgProgress.updateOne(scope, {
+          $inc: { totalExp: rule.exp },
+          $set: { currentLevel: nextState.currentLevel, currentLevelExp: nextState.currentLevelExp,
+            nextLevelExp: nextState.nextLevelExp, streakDays: nextStreakDays,
+            longestStreakDays: Math.max(toSafeNumber(progress?.longestStreakDays, 0), nextStreakDays),
+            lastQuestDateKst: lastDateKst, lastQuestCompletedAt: now, updatedAt: now },
+        }, { session });
+        await UserDailyQuestLog.create([{
+          ...scope, questDateKst: dateKey, questId, questType: rule.questType, expReward: rule.exp,
+          completedAt: now, evidenceType: 'client_reported_action', status: 'completed',
+          idempotencyKey: `${dateKey}:${ACCOUNT_PROFILE_SCOPE}:${questId}`,
+        }], { session });
+        refreshed = await UserRpgProgress.findOne(scope).session(session).lean();
+      }, mongoTransactionOptions(env));
+    } finally { await session.endSession(); }
+  });
+  if (rejection) return { status: 200, body: { ok: true, granted: false, reason: rejection, progress: buildProgressResponse(progress) } };
 
-  const alreadyGranted = sameKindLogs.some((log) => String(log.questId || "") === questId);
-  if (alreadyGranted || sameKindLogs.length >= rule.dailyLimit) {
-    return { status: 200, body: {
-      ok: true,
-      granted: false,
-      reason: alreadyGranted ? "ALREADY_GRANTED" : "DAILY_LIMIT_REACHED",
-      progress: buildProgressResponse(progress),
-    } };
-  }
-
-  try {
-    await UserDailyQuestLog.create([{
-      userId: auth.userId,
-      profileId: ACCOUNT_PROFILE_SCOPE,
-      questDateKst: dateKey,
-      questId,
-      questType: rule.questType,
-      expReward: rule.exp,
-      completedAt: now,
-      evidenceType: "client_reported_action",
-      status: "completed",
-      idempotencyKey: `${dateKey}:${ACCOUNT_PROFILE_SCOPE}:${questId}`,
-    }]);
-  } catch (error) {
-    if (String(error?.code || error?.message || "").includes("11000")) {
-      return { status: 200, body: {
-        ok: true,
-        granted: false,
-        reason: "ALREADY_GRANTED",
-        progress: buildProgressResponse(progress),
-      } };
-    }
-    throw error;
-  }
-
-  /* 스트릭은 출석에서만 움직인다. 하루를 여는 행동이 출석이고,
-     퀘스트까지 스트릭을 건드리면 같은 날 두 번 증가하는 창이 생긴다. */
-  const prevStreakDays = toSafeNumber(progress?.streakDays, 0);
-  let nextStreakDays = prevStreakDays;
-  let lastDateKst = toSafeString(progress?.lastQuestDateKst, 10);
-  if (kind === "checkin" && lastDateKst !== dateKey) {
-    nextStreakDays = lastDateKst === yesterdayKstDateKey() ? Math.max(1, prevStreakDays + 1) : 1;
-    lastDateKst = dateKey;
-  }
-
-  const prevLevel = calculateLevelState(progress?.totalExp).currentLevel;
-  const nextState = calculateLevelState(toSafeNumber(progress?.totalExp) + rule.exp);
-
-  /* totalExp만 $inc로 올린다. 동시 요청이 겹쳐도 합계는 정확하고,
-     레벨 필드는 응답 시 buildProgressResponse가 합계에서 다시 계산하므로 어긋나도 자가 교정된다. */
-  await withMongoRetry(env, () => UserRpgProgress.updateOne(
-    { userId: auth.userId, profileId: ACCOUNT_PROFILE_SCOPE },
-    {
-      $inc: { totalExp: rule.exp },
-      $set: {
-        currentLevel: nextState.currentLevel,
-        currentLevelExp: nextState.currentLevelExp,
-        nextLevelExp: nextState.nextLevelExp,
-        streakDays: nextStreakDays,
-        longestStreakDays: Math.max(toSafeNumber(progress?.longestStreakDays, 0), nextStreakDays),
-        lastQuestDateKst: lastDateKst,
-        lastQuestCompletedAt: now,
-        updatedAt: now,
-      },
-    },
-  ));
-
-  const refreshed = await withMongoRetry(env, () => UserRpgProgress.findOne({
-    userId: auth.userId,
-    profileId: ACCOUNT_PROFILE_SCOPE,
-  }).lean());
   invalidateRpgProgressCacheForUser(auth.userId);
 
   /* 연속 출석이 새 단계를 넘었으면 그 보너스를 서버가 스스로 얹는다.
@@ -1918,6 +1889,22 @@ export async function handleRpgRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     path = getRoutePath(request, "/api/rpg");
+
+    if (method === "POST" && path === "/character-preview") {
+      return json({ ok: true, ...profileCharacterPreview(await readJson(request)) }, { headers: { 'Cache-Control': 'private, no-store' } });
+    }
+    if (path === "/characters" && method === "GET") {
+      const auth = await requireAuth(request, env);
+      return json({ ok: true, ...await getProfileSpirits(env, auth.userId) }, { headers: { 'Cache-Control': 'private, no-store' } });
+    }
+    if (method === "POST" && (path === "/characters/unlock" || path === "/characters/equip")) {
+      const auth = await requireAuth(request, env);
+      const body = await readJson(request);
+      const state = path.endsWith('/unlock')
+        ? await unlockProfileSpirit(env, auth.userId, body || {})
+        : await equipProfileSpirit(env, auth.userId, body?.characterId);
+      return json({ ok: true, ...state }, { headers: { 'Cache-Control': 'private, no-store' } });
+    }
 
     if (method === "GET" && (path === "" || path === "/" || path === "/status" || path === "/daily/status" || path === "/me")) {
       return await getDailyRpgStatus(request, env);

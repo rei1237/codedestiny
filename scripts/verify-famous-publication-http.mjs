@@ -1,0 +1,42 @@
+// Local mock server only. Tests source HTML, not client-only or search-engine state.
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { getPublishedProfiles } from '../lib/famous-saju/profile-publication.js';
+import { getIndexedCelebritySlugs } from '../lib/famous-saju/celebrity-editorial.js';
+const base='http://127.0.0.1:15734';
+const sitemap=fs.readFileSync('public/sitemap.xml','utf8');
+const results=[];
+for (const profile of getPublishedProfiles()) {
+  const path=`/insights/famous-saju/${profile.slug}/`;
+  const response=await fetch(base+path);
+  assert.equal(response.status,200,path);
+  const html=await response.text();
+  const robots=html.match(/<meta name="robots" content="([^"]*)"/)?.[1];
+  const canonical=html.match(/<link rel="canonical" href="([^"]*)"/)?.[1];
+  const title=html.match(/<title>(.*?)<\/title>/)?.[1];
+  assert.ok(robots && !robots.includes('noindex'),path);
+  assert.equal(canonical,'https://code-destiny.com'+path);
+  assert.ok(title.includes(profile.name+' 사주'),path);
+  assert.ok(html.includes('data-famous-saju-profile-article'),path);
+  assert.ok(html.includes(profile.question),path);
+  assert.ok(html.includes(profile.career),path);
+  assert.ok(html.includes(profile.publication.approvedBy),path);
+  assert.ok(sitemap.includes(canonical),path);
+  const schemas=[...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)].map(m=>JSON.parse(m[1]));
+  const article=schemas.find(s=>s['@type']==='Article');
+  assert.equal(article?.headline,title,path);
+  assert.equal(article.dateModified.slice(0,10),profile.publication.updatedAt);
+  assert.equal(article.author['@type'],'Organization','Do not attribute AI writing to a human author');
+  assert.ok(article.citation.length>0);
+  assert.ok(!html.includes('src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'),path);
+  results.push({slug:profile.slug,status:response.status,title,indexable:true,canonical,sourceArticle:true});
+}
+const draft='rescene-wonyi';
+assert.ok(!getIndexedCelebritySlugs().includes(draft));
+const draftHtml=await (await fetch(`${base}/insights/famous-saju/${draft}/`)).text();
+assert.match(draftHtml,/<meta name="robots" content="noindex, follow"/);
+const hub=await (await fetch(`${base}/insights/famous-saju/`)).text();
+assert.ok(hub.includes('data-cd-editor-note'));
+for(const profile of getPublishedProfiles())assert.ok(hub.includes(`href="/insights/famous-saju/${profile.slug}/"`));
+fs.writeFileSync('docs/design/moon-library/profile-publication-http.json',JSON.stringify({approvedPagesChecked:results.length,draftStaysNoindex:true,hubEditorNote:true,allApprovedLinksInServerHtml:true,results},null,2)+'\n');
+console.log(`PASS: ${results.length} approved articles HTTP/robots/canonical/title/Article/sitemap; draft noindex; hub links and editor note`);

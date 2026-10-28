@@ -22,6 +22,8 @@ if(process.argv.includes('--write')){
   if(!old)throw new Error('Missing shared detectJong');
   power=power.slice(0,old.getStart(powerAst))+'export '+declarations.get('detectJong')+power.slice(old.end);
   if(!power.includes('import { sajuHapAssessment }'))power="import { sajuHapAssessment } from './luck-rules.js';\n"+power;
+  // 셸 detectJong은 전역 SajuNatalCore(원국 판정 정본)를 부른다. ESM 사본은 같은 이름으로 import한다.
+  if(!power.includes('import * as SajuNatalCore'))power="import * as SajuNatalCore from './natal-core/index.mjs';\n"+power;
   fs.writeFileSync(powerPath,power);
   console.log('Synced saju luck rules and shared natal interpretation');
 }else{

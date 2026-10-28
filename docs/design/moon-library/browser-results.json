@@ -1,0 +1,42 @@
+{
+  "results": [
+    {
+      "width": 320,
+      "overflow": false,
+      "firstCard": 644.59375,
+      "images": 0
+    },
+    {
+      "width": 360,
+      "overflow": false,
+      "firstCard": 610.796875,
+      "images": 0
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "firstCard": 582.796875,
+      "images": 0
+    },
+    {
+      "width": 430,
+      "overflow": false,
+      "firstCard": 582.796875,
+      "images": 0
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "firstCard": 524.921875,
+      "images": 0
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "firstCard": 566.59375,
+      "images": 0
+    }
+  ],
+  "errors": [],
+  "environment": "Chromium desktop emulation; mock dev APIs; not physical devices"
+}

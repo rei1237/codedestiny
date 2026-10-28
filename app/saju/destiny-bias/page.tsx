@@ -5,21 +5,21 @@ import ServiceIntroSection from "../../components/ServiceIntroSection";
 
 const DESTINY_BIAS_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "최애운명 - 내 최애와 K-POP 케미 포토카드 | Code Destiny",
-    description: "그룹과 멤버를 고르고 내 생일만 넣으면 최애와 나의 케미 총점과 등급, 아홉 가지 유형이 포토카드로 나옵니다. 로그인 없이 무료.",
+    title: "최애운명 - 내 최애와 K-POP 케미 포토카드 | 꿀꿀 운세",
+    description: "그룹과 멤버를 고르고 내 생일만 넣으면 최애와 나의 케미 총점과 등급, 아홉 가지 유형이 포토카드로 나옵니다.",
     ogTitle: "내 최애랑 나, 무슨 케미일까? - 최애운명",
-    ogDescription: "생일만 넣으면 최애와 나의 케미가 포토카드로 나와요. 무료 · 로그인 없이.",
+    ogDescription: "생일만 넣으면 최애와 나의 케미가 포토카드로 나와요.",
     ogAlt: "응원봉 불빛이 가득한 콘서트 무대 — 최애운명",
   },
   en: {
-    title: "My Destiny Bias - Saju-Based Fandom Destiny Analysis | Code Destiny",
+    title: "My Destiny Bias - Saju-Based Fandom Destiny Analysis | 꿀꿀 운세",
     description: "Pick a K-pop group and member, enter your birthday, and get a chemistry photocard with a total score, grade, and one of nine chemistry types. Free, no login.",
     ogTitle: "My Destiny Bias - Saju-Based Fandom Destiny Analysis",
     ogDescription: "Enter your birthday and get a chemistry photocard with your bias. Free, no login.",
     ogAlt: "My Destiny Bias OG card",
   },
   ja: {
-    title: "推し運命 - 四柱推命ベースの推し活運命分析 | Code Destiny",
+    title: "推し運命 - 四柱推命ベースの推し活運命分析 | 꿀꿀 운세",
     description: "あなたの四柱推命と推しの四柱推命を比べ、共鳴スコア、五行補完ポイント、今日の推し運命アクションをカードで確認します。",
     ogTitle: "推し運命 - 四柱推命ベースの推し活運命分析",
     ogDescription: "誕生日を入れるだけで、推しとのケミがフォトカードになります。無料・ログイン不要。",
@@ -128,7 +128,7 @@ export default function DestinyBiasPage() {
         <p>
           공유 카드는 1대1 피드용과 9대16 스토리용 두 가지로 저장할 수 있습니다. 카드와 공유 링크에는
           생일이 들어가지 않습니다. 결과 카드 아래 「최애 사진으로 포토카드 만들기」에서 넣은 사진은 내 기기 안에서만 쓰이고 서버로 보내지
-          않으며, 「이미지 저장」으로 받은 파일에만 찍힙니다. 무료 결과는 서버와 보관함에 저장하지 않습니다.
+          않으며, 「이미지 저장」으로 받은 파일에만 찍힙니다. 결과는 서버와 보관함에 저장하지 않습니다.
           공유 링크를 받은 사람은 같은 최애를 선택한 화면에서 자신의 케미를 확인할 수 있습니다.
         </p>
         <h3>자주 묻는 질문</h3>

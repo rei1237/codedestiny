@@ -72,7 +72,7 @@ const HEALING_COPY: Record<LoadingLocale, HealingCopy> = {
     ],
     noticeTitle: "주의와 면책",
     noticeBody:
-      "타로 리딩은 오락과 자기성찰을 위한 콘텐츠입니다. 건강, 법률, 투자, 치료, 안전과 관련된 결정은 반드시 전문 기관이나 전문가의 도움을 우선해 주세요.",
+      "타로 리딩은 자기성찰을 위한 콘텐츠입니다. 건강, 법률, 투자, 치료, 안전과 관련된 결정은 반드시 전문 기관이나 전문가의 도움을 우선해 주세요.",
     relatedLinks: [
       ["/tarot/reunion", "재회 타로 보기"],
       ["/tarot/mindscan", "상대 마음 타로 보기"],
@@ -108,7 +108,7 @@ const HEALING_COPY: Record<LoadingLocale, HealingCopy> = {
     ],
     noticeTitle: "Notice and Disclaimer",
     noticeBody:
-      "Tarot readings are for entertainment and self-reflection. For health, legal, investment, treatment, or safety decisions, please prioritize help from qualified professionals.",
+      "Tarot readings are a reference for self-reflection. For health, legal, investment, treatment, or safety decisions, please prioritize help from qualified professionals.",
     relatedLinks: [
       ["/tarot/reunion", "View Reunion Tarot"],
       ["/tarot/mindscan", "View Their Feelings Tarot"],

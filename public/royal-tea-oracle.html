@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>The Royal Porcelain Cup — Tasseography Oracle</title>
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
+<script src="/js/core/pass-verdict.js?v=build-1711b2150559"></script>
+<script src="/js/core/checkout-entry.js?v=build-1711b2150559"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-9c92542eb04f"></script>
+<script src="/js/destiny-profile.js?v=build-2d81696a26c1"></script>
 <style>
 :root {
   --ebony: #0c1018;
@@ -2193,7 +2193,7 @@ function syncRoyalTeaBilling(payload) {
 }
 
 async function runRoyalTeaGate(resume) {
-  var COST = 10;
+  var COST = 30;
   var requestId = 'royal-tea:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   if (typeof window._cdCoinGatePerUse === 'function') {
     var granted = false;
@@ -2761,6 +2761,10 @@ startAnimationLoop();
   writeGoogTransCookie(target);
   applyGoogleLang(target);
 })();
+</script>
+<script type="module">
+import {mountOracleCraftedDetails} from '/js/core/oracle/crafted-details.mjs';
+mountOracleCraftedDetails(document.getElementById('app'),{target:'#stage',id:'royal-tea-oracle',title:'영국 홍차점'});
 </script>
 </body>
 </html>

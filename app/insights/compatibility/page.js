@@ -5,15 +5,15 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 const path = "/insights/compatibility";
 const INSIGHTS_COMPATIBILITY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "궁합 인사이트 허브 · 사주·숙요점·자미두수 | Code Destiny",
+    title: "궁합 인사이트 허브 · 사주·숙요점·자미두수 | 꿀꿀 운세",
     description: "사주 궁합, 숙요점 궁합, 자미두수 궁합을 비교하고 관계 운영법을 정리한 궁합 인사이트 허브입니다.",
     keywords: ["궁합 보는 법", "궁합 종류 비교", "관계 운영법", "궁합 해석 차이"],
-    breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "궁합 인사이트"],
+    breadcrumbs: ["꿀꿀운세 홈", "운세 인사이트", "궁합 인사이트"],
     archiveTitle: "궁합 인사이트 허브",
     intro: "사주·숙요점·자미두수 관점으로 관계 패턴을 비교하고 실제 소통 규칙을 정리한 궁합 가이드 허브입니다.",
   },
   en: {
-    title: "Compatibility Insights Hub · Saju, Sukuyo, and Zi Wei Relationship Guide | Code Destiny",
+    title: "Compatibility Insights Hub · Saju, Sukuyo, and Zi Wei Relationship Guide | 꿀꿀 운세",
     description: "A compatibility hub comparing Saju, Sukuyo, and Zi Wei relationship patterns with practical guidance for relating well.",
     keywords: ["compatibility", "Saju compatibility", "Sukuyo compatibility", "Zi Wei compatibility", "love fortune"],
     breadcrumbs: ["Home", "Fortune Insights", "Compatibility Insights"],
@@ -21,7 +21,7 @@ const INSIGHTS_COMPATIBILITY_PAGE_TEXT_TRANSLATIONS = {
     intro: "A relationship guide hub that compares patterns through Saju, Sukuyo, and Zi Wei, then organizes practical communication rules.",
   },
   ja: {
-    title: "相性インサイトハブ · 四柱推命・宿曜・紫微斗数の関係ガイド | Code Destiny",
+    title: "相性インサイトハブ · 四柱推命・宿曜・紫微斗数の関係ガイド | 꿀꿀 운세",
     description: "四柱推命、宿曜、紫微斗数の相性を比較し、関係の整え方をまとめた相性インサイトハブです。",
     keywords: ["相性", "四柱推命 相性", "宿曜 相性", "紫微斗数 相性", "恋愛運"],
     breadcrumbs: ["ホーム", "運勢インサイト", "相性インサイト"],

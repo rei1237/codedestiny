@@ -1,0 +1,65 @@
+<!-- 2026-10-17 "직관성": 홈에서 빠진 운명의 문 디스커버(#fortuneGatewayDiscover) 마크업.
+     검색 엔진(js/core/home-service-finder.js)은 모든 운세 시트가 계속 쓰므로, 엔진 테스트는 이 고정 마크업으로 돈다.
+     출처: 커밋 1a0852a37 의 index.html. -->
+<div class="fortune-gateway__discover" id="fortuneGatewayDiscover" data-fortune-gateway-discover>
+            <div class="fortune-gateway__search" role="search">
+              <span class="fortune-gateway__search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.2 4.2"></path></svg></span>
+              <input type="search" id="fortuneGatewaySearch" class="fortune-gateway__search-input" placeholder="연애, 재물, 이직… 궁금한 운세를 찾아보세요" autocomplete="off" aria-label="운세 서비스 검색" data-cd-trans-attr="aria-label:shell.fortuneGatewayDiscover.fortuneGatewaySearch.k15ln3db.ariaLabel,placeholder:home.gardenCopy.searchPlaceholder">
+              <button type="button" class="fortune-gateway__search-clear" data-cd-search-clear aria-label="검색어 지우기" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+            </div>
+            <!-- 검색 필터 패널(홈 섹션 접기가 아니다): 나머지 고민·방식·가격 칩. 칩 동작은 home-service-finder.js 가 root 기준으로 묶는다. -->
+            <details class="fortune-gateway__filter-panel" id="fortuneGatewayFilterPanel">
+              <summary class="fortune-gateway__filter-toggle"><span data-cd-trans="home.gardenCopy.filterToggle">필터</span> <b class="fortune-gateway__filter-count" data-cd-filter-count hidden></b></summary>
+            <div class="fortune-gateway__group">
+              <span class="fortune-gateway__group-title" id="fortuneGatewayPurposeTitle">고민</span>
+            <div class="fortune-gateway__chips" role="group" aria-labelledby="fortuneGatewayPurposeTitle">
+              <button type="button" class="fortune-gateway__chip" data-purpose="love" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.k180xm6d">❤️ 연애</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="money" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kkz7xh9">💰 재물</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="career" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kkzg05h">💼 직업</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="compatibility" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kkymdrk">💕 궁합</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="today" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kl9lspj">🌙 오늘</button>
+            </div>
+            </div>
+
+            <div class="fortune-gateway__group">
+              <span class="fortune-gateway__group-title" id="fortuneGatewayMorePurposeTitle" data-cd-trans="home.gardenCopy.filterMorePurpose">다른 고민</span>
+            <div class="fortune-gateway__chips" role="group" aria-labelledby="fortuneGatewayMorePurposeTitle">
+              <button type="button" class="fortune-gateway__chip" data-purpose="family" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kfcewzb">🏠 가족/가정</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="life" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kl5e4s6">🧭 인생</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="self" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.k17f5hqf">🔮 나 자신</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="etc" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.klc5o0t">🎯 기타</button>
+            </div>
+            </div>
+            <div class="fortune-gateway__filters" id="fortuneGatewayFilters">
+              <div class="fortune-gateway__filter-row" role="group" aria-label="어떤 방식으로 볼까요" data-cd-trans-attr="aria-label:shell.fortuneGatewayFilters.k1szzetk.ariaLabel">
+                <span class="fortune-gateway__filter-label" data-cd-trans="shell.fortuneGatewayFilters.fortuneGatewayFilterRow.kx2ok">방식</span>
+                <div class="fortune-gateway__filter-chips">
+                  <button type="button" class="fortune-gateway__fchip" data-method="saju" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kxvio">사주</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="tarot" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.k10ios">타로</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="ziwei" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kpyjtww">자미두수</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="astrology" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.ku8un3">점성술</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="sukuyo" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.ktecid">숙요점</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="vedic" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.ksi53g">베다점</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="ai" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.k11zo0b">AI 상담</button>
+                </div>
+              </div>
+              <div class="fortune-gateway__filter-row" role="group" aria-label="가격대로 좁히기" data-cd-trans-attr="aria-label:shell.fortuneGatewayFilters.k10794b2.ariaLabel">
+                <span class="cd-yehwa-spray" aria-hidden="true"></span>
+                <span class="fortune-gateway__filter-label" data-cd-trans="shell.fortuneGatewayFilters.fortuneGatewayFilterRow.ku7c9">가격</span>
+                <div class="fortune-gateway__filter-chips">
+                  <button type="button" class="fortune-gateway__fchip" data-price="free" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kwuu0">무료</button>
+                  <button type="button" class="fortune-gateway__fchip" data-price="low" aria-pressed="false" data-cd-trans="home.mobileFunnel.lowPrice">1천원대</button>
+                  <button type="button" class="fortune-gateway__fchip" data-price="mid" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kvu9ix">3천원대</button>
+                  <button type="button" class="fortune-gateway__fchip" data-price="high" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kvvjhz">5천원대</button>
+                  <button type="button" class="fortune-gateway__fchip" data-price="premium" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kt1sff">1만원대</button>
+                  <button type="button" class="fortune-gateway__fchip" data-price="vvip" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.krnc4c4">프리미엄</button>
+                </div>
+              </div>
+            </div>
+            </details>
+            <div class="fortune-gateway__status">
+              <p class="fortune-gateway__summary" id="fortuneGatewayResultSummary" aria-live="polite"></p>
+              <button type="button" class="fortune-gateway__reset" data-cd-finder-reset hidden>선택 초기화</button>
+            </div>
+            <div class="fortune-gateway__recs" id="fortuneGatewayRecs" aria-live="polite" hidden></div>
+          </div>

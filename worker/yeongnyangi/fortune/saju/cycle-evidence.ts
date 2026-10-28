@@ -1,12 +1,13 @@
 import {buildSajuAdvancedFactors} from '../../../lib/saju-ai-prompt.js';
 import {explanationFacts} from '../shared/privacy';
 import type {DomainContext} from '../shared/contracts';
+import {cycleTag} from './major-luck';
 
 export const SAJU_CYCLE_VERSION='saju-cycle-evidence-v1';
 type Row=Record<string,any>;
 const pick=(row:Row,keys:string[])=>Object.fromEntries(keys.filter(key=>row?.[key]!==undefined).map(key=>[key,row[key]]));
 const luckRow=(row:Row,scope:string)=>({scope,stem:row.heavenlyStem||row.pillar?.[0],branch:row.earthlyBranch||row.pillar?.[1],
-  age:row.startAge,year:row.year,label:scope==='daewoon'?`${row.startYear}–${row.endYear} ${row.pillar}`:`${row.year} ${row.pillar}`});
+  age:row.startDate?undefined:row.startAge,year:row.year,label:scope==='daewoon'?(row.startDate?cycleTag(row):`${row.startYear}–${row.endYear} ${row.pillar}`):`${row.year} ${row.pillar}`});
 
 /** Fixed projection, no prompt prose/config or raw birth data in cycle evidence. */
 export function projectAdvancedFactors(raw:Row):Row {

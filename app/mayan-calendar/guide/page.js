@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const MAYAN_CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "마야 달력과 마야점 이해 | Code Destiny",
+    "metadata.title": "마야 달력과 마야점 이해 | 꿀꿀 운세",
     heading: "마야 달력과 마야점 이해",
     "section.scope": "마야 달력이 살피는 것",
     "section.inputs": "필요한 입력값",
@@ -19,7 +19,7 @@ const MAYAN_CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "해석 시 주의할 점",
   },
   en: {
-    "metadata.title": "Understanding the Mayan Calendar and Mayan Oracle | Code Destiny",
+    "metadata.title": "Understanding the Mayan Calendar and Mayan Oracle | 꿀꿀 운세",
     heading: "Understanding the Mayan Calendar and Mayan Oracle",
     "section.scope": "What the Mayan Calendar Looks At",
     "section.inputs": "Required Inputs",
@@ -31,7 +31,7 @@ const MAYAN_CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "What to Keep in Mind",
   },
   ja: {
-    "metadata.title": "マヤ暦とマヤ占いの理解 | Code Destiny",
+    "metadata.title": "マヤ暦とマヤ占いの理解 | 꿀꿀 운세",
     heading: "マヤ暦とマヤ占いの理解",
     "section.scope": "マヤ暦が見るもの",
     "section.inputs": "必要な入力項目",
@@ -43,7 +43,7 @@ const MAYAN_CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解釈時の注意点",
   },
   "zh-CN": {
-    "metadata.title": "理解玛雅日历与玛雅占卜 | Code Destiny",
+    "metadata.title": "理解玛雅日历与玛雅占卜 | 꿀꿀 운세",
     heading: "理解玛雅日历与玛雅占卜",
     "section.scope": "玛雅日历会观察什么",
     "section.inputs": "需要输入的信息",
@@ -55,7 +55,7 @@ const MAYAN_CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解读时的注意事项",
   },
   "zh-TW": {
-    "metadata.title": "理解瑪雅曆與瑪雅占卜 | Code Destiny",
+    "metadata.title": "理解瑪雅曆與瑪雅占卜 | 꿀꿀 운세",
     heading: "理解瑪雅曆與瑪雅占卜",
     "section.scope": "瑪雅曆會觀察什麼",
     "section.inputs": "需要輸入的資訊",
@@ -78,7 +78,7 @@ export function generateMetadata() {
     title: mayanCalendarGuideText("metadata.title"),
     description:
       "마야 달력의 기본 구조, 탄생 기호를 읽는 흐름, 입력값, 샘플 리딩, 해석 시 주의사항을 안내합니다.",
-    keywords: ["마야 달력", "마야점", "마야 운세", "탄생 기호", "Code Destiny"],
+    keywords: ["마야 달력", "마야점", "마야 운세", "탄생 기호", "꿀꿀운세"],
   });
 }
 
@@ -137,7 +137,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "마야점 서비스",
-      keywords: ["마야 달력", "마야점", "마야 운세", "탄생 기호", "Code Destiny"],
+      keywords: ["마야 달력", "마야점", "마야 운세", "탄생 기호", "꿀꿀운세"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),
@@ -151,7 +151,7 @@ export default function MayanCalendarGuidePage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">{mayanCalendarGuideText("heading")}</h1>
         <p className="cd-main-intro">
-          마야 달력은 날짜를 단순한 숫자가 아니라 상징과 주기의 흐름으로 바라봅니다. Code Destiny는 탄생 기호와 현재의 리듬을 통해 기질과 관계, 선택의 방향을 차분히 살피되, 결과를 확정적 예언이 아닌 자기 이해의 참고 자료로 다룹니다.
+          마야 달력은 날짜를 단순한 숫자가 아니라 상징과 주기의 흐름으로 바라봅니다. 꿀꿀운세는 탄생 기호와 현재의 리듬을 통해 기질과 관계, 선택의 방향을 차분히 살피되, 결과를 확정적 예언이 아닌 자기 이해의 참고 자료로 다룹니다.
         </p>
       </header>
 
@@ -220,7 +220,7 @@ export default function MayanCalendarGuidePage() {
       <section className="cd-card">
         <h2>{mayanCalendarGuideText("section.caution")}</h2>
         <p>
-          마야 달력 리딩은 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 소송, 진로처럼 삶에 큰 영향을 주는 결정은 결과만으로 정하지 말고 현실 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
+          마야 달력 리딩은 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 소송, 진로처럼 삶에 큰 영향을 주는 결정은 결과만으로 정하지 말고 현실 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
         </p>
       </section>
 

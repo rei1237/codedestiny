@@ -15,6 +15,26 @@ function clean(value, maxLength = 0) {
   return maxLength > 0 ? text.slice(0, maxLength) : text;
 }
 
+// 정밀지표는 영문 키·0~100 점수라 그대로 넘기면 본문에 "매력(attraction)은 58점" 이 샌다.
+const PRECISION_METRIC_LABELS = Object.freeze({
+  attraction: "끌림",
+  stability: "안정성",
+  communication: "소통",
+  conflict: "갈등 신호",
+  confidence: "해석 신뢰도",
+});
+
+function precisionMetricGrades(metrics) {
+  if (!metrics || typeof metrics !== "object") return null;
+  const grades = {};
+  Object.entries(PRECISION_METRIC_LABELS).forEach(([key, label]) => {
+    const score = Number(metrics[key]);
+    if (!Number.isFinite(score)) return;
+    grades[label] = score >= 70 ? "높음" : score >= 50 ? "보통" : "낮음";
+  });
+  return Object.keys(grades).length ? grades : null;
+}
+
 function distributionText(counts = {}) {
   return Object.entries(counts || {})
     .filter(([, value]) => Number.isFinite(Number(value)))
@@ -174,7 +194,7 @@ const GROUP_FACT_BUILDERS = Object.freeze({
       신살의미: (my.shinsal?.stars || []).filter((star) => star.present).map((star) => `${star.name}(${star.state}): ${star.loveMeaning}`),
       연애정체성: my.loveReference?.identity,
       십성통계: my.loveReference?.tenGodStats,
-      정밀지표: my.loveReference?.precisionMetrics,
+      정밀지표: precisionMetricGrades(my.loveReference?.precisionMetrics),
       주의신호: my.loveReference?.risks,
     };
   },
@@ -184,7 +204,7 @@ const GROUP_FACT_BUILDERS = Object.freeze({
       내일주: `${my.dayPillar} (일지 ${my.pillarDetails?.day?.earthlyBranch || "-"}, 지장간 ${hiddenStemText(my.pillarDetails?.day) || "없음"})`,
       내일지십이운성: stageOf(my, "day")?.stage || "",
       이상형: my.loveReference?.idealPartner,
-      끌림지표: my.loveReference?.precisionMetrics,
+      끌림지표: precisionMetricGrades(my.loveReference?.precisionMetrics),
       상대명식: partner
         ? {
           사주: pillarLine(partner),

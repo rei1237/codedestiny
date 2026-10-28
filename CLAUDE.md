@@ -40,6 +40,10 @@ GREEN은 관련 파일부터 수정하고, RED는 위험·검증·롤백을 먼�
 16. 큰 화면 개편은 방향과 성공 기준을 먼저 공유한 뒤 자율 구현한다. 구현 후 실제 화면 검증으로 확정하며, 사용자가 명시적으로 목업 승인을 요구한 경우에만 승인 대기한다.
 17. LLM 생성은 결과가 안 나오는 것이 최악이다. 분량을 올리면 여유도 함께 늘린다 — 목표만 올리고 하한은 목표 하한의 약 80% 이하로 둔다, 출력 토큰은 목표 상한+머리말+thinking 이상, 모델이 어기기 쉬운 형식 상한(문단 길이 등)은 거부보다 결정적 교정(분할·정규화). 상세는 [ai-and-db](docs/context/ai-and-db.md#llm-안전-규칙-2026-08-28-agentsmd-에서-이관).
 
+## 변경 시 SEO 함께 점검 (2026-10-18 사용자 요청)
+
+기능·콘텐츠·UI·라우트 변경 시 영향받는 공개 URL의 검색 의도, title/description/H1, 본문·내부 링크, canonical/hreflang, robots/noindex, sitemap, 이미지와 광고 적합성을 함께 점검한다. 해당 없는 항목은 영향 없음으로 기록하고, 실제 결함만 같은 작업에서 최소 수정한다. 상세 기준은 [SEO 변경 동반 점검](docs/context/seo-and-adsense.md#변경-동반-seo-점검)을 따른다. 검색용 키워드·본문·날짜를 기계적으로 추가하지 않으며 비공개·결제 화면의 색인 정책을 보존한다.
+
 ## 탐색·검증
 
 위치가 불명확하면 [ARCHITECTURE.md](ARCHITECTURE.md) → 심볼 → import → 호출부.
@@ -66,7 +70,7 @@ push를 배포 승인으로 확대 해석하지 않는다. push는 스테이징�
 - 검색·삭제: [search-discipline](docs/context/search-discipline.md)
 - 명령·예외: [reference-basics](docs/context/reference-basics.md)
 
-홈 `/` 정본은 app/page.js다(꿀꿀 운세 — 검색용 안내를 그리고 LegacyHomeEntry가 브라우저를 `/ggulggul/`로 보낸다). 꽃돼지 `/ggulggul/` 및 기존 로케일 정적 셸 정본은 index.html이며 public 미러는 sync:public으로 생성한다. 영냥이는 `/yeongnyangi/`(app/yeongnyangi/)다. Pages 준비 단계에서 `/`를 정적 셸로 덮어쓰지 않는다.
+홈 `/` 정본은 app/page.js다(꿀꿀 운세 공식 대표 홈, 200. 워커가 추적 키만 붙은 요청은 그대로 200, 기능 키는 `/ggulggul/`로 302, `/index.html`은 `/`로 301 한다. LegacyHomeEntry는 옛 해시 딥링크와 standalone PWA만 `/ggulggul/`로 보낸다). 브랜드 이름·운영자·공식 채널 원본은 lib/brand/brand-facts.mjs다(2026-10-15 사용자 결정: 공식 "꿀꿀 운세", 별칭 "꿀꿀운세"). 꽃돼지 `/ggulggul/` 및 기존 로케일 정적 셸 정본은 index.html이며 public 미러는 sync:public으로 생성한다. 영냥이는 `/yeongnyangi/`(app/yeongnyangi/)다. Pages 준비 단계에서 `/`를 정적 셸로 덮어쓰지 않는다.
 결제 진입은 로컬 스냅샷, 서버 이용권 판정은 결제창에서. 단건은 사용자의 선택 후에만.
 이용권·월정석·단건 결제 용어와 정책을 유지한다. 동결 파일 변경은 payment-freeze 절차를 따른다.
 
@@ -79,7 +83,7 @@ Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 
 ## 2026-09-12 전달 흐름: main 직접 커밋, 브랜치·PR 없음
 
-기본 흐름은 `main`에서 코드 수정→targeted 검사(check:fast)→commit→(안정 시점에) push→main CI 통과 확인에서 끝난다. 브랜치도 PR도 만들지 않는다. 유일한 공식 검증 게이트는 GitHub CI(`CI required` aggregate)이며, push 전에 전체 lint/typecheck/test/build를 로컬에서 반복하지 않는다. 이 절은 이전의 PR·연속 머지·입장 판정(delivery:admit / delivery:batch-plan) 조항을 **폐기**한다.
+기본 흐름은 `main`에서 코드 수정→targeted 검사(check:fast)→commit→(커밋된 트리, 약 15s)→(안정 시점에) push→main CI 통과 확인에서 끝난다. 브랜치도 PR도 만들지 않는다. 유일한 공식 검증 게이트는 GitHub CI(`CI required` aggregate)이며, push 전에 전체 lint/typecheck/test/build를 로컬에서 반복하지 않는다. 이 절은 이전의 PR·연속 머지·입장 판정(delivery:admit / delivery:batch-plan) 조항을 **폐기**한다.
 
 커밋은 복구 지점, push는 원격 백업 겸 배포 지점이다. 로컬 마이크로 커밋은 자주, push는 작업 단위가 안정됐을 때 묶어서 한다. 서로 무관한 변경을 한 커밋에 섞지 않는다 — 기준은 "이 커밋 하나를 되돌려도 다른 기능이 거의 흔들리지 않는가"다. 커밋 시점의 main은 항상 실행 가능해야 한다. 회귀가 나면 조건·try/catch·CSS 오버라이드를 덧대지 말고 되돌린다: 미커밋은 `git reset --hard HEAD`, 나쁜 커밋은 그 커밋만. 이미 커밋된 다른 정상 작업까지 날리지 않는다. 되돌린 뒤에는 같은 구조로 재시도하지 않고 실패 원인·회귀 영역·새 접근을 보고한 다음 다르게 구현한다.
 
@@ -87,7 +91,7 @@ Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 
 스테이징은 main push마다 비동기로 배포된다. 스테이징 검증(`npm run verify:staging -- --sha=<40자리 SHA>`)은 사용자 요청, 배포 인프라 변경, 운영 릴리스 전(`npm run verify:release`), 대형 결제·로그인 변경 후, 라우팅 변경 후, 스테이징 전용 버그 조사 때만 한다. 운영 승격은 별도 1회 승인 때만 수행한다.
 
-Do not wait for or manually verify staging deployment after every push. Once CI passes, continue to the next task. Verify staging only when explicitly requested, when deployment infrastructure changed, or during a final release verification.
+Do not wait for or manually verify staging deployment after every push. Do not wait for CI either: after a push, continue to the next task and check the main CI result once, right before the next push or the final report. Never loop on `sleep` + `gh run list`. If main is already red from someone else's commit, report that commit instead of pushing on top of it. Verify staging only when explicitly requested, when deployment infrastructure changed, or during a final release verification.
 Do not poll staging URLs, deployment status, commit SHA, or freshness markers after routine pushes.
 
 ## Compact Instructions

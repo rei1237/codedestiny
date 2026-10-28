@@ -12,7 +12,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM, VirtualConsole } from "jsdom";
 // 죽은 자산 판정 규칙은 빌드가 정본이다 — 여기서 다시 구현하면 두 규칙이 갈라진다.
-import { buildReferencedNameIndex } from "./build-mobile-app.mjs";
+import { buildReferencedNameIndex, isTalismanOriginal } from "./build-mobile-app.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distArgIndex = process.argv.indexOf("--dist");
@@ -62,7 +62,7 @@ console.log("\n[1] 결제 가드가 실제로 PortOne 경로를 막는가 (jsdom
 
 const guardSource = await fs.readFile(path.join(ROOT, "scripts", "app-payment-guard.js"), "utf8");
 const dom = new JSDOM("<!doctype html><html><head></head><body></body></html>", {
-  url: "https://code-destiny.com/saju/basic/",
+  url: "https://code-destiny.com/saju/",
   runScripts: "outside-only",
 });
 const { window } = dom;
@@ -141,7 +141,7 @@ check("/points 링크 클릭이 차단됨 (preventDefault)", clickEvent.defaultP
 // 수정 불가), 앱에서는 사실과 다르고 Play 정책에도 걸리므로 가드가 걷어내야 한다.
 // 가드는 설치 시점의 alert를 감싸므로, alert를 먼저 갈아끼운 새 창에서 확인한다.
 const alertDom = new JSDOM("<!doctype html><html><head></head><body></body></html>", {
-  url: "https://code-destiny.com/saju/basic/",
+  url: "https://code-destiny.com/saju/",
   runScripts: "outside-only",
 });
 let captured = "";
@@ -159,7 +159,7 @@ check(
 // single-flight 래퍼(:3012)가 붙지 못하므로, 같은 보호를 가드가 직접 해야 한다.
 // (가드는 네이티브 브리지가 없으면 intent 전에 실패하므로 가짜 브리지를 붙인다)
 alertDom.window.CodeDestinyNative = {
-  purchase: async () => ({ ok: true, purchaseToken: "test-token" }),
+  purchase: async () => ({ ok: true, purchaseToken: "test-token", purchaseState: 1 }),
   consume: async () => ({ ok: true }),
 };
 let intentCalls = 0;
@@ -465,12 +465,11 @@ if (DIST) {
 
     for (const prefix of ["", "en", "ja", "zh"]) {
       const label = prefix ? `/${prefix}/points` : "/points";
-      check(`${label} 라우트 제거됨`, !(await exists(path.join(DIST, prefix, "points"))));
+      check(`${label} 웹 결제 진입 제거됨`, !(await exists(path.join(DIST, prefix, "points", "index.html"))));
     }
 
-    // SEO 전용 문서 — 앱 사용자는 도달하지 않는데 압축 후 28MB를 차지한다.
-    for (const route of ["insights", "famous-saju"]) {
-      check(`/${route} 라우트 제거됨`, !(await exists(path.join(DIST, route))));
+    for (const route of ["points/history", "insights", "insights/famous-saju", "records", "yeongnyangi/library"]) {
+      check(`/${route} 열람 경로 보존됨`, await exists(path.join(DIST, route, "index.html")));
     }
 
     // 웹 배포 전용 산출물 — build-mobile-app.mjs 의 removeWebOnlyArtifacts 가 지웠어야 한다.
@@ -479,15 +478,7 @@ if (DIST) {
       check(`웹 전용 산출물 제거됨: /${name}`, !(await exists(path.join(DIST, name))));
     }
 
-    // 참조되는 자산은 살아남아야 한다 — 프루닝이 실사용 자산을 먹으면 앱에서 이미지가 깨진다.
-    // (다마고치는 index.html이 /tadagochi로 링크하는 실제 기능이고, tadagochi.html이
-    //  fuctionassets/tadagochi* 이미지를 쓴다. 한때 이걸 '참조 0건'으로 오판했다.)
-    check(
-      "실사용 자산 존치: fuctionassets/tadagochi (다마고치)",
-      await exists(path.join(DIST, "fuctionassets", "tadagochi")),
-      "tadagochi.html이 쓰는 이미지가 사라졌다",
-    );
-    check("실사용 페이지 존치: /tadagochi", await exists(path.join(DIST, "tadagochi.html")));
+    check("프로필 캐릭터 시트 존치", await exists(path.join(DIST, "assets", "profile-characters", "animal-mouse.webp")));
 
     // 죽은 PNG 원본(webp 쌍 존재 + 참조 0건)이 남아있지 않은가.
     // 빌드와 같은 판정 함수를 쓴다 — 규칙을 두 번 쓰면 갈라진다.
@@ -495,6 +486,7 @@ if (DIST) {
     const referencedNames = await buildReferencedNameIndex(DIST);
     const deadSurvivors = [];
     for (const png of await walk(DIST, (file) => file.toLowerCase().endsWith(".png"))) {
+      if (isTalismanOriginal(png, DIST)) continue;
       if (!(await exists(`${png.slice(0, -4)}.webp`))) continue;
       if (referencedNames.has(path.basename(png))) continue;
       deadSurvivors.push(path.relative(DIST, png).replace(/\\/g, "/"));
@@ -533,9 +525,8 @@ if (DIST) {
     // "가드가 정말 지우는가"를 볼 수 없어 실제 산출물 HTML에 가드를 실행한다.
     // 페이지 자체 스크립트는 돌리지 않는다(1.9MB 인라인 JS라 느리고 불안정) —
     // 정적 앵커만 봐도 충분하고, 동적 생성분은 가드의 MutationObserver가 맡는다.
-    console.log("\n[4] 실제 산출물 페이지에서 프루닝 링크가 사라지는가 (jsdom)");
-    // 로케일 접두사가 붙은 링크(/en/insights/)도 프루닝 대상이다 — 라우트 파일이
-    // LOCALE_PREFIXES 조합으로 지워지므로 접두사가 붙었다고 살려두면 죽은 링크가 된다.
+    console.log("\n[4] 실제 산출물에서 콘텐츠 링크와 앱 진입을 보존하는가 (jsdom)");
+    // 로케일을 포함한 기존 읽기 링크를 결제 가드가 제거하지 않는지 확인한다.
     const PRUNED_HREF_RE = /^(?:\/[a-z]{2}(?:-[a-z]{2})?)?\/(?:insights|famous-saju)(?:\/|\?|#|$)/;
     const countPrunedLinks = (doc) =>
       Array.from(doc.querySelectorAll("a[href]")).filter((anchor) =>
@@ -545,8 +536,8 @@ if (DIST) {
     const pagesToCheck = [
       ["index.html", "루트 진입점"],
       [YEONGNYANGI_HOME_PATH, "영냥이 앱 첫 화면"],
-      [LEGACY_SHELL_PATH, "꿀꿀 운세(기존 연이/네오 셸)"],
-      [path.join("saju", "basic", "index.html"), "/saju/basic (앱 탭 — /insights 링크 있던 곳)"],
+      [LEGACY_SHELL_PATH, "꿀꿀운세(기존 연이/네오 셸)"],
+      [path.join("saju", "index.html"), "/saju (앱 탭 — /insights 링크 있던 곳)"],
       [path.join("en", "today", "index.html"), "/en/today (로케일 페이지 — /en/insights 링크 있던 곳)"],
     ];
 
@@ -573,9 +564,9 @@ if (DIST) {
       const afterCount = countPrunedLinks(pageWindow.document);
 
       check(
-        `${label}: 프루닝 링크 0건 (가드 실행 전 ${beforeCount}건)`,
-        afterCount === 0,
-        `남은 링크 ${afterCount}건`,
+        `${label}: 콘텐츠 링크 보존 (가드 실행 전 ${beforeCount}건)`,
+        afterCount === beforeCount,
+        `실행 후 링크 ${afterCount}건`,
       );
 
       if (relPath === YEONGNYANGI_HOME_PATH) {
@@ -584,14 +575,14 @@ if (DIST) {
         check("영냥이 법적 고지와 사업자 정보 보존", Boolean(doc.querySelector('.service-navigation__business') && doc.querySelector('a[href^="/privacy-policy/"]') && doc.querySelector('a[href^="/terms/"]')));
       }
       if (relPath === LEGACY_SHELL_PATH) {
-        // 섹션째 사라져야 한다 — 앵커만 지우면 제목만 남은 빈 카드가 된다.
-        for (const id of ["cd-insights-body", "cd-famous-body", "fsp-grid"]) {
-          check(`홈: #${id} 제거됨`, !pageWindow.document.getElementById(id));
+        // 현재 홈은 카드 ID 대신 내 정보 메뉴를 사용한다. 앱의 읽기 진입을 실제 브릿지로 확인한다.
+        pageWindow.eval(await fs.readFile(path.join(ROOT, "scripts", "app-native-bridge.js"), "utf8"));
+        if (pageWindow.document.readyState === "loading") {
+          await new Promise(resolve => pageWindow.document.addEventListener("DOMContentLoaded", resolve, { once: true }));
         }
-        // 과잉 제거 감시 — 섹션 부모를 지우다 홈을 통째로 날리면 안 된다.
-        // (.cd-section-body는 index.html에 2개뿐이고 둘 다 프루닝 대상이라 기준이 못 된다)
-        // 모바일 홈 허브(#cdMobileDestinyHub)는 반응형 리디자인(v20260723)으로 제거됐으므로,
-        // 홈 루트(#inputPage) 또는 슬림 헤더(#cdMobileHeader)가 살아있는지로 '홈 통째 삭제'를 감시한다.
+        for (const [id, href] of [["cdTalismanEntry", "/app/talismans/index.html"], ["cdInsightsEntry", "/insights/index.html"], ["cdFamousEntry", "/insights/famous-saju/index.html"]]) {
+          check(`홈: ${id} 앱 메뉴 진입`, pageWindow.document.getElementById(id)?.getAttribute("href") === href);
+        }
         check(
           "홈: 모바일 홈이 살아있음 (과잉 제거 없음)",
           Boolean(pageWindow.document.getElementById("inputPage") || pageWindow.document.getElementById("cdMobileHeader")),

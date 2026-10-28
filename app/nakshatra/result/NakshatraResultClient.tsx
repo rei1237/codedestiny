@@ -6,6 +6,8 @@ import Link from "next/link";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { useNakshatraCopy, type NakshatraCopy } from "../_lib/copy";
 import { Spark, Taegeuk, Yantra } from "../NakshatraSymbols";
+import LifeReading, { type LifeTopic } from '../_components/LifeReading';
+import library from '../library.module.css';
 import styles from "./nakshatra-result.module.css";
 
 interface CrosswalkMatch {
@@ -66,12 +68,16 @@ interface Unified {
   boundaryNote: string | null;
 }
 interface Transparency {
+  calendarConvention?: string;
+  uncertainty?: { note: string; possibleNakshatras: string[] };
   ayanamsa: string;
   siderealMoonLongitude: number | null;
   pada: number | null;
   timeUnknown: boolean;
 }
 interface ResolveResult {
+  calculationVersion?: string;
+  lifeReading?: LifeTopic[];
   ok: boolean;
   input?: { year: number; month: number; day: number; hour: number; minute: number; timeUnknown: boolean };
   summary: { sukuyoHan: string; nakshatraKo: string; nakshatraEn: string; fusionTitle: string; lordKo: string; pada: number | null; ganaKo: string };
@@ -157,12 +163,11 @@ export default function NakshatraResultClient() {
   const showUnified = view === "both" || view === "unified";
 
   return (
-    <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#070812] px-4 py-8 text-slate-100 md:py-12">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_8%,rgba(179,25,85,0.14),transparent_34%),radial-gradient(circle_at_85%_10%,rgba(212,175,55,0.12),transparent_36%),linear-gradient(160deg,#0a0818_0%,#12102a_55%,#070510_100%)]"
-      />
+    <main className={library.page}>
+
       <div className="mx-auto w-full max-w-4xl">
+        <nav className={library.nav}><Link href="/nakshatra/">달빛 서고로</Link><Link href="/records/">나의 기록</Link></nav>
+        <img className={library.banner} src="/images/nakshatra/moonlight-library-960.webp" srcSet="/images/nakshatra/moonlight-library-480.webp 480w, /images/nakshatra/moonlight-library-960.webp 960w, /images/nakshatra/moonlight-library-1672.webp 1672w" sizes="(max-width: 760px) calc(100vw - 40px), 900px" width="1672" height="941" alt="달빛과 별의 책이 놓인 서고" />
         {/* 요약 헤더 */}
         <header className="rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)] md:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">{copy.resultHeaderEyebrow}</p>
@@ -183,6 +188,8 @@ export default function NakshatraResultClient() {
           </div>
         </header>
 
+        {transparency.uncertainty && <p className={library.notice}>{transparency.uncertainty.note}<br />가능한 나크샤트라: {transparency.uncertainty.possibleNakshatras.join(' · ')}</p>}
+        {data.lifeReading && <LifeReading topics={data.lifeReading} />}
         {/* 뷰 토글 */}
         <div className="mt-6 flex justify-center">
           <div role="tablist" aria-label={copy.resultViewToggleAriaLabel} className="inline-flex rounded-xl border border-white/10 bg-white/[0.03] p-1">
@@ -314,7 +321,7 @@ export default function NakshatraResultClient() {
         )}
 
         {/* 오늘의 달 */}
-        <TodayMoonCard sukuyoIndex={dongyang.index} />
+        {!data.calculationVersion && <TodayMoonCard sukuyoIndex={dongyang.index} />}
 
         {/* 유료 심화 상품 CTA */}
         <PaidUpsell />
@@ -323,6 +330,7 @@ export default function NakshatraResultClient() {
         {/* 계산 투명성 + 면책 */}
         <footer className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-xs leading-6 text-slate-300">
           <p className="font-semibold text-slate-200">{copy.resultCalcBasisTitle}</p>
+          {transparency.calendarConvention && <p>{transparency.calendarConvention}</p>}
           <p className="mt-1">
             {copy.resultAyanamsaLabel}{transparency.ayanamsa}
             {transparency.siderealMoonLongitude != null && `${copy.resultSiderealMoonLabel}${transparency.siderealMoonLongitude}°`}

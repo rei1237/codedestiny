@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
@@ -141,7 +144,7 @@ function InteractiveCompass({
 }
 
 function BirthProfilePanel({ onStart, copy }: { onStart: (birth: AnimalDestinyInput) => void; copy: DestinyCompassCopy }) {
-  const { seed, reload } = useAiProfileSeed();
+  const { seed } = useAiProfileSeed();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [timeUnknown, setTimeUnknown] = useState(false);
@@ -182,19 +185,20 @@ function BirthProfilePanel({ onStart, copy }: { onStart: (birth: AnimalDestinyIn
     });
   };
 
-  const reloadFromProfile = async () => applySeed(await reload(), true);
+
   const genderLabel = gender === "male" ? copy.genderMale : copy.genderFemale;
   const calendarLabel = calendarType === "lunar" ? (lunarLeap ? copy.calendarLunarLeap : copy.calendarLunar) : copy.calendarSolar;
   const hasProfile = Boolean(birthDate) && !editing;
 
   return (
-    <section className={hub.profile} aria-labelledby="compass-profile-title">
+    <section data-moonlit-form="" className={hub.profile} aria-labelledby="compass-profile-title">
       <div className={hub.profileHeading}>
         <p className={hub.profileKicker}>{copy.journeyProfileKicker}</p>
         <h2 id="compass-profile-title">{hasProfile ? copy.journeyProfileTitleHas : copy.journeyProfileTitleNone}</h2>
         <p>{hasProfile ? copy.journeyProfileSubtitleHas : copy.journeyProfileSubtitleNone}</p>
       </div>
 
+      <SavedBirthProfilePicker onSelect={next => { applySeed(next, true); setBirthDate(next.birthDate || ""); setLunarLeap(Boolean(next.isLeapMonth)); }} />
       {hasProfile ? (
         <>
           <dl className={hub.profileSummary}>
@@ -206,17 +210,15 @@ function BirthProfilePanel({ onStart, copy }: { onStart: (birth: AnimalDestinyIn
           <button type="button" className={hub.profileEdit} onClick={() => setEditing(true)}>{copy.editInfoButton}</button>
         </>
       ) : (
-        <form className={hub.profileForm} onSubmit={(event) => { event.preventDefault(); submit(); }}>
-          {seed?.birthDate && (
-            <button type="button" className={hub.profileReload} onClick={reloadFromProfile}>{copy.reloadFromProfileButton}</button>
-          )}
+        <form data-moonlit-form="" className={hub.profileForm} onSubmit={(event) => { event.preventDefault(); submit(); }}>
+
           <div className={hub.profileField}>
             <label htmlFor="compass-birth-date">{copy.birthDateLabel}</label>
             <input id="compass-birth-date" {...birthDateTextInputProps(birthDate, (nextBirthDate) => setBirthDate(nextBirthDate))} required />
           </div>
           <div className={hub.profileField}>
             <label htmlFor="compass-birth-time">{copy.birthTimeLabel}</label>
-            <input id="compass-birth-time" type="time" value={birthTime} disabled={timeUnknown} onChange={(event) => { setBirthTime(event.target.value); if (event.target.value) setTimeUnknown(false); }} />
+            <BirthTimeInput id="compass-birth-time"  value={birthTime} disabled={timeUnknown} onChange={(event) => { setBirthTime(event.target.value); if (event.target.value) setTimeUnknown(false); }} />
             <label className={hub.checkRow}><input type="checkbox" checked={timeUnknown} onChange={(event) => setTimeUnknown(event.target.checked)} /> {copy.birthTimeUnknownCheckbox}</label>
           </div>
           <div className={hub.profileRow}>

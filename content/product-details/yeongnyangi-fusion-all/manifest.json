@@ -1,0 +1,113 @@
+{
+  "id": "yeongnyangi-fusion-all",
+  "featureKey": "yeongnyangi-fusion-all",
+  "title": "영냥이 전체 오마카세 상담",
+  "notice": "사주·자미두수·숙요·베다·서양 점성술·타로를 체계별로 구분하는 36장 개인 상담입니다. 여섯 해석은 독립된 여섯 개의 검증이나 정확도 점수가 아닙니다. 출생시간·지역·시간대가 필요하며 타로는 자동 추출한 6장을 사용합니다. 현재 목차는 기본 자기이해 주제의 예이며 선택 주제에 따라 일부가 달라집니다. 실제 계산 근거가 없는 시기나 상대 마음을 확정하지 않습니다. 예시는 가상 편집, 결과 본문은 AI 작성입니다. 가격과 추가 질문 조건은 기존 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-one-life-six-lenses",
+      "title": "삶이 한꺼번에 움직일 때, 질문의 중심을 찾아요.",
+      "alt": "마법사 고양이 영냥이가 사주·자미두수·숙요·베다·점성술·타로 도구를 함께 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-fusion-all.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "삶이 한꺼번에 움직일 때,\n질문의 중심을 찾아요.\n\n일·관계·생활이 얽힌 한 가지 고민을\n여섯 체계로 차근차근 풀어드려요.\n\n영냥이 전체 오마카세 · 개인 상담",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-all-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-all-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-all-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-a-move-is-not-one-choice",
+      "title": "이직 하나인데, 바뀌는 것은 많으니까요.",
+      "alt": "이직 하나인데, 바뀌는 것은 많으니까요.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-all/02-a-move-is-not-one-choice.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "이직 하나인데,\n바뀌는 것은 많으니까요.\n일\n\n새로운 역할과 배우고 싶은 것\n\n생활\n\n이사·출퇴근·쓸 수 있는 시간\n\n관계\n\n함께 사는 사람과 다시 정할 약속\n\n흩어진 고민마다 답을 붙이기 전에,\n가장 먼저 지키고 싶은 것을 물어요.\n\n질문을 돕기 위한 가상 상황입니다."
+    },
+    {
+      "id": "03-three-eastern-lenses",
+      "title": "성향·삶의 자리·관계, 같은 말로 뭉치지 않아요.",
+      "alt": "성향·삶의 자리·관계, 같은 말로 뭉치지 않아요.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-all/03-three-eastern-lenses.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "성향·삶의 자리·관계,\n같은 말로 뭉치지 않아요.\n사주 · 오행과 십성\n\n기질과 역할의 균형,\n실제 대운·세운의 근거를 읽어요.\n\n자미두수 · 궁과 별\n\n삶의 영역과 별의 배치,\n그 사이의 연결을 살펴요.\n\n숙요 · 천문식 27숙\n\n본명숙의 기질과\n관계에서 나타나는 역할을 읽어요.\n\n개인의 관계 유형과 두 사람 궁합은 달라요."
+    },
+    {
+      "id": "04-three-other-lenses",
+      "title": "시기·출생차트·카드, 서로 다른 질문을 맡아요.",
+      "alt": "시기·출생차트·카드, 서로 다른 질문을 맡아요.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-all/04-three-other-lenses.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "시기·출생차트·카드,\n서로 다른 질문을 맡아요.\n베다 · 라그나와 다샤\n\n삶의 출발점과 행성의 배치,\n실제 계산된 시기 구간을 읽어요.\n\n서양 점성술 · 출생차트\n\n행성·하우스·각도에서\n성향과 관심 영역을 살펴요.\n\n타로 · 자동 추출한 여섯 장\n\n현재·내면·장애물·외부 영향\n선택·다음 행동을 읽어요.\n\n출생차트에 트랜짓 예측을 덧붙이지 않아요."
+    },
+    {
+      "id": "05-twelve-foundations",
+      "title": "서둘러 섞기 전에, 각 해석의 근거부터.",
+      "alt": "서둘러 섞기 전에, 각 해석의 근거부터.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-all/05-twelve-foundations.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "서둘러 섞기 전에,\n각 해석의 근거부터.\n1–6장 · 체계별 기본 해석\n\n여섯 체계가 각각 한 장씩\n타고난 성향과 현재 흐름을 풀어요.\n\n7–12장 · 체계별 전문 해석\n\n사주 · 자미두수 · 숙요\n베다 · 점성술 · 타로\n\n무엇을 보고 그렇게 읽었는지,\n체계별 설명을 먼저 확인할 수 있어요.\n\n공유하는 출생정보나 달의 관측은\n독립된 여러 증거로 세지 않아요."
+    },
+    {
+      "id": "06-twelve-question-chapters",
+      "title": "넓게 읽은 다음, 내 질문으로 돌아와요.",
+      "alt": "넓게 읽은 다음, 내 질문으로 돌아와요.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-all/06-twelve-question-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "넓게 읽은 다음,\n내 질문으로 돌아와요.\n13–15장 · 질문과 비교\n\n답 · 근거 비교 · 기회와 주의 조건\n\n16–22장 · 자기이해의 흐름\n\n반복 패턴 · 관계 속 나 · 선택 기준\n시기 · 실험 · 대응 · 다음 방향\n\n23–24장 · 엇갈림과 올해\n\n상충하는 판단의 정리\n내 질문을 중심으로 본 올해의 흐름\n\n기본 자기이해 주제의 목차 예시입니다.\n선택한 주제에 따라 중간 목차가 달라져요."
+    },
+    {
+      "id": "07-nine-life-chapters",
+      "title": "고민 밖의 생활도, 함께 흔들리지 않도록.",
+      "alt": "고민 밖의 생활도, 함께 흔들리지 않도록.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-all/07-nine-life-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "고민 밖의 생활도,\n함께 흔들리지 않도록.\n25–30장 · 생활의 여섯 영역\n\n성격 · 돈 · 일 · 사랑과 결혼\n가족과 관계 · 건강 리듬\n\n31–33장 · 시기의 질문\n\n10년 주기 · 올해 월별 · 다음 해\n\n시기는 계산된 근거의 범위에서 읽어요.\n다샤를 고정된 10년으로 나누거나,\n숙요에 없는 월별 예측을 만들지 않아요.\n\n건강 리듬은 진단이나 치료를 대신하지 않아요."
+    },
+    {
+      "id": "08-three-final-chapters",
+      "title": "여섯 표의 찬반보다, 내가 확인할 조건을.",
+      "alt": "여섯 표의 찬반보다, 내가 확인할 조건을.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-all/08-three-final-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "여섯 표의 찬반보다,\n내가 확인할 조건을.\n34장 · 나를 지키는 선택\n\n주의할 흐름과 대응 방법\n\n35장 · 공통점과 차이\n\n겹치는 해석과 엇갈리는 해석을\n근거·조건별로 정리해요.\n\n36장 · 현실적인 행동\n\n지금 해볼 일과 다시 살펴볼 때를\n한 번 더 정리해요.\n\n여섯 체계의 일치를 정확도나 성공률로\n바꾸어 말하지 않아요."
+    },
+    {
+      "id": "09-fictional-conditions",
+      "title": "“옮겨도 될까”에서, “무엇을 확인할까”로.",
+      "alt": "“옮겨도 될까”에서, “무엇을 확인할까”로.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-all/09-fictional-conditions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "“옮겨도 될까”에서,\n“무엇을 확인할까”로.\n\n가상 편집 예시 · 실제 상담 결과가 아닙니다\n\n“새 역할의 매력과\n생활의 부담을 따로 적어보세요.\n역할의 범위는 회사에 물어보세요.\n이동 시간을 직접 재보고,\n함께 사는 사람과 일정을 맞춰보세요.\n그 뒤에도 기대가 남는지 살펴봐요.”\n\n풍부한 해석의 끝에는,\n실제로 확인할 수 있는 일이 남아야 하니까요."
+    },
+    {
+      "id": "10-start-with-one-question",
+      "title": "많이 얽힌 고민도, 한 문장부터 시작해요.",
+      "alt": "많이 얽힌 고민도, 한 문장부터 시작해요.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-all/10-start-with-one-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "많이 얽힌 고민도,\n한 문장부터 시작해요.\n\n본인의 출생정보와 중심 질문을 준비해요.\n출생시간·지역·시간대를 확인해 주세요.\n\n결과 본문은 AI가 작성해요.\n가격과 추가 질문 조건은 현재 화면을 따릅니다.\n아래의 기존 버튼에서 상담을 시작해 주세요."
+    }
+  ]
+}

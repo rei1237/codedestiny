@@ -59,7 +59,7 @@ function PolicyHero({ title, description, meta }) {
       </div>
       <Image
         src="/icons/app-logo-512.webp"
-        alt="연꽃을 쓴 Code Destiny 꽃돼지"
+        alt="연꽃을 쓴 꿀꿀운세 꽃돼지"
         width={512}
         height={512}
         sizes="(max-width: 600px) 88px, 120px"

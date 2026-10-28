@@ -43,6 +43,9 @@ const built = await build({ stdin: { contents: `
   export {v7OutputTokens} from './worker/yeongnyangi/fortune/reading-v7-prompt';
   export {tokensRequiredForChars} from './worker/lib/llm-budget.js';
   export {chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET} from './worker/yeongnyangi/providers/code-destiny';
+  export {questionManifest,FOLLOWUP_LIMITS,QUESTION_POLICY_VERSION} from './worker/yeongnyangi/fortune/ask/question-policy';
+  export {TUNA_REASONING_MODEL,TUNA_REVIEW_MAX_REWRITES} from './worker/yeongnyangi/fortune/tuna-quality';
+  export {tunaBookCostRatio,V7_COST} from './worker/yeongnyangi/fortune/reading-v7-cost';
 `, resolveDir: root, loader: 'ts' }, bundle: true, platform: 'node', format: 'cjs', write: false });
 const Module = createRequire(import.meta.url)('node:module');
 const loaded = new Module(path.join(root, 'yeongnyangi-cost-plan.cjs'));
@@ -119,13 +122,28 @@ const packScenarios = [[5000,7],[5000,6],[5900,7],[7900,9],[9900,11]].map(([pric
     noVariableReserveSensitivity:{consultationCostKRW:round(noReserveCost),contributionBeforeFixedKRW:round(noReserveContribution),breakEvenMonthlyPacksWithoutSignup:noReserveContribution>0?Math.ceil(fixedMonthly/noReserveContribution):null},
     monthlyScenarios:[50,100,300,1000].flatMap(count=>[0,50,100,300].map(signups=>atVolume(count,signups)))};
 });
+// Conservative upper bound: price every chapter on Pro, although ordinary prose now uses Flash.
+// Cost them with the runtime ratio and the inputs of __tests__/ui/yeongnyangi-tier-depth.test.mjs, not the flash cap.
+const tunaTariff = JSON.parse(read('config/llm-tariffs-20260921.json'))['gemini/'+runtime.TUNA_REASONING_MODEL];
+const tunaDecision = {version:runtime.QUESTION_POLICY_VERSION,category:'money',target:'self',horizon:'current',period:'내년',situation:'수입을 늘리고 싶어요',options:'현재 일을 발전시키기',constraints:'시간',confirmed:true};
+const tunaProCost = product => {
+  const targets = runtime.questionManifest(product.domain,'tuna',tunaDecision,undefined,'내년 내 재물운은 어떨까?').map(chapter=>chapter.targetChars[1]);
+  const costRatio = runtime.tunaBookCostRatio(targets,product.priceKRW,tunaTariff,runtime.FOLLOWUP_LIMITS.tuna);
+  return {id:product.id,costRatio:Math.round(costRatio*1e4)/1e4,llmCostKRW:round(costRatio*product.priceKRW)};
+};
 const fishCosts = ['mackerel','salmon','flounder','tuna'].map(fishId=>{
   const group=products.filter(product=>product.fishId===fishId);
-  return {fishId,facePriceKRW:group[0].priceKRW,eligibleProducts:group.map(product=>product.id),
-    evaluatedManifestVariants:group.reduce((sum,product)=>sum+product.evaluatedManifestVariants,0),
-    fullRecoveryPerChapterKRW:Math.max(...group.map(product=>product.totalCapScenarioKRW)),
+  const flash={fullRecoveryPerChapterKRW:Math.max(...group.map(product=>product.totalCapScenarioKRW)),
     firstAttemptSuccessKRW:Math.max(...group.map(product=>product.firstAttemptSuccessCapScenarioKRW)),
     hypotheticalOneBookRetryKRW:Math.max(...group.map(product=>product.hypotheticalSingleBookRetryCapScenarioKRW))};
+  const base={fishId,facePriceKRW:group[0].priceKRW,eligibleProducts:group.map(product=>product.id),
+    evaluatedManifestVariants:group.reduce((sum,product)=>sum+product.evaluatedManifestVariants,0)};
+  if(fishId!=='tuna')return {...base,basis:'gemini-2.5-flash cap scenario',...flash};
+  // tunaBookCostRatio already carries the retry factor, rewrites and followups, so all three regimes share one cost.
+  const pro=runtime.products.filter(product=>product.fishId==='tuna').map(tunaProCost),worst=pro.reduce((left,right)=>left.llmCostKRW>=right.llmCostKRW?left:right);
+  const cost=round(worst.llmCostKRW+assumptions['operations-per-consultation-krw']);
+  return {...base,basis:`Conservative all-Pro upper bound, not the actual mixed-model bill: tunaBookCostRatio on gemini/${runtime.TUNA_REASONING_MODEL}: retry factor, ${runtime.TUNA_REVIEW_MAX_REWRITES} self-review rewrites, ${runtime.FOLLOWUP_LIMITS.tuna} followups, plus the operations provision`,
+    costCeilingRatio:runtime.V7_COST.tunaExpandedMaxCostRatio,costRatioByProduct:pro,fullRecoveryPerChapterKRW:cost,firstAttemptSuccessKRW:cost,hypotheticalOneBookRetryKRW:cost,legacyFlashScenario:flash};
 });
 const fishPackCandidates = [['mackerel',19900,25],['salmon',11900,5],['flounder',19900,5],['tuna',39900,5]].map(([fishId,priceKRW,consultations])=>{
   const costs=fishCosts.find(cost=>cost.fishId===fishId);
@@ -153,6 +171,7 @@ const mixes = [{name:'approximately_equal',counts:{mackerel:13,salmon:13,flounde
 console.log(JSON.stringify({ basis: 'offline_cap_scenario_not_measured_profit_or_sale_approval', reviewedCostEvidencePresent: false, assumptions,
   policyEvaluation: { mode:'dedicated_pack_proposal_not_runtime', approvedSaleTerms:false },
   tariff: { model: 'gemini-2.5-flash', inputUsdPerMillion: tariff.inputUsdPerMillion, outputUsdPerMillion: tariff.outputUsdPerMillion, sourceRefs: tariff.sourceRefs },
+  tunaTariff: { model: runtime.TUNA_REASONING_MODEL, inputUsdPerMillion: tunaTariff.inputUsdPerMillion, outputUsdPerMillion: tunaTariff.outputUsdPerMillion, sourceRefs: tunaTariff.sourceRefs },
   runtimeBounds: { readingProfile: runtime.CONCISE_READING_VERSION, storedSnapshotsRetainOriginalBudgets: true, inputTokens: GEMINI_INPUT_TOKEN_HARD_LIMIT, attemptsPerChapter: attempts, thinkingTokens: runtime.CHAPTER_THINKING_BUDGET, providerFallback: false },
   signup: { revenueKRW: 0, stones: 500, maximumConsultations: welcome.length ? 1 : 0, acquisitionCostCapScenarioKRW: welcome.length ? round(Math.max(...welcome.map(product => product.totalCapScenarioKRW))) : null },
   exclusions: ['Saved pre-optimization manifests retain their higher original budgets; these new-purchase costs do not bound those older orders.', 'Other Ggulggul product costs are not evaluated here.', 'Pack discounts assume every included consultation is used; partial use, coupons and discounts are excluded.', 'No measured PG, server, MongoDB, storage, support, refund or exchange-rate evidence.', 'Unknown provider-model overrides and repeated failed orders can exceed this per-order scenario.'],

@@ -1,4 +1,7 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
 
 /**
  * 생년 정보 입력 — 결제 직전 화면.
@@ -15,9 +18,11 @@
  * 금액을 계속 들고 있는다. 두 슬롯 모두 현재 모드(개인/궁합)의 SKU 를 따라간다.
  */
 
+import CodexConsultationForm from "./CodexConsultationForm";
+import type { CodexConsultationInput } from "../_lib/consultation";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
-import { useEffect, useRef, useState } from "react";
-import { Loader2, RefreshCw } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Loader2 } from "lucide-react";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import CodexReveal from "./CodexReveal";
 import { CODEX_ACTS } from "../data/acts";
@@ -26,6 +31,7 @@ import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 export interface CodexBirthInput {
+  consultation?: CodexConsultationInput;
   name: string;
   gender: "male" | "female" | "";
   birthDate: string;
@@ -96,14 +102,15 @@ export default function CodexBirthGate({
   floatingCta,
 }: CodexBirthGateProps) {
   const copy = useMasterLoveCodexCopy();
-  const { seed, seedVersion, reload } = useAiProfileSeed();
-  const [reloading, setReloading] = useState(false);
+  const { seed, seedVersion } = useAiProfileSeed();
+
+  const birthTouched = useRef(false);
   const valueRef = useRef(value);
   valueRef.current = value;
 
   // 프로필 카드 → 빈 칸만 채운다. 사용자가 이미 입력·수정한 값은 유지한다.
   useEffect(() => {
-    if (!seed) return;
+    if (!seed || birthTouched.current) return;
     const current = valueRef.current;
     const next: CodexBirthInput = {
       ...current,
@@ -122,10 +129,11 @@ export default function CodexBirthGate({
   }, [seedVersion]);
 
   function patch(partial: Partial<CodexBirthInput>) {
+    birthTouched.current = true;
     onChange({ ...value, ...partial });
   }
 
-  // 상대 칸은 프로필 카드 시드로 채우지 않는다 — 프로필 카드는 본인 명식이다.
+  // 자동 프리필은 본인만 적용하고, 상대 프로필은 사용자가 직접 선택한다.
   function patchPartner(partial: Partial<CodexPartnerInput>) {
     onChange({ ...value, partner: { ...(value.partner || EMPTY_CODEX_PARTNER), ...partial } });
   }
@@ -136,10 +144,7 @@ export default function CodexBirthGate({
 
   const partner = value.partner;
 
-  async function handleReload() {
-    setReloading(true);
-    try { await reload(); } finally { setReloading(false); }
-  }
+
 
   const labelClass = "mb-1 block text-[0.6875rem] tracking-[0.2em]";
   const labelStyle = { color: "var(--codex-gold-dim)" } as const;
@@ -149,7 +154,7 @@ export default function CodexBirthGate({
     // 위쪽이 잘려 아래 결제 버튼까지 스크롤로 닿지 못한다.
     // 오버레이는 자체 스크롤이라 body padding 이 닿지 않는다 — 하단 고정 바(+전역 모바일
     // 네비 --cd-mnav-offset) 높이만큼 직접 비운다. 안 그러면 마지막 입력이 바에 가린다.
-    <section
+    <section data-moonlit-form=""
       className="flex min-h-[100svh] flex-col justify-start pt-16"
       style={{ paddingBottom: "calc(var(--cd-mnav-offset, 0px) + 104px)" }}
       aria-label={copy.birthGateAriaLabel}
@@ -231,15 +236,7 @@ export default function CodexBirthGate({
 
         <CodexReveal index={2} className="mt-10 space-y-9">
           <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => void handleReload()}
-              disabled={reloading}
-              className={`${styles.quiet} inline-flex items-center gap-1.5`}
-            >
-              {reloading ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-3 w-3" aria-hidden="true" />}
-              {copy.reloadFromProfileButton}
-            </button>
+            <SavedBirthProfilePicker disabled={busy} onSelect={next => patch({name:next.name || "", birthDate:next.birthDate || "", birthTime:next.birthTime || "", birthTimeUnknown:Boolean(next.birthTimeUnknown), gender:next.gender === "male" || next.gender === "female" ? next.gender : "", calendarType:next.calendarType || "solar", isLeapMonth:Boolean(next.isLeapMonth)})} />
           </div>
 
           <div>
@@ -305,9 +302,9 @@ export default function CodexBirthGate({
 
           <div>
             <label className={labelClass} style={labelStyle} htmlFor="codex-birth-time">{copy.birthTimeLabel}</label>
-            <input
+            <BirthTimeInput
               id="codex-birth-time"
-              type="time"
+
               className={styles.field}
               value={value.birthTime}
               disabled={value.birthTimeUnknown}
@@ -357,6 +354,7 @@ export default function CodexBirthGate({
             {partner ? (
               <div id="codex-partner-fields" className="mt-9 space-y-9 border-l pl-5" style={{ borderColor: "var(--codex-rule)" }}>
                 <div>
+                  <SavedBirthProfilePicker label="상대의 저장된 프로필" disabled={busy} onSelect={next => patchPartner({name:next.name || "", birthDate:next.birthDate || "", birthTime:next.birthTime || "", birthTimeUnknown:Boolean(next.birthTimeUnknown), gender:next.gender === "male" || next.gender === "female" ? next.gender : "", calendarType:next.calendarType || "solar", isLeapMonth:Boolean(next.isLeapMonth)})} />
                   <label className={labelClass} style={labelStyle} htmlFor="codex-partner-name">{copy.partnerNameLabel}</label>
                   <input
                     id="codex-partner-name"
@@ -419,9 +417,9 @@ export default function CodexBirthGate({
 
                 <div>
                   <label className={labelClass} style={labelStyle} htmlFor="codex-partner-birth-time">{copy.partnerBirthTimeLabel}</label>
-                  <input
+                  <BirthTimeInput
                     id="codex-partner-birth-time"
-                    type="time"
+
                     className={styles.field}
                     value={partner.birthTime}
                     disabled={partner.birthTimeUnknown}
@@ -443,6 +441,8 @@ export default function CodexBirthGate({
             ) : null}
           </div>
         </CodexReveal>
+
+        <CodexConsultationForm value={value.consultation} onChange={consultation => patch({ consultation })} disabled={busy} />
 
         {error ? (
           <p role="alert" className="mt-9 leading-8" style={{ fontSize: "var(--codex-caption)", color: "#ffb4b4" }}>{error}</p>

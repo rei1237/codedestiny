@@ -3,15 +3,15 @@ import type { Metadata } from "next";
 const POINTS_HISTORY_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
     title: "결제 및 이용권 내역",
-    description: "Code Destiny 결제, 이용권, 주문 상태를 확인하는 개인 페이지입니다.",
+    description: "꿀꿀운세 결제, 이용권, 주문 상태를 확인하는 개인 페이지입니다.",
   },
   en: {
     title: "Payment and Pass History",
-    description: "Private page for checking Code Destiny payments, passes, and order status.",
+    description: "Private page for checking 꿀꿀운세 payments, passes, and order status.",
   },
   ja: {
     title: "決済・利用券履歴",
-    description: "Code Destinyの決済、利用券、注文状況を確認する個人ページです。",
+    description: "꿀꿀운세の決済、利用券、注文状況を確認する個人ページです。",
   },
 } as const;
 

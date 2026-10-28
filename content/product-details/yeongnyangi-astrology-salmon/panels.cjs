@@ -1,0 +1,63 @@
+module.exports={
+  "id": "yeongnyangi-astrology-salmon",
+  "featureKey": "yeongnyangi-astrology-salmon",
+  "title": "영냥이 서양 점성술 연어 상담",
+  "notice": "서양 점성술 연어는 시험·진로·재물·이동 등 선택의 조건을 살피는 질문 상담입니다. 이 안내는 공부·시험 질문 11장과 별도 기본 성향 리포트 8장을 소개합니다. 행성·하우스·각의 출생 배치를 해석하며, 현재 구성에 실시간 트랜짓은 없습니다. 목차에 시기·올해가 있어도 합격일이나 월별 사건을 예측하지 않습니다. 질문에 따라 목차가 달라지며 예시는 가상 편집입니다. AI 작성 상담이고 가격과 추가 질문 조건은 기존 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-how-to-use-your-effort",
+      "title": "애쓰고 있는데, 준비는 왜 제자리일까요?",
+      "alt": "공식점성술영냥이와시험준비방식점검을묻는표지.",
+      "html": "<h1>애쓰고 있는데,<br>준비는 왜 제자리일까요?</h1><img class=\"cover\" src=\"/assets/yeongnyangi/readings/astrology-v5.webp\" alt=\"\"><p>노력의 양만 늘리기 전에,<br>나에게 맞는 준비의 조건을 살펴봐요.</p><p class=\"sign\">영냥이 서양 점성술 · 연어</p>"
+    },
+    {
+      "id": "02-look-at-the-process",
+      "title": "공부한 시간보다, 남은 과정을 살펴봐요.",
+      "alt": "계획이해반복세단계에서실제공부병목을질문으로구체화.",
+      "html": "<h2>공부한 시간보다,<br>남은 과정을 살펴봐요.</h2><div class=\"process\"><section><h3>계획은 자세한데</h3><p>실제 시작까지 오래 걸리나요?</p></section><section><h3>설명은 이해했는데</h3><p>혼자 풀 때 같은 자리에서 막히나요?</p></section><section><h3>많이 반복했는데</h3><p>실수한 이유는 다시 보지 못했나요?</p></section></div><p>목표 시험과 준비 단계,<br>지금 바꾸고 싶은 한 가지를 알려 주세요.</p><p class=\"note\">질문을 정리하는 편집 예시입니다.<br>시험 결과를 예측하는 진단표는 아니에요.</p>"
+    },
+    {
+      "id": "03-ability-in-a-real-setting",
+      "title": "배우고, 버티고, 움직이는 나의 방식.",
+      "alt": "수성토성화성의쉬운해석과하우스각교차읽기를설명.",
+      "html": "<h2>배우고, 버티고,<br>움직이는 나의 방식.</h2><dl><div><dt>수성 · 이해하고 말하는 방식</dt><dd>정보를 정리하고 설명하는 과정.</dd></div><div><dt>토성 · 책임과 반복의 태도</dt><dd>기준을 세우고 오래 유지하는 힘.</dd></div><div><dt>화성 · 행동으로 옮기는 에너지</dt><dd>시작하고 밀어붙일 때의 속도.</dd></div></dl><p>행성이 놓인 하우스와 서로 맺는 각을<br>함께 읽고, 강점의 쓰임을 살펴봐요.</p><p class=\"note\">한 행성으로 성적이나 적성을 확정하지 않아요.</p>"
+    },
+    {
+      "id": "04-from-question-to-preparation",
+      "title": "공부 질문 11장, 준비의 우선순위를 찾으며.",
+      "alt": "실제공부질문앞8장의판단과현실비교목차를세단계로안내.",
+      "html": "<h2>공부 질문 11장,<br>준비의 우선순위를 찾으며.</h2><div class=\"chapters\"><section><h3>1–2장 · 나의 바탕</h3><p>출생 차트의 성향과 마음의 반응<br>강점과 부담이 되는 순간</p></section><section><h3>3–5장 · 질문에 대한 판단</h3><p>준비의 우선순위 · 판단의 근거<br>현재의 기회와 주의 조건</p></section><section><h3>6–8장 · 현실에서 비교할 일</h3><p>현재 위치와 적성 · 이동과 유지의 비교<br>움직이기 좋은 시기</p></section></div><p class=\"note\">공통 목차의 ‘시기’도 실제 근거 안에서 읽어요.<br>합격 날짜나 점수를 만들어 내지 않습니다.</p>"
+    },
+    {
+      "id": "05-beyond-one-test",
+      "title": "시험 바깥의 생활이, 준비를 지탱할 수 있게.",
+      "alt": "질문9~11장조건부두드러진영역올해종합실행과시기한계.",
+      "html": "<h2>시험 바깥의 생활이,<br>준비를 지탱할 수 있게.</h2><div class=\"endchapters\"><section><h3>9장 · 차트에서 두드러진 영역</h3><p>질문 밖에서도 살펴볼 단서를 읽어요.<br>영역은 실제 근거에 따라 달라집니다.</p></section><section><h3>10장 · 올해의 흐름</h3><p>출생 배치의 성향과 현재 상황을 연결해요.<br>실시간 트랜짓 예측은 포함되지 않아요.</p></section><section><h3>11장 · 종합 해석과 실행 계획</h3><p>먼저 바꿀 준비 방법과<br>다시 점검할 기준을 정리해요.</p></section></div><p class=\"note\">시험 결과를 약속하기보다,<br>준비 과정에서 선택할 수 있는 일을 남겨요.</p>"
+    },
+    {
+      "id": "06-make-a-smaller-plan",
+      "title": "다음 계획표에는, 빈칸도 남겨두세요.",
+      "alt": "계획과복습의균형을구체화하는가상시험준비예시.",
+      "html": "<h2>다음 계획표에는,<br>빈칸도 남겨두세요.</h2><p class=\"label\">이해를 돕기 위한 편집 예시</p><blockquote>꼼꼼한 계획이 오히려 부담이 된다면,<br>분량을 더하는 일은 잠시 멈춰요.<br><br>오늘 틀린 문제 하나를 골라<br>왜 그 답을 택했는지 적어보세요.<br><br>채우지 못한 칸을 세는 대신,<br>반복된 실수 하나를 줄이는 거예요.</blockquote><p class=\"note\">실제 고객의 차트나 상담 결과가 아닙니다.</p>"
+    },
+    {
+      "id": "07-eight-chapters-without-a-question",
+      "title": "질문 없이 펼치는, 여덟 가지 삶의 자리.",
+      "alt": "기본성향8장목차를정확한순서대로네묶음으로설명.",
+      "html": "<h2>질문 없이 펼치는,<br>여덟 가지 삶의 자리.</h2><div class=\"book\"><section><h3>1–2장 · 나와 마음</h3><p>상승점과 태양 · 달과 감정의 결</p></section><section><h3>3–4장 · 관계와 자원</h3><p>금성과 관계의 자리 · 목성과 돈의 흐름</p></section><section><h3>5–6장 · 사회와 배움</h3><p>토성·MC와 사회적 자리<br>수성과 말·배움·모임</p></section><section><h3>7–8장 · 에너지의 연결</h3><p>화성과 몸의 에너지<br>행성들이 주고받는 긴장과 조화</p></section></div><p class=\"note\">기본 성향 8장과 질문 상담 11장은<br>선택한 흐름에 따른 별도 구성입니다.</p>"
+    },
+    {
+      "id": "08-bring-the-goal-and-the-constraints",
+      "title": "목표와 지금의 조건, 함께 놓고 시작해요.",
+      "alt": "출생시간지역준비단계목표기간제약과가격AI조건안내.",
+      "html": "<h2>목표와 지금의 조건,<br>함께 놓고 시작해요.</h2><img class=\"cover\" src=\"/assets/yeongnyangi/readings/astrology-v5.webp\" alt=\"\"><p>생년월일·출생시간·출생 지역과<br>목표 시기, 준비 단계, 제약을 알려 주세요.</p><p class=\"note\">AI가 계산 근거를 바탕으로 작성합니다.<br>가격과 추가 질문 조건은 현재 화면에서,<br>저장된 결과는 내 상담에서 다시 읽어요.</p>"
+    }
+  ],
+  "evidence": [
+    "worker/yeongnyangi/fortune/astrology/index.ts",
+    "worker/yeongnyangi/fortune/ask/question-policy.ts",
+    "worker/yeongnyangi/fortune/ask/wrappers.ts",
+    "app/yeongnyangi/_components/ReadingCharts.tsx",
+    "docs/product-details/astrology-first-three-contract-snapshot.json"
+  ]
+};

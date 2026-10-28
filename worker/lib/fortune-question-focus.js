@@ -7,6 +7,7 @@ const QUESTION_FOCUS_RULES = Object.freeze({
   ]),
   money_work: Object.freeze([
     { key: "career_move", pattern: /이직|퇴사|직장.*옮|직업.*바|옮길/, label: "남을 이유와 옮길 조건", answerFrame: "지금 자리를 정리할지, 옮기기 전에 어떤 조건을 확인해야 하는지", actionFrame: "감정적인 탈출보다 역할·수입·성장 가능성 세 조건을 같은 기준으로 비교하세요." },
+    { key: "side_income", pattern: /부업|투잡|[nN]잡|겸업|사이드s*(?:잡|프로젝트)|부수입/, label: "부업을 시작할 시점과 범위", answerFrame: "본업을 지키면서 부업을 언제, 어느 규모로 시험해 볼지", actionFrame: "부업은 주당 쓸 수 있는 시간과 첫 수입을 확인할 기한을 먼저 정하고 작게 시험하세요." },
     { key: "work_relationship", pattern: /상사|동료|업무|프로젝트|평가|회사/, label: "일의 역할과 관계의 경계", answerFrame: "일의 책임을 어디까지 맡고, 관계에서 어떤 경계를 세울지", actionFrame: "이번 주에 내가 맡을 일과 협의가 필요한 일을 한 줄씩 나누어 보세요." },
     { key: "money_decision", pattern: /투자|주식|코인|대출|지출|돈|금전|수입|계약/, label: "돈을 움직일 기준과 위험 범위", answerFrame: "돈을 움직이기 전에 무엇을 검증하고, 어느 범위까지 감당할지", actionFrame: "기대 수익보다 손실을 감당할 범위와 다시 확인할 날짜를 먼저 정하세요." },
   ]),
@@ -31,6 +32,9 @@ const DEFAULT_FOCUS = Object.freeze({
   decision: { key: "decision_evidence", label: "선택의 근거", answerFrame: "지금 결정에서 무엇을 근거로 삼고 어떤 조건을 확인할지", actionFrame: "되돌릴 수 있는 작은 검증부터 시작하세요." },
 });
 
+const MAX_INTENTS = 3;
+const INTENT_COUNT_WORDS = Object.freeze({ 2: "두", 3: "세" });
+
 function normalizeTopic(topic) {
   return Object.prototype.hasOwnProperty.call(DEFAULT_FOCUS, topic) ? topic : "daily";
 }
@@ -43,17 +47,24 @@ export function buildFortuneQuestionFocus({ concern = "", topic = "daily" } = {}
   const normalizedTopic = normalizeTopic(topic);
   const source = String(concern || "").replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, 1000);
   const orderedTopics = [normalizedTopic, ...Object.keys(QUESTION_FOCUS_RULES).filter((candidate) => candidate !== normalizedTopic)];
-  const matchedEntry = orderedTopics
+  const candidates = orderedTopics
     .flatMap((candidate) => (QUESTION_FOCUS_RULES[candidate] || []).map((rule) => ({ ...rule, topic: candidate })))
-    .find((rule) => rule.pattern.test(source));
-  const matched = matchedEntry;
+    .filter((rule) => rule.pattern.test(source));
+  const matched = candidates[0];
+  // 한 질문에 두세 갈래(예: 이직과 부업)가 함께 있으면 첫 갈래만 남기지 않는다.
+  // 같은 주제 안의 규칙만 묶는다. "고민" 같은 범용 단어가 다른 주제 규칙을 끌어오지 않게 한다.
+  const intents = matched ? candidates.filter((rule) => rule.topic === matched.topic).slice(0, MAX_INTENTS) : [];
   const focus = matched || DEFAULT_FOCUS[normalizedTopic];
+  const combined = intents.length > 1;
   return Object.freeze({
     topic: matched?.topic || normalizedTopic,
     intentKey: focus.key,
-    label: focus.label,
-    answerFrame: focus.answerFrame,
-    actionFrame: focus.actionFrame,
+    label: combined ? intents.map((rule) => rule.label).join(" · ") : focus.label,
+    answerFrame: combined
+      ? `${intents.map((rule) => rule.answerFrame).join(", 그리고 ")}, ${INTENT_COUNT_WORDS[intents.length]} 고민 중 어디에 먼저 힘을 쓸지`
+      : focus.answerFrame,
+    actionFrame: combined ? intents.map((rule) => rule.actionFrame).join(" ") : focus.actionFrame,
+    ...(combined ? { intentKeys: Object.freeze(intents.map((rule) => rule.key)) } : {}),
     hasQuestion: Boolean(source.trim()),
   });
 }

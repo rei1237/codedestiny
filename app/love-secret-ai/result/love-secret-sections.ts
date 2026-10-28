@@ -156,3 +156,14 @@ export function groupLoveSections(sections: readonly LoveSectionInput[] = []): L
     .filter((spec) => buckets.get(spec.id)?.length)
     .map((spec) => ({ spec, sections: buckets.get(spec.id)! }));
 }
+
+export type LoveSpeaker = "yeoni" | "hanbi";
+
+// 백엔드 LOVE_SPEAKER_BY_GROUP 의 partner·risk·timing 그룹 고정 제목 14개. 카드 그룹은 백엔드 그룹과
+// 1:1이 아니라서(예: 이상형은 insight, 결혼운은 strategy) 섹션 제목 단위로 판정한다.
+const HANBI_TITLE = /상대의\s*기운|끌림이\s*살아나는|속궁합|이상형|상대가\s*원하는|갈등|바람기|재회\s*가능성|피해야|자기\s*보호|타이밍|올해\s*연애운|좋은\s*날짜|결혼운|30일/;
+
+/** 그 섹션을 쓴 상담자. 제목만 보므로 화자 정보가 없는 예전 저장 결과에도 그대로 쓴다. */
+export function resolveLoveSpeaker(title: string): LoveSpeaker {
+  return HANBI_TITLE.test(String(title || "")) ? "hanbi" : "yeoni";
+}

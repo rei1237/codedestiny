@@ -32,7 +32,7 @@ import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { ZiweiDeepReport, PaidExecutionRecord, Payment, PointHistory, MonthlyCreditLedger } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
-import { verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
+import { settlePerUseAccessDecision, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -244,7 +244,7 @@ async function runWithConcurrency(items, limit, worker) {
 }
 
 async function generateChapter(env, chart, birthInfo, chapter, consultation, locale, attempt = 1) {
-  const prompt = buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation) + (attempt > 1
+  const prompt = buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation, locale) + (attempt > 1
     ? `\n[보강] 계산 근거를 유지하고 새로운 생활 장면과 행동 조언으로 공백 제외 본문 ${Math.ceil(chapter.minChars / 0.8)}자 이상을 목표로 완결된 장을 작성하세요. 같은 문장을 반복하지 마세요.` : "");
   // 결정적(명반+생년월일 기반, 자유질문 없음) 챕터 해석 → LLM 응답 캐시 + in-flight dedup.
   const chapterLlmCache = {
@@ -628,7 +628,12 @@ async function resolveGenerateAccess(request, env, auth, body, normalized, idemp
   const monthlyEvidence = await findMoonstoneSpendEvidence(env, { userId: auth.userId, featureKeys: [FEATURE_KEY], tokens: ids });
   if (monthlyEvidence) return { ok: true, accessType: "subscription", locale: normalized.locale };
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc, requestId: idempotencyKey });
-  return decision?.allowed ? { ok: true, accessType: "paid", locale: normalized.locale } : { ok: false, reason: "PAYMENT_REQUIRED" };
+  // 🔴 이용권·라이선스·월구독 허용은 읽기 전용이다(2026-10-16). 이번 주문의 결제를 찾거나 이용권을 실제로 차감해야 연다.
+  //    재개·결과 조회처럼 같은 주문을 다시 확인할 때는 이미 차감한 기록을 인정한다(acceptSettled).
+  const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: FEATURE_KEY,
+    coinPrice: getPricing().coinPrice, requestId: idempotencyKey, acceptSettled: true });
+  if (settled.allowed === null) throw resultStorageUnavailable(idempotencyKey);
+  return settled.allowed ? { ok: true, accessType: "paid", locale: normalized.locale } : { ok: false, reason: settled.reason || "PAYMENT_REQUIRED" };
 }
 
 /**

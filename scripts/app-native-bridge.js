@@ -22,6 +22,9 @@
   if (window.__cdAppNativeBridgeInstalled) return;
   window.__cdAppNativeBridgeInstalled = true;
 
+  // Set the app API origin before any page or payment script runs.
+  window.CODE_DESTINY_API_BASE_URL = window.CODE_DESTINY_API_BASE_URL || "https://code-destiny.com";
+
   // Capture the pre-hydration choice; page initialization may write a route default.
   var previousAppLanguage = "";
   try {
@@ -256,11 +259,13 @@
   window.addEventListener("cd:auth-changed", function (event) {
     var source = event && event.detail && event.detail.source;
     if (source === 'subscription-sync' || source === 'membership-cache') return;
+    if (event && event.detail && event.detail.event === "login") void runPurchaseRecovery();
     var plugins = window.Capacitor && window.Capacitor.Plugins;
     var lock = plugins && plugins.CodeDestinyLockScreen;
     if (lock && lock.clearNotifications) lock.clearNotifications().catch(function () {});
   });
 
+  var PURCHASE_STATE_PURCHASED = 1;
   var PURCHASE_STATE_PENDING = 2;
 
   // --- 0) 진단 추적 ---------------------------------------------------------
@@ -445,6 +450,7 @@
     return (window.Capacitor && window.Capacitor.Plugins) || null;
   }
   function billingPlugin() {
+    if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios") return null;
     var p = plugins();
     return (p && p.CodeDestinyBilling) || null;
   }
@@ -628,6 +634,7 @@
   };
 
   window.CodeDestinyNative = Object.assign({}, window.CodeDestinyNative, nativeApi);
+  window.dispatchEvent(new CustomEvent('cd:native-ready'));
 
   /**
    * 앱 세션 저장. 딥링크 토큰 교환과 Zero-Tap 복원이 함께 쓴다 —
@@ -755,19 +762,30 @@
   // Play 결제는 앱 밖 결제 시트에서 끝나므로, 직후 앱이 죽거나 네트워크가 끊기면
   // "돈은 나갔는데 콘텐츠가 없는" 상태가 남는다. 부팅·포그라운드 복귀마다 훑는 것이 유일한 안전망이다.
   var recoveryRunning = false;
+  function publishPurchaseRecoveryState(pendingCount) {
+    var state = { pendingCount: pendingCount };
+    window.__cdAppPurchaseRecoveryState = state;
+    window.dispatchEvent(new CustomEvent("cd:app-purchase-state", { detail: state }));
+  }
   async function runPurchaseRecovery() {
+    if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios") return;
     if (recoveryRunning) return;
+    if (!readLocal("fortune_auth_token")) return;
     var plugin = billingPlugin();
     if (!plugin || !plugin.restore) return;
     recoveryRunning = true;
     try {
       var restored = await plugin.restore({ productType: "all" });
+      if (!restored || restored.ok === false) return;
       var purchases = (restored && restored.purchases) || [];
+      publishPurchaseRecoveryState(purchases.filter(function (purchase) {
+        return Number(purchase.purchaseState) === PURCHASE_STATE_PENDING;
+      }).length);
       if (!purchases.length) return;
 
       // PENDING(편의점·계좌이체)은 아직 결제 확정 전이라 서버로 보내지 않는다(402로 떨어진다).
       var settled = purchases.filter(function (purchase) {
-        return Number(purchase.purchaseState) !== PURCHASE_STATE_PENDING;
+        return Number(purchase.purchaseState) === PURCHASE_STATE_PURCHASED;
       });
       if (!settled.length) return;
 
@@ -962,6 +980,11 @@
       closeEl.click();
       return true;
     }
+    // showModal() 안내창은 cancel을 통해 각 화면의 저장/포커스 복원 경로를 따른다.
+    if (rootEl.tagName === "DIALOG" && rootEl.open) {
+      if (rootEl.dispatchEvent(new Event("cancel", { cancelable: true }))) rootEl.close();
+      return true;
+    }
     dispatchEscapeKey();
     return !isOverlayVisible(rootEl);
   }
@@ -984,7 +1007,7 @@
     // 나머지 모달(React 의 role=dialog/aria-modal, 정적 페이지의 시트 등).
     // 뒤에 붙은 것이 위에 있을 가능성이 높으므로 역순으로 본다.
     try {
-      var dialogs = document.querySelectorAll('[aria-modal="true"]');
+      var dialogs = document.querySelectorAll('[aria-modal="true"], dialog[open]');
       for (var j = dialogs.length - 1; j >= 0; j -= 1) {
         if (!isOverlayVisible(dialogs[j])) continue;
         return closeOverlayNode(dialogs[j]);
@@ -995,7 +1018,8 @@
 
   function isRootScreen() {
     var path = String(window.location.pathname || "/").replace(/\/index\.html$/, "").replace(/\/+$/, "");
-    return path === "" || path === "/" || path === "/ggulggul";
+    path = path.replace(/^\/(ko|en|ja|zh|en-us|ja-jp|zh-cn)(?=\/|$)/i, "");
+    return path === "" || path === "/" || path === "/ggulggul" || path === "/yeongnyangi" || path === "/app";
   }
 
   function showExitHint() {
@@ -1004,17 +1028,19 @@
     var hint = document.createElement("div");
     hint.id = "cdAppExitHint";
     hint.setAttribute("role", "status");
-    hint.textContent = "한 번 더 누르면 종료됩니다";
+    hint.setAttribute("aria-live", "polite");
+    hint.textContent = "뒤로가기를 한 번 더 누르면 종료돼요";
     hint.style.cssText = [
       "position:fixed", "left:50%", "transform:translateX(-50%)",
       "bottom:calc(88px + env(safe-area-inset-bottom,0px))",
       "z-index:2147483000", "padding:10px 18px", "border-radius:999px",
       // DESIGN.md 연이 Ink(#3c1830) + Glow-Not-Shadow(로즈 틴트 그림자).
-      "background:#3c1830", "color:#fffaf7", "font-size:13px", "font-weight:700",
-      "box-shadow:0 12px 24px rgba(150,72,104,.12)", "pointer-events:none",
+      "background:var(--yn-raised,var(--cd-text))", "color:var(--yn-ivory,var(--cd-bg))", "font-size:14px", "font-weight:700",
+      "width:max-content", "max-width:calc(100vw - 32px)", "box-sizing:border-box", "text-align:center",
+      "box-shadow:var(--cd-shadow)", "pointer-events:none",
     ].join(";");
-    document.body.appendChild(hint);
-    window.setTimeout(function () { hint.remove(); }, 2000);
+    (document.querySelector(".ynOriginal, [data-yn-night]") || document.body).appendChild(hint);
+    exitHintTimer = window.setTimeout(resetExitIntent, 2000);
   }
 
   // --- 4-b) 오프라인 안내 ----------------------------------------------------
@@ -1096,28 +1122,61 @@
   }
 
   var exitArmedAt = 0;
+  var exitHintTimer = null;
+  var backButtonInstalled = false;
+  function resetExitIntent() {
+    exitArmedAt = 0;
+    if (exitHintTimer !== null) window.clearTimeout(exitHintTimer);
+    exitHintTimer = null;
+    var hint = document.getElementById("cdAppExitHint");
+    if (hint) hint.remove();
+  }
+
+  function dispatchAppBack(scope) {
+    return !window.dispatchEvent(new CustomEvent("cd:app-back", {
+      cancelable: true, detail: { scope: scope },
+    }));
+  }
+
   function installBackButton() {
     var app = appPlugin();
-    if (!app || !app.addListener) return;
+    if (!app || !app.addListener || backButtonInstalled) return;
+    backButtonInstalled = true;
+    // 복귀·이동·새 조작 뒤에는 직전 종료 의도를 이어받지 않는다.
+    window.addEventListener("pagehide", resetExitIntent);
+    window.addEventListener("pageshow", resetExitIntent);
+    window.addEventListener("popstate", resetExitIntent);
+    document.addEventListener("visibilitychange", resetExitIntent);
+    document.addEventListener("pointerdown", resetExitIntent, true);
+    document.addEventListener("keydown", resetExitIntent, true);
+    app.addListener("appStateChange", resetExitIntent);
     app.addListener("backButton", function (event) {
-      // ① 열린 모달/오버레이가 있으면 '뒤로'는 닫기다 — 이탈·종료보다 먼저.
-      if (closeTopOverlay()) return;
-      // ② React 앱 셸(useAndroidBackButton)이 등록한 인터셉트 — /app 라우트의 루트 판정을
-      //    페이지 레이어가 소유한다. 여기서 리스너를 하나 더 달면 백 1회에 2단계 후퇴한다.
-      try {
-        if (typeof window.__cdAppBackIntercept === "function" && window.__cdAppBackIntercept() === true) return;
-      } catch (e) {}
+      // 소유자가 등록한 결제/팝업 처리 → 나머지 팝업 → 내부 입력 단계 순서.
+      if (dispatchAppBack("overlay") || closeTopOverlay() || dispatchAppBack("screen")) {
+        resetExitIntent();
+        return;
+      }
       if (event && event.canGoBack && !isRootScreen()) {
+        resetExitIntent();
         window.history.back();
         return;
       }
       if (!isRootScreen()) {
-        window.location.assign("/ggulggul/index.html");
+        resetExitIntent();
+        var home = /^\/yeongnyangi\//.test(window.location.pathname) ? "/yeongnyangi/index.html" : "/ggulggul/index.html";
+        window.location.replace(home);
+        return;
+      }
+      // App 플러그인의 실제 종료 기능이 없는 환경에는 종료를 약속하지 않는다.
+      if (typeof app.exitApp !== "function") {
+        resetExitIntent();
+        if (event && event.canGoBack) window.history.back();
         return;
       }
       var now = Date.now();
-      if (now - exitArmedAt < 2000) {
-        if (app.exitApp) app.exitApp();
+      if (exitArmedAt > 0 && now - exitArmedAt < 2000) {
+        resetExitIntent();
+        Promise.resolve(app.exitApp()).catch(function () {});
         return;
       }
       exitArmedAt = now;
@@ -1303,6 +1362,32 @@
   installThemeMutationProbe();
 
   function boot() {
+    // 앱에 포함된 실제 홈의 내 정보 메뉴에서 배경화면으로 진입한다.
+    // 기존 기록 링크를 바꾸지 않고 같은 메뉴 스타일을 재사용한다.
+    var historyLink = document.querySelector('#cdMySheet a[href^="/points/history"]') ||
+      document.querySelector('.my-garden-menu a[href^="/points/history"]');
+    if (historyLink) {
+      var previousItem = historyLink.closest("li");
+      [
+        ["cdTalismanEntry", "/app/talismans/index.html", "달빛 부적 · 배경화면", "月明かりのお守り・壁紙"],
+        ["cdInsightsEntry", "/insights/index.html", "운세 인사이트", "運勢の読みもの"],
+        ["cdFamousEntry", "/insights/famous-saju/index.html", "연예인·인물 사주", "有名人の四柱推命"],
+      ].forEach(function (entry) {
+        if (!previousItem || document.getElementById(entry[0])) return;
+        var item = document.createElement("li");
+        var link = document.createElement("a");
+        link.id = entry[0];
+        link.href = entry[1];
+        var syncLabel = function () {
+          link.textContent = document.documentElement.lang === "ja" ? entry[3] : entry[2];
+        };
+        syncLabel();
+        window.addEventListener("cd:locale-ready", syncLabel);
+        item.appendChild(link);
+        previousItem.insertAdjacentElement("afterend", item);
+        previousItem = item;
+      });
+    }
     installAppLocaleBridge();
     installAppUrlListener();
     installBackButton();
@@ -1311,6 +1396,17 @@
     installDiagnosticsGesture();
     installProfileSheetProbe();
     installLogoutCredentialClear();
+    // visibilitychange뿐 아니라 네이티브 onResume와 지연 완료 콜백에서도 같은 복구를 쓴다.
+    var app = appPlugin();
+    if (app && app.addListener) {
+      Promise.resolve(app.addListener("appStateChange", function (state) {
+        if (state && state.isActive) void runPurchaseRecovery();
+      })).catch(function () {});
+    }
+    var billing = billingPlugin();
+    if (billing && billing.addListener) {
+      Promise.resolve(billing.addListener("purchasesUpdated", function () { void runPurchaseRecovery(); })).catch(function () {});
+    }
     trace("boot", { path: window.location.pathname, hasBrowser: !!browserPlugin() });
     // 브릿지·플러그인이 준비될 여유를 두고 복구를 태운다.
     // 🔴 Zero-Tap 복원이 **먼저**다 — 복원으로 세션이 살아나야 뒤따르는 구매 복구가 그 계정에

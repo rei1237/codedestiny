@@ -195,11 +195,11 @@ export function buildSajuRow(magazine: MultiSystemInput["magazine"], birthTimeKn
   const day = magazine.pillars.day;
   const basis = birthTimeKnown
     ? "연·월·일·시 4주. 이 페이지 아래 원국 표와 같은 값이다."
-    : "생시 미상이라 연·월·일 3주만 세운다. 시주가 빠지므로 격국·용신은 단정하지 않는다.";
+    : "생시 미상으로 공개 날짜 기준의 세 기둥 후보만 계산했다. 날짜 경계와 현지 역법 검수 전에는 일주도 확정하지 않으며 시주·격국·용신을 단정하지 않는다.";
   return {
     system: "saju",
     label: "사주 명리",
-    status: "confirmed",
+    status: birthTimeKnown ? "confirmed" : "candidate",
     value: `${day.ganji} 일주 · ${magazine.dayElement} 일간`,
     detail: `일간 ${day.stem}(${magazine.dayElement}) 이 지지 ${day.branch} 위에 앉은 ${day.ganji} 일주. 십성으로는 지지가 ${day.branchTenGod}.`,
     basis,

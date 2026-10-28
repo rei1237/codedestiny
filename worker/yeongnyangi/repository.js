@@ -1,4 +1,4 @@
-import {CHAPTER_DELIVERY_VERSION,CHAPTER_LEASE_MS,chapterDeliveryFailure,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
+import {CHAPTER_DELIVERY_VERSION,chapterDeliveryFailure,chapterLeaseMs,hasChapterDeliveryContract} from './chapter-delivery-contract.js';
 import {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT} from './chapter-retry-policy.js';
 export {AUTOMATIC_CHAPTER_ATTEMPTS,MANUAL_CHAPTER_RECOVERY_LIMIT,SYSTEM_CHAPTER_RETRY_GRANT};
 import { storedChapterDraft } from './stored-chapter.js';
@@ -9,7 +9,7 @@ import { createHttpError } from '../lib/http.js';
 
 import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
 import { scopeConnection } from '../lib/db-scope-connection.js';
-import { CHAT_FEATURE_KEY, CHAT_FEATURE_KEYS, isChatFeatureKey, chatCardClaim, chatPaymentRequestId } from './access-methods.js';
+import { CHAT_FEATURE_KEY, CHAT_FEATURE_KEYS, isChatFeatureKey, chatCardClaim, chatPassClaim, chatPaymentRequestId } from './access-methods.js';
 export { YeongnyangiRequest };
 
 const paidStatuses = ['paid','success','fulfilled'];
@@ -284,12 +284,22 @@ const unattachedChat=(requestId,userId)=>({_id:requestId,userId:ownerId(userId),
 // account's one free consultation shared with the legacy fortune-chat route (guardian-fortune-usage.js).
 async function attachChatAccess(env, userId, requestId, current, expectedCharge, options) {
   const currentAmountKRW=assertCurrentPrice(current,expectedCharge,options);
-  const {proveChatAccess}=await import('./per-use-access.js');
+  const {proveChatAccess,assertNoOpenCheckout}=await import('./per-use-access.js');
+  const choice=String(options?.access || ''),honey=choice==='honey';
+  // Drops open only Yeoni's base consultation (5,000원); question tiers stay on card and pass.
+  if(honey&&(current.featureKey!==CHAT_FEATURE_KEY||current.persona!=='yeoni'))
+    throw failure(409,'HONEY_NOT_AVAILABLE',{paidFeatureKey:current.featureKey});
   let proven;
   try{
     proven=await proveChatAccess(env,{row:current,userId:String(userId),owner:ownerId(userId),
-      coinPrice:Math.floor(currentAmountKRW/100),choice:String(options?.access || '')});
-  }catch(error){if(error?.code==='ACCESS_ALREADY_ATTACHED')return readRequest(env,userId,requestId);throw error;}
+      coinPrice:Math.floor(currentAmountKRW/100),choice:honey?'':choice});
+  }catch(error){
+    if(error?.code==='ACCESS_ALREADY_ATTACHED')return readRequest(env,userId,requestId);
+    if(!honey||error?.code!=='PAYMENT_REQUIRED')throw error;
+    // Existing evidence (card, coin, stones, pass, a historical free use) won above; only then are drops spent.
+    await assertNoOpenCheckout(env,ownerId(userId),chatPaymentRequestId(requestId),current.featureKey);
+    return attachChatHoney(env,userId,requestId);
+  }
   const {accessMethod,consumeTrial,...access}=proven;
   if(accessMethod==='ACCOUNT_FREE_TRIAL')return attachFreeTrial(env,userId,requestId,consumeTrial);
   const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate(unattachedChat(requestId,userId),
@@ -324,6 +334,54 @@ async function attachFreeTrial(env, userId, requestId, consume) {
     finally{await session.endSession();}
   });
   return attached || readRequest(env,userId,requestId);
+}
+
+// The drops and the request change together: a card window or pass hold reserved after the open-checkout read
+// still wins, and the spend rolls back with this write.
+async function attachChatHoney(env, userId, requestId) {
+  const {debitFortuneChatHoney}=await import('../lib/honey-wallet.js');
+  const card=chatCardClaim(requestId),pass=chatPassClaim(requestId),rid=chatPaymentRequestId(requestId);
+  const attached=await withMongoRetry(env,async()=>{
+    const session=await (scopeConnection() || mongoose).startSession();
+    try{
+      let row=null;
+      await session.withTransaction(async()=>{
+        row=null;
+        const {ledgerId}=await debitFortuneChatHoney(String(userId),{requestId,featureKey:CHAT_FEATURE_KEY},session);
+        row=await YeongnyangiRequest.findOneAndUpdate({...unattachedChat(requestId,userId),featureKey:CHAT_FEATURE_KEY,
+          paymentClaimOrderId:{$nin:[card,pass]}},
+        {$set:{accessMethod:'PER_USE',perUseSource:'honey',perUseEvidenceId:ledgerId,state:'PAID'}},{new:true,session}).lean();
+        if(!row&&await YeongnyangiRequest.findOne({...unattachedChat(requestId,userId),paymentClaimOrderId:card}).session(session).lean())
+          throw failure(409,'PG_PAYMENT_NOT_PAID',{paidFeatureKey:CHAT_FEATURE_KEY,paymentRequestId:rid});
+        if(!row)throw failure(409,'ACCESS_ALREADY_ATTACHED');
+      },mongoTransactionOptions());
+      return row;
+    }catch(error){if(error?.code==='ACCESS_ALREADY_ATTACHED')return null;throw error;}
+    finally{await session.endSession();}
+  });
+  return attached || readRequest(env,userId,requestId);
+}
+
+// Drops spent on a consultation that delivered nothing come back once, with the request, in one transaction.
+async function refundChatHoney(env,userId,requestId) {
+  const {refundFortuneChatHoney}=await import('../lib/honey-wallet.js');
+  return withMongoRetry(env,async()=>{
+    const session=await (scopeConnection() || mongoose).startSession();
+    try{
+      let restored=false;
+      await session.withTransaction(async()=>{
+        restored=false;
+        const request=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),accessMethod:'PER_USE',perUseSource:'honey',
+          state:'FORTUNE_FAILED',...terminalRestoreFilter(false)},
+        {$set:{state:'REFUNDED',errorCode:'HONEY_RESTORED',leaseToken:'',leaseUntil:null}},{new:true,session}).lean();
+        if(!request)return;
+        if(!await refundFortuneChatHoney(String(userId),request.perUseEvidenceId,session))throw failure(409,'HONEY_NOT_RESTORED');
+        restored=true;
+      },mongoTransactionOptions());
+      return restored;
+    }catch(error){if(error?.code==='HONEY_NOT_RESTORED')return false;throw error;}
+    finally{await session.endSession();}
+  });
 }
 
 // A free consultation that delivered nothing gives the account's free use back, exactly once.
@@ -477,7 +535,7 @@ export async function claimChapter(env, userId, requestId, source = 'queue', opt
     $and:[{$or:[{nextAttemptAt:null},{nextAttemptAt:{$lte:now}}]},
       {$or:[{[attemptKey]:{$exists:false}},{[attemptKey]:chapterAttempts}]}],
     $or:[{leaseUntil:null},{leaseUntil:{$lte:now}}],
-  },{$set:{state:'GENERATING',leaseToken:token,leaseUntil:new Date(now.getTime()+CHAPTER_LEASE_MS),errorCode:''},
+  },{$set:{state:'GENERATING',leaseToken:token,leaseUntil:new Date(now.getTime()+chapterLeaseMs(current)),errorCode:''},
     ...(!options.storedOnly&&!storedChapterDraft(current)?{$inc:{attempts:1,[`chapterAttempts.${ordinal}`]:1}}:{}),
     $push:{recoveryAudit:{kind:'generation_claim',source:['queue','scheduled'].includes(source)?source:'queue',chapter:ordinal,at:now}}}, {new:true,...(session?{session}:{})}).lean();
   const row=await withMongoRetry(env,async()=>{
@@ -574,14 +632,15 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
 
 // A durable local edit separates generation from result storage. Replaying the
 // same owner/lease-scoped checkpoint is idempotent and does not spend LLM budget.
-export async function saveChapterDraft(env,userId,requestId,token,ordinal,draft) {
-  const field=`generationCheckpoint.chapterDrafts.${ordinal}`;
+// shortDrafts holds a length-only shortfall kept for its repair; it is never delivered by storedChapterDraft.
+export async function saveChapterDraft(env,userId,requestId,token,ordinal,draft,slot='chapterDrafts') {
+  const field=`generationCheckpoint.${slot}.${ordinal}`;
   const filter={_id:requestId,userId:ownerId(userId),state:'GENERATING',leaseToken:token};
   // Repeating this lease-scoped $set is idempotent, even if its acknowledgement
   // was lost. Retry transient storage errors without another provider call.
   await withMongoRetry(env,()=>YeongnyangiRequest.updateOne(filter,{$set:{[field]:draft}}));
   const stored=await readRequest(env,userId,requestId);
-  if(JSON.stringify(stored.generationCheckpoint?.chapterDrafts?.[ordinal])!==JSON.stringify(draft))throw failure(503,'RESULT_STORAGE_UNAVAILABLE');
+  if(JSON.stringify(stored.generationCheckpoint?.[slot]?.[ordinal])!==JSON.stringify(draft))throw failure(503,'RESULT_STORAGE_UNAVAILABLE');
 }
 
 export async function finishChapter(env, userId, requestId, token, ordinal, body, total) {
@@ -657,8 +716,8 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
     const refunded=await withMongoRetry(env,()=>refundYeongnyangiMoonstone({userId,requestId}));
     return Boolean(refunded.refunded);
   }
-  // A paid fortune-chat consultation gives back only what the server can restore without cash: pass quota and
-  // moonlight stones. Card and coin spends stay with support review, as the Yeongnyangi card path does.
+  // A paid fortune-chat consultation gives back only what the server can restore without cash: pass quota,
+  // moonlight stones and honey drops. Card and coin spends stay with support review, as the Yeongnyangi card path does.
   const perUse=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:'PER_USE',
     $or:[{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
       {state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED'}]}).lean(),readOptions);
@@ -667,6 +726,7 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
     const refunded=await withMongoRetry(env,()=>refundYeongnyangiMoonstone({userId,requestId,perUse:true}));
     return Boolean(refunded.refunded);
   }
+  if(perUse?.perUseSource==='honey'&&perUse.state==='FORTUNE_FAILED')return refundChatHoney(env,userId,requestId);
   if(perUse?.perUseSource==='point'&&perUse.perUsePassRefund?.cycleKey&&perUse.state==='FORTUNE_FAILED') {
     return restorePassQuota(env,userId,requestId,{accessMethod:'PER_USE',perUseSource:'point'},{cycleKey:perUse.perUsePassRefund.cycleKey,
       cost:perUse.perUsePassRefund.cost,evidenceId:perUse.perUseEvidenceId});

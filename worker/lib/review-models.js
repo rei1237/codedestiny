@@ -42,6 +42,13 @@ const reviewSchema = new mongoose.Schema({
   body: { type: String, required: true, trim: true, maxlength: 1000 },
   locale: { type: String, enum: ["ko", "ja", "zh", "en"], default: "ko" },
 
+  // SNS evidence is visible only to its author and administrators.
+  socialProof: {
+    platform: { type: String, default: "", maxlength: 30 },
+    url: { type: String, default: "", maxlength: 2000 },
+    disclosed: { type: Boolean, default: false },
+  },
+
   // 상태
   status: { type: String, enum: REVIEW_STATUS_LIST, default: REVIEW_STATUSES.PENDING },
   // 구매 인증 배지는 "실제 구매 기록이 있다"는 사실 진술이다. 클라이언트 입력을 받지 않고
@@ -87,22 +94,10 @@ reviewSchema.index({ productId: 1, status: 1, displayedAt: -1 });
 reviewSchema.index({ productId: 1, status: 1, rating: -1 });
 // 관리자 검수 대기열
 reviewSchema.index({ status: 1, createdAt: -1 });
-// 사용자 1인 1상품 1리뷰. 관리자 시딩(createdByAdmin)과 익명 닉네임(userId 빈값)은 제외한다.
-reviewSchema.index(
-  { userId: 1, productId: 1 },
-  {
-    name: "user_product_unique_nonadmin",
-    unique: true,
-    partialFilterExpression: {
-      createdByAdmin: false,
-      userId: { $type: "string", $gt: "" },
-    },
-  },
-);
+// Repeat submissions are allowed. _id remains the atomic submission/reward identity.
+// Existing installations must drop user_product_unique_nonadmin using the explicit migration.
+reviewSchema.index({ userId: 1, createdAt: -1 });
 
-// NOTE: db.js는 autoIndex:false로 연결하므로 이 선언만으로는 실제 인덱스가 생성되지 않는다 —
-// scripts/migrations/20260729-add-review-indexes.mjs를 DB에 1회 실행할 것.
-// 실행 전에는 1인 1리뷰 unique 제약이 걸리지 않는다.
 export const Review = scopedModel(mongoose.models.Review || mongoose.model("Review", reviewSchema));
 
 export const REVIEW_BODY_MIN_LENGTH = 20;

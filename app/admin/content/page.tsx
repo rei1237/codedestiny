@@ -37,6 +37,8 @@ import AdminErrorState from "../_components/AdminErrorState";
 import { ADMIN_CARD, ADMIN_CARD_HAIR, ADMIN_INPUT, ADMIN_INPUT_ICON, ADMIN_TOOLBAR, adminButton } from "../_components/ui";
 import { uploadInsightImage } from "../insights/_lib/imageUpload";
 import { sanitizeInsightHtml } from "../insights/_lib/sanitizeContent";
+import ContentQuest from "./ContentQuest";
+import styles from "./content-workshop.module.css";
 
 type ContentStatus = "draft" | "scheduled" | "published" | "archived" | "private" | "trash";
 type ContentType =
@@ -693,6 +695,8 @@ export default function AdminContentPage() {
   const copy = getAdminContentCopy(locale);
   const [items, setItems] = useState<ContentItem[]>([]);
   const [pagination, setPagination] = useState<Pagination>(EMPTY_PAGINATION);
+  const [listPage, setListPage] = useState(1);
+  const listRequest = useRef(0);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [typeFilter, setTypeFilter] = useState<"all" | ContentType>("all");
   const [sort, setSort] = useState<SortKey>("updated");
@@ -713,8 +717,10 @@ export default function AdminContentPage() {
   const [revisions, setRevisions] = useState<ContentRevision[]>([]);
   const [publicationCheck, setPublicationCheck] = useState<PublicationCheck | null>(null);
   const [restoringRevisionId, setRestoringRevisionId] = useState("");
+  const [, refreshEditorState] = useState(0);
 
   const editor = useEditor({
+    onUpdate: () => refreshEditorState(version => version + 1),
     extensions: [
       // StarterKit v3 가 Link 를 이미 번들한다. 별도 LinkExtension 을 함께 등록하면
       // "Duplicate extension names found: ['link']" 경고와 함께 두 인스턴스가 경쟁한다.
@@ -759,6 +765,7 @@ export default function AdminContentPage() {
   // 401/403 리다이렉트는 adminFetch 가 담당한다(app/admin/_lib/admin-api.ts).
 
   const loadList = useCallback(async () => {
+    const requestId = ++listRequest.current;
     setLoadingList(true);
     setError("");
     setListErrorView(null);
@@ -768,11 +775,12 @@ export default function AdminContentPage() {
       if (typeFilter !== "all") url.searchParams.set("type", typeFilter);
       if (query.trim()) url.searchParams.set("keyword", query.trim());
       url.searchParams.set("sort", sort);
-      url.searchParams.set("page", "1");
+      url.searchParams.set("page", String(listPage));
       url.searchParams.set("limit", "80");
 
       const data = await adminFetch<Record<string, any>>(`/api/admin/content?${url.searchParams.toString()}`);
 
+      if (requestId !== listRequest.current) return;
       setItems(Array.isArray(data?.items) ? data.items : []);
       setPagination({
         page: Math.max(1, Number(data?.pagination?.page || 1) || 1),
@@ -781,13 +789,14 @@ export default function AdminContentPage() {
         totalPages: Math.max(1, Number(data?.pagination?.totalPages || 1) || 1),
       });
     } catch (caught) {
+      if (requestId !== listRequest.current) return;
       setListErrorView(describeAdminError(caught, copy.errors.listNetworkFailed));
       setItems([]);
       setPagination(EMPTY_PAGINATION);
     } finally {
-      setLoadingList(false);
+      if (requestId === listRequest.current) setLoadingList(false);
     }
-  }, [copy.errors.listNetworkFailed, endpointBase, filterStatus, query, sort, typeFilter]);
+  }, [copy.errors.listNetworkFailed, endpointBase, filterStatus, query, sort, typeFilter, listPage]);
 
   const loadRevisions = useCallback(async (contentId: string) => {
     if (!contentId) {
@@ -1114,17 +1123,24 @@ export default function AdminContentPage() {
   ].filter(Boolean);
 
   return (
-    <main className="min-h-screen">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[360px_1fr]">
-        <aside className="border-b border-slate-800 bg-[#10121b] lg:border-b-0 lg:border-r">
+    <main className={`${styles.workshop} min-h-screen`}>
+      <header className={styles.heading}>
+        <div><h1>연이의 원고 공방</h1><p>질문 하나를 깊이 읽고, 독자에게 닿는 원문 한 편을 완성해요. 이곳에서 저장한 글은 본 서비스의 인사이트 콘텐츠입니다.</p></div>
+        <Link href="/admin/cms/" className={commandButtonClass()}><Eye size={16} aria-hidden="true" />사이트 화면·정적 결과 편집</Link>
+        <Link href="/admin/wordpress/" className={commandButtonClass()}><ExternalLink size={16} aria-hidden="true" />WordPress 작업실</Link>
+      </header>
+      <ContentQuest title={Boolean(form.title.trim())} body={Boolean(bodyText)} searchReady={Boolean(resolvedSlug && resolvedMetaTitle && resolvedMetaDescription)} />
+      <div className={styles.layout}>
+        <aside className={styles.library} aria-label="원고 목록">
           <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
             <div>
-              <h1 className="text-base font-semibold">관리자 글 편집</h1>
+              <h2 className="text-base font-semibold">내 원고함</h2>
               <p className="text-xs text-slate-400">{pagination.total.toLocaleString("ko-KR")}개</p>
             </div>
             <div className="flex gap-2">
-              <button type="button" onClick={startNewPost} className={editorButtonClass()} title="새 글">
+              <button type="button" onClick={startNewPost} className={commandButtonClass()} title="새 글">
                 <Plus className="h-4 w-4" />
+                새 원고
               </button>
             </div>
           </div>
@@ -1134,12 +1150,13 @@ export default function AdminContentPage() {
               className="flex gap-2"
               onSubmit={(event) => {
                 event.preventDefault();
-                setQuery(searchInput);
+                setListPage(1); setQuery(searchInput.trim());
               }}
             >
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                 <input
+                  aria-label="원고 검색"
                   value={searchInput}
                   onChange={(event) => setSearchInput(event.target.value)}
                   className={ADMIN_INPUT_ICON}
@@ -1153,7 +1170,7 @@ export default function AdminContentPage() {
             <div className="grid grid-cols-3 gap-2">
               <select
                 value={filterStatus}
-                onChange={(event) => setFilterStatus(event.target.value as FilterStatus)}
+                onChange={(event) => { setListPage(1); setFilterStatus(event.target.value as FilterStatus); }}
                 className={ADMIN_INPUT}
               >
                 {STATUS_OPTIONS.map((option) => (
@@ -1162,7 +1179,7 @@ export default function AdminContentPage() {
               </select>
               <select
                 value={typeFilter}
-                onChange={(event) => setTypeFilter(event.target.value as "all" | ContentType)}
+                onChange={(event) => { setListPage(1); setTypeFilter(event.target.value as "all" | ContentType); }}
                 className={ADMIN_INPUT}
               >
                 <option value="all">{copy.allTypes}</option>
@@ -1172,7 +1189,7 @@ export default function AdminContentPage() {
               </select>
               <select
                 value={sort}
-                onChange={(event) => setSort(event.target.value as SortKey)}
+                onChange={(event) => { setListPage(1); setSort(event.target.value as SortKey); }}
                 className={ADMIN_INPUT}
               >
                 {SORT_OPTIONS.map((option) => (
@@ -1182,8 +1199,8 @@ export default function AdminContentPage() {
             </div>
           </div>
 
-          <div className="space-y-2 border-b border-slate-800 bg-slate-900/40 p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-200/70">{copy.botOps}</p>
+          <details className="border-b border-slate-800 p-4 text-sm">
+            <summary className="cursor-pointer text-slate-300">작성 도구 · 프롬프트 랩</summary>
             <Link
               href="/admin/prompts"
               className="group block rounded-xl border border-amber-700 bg-gradient-to-br from-amber-950/80 to-slate-900 p-3 text-sm text-amber-100 transition hover:border-amber-400 hover:from-amber-900/80 hover:to-amber-900/40"
@@ -1202,9 +1219,9 @@ export default function AdminContentPage() {
                 </div>
               </div>
             </Link>
-          </div>
+          </details>
 
-          <div className="max-h-[calc(100vh-182px)] overflow-y-auto">
+          <div className={styles.libraryList}>
             {loadingList ? (
               <div className="p-4 text-sm text-slate-400">불러오는 중...</div>
             ) : listErrorView ? (
@@ -1212,7 +1229,7 @@ export default function AdminContentPage() {
                 <AdminErrorState view={listErrorView} onRetry={() => { void loadList(); }} retrying={loadingList} />
               </div>
             ) : items.length === 0 ? (
-              <div className="p-4 text-sm text-slate-400">글이 없습니다.</div>
+              <div className="space-y-3 p-4 text-sm text-slate-300"><p>조건에 맞는 원고가 없어요. 검색 조건을 바꾸거나 첫 원고를 시작해 보세요.</p><button type="button" className={commandButtonClass()} onClick={startNewPost}>새 원고 시작</button></div>
             ) : (
               <div className="divide-y divide-slate-800">
                 {items.map((item) => {
@@ -1241,6 +1258,11 @@ export default function AdminContentPage() {
               </div>
             )}
           </div>
+          <nav aria-label="원고 목록 페이지" className="flex items-center justify-between gap-2 border-t border-slate-800 p-3">
+            <button type="button" className={commandButtonClass()} disabled={loadingList || listPage <= 1} onClick={() => setListPage((page) => page - 1)}>이전</button>
+            <span className="text-sm" role="status">{pagination.page} / {pagination.totalPages}</span>
+            <button type="button" className={commandButtonClass()} disabled={loadingList || listPage >= pagination.totalPages} onClick={() => setListPage((page) => page + 1)}>다음</button>
+          </nav>
         </aside>
 
         <section className="min-w-0">
@@ -1285,9 +1307,10 @@ export default function AdminContentPage() {
             {message ? <p className="mt-2 text-sm text-emerald-300">{message}</p> : null}
           </div>
 
-          <div className="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className={styles.canvas}>
             <div className="min-w-0 space-y-4">
-              <section className={`${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-lg p-4`}>
+              <section id="content-outline" className={`${styles.section} ${ADMIN_CARD} rounded-lg p-4`}>
+                <h2 className={styles.sectionTitle}>어떤 질문에 답할까요?<span>제목 · 소개 · 분류</span></h2>
                 <div className="grid gap-3 md:grid-cols-2">
                   <select
                     value={form.type}
@@ -1307,6 +1330,7 @@ export default function AdminContentPage() {
                   />
                   <input
                     value={form.title}
+                    aria-label={copy.titleHint}
                     onChange={(event) => updateTitle(event.target.value)}
                     className="md:col-span-2 rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-2xl font-semibold outline-none focus:border-violet-500"
                     placeholder={copy.titleHint}
@@ -1347,7 +1371,8 @@ export default function AdminContentPage() {
                 </div>
               </section>
 
-              <section className={`${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-lg`}>
+              <section id="content-body" className={`${styles.section} ${ADMIN_CARD} rounded-lg`}>
+                <h2 className={`${styles.sectionTitle} px-4 pt-4`}>원문 쓰기<span>{bodyText.length.toLocaleString("ko-KR")}자 · 자동저장 아님</span></h2>
                 <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 p-3">
                   <button type="button" onClick={() => editor?.chain().focus().toggleBold().run()} className={editorButtonClass(editor?.isActive("bold"))} title="굵게">
                     <Bold className="h-4 w-4" />
@@ -1465,9 +1490,9 @@ export default function AdminContentPage() {
                 </div>
               </section>
 
-              <section className={`${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-lg p-4`}>
-                <button type="button" onClick={() => setSeoOpen((open) => !open)} className="flex w-full items-center justify-between text-left text-sm font-semibold">
-                  SEO
+              <section id="content-search" className={`${styles.section} ${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-lg p-4`}>
+                <button type="button" aria-expanded={seoOpen} aria-controls="content-search-fields" onClick={() => setSeoOpen((open) => !open)} className="flex min-h-11 w-full items-center justify-between gap-3 text-left text-sm font-semibold">
+                  검색 안내 · SEO
                   <span className="text-xs text-slate-400">{seoWarnings.length ? `${seoWarnings.length}${copy.seoCheckCountSuffix}` : copy.seoOk}</span>
                 </button>
                 {seoWarnings.length ? (
@@ -1478,7 +1503,7 @@ export default function AdminContentPage() {
                   </div>
                 ) : null}
                 {seoOpen ? (
-                  <div className="mt-3 space-y-2">
+                  <div id="content-search-fields" className="mt-3 space-y-2">
                     <input value={form.metaTitle} onChange={(event) => updateForm("metaTitle", event.target.value)} className={ADMIN_INPUT} placeholder="metaTitle" />
                     <textarea value={form.metaDescription} onChange={(event) => updateForm("metaDescription", event.target.value)} className={`min-h-[72px] ${ADMIN_INPUT}`} placeholder="metaDescription" />
                     <input value={form.keywordsText} onChange={(event) => updateForm("keywordsText", event.target.value)} className={ADMIN_INPUT} placeholder="keywords" />

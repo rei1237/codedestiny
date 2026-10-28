@@ -1,7 +1,9 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { Copy, Gem as GemIcon, Home, Loader2, RotateCcw, Share2, Sparkles } from "lucide-react";
 import { getCurrentLoadingLocale, normalizeLoadingLocale } from "@/constants/loadingMessages";
 import CrystalGem, { GEM_META, getGemColor } from "@/src/components/crystal/CrystalGem";
@@ -702,6 +704,7 @@ function GemSelectScreen({ selectedGem, onSelect, copy, locale }) {
         <h1>{copy.title}</h1>
       </div>
       <p className="crystal-subtitle">{copy.subtitle}</p>
+      {locale === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",position:"relative",zIndex:1,textAlign:"left"}}><CraftedProductDisclosure featureKey="tarot-crystal-soul-reading" summaryLabel="원석 소울 타로 상세 안내" /></div>}
 
       <div className="gem-grid" aria-label={copy.selectAria}>
         {GEM_TYPES.map((type) => {
@@ -1120,7 +1123,7 @@ export default function CrystalSoulTarotClient() {
             locale={locale}
           />
           {reading ? <CardSpread gemType={selectedGem} reading={reading} openedCards={openedCards} onOpenCard={openCard} copy={copy} /> : null}
-          {allRevealed ? <ReadingResult gemType={selectedGem} reading={reading} onRetry={resetAll} onHome={() => { window.location.href = "/"; }} copy={copy} locale={locale} /> : null}
+          {allRevealed ? <ReadingResult gemType={selectedGem} reading={reading} onRetry={resetAll} onHome={() => { window.location.href = SHELL_HOME_PATH; }} copy={copy} locale={locale} /> : null}
         </>
       ) : null}
 

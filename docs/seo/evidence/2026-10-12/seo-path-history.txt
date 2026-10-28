@@ -1,0 +1,18 @@
+dbecc8bf2 2026-10-12T01:02:06+09:00 feat: reprice premium catalog and add Play tiers
+067748135 2026-10-11T10:42:55+09:00 feat(pass): 이용권 기간 문구 제거·꿀단지 크기 이름·한도 소진 종료 안내·검증기 갱신
+df6d90504 2026-10-11T05:06:07+09:00 chore(sitemap): regenerate lastmod ledger after profile/sukuyo cache pin changes
+6aa632c30 2026-10-10T10:23:42+09:00 Merge origin/main into birth-scope unlocks branch
+8edecf7f1 2026-10-10T00:30:23+09:00 feat(brand): 한국어 서비스명을 꿀꿀 사주로 변경 — 사이트명 신호·홈 메타
+ee095e021 2026-10-09T22:08:10+09:00 feat(attribution): growth-20261012-v2 캠페인 귀속 형식 추가
+7a9c2a4a7 2026-10-09T20:07:14+09:00 chore: refresh sitemap signatures after monthly evidence fix
+5e4af1ebb 2026-10-09T19:20:41+09:00 fix(master-love-codex): align moonlit landing and loading
+6e536ae39 2026-10-09T19:11:18+09:00 Refresh Tea House sitemap signature
+9cc659326 2026-10-09T06:34:24+09:00 fix(landing): centralize approved founder record copy
+37d1ffba3 2026-10-09T06:19:23+09:00 refactor(landing): lead with empathy and quiet visual hierarchy
+ac878aa86 2026-10-09T05:16:24+09:00 feat(novel): refine Yeoni cover and Neo human return
+827e02eb9 2026-10-09T02:53:57+09:00 feat: match affiliate books to reviewed advice context
+0aad17049 2026-10-09T01:28:34+09:00 fix: isolate nakshatra rules and synchronize public evidence
+d2e14b0b5 2026-10-09T00:33:26+09:00 fix(yeongnyangi): restore pass access and question-led consultation
+032565dae 2026-10-08T19:16:42+09:00 fix: restore sitemap and runtime cache pins
+3bd2d5a44 2026-10-08T03:14:47+09:00 Merge branch 'main' into wt/simple-packs-20261008-013846
+353d1948e 2026-10-08T00:47:07+09:00 Merge remote-tracking branch 'origin/main' into wt/concern-first-ux-20261007-233410

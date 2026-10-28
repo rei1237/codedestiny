@@ -1,5 +1,6 @@
 import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
+import {JSDOM} from 'jsdom';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import path from 'node:path';
@@ -25,7 +26,7 @@ const TRIAL={mackerel:1000,salmon:3000,flounder:5000,tuna:10000,assorted:20000,o
 const whileActive=fn=>{const before=mod.launchOffer.active;mod.launchOffer.active=true;try{return fn();}finally{mod.launchOffer.active=before;}};
 
 test('all 28 catalog products follow the user-confirmed fish ratio and fusion prices',()=>{
- const approved={mackerel:3000,salmon:9000,flounder:15000,tuna:30000,assorted:50000,omakase:80000};
+ const approved={mackerel:5000,salmon:10000,flounder:15000,tuna:30000,assorted:50000,omakase:60000};
  assert.equal(mod.products.length,28);
  for(const product of mod.products)assert.equal(product.priceKRW,approved[product.fishId],product.id);
  assert.deepEqual(mod.launchOffer.plannedPriceKRW,approved);
@@ -34,9 +35,14 @@ test('all 28 catalog products follow the user-confirmed fish ratio and fusion pr
 test('static home fish prices agree with the consultation catalog in every published shell',()=>{
  for(const file of ['index.html','public/index.html','public/ggulggul/index.html','public/static/index.html','public/en/index.html','public/ja/index.html','public/zh/index.html','public/zh-tw/index.html']){
   const html=readFileSync(file,'utf8');
-  for(const fish of ['mackerel','salmon','flounder','tuna']){
-   const match=html.match(new RegExp(`<b data-yeongnyangi-price="${fish}"[^>]*>([^<]+)</b>`));
-   assert.equal(match?.[1],unitPrice(fish).toLocaleString('ko-KR')+'원',`${file}: ${fish}`);
+  const cards=JSDOM.fragment(html).querySelectorAll('.cd-concern__q-link[data-cd-price-key^="yeongnyangi-"]');
+  assert.ok(cards.length > 0, file+': exposes Yeongnyangi question choices');
+  for(const card of cards){
+   const fish=card.dataset.cdPriceKey.split('-').at(-1);
+   const price=card.querySelector('.cd-concern__q-price');
+   assert.ok(price, card.dataset.cdPriceKey);
+   assert.equal(Number(price.textContent.replace(/[^0-9]/g,'')),unitPrice(fish),file+': '+card.dataset.cdPriceKey);
+   assert.equal(price.dataset.cdPlayFeature,card.dataset.cdPriceKey);
   }
  }
 });
@@ -55,16 +61,19 @@ test('the offer has ended: planned prices are now the catalog prices and nothing
 test('while active, a planned price shows only above the trial price and the ladder still climbs',()=>whileActive(()=>{
  const planned=order.map(fish=>mod.launchOffer.plannedPriceKRW[fish]);
  planned.forEach((price,i)=>{if(i)assert.ok(price>planned[i-1],order[i]);});
- assert.equal(mod.plannedPriceFor('mackerel',TRIAL.mackerel),3000);
+ assert.equal(mod.plannedPriceFor('mackerel',TRIAL.mackerel),5000);
  for(const fish of order)assert.equal(mod.plannedPriceFor(fish,TRIAL[fish]),planned[order.indexOf(fish)]>TRIAL[fish]?planned[order.indexOf(fish)]:null,fish);
  assert.ok(mod.launchOffer.plannedPriceKRW.omakase<300000,'stays under the human 1:1 consultation price');
- assert.equal(mod.plannedPriceFor('mackerel',3000),null,'never shows a planned price at or below the real price');
+ assert.equal(mod.plannedPriceFor('mackerel',5000),null,'never shows a planned price at or below the real price');
  assert.equal(mod.plannedPriceFor('unknown',1000),null);
- assert.equal(mod.plannedPackPriceFor('mackerel',1000,4500),13500,'packs carry the same multiple as their single reading');
+ assert.equal(mod.plannedPackPriceFor('mackerel',1000,4500),22500,'packs carry the same multiple as their single reading');
 }));
 
-test('banner renders nothing once the offer has ended',()=>{
- assert.equal(render(),'');
+test('banner renders the effective date, current catalog prices, and preserved purchase rights',()=>{
+ const html=render();
+ assert.match(html,/영냥이 상담 가격 안내/);
+ assert.match(html,/고등어 5,000원 · 연어 10,000원 · 오마카세 60,000원/);
+ assert.match(html,/이미 결제한 상담과 기존 해금 결과/);
 });
 
 // 2026-10-05 뒤에는 예정가가 null 이라 이 경로는 체험가를 다시 켤 때만 그려진다.
@@ -74,8 +83,8 @@ test('checkout total reads the planned price, then the labelled trial price, to 
  const {Total}=await load(`import LaunchPlannedPrice from './app/components/LaunchPlannedPrice';const styles={totalPlanned:'totalPlanned',srOnly:'srOnly'};export function Total({plannedTotal,product,price}){return ${strong};}`);
  const React=require('react'),{renderToStaticMarkup}=require('react-dom/server'),price=n=>n.toLocaleString('ko-KR')+'원';
  const html=renderToStaticMarkup(React.createElement(Total,{plannedTotal:whileActive(()=>mod.plannedPriceFor('mackerel',1000)),product:{priceKRW:1000},price}));
- assert.equal(html.replace(/<[^>]+>/g,''),'정식 오픈 예정가 3,000원, 체험가 1,000원');
- assert.match(html,/<s[^>]*>정식 오픈 예정가 3,000원<\/s><span class="srOnly">, 체험가 <\/span>1,000원/,'only the trial label is visually hidden');
+ assert.equal(html.replace(/<[^>]+>/g,''),'정식 오픈 예정가 5,000원, 체험가 1,000원');
+ assert.match(html,/<s[^>]*>정식 오픈 예정가 5,000원<\/s><span class="srOnly">, 체험가 <\/span>1,000원/,'only the trial label is visually hidden');
  assert.equal(renderToStaticMarkup(React.createElement(Total,{plannedTotal:null,product:{priceKRW:1000},price})),'<strong>1,000원</strong>','no planned price, no trial label');
 });
 
@@ -85,8 +94,8 @@ test('after the offer ends fish buttons show only the current catalog price',asy
  const {Fish}=await load(`import LaunchPlannedPrice from './app/components/LaunchPlannedPrice';import {plannedPriceFor} from './lib/brand/launch-offer';const styles={fishPrice:'fishPrice',srOnly:'srOnly'};export function Fish({siteLocale,item,price}){return ${span};}`);
  const React=require('react'),{renderToStaticMarkup}=require('react-dom/server'),price=n=>n.toLocaleString('ko-KR')+'원';
  const render=(siteLocale,item)=>renderToStaticMarkup(React.createElement(Fish,{siteLocale,item,price}));
- const html=render('ko',{fishId:'mackerel',priceKRW:3000});
- assert.equal(html.replace(/<[^>]+>/g,''),'3,000원');
+ const html=render('ko',{fishId:'mackerel',priceKRW:5000});
+ assert.equal(html.replace(/<[^>]+>/g,''),'5,000원');
  assert.doesNotMatch(html,/<s>|정식 오픈 예정가|체험가/);
- assert.equal(render('en',{fishId:'mackerel',priceKRW:3000}),'<span class="fishPrice">3,000원</span>','all locales have no trial label');
+ assert.equal(render('en',{fishId:'mackerel',priceKRW:5000}),'<span class="fishPrice">5,000원</span>','all locales have no trial label');
 });

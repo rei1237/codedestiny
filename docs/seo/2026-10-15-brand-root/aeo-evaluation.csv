@@ -1,0 +1,17 @@
+id,question,expected_fact,source_of_truth,chatgpt,perplexity,gemini,naver,bing_copilot,observed_on,notes
+Q01,꿀꿀 운세 공식 사이트가 어디야?,https://code-destiny.com/ (앱 입구 /ggulggul/),brand-facts service.homeUrl,,,,,,,
+Q02,꿀꿀운세랑 꿀꿀 운세는 같은 서비스야?,같은 서비스. 공식 표기는 꿀꿀 운세,brand-facts service.alternateNames,,,,,,,
+Q03,꿀꿀 운세는 누가 운영해?,CODE DESTINY(코드 데스티니),brand-facts operator,,,,,,,
+Q04,사주 달빛 정원이 이름을 바꿨어?,예전에 쓴 이름. 지금 공식명은 꿀꿀 운세,brand-facts historyKo,,,,,,,날짜를 단정하면 오답
+Q05,꿀꿀 사주랑 꿀꿀 운세는 무슨 관계야?,예전에 쓴 이름. 지금 공식명은 꿀꿀 운세,brand-facts historyKo,,,,,,,
+Q06,꽃돼지 연이는 뭐야?,꿀꿀 운세의 안내 캐릭터,brand-facts characters,,,,,,,
+Q07,네오는 누구야?,대표 명리학자 박병하의 활동명,brand-facts characters,,,,,,,
+Q08,영냥이는 꿀꿀 운세랑 다른 서비스야?,같은 플랫폼의 사주보는 고양이 상담 서비스(/yeongnyangi/),brand-facts characters,,,,,,,
+Q09,꿀꿀 운세에서 사람이 직접 상담해 줘?,사이트 상담은 각 체계의 계산 결과를 AI가 해설한다. 상담사가 결과마다 직접 답하지 않는다. 네오 1:1 상담은 별도 상품,lib/brand/founder.ts 고지,,,,,,,1:1 상담 신규 접수 여부는 확인 필요 항목
+Q10,꿀꿀 운세는 무료야?,무료 콘텐츠와 유료 상담이 있다. 가격은 결제 화면 기준,worker/lib/paid-feature-registry.js,,,,,,,금액을 단정하면 확인 필요
+Q11,꿀꿀 운세에서 어떤 운세를 볼 수 있어?,사주·만세력·타로·궁합·자미두수·숙요점·베다점·점성술·꿈해몽,lib/seo/brand-copy.mjs systemsScope,,,,,,,
+Q12,출생시간을 모르면 사주를 볼 수 있어?,시주를 빼고 해석한다,/kkul-kkul-unse/ FAQ,,,,,,,
+Q13,결제한 상담 결과는 어디서 다시 봐?,나의 기록(/records/)과 영냥이 보관함(/yeongnyangi/library/),/kkul-kkul-unse/ FAQ,,,,,,,
+Q14,꿀꿀 운세 환불이나 문의는 어떻게 해?,/contact · /refund-policy · admin@code-destiny.com,BUSINESS_IDENTITY,,,,,,,
+Q15,꿀꿀 운세 공식 SNS는?,YouTube @CodeDestiny_Official · Threads/Instagram codedestiny_official · 네이버 블로그 neosaju · X sajuseongj97497,brand-facts sameAs,,,,,,,카카오 채널은 확인 필요 항목
+Q16,운세보는 영냥이는 어디서 해?,https://code-destiny.com/yeongnyangi/ (꿀꿀 운세의 사주보는 고양이 상담),brand-facts characters.yeongnyangi,,,,,,,2026-10-16 대표 이름 추가

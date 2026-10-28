@@ -68,8 +68,13 @@ async function verifyStaticMobileJourney() {
         deviceScaleFactor: 2,
         userAgent: mobileUserAgent,
       });
+      await context.route('**/*', (route) => new URL(route.request().url()).origin === origin
+        ? route.continue() : route.abort());
       const page = await context.newPage();
       await page.goto(origin, { waitUntil: "domcontentloaded" });
+      // Wait for the real startup veil to clear before beginning a journey.
+      // DOM clicks otherwise bypass it and race startup scroll-lock cleanup.
+      await page.locator('.cd-boot-gate__veil').waitFor({ state: 'hidden', timeout: 15000 });
       // The static backstack runtime is loaded on the first mobile action, not
       // eagerly at boot. Dispatch its real click handler rather than injecting
       // the script; the launcher can be inside a collapsed collection at load.
@@ -80,7 +85,18 @@ async function verifyStaticMobileJourney() {
         return true;
       });
       check(dispatched, `${viewport.width}px: tarot mobile launcher is missing`);
-      await page.waitForFunction(() => Boolean(window.__cdMobileNav), undefined, { timeout: 15000 });
+      await page.waitForFunction(() => Boolean(window.__cdMobileNav), undefined, { timeout: 15000 }).catch(async (error) => {
+        const state = await page.evaluate(() => ({ url: location.href, bridge: window.__cdMobileTouchBridgeReady,
+          title: document.title, bodyOverflow: document.body.style.overflow }));
+        throw new Error(`${viewport.width}px: mobile backstack not ready ${JSON.stringify(state)}: ${error.message}`);
+      });
+      // The backstack API can be ready before the deferred open action runs.
+      // Start the return journey only once the feature is actually open and
+      // owns the scroll lock; otherwise a pending opener can run after Back.
+      await page.locator('#tarotModalOverlay').waitFor({ state: 'visible', timeout: 15000 });
+      await page.waitForFunction(() => document.body.style.overflow === 'hidden', undefined, { timeout: 15000 }).catch(async (error) => {
+        throw new Error(`${viewport.width}px: tarot scroll lock missing: ${error.message}`);
+      });
 
       const layout = await page.evaluate(() => {
         const nav = document.querySelector("#cdMobileBottomNav");

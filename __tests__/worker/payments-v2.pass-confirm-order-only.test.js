@@ -140,7 +140,7 @@ describe("이용권 confirm — 주문번호 단독", () => {
     // 🔴 클라이언트가 등급을 못 실었다고 free 로 떨어지면 안 된다 — 주문이 정본이다.
     expect(payload.subscription).toMatchObject({ tier: "premium", source: "pass", isActive: true });
     const expiresInDays = Math.round((new Date(payload.subscription.expiresAt).getTime() - Date.now()) / DAY_MS);
-    expect(expiresInDays).toBe(30);
+    expect(expiresInDays).toBeGreaterThan(3650); // 2026-10-11 기간 없음
     expect(user.profileSubscription.tier).toBe("premium");
     expect(user.profileSubscription.lastPassOrderId).toBe(order.merchantUid);
     const paidOrder = db.rows.find((r) => r.merchantUid === order.merchantUid);

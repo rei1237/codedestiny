@@ -679,7 +679,14 @@ await check("10분 크론·관리자 수동 실행·두 wrangler [vars]", async 
   const prod = read("worker/wrangler.toml");
   const staging = read("worker/wrangler.staging.toml");
   assert.deepEqual(prod, staging, "두 wrangler [vars] 값이 다르다");
-  assert.equal(prod.SNS_THREADS_POST_ENABLED, "split", "프로덕션 설정이 분할 발행으로 안 켜졌다");
+  assert.equal(prod.SNS_THREADS_POST_ENABLED, "0", "WordPress 집중 운영 중 Threads 발행은 꺼져 있어야 한다");
+  for (const config of [prod, staging]) {
+    const { options, counters, fetch } = harness();
+    const result = await runJobs({ ...BASE_ENV, ...config }, { ...options, force: true, now: SEP17(8, 30) });
+    assert.equal(result.skipped, "split_disabled");
+    assert.equal(counters.connect, 0, "꺼진 채널은 수동 실행에서도 DB에 연결하지 않는다");
+    assert.equal(fetch.posted.length, 0, "꺼진 채널은 수동 실행에서도 발행하지 않는다");
+  }
   for (const key of vars.slice(1)) assert.equal(prod[key], undefined, `${key} 가 [vars] 에 들어갔다 — 바인딩 예산 초과`);
   assert.deepEqual(jobs.THREADS_DAILY_JOBS.map((job) => job.defaultTime), ["08:30", "12:00", "20:30", "14:00", "16:00", "18:00"]);
   // 2026-10-02: 자미·베다·수비학은 코드 기본 꺼짐 — 켜는 var 는 [vars] 에 없고(위 루프) 필요할 때만 넣는다.

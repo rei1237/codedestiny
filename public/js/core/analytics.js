@@ -39,9 +39,14 @@
   }
 
   // 형식이 깨진 오버라이드가 배포되는 사고를 막는다 — 실제 ID 는 항상 "G-" 로 시작한다.
-  if (!/^G-[A-Z0-9]+$/i.test(measurementId)) {
+  // Preview/staging/localhost must never fall back to the production property.
+  // A separately configured, distinct test property is still supported.
+  var productionOrigin = global.location.origin === "https://code-destiny.com";
+  var blockedProductionProperty = !productionOrigin && measurementId.toUpperCase() === DEFAULT_MEASUREMENT_ID;
+  if (!/^G-[A-Z0-9]+$/i.test(measurementId) || blockedProductionProperty) {
     global.cdTrack = noop;
     global.cdSyncConsent = noop;
+    global.cdTrackConfirmedPurchase = function () { return false; };
     if (global.cdAnalyticsReady) global.cdAnalyticsReady();
     return;
   }
@@ -163,12 +168,23 @@
       var key = 'cd:growth:campaign';
       if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); return null; }
       var allowed = /^(threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1)$/;
+      // growth-20261012-v2: 4주 캠페인(블로그·YouTube·TikTok·X). 원고 ID(B01_ko)는 공개 코드라 함께 둔다.
+      var allowedV2 = /^growth_(20261012_(naver_blog|youtube|tiktok|x)|20261021_(naver_blog|youtube))$/;
+      var contentV2 = /^(W[0-9]{2}-)?[A-Z][A-Z0-9-]{1,10}_(ko|en|ja)$/;
       var query = new URLSearchParams(global.location.search);
       var campaign = query.get('utm_source') === 'threads' && /^(social|organic_social)$/.test(query.get('utm_medium') || '') ? query.get('utm_campaign') : '';
+      var campaignV2 = /^(growth_20261012|growth_20261021)$/.test(query.get('utm_campaign') || '') && query.get('utm_medium') === 'social' ? query.get('utm_campaign') + '_' + (query.get('utm_source') || '') : '';
       if (allowed.test(campaign || '')) global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaign,until:Date.now()+1800000}));
+      else if (allowedV2.test(campaignV2)) {
+        var content = query.get('utm_content') || '';
+        global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaignV2,content:contentV2.test(content) ? content : '',until:Date.now()+1800000}));
+      }
       var saved = JSON.parse(global.sessionStorage.getItem(key) || 'null');
-      if (!saved || saved.until <= Date.now() || !allowed.test(saved.campaignId)) { global.sessionStorage.removeItem(key); return null; }
-      return {campaignId:saved.campaignId,consent:true,version:'growth-20260929-v1',device:global.innerWidth < 768 ? 'mobile' : 'desktop'};
+      var v2 = saved && allowedV2.test(saved.campaignId);
+      if (!saved || saved.until <= Date.now() || !(v2 || allowed.test(saved.campaignId))) { global.sessionStorage.removeItem(key); return null; }
+      var device = global.innerWidth < 768 ? 'mobile' : 'desktop';
+      if (v2) return contentV2.test(saved.content || '') ? {campaignId:saved.campaignId,consent:true,version:'growth-20261012-v2',device:device,content:saved.content} : {campaignId:saved.campaignId,consent:true,version:'growth-20261012-v2',device:device};
+      return {campaignId:saved.campaignId,consent:true,version:'growth-20260929-v1',device:device};
     } catch (_) { return null; }
   }
   global.cdReadGrowthAttribution = growthAttribution;
@@ -350,6 +366,28 @@
     }
   };
 
+  // Search-entry CTA values are public catalogue values, never link queries or input text.
+  var SEARCH_CTA_ROUTES = ["/", "/ggulggul/", "/yeongnyangi/", "/yeongnyangi/1000-won-fortune/", "/saju/", "/manse/", "/tarot/", "/tarot/reunion/", "/tarot/mindscan/", "/tarot/love/", "/ziwei/", "/sukuyo/", "/sukuyo/compatibility/", "/vedic/", "/astrology/", "/naming-ai/", "/fortune/", "/fortune/today/", "/fortune/tomorrow/", "/fortune/tomorrow/rat/", "/fortune/weekly/", "/fortune/monthly/", "/today/", "/compatibility/", "/love/", "/fortune-tea-house/", "/neo-operation-room/"];
+  var SEARCH_CTA_SERVICES = ["ggulggul", "yeongnyangi", "saju", "manse", "tarot", "ziwei", "sukuyo", "vedic", "astrology", "naming", "zodiac", "today", "compatibility", "tea", "neo", "love"];
+  SEARCH_CTA_ROUTES.push("/ziwei/chart/", "/ziwei/animal-destiny/", "/saju/guide/", "/saju/compatibility/", "/saju/monthly/2026-09/", "/tarot/guide/", "/ziwei/guide/", "/sukuyo/guide/", "/vedic/guide/", "/vedic-ai/", "/astrology/guide/", "/astrology-ai/");
+  function isSearchCtaRoute(path) {
+    return SEARCH_CTA_ROUTES.indexOf(path) >= 0
+      || /^\/fortune\/(?:today|tomorrow|weekly|monthly)\/(?:aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces|rat|ox|tiger|rabbit|dragon|snake|horse|goat|monkey|rooster|dog|pig)\/$/.test(path);
+  }
+  function searchCtaPayload(anchor, container) {
+    var placement = anchor.getAttribute("data-cd-cta-placement") || "";
+    var service = anchor.getAttribute("data-cd-target-service") || "";
+    var source = String(container.getAttribute("data-cd-cross-sell") || "");
+    if (source !== "/") source = source.replace(/\/$/, "") + "/";
+    var destination = new URL(anchor.getAttribute("href"), global.location.href);
+    var target = destination.pathname.replace(/\/$/, "") + "/";
+    if (destination.origin !== global.location.origin
+      || !isSearchCtaRoute(source) || !isSearchCtaRoute(target)
+      || ["primary", "related", "directory", "next_step"].indexOf(placement) < 0
+      || SEARCH_CTA_SERVICES.indexOf(service) < 0) return null;
+    return { from_service: source, to_service: target, placement: placement, target_service: service };
+  }
+
   /**
    * 앵커 클릭 위임 — 크로스셀과 홈 섹션 귀속을 한 리스너에서 받는다.
    *
@@ -389,10 +427,12 @@
     try {
       var container = anchor.closest("[data-cd-cross-sell]");
       if (container) {
-        global.cdTrack("cross_sell_click", {
+        var classifiedCta = anchor.hasAttribute("data-cd-cta-placement") || anchor.hasAttribute("data-cd-target-service");
+        var crossSellPayload = classifiedCta ? searchCtaPayload(anchor, container) : {
           from_service: String(container.getAttribute("data-cd-cross-sell") || ""),
           to_service: new URL(anchor.getAttribute("href"), global.location.href).pathname
-        });
+        };
+        if (crossSellPayload) global.cdTrack("cross_sell_click", crossSellPayload);
       }
     } catch (_crossSellError) {
       /* 계측 실패는 무시한다 */

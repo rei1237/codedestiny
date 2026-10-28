@@ -1,0 +1,158 @@
+{
+  "id": "astro-question-consultation",
+  "featureKey": "astrology_ai_prompt_generator",
+  "title": "점성술 질문 AI 상담",
+  "notice": "기본 점성술 결과에서 질문을 입력해 AI 상담문을 받는 기능입니다. 열 부분의 상담 본문과 상담에 사용된 질문문을 함께 살펴볼 수 있습니다. 기본 결과와 5~1000자의 질문이 필요합니다. 궁합 데이터가 있을 때만 해당 두 사람의 근거를 사용합니다. 다른 전문가 상담·차트 패키지·트랜짓 해금은 별도입니다. 상담 내용은 질문과 계산 근거에 따라 달라집니다. 예시는 가상 편집입니다. 가격과 결제 조건은 현재 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-question-inside-your-chart",
+      "title": "차트는 읽었는데, 내 고민은 아직 남았다면.",
+      "alt": "차트는 읽었는데, 내 고민은 아직 남았다면.",
+      "src": "/feature-details/crafted/astro-question-consultation/01-a-question-inside-your-chart.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "차트는 읽었는데,\n내 고민은 아직 남았다면.\n\n지금 궁금한 장면 하나를 적고,\n내 점성술 결과와 연결해 상담받아요.\n\n기본 점성술 결과 안의 질문 AI 상담",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-question-consultation/01-a-question-inside-your-chart-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-turn-a-worry-into-a-question",
+      "title": "막연한 운보다, 지금의 고민을 적어주세요.",
+      "alt": "막연한 운보다, 지금의 고민을 적어주세요.",
+      "src": "/feature-details/crafted/astro-question-consultation/02-turn-a-worry-into-a-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "막연한 운보다,\n지금의 고민을 적어주세요.\n지금의 상황\n\n어떤 일이 이어지고 있나요?\n\n마음이 갈리는 선택\n\n어느 지점에서 망설이고 있나요?\n\n알고 싶은 기준\n\n무엇을 확인하면 결정에 도움이 될까요?\n\n기본 점성술 결과와 질문이 필요해요.\n질문은 5자 이상 1000자 이하로 입력해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-question-consultation/02-turn-a-worry-into-a-question-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-the-chart-becomes-evidence",
+      "title": "상담의 출발점은, 이미 계산된 내 차트예요.",
+      "alt": "상담의 출발점은, 이미 계산된 내 차트예요.",
+      "src": "/feature-details/crafted/astro-question-consultation/03-the-chart-becomes-evidence.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "상담의 출발점은,\n이미 계산된 내 차트예요.\n성향의 중심\n\n태양·달·상승궁 등 확인되는 근거\n\n생활 속 선택\n\n행성 배치와 관계를 질문에 연결\n\n해석의 경계\n\n없는 근거는 새로 계산했다고\n가정하지 않고 제한을 살펴요.\n\n시기와 하우스의 해석 범위는\n출생정보와 제공된 계산 근거에 달려요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-question-consultation/03-the-chart-becomes-evidence-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-the-first-three-parts",
+      "title": "질문을 다시 짚고, 나의 반복을 살펴요.",
+      "alt": "질문을 다시 짚고, 나의 반복을 살펴요.",
+      "src": "/feature-details/crafted/astro-question-consultation/04-the-first-three-parts.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문을 다시 짚고,\n나의 반복을 살펴요.\n01 · 질문의 핵심과 한 줄 답변\n\n지금 묻는 말의 중심\n\n02 · 타고난 기질과 반복되는 선택\n\n비슷한 장면에서 보이는 패턴\n\n03 · 현재 흐름을 보여 주는 근거\n\n판단에 사용한 계산 자료\n\n상담 본문의 첫 세 부분을 안내해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-question-consultation/04-the-first-three-parts-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-your-resources-and-conditions",
+      "title": "쓸 수 있는 강점과, 확인할 조건을 나눠요.",
+      "alt": "쓸 수 있는 강점과, 확인할 조건을 나눠요.",
+      "src": "/feature-details/crafted/astro-question-consultation/05-your-resources-and-conditions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "쓸 수 있는 강점과,\n확인할 조건을 나눠요.\n04 · 강점과 활용할 자원\n\n이미 가진 힘을 쓰는 방식\n\n05 · 관계에서 드러나는 패턴\n\n사람 사이에서 반복되는 모습\n\n06 · 일과 재물에서 확인할 조건\n\n현실의 선택에 필요한 기준\n\n질문에 따라 각 부분의 강조점은 달라져요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-question-consultation/05-your-resources-and-conditions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-from-caution-to-action",
+      "title": "반대 가능성까지 보고, 행동으로 마무리해요.",
+      "alt": "반대 가능성까지 보고, 행동으로 마무리해요.",
+      "src": "/feature-details/crafted/astro-question-consultation/06-from-caution-to-action.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "반대 가능성까지 보고,\n행동으로 마무리해요.\n07–08 · 해석의 경계\n\n주의할 약점과 반대 가능성\n가까운 변화와 시기 해석의 한계\n\n09–10 · 다음 선택\n\n현실적인 행동 계획\n종합 판단과 마지막 메시지\n\n한쪽 결론에만 기대기보다\n다르게 볼 조건도 함께 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-question-consultation/06-from-caution-to-action-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-when-the-question-is-about-us",
+      "title": "내 연애 성향과, 우리의 궁합은 구분해요.",
+      "alt": "내 연애 성향과, 우리의 궁합은 구분해요.",
+      "src": "/feature-details/crafted/astro-question-consultation/07-when-the-question-is-about-us.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 연애 성향과,\n우리의 궁합은 구분해요.\n내 차트만 있다면\n\n나의 애정 욕구와 관계 패턴을 읽어요.\n\n실제 궁합 자료가 있다면\n\n제공된 두 사람의 근거를\n질문에 연결해 살펴요.\n\n상대 자료 없이 속마음을 단정하거나\n두 사람 궁합을 계산한 것처럼 쓰지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-question-consultation/07-when-the-question-is-about-us-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-answer-and-question-text",
+      "title": "읽을 상담문과, 다시 살펴볼 질문문을.",
+      "alt": "읽을 상담문과, 다시 살펴볼 질문문을.",
+      "src": "/feature-details/crafted/astro-question-consultation/08-answer-and-question-text.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "읽을 상담문과,\n다시 살펴볼 질문문을.\nAI 상담 본문\n\n열 부분의 내용을 화면에서 읽어요.\n\n이 상담에 쓰인 질문문\n\n함께 표시된 질문문을 펼쳐보고\n복사할 수 있어요.\n\n다른 AI에서의 사용은 별도 서비스예요.\n그쪽의 답변·비용까지 포함되지는 않아요.\n복사한 질문문은 따로 보관할 수 있어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-question-consultation/08-answer-and-question-text-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-fictional-work-question",
+      "title": "남을지 옮길지보다, 무엇이 반복되는지부터.",
+      "alt": "남을지 옮길지보다, 무엇이 반복되는지부터.",
+      "src": "/feature-details/crafted/astro-question-consultation/09-fictional-work-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "남을지 옮길지보다,\n무엇이 반복되는지부터.\n\n가상 편집 예시 · 실제 AI 결과가 아닙니다\n\n“새로운 곳을 원하지만,\n역할이 불분명할 때마다\n같은 피로를 느끼는지도 살펴보세요.\n이번 선택에서는 회사 이름보다\n결정할 수 있는 범위와\n도움을 요청할 구조를 먼저 비교해보세요.”",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-question-consultation/09-fictional-work-question-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-start-with-one-scene",
+      "title": "한 가지 장면에서, 나만의 질문을 시작해요.",
+      "alt": "한 가지 장면에서, 나만의 질문을 시작해요.",
+      "src": "/feature-details/crafted/astro-question-consultation/10-start-with-one-scene.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 가지 장면에서,\n나만의 질문을 시작해요.\n\n기본 차트와 현재 상황을 확인하고,\n가장 궁금한 선택 하나를 적어주세요.\n\n다른 전문가 상담·개별 해금은 별도예요.\n새 상담 요청의 결제 조건은\n현재 화면에서 확인해 주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-question-consultation/10-start-with-one-scene-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

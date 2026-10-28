@@ -1,0 +1,545 @@
+{
+  "totalPeople": 227,
+  "profileArticles": 66,
+  "indexableDetails": 75,
+  "legacyReviewedArticles": 9,
+  "profileDrafts": 2,
+  "duplicateSlugs": 0,
+  "confirmedBirthTimes": 0,
+  "sameDayCandidateComparisons": 39,
+  "approval": {
+    "name": "박병하(네오)",
+    "date": "2026-10-15",
+    "scope": "사용자 직접 공개 승인. AI 작성·편집 점검과 출생 기록의 확정은 구분한다."
+  },
+  "results": [
+    {
+      "slug": "park-wi",
+      "dayCandidate": "신유",
+      "monthCandidate": "계묘",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 449,
+      "manuscriptSha256": "8ad92539298130d3757f6c06b2c2965a5c768617f932d7cb72891f4bf6c12cc3"
+    },
+    {
+      "slug": "chimchakman",
+      "dayCandidate": "정묘",
+      "monthCandidate": "계해",
+      "comparisonSlug": "haetnim",
+      "uniqueCommentaryCharacters": 458,
+      "manuscriptSha256": "6cd890ae6cbc99dbe528c9a05404c948fdf5865344540b6410951a8e313b861f"
+    },
+    {
+      "slug": "kian84",
+      "dayCandidate": "기축",
+      "monthCandidate": "갑술",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 474,
+      "manuscriptSha256": "632f890252b3c7b3216b9c8971c917e2561216d442580127e6d652f959093f23"
+    },
+    {
+      "slug": "pani-bottle",
+      "dayCandidate": "무신",
+      "monthCandidate": "경술",
+      "comparisonSlug": "kwaktube",
+      "uniqueCommentaryCharacters": 450,
+      "manuscriptSha256": "988d882b14039b065b82cce941a2c3b4c9ae87ed27e8c1ede48c194c6b455a52"
+    },
+    {
+      "slug": "kwaktube",
+      "dayCandidate": "무신",
+      "monthCandidate": "신축",
+      "comparisonSlug": "pani-bottle",
+      "uniqueCommentaryCharacters": 455,
+      "manuscriptSha256": "88484744b4aca951767ef39c9bd757b7065a107e3beac5786cec90f8082a3cd4"
+    },
+    {
+      "slug": "dex",
+      "dayCandidate": "신미",
+      "monthCandidate": "임오",
+      "comparisonSlug": "lee-su-ji",
+      "uniqueCommentaryCharacters": 454,
+      "manuscriptSha256": "53efee31f6e96cc57318e6c3c46bba5d9224442c6db9bd0f5b1f2c942f9a32e8"
+    },
+    {
+      "slug": "tzuyang",
+      "dayCandidate": "정유",
+      "monthCandidate": "갑진",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 455,
+      "manuscriptSha256": "0d8b25a963b739623e34e9852506dd99bfd5f212ed23131d68d6215cebfd002c"
+    },
+    {
+      "slug": "heebab",
+      "dayCandidate": "경신",
+      "monthCandidate": "계사",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 461,
+      "manuscriptSha256": "c882325ac62351926259b61ea118fd93d02928c7591a5e865d8817c32d5faaab"
+    },
+    {
+      "slug": "haetnim",
+      "dayCandidate": "정묘",
+      "monthCandidate": "병신",
+      "comparisonSlug": "chimchakman",
+      "uniqueCommentaryCharacters": 436,
+      "manuscriptSha256": "e35f8e8568c6b8adef3393f509f590817e13285c02834c57f5df90558d64e1f3"
+    },
+    {
+      "slug": "bokyem",
+      "dayCandidate": "을유",
+      "monthCandidate": "계축",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 462,
+      "manuscriptSha256": "4dd290062b8a3d55c6282143e86722b83e78c69aecab84fa6b02034c59719142"
+    },
+    {
+      "slug": "joo-woo-jae",
+      "dayCandidate": "병자",
+      "monthCandidate": "기해",
+      "comparisonSlug": "choo-sung-hoon",
+      "uniqueCommentaryCharacters": 442,
+      "manuscriptSha256": "b71dc03bb1453c5953d8acb072d17a7f6a9b0babfb994b97c3d17d9af83b282e"
+    },
+    {
+      "slug": "yoo-jae-suk",
+      "dayCandidate": "정축",
+      "monthCandidate": "무신",
+      "comparisonSlug": "kim-yoo-jung",
+      "uniqueCommentaryCharacters": 470,
+      "manuscriptSha256": "1120f8d1ab58f1774956375f6f6396ec92be62cedc10b01b9027c79e766d9185"
+    },
+    {
+      "slug": "kang-ho-dong",
+      "dayCandidate": "임술",
+      "monthCandidate": "임오",
+      "comparisonSlug": "hwang-hee-chan",
+      "uniqueCommentaryCharacters": 441,
+      "manuscriptSha256": "095c98db90616216e41a1c132406b93aa09bf7bfcb34132c29066c6eaedff715"
+    },
+    {
+      "slug": "shin-dong-yup",
+      "dayCandidate": "계유",
+      "monthCandidate": "경인",
+      "comparisonSlug": "taeyang",
+      "uniqueCommentaryCharacters": 432,
+      "manuscriptSha256": "bacd0c57adf4d8182aa675e998ae27a7c64ea4c06c943ecbe8833fcabd30e8ae"
+    },
+    {
+      "slug": "jeon-hyun-moo",
+      "dayCandidate": "무진",
+      "monthCandidate": "경술",
+      "comparisonSlug": "seventeen-jeonghan",
+      "uniqueCommentaryCharacters": 430,
+      "manuscriptSha256": "a95e93dcabc315af260ebbd46988aeac1af39ce148afc004ea5466cf70b0db11"
+    },
+    {
+      "slug": "lee-su-ji",
+      "dayCandidate": "신미",
+      "monthCandidate": "기묘",
+      "comparisonSlug": "dex",
+      "uniqueCommentaryCharacters": 437,
+      "manuscriptSha256": "b0d00980ff9384d3e5e2eec6a57d930a19b20312ac9a78975008b30288686b69"
+    },
+    {
+      "slug": "jang-do-yeon",
+      "dayCandidate": "무신",
+      "monthCandidate": "기묘",
+      "comparisonSlug": "pani-bottle",
+      "uniqueCommentaryCharacters": 440,
+      "manuscriptSha256": "e7cdc52bcf1b1841e2e021cabad216861df19f8c3fdb82f204dad14ee394eded"
+    },
+    {
+      "slug": "lee-eun-ji",
+      "dayCandidate": "신묘",
+      "monthCandidate": "신축",
+      "comparisonSlug": "seventeen-dk",
+      "uniqueCommentaryCharacters": 428,
+      "manuscriptSha256": "7be12c1dfabddcf42f7076c920e0a992f72f6087fd986e9a1065ff2588c4d796"
+    },
+    {
+      "slug": "choo-sung-hoon",
+      "dayCandidate": "병자",
+      "monthCandidate": "계미",
+      "comparisonSlug": "joo-woo-jae",
+      "uniqueCommentaryCharacters": 445,
+      "manuscriptSha256": "e4bd7be7af3a890a882165747caa94331c9a0a702436abeefe480f875e5e9780"
+    },
+    {
+      "slug": "paik-jong-won",
+      "dayCandidate": "병인",
+      "monthCandidate": "병신",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 438,
+      "manuscriptSha256": "5191e6747ce331b6249c861c5cdc2c83165e2fb1f97bbc3c7a2ca7abc8fb7cc7"
+    },
+    {
+      "slug": "ahn-sung-jae",
+      "dayCandidate": "신축",
+      "monthCandidate": "신축",
+      "comparisonSlug": "young-tak",
+      "uniqueCommentaryCharacters": 446,
+      "manuscriptSha256": "09ffe6a193da8e688d6cc4b383486e165fe724b002583428bff5b8c3c9074d65"
+    },
+    {
+      "slug": "choi-hyun-seok",
+      "dayCandidate": "무술",
+      "monthCandidate": "병오",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 431,
+      "manuscriptSha256": "c2126f955e0dc6073ee3ec91f811dabb83fda58dcc0a71dc6bcae151a45e35c0"
+    },
+    {
+      "slug": "kim-hye-yoon",
+      "dayCandidate": "신해",
+      "monthCandidate": "기해",
+      "comparisonSlug": "kim-yeon-koung",
+      "uniqueCommentaryCharacters": 425,
+      "manuscriptSha256": "f36a113ad28a8f39c161571444668b1c17523dc042293751753cc38080eceab6"
+    },
+    {
+      "slug": "kim-seon-ho",
+      "dayCandidate": "임자",
+      "monthCandidate": "계사",
+      "comparisonSlug": "jeong-dong-won",
+      "uniqueCommentaryCharacters": 415,
+      "manuscriptSha256": "e84677426ab5783ff6a492a88abb5c1ff817a015615da2ba8603ce069b0d5b32"
+    },
+    {
+      "slug": "jung-hae-in",
+      "dayCandidate": "병술",
+      "monthCandidate": "을묘",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 428,
+      "manuscriptSha256": "08adfccda7de58df24af0b41109ccee71fdca8a79c7f60209988030264a28852"
+    },
+    {
+      "slug": "park-seo-joon",
+      "dayCandidate": "을사",
+      "monthCandidate": "갑자",
+      "comparisonSlug": "g-dragon",
+      "uniqueCommentaryCharacters": 435,
+      "manuscriptSha256": "35fc86e64616ed0b268c5e2fab4874f6c9fbf6c4cb85ef46be872b42922c6484"
+    },
+    {
+      "slug": "cha-eun-woo",
+      "dayCandidate": "신미",
+      "monthCandidate": "계묘",
+      "comparisonSlug": "dex",
+      "uniqueCommentaryCharacters": 411,
+      "manuscriptSha256": "fe875b5d6af849fb60c5ec4a0a7d2d51c49c8aa0285ba7737ec5a922aee4b5f7"
+    },
+    {
+      "slug": "han-so-hee",
+      "dayCandidate": "계묘",
+      "monthCandidate": "계해",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 440,
+      "manuscriptSha256": "09577df9a6b196914721fdd928c1e9a2c46cc3fc5301a0102245460b1031d29f"
+    },
+    {
+      "slug": "bae-suzy",
+      "dayCandidate": "기사",
+      "monthCandidate": "갑술",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 442,
+      "manuscriptSha256": "a8519b4346075eaa980c49277553060eb02fe47eaee09d7dc6fcc6d3143f280a"
+    },
+    {
+      "slug": "park-eun-bin",
+      "dayCandidate": "계미",
+      "monthCandidate": "무신",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 434,
+      "manuscriptSha256": "948afcf9f87aab02e1fc825a97a90130f96fb2b6c9ef34ec741e71d2dd3f4e30"
+    },
+    {
+      "slug": "shin-ye-eun",
+      "dayCandidate": "을축",
+      "monthCandidate": "계축",
+      "comparisonSlug": "chovy",
+      "uniqueCommentaryCharacters": 403,
+      "manuscriptSha256": "322003d8ccc9c9e43977b579b15e2e20d50c154a2647134203d88be0ecb852c2"
+    },
+    {
+      "slug": "lee-jun-ho",
+      "dayCandidate": "경인",
+      "monthCandidate": "정축",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 403,
+      "manuscriptSha256": "fb2e85fab5ea5ac5cc6d4a022e201be27a19de1fb23c8c4138d5ea44d6a38eaa"
+    },
+    {
+      "slug": "lim-young-woong",
+      "dayCandidate": "정사",
+      "monthCandidate": "갑오",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 426,
+      "manuscriptSha256": "4ec5e6cdc781885a94355ee465b57b322f097a66890a8c2d20c5cc12d5311470"
+    },
+    {
+      "slug": "young-tak",
+      "dayCandidate": "신축",
+      "monthCandidate": "정사",
+      "comparisonSlug": "ahn-sung-jae",
+      "uniqueCommentaryCharacters": 427,
+      "manuscriptSha256": "340dcd7725a35f318a8456d6147b210f3f97bc516930e0e3260deacf795ad7a6"
+    },
+    {
+      "slug": "lee-chan-won",
+      "dayCandidate": "임인",
+      "monthCandidate": "무술",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 415,
+      "manuscriptSha256": "f9b96ba171a78571e109b345af81181e7e01f810d813cb65cf2a2bc930498f1b"
+    },
+    {
+      "slug": "g-dragon",
+      "dayCandidate": "을사",
+      "monthCandidate": "경신",
+      "comparisonSlug": "park-seo-joon",
+      "uniqueCommentaryCharacters": 427,
+      "manuscriptSha256": "312aa9d0bb90dba8c95b16da8339c3994597ca8b80c7398327103e5c9b399fa3"
+    },
+    {
+      "slug": "taeyang",
+      "dayCandidate": "계유",
+      "monthCandidate": "정사",
+      "comparisonSlug": "shin-dong-yup",
+      "uniqueCommentaryCharacters": 426,
+      "manuscriptSha256": "ec75a4ca08b6a4180494a8e0b9598ac7a6f424165682abc04fec5293ec6db432"
+    },
+    {
+      "slug": "song-ji-eun",
+      "dayCandidate": "경오",
+      "monthCandidate": "경진",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 426,
+      "manuscriptSha256": "8c364bf498bf27033819ec302f95c8decf7a39e92c2bf701a4fb4cd1203f09d3"
+    },
+    {
+      "slug": "jeong-dong-won",
+      "dayCandidate": "임자",
+      "monthCandidate": "계묘",
+      "comparisonSlug": "kim-seon-ho",
+      "uniqueCommentaryCharacters": 418,
+      "manuscriptSha256": "23709ae38569225ed959ab5962b13ce3edce7397fa5d93160ed119aece0e8f64"
+    },
+    {
+      "slug": "kim-yeon-koung",
+      "dayCandidate": "신해",
+      "monthCandidate": "갑인",
+      "comparisonSlug": "kim-hye-yoon",
+      "uniqueCommentaryCharacters": 423,
+      "manuscriptSha256": "e87246e2f7a022000827b042de9c1e367a06caf51f0b0a50ac1cd9cf92242970"
+    },
+    {
+      "slug": "lee-jung-hoo",
+      "dayCandidate": "기해",
+      "monthCandidate": "경신",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 447,
+      "manuscriptSha256": "13e849119ed36d9a36b1220b8356d8aa0509c7b2401b14a81adcb4ebd28c21ad"
+    },
+    {
+      "slug": "lee-kang-in",
+      "dayCandidate": "계축",
+      "monthCandidate": "경인",
+      "comparisonSlug": "seventeen-the8",
+      "uniqueCommentaryCharacters": 410,
+      "manuscriptSha256": "901cddd68a53a02a3ba0ee50920adda9ca0a67c8a895fecdde633ad450f7823b"
+    },
+    {
+      "slug": "kim-min-jae",
+      "dayCandidate": "병진",
+      "monthCandidate": "기해",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 411,
+      "manuscriptSha256": "96ebd796e692e4dacf502530b867879320b4fd829778037d24e464470fdeab66"
+    },
+    {
+      "slug": "hwang-hee-chan",
+      "dayCandidate": "임술",
+      "monthCandidate": "기축",
+      "comparisonSlug": "kang-ho-dong",
+      "uniqueCommentaryCharacters": 413,
+      "manuscriptSha256": "6822161fa697b51b624e4fefe0a3a858ca93086b5b05c75c63fd37d835f8e491"
+    },
+    {
+      "slug": "faker",
+      "dayCandidate": "갑진",
+      "monthCandidate": "계사",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 429,
+      "manuscriptSha256": "ccabdc96cc2808fd951b3dac2ac3bf0e407357b6f608e1b3f2bc9b2d3d01ef45"
+    },
+    {
+      "slug": "chovy",
+      "dayCandidate": "을축",
+      "monthCandidate": "경인",
+      "comparisonSlug": "shin-ye-eun",
+      "uniqueCommentaryCharacters": 430,
+      "manuscriptSha256": "e34dc4738aed618d36e0d15ec05133e60cc3261884dee9b09e0a549dec2c4c03"
+    },
+    {
+      "slug": "seventeen-mingyu",
+      "dayCandidate": "무인",
+      "monthCandidate": "갑진",
+      "comparisonSlug": "seventeen-jun",
+      "uniqueCommentaryCharacters": 314,
+      "manuscriptSha256": "0049707fefa1739522fe299e1c4f629e33ac62c830fade2d1105eede38534d25"
+    },
+    {
+      "slug": "seventeen-seungkwan",
+      "dayCandidate": "계해",
+      "monthCandidate": "계축",
+      "comparisonSlug": "seventeen-woozi",
+      "uniqueCommentaryCharacters": 314,
+      "manuscriptSha256": "8f2d9f972096f094db0498115be2862d5b79afd7b4fa4256aecd73dc2fa6badb"
+    },
+    {
+      "slug": "seventeen-jeonghan",
+      "dayCandidate": "무진",
+      "monthCandidate": "을유",
+      "comparisonSlug": "jeon-hyun-moo",
+      "uniqueCommentaryCharacters": 335,
+      "manuscriptSha256": "7c5fb661ae6509b6fbfb7e44efd62e91489bb6079d291505223e662cd4c90cb0"
+    },
+    {
+      "slug": "seventeen-dk",
+      "dayCandidate": "신묘",
+      "monthCandidate": "임인",
+      "comparisonSlug": "lee-eun-ji",
+      "uniqueCommentaryCharacters": 318,
+      "manuscriptSha256": "03887bdc5b23713dbf3fd0b9d5e76dc14410072b5467cb2f08cb540dbf7d5475"
+    },
+    {
+      "slug": "seventeen-scoups",
+      "dayCandidate": "신미",
+      "monthCandidate": "갑신",
+      "comparisonSlug": "dex",
+      "uniqueCommentaryCharacters": 315,
+      "manuscriptSha256": "c8bb014911088c232e710cdc5ea0710db9d6cfb8404dbfd62786f803a614e4cb"
+    },
+    {
+      "slug": "seventeen-wonwoo",
+      "dayCandidate": "을묘",
+      "monthCandidate": "을미",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 327,
+      "manuscriptSha256": "f0040e788011bb622d8e3d8c7e4f69b0809ce6704614aec5b3490ab2cf207f8d"
+    },
+    {
+      "slug": "seventeen-woozi",
+      "dayCandidate": "계해",
+      "monthCandidate": "기해",
+      "comparisonSlug": "seventeen-seungkwan",
+      "uniqueCommentaryCharacters": 329,
+      "manuscriptSha256": "c7a2cbbdb294fabd6fd619d9c1ca5d87323fe2140f28cb16e0dfdea4f1ee136b"
+    },
+    {
+      "slug": "seventeen-dino",
+      "dayCandidate": "갑오",
+      "monthCandidate": "병인",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 331,
+      "manuscriptSha256": "501870c8cf5c57b5484c1aee4957676fce091ef55dc4eb71d7d1723b027e07b0"
+    },
+    {
+      "slug": "seventeen-joshua",
+      "dayCandidate": "을미",
+      "monthCandidate": "무자",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 326,
+      "manuscriptSha256": "534271e39882559842452d1e79b426010333ed5296bdc2a1992a069491bf4b09"
+    },
+    {
+      "slug": "seventeen-jun",
+      "dayCandidate": "무인",
+      "monthCandidate": "갑오",
+      "comparisonSlug": "seventeen-mingyu",
+      "uniqueCommentaryCharacters": 337,
+      "manuscriptSha256": "3f019814f29ed45ede2f0953aca2df4c9c05dc11935623c4547da6b6efc4164e"
+    },
+    {
+      "slug": "seventeen-the8",
+      "dayCandidate": "계축",
+      "monthCandidate": "경술",
+      "comparisonSlug": "lee-kang-in",
+      "uniqueCommentaryCharacters": 314,
+      "manuscriptSha256": "003b4a0d36674909644cc94b587ced41727ae5532b880501540a82e6f6149f33"
+    },
+    {
+      "slug": "seventeen-vernon",
+      "dayCandidate": "병신",
+      "monthCandidate": "갑인",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 315,
+      "manuscriptSha256": "f885499b9e8631bd424b79d145e2d66087aec817c4111b3be88bb6ab8bc4c7b8"
+    },
+    {
+      "slug": "woodz",
+      "dayCandidate": "갑술",
+      "monthCandidate": "을미",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 347,
+      "manuscriptSha256": "07e688ddc2f6d69cac3bfdf07d825dc8ae6bc0d87ad4f6994ced014d3ee5a248"
+    },
+    {
+      "slug": "song-kang",
+      "dayCandidate": "기묘",
+      "monthCandidate": "무진",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 318,
+      "manuscriptSha256": "d88b5df2311e20f8b34a5941a3bc209d61d3c287e320cb2afb46a6f06542ea64"
+    },
+    {
+      "slug": "ahn-hyo-seop",
+      "dayCandidate": "무인",
+      "monthCandidate": "경진",
+      "comparisonSlug": "seventeen-mingyu",
+      "uniqueCommentaryCharacters": 330,
+      "manuscriptSha256": "1b3b044b5d9b16cdd8a3ed0faaa56bbb11d97a07ba930e247fa071a3c392d77e"
+    },
+    {
+      "slug": "lee-do-hyun",
+      "dayCandidate": "임신",
+      "monthCandidate": "경진",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 309,
+      "manuscriptSha256": "44fc6175dc84a70efec43c990ced7a2def76668724bf3736c3c055915a7ec6d4"
+    },
+    {
+      "slug": "moon-ga-young",
+      "dayCandidate": "무신",
+      "monthCandidate": "을미",
+      "comparisonSlug": "pani-bottle",
+      "uniqueCommentaryCharacters": 320,
+      "manuscriptSha256": "15afe2c2cbee3d6e4ec6516cab4a2d9a43fadd596f39c59ae7e3bf4a3d3443b0"
+    },
+    {
+      "slug": "kim-yoo-jung",
+      "dayCandidate": "정축",
+      "monthCandidate": "계유",
+      "comparisonSlug": "yoo-jae-suk",
+      "uniqueCommentaryCharacters": 319,
+      "manuscriptSha256": "e0b457705f43cd0043d08a3dfebcda63fdde5c78e8fabccd1eaf0647829d2d4b"
+    },
+    {
+      "slug": "kim-so-hyun",
+      "dayCandidate": "정해",
+      "monthCandidate": "기사",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 322,
+      "manuscriptSha256": "30b350d247f9966972025f15a51cba6349884855c0dd62e87492d8685de17d61"
+    },
+    {
+      "slug": "choo-young-woo",
+      "dayCandidate": "무자",
+      "monthCandidate": "기사",
+      "comparisonSlug": null,
+      "uniqueCommentaryCharacters": 323,
+      "manuscriptSha256": "342fdda33d93b7329095642397f714fd7a205f933dba6e893a11dd691c92a1ab"
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "id": "tarot-oracle-horizon",
+  "featureKey": "tarot-prompt-maker-master",
+  "title": "타로 오라클 · 11~14장",
+  "notice": "11~14장 결제 구간의 AI 타로 상담입니다. 현재 12장 인생의 나침반과 14장 행운의 별 배열을 선택할 수 있습니다. 질문·분야·배열·카드·정역방향을 사용하며 생년월일 입력은 없습니다. 두 배열의 실제 자리명을 바탕으로 구성 설명을 편집했습니다. 질문 기준·전체 흐름·모든 자리 해석과 조언·선택된 세 카드 쌍·긴장 조건·주제 심화·주의점·현재/가까운 흐름/분기점·세 행동 관점·마무리를 읽습니다. 카드 수는 관점의 수이며 정확도나 미래를 보장하지 않습니다. 같은 계정의 저장된 상담/같은 브라우저의 읽던 위치/중단된 생성 안내를 확인합니다. PDF와 추가 대화는 제공하지 않습니다. 도식과 문장은 구성 설명 및 가상 예시로 실제 개인 결과나 고객 후기가 아닙니다. 프롬프트 복사·무료 레노먼드와 구분되며 기존 가격과 이용권·월정석·단건 결제 조건을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-wide-question",
+      "title": "앞으로의 방향을 묻고, 시야를 조금 더 넓게.",
+      "src": "/feature-details/crafted/tarot-oracle-horizon/01-a-wide-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "앞으로의 방향을 묻고,\n시야를 조금 더 넓게.\n\n감정과 현실\n\n관계와 행동\n\n그 너머의 방향\n\n11~14장 구간의 타로 오라클 상담.\n여러 관점의 카드를 펼쳐\n지금의 고민과 앞으로의 선택을 연결합니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tarot-oracle-horizon/01-a-wide-question-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-two-large-arrays",
+      "title": "열두 자리의 나침반, 열네 자리의 별.",
+      "src": "/feature-details/crafted/tarot-oracle-horizon/02-two-large-arrays.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "열두 자리의 나침반,\n열네 자리의 별.\n인생의 나침반 · 12장\n\n현재의 흐름에서 감정과 조건,\n관계 변화와 행동 전략까지 살펴봅니다.\n\n행운의 별 · 14장\n\n열두 자리에 장기 방향과 돌파 포인트를\n더해 넓은 관점으로 읽습니다.\n\n현재 제공되는 이 구간의 두 배열입니다.\n이름의 ‘행운’은 성공을 보장한다는\n뜻이 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tarot-oracle-horizon/02-two-large-arrays-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-first-look-inside",
+      "title": "먼저, 지금의 나를 읽는 다섯 자리.",
+      "src": "/feature-details/crafted/tarot-oracle-horizon/03-first-look-inside.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "먼저, 지금의 나를 읽는\n다섯 자리.\n\n현재 흐름질문의 출발점\n\n표면 감정스스로 느끼는 마음\n\n숨은 감정놓치고 있던 내면\n\n장애 요인움직임을 막는 조건\n\n기회 요인활용할 가능성\n\n12·14장 배열에 표시되는 자리명과\n읽는 관점을 풀어 쓴 구성 설명입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tarot-oracle-horizon/03-first-look-inside-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-then-look-outward",
+      "title": "시간과 관계를 지나, 행동으로.",
+      "src": "/feature-details/crafted/tarot-oracle-horizon/04-then-look-outward.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "시간과 관계를 지나,\n행동으로.\n\n가까운 미래 · 중기 흐름\n\n현실 조언 · 주의할 점 · 핵심 메시지\n\n관계 변화 · 행동 전략\n\n14장이라면, 두 자리 더\n\n장기 방향과 돌파 포인트를\n추가로 살펴봅니다.\n\n미래의 시점이나 사건이 확정되는\n예언은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tarot-oracle-horizon/04-then-look-outward-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-a-question-about-direction",
+      "title": "무엇이 될지보다, 무엇을 놓치고 있는지.",
+      "src": "/feature-details/crafted/tarot-oracle-horizon/05-a-question-about-direction.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "무엇이 될지보다,\n무엇을 놓치고 있는지.\n일은 안정됐지만\n이 길을 계속 가도 될지 고민입니다.\n내 감정과 현실 조건,\n관계에서 얻는 도움을 함께 보고\n다음 행동을 정하고 싶습니다.\n\n넓은 배열에 어울리는 가상 질문입니다.\n실제 개인 사례나 고객 후기가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tarot-oracle-horizon/05-a-question-about-direction-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-a-readable-map",
+      "title": "많은 카드를, 하나의 질문으로 엮습니다.",
+      "src": "/feature-details/crafted/tarot-oracle-horizon/06-a-readable-map.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "많은 카드를,\n하나의 질문으로 엮습니다.\n\n질문 기준과 전체 배열의 흐름\n\n선택한 모든 자리의 해석·조언\n\n선택된 세 카드 쌍의 관계\n\n긴장 조건 · 주제 심화 · 주의점\n\n현재와 가까운 흐름, 변화의 신호\n\n세 행동 관점과 마지막 조언\n\nAI가 질문과 카드의 정·역방향을 반영합니다.\n모든 카드 쌍을 별도로 분석하지는 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tarot-oracle-horizon/06-a-readable-map-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-one-action-after-many-cards",
+      "title": "넓게 읽은 다음에는, 작은 선택 하나.",
+      "src": "/feature-details/crafted/tarot-oracle-horizon/07-one-action-after-many-cards.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "넓게 읽은 다음에는,\n작은 선택 하나.\n\n안정이 필요한 부분\n\n＋\n\n작게 바꿔볼 부분\n\n지금의 기반을 모두 버리기보다,\n일주일에 한 번 새로운 활동을 해보고\n내가 실제로 활기를 느끼는지\n관찰하는 것부터.\n\n실천으로 옮기는 방식을 보여주는\n가상 해석 예시입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tarot-oracle-horizon/07-one-action-after-many-cards-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-a-long-reading",
+      "title": "필요한 장을 골라, 나의 속도로 읽으세요.",
+      "src": "/feature-details/crafted/tarot-oracle-horizon/08-a-long-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "필요한 장을 골라,\n나의 속도로 읽으세요.\n목차로 찾기\n\n원하는 장으로 이동하고,\n같은 브라우저의 읽던 위치를 확인합니다.\n\n저장된 상담 불러오기\n\n같은 계정에서 다시 읽을 수 있습니다.\n생성이 중단되면 제공되는 안내에 따라\n저장된 내용을 이어받습니다.\n\nPDF 저장과 추가 대화는 제공하지 않습니다.\n카드 수가 늘어도 정확도나 결과를\n보장하는 것은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tarot-oracle-horizon/08-a-long-reading-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-open-the-horizon",
+      "title": "미래를 단정하기보다, 내 방향을 고를 관점.",
+      "src": "/feature-details/crafted/tarot-oracle-horizon/09-open-the-horizon.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "미래를 단정하기보다,\n내 방향을 고를 관점.\n\n현재를 이해하고\n다음 선택을 준비하기.\n\n질문과 분야, 배열을 고른 뒤\n카드를 선택해 상담을 시작합니다.\n\n생년월일 입력은 없습니다.\n현재 이용권·월정석·단건 결제 조건은\n기존 결제 화면에서 확인합니다.\n레노먼드 프롬프트와는 별도 기능입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/tarot-oracle-horizon/09-open-the-horizon-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

@@ -674,11 +674,11 @@ button,input,select,textarea{font-family:var(--font-body)!important}
   <div class="landing-body">
     <div class="landing-intro">
       <p class="landing-eyebrow">Cosmic Soul Meditation · Quantum Reality Protocol</p>
-      <h1 class="landing-title">무의식 DB에<br><em>성공을 배포</em>하다</h1>
+      <h1 class="landing-title">오늘의 마음에<br><em>방향을 더</em>하다</h1>
       <p class="landing-subtitle">
         R=VD — Realization equals Vivid Dream.<br>
-        세타파(4–7Hz)로 무의식의 문을 열고,<br>
-        원하는 현실을 4K 해상도로 렌더링합니다.
+        선택한 의도에 맞는 화면 문장을 따라<br>
+        원하는 장면과 오늘의 작은 행동을 떠올립니다.
       </p>
     </div>
 
@@ -704,19 +704,19 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div class="intention-grid">
         <button class="intention-btn active" data-intent="wealth" type="button">
           <strong>💰 부의 렌더링</strong>
-          <span>재물·성공 현실화</span>
+          <span>풍요와 선택 떠올리기</span>
         </button>
         <button class="intention-btn" data-intent="clarity" type="button">
           <strong>🔮 정신 명료화</strong>
-          <span>집중·결단력 회복</span>
+          <span>중요한 한 가지에 집중</span>
         </button>
         <button class="intention-btn" data-intent="love" type="button">
           <strong>💜 관계 인력장</strong>
-          <span>인연·사랑 끌어당기기</span>
+          <span>나와 타인을 향한 태도</span>
         </button>
         <button class="intention-btn" data-intent="health" type="button">
-          <strong>🌿 세포 재부팅</strong>
-          <span>건강·에너지 재충전</span>
+          <strong>🌿 휴식의 감각</strong>
+          <span>몸과 생활 리듬 돌아보기</span>
         </button>
       </div>
     </div>
@@ -730,9 +730,9 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 5,000원</div>
         <p class="card-title">효율 동기화 세션<br><em style="font-style:italic;color:var(--nebula);font-family:'Cormorant Garamond',serif">Efficiency Sync Protocol</em></p>
         <p class="card-desc">
-          바쁜 일과 중 강력한 멘탈 튜닝.<br>
+          일과 사이, 마음을 정리하는 시간.<br>
           5단계 [System Reset → Production Deploy]<br>
-          뇌 운영체제를 30분 안에 재시동합니다.
+          준비된 문장으로 30분 실습을 이어갑니다.
         </p>
         <div class="card-phases">
           <div class="card-phase" style="background:#7B2FBE"></div>
@@ -750,9 +750,9 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 10,000원</div>
         <p class="card-title">심층 변형 세션<br><em style="font-style:italic;color:var(--gold);font-family:'Cormorant Garamond',serif">Deep Transformation Protocol</em></p>
         <p class="card-desc">
-          자아 해체 → 양자 얽힘 → 완전한 현실 변형.<br>
-          7단계 풀 프로토콜로 무의식 뿌리부터<br>
-          새로운 현실 코드를 배포합니다.
+          준비와 이완에서 상상, 일상으로의 귀환까지.<br>
+          일곱 단계에 시간을 나누어<br>
+          원하는 장면을 차분히 떠올립니다.
         </p>
         <div class="card-phases">
           <div class="card-phase" style="background:#7B2FBE"></div>
@@ -905,10 +905,10 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 </section>
 
 <!-- ══════════ SCRIPTS ══════════ -->
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
+<script src="/js/core/pass-verdict.js?v=build-1711b2150559"></script>
+<script src="/js/core/checkout-entry.js?v=build-1711b2150559"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-9c92542eb04f"></script>
+<script src="/js/destiny-profile.js?v=build-2d81696a26c1"></script>
 <script>
 (function(){
 'use strict';
@@ -1847,6 +1847,10 @@ if(_musicNext)_musicNext.addEventListener('click',_nextTrack);
 _updateMetaDisplay();
 
 })();
+</script>
+<script type="module">
+import {mountOracleCraftedDetails} from "/js/core/oracle/crafted-details.mjs";
+mountOracleCraftedDetails(document.querySelector(".landing-body"),{target:".intention-panel",id:"cosmic-soul-meditation",title:"코스믹 소울 명상"});
 </script>
 </body>
 </html>

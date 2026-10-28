@@ -752,7 +752,7 @@ function initTranslateLangUI() {
   var hideTimer = null;
   var HIDE_DELAY = 30000; // 30초
   window.__cdTranslateInitAttempts = (window.__cdTranslateInitAttempts || 0) + 1;
-  
+
   // 요소가 없으면 제한적으로 재시도 (무한 루프 방지)
   if (!langBtn || !langCard || !langWrap) {
     if (window.__cdTranslateInitAttempts < 120) {
@@ -760,7 +760,7 @@ function initTranslateLangUI() {
     }
     return;
   }
-  
+
   // 자동 숨김 시작
   function startHideTimer() {
     clearTimeout(hideTimer);
@@ -770,7 +770,7 @@ function initTranslateLangUI() {
       }
     }, HIDE_DELAY);
   }
-  
+
   // 버튼 표시 및 타이머 리셋
   function showTranslateButton() {
     clearTimeout(hideTimer);
@@ -778,21 +778,21 @@ function initTranslateLangUI() {
       langWrap.classList.remove('translate-lang-wrap--hidden');
     }
   }
-  
+
   // 버튼 클릭 시 카드 토글
   langBtn.addEventListener('click', function(e) {
     e.stopPropagation();
     langCard.classList.toggle('active');
     showTranslateButton();
   });
-  
+
   // 바깥 클릭 시 카드 닫기
   document.addEventListener('click', function(e) {
     if (langWrap && !langWrap.contains(e.target)) {
       langCard.classList.remove('active');
     }
   });
-  
+
   // 언어 변경 카드 버튼 핸들러
   // NOTE: Google Translate includedLanguages와 라벨 매핑을 맞춘다.
   var langCodeMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'zh-TW': 'TW', 'vi': 'VI', 'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS' };
@@ -801,18 +801,18 @@ function initTranslateLangUI() {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
-      
+
       var lang = btn.getAttribute('data-lang');
       if (!lang) return;
       cdSaveCurrentLang(lang);
-      
+
       // 활성 상태 업데이트
       Array.prototype.forEach.call(langCodeBtns, function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      
+
       // 버튼 레이블 업데이트
       if (langLabel) langLabel.textContent = langCodeMap[lang] || lang.toUpperCase();
-      
+
       // Google Translate 드롭다운 변경 (로딩 지연/중복 인스턴스 대응)
       cdSetGoogleTranslateLanguage(lang, {
         maxAttempts: 60,
@@ -822,7 +822,7 @@ function initTranslateLangUI() {
       cdRetargetLocaleSensitiveLinks();
       cdApplyCollectionToggleHintTexts(lang);
       startHideTimer();
-      
+
       // 카드 닫기
       if (langCard) langCard.classList.remove('active');
     });
@@ -1551,9 +1551,30 @@ function __cdMapHasTileLockUnlocked(mapObj, lockKey) {
   return false;
 }
 
+/* 출생 기반 해금 키(js/core/birth-scope-unlocks.js 사본 · 'health-report' 는 셸 별칭)는 계정 단위
+   localStorage(cd_tile_locks_v2::*)에 읽고 쓰지 않는다. 판정은 지금 보는 저장 카드 범위를 아는
+   셸 window.isTileKeyUnlocked 에만 맡긴다(없으면 잠금). */
+function __cdIsBirthScopedTileLockKey(lockKey) {
+  var key = String(lockKey || '').trim();
+  if (!key) return false;
+  if (key === 'health-report') return true;
+  try {
+    return typeof window.cdIsBirthScopedUnlockKey === 'function' && window.cdIsBirthScopedUnlockKey(key) === true;
+  } catch (_) {}
+  return false;
+}
+
+function __cdIsBirthScopedTileLockUnlocked(lockKey) {
+  try {
+    if (typeof window.isTileKeyUnlocked === 'function') return window.isTileKeyUnlocked(lockKey) === true;
+  } catch (_) {}
+  return false;
+}
+
 function __cdIsTileLockUnlocked(actionEl, lockKey) {
   if (!lockKey) return false;
   if (!__cdHasAuthToken()) return false;
+  if (__cdIsBirthScopedTileLockKey(lockKey)) return __cdIsBirthScopedTileLockUnlocked(lockKey);
   if (actionEl && actionEl.classList && actionEl.classList.contains('tarot-tile--tileUnlocked')) return true;
   if (!__cdTileLockServerSyncDone && !__cdTileLockServerSyncInFlight) {
     __cdSyncTileLocksFromServer();
@@ -1653,6 +1674,7 @@ function __cdReadTileLockMapForSync() {
         if (scopedMap && typeof scopedMap === 'object') {
           var scopedKeys = Object.keys(scopedMap);
           for (var i = 0; i < scopedKeys.length; i += 1) {
+            if (__cdIsBirthScopedTileLockKey(scopedKeys[i])) continue;
             if (scopedMap[scopedKeys[i]] === true) merged[scopedKeys[i]] = true;
           }
         }
@@ -1668,7 +1690,9 @@ function __cdReadTileLockMapForSync() {
   var keys = Object.keys(merged);
   for (var k = 0; k < keys.length; k += 1) {
     var aliases = __cdResolveTileLockAliasKeys(keys[k]);
-    for (var a = 0; a < aliases.length; a += 1) normalized[aliases[a]] = true;
+    for (var a = 0; a < aliases.length; a += 1) {
+      if (!__cdIsBirthScopedTileLockKey(aliases[a])) normalized[aliases[a]] = true;
+    }
   }
   return normalized;
 }
@@ -1739,6 +1763,7 @@ function __cdWriteTileLockMapForSync(mapObj) {
   if (mapObj && typeof mapObj === 'object') {
     var keys = Object.keys(mapObj);
     for (var i = 0; i < keys.length; i += 1) {
+      if (__cdIsBirthScopedTileLockKey(keys[i])) continue;
       if (mapObj[keys[i]] === true) safe[keys[i]] = true;
     }
   }
@@ -1777,8 +1802,11 @@ function __cdMergeServerUnlockKeys(unlockKeys) {
   for (var i = 0; i < unlockKeys.length; i += 1) {
     var raw = String(unlockKeys[i] || '').trim();
     if (!raw) continue;
+    // 출생 기반 키는 셸(index.html mergeAccessStoreUnlocksIntoLegacyMap)이 profileId 일치일 때만 합친다.
+    if (__cdIsBirthScopedTileLockKey(raw)) continue;
     var aliases = __cdResolveTileLockAliasKeys(raw);
     for (var a = 0; a < aliases.length; a += 1) {
+      if (__cdIsBirthScopedTileLockKey(aliases[a])) continue;
       if (localMap[aliases[a]] !== true) {
         localMap[aliases[a]] = true;
         changed = true;
@@ -1876,23 +1904,23 @@ function __cdEnsureSukuyoAIConsultationReady() {
 }
 
 var __cdLazyActionLoaders = {
-  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-5311846b921c'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-6d2c2ef4778c'); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-355af2ec3036'); },
+  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-0ec1914725f2'); },
+  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-cf48ab7e8047'); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-f7656ba31ff5'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
-  openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=h7c6f7751f293'); },
-  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-eb1f71fffc5c').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ceb2b1b1a0eb'); }); },
+  openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=haecc3241c877'); },
+  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-1bd57ce11c0e').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ceb2b1b1a0eb'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-81c843ae9e30'); }); },
-  openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-650a9aee4faa'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-9b771f6b8215'); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-4cb9efbdfb11'); }); },
+  openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/ggulggul/#dpMasterCard')); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-b43826e23353'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-8e57ec2d8607'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-86062dc39929'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-2758f960eb34'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-d5a7f78af64e'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-17f27a22f2a0').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1969477b5929').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -1952,10 +1980,10 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-5b31a6eeb57c'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-5b31a6eeb57c'); },
-  shareAstroKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-5b31a6eeb57c'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-5b31a6eeb57c'); },
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-67cbd46b7d92'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-67cbd46b7d92'); },
+  shareAstroKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-67cbd46b7d92'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-67cbd46b7d92'); },
   openSajuCompatArchive: function() { return __cdLoadScriptOnce('/js/saju-compat-archive.js?v=build-b1d1aa1db384'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
@@ -2253,20 +2281,22 @@ function __cdEnsureSajuCoreLoaded() {
      * 음양력 변환의 유일한 근거로 쓰고, 없으면 던진다(조용히 lunar-javascript 로 떨어지면
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
+    /* 원국 판정 정본(전역 SajuNatalCore). saju-engine 의 detectJong 이 이것 없이는 던진다. */
+    '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-b9cad44444ab',
-      '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
+    '/js/saju-engine.js?v=build-ddc6e98db9ce',
+      '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a581a74ee045',
-    '/js/core/saju/basicFortunePresentation.js?v=build-0717901ec907',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-7b161108f115',
+    '/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-d962fee599da',
-    '/js/saju-engine-continuation.js?v=build-b10118108171',
-    '/js/entertain-engine.js?v=build-f5e79aa14176',
+    '/js/core/saju/reportDashboard.js?v=build-e2419d20eac4',
+    '/js/saju-engine-continuation.js?v=build-f4d87e14c1c7',
+    '/js/entertain-engine.js?v=build-bcbaca1718c8',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
-    '/js/core/saju/dopamineResult.js?v=build-c2d0a3979a9a'
+    '/js/core/saju/dopamineResult.js?v=build-2e244f8ece95'
   ];
 
   /* 다운로드만 병렬로 앞당긴다 — 아래 reduce 의 순차 실행은 그대로다(__cdPreloadScripts 주석 참고). */
@@ -2289,7 +2319,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-5a3b2b6e4fbd')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-5a1066da4d34')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -2416,8 +2446,8 @@ function __cdEnsureSajuCompatModules() {
   if (window.__cdSajuCompat) return Promise.resolve(window.__cdSajuCompat);
   if (__cdSajuCompatLoadPromise) return __cdSajuCompatLoadPromise;
   __cdSajuCompatLoadPromise = Promise.all([
-    import('/js/saju-compat-render.mjs?v=build-daa2f46690d8'),
-    import('/js/saju-compat-flow.mjs?v=build-e5f5ca749508'),
+    import('/js/saju-compat-render.mjs?v=build-4b9a2d23bc4a'),
+    import('/js/saju-compat-flow.mjs?v=build-b7c7a53904fd'),
     import('/js/core/paid-narrative-reader.js?v=build-c9b681355666')
   ]).then(function(mods) {
     if (!window.CDPaidNarrativeReader || typeof window.CDPaidNarrativeReader.run !== 'function') {
@@ -2650,7 +2680,7 @@ window.openYogaGuru = function() {
 };
 window.openDestinyEggPage = function() {
   try {
-    window.location.href = '/tadagochi.html';
+    window.location.href = '/ggulggul/#dpMasterCard';
   } catch (err) {
     console.error('[index-inline-runtime] openDestinyEggPage failed:', err);
   }
@@ -2875,9 +2905,12 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
     // 이 속성을 읽는 다른 코드가 있어 첫 후보는 그대로 노출한다.
     if (chain.length) img.setAttribute('data-cd-img-fallback-src', chain[0]);
     else img.removeAttribute('data-cd-img-fallback-src');
-    if (skeleton) {
-      img.addEventListener('load', function() { skeleton.remove(); }, { once: true });
-    }
+    var revealImage = function() {
+      if (placeholder) placeholder.style.display = 'none';
+      if (skeleton) skeleton.remove();
+    };
+    img.addEventListener('load', revealImage, { once: true });
+    if (img.complete && img.naturalWidth > 0) revealImage();
     if (img.dataset && img.dataset.cdCollectionFallbackBound === '1') return;
     if (img.dataset) img.dataset.cdCollectionFallbackBound = '1';
     img.addEventListener('error', function() {
@@ -2919,6 +2952,14 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
     img.setAttribute('sizes', COLLECTION_TILE_SIZES);
   }
 
+  // 도감의 소개 그림은 320·640 쌍이 있어 고밀도 모바일에서 원본 320 확대를 피한다.
+  function applyIntroductionSrcset(img, src) {
+    var match = /^(\/images\/service-introductions\/[a-z0-9-]+)-320\.webp$/.exec(String(src || ''));
+    if (!match || img.hasAttribute('srcset')) return;
+    img.setAttribute('srcset', match[1] + '-320.webp 320w, ' + match[1] + '-640.webp 640w');
+    img.setAttribute('sizes', '(max-width: 768px) 50vw, 320px');
+  }
+
   function hydrateWrap(wrap) {
     if (!wrap) return;
     var src = wrap.getAttribute('data-img-src');
@@ -2930,6 +2971,7 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
 
     var existingImg = wrap.querySelector('img.tarot-tile__img');
     if (existingImg) {
+      if (existingImg.complete && existingImg.naturalWidth > 0 && placeholder) placeholder.style.display = 'none';
       var existingSrc = existingImg.getAttribute('src') || src;
       var resolvedExistingSrc = resolveCollectionImageSrc(existingSrc);
       // 마크업에 박혀 있는 정적 <img> 도 같은 리사이즈 경로를 태운다 — 이쪽이 오히려 원본(80~200KB)을
@@ -2939,6 +2981,7 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
       var existingFallback = [resizedExisting ? resolvedExistingSrc : '', existingSrc];
       var nextSrc = resizedExisting || resolvedExistingSrc;
       applyFeatureDetailSrcset(existingImg, existingSrc);
+      applyIntroductionSrcset(existingImg, existingSrc);
       if (nextSrc && nextSrc !== existingSrc) {
         // 체인은 "바인딩 시점의 src" 와 같은 후보를 중복으로 보고 걸러낸다. 먼저 바인딩하면
         // 마크업의 원래 경로(/fuctionassets/…)가 아직 현재 src 라 체인에서 빠지고, R2 에 없는
@@ -2981,6 +3024,7 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
     // 리사이즈본 → 원본 R2 → 마크업의 원래 경로 → 그래도 안 되면 심볼 플레이스홀더.
     bindCollectionImageFallback(img, [resizedSrc ? resolvedSrc : '', fallbackSrc, src], placeholder, skeleton);
     applyFeatureDetailSrcset(img, resizedSrc || resolvedSrc);
+    applyIntroductionSrcset(img, src);
     img.src = resizedSrc || resolvedSrc;
     wrap.insertBefore(img, wrap.firstChild);
   }
@@ -4070,7 +4114,7 @@ function _dfBuildFlowerSvgMarkup(source, primaryHex, secondaryHex, seed, label, 
     var localTone = (i % 2 === 0) ? primary : secondary;
     var localGlow = (i % 2 === 0) ? accent : pale;
     petals += '<ellipse cx="' + centerX + '" cy="' + centerY + '" rx="' + petalRx + '" ry="' + petalRy + '" '
-      + 'fill="url(#petalGrad' + i + ')" transform="rotate(' + angle.toFixed(2) + ' ' + centerX + ' ' + centerY + ')" />'
+      + 'fill="url(#petalGrad' + i + ')" stroke="' + deep + '" stroke-opacity="0.4" stroke-width="0.8" transform="rotate(' + angle.toFixed(2) + ' ' + centerX + ' ' + centerY + ')" />'
       + '<defs><linearGradient id="petalGrad' + i + '" x1="0" y1="0" x2="0" y2="1">'
       + '<stop offset="0%" stop-color="' + localGlow + '" stop-opacity="0.95" />'
       + '<stop offset="100%" stop-color="' + localTone + '" stop-opacity="0.86" />'
@@ -4083,14 +4127,14 @@ function _dfBuildFlowerSvgMarkup(source, primaryHex, secondaryHex, seed, label, 
       var sx = 18 + ((seed + s * 37) % 286);
       var sy = 12 + ((Math.floor(seed / (s + 3)) + s * 19) % 96);
       var sr = 1 + ((seed + s * 13) % 3);
-      extra += '<circle cx="' + sx + '" cy="' + sy + '" r="' + sr + '" fill="' + pale + '" fill-opacity="0.72" />';
+      extra += '<circle cx="' + sx + '" cy="' + sy + '" r="' + sr + '" fill="#d4af6a" fill-opacity="0.72" />';
     }
   } else if (source === 'jamidusu') {
     extra += '<circle cx="' + centerX + '" cy="' + centerY + '" r="96" fill="none" stroke="' + _dfMixHex(accent, '#ffffff', 0.35) + '" stroke-opacity="0.45" stroke-width="1.8" />';
-    extra += '<path d="M72 52 L98 34 L126 52 L160 30 L194 52 L222 34 L248 52" fill="none" stroke="' + pale + '" stroke-opacity="0.6" stroke-width="2.4" stroke-linecap="round" />';
+    extra += '<path d="M72 52 L98 34 L126 52 L160 30 L194 52 L222 34 L248 52" fill="none" stroke="#d4af6a" stroke-opacity="0.6" stroke-width="2.4" stroke-linecap="round" />';
   } else if (source === 'sukuyo') {
     extra += '<circle cx="242" cy="58" r="30" fill="' + pale + '" fill-opacity="0.56" />';
-    extra += '<circle cx="254" cy="58" r="26" fill="' + _dfMixHex(deep, '#020617', 0.7) + '" fill-opacity="0.92" />';
+    extra += '<circle cx="254" cy="58" r="26" fill="#f7f1f4" fill-opacity="0.92" />';
     extra += '<circle cx="160" cy="130" r="104" fill="none" stroke="' + _dfMixHex(secondary, '#e2e8f0', 0.4) + '" stroke-opacity="0.36" stroke-width="1.4" />';
   }
 
@@ -4101,9 +4145,9 @@ function _dfBuildFlowerSvgMarkup(source, primaryHex, secondaryHex, seed, label, 
     + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="' + safeLabel + '">'
     + '<defs>'
     + '<radialGradient id="bg" cx="50%" cy="40%" r="70%">'
-    + '<stop offset="0%" stop-color="' + _dfMixHex(primary, '#ffffff', 0.44) + '" stop-opacity="0.94" />'
-    + '<stop offset="52%" stop-color="' + _dfMixHex(secondary, '#0ea5e9', 0.36) + '" stop-opacity="0.66" />'
-    + '<stop offset="100%" stop-color="' + _dfMixHex(deep, '#020617', 0.6) + '" stop-opacity="0.84" />'
+    + '<stop offset="0%" stop-color="' + _dfMixHex(primary, '#fffaf2', 0.88) + '" />'
+    + '<stop offset="52%" stop-color="' + _dfMixHex(secondary, '#fbf6ee', 0.86) + '" />'
+    + '<stop offset="100%" stop-color="' + _dfMixHex(primary, '#f3e9f7', 0.84) + '" />'
     + '</radialGradient>'
     + '<linearGradient id="coreGrad" x1="0" y1="0" x2="1" y2="1">'
     + '<stop offset="0%" stop-color="' + _dfMixHex(primary, '#ffffff', 0.4) + '" />'
@@ -4115,7 +4159,7 @@ function _dfBuildFlowerSvgMarkup(source, primaryHex, secondaryHex, seed, label, 
     + '<circle cx="' + centerX + '" cy="' + centerY + '" r="34" fill="url(#coreGrad)" />'
     + '<circle cx="' + centerX + '" cy="' + centerY + '" r="14" fill="' + _dfMixHex(accent, '#ffffff', 0.5) + '" fill-opacity="0.9" />'
     + extra
-    + '<text x="16" y="222" fill="' + _dfMixHex(pale, '#ffffff', 0.3) + '" fill-opacity="0.82" font-size="14" font-family="Noto Sans KR, sans-serif" letter-spacing="2">' + symbol + '</text>'
+    + '<text x="16" y="222" fill="#6b5a78" fill-opacity="0.82" font-size="14" font-family="Noto Sans KR, sans-serif" letter-spacing="2">' + symbol + '</text>'
     + '</svg>';
 }
 
@@ -4137,6 +4181,16 @@ function _dfBuildFlowerDataUri(selection, sourceOverride) {
     flower.id || '', flower.particle_type || ''
   );
   return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+}
+
+/* 판정 대기 카드의 봉오리 그림. 아트 모듈이 없으면 빈 칸(기존 동작)으로 둔다. */
+function _dfBuildBudDataUri(source) {
+  if (!(window.CDFlowerArt && typeof window.CDFlowerArt.buildBudSvg === 'function')) return '';
+  try {
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(window.CDFlowerArt.buildBudSvg({ source: source, label: '' }));
+  } catch (err) {
+    return '';
+  }
 }
 
 function _dfApplyGeneratedFlowerImage(imageEl, selection, sourceOverride) {
@@ -4173,7 +4227,7 @@ function _dfEnsureCardOpen(card) {
   if (cta) {
     cta.setAttribute('aria-expanded', 'true');
     var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = '🌸 운명의 꽃 다시 피우기';
+    if (labelEl) labelEl.textContent = _dfUiText('cta.rebloom', '🌸 운명의 꽃 다시 피우기');
     var arrowEl = cta.querySelector('.feature-card__cta-arrow');
     if (arrowEl) arrowEl.textContent = '✦';
   }
@@ -4320,42 +4374,48 @@ function _dfExtractAstroLiveData(birthCtx) {
 
   var chart = null;
   var localHour = Number(birthCtx.hour) + Number(birthCtx.minute) / 60;
+  var finiteOr = function(v, fallback) { return Number.isFinite(Number(v)) ? Number(v) : fallback; };
+  var lat = finiteOr(birthCtx.lat, 37.5665);
+  var lon = finiteOr(birthCtx.lon, 126.978);
+  var tz = finiteOr(birthCtx.tz, 9);
+  var houseSystem = window.ASTRO_HOUSE_SYSTEM || 'P';
 
-  if (typeof window.calcAstroApiChartOrThrow === 'function') {
+  if (typeof window.calcAstroSwissChartOrThrow === 'function') {
     try {
-      chart = window.calcAstroApiChartOrThrow(
+      chart = window.calcAstroSwissChartOrThrow(
         Number(birthCtx.year),
         Number(birthCtx.month),
         Number(birthCtx.day),
         localHour,
-        Number(birthCtx.lat),
-        Number(birthCtx.lon),
-        Number(birthCtx.tz),
-        window.ASTRO_HOUSE_SYSTEM || 'P'
+        lat,
+        lon,
+        tz,
+        houseSystem
       );
     } catch (e) {
-      // Strict SwissEph 모드 미준비 시에는 조용히 레거시 차트로 폴백 시도.
-      if (!(window.AstroEngine && typeof window.AstroEngine.calcAll === 'function')) {
-        console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e);
-      }
+      // Swiss WASM 이 아직 안 올라왔다 — 아래에서 기본 엔진으로 계산한다(js/saju-engine.js 점성술 프로필과 같은 폴백).
     }
   }
 
   if (!chart && window.AstroEngine && typeof window.AstroEngine.calcAll === 'function') {
+    var strictBefore = window.ASTRO_STRICT_PRECISION;
     try {
+      window.ASTRO_STRICT_PRECISION = false;
       chart = window.AstroEngine.calcAll(
         Number(birthCtx.year),
         Number(birthCtx.month),
         Number(birthCtx.day),
         localHour,
-        Number(birthCtx.lat),
-        Number(birthCtx.lon),
-        Number(birthCtx.tz),
-        { houseSystem: window.ASTRO_HOUSE_SYSTEM || 'P' }
+        lat,
+        lon,
+        tz,
+        { houseSystem: houseSystem }
       );
     } catch (e2) {
       console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e2);
       return null;
+    } finally {
+      window.ASTRO_STRICT_PRECISION = strictBefore;
     }
   }
 
@@ -4469,6 +4529,14 @@ function _dfEnsureSukuyoAstronomy(birthCtx, key, lunarObj) {
     cache.failed = true;
     cache.pending = false;
     console.warn('[DestinyFlower] 숙요 천문 계산 실패:', error);
+    // 서버 매칭이 이 계산을 기다리고 있다 — 숙요 없이라도 다시 그려 요청을 보낸다.
+    if (!_dfStudioState.selection && !_dfStudioState.flowerData) return;
+    try {
+      if (_dfStudioState.flowerData) _dfStudioState.flowerData.sources = {};
+      _dfRefreshStudioForSource(_dfStudioState.activeSource || 'saju', true);
+    } catch (refreshError) {
+      console.warn('[DestinyFlower] 숙요 실패 후 갱신 실패:', refreshError);
+    }
   });
 }
 
@@ -4729,355 +4797,11 @@ function _dfGetProfilePayload(options) {
 }
 
 /**
- * 서버 매칭 결과 캐시.
- *
- * 🔴 매칭은 브라우저에서 하지 않는다 (2026-08-24). 엔진이 `worker/lib/destiny-flower-engine.js`
- * 로 옮겨 갔고, 결과를 주는 곳은 `POST /api/destiny-flower/match` 하나다. 그 라우트가
- * `flower-fc` 해금을 서버에서 확인한다 — 예전에는 결제만 서버에서 차감되고 결과는 브라우저가
- * 만들어서, 콘솔 한 줄로 1만원짜리 결과를 공짜로 뽑을 수 있었다.
- *
- * 렌더 경로는 전부 동기라, 여기서는 캐시만 읽고 없으면 null 을 돌려준다. 요청이 도착하면
- * `_dfRefreshStudioForSource` 를 다시 불러 화면을 채운다(4-up 의 "판정 대기" 칸이 그 사이를 메운다).
+ * 자미두수 궁별 주성과 원본 차트를 payload 에 싣는다. 서버 엔진은 이 차트의 명궁 주성으로 꽃을 고르고,
+ * "오늘의 강한 별"은 배지(strong_star)로만 다시 뽑는다. 통합 payload(_dfGetServerMatchPayload)가 부른다.
  */
-var _dfServerMatch = {
-  fingerprint: '',
-  sources: null,
-  theme: null,
-  inflight: null,
-  status: 'idle'
-};
-
-/** 같은 프로필로 두 번 묻지 않기 위한 지문. 생년월일과 네 도메인의 핵심 값만 본다. */
-function _dfServerMatchFingerprint(payload) {
-  if (!payload || typeof payload !== 'object') return '';
-  var birth = payload.birth || {};
-  var ziwei = (payload.domains && payload.domains.ziwei) || payload.ziwei || {};
-  var astro = (payload.domains && payload.domains.astrology) || payload.astrology || {};
-  var sukuyo = (payload.domains && payload.domains.sukuyo) || payload.sukuyo || {};
-  return [
-    birth.year, birth.month, birth.day, birth.hour, birth.minute, birth.calType,
-    ziwei.main_star || ziwei.mainStar, ziwei.palace, ziwei.brightness,
-    astro.sun_sign || astro.sunSign, astro.moon_sign || astro.moonSign, astro.rising_sign || astro.risingSign,
-    sukuyo.mansion, sukuyo.phase
-  ].join('|');
-}
-
-/**
- * 서버에 매칭을 요청한다. 같은 지문이면 재요청하지 않고, 진행 중이면 그 약속을 돌려준다
- * (단일비행 — 4-up 이 네 소스를 동시에 물어도 왕복은 1회다).
- */
-function _dfRequestServerMatch(payload, onSettled) {
-  var fingerprint = _dfServerMatchFingerprint(payload);
-  if (!fingerprint) return null;
-  if (_dfServerMatch.fingerprint === fingerprint && _dfServerMatch.sources) return null;
-  if (_dfServerMatch.fingerprint === fingerprint && _dfServerMatch.inflight) return _dfServerMatch.inflight;
-
-  var token = __cdGetAuthTokenForLockSync();
-  var url = __cdResolveApiBaseForLockSync() + '/api/destiny-flower/match';
-  var headers = { 'Content-Type': 'application/json' };
-  if (token) headers.Authorization = 'Bearer ' + token;
-
-  _dfServerMatch.fingerprint = fingerprint;
-  _dfServerMatch.sources = null;
-  _dfServerMatch.theme = null;
-  _dfServerMatch.status = 'loading';
-
-  var promise = fetch(url, {
-    method: 'POST',
-    headers: headers,
-    credentials: 'include',
-    body: JSON.stringify({ profile: payload })
-  }).then(function(res) {
-    return res.json().then(function(data) { return { status: res.status, data: data }; });
-  }).then(function(result) {
-    if (_dfServerMatch.fingerprint !== fingerprint) return;
-    if (result.status === 200 && result.data && result.data.ok) {
-      _dfServerMatch.sources = result.data.sources || {};
-      _dfServerMatch.theme = result.data.theme || null;
-      _dfServerMatch.status = 'ready';
-    } else if (result.status === 402) {
-      _dfServerMatch.status = 'locked';
-    } else if (result.status === 401) {
-      _dfServerMatch.status = 'unauthorized';
-    } else {
-      _dfServerMatch.status = 'error';
-    }
-  }).catch(function(error) {
-    if (_dfServerMatch.fingerprint !== fingerprint) return;
-    console.warn('[DestinyFlower] 서버 매칭 실패:', error);
-    _dfServerMatch.status = 'error';
-  }).then(function() {
-    if (_dfServerMatch.fingerprint === fingerprint) _dfServerMatch.inflight = null;
-    if (typeof onSettled === 'function') {
-      try { onSettled(_dfServerMatch.status); } catch (_) {}
-    }
-  });
-
-  _dfServerMatch.inflight = promise;
-  return promise;
-}
-
-/** 캐시에 들어온 그 체계의 매칭 결과. 아직 안 왔으면 null. */
-function _dfGetServerMatched(source) {
-  if (!_dfServerMatch.sources) return null;
-  return _dfServerMatch.sources[_dfNormalizeSource(source)] || null;
-}
-
-/**
- * 서버 응답이 도착했을 때 화면을 다시 그린다.
- * 🔴 소스별 캐시(`_dfStudioState.flowerData.sources`)에 이미 null 이 박혀 있으므로 강제 갱신으로 부른다.
- */
-function _dfOnServerMatchSettled(status) {
-  if (status !== 'ready') {
-    if (status === 'locked' || status === 'unauthorized') {
-      _dfSetStudioStatus(status === 'locked'
-        ? '운명의 꽃 아틀리에 해금이 필요합니다.'
-        : '로그인 후 운명의 꽃을 볼 수 있습니다.');
-    }
-    return;
-  }
-  try {
-    // 네 소스 전부에 null 이 박혀 있다 — 비워야 4-up 이 다시 계산한다.
-    if (_dfStudioState.flowerData) _dfStudioState.flowerData.sources = {};
-    _dfRefreshStudioForSource(_dfStudioState.activeSource || 'saju', true);
-  } catch (error) {
-    console.warn('[DestinyFlower] 서버 결과 반영 실패:', error);
-  }
-}
-
-function _dfResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'saju' });
-  var birthCtx = _dfResolveBirthContext(payload || {});
-  var allowUserForcedFallback = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad.saju);
-
-  // 생년월일 핵심 정보가 전혀 없으면 운명의 꽃을 계산하지 않는다.
-  // (빈 상태에서는 어떤 꽃도 노출하지 않고 안내 문구만 보여주기 위함)
-  if (!_dfHasBirthCore(birthCtx)) {
-    console.warn('[DestinyFlower][Saju] resolve failed: missing birth core', {
-      year: birthCtx && birthCtx.year,
-      month: birthCtx && birthCtx.month,
-      day: birthCtx && birthCtx.day
-    });
-    return null;
-  }
-
-  if (!_dfHasReadySourceData('saju', payload) && !allowUserForcedFallback) {
-    console.warn('[DestinyFlower][Saju] resolve failed: saju domain not ready and fallback not allowed', {
-      linked: _dfIsSourceLinked('saju'),
-      userRequested: allowUserForcedFallback
-    });
-    return null;
-  }
-
-  // 🔴 매칭은 서버가 한다. 캐시에 없으면 요청만 걸고 null 을 돌려준다 — 도착하면 다시 그린다.
-  var matched = _dfGetServerMatched('saju');
-  var theme = _dfServerMatch.theme;
-  if (!matched) {
-    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
-    return null;
-  }
-
-  var fallbackUsed = !!(matched.fallback_logic && matched.fallback_logic.used);
-  if (fallbackUsed && !allowUserForcedFallback) {
-    console.warn('[DestinyFlower][Saju] resolve blocked: fallback result requires user-initiated load');
-    return null;
-  }
-
-  var matchedSaju = (matched.profile && matched.profile.domains && matched.profile.domains.saju) || {};
-  var matchedDayMaster = String(matchedSaju.day_master || matchedSaju.dayMaster || '').trim();
-  if (!matchedDayMaster && !allowUserForcedFallback) {
-    console.warn('[DestinyFlower][Saju] resolve blocked: missing day master in matched profile');
-    return null;
-  }
-
-  // `window.flowerSymbology` 폴백은 사라졌다 — 카탈로그가 워커로 갔다. 서버가 꽃을 못 고르면
-  // 그건 서버가 판정할 데이터가 없다는 뜻이라, 억지 연꽃 대신 빈 상태를 보여 준다.
-  var flower = matched.flower || matched.flowerSymbology;
-  if (!flower) return null;
-
-  var primary = _dfSafeColor((flower.primary_color || (theme && theme.palette && theme.palette.primary)), '#f472b6');
-  var secondary = _dfSafeColor((flower.secondary_color || (theme && theme.palette && theme.palette.secondary)), '#22d3ee');
-  var keywords = Array.isArray(flower.keywords) && flower.keywords.length
-    ? flower.keywords.slice(0, 4)
-    : [flower.particle_type || 'petal', 'balance', 'bloom'];
-
-  if (_dfStudioState.userRequestedLoad) {
-    _dfStudioState.userRequestedLoad.saju = false;
-  }
-
-  return {
-    source: 'saju',
-    payload: payload,
-    matched: matched,
-    theme: theme,
-    flowerData: matched && matched.flower_data ? matched.flower_data : null,
-    flower: flower,
-    primary: primary,
-    secondary: secondary,
-    keywords: keywords
-  };
-}
-
-function _afResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'astrology' });
-  if (!_dfHasReadySourceData('astrology', payload)) return null;
-  // 🔴 매칭은 서버가 한다 (POST /api/destiny-flower/match). 캐시 미스면 요청만 걸고 빠진다.
-  var matched = _dfGetServerMatched('astrology');
-  if (!matched) {
-    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
-    return null;
-  }
-
-  var chart = matched && matched.chart ? matched.chart : {};
-  var hasChartSignals = !!(
-    String(chart.sun_sign || chart.sunSign || '').trim() ||
-    String(chart.moon_sign || chart.moonSign || '').trim() ||
-    String(chart.rising_sign || chart.risingSign || '').trim()
-  );
-  if (!hasChartSignals) return null;
-
-  var flower = matched && matched.flower;
-  if (!flower) {
-    flower = {
-      id: 'astro_lavender',
-      name: '성운 라벤더',
-      scientific_name: 'Lavandula nebula',
-      symbolism: '별빛의 결을 따라 흐르는 청명한 직관',
-      primary_color: '#8D99FF',
-      secondary_color: '#C77DFF',
-      keywords: ['nebula', 'zodiac', 'stardust'],
-      particle_type: 'stardust_air',
-      vibe_message: '별의 리듬을 따라 호흡하면 직관이 선명해집니다.'
-    };
-  }
-
-  var theme = matched && matched.theme ? matched.theme : {};
-  var primary = _dfSafeColor((flower.primary_color || (theme.palette && theme.palette.primary)), '#8D99FF');
-  var secondary = _dfSafeColor((flower.secondary_color || (theme.palette && theme.palette.secondary)), '#C77DFF');
-  var keywords = Array.isArray(flower.keywords) && flower.keywords.length
-    ? flower.keywords.slice(0, 4)
-    : ['zodiac', 'nebula', 'stardust'];
-
-  return {
-    source: 'astrology',
-    payload: payload,
-    matched: matched,
-    theme: theme,
-    flowerData: matched && matched.flower_data ? matched.flower_data : null,
-    flower: flower,
-    primary: primary,
-    secondary: secondary,
-    keywords: keywords
-  };
-}
-
-function _afRenderStardust(container, primary, secondary) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 22; i++) {
-    var star = document.createElement('span');
-    star.className = 'astrology-stardust';
-    star.style.setProperty('--x', (4 + Math.random() * 92).toFixed(2) + '%');
-    star.style.setProperty('--y', (6 + Math.random() * 80).toFixed(2) + '%');
-    star.style.setProperty('--size', (2 + Math.random() * 3.4).toFixed(2) + 'px');
-    star.style.setProperty('--dur', (2.6 + Math.random() * 2.6).toFixed(2) + 's');
-    star.style.setProperty('--delay', (Math.random() * 2.2).toFixed(2) + 's');
-    star.style.setProperty('--star-a', _dfHexToRgba(primary, 0.84));
-    star.style.setProperty('--star-b', _dfHexToRgba(secondary, 0.94));
-    container.appendChild(star);
-  }
-}
-
-function _afEnsureCardOpen(card) {
-  if (!card) return;
-  card.classList.add('feature-card--open');
-  var detail = card.querySelector('.feature-card__detail');
-  if (detail) detail.setAttribute('aria-hidden', 'false');
-  var cta = card.querySelector('.feature-card__cta');
-  if (cta) {
-    cta.setAttribute('aria-expanded', 'true');
-    var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = '✨ 점성술 꽃 다시 소환하기';
-    var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = '✦';
-  }
-  syncFeatureCardHeight(card);
-}
-
-function _afApplyCardVisual(card, selection) {
-  if (!card || !selection) return;
-  var matched = selection.matched || {};
-  var flowerData = selection.flowerData || matched.flower_data || {};
-  var chart = matched.chart || {};
-  var stage = card.querySelector('.astrology-flower-stage');
-  var nameEl = document.getElementById('afCardName');
-  var symbolismEl = document.getElementById('afCardSymbolism');
-  var keywordsEl = document.getElementById('afCardKeywords');
-  var sunBadgeEl = document.getElementById('afCardSunBadge');
-  var risingBadgeEl = document.getElementById('afCardRisingBadge');
-  var moonBadgeEl = document.getElementById('afCardMoonBadge');
-  var dataLineEl = document.getElementById('afCardDataLine');
-  var stardust = card.querySelector('.astrology-stardust-field');
-  var nebula = card.querySelector('.astrology-flower-nebula');
-  var image = card.querySelector('.astrology-flower-stage__image');
-  var heroImage = card.querySelector('.astrology-flower-hero-image');
-  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
-
-  card.style.setProperty('--af-primary', selection.primary);
-  card.style.setProperty('--af-secondary', selection.secondary);
-  if (matched.theme && matched.theme.palette) {
-    if (matched.theme.palette.moonGlowInner) card.style.setProperty('--af-glow-inner', matched.theme.palette.moonGlowInner);
-    if (matched.theme.palette.moonGlowOuter) card.style.setProperty('--af-glow-outer', matched.theme.palette.moonGlowOuter);
-  }
-
-  nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.astro_verdict || matched.narrative || '점성술 차트 기반 운명꽃을 판독 중입니다.';
-  keywordsEl.textContent = 'zodiac flower keywords · ' + selection.keywords.join(' • ');
-  if (sunBadgeEl) sunBadgeEl.textContent = chart.sun_sign ? ('태양궁 ' + chart.sun_sign) : '태양궁 미확인';
-  if (risingBadgeEl) risingBadgeEl.textContent = chart.rising_sign ? ('상승궁 ' + chart.rising_sign) : '상승궁 미확인';
-  if (moonBadgeEl) moonBadgeEl.textContent = chart.moon_sign ? ('달궁 ' + chart.moon_sign) : '달궁 미확인';
-  if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || '차트 시그널 대기') + ' · ' + (flowerData.ritual_tip || '별의 리듬을 고정 중입니다.');
-  }
-
-  if (nebula) {
-    nebula.style.background =
-      'radial-gradient(circle at 24% 40%, ' + _dfHexToRgba(selection.primary, 0.38) + ', transparent 58%),'
-      + 'radial-gradient(circle at 72% 24%, ' + _dfHexToRgba(selection.secondary, 0.34) + ', transparent 56%),'
-      + 'radial-gradient(circle at 50% 86%, var(--af-glow-inner, rgba(141,153,255,0.22)), transparent 60%)';
-  }
-
-  _afRenderStardust(stardust, selection.primary, selection.secondary);
-  _dfApplyGeneratedFlowerImage(image, selection, 'astrology');
-  _dfApplyGeneratedFlowerImage(heroImage, selection, 'astrology');
-
-  if (!card.__afPointerBound) {
-    card.__afPointerBound = true;
-    card.addEventListener('mousemove', function(e) {
-      var rect = card.getBoundingClientRect();
-      var x = ((e.clientX - rect.left) / rect.width) * 100;
-      var y = ((e.clientY - rect.top) / rect.height) * 100;
-      card.style.setProperty('--af-pointer-x', x.toFixed(2) + '%');
-      card.style.setProperty('--af-pointer-y', y.toFixed(2) + '%');
-    });
-    card.addEventListener('mouseleave', function() {
-      card.style.setProperty('--af-pointer-x', '50%');
-      card.style.setProperty('--af-pointer-y', '42%');
-    });
-  }
-
-  stage.classList.remove('is-bloomed');
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
-}
-
-function _jfResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'jamidusu' });
-  var birthCtx = _dfResolveBirthContext(payload || {});
-  if (!_dfHasBirthCore(birthCtx)) return null;
-
-  var matched = null;
-
+function _dfAttachZiweiChart(payload, birthCtx) {
+  payload = payload && typeof payload === 'object' ? payload : {};
   try {
     // 자미두수 데이터는 명궁뿐 아니라 각 궁의 주성 정보를 함께 유지한다.
     // (엔진/렌더가 궁별 별 정보를 참조할 때 누락되지 않도록 함)
@@ -5146,8 +4870,8 @@ function _jfResolveSelection() {
             palaces: palaceRows,
             all_main_stars: allMainStars
           };
-          // 🔴 원본 차트를 그대로 실어 보낸다 — 서버 엔진이 chooseJamidusuStrongStar 로
-          //    "오늘의 강한 별"을 다시 뽑는다. 이걸 빼면 명궁 별만 쓰는 결과로 조용히 퇴화한다.
+          // 🔴 원본 차트를 그대로 실어 보낸다 — 서버 엔진이 명궁(공궁이면 천이궁) 주성을 읽고,
+          //    chooseJamidusuStrongStar 로 "오늘의 강한 별" 배지(strong_star)를 뽑는다. 이걸 빼면 둘 다 퇴화한다.
           payload.ziweiChart = zw;
         }
       } catch (eFix) {
@@ -5157,12 +4881,333 @@ function _jfResolveSelection() {
   } catch (e) {
     console.warn('[JamidusuFlower] 자미두수 차트 준비 실패:', e);
   }
+  return payload;
+}
+
+/**
+ * 서버 매칭에 보내는 단 하나의 payload. 네 도메인을 전부 브리지하고 자미두수 원본 차트까지 싣는다.
+ * 🔴 예전에는 리졸버마다 sourceHint 로 자기 도메인만 브리지한 payload 를 보내서, 지문이 매번 달라
+ *    서버 캐시가 덮어써졌고 마지막 응답에는 별자리가 빠져 점성술 꽃이 피지 않았다.
+ * 같은 프로필·같은 숙요 계산 상태면 앞서 만든 payload 를 그대로 돌려준다(점성술 차트 재계산 방지).
+ */
+var _dfServerMatchPayloadMemo = { key: '', payload: null };
+
+function _dfServerMatchPayloadKey() {
+  try {
+    var mgr = window.DestinyProfileManager;
+    var profile = (mgr && mgr.storage && typeof mgr.storage.current === 'function') ? (mgr.storage.current() || {}) : {};
+    var snap = window.__destinyFlowerSajuSnapshot;
+    var sk = _dfSukuyoAstronomyCache;
+    return JSON.stringify([
+      profile.birth || (profile.identity && profile.identity.birth) || null,
+      profile.name || '',
+      profile.gender || '',
+      (snap && snap.birth) || null,
+      (snap && (snap.dayStem || (snap.saju && snap.saju.dayStem))) || '',
+      sk.key,
+      sk.value ? 'ready' : (sk.failed ? 'failed' : (sk.pending ? 'pending' : 'idle'))
+    ]);
+  } catch (e) {
+    return '';
+  }
+}
+
+function _dfGetServerMatchPayload() {
+  var key = _dfServerMatchPayloadKey();
+  if (key && _dfServerMatchPayloadMemo.key === key && _dfServerMatchPayloadMemo.payload) {
+    return _dfServerMatchPayloadMemo.payload;
+  }
+  var payload = _dfGetProfilePayload({}) || {};
+  var birthCtx = _dfResolveBirthContext(payload);
+  if (_dfHasBirthCore(birthCtx)) payload = _dfAttachZiweiChart(payload, birthCtx);
+  // 첫 계산이 숙요 천문 계산을 걸면 상태가 바뀌므로 키를 다시 읽어 담는다.
+  _dfServerMatchPayloadMemo = { key: _dfServerMatchPayloadKey(), payload: payload };
+  return payload;
+}
+
+/**
+ * 서버 매칭 결과 캐시.
+ *
+ * 🔴 매칭은 브라우저에서 하지 않는다 (2026-08-24). 엔진이 `worker/lib/destiny-flower-engine.js`
+ * 로 옮겨 갔고, 결과를 주는 곳은 `POST /api/destiny-flower/match` 하나다. 그 라우트가
+ * `flower-fc` 해금을 서버에서 확인한다 — 예전에는 결제만 서버에서 차감되고 결과는 브라우저가
+ * 만들어서, 콘솔 한 줄로 1만원짜리 결과를 공짜로 뽑을 수 있었다.
+ *
+ * 렌더 경로는 전부 동기라, 여기서는 캐시만 읽고 없으면 null 을 돌려준다. 요청이 도착하면
+ * `_dfRefreshStudioForSource` 를 다시 불러 화면을 채운다(4-up 의 "판정 대기" 칸이 그 사이를 메운다).
+ */
+var _dfServerMatch = {
+  fingerprint: '',
+  sources: null,
+  theme: null,
+  inflight: null,
+  status: 'idle'
+};
+
+/** 서버가 꽃 이름·꽃말·근거 문장을 번역할 로케일. */
+function _dfServerMatchLang() {
+  try { return typeof window.cdGetCurrentLanguage === 'function' ? String(window.cdGetCurrentLanguage() || 'ko') : 'ko'; } catch (_) { return 'ko'; }
+}
+
+/** 같은 프로필로 두 번 묻지 않기 위한 지문. 생년월일과 네 도메인의 핵심 값, 그리고 번역 로케일을 본다. */
+function _dfServerMatchFingerprint(payload) {
+  if (!payload || typeof payload !== 'object') return '';
+  var birth = payload.birth || {};
+  var ziwei = (payload.domains && payload.domains.ziwei) || payload.ziwei || {};
+  var astro = (payload.domains && payload.domains.astrology) || payload.astrology || {};
+  var sukuyo = (payload.domains && payload.domains.sukuyo) || payload.sukuyo || {};
+  return [
+    birth.year, birth.month, birth.day, birth.hour, birth.minute, birth.calType,
+    ziwei.main_star || ziwei.mainStar, ziwei.palace, ziwei.brightness,
+    astro.sun_sign || astro.sunSign, astro.moon_sign || astro.moonSign, astro.rising_sign || astro.risingSign,
+    sukuyo.mansion, sukuyo.phase, _dfServerMatchLang()
+  ].join('|');
+}
+
+/**
+ * 서버에 매칭을 요청한다. 같은 지문이면 재요청하지 않고, 진행 중이면 그 약속을 돌려준다
+ * (단일비행 — 4-up 이 네 소스를 동시에 물어도 왕복은 1회다).
+ */
+function _dfRequestServerMatch(payload, onSettled) {
+  var fingerprint = _dfServerMatchFingerprint(payload);
+  if (!fingerprint) return null;
+  if (_dfServerMatch.fingerprint === fingerprint && _dfServerMatch.sources) return null;
+  if (_dfServerMatch.fingerprint === fingerprint && _dfServerMatch.inflight) return _dfServerMatch.inflight;
+
+  var token = __cdGetAuthTokenForLockSync();
+  var url = __cdResolveApiBaseForLockSync() + '/api/destiny-flower/match';
+  var headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = 'Bearer ' + token;
+
+  _dfServerMatch.fingerprint = fingerprint;
+  _dfServerMatch.sources = null;
+  _dfServerMatch.theme = null;
+  _dfServerMatch.status = 'loading';
+
+  var promise = fetch(url, {
+    method: 'POST',
+    headers: headers,
+    credentials: 'include',
+    body: JSON.stringify({ profile: payload, lang: _dfServerMatchLang() })
+  }).then(function(res) {
+    return res.json().then(function(data) { return { status: res.status, data: data }; });
+  }).then(function(result) {
+    if (_dfServerMatch.fingerprint !== fingerprint) return;
+    if (result.status === 200 && result.data && result.data.ok) {
+      _dfServerMatch.sources = result.data.sources || {};
+      _dfServerMatch.theme = result.data.theme || null;
+      _dfServerMatch.status = 'ready';
+    } else if (result.status === 402) {
+      _dfServerMatch.status = 'locked';
+    } else if (result.status === 401) {
+      _dfServerMatch.status = 'unauthorized';
+    } else {
+      _dfServerMatch.status = 'error';
+    }
+  }).catch(function(error) {
+    if (_dfServerMatch.fingerprint !== fingerprint) return;
+    console.warn('[DestinyFlower] 서버 매칭 실패:', error);
+    _dfServerMatch.status = 'error';
+  }).then(function() {
+    if (_dfServerMatch.fingerprint === fingerprint) _dfServerMatch.inflight = null;
+    if (typeof onSettled === 'function') {
+      try { onSettled(_dfServerMatch.status); } catch (_) {}
+    }
+  });
+
+  _dfServerMatch.inflight = promise;
+  return promise;
+}
+
+/**
+ * 네 리졸버가 공통으로 쓰는 서버 요청. 숙요 천문 계산(Swiss WASM)이 진행 중이면 기다린다 —
+ * 끝나면(성공·실패 모두) 스튜디오를 다시 그리며 이리로 돌아오므로 왕복이 1회로 끝난다.
+ */
+function _dfRequestUnifiedServerMatch() {
+  if (_dfSukuyoAstronomyCache.pending) return null;
+  return _dfRequestServerMatch(_dfGetServerMatchPayload(), _dfOnServerMatchSettled);
+}
+
+/** 캐시에 들어온 그 체계의 매칭 결과. 아직 안 왔으면 null. */
+function _dfGetServerMatched(source) {
+  if (!_dfServerMatch.sources) return null;
+  return _dfServerMatch.sources[_dfNormalizeSource(source)] || null;
+}
+
+/**
+ * 서버 응답이 도착했을 때 화면을 다시 그린다.
+ * 🔴 소스별 캐시(`_dfStudioState.flowerData.sources`)에 이미 null 이 박혀 있으므로 강제 갱신으로 부른다.
+ */
+function _dfOnServerMatchSettled(status) {
+  if (status !== 'ready') {
+    if (status === 'locked' || status === 'unauthorized') {
+      _dfSetStudioStatus(status === 'locked'
+        ? _dfUiText('status.atelierLocked', '운명의 꽃 아틀리에 해금이 필요합니다.')
+        : _dfUiText('status.loginRequired', '로그인 후 운명의 꽃을 볼 수 있습니다.'));
+    }
+    return;
+  }
+  try {
+    // 네 소스 전부에 null 이 박혀 있다 — 비워야 4-up 이 다시 계산한다.
+    if (_dfStudioState.flowerData) _dfStudioState.flowerData.sources = {};
+    _dfRefreshStudioForSource(_dfStudioState.activeSource || 'saju', true);
+  } catch (error) {
+    console.warn('[DestinyFlower] 서버 결과 반영 실패:', error);
+  }
+}
+
+function _dfResolveSelection() {
+  var payload = _dfGetServerMatchPayload();
+  var birthCtx = _dfResolveBirthContext(payload || {});
+  var allowUserForcedFallback = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad.saju);
+
+  // 생년월일 핵심 정보가 전혀 없으면 운명의 꽃을 계산하지 않는다.
+  // (빈 상태에서는 어떤 꽃도 노출하지 않고 안내 문구만 보여주기 위함)
+  if (!_dfHasBirthCore(birthCtx)) {
+    console.warn('[DestinyFlower][Saju] resolve failed: missing birth core', {
+      year: birthCtx && birthCtx.year,
+      month: birthCtx && birthCtx.month,
+      day: birthCtx && birthCtx.day
+    });
+    return null;
+  }
+
+  if (!_dfHasReadySourceData('saju', payload) && !allowUserForcedFallback) {
+    console.warn('[DestinyFlower][Saju] resolve failed: saju domain not ready and fallback not allowed', {
+      linked: _dfIsSourceLinked('saju'),
+      userRequested: allowUserForcedFallback
+    });
+    return null;
+  }
+
+  // 🔴 매칭은 서버가 한다. 캐시에 없으면 요청만 걸고 null 을 돌려준다 — 도착하면 다시 그린다.
+  var matched = _dfGetServerMatched('saju');
+  var theme = _dfServerMatch.theme;
+  if (!matched) {
+    _dfRequestUnifiedServerMatch();
+    return null;
+  }
+
+  var fallbackUsed = !!(matched.fallback_logic && matched.fallback_logic.used);
+  if (fallbackUsed && !allowUserForcedFallback) {
+    console.warn('[DestinyFlower][Saju] resolve blocked: fallback result requires user-initiated load');
+    return null;
+  }
+
+  var matchedSaju = (matched.profile && matched.profile.domains && matched.profile.domains.saju) || {};
+  var matchedDayMaster = String(matchedSaju.day_master || matchedSaju.dayMaster || '').trim();
+  if (!matchedDayMaster && !allowUserForcedFallback) {
+    console.warn('[DestinyFlower][Saju] resolve blocked: missing day master in matched profile');
+    return null;
+  }
+
+  // `window.flowerSymbology` 폴백은 사라졌다 — 카탈로그가 워커로 갔다. 서버가 꽃을 못 고르면
+  // 그건 서버가 판정할 데이터가 없다는 뜻이라, 억지 연꽃 대신 빈 상태를 보여 준다.
+  var flower = matched.flower || matched.flowerSymbology;
+  if (!flower) return null;
+
+  var primary = _dfSafeColor((flower.primary_color || (theme && theme.palette && theme.palette.primary)), '#f472b6');
+  var secondary = _dfSafeColor((flower.secondary_color || (theme && theme.palette && theme.palette.secondary)), '#22d3ee');
+  var keywords = Array.isArray(flower.keywords) && flower.keywords.length
+    ? flower.keywords.slice(0, 4)
+    : [flower.particle_type || 'petal', 'balance', 'bloom'];
+
+  if (_dfStudioState.userRequestedLoad) {
+    _dfStudioState.userRequestedLoad.saju = false;
+  }
+
+  return {
+    source: 'saju',
+    payload: payload,
+    matched: matched,
+    theme: theme,
+    flowerData: matched && matched.flower_data ? matched.flower_data : null,
+    flower: flower,
+    primary: primary,
+    secondary: secondary,
+    keywords: keywords
+  };
+}
+
+/** 점성술 빈 차트 재요청 가드 — 같은 지문으로는 한 번만 다시 묻는다(무한루프 방지). */
+var _dfAstroRetriedFingerprint = '';
+
+function _afResolveSelection() {
+  var payload = _dfGetServerMatchPayload();
+  if (!_dfHasReadySourceData('astrology', payload)) return null;
+  // 🔴 매칭은 서버가 한다 (POST /api/destiny-flower/match). 캐시 미스면 요청만 걸고 빠진다.
+  var matched = _dfGetServerMatched('astrology');
+  if (!matched) {
+    _dfRequestUnifiedServerMatch();
+    return null;
+  }
+
+  var chart = matched && matched.chart ? matched.chart : {};
+  var hasChartSignals = !!(
+    String(chart.sun_sign || chart.sunSign || '').trim() ||
+    String(chart.moon_sign || chart.moonSign || '').trim() ||
+    String(chart.rising_sign || chart.risingSign || '').trim()
+  );
+  if (!hasChartSignals) {
+    // 로컬 payload 에는 별자리가 있는데 서버 결과엔 없다 — 캐시를 비우고 그 지문으로 한 번만 다시 묻는다.
+    var staleFingerprint = _dfServerMatch.fingerprint;
+    if (staleFingerprint && _dfAstroRetriedFingerprint !== staleFingerprint) {
+      _dfAstroRetriedFingerprint = staleFingerprint;
+      _dfServerMatch.fingerprint = '';
+      _dfServerMatch.sources = null;
+      _dfServerMatch.theme = null;
+      _dfRequestUnifiedServerMatch();
+    }
+    return null;
+  }
+
+  var flower = matched && matched.flower;
+  if (!flower) {
+    flower = {
+      id: 'astro_lavender',
+      name: _dfUiText('fallback.astrology.name', '성운 라벤더'),
+      scientific_name: 'Lavandula nebula',
+      symbolism: _dfUiText('fallback.astrology.symbolism', '별빛의 결을 따라 흐르는 청명한 직관'),
+      primary_color: '#8D99FF',
+      secondary_color: '#C77DFF',
+      keywords: ['nebula', 'zodiac', 'stardust'],
+      particle_type: 'stardust_air',
+      vibe_message: _dfUiText('fallback.astrology.vibe', '별의 리듬을 따라 호흡하면 직관이 선명해집니다.')
+    };
+  }
+
+  var theme = matched && matched.theme ? matched.theme : {};
+  var primary = _dfSafeColor((flower.primary_color || (theme.palette && theme.palette.primary)), '#8D99FF');
+  var secondary = _dfSafeColor((flower.secondary_color || (theme.palette && theme.palette.secondary)), '#C77DFF');
+  var keywords = Array.isArray(flower.keywords) && flower.keywords.length
+    ? flower.keywords.slice(0, 4)
+    : ['zodiac', 'nebula', 'stardust'];
+
+  return {
+    source: 'astrology',
+    payload: payload,
+    matched: matched,
+    theme: theme,
+    flowerData: matched && matched.flower_data ? matched.flower_data : null,
+    flower: flower,
+    primary: primary,
+    secondary: secondary,
+    keywords: keywords
+  };
+}
+
+function _jfResolveSelection() {
+  var payload = _dfGetServerMatchPayload();
+  var birthCtx = _dfResolveBirthContext(payload || {});
+  if (!_dfHasBirthCore(birthCtx)) return null;
+
+  var matched = null;
 
   // 🔴 매칭은 서버가 한다 (POST /api/destiny-flower/match).
   matched = _dfGetServerMatched('jamidusu');
   if (!_dfHasReadySourceData('jamidusu', payload)) return null;
   if (!matched) {
-    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
+    _dfRequestUnifiedServerMatch();
     return null;
   }
 
@@ -5170,14 +5215,14 @@ function _jfResolveSelection() {
   if (!flower) {
     flower = {
       id: 'peony_ziwei',
-      name: '모란',
+      name: _dfUiText('fallback.jamidusu.name', '모란'),
       scientific_name: 'Paeonia suffruticosa',
-      symbolism: '제왕의 기품과 중심의 힘',
+      symbolism: _dfUiText('fallback.jamidusu.symbolism', '제왕의 기품과 중심의 힘'),
       primary_color: '#D946EF',
       secondary_color: '#F9A8D4',
-      keywords: ['제왕', '기품', '중심'],
+      keywords: [_dfUiText('fallback.jamidusu.keyword1', '제왕'), _dfUiText('fallback.jamidusu.keyword2', '기품'), _dfUiText('fallback.jamidusu.keyword3', '중심')],
       particle_type: 'imperial_petal',
-      vibe_message: '중심을 지키는 태도가 결국 가장 멀리 갑니다.'
+      vibe_message: _dfUiText('fallback.jamidusu.vibe', '중심을 지키는 태도가 결국 가장 멀리 갑니다.')
     };
   }
 
@@ -5201,114 +5246,8 @@ function _jfResolveSelection() {
   };
 }
 
-function _jfRenderPetals(container, primary, secondary, shouldFall) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 18; i++) {
-    var petal = document.createElement('span');
-    petal.className = 'jamidusu-petal';
-    if (shouldFall) petal.classList.add('is-fall');
-    petal.style.setProperty('--x', (4 + Math.random() * 92).toFixed(2) + '%');
-    petal.style.setProperty('--y', (6 + Math.random() * 72).toFixed(2) + '%');
-    petal.style.setProperty('--size', (8 + Math.random() * 8).toFixed(2) + 'px');
-    petal.style.setProperty('--dur', (2.6 + Math.random() * 2.2).toFixed(2) + 's');
-    petal.style.setProperty('--delay', (Math.random() * 2.2).toFixed(2) + 's');
-    petal.style.setProperty('--petal-a', _dfHexToRgba(primary, 0.76));
-    petal.style.setProperty('--petal-b', _dfHexToRgba(secondary, 0.88));
-    container.appendChild(petal);
-  }
-}
-
-function _jfEnsureCardOpen(card) {
-  if (!card) return;
-  card.classList.add('feature-card--open');
-  var detail = card.querySelector('.feature-card__detail');
-  if (detail) detail.setAttribute('aria-hidden', 'false');
-  var cta = card.querySelector('.feature-card__cta');
-  if (cta) {
-    cta.setAttribute('aria-expanded', 'true');
-    var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = '🌺 자미두수 꽃 다시 소환하기';
-    var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = '✦';
-  }
-  syncFeatureCardHeight(card);
-}
-
-function _jfApplyCardVisual(card, selection) {
-  if (!card || !selection) return;
-  var matched = selection.matched || {};
-  var flowerData = selection.flowerData || matched.flower_data || {};
-  var ziwei = matched.ziwei || {};
-  var intensity = matched.visual_intensity || { glow: 0.7, saturation: 0.8, mist: 0.2, brightness_label: '평(平)' };
-  var stage = card.querySelector('.jamidusu-flower-stage');
-  var nameEl = document.getElementById('jfCardName');
-  var symbolismEl = document.getElementById('jfCardSymbolism');
-  var keywordsEl = document.getElementById('jfCardKeywords');
-  var starBadgeEl = document.getElementById('jfCardStarBadge');
-  var brightBadgeEl = document.getElementById('jfCardBrightnessBadge');
-  var palaceBadgeEl = document.getElementById('jfCardPalaceBadge');
-  var dataLineEl = document.getElementById('jfCardDataLine');
-  var petals = card.querySelector('.jamidusu-petal-field');
-  var mist = card.querySelector('.jamidusu-mist');
-  var image = card.querySelector('.jamidusu-flower-stage__image');
-  var heroImage = card.querySelector('.jamidusu-flower-hero-image');
-  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
-
-  card.style.setProperty('--jf-primary', selection.primary);
-  card.style.setProperty('--jf-secondary', selection.secondary);
-  card.style.setProperty('--jf-glow-strength', String(intensity.glow || 0.7));
-  card.style.setProperty('--jf-mist-opacity', String(intensity.mist || 0.2));
-  stage.style.setProperty('--jf-saturation', String(intensity.saturation || 0.8));
-
-  nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.jamidusu_verdict || matched.narrative || '오늘의 강한 별 기반 운명꽃을 판독 중입니다.';
-  keywordsEl.textContent = 'ziwei flower keywords · ' + selection.keywords.join(' • ');
-  if (starBadgeEl) {
-    var starLine = Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('·') : '주성 미확인';
-    starBadgeEl.textContent = '오늘의 강한 별 ' + starLine;
-  }
-  if (brightBadgeEl) brightBadgeEl.textContent = '별 밝기 ' + (ziwei.brightness || intensity.brightness_label || '평(平)');
-  if (palaceBadgeEl) palaceBadgeEl.textContent = ziwei.palace || '미확인';
-  if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || '주성 시그널 대기') + ' · ' + (flowerData.ritual_tip || '별의 기운을 정렬 중입니다.');
-  }
-
-  if (mist) {
-    mist.style.background =
-      'radial-gradient(circle at 22% 38%, ' + _dfHexToRgba(selection.primary, 0.24) + ', transparent 56%),'
-      + 'radial-gradient(circle at 72% 64%, ' + _dfHexToRgba(selection.secondary, 0.22) + ', transparent 60%)';
-  }
-
-  var shouldFall = Array.isArray(ziwei.primary_stars) && ziwei.primary_stars.some(function(s) {
-    return /천기|태음/.test(String(s || ''));
-  });
-  _jfRenderPetals(petals, selection.primary, selection.secondary, shouldFall);
-  _dfApplyGeneratedFlowerImage(image, selection, 'jamidusu');
-  _dfApplyGeneratedFlowerImage(heroImage, selection, 'jamidusu');
-
-  card.__jfKeywords = selection.keywords || [];
-
-  if (!card.__jfPopupBound) {
-    card.__jfPopupBound = true;
-    var popupEl = document.getElementById('jfCardKeywordPopup');
-    stage.addEventListener('click', function() {
-      if (!popupEl) return;
-      popupEl.textContent = (card.__jfKeywords || []).join(' · ') || '제왕의 기품';
-      popupEl.classList.add('is-show');
-      setTimeout(function() {
-        popupEl.classList.remove('is-show');
-      }, 1800);
-    });
-  }
-
-  stage.classList.remove('is-bloomed');
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
-}
-
 function _sfResolveSelection() {
-  var payload = _dfGetProfilePayload({ sourceHint: 'sukuyo' });
+  var payload = _dfGetServerMatchPayload();
   var birthCtx = _dfResolveBirthContext(payload || {});
   if (!_dfHasBirthCore(birthCtx)) return null;
 
@@ -5316,7 +5255,7 @@ function _sfResolveSelection() {
   var matched = _dfGetServerMatched('sukuyo');
   if (!_dfHasReadySourceData('sukuyo', payload)) return null;
   if (!matched) {
-    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
+    _dfRequestUnifiedServerMatch();
     return null;
   }
 
@@ -5324,14 +5263,14 @@ function _sfResolveSelection() {
   if (!flower) {
     flower = {
       id: 'moon_lily',
-      name: '백합',
+      name: _dfUiText('fallback.sukuyo.name', '백합'),
       scientific_name: 'Lilium candidum',
-      symbolism: '달빛 속에서 맑게 피어나는 수호의 꽃',
+      symbolism: _dfUiText('fallback.sukuyo.symbolism', '달빛 속에서 맑게 피어나는 수호의 꽃'),
       primary_color: '#F8FAFC',
       secondary_color: '#93C5FD',
-      keywords: ['달빛', '수호', '정화'],
+      keywords: [_dfUiText('fallback.sukuyo.keyword1', '달빛'), _dfUiText('fallback.sukuyo.keyword2', '수호'), _dfUiText('fallback.sukuyo.keyword3', '정화')],
       particle_type: 'lunar_pollen',
-      vibe_message: '오늘 밤 달의 호흡과 리듬을 맞추면 선택이 더 선명해집니다.'
+      vibe_message: _dfUiText('fallback.sukuyo.vibe', '오늘 밤 달의 호흡과 리듬을 맞추면 선택이 더 선명해집니다.')
     };
   }
 
@@ -5341,7 +5280,7 @@ function _sfResolveSelection() {
   var sukuyo = (matched && matched.sukuyo) || {};
   var keywords = Array.isArray(flower.keywords) && flower.keywords.length
     ? flower.keywords.slice(0, 5)
-    : [sukuyo.mansion_name || '숙요', sukuyo.guardian_animal || '수호동물', sukuyo.moon_phase || '달위상'];
+    : [sukuyo.mansion_name || _dfUiText('fallback.sukuyo.keywordMansion', '숙요'), sukuyo.guardian_animal || _dfUiText('fallback.sukuyo.keywordGuardian', '수호동물'), sukuyo.moon_phase || _dfUiText('fallback.sukuyo.keywordPhase', '달위상')];
 
   return {
     source: 'sukuyo',
@@ -5354,141 +5293,6 @@ function _sfResolveSelection() {
     secondary: secondary,
     keywords: keywords
   };
-}
-
-function _sfRenderStarfall(container, primary, secondary) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 20; i++) {
-    var star = document.createElement('span');
-    star.className = 'sukuyo-starfall';
-    star.style.setProperty('--x', (3 + Math.random() * 94).toFixed(2) + '%');
-    star.style.setProperty('--y', (4 + Math.random() * 54).toFixed(2) + '%');
-    star.style.setProperty('--len', (10 + Math.random() * 16).toFixed(2) + 'px');
-    star.style.setProperty('--dur', (1.6 + Math.random() * 2.6).toFixed(2) + 's');
-    star.style.setProperty('--delay', (Math.random() * 1.8).toFixed(2) + 's');
-    star.style.setProperty('--star-a', _dfHexToRgba(primary, 0.72));
-    star.style.setProperty('--star-b', _dfHexToRgba(secondary, 0.94));
-    container.appendChild(star);
-  }
-}
-
-function _sfRenderOrbit(container, primary, secondary) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (var i = 0; i < 27; i++) {
-    var dot = document.createElement('span');
-    dot.className = 'sukuyo-orbit-dot';
-    dot.style.setProperty('--i', String(i));
-    dot.style.setProperty('--orbit-color-a', _dfHexToRgba(primary, 0.76));
-    dot.style.setProperty('--orbit-color-b', _dfHexToRgba(secondary, 0.84));
-    container.appendChild(dot);
-  }
-}
-
-function _sfEnsureCardOpen(card) {
-  if (!card) return;
-  card.classList.add('feature-card--open');
-  var detail = card.querySelector('.feature-card__detail');
-  if (detail) detail.setAttribute('aria-hidden', 'false');
-  var cta = card.querySelector('.feature-card__cta');
-  if (cta) {
-    cta.setAttribute('aria-expanded', 'true');
-    var labelEl = cta.querySelector('.feature-card__cta-label');
-    if (labelEl) labelEl.textContent = '🌙 숙요 꽃 다시 소환하기';
-    var arrowEl = cta.querySelector('.feature-card__cta-arrow');
-    if (arrowEl) arrowEl.textContent = '✦';
-  }
-  syncFeatureCardHeight(card);
-}
-
-function _sfApplyCardVisual(card, selection) {
-  if (!card || !selection) return;
-  var matched = selection.matched || {};
-  var flowerData = selection.flowerData || matched.flower_data || {};
-  var sukuyo = matched.sukuyo || {};
-  var intensity = matched.visual_intensity || { glow: 0.72, halo: 0.56, moon_style: 'lunar_flow', moon_label: '상현/하현달' };
-  var theme = matched.theme || {};
-
-  var stage = card.querySelector('.sukuyo-flower-stage');
-  var nameEl = document.getElementById('sfCardName');
-  var symbolismEl = document.getElementById('sfCardSymbolism');
-  var keywordsEl = document.getElementById('sfCardKeywords');
-  var mansionBadgeEl = document.getElementById('sfCardMansionBadge');
-  var phaseBadgeEl = document.getElementById('sfCardPhaseBadge');
-  var guardianBadgeEl = document.getElementById('sfCardGuardianBadge');
-  var dataLineEl = document.getElementById('sfCardDataLine');
-  var starfall = card.querySelector('.sukuyo-starfall-field');
-  var orbit = card.querySelector('.sukuyo-orbit-field');
-  var constellationPath = document.getElementById('sfCardConstellationPath');
-  var image = card.querySelector('.sukuyo-flower-stage__image');
-  var heroImage = card.querySelector('.sukuyo-flower-hero-image');
-  if (!stage || !nameEl || !symbolismEl || !keywordsEl) return;
-
-  card.style.setProperty('--sf-primary', selection.primary);
-  card.style.setProperty('--sf-secondary', selection.secondary);
-  card.style.setProperty('--sf-glow', String(intensity.glow || 0.72));
-  card.style.setProperty('--sf-halo', String(intensity.halo || 0.56));
-  if (theme.palette && theme.palette.bgGradient) {
-    stage.style.setProperty('--sf-lunar-bg', theme.palette.bgGradient);
-  }
-
-  nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.sukuyo_verdict || matched.narrative || '숙요 27숙 기반 운명꽃을 판독 중입니다.';
-  keywordsEl.textContent = 'sukuyo flower keywords · ' + selection.keywords.join(' • ');
-  if (mansionBadgeEl) {
-    var mansionLabel = _dfNormalizeSukuyoMansionLabel(sukuyo.mansion_name);
-    var groupLabel = _dfNormalizeSukuyoGroupLabel(sukuyo.group);
-    mansionBadgeEl.textContent = (mansionLabel || '숙 미확인') + (groupLabel ? (' · ' + groupLabel) : '');
-  }
-  if (phaseBadgeEl) phaseBadgeEl.textContent = '달 위상 ' + (sukuyo.moon_phase || intensity.moon_label || '판정 대기');
-  if (guardianBadgeEl) guardianBadgeEl.textContent = '수호동물 ' + (sukuyo.guardian_animal || '미확인');
-  if (dataLineEl) {
-    dataLineEl.textContent = (flowerData.focus_signal || '숙요 시그널 대기') + ' · ' + (flowerData.ritual_tip || '달의 리듬을 동기화 중입니다.');
-  }
-
-  if (constellationPath) {
-    var points = (sukuyo.constellation_points || (theme && theme.constellation_points) || []).slice(0, 10);
-    if (points.length >= 2) {
-      var d = 'M ' + points[0][0] + ' ' + points[0][1];
-      for (var i = 1; i < points.length; i++) d += ' L ' + points[i][0] + ' ' + points[i][1];
-      constellationPath.setAttribute('d', d);
-    }
-  }
-
-  _sfRenderStarfall(starfall, selection.primary, selection.secondary);
-  _sfRenderOrbit(orbit, selection.primary, selection.secondary);
-  _dfApplyGeneratedFlowerImage(image, selection, 'sukuyo');
-  _dfApplyGeneratedFlowerImage(heroImage, selection, 'sukuyo');
-
-  stage.classList.remove('is-eclipse', 'is-full-glow', 'is-lunar-flow', 'is-bloomed');
-  if (intensity.moon_style === 'eclipse') stage.classList.add('is-eclipse');
-  else if (intensity.moon_style === 'full_glow') stage.classList.add('is-full-glow');
-  else stage.classList.add('is-lunar-flow');
-
-  if (!card.__sfTiltBound) {
-    card.__sfTiltBound = true;
-    var image = card.querySelector('.sukuyo-flower-stage__image');
-    card.addEventListener('mousemove', function(e) {
-      if (!image) return;
-      var rect = card.getBoundingClientRect();
-      var rx = ((e.clientY - rect.top) / rect.height - 0.5) * -6;
-      var ry = ((e.clientX - rect.left) / rect.width - 0.5) * 7;
-      image.style.transform = 'rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) scale(1.02)';
-    });
-    card.addEventListener('mouseleave', function() {
-      if (image) image.style.transform = '';
-    });
-    card.addEventListener('touchmove', function() {
-      if (image) image.style.transform = 'scale(1.015)';
-    }, { passive: true });
-    card.addEventListener('touchend', function() {
-      if (image) image.style.transform = '';
-    }, { passive: true });
-  }
-
-  void stage.offsetWidth;
-  stage.classList.add('is-bloomed');
 }
 
 function _dfApplyCardVisual(card, selection) {
@@ -5531,8 +5335,8 @@ function _dfApplyCardVisual(card, selection) {
 
   nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
   symbolismEl.textContent = stageContent.symbolism || sajuVerdict;
-  keywordsEl.textContent = sourceMeta.labelKo + ' 키워드 · ' + (_dfToArray(selection.keywords).join(' • ') || sourceMeta.fallbackKeyword);
-  if (descEl) descEl.textContent = sourceMeta.description;
+  keywordsEl.textContent = _dfUiText('stage.keywords', '{source} 키워드 · {list}', { source: _dfSourceLabelText(source), list: _dfToArray(selection.keywords).join(' • ') || sourceMeta.fallbackKeyword });
+  if (descEl) descEl.textContent = _dfSourceDescText(source);
   if (dayMasterBadgeEl) dayMasterBadgeEl.textContent = stageContent.badge1;
   if (seasonBadgeEl) seasonBadgeEl.textContent = stageContent.badge2;
   if (environmentBadgeEl) environmentBadgeEl.textContent = stageContent.badge3;
@@ -5663,6 +5467,9 @@ var _dfStudioState = {
 };
 
 var _DF_STUDIO_TITLE = '🌸 운명의 꽃 아틀리에';
+function _dfStudioTitleText() {
+  return _dfUiText('studioTitle', _DF_STUDIO_TITLE);
+}
 var _dfOriginalTitle = null;
 
 function _dfCaptureOriginalTitle() {
@@ -5673,7 +5480,7 @@ function _dfCaptureOriginalTitle() {
 
 function _dfApplyStudioTitle() {
   _dfCaptureOriginalTitle();
-  document.title = _DF_STUDIO_TITLE;
+  document.title = _dfStudioTitleText();
 }
 
 function _dfRestoreOriginalTitle() {
@@ -5809,9 +5616,12 @@ function _dfGetNextRecommendedSource() {
 
 function _dfBuildSourceFlowGuide() {
   var nextSource = _dfGetNextRecommendedSource();
-  if (!nextSource) return '모든 꽃이 개화되었습니다. 원하는 탭에서 다시 감상해 보세요.';
-  if (nextSource === 'saju') return '다음 단계: 사주 꽃을 먼저 열어 개화를 시작해 보세요.';
-  return '다음 단계: ' + _dfGetSourceLabel(nextSource) + ' 꽃으로 이동해 개화를 이어가세요.';
+  if (!nextSource) return _dfUiText('guide.allBloomed', '모든 꽃이 개화되었습니다. 원하는 탭에서 다시 감상해 보세요.');
+  // 지금 탭에 결과가 떠 있으면 "다음 단계" 안내는 결과 문구와 어긋나므로 내지 않는다.
+  var shown = _dfStudioState.selection;
+  if (shown && shown.flower && _dfNormalizeSource(shown.source || 'saju') === _dfNormalizeSource(_dfStudioState.activeSource || 'saju')) return '';
+  if (nextSource === 'saju') return _dfUiText('guide.startSaju', '다음 단계: 사주 꽃을 먼저 열어 개화를 시작해 보세요.');
+  return _dfUiText('guide.next', '다음 단계: {source} 꽃으로 이동해 개화를 이어가세요.', { source: _dfSourceLabelText(nextSource) });
 }
 
 /** 꽃 아틀리에 전체 해금 상품의 잠금 키. 네 체계가 이 하나를 공유한다. */
@@ -5825,12 +5635,16 @@ var _DF_ATELIER_LOCK_KEY = 'flower-fc';
  * 있으면 타일을 정본으로 쓰고, 없으면(홈이 아닌 화면에서 스튜디오를 연 경우) 해금 키만 본다.
  */
 function _dfIsFlowerAtelierUnlocked() {
-  // 2026-10-08: all flower sources are free; server authentication and calculation remain.
-  return true;
+  var tile = document.querySelector('[data-tile-lock-key="' + _DF_ATELIER_LOCK_KEY + '"]');
+  if (tile) {
+    var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
+    if (!(lockCost > 0)) return false;
+    if (tile.classList && tile.classList.contains('tarot-tile--tileUnlocked')) return true;
+  }
+  return _dfIsLockKeyUnlocked(_DF_ATELIER_LOCK_KEY);
 }
 
 function _dfIsSourcePaidUnlocked(source) {
-  if (_dfNormalizeSource(source) === 'saju') return true;
   return _dfIsFlowerAtelierUnlocked();
 }
 
@@ -5839,7 +5653,7 @@ function _dfIsSourcePaidUnlocked(source) {
  *
  * 2026-08-23 이전에는 `saju → astrology → jamidusu → sukuyo` 순차 잠금이었다. 그때는 홈에
  * 꽃 타일이 4개였고 각자 자기 타일에서 lockKey/cost 를 읽었기 때문이다. 지금은 타일도 상품도
- * 하나(1만원 전체 해금)라 "앞 체계를 끝내야 다음이 열린다"는 규칙이 성립하지 않는다 —
+ * 하나(5,000원 전체 해금)라 "앞 체계를 끝내야 다음이 열린다"는 규칙이 성립하지 않는다 —
  * 결제한 사람이 산 것은 네 갈래 전부다.
  *
  * `_dfStudioState.sourceProgress` 는 지우지 않는다. 개화 기록/다음 단계 안내가 그대로 쓴다.
@@ -5847,7 +5661,7 @@ function _dfIsSourcePaidUnlocked(source) {
 function _dfComputeSourceUnlockCache() {
   var unlocked = _dfIsFlowerAtelierUnlocked();
   return {
-    saju: true,
+    saju: unlocked,
     astrology: unlocked,
     jamidusu: unlocked,
     sukuyo: unlocked
@@ -5884,7 +5698,7 @@ function _dfSyncSourceTabsLockState(options) {
 
     if (!unlocked) {
       // 순차 잠금을 없앴으므로 "무엇을 먼저 해야 하는가"가 아니라 "해금하면 전부 열린다"가 맞다.
-      var lockLabel = '아틀리에 해금 시 열림';
+      var lockLabel = _dfUiText('tab.lockLabel', '아틀리에 해금 시 열림');
       tab.setAttribute('aria-disabled', 'true');
       tab.setAttribute('data-df-lock-label', lockLabel);
       tab.title = lockLabel;
@@ -5944,7 +5758,7 @@ function _dfMarkSourceCompleted(source, options) {
 
   _dfSyncSourceTabsLockState({ highlightSources: newlyUnlocked });
   if (!opts.silent && newlyUnlocked.length) {
-    _dfSetStudioStatus('✨ ' + _dfGetSourceLabel(newlyUnlocked[0]) + ' 꽃이 새로 열렸습니다.');
+    _dfSetStudioStatus(_dfUiText('status.newlyUnlocked', '✨ {source} 꽃이 새로 열렸습니다.', { source: _dfSourceLabelText(newlyUnlocked[0]) }));
   }
   return { changed: true, newlyUnlocked: newlyUnlocked };
 }
@@ -6076,7 +5890,7 @@ _dfStudioState.activeSource = _dfLoadActiveSource();
 _dfLoadSourceProgressState();
 
 function _dfGetSajuVerdict(selection) {
-  if (!selection) return '운명의 꽃 판정을 준비 중입니다.';
+  if (!selection) return _dfUiText('verdict.preparing', '운명의 꽃 판정을 준비 중입니다.');
   var matched = selection.matched || {};
   if (matched.sukuyo_verdict) return matched.sukuyo_verdict;
   if (matched.jamidusu_verdict) return matched.jamidusu_verdict;
@@ -6084,18 +5898,19 @@ function _dfGetSajuVerdict(selection) {
   if (matched.saju_verdict) return matched.saju_verdict;
   if (matched.verdict) return matched.verdict;
   var flower = selection.flower || {};
-  var flowerName = flower.name || '운명의 꽃';
+  var flowerName = flower.name || _dfUiText('verdict.defaultFlower', '운명의 꽃');
   var latin = flower.scientific_name ? ' (' + flower.scientific_name + ')' : '';
+  var verdictVars = { name: flowerName + latin };
   if (selection.source === 'sukuyo') {
-    return '숙요점으로 볼 때 당신의 꽃은 ' + flowerName + latin + ' 입니다.';
+    return _dfUiText('verdict.sukuyo', '숙요점으로 볼 때 당신의 꽃은 {name} 입니다.', verdictVars);
   }
   if (selection.source === 'jamidusu') {
-    return '자미두수로 볼 때 당신의 꽃은 ' + flowerName + latin + ' 입니다.';
+    return _dfUiText('verdict.jamidusu', '자미두수로 볼 때 당신의 꽃은 {name} 입니다.', verdictVars);
   }
   if (selection.source === 'astrology') {
-    return '점성술로 볼 때 당신의 꽃은 ' + flowerName + latin + ' 입니다.';
+    return _dfUiText('verdict.astrology', '점성술로 볼 때 당신의 꽃은 {name} 입니다.', verdictVars);
   }
-  return '사주로 볼 때 당신의 꽃은 ' + flowerName + latin + ' 입니다.';
+  return _dfUiText('verdict.saju', '사주로 볼 때 당신의 꽃은 {name} 입니다.', verdictVars);
 }
 
 function _dfElementLabelKo(raw) {
@@ -6154,7 +5969,9 @@ function _dfGetSajuBadges(selection) {
       mansion: _dfNormalizeSukuyoMansionLabel(saved.mansion) || '미확인',
       group: _dfNormalizeSukuyoGroupLabel(saved.group || ''),
       phase: saved.phase || '미확인',
-      guardian: saved.guardian || '미확인'
+      guardian: saved.guardian || '미확인',
+      // 저장 당시 엔진이 준 표시용 이름. 빠뜨리면 복원 화면에 한국어 원값이 나온다.
+      labels: saved.labels || null
     };
   }
   if (saved && typeof saved === 'object' && saved.mode === 'jamidusu') {
@@ -6162,7 +5979,8 @@ function _dfGetSajuBadges(selection) {
       mode: 'jamidusu',
       star: saved.star || '미확인',
       brightness: saved.brightness || '미확인',
-      palace: saved.palace || '미확인'
+      palace: saved.palace || '미확인',
+      labels: saved.labels || null
     };
   }
   if (saved && typeof saved === 'object' && saved.mode === 'astrology') {
@@ -6190,17 +6008,33 @@ function _dfGetSajuBadges(selection) {
       mansion: _dfNormalizeSukuyoMansionLabel(sy.mansion_name) || '미확인',
       group: _dfNormalizeSukuyoGroupLabel(sy.group || ''),
       phase: sy.moon_phase || (matched.visual_intensity && matched.visual_intensity.moon_label) || '미확인',
-      guardian: sy.guardian_animal || '미확인'
+      guardian: sy.guardian_animal || '미확인',
+      // 엔진이 비한국어 로케일에서만 주는 표시용 이름. 비교·저장은 위 원값으로 한다.
+      labels: {
+        mansion: sy.mansion_name ? (sy.mansion_label || '') : '',
+        group: sy.group ? (sy.group_label || '') : '',
+        guardian: sy.guardian_animal ? (sy.guardian_label || '') : ''
+      }
     };
   }
   if ((selection && selection.source === 'jamidusu') || matched.source === 'jamidusu') {
     var ziwei = matched.ziwei || {};
     var stars = Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('·') : '';
+    // 꽃은 명궁 주성(primary_stars)으로 고르지만, "오늘의 강한 별" 배지는 서버의 strong_star 다.
+    var strong = matched.strong_star || {};
     return {
       mode: 'jamidusu',
-      star: stars || '미확인',
-      brightness: ziwei.brightness || (matched.visual_intensity && matched.visual_intensity.brightness_label) || '미확인',
-      palace: ziwei.palace || '미확인'
+      star: strong.star || stars || '미확인',
+      brightness: strong.brightness || ziwei.brightness || (matched.visual_intensity && matched.visual_intensity.brightness_label) || '미확인',
+      palace: strong.palace || ziwei.palace || '미확인',
+      // 엔진이 비한국어 로케일에서만 주는 표시용 이름. 비교·저장은 위 원값으로 한다.
+      labels: {
+        star: strong.star
+          ? (strong.star_label || '')
+          : (stars && Array.isArray(ziwei.primary_stars_label) ? ziwei.primary_stars_label.join('·') : ''),
+        brightness: strong.brightness ? (strong.brightness_label || '') : '',
+        palace: strong.palace ? (strong.palace_label || '') : (ziwei.palace ? (ziwei.palace_label || '') : '')
+      }
     };
   }
   if ((selection && selection.source === 'astrology') || matched.source === 'astrology') {
@@ -6243,43 +6077,43 @@ function _dfGetUnifiedStageContent(selection) {
 
   if (source === 'astrology') {
     return {
-      badge1: '태양궁 ' + (badges.sun || '미확인'),
-      badge2: '상승궁 ' + (badges.rising || '미확인'),
-      badge3: '달궁 ' + (badges.moon || '미확인'),
-      scenarioTitle: matched.astro_verdict || matched.narrative || '점성술 별자리 개화 시나리오를 계산 중입니다.',
-      dataLine: (flowerData.focus_signal || '차트 시그널 대기') + ' · ' + (flowerData.ritual_tip || '성운 리듬을 정렬 중입니다.'),
+      badge1: _dfUiText('badge.sun', '태양궁 {value}', { value: _dfBadgeText(badges.sun || '미확인') }),
+      badge2: _dfUiText('badge.rising', '상승궁 {value}', { value: _dfBadgeText(badges.rising || '미확인') }),
+      badge3: _dfUiText('badge.moon', '달궁 {value}', { value: _dfBadgeText(badges.moon || '미확인') }),
+      scenarioTitle: matched.astro_verdict || matched.narrative || _dfUiText('stage.astrologyScenario', '점성술 별자리 개화 시나리오를 계산 중입니다.'),
+      dataLine: (flowerData.focus_signal || _dfUiText('wait.chartSignal', '차트 시그널 대기')) + ' · ' + (flowerData.ritual_tip || _dfUiText('wait.nebulaRhythm', '성운 리듬을 정렬 중입니다.')),
       symbolism: matched.astro_verdict || matched.narrative || ''
     };
   }
 
   if (source === 'jamidusu') {
     return {
-      badge1: '오늘의 강한 별 ' + (badges.star || '미확인'),
-      badge2: '별 밝기 ' + (badges.brightness || '미확인'),
-      badge3: '궁위 ' + (badges.palace || '미확인'),
-      scenarioTitle: matched.jamidusu_verdict || matched.narrative || '자미두수 주성 개화 시나리오를 계산 중입니다.',
-      dataLine: (flowerData.focus_signal || '주성 시그널 대기') + ' · ' + (flowerData.ritual_tip || '제왕의 기운을 조율 중입니다.'),
+      badge1: _dfUiText('badge.strongStar', '오늘의 강한 별 {value}', { value: _dfBadgeShow(badges, 'star') }),
+      badge2: _dfUiText('badge.brightness', '별 밝기 {value}', { value: _dfBadgeShow(badges, 'brightness') }),
+      badge3: _dfUiText('badge.palace', '궁위 {value}', { value: _dfBadgeShow(badges, 'palace') }),
+      scenarioTitle: matched.jamidusu_verdict || matched.narrative || _dfUiText('stage.jamidusuScenario', '자미두수 주성 개화 시나리오를 계산 중입니다.'),
+      dataLine: (flowerData.focus_signal || _dfUiText('wait.starSignal', '주성 시그널 대기')) + ' · ' + (flowerData.ritual_tip || _dfUiText('wait.imperialRhythm', '제왕의 기운을 조율 중입니다.')),
       symbolism: matched.jamidusu_verdict || matched.narrative || ''
     };
   }
 
   if (source === 'sukuyo') {
     return {
-      badge1: badges.mansion || '미확인',
-      badge2: '달 위상 ' + (badges.phase || '미확인'),
-      badge3: '수호동물 ' + (badges.guardian || '미확인'),
-      scenarioTitle: matched.sukuyo_verdict || matched.narrative || '숙요 달빛 개화 시나리오를 계산 중입니다.',
-      dataLine: (flowerData.focus_signal || '숙요 시그널 대기') + ' · ' + (flowerData.ritual_tip || '달의 리듬을 동기화 중입니다.'),
+      badge1: _dfBadgeShow(badges, 'mansion'),
+      badge2: _dfUiText('badge.moonPhase', '달 위상 {value}', { value: _dfBadgeText(badges.phase || '미확인') }),
+      badge3: _dfUiText('badge.guardian', '수호동물 {value}', { value: _dfBadgeShow(badges, 'guardian') }),
+      scenarioTitle: matched.sukuyo_verdict || matched.narrative || _dfUiText('stage.sukuyoScenario', '숙요 달빛 개화 시나리오를 계산 중입니다.'),
+      dataLine: (flowerData.focus_signal || _dfUiText('wait.sukuyoSignal', '숙요 시그널 대기')) + ' · ' + (flowerData.ritual_tip || _dfUiText('wait.moonRhythm', '달의 리듬을 동기화 중입니다.')),
       symbolism: matched.sukuyo_verdict || matched.narrative || ''
     };
   }
 
   return {
-    badge1: flowerData.day_master_badge || '일간 판독 대기',
-    badge2: (flowerData.season_label || '계절') + ' 결',
-    badge3: (flowerData.environment_label || '환경') + ' 무드',
-    scenarioTitle: flowerData.scenario_title || '일간-환경 개화 시나리오를 계산 중입니다.',
-    dataLine: (flowerData.ritual_tip || '') + ((flowerData.ritual_tip && flowerData.focus_signal) ? ' · ' : '') + (flowerData.focus_signal || '꽃 데이터 시트를 준비 중입니다.'),
+    badge1: flowerData.day_master_badge || _dfUiText('wait.dayMaster', '일간 판독 대기'),
+    badge2: _dfUiText('stage.seasonTexture', '{season} 결', { season: flowerData.season_label || _dfUiText('stage.seasonDefault', '계절') }),
+    badge3: _dfUiText('stage.environmentMood', '{environment} 무드', { environment: flowerData.environment_label || _dfUiText('stage.environmentDefault', '환경') }),
+    scenarioTitle: flowerData.scenario_title || _dfUiText('stage.sajuScenario', '일간-환경 개화 시나리오를 계산 중입니다.'),
+    dataLine: (flowerData.ritual_tip || '') + ((flowerData.ritual_tip && flowerData.focus_signal) ? ' · ' : '') + (flowerData.focus_signal || _dfUiText('stage.dataSheetPreparing', '꽃 데이터 시트를 준비 중입니다.')),
     symbolism: flowerData.scenario_reason || ''
   };
 }
@@ -6382,16 +6216,16 @@ function _dfBuildBadgeRows(selection) {
   var badges = _dfGetSajuBadges(selection);
   if (badges.mode === 'sukuyo') {
     return [
-      { cls: 'is-strength', label: '숙', value: badges.mansion },
+      { cls: 'is-strength', label: _dfUiText('badge.mansionLabel', '숙'), value: _dfBadgeShow(badges, 'mansion') },
       { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.001"), value: badges.phase },
-      { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.002"), value: badges.guardian }
+      { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.002"), value: _dfBadgeShow(badges, 'guardian') }
     ];
   }
   if (badges.mode === 'jamidusu') {
     return [
-      { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.003"), value: badges.star },
-      { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.004"), value: badges.brightness },
-      { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.005"), value: badges.palace }
+      { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.003"), value: _dfBadgeShow(badges, 'star') },
+      { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.004"), value: _dfBadgeShow(badges, 'brightness') },
+      { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.005"), value: _dfBadgeShow(badges, 'palace') }
     ];
   }
   if (badges.mode === 'astrology') {
@@ -6411,7 +6245,7 @@ function _dfBuildBadgeRows(selection) {
 function _dfBadgeMarkup(rows, cls) {
   return rows.map(function(row) {
     return '<span class="' + cls + ' ' + row.cls + '"><b>' + _dfEscapeHtml(row.label) + '</b><em>'
-      + _dfEscapeHtml(row.value || '판정 대기') + '</em></span>';
+      + _dfEscapeHtml(_dfBadgeText(row.value) || _dfUiText('value.pending', '판정 대기')) + '</em></span>';
   }).join('');
 }
 
@@ -6426,6 +6260,7 @@ function _dfRenderQuadCards(activeSource) {
   var cards = document.querySelectorAll('.df-quad-card[data-df-quad]');
   if (!cards || !cards.length) return;
   var active = _dfNormalizeSource(activeSource || _dfStudioState.activeSource || 'saju');
+  var resolved = {};
 
   cards.forEach(function(card) {
     var source = _dfNormalizeSource(card.getAttribute('data-df-quad'));
@@ -6444,28 +6279,296 @@ function _dfRenderQuadCards(activeSource) {
 
     if (!selection || !selection.flower) {
       card.classList.add('is-pending');
-      if (nameEl) nameEl.textContent = _dfGetSourceLabel(source) + ' 판정 대기';
+      if (nameEl) nameEl.textContent = _dfUiText('wait.sourceVerdict', '{source} 판정 대기', { source: _dfSourceLabelText(source) });
       if (latinEl) latinEl.textContent = '';
       if (badgeEl) badgeEl.innerHTML = '';
       if (lineEl) lineEl.textContent = _dfGetDataMissingUiState(source).message || '';
-      if (imgEl) imgEl.removeAttribute('src');
+      if (imgEl) {
+        var budUri = _dfBuildBudDataUri(source);
+        if (budUri) {
+          imgEl.src = budUri;
+          imgEl.alt = '';
+        } else {
+          imgEl.removeAttribute('src');
+        }
+      }
       return;
     }
 
     card.classList.remove('is-pending');
+    resolved[source] = { selection: selection, image: imgEl };
     if (nameEl) nameEl.textContent = selection.flower.name || '';
     if (latinEl) latinEl.textContent = selection.flower.scientific_name || '';
     if (badgeEl) badgeEl.innerHTML = _dfBadgeMarkup(_dfBuildBadgeRows(selection), 'df-quad-badge');
     if (lineEl) {
+      /* 카드 한 줄은 엔진이 실제로 맞춘 첫 근거 — 없을 때만 꽃말로 물러난다. */
+      var firstPoint = _dfToArray(selection.matched && selection.matched.rationale_points)[0];
+      var pointText = String((firstPoint && firstPoint.text) || '').trim();
       var symbolism = String((selection.flower && selection.flower.symbolism) || '').trim();
-      lineEl.textContent = symbolism || _dfGetSajuVerdict(selection);
+      lineEl.textContent = pointText || symbolism || _dfGetSajuVerdict(selection);
     }
     if (imgEl) {
       _dfApplyGeneratedFlowerImage(imgEl, selection, source);
       imgEl.alt = selection.flower.name || '';
     }
   });
+  _dfRenderStudioBouquet(resolved);
 }
+
+var _DF_BLOOM_STAGE_ICON = {
+  seed: '<path d="M8 3.2c2.5 1.9 3.6 4 3.6 5.9a3.6 3.6 0 0 1-7.2 0c0-1.9 1.1-4 3.6-5.9z"/><path d="M8 8v3.6"/>',
+  season: '<path d="M8 14V7.2"/><path d="M8 9.2C7.8 6.6 6 5 3.2 5c.1 2.7 1.9 4.2 4.8 4.2z"/><path d="M8 7.2c.2-2.4 1.9-3.9 4.6-3.9-.1 2.5-1.8 3.9-4.6 3.9z"/>',
+  light: '<path d="M8 14V9.4"/><path d="M8 9.4c-2.4-.6-3.4-2.7-3-5.6 1.2.6 2.2 1.4 3 2.5.8-1.1 1.8-1.9 3-2.5.4 2.9-.6 5-3 5.6z"/>',
+  bloom: '<circle cx="8" cy="6.2" r="1.3"/><path d="M8 4.9C6.9 2.4 9.1 2.4 8 4.9zM9.3 6.2c2.5-1.1 2.5 1.1 0 0zM8 7.5c1.1 2.5-1.1 2.5 0 0zM6.7 6.2c-2.5 1.1-2.5-1.1 0 0z"/><path d="M8 8.6V14"/>'
+};
+
+/** 개화 단계(씨앗→잎→봉오리→꽃). 구 응답의 rationale_points 는 순서와 key 로 단계를 정한다. */
+function _dfBloomStage(point, index) {
+  var stage = String((point && point.stage) || '');
+  if (_DF_BLOOM_STAGE_ICON[stage]) return stage;
+  if (/verdict$/.test(String((point && point.key) || ''))) return 'bloom';
+  return index === 0 ? 'seed' : 'light';
+}
+
+function _dfBloomNodeSvg(stage) {
+  return '<span class="df-bloom-node" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" focusable="false">'
+    + (_DF_BLOOM_STAGE_ICON[stage] || _DF_BLOOM_STAGE_ICON.light) + '</svg></span>';
+}
+
+/** bloom_story 가 없으면(구 응답) rationale_points 를 단계로 옮긴다. 글이 빈 단계는 버린다. */
+function _dfBloomSteps(selection) {
+  var matched = (selection && selection.matched) || {};
+  var hasText = function(point) { return point && String(point.text || '').trim(); };
+  var steps = _dfToArray(matched.bloom_story).filter(hasText);
+  if (!steps.length) steps = _dfToArray(matched.rationale_points).filter(hasText);
+  return steps.map(function(point, i) {
+    return { stage: _dfBloomStage(point, i), label: String(point.label || '').trim(), text: String(point.text).trim() };
+  });
+}
+
+/**
+ * "왜 이 꽃일까요?" — 엔진 bloom_story(씨앗→계절→햇빛과 물→꽃, 실제로 점수에 든 신호만)를 줄기 타임라인으로.
+ * 근거 단계는 최대 4개 + 마지막 꽃. 근거가 없으면(구 응답·폴백 선택) 섹션을 숨긴다.
+ */
+function _dfRenderStudioWhy(selection) {
+  var wrap = document.getElementById('dfStudioWhy');
+  var list = document.getElementById('dfStudioWhyList');
+  if (!wrap || !list) return;
+  var steps = _dfBloomSteps(selection);
+  var reasons = steps.filter(function(step) { return step.stage !== 'bloom'; }).slice(0, 4);
+  var points = reasons.length ? reasons.concat(steps.filter(function(step) { return step.stage === 'bloom'; }).slice(-1)) : [];
+  list.innerHTML = points.map(function(point) {
+    return '<li class="df-bloom-step" data-stage="' + point.stage + '">' + _dfBloomNodeSvg(point.stage) + '<span class="df-bloom-body">'
+      + (point.label ? '<b>' + _dfEscapeHtml(point.label) + '</b> ' : '') + '<span>' + _dfEscapeHtml(point.text) + '</span></span></li>';
+  }).join('');
+  wrap.hidden = points.length === 0;
+}
+
+var _DF_SPECIMEN_MARK_LABELS = {
+  saju: ['일간', '계절'],
+  astrology: ['별자리', '상승'],
+  jamidusu: ['주성', '밝기'],
+  sukuyo: ['본명숙', '달']
+};
+
+/** 채집 라벨: 꽃말·체계·표식·때(사주는 용신까지). 값이 없는 줄은 빼고, 다 비면 숨긴다. */
+function _dfRenderStudioSpecimen(selection, sourceLabel, badges, flowerData) {
+  var el = document.getElementById('dfStudioSpecimen');
+  if (!el) return;
+  var source = _dfNormalizeSource(selection.source || 'saju');
+  var markSource = _DF_SPECIMEN_MARK_LABELS[source] ? source : 'saju';
+  var marks = _DF_SPECIMEN_MARK_LABELS[markSource];
+  var flower = selection.flower || {};
+  var language = flower.flower_language || (selection.matched && selection.matched.flower && selection.matched.flower.flower_language) || '';
+  var rows = [
+    [_dfUiText('specimen.language', '꽃말'), language],
+    [_dfUiText('specimen.system', '체계'), sourceLabel],
+    [_dfUiText('specimen.mark.' + markSource + '.primary', marks[0]), flowerData.day_master_badge],
+    [_dfUiText('specimen.mark.' + markSource + '.secondary', marks[1]), flowerData.season_label]
+  ];
+  if (badges && badges.mode === 'saju' && badges.yongshin && badges.yongshin !== '판정 대기') rows.push([_dfUiText('specimen.yongshin', '용신'), _dfBadgeText(badges.yongshin)]);
+  rows = rows.filter(function(row) { return String(row[1] || '').trim(); });
+  el.innerHTML = rows.map(function(row) {
+    return '<div class="df-specimen-row"><dt>' + _dfEscapeHtml(row[0]) + '</dt><dd>' + _dfEscapeHtml(String(row[1]).trim()) + '</dd></div>';
+  }).join('');
+  el.hidden = rows.length < 2;
+}
+
+function _dfHasBatchim(word) {
+  var code = String(word || '').charCodeAt(String(word || '').length - 1) - 0xAC00;
+  return code >= 0 && code <= 11171 && code % 28 !== 0;
+}
+
+/**
+ * 꽃 스튜디오·공유 문구. ko 는 조사까지 맞춘 원문(ko)을 그대로 쓰고,
+ * 다른 로케일은 fortune.destinyFlower.ui.<key> 템플릿에 vars 를 넣는다.
+ */
+function _dfUiText(key, ko, vars) {
+  try {
+    if (typeof window.cdTranslate === 'function') return window.cdTranslate('fortune.destinyFlower.ui.' + key, vars || {}, ko);
+  } catch (_) {}
+  return String(ko == null ? '' : ko).replace(/\{(\w+)\}/g, function(match, name) {
+    return vars && vars[name] != null ? String(vars[name]) : match;
+  });
+}
+
+function _dfSourceLabelText(source) {
+  var key = _dfNormalizeSource(source || 'saju');
+  return _dfUiText('source.' + key, _dfGetSourceLabel(key));
+}
+
+/** 체계 소개 문장(_DF_SOURCE_META.description)의 로케일 문구. */
+function _dfSourceDescText(source) {
+  var key = _dfNormalizeSource(source || 'saju');
+  var meta = _DF_SOURCE_META[key] || _DF_SOURCE_META.saju;
+  return _dfUiText('sourceDesc.' + key, meta.description || '');
+}
+
+/** ui 밖의 전체 키(예: 오행 이름)를 찾는다. ko 는 원문을 그대로 돌려준다. */
+function _dfDictText(fullKey, ko) {
+  try {
+    if (typeof window.cdTranslate === 'function') return window.cdTranslate(fullKey, {}, ko);
+  } catch (_) {}
+  return ko;
+}
+
+/**
+ * 배지 값은 판정 로직·스냅샷이 쓰는 한국어 원값으로 두고, 화면에 낼 때만 로케일 문구로 바꾼다.
+ * 'A · B' 처럼 이어 붙인 값은 조각마다 바꾼다. 모르는 값(엔진이 준 이름 등)은 그대로 둔다.
+ */
+var _DF_BADGE_VALUE_KEYS = {
+  '미확인': 'value.unknown',
+  '판정 대기': 'value.pending',
+  '신강': 'strength.strong',
+  '신약': 'strength.weak',
+  '온조(溫燥)': 'johu.hot',
+  '한습(寒濕)': 'johu.cold',
+  '중화(中和)': 'johu.balanced',
+  '목(木)': '@wood',
+  '화(火)': '@fire',
+  '토(土)': '@earth',
+  '금(金)': '@metal',
+  '수(水)': '@water',
+  '명궁': 'value.lifePalace'
+};
+/** 점성술 배지 원값은 영문 별자리(엔진 sun_sign 등). 화면에는 로케일 별자리 이름(ko 포함)을 낸다. */
+var _DF_ASTRO_SIGN_KO = {
+  Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리',
+  Leo: '사자자리', Virgo: '처녀자리', Libra: '천칭자리', Scorpio: '전갈자리',
+  Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리'
+};
+/** 배지 값 표시: 엔진 표시용 이름(labels.x)이 있으면 그것을, 없으면 원값을 로케일 문구로. */
+function _dfBadgeShow(badges, field, fallback) {
+  var label = badges && badges.labels && badges.labels[field];
+  if (label) return String(label);
+  var raw = badges ? badges[field] : '';
+  return _dfBadgeText(raw || fallback || '미확인');
+}
+
+function _dfBadgeText(value) {
+  var raw = String(value == null ? '' : value).trim();
+  if (!raw) return '';
+  return raw.split(' · ').map(function(part) {
+    var key = _DF_BADGE_VALUE_KEYS[part];
+    if (!key && Object.prototype.hasOwnProperty.call(_DF_ASTRO_SIGN_KO, part)) {
+      return _dfDictText('fortune.destinyFlower.astro.signs.' + part.toLowerCase(), _DF_ASTRO_SIGN_KO[part]);
+    }
+    if (!key) {
+      var group = /^(.+) 그룹$/.exec(part);
+      return group ? _dfUiText('badge.group', '{group} 그룹', { group: group[1] }) : part;
+    }
+    if (key.charAt(0) === '@') return _dfDictText('fortune.destinyFlower.saju.elements.' + key.slice(1), part);
+    return _dfUiText(key, part);
+  }).join(' · ');
+}
+
+/** 다른 로케일용 체계 나열(조사 없음). ko 는 _dfJoinSourceSubject 가 조사까지 붙인다. */
+function _dfSourceListText(labels) {
+  if (labels.length >= 4) return _dfUiText('bouquet.sourcesAll', '네 갈래 점술');
+  if (labels.length === 2) return _dfUiText('bouquet.sourcesPair', labels.join('·'), { a: labels[0], b: labels[1] });
+  return _dfUiText('bouquet.sourcesTrio', labels.join('·'), { a: labels[0], b: labels[1], c: labels[2] });
+}
+
+/** 오행 이름은 사전에서 바로 푼다(@키). ko 는 원문을 쓰므로 이 값이 쓰이지 않는다. */
+function _dfElementVar(element) {
+  return '@fortune.destinyFlower.saju.elements.' + String(element || '').toLowerCase();
+}
+
+/** '사주와 점성술이' · '사주·점성술·숙요점이' · '네 갈래 점술이' */
+function _dfJoinSourceSubject(labels) {
+  if (labels.length >= 4) return '네 갈래 점술이';
+  var last = labels[labels.length - 1];
+  var head = labels.length === 2
+    ? labels[0] + (_dfHasBatchim(labels[0]) ? '과 ' : '와 ') + last
+    : labels.join('·');
+  return head + (_dfHasBatchim(last) ? '이' : '가');
+}
+
+/** 같은 꽃 > 공통 오행 > 다채로운 결 순으로, 실제로 고른 꽃만 보고 정하는 교차 해석 한 줄. */
+function _dfBouquetReading(items) {
+  var byFlower = {};
+  items.forEach(function(item) {
+    var id = String(item.selection.flower.id || item.selection.flower.name || '');
+    if (!id) return;
+    (byFlower[id] = byFlower[id] || []).push(item);
+  });
+  var same = Object.keys(byFlower).map(function(id) { return byFlower[id]; })
+    .filter(function(group) { return group.length >= 2; })
+    .sort(function(a, b) { return b.length - a.length; })[0];
+  if (same) {
+    var sameLabels = same.map(function(item) { return item.label; });
+    var sameName = same[0].selection.flower.name;
+    return _dfUiText('bouquet.sameFlower',
+      _dfJoinSourceSubject(sameLabels) + ' 같은 꽃, ' + sameName + (_dfHasBatchim(sameName) ? '을' : '를') + ' 골랐어요. 그만큼 또렷한 당신의 결이에요.',
+      { sources: _dfSourceListText(sameLabels), name: sameName });
+  }
+  var order = ['wood', 'fire', 'earth', 'metal', 'water'];
+  var best = null;
+  order.forEach(function(element) {
+    var labels = items.filter(function(item) {
+      return _dfToArray(item.selection.flower.elements).some(function(el) { return String(el || '').toLowerCase() === element; });
+    }).map(function(item) { return item.label; });
+    if (labels.length >= 2 && (!best || labels.length > best.labels.length)) best = { element: element, labels: labels };
+  });
+  if (best) {
+    return _dfUiText('bouquet.sameElement',
+      _dfJoinSourceSubject(best.labels) + ' 모두 ' + _dfElementLabelKo(best.element) + ' 기운을 가리켰어요.',
+      { sources: _dfSourceListText(best.labels), element: _dfElementVar(best.element) });
+  }
+  return _dfUiText('bouquet.diverse', '서로 다른 결의 꽃이 모여, 여러 얼굴의 당신을 한 다발에 담았어요.');
+}
+
+/** 운명 꽃다발: 4-up 카드가 판정한 꽃을 한 다발로 묶는다. 두 송이 이상일 때만 보인다. */
+function _dfRenderStudioBouquet(resolved) {
+  var wrap = document.getElementById('dfStudioBouquet');
+  if (!wrap) return;
+  var items = ['saju', 'astrology', 'jamidusu', 'sukuyo'].map(function(source) {
+    var entry = resolved && resolved[source];
+    return entry && entry.selection && entry.selection.flower
+      ? { source: source, label: _dfSourceLabelText(source), selection: entry.selection, image: entry.image }
+      : null;
+  }).filter(Boolean);
+  _dfStudioState.bouquet = items.length >= 2 ? items : [];
+  if (items.length < 2) {
+    wrap.hidden = true;
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = '<h4 class="df-bouquet-title">' + _dfEscapeHtml(_dfUiText('bouquet.title', '운명 꽃다발')) + '</h4>'
+    + '<p class="df-bouquet-sub">' + _dfEscapeHtml(_dfUiText('bouquet.sub', items.length + '갈래 점술이 고른 꽃을 한 다발로 묶었어요.', { count: items.length })) + '</p>'
+    + '<ul class="df-bouquet-stems">' + items.map(function(item) {
+      return '<li class="df-bouquet-stem" data-df-bouquet="' + item.source + '"><span class="df-bouquet-bloom"><img alt="" width="72" height="72" decoding="async"></span>'
+        + '<b>' + _dfEscapeHtml(item.selection.flower.name || '') + '</b><small>' + _dfEscapeHtml(item.label) + '</small></li>';
+    }).join('') + '</ul>'
+    + '<p class="df-bouquet-reading">' + _dfEscapeHtml(_dfBouquetReading(items)) + '</p>';
+  items.forEach(function(item) {
+    var img = wrap.querySelector('[data-df-bouquet="' + item.source + '"] img');
+    if (img && item.image && item.image.src) img.src = item.image.src;
+    else _dfApplyGeneratedFlowerImage(img, item.selection, item.source);
+  });
+  wrap.hidden = false;
+}
+
 function _dfRenderSajuBadges(selection) {
   var wrap = document.getElementById('dfStudioSajuBadges');
   if (!wrap) return;
@@ -6509,7 +6612,10 @@ function _dfBuildSnapshot(selection) {
     saju_badges: badges,
     saju_verdict: _dfGetSajuVerdict(selection),
     narrative: (selection.matched && selection.matched.narrative) || '',
-    guidance: flower.vibe_message || '오늘은 결과보다 리듬을 먼저 맞추면 개화 속도가 빨라집니다.'
+    flower_id: flower.id || '',
+    flower_language: flower.flower_language || '',
+    rarity_line: (selection.matched && selection.matched.share_hook && selection.matched.share_hook.rarity_line) || '',
+    guidance: flower.vibe_message || _dfUiText('snapshot.guidance', '오늘은 결과보다 리듬을 먼저 맞추면 개화 속도가 빨라집니다.')
   };
 }
 
@@ -6659,14 +6765,16 @@ function _dfHasBirthInfo(payload) {
 
 function _dfGetNoDomainDataMessage(source) {
   var normalized = _dfNormalizeSource(source);
-  var label = _dfGetSourceLabel(normalized);
-  return '아직 연동된 ' + label + ' 데이터가 없어요. 아래 버튼을 누르면 지금 당신만의 운명의 꽃이 피어납니다.';
+  return _dfUiText('empty.noDomainData', '아직 연동된 {source} 데이터가 없어요. 아래 버튼을 누르면 지금 당신만의 운명의 꽃이 피어납니다.', { source: _dfSourceLabelText(normalized) });
+}
+
+function _dfGetAstroCalculatingMessage() {
+  return _dfUiText('empty.astroCalculating', '별자리 차트를 읽었어요. 지금 점성술 꽃을 고르는 중입니다.');
 }
 
 function _dfGetNotLinkedMessage(source) {
   var normalized = _dfNormalizeSource(source);
-  var label = _dfGetSourceLabel(normalized);
-  return label + ' 꽃은 연동하기 버튼을 누르는 순간 피어납니다. 아래 버튼을 눌러 지금 당신에게 온 한 송이를 만나보세요.';
+  return _dfUiText('empty.notLinked', '{source} 꽃은 연동하기 버튼을 누르는 순간 피어납니다. 아래 버튼을 눌러 지금 당신에게 온 한 송이를 만나보세요.', { source: _dfSourceLabelText(normalized) });
 }
 
 function _dfCanShowLoadButton(source, missingDomain) {
@@ -6682,6 +6790,17 @@ function _dfGetDataMissingUiState(source) {
   if (!_dfHasBirthInfo(payload)) {
     return {
       message: _dfGetNoBirthMessage(normalized),
+      showLoadButton: false,
+      source: normalized
+    };
+  }
+
+  // 🔴 점성술 신호는 프로필에 저장돼 있지 않고 생년월일로 브리지해서 얻는다. skipLiveBridge payload 로
+  //    판정하면 항상 "데이터 없음"이 된다 — 브리지된 payload 에 별자리가 있으면 서버 판정을 기다리는 중이다.
+  if (normalized === 'astrology' && _dfServerMatch.status !== 'error'
+      && _dfHasReadySourceData('astrology', _dfGetServerMatchPayload())) {
+    return {
+      message: _dfGetAstroCalculatingMessage(),
       showLoadButton: false,
       source: normalized
     };
@@ -6718,7 +6837,7 @@ function _dfEnsureStudioEmptyState(main) {
   emptyEl.hidden = true;
   emptyEl.innerHTML = ''
     + '<p id="dfStudioEmptyMessage" class="df-studio-empty-message"></p>'
-    + '<button id="dfStudioEmptyLoadButton" type="button" class="df-studio-link-btn df-bloom-btn" aria-label="' + _indexRuntimeText("indexRuntime.aria-label.002") + '">운명의 꽃 연동하기</button>';
+    + '<button id="dfStudioEmptyLoadButton" type="button" class="df-studio-link-btn df-bloom-btn" aria-label="' + _indexRuntimeText("indexRuntime.aria-label.002") + '">' + _dfEscapeHtml(_dfUiText('empty.linkButton', '운명의 꽃 연동하기')) + '</button>';
   main.appendChild(emptyEl);
 
   var loadBtn = emptyEl.querySelector('#dfStudioEmptyLoadButton');
@@ -6748,7 +6867,7 @@ function _dfSetEmptyLoadButtonState(isLoading, source, canLoad) {
   btn.disabled = !!isLoading;
   btn.classList.toggle('is-loading', !!isLoading);
   btn.setAttribute('data-df-source', normalized);
-  btn.textContent = isLoading ? '연동 중...' : '운명의 꽃 연동하기';
+  btn.textContent = isLoading ? _dfUiText('empty.linking', '연동 중...') : _dfUiText('empty.linkButton', '운명의 꽃 연동하기');
 }
 
 function _dfShowStudioEmptyState(source, message, showLoadButton) {
@@ -6770,15 +6889,14 @@ function _dfShowStudioEmptyState(source, message, showLoadButton) {
   var messageEl = emptyEl ? emptyEl.querySelector('#dfStudioEmptyMessage') : null;
 
   if (sourceDescEl) {
-    var meta = _DF_SOURCE_META[normalized] || _DF_SOURCE_META.saju;
-    sourceDescEl.textContent = meta.description || '';
+    sourceDescEl.textContent = _dfSourceDescText(normalized);
   }
   if (narrativeEl) narrativeEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
-  if (nameEl) nameEl.textContent = _dfGetSourceLabel(normalized) + ' 데이터 연동 대기';
+  if (nameEl) nameEl.textContent = _dfUiText('empty.dataWaiting', '{source} 데이터 연동 대기', { source: _dfSourceLabelText(normalized) });
   if (latinEl) latinEl.textContent = 'Data not linked';
-  if (dayMasterEl) dayMasterEl.textContent = _dfGetSourceLabel(normalized) + ' 판독 대기';
+  if (dayMasterEl) dayMasterEl.textContent = _dfUiText('empty.readingWaiting', '{source} 판독 대기', { source: _dfSourceLabelText(normalized) });
   if (symbolismEl) symbolismEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
-  if (keywordsEl) keywordsEl.textContent = _dfGetSourceLabel(normalized) + ' keywords · loading';
+  if (keywordsEl) keywordsEl.textContent = _dfUiText('empty.keywordsLoading', '{source} keywords · loading', { source: _dfSourceLabelText(normalized) });
   if (badgesEl) badgesEl.style.display = 'none';
 
   if (messageEl) messageEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
@@ -6826,7 +6944,7 @@ function _dfRefreshStudioForSource(source, forceRefresh) {
   _dfHideStudioEmptyState();
   var main = document.querySelector('.df-studio-main');
   if (main) main.style.display = '';
-  _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.');
+  _dfSetStudioStatus(_dfUiText('status.resultReady', '{verdict} 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.', { verdict: _dfGetSajuVerdict(selection) }));
   return selection;
 }
 
@@ -6834,14 +6952,14 @@ function _dfReloadSourceData(source, options) {
   var opts = options && typeof options === 'object' ? options : {};
   var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
   if (!opts.silentStatus) {
-    _dfSetStudioStatus('데이터를 다시 불러오는 중입니다. 잠시만 기다려주세요.');
+    _dfSetStudioStatus(_dfUiText('status.reloading', '데이터를 다시 불러오는 중입니다. 잠시만 기다려주세요.'));
   }
 
   var loader = Promise.resolve(true);
   // 꽃 아트(window.CDFlowerArt)만 브라우저에 올린다. 매칭 엔진은 워커에 있다.
   if (!window.CDFlowerArt) {
     loader = loader.then(function() {
-      return import('/js/core/bootstrapDestinyFlower.js?v=build-d20780a7ec36').then(function(mod) {
+      return import('/js/core/bootstrapDestinyFlower.js?v=build-c8f400f0490a').then(function(mod) {
         if (mod && typeof mod.bootstrapDestinyFlower === 'function') {
           mod.bootstrapDestinyFlower(window);
         }
@@ -6855,11 +6973,10 @@ function _dfReloadSourceData(source, options) {
 
   if (normalized === 'astrology' && typeof __cdEnsureSwissEphLoaded === 'function') {
     loader = loader.then(function() {
-      __cdEnsureSwissEphLoaded().catch(function(err) {
+      return __cdEnsureSwissEphLoaded().catch(function(err) {
         console.warn('[DestinyFlower] SwissEph 로드 실패:', err);
         return false;
       });
-      return true;
     });
   }
 
@@ -6916,7 +7033,7 @@ function _dfFetchSourceOnDemand(source, options) {
   _dfSetEmptyLoadButtonState(true, normalized, true);
 
   if (!opts.silentStatus) {
-    _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' 데이터를 연동 중입니다. 잠시만 기다려주세요.', {
+    _dfSetStudioStatus(_dfUiText('status.linking', '{source} 데이터를 연동 중입니다. 잠시만 기다려주세요.', { source: _dfSourceLabelText(normalized) }), {
       showLoadButton: true,
       source: normalized,
       isLoading: true
@@ -6937,7 +7054,7 @@ function _dfFetchSourceOnDemand(source, options) {
       _dfHideStudioEmptyState();
       var main = document.querySelector('.df-studio-main');
       if (main) main.style.display = '';
-      _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' 데이터를 불러왔습니다.');
+      _dfSetStudioStatus(_dfUiText('status.loaded', '{source} 데이터를 불러왔습니다.', { source: _dfSourceLabelText(normalized) }));
       return selection;
     }
 
@@ -6989,25 +7106,13 @@ function _dfEscapeHtml(s) {
 }
 
 function _dfBuildShareText(snapshot) {
-  if (!snapshot) return '운명의 꽃 결과를 준비 중입니다.';
-  var sourceLabel = snapshot.source === 'sukuyo'
-    ? '숙요점'
-    : (snapshot.source === 'jamidusu' ? '자미두수' : (snapshot.source === 'astrology' ? '점성술' : '사주'));
-  var sajuVerdict = snapshot.saju_verdict || (sourceLabel + '로 볼 때 당신의 꽃은 ' + snapshot.name + ' 입니다.');
-  var lines = [
-    '🌸 운명의 꽃 아틀리에 결과',
-    '',
-    sajuVerdict,
-    snapshot.name + ' (' + snapshot.scientific_name + ')',
-    snapshot.day_master_badge ? ((snapshot.source === 'astrology' ? '차트 배지: ' : (snapshot.source === 'jamidusu' ? '주성 배지: ' : (snapshot.source === 'sukuyo' ? '숙요 배지: ' : '일간 배지: '))) + snapshot.day_master_badge) : '',
-    snapshot.symbolism,
-    '키워드: ' + _dfToArray(snapshot.keywords).join(' • '),
-    '팔레트: ' + snapshot.primary + ' / ' + snapshot.secondary,
-    '입자 무드: ' + snapshot.particle_type
-  ];
-  if (snapshot.narrative) lines.push('', snapshot.narrative);
-  lines.push('', window.location.href);
-  return lines.join('\n');
+  if (!snapshot) return _dfUiText('share.preparing', '운명의 꽃 결과를 준비 중이에요.');
+  return _dfFlowerHookText({
+    name: snapshot.name,
+    language: snapshot.flower_language,
+    rarity: snapshot.rarity_line,
+    url: _dfFlowerShareUrl(snapshot.flower_id, snapshot.source)
+  });
 }
 
 function _dfOneLineText(value, fallback) {
@@ -7024,7 +7129,7 @@ function _dfGetSourceLabel(source) {
 function _dfGetPromptArtDirection(source) {
   if (source === 'astrology') {
     return {
-      mood: '별빛 성운과 네온 글로우가 감도는 몽환적 플로럴',
+      mood: _dfUiText('artMood.astrology', '별빛 성운과 네온 글로우가 감도는 몽환적 플로럴'),
       lighting: 'moonlit rim light, cosmic dust volumetric light',
       background: 'deep navy nebula sky with subtle zodiac traces',
       composition: 'hero blossom centered, spiral petal motion, celestial particles'
@@ -7032,7 +7137,7 @@ function _dfGetPromptArtDirection(source) {
   }
   if (source === 'jamidusu') {
     return {
-      mood: '제왕의 품격과 궁중의 정제미가 공존하는 플로럴',
+      mood: _dfUiText('artMood.jamidusu', '제왕의 품격과 궁중의 정제미가 공존하는 플로럴'),
       lighting: 'royal soft spotlight, silky ambient glow',
       background: 'imperial jade and plum gradient with star map motif',
       composition: 'symmetrical ceremonial bloom, layered velvet petals'
@@ -7040,14 +7145,14 @@ function _dfGetPromptArtDirection(source) {
   }
   if (source === 'sukuyo') {
     return {
-      mood: '달빛 명상과 고요한 수면 같은 청명한 플로럴',
+      mood: _dfUiText('artMood.sukuyo', '달빛 명상과 고요한 수면 같은 청명한 플로럴'),
       lighting: 'silver moon halo, soft mist backlight',
       background: 'midnight blue sky with lunar mansion orbit lines',
       composition: 'single moon-bloom portrait, floating pollen and orbit arcs'
     };
   }
   return {
-    mood: '오행의 결을 따라 피어나는 서정적 동양 플로럴',
+    mood: _dfUiText('artMood.saju', '오행의 결을 따라 피어나는 서정적 동양 플로럴'),
     lighting: 'soft dawn light, translucent petal glow',
     background: 'seasonal gradient inspired by wood fire earth metal water',
     composition: 'centered blossom portrait, elegant negative space, subtle petal drift'
@@ -7075,15 +7180,15 @@ function _dfExtractFiveElements(text) {
 
 function _dfBuildYongshinCareLine(yongshinText) {
   var careByElement = {
-    '목': '아침 햇살이 드는 동쪽 창가에서 8분 스트레칭으로 생장점을 깨우기',
-    '화': '남향 빛을 5분 쬐며 오늘의 목표를 소리 내어 선언하기',
-    '토': '작업 공간 한 구역을 정리해 중심 축을 단단히 세우기',
-    '금': '우선순위 3가지를 적고 불필요한 약속을 과감히 가지치기',
-    '수': '저녁 10분 산책과 수분 보충으로 감정의 순환로 열기'
+    '목': _dfUiText('care.wood', '아침 햇살이 드는 동쪽 창가에서 8분 스트레칭으로 생장점을 깨우기'),
+    '화': _dfUiText('care.fire', '남향 빛을 5분 쬐며 오늘의 목표를 소리 내어 선언하기'),
+    '토': _dfUiText('care.earth', '작업 공간 한 구역을 정리해 중심 축을 단단히 세우기'),
+    '금': _dfUiText('care.metal', '우선순위 3가지를 적고 불필요한 약속을 과감히 가지치기'),
+    '수': _dfUiText('care.water', '저녁 10분 산책과 수분 보충으로 감정의 순환로 열기')
   };
   var elements = _dfExtractFiveElements(yongshinText);
   if (!elements.length) {
-    return '빛(오전)과 수분(저녁) 루틴을 고정해 기초 생육 리듬을 먼저 안정화하세요.';
+    return _dfUiText('care.default', '빛(오전)과 수분(저녁) 루틴을 고정해 기초 생육 리듬을 먼저 안정화하세요.');
   }
   return elements.slice(0, 2).map(function(el) {
     return careByElement[el] || '';
@@ -7095,13 +7200,13 @@ function _dfBuildSynergyPaletteText(source, primaryHex, secondaryHex) {
   var secondary = _dfSafeColor(secondaryHex, '#22d3ee');
   var accent = _dfMixHex(primary, secondary, 0.5);
   var materials = source === 'astrology'
-    ? '유리 화기, 실버 프레임, 미세 조명'
+    ? _dfUiText('synergy.astrology', '유리 화기, 실버 프레임, 미세 조명')
     : (source === 'jamidusu'
-      ? '새틴 패브릭, 브론즈 오브제, 대칭형 세라믹'
+      ? _dfUiText('synergy.jamidusu', '새틴 패브릭, 브론즈 오브제, 대칭형 세라믹')
       : (source === 'sukuyo'
-        ? '서리 유리, 달빛 톤 린넨, 물결 무늬 트레이'
-        : '무광 세라믹, 내추럴 우드, 잔잔한 패턴 패브릭'));
-  return '추천 컬러: Primary ' + primary + ', Secondary ' + secondary + ', Accent ' + accent + ' / 추천 소재: ' + materials + '.';
+        ? _dfUiText('synergy.sukuyo', '서리 유리, 달빛 톤 린넨, 물결 무늬 트레이')
+        : _dfUiText('synergy.saju', '무광 세라믹, 내추럴 우드, 잔잔한 패턴 패브릭')));
+  return _dfUiText('synergy.line', '추천 컬러: Primary {primary}, Secondary {secondary}, Accent {accent} / 추천 소재: {materials}.', { primary: primary, secondary: secondary, accent: accent, materials: materials });
 }
 
 function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sajuVerdict) {
@@ -7109,9 +7214,9 @@ function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sa
   var flower = (selection && selection.flower) || {};
   var primary = _dfSafeColor(selection && selection.primary, '#f472b6');
   var secondary = _dfSafeColor(selection && selection.secondary, '#22d3ee');
-  var scenarioTitle = flowerData.scenario_title || (sourceLabel + ' 개화 시나리오');
-  var growthCycle = flowerData.growth_cycle || '개화 사이클 계산 대기';
-  var ritualTip = flowerData.ritual_tip || '오늘의 실천 루틴을 계산 중입니다.';
+  var scenarioTitle = flowerData.scenario_title || _dfUiText('atelier.scenarioTitle', '{source} 개화 시나리오', { source: sourceLabel });
+  var growthCycle = flowerData.growth_cycle || _dfUiText('atelier.growthCycleWaiting', '개화 사이클 계산 대기');
+  var ritualTip = flowerData.ritual_tip || _dfUiText('atelier.ritualWaiting', '오늘의 실천 루틴을 계산 중입니다.');
   var relation = flowerData.relationship_theme || '';
   var career = flowerData.career_theme || '';
   var matrix = [];
@@ -7129,129 +7234,129 @@ function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sa
     var risingEl = _dfAstroElementFromSign(rising) || _dfAstroElementFromSign(sun) || 'air';
     var moonEl = _dfAstroElementFromSign(moon) || risingEl;
     var lighting = risingEl === 'fire'
-      ? '한여름 정오처럼 각도가 높은 강렬한 태양광'
+      ? _dfUiText('atelier.astrology.lightingFire', '한여름 정오처럼 각도가 높은 강렬한 태양광')
       : (risingEl === 'earth'
-        ? '늦은 오후의 황금빛이 오래 머무는 안정형 광량'
+        ? _dfUiText('atelier.astrology.lightingEarth', '늦은 오후의 황금빛이 오래 머무는 안정형 광량')
         : (risingEl === 'water'
-          ? '새벽녘의 차가운 푸른 빛이 천천히 번지는 조도'
-          : '바람결처럼 기울어진 사선광이 공간을 가볍게 여는 조도'));
+          ? _dfUiText('atelier.astrology.lightingWater', '새벽녘의 차가운 푸른 빛이 천천히 번지는 조도')
+          : _dfUiText('atelier.astrology.lightingAir', '바람결처럼 기울어진 사선광이 공간을 가볍게 여는 조도')));
     var humidity = moonEl === 'water'
-      ? '감성 습도가 높은 실버 미스트 상태'
+      ? _dfUiText('atelier.astrology.humidityWater', '감성 습도가 높은 실버 미스트 상태')
       : (moonEl === 'fire'
-        ? '열기를 품은 드라이 에어, 감정 반응이 빠른 상태'
+        ? _dfUiText('atelier.astrology.humidityFire', '열기를 품은 드라이 에어, 감정 반응이 빠른 상태')
         : (moonEl === 'earth'
-          ? '안정적인 토분 습도, 감정이 서서히 농익는 상태'
-          : '가볍고 유동적인 브리즈 습도, 아이디어가 빠르게 환기되는 상태'));
+          ? _dfUiText('atelier.astrology.humidityEarth', '안정적인 토분 습도, 감정이 서서히 농익는 상태')
+          : _dfUiText('atelier.astrology.humidityAir', '가볍고 유동적인 브리즈 습도, 아이디어가 빠르게 환기되는 상태')));
     var cosmicSeason = risingEl === 'fire'
-      ? '개화 가속기: 실행과 발표가 꽃봉오리를 밀어 올리는 구간'
+      ? _dfUiText('atelier.astrology.seasonFire', '개화 가속기: 실행과 발표가 꽃봉오리를 밀어 올리는 구간')
       : (risingEl === 'water'
-        ? '내면 양분기: 휴식과 직관이 뿌리층을 채우는 구간'
-        : '균형 조율기: 구조와 감성이 교차하며 다음 꽃눈을 준비하는 구간');
+        ? _dfUiText('atelier.astrology.seasonWater', '내면 양분기: 휴식과 직관이 뿌리층을 채우는 구간')
+        : _dfUiText('atelier.astrology.seasonBalance', '균형 조율기: 구조와 감성이 교차하며 다음 꽃눈을 준비하는 구간'));
 
-    sectionTitle = '천체의 조도와 에너지';
+    sectionTitle = _dfUiText('atelier.astrology.section', '천체의 조도와 에너지');
     matrix = [
-      '☀️ 천체의 조도: ' + lighting,
-      '💧 대기의 습도: ' + humidity,
-      '🪐 우주의 계절: ' + cosmicSeason
+      _dfUiText('atelier.astrology.matrixLighting', '☀️ 천체의 조도: {value}', { value: lighting }),
+      _dfUiText('atelier.astrology.matrixHumidity', '💧 대기의 습도: {value}', { value: humidity }),
+      _dfUiText('atelier.astrology.matrixSeason', '🪐 우주의 계절: {value}', { value: cosmicSeason })
     ];
-    observationLog = '정원사의 관찰 일지: 태양궁 ' + sun + '의 방향성과 상승궁 ' + rising + '의 빛이 꽃대의 각도를 잡아줍니다. 달궁 ' + moon + '의 습도 조절이 감정 잎맥을 부드럽게 열며, 이번 주는 기회가 먼저 보이는 개화 전조 구간입니다.';
-    secretRecipe = '비밀 레시피: 밤 9시 이후 창가 조명을 한 단계 낮추고, 내일 실행할 한 가지를 노트 첫 줄에 적어 두세요. 아침 첫 12분은 그 한 가지에만 집중하면 별빛 리듬이 가장 빠르게 맞춰집니다.';
-    flowerLanguage = '운명의 꽃말: 별의 각도를 믿고 한 걸음을 먼저 내딛는 용기.';
-    gardenerWord = '이 꽃을 위한 가드너의 한 마디: 오늘의 직감은 과장이 아니라 예보입니다. 작은 실행이 성운을 현실의 꽃밭으로 바꿉니다.';
-    particleMood = sourceLabel + '의 광량을 입자로 번역하면 "' + (flower.particle_type || 'stardust') + '" 결이 가장 안정적으로 빛납니다.';
+    observationLog = _dfUiText('atelier.astrology.log', '정원사의 관찰 일지: 태양궁 {sun}의 방향성과 상승궁 {rising}의 빛이 꽃대의 각도를 잡아줍니다. 달궁 {moon}의 습도 조절이 감정 잎맥을 부드럽게 열며, 이번 주는 기회가 먼저 보이는 개화 전조 구간입니다.', { sun: _dfBadgeText(sun), rising: _dfBadgeText(rising), moon: _dfBadgeText(moon) });
+    secretRecipe = _dfUiText('atelier.astrology.recipe', '비밀 레시피: 밤 9시 이후 창가 조명을 한 단계 낮추고, 내일 실행할 한 가지를 노트 첫 줄에 적어 두세요. 아침 첫 12분은 그 한 가지에만 집중하면 별빛 리듬이 가장 빠르게 맞춰집니다.');
+    flowerLanguage = _dfUiText('atelier.astrology.flowerLanguage', '운명의 꽃말: 별의 각도를 믿고 한 걸음을 먼저 내딛는 용기.');
+    gardenerWord = _dfUiText('atelier.astrology.gardenerWord', '이 꽃을 위한 가드너의 한 마디: 오늘의 직감은 과장이 아니라 예보입니다. 작은 실행이 성운을 현실의 꽃밭으로 바꿉니다.');
+    particleMood = _dfUiText('atelier.astrology.particle', '{source}의 광량을 입자로 번역하면 "{particle}" 결이 가장 안정적으로 빛납니다.', { source: sourceLabel, particle: flower.particle_type || 'stardust' });
   } else if (source === 'jamidusu') {
     var star = badges.star || '미확인';
     var brightness = badges.brightness || '미확인';
     var palace = badges.palace || '미확인';
     var structure = /자미|zi ?wei/i.test(star)
-      ? '자미성 계열의 황실 기품이 깃든 단단한 꽃대'
+      ? _dfUiText('atelier.jamidusu.structureZiwei', '자미성 계열의 황실 기품이 깃든 단단한 꽃대')
       : (/칠살|파군|qisha|pogun/i.test(star)
-        ? '돌파형 장군 기질이 만든 굵고 강직한 줄기'
+        ? _dfUiText('atelier.jamidusu.structureBreaker', '돌파형 장군 기질이 만든 굵고 강직한 줄기')
         : (/태음|tai ?yin|천기|tian ?ji/i.test(star)
-          ? '유연하지만 쉽게 꺾이지 않는 세밀한 복층 꽃잎'
-          : '균형형 주성이 만든 정제된 대칭 구조의 꽃골격'));
-    var social = palace + ' 주변으로 나비와 벌이 순환하듯, 가까운 인연이 역할 분담을 나눠 성장을 돕는 흐름입니다.';
+          ? _dfUiText('atelier.jamidusu.structureFlexible', '유연하지만 쉽게 꺾이지 않는 세밀한 복층 꽃잎')
+          : _dfUiText('atelier.jamidusu.structureBalanced', '균형형 주성이 만든 정제된 대칭 구조의 꽃골격')));
+    var social = _dfUiText('atelier.jamidusu.social', '{palace} 주변으로 나비와 벌이 순환하듯, 가까운 인연이 역할 분담을 나눠 성장을 돕는 흐름입니다.', { palace: _dfBadgeShow(badges, 'palace') });
     var thorns = /함|陷|한|閑/.test(brightness)
-      ? '방어력이 높은 짧은 가시가 촘촘해 경계를 세워주는 시기'
-      : '빛을 반사하는 결 무늬가 가시 역할을 대신해 품격 있게 자신을 보호하는 시기';
+      ? _dfUiText('atelier.jamidusu.thornsDim', '방어력이 높은 짧은 가시가 촘촘해 경계를 세워주는 시기')
+      : _dfUiText('atelier.jamidusu.thornsBright', '빛을 반사하는 결 무늬가 가시 역할을 대신해 품격 있게 자신을 보호하는 시기');
 
-    sectionTitle = '꽃의 품격과 형태';
+    sectionTitle = _dfUiText('atelier.jamidusu.section', '꽃의 품격과 형태');
     matrix = [
-      '🏛️ 꽃의 골격: ' + structure,
-      '🦋 나비와 벌: ' + social,
-      '🌵 수호의 가시: ' + thorns
+      _dfUiText('atelier.jamidusu.matrixStructure', '🏛️ 꽃의 골격: {value}', { value: structure }),
+      _dfUiText('atelier.jamidusu.matrixSocial', '🦋 나비와 벌: {value}', { value: social }),
+      _dfUiText('atelier.jamidusu.matrixThorns', '🌵 수호의 가시: {value}', { value: thorns })
     ];
-    observationLog = '정원사의 관찰 일지: 오늘의 강한 별 ' + star + '이 줄기 중심을 곧게 세우고, 별 밝기 ' + brightness + '가 꽃잎의 윤기를 조정합니다. 지금은 화려함보다 구조적 완성도가 성과를 키우는 시기입니다.';
-    secretRecipe = '비밀 레시피: 책상 왼쪽에 메탈 계열 오브제를 하나 두고, 오늘의 기준 1개와 양보선 1개를 동시에 기록하세요. 경계가 선명해질수록 꽃은 더 우아하게 핍니다.';
-    flowerLanguage = '운명의 꽃말: 품격은 단단한 구조에서 피어나는 가장 조용한 광채.';
-    gardenerWord = '이 꽃을 위한 가드너의 한 마디: 화려함을 서두르지 마세요. 기준을 지킨 하루가 결국 가장 오래가는 꽃대를 만듭니다.';
-    particleMood = sourceLabel + '의 위계를 입자로 번역하면 "' + (flower.particle_type || 'imperial') + '" 무드가 질서를 가장 아름답게 드러냅니다.';
+    observationLog = _dfUiText('atelier.jamidusu.log', '정원사의 관찰 일지: 오늘의 강한 별 {star}이 줄기 중심을 곧게 세우고, 별 밝기 {brightness}가 꽃잎의 윤기를 조정합니다. 지금은 화려함보다 구조적 완성도가 성과를 키우는 시기입니다.', { star: _dfBadgeShow(badges, 'star'), brightness: _dfBadgeShow(badges, 'brightness') });
+    secretRecipe = _dfUiText('atelier.jamidusu.recipe', '비밀 레시피: 책상 왼쪽에 메탈 계열 오브제를 하나 두고, 오늘의 기준 1개와 양보선 1개를 동시에 기록하세요. 경계가 선명해질수록 꽃은 더 우아하게 핍니다.');
+    flowerLanguage = _dfUiText('atelier.jamidusu.flowerLanguage', '운명의 꽃말: 품격은 단단한 구조에서 피어나는 가장 조용한 광채.');
+    gardenerWord = _dfUiText('atelier.jamidusu.gardenerWord', '이 꽃을 위한 가드너의 한 마디: 화려함을 서두르지 마세요. 기준을 지킨 하루가 결국 가장 오래가는 꽃대를 만듭니다.');
+    particleMood = _dfUiText('atelier.jamidusu.particle', '{source}의 위계를 입자로 번역하면 "{particle}" 무드가 질서를 가장 아름답게 드러냅니다.', { source: sourceLabel, particle: flower.particle_type || 'imperial' });
   } else if (source === 'sukuyo') {
     var mansion = badges.mansion || '미확인';
     var phase = badges.phase || '미확인';
     var guardian = badges.guardian || '수호동물 미확인';
     var scent = /친|友|friend/i.test(mansion)
-      ? '달빛 아래 번지는 은은한 화이트 머스크 계열'
+      ? _dfUiText('atelier.sukuyo.scentFriend', '달빛 아래 번지는 은은한 화이트 머스크 계열')
       : (/업|危|danger/i.test(mansion)
-        ? '짙고 깊은 침향 계열, 집중력을 끌어올리는 향'
-        : '청명한 허브 플로럴 계열, 관계의 온도를 부드럽게 맞추는 향');
+        ? _dfUiText('atelier.sukuyo.scentDanger', '짙고 깊은 침향 계열, 집중력을 끌어올리는 향')
+        : _dfUiText('atelier.sukuyo.scentDefault', '청명한 허브 플로럴 계열, 관계의 온도를 부드럽게 맞추는 향'));
     var dew = /보름|full/i.test(phase)
-      ? '밤이슬이 가장 충만해 영감과 감정 표현이 동시에 풍성한 상태'
+      ? _dfUiText('atelier.sukuyo.dewFull', '밤이슬이 가장 충만해 영감과 감정 표현이 동시에 풍성한 상태')
       : (/삭|new/i.test(phase)
-        ? '이슬이 얇게 맺히는 신월 구간으로, 관찰과 준비가 우선인 상태'
-        : '적당한 이슬량으로 감정의 균형과 실행력이 함께 자라는 상태');
+        ? _dfUiText('atelier.sukuyo.dewNew', '이슬이 얇게 맺히는 신월 구간으로, 관찰과 준비가 우선인 상태')
+        : _dfUiText('atelier.sukuyo.dewDefault', '적당한 이슬량으로 감정의 균형과 실행력이 함께 자라는 상태'));
     var companion = /용|dragon/i.test(guardian)
-      ? '등나무와 블루세이지 조합, 큰 확장 흐름을 지지'
+      ? _dfUiText('atelier.sukuyo.companionDragon', '등나무와 블루세이지 조합, 큰 확장 흐름을 지지')
       : (/개|dog/i.test(guardian)
-        ? '로즈메리와 캐모마일 조합, 관계 안정과 회복 탄력 강화'
+        ? _dfUiText('atelier.sukuyo.companionDog', '로즈메리와 캐모마일 조합, 관계 안정과 회복 탄력 강화')
         : (/호랑이|tiger/i.test(guardian)
-          ? '유칼립투스와 루드베키아 조합, 결단력과 보호 본능 강화'
-          : '라벤더와 아이비 조합, 정서 안정과 장기 성장 동시 지원'));
+          ? _dfUiText('atelier.sukuyo.companionTiger', '유칼립투스와 루드베키아 조합, 결단력과 보호 본능 강화')
+          : _dfUiText('atelier.sukuyo.companionDefault', '라벤더와 아이비 조합, 정서 안정과 장기 성장 동시 지원')));
 
-    sectionTitle = '인연의 향기와 이슬';
+    sectionTitle = _dfUiText('atelier.sukuyo.section', '인연의 향기와 이슬');
     matrix = [
-      '🌙 운명의 향기: ' + scent,
-      '💦 밤이슬의 양: ' + dew,
-      '🌿 동반 식물: ' + companion
+      _dfUiText('atelier.sukuyo.matrixScent', '🌙 운명의 향기: {value}', { value: scent }),
+      _dfUiText('atelier.sukuyo.matrixDew', '💦 밤이슬의 양: {value}', { value: dew }),
+      _dfUiText('atelier.sukuyo.matrixCompanion', '🌿 동반 식물: {value}', { value: companion })
     ];
-    observationLog = '정원사의 관찰 일지: ' + mansion + '의 관계성은 향기로 먼저 드러나고, 달 위상 ' + phase + '은 이슬의 밀도로 감정 리듬을 조절합니다. 지금은 인연의 속도를 재촉하기보다 결을 맞추는 세심함이 꽃을 오래 지킵니다.';
-    secretRecipe = '비밀 레시피: 자기 전 물 한 잔을 천천히 마신 뒤, 오늘 고마웠던 이름 1개를 조용히 적어두세요. 달의 수분 리듬이 안정되며 관계 운이 부드럽게 열립니다.';
-    flowerLanguage = '운명의 꽃말: 조용한 공감이 가장 멀리 퍼지는 향기가 된다.';
-    gardenerWord = '이 꽃을 위한 가드너의 한 마디: 서두르지 않아도 괜찮습니다. 밤이슬이 모이듯, 당신의 인연도 정확한 타이밍에 선명해집니다.';
-    particleMood = sourceLabel + '의 달빛 리듬을 입자로 번역하면 "' + (flower.particle_type || 'lunar') + '" 무드가 가장 포근하게 감싸줍니다.';
+    observationLog = _dfUiText('atelier.sukuyo.log', '정원사의 관찰 일지: {mansion}의 관계성은 향기로 먼저 드러나고, 달 위상 {phase}은 이슬의 밀도로 감정 리듬을 조절합니다. 지금은 인연의 속도를 재촉하기보다 결을 맞추는 세심함이 꽃을 오래 지킵니다.', { mansion: _dfBadgeShow(badges, 'mansion'), phase: _dfBadgeText(phase) });
+    secretRecipe = _dfUiText('atelier.sukuyo.recipe', '비밀 레시피: 자기 전 물 한 잔을 천천히 마신 뒤, 오늘 고마웠던 이름 1개를 조용히 적어두세요. 달의 수분 리듬이 안정되며 관계 운이 부드럽게 열립니다.');
+    flowerLanguage = _dfUiText('atelier.sukuyo.flowerLanguage', '운명의 꽃말: 조용한 공감이 가장 멀리 퍼지는 향기가 된다.');
+    gardenerWord = _dfUiText('atelier.sukuyo.gardenerWord', '이 꽃을 위한 가드너의 한 마디: 서두르지 않아도 괜찮습니다. 밤이슬이 모이듯, 당신의 인연도 정확한 타이밍에 선명해집니다.');
+    particleMood = _dfUiText('atelier.sukuyo.particle', '{source}의 달빛 리듬을 입자로 번역하면 "{particle}" 무드가 가장 포근하게 감싸줍니다.', { source: sourceLabel, particle: flower.particle_type || 'lunar' });
   } else {
     var strength = badges.strength || '판정 대기';
     var johu = badges.johu || '판정 대기';
     var yongshin = badges.yongshin || '';
     var soil = johu.indexOf('한습') >= 0
-      ? '수분을 머금은 습지형 옥토'
+      ? _dfUiText('atelier.saju.soilCold', '수분을 머금은 습지형 옥토')
       : (johu.indexOf('온조') >= 0
-        ? '배수성이 높은 따뜻한 자갈 혼합토'
-        : '입자가 고르고 미네랄이 안정된 비옥한 옥토');
+        ? _dfUiText('atelier.saju.soilHot', '배수성이 높은 따뜻한 자갈 혼합토')
+        : _dfUiText('atelier.saju.soilBalanced', '입자가 고르고 미네랄이 안정된 비옥한 옥토'));
     var root = strength.indexOf('신강') >= 0
-      ? '뿌리가 깊게 박혀 외부 변화에도 중심을 지키는 단계'
+      ? _dfUiText('atelier.saju.rootStrong', '뿌리가 깊게 박혀 외부 변화에도 중심을 지키는 단계')
       : (strength.indexOf('신약') >= 0
-        ? '섬세한 잔뿌리가 먼저 퍼지며 지지대를 필요로 하는 단계'
-        : '중간 깊이 뿌리가 고르게 확장되는 균형 단계');
+        ? _dfUiText('atelier.saju.rootWeak', '섬세한 잔뿌리가 먼저 퍼지며 지지대를 필요로 하는 단계')
+        : _dfUiText('atelier.saju.rootBalanced', '중간 깊이 뿌리가 고르게 확장되는 균형 단계'));
     var nutrient = _dfBuildYongshinCareLine(yongshin);
 
-    sectionTitle = '성장의 토양과 뿌리';
+    sectionTitle = _dfUiText('atelier.saju.section', '성장의 토양과 뿌리');
     matrix = [
-      '🪨 토양의 성분: ' + soil,
-      '🌱 뿌리의 깊이: ' + root,
-      '🧪 가드너의 영양제: ' + nutrient
+      _dfUiText('atelier.saju.matrixSoil', '🪨 토양의 성분: {value}', { value: soil }),
+      _dfUiText('atelier.saju.matrixRoot', '🌱 뿌리의 깊이: {value}', { value: root }),
+      _dfUiText('atelier.saju.matrixNutrient', '🧪 가드너의 영양제: {value}', { value: nutrient })
     ];
-    observationLog = '정원사의 관찰 일지: 오늘 정원은 ' + soil + '의 결을 띠며, ' + root + ' 흐름으로 생장 에너지가 움직입니다. 겉으로 조용해 보여도 뿌리층에서는 다음 개화를 위한 힘이 단단히 저장되고 있습니다.';
-    secretRecipe = '비밀 레시피: 북쪽 또는 동쪽 창가에 푸른 잎 식물을 두고, 아침 10분은 몸을 풀고 저녁 10분은 호흡을 고르세요. 하루 두 번의 리듬 고정이 용신 기운을 가장 빠르게 끌어올립니다.';
-    flowerLanguage = '운명의 꽃말: 단단한 뿌리는 늦어 보여도 결국 가장 높게 핀다.';
-    gardenerWord = '이 꽃을 위한 가드너의 한 마디: 조급함보다 축적을 믿으세요. 오늘의 작은 관리가 다음 계절의 큰 결실을 만듭니다.';
-    particleMood = sourceLabel + ' 기운의 미세한 움직임을 입자로 번역하면 "' + (flower.particle_type || 'petal') + '" 무드가 가장 조화롭습니다.';
+    observationLog = _dfUiText('atelier.saju.log', '정원사의 관찰 일지: 오늘 정원은 {soil}의 결을 띠며, {root} 흐름으로 생장 에너지가 움직입니다. 겉으로 조용해 보여도 뿌리층에서는 다음 개화를 위한 힘이 단단히 저장되고 있습니다.', { soil: soil, root: root });
+    secretRecipe = _dfUiText('atelier.saju.recipe', '비밀 레시피: 북쪽 또는 동쪽 창가에 푸른 잎 식물을 두고, 아침 10분은 몸을 풀고 저녁 10분은 호흡을 고르세요. 하루 두 번의 리듬 고정이 용신 기운을 가장 빠르게 끌어올립니다.');
+    flowerLanguage = _dfUiText('atelier.saju.flowerLanguage', '운명의 꽃말: 단단한 뿌리는 늦어 보여도 결국 가장 높게 핀다.');
+    gardenerWord = _dfUiText('atelier.saju.gardenerWord', '이 꽃을 위한 가드너의 한 마디: 조급함보다 축적을 믿으세요. 오늘의 작은 관리가 다음 계절의 큰 결실을 만듭니다.');
+    particleMood = _dfUiText('atelier.saju.particle', '{source} 기운의 미세한 움직임을 입자로 번역하면 "{particle}" 무드가 가장 조화롭습니다.', { source: sourceLabel, particle: flower.particle_type || 'petal' });
   }
 
   return {
     dataSummary: '[' + sectionTitle + '] ' + scenarioTitle + ' · ' + growthCycle,
     ritualLine: ritualTip,
-    themesLine: [relation, career].filter(Boolean).join(' · ') || '관계/일 테마를 분석 중입니다.',
+    themesLine: [relation, career].filter(Boolean).join(' · ') || _dfUiText('atelier.themesWaiting', '관계/일 테마를 분석 중입니다.'),
     sourceMatrix: matrix,
     observationLog: observationLog,
     secretRecipe: secretRecipe,
@@ -7259,22 +7364,22 @@ function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sa
     synergyPalette: _dfBuildSynergyPaletteText(source, primary, secondary),
     gardenerWord: gardenerWord,
     particleMood: particleMood,
-    oneLineGuidance: sourceLabel + ' 운명꽃 실천 가이드: ' + (flower.vibe_message || sajuVerdict)
+    oneLineGuidance: _dfUiText('atelier.guidance', '{source} 운명꽃 실천 가이드: {text}', { source: sourceLabel, text: flower.vibe_message || sajuVerdict })
   };
 }
 
 function _dfBuildPromptBadgeLine(selection) {
   var badges = _dfGetSajuBadges(selection || {});
   if (badges.mode === 'sukuyo') {
-    return '숙요 배지: ' + _dfOneLineText(badges.mansion, '미확인') + ' / 달 위상 ' + _dfOneLineText(badges.phase, '미확인') + ' / 수호동물 ' + _dfOneLineText(badges.guardian, '미확인');
+    return _dfUiText('prompt.badgesSukuyo', '숙요 배지: {mansion} / 달 위상 {phase} / 수호동물 {guardian}', { mansion: _dfOneLineText(_dfBadgeShow(badges, 'mansion'), ''), phase: _dfBadgeText(_dfOneLineText(badges.phase, '미확인')), guardian: _dfOneLineText(_dfBadgeShow(badges, 'guardian'), '') });
   }
   if (badges.mode === 'jamidusu') {
-    return '자미두수 배지: 오늘의 강한 별 ' + _dfOneLineText(badges.star, '미확인') + ' / 별 밝기 ' + _dfOneLineText(badges.brightness, '미확인') + ' / 궁위 ' + _dfOneLineText(badges.palace, '미확인');
+    return _dfUiText('prompt.badgesJamidusu', '자미두수 배지: 오늘의 강한 별 {star} / 별 밝기 {brightness} / 궁위 {palace}', { star: _dfOneLineText(_dfBadgeShow(badges, 'star'), ''), brightness: _dfOneLineText(_dfBadgeShow(badges, 'brightness'), ''), palace: _dfOneLineText(_dfBadgeShow(badges, 'palace'), '') });
   }
   if (badges.mode === 'astrology') {
-    return '점성술 배지: 태양궁 ' + _dfOneLineText(badges.sun, '미확인') + ' / 상승궁 ' + _dfOneLineText(badges.rising, '미확인') + ' / 달궁 ' + _dfOneLineText(badges.moon, '미확인');
+    return _dfUiText('prompt.badgesAstrology', '점성술 배지: 태양궁 {sun} / 상승궁 {rising} / 달궁 {moon}', { sun: _dfBadgeText(_dfOneLineText(badges.sun, '미확인')), rising: _dfBadgeText(_dfOneLineText(badges.rising, '미확인')), moon: _dfBadgeText(_dfOneLineText(badges.moon, '미확인')) });
   }
-  return '사주 배지: 신강/신약 ' + _dfOneLineText(badges.strength, '판정 대기') + ' / 용신 ' + _dfOneLineText(badges.yongshin, '판정 대기') + ' / 조후 ' + _dfOneLineText(badges.johu, '판정 대기');
+  return _dfUiText('prompt.badgesSaju', '사주 배지: 신강/신약 {strength} / 용신 {yongshin} / 조후 {johu}', { strength: _dfBadgeText(_dfOneLineText(badges.strength, '판정 대기')), yongshin: _dfBadgeText(_dfOneLineText(badges.yongshin, '판정 대기')), johu: _dfBadgeText(_dfOneLineText(badges.johu, '판정 대기')) });
 }
 
 function _dfBuildArtPrompt(selection) {
@@ -7284,14 +7389,14 @@ function _dfBuildArtPrompt(selection) {
 
   var flower = selection.flower || {};
   var source = selection.source || 'saju';
-  var sourceLabel = _dfGetSourceLabel(source);
+  var sourceLabel = _dfSourceLabelText(source);
   var direction = _dfGetPromptArtDirection(source);
   var flowerData = selection.flowerData || (selection.matched && selection.matched.flower_data) || {};
-  var nameKo = _dfOneLineText(flower.name, '운명의 꽃');
+  var nameKo = _dfOneLineText(flower.name, _dfUiText('verdict.defaultFlower', '운명의 꽃'));
   var latin = _dfOneLineText(flower.scientific_name, 'Unknown species');
-  var symbolism = _dfOneLineText(flower.symbolism, '운명의 흐름을 상징하는 꽃');
-  var narrative = _dfOneLineText((selection.matched && selection.matched.narrative) || _dfGetSajuVerdict(selection), '운명의 꽃 서사');
-  var scenario = _dfOneLineText(flowerData.scenario_reason || flowerData.scenario_title, '개화 시나리오 기반 연출');
+  var symbolism = _dfOneLineText(flower.symbolism, _dfUiText('prompt.symbolismFallback', '운명의 흐름을 상징하는 꽃'));
+  var narrative = _dfOneLineText((selection.matched && selection.matched.narrative) || _dfGetSajuVerdict(selection), _dfUiText('prompt.narrativeFallback', '운명의 꽃 서사'));
+  var scenario = _dfOneLineText(flowerData.scenario_reason || flowerData.scenario_title, _dfUiText('prompt.scenarioFallback', '개화 시나리오 기반 연출'));
   var keywords = _dfToArray(selection.keywords).slice(0, 8).map(function(word) {
     return _dfOneLineText(word, '');
   }).filter(Boolean);
@@ -7336,10 +7441,10 @@ function _dfUpdateStudioPrompt(selection) {
   if (!guideEl && !promptEl && !negativeEl) return;
 
   var source = (selection && selection.source) || 'saju';
-  var sourceLabel = _dfGetSourceLabel(source);
+  var sourceLabel = _dfSourceLabelText(source);
   var direction = _dfGetPromptArtDirection(source);
   if (guideEl) {
-    guideEl.textContent = sourceLabel + ' 톤 디렉션: ' + direction.mood + ' / ' + direction.background;
+    guideEl.textContent = _dfUiText('prompt.toneDirection', '{source} 톤 디렉션: {mood} / {background}', { source: sourceLabel, mood: direction.mood, background: direction.background });
   }
   if (promptEl) promptEl.value = _dfBuildArtPrompt(selection);
   if (negativeEl) negativeEl.value = _dfBuildNegativePrompt();
@@ -7348,8 +7453,8 @@ function _dfUpdateStudioPrompt(selection) {
 function _dfClipboardWrite(text, onDoneMessage) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text)
-      .then(function() { _dfSetStudioStatus(onDoneMessage || '클립보드에 복사되었습니다.'); })
-      .catch(function() { _dfSetStudioStatus('복사 권한이 없어 수동 복사가 필요합니다.'); });
+      .then(function() { _dfSetStudioStatus(onDoneMessage || _dfUiText('status.copied', '클립보드에 복사되었습니다.')); })
+      .catch(function() { _dfSetStudioStatus(_dfUiText('status.copyPermission', '복사 권한이 없어 수동 복사가 필요합니다.')); });
     return;
   }
 
@@ -7362,18 +7467,18 @@ function _dfClipboardWrite(text, onDoneMessage) {
   ta.select();
   try {
     var ok = document.execCommand('copy');
-    _dfSetStudioStatus(ok ? (onDoneMessage || '클립보드에 복사되었습니다.') : '복사에 실패했습니다.');
+    _dfSetStudioStatus(ok ? (onDoneMessage || _dfUiText('status.copied', '클립보드에 복사되었습니다.')) : _dfUiText('status.copyFailed', '복사에 실패했습니다.'));
   } catch (e) {
-    _dfSetStudioStatus('복사에 실패했습니다.');
+    _dfSetStudioStatus(_dfUiText('status.copyFailed', '복사에 실패했습니다.'));
   }
   document.body.removeChild(ta);
 }
 
-function _dfShareSnapshot(snapshot) {
-  var text = _dfBuildShareText(snapshot);
+function _dfShareSnapshot(snapshot, textOverride) {
+  var text = textOverride || _dfBuildShareText(snapshot);
   var isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
   if (!isMobile) {
-    _dfClipboardWrite(text, 'PC 환경에서는 카카오톡 링크를 클립보드에 복사했습니다. 카카오톡에 붙여넣어 공유하세요.');
+    _dfClipboardWrite(text, _dfUiText('status.kakaoPcCopied', 'PC 환경에서는 카카오톡 링크를 클립보드에 복사했습니다. 카카오톡에 붙여넣어 공유하세요.'));
     return;
   }
 
@@ -7385,15 +7490,15 @@ function _dfShareSnapshot(snapshot) {
   document.body.appendChild(anchor);
 
   var fallbackTimer = setTimeout(function() {
-    _dfClipboardWrite(text, '카카오톡 실행이 확인되지 않아 요약을 클립보드에 복사했습니다. 카카오톡에 붙여넣어 공유하세요.');
+    _dfClipboardWrite(text, _dfUiText('status.kakaoNotOpenedCopied', '카카오톡 실행이 확인되지 않아 요약을 클립보드에 복사했습니다. 카카오톡에 붙여넣어 공유하세요.'));
   }, 1000);
 
   try {
     anchor.click();
-    _dfSetStudioStatus('카카오톡 공유를 여는 중입니다...');
+    _dfSetStudioStatus(_dfUiText('status.kakaoOpening', '카카오톡 공유를 여는 중입니다...'));
   } catch (e) {
     clearTimeout(fallbackTimer);
-    _dfClipboardWrite(text, '카카오톡 공유를 열지 못해 요약을 클립보드에 복사했습니다.');
+    _dfClipboardWrite(text, _dfUiText('status.kakaoFailedCopied', '카카오톡 공유를 열지 못해 요약을 클립보드에 복사했습니다.'));
   }
 
   setTimeout(function() {
@@ -7407,7 +7512,7 @@ function _dfRenderHistoryList() {
   var history = _dfStudioState.history;
   if (!history.length) {
     listEl.innerHTML = '';
-    _dfSetStudioStatus('아직 저장된 개화 기록이 없습니다. 현재 결과를 저장해보세요.');
+    _dfSetStudioStatus(_dfUiText('history.emptyStatus', '아직 저장된 개화 기록이 없습니다. 현재 결과를 저장해보세요.'));
     return;
   }
 
@@ -7419,9 +7524,9 @@ function _dfRenderHistoryList() {
       + '</div>'
       + '<p class="df-history-item-keywords">' + _dfEscapeHtml(_dfToArray(item.keywords).join(' • ')) + '</p>'
       + '<div class="df-history-item-actions">'
-      + '<button type="button" class="df-history-btn df-history-btn--restore" data-action="restoreDestinyFlowerSnapshot" data-action-args="' + item.id + '">불러오기</button>'
-        + '<button type="button" class="df-history-btn df-history-btn--share" data-action="shareDestinyFlowerSnapshotById" data-action-args="' + item.id + '">카카오 공유</button>'
-        + '<button type="button" class="df-history-btn df-history-btn--delete" data-action="deleteDestinyFlowerSnapshot" data-action-args="' + item.id + '">삭제</button>'
+      + '<button type="button" class="df-history-btn df-history-btn--restore" data-action="restoreDestinyFlowerSnapshot" data-action-args="' + item.id + '">' + _dfEscapeHtml(_dfUiText('history.restore', '불러오기')) + '</button>'
+        + '<button type="button" class="df-history-btn df-history-btn--share" data-action="shareDestinyFlowerSnapshotById" data-action-args="' + item.id + '">' + _dfEscapeHtml(_dfUiText('history.kakao', '카카오 공유')) + '</button>'
+        + '<button type="button" class="df-history-btn df-history-btn--delete" data-action="deleteDestinyFlowerSnapshot" data-action-args="' + item.id + '">' + _dfEscapeHtml(_dfUiText('history.delete', '삭제')) + '</button>'
       + '</div>'
       + '</article>';
   }).join('');
@@ -7433,12 +7538,11 @@ function _dfApplyStudioSelection(selection) {
   if (!selection || !selection.flower) return;
   _dfMarkSourceCompleted(selection.source || _dfStudioState.activeSource || 'saju', { silent: true });
   var flower = selection.flower;
-  var sourceLabel = selection.source === 'sukuyo'
-    ? '숙요점'
-    : (selection.source === 'jamidusu' ? '자미두수' : (selection.source === 'astrology' ? '점성술' : '사주'));
-  var sourceShort = selection.source === 'sukuyo'
+  var sourceLabel = _dfSourceLabelText(selection.source);
+  var sourceShortKey = _dfNormalizeSource(selection.source || 'saju');
+  var sourceShort = _dfUiText('sourceShort.' + sourceShortKey, selection.source === 'sukuyo'
     ? '숙요'
-    : (selection.source === 'jamidusu' ? '자미두수' : (selection.source === 'astrology' ? '차트' : '사주'));
+    : (selection.source === 'jamidusu' ? '자미두수' : (selection.source === 'astrology' ? '차트' : '사주')));
   var sajuVerdict = _dfGetSajuVerdict(selection);
   var badges = _dfGetSajuBadges(selection);
   var flowerData = selection.flowerData || (selection.matched && selection.matched.flower_data) || {};
@@ -7472,19 +7576,20 @@ function _dfApplyStudioSelection(selection) {
   _dfRenderSajuBadges(selection);
   if (latinEl) latinEl.textContent = flower.scientific_name || 'Unknown species';
   if (sourceDescEl) {
-    var meta = _DF_SOURCE_META[_dfNormalizeSource(selection.source || 'saju')] || _DF_SOURCE_META.saju;
-    sourceDescEl.textContent = meta.description || '';
+    sourceDescEl.textContent = _dfSourceDescText(selection.source);
   }
   if (dayMasterEl) {
-    dayMasterEl.textContent = flowerData.day_master_badge || (selection.source === 'jamidusu' ? '주성 판독 대기' : (selection.source === 'sukuyo' ? '숙요 판독 대기' : '일간 판독 대기'));
+    dayMasterEl.textContent = flowerData.day_master_badge || (selection.source === 'jamidusu' ? _dfUiText('wait.mainStar', '주성 판독 대기') : (selection.source === 'sukuyo' ? _dfUiText('wait.sukuyoReading', '숙요 판독 대기') : _dfUiText('wait.dayMaster', '일간 판독 대기')));
   }
   if (symbolismEl) {
-    symbolismEl.textContent = sajuVerdict + ' ' + (flowerData.scenario_reason || (flower.symbolism ? ('이 꽃은 ' + flower.symbolism + '을 상징합니다.') : '이 꽃이 당신의 현재 운세 흐름과 강하게 공명합니다.'));
+    symbolismEl.textContent = sajuVerdict + ' ' + (flowerData.scenario_reason || (flower.symbolism ? _dfUiText('stage.symbolizes', '이 꽃은 {symbolism}을 상징합니다.', { symbolism: flower.symbolism }) : _dfUiText('stage.resonates', '이 꽃이 당신의 현재 운세 흐름과 강하게 공명합니다.')));
   }
-  if (keywordsEl) keywordsEl.textContent = sourceLabel + ' 키워드 · ' + _dfToArray(selection.keywords).join(' • ');
+  if (keywordsEl) keywordsEl.textContent = _dfUiText('stage.keywords', '{source} 키워드 · {list}', { source: sourceLabel, list: _dfToArray(selection.keywords).join(' • ') });
+  _dfRenderStudioWhy(selection);
+  _dfRenderStudioSpecimen(selection, _dfSourceLabelText(selection.source), badges, flowerData);
   if (narrativeEl) {
     narrativeEl.textContent = (selection.matched && selection.matched.narrative)
-      || (sajuVerdict + ' ' + sourceShort + ' 균형을 기준으로 지금의 개화 포인트를 정렬했습니다.');
+      || _dfUiText('stage.narrativeFallback', '{verdict} {source} 균형을 기준으로 지금의 개화 포인트를 정렬했습니다.', { verdict: sajuVerdict, source: sourceShort });
   }
   if (dataSummaryEl) {
     dataSummaryEl.textContent = extension.dataSummary;
@@ -7502,7 +7607,10 @@ function _dfApplyStudioSelection(selection) {
   }
   if (journalEl) journalEl.textContent = extension.observationLog;
   if (recipeEl) recipeEl.textContent = extension.secretRecipe;
-  if (flowerLanguageEl) flowerLanguageEl.textContent = extension.flowerLanguage;
+  if (flowerLanguageEl) {
+    /* 엔진이 전통 꽃말에 실제로 맞은 용신·일간(또는 태양궁·명궁·본명숙)을 붙인 '나의 꽃말'. 구 응답은 체계별 문장. */
+    flowerLanguageEl.textContent = String((selection.matched && selection.matched.destiny_flower_language) || '').trim() || extension.flowerLanguage;
+  }
   if (synergyEl) synergyEl.textContent = extension.synergyPalette;
   if (gardenerWordEl) gardenerWordEl.textContent = extension.gardenerWord;
   if (primaryDot) primaryDot.style.background = selection.primary;
@@ -7516,6 +7624,7 @@ function _dfApplyStudioSelection(selection) {
     guidanceEl.textContent = extension.oneLineGuidance;
   }
   _dfUpdateStudioPrompt(selection);
+  _dfRenderFriendFlower();
   _dfApplyGeneratedFlowerImage(imageEl, selection, selection.source || 'saju');
   if (auraEl) {
     auraEl.style.background =
@@ -7552,6 +7661,7 @@ function _dfResolveLockTileBySource() {
 
 function _dfIsLockKeyUnlocked(lockKey) {
   if (!lockKey) return false;
+  if (__cdIsBirthScopedTileLockKey(lockKey)) return __cdIsBirthScopedTileLockUnlocked(lockKey);
   try {
     if (window.unlockedFeatureMap && typeof window.unlockedFeatureMap === 'object') {
       return __cdMapHasTileLockUnlocked(window.unlockedFeatureMap, lockKey);
@@ -7585,14 +7695,37 @@ function _dfIsSourceUnlocked(source) {
 }
 
 function _dfRequirePaidSourceUnlock(source) {
-  // 2026-10-08: all flower sources are free; server authentication and calculation remain.
-  return true;
+  var normalized = _dfNormalizeSource(source);
+  var lockTile = _dfResolveLockTileBySource(normalized);
+  if (!lockTile) return false;
+
+  var lockKey = lockTile.getAttribute('data-tile-lock-key') || '';
+  var lockCost = Number(lockTile.getAttribute('data-tile-lock-cost') || 0);
+  if (!lockKey || lockCost <= 0) return false;
+  if (_dfIsLockKeyUnlocked(lockKey)) return true;
+  if (lockTile.classList && lockTile.classList.contains('tarot-tile--tileUnlocked')) return true;
+
+  if (!lockTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
+    try {
+      if (window._cdOpenTilePreview(lockTile)) return false;
+    } catch (_) {}
+  }
+
+  if (!__cdHasAuthToken()) {
+    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.003"))) {
+      window.location.href = '/login?next=%2F';
+    }
+    return false;
+  }
+
+  window.alert('운명의 꽃 아틀리에는 해금 후 이용할 수 있습니다.');
+  return false;
 }
 
 /**
  * 체계 하나를 열어도 되는가.
  *
- * 해금 상품이 하나(1만원 전체 해금)뿐이라 판정도 하나다. 예전에는 여기서 "이전 단계를 먼저
+ * 해금 상품이 하나(5,000원 전체 해금)뿐이라 판정도 하나다. 예전에는 여기서 "이전 단계를 먼저
  * 완료하면 열립니다" 안내를 띄웠는데, 순차 잠금을 없앤 지금은 결제 게이트를 통과했으면
  * 네 갈래가 전부 열린다.
  */
@@ -7628,7 +7761,7 @@ function openDestinyFlower(forceRefreshData) {
     var symbolismEl = card.querySelector('.destiny-flower-stage__symbolism');
     var emptyState = _dfGetDataMissingUiState(activeSource);
     if (stage && nameEl && symbolismEl) {
-      nameEl.textContent = '데이터 불러오기 대기';
+      nameEl.textContent = _dfUiText('wait.dataLoad', '데이터 불러오기 대기');
       symbolismEl.textContent = emptyState.message;
     }
   }
@@ -7651,6 +7784,15 @@ function openDestinyFlower(forceRefreshData) {
   return selection;
 }
 
+/** 스튜디오 시트는 지연 로드(모바일 최대 45초)라, 친구 꽃 링크처럼 탭 없이 열리면 맨 글자로 보인다. 열 때 바로 붙인다. */
+function _dfEnsureStudioStyles() {
+  var link = document.querySelector('link[data-cd-noncritical-style-src^="/styles/destiny-flower-cosmic.css"]');
+  if (!link || link.media === 'all') return;
+  if (link.getAttribute('rel') !== 'stylesheet') link.setAttribute('rel', 'stylesheet');
+  if (!link.getAttribute('href')) link.setAttribute('href', link.getAttribute('data-cd-noncritical-style-src'));
+  link.media = 'all';
+}
+
 function openDestinyFlowerStudio(source, gatePassed) {
   _dfCaptureOriginalTitle();
   _dfBindTitleRestoreGuards();
@@ -7661,6 +7803,7 @@ function openDestinyFlowerStudio(source, gatePassed) {
   var _dfActiveSource = _dfSetActiveSource(requestedSource);
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
+  _dfEnsureStudioStyles();
   if (overlay.style.display === 'block' && overlay.classList.contains('is-show')) {
     setDestinyFlowerSourceTab(_dfActiveSource, true);
     return;
@@ -7773,13 +7916,14 @@ function openDestinyFlowerStudio(source, gatePassed) {
       showLoadButton: emptyState.showLoadButton,
       source: emptyState.source
     });
+    _dfRenderFriendFlower();
   } else {
     _dfStudioState.selection = selection;
     _dfApplyStudioSelection(selection);
     _dfHideStudioEmptyState();
     _dfLoadHistory();
     _dfRenderHistoryList();
-    _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.');
+    _dfSetStudioStatus(_dfUiText('status.resultReady', '{verdict} 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.', { verdict: _dfGetSajuVerdict(selection) }));
   }
 
   overlay.style.display = 'block';
@@ -7803,9 +7947,10 @@ window.openDestinyFlower = openDestinyFlower;
 
 function _dfGetNoBirthMessage(source) {
   var normalized = _dfNormalizeSource(source);
-  if (normalized === 'jamidusu') return '자미두수 꽃을 보려면 생년월일을 입력해주세요.';
-  if (normalized === 'sukuyo') return '숙요점 꽃을 보려면 생년월일을 입력해주세요.';
-  return '이름과 생년월일 정보를 먼저 입력하면, 나만의 운명의 꽃이 여기에서 피어납니다.';
+  if (normalized === 'jamidusu') return _dfUiText('noBirth.jamidusu', '자미두수 꽃을 보려면 생년월일을 입력해주세요.');
+  if (normalized === 'sukuyo') return _dfUiText('noBirth.sukuyo', '숙요점 꽃을 보려면 생년월일을 입력해주세요.');
+  if (normalized === 'astrology') return _dfUiText('noBirth.astrology', '점성술 꽃을 보려면 생년월일과 태어난 시간을 입력해주세요.');
+  return _dfUiText('noBirth.saju', '이름과 생년월일 정보를 먼저 입력하면, 나만의 운명의 꽃이 여기에서 피어납니다.');
 }
 
 function setDestinyFlowerSourceTab(source, gatePassed) {
@@ -7823,7 +7968,12 @@ function setDestinyFlowerSourceTab(source, gatePassed) {
     var studioSelection = _dfRefreshStudioForSource(normalized, false);
     if (studioSelection) {
       _dfMarkSourceCompleted(normalized, { silent: true });
-      _dfSetStudioStatus(_dfGetSajuVerdict(studioSelection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
+      _dfSetStudioStatus(_dfUiText('status.refreshed', '{verdict} 기준으로 탭과 프롬프트를 갱신했습니다.', { verdict: _dfGetSajuVerdict(studioSelection) }));
+    } else {
+      var profile = _dfGetProfilePayload({ skipLiveBridge: true });
+      if (_dfHasBirthInfo(profile)) {
+        void _dfFetchSourceOnDemand(normalized, { force: true, userInitiated: true });
+      }
     }
   } else {
     var card = document.querySelector('.feature-card.feature-card--destiny-flower');
@@ -7837,7 +7987,7 @@ function setDestinyFlowerSourceTab(source, gatePassed) {
         var nameEl = card.querySelector('.destiny-flower-stage__name');
         var symbolismEl = card.querySelector('.destiny-flower-stage__symbolism');
         if (stage && nameEl && symbolismEl) {
-          nameEl.textContent = '생년월일 입력 대기';
+          nameEl.textContent = _dfUiText('wait.birth', '생년월일 입력 대기');
           symbolismEl.textContent = _dfGetDataMissingUiState(normalized).message;
         }
       }
@@ -7856,6 +8006,7 @@ function setDestinyFlowerSourceTab(source, gatePassed) {
 function closeDestinyFlowerStudio() {
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
+  closeDestinyFlowerShareSheet();
   _dfStudioState.coinGatePassed = false;
   _dfStudioState.coinGateInFlight = false;
   _dfStudioState._coinGatePassToken = null;  // 토큰도 리셋
@@ -7878,7 +8029,7 @@ function goHomeFromDestinyFlower() {
 function goAskAIFromDestinyFlower(button) {
   var url = (button && button.getAttribute && button.getAttribute('data-ai-url')) || 'https://chatgpt.com/';
   closeDestinyFlowerStudio();
-  _dfSetStudioStatus('AI를 새 탭에서 엽니다. 열리지 않으면 팝업 허용 후 다시 시도해 주세요.');
+  _dfSetStudioStatus(_dfUiText('status.aiOpening', 'AI를 새 탭에서 엽니다. 열리지 않으면 팝업 허용 후 다시 시도해 주세요.'));
   setTimeout(function() {
     var w = null;
     try {
@@ -7890,7 +8041,7 @@ function goAskAIFromDestinyFlower(button) {
       try {
         window.open(url, '_blank', 'noopener');
       } catch (e2) {}
-      _dfSetStudioStatus('새 탭이 차단된 것 같습니다. 브라우저에서 팝업을 허용하거나 원하는 AI 사이트를 직접 열어 주세요.');
+      _dfSetStudioStatus(_dfUiText('status.aiBlocked', '새 탭이 차단된 것 같습니다. 브라우저에서 팝업을 허용하거나 원하는 AI 사이트를 직접 열어 주세요.'));
     }
   }, 100);
 }
@@ -7908,7 +8059,7 @@ function saveDestinyFlowerSnapshot() {
   _dfStudioState.history = _dfStudioState.history.slice(0, _DF_STUDIO_HISTORY_LIMIT);
   _dfPersistHistory();
   _dfRenderHistoryList();
-  _dfSetStudioStatus('개화 기록이 저장되었습니다: ' + snapshot.name + ' (' + snapshot.savedAtLabel + ')');
+  _dfSetStudioStatus(_dfUiText('history.saved', '개화 기록이 저장되었습니다: {name} ({time})', { name: snapshot.name, time: snapshot.savedAtLabel }));
 }
 
 function restoreDestinyFlowerSnapshot(snapshotId) {
@@ -7922,7 +8073,7 @@ function restoreDestinyFlowerSnapshot(snapshotId) {
     }
   }
   if (!target) {
-    _dfSetStudioStatus('해당 기록을 찾을 수 없습니다.');
+    _dfSetStudioStatus(_dfUiText('history.notFound', '해당 기록을 찾을 수 없습니다.'));
     return;
   }
 
@@ -7935,7 +8086,7 @@ function restoreDestinyFlowerSnapshot(snapshotId) {
     _dfEnsureCardOpen(card);
     _dfAnimateUnifiedCardSwitch(card, selection);
   }
-  _dfSetStudioStatus('저장한 개화 기록을 불러왔습니다: ' + target.name);
+  _dfSetStudioStatus(_dfUiText('history.restored', '저장한 개화 기록을 불러왔습니다: {name}', { name: target.name }));
 }
 
 function deleteDestinyFlowerSnapshot(snapshotId) {
@@ -7946,18 +8097,18 @@ function deleteDestinyFlowerSnapshot(snapshotId) {
     return item.id !== snapshotId;
   });
   if (_dfStudioState.history.length === before) {
-    _dfSetStudioStatus('삭제할 기록을 찾지 못했습니다.');
+    _dfSetStudioStatus(_dfUiText('history.deleteNotFound', '삭제할 기록을 찾지 못했습니다.'));
     return;
   }
   _dfPersistHistory();
   _dfRenderHistoryList();
-  _dfSetStudioStatus('선택한 개화 기록을 삭제했습니다.');
+  _dfSetStudioStatus(_dfUiText('history.deleted', '선택한 개화 기록을 삭제했습니다.'));
 }
 
 function clearDestinyFlowerSnapshots() {
   _dfLoadHistory();
   if (!_dfStudioState.history.length) {
-    _dfSetStudioStatus('삭제할 개화 기록이 없습니다.');
+    _dfSetStudioStatus(_dfUiText('history.nothingToClear', '삭제할 개화 기록이 없습니다.'));
     return;
   }
   var ok = window.confirm(_indexRuntimeText("indexRuntime.confirm.004"));
@@ -7965,7 +8116,7 @@ function clearDestinyFlowerSnapshots() {
   _dfStudioState.history = [];
   _dfPersistHistory();
   _dfRenderHistoryList();
-  _dfSetStudioStatus('저장된 개화 기록을 모두 삭제했습니다.');
+  _dfSetStudioStatus(_dfUiText('history.cleared', '저장된 개화 기록을 모두 삭제했습니다.'));
 }
 
 function shareDestinyFlowerSnapshot() {
@@ -7985,7 +8136,7 @@ function shareDestinyFlowerSnapshotById(snapshotId) {
     }
   }
   if (!target) {
-    _dfSetStudioStatus('공유할 기록을 찾을 수 없습니다.');
+    _dfSetStudioStatus(_dfUiText('history.shareNotFound', '공유할 기록을 찾을 수 없습니다.'));
     return;
   }
   _dfShareSnapshot(target);
@@ -7995,20 +8146,538 @@ function copyDestinyFlowerSummary() {
   var selection = _dfStudioState.selection || openDestinyFlower() || _dfResolveSelection();
   var snapshot = _dfBuildSnapshot(selection);
   var text = _dfBuildShareText(snapshot);
-  _dfClipboardWrite(text, '요약을 클립보드에 복사했습니다.');
+  _dfClipboardWrite(text, _dfUiText('status.summaryCopied', '요약을 클립보드에 복사했습니다.'));
 }
 
 function copyDestinyFlowerArtPrompt() {
   var selection = _dfStudioState.selection || openDestinyFlower() || _dfResolveSelection();
   var text = _dfBuildArtPrompt(selection);
-  _dfClipboardWrite(text, 'AI 꽃 메인 프롬프트를 클립보드에 복사했습니다.');
+  _dfClipboardWrite(text, _dfUiText('status.promptCopied', 'AI 꽃 메인 프롬프트를 클립보드에 복사했습니다.'));
 }
 
 function copyDestinyFlowerPromptPack() {
   var selection = _dfStudioState.selection || openDestinyFlower() || _dfResolveSelection();
   var text = _dfBuildPromptPack(selection);
-  _dfClipboardWrite(text, '메인/네거티브 프롬프트 세트를 클립보드에 복사했습니다.');
+  _dfClipboardWrite(text, _dfUiText('status.promptPackCopied', '메인/네거티브 프롬프트 세트를 클립보드에 복사했습니다.'));
 }
+
+/* ═══ 꽃 공유 — 스토리 카드·카카오·링크·친구 꽃 궁합 ═══
+   링크에는 꽃 id(fl)와 체계(fs)만 싣는다. 생년월일·이름은 어디에도 넣지 않고 서버에 저장하지도 않는다.
+   받은 쪽은 공개 라우트(GET /api/destiny-flower/flower/:id)로 꽃만 보고, 자기 꽃이 피면 궁합을 본다. */
+var _DF_FLOWER_ID_RE = /^[a-z0-9_]{1,40}$/;
+var _DF_FRIEND_FLOWER_KEY = 'cd:df-friend-flower:v1';
+var _DF_ELEMENT_GENERATES = { wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood' };
+var _DF_ELEMENT_CONTROLS = { wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood' };
+var _DF_SHARE_ICON = {
+  story: '<rect x="4" y="1.8" width="8" height="12.4" rx="1.6"/><circle cx="8" cy="6.4" r="1.9"/><path d="M6 10.6h4M6.8 12.2h2.4"/>',
+  kakao: '<path d="M8 2.8c-3.2 0-5.6 1.9-5.6 4.3 0 1.5.9 2.8 2.4 3.6l-.5 2.5 2.6-1.7c.4.1.7.1 1.1.1 3.2 0 5.6-1.9 5.6-4.4S11.2 2.8 8 2.8z"/>',
+  link: '<path d="M6.6 9.4l2.8-2.8"/><path d="M7.4 4.6l1.2-1.2a2.6 2.6 0 0 1 3.7 3.7l-1.2 1.2"/><path d="M8.6 11.4l-1.2 1.2a2.6 2.6 0 0 1-3.7-3.7l1.2-1.2"/>',
+  compat: '<circle cx="6.2" cy="8" r="3.8"/><circle cx="9.8" cy="8" r="3.8"/>'
+};
+var _dfShareState = null;
+
+function _dfShareIco(name) {
+  return '<svg class="df-ico" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3"'
+    + ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + (_DF_SHARE_ICON[name] || '') + '</svg>';
+}
+
+/** 받침에 따라 조사를 고른다: _dfJosa('목련', '이래', '래') → '이래' */
+function _dfJosa(word, withBatchim, withoutBatchim) {
+  return _dfHasBatchim(word) ? withBatchim : withoutBatchim;
+}
+
+function _dfClip(text, max) {
+  var line = String(text || '').replace(/\s+/g, ' ').trim();
+  return line.length > max ? line.slice(0, max - 1) + '…' : line;
+}
+
+function _dfFlowerShareUrl(flowerId, source) {
+  var params = {};
+  var id = String(flowerId || '').trim().toLowerCase();
+  if (_DF_FLOWER_ID_RE.test(id)) {
+    params.fl = id;
+    params.fs = _dfNormalizeSource(source || 'saju');
+  }
+  if (typeof window.cdBuildShareUrl === 'function') return window.cdBuildShareUrl('flower', params);
+  var origin = /^https?:/.test(String(window.location.origin || '')) ? window.location.origin : 'https://code-destiny.com';
+  var qs = ['action=openDestinyFlowerStudio'];
+  Object.keys(params).forEach(function(key) { qs.push(key + '=' + encodeURIComponent(params[key])); });
+  return origin + '/ggulggul/?' + qs.join('&');
+}
+
+/** 카톡·스토리에 붙는 짧은 훅. 희소성 문장은 엔진이 실제 조건으로 만든 rarity_line 만 쓴다. */
+function _dfFlowerHookText(opts) {
+  var name = String(opts.name || '').trim();
+  // 해시태그는 공백·하이픈·따옴표에서 끊기므로 이어 붙인다(Night-Blooming Cereus → NightBloomingCereus).
+  var tag = name.replace(/[\s\-'’·.()]+/g, '');
+  return [
+    _dfUiText('share.hookTitle', '🌸 내 운명의 꽃은 \'' + name + '\'' + _dfJosa(name, '이래', '래'), { name: name }),
+    opts.language ? _dfUiText('share.hookLanguage', '꽃말: ' + opts.language, { language: opts.language }) : '',
+    opts.rarity || '',
+    _dfUiText('share.hookAsk', '너는 무슨 꽃일까? → ' + opts.url, { url: opts.url }),
+    tag ? _dfUiText('share.hashtagsNamed', '#운명의꽃 #나의꽃은' + tag, { tag: tag }) : _dfUiText('share.hashtag', '#운명의꽃')
+  ].filter(Boolean).join('\n');
+}
+
+/** 꽃말 한 줄(꽃말 · …). OG 설명·카카오 설명·친구 꽃 카드가 같이 쓴다. */
+function _dfLanguageDotText(language) {
+  return _dfUiText('share.languageDot', '꽃말 · ' + language, { language: language });
+}
+
+function _dfFlowerOgImage(url, name, language) {
+  var origin = 'https://code-destiny.com';
+  try { origin = new URL(url).origin; } catch (_) {}
+  var lang = '';
+  try { lang = typeof window.cdGetCurrentLanguage === 'function' ? String(window.cdGetCurrentLanguage() || '') : ''; } catch (_) {}
+  return origin + '/api/og?title=' + encodeURIComponent(_dfUiText('share.ogTitle', name + ', 나의 운명의 꽃', { name: name }))
+    + '&desc=' + encodeURIComponent(language ? _dfLanguageDotText(language) : _dfUiText('share.ogAsk', '너의 꽃은 무엇일까?'))
+    + '&badge=flower&theme=light' + (lang && lang !== 'ko' ? '&lang=' + encodeURIComponent(lang) : '');
+}
+
+function _dfShareContext(selection) {
+  var sel = selection || _dfStudioState.selection;
+  if (!sel || !sel.flower || !sel.flower.name) return null;
+  var flower = sel.flower;
+  var matched = sel.matched || {};
+  var hook = matched.share_hook || {};
+  var source = _dfNormalizeSource(sel.source || 'saju');
+  var language = String(flower.flower_language || '').trim();
+  var url = _dfFlowerShareUrl(flower.id, source);
+  return {
+    selection: sel,
+    source: source,
+    id: String(flower.id || ''),
+    name: flower.name,
+    latin: flower.scientific_name || '',
+    language: language,
+    personal: String(matched.destiny_flower_language || '').trim(),
+    rarity: String(hook.rarity_line || '').trim(),
+    oneLiner: String(hook.one_liner || flower.vibe_message || '').trim(),
+    url: url,
+    ogImage: _dfFlowerOgImage(url, flower.name, language),
+    text: _dfFlowerHookText({ name: flower.name, language: language, rarity: hook.rarity_line, url: url })
+  };
+}
+
+function _dfShareNote(message) {
+  var note = document.getElementById('dfShareNote');
+  if (note) note.textContent = message || '';
+  if (message) _dfSetStudioStatus(message);
+}
+
+function _dfShareCopy(text, message) {
+  _dfClipboardWrite(text, message);
+  _dfShareNote(message);
+}
+
+/** 시스템 공유 시트가 있으면 그걸로, 없으면 카카오톡 앱 → 클립보드 순으로. */
+function _dfSendShareText(text, title) {
+  if (navigator.share) {
+    navigator.share({ title: title || _dfUiText('share.title', '운명의 꽃'), text: text }).catch(function(err) {
+      if (err && err.name === 'AbortError') return;
+      _dfShareCopy(text, _dfUiText('share.copiedText', '공유 문구를 복사했어요. 카카오톡에 붙여넣어 보내 보세요.'));
+    });
+    return;
+  }
+  _dfShareSnapshot(null, text);
+  _dfShareNote(_dfUiText('share.preparedText', '공유 문구를 준비했어요. 카카오톡이 열리지 않으면 붙여넣어 보내 보세요.'));
+}
+
+/* ── 9:16 스토리 카드(540×960 → 2배 캡처 1080×1920) ── */
+function _dfShareCardMarkup(ctx) {
+  var steps = _dfBloomSteps(ctx.selection);
+  var lines = steps.filter(function(step) { return step.stage !== 'bloom'; }).slice(0, 2)
+    .concat(steps.filter(function(step) { return step.stage === 'bloom'; }).slice(-1));
+  var bouquet = _dfToArray(_dfStudioState.bouquet).slice(0, 4);
+  return '<p class="df-sc-kicker">' + _dfEscapeHtml(_dfUiText('card.kicker', '나의 운명의 꽃')) + '</p>'
+    + '<span class="df-sc-bloom"><img alt="" width="232" height="232"></span>'
+    + '<h3 class="df-sc-name">' + _dfEscapeHtml(ctx.name) + '</h3>'
+    + (ctx.latin ? '<p class="df-sc-latin">' + _dfEscapeHtml(ctx.latin) + '</p>' : '')
+    + (ctx.rarity ? '<p class="df-sc-rarity">' + _dfEscapeHtml(_dfClip(ctx.rarity, 44)) + '</p>' : '')
+    + (ctx.language ? '<p class="df-sc-lang"><span>' + _dfEscapeHtml(_dfUiText('specimen.language', '꽃말')) + '</span>' + _dfEscapeHtml(_dfClip(ctx.language, 24)) + '</p>' : '')
+    + (lines.length ? '<ol class="df-sc-story">' + lines.map(function(step) {
+      return '<li data-stage="' + _dfEscapeHtml(step.stage) + '">' + _dfEscapeHtml(_dfClip(step.text, 62)) + '</li>';
+    }).join('') + '</ol>' : '')
+    + (ctx.personal ? '<p class="df-sc-personal">' + _dfEscapeHtml(_dfClip(ctx.personal, 80)) + '</p>' : '')
+    + (bouquet.length >= 2 ? '<ul class="df-sc-bouquet">' + bouquet.map(function(item) {
+      return '<li data-df-bouquet="' + _dfEscapeHtml(item.source) + '"><span><img alt="" width="58" height="58"></span><b>'
+        + _dfEscapeHtml(_dfClip(item.selection.flower.name, 8)) + '</b><small>' + _dfEscapeHtml(item.label) + '</small></li>';
+    }).join('') + '</ul>' : '')
+    + '<p class="df-sc-foot"><b>' + _dfEscapeHtml(_dfUiText('card.ask', '너의 꽃은?')) + '</b><span>code-destiny.com</span><span>'
+    + _dfEscapeHtml(_dfUiText('share.hashtag', '#운명의꽃')) + '</span></p>';
+}
+
+function _dfRenderShareCard(ctx, done) {
+  var overlay = document.getElementById('destinyFlowerStudioOverlay');
+  if (!overlay || typeof window.cdRenderElementToPngBlob !== 'function') { done(null); return; }
+  var card = document.getElementById('dfShareCard');
+  if (!card) {
+    card = document.createElement('div');
+    card.id = 'dfShareCard';
+    card.className = 'df-share-card';
+    card.setAttribute('aria-hidden', 'true');
+    overlay.appendChild(card);
+  }
+  card.innerHTML = _dfShareCardMarkup(ctx);
+  // 카드 그림은 항상 생성 SVG(data URI) — 원격 이미지가 끼면 캔버스가 오염돼 저장이 막힌다.
+  var hero = card.querySelector('.df-sc-bloom img');
+  if (hero) hero.src = _dfBuildFlowerDataUri(ctx.selection, ctx.source);
+  _dfToArray(_dfStudioState.bouquet).slice(0, 4).forEach(function(item) {
+    var img = card.querySelector('[data-df-bouquet="' + item.source + '"] img');
+    if (img) img.src = _dfBuildFlowerDataUri(item.selection, item.source);
+  });
+  var images = Array.prototype.slice.call(card.querySelectorAll('img'));
+  var tries = 0;
+  // 꽃 스튜디오 시트(destiny-flower-cosmic.css)는 지연 로드라 첫 탭 직후엔 아직 없을 수 있다.
+  // 카드가 제 크기(540px)로 잡힌 뒤에 찍어야 맨 글자만 찍힌 카드가 나가지 않는다.
+  var capture = function() {
+    if (card.offsetWidth !== 540) {
+      if (++tries > 40) { done(null); return; }
+      setTimeout(capture, 150);
+      return;
+    }
+    window.cdRenderElementToPngBlob(card, done);
+  };
+  Promise.all(images.map(function(img) {
+    return img.decode ? img.decode().catch(function() {}) : Promise.resolve();
+  })).then(capture);
+}
+
+/* ── 공유 시트 ── */
+function _dfEnsureShareSheet() {
+  var layer = document.getElementById('dfShareSheet');
+  if (layer) return layer;
+  var overlay = document.getElementById('destinyFlowerStudioOverlay');
+  if (!overlay) return null;
+  var actions = [
+    ['story', _dfUiText('sheet.story', '스토리 카드'), _dfUiText('sheet.storyHint', '9:16 이미지로 저장·공유')],
+    ['kakao', _dfUiText('sheet.kakao', '카카오톡'), _dfUiText('sheet.kakaoHint', '친구에게 내 꽃 보내기')],
+    ['link', _dfUiText('sheet.link', '링크 복사'), _dfUiText('sheet.linkHint', '꽃말과 함께 복사')],
+    ['compat', _dfUiText('sheet.compat', '친구와 꽃 궁합'), _dfUiText('sheet.compatHint', '친구에게 궁합 링크 보내기')]
+  ];
+  layer = document.createElement('div');
+  layer.id = 'dfShareSheet';
+  layer.className = 'df-share-layer';
+  layer.hidden = true;
+  layer.innerHTML = '<div class="df-share-scrim" data-df-share="close"></div>'
+    + '<section class="df-share-panel" role="dialog" aria-modal="true" aria-labelledby="dfShareTitle">'
+    + '<span class="df-share-grip" aria-hidden="true"></span>'
+    + '<h4 id="dfShareTitle" class="df-share-title">' + _dfEscapeHtml(_dfUiText('sheet.title', '꽃 공유하기')) + '</h4>'
+    + '<p id="dfShareSub" class="df-share-sub"></p>'
+    + '<div class="df-share-actions">' + actions.map(function(action) {
+      return '<button type="button" class="df-share-action" data-df-share="' + action[0] + '">'
+        + '<span class="df-share-action-ico">' + _dfShareIco(action[0]) + '</span>'
+        + '<span class="df-share-action-text"><b>' + _dfEscapeHtml(action[1]) + '</b><small data-df-share-hint="' + action[0] + '">' + _dfEscapeHtml(action[2]) + '</small></span></button>';
+    }).join('') + '</div>'
+    + '<p id="dfShareNote" class="df-share-note" aria-live="polite"></p>'
+    + '<button type="button" class="df-share-cancel" data-df-share="close">' + _dfEscapeHtml(_dfUiText('sheet.close', '닫기')) + '</button>'
+    + '</section>';
+  // 오버레이의 닫기 히트테스트·전역 data-action 위임이 이 시트의 탭을 가져가지 않도록 여기서 끝낸다.
+  layer.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var target = e.target && e.target.closest ? e.target.closest('[data-df-share]') : null;
+    if (!target || !layer.contains(target)) return;
+    e.preventDefault();
+    _dfRunShareAction(target.getAttribute('data-df-share'));
+  });
+  layer.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    e.stopPropagation();
+    closeDestinyFlowerShareSheet();
+  });
+  overlay.appendChild(layer);
+  return layer;
+}
+
+function _dfRunShareAction(action) {
+  if (action === 'close') { closeDestinyFlowerShareSheet(); return; }
+  var st = _dfShareState;
+  if (!st) return;
+  if (action === 'story') _dfShareStoryCard(st);
+  else if (action === 'kakao') _dfShareKakao(st.ctx);
+  else if (action === 'link') _dfShareCopy(st.ctx.text, _dfUiText('sheet.linkCopied', '꽃말과 링크를 복사했어요. 친구에게 붙여넣어 보내 보세요.'));
+  else if (action === 'compat') _dfShareCompatInvite(st.ctx);
+}
+
+function _dfPrimeKakaoSdk() {
+  try {
+    var key = typeof window.cdReadShareKakaoKey === 'function' ? window.cdReadShareKakaoKey() : '';
+    if (key && typeof window.cdLoadKakaoSdk === 'function') window.cdLoadKakaoSdk(key);
+  } catch (_) {}
+}
+
+function openDestinyFlowerShareSheet() {
+  var ctx = _dfShareContext();
+  if (!ctx) {
+    _dfSetStudioStatus(_dfUiText('sheet.notReady', '내 꽃이 피면 공유할 수 있어요.'));
+    return;
+  }
+  var layer = _dfEnsureShareSheet();
+  if (!layer) return;
+  var st = { ctx: ctx, blob: null, rendering: true, waiters: [], trigger: document.activeElement };
+  _dfShareState = st;
+  document.getElementById('dfShareSub').textContent = ctx.language
+    ? _dfUiText('sheet.sub', ctx.name + ' · 꽃말 \'' + ctx.language + '\'', { name: ctx.name, language: ctx.language })
+    : ctx.name;
+  var compatHint = layer.querySelector('[data-df-share-hint="compat"]');
+  if (compatHint) {
+    compatHint.textContent = _dfStudioState.friendCompat
+      ? _dfUiText('sheet.compatHintFriend', '친구 꽃과의 궁합 보기')
+      : _dfUiText('sheet.compatHint', '친구에게 궁합 링크 보내기');
+  }
+  _dfShareNote('');
+  layer.hidden = false;
+  var first = layer.querySelector('.df-share-action');
+  if (first && first.focus) first.focus();
+  _dfEnsureShareScript(function() {
+    if (_dfShareState !== st) return;
+    // share.js 가 실린 뒤라야 링크에 리퍼럴(ref)이 붙는다 — 문구를 다시 만든다.
+    st.ctx = _dfShareContext(ctx.selection) || ctx;
+    _dfPrimeKakaoSdk();
+    _dfRenderShareCard(st.ctx, _dfOnShareCard(st));
+  });
+}
+
+/** 카드 캡처·리퍼럴·카카오 공유가 모두 js/share.js 에 있다. 그 파일은 지연 로드라 시트가 열릴 때 싣는다. */
+function _dfEnsureShareScript(done) {
+  if (typeof window.cdRenderElementToPngBlob === 'function' || typeof window.__cdLoadScriptOnce !== 'function') {
+    done();
+    return;
+  }
+  window.__cdLoadScriptOnce('/js/share.js?v=build-67cbd46b7d92').then(function() { done(); }, function() { done(); });
+}
+
+function _dfOnShareCard(st) {
+  return function(blob) {
+    st.blob = blob;
+    st.rendering = false;
+    var waiters = st.waiters;
+    st.waiters = [];
+    if (_dfShareState !== st) return;
+    waiters.forEach(function(run) { run(blob); });
+  };
+}
+
+function closeDestinyFlowerShareSheet() {
+  var layer = document.getElementById('dfShareSheet');
+  if (!layer || layer.hidden) return;
+  layer.hidden = true;
+  var trigger = _dfShareState && _dfShareState.trigger;
+  _dfShareState = null;
+  if (trigger && trigger.focus && document.contains(trigger)) {
+    try { trigger.focus(); } catch (_) {}
+  }
+}
+
+function _dfShareStoryCard(st) {
+  var run = function(blob) {
+    if (!blob || typeof window.cdShareImageBlob !== 'function') {
+      _dfShareNote(_dfUiText('card.failed', '카드 이미지를 만들지 못해 공유 문구로 대신 보낼게요.'));
+      _dfSendShareText(st.ctx.text, _dfUiText('card.kicker', '나의 운명의 꽃'));
+      return;
+    }
+    window.cdShareImageBlob(blob, {
+      fileName: 'destiny-flower-' + (st.ctx.id || 'card') + '.png',
+      title: _dfUiText('card.kicker', '나의 운명의 꽃'),
+      text: st.ctx.text,
+      savedMessage: _dfUiText('card.saved', '스토리 카드를 저장했어요. 공유 문구도 함께 복사됐어요.')
+    });
+    _dfShareNote(_dfUiText('card.ready', '스토리 카드를 준비했어요. 인스타그램·카카오톡 스토리에 올려 보세요.'));
+  };
+  if (!st.rendering) { run(st.blob); return; }
+  _dfShareNote(_dfUiText('card.drawing', '카드를 그리는 중이에요. 잠시만 기다려 주세요.'));
+  st.waiters.push(run);
+}
+
+function _dfShareKakao(ctx) {
+  var K = window.Kakao;
+  if (K && K.Share && typeof K.Share.sendDefault === 'function' && (!K.isInitialized || K.isInitialized())) {
+    try {
+      var link = { mobileWebUrl: ctx.url, webUrl: ctx.url };
+      K.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: _dfUiText('share.kakaoTitle', '나의 운명의 꽃은 \'' + ctx.name + '\'', { name: ctx.name }),
+          description: ctx.language ? _dfLanguageDotText(ctx.language) : ctx.oneLiner,
+          imageUrl: ctx.ogImage,
+          link: link
+        },
+        buttons: [{ title: _dfUiText('share.bloomMine', '내 꽃 피워보기'), link: link }]
+      });
+      _dfShareNote(_dfUiText('share.kakaoOpened', '카카오톡 공유 창을 열었어요.'));
+      return;
+    } catch (_) {}
+  }
+  _dfShareSnapshot(null, ctx.text);
+  _dfShareNote(_dfUiText('share.kakaoPrepared', '카카오톡으로 보낼 문구를 준비했어요. 열리지 않으면 붙여넣어 보내 보세요.'));
+}
+
+function _dfShareCompatInvite(ctx) {
+  if (_dfStudioState.friendCompat) {
+    closeDestinyFlowerShareSheet();
+    var friendEl = document.getElementById('dfFriendFlower');
+    if (friendEl && friendEl.scrollIntoView) friendEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  _dfSendShareText([
+    _dfUiText('compatShare.inviteTitle', '🌸 내 운명의 꽃은 \'' + ctx.name + '\'' + _dfJosa(ctx.name, '이야', '야'), { name: ctx.name }),
+    _dfUiText('compatShare.inviteAsk', '너도 네 꽃 피워 보고 우리 꽃 궁합 확인해 봐'),
+    '→ ' + ctx.url,
+    _dfUiText('compatShare.hashtags', '#운명의꽃 #꽃궁합')
+  ].join('\n'), _dfUiText('compatShare.title', '운명의 꽃 궁합'));
+}
+
+/* ── 받는 쪽: 친구 꽃 미리보기 → 내 꽃 피우기 → 꽃 궁합 ── */
+function _dfCaptureFriendFlowerParam() {
+  try {
+    var params = new URLSearchParams(window.location.search || '');
+    var id = String(params.get('fl') || '').trim().toLowerCase();
+    if (!_DF_FLOWER_ID_RE.test(id)) return;
+    var source = _dfNormalizeSource(params.get('fs') || 'saju');
+    // 로그인·생년월일 입력으로 페이지를 오가도 남도록 세션에 둔다(꽃 id 와 체계뿐).
+    window.sessionStorage.setItem(_DF_FRIEND_FLOWER_KEY, JSON.stringify({ id: id, source: source, at: Date.now() }));
+  } catch (_) {}
+}
+
+function _dfReadFriendFlower() {
+  try {
+    var data = JSON.parse(window.sessionStorage.getItem(_DF_FRIEND_FLOWER_KEY) || 'null');
+    var id = data && String(data.id || '');
+    if (id && _DF_FLOWER_ID_RE.test(id)) return { id: id, source: _dfNormalizeSource(data.source || 'saju') };
+  } catch (_) {}
+  return null;
+}
+
+function _dfMainElement(flower) {
+  return String(_dfToArray(flower && flower.elements)[0] || '').trim().toLowerCase();
+}
+
+/** 두 꽃의 주 오행으로 본 꽃 궁합. 상생·상극·비화 다섯 갈래 + 같은 꽃. 정해진 문구만, 예언·단정은 없다. */
+function _dfFlowerCompat(mine, friend) {
+  var a = _dfMainElement(mine);
+  var b = _dfMainElement(friend);
+  var A = _dfElementLabelKo(a);
+  var B = _dfElementLabelKo(b);
+  var vars = { name: mine.name, mine: _dfElementVar(a), friend: _dfElementVar(b) };
+  var pick = function(type, title, line) {
+    return { type: type, title: _dfUiText('compat.' + type + '.title', title), line: _dfUiText('compat.' + type + '.line', line, vars) };
+  };
+  if (mine.id && mine.id === friend.id) {
+    return pick('twin', '같은 꽃 한 쌍', '둘 다 ' + mine.name + _dfJosa(mine.name, '이에요', '예요') + '. 말하지 않아도 같은 계절을 사는 사이예요.');
+  }
+  if (!_DF_ELEMENT_GENERATES[a] || !_DF_ELEMENT_GENERATES[b]) {
+    return pick('blend', '서로 다른 결의 꽃', '서로 다른 빛깔의 두 꽃이 만나 한 다발이 더 풍성해지는 사이예요.');
+  }
+  if (a === b) {
+    return pick('same', '닮은 결의 꽃', '둘 다 ' + A + ' 기운을 품은 꽃이에요. 서로의 속도를 가장 잘 알아보는 사이예요.');
+  }
+  if (_DF_ELEMENT_GENERATES[a] === b) {
+    return pick('give', '내가 피워 주는 꽃', '내 꽃의 ' + A + ' 기운이 친구 꽃의 ' + B + ' 기운을 키워 줘요. 곁에 있으면 친구가 더 환하게 피어나요.');
+  }
+  if (_DF_ELEMENT_GENERATES[b] === a) {
+    return pick('receive', '나를 피워 주는 꽃', '친구 꽃의 ' + B + ' 기운이 내 꽃의 ' + A + ' 기운을 북돋아요. 함께 있으면 내가 더 활짝 피어나요.');
+  }
+  if (_DF_ELEMENT_CONTROLS[a] === b) {
+    return pick('shape', '서로를 다듬는 꽃', '내 꽃의 ' + A + ' 기운이 친구 꽃의 ' + B + ' 기운을 다듬어요. 속도를 맞춰 갈수록 단단해지는 사이예요.');
+  }
+  return pick('spark', '자극이 되는 꽃', '친구 꽃의 ' + B + ' 기운이 내 꽃의 ' + A + ' 기운을 다잡아 줘요. 서로에게 좋은 자극이 되는 사이예요.');
+}
+
+function _dfLoadFriendFlower(friend, done) {
+  var cache = _dfStudioState.friendCards || (_dfStudioState.friendCards = {});
+  if (Object.prototype.hasOwnProperty.call(cache, friend.id)) { done(cache[friend.id]); return; }
+  fetch(__cdResolveApiBaseForLockSync() + '/api/destiny-flower/flower/' + encodeURIComponent(friend.id), { credentials: 'omit' })
+    .then(function(res) {
+      if (res.status === 404) { cache[friend.id] = null; return null; }
+      return res.ok ? res.json() : null;
+    })
+    .then(function(data) {
+      var card = data && data.ok && data.flower ? data.flower : null;
+      if (card) cache[friend.id] = card;
+      done(card);
+    })
+    .catch(function() { done(null); });
+}
+
+function _dfEnsureFriendSection() {
+  var el = document.getElementById('dfFriendFlower');
+  if (el) return el;
+  var sheet = document.getElementById('destinyFlowerStudioSheet');
+  var quad = sheet && sheet.querySelector('.df-studio-quad');
+  if (!quad) return null;
+  el = document.createElement('section');
+  el.id = 'dfFriendFlower';
+  el.className = 'df-friend';
+  el.hidden = true;
+  el.setAttribute('aria-labelledby', 'dfFriendName');
+  quad.parentNode.insertBefore(el, quad);
+  return el;
+}
+
+function _dfRenderFriendFlower() {
+  var friend = _dfReadFriendFlower();
+  var el = friend ? _dfEnsureFriendSection() : document.getElementById('dfFriendFlower');
+  if (!el) return;
+  if (!friend) {
+    el.hidden = true;
+    _dfStudioState.friendCompat = null;
+    return;
+  }
+  _dfLoadFriendFlower(friend, function(card) {
+    if (!card) { el.hidden = true; return; }
+    var friendSel = { source: friend.source, flower: card, primary: card.primary_color, secondary: card.secondary_color };
+    var mine = _dfStudioState.selection && _dfStudioState.selection.flower ? _dfStudioState.selection : null;
+    var compat = mine ? _dfFlowerCompat(mine.flower, card) : null;
+    _dfStudioState.friendCompat = compat ? { mine: mine, friend: friendSel, result: compat } : null;
+    el.innerHTML = '<p class="df-friend-kicker">' + _dfEscapeHtml(_dfUiText('friend.kicker', '친구가 보낸 운명의 꽃')) + '</p>'
+      + '<div class="df-friend-row"><span class="df-friend-bloom"><img alt="" width="84" height="84" decoding="async"></span>'
+      + '<div class="df-friend-text"><h4 id="dfFriendName" class="df-friend-name">' + _dfEscapeHtml(card.name) + '</h4>'
+      + (card.flower_language ? '<p class="df-friend-lang">' + _dfEscapeHtml(_dfLanguageDotText(card.flower_language)) + '</p>' : '')
+      + (card.title && card.title !== card.name ? '<p class="df-friend-title">' + _dfEscapeHtml(card.title) + '</p>' : '')
+      + '</div></div>'
+      + (compat
+        ? '<div class="df-compat" data-df-compat="' + compat.type + '">'
+          + '<p class="df-compat-pair"><b>' + _dfEscapeHtml(mine.flower.name) + '</b><span aria-hidden="true">×</span><b>' + _dfEscapeHtml(card.name) + '</b></p>'
+          + '<h5 class="df-compat-title">' + _dfEscapeHtml(compat.title) + '</h5>'
+          + '<p class="df-compat-line">' + _dfEscapeHtml(compat.line) + '</p>'
+          + '<button class="df-studio-chip df-studio-chip--share" type="button" data-action="shareDestinyFlowerCompat">' + _dfShareIco('compat') + '<span>' + _dfEscapeHtml(_dfUiText('friend.shareCompat', '꽃 궁합 공유하기')) + '</span></button>'
+          + '</div>'
+        : '<p class="df-friend-note">' + _dfEscapeHtml(_dfUiText('friend.note', '내 꽃이 피면 둘의 꽃 궁합을 바로 보여 드려요.')) + '</p>'
+          + '<button class="df-studio-btn df-studio-btn--primary df-friend-cta" type="button" data-action="bloomMyDestinyFlower">' + _dfEscapeHtml(_dfUiText('share.bloomMine', '내 꽃 피워보기')) + '</button>');
+    _dfApplyGeneratedFlowerImage(el.querySelector('.df-friend-bloom img'), friendSel, friend.source);
+    el.hidden = false;
+  });
+}
+
+function bloomMyDestinyFlower() {
+  var main = document.querySelector('#destinyFlowerStudioOverlay .df-studio-main');
+  var state = _dfStudioState.selection ? null : _dfGetDataMissingUiState(_dfStudioState.activeSource || 'saju');
+  if (!state || state.showLoadButton) {
+    if (main && main.scrollIntoView) main.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  // 생년월일이 없으면 홈 입력으로. 친구 꽃은 세션에 남아 있어 다시 들어오면 궁합이 이어진다.
+  goHomeFromDestinyFlower();
+  if (typeof window.showToast === 'function') window.showToast(_dfUiText('friend.birthToast', '생년월일을 넣으면 내 꽃이 피어나요. 친구 꽃과의 궁합도 이어서 보여 드려요.'));
+}
+
+function shareDestinyFlowerCompat() {
+  var compat = _dfStudioState.friendCompat;
+  if (!compat) return;
+  var title = compat.result.title;
+  var mineName = compat.mine.flower.name;
+  var friendName = compat.friend.flower.name;
+  var url = _dfFlowerShareUrl(compat.mine.flower.id, compat.mine.source);
+  _dfSendShareText([
+    _dfUiText('compatShare.pair', '🌸 나는 \'' + mineName + '\', 친구는 \'' + friendName + '\'', { mine: mineName, friend: friendName }),
+    _dfUiText('compatShare.result', '우리 꽃 궁합은 \'' + title + '\'' + _dfJosa(title, '이래', '래'), { title: title }),
+    compat.result.line,
+    _dfUiText('compatShare.ask', '너도 네 꽃이랑 궁합 봐 → ' + url, { url: url }),
+    _dfUiText('compatShare.hashtags', '#운명의꽃 #꽃궁합')
+  ].join('\n'), _dfUiText('compatShare.title', '운명의 꽃 궁합'));
+}
+
+_dfCaptureFriendFlowerParam();
 
 window.openDestinyFlower = openDestinyFlower;
 window.openAstrologyFlower = openAstrologyFlower;
@@ -8029,6 +8698,10 @@ window.clearDestinyFlowerSnapshots = clearDestinyFlowerSnapshots;
 window.shareDestinyFlowerSnapshot = shareDestinyFlowerSnapshot;
 window.shareDestinyFlowerSnapshotById = shareDestinyFlowerSnapshotById;
 window.copyDestinyFlowerSummary = copyDestinyFlowerSummary;
+window.openDestinyFlowerShareSheet = openDestinyFlowerShareSheet;
+window.closeDestinyFlowerShareSheet = closeDestinyFlowerShareSheet;
+window.bloomMyDestinyFlower = bloomMyDestinyFlower;
+window.shareDestinyFlowerCompat = shareDestinyFlowerCompat;
 window.copyDestinyFlowerArtPrompt = copyDestinyFlowerArtPrompt;
 window.copyDestinyFlowerPromptPack = copyDestinyFlowerPromptPack;
 
@@ -8366,10 +9039,12 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 음양력 변환의 유일한 근거로 쓰고, 없으면 던진다(조용히 lunar-javascript 로 떨어지면
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-370c38a7da44',
+    /* 원국 판정 정본(전역 SajuNatalCore). saju-engine 의 detectJong 이 이것 없이는 던진다. */
+    '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-b9cad44444ab',
+      '/js/saju-engine.js?v=build-ddc6e98db9ce',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a581a74ee045'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-7b161108f115'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일
@@ -8386,7 +9061,7 @@ function __cdEnsureBirthModalDepsLoaded() {
   if (__cdBirthModalDepsLoadPromise) return __cdBirthModalDepsLoadPromise;
   var presentationReady = window.BasicFortunePresentation
     ? Promise.resolve()
-    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-0717901ec907');
+    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa');
   var tasks = [presentationReady];
   if (
     typeof _ModalProfileState === 'undefined' ||
@@ -9340,7 +10015,7 @@ function openAnimalTotemModal() {
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
     __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-81c843ae9e30'); })
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-4cb9efbdfb11'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {

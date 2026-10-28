@@ -61,7 +61,7 @@ export const MNAV_TOGGLE_TRANS_KEY = "shell.cdMobileBottomNav.k13uxius.ariaLabel
 export const MNAV_TOGGLE_LABEL_KO = "하단 메뉴 접기/펼치기";
 
 export const MOBILE_TABS: readonly MobileTab[] = [
-  { key: "home", label: "홈", href: "/", ariaLabel: "홈", glyph: "⌂", transKey: "home.nav.home", ariaTransKey: "home.nav.home" },
+  { key: "home", label: "홈", href: "/ggulggul/", ariaLabel: "홈", glyph: "⌂", transKey: "home.nav.home", ariaTransKey: "home.nav.home" },
   {
     key: "fortunes",
     label: "모든 운세",
@@ -72,7 +72,7 @@ export const MOBILE_TABS: readonly MobileTab[] = [
     glyph: "✦",
     shellAction: ALL_FORTUNES_ACTION,
   },
-  { key: "consult", label: "상담", href: "/consultations/", ariaLabel: "운명 상담 고르기", glyph: "✿",
+  { key: "consult", label: "대표 상담", href: "/consultations/", ariaLabel: "대표 상담 고르기", glyph: "✿",
     transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.consult",
     ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.consultTab.ariaLabel" },
   {
@@ -141,7 +141,7 @@ export function resolveActiveTabKey(pathname: string, search = ""): MobileTabKey
   if (action === ALL_FORTUNES_ACTION) return "fortunes";
   if (action === LIBRARY_SHEET_ACTION) return "library";
   if (action === ACCOUNT_SHEET_ACTION || action === PROFILE_SHEET_ACTION) return "my";
-  if (path === "/") return "home";
+  if (path === "/" || path === "/ggulggul") return "home";
 
   for (const rule of PATH_RULES) {
     if (matchesPrefix(path, rule.prefix)) return rule.key;

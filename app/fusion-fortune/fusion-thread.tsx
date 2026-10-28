@@ -15,7 +15,8 @@ import type { FusionVisualizationData } from "./FusionVisualization";
 import type { FusionSharedCopy } from "./_lib/copy";
 import styles from "./fusion-fortune.module.css";
 
-export type Section = { title: string; content: string; keyPoints: string[] };
+export type FusionSubchapter = { title: string; start: number; end: number; questionIds: string[]; evidenceKeys: string[]; artKey: string };
+export type Section = { title: string; content: string; keyPoints: string[]; subchapters?: FusionSubchapter[] };
 export type VerdictStance = "agree" | "conditional" | "caution";
 export type FinalVerdict = {
   headline: string;
@@ -25,14 +26,19 @@ export type FinalVerdict = {
   doNow: string[];
   avoid: string[];
 };
-export type Result = Record<"sajuSection" | "ziweiSection" | "vedicSection" | "sukuyoSection" | "astrologySection" | "tarotSection" | "integratedReading", Section> & {
+/** v2 영역별 장 — lib/fusion-premium-report.js FUSION_DOMAIN_CHAPTERS 순서와 같다. 시도를 다 써도 빠질 수 있어 선택값이다. */
+export const DOMAIN_SECTION_KEYS = ["natureSection", "lifeCycleSection", "loveSection", "marriageSection", "wealthSection", "careerSection", "healthSection", "relationsSection"] as const;
+export type DomainSectionKey = (typeof DOMAIN_SECTION_KEYS)[number];
+export type Result = Record<"sajuSection" | "ziweiSection" | "vedicSection" | "sukuyoSection" | "astrologySection" | "tarotSection" | "integratedReading", Section> & Partial<Record<DomainSectionKey, Section>> & {
+  reportVersion?: string;
+  consultationPlan?: { version: string; question: string; questions: { id: string; title: string }[] };
   expertMeta?: { version: string; identity?: string; locale: string; complete: boolean; pendingStage: 1 | 2 };
   tarotCards?: FusionTarotCard[];
   evidenceCrossCheck?: FusionCrossCheck;
   title: string;
   openingMessage: string;
   executiveSummary: string;
-  timingAndAction: { title: string; content: string; luckyActions: string[]; cautionPatterns: string[] };
+  timingAndAction: { subchapters?: FusionSubchapter[]; title: string; content: string; luckyActions: string[]; cautionPatterns: string[] };
   /** 서버가 항상 채워 보낸다(worker/lib/fusion-fortune-visual.js). 그래도 옛 저장본을 위해 관용한다. */
   visualization?: FusionVisualizationData;
   /** 여섯 체계를 각각 판정한 뒤 하나로 수렴시킨 마지막 답. 옛 저장본에는 없다. */
@@ -229,10 +235,14 @@ export function ThreadBubble({ systemKey, tone = "plain", deferRender = false, e
   );
 }
 
-/** 화자 이름표. 대화의 "누가 말하는가"를 한 줄로 못 박는다. `meta` 는 글자 수·읽는 시간 같은 부속 정보다. */
-export function ThreadSpeaker({ label, note, meta }: { label: string; note?: ReactNode; meta?: ReactNode }) {
+/**
+ * 화자 이름표. 대화의 "누가 말하는가"를 한 줄로 못 박는다. `meta` 는 글자 수·읽는 시간 같은 부속 정보다.
+ * `avatar` 는 v2 리포트에서 그 장을 쓴 마스터의 얼굴이다(장식 — 이름이 label 에 함께 있다).
+ */
+export function ThreadSpeaker({ label, note, meta, avatar }: { label: string; note?: ReactNode; meta?: ReactNode; avatar?: string }) {
   return (
     <p className="m-0 mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-sans text-[0.82rem] tracking-wide text-[color:var(--tint-label)]">
+      {avatar && <img src={avatar} alt="" width={32} height={32} decoding="async" className="size-8 rounded-full bg-[var(--fx-deep)] object-cover ring-1 ring-[color:var(--tint-ring)]" />}
       {label}
       {note}
       {meta && <span className="font-sans text-[0.72rem] tracking-normal text-[var(--fx-ink-4)] tabular-nums before:mr-2 before:text-[var(--fx-line-strong)] before:content-['·']">{meta}</span>}

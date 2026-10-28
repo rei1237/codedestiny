@@ -1,7 +1,7 @@
 'use client';
 import {brandCopy} from '@/lib/seo/brand-copy.mjs';
 import {useEffect,useRef,useState} from 'react';
-import {ArrowRight,BookOpen,PawPrint} from 'lucide-react';
+import {ArrowRight,PawPrint} from 'lucide-react';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
 import LaunchPlannedPrice from '@/app/components/LaunchPlannedPrice';
 import {launchOffer,plannedPriceFor} from '@/lib/brand/launch-offer';
@@ -17,14 +17,12 @@ export default function NightHero(){
  return <section className={styles.hero} aria-labelledby="hero-title">
   <picture className={styles.room}><source media="(max-width: 699px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/><img src="/assets/yeongnyangi/night/consultation-room.webp" width={1440} height={960} alt="" fetchPriority="high"/></picture>
   <div className={styles.copy}>
-   <h1 id="hero-title">{brandCopy('yeongnyangiHeading')}<br/><span>영냥이에게 물어봐.</span></h1>
-   <p>꿀꿀운세의 기본 상담, 영냥이. 궁금한 것 하나부터 물어보세요.</p>
+   <h1 id="hero-title">{brandCopy('yeongnyangiHeading')}<br/><span>{brandCopy('yeongnyangiServiceName')}</span></h1>
+   <p>간단한 고민 상담은 영냥이에게 물어봐! 답과 근거, 지금 해볼 행동을 함께 살펴봐요.</p>
    <div className={styles.actions}>
-    <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>지금 궁금한 질문 고르기<ArrowRight size={19} aria-hidden="true"/></a>
-    <a className={styles.secondary} href="#readings"><BookOpen size={18} aria-hidden="true"/>상담 종류 살펴보기</a>
+    <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>내 고민 상담하기<ArrowRight size={19} aria-hidden="true"/></a>
    </div>
    <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/></>:null}<span className={styles.keep}>질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원부터</span> · 질문 범위에 따라 안내</p>
-   <a className={styles.example} href="/yeongnyangi/1000-won-fortune/#example">결제 전 상담 예시 읽기 →</a>
   </div>
   <div className={styles.character}>
    <button className={`${styles.cat} ${petted?styles.petted:''}`} aria-label="영냥이 쓰다듬기" onClick={()=>{setGreeting(value=>(value+1)%greetings.length);setPetted(true);if(timer.current)clearTimeout(timer.current);timer.current=setTimeout(()=>setPetted(false),360);}}>

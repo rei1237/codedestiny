@@ -78,7 +78,7 @@ const AnimalShareCard = forwardRef<HTMLDivElement, Props>(function AnimalShareCa
 
       <div className="relative z-10 flex h-full flex-col justify-between rounded-[1.5rem] border border-cyan-100/35 bg-white/10 p-5 backdrop-blur-md text-cyan-50">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-100/85">Code Destiny</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-100/85">꿀꿀운세</p>
           <p className="mt-1 text-xs font-semibold text-cyan-100">Celestial Animal Destiny</p>
           <p className="mt-1 text-[11px] font-semibold text-cyan-100/85">{COPY.shareCardKicker}</p>
 

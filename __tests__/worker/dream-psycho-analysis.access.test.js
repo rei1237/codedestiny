@@ -5,6 +5,8 @@
  * dream-psycho-analysis.route.test.js는 access verifier를 통째로 목킹해 우회하므로,
  * 여기서는 그 verifier의 내부(auth degrade, 회당 결제 토큰 인정)를 실제로 태운다.
  */
+import { jest } from "@jest/globals";
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 
 let handleDreamRoutes;
 let mockGetOptionalUserFromRequest;
@@ -17,7 +19,7 @@ beforeAll(async () => {
   mockCanAccessPaidFeature = jest.fn();
   mockVerifyPremiumAccessToken = jest.fn();
   mockVerifyPerUsePayment = jest.fn();
-  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({ verifyPerUsePayment: mockVerifyPerUsePayment }));
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({ verifyPerUsePayment: mockVerifyPerUsePayment }));
 
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({
     callGeminiText: jest.fn(async () => ({ ok: false, error: "mocked" })),
@@ -56,15 +58,21 @@ function buildRequest(body) {
 }
 
 describe("verifyPsychoDreamAccess (real implementation)", () => {
-  test("로그인된 사용자가 인증에 실패하지 않은 경우 게이트를 통과한다", async () => {
+  // 🔴 2026-10-16: 월구독·이용권 허용 판정은 읽기 전용이다. 이번 requestId 의 결제·차감 증빙이 있어야 연다.
+  test("월구독 허용 판정만으로는 열지 않고, 이번 요청의 증빙이 확인되면 통과한다", async () => {
     mockGetOptionalUserFromRequest.mockResolvedValue({ userId: "user-1" });
     mockCanAccessPaidFeature.mockResolvedValue({ allowed: true, licenseType: "monthly_subscription", accessSource: "monthlySubscription" });
+    const dreamText = "따뜻한 봄 햇살 아래서 오래된 친구를 만나는 꿈을 꾸었다.";
 
-    const res = await handleDreamRoutes(buildRequest({ dreamText: "따뜻한 봄 햇살 아래서 오래된 친구를 만나는 꿈을 꾸었다." }), {});
+    mockVerifyPerUsePayment.mockResolvedValue({ proven: false, reason: "NO_RECORD" });
+    expect((await handleDreamRoutes(buildRequest({ dreamText, requestId: "dream-req-1" }), {})).status).toBe(402);
+
+    mockVerifyPerUsePayment.mockResolvedValue({ proven: true, source: "monthly" });
+    const res = await handleDreamRoutes(buildRequest({ dreamText, requestId: "dream-req-1" }), {});
     const payload = await res.json();
-
     expect(res.status).toBe(200);
     expect(payload.ok).toBe(true);
+    expect(mockVerifyPerUsePayment).toHaveBeenCalledWith({}, expect.objectContaining({ requestId: "dream-req-1", featureKey: "dream-psycho-analysis" }));
   });
 
   test("유효 로그인 상태에서 일시적 DB 오류가 나면 401이 아니라 503으로 재시도를 유도한다", async () => {
@@ -143,7 +151,7 @@ describe("verifyPsychoDreamAccess (real implementation)", () => {
     mockVerifyPerUsePayment.mockResolvedValue({ proven, source: "moonstone" });
     const response = await handleDreamRoutes(buildRequest({ dreamText: "햇살 아래 산책하는 꿈을 꾸었습니다.", premiumAccessToken: "expired", requestId: "original-paid-request" }), {});
     expect(response.status).toBe(proven === true ? 200 : proven === null ? 503 : 402);
-    expect(mockVerifyPerUsePayment).toHaveBeenCalledWith({}, expect.objectContaining({ userId: "user-1", featureKey: "dream-psycho-analysis", requestId: "original-paid-request", coinPrice: 30 }));
+    expect(mockVerifyPerUsePayment).toHaveBeenCalledWith({}, expect.objectContaining({ userId: "user-1", featureKey: "dream-psycho-analysis", requestId: "original-paid-request", coinPrice: 50 }));
   });
 
   test("이용권도 결제 토큰도 없으면 402 결제 요구를 반환한다", async () => {

@@ -36,21 +36,29 @@ export async function fortuneApi<T>(path:string,body?:object,options:{signal?:Ab
  // authFetch aligns legacy body.locale with this header. The selected reading
  // language must explicitly override its default (the surrounding UI language).
  const outputLocale=path==='requests'&&body&&'locale' in body&&typeof body.locale==='string'?body.locale:null;
- const response=await authFetch(`/api/yeongnyangi/${path}`,{cache:'no-store',signal:controller.signal,...(body?{method:'POST',headers:{'Content-Type':'application/json',...(outputLocale?{[AI_LOCALE_HEADER]:outputLocale}:{})},body:JSON.stringify(path==='requests'?{...body,growthAttribution:typeof window!=='undefined'?window.cdReadGrowthAttribution?.():null}:body)}:{})});
- const payload=await response.json();
+ let response:Response;
+ try{response=await authFetch(`/api/yeongnyangi/${path}`,{cache:'no-store',signal:controller.signal,...(body?{method:'POST',headers:{'Content-Type':'application/json',...(outputLocale?{[AI_LOCALE_HEADER]:outputLocale}:{})},body:JSON.stringify(path==='requests'?{...body,growthAttribution:typeof window!=='undefined'?window.cdReadGrowthAttribution?.():null}:body)}:{})});}
+ catch(error){
+  // 호출부 취소·시간 초과는 위 cancelled 가 판정한다. 그 밖의 "Failed to fetch" 원문은 화면에 내보내지 않는다.
+  if(controller.signal.aborted)throw error;
+  throw new FortuneApiError('NETWORK_ERROR','인터넷 연결이 잠시 끊겼어요. 연결을 확인한 뒤 다시 시도해 주세요.',0,true);
+ }
+ // 게이트웨이 502 HTML 같은 비 JSON 응답에서 SyntaxError 원문이 화면에 나가지 않게 한다.
+ const payload=await response.json().catch(()=>null);
  const operation=path==='requests'?'prepare':/^requests\/[a-f0-9]{64}$/.test(path)?'read':/^requests\/[a-f0-9]{64}\/activate$/.test(path)?'activate':'';
  if(operation)trackEvent('fortune_response_time',{operation,duration_ms:Math.max(0,Date.now()-startedAt),http_status:response.status,observation:'browser_transport'});
  if(!response.ok){
-  const code=payload.error?.code||payload.code||'REQUEST_FAILED';
-  const message=['DATABASE_TEMPORARILY_UNAVAILABLE','DATABASE_CONFIG_INVALID','SERVICE_UNAVAILABLE'].includes(code)?'영냥이 서버에 잠시 연결하지 못했어요. 결제한 상담은 그대로 있어요. 잠시 후 다시 불러와 주세요.':payload.message||payload.error?.message||'상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
-  throw new FortuneApiError(code,message,response.status,payload.retryable??[429,502,503,504].includes(response.status),Math.min(60,Math.max(0,Number(response.headers.get('Retry-After')||payload.retryAfterSeconds)||0)));
+  const code=payload?.error?.code||payload?.code||'REQUEST_FAILED';
+  const message=['DATABASE_TEMPORARILY_UNAVAILABLE','DATABASE_CONFIG_INVALID','SERVICE_UNAVAILABLE'].includes(code)?'영냥이 서버에 잠시 연결하지 못했어요. 결제한 상담은 그대로 있어요. 잠시 후 다시 불러와 주세요.':payload?.message||payload?.error?.message||'상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
+  throw new FortuneApiError(code,message,response.status,payload?.retryable??[429,502,503,504].includes(response.status),Math.min(60,Math.max(0,Number(response.headers.get('Retry-After')||payload?.retryAfterSeconds)||0)));
  }
+ if(payload===null)throw new FortuneApiError('INVALID_RESPONSE','상담 정보를 읽지 못했어요. 잠시 후 다시 불러와 주세요.',response.status,true);
  return payload;
  }
 }
 export function loginForCurrentPage(){
  const next=encodeURIComponent(window.location.pathname+window.location.search);
- window.location.assign(`/login/?next=${next}&returnTo=${next}`);
+ window.location.replace(`/login/?next=${next}&returnTo=${next}`);
 }
 export function resultPath(id:string,locale?:ReadingLocale){return `/yeongnyangi/result/?id=${encodeURIComponent(id)}${locale?`&lang=${locale}`:''}`;}
 // URL lang controls the surrounding UI; the persisted row locale controls the reading itself.

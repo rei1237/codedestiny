@@ -16,6 +16,7 @@ import { adaptOrderToViewModel, type OrderDetailViewModel, type PaymentOrderReco
 import PassCycleCard from "../../components/PassCycleCard";
 import ReviewRewardBanner from "../../components/ReviewRewardBanner";
 import { getPassTierLabel } from "@/lib/payment/pass-eligibility";
+import { isOpenEndedPassExpiry, openEndedPassLabel } from "@/lib/payment/pass-expiry";
 import styles from "./PointHistoryClient.module.css";
 
 /* ══════════════════════════════════════════════════════════════════
@@ -30,6 +31,7 @@ type PaymentHistoryItem = {
   paymentMethodLabel?: string;
   paymentType?: string;
   productId?: string;
+  productName?: string;
   featureKey?: string;
   membershipCreditCost?: number;
   orderState?: string;
@@ -117,7 +119,10 @@ type PointHistoryCopy = {
   started: string;
   expires: string;
   daysLeft: (days: number) => string;
-  subscriptionSummary: (input: { tier: string; active: string; started: string; expires: string; daysLeft?: string }) => string;
+  /** 기간 없는 이용권이면 expires 자리에 openEndedLabel 이 오고 "만료" 접두어를 붙이지 않는다. */
+  subscriptionSummary: (input: { tier: string; active: string; started: string; expires: string; daysLeft?: string; openEnded?: boolean }) => string;
+  /** "기간 제한 없음 · 한도 소진 시 종료"(2026-10-11 기간 없는 이용권). */
+  openEndedLabel: string;
   monthlyCreditValue: (value: number, locale: string) => string;
   won: (value: number, locale: string) => string;
   paymentStatuses: Record<"refunded" | "cancelled" | "success", string>;
@@ -189,7 +194,8 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
     started: "시작",
     expires: "만료",
     daysLeft: (days) => `${days}일 남음`,
-    subscriptionSummary: ({ tier, active, started, expires, daysLeft }) => `${tier} · ${active} · 시작 ${started} · 만료 ${expires}${daysLeft ? ` · ${daysLeft}` : ""}`,
+    subscriptionSummary: ({ tier, active, started, expires, daysLeft, openEnded }) => `${tier} · ${active} · 시작 ${started} · ${openEnded ? expires : `만료 ${expires}`}${daysLeft ? ` · ${daysLeft}` : ""}`,
+    openEndedLabel: openEndedPassLabel("ko"),
     monthlyCreditValue: (value, locale) => `${value.toLocaleString(locale)}원 상당`,
     won: (value, locale) => `${value.toLocaleString(locale)}원`,
     paymentStatuses: {
@@ -245,13 +251,13 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       "환불 처리는 결제 수단(카드)으로만 가능합니다.",
       "콘텐츠 생성이 시작되기 전에는 취소/환불 요청이 가능합니다.",
       "콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.",
-      "달빛 이용권은 30일 상품이며 자동결제 상품이 아니고, 만료 후 다시 구매해야 합니다.",
+      "달빛 이용권은 기간 제한이 없는 상품이며 자동결제 상품이 아니고, 이용 한도를 모두 사용한 뒤 다시 구매해야 합니다.",
       "이용권 결제 후 유료 기능을 이용하지 않은 경우 결제일로부터 7일 이내 환불 요청이 가능하며, 이용이 시작된 뒤에는 환불이 제한될 수 있습니다.",
       "이용권 혜택 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.",
       "민원담당자: 박병하 (050-6664-7398) · admin@code-destiny.com",
     ],
-    passCycleAria: "이번 이용권 기간의 월 이용 한도",
-    passCycleTitle: "이번 이용권 기간 한도",
+    passCycleAria: "이번 이용권의 이용 한도",
+    passCycleTitle: "이번 이용권 이용 한도",
     passCycleSummary: (spent, cap) => `${spent} / ${cap} 사용`,
     passCycleRemaining: (remaining) => `${remaining} 남음`,
   },
@@ -274,7 +280,8 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
     started: "Start",
     expires: "Expires",
     daysLeft: (days) => `${days} days left`,
-    subscriptionSummary: ({ tier, active, started, expires, daysLeft }) => `${tier} · ${active} · Start ${started} · Expires ${expires}${daysLeft ? ` · ${daysLeft}` : ""}`,
+    subscriptionSummary: ({ tier, active, started, expires, daysLeft, openEnded }) => `${tier} · ${active} · Start ${started} · ${openEnded ? expires : `Expires ${expires}`}${daysLeft ? ` · ${daysLeft}` : ""}`,
+    openEndedLabel: openEndedPassLabel("en"),
     monthlyCreditValue: (value, locale) => `Worth KRW ${value.toLocaleString(locale)}`,
     won: (value, locale) => `KRW ${value.toLocaleString(locale)}`,
     paymentStatuses: {
@@ -330,13 +337,13 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       "Refunds can only be returned to the original payment method.",
       "Cancellation or refund requests are available before content generation begins.",
       "Refunds may be limited once content generation has started or the result has been delivered normally.",
-      "Moonlight Pass is a 30-day product, not an auto-renewing subscription, and must be purchased again after expiration.",
+      "Moonlight Pass has no time limit and is not an auto-renewing subscription; buy it again after the usage limit is used up.",
       "If no paid feature has been used after purchasing a pass, a refund request is available within 7 days of payment; refunds may be limited after usage begins.",
       "Pass benefit activity and payment history show up to the latest 20 records. Contact support if you need older records.",
       "Support contact: Byeongha Park (050-6664-7398) · admin@code-destiny.com",
     ],
-    passCycleAria: "Monthly usage limit for this pass period",
-    passCycleTitle: "Current pass period limit",
+    passCycleAria: "Usage limit for this pass",
+    passCycleTitle: "Current pass usage limit",
     passCycleSummary: (spent, cap) => `${spent} of ${cap} used`,
     passCycleRemaining: (remaining) => `${remaining} left`,
   },
@@ -517,8 +524,10 @@ function buildSubscriptionSummaryText(data: SubscriptionStatusResponse | null | 
   const tier = String(data?.tier || "free").toLowerCase();
   const isActive = !!data?.isActive;
   const startedAt = data?.startedAt ? formatDateTime(data.startedAt, locale) : "-";
-  const expiresAt = data?.expiresAt ? formatDateTime(data.expiresAt, locale) : "-";
-  const expiresDate = data?.expiresAt ? new Date(data.expiresAt) : null;
+  // 기간 없는 이용권(서버 센티널 만료일)은 날짜·D-day 대신 "기간 제한 없음 · 한도 소진 시 종료".
+  const openEnded = isOpenEndedPassExpiry(data?.expiresAt);
+  const expiresAt = openEnded ? copy.openEndedLabel : (data?.expiresAt ? formatDateTime(data.expiresAt, locale) : "-");
+  const expiresDate = data?.expiresAt && !openEnded ? new Date(data.expiresAt) : null;
   const daysLeft = expiresDate && Number.isFinite(expiresDate.getTime())
     ? Math.max(0, Math.ceil((expiresDate.getTime() - Date.now()) / 86_400_000))
     : null;
@@ -530,6 +539,7 @@ function buildSubscriptionSummaryText(data: SubscriptionStatusResponse | null | 
     started: startedAt,
     expires: expiresAt,
     daysLeft: daysLeft !== null ? copy.daysLeft(daysLeft) : undefined,
+    openEnded,
   });
 }
 
@@ -1085,13 +1095,14 @@ export default function PointHistoryPage() {
                   >
                     <div className={styles.paymentTop}>
                       <p className={styles.paymentTitle}>
-                        {order.amount ? copy.paymentAmount(formatWon(order.amount.value, copy, formatLocale)) : order.title}
+                        {order.title}
                       </p>
                       <span className={orderStatusClass(order.status)}>
                         {order.statusLabel}
                       </span>
                     </div>
                     <div className={styles.paymentMetaGrid}>
+                      {order.amount && <p className={styles.paymentMeta}>{copy.paymentAmount(formatWon(order.amount.value, copy, formatLocale))}</p>}
                       <p className={styles.paymentMeta}>{copy.paidAt(formatDateTime(order.purchasedAt, formatLocale))}</p>
                       <p className={styles.paymentMeta}>{copy.paymentMethod(order.paymentMethod || "-")}</p>
                     </div>

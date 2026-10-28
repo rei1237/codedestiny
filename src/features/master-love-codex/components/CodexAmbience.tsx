@@ -20,9 +20,10 @@ interface CodexAmbienceProps {
   /** 단계에 맞는 트랙 — 바뀌면 그 자리에서 갈아탄다 */
   track: MasterLoveCodexBgmTrack;
   inline?: boolean;
+  landing?: boolean;
 }
 
-export default function CodexAmbience({ track, inline = false }: CodexAmbienceProps) {
+export default function CodexAmbience({ track, inline = false, landing = false }: CodexAmbienceProps) {
   const copy = useMasterLoveCodexCopy();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [enabled, setEnabled] = useState(true);
@@ -96,7 +97,7 @@ export default function CodexAmbience({ track, inline = false }: CodexAmbiencePr
       <audio ref={audioRef} className={styles.bgmAudio} data-track={track.key} loop preload="none" />
       <button
         type="button"
-        className={`${styles.bgmToggle} ${inline ? styles.bgmInline : ""}`}
+        className={`${styles.bgmToggle} ${inline ? styles.bgmInline : ""} ${landing ? styles.bgmLanding : ""}`}
         data-active={enabled && playing ? "true" : "false"}
         aria-label={enabled ? copy.bgmOnAriaLabel : copy.bgmOffAriaLabel}
         aria-pressed={enabled}

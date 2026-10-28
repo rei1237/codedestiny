@@ -1,12 +1,12 @@
 /** @jest-environment node */
 import {makeFakePaymentDb} from '../fixtures/fake-payment-db.mjs';
-import {SERVICE_PACK_PLANS,listServicePackPlans,resolveServicePackProduct} from '../../worker/payments/service-pack-policy.js';
+import {SERVICE_PACK_PLANS,SERVICE_PACK_SALE_IDS,listServicePackPlans,resolveServicePackProduct} from '../../worker/payments/service-pack-policy.js';
 import {createServicePackOrder,grantServicePack,listOwnedServicePacks} from '../../worker/payments/service-packs.js';
 import {createOrder} from '../../worker/payments/orders.js';
 import {createServicePackRoutes} from '../../worker/payments/service-pack-routes.js';
 import {paymentError,classify} from '../../worker/payments/errors.js';
 const USER='507f1f77bcf86cd799439011',OTHER='507f1f77bcf86cd799439022';
-const retired=Object.entries(SERVICE_PACK_PLANS).filter(([,plan])=>plan.totalUses!==5).map(([id])=>id);
+const retired=Object.keys(SERVICE_PACK_PLANS).filter(id=>!SERVICE_PACK_SALE_IDS.includes(id));
 const setup=()=>makeFakePaymentDb({uniqueKeys:[['merchantUid'],['userId','idempotencyKey','paymentType']]});
 const input=(planId,key='original')=>({userId:USER,product:resolveServicePackProduct(planId),idempotencyKey:key,paymentMethod:'card_general',env:{}});
 // Seed the old order through the underlying repository, as if it predated retirement.
@@ -15,7 +15,7 @@ const seed=(db,values)=>createOrder(db,{...values,idempotencyKey:'service-pack:'
 test('only four five-use offers are sold, while all historical definitions remain readable',()=>{
  expect(listServicePackPlans()).toHaveLength(4);
  expect(listServicePackPlans().map(plan=>plan.totalUses)).toEqual([5,5,5,5]);
- expect(retired).toHaveLength(8);
+ expect(retired).toHaveLength(16);
  for(const id of retired)expect(resolveServicePackProduct(id).packSnapshot.totalUses).toBe(SERVICE_PACK_PLANS[id].totalUses);
  expect(classify(paymentError('PRODUCT_SALE_ENDED')).status).toBe(409);
 });
@@ -34,8 +34,8 @@ test('retired prepare route rejects a new order even when the client knows its o
   .rejects.toMatchObject({code:'PRODUCT_SALE_ENDED'});
  expect(db.rows).toHaveLength(0);
 });
-test.each(['SELF','GIFT'])('existing %s pending order replays the original snapshot only',async purchaseType=>{
- const db=setup(),args={...input(retired[0]),purchaseType,
+test.each(retired.flatMap(id=>['SELF','GIFT'].map(type=>[id,type])))('existing %s %s pending order replays the original snapshot only',async (id,purchaseType)=>{
+ const db=setup(),args={...input(id),purchaseType,
   ...(purchaseType==='GIFT'?{giftDraft:{senderName:'보내는 이',recipientName:'받는 이',giftMessage:'응원해요'}}:{})};
  const old=await seed(db,args),before=structuredClone(old.pricingSnapshot);
  const replay=await createServicePackOrder(db,{...args,expectedOrderId:old.merchantUid});
@@ -52,7 +52,7 @@ test('paid retired order still grants once and remains in the owned wallet',asyn
  expect(replay.status).toBe('paid');
  const wallet=await listOwnedServicePacks(db,{userId:USER});
  expect(wallet.packs).toHaveLength(1);
- expect(wallet.packs[0]).toMatchObject({totalUses:10,remainingUses:10,available:true});
+ expect(wallet.packs[0]).toMatchObject({totalUses:SERVICE_PACK_PLANS[retired[0]].totalUses,remainingUses:SERVICE_PACK_PLANS[retired[0]].totalUses,available:true});
 });
 test.each(['cancelled','failed','refunded'])('retired %s order cannot be reopened',async status=>{
  const db=setup(),args=input(retired[0]),old=await seed(db,args);old.status=status;

@@ -73,6 +73,54 @@
           "bytes": 90842
         }
       ]
+    },
+    {
+      "key": "yeoni-room-night",
+      "prompt": "Codex image_gen (gpt-image-2) edit of yeoni-room-1280.webp for the dark theme: the exact same room, same composition, camera angle and objects (lattice frames, sheer pink curtains, round moon-gate window with lotus pond, pavilion and stone bridge, hanging paper lantern with cherry blossom branch, low tea table with teapot, cup, vase, lavender runner, woven cushion, foreground pink lotus) at deep night. Moonlit indigo and deep violet palette, full moon and stars through the round window, cool blue moonlight on the floor, the paper lantern glows warm amber as the only warm light, soft fireflies over the pond. Large empty wall on the left calm and dark for text. No characters, no text.",
+      "reference": "public/images/home/illustrated/yeoni-room-1280.webp",
+      "original": "codex-image yeoni-room-night.png (1536x1024, 2026-10-13)",
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/yeoni-room-night-640.webp",
+          "bytes": 19968
+        },
+        {
+          "path": "public/images/home/illustrated/yeoni-room-night-1280.webp",
+          "bytes": 62206
+        }
+      ]
+    },
+    {
+      "key": "yeoni-moon-garden",
+      "prompt": "Codex image_gen (gpt-image-2) edit of yeoni-room-1280.webp: same camera angle and layout (lattice frames, sheer pink curtains, round moon-gate window, hanging paper lantern with cherry blossom branch, low tea table with teapot, cup and vase, foreground pink lotus) changed to a MOONLIT ROSE TWILIGHT. Large luminous pale-gold full moon in a pink-lavender dusk sky over blooming peonies, lotus and plum blossoms, a few drifting petals, silvery moonlight halo. Palette rose ivory, blush pink, soft lavender, champagne gold. LEFT 55% a quiet pale rose-ivory wall for dark headline text. No characters, no text.",
+      "reference": "public/images/home/illustrated/yeoni-room-1280.webp",
+      "original": "D:/Development/codedestiny-art/moon-garden/yeoni-moon-garden.png (1536x1024, 2026-10-17)",
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/yeoni-moon-garden-640.webp",
+          "bytes": 29450
+        },
+        {
+          "path": "public/images/home/illustrated/yeoni-moon-garden-1280.webp",
+          "bytes": 82020
+        }
+      ]
+    },
+    {
+      "key": "yeoni-moon-garden-night",
+      "prompt": "Codex image_gen (gpt-image-2) edit of yeoni-room-1280.webp for the dark theme: same camera angle and layout as yeoni-moon-garden, DEEP MOONLIT NIGHT in a plum and wine palette (not navy, not blue). Radiant full moon with a silver-gold halo above a night garden of peonies, lotus and plum blossoms, silver moonlight rims the petals, luminous drifting petals, paper lantern glows warm amber. LEFT 55% a quiet dark plum wall for light headline text. No characters, no text.",
+      "reference": "public/images/home/illustrated/yeoni-room-1280.webp",
+      "original": "D:/Development/codedestiny-art/moon-garden/yeoni-moon-garden-night.png (1536x1024, 2026-10-17)",
+      "outputs": [
+        {
+          "path": "public/images/home/illustrated/yeoni-moon-garden-night-640.webp",
+          "bytes": 28984
+        },
+        {
+          "path": "public/images/home/illustrated/yeoni-moon-garden-night-1280.webp",
+          "bytes": 82774
+        }
+      ]
     }
   ],
   "optimization": "sharp WebP, transparent characters 320/480/800px, backgrounds 640/1280px; originals retained outside repository"

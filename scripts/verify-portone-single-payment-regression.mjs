@@ -5,6 +5,9 @@ import { resolve } from "node:path";
 import { createRequire } from "node:module";
 import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
 
+const { getBillingFeaturePricing } = await import("../worker/lib/billing-feature-registry.js");
+const { pricing: summaryPrice } = getBillingFeaturePricing({ featureKey: "section_summary" });
+
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const paymentsRouteSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
 // 이용권(구독) 주문 발급의 정본은 V2 다 — worker/index.js 가 /api/payments/subscription/prepare 를
@@ -959,13 +962,13 @@ function makePayment(overrides = {}) {
     merchantUid: "cd-single-test-1710000000000-abcd1234",
     impUid: "",
     idempotencyKey: "",
-    paymentAmount: 5000,
-    expectedChargedPoints: 50,
+    paymentAmount: 30000,
+    expectedChargedPoints: 300,
     chargedPoints: 0,
     featureKey: "section_summary",
     productId: "code-destiny",
-    coinPrice: 50,
-    membershipCreditCost: 50,
+    coinPrice: 300,
+    membershipCreditCost: 3000,
     accessType: "single_purchase",
     pricingSnapshot: {
       profileId: "profile-a",
@@ -973,7 +976,7 @@ function makePayment(overrides = {}) {
       serviceId: "code-destiny",
       contentId: "section_summary",
       contentType: "saju",
-      amountKRW: 5000,
+      amountKRW: 30000,
     },
     paymentMethod: "CARD",
     status: "pending",
@@ -991,7 +994,7 @@ function makePortOnePayment(overrides = {}) {
     id: "cd-single-test-1710000000000-abcd1234",
     status: "PAID",
     storeId: ENV.PORTONE_STORE_ID,
-    amount: { total: 5000, paid: 5000, currency: "KRW" },
+    amount: { total: 30000, paid: 30000, currency: "KRW" },
     currency: "KRW",
     paidAt: "2026-06-04T00:00:00.000Z",
     method: { type: "CARD" },
@@ -1011,7 +1014,13 @@ function resetState() {
     portonePayment: makePortOnePayment(),
   };
 
-  ProfileCard.findOne = () => query({ _id: "profile_doc_1", profileId: "profile-a" });
+  // 출생 기반 해금은 저장 프로필의 출생 정보로 신원(birthKey)을 만든다.
+  ProfileCard.findOne = () => query({
+    _id: "profile_doc_1",
+    profileId: "profile-a",
+    gender: "M",
+    birth: { year: 1990, month: 5, day: 17, hour: 9, minute: 30, timeUnknown: false, calendarType: "solar" },
+  });
   User.findById = () => query({
     _id: AUTH.userId,
     name: "Tester",
@@ -1266,7 +1275,7 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 30,
+    coinPrice: summaryPrice.cost,
   }), ENV, AUTH);
   let result = await jsonResponse(response);
   assert.equal(result.status, 200, "already unlocked start should succeed");
@@ -1280,13 +1289,13 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 30,
+    coinPrice: summaryPrice.cost,
     amount: 1,
   }), ENV, AUTH);
   result = await jsonResponse(response);
   assert.equal(result.status, 201, "single start should create order");
-  assert.equal(result.payload.order.totalAmount, 3000, "30 coins should become 3000 KRW");
-  assert.equal(state.createdPayments[0].paymentAmount, 3000, "server amount should ignore client amount");
+  assert.equal(result.payload.order.totalAmount, summaryPrice.amountKRW, "new orders use registry price");
+  assert.equal(state.createdPayments[0].paymentAmount, summaryPrice.amountKRW, "server amount should ignore client amount");
   assert.equal(JSON.stringify(result.payload).includes(ENV.PORTONE_API_SECRET), false, "client response should not include API secret");
   assert.equal(JSON.stringify(result.payload).includes(ENV.INIsignkey), false, "client response should not include Inicis signkey");
 
@@ -1299,7 +1308,7 @@ async function runServerTests() {
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 30,
+    coinPrice: summaryPrice.cost,
     idempotencyKey: "single-race-key",
   };
 
@@ -1322,7 +1331,7 @@ async function runServerTests() {
   //    돌려주면 사용자가 존재하지 않는 주문으로 PG 창을 연다.
   resetState();
   const winnerOrder = {
-    ...makePayment({ paymentAmount: 3000, expectedChargedPoints: 30, coinPrice: 30, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: "section_summary", contentType: "saju", amountKRW: 3000 } }),
+    ...makePayment({ paymentAmount: summaryPrice.amountKRW, expectedChargedPoints: summaryPrice.cost, coinPrice: summaryPrice.cost, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: "section_summary", contentType: "saju", amountKRW: summaryPrice.amountKRW } }),
     _id: "pay_created_winner",
     merchantUid: "cd-single-winner-1710000000000-abcd1234",
     idempotencyKey: "single-race-key",
@@ -1368,7 +1377,7 @@ async function runServerTests() {
   assert.equal(state.entitlementByKey.size, 0, "non-PAID status should not unlock");
 
   resetState();
-  state.portonePayment = makePortOnePayment({ amount: { total: 4900, paid: 4900, currency: "KRW" } });
+  state.portonePayment = makePortOnePayment({ amount: { total: 29900, paid: 29900, currency: "KRW" } });
   response = await handleSinglePaymentComplete(completeRequest(state.payment.merchantUid), ENV, AUTH);
   result = await jsonResponse(response);
   assert.equal(result.status, 400, "amount mismatch should fail");
@@ -1488,10 +1497,9 @@ function runClientStaticTests() {
   );
   assertNotContains(pointsPageSource, "paymentPhonePrefetchRef", "points page must not prefetch payment phone before checkout");
   assertContains(pointsPageSource, "phoneNumber: resolvedPhoneNumber", "points page PortOne phoneNumber");
-  // 프로필 카드 관리는 React(app/me)에서 정적 셸 하나로 합쳐졌다. 같은 보장을 셸 기준으로 계속 건다 —
-  // 추가·수정·삭제는 공용 코인 게이트를 타야 하고, 별도 주문 준비 경로를 새로 파면 안 된다.
-  assertContains(destinyProfileSource, "window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST", "profile card mutations delegate checkout to the shared coin gate");
-  assertContains(destinyProfileSource, "amountKrw: PROFILE_CARD_MANAGE_COST * 100", "profile card mutations price through the shared gate payload");
+  // 프로필 카드 관리는 React(app/me)에서 정적 셸 하나로 합쳐졌다. 2026-10-11 부터 추가·수정·삭제는 무료라
+  // 셸이 결제창을 열지 않는다. 별도 주문 준비 경로가 생기면 안 된다는 보장만 셸 기준으로 계속 건다.
+  assertNotContains(destinyProfileSource, "window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST", "profile card mutations must not open a payment gate");
   assertNotContains(destinyProfileSource, "/api/payments/prepare", "profile actions must not prepare orders outside the shared checkout");
   assertContains(clientPaymentSource, "if (!rsp || rsp.code || !paymentId)", "PortOne response.code failure handling");
   assertContains(clientPaymentSource, "paymentFailed", "failure UI state");

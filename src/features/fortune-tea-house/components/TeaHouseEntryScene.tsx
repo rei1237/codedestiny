@@ -8,6 +8,7 @@ import { readEntryBookmark, saveEntryBookmark } from "../lib/entryBookmark";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 import styles from "../styles/tea-novel.module.css";
+import YeoniTalkingPortrait from "./YeoniTalkingPortrait";
 
 type Props = { stage: TeaHouseEntryStage; onStageChange: (stage: TeaHouseEntryStage) => void; onComplete: () => void; onSkip: () => void };
 const SKIP_KEYS = ["stage", "actor", "background", "speaker", "mood"];
@@ -44,7 +45,7 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete, o
  const characters = Array.from(text);
  const complete = reducedMotion || visible >= characters.length;
  const humanScene = sceneIndex > 3 || (stage === "transformPreview" && lineIndex >= 2);
- const illustration = humanScene ? "/images/fortune-tea-house/yeoni-moonlight-novel.webp" : fortuneTeaHouseAssets.premium.landingDesktop;
+ const illustration = humanScene ? "/images/fortune-tea-house/yeoni-talk-room-v1.webp" : fortuneTeaHouseAssets.premium.landingDesktop;
 
  useEffect(() => {
   const saved = readEntryBookmark();
@@ -97,6 +98,7 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete, o
   <div className={styles.illustration}>
    <Image src={illustration} alt={humanScene ? copy.humanAlt : ""} fill priority sizes="100vw" className={styles.sceneImage} />
    {!humanScene && sceneIndex > 0 && <Image src={fortuneTeaHouseAssets.landingPig.welcome} alt={copy.pigAlt} width={320} height={380} className={styles.pigActor} />}
+   {humanScene && <YeoniTalkingPortrait className={styles.humanActor} talking={speaker === "연이" && !complete && !artOnly && !logOpen} />}
    {stage === "transformPreview" && humanScene && <span key={stage} className={styles.transformation} aria-hidden />}
   </div>
   <header className={styles.chapter}><h2 id="teaHouseEntryTitle">{scene.title}</h2><span>{sceneIndex + 1} / {scenes.length} · {lineIndex + 1} / {scene.lines.length}</span></header>

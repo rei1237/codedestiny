@@ -46,6 +46,10 @@ const messages = {
   PAYMENT_EVIDENCE_PENDING: '결제 확인이 아직 끝나지 않았어요. 다시 결제하지 말고 잠시 후 다시 확인해 주세요.',
   PG_PAYMENT_NOT_PAID: '진행 중인 결제가 있어요. 결제를 마치거나 취소한 뒤 다시 선택해 주세요.',
   FREE_TRIAL_RESTORED: '상담을 완료하지 못했어요. 기존 상담 내역을 기준으로 지원 문의를 남겨 주세요.',
+  INSUFFICIENT_HONEY_DROPS: '꿀방울이 부족해요. 매일 출석해 30방울을 모으면 연이 상담을 열 수 있어요.',
+  HONEY_NOT_AVAILABLE: '꿀방울은 연이 기본 상담에서만 쓸 수 있어요. 결제나 이용권을 선택해 주세요.',
+  HONEY_ALREADY_RESTORED: '이 상담의 꿀방울은 이미 돌려드렸어요. 새 상담을 시작해 주세요.',
+  HONEY_RESTORED: '상담을 완료하지 못해 사용한 꿀방울 30개를 돌려드렸어요.',
   PAYMENT_NOT_ACTIVE:'결제 또는 환불 상태 확인이 필요해요. 다시 결제하지 말고 결제 내역을 확인해 주세요.',
   PRICE_CHANGED: '상담 가격이 바뀌었어요. 처음 화면에서 가격을 확인한 뒤 다시 시작해 주세요.',
   LLM_NOT_CONFIGURED: '지금은 상담을 준비하고 있어요. 결제는 진행되지 않아요.',
@@ -68,6 +72,8 @@ async function present(env, userId, row) {
     persona: row.persona,
     paidFeatureKey: row.featureKey,
     paymentRequestId: chatPaymentRequestId(String(row._id)),
+    // 결제 수단은 이 상담 화면에만 알린다. presentFortune 은 공유·기록 라이브러리도 쓰므로 거기에 넣지 않는다.
+    perUseSource: row.perUseSource || '',
     ...(paid || row.state !== 'CREATED' ? {} : { freeTrialAvailable: false }),
   };
 }
@@ -81,10 +87,10 @@ async function readChat(env, userId, id) {
 
 async function list(env, userId, chosen) {
   const rows = await withMongoRetry(env, () => YeongnyangiRequest.find({ userId: ownerId(userId), persona: chosen, featureKey: { $in: CHAT_FEATURE_KEYS } })
-    .select('_id productId state paymentId accessMethod persona createdAt completedAt completedChapters snapshot.product.systems snapshot.manifest.id snapshot.analysis.consultation.question')
+    .select('_id productId state paymentId accessMethod perUseSource persona createdAt completedAt completedChapters snapshot.product.systems snapshot.manifest.id snapshot.analysis.consultation.question')
     .sort({ createdAt: -1, _id: -1 }).limit(30).lean(), readOptions);
   return rows.map(row => ({
-    id: row._id, persona: row.persona, state: row.state, paid: hasRequestAccess(row), domain: row.snapshot?.product?.systems?.[0] || '',
+    id: row._id, persona: row.persona, state: row.state, paid: hasRequestAccess(row), perUseSource: row.perUseSource || '', domain: row.snapshot?.product?.systems?.[0] || '',
     completedChapters: row.completedChapters || 0, totalChapters: row.snapshot?.manifest?.length || 0,
     question: row.snapshot?.analysis?.consultation?.question || '', createdAt: row.createdAt, completedAt: row.completedAt,
   }));

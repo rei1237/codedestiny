@@ -49,7 +49,7 @@
     {
       "id": "tarot-mindscan",
       "featurePriceKRW": 3000,
-      "parts": 19,
+      "parts": 9,
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerLogicalCall": 9500,
       "providerAttemptsPerLogicalCall": 3,
@@ -63,7 +63,7 @@
     {
       "id": "tarot-love-relationship",
       "featurePriceKRW": 3000,
-      "parts": 21,
+      "parts": 9,
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerLogicalCall": 9500,
       "providerAttemptsPerLogicalCall": 3,
@@ -76,7 +76,7 @@
     },
     {
       "id": "life-book-ai-consultation",
-      "featurePriceKRW": 10000,
+      "featurePriceKRW": 30000,
       "parts": 15,
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerFullPartSet": 88000,

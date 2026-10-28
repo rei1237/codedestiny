@@ -19,9 +19,14 @@ export interface ReadingSectionSpec {
 }
 export interface ChapterSpec {
   questionPolicy?: string;
+  // QUESTION_LAYOUT_VERSION / FUSION_LAYOUT_VERSION and the chapter's role in that layout (foundation, question, bonus, life, synthesis).
+  consultationLayout?: string;
+  layoutRole?: string;
   counsel?: {version:string;focus:string;cycleIndexes?:number[]};
   preventionVersion?: string;
   outputBudgetVersion?: string;
+  // REPEAT_POLICY (reading-restatement.ts): non-v7 chapters of orders prepared from 2026-10-23 drop repeated sentences.
+  repeatPolicy?: string;
   sections?: ReadingSectionSpec[];
   version?: string;
   key?: string;
@@ -40,6 +45,9 @@ export interface ChapterSpec {
   factIds?:string[];
   focus?:string;
   periodScope?:string;
+  // Fusion ask chapters that answer the question (prepare sets it from consultation.period). Their yearly and
+  // monthly luck rows are the requested years and dates; chapters without it read the stored calculation year.
+  timeScope?:{years:number[];start:string;end:string};
   id: string;
   title: string;
   part: string;
@@ -50,6 +58,10 @@ export interface ChapterBody {
   chapterId?: string;
   complete?: boolean;
   deliveryVersion?: string;
+  // Server-set when a chapter shorter than the delivery floor was delivered rather than held (D8).
+  shortDelivery?: boolean;
+  // Server-set when the tuna self-review rewrote the chapter once (tuna-quality.ts); never shown to readers.
+  selfReview?: 'rewritten';
   title?: string;
   questionAnswers?: { questionId: string; answer: string; reason: string; timing: string; action: string; review?: string; mode?: 'normal' | 'limited' | 'care' }[];
   // palaces: 자미 궁 강조용 선택 필드(fortune/ziwei/block-palaces.ts). 옛 결과에는 없다.

@@ -12,6 +12,7 @@ import {useReadingLanguage,readingPrice} from '../_lib/use-reading-language';
 import {readingLocale,readingLocales} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {symbolicCityName} from '../_lib/symbolic-locales';
 import {readingLocationCopy} from '../_lib/current-location-copy';
+import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
 import ReadingLanguageSelect from './ReadingLanguageSelect';
 export default function QuestionSkyConsultation({mode}:{mode:SkyMode}){
   const {locale,setLocale,siteLocale,fallback}=useReadingLanguage();
@@ -54,7 +55,8 @@ export default function QuestionSkyConsultation({mode}:{mode:SkyMode}){
   return <section lang={siteLocale} className={`${styles.consultation} ${styles.spirit}`}>
     <header className={styles.spiritIntro}><img src={SKY_IMAGE} width={640} height={640} alt={copy.imageAlt}/><div><h1>{mode==='prashna-v1'?copy.title:copy.horaryTitle}</h1><p>{copy.intro}</p></div></header>
     <p>{copy.description}</p>
-    <p>{copy.notice}</p>
+    {siteLocale==='ko'?<details className={styles.readingSettings}><summary>별의 기운은 어떻게 풀이하나요?</summary><p>영냥 신점은 인도 질문 점성술인 프라슈나로 질문 순간의 행성과 별자리 배치를 계산해요. 이 근거와 손님이 적은 상황을 함께 읽고, 영냥이의 말투로 AI가 답과 행동 조언을 풀어드려요.</p><p>서양 질문 점성술인 호라리는 별도의 영냥 호라리에서 행성 사이의 각도와 달의 움직임을 살펴요. 계산 결과와 외부 AI 상담용 프롬프트를 제공하는 방식이에요. 두 체계를 한 결과로 섞지는 않아요.</p><p>{copy.notice}</p><a href={free?'/yeongnyangi/fortune/?mode=spirit':'/yeongnyangi/fortune/?mode=horary'}>{free?'영냥 신점으로 상담하기':'영냥 호라리 살펴보기'}</a></details>:<p>{copy.notice}</p>}
+    {!free&&siteLocale==='ko'&&<CraftedProductDisclosure featureKey={product.cdFeatureKey} variant="prashna"/>}
     <form className={styles.form} onSubmit={prepare} onChange={()=>setReading(null)}>
       <label htmlFor="sky-question">{copy.questionLabel}</label><textarea id="sky-question" required minLength={5} rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={copy.questionPlaceholder}/>
       <label htmlFor="sky-topic">{copy.topicLabel}</label><select id="sky-topic" value={topic} onChange={e=>setTopic(e.target.value as keyof typeof skyTopics)}>{Object.keys(skyTopics).map(id=><option value={id} key={id}>{questionSkyTopicFor(id,siteLocale)}</option>)}</select>

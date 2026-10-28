@@ -69,6 +69,10 @@ function readPath(value, path) {
 export async function isStoredPaidResultRevoked(userId, featureKey, record, options = {}) {
   const storedStatus = String(record?.status || "").trim().toLowerCase();
   if (["cancelled", "canceled", "refunded", "revoked"].includes(storedStatus)) return true;
+  // New birth-unlock archives retain the original entitlement identity, without rechecking expiry.
+  if (record?.metadata?.accessEntitlementId && await models.ContentEntitlement.findOne({
+    _id: record.metadata.accessEntitlementId, userId: String(userId), status: { $in: ['REFUNDED','CANCELLED'] },
+  }).lean()) return true;
   const tokens = RESULT_EVIDENCE_PATHS.map(path => readPath(record, path)).filter(Boolean);
   // 식별자가 전혀 없는 구버전 완료본은 새 증빙 문턱을 소급하지 않는다.
   if (!tokens.length) return false;

@@ -1,0 +1,474 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 309,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-crafted-pair",
+          "width": 0,
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "cls": "astro-house-section",
+          "width": 291,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-body astro-readable cosmic-theme star-container is-easy astro-cosmic-restored notranslate fr-report astro-reading-house",
+          "width": 315,
+          "padding": "14px 12px 40px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "notranslate",
+          "width": 315,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 315,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 315,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-content-inner-700 modal-content-pad-astro",
+          "width": 315,
+          "padding": "0px 0px 180px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-sheet-base",
+          "width": 315,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-overlay-shell modal-overlay-astro MobileFeatureDetail fr-overlay fr-astro",
+          "width": 330,
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 327,
+          "width": 309
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 327,
+          "width": 309
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 327,
+          "width": 309
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 327,
+          "width": 309
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 327,
+          "width": 309
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 327,
+          "width": 309
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 327,
+          "width": 309
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 327,
+          "width": 309
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 339,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-crafted-pair",
+          "width": 0,
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "cls": "astro-house-section",
+          "width": 321,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-body astro-readable cosmic-theme star-container is-easy astro-cosmic-restored notranslate fr-report astro-reading-house",
+          "width": 345,
+          "padding": "14px 12px 40px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "notranslate",
+          "width": 345,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 345,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 345,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-content-inner-700 modal-content-pad-astro",
+          "width": 345,
+          "padding": "0px 0px 180px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-sheet-base",
+          "width": 345,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-overlay-shell modal-overlay-astro MobileFeatureDetail fr-overlay fr-astro",
+          "width": 360,
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 357,
+          "width": 339
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 357,
+          "width": 339
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 357,
+          "width": 339
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 357,
+          "width": 339
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 357,
+          "width": 339
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 357,
+          "width": 339
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 357,
+          "width": 339
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 357,
+          "width": 339
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 379,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-crafted-pair",
+          "width": 0,
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "cls": "astro-house-section",
+          "width": 361,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-body astro-readable cosmic-theme star-container is-easy astro-cosmic-restored notranslate fr-report astro-reading-house",
+          "width": 385,
+          "padding": "14px 12px 40px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "notranslate",
+          "width": 385,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 385,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 385,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-content-inner-700 modal-content-pad-astro",
+          "width": 385,
+          "padding": "0px 0px 180px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-sheet-base",
+          "width": 385,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-overlay-shell modal-overlay-astro MobileFeatureDetail fr-overlay fr-astro",
+          "width": 400,
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 397,
+          "width": 379
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 397,
+          "width": 379
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 397,
+          "width": 379
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 397,
+          "width": 379
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 397,
+          "width": 379
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 397,
+          "width": 379
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 397,
+          "width": 379
+        },
+        {
+          "loaded": true,
+          "left": 18,
+          "right": 397,
+          "width": 379
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "cls": "astro-crafted",
+          "width": 686,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-crafted-pair",
+          "width": 0,
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "cls": "astro-house-section",
+          "width": 688,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-body astro-readable cosmic-theme star-container is-easy astro-cosmic-restored notranslate fr-report astro-reading-house",
+          "width": 760,
+          "padding": "32px 36px 64px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "notranslate",
+          "width": 760,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "astro-card",
+          "width": 1235,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "width": 1235,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-content-inner-700 modal-content-pad-astro",
+          "width": 1235,
+          "padding": "0px 0px 180px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-sheet-base",
+          "width": 1235,
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "modal-overlay-shell modal-overlay-astro MobileFeatureDetail fr-overlay fr-astro",
+          "width": 1250,
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        },
+        {
+          "loaded": true,
+          "left": 362.5,
+          "right": 902.5,
+          "width": 540
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "entry": "Existing openAstroModal invoked after mock saju input and local mock profile selection; render evidence, not isolated tile click",
+  "requests": [
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep",
+    "/api/astro/basic-deep"
+  ],
+  "mode": "All API mocked; basic-deep 402 pricing mock; no live purchase/LLM; production-hidden dev tester excluded"
+}

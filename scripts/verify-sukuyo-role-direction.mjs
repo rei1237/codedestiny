@@ -25,6 +25,10 @@
  *     방향·해설 키를 내고, A/B 를 바꾸면 자리와 방향이 함께 뒤집힌다. 화면이 이 payload 를
  *     실제로 싣고 있는지(상단 배지·판정 요약 마커)도 함께 본다.
  *
+ * 2026-10-17: 결과 화면(관계 해설 14장·전생 서사·자리 배지 등)의 본문 생성기는 서버
+ *   worker/lib/saju-section/paid-sukuyo-compat.src.js 로 옮겼다(회당 결제 확인 뒤에만 그린다).
+ *   자리 휠·관계 판정 payload 는 클라에 남고, 장·서사 표와 화면 마커는 그 서버 정본에서 본다.
+ *
  *   node scripts/verify-sukuyo-role-direction.mjs
  */
 
@@ -51,7 +55,14 @@ const CLIENT = "js/saju-engine-tarot-sukuyo-quantum.js";
 const ROUTE = "worker/routes/sukuyo-compatibility-ai.js";
 const REACT_WHEEL = "components/fortune/SukuyoWheel.tsx";
 
+const COMPAT_SRC = "worker/lib/saju-section/paid-sukuyo-compat.src.js";
 const clientSource = read(CLIENT);
+const compatSource = read(COMPAT_SRC);
+// 화면에 실리는 궁합 본문 = 클라 셸 + 서버 궁합 생성기.
+const RENDER = `${CLIENT}·${COMPAT_SRC}`;
+const renderSource = clientSource + "\n" + compatSource;
+const CHAPTER_START = "var SY_CHAPTER_DEFS = [";
+const CHAPTER_END = "var SY_RELATION_STORY_COPY";
 const routeSource = read(ROUTE);
 
 // ── 1. 클라 자리 휠을 vm 으로 꺼내 정본과 27거리 대조 ────────────────────────
@@ -75,6 +86,25 @@ let clientRoles = null;
     } catch (error) {
       check(false, `${CLIENT} 자리 휠 블록 평가 실패: ${error.message}`);
     }
+    // Every pair, including swapped participants, uses the same canonical relation.
+    for (let a = 0; a < 27; a++) for (let b = 0; b < 27; b++) {
+      const d = (b - a + 27) % 27;
+      const client = sandbox.syBuildRelationDirection(d), server = relationFromForwardDistance(d);
+      const reverse = sandbox.syBuildRelationDirection((a - b + 27) % 27);
+      check(client.relationType === server.relationType && client.personARole === server.aRole && client.personBRole === server.bRole, `pair ${a}/${b} parity`);
+      check(client.personARole === reverse.personBRole && client.personBRole === reverse.personARole, `pair ${a}/${b} reversal`);
+    }
+    // 관계 해설 장·전생 서사 표는 서버 궁합 생성기에 있다 — 같은 샌드박스에 이어 올려 클라 자리 휠 위에서 돌린다.
+    const chapterStart = compatSource.indexOf(CHAPTER_START);
+    const chapterEnd = compatSource.indexOf(CHAPTER_END);
+    check(chapterStart >= 0 && chapterEnd > chapterStart, `${COMPAT_SRC} 에서 관계 해설·전생 서사 블록(${CHAPTER_START} … ${CHAPTER_END})을 찾지 못했습니다`);
+    if (chapterStart >= 0 && chapterEnd > chapterStart) {
+      try {
+        vm.runInContext(compatSource.slice(chapterStart, chapterEnd), sandbox, { filename: COMPAT_SRC });
+      } catch (error) {
+        check(false, `${COMPAT_SRC} 관계 해설·전생 서사 블록 평가 실패: ${error.message}`);
+      }
+    }
     const missing = [
       "SY_ROLE_PROFILE",
       "SY_ROLE_RELATION",
@@ -91,7 +121,7 @@ let clientRoles = null;
     );
     check(
       missing.length === 0,
-      `${CLIENT} 자리 휠 블록에 ${missing.join(", ")} 가 없습니다 — 정본 대조 불가`,
+      `${RENDER} 자리 휠·관계 해설 블록에 ${missing.join(", ")} 가 없습니다 — 정본 대조 불가`,
     );
     if (missing.length === 0) clientRoles = sandbox;
   }
@@ -244,17 +274,17 @@ check(
 
 // ── 6. 화면 표시 ─────────────────────────────────────────────────────────────
 // 사고 이력을 적어 둔 주석은 남겨 두고, 실제로 렌더되는 코드에서만 금지한다.
-const clientCode = clientSource
+const clientCode = renderSource
   .split("\n")
   .filter((line) => !line.trim().startsWith("//"))
   .join("\n");
 check(
   !clientCode.includes("공진자"),
-  `${CLIENT} 에 '공진자' 가 남아 있습니다 — 21개 거리의 자리를 하나로 뭉개던 표기입니다`,
+  `${RENDER} 에 '공진자' 가 남아 있습니다 — 21개 거리의 자리를 하나로 뭉개던 표기입니다`,
 );
 check(
-  clientSource.includes("data-sy-role-direction"),
-  `${CLIENT} 에 자리 방향 섹션 마커(data-sy-role-direction)가 없습니다 — 결과 화면이 자리를 안 보여 줍니다`,
+  renderSource.includes("data-sy-role-direction"),
+  `${RENDER} 에 자리 방향 섹션 마커(data-sy-role-direction)가 없습니다 — 결과 화면이 자리를 안 보여 줍니다`,
 );
 
 // ── 7. React 휠(SukuyoWheel.tsx) 자리 파리티 ─────────────────────────────────
@@ -376,12 +406,12 @@ if (clientRoles) {
 
 // 화면이 payload 를 실제로 쓰는지 — 마커가 사라지면 상단 배지·요약이 죽은 것이다.
 check(
-  clientSource.includes("data-sy-relation-summary="),
-  `${CLIENT} 에 판정 요약 섹션 마커(data-sy-relation-summary)가 없습니다`,
+  renderSource.includes("data-sy-relation-summary="),
+  `${RENDER} 에 판정 요약 섹션 마커(data-sy-relation-summary)가 없습니다`,
 );
 check(
-  clientSource.includes("data-sy-role-badge="),
-  `${CLIENT} 에 상단 자리 배지 마커(data-sy-role-badge)가 없습니다`,
+  renderSource.includes("data-sy-role-badge="),
+  `${RENDER} 에 상단 자리 배지 마커(data-sy-role-badge)가 없습니다`,
 );
 check(
   clientSource.includes("resolved.relationDirection = syBuildRelationDirection(D)"),
@@ -471,12 +501,12 @@ if (clientRoles) {
 }
 
 check(
-  clientSource.includes("data-sy-relation-chapters="),
-  `${CLIENT} 에 관계 해설 14장 섹션 마커(data-sy-relation-chapters)가 없습니다`,
+  renderSource.includes("data-sy-relation-chapters="),
+  `${RENDER} 에 관계 해설 14장 섹션 마커(data-sy-relation-chapters)가 없습니다`,
 );
 check(
-  clientSource.includes("syBuildRelationChapters(dirPayload)"),
-  `${CLIENT} 의 결과 렌더러가 관계 해설 챕터를 조립하지 않습니다`,
+  renderSource.includes("syBuildRelationChapters(dirPayload)"),
+  `${RENDER} 의 결과 렌더러가 관계 해설 챕터를 조립하지 않습니다`,
 );
 
 
@@ -554,12 +584,12 @@ if (clientRoles) {
 }
 
 check(
-  clientSource.includes('data-sy-past-life="20260916-sukuyo-past-life-chapter"'),
-  `${CLIENT} 에 전생 서사 섹션 마커(data-sy-past-life)가 없습니다`,
+  renderSource.includes('data-sy-past-life="20260916-sukuyo-past-life-chapter"'),
+  `${RENDER} 에 전생 서사 섹션 마커(data-sy-past-life)가 없습니다`,
 );
 check(
-  clientSource.includes("syBuildPastLifeChapter(dirPayload)"),
-  `${CLIENT} 의 결과 렌더러가 전생 서사를 조립하지 않습니다`,
+  renderSource.includes("syBuildPastLifeChapter(dirPayload)"),
+  `${RENDER} 의 결과 렌더러가 전생 서사를 조립하지 않습니다`,
 );
 
 // ── 11. 방향 판정 단일 정본 ─────────────────────────────────────────────────

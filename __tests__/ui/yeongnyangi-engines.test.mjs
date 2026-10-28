@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const cwd = fileURLToPath(new URL('../../', import.meta.url));
-for (const script of ['extract-saju-runtime.mjs', 'verify-yeongnyangi-engines.mjs']) {
+for (const script of ['extract-saju-runtime.mjs', 'extract-saju-section-runtime.mjs', 'verify-yeongnyangi-engines.mjs']) {
   test(`integrated Yeongnyangi: ${script}`, () => {
     const run = spawnSync(process.execPath, [`scripts/${script}`], {
       cwd, encoding:'utf8', timeout:60000, windowsHide:true,

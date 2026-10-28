@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex, nofollow">
   <title>천체의 선율 타로 | Celestial Harmony Tarot</title>
   <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
+<script src="/js/core/pass-verdict.js?v=build-1711b2150559"></script>
+<script src="/js/core/checkout-entry.js?v=build-1711b2150559"></script>
   <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-9c92542eb04f"></script>
+<script src="/js/destiny-profile.js?v=build-2d81696a26c1"></script>
 <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
@@ -848,6 +848,7 @@ body{font-family:var(--font-body)!important;line-height:1.68;letter-spacing:0;te
 h1,h2,h3,.title,.cover-title,.hero-title,.card-title,.section-title{font-family:var(--font-display)!important;letter-spacing:0;word-break:keep-all}
 button,input,select,textarea{font-family:var(--font-body)!important}
 </style>
+<style>.cd-page>.oracle-crafted{margin:28px auto}</style>
 </head>
 <body>
   <div id="starsBg"></div>
@@ -891,7 +892,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           <div class="premium-status-panel" id="premiumStatusPanel" aria-live="polite">
             <div class="premium-status-row">
               <span class="premium-chip" id="premiumChip">카드 대기</span>
-              <span style="font-size:.72rem;color:rgba(255,255,255,.64);">11행성 심층 리딩 <strong style="color:rgba(253,230,138,.95);">5,000원</strong> · 별빛 통합 오라클이 열립니다.</span>
+              <span style="font-size:.72rem;color:rgba(255,255,255,.64);">11행성 심층 리딩 <strong style="color:rgba(253,230,138,.95);">10,000원</strong> · 별빛 통합 오라클이 열립니다.</span>
             </div>
             <div id="premiumStatusText" style="font-size:.78rem;color:rgba(255,255,255,.78);line-height:1.5;">행성 자리를 먼저 펼친 뒤, 별빛 통합 오라클을 열 수 있습니다.</div>
             <button id="resumeStoredReading" type="button" class="cosmic-btn cosmic-btn--read" hidden>저장된 리딩 이어서 열기</button>
@@ -902,7 +903,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
               <div class="premium-step" data-step="complete"><div class="premium-step__k">4단계</div><div class="premium-step__v">리딩 완성</div></div>
             </div>
           </div>
-          <p class="hero-disclaimer">&#x1F4AB; 1회 5,000원으로 11행성 전체 리딩과 별빛 통합 오라클을 엽니다.</p>
+          <p class="hero-disclaimer">&#x1F4AB; 1회 10,000원으로 11행성 전체 리딩과 별빛 통합 오라클을 엽니다.</p>
         </div>
       </div>
     </section>
@@ -1015,7 +1016,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     window.addEventListener('cd:auth-changed',accountChanged);
     window.addEventListener('storage',function(event){if(event.key==='fortune_auth_user')accountChanged();});
     var FEATURE_KEY='tarot-celestial-harmony';
-    var COIN_COST=50;
+    var COIN_COST=100;
     var spread=[];
     var goldenCard=null;
     var currentReportId='';
@@ -2361,5 +2362,9 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     }());
   }());
   </script>
+<script type="module">
+import {mountOracleCraftedDetails} from "/js/core/oracle/crafted-details.mjs";
+mountOracleCraftedDetails(document.querySelector(".cd-page"),{target:"#boardSec",id:"celestial-harmony",title:"천체의 선율 타로"});
+</script>
 </body>
 </html>

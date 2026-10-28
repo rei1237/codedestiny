@@ -2,11 +2,11 @@
   {
     "slug": "how-we-calculate-saju",
     "title": "Code Destiny 사주 계산 기준: 절기·날짜 경계·태양시",
-    "manuscriptSha256": "cc6306c7a997f03fa9fd8691f249355cc5489dc814d446effd1b710c45ff696e",
+    "manuscriptSha256": "d43106c816d36117d817905888b2f734f6332ef452db4e9a95db11ed114940f8",
     "status": "ai-edited",
     "reviewer": "OpenAI Codex (AI)",
     "reviewedAt": "2026-10-05",
-    "finding": "현재 공통 원국 어댑터의 지역 평균시·역사 서머타임·23시 날짜 경계를 코드와 가상 입력 4건으로 대조. 글별 FAQ를 본문과 구조화 데이터에서 공유.",
+    "finding": "현재 공통 원국 어댑터의 지역 평균시·역사 서머타임·23시 날짜 경계를 코드와 가상 입력 4건으로 대조. 글별 FAQ를 본문과 구조화 데이터에서 공유. 2026-10-13 FAQ 질문의 브랜드 표기만 꿀꿀 사주로 바꿨고 계산 기준 서술은 그대로.",
     "limits": "AI 편집과 로컬 어댑터 검증. 인간 검수·해외 역사 시간대 전수 검증·미래 예측 검증 아님",
     "humanReview": "unconfirmed",
     "adsAllowed": false
@@ -26,11 +26,11 @@
   {
     "slug": "why-saju-results-differ-between-services",
     "title": "같은 생년월일인데 사주가 다르게 나오는 네 가지 이유",
-    "manuscriptSha256": "392c3fc0a2998922f7d3f12d7f8951b54a8dae7fe3d8718c802cde1040c8ff02",
+    "manuscriptSha256": "2bd4a546340ff66c905e746a593aa4d7144ea09363c9dbed8bf2397e8cc06e38",
     "status": "ai-edited",
     "reviewer": "OpenAI Codex (AI)",
-    "reviewedAt": "2026-10-05",
-    "finding": "현재 공통 원국 어댑터의 지역 평균시·역사 서머타임·23시 날짜 경계를 코드와 가상 입력 4건으로 대조. 글별 FAQ를 본문과 구조화 데이터에서 공유.",
+    "reviewedAt": "2026-10-18",
+    "finding": "현재 공통 원국 어댑터의 지역 평균시·역사 서머타임·23시 날짜 경계를 코드와 가상 입력 4건으로 대조. 글별 FAQ를 본문과 구조화 데이터에서 공유. 2026-10-18 재검토: 이전 검토 이후 본문 차이는 무료 사주 링크 /saju/basic/를 현재 정본 /saju/로 바꾼 한 곳뿐이며 계산 설명과 검토 한계는 유지.",
     "limits": "AI 편집과 로컬 어댑터 검증. 인간 검수·해외 역사 시간대 전수 검증·미래 예측 검증 아님",
     "humanReview": "unconfirmed",
     "adsAllowed": false
@@ -284,6 +284,42 @@
     "reviewedAt": "2026-09-26",
     "finding": "RWS 공개 원전 범위를 확인하고 카드 의미를 관찰·해석·행동으로 분리해 결과 확정 표현을 제거",
     "limits": "카드 도상은 덱마다 다르며 의료·시험·계약·타인의 의사를 판정하지 않음",
+    "humanReview": "unconfirmed",
+    "adsAllowed": false
+  },
+  {
+    "slug": "rescene-members-saju-reading-guide",
+    "title": "리센느 사주를 찾았다면: 원이·리브·미나미·메이·제나를 읽는 순서",
+    "manuscriptSha256": "dcb4e1c38f77f3807ee9465055a2ee1e7baeca9a0043ce6a7cae5e2fe2831259",
+    "status": "ai-edited",
+    "reviewer": "OpenAI Codex (AI)",
+    "reviewedAt": "2026-10-15",
+    "finding": "공개 자료와 해석의 구분, 출생시간 미상, 결정론적 표현 및 내부 링크를 편집 점검. 인간 검수 표시는 추가하지 않음.",
+    "limits": "AI 편집 점검. 인간 전문가 검수 또는 예측 검증 아님.",
+    "humanReview": "unconfirmed",
+    "adsAllowed": false
+  },
+  {
+    "slug": "tarot-question-journal-before-redraw",
+    "title": "타로를 다시 뽑기 전에: 불안을 키우지 않는 질문 기록법",
+    "manuscriptSha256": "e8243340bd2c4bd73d2e430d165a184bb46b5dd8744e935be100ba656555c6e7",
+    "status": "ai-edited",
+    "reviewer": "OpenAI Codex (AI)",
+    "reviewedAt": "2026-10-15",
+    "finding": "공개 자료와 해석의 구분, 출생시간 미상, 결정론적 표현 및 내부 링크를 편집 점검. 인간 검수 표시는 추가하지 않음.",
+    "limits": "AI 편집 점검. 인간 전문가 검수 또는 예측 검증 아님.",
+    "humanReview": "unconfirmed",
+    "adsAllowed": false
+  },
+  {
+    "slug": "same-day-pillar-different-season-reading",
+    "title": "같은 일주인데 왜 다를까? 계절과 환경을 함께 읽는 세 가지 질문",
+    "manuscriptSha256": "85a05f43e281a84d32fb8e74bc62e76c354c63c5d04d563ae0b95fbb3965ded3",
+    "status": "ai-edited",
+    "reviewer": "OpenAI Codex (AI)",
+    "reviewedAt": "2026-10-15",
+    "finding": "공개 자료와 해석의 구분, 출생시간 미상, 결정론적 표현 및 내부 링크를 편집 점검. 인간 검수 표시는 추가하지 않음.",
+    "limits": "AI 편집 점검. 인간 전문가 검수 또는 예측 검증 아님.",
     "humanReview": "unconfirmed",
     "adsAllowed": false
   }

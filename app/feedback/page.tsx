@@ -7,7 +7,7 @@ import FeedbackRouteClient from "./FeedbackRouteClient";
 //    넣지 않는다. app/robots.ts disallow 에도 넣지 않는다 — robots 로 막으면 이 noindex 를
 //    크롤러가 읽을 수조차 없다.
 export const metadata: Metadata = {
-  title: "버그 제보실 | Code Destiny",
+  title: "버그 제보실 | 꿀꿀 운세",
   description: "서비스에서 발견한 버그와 개선 아이디어를 보내주세요. 보내주신 의견은 다음 업데이트에 반영됩니다.",
   alternates: { canonical: "/feedback" },
   robots: { index: false, follow: false },

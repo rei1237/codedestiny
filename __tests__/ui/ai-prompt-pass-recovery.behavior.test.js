@@ -21,6 +21,8 @@ const modules = Promise.all([
   import('../../__tests__/fixtures/fake-payment-db.mjs'),
   import('../../worker/lib/saju-ai-prompt.js'),
   import('../../worker/lib/ziwei-ai-prompt.js'),
+  import('../../lib/i18n/ai-locale.js'),
+  import('../../worker/lib/ai-locale-context.js'),
 ]);
 const USER = '64b000000000000000000001';
 
@@ -141,7 +143,7 @@ for (const tier of ['standard', 'premium', 'vvip', 'family']) {
 
 async function routeFixture(name) {
   const f = await fixture({ counterMissing: true });
-  const [, , , , sajuPrompt, ziweiPrompt] = await modules;
+  const [, , , , sajuPrompt, ziweiPrompt, aiLocale, aiLocaleContext] = await modules;
   const isSaju = name === 'handleSajuAIPrompt';
   const featureKey = isSaju ? sajuPrompt.SAJU_AI_PROMPT_FEATURE_KEY : ziweiPrompt.ZIWEI_AI_PROMPT_FEATURE_KEY;
   const cost = isSaju ? sajuPrompt.SAJU_AI_PROMPT_PRICE : ziweiPrompt.ZIWEI_AI_PROMPT_PRICE;
@@ -154,6 +156,8 @@ async function routeFixture(name) {
   const json = (body, init) => new Response(JSON.stringify(body), init);
   const fail = (code, message, status) => json({ ok: false, code, message }, { status });
   Object.assign(f.context, {
+    toAiLocale: aiLocale.toAiLocale,
+    getAmbientAiLocale: aiLocaleContext.getAmbientAiLocale,
     validateSajuNatalPayload: () => {}, // natal validation has its own executable contract tests
     Request, Response, Headers, console: { info() {}, warn() {}, error() {} },
     json, readJson: request => request.json(),
@@ -207,7 +211,7 @@ test('궁성 맞춤 AI 실제 라우트: 누락 카운터 이용권 재개 → m
   assert.equal((await response.json()).resultText, 'generated ziwei result');
   assert.equal(generated, 1);
   assert.equal(f.paymentLookups(), 0);
-  assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 50);
+  assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 100);
 });
 
 test('명식 사주 AI 실제 라우트: 누락 카운터 이용권 재개 → 저장된 결과 응답, LLM 재호출 없음', async () => {

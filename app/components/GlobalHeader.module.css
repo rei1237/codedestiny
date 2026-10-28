@@ -1,30 +1,19 @@
 .root {
-  --gh-bg: rgba(255, 250, 247, 0.94);
-  --gh-surface: #fffdfc;
-  --gh-ink: #3c1830;
-  --gh-muted: #70445c;
-  --gh-accent: #b31955;
-  --gh-gold: #81551e;
-  --gh-line: rgba(179, 25, 85, 0.2);
+  --gh-bg: var(--cd-nav-bg);
+  --gh-surface: var(--cd-nav-surface);
+  --gh-ink: var(--cd-nav-ink);
+  --gh-muted: var(--cd-nav-muted);
+  --gh-accent: var(--cd-nav-active);
+  --gh-gold: var(--cd-nav-gold);
+  --gh-line: var(--cd-nav-line);
   position: sticky;
   top: 0;
   z-index: 70;
   border-bottom: 1px solid var(--gh-line);
   background: var(--gh-bg);
   color: var(--gh-ink);
-  box-shadow: 0 10px 30px rgba(119, 31, 68, 0.06);
-  backdrop-filter: blur(16px) saturate(1.08);
-}
-
-:global(html[data-cd-theme="neo"]) .root {
-  --gh-bg: rgba(10, 8, 24, 0.94);
-  --gh-surface: #171126;
-  --gh-ink: #f4eeff;
-  --gh-muted: #d8c8ea;
-  --gh-accent: #c4b5fd;
-  --gh-gold: #e8d5a3;
-  --gh-line: rgba(196, 181, 253, 0.25);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 4px 20px rgba(64,42,56,.06);
+  backdrop-filter: none;
 }
 
 .shell {
@@ -39,7 +28,8 @@
 .brand {
   display: inline-flex;
   min-height: 48px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   align-items: center;
   gap: 10px;
   color: var(--gh-ink);
@@ -47,13 +37,15 @@
 }
 
 .brandImage {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   object-fit: contain;
   filter: drop-shadow(0 7px 10px rgba(119, 31, 68, 0.14));
 }
 
 .brandText {
+  min-width: 0;
   display: grid;
   gap: 1px;
 }
@@ -61,15 +53,18 @@
 .brandText strong {
   color: var(--gh-ink);
   font-family: var(--font-serif), serif;
-  font-size: 1rem;
+  font-size: 1.2rem;
   line-height: 1.1;
   letter-spacing: 0.04em;
 }
 
 .brandText small {
-  color: var(--gh-accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--gh-muted);
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 500;
 }
 
 .mainNav {
@@ -81,8 +76,7 @@
   overflow-x: auto;
 }
 
-.navLink,
-.policyLink {
+.navLink {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -100,8 +94,7 @@
   padding: 0 14px;
 }
 
-.navLink:hover,
-.policyLink:hover {
+.navLink:hover {
   background: color-mix(in srgb, var(--gh-accent) 10%, transparent);
   color: var(--gh-accent);
 }
@@ -116,6 +109,14 @@
    light/neo surface tokens instead of inheriting a one-theme violet palette. */
 .root :global(.cd-auth-name) {
   color: var(--gh-ink);
+}
+.root :global(.cd-auth-signin), .root :global(.cd-auth-signup) {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  background: var(--cd-nav-surface);
+  color: var(--cd-nav-active);
+  border-color: var(--cd-nav-line);
 }
 
 .root :global(.cd-auth-email) {
@@ -150,18 +151,6 @@
 .root :global(.cd-auth-tier-standard) { border-color: rgba(146, 64, 14, 0.42); background: #fffbeb; color: #78350f; }
 .root :global(.cd-auth-tier-free) { border-color: rgba(71, 85, 105, 0.42); background: #f1f5f9; color: #334155; }
 
-:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-name) { color: var(--gh-ink); }
-:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-email) { color: var(--gh-muted); }
-:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-admin),
-:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-logout) { border-color: rgba(196, 181, 253, 0.42); background: #171126; color: #f4eeff; }
-:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-admin:hover),
-:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-logout:hover) { border-color: #c4b5fd; background: #241b3e; }
-:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-tier-family) { border-color: rgba(110, 231, 183, 0.62); background: #12352f; color: #d1fae5; }
-:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-tier-vvip) { border-color: rgba(196, 181, 253, 0.62); background: #2b1b4b; color: #ede9fe; }
-:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-tier-premium) { border-color: rgba(253, 164, 175, 0.62); background: #461b31; color: #ffe4e6; }
-:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-tier-standard) { border-color: rgba(253, 211, 77, 0.62); background: #3f2a12; color: #fef3c7; }
-:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-tier-free) { border-color: rgba(203, 213, 225, 0.52); background: #273044; color: #f1f5f9; }
-
 .menuButton {
   display: none;
   min-width: 76px;
@@ -188,25 +177,6 @@
   stroke-width: 1.8;
 }
 
-.policyBar {
-  border-top: 1px solid color-mix(in srgb, var(--gh-line) 60%, transparent);
-}
-
-.policyNav {
-  display: flex;
-  width: min(1240px, calc(100% - 24px));
-  margin-inline: auto;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 2px 12px;
-}
-
-.policyLink {
-  min-height: 36px;
-  padding-inline: 4px;
-  font-size: 0.7rem;
-}
-
 .mobilePanel {
   display: none;
 }
@@ -218,8 +188,7 @@
 }
 
 @media (max-width: 1279px) {
-  .mainNav,
-  .policyBar {
+  .mainNav {
     display: none;
   }
 }
@@ -266,16 +235,14 @@
     background: var(--gh-surface);
   }
 
-  .mobileTools > span,
-  .mobilePolicyLabel {
+  .mobileTools > span {
     color: var(--gh-muted);
     font-size: 0.72rem;
     font-weight: 800;
   }
 
   .mobileTools > div,
-  .mobileLinks,
-  .mobilePolicyLinks {
+  .mobileLinks {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -283,22 +250,17 @@
 
   .mobileLinks {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .mobileLinks .navLink {
     border: 1px solid var(--gh-line);
     background: var(--gh-surface);
   }
-
-  .mobilePolicyLinks {
-    flex-wrap: wrap;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navLink,
-  .policyLink {
+  .navLink {
     transition: none;
   }
 }

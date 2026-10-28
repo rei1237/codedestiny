@@ -2,6 +2,8 @@ import type { ChapterBody, ChapterSpec } from './book-contracts';
 import { FortuneError, type DomainContext } from './shared/contracts';
 import { topicLabel } from './topics';
 import { ASK_PERIOD_RESOLVER, resolveAskPeriods, type AskPeriodRange } from './ask/period';
+import { ELEMENT_KO, PLANET_KO } from './block-anchors';
+import { DASHA_ORDER } from '../../lib/vedic-derived-calculations.js';
 
 export interface Consultation {
   questionDecision?: import('./ask/question-policy').QuestionDecision;
@@ -74,6 +76,7 @@ export function alignRelativeYears(body: ChapterBody, asOf: string, locale = 'ko
   let count = 0;
   const wordFirst = new RegExp(`(${RELATIVE_WORDS})(\\s*[(（]\\s*)(20\\d{2})(\\s*년?\\s*[)）])`, 'gu');
   const yearFirst = new RegExp(`(20\\d{2})(\\s*년\\s*[(（]\\s*)(${RELATIVE_WORDS})(\\s*[)）])`, 'gu');
+  const plain = new RegExp(`(${RELATIVE_WORDS})(\\s*)(20\\d{2})(\\s*년)`, 'gu');
   const fix = (value: unknown) => {
     if (typeof value !== 'string' || !value) return value;
     const next = value.replace(wordFirst, (whole, word: string, open: string, y: string, close: string) => {
@@ -88,15 +91,22 @@ export function alignRelativeYears(body: ChapterBody, asOf: string, locale = 'ko
       count++;
       const right = yearWord(year, base);
       return right ? `${y}${open}${right}${close}` : `${y}년`;
+    }).replace(plain, (whole, word: string, space: string, y: string, suffix: string) => {
+      const year=Number(y),offset=relativeOffset(word);
+      if(offset===undefined||base+offset===year)return whole;
+      count++;
+      const right=yearWord(year,base);
+      return right?`${right}${space}${y}${suffix}`:`${y}${suffix}`;
     });
     return next;
   };
   const out: ChapterBody = { ...body, summary: fix(body.summary) as string, example: fix(body.example) as string,
+    ...(body.title===undefined?{}:{title:fix(body.title) as string}),
     advice: fix(body.advice) as string, persona: fix(body.persona) as string,
     analysis: Array.isArray(body.analysis) ? body.analysis.map(fix) as string[] : body.analysis,
     highlights: Array.isArray(body.highlights) ? body.highlights.map(fix) as string[] : body.highlights,
     ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b,
-      paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
+      title:fix(b.title) as string, paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
     ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
       { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string, ...(typeof a.review === 'string' ? { review: fix(a.review) as string } : {}) }) } : {}),
   };
@@ -119,6 +129,13 @@ export function createConsultation(question: string, topicId: string, clock: Ret
   // answer slots, it never asks another model to rewrite the user's intent.
   const units = question.trim().split(/\n+|(?<=[?？])\s*/u).map(s => s.trim()).filter(Boolean);
   const questions = units.length > 8 ? [...units.slice(0, 7), units.slice(7).join('\n')] : units;
+  return { version: 1, topicId, topicLabel: topicLabel(topicId) || '전체 흐름', question,
+    questions: questions.map((text, i) => ({ id: `q${i + 1}`, text, chapterId: manifest[0].id })), ...clock,
+    period: consultationPeriod(question, clock, askPeriods) };
+}
+
+/** The consulted period alone; question products resolve it before calculation so timing facts can reach its end. */
+export function consultationPeriod(question: string, clock: ReturnType<typeof consultationClock>, askPeriods = false): Consultation['period'] {
   const requested = question.match(/(?:20\d{2}\s*년(?:\s*\d{1,2}\s*(?:월\s*)?(?:[~～–-]\s*\d{1,2}\s*)?월(?:\s*\d{1,2}\s*일)?)?|\d{1,2}\s*(?:월\s*)?[~～–-]\s*\d{1,2}\s*월|\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?|(?:앞으로|향후)\s*\d+(?:\s*[~～–-]\s*\d+)?\s*(?:개월|달|년|주)|재작년|내후년|작년|지난\s*해|올해|금년|내년|명년|이번\s*달|다음\s*달|이번\s*주|다음\s*주|차주|상반기|하반기|봄|여름|가을|겨울)/gu);
   const requestedLabels: string[] = requested ? [...requested] : [];
   // A named year becomes an explicit calendar range, so '올해' can never drift to another year downstream.
@@ -133,13 +150,11 @@ export function createConsultation(question: string, topicId: string, clock: Ret
   end.setUTCMonth(end.getUTCMonth()+3);
   const last=new Date(Date.UTC(end.getUTCFullYear(),end.getUTCMonth()+1,0)).getUTCDate();
   end.setUTCDate(Math.min(day,last));
-  return { version: 1, topicId, topicLabel: topicLabel(topicId) || '전체 흐름', question,
-    questions: questions.map((text, i) => ({ id: `q${i + 1}`, text, chapterId: manifest[0].id })), ...clock,
-    period: requestedLabels.length || years.length || span ? { kind: 'requested', label: [...new Set([...requestedLabels, ...years.map(y => y.label)
+  return requestedLabels.length || years.length || span ? { kind: 'requested', label: [...new Set([...requestedLabels, ...years.map(y => y.label)
       .filter(label => !requestedLabels.some(r => r.replace(/\s+/g, ' ').includes(label)))])].join(' · '),
       ...(years.length ? { start: `${years[0].year}-01-01`, end: `${years[years.length - 1].year}-12-31`, years } : {}),
       ...(span || {}), ...resolver }
-      : { kind: 'default', label: `${clock.asOf}부터 3개월의 흐름과 실천·점검`, start: clock.asOf, end: end.toISOString().slice(0, 10), ...resolver } };
+      : { kind: 'default', label: `${clock.asOf}부터 3개월의 흐름과 실천·점검`, start: clock.asOf, end: end.toISOString().slice(0, 10), ...resolver };
 }
 
 export function validateConsultationAnswers(body: ChapterBody, chapter: ChapterSpec, consultation?: Consultation) {
@@ -261,6 +276,38 @@ export function redactInternalEvidence(body: ChapterBody, question = '', factLab
   return count ? { body: out, count } : { body, count: 0 };
 }
 
+// Principle 17: markup the reading screen does not render is corrected, not regenerated. Backticks and '*' footnote or
+// emphasis marks (no footnote ever follows) are dropped. In Korean, the stuttered '미 미치는'/'미 줄' loses the stray
+// syllable and an English '(Dignity: domicile)' label is dropped; an English gloss such as '금성(Venus)' stays.
+// Also in Korean: a bracket carrying an internal score ('(-4점)', '(일간 강약 점수 41)', '(… score -4)') is dropped whole,
+// a bare English element word ('metal') becomes its Korean name, and a word repeated in its own bracket ('형(형)') folds.
+// A bracket with a different value ('辛金(신금)') stays; a dotted ID is left for redactInternalEvidence.
+export function correctProseMarkup(body: ChapterBody, locale = 'ko'): { body: ChapterBody; count: number } {
+  const rules: [RegExp, string][] = [[/`+/g, ''], [/(\*{1,2})(?=[^\s*])([^*\n]*?[^\s*])\1/gu, '$2'], [/(?<=[\p{L}\p{N})\]])\*{1,2}(?=[\s.,!?)\]」』:;·]|$)/gu, ''], [/(?<=^|[\s(「『])\*{1,2}(?=[\p{L}\p{N}])/gu, ''],
+    ...(locale === 'ko' ? [[/(?<![가-힣])미\s+(?=미[치쳐칠]|줄|준|주[는고])/gu, ''], [/[ \t]*[(（]\s*[A-Za-z][A-Za-z ]*:\s*[A-Za-z][A-Za-z ,'-]*[)）]/g, ''],
+      [/[ \t]*[(（](?=[^()（）\n]{0,200}?(?:(?:점수|\bscore\b)\s*[:：]?\s*[-+−]?\d|[-+−]?\d+(?:\.\d+)?\s*점(?![가-힣])))[^()（）\n]{1,200}[)）]/gu, ''],
+      ...Object.entries(ELEMENT_KO).map(([en, ko]) => [new RegExp(`(?<!\\w|\\w\\.)${en}(?!\\w|\\.\\w)`, 'g'), ko]),
+      [/(?<![\p{L}\p{N}])([\p{L}\p{N}]+)\s*[(（]\s*\1\s*[)）]/gu, '$1']] as [RegExp, string][] : [])];
+  let count = 0;
+  const fix = (value: unknown) => {
+    if (typeof value !== 'string' || !value) return value;
+    let next = value;
+    for (const [pattern, to] of rules) next = next.replace(pattern, (...m) => (count++, to.replace(/\$(\d)/g, (_, i) => m[+i])));
+    return next === value ? value : next.replace(/[ \t]{2,}/g, ' ').replace(/[ \t]+([.,!?。])/g, '$1').trim() || value;
+  };
+  const out: ChapterBody = { ...body, summary: fix(body.summary) as string, example: fix(body.example) as string,
+    advice: fix(body.advice) as string, persona: fix(body.persona) as string,
+    analysis: Array.isArray(body.analysis) ? body.analysis.map(fix) as string[] : body.analysis,
+    highlights: Array.isArray(body.highlights) ? body.highlights.map(fix) as string[] : body.highlights,
+    ...(body.title === undefined ? {} : { title: fix(body.title) as string }),
+    ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b, title: fix(b.title) as string,
+      paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
+    ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
+      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string, ...(typeof a.review === 'string' ? { review: fix(a.review) as string } : {}) }) } : {}),
+  };
+  return count ? { body: out, count } : { body, count: 0 };
+}
+
 // Principle 17: the counselor's own name used as the reader's ('연이님은', '연이님,') is corrected, not regenerated.
 // The prompt never carries the reader's name, so '<counselor>님/씨' is always a mis-address. A vocative is dropped;
 // any other use becomes '당신' with the particle refitted. Korean prose only.
@@ -298,4 +345,182 @@ export function validatePreciseTiming(body: ChapterBody, consultation: Consultat
   const dates=(value:string)=>[...value.matchAll(/(20\d{2})(?:년\s*|-|\/)(\d{1,2})(?:월\s*|-|\/)(\d{1,2})일?/g)].map(m=>`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`);
   const allowed=new Set(dates(JSON.stringify(evidence)+' '+JSON.stringify(consultation)));
   if(dates(text).some(date=>!allowed.has(date)))throw new FortuneError('UNSUPPORTED_PRECISE_TIMING');
+  validateMonthPillars(text.split('\n'),evidence,Boolean(consultation.questionDecision));
+  if(consultation.questionDecision&&natalOnlyTiming(evidence))validateUngroundedTiming(text);
+  validateDashaSequence(text,evidence);
+  validateYearLabels(text,consultation.asOf);
+  validateYearlyPalaces(text,evidence);
+}
+
+/** "내년 2026년": a relative year word followed by its year must agree with the consultation date. */
+export function validateYearLabels(text: string, asOf: string) {
+  if(!/^\d{4}-/.test(asOf || ''))return;
+  const base=Number(asOf.slice(0,4));
+  for(const m of text.matchAll(new RegExp(`(?<![가-힣])(${RELATIVE_WORDS})(?:인)?\\s+(20\\d{2})\\s*년`,'gu'))){
+    const offset=relativeOffset(m[1]);
+    if(offset!==undefined&&base+offset!==Number(m[2]))throw new FortuneError('CHAPTER_YEAR_LABEL_MISMATCH');
+  }
+}
+
+const ZIWEI_PALACES='명궁|형제궁|부부궁|자녀궁|재백궁|질액궁|천이궁|노복궁|교우궁|관록궁|전택궁|복덕궁|부모궁';
+/** "2027년 세운이 재백궁으로": the palace named with a year's 세운 must be that year's palace in the ziwei yearly timeline. */
+export function validateYearlyPalaces(text: string, evidence: unknown) {
+  const rows=(Array.isArray(evidence)?evidence:[]).filter((f:any)=>String(f?.id).startsWith('ziwei.')&&(f.label==='yearlyTimeline'||f.label==='yearlyLuck'))
+    .flatMap((f:any)=>Array.isArray(f.value)?f.value:[f.value]);
+  if(!rows.length)return;
+  // Only "the year moves into / is palace X". "2027년 유년 관록궁" is the flow-year chart's own career palace, and
+  // "세운은 노복궁에 거문 화기" places a transformation, so neither names the yearly palace.
+  // A flow year has one palace, so a half of that year ("2027년 하반기에는 유년이") names the same row.
+  for(const m of text.matchAll(new RegExp(`(20\\d{2})\\s*년\\s*(?:(?:상반기|하반기|초|말)\\s*(?:에는|에|엔|의)?\\s*)?(?:의\\s*)?(?:세운|유년)(?:\\s*[(（][^)）]*[)）])?(?:\\s*궁)?\\s*(?:이|은|는|가)\\s*(${ZIWEI_PALACES})(?:\\s*[(（][^)）]*[)）])?\\s*(?:으로|로|(?:이|에\\s*해당)(?:다|야|에요|예요|입니다|하)|에\\s*(?:들어|자리|놓|머물|위치))`,'gu'))){
+    const row=rows.find((r:any)=>r?.year===Number(m[1]));
+    if(row&&row.palaceName!==(m[2]==='교우궁'?'노복궁':m[2]))throw new FortuneError('CHAPTER_YEARLY_PALACE_MISMATCH');
+  }
+}
+
+// The last antardasha of a mahadasha is fixed by the cycle order: it is the lord just before the mahadasha lord.
+function dashaCycle(evidence: unknown) {
+  // Question chapters carry the dasha inside questionTiming periods, not as a vimshottariDasha fact.
+  const md=(Array.isArray(evidence)?evidence:[]).flatMap((f:any)=>f?.label==='vimshottariDasha'?[f.value?.currentMahadasha?.lord]
+   :f?.label==='questionTiming'&&Array.isArray(f.value?.periods)?f.value.periods.map((p:any)=>p?.currentMahadasha?.lord):[]).find(Boolean);
+  const i=DASHA_ORDER.indexOf(md);
+  if(i<0)return;
+  const lords=DASHA_ORDER.map(l=>PLANET_KO[l]).join('|');
+  return {lord:PLANET_KO[md],last:PLANET_KO[DASHA_ORDER[(i+8)%9]],beforeLast:PLANET_KO[DASHA_ORDER[(i+7)%9]],
+    otherMahadasha:new RegExp(`(${lords})\\s*(?:\\([^)]*\\)\\s*)?마하다샤`,'gu'),
+    lastClaim:new RegExp(`마지막(\\s*안타르다샤(?:\\s*\\([^)]*\\))?(?:인\\s*|\\s+))(${lords})(?:\\s*-\\s*(${lords}))?(?![가-힣]*\\s*(?:이\\s*)?아니)`,'gu')};
+}
+const namesOtherMahadasha=(sentence:string,cycle:NonNullable<ReturnType<typeof dashaCycle>>)=>[...sentence.matchAll(cycle.otherMahadasha)].some(m=>m[1]!==cycle.lord);
+
+export function validateDashaSequence(text: string, evidence: unknown) {
+  const cycle=dashaCycle(evidence);
+  if(!cycle)return;
+  for(const sentence of text.split(/\n|(?<=[.!?。])\s+/)){
+    if(namesOtherMahadasha(sentence,cycle))continue;
+    for(const m of sentence.matchAll(cycle.lastClaim))
+      if((m[3]||m[2])!==cycle.last)throw new FortuneError('CHAPTER_DASHA_SEQUENCE_MISMATCH');
+  }
+}
+
+const DASHA_LEVEL_KO:Record<string,string>={mahadasha:'마하다샤',antardasha:'안타르다샤',pratyantar:'프라티안타르다샤'};
+// The stored lord at each dasha level, highest level first: ask chapters carry dashaPeriods rows, others the current
+// periods of vimshottariDasha or questionTiming.
+function dashaLevels(evidence: unknown) {
+  const found:[string,unknown][]=[];
+  for(const f of (Array.isArray(evidence)?evidence:[]) as any[]){
+    if(f?.label==='dashaPeriods'&&Array.isArray(f.value))for(const r of f.value)found.push([r?.level,r?.lord]);
+    const current=f?.label==='vimshottariDasha'?[f.value]:f?.label==='questionTiming'&&Array.isArray(f.value?.periods)?f.value.periods:[];
+    for(const c of current)found.push(['mahadasha',c?.currentMahadasha],['antardasha',c?.currentAntardasha],['pratyantar',c?.currentPratyantarDasha]);
+  }
+  const level:Record<string,string>={};
+  for(const name of Object.keys(DASHA_LEVEL_KO))for(const [at,value] of found){
+    const lord=PLANET_KO[typeof value==='string'?value:(value as any)?.lord];
+    if(at===name&&lord&&DASHA_ORDER.some(l=>PLANET_KO[l]===lord))level[lord]||=name;
+  }
+  return level;
+}
+const VOWEL_PARTICLE:Record<string,string>={이야:'야',이에요:'예요',이라:'라',이고:'고',이:'가',은:'는',을:'를',과:'와',으로:'로'};
+
+// Principle 17: the antardasha just before the last one, called "the last" ('마지막 안타르다샤인 금성' in a Moon
+// mahadasha whose last is the Sun), is corrected to '마지막 바로 앞'. Any other wrong lord is left for validation.
+// A planet named with the saju word '대운' ('목성 대운', MO 2026-10-10) takes its stored level instead; a planet at no
+// stored level becomes the current mahadasha, the period '대운' stands for. '다음 달 대운' is a month, not the Moon.
+// levelEvidence also carries the stored vedic facts: an ask chapter's selected facts can lack the mahadasha.
+export function correctDashaSequence(body: ChapterBody, evidence: unknown, levelEvidence: unknown = evidence): { body: ChapterBody; count: number } {
+  const cycle=dashaCycle(evidence),levels=dashaLevels(levelEvidence);
+  const mahadasha=Object.keys(levels).find(lord=>levels[lord]==='mahadasha');
+  if(!cycle&&!Object.keys(levels).length)return { body, count: 0 };
+  const others=DASHA_ORDER.map(l=>PLANET_KO[l]).filter(lord=>lord!=='달').join('|');
+  const planetLuck=new RegExp(`(?<![가-힣])(${others}|(?<!(?:이번|다음|지난|이|그|한|매|몇|첫|두|세|네)\\s*)달)(\\s*\\([A-Za-z]+\\))?\\s*대운(이야|이에요|이라|이고|으로|[이은을과](?![가-힣]))?`,'gu');
+  let count = 0;
+  const fix = (input: unknown) => {
+    if (typeof input !== 'string') return input;
+    let value = input;
+    if (value.includes('대운')) value = value.replace(planetLuck, (whole, lord: string, paren: string|undefined, particle: string|undefined) => {
+      const at = levels[lord] ? lord : mahadasha;
+      if (!at) return whole;
+      count++;
+      const english = Object.keys(PLANET_KO).find(k => PLANET_KO[k] === at);
+      return `${at}${paren ? (at === lord ? paren : `(${english})`) : ''} ${DASHA_LEVEL_KO[levels[at]]}${particle ? VOWEL_PARTICLE[particle] : ''}`;
+    });
+    if (!cycle || !value.includes('마지막')) return value;
+    return value.split(/(?<=[.!?。\n])/u).map(sentence=>namesOtherMahadasha(sentence,cycle)?sentence:
+      sentence.replace(cycle.lastClaim,(whole,link,lord,pair,at)=>{
+        if(pair||lord!==cycle.beforeLast)return whole;
+        count++;
+        // '마지막 안타르다샤인 금성과 태양' names the last two together.
+        const both=new RegExp(`^\\s*(?:과|와)\\s*${cycle.last}`).test(sentence.slice(at+whole.length));
+        return `마지막 ${both?'두':'바로 앞'}${link}${lord}`;
+      })).join('');
+  };
+  const out: ChapterBody = { ...body, summary: fix(body.summary) as string, example: fix(body.example) as string,
+    advice: fix(body.advice) as string, persona: fix(body.persona) as string,
+    analysis: Array.isArray(body.analysis) ? body.analysis.map(fix) as string[] : body.analysis,
+    highlights: Array.isArray(body.highlights) ? body.highlights.map(fix) as string[] : body.highlights,
+    ...(body.title === undefined ? {} : { title: fix(body.title) as string }),
+    ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b, title: fix(b.title) as string,
+      paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
+    ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
+      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string, ...(typeof a.review === 'string' ? { review: fix(a.review) as string } : {}) }) } : {}),
+  };
+  return count ? { body: out, count } : { body, count: 0 };
+}
+
+// Facts that move with time. A question chapter holding none of them can name a period but cannot rank one.
+const TIMING_LABELS=new Set(['monthlyLuck','yearlyLuck','majorLuck','questionTiming','yearlyTimeline','minorLuck','vimshottariDasha','dasha','transits']);
+const REPAIRABLE_TIMING=new Set(['UNSUPPORTED_PRECISE_TIMING','CHAPTER_MONTH_PILLAR_MISMATCH','CHAPTER_UNGROUNDED_TIMING','CHAPTER_DASHA_SEQUENCE_MISMATCH','CHAPTER_YEAR_LABEL_MISMATCH','CHAPTER_YEARLY_PALACE_MISMATCH']);
+/** Keep the useful prose; unsupported timing becomes an explicit limit on both delivery paths. */
+export function correctTimingEvidence(body:ChapterBody,consultation:Consultation|undefined,evidence:unknown,locale='ko',polite=true):ChapterBody{
+ if(locale!=='ko'||!consultation)return body;
+ try{validatePreciseTiming(body,consultation,evidence);return body;}
+ catch(error){if(!(error instanceof FortuneError)||!REPAIRABLE_TIMING.has(error.code))throw error;}
+ const limit=polite?'제공된 계산 근거로는 이 시기나 사건을 특정하기 어려워요. 실제 선택은 준비 상태와 생활 조건을 함께 확인해 주세요.':'제공된 계산 근거로는 이 시기나 사건을 특정하기 어려워. 실제 선택은 준비 상태와 생활 조건을 함께 확인해 봐.';
+ const fix=(text:string)=>{
+  let limited=false;
+  return text.split(/(?<=[.!?。？！])\s+|\n/u).map(sentence=>{
+   try{validatePreciseTiming({summary:sentence,analysis:[],example:'',advice:'',persona:'',highlights:[],topics:[],sources:[]},consultation,evidence);return sentence;}
+   catch(error){
+    if(!(error instanceof FortuneError)||!REPAIRABLE_TIMING.has(error.code))throw error;
+    if(limited)return '';limited=true;return limit;
+   }
+  }).filter(Boolean).join(' ');
+ };
+ return {...body,summary:fix(body.summary),analysis:body.analysis.map(fix),example:fix(body.example),advice:fix(body.advice),persona:fix(body.persona),
+  highlights:body.highlights.map(fix),...(body.title===undefined?{}:{title:fix(body.title)}),
+  ...(body.blocks?{blocks:body.blocks.map(block=>({...block,title:fix(block.title),paragraphs:block.paragraphs.map(fix)}))}:{}),
+  ...(body.questionAnswers?{questionAnswers:body.questionAnswers.map(answer=>({...answer,answer:fix(answer.answer),reason:fix(answer.reason),timing:fix(answer.timing),action:fix(answer.action),...(answer.review===undefined?{}:{review:fix(answer.review)})}))}:{})};
+}
+/** Astrology question chapters carry the birth chart only (no transits), so no period can be called favourable from them. */
+export function natalOnlyTiming(evidence: unknown) {
+  const facts=Array.isArray(evidence)?evidence:[];
+  return facts.length>0&&facts.every((f:any)=>String(f?.id).startsWith('astrology.')&&!TIMING_LABELS.has(f?.label));
+}
+export const PERIOD_WORD=/20\d{2}\s*년|올해|금년|내년|명년|다음\s*해|[상하]반기|[1-4]\s*분기|(?<![\d.])\d{1,2}\s*월(?!\s*\d)/u;
+export const TIMING_CLAIM=/(?:유리한|불리한|긍정적인|부정적인|좋은|나쁜|적절한|적합한|알맞은|길한|흉한|위험한)\s*(?:시기|때|타이밍|시점)|적기|호기|(?:시기|때|타이밍|시점)(?:가|이|는|로|라)?\s*(?:좋|유리|무르익|열리)/u;
+export const TIMING_DENIAL=/(?:특정|단정|판단|예측|가늠)(?:할|하기|하지|되지)?\s*(?:수\s*)?(?:없|않|어렵)|근거가\s*없|알\s*수\s*없/u;
+const NATAL_EVENT_FORECAST=/(?:새로운\s*)?가능성을\s*찾게\s*될|전환점을\s*맞이|기회(?:가|는)\s*(?:찾아오|열리|강해|늘어)|운(?:이|은|의\s*흐름이)\s*(?:좋아지|강해지|풀리)|흐름이.{0,40}(?:올해|내년).{0,24}(?:이어질|지속될)|(?:갈등|긴장)이.{0,20}반복될/u;
+/** A sentence that ranks a named period ('2027년 상반기가 유리한 시기') without denying it is unsupported here. */
+export function validateUngroundedTiming(text: string) {
+  for(const sentence of text.split(/\n|(?<=[.!?。])\s+/))
+    if(PERIOD_WORD.test(sentence)&&(TIMING_CLAIM.test(sentence)||NATAL_EVENT_FORECAST.test(sentence))&&!TIMING_DENIAL.test(sentence))throw new FortuneError('CHAPTER_UNGROUNDED_TIMING');
+}
+
+const STEM_KO='갑을병정무기경신임계',STEM_HJ='甲乙丙丁戊己庚辛壬癸',BRANCH_KO='자축인묘진사오미신유술해',BRANCH_HJ='子丑寅卯辰巳午未申酉戌亥';
+const MONTH_PILLAR=new RegExp(`(\\d{1,2})\\s*월[^\\n\\d]{0,8}?([${STEM_HJ}][${BRANCH_HJ}]|[${STEM_KO}][${BRANCH_KO}])(?:\\s*\\([^)\\n]{1,8}\\))?\\s*월`,'gu');
+const hanjaPillar=(p:string)=>STEM_KO.includes(p[0])?STEM_HJ[STEM_KO.indexOf(p[0])]+BRANCH_HJ[BRANCH_KO.indexOf(p[1])]:p;
+/**
+ * 'N년 M월 + 간지월' must be the monthlyLuck row whose 절입 falls in that civil month. A month absent from the rows is
+ * unsupported. The year is the nearest 'N년' before the month in the same paragraph; a month without one is skipped.
+ */
+export function validateMonthPillars(paragraphs: string[], evidence: unknown, required = false) {
+  const rows=(Array.isArray(evidence)?evidence:[]).filter((f:any)=>f?.label==='monthlyLuck'&&Array.isArray(f.value)).flatMap((f:any)=>f.value);
+  if(!rows.length&&!required)return;
+  for(const paragraph of paragraphs){
+    const years=[...paragraph.matchAll(/(20\d{2})\s*년/g)];
+    for(const m of paragraph.matchAll(MONTH_PILLAR)){
+      const year=years.filter(y=>y.index!<=m.index!).at(-1)?.[1];
+      if(!year)continue;
+      const row=rows.find((r:any)=>r?.start?.year===Number(year)&&r?.start?.month===Number(m[1]));
+      if(!row||row.pillar!==hanjaPillar(m[2]))throw new FortuneError('CHAPTER_MONTH_PILLAR_MISMATCH');
+    }
+  }
 }

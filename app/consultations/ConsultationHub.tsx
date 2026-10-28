@@ -9,46 +9,76 @@ import { consultationCopy, expertCopy, hubTranslations } from './consultation-co
 import styles from './consultations.module.css';
 
 // Presentation order only. Storage adapters, hrefs and price keys stay authoritative.
+// 강약: 홈 덱과 같은 순서 — 대표 상담 3종(연애 비책·신년운세·인생의 책)이 첫 줄, 캐릭터 상담 셋이 뒤,
+// 나머지 일곱 개는 압축 목록으로 아래.
 const groups = {
-  mind: ['tea', 'neo'],
-  experts: ['life-book', 'ziwei', 'astrology', 'vedic', 'sukuyo-compat'],
-  naming: ['legacy-naming'],
-  reports: ['codex', 'love-secret', 'new-year', 'karma', 'fusion'],
+  signature: ['love-secret', 'new-year', 'life-book', 'neo', 'tea', 'codex'],
+  others: ['ziwei', 'astrology', 'vedic', 'sukuyo-compat', 'legacy-naming', 'karma', 'fusion'],
 } as const;
+const numerals = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
+// 대표 카드는 홈 덱(templates/home-funnel.html)과 같은 그림을 쓴다.
+const deckArt: Record<string, [string, string?]> = {
+  neo: ['/images/service-introductions/neo-operation-room-640.webp'],
+  tea: ['/images/service-introductions/fortune-tea-house-640.webp'],
+  codex: ['/images/service-introductions/master-love-codex-640.webp'],
+  'love-secret': ['/images/service-introductions/love-secret-ai-640.webp'],
+  'new-year': ['/images/service-introductions/new-year-ai-640.webp'],
+  'life-book': ['/images/service-introductions/life-book-ai-640.webp'],
+};
 const artwork: Record<string, string> = {
-  tea: 'fortune-tea-house', neo: 'neo-operation-room', ziwei: 'ziwei-ai',
-  astrology: 'astrology-ai', vedic: 'vedic-ai', 'sukuyo-compat': 'sukuyo-compatibility-ai',
-  'legacy-naming': 'naming-ai',
+  ziwei: 'ziwei-ai', astrology: 'astrology-ai', vedic: 'vedic-ai',
+  'sukuyo-compat': 'sukuyo-compatibility-ai', 'legacy-naming': 'naming-ai',
+  karma: 'karma-destiny-ai', fusion: 'fusion-fortune',
 };
 
 export default function ConsultationHub({ children }: { children?: ReactNode }) {
   const locale = useLocale(), c = recordsCopy(locale), copy = consultationCopy(locale);
-  const renderService = (id: string, variant: 'featured' | 'expert' | 'naming' | 'report') => {
+  const describe = (id: string) => {
     const service = RECORD_SERVICES.find(item => item.id === id)!;
-    const localized = expertCopy[locale]?.[id] || (locale === 'ko'
+    const [name, description] = expertCopy[locale]?.[id] || (locale === 'ko'
       ? [service.name, service.description, service.format]
       : hubTranslations[locale]?.[id] || expertCopy.en[id] || hubTranslations.en[id]);
-    const [name, description, format] = localized;
-    const image = artwork[id] ? `/feature-details/assets/${artwork[id]}-480.webp` : service.image;
-    return <article key={id} className={`${styles.card} ${styles[variant]}`} data-service={id}>
-      <div className={styles.art}>
-        <img src={image} srcSet={artwork[id] ? `${image} 480w, /feature-details/assets/${artwork[id]}-960.webp 960w` : undefined}
-          sizes={variant === 'expert' ? '(min-width: 960px) 320px, 112px' : '(min-width: 960px) 520px, 100vw'}
-          alt="" width="640" height="360" loading={id === 'tea' ? 'eager' : 'lazy'} />
-      </div>
-      <div className={styles.cardBody}>
-        <h3>{name}</h3><p className={styles.description}>{description}</p><p className={styles.format}>{format}</p>
-        <div className={styles.actions}>
-          <div className={styles.prices}>
-            <span>{c.price}</span>
-            <p>{id === 'codex' && `${copy.personal} `}<PriceBadge featureKey={service.featureKey} className={styles.price} /></p>
-            {id === 'codex' && <p>{copy.compatibility} <PriceBadge featureKey="master-love-codex-compat" className={styles.price} /></p>}
-          </div>
-          <a className={styles.button} href={service.href} aria-label={`${name} · ${id === 'legacy-naming' ? copy.namingAction : copy.action}`}>
-            {id === 'legacy-naming' ? copy.namingAction : copy.action}<ArrowUpRight size={17} aria-hidden="true" />
-          </a>
+    return { service, name, description };
+  };
+  const prices = (id: string, featureKey: string) => <>
+    <span>{id === 'codex' && `${copy.personal} `}<PriceBadge featureKey={featureKey} className={styles.price} /></span>
+    {id === 'codex' && <span>{copy.compatibility} <PriceBadge featureKey="master-love-codex-compat" className={styles.price} /></span>}
+  </>;
+  const renderCard = (id: string, index: number) => {
+    const { service, name, description } = describe(id);
+    const [src, large] = deckArt[id];
+    return <article key={id} className={styles.tarot} data-service={id}>
+      <a href={service.href}>
+        <span className={styles.tarotTop} aria-hidden="true"><b>{numerals[index]}</b></span>
+        <span className={styles.tarotArt}>
+          <img src={src} srcSet={large ? `${src} 600w, ${large} 1200w` : undefined} sizes="(min-width: 1024px) 180px, 46vw"
+            alt="" width="1200" height="675" loading={index < 2 ? 'eager' : 'lazy'} decoding="async" />
+        </span>
+        <div className={styles.tarotBody}>
+          <h3>{name}</h3>
+          <span className={styles.tarotLine}>{description}</span>
+          <span className={styles.prices}>{prices(id, service.featureKey)}</span>
+          {/* 이 화면의 채움 행동은 첫 장 하나뿐이다. 나머지 다섯 장은 텍스트 라벨. */}
+          <span className={index === 0 ? styles.primary : styles.tertiary}>
+            {index === 0 ? copy.firstAction.replace('{name}', name) : copy.open}<ArrowUpRight size={15} aria-hidden="true" />
+          </span>
         </div>
+      </a>
+    </article>;
+  };
+  const renderRow = (id: string) => {
+    const { service, name, description } = describe(id);
+    const image = artwork[id] ? `/images/service-introductions/${artwork[id]}-320.webp` : service.image;
+    return <article key={id} className={styles.row} data-service={id}>
+      <img src={image} alt="" width="64" height="64" loading="lazy" decoding="async" />
+      <div className={styles.rowBody}>
+        <h3>{name}</h3>
+        <p className={styles.description}>{description}</p>
+        <p className={styles.prices}>{prices(id, service.featureKey)}</p>
       </div>
+      <a className={styles.rowLink} href={service.href} aria-label={`${name} · ${id === 'legacy-naming' ? copy.namingAction : copy.open}`}>
+        {id === 'legacy-naming' ? copy.namingAction : copy.open}<ArrowUpRight size={15} aria-hidden="true" />
+      </a>
     </article>;
   };
   return <main className={styles.page} data-consultation-hub="garden">
@@ -62,28 +92,21 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
         <Moon className={styles.moon} size={44} strokeWidth={1} aria-hidden="true" />
       </header>
       <nav className={styles.categories} aria-label={copy.navigation}>
-        {(['mind', 'experts', 'naming', 'reports'] as const).map(id => <a key={id} href={`#${id}`}>{copy[id]}<ArrowUpRight size={14} aria-hidden="true" /></a>)}
+        {(['signature', 'others'] as const).map(id => <a key={id} href={`#${id}`}>{copy[id]}<ArrowUpRight size={14} aria-hidden="true" /></a>)}
       </nav>
-      <section id="mind" className={styles.section} aria-labelledby="mind-title">
-        <div className={styles.sectionHeading}><h2 id="mind-title">{copy.mindTitle}</h2></div>
-        <div className={styles.featuredGrid}>{groups.mind.map(id => renderService(id, 'featured'))}</div>
+      <section id="signature" className={styles.section} aria-labelledby="signature-title">
+        <div className={styles.sectionHeading}><h2 id="signature-title">{copy.signatureTitle}</h2><p>{copy.signatureLead}</p></div>
+        <div className={styles.deck}>{groups.signature.map(renderCard)}</div>
+      </section>
+      <section id="others" className={styles.section} aria-labelledby="others-title">
+        <div className={styles.sectionHeading}><h2 id="others-title">{copy.othersTitle}</h2><p>{copy.othersLead}</p></div>
+        {/* #experts: 예전 "전문가 상담" 앵커로 들어온 링크가 이 목록에 닿도록 남긴다. */}
+        <div id="experts" className={styles.rows}>{groups.others.map(renderRow)}</div>
         <div className={styles.chat}>
           <div><MessageCircleHeart size={20} aria-hidden="true" /><span>{c.characters}</span></div>
-          <a href="/fortune-chat/?character=yeoni">{c.yeoni}<ArrowUpRight size={16} aria-hidden="true" /></a>
-          <a href="/fortune-chat/?character=neo">{c.neo}<ArrowUpRight size={16} aria-hidden="true" /></a>
+          <a href="/fortune-tea-house/">{c.yeoni}<ArrowUpRight size={16} aria-hidden="true" /></a>
+          <a href="/neo-operation-room/">{c.neo}<ArrowUpRight size={16} aria-hidden="true" /></a>
         </div>
-      </section>
-      <section id="experts" className={styles.section} aria-labelledby="experts-title">
-        <div className={styles.sectionHeading}><h2 id="experts-title">{copy.expertsTitle}</h2><p>{copy.expertsLead}</p></div>
-        <div className={styles.expertGrid}>{groups.experts.map(id => renderService(id, 'expert'))}</div>
-      </section>
-      <section id="naming" className={styles.section} aria-labelledby="naming-title">
-        <div className={styles.sectionHeading}><h2 id="naming-title">{copy.namingTitle}</h2></div>
-        {groups.naming.map(id => renderService(id, 'naming'))}
-      </section>
-      <section id="reports" className={styles.section} aria-labelledby="reports-title">
-        <div className={styles.sectionHeading}><h2 id="reports-title">{copy.reportsTitle}</h2><p>{copy.reportsLead}</p></div>
-        <div className={styles.reportGrid}>{groups.reports.map(id => renderService(id, 'report'))}</div>
       </section>
       {children}
     </div>

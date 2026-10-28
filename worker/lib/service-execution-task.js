@@ -1,6 +1,7 @@
+import * as refundModels from "./models.js";
+import { findProtectedFundingExecution } from "./refund-delivery-protection.js";
 import { connectDb, mongoose, withMongoRetry } from "./db.js";
 import { CONTENT_ENTITLEMENT_STATUSES, MonthlyCreditLedger, Payment, PointHistory, ServiceExecutionTransaction, User } from "./models.js";
-import { restoreMonthlyCreditLot } from "./monthly-credit-store.js";
 import { findMoonstoneSpendEvidence } from "./moonstone-spend-proof.js";
 import { cancelPortOnePayment } from "./portone.js";
 import { revokePaymentContentAccess } from "./content-unlocks.js";
@@ -430,69 +431,49 @@ function toSummary(doc) {
  *    호출자가 같은 모양을 만들어 넘기면 된다. 여기에 ServiceExecutionTransaction 전용 필드 의존을
  *    새로 넣으면 그 호출자가 조용히 skip 된다.
  */
-export async function runCoinRefund({ userId, featureKey, cost, sourceTransactionId, executionId, requestId, reason }) {
-  if (!userId || !sourceTransactionId || cost <= 0) {
+export async function runCoinRefund({ env, userId, featureKey, sourceTransactionId, executionId, requestId, failedRequestId = requestId, reason, receiptSource }, deps = {}) {
+  if (!userId || !sourceTransactionId) {
     return { refunded: false, skipped: true };
   }
   if (!mongoose.Types.ObjectId.isValid(String(sourceTransactionId))) {
     return { refunded: false, skipped: true, reason: "SOURCE_TRANSACTION_NOT_POINT_HISTORY_ID" };
   }
 
-  const existing = await PointHistory.findOne({
-    userId,
-    kind: "refund",
-    "metadata.refundForPointHistoryId": String(sourceTransactionId),
-  }).lean();
-  if (existing) {
-    return {
-      refunded: true,
-      idempotent: true,
-      refundTxId: String(existing._id || ""),
-    };
-  }
-
-  const deducted = await PointHistory.findOne({
-    _id: sourceTransactionId,
-    userId,
-    kind: "deduct",
-  }).lean();
-  if (!deducted) {
-    return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
-  }
-  if (cleanMetadataText(deducted?.metadata?.accessType).toLowerCase() === "membership_credit") {
-    return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_DEDUCT" };
-  }
-
-  const user = await User.findByIdAndUpdate(
-    userId,
-    { $inc: { points: cost } },
-    { returnDocument: "after", projection: { points: 1 } },
-  ).lean();
-  if (!user) {
-    throw new Error("USER_NOT_FOUND_FOR_REFUND");
-  }
-
-  const refund = await PointHistory.create({
-    userId,
-    kind: "refund",
-    delta: cost,
-    balanceAfter: Number(user.points || 0),
-    reason,
-    featureKey,
-    metadata: {
-      source: "billing.service-execution",
-      requestId: String(requestId || "").slice(0, 120),
-      executionId: String(executionId || ""),
-      refundForPointHistoryId: String(sourceTransactionId),
-      sourceTransactionId: String(sourceTransactionId),
-    },
-  });
-
-  return {
-    refunded: true,
-    idempotent: false,
-    refundTxId: String(refund?._id || ""),
-  };
+  const uid = toObjectId(userId), sourceId = toObjectId(sourceTransactionId);
+  if (!uid || !sourceId) return { refunded: false, skipped: true, reason: "SOURCE_ID_INVALID" };
+  const { createPaymentContext, withPaymentDb } = deps.paymentDb || await import("../payments/db.js");
+  const context = createPaymentContext({ requestId: `service-refund:${sourceId}`, route: "service-execution-coin-refund" });
+  return (deps.withDb || withPaymentDb)(env || {}, context, db => db.transaction(async tx => {
+    const existing = await tx.findOne(PointHistory, { userId: uid, kind: "refund", "metadata.refundForPointHistoryId": String(sourceId) });
+    if (existing) {
+      if (!featureKey || String(existing.featureKey || "") !== String(featureKey)) return { refunded: false, skipped: true, reason: "REFUND_FEATURE_MISMATCH" };
+      return { refunded: true, idempotent: true, refundTxId: String(existing._id || "") };
+    }
+    const filter = { _id: sourceId, userId: uid, kind: "deduct", "metadata.refundedForServiceExecution": { $ne: true } };
+    const deducted = await tx.findOne(PointHistory, filter);
+    if (!deducted) return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
+    if (!featureKey || String(deducted.featureKey || "") !== String(featureKey)) return { refunded: false, skipped: true, reason: "DEDUCT_FEATURE_MISMATCH" };
+    if (cleanMetadataText(deducted?.metadata?.accessType).toLowerCase() === "membership_credit") return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_DEDUCT" };
+    const delta = Number(deducted.delta);
+    if (!Number.isSafeInteger(delta) || delta >= 0) return { refunded: false, skipped: true, reason: "DEDUCT_AMOUNT_UNVERIFIED" };
+    const protectedResult = await findProtectedFundingExecution({
+      userId: uid, ids: [sourceId, deducted.metadata?.requestId, deducted.metadata?.purchaseId, deducted.metadata?.orderId, requestId],
+      executionId: toObjectId(executionId), failedRequestId,
+    }, (name, filter) => tx.findOne(refundModels[name], filter));
+    if (protectedResult) return {refunded:false,skipped:true,adminReviewRequired:true,reason:'FUNDING_ACTIVE_OR_COMPLETED'};
+    const now = new Date(), refundAmount = -delta;
+    const claimed = await tx.updateOne(PointHistory, filter, { $set: { "metadata.refundedForServiceExecution": true, "metadata.refundedAt": now } });
+    if (claimed.modifiedCount !== 1) throw new Error("COIN_REFUND_SOURCE_CONFLICT");
+    const updated = await tx.findOneAndUpdate(User, { _id: uid }, { $inc: { points: refundAmount } }, { returnDocument: "after", projection: { points: 1 } });
+    const user = updated && "value" in updated && !("_id" in updated) ? updated.value : updated;
+    if (!user || !Number.isFinite(Number(user.points))) throw new Error("USER_NOT_FOUND_FOR_REFUND");
+    const receipt = await tx.insertOne(PointHistory, { userId: uid, kind: "refund", delta: refundAmount,
+      balanceAfter: Number(user.points), reason, featureKey,
+      metadata: { source: receiptSource === "fortune.pig-coin.refund" ? receiptSource : "billing.service-execution", requestId: String(requestId || "").slice(0, 120),
+        executionId: String(executionId || ""), refundForPointHistoryId: String(sourceId), sourceTransactionId: String(sourceId) },
+      createdAt: now, updatedAt: now });
+    return { refunded: true, idempotent: false, amount: refundAmount, refundTxId: String(receipt.insertedId || "") };
+  }));
 }
 
 /**
@@ -515,11 +496,26 @@ async function runPassQuotaRefund({ userId, executionId, execution }) {
     return { refunded: true, idempotent: true, amount: cost };
   }
 
+  const featureKey = cleanMetadataText(execution?.featureKey, 120);
+  const requestId = cleanMetadataText(execution?.idempotencyKey, 180);
+  if (!featureKey || !requestId) return { refunded: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true };
+  const { passUsageEvidenceId } = await import("../payments/passes.js");
+  const sourcePointHistoryId = passUsageEvidenceId(userId, featureKey, requestId);
+  if (!sourcePointHistoryId) return { refunded: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true };
+  const protectedResult = await findProtectedFundingExecution({
+    userId, ids: [sourcePointHistoryId, execution.sourceTransactionId, requestId],
+    executionId: execution._id || executionId, failedRequestId: requestId,
+  }, (name, filter) => refundModels[name].findOne(filter).lean());
+  if (protectedResult) return { refunded: false, skipped: true, adminReviewRequired: true, reason: "FUNDING_ACTIVE_OR_COMPLETED" };
   const { refundPassCoverage } = await import("./pass-consumption.js");
-  const result = await refundPassCoverage({
-    userId, cycleKey, cost,
-    refundId: `${execution.featureKey}:${execution.idempotencyKey || execution.executionKey || executionId}`,
-  });
+  let result;
+  try {
+    result = await refundPassCoverage({ userId, cycleKey, cost, refundId: `${featureKey}:${requestId}`,
+      sourcePointHistoryId, sourceFeatureKey: featureKey, sourceRequestId: requestId });
+  } catch (error) {
+    if (error?.code === "REFUND_PASS_REVIEW") return { refunded: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true };
+    throw error;
+  }
   if (!result.refunded) return result;
   await ServiceExecutionTransaction.updateOne(
     { _id: executionId },
@@ -612,110 +608,6 @@ function collectMonthlyCreditFeatureKeys(execution = {}, featureKey = "") {
   ];
 }
 
-async function resolveMonthlyCreditSourceTransactionId({
-  userId,
-  featureKey,
-  sourceTransactionId,
-  execution = {},
-}) {
-  const hints = extractMonthlyCreditExecutionHints(execution);
-  const direct = cleanMetadataText(sourceTransactionId || hints.pointHistoryHint, 120);
-  if (direct && mongoose.Types.ObjectId.isValid(direct)) {
-    const directPoint = await PointHistory.findOne({
-      _id: direct,
-      userId,
-      kind: "deduct",
-    }).lean();
-    if (directPoint) return String(directPoint._id || "");
-  }
-
-  if (!hints.requestIdHint && !hints.purchaseIdHint && !hints.sessionIdHint && !hints.reportIdHint) {
-    return "";
-  }
-
-  if (hints.ledgerIdHint && mongoose.Types.ObjectId.isValid(hints.ledgerIdHint)) {
-    const ledgerById = await MonthlyCreditLedger.findOne({
-      _id: hints.ledgerIdHint,
-      userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      ...(featureKey ? { serviceKey: featureKey } : {}),
-    }).lean();
-    const ledgerPointId = cleanMetadataText(ledgerById?.metadata?.pointHistoryId, 120);
-    if (ledgerPointId && mongoose.Types.ObjectId.isValid(ledgerPointId)) {
-      return ledgerPointId;
-    }
-  }
-
-  const ledgerOr = [];
-  if (hints.requestIdHint) {
-    ledgerOr.push(
-      { sourceId: hints.requestIdHint },
-      { "metadata.requestId": hints.requestIdHint },
-      { "metadata.idempotencyKey": hints.requestIdHint },
-      { "metadata.orderId": hints.requestIdHint },
-    );
-  }
-  if (hints.purchaseIdHint) {
-    ledgerOr.push(
-      { sourceId: hints.purchaseIdHint },
-      { "metadata.purchaseId": hints.purchaseIdHint },
-      { "metadata.orderId": hints.purchaseIdHint },
-    );
-  }
-  if (ledgerOr.length > 0) {
-    const spendLedger = await MonthlyCreditLedger.findOne({
-      userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      ...(featureKey ? { serviceKey: featureKey } : {}),
-      $or: ledgerOr,
-    }).sort({ createdAt: -1 }).lean();
-    const spendLedgerPointId = cleanMetadataText(spendLedger?.metadata?.pointHistoryId, 120);
-    if (spendLedgerPointId && mongoose.Types.ObjectId.isValid(spendLedgerPointId)) {
-      return spendLedgerPointId;
-    }
-  }
-
-  const pointHistoryOr = [];
-  if (hints.requestIdHint) {
-    pointHistoryOr.push(
-      { "metadata.requestId": hints.requestIdHint },
-      { "metadata.idempotencyKey": hints.requestIdHint },
-      { "metadata.orderId": hints.requestIdHint },
-    );
-  }
-  if (hints.purchaseIdHint) {
-    pointHistoryOr.push(
-      { "metadata.purchaseId": hints.purchaseIdHint },
-      { "metadata.orderId": hints.purchaseIdHint },
-      { _id: mongoose.Types.ObjectId.isValid(hints.purchaseIdHint) ? hints.purchaseIdHint : undefined },
-    );
-  }
-  if (hints.sessionIdHint) {
-    pointHistoryOr.push(
-      { "metadata.sessionId": hints.sessionIdHint },
-      { "metadata.reportSessionId": hints.sessionIdHint },
-    );
-  }
-  if (hints.reportIdHint) {
-    pointHistoryOr.push(
-      { "metadata.reportId": hints.reportIdHint },
-    );
-  }
-  const safePointHistoryOr = pointHistoryOr.filter((entry) => Object.values(entry)[0] !== undefined);
-  if (safePointHistoryOr.length === 0) return "";
-
-  const pointHistory = await PointHistory.findOne({
-    userId,
-    kind: "deduct",
-    "metadata.accessType": "membership_credit",
-    ...(featureKey ? { featureKey } : {}),
-    $or: safePointHistoryOr,
-  }).sort({ createdAt: -1 }).lean();
-  if (!pointHistory) return "";
-
-  return cleanMetadataText(pointHistory._id, 120);
-}
-
 /**
  * 월정석 자동환불 진입점.
  *
@@ -725,296 +617,75 @@ async function resolveMonthlyCreditSourceTransactionId({
  * 굳었다(재시도 리퍼는 pending 만 줍는다). 구 데이터를 위해 PointHistory 갈래를 먼저 태우고,
  * 그것이 "차감 이력 없음"으로 끝나면 원장 갈래로 넘긴다.
  */
-export async function runMonthlyCreditRefund({
-  env,
-  userId,
-  featureKey,
-  sourceTransactionId,
-  executionId,
-  requestId,
-  reason,
-  execution,
-}) {
-  const legacy = await runMonthlyCreditPointHistoryRefund({
-    userId,
-    featureKey,
-    sourceTransactionId,
-    executionId,
-    requestId,
-    reason,
-    execution,
-  });
-  if (legacy.reason !== "DEDUCT_HISTORY_NOT_FOUND") return legacy;
-
-  return runMonthlyCreditLedgerRefund({
-    env,
-    userId,
-    featureKey: cleanMetadataText(featureKey, 80),
-    executionId,
-    requestId,
-    reason,
-    execution,
-  });
-}
-
-/**
- * V2 월정석 원장 기반 환불.
- *
- * 🔴 원장 조회는 반드시 정본 findMoonstoneSpendEvidence 에 위임한다 — 라우트마다 복제한 원장
- * 쿼리가 writer 변경 때 조용히 죽은 사고가 3건 있었고(docs/context/payment-gating.md),
- * 여기에 16번째 사본을 만들면 같은 함정을 되판다.
- */
-async function runMonthlyCreditLedgerRefund({
-  env,
-  userId,
-  featureKey,
-  executionId,
-  requestId,
-  reason,
-  execution,
-}) {
-  const uid = cleanMetadataText(userId, 64);
-  const executionKey = cleanMetadataText(executionId, 120);
-  if (!uid || !executionKey) return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
-
-  // 🔴 멱등키를 원장 id 가 아니라 **실행 id** 로 잡는 이유: 환불이 원본 SPEND 행에
-  // refundedForServiceExecution 표식을 찍고 나면 정본 조회기가 REFUND_MARKERS 로 그 행을 영영
-  // 배제한다. 원장 기준 키였다면 재진입 때 증빙을 못 찾아 idempotent 대신 DEDUCT_HISTORY_NOT_FOUND
-  // 로 떨어진다. 실행 id 는 표식과 무관하게 항상 같은 값이고, 이 함수의 유일한 호출자
-  // settleExecutionById 가 항상 넘긴다.
-  const refundSourceId = `service-exec-refund:exec:${executionKey}`.slice(0, 180);
-  const existingLedger = await MonthlyCreditLedger.findOne({
-    userId: uid,
-    type: "MONTHLY_CREDIT_GRANT",
-    sourceId: refundSourceId,
-  }).lean();
-  if (existingLedger) {
-    return {
-      refunded: true,
-      idempotent: true,
-      amount: Number(existingLedger.amount || 0),
-      ledgerId: String(existingLedger._id || ""),
-    };
-  }
-
-  const hints = extractMonthlyCreditExecutionHints(execution);
-  const evidence = await findMoonstoneSpendEvidence(env, {
-    userId: uid,
-    featureKeys: collectMonthlyCreditFeatureKeys(execution, featureKey),
-    tokens: collectMonthlyCreditLedgerTokens(execution, hints),
-  });
-  if (!evidence) return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
-
-  // 🔴 원장 amount 는 이미 **월정석 단위**의 양수다(moonstone.js 가 cost 를 그대로 적는다).
-  // execution.cost 는 코인 단위라서, 코인 단가(MEMBERSHIP_CREDIT_PER_COIN=10)로 환산하거나
-  // execution.cost 를 대신 쓰면 10배를 물어준다.
-  const amount = normalizeCost(evidence.amount);
-  if (amount <= 0) return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_AMOUNT_MISSING" };
-
-  // 🔴 pullRequestId 는 선택 인자가 아니다 — 차감 때 lot CAS 가 recentConsumeRequestIds 에 넣은
-  // sourceId 를 빼 주지 않으면 같은 purchaseId 재구매가 ALREADY_PROCESSED 로 402 를 맞고
-  // E11000 이 안 나므로 키 해제 경로조차 돌지 않는다(= 환불받고 영영 못 여는 락).
-  const updatedUser = await restoreMonthlyCreditLot({
-    userId: uid,
-    lotId: refundSourceId,
-    amount,
-    pullRequestId: cleanMetadataText(evidence.sourceId, 160),
-  });
-  if (!updatedUser) throw new Error("USER_NOT_FOUND_FOR_MONTHLY_CREDIT_REFUND");
-
-  const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
-  const ledger = await MonthlyCreditLedger.create({
-    userId: uid,
-    type: "MONTHLY_CREDIT_GRANT",
-    amount,
-    beforeBalance: Math.max(0, afterBalance - amount),
-    afterBalance,
-    reason,
-    sourceId: refundSourceId,
-    serviceKey: cleanMetadataText(evidence.serviceKey || featureKey, 120),
-    profileId: cleanMetadataText(execution?.profileId, 120),
-    metadata: {
-      source: "billing.service-execution",
-      requestId: String(requestId || "").slice(0, 120),
-      executionId: executionKey,
-      originalLedgerId: cleanMetadataText(evidence.ledgerId, 120),
-      sourceTransactionId: cleanMetadataText(evidence.sourceId, 160),
-      accessType: "membership_credit",
-      refundedAt: new Date(),
-    },
-  }).catch(async (error) => {
-    // 같은 실행에 대한 동시 정산 — 유니크 인덱스 {userId,type,sourceId}가 잡는다.
-    if (Number(error?.code) !== 11000) throw error;
-    return MonthlyCreditLedger.findOne({ userId: uid, type: "MONTHLY_CREDIT_GRANT", sourceId: refundSourceId }).lean();
-  });
-
-  await MonthlyCreditLedger.updateOne(
-    { _id: evidence.ledgerId, userId: uid },
-    {
-      $set: {
-        "metadata.refundedForServiceExecution": true,
-        // 원장 쪽 키 해제 계약 표식 — releaseRefundedSpendSourceId 가 이 표식으로만 환불 원장을
-        // 골라 sourceId 를 비운다(재구매 가능하게).
-        "metadata.refundedForUnlockFailure": true,
-        "metadata.refundedAt": new Date(),
-        "metadata.refundExecutionId": executionKey,
-        "metadata.refundLedgerId": String(ledger?._id || ""),
-      },
-    },
-  ).catch(() => {});
-
-  return {
-    refunded: true,
-    idempotent: false,
-    amount,
-    ledgerId: String(ledger?._id || ""),
-  };
-}
-
-async function runMonthlyCreditPointHistoryRefund({
-  userId,
-  featureKey,
-  sourceTransactionId,
-  executionId,
-  requestId,
-  reason,
-  execution,
-}) {
-  const resolvedSourceTransactionId = cleanMetadataText(
-    await resolveMonthlyCreditSourceTransactionId({
-      userId,
-      featureKey: cleanMetadataText(featureKey, 80),
-      sourceTransactionId,
-      execution,
-    }),
-    120,
-  );
-  if (!resolvedSourceTransactionId) return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
-
-  if (executionId && resolvedSourceTransactionId !== cleanMetadataText(sourceTransactionId, 120)) {
-    await ServiceExecutionTransaction.updateOne(
-      { _id: executionId, userId, sourceTransactionId: { $ne: resolvedSourceTransactionId } },
-      { $set: { sourceTransactionId: resolvedSourceTransactionId } },
-    ).catch(() => {});
-  }
-
-  if (!mongoose.Types.ObjectId.isValid(String(resolvedSourceTransactionId))) {
-    return { refunded: false, skipped: true, reason: "SOURCE_TRANSACTION_NOT_POINT_HISTORY_ID" };
-  }
-
-  const deducted = await PointHistory.findOne({
-    _id: resolvedSourceTransactionId,
-    userId,
-    kind: "deduct",
-  }).lean();
-  if (!deducted) return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
-
-  const metadata = deducted?.metadata && typeof deducted.metadata === "object" ? deducted.metadata : {};
-  const accessType = cleanMetadataText(metadata.accessType).toLowerCase();
-  if (accessType !== "membership_credit") return { refunded: false, skipped: true, reason: "NOT_MEMBERSHIP_CREDIT" };
-
-  const refundSourceId = `service-exec-refund:${String(sourceTransactionId)}`.slice(0, 180);
-  const existingLedger = await MonthlyCreditLedger.findOne({
-    userId,
-    type: "MONTHLY_CREDIT_GRANT",
-    sourceId: refundSourceId,
-  }).lean();
-  if (existingLedger) {
-    return {
-      refunded: true,
-      idempotent: true,
-      amount: Number(existingLedger.amount || 0),
-      ledgerId: String(existingLedger._id || ""),
-    };
-  }
-
-  const amount = normalizeCost(
-    metadata.membershipCreditCost
-    || metadata.requiredMonthlyCredits
-    || metadata.monthlyCreditCost
-    || 0,
-  );
-  if (amount <= 0) return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_AMOUNT_MISSING" };
-
-  // 복원분은 신규 30일 lot으로 재적립(원래 lot의 만료를 되살리지 않음). lotId=refundSourceId로 멱등.
-  // 🔴 pullRequestId 는 선택 인자가 아니다 — 차감 때 applyLotDeduction 이 recentConsumeRequestIds 에
-  // 밀어 넣은 purchaseId 를 여기서 빼 주지 않으면, 같은 purchaseId 재구매가 ALREADY_PROCESSED 로
-  // 402 를 맞고 E11000 이 안 나므로 키 해제 경로조차 돌지 않는다(= 환불받고 영영 못 여는 락).
-  // buildHistoryPayload 가 metadata.purchaseId 에 그 마커 값을 그대로 쓰므로 1:1로 되짚을 수 있다.
-  const consumeRequestId = cleanMetadataText(
-    metadata.purchaseId || metadata.idempotencyKey || metadata.orderId || metadata.requestId,
-    160,
-  );
-  const updatedUser = await restoreMonthlyCreditLot({
-    userId,
-    lotId: refundSourceId,
-    amount,
-    pullRequestId: consumeRequestId,
-  });
-  if (!updatedUser) throw new Error("USER_NOT_FOUND_FOR_MONTHLY_CREDIT_REFUND");
-
-  const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
-  const ledger = await MonthlyCreditLedger.create({
-    userId,
-    type: "MONTHLY_CREDIT_GRANT",
-    amount,
-    beforeBalance: Math.max(0, afterBalance - amount),
-    afterBalance,
-    reason,
-    sourceId: refundSourceId,
-    serviceKey: featureKey,
-    profileId: cleanMetadataText(metadata.profileId || metadata.selectedProfileId, 120),
-    metadata: {
-      source: "billing.service-execution",
-      requestId: String(requestId || "").slice(0, 120),
-      executionId: String(executionId || ""),
-      refundForPointHistoryId: String(sourceTransactionId),
-      sourceTransactionId: String(sourceTransactionId),
-      originalLedgerId: cleanMetadataText(metadata.ledgerId || metadata.monthlyCreditLedgerId, 120),
-      accessType: "membership_credit",
-      refundedAt: new Date(),
-    },
-  });
-
-  await PointHistory.updateOne(
-    { _id: sourceTransactionId, userId },
-    {
-      $set: {
-        "metadata.monthlyCreditRefundedForServiceExecution": true,
-        // 키 해제 계약 표식 — readIdempotentSpendResult(billing.js)의 PointHistory 갈래가 이 표식만
-        // 배제한다. 없으면 환불된 이력이 "이미 결제됨"으로 replay 돼 무료 재생성이 성립한다.
-        "metadata.monthlyCreditRefundedForUnlockFailure": true,
-        "metadata.monthlyCreditRefundedAt": new Date(),
-        "metadata.monthlyCreditRefundExecutionId": String(executionId || ""),
-        "metadata.monthlyCreditRefundLedgerId": String(ledger?._id || ""),
-      },
-    },
-  ).catch(() => {});
-
-  const originalLedgerId = cleanMetadataText(metadata.ledgerId || metadata.monthlyCreditLedgerId, 120);
-  if (originalLedgerId && mongoose.Types.ObjectId.isValid(originalLedgerId)) {
-    await MonthlyCreditLedger.updateOne(
-      { _id: originalLedgerId, userId },
-      {
-        $set: {
-          "metadata.refundedForServiceExecution": true,
-          // 원장 쪽 키 해제 계약 표식 — releaseRefundedSpendSourceId 가 이 표식으로만 환불 원장을
-          // 골라 sourceId 를 비운다(재구매 가능하게).
-          "metadata.refundedForUnlockFailure": true,
-          "metadata.refundedAt": new Date(),
-          "metadata.refundExecutionId": String(executionId || ""),
-          "metadata.refundLedgerId": String(ledger?._id || ""),
-        },
-      },
-    ).catch(() => {});
-  }
-
-  return {
-    refunded: true,
-    idempotent: false,
-    amount,
-    ledgerId: String(ledger?._id || ""),
-  };
+export async function runMonthlyCreditRefund({ env, userId, featureKey, sourceTransactionId, executionId, requestId, reason, execution = {} }, deps = {}) {
+  const uid = toObjectId(userId);
+  const keys = collectMonthlyCreditFeatureKeys(execution, featureKey);
+  const tokens = [...new Set([cleanMetadataText(sourceTransactionId, 180), ...collectMonthlyCreditLedgerTokens(execution, extractMonthlyCreditExecutionHints(execution))].filter(Boolean))];
+  if (!uid || !keys.length || !tokens.length) return { refunded: false, skipped: true, reason: 'DEDUCT_HISTORY_NOT_FOUND' };
+  const { createPaymentContext, withPaymentDb } = deps.paymentDb || await import('../payments/db.js');
+  const { restoreMonthlyCreditLotWithDb } = deps.creditStore || await import('./monthly-credit-store.js');
+  const context = createPaymentContext({ requestId: `monthly-refund:${executionId || requestId}`, route: 'service-execution-monthly-refund' });
+  return (deps.withDb || withPaymentDb)(env || {}, context, db => db.transaction(async tx => {
+    // A committed receipt survives expired/spent refund lots and a lost execution-close response.
+    if (executionId) {
+      const previous = await tx.findOne(MonthlyCreditLedger, { userId: uid, type: 'MONTHLY_CREDIT_GRANT', serviceKey: {$in:keys}, 'metadata.executionId': String(executionId), 'metadata.source': 'billing.service-execution' });
+      if (previous?.settledAt) return { refunded:true, idempotent:true, amount:previous.amount, ledgerId:String(previous._id) };
+      // Pre-transaction receipts may be incomplete; do not automatically pay them again.
+      if (previous) return { refunded:false, skipped:true, adminReviewRequired:true, reason:'MONTHLY_REFUND_RECEIPT_REVIEW_REQUIRED' };
+    }
+    // A different retry can refer to the same original debit after its spend proof is excluded.
+    const sourceReceipt = await tx.findOne(MonthlyCreditLedger, {
+      userId: uid, type: 'MONTHLY_CREDIT_GRANT', serviceKey: {$in: keys},
+      'metadata.source': 'billing.service-execution',
+      $or: [{'metadata.originalLedgerId': {$in: tokens}}, {'metadata.refundForPointHistoryId': {$in: tokens}}, {'metadata.sourceTransactionId': {$in: tokens}}],
+    });
+    if (sourceReceipt) return sourceReceipt.settledAt
+      ? {refunded: true, idempotent: true, amount: sourceReceipt.amount, ledgerId: String(sourceReceipt._id)}
+      : {refunded: false, skipped: true, adminReviewRequired: true, reason: 'MONTHLY_REFUND_RECEIPT_REVIEW_REQUIRED'};
+    const debitClauses = tokens.flatMap(token => [
+      ...(toObjectId(token) ? [{_id:toObjectId(token)}] : []),
+      {'metadata.requestId':token},{'metadata.idempotencyKey':token},{'metadata.purchaseId':token},{'metadata.orderId':token}
+    ]);
+    const legacy = await tx.findOne(PointHistory, {userId:uid, kind:'deduct', featureKey:{$in:keys}, 'metadata.accessType':'membership_credit', $or:debitClauses});
+    let evidence, source, sourceModel, sourceFilter;
+    if (legacy) {
+      source = String(legacy._id); sourceModel = PointHistory;
+      const receipt = await tx.findOne(MonthlyCreditLedger, {userId:uid,type:'MONTHLY_CREDIT_GRANT','metadata.refundForPointHistoryId':source});
+      if (receipt) return receipt.settledAt ? {refunded:true,idempotent:true,amount:receipt.amount,ledgerId:String(receipt._id)} : {refunded:false,skipped:true,adminReviewRequired:true,reason:'MONTHLY_REFUND_RECEIPT_REVIEW_REQUIRED'};
+      const meta = legacy.metadata || {};
+      if (meta.monthlyCreditRefundedForServiceExecution || meta.monthlyCreditRefundedForUnlockFailure || meta.monthlyCreditRefundedForLedgerFailure) return {refunded:false,skipped:true,adminReviewRequired:true,reason:'MONTHLY_REFUND_SOURCE_ALREADY_MARKED'};
+      const amount = Number(meta.membershipCreditCost || meta.requiredMonthlyCredits || meta.monthlyCreditCost || 0);
+      evidence = {amount,ledgerId:source,sourceId:meta.purchaseId || meta.idempotencyKey || meta.orderId || meta.requestId || '',serviceKey:legacy.featureKey};
+      sourceFilter = {_id:legacy._id,userId:uid,kind:'deduct',featureKey:legacy.featureKey,'metadata.monthlyCreditRefundedForServiceExecution':{$ne:true}};
+    } else {
+      evidence = await (deps.findEvidence || findMoonstoneSpendEvidence)(env,{userId:uid,featureKeys:keys,tokens,db:tx});
+      if (!evidence) return {refunded:false,skipped:true,reason:'DEDUCT_HISTORY_NOT_FOUND'};
+      source = String(evidence.ledgerId); sourceModel = MonthlyCreditLedger;
+      if (!toObjectId(source)) return {refunded:false,skipped:true,reason:'DEDUCT_SOURCE_INVALID'};
+      sourceFilter = {_id:toObjectId(source),userId:uid,type:'MONTHLY_CREDIT_SPEND','metadata.refundedForServiceExecution':{$ne:true}};
+    }
+    if (!Number.isSafeInteger(evidence.amount) || evidence.amount <= 0) return {refunded:false,skipped:true,reason:'MEMBERSHIP_CREDIT_AMOUNT_MISSING'};
+    const refundSourceId = `service-exec-refund:${legacy ? 'point' : 'ledger'}:${source}`;
+    const receipt = await tx.findOne(MonthlyCreditLedger,{userId:uid,type:'MONTHLY_CREDIT_GRANT',sourceId:refundSourceId});
+    if (receipt) return receipt.settledAt ? {refunded:true,idempotent:true,amount:receipt.amount,ledgerId:String(receipt._id)} : {refunded:false,skipped:true,adminReviewRequired:true,reason:'MONTHLY_REFUND_RECEIPT_REVIEW_REQUIRED'};
+    const other = await findProtectedFundingExecution({
+      userId: uid, ids: [source, ...tokens], executionId: toObjectId(executionId), failedRequestId: requestId,
+    }, (name, filter) => tx.findOne(refundModels[name], filter));
+    if (other) return {refunded:false,skipped:true,adminReviewRequired:true,reason:'MONTHLY_SOURCE_ACTIVE_OR_COMPLETED'};
+    const now = new Date();
+    const marked = await tx.updateOne(sourceModel,sourceFilter,{$set:legacy ? {
+      'metadata.monthlyCreditRefundedForServiceExecution':true,'metadata.monthlyCreditRefundedForUnlockFailure':true,'metadata.monthlyCreditRefundedAt':now
+    } : {'metadata.refundedForServiceExecution':true,'metadata.refundedForUnlockFailure':true,'metadata.refundedAt':now}});
+    if (marked.modifiedCount !== 1) throw new Error('MONTHLY_REFUND_SOURCE_CONFLICT');
+    const restored = await restoreMonthlyCreditLotWithDb(tx,{userId:uid,lotId:refundSourceId,amount:evidence.amount,pullRequestId:cleanMetadataText(evidence.sourceId,160),returnDetails:true});
+    if (!restored?.added) throw new Error('MONTHLY_REFUND_BALANCE_CONFLICT');
+    const inserted = await tx.insertOne(MonthlyCreditLedger,{userId:uid,type:'MONTHLY_CREDIT_GRANT',sourceId:refundSourceId,amount:evidence.amount,beforeBalance:restored.beforeBalance,afterBalance:restored.afterBalance,serviceKey:evidence.serviceKey || featureKey,profileId:cleanMetadataText(execution.profileId,120),reason,createdAt:now,updatedAt:now,settledAt:now,metadata:{source:'billing.service-execution',requestId:String(requestId || '').slice(0,120),executionId:String(executionId || ''),originalLedgerId:legacy ? cleanMetadataText(legacy.metadata?.ledgerId || legacy.metadata?.monthlyCreditLedgerId,120) : source,...(legacy?{refundForPointHistoryId:source}:{}),sourceTransactionId:cleanMetadataText(evidence.sourceId,160),accessType:'membership_credit',refundedAt:now}});
+    if (legacy) {
+      const originalLedgerId = toObjectId(legacy.metadata?.ledgerId || legacy.metadata?.monthlyCreditLedgerId);
+      if (originalLedgerId) await tx.updateOne(MonthlyCreditLedger,{_id:originalLedgerId,userId:uid},{$set:{'metadata.refundedForServiceExecution':true,'metadata.refundedForUnlockFailure':true,'metadata.refundedAt':now}});
+    }
+    return {refunded:true,idempotent:false,amount:evidence.amount,ledgerId:String(inserted.insertedId)};
+  }));
 }
 
 export async function runPaymentCancel(env, paymentRef = {}, reason, execution = {}) {
@@ -1035,8 +706,19 @@ export async function runPaymentCancel(env, paymentRef = {}, reason, execution =
   }).lean());
 
   if (!payment) return { cancelled: false, skipped: true };
+  if (!execution.userId || String(payment.userId || "") !== String(execution.userId)) {
+    return { cancelled: false, skipped: true, reason: "PAYMENT_OWNER_MISMATCH" };
+  }
+  if (!execution.featureKey || String(payment.featureKey || "") !== String(execution.featureKey)) {
+    return { cancelled: false, skipped: true, reason: "PAYMENT_FEATURE_MISMATCH" };
+  }
+  if (cleanMetadataText(payment.paymentType, 80).toLowerCase() === "membership_pass") {
+    return { cancelled: false, skipped: true, reason: "PASS_PURCHASE_NOT_CONSULTATION_REFUND" };
+  }
   if (String(payment.status || "") === "cancelled" || String(payment.status || "") === "refunded") {
-    return { cancelled: true, idempotent: true };
+    return payment.metadata?.unlockRevoked === true
+      ? { cancelled: true, idempotent: true, unlockRevoked: true }
+      : { cancelled: true, idempotent: true, adminReviewRequired: true, reason: "PAYMENT_ACCESS_REVOCATION_UNCONFIRMED" };
   }
   // 🔴 "paid" 를 빼면 **V2 카드 결제 전부**가 자동 환불에서 조용히 빠진다. V2 의 승인 종착 상태는
   // orders.js markOrderPaid 가 쓰는 status:"paid"(orderState:"PAID_VERIFIED") 이고, 같은 Payment
@@ -1049,25 +731,39 @@ export async function runPaymentCancel(env, paymentRef = {}, reason, execution =
   const accessType = cleanMetadataText(payment.accessType, 80).toLowerCase();
   const paymentMethod = cleanMetadataText(payment.paymentMethod, 80).toLowerCase();
   const singlePurchasePayment = paymentType === "digital_content" && accessType === "single_purchase";
-  const membershipPassPayment = paymentType === "membership_pass";
   if (paymentMethod === "monthly_credit") {
     return { cancelled: false, skipped: true, reason: "MONTHLY_CREDIT_NOT_PG" };
   }
-  if (!singlePurchasePayment && !membershipPassPayment) {
+  if (!singlePurchasePayment) {
     return { cancelled: false, skipped: true, reason: "PAYMENT_CANCEL_NOT_ELIGIBLE" };
   }
   if (singlePurchasePayment && Number(payment.chargedPoints || 0) > 0) {
     return { cancelled: false, skipped: true, reason: "POINT_CHARGE_ROLLBACK_REQUIRED" };
   }
 
-  const refundIdempotencyKey = buildRefundIdempotencyKey(execution, payment);
-  const canceledPortOne = await cancelPortOnePayment(env, {
-    impUid: payment.impUid || impUid,
-    merchantUid: payment.merchantUid || merchantUid,
-    reason,
-    checksum: Number(payment.paymentAmount || 0) || undefined,
-    idempotencyKey: refundIdempotencyKey,
-  });
+  // The payment, not the generation attempt, owns the single cancellation intent.
+  const refundIdempotencyKey = normalizeRefundIdempotencyKey('service-refund-payment-' + String(payment._id));
+  const other = await withMongoRetry(env, () => findProtectedFundingExecution({
+    userId: execution.userId, ids: [payment._id, payment.impUid, payment.merchantUid, payment.requestId, execution.sourceTransactionId],
+    executionId: execution._id, failedRequestId: execution.executionKey || execution.idempotencyKey,
+  }, (name, filter) => refundModels[name].findOne(filter).lean()), { retries: 0 });
+  if (other) return {cancelled:false,skipped:true,adminReviewRequired:true,reason:'PAYMENT_ACTIVE_OR_COMPLETED'};
+  const claim = await withMongoRetry(env, () => Payment.updateOne({
+    _id:payment._id, userId:execution.userId, status:{$in:[...REFUNDABLE_PAYMENT_STATUSES]},
+    'metadata.serviceRefundClaimedAt':{$exists:false},
+  }, {$set:{'metadata.serviceRefundClaimedAt':nowDate(),'metadata.refundIdempotencyKey':refundIdempotencyKey,'metadata.refundStatus':'pending'}}), {retries:0});
+  if (claim.modifiedCount === 1) {
+    try {
+      await cancelPortOnePayment(env, {impUid:payment.impUid || impUid,merchantUid:payment.merchantUid || merchantUid,
+        reason,checksum:Number(payment.paymentAmount || 0) || undefined,idempotencyKey:refundIdempotencyKey});
+    } catch { /* A lost response is reconciled by lookup; never issue a second POST. */ }
+  }
+  let canceledPortOne;
+  try { const { fetchPortOnePayment } = await import("./portone.js"); canceledPortOne = await fetchPortOnePayment(env, payment.impUid || impUid || payment.merchantUid || merchantUid); }
+  catch { return {cancelled:false,adminReviewRequired:true,reason:'PAYMENT_CANCEL_OUTCOME_UNKNOWN'}; }
+  // The normalizer also calls a partial cancellation 'cancelled'. Provider truth is required.
+  const providerStatus = String(canceledPortOne?.rawV2?.status || canceledPortOne?.status || '').toUpperCase();
+  if (!['CANCELLED','CANCELED'].includes(providerStatus)) return {cancelled:false,adminReviewRequired:true,reason:'PAYMENT_FULL_CANCELLATION_UNCONFIRMED'};
 
   const now = nowDate();
   let revocation = { unlockRevoked: false, adminReviewRequired: false };
@@ -1131,15 +827,16 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
   }
 
   const reason = normalizeReason(reasonCode, reasonMessage);
-  if (reason.code === "timeout_auto_refund") {
-    const checkpoint = await inspectCheckpointBeforeTimeoutRefund(execution);
+  {
+    const checkpoint = await inspectCheckpointBeforeTimeoutRefund(execution, { includeResumable: reason.code === "timeout_auto_refund" });
     if (["completed", "recoverable", "unknown"].includes(checkpoint)) {
       const now = nowDate();
       const fields = checkpoint === "completed"
         ? { status: "success", premiumStatus: "completed", deliveryStatus: "delivered", completedAt: now, deliveredAt: now }
-        : { nextRetryAt: new Date(now.getTime() + DEFAULT_TIMEOUT_SECONDS * 1000) };
+        : { nextRetryAt: new Date(now.getTime() + DEFAULT_TIMEOUT_SECONDS * 1000),
+          ...(reason.code !== "timeout_auto_refund" ? { "compensation.adminReviewRequired": true, reasonCode: "DELIVERY_CHECKPOINT_REVIEW_REQUIRED" } : {}) };
       const updated = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ _id: execution._id, status: "pending", "lock.token": execution.lock?.token || "" }, {
-        $set: { ...fields, "lock.token": "", "lock.until": null },
+        $set: { ...fields, refundStatus: "none", "lock.token": "", "lock.until": null },
       }, { returnDocument: "after" }).lean(), { retries: 0 });
       return { ok: Boolean(updated), status: updated?.status || "pending", checkpoint };
     }
@@ -1201,10 +898,10 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
   });
 
   try {
-    // 🔴 환급 두 갈래는 **호출 통째로** 감싼다 — 안에 PointHistory.create / MonthlyCreditLedger.create /
-    // User $inc 가 있어 op 단위로 쪼개면 그 사이에 웜 커넥션이 끊길 수 있다(부분 환급).
-    // {retries:0} 은 이중 환급 방지이고, 이 서브트리 안에 재시도를 새로 추가하지 말 것.
-    const coinResult = await withMongoRetry(env, () => runCoinRefund({
+    // 차감 표식·잔액·영수증은 runCoinRefund의 한 트랜잭션에서 함께 처리한다.
+    // 내부 withPaymentDb가 단일 DB admission을 소유하므로 바깥에서 다시 감싸지 않는다.
+    const coinResult = await runCoinRefund({
+      env,
       userId: execution.userId,
       featureKey: execution.featureKey,
       cost: Number(execution.cost || 0),
@@ -1212,13 +909,10 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       executionId: String(execution._id),
       requestId,
       reason: `${reason.message}`.slice(0, 120),
-    }), { retries: 0 });
+    });
 
-    // attemptTimeoutMS 15000 — PointHistory 갈래(조회 5회 + 원장 생성 + 갱신 2회)와, 그것이 비었을
-    // 때 이어 도는 원장 갈래(증빙 조회 + lot 복원 + 원장 생성/갱신)를 합쳐 이 파일에서 가장 긴 단위다.
-    // 🔴 15000 을 넘기지 않는다: db.js 의 ABANDONED_OP_MAX_AGE_MS 가 15초라, 그보다 오래 도는 콜백은
-    // 꼬리에서 in-flight 집계가 풀려 감싼 의미가 사라진다.
-    const monthlyCreditResult = await withMongoRetry(env, () => runMonthlyCreditRefund({
+    // 잔액과 원장 복원은 내부의 단일 트랜잭션으로 처리한다.
+    const monthlyCreditResult = coinResult.refunded ? {refunded:false,skipped:true,reason:"SOURCE_ALREADY_RESTORED"} : coinResult.adminReviewRequired ? {refunded:false,adminReviewRequired:true,reason:coinResult.reason} : await runMonthlyCreditRefund({
       env,
       userId: execution.userId,
       featureKey: execution.featureKey,
@@ -1227,17 +921,21 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       requestId,
       execution,
       reason: `${reason.message}`.slice(0, 120),
-    }), { retries: 0, attemptTimeoutMS: 15000 });
+    });
 
-    const passQuotaResult = await withMongoRetry(env, () => runPassQuotaRefund({
+    const passQuotaResult = (coinResult.refunded || monthlyCreditResult.refunded) ? {refunded:false,skipped:true,reason:"SOURCE_ALREADY_RESTORED"} : (coinResult.adminReviewRequired || monthlyCreditResult.adminReviewRequired) ? {refunded:false,adminReviewRequired:true,reason:"REFUND_SOURCE_REVIEW_REQUIRED"} : await withMongoRetry(env, () => runPassQuotaRefund({
       userId: execution.userId,
       executionId: String(execution._id),
       execution,
     }), { retries: 0 });
 
-    const paymentResult = await runPaymentCancel(env, execution.paymentRef || {}, reason.message, execution);
+    const paymentResult = (coinResult.refunded || monthlyCreditResult.refunded || passQuotaResult.refunded)
+      ? { cancelled: false, skipped: true, reason: "SOURCE_ALREADY_RESTORED" }
+      : (passQuotaResult.adminReviewRequired || monthlyCreditResult.adminReviewRequired)
+      ? { cancelled: false, skipped: true, reason: "REFUND_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true }
+      : await runPaymentCancel(env, execution.paymentRef || {}, reason.message, execution);
 
-    const nextStatus = coinResult.refunded
+    const nextStatus = (passQuotaResult.adminReviewRequired || monthlyCreditResult.adminReviewRequired || paymentResult.adminReviewRequired) ? "failed" : coinResult.refunded
       || monthlyCreditResult.refunded
       || passQuotaResult.refunded
       || paymentResult.cancelled
@@ -1278,7 +976,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
           "compensation.passQuotaRefundAmount": Number(passQuotaResult.amount || 0),
           "compensation.paymentCancelled": Boolean(paymentResult.cancelled),
           "compensation.unlockRevoked": Boolean(paymentResult.unlockRevoked),
-          "compensation.adminReviewRequired": Boolean(paymentResult.adminReviewRequired),
+          "compensation.adminReviewRequired": Boolean(paymentResult.adminReviewRequired || passQuotaResult.adminReviewRequired || monthlyCreditResult.adminReviewRequired),
           "lock.token": "",
           "lock.until": null,
           "lock.acquiredAt": null,

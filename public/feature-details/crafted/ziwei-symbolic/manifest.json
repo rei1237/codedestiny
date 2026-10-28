@@ -1,0 +1,98 @@
+{
+  "id": "ziwei-symbolic",
+  "featureKey": "ziwei_symbolic_layer",
+  "title": "자미두수 상징 보조층",
+  "notice": "명궁·신궁/현실축·사화·그림자 자료를 상징 인장으로 풀어 읽는 선택형 보조 해설입니다. 인장 카드와 중복 요약,상징 변환 근거,재물·직업·관계·건강리듬·이동 다섯 영역의 내부 참고지수,인장별 유래·의미·활용,조건부 빛과 그림자·생활 적용 제안을 제공합니다. 자료에 따라 항목이 달라집니다. 신화 이름은 서비스의 상징 표현이며 서양 점성술이나 별도 점술의 계산,초자연적 보호,실물 부적을 제공하지 않습니다. 점수는 성공확률·의료진단·투자판단이 아니며 사람의 가치를 평가하지 않습니다. 기존 명반을 이용한 해석이며 새 AI답변·전문가상담·PDF는 별도입니다. 예시는 가상편집으로 실제결과·후기가 아니며 이미지는 분위기 연출입니다. 현재 해금 조건을 확인해 주세요.",
+  "panels": [
+    {
+      "id": "01-a-symbol-you-can-remember",
+      "title": "명반의 긴 해설을, 기억할 수 있는 상징으로.",
+      "alt": "명반의 긴 해설을, 기억할 수 있는 상징으로.",
+      "src": "/feature-details/crafted/ziwei-symbolic/01-a-symbol-you-can-remember.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "명반의 긴 해설을,\n기억할 수 있는 상징으로.\n\n별의 설명을 다 외우지 않아도,\n오늘의 선택 앞에서 떠올릴 수 있도록.\n명궁·신궁·사화의 인장을 읽어요.\n\n정통 명반 해석에 덧붙이는\n선택형 상징 보조층.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-symbolic/01-a-symbol-you-can-remember-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-four-seals-four-questions",
+      "title": "네 가지 인장에, 서로 다른 질문을 담아요.",
+      "alt": "네 가지 인장에, 서로 다른 질문을 담아요.",
+      "src": "/feature-details/crafted/ziwei-symbolic/02-four-seals-four-questions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "네 가지 인장에,\n서로 다른 질문을 담아요.\n본명 인장\n\n명궁의 주성이 보여주는 나의 기질\n\n현실축 인장\n\n신궁과 생활 무대에서의 역할\n\n사화 인장\n\n기회와 과제로 읽는 변화의 신호\n\n그림자 인장\n\n강점이 지나칠 때 점검할 모습\n\n같은 인장이 반복되면 요약해 보여줘요.\n상징은 사람의 정체성을 확정하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-symbolic/02-four-seals-four-questions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-a-metaphor-with-a-basis",
+      "title": "상징의 이름보다, 어디서 나왔는지 살펴요.",
+      "alt": "상징의 이름보다, 어디서 나왔는지 살펴요.",
+      "src": "/feature-details/crafted/ziwei-symbolic/03-a-metaphor-with-a-basis.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "상징의 이름보다,\n어디서 나왔는지 살펴요.\n\n유래를 확인하고,\n의미를 읽고,\n생활에서 써볼 질문을 고르세요.\n\n인장마다 명반에서 나온 근거와\n생활 언어로 풀어쓴 뜻,\n일상에 적용할 제안을 함께 읽어요.\n\n신화 속 이름은 서비스의 상징 표현이에요.\n서양 점성술을 추가 계산하거나\n초자연적 보호를 제공하는 상품은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-symbolic/03-a-metaphor-with-a-basis-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-the-other-side-of-a-strength",
+      "title": "나의 강점도, 지나치면 달라질 수 있어요.",
+      "alt": "나의 강점도, 지나치면 다른 모습이 될 수 있어요.",
+      "src": "/feature-details/crafted/ziwei-symbolic/04-the-other-side-of-a-strength.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 강점도,\n지나치면 달라질 수 있어요.\n\n이해를 돕는 가상 편집 예시\n\n“끝까지 책임지는 힘이\n모든 일을 혼자 맡는 습관이 됐다면,\n도움을 청할 몫을 남겨보세요.”\n\n빛과 그림자를 다른 운명으로 나누기보다,\n같은 성향이 쓰이는 조건을 살펴요.\n그림자에 이름을 붙이는 일은\n나를 탓하기 위한 것이 아니에요.\n\n실제 결과나 고객 후기가 아니에요.\n관련 별 자료가 있을 때 해설이 이어져요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-symbolic/04-the-other-side-of-a-strength-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-a-symbol-in-everyday-life",
+      "title": "일 · 돈 · 관계 · 몸 · 이동, 생활 속에서 대조해요.",
+      "alt": "일·돈·관계·몸·이동, 생활 속에서 대조해요.",
+      "src": "/feature-details/crafted/ziwei-symbolic/05-a-symbol-in-everyday-life.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "일 · 돈 · 관계 · 몸 · 이동,\n생활 속에서 대조해요.\n\n다섯 영역의 참고 지수와 근거,\n활용하거나 점검할 문장을 읽어요.\n자료가 있으면 상대적으로 높은 곳과\n낮은 곳의 생활 제안도 이어져요.\n\n시도할 영역\n\n작게 시작하고\n반응을 확인해요.\n\n점검할 영역\n\n조건과 부담을\n먼저 살펴요.\n\n지수는 내부 참고값이며 성공 확률이나\n의료 진단·투자 판단의 근거가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-symbolic/05-a-symbol-in-everyday-life-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-return-to-your-own-words",
+      "title": "상징을 읽고, 나의 기준을 적어보세요.",
+      "alt": "상징을 읽고, 나만의 기준 문장으로 돌아오세요.",
+      "src": "/feature-details/crafted/ziwei-symbolic/06-return-to-your-own-words.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "상징을 읽고,\n나의 기준을 적어보세요.\n\n본인 명반에서 나온 인장을 펼치고,\n오늘 기억하고 싶은 말을 골라보세요.\n상징이 결정을 대신하게 하기보다\n나를 돌아보는 질문으로 사용해요.\n\n이 장점을 오늘은\n어느 만큼 쓰면 좋을까?\n\n기존 명반 자료를 이용한 보조 해설이며\n새 AI 답변·부적 배송·전문가 상담·\nPDF는 포함하지 않아요.\n\n아래에서 현재 해금 조건을 확인하세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/ziwei-symbolic/06-return-to-your-own-words-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

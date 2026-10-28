@@ -40,7 +40,7 @@ const MODE_SPEC = Object.freeze({
     size: 1,
     slots: Object.freeze(["today_guide"]),
     featureKey: BASIC_FEATURE_KEY,
-    coinPrice: 30,
+    coinPrice: 50,
     minBodyChars: 450,
     fallbackMinChars: 360,
     baseTokens: 3000,
@@ -49,7 +49,7 @@ const MODE_SPEC = Object.freeze({
     size: 3,
     slots: Object.freeze(["past_wound", "present_energy", "integration_path"]),
     featureKey: BASIC_FEATURE_KEY,
-    coinPrice: 30,
+    coinPrice: 50,
     minBodyChars: 450,
     fallbackMinChars: 360,
     baseTokens: 3000,
@@ -431,13 +431,18 @@ function buildUserPrompt(input) {
     "",
     "[분량 규칙]",
     "- opening: 2~3문장. 질문을 받아 안는 인사. 카드 이름은 여기서 나열하지 않는다.",
-    `- question_answer: 공백 제외 ${spec.minBodyChars}자 이상. 카드 순서대로 답이 쌓이게 쓰고, 마지막에 질문에 대한 방향을 한 문장으로 못 박는다.`,
+    `- question_answer: 공백 제외 ${spec.minBodyChars}자 이상. 여는 한두 문장 뒤 카드마다 한 문단씩 카드 순서대로 답이 쌓이게 쓰고, 마지막 문단에서 질문에 대한 방향을 한 문장으로 못 박은 뒤 그 방향이 달라지는 조건을 쓴다. 문단은 빈 줄(\\n\\n)로 나누고 한 덩어리 문단으로 쓰지 않는다.`,
     `- card_bridges: 정확히 ${cards.length}개. slot 은 위 순서 그대로. 각 line 은 1~2문장으로, "그 카드가 이 질문에 대해 무엇을 말하는가"만 쓴다.`,
     "- closing: 2~3문장. 위로로 끝내되 다음 한 걸음을 가리킨다.",
     "- action_plan: 정확히 3개. 각 한 문장. 오늘 또는 이번 주에 실제로 끝낼 수 있는 크기로(10~20분짜리).",
     isFive
       ? "- shadow_gift_synthesis: 3~4문장. 'shadow' 자리와 'gift' 자리를 한 흐름으로 이어, 아직 보지 않은 그늘이 어떻게 이미 지닌 선물의 뒷면인지 보여준다."
       : '- shadow_gift_synthesis: "" (빈 문자열).',
+    "",
+    // The CMS may replace the system prompt, so the answer contract lives here (B3).
+    "[해설 계약]",
+    "- 지침·서운함·갈등의 원인을 사용자의 고집·성격·과거 잘못으로 돌리지 않는다. 카드의 shadow 문구는 사용자의 과거 행동을 추정하는 근거가 아니라, 사람들 사이에서 생기기 쉬운 관계의 패턴(역할·기대·속도가 서로 어긋나는 장면)으로 풀어 쓴다.",
+    "- 반대 조건을 분명히 쓴다. 최소 한 번 '…라면 이 방향은 달라집니다'처럼 이 조언이 맞지 않게 되는 구체적 신호와 그때 바꿀 행동을 적는다.",
     // 비-ko 는 lib/llm-client.ts 의 applyOutputLocale 이 지시를 주입한다(oracle.js:146 선례).
     ...(isKo ? ["- 한국어만 사용"] : []),
   ].filter((line) => line !== null && line !== undefined).join("\n");
@@ -480,6 +485,36 @@ function makeFieldGuard(drawnNames) {
     if (mentionsInventedAnimal(body, drawnNames)) return "";
     return body;
   };
+}
+
+// A provider answer is never discarded for its layout: one block is split before each
+// card's first mention (or at its middle sentence), so no repair call is bought (B3).
+const ANSWER_SENTENCE = /[^.!?。？！]+(?:[.!?。？！]+["'”’)\]」』]*|$)/gu;
+function answerParagraphs(answer, cards) {
+  const text = String(answer ?? "").trim();
+  if (text.split(/\n\s*\n/u).filter((part) => part.trim()).length >= 2) return text;
+  const sentences = (text.match(ANSWER_SENTENCE) || []).map((sentence) => sentence.trim()).filter(Boolean);
+  if (sentences.length < 2) return text;
+  const seen = new Set();
+  let rows = [[]];
+  for (const sentence of sentences) {
+    const card = cards.find((item) => !seen.has(item.animalName) && sentence.includes(item.animalName));
+    if (card) { seen.add(card.animalName); if (rows.at(-1).length) rows.push([]); }
+    rows.at(-1).push(sentence);
+  }
+  if (rows.length < 2) { const middle = Math.ceil(sentences.length / 2); rows = [sentences.slice(0, middle), sentences.slice(middle)]; }
+  return rows.map((row) => row.join(" ")).join("\n\n");
+}
+
+// "…라면/…면, 이 방향은 달라집니다" — the answer names when its advice stops holding.
+const CHANGE_CONDITION = /[가-힣]면[\s,][^.!?。\n]*(?:달라|바뀌|바꿔|바꾸|조정|다시)/u;
+function withChangeCondition(answer, cards, accept) {
+  if (CHANGE_CONDITION.test(answer)) return answer;
+  const card = cards.at(-1);
+  const shadow = String(card?.shadow || "").split(/(?<=[.!?。])\s/u)[0].replace(/[.!?。\s]+$/u, "");
+  const signal = shadow ? `${card.animalName} 카드의 그늘이 말하듯 '${shadow}' 같은 신호가 보인다면` : "이 흐름을 따라도 마음이 더 무거워진다면";
+  const condition = accept(`다만 ${signal}, 이 방향은 달라질 수 있어요. 그때는 일의 속도와 사람 사이의 거리를 다시 정해 보세요.`, 1);
+  return condition ? `${answer}\n\n${condition}` : answer;
 }
 
 // shortBody keeps an answer under its floor as a length draft; the other guards still apply.
@@ -623,6 +658,12 @@ export function animalTotemNarrativeAdapter(env) {
         state.input.cards.some(card => bridge?.slot === card.slot && (!bridge.animalId || bridge.animalId === card.animalId))) : [];
       const { narrative } = mergeNarrative({}, { ...parsed, card_bridges: bridges }, state.input, { shortBody: true });
       if (denseLength(narrative.question_answer || "") < 40) return null;
+      narrative.question_answer = answerParagraphs(narrative.question_answer, state.input.cards);
+      // The fallback condition is Korean; other locales keep the prompt contract only.
+      if ((getAmbientAiLocale() || "ko") === "ko") {
+        narrative.question_answer = withChangeCondition(narrative.question_answer, state.input.cards,
+          makeFieldGuard(new Set(state.input.cards.map((card) => card.animalName))));
+      }
       return { evidenceHash: state.evidenceHash, body: JSON.stringify(narrative) };
     },
     render: state => ({ mode: state.input.mode, cards: state.input.cards, question: state.input.question,

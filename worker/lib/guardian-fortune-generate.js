@@ -22,9 +22,9 @@ function safeErrorMessage(code) {
     case GUARDIAN_FORTUNE_ERROR_CODES.INVALID_INPUT:
       return "입력 내용을 한 번 확인해 주세요.";
     case GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED:
-      return "첫 무료 상담을 이미 사용했어요. 로그인하면 3번까지 연이와 네오에게 물어볼 수 있어요.";
+      return "로그인한 뒤 연이와 네오에게 물어볼 수 있어요.";
     case GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED:
-      return "무료 상담을 모두 사용했어요. 1회 5,000원으로 이어서 물어볼 수 있어요.";
+      return "상담은 1회씩 결제해요. 결제하면 이어서 물어볼 수 있어요.";
     case GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_CHECK_DEGRADED:
       return "결제 내역을 확인하지 못했어요. 잠시 후 다시 시도해 주세요. 이미 결제하셨다면 차감되지 않습니다.";
     case GUARDIAN_FORTUNE_ERROR_CODES.CONTEXT_FAILED:

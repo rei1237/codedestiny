@@ -28,19 +28,20 @@ const profile = { id:'home-art-fixture', name:'검증용 프로필', gender:'F',
     }
     for(const width of [360,390,430,1440]) {
       const page=await pageFor(width);
-      const ids=await page.locator('#cdQuickServices a').evaluateAll(nodes=>nodes.map(n=>n.dataset.cdServiceId));
-      assert.deepEqual(ids,['saju','ziwei','sukuyo','vedic','astrology','tarot']);
+      // 2026-10-17 단순화: 체계 아이콘 6개 대신 "무료로 먼저" 카드 3장(무료 사주·오늘의 운세·무료 타로)만 둔다.
+      const ids=await page.locator('#cdQuickServices a').evaluateAll(nodes=>nodes.map(n=>n.dataset.cdServiceId||n.getAttribute('href')));
+      assert.deepEqual(ids,['saju','/today/','tarot']);
       for(const mode of ['pig','neo']) {
         await page.locator(`#cdhThemeSlot [data-theme-mode="${mode}"]`).click();
         const geometry=await page.locator('#cdQuickServices a').evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return {x:b.x,y:b.y,right:b.right,width:b.width,height:b.height};}));
         assert.ok(geometry.every(b=>b.x>=0&&b.right<=width&&b.height>=44&&b.width>=44),'touch targets fully inside viewport');
-        if(width<640){assert.equal(geometry[0].y,geometry[2].y);assert.equal(geometry[3].y,geometry[5].y);assert.ok(geometry[3].y>geometry[0].y);}
-        assert.equal(await page.locator(`.cdh-scene-art [data-character="${mode==='pig'?'yeoni':'neo'}"]`).isVisible(),true);
-        assert.equal(await page.locator(`.cdh-scene-art [data-character="${mode==='pig'?'neo':'yeoni'}"]`).isVisible(),false);
+        // 2026-10-13: 라이트·다크 모두 연이 하나다(네오 히어로 그림 제거).
+        assert.equal(await page.locator('.cdh-scene-art [data-character="yeoni"]').isVisible(),true);
+        assert.equal(await page.locator('.cdh-scene-art [data-character="neo"]').count(),0);
       }
       await page.reload({waitUntil:'domcontentloaded'});
       await page.waitForFunction(()=>document.documentElement.classList.contains('neo-mode'));
-      assert.equal(await page.locator('.cdh-scene-art [data-character="yeoni"]').isVisible(),false,'saved Neo mode has no Yeoni flash');
+      assert.equal(await page.locator('.cdh-scene-art [data-character="yeoni"]').isVisible(),true,'saved dark mode keeps Yeoni');
       const tarot=page.locator('#cdQuickServices [data-cd-service-id="tarot"]');
       await tarot.focus();await page.keyboard.press('Enter');
       if(width<640){
@@ -56,7 +57,7 @@ const profile = { id:'home-art-fixture', name:'검증용 프로필', gender:'F',
         }
         await page.keyboard.press('Escape');
         await page.waitForFunction(()=>!window.cdMobileCollectionFullscreen.isOpen());
-        assert.equal(await page.locator('#cdhMore').evaluate(n=>n.open),false,'library close returns to folded home');
+        assert.equal(await page.locator('#cdhCollectionsWrap').isVisible(),false,'library close leaves the home collections folded');
       }else{
         await page.waitForFunction(()=>document.querySelector('#tarotCollection').getAttribute('data-collection-open')==='true');
         assert.equal(await page.locator('#tarotModalOverlay').isVisible(),false);
@@ -64,12 +65,13 @@ const profile = { id:'home-art-fixture', name:'검증용 프로필', gender:'F',
       results.push({width,modePersistence:true,methods:true,tarotLibrary:true});
       await page.close();
     }
-    for(const target of [{id:'saju'}, {id:'ziwei',overlay:'ziweiModalOverlay'}, {id:'sukuyo',overlay:'sukuyoModalOverlay'}, {id:'astrology',overlay:'astroModalOverlay'}, {id:'vedic'}]) {
+    // 자미두수·숙요·점성술·베딕은 홈 아이콘이 아니라 "모든 운세 보기" 목록에서 연다(verify-home-funnel 이 그 흐름을 잰다).
+    for(const target of [{id:'saju'}]) {
       const page=await pageFor();
       if(target.id!=='saju')await page.evaluate(async p=>{await window.__cdEnsureDestinyProfileLoaded();const s=window.DestinyProfileManager.storage;s.save([p]);s.setCurrent(p.id);await window.__cdEnsureBirthModalDepsLoaded();},profile);
       await page.locator(`#cdQuickServices [data-cd-service-id="${target.id}"]`).click();
       if(target.id==='saju')await page.locator('#destinyCardForm #nameInput').waitFor({state:'visible'});
-      else if(target.id==='vedic'){await page.waitForURL(/vedic-astrology\.html/);await page.locator('#vedicConsultation').waitFor({state:'visible',timeout:30000});}
+      else if(target.id==='vedic'){await page.waitForURL(/\/vedic-astrology(?:\.html)?(?:[?#]|$)/);await page.locator('#vedicConsultation').waitFor({state:'visible',timeout:30000});}
       else await page.locator('#'+target.overlay).waitFor({state:'visible',timeout:30000});
       results.push({action:target.id,opened:true});await page.close();
     }

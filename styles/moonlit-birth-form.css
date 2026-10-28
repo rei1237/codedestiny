@@ -1,0 +1,25 @@
+/* Opt-in birth/fortune controls only. Account, checkout and admin forms never receive this attribute. */
+[data-moonlit-form] { min-width:0; }
+[data-moonlit-form] :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]):not([type=file]),select,textarea) {
+  box-sizing:border-box; min-height:48px; min-width:0; max-width:100%; padding:12px 14px;
+  border:1px solid var(--cd-samples-line); border-radius:var(--cd-r-control);
+  background:var(--cd-samples-paper); color:var(--cd-samples-ink); font-size:16px; line-height:1.5;
+  box-shadow:inset 0 1px 0 var(--cd-samples-sheet);
+}
+[data-moonlit-form] :is(input,textarea)::placeholder { color:var(--cd-samples-muted); opacity:.8; }
+[data-moonlit-form] select option { background:var(--cd-samples-paper); color:var(--cd-samples-ink); }
+[data-moonlit-form] :is(input,select,textarea):focus-visible { outline:2px solid var(--cd-samples-rose); outline-offset:3px; }
+[data-moonlit-form] :is(input,select,textarea)[aria-invalid=true] { border-color:var(--cd-samples-rose); }
+[data-moonlit-form] :is(input,select,textarea):disabled { opacity:.6; cursor:default; }
+[data-moonlit-form] textarea { min-height:120px; resize:vertical; }
+[data-moonlit-form] label:has(> [data-cd-birth-time]) { grid-column:1 / -1; }
+[data-moonlit-form] [data-cd-birth-time] { width:100%; }
+[data-moonlit-form] :is(input[type=checkbox],input[type=radio]) { accent-color:var(--cd-samples-rose); }
+[data-moonlit-form] label:has(> input[type=checkbox]) { min-height:44px; align-items:center; }
+@media(max-width:600px) { [data-birth-fields] { grid-template-columns:minmax(0,1fr); } }
+@media(prefers-reduced-motion:no-preference) { [data-moonlit-form] :is(input,select,textarea) { transition:border-color 140ms ease,box-shadow 140ms ease; } }
+
+.cd-saved-birth-profile { box-sizing:border-box; padding:18px; margin-block:12px 18px; border:1px solid var(--cd-samples-line); border-radius:var(--cd-r-md); background:linear-gradient(120deg,var(--cd-samples-paper),var(--cd-samples-lilac)); color:var(--cd-samples-ink); }
+.cd-saved-birth-profile label { display:block; margin-bottom:10px; font-weight:650; color:var(--cd-samples-ink); }
+.cd-saved-birth-profile select { width:100%; }
+.cd-saved-birth-profile p { font-size:.8rem; line-height:1.7; color:var(--cd-samples-muted); margin:8px 0 0; }

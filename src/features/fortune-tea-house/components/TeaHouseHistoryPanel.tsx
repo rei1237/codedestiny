@@ -13,6 +13,7 @@ type TeaHouseHistoryItem = {
   consultationMode: FortuneTeaHouseConsultMode;
   questionSummary: string;
   createdAt?: string;
+  followUpAllowance?: { limit: number; used: number; remaining: number };
 };
 
 type TeaHouseHistoryPanelProps = {
@@ -60,6 +61,7 @@ const KO = {
   empty: "아직 완료된 상담이 없어요. 찻집에서 첫 상담을 시작해 보세요.",
   noSummary: "질문 요약이 없어요",
   opening: "여는 중…",
+  followUpRemaining: "추가 질문 {count}회 남음",
   mode: {
     tarot: "타로",
     saju: "사주",
@@ -132,7 +134,7 @@ export default function TeaHouseHistoryPanel({ isOpen, onClose, onSelectResult, 
       {status==="error"&&<div role="alert"><img src="/images/fortune-tea-house/renewal/state-retry.webp" width="140" height="150" alt=""/><p>{copy.loadError}</p><button onClick={()=>void loadHistory()}>{copy.retry}</button></div>}
       {pending&&<article className={styles.pending}><img src="/images/fortune-tea-house/renewal/state-brewing.webp" width="80" height="90" alt=""/><div><h3>{copy.pending}</h3><p>{copy.pendingHelp}</p><button onClick={onResume}>{copy.resume}</button></div></article>}
       {status==="ready"&&items.length===0&&<div className={styles.empty}><img src="/images/fortune-tea-house/renewal/state-empty.webp" width="200" height="190" alt=""/><p>{copy.empty}</p></div>}
-      <ul>{items.map(item=><li key={item.resultId}><button disabled={!!openingResultId} onClick={()=>void openResult(item.resultId)}><span>{copy.mode[item.consultationMode]||copy.mode.tarot} · {formatRelativeDate(item.createdAt,copy,locale)}</span><strong>{item.questionSummary||copy.noSummary}</strong>{openingResultId===item.resultId&&<span>{copy.opening}</span>}</button></li>)}</ul>
+      <ul>{items.map(item=><li key={item.resultId}><button disabled={!!openingResultId} onClick={()=>void openResult(item.resultId)}><span>{copy.mode[item.consultationMode]||copy.mode.tarot} · {formatRelativeDate(item.createdAt,copy,locale)}</span><strong>{item.questionSummary||copy.noSummary}</strong>{(item.followUpAllowance?.remaining??0)>0&&<span className={styles.followUpBadge}>{copy.followUpRemaining.replace("{count}",String(item.followUpAllowance?.remaining))}</span>}{openingResultId===item.resultId&&<span>{copy.opening}</span>}</button></li>)}</ul>
       {error&&<p role="alert">{error}</p>}
     </section>
   </div>;

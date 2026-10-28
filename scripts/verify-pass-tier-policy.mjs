@@ -42,6 +42,7 @@ import { evaluatePassCoverage, describePassEligibility } from "../worker/payment
 import { listAppPassProducts } from "../worker/lib/app-store-pricing.js";
 import { listProducts } from "../worker/payments/catalog.js";
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
+import { listServicePackPlans } from "../worker/payments/service-pack-policy.js";
 import {
   PREVIOUS_PASS_PLANS, PREVIOUS_PASS_POLICY_VERSION, CURRENT_PASS_PLANS,
   CURRENT_PASS_POLICY_VERSION,
@@ -185,7 +186,7 @@ for (const tier of TIERS) {
   const described = describePassEligibility({
     user: { profileSubscription: { premiumUseCycleKey: expiresAt, monthlySpendCoin: 0 } },
     entitlement: { isActive: true, passTier: "family", tier: "family", expiresAt },
-    product: { featureKey: "profile-card-manage", priceCoins: 50, priceKRW: 5000, passExcluded: true },
+    product: { featureKey: "profile-card-manage", priceCoins: 10, priceKRW: 1000, passExcluded: true },
   });
   check("이용권 제외 상품은 family 로도 미커버", described.eligible === false && described.reason === "pass_excluded", `실제=${described.reason}`);
 }
@@ -320,14 +321,14 @@ const BANNED = [
   { re: /기능\s*무제한/, why: "'기능 무제한' — 모든 등급에 월 이용 한도가 있다" },
   { re: /콘텐츠\s*무제한/, why: "'콘텐츠 무제한' — 모든 등급에 월 이용 한도가 있다" },
   { re: /횟수\s*제한\s*없/, why: "'횟수 제한 없음' — 월 이용 한도가 곧 횟수 제한이다" },
-  { re: /월\s*누적/, why: "'월 누적' — 표현은 '월 이용 한도' 또는 '월 최대 N원 상당'" },
+  { re: /월\s*누적/, why: "'월 누적' — 표현은 '이용 한도' 또는 '최대 N원 상당'" },
   { re: /마음껏/, why: "'마음껏' — 한도가 없다는 인상을 준다" },
   { re: /Unlimited use/i, why: "'Unlimited use' — 월 이용 한도와 모순" },
 ];
 
 // 셸 등급 카드 문구
 const goldenDescs = [...shell.matchAll(/desc:\s*'([^']*)'/g)].map((m) => m[1])
-  .filter((text) => /30일 ·/.test(text));
+  .filter((text) => / · 최대 [^']*원 상당$/.test(text));
 check("셸 goldenPackages desc 4개를 찾았다", goldenDescs.length === 4, `실제=${goldenDescs.length}`);
 
 // /points 등급 카드 문구 (planFeatures 값 + 요약 줄)
@@ -349,9 +350,11 @@ for (const [label, texts] of [["셸 이용권 카드", goldenDescs], ["/points �
    11개 로케일이 "KRW 30,000 이하 무제한 · 상담 10회"를 계속 서빙했다(2026-08-24 실측).
 
    금지어 목록을 12개 언어로 다시 쓰는 대신, **같은 사전 안의 조각과 대조**한다 —
-   home.passMini.<tier>Line(가격대) · Benefit1(월 한도) · Benefit2(프로필). 이 세 조각은
+   home.passMini.<tier>Line(가격대) · Benefit1(월 한도). 이 두 조각은
    ②③이 지키는 숫자에서 나온 문구이고 로케일마다 이미 번역돼 있다. desc 가 그 조합이
    아니게 되는 순간(무제한이 끼어들든, 밴드가 낡든) 실패한다.
+   2026-10-11 프로필 카드 개수 상한이 없어져 '프로필' 토막(Benefit2)을 뺐고, 같은 날 이용권 기간이 없어져
+   '기간' 토막(30일)도 뺐다. desc 는 정확히 Line · Benefit1 이다 — 기간·프로필 토막이 되살아나면 실패한다.
 
    fail-closed: 사전 파일을 손으로 열거하지 않고 디렉터리에서 전수 발견하며,
    조각이나 desc 가 없으면 통과가 아니라 실패다. */
@@ -366,26 +369,26 @@ for (const file of localeFiles) {
   const dict = JSON.parse(readFileSync(path.join(I18N_DIR, file), "utf8"));
   for (const tier of TIERS) {
     const desc = dictValue(dict, `payment.passShop.packages.${tier}.desc`);
-    const fragments = ["Line", "Benefit1", "Benefit2"].map((suffix) => dictValue(dict, `home.passMini.${tier}${suffix}`));
+    const fragments = ["Line", "Benefit1"].map((suffix) => dictValue(dict, `home.passMini.${tier}${suffix}`));
     if (typeof desc !== "string" || !desc.trim()) {
       failures.push(`[${locale}] payment.passShop.packages.${tier}.desc 가 없다 — 사전이 이 등급 카드를 번역하지 못한다`);
       continue;
     }
     if (fragments.some((fragment) => typeof fragment !== "string" || !fragment.trim())) {
-      failures.push(`[${locale}] home.passMini.${tier}{Line,Benefit1,Benefit2} 조각이 비어 있다 — desc 를 대조할 기준이 없다`);
+      failures.push(`[${locale}] home.passMini.${tier}{Line,Benefit1} 조각이 비어 있다 — desc 를 대조할 기준이 없다`);
       continue;
     }
     const segments = desc.split(" · ").map((part) => part.trim());
     check(
-      `[${locale}] ${tier} 카드는 '기간 · 가격대 · 월 한도 · 프로필' 4토막`,
-      segments.length === 4,
+      `[${locale}] ${tier} 카드는 '가격대 · 한도' 2토막(기간 없음)`,
+      segments.length === 2,
       `실제 ${segments.length}토막 문구="${desc}"`,
     );
     check(
       `[${locale}] ${tier} 카드 문구가 사전 조각과 일치`,
-      segments.slice(1).join(" · ") === fragments.join(" · "),
-      `문구="${desc}" 기대="… · ${fragments.join(" · ")}"`
-      + ` / desc 와 home.passMini.${tier}{Line,Benefit1,Benefit2} 는 같은 정책 한 줄이라 함께 고쳐야 한다`
+      segments.join(" · ") === fragments.join(" · "),
+      `문구="${desc}" 기대="${fragments.join(" · ")}"`
+      + ` / desc 와 home.passMini.${tier}{Line,Benefit1} 은 같은 정책 한 줄이라 함께 고쳐야 한다`
       + " (문안을 바꿀 때는 i18n/authored/passShopPackages-01.json 을 고치고 i18n-merge-authored.mjs --core 로 다시 병합)",
     );
   }
@@ -393,7 +396,7 @@ for (const file of localeFiles) {
 
 
 /* ── ⑥ 월 한도 소진 임계값이 레지스트리 최저가에서 파생됐는가 ────────────
-   2026-09-04 부터 이용권은 30일 만료와 월 한도 소진 중 **먼저 오는 쪽**에서 끝난다.
+   2026-09-04 부터 이용권은 한도 소진 시 끝난다(2026-10-11 부터는 기간이 없어 소진이 유일한 종료 조건).
    소진 판정은 "잔여로 열 수 있는 유료 항목이 하나도 없을 때"이므로 임계는 레지스트리의
    최저가여야 한다. 더 싼 상품이 생겼는데 상수가 그대로면 아직 열 수 있는 이용권을 끄고
    (환불 분쟁), 최저가가 올랐는데 그대로면 아무것도 못 여는 이용권이 남는다(원래 문제).
@@ -526,6 +529,40 @@ for (const [rel, floor] of [[path.join("public", "i18n"), 200000], [path.join("i
   );
 }
 for (const hit of resetHits) failures.push(`리셋 문구: ${hit}`);
+
+/* ── ⑨ 정책 버전별 건당 상한과 홈 화면 표시 (2026-10-16) ─────────────────────
+   서버는 정책 버전(flower-*)별 상한을 쓰는데 셸이 구 표(vvip 200)로 덮어써서 VVIP 가 2만원으로 보였다.
+   홈 판매 배너에는 등급별 건당 금액과 영냥이 세트가 빠져 있었다. 셋 다 여기서 막는다. */
+const POLICY_TABLES = [
+  [CURRENT_PASS_POLICY_VERSION, CURRENT_PASS_PLANS],
+  [PREVIOUS_PASS_POLICY_VERSION, PREVIOUS_PASS_PLANS],
+  [PRIOR_PASS_POLICY_VERSION, PRIOR_PASS_PLANS],
+];
+const policyBlock = verdict.match(/PASS_LIMIT_BY_POLICY\s*=\s*\{([\s\S]*?)\n\s*\};/);
+check("pass-verdict PASS_LIMIT_BY_POLICY 표가 있다", Boolean(policyBlock));
+for (const [version, plans] of POLICY_TABLES) {
+  const row = policyBlock && policyBlock[1].match(new RegExp(`"${version}"\\s*:\\s*\\{([^}]*)\\}`));
+  check(`pass-verdict PASS_LIMIT_BY_POLICY["${version}"] 행`, Boolean(row));
+  if (!row) continue;
+  for (const [tier, plan] of Object.entries(plans)) {
+    const got = Number((row[1].match(new RegExp(`\\b${tier}\\s*:\\s*(\\d+)`)) || [])[1]);
+    check(`pass-verdict PASS_LIMIT_BY_POLICY["${version}"].${tier}`, got === Number(plan.maxCoveredCoin), `실제=${got} 정본=${plan.maxCoveredCoin}`);
+  }
+}
+const homeBanner = (shell.match(/<section class="cdh-pass"[\s\S]*?<\/section>/) || [""])[0];
+check("index.html 홈 이용권 배너(.cdh-pass)가 있다", Boolean(homeBanner));
+for (const plan of Object.values(CURRENT_PASS_PLANS)) {
+  if (plan.tier === "family") {
+    check("홈 배너 family '건당 한도 없음'", homeBanner.includes("home.overseasCopy.passNoLimit"));
+    continue;
+  }
+  const amount = Number(plan.maxCoveredCoin * KRW_PER_COIN).toLocaleString("en-US");
+  check(`홈 배너 ${plan.tier} 건당 ${amount}원`, homeBanner.includes(`data-cd-trans="home.overseasCopy.passPerLimit" data-cd-vars='{"amount":"${amount}"}'`));
+}
+for (const plan of listServicePackPlans()) {
+  check(`홈 배너 영냥이 세트 카드 ${plan.planId}`, homeBanner.includes(`data-pack-plan="${plan.planId}"`));
+}
+check("홈 '내 이용권' 줄(#cdhMyPass)이 있다", shell.includes('id="cdhMyPass"'));
 
 if (failures.length) {
   console.error(`\n[실패] 이용권 등급 정책 검증 ${failures.length}건`);

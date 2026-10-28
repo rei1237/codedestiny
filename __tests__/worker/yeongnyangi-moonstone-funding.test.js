@@ -14,7 +14,7 @@ import { findMoonstoneSpendEvidence } from '../../worker/lib/moonstone-spend-pro
 import { YeongnyangiRequest } from '../../worker/lib/yeongnyangi-models.js';
 import { toObjectId } from '../../worker/payments/db.js';
 const USER='507f1f77bcf86cd799439011',ID='a'.repeat(64),RID='yn-'+ID;
-const product=resolveProduct({featureKey:'yeongnyangi-saju-mackerel'}),STONES=product.monthlyCost;
+const product=resolveProduct({featureKey:'yeongnyangi-saju-salmon'}),STONES=product.monthlyCost;
 function fixture(){
  const db=makeFakePaymentDb({uniqueKeys:[['userId','type','sourceId']]});
  const expiresAt=new Date('2099-10-30T00:00:00.000Z');
@@ -150,9 +150,9 @@ test.each(['standard','premium','vvip'])('%s remains excluded from Yeongnyangi',
  expect(f.user.profileSubscription.monthlySpendCoin).toBe(0);
  expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES);
 });
-test('registry authorizes exactly 300 stones for one 3,000 KRW consultation',()=>{
- expect(product.monthlyCost).toBe(300);
- expect(calculatePaidFeatureMembershipCreditCost(product.featureKey)).toBe(300);
+test('registry authorizes exactly 1000 stones for one 10,000 KRW consultation',()=>{
+ expect(product.monthlyCost).toBe(1000);
+ expect(calculatePaidFeatureMembershipCreditCost(product.featureKey)).toBe(1000);
  expect(getPaidFeaturePaymentPolicy(product.featureKey)).toMatchObject({familyPassOnly:true,monthlyExcluded:false,membershipCreditMultiplier:1});
  expect(getPaidFeaturePaymentPolicy('fusion-fortune-consultation').monthlyExcluded).toBe(false);
 });

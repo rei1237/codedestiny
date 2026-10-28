@@ -49,19 +49,20 @@ expectAbsent("profileRoute", "const createPolicy = await resolveProfileCardActio
 // A request ID selects a server ledger entry; it is never sufficient proof by itself.
 expect("profileRoute", "return findProfileMoonstoneEvidence({ userId: auth.userId, ...input })", "profile API validates scoped server evidence");
 expect("moonstoneProof", "findMoonstoneSpendEvidence", "common settled spend verification");
-expect("moonstoneProof", "row.sourceId !== requestId || row.profileId !== profileId || row.amount !== PROFILE_CARD_DELETE_COST_MONTHLY_STONES", "request identity, profile and exact price are verified");
+expect("moonstoneProof", "row.sourceId !== requestId || row.profileId !== profileId || !PROFILE_CARD_ACCEPTED_MONTHLY_STONE_COSTS.includes(row.amount)", "request identity, profile and exact (current or pre-2026-10-10 legacy) price are verified");
 expect("moonstoneProof", "storedAction !== action", "proof binds the mutation action");
 expect("moonstoneProof", "moonstoneSpendRefundFilter()", "refunded proof is excluded");
 
 expect("client", "KEY_POLICY_PREFIX", "client caches scoped policy snapshots");
 expect("client", "PROFILE_POLICY_TTL_MS = 10 * 60 * 1000", "client policy cache has 10 minute TTL");
 expect("client", "_dpApplyProfilePolicySnapshot", "client applies server/auth policy snapshots");
-expect("client", "createRequiresPayment", "client checks local profile limit before create");
+// 2026-10-11 카드 개수 상한·수수료 폐지: 클라이언트 선검사와 서버 재조정 분기는 남아 있으면 안 된다.
+expectAbsent("client", "createRequiresPayment", "client no longer gates create on a local profile limit");
 expect("client", "applyOptimisticCreate", "client applies optimistic create");
 expect("client", "rollbackOptimisticCreate", "client rolls back failed create");
 expect("client", "applyOptimisticDelete", "client applies optimistic delete after payment gate");
 expect("client", "rollbackOptimisticDelete", "client rolls back failed delete");
-expect("client", "PROFILE_LIMIT_RECONCILE_REQUIRED", "client handles hard validation reconcile");
+expectAbsent("client", "PROFILE_LIMIT_RECONCILE_REQUIRED", "client no longer reconciles a server profile limit");
 expect("client", "_dpVerifyLoginSession(false, { allowIndeterminate: true })", "client preserves a hinted session during transient auth failure");
 expect("client", "_dpRunTransientRetry", "client retries bounded transient mutations");
 expect("client", "maxTransientRetries: 2", "client caps transient retries at two");

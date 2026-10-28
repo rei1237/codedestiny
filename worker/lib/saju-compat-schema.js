@@ -1,3 +1,4 @@
+import { buildSajuRelationshipEvidence } from './saju-relationship-evidence.js';
 // 기본 사주 궁합(compat-saju-compatibility) LLM 서술 서비스의 계약.
 //
 // 역할 분리: 점수·등급·합충 판정은 브라우저의 결정론 엔진(analyzeCompat)이 이미 확정한 facts 이고,
@@ -12,8 +13,8 @@ import { repairJsonFieldLocations } from "./json-text-repair.js";
 export const SAJU_COMPAT_FEATURE_KEY = "compat-saju-compatibility";
 export const SAJU_COMPAT_REPORT_TYPE = "sajuCompatBasic";
 export const SAJU_COMPAT_TYPE = "saju-compat-basic";
-export const SAJU_COMPAT_SCHEMA_VERSION = 1;
-export const SAJU_COMPAT_PROMPT_VERSION = "saju-compat-basic-p1";
+export const SAJU_COMPAT_SCHEMA_VERSION = 2;
+export const SAJU_COMPAT_PROMPT_VERSION = "saju-compat-basic-p2";
 export const SAJU_COMPAT_GROUPS = ["core", "reasons", "practice", "pastLife"];
 
 const MAX_FACTS_BYTES = 16 * 1024;
@@ -275,14 +276,17 @@ export function normalizeSajuCompatInput(body) {
     strength, yongshin, factFlags: expectedFlags, reasons, adjustments, sok,
     pastLife: pastLifeFactsOf(raw.pastLife, self, partner),
   };
-  return { compatType, partnerName: cleanPartnerName(body.partnerName), self: { pillars: self }, partner: { pillars: partner }, facts };
+  const selfInput = { pillars: self, birthTimeUnknown: body.self?.birthTimeUnknown === true };
+  const partnerInput = { pillars: partner, birthTimeUnknown: body.partner?.birthTimeUnknown === true };
+  facts.relationship = buildSajuRelationshipEvidence(selfInput, partnerInput);
+  return { schemaVersion: 2, promptVersion: SAJU_COMPAT_PROMPT_VERSION, compatType, partnerName: cleanPartnerName(body.partnerName), self: selfInput, partner: partnerInput, facts };
 }
 
 /** 같은 조건(유형·이름·두 사람 기둥·프롬프트 버전)의 결과를 알아보는 해시. 결제 전 중복 안내용. */
 export function sajuCompatInputHash(input) {
   const pillars = (side) => side.pillars.map((pillar) => pillar.gan + pillar.ji).join("");
   return createHash("sha256")
-    .update([SAJU_COMPAT_PROMPT_VERSION, input.compatType, input.partnerName, pillars(input.self), pillars(input.partner)].join("|"))
+    .update([input.promptVersion || "saju-compat-basic-p1", input.compatType, input.partnerName, pillars(input.self), pillars(input.partner), ...(input.schemaVersion === 2 ? [input.self.birthTimeUnknown, input.partner.birthTimeUnknown] : [])].join("|"))
     .digest("hex").slice(0, 32);
 }
 
@@ -323,8 +327,9 @@ function applies(when, input) {
 
 /** 이 입력에서 그룹이 만들어야 하는 필드와, 해당 없음(null 고정)인 필드. */
 export function groupFields(group, input) {
-  const base = group === "core" ? CORE_FIELDS : group === "practice" ? PRACTICE_FIELDS : group === "pastLife" ? PAST_LIFE_FIELDS
+  let base = group === "core" ? CORE_FIELDS : group === "practice" ? PRACTICE_FIELDS : group === "pastLife" ? PAST_LIFE_FIELDS
     : input.facts.reasons.map((reason) => text(`reasonDetails.${reason.code}`, REASON_DETAIL_TARGET));
+  if (group === "core" && input.facts.relationship) base = [...base, ...input.facts.relationship.chapters.filter(ch => ch.available).map(ch => text(`pillarStory.${ch.key}`, 300))];
   return { required: base.filter((spec) => applies(spec.when, input)), notApplicable: base.filter((spec) => !applies(spec.when, input)).map((spec) => spec.path) };
 }
 
@@ -413,6 +418,20 @@ const FORBIDDEN_RES = [
 // 엔진이 계산하지 않은(= 근거로 주지 않은) 사주 요소.
 const UNPROVIDED_RE = /(대운|세운|월운|연운|삼합|방합|반합|삼형|상형|자형|육해|육파|원진|귀문|천을귀인|도화|역마|화개|공망|백호|양인|괴강|신살|납음|격국|십이운성|12운성|지장간|시주|시지|월주)/u;
 
+function hasUnprovidedTerm(sentence, input) {
+  const evidence = input.facts.relationship;
+  if (!evidence) return UNPROVIDED_RE.test(sentence);
+  let rest = sentence.replace(/월주/g, '');
+  if (evidence.chapters.find(ch => ch.key === 'hour')?.available) rest = rest.replace(/시주|시지/g, '');
+  const kinds = new Set([...evidence.cross, ...evidence.natal].flatMap(row => row.branches));
+  for (const kind of ['원진', '귀문', '자형']) if (kinds.has(kind)) rest = rest.replaceAll(kind, '');
+  if (kinds.has('해')) rest = rest.replaceAll('육해', '');
+  if (kinds.has('파')) rest = rest.replaceAll('육파', '');
+  if (evidence.triads.length) rest = rest.replaceAll('삼합', '');
+  else if (kinds.has('삼합 부분 관계')) rest = rest.replace(/삼합\s*(?:부분\s*관계|의?\s*두\s*글자)/g, '');
+  return UNPROVIDED_RE.test(rest);
+}
+
 // 엔진의 hasRepeatedReportPassage 는 JSON 본문을 . ! ? 。 ？ ！ 줄바꿈 으로 자른 조각을 reportSentenceKey 로 비교한다.
 // 문장 끝 따옴표·괄호가 다음 조각 앞에 붙는 차이까지 잡도록 같은 방식으로 조각을 자르고 가장자리 따옴표를 뗀다.
 // 엔진 기준(24자)보다 낮은 20자부터 중복으로 본다(앞에 붙는 따옴표·이스케이프 몇 글자 차이 흡수).
@@ -425,7 +444,15 @@ function fragmentKeys(sentence) {
 }
 
 const compact = (value) => Array.from(String(value || "").replace(/\s/gu, "")).length;
-const hangulCount = (value) => (String(value || "").match(/[가-힣]/gu) || []).length;
+// Preserve the original Korean floor; other output languages count their own script.
+// This checks readable text, not translation quality or the correctness of the reading.
+const proseLetterCount = (value, locale = "ko") => {
+  const pattern = locale === "ko" ? /[가-힣]/gu
+    : locale === "ja" ? /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/gu
+    : locale === "zh-CN" || locale === "zh-TW" ? /\p{Script=Han}/gu
+    : locale === "hi" ? /\p{Script=Devanagari}/gu : /\p{Script=Latin}/gu;
+  return (String(value || "").match(pattern) || []).length;
+};
 
 function numbersMismatch(sentence, input) {
   const allowedScores = new Set([100, input.facts.score.display, input.facts.score.raw, Math.abs(input.facts.score.raw)]);
@@ -461,7 +488,7 @@ function shapeText(value, spec, input, seen, stats) {
     for (const raw of sentencesOf(paragraph)) {
       const sentence = raw.trim();
       if (!sentence) continue;
-      if (FORBIDDEN_RES.some((pattern) => pattern.test(sentence)) || UNPROVIDED_RE.test(sentence) || numbersMismatch(sentence, input)) { stats.lintDrops += 1; continue; }
+      if (FORBIDDEN_RES.some((pattern) => pattern.test(sentence)) || hasUnprovidedTerm(sentence, input) || numbersMismatch(sentence, input)) { stats.lintDrops += 1; continue; }
       const keys = fragmentKeys(sentence);
       if (keys.some((key) => seen.has(key))) { stats.dedupeDrops += 1; continue; }
       if (size + compact(sentence) > spec.cap && kept.length) { stats.truncated += 1; break; }
@@ -480,7 +507,7 @@ function shapeText(value, spec, input, seen, stats) {
 }
 
 /**
- * 파싱된 응답 → 그룹 값. 해당 없음 필드는 null 로 고정하고, 필수 필드의 결손(없음·너무 짧음·한글 없음)은
+ * 파싱된 응답 → 그룹 값. 해당 없음 필드는 null 로 고정하고, 필수 필드의 결손(없음·너무 짧음·대상 문자 없음)은
  * missing 에 모은다. seen 은 앞선 part 에서 이미 쓴 문장 키 집합(복사본을 넘긴다).
  */
 export function shapeSajuCompatGroup(group, parsed, input, seen = new Set()) {
@@ -495,14 +522,14 @@ export function shapeSajuCompatGroup(group, parsed, input, seen = new Set()) {
       const items = [];
       for (const item of (Array.isArray(getPath(known, spec.path)) ? getPath(known, spec.path) : []).slice(0, spec.count)) {
         const shaped = shapeText(item, spec, input, seen, stats).replace(/\n+/g, " ").trim();
-        if (compact(shaped) >= QUESTION_MIN_CHARS && hangulCount(shaped) >= 4) items.push(shaped);
+        if (compact(shaped) >= QUESTION_MIN_CHARS && proseLetterCount(shaped, input.locale) >= 4) items.push(shaped);
       }
       setPath(value, spec.path, items);
       if (!items.length) missing.push(spec.path);
       continue;
     }
     const shaped = shapeText(getPath(known, spec.path), spec, input, seen, stats);
-    const ok = compact(shaped) >= FIELD_MIN_CHARS && hangulCount(shaped) >= 8;
+    const ok = compact(shaped) >= FIELD_MIN_CHARS && proseLetterCount(shaped, input.locale) >= 8;
     setPath(value, spec.path, ok ? shaped : "");
     if (!ok) missing.push(spec.path);
   }
@@ -517,7 +544,7 @@ export function mergeSajuCompatShaped(group, input, preferred, other, seen = new
   const { required } = groupFields(group, input);
   const filled = (spec, value) => (spec.kind === "list"
     ? Array.isArray(value) && value.length > 0
-    : typeof value === "string" && compact(value) >= FIELD_MIN_CHARS && hangulCount(value) >= 8);
+    : typeof value === "string" && compact(value) >= FIELD_MIN_CHARS && proseLetterCount(value, input.locale) >= 8);
   const merged = {};
   for (const spec of required) {
     const a = getPath(preferred?.value, spec.path);
@@ -569,11 +596,12 @@ export function sajuCompatSeenKeys(parts) {
 const encodePath = (path) => String(path).replaceAll(".", "/");
 const decodePath = (path) => String(path).replaceAll("/", ".");
 
-export function buildSajuCompatPart(group, shaped, { model = "", at = Math.floor(Date.now() / 1000), attempt = 1 } = {}) {
+export function buildSajuCompatPart(group, shaped, { model = "", at = Math.floor(Date.now() / 1000), attempt = 1, locale = "ko", schemaVersion = SAJU_COMPAT_SCHEMA_VERSION, promptVersion = SAJU_COMPAT_PROMPT_VERSION } = {}) {
   const meta = {
-    g: group, v: SAJU_COMPAT_SCHEMA_VERSION, p: SAJU_COMPAT_PROMPT_VERSION, m: String(model || "").replace(/\./g, "_"),
+    g: group, v: schemaVersion, p: promptVersion, m: String(model || "").replace(/\./g, "_"),
     at, a: attempt, req: shaped.required.map(encodePath), ld: shaped.stats.lintDrops, dd: shaped.stats.dedupeDrops, tr: shaped.stats.truncated,
     ...(shaped.missing.length ? { miss: shaped.missing.map(encodePath) } : {}),
+    ...(locale !== "ko" ? { l: locale } : {}),
   };
   return JSON.stringify({ _meta: meta, ...shaped.value });
 }
@@ -593,7 +621,7 @@ const textAt = (parsed, path) => {
 const isFilled = (parsed, path) => {
   const value = getPath(parsed, path);
   if (Array.isArray(value)) return value.length > 0 && value.every((item) => typeof item === "string" && compact(item) >= QUESTION_MIN_CHARS);
-  return typeof value === "string" && compact(value) >= FIELD_MIN_CHARS && hangulCount(value) >= 8;
+  return typeof value === "string" && compact(value) >= FIELD_MIN_CHARS && proseLetterCount(value, parsed._meta.l) >= 8;
 };
 const maxHoles = (required) => Math.max(2, Math.floor(required.length * 0.34));
 
@@ -605,7 +633,7 @@ const maxHoles = (required) => Math.max(2, Math.floor(required.length * 0.34));
 export function completeSajuCompatPart(body) {
   const parsed = parsePart(body);
   const meta = parsed?._meta;
-  if (!meta || !SAJU_COMPAT_GROUPS.includes(meta.g) || meta.v !== SAJU_COMPAT_SCHEMA_VERSION || !Array.isArray(meta.req) || !meta.req.length) return false;
+  if (!meta || !SAJU_COMPAT_GROUPS.includes(meta.g) || ![1, 2].includes(meta.v) || !Array.isArray(meta.req) || !meta.req.length) return false;
   const required = meta.req.map(decodePath);
   const missing = Array.isArray(meta.miss) ? meta.miss.map(decodePath) : [];
   if (missing.some((path) => !required.includes(path)) || missing.length > maxHoles(required)) return false;
@@ -636,12 +664,12 @@ export function assembleSajuCompatSnapshot(state) {
   const at = Math.max(0, ...metas.map((meta) => Number(meta.at) || 0));
   const model = metas.map((meta) => String(meta.m || "").replace(/_/g, ".")).find(Boolean) || "";
   return {
-    schemaVersion: SAJU_COMPAT_SCHEMA_VERSION,
+    schemaVersion: input.schemaVersion || 1,
     type: SAJU_COMPAT_TYPE,
-    promptVersion: SAJU_COMPAT_PROMPT_VERSION,
+    promptVersion: input.promptVersion || "saju-compat-basic-p1",
     model,
     generatedAt: at ? new Date(at * 1000).toISOString() : null,
-    locale: "ko",
+    locale: state.locale || "ko",
     input: { compatType: input.compatType, partnerName: input.partnerName, self: input.self, partner: input.partner },
     facts: input.facts,
     narrative,

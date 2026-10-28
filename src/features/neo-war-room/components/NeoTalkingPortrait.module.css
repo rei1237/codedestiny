@@ -1,0 +1,4 @@
+.portrait{position:absolute;bottom:0;left:0;display:block;width:100%;aspect-ratio:1;overflow:hidden}
+.sheet{position:absolute;top:0;left:0;width:200%;height:200%;max-width:none;transform:translate(var(--neo-talk-x,0%),var(--neo-talk-y,0%));opacity:0}
+.portrait[data-ready="true"] .sheet{opacity:1}
+.fallback{object-fit:contain;object-position:center bottom}

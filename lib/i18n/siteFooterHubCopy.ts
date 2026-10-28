@@ -1,30 +1,24 @@
-import { TRUST_DOCUMENT_COPY } from "./public-trust-copy.mjs";
 import { Locale } from "./locales";
 
 /**
  * 로케일 푸터(`app/components/LocaleFooterHub.jsx`)의 카피 정본.
  *
- * 왜 이 파일이 있나 — 2026-08-15 실측에서 `/ja`·`/zh`·`/zh-tw`·`/en` 페이지의 고유 본문은
- * 400~560자인데 `AppChrome` 이 붙이는 **공통 한국어 블록이 2,291자**였다. 로케일 페이지끼리
- * 12-shingle Jaccard 0.74~0.75 로 서로 near-duplicate 였고, Google 이 언어를 판정하지 못해
- * hreflang 이 무효화됐다(`/ja/today/` 의 한글 문자수 1,433자).
+ * 왜 이 파일이 있나 — 2026-08-15 실측에서 `/ja`·`/zh`·`/zh-tw`·`/en` 페이지에 `AppChrome` 이 붙이던
+ * **공통 한국어 블록** 때문에 로케일 페이지끼리 near-duplicate 였고 hreflang 이 무효화됐다. 그래서 푸터는
+ * 로케일마다 그 언어로만 렌더한다.
  *
- * 🔴 **삭제가 아니라 번역만이 통과 경로다.** `scripts/verify-adsense-readiness.mjs:28` 의
- * `minimumBlockedIndexableVisibleTextLength = 1800` 이 로케일 사이트맵 라우트 41개에 가시 텍스트
- * 1,800자를 강제한다. 푸터를 지우면 41개 중 28개가 FAIL 한다(`/ja/today` 2837→569).
- * 링크를 줄이거나 환불 정책을 요약본으로 바꾸면 그 마진이 사라진다.
+ * 2026-10-16 "직관성": 푸터는 한국어 푸터와 같은 최소 규격이다(lib/brand/site-footer.ts) — 전문성 한 줄,
+ * 정책 링크, 안내 한 줄, 사업자 정보. 환불·면책 요약, SNS 카피는 걷어냈다(전문은 각 정책 페이지).
+ * byline·notice·policyLabels 문구는 정적 셸과 같은 `public/i18n/*.json` `footer.*` 값이다.
  *
  * 🔴 **ko 폴백 연산자를 쓰지 말 것** — `verify-locale-table-coverage.mjs` 의 `FALLBACK_RE` 가
  * 논리합/널병합으로 `.ko` 를 읽는 표를 감지해 12개 로케일을 요구하므로 ratchet 이 깨진다.
  * (그 정규식은 원본 소스에 걸리므로 이 주석에도 해당 연산자를 문자 그대로 적지 않는다.)
  * 5개 로케일을 전부 명시적으로 채운다.
  *
- * 🔴 이 파일은 **UTF-8 BOM 없이** 저장한다(`verify-adsense-readiness.mjs:871,948` 의 모지바케 게이트).
- * `lib/i18n/` 경로에 둔 이유는 `verify-i18n-no-hardcoded-korean.mjs:69` 의 `EXCLUDED` 에
- * `/^lib\/i18n\//` 가 있어 하드코딩 한국어 ratchet 을 오염시키지 않기 때문이다.
- *
- * 환불 정책 **본문**은 여기 없다 — `lib/legal/legalContent.ts` 의 `TERMS_CONTENT[locale]`
- * `id:"refund-policy"` 섹션을 `getRefundSection()` 으로 그대로 읽는다. 새 법률 번역을 만들지 말 것.
+ * 🔴 이 파일은 **UTF-8 BOM 없이** 저장한다(`verify-adsense-readiness.mjs` 의 모지바케 게이트).
+ * `lib/i18n/` 경로에 둔 이유는 `verify-i18n-no-hardcoded-korean.mjs` 의 `EXCLUDED` 에
+ * `/^lib/i18n//` 가 있어 하드코딩 한국어 ratchet 을 오염시키지 않기 때문이다.
  */
 
 /**
@@ -37,7 +31,7 @@ export const FOOTER_LINK_GROUPS = [
   {
     titleKey: "group.core",
     hrefs: [
-      "/kkul-kkul-unse/",
+      "/",
       "/saju/",
       "/manse/",
       "/today/",
@@ -47,9 +41,7 @@ export const FOOTER_LINK_GROUPS = [
       "/fortune/monthly/",
       "/compatibility/",
       "/consultations/",
-      "/saju/basic/",
       "/ziwei/chart/",
-      "/astrology/cosmic/",
       "/saju/sibyl/",
       "/life-book-ai/",
       "/love-secret-ai/",
@@ -114,6 +106,7 @@ export const FOOTER_LINK_GROUPS = [
       "/world/",
       "/reviews/",
       "/faq/",
+      "/methodology/",
       "/insights/sukuyo-basics/",
       "/insights/ziwei-basics/",
       "/fortune/prompt-hub/",
@@ -121,34 +114,40 @@ export const FOOTER_LINK_GROUPS = [
   },
 ] as const;
 
-/** 정책 링크. `/faq`·`/insights` 는 위 그룹에도 있지만 **라벨이 다르므로** 별도 표다. */
+/** 정책 줄 첫째 줄 — lib/brand/site-footer.ts 의 FOOTER_LINKS 와 같은 다섯 개, 같은 순서. */
 export const FOOTER_POLICY_HREFS = [
-  "/privacy/",
   "/terms/",
+  "/privacy/",
+  "/refund-policy/",
   "/contact/",
   "/about/",
-  "/disclaimer/",
-  "/advertising-policy/",
-  "/refund-policy/",
+] as const;
+
+/** 정책 줄 둘째 줄(작게) — lib/brand/site-footer.ts 의 FOOTER_TRUST_LINKS 와 같다. */
+export const FOOTER_TRUST_HREFS = [
   "/faq/",
-  "/methodology/",
+  "/disclaimer/",
   "/editorial-policy/",
-  "/insights/",
+  "/advertising-policy/",
 ] as const;
 
 export type FooterGroupTitleKey = (typeof FOOTER_LINK_GROUPS)[number]["titleKey"];
 
 export type SiteFooterHubCopy = {
   footerAriaLabel: string;
+  /** 전문성 한 줄 — public/i18n footer.byline. "감수"가 아니라 "설계"다(lib/brand/founder.ts). */
+  byline: string;
+  /** 안내 한 줄 — public/i18n footer.disclaimerNote. */
+  notice: string;
+  /** 접힌 서비스 링크 목록을 여는 줄. */
+  allServicesLabel: string;
   hubAriaLabel: string;
-  kicker: string;
-  title: string;
-  subtitle: string;
-  linkNavSuffix: string;
   groupTitles: Record<FooterGroupTitleKey, string>;
   linkLabels: Record<string, string>;
   policyLabels: Record<string, string>;
   policyNavAriaLabel: string;
+  /** 동의 배너를 다시 여는 푸터 버튼. */
+  cookieSettingsLabel: string;
   /**
    * 같은 언어 목적지로 보내는 링크. 로케일 페이지에서 한국어 허브로만 나가면 그 언어의
    * 내부 링크 그래프가 생기지 않는다. 경로는 `lib/i18n/routes.ts` 의 `I18N_ROUTE_MAP` 에서 온다.
@@ -163,36 +162,7 @@ export type SiteFooterHubCopy = {
     insights: string;
     tokushoho?: string;
   };
-  refundAriaLabel: string;
-  refundTitle: string;
-  refundIntro: string;
-  refundClosingPolicy: string;
-  refundClosingMethod: string;
-  /** 푸터 면책 고지 — 전문은 /disclaimer 에 있고 여기는 두 문장과 링크 라벨만 둔다(near-duplicate 방지). */
-  disclaimerAriaLabel: string;
-  disclaimerTitle: string;
-  disclaimerBody: string;
-  disclaimerLinkLabel: string;
-  /**
-   * `SocialFooter` 는 한국어 푸터와 로케일 푸터가 **함께 쓰는** 컴포넌트라 카피를 여기서 받는다.
-   * `socialLinkAriaTemplate` 의 `{channel}` 이 각 채널 라벨로 치환된다.
-   */
-  social: {
-    sectionAriaLabel: string;
-    kicker: string;
-    title: string;
-    navAriaLabel: string;
-    linkAriaTemplate: string;
-    labels: {
-      youtube: string;
-      threads: string;
-      instagram: string;
-      naverBlog: string;
-      x: string;
-    };
-  };
   businessAriaLabel: string;
-  businessTitle: string;
   businessLabels: {
     name: string;
     representative: string;
@@ -208,12 +178,10 @@ export type SiteFooterHubCopy = {
 export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
   ko: {
     footerAriaLabel: "서비스 하단 정책 정보",
+    byline: "10년 경력 명리학자 박병하가 설계한 사주 상담",
+    notice: "분석은 명리학 이론에 근거한 해석이며, 의료·법률·투자 등 중요한 결정은 해당 분야 전문가와 함께 판단하시기 바랍니다.",
+    allServicesLabel: "전체 서비스 보기",
     hubAriaLabel: "랜딩 페이지 내부 링크 허브",
-    kicker: "Constellation Navigation",
-    title: "서비스 링크 허브",
-    subtitle:
-      "궁금한 주제의 운세를 고르고, 이용 방법과 해석의 기준을 함께 살펴보세요.",
-    linkNavSuffix: "링크",
     groupTitles: {
       "group.core": "핵심 운세",
       "group.tarot": "타로 리딩",
@@ -221,7 +189,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "group.guides": "추천 가이드",
     },
     linkLabels: {
-      "/kkul-kkul-unse/": "꿀꿀 운세 — 코드 데스티니 브랜드 안내",
+      "/": "꿀꿀 운세 브랜드 안내",
       "/saju/": "무료 사주풀이 보기",
       "/manse/": "꿀꿀 만세력 확인하기",
       "/today/": "오늘의 운세 확인하기",
@@ -231,9 +199,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/fortune/monthly/": "이번 달 별자리·띠 운세",
       "/compatibility/": "사주 궁합 분석하기",
       "/consultations/": "프리미엄 운세 리포트",
-      "/saju/basic/": "사주 만세력 기본 해석",
       "/ziwei/chart/": "자미두수 12궁 명반",
-      "/astrology/cosmic/": "점성술 코즈믹 차트",
       "/saju/sibyl/": "시빌라 시스템",
       "/life-book-ai/": "인생의 책",
       "/love-secret-ai/": "연애 비책 AI 상담",
@@ -285,21 +251,21 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/world/": "캐릭터와 세계관",
       "/reviews/": "실시간 사용자 후기",
       "/faq/": "자주 묻는 질문",
+      "/methodology/": "콘텐츠 방법론",
     },
     policyLabels: {
-      "/privacy/": "개인정보처리방침",
       "/terms/": "이용약관",
-      "/contact/": "문의하기",
-      "/about/": "서비스 소개",
+      "/privacy/": "개인정보처리방침",
+      "/refund-policy/": "환불정책",
+      "/contact/": "문의",
+      "/about/": "운영자 소개",
+      "/faq/": "자주 묻는 질문",
       "/disclaimer/": "면책 고지",
-      "/advertising-policy/": "광고 운영정책",
-      "/refund-policy/": "교환/환불 정책",
-      "/faq/": "FAQ",
-      "/methodology/": "콘텐츠 방법론",
-      "/editorial-policy/": TRUST_DOCUMENT_COPY["ko"].editorial,
-      "/insights/": "인사이트 아카이브",
+      "/editorial-policy/": "편집 원칙",
+      "/advertising-policy/": "광고 정책",
     },
     policyNavAriaLabel: "정책 및 안내 링크",
+    cookieSettingsLabel: "쿠키 설정",
     localeNavTitle: "한국어 바로가기",
     localeNavLabels: {
         home: "홈",
@@ -308,27 +274,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
         today: "오늘의 운세",
         insights: "인사이트",
       },
-    refundAriaLabel: "환불 정책 안내",
-    refundTitle: "디지털 운세 서비스 환불 안내",
-    refundIntro:
-      "유료 결제 상품은 30일 이용권과 상품별 원화 단건 결제이며, 월정석은 별도 구매·충전 상품이 아닙니다.",
-    refundClosingPolicy:
-      "본 안내는 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수는 문의하기 또는 고객지원 이메일을 통해 진행하시기 바랍니다.",
-    refundClosingMethod: "환불 처리는 결제 수단(카드)으로만 가능합니다.",
-    disclaimerAriaLabel: "면책 고지",
-    disclaimerTitle: "면책 고지",
-    disclaimerBody: "Code Destiny의 사주·타로·점성술 등 모든 운세 콘텐츠는 오락 및 자기 성찰 목적의 참고 정보이며, 확정된 미래를 예언하거나 결과의 정확성을 보장하지 않습니다. 의료·법률·투자·정신건강 등 중요한 결정은 반드시 해당 분야 전문가와 상담하시기 바랍니다.",
-    disclaimerLinkLabel: "면책 고지 전문 보기",
-    social: {
-      sectionAriaLabel: "Code Destiny 공식 SNS 채널",
-      kicker: "Official Channels",
-      title: "Code Destiny 공식 채널",
-      navAriaLabel: "Code Destiny SNS 바로가기",
-      linkAriaTemplate: "Code Destiny 공식 {channel} 새 창으로 열기",
-      labels: { youtube: "유튜브", threads: "쓰레드", instagram: "인스타그램", naverBlog: "블로그", x: "X" },
-    },
     businessAriaLabel: "사업자 정보",
-    businessTitle: "사업자 정보",
     businessLabels: {
       name: "상호명",
       representative: "대표자",
@@ -338,17 +284,15 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       email: "이메일",
       address: "사업장 주소",
     },
-    copyright: "© 2026 Code Destiny. 코드 데스티니 · 꿀꿀 만세력",
+    copyright: "© 2026 Code Destiny. 코드 데스티니 · 꿀꿀 운세",
   },
 
   ja: {
     footerAriaLabel: "サービスフッターの規約情報",
+    byline: "経験10年の命理学者パク・ビョンハが設計した四柱推命の相談",
+    notice: "分析は命理学の理論に基づく解釈です。医療・法律・投資など重要な判断は、各分野の専門家とご相談のうえ行ってください。",
+    allServicesLabel: "すべてのサービスを見る",
     hubAriaLabel: "ランディングページ内部リンクハブ",
-    kicker: "Constellation Navigation",
-    title: "サービスリンクハブ",
-    subtitle:
-      "気になるテーマの占いを選び、使い方と解釈の基準を確認できます。",
-    linkNavSuffix: "リンク",
     groupTitles: {
       "group.core": "主要な占い",
       "group.tarot": "タロットリーディング",
@@ -356,7 +300,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "group.guides": "おすすめガイド",
     },
     linkLabels: {
-      "/kkul-kkul-unse/": "ククル運勢 — Code Destiny ブランド案内",
+      "/": "ククル運勢 — 꿀꿀 운세 ブランド案内",
       "/saju/": "無料の四柱推命を見る",
       "/manse/": "万年暦を調べる",
       "/today/": "今日の運勢を見る",
@@ -366,9 +310,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/fortune/monthly/": "星座・干支の今月の運勢",
       "/compatibility/": "四柱推命の相性を占う",
       "/consultations/": "プレミアム運勢レポート",
-      "/saju/basic/": "四柱推命・万年暦の基本解釈",
       "/ziwei/chart/": "紫微斗数 十二宮命盤",
-      "/astrology/cosmic/": "西洋占星術コズミックチャート",
       "/saju/sibyl/": "シビラ・システム",
       "/life-book-ai/": "人生の書",
       "/love-secret-ai/": "恋愛秘策AI相談",
@@ -420,21 +362,21 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/world/": "キャラクターと世界観",
       "/reviews/": "リアルタイム利用者レビュー",
       "/faq/": "よくある質問",
+      "/methodology/": "コンテンツ方法論",
     },
     policyLabels: {
-      "/privacy/": "プライバシーポリシー",
       "/terms/": "利用規約",
+      "/privacy/": "プライバシーポリシー",
+      "/refund-policy/": "返金ポリシー",
       "/contact/": "お問い合わせ",
-      "/about/": "サービス紹介",
+      "/about/": "運営者紹介",
+      "/faq/": "よくある質問",
       "/disclaimer/": "免責事項",
-      "/advertising-policy/": "広告運営ポリシー",
-      "/refund-policy/": "返金・交換ポリシー",
-      "/faq/": "FAQ",
-      "/methodology/": "コンテンツ方法論",
-      "/editorial-policy/": TRUST_DOCUMENT_COPY["ja"].editorial,
-      "/insights/": "インサイト・アーカイブ",
+      "/editorial-policy/": "編集方針",
+      "/advertising-policy/": "広告ポリシー",
     },
     policyNavAriaLabel: "ポリシー・案内リンク",
+    cookieSettingsLabel: "Cookie設定",
     localeNavTitle: "日本語のページ",
     localeNavLabels: {
         home: "ホーム",
@@ -444,27 +386,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
         insights: "インサイト",
         tokushoho: "特定商取引法に基づく表記",
       },
-    refundAriaLabel: "返金ポリシー案内",
-    refundTitle: "デジタル占いサービスの返金案内",
-    refundIntro:
-      "有料決済商品は30日パスおよび商品ごとのウォン建て都度決済であり、ムーンストーンは別途購入・チャージする商品ではありません。",
-    refundClosingPolicy:
-      "本案内は利用規約および決済代行会社のポリシーと併せて適用され、強行規定と抵触する場合は関係法令が優先します。返金のお申し込みは、お問い合わせまたはカスタマーサポートのメールからお願いします。",
-    refundClosingMethod: "返金は、決済に使用された手段（カード）へのみ行われます。",
-    disclaimerAriaLabel: "免責事項",
-    disclaimerTitle: "免責事項",
-    disclaimerBody: "Code Destinyの四柱推命・タロット・占星術などすべての占いコンテンツは、娯楽および自己省察を目的とした参考情報であり、確定した未来を予言するものでも、結果の正確性を保証するものでもありません。医療・法律・投資・メンタルヘルスなど重要な決定は、必ず該当分野の専門家にご相談ください。",
-    disclaimerLinkLabel: "免責事項の全文を見る",
-    social: {
-      sectionAriaLabel: "Code Destiny 公式SNSチャンネル",
-      kicker: "Official Channels",
-      title: "Code Destiny 公式チャンネル",
-      navAriaLabel: "Code Destiny SNSへのショートカット",
-      linkAriaTemplate: "Code Destiny 公式{channel}を新しいウィンドウで開く",
-      labels: { youtube: "YouTube", threads: "Threads", instagram: "Instagram", naverBlog: "ブログ", x: "X" },
-    },
     businessAriaLabel: "事業者情報",
-    businessTitle: "事業者情報",
     businessLabels: {
       name: "商号",
       representative: "代表者",
@@ -479,12 +401,10 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
 
   zh: {
     footerAriaLabel: "服务页脚政策信息",
+    byline: "由拥有十年经验的命理学者 Park Byeong-ha 设计的八字咨询",
+    notice: "分析是基于命理学理论的解读。医疗、法律、投资等重要决定，请与相关领域的专业人士共同判断。",
+    allServicesLabel: "查看全部服务",
     hubAriaLabel: "落地页内部链接中心",
-    kicker: "Constellation Navigation",
-    title: "服务链接中心",
-    subtitle:
-      "按你关心的主题选择解读，并了解使用方法和解读依据。",
-    linkNavSuffix: "链接",
     groupTitles: {
       "group.core": "核心运势",
       "group.tarot": "塔罗解读",
@@ -492,7 +412,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "group.guides": "推荐指南",
     },
     linkLabels: {
-      "/kkul-kkul-unse/": "咕咕运势 — Code Destiny 品牌介绍",
+      "/": "咕咕运势 — 꿀꿀 운세 品牌介绍",
       "/saju/": "查看免费四柱八字解读",
       "/manse/": "查询万年历",
       "/today/": "查看今日运势",
@@ -502,9 +422,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/fortune/monthly/": "星座生肖本月运势",
       "/compatibility/": "分析四柱合婚",
       "/consultations/": "高级运势报告",
-      "/saju/basic/": "四柱与万年历基础解读",
       "/ziwei/chart/": "紫微斗数十二宫命盘",
-      "/astrology/cosmic/": "占星宇宙星盘",
       "/saju/sibyl/": "西比拉系统",
       "/life-book-ai/": "人生之书",
       "/love-secret-ai/": "恋爱秘策 AI 咨询",
@@ -556,21 +474,21 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/world/": "角色与世界观",
       "/reviews/": "实时用户评价",
       "/faq/": "常见问题",
+      "/methodology/": "内容方法论",
     },
     policyLabels: {
-      "/privacy/": "隐私政策",
       "/terms/": "服务条款",
+      "/privacy/": "隐私政策",
+      "/refund-policy/": "退款政策",
       "/contact/": "联系我们",
-      "/about/": "服务介绍",
+      "/about/": "运营者介绍",
+      "/faq/": "常见问题",
       "/disclaimer/": "免责声明",
-      "/advertising-policy/": "广告运营政策",
-      "/refund-policy/": "退换与退款政策",
-      "/faq/": "常见问题解答",
-      "/methodology/": "内容方法论",
-      "/editorial-policy/": TRUST_DOCUMENT_COPY["zh"].editorial,
-      "/insights/": "洞察归档",
+      "/editorial-policy/": "编辑政策",
+      "/advertising-policy/": "广告政策",
     },
     policyNavAriaLabel: "政策与指南链接",
+    cookieSettingsLabel: "Cookie 设置",
     localeNavTitle: "简体中文页面",
     localeNavLabels: {
         home: "首页",
@@ -579,27 +497,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
         today: "今日运势",
         insights: "洞察",
       },
-    refundAriaLabel: "退款政策说明",
-    refundTitle: "数字运势服务退款说明",
-    refundIntro:
-      "付费商品为30天通行证与各商品的韩元单次付款，月晶石并非另行购买或充值的商品。",
-    refundClosingPolicy:
-      "本说明与服务条款及支付服务商政策一并适用；如与强制性法规冲突，以相关法令为准。退款申请请通过联系我们或客服邮箱提出。",
-    refundClosingMethod: "退款仅可退回至原支付方式（银行卡）。",
-    disclaimerAriaLabel: "免责声明",
-    disclaimerTitle: "免责声明",
-    disclaimerBody: "Code Destiny 的四柱、塔罗、占星等全部运势内容仅供娱乐与自我反思参考，不预言既定的未来，也不保证结果的准确性。涉及医疗、法律、投资、心理健康等重要决定，请务必咨询相关领域的专业人士。",
-    disclaimerLinkLabel: "查看完整免责声明",
-    social: {
-      sectionAriaLabel: "Code Destiny 官方社交渠道",
-      kicker: "Official Channels",
-      title: "Code Destiny 官方渠道",
-      navAriaLabel: "Code Destiny 社交媒体快捷入口",
-      linkAriaTemplate: "在新窗口打开 Code Destiny 官方{channel}",
-      labels: { youtube: "YouTube", threads: "Threads", instagram: "Instagram", naverBlog: "博客", x: "X" },
-    },
     businessAriaLabel: "企业信息",
-    businessTitle: "企业信息",
     businessLabels: {
       name: "公司名称",
       representative: "法定代表人",
@@ -614,12 +512,10 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
 
   "zh-TW": {
     footerAriaLabel: "服務頁尾政策資訊",
+    byline: "由擁有十年經驗的命理學者 Park Byeong-ha 設計的八字諮詢",
+    notice: "分析是基於命理學理論的解讀。醫療、法律、投資等重要決定，請與相關領域的專業人士共同判斷。",
+    allServicesLabel: "查看全部服務",
     hubAriaLabel: "到達頁內部連結中心",
-    kicker: "Constellation Navigation",
-    title: "服務連結中心",
-    subtitle:
-      "依你關心的主題選擇解讀，並了解使用方式和解讀依據。",
-    linkNavSuffix: "連結",
     groupTitles: {
       "group.core": "核心運勢",
       "group.tarot": "塔羅解讀",
@@ -627,7 +523,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "group.guides": "推薦指南",
     },
     linkLabels: {
-      "/kkul-kkul-unse/": "咕咕運勢 — Code Destiny 品牌介紹",
+      "/": "咕咕運勢 — 꿀꿀 운세 品牌介紹",
       "/saju/": "查看免費四柱八字解讀",
       "/manse/": "查詢萬年曆",
       "/today/": "查看今日運勢",
@@ -637,9 +533,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/fortune/monthly/": "星座生肖本月運勢",
       "/compatibility/": "分析四柱合婚",
       "/consultations/": "高級運勢報告",
-      "/saju/basic/": "四柱與萬年曆基礎解讀",
       "/ziwei/chart/": "紫微斗數十二宮命盤",
-      "/astrology/cosmic/": "占星宇宙星盤",
       "/saju/sibyl/": "西比拉系統",
       "/life-book-ai/": "人生之書",
       "/love-secret-ai/": "戀愛祕策 AI 諮詢",
@@ -691,21 +585,21 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/world/": "角色與世界觀",
       "/reviews/": "即時使用者評價",
       "/faq/": "常見問題",
+      "/methodology/": "內容方法論",
     },
     policyLabels: {
-      "/privacy/": "隱私權政策",
       "/terms/": "服務條款",
+      "/privacy/": "隱私權政策",
+      "/refund-policy/": "退款政策",
       "/contact/": "聯絡我們",
-      "/about/": "服務介紹",
+      "/about/": "營運者介紹",
+      "/faq/": "常見問題",
       "/disclaimer/": "免責聲明",
-      "/advertising-policy/": "廣告營運政策",
-      "/refund-policy/": "退換與退款政策",
-      "/faq/": "常見問題解答",
-      "/methodology/": "內容方法論",
-      "/editorial-policy/": TRUST_DOCUMENT_COPY["zh-tw"].editorial,
-      "/insights/": "洞察彙整",
+      "/editorial-policy/": "編輯政策",
+      "/advertising-policy/": "廣告政策",
     },
     policyNavAriaLabel: "政策與指南連結",
+    cookieSettingsLabel: "Cookie 設定",
     localeNavTitle: "繁體中文頁面",
     localeNavLabels: {
         home: "首頁",
@@ -714,27 +608,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
         today: "今日運勢",
         insights: "洞察",
       },
-    refundAriaLabel: "退款政策說明",
-    refundTitle: "數位運勢服務退款說明",
-    refundIntro:
-      "付費商品為30天通行證與各商品的韓元單次付款，月晶石並非另行購買或儲值的商品。",
-    refundClosingPolicy:
-      "本說明與服務條款及金流服務商政策一併適用；如與強行規定衝突，以相關法令為準。退款申請請透過聯絡我們或客服信箱提出。",
-    refundClosingMethod: "退款僅可退回至原支付方式（信用卡）。",
-    disclaimerAriaLabel: "免責聲明",
-    disclaimerTitle: "免責聲明",
-    disclaimerBody: "Code Destiny 的四柱、塔羅、占星等全部運勢內容僅供娛樂與自我反思參考，不預言既定的未來，也不保證結果的準確性。涉及醫療、法律、投資、心理健康等重要決定，請務必諮詢相關領域的專業人士。",
-    disclaimerLinkLabel: "查看完整免責聲明",
-    social: {
-      sectionAriaLabel: "Code Destiny 官方社群頻道",
-      kicker: "Official Channels",
-      title: "Code Destiny 官方頻道",
-      navAriaLabel: "Code Destiny 社群媒體捷徑",
-      linkAriaTemplate: "在新視窗開啟 Code Destiny 官方{channel}",
-      labels: { youtube: "YouTube", threads: "Threads", instagram: "Instagram", naverBlog: "部落格", x: "X" },
-    },
     businessAriaLabel: "營業人資訊",
-    businessTitle: "營業人資訊",
     businessLabels: {
       name: "公司名稱",
       representative: "代表人",
@@ -749,12 +623,10 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
 
   en: {
     footerAriaLabel: "Site footer policy information",
+    byline: "Saju readings designed by Park Byeong-ha, a Myeongri scholar with 10 years of experience",
+    notice: "Readings are interpretations grounded in Myeongri theory. For important medical, legal, or investment decisions, please decide together with a qualified professional in that field.",
+    allServicesLabel: "All services",
     hubAriaLabel: "Landing page internal link hub",
-    kicker: "Constellation Navigation",
-    title: "Service Link Hub",
-    subtitle:
-      "Choose a reading for your question, then explore how to use it and understand its interpretation.",
-    linkNavSuffix: "links",
     groupTitles: {
       "group.core": "Core Readings",
       "group.tarot": "Tarot Readings",
@@ -762,7 +634,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "group.guides": "Recommended Guides",
     },
     linkLabels: {
-      "/kkul-kkul-unse/": "Kkul-Kkul Fortune — about the Code Destiny brand",
+      "/": "Kkul-Kkul Fortune — about the 꿀꿀 운세 brand",
       "/saju/": "See a free Saju reading",
       "/manse/": "Look up the Manse calendar",
       "/today/": "See today's fortune",
@@ -772,9 +644,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/fortune/monthly/": "This month by zodiac and sign",
       "/compatibility/": "Analyse Saju compatibility",
       "/consultations/": "Premium fortune report",
-      "/saju/basic/": "Saju and Manse calendar basics",
       "/ziwei/chart/": "Zi Wei Dou Shu twelve-palace chart",
-      "/astrology/cosmic/": "Cosmic astrology chart",
       "/saju/sibyl/": "The Sibylla system",
       "/life-book-ai/": "The Book of Life",
       "/love-secret-ai/": "Love strategy AI consultation",
@@ -826,21 +696,21 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/world/": "Characters and World",
       "/reviews/": "Live user reviews",
       "/faq/": "Frequently asked questions",
+      "/methodology/": "Content Methodology",
     },
     policyLabels: {
-      "/privacy/": "Privacy Policy",
       "/terms/": "Terms of Service",
-      "/contact/": "Contact",
-      "/about/": "About",
-      "/disclaimer/": "Disclaimer",
-      "/advertising-policy/": "Advertising Policy",
+      "/privacy/": "Privacy Policy",
       "/refund-policy/": "Refund Policy",
+      "/contact/": "Contact Us",
+      "/about/": "About the Operator",
       "/faq/": "FAQ",
-      "/methodology/": "Content Methodology",
-      "/editorial-policy/": TRUST_DOCUMENT_COPY["en"].editorial,
-      "/insights/": "Insights Archive",
+      "/disclaimer/": "Disclaimer",
+      "/editorial-policy/": "Editorial Policy",
+      "/advertising-policy/": "Advertising Policy",
     },
     policyNavAriaLabel: "Policy and information links",
+    cookieSettingsLabel: "Cookie settings",
     localeNavTitle: "Pages in English",
     localeNavLabels: {
         home: "Home",
@@ -849,27 +719,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
         today: "Today's fortune",
         insights: "Insights",
       },
-    refundAriaLabel: "Refund policy information",
-    refundTitle: "Refund guide for digital fortune services",
-    refundIntro:
-      "The paid products are the 30-day Pass and per-item single payments in KRW. Moonstones are not a separately purchased or topped-up product.",
-    refundClosingPolicy:
-      "This guide applies together with the Terms of Service and the payment provider's policies; where it conflicts with mandatory law, the applicable statutes prevail. Refund requests can be made through Contact or the customer support email.",
-    refundClosingMethod: "Refunds can only be issued to the original payment method (card).",
-    disclaimerAriaLabel: "Disclaimer",
-    disclaimerTitle: "Disclaimer",
-    disclaimerBody: "All fortune content on Code Destiny, including Saju, tarot, and astrology, is provided for entertainment and self-reflection only; it does not predict a fixed future and its accuracy is not guaranteed. For important medical, legal, financial, or mental-health decisions, always consult a qualified professional.",
-    disclaimerLinkLabel: "Read the full disclaimer",
-    social: {
-      sectionAriaLabel: "Code Destiny official social channels",
-      kicker: "Official Channels",
-      title: "Code Destiny official channels",
-      navAriaLabel: "Shortcuts to Code Destiny social media",
-      linkAriaTemplate: "Open the official Code Destiny {channel} in a new window",
-      labels: { youtube: "YouTube", threads: "Threads", instagram: "Instagram", naverBlog: "Blog", x: "X" },
-    },
     businessAriaLabel: "Business information",
-    businessTitle: "Business information",
     businessLabels: {
       name: "Business name",
       representative: "Representative",

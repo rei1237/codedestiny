@@ -1,0 +1,167 @@
+{
+  "id": "yeongnyangi-fusion-astrology-tarot",
+  "featureKey": "yeongnyangi-fusion-astrology-tarot",
+  "title": "영냥이 점성술·타로 모둠 상담",
+  "notice": "점성술 출생차트와 자동으로 뽑는 타로 6장을 구분해 읽는 개인 모둠 상담입니다. 현재 결과는 28장으로, 주제에 따라 중간 목차가 달라집니다. 출생차트 해석을 실제 트랜짓 계산이나 특정 날짜의 예측으로 표현하지 않습니다. 타로는 상대 마음이나 미래를 확정하지 않습니다. 본인 출생시간·지역·시간대가 필요합니다. 예시는 가상 편집이며 결과 본문은 AI가 작성합니다. 가격과 추가 질문 조건은 기존 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-new-role",
+      "title": "새로운 역할 앞에서, 익숙한 내가 망설일 때.",
+      "alt": "마법사 고양이 영냥이가 행성 차트와 타로 카드를 함께 읽는 장면",
+      "src": "/images/service-introductions/yeongnyangi-fusion-astrology-tarot.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "새로운 역할 앞에서,\n익숙한 내가 망설일 때.\n\n타고난 선택의 습관과 지금의 질문을\n점성술·타로의 다른 시선으로 읽어요.\n\n영냥이 모둠 · 점성술과 타로",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-astrology-tarot-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-astrology-tarot-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-fusion-astrology-tarot-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-what-holds-you",
+      "title": "기회가 싫은 걸까요, 낯선 내가 두려운 걸까요?",
+      "alt": "기회가 싫은 걸까요, 낯선 내가 두려운 걸까요?",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/02-what-holds-you.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기회가 싫은 걸까요,\n낯선 내가 두려운 걸까요?\n새 역할의 제안\n\n해보고 싶은 일인데\n기대보다 걱정이 먼저 올라와요.\n\n익숙한 자리의 편안함\n\n잘할 수 있다는 확신은 있지만\n계속 이대로일까 마음이 쓰여요.\n\n질문의 초점\n\n무엇을 원하는지, 무엇이 걱정인지\n한 덩어리의 망설임을 나눠봐요.\n\n질문을 돕기 위한 가상 상황입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/02-what-holds-you-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-two-timescales",
+      "title": "오래된 습관과 오늘의 마음을 구분해요.",
+      "alt": "오래된 습관과 오늘의 마음을 구분해요.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/03-two-timescales.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "오래된 습관과\n오늘의 마음을 구분해요.\n점성술 · 출생차트\n\n행성·하우스·각도로 읽는\n기질과 삶의 관심 영역이에요.\n\n타로 · 지금 던지는 질문\n\n여섯 자리의 상징으로\n감정·조건·선택을 살펴요.\n\n하우스는 삶의 영역, 각도는 행성의 관계예요.\n출생차트와 오늘의 천체 이동은 구분해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/03-two-timescales-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-six-card-roles",
+      "title": "여섯 장을 따라, 망설임의 안팎을 읽어요.",
+      "alt": "여섯 장을 따라, 망설임의 안팎을 읽어요.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/04-six-card-roles.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "여섯 장을 따라,\n망설임의 안팎을 읽어요.\n현재 · 내면\n\n겉으로 놓인 상황과 속마음\n\n장애물 · 외부 영향\n\n막히는 지점과 주변의 조건\n\n선택 · 다음 행동\n\n가능한 방향과 작은 실천\n\n준비 과정에서 카드 6장을 자동 추출해요.\n개별 타로의 배열 선택 메뉴와는 달라요.\n카드가 결과를 보장하는 것은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/04-six-card-roles-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-four-foundations",
+      "title": "먼저 각자의 언어로, 근거를 풀어드려요.",
+      "alt": "먼저 각자의 언어로, 근거를 풀어드려요.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/05-four-foundations.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "먼저 각자의 언어로,\n근거를 풀어드려요.\n1–2장 · 체계별 기본 해석\n\n점성술 한 장 · 타로 한 장\n\n3–4장 · 체계별 전문 해석\n\n출생차트의 연결과 여섯 카드의 맥락\n\n5–7장 · 질문에 대한 답\n\n답 · 체계별 근거 비교\n기회와 주의 조건\n\n전체 28장 중 앞부분의 구성입니다.\n다른 해석을 한 결론에 억지로 맞추지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/05-four-foundations-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-a-question-to-test",
+      "title": "내 선택의 기준을, 생활에서 시험해봐요.",
+      "alt": "내 선택의 기준을, 생활에서 시험해봐요.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/06-a-question-to-test.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 선택의 기준을,\n생활에서 시험해봐요.\n8–10장 · 반복되는 선택\n\n마음의 패턴 · 관계 속의 나\n선택의 기준\n\n11–14장 · 변화의 실험\n\n시기와 흐름 · 작은 변화의 실험\n시나리오별 대응 · 다음 주기의 방향\n\n맡을 역할을 한 번 경험해보는 선택과\n지금의 자리를 지키는 선택을 비교해요.\n\n기본 자기이해 주제의 목차 예시입니다.\n선택한 주제에 따라 중간 목차가 달라져요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/06-a-question-to-test-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-life-around-the-choice",
+      "title": "하나의 선택이, 생활에 남길 흔적까지.",
+      "alt": "하나의 선택이, 생활에 남길 흔적까지.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/07-life-around-the-choice.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "하나의 선택이,\n생활에 남길 흔적까지.\n15–20장 · 생활의 여섯 영역\n\n성격 · 돈 · 일 · 사랑과 결혼\n가족과 관계 · 건강 리듬\n\n21–25장 · 흐름과 실천\n\n10년 주기 · 올해 월별 · 다음 해\n강점 · 행동 조언\n\n공통 목차의 시기 표현은 해석의 질문 틀이에요.\n실제 트랜짓 계산에 따른 예측은 아니에요.\n건강 리듬은 진단이나 치료를 대신하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/07-life-around-the-choice-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-differences-matter",
+      "title": "엇갈린 해석에도, 확인할 조건이 있어요.",
+      "alt": "엇갈린 해석에도, 확인할 조건이 있어요.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/08-differences-matter.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "엇갈린 해석에도,\n확인할 조건이 있어요.\n26장 · 나를 지키는 선택\n\n주의 흐름과 현실적인 대응\n\n27장 · 공통점과 차이\n\n같이 가리키는 부분과\n다르게 읽힌 조건을 구분해요.\n\n28장 · 행동으로 정리\n\n지금 해볼 일과\n다시 살펴볼 조건을 남겨요.\n\n별과 카드의 답을 찬반 투표처럼 세지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/08-differences-matter-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-fictional-small-trial",
+      "title": "결정 대신, 작은 경험부터 남겨요.",
+      "alt": "결정 대신, 작은 경험부터 남겨요.",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/09-fictional-small-trial.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "결정 대신,\n작은 경험부터 남겨요.\n\n가상 편집 예시 · 실제 상담 결과가 아닙니다\n\n“변화를 원하는 마음과 안정이 필요한 마음은 함께 있을 수 있어요.\n새 역할의 일부를 먼저 맡아보고, 피로와 만족을 적어보세요. 걱정과 실제 경험을 나란히 놓고 비교해봐요.”\n\n해석을 받아 적는 데서 끝내지 않고,\n내 생활에서 확인할 질문을 남겨요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/09-fictional-small-trial-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-bring-your-question",
+      "title": "망설이는 이유를, 함께 펼쳐볼까요?",
+      "alt": "망설이는 이유를, 함께 펼쳐볼까요?",
+      "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/10-bring-your-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "망설이는 이유를,\n함께 펼쳐볼까요?\n\n본인의 출생정보와 지금의 고민을 준비해요.\n시간·지역·시간대까지 확인해 주세요.\n\n결과 본문은 AI가 작성해요.\n가격과 추가 질문 조건은 현재 화면을 따릅니다.\n상담 시작은 아래의 기존 버튼을 이용해 주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-fusion-astrology-tarot/10-bring-your-question-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,28 @@
 {
   "backgrounds": [
     {
+      "key": "rainStop",
+      "source": "/images/novel/remaster/rainStop.webp",
+      "sourceBytes": 367986,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/rainStop.webp",
+      "bytes": 173122,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "foundation",
+      "source": "/images/novel/remaster/foundation.webp",
+      "sourceBytes": 143634,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/foundation.webp",
+      "bytes": 69520,
+      "width": 1280,
+      "height": 853
+    },
+    {
       "key": "memoryVault",
       "source": "/images/novel/remaster/memory-vault-release-v1.webp",
       "sourceBytes": 200164,
@@ -474,61 +496,6 @@
       "height": 341
     },
     {
-      "key": "neoBound2",
-      "source": "https://assets.code-destiny.com/CodeDestinyNovel/%EA%B0%87%ED%9E%8C%20%EB%84%A4%EC%98%A42.webp",
-      "sourceBytes": 307614,
-      "sourceWidth": 1254,
-      "sourceHeight": 1254,
-      "path": "/images/novel/mobile/neoBound2.webp",
-      "bytes": 150610,
-      "width": 960,
-      "height": 960
-    },
-    {
-      "key": "neoBound3",
-      "source": "https://assets.code-destiny.com/CodeDestinyNovel/%EA%B0%87%ED%9E%8C%20%EB%84%A4%EC%98%A43.webp",
-      "sourceBytes": 341512,
-      "sourceWidth": 1254,
-      "sourceHeight": 1254,
-      "path": "/images/novel/mobile/neoBound3.webp",
-      "bytes": 168128,
-      "width": 960,
-      "height": 960
-    },
-    {
-      "key": "fateTarot",
-      "source": "https://assets.code-destiny.com/CodeDestinyNovel/%ED%83%80%EB%A1%9C%20%EC%B9%B4%EB%93%9C%EB%93%A4%20%EC%86%8D%EC%9D%98%20%EC%97%B0%EC%9D%B4.webp",
-      "sourceBytes": 287816,
-      "sourceWidth": 1254,
-      "sourceHeight": 1254,
-      "path": "/images/novel/mobile/fateTarot.webp",
-      "bytes": 142272,
-      "width": 960,
-      "height": 960
-    },
-    {
-      "key": "rainStop",
-      "source": "/images/novel/remaster/rainStop.webp",
-      "sourceBytes": 367986,
-      "sourceWidth": 1536,
-      "sourceHeight": 1024,
-      "path": "/images/novel/mobile/rainStop.webp",
-      "bytes": 209446,
-      "width": 1280,
-      "height": 853
-    },
-    {
-      "key": "foundation",
-      "source": "/images/novel/remaster/foundation.webp",
-      "sourceBytes": 143634,
-      "sourceWidth": 1536,
-      "sourceHeight": 1024,
-      "path": "/images/novel/mobile/foundation.webp",
-      "bytes": 81504,
-      "width": 1280,
-      "height": 853
-    },
-    {
       "key": "timeVault",
       "source": "/images/novel/remaster/time-vault-v1.webp",
       "sourceBytes": 265310,
@@ -703,224 +670,137 @@
       "bytes": 99848,
       "width": 1280,
       "height": 853
+    },
+    {
+      "key": "neoBound2",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/%EA%B0%87%ED%9E%8C%20%EB%84%A4%EC%98%A42.webp",
+      "sourceBytes": 307614,
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "path": "/images/novel/mobile/neoBound2.webp",
+      "bytes": 150610,
+      "width": 960,
+      "height": 960
+    },
+    {
+      "key": "neoBound3",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/%EA%B0%87%ED%9E%8C%20%EB%84%A4%EC%98%A43.webp",
+      "sourceBytes": 341512,
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "path": "/images/novel/mobile/neoBound3.webp",
+      "bytes": 168128,
+      "width": 960,
+      "height": 960
+    },
+    {
+      "key": "fateTarot",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/%ED%83%80%EB%A1%9C%20%EC%B9%B4%EB%93%9C%EB%93%A4%20%EC%86%8D%EC%9D%98%20%EC%97%B0%EC%9D%B4.webp",
+      "sourceBytes": 287816,
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "path": "/images/novel/mobile/fateTarot.webp",
+      "bytes": 142272,
+      "width": 960,
+      "height": 960
     }
   ],
   "sprites": {
-    "pig pigsheet|400% 400%|0% 0%": {
-      "path": "/images/novel/mobile/yeon-511ca35e27.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 15672
-    },
-    "pig pigsheet|400% 400%|33.333% 0%": {
-      "path": "/images/novel/mobile/yeon-e821d4126a.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 15294
-    },
-    "pig pigsheet|400% 400%|0% 100%": {
-      "path": "/images/novel/mobile/yeon-bbc793a664.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 13966
-    },
-    "pig pigsheet|400% 400%|100% 33.333%": {
-      "path": "/images/novel/mobile/yeon-079ebbc0be.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 15156
-    },
-    "pig pigsheet|400% 400%|33.333% 66.667%": {
-      "path": "/images/novel/mobile/yeon-089fe114c2.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 11864
-    },
-    "pig pigsheet|400% 200%|33.333% 100%": {
-      "path": "/images/novel/mobile/yeon-650e3aa60f.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 15066
-    },
-    "pig pigsheet|400% 400%|0% 33.333%": {
-      "path": "/images/novel/mobile/yeon-91db69b155.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 15548
-    },
-    "pig pigsheet|400% 400%|66.667% 0%": {
-      "path": "/images/novel/mobile/yeon-0beb3130aa.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 15530
-    },
-    "neo||2.306% 3.145%": {
-      "path": "/images/novel/mobile/neo-cef04fde61.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 16018
-    },
-    "neo||2.516% 65.618%": {
-      "path": "/images/novel/mobile/neo-91ec563fb8.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 15506
-    },
-    "neo||63.941% 65.618%": {
-      "path": "/images/novel/mobile/neo-aaca47d16c.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 15848
-    },
-    "pig pigsheet|400% 400%|100% 66.667%": {
-      "path": "/images/novel/mobile/yeon-2e3363da63.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 11772
-    },
-    "neo||95.388% 34.591%": {
-      "path": "/images/novel/mobile/neo-48d4aa814f.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 16158
-    },
-    "neo||63.941% 34.172%": {
-      "path": "/images/novel/mobile/neo-0d22992d55.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 15890
-    },
-    "neo||31.866% 34.591%": {
-      "path": "/images/novel/mobile/neo-e2bc681b39.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 15374
-    },
-    "neo||63.732% 97.065%": {
-      "path": "/images/novel/mobile/neo-770ae3da96.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 15118
-    },
-    "neo||95.178% 65.618%": {
-      "path": "/images/novel/mobile/neo-aaded9f0ec.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 15586
-    },
-    "pig pigsheet|400% 400%|100% 0%": {
-      "path": "/images/novel/mobile/yeon-c56b4fc813.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 15702
-    },
-    "neo||32.075% 3.145%": {
-      "path": "/images/novel/mobile/neo-42784c3e31.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 15778
-    },
-    "neo||2.306% 34.172%": {
-      "path": "/images/novel/mobile/neo-b7e4708f9f.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 16138
-    },
-    "pig pigsheet|400% 400%|66.667% 33.333%": {
-      "path": "/images/novel/mobile/yeon-c601d7fed1.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 15486
-    },
-    "pig pigsheet|400% 400%|100% 100%": {
-      "path": "/images/novel/mobile/yeon-66860e6eed.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 14088
-    },
-    "neo||95.178% 97.065%": {
-      "path": "/images/novel/mobile/neo-4e363560f9.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 15940
-    },
-    "pig pigsheet|400% 400%|66.667% 66.667%": {
-      "path": "/images/novel/mobile/yeon-b3f0682d42.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 11920
-    },
-    "neo||32.285% 65.618%": {
-      "path": "/images/novel/mobile/neo-a6de56bfed.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 15692
-    },
-    "pig pigsheet|400% 400%|33.333% 33.333%": {
-      "path": "/images/novel/mobile/yeon-2ed429eeff.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 14752
-    },
-    "moka mokaSheet|300% 200%|0% 0%": {
-      "path": "/images/novel/mobile/moka-9241a3cc05.webp",
+    "pig pigV2|/images/novel/remaster/v2/yeoni/sleep.webp": {
+      "path": "/images/novel/mobile/yeon-99e2bed181.webp",
       "width": 400,
-      "height": 400,
-      "bytes": 34228
+      "height": 472,
+      "bytes": 26960
     },
-    "moka mokaSheet|300% 200%|0% 100%": {
-      "path": "/images/novel/mobile/moka-286bb8c381.webp",
+    "pig pigV2|/images/novel/remaster/v2/yeoni/sad.webp": {
+      "path": "/images/novel/mobile/yeon-fe3d978253.webp",
       "width": 400,
-      "height": 400,
-      "bytes": 34816
+      "height": 472,
+      "bytes": 26888
     },
-    "moka mokaSheet|300% 200%|50% 100%": {
-      "path": "/images/novel/mobile/moka-81bbc57e45.webp",
+    "pig pigV2|/images/novel/remaster/v2/yeoni/soft-smile.webp": {
+      "path": "/images/novel/mobile/yeon-5cf0ad78ef.webp",
       "width": 400,
-      "height": 400,
-      "bytes": 38056
+      "height": 472,
+      "bytes": 27302
     },
-    "moka mokaSheet|300% 200%|100% 100%": {
-      "path": "/images/novel/mobile/moka-b79d339faa.webp",
+    "pig pigV2|/images/novel/remaster/v2/yeoni/neutral.webp": {
+      "path": "/images/novel/mobile/yeon-b51a615980.webp",
       "width": 400,
-      "height": 400,
-      "bytes": 33090
+      "height": 472,
+      "bytes": 27446
     },
-    "moka mokaSheet|300% 200%|50% 0%": {
-      "path": "/images/novel/mobile/moka-4fc96ec439.webp",
+    "pig pigV2|/images/novel/remaster/v2/yeoni/angry.webp": {
+      "path": "/images/novel/mobile/yeon-4b7d63a2ed.webp",
       "width": 400,
-      "height": 400,
-      "bytes": 32716
+      "height": 472,
+      "bytes": 30954
     },
-    "pig pigsheet|400% 200%|100% 0%": {
-      "path": "/images/novel/mobile/yeon-d4ea56aadb.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 15966
-    },
-    "pig pigsheet|400% 400%|0% 66.667%": {
-      "path": "/images/novel/mobile/yeon-201523f9c7.webp",
-      "width": 264,
-      "height": 372,
-      "bytes": 12528
-    },
-    "moka mokaSheet|300% 200%|100% 0%": {
-      "path": "/images/novel/mobile/moka-cd05085bef.webp",
+    "pig pigV2|/images/novel/remaster/v2/yeoni/fear.webp": {
+      "path": "/images/novel/mobile/yeon-dc17e49671.webp",
       "width": 400,
-      "height": 400,
-      "bytes": 38542
+      "height": 472,
+      "bytes": 27950
     },
-    "neo||64.151% 3.145%": {
-      "path": "/images/novel/mobile/neo-a066db3e3e.webp",
-      "width": 300,
-      "height": 300,
-      "bytes": 15790
-    },
-    "ln|300% 200%|100% 0%": {
-      "path": "/images/novel/mobile/ln-abb8cbdbef.webp",
+    "pig pigV2|/images/novel/remaster/v2/yeoni/surprise.webp": {
+      "path": "/images/novel/mobile/yeon-47bee7a179.webp",
       "width": 400,
-      "height": 400,
-      "bytes": 18924
+      "height": 472,
+      "bytes": 29288
+    },
+    "pig pigV2|/images/novel/remaster/v2/yeoni/think.webp": {
+      "path": "/images/novel/mobile/yeon-1ff1df0cf1.webp",
+      "width": 400,
+      "height": 472,
+      "bytes": 27642
+    },
+    "pig pigV2|/images/novel/remaster/v2/yeoni/talk.webp": {
+      "path": "/images/novel/mobile/yeon-a1d1c67b46.webp",
+      "width": 400,
+      "height": 472,
+      "bytes": 27310
+    },
+    "pig pigV2|/images/novel/remaster/v2/yeoni/laugh.webp": {
+      "path": "/images/novel/mobile/yeon-407d5c1abc.webp",
+      "width": 400,
+      "height": 472,
+      "bytes": 27266
+    },
+    "pig pigV2|/images/novel/remaster/v2/yeoni/shy.webp": {
+      "path": "/images/novel/mobile/yeon-6888308945.webp",
+      "width": 400,
+      "height": 472,
+      "bytes": 25542
+    },
+    "pig pigV2|/images/novel/remaster/v2/yeoni/cheer.webp": {
+      "path": "/images/novel/mobile/yeon-bda44a2b1b.webp",
+      "width": 400,
+      "height": 472,
+      "bytes": 29170
+    },
+    "pig pigV2|/images/novel/remaster/v2/yeoni/cry.webp": {
+      "path": "/images/novel/mobile/yeon-2e65bc4e2f.webp",
+      "width": 400,
+      "height": 472,
+      "bytes": 27870
+    },
+    "moka mokaV2|/images/novel/remaster/v2/moka/angry.webp": {
+      "path": "/images/novel/mobile/moka-c6dba55408.webp",
+      "width": 400,
+      "height": 450,
+      "bytes": 44798
+    },
+    "moka mokaV2|/images/novel/remaster/v2/moka/neutral.webp": {
+      "path": "/images/novel/mobile/moka-77f73c506a.webp",
+      "width": 400,
+      "height": 450,
+      "bytes": 44054
+    },
+    "moka mokaV2|/images/novel/remaster/v2/moka/moved.webp": {
+      "path": "/images/novel/mobile/moka-1c20c6f5cd.webp",
+      "width": 400,
+      "height": 450,
+      "bytes": 41410
     },
     "ln|300% 200%|0% 100%": {
       "path": "/images/novel/mobile/ln-f5b881ef14.webp",
@@ -934,29 +814,17 @@
       "height": 400,
       "bytes": 17310
     },
-    "ln|300% 200%|0% 0%": {
-      "path": "/images/novel/mobile/ln-48e4401feb.webp",
-      "width": 400,
-      "height": 400,
-      "bytes": 20846
-    },
-    "ln|300% 200%|50% 100%": {
-      "path": "/images/novel/mobile/ln-4925ce956d.webp",
-      "width": 400,
-      "height": 400,
-      "bytes": 18526
-    },
     "ln|300% 200%|100% 100%": {
       "path": "/images/novel/mobile/ln-20acba39fe.webp",
       "width": 400,
       "height": 400,
       "bytes": 18370
     },
-    "lns|300% 200%|0% 0%": {
-      "path": "/images/novel/mobile/lns-77af965511.webp",
+    "lns|300% 200%|50% 100%": {
+      "path": "/images/novel/mobile/lns-c45d8b73e5.webp",
       "width": 375,
       "height": 600,
-      "bytes": 39988
+      "bytes": 45368
     },
     "lns|300% 200%|50% 0%": {
       "path": "/images/novel/mobile/lns-c27e6907ac.webp",
@@ -976,11 +844,29 @@
       "height": 600,
       "bytes": 46990
     },
-    "lns|300% 200%|100% 100%": {
-      "path": "/images/novel/mobile/lns-a52d7a350d.webp",
+    "lns|300% 200%|0% 0%": {
+      "path": "/images/novel/mobile/lns-77af965511.webp",
       "width": 375,
       "height": 600,
-      "bytes": 38802
+      "bytes": 39988
+    },
+    "ln|300% 200%|100% 0%": {
+      "path": "/images/novel/mobile/ln-abb8cbdbef.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 18924
+    },
+    "ln|300% 200%|0% 0%": {
+      "path": "/images/novel/mobile/ln-48e4401feb.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 20846
+    },
+    "pig pigV2|/images/novel/remaster/v2/yeoni/determined.webp": {
+      "path": "/images/novel/mobile/yeon-1a6684d26b.webp",
+      "width": 400,
+      "height": 472,
+      "bytes": 29700
     },
     "rab|400% 200%|100% 0%": {
       "path": "/images/novel/mobile/rab-67bd7120be.webp",
@@ -988,17 +874,11 @@
       "height": 554,
       "bytes": 26230
     },
-    "rab|400% 200%|33.333% 0%": {
-      "path": "/images/novel/mobile/rab-dff925a61c.webp",
+    "rab|400% 200%|66.667% 100%": {
+      "path": "/images/novel/mobile/rab-e55066a30c.webp",
       "width": 400,
       "height": 554,
-      "bytes": 27006
-    },
-    "rab|400% 200%|66.667% 0%": {
-      "path": "/images/novel/mobile/rab-4d662d2808.webp",
-      "width": 400,
-      "height": 554,
-      "bytes": 28812
+      "bytes": 35242
     },
     "rab|400% 200%|100% 100%": {
       "path": "/images/novel/mobile/rab-cc2556418a.webp",
@@ -1012,11 +892,11 @@
       "height": 554,
       "bytes": 27352
     },
-    "rab|400% 200%|0% 100%": {
-      "path": "/images/novel/mobile/rab-36781a8649.webp",
+    "rab|400% 200%|33.333% 0%": {
+      "path": "/images/novel/mobile/rab-dff925a61c.webp",
       "width": 400,
       "height": 554,
-      "bytes": 26348
+      "bytes": 27006
     },
     "rab|400% 200%|33.333% 100%": {
       "path": "/images/novel/mobile/rab-fec6a9e93e.webp",
@@ -1024,41 +904,83 @@
       "height": 554,
       "bytes": 27018
     },
-    "rab|400% 200%|66.667% 100%": {
-      "path": "/images/novel/mobile/rab-e55066a30c.webp",
+    "rab|400% 200%|66.667% 0%": {
+      "path": "/images/novel/mobile/rab-4d662d2808.webp",
       "width": 400,
       "height": 554,
-      "bytes": 35242
+      "bytes": 28812
     },
-    "neoh|400% 200%|0% 100%": {
-      "path": "/images/novel/mobile/neo-47e3141579.webp",
-      "width": 362,
-      "height": 543,
-      "bytes": 39144
+    "rab|400% 200%|0% 100%": {
+      "path": "/images/novel/mobile/rab-36781a8649.webp",
+      "width": 400,
+      "height": 554,
+      "bytes": 26348
     },
-    "neoh|400% 200%|66.667% 100%": {
-      "path": "/images/novel/mobile/neo-1c948b4319.webp",
-      "width": 362,
-      "height": 543,
-      "bytes": 39088
+    "ln|300% 200%|50% 100%": {
+      "path": "/images/novel/mobile/ln-4925ce956d.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 18526
     },
-    "neoh|400% 200%|66.667% 0%": {
-      "path": "/images/novel/mobile/neo-116fe205d9.webp",
-      "width": 362,
-      "height": 543,
-      "bytes": 41134
+    "lns|300% 200%|100% 100%": {
+      "path": "/images/novel/mobile/lns-a52d7a350d.webp",
+      "width": 375,
+      "height": 600,
+      "bytes": 38802
     },
-    "neoh|400% 200%|33.333% 100%": {
-      "path": "/images/novel/mobile/neo-12d20ee33e.webp",
-      "width": 362,
-      "height": 543,
-      "bytes": 39184
+    "moka mokaV2|/images/novel/remaster/v2/moka/talk.webp": {
+      "path": "/images/novel/mobile/moka-c69e59a2dc.webp",
+      "width": 400,
+      "height": 450,
+      "bytes": 45050
     },
-    "neoh|400% 200%|100% 100%": {
-      "path": "/images/novel/mobile/neo-d52f6d3ba7.webp",
-      "width": 362,
-      "height": 543,
-      "bytes": 37602
+    "moka mokaV2|/images/novel/remaster/v2/moka/rap.webp": {
+      "path": "/images/novel/mobile/moka-27df51ec1b.webp",
+      "width": 400,
+      "height": 450,
+      "bytes": 48014
+    },
+    "pig pigV2|/images/novel/remaster/v2/yeoni/flustered.webp": {
+      "path": "/images/novel/mobile/yeon-b2ac85d610.webp",
+      "width": 400,
+      "height": 472,
+      "bytes": 28216
+    },
+    "moka mokaV2|/images/novel/remaster/v2/moka/cook.webp": {
+      "path": "/images/novel/mobile/moka-58be3c9c65.webp",
+      "width": 400,
+      "height": 450,
+      "bytes": 59878
+    },
+    "moka mokaV2|/images/novel/remaster/v2/moka/pot-beat.webp": {
+      "path": "/images/novel/mobile/moka-089f3091db.webp",
+      "width": 400,
+      "height": 450,
+      "bytes": 48372
+    },
+    "moka mokaV2|/images/novel/remaster/v2/moka/performance.webp": {
+      "path": "/images/novel/mobile/moka-b86fdbe610.webp",
+      "width": 400,
+      "height": 450,
+      "bytes": 44134
+    },
+    "pig pigV2|/images/novel/remaster/v2/yeoni/hug.webp": {
+      "path": "/images/novel/mobile/yeon-d6b6d687ce.webp",
+      "width": 400,
+      "height": 472,
+      "bytes": 28586
+    },
+    "moka mokaV2|/images/novel/remaster/v2/moka/wedding-rap.webp": {
+      "path": "/images/novel/mobile/moka-4aa4851d59.webp",
+      "width": 400,
+      "height": 450,
+      "bytes": 52042
+    },
+    "pig pigV2|/images/novel/remaster/v2/yeoni/wedding.webp": {
+      "path": "/images/novel/mobile/yeon-105df2e1d7.webp",
+      "width": 400,
+      "height": 472,
+      "bytes": 30062
     }
   }
 }

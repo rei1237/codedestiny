@@ -10,12 +10,16 @@ import {
   LOVE_SECRET_AI_GROUPS,
   LOVE_SECRET_AI_GROUP_MIN_CHARS,
   LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS,
+  LOVE_SPEAKER_BY_GROUP,
   assembleLoveSecretConsultation,
+  buildLoveSecretGroupSystemPrompt,
   validateLoveSecretConsultation,
   mapLoveSecretIssuesToGroups,
   countLoveSecretConsultationBodyChars,
+  parseLoveSecretGroupResponse,
   __loveSecretAiPromptTestUtils,
 } from "../../worker/lib/love-secret-ai-prompt.js";
+import { buildLoveSecretGroupFacts } from "../../worker/lib/love-secret-ai-facts.js";
 
 const { countSectionBodyChars } = __loveSecretAiPromptTestUtils;
 
@@ -146,5 +150,62 @@ describe("countLoveSecretConsultationBodyChars", () => {
 
     const answerOnly = { pdfSections: [], sections: [], answer: "다".repeat(30) };
     expect(countLoveSecretConsultationBodyChars(answerOnly)).toBe(30);
+  });
+});
+
+describe("정밀지표 영문 키 0건", () => {
+  const METRIC_KEYS = /attraction|stability|communication|conflict|confidence/;
+  const sajuResult = {
+    myChart: { loveReference: { precisionMetrics: { attraction: 74, stability: 58, communication: 49, conflict: 31, confidence: 82 } } },
+  };
+
+  test("self·partner 팩트는 영문 키와 점수 대신 한국어 라벨과 등급을 넘긴다", () => {
+    const self = buildLoveSecretGroupFacts(sajuResult, "self");
+    const partner = buildLoveSecretGroupFacts(sajuResult, "partner");
+    const expected = { 끌림: "높음", 안정성: "보통", 소통: "낮음", "갈등 신호": "낮음", "해석 신뢰도": "높음" };
+    expect(self.정밀지표).toEqual(expected);
+    expect(partner.끌림지표).toEqual(expected);
+    expect(JSON.stringify([self, partner])).not.toMatch(METRIC_KEYS);
+  });
+
+  test("본문에 남은 '한국어(영문 키)' 꼬리는 파싱에서 지운다", () => {
+    const group = LOVE_SECRET_AI_GROUPS[0];
+    const body = "매력(attraction)은 높은 편이고 안정성(stability)도 무난합니다. 소통은 천천히 열립니다.".repeat(40);
+    const text = JSON.stringify({ sections: group.sections.map((section) => ({ title: section.title, body })) });
+    const result = parseLoveSecretGroupResponse(text, group);
+    expect(result.sections.length).toBeGreaterThan(0);
+    result.sections.forEach((section) => {
+      expect(section.body).not.toMatch(METRIC_KEYS);
+      expect(section.body).toContain("매력은 높은 편이고 안정성도 무난합니다.");
+    });
+  });
+});
+
+describe("공동 마스터(연이·서한비) 화자 배정", () => {
+  test("6개 그룹 모두 화자가 있고, 상대·위험·시기는 서한비, 나머지는 연이다", () => {
+    expect(Object.keys(LOVE_SPEAKER_BY_GROUP).sort()).toEqual(LOVE_SECRET_AI_GROUPS.map((group) => group.key).sort());
+    expect(LOVE_SPEAKER_BY_GROUP).toEqual({ core: "yeoni", self: "yeoni", partner: "hanbi", risk: "hanbi", timing: "hanbi", action: "yeoni" });
+  });
+
+  test("페르소나가 없으면 그룹 시스템 프롬프트는 예전과 바이트 단위로 같다", () => {
+    const group = LOVE_SECRET_AI_GROUPS[0];
+    const legacy = [
+      "BASE",
+      "",
+      `이번 응답에서는 상담의 한 부분 — "${group.label}" — 만 씁니다. 나머지 부분은 같은 상담의 다른 곳에서 이미 다루므로 여기서 반복하지 않습니다.`,
+      "계산되지 않은 날짜·간지·신살을 만들어 쓰지 않습니다. 제공된 계산 확정값 안에서만 해석합니다.",
+    ].join("\n");
+    expect(buildLoveSecretGroupSystemPrompt("BASE", group)).toBe(legacy);
+    expect(buildLoveSecretGroupSystemPrompt("BASE", group, "")).toBe(legacy);
+  });
+
+  test("페르소나는 base 와 범위 지시 사이에 들어가고, 그 그룹의 화자 이름을 밝힌다", () => {
+    const partner = LOVE_SECRET_AI_GROUPS.find((group) => group.key === "partner");
+    const prompt = buildLoveSecretGroupSystemPrompt("BASE", partner, "[서한비 페르소나]");
+    expect(prompt.startsWith("BASE\n\n")).toBe(true);
+    expect(prompt).toContain("이번 부는 서한비가 씁니다.");
+    expect(prompt.indexOf("[서한비 페르소나]")).toBeLessThan(prompt.indexOf("이번 응답에서는 상담의 한 부분"));
+    const action = LOVE_SECRET_AI_GROUPS.find((group) => group.key === "action");
+    expect(buildLoveSecretGroupSystemPrompt("BASE", action, "[연이 페르소나]")).toContain("이번 부는 연이가 씁니다.");
   });
 });

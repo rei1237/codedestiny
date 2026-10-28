@@ -486,10 +486,10 @@ h3{font-size:1.05rem; line-height:1.4}
 
 <script src="/js/core/paid-narrative-reader.js"></script>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
+<script src="/js/core/pass-verdict.js?v=build-1711b2150559"></script>
+<script src="/js/core/checkout-entry.js?v=build-1711b2150559"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-9c92542eb04f"></script>
+<script src="/js/destiny-profile.js?v=build-2d81696a26c1"></script>
 <script>
 (function(){
 "use strict";
@@ -1206,7 +1206,12 @@ function renderResult(){
   locks.appendChild(lockCard(PRICE.compat.title,
     "두 아이의 오행이 서로를 채우는지 증폭시키는지 계산하고, 함께 지내기 좋은 자리를 찾아 줍니다.",
     PRICE.compat.krw, function(){ renderCompatPicker(); go("compat"); }));
+  locks.children[0].setAttribute('data-pet-detail-target', 'report');
+  locks.children[1].setAttribute('data-pet-detail-target', 'compat');
   host.appendChild(locks);
+  import('/js/core/pet/crafted-details.mjs').then(function(module) {
+    if (locks.isConnected) module.mountPetCraftedDetails(locks);
+  }).catch(function() { /* Existing purchase cards remain available. */ });
 }
 
 /* ═══ 10) 결제 게이트 — 정본 게이트(_cdOpenPaidServiceGate)에 위임 ═══ */

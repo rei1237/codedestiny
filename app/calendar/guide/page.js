@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "운세 달력과 일진 달력 사용법 | Code Destiny",
+    "metadata.title": "운세 달력과 일진 달력 사용법 | 꿀꿀 운세",
     heading: "운세 달력과 일진 달력 사용법",
     "section.scope": "운세 달력이 살피는 것",
     "section.inputs": "필요한 입력값",
@@ -19,7 +19,7 @@ const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "해석 시 주의할 점",
   },
   en: {
-    "metadata.title": "Fortune Calendar and Daily Cycle Guide | Code Destiny",
+    "metadata.title": "Fortune Calendar and Daily Cycle Guide | 꿀꿀 운세",
     heading: "Fortune Calendar and Daily Cycle Guide",
     "section.scope": "What the Fortune Calendar Looks At",
     "section.inputs": "Required Inputs",
@@ -31,7 +31,7 @@ const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "What to Keep in Mind",
   },
   ja: {
-    "metadata.title": "運勢カレンダーと日運カレンダーの使い方 | Code Destiny",
+    "metadata.title": "運勢カレンダーと日運カレンダーの使い方 | 꿀꿀 운세",
     heading: "運勢カレンダーと日運カレンダーの使い方",
     "section.scope": "運勢カレンダーが見るもの",
     "section.inputs": "必要な入力項目",
@@ -43,7 +43,7 @@ const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解釈時の注意点",
   },
   "zh-CN": {
-    "metadata.title": "运势日历与日辰日历使用指南 | Code Destiny",
+    "metadata.title": "运势日历与日辰日历使用指南 | 꿀꿀 운세",
     heading: "运势日历与日辰日历使用指南",
     "section.scope": "运势日历会观察什么",
     "section.inputs": "需要输入的信息",
@@ -55,7 +55,7 @@ const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
     "section.caution": "解读时的注意事项",
   },
   "zh-TW": {
-    "metadata.title": "運勢日曆與日辰日曆使用指南 | Code Destiny",
+    "metadata.title": "運勢日曆與日辰日曆使用指南 | 꿀꿀 운세",
     heading: "運勢日曆與日辰日曆使用指南",
     "section.scope": "運勢日曆會觀察什麼",
     "section.inputs": "需要輸入的資訊",
@@ -78,7 +78,7 @@ export function generateMetadata() {
     title: calendarGuideText("metadata.title"),
     description:
       "운세 달력과 일진 달력을 어떤 기준으로 읽는지, 입력값, 확인 항목, 샘플 해석, 주의사항을 안내합니다.",
-    keywords: ["운세 달력", "일진 달력", "오늘의 운세", "사주 달력", "Code Destiny"],
+    keywords: ["운세 달력", "일진 달력", "오늘의 운세", "사주 달력", "꿀꿀운세"],
   });
 }
 
@@ -137,7 +137,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "오늘의 운세",
-      keywords: ["운세 달력", "일진 달력", "오늘의 운세", "사주 달력", "Code Destiny"],
+      keywords: ["운세 달력", "일진 달력", "오늘의 운세", "사주 달력", "꿀꿀운세"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),
@@ -151,7 +151,7 @@ export default function CalendarGuidePage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">{calendarGuideText("heading")}</h1>
         <p className="cd-main-intro">
-          운세 달력은 날짜마다 달라지는 기운의 온도와 리듬을 살피는 도구입니다. Code Destiny는 하루의 흐름을 좋고 나쁜 날로 단정하기보다, 일정과 대화, 휴식과 결정을 더 신중하게 조율할 수 있는 참고선으로 안내합니다.
+          운세 달력은 날짜마다 달라지는 기운의 온도와 리듬을 살피는 도구입니다. 꿀꿀운세는 하루의 흐름을 좋고 나쁜 날로 단정하기보다, 일정과 대화, 휴식과 결정을 더 신중하게 조율할 수 있는 참고선으로 안내합니다.
         </p>
       </header>
 
@@ -220,7 +220,7 @@ export default function CalendarGuidePage() {
       <section className="cd-card">
         <h2>{calendarGuideText("section.caution")}</h2>
         <p>
-          운세 달력은 엔터테인먼트와 자기 점검을 위한 참고 자료입니다. 의료, 법률, 투자, 결혼, 이혼, 소송, 진로 결정은 달력 결과만으로 정하지 말고 실제 자료와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
+          운세 달력은 자기 점검을 위한 참고 자료입니다. 의료, 법률, 투자, 결혼, 이혼, 소송, 진로 결정은 달력 결과만으로 정하지 말고 실제 자료와 자격 있는 전문가의 조언을 함께 확인해야 합니다.
         </p>
       </section>
 

@@ -18,6 +18,16 @@ export interface AnimalDestinyCopy {
   headerTitle: string;
   retryButton: string;
   mainMenuButton: string;
+  paidLoadingText: string;
+  paidLockTitle: string;
+  paidLockDesc: string;
+  paidLockPrice: (coins: number) => string;
+  paidLoginDesc: string;
+  paidErrorDesc: string;
+  paidRetryButton: string;
+  paidUnlockButton: string;
+  paidTeaserNote: string;
+  dexLockedNote: string;
 
   heroEyebrow: string;
   heroTitle: string;
@@ -146,6 +156,16 @@ const ANIMAL_DESTINY_COPY_EN: AnimalDestinyCopy = {
   headerTitle: "Saju Twelve-Stage Animal Reading",
   retryButton: "Try another birth date",
   mainMenuButton: "Back to Saju fortune home",
+  paidLoadingText: "Loading your full reading…",
+  paidLockTitle: "The full reading opens after unlocking",
+  paidLockDesc: "The 10 detailed readings, the deep report, the 12-animal guide notes, the daily routine and the result card open once the Twelve Growth Stage Animal reading is unlocked for this birth date.",
+  paidLockPrice: (n: number) => `Unlock: ${n} coins`,
+  paidLoginDesc: "Log in with the account you purchased with to see your full reading.",
+  paidErrorDesc: "We could not load the full reading. Please try again shortly. You will not be charged again.",
+  paidRetryButton: "Load again",
+  paidUnlockButton: "Check unlock on the home screen",
+  paidTeaserNote: "Today's practice, recovery hint and weekly mission open after unlocking.",
+  dexLockedNote: "Each animal's full description opens after unlocking.",
 
   heroEyebrow: "Destiny Animal Codex",
   heroTitle: "What's your Twelve Growth animal?",
@@ -340,6 +360,16 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
     headerTitle: "사주 십이운성 동물점",
     retryButton: "다른 생년월일로 테스트하기",
     mainMenuButton: "사주 운세 메인으로",
+    paidLoadingText: "전체 풀이를 불러오고 있어요…",
+    paidLockTitle: "전체 풀이는 해금 후 열려요",
+    paidLockDesc: "10가지 상세 해석, 심층 리포트, 12동물 도감 설명, 하루 루틴과 결과 요약 카드는 십이운성 동물점을 이 생년월일로 해금하면 볼 수 있어요.",
+    paidLockPrice: (n: number) => `해금 ${n}코인`,
+    paidLoginDesc: "구매한 계정으로 로그인하면 전체 풀이가 바로 열려요.",
+    paidErrorDesc: "전체 풀이를 불러오지 못했어요. 잠시 후 다시 시도해 주세요. 결제가 다시 진행되지는 않습니다.",
+    paidRetryButton: "다시 불러오기",
+    paidUnlockButton: "홈에서 해금 확인하기",
+    paidTeaserNote: "오늘의 실천·회복 힌트·이번 주 미션은 해금 후 열려요.",
+    dexLockedNote: "동물별 상세 설명은 해금 후 열려요.",
 
     heroEyebrow: "운명의 동물 도감",
     heroTitle: "나의 십이운성 동물은?",
@@ -480,6 +510,16 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
     headerTitle: "四柱十二運星動物占い",
     retryButton: "別の生年月日で試す",
     mainMenuButton: "四柱推命メインへ戻る",
+    paidLoadingText: "鑑定の全文を読み込んでいます…",
+    paidLockTitle: "鑑定の全文は解放後に開きます",
+    paidLockDesc: "10の詳細解釈、深層レポート、12動物図鑑の説明、1日のルーティンと結果カードは、この生年月日で十二運星動物占いを解放すると見られます。",
+    paidLockPrice: (n: number) => `解放 ${n}コイン`,
+    paidLoginDesc: "購入したアカウントでログインすると全文がすぐに開きます。",
+    paidErrorDesc: "鑑定の全文を読み込めませんでした。しばらくしてからもう一度お試しください。再度課金されることはありません。",
+    paidRetryButton: "もう一度読み込む",
+    paidUnlockButton: "ホームで解放を確認する",
+    paidTeaserNote: "今日の実践・回復のヒント・今週のミッションは解放後に開きます。",
+    dexLockedNote: "動物ごとの詳しい説明は解放後に開きます。",
 
     heroEyebrow: "運命の動物図鑑",
     heroTitle: "あなたの十二運星動物は？",
@@ -620,6 +660,16 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
     headerTitle: "四柱十二运星动物占卜",
     retryButton: "用其他出生日期重试",
     mainMenuButton: "返回四柱运势首页",
+    paidLoadingText: "正在加载完整解读…",
+    paidLockTitle: "完整解读需解锁后查看",
+    paidLockDesc: "10项详细解读、深度报告、12动物图鉴说明、每日作息与结果卡片，需用此出生日期解锁十二运星动物占卜后查看。",
+    paidLockPrice: (n: number) => `解锁 ${n}金币`,
+    paidLoginDesc: "使用购买时的账号登录即可查看完整解读。",
+    paidErrorDesc: "未能加载完整解读，请稍后再试。不会重复扣费。",
+    paidRetryButton: "重新加载",
+    paidUnlockButton: "前往首页确认解锁",
+    paidTeaserNote: "今日实践、恢复提示与本周任务需解锁后查看。",
+    dexLockedNote: "各动物的详细说明需解锁后查看。",
 
     heroEyebrow: "命运动物图鉴",
     heroTitle: "你的十二运星动物是？",
@@ -760,6 +810,16 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
     headerTitle: "四柱十二運星動物占卜",
     retryButton: "用其他出生日期重試",
     mainMenuButton: "返回四柱運勢首頁",
+    paidLoadingText: "正在載入完整解讀…",
+    paidLockTitle: "完整解讀需解鎖後查看",
+    paidLockDesc: "10項詳細解讀、深度報告、12動物圖鑑說明、每日作息與結果卡片，需用此出生日期解鎖十二運星動物占卜後查看。",
+    paidLockPrice: (n: number) => `解鎖 ${n}金幣`,
+    paidLoginDesc: "使用購買時的帳號登入即可查看完整解讀。",
+    paidErrorDesc: "未能載入完整解讀，請稍後再試。不會重複扣費。",
+    paidRetryButton: "重新載入",
+    paidUnlockButton: "前往首頁確認解鎖",
+    paidTeaserNote: "今日實踐、恢復提示與本週任務需解鎖後查看。",
+    dexLockedNote: "各動物的詳細說明需解鎖後查看。",
 
     heroEyebrow: "命運動物圖鑑",
     heroTitle: "你的十二運星動物是？",

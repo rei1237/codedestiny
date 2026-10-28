@@ -1,12 +1,71 @@
 ---
 status: active
-updated: 2026-10-02
-next: "사람 몫(포트원 웹 문의·이니시스 MID 분류·Atlas Network Access·포트원 콘솔 채널·9ⓐ~ⓓ 읽기 조회)과 확정 20건 뒤 3번 재집계 — 13번(운영 미포함)은 9d2b30b8c 로 해소"
+updated: 2026-10-13
+next: "사람 몫(이력에 노출된 키 교체·`.gitleaksignore` 반영·포트원 웹 문의(2026-10-13 갱신 문안)·이니시스 MID 분류·Atlas Network Access·포트원 콘솔 채널·9ⓐ~ⓓ 읽기 조회)과 확정 20건 뒤 3번 재집계 — 13번(운영 미포함)은 9d2b30b8c 로 해소"
 ---
 
 # KG이니시스 가맹점 보안 권고(2026-09-18) 적용 — 인수인계
 
 다음 세션 첫 문장: "docs/handoff/inicis-security-advisory-2026-09.md 를 읽고 '남은 일'부터 이어서 해."
+
+## 2026-10-13 "가맹점 보안강화 권고사항 리포트" 메일 대응 — 판정·이력 노출·키 교체 런북
+- 메일: "[공지] KG이니시스에서 가맹점 보안강화를 위한 권고사항 리포트 드립니다". 권고 3건 — [1] 전자금융 거래정보 무결성 검증 강화(`P_CHKFAKE` SHA512 / Signature SHA256), [2] 리다이렉트 피싱 방지(IDC 코드·`centerCd(Y)`·`idc_name` 대조), [3] API key 악용 방지(key 는 보안이 확보된 백엔드에만 두고 클라이언트·공개 저장소에 두지 않는다. 유출 의심 시 상점관리자 > 상점정보 > key정보 에서 교체 — 교체하면 기존 key 는 즉시 사용 불가. 문의 ts@kggroup.co.kr).
+- 방법: 메일은 일반 권고로 보고, 코드로 옮기는 것은 공식 문서로 확인된 것만 쓴다. **이 문서에는 시크릿 값을 적지 않는다**(이름·절차만).
+
+| 권고 | 판정 | 근거(2026-10-13 작업 트리) | 조치 |
+|---|---|---|---|
+| [1] 거래정보 무결성 | 우리 몫은 충족. 이니시스↔포트원 구간의 `P_CHKFAKE`·Signature 는 포트원 몫 | 브라우저가 준 결제 결과는 믿지 않는다. 확정 요청은 주문 ID 만 받고 서버가 포트원 단건 조회 API 로 재조회한다. `verifyPgPayment`(`worker/payments/pg.js:111`)가 paymentId=주문 ID · status paid · 금액(`amount.total`) · 통화(KRW) · storeId · `channel.key` 를 대조한다(`PAYMENT_ID`·`AMOUNT`·`CURRENCY`·`STORE_ID`·`CHANNEL_MISMATCH`, 131~192행). 사용자 확정·웹훅·재조정 크론·웹훅 재생·할인/영냥이 복구는 모두 `confirmOrder`(`worker/payments/index.js:827`, 검증 호출 :854)로 합류하고 자미두수 AI 2종도 같은 검증기를 쓴다. 웹훅은 서명 검증을 통과해야 받는다(`worker/payments/webhook.js` `verifyWebhookSignature`). 고정 테스트: `__tests__/worker/payments-v2.db-pg.test.js`(ID·상태·금액·0원·통화·상점·채널·503), `payments-v2.confirm-actor.test.js`(소유자 검사 fail-closed) | 코드에 옵션을 넣지 않는다. 이니시스 직접 연동 토큰(`P_CHKFAKE`·`P_IDCCODE`·`centerCd`·`INIStdPay`·`idc_name`·`checkAckUrl`·`netCancelUrl`)은 이 문서를 뺀 추적 파일 전체에서 0건(2026-10-13 `git grep`). 포트원 문의(아래) |
+| [2] 리다이렉트 피싱 방지 | 우리 코드로 켤 수 없음 | PortOne V2 이니시스 옵션 허용값은 PC `acceptmethod`(`SKIN`·`below1000`·`ocb`·`paypopup`·`hidebar`·`noeasypay`·`slimquota`·`mallpoint`), 모바일 `P_RESERVED`(`below1000`·`noeasypay`·`global_visa3d`·`apprun_check`)이고 `centerCd`·IDC 옵션은 없다(`developers.portone.io/opi/ko/integration/pg/v2/inicis-v2`, 2026-10-12 재확인). 승인 URL·IDC 대조는 포트원 서버가 하는 구간이다. 우리 쪽 URL 표면은 복귀 URL(결제를 시작한 브라우저가 자사 origin 기준으로 생성, `lib/payment/portone.ts:444`)과 통지 URL(서버 설정 `PORTONE_WEBHOOK_URL`, :448)뿐이고, 구 단건 `/api/payments/single/start`·`complete` 는 410, `cancel` 은 관리자 전용이다 | 미지원 값 주입 금지(결제창 실패 위험, RED 경로). 포트원 문의(아래) |
+| [3] API key 보호·교체 | 부분 해당 — 실제 공백 3건 | (a) CI gitleaks 가 규칙 0개라 사실상 무동작이었다(`.gitleaks.toml` 이 allowlist 만 있고 기본 규칙을 상속하지 않음 — v8.24.2 실측). (b) 저장소가 PUBLIC 인데 이력에 실제 키로 보이는 값이 남아 있다(아래). (c) 키 교체 런북이 없었고, 직접 연동을 쓰지 않는 이니시스 시크릿 4종이 Worker 필수 키로 남아 있다 | (a) `.gitleaks.toml` 에 `[extend] useDefault = true`, 고정 테스트 `__tests__/release/gitleaks-config.test.js`. (b) 아래 '이력 노출'. (c) 아래 런북·W10 |
+
+### 이력 노출 — 저장소가 PUBLIC 이다
+- 복구한 gitleaks(v8.24.2, 기본 규칙 상속)로 전체 이력(10,150 커밋)을 처음 스캔했더니 92개 커밋·80개 파일에서 411건이 나왔다. 비밀이 아님이 확인된 380건(지문 305개)은 `.gitleaksignore` 로 기준선 처리했다(처리 뒤 같은 스캔을 다시 돌려 남은 31건·28지문이 아래 '실제 키로 보이는' 목록과 정확히 같음을 확인) — 빌드별 Next 키(`.open-next`, 현재 추적 0파일), 콘텐츠·저장소·멱등 키 이름, 결제 인벤토리의 해시 맵, 테스트 픽스처, 공개 전제 키(IndexNow 키 파일·Kakao JS 키), 서명 없는 로컬 테스트 토큰.
+- **실제 키로 보이는 31건(지문 28개)은 일부러 기준선에 넣지 않았다.** 교체하기 전에 넣으면 노출 사실이 CI 에서 사라진다. 그래서 `Secret Scan` 은 교체와 기준선 반영 전까지 붉다(의도). 종류: Google API 키, 빌드 환경 스냅샷의 서명·관리자 시크릿 계열, 결제·메일 API 키로 보이는 값, 관리자 입장 비밀번호 다이제스트. 위치(커밋·파일)는 공개 저장소에 지도를 남기지 않으려고 이 문서에 적지 않았다.
+- 그 값들은 HEAD 트리와 작업 트리에는 없다(`git grep` 0건). 코드 삭제는 필요 없고 **폐기·교체가 해법**이다. 이력 재작성(`git filter-repo` + 강제 푸시)은 선택이며, 포크·캐시·이미 긁어 간 사본에는 남는다. 재작성하면 커밋 해시가 바뀌어 `.gitleaksignore` 지문이 전부 무효가 되므로, 재작성 뒤에는 아래 명령으로 목록을 다시 만든다.
+- 목록 재생성(저장소 루트, v8.24.2): `gitleaks git --redact --no-banner -f json -r <보고서.json> .` — `--redact` 가 `Match`·`Secret` 을 가린다. 보고서의 `Message`(커밋 메시지)·`Author` 는 옮겨 적지 않는다. 교체를 마친 항목은 지문(`커밋:파일:규칙:줄`)을 `.gitleaksignore` 에 추가하고, 사유는 교체 일시·이름만 적는다.
+- 범위: 2026-10-13 로컬 참조 전체이고 원격 main(`35bc6406c`, `git ls-remote` 로 로컬 `origin/main` 과 일치 확인)을 포함한다. 그 뒤 올라오는 커밋은 CI 의 `Secret Scan`(`gitleaks git --redact --verbose`, 전체 이력)이 처음 본다 — 새 탐지가 나오면 위 절차로 분류한다.
+- 적용 조건: `.gitleaks.toml`(기본 규칙 상속)과 `.gitleaksignore`(기준선)가 **커밋·푸시돼야** CI 에 반영된다. 푸시하면 이 문서의 31건이 `Secret Scan` 을 붉게 만든다 — 교체 전에 CI 를 초록으로 만들려고 이 지문들을 넣지 않는다.
+
+#### 2026-10-13 현행 값 대조 결과 — "교체가 정말 필요한가"
+- 이니시스 회신(KG이니시스 기술지원): 포트원 호스팅 연동이라 채널·연동은 포트원 문의 사항이고, "키를 교체하면 기존 키는 즉시 못 쓰니 새 키 적용을 준비하라"는 일반 안내다. **교체 요구가 아니다.** 결제 채널 키(`MID`·`INIsignkey`·`INIAPIKEY`·`INIAPI_IV`·`PORTONE_*` 채널·웹훅)는 이력 노출 근거가 0건이라 교체하지 않는다.
+- 이력 31건의 값을 로컬 env 파일(`.env.local`·`.env.cloudflare.local`·`.env.staging.local`) 값과 해시로 대조했다(값·해시는 출력·저장하지 않음). **일치 6건(교체 필요)**: `YOUTUBE_API_KEY`(Google 키 1종, 4탐지), `EMAILAPI_KEY`(메일 API 키, 2탐지). **불일치 25건**.
+- **불일치는 "안전"이 아니다.** 운영 Cloudflare 시크릿 목록(이름만, `wrangler secret list`)에는 `ADMIN_ENTRY_PASSWORD_HASH`·`PORTONE_API_SECRET` 등이 있는데 로컬 env 파일에는 없다 — 운영 값이 로컬 파일을 거치지 않고 설정됐다는 뜻이라 "로컬과 다르다"가 "운영과 다르다"를 증명하지 못한다. 그래서 불일치 항목도 기준선에 넣지 않았다. 판정은 제공자 콘솔에서 한다: (a) Google 키 — 해당 키가 아직 존재하는지, Referer/API 제한이 있는지, 최근 호출이 정상인지, (b) `PORTONE_API_SECRET` — 콘솔의 발급 목록에 노출 시점의 값이 남아 있는지, (c) `JWT_SECRET`·`ADMIN_SECRET_HASH`(2026-03-19 빌드 스냅샷) — 운영 값 설정 시점이 그 뒤인지, (d) 관리자 입장 비밀번호 — 2026-04-03 이후 변경했는지(A2b).
+- 오탐 3건은 기준선에 추가했다(영냥이 풀이 전환의 localStorage 키 이름 `PERSONA_KEY`, 비밀값 아님). 따라서 미기준선 목록은 여전히 31건·28지문이다.
+- 운영 시크릿 이름 확인(2026-10-13): fail-closed 대상은 `AUTH_SECRET`·`JWT_SECRET`이 운영·스테이징에 있어 `PREMIUM_ACCESS_TOKEN_SECRET`·`CSRF_SECRET`·`SUKUYO_COMPAT_AI_ACCESS_SECRET`의 대체 이름으로 해석된다(`resolveRequiredAuthSecret`). `FLOWER_ADMIN_SECRET`·`PEXELS_API_KEY`도 둘 다 있다.
+- **`YOUTUBE_API_KEY`는 미사용이라 정리했다(2026-10-13)**: HEAD 에 호출 코드가 없다(검색 라우트는 이미 삭제됨). 스테이징 Worker 시크릿 삭제, 로컬 `.env.local` 줄 삭제, `scripts/sync-cloudflare-worker-secrets.mjs` 의 `YOUTUBE_DATA_API_KEY`·`GOOGLE_YOUTUBE_API_KEY` 이름 제거. 운영 Worker 에는 원래 없었다. **남은 일(사람)**: Google Cloud 콘솔(API 및 서비스 → 사용자 인증 정보)에서 해당 키를 삭제 — 삭제가 곧 폐기라 새 키 발급은 필요 없다. 삭제 뒤 일치했던 4탐지의 지문만 `.gitleaksignore` 에 `# 2026-MM-DD 폐기: YOUTUBE_API_KEY` 사유로 추가한다.
+
+### 키 교체 런북(이름·절차만 — 값은 어디에도 적지 않는다)
+- 트리거: 유출 의심, 저장소·로그·스크린샷 노출, 담당자 권한 회수, 공개 저장소 스캔 탐지, 제공자 안내.
+- 이름·별칭·사용처의 단일 출처는 `config/env.contract.json`(`name`·`required_in`). 결제 키 그룹은 `worker/lib/key-health.js` 의 `payments-core`, 관리자 게이트는 `admin-gate`(`FLOWER_ADMIN_SECRET`).
+- 절차(한 번에 한 이름씩):
+  1. 제공자 콘솔에서 새 값을 발급한다(구 값은 아직 폐기하지 않는다).
+  2. 로컬 비공개 env 파일(`.env.staging.local` → `.env.local` → `.env.cloudflare.local` → `.env.cloudflare` → `.env` 순으로 읽는다)에 새 값을 넣는다. 저장소에 올리지 않는다.
+  3. 스테이징 미리보기: `npm run secrets:cf:worker:dry -- --target=staging --only-key=<이름>` → 적용: `npm run secrets:cf:worker -- --target=staging --only-key=<이름>`. `--target` 은 환경변수가 아니라 인자로만 정한다. 결제 시크릿(`/^PORTONE_/`)은 `scripts/lib/staging-secret-policy.mjs` 의 스테이징 제외 규칙을 따른다.
+  4. 확인: `/api/health?refresh=1` 의 `keyHealth.ok`·`brokenFeatures`, `/api/admin/keys`(관리자). 결제 키면 스테이징 결제 1건과 웹훅 수신까지 본다.
+  5. 운영(사용자 승인 필요 — 이 문서는 승격을 수행하지 않는다): 같은 명령에서 `--target` 을 빼면 production 이다. dry-run 먼저, 적용 뒤 같은 확인을 한다.
+  6. 구 값을 제공자 콘솔에서 폐기한다. 폐기 직후 4번을 다시 한다.
+  7. 기록: 교체 일시·이름·사유만 남긴다.
+- 이름별 영향:
+
+| 이름 | 교체하면 | 순서·주의 |
+|---|---|---|
+| `JWT_SECRET`(별칭 `AUTH_SECRET`·`NEXTAUTH_SECRET`) | 발급된 액세스·리프레시 토큰이 전부 무효 → 전 사용자 로그아웃 | 이용 적은 시간대에. 이 값은 결제 키 그룹에도 들어 있어 결제 준비·확정이 같이 영향받는다 |
+| `FLOWER_ADMIN_SECRET`·`ADMIN_SECRET_HASH` | 관리자 게이트 토큰·세션 무효 | 교체 뒤 관리자 감사 로그에서 노출 기간(이력 첫 노출 이후)의 접근을 훑는다 |
+| `PORTONE_API_SECRET` | 구 값이 즉시 꺼지는지는 **미확인** → 아래 문의 (4) | 새 값 발급 → Worker 시크릿 교체 → 결제 1건 → 구 값 폐기. 즉시 꺼지는 방식이면 교체~반영 사이 결제 확정이 503(`PG_UNAVAILABLE`) — 재조정 크론(10분)이 따라잡는다 |
+| `PORTONE_WEBHOOK_SECRET`·`PORTONE_WEBHOOK_URL` | 포트원 콘솔 값과 Worker 값이 짝이다 | 둘이 어긋난 동안 웹훅이 서명 불일치로 실패한다. 포트원 재전송과 재조정 크론이 복구한다(웹훅 24시간 창). 콘솔 새 시크릿 발급 직후 Worker 값을 바꾼다 |
+| `MID`·`INIsignkey`·`INIAPIKEY`·`INIAPI_IV` | 이 코드는 이니시스를 직접 부르지 않는다(`worker/lib/portone.js` 의 설정 진단과 `key-health.js` 에만 쓰인다) | 교체 위치는 이니시스 상점관리자 > 상점정보 > key정보(메일 안내). 포트원 채널에 등록된 값과의 짝·순서는 아래 문의 (3). 보유 정책은 W10 |
+| `MONGO_URI` | DB 접속 끊김 | Atlas 사용자 비밀번호 교체 → Worker·Pages 시크릿 동기화(`secrets:cf:pages`·`secrets:cf:worker`). Atlas Network Access 가 `0.0.0.0/0` 이 아닌지 함께 본다 |
+| Google API 키(`GEMINIF_API_KEY` 등 AI·YouTube) | 해당 기능 호출 실패 | Cloud 콘솔에서 새 키 + 애플리케이션 제한(Referer/IP)·API 제한을 걸고 구 키 삭제. 과금·호출 로그에서 노출 기간 이상 호출을 본다 |
+| `EMAILAPI_KEY` | 메일 발송 실패 | 새 키 발급 → 교체 → 구 키 삭제 |
+
+### 포트원 문의 문안(2026-10-13 갱신 — 사람이 포트원 고객센터 웹 문의로 발송)
+- 배경: `cs@portone.io` 는 발신 전용이라 회신이 안 된다(2026-09 확인). 이니시스 기술문의 메일은 ts@kggroup.co.kr.
+- 문안: "PortOne V2 + KG이니시스(inicis_v2) 채널 가맹점입니다. KG이니시스가 가맹점에 보낸 '보안강화 권고사항 리포트'(전자금융 거래정보 무결성 검증, 리다이렉트 피싱 방지, API key 보호) 관련해 확인 부탁드립니다. (1) 인증 결과 위변조 검증(`P_CHKFAKE`/Signature)을 포트원이 이니시스 연동 구간에서 수행하는지, 가맹점 설정이 필요한지. (2) IDC(`centerCd`/`idc_name`) 승인 URL 대조를 포트원이 수행하는지, 가맹점이 켜야 하는 옵션이 있는지. (3) 이니시스 상점관리자에서 상점 key 를 교체할 때 포트원 채널 설정과 맞추는 순서·다운타임·사전 공지 필요 여부. (4) 포트원 API 시크릿·웹훅 시크릿 재발급 시 구 값이 즉시 무효가 되는지, 유예·병행 사용이 가능한지. 저희는 브라우저 결제 후 서버가 결제 단건 조회 API 로 주문번호·상태·금액(`amount.total`)·통화·storeId·`channel.key` 를 대조한 뒤에만 확정합니다."
+
+### W10 — 이니시스 시크릿 4종 보유 정책(결정 대기, 이번에 바꾸지 않았다)
+- `MID`·`INIsignkey`·`INIAPIKEY`·`INIAPI_IV` 는 직접 연동이 없어 결제 동작에는 쓰이지 않는데, `config/env.contract.json` 운영 필수(`required_in`)이고 `worker/lib/key-health.js` `payments-core` 그룹(33~36행)에 들어 있어 없으면 결제 진단이 broken 으로 뜬다. 보유 = 유출 표면이다.
+- 없애려면 `required_in`·`payments-core` 그룹·`worker/lib/portone.js` 진단(14~17·117~154행)과 이를 고정한 테스트·verify 스크립트를 함께 바꿔야 해서 결제 변경(RED)으로 별도 승인이 필요하다. 선행: 위 문의 (3) 답변(Worker 가 이 값을 쓸 경로가 없음을 포트원이 확인).
+- 그때까지는 교체 대상 목록(위 표)에 남긴다.
 
 ## 2026-09-24 재실사(2차) — 1차가 안 본 경로
 - 범위: 구 단건 `/api/payments/single/*`·재조정 크론·클라이언트 실패 보고·자미두수 AI 2종·영냥이·앱 이용권 상점. 7d1989347 기준 재실측.
@@ -108,6 +167,7 @@ next: "사람 몫(포트원 웹 문의·이니시스 MID 분류·Atlas Network A
      db.payments.countDocuments({ status: "paid", paidAt: { $ne: null }, entitlementGrantedAt: null })
      ```
 4. 포트원 문의(사람이 실행): `cs@portone.io` 는 **발신 전용이라 회신이 안 된다**(메일 본문 명시) — 포트원 고객센터 웹 문의로 보낸다. V2 KG이니시스 채널에서 `P_CHKFAKE`/`signature` 검증과 IDC centerCd 승인 URL 검증을 포트원이 수행하는가? 권고 메일 대응 공지가 있는가?
+   - (2026-10-13: 같은 문의에 키 교체 순서·구 값 무효 시점 항목을 더한 갱신본이 위 '포트원 문의 문안'이다. 아래는 2026-09 원문.)
    - 문의 초안: "V2 KG이니시스 채널 결제에서, 이니시스가 2026-09-18 가맹점에 권고한 ① 인증 결과 위변조 검증(P_CHKFAKE / signature)과 ② IDC(centerCd)별 승인 URL 검증을 포트원이 연동 구간에서 수행하고 있는지, 가맹점 측 추가 조치가 필요한지 확인 부탁드립니다. 저희는 브라우저 SDK 결제 후 서버에서 결제 단건 조회 API로 금액·상점·채널을 대조하고 있습니다."
 5. 포트원 콘솔: 운영·스테이징 웹훅 시크릿과 웹훅 URL 이 등록돼 있는지.
    - **워커 쪽은 확인 완료**(2026-09-23, 값 출력 없이 이름·판정만): 운영 `/api/health?refresh=1` → `keyHealth.ok: true`, `brokenFeatures: []` 라서 `PORTONE_WEBHOOK_SECRET`·`PORTONE_WEBHOOK_URL` 을 포함한 `payments-core` 키가 전부 실값이다(`worker/lib/key-health.js`). 스테이징 워커 `wrangler secret list --name code-destiny-web-staging` 에도 두 이름이 있다.

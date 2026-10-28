@@ -177,6 +177,8 @@ export function useNakshatraProfileContext(): NakshatraProfileContext {
         const derived = birthFromProfileSeed(profileSeed);
         if (derived) {
           setBirth(derived);
+          // 출생 기반 프리미엄 리포트는 저장 프로필 id 로만 열린다.
+          setSelectedProfileId(profileSeed.profileId || null);
           setSelectionSource("profile");
         }
       }

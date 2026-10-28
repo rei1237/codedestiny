@@ -43,14 +43,14 @@ describe("relationship boundary test", () => {
     expect(value).toContain("[대상자 성별] 여성");
     expect(value).toContain("[점수대 연출]");
     expect(value).toContain("고정된 별명이나 유명 인물 이름을 반복하지 마세요");
-    expect(value).toContain("만원 유료 리포트에 맞게");
+    expect(value).toContain("관계 상담 리포트에 맞게");
     expect(value).toContain("관계를 지키는 힘");
     expect(value).toContain("에필로그: 현실적인 선택");
   });
 
-  it("exposes the registry 1,000 won common payment payload", () => {
+  it("exposes the registry 5,000 won common payment payload", () => {
     expect(__relationshipBoundaryTestTestUtils.paymentPayload("rbt-test-request-0002")).toMatchObject({
-      featureKey: "relationship-boundary-test", amountKRW: 1000,
+      featureKey: "relationship-boundary-test", amountKRW: 10000,
       allowedPaymentModes: ["MEMBERSHIP_PASS", "MOONLIGHT_STONE", "DIRECT_KRW"],
     });
   });

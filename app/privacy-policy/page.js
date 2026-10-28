@@ -8,25 +8,25 @@ import PrivacyPolicyContent, {
 
 const PRIVACY_POLICY_METADATA_COPY = {
   ko: {
-    title: "개인정보처리방침 | Code Destiny",
+    title: "개인정보처리방침 | 꿀꿀 운세",
     description:
       "Code Destiny 개인정보처리방침입니다. 개인정보 수집 목적, 보관 기간, 쿠키와 광고 식별자, Google 광고 파트너 고지, 이용자 권리와 문의 방법을 안내합니다.",
     keywords: ["개인정보처리방침", "쿠키", "광고 식별자", "Google AdSense", "개인정보 삭제"],
   },
   en: {
-    title: "Privacy Policy | Code Destiny",
+    title: "Privacy Policy | 꿀꿀 운세",
     description:
       "Code Destiny's privacy policy explains collection purposes, retention periods, cookies, advertising identifiers, Google advertising partners, user rights, and contact options.",
     keywords: ["Privacy Policy", "cookies", "advertising identifiers", "Google AdSense", "personal data deletion"],
   },
   ja: {
-    title: "プライバシーポリシー | Code Destiny",
+    title: "プライバシーポリシー | 꿀꿀 운세",
     description:
       "Code Destinyのプライバシーポリシーです。個人情報の収集目的、保管期間、Cookieと広告識別子、Google広告パートナー、利用者の権利と問い合わせ方法を案内します。",
     keywords: ["プライバシーポリシー", "Cookie", "広告識別子", "Google AdSense", "個人情報削除"],
   },
   zh: {
-    title: "隐私政策 | Code Destiny",
+    title: "隐私政策 | 꿀꿀 운세",
     description:
       "Code Destiny 隐私政策说明个人信息收集目的、保存期限、Cookie 与广告标识符、Google 广告合作伙伴、用户权利和联系方式。",
     keywords: ["隐私政策", "Cookie", "广告标识符", "Google AdSense", "个人信息删除"],

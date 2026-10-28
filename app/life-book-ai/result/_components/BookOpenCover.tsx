@@ -117,7 +117,7 @@ export default function BookOpenCover({ attemptId, title, subtitle, ownerName, o
         <div className={styles.plate}>
           <h1 className={styles.title}>{title}</h1>
           <p className={styles.subtitle}>{subtitle}</p>
-          <p className={styles.owner}>{ownerName} · Code Destiny</p>
+          <p className={styles.owner}>{ownerName} · 꿀꿀운세</p>
         </div>
       </div>
       <button ref={skipRef} type="button" onClick={finish} className={styles.skip} aria-label={copy.skipAriaLabel}>

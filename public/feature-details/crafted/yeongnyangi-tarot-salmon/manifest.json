@@ -1,0 +1,167 @@
+{
+  "id": "yeongnyangi-tarot-salmon",
+  "featureKey": "yeongnyangi-tarot-salmon",
+  "title": "영냥이 타로 연어 상담",
+  "notice": "타로 연어의 ‘질문으로 고르는 배열’은 최대 7장 범위에서 배열 하나를 선택합니다. 이 안내의 A/B 비교 배열은 선택 기준 하나와 각 선택지의 기회·부담·행동을 읽는 7장입니다. 이직 질문형 목차는 11장, 기존 A/B 배열 상담은 8장입니다. 선택한 배열과 진입에 따라 카드 자리·목차가 달라지며 여러 상담이 한 번에 포함되지 않습니다. 두 선택지는 같은 기준으로 비교하고 합격·수익·사건 날짜를 보장하지 않습니다. 질문과 선택지, 목표기간·제약을 바탕으로 읽으며 출생 정보는 쓰지 않습니다. 예시는 가상 편집이며 AI 작성 상담입니다. 가격·추가 질문 조건은 기존 화면에서 확인하세요. 기존 고정 질문 메뉴는 등급과 무관하게 종류별 카드 수를 사용하며 별도로 선택합니다.",
+  "panels": [
+    {
+      "id": "01-two-possible-days",
+      "title": "남는 하루와 옮긴 하루, 무엇이 달라질까요?",
+      "alt": "마법사 고양이 영냥이가 펼친 타로 카드의 흐름을 읽는 장면",
+      "src": "/images/service-introductions/yeongnyangi-tarot.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "남는 하루와 옮긴 하루,\n무엇이 달라질까요?\n\n끌리는 이유와 감당할 부담을\n두 길에 같은 기준으로 놓아봐요.\n\n영냥이 타로 · 연어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-give-each-choice-a-name",
+      "title": "막연한 두 길에, 구체적인 이름을 붙여요.",
+      "alt": "잔류와제안선택지의장점부담을동등하게보이는가상예시.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/02-give-each-choice-a-name.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "막연한 두 길에,\n구체적인 이름을 붙여요.\nA · 지금 회사에 남기\n\n익숙한 업무와 안정적인 생활.\n성장의 기회는 더 확인하고 싶어요.\n\nB · 새 제안 받아들이기\n\n새 역할을 배우고 싶은 마음.\n통근과 적응의 부담도 있어요.\n\n무엇을 지키고 무엇을 바꾸고 싶은지,\n내 선택 기준을 함께 적어 주세요.\n\n실제 고객 사연이 아닌 가상 예시예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/02-give-each-choice-a-name-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-one-standard-seven-places",
+      "title": "하나의 기준으로, 두 선택을 나란히 읽어요.",
+      "alt": "실제AB7장자리기회부담행동을좌우대칭으로편집.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/03-one-standard-seven-places.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "하나의 기준으로,\n두 선택을 나란히 읽어요.\n\nA와 B, 무엇이 나에게 맞을까? · 7장\n\n선택 기준\n\n지금 가장 중요하게 지킬 것\n\nA의 길\n\n기회\n부담\n필요한 행동\n\nB의 길\n\n기회\n부담\n필요한 행동\n\n좋아 보이는 쪽에도 필요한 준비를,\n익숙한 쪽에도 남아 있는 가능성을 봐요.\n\n선택한 배열 하나의 자리 안내입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/03-one-standard-seven-places-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-the-first-answer",
+      "title": "내 마음을 살피고, 판단 기준을 세워요.",
+      "alt": "질문11장중1~5장과AB첫자리의실제흐름안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/04-the-first-answer.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 마음을 살피고,\n판단 기준을 세워요.\n\n이직 질문 · 11장 중 앞부분\n\n1–2장 · 현재 마음과 강점\n\n카드에 비친 태도\n강점과 부담이 되는 순간\n\n3장 · 이직의 판단 기준\n\n남을지 옮길지, 질문에 대한 답\n\n4–5장 · 기준과 A의 길\n\n선택 기준 · A의 기회\nA의 부담 · A에서 필요한 행동\n\n카드 이름만 나열하지 않고,\n각 자리의 뜻을 질문에 연결해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/04-the-first-answer-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-the-other-side-and-the-conditions",
+      "title": "다른 길도 같은 깊이로, 마지막에는 행동으로.",
+      "alt": "질문11장중6~11장및올해공통목차한계안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/05-the-other-side-and-the-conditions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다른 길도 같은 깊이로,\n마지막에는 행동으로.\n6–7장 · B의 길\n\nB의 기회와 부담\nB에서 필요한 행동\n\n8–10장 · 조건과 주변 흐름\n\n기회와 주의 조건\n두드러진 영역 · 올해의 흐름\n\n11장 · 종합 해석과 실행 계획\n\n확인할 정보와 지금의 준비\n\n‘올해의 흐름’은 공통 목차 이름이에요.\n선택한 카드 밖의 연간 사건을 예언하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/05-the-other-side-and-the-conditions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-compare-what-you-can-check",
+      "title": "카드의 조언을, 확인할 질문으로 바꿔봐요.",
+      "alt": "AB기회부담을현실직무확인질문으로잇는가상예시.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/06-compare-what-you-can-check.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "카드의 조언을,\n확인할 질문으로 바꿔봐요.\n\n이해를 돕기 위한 편집 예시\n\n새 역할의 기회가 끌린다면\n\n입사 후 맡을 업무와\n배울 수 있는 범위를 물어봐요.\n\n생활의 안정이 중요하다면\n\n통근 시간과 고정비를 적고,\n두 선택을 같은 표에서 비교해요.\n\n어느 쪽이 정답인지 기다리기보다,\n선택을 바꿀 조건부터 확인하는 거예요.\n\n실제 추첨 결과가 아닌 가상 조언입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/06-compare-what-you-can-check-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-the-eight-chapter-version",
+      "title": "기존 A/B 상담은, 여덟 장으로 이어져요.",
+      "alt": "기존8장실제목차를답자리연결비교조건행동으로묶음.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/07-the-eight-chapter-version.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기존 A/B 상담은,\n여덟 장으로 이어져요.\n1–3장 · 답과 카드의 근거\n\n질문에 대한 답 · 자리별 의미\n카드들의 연결과 충돌\n\n4–6장 · 두 길의 비교\n\n두 선택지 나란히 보기\n같은 기준의 기회와 부담\n선택 뒤에 달라지는 생활\n\n7–8장 · 조건과 실천\n\n결과가 달라질 조건\n지금 할 수 있는 행동\n\n질문형 11장과는 별도 구성입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/07-the-eight-chapter-version-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-prepare-your-two-options",
+      "title": "선택지를 적고, 배열을 확인한 뒤 골라요.",
+      "alt": "선택조건입력및최대7장실제추첨결제공개순서안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/08-prepare-your-two-options.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "선택지를 적고,\n배열을 확인한 뒤 골라요.\n질문을 준비해요\n\n선택지 A·B, 목표 기간과\n시간·비용 같은 제약을 알려 주세요.\n\n카드 자리를 확인해요\n\n배열 선택 메뉴에서는 최대 7장이에요.\n모든 배열이 7장인 것은 아니에요.\n\n뒷면 카드를 선택해요\n\n직접 고르거나 자동 선택한 카드는\n결제 뒤 읽는 순서대로 공개돼요.\n\n출생 정보 대신 질문의 조건을 사용해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/08-prepare-your-two-options-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "fixed-question-menu",
+      "title": "고정 질문을 고를 때는, 그 질문의 배열로 읽어요.",
+      "alt": "기존고정질문메뉴의종류별카드수와등급별해석목차구분.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/fixed-question-menu.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "고정 질문을 고를 때는,\n그 질문의 배열로 읽어요.\n지금의 선택 · 3장\n\n원인·과정·흐름을 중심으로 읽어요.\n\n일과 진로 · 7장\n\n현재 일과 생각 중인 변화를 읽으며,\nA/B 배열과는 자리 구성이 달라요.\n\n연어 고정 질문 목차는 8장이에요.\n카드 수는 등급보다 질문 종류를 따릅니다.\n\n현재 화면에서 질문 종류와 목차를 확인해요.\n여러 상담이 한 번에 포함되지는 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/fixed-question-menu-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-your-choice-your-standard",
+      "title": "두 길을 읽은 뒤, 나의 기준이 남도록.",
+      "alt": "공식타로영냥이와결정주체AI가격저장결과마무리.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/09-your-choice-your-standard.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 길을 읽은 뒤,\n나의 기준이 남도록.\n\n타로의 상징을 현실의 정보와 대조하며,\n내가 감당할 수 있는 선택을 찾아봐요.\n\nAI가 작성하며 결과를 보장하지 않습니다.\n가격·추가 질문 조건은 현재 화면에서,\n저장된 결과는 내 상담에서 확인해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-salmon/09-your-choice-your-standard-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

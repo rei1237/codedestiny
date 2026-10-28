@@ -9,6 +9,8 @@ import {
 import { MIN_SELF_CONSENT_AGE } from "../worker/lib/validation.js";
 import { blocksEntireSite } from "./lib/robots-groups.mjs";
 import { getIndexedCelebritySlugs } from "../lib/famous-saju/celebrity-editorial.js";
+import { getPublishedProfile } from "../lib/famous-saju/profile-publication.js";
+import { verifyFortuneBuildDates, resolveFortuneBuildDateContext } from "./lib/fortune-date-contract.mjs";
 
 const rootDir = fileURLToPath(new URL("..", import.meta.url));
 // 나이 고지 마커는 정책 상수에서 파생한다. 문구를 그대로 박아두면 정책이 바뀔 때
@@ -188,6 +190,9 @@ const privateNoindexRoutes = [
 ];
 
 const xRobotsNoindexHeaderPatterns = [
+  // Temporarily paused choice-based content must stay out of search.
+  "/mini-games", "/mini-games/*", "/destiny-poker", "/destiny-poker/*", "/destiny-poker.html",
+  "/saju/love-simulation", "/saju/love-simulation/*", "/secret-house_real", "/secret-house_real/*",
   "/fortune/date",
   "/fortune/date/*",
   '/neo-operation-room/strategy-books',
@@ -871,7 +876,7 @@ function verifyPublicFeatureMetadataSource() {
         'canonical: "/yeon-star-hug"',
         "openGraph",
         "\uC5F0\uC774 \uBCC4\uBE5B \uC0C1\uB2F4",
-        "\uC5D4\uD130\uD14C\uC778\uBA3C\uD2B8",
+        "\uCC38\uACE0 \uC790\uB8CC",
       ],
     },
   ];
@@ -1121,7 +1126,16 @@ function verifyFamousSajuAliasRoutesNoindex(baseDir) {
       assert(!robots.includes("noindex"), `${htmlPath}: reviewed famous-saju editorial page must be indexable (robots)`);
       assert(!googleBot.includes("noindex"), `${htmlPath}: reviewed famous-saju editorial page must be indexable (googlebot)`);
       assert(sitemapPaths.has(route), `${sitemapPath}: reviewed famous-saju editorial page missing from sitemap: ${route}`);
-      assert(html.includes("data-famous-saju-editorial"), `${htmlPath}: reviewed famous-saju page must render the editorial narrative`);
+      const profile = getPublishedProfile(slug);
+      if (profile) {
+        assert(html.includes('data-famous-saju-profile-article'), `${htmlPath}: approved profile article must render`);
+        const text = getVisibleText(html);
+        const normalize = value => value.replace(/\s+/g, ' ').trim();
+        assert([profile.question, profile.career, ...profile.reading.split('\n\n')].every(part=>normalize(text).includes(normalize(part))), `${htmlPath}: unique profile manuscript must render on server`);
+        assert(text.includes(profile.publication.approvedBy), `${htmlPath}: publication approval attribution missing`);
+      } else {
+        assert(html.includes("data-famous-saju-editorial"), `${htmlPath}: reviewed famous-saju page must render the editorial narrative`);
+      }
       const visibleText = getVisibleText(html);
       assertPublisherBody(htmlPath, html);
       continue;
@@ -1943,8 +1957,12 @@ verifyPublicFeatureMetadataSource();
 trace("fortune runtime policy language");
 verifyFortuneRuntimePolicyLanguage();
 
+const fortuneDateContext = resolveFortuneBuildDateContext({ rootDir });
 for (const baseDir of ["out", "dist"]) {
   resetOutputCaches();
+  trace(`${baseDir}: fortune title/H1/time/Article dates`);
+  const fortuneDates = verifyFortuneBuildDates({ rootDir, outputDir: baseDir, dateContext: fortuneDateContext });
+  assert(fortuneDates.ok, `${baseDir}: fortune dates disagree (daily ${fortuneDates.businessDate} from ${fortuneDates.dailySource}; range ${fortuneDates.rangeBusinessDate} KST): ${fortuneDates.failures.join('; ')}`);
   trace(`${baseDir}: no generated static AdSense units`);
   verifyNoGeneratedStaticAdUnits(baseDir);
   trace(`${baseDir}: indexable public routes`);

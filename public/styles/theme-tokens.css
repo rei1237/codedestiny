@@ -1,3 +1,4 @@
+:root { --cd-sukuyo-night: #101723; --cd-sukuyo-surface: #192331; --cd-sukuyo-pearl: #edf1f5; --cd-sukuyo-silver: #b9c6d4; --cd-sukuyo-gold: #e8d5a3; --cd-sukuyo-rule: #3a4859; }
 /*
  * Code Destiny 듀얼 페르소나 디자인 토큰 (표시 전용, additive)
  * - 연이(기본, 꽃 컨셉): 라벤더-핑크/크림 + 골드 — index.html pig 팔레트에서 추출
@@ -7,6 +8,35 @@
  */
 
 :root {
+  /* Consultation introductions keep the bright Ggulggul palette in every host. */
+  --cd-samples-paper: #fff9f4;
+  --cd-samples-sheet: #ffffff;
+  --cd-samples-ink: #402a38;
+  --cd-samples-muted: #6b4d5e;
+  --cd-samples-rose: #a52e54;
+  --cd-samples-line: #e4d2d8;
+  --cd-samples-blush: #f8e4ea;
+  --cd-samples-lilac: #f1eaf8;
+  /* 네오 이메일 상담 전용. 다른 서비스의 페르소나 색은 바꾸지 않는다. */
+  --cd-neo-letter-night: #101f34;
+  --cd-neo-letter-blue: #193d60;
+  --cd-neo-letter-blue-hover: #244e73;
+  --cd-neo-letter-paper: #fbf7ef;
+  --cd-neo-letter-field: #fffdf8;
+  --cd-neo-letter-ink: #20364d;
+  --cd-neo-letter-muted: #52647a;
+  --cd-neo-letter-silver: #bdcde0;
+  --cd-neo-letter-gold: #dfc391;
+  --cd-neo-letter-line: #b19b74;
+  --cd-neo-letter-rule: #d4c9b6;
+  --cd-neo-letter-error: #842f39;
+  --cd-neo-letter-error-bg: #fae9e5;
+  --cd-neo-letter-shadow: #06122538;
+  --cd-welcome-paper: #fff7f3;
+  --cd-welcome-ink: #4b263b;
+  --cd-welcome-muted: #715064;
+  --cd-welcome-rose: #f1ccd6;
+  --cd-welcome-gold: #c5a36b;
   /* 연이 — 아름다운 꽃 */
   --cd-bg: #fffaf7;
   --cd-bg-gradient: linear-gradient(180deg, #fffaf7 0%, #fff3f8 42%, #f8fbf4 100%);
@@ -467,3 +497,78 @@ html[data-cd-theme="neo"] {
 }
 
 :is(.cdh-primary,.cdh-secondary,.cdh-pass__btn):focus-visible {outline:2px solid var(--cd-focus-ring);outline-offset:3px}
+
+/*
+ * 공용 버튼 4등급 (cd-btn-v20261016) — DESIGN.md §5 Button Tiers.
+ * 화면마다 그라디언트 "주 버튼"을 따로 발명하던 것을 한 계약으로 묶는다.
+ *   --brand     골드 pill 56px. 꿀꿀 홈 히어로 한 곳만.
+ *   --primary   단색 --cd-primary. 화면·섹션당 하나. 결제 CTA 는 가격을 라벨에 넣는다.
+ *   --secondary 표면 + 경계선. 대안 행동.
+ *   --tertiary  텍스트 링크(탭 영역 44px). 둘러보기·이동·약관.
+ * 딥 플럼 --cd-cta-primary-bg 는 계정·셸 CTA 전용이다 — 본문 주 버튼에 쓰지 않는다.
+ * 색은 전부 테마 토큰이 들고 있어 연이/네오 오버라이드가 따로 필요 없다(Two Covers Rule).
+ */
+.cd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cd-sp-xs);
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: var(--cd-btn-h);
+  max-width: 100%;
+  padding: var(--cd-btn-pad);
+  border: 1px solid transparent;
+  border-radius: var(--cd-r-control);
+  font-family: var(--font-body);
+  font-size: var(--cd-t-body);
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+  text-decoration: none;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+.cd-btn--brand {
+  min-height: var(--cd-btn-h-lg);
+  padding: var(--cd-btn-pad-lg);
+  border-radius: var(--cd-r-pill);
+  background: var(--cd-cta);
+  color: var(--cd-cta-text);
+  box-shadow: var(--cd-shade-2);
+}
+.cd-btn--primary {
+  background: var(--cd-primary);
+  color: var(--cd-primary-ink);
+  box-shadow: var(--cd-shade-3);
+}
+.cd-btn--secondary {
+  background: var(--cd-surface);
+  color: var(--cd-text);
+  border-color: var(--cd-line-strong);
+  box-shadow: var(--cd-shade-1);
+}
+.cd-btn--tertiary {
+  min-height: 44px;
+  padding: 10px 4px;
+  background: none;
+  color: var(--cd-text);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--cd-line-strong);
+  text-underline-offset: 5px;
+}
+.cd-btn--block { display: flex; width: 100%; }
+.cd-btn:focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 3px; }
+.cd-btn:disabled, .cd-btn[aria-disabled="true"] { opacity: .5; cursor: default; box-shadow: none; }
+@media (hover: hover) {
+  .cd-btn--primary:not(:disabled):hover { background: var(--cd-primary-hover); box-shadow: var(--cd-shade-2); }
+  .cd-btn--secondary:not(:disabled):hover { border-color: var(--cd-primary); }
+  .cd-btn--tertiary:hover { text-decoration-color: currentColor; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cd-btn { transition: background-color var(--cd-dur-fast) ease, border-color var(--cd-dur-fast) ease, box-shadow var(--cd-dur-fast) ease; }
+}
+
+/* 꿀꿀운세 공통 달빛 예화 내비게이션: 화면 테마와 무관한 브랜드 크롬. */
+:root { --cd-nav-bg:#2e1425; --cd-nav-surface:#3b2031; --cd-nav-ink:#fff2df; --cd-nav-muted:#d5bfc6; --cd-nav-line:#85664f; --cd-nav-active:#f1d59c; --cd-nav-active-bg:#4b2a3c; --cd-nav-gold:#dfbd80; --cd-nav-shadow:0 8px 28px rgba(37,15,29,.24); }

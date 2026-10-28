@@ -112,7 +112,7 @@ for (const paid of ["pass", "monthly", "paid"]) it(`${paid}: reuses sections and
   response = await start({ resumeSessionId: partial.sessionId }); expect(response.status).toBe(202);
   response = await start({ resumeSessionId: partial.sessionId }); expect(response.status).toBe(200);
   expect(await response.json()).toMatchObject({ saved: true, status: "completed", sessionId: partial.sessionId });
-  expect(provider).toHaveBeenCalledTimes(6); expect(chart).toHaveBeenCalledTimes(2); expect(refund).not.toHaveBeenCalled();
+  expect(provider).toHaveBeenCalledTimes(6); expect(chart).toHaveBeenCalledTimes(5); expect(refund).not.toHaveBeenCalled();
 });
 for (const status of ["delivery_pending", "completed"]) for (const kind of ["null", "throw", "confirm"]) it(`${status} storage ${kind} is retryable and never refunded`, async () => {
   await start(); await start(); fault = { status, kind };
@@ -160,7 +160,7 @@ it("discovers the owned pending result after a new login", async () => {
   expect(await (await getPending()).json()).toMatchObject({ sessionId: "" });
 });
 
-for (const repair of ["shorter", "repeated", "empty", "truncated", "throw"]) it(`keeps a valid short draft without requesting ${repair} repair`, async () => {
+for (const repair of ["shorter", "repeated", "empty", "truncated", "throw"]) it(`preserves the longer valid short draft after one ${repair} repair`, async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => {
     const call = provider.mock.calls.length;
@@ -179,8 +179,8 @@ for (const repair of ["shorter", "repeated", "empty", "truncated", "throw"]) it(
   for (let i = 0; i < 4 && docs[0].status !== "completed"; i++) await start();
   expect(docs[0].status).toBe("completed");
   expect(docs[0].llmMeta.sections[key]).toEqual(draft);
-  expect(docs[0].llmMeta.attempts[key]).toBe(1);
-  expect(provider).toHaveBeenCalledTimes(6); expect(refund).not.toHaveBeenCalled();
+  expect(docs[0].llmMeta.attempts[key]).toBe(2);
+  expect(provider).toHaveBeenCalledTimes(7); expect(refund).not.toHaveBeenCalled();
 });
 it("accepts a valid short section on the last attempt after structural failures", async () => {
   const normal = provider.getMockImplementation();
@@ -197,11 +197,13 @@ it("trims overlong sections without rejecting or regenerating them", async () =>
   expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(6);
   for (const row of Object.values(docs[0].llmMeta.sections)) expect(countPaidReportBodyChars(row.text)).toBeLessThanOrEqual(6000);
 });
-it("delivers all usable sections below the length target without more calls", async () => {
+it("delivers all usable short sections after one length repair each", async () => {
   provider.mockImplementation(async () => ({ ok: true, provider: "gemini", text: prose(`부족${provider.mock.calls.length}`, 1000) }));
-  for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
+  for (let i = 0; i < 14 && docs[0]?.status !== "completed"; i++) expect((await start()).status).not.toBe(503);
   expect((await start()).status).toBe(200);
-  expect(provider).toHaveBeenCalledTimes(6); expect(docs[0].status).toBe("completed");
+  expect(provider).toHaveBeenCalledTimes(12); expect(docs[0].status).toBe("completed");
+  for (const value of Object.values(docs[0].llmMeta.attempts).filter(Number.isFinite)) expect([1, 2]).toContain(value);
+  expect(Object.keys(docs[0].llmMeta.attempts).filter(key => key.endsWith(":lengthRepair"))).toHaveLength(6);
   expect(refund).not.toHaveBeenCalled();
 });
 
@@ -210,4 +212,46 @@ it('server resumes the stored owner after the browser leaves without a new purch
  userId='not-the-owner-of-the-browser';
  for(let i=0;i<5&&docs[0].status!=='completed';i++)await resumeConsultationOnServer({},docs[0]);
  expect(docs[0].status).toBe('completed');const calls=provider.mock.calls.length;await resumeConsultationOnServer({},docs[0]);expect(provider).toHaveBeenCalledTimes(calls);expect(refund).not.toHaveBeenCalled();
+});
+// R7 2026-10-10: "미입력 님"이 이름처럼 쓰였고, 맺음말 요구가 섹션마다 부딪혔다.
+it("never offers a placeholder as the reader's name and allows a closing only in the last part", async () => {
+  await start({ name: "" });
+  for (let i = 0; i < 4 && docs[0]?.status !== "completed"; i++) await start({ name: "" });
+  const prompts = provider.mock.calls.map(([, prompt]) => String(prompt));
+  expect(prompts.length).toBeGreaterThan(0);
+  for (const prompt of prompts) expect(prompt).not.toMatch(/닉네임: 미입력/u);
+  const { __astrologyAiTestUtils } = await import("../../worker/routes/astrology-ai.js");
+  const last = __astrologyAiTestUtils.ASTROLOGY_SECTIONS.at(-1).label;
+  const closing = prompts.filter(prompt => prompt.includes(`[이번에 쓸 부분] ${last}`));
+  expect(closing.length).toBeGreaterThan(0);
+  expect(closing.every(prompt => prompt.includes("추가 질문을 자연스럽게 청하세요"))).toBe(true);
+  expect(prompts.filter(prompt => !prompt.includes(`[이번에 쓸 부분] ${last}`)).every(prompt => prompt.includes("맺음말을 새로 쓰지 말고"))).toBe(true);
+});
+// R7 2026-10-11 재실행: 지시에도 4·5부 끝에 추가 질문 안내가 남았고, 괄호 영문 병기가 15건이었다.
+it("drops a follow-up invitation ending an inner part and English glosses from the body", async () => {
+  const { dropClosingInvitation, sanitizeConsultationText } = (await import("../../worker/routes/astrology-ai.js")).__astrologyAiTestUtils;
+  const body = "토성은 책임을 요구합니다.\n\n당신의 선택이 중요합니다. 혹시 더 궁금하거나 깊이 있게 논의하고 싶은 부분이 있으신가요? 언제든지 편하게 질문해 주세요.";
+  expect(dropClosingInvitation(body)).toBe("토성은 책임을 요구합니다.\n\n당신의 선택이 중요합니다.");
+  expect(dropClosingInvitation("궁금한 마음을 충분히 이해합니다. 목성은 확장을 돕습니다.")).toBe("궁금한 마음을 충분히 이해합니다. 목성은 확장을 돕습니다.");
+  expect(sanitizeConsultationText("차트 지배성(Chart Ruler)은 **화성**, 고정(Fixed) 양식과 대립(Jupiter opposition Saturn, 오브 1.2도)")).toBe("차트 지배성은 **화성**, 고정 양식과 대립(오브 1.2도)");
+});
+// R7 2026-10-10: 분기별 흐름을 쓰게 하면서 트랜짓은 오늘 한 시점뿐이었다.
+it("calculates transits at the start of each of the next four quarters", async () => {
+  await start();
+  const transitDates = chart.mock.calls.slice(1).map(([, at]) => `${at.year}-${String(at.month).padStart(2, "0")}`);
+  expect(transitDates).toHaveLength(4);
+  const months = transitDates.map(text => { const [y, m] = text.split("-").map(Number); return y * 12 + m; });
+  expect(months.slice(1).map((month, i) => month - months[i])).toEqual([3, 3, 3]);
+  const prompt = String(provider.mock.calls[0][1]);
+  expect((prompt.match(/"quarter":[1-4]/gu) || [])).toHaveLength(4);
+});
+// 2026-10-15: 점성술 전문가 상담은 윤달 페르소나를 시스템 프롬프트 끝에 붙인다(섹션 지시는 그대로).
+it("sends the Yundal persona at the end of every section's system prompt", async () => {
+  await start();
+  const systemPrompts = provider.mock.calls.map(([, , options]) => String(options.systemPrompt));
+  expect(systemPrompts.length).toBeGreaterThan(0);
+  for (const prompt of systemPrompts) {
+    expect(prompt).toMatch(/\[상담자 페르소나 — 윤달\][\s\S]*$/u);
+    expect(prompt).not.toMatch(/\d+년 경력/u);
+  }
 });

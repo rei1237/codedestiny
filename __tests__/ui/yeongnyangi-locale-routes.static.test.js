@@ -38,13 +38,9 @@ test("Yeongnyangi locale selection preserves query and hash while using localize
   assert.match(readingLanguage, /localeFromPathname\(usePathname\(\)\|\|''\)/);
 });
 
-test("Ggulggul home styles trust links and routes translated Yeongnyangi", () => {
-  const shell = read("templates/home-funnel.html");
-  const css = read("styles/home-funnel.css");
+test("Ggulggul home routes translated Yeongnyangi", () => {
+  // 2026-10-17 "직관성": 홈의 공개 기록·영냥이 다리 링크(.cdh-public-bridges)는 걷어냈다. 런타임 로케일 매핑은 남는다.
   const languageRuntime = read("js/cd-lang-native.js");
-  assert.match(shell, /href="\/insights\/presidential-saju-public-records\/"/);
-  assert.match(shell, /data-cd-localized-route="yeongnyangi"/);
-  assert.match(css, /\.cdh-public-bridges/);
   assert.match(languageRuntime, /getLocalizedHomeHref/);
   for (const [locale, route] of [["ko", "/yeongnyangi/"], ["en", "/en/yeongnyangi/"], ["ja", "/ja/yeongnyangi/"], ["zh-CN", "/zh/yeongnyangi/"], ["zh-TW", "/zh-tw/yeongnyangi/"]]) {
     assert.ok(languageRuntime.includes(`${locale}: '${route}'`) || languageRuntime.includes(`'${locale}': '${route}'`), `${locale} runtime mapping missing`);
@@ -56,6 +52,9 @@ test("localized static home pages link directly to their Yeongnyangi locale rout
   assert.match(sync, /localizedYeongnyangiPath/);
   for (const [locale, path] of [["en", "/en/yeongnyangi/"], ["ja", "/ja/yeongnyangi/"], ["zh", "/zh/yeongnyangi/"], ["zh-tw", "/zh-tw/yeongnyangi/"]]) {
     const shell = read(`public/${locale}/index.html`);
-    assert.ok(shell.includes(`href="${path}" data-cd-localized-route="yeongnyangi"`), `${locale} shell is missing its localized inbound link`);
+    // 홈 본문의 영냥이 링크는 걷어냈다(2026-10-17). 다시 생기면 로케일 경로를 가리켜야 한다.
+    for (const [, href] of shell.matchAll(/href="([^"]*)" data-cd-localized-route="yeongnyangi"/g)) {
+      assert.equal(href, path, `${locale} shell links Yeongnyangi outside its locale route`);
+    }
   }
 });

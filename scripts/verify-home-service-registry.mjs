@@ -26,9 +26,9 @@ const errors = [];
 const notes = [];
 const fail = (msg) => errors.push(msg);
 
-/* 홈 검색 카드 이미지는 같은 기능을 여는 홈 타일에서 런타임에 빌리고(home-service-finder.js
-   featureTileImage), 타일이 없으면 달 이미지(DEFAULT_SERVICE_IMAGE)를 쓴다. 항목별 정적 이미지
-   매핑은 서비스와 맞지 않는 그림·폐기된 이용권 그림을 띄워 2026-09-11 에 폐지했다. */
+/* 기능별 검수 원화 정본을 우선 사용한다. 등록되지 않은 서비스는 같은 기능의
+   홈 타일에서 파생하며, 임의 정적 경로가 레지스트리에 다시 들어오면 실패한다. */
+const INTRODUCTION_ART = JSON.parse(readFileSync(resolve(ROOT, "lib/marketing/service-introduction-art.json"), "utf8"));
 const FINDER_FILE = resolve(ROOT, "js/core/home-service-finder.js");
 const DEFAULT_IMAGE = (readFileSync(FINDER_FILE, "utf8").match(/DEFAULT_SERVICE_IMAGE\s*=\s*"([^"]+)"/) || [])[1];
 if (!DEFAULT_IMAGE) fail("홈 검색 공통 이미지 DEFAULT_SERVICE_IMAGE 를 찾지 못했다");
@@ -77,6 +77,14 @@ function bucketOfWon(won) {
 function readPrice(raw) {
   const text = String(raw || "").trim();
   if (!text) return null;
+  if (["차트 공개", "읽을거리", "기록 도구", "연재 읽을거리"].includes(text)) {
+    return { bucket: "free", krw: null, krwTo: null };
+  }
+  const streamingWithDownload = text.replace(/,/g, "").match(/^스트리밍\s*·\s*다운로드\s*(\d{3,7})원$/);
+  if (streamingWithDownload) {
+    const won = Number(streamingWithDownload[1]);
+    return { bucket: "free", extraBucket: bucketOfWon(won), krw: null, krwTo: null, optionalKRW: won };
+  }
   if (/^무료(\s*시작)?$/.test(text)) return { bucket: "free", krw: null, krwTo: null };
   const freeWithPaidOption = text.replace(/,/g, "").match(/^무료\s*재생\s*·\s*다운로드\s*(\d{3,7})원$/);
   if (freeWithPaidOption) {
@@ -143,11 +151,15 @@ for (const item of registry) {
     else for (const r of item.roles) if (!ROLES.has(r)) fail(`${at}: 알 수 없는 role "${r}"`);
   }
 
-  if (item.image) fail(`${at}: 항목별 이미지(${item.image})를 넣지 않는다 — 카드 이미지는 같은 기능의 홈 타일에서 런타임에 파생`);
+  const artwork = INTRODUCTION_ART[item.id];
+  if (artwork) {
+    if (item.image !== artwork.cardImage || item.imageAlt !== artwork.alt) fail(`${at}: 기능 소개 이미지 정본과 경로/대체텍스트가 다르다`);
+    if (!existsSync(resolve(ROOT, "public", "." + artwork.cardImage))) fail(`${at}: 기능 소개 이미지 파일이 없다`);
+  } else if (item.image) fail(`${at}: 검수 정본에 없는 임의 이미지 ${item.image}`);
 
   const price = readPrice(item.price);
   if (!price) {
-    fail(`${at}: price "${item.price}" 를 해석할 수 없다 — '무료' | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~M,MMM원' 만 허용`);
+    fail(`${at}: price "${item.price}" 를 해석할 수 없다 — 비운세 분류 라벨 | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~M,MMM원' 만 허용`);
     continue;
   }
 
@@ -215,13 +227,13 @@ while ((match = TILE_OPEN.exec(shell))) {
   const coin = attrOf(head, "data-coin-cost") || attrOf(head, "data-tile-lock-cost");
   const label = attrOf(head, "aria-label") || featureKey;
   const chunk = shell.slice(match.index, match.index + 3000);
-  const badge = (chunk.match(/class="(?:tarot-tile__coin-badge|cd-sig-card__price[^"]*)"[^>]*>([^<]{1,40})/) || [])[1] || "";
+  const badge = (chunk.match(/class="[^"]*(?:tarot-tile__coin-badge|cd-sig-card__price)[^"]*"[^>]*>([^<]{1,40})/) || [])[1] || "";
 
   const shown = badge.replace(/,/g, "").match(/(\d{3,7})\s*원/);
   const feature = resolveFeature(featureKey);
   if (!feature) {
     /* 값이 걸린 타일만 정본 등재를 강제한다. 코인·가격이 전혀 없는 타일의 data-feature-key 는
-       과금 키가 아니라 단순 마커다(예: fortune-prompt-hub — 무료 진입). 돈 냄새가 나면 실패. */
+       과금 키가 아니라 단순 마커다(예: fortune-prompt-hub — 출석 꿀방울 진입). 돈 냄새가 나면 실패. */
     if (coin || shown) {
       fail(`셸 타일 "${label}": data-feature-key "${featureKey}" 가 결제 정본에 없는데 가격이 걸려 있다 (coin=${coin || "-"}, 배지="${badge.trim() || "-"}")`);
     } else {
@@ -266,17 +278,17 @@ function sectionOf(id) {
 
 const byId = new Map(registry.map((item) => [item.id, item]));
 const PLACEMENTS = [
-  { role: "quick", sectionId: "cdQuickServices", label: "빠른 서비스" },
-  { role: "recommended", sectionId: "cdSignatureConsult", label: "대표 상담" },
+  { role: "quick", sectionIds: ["cdQuickServices"], label: "빠른 서비스" },
+  { role: "recommended", sectionIds: ["cdSignatureConsult"], label: "대표 상담" },
 ];
 
 const placed = new Map();
-for (const { role, sectionId, label } of PLACEMENTS) {
-  const html = sectionOf(sectionId);
-  if (!html) {
-    fail(`${label}: index.html 에 #${sectionId} 가 없다`);
-    continue;
-  }
+for (const { role, sectionIds, label } of PLACEMENTS) {
+  const html = sectionIds.map(sectionId => {
+    const section = sectionOf(sectionId);
+    if (!section) fail(`${label}: index.html 에 #${sectionId} 가 없다`);
+    return section || "";
+  }).join("\n");
   const cardRe = /<a\b([^>]*\bdata-cd-service-id="([^"]+)"[^>]*)>/g;
   const found = [];
   let card;
@@ -401,75 +413,6 @@ if (!copyKeys || !copyKeys.length) {
     );
   }
   notes.push(`상세 문안 대조 ${registry.length - missing.length}/${registry.length}`);
-}
-
-/* ── 5. 홈 질문 카드 가격 ↔ 결제 정본 (#cdConcernPick, 2026-10-02) ─────
- *
- * 왜 — 질문 우선 전환으로 #cdConcernPick 카드가 결제 전에 가격을 보여 준다. 이 카드들은
- * 코인 게이트·미리보기 시트를 피하려고 data-feature-key 를 달지 않으므로 2절이 보지 못한다.
- * 그래서 가격 대조 전용 표식(data-cd-price-key | data-cd-price-free)을 따로 둔다.
- * 🔴 fail-closed: 질문 카드·보조 링크·직접 물어보기를 클래스로 전수 발견하고, 표식이 없거나
- * 가격 문구가 없거나 금액이 정본과 다르면 실패한다. 하나도 못 찾아도 실패한다.
- * '1,000원부터' 처럼 시작가를 적은 카드는 그 시작 등급의 키(예: yeongnyangi-saju-mackerel)를 단다.
- */
-const concern = sectionOf("cdConcernPick");
-if (!concern) {
-  fail("질문 카드: index.html 에 #cdConcernPick 이 없다");
-} else {
-  const PRICED_OPEN = /<(a|button)\b([^>]*\bclass="(cd-concern__q-link|cd-concern__q-alt|cd-concern__ask)"[^>]*)>/g;
-  let priced = 0;
-  let target;
-  while ((target = PRICED_OPEN.exec(concern))) {
-    priced += 1;
-    const [, tag, head, cls] = target;
-    const body = concern.slice(target.index, concern.indexOf(`</${tag}>`, target.index));
-    const label = `질문 카드 ${cls} "${attrOf(head, "data-cd-question") || attrOf(head, "href") || "?"}"`;
-    const key = attrOf(head, "data-cd-price-key");
-    const isFree = /\sdata-cd-price-free(?:[\s=>]|$)/.test(head);
-    if (!key && !isFree) {
-      fail(`${label}: data-cd-price-key 도 data-cd-price-free 도 없다 — 가격을 대조할 수 없다`);
-      continue;
-    }
-    if (key && isFree) {
-      fail(`${label}: data-cd-price-key 와 data-cd-price-free 가 함께 있다`);
-      continue;
-    }
-    const priceText = ((body.match(/cd-concern__q-price"[^>]*>([^<]+)/) || [])[1] || "").trim();
-    if (!priceText) {
-      fail(`${label}: 가격 문구(.cd-concern__q-price)가 없다 — 결제 전에 가격을 보여야 한다`);
-      continue;
-    }
-    const won = priceText.match(/(\d{1,3}(?:,\d{3})+|\d+)\s*원/);
-    if (isFree) {
-      if (won) fail(`${label}: 무료 표식인데 금액 "${priceText}" 를 보여 준다`);
-      continue;
-    }
-    const feature = resolveFeature(key);
-    if (!feature) {
-      fail(`${label}: data-cd-price-key "${key}" 가 결제 정본에 없다`);
-      continue;
-    }
-    if (!won) {
-      fail(`${label}: 유료(${key})인데 가격 문구 "${priceText}" 에 금액이 없다`);
-      continue;
-    }
-    if (Number(won[1].replace(/,/g, "")) !== feature.krw) {
-      fail(`${label}: 표시 "${priceText}" / 결제 정본 ${feature.krw.toLocaleString()}원 (${feature.key}, cost=${feature.cost})`);
-    }
-  }
-  if (priced === 0) fail("질문 카드: #cdConcernPick 에서 가격 대상(q-link·q-alt·ask)을 하나도 못 찾았다 — 선택자가 썩었다 (fail-closed)");
-
-  /* 패널마다 질문 카드가 있어야 한다 — 빈 패널은 타일을 눌러도 아무 답이 없다. */
-  const panelRe = /data-cd-concern-panel="([^"]+)"/g;
-  const panelAt = [];
-  let panel;
-  while ((panel = panelRe.exec(concern))) panelAt.push({ id: panel[1], at: panel.index });
-  if (!panelAt.length) fail("질문 카드: data-cd-concern-panel 패널을 하나도 못 찾았다 (fail-closed)");
-  panelAt.forEach(({ id, at }, i) => {
-    const chunk = concern.slice(at, i + 1 < panelAt.length ? panelAt[i + 1].at : concern.length);
-    if (!/class="cd-concern__q-link"/.test(chunk)) fail(`질문 카드: 패널 "${id}" 에 질문 카드(cd-concern__q-link)가 없다`);
-  });
-  notes.push(`질문 카드 가격 ${priced}곳 · 패널 ${panelAt.length}개 대조`);
 }
 
 /* ── 결과 ──────────────────────────────────────────────────────── */

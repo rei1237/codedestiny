@@ -1,0 +1,255 @@
+/*
+ * 미니 운세 게임 모음. 루트 `/` 카드(app/home-main.module.css)와 같은 금색 이중 테두리 언어를 쓴다.
+ * - --cd-* 토큰(styles/theme-tokens.css)만 읽는다. 모듈 사설 변수는 --mg-* 이다.
+ * - 모바일 2열, 640px 이상 3열, 960px 이상 4열. 카드 전체가 링크다.
+ */
+
+.page {
+  --mg-gold-line: color-mix(in oklab, var(--cd-yehwa-line) 72%, transparent);
+  /* 금색 글자: 흰 바탕 대비 4.5:1 을 넘기려고 본문색을 섞는다(home-main.module.css 와 같은 값). */
+  --mg-gold-ink: color-mix(in oklab, var(--cd-yehwa-line-deep) 70%, var(--cd-text));
+  box-sizing: border-box;
+  width: 100%;
+  padding: 40px 16px 64px;
+  /* 앱 body 는 어두운 기본 배경이라, 루트 `/` 처럼 페이지가 --cd-bg 를 직접 깐다(글자색 --cd-text 와 짝). */
+  background:
+    radial-gradient(70% 30% at 50% 0%, color-mix(in oklab, var(--cd-yehwa-line) 14%, transparent), transparent 72%),
+    var(--cd-bg);
+  color: var(--cd-text);
+  font-family: var(--font-body, inherit);
+  line-height: 1.7;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+/* 공용 푸터(SiteFooterHub)의 margin-top 42px 사이로 어두운 body 배경이 띠처럼 비친다. 이 페이지 바로 뒤에서만 접는다. */
+.page + footer {
+  margin-top: 0;
+}
+/* 배경은 전폭, 내용은 가운데 1120px 열. 안내 블록(.signature·.prose)은 아래에서 720px 로 다시 좁힌다. */
+.page > * {
+  max-width: 1120px;
+  margin-inline: auto;
+}
+.page :where(h1, h2, h3) {
+  margin: 0;
+  font-family: var(--font-serif, inherit);
+  color: var(--cd-text);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.eyebrow {
+  margin: 0 0 6px;
+  font-family: var(--font-serif, inherit);
+  font-size: 13px;
+  letter-spacing: 0.24em;
+  color: var(--mg-gold-ink);
+}
+.title {
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 700;
+  line-height: 1.25;
+}
+.title::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 1px;
+  margin: 14px auto 0;
+  background: linear-gradient(90deg, transparent, var(--cd-yehwa-line), transparent);
+}
+.lead {
+  max-width: 34em;
+  margin: 14px auto 0;
+  color: var(--cd-text-muted);
+  font-size: 15px;
+}
+
+/* ── 게임 카드 그리드 ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-block: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+@media (min-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+.item {
+  display: flex;
+  min-width: 0;
+}
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid var(--mg-gold-line);
+  border-radius: var(--cd-r-md, 16px);
+  background: var(--cd-surface);
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--cd-text) 8%, transparent);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  border-color: var(--cd-yehwa-line);
+  box-shadow: 0 10px 26px -12px color-mix(in oklab, var(--cd-yehwa-line-deep) 55%, transparent);
+}
+.card:focus-visible {
+  outline: 3px solid var(--cd-focus-ring);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+  .card:hover {
+    transform: none;
+  }
+}
+
+.thumb {
+  display: block;
+  aspect-ratio: 16 / 10;
+  background: color-mix(in oklab, var(--cd-yehwa-line) 12%, var(--cd-surface));
+  overflow: hidden;
+}
+.thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 14px;
+}
+.badge {
+  display: block;
+  align-self: stretch;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--mg-gold-line);
+  font-size: var(--cd-t-body);
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--cd-text);
+}
+.name {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cd-text-muted);
+}
+
+/* ── 대표 상담 안내 ── */
+.signature {
+  position: relative;
+  margin: 40px auto 0;
+  max-width: 720px;
+  padding: 28px 20px;
+  border: 1px solid var(--cd-yehwa-line);
+  border-radius: var(--cd-r-md, 16px);
+  background:
+    radial-gradient(80% 120% at 50% 0%, color-mix(in oklab, var(--cd-yehwa-line) 16%, transparent), transparent 70%),
+    var(--cd-surface);
+  text-align: center;
+}
+.signature::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in oklab, var(--cd-yehwa-line) 40%, transparent);
+  border-radius: calc(var(--cd-r-md, 16px) - 5px);
+  pointer-events: none;
+}
+.signatureKicker {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--mg-gold-ink);
+}
+.signatureTitle {
+  font-size: clamp(20px, 4.6vw, 26px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+.signatureText {
+  max-width: 32em;
+  margin: 10px auto 18px;
+  font-size: 14px;
+  color: var(--cd-text-muted);
+}
+.signatureCta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 28px;
+  border-radius: 999px;
+  background: var(--mg-gold-ink);
+  color: var(--cd-surface);
+  font-weight: 700;
+  text-decoration: none;
+  z-index: 1;
+}
+.signatureCta:hover {
+  background: var(--cd-text);
+}
+.signatureCta:focus-visible {
+  outline: 3px solid var(--cd-focus-ring);
+  outline-offset: 3px;
+}
+
+/* ── 안내 본문 ── */
+.prose {
+  max-width: 720px;
+  margin: 48px auto 0;
+  padding-top: 32px;
+  border-top: 1px solid color-mix(in oklab, var(--cd-yehwa-line) 40%, transparent);
+}
+.prose h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.prose h3 {
+  margin-top: 22px;
+  font-size: 17px;
+  font-weight: 700;
+}
+.prose p {
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: var(--cd-text);
+}

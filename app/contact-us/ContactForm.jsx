@@ -24,7 +24,7 @@ export default function ContactForm({ supportEmail }) {
     const email = String(data.get("email") || "").trim();
     const message = String(data.get("message") || "").trim();
 
-    const subject = `[Code Destiny 문의] ${name}`;
+    const subject = `[꿀꿀운세 문의] ${name}`;
     const body = `이름: ${name}\n회신 이메일: ${email}\n\n${message}\n`;
 
     window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

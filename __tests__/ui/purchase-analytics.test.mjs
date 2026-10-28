@@ -4,6 +4,43 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 const source=readFileSync(new URL('../../js/core/analytics.js',import.meta.url),'utf8');
+test('React single-payment confirmation reports only approved server purchases, once across recovery', async () => {
+  const { transform } = await import('esbuild');
+  const client = readFileSync(new URL('../../app/points/PointsClient.tsx', import.meta.url), 'utf8');
+  const start = client.indexOf('  const confirmPaymentWithServer = useCallback(');
+  const end = client.indexOf('  const confirmSubscriptionWithServer = useCallback(', start);
+  assert.ok(start >= 0 && end > start, 'exercise the actual single-payment callback');
+  const compiled = await transform(client.slice(start, end), { loader: 'ts', format: 'cjs' });
+  const dom = boot();
+  const payment = { merchantUid: 'fixture-react-single', paymentAmount: 5000, status: 'paid' };
+  let response = { ok: false, status: 500, payload: { payment } };
+  const confirm = new Function('useCallback', 'authFetch', 'apiBase', 'confirmPaymentInFlightRef',
+    'safeParseJson', 'trackConfirmedPurchase', 'refreshUserAccessAfterPayment',
+    compiled.code + '\nreturn confirmPaymentWithServer;')(
+    fn => fn, async () => response, 'https://mock.invalid', { current: new Map() },
+    async value => value.payload, value => dom.window.cdTrackConfirmedPurchase(value), async () => {},
+  );
+  const args = { impUid: 'fixture-pg', merchantUid: payment.merchantUid };
+  const purchases = () => dom.window.dataLayer.filter(row => row[0] === 'event' && row[1] === 'purchase');
+  try {
+    await assert.rejects(confirm(args));
+    assert.equal(purchases().length, 0);
+    response = { ok: true, payload: { payment: { ...payment, status: 'pending' } } };
+    await confirm(args);
+    assert.equal(purchases().length, 0);
+    response.payload = { code: 'GRANT_PENDING', activationPending: true, payment };
+    await confirm(args);
+    await confirm(args);
+    assert.equal(purchases().length, 1);
+    assert.equal(purchases()[0][2].value, 5000);
+    assert.equal(purchases()[0][2].currency, 'KRW');
+    assert.equal(dom.window.dataLayer.filter(row => row[1] === 'entitlement_granted').length, 0);
+    response.payload = { payment, activationPending: false };
+    await confirm(args);
+    assert.equal(purchases().length, 1);
+    assert.equal(dom.window.dataLayer.filter(row => row[1] === 'entitlement_granted').length, 1);
+  } finally { dom.window.close(); }
+});
 function boot(url='https://code-destiny.com/points/?token=private',{consent='',stored={}}={}){
   const dom=new JSDOM('<!doctype html><html><head></head><body></body></html>',{url,runScripts:'outside-only'});
   if(consent)dom.window.document.cookie=`cd_cookie_consent=${consent}; path=/`;
@@ -135,6 +172,19 @@ test('server attribution accepts public campaign metadata and discards unknown f
  const clean=normalize({consent:true,version:'growth-20260929-v1',campaignId:'threads_queue_t02_v1',device:'mobile',question:'private',userId:'private'});
  assert.deepEqual(Object.keys(clean).sort(),['campaignId','consent','device','version']);
  assert.equal(JSON.stringify(clean).includes('private'),false);
+});
+
+test('growth-20261012-v2 attribution keeps only the public campaign source and content code',async()=>{
+ const dom=boot('https://code-destiny.com/tarot/?utm_source=tiktok&utm_medium=social&utm_campaign=growth_20261012&utm_content=V01_ko&question=private'),w=dom.window;
+ w.document.cookie='cd_cookie_consent=accepted; path=/';
+ assert.deepEqual({...w.cdReadGrowthAttribution(),device:undefined},{campaignId:'growth_20261012_tiktok',consent:true,version:'growth-20261012-v2',device:undefined,content:'V01_ko'});
+ w.history.replaceState({},'', '/?utm_source=instagram&utm_medium=social&utm_campaign=growth_20261012');
+ assert.equal(w.cdReadGrowthAttribution().campaignId,'growth_20261012_tiktok');
+ dom.window.close();
+ const {normalizeGrowthAttribution:normalize}=await import('../../lib/marketing/growth-attribution.mjs');
+ assert.equal(normalize({consent:true,version:'growth-20261012-v2',campaignId:'growth_20261012_instagram'}),undefined);
+ assert.equal(normalize({consent:true,version:'growth-20260929-v1',campaignId:'growth_20261012_x'}),undefined);
+ assert.deepEqual(normalize({consent:true,version:'growth-20261012-v2',campaignId:'growth_20261012_x',content:'private note',device:'mobile'}),{campaignId:'growth_20261012_x',version:'growth-20261012-v2',consent:true,device:'mobile'});
 });
 
 test('purchase replay across documents persists only with analytics consent',()=>{

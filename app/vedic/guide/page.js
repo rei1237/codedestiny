@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const VEDIC_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    metaTitle: "베다 점성술 기본 구조 | Code Destiny",
+    metaTitle: "베다 점성술 기본 구조 | 꿀꿀 운세",
     observe: "베다 점성술이 살피는 것",
     inputs: "필요한 입력값",
     useCases: "어떤 때 참고하면 좋은가",
@@ -30,7 +30,7 @@ export function generateMetadata() {
     title: vedicGuideText("metaTitle"),
     description:
       "베다 점성술의 라시 차트, 라그나, 나크샤트라, 다샤 흐름을 어떻게 읽는지와 입력값, 샘플 리딩, 주의사항을 안내합니다.",
-    keywords: ["베다 점성술 가이드", "베다점 운세", "베다 점성술", "조티쉬", "라시 차트", "라그나", "나크샤트라", "다샤", "Code Destiny"],
+    keywords: ["베다 점성술 가이드", "베다점 운세", "베다 점성술", "조티쉬", "라시 차트", "라그나", "나크샤트라", "다샤", "꿀꿀운세"],
   });
 }
 
@@ -105,7 +105,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "베다 점성술 서비스",
-      keywords: ["베다 점성술 가이드", "베다점 운세", "베다 점성술", "조티쉬", "라시 차트", "라그나", "나크샤트라", "다샤", "Code Destiny"],
+      keywords: ["베다 점성술 가이드", "베다점 운세", "베다 점성술", "조티쉬", "라시 차트", "라그나", "나크샤트라", "다샤", "꿀꿀운세"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),
@@ -119,7 +119,7 @@ export default function VedicGuidePage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">베다 점성술 기본 구조</h1>
         <p className="cd-main-intro">
-          베다 점성술(조티쉬)은 태어난 순간의 하늘을 실제 별자리 위치에 맞춘 사이더리얼 황도대에 옮기고, 동쪽 지평선의 라그나를 1하우스로 삼아 행성을 배치한 뒤, 달이 머문 나크샤트라와 그 지배 행성에서 시작하는 다샤로 시기를 읽는 인도 전통의 별자리 해석 체계입니다. Code Destiny는 이 오래된 언어를 현실 판단과 함께 참고할 수 있는 상담형 해석으로 풀어냅니다.
+          베다 점성술(조티쉬)은 태어난 순간의 하늘을 실제 별자리 위치에 맞춘 사이더리얼 황도대에 옮기고, 동쪽 지평선의 라그나를 1하우스로 삼아 행성을 배치한 뒤, 달이 머문 나크샤트라와 그 지배 행성에서 시작하는 다샤로 시기를 읽는 인도 전통의 별자리 해석 체계입니다. 꿀꿀운세는 이 오래된 언어를 현실 판단과 함께 참고할 수 있는 상담형 해석으로 풀어냅니다.
         </p>
       </header>
 
@@ -217,7 +217,7 @@ export default function VedicGuidePage() {
 
       <nav className="cd-chip-wrap" aria-label="베다 점성술 가이드 관련 링크">
         <Link href="/vedic" className="cd-chip">베다 점성술 서비스</Link>
-        <Link href="/vedic/jyotish" className="cd-chip">조티시 차트</Link>
+        <Link href="/vedic" className="cd-chip">조티시 차트</Link>
         <Link href="/insights/vedic" className="cd-chip">베다 인사이트</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
         <Link href="/editorial-policy" className="cd-chip">콘텐츠 제작 원칙</Link>

@@ -21,13 +21,13 @@ export default function GiftSharing({ gift, onChange }: { gift: GiftView; onChan
     catch { setNotice("아래 링크를 길게 눌러 복사해 주세요."); }
   };
   const share = async () => {
-    try { if (navigator.share) await navigator.share({ title: "운명의 선물", text: "CODE DESTINY 이용권 선물이 도착했어요.", url }); else await copy(); }
+    try { if (navigator.share) await navigator.share({ title: "운명의 선물", text: "꿀꿀운세 이용권 선물이 도착했어요.", url }); else await copy(); }
     catch (e) { if (!(e instanceof Error && e.name === "AbortError")) await copy(); }
   };
   const kakao = () => {
     const sdk = (window as unknown as { Kakao?: { isInitialized?: () => boolean; Share?: { sendDefault: (data: object) => void } } }).Kakao;
     if (!sdk?.isInitialized?.() || !sdk.Share) { void share(); return; }
-    try { sdk.Share.sendDefault({ objectType: "text", text: "소중한 사람에게 마음을 전하는 CODE DESTINY 선물이 도착했어요. 로그인 후 이용권을 받아보세요.", link: { mobileWebUrl: url, webUrl: url }, buttonTitle: "선물 확인하기" }); }
+    try { sdk.Share.sendDefault({ objectType: "text", text: "소중한 사람에게 마음을 전하는 꿀꿀운세 선물이 도착했어요. 로그인 후 이용권을 받아보세요.", link: { mobileWebUrl: url, webUrl: url }, buttonTitle: "선물 확인하기" }); }
     catch { void share(); }
   };
   if (gift.status !== "PAID") return null;

@@ -19,6 +19,7 @@
  * 로그가 잡는다.
  */
 import { listCurrentPassOffers } from "../lib/pass-sale-policy.js";
+import { resolveOrderProductName } from "../lib/payment-product-name.js";
 import {
   CURRENT_PASS_POLICY_VERSION,
   PREVIOUS_PASS_POLICY_VERSION,
@@ -27,6 +28,7 @@ import {
   PRIOR_PASS_POLICY_VERSION,
 } from "../../lib/payment/pass-policy.js";
 import { getRequestMeta, json } from "../lib/http.js";
+import { readBoundedText } from "../lib/request-body.js";
 import { peekAccessTokenUserId } from "../lib/auth.js";
 import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credential-scoped-cache.js";
 // 🔴 leaf 를 import 한다(../lib/access-state.js 가 아니라). 그쪽은 models.js·content-unlocks.js 를
@@ -34,21 +36,39 @@ import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credenti
 //    옵셔널 경유(globalThis.__accessStateCache?.invalidateForUser?.())는 아이솔레이트에 모듈이 아직
 //    안 실렸으면 조용히 no-op 이라 fail-open 이고, verify:access-state-cache-order 가 거부한다.
 import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
-import { Payment, User } from "../lib/models.js";
+import { CONTENT_ENTITLEMENT_SOURCES, CONTENT_ENTITLEMENT_STATUSES, ContentEntitlement, Payment, User } from "../lib/models.js";
 import { prepareResumeContext, readOrderResumeContext } from "./resume-context.js";
 import { preparePaypalCharge, paypalChargeForOrder } from './paypal.js';
 import { assertRegionalPaymentMethod, paymentRegion } from './region-policy.js';
 import { fetchPortOnePayment, getPortOnePublicConfig, resolveChargeAmountKRW } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
-import { classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
+import { PaymentError, classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
 import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
 import { listProducts, resolveProduct } from "./catalog.js";
+import { assertFeatureEnabled } from "../lib/billing-feature-registry.js";
+import { resolveNeoOrderProduct } from "../neo-consultation/payment.js";
 import { createServicePackRoutes } from "./service-pack-routes.js";
 import { verifyPgPayment } from "./pg.js";
 import { isLegacySingleOrderId } from "./order-id.js";
-import { dropEntitlementByIdentity, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
-import { settleOrphanSpends, spendMoonstone, reserveOrderMoonstones, releaseOrderMoonstones } from "./moonstone.js";
+import { dropEntitlementByIdentity, findLegacyBirthUnlock, findOwnedEntitlement, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
+import { birthIdentityFromSnapshot, birthSnapshotFields, isBirthScopedProduct, orderNeedsBirthProfileSelection, resolvePaymentBirthIdentity } from "./birth-identity.js";
+import {
+  claimProductFromOrder,
+  finalizeBirthProfileClaim,
+  finalizeLegacyBirthClaim,
+  findLegacyBirthClaim,
+  isBirthProfilePendingOrder,
+  isLegacyClaimOrderId,
+  legacyClaimIdFromOrderId,
+  legacyClaimProduct,
+  listBirthProfilePendingOrders,
+  listLegacyBirthClaims,
+  presentBirthProfilePendingOrder,
+  presentLegacyBirthClaim,
+  reserveBirthProfileClaim,
+  reserveLegacyBirthClaim,
+} from "./birth-profile-claim.js";import { settleOrphanSpends, spendMoonstone, reserveOrderMoonstones, releaseOrderMoonstones } from "./moonstone.js";
 import { quoteYeongnyangiMoonstoneDiscount } from '../lib/paid-feature-registry.js';
 import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
 import { alertPaymentAnomalies, runPaymentReconcile } from "./reconcile.js";
@@ -84,6 +104,7 @@ import {
   resolvePremiumAccessReportType,
 } from "../lib/premium-access-token.js";
 import {
+  BIRTH_PROFILE_SELECTION_MESSAGE,
   legacyBillingCheckoutEnvelope,
   legacyMoonstoneEnvelope,
   legacyOrderDetailEnvelope,
@@ -741,6 +762,7 @@ function presentOrder(order) {
     orderId: String(order.merchantUid || ""),
     status: toOrderStatus(order),
     productId: String(order.productId || ""),
+    productName: resolveOrderProductName(order),
     featureKey: String(order.featureKey || ""),
     requestId: String(order.requestId || order.idempotencyKey || ""),
     amountKRW: Number(order.paymentAmount || 0),
@@ -755,9 +777,15 @@ function presentOrder(order) {
  * 주문을 그대로 넘길 수 있다(이용권 확정처럼 자기 검증 때문에 어차피 한 번 읽는 경로의 중복 방지).
  * `settled: true` 는 "PG 를 부를 필요가 없다"는 뜻이다.
  */
-function evaluateConfirmable(ctx, order, { orderId, actorUserId = "" }) {
+function evaluateConfirmable(ctx, order, { orderId, actorUserId = "", systemActor = false }) {
   if (!order) throw paymentError("ORDER_NOT_FOUND", "주문을 찾을 수 없습니다.", { orderId });
+  // 🔴 소유자 검사는 기본이 닫힘이다(C1). 행위자(actorUserId)도 명시적 systemActor 도 없으면 호출부 결함이므로
+  //    검사를 건너뛰지 않고 막는다 — 인자를 빠뜨린 새 호출부가 남의 주문을 확정하는 길이 조용히 열리면 안 된다.
+  //    systemActor 는 사용자 세션이 없는 경로(webhook · 재조정 크론 · 웹훅 재생)가 PG 재조회를 근거로 확정할 때만 true.
   if (actorUserId) assertOrderOwner(order, actorUserId);
+  else if (systemActor !== true) {
+    throw paymentError("INTERNAL_ERROR", "확정 행위자가 지정되지 않았습니다.", { orderId, reason: "ACTOR_NOT_SPECIFIED" });
+  }
   ctx.productId = String(order.productId || "");
 
   const status = toOrderStatus(order);
@@ -817,7 +845,7 @@ async function settleVerifiedOrder(db, ctx, { order, pg }) {
  *   begun — 호출부가 자기 슬롯에서 이미 evaluateConfirmable 을 돌렸을 때. 판정 슬롯을 건너뛴다.
  *   afterSettle — 정산과 **같은 슬롯**에서 이어 돌 마무리(웹훅의 이벤트 처리 표시 등). 재생 경로에도 돈다.
  */
-async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {}) {
+async function confirmOrder(env, ctx, { orderId, actorUserId = "", systemActor = false }, options = {}) {
   const { withDb, deps = {}, afterSettle } = options;
   const begun = options.begun || await withDb(env,ctx,async db=>{
     const order=await findOrder(db,{orderId});
@@ -825,7 +853,7 @@ async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {
       const {assertGiftOrigin}=await import('./gift-routes.js');
       assertGiftOrigin(options.request,env);
     }
-    return evaluateConfirmable(ctx,order,{orderId,actorUserId});
+    return evaluateConfirmable(ctx,order,{orderId,actorUserId,systemActor});
   });
 
   if (begun.settled) {
@@ -938,8 +966,9 @@ async function grantPassOrderEntitlement(db, order) {
   return true;
 }
 
-/** 지급. 실패해도 던지지 않는다 — 돈은 이미 받았고, 실패를 오류로 올리면 사용자가 다시 결제한다. */
-async function grantOrderEntitlement(db, order) {
+/** 지급. 실패해도 던지지 않는다 — 돈은 이미 받았고, 실패를 오류로 올리면 사용자가 다시 결제한다.
+ *  `rethrow` 는 크론·프로필 선택 지급 전용이다 — 원래 오류 코드(MISSING_PROFILE_ID 등)로 종결 여부를 가른다. */
+async function grantOrderEntitlement(db, order, { rethrow = false } = {}) {
   try {
     if (order.purchaseType === "GIFT") {
       const { ensureGiftForOrder } = await import("./gifts.js");
@@ -970,6 +999,10 @@ async function grantOrderEntitlement(db, order) {
     // 회당 구매권은 주문·요청에 묶인다. 서비스별 실행 기록을 미리 만들거나
     // 기능 전체를 영구 해금하지 않아 기존 실행 신원과 새 회차의 과금 정책을 보존한다.
     if (String(product.billingType || "per_use") === "per_use") {
+      if (product.featureKey === "neo-email-consultation") {
+        const { acceptNeoConfirmedPayment } = await import("../neo-consultation/payment.js");
+        await acceptNeoConfirmedPayment(db, order);
+      }
       if (/^yn-[a-f0-9]{64}$/.test(order.requestId || '')) {
         const {claimFortunePayment}=await import('../yeongnyangi/payment-intent.js');
         if(!await claimFortunePayment(db,order))return false;
@@ -988,6 +1021,9 @@ async function grantOrderEntitlement(db, order) {
       orderId: String(order.merchantUid || ""),
       paymentId: String(order.impUid || ""),
       profileId: String(snapshot.profileId || ""),
+      partnerProfileId: String(snapshot.partnerProfileId || ""),
+      // 주문 발급 때 박은 생년월일로 지급한다(결제 중 프로필 수정과 무관). 구 주문은 profileId 로 다시 푼다.
+      birthIdentity: birthIdentityFromSnapshot(snapshot, product.featureKey),
       contentKey: String(snapshot.contentKey || ""),
       scope: String(snapshot.scope || ""),
     });
@@ -1002,8 +1038,105 @@ async function grantOrderEntitlement(db, order) {
       code: error?.code || "",
       message: error?.message || String(error),
     });
+    if (rethrow) throw error;
     return false;
   }
+}
+
+/**
+ * 프로필 선택 지급(birth-profile-claim.js). 소유·대기 확인 → 고른 프로필로 엄격 신원 → 선점 CAS → 지급 → 마무리 CAS.
+ * 지급은 출생 신원을 넘겨 주문 종류(구 단건·구글·V2)와 무관하게 같은 BIRTH 행을 쓴다. 환불하지 않는다.
+ */
+async function claimBirthProfileOrder(db, { userId, orderId, profileId, partnerProfileId = "", now = new Date() }) {
+  const order = await findOrder(db, { orderId });
+  assertOrderOwner(order, userId);
+  if (!isBirthProfilePendingOrder(order)) {
+    // 같은 생년월일로 이미 끝낸 주문의 재요청(두 번 누름)은 성공으로 돌려준다.
+    if (order.metadata?.birthProfileClaim?.grantedAt) {
+      return { orderId: String(order.merchantUid), featureKey: String(order.featureKey || ""), replayed: true };
+    }
+    throw paymentError("ORDER_NOT_CONFIRMABLE", "프로필 선택이 필요한 주문이 아닙니다.", { orderId: String(order.merchantUid || "") });
+  }
+  const product = claimProductFromOrder(order);
+  const identity = await resolvePaymentBirthIdentity(db, { userId, profileId, partnerProfileId, featureKey: product.featureKey });
+  if (!identity) throw paymentError("ORDER_NOT_CONFIRMABLE", "출생 기반 해금 주문이 아닙니다.");
+  const reserved = await reserveBirthProfileClaim(db, { order, identity, now });
+  if (!reserved) throw paymentError("ORDER_NOT_CONFIRMABLE", "이미 다른 프로필로 지급을 진행한 주문입니다.", { orderId: String(order.merchantUid) });
+  const { alreadyOwned } = await grantEntitlement(db, {
+    userId: String(order.userId),
+    product,
+    orderId: String(order.merchantUid),
+    paymentId: String(order.impUid || order.paymentId || order.merchantUid),
+    birthIdentity: identity,
+    contentKey: String(order.pricingSnapshot?.contentKey || ""),
+    now,
+  });
+  await markUserFeatureUnlocked(db, { userId: String(order.userId), featureKey: product.featureKey, now });
+  await finalizeBirthProfileClaim(db, { order, identity, snapshotFields: birthSnapshotFields(identity), now });
+  invalidateBalanceSnapshot(order.userId);
+  return { orderId: String(order.merchantUid), featureKey: String(order.featureKey || ""), alreadyOwned, replayed: false };
+}
+
+/** 레거시 claim 의 원 구매가 그 뒤 환불·취소됐으면 지급하지 않는다. 원 행·주문이 없으면(정리됨) 막지 않는다. */
+async function assertLegacyClaimSourceValid(db, claim) {
+  const sourceId = String(claim.sourceId || "");
+  if (claim.sourceKind === "entitlement") {
+    const row = await db.findOne(ContentEntitlement, { _id: { $in: [sourceId, toObjectId(sourceId)].filter(Boolean) } });
+    if (row && row.status !== CONTENT_ENTITLEMENT_STATUSES.ACTIVE) {
+      throw paymentError("ORDER_NOT_CONFIRMABLE", "환불되었거나 취소된 구매입니다.");
+    }
+  }
+  if (claim.sourceKind === "payment" && claim.orderId) {
+    const order = await findOrder(db, { orderId: claim.orderId });
+    if (order && !["paid", "success", "fulfilled", "processing"].includes(String(order.status || ""))) {
+      throw paymentError("ORDER_NOT_CONFIRMABLE", "환불되었거나 취소된 구매입니다.");
+    }
+  }
+}
+
+/**
+ * 레거시 해금 프로필 선택 지급(BirthScopeLegacyClaim). claimBirthProfileOrder 와 같은 흐름이다.
+ * 지급 행은 마이그레이션 BIRTH 행과 같은 BACKFILL 이고 원 주문을 mergedOrderIds 에 남긴다 —
+ * 그 주문이 나중에 환불되면 revokeBackfilledBirthUnlocks 가 이 행도 거둔다. 환불하지 않는다.
+ */
+async function claimLegacyBirthUnlock(db, { userId, orderId, profileId, partnerProfileId = "", now = new Date() }) {
+  const claim = await findLegacyBirthClaim(db, { claimId: legacyClaimIdFromOrderId(orderId) });
+  assertOrderOwner(claim, userId);
+  if (claim.claim?.grantedAt) {
+    return { orderId, featureKey: String(claim.featureKey || ""), replayed: true };
+  }
+  await assertLegacyClaimSourceValid(db, claim);
+  const product = legacyClaimProduct(claim);
+  const identity = await resolvePaymentBirthIdentity(db, { userId, profileId, partnerProfileId, featureKey: product.featureKey });
+  if (!identity) throw paymentError("ORDER_NOT_CONFIRMABLE", "출생 기반 해금 구매가 아닙니다.");
+  const reserved = await reserveLegacyBirthClaim(db, { claim, identity, now });
+  if (!reserved) throw paymentError("ORDER_NOT_CONFIRMABLE", "이미 다른 프로필로 지급을 진행한 구매입니다.", { orderId });
+  const sourceOrderIds = [claim.orderId, claim.paymentId].map(value => String(value || "").trim()).filter(Boolean);
+  const { alreadyOwned, identity: granted } = await grantEntitlement(db, {
+    userId: String(claim.userId),
+    product,
+    orderId: sourceOrderIds[0] || orderId,
+    paymentId: sourceOrderIds[1] || sourceOrderIds[0] || orderId,
+    serviceKey: String(claim.serviceKey || ""),
+    contentKey: String(claim.contentKey || ""),
+    birthIdentity: identity,
+    source: CONTENT_ENTITLEMENT_SOURCES.BACKFILL,
+    now,
+  });
+  if (sourceOrderIds.length) {
+    await db.updateOne(ContentEntitlement, {
+      userId: String(claim.userId),
+      profileId: granted.profileId,
+      serviceKey: granted.serviceKey,
+      contentKey: granted.contentKey,
+      scope: granted.scope,
+      source: CONTENT_ENTITLEMENT_SOURCES.BACKFILL,
+    }, { $addToSet: { mergedOrderIds: { $each: sourceOrderIds } }, $set: { updatedAt: now } });
+  }
+  await markUserFeatureUnlocked(db, { userId: String(claim.userId), featureKey: product.featureKey, now });
+  await finalizeLegacyBirthClaim(db, { claim, identity, now });
+  invalidateBalanceSnapshot(claim.userId);
+  return { orderId, featureKey: String(claim.featureKey || ""), alreadyOwned, replayed: false };
 }
 
 /* ── 라우트 표 ───────────────────────────────────────────────────────────
@@ -1032,6 +1165,30 @@ const ROUTES = {
         ...(cursor ? { _id: { $lt: toObjectId(cursor) } } : {}),
       }, { sort: { _id: -1 }, limit: 50 }));
       return json({ ok: true, orders: orders.map(presentOrder), nextCursor: orders.length === 50 ? String(orders.at(-1)._id) : null });
+    },
+  },
+  // 프로필 선택 지급 대기 주문(출생 기반 전환 전 주문 + 프로필 결손). 클라이언트가 부팅 때 한 번 본다.
+  "GET /birth-profile-pending": {
+    auth: "required",
+    async handle({ env, ctx, userId, withDb }) {
+      const [orders, legacy] = await withDb(env, ctx, db => Promise.all([
+        listBirthProfilePendingOrders(db, { userId }),
+        listLegacyBirthClaims(db, { userId }),
+      ]));
+      return json({ ok: true, orders: [...orders.map(presentBirthProfilePendingOrder), ...legacy.map(presentLegacyBirthClaim)] });
+    },
+  },
+  "POST /birth-profile-pending/:id/claim": {
+    auth: "required",
+    async handle({ request, env, ctx, userId, params, body, withDb }) {
+      ctx.orderId = params.id;
+      const profileId = String(body?.profileId || "").trim().slice(0, 80);
+      const partnerProfileId = String(body?.partnerProfileId || "").trim().slice(0, 80);
+      if (!profileId) throw paymentError("MISSING_PROFILE_ID", "열람할 프로필을 골라 주세요.", { requiresProfile: true });
+      const claimFlow = isLegacyClaimOrderId(params.id) ? claimLegacyBirthUnlock : claimBirthProfileOrder;
+      const result = await withDb(env, ctx, db => claimFlow(db, { userId, orderId: params.id, profileId, partnerProfileId }));
+      await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
+      return json({ ok: true, ...result, message: "선택한 프로필로 열람 권한을 적용했어요." });
     },
   },
   "GET /orders/:id/status": {
@@ -1075,8 +1232,8 @@ const ROUTES = {
 
   /**
    * 🔴 컷오버 어댑터 — 구 GET /api/payments/config 승계. 결제창 오픈 임계경로의 공개 설정이라
-   * Mongo 0회·무인증이 계약이다. 봉투 키는 구 handlePaymentConfig(payments.js:5926, 동결) 그대로 —
-   * 소비 키는 storeId·channelKey·currency·payMethod·noticeUrl(셸 checkoutAssets·PointsClient).
+    * Mongo 0회·무인증이 계약이다. 소비 키는 storeId·channelKey·currency·payMethod·noticeUrl
+    * (셸 checkoutAssets·PointsClient). 비밀 설정의 개별 준비 상태는 공개하지 않는다.
    */
   "GET /config": {
     auth: "none",
@@ -1086,26 +1243,11 @@ const ROUTES = {
         return json({
           message: "PortOne V2 KG Inicis public payment config is missing.",
           code: "PORTONE_V2_PUBLIC_CONFIG_MISSING",
-          missing: {
-            storeId: !config.storeId,
-            channelKey: !config.channelKey,
-            serverVerification: !config.serverVerificationConfigured,
-            inicisMid: !config.inicisMidConfigured,
-            inicisSignKey: !config.inicisSignKeyConfigured,
-            inicisApiKey: !config.inicisApiKeyConfigured,
-            inicisApiIv: !config.inicisApiIvConfigured,
-          },
         }, { status: 503 });
       }
       return json({
         ok: true,
         configured: config.configured,
-        serverVerificationConfigured: Boolean(config.serverVerificationConfigured),
-        inicisConfigured: Boolean(config.inicisConfigured),
-        inicisMidConfigured: Boolean(config.inicisMidConfigured),
-        inicisSignKeyConfigured: Boolean(config.inicisSignKeyConfigured),
-        inicisApiKeyConfigured: Boolean(config.inicisApiKeyConfigured),
-        inicisApiIvConfigured: Boolean(config.inicisApiIvConfigured),
         provider: config.provider,
         pg: config.pg,
         storeId: config.storeId,
@@ -1152,9 +1294,13 @@ const ROUTES = {
   "POST /orders": {
     auth: "required",
     async handle({ request, env, ctx, userId, body, withDb }) {
-      const product = withChargeAmount(env, resolveProduct({
+      const unitProduct = resolveProduct({
         productId: body.productId, featureKey: body.featureKey, reason: body.reason,
-      }));
+      });
+      if (unitProduct.featureKey === 'neo-email-consultation') throw paymentError('INVALID_REQUEST','상담 화면에서 결제를 준비해 주세요.');
+      const availability = assertFeatureEnabled(unitProduct);
+      if (!availability.ok) throw paymentError(availability.code, availability.message);
+      const product = withChargeAmount(env, unitProduct);
       ctx.productId = product.productId;
       const paymentMethod = String(body.paymentMethod || "card_general");
       assertRegionalPaymentMethod(request, paymentMethod);
@@ -1168,6 +1314,7 @@ const ROUTES = {
         paypalCharge,
         idempotencyKey: String(product.featureKey || '').startsWith('yeongnyangi-') ? body.requestId : body.idempotencyKey,
         profileId: body.profileId,
+        partnerProfileId: body.partnerProfileId,
         contentKey: body.contentKey,
         scope: body.scope,
         returnPath: body.returnPath,
@@ -1191,14 +1338,20 @@ const ROUTES = {
    */
   "POST /prepare": {
     auth: "required",
-    async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope, pgDeps, preparedProduct, preparedPurchaseType='SELF', preparedGiftDraft=null }) {
+    async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope, pgDeps, neoPreparation, preparedProduct, preparedPurchaseType='SELF', preparedGiftDraft=null }) {
       // 이용권형 바디는 이용권 경로로 위임 — 구 billing.js handleCheckout 의 isSubscription 분기 승계.
       // 구 코드도 이때 billing-checkout 래퍼 없이 subscription prepare 봉투를 그대로 돌려줬다.
       if (isPassLikeBody(body)) return handlePassPrepare({ request, env, ctx, userId, body, withDb });
       // 🔴 가격 해석은 구 정본(billing-feature-registry) 체인을 그대로 탄다(legacy-pricing.js).
       // 첫 배선은 catalog(resolveProduct)를 썼는데, mode/reportMode/categoryKey 변형 가격을 잃어
       // 해당 기능의 단건 결제가 400(금액 불일치)으로 막히는 라이브 결함이었다(2026-08-12 수정).
-      const listedProduct = preparedProduct || resolveLegacyProduct(body);
+      let listedProduct = preparedProduct || resolveLegacyProduct(body);
+      const availability = assertFeatureEnabled(listedProduct);
+      if (!availability.ok) throw paymentError(availability.code, availability.message);
+      if (listedProduct.featureKey === 'neo-email-consultation') {
+        if (neoPreparation !== true) throw paymentError('INVALID_REQUEST','상담 화면에서 질문과 금액을 확인한 뒤 결제해 주세요.');
+        listedProduct = await withDb(env, ctx, db => resolveNeoOrderProduct(db, listedProduct, userId, body.requestId, body.idempotencyKey));
+      }
       ctx.productId = listedProduct.productId;
 
       /* 🔴 트립와이어는 **정가** 기준이다. 클라이언트가 낡은 가격으로 결제창을 여는 것을 막는 장치라
@@ -1231,7 +1384,7 @@ const ROUTES = {
       assertRegionalPaymentMethod(request, paymentMethod);
       let moonstoneDiscount=null;
       try { moonstoneDiscount=quoteYeongnyangiMoonstoneDiscount(product.featureKey,body.moonstoneQuantity ?? 0); }
-      catch { throw paymentError('INVALID_REQUEST','사용할 월정석 수량을 확인해 주세요. 단건 결제 잔액은 1,000원 이상이어야 해요.'); }
+      catch { throw paymentError('INVALID_REQUEST',product.monthlyExcluded ? '이 상품은 월정석 사용 대상이 아닙니다. 다른 결제 방식을 선택해 주세요.' : '사용할 월정석 수량을 확인해 주세요. 단건 결제 잔액은 1,000원 이상이어야 해요.'); }
       if (moonstoneDiscount && (product.priceKRW!==moonstoneDiscount.listPriceKRW || /paypal/i.test(paymentMethod)))
         throw paymentError('INVALID_REQUEST','이 결제에서는 월정석 할인을 사용할 수 없어요.');
       const paypalCharge = await preparePaypalCharge(env, paymentMethod, product.priceKRW);
@@ -1266,7 +1419,8 @@ const ROUTES = {
         const userPromise = moonstoneDiscount ? Promise.resolve(await userRead) : userRead;
         userPromise.catch(() => {}); // 미관측 거부 경고만 막는다 — 실제 처리는 아래 await 가 한다.
         const bodyProfileId = String(body.profileId || body.selectedProfileId || "");
-        const profileId = bodyProfileId || String((await userPromise)?.destinyProfilesCurrentId || "");
+        // 출생 기반 해금은 "현재 프로필" 폴백을 쓰지 않는다 — 고른 적 없는 사람의 생년월일에 결제가 붙는다.
+        const profileId = bodyProfileId || (isBirthScopedProduct(product) ? "" : String((await userPromise)?.destinyProfilesCurrentId || ""));
         /* 🔴 재사용할 수 없는 주문(결제완료·실패·만료취소·레거시 상태)이나 의도가 달라진 주문은
            409 가 아니라 **새 세대 주문**으로 답한다(orders.js createPayableOrder). 예전에는 여기서
            거절했고, 그 결과 복구가 전적으로 클라이언트의 새-키 재시도에 달려 있었다 — 그 재시도가
@@ -1281,6 +1435,7 @@ const ROUTES = {
           requestId: body.requestId,
           paidResume,
           profileId,
+          partnerProfileId: body.partnerProfileId,
           contentKey: body.contentKey,
           scope: body.scope,
           returnPath: body.returnPath,
@@ -1337,13 +1492,19 @@ const ROUTES = {
       await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
       if (result.granted) return json({ ok: true, order: presentOrder(result.order), entitlementStatus: "granted" });
       // 🔴 200 이다. 카드는 승인됐고 주문도 기록됐다 — 장애가 아니라 마무리가 남은 성공이다.
+      // 소급 출생 기반 주문은 크론이 풀지 못한다 — code 는 그대로(셸·앱이 GRANT_PENDING 으로 분기) 두고
+      // profileSelectionRequired 로 프로필 선택 지급(/birth-profile-pending)을 안내한다.
+      const profileSelectionRequired = orderNeedsBirthProfileSelection(result.order);
       return json({
         ok: true,
         order: presentOrder(result.order),
         entitlementStatus: "pending",
         code: "GRANT_PENDING",
         pollUrl: `/api/payments/orders/${encodeURIComponent(params.id)}`,
-        message: "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",
+        ...(profileSelectionRequired ? { profileSelectionRequired: true } : {}),
+        message: profileSelectionRequired
+          ? BIRTH_PROFILE_SELECTION_MESSAGE
+          : "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",
       });
     },
   },
@@ -1376,6 +1537,7 @@ const ROUTES = {
         granted: result.granted,
         replayed: result.replayed,
         unlock: !isPerUseFeatureKey(result.order?.featureKey),
+        profileSelectionRequired: !result.granted && orderNeedsBirthProfileSelection(result.order),
       });
       // 🔴 프리미엄 리포트류는 확정 응답의 premiumAccessToken(+쿠키)이 열람 자격이다 — 구 confirm 의
       // successWithPremiumAccess 승계. 빠지면 결제는 됐는데 콘텐츠 접근이 막힌다(2026-08-12 수정).
@@ -1430,11 +1592,6 @@ const ROUTES = {
       } catch { billingType = "per_use"; }
       // 카탈로그가 월정석을 제외한 상품은 월정석으로 열 수 없다 — 정본은 카탈로그 범위 필드다. 구 coin-gate
       // MONTHLY 요청은 worker/index.js 가 여기로 재작성하므로 이 자리가 실제 관문이다.
-      if (resolveProduct({ featureKey: product.featureKey }).monthlyExcluded) {
-        throw paymentError(directOnly ? "DIRECT_ONLY_PAYMENT_REQUIRED" : "FAMILY_OR_DIRECT_PAYMENT_REQUIRED",
-          directOnly ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 상품은 Family 이용권 또는 단건 결제로 이용해 주세요.",
-          { featureKey: product.featureKey, familyPassOnly });
-      }
       const unlock = billingType !== "per_use";
 
       let spend;
@@ -1447,9 +1604,18 @@ const ROUTES = {
              grantEntitlement 는 upsert 라 순서만 바뀔 뿐 왕복이 늘지 않고, 재열람은 차감·원장
              기록을 통째로 건너뛰므로 **더 빨라진다**(왕복 6회 → 2회). */
           let grantedIdentity = null;
+          if (unlock && await findLegacyBirthUnlock(db, { userId, product, profileId, contentKey: body.contentKey })) {
+            alreadyUnlocked = true;
+            return { balance: null, replayed: true, ledgerId: "" };
+          }
+          if (resolveProduct({ featureKey: product.featureKey }).monthlyExcluded) {
+            throw paymentError(directOnly ? "DIRECT_ONLY_PAYMENT_REQUIRED" : familyPassOnly ? "FAMILY_OR_DIRECT_PAYMENT_REQUIRED" : "MONTHLY_NOT_ALLOWED",
+              "이 상품은 월정석 사용 대상이 아닙니다. 다른 결제 방식을 선택해 주세요.",
+              { featureKey: product.featureKey, familyPassOnly });
+          }
           if (unlock) {
             const granted = await grantEntitlement(db, {
-              userId, product, orderId: requestId, profileId,
+              userId, product, orderId: requestId, profileId, partnerProfileId: body.partnerProfileId,
               contentKey: body.contentKey, scope: body.scope, source: "MONTHLY",
             });
             if (granted.alreadyOwned) {
@@ -1585,14 +1751,30 @@ const ROUTES = {
 
         if (!unlock) {
           const consumed = await consumePassForFeature({ db, user, entitlement, userId,
-            featureKey: product.featureKey, requestId, coinCost: product.priceCoins });
+            featureKey: product.featureKey, requestId, coinCost: product.priceCoins, profileId });
           return { coverage: consumed.coverage, entitlement, user: consumed.user || user, replayed: consumed.replayed };
         }
+
+        /* 🔴 출생 기반 해금: ① 저장된 내 프로필인지(없으면 MISSING_PROFILE_ID/INVALID_PROFILE)
+           ② **소유를 커버 판정보다 먼저** 본다 — 이미 산 생년월일은 한도를 다 썼어도 402 없이 열린다.
+           ③ 같은 requestId 재생은 이 생년월일의 행이 있을 때만 인정한다(마커만으로 다른 사람을 열지 않는다). */
+        const birthScoped = isBirthScopedProduct(product);
+        // 출생 기반 전환 이전에 산 레거시 행은 프로필 신원 해석보다 먼저 본다(저장 프로필이 없어도 재과금 없음).
+        if (birthScoped && await findLegacyBirthUnlock(db, { userId, product, profileId, contentKey: body.contentKey })) {
+          return { coverage: { ...coverage, covered: true, reason: "", coinCost: product.priceCoins }, entitlement, user, alreadyUnlocked: true };
+        }
+        const birthIdentity = birthScoped
+          ? await resolvePaymentBirthIdentity(db, { userId, profileId, partnerProfileId: body.partnerProfileId, featureKey: product.featureKey })
+          : null;
+        const ownership = birthScoped
+          ? await findOwnedEntitlement(db, { userId, product, contentKey: body.contentKey, birthIdentity })
+          : null;
+        if (ownership?.owned) return { coverage: { ...coverage, covered: true, reason: "", coinCost: product.priceCoins }, entitlement, user, alreadyUnlocked: true };
 
         // 이미 커버한 실행은 마지막 소비로 이용권이 종료됐어도 복구한다.
         // 현재 잔여 한도는 새 실행에만 적용하고 동일 요청의 재열람에 적용하지 않는다.
         const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
-        if (marker && markers.includes(marker)) {
+        if (marker && markers.includes(marker) && !birthScoped) {
           return { coverage: { ...coverage, covered: true, reason: "", coinCost: product.priceCoins }, entitlement, user, replayed: true };
         }
         if (!coverage.covered) return { coverage, entitlement };
@@ -1606,7 +1788,7 @@ const ROUTES = {
         let grantedIdentity = null;
         if (unlock) {
           const granted = await grantEntitlement(db, {
-            userId, product, orderId: requestId, profileId,
+            userId, product, orderId: requestId, profileId, birthIdentity,
             contentKey: body.contentKey, scope: body.scope, source: "PASS",
           });
           if (granted.alreadyOwned) return { coverage, entitlement, user, alreadyUnlocked: true };
@@ -1729,11 +1911,15 @@ const ROUTES = {
       ctx.productId = product.productId;
       const purchaseId = String(body.idempotencyKey || "").trim();
       const result = await withDb(env, ctx, async (db) => {
+        // 출생 기반 해금은 차감 **전에** 신원을 확정한다 — 차감 뒤 지급이 거절되면 돈만 빠진다.
+        const birthIdentity = isBirthScopedProduct(product)
+          ? await resolvePaymentBirthIdentity(db, { userId, profileId: body.profileId, partnerProfileId: body.partnerProfileId, featureKey: product.featureKey })
+          : null;
         const spend = await spendMoonstone(db, { userId, product, purchaseId, profileId: body.profileId });
         // This family-only monthly consultation owns its request proof, not a permanent unlock.
         if (!(product.familyPassOnly && !product.monthlyExcluded)) {
           await grantEntitlement(db, {
-            userId, product, orderId: purchaseId, profileId: body.profileId,
+            userId, product, orderId: purchaseId, profileId: body.profileId, birthIdentity,
             contentKey: body.contentKey, scope: body.scope, source: "MONTHLY",
           });
           await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
@@ -1782,13 +1968,13 @@ const ROUTES = {
           await markEventProcessed(db, { eventId: event.eventId });
           return { ...event, outcome: { ignored: true, reason: "LEGACY_SINGLE_ORDER" } };
         }
-        return { ...event, begun: evaluateConfirmable(ctx, order, { orderId: event.paymentId }) };
+        return { ...event, begun: evaluateConfirmable(ctx, order, { orderId: event.paymentId, systemActor: true }) };
       });
       if (accepted.outcome) return json({ ok: true, ...accepted.outcome });
       if (accepted.requery) return applyNonPaidEventAfterRequery(env, ctx, accepted, { withDb, fetchPayment: pgDeps?.fetchPayment });
 
       try {
-        await confirmOrder(env, ctx, { orderId: accepted.paymentId }, {
+        await confirmOrder(env, ctx, { orderId: accepted.paymentId, systemActor: true }, {
           withDb,
           begun: accepted.begun,
           afterSettle: async (db, settled) => {
@@ -1844,6 +2030,16 @@ function matchRoute(method, path) {
  *            진입은 본문을 읽어야 라우트를 고를 수 있는데, 그대로 두면 같은 본문을 라우터에서 한 번
  *            (clone) 컨텍스트에서 또 한 번 읽는다. 넘어오면 재사용한다(rawBody 라우트는 해당 없음).
  */
+/* 🔴 오류 응답의 message 는 사람이 쓴 PaymentError 문구만 내보낸다(500 계열 제외). 그 밖의 예외
+   (Mongo 드라이버·JS 런타임)의 error.message 는 호스트·쿼리·내부 사유를 담을 수 있어 무인증으로도
+   유발 가능한 정보 노출이 된다(gift-routes.js 의 5xx 마스킹과 같은 원칙). 원문은 errorReason /
+   errorMeta 로 로그에만 남는다. */
+function publicErrorMessage(error, contract) {
+  if (error instanceof PaymentError && contract.status !== 500 && error.message) return error.message;
+  if (contract.status === 503) return "일시적으로 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+  return "요청을 처리하지 못했습니다.";
+}
+
 export async function handlePaymentsContext(request, env, options = {}) {
   const withDb = options.withDb || withPaymentDb;
   // 구 경로로 마운트되면 구 응답 형태로 답한다(compat.js). 섀도 경로는 신규 형태 그대로.
@@ -1868,16 +2064,19 @@ export async function handlePaymentsContext(request, env, options = {}) {
   let errorCode = "";
   let stage = "";
   let errorReason = "";
+  let errorMeta = null;
   try {
     const userId = matched.route.auth === "required"
       ? requireUser(await peekAccessTokenUserId(request, env)) // JWT 만 본다 — Mongo 읽기 0회
       : "";
     ctx.userId = userId;
 
-    const rawBody = matched.route.rawBody ? await request.text() : "";
+    const maxBodyBytes = 256 * 1024;
+    const rawBody = matched.route.rawBody ? await readBoundedText(request, maxBodyBytes) : "";
     let body = {};
     if (!matched.route.rawBody && method !== "GET") {
-      const text = typeof options.bodyText === "string" ? options.bodyText : await request.text();
+      const text = typeof options.bodyText === "string" ? options.bodyText : await readBoundedText(request, maxBodyBytes);
+      if (new TextEncoder().encode(text).byteLength > maxBodyBytes) throw paymentError("PAYLOAD_TOO_LARGE", "요청이 너무 큽니다.");
       if (text.trim()) {
         try { body = JSON.parse(text); } catch { throw paymentError("INVALID_REQUEST", "요청 본문이 올바르지 않습니다."); }
       }
@@ -1886,6 +2085,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
     const response = await matched.route.handle({
       request, env, ctx, userId, body, rawBody, params: matched.params, withDb, legacyShape, legacyEnvelope,
       pgDeps: options.pgDeps || {},
+      neoPreparation:options.neoPreparation === true,
     });
     status = response.status;
     /* 🔴 정상 응답에도 서버 시간을 실어 보낸다. 예전엔 Server-Timing 이 오류 경로에만 붙어서
@@ -1903,13 +2103,14 @@ export async function handlePaymentsContext(request, env, options = {}) {
     // PG_UNAVAILABLE 의 실제 사유(PortOne 응답·타임아웃)를 tail 에서 볼 수 있게 한다 — 사용자 문구만
     // 남기면 시크릿 불일치(UNAUTHORIZED)와 진짜 지연이 같은 줄로 보인다(2026-09-05).
     errorReason = String(contract.meta?.reason || "").slice(0, 160);
+    // meta(PG 응답 사유·기대/실제 금액·pgPaymentId)는 응답에 싣지 않는다 — 로그 한 줄에만 남긴다.
+    errorMeta = Object.keys(contract.meta).length ? contract.meta : null;
     return json({
       ok: false,
       code: contract.code,
-      message: error?.message || "요청을 처리하지 못했습니다.",
+      message: publicErrorMessage(error, contract),
       retryable: contract.retryable,
       requestId: meta.requestId,
-      ...(Object.keys(contract.meta).length ? { details: contract.meta } : {}),
     }, { status: contract.status, headers: responseHeadersFor(contract) });
   } finally {
     logPayment({
@@ -1926,7 +2127,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
       durationMs: Date.now() - ctx.startedAt,
       mongoOps: ctx.mongoOps,
       // durationMs 를 admission 대기 / 커넥션 수립 / 실제 쿼리로 가른다(withPaymentDb 가 채운다).
-      extra: { ...(ctx.dbTimings || {}), reason: errorReason, ...(ctx.resumeEvent ? { resumeEvent: ctx.resumeEvent } : {}) },
+      extra: { ...(ctx.dbTimings || {}), reason: errorReason, ...(errorMeta ? { errorMeta } : {}), ...(ctx.resumeEvent ? { resumeEvent: ctx.resumeEvent } : {}) },
     });
   }
 }
@@ -1961,7 +2162,7 @@ export async function settleOrderFromReconcile(env, { orderId, pgPayment = null 
   const ctx = createPaymentContext({ requestId: `reconcile-${Date.now().toString(36)}`, route: "CRON payment-reconcile settle" });
   ctx.orderId = orderId;
   let granted = false;
-  const result = await confirmOrder(env, ctx, { orderId }, {
+  const result = await confirmOrder(env, ctx, { orderId, systemActor: true }, {
     withDb,
     deps: pgPayment ? { fetchPayment: async () => pgPayment } : {},
     afterSettle: async (db, settled) => {
@@ -1987,7 +2188,7 @@ export async function replayWebhookEvents(env, { limit = 10, maxAttempts = 10, w
     ctx.orderId = event.paymentId;
     try {
       if (!event.paymentId) throw paymentError("INVALID_REQUEST", "webhook event has no paymentId");
-      await confirmOrder(env, ctx, { orderId: event.paymentId }, {
+      await confirmOrder(env, ctx, { orderId: event.paymentId, systemActor: true }, {
         withDb,
         deps,
         afterSettle: async (db, settled) => {
@@ -2023,7 +2224,7 @@ export async function runPaymentsV2Reconcile(env) {
   try {
     const report = await withPaymentDb(env, ctx, async (db) => {
       const report = await runPaymentReconcile(db, {
-        grant: (order) => grantOrderEntitlement(db, order).then((granted) => {
+        grant: (order) => grantOrderEntitlement(db, order, { rethrow: true }).then((granted) => {
           if (!granted) throw paymentError("INTERNAL_ERROR", "entitlement grant failed", { orderId: String(order?.merchantUid || "") });
         }),
       });
@@ -2090,7 +2291,7 @@ export async function runPaymentsV2Reconcile(env) {
           {$set:{'metadata.moonstoneDiscountCheckedAt':new Date()}}));
         const pg=await fetchPortOnePayment(env,candidate.merchantUid);
         if(pg?.paymentId!==candidate.merchantUid)continue;
-        if(pg.status==='paid')await confirmOrder(env,ctx,{orderId:candidate.merchantUid},{withDb:withPaymentDb,deps:{fetchPayment:async()=>pg}});
+        if(pg.status==='paid')await confirmOrder(env,ctx,{orderId:candidate.merchantUid,systemActor:true},{withDb:withPaymentDb,deps:{fetchPayment:async()=>pg}});
         else if(['failed','cancelled'].includes(pg.status))await withPaymentDb(env,ctx,db=>applyNonPaidPgEvent(db,{
           orderId:candidate.merchantUid,eventType:pg.status==='failed'?'transaction.failed':'transaction.cancelled',
         }));

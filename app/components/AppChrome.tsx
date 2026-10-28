@@ -16,6 +16,8 @@ import { SHELL_HOME_PATH, hardNavigateToShellHome } from "@/lib/navigation/shell
 import { localeFromPathname } from "@/lib/i18n/locales";
 
 const HOME_ROUTE = SHELL_HOME_PATH;
+// 루트(/)는 앱 홈이 아니라 브랜드 대표 홈이다. 크롬을 숨기는 판정은 이 경로 기준이다.
+const ROOT_LANDING_PATH = "/";
 
 // /app/** 은 AppShell 이 같은 MobileBottomNav 를 직접 렌더한다(앱 팔레트 스킨은 app-shell.css).
 // 여기서 또 깔면 탭바가 두 겹으로 쌓인다.
@@ -47,6 +49,7 @@ const CHROMELESS_ROUTES = [
   "/tarot/healing",
   "/tarot/mindscan",
   "/saju/animal-destiny",
+  "/saju/career-style",
   "/saju/animal-test",
   "/palm-reading",
   "/music",
@@ -97,6 +100,7 @@ const FEATURE_NAV_EXTRA_ROUTES = [
 // Premium fortune routes that own their complete in-experience navigation.
 // They must not inherit the site header, footer, floating feature nav, or mobile tab bar.
 const IMMERSIVE_FORTUNE_ROUTES = [
+  "/psychotest",
   "/checkout",
   "/yeongnyangi",
   "/features",
@@ -107,6 +111,7 @@ const IMMERSIVE_FORTUNE_ROUTES = [
 // Routes that render their own in-experience back/home controls, so the global
 // floating nav would duplicate and overlap them.
 const FEATURE_NAV_SELF_MANAGED_ROUTES = [
+  "/saju/career-style",
   "/share",
   "/relationship-boundary-test/inline",
   "/gift",
@@ -227,7 +232,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
   const showRecordsTabs = isRecordsSurface && !pathname.startsWith('/records/view');
   const hideChrome = pathname === "/" || isRecordsSurface || isAuthRoute || isImmersiveFortuneRoute || CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const selfManagedNav = isRecordsSurface || FEATURE_NAV_SELF_MANAGED_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
-  const showFeatureNav = !isAuthRoute && !isImmersiveFortuneRoute && pathname !== HOME_ROUTE && !selfManagedNav && (
+  const showFeatureNav = !isAuthRoute && !isImmersiveFortuneRoute && pathname !== ROOT_LANDING_PATH && !selfManagedNav && (
     hideChrome
     || FEATURE_NAV_EXTRA_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))
     || /\/(result|play|start)(?=\/|$)/.test(pathname)

@@ -3,11 +3,19 @@ const assert = require('node:assert/strict');
 const { JSDOM } = require('jsdom');
 require('../../scripts/lib/ziwei-engine-harness.cjs').loadEngine();
 
+// 종합 풀이 본문은 서버(worker/lib/saju-section) 유료 렌더러가 만든다. 브라우저에는 요청 로더만 남는다.
+// 게이트 테스트의 renderSummary 는 서버 본문이 배달된 것처럼 summaryArea 를 채우는 가짜다.
+const deliverSummary = () => { document.getElementById('summaryArea').innerHTML = '<div class="saju-summary-report">본문</div>'; };
+
 for (const neo of [false, true]) {
-  test(`expanded summary renders every chapter (${neo ? 'neo' : 'yeon'})`, () => {
+  test(`expanded summary renders every chapter (${neo ? 'neo' : 'yeon'})`, async () => {
+    const { createSajuSectionRuntime } = await import('../../worker/lib/saju-section/runtime.generated.mjs');
     const dom = new JSDOM('<main><section id="summaryArea"></section></main>');
     global.document = dom.window.document;
     document.documentElement.classList.toggle('neo-mode', neo);
+    document.body.classList.toggle('neo-mode', neo);
+    const shimWindow = { location: { search: '', pathname: '/', hostname: '' }, localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, cdGetCurrentLanguage: () => 'ko' };
+    const rt = createSajuSectionRuntime({ window: shimWindow, document, localStorage: shimWindow.localStorage, neo, lang: 'ko' });
     for (let offset = 0; offset < 60; offset++) {
       const stems = Object.keys(GAN), branches = Object.keys(JI);
       const p = {};
@@ -15,9 +23,13 @@ for (const neo of [false, true]) {
         const g = stems[(offset + i * 2) % 10], j = branches[(offset + i * 2) % 12];
         p[key] = { g, j, gE: GAN[g].e, jE: JI[j].e };
       });
-      G_POWER = calcPower(p);
-      G_JONG = detectJong(p);
-      renderSummary(p, analyzeJohu(p), calcNatalElement(p));
+      const johu = analyzeJohu(p), natal = calcNatalElement(p);
+      rt.seed({
+        GENDER: 'F', USER_NAME: '테스트', BIRTH_YEAR: 1990, CURRENT_AGE: 37, DAY_GAN: p.d.g,
+        G_PILLARS: p, G_NATAL: natal, G_JOHU: johu, JOHU_TYPE: johu.type, JOHU_SCORE: johu.score,
+        G_POWER: calcPower(p), G_JONG: detectJong(p),
+      });
+      rt.renderSummary(p, johu, natal);
       assert.ok(document.querySelectorAll('[data-saju-summary-chapter]').length >= 15);
       assert.ok(document.querySelectorAll('.saju-reading-depth').length >= 80);
       assert.ok(document.getElementById('summaryArea').textContent.length > 24000);
@@ -40,10 +52,11 @@ test('unlocked restored result hydrates without the transient calculation argume
   G_POWER = calcPower(p); G_JONG = detectJong(p);
   const summaryArgs = {p,johu:analyzeJohu(p),natal:calcNatalElement(p)};
   const restored = {addEventListener(){}};
-  const context = vm.createContext({document, window:restored, console, renderSummary,
+  const context = vm.createContext({document, window:restored, console, renderSummary:deliverSummary,
     SECTION_GATE_KEYS:[{gateId:'summaryGate',unlockKey:'section_summary'}],
     isSajuSectionUnlockedForRender:()=>true,sajuAccessUnlockState:'ready',
-    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{}});
+    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{},
+    _cdApplyBirthScopeGateNote:()=>{},_cdSectionRenderLatchKey:(key)=>String(key||'')+'|'});
   context.summaryArgs = summaryArgs;
   vm.runInContext(source.slice(start,end) + "\napplySectionGates({type:'cd:saju-summary-ready',detail:summaryArgs});",context);
   assert.ok(document.querySelector('.saju-summary-report'), 'unlocked restored result must not stay empty');
@@ -65,10 +78,11 @@ test('delivered summary body is never re-locked mid-view', () => {
   G_POWER = calcPower(p); G_JONG = detectJong(p);
   const summaryArgs = {p,johu:analyzeJohu(p),natal:calcNatalElement(p)};
   let unlocked = true;
-  const context = vm.createContext({document, window:{addEventListener(){}}, console, renderSummary,
+  const context = vm.createContext({document, window:{addEventListener(){}}, console, renderSummary:deliverSummary,
     SECTION_GATE_KEYS:[{gateId:'summaryGate',unlockKey:'section_summary'}],
     isSajuSectionUnlockedForRender:()=>unlocked,sajuAccessUnlockState:'ready',
-    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{}});
+    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{},
+    _cdApplyBirthScopeGateNote:()=>{},_cdSectionRenderLatchKey:(key)=>String(key||'')+'|'});
   context.summaryArgs = summaryArgs;
   vm.runInContext(source.slice(start,end) + "\napplySectionGates({type:'cd:saju-summary-ready',detail:summaryArgs});",context);
   const gate = document.getElementById('summaryGate');
@@ -91,10 +105,11 @@ test('empty gate body never latches the payment overlay away', () => {
   const dom = new JSDOM('<section><div id="ziweiDecadeLuckGate" class="cd-section-gate"><div class="cd-section-gate__body"></div></div></section>');
   global.document = dom.window.document;
   let unlocked = true;
-  const context = vm.createContext({document, window:{addEventListener(){}}, console, renderSummary,
+  const context = vm.createContext({document, window:{addEventListener(){}}, console, renderSummary:deliverSummary,
     SECTION_GATE_KEYS:[{gateId:'ziweiDecadeLuckGate',unlockKey:'ziwei_decade_luck'}],
     isSajuSectionUnlockedForRender:()=>unlocked,sajuAccessUnlockState:'ready',
-    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{}});
+    applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{},
+    _cdApplyBirthScopeGateNote:()=>{},_cdSectionRenderLatchKey:(key)=>String(key||'')+'|'});
   vm.runInContext(source.slice(start,end) + "\napplySectionGates({type:'cd:unlocks-changed'});", context);
   unlocked = false;
   vm.runInContext("applySectionGates({type:'cd:unlocks-changed'});", context);

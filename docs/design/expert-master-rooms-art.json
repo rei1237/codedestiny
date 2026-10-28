@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-20",
+  "tool": "built-in image_gen",
+  "variants": [
+    480,
+    768,
+    1536
+  ],
+  "format": "WebP, proportional resize, quality 86",
+  "assets": [
+    {
+      "name": "karma-red-thread-karmic",
+      "source": "exec-39b44d3c-47ee-4fba-a398-042a20a4a3a6.png",
+      "references": [
+        "public/images/expert-consulting/karma-red-thread-1536.webp"
+      ],
+      "output": "public/images/expert-consulting/karma-red-thread-karmic-1536.webp",
+      "prompt": "Edit the referenced final website illustration. Preserve the identities and premium polished manhwa illustration style: Neo adult silver-haired blue-eyed man in navy formal military clothing with white cape, Seo Hanbi adult long black-haired woman in dark indigo formal dress. REDRAW composition completely to communicate an ill-fated karmic bond, estrangement and mutual distrust, NOT friendship, romance or teamwork. They stand apart with a clear dark gap between them, torsos turned away from each other, rigid guarded posture, cold stern expressions looking in opposite directions. A single taut crimson thread connects their separated wrists through a conspicuous tangled knot between them, symbolizing unwanted entanglement and unresolved bad karma. Hands never touch, shoulders never touch, no smiles, no affectionate eye contact, no roses or romantic petals, no shared cozy desk. Moonlit fractured archive in background, cool indigo charcoal atmosphere, restrained red thread glow, elegant psychological tension rather than violence. Both faces fully visible and within central responsive crop area. Landscape 3:2, waist-up, highly finished artwork with detailed clothing. No text, no letters, no watermark, no borders. No injury, no erotic bondage. The two are adversarial figures bound by fate."
+    },
+    {
+      "name": "yun-vedic",
+      "source": "exec-3dd46d2f-cf48-4724-b3cd-529e48e5b5ed.png",
+      "references": [
+        "public/images/master-profiles/yun-astrology-portrait.webp"
+      ],
+      "output": "public/images/expert-consulting/yun-vedic-1536.webp",
+      "prompt": "Use case: stylized-concept. Create final premium website artwork for Yun-dal's Vedic Jyotish consultation. The attached image is an identity and style reference. Preserve exactly this adult male fantasy counselor: violet-black swept hair loosely tied at nape, gentle confident smile, navy traditional long coat decorated with subtle moon patterns, ivory standing-collar undergarment, silver crescent earring and antique pendant. Landscape 3:2 waist-up composition, Yun-dal clearly central, welcoming the reader across a polished wood desk, one relaxed hand beside an open astronomical notebook. Setting: moonlit scholarly observatory with finely carved stone arches, a small brass celestial instrument and a tasteful circular star map in the background suggesting Vedic nakshatras and planetary periods. Elegant teal-indigo shadows and muted brass highlights. Hand-painted polished Korean manhwa fantasy illustration matching reference, tactile fabric and paper, quiet intelligent warmth. Keep face and torso within central safe crop, no UI, no text of any language, no pseudo writing, no logos or watermark, no borders. Avoid unrelated religious icons or western zodiac glyphs; this is a master counselor portrait, not an astronomical diagram."
+    }
+  ]
+}

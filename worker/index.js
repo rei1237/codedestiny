@@ -3,10 +3,11 @@ import { getEnv } from "./lib/env.js";
 // (라우터에 별칭 목록을 복제하지 않는다 — 그 복제가 신·구 구현이 갈리던 원인이었다).
 import { PAYMENT_METHODS, resolvePaymentCommandFromBody } from "./lib/payment-service.js";
 import { enforceAiRouteSecurity } from "./lib/security/index.js";
+import { readBoundedText } from "./lib/request-body.js";
 import { resolveAiLocaleForRequest, runWithAiLocale } from "./lib/ai-locale-context.js";
 import { withDbScopes } from "./lib/db-scope.js";
 // 지오코딩 좌표의 시간대 판정. 경도만 보면 서울이 "UTC+8" 로 나와 차트가 1시간 어긋난다.
-import { resolveGeoTimezone } from "./lib/geo-timezone.js";
+import tzLookup from "tz-lookup";
 
 const ROUTE_METRICS_STATE = {
   byRoute: Object.create(null),
@@ -95,7 +96,6 @@ function getPexelsSection(value) {
 function getPexelsApiKey(env) {
   return String(
     env?.PEXELS_API_KEY
-    || env?.NEXT_PUBLIC_PEXELS_API_KEY
     || env?.REACT_APP_PEXELS_API_KEY
     || env?.VITE_PEXELS_API_KEY
     || env?.PEXELS_APIKEY
@@ -217,7 +217,7 @@ async function handleGeocodeRequest(request, env) {
     geocodeUrl.searchParams.set("format", "json");
     geocodeUrl.searchParams.set("limit", "1");
     geocodeUrl.searchParams.set("accept-language", "ko,en");
-    // 국가 코드가 있어야 표준시를 나라 기준으로 정할 수 있다(경도 추정은 마지막 수단).
+    // 좌표를 IANA 시간대로 변환해 한 국가 안의 여러 시간대도 구분한다.
     geocodeUrl.searchParams.set("addressdetails", "1");
 
     const response = await fetch(geocodeUrl.toString(), {
@@ -235,7 +235,7 @@ async function handleGeocodeRequest(request, env) {
       lat,
       lng,
       name: cleanGeocodeText(first.display_name || place, 180),
-      timezone: resolveGeoTimezone({ countryCode: first.address?.country_code, longitude: lng }),
+      timezone: tzLookup(lat, lng),
       fallback: false,
     });
   } catch {
@@ -487,6 +487,8 @@ const handleAppStoreRoutes = createLazyRouteHandler("./routes/app-store.js", () 
 const handleAdminRoutes = createLazyRouteHandler("./routes/admin.js", () => import("./routes/admin.js"), "handleAdminRoutes");
 const handleFortuneRoutes = createLazyRouteHandler("./routes/fortune.js", () => import("./routes/fortune.js"), "handleFortuneRoutes");
 const handleFortuneTodayRoutes = createLazyRouteHandler("./routes/fortune-today.js", () => import("./routes/fortune-today.js"), "handleFortuneTodayRoutes");
+const handlePromptHubRoutes = createLazyRouteHandler("./routes/prompt-hub.js", () => import("./routes/prompt-hub.js"), "handlePromptHubRoutes", "api/prompt-hub");
+const handleHoneyUnlockRoutes = createLazyRouteHandler("./routes/honey-unlocks.js", () => import("./routes/honey-unlocks.js"), "handleHoneyUnlockRoutes", "api/honey/unlocks");
 const handleFusionFortuneRoutes = createLazyRouteHandler("./routes/fusion-fortune.js", () => import("./routes/fusion-fortune.js"), "handleFusionFortuneRoutes", "api/fusion-fortune");
 const handleFortuneChatRoutes = createLazyRouteHandler("./routes/fortune-chat.js", () => import("./routes/fortune-chat.js"), "handleFortuneChatRoutes", "api/fortune-chat");
 const handleTarotRoutes = createLazyRouteHandler("./routes/tarot.js", () => import("./routes/tarot.js"), "handleTarotRoutes");
@@ -607,6 +609,7 @@ const getRuntimeKeyMatrix = async (env, forceRefresh = false) => {
  */
 
 const DEFAULT_ALLOWED_ORIGINS = [
+  "capacitor://localhost",
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:4000",
@@ -1077,8 +1080,10 @@ async function proxyApiRequest(request, env) {
   });
 }
 
-// wrangler.toml 의 crons 배열과 반드시 같은 문자열이어야 한다. 다르면 재조정이 영영 안 돌거나,
+// worker/wrangler.toml 의 crons 배열과 반드시 같은 문자열이어야 한다. 다르면 재조정이 영영 안 돌거나,
 // 반대로 일일 태스크가 10분마다 도는 사고가 난다.
+// 🔴 worker/wrangler.staging.toml 은 crons = [] 라 스테이징에서는 재조정이 돌지 않는다. 거기서 pending 주문은
+// 사용자 확정·웹훅으로만 마무리되므로, 스테이징 결제 검증에서 "크론이 정리해 준다"를 기대하지 말 것.
 const PAYMENT_RECONCILE_CRON = "*/10 * * * *";
 
 // 진입 핸들러 본문. 워커에 내보내는 것은 맨 아래 withDbScopes(app) 다.
@@ -1288,6 +1293,10 @@ const app = {
         return withCorsHeaders(request, env, await handleRecommendationRoutes(request, env));
       }
 
+      if (url.pathname.startsWith("/api/email-marketing/")) {
+        const { handleEmailMarketingRoutes } = await import("./routes/email-marketing.js");
+        return withCorsHeaders(request, env, await handleEmailMarketingRoutes(request, env));
+      }
       if (url.pathname.startsWith("/api/kakao-crm/")) {
         const { handleKakaoCrmRoutes } = await import("./routes/kakao-crm.js");
         return withCorsHeaders(request, env, await handleKakaoCrmRoutes(request, env));
@@ -1341,8 +1350,8 @@ const app = {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(rewrittenV2Request, env, { prefix: "/api/payments" }));
         }
-        // ctx: 단건 결제(Transaction.Paid) 웹훅을 즉시-2xx ack + waitUntil 백그라운드 처리로 돌려
-        // 포트원 웹훅 타임아웃(재전송 실패)을 없애기 위해 전달한다.
+        // POST 는 위에서 전부 V2 가 받는다. 여기 오는 것은 비-POST 뿐이고, 구 라우터는 /webhook 을 등록하지
+        // 않아(2026-10) 인증이 없으면 401, 있어도 404/405 로 끝난다. ctx 는 구 라우터의 공통 시그니처다.
         const rewrittenRequest = rewriteRequestPath(request, "/api/payments/webhook");
         return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env, ctx));
       }
@@ -1364,12 +1373,14 @@ const app = {
           }));
         }
         // 웹훅은 서버-서버 경로라 legacyShape 이 필요 없다(PortOne 은 HTTP 상태만 본다).
-        // 콘솔 Endpoint 얼라이어스(/api/webhooks/portone)는 위 :1267 블록이 같은 판정으로 처리한다.
+        // 콘솔 Endpoint 얼라이어스(/api/webhooks/portone)는 위쪽 얼라이어스 블록이 같은 판정으로 처리한다.
         // 🔴 완전일치가 아니라 끝 슬래시 허용 정규식이어야 한다. "===" 였을 때 POST
-        // /api/payments/webhook/ 가 이 훅을 비껴가 아래 :1388 폴스루(구 handlePaymentRoutes)로
+        // /api/payments/webhook/ 가 이 훅을 비껴가 이 블록 맨 아래의 구 handlePaymentRoutes 폴스루로
         // 떨어졌다 — 그 안의 getRoutePath(worker/lib/http.js)가 끝 슬래시를 지워 "/webhook"으로
         // 인식해, routes/payments.js 의 구 handleWebhook(별도 verifyPortOneWebhookSignature 보유,
         // 2026-09-06 컷오버 때 다른 4개 구 핸들러와 달리 안 지워짐)이 대신 실행됐다(실측).
+        // 2026-10 부터 구 라우터는 /webhook 을 등록하지 않아 그런 폴스루는 401/404 로 끝나지만, 서명 검증과
+        // 이벤트 원장은 V2 에만 있으므로 이 정규식과 훅 순서는 그대로 지킨다.
         if (request.method === "POST"
           && /^\/api\/payments\/webhook\/*$/.test(url.pathname)) {
           const { handlePaymentsContext } = await import("./payments/index.js");
@@ -1415,6 +1426,11 @@ const app = {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }
+        // 프로필 선택 지급(출생 기반 전환 전 주문의 지급 보류 해소) — worker/payments/birth-profile-claim.js
+        if (url.pathname === "/api/payments/birth-profile-pending" || url.pathname.startsWith("/api/payments/birth-profile-pending/")) {
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
+        }
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env, ctx));
       }
 
@@ -1453,7 +1469,7 @@ const app = {
           let coinGateBodyText = "";
           let coinGateMethod = "";
           try {
-            coinGateBodyText = await request.clone().text();
+            coinGateBodyText = await readBoundedText(request.clone(), 256 * 1024);
             /* 🔴 판정은 **billing.js 와 같은 함수**로 한다(2026-08-13). 예전에는 여기서 `paymentMode` 를
                대문자 정확 일치로만 봤는데, 핸들러는 resolvePaymentCommand 의 별칭 집합(monthly ·
                monthly_credit · membership_credit · membership …)과 `accessMode` 필드까지 받는다.
@@ -1462,7 +1478,12 @@ const app = {
                단건 신호(forceDirectPayment·provider 조합 등)가 있으면 DIRECT_KRW 로 확정돼 여기서
                걸러진다 — 그 판정도 같은 함수 안에 있다. */
             coinGateMethod = resolvePaymentCommandFromBody(JSON.parse(coinGateBodyText || "{}")).method;
-          } catch { coinGateMethod = ""; }
+          } catch (error) {
+            if (error?.code === "REQUEST_BODY_TOO_LARGE") {
+              return jsonResponse(request, env, { ok: false, code: "PAYLOAD_TOO_LARGE" }, { status: 413 });
+            }
+            coinGateMethod = "";
+          }
           const coinGateV2Path = coinGateMethod === PAYMENT_METHODS.MONTHLY
             ? "/api/payments/coin-gate/moonstone"
             : coinGateMethod === PAYMENT_METHODS.MEMBERSHIP_PASS
@@ -1507,6 +1528,13 @@ const app = {
       if (url.pathname === '/api/fortune/cards' || url.pathname.startsWith('/api/fortune/cards/')) {
         const { handleInsightCardRoutes } = await import('./routes/insight-cards.js');
         return withCorsHeaders(request, env, await handleInsightCardRoutes(request, env, {allowOrigin: origin => isAllowedOrigin(origin, env)}));
+      }
+      // 프롬프트 허브 조립·꿀방울 출석 — 템플릿은 서버에만 있고 꿀방울(또는 회당 결제)로 연다.
+      if (url.pathname === "/api/honey/catalog" || url.pathname === "/api/honey/unlocks") {
+        return withCorsHeaders(request, env, await handleHoneyUnlockRoutes(request, env));
+      }
+      if (url.pathname === "/api/fortune/prompt-hub/generate" || url.pathname === "/api/honey/attendance") {
+        return withCorsHeaders(request, env, await handlePromptHubRoutes(request, env));
       }
       if (url.pathname === "/api/fortune/today-hub") {
         return withCorsHeaders(request, env, await handleFortuneTodayRoutes(request, env));
@@ -1619,6 +1647,17 @@ const app = {
         return withCorsHeaders(request, env, await handleZiweiDaehanRoutes(request, env));
       }
 
+      // 점성술·자미두수 궁합(브라우저 계산 회당 결제 결과)의 보관함 저장 — 결제 확인 뒤에만 남긴다.
+      if (url.pathname.startsWith("/api/compat-archive/")) {
+        const { handleCompatResultArchiveRoutes } = await import("./routes/compat-result-archive.js");
+        return withCorsHeaders(request, env, await handleCompatResultArchiveRoutes(request, env));
+      }
+      // 그 밖의 브라우저 계산 회당 결과(운명의 나침반 심화 등) — 같은 검증·저장.
+      if (url.pathname.startsWith("/api/result-archive/")) {
+        const { handleResultArchiveRoutes } = await import("./routes/compat-result-archive.js");
+        return withCorsHeaders(request, env, await handleResultArchiveRoutes(request, env));
+      }
+
       // 운명의 섬 청사진 (무인증·무DB 순수 계산 — /api/ziwei 툼스톤보다 먼저 매칭될 필요는 없으나 ziwei 계열과 함께 둔다)
       if (url.pathname === "/api/ziwei-island-ai" || url.pathname.startsWith("/api/ziwei-island-ai/")) {
         return runAiRouteWithSecurity(request, env, "ziwei-island-ai", handleZiweiIslandAiRoutes, ctx);
@@ -1705,6 +1744,10 @@ const app = {
         return runAiRouteWithSecurity(request, env, "vedic-ai", handleVedicAiRoutes);
       }
 
+      if (url.pathname === "/api/neo-consultations" || url.pathname.startsWith("/api/neo-consultations/")) {
+        const { handleNeoRuntimeRequest } = await import("./routes/neo-consultations.js");
+        return withCorsHeaders(request, env, await handleNeoRuntimeRequest(request, env));
+      }
       if (url.pathname === "/api/neo-operation-room" || url.pathname.startsWith("/api/neo-operation-room/")) {
         return runAiRouteWithSecurity(request, env, "neo-operation-room", handleNeoOperationRoomRoutes, ctx);
       }
@@ -1723,6 +1766,11 @@ const app = {
 
       if (url.pathname === "/api/yoga-guru" || url.pathname.startsWith("/api/yoga-guru/")) {
         return withCorsHeaders(request, env, await handleYogaGuruRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/saju/section") {
+        const { handleSajuSection } = await import("./routes/saju-section.js");
+        return withCorsHeaders(request, env, await handleSajuSection(request, env));
       }
 
       if (url.pathname === "/api/saju-compat-basic" || url.pathname.startsWith("/api/saju-compat-basic/")) {
@@ -1980,6 +2028,9 @@ const app = {
       // 구 태스크는 레거시 상태 주문만 본다 — 같은 주문의 이중 처리가 구조적으로 없다.
       // 한쪽 실패가 다른 쪽을 죽이지 않도록 각자 waitUntil·catch 로 격리한다.
       const { runPaymentsV2Reconcile } = await import("./payments/index.js");
+      ctx.waitUntil(import("./neo-consultation/tasks.js").then(({runNeoConsultationTasks}) => runNeoConsultationTasks(env)).catch(() => {
+        console.error("[neo-consultation] outbox unavailable");
+      }));
       ctx.waitUntil(runPaymentsV2Reconcile(env).catch((error) => {
         console.error("[payments-v2-reconcile] task failed:", error?.message || error);
       }));
@@ -1998,6 +2049,20 @@ const app = {
       ctx.waitUntil(runThreadsDailyJobs(env).catch((error) => {
         console.error("[threads-daily-jobs] task failed:", error?.message || error);
       }));
+      // 별빛 운영본부 집계(퀘스트·운영 XP·매출 사실). 결제·발행과 무관한 ops_* 만 쓰고 Threads 는 읽기만 한다.
+      // 모듈 로드 실패·동기 throw 까지 한 promise 안에 두어 이 tick 의 다른 태스크로 번지지 않게 격리한다.
+      ctx.waitUntil(import("./ops-hq/sync.js")
+        .then(({ runOpsHqSync }) => runOpsHqSync(env))
+        .catch((error) => {
+          console.error("[ops-hq] sync failed:", error?.message || error);
+        }));
+      // 광고 수신 동의자 대상 주간 광고 메일(화 10–12 KST)과 §50 고지 메일(09–20 KST). 창 밖이면 DB·네트워크 0회로
+      // 즉시 반환한다. 광고는 EmailMarketingState 'control' 문서가 켜져 있을 때만 나간다(기본 꺼짐).
+      ctx.waitUntil(import("./lib/email-marketing-task.js")
+        .then(({ runEmailMarketingTasks }) => runEmailMarketingTasks(env))
+        .catch((error) => {
+          console.error("[email-marketing] task failed:", error?.message || error);
+        }));
       // 🔴 마스터 인연의 서의 **버려진 세션 백스톱**. 20장 생성은 브라우저가 5~8왕복으로 미는데,
       // 결제 직후 PG 리다이렉트로 돌아온 탭이 잠들거나 닫히면 세션이 미완인 채 굳는다 — 돈은
       // 이미 나갔다. 결과 화면이 이어쓰기 주체가 된 뒤에도 "아무도 안 보는 세션"은 남으므로
@@ -2032,6 +2097,16 @@ const app = {
       const { monitorPaidNarratives } = await import("./lib/paid-narrative-monitor.js");
       ctx.waitUntil(monitorPaidNarratives(env).catch(() => {
         console.error('[paid-narrative-monitor] failed');
+      }));
+      // Gemini 지출 한도 알림의 재발송 백스톱과 복구 추정 알림. 생성·환불 흐름은 건드리지 않는다.
+      const { checkProviderRecovery } = await import("./lib/provider-outage-alert.js");
+      ctx.waitUntil(checkProviderRecovery(env).catch(() => {
+        console.error('[provider-outage] recovery check failed');
+      }));
+      // Gemini 추정 지출이 월 예산(GEMINI_MONTHLY_BUDGET_USD)의 50·80·95%를 넘으면 1회씩 알린다.
+      const { checkLlmBudget } = await import("./lib/llm-usage-meter.js");
+      ctx.waitUntil(checkLlmBudget(env).catch(() => {
+        console.error('[llm-budget] check failed');
       }));
       return;
     }

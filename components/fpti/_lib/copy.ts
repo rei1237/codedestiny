@@ -100,6 +100,7 @@ export interface FptiSharedCopy {
   deepNoticeAlreadyUnlocked: string;
   deepNoticeJustUnlocked: string;
   errorLoginRequired: string;
+  errorProfileRequired: string;
   errorInsufficientBalance: string;
   errorPaymentFailedDefault: string;
   errorUnlockException: string;
@@ -237,6 +238,7 @@ const FPTI_SHARED_COPY_EN: FptiSharedCopy = {
   deepNoticeAlreadyUnlocked: "This report is already unlocked. Showing the full content.",
   deepNoticeJustUnlocked: "Unlock complete. All 7 chapters are now available.",
   errorLoginRequired: "Login required. Please log in and try again.",
+  errorProfileRequired: "This birth date needs its own purchase. Save it as a profile, then purchase.",
   errorInsufficientBalance: "Insufficient balance for payment. Unlocking the deep report requires ₩10,000.",
   errorPaymentFailedDefault: "Payment processing failed. Please try again shortly.",
   errorUnlockException: "Something went wrong while unlocking the deep report. Please try again shortly.",
@@ -374,6 +376,7 @@ const FPTI_SHARED_COPY: Partial<Record<LoadingLocale, FptiSharedCopy>> = {
     deepNoticeAlreadyUnlocked: "이미 잠금 해제된 리포트입니다. 전체 내용을 표시합니다.",
     deepNoticeJustUnlocked: "잠금 해제가 완료되었습니다. 7개 챕터 전체를 열람할 수 있습니다.",
     errorLoginRequired: "로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
+    errorProfileRequired: "이 생년월일은 별도 구매가 필요합니다. 프로필을 저장한 뒤 구매해 주세요.",
     errorInsufficientBalance: "결제 가능 금액이 부족합니다. 심층 리포트 잠금 해제에는 10,000원이 필요합니다.",
     errorPaymentFailedDefault: "결제 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     errorUnlockException: "심층 리포트 잠금 해제 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
@@ -509,6 +512,7 @@ const FPTI_SHARED_COPY: Partial<Record<LoadingLocale, FptiSharedCopy>> = {
     deepNoticeAlreadyUnlocked: "このレポートはすでにロック解除済みです。全文を表示します。",
     deepNoticeJustUnlocked: "ロック解除が完了しました。7章すべてを閲覧できます。",
     errorLoginRequired: "ログインが必要です。ログイン後にもう一度お試しください。",
+    errorProfileRequired: "この生年月日は別途購入が必要です。プロフィールを保存してから購入してください。",
     errorInsufficientBalance: "決済可能な金額が不足しています。深層レポートのロック解除には10,000ウォンが必要です。",
     errorPaymentFailedDefault: "決済処理に失敗しました。しばらくしてからもう一度お試しください。",
     errorUnlockException: "深層レポートのロック解除処理中に問題が発生しました。しばらくしてからもう一度お試しください。",
@@ -644,6 +648,7 @@ const FPTI_SHARED_COPY: Partial<Record<LoadingLocale, FptiSharedCopy>> = {
     deepNoticeAlreadyUnlocked: "该报告已解锁，正在显示全部内容。",
     deepNoticeJustUnlocked: "解锁完成，现在可以阅读全部 7 个章节。",
     errorLoginRequired: "需要登录，请登录后重试。",
+    errorProfileRequired: "此出生日期需要单独购买。请先保存资料后再购买。",
     errorInsufficientBalance: "可用支付余额不足，解锁深度报告需要 10,000 韩元。",
     errorPaymentFailedDefault: "支付处理失败，请稍后重试。",
     errorUnlockException: "解锁深度报告时出现问题，请稍后重试。",
@@ -779,6 +784,7 @@ const FPTI_SHARED_COPY: Partial<Record<LoadingLocale, FptiSharedCopy>> = {
     deepNoticeAlreadyUnlocked: "該報告已解鎖，正在顯示全部內容。",
     deepNoticeJustUnlocked: "解鎖完成，現在可以閱讀全部 7 個章節。",
     errorLoginRequired: "需要登入，請登入後重試。",
+    errorProfileRequired: "此出生日期需要另外購買。請先儲存資料後再購買。",
     errorInsufficientBalance: "可用支付餘額不足，解鎖深度報告需要 10,000 韓元。",
     errorPaymentFailedDefault: "支付處理失敗，請稍後重試。",
     errorUnlockException: "解鎖深度報告時發生問題，請稍後重試。",

@@ -16,7 +16,7 @@ import createResultStore from "../fixtures/fortune-tea-result-store.cjs";
 import teaFixtures from '../fixtures/fortune-tea-llm-payload.cjs';
 
 const USER_ID = "64f0a1b2c3d4e5f678901288";
-// 황금 계피차(금전운) 규칙의 정본 섹션 제목 — 개수(9)와 문구가 프롬프트·검증기·폴백에 함께 전파된다.
+// 황금 계피차(금전운) 규칙의 정본 섹션 제목 — 개수(12)와 문구가 프롬프트·검증기·폴백에 함께 전파된다.
 const SECTION_TITLES = [
   "타고난 결 — 내 명식의 돈 그릇",
   "첫 잔 — 돈 걱정이 놓인 자리",
@@ -26,6 +26,9 @@ const SECTION_TITLES = [
   "지금 이 시기 — 금전 흐름이 움직이는 지점",
   "돈을 지키는 현실 기준",
   "찻집의 처방 — 30일 금전 회복 플랜",
+  "월별 흐름 — 석 달 동안 돈의 물길",
+  "관계 처방 — 돈 앞에서 지킬 관계의 선",
+  "실행 체크리스트 — 지출 전에 확인할 것",
   "연이의 한마디",
 ];
 
@@ -237,7 +240,7 @@ describe("운명 찻집 사주 — 섹션 부분 병합", () => {
     expect(response.payload.result.saju.usefulGodEvidence).toEqual(body.draftResult.saju.usefulGodEvidence);
     expect(response.payload.result.saju.guests.length).toBeGreaterThan(0);
     expect(response.payload.result.saju.guests.some(guest => guest.id === "invented")).toBe(false);
-    expect(callGeminiTextMock).toHaveBeenCalledTimes(16);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(19);
     expect(response.payload.result.saju.deepSections[0].body).not.toContain('경금은 정관');
   });
   test("일부 섹션만 부실해도 나머지 LLM 섹션은 살아남는다", async () => {

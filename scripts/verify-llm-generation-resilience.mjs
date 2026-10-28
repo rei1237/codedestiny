@@ -612,6 +612,37 @@ const SINGLE_CALL_FLOOR_CEILING = 6000;
     );
   }
 
+  // 체크포인트 그룹은 하한을 그대로 두고 목표만 FORTUNE_TEA_LENGTH_UPLIFT 만큼 올린다.
+  // 목표를 너무 올리면 그룹 하나가 토큰 상한에서 잘리고, 하한을 목표에 붙이면 목표 근처 응답이 거부된다.
+  {
+    const uplift = Number((source.match(/const FORTUNE_TEA_LENGTH_UPLIFT = ([\d.]+);/) || [])[1]);
+    const groupTokens = constant("FORTUNE_TEA_GROUP_MAX_OUTPUT_TOKENS");
+    const block = (source.match(/function buildTeaCheckpointGroups\([\s\S]*?\n\}/) || [])[0] || "";
+    // Math.max(하한, Math.ceil(총량 / 개수)) 형태는 개수가 가장 적은 3장 스프레드를 최악으로 본다.
+    const mins = [
+      ...[...block.matchAll(/\], (\d+)(?:, \{|\);)/g)].map((match) => Number(match[1])),
+      ...[...block.matchAll(/Math\.max\((\d+), Math\.ceil\((\d+) \//g)].map((match) => Math.max(Number(match[1]), Math.ceil(Number(match[2]) / 3))),
+    ];
+    const widestMin = Math.max(...mins);
+    const widestTarget = Math.ceil(widestMin * uplift / 0.8);
+
+    checks += 1;
+    assert(
+      uplift >= 1 && uplift <= 1.2 && block.includes("targetChars: Math.ceil(minChars * FORTUNE_TEA_LENGTH_UPLIFT / 0.8)"),
+      `${feature}: 분량 목표 배율 ${uplift}가 1~1.2 밖이거나 그룹 목표 계산식이 바뀌었다`,
+    );
+    checks += 1;
+    assert(
+      mins.length >= 5 && widestMin <= widestTarget * 0.8,
+      `${feature}: 그룹 하한 ${widestMin}자가 목표 ${widestTarget}자의 0.8배를 넘는다 — 하한을 올리지 말고 목표를 올려라`,
+    );
+    checks += 1;
+    assert(
+      Number.isFinite(groupTokens) && tokensRequiredForChars(widestTarget) <= groupTokens,
+      `${feature}: 가장 큰 그룹 목표 ${widestTarget}자에 ${tokensRequiredForChars(widestTarget)} 토큰이 필요한데 상한은 ${groupTokens}이다`,
+    );
+  }
+
   // 카테고리 규칙이 하한을 덮어쓰던 구조(리터럴 12벌)로 되돌아가면 상수만 고쳐도 아무 일이 없다.
   checks += 1;
   assert(
@@ -900,7 +931,7 @@ const LLM_CALL_FILES = [
   "worker/routes/neo-operation-room.js", "worker/routes/new-year-ai.js", "worker/routes/oracle.js",
   "worker/lib/paid-narrative-delivery.js", "worker/routes/sukuyo-compatibility-ai.js", "worker/routes/vedic-ai.js",
   "worker/routes/yoga-guru.js", "worker/routes/saju-compat-basic.js", "worker/routes/ziwei-ai.js", "worker/routes/ziwei-deep-report.js",
-  "worker/routes/ziwei-island-ai.js", "worker/lib/fusion-fortune.js", "worker/lib/palm-vision.js",
+  "worker/lib/fusion-fortune.js", "worker/lib/palm-vision.js",
 ];
 
 // 죽은 옵션: callGeminiText/callGeminiJsonWithRetry 가 읽지 않는 키. 지정하면 "설정했다"는
@@ -989,7 +1020,8 @@ const EXPECTED_LLM_CALL_SITES = {
   "worker/lib/celestial-report-delivery.js": 1, "worker/routes/destiny-compass-ai.js": 1, "worker/routes/destiny-compass.js": 1, "worker/routes/destiny-anatomy.js": 1,
   // fortune.js 3건: 사주 그룹 생성(웨이브1·2가 같은 호출부를 공유) + 형제 4종 공용 풀 생성 + 그 이어쓰기 repair.
   // 사주의 전용 이어쓰기 repair 호출은 그룹 재생성으로 대체되며 사라졌다(4 → 3).
-  "worker/routes/dream.js": 0, "worker/routes/fortune-tea-house.js": 2, "worker/routes/fortune.js": 3,
+  // 찻집 3건: 상담 그룹 생성 + 꿀편지 + 추가 질문 답변(폴백 끔, 길이만으로 실패하지 않음).
+  "worker/routes/dream.js": 0, "worker/routes/fortune-tea-house.js": 3, "worker/routes/fortune.js": 3,
   "worker/routes/karma-destiny-ai.js": 5, "worker/routes/life-book-ai.js": 1, "worker/routes/love-secret-ai.js": 2,
   "worker/routes/master-love-codex.js": 2, "worker/routes/nakshatra-ai.js": 1, "worker/lib/naming-report-delivery.js": 1,
   // 작명 v2 1건: 서술·8장이 같은 호출부를 공유한다(요청당 1콜).
@@ -1001,7 +1033,7 @@ const EXPECTED_LLM_CALL_SITES = {
   "worker/lib/paid-narrative-delivery.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 4, "worker/routes/vedic-ai.js": 1,
   // Ziwei: two checkpointed calls (body/meta), both disable fallback and use one bounded attempt; legacy helpers retain three calls.
   "worker/routes/yoga-guru.js": 1, "worker/routes/saju-compat-basic.js": 1, "worker/routes/ziwei-ai.js": 5, "worker/routes/ziwei-deep-report.js": 1,
-  "worker/routes/ziwei-island-ai.js": 1, "worker/lib/fusion-fortune.js": 1, "worker/lib/palm-vision.js": 2,
+  "worker/lib/fusion-fortune.js": 1, "worker/lib/palm-vision.js": 2,
 };
 for (const [path, expected] of Object.entries(EXPECTED_LLM_CALL_SITES)) {
   const actual = llmCallSiteCounts.get(path) ?? 0;
@@ -1091,8 +1123,8 @@ const MAX_FLOOR_TO_TARGET = 0.8;
 const PAID_PART_TARGETS = [
   // [파일, 판정 하한 코드, 하한, 프롬프트 목표 문구, 목표 하한, 한 호출 출력 상한(자), 토큰 코드, maxOutputTokens]
   ["worker/lib/feature-question-delivery.js", "minChars: 2200", 2200, "목표 2800~3200자", 2800, 3200, "maxOutputTokens: 9500", 9500],
-  ["worker/routes/dream.js", "minChars: 2000", 2000, "목표 2,600~3,100자", 2600, 3100, "maxOutputTokens: 9500", 9500],
-  ["worker/routes/oracle.js", "minChars: 3000", 3000, "목표 3,900~4,600자", 3900, 4600, "maxOutputTokens: 11000", 11000],
+  ["worker/routes/dream.js", "minChars: 1250", 1250, "목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자", 1625, 1875, "maxOutputTokens: 9500", 9500],
+  ["worker/routes/oracle.js", "minChars: 1800", 1800, "목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자", 2340, 2700, "maxOutputTokens: 11000", 11000],
   ["worker/lib/naming-report-delivery.js", "function chapterAccepted(state, id) { return Boolean(state.chapters?.[id]); }", 0, "목표 3,200~3,700자", 3200, 3700, "String(chapter.id), 9500)", 9500],
   // 작명 v2(결정론 엔진 + 서술). 장 하한은 "교정 뒤 사실상 비었는지"만 본다. 서술 한 호출은 6후보×3필드×140자 + 편지 3×300자 = 3,420자에
   // JSON 키 여유 약 500자. 필드 상한(220·450자)은 거부가 아니라 문장 경계 자르기다.
@@ -1119,7 +1151,7 @@ for (const [path, floorCode, floor, targetPhrase, targetLow, outputMaxChars, tok
 }
 // 목표를 과제 하한의 배수로 만드는 호출부. 과제 하한 최댓값(2026-09-25 실측: 오라클 2500·펫 2200·마음 스캔 2000)
 // × 1.5 도 9500 토큰 안에 든다.
-for (const path of ["worker/lib/paid-narrative-delivery.js", "worker/lib/love-tarot-delivery.js", "worker/lib/mindscan-delivery.js", "worker/lib/tarot-oracle-delivery.js"]) {
+for (const path of ["worker/lib/paid-narrative-delivery.js", "worker/lib/love-tarot-delivery.js", "worker/lib/mindscan-delivery.js", "worker/lib/tarot-oracle-delivery.js", "worker/routes/dream.js", "worker/routes/oracle.js"]) {
   const match = read(path).match(/목표 \$\{Math\.ceil\(task\.minChars \* ([\d.]+)\)\}~\$\{Math\.ceil\(task\.minChars \* ([\d.]+)\)\}자/);
   assert(
     match && 1 / Number(match[1]) <= MAX_FLOOR_TO_TARGET && Number(match[2]) > Number(match[1]),
@@ -1177,7 +1209,7 @@ const MIN_REJECT_OVER_TARGET = 1.15;
       feature: "ziwei",
       codes: [
         ["worker/routes/ziwei-ai.js", "본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자"],
-        ["worker/routes/ziwei-ai.js", "const accepted = group => valid(group, groups[group.id]);"],
+        ["worker/routes/ziwei-ai.js", "(countPaidReportBodyChars(ziweiSectionBody(groups[group.id])) >= group.minChars"],
         ["worker/routes/ziwei-ai.js", "trimPaidReportSections(source, Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET))"],
         ["worker/routes/ziwei-ai.js", "capTokens: SECTION_GROUP_TARGET_TOKENS"],
       ],

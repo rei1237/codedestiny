@@ -2,27 +2,27 @@
   'use strict';
 
   /* mobile touch: direct tap only (scroll/move/long-press blocked) */
-  var TAP_MAX_DX = 16;
-  var TAP_MAX_DY = 16;
-  var TAP_MOVE_DETECT_PX = 4;
-  var TAP_VERTICAL_BLOCK_PX = 18;
-  var MAX_TAP_DURATION_MS = 650;
-  var GHOST_CLICK_BLOCK_MS = 500;
-  var ACTION_DEDUPE_MS = 650;
-  var SCROLL_BLOCK_MS = 200;
-  var suppressClickUntil = 0;
-  var lastScrollAt = 0;
-  var touchCtx = null;
-  var lastTouchStart = null;
-  var lastTouchHadMove = false;
-  var lastActionInvoke = { action: '', at: 0 };
-  var cardScrollLockUntil = 0;
-  var cardScrollTouch = { active: false, moved: false };
-  var tapFeedbackEl = null;
-  var tapFeedbackTimer = 0;
-  var overlayGuardTimer = 0;
-  var TAP_FEEDBACK_CLASS = 'cd-mobile-tap-feedback';
-  var CARD_SCROLL_SELECTORS = [
+  const TAP_MAX_DX = 16;
+  const TAP_MAX_DY = 16;
+  const TAP_MOVE_DETECT_PX = 4;
+  const TAP_VERTICAL_BLOCK_PX = 18;
+  const MAX_TAP_DURATION_MS = 650;
+  const GHOST_CLICK_BLOCK_MS = 500;
+  const ACTION_DEDUPE_MS = 650;
+  const SCROLL_BLOCK_MS = 200;
+  let suppressClickUntil = 0;
+  let lastScrollAt = 0;
+  let touchCtx = null;
+  let lastTouchStart = null;
+  let lastTouchHadMove = false;
+  let lastActionInvoke = { action: '', at: 0 };
+  let cardScrollLockUntil = 0;
+  const cardScrollTouch = { active: false, moved: false };
+  let tapFeedbackEl = null;
+  let tapFeedbackTimer = 0;
+  let overlayGuardTimer = 0;
+  const TAP_FEEDBACK_CLASS = 'cd-mobile-tap-feedback';
+  const CARD_SCROLL_SELECTORS = [
     '.feature-card-grid',
     '.feat-collection',
     '.tarot-collection',
@@ -36,7 +36,7 @@
     '.prem-card',
     '.fc-toggle-btn'
   ].join(',');
-  var GENERIC_CARD_ACTION_SELECTORS = [
+  const GENERIC_CARD_ACTION_SELECTORS = [
     '.moon-preview-card',
     '.cd-comprehensive-prompt-entry',
     '.feature-card-grid .feature-card',
@@ -55,7 +55,7 @@
     '.tarot-collection__grid .tarot-tile',
     '.pvc-prem-grid .tarot-tile'
   ].join(',');
-  var MOBILE_INTERACTION_PATCH_COPY = {
+  const MOBILE_INTERACTION_PATCH_COPY = {
     ko: { locationSeoul: '대한민국 (서울)' },
     en: { locationSeoul: 'South Korea (Seoul)' },
     ja: { locationSeoul: '韓国（ソウル）' },
@@ -64,25 +64,25 @@
 
   function getMobileInteractionLocale() {
     try {
-      var cookieMatch = document.cookie.match(/(?:^|;\s*)(?:cd_locale|NEXT_LOCALE|lang)=([^;]+)/);
-      var raw = cookieMatch ? decodeURIComponent(cookieMatch[1] || '') : '';
+      const cookieMatch = document.cookie.match(/(?:^|;\s*)(?:cd_locale|NEXT_LOCALE|lang)=([^;]+)/);
+      let raw = cookieMatch ? decodeURIComponent(cookieMatch[1] || '') : '';
       if (!raw && window.localStorage) raw = localStorage.getItem('cd_locale') || localStorage.getItem('code-destiny-locale') || '';
       raw = String(raw || '').toLowerCase();
       if (raw.indexOf('ja') === 0) return 'ja';
       if (raw.indexOf('zh') === 0) return 'zh';
       if (raw.indexOf('en') === 0) return 'en';
-    } catch (_) {}
+    } catch {}
     return 'ko';
   }
 
   function mobileInteractionPatchText(key) {
-    var locale = getMobileInteractionLocale();
-    var copy = MOBILE_INTERACTION_PATCH_COPY[locale] || MOBILE_INTERACTION_PATCH_COPY.ko;
+    const locale = getMobileInteractionLocale();
+    const copy = MOBILE_INTERACTION_PATCH_COPY[locale] || MOBILE_INTERACTION_PATCH_COPY.ko;
     return copy[key] || MOBILE_INTERACTION_PATCH_COPY.ko[key] || 'Translation pending';
   }
 
   function markCardScrollLock(durationMs) {
-    var until = Date.now() + (durationMs || 220);
+    const until = Date.now() + (durationMs || 220);
     if (until > cardScrollLockUntil) cardScrollLockUntil = until;
     // 주의: 여기서 suppressClickUntil 을 밀지 않는다. 모든 스크롤 이벤트마다 클릭 억제창을
     // 연장하면 플링/스크롤 직후의 '정지 탭'이 고스트로 오인돼 씹힌다. 실제 스크롤 제스처의
@@ -96,9 +96,9 @@
      중재자가 아직 없거나 판단이 안 서면 false 를 돌려 통과시킨다(fail-open). */
   function gestureBlocksActivation() {
     try {
-      var arbiter = window.__cdGesture;
+      const arbiter = window.__cdGesture;
       return !!(arbiter && arbiter.blocksActivation());
-    } catch (_) {
+    } catch {
       return false;
     }
   }
@@ -122,7 +122,7 @@
   function isSyntheticHandoffClick(event) {
     if (!event || event.type !== 'click') return false;
     if (event.isTrusted === false || event.detail === 0) return true;
-    var target = event.target;
+    const target = event.target;
     return !!(target && typeof target.closest === 'function' && target.closest('[data-pvw-cta-bypass]'));
   }
 
@@ -140,7 +140,7 @@
 
   function getTapFeedbackElement(node) {
     if (!node || typeof node.closest !== 'function') return null;
-    var el = node.closest('[data-action],a[href],button,[role="button"],.MobileFeatureCard,.MobileCompactCard,.MobileQuickAction,.tarot-tile,.feature-card,.prem-card,.moon-preview-card,.cd-comprehensive-prompt-entry');
+    const el = node.closest('[data-action],a[href],button,[role="button"],.MobileFeatureCard,.MobileCompactCard,.MobileQuickAction,.tarot-tile,.feature-card,.prem-card,.moon-preview-card,.cd-comprehensive-prompt-entry');
     if (!el) return null;
     if (el.matches && el.matches('input,textarea,select,label')) return null;
     if (el.disabled || el.getAttribute('aria-disabled') === 'true') return null;
@@ -159,7 +159,7 @@
   }
 
   function showTapFeedback(node) {
-    var el = getTapFeedbackElement(node);
+    const el = getTapFeedbackElement(node);
     if (!el) return;
     if (tapFeedbackEl && tapFeedbackEl !== el) clearTapFeedback();
     tapFeedbackEl = el;
@@ -179,16 +179,18 @@
      프로퍼티 조회 3번으로 그 순회를 대신한다.
      ⚠ 이 게이트를 inert 해제 블록 위로 올리지 말 것 — 그건 body 상태와 무관하게 돌아야 한다. */
   function hasOverlayLifecycleResidue() {
-    var body = document.body;
+    const body = document.body;
     if (!body) return false;
     if (body.style && body.style.overflow === 'hidden') return true;
-    var classes = body.classList;
+    const classes = body.classList;
     return !!(classes && (classes.contains('lb-modal-open') || classes.contains('naming-prompt-open')));
   }
 
   function hasOpenMobileOverlay() {
-    var selectors = [
+    const selectors = [
       '#tilePvwOverlay.pvw-open',
+      // 타로는 display로 여닫는다. 열린 동안 기존 스크롤 잠금을 보존한다.
+      '#tarotModalOverlay',
       '#sajuLoaderOverlay[aria-hidden="false"]',
       '#cdPaidFeatureGate.is-open',
       '#cdLoginRequiredModal.is-open',
@@ -200,15 +202,15 @@
       '[role="dialog"][aria-modal="true"][aria-hidden="false"]'
     ].join(',');
     try {
-      var nodes = document.querySelectorAll(selectors);
-      for (var i = 0; i < nodes.length; i += 1) {
-        var node = nodes[i];
-        var style = window.getComputedStyle ? window.getComputedStyle(node) : null;
+      const nodes = document.querySelectorAll(selectors);
+      for (let i = 0; i < nodes.length; i += 1) {
+        const node = nodes[i];
+        const style = window.getComputedStyle ? window.getComputedStyle(node) : null;
         if (style && (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0')) continue;
-        var rect = node.getBoundingClientRect ? node.getBoundingClientRect() : null;
+        const rect = node.getBoundingClientRect ? node.getBoundingClientRect() : null;
         if (!rect || rect.width > 20 || rect.height > 20) return true;
       }
-    } catch (_) {}
+    } catch {}
     return false;
   }
 
@@ -219,7 +221,7 @@
       // 하단 네비처럼 다른 주체가 건 inert 는 건드리지 않는다.
       // 판정은 pvw-open 이 아니라 aria-hidden 으로 한다 — pvw-open 은 rAF 뒤에 붙어서
       // 여는 도중에 잠깐 비어 있고, aria-hidden 은 _open/_close 가 동기로 세운다.
-      var pvwOverlay = document.getElementById('tilePvwOverlay');
+      const pvwOverlay = document.getElementById('tilePvwOverlay');
       if ((!pvwOverlay || pvwOverlay.getAttribute('aria-hidden') !== 'false')
         && typeof window._cdReleaseTilePreviewInert === 'function') {
         window._cdReleaseTilePreviewInert();
@@ -237,7 +239,7 @@
           }
         }
       }
-    } catch (_) {}
+    } catch {}
   }
 
   function scheduleOverlayLifecycleGuard(delayMs) {
@@ -250,17 +252,17 @@
 
   function shouldEnableMobileInteractionBridge() {
     try {
-      var hasMatchMedia = typeof window.matchMedia === 'function';
-      var mobileViewport = hasMatchMedia && window.matchMedia('(max-width: 768px)').matches;
-      var primaryCoarse = hasMatchMedia && window.matchMedia('(pointer: coarse)').matches;
-      var primaryNoHover = hasMatchMedia && window.matchMedia('(hover: none)').matches;
-      var mobileUserAgent = /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
+      const hasMatchMedia = typeof window.matchMedia === 'function';
+      const mobileViewport = hasMatchMedia && window.matchMedia('(max-width: 768px)').matches;
+      const primaryCoarse = hasMatchMedia && window.matchMedia('(pointer: coarse)').matches;
+      const primaryNoHover = hasMatchMedia && window.matchMedia('(hover: none)').matches;
+      const mobileUserAgent = /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
 
       // A touch-capable desktop is still a desktop when its primary input is a
       // mouse/trackpad. maxTouchPoints intentionally does not participate here:
       // hybrid laptops expose it even while their desktop click path is active.
       return !!(mobileViewport || mobileUserAgent || (primaryCoarse && primaryNoHover));
-    } catch (_) {
+    } catch {
       return false;
     }
   }
@@ -270,18 +272,18 @@
   }
 
   function applyMobileMediaPerformance(root) {
-    var scope = root && root.querySelectorAll ? root : document;
-    var mobile = isMobileRuntime();
-    var imgs = [];
+    const scope = root && root.querySelectorAll ? root : document;
+    const mobile = isMobileRuntime();
+    let imgs = [];
     if (scope.matches && scope.matches('img')) imgs.push(scope);
     if (scope.querySelectorAll) imgs = imgs.concat(Array.prototype.slice.call(scope.querySelectorAll('img')));
     imgs.forEach(function(img) {
       if (!img || img.dataset.cdMobilePerfMedia === '1') return;
-      var className = String(img.className || '');
-      var isLcp = img.getAttribute('data-lcp-candidate') === '1';
-      var isMobileHubLogo = className.indexOf('cd-mobile-hub__logo') !== -1;
+      const className = String(img.className || '');
+      const isLcp = img.getAttribute('data-lcp-candidate') === '1';
+      const isMobileHubLogo = className.indexOf('cd-mobile-hub__logo') !== -1;
       // Consultation scenes render eagerly on purpose: Safari can leave lazy images pending in a reopened modal.
-      var isConsultScene = !!(img.closest && img.closest('.fc-entry__scene'));
+      const isConsultScene = !!(img.closest && img.closest('.fc-entry__scene'));
       if (!isLcp && !isMobileHubLogo && !isConsultScene) {
         img.setAttribute('loading', 'lazy');
         if (!img.hasAttribute('fetchpriority')) img.setAttribute('fetchpriority', 'low');
@@ -308,7 +310,7 @@
       img.dataset.cdMobilePerfMedia = '1';
     });
 
-    var mediaNodes = [];
+    let mediaNodes = [];
     if (scope.matches && scope.matches('audio,video')) mediaNodes.push(scope);
     if (scope.querySelectorAll) mediaNodes = mediaNodes.concat(Array.prototype.slice.call(scope.querySelectorAll('audio,video')));
     mediaNodes.forEach(function(node) {
@@ -322,9 +324,9 @@
 
   function watchMobileMediaPerformance() {
     applyMobileMediaPerformance(document);
-    try { window.__cdMobilePerformanceMediaGuardReady = true; } catch (_) {}
+    try { window.__cdMobilePerformanceMediaGuardReady = true; } catch {}
     if (!document.body || typeof MutationObserver === 'undefined') return;
-    var mediaObserver = new MutationObserver(function(mutations) {
+    const mediaObserver = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         Array.prototype.forEach.call(mutation.addedNodes || [], function(node) {
           if (node && node.nodeType === 1) applyMobileMediaPerformance(node);
@@ -335,7 +337,7 @@
   }
 
   /* INP: defer heavy data-action handlers in index-inline-runtime / uiBindings to the next task. */
-  var __CD_DEFER_INP_ACTIONS = {
+  const __CD_DEFER_INP_ACTIONS = {
     checkPrivacyAndCalculate: 1,
     agreeAndCalculate: 1,
     calculate: 1,
@@ -362,7 +364,7 @@
     nextDreamStage: 1
   };
 
-  var RULES = [
+  const RULES = [
     {
       action: 'openPhysiognomyApp',
       cardSelector: '.feature-card--face, .tarot-tile--physio',
@@ -827,15 +829,15 @@
       ].join(',')
     }
   ];
-  var FEATURE_ACTION_SET = RULES.reduce(function(acc, rule) {
+  const FEATURE_ACTION_SET = RULES.reduce(function(acc, rule) {
     if (rule && rule.action) acc[rule.action] = true;
     return acc;
   }, {});
 
   function nodeLabel(el) {
     if (!el || !el.tagName) return '(null)';
-    var id = el.id ? '#' + el.id : '';
-    var cls = '';
+    const id = el.id ? '#' + el.id : '';
+    let cls = '';
     if (el.classList && el.classList.length) {
       cls = '.' + Array.prototype.slice.call(el.classList, 0, 4).join('.');
     }
@@ -844,7 +846,7 @@
 
   function getPoint(event) {
     if (!event) return null;
-    var t = null;
+    let t = null;
     if (event.changedTouches && event.changedTouches.length) {
       t = event.changedTouches[0];
     } else if (event.touches && event.touches.length) {
@@ -864,18 +866,18 @@
      실측: 규칙 32개 · 고유 leftmost compound 75개, 키를 못 뽑는 head **0개**(2026-08-16).
      🔴 fail-open — 키를 못 뽑는 head 가 하나라도 생기면 게이트를 통째로 끈다. 나중에 누가
         태그 셀렉터나 `*` 를 규칙에 넣어도 탭이 조용히 죽지 않게 하는 유일한 장치다. */
-  var RULE_GATE_SOUND = true;
-  var RULE_GATE = (function () {
-    var classes = Object.create(null);
-    var ids = Object.create(null);
-    var actions = Object.create(null);
+  let RULE_GATE_SOUND = true;
+  const RULE_GATE = (function () {
+    const classes = Object.create(null);
+    const ids = Object.create(null);
+    const actions = Object.create(null);
     RULES.forEach(function (rule) {
       String(rule.targetSelector).split(',').forEach(function (complex) {
-        var head = complex.trim().split(/[\s>+~]+/)[0];
+        const head = complex.trim().split(/[\s>+~]+/)[0];
         if (!head) { RULE_GATE_SOUND = false; return; }
-        var pattern = /\.([A-Za-z0-9_-]+)|#([A-Za-z0-9_-]+)|\[data-action="([^"]+)"\]/g;
-        var match;
-        var found = false;
+        const pattern = /\.([A-Za-z0-9_-]+)|#([A-Za-z0-9_-]+)|\[data-action="([^"]+)"\]/g;
+        let match;
+        let found = false;
         while ((match = pattern.exec(head))) {
           found = true;
           if (match[1]) classes[match[1]] = true;
@@ -893,11 +895,11 @@
      조회 ~15회로 끝난다. 그 전에는 규칙 32개 × 조상 5개 × 컴파운드 ~8개였다. */
   function couldMatchAnyRule(origin) {
     if (!RULE_GATE_SOUND) return true;
-    for (var el = origin; el && el.nodeType === 1; el = el.parentElement) {
+    for (let el = origin; el && el.nodeType === 1; el = el.parentElement) {
       if (el.id && RULE_GATE.ids[el.id]) return true;
-      var list = el.classList;
+      const list = el.classList;
       if (list) {
-        for (var i = 0; i < list.length; i += 1) {
+        for (let i = 0; i < list.length; i += 1) {
           if (RULE_GATE.classes[list[i]]) return true;
         }
       }
@@ -912,13 +914,13 @@
      그래서 "먼저 온 쪽이 공유 작업을 하고, 16ms 창 안의 같은 타깃 이벤트는 그 결과를 재사용한다".
      🔴 타이머로 다른 쪽을 기다리지 않는다 — 한쪽만 오는 브라우저에서는 그 한쪽이 '먼저 온 쪽'이
         되므로 아무것도 잃지 않는다. 창 판정이 실패하면 예전처럼 2번 도는 것뿐이다(fail-open). */
-  var GESTURE_DOWN_DEDUPE_MS = 16;
-  var gestureDown = { stamp: -1, at: 0, target: null, rule: null, ruleResolved: false };
+  const GESTURE_DOWN_DEDUPE_MS = 16;
+  let gestureDown = { stamp: -1, at: 0, target: null, rule: null, ruleResolved: false };
 
   function beginGestureDown(event) {
-    var stamp = (event && typeof event.timeStamp === 'number') ? event.timeStamp : NaN;
-    var sameTarget = !!(gestureDown.target && gestureDown.target === event.target);
-    var withinWindow = (gestureDown.stamp >= 0 && stamp === stamp)
+    const stamp = (event && typeof event.timeStamp === 'number') ? event.timeStamp : NaN;
+    const sameTarget = !!(gestureDown.target && gestureDown.target === event.target);
+    const withinWindow = (gestureDown.stamp >= 0 && stamp === stamp)
       ? Math.abs(stamp - gestureDown.stamp) <= GESTURE_DOWN_DEDUPE_MS
       : (Date.now() - gestureDown.at) <= GESTURE_DOWN_DEDUPE_MS;
     if (sameTarget && withinWindow) return false;   // 같은 제스처의 두 번째 신호
@@ -934,7 +936,7 @@
 
   function ruleForGestureDown(event) {
     if (gestureDown.target === event.target && gestureDown.ruleResolved) return gestureDown.rule;
-    var rule = findRuleFromTarget(event.target);
+    const rule = findRuleFromTarget(event.target);
     if (gestureDown.target === event.target) {
       gestureDown.rule = rule;
       gestureDown.ruleResolved = true;
@@ -948,7 +950,7 @@
        결합 셀렉터 1회 closest 로 바꾸면 "가장 가까운 조상 우선"이 되어 결과가 갈릴 수 있다.
        게이트는 매치 가능성이 0인 경우만 걸러내므로 우선순위를 건드리지 않는다(무손실). */
     if (!couldMatchAnyRule(origin)) return null;
-    for (var i = 0; i < RULES.length; i += 1) {
+    for (let i = 0; i < RULES.length; i += 1) {
       if (origin.closest(RULES[i].targetSelector)) return RULES[i];
     }
     return null;
@@ -957,7 +959,7 @@
   /* When touchend event.target is unreliable, re-scan the actual target with elementFromPoint. */
   function findRuleFromPoint(x, y) {
     if (!document.elementFromPoint || !Number.isFinite(x) || !Number.isFinite(y)) return null;
-    var el = document.elementFromPoint(x, y);
+    const el = document.elementFromPoint(x, y);
     return el ? findRuleFromTarget(el) : null;
   }
 
@@ -965,48 +967,14 @@
      이들은 탭 즉시 풀스크린 컬렉션 오버레이를 여는데, 아래 좌표 재스캔은 rAF 한 프레임 뒤에
      돌기 때문에 그때 같은 좌표에는 방금 열린 컬렉션 타일이 놓여 있다. 그 타일을 탭 대상으로
      오인해 엉뚱한 타로로 하드 내비게이션(=새로고침 후 오연결)해 버린다. */
-  var NAV_OWNED_TAP_SELECTOR = '#cdMobileBottomNav,.cd-mobile-hub__chips,.cd-mobile-collection-chrome';
+  const NAV_OWNED_TAP_SELECTOR = '#cdMobileBottomNav,.cd-mobile-hub__chips,.cd-mobile-collection-chrome';
   function isNavOwnedTap(target) {
     return !!(target && target.closest && target.closest(NAV_OWNED_TAP_SELECTOR));
   }
 
-  function findActionElement(origin, rule) {
-    if (!origin || !rule) return null;
-    var direct = origin.closest('[data-action="' + rule.action + '"]');
-    if (direct) return direct;
-
-    var card = origin.closest(rule.cardSelector);
-    if (card && typeof card.querySelector === 'function') {
-      var inCard = card.querySelector('[data-action="' + rule.action + '"]');
-      if (inCard) return inCard;
-    }
-
-    if (rule.action === 'openTarotYearFortuneModal') {
-      var tile = origin.closest('.tarot-tile--year');
-      if (tile) return tile;
-    }
-
-    if (rule.action === 'openTarotHealingModal') {
-      var tile = origin.closest('.tarot-tile--healing');
-      if (tile) return tile;
-    }
-
-    if (rule.action === 'openRoyalTeaOracle') {
-      var teaTile = origin.closest('.tarot-tile--royal-tea');
-      if (teaTile) return teaTile;
-    }
-
-    if (rule.action === 'openAnimalTotemModal') {
-      var tile = origin.closest('.tarot-tile--animal-totem');
-      if (tile) return tile;
-    }
-
-    return document.querySelector('[data-action="' + rule.action + '"]');
-  }
-
   function probeTopNodeFromPoint(x, y, reason) {
-    var top = document.elementFromPoint(x, y);
-    var stack = [];
+    const top = document.elementFromPoint(x, y);
+    let stack = [];
     if (typeof document.elementsFromPoint === 'function') {
       stack = document.elementsFromPoint(x, y).slice(0, 8);
     }
@@ -1020,8 +988,8 @@
   }
 
   window.debugTopNodeAtTap = function (x, y, reason) {
-    var px = Number(x);
-    var py = Number(y);
+    const px = Number(x);
+    const py = Number(y);
     if (!Number.isFinite(px) || !Number.isFinite(py)) {
       console.warn('[overlay-probe] invalid coordinates:', x, y);
       return null;
@@ -1030,7 +998,7 @@
   };
 
   function dispatchFeatureTapEvent(rule, origin, sourceEvent) {
-    var detail = {
+    const detail = {
       action: rule.action,
       sourceType: sourceEvent ? sourceEvent.type : 'manual',
       target: origin || null,
@@ -1047,18 +1015,18 @@
 
   /* 컬렉션 소유자. 🔴 occludedByOtherLayer 와 좌표 폴백 게이트가 **반드시 같은 정의**를 써야 한다 —
      둘이 갈라지면 "게이트는 통과했는데 후보는 전부 occluded" 같은 조용한 죽은 구간이 생긴다. */
-  var COLLECTION_OWNER_SELECTOR = '.feat-collection[id],.tarot-collection[id]';
+  const COLLECTION_OWNER_SELECTOR = '.feat-collection[id],.tarot-collection[id]';
 
   function findCollectionToggleFromOrigin(origin) {
     return origin instanceof Element ? origin.closest('[data-action="toggleCollection"][data-target]') : null;
   }
 
   function findCollectionToggleFromPoint(x, y) {
-    var px = Number(x);
-    var py = Number(y);
+    const px = Number(x);
+    const py = Number(y);
     if (!Number.isFinite(px) || !Number.isFinite(py)) return null;
-    var top = typeof document.elementFromPoint === 'function' ? document.elementFromPoint(px, py) : null;
-    var direct = findCollectionToggleFromOrigin(top);
+    const top = typeof document.elementFromPoint === 'function' ? document.elementFromPoint(px, py) : null;
+    const direct = findCollectionToggleFromOrigin(top);
     if (direct) return direct;
     // 🔴 아래 두 폴백은 "좌표에 걸리기만 하면" 토글로 인정한다 — elementsFromPoint 는 가려진 요소까지
     // 전부 돌려주고, rect 스캔은 스태킹을 아예 보지 않는다. 그래서 기능 모달(예: #hwatuModalOverlay,
@@ -1070,23 +1038,23 @@
     // 최상단 실히트가 그 컬렉션 밖이면 다른 레이어가 주인이라고 보고 넘긴다.
     function occludedByOtherLayer(candidate) {
       if (!top || !candidate || !candidate.closest) return false;
-      var owner = candidate.closest(COLLECTION_OWNER_SELECTOR);
+      const owner = candidate.closest(COLLECTION_OWNER_SELECTOR);
       return !!(owner && !owner.contains(top));
     }
     if (typeof document.elementsFromPoint === 'function') {
-      var stack = document.elementsFromPoint(px, py);
-      for (var i = 0; i < stack.length; i += 1) {
-        var stacked = findCollectionToggleFromOrigin(stack[i]);
+      const stack = document.elementsFromPoint(px, py);
+      for (let i = 0; i < stack.length; i += 1) {
+        const stacked = findCollectionToggleFromOrigin(stack[i]);
         if (stacked && !occludedByOtherLayer(stacked)) return stacked;
       }
     }
-    var toggles = document.querySelectorAll('[data-action="toggleCollection"][data-target]');
-    for (var j = 0; j < toggles.length; j += 1) {
-      var toggle = toggles[j];
-      var rect = toggle.getBoundingClientRect();
+    const toggles = document.querySelectorAll('[data-action="toggleCollection"][data-target]');
+    for (let j = 0; j < toggles.length; j += 1) {
+      const toggle = toggles[j];
+      const rect = toggle.getBoundingClientRect();
       if (!rect || rect.width <= 0 || rect.height <= 0) continue;
       if (px < rect.left || px > rect.right || py < rect.top || py > rect.bottom) continue;
-      var style = window.getComputedStyle ? window.getComputedStyle(toggle) : null;
+      const style = window.getComputedStyle ? window.getComputedStyle(toggle) : null;
       if (style && (style.display === 'none' || style.visibility === 'hidden' || style.pointerEvents === 'none')) continue;
       if (occludedByOtherLayer(toggle)) continue;
       return toggle;
@@ -1096,10 +1064,10 @@
 
   function toggleMobileCollection(toggle, event, source) {
     if (!toggle) return false;
-    var targetId = String(toggle.getAttribute('data-target') || '').trim();
-    var collection = targetId ? document.getElementById(targetId) : null;
+    const targetId = String(toggle.getAttribute('data-target') || '').trim();
+    const collection = targetId ? document.getElementById(targetId) : null;
     if (!collection) return false;
-    var guard = window.__cdMobileCollectionToggleGuard;
+    const guard = window.__cdMobileCollectionToggleGuard;
     if (guard && guard.targetId === targetId && (Date.now() - guard.at) < 650) {
       blockCollectionToggleEvent(event);
       return true;
@@ -1107,23 +1075,23 @@
     window.__cdMobileCollectionToggleGuard = { targetId: targetId, at: Date.now(), source: source || 'mobile-patch' };
     window.__cdLastMobileAction = { action: 'toggleCollection', sourceType: source || 'mobile-patch', at: Date.now() };
     blockCollectionToggleEvent(event);
-    var nextState = collection.getAttribute('data-collection-open') !== 'true';
+    const nextState = collection.getAttribute('data-collection-open') !== 'true';
     collection.setAttribute('data-collection-open', String(nextState));
     toggle.setAttribute('aria-expanded', String(nextState));
     try {
       document.dispatchEvent(new CustomEvent('cd:collection-toggle', {
         detail: { targetId: targetId, isOpen: nextState }
       }));
-    } catch (_) {}
+    } catch {}
     return true;
   }
 
   function handleCollectionToggleTap(event, point, source) {
     if (!event || !point) return false;
-    var start = lastTouchStart;
+    const start = lastTouchStart;
     if (start && (Date.now() - (start.at || 0)) <= MAX_TAP_DURATION_MS) {
-      var dx = Math.abs(Number(point.x) - Number(start.x));
-      var dy = Math.abs(Number(point.y) - Number(start.y));
+      const dx = Math.abs(Number(point.x) - Number(start.x));
+      const dy = Math.abs(Number(point.y) - Number(start.y));
       if (dx >= TAP_MAX_DX || dy >= TAP_MAX_DY || (dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx)) return false;
     }
     // 🔴 좌표 폴백은 "탭이 시트/모달 안에서 시작한 경우" 절대 쓰면 안 된다.
@@ -1131,7 +1099,7 @@
     // pointer-events:none 이라 elementFromPoint 가 그 아래 컬렉션 헤더를 최상단으로 돌려준다.
     // 그러면 닫기 한 번에 컬렉션이 통째로 접히고 카드가 전부 사라졌다(운세 목록이 빈 화면).
     // occludedByOtherLayer 는 이 경우를 못 잡는다 — 헤더가 실제로 최상단이기 때문이다.
-    var toggleOrigin = event.target;
+    const toggleOrigin = event.target;
     if (toggleOrigin && toggleOrigin.closest
       && toggleOrigin.closest('.tile-pvw-overlay,.cd-direct-payment-modal,[role="dialog"]')) {
       return false;
@@ -1150,7 +1118,7 @@
        실측 효과: 컬렉션 밖(헤더·하단 내비·오늘의 운세·검색·푸터) 탭에서 제스처당
        elementsFromPoint 3회 · elementFromPoint 3회 · querySelectorAll 3회 ·
        getBoundingClientRect 39회가 전부 0 이 된다. 필드 최악인 header.logo-area 가 이 경우다. */
-    var toggle = findCollectionToggleFromOrigin(toggleOrigin);
+    let toggle = findCollectionToggleFromOrigin(toggleOrigin);
     if (!toggle && toggleOrigin && toggleOrigin.closest && toggleOrigin.closest(COLLECTION_OWNER_SELECTOR)) {
       toggle = findCollectionToggleFromPoint(point.x, point.y);
     }
@@ -1159,7 +1127,7 @@
 
   function shouldSkipDuplicateAction(action) {
     if (!action) return false;
-    var now = Date.now();
+    const now = Date.now();
     if (lastActionInvoke.action === action && (now - lastActionInvoke.at) < ACTION_DEDUPE_MS) {
       return true;
     }
@@ -1173,7 +1141,7 @@
   // 오염시켜 닫을 때 화면 전체가 안 눌리는 프리징으로 이어졌다. 기존 액션 디듀프를 그대로 쓴다.
   function shouldSkipTilePreview(tile) {
     if (!tile || typeof tile.getAttribute !== 'function') return false;
-    var key = tile.getAttribute('data-feature-key')
+    const key = tile.getAttribute('data-feature-key')
       || tile.getAttribute('data-action')
       || tile.getAttribute('data-tile-lock-key')
       || 'tile';
@@ -1188,8 +1156,8 @@
       .filter(function(v) { return v.length > 0; });
   }
 
-  var __CD_USE_FEATURE_SPLASH = false;
-  var __CD_SERVICE_SPLASH_MESSAGES = {
+  const __CD_USE_FEATURE_SPLASH = false;
+  const __CD_SERVICE_SPLASH_MESSAGES = {
     openNevilleMeditationPage: '명상 화면을 준비하고 있습니다.',
     openCosmicSoulMeditation: '코스믹 소울 명상 화면을 준비하고 있습니다.',
     openYogaGuru: '요가 가이드 화면을 준비하고 있습니다.',
@@ -1216,7 +1184,7 @@
     navigateToVedic: '별자리 차트 화면을 준비하고 있습니다.',
     gotoNamingPremium: '유료 기능 화면을 준비하고 있습니다.'
   };
-  var __cdFeatureLoadingToken = 0;
+  let __cdFeatureLoadingToken = 0;
 
   function getServiceSplash() {
     if (window.__cdServiceSplash) return window.__cdServiceSplash;
@@ -1231,11 +1199,11 @@
 
   function beginFeatureLoading(action, options) {
     if (!__CD_USE_FEATURE_SPLASH) return 0;
-    var serviceSplash = getServiceSplash();
+    const serviceSplash = getServiceSplash();
     if (!serviceSplash || typeof serviceSplash.show !== 'function') return 0;
-    var token = ++__cdFeatureLoadingToken;
-    var message = (options && options.message) || __CD_SERVICE_SPLASH_MESSAGES[action] || '서비스 화면을 준비하고 있습니다.';
-    var shown = serviceSplash.show(message, {
+    const token = ++__cdFeatureLoadingToken;
+    const message = (options && options.message) || __CD_SERVICE_SPLASH_MESSAGES[action] || '서비스 화면을 준비하고 있습니다.';
+    const shown = serviceSplash.show(message, {
       forceMobile: true,
       minMs: options && typeof options.minMs === 'number' ? options.minMs : 400,
       maxMs: options ? options.maxMs : undefined
@@ -1245,7 +1213,7 @@
 
   function endFeatureLoading(token) {
     if (!token || token !== __cdFeatureLoadingToken) return;
-    var serviceSplash = getServiceSplash();
+    const serviceSplash = getServiceSplash();
     if (serviceSplash && typeof serviceSplash.hide === 'function') {
       serviceSplash.hide();
     }
@@ -1266,34 +1234,34 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-88dc051313d3').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-232947455bf8').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
 
   function invokeConfiguredDataAction(actionEl, sourceEvent) {
     if (!actionEl) return false;
-    var action = actionEl.getAttribute('data-action');
+    const action = actionEl.getAttribute('data-action');
     if (!action) return false;
-    var loadToken = beginFeatureLoading(action, { minMs: 250, maxMs: 3000 });
+    const loadToken = beginFeatureLoading(action, { minMs: 250, maxMs: 3000 });
     ensureMobileBackstackRuntime();
     try {
       if (window.__cdMobileNav && typeof window.__cdMobileNav.onActionInvoke === 'function') {
         window.__cdMobileNav.onActionInvoke(action, actionEl);
       }
-    } catch (_) {}
-    var fn = window[action];
+    } catch {}
+    const fn = window[action];
     if (typeof fn !== 'function') {
       endFeatureLoading(loadToken);
       return false;
     }
 
-    var args = parseActionArgs(actionEl.getAttribute('data-action-args'));
-    var passSelfMode = actionEl.getAttribute('data-action-pass-self');
-    var passEvent = actionEl.getAttribute('data-action-pass-event') === '1';
+    const args = parseActionArgs(actionEl.getAttribute('data-action-args'));
+    const passSelfMode = actionEl.getAttribute('data-action-pass-self');
+    const passEvent = actionEl.getAttribute('data-action-pass-event') === '1';
 
     function runInvoke() {
-      var result = undefined;
+      let result = undefined;
       try {
         if (passSelfMode === 'append') {
           result = fn.apply(window, args.concat([actionEl]));
@@ -1322,44 +1290,21 @@
     return runInvoke();
   }
 
-  function detectMobileBuildVersion() {
-    try {
-      var scripts = document.querySelectorAll('script[src]');
-      for (var i = 0; i < scripts.length; i += 1) {
-        var src = String(scripts[i].getAttribute('src') || '');
-        if (!src) continue;
-        if (src.indexOf('index-inline-runtime.js?v=') !== -1 || src.indexOf('mobile-interaction-patch.js?v=') !== -1) {
-          var m = src.match(/[?&]v=([^&]+)/);
-          if (m && m[1]) return m[1];
-        }
-      }
-    } catch (_) {}
-    return '';
-  }
-
-  var __CD_MOBILE_BUILD_VERSION = detectMobileBuildVersion();
-  function withMobileBuild(path) {
-    var p = String(path || '').trim();
-    if (!p) return p;
-    if (!__CD_MOBILE_BUILD_VERSION) return p;
-    return p + (p.indexOf('?') === -1 ? '?v=' : '&v=') + __CD_MOBILE_BUILD_VERSION;
-  }
-
-  var LAZY_LOAD_ACTIONS = {
+  const LAZY_LOAD_ACTIONS = {
     openPhysiognomyApp: [
       'AnalysisEngine.js?v=h96b7981840e2',
-      'PhysiognomyUI.js?v=hc500a55c5938'
+      'PhysiognomyUI.js?v=h249f3790ba4b'
     ],
     openPastLifeFaceApp: [
       'AnalysisEngine.js?v=h96b7981840e2',
-      'PastLifeFaceUI.js?v=h18a3c245e2db'
+      'PastLifeFaceUI.js?v=he6a7b41ecbbb'
     ],
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
       'js/animal-totem-experience.js?v=build-ccced4ad1688'
     ],
-    openHwatuModal: ['HwatuFortune.js?v=h7c6f7751f293'],
+    openHwatuModal: ['HwatuFortune.js?v=haecc3241c877'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
     openTarotLoveModal: ['js/tarot-love-experience.js?v=build-ccced4ad1688'],
@@ -1384,16 +1329,16 @@
   // 앵커 이동을 막는 순간 "탭했는데 아무 일도 없음"이 되므로, 그때는 기존 이동을 그대로 둔다.
   function isInPlaceModalAction(action) {
     if (!action) return false;
-    var allowList = window.__cdRouteActionAllowList;
+    const allowList = window.__cdRouteActionAllowList;
     if (!allowList || !allowList[action]) return false;
     if (typeof window[action] === 'function') return true;
-    var lazyPaths = LAZY_LOAD_ACTIONS[action];
+    const lazyPaths = LAZY_LOAD_ACTIONS[action];
     if (lazyPaths && lazyPaths.length) return true;
     return !!(window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[action]);
   }
 
   function normalizeScriptSrc(src) {
-    var raw = String(src || '').trim().replace(/^\.\//, '');
+    const raw = String(src || '').trim().replace(/^\.\//, '');
     if (!raw) return '';
     if (/^(?:[a-z]+:)?\/\//i.test(raw) || raw.indexOf('data:') === 0 || raw.indexOf('blob:') === 0) return raw;
     if (raw.charAt(0) === '/') return raw;
@@ -1402,14 +1347,14 @@
 
   function loadScript(src) {
     return new Promise(function(resolve, reject) {
-      var norm = normalizeScriptSrc(src);
-      var normBase = norm.split('?')[0];
-      var fileName = normBase.split('/').pop();
-      var all = document.querySelectorAll('script[src]');
-      var existing = null;
-      for (var i = 0; i < all.length; i++) {
-        var a = all[i].getAttribute('src') || '';
-        var aBase = a.split('?')[0];
+      const norm = normalizeScriptSrc(src);
+      const normBase = norm.split('?')[0];
+      const fileName = normBase.split('/').pop();
+      const all = document.querySelectorAll('script[src]');
+      let existing = null;
+      for (let i = 0; i < all.length; i++) {
+        const a = all[i].getAttribute('src') || '';
+        const aBase = a.split('?')[0];
         if (a === norm || aBase === normBase || (fileName && aBase.indexOf('/' + fileName) !== -1)) { existing = all[i]; break; }
       }
       if (existing) {
@@ -1425,7 +1370,7 @@
         existing.addEventListener('error', function() { reject(new Error('load failed: ' + src)); }, { once: true });
         return;
       }
-      var s = document.createElement('script');
+      const s = document.createElement('script');
       s.src = norm;
       s.defer = true;
       s.async = true;
@@ -1448,15 +1393,15 @@
         sourceType: sourceEvent ? sourceEvent.type : 'manual',
         at: Date.now()
       };
-    } catch (_) {}
+    } catch {}
     ensureMobileBackstackRuntime();
     try {
       if (window.__cdMobileNav && typeof window.__cdMobileNav.onActionInvoke === 'function') {
         window.__cdMobileNav.onActionInvoke(rule.action, origin || null);
       }
-    } catch (_) {}
+    } catch {}
     // Preview CTA with data-pvw-bypass is a normal direct path.
-    var _fromPreviewBypass = false;
+    let _fromPreviewBypass = false;
     if (origin && typeof origin.closest === 'function') {
       _fromPreviewBypass = !!origin.closest('[data-pvw-bypass]');
     }
@@ -1466,7 +1411,7 @@
     // Prevent touch events from bypassing the coin/payment gate into premium actions.
     // Premium panels still need to pass through the upstream gate flow.
     // If pvw-bypass is active (direct click from Preview CTA), skip the gate.
-    var _coinGateTile = null;
+    let _coinGateTile = null;
     if (origin && typeof origin.closest === 'function') {
       _coinGateTile = origin.closest('[data-tile-lock-key],[data-coin-cost]');
     }
@@ -1481,13 +1426,13 @@
       if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
     }
     if (_coinGateTile) {
-      var _coinGateCost = Number(_coinGateTile.getAttribute('data-coin-cost') || 0);
+      const _coinGateCost = Number(_coinGateTile.getAttribute('data-coin-cost') || 0);
       if (_coinGateCost > 0 && !_fromPreviewBypass && typeof window._cdOpenTilePreview === 'function') {
         try {
           if (window._cdOpenTilePreview(_coinGateTile)) {
             return true;
           }
-        } catch (_) {}
+        } catch {}
       }
       if (typeof window.__cdRequireTileLockGate === 'function') {
         if (!window.__cdRequireTileLockGate(_coinGateTile)) {
@@ -1502,7 +1447,7 @@
     }
     // Coin/payment gate check complete.
 
-    var directLinkEl = origin && typeof origin.closest === 'function'
+    let directLinkEl = origin && typeof origin.closest === 'function'
       ? origin.closest('a[href]')
       : null;
     // 시빌라/자미두수/숙요/점성술/타로 진입 타일은 SEO·크롤용으로 <a href> 이지만 모달은 제자리에서
@@ -1513,10 +1458,10 @@
       directLinkEl = null;
     }
     if (directLinkEl) {
-      var directCoinCost = Number(directLinkEl.getAttribute('data-coin-cost') || 0);
-      var directLockCost = Number(directLinkEl.getAttribute('data-tile-lock-cost') || 0);
-      var directHref = directLinkEl.getAttribute('href') || directLinkEl.getAttribute('data-direct-href') || directLinkEl.getAttribute('data-fallback-href') || '';
-      var normalizedHref = String(directHref || '').trim();
+      const directCoinCost = Number(directLinkEl.getAttribute('data-coin-cost') || 0);
+      const directLockCost = Number(directLinkEl.getAttribute('data-tile-lock-cost') || 0);
+      const directHref = directLinkEl.getAttribute('href') || directLinkEl.getAttribute('data-direct-href') || directLinkEl.getAttribute('data-fallback-href') || '';
+      const normalizedHref = String(directHref || '').trim();
       if (
         directCoinCost <= 0 &&
         directLockCost <= 0 &&
@@ -1538,7 +1483,7 @@
       }
     }
 
-    var loadToken = beginFeatureLoading(rule.action, { minMs: 350, maxMs: 7000 });
+    const loadToken = beginFeatureLoading(rule.action, { minMs: 350, maxMs: 7000 });
 
     if (rule.action === 'openNevilleMeditationPage') {
       try {
@@ -1547,7 +1492,7 @@
       } catch (err) {
         console.error('[mobile-interaction-patch] meditation navigation failed:', err);
         endFeatureLoading(loadToken);
-        var fallbackHref = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/neville-meditation.html';
+        const fallbackHref = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/neville-meditation.html';
         if (fallbackHref) {
           try {
             window.location.assign(fallbackHref);
@@ -1568,9 +1513,9 @@
       } catch (err) {
         console.error('[mobile-interaction-patch] cosmic soul meditation navigation failed:', err);
         endFeatureLoading(loadToken);
-        var fallbackHref2 = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/cosmic-soul-meditation.html';
+        const fallbackHref2 = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/cosmic-soul-meditation.html';
         if (fallbackHref2) {
-          try { window.location.assign(fallbackHref2); return true; } catch (_) {}
+          try { window.location.assign(fallbackHref2); return true; } catch {}
         }
       }
       endFeatureLoading(loadToken);
@@ -1584,9 +1529,9 @@
       } catch (err) {
         console.error('[mobile-interaction-patch] yoga guru navigation failed:', err);
         endFeatureLoading(loadToken);
-        var fallbackHref3 = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/yoga-guru.html';
+        const fallbackHref3 = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/yoga-guru.html';
         if (fallbackHref3) {
-          try { window.location.assign(fallbackHref3); return true; } catch (_) {}
+          try { window.location.assign(fallbackHref3); return true; } catch {}
         }
       }
       endFeatureLoading(loadToken);
@@ -1603,7 +1548,7 @@
         try {
           window.location.assign('/tarot/healing/');
           return true;
-        } catch (_) {}
+        } catch {}
       }
       endFeatureLoading(loadToken);
       return false;
@@ -1611,8 +1556,8 @@
 
     dispatchFeatureTapEvent(rule, origin, sourceEvent);
 
-    var fn = window[rule.action];
-    var lazyPaths = LAZY_LOAD_ACTIONS[rule.action];
+    const fn = window[rule.action];
+    const lazyPaths = LAZY_LOAD_ACTIONS[rule.action];
     if (rule.action === 'gotoNamingPremium' && typeof fn !== 'function') {
       window.location.href = '/myungwun_final.html';
       return true;
@@ -1620,17 +1565,17 @@
 
     /* lazy-load: keep routing through even if the script is not ready yet. */
     if (typeof fn !== 'function' && lazyPaths && lazyPaths.length) {
-      var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
+      const raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
       raf(function() {
-        var chain = Promise.resolve();
+        let chain = Promise.resolve();
         lazyPaths.forEach(function(src) {
           chain = chain.then(function() { return loadScript(src); });
         });
         chain.then(function() {
           if (typeof window.__cdEnsureModalOverlaysInBody === 'function') window.__cdEnsureModalOverlaysInBody();
-          var f = window[rule.action];
+          const f = window[rule.action];
           if (typeof f === 'function') {
-            var result;
+            let result;
             try { 
               result = f();
               finalizeFeatureLoading(result, loadToken);
@@ -1655,12 +1600,12 @@
     }
 
     /* If a heavy browser gets stuck while handling touch, defer with rAF. */
-    var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
+    const raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
     try {
       raf(function() {
         if (typeof window.__cdEnsureModalOverlaysInBody === 'function') window.__cdEnsureModalOverlaysInBody();
         try {
-          var result = fn();
+          const result = fn();
           finalizeFeatureLoading(result, loadToken);
         } catch (err) {
           console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
@@ -1677,9 +1622,9 @@
 
   function findDataActionElement(origin) {
     if (!origin || typeof origin.closest !== 'function') return null;
-    var el = origin.closest('[data-action]');
+    const el = origin.closest('[data-action]');
     if (!el) return null;
-    var action = el.getAttribute('data-action');
+    const action = el.getAttribute('data-action');
     if (!action || action === 'toggleCollection') return null;
     if (!FEATURE_ACTION_SET[action] && !isGenericCardActionElement(el)) return null;
     return el;
@@ -1687,17 +1632,17 @@
 
   function invokeDataActionFallback(actionEl, sourceEvent) {
     if (!actionEl) return false;
-    var action = actionEl.getAttribute('data-action');
+    const action = actionEl.getAttribute('data-action');
     if (!action) return false;
-    var actionArgsRaw = actionEl.getAttribute('data-action-args') || '';
+    const actionArgsRaw = actionEl.getAttribute('data-action-args') || '';
     // 🔴 인계는 디듀프 대상이 아니다. invokeBusinessAction 에는 같은 예외가 있는데
     // (_fromPreviewBypass) 여기에는 없어서, 사용자 탭 → 인계 클릭이 ACTION_DEDUPE_MS(650ms)
     // 안에 연달아 들어오면 두 번째가 "이미 처리함"(return true)으로 위장돼 호출부가
     // preventDefault 까지 하고 끝났다. 겉으로는 눌러도 아무 일이 없는 것과 같다.
-    var _fromPreviewBypass = !!(actionEl.closest && actionEl.closest('[data-pvw-bypass]'));
+    const _fromPreviewBypass = !!(actionEl.closest && actionEl.closest('[data-pvw-bypass]'));
     if (!_fromPreviewBypass && shouldSkipDuplicateAction(action + '::' + actionArgsRaw)) return true;
 
-    var hasActionConfig = !!actionArgsRaw
+    const hasActionConfig = !!actionArgsRaw
       || !!actionEl.getAttribute('data-action-pass-self')
       || actionEl.getAttribute('data-action-pass-event') === '1';
 
@@ -1710,7 +1655,7 @@
 
     // 유료 게이트가 필요한 액션은 전역 핸들러로 전달한다.
     // Route through the global click handler to keep Preview/gates stable.
-    var isPremGateAction = (
+    const isPremGateAction = (
       action === 'gotoNamingPremium'
     );
     if (isPremGateAction && Number(actionEl.getAttribute('data-coin-cost') || 0) > 0) {
@@ -1727,7 +1672,7 @@
 
   function findMobileCardLink(origin) {
     if (!origin || typeof origin.closest !== 'function') return null;
-    var link = origin.closest(
+    const link = origin.closest(
       'a[href].tarot-tile,' +
       'a[href].premium-card,' +
       'a[href].service-card,' +
@@ -1736,7 +1681,7 @@
       'a[href].moon-preview-card'
     );
     if (!link) return null;
-    var href = String(link.getAttribute('href') || '').trim();
+    const href = String(link.getAttribute('href') || '').trim();
     if (!href || href.charAt(0) === '#' || /^javascript:/i.test(href)) return null;
     // 이 링크 탐색은 아래 rule 기반 액션 처리보다 먼저 돈다. 홈의 자미두수·숙요·점성술·타로
     // 진입 카드는 .moon-preview-card 이면서 동시에 제자리 개봉 액션을 들고 있으므로,
@@ -1747,7 +1692,7 @@
 
   function invokeMobileCardLink(link) {
     if (!link) return false;
-    var href = String(link.getAttribute('href') || '').trim();
+    const href = String(link.getAttribute('href') || '').trim();
     if (!href || shouldSkipDuplicateAction('link::' + href)) return false;
     try {
       window.__cdLastMobileAction = {
@@ -1756,7 +1701,7 @@
         sourceType: 'touch',
         at: Date.now()
       };
-    } catch (_) {}
+    } catch {}
     window.location.href = href;
     return true;
   }
@@ -1764,7 +1709,7 @@
   function injectTouchActionStyle() {
     if (document.getElementById('cd-mobile-touch-bridge-style')) return;
 
-    var css = [
+    const css = [
       '.feature-card--face, .feature-card--tazza,',
       '.tarot-tile--healing, .tarot-tile--year, .tarot-tile--love, .tarot-tile--reunion, .tarot-tile--self-esteem, .tarot-tile--animal-totem, .tarot-tile--meditation,',
       '.tarot-tile--dream-tile, .tarot-tile--psycho-freud-tile,',
@@ -1902,7 +1847,7 @@
       '}'
     ].join('\n');
 
-    var style = document.createElement('style');
+    const style = document.createElement('style');
     style.id = 'cd-mobile-touch-bridge-style';
     style.textContent = css;
     document.head.appendChild(style);
@@ -1914,10 +1859,10 @@
     root.addEventListener('click', function (event) {
       if (!shouldEnableMobileInteractionBridge()) return;
       if (!event || event.__cdMobileBridgeHandled || !event.target || !event.target.closest) return;
-      var actionEl = findDataActionElement(event.target);
+      const actionEl = findDataActionElement(event.target);
       if (!actionEl) return;
-      var now = Date.now();
-      var recentScrollGuard = ((now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap())
+      const now = Date.now();
+      const recentScrollGuard = ((now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap())
         && (lastTouchHadMove || cardScrollTouch.moved);
       // 🔴 막기로 판정했으면 실제로 막아야 한다. 예전에는 여기서 그냥 return 해서 클릭이 계속
       // 전파됐고, 아래 bindDirectFeatureCardActions 가 노드에 직접 건 무가드 클릭 핸들러가
@@ -1939,22 +1884,22 @@
   }
 
   function bindDirectFeatureCardActions(root) {
-    var scope = root && root.querySelectorAll ? root : document;
-    var nodes = scope.querySelectorAll('.feature-card-grid [data-action], .moon-collection-nav [data-action]');
+    const scope = root && root.querySelectorAll ? root : document;
+    const nodes = scope.querySelectorAll('.feature-card-grid [data-action], .moon-collection-nav [data-action]');
     nodes.forEach(function(node) {
       if (!node || node.__cdMobileDirectActionBound) return;
-      var action = node.getAttribute('data-action');
+      const action = node.getAttribute('data-action');
       if (!action || action === 'toggleCollection') return;
       if (!FEATURE_ACTION_SET[action] && !isGenericCardActionElement(node)) return;
       node.__cdMobileDirectActionBound = true;
-      var directTouch = null;
+      let directTouch = null;
       node.addEventListener('touchstart', function(event) {
-        var pt = getPoint(event);
+        const pt = getPoint(event);
         directTouch = pt ? { x: pt.x, y: pt.y, moved: false, at: Date.now() } : null;
       }, { passive: true });
       node.addEventListener('touchmove', function(event) {
         if (!directTouch) return;
-        var pt = getPoint(event);
+        const pt = getPoint(event);
         if (!pt) return;
         if (Math.abs(pt.x - directTouch.x) > TAP_MOVE_DETECT_PX || Math.abs(pt.y - directTouch.y) > TAP_MOVE_DETECT_PX) {
           directTouch.moved = true;
@@ -2007,7 +1952,7 @@
     root.__cdTouchBridgeBound = true;
 
     function __cdRafBatch(readPhase, writePhase) {
-      var readResult = null;
+      let readResult = null;
       if (typeof readPhase === 'function') readResult = readPhase();
       requestAnimationFrame(function () {
         if (typeof writePhase === 'function') writePhase(readResult);
@@ -2015,7 +1960,7 @@
     }
 
     root.addEventListener('touchstart', function (event) {
-      var pt = getPoint(event);
+      const pt = getPoint(event);
       if (pt) {
         lastTouchStart = { x: pt.x, y: pt.y, at: Date.now() };
         lastTouchHadMove = false;
@@ -2026,7 +1971,7 @@
         scheduleOverlayLifecycleGuard(260);
       }
       if (!event || !event.target || !event.target.closest) return;
-      var rule = ruleForGestureDown(event);
+      const rule = ruleForGestureDown(event);
       if (!rule) return;
       if (!pt) return;
       /* 🔴 아래 두 줄은 touchstart 고유라 **절대 건너뛰지 않는다.** 이걸 공유 작업으로 묶으면
@@ -2050,10 +1995,10 @@
 
     root.addEventListener('touchmove', function (event) {
       if (!touchCtx) return;
-      var pt = getPoint(event);
+      const pt = getPoint(event);
       if (!pt) return;
-      var dx = Math.abs(pt.x - touchCtx.startX);
-      var dy = Math.abs(pt.y - touchCtx.startY);
+      const dx = Math.abs(pt.x - touchCtx.startX);
+      const dy = Math.abs(pt.y - touchCtx.startY);
       if (dx > touchCtx.maxDx) touchCtx.maxDx = dx;
       if (dy > touchCtx.maxDy) touchCtx.maxDy = dy;
       if (dx > TAP_MOVE_DETECT_PX || dy > TAP_MOVE_DETECT_PX) {
@@ -2071,7 +2016,7 @@
     }, { passive: false, capture: true });
 
     root.addEventListener('touchend', function (event) {
-      var pt = getPoint(event);
+      const pt = getPoint(event);
       if (!pt) return;
 
       // 이 핸들러는 합성 클릭보다 먼저 기능을 연다 — 중재자의 클릭 게이트만으로는 못 막으므로
@@ -2088,7 +2033,7 @@
       }
 
       if (event.target && event.target.closest) {
-        var gateTile = event.target.closest('[data-tile-lock-key],[data-coin-cost]');
+        const gateTile = event.target.closest('[data-tile-lock-key],[data-coin-cost]');
         if (gateTile && !gateTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function' && !shouldSkipTilePreview(gateTile)) {
           try {
             if (window._cdOpenTilePreview(gateTile)) {
@@ -2099,15 +2044,15 @@
               suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
               return;
             }
-          } catch (_) {}
+          } catch {}
         }
       }
 
       if (lastTouchStart) {
-        var directDx = Math.abs(pt.x - lastTouchStart.x);
-        var directDy = Math.abs(pt.y - lastTouchStart.y);
-        var directAge = Date.now() - (lastTouchStart.at || 0);
-        var directLink = findMobileCardLink(event.target);
+        const directDx = Math.abs(pt.x - lastTouchStart.x);
+        const directDy = Math.abs(pt.y - lastTouchStart.y);
+        const directAge = Date.now() - (lastTouchStart.at || 0);
+        const directLink = findMobileCardLink(event.target);
         if (directLink && directDx < TAP_MAX_DX && directDy < TAP_MAX_DY && directAge <= MAX_TAP_DURATION_MS && !lastTouchHadMove && !cardScrollTouch.moved) {
           if (invokeMobileCardLink(directLink)) {
             showTapFeedback(directLink);
@@ -2120,18 +2065,18 @@
         }
       }
 
-      var ctx = touchCtx;
+      const ctx = touchCtx;
       touchCtx = null;
 
       if (ctx) {
-        var dy = Math.abs(pt.y - ctx.startY);
-        var dx = Math.abs(pt.x - ctx.startX);
-        var now = Date.now();
-        var tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
-        var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx * 1.2;
-        var recentScrollGuard = ((now - lastScrollAt) <= SCROLL_BLOCK_MS || shouldBlockCardTap())
+        const dy = Math.abs(pt.y - ctx.startY);
+        const dx = Math.abs(pt.x - ctx.startX);
+        const now = Date.now();
+        const tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
+        const verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx * 1.2;
+        const recentScrollGuard = ((now - lastScrollAt) <= SCROLL_BLOCK_MS || shouldBlockCardTap())
           && (ctx.hadMoveEvent || lastTouchHadMove || cardScrollTouch.moved);
-        var shouldBlockTap = ctx.moved
+        const shouldBlockTap = ctx.moved
           || dx >= TAP_MAX_DX
           || dy >= TAP_MAX_DY
           || verticalDominant
@@ -2139,7 +2084,7 @@
           || recentScrollGuard;
 
         if (!shouldBlockTap) {
-          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
+          const handled = invokeBusinessAction(ctx.rule, ctx.target, event);
           if (handled) {
             scheduleOverlayLifecycleGuard(360);
             event.preventDefault();
@@ -2158,26 +2103,26 @@
         return;
       }
       if (lastTouchStart) {
-        var touchAge = Date.now() - (lastTouchStart.at || 0);
+        const touchAge = Date.now() - (lastTouchStart.at || 0);
         if (touchAge > MAX_TAP_DURATION_MS) {
           suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
           return;
         }
-        var dx = Math.abs(pt.x - lastTouchStart.x);
-        var dy = Math.abs(pt.y - lastTouchStart.y);
+        const dx = Math.abs(pt.x - lastTouchStart.x);
+        const dy = Math.abs(pt.y - lastTouchStart.y);
         if (dx < TAP_MAX_DX && dy < TAP_MAX_DY && dy < TAP_VERTICAL_BLOCK_PX) {
           if ((Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) && lastTouchHadMove) {
             suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
             return;
           }
           __cdRafBatch(function () {
-            var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var actionFromTarget = findDataActionElement(event.target);
-            var actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var actionFromPoint = findDataActionElement(actionFromPointEl);
-            var linkFromTarget = findMobileCardLink(event.target);
-            var linkFromPoint = findMobileCardLink(actionFromPointEl);
-            var elAtPoint = actionFromPointEl || document.body;
+            const ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
+            const actionFromTarget = findDataActionElement(event.target);
+            const actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
+            const actionFromPoint = findDataActionElement(actionFromPointEl);
+            const linkFromTarget = findMobileCardLink(event.target);
+            const linkFromPoint = findMobileCardLink(actionFromPointEl);
+            const elAtPoint = actionFromPointEl || document.body;
             return {
               ruleFromPoint: ruleFromPoint,
               actionEl: actionFromTarget || actionFromPoint,
@@ -2187,7 +2132,7 @@
           }, function (state) {
             if (!state) return;
             if (state.ruleFromPoint) {
-              var handledRule = invokeBusinessAction(state.ruleFromPoint, state.elAtPoint, event);
+              const handledRule = invokeBusinessAction(state.ruleFromPoint, state.elAtPoint, event);
               if (handledRule) {
                 scheduleOverlayLifecycleGuard(360);
                 event.preventDefault();
@@ -2218,7 +2163,7 @@
     /* pointer event callback: allow pointer input on touch browsers too. */
     root.addEventListener('pointerdown', function (event) {
       if (event.pointerType !== 'touch') return;
-      var pt = getPoint(event);
+      const pt = getPoint(event);
       if (pt) {
         lastTouchStart = { x: pt.x, y: pt.y, at: Date.now() };
         lastTouchHadMove = false;
@@ -2229,7 +2174,7 @@
         scheduleOverlayLifecycleGuard(260);
       }
       if (!event || !event.target || !event.target.closest) return;
-      var rule = ruleForGestureDown(event);
+      const rule = ruleForGestureDown(event);
       if (!rule) return;
       if (!pt) return;
       touchCtx = {
@@ -2247,10 +2192,10 @@
 
     root.addEventListener('pointermove', function (event) {
       if (event.pointerType !== 'touch' || !touchCtx) return;
-      var pt = getPoint(event);
+      const pt = getPoint(event);
       if (!pt) return;
-      var dx = Math.abs(pt.x - touchCtx.startX);
-      var dy = Math.abs(pt.y - touchCtx.startY);
+      const dx = Math.abs(pt.x - touchCtx.startX);
+      const dy = Math.abs(pt.y - touchCtx.startY);
       if (dx > touchCtx.maxDx) touchCtx.maxDx = dx;
       if (dy > touchCtx.maxDy) touchCtx.maxDy = dy;
       if (dx > TAP_MOVE_DETECT_PX || dy > TAP_MOVE_DETECT_PX) {
@@ -2265,7 +2210,7 @@
 
     root.addEventListener('pointerup', function (event) {
       if (event.pointerType !== 'touch') return;
-      var pt = getPoint(event);
+      const pt = getPoint(event);
       if (!pt) return;
       if (gestureBlocksActivation()) {
         touchCtx = null;
@@ -2277,7 +2222,7 @@
         return;
       }
       if (event.target && event.target.closest) {
-        var gateTile2 = event.target.closest('[data-tile-lock-key],[data-coin-cost]');
+        const gateTile2 = event.target.closest('[data-tile-lock-key],[data-coin-cost]');
         if (gateTile2 && !gateTile2.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function' && !shouldSkipTilePreview(gateTile2)) {
           try {
             if (window._cdOpenTilePreview(gateTile2)) {
@@ -2288,14 +2233,14 @@
               suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
               return;
             }
-          } catch (_) {}
+          } catch {}
         }
       }
       if (lastTouchStart) {
-        var directDx2 = Math.abs(pt.x - lastTouchStart.x);
-        var directDy2 = Math.abs(pt.y - lastTouchStart.y);
-        var directAge2 = Date.now() - (lastTouchStart.at || 0);
-        var directLink2 = findMobileCardLink(event.target);
+        const directDx2 = Math.abs(pt.x - lastTouchStart.x);
+        const directDy2 = Math.abs(pt.y - lastTouchStart.y);
+        const directAge2 = Date.now() - (lastTouchStart.at || 0);
+        const directLink2 = findMobileCardLink(event.target);
         if (directLink2 && directDx2 < TAP_MAX_DX && directDy2 < TAP_MAX_DY && directAge2 <= MAX_TAP_DURATION_MS && !lastTouchHadMove && !cardScrollTouch.moved) {
           if (invokeMobileCardLink(directLink2)) {
             showTapFeedback(directLink2);
@@ -2307,24 +2252,24 @@
           }
         }
       }
-      var ctx = touchCtx;
+      const ctx = touchCtx;
       touchCtx = null;
       if (ctx) {
-        var dy = Math.abs(pt.y - ctx.startY);
-        var dx = Math.abs(pt.x - ctx.startX);
-        var now = Date.now();
-        var tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
-        var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx * 1.2;
-        var recentScrollGuard = (now - lastScrollAt) <= SCROLL_BLOCK_MS
+        const dy = Math.abs(pt.y - ctx.startY);
+        const dx = Math.abs(pt.x - ctx.startX);
+        const now = Date.now();
+        const tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
+        const verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx * 1.2;
+        const recentScrollGuard = (now - lastScrollAt) <= SCROLL_BLOCK_MS
           && (ctx.hadMoveEvent || lastTouchHadMove);
-        var shouldBlockTap = ctx.moved
+        const shouldBlockTap = ctx.moved
           || dx >= TAP_MAX_DX
           || dy >= TAP_MAX_DY
           || verticalDominant
           || tapDuration > MAX_TAP_DURATION_MS
           || recentScrollGuard;
         if (!shouldBlockTap) {
-          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
+          const handled = invokeBusinessAction(ctx.rule, ctx.target, event);
           if (handled) {
             scheduleOverlayLifecycleGuard(360);
             event.preventDefault();
@@ -2341,26 +2286,26 @@
         return;
       }
       if (lastTouchStart) {
-        var touchAge = Date.now() - (lastTouchStart.at || 0);
+        const touchAge = Date.now() - (lastTouchStart.at || 0);
         if (touchAge > MAX_TAP_DURATION_MS) {
           suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
           return;
         }
-        var dx = Math.abs(pt.x - lastTouchStart.x);
-        var dy = Math.abs(pt.y - lastTouchStart.y);
+        const dx = Math.abs(pt.x - lastTouchStart.x);
+        const dy = Math.abs(pt.y - lastTouchStart.y);
         if (dx < TAP_MAX_DX && dy < TAP_MAX_DY && dy < TAP_VERTICAL_BLOCK_PX) {
           if ((Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) && lastTouchHadMove) {
             suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
             return;
           }
           __cdRafBatch(function () {
-            var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var actionFromTarget = findDataActionElement(event.target);
-            var actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var actionFromPoint = findDataActionElement(actionFromPointEl);
-            var linkFromTarget = findMobileCardLink(event.target);
-            var linkFromPoint = findMobileCardLink(actionFromPointEl);
-            var elAtPoint = actionFromPointEl || document.body;
+            const ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
+            const actionFromTarget = findDataActionElement(event.target);
+            const actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
+            const actionFromPoint = findDataActionElement(actionFromPointEl);
+            const linkFromTarget = findMobileCardLink(event.target);
+            const linkFromPoint = findMobileCardLink(actionFromPointEl);
+            const elAtPoint = actionFromPointEl || document.body;
             return {
               ruleFromPoint: ruleFromPoint,
               actionEl: actionFromTarget || actionFromPoint,
@@ -2370,7 +2315,7 @@
           }, function (state) {
             if (!state) return;
             if (state.ruleFromPoint) {
-              var handledRule = invokeBusinessAction(state.ruleFromPoint, state.elAtPoint, event);
+              const handledRule = invokeBusinessAction(state.ruleFromPoint, state.elAtPoint, event);
               if (handledRule) {
                 scheduleOverlayLifecycleGuard(360);
                 event.preventDefault();
@@ -2413,12 +2358,12 @@
         suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
         return;
       }
-      var rule = findRuleFromTarget(event.target);
+      const rule = findRuleFromTarget(event.target);
       if (!rule) return;
 
       // Scroll/touch ghost click suppression must only apply to bridge-managed rules.
-      var now = Date.now();
-      var recentScrollGuard = ((now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap())
+      const now = Date.now();
+      const recentScrollGuard = ((now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap())
         && (lastTouchHadMove || cardScrollTouch.moved);
       // 🔴 상세 팝업 CTA 가 쏘는 합성 클릭은 고스트 클릭이 아니다 — 예외로 둔다.
       // _onCta 는 타일에 data-pvw-cta-bypass 를 달고 즉시 tile.click() 하는데, 바로 직전
@@ -2434,7 +2379,7 @@
         return;
       }
 
-      var handled = invokeBusinessAction(rule, event.target, event);
+      const handled = invokeBusinessAction(rule, event.target, event);
       if (!handled) return;
 
       event.__cdMobileBridgeHandled = true;
@@ -2453,22 +2398,22 @@
     if (!shouldEnableMobileInteractionBridge()) return;
 
     (function syncViewportHeight() {
-      var root = document.documentElement;
+      const root = document.documentElement;
       if (!root) return;
       /* 🔴 값이 바뀔 때만 쓴다. `--cd-safe-vh` 는 :root 커스텀 프로퍼티라 **쓸 때마다 문서 전체
          스타일이 무효화**되는데, 아래에서 visualViewport 의 **scroll** 에도 물려 있어 스크롤
          한 번마다 같은 값을 다시 쓰고 있었다. 스크롤 직후의 탭이 필드 INP 상위 3건의 상황이라
          정확히 그 자리에서 다음 탭의 입력 대기를 늘리고 있었다. */
-      var lastSafeVh = '';
+      let lastSafeVh = '';
       function update() {
-        var h = 0;
+        let h = 0;
         if (window.visualViewport && Number(window.visualViewport.height) > 0) {
           h = window.visualViewport.height;
         } else if (Number(window.innerHeight) > 0) {
           h = window.innerHeight;
         }
         if (h <= 0) return;
-        var next = h + 'px';
+        const next = h + 'px';
         if (next === lastSafeVh) return;
         lastSafeVh = next;
         root.style.setProperty('--cd-safe-vh', next);
@@ -2482,8 +2427,8 @@
          맡긴다(그때는 레이아웃이 이미 깨끗해 flush 가 싸다).
          🔴 dvh 미지원 브라우저는 폴백이 100vh 라 주소창·키보드 높이를 못 맞추므로
          종전대로 즉시 읽는다. */
-      var hasDvh = false;
-      try { hasDvh = !!(window.CSS && window.CSS.supports && window.CSS.supports('height', '100dvh')); } catch (_) {}
+      let hasDvh = false;
+      try { hasDvh = !!(window.CSS && window.CSS.supports && window.CSS.supports('height', '100dvh')); } catch {}
       if (!hasDvh) update();
       window.addEventListener('resize', update, { passive: true });
       window.addEventListener('orientationchange', update, { passive: true });
@@ -2503,7 +2448,7 @@
     }, { passive: true });
 
     // 메인 화면 컬렉션 스크롤 감지 - 프리미엄, 동물&관상, 명상 컬렉션
-    var collectionSelectors = [
+    const collectionSelectors = [
       '#premiumVvipCollection',
       '#animalCollection',
       '#meditationCollection',
@@ -2523,7 +2468,7 @@
 
     function setupCollectionScrollListeners() {
       collectionSelectors.forEach(function(selector) {
-        var containers = document.querySelectorAll(selector);
+        const containers = document.querySelectorAll(selector);
         containers.forEach(function(container) {
           if (container && !container.__cdScrollBound) {
             container.__cdScrollBound = true;
@@ -2536,7 +2481,7 @@
       });
 
       // 메인 fg-group 섹션들의 스크롤 가능한 부모도 감지
-      var scrollableParents = document.querySelectorAll('.fg-group, .tarot-collection, .feat-collection, .feature-card-grid, .feat-collection__grid, .tarot-collection__grid');
+      const scrollableParents = document.querySelectorAll('.fg-group, .tarot-collection, .feat-collection, .feature-card-grid, .feat-collection__grid, .tarot-collection__grid');
       scrollableParents.forEach(function(parent) {
         if (parent && !parent.__cdScrollBound) {
           parent.__cdScrollBound = true;
@@ -2556,8 +2501,8 @@
     //    첫 로드의 카드 마운트 구간에서만 수십 번 반복돼 메인 스레드를 붙든다. 결과가 멱등이고
     //    (이미 바인딩된 노드는 __cdScrollBound 로 건너뛴다) 몇십 ms 늦어도 무해하므로 디바운스한다.
     setupCollectionScrollListeners();
-    var scrollSetupTimer = 0;
-    var scrollObserver = new MutationObserver(function() {
+    let scrollSetupTimer = 0;
+    const scrollObserver = new MutationObserver(function() {
       if (scrollSetupTimer) return;
       scrollSetupTimer = window.setTimeout(function() {
         scrollSetupTimer = 0;
@@ -2570,7 +2515,7 @@
     try { createBulletproofDelegator(document); } catch (err) { console.error('[mobile-interaction-patch] touch bridge bind failed:', err); }
     bindMobileDataActionFallback(document);
     bindDirectFeatureCardActions(document);
-    try { window.__cdMobileTouchBridgeReady = !!document.__cdTouchBridgeBound; } catch (_) {}
+    try { window.__cdMobileTouchBridgeReady = !!document.__cdTouchBridgeBound; } catch {}
     reconcileOverlayLifecycle();
     window.addEventListener('pageshow', function() { scheduleOverlayLifecycleGuard(40); }, { passive: true });
     window.addEventListener('pagehide', function() { clearTapFeedback(); scheduleOverlayLifecycleGuard(40); }, { passive: true });
@@ -2581,6 +2526,14 @@
       clearTapFeedback();
       scheduleOverlayLifecycleGuard(40);
     }, { passive: true });
+
+    // 뒤로가기 런타임을 첫 data-action 까지 미루면, 그 전에 연 미리보기·결제창·시트에서 뒤로가기가
+    // 곧바로 사이트 이탈이 된다. 부팅 직후 무거운 구간은 피해 유휴 시간에 싣는다.
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(ensureMobileBackstackRuntime, { timeout: 2000 });
+    } else {
+      window.setTimeout(ensureMobileBackstackRuntime, 600);
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -2596,9 +2549,9 @@
 
   // 기본 베다점 기능 - 프로필 데이터 전달 및 페이지 이동
   window.navigateToVedic = function(profileArg) {
-    var loadToken = beginFeatureLoading('navigateToVedic', { minMs: 650, maxMs: 9000 });
+    const loadToken = beginFeatureLoading('navigateToVedic', { minMs: 650, maxMs: 9000 });
     try {
-      var profile = profileArg || null;
+      let profile = profileArg || null;
       // 프로필이 없으면 저장소에서 읽기 시도
       if (!profile && typeof window._readProfileFromStorage === 'function') {
         profile = window._readProfileFromStorage();
@@ -2606,26 +2559,26 @@
       // 정본 프로필 카드 브리지 우선 확인
       if (!profile && typeof window.__cdGetCurrentDestinyProfile === 'function') {
         try {
-          var bridged = window.__cdGetCurrentDestinyProfile();
+          const bridged = window.__cdGetCurrentDestinyProfile();
           if (bridged && bridged.birth) profile = bridged;
-        } catch (_) {}
+        } catch {}
       }
       if (!profile && typeof localStorage !== 'undefined') {
         try {
-          var canonical = JSON.parse(localStorage.getItem('FORTUNE_APP_USER_PROFILE') || 'null');
+          const canonical = JSON.parse(localStorage.getItem('FORTUNE_APP_USER_PROFILE') || 'null');
           if (canonical && canonical.birth) profile = canonical;
-        } catch (_) {}
+        } catch {}
       }
       // localStorage에서도 확인
       if (!profile && typeof localStorage !== 'undefined') {
         try {
-          var saved = localStorage.getItem('FORTUNE_PROFILE_DATA');
+          const saved = localStorage.getItem('FORTUNE_PROFILE_DATA');
           if (saved) profile = JSON.parse(saved);
-        } catch (_) {}
+        } catch {}
       }
       // 프로필이 있으면 Vedic 페이지로 전달할 형식으로 저장
       if (profile && profile.birth) {
-        var vedicPayload = {
+        const vedicPayload = {
           id: profile.id || 'profile',
           name: profile.name || '',
           gender: profile.gender || 'M',
@@ -2652,7 +2605,7 @@
           sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(vedicPayload));
         }
         // URL 파라미터로도 전달 (백업)
-        var vp = encodeURIComponent(JSON.stringify(vedicPayload));
+        const vp = encodeURIComponent(JSON.stringify(vedicPayload));
         window.location.href = '/vedic-astrology.html?vp=' + vp;
         return;
       }

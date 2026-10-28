@@ -1,0 +1,128 @@
+{
+  "id": "astro-stellar-growth",
+  "featureKey": "astro_stellar_growth_room",
+  "title": "봉인된 별의 방 · 과제와 변화",
+  "notice": "토성·명왕성·해왕성의 배치에서 반복되는 책임·통제·이상화와 경계를 읽는 개인 출생차트의 개별 해금 항목입니다. 아홉 문단의 해석과 회복·경계·관찰 포인트를 제공합니다. 명왕성은 세대 행성이므로 별자리 하나로 개인의 운명을 단정하지 않습니다. 출생시간·지역이 하우스 해석에 영향을 줍니다. 심리 진단·치료 또는 불행의 예고가 아닙니다. 예시는 가상 편집이며 기존 가격과 해금 정책을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-boundary-for-kindness",
+      "title": "돌봐야 할 마음 사이에, 내 자리가 사라졌다면.",
+      "alt": "돌봐야 할 마음 사이에, 내 자리가 사라졌다면.",
+      "src": "/feature-details/crafted/astro-stellar-growth/01-a-boundary-for-kindness.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "돌봐야 할 마음 사이에,\n내 자리가 사라졌다면.\n\n책임과 연민, 통제와 불안을 나누어\n나를 지키는 선택을 살펴보세요.\n\n봉인된 별의 방 · 과제와 변화",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-stellar-growth/01-a-boundary-for-kindness-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-saturn-makes-structure",
+      "title": "좋은 사람이 되려다, 모든 일을 맡고 있나요?",
+      "alt": "좋은 사람이 되려다, 모든 일을 맡고 있나요?",
+      "src": "/feature-details/crafted/astro-stellar-growth/02-saturn-makes-structure.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "좋은 사람이 되려다,\n모든 일을 맡고 있나요?\n토성의 문턱\n\n오래 버티며 배우는 영역과\n반복되는 책임을 읽어요.\n\n토성이 주는 훈련\n\n일정·역할·마감처럼\n확인할 수 있는 기준을 세워요.\n\n더 참으라는 말보다,\n지킬 수 있는 구조를 생각해보세요.\n\n상황을 돕기 위한 가상 질문입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-stellar-growth/02-saturn-makes-structure-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-pluto-and-control",
+      "title": "놓기 어려운 이유를, 차분히 들여다봐요.",
+      "alt": "놓기 어려운 이유를, 차분히 들여다봐요.",
+      "src": "/feature-details/crafted/astro-stellar-growth/03-pluto-and-control.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "놓기 어려운 이유를,\n차분히 들여다봐요.\n명왕성의 깊은 전환\n\n무엇을 잃을까 두려운지,\n어떤 방식을 붙잡고 있는지 살펴요.\n\n해석의 주의점\n\n명왕성은 세대 행성이에요.\n별자리 하나로 나를 단정하지 않아요.\n\n하우스와 개인적인 근거를 함께 읽어요.\n힘든 사건이 일어난다는 예고로 쓰지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-stellar-growth/03-pluto-and-control-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-neptune-and-boundaries",
+      "title": "다정한 마음에도, 분명한 약속이 필요해요.",
+      "alt": "다정한 마음에도, 분명한 약속이 필요해요.",
+      "src": "/feature-details/crafted/astro-stellar-growth/04-neptune-and-boundaries.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다정한 마음에도,\n분명한 약속이 필요해요.\n해왕성의 안개\n\n영감과 이상화가 닿는 영역,\n경계가 흐려지는 지점을 살펴요.\n\n현실로 돌아오는 의식\n\n지킬 약속과 쉬어야 할 시간처럼\n손에 잡히는 조건을 확인해요.\n\n연민을 느끼는 것과\n모든 책임을 맡는 것을 구분해보세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-stellar-growth/04-neptune-and-boundaries-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-nine-paragraphs",
+      "title": "반복되는 과제에서, 관찰과 실천까지.",
+      "alt": "반복되는 과제에서, 관찰과 실천까지.",
+      "src": "/feature-details/crafted/astro-stellar-growth/05-nine-paragraphs.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "반복되는 과제에서,\n관찰과 실천까지.\n해석 1–3 · 책임의 구조\n\n첫 문장 · 토성의 문턱\n토성이 주는 훈련\n\n해석 4–6 · 변화와 경계\n\n명왕성의 전환 · 해석의 주의점\n해왕성의 안개\n\n해석 7–9 · 현실의 선택\n\n현실로 돌아오는 의식\n세 별의 연결 · 종합 처방\n\n본문의 아홉 문단을 묶어 안내한 목차예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-stellar-growth/05-nine-paragraphs-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-fifteen-minutes",
+      "title": "바꾸겠다는 다짐 전에, 한 장면을 기록해요.",
+      "alt": "바꾸겠다는 다짐 전에, 한 장면을 기록해요.",
+      "src": "/feature-details/crafted/astro-stellar-growth/06-fifteen-minutes.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "바꾸겠다는 다짐 전에,\n한 장면을 기록해요.\n언제 반복됐나요?\n\n같은 부담이 생긴 순간을 적어요.\n\n무엇을 붙잡았나요?\n\n통제하려던 것과 기대를 나눠봐요.\n\n무엇을 확인할까요?\n\n약속·일정·역할 중\n분명히 할 조건 하나를 찾아요.\n\n본문의 15분 관찰 제안을 풀어 쓴 안내예요.\n감정을 진단하거나 치료하는 검사는 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-stellar-growth/06-fifteen-minutes-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-fictional-help",
+      "title": "도움을 주는 마음과, 맡을 수 있는 범위를.",
+      "alt": "도움을 주는 마음과, 맡을 수 있는 범위를.",
+      "src": "/feature-details/crafted/astro-stellar-growth/07-fictional-help.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "도움을 주는 마음과,\n맡을 수 있는 범위를.\n\n가상 편집 예시 · 실제 개인 결과가 아닙니다\n\n“힘든 이야기를 듣고 나면\n끝까지 해결해줘야 할 것 같을 수 있어요.\n오늘 들어줄 수 있는 시간과\n직접 맡을 수 없는 일을 구분해보세요.\n선을 긋는 말에도\n상대를 아끼는 마음은 담을 수 있어요.”",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-stellar-growth/07-fictional-help-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-return-to-yourself",
+      "title": "지친 나를 탓하지 않고, 다음 반응을 골라봐요.",
+      "alt": "지친 나를 탓하지 않고, 다음 반응을 골라봐요.",
+      "src": "/feature-details/crafted/astro-stellar-growth/08-return-to-yourself.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "지친 나를 탓하지 않고,\n다음 반응을 골라봐요.\n\n출생시간·지역을 확인한 뒤\n반복되는 생활 장면과 함께 읽어보세요.\n\n회복·경계·주의할 패턴을 함께 정리해요.\n기본 패키지와 다른 별의 방은 별도예요.\n현재 화면의 개별 해금 조건을 따릅니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-stellar-growth/08-return-to-yourself-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

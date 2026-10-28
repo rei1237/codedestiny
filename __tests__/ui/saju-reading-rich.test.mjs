@@ -12,6 +12,37 @@ const context=vm.createContext({});
 vm.runInContext(tables+tenGod+readFileSync('js/core/saju/reading-rich.js','utf8'),context);
 const rich=context.SajuReadingRich;
 
+test('delivered summary art preserves chapters and stays unique on repeat decoration', async()=>{
+  const {JSDOM}=await import('jsdom');
+  const {buildSajuSectionHtml}=await import('../../worker/lib/saju-section/report.js');
+  const {html}=buildSajuSectionHtml({featureKey:'section_summary',birth:{calendarDate:'1990-05-15',calType:'solar',hour:14,minute:30,timeKnown:true},gender:'M',name:'검증',mode:'pig',lang:'ko'});
+  const dom=new JSDOM('<div id="host">'+html+'</div>',{runScripts:'outside-only'});
+  dom.window.eval(readFileSync('js/core/saju/reading-rich.js','utf8'));
+  const host=dom.window.document.getElementById('host');
+  const chapters=[...host.querySelectorAll('.saju-summary-chapter')].map(node=>node.outerHTML);
+  const pillars={d:{g:'甲'},m:{j:'巳'}};
+  const decorate=()=>dom.window.SajuReadingRich.decorateDelivered(host,null,pillars);
+  decorate(); decorate();
+  assert.equal(host.querySelectorAll('.saju-nature-cover').length,0);
+  assert.equal(host.querySelectorAll('[data-summary-art]').length,chapters.length);
+  for (const chapter of host.querySelectorAll('.saju-summary-chapter')) {
+    const art=chapter.querySelector('.saju-summary-chapter__body > [data-summary-art]');
+    assert.ok(art,chapter.id+' must own its illustration inside the collapsible body');
+    assert.equal(art.dataset.summaryArt,chapter.id.replace('sajuSummaryChapter-',''));
+    for (const image of art.querySelectorAll('img')) {
+      assert.ok(readFileSync('public'+image.getAttribute('src')).length>0);
+      assert.equal(image.getAttribute('loading'),'lazy');
+      assert.ok(image.getAttribute('alt'));
+    }
+  }
+  assert.match(host.querySelector('[data-summary-art="johu"] img').src,/summer-960/);
+  assert.deepEqual([...host.querySelectorAll('.saju-summary-chapter')].map(node=>{const clone=node.cloneNode(true);clone.querySelectorAll('[data-summary-art]').forEach(art=>art.remove());return clone.outerHTML;}),chapters);
+  host.innerHTML='<div data-cd-summary-fallback="1">불러오는 중</div>';
+  decorate();
+  assert.equal(host.querySelectorAll('img').length,0);
+  dom.window.close();
+});
+
 const stems=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], branches=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
 let seed=7;const next=n=>(seed=(seed*1103515245+12345)%2147483648)%n;
 const pillar=()=>({g:stems[next(10)],j:branches[next(12)]});
@@ -49,7 +80,7 @@ test('both personas draw the same numbers in different words, with the old key i
     assert.deepEqual(pos(yeon),pos(neo));
     assert.notEqual(yeon.replace(/<[^>]+>/g,''),neo.replace(/<[^>]+>/g,''));
     assert.match(yeon,/data-reading-mode="pig"/);assert.match(neo,/data-reading-mode="neo"/);
-    assert.doesNotMatch(yeon+neo,/냥|돼지/);
+    assert.doesNotMatch(yeon,/냥|돼지/);assert.doesNotMatch(neo,/돼지|사자|갈기/);
   }
   const climate=rich.climate(facts,'pig');
   for(const item of ['한난조습이란 무엇인가요?','조후 밸런스 처방','개선법','조후 용신과 억부 용신'])assert.ok(climate.includes(item),item);
@@ -57,12 +88,12 @@ test('both personas draw the same numbers in different words, with the old key i
   for(const item of ['용신','희신','기신','왜 신','대운 방향 한눈에','득령','억부(抑扶)란 무엇인가요?'])assert.ok(strength.includes(item),item);
 });
 
-test('a jong chart is read by its dominant force, and engine strings are escaped',()=>{
+test('a jong chart is read by its dominant force, and a leftover survey note is not shown',()=>{
   const p=charts[5];
   const jong={isJong:true,name:'종재격',dominant:'earth',pct:72,isGaJong:true,verifiedText:'<img src=x onerror=alert(1)>'};
   const html=rich.strength(factsOf(p,{jong}),'pig');
   assert.match(html,/종격\(從格\)이란/);assert.match(html,/종재격\(從財格\)/);assert.match(html,/가종격/);
-  assert.doesNotMatch(html,/<img/);assert.match(html,/&lt;img/);
+  assert.doesNotMatch(html,/<img|&lt;img|경험과 견주어/);
 });
 
 test('unknown birth time marks the hour rows and keeps the warning',()=>{
@@ -99,9 +130,9 @@ test('ten gods: the distribution agrees with the card counts, and the modal read
     for(const g of Object.keys(ten)){
       const yeon=rich.godDetail(g,facts,'pig'),neo=rich.godDetail(g,facts,'neo');
       assert.match(yeon,/연이의 조언/);assert.match(yeon,/일과 적성/);assert.match(yeon,/당신 원국에서의 자리/);
-      assert.match(neo,/네오의 진단/);assert.match(neo,/행동 기준/);
+      assert.match(neo,/영냥이의 진단/);assert.match(neo,/영냥이의 조언/);
       assert.equal((yeon.match(/<section/g)||[]).length,(neo.match(/<section/g)||[]).length);
-      assert.doesNotMatch(yeon+neo,/냥|돼지/);
+      assert.doesNotMatch(yeon,/냥|돼지/);assert.doesNotMatch(neo,/돼지|사자|갈기/);
     }
   }
   assert.equal(rich.godDetail('없는십성',factsOf(charts[0]),'pig'),'');
@@ -125,10 +156,10 @@ test('ilju: the four-pillar table reads hidden stems and twelve stages from the 
       assert.ok(yeon.includes('<td data-label="12운성" role="cell">'+context.cdTwelveStage(p.d.g,j)+'</td>'),key+j);
     }
     for(const b of context.cdGongMangBranches(p.d.g,p.d.j))assert.ok(yeon.includes(b));
-    assert.match(yeon,/연이의 한마디/);assert.match(neo,/네오의 한 줄 정리/);
+    assert.match(yeon,/연이의 한마디/);assert.match(neo,/영냥이의 한 줄 정리/);
     assert.equal((yeon.match(/<section/g)||[]).length,(neo.match(/<section/g)||[]).length);
     assert.notEqual(yeon.replace(/<[^>]+>/g,''),neo.replace(/<[^>]+>/g,''));
-    assert.doesNotMatch(yeon+neo,/냥|돼지/);
+    assert.doesNotMatch(yeon,/냥|돼지/);assert.doesNotMatch(neo,/돼지|사자|갈기/);
   }
 });
 
@@ -152,7 +183,7 @@ test('flow: the current cycle and year cards show the engine score, ten gods and
   assert.ok(yeon.includes('<td data-label="십성" role="cell">'+context.getTenGod(dg,'甲')+'</td>'));
   assert.ok(yeon.includes('<td data-label="12운성" role="cell">'+context.cdTwelveStage(dg,'午')+'</td>'));
   assert.match(yeon,/31~40세/);assert.match(yeon,/2026년/);assert.match(yeon,/지충\(地支\)/);
-  assert.match(yeon,/<b>대인관계<\/b><span>r<\/span>/);assert.match(yeon,/여기까지는 무료/);
+  assert.match(yeon,/<b>대인관계<\/b><span>r<\/span>/);assert.match(yeon,/아래 대운표에서 시기를 선택/);assert.doesNotMatch(yeon,/여기까지는 기본 해설|무료/);assert.match(yeon,/찻집 AI 상담은 별도 서비스/);
   assert.doesNotMatch(yeon+neo,/🌟|⚠️|🙂|냥|돼지/);
   assert.match(neo,/평가 근거: 충의 부담 · 평운\./);assert.match(neo,/평가 근거: 식상\./);assert.doesNotMatch(yeon+neo,/\[충의|엔진/);
   assert.notEqual(yeon.replace(/<[^>]+>/g,''),neo.replace(/<[^>]+>/g,''));
@@ -160,7 +191,7 @@ test('flow: the current cycle and year cards show the engine score, ten gods and
   delete context.GAEUN_DB;
 });
 
-test('flow: the neo voice reads NEO_GAEUN_DB, and every neo sentence there ends politely',()=>{
+test('flow: the neo voice reads NEO_GAEUN_DB, and every neo sentence there is 영냥이 반말',()=>{
   const p=charts[2],row={kind:'year',g:'乙',j:'巳',score:70,summary:'',year:2026,relations:[]};
   const tile=(db,mode)=>{
     Object.assign(context,db);
@@ -174,7 +205,7 @@ test('flow: the neo voice reads NEO_GAEUN_DB, and every neo sentence there ends 
   const neoDb=vm.runInNewContext('('+engine.slice(start+'var NEO_GAEUN_DB='.length,end+2)+')');
   const sentences=Object.values(neoDb).flatMap(e=>Object.values(e).flatMap(g=>Object.values(g))).flatMap(t=>t.match(/[^.]+\./g));
   assert.equal(sentences.length,120);
-  for(const s of sentences)assert.match(s,/(니다|세요|마세요)\.$/,s);
+  for(const s of sentences)assert.doesNotMatch(s,/(요|니다|세요)\.$/,s);
 });
 
 test('flow: the tone paragraph follows the score band and appears once when both rows share it',()=>{
@@ -186,7 +217,7 @@ test('flow: the tone paragraph follows the score band and appears once when both
   assert.match(rich.flow(factsOf(p,{flow:[row('period',50)]}),'pig'),/보통의 흐름으로 읽혀요/);
   for(const mode of ['pig','neo']){
     const both=rich.flow(factsOf(p,{flow:[row('period',10),row('year',30)]}),mode);
-    assert.equal(both.split(mode==='neo'?'평가상 조율 구간입니다':'조율이 필요한 쪽으로 읽혀요').length-1,1,mode);
+    assert.equal(both.split(mode==='neo'?'평가상 조율 구간이야':'조율이 필요한 쪽으로 읽혀요').length-1,1,mode);
   }
 });
 
@@ -201,7 +232,7 @@ test('daily: the energy gauge, ten-god advice and lucky booster come from the en
   assert.match(yeon,/<b>식신<\/b>/);assert.match(yeon,/<b>정관<\/b>/);
   assert.match(yeon,/그린 스카프/);assert.match(yeon,/리넨·코튼/);assert.match(neo,/이달의 월운/);
   assert.match(yeon,/&lt;b&gt;속도 조절/);
-  assert.doesNotMatch(yeon+neo,/🛡️|💢|냥|돼지|금지|해라/);
+  assert.doesNotMatch(yeon,/🛡️|💢|냥|돼지|금지|해라/);assert.doesNotMatch(neo,/🛡️|💢|돼지|사자|금지|해라/);
   assert.equal((yeon.match(/<section/g)||[]).length,(neo.match(/<section/g)||[]).length);
   assert.equal(rich.daily({gz:{g:'丙',j:'子'}},0,factsOf(p),'pig'),'');
 });
@@ -219,4 +250,26 @@ test('climate base follows the month branch (12 steps) and the worker policy cop
     const w=policyJohu({year:toPolicy(q.y),month:toPolicy(q.m),day:toPolicy(q.d),hour:toPolicy(q.h)});
     assert.equal(w.score,analyzeJohu(q).score,b);
   }
+});
+
+test('nature imagery follows calculated stem and solar month, independent of narrator',()=>{
+  // ilju 의 여덟 관점은 reading-depth 가 있어야 나온다. 다른 테스트에 영향이 없도록 별도 컨텍스트에서 읽는다.
+  const withDepth=vm.createContext({});
+  vm.runInContext(tables+tenGod+readFileSync('js/core/saju/reading-depth.generated.js','utf8')+readFileSync('js/core/saju/reading-rich.js','utf8'),withDepth);
+  const rich=withDepth.SajuReadingRich,facts=factsOf(charts[3]);
+  const count=(html,re)=>(html.match(re)||[]).length;
+  const art=/<figure class="saju-nature"/g;
+  const ilju={pig:rich.ilju(facts,'pig'),neo:rich.ilju(facts,'neo')},climate={pig:rich.climate(facts,'pig'),neo:rich.climate(facts,'neo')};
+  assert.equal(count(ilju.pig,art),2);assert.equal(count(climate.pig,art),1);
+  assert.deepEqual(ilju.pig.match(/src="[^"]+"/g),ilju.neo.match(/src="[^"]+"/g));
+  assert.doesNotMatch(ilju.pig+ilju.neo,/persona\/yeoni|yeongnyangi-.*webp/);
+  const names=['gap','eul','byeong','jeong','mu','gi','gyeong','sin','im','gye'];
+  stems.forEach((stem,i)=>{
+    const html=rich.ilju(factsOf({...charts[3],d:{g:stem,j:'子'},m:{g:'甲',j:'酉'}}),'pig');
+    assert.ok(html.includes('/nature/'+names[i]+'-960.webp'));
+    assert.match(html,/autumn-960.webp/);
+    for(const width of [480,960])assert.ok(readFileSync('public/images/saju/nature/'+names[i]+'-'+width+'.webp').length>0);
+  });
+  assert.equal(rich.stemArt('unknown'),'');
+  assert.equal(rich.seasonArt('unknown'),'');
 });

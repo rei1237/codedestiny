@@ -63,6 +63,11 @@ export function sanitizeTeaHouseConsultResult(result: FortuneTeaHouseConsultResp
         strengths: textList(result.sukuyoCompatibility.strengths),
         cautions: textList(result.sukuyoCompatibility.cautions),
         adviceKeywords: textList(result.sukuyoCompatibility.adviceKeywords),
+        chapters: Array.isArray(result.sukuyoCompatibility.chapters)
+          ? result.sukuyoCompatibility.chapters
+              .map((chapter) => ({ title: text(chapter?.title), body: text(chapter?.body) }))
+              .filter((chapter) => chapter.title && chapter.body)
+          : undefined,
         roleGuide: result.sukuyoCompatibility.roleGuide
           ? {
               userAction: text(result.sukuyoCompatibility.roleGuide.userAction),

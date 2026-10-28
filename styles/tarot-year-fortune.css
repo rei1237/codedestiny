@@ -2013,3 +2013,7 @@
   .ty-category-card p,
   .ty-year-narrative p { font-size: 0.92rem; line-height: 1.8; }
 }
+
+/* Authored annual reading introduction before the existing ritual. */
+#tarotYearFortuneOverlay .oracle-crafted{margin:20px auto}
+#tarotYearFortuneOverlay .tarot-year-shell:has(#tarotYearFortuneIntroStage:not(.is-active))>.oracle-crafted{display:none}

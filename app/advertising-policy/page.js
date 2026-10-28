@@ -3,25 +3,25 @@ import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 
 const ADVERTISING_POLICY_METADATA_COPY = {
   ko: {
-    title: "Advertising Policy | 광고 운영정책 — Code Destiny",
+    title: "Advertising Policy | 광고 운영정책 — 꿀꿀 운세",
     description:
       "Code Destiny 광고 운영정책 페이지입니다. 광고 표기, 제휴 링크, 편집 독립성, 쿠키 기반 광고, 사용자 선택권, 금지 카테고리를 안내합니다.",
     keywords: ["Advertising Policy", "광고 운영정책", "AdSense", "제휴 링크", "광고 고지"],
   },
   en: {
-    title: "Advertising Policy | Code Destiny",
+    title: "Advertising Policy | 꿀꿀 운세",
     description:
       "Code Destiny's advertising policy explains ad labels, affiliate links, editorial independence, cookie-based ads, user choices, and prohibited ad categories.",
     keywords: ["Advertising Policy", "AdSense", "affiliate links", "ad disclosure", "editorial independence"],
   },
   ja: {
-    title: "広告運用ポリシー | Code Destiny",
+    title: "広告運用ポリシー | 꿀꿀 운세",
     description:
       "Code Destinyの広告運用ポリシーです。広告表示、アフィリエイトリンク、編集の独立性、Cookieベース広告、ユーザー選択、禁止カテゴリを案内します。",
     keywords: ["広告運用ポリシー", "AdSense", "アフィリエイトリンク", "広告表示", "編集の独立性"],
   },
   zh: {
-    title: "广告运营政策 | Code Destiny",
+    title: "广告运营政策 | 꿀꿀 운세",
     description:
       "Code Destiny 广告运营政策说明广告标识、联盟链接、编辑独立性、Cookie 广告、用户选择权与禁止类别。",
     keywords: ["广告运营政策", "AdSense", "联盟链接", "广告披露", "编辑独立性"],

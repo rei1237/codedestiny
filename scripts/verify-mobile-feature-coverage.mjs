@@ -25,9 +25,9 @@ const actionCorpus = [sources.index, sources.mobilePatch, sources.featureLanding
 const routeCorpus = [sources.index, sources.homeSections, sources.featureLanding, sources.serviceSections].join("\n");
 
 const requiredRouteGroups = [
-  { id: "saju", routes: ["/saju/basic", "/saju/sibyl", "/life-book-ai", "/love-secret-ai", "/saju/love-simulation"] },
+  { id: "saju", routes: ["/saju", "/saju/sibyl", "/life-book-ai", "/love-secret-ai", "/saju/love-simulation"] },
   { id: "premium-saju", routes: ["/saju/destiny-bias", "/saju/animal-destiny", "/saju/destiny-meeting-place"] },
-  { id: "core-charts", routes: ["/ziwei/chart", "/astrology/cosmic", "/vedic/jyotish", "/oracle/sukuyo"] },
+  { id: "core-charts", routes: ["/ziwei/chart", "/astrology", "/vedic", "/sukuyo"] },
   { id: "tarot", routes: ["/tarot/mingri", "/tarot/love", "/tarot/healing", "/tarot/self-esteem", "/tarot/reunion", "/tarot/year"] },
   { id: "tarot-paid-static", routes: ["/tarot/crystal-soul/", "/tarot/mindscan/", "/tarot-ijik.html", "/celestial-harmony.html"] },
   { id: "oracle", routes: ["/oracle/hwatu", "/oracle/kemet", "/oracle/juyuk", "/oracle/rune", "/ifa-oracle.html", "/royal-tea-oracle.html"] },
@@ -72,6 +72,19 @@ const requiredMarkers = [
 ];
 
 const failures = [];
+const distIndex = process.argv.indexOf("--dist");
+const appDist = distIndex >= 0 ? path.resolve(root, process.argv[distIndex + 1] || "dist") : "";
+if (appDist) {
+  // Source coverage alone cannot detect a route deleted by the app postprocessor.
+  for (const route of unique([...serviceRoutes, "/points/history/", "/records/", "/yeongnyangi/library/", "/app/talismans/"])) {
+    const normalized = stripTrailingSlash(route);
+    const action = actionRoutes.get(normalized) || actionRoutes.get(route);
+    const relative = route.replace(/^\/+/, "").replace(/\/+$/, "");
+    const target = action ? path.join(appDist, "ggulggul/index.html") :
+      path.join(appDist, relative.endsWith(".html") ? relative : relative + "/index.html");
+    if (!fs.existsSync(target)) failures.push(`app artifact missing: ${route} → ${path.relative(appDist, target)}`);
+  }
+}
 
 for (const route of serviceRoutes) {
   if (!hasMobileEntry(route)) {
@@ -115,6 +128,7 @@ if (failures.length) {
   console.log(`- Route groups checked: ${requiredRouteGroups.length}`);
   console.log(`- Critical actions checked: ${requiredActions.length}`);
   console.log(`- Mobile performance markers checked: ${requiredMarkers.length}`);
+  if (appDist) console.log("- App artifact route coverage checked (modal execution requires device smoke).");
 }
 
 function hasMobileEntry(route) {

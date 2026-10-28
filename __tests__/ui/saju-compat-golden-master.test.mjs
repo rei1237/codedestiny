@@ -108,7 +108,8 @@ const EXPECTED = {
     'F1-friend': 'b579e5962599e37b',
     'F1-pastLife': '17899fc1a9557f20',
   },
-  corpus: '5e5805be08ffcd6745340fdecae316dc',
+  // 2026-10-26 종격 판정을 natal-core로 옮기며 코퍼스 300쌍 중 19쌍이 바뀌었다(고정 쌍 36건은 그대로).
+  corpus: '3fd7b536fe72cffb5ef52b74b9f154d6',
 };
 
 const measured = measure();

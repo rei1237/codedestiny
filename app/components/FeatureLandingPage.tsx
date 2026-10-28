@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { stripLocalePrefix } from "../_lib/localePath";
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { resolveFeatureAccessModel, useServerPrice } from "@/app/hooks/useServerPrice";
 import { useMobileFortuneRenderTrace } from "@/app/_lib/mobile-fortune-trace";
 import { useUserAccess } from "@/app/_lib/user-session-cache";
@@ -92,8 +93,8 @@ const SLUG_CFG: Record<string, SlugCfg> = {
   "/oracle/hwatu":      { icon:"🎴", badge:"TRADITIONAL",  tag:"전통 화투 운세",          particles:["🌸","🌺","🎴","🍁","🌊"] },
   "/oracle/kemet":      { icon:"𓂀", badge:"KEMET ORACLE", tag:"이집트 신탁 오라클",     particles:["✦","𓂀","🌙","⭐","✦"] },
   "/oracle/juyuk":      { icon:"☯",  badge:"I CHING",      tag:"64괘 거북점",             particles:["☯","☰","☲","☵","☴"] },
-  "/oracle/sukuyo":     { icon:"🌑", badge:"27 LUNAR",     tag:"27수 별자리 운세",        particles:["🌑","🌒","🌓","🌔","🌕"] },
-  "/vedic/jyotish":     { icon:"🕉️", badge:"JYOTISH",      tag:"베다 점성술",             particles:["🕉️","✦","⭐","🌟","✦"] },
+  "/sukuyo":     { icon:"🌑", badge:"27 LUNAR",     tag:"27수 별자리 운세",        particles:["🌑","🌒","🌓","🌔","🌕"] },
+  "/vedic":     { icon:"🕉️", badge:"JYOTISH",      tag:"베다 점성술",             particles:["🕉️","✦","⭐","🌟","✦"] },
   "/animal/physio":     { icon:"🦁", badge:"전문 관상",       tag:"셀카 얼굴 관상 분석",    particles:["🦁","🐯","🦊","🐻","🐼"] },
   "/animal/mbti":       { icon:"🦊", badge:"MBTI TOTEM",   tag:"16가지 토템 케미",        particles:["🦊","🦁","🐺","🦅","🐬"] },
   "/animal/totem":      { icon:"🦅", badge:"TOTEM CARD",   tag:"수호 동물 카드 리딩",     particles:["🦅","🦉","🐺","🦁","🐉"] },
@@ -102,12 +103,12 @@ const SLUG_CFG: Record<string, SlugCfg> = {
   "/tarot/healing":     { icon:"☀️", badge:"HEALING",       tag:"4카드 힐링 스프레드",      particles:["☀️","🌿","✦","💛","🌟"] },
   "/tarot/mingri":      { icon:"🎴", badge:"전문 타로",       tag:"78장 유니버설 덱 전문가 리딩", particles:["🎴","✦","⭐","🔮","💫"] },
   "/tarot/love":        { icon:"💕", badge:"LOVE TAROT",     tag:"6카드 연애 관계 스프레드",  particles:["💕","🌹","✦","💌","🌸"] },
-  "/saju/basic":        { icon:"🌸", badge:"SAJU",           tag:"사주팔자 만세력 기본 해석",  particles:["🌸","☯","✦","⭐","🌟"] },
+  "/saju":        { icon:"🌸", badge:"SAJU",           tag:"사주팔자 만세력 기본 해석",  particles:["🌸","☯","✦","⭐","🌟"] },
   "/saju/sibyl":        { icon:"⚡", badge:"SIBYL SYSTEM",   tag:"사주 기반 진로 적성 × 운명 위험 계수", particles:["⚡","☯","📊","⭐","🌟"] },
   "/saju/love-secret":  { icon:"💕", badge:"LOVE SECRET",   tag:"사주 기반 연애 전략 · 이상형 분석", particles:["💕","🌹","☯","✦","🌸"] },
   "/saju/love-simulation": { icon:"💕", badge:"LOVE CODE",  tag:"사주 연애 시뮬레이션",            particles:["💕","🎲","☯","🌸","✦"] },
   "/ziwei/chart":       { icon:"☸",  badge:"ZIWEI",          tag:"12궁·사화·대한 심화 상담", particles:["☸","✦","⭐","🌙","🌟"] },
-  "/astrology/cosmic":  { icon:"🌌", badge:"COSMIC CHART",   tag:"태양·달·상승궁 분석",       particles:["🌌","⭐","✦","🌙","🌟"] },
+  "/astrology":  { icon:"🌌", badge:"COSMIC CHART",   tag:"태양·달·상승궁 분석",       particles:["🌌","⭐","✦","🌙","🌟"] },
   "/oracle/hwatu-life": { icon:"🀄", badge:"HWATU LIFE",     tag:"7문항 화투 인생 패 테스트", particles:["🀄","🌸","🍁","🌊","🎴"] },
   "/oracle/sikojen-povailu": { icon:"🐷", badge:"TIN ORACLE", tag:"핀란드 주석 납점 오라클",  particles:["🐷","✦","❄️","🌊","⭐"] },
   "/oracle/royal-tea":  { icon:"🍵", badge:"TEA ORACLE",     tag:"타세오그래피 찻잎 리딩",   particles:["🍵","🌿","✦","☕","🌸"] },
@@ -133,8 +134,8 @@ const THEMES: Record<string, Theme> = {
     glow:"rgba(252,211,77,0.14)", border:"rgba(252,211,77,0.28)",
     accent:"#fcd34d", titleGrad:"linear-gradient(135deg,#fffbeb 0%,#f59e0b 55%,#fde68a 100%)",
     ptBg:"rgba(245,158,11,0.09)", ptBorder:"rgba(252,211,77,0.22)", ptDot:"#f59e0b",
-    btnPrimary:"linear-gradient(135deg,#92400e 0%,#d97706 100%)",
-    btnGlow:"0 14px 36px rgba(146,64,14,0.48),0 0 0 1px rgba(252,211,77,0.22)",
+    btnPrimary:"#b45309",
+    btnGlow:"0 10px 24px -12px rgba(146,64,14,0.7)",
     btnSec:"rgba(252,211,77,0.08)", btnSecBorder:"rgba(252,211,77,0.28)",
     badge:"rgba(252,211,77,0.88)", seo:"rgba(252,211,77,0.44)", divider:"rgba(252,211,77,0.14)",
   },
@@ -144,8 +145,8 @@ const THEMES: Record<string, Theme> = {
     glow:"rgba(196,181,253,0.18)", border:"rgba(196,181,253,0.3)",
     accent:"#c4b5fd", titleGrad:"linear-gradient(135deg,#f5f3ff 0%,#8b5cf6 55%,#ec4899 100%)",
     ptBg:"rgba(139,92,246,0.1)", ptBorder:"rgba(196,181,253,0.24)", ptDot:"#a78bfa",
-    btnPrimary:"linear-gradient(135deg,#5b21b6 0%,#9333ea 100%)",
-    btnGlow:"0 14px 36px rgba(91,33,182,0.48),0 0 0 1px rgba(196,181,253,0.22)",
+    btnPrimary:"#6d28d9",
+    btnGlow:"0 10px 24px -12px rgba(91,33,182,0.7)",
     btnSec:"rgba(196,181,253,0.09)", btnSecBorder:"rgba(196,181,253,0.3)",
     badge:"rgba(196,181,253,0.88)", seo:"rgba(196,181,253,0.44)", divider:"rgba(196,181,253,0.14)",
   },
@@ -155,8 +156,8 @@ const THEMES: Record<string, Theme> = {
     glow:"rgba(125,211,252,0.14)", border:"rgba(125,211,252,0.28)",
     accent:"#7dd3fc", titleGrad:"linear-gradient(135deg,#f0f9ff 0%,#38bdf8 55%,#818cf8 100%)",
     ptBg:"rgba(56,189,248,0.09)", ptBorder:"rgba(125,211,252,0.22)", ptDot:"#38bdf8",
-    btnPrimary:"linear-gradient(135deg,#0369a1 0%,#4338ca 100%)",
-    btnGlow:"0 14px 36px rgba(3,105,161,0.48),0 0 0 1px rgba(125,211,252,0.22)",
+    btnPrimary:"#0369a1",
+    btnGlow:"0 10px 24px -12px rgba(3,105,161,0.7)",
     btnSec:"rgba(125,211,252,0.08)", btnSecBorder:"rgba(125,211,252,0.28)",
     badge:"rgba(125,211,252,0.88)", seo:"rgba(125,211,252,0.44)", divider:"rgba(125,211,252,0.14)",
   },
@@ -166,8 +167,8 @@ const THEMES: Record<string, Theme> = {
     glow:"rgba(244,114,182,0.2)", border:"rgba(244,114,182,0.3)",
     accent:"#f9a8d4", titleGrad:"linear-gradient(135deg,#fce7f3 0%,#e879f9 55%,#f9a8d4 100%)",
     ptBg:"rgba(244,114,182,0.08)", ptBorder:"rgba(244,114,182,0.22)", ptDot:"#f472b6",
-    btnPrimary:"linear-gradient(135deg,#be185d 0%,#9333ea 100%)",
-    btnGlow:"0 14px 36px rgba(190,24,93,0.48),0 0 0 1px rgba(244,114,182,0.22)",
+    btnPrimary:"#be185d",
+    btnGlow:"0 10px 24px -12px rgba(190,24,93,0.7)",
     btnSec:"rgba(244,114,182,0.09)", btnSecBorder:"rgba(244,114,182,0.34)",
     badge:"rgba(244,114,182,0.88)", seo:"rgba(249,168,212,0.46)", divider:"rgba(244,114,182,0.16)",
   },
@@ -177,8 +178,8 @@ const THEMES: Record<string, Theme> = {
     glow:"rgba(167,139,250,0.18)", border:"rgba(167,139,250,0.3)",
     accent:"#c4b5fd", titleGrad:"linear-gradient(135deg,#f5f3ff 0%,#a78bfa 55%,#fbbf24 100%)",
     ptBg:"rgba(124,58,237,0.1)", ptBorder:"rgba(167,139,250,0.24)", ptDot:"#a78bfa",
-    btnPrimary:"linear-gradient(135deg,#7c3aed 0%,#c026d3 100%)",
-    btnGlow:"0 14px 36px rgba(124,58,237,0.48),0 0 0 1px rgba(167,139,250,0.22)",
+    btnPrimary:"#7c3aed",
+    btnGlow:"0 10px 24px -12px rgba(124,58,237,0.7)",
     btnSec:"rgba(167,139,250,0.09)", btnSecBorder:"rgba(167,139,250,0.3)",
     badge:"rgba(196,181,253,0.88)", seo:"rgba(167,139,250,0.46)", divider:"rgba(167,139,250,0.14)",
   },
@@ -188,8 +189,8 @@ const THEMES: Record<string, Theme> = {
     glow:"rgba(251,191,36,0.15)", border:"rgba(220,185,80,0.3)",
     accent:"#fbbf24", titleGrad:"linear-gradient(135deg,#fef3c7 0%,#f59e0b 55%,#fde68a 100%)",
     ptBg:"rgba(217,119,6,0.09)", ptBorder:"rgba(220,185,80,0.24)", ptDot:"#d97706",
-    btnPrimary:"linear-gradient(135deg,#92400e 0%,#d97706 100%)",
-    btnGlow:"0 14px 36px rgba(146,64,14,0.48),0 0 0 1px rgba(251,191,36,0.22)",
+    btnPrimary:"#b45309",
+    btnGlow:"0 10px 24px -12px rgba(146,64,14,0.7)",
     btnSec:"rgba(251,191,36,0.08)", btnSecBorder:"rgba(251,191,36,0.3)",
     badge:"rgba(251,191,36,0.88)", seo:"rgba(251,191,36,0.44)", divider:"rgba(220,185,80,0.14)",
   },
@@ -199,8 +200,8 @@ const THEMES: Record<string, Theme> = {
     glow:"rgba(251,146,60,0.16)", border:"rgba(251,146,60,0.3)",
     accent:"#fb923c", titleGrad:"linear-gradient(135deg,#fff7ed 0%,#fb923c 55%,#4ade80 100%)",
     ptBg:"rgba(251,146,60,0.09)", ptBorder:"rgba(251,146,60,0.24)", ptDot:"#f97316",
-    btnPrimary:"linear-gradient(135deg,#ea580c 0%,#16a34a 100%)",
-    btnGlow:"0 14px 36px rgba(234,88,12,0.42),0 0 0 1px rgba(251,146,60,0.22)",
+    btnPrimary:"#c2410c",
+    btnGlow:"0 10px 24px -12px rgba(234,88,12,0.7)",
     btnSec:"rgba(251,146,60,0.08)", btnSecBorder:"rgba(251,146,60,0.3)",
     badge:"rgba(251,146,60,0.88)", seo:"rgba(251,146,60,0.44)", divider:"rgba(251,146,60,0.14)",
   },
@@ -210,8 +211,8 @@ const THEMES: Record<string, Theme> = {
     glow:"rgba(165,180,252,0.15)", border:"rgba(165,180,252,0.28)",
     accent:"#a5b4fc", titleGrad:"linear-gradient(135deg,#eef2ff 0%,#818cf8 55%,#c084fc 100%)",
     ptBg:"rgba(99,102,241,0.1)", ptBorder:"rgba(165,180,252,0.22)", ptDot:"#818cf8",
-    btnPrimary:"linear-gradient(135deg,#4338ca 0%,#7c3aed 100%)",
-    btnGlow:"0 14px 36px rgba(67,56,202,0.48),0 0 0 1px rgba(165,180,252,0.22)",
+    btnPrimary:"#4338ca",
+    btnGlow:"0 10px 24px -12px rgba(67,56,202,0.7)",
     btnSec:"rgba(165,180,252,0.08)", btnSecBorder:"rgba(165,180,252,0.28)",
     badge:"rgba(165,180,252,0.88)", seo:"rgba(165,180,252,0.44)", divider:"rgba(165,180,252,0.14)",
   },
@@ -221,8 +222,8 @@ const THEMES: Record<string, Theme> = {
     glow:"rgba(252,211,77,0.15)", border:"rgba(252,211,77,0.28)",
     accent:"#fcd34d", titleGrad:"linear-gradient(135deg,#fffbeb 0%,#f59e0b 55%,#fde68a 100%)",
     ptBg:"rgba(245,158,11,0.09)", ptBorder:"rgba(252,211,77,0.22)", ptDot:"#f59e0b",
-    btnPrimary:"linear-gradient(135deg,#b45309 0%,#d97706 100%)",
-    btnGlow:"0 14px 36px rgba(180,83,9,0.48),0 0 0 1px rgba(252,211,77,0.22)",
+    btnPrimary:"#b45309",
+    btnGlow:"0 10px 24px -12px rgba(180,83,9,0.7)",
     btnSec:"rgba(252,211,77,0.08)", btnSecBorder:"rgba(252,211,77,0.28)",
     badge:"rgba(252,211,77,0.88)", seo:"rgba(252,211,77,0.44)", divider:"rgba(252,211,77,0.14)",
   },
@@ -230,14 +231,14 @@ const THEMES: Record<string, Theme> = {
 
 /* Per-slug theme overrides (e.g. sukuyo oracle → lunar indigo) */
 const SLUG_THEME_OVERRIDE: Partial<Record<string, Partial<Theme>>> = {
-  "/oracle/sukuyo": {
+  "/sukuyo": {
     bg:"linear-gradient(155deg,#08091e 0%,#10143a 45%,#090c20 100%)",
     orb1:"rgba(99,102,241,0.22)", orb2:"rgba(168,85,247,0.16)",
     glow:"rgba(165,180,252,0.14)", border:"rgba(165,180,252,0.28)",
     accent:"#a5b4fc", titleGrad:"linear-gradient(135deg,#eef2ff 0%,#818cf8 55%,#c084fc 100%)",
     ptDot:"#818cf8", badge:"rgba(165,180,252,0.88)",
-    btnPrimary:"linear-gradient(135deg,#312e81 0%,#7c3aed 100%)",
-    btnGlow:"0 14px 36px rgba(49,46,129,0.48),0 0 0 1px rgba(165,180,252,0.22)",
+    btnPrimary:"#5b21b6",
+    btnGlow:"0 10px 24px -12px rgba(49,46,129,0.7)",
   },
   "/oracle/hwatu-life": {
     bg:"linear-gradient(155deg,#1c0202 0%,#300808 45%,#1c0505 100%)",
@@ -245,8 +246,8 @@ const SLUG_THEME_OVERRIDE: Partial<Record<string, Partial<Theme>>> = {
     glow:"rgba(220,38,38,0.16)", border:"rgba(220,38,38,0.32)",
     accent:"#fca5a5", titleGrad:"linear-gradient(135deg,#fff1f2 0%,#f87171 55%,#fbbf24 100%)",
     ptDot:"#f87171", badge:"rgba(252,165,165,0.88)",
-    btnPrimary:"linear-gradient(135deg,#991b1b 0%,#dc2626 100%)",
-    btnGlow:"0 14px 36px rgba(153,27,27,0.48),0 0 0 1px rgba(220,38,38,0.22)",
+    btnPrimary:"#b91c1c",
+    btnGlow:"0 10px 24px -12px rgba(153,27,27,0.7)",
   },
   "/oracle/hwatu": {
     bg:"linear-gradient(155deg,#1c0202 0%,#300808 45%,#1c0505 100%)",
@@ -254,8 +255,8 @@ const SLUG_THEME_OVERRIDE: Partial<Record<string, Partial<Theme>>> = {
     glow:"rgba(220,38,38,0.16)", border:"rgba(220,38,38,0.32)",
     accent:"#fca5a5", titleGrad:"linear-gradient(135deg,#fff1f2 0%,#f87171 55%,#fbbf24 100%)",
     ptDot:"#f87171", badge:"rgba(252,165,165,0.88)",
-    btnPrimary:"linear-gradient(135deg,#991b1b 0%,#dc2626 100%)",
-    btnGlow:"0 14px 36px rgba(153,27,27,0.48),0 0 0 1px rgba(220,38,38,0.22)",
+    btnPrimary:"#b91c1c",
+    btnGlow:"0 10px 24px -12px rgba(153,27,27,0.7)",
   },
 };
 
@@ -266,18 +267,18 @@ const ACTION_MAP: Record<string, string> = {
   "/tarot/self-esteem":"openTarotSelfEsteemModal",
   "/tarot/reunion":"openTarotReunionModal", "/tarot/year":"openTarotYearFortuneModal",
   "/oracle/hwatu":"openHwatuModal", "/oracle/kemet":"openKemetModal",
-  "/oracle/juyuk":"openJuyukModal", "/oracle/sukuyo":"openSukuyoModal",
-  "/vedic/jyotish":"navigateToVedic",
+  "/oracle/juyuk":"openJuyukModal", "/sukuyo":"openSukuyoModal",
+  "/vedic":"navigateToVedic",
   "/flower":"openDestinyFlowerStudio",
   "/dream/tarot":"openDreamModal", "/dream/psycho":"openPsychoDreamModal",
   "/tarot/healing":"openTarotHealingModal",
   "/tarot/mingri":"openTarotModal",
   "/tarot/love":"openTarotLoveModal",
   "/tarot/mindscan":"startMindScanTarot",
-  "/saju/basic":"checkPrivacyAndCalculate",
+  "/saju":"checkPrivacyAndCalculate",
   "/saju/sibyl":"openSibylModal",
   "/saju/love-simulation":"openLoveSimulation",
-  "/astrology/cosmic":"openAstroModal",
+  "/astrology":"openAstroModal",
   "/oracle/hwatu-life":"openHwatuModal",
   "/oracle/ifa":"openIfaOracle",
   "/oracle/rune":"openRuneOracle",
@@ -323,7 +324,7 @@ type FeatureLandingCopy = {
 const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   ko: {
     defaultTitle: "운세 서비스",
-    defaultDescription: "Code Destiny 메인 기능으로 연결되는 서비스입니다.",
+    defaultDescription: "꿀꿀운세 메인 기능으로 연결되는 서비스입니다.",
     valueGuideTitle: "실전 활용 가이드",
     corePoints: "핵심 포인트",
     freeMainService: "FREE · 무료 메인 서비스",
@@ -338,7 +339,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   en: {
     defaultTitle: "Fortune service",
-    defaultDescription: "A service connected to the main Code Destiny experience.",
+    defaultDescription: "A service connected to the main 꿀꿀운세 experience.",
     valueGuideTitle: "Practical Guide",
     corePoints: "Key Points",
     freeMainService: "FREE · Main free service",
@@ -353,7 +354,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   ja: {
     defaultTitle: "占いサービス",
-    defaultDescription: "Code Destinyのメイン機能につながるサービスです。",
+    defaultDescription: "꿀꿀운세のメイン機能につながるサービスです。",
     valueGuideTitle: "実践活用ガイド",
     corePoints: "注目ポイント",
     freeMainService: "FREE · 無料メインサービス",
@@ -368,7 +369,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   "zh-CN": {
     defaultTitle: "占卜服务",
-    defaultDescription: "连接到 Code Destiny 主功能的服务。",
+    defaultDescription: "连接到 꿀꿀운세 主功能的服务。",
     valueGuideTitle: "实用指南",
     corePoints: "重点提示",
     freeMainService: "FREE · 免费主服务",
@@ -383,7 +384,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   "zh-TW": {
     defaultTitle: "占卜服務",
-    defaultDescription: "連接到 Code Destiny 主功能的服務。",
+    defaultDescription: "連接到 꿀꿀운세 主功能的服務。",
     valueGuideTitle: "實用指南",
     corePoints: "重點提示",
     freeMainService: "FREE · 免費主服務",
@@ -398,7 +399,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   vi: {
     defaultTitle: "Dịch vụ vận mệnh",
-    defaultDescription: "Dịch vụ kết nối với trải nghiệm chính của Code Destiny.",
+    defaultDescription: "Dịch vụ kết nối với trải nghiệm chính của 꿀꿀운세.",
     valueGuideTitle: "Hướng dẫn ứng dụng",
     corePoints: "Điểm chính",
     freeMainService: "FREE · Dịch vụ chính miễn phí",
@@ -413,7 +414,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   hi: {
     defaultTitle: "भाग्य सेवा",
-    defaultDescription: "Code Destiny के मुख्य अनुभव से जुड़ी सेवा.",
+    defaultDescription: "꿀꿀운세 के मुख्य अनुभव से जुड़ी सेवा.",
     valueGuideTitle: "व्यावहारिक मार्गदर्शिका",
     corePoints: "मुख्य बिंदु",
     freeMainService: "FREE · मुफ्त मुख्य सेवा",
@@ -428,7 +429,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   es: {
     defaultTitle: "Servicio de destino",
-    defaultDescription: "Un servicio conectado con la experiencia principal de Code Destiny.",
+    defaultDescription: "Un servicio conectado con la experiencia principal de 꿀꿀운세.",
     valueGuideTitle: "Guía práctica",
     corePoints: "Puntos clave",
     freeMainService: "FREE · Servicio principal gratis",
@@ -443,7 +444,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   fr: {
     defaultTitle: "Service de destinée",
-    defaultDescription: "Un service relié à l'expérience principale de Code Destiny.",
+    defaultDescription: "Un service relié à l'expérience principale de 꿀꿀운세.",
     valueGuideTitle: "Guide pratique",
     corePoints: "Points clés",
     freeMainService: "FREE · Service principal gratuit",
@@ -458,7 +459,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   de: {
     defaultTitle: "Schicksalsservice",
-    defaultDescription: "Ein Service, der mit der Hauptfunktion von Code Destiny verbunden ist.",
+    defaultDescription: "Ein Service, der mit der Hauptfunktion von 꿀꿀운세 verbunden ist.",
     valueGuideTitle: "Praxisguide",
     corePoints: "Kernpunkte",
     freeMainService: "FREE · Kostenloser Hauptservice",
@@ -473,7 +474,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   nl: {
     defaultTitle: "Bestemmingsservice",
-    defaultDescription: "Een service die is verbonden met de hoofdbeleving van Code Destiny.",
+    defaultDescription: "Een service die is verbonden met de hoofdbeleving van 꿀꿀운세.",
     valueGuideTitle: "Praktische gids",
     corePoints: "Kernpunten",
     freeMainService: "FREE · Gratis hoofdservice",
@@ -488,7 +489,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
   ms: {
     defaultTitle: "Servis takdir",
-    defaultDescription: "Servis yang disambungkan kepada pengalaman utama Code Destiny.",
+    defaultDescription: "Servis yang disambungkan kepada pengalaman utama 꿀꿀운세.",
     valueGuideTitle: "Panduan praktikal",
     corePoints: "Perkara utama",
     freeMainService: "FREE · Servis utama percuma",
@@ -632,7 +633,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
     ? "/ziwei/chart"
     : action
     ? `/index.html?action=${encodeURIComponent(action)}`
-    : "/index.html";
+    : SHELL_HOME_PATH;
   const paidMeta = PAID_SLUG_META[basePath];
   const isPaidFeature = !!paidMeta;
   // 서버 가격 정본 조회. 유료 기능은 UI fallback 가격을 사용하지 않는다.
@@ -695,21 +696,6 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
           0%{transform:translateX(-120%) skewX(-12deg)}
           100%{transform:translateX(120%) skewX(-12deg)}
         }
-        @keyframes flp-pig-bounce {
-          0%,100%{transform:translateY(0) scale(1) rotate(-4deg)}
-          40%{transform:translateY(-7px) scale(1.08) rotate(4deg)}
-          70%{transform:translateY(-3px) scale(1.04) rotate(-2deg)}
-        }
-        @keyframes flp-manse-pulse {
-          0%,100%{box-shadow:0 0 0 0 rgba(255,183,178,0.55),0 12px 32px rgba(255,139,167,0.28)}
-          50%{box-shadow:0 0 0 8px rgba(255,183,178,0),0 16px 40px rgba(255,139,167,0.42)}
-        }
-        @keyframes flp-manse-shine {
-          0%{transform:translateX(-130%) skewX(-14deg);opacity:0}
-          20%{opacity:0.5}
-          80%{opacity:0.5}
-          100%{transform:translateX(130%) skewX(-14deg);opacity:0}
-        }
         .flp-in { animation: flp-in .65s cubic-bezier(.22,1,.36,1) both; }
         .flp-d1 { animation-delay:.08s; }
         .flp-d2 { animation-delay:.18s; }
@@ -728,7 +714,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
         }
         .flp-img-wrap:hover::after { animation: flp-shine .7s ease forwards; }
         @media (max-width: 768px), (prefers-reduced-motion: reduce) {
-          .flp-orb,.flp-particle,.flp-petal,.flp-hero-icon,.flp-manse-card,.flp-manse-shine,.flp-manse-logo { animation:none!important; }
+          .flp-orb,.flp-particle,.flp-petal,.flp-hero-icon { animation:none!important; }
           .flp-orb,.flp-particle,.flp-petal { display:none!important; }
           .flp-hero-icon { filter:none!important; }
           .flp-img-wrap { box-shadow:0 14px 34px rgba(15,23,42,.34)!important; }
@@ -973,83 +959,12 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
           marginBottom:"24px",
         }}/>
 
-        <div className="flp-in flp-d4" style={{ marginBottom:"12px" }}>
-          <a
-            className="flp-manse-card"
-            href="/"
-            style={{
-              display:"flex", alignItems:"center", gap:"12px",
-              padding:"15px 20px",
-              background:"linear-gradient(135deg,#ffe4ec 0%,#fff5dc 50%,#fce4ff 100%)",
-              borderRadius:"16px",
-              border:"1.5px solid rgba(255,183,178,0.7)",
-              textDecoration:"none",
-              position:"relative", overflow:"hidden",
-              animation:"flp-manse-pulse 2.4s ease-in-out infinite",
-            }}
-          >
-            {/* shine sweep */}
-            <span className="flp-manse-shine" aria-hidden="true" style={{
-              position:"absolute", inset:0, pointerEvents:"none",
-              background:"linear-gradient(120deg,transparent 30%,rgba(255,255,255,0.55) 55%,transparent 75%)",
-              animation:"flp-manse-shine 3.6s ease-in-out 1.2s infinite",
-            }}/>
-
-            <span className="flp-manse-logo" style={{
-              flexShrink:0, width:"46px", height:"46px",
-              borderRadius:"50%", overflow:"hidden",
-              border:"2px solid rgba(255,139,167,0.45)",
-              boxShadow:"0 4px 12px rgba(255,139,167,0.28)",
-              animation:"flp-pig-bounce 3.2s ease-in-out infinite",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              background:"#fff",
-            }}>
-              <img
-                src="https://code-destiny.com/icons/app-logo-512.webp"
-                alt={copy.mainBrand}
-                width={46} height={46}
-                style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-              />
-            </span>
-
-            <span style={{ flex:1, minWidth:0 }}>
-              <span style={{
-                display:"block",
-                fontSize:"0.65rem", fontWeight:800, letterSpacing:"0.18em",
-                color:"rgba(213,63,90,0.72)", textTransform:"uppercase",
-                marginBottom:"2px",
-              }}>{copy.freeMainService}</span>
-              <span style={{
-                display:"block",
-                fontSize:"1rem", fontWeight:900,
-                background:"linear-gradient(135deg,#be185d 0%,#d97706 100%)",
-                WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text",
-                lineHeight:1.2,
-              }}>{copy.mainBrand}</span>
-              <span style={{
-                display:"block",
-                fontSize:"0.73rem", color:"rgba(120,60,60,0.68)",
-                marginTop:"3px", lineHeight:1.4,
-              }}>{copy.mainDescription}</span>
-            </span>
-
-            <span style={{
-              flexShrink:0, width:"28px", height:"28px",
-              borderRadius:"50%",
-              background:"linear-gradient(135deg,rgba(255,139,167,0.18),rgba(255,183,178,0.28))",
-              border:"1px solid rgba(255,139,167,0.4)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:"0.75rem", color:"rgba(190,24,93,0.8)",
-            }}>→</span>
-          </a>
-        </div>
-
         {/* CTA Buttons */}
         <div className="flp-in flp-d4" style={{ display:"flex", flexDirection:"column", gap:"10px" }}>
           <a href={runHref} className="flp-btn-p" style={{
             display:"flex", alignItems:"center", justifyContent:"center",
-            gap:"10px", padding:"16px 24px", background:t.btnPrimary,
-            color:"#fff", borderRadius:"14px", fontWeight:800, fontSize:"1rem",
+            gap:"10px", minHeight:"var(--cd-btn-h-lg, 56px)", padding:"14px 24px", background:t.btnPrimary,
+            color:"#fff", borderRadius:"var(--cd-r-control, 12px)", fontWeight:800, fontSize:"1rem",
             textDecoration:"none", boxShadow:t.btnGlow, letterSpacing:"0.03em",
             fontFamily:"'Noto Sans KR',sans-serif",
           }}>
@@ -1068,6 +983,16 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
                 )
               : copy.freeCta}</span>
           </a>
+          {/* 결제 안내는 주 CTA 바로 아래 둔다 — 예전에는 공유 위젯 뒤에 있어 누른 다음에야 읽혔다. */}
+          {isPaidFeature && (
+            <p style={{
+              margin:0,
+              fontSize:"0.78rem", lineHeight:1.6, textAlign:"center",
+              color:"rgba(248,250,252,0.78)",
+            }}>
+              {copy.paidNotice}
+            </p>
+          )}
           {/* 정적 문구다 — live region(role="status")을 붙이면 배지가 늦게 도착할 때
               스크린리더가 읽던 문맥을 끊고 이 줄을 읽는다. */}
           {passEligibility && (
@@ -1092,6 +1017,29 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
           }}>
             {copy.insights}
           </a>
+          {/* 꿀꿀운세 홈으로 가는 3차 링크. 예전에는 주 CTA 위에서 펄스·샤인·바운스·그라디언트
+              글자로 실제 CTA 보다 요란했다(DESIGN.md §5 Button Tiers). */}
+          <a
+            className="flp-manse-card"
+            href="/"
+            style={{
+              display:"flex", alignItems:"center", gap:"10px",
+              minHeight:"44px", padding:"8px 4px",
+              textDecoration:"none", color:"rgba(241,245,249,0.86)",
+            }}
+          >
+            <img
+              src="https://code-destiny.com/icons/app-logo-512.webp"
+              alt=""
+              width={28} height={28}
+              style={{ flexShrink:0, width:28, height:28, borderRadius:"50%", objectFit:"cover", display:"block" }}
+            />
+            <span style={{ flex:1, minWidth:0, fontSize:"0.84rem", lineHeight:1.45 }}>
+              <strong style={{ fontWeight:700 }}>{copy.mainBrand}</strong>
+              <span style={{ color:"rgba(241,245,249,0.68)" }}> · {copy.mainDescription}</span>
+            </span>
+            <span aria-hidden="true" style={{ flexShrink:0, color:t.accent }}>→</span>
+          </a>
         </div>
 
         <div ref={shareMountRef}>
@@ -1108,16 +1056,6 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             </Suspense>
           ) : null}
         </div>
-
-        {isPaidFeature && (
-          <p style={{
-            marginTop:"10px", marginBottom:0,
-            fontSize:"0.78rem", lineHeight:1.6, textAlign:"center",
-            color:"rgba(248,250,252,0.78)",
-          }}>
-            {copy.paidNotice}
-          </p>
-        )}
 
         {/* SEO text */}
         {seoText && (

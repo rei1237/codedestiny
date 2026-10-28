@@ -5,7 +5,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const TEN_GODS_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    metaTitle: "십성 해석 가이드 | Code Destiny",
+    metaTitle: "십성 해석 가이드 | 꿀꿀 운세",
     observe: "십성이 살피는 것",
     inputs: "필요한 입력값",
     useCases: "어떤 때 참고하면 좋은가",
@@ -27,7 +27,7 @@ export function generateMetadata() {
     title: tenGodsGuideText("metaTitle"),
     description:
       "사주 십성이 관계, 일, 책임, 표현 방식을 어떻게 비추는지와 입력값, 해석 흐름, 샘플 리딩, 주의사항을 안내합니다.",
-    keywords: ["십성", "사주 십성", "비견", "식상", "재성", "관성", "인성", "Code Destiny"],
+    keywords: ["십성", "사주 십성", "비견", "식상", "재성", "관성", "인성", "꿀꿀운세"],
   });
 }
 
@@ -70,7 +70,7 @@ export default function SajuTenGodsPage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">십성 해석 가이드</h1>
         <p className="cd-main-intro">
-          십성은 사주에서 사람과 일, 표현과 책임, 관계 안에서 반복되는 역할을 읽는 언어입니다. Code Destiny는 십성을 성격을 고정하는 라벨로 보지 않고, 삶의 장면마다 어떤 힘이 자연스럽게 드러나는지 살피는 상담형 기준으로 풉니다.
+          십성은 사주에서 사람과 일, 표현과 책임, 관계 안에서 반복되는 역할을 읽는 언어입니다. 꿀꿀운세는 십성을 성격을 고정하는 라벨로 보지 않고, 삶의 장면마다 어떤 힘이 자연스럽게 드러나는지 살피는 상담형 기준으로 풉니다.
         </p>
       </header>
 
@@ -132,7 +132,7 @@ export default function SajuTenGodsPage() {
       <section className="cd-card">
         <h2>{tenGodsGuideText("caution")}</h2>
         <p>
-          십성 해석은 엔터테인먼트와 자기 이해를 위한 참고 자료입니다. 직업, 투자, 결혼, 이혼, 소송, 건강처럼 중요한 결정은 십성 결과만으로 정하지 말고 실제 조건과 자격 있는 전문가의 조언을 함께 확인해야 합니다.
+          십성 해석은 자기 이해를 위한 참고 자료입니다. 직업, 투자, 결혼, 이혼, 소송, 건강처럼 중요한 결정은 십성 결과만으로 정하지 말고 실제 조건과 자격 있는 전문가의 조언을 함께 확인해야 합니다.
         </p>
       </section>
 

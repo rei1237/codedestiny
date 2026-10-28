@@ -17,7 +17,10 @@ import {
 import {
   buildGyeokgukAnalysis,
   buildTwelveLifeStagesForPillars,
+  natalCoreFromPillarRows,
 } from "./saju-gyeokguk.js";
+import { legacyJongShape } from "../../lib/saju/natal-core/index.mjs";
+import { gyeokgukClaimFact, gyeokgukPromptRules } from "../../lib/saju/gyeokguk-claim-guard.mjs";
 
 const DEFAULT_TEXT = "제공되지 않음";
 
@@ -84,7 +87,7 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
     minChars: 4000,
     targetMinChars: 5000,
     maxChars: 6000,
-    guide: "5장은 질문의 쟁점을 계산된 명식과 연결하고, 6장은 관련 생활 영역을 서로 다른 근거로 자세히 다루세요. 재물·직업·동업의 기회와 부담은 재성·식상·비겁·관성의 실제 배치와 성립·완화 조건으로 해석한 뒤 수입·지출·역할·계약에서 확인할 장면을 붙이세요. 질문에 없는 개인사를 만들거나 손실·성공을 보장하지 마세요. 건강은 질환 예측 없이 생활 리듬과 필요시 의료 확인으로 한정합니다.",
+    guide: "5장은 질문의 쟁점을 계산된 명식과 연결하고, 6장은 관련 생활 영역을 서로 다른 근거로 자세히 다루세요. 재물·직업·동업의 기회와 부담은 재성·식상·비겁·관성의 실제 배치와 성립·완화 조건으로 해석한 뒤 수입·지출·역할·계약에서 확인할 장면을 붙이세요. 질문에 없는 개인사를 만들거나 손실·성공을 보장하지 마세요. 오행 개수는 성향의 경향으로만 언급하고, 오행이 많거나 없다는 것을 연봉·승진·재물의 증감이나 특정 장기·질환과 연결하지 마세요(5장의 고민 설명도 같습니다). 건강은 수면·회복·업무량 같은 생활 리듬만 다루고, 불편이 이어지면 의료 확인을 권하는 데서 멈춥니다. 6장 안의 영역별 소제목은 번호 없이 굵은 글씨로만 쓰세요.",
   }),
   Object.freeze({
     key: "timing_flow",
@@ -1622,6 +1625,26 @@ export function validateSajuMyeongsikTenGodText(text, factSnapshot) {
   };
 }
 
+// The model reads the computed chart, not the birth clock. calculationMeta, daewunBridge and the profile
+// copies carried the date, time, instant and place even with the birth hidden (B4 2026-10-11).
+// The header line above the JSON is the only place a birth date may appear.
+const SAJU_PROMPT_CALCULATION_META_KEYS = Object.freeze(["engineVersion", "policyVersion", "timeUnknown", "termTimeAssumed", "nightZiPolicy", "dayBoundaryRule"]);
+const SAJU_PROMPT_BIRTH_KEYS = new Set(["birth", "birthCivilYear", "birthDate", "birthTime", "birthPlace", "_astroBirth"]);
+function stripSajuPromptBirth(value) {
+  if (Array.isArray(value)) return value.map(stripSajuPromptBirth);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value)
+    .filter(([key]) => !SAJU_PROMPT_BIRTH_KEYS.has(key))
+    .map(([key, item]) => [key, key === "calculationMeta" && item && typeof item === "object"
+      ? Object.fromEntries(SAJU_PROMPT_CALCULATION_META_KEYS.filter((field) => field in item).map((field) => [field, item[field]]))
+      : stripSajuPromptBirth(item)]));
+}
+
+// Number(null) is 0, so a missing hour used to reach the prompt as "00:00".
+function readBirthClockField(value) {
+  return value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Number(value);
+}
+
 function normalizeBirthInfo(profile, snapshot) {
   const p = profile && typeof profile === "object" ? profile : {};
   const s = snapshot && typeof snapshot === "object" ? snapshot : {};
@@ -1631,8 +1654,8 @@ function normalizeBirthInfo(profile, snapshot) {
     year: Number(pb.year || sb.year || 0) || null,
     month: Number(pb.month || sb.month || 0) || null,
     day: Number(pb.day || sb.day || 0) || null,
-    hour: Number.isFinite(Number(pb.hour ?? sb.hour)) ? Number(pb.hour ?? sb.hour) : null,
-    minute: Number.isFinite(Number(pb.minute ?? sb.minute)) ? Number(pb.minute ?? sb.minute) : null,
+    hour: readBirthClockField(pb.hour ?? sb.hour),
+    minute: readBirthClockField(pb.minute ?? sb.minute),
     calType: String(pb.calType || "solar").trim() || "solar",
   };
 
@@ -2189,13 +2212,19 @@ export function buildSajuAIPromptWithDomain({
   const weights = normalizeElementWeights(sajuResult, sajuResult.snapshot);
   const johu = sajuResult.johu && typeof sajuResult.johu === "object" ? sajuResult.johu : {};
   const power = sajuResult.power && typeof sajuResult.power === "object" ? sajuResult.power : {};
-  const jong = sajuResult.jong && typeof sajuResult.jong === "object" ? sajuResult.jong : {};
+  // 종격 여부는 요청에 실린 값(옛 설문을 거쳤을 수 있음)이 아니라 원국 기둥으로 다시 판정한다.
+  const natalCore = natalCoreFromPillarRows(normalizeSajuPillarRows(sajuResult));
+  const jong = legacyJongShape(natalCore);
   const engineContext = normalizeSajuEngineContext(sajuResult);
   const advancedFactors = engineContext.advancedFactors;
   const calibrationResolved = resolveSajuCalibrationLuck(calibration, {
     daewunRows: engineContext.quantum.daewun,
     currentAge: engineContext.quantum.currentAge,
     currentYear: Number(sajuResult.targetYear || sajuResult.currentYear || sajuResult.engineContext?.currentYear || 0) || undefined,
+    // 경험 대조는 원국과 화면이 쓰는 용신·기신을 읽기만 한다.
+    natal: natalCore,
+    useful: power.yongshin,
+    avoid: power.kijishin,
   });
   const factBuild = buildSajuMyeongsikFactSnapshot({
     sajuResult,
@@ -2243,14 +2272,14 @@ export function buildSajuAIPromptWithDomain({
     const { daewun: duplicatedDaewun, ...quantumRest } = promptEngineContext.quantumMyeongli;
     promptEngineContext.quantumMyeongli = quantumRest;
   }
-  const canonicalSajuResult = {
+  const canonicalSajuResult = stripSajuPromptBirth({
     ...promptSource,
     factSnapshot: promptFactSnapshot,
     advancedFactors: promptAdvancedFactors,
     engineContext: {
       ...promptEngineContext,
     },
-  };
+  });
   const questionFocusAngles = buildSajuQuestionFocusAngles(questionType, resolvedDomain);
   const engineContextLines = buildSajuEngineContextLines(engineContext);
   const advancedFactorLines = buildSajuAdvancedFactorLines(advancedFactors, questionType);
@@ -2276,6 +2305,7 @@ export function buildSajuAIPromptWithDomain({
     "- 내부 십성표와 다른 십성으로 바꾸지 마세요.",
     "- 예: 신금(辛) 일간에게 임수(壬)는 식신이 아니라 상관입니다.",
     "- 격국·십이운성은 위 명식 사실 카드(10. 격국, 2. 사주 원국)에 확정값이 있습니다. 이와 다른 격국을 새로 만들지 말고, 격국의 활성화/파격 시기는 대운·세운 라인과 연결해 시기별 행동지침으로 풀어주세요.",
+    ...gyeokgukPromptRules(gyeokgukClaimFact(factSnapshot.majorStructures?.gyeokguk), "formal").map((line) => `- ${line}`),
     "- fact card 밖의 출생 개인정보나 존재하지 않는 신살·관계를 새로 만들지 마세요.",
     "",
     `도메인: ${template.domainKo}`,
@@ -2321,10 +2351,7 @@ export function buildSajuAIPromptWithDomain({
     minPromptLength: 2600,
   });
 
-  const calibrationLines = buildSajuCalibrationPromptLines(calibrationResolved, {
-    yongshin: power.yongshin,
-    kijishin: power.kijishin,
-  });
+  const calibrationLines = buildSajuCalibrationPromptLines(calibrationResolved);
   const purposePrompt = [
     // 헤더 문자열은 SAJU_AI_PROMPT_VERSION(= promptVersion, 캐시 키 keyExtra)과 같은 세대를 가리켜야 한다.
     `[명식이 답하는 사주 AI 상담 ${SAJU_AI_PROMPT_VERSION.replace(/^saju-myeongsik-ai-/, "")}]`,

@@ -25,6 +25,27 @@ function installFetch() {
   });
 }
 
+test('starts stylesheet loading while the catalog request is still in flight', async () => {
+  const { dom, overlay } = installDom();
+  let resolveCatalog;
+  globalThis.fetch = url => {
+    if (String(url).endsWith('catalog.json')) {
+      return new Promise(resolve => { resolveCatalog = resolve; });
+    }
+    return Promise.resolve({ ok: true, json: async () => detail });
+  };
+  const { mountFeatureDetailPreview } = await import('../../js/feature-detail-preview.mjs?parallel-critical-path');
+  const mounting = mountFeatureDetailPreview(overlay, ['tea']);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.ok(document.getElementById('featureVisualDetailStyles'), 'CSS begins before catalog resolution');
+  resolveCatalog({ ok: true, json: async () => [{ slug: 'tea', aliases: ['tea'] }] });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  document.getElementById('featureVisualDetailStyles').dispatchEvent(new Event('load'));
+  await mounting;
+  assert.equal(overlay.classList.contains('pvw-visual'), true);
+  dom.window.close();
+});
+
 test('static preview waits for CSS before replacing the existing detail sections', async () => {
   const { dom, overlay } = installDom();
   installFetch();
@@ -112,5 +133,23 @@ test('inline paid detail uses reviewed display data and the original action with
   assert.equal(overlay.querySelector('[data-feature-share]'), null);
   overlay.querySelector('.fortuneAction button').click();
   assert.equal(starts, 1);
+  dom.window.close();
+});
+
+test('an authored inline guide loads only its declared static manifest and preserves fallback and action', async () => {
+  const {dom,overlay}=installDom();
+  const requests=[];
+  globalThis.fetch=async url=>{requests.push(url);return {ok:true,json:async()=>({title:'독립 안내',notice:'편집 예시',panels:[{title:'예시',text:'읽을 수 있는 예시 원고',src:'/feature-details/crafted/test/01.webp'}]})};};
+  const {mountFeatureDetailPreview}=await import('../../js/feature-detail-preview.mjs?authored-inline');
+  let starts=0;document.getElementById('tilePvwCtaBtn').addEventListener('click',()=>starts++);
+  const mounting=mountFeatureDetailPreview(overlay,['test'],{...detail,inlineAliases:['test'],craftedManifest:'/feature-details/crafted/test/manifest.json'});
+  await new Promise(resolve=>setTimeout(resolve,0));
+  document.getElementById('featureVisualDetailStyles').dispatchEvent(new Event('load'));
+  await mounting;
+  assert.deepEqual(requests,['/feature-details/crafted/test/manifest.json']);
+  overlay.querySelector('.craftedDetail img').dispatchEvent(new Event('error'));
+  assert.equal(overlay.querySelector('.craftedDetailTranscript').open,true);
+  overlay.querySelector('.fortuneAction button').click();
+  assert.equal(starts,1);
   dom.window.close();
 });

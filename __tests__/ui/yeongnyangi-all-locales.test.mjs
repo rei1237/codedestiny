@@ -19,7 +19,7 @@ const bundle=await build({stdin:{contents:`
  export {journeyCopy} from './app/yeongnyangi/_lib/journey-copy';
  export {chartCopy,visualCopy,chartTerm,chartLimitation} from './app/yeongnyangi/_lib/reading-chart-copy';
  export {tarotRitualCopy} from './app/yeongnyangi/_lib/tarot-ritual-copy';
- export {jongCheckCopy} from './app/yeongnyangi/_lib/jong-check-copy';
+ export {experienceCopy} from './app/yeongnyangi/_lib/experience-copy';
  export {getCheckoutCopy} from './app/checkout/checkout-copy';
  export {checkoutPath} from './app/yeongnyangi/_lib/api';
  import React from 'react'; import {renderToStaticMarkup} from 'react-dom/server';
@@ -40,7 +40,7 @@ for(const locale of RUNTIME_LOCALES)test(`${locale}: complete dropdown, localize
  const copy=m.consultationLocaleCopy(locale);
  for(const tier of ['mackerel','salmon','flounder','tuna']){const text=m.readingTierDepth(tier,locale);assert.ok(text?.trim());if(locale!=='ko')assert.doesNotMatch(text,/[가-힣]/);}
  assert.equal(m.readingTierDepth('unknown',locale),undefined);
- for(const name of ['consultationInputCopy','readingCopy','readingFocusCopy','readingDepthCopy','resultStateCopy','shareCopy','journeyCopy','chartCopy','visualCopy','tarotRitualCopy','jongCheckCopy','getCheckoutCopy']){
+ for(const name of ['consultationInputCopy','readingCopy','readingFocusCopy','readingDepthCopy','resultStateCopy','shareCopy','journeyCopy','chartCopy','visualCopy','tarotRitualCopy','experienceCopy','getCheckoutCopy']){
   const native=m[name](locale),original=m[name]('ko');
   for(const key of Object.keys(original)){
    assert.equal(typeof native[key],typeof original[key],`${locale} ${name}.${key} is authored`);

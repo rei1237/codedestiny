@@ -3,6 +3,7 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import { getAnimalBySajuResult, getAnimalDisplayData, calculateAnimalCompatibility } from "../lib/animalMapping";
 import { getTwelveStagesForPillars } from "../lib/twelveStages";
 import { buildCompatibilityStageEvidence } from "../lib/analysisNarrative";
+import { ANIMAL_PAID_RETRY_MS, fetchAnimalPaidReading, type AnimalPaidState } from "../lib/paidReading";
 import type {
   AnimalDestinyData,
   AnimalDestinyInput,
@@ -20,10 +21,13 @@ interface AnimalDestinyState {
   animalId: AnimalId | null;
   animalData: AnimalDestinyData | null;
   partner: PartnerResult;
+  /** 유료 풀이(서버 해금 확인 뒤 받는 결과 카드 문장·탭·심층 리포트·도감 설명) */
+  paid: AnimalPaidState;
   error?: string;
   setInput: (input: Partial<AnimalDestinyInput>) => void;
   calculate: () => Promise<void>;
   calculateCompatibility: (partnerInput: AnimalDestinyInput) => Promise<void>;
+  loadPaid: () => Promise<void>;
   reset: () => void;
 }
 
@@ -98,6 +102,9 @@ const INITIAL_PARTNER: PartnerResult = {
   breakdown: null,
 };
 
+// 요청마다 번호를 매겨, 다시 계산하거나 처음으로 돌아간 뒤 늦게 온 응답은 버린다.
+let paidRequestSeq = 0;
+
 function wait(ms: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -112,6 +119,7 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
   animalId: null,
   animalData: null,
   partner: INITIAL_PARTNER,
+  paid: { status: "idle" },
   error: "",
 
   setInput: (partialInput) => {
@@ -139,10 +147,12 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
       return;
     }
 
+    paidRequestSeq += 1;
     set({
       status: "calculating",
       error: "",
       partner: INITIAL_PARTNER,
+      paid: { status: "idle" },
     });
 
     try {
@@ -174,6 +184,7 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
         animalData,
       });
 
+      void get().loadPaid();
       await wait(1250);
 
       set({
@@ -185,6 +196,22 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
         error: resolveAnimalDestinyError(error, copy.calculationFailed, locale),
       });
     }
+  },
+
+  loadPaid: async () => {
+    const seq = ++paidRequestSeq;
+    const input = get().input;
+    const current = () => seq === paidRequestSeq;
+    set({ paid: { status: "loading" } });
+    let state = await fetchAnimalPaidReading(input);
+    for (const delay of ANIMAL_PAID_RETRY_MS) {
+      if (!current() || state.status !== "locked") break;
+      set({ paid: state });
+      await wait(delay);
+      if (!current()) return;
+      state = await fetchAnimalPaidReading(input);
+    }
+    if (current()) set({ paid: state });
   },
 
   calculateCompatibility: async (partnerInput) => {
@@ -242,6 +269,7 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
   },
 
   reset: () => {
+    paidRequestSeq += 1;
     set({
       status: "idle",
       input: INITIAL_INPUT,
@@ -250,6 +278,7 @@ export const useAnimalDestinyStore = create<AnimalDestinyState>((set, get) => ({
       animalId: null,
       animalData: null,
       partner: INITIAL_PARTNER,
+      paid: { status: "idle" },
       error: "",
     });
   },

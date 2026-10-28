@@ -1,22 +1,17 @@
 import { connectDb } from "../lib/db.js";
-import { PointHistory, ProfileCard, User } from "../lib/models.js";
+import { ProfileCard, User } from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
   normalizeHoneyPassEntitlement,
   resolveCurrentProfileId as resolveCurrentId,
+  resolveProfileLimitForClient,
   resolveSingleProfileAccess,
 } from "../lib/profile-limits.js";
-import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 
 const MAX_SYNC_PROFILES = 30;
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
-const MAX_TAMAGOTCHI_TEXT_LEN = 180;
-const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
-const PROFILE_CARD_MANAGE_COST = 50;
-const PROFILE_CARD_MANAGE_AMOUNT_KRW = 5000;
-const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
 
 // 서버 로그용. 원문 메시지를 포함한다 — 진단에 필요하고 콘솔은 클라이언트에 안 나간다.
 function buildErrorDetails(stage, error, extras = {}) {
@@ -62,63 +57,6 @@ function sanitizeProfileId(value) {
 
 function sanitizeName(value) {
   return sanitizeString(value, MAX_NAME_LEN) || "이름 없음";
-}
-
-function sanitizeTamagotchiText(value, fallback = "") {
-  const text = String(value || "").replace(/\s+/g, " ").trim();
-  return (text || fallback).slice(0, MAX_TAMAGOTCHI_TEXT_LEN);
-}
-
-function clampPercent(value, fallback) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return fallback;
-  return Math.max(0, Math.min(100, Math.round(n)));
-}
-
-const TAMAGOTCHI_ELEMENTS = new Set(["wood", "fire", "earth", "metal", "water"]);
-const TAMAGOTCHI_THEMES = new Set(["moon", "strawberry", "cherry", "star", "angel"]);
-const DAY_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
-function sanitizeTamagotchiEnum(value, allowed, fallback) {
-  const text = String(value || "").trim().toLowerCase();
-  return allowed.has(text) ? text : fallback;
-}
-
-function sanitizeDayKey(value) {
-  const text = String(value || "").trim();
-  return DAY_KEY_PATTERN.test(text) ? text : "";
-}
-
-// /tadagochi 의 펫 상태. 화이트리스트라 클라이언트가 보낸 임의 필드는 저장되지 않는다.
-// 동물 키는 문자 제한을 걸지 않는다 — 클라이언트가 별칭(한글 포함)을 자기 쪽에서
-// normalizeAnimalKey 로 정규화하므로 여기서 깎으면 되레 값이 깨진다.
-function normalizeTamagotchi(raw) {
-  if (!raw || typeof raw !== "object") return null;
-  const source = raw;
-  const now = new Date().toISOString();
-  return {
-    petName: sanitizeTamagotchiText(source.petName, ""),
-    animal: sanitizeTamagotchiText(source.animal, "").slice(0, 40),
-    zodiac: sanitizeTamagotchiText(source.zodiac, "").slice(0, 40),
-    element: sanitizeTamagotchiEnum(source.element, TAMAGOTCHI_ELEMENTS, "water"),
-    theme: sanitizeTamagotchiEnum(source.theme, TAMAGOTCHI_THEMES, "moon"),
-    day: sanitizeInt(source.day, 1, 9999, 1),
-    hunger: clampPercent(source.hunger, 70),
-    happy: clampPercent(source.happy, 80),
-    energy: clampPercent(source.energy, 90),
-    fortune: clampPercent(source.fortune, 50),
-    sleeping: Boolean(source.sleeping),
-    birthYear: sanitizeInt(source.birthYear, 1900, 2200, 0),
-    birthMonth: sanitizeInt(source.birthMonth, 1, 12, 6),
-    birthDay: sanitizeInt(source.birthDay, 1, 31, 15),
-    birthHour: sanitizeInt(source.birthHour, 0, 23, 12),
-    // 하루 5회 운세 제한의 근거. 상한을 서버에서도 걸어 클라이언트 값만 믿지 않는다.
-    chatCount: sanitizeInt(source.chatCount, 0, 5, 0),
-    chatDate: sanitizeDayKey(source.chatDate),
-    createdAt: sanitizeTamagotchiText(source.createdAt, now),
-    updatedAt: now,
-    ownerScope: "account",
-  };
 }
 
 function sanitizeGender(value) {
@@ -208,7 +146,7 @@ function resolveSubscriptionPolicy(user) {
     label: entitlement.label,
     isActive: entitlement.isActive,
     freeLimit: entitlement.maxCoveredCoin,
-    profileLimit: entitlement.maxProfiles,
+    profileLimit: resolveProfileLimitForClient(), // 2026-10-11 프로필 개수 상한 없음(0 = 무제한)
     source: entitlement.source,
     startedAt: entitlement.startedAt || null,
     expiresAt: entitlement.expiresAt,
@@ -268,48 +206,6 @@ function markCurrentProfile(profiles, currentId) {
     isDefault: Boolean(selectedId && String(profile?.id || profile?.profileId || "") === selectedId),
     selected: Boolean(selectedId && String(profile?.id || profile?.profileId || "") === selectedId),
   }));
-}
-
-function profilePaymentRequiredResponse(requestId) {
-  return json({
-    ok: false,
-    code: "PAYMENT_REQUIRED",
-    message: "프로필 카드 추가/삭제는 5,000원 또는 5,000원 결제 후 가능합니다.",
-    pricing: {
-      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-      reason: "프로필 카드 추가/삭제",
-      coinPrice: PROFILE_CARD_MANAGE_COST,
-      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-      amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-    },
-    checkout: {
-      endpoint: "/api/billing/checkout",
-      payload: {
-        paymentType: "digital_content",
-        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-        reason: "프로필 카드 추가/삭제",
-        paymentAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
-        coinPrice: PROFILE_CARD_MANAGE_COST,
-        membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-        requestId,
-      },
-    },
-  }, { status: 402 });
-}
-
-async function ensureSyncProfileMutationPayment(auth, requestId) {
-  const paymentRequestId = sanitizeString(requestId, 120) || `profile-card:sync:${Date.now().toString(36)}`;
-  const existing = await PointHistory.findOne({
-    userId: auth.userId,
-    kind: "deduct",
-    featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-    $or: [
-      { "metadata.requestId": paymentRequestId },
-      { "metadata.profilePaymentKey": paymentRequestId },
-    ],
-  }).lean();
-  if (existing) return { ok: true };
-  return { ok: false, response: profilePaymentRequiredResponse(paymentRequestId) };
 }
 
 /* 인증 조회(resolveActiveUserAuth)를 이 필드까지 확장해 auth.authUserDoc 로 받는다 —
@@ -419,19 +315,8 @@ async function handleSyncDestinyProfiles(request, auth) {
   const requestedCurrentId = sanitizeProfileId(body?.currentId);
   const baseCurrentId = sanitizeProfileId(body?.baseCurrentId);
   const storedCurrentId = sanitizeProfileId(user.destinyProfilesCurrentId);
-  const existingProfiles = await listUserProfiles(auth.userId);
-  const existingIds = new Set(existingProfiles.map((profile) => String(profile?.profileId || profile?.id || "")));
-  const nextIdSet = new Set(normalizedProfiles.map((profile) => String(profile?.profileId || "")));
-  const hasProfileAddition = normalizedProfiles.some((profile) => !existingIds.has(String(profile?.profileId || "")));
-  const hasProfileDeletion = existingProfiles.some((profile) => !nextIdSet.has(String(profile?.profileId || profile?.id || "")));
-  const isInitialProfileCreate = hasProfileAddition
-    && !hasProfileDeletion
-    && existingProfiles.length === 0
-    && normalizedProfiles.length <= 1;
-  if ((hasProfileAddition || hasProfileDeletion) && !isInitialProfileCreate) {
-    const payment = await ensureSyncProfileMutationPayment(auth, body?.requestId || body?.payment?.requestId || body?.consume?.requestId || body?.accessGrant?.requestId);
-    if (!payment.ok) return payment.response;
-  }
+  /* 2026-10-11: 프로필 카드 추가·삭제는 개수·결제와 무관하게 허용한다(worker/lib/profile-card-mutation-policy.js).
+     해금은 출생정보 단위라 카드를 갈아 끼워도 기존 구매를 우회할 수 없다. */
 
   /* single 모드(이용권 종료 후 카드 1개 확정)와 무료 계정 카드 수 상한은 서버 전역에서 꺼져 있다 —
      worker/lib/profile-limits.js 의 resolveSingleProfileAccess 도 같은 상수로 subscription 모드만
@@ -464,7 +349,12 @@ async function handleSyncDestinyProfiles(request, auth) {
     }
 
     const nextIds = normalizedProfiles.map((profile) => profile.profileId);
-    if (nextIds.length > 0) {
+    // 🔴 카드 수 상한은 없다(2026-10-11). MAX_SYNC_PROFILES 는 요청 크기 보호일 뿐이라, 보낸 목록이
+    //    그보다 길어 잘렸으면 목록 밖 카드를 지우지 않는다 — 잘린 카드가 서버에서 사라지면 안 된다.
+    const truncated = Array.isArray(body?.profiles) && body.profiles.length > MAX_SYNC_PROFILES;
+    if (truncated) {
+      // 받은 앞쪽 카드만 반영하고 삭제는 건너뛴다.
+    } else if (nextIds.length > 0) {
       await ProfileCard.deleteMany({ userId: auth.userId, profileId: { $nin: nextIds } });
     } else {
       await ProfileCard.deleteMany({ userId: auth.userId });
@@ -515,135 +405,10 @@ async function handleSyncDestinyProfiles(request, auth) {
   });
 }
 
-async function handleGetTamagotchi(auth) {
-  const user = await User.findById(auth.userId).select("tamagotchi").lean();
-  if (!user) {
-    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
-  }
-
-  return json({
-    ok: true,
-    pet: normalizeTamagotchi(user.tamagotchi),
-  });
-}
-
-async function handlePutTamagotchi(request, auth) {
-  const body = await readJson(request);
-  const pet = normalizeTamagotchi(body?.pet || body?.tamagotchi || body);
-  // 클라이언트가 "펫이 있다"고 판정하는 기준과 같게 둔다(petName/animal/zodiac 중 하나).
-  if (!pet || !(pet.petName || pet.animal || pet.zodiac)) {
-    return json({ ok: false, message: "다마고치 캐릭터 정보가 필요합니다." }, { status: 400 });
-  }
-
-  const updated = await User.findByIdAndUpdate(
-    auth.userId,
-    { $set: { tamagotchi: pet } },
-    { returnDocument: "after", projection: { tamagotchi: 1 } },
-  ).lean();
-
-  if (!updated) {
-    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
-  }
-
-  return json({
-    ok: true,
-    pet: normalizeTamagotchi(updated.tamagotchi),
-  });
-}
-
-async function handleDeleteTamagotchi(auth) {
-  const updated = await User.findByIdAndUpdate(
-    auth.userId,
-    { $set: { tamagotchi: null } },
-    { returnDocument: "after", projection: { _id: 1 } },
-  ).lean();
-
-  if (!updated) {
-    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
-  }
-
-  return json({ ok: true, pet: null });
-}
-
 export async function handleUserRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/user");
-
-    if (method === "GET" && path === "/tamagotchi") {
-      // 읽기 전용 조회다. 바로 아래 connectDb 실패는 이미 200+degraded 로 다루면서
-      // 그 앞의 인증 조회만 무방비로 두면, 같은 DB 블립이 인증 단계에서 터졌을 때만
-      // catch-all 로 새어 503 이 된다 — 같은 완충을 인증에도 씌운다.
-      let auth;
-      try {
-        auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
-      } catch (error) {
-        logUserRouteError("auth-get-tamagotchi", error, request);
-        return json({
-          ok: false,
-          degraded: true,
-          code: "DB_FALLBACK",
-          message: "다마고치 동기화 서버가 일시적으로 불안정합니다.",
-          errorDetails: buildPublicErrorDetails("auth-get-tamagotchi", error),
-        }, { status: 200 });
-      }
-      if (!auth) {
-        return json({ ok: false, code: "AUTH_REQUIRED", message: "로그인이 필요합니다." }, { status: 401 });
-      }
-      try {
-        await connectDb(env);
-      } catch (error) {
-        logUserRouteError("connect-db-get-tamagotchi", error, request, {
-          userId: String(auth?.userId || ""),
-        });
-        return json({
-          ok: false,
-          degraded: true,
-          code: "DB_FALLBACK",
-          message: "다마고치 동기화 서버가 일시적으로 불안정합니다.",
-          errorDetails: buildPublicErrorDetails("connect-db-get-tamagotchi", error),
-        }, { status: 200 });
-      }
-      return await handleGetTamagotchi(auth);
-    }
-
-    if ((method === "PUT" || method === "POST") && path === "/tamagotchi") {
-      const auth = await requireUserFromRequest(request, env);
-      try {
-        await connectDb(env);
-      } catch (error) {
-        logUserRouteError("connect-db-put-tamagotchi", error, request, {
-          userId: String(auth?.userId || ""),
-        });
-        return json({
-          ok: false,
-          degraded: true,
-          code: "DB_FALLBACK",
-          message: "다마고치 동기화 서버가 일시적으로 불안정합니다.",
-          errorDetails: buildPublicErrorDetails("connect-db-put-tamagotchi", error),
-        }, { status: 202 });
-      }
-      return await handlePutTamagotchi(request, auth);
-    }
-
-    if (method === "DELETE" && path === "/tamagotchi") {
-      const auth = await requireUserFromRequest(request, env);
-      try {
-        await connectDb(env);
-      } catch (error) {
-        logUserRouteError("connect-db-delete-tamagotchi", error, request, {
-          userId: String(auth?.userId || ""),
-        });
-        return json({
-          ok: false,
-          degraded: true,
-          code: "DB_FALLBACK",
-          message: "다마고치 동기화 서버가 일시적으로 불안정합니다.",
-          errorDetails: buildPublicErrorDetails("connect-db-delete-tamagotchi", error),
-        }, { status: 202 });
-      }
-      return await handleDeleteTamagotchi(auth);
-    }
 
     if (method === "GET" && path === "/destiny-profiles") {
       // 읽기 전용 조회다. 바로 아래 connectDb 실패는 이미 200+degraded 로 다루면서

@@ -168,3 +168,32 @@ it('karma accepts a structurally valid short final attempt without changing tota
   expect((await batch()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(1);
   expect(docs[0].llmMeta.attempts['chapter-01']).toBe(2); expect(refund).not.toHaveBeenCalled();
 });
+
+// 2026-10-16: 결제 1건 = 리포트 1건. 같은 결제를 요청 키만 바꿔 다시 내밀면 409, 계산도 다시 돌지 않는다.
+it('keeps empty relationship input compatible, but binds a changed scene to its request', async () => {
+  const original = utils.normalizeConsultationInput(body);
+  expect(utils.normalizeConsultationInput({ ...body, relationshipContext: {} }).inputHash).toBe(original.inputHash);
+  expect(utils.normalizeConsultationInput({ ...body, relationshipContext: { scene: 'x'.repeat(501) } }).ok).toBe(false);
+  const relationshipContext = { person: 'A', relationship: '동료', scene: '부탁을 계속 떠맡습니다', myResponse: '거절하지 못합니다', wish: '거절의 기준' };
+  expect((await start({ relationshipContext })).status).toBe(202);
+  expect(docs[0].integratedResult.relationshipAnalysis.context).toEqual(relationshipContext);
+  expect(docs[0].integratedResult.relationshipAnalysis.partnerChartAvailable).toBe(false);
+  const changed = await start({ relationshipContext: { ...relationshipContext, scene: '다른 상황' } });
+  expect(changed.status).toBe(409);
+  expect(chart).toHaveBeenCalledTimes(1);
+  const definition = utils.PREMIUM_CHAPTERS.find(row => row.id === 'chapter-05');
+  const prompt = utils.buildChapterPrompt(docs[0], definition);
+  expect(prompt).toContain('부탁을 계속 떠맡습니다');
+  expect(prompt).toContain('초기에 놓치는 신호');
+  expect(prompt).toContain('saju');
+  expect(prompt).not.toContain('"confidence":"none","basisPaths"');
+  expect(utils.buildSystemPrompt()).toContain('개인 relationAxis는 특정 상대와의 궁합이 아닙니다');
+});
+
+for (const paid of ["paid", "monthly", "deferred"]) it(`${paid}: the same billing evidence cannot open a second report under a new key`, async () => {
+  mode = paid; expect((await start()).status).toBe(202); expect(chart).toHaveBeenCalledTimes(1);
+  const reused = await route(new Request("https://mock.test/api/karma-destiny-ai/start", { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "another-request" }, body: JSON.stringify(body) }), {});
+  expect(reused.status).toBe(409); expect(await reused.json()).toMatchObject({ code: "EVIDENCE_ALREADY_USED" });
+  expect(chart).toHaveBeenCalledTimes(1); expect(docs).toHaveLength(1);
+  expect((await start()).status).not.toBe(409);
+});

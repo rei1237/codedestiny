@@ -1,0 +1,128 @@
+{
+  "id": "extreme-t-relationship",
+  "featureKey": "sukuyo-extreme-t-relationship",
+  "title": "극T 관계 확장",
+  "notice": "사주 기반 극T 테스트의 관계 확장 해석입니다. 기본 결과에서 제공하는 점수·유형·장점·치명적 버그·오늘의 미션·요약 카드와 구분하여, 관계 회로·연애 알고리즘·현실 처리 능력·사주 기반 극T 해석·디버깅 처방전의 다섯 영역을 추가로 엽니다. 사주의 금 오행·관성·식상·조후를 내부 규칙으로 조합한 로컬 콘텐츠이며 숙요 궁합, MBTI 검사, 심리·의학 진단, 실제 공감 능력의 측정이 아닙니다. 유형과 상황에 따라 작성된 문구를 조합하며 AI 질문 상담은 포함하지 않습니다. 예시는 이해를 돕기 위한 가상 편집이며 실제 고객 결과나 구매 후기가 아닙니다. 관계 개선·수익·직업 성과를 보장하지 않습니다. 현재 화면에서 이용권·월정석·단건 결제의 적용 조건을 확인해 주세요.",
+  "panels": [
+    {
+      "id": "01-when-the-right-answer-feels-cold",
+      "title": "맞는 말을 했는데, 왜 마음은 멀어질까요?",
+      "alt": "말의 내용과 전달 방식 사이를 돌아보는 극T 관계 확장",
+      "src": "/feature-details/crafted/extreme-t-relationship/01-when-the-right-answer-feels-cold.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "맞는 말을 했는데,\n왜 마음은 멀어질까요?\n\n답을 찾는 속도와\n마음을 듣는 속도가 다를 수 있어요.\n사주로 나의 관계 습관을 돌아보세요.\n\n기본 극T 테스트 다음에 읽는\n다섯 영역의 관계 확장 해석.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/extreme-t-relationship/01-when-the-right-answer-feels-cold-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-beyond-the-basic-score",
+      "title": "점수 다음에는, 관계의 장면을 읽어요.",
+      "alt": "기본 결과와 유료 관계 확장의 포함 범위 구분",
+      "src": "/feature-details/crafted/extreme-t-relationship/02-beyond-the-basic-score.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "점수 다음에는,\n관계의 장면을 읽어요.\n기본 결과에서 본 것\n\nT 점수와 유형 · 장점 스캔\n치명적 버그 · 오늘의 미션\n요약 카드\n\n관계 확장으로 열리는 것\n\n관계 회로 · 연애 알고리즘\n현실 처리 능력 · 사주 해석\n디버깅 처방전\n\n새 성격을 판정하는 시험이 아니라,\n기존 사주 해석을 관계와 생활로 넓혀요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/extreme-t-relationship/02-beyond-the-basic-score-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-the-saju-basis-in-plain-words",
+      "title": "논리의 온도를, 사주의 네 가지 단서로.",
+      "alt": "금 오행 관성 식상 조후를 쉽게 설명하는 해석 근거",
+      "src": "/feature-details/crafted/extreme-t-relationship/03-the-saju-basis-in-plain-words.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "논리의 온도를,\n사주의 네 가지 단서로.\n금 오행 · 관성\n\n기준과 정리, 책임과 규칙을\n어떻게 대하는지 읽는 단서\n\n식상 · 조후\n\n표현하는 힘과 사주의 온습도를\n말의 강도와 생활 리듬으로 풀어요.\n\n내부 점수 구간과 사주 요소에 따라\n작성된 해설을 조합해요.\n\n공감 능력이나 성격을 측정한 수치가 아니며,\nMBTI 검사·심리 진단과도 달라요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/extreme-t-relationship/03-the-saju-basis-in-plain-words-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-relationships-have-different-scenes",
+      "title": "친구 앞의 나와, 가까운 사람 앞의 나는.",
+      "alt": "친구 연애 가족 직장팀 말투 위험 관계 개선의 여섯 항목",
+      "src": "/feature-details/crafted/extreme-t-relationship/04-relationships-have-different-scenes.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "친구 앞의 나와,\n가까운 사람 앞의 나는.\n친구 · 연애\n\n위로가 필요한 순간과\n마음이 커지는 순간의 반응\n\n가족 · 직장과 팀\n\n익숙한 관계의 역할과\n함께 일할 때의 소통 방식\n\n말투와 관계 조언\n\n말투가 오해를 낳기 쉬운 지점,\n관계를 편하게 바꾸는 조언\n\n상대의 마음을 단정하기보다,\n내가 건네는 말의 순서를 살펴요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/extreme-t-relationship/04-relationships-have-different-scenes-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-love-and-real-life",
+      "title": "좋아할 때의 말, 함께 일할 때의 선택.",
+      "alt": "연애 일곱 항목과 일과 돈 다섯 항목의 실제 구성",
+      "src": "/feature-details/crafted/extreme-t-relationship/05-love-and-real-life.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "좋아할 때의 말,\n함께 일할 때의 선택.\n연애 알고리즘\n\n호감 · 연락 · 서운함 · 다툼\n상대가 느낄 장점과 단점 · 조언\n\n현실 처리 능력\n\n업무 · 돈 관리 · 위기 대응\n결정과 루틴 · 계산적으로 보이는 지점\n\n관계·일·돈의 결과를 보장하지 않아요.\n나의 반응을 점검하는 참고로 읽어주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/extreme-t-relationship/05-love-and-real-life-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-a-small-change-in-the-first-sentence",
+      "title": "조언을 꺼내기 전에, 한 문장을 먼저 건네요.",
+      "alt": "공감 확인 뒤 해결책을 묻는 가상의 대화 예시",
+      "src": "/feature-details/crafted/extreme-t-relationship/06-a-small-change-in-the-first-sentence.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "조언을 꺼내기 전에,\n한 문장을 먼저 건네요.\n\n이해를 돕기 위한 예시 · 가상 편집\n\n해결책부터 말했다면\n\n“그럼 이렇게 하면 되잖아.”\n\n마음을 먼저 확인해 보기\n\n“많이 답답했겠다.\n지금은 들어주는 게 좋을까,\n같이 방법을 찾아볼까?”\n\n내용을 바꾸지 않아도,\n말의 순서를 바꾸면\n상대가 대화에 참여할 여지가 생겨요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/extreme-t-relationship/06-a-small-change-in-the-first-sentence-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-five-ways-to-try-it-today",
+      "title": "읽고 끝내지 않도록, 오늘의 말에 적용해요.",
+      "alt": "디버깅 처방전의 다섯 실천 영역과 제공 범위",
+      "src": "/feature-details/crafted/extreme-t-relationship/07-five-ways-to-try-it-today.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "읽고 끝내지 않도록,\n오늘의 말에 적용해요.\n디버깅 처방전\n\n오늘 바로 해볼 것\n대화할 때 조심할 것\n연애에서 써먹을 것\n일할 때 써먹을 것\n마음이 흔들릴 때 쓸 것\n\n익숙한 장면 하나를 골라\n다음 대화에서 한 번 시도해 보세요.\n\n여기서 처방은 생활 조언을 뜻해요.\n치료나 개인 맞춤 AI 상담은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/extreme-t-relationship/07-five-ways-to-try-it-today-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-keep-your-clarity-add-some-room",
+      "title": "명확함은 남기고, 마음이 들어올 틈을.",
+      "alt": "사주 기반 관계 확장을 기존 해금 버튼에서 선택하기",
+      "src": "/feature-details/crafted/extreme-t-relationship/08-keep-your-clarity-add-some-room.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "명확함은 남기고,\n마음이 들어올 틈을.\n\n나를 다른 사람으로 바꾸기보다,\n잘하는 방식에 작은 여유를 더해요.\n지금의 사주 결과에서 이어 읽으세요.\n\n현재 결제 조건을 확인한 뒤\n극T 관계 확장 열기에서 이어가세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/extreme-t-relationship/08-keep-your-clarity-add-some-room-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "source": "D:/Development/code-destiny/lib/brand/customer-reviews.mjs",
+  "records": [
+    {
+      "id": "kakao-015",
+      "quote": "말씀 덕분에 많이 생각이 정리 되었습니다 감사합니다!",
+      "scope": "neo-1on1"
+    },
+    {
+      "id": "kakao-077",
+      "quote": "사주특성에 대해 설명해주신 걸 쭉 읽어보니 신기하고 시원한 기분입니다",
+      "scope": "neo-1on1"
+    }
+  ],
+  "consent": true,
+  "sourcePost": "https://blog.naver.com/neosaju/224032671570",
+  "claimSource": "lib/brand/founder.ts and neo-home-introduction.mjs",
+  "excludedClaim": "돈을 주고도 이제 못 보는 — 현재 상담 가능 여부를 확인하지 못해 사용하지 않음",
+  "publishedAs": "제작자 신뢰 근거. 종합 사주 풀이 상품의 구매 후기로 표시하지 않음"
+}

@@ -1,0 +1,73 @@
+[
+  {
+    "id": "tea-saju",
+    "featureKey": "fortune-tea-house-saju-consultation",
+    "inputs": [
+      "본인 생년월일·양음력·윤달",
+      "출생시간 또는 미상",
+      "질문과 분야",
+      "선택 출생지·시간대·경도"
+    ],
+    "source": [
+      "src/features/fortune-tea-house/components/TeaHouseSajuResultPanel.tsx",
+      "src/features/fortune-tea-house/components/TeaHouseResultSheet.tsx",
+      "src/features/fortune-tea-house/components/QuestionInputScene.tsx",
+      "lib/fortune-tea-house/saju-category.js",
+      "worker/routes/fortune-tea-house.js"
+    ],
+    "conditions": [
+      "개인사주 목차는 질문분야별8~9개, 진로 예시는9개",
+      "명식·운 자료의 존재에 따라 범위 제한",
+      "십성/선택시나리오/행동은 있는 내용 표시"
+    ],
+    "priceSource": "worker/lib/paid-feature-registry.js",
+    "mode": "source evidence only; no real LLM/payment"
+  },
+  {
+    "id": "tea-saju-compat",
+    "featureKey": "fortune-tea-house-saju-compatibility-consultation",
+    "inputs": [
+      "두 사람 생년월일·양음력·윤달",
+      "각자 출생시간 또는 미상",
+      "관계·초점·현재상황",
+      "질문 미작성 시 관계 기반 자동 질문"
+    ],
+    "source": [
+      "src/features/fortune-tea-house/components/TeaHouseSajuCompatResultPanel.tsx",
+      "src/features/fortune-tea-house/components/TeaHouseSajuResultPanel.tsx",
+      "src/features/fortune-tea-house/components/TeaHouseResultSheet.tsx",
+      "src/features/fortune-tea-house/components/QuestionInputScene.tsx",
+      "worker/routes/fortune-tea-house.js"
+    ],
+    "conditions": [
+      "두명식 비교요약 조건부",
+      "개인사주상세패널을 공유하되 궁합용9개 목차",
+      "출생시간 미상·현재운 자료범위 제한"
+    ],
+    "priceSource": "worker/lib/paid-feature-registry.js",
+    "mode": "source evidence only; no real LLM/payment"
+  },
+  {
+    "id": "tea-sukuyo",
+    "featureKey": "fortune-tea-house-sukuyo-compatibility-consultation",
+    "inputs": [
+      "두 사람 생년월일·양음력·윤달",
+      "출생시간 필드 없음",
+      "관계·초점·현재상황",
+      "질문 미작성 시 관계 기반 자동 질문"
+    ],
+    "source": [
+      "src/features/fortune-tea-house/components/TeaHouseSukuyoResultPanel.tsx",
+      "src/features/fortune-tea-house/components/TeaHouseResultSheet.tsx",
+      "src/features/fortune-tea-house/components/QuestionInputScene.tsx",
+      "worker/routes/fortune-tea-house.js"
+    ],
+    "conditions": [
+      "방향별 relationDetail 조건부",
+      "tea-v2는 compatibilityIndex·scores 제거",
+      "강점·주의·역할·선택지는 있는 내용만"
+    ],
+    "priceSource": "worker/lib/paid-feature-registry.js",
+    "mode": "source evidence only; no real LLM/payment"
+  }
+]

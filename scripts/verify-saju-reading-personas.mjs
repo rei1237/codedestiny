@@ -48,11 +48,11 @@ try {
     await page.locator('#nameInput').fill('테스트');await page.locator('#birthDate').fill('19910220');
     await page.locator('#birthTimeText').fill('12:00');await page.locator('#birthTimeText').press('Tab');
     if(width===430)await page.locator('#birthTimeTip').click();
-    if(!baseline){await page.locator('#sajuInputModes [data-saju-mode="neo"]').focus();
-    await page.locator('#sajuInputModes [data-saju-mode="neo"]').press('Enter');
-    await page.waitForFunction(()=>document.activeElement?.closest('#sajuInputModes'));
+    if(!baseline){
+    assert.equal(await page.locator('#sajuInputModes [data-saju-mode]').count(),0,'Profile input keeps Yeoni only');
+    assert.match(await page.locator('#sajuInputModes img').getAttribute('src'),/yeoni-profile-guide/);
     assert.equal(await page.locator('#nameInput').inputValue(),'테스트');
-    await page.evaluate(()=>document.querySelector('#sajuInputModes [data-saju-mode="pig"]').click());}
+    }
     await page.locator('#destinyCardForm').screenshot({path:resolve(out,`input-${width}.png`)});
     await page.evaluate(()=>document.querySelector('[data-action="checkPrivacyAndCalculate"]').click());
     await page.evaluate(()=>{const b=document.querySelector('[data-action="agreeAndCalculate"]');if(b)b.click();});
@@ -93,7 +93,8 @@ try {
     await page.locator('#johuCard').scrollIntoViewIfNeeded();await page.screenshot({path:resolve(out,`unknown-${width}.png`)});
     assert.deepEqual(errors,[],'No browser exceptions');
     if(width===360){await page.evaluate(()=>document.documentElement.style.fontSize='200%');await page.locator('[data-saju-offer="section_summary"]').scrollIntoViewIfNeeded();await page.screenshot({path:resolve(out,'text-200-percent.png')});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);}
-    await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelector('#sajuInputModes [data-saju-mode="neo"]')?.getAttribute('aria-pressed')==='true');
+    await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelector('#sajuInputModes img'));
+    assert.equal(await page.locator('#sajuInputModes [data-saju-mode]').count(),0,'Reload keeps the input guide Yeoni-only');
     results.push({width,catHeight,synchronousMs,modeChangeMs:Math.round(elapsed),anchorDelta:yAfter-yBefore,paidOrGenerationRequests:paidOrGeneration.length,errors});
     await context.close();
   }

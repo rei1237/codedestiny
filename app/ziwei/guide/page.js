@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const ZIWEI_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    metaTitle: "자미두수 명반 읽는 법 | Code Destiny",
+    metaTitle: "자미두수 명반 읽는 법 | 꿀꿀 운세",
     observe: "자미두수가 비추는 것",
     inputs: "필요한 입력값",
     useCases: "언제 참고하면 좋은가",
@@ -29,7 +29,7 @@ export function generateMetadata() {
     title: ziweiGuideText("metaTitle"),
     description:
       "자미두수 명반이 무엇을 살피는지, 생년월일과 출생시간이 왜 필요한지, 12궁과 주성, 대운 흐름을 어떻게 읽는지 안내합니다.",
-    keywords: ["자미두수 가이드", "자미두수 명반", "12궁", "명궁", "신궁", "사화", "재백궁", "관록궁", "주성", "대운", "Code Destiny"],
+    keywords: ["자미두수 가이드", "자미두수 명반", "12궁", "명궁", "신궁", "사화", "재백궁", "관록궁", "주성", "대운", "꿀꿀운세"],
   });
 }
 
@@ -88,7 +88,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "자미두수 서비스",
-      keywords: ["자미두수 가이드", "자미두수 명반", "12궁", "명궁", "신궁", "사화", "재백궁", "관록궁", "주성", "대운", "Code Destiny"],
+      keywords: ["자미두수 가이드", "자미두수 명반", "12궁", "명궁", "신궁", "사화", "재백궁", "관록궁", "주성", "대운", "꿀꿀운세"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),
@@ -102,7 +102,7 @@ export default function ZiweiGuidePage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">자미두수 명반 읽는 법</h1>
         <p className="cd-main-intro">
-          자미두수는 태어난 순간의 별자리를 12개의 궁으로 펼쳐, 삶의 여러 방이 어떤 빛을 받고 있는지 살피는 동양 점술 체계입니다. Code Destiny는 명반을 단정의 도구가 아니라, 일과 관계, 마음의 방향을 차분히 정리하는 상징 지도로 안내합니다.
+          자미두수는 태어난 순간의 별자리를 12개의 궁으로 펼쳐, 삶의 여러 방이 어떤 빛을 받고 있는지 살피는 동양 점술 체계입니다. 꿀꿀운세는 명반을 단정의 도구가 아니라, 일과 관계, 마음의 방향을 차분히 정리하는 상징 지도로 안내합니다.
         </p>
       </header>
 

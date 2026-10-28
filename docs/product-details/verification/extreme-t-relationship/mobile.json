@@ -1,0 +1,827 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--contained",
+          "left": 33,
+          "right": 327,
+          "width": 294,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 33,
+          "right": 327,
+          "width": 294,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "tTestResult",
+          "cls": "",
+          "left": 48,
+          "right": 312,
+          "width": 264,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "tTestCard",
+          "cls": "card t-test-card",
+          "left": 31,
+          "right": 329,
+          "width": 298,
+          "overflow": "hidden",
+          "padding": "16px"
+        },
+        {
+          "tag": "DIV",
+          "id": "rpt-v2-body-tTestCard",
+          "cls": "rpt-v2-body",
+          "left": 31,
+          "right": 329,
+          "width": 298,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-detail-inner",
+          "left": 31,
+          "right": 329,
+          "width": 298,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-detail",
+          "left": 31,
+          "right": 329,
+          "width": 298,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "rpt-v2-section-tTestCard",
+          "cls": "rpt-v2-block fortune-section open",
+          "left": 30,
+          "right": 330,
+          "width": 300,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-grid",
+          "left": 30,
+          "right": 330,
+          "width": 300,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "reportDashboard",
+          "cls": "",
+          "left": 30,
+          "right": 330,
+          "width": 300,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "reportDashboardCard",
+          "cls": "card",
+          "left": 15,
+          "right": 345,
+          "width": 330,
+          "overflow": "visible",
+          "padding": "16px 14px"
+        },
+        {
+          "tag": "ARTICLE",
+          "id": "resultPage",
+          "cls": "MobileFeatureDetail",
+          "left": 15,
+          "right": 345,
+          "width": 330,
+          "overflow": "clip",
+          "padding": "72px 0px 180px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "wrap",
+          "left": 15,
+          "right": 345,
+          "width": 330,
+          "overflow": "clip",
+          "padding": "0px 0px 32px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion",
+          "left": 15,
+          "right": 345,
+          "width": 330,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "cd-mobile-runtime mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open runtime-safe-lite",
+          "left": 15,
+          "right": 345,
+          "width": 330,
+          "overflow": "hidden",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        },
+        {
+          "loaded": true,
+          "width": 294,
+          "left": 33,
+          "right": 327
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--contained",
+          "left": 33,
+          "right": 357,
+          "width": 324,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 33,
+          "right": 357,
+          "width": 324,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "tTestResult",
+          "cls": "",
+          "left": 48,
+          "right": 342,
+          "width": 294,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "tTestCard",
+          "cls": "card t-test-card",
+          "left": 31,
+          "right": 359,
+          "width": 328,
+          "overflow": "hidden",
+          "padding": "16px"
+        },
+        {
+          "tag": "DIV",
+          "id": "rpt-v2-body-tTestCard",
+          "cls": "rpt-v2-body",
+          "left": 31,
+          "right": 359,
+          "width": 328,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-detail-inner",
+          "left": 31,
+          "right": 359,
+          "width": 328,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-detail",
+          "left": 31,
+          "right": 359,
+          "width": 328,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "rpt-v2-section-tTestCard",
+          "cls": "rpt-v2-block fortune-section open",
+          "left": 30,
+          "right": 360,
+          "width": 330,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-grid",
+          "left": 30,
+          "right": 360,
+          "width": 330,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "reportDashboard",
+          "cls": "",
+          "left": 30,
+          "right": 360,
+          "width": 330,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "reportDashboardCard",
+          "cls": "card",
+          "left": 15,
+          "right": 375,
+          "width": 360,
+          "overflow": "visible",
+          "padding": "16px 14px"
+        },
+        {
+          "tag": "ARTICLE",
+          "id": "resultPage",
+          "cls": "MobileFeatureDetail",
+          "left": 15,
+          "right": 375,
+          "width": 360,
+          "overflow": "clip",
+          "padding": "72px 0px 180px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "wrap",
+          "left": 15,
+          "right": 375,
+          "width": 360,
+          "overflow": "clip",
+          "padding": "0px 0px 32px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion",
+          "left": 15,
+          "right": 375,
+          "width": 360,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "cd-mobile-runtime mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open runtime-safe-lite",
+          "left": 15,
+          "right": 375,
+          "width": 360,
+          "overflow": "hidden",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        },
+        {
+          "loaded": true,
+          "width": 324,
+          "left": 33,
+          "right": 357
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--contained",
+          "left": 33,
+          "right": 397,
+          "width": 364,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 33,
+          "right": 397,
+          "width": 364,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "tTestResult",
+          "cls": "",
+          "left": 48,
+          "right": 382,
+          "width": 334,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "tTestCard",
+          "cls": "card t-test-card",
+          "left": 31,
+          "right": 399,
+          "width": 368,
+          "overflow": "hidden",
+          "padding": "16px"
+        },
+        {
+          "tag": "DIV",
+          "id": "rpt-v2-body-tTestCard",
+          "cls": "rpt-v2-body",
+          "left": 31,
+          "right": 399,
+          "width": 368,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-detail-inner",
+          "left": 31,
+          "right": 399,
+          "width": 368,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-detail",
+          "left": 31,
+          "right": 399,
+          "width": 368,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "rpt-v2-section-tTestCard",
+          "cls": "rpt-v2-block fortune-section open",
+          "left": 30,
+          "right": 400,
+          "width": 370,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-grid",
+          "left": 30,
+          "right": 400,
+          "width": 370,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "reportDashboard",
+          "cls": "",
+          "left": 30,
+          "right": 400,
+          "width": 370,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "reportDashboardCard",
+          "cls": "card",
+          "left": 15,
+          "right": 415,
+          "width": 400,
+          "overflow": "visible",
+          "padding": "16px 14px"
+        },
+        {
+          "tag": "ARTICLE",
+          "id": "resultPage",
+          "cls": "MobileFeatureDetail",
+          "left": 15,
+          "right": 415,
+          "width": 400,
+          "overflow": "clip",
+          "padding": "72px 0px 180px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "wrap",
+          "left": 15,
+          "right": 415,
+          "width": 400,
+          "overflow": "clip",
+          "padding": "0px 0px 32px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion",
+          "left": 15,
+          "right": 415,
+          "width": 400,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "cd-mobile-runtime mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open runtime-safe-lite",
+          "left": 15,
+          "right": 415,
+          "width": 400,
+          "overflow": "hidden",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        },
+        {
+          "loaded": true,
+          "width": 364,
+          "left": 33,
+          "right": 397
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "ancestors": [
+        {
+          "tag": "DETAILS",
+          "id": "",
+          "cls": "saju-crafted-offer saju-crafted-offer--contained",
+          "left": 284,
+          "right": 996,
+          "width": 712,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "",
+          "left": 284,
+          "right": 996,
+          "width": 712,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "tTestResult",
+          "cls": "",
+          "left": 299,
+          "right": 981,
+          "width": 682,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "tTestCard",
+          "cls": "card t-test-card",
+          "left": 280,
+          "right": 1000,
+          "width": 720,
+          "overflow": "hidden",
+          "padding": "18px"
+        },
+        {
+          "tag": "DIV",
+          "id": "rpt-v2-body-tTestCard",
+          "cls": "rpt-v2-body",
+          "left": 280,
+          "right": 1000,
+          "width": 720,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-detail-inner",
+          "left": 280,
+          "right": 1000,
+          "width": 720,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-detail",
+          "left": 280,
+          "right": 1000,
+          "width": 720,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "rpt-v2-section-tTestCard",
+          "cls": "rpt-v2-block fortune-section open fate-scroll-section-visible",
+          "left": 279,
+          "right": 1001,
+          "width": 722,
+          "overflow": "hidden",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "rpt-v2-grid",
+          "left": 279,
+          "right": 1001,
+          "width": 722,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "DIV",
+          "id": "reportDashboard",
+          "cls": "",
+          "left": 279,
+          "right": 1001,
+          "width": 722,
+          "overflow": "visible",
+          "padding": "0px"
+        },
+        {
+          "tag": "SECTION",
+          "id": "reportDashboardCard",
+          "cls": "card",
+          "left": 260,
+          "right": 1020,
+          "width": 760,
+          "overflow": "visible",
+          "padding": "18px"
+        },
+        {
+          "tag": "ARTICLE",
+          "id": "resultPage",
+          "cls": "MobileFeatureDetail",
+          "left": 260,
+          "right": 1020,
+          "width": 760,
+          "overflow": "hidden",
+          "padding": "72px 0px 180px"
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "wrap",
+          "left": 15,
+          "right": 1265,
+          "width": 1250,
+          "overflow": "hidden",
+          "padding": "0px 0px 48px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "cls": "cd-reduced-motion",
+          "left": 15,
+          "right": 1265,
+          "width": 1250,
+          "overflow": "clip",
+          "padding": "0px"
+        },
+        {
+          "tag": "HTML",
+          "id": "",
+          "cls": "mobile-safe-render cd-reduced-motion mobile-gpu-lite cdh-input-open runtime-safe-lite",
+          "left": 15,
+          "right": 1265,
+          "width": 1250,
+          "overflow": "visible",
+          "padding": "0px"
+        }
+      ],
+      "images": [
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "loaded": true,
+          "width": 540,
+          "left": 370,
+          "right": 910
+        }
+      ]
+    }
+  ],
+  "fallback": true,
+  "mockedGates": [],
+  "mode": "All API mocked;existing saju result and extremeT report card;no purchase or generation clicked"
+}

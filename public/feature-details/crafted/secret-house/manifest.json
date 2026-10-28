@@ -1,0 +1,120 @@
+{
+  "id": "secret-house",
+  "featureKey": "rpt_secretHouseEntryCard",
+  "title": "시크릿 하우스",
+  "notice": "사주 일간과 선택을 조합하는 가상의 연애 리얼리티 게임입니다. 남성 캐릭터 5명, 4박 5일의 준비된 장면과 선택지, 호감도·궁합·이벤트 조건에 따른 엔딩을 제공합니다. 일간은 기존 사주 정보에서 연동하며 확인되지 않으면 직접 선택합니다. 일지 등 추가 정보에 따라 일부 궁합 해석이 달라집니다. 자유 대화 AI나 실제 상대의 속마음·미래 예측이 아닙니다. 엔딩에는 관계 해석, 분기 이유, 플레이 요약, 데이트 아이디어가 표시됩니다. 공유는 문구와 링크를 전달하는 방식이며 PDF·엔딩 이미지 파일 저장·진행 이어하기를 약속하지 않습니다. 가격·이용권·월정석·단건 결제는 기존 화면을 따릅니다. 도해·예시는 설명용이며 실제 고객 결과·후기가 아닙니다.",
+  "panels": [
+    {
+      "id": "01-one-house",
+      "title": "그날, 다른 대답을 했다면?",
+      "src": "/feature-details/crafted/secret-house/01-one-house.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "그날,\n다른 대답을 했다면?\n\n시크릿 하우스\n\n다섯 사람과 보내는 4박 5일.\n나의 일간과 선택이 만나는\n가상의 연애 리얼리티에 초대합니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/secret-house/01-one-house-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-five-people",
+      "title": "다섯 사람, 다섯 가지 다가오는 방식.",
+      "src": "/feature-details/crafted/secret-house/02-five-people.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다섯 사람,\n다섯 가지 다가오는 방식.\n박하늘\n먼저 마음을 표현하는 대표\n이준서\n분위기를 바꾸는 뮤지션\n황도윤\n행동으로 챙기는 건축가\n강시우\n말수가 적은 의사\n윤재현\n이야기를 들어주는 소설가\n\n모두 이야기 속에 설정된 인물입니다.\n프로필과 취향, 관계 방식을 읽고\n마음이 가는 출연자를 만나보세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/secret-house/02-five-people-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-four-nights",
+      "title": "첫인사에서, 마지막 선택의 밤까지.",
+      "src": "/feature-details/crafted/secret-house/03-four-nights.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "첫인사에서,\n마지막 선택의 밤까지.\n\n첫날\n첫인사와 식사\n\n둘째 날\n데이트와 진실 게임\n\n셋째 날\n마음의 흔들림과 오해\n\n넷째 날\n어필과 깊은 대화\n\n마지막 날\n마지막 대화와 선택\n\n같은 장면에서도 어느 쪽에\n마음을 두는지에 따라 관계의\n온도와 다음 흐름이 달라집니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/secret-house/03-four-nights-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-two-threads",
+      "title": "타고난 설정과, 내가 고른 대답.",
+      "src": "/feature-details/crafted/secret-house/04-two-threads.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "타고난 설정과,\n내가 고른 대답.\n일간이 만드는 출발점\n\n태어난 날의 천간을 바탕으로\n출연자와의 기본 관계를 계산해요.\n일지 정보도 일부 해석에 쓰입니다.\n\n선택이 쌓이는 과정\n\n호감도와 장면별 조건이 달라져요.\n감정을 열었는지, 오해를 풀었는지\n같은 사건도 엔딩에 반영됩니다.\n\n명리 요소를 활용한 게임 규칙입니다.\n현실의 궁합이나 연애를 보장하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/secret-house/04-two-threads-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-your-reply",
+      "title": "내 마음을 드러내는, 한 번의 선택.",
+      "src": "/feature-details/crafted/secret-house/05-your-reply.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 마음을 드러내는,\n한 번의 선택.\n\n이해를 돕기 위한 가상 장면\n\n마음이 쓰이는 사람이\n다른 누군가와\n대화하고 있다면.\n\n먼저 물어볼까.\n조금 기다려볼까.\n내 이야기를 시작해볼까.\n\n정답을 맞히는 시험이 아닙니다.\n주어진 선택지를 따라가며\n이야기 속 나의 반응을 즐겨보세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/secret-house/05-your-reply-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-seven-endings",
+      "title": "달콤함만이, 이야기의 끝은 아니니까.",
+      "src": "/feature-details/crafted/secret-house/06-seven-endings.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "달콤함만이,\n이야기의 끝은 아니니까.\n\n깊어진 인연 · 달콤한 시작\n\n함께 자라는 관계 · 속도를 맞추는 사이\n\n여운이 남는 밤 · 엇갈린 선택\n\n조건을 만났을 때 열리는 숨은 결말\n\n일곱 엔딩 유형 안에서\n선택한 출연자와 쌓아 온 사건을\n바탕으로 마지막 문장이 달라져요.\n\n조건에 맞는 엔딩 하나가 표시돼요.\n점수는 게임 안의 관계 지표예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/secret-house/06-seven-endings-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-what-remains",
+      "title": "엔딩 뒤에도, 함께 돌아볼 장면이 있어요.",
+      "src": "/feature-details/crafted/secret-house/07-what-remains.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "엔딩 뒤에도,\n함께 돌아볼 장면이 있어요.\n최종 선택한 인물과 엔딩 문장\n일간 관계 해석과 분기 이유\n설렘과 오해의 순간 요약\n캐릭터별 데이트 코스 아이디어\n누가 좋았는지보다,\n어떤 장면이 남았는지.\n\n공유 기능으로 엔딩 문구와\n서비스 링크를 전할 수 있어요.\nPDF나 엔딩 이미지 저장은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/secret-house/07-what-remains-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-before-you-enter",
+      "title": "오늘은, 이야기 속 주인공이 되어보세요.",
+      "src": "/feature-details/crafted/secret-house/08-before-you-enter.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "오늘은, 이야기 속\n주인공이 되어보세요.\n일간을 확인해요\n\n기존 사주 정보에서 연동합니다.\n연동되지 않으면 직접 선택해요.\n\n선택지를 따라 읽어요\n\n준비된 장면을 진행하는 게임으로,\n자유로운 AI 채팅은 제공하지 않아요.\n진행 저장·이어하기는 지원하지 않아요.\n\n이용 조건을 확인하고,\n가벼운 설렘으로 문을 열어보세요.\n\n가상 인물·게임의 해석입니다.\n실제 상대의 마음을 확인할 수 없어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/secret-house/08-before-you-enter-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { HANBI_PERSONA_KO } from "./expert-character-persona-text.js";
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
 import {
   classifyQuestionToSukuyoDomain,
@@ -108,6 +109,13 @@ function formatScoreOrText(value) {
   const n = Number(text);
   if (Number.isFinite(n)) return `${Math.round(n)}/100`;
   return text || DEFAULT_TEXT;
+}
+
+// B5 called the user "묘숙(昴宿)님" because the trait copy opens with "묘숙(昴宿)은 …".
+function mansionAddressRule(mansion) {
+  const [, short = String(mansion || "").trim(), han = ""] = String(mansion || "").trim().match(/^(.+?)\((.+?)\)$/u) || [];
+  const examples = [`'${short}숙님'`, ...(han ? [`'${short}숙(${han}宿)님'`] : [])].join("·");
+  return `호칭은 '당신'만 씁니다. ${examples}처럼 본명숙 이름을 호칭으로 쓰지 않습니다.`;
 }
 
 function formatMansionLine(result) {
@@ -455,7 +463,8 @@ function buildSukuyoExpertPrompt({
 }) {
   const typeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
   const lines = [
-    "당신은 숙요점 27숙과 관계 심리의 결을 함께 읽는 전문 상담가입니다.",
+    HANBI_PERSONA_KO,
+    "이 상담은 기본 숙요점 안에서 한 질문을 다루는 라이트 상담입니다. 기존 분량과 결과 구조를 지키며, 종합 상담이나 추가 혜택을 약속하지 마세요. 개인 질문은 상대가 있다는 가정 없이 본명숙의 성향과 작은 행동으로 설명하세요.",
     "아래의 본명숙과 궁합 흐름은 이미 계산된 결과이므로 다시 계산하지 말고, 해석과 조율에 집중해 주세요.",
     "",
     "[사용자 질문]",
@@ -473,8 +482,6 @@ function buildSukuyoExpertPrompt({
     `- 일의 리듬: ${basicResult.traits.work}`,
     `- 재물 리듬: ${basicResult.traits.wealth}`,
     `- 카르마 키워드: ${basicResult.traits.karma}`,
-    `- 오늘의 달빛: ${basicResult.moonTone}`,
-    `- 오늘의 신호: ${basicResult.moonInsight}`,
     "",
     "[궁합 자료]",
   ];
@@ -514,6 +521,7 @@ function buildSukuyoExpertPrompt({
     "3. 궁합 자료가 있을 때는 관계 유형, 거리, 역할 흐름을 먼저 해석해 주세요.",
     "4. 불안이나 공포를 키우지 말고, 가능성과 위험을 균형 있게 말해 주세요.",
     "5. 마지막에는 오늘 바로 실행할 수 있는 말, 행동, 거리 조절 기준을 제시해 주세요.",
+    `6. ${mansionAddressRule(basicResult.mansion)}`,
     "",
     "[답변 구성]",
     "1. 타고난 성향 총론 (본명숙으로 보는 기본 기질을 먼저 전반적으로 짚어 신뢰를 세운다. 궁합이면 두 사람 각자의 성향)",
@@ -567,7 +575,7 @@ export function buildSukuyoAIPromptWithDomain({ question, basicResult, compatibi
       `요청 도메인: ${domainTemplate.domainKo} (${resolvedDomain})`,
       `질문 유형: ${QUESTION_TYPE_LABELS[normalizedType] || QUESTION_TYPE_LABELS.general}`,
       `상황별 가중 키워드:\n${buildKeywordWeightLines(domainTemplate.keywordWeights).join("\n")}`,
-      `나의 숙요 데이터: ${normalizedBasic.mansion} (${normalizedBasic.mansionIdx}), 핵심성향=${normalizedBasic.traits.core}, 그림자=${normalizedBasic.traits.hidden}, 연애리듬=${normalizedBasic.traits.love}, 달빛톤=${normalizedBasic.moonTone}`,
+      `나의 숙요 데이터: ${normalizedBasic.mansion} (${normalizedBasic.mansionIdx}), 핵심성향=${normalizedBasic.traits.core}, 그림자=${normalizedBasic.traits.hidden}, 연애리듬=${normalizedBasic.traits.love}`,
       normalizedCompat
         ? `상대 숙요 데이터: ${normalizedCompat.partnerMansion} (${normalizedCompat.partnerIdx}), 이름=${normalizedCompat.partnerName || DEFAULT_TEXT}, 성별=${normalizedCompat.partnerGender}`
         : `상대 숙요 데이터: 없음 (${compatibilityHint})`,
@@ -599,7 +607,6 @@ export function buildSukuyoAIPromptWithDomain({ question, basicResult, compatibi
       `본명숙: ${normalizedBasic.mansion} (${normalizedBasic.mansionIdx})`,
       `핵심 성향: ${normalizedBasic.traits.core}`,
       `연애/일/재물 리듬: ${normalizedBasic.traits.love} / ${normalizedBasic.traits.work} / ${normalizedBasic.traits.wealth}`,
-      `달빛 톤/오늘 인사이트: ${normalizedBasic.moonTone} / ${normalizedBasic.moonInsight}`,
       normalizedCompat
         ? `궁합: ${normalizedCompat.partnerMansion}, 관계유형 ${normalizedCompat.relationType}, 점수 ${normalizedCompat.score != null ? normalizedCompat.score : DEFAULT_TEXT}`
         : `궁합 데이터 없음: ${compatibilityHint}`,

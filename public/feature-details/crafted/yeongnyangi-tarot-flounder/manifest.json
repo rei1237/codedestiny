@@ -1,0 +1,167 @@
+{
+  "id": "yeongnyangi-tarot-flounder",
+  "featureKey": "yeongnyangi-tarot-flounder",
+  "title": "영냥이 타로 광어 상담",
+  "notice": "타로 광어의 ‘질문으로 고르는 배열’은 최대 9장 범위에서 배열 하나를 선택합니다. 이 안내는 6장 배열 ‘우리 사이, 왜 엇갈릴까?’를 예로 삼으며 항상 9장을 뽑는 구성은 아닙니다. 두 사람 질문 상담은 15장 목차, 기존 6장 관계 배열 상담은 11장 목차로 다릅니다. 출생 궁합 계산 대신 질문·관계 유형과 드러난 말·행동을 카드의 상징에 비춰 읽습니다. 상대의 속마음을 확인했다고 말하지 않으며 거절·무응답·연락 거부를 존중합니다. 공통 시기·생활 영역 목차는 카드 근거의 범위 안에서만 해석합니다. 예시는 실제 고객 결과가 아닌 가상 편집이며 AI 작성 상담입니다. 가격·추가 질문 조건은 기존 화면을 따릅니다. 기존 고정 질문 메뉴는 등급과 무관하게 종류별 카드 수를 사용하며 별도로 선택합니다.",
+  "panels": [
+    {
+      "id": "01-the-conversation-between-us",
+      "title": "대화는 이어지는데, 왜 자꾸 엇갈릴까요?",
+      "alt": "마법사 고양이 영냥이가 펼친 타로 카드의 흐름을 읽는 장면",
+      "src": "/images/service-introductions/yeongnyangi-tarot.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "대화는 이어지는데,\n왜 자꾸 엇갈릴까요?\n\n내 기대와 드러난 태도를 나눠 읽고,\n서로 조율할 지점을 찾아봐요.\n\n영냥이 타로 · 광어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-expectation-is-not-evidence",
+      "title": "바라는 반응과, 실제로 있었던 일을 나눠요.",
+      "alt": "질문기대와상대실제행동을구별하는가상대화노트.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/02-expectation-is-not-evidence.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "바라는 반응과,\n실제로 있었던 일을 나눠요.\n내가 바랐던 것\n\n힘든 이야기를 꺼냈을 때\n조금 더 물어봐 주길 바랐어요.\n\n실제로 돌아온 말\n\n“그럼 이렇게 해보는 건 어때?”\n해결 방법부터 제안했어요.\n\n무관심이라고 결론 내리기 전에,\n기대와 표현이 어디서 갈렸는지 살펴요.\n\n관계를 설명하기 위한 가상 장면입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/02-expectation-is-not-evidence-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-six-questions-in-the-spread",
+      "title": "여섯 자리로, 엇갈림의 흐름을 읽어요.",
+      "alt": "실제6자리기대태도소통엇갈림조율흐름을세쌍으로도해.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/03-six-questions-in-the-spread.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "여섯 자리로,\n엇갈림의 흐름을 읽어요.\n\n우리 사이, 왜 엇갈릴까? · 6장 배열\n\n내 기대 ↔ 드러난 태도의 해석\n\n같은 관계를 보는 두 관점\n\n소통 방식 → 엇갈리는 지점\n\n표현의 차이가 부딪히는 순간\n\n조율할 부분 → 이어질 때의 흐름\n\n바꿔볼 행동과 현재 패턴의 방향\n\n상대의 실제 마음을 확인한 자료가 아니에요.\n말과 행동에 비춘 상징적 가설로 읽습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/03-six-questions-in-the-spread-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-the-first-seven-chapters",
+      "title": "나의 마음에서 출발해, 자리마다 근거를 살펴요.",
+      "alt": "질문15장중1~7장6자리분배와조건을실제목차대로안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/04-the-first-seven-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 마음에서 출발해,\n자리마다 근거를 살펴요.\n\n두 사람 질문 · 15장 중 1–7장\n\n1–3장 · 바탕과 질문의 답\n\n지금의 마음과 태도 · 강점과 부담\n잘 맞는 점과 조율할 차이\n\n4–6장 · 여섯 자리의 해석\n\n기대와 태도 · 소통과 엇갈림\n조율할 부분과 이어질 때의 흐름\n\n7장 · 기회와 주의 조건\n\n현재 선택에 따라 달라질 부분\n\n선택한 배열에 따라 자리 구성은 달라져요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/04-the-first-seven-chapters-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-the-relationship-in-daily-life",
+      "title": "대화 밖의 생활까지, 무리 없이 이어서 봐요.",
+      "alt": "질문15장중8~15장관계구조책임생활종합과한계안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/05-the-relationship-in-daily-life.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "대화 밖의 생활까지,\n무리 없이 이어서 봐요.\n8–10장 · 관계의 반복 구조\n\n두 사람의 구조 · 끌림과 충돌\n역할과 책임의 분담\n\n11–14장 · 질문 밖의 흐름\n\n재물 · 일과 적성\n건강 리듬과 회복 · 올해의 흐름\n\n15장 · 종합 해석과 실행 계획\n\n생활 속에서 확인할 말과 행동\n\n카드에 없는 질병·외도·사건을 만들지 않아요.\n시기 목차도 날짜별 예언으로 읽지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/05-the-relationship-in-daily-life-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-ask-for-the-conversation-you-need",
+      "title": "원하는 대화의 모양을, 한 문장으로 알려봐요.",
+      "alt": "공감요청과상대경계를함께존중하는가상행동예시.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/06-ask-for-the-conversation-you-need.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "원하는 대화의 모양을,\n한 문장으로 알려봐요.\n\n이해를 돕기 위한 편집 예시\n\n“방법을 찾아주려는 마음은 고마워.\n오늘은 조금만 더 들어줄 수 있을까?”\n\n상대가 마음을 알아맞히길 기다리기보다,\n내가 필요한 반응을 말해봐요.\n\n그 뒤의 대답과 행동을 보며\n서로 가능한 대화의 범위를 확인해요.\n\n실제 추첨이나 고객의 결과가 아닌 예시입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/06-ask-for-the-conversation-you-need-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-eleven-chapters-in-the-existing-menu",
+      "title": "기존 관계 배열은, 열한 장으로 읽어요.",
+      "alt": "기존관계배열11장실제목차를세덩어리로편집.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/07-eleven-chapters-in-the-existing-menu.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기존 관계 배열은,\n열한 장으로 읽어요.\n1–3장 · 답과 카드의 근거\n\n질문에 대한 답 · 자리별 의미\n카드들의 연결과 충돌\n\n4–9장 · 관계를 조율할 실마리\n\n핵심 쟁점 · 태도와 기대의 차이\n대화로 확인할 신호 · 거리의 조건\n조절할 표현 · 엇갈림의 뿌리\n\n10–11장 · 조건과 행동\n\n결과가 달라질 조건\n지금 할 수 있는 행동\n\n질문형 15장과 함께 묶인 구성은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/07-eleven-chapters-in-the-existing-menu-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-prepare-the-real-context",
+      "title": "지금의 관계와, 실제 장면을 알려 주세요.",
+      "alt": "출생궁합과구분한관계입력최대9장및거절존중안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/08-prepare-the-real-context.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "지금의 관계와,\n실제 장면을 알려 주세요.\n두 사람의 현재 관계\n\n현재 관계와 최근 말·행동,\n기대했던 반응을 나눠 적어요.\n\n질문에 맞는 배열 하나\n\n배열 선택 메뉴에서는 최대 9장,\n6장 관계 배열도 고를 수 있어요.\n\n지켜야 할 현실의 경계\n\n거절이나 무응답을 바꾸려고\n반복·우회 연락을 권하지 않아요.\n\n출생 정보로 두 명식을 비교하는 상품과 달라요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/08-prepare-the-real-context-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "fixed-question-menu",
+      "title": "기존 관계 질문에도, 정해진 배열이 있어요.",
+      "alt": "기존고정질문메뉴의종류별카드수와등급별해석목차구분.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/fixed-question-menu.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기존 관계 질문에도,\n정해진 배열이 있어요.\n사랑과 관계 · 6장\n\n두 사람 사이에서 이해하고 싶은 장면.\n\n연락의 흐름 · 5장\n\n마지막 소통과 지금 고민하는 행동.\n\n광어 고정 질문 목차는 11장이에요.\n배열 선택·질문 상담과는 별도 구성입니다.\n\n현재 화면에서 질문 종류와 목차를 확인해요.\n여러 상담이 한 번에 포함되지는 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/fixed-question-menu-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-return-to-the-person",
+      "title": "해석을 읽은 뒤에는, 실제 대화로 돌아가요.",
+      "alt": "공식타로영냥이와관계선택주체AI조건저장결과마무리.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/09-return-to-the-person.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "해석을 읽은 뒤에는,\n실제 대화로 돌아가요.\n\n상대의 마음을 확정하는 답보다,\n내가 확인하고 표현할 한 가지를 남겨요.\n\n카드의 상징을 바탕으로 AI가 작성합니다.\n가격·추가 질문 조건은 현재 화면에서,\n저장된 결과는 내 상담에서 확인해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-flounder/09-return-to-the-person-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

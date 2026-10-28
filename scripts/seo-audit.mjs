@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { sitemapDirectives } from "./seo/health-policy.mjs";
 
 const PRODUCTION_ORIGIN = "https://code-destiny.com";
 
@@ -44,7 +45,7 @@ const crawlSitemap = process.argv.includes("--crawl-sitemap");
 //   ① 사이트맵을 못 읽었을 때의 폴백
 //   ② 사이트맵과 어긋나면 **이슈로 신고**해서 이 목록이 다시 조용히 썩지 않게 하는 장치
 const seedIndexablePaths = [
-  "/",
+  "/ggulggul",
   "/about",
   "/faq",
   "/methodology",
@@ -84,7 +85,8 @@ const seedNoindexPaths = [
   "/api-hello-test",
 ];
 
-const seedPathsToAudit = [...new Set([...seedIndexablePaths, ...seedNoindexPaths])];
+// The legacy root still gets probed; the daily health audit checks its exact 301 target.
+const seedPathsToAudit = [...new Set(["/", ...seedIndexablePaths, ...seedNoindexPaths])];
 
 function normalizePathname(pathname) {
   const cleanPath = pathname.replace(/\/+$/, "");
@@ -356,7 +358,7 @@ async function auditSitemapAndRobots(rows) {
   try {
     const { response, text } = await fetchText(robotsUrl);
     robots.status = response.status;
-    robots.hasSitemap = /sitemap:\s*https?:\/\/\S+\/sitemap\.xml/i.test(text);
+    robots.hasSitemap = sitemapDirectives(text).length > 0;
     robots.disallows = [...text.matchAll(/^disallow:\s*(.+)$/gim)].map((match) => match[1].trim());
   } catch (error) {
     robots.errors.push(error.message);

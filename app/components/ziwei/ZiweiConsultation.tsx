@@ -24,7 +24,7 @@ export function ZiweiConsultationHero({ chart, reading, locale }: { chart: Ziwei
   async function share(copyOnly = false) {
     setStatus(''); setSharing(true);
     try {
-      if (!copyOnly && navigator.share) await navigator.share({ title: 'Code Destiny', text });
+      if (!copyOnly && navigator.share) await navigator.share({ title: '꿀꿀운세', text });
       else { await navigator.clipboard.writeText(text); setStatus(ui.copied); }
     } catch (error) {
       if (!(error instanceof Error && error.name === 'AbortError')) setStatus(copyOnly || !navigator.share ? ui.copyFailed : ui.shareFailed);

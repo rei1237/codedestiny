@@ -92,3 +92,15 @@
   .fortune-consultation .fc-form__body { padding-inline: 32px; }
   .fortune-consultation .fc-report { margin-inline: 32px; }
 }
+
+.fc-master-reading {display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);align-items:center;gap:clamp(16px,3vw,32px);margin-block:16px 24px;color:inherit;}
+.fc-master-reading__portrait {display:block;width:100%;height:auto;aspect-ratio:5/6;object-fit:cover;border-radius:var(--cd-r-card,20px);}
+.fc-master-reading__copy {min-width:0;}
+.fc-master-reading .fc-master-reading__copy h3 {margin:0 0 14px;color:inherit;font-family:'MaruBuri','Noto Serif KR',serif;font-size:clamp(1.35rem,3vw,2rem);line-height:1.4;word-break:keep-all;}
+.fc-master-reading .fc-master-reading__copy p {margin:0;color:inherit;font-size:.94rem;line-height:1.85;word-break:keep-all;overflow-wrap:anywhere;}
+.fc-master-reading .fc-master-reading__copy .fc-master-reading__basis {margin-top:16px;padding-top:12px;border-top:1px solid currentColor;font-size:.78rem;line-height:1.7;}
+@media(max-width:480px) {
+  .fc-master-reading {grid-template-columns:minmax(0,1fr);gap:18px;}
+  .fc-master-reading__portrait {width:min(100%,260px);justify-self:center;}
+  .fc-master-reading .fc-master-reading__copy h3 br {display:none;}
+}

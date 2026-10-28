@@ -1,0 +1,134 @@
+{
+  "id": "myeongri-tarot-three",
+  "featureKey": "tarot-myeongri-three-card",
+  "title": "명리학 타로 · 세 장의 흐름",
+  "notice": "명리학 타로의 세 장 흐름 리딩입니다. 여덟 분야 중 주제를 고르고, 자동으로 펼쳐진 서로 다른 카드 세 장을 순서대로 연 뒤 기존 결제 안내를 거쳐 통합 해석을 봅니다. 카드·정역 방향·자리·주제와 카드에 연결된 십성을 규칙에 따라 해석하며 개인의 출생 명식 전체를 계산하는 상담이 아닙니다. 흐름 요약, 자리별 핵심 판정·카드와 십성의 결·오늘의 선택·한 문장, 조율 문장과 오라클을 제공합니다. AI 질문문 복사는 제공하지만 서비스 안에서 AI가 새 답변을 생성해 주는 상품은 아닙니다. 외부 서비스의 답변이나 이용은 포함하지 않습니다. 한 장 리딩과 세 장 통합 리딩의 범위가 다르며 PDF·결과 보관함을 약속하지 않습니다. 가격·이용권·월정석·단건 결제는 기존 화면을 따릅니다. 일러스트·문장 예시는 설명용으로 실제 카드 결과·고객 후기가 아닙니다. 상대 마음·재회·합격·수익·건강을 확정하거나 보장하지 않습니다.",
+  "panels": [
+    {
+      "id": "01-between-three-cards",
+      "title": "같은 고민도, 세 자리로 나누어 읽어요.",
+      "src": "/feature-details/crafted/myeongri-tarot-three/01-between-three-cards.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 고민도,\n세 자리로 나누어 읽어요.\n\n명리학 타로 · 세 장의 흐름\n\n지나온 흐름에서 지금의 핵심으로,\n그리고 다음 선택의 기준으로.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/myeongri-tarot-three/01-between-three-cards-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-choose-a-topic",
+      "title": "답을 듣기 전에, 고민의 분야부터.",
+      "src": "/feature-details/crafted/myeongri-tarot-three/02-choose-a-topic.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "답을 듣기 전에,\n고민의 분야부터.\n\n오늘의 운세 · 연애운\n\n재회운 · 직장과 커리어\n\n재물운 · 건강운\n\n시험과 합격 · 대인관계\n\n지금 마음이 머무는 분야를 고르면\n그 주제에 맞추어 카드를 읽어요.\n상대의 마음이나 미래의 결과를\n사실로 알아내는 방식은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/myeongri-tarot-three/02-choose-a-topic-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-three-positions",
+      "title": "각 카드에는, 서로 다른 자리가 있어요.",
+      "src": "/feature-details/crafted/myeongri-tarot-three/03-three-positions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "각 카드에는,\n서로 다른 자리가 있어요.\n지금까지의 흐름\n\n지나온 장면을 돌아봅니다.\n\n현재의 핵심 기운\n\n지금 마음이 향하는 곳을 봅니다.\n\n다음 선택 기준\n\n이후의 행동을 생각해 봅니다.\n\n주제에 따라 자리 이름이 달라질 수 있어요.\n서로 다른 세 장이 자동으로 펼쳐지며,\n첫 자리부터 순서대로 열어봅니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/myeongri-tarot-three/03-three-positions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-symbol-and-ten-gods",
+      "title": "카드의 장면에, 십성의 관점을 더해요.",
+      "src": "/feature-details/crafted/myeongri-tarot-three/04-symbol-and-ten-gods.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "카드의 장면에,\n십성의 관점을 더해요.\n카드와 정역 방향\n\n그림의 상징과 방향을\n선택한 분야의 상황으로 풀어요.\n\n십성 · 관계와 행동의 틀\n\n카드에 연결한 명리의 분류를 통해\n표현·경쟁·안정 같은 면을 읽어요.\n\n두 언어를 함께 쓰는 상징 해석입니다.\n개인의 출생 명식 전체를 계산하는\n사주 상담과는 제공 범위가 달라요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/myeongri-tarot-three/04-symbol-and-ten-gods-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-inside-each-reading",
+      "title": "카드 이름 다음에, 무엇을 읽게 될까요?",
+      "src": "/feature-details/crafted/myeongri-tarot-three/05-inside-each-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "카드 이름 다음에,\n무엇을 읽게 될까요?\n세 장을 잇는 흐름 요약\n\n주제 전체의 흐름을 먼저 읽어요.\n\n각 자리에서 읽는 네 가지\n\n핵심 판정\n카드와 십성의 결\n오늘의 선택\n오늘의 한 문장\n\n마지막 조율과 오라클\n\n기준과 행동을 한 번 더 정리해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/myeongri-tarot-three/05-inside-each-reading-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-a-choice-you-can-make",
+      "title": "서두를까, 먼저 기준을 세울까.",
+      "src": "/feature-details/crafted/myeongri-tarot-three/06-a-choice-you-can-make.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "서두를까,\n먼저 기준을 세울까.\n\n이해를 돕기 위한 가상 활용 예시\n\n“다음 선택”의 카드를\n합격이나 성공의 확답 대신,\n준비를 돌아보는\n질문으로 읽어보세요.\n\n지금 확인할 조건은 무엇일까?\n오늘 내가 바꿀 행동은 무엇일까?\n\n마음에 남은 문장 하나를\n내 현실의 선택으로 옮겨봅니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/myeongri-tarot-three/06-a-choice-you-can-make-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-a-prompt-to-copy",
+      "title": "AI 질문문은, 답변과 다른 제공물입니다.",
+      "src": "/feature-details/crafted/myeongri-tarot-three/07-a-prompt-to-copy.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "AI 질문문은,\n답변과 다른 제공물입니다.\n복사할 수 있는 것\n\n선택한 분야와 카드 세 장,\n방향·자리·십성·요약을 정리한\n외부 AI용 질문문\n\n통합 리딩 뒤 질문문을 복사해\n다른 곳에서 활용할 수 있어요.\n\n이 상품 안에서 실시간 AI가\n새로운 답변을 생성해 주거나,\n외부 서비스 이용을 제공하진 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/myeongri-tarot-three/07-a-prompt-to-copy-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-before-the-reading",
+      "title": "한 장에서, 세 장의 연결로.",
+      "src": "/feature-details/crafted/myeongri-tarot-three/08-before-the-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 장에서,\n세 장의 연결로.\n‘세 장 흐름’을 선택해요\n\n주제를 고르고, 펼쳐진 카드들을\n첫 자리부터 순서대로 엽니다.\n\n이용 조건을 확인해요\n\n세 장을 모두 연 뒤 기존 버튼으로\n결제 안내를 거쳐 통합 리딩을 봐요.\n\n한 장 리딩과 세 장의 통합 해석은\n서로 다른 범위입니다.\nPDF나 결과 보관함은 제공하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/myeongri-tarot-three/08-before-the-reading-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-one-clear-criterion",
+      "title": "카드가 남긴 한 문장, 나의 선택으로.",
+      "src": "/feature-details/crafted/myeongri-tarot-three/09-one-clear-criterion.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "카드가 남긴 한 문장,\n나의 선택으로.\n미래를 확정하기보다,\n지금의 기준을\n조금 더 선명하게.\n\n기대하는 답만 찾기보다\n놓치고 있던 관점을 읽어보세요.\n\n다음 한 걸음은\n당신이 결정할 수 있습니다.\n\n재회·합격·수익·건강을 보장하지 않아요.\n삽화와 예시는 실제 결과·후기가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/myeongri-tarot-three/09-one-clear-criterion-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

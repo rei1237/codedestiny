@@ -4,16 +4,39 @@
   margin: 0 auto;
   padding: 24px 20px 48px;
   color: var(--yn-ivory);
+  font-size: 1rem;
   word-break: keep-all;
   overflow-wrap: break-word;
   line-height: 1.7;
 }
 .guide > section {
   padding: 32px 0;
-  border-top: 1px solid rgba(233, 199, 141, 0.18);
+  border-top: 1px solid color-mix(in srgb,var(--yn-gold) 25%,transparent);
 }
+.craftedOverview { margin-inline: -20px; }
+.craftedOverview > summary { min-height: 44px; padding: 12px 20px; cursor: pointer; font-size: 18px; }
 .guide > section:first-child {
   border-top: 0;
+}
+.introPanel {
+  margin: 0 -20px 32px;
+}
+.introImage {
+  display: block;
+  width: min(100%, 540px);
+  height: auto;
+  margin: 0 auto;
+}
+.introTranscript {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 .guide section[id] {
   scroll-margin-top: 24px;
@@ -21,7 +44,7 @@
 .guide h2 {
   font-family: "Yeongnyangi Myeongjo", serif;
   color: var(--yn-gold);
-  font-size: clamp(1.35rem, 2.6vw, 1.8rem);
+  font-size: clamp(1.5rem, 2.6vw, 1.75rem);
   letter-spacing: -0.03em;
   line-height: 1.35;
   margin: 0 0 14px;
@@ -72,14 +95,23 @@
 .sample p:last-child {
   margin-bottom: 0;
 }
+.guide summary { min-height: 44px; padding: 12px 0; cursor: pointer; color: var(--yn-gold); }
+.guide summary:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 4px; }
+.volume { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; padding: 20px 0; }
+.volume strong { color: var(--yn-gold); font-family: 'Yeongnyangi Myeongjo', serif; font-size: 24px; }
+.faq > details { border-bottom: 1px solid var(--yn-line); }
+.sample details p { margin-top: 14px; }
 .tableWrap {
   overflow-x: auto;
 }
 .tableWrap table {
   width: 100%;
-  min-width: 480px;
+  table-layout: fixed;
   border-collapse: collapse;
 }
+.tableWrap th:first-child { width: 32%; }
+.tableWrap th:nth-child(2) { width: 21%; }
+.tableWrap td { overflow-wrap: anywhere; }
 .tableWrap caption {
   text-align: left;
   color: var(--yn-muted);
@@ -88,17 +120,51 @@
 }
 .tableWrap th,
 .tableWrap td {
-  padding: 10px 12px;
+  padding: 18px clamp(8px, 2vw, 14px);
   border-bottom: 1px solid var(--yn-line);
   text-align: left;
   vertical-align: top;
 }
+.tableWrap tbody th {
+  color: var(--yn-gold);
+  font-family: "Yeongnyangi Myeongjo", serif;
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tableWrap tbody tr:nth-child(odd) { background: var(--yn-night); }
+.tierName {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--yn-muted);
+}
 .faq {
   display: grid;
-  gap: 18px;
 }
 @media (min-width: 720px) {
   .receive {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.fishList { display: grid; gap: 8px; margin: 16px 0 4px; padding: 0; list-style: none; }
+.fishRow { display: grid; grid-template-columns: 48px minmax(0,1fr) auto; gap: 12px; align-items: center; min-height: 64px; padding: 8px 16px 8px 8px; border: 1px solid var(--yn-line); border-radius: var(--yn-btn-radius); background: var(--yn-surface); text-decoration: none; }
+.guide a.fishRow { color: var(--yn-ivory); }
+.fishRow:hover { border-color: var(--yn-gold); }
+.fishRow:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
+.fishRow img { display: block; width: 48px; height: 48px; }
+.fishText { display: grid; min-width: 0; }
+.fishText strong { line-height: 1.45; }
+.fishMeta { color: var(--yn-muted); font-size: 0.8125rem; line-height: 1.5; }
+.fishPrice { color: var(--yn-gold); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fishDepth { display: grid; gap: 10px; margin: 0 0 12px; }
+.fishDepth dt { color: var(--yn-gold); font-weight: 700; }
+.fishDepth dd { margin: 0; color: var(--yn-muted); }
+.panel { border-bottom: 1px solid var(--yn-line); }
+.panel > summary { font-weight: 700; }
+.faqBlock { margin-top: 24px; }
+.faqBlock > h3 { font-family: "Yeongnyangi Myeongjo", serif; color: var(--yn-gold); font-size: 1.15rem; margin: 0 0 4px; }
+.faqBlock .craftedOverview{margin-inline:0}.faqBlock .craftedOverview>summary{padding-inline:0}

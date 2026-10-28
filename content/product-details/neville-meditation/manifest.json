@@ -1,0 +1,80 @@
+{
+  "id": "neville-meditation",
+  "featureKey": "neville-meditation",
+  "title": "네빌 명상 실습",
+  "notice": "로그인 후 30분 에센셜 또는 60분 마스터 코스를 선택하는 진행형 명상 실습입니다. 준비된 단계별 화면 문장과 타이머·진행 표시, 세 가지 배경음 분위기, 음악 켜기/끄기·다음 곡, 일시정지·종료를 제공합니다. 생년월일이나 사연을 입력하지 않으며 개인별 분석, AI 상담, 안내 음성, PDF, 명상 기록 저장은 제공하지 않습니다. 음악은 브라우저 재생 환경에 따라 달라질 수 있습니다. 네빌 고다드의 상상 연습 관점으로, 뇌파나 잠재의식 변화를 측정·진단하지 않습니다. 의료적 진단·치료 및 특정 성취·현실 변화를 보장하지 않습니다. 콘셉트 이미지와 가상 예시는 개인 결과나 고객 후기가 아닙니다. 이용권·월정석·단건 결제 및 회당 이용 조건은 현재 결제 안내에서 확인하세요.",
+  "panels": [
+    {
+      "id": "01-a-scene-to-return-to",
+      "title": "잠시, 원하는 장면 곁에 머무는 시간.",
+      "src": "/feature-details/crafted/neville-meditation/01-a-scene-to-return-to.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "잠시, 원하는 장면 곁에\n머무는 시간.\n\n화면의 문장을 따라 몸을 느슨하게 하고\n원하는 일상의 한 장면을 떠올리는\n네빌 명상 실습입니다.\n\n콘셉트 이미지 · 개인 결과가 아닙니다.\n특정한 현실 변화나 성취를 보장하지 않습니다."
+    },
+    {
+      "id": "02-choose-your-time",
+      "title": "오늘 비워둘 수 있는 시간만큼.",
+      "src": "/feature-details/crafted/neville-meditation/02-choose-your-time.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "오늘 비워둘 수 있는\n시간만큼.\n30분 · 에센셜\n\n이완에서 상상 연습을 거쳐\n일상으로 돌아오는 네 단계.\n\n60분 · 마스터\n\n준비와 이완에 시간을 더 두고\n장면에 머무는 다섯 단계.\n\n긴 코스가 더 큰 효과를 뜻하지는 않아요.\n일정과 집중할 여유에 맞춰 골라보세요."
+    },
+    {
+      "id": "03-the-essential-path",
+      "title": "30분의 흐름을 먼저 살펴보세요.",
+      "src": "/feature-details/crafted/neville-meditation/03-the-essential-path.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "30분의 흐름을\n먼저 살펴보세요.\n\n처음 5분\n몸을 이완하기\n\n다음 5분\n주의를 안으로 모으기\n\n다음 15분\n원하는 장면에 머물기\n\n마지막 5분\n느낌을 정리하고 돌아오기\n\n정해진 시간에 안내 문장이 바뀝니다.\n개인 상태를 측정하는 과정은 아닙니다."
+    },
+    {
+      "id": "04-a-longer-stay",
+      "title": "60분은 머무는 시간을 더합니다.",
+      "src": "/feature-details/crafted/neville-meditation/04-a-longer-stay.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "60분은 머무는\n시간을 더합니다.\n\n준비와 정렬\n5분\n\n점진적 이완\n15분\n\n고요한 주의\n10분\n\n원하는 장면 상상\n20분\n\n느낌 정리와 귀환\n10분\n\n장면이 선명하지 않아도 괜찮아요.\n화면 안내를 읽으며 다시 집중합니다."
+    },
+    {
+      "id": "05-what-sats-means",
+      "title": "SATS, 잠들기 전 같은 느슨한 집중.",
+      "src": "/feature-details/crafted/neville-meditation/05-what-sats-means.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "SATS, 잠들기 전 같은\n느슨한 집중.\n억지로 미래를 맞히기보다\n내가 원하는 하루를\n하나의 장면으로 그려봅니다.\n\n이 실습은 네빌 고다드의\n상상 연습 관점을 따릅니다.\n\n뇌파를 측정하거나 잠재의식의\n변화를 진단하는 기능은 없어요.\n\n기법의 관점과 실제 성취는 구분해주세요."
+    },
+    {
+      "id": "06-the-screen-beside-you",
+      "title": "문장과 소리, 나의 속도에 맞게.",
+      "src": "/feature-details/crafted/neville-meditation/06-the-screen-beside-you.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "문장과 소리,\n나의 속도에 맞게.\n읽으며 따라가는 안내\n\n단계 이름·타이머·진행 표시와\n순서대로 나타나는 문장.\n\n선택할 수 있는 배경음\n\n세 가지 분위기, 음악 켜기와 끄기,\n다음 곡과 패널 닫기.\n\n일시정지·종료 버튼을 제공합니다.\n안내 음성이나 AI 대화 기능은 아닙니다.\n음악 재생은 브라우저 환경에 따라 달라집니다."
+    },
+    {
+      "id": "07-a-small-scene",
+      "title": "아주 작은 장면부터.",
+      "src": "/feature-details/crafted/neville-meditation/07-a-small-scene.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "아주 작은 장면부터.\n\n실습 이해를 위한 가상 예시 · 고객 후기 아님\n\n“퇴근하고 집에 돌아와\n내일 할 일을 한 가지 적고\n편안하게 책을 덮는 나.”\n\n거대한 성취의 증거를 찾기보다\n그 장면의 자세와 느낌을 떠올려보세요.\n\n예시는 별도 입력하거나\nAI가 분석해주는 내용이 아닙니다."
+    },
+    {
+      "id": "08-before-you-begin",
+      "title": "결과지를 받는 서비스와는 달라요.",
+      "src": "/feature-details/crafted/neville-meditation/08-before-you-begin.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "결과지를 받는\n서비스와는 달라요.\n\n로그인 후 코스를 골라\n기존 결제 안내를 거쳐 시작합니다.\n\n생년월일·사연을 입력하지 않으며\n준비된 문장과 음악으로 진행합니다.\n\n개인별 분석 리포트·PDF·\n명상 기록 저장은 제공하지 않습니다.\n\n이용권·월정석·단건 결제와 회당 조건은\n현재 결제 안내에서 확인해주세요."
+    },
+    {
+      "id": "09-return-to-your-day",
+      "title": "마치고 나면, 다시 나의 하루로.",
+      "src": "/feature-details/crafted/neville-meditation/09-return-to-your-day.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "마치고 나면,\n다시 나의 하루로.\n\n상상한 장면을 현실의 약속으로\n받아들일 필요는 없어요.\n\n오늘의 작은 선택 하나를\n정리하는 시간으로 삼아보세요.\n\n이 서비스는 의료적 진단·치료나\n성공을 보장하는 프로그램이 아닙니다.\n\n정해진 30분·60분 코스 중에서\n오늘 머물 수 있는 시간을 선택하세요."
+    }
+  ]
+}

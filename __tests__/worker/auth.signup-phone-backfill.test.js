@@ -249,6 +249,31 @@ function buildRegisterRequest(overrides = {}) {
  * 번호 없는 본문을 거절하면 안 됐다. 이 describe 가 그 뒤집힌 계약을 고정한다.
  */
 describe("번호 필수 가입", () => {
+  test("실제 이메일 폼은 name을 보내지 않아도 가입하고 다시 로그인한다", async () => {
+    const response = await authRoutes.__authTestUtils.handleRegister(buildRegisterRequest({ name: undefined, email: "  MOCK@example.com " }), ENV);
+    expect(response.status).toBe(201);
+    const created = mockUserCreate.mock.calls[0][0];
+    expect(created.email).toBe("mock@example.com");
+    expect(created.name).toBe("mock");
+    expect(created.profileSubscription.membershipCreditBalance).toBe(500);
+    const lot = created.profileSubscription.membershipCreditLots[0];
+    expect(lot).toMatchObject({ lotId: "signup", amount: 500, remaining: 500 });
+    expect(+lot.expiresAt - +lot.grantedAt).toBe(30 * 86400000);
+    mockCollectionFindOne.mockResolvedValue({ ...created, _id: "64f0a1b2c3d4e5f678901234" });
+    const loginResponse = await authRoutes.__authTestUtils.handleLogin(new Request("https://example.com/api/auth/login", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: " MOCK@EXAMPLE.COM ", password: "Quiet!Harbor42" }),
+    }), ENV);
+    expect(loginResponse.status).toBe(200);
+    expect(mockUserCreate).toHaveBeenCalledTimes(1);
+    const { MonthlyCreditLedger } = await import("../../worker/lib/models.js");
+    expect(MonthlyCreditLedger.updateOne).toHaveBeenCalledTimes(1);
+    // A repeated signup becomes a login; it must not re-grant the signup lot.
+    const repeated = await authRoutes.__authTestUtils.handleRegister(buildRegisterRequest({ name: undefined, email: "mock@example.com" }), ENV);
+    expect(repeated.status).toBe(200);
+    expect(mockUserCreate).toHaveBeenCalledTimes(1);
+    expect(MonthlyCreditLedger.updateOne).toHaveBeenCalledTimes(1);
+  });
   test("이메일 가입 — 번호가 없으면 phone_required 로 거절한다", async () => {
     const request = buildRegisterRequest({ phoneNumber: undefined });
     const response = await authRoutes.__authTestUtils.handleRegister(request, ENV);

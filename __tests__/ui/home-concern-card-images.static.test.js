@@ -17,20 +17,7 @@ const cards = [
   ['people', '/images/home-questions/people.webp'],
 ];
 
-const shells = ['index.html', 'public/index.html', 'public/en/index.html', 'public/ja/index.html', 'public/static/index.html', 'public/zh/index.html', 'public/zh-tw/index.html'];
-
-test('concern cards use shipped responsive files without a zone-only resizing endpoint', () => {
-  for (const shell of shells) {
-    const html = fs.readFileSync(path.join(root, shell), 'utf8');
-    for (const [key, original] of cards) {
-      const card = html.match(new RegExp(`<button[^>]*data-cd-concern="${key}"[\\s\\S]*?</button>`))?.[0] || '';
-      assert.ok(card.includes(`src="${original.replace('.webp', '-240.webp')}"`), `${shell}: ${key} base candidate`);
-      assert.match(card, /srcset="[^"]+ 240w, [^"]+ 400w, [^"]+ 640w"/, `${shell}: ${key} srcset`);
-      assert.match(card, /sizes="\(max-width: 599px\) calc\(\(100vw - 30px\) \/ 2\), \(max-width: 1080px\) calc\(\(100vw - 64px\) \/ 4\), 256px"/, `${shell}: ${key} sizes`);
-      assert.doesNotMatch(card, /cdn-cgi\/image|onerror=/, `${shell}: ${key} must work on Pages preview without failed requests`);
-    }
-  }
-});
+// 2026-10-17 "직관성": 홈의 질문 타일 8장(#cdConcernPick)은 걷어냈다. 그림 파일은 그대로 두므로 자산 검사만 남긴다.
 
 test('each responsive candidate exists at its declared width and is smaller than its source', async () => {
   const sharp = require('sharp');

@@ -1,0 +1,80 @@
+{
+  "id": "career-transition-tarot",
+  "featureKey": "tarot-ijik",
+  "title": "커리어 전환 타로",
+  "notice": "출생 정보나 이력서 없이 일곱 장을 펼친 뒤 별도 결제로 해석을 여는 상품입니다. 지금 회사에 남을 때, 이직 조건, 바꾸고 싶은 것, 옮긴 뒤 흐름, 준비와 시기, 확인할 조건, 최종 방향의 일곱 자리로 구성됩니다. 결과에는 이직 흐름·움직일 시기·현직 유지·체크포인트, 각 카드의 해설과 작은 실천, 앞으로 30일의 선택 기준이 포함됩니다. 시기는 흐름의 속도이며 퇴사·입사·합격일을 확정하지 않습니다. 서버의 준비된 규칙으로 해설하며 실시간 AI 상담이 아닙니다. 결과 텍스트 공유와 후속 질문문 복사를 지원하며 외부 AI 이용권이나 PDF는 포함하지 않습니다. 계약·보상·역할·팀·생활 여유는 실제 정보로 확인해야 합니다. 도해는 콘셉트 이미지이며 가상 편집 예시는 실제 결과나 후기가 아닙니다. 이용권·월정석·단건 결제의 현재 적용 범위와 결제 조건은 결제창에서 확인하세요.",
+  "panels": [
+    {
+      "id": "01-between-two-doors",
+      "title": "떠나고 싶은 마음과, 남아야 할 이유 사이.",
+      "src": "/feature-details/crafted/career-transition-tarot/01-between-two-doors.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "떠나고 싶은 마음과,\n남아야 할 이유 사이.\n지금의 자리\n다음의 자리\n\n일곱 장의 카드로\n이직의 방향과 준비할 조건을 읽는\n커리어 전환 타로입니다.\n\n콘셉트 도해 · 개인 결과가 아닙니다."
+    },
+    {
+      "id": "02-name-what-needs-to-change",
+      "title": "바꾸고 싶은 것은 회사일까요, 일하는 방식일까요?",
+      "src": "/feature-details/crafted/career-transition-tarot/02-name-what-needs-to-change.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "바꾸고 싶은 것은 회사일까요,\n일하는 방식일까요?\n지금의 자리를 바라보기\n\n남아서 얻는 안정과 성장,\n계속 소모되는 부분을 구분해요.\n\n다음 자리에 바라는 것\n\n보상·역할·팀·성장 가운데\n양보하기 어려운 기준을 찾아요.\n\n퇴사를 재촉하거나 합격을 예언하는\n검사와는 다른 참고용 리딩입니다."
+    },
+    {
+      "id": "03-seven-cards-before-reading",
+      "title": "일곱 장을 먼저 펼치고, 해설을 선택하세요.",
+      "src": "/feature-details/crafted/career-transition-tarot/03-seven-cards-before-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "일곱 장을 먼저 펼치고,\n해설을 선택하세요.\n1\n2\n3\n4\n5\n6\n7\n카드 펼치기\n\n일곱 자리를 차례로 눌러\n카드와 정·역방향을 확인해요.\n\n리딩 열기\n\n모두 펼친 뒤 별도 결제로\n방향·시기·자리별 해설을 열어요.\n\n출생 정보나 이력서 입력 없이\n펼친 카드 조합을 기준으로 읽습니다."
+    },
+    {
+      "id": "04-the-first-three-questions",
+      "title": "먼저, 지금의 일을 세 방향에서 바라봐요.",
+      "src": "/feature-details/crafted/career-transition-tarot/04-the-first-three-questions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "먼저, 지금의 일을\n세 방향에서 바라봐요.\n01 지금 회사에 남을 때\n\n현직을 유지할 때 얻는 것과\n소모되는 것을 살펴요.\n\n02 이직의 문이 열리는 조건\n\n새 자리가 나에게 맞으려면\n무엇이 갖춰져야 할까요?\n\n03 진짜 바꾸고 싶은 것\n\n회사·역할·보상·성장 중\n변화의 핵심을 짚어봐요."
+    },
+    {
+      "id": "05-four-more-questions",
+      "title": "다음은 이동의 속도와, 결정 전에 볼 조건이에요.",
+      "src": "/feature-details/crafted/career-transition-tarot/05-four-more-questions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다음은 이동의 속도와,\n결정 전에 볼 조건이에요.\n\n04 옮긴 뒤의 가까운 흐름\n\n05 준비하며 열어가는 시기\n\n06 이직 전 확인할 조건\n\n07 최종 방향과 시기\n\n카드가 말하는 시기는 흐름의 속도예요.\n실제 입사일이나 합격일을\n확정하는 날짜 안내가 아닙니다."
+    },
+    {
+      "id": "06-what-you-can-read",
+      "title": "결론 하나에서 멈추지 않고, 근거와 행동까지 읽어요.",
+      "src": "/feature-details/crafted/career-transition-tarot/06-what-you-can-read.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "결론 하나에서 멈추지 않고,\n근거와 행동까지 읽어요.\n방향과 선택 조건\n\n이직 흐름·움직일 시기·현직 유지,\n결정 전 확인할 조건을 봅니다.\n\n카드별 해설\n\n자리와 정·역방향에 따른 의미,\n상황 해석과 작은 실천을 읽어요.\n\n앞으로 30일의 선택 기준\n\n실제 일정에 옮길 행동으로\n다음 준비를 구체화해요."
+    },
+    {
+      "id": "07-a-pause-with-purpose",
+      "title": "망설임을, 확인할 질문으로 바꾸어 보세요.",
+      "src": "/feature-details/crafted/career-transition-tarot/07-a-pause-with-purpose.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "가상 편집 예시 · 실제 결과/후기 아님\n\n망설임을, 확인할 질문으로\n바꾸어 보세요.\n“좋은 제안 같지만 불안해요.”\n\n기대만으로 서두르기보다,\n내가 맡을 역할이 계약과 설명에서\n같은지 먼저 확인해 보세요.\n\n오늘 할 수 있는 한 걸음은\n담당 범위와 평가 기준을 적어\n다음 면담에서 질문하는 일이에요.\n\n실제 문장은 카드 조합과 방향에 따라\n달라지며, 취업 결과를 보장하지 않아요."
+    },
+    {
+      "id": "08-keep-your-question",
+      "title": "리딩을 공유하고, 다음 질문을 준비해요.",
+      "src": "/feature-details/crafted/career-transition-tarot/08-keep-your-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "리딩을 공유하고,\n다음 질문을 준비해요.\n결과 공유\n\n카드와 리딩을 공유하거나\n텍스트로 복사할 수 있어요.\n\n질문문 복사\n\n펼친 카드와 해석을 담은\n후속 질문문이 함께 제공돼요.\n\n리딩은 준비된 해석 규칙으로 구성돼요.\n질문문 제공은 실시간 AI 추가 상담이나\n외부 AI 이용권을 포함하지 않습니다."
+    },
+    {
+      "id": "09-before-the-next-step",
+      "title": "카드가 비춘 방향을, 현실의 조건과 나란히.",
+      "src": "/feature-details/crafted/career-transition-tarot/09-before-the-next-step.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "카드가 비춘 방향을,\n현실의 조건과 나란히.\n결정은 확인한 정보로\n\n계약·보상·업무·팀의 조건과\n생활 여유를 함께 살펴주세요.\n\n작은 행동부터 정하기\n\n포트폴리오 정리, 조건 질문처럼\n지금 실행할 한 가지를 골라봐요.\n\n이용권·월정석·단건 결제의 적용 범위와\n현재 결제 조건은 결제창에서 확인하세요.\nPDF 제공을 안내하는 상품은 아닙니다."
+    }
+  ]
+}

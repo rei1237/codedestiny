@@ -42,7 +42,7 @@ export function TimingTimeline({rows,locale,focus=[]}:{rows:TimingRow[];locale?:
   <div className={styles.tableWrap}><table className={styles.table}>
    <thead><tr><th scope="col">{copy.periodCol}</th><th scope="col">{copy.rangeCol}</th></tr></thead>
    <tbody>{rows.map(r=><tr key={r.id} data-now={r.now || undefined}><td>{chartTerm(r.label,locale)}{r.now&&<strong className={styles.nowBadge}>{copy.now}</strong>}</td>
-    <td>{r.from!==undefined?`${r.start} – ${r.end}`:copy.noRange}</td></tr>)}</tbody>
+    <td>{r.from===undefined?copy.noRange:r.start===r.end?r.start:`${r.start} – ${r.end}`}</td></tr>)}</tbody>
   </table></div>
  </section>;
 }
@@ -57,7 +57,7 @@ export function ElementDistribution({elements,locale}:{elements:ElementRow[];loc
  </li>)}</ul>;
 }
 
-export function SajuBoard({pillars,elements,locale}:{pillars:{label:string;ganji:string;tenGod:string}[];elements:ElementRow[];locale?:ReadingLocale}){
+export function SajuBoard({pillars,elements,surface,locale}:{pillars:{label:string;ganji:string;tenGod:string;hidden?:string}[];elements:ElementRow[];surface?:boolean;locale?:ReadingLocale}){
  const copy=visualCopy(locale);
  return <section className={styles.panel} aria-labelledby="reading-saju-board">
   <div className={styles.panelHead}><h3 id="reading-saju-board" className={styles.panelTitle}><ElementIcon element="토" size={20}/>{copy.pillars}</h3>
@@ -65,9 +65,10 @@ export function SajuBoard({pillars,elements,locale}:{pillars:{label:string;ganji
   {pillars.some(p=>p.ganji)&&<div className={styles.tableWrap}><table className={`${styles.table} ${styles.pillars}`}>
    <thead><tr><td/>{pillars.map(p=><th scope="col" key={p.label}>{copy.pillarNames[p.label] || p.label}</th>)}</tr></thead>
    <tbody><tr><th scope="row">{copy.pillarRow}</th>{pillars.map(p=><td key={p.label} className={styles.ganji} lang="zh-Hant">{p.ganji}</td>)}</tr>
-    <tr><th scope="row">{copy.tenGodRow}</th>{pillars.map(p=><td key={p.label}>{chartTerm(p.tenGod,locale)}</td>)}</tr></tbody>
+    <tr><th scope="row">{copy.tenGodRow}</th>{pillars.map(p=><td key={p.label}>{chartTerm(p.tenGod,locale)}</td>)}</tr>
+    {pillars.some(p=>p.hidden)&&<tr><th scope="row">{copy.hiddenRow}</th>{pillars.map(p=><td key={p.label} lang="zh-Hant">{p.hidden}</td>)}</tr>}</tbody>
   </table></div>}
-  {elements.length>0&&<><h4 className={styles.subTitle}>{copy.elements}</h4><p className={styles.caption}>{copy.elementsCaption}</p>
+  {elements.length>0&&<><h4 className={styles.subTitle}>{copy.elements}</h4><p className={styles.caption}>{surface?copy.elementsSurfaceCaption:copy.elementsCaption}</p>
    <ElementDistribution elements={elements} locale={locale}/></>}
  </section>;
 }

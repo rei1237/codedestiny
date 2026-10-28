@@ -11,6 +11,8 @@
  * 이 관계들은 lib/fortune/sign-profiles.test 없이도 아래 SIGN_PROFILES 안에서 상호 대칭이어야 한다.
  */
 
+import { cmsStaticCopy } from "../cms/build-text";
+
 export type SignKind = "zodiac" | "animal";
 
 export interface SignFaq {
@@ -891,7 +893,14 @@ const ANIMAL_PROFILES: SignProfile[] = [
   },
 ];
 
-export const SIGN_PROFILES: SignProfile[] = [...ZODIAC_PROFILES, ...ANIMAL_PROFILES];
+export const SIGN_PROFILE_DEFAULTS: SignProfile[] = [...ZODIAC_PROFILES, ...ANIMAL_PROFILES];
+export function signProfileProse(profile: SignProfile) {
+  const {essence, strength, caution, luckyHabit, reading, faqs} = profile;
+  return {essence, strength, caution, luckyHabit, reading, faqs};
+}
+export const SIGN_PROFILES: SignProfile[] = SIGN_PROFILE_DEFAULTS.map((profile) => ({
+  ...profile, ...cmsStaticCopy("fortune-sign", profile.id, signProfileProse(profile)),
+}));
 
 export const ZODIAC_IDS = ZODIAC_PROFILES.map((p) => p.id);
 export const ANIMAL_IDS = ANIMAL_PROFILES.map((p) => p.id);
@@ -904,7 +913,7 @@ export function getSignProfile(id: string): SignProfile | null {
 }
 
 export function getSiblingProfiles(kind: SignKind): SignProfile[] {
-  return kind === "zodiac" ? ZODIAC_PROFILES : ANIMAL_PROFILES;
+  return SIGN_PROFILES.filter((profile) => profile.kind === kind);
 }
 
 const BY_NAME_EN = new Map(ZODIAC_PROFILES.map((p) => [p.nameEn.toLowerCase(), p]));

@@ -3,7 +3,7 @@ import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { PaidExecutionRecord } from "../lib/models.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
-import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
+import { logPerUsePaymentProof, settlePerUseAccessDecision, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 import {
@@ -147,7 +147,15 @@ async function requireYearTarotAccess(request, env, requestId) {
     // requestId 를 쓰고(sessionStorage 보존), 리딩을 마치면 지운다 — 다음 리딩은 새 키다.
     requestId,
   });
-  if (!decision?.allowed) {
+  // 🔴 이용권·라이선스·월구독 허용은 읽기 전용이다(2026-10-16). 이번 requestId 의 결제가 확인되거나
+  //    이용권이 실제로 차감된 경우만 연다.
+  const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: YEAR_TAROT_FEATURE_KEY,
+    coinPrice: Number(FEATURE_KEY_PRICE_TABLE[YEAR_TAROT_FEATURE_KEY]?.cost) || 0, requestId });
+  if (settled.allowed === null) {
+    return { ok: false, response: json({ ok: false, code: "TAROT_YEAR_PAYMENT_VERIFY_UNAVAILABLE", retryable: true,
+      message: "결제 확인이 잠시 지연되고 있어요. 추가 결제 없이 다시 시도해 주세요." }, { status: 503 }) };
+  }
+  if (!settled.allowed) {
     return {
       ok: false,
       response: json({
@@ -271,7 +279,9 @@ async function verifyNumerologyReadingAccess(request, env, body = {}) {
         message: String(error?.message || "").slice(0, 200),
       }));
     }
-    if (accessDecision?.allowed) {
+    // 🔴 지름길은 이번 요청의 결제 행(paidFeatures)만 받는다(2026-10-16). 이용권·라이선스·월구독 허용은
+    //    읽기 전용이라 그대로 열면 차감이 없다 — 아래 verifyPerUsePayment 가 결제를 찾거나 이용권을 차감한다.
+    if (accessDecision?.allowed && accessDecision.accessSource === "paidFeatures") {
       return { ok: true, auth, evidence: { source: accessDecision.accessSource || accessDecision.reason || "paid_feature_access" } };
     }
   }
@@ -392,7 +402,9 @@ async function verifyOracleConsultationAccess(request, env, body = {}, verifiedA
         message: String(error?.message || "").slice(0, 200),
       }));
     }
-    if (accessDecision?.allowed) {
+    // 🔴 지름길은 이번 요청의 결제 행(paidFeatures)만 받는다(2026-10-16). 이용권·라이선스·월구독 허용은
+    //    읽기 전용이라 그대로 열면 차감이 없다 — 아래 verifyPerUsePayment 가 결제를 찾거나 이용권을 차감한다.
+    if (accessDecision?.allowed && accessDecision.accessSource === "paidFeatures") {
       return { ok: true, auth, evidence: { source: accessDecision.accessSource || accessDecision.reason || "paid_feature_access" } };
     }
   }
@@ -474,6 +486,14 @@ async function verifyTarotPerUseAccess(request, env, body, spec, verifiedAuth = 
     authError = error;
   }
 
+  // A paid love or mindscan body must name the server draw its cards came from. It is checked
+  // before any entitlement or payment lookup, which can consume pass coverage, so a stale tab
+  // without drawId is refused (409, redraw) without spending anything (worker/lib/paid-tarot-draw.js).
+  if (auth?.userId && spec.drawFeatureKey) {
+    const { bindPaidTarotDraw } = await import("../lib/paid-tarot-draw.js");
+    await bindPaidTarotDraw(env, { featureKey: spec.drawFeatureKey, owner: auth.userId, body });
+  }
+
   if (auth?.userId) {
     // 관문이 아니라 지름길이다. 회당결제 키에 canAccessPaidFeature 는 원래 늘 PAYMENT_REQUIRED 를
     // 돌려주고, 실제 증빙은 아래 verifyPerUsePayment 가 본다 — 그래서 여기서 무엇이 터지든
@@ -493,7 +513,9 @@ async function verifyTarotPerUseAccess(request, env, body, spec, verifiedAuth = 
         message: String(error?.message || "").slice(0, 200),
       }));
     }
-    if (accessDecision?.allowed) {
+    // 🔴 지름길은 이번 요청의 결제 행(paidFeatures)만 받는다(2026-10-16). 이용권·라이선스·월구독 허용은
+    //    읽기 전용이라 그대로 열면 차감이 없다 — 아래 verifyPerUsePayment 가 결제를 찾거나 이용권을 차감한다.
+    if (accessDecision?.allowed && accessDecision.accessSource === "paidFeatures") {
       return { ok: true, auth, evidence: { source: accessDecision.accessSource || accessDecision.reason || "paid_feature_access" } };
     }
   }
@@ -1676,7 +1698,7 @@ async function handleLoveTarotDelivery(request, env, body) {
   const featureKey = "tarot-love-relationship";
   const spec = { featureKey, minCost: FEATURE_KEY_PRICE_TABLE[featureKey].cost, codePrefix: "LOVE_TAROT",
     reason: "우리는 무슨 사이? 타로 리딩", authMessage: "로그인 후 리딩을 확인할 수 있습니다.", retryHint: "기존 결제 요청으로 다시 시도해 주세요." };
-  const initial = request.method === "POST" && !body.resumeResultId ? await verifyTarotPerUseAccess(request, env, body, spec) : null;
+  const initial = request.method === "POST" && !body.resumeResultId ? await verifyTarotPerUseAccess(request, env, body, { ...spec, drawFeatureKey: featureKey }) : null;
   if (initial && !initial.ok) return json({ ok: false, code: initial.code, reason: initial.reason || "", message: initial.message,
     retryable: ![401, 403].includes(initial.status) }, { status: initial.status || 402 });
   const auth = initial?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
@@ -1690,7 +1712,7 @@ async function handleLoveTarotDelivery(request, env, body) {
 async function handleMindscanDelivery(request, env, body) {
   const spec = { featureKey: MINDSCAN_FEATURE_KEY, minCost: MINDSCAN_MIN_COST, codePrefix: "MINDSCAN",
     reason: "마인드스캔 타로 리딩", authMessage: "로그인 후 리딩을 확인할 수 있습니다.", retryHint: "기존 결제 요청으로 다시 시도해 주세요." };
-  const initial = request.method === "POST" && !body.resumeResultId ? await verifyTarotPerUseAccess(request, env, body, spec) : null;
+  const initial = request.method === "POST" && !body.resumeResultId ? await verifyTarotPerUseAccess(request, env, body, { ...spec, drawFeatureKey: MINDSCAN_FEATURE_KEY }) : null;
   if (initial && !initial.ok) return json({ ok: false, code: initial.code, reason: initial.reason || "", message: initial.message,
     retryable: ![401, 403].includes(initial.status) }, { status: initial.status || 402 });
   const auth = initial?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
@@ -1860,8 +1882,9 @@ export async function handleTarotRoutes(request, env = {}) {
     //    같은 요청에 requireAuth Mongo 왕복이 두 번 돈다(중첩 사전검사). 인증의 주인은 그 게이트다.
     //    `/mindscan` 도 원래 여기서 빠져 있었는데 예전에는 **아무도** 인증을 안 봤다 —
     //    2026-08-24 감사에서 발견해 자기 게이트를 달았다.
+    // `/paid-draw` deals the paid love/mindscan cards before login; the paid route binds them later.
     if (path !== "/mindscan" && path !== "/crystal-soul" && path !== "/ijik-reading"
-      && path !== "/draw" && !isYearReadingRequest) {
+      && path !== "/draw" && path !== "/paid-draw" && !isYearReadingRequest) {
       try {
         await requireAuth(request, env);
       } catch (authErr) {
@@ -1876,6 +1899,11 @@ export async function handleTarotRoutes(request, env = {}) {
           throw authErr;
         }
       }
+    }
+
+    if (path === "/paid-draw") {
+      const { createPaidTarotDraw } = await import("../lib/paid-tarot-draw.js");
+      return json(await createPaidTarotDraw(env, body), { headers: { "Cache-Control": "no-store" } });
     }
 
     if (path === "/draw") {

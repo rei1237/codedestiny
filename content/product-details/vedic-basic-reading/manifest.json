@@ -1,0 +1,80 @@
+{
+  "id": "vedic-basic-reading",
+  "featureKey": "vedic_basic_reading",
+  "title": "베다 기본 해석",
+  "notice": "출생 정보를 바탕으로 계산된 베다 차트의 기본 해석을 여는 상품입니다. 기존 화면의 출생 차트·행성 배치·라그나·나크샤트라·현재 대운 자료와 구분하여, 종합 해석 카드와 성향·관계·재물과 직업·다샤·에너지·심화 데이터의 여섯 탭 본문, 성향·재물·직업·연애·차크라·요가·처방·빔쇼타리 다샤의 여덟 상세 주제를 안내합니다. 차트 계산과 미리 작성된 해석 규칙으로 구성되며 질문에 대한 새 AI 답변 상품과는 다릅니다. 다샤의 시작·종료일은 특정 사건을 보장하지 않으며 차크라 지표와 처방은 상징적 해석·생활 참고로서 건강 진단이나 치료가 아닙니다. 출생시간·장소·시간대를 확인해 주세요. 특정 상대와의 궁합, 질문 AI, 전문가 상담, 프라슈나는 별도 상품입니다. 예시는 이해를 돕기 위한 가상 편집이며 실제 결과나 고객 후기가 아닙니다. 현재 화면에 표시되는 해금 조건과 이용권 적용 여부를 확인해 주세요.",
+  "panels": [
+    {
+      "id": "01-read-beyond-the-chart",
+      "title": "차트는 그려졌는데, 내 이야기는 어디에 있나요?",
+      "alt": "차트는 그려졌는데, 내 이야기는 어디에 있나요?",
+      "src": "/feature-details/crafted/vedic-basic-reading/01-read-beyond-the-chart.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "차트는 그려졌는데,\n내 이야기는 어디에 있나요?\n\n행성 이름을 아는 것에서 한 걸음 더.\n일을 대하는 태도와 관계의 습관,\n지금의 시기를 내 삶으로 읽어보세요.\n\n계산된 차트의 해석을 펼치는\n베다 기본 해석."
+    },
+    {
+      "id": "02-what-the-unlock-opens",
+      "title": "차트의 배치에서, 여섯 갈래 해석으로.",
+      "alt": "차트의 배치에서, 여섯 갈래 해석으로.",
+      "src": "/feature-details/crafted/vedic-basic-reading/02-what-the-unlock-opens.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "차트의 배치에서,\n여섯 갈래 해석으로.\n먼저 확인하는 자료\n\n출생 차트·행성 배치표와\n라그나·나크샤트라·현재 대운.\n\n해금으로 펼치는 본문\n\n성향 / 관계 / 재물과 직업\n다샤 / 에너지 / 심화 데이터.\n\n더 자세히 읽는 여덟 주제\n\n성향·재물·직업·연애·차크라\n요가·처방·빔쇼타리 다샤."
+    },
+    {
+      "id": "03-your-habits-at-work-and-in-love",
+      "title": "같은 나라도, 일과 관계의 모습은 달라요.",
+      "alt": "같은 나라도, 일과 관계의 모습은 달라요.",
+      "src": "/feature-details/crafted/vedic-basic-reading/03-your-habits-at-work-and-in-love.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 나라도,\n일과 관계의 모습은 달라요.\n성향\n\n나의 반응과 선택 습관을\n차트의 근거와 함께 읽어요.\n\n관계\n\n끌림과 연애의 패턴을 살펴요.\n특정 상대의 궁합은 별도예요.\n\n재물과 직업\n\n능력을 쓰는 방식과 돈의 흐름,\n현실에서 점검할 조건을 연결해요."
+    },
+    {
+      "id": "04-a-calendar-with-context",
+      "title": "지금의 대운을, 앞뒤 흐름과 함께.",
+      "alt": "지금의 대운을, 앞뒤 흐름과 함께.",
+      "src": "/feature-details/crafted/vedic-basic-reading/04-a-calendar-with-context.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "지금의 대운을,\n앞뒤 흐름과 함께.\n\n빔쇼타리 다샤는 행성별 기간으로\n삶의 흐름을 나누어 읽는 체계예요.\n\n큰 기간과 그 안의 세운\n\n전체 타임라인, 현재 대운 안의\n세부 기간과 해설을 함께 봐요.\n\n날짜보다 해석의 맥락\n\n표의 시작·종료일이 특정 사건의\n발생 날짜를 뜻하지는 않아요."
+    },
+    {
+      "id": "05-symbols-and-everyday-routines",
+      "title": "상징을 읽되, 생활의 실천으로 돌아와요.",
+      "alt": "상징을 읽되, 생활의 실천으로 돌아와요.",
+      "src": "/feature-details/crafted/vedic-basic-reading/05-symbols-and-everyday-routines.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "상징을 읽되,\n생활의 실천으로 돌아와요.\n차크라와 에너지\n\n일곱 차크라의 참고 지표로\n에너지의 균형을 상징적으로 읽어요.\n\n요가와 카라카\n\n행성의 조합과 역할을 통해\n차트가 강조하는 주제를 살펴요.\n\n처방과 루틴\n\n생활 조언을 참고해 실천을 골라요.\n건강 진단이나 치료 안내는 아니에요."
+    },
+    {
+      "id": "06-read-a-practical-example",
+      "title": "해석을 읽은 뒤, 작은 조건부터 바꿔보세요.",
+      "alt": "해석을 읽은 뒤, 작은 조건부터 바꿔보세요.",
+      "src": "/feature-details/crafted/vedic-basic-reading/06-read-a-practical-example.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "해석을 읽은 뒤,\n작은 조건부터 바꿔보세요.\n\n이해를 돕기 위한 예시 · 가상 편집\n\n“새 일을 맡을 때 의욕이 앞선다면,\n시작하기 전에 마감과 역할을\n짧게 적어 확인해 보세요.\n힘을 쓸 곳이 선명해지면\n끝맺음도 한결 쉬워집니다.”\n\n기질을 고정된 성격표로 보기보다,\n반복되는 선택을 점검하는\n질문으로 활용해 보세요.\n\n실제 결과나 고객 후기가 아니에요."
+    },
+    {
+      "id": "07-the-data-behind-the-reading",
+      "title": "해설 곁의 자료를, 함께 확인하세요.",
+      "alt": "해설 곁의 자료를, 함께 확인하세요.",
+      "src": "/feature-details/crafted/vedic-basic-reading/07-the-data-behind-the-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "해설 곁의 자료를,\n함께 확인하세요.\n12바바 구조\n\n삶의 각 영역에 어떤 행성이 있고,\n어느 행성이 그 영역을 맡는지 봐요.\n\n다샤 전체표\n\n기간의 시작과 종료, 현재 위치를\n표와 해설을 오가며 확인해요.\n\n출생 정보 점검\n\n시간·장소·시간대가 달라지면\n차트와 해석도 달라질 수 있어요."
+    },
+    {
+      "id": "08-choose-the-reading-you-need",
+      "title": "나의 차트를 펼치고, 궁금한 주제부터 읽으세요.",
+      "alt": "나의 차트를 펼치고, 궁금한 주제부터 읽으세요.",
+      "src": "/feature-details/crafted/vedic-basic-reading/08-choose-the-reading-you-need.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 차트를 펼치고,\n궁금한 주제부터 읽으세요.\n\n현재 화면의 해금 조건을 확인하고,\n성향에서 시기까지 필요한 주제를\n오가며 읽어보세요.\n\n질문 AI·전문가 상담·상대 궁합·프라슈나는\n이 기본 해석에 포함된 상담이 아니에요.\n기존 전체 해석 열기 버튼으로 이어가세요."
+    }
+  ]
+}

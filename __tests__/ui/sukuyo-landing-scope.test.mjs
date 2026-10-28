@@ -31,6 +31,16 @@ const { page, metadata, SEO_SERVICE_SCOPES, SEO_LANDING_PAGES, relationFromForwa
   'data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64')
 );
 
+test('vedic comparison example survives page composition alongside the existing guide', () => {
+  const sections = SEO_LANDING_PAGES.vedic.sections;
+  const comparison = sections.find(section => section.heading.includes('왜 별자리가 다를까요'));
+  assert.ok(comparison, 'the comparison must not be overwritten by a second sections property');
+  assert.equal(SEO_LANDING_PAGES.vedic.dateModified, '2026-10-18', 'the composed page must retain the latest actual content revision, including the shared intro');
+  assert.ok(comparison.paragraphs.some(text => text.includes('125도') && text.includes('101도')));
+  assert.ok(sections.some(section => section.heading.includes('빔쇼타리 다샤')));
+  assert.ok(sections.some(section => section.heading.includes('계산 예시')));
+});
+
 test('compatibility landing distinguishes public guidance from the paid analysis', () => {
   assert.equal(page.path, '/sukuyo/compatibility');
   assert.equal(page.heroForm, null);

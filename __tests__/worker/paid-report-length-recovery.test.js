@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const ts = require("typescript");
 const quality = require("../../worker/lib/paid-report-quality.js");
+const specialist = require("../../worker/lib/tea-saju-specialist.js");
 const lovePrompt = require("../../worker/lib/love-secret-ai-prompt.js");
 const clone = value => JSON.parse(JSON.stringify(value));
 function load(ctx, path, names) {
@@ -20,7 +21,7 @@ function prose(label, chars) {
 }
 function teaHarness(state) {
   const saved = [];
-  const ctx = { PAID_LLM_PARTS_PER_REQUEST: 4, ...quality, structuredClone, Date, Promise, getAmbientAiLocale: () => "ko", hasGeminiKey: () => true,
+  const ctx = { PAID_LLM_PARTS_PER_REQUEST: 4, ...quality, ...specialist, structuredClone, Date, Promise, getAmbientAiLocale: () => "ko", hasGeminiKey: () => true,
     runWithAiLocale: (_locale, fn) => fn(),
     generateFortuneTeaGroup: jest.fn(async () => ({ ok: false })),
     mergeLlmResult: (base, candidate) => ({ ...base, ...candidate }),
@@ -191,6 +192,7 @@ test("love public progress includes groups that have not been generated yet", ()
 });
 test("tea compares all content errors so fixing one issue does not hide another", () => {
   const ctx = {
+    ...specialist,
     resolveSajuCategoryRule: () => ({ requiredTerms: [] }), getSajuRequiredSectionTitles: () => ["required"],
     normalizeDeepSections: rows => rows, assertText: value => { if (!value) throw Error("empty"); },
     collectConsultText: value => value.saju.deepSections[0].body,

@@ -1,0 +1,167 @@
+{
+  "mode": "Local DOM heading extraction; no network; images and prose unchanged",
+  "changes": [
+    {
+      "id": "chat-neo",
+      "panel": "06-continue-with-context",
+      "before": "다음 질문은, 앞의 대답에서 더 구체적으로.",
+      "after": "이어서 물을수록, 더 구체적인 질문으로."
+    },
+    {
+      "id": "tea-saju-compat",
+      "panel": "06-a-conversation-example",
+      "before": "말을 더 하는 대신, 대화의 시간을 약속한다면.",
+      "after": "다그치기보다, 대화 시간을 정한다면."
+    },
+    {
+      "id": "yeongnyangi-astrology-flounder",
+      "panel": "02-what-help-sounds-like",
+      "before": "해결해 주고 싶은 말, 먼저 들어주길 바라는 마음.",
+      "after": "해결해 주고 싶은 말, 들어주길 바라는 마음."
+    },
+    {
+      "id": "yeongnyangi-astrology-mackerel",
+      "panel": "04-six-chapters-to-an-action",
+      "before": "마음의 반응에서, 다음 대화의 한 문장까지.",
+      "after": "마음의 반응을 읽고, 다음 말을 준비해요."
+    },
+    {
+      "id": "yeongnyangi-fusion-saju-ziwei",
+      "panel": "01-more-responsibility-less-room",
+      "before": "인정받을수록, 내 자리가 좁아지는 것 같다면.",
+      "after": "인정받을수록, 내 자리가 좁아진다면."
+    },
+    {
+      "id": "yeongnyangi-fusion-saju-ziwei",
+      "panel": "02-the-role-around-the-person",
+      "before": "일은 잘하고 싶은데, 모든 책임을 맡기는 버겁다면.",
+      "after": "일은 잘하고 싶은데, 모든 책임은 버겁다면."
+    },
+    {
+      "id": "yeongnyangi-fusion-saju-ziwei",
+      "panel": "03-two-ways-to-read-a-role",
+      "before": "사주는 기질의 균형을, 자미두수는 삶의 영역을.",
+      "after": "기질의 균형과, 삶의 영역을 나란히 읽어요."
+    },
+    {
+      "id": "yeongnyangi-fusion-saju-ziwei",
+      "panel": "10-bring-your-birth-and-your-question",
+      "before": "내 정보를 한 번 준비하고, 두 시선으로 읽어요.",
+      "after": "나를 한 번 준비하고, 두 시선으로 읽어요."
+    },
+    {
+      "id": "yeongnyangi-fusion-sukuyo-vedic",
+      "panel": "07-the-rest-of-your-life",
+      "before": "관계의 리듬은, 생활의 여러 곳에 닿아 있어요.",
+      "after": "관계의 리듬은, 일상에도 이어져요."
+    },
+    {
+      "id": "yeongnyangi-prashna",
+      "panel": "01-a-question-at-this-moment",
+      "before": "지금 마음에 걸린 일, 한 질문으로 놓아보세요.",
+      "after": "지금 마음에 걸린 일, 한 질문으로 적어봐요."
+    },
+    {
+      "id": "yeongnyangi-prashna",
+      "panel": "03-the-first-answer",
+      "before": "처음에는, 답과 근거와 한 가지 행동.",
+      "after": "첫 답에는 근거와 한 가지 행동을."
+    },
+    {
+      "id": "yeongnyangi-prashna",
+      "panel": "06-read-a-symbol-keep-a-boundary",
+      "before": "흐름을 읽어도, 상대의 경계는 남아 있어요.",
+      "after": "흐름을 읽어도, 상대의 선을 지켜요."
+    },
+    {
+      "id": "yeongnyangi-prashna",
+      "panel": "07-what-the-answer-cannot-know",
+      "before": "신점이라는 이름이, 모든 답을 뜻하진 않아요.",
+      "after": "신점이라는 이름이 모든 답은 아니에요."
+    },
+    {
+      "id": "yeongnyangi-sukuyo-mackerel",
+      "panel": "01-after-the-gathering",
+      "before": "즐거운 모임 뒤에도, 혼자 쉴 시간이 필요하다면.",
+      "after": "즐거운 모임 뒤에도, 혼자 쉬고 싶다면."
+    },
+    {
+      "id": "yeongnyangi-sukuyo-salmon",
+      "panel": "01-a-role-that-fits",
+      "before": "새로운 자리에서, 나는 어떤 역할을 맡을까요?",
+      "after": "새로운 자리에서, 어떤 역할을 맡을까요?"
+    },
+    {
+      "id": "yeongnyangi-sukuyo-salmon",
+      "panel": "03-read-the-direction-of-a-bond",
+      "before": "같은 관계 안에서도, 맡는 역할은 다를 수 있어요.",
+      "after": "같은 관계 안에서도, 맡는 역할은 달라요."
+    },
+    {
+      "id": "yeongnyangi-sukuyo-tuna",
+      "panel": "02-the-same-person-in-two-rooms",
+      "before": "어떤 자리에서는 편하고, 어떤 자리에서는 애쓰는 나.",
+      "after": "편하게 말하는 나와, 분위기를 살피는 나."
+    },
+    {
+      "id": "yeongnyangi-sukuyo-tuna",
+      "panel": "03-a-map-not-a-list-of-people",
+      "before": "인연의 지도는, 만날 사람의 명단이 아니에요.",
+      "after": "인연의 지도, 만남의 명단은 아니에요."
+    },
+    {
+      "id": "yeongnyangi-sukuyo-tuna",
+      "panel": "04-the-first-five-chapters",
+      "before": "나의 바탕과 끌림, 성장과 친밀함을 읽는 장.",
+      "after": "나의 바탕과 끌림, 성장과 친밀함의 이야기."
+    },
+    {
+      "id": "yeongnyangi-tarot-flounder",
+      "panel": "02-expectation-is-not-evidence",
+      "before": "내가 바라는 반응과, 실제로 있었던 일을 나눠요.",
+      "after": "바라는 반응과, 실제로 있었던 일을 나눠요."
+    },
+    {
+      "id": "yeongnyangi-tarot-flounder",
+      "panel": "03-six-questions-in-the-spread",
+      "before": "두 마음을 맞히기보다, 여섯 자리로 관계를 읽어요.",
+      "after": "여섯 자리로, 엇갈림의 흐름을 읽어요."
+    },
+    {
+      "id": "yeongnyangi-tarot-flounder",
+      "panel": "08-prepare-the-real-context",
+      "before": "관계와 실제로 있었던 장면을 알려 주세요.",
+      "after": "지금의 관계와, 실제 장면을 알려 주세요."
+    },
+    {
+      "id": "yeongnyangi-tarot-mackerel",
+      "panel": "01-one-small-opening",
+      "before": "움직이고 싶은데, 무엇부터 해야 할지 모르겠다면.",
+      "after": "움직이고 싶은데, 시작이 막막하다면."
+    },
+    {
+      "id": "yeongnyangi-tarot-mackerel",
+      "panel": "03-three-places-one-thread",
+      "before": "매듭, 자원, 다음 행동을 연결해요.",
+      "after": "매듭과 자원을 읽고, 다음 행동으로 이어가요."
+    },
+    {
+      "id": "yeongnyangi-tarot-tuna",
+      "panel": "01-when-everything-is-connected",
+      "before": "하나를 바꾸려는데, 모든 일이 함께 흔들린다면.",
+      "after": "하나를 바꾸려는데, 모든 일이 얽혀 있다면."
+    },
+    {
+      "id": "yeongnyangi-tarot-tuna",
+      "panel": "02-find-the-center",
+      "before": "여러 고민 속에서도, 이번 질문의 중심을 잡아요.",
+      "after": "여러 고민 속에서도, 질문의 중심을 잡아요."
+    },
+    {
+      "id": "yeongnyangi-ziwei-tuna",
+      "panel": "09-the-limits-of-a-timeline",
+      "before": "나이 구간을, 사건 날짜로 바꾸지 않아요.",
+      "after": "나이 구간을, 날짜로 바꾸지 않아요."
+    }
+  ]
+}

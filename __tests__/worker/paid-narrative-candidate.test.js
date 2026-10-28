@@ -27,3 +27,12 @@ test('one readable paragraph is deliverable and an incomplete tail is trimmed wi
   expect(normalizeNarrativeBody(draft + '\n\n' + draft)).toBe(draft);
   expect(normalizeNarrativeBody('미완성')).toBe('');
 });
+
+// R6 2026-10-10: 근거 인용 괄호로 끝나는 문단의 괄호와 굵은 소제목 문단이 통째로 지워졌다.
+test('keeps a closing evidence citation and bold labels, but still trims a cut citation', () => {
+  const cited = '명예를 얻으려는 경향이 강합니다. (명궁: 술궁 주성 천동(평), 우필, 자화: 명궁=화과:우필)';
+  const label = '**힘을 실어주는 요소:**';
+  expect(normalizeNarrativeBody(`${label}\n\n${cited}`)).toBe(`${label}\n\n${cited}`);
+  expect(normalizeNarrativeBody('명예를 얻으려는 경향이 강합니다. (명궁: 술궁 주성 천동(평')).toBe('명예를 얻으려는 경향이 강합니다.');
+  expect(normalizeNarrativeBody(`${draft}\n\n${label}`)).toBe(draft);
+});

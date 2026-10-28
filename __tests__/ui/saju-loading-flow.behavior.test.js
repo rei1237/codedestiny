@@ -6,7 +6,7 @@ const ts = require('typescript');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('js/saju-engine.js', 'utf8');
 const ast = ts.createSourceFile('saju.js', source, ts.ScriptTarget.Latest, true);
-const names = new Set(['startSajuCalculationFlow', '_sajuCalculationWait', '_sajuWaitForPaint', '_sajuSetCalculationLoading', 'showJongVerificationModal']);
+const names = new Set(['startSajuCalculationFlow', '_sajuCalculationWait', '_sajuWaitForPaint', '_sajuSetCalculationLoading']);
 const code = ast.statements.filter(n => ts.isFunctionDeclaration(n) && names.has(n.name?.text)).map(n => n.getText(ast)).join('\n');
 function setup() {
   const dom = new JSDOM('<div id="inputPage"><input id="birthDate" value="19900515"><div id="sajuCalcLoadingOverlay"></div></div><div id="resultPage" style="display:none"></div>');
@@ -20,7 +20,6 @@ function setup() {
     setSajuFormStatus:(text,kind)=>{if(kind==='error')calls.errors.push(text);}, clearSajuFormStatus(){},
     // A suspended rAF must never hold the overlay forever.
     requestAnimationFrame:()=>1,cancelAnimationFrame(){},
-    extractSixPastTestingYears:()=>({best:[],worst:[]}),
     calculate:async()=>{calls.count++;w.document.getElementById('resultPage').style.display='block';}
   };
   vm.createContext(ctx);vm.runInContext(code,ctx);
@@ -51,16 +50,6 @@ test('bounded wait rejects a hung task and pagehide ignores a late continuation'
   h.w.dispatchEvent(new h.w.Event('pagehide'));await pending;release(true);
   await new Promise(resolve=>setTimeout(resolve,10));
   assert.equal(h.calls.count,0);assert.equal(h.ctx.sajuCalculationRun,null);h.close();
-});
-test('jong confirmation stays interactive until selection and abort removes it',async()=>{
-  const h=setup(), run=new AbortController();
-  h.ctx._sajuSetCalculationLoading(false,'confirming');
-  const choice=h.ctx.showJongVerificationModal({name:'종격',isJong:true},{},run);
-  assert.equal(h.overlay.getAttribute('aria-hidden'),'true');
-  assert.equal(h.w.document.activeElement.id,'btnJongSubmit');
-  h.w.document.getElementById('btnJongSubmit').click();assert.equal((await choice).isJong,true);
-  const cancelled=h.ctx.showJongVerificationModal({name:'종격',isJong:true},{},run);
-  run.abort();await cancelled;assert.equal(h.w.document.querySelector('[role="dialog"]'),null);h.close();
 });
 test('completion cross-fades without blocking input and finally preserves the transition',async()=>{
   const h=setup();

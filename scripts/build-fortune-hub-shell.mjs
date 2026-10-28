@@ -216,13 +216,19 @@ ${renderPeriodLinkList(id, allSigns)}
   <meta property="og:description" content="별자리 12종·띠 12종의 기간별 운세 96가지를 산출 근거와 함께 무료로 제공합니다.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://code-destiny.com/fortune/">
-  <meta property="og:site_name" content="꿀꿀운세">
+  <meta property="og:site_name" content="꿀꿀 운세">
   <meta property="og:locale" content="ko_KR">
   <meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="google-adsense-account" content="ca-pub-9863227498729828">
   <link rel="canonical" href="https://code-destiny.com/fortune/">
+  <link rel="alternate" hreflang="ko" href="https://code-destiny.com/fortune/">
+  <link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/">
+  <link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/fortune/">
+  <link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/fortune/">
+  <link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/fortune/">
+  <link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/">
   <link rel="icon" href="/icons/app-logo-192.png">
   <script type="application/ld+json">
 ${JSON.stringify(jsonLd, null, 2)}
@@ -339,9 +345,9 @@ ${faqHtml}
   © 2026 연이의 꿀꿀 운세 &middot;
   <a href="/">홈</a> &middot;
   <a href="/today/">오늘의 운세</a> &middot;
-  <a href="/privacy-policy/">개인정보처리방침</a> &middot;
-  <a href="/terms-of-service/">이용약관</a> &middot;
-  <a href="/contact-us/">문의하기</a>
+  <a href="/privacy/">개인정보처리방침</a> &middot;
+  <a href="/terms/">이용약관</a> &middot;
+  <a href="/contact/">문의하기</a>
 </footer>
 </body>
 </html>

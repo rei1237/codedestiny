@@ -8,6 +8,7 @@ import {localizedSystem,localizedTier,localizedKind,consultationLocaleCopy} from
 import {readingArtwork} from './ReadingIdentity';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,type FortuneSummary,type FortunePage} from '../_lib/api';
+import {friendlyErrorMessage} from '@/app/_lib/friendly-error';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import {subscribeAuth} from '@/app/_lib/auth-store';
 import styles from '../yeongnyangi.module.css';
@@ -41,7 +42,7 @@ export default function Library(){
    if(!current())return;
    if(reason instanceof FortuneApiError&&reason.status===401)setNeedsLogin(true);
    retryAt.current=Date.now()+(reason instanceof FortuneApiError?reason.retryAfterSeconds*1000:0);
-   setError(reason instanceof FortuneApiError&&reason.code==='REQUEST_TIMEOUT'?'응답이 늦어지고 있어요. 잠시 후 다시 불러와 주세요.':reason instanceof Error?reason.message:'상담 기록을 불러오지 못했어요. 다시 시도해 주세요.');
+   setError(reason instanceof FortuneApiError&&reason.code==='REQUEST_TIMEOUT'?'응답이 늦어지고 있어요. 잠시 후 다시 불러와 주세요.':friendlyErrorMessage(reason,'상담 기록을 불러오지 못했어요. 다시 시도해 주세요.'));
   }finally{if(version===revision.current){active.current=null;setLoading(false);}}
  },[]);
  useEffect(()=>{
@@ -70,18 +71,20 @@ export default function Library(){
   try{await fortuneApi(`requests/${row.id}/generate`,{});window.location.assign(`${resultPath(row.id,locale)}&source=library`);}
   catch(reason){
    if(reason instanceof FortuneApiError&&reason.status===401){loginForCurrentPage();return;}
-   setRecoverError({id:row.id,message:locale!=='ko'||!(reason instanceof Error)?stateCopy.generateFailed:reason.message});setRecovering('');void load();
+   setRecoverError({id:row.id,message:locale!=='ko'?stateCopy.generateFailed:friendlyErrorMessage(reason,stateCopy.generateFailed)});setRecovering('');void load();
   }
  }
  const scene=needsLogin?'login':rows?.length||error?'hero':'signup',[art,artWidth,artHeight]=ART[scene];
+ // 빈 보관함은 안내 바로 아래에서 첫 상담으로 데려간다. 같은 링크를 목록 아래에 한 번 더 두지 않는다.
+ const empty=rows?.length===0&&!error,startHref=`/yeongnyangi/fortune/?lang=${locale}`;
  return <section className={styles.consultation}><header className={styles.spiritIntro}><img className={scene==='signup'?styles.libraryFade:undefined} src={art} width={artWidth} height={artHeight} alt=""/><div className={styles.libraryIntro}><h1>{copy.library}</h1>
-  {needsLogin?<div role="alert"><p>{copy.loginHint}</p><button onClick={loginForCurrentPage}>{copy.login}</button></div>:rows===null&&loading?<p role="status">{copy.loading}</p>:rows?.length===0&&!error&&<p>{copy.empty}</p>}</div></header>
+  {needsLogin?<div role="alert"><p>{copy.loginHint}</p><button onClick={loginForCurrentPage}>{copy.login}</button></div>:rows===null&&loading?<p role="status">{copy.loading}</p>:empty&&<><p>{copy.empty}</p><a className={styles.primaryAction} href={startHref}>{consultationLocaleCopy(locale).libraryStart}</a></>}</div></header>
   <OrderLookup locale={locale}/>
   <div className={styles.library}>{rows?.map(row=><div key={row.id} className={styles.libraryItem}><a href={`${resultPath(row.id,locale)}&source=library`}><img src={row.product?readingArtwork(row.product):ART.hero[0]} width={120} height={80} loading="lazy" alt=""/><div><h2>{!row.product?(row.kindLabel||copy.library):locale==='ko'?`${row.kindLabel||row.product.name} · ${row.product.fishName}`:`${row.consultationKind?localizedKind(row.consultationKind,locale):localizedSystem(row.product.readingKind==='single'?row.product.domain:'fusion',locale)} · ${localizedTier(row.product.fishId,locale)}`}</h2>{row.participants&&<p>{row.participants.self} · {row.participants.partner}</p>}<p>{new Date(row.createdAt).toLocaleDateString(locale)} · {row.state==='REFUNDED'?copy.refunded:row.state==='COMPLETED'?copy.view:row.paid?row.recovering?copy.recoveringItems(row.completedChapters||0,row.totalChapters||row.product?.chapterCount||0):copy.continue:copy.checkout}</p><p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p></div></a>
    {row.canRetry&&<button className={styles.retryButton} disabled={Boolean(recovering)} onClick={()=>void recover(row)}>{recovering===row.id?stateCopy.recovering:copy.recovery}</button>}
    {recoverError?.id===row.id&&<p role="alert">{recoverError.message}</p>}</div>)}</div>
   {cursor&&!error&&<button disabled={loading} onClick={()=>void load(cursor)}>{loading?copy.loading:copy.more}</button>}
   {error&&!needsLogin&&<div role="alert"><p>{locale==='ko'?error:stateCopy.loadFailed}</p><button disabled={loading} onClick={retry}>{loading?copy.loading:copy.retry}</button></div>}
-  <a href={`/yeongnyangi/fortune/?lang=${locale}`}>{consultationLocaleCopy(locale).start}</a>
+  {!empty&&<a href={startHref}>{consultationLocaleCopy(locale).start}</a>}
  </section>;
 }

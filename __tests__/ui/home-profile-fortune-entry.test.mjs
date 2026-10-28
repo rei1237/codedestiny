@@ -34,6 +34,14 @@ test('home tarot opens the mobile service library instead of the basic draw moda
  assert.deepEqual(libraries,['tarotCollection']);assert.deepEqual(h.opened,[]);assert.equal(h.creates(),0);
 });
 
+test('returning from profile entry cancels the pending service before a later save',()=>{
+ const h=setup();h.ctx.window.cdHomeFortuneEntry('vedic');
+ h.events.click({button:0,defaultPrevented:true,target:{closest:selector=>selector.includes('[data-cdh-input-return]')}});
+ assert.equal(h.state.size,0);
+ h.setProfile({birth:{year:1990,month:1,day:1}});h.events.destinyProfileChanged();
+ assert.deepEqual(h.opened,[]);
+});
+
 test('desktop library unfolds the garden without closing an already open collection',()=>{
  const h=setup();let open=false,toggles=0,garden=0,scroll=0;
  const collection={getAttribute:()=>String(open),querySelector:()=>({click:()=>{toggles++;open=true;}}),scrollIntoView:()=>scroll++};

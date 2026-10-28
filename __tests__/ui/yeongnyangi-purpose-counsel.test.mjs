@@ -89,6 +89,16 @@ test('mixed questions preserve lifetime, current, named-cycle and year scopes in
   const lower=api.buildAskFirstChapterPrompt(c,api.ruleAnalysis(c),packet('salmon'));
   assert.deepEqual(lower.questions[0].timingIds,[],'annual facts cannot stand in for unavailable decades');
 });
+test('dated 대운 switch on the 교운일 and are named by 만 나이 and 대운수, not counting age',()=>{
+  const chart=iso=>api.calculateScreenSaju({birthDate:'1995-03-10',birthTime:'14:30',gender:'male',calendarType:'solar'},new Date(iso));
+  const before=chart('2026-07-29T03:00:00Z').majorLuck,after=chart('2026-07-30T03:00:00Z').majorLuck,cur=after.currentCycle;
+  assert.deepEqual([before.currentCycle.pillar,cur.pillar,after.startSolarDate,after.daeunNumber],['丙子','乙亥','1996-07-30',1]);
+  assert.deepEqual([cur.startDate,cur.endDate,cur.startAgeMan,cur.startAge,cur.label],['2026-07-30','2036-07-29',31,32,'을해 대운 · 2026년 7월 무렵부터 (만 31세, 대운수 1)']);
+  assert.deepEqual([before.transition.status,after.transition.status],['upcoming','passed']);
+  assert.deepEqual(api.questionCycles('현재 대운',before.asOfDate,before.cycles).map(c=>c.pillar),['丙子'],'the calendar year alone picks 乙亥');
+  assert.deepEqual(api.questionCycles('30대 대운',date,after.cycles).map(c=>c.startAgeMan),[21,31]);
+  assert.doesNotMatch(JSON.stringify(chart('2026-10-23T03:00:00Z').advancedFactors),/대운 \d+세/);
+});
 test('manifest allocates all cycles exactly once without changing counts or budgets; v6 receives the actual cycles',()=>{
   const result=api.counselManifest(chapters,updated,'tuna','timing','',date);
   assert.equal(result.length,chapters.length);
@@ -161,6 +171,7 @@ test('actual calculated cycles retain natal identity and fit a bounded evidence 
   assert.ok(JSON.stringify(p).length<110000);
 });
 test('thermal/moisture axes and confirmed or rejected special structure preserve the configured policy',()=>{
+  const gyeokguk=new Set();
   for(const type of ['cold','hot'])for(const moistType of ['wet','dry'])for(const isJong of [true,false]){
     const jong=isJong?{isJong:true,name:'종왕격',confirmedByUser:true}:{isJong:false,rejectedByUser:true};
     const input={...source,seasonalBalance:{type,moistType},jong,usefulGod:['火']};
@@ -168,6 +179,8 @@ test('thermal/moisture axes and confirmed or rejected special structure preserve
     assert.deepEqual(facts.seasonalBalance,input.seasonalBalance);
     assert.deepEqual(facts.jong,jong);assert.deepEqual(facts.usefulGod,input.usefulGod);
     assert.deepEqual(facts.strengthHeuristic,input.strengthHeuristic);
-    if(isJong)assert.equal(facts.advancedFactors.gyeokguk.finalGyeokguk,'종왕격');
+    gyeokguk.add(facts.advancedFactors.gyeokguk.finalGyeokguk);
   }
+  // 격국은 원국 기둥으로만 판정한다. 넘겨받은 jong(설문을 거쳤을 수 있음)은 격국을 바꾸지 않는다.
+  assert.equal(gyeokguk.size,1);assert.ok(!gyeokguk.has('종왕격'));
 });

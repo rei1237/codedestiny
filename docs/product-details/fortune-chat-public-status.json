@@ -1,0 +1,9 @@
+{
+  "url": "https://code-destiny.com/api/fortune-chat/consultations/status",
+  "httpStatus": 200,
+  "checkedAt": "2026-10-10T21:59:01.611Z",
+  "data": {
+    "ok": true,
+    "enabled": false
+  }
+}

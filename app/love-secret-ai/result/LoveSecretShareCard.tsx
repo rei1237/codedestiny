@@ -44,7 +44,7 @@ const LoveSecretShareCard = forwardRef<HTMLDivElement, {
         </div>
         <div style={{ marginTop: "auto", paddingTop: 32, color: palette.muted }}>
           <p style={{ margin: 0, fontSize: 24 }}>{myName} · {generatedAt}</p>
-          <p style={{ margin: "14px 0 0", fontSize: 22 }}>Code Destiny · code-destiny.com/love-secret-ai</p>
+          <p style={{ margin: "14px 0 0", fontSize: 22 }}>꿀꿀운세 · code-destiny.com/love-secret-ai</p>
         </div>
       </div>
     </div>

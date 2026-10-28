@@ -1,0 +1,128 @@
+{
+  "id": "astro-direct-synastry",
+  "featureKey": "compat-astro-direct-synastry",
+  "title": "상대 직접 입력 시나스트리",
+  "notice": "기본 점성술 차트와 직접 입력한 상대의 출생정보를 비교하는 개별 궁합 분석입니다. 태양·달·금성·화성의 주요 각과 오브, 별자리 기준 하우스 겹침으로 점수·관계 유형·연애/협업/성장 해석·빛과 그림자를 읽습니다. 시각 미입력은 정오 기본값을 사용하므로 달·상승궁·하우스 해석에 제한이 있습니다. 도시는 실제 출생지역을 선택해 주세요. 점수와 신뢰도 표시는 내부 계산 자료의 요약이며 관계 성공 확률이 아닙니다. 결과 기반 질문문 복사가 포함되지만 외부 AI의 답변이나 별도 질문 상담 구매를 포함하지 않습니다. 예시는 가상 편집이며 가격·결제 조건은 현재 화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-chart-between-two-people",
+      "title": "가까워지는 순간과, 부딪히는 이유를 나눠봐요.",
+      "alt": "가까워지는 순간과, 부딪히는 이유를 나눠봐요.",
+      "src": "/feature-details/crafted/astro-direct-synastry/01-a-chart-between-two-people.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "가까워지는 순간과,\n부딪히는 이유를 나눠봐요.\n\n두 사람의 출생차트를 비교해\n끌림과 조율의 단서를 함께 읽어요.\n\n상대 직접 입력 · 시나스트리 궁합",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-direct-synastry/01-a-chart-between-two-people-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-a-different-way-of-responding",
+      "title": "같은 마음이라도, 표현의 속도는 다르니까요.",
+      "alt": "같은 마음이라도, 표현의 속도는 다르니까요.",
+      "src": "/feature-details/crafted/astro-direct-synastry/02-a-different-way-of-responding.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 마음이라도,\n표현의 속도는 다르니까요.\n끌리는 지점\n\n어떤 반응에서 호감이 커지는가\n\n부딪히는 지점\n\n어느 순간에 서로 다른 기대가 나오는가\n\n조율할 지점\n\n감정을 정리하고 다시 말하는 방식\n\n관계의 결론보다 대화할 단서를 찾아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-direct-synastry/02-a-different-way-of-responding-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-two-birth-records",
+      "title": "상대의 정보를, 아는 만큼 정확히 입력해요.",
+      "alt": "상대의 정보를, 아는 만큼 정확히 입력해요.",
+      "src": "/feature-details/crafted/astro-direct-synastry/03-two-birth-records.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "상대의 정보를,\n아는 만큼 정확히 입력해요.\n내 정보\n\n기본 점성술 결과의 출생차트\n\n상대 정보\n\n생년월일·시각·성별·도시\n이름은 선택 입력이에요.\n\n시간을 모른다면\n\n정오 기본값의 해석 한계를\n함께 고려해 읽어요.\n\n시각·지역에 따라\n달·상승궁·하우스가 달라져요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-direct-synastry/03-two-birth-records-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-the-report-at-a-glance",
+      "title": "점수에서 시작해도, 설명까지 함께 읽어요.",
+      "alt": "점수에서 시작해도, 설명까지 함께 읽어요.",
+      "src": "/feature-details/crafted/astro-direct-synastry/04-the-report-at-a-glance.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "점수에서 시작해도,\n설명까지 함께 읽어요.\n빠른 요약 · 점수와 유형\n\n관계의 결, 강점 각도, 보완 포인트\n\n세 가지 관계 해석\n\n연애 · 비즈니스 · 영적 궁합\n\n근거와 조율\n\n주요 각도 · 오브 가중치\n하우스 겹침 · 빛과 그림자\n\n영적 궁합은 함께 성장할 방향을 읽어요.\n결과 기반 질문문도 복사할 수 있어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-direct-synastry/04-the-report-at-a-glance-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-angles-and-shared-areas",
+      "title": "행성의 관계와, 생활의 어느 곳에 닿는지.",
+      "alt": "행성의 관계와, 생활의 어느 곳에 닿는지.",
+      "src": "/feature-details/crafted/astro-direct-synastry/05-angles-and-shared-areas.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "행성의 관계와,\n생활의 어느 곳에 닿는지.\n주요 각 · 오브\n\n두 행성의 각도 관계와\n기준 각도에서 떨어진 정도예요.\n\n하우스 겹침\n\n한 사람의 행성이 상대의\n어느 생활 영역에 놓이는지 살펴요.\n\n하우스 겹침은 별자리 기준으로 읽어요.\n출생정보가 불확실하면 함께 제한돼요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-direct-synastry/05-angles-and-shared-areas-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-a-score-is-not-an-outcome",
+      "title": "높고 낮은 점수보다, 근거의 차이를 봐주세요.",
+      "alt": "높고 낮은 점수보다, 근거의 차이를 봐주세요.",
+      "src": "/feature-details/crafted/astro-direct-synastry/06-a-score-is-not-an-outcome.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "높고 낮은 점수보다,\n근거의 차이를 봐주세요.\n100점 척도\n\n행성 관계와 하우스 보정을\n요약한 내부 계산 점수예요.\n\n신뢰도 표시\n\n각도 자료를 기준으로 한 표시이며\n실제 관계의 성공 확률은 아니에요.\n\n점수만으로 관계를 시작하거나\n끝내야 한다는 뜻은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-direct-synastry/06-a-score-is-not-an-outcome-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-fictional-repair-rhythm",
+      "title": "바로 말하고 싶은 사람과, 잠깐 정리하고 싶은 사람.",
+      "alt": "바로 말하고 싶은 사람과, 잠깐 정리하고 싶은 사람.",
+      "src": "/feature-details/crafted/astro-direct-synastry/07-fictional-repair-rhythm.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "바로 말하고 싶은 사람과,\n잠깐 정리하고 싶은 사람.\n\n가상 편집 예시 · 실제 상담 결과 아님\n\n“대답이 늦다고 마음이 적은 것도,\n바로 말한다고 배려가 없는 것도\n아닐 수 있어요.\n쉬어갈 시간이 필요하다면\n언제 다시 이야기할지 함께 정해보세요.\n서로 다른 속도에도\n기다릴 수 있는 약속이 생겨요.”",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-direct-synastry/07-fictional-repair-rhythm-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-compare-and-talk",
+      "title": "궁합을 읽은 다음, 서로의 말을 확인해요.",
+      "alt": "궁합을 읽은 다음, 서로의 말을 확인해요.",
+      "src": "/feature-details/crafted/astro-direct-synastry/08-compare-and-talk.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "궁합을 읽은 다음,\n서로의 말을 확인해요.\n\n입력한 시각과 도시를 확인하고,\n실제 관계의 장면과 비교해보세요.\n\n질문문 복사와 AI의 실제 답변은 달라요.\n다른 AI 상담·차트 해금은 별도예요.\n현재 화면의 결제 조건을 따릅니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/astro-direct-synastry/08-compare-and-talk-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

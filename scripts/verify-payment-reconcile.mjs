@@ -205,7 +205,8 @@ const upsertBody = payments.slice(
   payments.indexOf("async function upsertSinglePaymentUnlockRecord") + 3000,
 );
 assert.ok(
-  /const requiresProfile = Boolean\(resolveProfileUnlockContentKey\(/.test(upsertBody),
+  // 출생 기반 키(2026-10-10)는 항상 프로필 스코프다 — birthScoped || 를 앞에 둘 수 있다.
+  /const requiresProfile = (?:birthScoped \|\| )?Boolean\(resolveProfileUnlockContentKey\(/.test(upsertBody),
   "upsertSinglePaymentUnlockRecord 는 resolveProfileUnlockContentKey 로 프로필 스코프 여부를 판정해야 한다",
 );
 // 계정 스코프는 건너뛰는 게 아니라 USER 스코프로 기록한다 — 기록이 없으면 잠금 상품의 전달 증거가

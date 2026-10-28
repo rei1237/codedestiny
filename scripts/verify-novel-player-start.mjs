@@ -41,7 +41,7 @@ async function waitFor(check, label) {
 }
 
 /* clampTimers=false 는 타이밍 경합 전용이다 — 나머지 검사는 클램프가 있어야 빨리 끝난다. */
-function createPlayerDom({ hash = "", failManifest = false, bookmark = null, appRuntime = false, clampTimers = true, mobile = false, staleCache = false } = {}) {
+function createPlayerDom({ hash = "", failManifest = false, bookmark = null, endingChoice = null, appRuntime = false, clampTimers = true, mobile = false, staleCache = false } = {}) {
   const errors = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on("jsdomError", (error) => errors.push(`jsdom: ${error.message}`));
@@ -73,11 +73,37 @@ function createPlayerDom({ hash = "", failManifest = false, bookmark = null, app
       window.requestAnimationFrame = (callback) => window.setTimeout(() => callback(Date.now()), 0);
       window.cancelAnimationFrame = (id) => window.clearTimeout(id);
       if (bookmark) window.localStorage.setItem("cd_novel_bookmark", JSON.stringify({ ...bookmark, at: Date.now() }));
+      if (endingChoice) window.localStorage.setItem("cd.novelEnding.v1", endingChoice);
       // 앱 번들(scripts/build-mobile-app.mjs)이 주입하는 브릿지가 세우는 플래그. 정본은 js/core/app-context.js.
       if (appRuntime) window.__CODE_DESTINY_RUNTIME_TARGET = "mobile-app";
     },
   });
   return { dom, errors };
+}
+
+async function verifyLinearEnding() {
+  const { dom, errors } = createPlayerDom({ endingChoice: "destiny" });
+  try {
+    const win = dom.window;
+    await waitFor(() => win.__NOVEL_READY === true, "linear manifest");
+    assert.ok(!win.EPISODES.some(episode => episode.branch === "destiny"));
+    const ep50 = win.EPISODES.findIndex(episode => episode.id === "ep-50");
+    await win.ensureEpisodeLoaded(ep50);
+    assert.ok(win.EPISODES[ep50].beats.every(beat => !beat.choice));
+    win.S.ep = ep50;
+    await win.nextEpisode();
+    assert.equal(win.EPISODES[win.S.ep].id, "ep-51");
+    for (const id of ["ep-51s", "ep-52s", "ep-53s"]) {
+      assert.equal(win.EPISODES[win.resolveSavedEpisode({ episodeId: id, rev: 2 })].id, id.slice(0, -1));
+    }
+    const finalIndex = win.EPISODES.findIndex(episode => episode.id === "ep-53");
+    await win.ensureEpisodeLoaded(finalIndex);
+    win.endStory(win.EPISODES[finalIndex]);
+    assert.equal(win.document.querySelectorAll(".choiceBtn").length, 0);
+    assert.equal(win.curBeat.end, true);
+    assert.equal(win.localStorage.getItem("cd.novelEnding.v1"), "destiny", "old history is preserved, never used for branching");
+    assert.deepEqual(errors, [], "linear reading emitted runtime errors");
+  } finally { dom.window.close(); }
 }
 
 async function verifyDirectStart() {
@@ -117,6 +143,28 @@ async function verifyLoadFailureIsVisible() {
     const { document } = dom.window;
     await waitFor(() => document.getElementById("dlgBody")?.textContent.includes("대사를 불러오지 못했어요"), "visible load failure");
     assert.equal(document.getElementById("player")?.classList.contains("on"), true, "load failure left the player hidden");
+  } finally {
+    dom.window.close();
+  }
+}
+
+async function verifyMainRemainsAvailableOnLoadFailure() {
+  const { dom } = createPlayerDom({ failManifest: true });
+  try {
+    const { document } = dom.window;
+    await waitFor(() => dom.window.__NOVEL_READY === false, "failed manifest");
+    const enter = document.getElementById("enterBtn");
+    assert.equal(enter.disabled, false, "manifest failure disabled the main-screen entry");
+    assert.equal(enter.textContent, "메인 화면 보기", "manifest failure did not explain the available fallback");
+    enter.click();
+    await waitFor(() => !document.getElementById("main").classList.contains("hidden"), "main screen after load failure");
+    assert.equal(document.querySelector(".novelWorld")?.getAttribute("href"), "/world/", "world page link is missing");
+    document.querySelector("#menu .readPrimary").click();
+    await waitFor(() => document.getElementById("toast")?.textContent.includes("연결 상태"), "read retry notice");
+    assert.equal(document.getElementById("main").classList.contains("hidden"), false, "failed reading attempt hid the main screen");
+    assert.equal(document.getElementById("player").classList.contains("hidden"), true, "failed reading attempt opened an empty player");
+    document.querySelector("#menu .readSecondary").click();
+    assert.equal(document.getElementById("main").classList.contains("hidden"), false, "empty chapter list hid the main screen");
   } finally {
     dom.window.close();
   }
@@ -238,14 +286,14 @@ async function verifyFormContinuity() {
       document.getElementById("enterBtn").click();
       await waitFor(() => document.querySelector("#menu button"), "main menu");
       const resume = document.querySelector("#menu button");
-      assert.match(resume.textContent, /이어읽기/, "the bookmark did not produce a resume entry");
+      assert.match(resume.textContent, /이어 읽기/, "the bookmark did not produce a resume entry");
       resume.click();
       await waitFor(() => document.getElementById("dlgBody")?.textContent.trim().length > 0, "resumed dialogue");
       assert.equal(win.S.ep, episodeIndex(5), "resume did not land on the bookmarked episode");
       assert.equal(win.S.bi, 0, "this case must resume at cut 0 — the entry that never replays the marker");
       assert.equal(win.S.form, "pig", "resuming inside the pig arc left Yeon in her human form");
       win.setSlot("l", "yeon", "neutral");
-      assert.match(document.getElementById("char_l").className, /\bpigsheet\b/, "the staged Yeon sprite is not the pig sheet");
+      assert.match(document.getElementById("char_l").className, /\bpigV2\b/, "the staged Yeon sprite is not the v2 individual art");
       assert.deepEqual(errors, [], "resume-at-cut-0 emitted runtime errors");
     } finally {
       dom.window.close();
@@ -655,7 +703,7 @@ async function verifyMobileAssetsAndCache() {
   try {
     const win = dom.window;
     await waitFor(() => win.__NOVEL_READY, "mobile assets manifest");
-    assert.match(win.spriteFor("neo", "neutral", "pig").url, /\/mobile\/neo-/);
+    assert.equal(win.spriteFor("neo", "neutral", "pig").url, "/images/novel/yeongnyangi/neutral.webp");
     assert.match(win.spriteFor("yeon", "base", "pig").url, /\/mobile\/yeon-/);
     assert.equal(win.spriteFor("tiger", "angry", "pig").url, "/images/novel/hanbi/angry.webp");
     assert.equal(win.bgUrl("rainStop"), "/images/novel/mobile/rainStop.webp");
@@ -667,6 +715,48 @@ async function verifyMobileAssetsAndCache() {
     assert.deepEqual(errors, []);
   } finally { dom.window.close(); }
 }
+async function verifyNeoReturnAndCover() {
+  const { dom, errors } = createPlayerDom({ mobile: true });
+  const win = dom.window;
+  try {
+    await waitFor(() => win.__NOVEL_READY, "novel manifest");
+    win.document.getElementById("enterBtn").click();
+    await waitFor(() => win.document.querySelector("#menu button"), "cover controls");
+    assert.deepEqual(Array.from(win.document.querySelectorAll("#serviceMenu a"), a => a.getAttribute("href")), ["/fortune-tea-house", "/master-love-codex", "/neo-operation-room"]);
+    assert.equal(win.document.getElementById("mainPig"), null, "extra character shortcut returned");
+    const ep = win.EPISODES.findIndex(e => e.id === "ep-27");
+    await win.ensureEpisodeLoaded(ep);
+    const beats = win.EPISODES[ep].beats;
+    const mark = beats.findIndex(b => b.neoForm === "human");
+    assert.ok(mark > 0, "Neo needs a staged return event");
+    await win.selectNovelScene(ep, mark - 1);
+    await waitFor(() => win.S.screen === "player", "chapter picker opened player");
+    assert.equal(win.S.neoForm, "lion");
+    await win.hydrateTo(ep, mark);
+    assert.equal(win.S.neoForm, "human");
+    assert.ok(win.document.querySelector('[data-who="neo"].neoh'), "return event did not replace the lion portrait");
+    for (const expr of [undefined, "neutral", "soft", "sad", "talk", "serious", "hsmile"]) {
+      const sp = win.spriteFor("neo", expr, "human", "human");
+      assert.equal(sp.cls, "neoh", `human Neo reverted on ${expr}`);
+      assert.match(sp.url, /neo-transparent-s4-f0[1-8]\.webp$/);
+    }
+    const savedBeat = beats.findIndex(b => b.id === "ep-27:37");
+    const save = { episodeId: "ep-27", beatId: "ep-27:37", ep, bi: 36, rev: win.EPISODES[ep].rev || 1, bookmarkVersion: 2 };
+    assert.equal(win.resolveSavedBeat(ep, save), savedBeat, "inserted event shifted a stable bookmark");
+    for (const id of ["ep-28", "ep-41", "ep-42", "ep-48", "ep-52"]) {
+      await win.hydrateTo(win.EPISODES.findIndex(e => e.id === id), 0);
+      assert.equal(win.S.neoForm, "human", `direct chapter entry reverted Neo in ${id}`);
+    }
+    await win.hydrateTo(ep, mark - 1);
+    assert.equal(win.S.neoForm, "lion", "rewind did not restore the cat form");
+    assert.match(win.spriteFor("neo", "neutral", "human", win.S.neoForm).url, /yeongnyangi\/neutral\.webp$/);
+    win.S.bi = mark;win.runBeat();
+    assert.equal(win.S.neoForm, "human", "sequential playback did not apply the marker");
+    assert.deepEqual(errors, []);
+  } finally { dom.window.close(); }
+}
+await verifyNeoReturnAndCover();
+await verifyLinearEnding();
 await verifyMobileAssetsAndCache();
 await verifyExpandedBookmarks();
 await verifySilentTrack();
@@ -675,6 +765,7 @@ await verifyMobileRendering();
 await verifyDirectStart();
 await verifyMainEntry();
 await verifyLoadFailureIsVisible();
+await verifyMainRemainsAvailableOnLoadFailure();
 await verifyVisualCueBindings();
 await verifyBackgroundStability();
 await verifyFormContinuity();

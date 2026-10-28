@@ -7,12 +7,12 @@ jest.unstable_mockModule('../../worker/lib/kakao-crm-models.js',()=>({
   CrmRelationship:{updateOne:jest.fn(async()=>({matchedCount:1})),findById:jest.fn(()=>({lean:async()=>null}))},
   CrmCampaign:{findById:jest.fn(),updateOne:jest.fn(async()=>({modifiedCount:1,matchedCount:1})),create:jest.fn()},
 }));
-let handleKakaoCrmRoutes, handleAdminKakaoCrmRoutes, CrmPreference, CrmRelationship, CrmCampaign, CRM_CONSENT_VERSION, CRM_CONSENT_TEXT;
+let handleKakaoCrmRoutes, handleAdminKakaoCrmRoutes, CrmPreference, CrmRelationship, CrmCampaign, CRM_CONSENT_VERSION, CRM_CONSENT_TEXT, CRM_LEGACY_CONSENT_VERSION, CRM_LEGACY_CONSENT_TEXT, CRM_LEGACY_CONSENT_UNTIL;
 beforeAll(async()=>{
   ({handleKakaoCrmRoutes}=await import('../../worker/routes/kakao-crm.js'));
   ({handleAdminKakaoCrmRoutes}=await import('../../worker/routes/admin-kakao-crm.js'));
   ({CrmPreference,CrmRelationship,CrmCampaign}=await import('../../worker/lib/kakao-crm-models.js'));
-  ({CRM_CONSENT_VERSION,CRM_CONSENT_TEXT}=await import('../../lib/marketing/kakao-crm.mjs'));
+  ({CRM_CONSENT_VERSION,CRM_CONSENT_TEXT,CRM_LEGACY_CONSENT_VERSION,CRM_LEGACY_CONSENT_TEXT,CRM_LEGACY_CONSENT_UNTIL}=await import('../../lib/marketing/kakao-crm.mjs'));
 });
 const request=(path,body,headers={})=>new Request(`https://code-destiny.com/api/kakao-crm/${path}`,{method:'POST',headers:{'Content-Type':'application/json',Origin:'https://code-destiny.com',...headers},body:JSON.stringify(body)});
 beforeEach(()=>jest.clearAllMocks());
@@ -33,6 +33,26 @@ test('foreign origin and stale consent wording are rejected',async()=>{
   expect((await handleKakaoCrmRoutes(request('preferences',{granted:true,version:CRM_CONSENT_VERSION,source:'preferences'},{Origin:'https://evil.test'}),{})).status).toBe(403);
   expect((await handleKakaoCrmRoutes(request('preferences',{granted:true,version:'old',source:'preferences'}),{})).status).toBe(400);
   expect(CrmPreference.updateOne).not.toHaveBeenCalled();
+});
+
+test.each([true,false])('legacy consent preserves the displayed wording during grace (granted=%s)',async(granted)=>{
+  jest.useFakeTimers().setSystemTime(CRM_LEGACY_CONSENT_UNTIL-1);
+  try {
+    const r=await handleKakaoCrmRoutes(request('preferences',{granted,version:CRM_LEGACY_CONSENT_VERSION,source:'preferences'}),{});
+    expect(r.status).toBe(200);
+    const update=CrmPreference.updateOne.mock.calls[0][1];
+    expect(update.$set.consent).toEqual({granted,version:CRM_LEGACY_CONSENT_VERSION,text:CRM_LEGACY_CONSENT_TEXT,source:'preferences',at:new Date(CRM_LEGACY_CONSENT_UNTIL-1)});
+    expect(update.$push.history).toEqual(update.$set.consent);
+  } finally { jest.useRealTimers(); }
+});
+
+test('legacy grace expires at the boundary, while the current version remains accepted',async()=>{
+  jest.useFakeTimers().setSystemTime(CRM_LEGACY_CONSENT_UNTIL);
+  try {
+    expect((await handleKakaoCrmRoutes(request('preferences',{granted:true,version:CRM_LEGACY_CONSENT_VERSION,source:'preferences'}),{})).status).toBe(400);
+    expect(CrmPreference.updateOne).not.toHaveBeenCalled();
+    expect((await handleKakaoCrmRoutes(request('preferences',{granted:true,version:CRM_CONSENT_VERSION,source:'preferences'}),{})).status).toBe(200);
+  } finally { jest.useRealTimers(); }
 });
 test('webhook requires configured key and matching channel, does not guess open_id identity',async()=>{
   const body={event:'blocked',id:'123',id_type:'app_user_id',channel_public_id:'_GgxaGX',updated_at:new Date().toISOString()};

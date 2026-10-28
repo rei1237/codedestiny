@@ -8,12 +8,15 @@ import { json, readJson, createHttpError, handleRouteError, notFound } from '../
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { products } from '../yeongnyangi/payments/catalog.ts';
 import { readAndContinueFortune } from '../yeongnyangi/delivery.js';
-import { activateFortune, drawTarotSpread, jongCheckFortune, prepareFortune, presentFortune, providerReady, submitQuestionSkyFollowup } from '../yeongnyangi/service.ts';
+import { activateFortune, drawTarotSpread, experienceCheckFortune, jongCheckFortune, prepareFortune, presentFortune, providerReady, submitQuestionSkyFollowup } from '../yeongnyangi/service.ts';
 import { ownerId, YeongnyangiRequest, userCanRetry } from '../yeongnyangi/repository.js';
 import { hasRequestAccess } from '../yeongnyangi/access-methods.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
+  HAT_BIRTH_REQUIRED:'배정에 필요한 계산 근거가 아직 없어요. 프로필의 출생지·시간대와 생년월일을 확인해 주세요.',
+  HAT_CALCULATION_UNAVAILABLE:'모자가 계산을 마치지 못했어요. 잠시 후 다시 시도해 주세요. 이용권이나 멸치는 차감되지 않아요.',
+  HAT_CALCULATION_PENDING:'모자가 이미 배정을 준비하고 있어요. 잠시 기다린 뒤 다시 확인해 주세요.',
   QUESTION_EVIDENCE_UNAVAILABLE:'핵심 질문에 필요한 시기 근거를 확인할 수 없어요. 출생정보 또는 지원 범위를 확인해 주세요. 결제는 진행되지 않았어요.',
   QUESTION_SCOPE_REQUIRED:'질문의 대상·주제·기간과 필요한 상황을 확인해 주세요.',
   QUESTION_SCOPE_UNSUPPORTED:'이 체계에서 제공할 수 없는 범위예요. 먼저 다룰 질문이나 계산 체계를 선택해 주세요.',
@@ -112,6 +115,12 @@ export async function handleYeongnyangiRoutes(request, env) {
         allowedMethods:['POST'],requireJson:true,rateLimit:{limit:30,windowSeconds:60},rateLimitKey:`${auth.userId}:yeongnyangi:write`});
       if(!security.ok) return security.response;
     }
+    if(path==='free/hat'&&method==='POST'){
+      const security=await enforceSensitiveEndpointSecurity({env,request,userId:auth.userId,endpoint:'yeongnyangi:hat',allowedMethods:['POST'],requireJson:true,maxPayloadBytes:1024,rateLimit:{limit:6,windowSeconds:600},rateLimitKey:`${auth.userId}:yeongnyangi:hat`});
+      if(!security.ok)return security.response;
+      const {prepareHat}=await import('../yeongnyangi/hat/service.ts');
+      return json({ok:true,result:await prepareHat(env,auth.userId,await readJson(request))},{headers:{'Cache-Control':'no-store'}});
+    }
     if(path==='attendance' && method==='GET') return json({ok:true,...await attendanceStatus(env,auth.userId)});
     if(path==='attendance' && method==='POST') return json({ok:true,...await attend(env,auth.userId)});
     if(path==='free/unlock' && method==='POST') return json({ok:true,...await unlockToday(env,auth.userId)});
@@ -140,6 +149,13 @@ export async function handleYeongnyangiRoutes(request, env) {
         throw createHttpError(400,'상담 요청 정보를 확인해 주세요.',{code:'INVALID_REQUEST'});
       }
       return json({ok:true,...await jongCheckFortune(env,auth.userId,body)},{headers:{'Cache-Control':'private, no-store'}});
+    }
+    if(path==='saju/experience-check' && method==='POST') {
+      const body=await readJson(request);
+      if(!body || typeof body!=='object' || Array.isArray(body)) {
+        throw createHttpError(400,'상담 요청 정보를 확인해 주세요.',{code:'INVALID_REQUEST'});
+      }
+      return json({ok:true,...await experienceCheckFortune(env,auth.userId,body)},{headers:{'Cache-Control':'private, no-store'}});
     }
     if(path==='requests' && method==='GET') {
       const dbStart=performance.now();

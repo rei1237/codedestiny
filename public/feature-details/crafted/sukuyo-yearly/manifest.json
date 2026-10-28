@@ -1,0 +1,158 @@
+{
+  "id": "sukuyo-yearly",
+  "featureKey": "sukyo_yearly_fortune_unlock",
+  "title": "숙요점 1년운",
+  "notice": "선택한 프로필과 대상 연도의 1월부터 12월까지를 읽는 숙요점 1년운입니다. 본명숙과 매월 15일 정오(한국 시간)의 월숙을 계산하고, 두 숙의 관계에 내부 해석 규칙과 작성된 문구를 조합합니다. 월 전체의 매일을 추적하거나 사건 발생일을 예측하는 서비스가 아닙니다. 총운·상하반기·사랑과 관계·일과 사업과 학업·금전·건강과 마음·인연·숙요 핵심 포인트·한 줄 처방·12개월 해설을 제공합니다. 저장된 결과 버전에 따라 계산 근거나 세부 표시가 다를 수 있습니다. 점수와 시기 분류는 서비스 내부 참고 지표이며 확률이나 검증된 예측 정확도가 아닙니다. 건강 안내는 생활 리듬과 자기 돌봄을 위한 참고이며 진단이나 치료가 아닙니다. 이해를 돕기 위한 예시는 가상 편집이며 고객 결과나 구매 후기가 아닙니다. 구매 전 선택한 프로필·연도와 현재 결제 조건을 확인해 주세요. 기본·정밀 궁합, 인연 도감과 AI 질문 상담은 별도 상품입니다.",
+  "panels": [
+    {
+      "id": "01-a-year-with-room-to-breathe",
+      "title": "한 해를 앞두고, 무엇부터 정리할까요?",
+      "alt": "달빛 아래 한 해의 계획을 돌아보는 숙요점 1년운 소개",
+      "src": "/feature-details/crafted/sukuyo-yearly/01-a-year-with-room-to-breathe.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 해를 앞두고,\n무엇부터 정리할까요?\n\n사람과 약속, 일과 돈, 나의 회복.\n열두 달을 펼쳐 놓고\n생활의 우선순위를 살펴보세요.\n\n선택한 연도의 1월부터 12월까지,\n본명숙으로 읽는 숙요점 1년운.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-yearly/01-a-year-with-room-to-breathe-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-the-year-you-choose",
+      "title": "지금부터 열두 달이 아닌, 내가 고른 한 해.",
+      "alt": "선택한 연도의 1월부터 12월까지 제공되는 범위",
+      "src": "/feature-details/crafted/sukuyo-yearly/02-the-year-you-choose.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "지금부터 열두 달이 아닌,\n내가 고른 한 해.\n\n선택한 연도\n\n1월\n2월\n3월\n4월\n5월\n6월\n7월\n8월\n9월\n10월\n11월\n12월\n\n프로필과 연도를 먼저 확인해요.\n한 해의 큰 주제를 읽은 뒤,\n지금 필요한 달로 돌아오면 돼요.\n\n구매 전 화면에 표시된\n프로필·연도의 해금 범위를 확인해 주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-yearly/02-the-year-you-choose-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-how-the-month-is-read",
+      "title": "나의 본명숙과, 그달의 월숙을 연결해요.",
+      "alt": "매월 15일 정오 기준 월숙과 본명숙의 관계를 읽는 방식",
+      "src": "/feature-details/crafted/sukuyo-yearly/03-how-the-month-is-read.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 본명숙과,\n그달의 월숙을 연결해요.\n본명숙\n\n출생 정보를 바탕으로\n나의 숙을 계산해요.\n\n매월의 기준점\n\n각 달 15일 정오, 한국 시간의\n월숙과 본명숙의 관계를 살펴요.\n\n생활 언어로 읽기\n\n계산한 관계에 내부 해석 규칙과\n작성된 문구를 조합해요.\n\n매일의 변화를 모두 추적하거나\n사건이 생길 날짜를 예측하지는 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-yearly/03-how-the-month-is-read-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-the-whole-year-and-two-halves",
+      "title": "먼저 큰 흐름을, 다음에는 두 반기를.",
+      "alt": "연간 주제 총운 상반기 하반기의 실제 결과 구성",
+      "src": "/feature-details/crafted/sukuyo-yearly/04-the-whole-year-and-two-halves.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "먼저 큰 흐름을,\n다음에는 두 반기를.\n올해의 주제와 총운\n\n한 해의 키워드와 전체 해설,\n선택을 돌아볼 중심 문장\n\n상반기 · 하반기\n\n각 반기의 흐름과 행동 조언,\n한 해 안에서 속도를 조절할 단서\n\n점수는 해석을 돕는 내부 참고 지표예요.\n좋은 일이 일어날 확률은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-yearly/04-the-whole-year-and-two-halves-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-four-domains-of-daily-life",
+      "title": "한 해의 이야기를, 내 생활의 네 갈래로.",
+      "alt": "사랑관계 일사업학업 금전 건강마음의 네 분야",
+      "src": "/feature-details/crafted/sukuyo-yearly/05-four-domains-of-daily-life.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 해의 이야기를,\n내 생활의 네 갈래로.\n사랑과 관계\n\n표현과 기대,\n관계의 간격 살피기\n\n일 · 사업 · 학업\n\n역할과 책임,\n실행 순서 정하기\n\n금전\n\n지출과 약속,\n자원 관리 돌아보기\n\n건강과 마음\n\n수면과 휴식,\n회복의 여지 만들기\n\n각 분야의 해설과 조언을 제공해요.\n수익·합격·관계의 결과를 보장하거나\n질병을 진단하는 내용은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-yearly/05-four-domains-of-daily-life-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-inside-a-monthly-reading",
+      "title": "한 달마다, 이런 질문을 들고 읽어요.",
+      "alt": "월별 기준일 월숙 관계 일과돈 건강마음 주의 항목",
+      "src": "/feature-details/crafted/sukuyo-yearly/06-inside-a-monthly-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 달마다,\n이런 질문을 들고 읽어요.\n월별 12개월 흐름\n\n기준일 · 월숙 · 관계 · 주제\n\n관계 — 누구와 기대를 맞출까?\n일과 돈 — 무엇을 정리할까?\n건강과 마음 — 어떻게 회복할까?\n주의 — 무엇을 서두르지 않을까?\n\n각 달의 해설을 읽고\n일정표에 작은 행동 하나를 남겨요.\n\n질문은 이해를 돕기 위한 편집 안내예요.\n실제 문장은 프로필과 연도에 따라 달라져요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-yearly/06-inside-a-monthly-reading-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-a-plan-you-can-actually-use",
+      "title": "기다리는 운세에서, 준비하는 일정으로.",
+      "alt": "가상 해석을 주간 일정에 적용하는 예시",
+      "src": "/feature-details/crafted/sukuyo-yearly/07-a-plan-you-can-actually-use.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기다리는 운세에서,\n준비하는 일정으로.\n\n이해를 돕기 위한 예시 · 가상 편집\n\n“약속의 조건을 정리하라는\n문장이 마음에 남았다면,\n이번 주에는 함께 일하는 사람과\n기한과 역할부터 맞춰보세요.”\n나의 일정에 옮기기\n\n회의 전에 담당 범위 적기\n큰 지출 전에 조건 다시 읽기\n무리한 일정 사이에 휴식 남기기\n\n월별 해석을 행동의 참고로 사용해요.\n선택의 결과는 현실의 조건과 함께 살펴요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-yearly/07-a-plan-you-can-actually-use-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-relationships-and-yearly-advice",
+      "title": "사람을 대하는 태도, 나를 지키는 기준.",
+      "alt": "귀인과 주의 인연 숙요 핵심 포인트 한 줄 처방",
+      "src": "/feature-details/crafted/sukuyo-yearly/08-relationships-and-yearly-advice.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "사람을 대하는 태도,\n나를 지키는 기준.\n귀인 · 주의 인연\n\n도움이 되는 관계의 태도와\n경계를 살펴볼 관계의 단서\n\n숙요 핵심 포인트\n\n한 해의 문 · 달의 호흡\n주의할 행동 · 회복의 열쇠\n\n한 줄 처방\n\n마음에 남길 한 문장,\n잡을 것과 피할 것의 정리\n\n특정 사람을 좋은 사람·나쁜 사람으로\n판정하는 기준으로 삼지는 마세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-yearly/08-relationships-and-yearly-advice-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-before-opening-the-year",
+      "title": "내 정보를 확인하고, 필요한 범위를 선택해요.",
+      "alt": "프로필 연도 확인과 별도 구매 구분",
+      "src": "/feature-details/crafted/sukuyo-yearly/09-before-opening-the-year.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 정보를 확인하고,\n필요한 범위를 선택해요.\n준비할 정보\n\n선택한 프로필의 출생 정보와\n살펴보고 싶은 연도를 확인해요.\n\n이번 상품의 범위\n\n해당 한 해의 전체·분야별 해설과\n1~12월의 숙요 흐름을 읽어요.\n\n별도 선택\n\n상대와의 기본·정밀 궁합,\n인연 도감과 AI 질문 상담\n\n저장된 결과 버전에 따라\n계산 근거와 세부 표시가 다를 수 있어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-yearly/09-before-opening-the-year-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-a-year-in-your-own-rhythm",
+      "title": "열두 달을 읽고, 나의 속도로 시작해요.",
+      "alt": "한 해의 계획을 생활의 작은 행동으로 이어가기",
+      "src": "/feature-details/crafted/sukuyo-yearly/10-a-year-in-your-own-rhythm.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "열두 달을 읽고,\n나의 속도로 시작해요.\n\n모든 달을 한꺼번에 바꾸려 하지 말고,\n지금의 나에게 필요한 문장부터.\n작은 계획 하나로 이어가세요.\n\n원하는 연도를 확인한 뒤\n기존 1년운 해금 버튼에서 이어가세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/sukuyo-yearly/10-a-year-in-your-own-rhythm-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

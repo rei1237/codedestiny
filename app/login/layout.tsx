@@ -3,15 +3,15 @@ import type { Metadata } from "next";
 const LOGIN_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
     title: "로그인",
-    description: "Code Destiny 회원 로그인을 위한 비공개 페이지입니다.",
+    description: "꿀꿀운세 회원 로그인을 위한 비공개 페이지입니다.",
   },
   en: {
     title: "Log In",
-    description: "Private page for Code Destiny member login.",
+    description: "Private page for 꿀꿀운세 member login.",
   },
   ja: {
     title: "ログイン",
-    description: "Code Destiny会員ログイン用の非公開ページです。",
+    description: "꿀꿀운세会員ログイン用の非公開ページです。",
   },
 } as const;
 

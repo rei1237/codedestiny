@@ -5,7 +5,7 @@ function fixture(storageKey,saved){
  const effects=[],frames=[],opened=[],scrolled=[],storage=new Map(saved||[]);let observer;
  const anchor={getAttribute:()=> 'sajuSection'};
  const ctx=vm.createContext({useRef:value=>({current:value}),useMemo:fn=>fn(),useState:value=>[value,()=>{}],useCallback:fn=>fn,useEffect:fn=>effects.push(fn),
- useFusionSharedCopy:()=>({systemLabels:{saju:'사주'}}),SECTION_KEYS:['sajuSection'],SECTION_SYSTEM_KEYS:['saju'],countResultChars:()=>100,countSectionChars:()=>100,countTimingChars:()=>100,countVerdictChars:()=>100,
+ useFusionSharedCopy:()=>({systemLabels:{saju:'사주'}}),useFusionPremiumCopy:()=>({domainLabels:[],domainHeading:'영역별 상담'}),DOMAIN_SECTION_KEYS:[],isDomainFusion:()=>false,SECTION_KEYS:['sajuSection'],SECTION_SYSTEM_KEYS:['saju'],countResultChars:()=>100,countSectionChars:()=>100,countTimingChars:()=>100,countVerdictChars:()=>100,
  IntersectionObserver:class{constructor(fn){observer=fn}observe(){}disconnect(){}},localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)},
  window:{matchMedia:()=>({matches:true})},document:{getElementById:id=>({scrollIntoView:()=>scrolled.push(id)})},requestAnimationFrame:fn=>frames.push(fn),
  result:{openingMessage:'서문',sajuSection:{content:'본문'}},scope:{current:{querySelectorAll:()=>[anchor]}},onOpenSection:key=>opened.push(key),storageKey,

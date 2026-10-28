@@ -12,14 +12,18 @@ export const chartCopy=(locale?:ReadingLocale):Copy=>locale==='ko'||!locale?ko:l
 
 const terms:Record<string,[string,string]>={
  '나의 사주와 오행':['My saju and five elements','私の四柱推命と五行'],'열두 궁에 담긴 삶':['Life across the twelve palaces','十二宮に表れる人生'],'별 사이의 관계':['Relationships between the stars','星の間の関係'],'라시 차트와 별의 주기':['Rashi chart and planetary periods','ラーシチャートと惑星の周期'],'나의 출생 차트':['My birth chart','私の出生チャート'],'질문 위에 펼친 카드':['Cards drawn for your question','質問に向けて引いたカード'],
- '년주':['Year pillar','年柱'],'월주':['Month pillar','月柱'],'일주':['Day pillar','日柱'],'시주':['Hour pillar','時柱'],'상대 년주':['Partner’s year pillar','相手の年柱'],'상대 월주':['Partner’s month pillar','相手の月柱'],'상대 일주':['Partner’s day pillar','相手の日柱'],'상대 시주':['Partner’s hour pillar','相手の時柱'],'오행 분포 · 월령 가중치 포함':['Five elements · adjusted for birth month','五行の分布・月令による重みを含む'],
+ '년주':['Year pillar','年柱'],'월주':['Month pillar','月柱'],'일주':['Day pillar','日柱'],'시주':['Hour pillar','時柱'],'상대 년주':['Partner’s year pillar','相手の年柱'],'상대 월주':['Partner’s month pillar','相手の月柱'],'상대 일주':['Partner’s day pillar','相手の日柱'],'상대 시주':['Partner’s hour pillar','相手の時柱'],'오행 분포 · 월령 가중치 포함':['Five elements · adjusted for birth month','五行の分布・月令による重みを含む'],'오행 분포 · 보이는 글자 기준':['Five elements · visible characters','五行の分布・見える文字のみ'],
  '천간·지지':['Heavenly stem and earthly branch','天干・地支'],'천간 십성':['Ten Gods of the stem','天干の通変星'],'주성':['Main stars','主星'],'보조성':['Supporting stars','補助星'],'긴장 요소':['Challenging stars','緊張要素'],'나의 본명숙':['My birth mansion','私の本命宿'],'상대의 본명숙':['Partner’s birth mansion','相手の本命宿'],'27숙 위치':['Position among 27 mansions','二十七宿での位置'],'두 사람의 흐름':['Relationship pattern','二人の関係の流れ'],'관계':['Relationship','関係'],'나의 역할':['My role','私の役割'],'상대의 역할':['Partner’s role','相手の役割'],'정방향 / 역방향 거리':['Forward / reverse distance','順方向・逆方向の距離'],'거리의 결':['Nature of the distance','距離の性質'],
- '달의 자리':['Moon placement','月の位置'],'나크샤트라':['Nakshatra','ナクシャトラ'],'파다':['Pada','パダ'],'별자리':['Zodiac sign','星座'],'하우스':['House','ハウス'],'황경':['Ecliptic longitude','黄経'],'상승점':['Ascendant','アセンダント'],'각':['Aspect','アスペクト'],'오브':['Orb','オーブ'],'카드':['Card','カード'],'방향':['Orientation','向き'],'정방향':['Upright','正位置'],'역방향':['Reversed','逆位置'],'주기':['Period','周期'],'시작':['Start','開始'],'끝':['End','終了'],'계산된 시기':['Calculated period','計算された時期'],
+ '달의 자리':['Moon placement','月の位置'],'나크샤트라':['Nakshatra','ナクシャトラ'],'파다':['Pada','パダ'],'별자리':['Zodiac sign','星座'],'하우스':['House','ハウス'],'황경':['Ecliptic longitude','黄経'],'상승점':['Ascendant','アセンダント'],'각':['Aspect','アスペクト'],'오브':['Orb','オーブ'],'카드':['Card','カード'],'방향':['Orientation','向き'],'정방향':['Upright','正位置'],'역방향':['Reversed','逆位置'],'주기':['Period','周期'],'시작':['Start','開始'],'끝':['End','終了'],'연도':['Year','年'],'대운 시작 전':['Before the first major luck period','最初の大運が始まる前'],'계산된 시기':['Calculated period','計算された時期'],
  '목':['Wood','木'],'화':['Fire','火'],'토':['Earth','土'],'금':['Metal','金'],'수':['Water','水'],'태양':['Sun','太陽'],'달':['Moon','月'],'수성':['Mercury','水星'],'금성':['Venus','金星'],'화성':['Mars','火星'],'목성':['Jupiter','木星'],'토성':['Saturn','土星'],'천왕성':['Uranus','天王星'],'해왕성':['Neptune','海王星'],'명왕성':['Pluto','冥王星'],
  '양자리':['Aries','牡羊座'],'황소자리':['Taurus','牡牛座'],'쌍둥이자리':['Gemini','双子座'],'게자리':['Cancer','蟹座'],'사자자리':['Leo','獅子座'],'처녀자리':['Virgo','乙女座'],'천칭자리':['Libra','天秤座'],'전갈자리':['Scorpio','蠍座'],'사수자리':['Sagittarius','射手座'],'염소자리':['Capricorn','山羊座'],'물병자리':['Aquarius','水瓶座'],'물고기자리':['Pisces','魚座'],'자료 없음':['No data','データなし'],'없음':['None','なし']
 };
+// A dated 대운 row is titled by the Korean body label (major-luck.ts); other locales show its pillar and 교운 month.
+const DATED_CYCLE=/^계산된 시기 · ([갑을병정무기경신임계])([자축인묘진사오미신유술해]) 대운 · (\d{4})년 (\d{1,2})월 무렵부터 \(만 \d+세, 대운수 \d+\)$/u;
 export function chartTerm(value:string,locale?:ReadingLocale):string{
  if(!locale||locale==='ko')return value;
+ const dated=DATED_CYCLE.exec(value);
+ if(dated)value=`계산된 시기 · ${'甲乙丙丁戊己庚辛壬癸'['갑을병정무기경신임계'.indexOf(dated[1])]}${'子丑寅卯辰巳午未申酉戌亥'['자축인묘진사오미신유술해'.indexOf(dated[2])]} · ${dated[3]}-${dated[4].padStart(2,'0')}`;
  const position=localizedTarotPosition(value,locale);if(position!==value)return position;
  if(isNativeChartLocale(locale)){
   const term=nativeChartTerm(value,locale);if(term)return term;
@@ -67,7 +71,7 @@ export function chartLimitation(value:string,locale?:ReadingLocale):string{
 
 const visualKo={glance:'한눈에 보는 이야기',glanceCaption:'장마다 영냥이가 짚은 핵심이야.',chapterCol:'장',themeCol:'주제',pointCol:'핵심 한 줄',
  keyPoints:'영냥이의 핵심 정리',timeline:'시기의 흐름',timelineCaption:'구매 당시 저장된 계산 기간이야. 금빛 선이 지금이야.',periodCol:'주기',rangeCol:'기간',now:'지금',noRange:'기간 자료 없음',
- pillars:'나의 사주 원국표',pillarRow:'천간·지지',tenGodRow:'천간 십성',elements:'오행의 균형',elementsCaption:'월령 가중치를 포함한 저장된 분포야.',
+ pillars:'나의 사주 원국표',pillarRow:'천간·지지',tenGodRow:'천간 십성',hiddenRow:'지장간',elements:'오행의 균형',elementsCaption:'월령 가중치를 포함한 저장된 분포야.',elementsSurfaceCaption:'원국에 보이는 글자만 센 개수야. 지장간은 위 표에 따로 적었고 개수에는 넣지 않았어. 월지는 계절의 힘(월령)이라 강약을 볼 때 더 무겁게 봐.',
  elementCount:(label:string,n:number)=>`${label} ${n}`,says:'영냥이의 한마디',answerTable:'답의 근거와 실행',
  yearFocus:'질문한 해',yearFocusCaption:'영냥이는 이 해의 기운으로 답했어.',yearLabel:(y:number)=>`${y}년`,
  relative:(n:number)=>['재작년','작년','올해','내년','내후년'][n+2] || (n<0?`${-n}년 전`:`${n}년 뒤`),
@@ -76,7 +80,7 @@ const visualKo={glance:'한눈에 보는 이야기',glanceCaption:'장마다 영
 type VisualCopy=typeof visualKo;
 const visualEn:VisualCopy={glance:'Your reading at a glance',glanceCaption:'The key point Yeongnyangi picked from each chapter.',chapterCol:'Ch.',themeCol:'Theme',pointCol:'Key point',
  keyPoints:'Yeongnyangi’s key points',timeline:'Timing at a glance',timelineCaption:'Periods saved from your calculation at purchase. The gold line marks today.',periodCol:'Period',rangeCol:'Range',now:'Now',noRange:'No date range saved',
- pillars:'My four pillars',pillarRow:'Stem and branch',tenGodRow:'Ten Gods of the stem',elements:'Five element balance',elementsCaption:'Saved distribution, weighted by birth month.',
+ pillars:'My four pillars',pillarRow:'Stem and branch',tenGodRow:'Ten Gods of the stem',hiddenRow:'Hidden stems',elements:'Five element balance',elementsCaption:'Saved distribution, weighted by birth month.',elementsSurfaceCaption:'Counts of the visible characters only. Hidden stems are listed in the table above and not counted. The month branch carries the season, so it weighs more when judging strength.',
  elementCount:(label:string,n:number)=>`${label} ${n}`,says:'A word from Yeongnyangi',answerTable:'Reason, timing and action',
  yearFocus:'The year you asked about',yearFocusCaption:'Yeongnyangi answered with this year’s energy.',yearLabel:(y:number)=>String(y),
  relative:(n:number)=>n===0?'This year':n===1?'Next year':n===-1?'Last year':n<0?`${-n} years ago`:`In ${n} years`,
@@ -84,7 +88,7 @@ const visualEn:VisualCopy={glance:'Your reading at a glance',glanceCaption:'The 
  pillarNames:{'시주':'Hour','일주':'Day','월주':'Month','년주':'Year'}};
 const visualJa:VisualCopy={glance:'ひと目でわかる鑑定',glanceCaption:'各章でヨンニャンイが押さえた要点です。',chapterCol:'章',themeCol:'テーマ',pointCol:'要点',
  keyPoints:'ヨンニャンイの要点まとめ',timeline:'時期の流れ',timelineCaption:'購入時に保存された計算上の期間です。金色の線が現在です。',periodCol:'周期',rangeCol:'期間',now:'現在',noRange:'期間の資料なし',
- pillars:'私の四柱命式',pillarRow:'天干・地支',tenGodRow:'天干の通変星',elements:'五行のバランス',elementsCaption:'月令の重みを含む保存済みの分布です。',
+ pillars:'私の四柱命式',pillarRow:'天干・地支',tenGodRow:'天干の通変星',hiddenRow:'蔵干',elements:'五行のバランス',elementsCaption:'月令の重みを含む保存済みの分布です。',elementsSurfaceCaption:'命式に見える文字だけを数えた数です。蔵干は上の表に別に記し、数には含めません。月支は季節の力(月令)なので、強弱を見るときは重く見ます。',
  elementCount:(label:string,n:number)=>`${label} ${n}`,says:'ヨンニャンイのひとこと',answerTable:'答えの根拠と実行',
  yearFocus:'ご質問の年',yearFocusCaption:'ヨンニャンイはこの年の気で答えました。',yearLabel:(y:number)=>`${y}年`,
  relative:(n:number)=>['一昨年','昨年','今年','来年','再来年'][n+2] || (n<0?`${-n}年前`:`${n}年後`),

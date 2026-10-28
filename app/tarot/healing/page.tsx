@@ -37,7 +37,7 @@ const TAROT_HEALING_METADATA_COPY = {
 const META = {
   path: "/tarot/healing",
   ...TAROT_HEALING_METADATA_COPY.ko,
-  image: "https://code-destiny.com/fuctionassets/healing.webp",
+  image: "https://code-destiny.com/images/service-introductions/tarot-healing.webp",
   applicationCategory: "EntertainmentApplication",
 } as const;
 
@@ -97,7 +97,7 @@ export default function SunHealingTarotPage() {
           뽑기보다 하루가 지나거나 상황이 바뀐 뒤에 다시 보는 편이 더 안정적입니다.
         </p>
         <p>
-          이 리딩은 오락과 자기성찰을 위한 콘텐츠이며 심리 상담이나 진단을 대신하지 않습니다. 건강, 법률,
+          이 리딩은 자기성찰을 위한 콘텐츠이며 심리 상담이나 진단을 대신하지 않습니다. 건강, 법률,
           투자, 치료, 안전에 관한 결정은 전문 기관의 도움을 우선해 주세요. 기본 리딩은 회원가입 없이 무료로
           사용할 수 있습니다.
         </p>

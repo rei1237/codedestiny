@@ -1,4 +1,6 @@
 import { withLLMCache } from "./llm-cache.ts";
+import { CONSULTATION_COUNSEL_GUIDE } from "./fortune/consultation-counsel.mjs";
+import { selectGeminiModel } from "./gemini-model-policy.js";
 import type { LLMCacheConfig } from "./llm-cache.ts";
 import { buildOutputLanguageDirective, toAiLocale } from "./i18n/ai-locale.js";
 import { isStagingLlmMockEnabled } from "../worker/lib/staging-llm-mock.js";
@@ -8,6 +10,9 @@ import {
 import {
   assertWorkersAiInputTokenLimit,
 } from "./workers-ai-input-token-limit.mjs";
+import { classifyGeminiHttpError, geminiOutageCode, safeGeminiFailure } from "./gemini-provider-errors.mjs";
+import { reportProviderOutage } from "../worker/lib/provider-outage-alert.js";
+import { recordGeminiUsage } from "../worker/lib/llm-usage-meter.js";
 
 export interface LLMRequest {
   /** Total generation attempts across Gemini, cache recovery and Workers AI. */
@@ -28,6 +33,7 @@ export interface LLMRequest {
   temperature?: number;
   taskType?: "pdf" | "fortune" | "healing" | "general";
   model?: string;
+  reasoningTask?: "fusion-integration" | "fusion-verdict" | "tuna-synthesis";
   endpoint?: string;
   apiEndpoint?: string;
   timeoutMs?: number;
@@ -96,6 +102,7 @@ export interface GeminiContextCacheInput {
   systemPrompt?: string;
   locale?: string;
   model?: string;
+  reasoningTask?: LLMRequest["reasoningTask"];
   ttlSeconds?: number;
   timeoutMs?: number;
 }
@@ -332,14 +339,11 @@ function resolveThinkingBudget(value: unknown): number {
 
 function resolveGeminiModel(request: LLMRequest, env?: CloudflareEnv): string {
   const requested = String(request.model || "").trim();
-  if (requested) return requested;
 
   const envModel = String(
     (env as Record<string, unknown> | undefined)?.["GEMINI_MODEL"] || "",
   ).trim();
-  if (envModel) return envModel;
-
-  return GEMINI_MODEL;
+  return selectGeminiModel(requested || envModel || GEMINI_MODEL, request.reasoningTask);
 }
 
 function resolveGeminiEndpoint(request: LLMRequest, model: string): string {
@@ -733,7 +737,7 @@ export async function createGeminiContextCache(
   });
   const systemPrompt = String(localized.systemPrompt || "");
 
-  const model = resolveGeminiEndpointModel({ prompt: "", model: input?.model }, env);
+  const model = resolveGeminiEndpointModel({ prompt: "", model: input?.model, reasoningTask: input?.reasoningTask }, env);
   const ttlSeconds = Number(input?.ttlSeconds) > 0
     ? Number(input.ttlSeconds)
     : GEMINI_CONTEXT_CACHE_TTL_SECONDS;
@@ -932,6 +936,8 @@ async function callGeminiPrimary(
     if (!response.ok) {
       const requestError = new Error(payload.error?.message || `Gemini request failed (${response.status}).`);
       (requestError as { status?: number }).status = response.status;
+      const code = classifyGeminiHttpError(response.status, payload.error?.message);
+      if (code) (requestError as { code?: string }).code = code;
       throw requestError;
     }
 
@@ -953,6 +959,14 @@ async function callGeminiPrimary(
     const usage = extractGeminiUsage(payload)
       || { inputTokens: estimateTokens(normalized.prompt), outputTokens: estimateTokens(text), estimated: true };
     emitTokenUsageLog("gemini", model, normalized, usage, env);
+    // 월 지출 한도 사전 경보용 추정 집계. 1.5초 상한, 실패는 삼킨다(llm-usage-meter.js).
+    const usageContext = normalized.logContext || {};
+    await recordGeminiUsage(env, {
+      model,
+      service: usageContext.serviceId || usageContext.serviceType || usageContext.featureKey || usageContext.route
+        || normalized.taskType,
+      usage,
+    });
 
     return {
       text,
@@ -1108,8 +1122,10 @@ function generationTimeoutFailure(error: unknown): Error {
 // 일시적 장애(429/5xx/overloaded/빈 응답)만 재시도 대상. 타임아웃은 이미 시간
 // 예산을 소진했고 장문 생성은 재시도 시 런타임 한도를 넘길 수 있어 제외한다.
 // 키 미설정/400·403·404는 재시도해도 성공하지 않으므로 제외한다.
+// 월 지출 한도·결제 비활성은 429/403 이어도 계정 조치 전까지 계속 거절되므로 제외한다.
 function isTransientGeminiError(error: unknown): boolean {
   if (isGenerationTimeout(error)) return false;
+  if (geminiOutageCode(error)) return false;
   const status = Number((error as { status?: number })?.status || 0);
   if (status === 429 || (status >= 500 && status <= 599)) return true;
   const message = getErrorMessage(error).toLowerCase();
@@ -1217,6 +1233,11 @@ async function callLLMUncached(
     }
   }
 
+  // 한도 장애는 폴백 성공 여부와 무관하게 운영자에게 알린다. 내부에서 시간 상한을 두고
+  // 예외를 삼키므로 생성 흐름(재시도·폴백·환불)은 바뀌지 않는다.
+  const outageCode = geminiOutageCode(geminiError);
+  if (outageCode) await reportProviderOutage(env, outageCode);
+
   if (budget.remaining <= 0 || request.fallbackToWorkersAI === false) {
     throw geminiError;
   }
@@ -1232,11 +1253,13 @@ async function callLLMUncached(
     return await callCloudflareWorkersAI(request, env, deadlineAt, budget);
   } catch (cloudflareError) {
     if (isGenerationTimeout(cloudflareError)) throw cloudflareError;
-    throw new Error(
-      `LLM request failed. Gemini: ${getErrorMessage(geminiError)}; Cloudflare Workers AI: ${getErrorMessage(
-        cloudflareError,
-      )}`,
-    );
+    const failureCode = String((geminiError as { code?: string })?.code || "");
+    const fallbackCode = String((cloudflareError as { code?: string })?.code || "");
+    throw Object.assign(new Error("LLM providers could not complete this request."),
+      safeGeminiFailure(geminiError && typeof geminiError === "object" ? geminiError : {}), {
+        code: /^[A-Z][A-Z0-9_]{0,79}$/.test(failureCode) ? failureCode : "LLM_PROVIDER_UNAVAILABLE",
+        fallbackCode: /^[A-Z][A-Z0-9_]{0,79}$/.test(fallbackCode) ? fallbackCode : "WORKERS_AI_UNAVAILABLE",
+      });
   }
 }
 
@@ -1258,7 +1281,11 @@ function applyOutputLocale(request: LLMRequest): LLMRequest {
   if (!directive) return request;
   return {
     ...request,
-    systemPrompt: [request.systemPrompt || "", directive].filter(Boolean).join("\n\n"),
+    // Cache creation and every provider use this same normalization. The guide
+    // explicitly excludes extraction/classification and preserves wire schemas.
+    systemPrompt: [request.systemPrompt || "",
+      String(request.systemPrompt || "").includes(CONSULTATION_COUNSEL_GUIDE) ? "" : CONSULTATION_COUNSEL_GUIDE,
+      directive].filter(Boolean).join("\n\n"),
     prompt: `${request.prompt}\n\n${directive}`,
   };
 }

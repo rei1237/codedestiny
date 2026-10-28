@@ -1,0 +1,522 @@
+{
+  "master-love-codex": {
+    "image": "/images/service-introductions/master-love-codex.webp",
+    "cardImage": "/images/service-introductions/master-love-codex-320.webp",
+    "alt": "마스터의 마스터 인연의 서 상담 장면"
+  },
+  "fortune-tea-house": {
+    "image": "/images/service-introductions/fortune-tea-house.webp",
+    "cardImage": "/images/service-introductions/fortune-tea-house-320.webp",
+    "alt": "연이의 운명의 찻집 상담 장면"
+  },
+  "love-secret-ai": {
+    "image": "/images/service-introductions/love-secret-ai.webp",
+    "cardImage": "/images/service-introductions/love-secret-ai-320.webp",
+    "alt": "연이·서한비의 연애 비책 상담 장면"
+  },
+  "fortune-chat": {
+    "image": "/images/service-introductions/fortune-chat.webp",
+    "cardImage": "/images/service-introductions/fortune-chat-320.webp",
+    "alt": "연이·네오의 대화형 운명 상담 상담 장면"
+  },
+  "tarot-love-relationship": {
+    "image": "/images/service-introductions/tarot-love-relationship.webp",
+    "cardImage": "/images/service-introductions/tarot-love-relationship-320.webp",
+    "alt": "우리는 무슨 사이?의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "tarot-reunion": {
+    "image": "/images/service-introductions/tarot-reunion.webp",
+    "cardImage": "/images/service-introductions/tarot-reunion-320.webp",
+    "alt": "재회운 타로의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "tarot-mindscan": {
+    "image": "/images/service-introductions/tarot-mindscan.webp",
+    "cardImage": "/images/service-introductions/tarot-mindscan-320.webp",
+    "alt": "말과 행동 사이 타로의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "nakshatra-compat": {
+    "image": "/images/service-introductions/nakshatra-compat.webp",
+    "cardImage": "/images/service-introductions/nakshatra-compat-320.webp",
+    "alt": "동서 통합 궁합의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "neo-operation-room": {
+    "image": "/images/service-introductions/neo-operation-room.webp",
+    "cardImage": "/images/service-introductions/neo-operation-room-320.webp",
+    "alt": "네오의 네오의 팩폭 작전실 상담 장면"
+  },
+  "destiny-compass": {
+    "image": "/images/service-introductions/destiny-compass.webp",
+    "cardImage": "/images/service-introductions/destiny-compass-320.webp",
+    "alt": "운명의 나침반의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "saju-sibyl": {
+    "image": "/images/service-introductions/saju-sibyl.webp",
+    "cardImage": "/images/service-introductions/saju-sibyl-320.webp",
+    "alt": "시빌라 연간 대비 리포트의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "new-year-ai": {
+    "image": "/images/service-introductions/new-year-ai.webp",
+    "cardImage": "/images/service-introductions/new-year-ai-320.webp",
+    "alt": "네오의 신년운세 상담 장면"
+  },
+  "tarot-ijik": {
+    "image": "/images/service-introductions/tarot-ijik.webp",
+    "cardImage": "/images/service-introductions/tarot-ijik-320.webp",
+    "alt": "이직 운명의 카드의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "life-book-ai": {
+    "image": "/images/service-introductions/life-book-ai.webp",
+    "cardImage": "/images/service-introductions/life-book-ai-320.webp",
+    "alt": "윤달의 인생의 책 상담 장면"
+  },
+  "karma-destiny-ai": {
+    "image": "/images/service-introductions/karma-destiny-ai.webp",
+    "cardImage": "/images/service-introductions/karma-destiny-ai-320.webp",
+    "alt": "네오·서한비의 네오와 서한비의 붉은 실 상담 장면"
+  },
+  "saju-guardian": {
+    "image": "/images/service-introductions/saju-guardian.webp",
+    "cardImage": "/images/service-introductions/saju-guardian-320.webp",
+    "alt": "사주 가디언 소환진의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "naming-ai": {
+    "image": "/images/service-introductions/naming-ai.webp",
+    "cardImage": "/images/service-introductions/naming-ai-320.webp",
+    "alt": "전문가 작명소의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "fusion-fortune": {
+    "image": "/images/service-introductions/fusion-fortune-masters-v3.webp",
+    "cardImage": "/images/service-introductions/fusion-fortune-masters-v3-320.webp",
+    "alt": "네오·연이·서한비·윤달·무성의 초융합 심층 리딩 상담 장면"
+  },
+  "tarot-year-fortune": {
+    "image": "/images/service-introductions/tarot-year-fortune.webp",
+    "cardImage": "/images/service-introductions/tarot-year-fortune-320.webp",
+    "alt": "십이지신 천운 타로의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "tarot-celestial-harmony": {
+    "image": "/images/service-introductions/tarot-celestial-harmony.webp",
+    "cardImage": "/images/service-introductions/tarot-celestial-harmony-320.webp",
+    "alt": "천체의 선율의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "nakshatra-muhurta": {
+    "image": "/images/service-introductions/nakshatra-muhurta.webp",
+    "cardImage": "/images/service-introductions/nakshatra-muhurta-320.webp",
+    "alt": "택일 무후르타의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "saju": {
+    "image": "/images/service-introductions/saju.webp",
+    "cardImage": "/images/service-introductions/saju-320.webp",
+    "alt": "꽃돼지 연이의 사주 정밀 분석 상담 장면"
+  },
+  "tarot": {
+    "image": "/images/service-introductions/tarot.webp",
+    "cardImage": "/images/service-introductions/tarot-320.webp",
+    "alt": "타로 리딩의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "ziwei": {
+    "image": "/images/service-introductions/ziwei.webp",
+    "cardImage": "/images/service-introductions/ziwei-320.webp",
+    "alt": "무성이 열두 궁 명반의 별자리를 금빛 깃털로 짚는 장면"
+  },
+  "sukuyo": {
+    "image": "/images/service-introductions/sukuyo.webp",
+    "cardImage": "/images/service-introductions/sukuyo-320.webp",
+    "alt": "서한비가 두 달 자리 사이의 관계 거리를 살피는 장면"
+  },
+  "vedic": {
+    "image": "/images/service-introductions/vedic.webp",
+    "cardImage": "/images/service-introductions/vedic-320.webp",
+    "alt": "윤달이 베다점의 마름모 차트와 달의 자리를 살피는 장면"
+  },
+  "astrology": {
+    "image": "/images/service-introductions/astrology.webp",
+    "cardImage": "/images/service-introductions/astrology-320.webp",
+    "alt": "윤달이 서양 점성술의 원형 출생차트와 행성 배치를 살피는 장면"
+  },
+  "human-design": {
+    "image": "/images/service-introductions/human-design.webp",
+    "cardImage": "/images/service-introductions/human-design-320.webp",
+    "alt": "휴먼 디자인의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "nakshatra": {
+    "image": "/images/service-introductions/nakshatra.webp",
+    "cardImage": "/images/service-introductions/nakshatra-320.webp",
+    "alt": "나크샤트라 결정판의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "maya": {
+    "image": "/images/service-introductions/maya.webp",
+    "cardImage": "/images/service-introductions/maya-320.webp",
+    "alt": "마야점의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "daily-fortune": {
+    "image": "/images/service-introductions/daily-fortune.webp",
+    "cardImage": "/images/service-introductions/daily-fortune-320.webp",
+    "alt": "오늘의 운세의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "today-hub": {
+    "image": "/images/service-introductions/today-hub.webp",
+    "cardImage": "/images/service-introductions/today-hub-320.webp",
+    "alt": "오늘의 운세 허브의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "palm-reading": {
+    "image": "/images/service-introductions/palm-reading.webp",
+    "cardImage": "/images/service-introductions/palm-reading-320.webp",
+    "alt": "분홍 머리의 인간 연이가 펼친 손바닥의 손금을 함께 살피는 장면"
+  },
+  "physiognomy": {
+    "image": "/images/service-introductions/physiognomy.webp",
+    "cardImage": "/images/service-introductions/physiognomy-320.webp",
+    "alt": "관상의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "dream": {
+    "image": "/images/service-introductions/dream.webp",
+    "cardImage": "/images/service-introductions/dream-320.webp",
+    "alt": "꿈해몽의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "psychotest": {
+    "image": "/images/service-introductions/psychotest.webp",
+    "cardImage": "/images/service-introductions/psychotest-320.webp",
+    "alt": "심리테스트의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "manse": {
+    "image": "/images/service-introductions/manse.webp",
+    "cardImage": "/images/service-introductions/manse-320.webp",
+    "alt": "만세력의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "famous-saju": {
+    "image": "/images/service-introductions/famous-saju.webp",
+    "cardImage": "/images/service-introductions/famous-saju-320.webp",
+    "alt": "유명인 사주의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "animal-destiny": {
+    "image": "/images/service-introductions/animal-destiny.webp",
+    "cardImage": "/images/service-introductions/animal-destiny-320.webp",
+    "alt": "운명의 동물 도감의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "kemet-oracle": {
+    "image": "/images/service-introductions/kemet-oracle.webp",
+    "cardImage": "/images/service-introductions/kemet-oracle-320.webp",
+    "alt": "이집트 신탁의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "ifa-oracle": {
+    "image": "/images/service-introductions/ifa-oracle.webp",
+    "cardImage": "/images/service-introductions/ifa-oracle-320.webp",
+    "alt": "IFÀ 오라클의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "juyuk-turtle": {
+    "image": "/images/service-introductions/juyuk-turtle.webp",
+    "cardImage": "/images/service-introductions/juyuk-turtle-320.webp",
+    "alt": "주역 거북점의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "neville-meditation": {
+    "image": "/images/service-introductions/neville-meditation.webp",
+    "cardImage": "/images/service-introductions/neville-meditation-320.webp",
+    "alt": "네빌 명상 실습의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "yoga-guru": {
+    "image": "/images/service-introductions/yoga-guru.webp",
+    "cardImage": "/images/service-introductions/yoga-guru-320.webp",
+    "alt": "Divya Yoga의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "tarot-numerology": {
+    "image": "/images/service-introductions/tarot-numerology.webp",
+    "cardImage": "/images/service-introductions/tarot-numerology-320.webp",
+    "alt": "수비학 타로의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "dream-psycho-analysis": {
+    "image": "/images/service-introductions/dream-psycho-analysis.webp",
+    "cardImage": "/images/service-introductions/dream-psycho-analysis-320.webp",
+    "alt": "정신분석 해몽의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "animal-totem": {
+    "image": "/images/service-introductions/animal-totem.webp",
+    "cardImage": "/images/service-introductions/animal-totem-320.webp",
+    "alt": "애니멀 토템의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "mbti-animal-compat": {
+    "image": "/images/service-introductions/mbti-animal-compat.webp",
+    "cardImage": "/images/service-introductions/mbti-animal-compat-320.webp",
+    "alt": "MBTI 동물 궁합의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "tarot-crystal-soul": {
+    "image": "/images/service-introductions/tarot-crystal-soul.webp",
+    "cardImage": "/images/service-introductions/tarot-crystal-soul-320.webp",
+    "alt": "원석 소울 타로의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "royal-tea-oracle": {
+    "image": "/images/service-introductions/royal-tea-oracle.webp",
+    "cardImage": "/images/service-introductions/royal-tea-oracle-320.webp",
+    "alt": "영국 홍차점의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "geomancy-oracle": {
+    "image": "/images/service-introductions/geomancy-oracle.webp",
+    "cardImage": "/images/service-introductions/geomancy-oracle-320.webp",
+    "alt": "지오맨시 흙점의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "stonehenge-runes": {
+    "image": "/images/service-introductions/stonehenge-runes.webp",
+    "cardImage": "/images/service-introductions/stonehenge-runes-320.webp",
+    "alt": "스톤헨지 룬의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "luck-sync-diary": {
+    "image": "/images/service-introductions/luck-sync-diary.webp",
+    "cardImage": "/images/service-introductions/luck-sync-diary-320.webp",
+    "alt": "운기 다이어리와 플래너의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "sukyo": {
+    "image": "/images/service-introductions/sukyo.webp",
+    "cardImage": "/images/service-introductions/sukyo-320.webp",
+    "alt": "숙요 인연 레이더의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "tarot-prompt-maker": {
+    "image": "/images/service-introductions/tarot-prompt-maker.webp",
+    "cardImage": "/images/service-introductions/tarot-prompt-maker-320.webp",
+    "alt": "타로 오라클 상담의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "face-reading": {
+    "image": "/images/service-introductions/face-reading.webp",
+    "cardImage": "/images/service-introductions/face-reading-320.webp",
+    "alt": "전문가 동물 관상의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "bias-destiny": {
+    "image": "/images/service-introductions/bias-destiny.webp",
+    "cardImage": "/images/service-introductions/bias-destiny-320.webp",
+    "alt": "최애운명의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "love-code": {
+    "image": "/images/service-introductions/love-code.webp",
+    "cardImage": "/images/service-introductions/love-code-320.webp",
+    "alt": "러브 코드의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "omikuji": {
+    "image": "/images/service-introductions/omikuji.webp",
+    "cardImage": "/images/service-introductions/omikuji-320.webp",
+    "alt": "이모이 오미쿠지의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "saju-animal": {
+    "image": "/images/service-introductions/saju-animal.webp",
+    "cardImage": "/images/service-introductions/saju-animal-320.webp",
+    "alt": "사주 가디언 아트의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "destiny-meeting-place": {
+    "image": "/images/service-introductions/destiny-meeting-place.webp",
+    "cardImage": "/images/service-introductions/destiny-meeting-place-320.webp",
+    "alt": "사주로 보는 인연의 장소의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "ziwei-ai": {
+    "image": "/images/service-introductions/ziwei-ai.webp",
+    "cardImage": "/images/service-introductions/ziwei-ai-320.webp",
+    "alt": "무성의 자미두수 전문가 상담 상담 장면"
+  },
+  "destiny-flower": {
+    "image": "/images/service-introductions/destiny-flower.webp",
+    "cardImage": "/images/service-introductions/destiny-flower-320.webp",
+    "alt": "운명의 꽃 아틀리에의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "astrology-flower": {
+    "image": "/images/service-introductions/astrology-flower.webp",
+    "cardImage": "/images/service-introductions/astrology-flower-320.webp",
+    "alt": "점성술 꽃의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "ziwei-flower": {
+    "image": "/images/service-introductions/ziwei-flower.webp",
+    "cardImage": "/images/service-introductions/ziwei-flower-320.webp",
+    "alt": "자미두수 꽃의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "sukuyo-flower": {
+    "image": "/images/service-introductions/sukuyo-flower.webp",
+    "cardImage": "/images/service-introductions/sukuyo-flower-320.webp",
+    "alt": "숙요 꽃의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "cosmic-soul-meditation": {
+    "image": "/images/service-introductions/cosmic-soul-meditation.webp",
+    "cardImage": "/images/service-introductions/cosmic-soul-meditation-320.webp",
+    "alt": "코스믹 소울 명상의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "olympus-oracle": {
+    "image": "/images/service-introductions/olympus-oracle.webp",
+    "cardImage": "/images/service-introductions/olympus-oracle-320.webp",
+    "alt": "올림푸스 신탁의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "sukuyo-compatibility-ai": {
+    "image": "/images/service-introductions/sukuyo-compatibility-ai.webp",
+    "cardImage": "/images/service-introductions/sukuyo-compatibility-ai-320.webp",
+    "alt": "서한비의 숙요점 궁합 전문가 상담 상담 장면"
+  },
+  "astrology-ai": {
+    "image": "/images/service-introductions/astrology-ai.webp",
+    "cardImage": "/images/service-introductions/astrology-ai-320.webp",
+    "alt": "윤달의 점성술 전문가 상담 상담 장면"
+  },
+  "vedic-ai": {
+    "image": "/images/service-introductions/vedic-ai.webp",
+    "cardImage": "/images/service-introductions/vedic-ai-320.webp",
+    "alt": "윤달의 윤달의 베다점 상담 상담 장면"
+  },
+  "nakshatra-ai": {
+    "image": "/images/service-introductions/nakshatra-ai.webp",
+    "cardImage": "/images/service-introductions/nakshatra-ai-320.webp",
+    "alt": "숙요·나크샤트라 통합 상담의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "nakshatra-vvip-codex": {
+    "image": "/images/service-introductions/nakshatra-vvip-codex.webp",
+    "cardImage": "/images/service-introductions/nakshatra-vvip-codex-320.webp",
+    "alt": "나크샤트라 VVIP 코덱스의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "fortune-prompt-hub": {
+    "image": "/images/service-introductions/fortune-prompt-hub.webp",
+    "cardImage": "/images/service-introductions/fortune-prompt-hub-320.webp",
+    "alt": "종합 운세 프롬프트의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "tarot-healing": {
+    "image": "/images/service-introductions/tarot-healing.webp",
+    "cardImage": "/images/service-introductions/tarot-healing-320.webp",
+    "alt": "따뜻한 태양 회복 타로의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "tarot-self-esteem": {
+    "image": "/images/service-introductions/tarot-self-esteem.webp",
+    "cardImage": "/images/service-introductions/tarot-self-esteem-320.webp",
+    "alt": "자기 기준 회복 타로의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "hwatu": {
+    "image": "/images/service-introductions/hwatu.webp",
+    "cardImage": "/images/service-introductions/hwatu-320.webp",
+    "alt": "화투점의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "sikojen-povailu": {
+    "image": "/images/service-introductions/sikojen-povailu.webp",
+    "cardImage": "/images/service-introductions/sikojen-povailu-320.webp",
+    "alt": "꽃돼지 연이의 핀란드 돼지 주석점 상담 장면"
+  },
+  "destiny-island": {
+    "image": "/images/service-introductions/destiny-island.webp",
+    "cardImage": "/images/service-introductions/destiny-island-320.webp",
+    "alt": "자미두수 운명의 섬의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "life-fortune-ai": {
+    "image": "/images/service-introductions/life-fortune-ai.webp",
+    "cardImage": "/images/service-introductions/life-fortune-ai-320.webp",
+    "alt": "인생 총운의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "pet-saju": {
+    "image": "/images/service-introductions/pet-saju.webp",
+    "cardImage": "/images/service-introductions/pet-saju-320.webp",
+    "alt": "반려동물 사주의 핵심 도구와 이용 장면을 담은 일러스트"
+  },
+  "yeon-star-hug": {
+    "image": "/images/service-introductions/yeon-star-hug.webp",
+    "cardImage": "/images/service-introductions/yeon-star-hug-320.webp",
+    "alt": "꽃돼지 연이가 마음 별자리를 살펴보는 상담 장면"
+  },
+  "neo-consultation": {
+    "image": "/images/service-introductions/neo-consultation.webp",
+    "cardImage": "/images/service-introductions/neo-consultation-320.webp",
+    "alt": "네오의 네오에게 물어봐 상담 장면"
+  },
+  "fortune-chat-yeoni": {
+    "image": "/images/service-introductions/fortune-chat-yeoni.webp",
+    "cardImage": "/images/service-introductions/fortune-chat-yeoni-320.webp",
+    "alt": "연이·꽃돼지 연이의 연이와 나누는 대화 상담 상담 장면"
+  },
+  "yeongnyangi-saju": {
+    "image": "/images/service-introductions/yeongnyangi-saju.webp",
+    "cardImage": "/images/service-introductions/yeongnyangi-saju-320.webp",
+    "alt": "마법사 고양이 영냥이가 네 기둥과 다섯 원소를 살피는 장면"
+  },
+  "yeongnyangi-tarot": {
+    "image": "/images/service-introductions/yeongnyangi-tarot.webp",
+    "cardImage": "/images/service-introductions/yeongnyangi-tarot-320.webp",
+    "alt": "마법사 고양이 영냥이가 펼친 타로 카드의 흐름을 읽는 장면"
+  },
+  "yeongnyangi-ziwei": {
+    "image": "/images/service-introductions/yeongnyangi-ziwei.webp",
+    "cardImage": "/images/service-introductions/yeongnyangi-ziwei-320.webp",
+    "alt": "마법사 고양이 영냥이가 사각 열두 궁 명반의 별을 짚는 장면"
+  },
+  "yeongnyangi-astrology": {
+    "image": "/images/service-introductions/yeongnyangi-astrology.webp",
+    "cardImage": "/images/service-introductions/yeongnyangi-astrology-320.webp",
+    "alt": "마법사 고양이 영냥이가 원형 출생차트와 행성 배치를 살피는 장면"
+  },
+  "yeongnyangi-vedic": {
+    "image": "/images/service-introductions/yeongnyangi-vedic.webp",
+    "cardImage": "/images/service-introductions/yeongnyangi-vedic-320.webp",
+    "alt": "마법사 고양이 영냥이가 마름모로 나뉜 베다 차트를 살피는 장면"
+  },
+  "yeongnyangi-sukuyo": {
+    "image": "/images/service-introductions/yeongnyangi-sukuyo.webp",
+    "cardImage": "/images/service-introductions/yeongnyangi-sukuyo-320.webp",
+    "alt": "마법사 고양이 영냥이가 두 달 자리의 관계 거리를 살피는 장면"
+  },
+  "yeongnyangi-fusion-saju-ziwei": {
+    "image": "/images/service-introductions/yeongnyangi-fusion-saju-ziwei.webp",
+    "cardImage": "/images/service-introductions/yeongnyangi-fusion-saju-ziwei-320.webp",
+    "alt": "마법사 고양이 영냥이가 사주 기둥과 열두 궁 명반을 비교하는 장면"
+  },
+  "yeongnyangi-fusion-sukuyo-vedic": {
+    "image": "/images/service-introductions/yeongnyangi-fusion-sukuyo-vedic.webp",
+    "cardImage": "/images/service-introductions/yeongnyangi-fusion-sukuyo-vedic-320.webp",
+    "alt": "마법사 고양이 영냥이가 두 달의 관계와 베다 차트를 함께 읽는 장면"
+  },
+  "yeongnyangi-fusion-astrology-tarot": {
+    "image": "/images/service-introductions/yeongnyangi-fusion-astrology-tarot.webp",
+    "cardImage": "/images/service-introductions/yeongnyangi-fusion-astrology-tarot-320.webp",
+    "alt": "마법사 고양이 영냥이가 행성 차트와 타로 카드를 함께 읽는 장면"
+  },
+  "yeongnyangi-fusion-all": {
+    "image": "/images/service-introductions/yeongnyangi-fusion-all.webp",
+    "cardImage": "/images/service-introductions/yeongnyangi-fusion-all-320.webp",
+    "alt": "마법사 고양이 영냥이가 사주·자미두수·숙요·베다·점성술·타로 도구를 함께 살피는 장면"
+  },
+  "tea-saju-compat": {
+    "image": "/images/service-introductions/tea-saju-compat.webp",
+    "cardImage": "/images/service-introductions/tea-saju-compat-320.webp",
+    "alt": "연이의 연이 사주 궁합 상담 장면"
+  },
+  "tea-saju": {
+    "image": "/images/service-introductions/tea-saju.webp",
+    "cardImage": "/images/service-introductions/tea-saju-320.webp",
+    "alt": "연이의 연이 사주 상담 상담 장면"
+  },
+  "tea-tarot": {
+    "image": "/images/service-introductions/tea-tarot.webp",
+    "cardImage": "/images/service-introductions/tea-tarot-320.webp",
+    "alt": "연이의 연이 타로 상담 상담 장면"
+  },
+  "tea-sukuyo": {
+    "image": "/images/service-introductions/tea-sukuyo.webp",
+    "cardImage": "/images/service-introductions/tea-sukuyo-320.webp",
+    "alt": "연이의 연이 숙요점 상담 상담 장면"
+  },
+  "tea-saju-joint": {
+    "image": "/images/service-introductions/tea-saju-joint.webp",
+    "cardImage": "/images/service-introductions/tea-saju-joint-320.webp",
+    "alt": "연이·네오의 연이·네오 공동 사주 상담 상담 장면"
+  },
+  "neo-saju": {
+    "image": "/images/service-introductions/neo-saju.webp",
+    "cardImage": "/images/service-introductions/neo-saju-320.webp",
+    "alt": "네오의 네오 사주 전략 상담 장면"
+  },
+  "neo-vedic": {
+    "image": "/images/service-introductions/neo-vedic.webp",
+    "cardImage": "/images/service-introductions/neo-vedic-320.webp",
+    "alt": "네오의 네오 베다 전략 상담 장면"
+  },
+  "neo-ziwei": {
+    "image": "/images/service-introductions/neo-ziwei.webp",
+    "cardImage": "/images/service-introductions/neo-ziwei-320.webp",
+    "alt": "네오의 네오 자미두수 전략 상담 장면"
+  },
+  "neo-astrology": {
+    "image": "/images/service-introductions/neo-astrology.webp",
+    "cardImage": "/images/service-introductions/neo-astrology-320.webp",
+    "alt": "네오의 네오 점성술 전략 상담 장면"
+  },
+  "career-style": {
+    "image": "/images/career-style/yeoni-work-style.webp",
+    "cardImage": "/fuctionassets/career-style-yeoni.webp",
+    "alt": "노트와 나침반으로 진로 탐색을 돕는 연이"
+  }
+}

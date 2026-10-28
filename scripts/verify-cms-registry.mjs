@@ -119,7 +119,7 @@ if (!novel) {
    "유령 항목"이었고, 그걸 알아채는 데 한참 걸렸다. 다시는 그 상태로 배포되지 않게 막는다.
 
    소스에서 CMS 소비 함수의 첫 인자(네임스페이스 문자열)를 모아 registry 와 대조한다. */
-const CONSUMER_CALL = /\b(?:cmsText|cmsLines|cmsQaList|cmsRecordRowAsync|cmsRecordCellSync|cmsRecordRowSync|cmsRecordFlat|cmsRecordCell|cmsRecordRow|cmsRecord|useCmsCopy|useCmsEntries|__cdCmsText|__cdCmsRecord)\s*\(\s*(?:env\s*,\s*)?[\"'`]([^\"'`]+)[\"'`]/g;
+const CONSUMER_CALL = /\b(?:cmsStaticCopy|cmsText|cmsLines|cmsQaList|cmsRecordRowAsync|cmsRecordCellSync|cmsRecordRowSync|cmsRecordFlat|cmsRecordCell|cmsRecordRow|cmsRecord|useCmsCopy|useCmsEntries|__cdCmsText|__cdCmsRecord)\s*\(\s*(?:env\s*,\s*)?[\"'`]([^\"'`]+)[\"'`]/g;
 
 // 워커/셸 리더가 네임스페이스를 배열 상수로만 들고 있는 경우(요청 시점 일괄 조회)도 소비로 본다.
 const READER_LIST = /(?:RECORD_NAMESPACES|PROMPT_NAMESPACES)\s*=\s*\[([^\]]*)\]/g;
@@ -154,7 +154,10 @@ function collectConsumedNamespaces() {
    scripts/fetch-content-overrides.mjs 가 별도 파일로 뽑고, 각자 전용 병합 지점이 읽는다.
      light-novel  -> scripts/apply-vn-overrides.mjs 가 VN 원본 HTML 을 패치
      famous-saju  -> lib/famous-saju/celebrity-data.ts 가 overrides.generated.json 병합 */
-const PIPELINE_CONSUMED = new Set(["light-novel", "famous-saju"]);
+// feature-detail -> scripts/lib/build-visual-details.mjs applies display-only overrides.
+// daily-fortune: daily-data SSR + fetch-published-cms public JSON;
+// hat-reading and fortune-sign are detected through cmsStaticCopy calls.
+const PIPELINE_CONSUMED = new Set(["light-novel", "famous-saju", "feature-detail", "daily-fortune"]);
 
 const consumedNamespaces = collectConsumedNamespaces();
 for (const entry of CMS_NAMESPACES) {

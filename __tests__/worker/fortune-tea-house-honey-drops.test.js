@@ -17,6 +17,7 @@ let billingMock;
 let billingCalls;
 let appliedKeys;
 let loseApplyResponse;
+let settleCalls = [];
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -76,6 +77,9 @@ function applyUpdate(doc, update, inserting = false) {
   }
   if (update.$unset) {
     Object.keys(update.$unset).forEach((key) => unsetAt(doc, key));
+  }
+  if (update.$push) {
+    Object.entries(update.$push).forEach(([key, value]) => setAt(doc, key, [...(valueAt(doc, key) || []), clone(value)]));
   }
   if (inserting && update.$setOnInsert) {
     Object.entries(update.$setOnInsert).forEach(([key, value]) => setAt(doc, key, clone(value)));
@@ -268,6 +272,12 @@ beforeAll(async () => {
       pricing: null,
     })),
   }));
+  // 이용권 허용(license_active)은 읽기 전용 판정이라 생성 claim 직후 정산을 거친다(2026-10-16).
+  // 정산 계약은 consultation-per-use-payment·fortune-tea-house-pass-settlement 가 지키고, 여기서는 통과만 세운다.
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+    settlePerUseAccessDecision: jest.fn(async (_env, args) => { settleCalls.push(args); return { allowed: true, source: "pass", reason: "" }; }),
+    verifyPerUsePayment: jest.fn(async () => ({ proven: false, source: "", reason: "NO_RECORD" })),
+  }));
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({
     PaidExecutionRecord: modelForCollection("paid_execution_records"),
     PointHistory: modelForCollection("point_histories"),
@@ -315,6 +325,7 @@ beforeEach(() => {
   billingCalls = [];
   appliedKeys = new Set();
   loseApplyResponse = false;
+  settleCalls = [];
   fakeDb.reset();
   authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
   paidAccessAllowed = true;
@@ -357,7 +368,7 @@ function consultBodyForMode(mode, attemptId) {
   return body;
 }
 
-async function seedBillingEvidence({ featureKey, requestId, accessMethod = "single" }) {
+async function seedBillingEvidence({ featureKey, requestId, accessMethod = "single", pricingSnapshot }) {
   await collection("paid_execution_records").insertOne({
     _id: `paid:${requestId}`,
     userId: USER_ID,
@@ -369,7 +380,7 @@ async function seedBillingEvidence({ featureKey, requestId, accessMethod = "sing
     orderId: `order:${requestId}`,
     accessMethod,
     status: "paid_pending_generation",
-    result: { deferredUsage: { requestId, paymentId: `pay:${requestId}`, accessType: accessMethod } },
+    result: { deferredUsage: { requestId, paymentId: `pay:${requestId}`, accessType: accessMethod, pricingSnapshot } },
   });
 }
 
@@ -385,148 +396,57 @@ function billingGatePayload(featureKey, requestId) {
   };
 }
 
-describe("honey letter interrupted delivery", () => {
-  const send = (resultId, env = { NODE_ENV: "test", FORTUNE_TEA_HOUSE_HONEY_LETTER_TEST_TEXT: longHoneyLetter() }, key = "resume-letter") => handleFortuneTeaHouseRoutes(new Request(
-    `https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}/honey-letter`,
-    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ idempotencyKey: key }) },
-  ), env);
-
-  test.each(["before", "after"])("final save response lost %s write retains delivery without another spend", async (when) => {
-    const resultId = await seedReadyResult({ balance: 20 });
-    const results = collection("fortune_tea_house_results");
-    const original = results.updateOne.bind(results);
+async function seedChargedLetter(balance = 10) {
+  const resultId = await seedReadyResult({ balance });
+  const key = require('node:crypto').createHash('sha256').update(resultId).digest('hex');
+  const draft = { status: 'pending', receiptToken: 'legacy-token', idempotencyKey: 'legacy-key',
+    spendLedgerId: `spend:${USER_ID}:${resultId}:legacy-token`, letter: { title: '연이의 꿀편지', body: longHoneyLetter().trim() } };
+  await collection('fortune_tea_house_results').updateOne({ resultId }, { $set: { honeyLetterDelivery: draft } });
+  await collection('fortune_tea_house_honey_wallets').updateOne({ userId: USER_ID }, { $set: {
+    [`honeyLetterSpends.${key}`]: { status: 'charged', token: draft.receiptToken, spendLedgerId: draft.spendLedgerId }
+  } });
+  return resultId;
+}
+const sendLegacyLetter = resultId => handleFortuneTeaHouseRoutes(new Request(
+  `https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}/honey-letter`,
+  { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ idempotencyKey: 'resume-letter' }) }), {});
+describe('previously charged honey letter delivery', () => {
+  test.each(['before', 'after'])('lost final save %s write retries without a new deduction or generation', async when => {
+    const resultId = await seedChargedLetter();
+    const results = collection('fortune_tea_house_results'), save = results.updateOne.bind(results);
     let fail = true;
-    jest.spyOn(results, "updateOne").mockImplementation(async (query, update, options) => {
-      if (fail && update?.$set?.honeyLetter) {
-        fail = false;
-        if (when === "after") await original(query, update, options);
-        throw new Error("MOCK_SAVE_RESPONSE_LOST");
-      }
-      return original(query, update, options);
+    jest.spyOn(results, 'updateOne').mockImplementation(async (q, u, o) => {
+      if (fail && u?.$set?.honeyLetter) { fail = false; if (when === 'after') await save(q,u,o); throw Error('lost response'); }
+      return save(q,u,o);
     });
-    const first = await readJson(await send(resultId));
-    expect(first.status).toBe(503);
-    expect(first.payload.errorCode).toBe("RESULT_STORAGE_UNAVAILABLE");
-    const second = await readJson(await send(resultId, {}, "different-client-key"));
-    expect(second.payload.success).toBe(true);
-    expect(second.payload.honeyLetter.body).toBe(longHoneyLetter().trim());
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
-    expect(collection("fortune_tea_house_honey_ledgers").all().filter(row => row.type === "refund")).toHaveLength(0);
+    expect((await sendLegacyLetter(resultId)).status).toBe(503);
+    const response = await readJson(await sendLegacyLetter(resultId));
+    expect(response.payload.honeyLetter.body).toBe(longHoneyLetter().trim());
+    expect(collection('fortune_tea_house_honey_wallets').all()[0].balance).toBe(10);
+    expect(callGeminiTextMock).not.toHaveBeenCalled();
+    expect((await readJson(await sendLegacyLetter(resultId))).payload.spent).toBe(0);
   });
-
-  test("wallet debit response lost resumes the saved letter without a second debit", async () => {
-    const resultId = await seedReadyResult({ balance: 20 });
-    const wallets = collection("fortune_tea_house_honey_wallets");
-    const original = wallets.findOneAndUpdate.bind(wallets);
-    jest.spyOn(wallets, "findOneAndUpdate").mockImplementationOnce(async (...args) => {
-      await original(...args);
-      throw new Error("MOCK_DEBIT_RESPONSE_LOST");
-    });
-    const first = await readJson(await send(resultId));
-    expect(first.status).toBe(503);
-    expect(first.payload.errorCode).toBe("RESULT_STORAGE_UNAVAILABLE");
-    const second = await readJson(await send(resultId, {}, "different-client-key"));
-    expect(second.payload.success).toBe(true);
-    expect(wallets.all()[0].balance).toBe(10);
-    expect(collection("fortune_tea_house_honey_ledgers").all().filter(row => row.type === "spend")).toHaveLength(1);
-  });
-
-  test("expired owned lease resumes while an active lease blocks duplicate generation", async () => {
-    const resultId = await seedReadyResult();
-    const results = collection("fortune_tea_house_results");
-    await results.updateOne({ resultId }, { $set: { honeyLetterLock: { token: "old", expiresAt: new Date(Date.now() + 120000) } } });
-    expect((await send(resultId)).status).toBe(409);
-    await results.updateOne({ resultId }, { $set: { "honeyLetterLock.expiresAt": new Date(0) } });
-    expect((await readJson(await send(resultId))).payload.success).toBe(true);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(0);
-  });
-
-  test("draft confirmation failure spends nothing and reuses the generated prose", async () => {
-    const resultId = await seedReadyResult();
-    const results = collection("fortune_tea_house_results");
-    const original = results.findOne.bind(results);
-    let fail = true;
-    jest.spyOn(results, "findOne").mockImplementation(async query => {
-      if (query["honeyLetterLock.token"] && fail) { fail = false; throw new Error("MOCK_DRAFT_READ_LOST"); }
-      return original(query);
-    });
-    expect((await send(resultId)).status).toBe(503);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
-    expect((await readJson(await send(resultId))).payload.success).toBe(true);
-  });
-
-  test("refund response loss completes once, then a new attempt can reuse the draft", async () => {
-    const resultId = await seedReadyResult();
-    const results = collection("fortune_tea_house_results");
-    const wallets = collection("fortune_tea_house_honey_wallets");
+  test('confirmed save failure refunds the old debit once and prevents a new purchase', async () => {
+    const resultId = await seedChargedLetter(0), results = collection('fortune_tea_house_results');
     const save = results.updateOne.bind(results);
-    let failSave = true;
-    jest.spyOn(results, "updateOne").mockImplementation(async (q, u, o) => {
-      if (u?.$set?.honeyLetter && failSave) { failSave = false; return { matchedCount: 1, modifiedCount: 0 }; }
-      return save(q, u, o);
-    });
-    const refund = wallets.updateOne.bind(wallets);
-    let failRefund = true;
-    jest.spyOn(wallets, "updateOne").mockImplementation(async (q, u, o) => {
-      const written = await refund(q, u, o);
-      if (u?.$inc?.balance === 10 && failRefund) { failRefund = false; throw new Error("MOCK_REFUND_RESPONSE_LOST"); }
-      return written;
-    });
-    expect((await send(resultId)).status).toBe(503);
-    expect(wallets.all()[0].balance).toBe(10);
-    expect((await send(resultId)).status).toBe(500);
-    expect(wallets.all()[0].balance).toBe(10);
-    expect((await readJson(await send(resultId))).payload.success).toBe(true);
-    expect(wallets.all()[0].balance).toBe(0);
-    expect(collection("fortune_tea_house_honey_ledgers").all().filter(row => row.type === "refund")).toHaveLength(1);
+    jest.spyOn(results,'updateOne').mockImplementation((q,u,o) => u?.$set?.honeyLetter ? { matchedCount: 1, modifiedCount: 0 } : save(q,u,o));
+    expect((await sendLegacyLetter(resultId)).status).toBe(500);
+    expect(collection('fortune_tea_house_honey_wallets').all()[0].balance).toBe(10);
+    expect((await sendLegacyLetter(resultId)).status).toBe(403);
+    expect(collection('fortune_tea_house_honey_ledgers').all().filter(row=>row.type==='refund')).toHaveLength(1);
   });
-
-  test("another account cannot resume or read the draft", async () => {
-    const resultId = await seedReadyResult();
-    authState = { userId: "another-user" };
-    expect((await send(resultId)).status).toBe(404);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
+  test('another account cannot resume the existing draft', async () => {
+    const resultId = await seedChargedLetter(); authState = { userId: 'another-user' };
+    expect((await sendLegacyLetter(resultId)).status).toBe(404);
   });
-
-  test.each(["before", "after"])("spend ledger response lost %s write resumes without a refund", async when => {
-    const resultId = await seedReadyResult();
-    const ledgers = collection("fortune_tea_house_honey_ledgers");
-    const original = ledgers.updateOne.bind(ledgers);
-    jest.spyOn(ledgers, "updateOne").mockImplementationOnce(async (...args) => {
-      if (when === "after") await original(...args);
-      throw new Error("MOCK_LEDGER_LOST");
-    });
-    expect((await send(resultId)).status).toBe(503);
-    const detail = await readJson(await handleFortuneTeaHouseRoutes(new Request(
-      `https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}`), {}));
-    expect(detail.payload.result.honeyLetterPending).toBe(true);
-    expect(detail.payload.result.honeyLetter).toBeUndefined();
-    expect((await readJson(await send(resultId))).payload.success).toBe(true);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(0);
-    expect(ledgers.all().filter(row => row.type === "spend")).toHaveLength(1);
-    expect(ledgers.all().filter(row => row.type === "refund")).toHaveLength(0);
-  });
-
-  test("parallel requests spend once and a replaced lease cannot overwrite delivery", async () => {
-    const resultId = await seedReadyResult({ balance: 20 });
-    const replies = await Promise.all([send(resultId), send(resultId)]);
-    expect(replies.map(response => response.status).sort()).toEqual([200, 409]);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
-    const results = collection("fortune_tea_house_results");
-    expect((await results.findOne({ resultId })).honeyLetterLock).toBeUndefined();
-  });
-
-  test("a stale generator losing its lease cannot charge or clear the new lock", async () => {
-    const resultId = await seedReadyResult();
-    const results = collection("fortune_tea_house_results");
-    const original = results.updateOne.bind(results);
-    jest.spyOn(results, "updateOne").mockImplementation(async (q, u, o) => {
-      if (u?.$set?.honeyLetterDelivery) await original({ resultId }, { $set: { "honeyLetterLock.token": "new-owner" } });
-      return original(q, u, o);
-    });
-    expect((await send(resultId)).status).toBe(503);
-    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
-    expect((await results.findOne({ resultId })).honeyLetterLock.token).toBe("new-owner");
+  test('new album unlock is blocked while previously unlocked albums remain available', async () => {
+    await seedReadyResult({ balance: 30 });
+    const send = () => handleFortuneTeaHouseRoutes(new Request('https://example.com/api/fortune-tea-house/honey-drops/tarot-album/unlock',
+      { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }), {});
+    expect((await send()).status).toBe(403);
+    await collection('fortune_tea_house_honey_wallets').updateOne({ userId: USER_ID }, { $set: { tarotAlbumUnlocked: true } });
+    expect((await readJson(await send())).payload.spent).toBe(0);
+    expect(collection('fortune_tea_house_honey_wallets').all()[0].balance).toBe(30);
   });
 });
 
@@ -552,6 +472,26 @@ describe("fortune tea house honey drops", () => {
     expect(payload.ok).toBe(true);
     expect(payload.result.consultationMode).toBe(mode);
     expect(payload.result.featureKey).toBe(featureKey);
+  });
+
+  test("legacy personal saju retains its paid 10,000 snapshot after the new price", async () => {
+    paidAccessAllowed = false;
+    const requestId = 'legacy-saju-price', featureKey = FEATURE_KEYS.saju;
+    const pricingSnapshot = { featureKey, cost: 100, coinPrice: 100, amountKRW: 10000 };
+    await seedBillingEvidence({featureKey,requestId,pricingSnapshot});
+    const body = {...consultBodyForMode('saju',requestId),featureKey,billingGate:billingGatePayload(featureKey,requestId)};
+    const send = () => handleFortuneTeaHouseRoutes(new Request('https://example.com/api/fortune-tea-house/consult', {
+      method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),
+    }), {NODE_ENV:'test'});
+    const first = await readJson(await send());
+    expect(first.status).toBe(200);
+    expect(first.payload.result.pricing).toMatchObject(pricingSnapshot);
+    expect(first.payload.result.sajuReportVersion).toBeUndefined();
+    const calls = callGeminiTextMock.mock.calls.length;
+    const reread = await readJson(await send());
+    expect(reread.status).toBe(200);
+    expect(reread.payload.result.pricing.amountKRW).toBe(10000);
+    expect(callGeminiTextMock.mock.calls.length).toBe(calls);
   });
 
   test("paid consult without evidence returns payment payload", async () => {
@@ -609,6 +549,8 @@ describe("fortune tea house honey drops", () => {
 
     expect(firstPayload.honeyDrops.earnedThisResult).toBe(true);
     expect(secondPayload.honeyDrops.duplicateResult).toBe(true);
+    // 이용권은 결과 1건에 한 번만 정산한다. 완료된 결과의 재요청은 정산 없이 저장본을 준다.
+    expect(settleCalls).toEqual([expect.objectContaining({ requestId: "fortune-tea-house:same-result" })]);
     expect(callGeminiTextMock.mock.calls.length).toBe(callCountAfterFirst);
     expect(wallet.balance).toBe(1);
     expect(ledgers).toHaveLength(1);
@@ -639,39 +581,18 @@ describe("fortune tea house honey drops", () => {
     const { status, payload } = await readJson(response);
     const wallet = await collection("fortune_tea_house_honey_wallets").findOne({ userId: USER_ID, serviceScope: SERVICE_SCOPE });
 
-    expect(status).toBe(402);
-    expect(payload.errorCode).toBe("INSUFFICIENT_TEA_HOUSE_HONEY_DROPS");
+    expect(status).toBe(403);
+    expect(payload.errorCode).toBe("HONEY_GGULGGUL_ONLY");
     expect(wallet.balance).toBe(4);
     expect(collection("fortune_tea_house_honey_ledgers").all().filter((row) => row.type === "spend")).toHaveLength(0);
   });
 
-  test("꿀방울 10개로 연이의 꿀편지를 한 번만 생성하고 재요청은 재사용한다", async () => {
-    const resultId = await seedReadyResult({ balance: 10 });
-    const env = { NODE_ENV: "test", FORTUNE_TEA_HOUSE_HONEY_LETTER_TEST_TEXT: longHoneyLetter() };
-    const first = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/results/honey-letter", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ resultId, idempotencyKey: "letter-once" }),
-    }), env);
-    const second = await handleFortuneTeaHouseRoutes(new Request(`https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}/honey-letter`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ idempotencyKey: "letter-once" }),
-    }), env);
-
-    const firstPayload = await first.json();
-    const secondPayload = await second.json();
-    const wallet = await collection("fortune_tea_house_honey_wallets").findOne({ userId: USER_ID, serviceScope: SERVICE_SCOPE });
-    const spendLedgers = collection("fortune_tea_house_honey_ledgers").all().filter((row) => row.type === "spend");
-
-    expect(firstPayload.success).toBe(true);
-    expect(firstPayload.spent).toBe(10);
-    expect(firstPayload.honeyLetter.body.length).toBeGreaterThanOrEqual(800);
-    expect(secondPayload.success).toBe(true);
-    expect(secondPayload.spent).toBe(0);
-    expect(secondPayload.alreadyApplied).toBe(true);
-    expect(wallet.balance).toBe(0);
-    expect(spendLedgers).toHaveLength(1);
+  test('new letter requests never deduct even with enough balance', async () => {
+    const resultId = await seedReadyResult({ balance: 30 });
+    expect((await sendLegacyLetter(resultId)).status).toBe(403);
+    expect((await sendLegacyLetter(resultId)).status).toBe(403);
+    expect(collection('fortune_tea_house_honey_wallets').all()[0].balance).toBe(30);
+    expect(callGeminiTextMock).not.toHaveBeenCalled();
   });
 
   test("운명의 찻집 외부 scope 결과에는 꿀방울을 사용할 수 없다", async () => {
@@ -698,38 +619,13 @@ describe("fortune tea house honey drops", () => {
     const { status, payload } = await readJson(response);
     const wallet = await collection("fortune_tea_house_honey_wallets").findOne({ userId: USER_ID, serviceScope: SERVICE_SCOPE });
 
-    expect(status).toBe(503);
-    expect(payload.errorCode).toBe("YEONI_HONEY_LETTER_GENERATION_FAILED");
+    expect(status).toBe(403);
+    expect(payload.errorCode).toBe("HONEY_GGULGGUL_ONLY");
     expect(wallet.balance).toBe(10);
     expect(collection("fortune_tea_house_honey_ledgers").all().filter((row) => row.type === "spend")).toHaveLength(0);
   });
 
-  test("꿀편지 저장 실패 시 차감한 꿀방울을 환급한다", async () => {
-    const resultId = await seedReadyResult({ balance: 10 });
-    const results = collection("fortune_tea_house_results");
-    const updateOne = results.updateOne.bind(results);
-    results.updateOne = async (query, update, options) => {
-      if (update?.$set?.honeyLetter) return { matchedCount: 1, modifiedCount: 0, upsertedCount: 0 };
-      return updateOne(query, update, options);
-    };
 
-    const response = await handleFortuneTeaHouseRoutes(new Request(`https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}/honey-letter`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ idempotencyKey: "store-fails" }),
-    }), { NODE_ENV: "test", FORTUNE_TEA_HOUSE_HONEY_LETTER_TEST_TEXT: longHoneyLetter() });
-    const { status, payload } = await readJson(response);
-    const wallet = await collection("fortune_tea_house_honey_wallets").findOne({ userId: USER_ID, serviceScope: SERVICE_SCOPE });
-    const ledgers = collection("fortune_tea_house_honey_ledgers").all();
-    const resultDoc = await results.findOne({ userId: USER_ID, resultId });
-
-    expect(status).toBe(500);
-    expect(payload.errorCode).toBe("YEONI_HONEY_LETTER_SAVE_FAILED");
-    expect(wallet.balance).toBe(10);
-    expect(ledgers.filter((row) => row.type === "spend")).toHaveLength(1);
-    expect(ledgers.filter((row) => row.type === "refund")).toHaveLength(1);
-    expect(resultDoc.honeyLetter).toBeUndefined();
-  });
 });
 
 
@@ -1029,6 +925,56 @@ describe.each(["membership_pass", "monthly", "single"])("delivery recovery: %s",
 });
 
 
+test('specialist saju rejects a health prediction, resumes only that group and rereads without generation', async () => {
+  const body = { ...consultBodyForMode('saju', 'specialist-health-resume'), sajuReportVersion: 'saju-specialist-v1' };
+  let rejectedHealth = false;
+  let sequence = 0;
+  const long = (label, minimum = 2200) => {
+    let text = '';
+    while (text.replace(/\s/g, '').length < minimum) {
+      const n = ++sequence;
+      text += `${label}의 ${n}번째 확인에서는 일간과 오행, 십성을 주어진 근거 안에서 읽고 대운과 세운을 생활의 선택에 연결합니다. ${label} 점검 ${n}에서는 금전과 소비, 30일의 투자 계획을 현실의 일정과 비교하며 회복할 시간과 협력할 조건을 구분합니다.\n`;
+    }
+    return text;
+  };
+  callGeminiTextMock.mockImplementation(async (_env, raw) => {
+    const prompt = JSON.parse(raw);
+    expect(prompt.focusRule).toContain('각각 독립 장');
+    const output = clone(collection('fortune_tea_house_results').all()[0].generationCheckpoint.fallback);
+    output.saju.deepSections = (prompt.groupRule.exactSectionTitles || []).map(title => ({ title, body: long(title) }));
+    output.questionSummary = long('질문의 답');
+    output.saju.summary = long('명식 요약');
+    output.emotionAnalysis = output.emotionAnalysis.map(item => ({ ...item, description: long(item.label, 500) }));
+    for (const key of Object.keys(output.yeoniReading)) output.yeoniReading[key] = long(key, 1200);
+    output.synthesis.summary = long('종합 선택', 1200);
+    output.choiceSimulation = output.choiceSimulation.map((item, i) => ({ ...item, result: long(`선택${i}`, 450), caution: long(`보류${i}`, 450) }));
+    output.actionPrescription = long('실행 순서', 1200);
+    output.closingLine = '실제 생활에서 확인한 변화와 회복의 시간을 함께 기록해 보세요.';
+    if (!rejectedHealth && prompt.groupRule.exactSectionTitles?.some(title => title.includes('건강과 생활 리듬'))) {
+      rejectedHealth = true;
+      output.saju.deepSections.at(-1).body += ' 내년에 심장병에 걸릴 가능성이 높습니다.';
+    }
+    return { ok: true, provider: 'gemini', text: JSON.stringify(output) };
+  });
+  const post = () => handleFortuneTeaHouseRoutes(new Request('https://example.com/api/fortune-tea-house/consult', {
+    method:'POST', headers:{'content-type':'application/json','cf-connecting-ip':'specialist-resume'}, body:JSON.stringify(body),
+  }), { NODE_ENV:'test', GEMINIF_API_KEY:'mock-key' }).then(readJson);
+  let response;
+  for (let wave = 0; wave < 5; wave += 1) {
+    response = await post();
+    if (response.status !== 202 || response.payload.retryable === false) break;
+  }
+  const saved = collection('fortune_tea_house_results').all()[0];
+  expect({status:response.status,quality:saved?.generationCheckpoint?.qualityError}).toEqual({status:200,quality:undefined});
+  expect(rejectedHealth).toBe(true);
+  expect(response.payload.result.sajuReportVersion).toBe('saju-specialist-v1');
+  expect(response.payload.result.saju.deepSections.some(section => section.title.includes('건강과 생활 리듬'))).toBe(true);
+  expect(JSON.stringify(response.payload.result)).not.toContain('심장병에 걸릴');
+  expect(callGeminiTextMock).toHaveBeenCalledTimes(7);
+  expect((await post()).payload.cached).toBe(true);
+  expect(callGeminiTextMock).toHaveBeenCalledTimes(7);
+});
+
 test('sukuyo completes saved groups while preserving calculated relationship facts', async () => {
   const body = consultBodyForMode('sukuyo', 'sukuyo-checkpoint-complete');
   let facts;
@@ -1037,7 +983,8 @@ test('sukuyo completes saved groups while preserving calculated relationship fac
     facts = prompt.preserveExactly.sukuyoCompatibility;
     const output = teaFixtures.buildLlmPayload('three');
     const long = (label, count) => Array.from({length: count}, (_, i) => `${label} 사례 ${i}는 ${facts.user.sukuyoName}와 ${facts.partner.sukuyoName}의 ${facts.relationType} 관계를 주어진 계산값 안에서 설명합니다. ${label} 조건 ${i}에서는 두 사람의 대화 속도와 현실의 약속을 비교하고 상대의 마음을 단정하지 않으며 구체적인 확인 행동을 선택합니다.`).join('\n');
-    output.sukuyoCompatibility = { title: '두 사람의 본명숙 관계', summary: long('요약', 36), strengths: [long('강점', 24)], cautions: [long('주의', 24)], adviceKeywords: ['거리 확인', '약속 정리'], relationType: '계산값 변조', scores: {total: 100} };
+    output.sukuyoCompatibility = { title: '두 사람의 본명숙 관계', summary: long('요약', 36), strengths: [long('강점', 24)], cautions: [long('주의', 24)], adviceKeywords: ['거리 확인', '약속 정리'], relationType: '계산값 변조', scores: {total: 100},
+      chapters: ['월별 흐름 — 두 별의 석 달', '관계 처방 — 서로에게 맞는 거리와 말', '실행 체크리스트 — 함께 확인할 것'].map(title => ({title, body: long(title, 20)})) };
     return {ok: true, provider: 'gemini', text: JSON.stringify(output)};
   });
   let response;
@@ -1049,7 +996,7 @@ test('sukuyo completes saved groups while preserving calculated relationship fac
   expect({status: response.status, quality: saved?.generationCheckpoint?.qualityError}).toEqual({status: 200, quality: undefined});
   expect(response.payload.result.sukuyoCompatibility.relationType).toBe(facts.relationType);
   expect(response.payload.result.sukuyoCompatibility.scores).toEqual(facts.scores);
-  expect(callGeminiTextMock).toHaveBeenCalledTimes(8);
+  expect(callGeminiTextMock).toHaveBeenCalledTimes(11);
 });
 
 async function sukuyoConsultResponse(attemptId, mutate) {
@@ -1073,4 +1020,98 @@ test('sukuyo consult ignores an available flag forged on the client draft', asyn
   });
   expect(forged.status).toBe(422);
   expect(callGeminiTextMock).not.toHaveBeenCalled();
+});
+
+describe("tea follow-up question", () => {
+  const results = () => collection("fortune_tea_house_results");
+  const env = { NODE_ENV: "test", GEMINIF_API_KEY: "mock-key" };
+  const long = (label, n) => Array.from({ length: n }, (_, i) => `${label} ${i + 1}번째 장면에서 같은 카드의 흐름을 차분히 짚어 봅니다.`).join(" ");
+  const answer = { answerTitle: "이직 시기", directAnswer: long("핵심", 14), evidence: [long("현재", 10), long("흐름", 10), long("조언", 10)], guidance: long("해볼 일", 14), caution: long("주의", 6), closing: "천천히 정해도 늦지 않아요." };
+  const reply = { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(answer) };
+  // 앞 스위트의 모의 구현이 남지 않게, 모델은 기본으로 실패한다.
+  beforeEach(() => callGeminiTextMock.mockReset().mockResolvedValue({ ok: false, error: "external_call_blocked" }));
+  const ask =async (resultId, clientQuestionId, question = "이직은 언제쯤 움직이면 좋을까요?") => {
+    const response = await handleFortuneTeaHouseRoutes(new Request(`https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}/follow-up`, {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question, clientQuestionId }),
+    }), env);
+    return { status: response.status, retryAfter: response.headers.get("Retry-After"), payload: await response.json() };
+  };
+  // 실제 체크포인트 경로로 결제된 타로 상담을 끝낸다. 추가 질문은 이 문서의 서버 체크포인트로 근거를 다시 만든다.
+  async function completedTarot(id) {
+    paidAccessAllowed = false;
+    callGeminiTextMock.mockImplementation(async () => ({ ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(teaFixtures.buildLlmPayload("three")) }));
+    await seedBillingEvidence({ featureKey: FEATURE_KEYS.tarot, requestId: id });
+    const body = { ...teaFixtures.consultBody({ attemptId: id }), requestId: id, idempotencyKey: id, billingGate: billingGatePayload(FEATURE_KEYS.tarot, id) };
+    for (let wave = 0; wave < 12; wave += 1) {
+      const response = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/consult", {
+        method: "POST", headers: { "content-type": "application/json", "cf-connecting-ip": id }, body: JSON.stringify(body),
+      }), env);
+      if (response.status === 200) {
+        callGeminiTextMock.mockReset();
+        return { body, doc: results().all()[0] };
+      }
+    }
+    throw new Error("mock wave budget exhausted");
+  }
+
+  test("a saved tarot result answers one follow-up from the same stored cards", async () => {
+    const { doc } = await completedTarot("follow-up-cards");
+    let prompt;
+    callGeminiTextMock.mockImplementation(async (_env, raw, options) => { prompt = { input: JSON.parse(raw), options }; return reply; });
+    const answered = await ask(doc.resultId, "client-question-1");
+    expect(answered.status).toBe(200);
+    expect(answered.payload).toMatchObject({ ok: true, alreadyApplied: false, followUpAllowance: { limit: 1, used: 1, remaining: 0 } });
+    expect(answered.payload.followUp.answer.evidence).toHaveLength(3);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(1);
+    expect(prompt.input.tarotFactInput.spreadCards.map((card) => card.cardId)).toEqual(doc.generationCheckpoint.fallback.tarotSpreadCards.map((card) => card.cardId));
+    expect(prompt.input.followUpQuestion).toBe("이직은 언제쯤 움직이면 좋을까요?");
+    expect(prompt.options).toMatchObject({ fallbackToWorkersAI: false, thinkingBudget: 0, responseMimeType: "application/json" });
+    expect(prompt.options.systemPrompt).toContain("새 카드를 뽑지 않는다");
+    const saved = results().all()[0];
+    expect(saved.leaseFollowUp).toBeUndefined();
+    expect(saved.followUps).toHaveLength(1);
+    const detail = await readJson(await handleFortuneTeaHouseRoutes(new Request(`https://example.com/api/fortune-tea-house/results/${encodeURIComponent(doc.resultId)}`), env));
+    expect(detail.payload.result.followUps[0].question).toBe("이직은 언제쯤 움직이면 좋을까요?");
+    expect(detail.payload.result.followUps[0].model).toBeUndefined();
+  });
+
+  test("the same client id replays the saved answer and a second question is refused", async () => {
+    const resultId = await seedReadyResult({ resultId: "fortune-tea-house:follow-up-once" });
+    callGeminiTextMock.mockResolvedValue(reply);
+    expect((await ask(resultId, "client-question-1")).status).toBe(200);
+    const replay = await ask(resultId, "client-question-1");
+    expect([replay.status, replay.payload.alreadyApplied]).toEqual([200, true]);
+    const second = await ask(resultId, "client-question-2", "그럼 연애운은 어떤가요?");
+    expect([second.status, second.payload.errorCode, second.payload.followUpAllowance.remaining]).toEqual([409, "FOLLOW_UP_LIMIT_REACHED", 0]);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(1);
+    expect(results().all()[0].followUps).toHaveLength(1);
+  });
+
+  test("an active lease waits with 202 and a failed answer keeps the allowance", async () => {
+    const resultId = await seedReadyResult({ resultId: "fortune-tea-house:follow-up-busy" });
+    await results().updateOne({ resultId }, { $set: { leaseFollowUp: { token: "other", clientQuestionId: "client-question-0", expiresAt: new Date(Date.now() + 60000) } } });
+    const busy = await ask(resultId, "client-question-1");
+    expect([busy.status, busy.payload.errorCode, busy.retryAfter]).toEqual([202, "FOLLOW_UP_IN_PROGRESS", "5"]);
+    expect(callGeminiTextMock).not.toHaveBeenCalled();
+    await results().updateOne({ resultId }, { $set: { "leaseFollowUp.expiresAt": new Date(0) } });
+    const failed = await ask(resultId, "client-question-1");
+    expect([failed.status, failed.payload.errorCode, failed.payload.retryable, failed.payload.followUpAllowance.remaining]).toEqual([503, "FOLLOW_UP_GENERATION_FAILED", true, 1]);
+    const saved = results().all()[0];
+    expect([saved.followUps, saved.leaseFollowUp]).toEqual([undefined, undefined]);
+  });
+
+  test("a refund during generation saves nothing and other accounts cannot ask", async () => {
+    const { body, doc } = await completedTarot("follow-up-revoked");
+    authState = { userId: "64f0a1b2c3d4e5f678901999", role: "user" };
+    expect((await ask(doc.resultId, "client-question-1")).status).toBe(404);
+    authState = { userId: USER_ID, role: "user" };
+    callGeminiTextMock.mockImplementation(async () => {
+      await collection("paid_execution_records").updateOne({ requestId: body.requestId }, { $set: { status: "refunded" } });
+      return reply;
+    });
+    const revoked = await ask(doc.resultId, "client-question-1");
+    expect([revoked.status, revoked.payload.errorCode]).toEqual([403, "RESULT_REVOKED"]);
+    const saved = results().all()[0];
+    expect([saved.followUps, saved.leaseFollowUp]).toEqual([undefined, undefined]);
+  });
 });

@@ -8,10 +8,10 @@
 <script src="/js/core/paid-narrative-reader.js"></script>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
 <script src="/js/inline/api-base-init.js" defer></script>
-<script src="/js/core/pass-verdict.js?v=build-6c9b9d6bbb38"></script>
-<script src="/js/core/checkout-entry.js?v=build-6c9b9d6bbb38"></script>
+<script src="/js/core/pass-verdict.js?v=build-1711b2150559"></script>
+<script src="/js/core/checkout-entry.js?v=build-1711b2150559"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-9c92542eb04f"></script>
+<script src="/js/destiny-profile.js?v=build-2d81696a26c1"></script>
 <style>
   :root {
     --bg-void: #05030f;
@@ -219,6 +219,7 @@
   }
   .input-card::before {
     content: '';
+    pointer-events: none;
     position: absolute;
     top: -100px; right: -100px;
     width: 300px; height: 300px;
@@ -227,6 +228,7 @@
   }
   .input-card::after {
     content: '';
+    pointer-events: none;
     position: absolute;
     bottom: -80px; left: -80px;
     width: 250px; height: 250px;
@@ -1147,6 +1149,7 @@
       margin-left: 56px;
     }
   }
+#inputSection>.oracle-crafted{margin:24px auto}
 </style>
 <link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
 <style data-cd-r2-static-fonts>
@@ -1268,13 +1271,13 @@ button,input,select,textarea{font-family:var(--font-body)!important}
             <div class="deity">🐘</div>
             <div class="time">30분</div>
             <div class="name">Ganesha's Awakening</div>
-            <div class="desc">장애물을 걷어내는 가네샤의 기운 · 활력 회복 · 스트레스 해소 · 이용료 3,000원</div>
+            <div class="desc">가네샤의 상징을 담은 30분 수련 구성 · 이용료 5,000원</div>
           </button>
           <button class="duration-btn" data-duration="60" onclick="selectDuration(this, 60)">
             <div class="deity">🔱</div>
             <div class="time">60분</div>
             <div class="name">Shiva's Transformation</div>
-            <div class="desc">시바의 파괴와 재창조 에너지 · 유연성 극대화 · 깊은 내면 탐구 · 이용료 3,000원</div>
+            <div class="desc">시바의 상징을 담은 60분 수련 구성 · 이용료 5,000원</div>
           </button>
         </div>
       </div>
@@ -1308,7 +1311,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       </div>
 
       <button class="invoke-btn" id="invokeBtn" onclick="invokeGuru()">
-        ✦ 나만의 영적 여정 소환하기 ✦
+        나의 수련 코스 만들기
       </button>
     </div>
   </div>
@@ -2103,7 +2106,7 @@ async function invokeGuru() {
   const pickedDuration=selectedDuration;
   yogaSaved={requestId:'yoga:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9)};
   const billingEpoch=yogaEpoch;
-  const sessionCost = 30;
+  const sessionCost = 50;
   yogaPaying=true;if(invokeBtn)invokeBtn.disabled=true;
   try{
     const paid=await _consumeMeditationCoin(sessionCost,'openYogaGuru '+pickedDuration+'분 코스',buildYogaResumeDescriptor(mood,pickedDuration));
@@ -2511,6 +2514,10 @@ function escapeHtml(value) {
 }
 
 initPageState();
+</script>
+<script type="module">
+import {mountOracleCraftedDetails} from "/js/core/oracle/crafted-details.mjs";
+mountOracleCraftedDetails(document.getElementById("inputSection"),{target:".input-card",id:"divya-yoga",title:"Divya Yoga"});
 </script>
 </body>
 </html>

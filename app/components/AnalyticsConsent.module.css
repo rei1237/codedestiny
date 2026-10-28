@@ -1,0 +1,71 @@
+.banner {
+  --ac-night: var(--cd-neo-letter-night);
+  --ac-ink: var(--cd-neo-letter-paper);
+  --ac-muted: var(--cd-neo-letter-silver);
+  --ac-gold: var(--cd-neo-letter-gold);
+  --ac-line: color-mix(in srgb, var(--ac-gold) 46%, transparent);
+  position: fixed;
+  z-index: 100260;
+  inset-inline: 16px;
+  bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  max-width: 520px;
+  max-height: 55dvh;
+  overflow-y: auto;
+  margin-inline: auto;
+  padding: 28px;
+  border: 1px solid var(--ac-line);
+  border-radius: var(--cd-r-card, 20px);
+  background: var(--ac-night);
+  color: var(--ac-ink);
+  box-shadow: 0 16px 48px var(--cd-neo-letter-shadow), inset 0 0 0 5px var(--ac-night), inset 0 0 0 6px color-mix(in srgb, var(--ac-gold) 12%, transparent);
+  font-family: var(--font-body, sans-serif);
+  color-scheme: dark;
+  scrollbar-color: var(--ac-line) var(--ac-night);
+}
+.heading { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.ornament {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  background: var(--cd-yehwa-line);
+  mask: var(--cd-button-sprig-mask) center / contain no-repeat;
+}
+.banner h2 { margin: 0; font: 700 20px/1.6 var(--font-serif, serif); color: var(--ac-ink); word-break: keep-all; text-wrap: balance; }
+.banner p { margin: 0 0 20px; font-size: 14px; line-height: 1.8; color: var(--ac-muted); word-break: keep-all; }
+.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.actions button {
+  min-height: 48px;
+  padding: 12px;
+  border: 1px solid var(--ac-gold, var(--cd-neo-letter-gold));
+  border-radius: var(--cd-r-control, 12px);
+  background: var(--ac-night, var(--cd-neo-letter-night));
+  color: var(--ac-ink, var(--cd-neo-letter-paper));
+  font: 600 14px/1.5 var(--font-body, sans-serif);
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+.actions a { grid-column: 1 / -1; justify-self: center; display: inline-flex; align-items: center; min-height: 44px; padding: 6px 4px; color: var(--ac-muted); text-decoration: underline; text-underline-offset: 4px; font-size: 12px; }
+.actions :focus-visible, .banner:focus-visible { outline: 2px solid var(--ac-gold, var(--cd-neo-letter-gold)); outline-offset: 3px; }
+.banner .error { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--ac-line); color: var(--ac-ink); }
+.banner ::selection { background: var(--ac-gold); color: var(--ac-night); }
+@media (hover: hover) {
+  .actions button:hover { background: var(--cd-neo-letter-blue); }
+  .actions a:hover { color: var(--ac-ink); }
+}
+.actions button:active { background: var(--cd-neo-letter-blue-hover); }
+@media (max-width: 768px) {
+  .banner { padding: 16px; }
+  .heading { gap: 8px; margin-bottom: 8px; }
+  .ornament { flex-basis: 24px; width: 24px; height: 24px; }
+  .banner h2 { font-size: 16px; line-height: 1.45; }
+  .banner p { margin-bottom: 12px; line-height: 1.6; }
+  .actions { gap: 4px 8px; }
+  .actions button { padding-inline: 8px; }
+}
+@media (min-width: 769px) {
+  .banner { inset-inline: auto 24px; }
+  .banner { bottom: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .actions button { transition: none; }
+}

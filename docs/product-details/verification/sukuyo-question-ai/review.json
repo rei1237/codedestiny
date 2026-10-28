@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP10",
+  "mobile": "Personal and compatibility entries SHIP;CTA4 correction rechecked",
+  "checks": "4 widths, every clipping ancestor, image fallback PASS;static2/ESLint/syntax PASS",
+  "limits": "All API mocked;no paid AI submission or purchase;main/CI pending"
+}

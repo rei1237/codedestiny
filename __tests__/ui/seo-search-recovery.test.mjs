@@ -9,7 +9,7 @@ import vm from 'node:vm';
 const root = process.cwd();
 const read = p => readFileSync(resolve(root, p), 'utf8');
 const legacy = read('js/share.js').match(/\(function removeCompletedVersionQuery\(\) \{[\s\S]*?\}\)\(\);/)[0];
-const react = read('app/components/AppVersionGuard.tsx').split('// Keep the cache-busting request, but do not leave build URLs to be shared.')[1].split('    void retireLegacyServiceWorkersOnce();')[0];
+const react = read('app/components/AppVersionGuard.tsx').match(/\(function removeCompletedVersionQuery\(\) \{[\s\S]*?\}\)\(\);/)[0];
 for (const [name, source] of [['shell', legacy], ['React', react]]) {
   test(`${name}: completed refresh keeps action, payment resume, hash and history state`, () => {
     const state = { __NA: true, tree: ['existing router state'] };
@@ -35,7 +35,7 @@ test('first-screen translations render before JS; missing translations fail the 
   const fixture = mkdtempSync(join(tmpdir(), 'cd-seo-locale-'));
   try {
     const html = read('templates/home-funnel.html');
-    const hero = html.match(/<h1 id="cdhTitle">[\s\S]*?<\/h1>/)[0];
+    const hero = html.match(/<h1 id="cdhTitle"[^>]*>[\s\S]*?<\/h1>/)[0];
     for (const [locale, dictionary] of [['en','en'],['ja','ja'],['zh','zh-cn'],['zh-tw','zh-tw']]) {
       mkdirSync(join(fixture, 'dist', locale), { recursive: true });
       mkdirSync(join(fixture, 'public', 'i18n'), { recursive: true });
@@ -51,8 +51,8 @@ test('first-screen translations render before JS; missing translations fail the 
       assert.match(output, /data-cd-origin-text=/, 'runtime Korean restoration is preserved');
     }
     const bad = JSON.parse(read('public/i18n/ja.json'));
-    // 히어로 제목이 실제로 쓰는 키(2026-10-03 운세 정원 개편 뒤 home.gardenCopy.heroTitle)를 지운다.
-    delete bad.home.gardenCopy.heroTitle;
+    // 히어로 제목이 실제로 쓰는 키(2026-10-17 "직관성" 단순화 뒤 home.simpleHome.title)를 지운다.
+    delete bad.home.simpleHome.title;
     writeFileSync(join(fixture, 'public/i18n/ja.json'), JSON.stringify(bad));
     assert.notEqual(run().status, 0);
   } finally {

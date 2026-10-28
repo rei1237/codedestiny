@@ -1,0 +1,80 @@
+{
+  "id": "island-report",
+  "featureKey": "ziwei-island-deep-report",
+  "title": "운명의 섬 12궁 전체 심층 리포트",
+  "notice": "저장된 본인 프로필의 출생 정보로 명반과 섬의 청사진을 계산해 해석 규칙으로 풀어내는 정적 리포트입니다. 안내 장의 용어·명반 골격에 이어12궁 각각3~4개 주제를 제공합니다. 주성강약·보좌성·긴장요인·사화·삼방사정과 제공된 대한자료를 읽으며,궁별 보기·전체펼침·PDF저장을 지원합니다. 궁과 자료에 따라 내용은 달라집니다. 계정과 저장된 출생정보를 기준으로 해금하므로 저장프로필이 필요하며 다른출생정보는 별도조건을 확인합니다. 시간미상은 정오참고명반의 한계가 있습니다. 건물단계는 상징표현으로 사람의 가치·성공등급이 아니며,건강·재물·시기는 진단이나성과보장이 아닙니다. 새AI답변을 생성하는 한궁상담과15챕터 심화PDF상품은 별도입니다. 예시는 가상편집으로 실제결과·후기가 아니며 이미지는 섬의 분위기연출입니다. 현재해금조건을 확인해 주세요.",
+  "panels": [
+    {
+      "id": "01-read-the-island-beyond-the-map",
+      "title": "섬의 풍경 뒤에, 열두 이야기가 있어요.",
+      "alt": "섬의 풍경 뒤에, 내 삶의 열두 이야기가 있어요.",
+      "src": "/feature-details/crafted/island-report/01-read-the-island-beyond-the-map.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "섬의 풍경 뒤에,\n열두 이야기가 있어요.\n\n지도에서 눈길이 머물렀던 자리,\n왜 그런 모습으로 그려졌을까요?\n열두 궁의 근거를 글로 펼쳐 읽어요.\n\n운명의 섬 12궁 전체 심층 리포트."
+    },
+    {
+      "id": "02-a-reading-guide-before-the-palaces",
+      "title": "용어와 명반의 골격부터, 차근차근 안내해요.",
+      "alt": "용어와 명반의 골격부터, 차근차근 안내해요.",
+      "src": "/feature-details/crafted/island-report/02-a-reading-guide-before-the-palaces.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "용어와 명반의 골격부터,\n차근차근 안내해요.\n\n첫 안내 장에서 주성·보좌성·살성,\n사화·삼방사정의 뜻을 쉽게 읽어요.\n명궁과 신궁, 오행국, 태어난 해의\n사화가 만드는 바탕도 함께 살펴요.\n\n타고난 성향과\n실제로 힘을 쏟는 곳은\n어떻게 연결될까요?\n\n명반과 섬의 계산 자료를 해석 규칙으로\n풀어내는 리포트예요.\n질문을 받아 새 AI 답변을 쓰지는 않아요."
+    },
+    {
+      "id": "03-the-centre-and-everyday-life",
+      "title": "나의 중심에서, 일과 사랑과 회복까지.",
+      "alt": "나의 중심에서, 일과 사랑과 회복까지.",
+      "src": "/feature-details/crafted/island-report/03-the-centre-and-everyday-life.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 중심에서,\n일과 사랑과 회복까지.\n명궁 · 운명의 성\n\n본질·강점·그림자\n올해의 과제\n\n재백궁 · 광산\n\n재물 성향·구조\n흐름과 돈 선택\n\n관록궁 · 전략실\n\n적성·성취 경로\n전환과 일 조언\n\n부부궁 · 정원\n\n인연의 형태\n리듬과 관계 유지\n\n복덕궁 · 도서관\n\n정신의 결·즐거움\n회복하는 방식\n\n질액궁 · 성소\n\n체질 경향·리듬\n몸과 마음 조언\n\n건강 관련 해설은 생활 참고이며\n의료 진단이 아니에요."
+    },
+    {
+      "id": "04-the-world-around-you",
+      "title": "가까운 사람과 바깥 세상, 머물고 기르는 자리.",
+      "alt": "가까운 사람과 바깥 세상, 머물고 기르는 자리.",
+      "src": "/feature-details/crafted/island-report/04-the-world-around-you.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "가까운 사람과 바깥 세상,\n머물고 기르는 자리.\n천이궁 · 항구\n\n이동 적성\n방향과 변화 조언\n\n부모궁 · 신전\n\n윗사람과의 관계\n패턴과 화해\n\n형제궁 · 숲\n\n가까운 관계 지형\n갈등과 회복\n\n노복궁 · 광장\n\n인맥과 도움\n지켜야 할 경계\n\n자녀궁 · 놀이터\n\n자녀와 창작\n기르는 힘과 돌봄\n\n전택궁 · 집\n\n거처와 터전\n시기와 공간 조언\n\n궁마다 3~4개의 다른 주제로 읽어요."
+    },
+    {
+      "id": "05-a-palace-is-connected",
+      "title": "한 자리만 보지 않고, 연결된 근거를 함께 읽어요.",
+      "alt": "한 자리만 보지 않고, 이웃한 근거를 함께 읽어요.",
+      "src": "/feature-details/crafted/island-report/05-a-palace-is-connected.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 자리만 보지 않고,\n연결된 근거를 함께 읽어요.\n\n주성과 별의 강약, 보좌성과 긴장 요인,\n사화와 마주 보는 궁의 관계를 엮어\n해설을 구성해요.\n\n이해를 돕는 가상 편집 예시\n\n“사람을 돕는 힘이 커도,\n내 일정까지 내어주고 있다면\n함께할 범위를 먼저 정해보세요.”\n\n실제 결과나 고객 후기가 아니에요.\n제공된 명반 자료에 따라 근거와\n대한·시기 해설은 달라져요."
+    },
+    {
+      "id": "06-read-the-buildings-as-symbols",
+      "title": "섬의 건물은, 내 가치의 등급이 아니에요.",
+      "alt": "섬의 건물은, 내 가치를 매기는 등급이 아니에요.",
+      "src": "/feature-details/crafted/island-report/06-read-the-buildings-as-symbols.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "섬의 건물은,\n내 가치의 등급이 아니에요.\n\n폐허·오두막·저택·궁전·신전은\n계산 자료를 풍경으로 옮긴 상징이에요.\n부족한 사람과 뛰어난 사람을\n나누는 이름이 아니에요.\n\n해설의 강점과 주의점을 함께 읽고,\n지금 만들 수 있는 습관과\n생활의 조건을 살펴보세요.\n\n풍경은 실제 명반 도식이 아닌 연출이에요."
+    },
+    {
+      "id": "07-read-one-palace-or-the-whole-island",
+      "title": "궁별로 넘겨 읽고, PDF로 다시 읽어요.",
+      "alt": "궁별로 넘겨 읽고, 전체를 펼쳐 PDF로 남겨요.",
+      "src": "/feature-details/crafted/island-report/07-read-one-palace-or-the-whole-island.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "궁별로 넘겨 읽고,\nPDF로 다시 읽어요.\n\n안내 장 다음에는 고른 궁을 먼저,\n나머지 궁을 차례로 보여줘요.\n궁별로 읽거나 전체 본문을 펼쳐\n필요한 부분을 돌아볼 수 있어요.\n\n오늘은 지금의 고민과 닿는 궁,\n다음에는 그 궁과 연결된 자리.\n\n제공된 PDF 저장 기능으로\n리포트를 디지털 파일로 남길 수 있어요.\n\n선택한 한 궁의 질문 AI 상담과\n15챕터 심화 PDF 상품은 별도예요."
+    },
+    {
+      "id": "08-check-the-saved-profile",
+      "title": "저장된 정보를 확인하고, 열두 궁을 펼치세요.",
+      "alt": "저장한 출생 정보를 확인하고, 열두 궁을 펼치세요.",
+      "src": "/feature-details/crafted/island-report/08-check-the-saved-profile.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "저장된 정보를 확인하고,\n열두 궁을 펼치세요.\n\n저장된 내 프로필의 생년월일·성별,\n양음력과 윤달·출생시각을 사용해요.\n시간 미상이면 정오 기준의\n참고 명반이라는 한계를 함께 읽어요.\n\n내가 고른 프로필과\n이번에 읽을 출생 정보가 맞나요?\n\n해금은 계정과 저장된 출생 정보에\n연결되며, 다른 출생 정보의 열람은\n별도 조건을 확인해야 해요.\n\n아래에서 현재 해금 조건을 확인하세요."
+    }
+  ]
+}

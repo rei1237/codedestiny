@@ -23,7 +23,7 @@
 .ynOriginal .room-notebook { display: grid; gap: 20px; max-height: 420px; overflow-y: auto; scrollbar-color: #745778 transparent; }
 .ynOriginal .room-note-entry { display: grid; gap: 14px; padding: 12px 0; }
 .ynOriginal .room-question { background: #463053; border-radius: 18px 18px 4px 18px; padding: 13px 16px; margin-left: 28px; }
-.ynOriginal .room-question span, .ynOriginal .room-guide span { font-size: 10px; color: #d8bddc; }
+.ynOriginal .room-question span, .ynOriginal .room-guide span { font-size: var(--yn-t-caption); color: #d8bddc; }
 .ynOriginal .room-question p, .ynOriginal .room-guide p { font-size: 13px; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 6px; }
 .ynOriginal .room-guide { display: flex; align-items: flex-start; gap: 10px; color: #eadccf; padding: 0 12px 0 2px; }
 .ynOriginal .room-guide > svg { flex-shrink: 0; margin-top: 3px; color: var(--gold); }
@@ -34,8 +34,9 @@
 .ynOriginal .room-composer textarea::placeholder { color: #baa9c5; font-size: 14px; }
 .ynOriginal .room-composer textarea:focus-visible { outline: 1px solid #d8bd87; outline-offset: 3px; }
 .ynOriginal .room-composer-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; }
-.ynOriginal .room-composer-actions > span { font-size: 10px; color: #cbb6d1; font-variant-numeric: tabular-nums; }
-.ynOriginal .room-composer-actions button { display: flex; align-items: center; gap: 10px; min-height: 44px; background: #6a477c; border: 1px solid #bb9867; border-radius: 12px; padding: 10px 15px; font-size: 12px; }
+.ynOriginal .room-composer-actions > span { font-size: var(--yn-t-caption); color: #cbb6d1; font-variant-numeric: tabular-nums; }
+.ynOriginal .room-composer-actions button { display: flex; align-items: center; gap: 10px; min-height: 44px; background: var(--yn-night); color: var(--yn-ivory); border: 1px solid var(--yn-line); border-radius: var(--yn-btn-radius); padding: 10px 15px; font-size: var(--yn-t-caption); }
+.ynOriginal .room-composer-actions button:hover:not(:disabled) { background: var(--yn-raised); }
 .ynOriginal .room-composer-actions button:disabled { opacity: .45; cursor: default; }
 .ynOriginal #room-input-note { color: #c5b2cf; font-size: 11px; line-height: 1.8; margin-top: 13px; }
 .ynOriginal .room-fortune-link { display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 44px; color: #eaca97; font-size: 12px; margin-top: 14px; }
@@ -105,3 +106,15 @@
 .ynOriginal .daily-tarot-reading>p {font-size:15px;line-height:1.9}
 .ynOriginal .daily-tarot-next {justify-content:center}
 @media(max-width:480px){.ynOriginal .daily-tarot-flip {gap:8px}.ynOriginal .daily-tarot-flip strong {font-size:14px}.ynOriginal .daily-tarot-position {font-size:13px}.ynOriginal .daily-tarot-copy h2 {font-size:23px}.ynOriginal .daily-tarot-copy p {font-size:14px}}
+.ynOriginal .daily-tarot-days{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.ynOriginal .daily-tarot-days button{min-height:44px;padding:10px 22px;border:1px solid var(--yn-line);border-radius:var(--yn-btn-radius);color:var(--yn-ivory);background:var(--yn-night);font-size:15px}
+.ynOriginal .daily-tarot-days button[aria-pressed="true"]{background:var(--yn-raised);color:var(--yn-ivory);border-color:var(--yn-gold)}
+.ynOriginal .daily-tarot-days button:hover{border-color:var(--yn-gold)}
+.ynOriginal .daily-tarot-days button:focus-visible{outline:3px solid #e8c78b;outline-offset:4px}
+.ynOriginal .daily-tarot-synthesis{width:100%;max-width:68ch;margin-inline:auto;position:relative;color:#f8eddd}
+.ynOriginal .daily-tarot-synthesis h3{font-family:var(--serif);font-size:24px;color:#f2d8aa;margin-bottom:16px}
+.ynOriginal .daily-tarot-synthesis h4{font-size:17px;color:#f2d8aa;margin:28px 0 10px}
+.ynOriginal .daily-tarot-synthesis p{font-size:16px;line-height:1.95;margin-bottom:16px;overflow-wrap:anywhere}
+.ynOriginal .daily-tarot-synthesis .daily-tarot-headline{font-family:var(--serif);font-size:19px;color:#f2d8aa}
+.ynOriginal .daily-tarot-note{max-width:68ch;margin-inline:auto;font-size:13px;line-height:1.8;color:#d1bfd5}
+.ynOriginal .room-free-nav{position:sticky;top:0;z-index:15;display:flex;justify-content:center;flex-wrap:wrap;gap:8px;padding:10px 12px;background:#171126;border-bottom:1px solid #795b8255}.ynOriginal .room-free-nav a{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;color:#f3d296;border:1px solid #a8865c66;border-radius:12px;font-size:.9rem;text-decoration:none}.ynOriginal .room-free-nav a:focus-visible{outline:2px solid #f3d296;outline-offset:3px}.ynOriginal .room-layout>#sorting-hat{grid-column:1/-1;scroll-margin-top:90px}.ynOriginal .room-stories>summary{cursor:pointer;min-height:48px;padding:16px;color:#e8d5a3}.ynOriginal :is(#daily,#daily-tarot){scroll-margin-top:90px}

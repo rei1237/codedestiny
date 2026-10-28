@@ -23,7 +23,13 @@ function visit(path, country, { headers = {}, method = 'GET', body } = {}) {
 test('fresh country arrivals select a supported language, never browser Korean; assets bypass the Worker', async () => {
   assert.ok(routes.include.includes('/*'));
   assert.ok(routes.exclude.includes('/_next/*'));
-  for (const [country, lang, path] of [['KR','ko','ggulggul'],['JP','ja','ja'],['CN','zh-CN','zh'],['TW','zh-TW','zh-tw'],['HK','zh-TW','zh-tw'],['MO','zh-TW','zh-tw'],['US','en','en'],['GB','en','en'],['BR','en','en'],['TH','en','en'],['XX','en','en'],[undefined,'en','en']]) {
+  // 2026-10-15: Korea gets the brand home itself (200), still with the geo cookies.
+  const home = await edge().fetch(visit('/?utm_source=test', 'KR', { headers: { 'Accept-Language': 'ko-KR', Cookie: 'cd_locale=ko; cd_locale_ack=1' } }), asset);
+  assert.equal(home.status, 200);
+  assert.equal(home.headers.get('Location'), null);
+  assert.match(home.headers.get('Set-Cookie'), /cd_geo_locale=ko/);
+  assert.equal(home.headers.get('Cache-Control'), 'private, no-store');
+  for (const [country, lang, path] of [['JP','ja','ja'],['CN','zh-CN','zh'],['TW','zh-TW','zh-tw'],['HK','zh-TW','zh-tw'],['MO','zh-TW','zh-tw'],['US','en','en'],['GB','en','en'],['BR','en','en'],['TH','en','en'],['XX','en','en'],[undefined,'en','en']]) {
     const response = await edge().fetch(visit('/?utm_source=test', country, { headers: { 'Accept-Language': 'ko-KR', Cookie: 'cd_locale=ko; cd_locale_ack=1' } }), asset);
     assert.equal(response.status, 302, country);
     assert.equal(response.headers.get('Location'), `https://code-destiny.test/${path}/?utm_source=test`);
@@ -64,8 +70,8 @@ test('explicit languages, query bytes, payment returns and crawler discovery rem
     assert.equal(response.headers.get('Location'), expected && 'https://code-destiny.test' + expected);
   }
   const bot = await worker.fetch(visit('/', 'US', { headers: { 'User-Agent': 'Googlebot' } }), asset);
-  assert.equal(bot.status, 301);
-  assert.equal(bot.headers.get('Location'), 'https://code-destiny.test/ggulggul/');
+  assert.equal(bot.status, 200);
+  assert.equal(bot.headers.get('Location'), null);
   assert.equal(bot.headers.get('Set-Cookie'), null);
   const image = await worker.fetch(visit('/logo.png', 'JP'), asset);
   assert.equal(image.headers.get('Set-Cookie'), null);
@@ -130,5 +136,17 @@ test('missing static locale editions fall back to an existing English page', asy
     const response = await edge().fetch(visit('/contact/',country),asset);
     assert.equal(response.status,302);
     assert.equal(response.headers.get('Location'),'https://code-destiny.test/en/contact/');
+  }
+});
+
+
+test('Yeti and other crawlers can fetch every language independently of edge country', async () => {
+  for (const agent of ['Yeti/1.1 (+http://naver.me/spd)', 'Googlebot', 'bingbot', 'OAI-SearchBot', 'facebookexternalhit']) {
+    for (const country of ['KR', 'US', 'JP']) for (const path of ['/', '/saju/', '/zh-tw/sukuyo/']) {
+      const response = await edge().fetch(visit(path, country, { headers: { 'User-Agent': agent } }), asset);
+      assert.equal(response.status, 200, agent + country + path);
+      assert.equal(response.headers.get('Location'), null);
+      assert.equal(response.headers.get('Set-Cookie'), null);
+    }
   }
 });

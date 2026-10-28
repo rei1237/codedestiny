@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 /**
@@ -24,6 +25,8 @@ import styles from "./ziwei-consultation.module.css";
 import { ziweiChapterPreview } from "@/lib/pdf/ziwei-report-plan";
 import { getPremiumZiweiCopy } from "./_lib/advanced-ziwei-copy";
 import { Download, History, Loader2, Sparkles } from "lucide-react";
+import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import { getExpertCharacter, getExpertLine, isExpertCharacterEnabled, MUSUNG_FEATHER_ASPECT, MUSUNG_FEATHER_STAGES } from "@/src/features/expert-characters";
 import { authFetch } from "@/app/_lib/auth-client";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import {
@@ -212,7 +215,13 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   }, []);
 
   const busy = phase === "checking" || phase === "payment" || phase === "generating";
-  const topic = FOCUS_OPTIONS.find((option) => option.value === focusArea)?.label || "";
+  // 무성 — 깃털은 실제 단계만 따른다: 확인·결제 먹색 → 생성 잿빛 → 완성 금빛.
+  const musungOn = isExpertCharacterEnabled("musung");
+  const musungGreet = getExpertLine("musung", "hero.sub", locale);
+  const musungLoading = getExpertLine("musung", phase === "generating" ? "loading.stream" : "loading.request", locale);
+  const musungError = getExpertLine("musung", "error", locale);
+  const musungCover = getExpertLine("musung", report?.complete ? "result.open" : "loading.stream", locale);
+  const topic =FOCUS_OPTIONS.find((option) => option.value === focusArea)?.label || "";
 
   const payload = useMemo(() => ({
     serviceType: FEATURE_KEY,
@@ -464,6 +473,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
       await exportZiweiReportPdf({
         chapters: report.chapters, title: report.label, date: report.generatedAt.slice(0, 10),
         fileName: `${copy.pdfFileNameStem}_${report.generatedAt.slice(0,10)}.pdf`,
+        ...(musungOn ? { byline: getExpertLine("musung", "pdf.byline", locale).text, coverArtSrc: getExpertCharacter("musung").hero.src } : {}),
       });
     } catch {
       setError(copy.pdfDownloadError);
@@ -471,12 +481,15 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   }
 
   return (
+    <>
+    {phase !== "ready" && locale === "ko" && <div style={{maxWidth:540,margin:"24px auto"}}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
     <section className={`${styles.surface} rounded-xl border border-white/20 p-5 md:p-7`}>
       <div className="relative z-10">
         <h3 className="font-display mt-2 text-xl font-black text-white md:text-2xl">{copy.title}</h3>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-200/85">
           {copy.introPrefix}<b className="text-amber-100">{copy.introBold}</b>{copy.introSuffix}
         </p>
+        {phase === "idle" && <ExpertCharacterStage character="musung" mood={musungGreet.mood} line={musungGreet.text} placement="inline" locale={locale} className="mt-4 max-w-xl" />}
 
         {phase !== "ready" && (
           <div className="mt-5 grid gap-4">
@@ -560,6 +573,19 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
           </div>
         )}
 
+        {busy && (
+          <ExpertCharacterStage
+            character="musung"
+            mood={musungLoading.mood}
+            line={musungLoading.text}
+            placement="loading"
+            locale={locale}
+            spriteOverride={MUSUNG_FEATHER_STAGES[phase === "generating" ? 1 : 0]}
+            spriteAspect={MUSUNG_FEATHER_ASPECT}
+            className="mt-5"
+          />
+        )}
+
         {phase === "generating" && (
           <div className="mt-4 flex items-center gap-3 rounded-xl border border-sky-300/25 bg-sky-400/10 px-4 py-3">
             <Loader2 className="h-4 w-4 animate-spin text-sky-200" />
@@ -570,6 +596,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
           </div>
         )}
 
+        {error && <ExpertCharacterStage character="musung" mood={musungError.mood} line={musungError.text} placement="inline" locale={locale} className="mt-4" />}
         {error && (
           <p role="alert" className="mt-4 rounded-xl border border-rose-400/35 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">{error}</p>
         )}
@@ -607,6 +634,16 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
             <div ref={reportRef} id="ziwei-deep-pdf-report" className="mt-4 grid gap-4">
               <section data-ziwei-pdf-section className={styles.pdfCover}>
                 <h4>{report.label}</h4><p>{report.generatedAt.slice(0,10)}</p>
+                <ExpertCharacterStage
+                  character="musung"
+                  mood={musungCover.mood}
+                  line={musungCover.text}
+                  placement="result"
+                  locale={locale}
+                  spriteOverride={MUSUNG_FEATHER_STAGES[report.complete ? 2 : 1]}
+                  spriteAspect={MUSUNG_FEATHER_ASPECT}
+                  className="mt-3"
+                />
               </section>
               {report.chapters.map((ch, index) => (
                 <article key={ch.id} data-ziwei-pdf-section className={styles.pdfChapter}>
@@ -619,5 +656,6 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
         )}
       </div>
     </section>
+    </>
   );
 }

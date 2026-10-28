@@ -1,0 +1,137 @@
+{
+  "id": "yeongnyangi-sukuyo-mackerel",
+  "featureKey": "yeongnyangi-sukuyo-mackerel",
+  "title": "영냥이 숙요 고등어 상담",
+  "notice": "숙요 고등어는 천문식 27숙으로 본명숙과 마음·관계의 리듬을 읽습니다. 자기이해 질문은 6장, 질문 없이 읽는 기본 본명숙 리포트는 5장입니다. 개인 상담은 본인 정보만 쓰며 상대 정보 없이 두 사람의 궁합을 추정하지 않습니다. 두 사람 비교는 관계 유형과 입력을 확인하는 별도 흐름입니다. 이 서비스의 천문식 계산에는 출생시간·지역·시간대가 필요하며 음력 고정표 방식과 구분됩니다. 예시는 가상 편집이고 AI 작성 상담입니다. 가격과 이용 조건은 기존 화면에서 확인하세요.",
+  "panels": [
+    {
+      "id": "01-after-the-gathering",
+      "title": "즐거운 모임 뒤에도, 혼자 쉬고 싶다면.",
+      "alt": "마법사 고양이 영냥이가 두 달 자리의 관계 거리를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-sukuyo.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "즐거운 모임 뒤에도,\n혼자 쉬고 싶다면.\n\n사람을 좋아하는 마음과 쉬고 싶은 마음,\n나의 리듬 안에서 함께 살펴봐요.\n\n영냥이 숙요 · 고등어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-sukuyo-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-a-name-for-my-rhythm",
+      "title": "본명숙, 나의 마음이 움직이는 결.",
+      "alt": "천문식27숙개인성향과체계구분을쉬운언어로안내.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/02-a-name-for-my-rhythm.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "본명숙,\n나의 마음이 움직이는 결.\n\n숙요는 27숙의 체계로\n기질과 관계의 리듬을 살피는 해석이에요.\n\n쉽게 힘이 나는 장면\n\n어떤 만남과 분위기에서 편안한지.\n\n조용히 부담이 쌓이는 장면\n\n가까워지는 속도나 표현이\n어떤 때 버겁게 느껴지는지.\n\n베다 나크샤트라나 서양 별자리 성격을\n숙요 설명에 섞지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/02-a-name-for-my-rhythm-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-between-joining-and-resting",
+      "title": "더 머물지, 먼저 돌아갈지 고민되는 밤.",
+      "alt": "모임이즐겁지만피로한상황에서질문을구체화하는예시.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/03-between-joining-and-resting.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "더 머물지, 먼저 돌아갈지\n고민되는 밤.\n\n“친구들과 있으면 좋은데,\n약속이 이어지면 금방 지쳐요.\n거리를 두면 서운해할까 걱정돼요.”\n\n실제로 힘들었던 장면과\n내가 지키고 싶은 리듬을 알려 주세요.\n\n질문을 돕기 위한 가상 예시입니다.\n피로의 원인이나 건강 상태를 진단하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/03-between-joining-and-resting-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-six-chapters-for-one-question",
+      "title": "나의 바탕을 읽고, 편안한 선택을 찾아요.",
+      "alt": "자기이해질문실제6장목차를세단계로안내.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/04-six-chapters-for-one-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 바탕을 읽고,\n편안한 선택을 찾아요.\n\n자기이해 질문 · 6장\n\n1–2장 · 마음과 관계의 리듬\n\n본명숙의 바탕 · 강점과 부담\n\n3–4장 · 질문을 푸는 실마리\n\n내 마음과 선택의 실마리\n판단의 근거와 달라지는 조건\n\n5–6장 · 지금 할 수 있는 일\n\n기회와 주의 조건\n종합 해석과 실행 계획\n\n좋은 숙과 나쁜 숙으로 나누기보다,\n나의 힘을 편하게 쓸 조건을 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/04-six-chapters-for-one-question-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-leave-with-a-kind-sentence",
+      "title": "거리를 두는 말에도, 다정함은 남길 수 있어요.",
+      "alt": "먼저귀가할시간을말하는경계와배려의가상조언.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/05-leave-with-a-kind-sentence.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "거리를 두는 말에도,\n다정함은 남길 수 있어요.\n\n이해를 돕기 위한 편집 예시\n\n마지막까지 남아 있어야만\n좋은 친구인 것은 아니에요.\n\n“오늘 만나서 좋았어.\n나는 먼저 쉬고, 다음에 또 보자.”\n\n즐거웠던 마음과 쉬고 싶은 마음을\n한 문장 안에 함께 남겨보세요.\n\n실제 고객의 본명숙이나 결과가 아닌 예시예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/05-leave-with-a-kind-sentence-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-five-chapters-about-me",
+      "title": "질문 없이 읽는, 본명숙의 다섯 장.",
+      "alt": "기본개인5장실제목차와질문형별도구성을안내.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/06-five-chapters-about-me.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문 없이 읽는,\n본명숙의 다섯 장.\n본명숙의 기질\n감정이 움직이는 리듬\n관계에서 드러나는 기본 태도\n마음을 표현하는 방식\n지금의 선택과 실행 계획\n\n기본 개인 리포트의 목차입니다.\n질문 상담 6장과 함께 묶인 구성은 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/06-five-chapters-about-me-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-one-person-or-two",
+      "title": "나를 읽는 정보와, 두 사람을 읽는 정보.",
+      "alt": "개인한명관계두명입력과천문식시간장소필수구분.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/07-one-person-or-two.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나를 읽는 정보와,\n두 사람을 읽는 정보.\n나의 리듬을 묻는 개인 상담\n\n본인의 생년월일·출생시간·지역으로\n본명숙을 계산하고 질문을 읽어요.\n\n두 사람의 궁합을 비교할 때\n\n두 사람 각각의 정보가 필요해요.\n상대 정보 없이 궁합을 추정하지 않아요.\n\n현재 서비스의 계산 기준\n\n시간대·좌표를 쓰는 천문식 27숙이며,\n음력 날짜 고정표 방식과 구분해요.\n\n출생시간을 모르면 임의로 채우지 마세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/07-one-person-or-two-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-keep-your-own-pace",
+      "title": "가까이 지내면서도, 나의 리듬을 지키도록.",
+      "alt": "공식숙요영냥이와AI가격조건저장결과안내마무리.",
+      "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/08-keep-your-own-pace.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "가까이 지내면서도,\n나의 리듬을 지키도록.\n\n나에게 편안한 속도를 알고,\n그 마음을 말하는 데서 시작해 보세요.\n\nAI가 계산 근거를 바탕으로 작성합니다.\n가격과 이용 조건은 현재 화면에서 확인해요.\n저장된 결과는 내 상담에서 다시 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-sukuyo-mackerel/08-keep-your-own-pace-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const MUSIC_GUIDE_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    "musicGuide.001": "운세·명상 음악 콘텐츠 소개 | Code Destiny",
+    "musicGuide.001": "운세·명상 음악 콘텐츠 소개 | 꿀꿀 운세",
     "musicGuide.002": "운세를 보기 전",
     "musicGuide.003": "리딩을 읽은 뒤",
     "musicGuide.004": "하루를 마무리할 때",
@@ -17,7 +17,7 @@ const MUSIC_GUIDE_PAGE_TEXT_TRANSLATIONS = {
     "musicGuide.008": "무료와 유료 범위",
     "musicGuide.009": "감상 흐름",
     "musicGuide.010": "페이지에서 확인할 수 있는 항목",
-    "musicGuide.011": "Code Destiny의 감상 기준",
+    "musicGuide.011": "꿀꿀운세의 감상 기준",
     "musicGuide.012": "짧은 감상 예시",
     "musicGuide.013": "감상 시 주의할 점",
   },
@@ -31,8 +31,8 @@ export function generateMetadata() {
     path: "/music/guide",
     title: musicGuidePageText("musicGuide.001"),
     description:
-      "Code Destiny 음악 콘텐츠의 감상 방식, 사용 상황, 무료 범위, 샘플 감상 흐름, 주의사항을 안내합니다.",
-    keywords: ["명상 음악", "운세 음악", "달빛 플레이리스트", "Code Destiny 음악", "DEST1NOVA"],
+      "꿀꿀운세 음악 콘텐츠의 감상 방식, 사용 상황, 무료 범위, 샘플 감상 흐름, 주의사항을 안내합니다.",
+    keywords: ["명상 음악", "운세 음악", "달빛 플레이리스트", "꿀꿀운세 음악", "DEST1NOVA"],
   });
 }
 
@@ -100,7 +100,7 @@ const GUIDE_ARTICLE = {
   path: "/music/guide",
   title: "운세·명상 음악 콘텐츠 소개",
   description:
-    "Code Destiny 음악 콘텐츠의 감상 방식, 사용 상황, 무료 범위, 샘플 감상 흐름, 주의사항을 안내합니다.",
+    "꿀꿀운세 음악 콘텐츠의 감상 방식, 사용 상황, 무료 범위, 샘플 감상 흐름, 주의사항을 안내합니다.",
   datePublished: "2026-06-21",
   dateModified: "2026-09-06",
 };
@@ -116,7 +116,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "음악 플레이어",
-      keywords: ["명상 음악", "운세 음악", "달빛 플레이리스트", "Code Destiny 음악", "DEST1NOVA"],
+      keywords: ["명상 음악", "운세 음악", "달빛 플레이리스트", "꿀꿀운세 음악", "DEST1NOVA"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),
@@ -130,7 +130,7 @@ export default function MusicGuidePage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">운세·명상 음악 콘텐츠 소개</h1>
         <p className="cd-main-intro">
-          Code Destiny의 음악 콘텐츠는 운세를 보기 전 마음의 속도를 낮추고, 리딩이 끝난 뒤 감정을 부드럽게 정리하기 위한 감상형 콘텐츠입니다. 달빛 플레이리스트와 캐릭터 앨범은 예언이나 치료가 아니라, 하루를 차분히 바라보는 분위기를 열어 줍니다.
+          꿀꿀운세의 음악 콘텐츠는 운세를 보기 전 마음의 속도를 낮추고, 리딩이 끝난 뒤 감정을 부드럽게 정리하기 위한 감상형 콘텐츠입니다. 달빛 플레이리스트와 캐릭터 앨범은 예언이나 치료가 아니라, 하루를 차분히 바라보는 분위기를 열어 줍니다.
         </p>
       </header>
 
@@ -145,7 +145,7 @@ export default function MusicGuidePage() {
         <article className="cd-card">
           <h2>{musicGuidePageText("musicGuide.005")}</h2>
           <p>
-            음악은 사용자의 운명을 판단하지 않습니다. 대신 운세 리딩을 보기 전 긴장을 낮추고, 결과를 읽은 뒤 마음을 정리할 수 있는 감상 흐름을 제공합니다. 곡의 분위기와 앨범 이미지는 Code Destiny의 세계관을 느끼는 입구가 됩니다.
+            음악은 사용자의 운명을 판단하지 않습니다. 대신 운세 리딩을 보기 전 긴장을 낮추고, 결과를 읽은 뒤 마음을 정리할 수 있는 감상 흐름을 제공합니다. 곡의 분위기와 앨범 이미지는 꿀꿀운세의 세계관을 느끼는 입구가 됩니다.
           </p>
         </article>
 
@@ -192,7 +192,7 @@ export default function MusicGuidePage() {
       <section className="cd-card">
         <h2>{musicGuidePageText("musicGuide.011")}</h2>
         <p>
-          Code Destiny의 음악은 운세를 더 극적으로 보이게 만들기보다, 리딩을 읽는 사람의 호흡과 속도를 부드럽게 조율하는 방향을 따릅니다. 곡을 고를 때는 신비로운 분위기만 보지 않고, 사용자가 리딩을 지나치게 단정하거나 불안하게 받아들이지 않도록 여백이 있는 흐름을 우선합니다.
+          꿀꿀운세의 음악은 운세를 더 극적으로 보이게 만들기보다, 리딩을 읽는 사람의 호흡과 속도를 부드럽게 조율하는 방향을 따릅니다. 곡을 고를 때는 신비로운 분위기만 보지 않고, 사용자가 리딩을 지나치게 단정하거나 불안하게 받아들이지 않도록 여백이 있는 흐름을 우선합니다.
         </p>
         <ul>
           {listeningStandards.map((item) => (
@@ -221,7 +221,7 @@ export default function MusicGuidePage() {
       <section className="cd-card">
         <h2>{musicGuidePageText("musicGuide.013")}</h2>
         <p>
-          음악 콘텐츠는 엔터테인먼트와 휴식을 위한 감상 자료입니다. 의료, 심리 치료, 수면 장애, 불안 증상, 법률, 투자, 진로 결정의 대체 수단이 아니며, 지속적인 어려움이 있다면 자격 있는 전문가와 상담해야 합니다.
+          음악 콘텐츠는 휴식을 위한 감상 자료입니다. 의료, 심리 치료, 수면 장애, 불안 증상, 법률, 투자, 진로 결정의 대체 수단이 아니며, 지속적인 어려움이 있다면 자격 있는 전문가와 상담해야 합니다.
         </p>
       </section>
 

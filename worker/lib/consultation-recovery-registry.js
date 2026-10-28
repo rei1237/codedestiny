@@ -8,7 +8,6 @@ export const CONSULTATION_RECOVERY_ADAPTERS = Object.freeze([
   ['love-secret-ai', 'LoveSecretAiConsultation', { 'llmMeta.delivery.resumeBody': { $exists: true } }],
   ['neo-operation-room', 'NeoOperationRoomConsultation', { 'llmMeta.resumeBody': { $exists: true } }],
   ['nakshatra-ai', 'NakshatraAiConsultation', {}],
-  ['ziwei-island-ai', 'ZiweiAiConsultation', { serviceType: 'ziwei-island-palace-consult' }],
   ['human-design-report', 'HumanDesignReport', {}],
   ['destiny-compass-ai', 'DestinyCompassReport', {}],
   ['relationship-boundary-test', 'RelationshipBoundaryTest', {}],

@@ -1,0 +1,221 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "width": 326,
+          "loaded": true,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "width": 326,
+          "loaded": true,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "width": 326,
+          "loaded": true,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "width": 326,
+          "loaded": true,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "width": 326,
+          "loaded": true,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "width": 326,
+          "loaded": true,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "width": 326,
+          "loaded": true,
+          "left": 17,
+          "right": 343
+        },
+        {
+          "width": 326,
+          "loaded": true,
+          "left": 17,
+          "right": 343
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "width": 356,
+          "loaded": true,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "width": 356,
+          "loaded": true,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "width": 356,
+          "loaded": true,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "width": 356,
+          "loaded": true,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "width": 356,
+          "loaded": true,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "width": 356,
+          "loaded": true,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "width": 356,
+          "loaded": true,
+          "left": 17,
+          "right": 373
+        },
+        {
+          "width": 356,
+          "loaded": true,
+          "left": 17,
+          "right": 373
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "width": 396,
+          "loaded": true,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "width": 396,
+          "loaded": true,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "width": 396,
+          "loaded": true,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "width": 396,
+          "loaded": true,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "width": 396,
+          "loaded": true,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "width": 396,
+          "loaded": true,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "width": 396,
+          "loaded": true,
+          "left": 17,
+          "right": 413
+        },
+        {
+          "width": 396,
+          "loaded": true,
+          "left": 17,
+          "right": 413
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "width": 540,
+          "loaded": true,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "width": 540,
+          "loaded": true,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "width": 540,
+          "loaded": true,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "width": 540,
+          "loaded": true,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "width": 540,
+          "loaded": true,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "width": 540,
+          "loaded": true,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "width": 540,
+          "loaded": true,
+          "left": 370,
+          "right": 910
+        },
+        {
+          "width": 540,
+          "loaded": true,
+          "left": 370,
+          "right": 910
+        }
+      ]
+    }
+  ],
+  "posts": [
+    "/api/pet-saju/blueprint"
+  ],
+  "fallback": true,
+  "mode": "Mock routes only;local pure blueprint calculation;no paid generation or purchase clicked"
+}

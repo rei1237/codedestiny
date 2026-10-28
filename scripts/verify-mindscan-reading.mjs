@@ -26,7 +26,7 @@ function check(label, condition, detail = "") {
 }
 
 function buildLlmReadingFixture() {
-  const sections = Array.from({ length: 7 }, (_, idx) => ({
+  const sections = Array.from({ length: 5 }, (_, idx) => ({
     slot: idx + 1,
     title: `LLM 섹션 제목 ${idx + 1}`,
     orientation: "upright",
@@ -124,16 +124,16 @@ async function runMockSuite() {
     fetchImpl: okFetch,
   });
   check("source가 llm", okReading?.source === "llm", `source=${okReading?.source} errors=${JSON.stringify(okReading?.validation?.errors || [])}`);
-  check("섹션 7개", Array.isArray(okReading?.sections) && okReading.sections.length === 7);
+  check("섹션 5개", Array.isArray(okReading?.sections) && okReading.sections.length === 5);
   check("1번 섹션에 LLM 텍스트 반영", String(okReading?.sections?.[0]?.cardMeaning || "").includes("LLM-CARD-1"));
-  check("7번 섹션에 LLM 텍스트 반영", String(okReading?.sections?.[6]?.emotionalReading || "").includes("LLM-EMO-7"));
+  check("5번 섹션에 LLM 텍스트 반영", String(okReading?.sections?.[4]?.emotionalReading || "").includes("LLM-EMO-5"));
   check("insightDeck에 LLM 텍스트 반영", String(okReading?.insightDeck?.[0]?.headline || "").includes("LLM-DECK-1"));
   check("summaryCard에 LLM 텍스트 반영", String(okReading?.summaryCard?.corePsychology || "").includes("LLM-PSY"));
   check("validation 통과", okReading?.validation?.ok === true, JSON.stringify(okReading?.validation?.errors || []));
 
   const requestBody = JSON.parse(okFetch.calls[0]?.init?.body || "{}");
   const promptText = requestBody?.contents?.[0]?.parts?.[0]?.text || "";
-  check("프롬프트에 7개 포지션 전달", (promptText.match(/"positionTitle"/g) || []).length === 7);
+  check("프롬프트에 5개 포지션 전달", (promptText.match(/"positionTitle"/g) || []).length === 5);
   check("프롬프트에 insightSeeds 포함", promptText.includes("insightSeeds"));
   check("responseMimeType=application/json", requestBody?.generationConfig?.responseMimeType === "application/json");
   check("모델 gemini-2.5-flash 사용", String(okFetch.calls[0]?.url || "").includes("gemini-2.5-flash"));
@@ -152,7 +152,7 @@ async function runMockSuite() {
   check("source가 rule-engine", errorReading?.source === "rule-engine", `source=${errorReading?.source}`);
   check("llmFailReason 기록", errorReading?.validation?.llmFailReason === "gemini_http_500", `reason=${errorReading?.validation?.llmFailReason}`);
   check("최대 2회 재시도 수행(총 3회 호출)", errorFetch.calls.length === 3, `calls=${errorFetch.calls.length}`);
-  check("폴백 섹션 7개", Array.isArray(errorReading?.sections) && errorReading.sections.length === 7);
+  check("폴백 섹션 5개", Array.isArray(errorReading?.sections) && errorReading.sections.length === 5);
   const fallbackText = (errorReading?.sections || []).map((section) => [section.cardMeaning, section.positionMeaning, section.emotionalReading, section.hiddenMessage, section.caution, section.advice].join(" ")).join(" ");
   check("폴백이 보조 카드 조합을 반영", fallbackText.includes("보조 카드"));
   check("폴백 포지션별 조언이 구분됨", new Set((errorReading?.sections || []).map((section) => section.advice)).size > 1);
@@ -215,7 +215,7 @@ async function runMockSuite() {
   check("source가 staging_mock_local_fallback", gatedReading?.source === "staging_mock_local_fallback", `source=${gatedReading?.source}`);
   check("llmFailReason=staging_mock", gatedReading?.llmFailReason === "staging_mock", `reason=${gatedReading?.llmFailReason}`);
   check("Gemini 호출 0회", gateFetch.calls.length === 0, `calls=${gateFetch.calls.length}`);
-  check("게이트 폴백도 섹션 7개", Array.isArray(gatedReading?.sections) && gatedReading.sections.length === 7);
+  check("게이트 폴백도 섹션 5개", Array.isArray(gatedReading?.sections) && gatedReading.sections.length === 5);
 }
 
 async function runLive() {

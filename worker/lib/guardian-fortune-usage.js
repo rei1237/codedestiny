@@ -726,7 +726,7 @@ export async function commitGuardianFortuneUsage(reservation, { store, now = new
 
 export function buildGuardianFortuneLimitCta(errorCode, isLoggedIn) {
   if (!isLoggedIn || errorCode === GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED) {
-    return { label: "로그인하고 무료로 보기", targetPath: "/auth/login", reason: "회원가입하고 로그인하면 연이와 네오에게 1회 무료로 물어볼 수 있어요." };
+    return { label: "로그인하고 상담하기", targetPath: "/auth/login", reason: "로그인한 뒤 연이와 네오에게 물어볼 수 있어요. 상담은 1회씩 결제해요." };
   }
   // 결제창은 클라이언트의 공용 게이트(useCoinGate)가 연다. 여기서 /points 로 보내면
   // 이용권 보유자가 결제창의 [이용권으로 구매] 카드를 만나지 못한다.

@@ -55,7 +55,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
         "한 궁을 읽을 때는 그 궁만 따로 떼어 보지 않고 마주 보는 대궁과 삼합으로 이어지는 궁을 함께 봅니다. 이를 삼방사정이라 부르며, 한 자리만 보고 내린 결론이 과해지는 것을 막아 주는 장치로 이해하면 됩니다.",
         "생년 천간에 따라 네 개의 별에 화록·화권·화과·화기가 붙는데, 이를 사화라고 합니다. 특히 화기는 나쁜 것으로 단정하기보다 그 영역에 힘과 집중이 몰린다는 신호, 그래서 반복해 풀어야 할 과제로 읽는 편이 실전에서 더 쓸모가 있습니다.",
         "자미두수는 명대에 정리된 자미두수전서가 널리 인용되는 문헌이며, 이후 여러 유파를 거치며 별의 배치 규칙과 해석 기준이 갈렸습니다. 같은 생년월일시로도 유파에 따라 명반이 조금씩 다르게 나오는 이유가 여기에 있습니다.",
-        "Code Destiny에서는 초심자도 이해하기 쉽도록 핵심 문장을 먼저 제시하고 세부 해설을 단계적으로 제공합니다.",
+        "꿀꿀운세에서는 초심자도 이해하기 쉽도록 핵심 문장을 먼저 제시하고 세부 해설을 단계적으로 제공합니다.",
         "다만 명궁은 태어난 시각을 기준으로 정해지므로, 출생 시간이 불확실하면 전체 배치가 흔들릴 수 있습니다. 결과는 확정된 예언이 아니라 자신을 정리해 보는 참고 자료로 받아들이시길 권합니다.",
       ],
       ja: [
@@ -65,7 +65,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
         "一つの宮を読むときは、その宮だけを切り離さず、向かい合う対宮と三合でつながる宮を併せて見ます。これを三方四正と呼び、一か所だけを見て結論を出しすぎることを防ぐ仕組みだと理解してください。",
         "生年の天干によって四つの星に化禄・化権・化科・化忌が付きます。これを四化と呼びます。特に化忌は悪いものと決めつけるより、その領域に力と関心が集まる合図、つまり繰り返し向き合う課題として読む方が実用的です。",
         "紫微斗数は明代に整理された紫微斗数全書が広く引用される文献で、その後さまざまな流派を経て星の配置規則や解釈基準が分かれました。同じ生年月日時でも流派によって命盤が少しずつ異なるのはこのためです。",
-        "Code Destinyは要点要約から詳細解説へ進む構成で、初学者にも読みやすく設計されています。",
+        "꿀꿀운세は要点要約から詳細解説へ進む構成で、初学者にも読みやすく設計されています。",
         "ただし命宮は生まれた時刻を基準に定まるため、出生時間が不確かだと全体の配置が揺らぐことがあります。結果は確定した予言ではなく、自分を整理するための参考資料として受け取ってください。",
       ],
       zh: [
@@ -75,7 +75,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
         "看某一宫时不要把它单独抽出来，而要连同对面的对宫以及三合相连的宫一起看。这称为三方四正，可以理解为防止只凭一个位置就下过重结论的机制。",
         "生年天干会给四颗星带来化禄、化权、化科、化忌，合称四化。其中化忌与其断定为凶，不如读作力量与关注集中在该领域的信号，也就是需要反复面对的课题，这样在实际使用中更有帮助。",
         "紫微斗数以明代整理的紫微斗数全书流传最广，此后经过多个流派，星曜排布规则与解释标准出现分歧。同样的出生年月日时，不同流派排出的命盘会略有差异，原因就在这里。",
-        "Code Destiny 采用先摘要后细节的结构，便于新手循序理解。",
+        "꿀꿀운세 采用先摘要后细节的结构，便于新手循序理解。",
         "不过命宫依出生时刻而定，若出生时间不确定，整体排布可能随之浮动。请把结果当作整理自我的参考材料，而不是既定的预言。",
       ],
       "zh-TW": [
@@ -85,7 +85,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
         "看某一宮時不要把它單獨抽出來看，而要連同對面的對宮，以及三合相連的宮一起看。這稱為三方四正，可以理解為避免只憑一個位置就下過重結論的機制。",
         "生年天干會為四顆星帶來化祿、化權、化科、化忌，合稱四化。其中化忌與其斷定為凶，不如讀作力量與關注集中在該領域的信號，也就是需要反覆面對的課題，這樣在實際運用中更有幫助。",
         "紫微斗數以明代整理的《紫微斗數全書》流傳最廣，此後歷經多個流派，星曜排布規則與解釋標準出現分歧。同樣的出生年月日時，不同流派排出的命盤會略有差異，原因就在這裡。",
-        "Code Destiny 採用先摘要後細節的結構，方便新手循序理解。",
+        "꿀꿀운세 採用先摘要後細節的結構，方便新手循序理解。",
         "不過命宮依出生時刻而定，若出生時間不確定，整體排布可能隨之浮動。請把結果當作整理自我的參考資料，而不是既定的預言。",
       ],
       en: [
@@ -95,7 +95,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
         "A single palace is not read in isolation. It is read together with the palace directly opposite it and the two that form a trine, a grouping usually called the three-and-four view. Think of it as a safeguard against drawing an outsized conclusion from one position alone.",
         "The heavenly stem of your birth year attaches four transformations to four stars, commonly rendered as wealth, power, status, and obstruction. The last one is more useful when read as a signal that attention and pressure concentrate in that area, that is, a recurring assignment, rather than as a verdict of misfortune.",
         "The most widely cited source is the Ming-era compendium of Zi Wei Dou Shu, and later lineages diverged on how stars are placed and weighted. That is why the same birth data can produce slightly different charts depending on the school being followed.",
-        "Code Destiny uses summary-first explanations followed by deeper details for easier learning.",
+        "꿀꿀운세 uses summary-first explanations followed by deeper details for easier learning.",
         "One caveat: the self palace is fixed by birth time, so an uncertain hour can shift the whole arrangement. Treat the reading as material for reflection rather than a settled forecast.",
       ],
     },
@@ -169,7 +169,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
     },
     "bodyByLocale": {
       "ko": [
-        "같은 생일을 넣었는데 다른 사이트와 본명숙이 다르다면, 먼저 계산 방식을 확인해야 합니다. 전통 음력 날짜표로 숙을 찾는 방식과 달의 실제 위치를 나누는 방식은 같은 절차가 아닙니다. 이 글은 Code Destiny에서 표시하는 값을 확인하는 순서입니다.",
+        "같은 생일을 넣었는데 다른 사이트와 본명숙이 다르다면, 먼저 계산 방식을 확인해야 합니다. 전통 음력 날짜표로 숙을 찾는 방식과 달의 실제 위치를 나누는 방식은 같은 절차가 아닙니다. 이 글은 꿀꿀운세에서 표시하는 값을 확인하는 순서입니다.",
         "현재 서비스는 입력한 순간의 지구 중심 라히리 항성 달 황경을 27등분합니다. 한 구간은 360도를 27로 나눈 13도 20분입니다. 황경이 13도 19분인 예와 13도 21분인 예는 경계 양쪽에 있으므로 구간 번호가 달라집니다. 이는 설명을 위한 가상 좌표이며 특정 사람의 출생 계산 결과가 아닙니다.",
         "계산을 비교할 때는 양력·음력 입력 구분, 출생 시각, 시간대가 같은지 적어 두세요. 출생 시간을 모르는 경우 임의로 넣은 시각을 사실처럼 취급하면 안 됩니다. 특히 달이 구간 경계 가까이에 있을 때는 시간의 불확실성이 본명숙 분류에 영향을 줄 수 있습니다.",
         "두 사람을 비교할 때는 본명숙 이름뿐 아니라 누구에서 누구를 향해 세는지도 확인합니다. 27칸의 원에서 A를 0번, B를 5번에 놓으면 A에서 B까지는 5칸, B에서 A까지는 22칸입니다. 이 산술 예시는 방향이 바뀌는 이유를 보여 줄 뿐, 두 사람의 감정이나 특정 관계군을 판정하지 않습니다.",
@@ -177,7 +177,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
         "계산으로 재현할 수 있는 것은 좌표와 분류입니다. 관계가 좋아질 확률, 연락이 올 날짜, 결혼이나 이별 여부는 이 분류만으로 검증되지 않습니다. 결과가 다를 때는 더 마음에 드는 해석을 고르기보다 입력과 계산 기준을 나란히 비교하세요."
       ],
       "en": [
-        "If two sites assign different mansions to the same birthday, compare their methods before comparing their interpretations. A traditional lunar-date lookup and a division of the Moon’s longitude are different procedures. This guide explains the values used by Code Destiny.",
+        "If two sites assign different mansions to the same birthday, compare their methods before comparing their interpretations. A traditional lunar-date lookup and a division of the Moon’s longitude are different procedures. This guide explains the values used by 꿀꿀운세.",
         "The service divides geocentric Lahiri sidereal Moon longitude at the entered moment into 27 segments. Each spans 360/27 degrees, or 13 degrees 20 minutes. Illustrative longitudes of 13 degrees 19 minutes and 13 degrees 21 minutes fall on opposite sides of the first boundary. These are invented coordinates for explaining the arithmetic, not a person’s calculated chart.",
         "Check the calendar input, birth time and time zone together. If the time is unknown, an assumed time is not a verified birth time. Close to a segment boundary, that uncertainty can change the mansion classification.",
         "Direction also matters when comparing two positions. On a 27-position circle, put A at 0 and B at 5: the forward distance from A to B is 5, while B to A is 22. This demonstrates directional counting; it does not establish either person’s feelings or assign a relationship type.",
@@ -185,7 +185,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
         "Coordinates and classifications can be reproduced from the inputs. A probability of reconciliation, a date of contact, or a decision about marriage cannot be verified from that classification alone. When results differ, compare the inputs and method instead of choosing the most reassuring story."
       ],
       "ja": [
-        "同じ誕生日でもサイトによって本命宿が違う場合、解釈より先に計算方法を比べます。旧暦の日付表から宿を探す方法と、月の黄経を区切る方法は別の手順です。ここではCode Destinyが表示する値の確認方法を説明します。",
+        "同じ誕生日でもサイトによって本命宿が違う場合、解釈より先に計算方法を比べます。旧暦の日付表から宿を探す方法と、月の黄経を区切る方法は別の手順です。ここでは꿀꿀운세が表示する値の確認方法を説明します。",
         "現在のサービスは入力した瞬間の地心・ラヒリ方式の恒星黄経を27等分します。一つの区間は360度÷27、つまり13度20分です。説明用の座標13度19分と13度21分は境界の両側にあるため、区間番号が変わります。これは架空の座標例であり、特定の人の出生計算ではありません。",
         "比較するときは暦の入力区分、出生時刻、タイムゾーンをそろえてください。時刻不明の人に仮の時刻を入れても、確認済みの出生時刻にはなりません。月が区間の境界に近い場合、その不確かさで本命宿の分類が変わることがあります。",
         "二人を比べるときは数える方向も確認します。27個の位置を持つ円でAを0、Bを5に置くと、AからBへは5、BからAへは22進みます。これは方向の違いを示す算術例であり、相手の感情や特定の関係型を判定するものではありません。",
@@ -193,7 +193,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
         "入力から再現できるのは座標と分類です。復縁の確率、連絡が来る日、結婚や別れの判断は、この分類だけでは検証できません。結果が違うときは安心できる物語を選ぶより、入力と方法を並べて確認してください。"
       ],
       "zh": [
-        "同一生日在不同网站得到不同本命宿时，先比较算法。查农历日期表与划分月球黄经不是同一过程。本文说明Code Destiny目前使用的数值与核对步骤。",
+        "同一生日在不同网站得到不同本命宿时，先比较算法。查农历日期表与划分月球黄经不是同一过程。本文说明꿀꿀운세目前使用的数值与核对步骤。",
         "服务把输入时刻的地心拉希里恒星制月球黄经分成27段，每段为360度除以27，即13度20分。假设黄经分别为13度19分和13度21分，两者位于第一条分界的两侧，区段编号便会改变。这是假设坐标示例，不是某位用户的出生计算。",
         "比较时要统一公历或农历输入、出生时间与时区。时间不详时，代填的时刻不能当作已确认的出生时间。月球接近区段边界时，这种不确定性可能改变本命宿分类。",
         "两人的关系还涉及计数方向。在27个位置的圆环上，假设A在0、B在5，从A到B顺数5格，从B到A则是22格。这个例子只解释方向差异，不代表双方感情，也不据此判定某种关系类型。",
@@ -201,7 +201,7 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
         "可以根据输入复现的是坐标和分类。复合概率、联系日期、结婚或分手的决定，不能仅靠这项分类验证。结果不同时，应并列核对输入与算法，而不是选择最令人安心的解释。"
       ],
       "zh-TW": [
-        "同一生日在不同網站得到不同本命宿時，先比較算法。查農曆日期表與劃分月球黃經不是同一過程。本文說明Code Destiny目前使用的數值與核對步驟。",
+        "同一生日在不同網站得到不同本命宿時，先比較算法。查農曆日期表與劃分月球黃經不是同一過程。本文說明꿀꿀운세目前使用的數值與核對步驟。",
         "服務把輸入時刻的地心拉希里恆星制月球黃經分成27段，每段為360度除以27，即13度20分。假設黃經分別為13度19分和13度21分，兩者位於第一條分界的兩側，區段編號便會改變。這是假設座標範例，不是某位使用者的出生計算。",
         "比較時要統一國曆或農曆輸入、出生時間與時區。時間不詳時，代填的時刻不能當作已確認的出生時間。月球接近區段邊界時，這種不確定性可能改變本命宿分類。",
         "兩人的關係還涉及計數方向。在27個位置的圓環上，假設A在0、B在5，從A到B順數5格，從B到A則是22格。這個例子只解釋方向差異，不代表雙方感情，也不據此判定某種關係類型。",

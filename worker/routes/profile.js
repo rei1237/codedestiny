@@ -21,6 +21,7 @@ import {
 } from "../lib/profile-card-mutation-policy.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
+import { computeBirthKey } from "../lib/birth-key.js";
 
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
@@ -273,48 +274,11 @@ function resolveSubscriptionPolicy(user) {
     label: entitlement.label,
     isActive: entitlement.isActive,
     freeLimit: entitlement.maxCoveredCoin,
-    profileLimit: entitlement.maxProfiles,
+    profileLimit: resolveProfileLimitForClient(), // 2026-10-11 프로필 개수 상한 없음(0 = 무제한)
     source: entitlement.source,
     startedAt: entitlement.startedAt || null,
     expiresAt: entitlement.expiresAt,
   };
-}
-
-function canCreateProfileWithinSubscriptionLimit(subscription, currentCount) {
-  const limit = resolveProfileLimitForClient(subscription);
-  if (limit <= 0) return true;
-  const count = Math.max(0, Math.floor(Number(currentCount || 0)));
-  return count < limit;
-}
-
-function hasProfileMutationPaymentContext(body = {}) {
-  const source = body && typeof body === "object" ? body : {};
-  const payment = source.payment && typeof source.payment === "object" ? source.payment : null;
-  const consume = source.consume && typeof source.consume === "object" ? source.consume : null;
-  const accessGrant = source.accessGrant && typeof source.accessGrant === "object" ? source.accessGrant : null;
-  const values = [
-    source.requestId,
-    source.paymentMode,
-    source.paymentMethod,
-    source.accessMethod,
-    source.accessType,
-    source.transactionId,
-    source.paymentId,
-    source.impUid,
-    source.merchantUid,
-    payment?.paymentMode,
-    payment?.paymentMethod,
-    payment?.paymentId,
-    payment?.impUid,
-    payment?.merchantUid,
-    consume?.paymentMode,
-    consume?.paymentMethod,
-    consume?.transactionId,
-    accessGrant?.paymentMode,
-    accessGrant?.paymentMethod,
-    accessGrant?.transactionId,
-  ];
-  return values.some((value) => String(value || "").trim());
 }
 
 function getRemainingProfileActionCoins(user) {
@@ -757,57 +721,6 @@ async function ensureProfileMutationAuthorized(auth, { action, profileId, body }
 // 하위 검증 스크립트와 레거시 호출 흔적의 의미를 유지하되, 실제 정책은 모든 변경 작업이 공유한다.
 const ensureProfileDeleteAuthorized = ensureProfileMutationAuthorized;
 
-async function ensureProfileCreatePaymentAuthorized(auth, { profileId, body }) {
-  const action = "create";
-  const requestId = readProfileMutationRequestId(body, action, profileId);
-  const paymentMethod = resolveProfileMutationPaymentMethod(body);
-  const evidenceResult = await findProfileMutationPaymentEvidence(auth, { action, profileId, requestId, body });
-  if (!evidenceResult.ok) return evidenceResult;
-
-  let evidence = evidenceResult.evidence || null;
-  if (evidence && !evidencePaymentMethodMatches(evidence, paymentMethod)) {
-    return {
-      ok: false,
-      response: profileMutationConflictResponse("프로필 카드 결제 방식이 현재 요청과 일치하지 않습니다.", {
-        actionType: resolveProfileMutationActionType(action),
-        requestId,
-      }),
-    };
-  }
-  if (!evidence) {
-    return { ok: false, response: profileCardActionPaymentRequiredResponse(action, requestId, profileId) };
-  }
-
-  if (evidence.moonstoneLedger && evidence.metadata?.profileMutationInProgress && evidence.metadata.profilePaymentKey === requestId) {
-    const created = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
-    if (created) return { ok: true, requestId, evidence };
-  }
-  const claim = await claimProfileMutationEvidence(auth, { action, profileId, requestId, evidence });
-  if (!claim.ok) return claim;
-
-  const paidPolicy = await getProfileCardMutationPolicy(auth.userId, profileId, action, { paymentSettled: true });
-  if (!paidPolicy.allowed) {
-    await refundProfileMutationCreditIfNeeded(auth, {
-      action,
-      profileId,
-      requestId,
-      evidence,
-      reason: "프로필 카드 생성 한도 초과 환불",
-    });
-    return {
-      ok: false,
-      response: json({
-        ok: false,
-        success: false,
-        code: paidPolicy.reason,
-        message: paidPolicy.reason,
-        policy: paidPolicy,
-      }, { status: policyFailureStatus(paidPolicy.reason) }),
-    };
-  }
-  return { ok: true, requestId, evidence };
-}
-
 async function claimProfileMutationEvidence(auth, { action, profileId, requestId, evidence }) {
   if (!evidence?._id) return { ok: true };
 
@@ -1023,7 +936,7 @@ async function handleGetProfiles(auth, env, yeongnyangi = false) {
     profilePolicySnapshot: buildProfilePolicySnapshot(user, { source: "profile_get" }),
     serverSyncedAt: new Date().toISOString(),
     profileAccess: access.profileAccess,
-    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
+    canCreateMore: true,
   });
 }
 
@@ -1077,7 +990,7 @@ async function handleGetCurrentProfile(auth, env) {
     profilePolicySnapshot: buildProfilePolicySnapshot(user, { source: "profile_current" }),
     serverSyncedAt: new Date().toISOString(),
     profileAccess: access.profileAccess,
-    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
+    canCreateMore: true,
   });
 }
 
@@ -1120,29 +1033,11 @@ async function handleCreateProfile(request, auth, env, yeongnyangi = false) {
     /* 선행 중복검사(ProfileCard.findOne)는 제거했다 — {userId, profileId} unique 인덱스와 아래
        11000 처리가 이미 같은 일을 하는데, 슬롯 하나와 왕복 한 번을 더 썼다. */
     const profilePolicySnapshot = buildProfilePolicySnapshot(user, { source: "profile_create" });
-    const createFitsLocalPolicy = yeongnyangi || canCreateProfileWithinSubscriptionLimit(subscription, count);
-    let createPayment = null;
-    const createRequestId = readProfileMutationRequestId(body, "create", normalized.profileId);
-    const existingPaidCreate = !createFitsLocalPolicy && hasProfileMutationPaymentContext(body)
-      ? await findCompletedProfileMutationReplay(auth, { action: "create", profileId: normalized.profileId, requestId: createRequestId, body }) : null;
-    if (!createFitsLocalPolicy && !hasProfileMutationPaymentContext(body)) {
-      return profileCardActionPaymentRequiredResponse("create", createRequestId, normalized.profileId);
-    }
-
-    if (!createFitsLocalPolicy && !existingPaidCreate) {
-      createPayment = await ensureProfileCreatePaymentAuthorized(auth, {
-        profileId: normalized.profileId,
-        body,
-      });
-      if (!createPayment.ok) return createPayment.response;
-    }
-
-    // A completed payment can reread its existing card, never recreate a later-deleted one.
-    let created = existingPaidCreate ? await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId: normalized.profileId }).lean()) : null;
-    if (existingPaidCreate && !created) return profileMutationConflictResponse("이미 완료된 프로필 추가 결제입니다. 새 작업으로 다시 진행해 주세요.", { requestId: createRequestId });
-    let replayedCreate = Boolean(created);
+    /* 2026-10-11: 프로필 카드는 개수 상한·추가 요금 없이 만든다. 결제 요구 분기는 없다. */
+    let created = null;
+    let replayedCreate = false;
     try {
-      if (!created) created = await withMongoRetry(env, () => ProfileCard.create({
+      created = await withMongoRetry(env, () => ProfileCard.create({
         userId: auth.userId,
         profileId: normalized.profileId,
         name: normalized.name,
@@ -1162,18 +1057,7 @@ async function handleCreateProfile(request, auth, env, yeongnyangi = false) {
         }).lean());
         if (existing) created = existing;
       }
-      if (!created) {
-        if (createPayment?.evidence && !isDbUnavailableError(error)) {
-          await refundProfileMutationCreditIfNeeded(auth, {
-            action: "create",
-            profileId: normalized.profileId,
-            requestId: createPayment.requestId,
-            evidence: createPayment.evidence,
-            reason: "프로필 카드 생성 실패 환불",
-          });
-        }
-        throw error;
-      }
+      if (!created) throw error;
       replayedCreate = true;
     }
 
@@ -1189,16 +1073,6 @@ async function handleCreateProfile(request, auth, env, yeongnyangi = false) {
       listUserProfiles(auth.userId),
     ]));
 
-    if (createPayment?.requestId) {
-      await recordProfileMutationCompleted(auth, {
-        action: "create",
-        profileId: normalized.profileId,
-        requestId: createPayment.requestId,
-        policy: { reason: "PAID_PROFILE_CARD_CREATE" },
-        evidence: createPayment.evidence,
-      });
-    }
-
     return json({
       success: true,
       message: "PROFILE_CREATED_SUCCESSFULLY",
@@ -1209,7 +1083,7 @@ async function handleCreateProfile(request, auth, env, yeongnyangi = false) {
       currentId: nextCurrentId,
       ...(yeongnyangi ? {} : { subscription, profilePolicySnapshot }),
       serverSyncedAt: new Date().toISOString(),
-      canCreateMore: yeongnyangi || canCreateProfileWithinSubscriptionLimit(subscription, count + 1),
+      canCreateMore: true,
     }, { status: replayedCreate ? 200 : 201 });
   } catch (error) {
     const status = Number(error?.status || 0);
@@ -1329,6 +1203,43 @@ async function handleUpdateCurrent(request, auth, env) {
   });
 }
 
+/* 🔴 출생 기반 영구 해금은 프로필 카드의 생년월일로 찾는다. 카드를 고치거나 지우면 같은 profileId 라도
+   열려야 할 해금이 달라지므로, 프로필별로 저장된 접근결정·잠금상태·잔액 캐시를 이 사용자 몫만 비운다.
+   billing.js 를 import 하면 순환이 생기므로 다른 모듈처럼 globalThis 무효화 함수를 옵셔널로 부른다. */
+function invalidateBirthScopedAccessCachesForUser(userId) {
+  const uid = String(userId || "").trim();
+  if (!uid) return;
+  try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(uid); } catch {}
+  try { globalThis.__accessStateCache?.invalidateForUser?.(uid); } catch {}
+  try { globalThis.__billingBalanceCache?.invalidateForUser?.(uid); } catch {}
+  try { globalThis.__codeDestinyAccessUnlocksCache?.invalidateForUser?.(uid); } catch {}
+}
+
+/* 레거시 PROFILE 해금(출생 기반 전환 이전 결제)은 그 카드의 생년월일을 고쳐도 열린다 — 결제 고객 재잠금 방지.
+   다른 사람의 생년월일로 바꿔 보는 우회는 막지 않고 기록만 남긴다. 기록 실패는 수정 응답에 영향을 주지 않는다.
+   두 모듈은 생년월일이 바뀐 수정에서만 필요하므로 그때 불러온다. */
+async function auditLegacyProfileUnlockBirthEdit(request, env, userId, profileId) {
+  try {
+    const [{ listLegacyProfileBirthUnlockKeys }, { writeSecurityLog }] = await Promise.all([
+      import("../lib/content-unlocks.js"),
+      import("../lib/security/index.js"),
+    ]);
+    const featureKeys = await withMongoRetry(env, () => listLegacyProfileBirthUnlockKeys({ userId, profileId }));
+    if (!featureKeys.length) return;
+    console.warn("[profile] legacy_profile_unlock_birth_edit", { profileId, featureKeys });
+    await writeSecurityLog({
+      env,
+      request,
+      reason: "legacy_profile_unlock_birth_edit",
+      userId,
+      endpoint: "profile_update",
+      metadata: { profileId, featureKeys },
+    });
+  } catch (error) {
+    console.warn("[profile] legacy_profile_unlock_birth_edit 기록 실패", String(error?.message || error).slice(0, 200));
+  }
+}
+
 async function handleUpdateProfile(request, auth, profileIdRaw, env) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "수정할 프로필 카드 ID가 필요합니다." }, { status: 400 });
@@ -1425,6 +1336,10 @@ async function handleUpdateProfile(request, auth, profileIdRaw, env) {
     });
     return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
   }
+  invalidateBirthScopedAccessCachesForUser(auth.userId);
+  if (computeBirthKey(existingProfile) !== computeBirthKey(updated)) {
+    await auditLegacyProfileUnlockBirthEdit(request, env, auth.userId, profileId);
+  }
 
   await recordProfileMutationCompleted(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
@@ -1460,7 +1375,7 @@ async function handleUpdateProfile(request, auth, profileIdRaw, env) {
     subscription,
     profilePolicySnapshot: buildProfilePolicySnapshot(user || {}, { source: "profile_update" }),
     serverSyncedAt: new Date().toISOString(),
-    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
+    canCreateMore: true,
     chargedCoins: Math.max(0, Math.floor(Number(authorization.policy?.costCoins || 0))),
     freeByMembership: Number(authorization.policy?.costCoins || 0) === 0,
     actionType: "profile_card_update",
@@ -1502,7 +1417,7 @@ async function buildProfileDeleteResponse(auth, profileId, env, { policy = null,
     subscription,
     profilePolicySnapshot: buildProfilePolicySnapshot(user || {}, { source: "profile_delete" }),
     serverSyncedAt: new Date().toISOString(),
-    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
+    canCreateMore: true,
     actionType: "profile_card_delete",
     policy: policy || { allowed: true, reason: "IDEMPOTENT_REPLAY" },
     replayed,
@@ -1566,6 +1481,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw, trace, env) {
     });
     return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
   }
+  invalidateBirthScopedAccessCachesForUser(auth.userId);
 
   await recordProfileMutationCompleted(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,

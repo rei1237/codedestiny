@@ -3,11 +3,13 @@
 import { useMemo, useState } from "react";
 import { ANIMAL_DESTINY_LIST, STAGE_KEY_TO_HANJA, STAGE_LABEL_TO_KEY, STAGE_SEQUENCE } from "@/components/fortune/animal-twelve/animalTwelveData";
 import type { AnimalDestinyData } from "../lib/types";
-import { resolveTwelveGrowthAnimalResult } from "../lib/twelveGrowthAnimalResults";
+import type { AnimalPaidReading } from "../lib/paidReading";
 import { useAnimalDestinyCopy } from "../_lib/copy";
 
+// 도감의 이름·운성은 무료, 동물별 설명(성향·성장 미션·오행 태그)은 해금 뒤 서버 응답(dex)으로만 보인다.
 type Props = {
   currentAnimal: AnimalDestinyData;
+  dex?: AnimalPaidReading["dex"] | null;
 };
 
 const ANIMAL_EMOJI: Record<string, string> = {
@@ -35,7 +37,7 @@ function stageDistance(leftStage: string, rightStage: string) {
   return Math.min(direct, STAGE_SEQUENCE.length - direct);
 }
 
-export default function TwelveAnimalDexGrid({ currentAnimal }: Props) {
+export default function TwelveAnimalDexGrid({ currentAnimal, dex }: Props) {
   const copy = useAnimalDestinyCopy();
   const [selectedStage, setSelectedStage] = useState(currentAnimal.saju_stage);
 
@@ -43,11 +45,10 @@ export default function TwelveAnimalDexGrid({ currentAnimal }: Props) {
     return ANIMAL_DESTINY_LIST.find((item) => item.saju_stage === selectedStage) || currentAnimal;
   }, [selectedStage, currentAnimal]);
 
-  const selectedResult = useMemo(() => {
-    return resolveTwelveGrowthAnimalResult(selectedEntry);
-  }, [selectedEntry]);
+  const selectedStageKey = STAGE_LABEL_TO_KEY[selectedEntry.saju_stage];
+  const selectedDetail = useMemo(() => dex?.find((item) => item.stageKey === selectedStageKey) || null, [dex, selectedStageKey]);
+  const selectedResult = { stageName: selectedEntry.saju_stage, animalName: selectedEntry.animal_ko };
   const selectedDistance = stageDistance(currentAnimal.saju_stage, selectedEntry.saju_stage);
-  const selectedStageKey = STAGE_LABEL_TO_KEY[selectedResult.stageName];
 
   return (
     <section className="rounded-[1.9rem] border border-[#bad7ed] bg-white/90 p-4 shadow-[0_16px_36px_rgba(58,109,153,0.14)] sm:p-6">
@@ -82,8 +83,14 @@ export default function TwelveAnimalDexGrid({ currentAnimal }: Props) {
         <h4 className="text-sm font-black text-[#2d5b80]">
           {selectedResult.stageName} · {selectedResult.animalName}
         </h4>
-        <p className="mt-2 text-sm leading-relaxed text-[#355f81]">{selectedResult.personality}</p>
-        <p className="mt-2 text-sm leading-relaxed text-[#355f81]">{selectedResult.growthMission}</p>
+        {selectedDetail ? (
+          <>
+            <p className="mt-2 text-sm leading-relaxed text-[#355f81]">{selectedDetail.personality}</p>
+            <p className="mt-2 text-sm leading-relaxed text-[#355f81]">{selectedDetail.growthMission}</p>
+          </>
+        ) : (
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-[#6b84a0]">{copy.dexLockedNote}</p>
+        )}
         <div className="mt-3 flex flex-wrap gap-2">
           <span className="rounded-full border border-[#c9deef] bg-white px-3 py-1 text-xs font-black text-[#426d90]">
             {selectedResult.stageName}({STAGE_KEY_TO_HANJA[selectedStageKey]})
@@ -91,7 +98,7 @@ export default function TwelveAnimalDexGrid({ currentAnimal }: Props) {
           <span className="rounded-full border border-[#d9d7a3] bg-[#fff8df] px-3 py-1 text-xs font-black text-[#7a6c2f]">
             {copy.relationTone(selectedDistance)}
           </span>
-          {selectedResult.elementTags?.slice(0, 3).map((tag) => (
+          {selectedDetail?.elementTags?.slice(0, 3).map((tag) => (
             <span key={tag} className="rounded-full border border-[#d7e8f5] bg-[#f8fcff] px-3 py-1 text-xs font-bold text-[#567b9b]">
               {tag}
             </span>

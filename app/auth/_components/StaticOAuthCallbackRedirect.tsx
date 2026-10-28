@@ -1,3 +1,5 @@
+import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
+
 type StaticOAuthCallbackRedirectProps = {
   provider: "google" | "naver" | "kakao";
 };
@@ -432,7 +434,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
         debugAuth("[auth] redirect to home");
 
         if (nextPath === "/" || nextPath === "/index.html") {
-          window.location.replace("/");
+          window.location.replace(${JSON.stringify(SHELL_HOME_PATH)});
           return;
         }
 

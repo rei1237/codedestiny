@@ -27,11 +27,11 @@ export default function KakaoCrmPage() {
   const reportCosts=Object.fromEntries(COSTS.map(([k])=>[k,costs[k]?.trim()?Number(costs[k]):null])) as Record<typeof COSTS[number][0], number | null>;
   const profit=contribution(reportCosts);
   return <main className={styles.page}>
-    <h1>카카오 채널 CRM</h1><p>꿀꿀 운세 · 관리자 검토 후 카카오에서 예약 발송</p><p>검토 기록은 캠페인 ID 역순으로 최대 50개 표시합니다.</p>
+    <h1>카카오 채널 CRM</h1><p>꿀꿀운세 · 관리자 검토 후 카카오에서 예약 발송</p><p>검토 기록은 캠페인 ID 역순으로 최대 50개 표시합니다.</p>
     <p className={styles.notice}>자동 발송 API는 연결되지 않았습니다. 이 화면은 검토·중지 기록과 비용 정산을 관리합니다. 카카오 예약의 생성·중지는 관리자센터에서 직접 수행하세요.</p>
     <p><a href={`${CENTER}/welcome`} target="_blank" rel="noreferrer">웰컴 메시지</a> · <a href={`${CENTER}/new`} target="_blank" rel="noreferrer">카카오 메시지 작성</a> · <a href="https://business.kakao.com/space/10500173/channel/_GgxaGX/targetgroups/list" target="_blank" rel="noreferrer">친구 그룹</a></p>
     <div className={styles.workspace}><section><h2>메시지 소재</h2><label>소재 선택<select className={ADMIN_INPUT} value={creativeId} onChange={e=>setCreativeId(e.target.value)}>{CRM_CAMPAIGNS.map(c=><option key={c.id} value={c.id}>{c.title}{c.paid?' · 발송 보류':''}</option>)}</select></label>
-      <article className={styles.preview}><p>(광고) 꿀꿀 운세</p><img src={creativeImageUrl} width={800} height={600} alt={creative.title}/><p style={{whiteSpace:'pre-line'}}>{creative.body}</p><a href={previewUrl} target="_blank" rel="noreferrer">{creative.button}</a><small>수신거부 | 홈 &gt; 채널차단</small></article>
+      <article className={styles.preview}><p>(광고) 꿀꿀운세</p><img src={creativeImageUrl} width={800} height={600} alt={creative.title}/><p style={{whiteSpace:'pre-line'}}>{creative.body}</p><a href={previewUrl} target="_blank" rel="noreferrer">{creative.button}</a><small>수신거부 | 홈 &gt; 채널차단</small></article>
       <p>사이트 검토용 미리보기입니다. 카카오톡 실제 미리보기·테스트 발송도 확인하세요.</p><p><a href={creativeImageUrl} download>발송용 이미지 저장</a></p><label>UTM 연결 주소<textarea readOnly className={ADMIN_INPUT} value={previewUrl}/></label>
     </section><section><h2>발송 검토안 만들기</h2><form className={styles.form} onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);void post('draft',{id:f.get('id'),creativeId,recipients:Number(f.get('recipients')),unitCostKRW:Number(f.get('unitCostKRW')),vatRate:Number(f.get('vatRate')),budgetKRW:Number(f.get('budgetKRW')),scheduledAt:new Date(`${f.get('scheduledAt')}+09:00`).toISOString(),audienceEvidence:f.get('audienceEvidence')});}}>
       <label>캠페인 ID (중복 불가)<input required name="id" value={operationId} onChange={e=>setOperationId(e.target.value)} pattern="[a-z0-9][a-z0-9-]{2,79}" placeholder="yeoni-weekly-20261005" className={ADMIN_INPUT}/></label>

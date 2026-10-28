@@ -80,7 +80,7 @@ test('yeoni and neo prepare the same birth data, facts, outline and evidence as 
   assert.deepEqual(untimed(row.snapshot.analysis),untimed(base.snapshot.analysis));
   assert.deepEqual(row.snapshot.manifest,base.snapshot.manifest);
   assert.deepEqual(untimed(row.generationCheckpoint),untimed(base.generationCheckpoint));
-  assert.equal(row.productId,'chat_saju');assert.equal(row.featureKey,'fortune-chat-consultation');assert.equal(row.amountKRW,3000);
+  assert.equal(row.productId,'chat_saju');assert.equal(row.featureKey,'fortune-chat-consultation');assert.equal(row.amountKRW,5000);
   assert.equal(row.snapshot.product.manifestVersion,base.snapshot.product.manifestVersion);
   assert.equal(row.snapshot.manifest.length,5);
   assert.doesNotMatch(JSON.stringify(row.snapshot.manifest)+JSON.stringify(row.snapshot.product),/영냥|고등어|yeongnyangi/);
@@ -94,7 +94,7 @@ test('yeoni and neo prepare the same birth data, facts, outline and evidence as 
 test('chat products keep their own price and stay out of the Yeongnyangi catalog',()=>{
  for(const domain of ['saju','ziwei','sukuyo','vedic','astrology','tarot']){
   const chat=m.getChatProduct(domain),fish=m.getProduct(domain+'_mackerel');
-  assert.equal(chat.priceKRW,3000);assert.equal(chat.cdFeatureKey,'fortune-chat-consultation');
+  assert.equal(chat.priceKRW,5000);assert.equal(chat.cdFeatureKey,'fortune-chat-consultation');
   assert.equal(chat.chapterCount,fish.chapterCount);assert.equal(chat.manifestVersion,fish.manifestVersion);
   assert.deepEqual(m.resolveStoredProduct('chat_'+domain),chat);
  }
@@ -109,7 +109,7 @@ test('chat tarot reads a v2 question spread in the persona voice without a birth
  const [yeoni,neo]=await Promise.all(['yeoni','neo'].map(persona=>m.prepareFortune(env,'tarot-owner',ask,{persona})));
  assert.notEqual(yeoni._id,neo._id);
  for(const row of [yeoni,neo]){
-  assert.equal(row.productId,'chat_tarot');assert.equal(row.featureKey,'fortune-chat-consultation');assert.equal(row.amountKRW,3000);
+  assert.equal(row.productId,'chat_tarot');assert.equal(row.featureKey,'fortune-chat-consultation');assert.equal(row.amountKRW,5000);
   assert.equal(row.profileId,'tarot-question');
   assert.deepEqual(row.snapshot.tarotConsultation,{version:'yeongnyangi-tarot-consultation-v2',kind:'career'});
   assert.equal(row.snapshot.manifest.length,5);
@@ -172,7 +172,7 @@ test('voiceStyle: only a Korean Yeongnyangi honorific order changes the identity
 
 const questionDecision={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'업무 부탁을 자주 받아요',options:'',period:'',constraints:'',confirmed:true};
 test('chat question catalog prices, support limits and stored identities share the server registry',()=>{
- const prices={mackerel:3000,salmon:9000,flounder:15000,tuna:30000};
+ const prices={mackerel:5000,salmon:10000,flounder:15000,tuna:30000};
  const catalog=m.chatQuestionProducts();assert.equal(catalog.length,21);
  for(const product of catalog){assert.equal(product.priceKRW,prices[product.fishId]);assert.equal(product.cdFeatureKey,'fortune-chat-question-'+product.fishId);assert.deepEqual(m.resolveStoredProduct(product.id),product);}
  for(const domain of ['tarot','astrology','sukuyo'])assert.ok(!catalog.some(p=>p.domain===domain&&p.fishId==='tuna'));
@@ -192,7 +192,7 @@ test('new chat questions persist the tier contract and separate personas on one 
 });
 
 test('all four chat tiers persist their question scope and followup allowance',async()=>{
- const cases=[['mackerel',{},'부탁을 어떻게 거절할까?',0],['salmon',{category:'career',options:'준비 목표',constraints:'없음',period:'2026년'},'어떤 직업을 준비할까?',1],['flounder',{category:'compatibility',target:'pair',relationshipType:'other'},'두 사람의 차이를 어떻게 조율할까?',2],['tuna',{category:'timing',horizon:'transition',period:'2026년부터 다음 대운'},'다음 대운을 어떻게 준비할까?',4]];
+ const cases=[['mackerel',{},'부탁을 어떻게 거절할까?',0],['salmon',{category:'career',options:'준비 목표',constraints:'없음',period:'2026년'},'어떤 직업을 준비할까?',1],['flounder',{category:'compatibility',target:'pair',relationshipType:'other'},'두 사람의 차이를 어떻게 조율할까?',2],['tuna',{category:'timing',horizon:'transition',period:'2026년부터 다음 대운'},'다음 대운을 어떻게 준비할까?',6]];
  for(const [fishId,patch,question,followups] of cases){
   const body={domain:'saju',fishId,profileId:'self',...(fishId==='flounder'?{partnerProfileId:'partner'}:{}),timezone:'Asia/Seoul',question,questionDecision:{...questionDecision,...patch},consultationAttemptId:crypto.randomUUID()};
   const row=await m.prepareFortune(env,'four-tier-owner',body,{persona:'neo'});

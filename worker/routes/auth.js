@@ -1,8 +1,10 @@
+import signupBenefitPolicy from "../../js/core/signup-benefit-policy.mjs";
 import { mapSocialProfile, normalizeKoreanPhoneNumber } from "../lib/social-profile.js";
 import { connectDb, mongoose, requestPoolRecovery, resolveMongoDbName, withMongoRetry } from "../lib/db.js";
 import { IdempotencyKey, MonthlyCreditLedger, PointHistory, RESTORE_CREDENTIAL_CAP, RefreshTokenSession, User } from "../lib/models.js";
 import { MONTHLY_CREDIT_TTL_MS } from "../lib/monthly-credit-lots.js";
 import { getEnv } from "../lib/env.js";
+import { isExplicitLocalDevEnv, resolveRequiredAuthSecret } from "../lib/auth-secret.js";
 import { readThroughCredentialCache } from "../lib/credential-scoped-cache.js";
 // 🔴 access-state.js 가 아니라 의존 없는 저장소 모듈에서 가져온다 — 그쪽을 가져오면
 // models.js·content-unlocks.js 까지 이 라우트의 모듈 그래프에 딸려 들어온다(그 파일 머리말 참고).
@@ -30,7 +32,8 @@ import {
   signAuthToken,
   JWT_ISSUER,
 } from "../lib/auth.js";
-import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
+import { cookieValue, getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, redirect } from "../lib/http.js";
+import { EMAIL_MARKETING_CONSENT_VERSION } from "../../lib/marketing/email-marketing.mjs";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { buildProfilePolicySnapshot } from "../lib/profile-limits.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
@@ -86,10 +89,10 @@ const PHONE_CHANGE_RATE_LIMIT_MAX = 5;
 const PHONE_CHANGE_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const LOGIN_RATE_LIMIT_DEFAULT_MAX = 20;
 const LOGIN_RATE_LIMIT_DEFAULT_WINDOW_MS = 60 * 1000;
-const SIGNUP_MONTHLY_CREDIT_GRANT = 500;
+const SIGNUP_MONTHLY_CREDIT_GRANT = signupBenefitPolicy.amount;
 const AUTH_TERMS_VERSION = "2026-04-11";
 // 🔴 app/privacy-policy/PrivacyPolicyContent.jsx 의 PRIVACY_POLICY_EFFECTIVE_DATE 와 같아야 한다.
-const AUTH_PRIVACY_VERSION = "2026-08-25";
+const AUTH_PRIVACY_VERSION = "2026-10-10";
 const REFERRAL_REWARD_MONTHLY_CREDIT = 100;
 const REFERRAL_DAILY_MONTHLY_CREDIT_CAP = 500;
 const withdrawRateLimitMap = new Map();
@@ -112,7 +115,7 @@ function buildSignupProfileSubscription(now = new Date()) {
       amount: SIGNUP_MONTHLY_CREDIT_GRANT,
       remaining: SIGNUP_MONTHLY_CREDIT_GRANT,
       grantedAt,
-      expiresAt: new Date(grantedAt.getTime() + MONTHLY_CREDIT_TTL_MS),
+      expiresAt: new Date(grantedAt.getTime() + signupBenefitPolicy.days * 86400000),
     }],
     membershipCreditLotsVersion: 0,
     legacyCoinCreditSeeded: true,
@@ -554,7 +557,14 @@ function getRequestHostname(request) {
 
 function isLocalDevAuthEnabled(request, env) {
   if (!isTrueLike(getEnv(env, "LOCAL_DEV_AUTH_ENABLED", ""))) return false;
-  return isLocalHostname(getRequestHostname(request));
+  // 기본 계정 세션을 발급하는 우회이므로 운영 런타임에서는 플래그가 켜져 있어도 무시한다.
+  if (!isExplicitLocalDevEnv(env)) return false;
+  // 클라이언트가 바꿀 수 있는 Host/x-forwarded-host 헤더가 아니라 요청 URL의 호스트만 신뢰한다.
+  try {
+    return isLocalHostname(new URL(request.url).hostname);
+  } catch (e) {
+    return false;
+  }
 }
 
 function getLocalDevAuthConfig(env) {
@@ -1031,6 +1041,14 @@ async function withOptionalAuthSideEffect(task, timeoutMs, label, fallback = nul
   }
 }
 
+// 이메일 광고 수신은 선택 동의다(정보통신망법 §50). 체크하고 현재 문구 버전으로 제출했을 때만 기록한다.
+// 미체크·구버전은 아무것도 남기지 않는다 — 기본값이 미동의다. 동의할 때만 모델 모듈을 읽는다.
+async function recordSignupMarketingConsent(env, userId, consent, source) {
+  if (consent?.granted !== true || consent?.version !== EMAIL_MARKETING_CONSENT_VERSION) return null;
+  const { recordEmailMarketingConsent } = await import("../lib/email-marketing-consent.js");
+  return recordEmailMarketingConsent(env, String(userId), { granted: true, source });
+}
+
 function toOAuthFeature(provider) {
   if (provider === "google") return "auth-oauth-google";
   if (provider === "naver") return "auth-oauth-naver";
@@ -1311,9 +1329,13 @@ box-shadow:0 12px 24px rgba(179,25,85,.18)}
   });
 }
 
+// 로그인 뒤 "홈"은 앱 홈(/ggulggul/)이다. 루트(/)는 브랜드 대표 홈이라 앱 화면이 아니다.
+const OAUTH_APP_HOME_PATH = "/ggulggul/";
+
 function buildOAuthFrontendUrl(frontendBase, nextPath = "/") {
   const base = String(frontendBase || "http://localhost:3000").replace(/\/+$/, "") || "http://localhost:3000";
-  const safeNextPath = sanitizeOAuthNextPath(nextPath);
+  const sanitizedNextPath = sanitizeOAuthNextPath(nextPath);
+  const safeNextPath = sanitizedNextPath === "/" || sanitizedNextPath === "/index.html" ? OAUTH_APP_HOME_PATH : sanitizedNextPath;
   try {
     return new URL(safeNextPath, `${base}/`).toString();
   } catch (e) {
@@ -1416,7 +1438,7 @@ async function signSocialState(payload, env) {
 }
 
 async function verifySocialState(token, env) {
-  const payload = await verifyJwt(token, getAccessTokenSecret(env), { issuer: JWT_ISSUER });
+  const payload = await verifyJwt(token, getAccessTokenSecret(env), { issuer: JWT_ISSUER, requireExp: true });
   if (!payload || payload.purpose !== "social-oauth-state") {
     throw new Error("invalid_oauth_state");
   }
@@ -1994,7 +2016,11 @@ function isWithdrawnAuthUser(user) {
 }
 
 function getCsrfSecret(env) {
-  return getEnv(env, "CSRF_SECRET") || getAccessTokenSecret(env) || "dev-csrf-secret";
+  return resolveRequiredAuthSecret(
+    env,
+    ["CSRF_SECRET", "JWT_ACCESS_SECRET", "JWT_SECRET", "AUTH_SECRET"],
+    "CSRF secret is required in production.",
+  );
 }
 
 function generateCsrfToken(env) {
@@ -2600,7 +2626,8 @@ async function handleRegister(request, env) {
     );
   }
 
-  const requiredKeys = ["name", "email", "password"];
+  // 이름은 validateRegisterPayload가 이메일에서 생성한다. 실제 가입 폼에는 이름 칸이 없다.
+  const requiredKeys = ["email", "password"];
   const missingFields = requiredKeys.filter((key) => {
     const value = body[key];
     return typeof value !== "string" || value.trim() === "";
@@ -2910,6 +2937,11 @@ async function handleRegister(request, env) {
         null,
       )
       : Promise.resolve(null),
+    withOptionalAuthSideEffect(
+      recordSignupMarketingConsent(env, user._id, body?.marketingEmailConsent, "signup_email"),
+      Math.min(timeoutMs, 2000),
+      "auth_register_marketing_consent",
+    ),
   ]);
 
   try {
@@ -3745,6 +3777,7 @@ async function handleRefresh(request, env) {
     payload = await verifyJwt(refreshToken, getRefreshTokenSecret(env), {
       issuer: getJwtIssuer(env),
       audience: getJwtAudience(env),
+      requireExp: true,
     });
   } catch (e) {
     const response = json({ ok: false, message: "Refresh token is invalid or expired." }, { status: 401 });
@@ -4311,6 +4344,12 @@ async function handleOAuthStart(request, env, provider) {
     }
 
     const url = new URL(request.url);
+    // Issue the host-only binding cookie on the callback host, including www/API aliases.
+    // The destination comes from the server's provider configuration, never a query parameter.
+    const callbackOrigin = new URL(cfg.redirectUri).origin;
+    if (url.origin !== callbackOrigin) {
+      return redirect(`${callbackOrigin}${url.pathname}${url.search}`);
+    }
     const mode = sanitizeOAuthMode(url.searchParams.get("mode"));
     let phoneConsentUserId = "";
     if (mode === PHONE_CONSENT_MODE) {
@@ -4349,8 +4388,12 @@ async function handleOAuthStart(request, env, provider) {
       referralSource: url.searchParams.get("referralSource") || url.searchParams.get("via"),
     });
     const frontendBase = getOAuthFrontendBaseUrl(request, env);
+    const bindingCookieName = `cd_oauth_browser_${provider}`;
+    const existingBinding = cookieValue(request, bindingCookieName);
+    const browserBinding = /^[a-f0-9]{64}$/.test(existingBinding) ? existingBinding : randomBytes(32).toString("hex");
     const stateToken = await signSocialState({
       provider,
+      browserBindingHash: createHash("sha256").update(browserBinding).digest("hex"),
       nextPath,
       frontendBase,
       appRedirect,
@@ -4380,7 +4423,11 @@ async function handleOAuthStart(request, env, provider) {
       if (provider === "naver") params.set("auth_type", "reprompt");
     }
 
-    return redirect(`${cfg.authorizationEndpoint}?${params.toString()}`);
+    const response = redirect(`${cfg.authorizationEndpoint}?${params.toString()}`);
+    response.headers.append("Set-Cookie", buildCookieValue(bindingCookieName, browserBinding, {
+      httpOnly: true, secure: resolveCookieSecure(request, env), sameSite: "Lax", maxAge: 600,
+    }));
+    return response;
   } catch (error) {
     logAuthDiagnostic(request, env, "/api/auth/oauth/start", provider, "oauth_start_failed", error);
     return json({
@@ -4591,6 +4638,13 @@ async function handleOAuthCallback(request, env, provider) {
       logKakaoCallbackMarker(request, provider, "stateValid", { stateValid: false });
       logExchangeFailed("provider_mismatch");
       return buildOAuthFailureRedirect(frontendBase, provider, "provider_mismatch");
+    }
+    const browserBinding = cookieValue(request, `cd_oauth_browser_${provider}`);
+    const expectedBinding = String(statePayload.browserBindingHash || "");
+    if (!/^[a-f0-9]{64}$/.test(browserBinding) || !/^[a-f0-9]{64}$/.test(expectedBinding)
+      || !timingSafeEqual(Buffer.from(createHash("sha256").update(browserBinding).digest("hex")), Buffer.from(expectedBinding))) {
+      logExchangeFailed("oauth_browser_mismatch");
+      return buildOAuthFailureRedirect(frontendBase, provider, "oauth_browser_mismatch");
     }
     logKakaoCallbackMarker(request, provider, "stateValid", { stateValid: true });
 
@@ -5074,6 +5128,15 @@ async function handleOAuthCompleteSignup(request, env) {
     );
   }
 
+  // 티켓 재제출로 기존 계정을 받은 경우에는 그 계정의 동의 상태를 가입 화면 체크박스로 덮지 않는다.
+  if (socialUser.created) {
+    await withOptionalAuthSideEffect(
+      recordSignupMarketingConsent(env, user._id, body?.marketingEmailConsent, "signup_social"),
+      Math.min(timeoutMs, 2000),
+      "auth_complete_signup_marketing_consent",
+    );
+  }
+
   const nextPath = sanitizeOAuthNextPath(ticket.nextPath);
   const flow = sanitizeAuthFlow(ticket.flow);
   const referralReward = await applySocialOAuthReferralReward(request, env, user, {
@@ -5549,6 +5612,8 @@ export const __authTestUtils = {
   resolveSocialAutoSignup,
   findOrCreateSocialUser,
   buildProviderConfig,
+  isLocalDevAuthEnabled,
+  getCsrfSecret,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),
   clearWithdrawRateLimitState: () => withdrawRateLimitMap.clear(),
   clearPhoneChangeRateLimitState: () => phoneChangeRateLimitMap.clear(),

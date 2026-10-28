@@ -3,6 +3,11 @@
  * 탭 영역 44px 이상, 360px 폭 우선, prefers-reduced-motion 이면 움직이지 않는다. */
 /* 달빛 예화 밤 창(10-06): 연이·네오 어느 테마에서도 같은 밤하늘 카드 — 테마 분기 없는 :root 지도 토큰(--cd-map-*·--cd-node-*)을 섞는다.
  * 표면·글자·강조를 한 세트로 바꾼다(반쪽 오버라이드 금지). 금빛 선 = 예화 라인아트, 보석빛 칸 = 샤갈 스테인드글라스. */
+.da-actions [aria-pressed="true"] { background: var(--da-accent); color: var(--da-bg); }
+.da-body__hit { fill: transparent; pointer-events: all; }
+.da-body a:focus-visible { outline: 3px solid var(--da-accent); outline-offset: 3px; }
+.da-body a:hover .da-hdg__center { stroke-width: 4px; }
+.da-body details[id] { scroll-margin-top: 100px; }
 #destinyAnatomyCard {
   --da-bg: color-mix(in srgb, var(--cd-map-ink) 62%, var(--cd-cta-primary-bg-2));
   --da-bg-deep: color-mix(in srgb, var(--cd-map-ink) 28%, var(--cd-cta-primary-bg-2));
@@ -107,7 +112,7 @@
 .da-meme__outline { fill: none; stroke: var(--da-art); stroke-width: 2.2; }
 .da-meme__cells { position: absolute; inset: 0; }
 .da-meme__cell { position: absolute; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  padding: 4px 6px; overflow: hidden; text-align: center; color: var(--da-ink); font-size: clamp(12px, 4cqi, 17px); line-height: 1.45; }
+  padding: 4px 6px; overflow: hidden; text-align: center; color: var(--da-ink); font-size: clamp(14px, 4cqi, 17px); line-height: 1.45; }
 .da-meme__stk { display: inline-flex; align-items: center; gap: 3px; line-height: 1; }
 .da-meme__stk:empty { display: none; }
 .da-stk { display: inline-grid; place-items: center; font-size: 1.05em; transform: rotate(-8deg); }
@@ -118,7 +123,7 @@
 :lang(ko) .da-meme__line, :lang(ko) .da-meme__caption, :lang(ko) .da-meme__rowline, :lang(ko) .da-meme__combo { word-break: keep-all; }
 .da-meme__pct { font-size: .82em; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--da-ink); text-shadow: 0 1px 2px var(--da-bg-deep); }
 .da-meme__cell.is-hot .da-meme__pct { padding: 0 6px; border-radius: var(--cd-r-pill); background: var(--da-ink); color: var(--da-bg); }
-.da-meme__cell.is-tight { padding: 3px; gap: 3px; font-size: 12px; line-height: 1.35; }
+.da-meme__cell.is-tight { padding: 4px; gap: 4px; font-size: 14px; line-height: 1.45; }
 .da-meme__cell.is-mid, .da-meme__cell.is-pct { flex-direction: row; gap: 3px; padding: 2px; }
 .da-meme__cell.is-mid .da-meme__line, .da-meme__cell.is-pct .da-meme__line, .da-meme__cell.is-pct .da-meme__stk, .da-meme__cell.is-dot > * { display: none; }
 .da-meme__cell.is-tight .da-meme__pct, .da-meme__cell.is-mid .da-meme__pct, .da-meme__cell.is-pct .da-meme__pct { font-size: max(11px, .9em); font-weight: 900; }
@@ -126,13 +131,15 @@
 .is-lit .da-stk--luck { animation: da-drift 3s var(--cd-ease-out) infinite; }
 .da-meme__caption { margin: 8px 0 var(--cd-sp-sm); text-align: center; text-wrap: balance; font-size: .78rem; color: var(--da-muted); }
 .da-meme__legend { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; border-top: 1px solid var(--da-line); }
-.da-meme__row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 13px 2px; border-bottom: 1px solid var(--da-line); }
+.da-meme__row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 20px 2px; border-bottom: 1px solid var(--da-line); }
 .da-meme__sw { flex: none; width: 18px; height: 18px; }
 .da-meme__god { font-weight: 800; }
 .da-meme__name { color: var(--da-muted); }
 .da-meme__name { font-weight: 600; color: var(--da-ink); }
 .da-meme__rowpct { margin-left: auto; font-family: var(--da-serif); font-weight: 700; color: var(--da-gold); font-variant-numeric: lining-nums tabular-nums; }
-.da-meme__rowline { flex-basis: 100%; padding-left: 26px; font-size: .86rem; color: var(--da-muted); line-height: 1.5; }
+.da-meme__rowline { flex-basis: 100%; padding-left: 28px; font-size: 1rem; color: var(--da-ink); line-height: 1.65; font-weight: 600; }
+.da-meme__basis { flex-basis: 100%; padding-left: 28px; font-size: .86rem; color: var(--da-muted); line-height: 1.8; }
+.da-brain__thought { margin: var(--cd-sp-md) 0 var(--cd-sp-xs); font-family: var(--da-serif-text); font-size: clamp(1.15rem, 4vw, 1.65rem); line-height: 1.6; color: var(--da-ink); text-wrap: balance; }
 .da-meme__row .da-chip { margin-left: 0; }
 .da-chip--hot { border-color: var(--da-accent); background: color-mix(in srgb, var(--da-accent) 14%, var(--da-bg)); }
 .da-meme__combo { margin: 10px 0 0; text-align: center; font-size: .9rem; color: var(--da-muted); }
@@ -398,7 +405,7 @@
 @media (min-width: 560px) { .da-share .da-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .da-share__status { min-height: 0; margin: 0; }
 .da-share__status:not(:empty) { margin-top: var(--cd-sp-xs); }
-@media (max-width: 480px) { #destinyAnatomyCard .da-body__grid { grid-template-columns: 1fr; } #destinyAnatomyCard .da-body__svg { max-width: 180px; margin: 0 auto; } }
+@media (max-width: 480px) { #destinyAnatomyCard .da-body__grid { grid-template-columns: 1fr; } #destinyAnatomyCard .da-body__svg { max-width: 200px; margin: 0 auto; } }
 .da-ask__ais .da-btn { width: 100%; justify-content: center; }
 .da-ask__status { min-height: 0; margin: 0; }
 .da-ask__status:not(:empty) { margin-top: var(--cd-sp-xs); }
@@ -420,7 +427,7 @@
 
 @media (max-width: 380px) {
   .da-body__grid { grid-template-columns: 1fr; }
-  .da-body__svg { max-width: 160px; margin: 0 auto; }
+  .da-body__svg { max-width: 200px; margin: 0 auto; }
   .da-btn { padding: 0 var(--cd-sp-md); }
 }
 @media (min-width: 720px) {
@@ -675,3 +682,6 @@
   #destinyAnatomyCard .da-chart-links { grid-template-columns: 1fr; gap: 0; }
   #destinyAnatomyCard .da-chart-link + .da-chart-link { border-block-start: 0; }
 }
+
+#destinyAnatomyCard .da-hdg__gate { pointer-events: none; }
+#destinyAnatomyCard .da-habit .da-mb__row:last-child dd { font-weight: 700; color: var(--da-ink); }

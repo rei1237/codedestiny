@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import {
@@ -77,10 +79,10 @@ const YEON_STAR_HUG_TEXT_TRANSLATIONS = {
     "yeonStar.text.004": "연이가 전하는 오늘의 한 문장",
     "yeonStar.text.005": "오늘의 행운 상징",
     "yeonStar.text.006": "연이의 응원은 짧고 선명하게, 너의 오늘을 지켜줄 거야.",
-    "yeonStar.text.007": "Code Destiny · Yeon Cheer Card",
+    "yeonStar.text.007": "꿀꿀운세 · Yeon Cheer Card",
     "yeonStar.title.001": "연이의 마음 별자리",
     "yeonStar.title.002": "연이의 마음 별자리",
-    "yeonStar.alt.001": "연이의 마음 별자리 아트",
+    "yeonStar.alt.001": "별빛을 품은 꽃돼지 연이와 마음을 잇는 별자리",
     "yeonStar.placeholder.001": "예: 연이",
     "yeonStar.aria-label.002": "별자리 선택",
     "yeonStar.placeholder.002": "예: 요즘 만나는 사람과 계속 어긋나는 것 같아 답답해요. 또는 돈을 모으고 싶은데 지출 통제가 안 돼서 고민이에요.",
@@ -163,12 +165,12 @@ const YEON_STAR_HUG_COPY_KO: YeonStarHugCopy = {
   heroTitle: "연이의 마음 별자리",
   heroSubtitle: "오늘의 감정과 고민을 별빛 흐름으로 다정하게 정리해줄게요.",
   heroDescription:
-    "태양 위치, 달 위상, 요일 행성 흐름을 기반으로 현실적인 한 줄 행동까지 제안해요. 감정 선택부터 상담 결과, SVG 행운 상징 카드 저장까지 한 번에 이어집니다.",
+    "오늘의 감정을 고르고 고민을 한 문장으로 남겨주세요. 별자리와 달의 흐름을 곁들여, 연이가 따뜻한 편지와 오늘 해볼 작은 행동을 전해요.",
   heroArtLoading: "연이 아트 로딩중",
-  heroImageAlt: "연이의 마음 별자리 아트",
+  heroImageAlt: "별빛을 품은 꽃돼지 연이와 마음을 잇는 별자리",
   inputPanelEyebrow: "입력 패널",
-  inputPanelTitle: "감정 선택 → 별자리 → 고민 입력",
-  inputPanelIntro: "오늘 마음을 편안하게 정리할 수 있도록 입력 동선을 간결하게 준비했어요.",
+  inputPanelTitle: "오늘은 어떤 마음인가요?",
+  inputPanelIntro: "내 정보를 확인한 뒤, 지금의 감정과 고민을 알려주세요.",
   profileCardLabel: "연결된 프로필 카드",
   profileConnected: "연결됨",
   profileNotConnected: "미연결",
@@ -176,22 +178,22 @@ const YEON_STAR_HUG_COPY_KO: YeonStarHugCopy = {
   birthDateLabel: "생년월일",
   birthTimeLabel: "출생시간",
   astroLoading: "연이가 정밀 별자리 차트를 읽고 있어요.",
-  resyncButton: "프로필 카드 기준으로 별자리 다시 맞추기",
-  nameFieldLabel: "이름 (프로필 카드 자동 입력)",
+  resyncButton: "내 프로필 다시 불러오기",
+  nameFieldLabel: "이름",
   namePlaceholder: "예: 연이",
   birthDateFieldLabel: "생년월일 (YYYYMMDD)",
   birthTimeFieldLabel: "출생시간 (HHMM, 선택)",
   zodiacFieldLabel: "내 별자리",
   zodiacSelectAriaLabel: "별자리 선택",
-  concernFieldLabel: "지금 고민 (키워드 인식용)",
+  concernFieldLabel: "마음에 남은 고민",
   concernPlaceholder: "예: 요즘 만나는 사람과 계속 어긋나는 것 같아 답답해요. 또는 돈을 모으고 싶은데 지출 통제가 안 돼서 고민이에요.",
   concernAriaLabel: "고민 입력",
-  concernSamplesLabel: "추천 고민 샘플 문장",
+  concernSamplesLabel: "이런 고민도 괜찮아요",
   generateButtonLoading: "연이가 별빛 흐름 정리중...",
-  generateButtonIdle: "연이 상담 업데이트",
-  flowHint: "상담 흐름: 감정 선택 → 별자리 선택 → 고민 입력 → 결과 분석 → SVG 카드",
+  generateButtonIdle: "마음 별자리 읽기",
+  flowHint: "감정과 고민을 담으면, 편지와 작은 실천을 함께 읽을 수 있어요.",
   emptyStateTitle: "감정과 고민을 입력하면 연이가 별빛 상담을 준비해요.",
-  emptyStateHint: "업데이트 버튼을 누르면 분석 결과, SVG 카드, 실행 3단계가 순서대로 표시됩니다.",
+  emptyStateHint: "마음 별자리 읽기를 누르면 연이의 편지와 오늘의 실천이 펼쳐져요.",
   readingEyebrow: "오늘의 마음 리딩",
   readingTitle: "오늘의 점성술 상담",
   cheerLetterEyebrow: "연이의 응원 편지",
@@ -201,10 +203,10 @@ const YEON_STAR_HUG_COPY_KO: YeonStarHugCopy = {
   evidenceLabel: "근거",
   sevenReadingsEyebrow: "오늘의 별빛 상담 7가지",
   shareCardEyebrow: "공유 카드",
-  shareCardTitle: "고화질 SVG 행운 상징 카드",
+  shareCardTitle: "오늘의 마음을 담은 카드",
   cardPreviewAriaLabel: "SVG 행운 상징 카드 미리보기",
-  shareButtonLoading: "SVG 상징 카드 준비중...",
-  shareButtonIdle: "SVG 상징 카드 공유/저장",
+  shareButtonLoading: "마음 카드 준비 중…",
+  shareButtonIdle: "마음 카드 저장·공유",
   focusLabel: "핵심 포커스",
   actionStepsLabel: "오늘의 실행 3단계",
   faqSaveTitle: "결과 저장하고 다시 보기",
@@ -1128,7 +1130,7 @@ type HeartSymbol = {
   whisper: string;
 };
 
-const HERO_IMAGE = "/fuctionassets/%EC%97%B0%EC%9D%B4%EC%9D%98%20%EB%A7%88%EC%9D%8C%20%EB%B3%84%EC%9E%90%EB%A6%AC.webp";
+const HERO_IMAGE = "/images/service-introductions/yeon-star-hug-960.webp";
 const SPRITE_SHEET =
   "/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp";
 const SPRITE_CELL_SIZE = 362;
@@ -2877,15 +2879,6 @@ export default function YeonStarHugPage() {
           className="grid gap-5 rounded-3xl border border-[#f4d8e3] bg-white/85 p-5 shadow-[0_14px_36px_rgba(150,72,104,0.12)] backdrop-blur-sm md:grid-cols-[1.1fr_0.9fr] md:p-8"
         >
           <div className="space-y-4">
-            <m.div
-              animate={reduceMotion ? undefined : { y: [0, -5, 0] }}
-              transition={reduceMotion ? undefined : { duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
-              className="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-white/85 px-4 py-2 text-sm font-semibold text-pink-500"
-            >
-              <Heart className="h-4 w-4 fill-pink-200 text-pink-400" />
-              {copy.heroBadge}
-            </m.div>
-
             <h2 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight text-[#b31955] md:text-5xl">
               {copy.heroTitle}
             </h2>
@@ -2902,9 +2895,9 @@ export default function YeonStarHugPage() {
               <Image
                 src={HERO_IMAGE}
                 alt={copy.heroImageAlt}
-                width={900}
-                height={620}
-                className="h-full max-h-[360px] w-full max-w-full rounded-2xl object-contain"
+                width={1280}
+                height={720}
+                className="h-auto w-full max-w-full rounded-2xl object-contain"
                 onError={() => setHeroError(true)}
                 priority
               />
@@ -2924,10 +2917,12 @@ export default function YeonStarHugPage() {
             transition={{ duration: 0.45, delay: 0.1 }}
             className="rounded-3xl border border-[#f4d8e3] bg-white/88 p-5 shadow-[0_14px_34px_rgba(150,72,104,0.12)] backdrop-blur-sm lg:sticky lg:top-6"
           >
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">{copy.inputPanelEyebrow}</p>
             <h2 className="text-xl font-black text-slate-700">{copy.inputPanelTitle}</h2>
             <p className="mb-4 mt-1 text-sm text-slate-500">{copy.inputPanelIntro}</p>
 
+            <SavedBirthProfilePicker onSelect={async(_seed,profile)=>{const version=++profileSyncVersionRef.current;await applyProfileAndAstro(profile,()=>version!==profileSyncVersionRef.current);}} />
+            <details data-moonlit-form="" className="mb-4">
+              <summary className="flex min-h-12 cursor-pointer items-center justify-between text-sm font-bold text-[#70445c]">내 정보 확인·수정 <span className="text-xs">프로필 또는 직접 입력</span></summary>
             <div className="mb-4 rounded-2xl border border-[#ead089]/80 bg-[#fff8dc]/70 p-4" aria-live="polite">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-bold text-[#70445c]">{copy.profileCardLabel}</p>
@@ -2983,20 +2978,12 @@ export default function YeonStarHugPage() {
 
               <label htmlFor="yeon-birth-time" className="grid gap-1 sm:col-span-2">
                 <span className="text-xs font-bold text-pink-600">{copy.birthTimeFieldLabel}</span>
-                <input
-                  id="yeon-birth-time"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={4}
-                  value={birthTimeInput}
-                  onChange={(event) => handleBirthTimeInputChange(event.target.value)}
-                  placeholder="0730"
-                  className="min-h-12 rounded-xl border border-pink-200 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus-visible:ring-2 focus-visible:ring-pink-200"
-                />
+                <BirthTimeInput id="yeon-birth-time" value={birthTimeInput.length===4?birthTimeInput.slice(0,2)+":"+birthTimeInput.slice(2):""} onChange={event=>handleBirthTimeInputChange(event.target.value.replace(":",""))} />
               </label>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            </details>
+            <fieldset className="mt-5"><legend className="mb-3 text-sm font-bold text-[#3c1830]">지금 느끼는 감정 하나</legend><div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {EMOTIONS.map((emotion) => {
                 const isActive = selectedEmotion === emotion.key;
                 return (
@@ -3011,6 +2998,7 @@ export default function YeonStarHugPage() {
                         ? `border-pink-200 bg-gradient-to-br ${emotion.tone} shadow-[0_8px_20px_rgba(248,113,113,0.26)]`
                         : "border-pink-100 bg-white/90"
                     }`}
+                    aria-pressed={isActive}
                     aria-label={`${emotion.label} 감정 선택`}
                   >
                     <emotion.Icon className={`mx-auto mb-1 h-4 w-4 ${isActive ? "text-pink-500" : "text-rose-400"}`} />
@@ -3020,6 +3008,7 @@ export default function YeonStarHugPage() {
               })}
             </div>
 
+            </fieldset>
             <label htmlFor="yeon-zodiac-select" className="mt-5 block text-xs font-semibold text-pink-500">{copy.zodiacFieldLabel}</label>
             <select
               id="yeon-zodiac-select"

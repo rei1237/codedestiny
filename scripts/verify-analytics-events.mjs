@@ -30,6 +30,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM, VirtualConsole } from "jsdom";
+import { HOME_CATEGORIES, HOME_CONCERNS } from "../lib/seo/home-discovery.mjs";
+import { fortuneLandings } from "../lib/fortune-landings.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ANALYTICS_SOURCE = fs.readFileSync(path.join(ROOT, "js/core/analytics.js"), "utf8");
@@ -204,6 +206,77 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   assert.ok(fired, "표식 안의 링크에서 cross_sell_click 이 나가지 않았다");
   assert.equal(fired[2].from_service, "/saju");
   assert.equal(fired[2].to_service, "/ziwei");
+}
+
+/* 검색 랜딩 CTA: 기존 이벤트 한 번, 공개 enum만, 쿼리와 개인 입력은 제외. */
+{
+  for (const consent of ["", "essential", "accepted"]) {
+    const { window, calls } = boot({ consent, url: "https://code-destiny.com/saju/?question=private&birth=19900101", body: `
+      <section data-cd-cross-sell="/saju"><a id="primary" data-cd-cta-placement="primary" data-cd-target-service="saju" href="/ggulggul/?action=cdOneStepFreeSajuEntry&question=private&token=secret#result">내 이름</a></section>` });
+    // Installing the shared script twice must not register a second click listener.
+    window.eval(ANALYTICS_SOURCE);
+    window.document.getElementById("primary").click();
+    const recorded = events(window.dataLayer.map(entry => Array.from(entry))).filter(entry => entry[1] === "cross_sell_click");
+    assert.equal(recorded.length, 1, "검색 CTA 클릭은 기존 이벤트로 한 번만 기록");
+    assert.deepEqual(JSON.parse(JSON.stringify(recorded[0][2])), { from_service: "/saju/", to_service: "/ggulggul/", placement: "primary", target_service: "saju" });
+    assert.equal(calls.find(entry => entry[0] === "consent")[2].analytics_storage, consent === "accepted" ? "granted" : "denied");
+    assert.equal(calls.find(entry => entry[0] === "config")[2].page_location, "https://code-destiny.com/saju/");
+    window.close();
+  }
+  for (const placement of ["related", "directory", "next_step"]) {
+    const { window } = boot({ body: `<a id="cta" data-cd-cross-sell="/" data-cd-cta-placement="${placement}" data-cd-target-service="zodiac" href="/fortune/tomorrow/">별자리</a>` });
+    window.document.getElementById("cta").click();
+    const recorded = events(window.dataLayer.map(entry => Array.from(entry))).filter(entry => entry[1] === "cross_sell_click");
+    assert.equal(recorded.length, 1);
+    assert.equal(recorded[0][2].placement, placement);
+    window.close();
+  }
+  for (const [source, destination, placement, service] of [
+    ["/saju/?question=private", "/ggulggul/", "primary", "saju"],
+    ["/saju/", "/yeongnyangi/result/", "primary", "saju"],
+    ["/saju/", "https://other.example/ggulggul/", "primary", "saju"],
+    ["/saju/", "/ggulggul/", "private-question", "saju"],
+    ["/saju/", "/ggulggul/", "primary", "my-name"],
+    ["/saju/", "/ggulggul/", "primary", ""],
+  ]) {
+    const { window } = boot({ body: `<a id="cta" data-cd-cross-sell="${source}" data-cd-cta-placement="${placement}" data-cd-target-service="${service}" href="${destination}">개인 질문</a>` });
+    window.document.getElementById("cta").click();
+    assert.equal(events(window.dataLayer.map(entry => Array.from(entry))).filter(entry => entry[1] === "cross_sell_click").length, 0, "분류가 잘못된 CTA는 원문을 보내지 않고 제외");
+    window.close();
+  }
+}
+
+/* 실제 홈/서비스 카탈로그가 바뀌어도 allowlist에서 조용히 누락되지 않는가. */
+{
+  const cases = [
+    ...[...HOME_CATEGORIES, ...HOME_CONCERNS].map(item => ["/", item.href, item.key, "directory"]),
+    ...Object.entries(fortuneLandings).map(([path, story]) => [path, `/ggulggul/?action=${story.action}`, path.slice(1), "primary"]),
+    ["/", "/ggulggul/", "ggulggul", "primary"],
+    ["/", "/yeongnyangi/", "yeongnyangi", "primary"],
+    ["/", "/fortune/tomorrow/rat/", "zodiac", "next_step"],
+    ["/ziwei/chart/", "/ziwei/chart/#reading", "ziwei", "primary"],
+    ["/ziwei/animal-destiny/", "/ziwei/animal-destiny/#reading", "ziwei", "primary"],
+  ];
+  const signSource = fs.readFileSync(path.join(ROOT, 'lib/fortune/sign-profiles.ts'), 'utf8');
+  const landingTemplate = fs.readFileSync(path.join(ROOT, 'app/components/SeoLandingTemplate.jsx'), 'utf8');
+  const relatedTargetsBlock = landingTemplate.match(/const RELATED_SERVICE_TARGETS = \{([\s\S]*?)\n\};/);
+  assert.ok(relatedTargetsBlock, '공개 related CTA enum을 찾지 못함');
+  for (const match of relatedTargetsBlock[1].matchAll(/"([^"]+)": "([^"]+)"/g)) cases.push(['/saju/', match[1], match[2], 'related']);
+  const signIds = [...signSource.matchAll(/^\s+id: "([a-z]+)",/gm)].map(match => match[1]);
+  assert.equal(signIds.length, 24, '별자리/띠 카탈로그 파서가 낡았음');
+  for (const period of ['today', 'tomorrow', 'weekly', 'monthly']) for (const sign of signIds) {
+    cases.push([`/fortune/${period}/${sign}/`, '/saju/', 'saju', 'next_step']);
+    cases.push([`/fortune/${period}/`, `/fortune/${period}/${sign}/`, 'zodiac', 'primary']);
+  }
+  for (const [source, href, service, placement] of cases) {
+    const { window } = boot({ body: `<a id="catalogue" data-cd-cross-sell="${source}" data-cd-cta-placement="${placement}" data-cd-target-service="${service}" href="${href}">서비스</a>` });
+    window.document.getElementById("catalogue").click();
+    const recorded = events(window.dataLayer.map(entry => Array.from(entry))).filter(entry => entry[1] === "cross_sell_click");
+    assert.equal(recorded.length, 1, `실제 공개 카탈로그 CTA가 계측에서 누락: ${source} -> ${href}`);
+    window.close();
+  }
+  const hero = fs.readFileSync(path.join(ROOT, 'app/components/FortuneLandingHero.tsx'), 'utf8');
+  for (const marker of ['data-cd-cross-sell', 'data-cd-cta-placement="primary"', 'data-cd-cta-placement="directory"', 'data-cd-target-service']) assert.ok(hero.includes(marker), `실제 랜딩 hero 표식 누락: ${marker}`);
 }
 
 /* ⑥ 깨진 측정 ID 는 태그를 붙이지 않는다 */
@@ -428,8 +501,9 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   const outsideHome = stripComments(SHELL_SOURCE.slice(0, homeStart) + SHELL_SOURCE.slice(resultStart));
   const marks = [...home.matchAll(/data-cd-funnel-section="([^"]*)"/g)].map((m) => m[1]);
 
+  // 2026-10-17 "직관성" 단순화로 홈 면을 hero·대표 상담·무료 3종·서비스 목록 위주로 줄였다(8 → 5).
   assert.ok(
-    marks.length >= 8,
+    marks.length >= 5,
     `홈의 data-cd-funnel-section 표식이 ${marks.length}개다 — 면이 통째로 빠지면 그 면의 클릭이 어디에도 안 잡힌다`,
   );
   assert.equal(
@@ -471,6 +545,7 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
     "guide-cta-targets.js": { marked: false, why: "데이터 표일 뿐 링크를 렌더하지 않는다" },
     // 라우트 이름 목록(몰입형 판정)이라 <a> 가 없다. 전역 크롬은 크로스셀 축이 아니다.
     "AppChrome.tsx": { marked: false, why: "라우트 목록일 뿐 링크를 렌더하지 않는다" },
+    "PaymentLoading.tsx": { marked: false, why: "현재 경로에 맞는 결제 완료 안내 문구를 선택할 뿐 링크를 렌더하지 않는다" },
   };
 
   const walkComponents = (dir) => {
@@ -564,4 +639,4 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   assert.match(body, /cdTrack\('question_select', \{[^}]*question_id: picked/, "질문 타일 선택에서 question_select(question_id) 발화가 사라졌다");
 }
 
-console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 영냥이 포털 클릭/도착 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류 · 배너 앱 억제");
+console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 검색 CTA primary/related/directory/next_step 공개값·단일 발화 · 실제 카탈로그 계측 · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 영냥이 포털 클릭/도착 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류 · 배너 앱 억제");

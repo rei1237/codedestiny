@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP8",
+  "mobile": "Independent SHIP16 captures",
+  "checks": "294/324/364/540;all clipping ancestors;fallback PASS;static2;ESLint/syntax PASS",
+  "limits": "All API mocked;no purchase;check:fast npm test failed, full failure details pending;main/CI pending"
+}

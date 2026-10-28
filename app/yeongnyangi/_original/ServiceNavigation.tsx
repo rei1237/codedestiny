@@ -19,7 +19,7 @@ export default function ServiceNavigation() {
     setLogin(loginHref(window.location.pathname + window.location.search));
     setGgulggul(ggulggulFortuneHref("/yeongnyangi/fortune/"));
   }, []);
-  if(siteLocale!=='ko')return <footer className="service-navigation" lang={siteLocale}><SessionControls/><div className="service-navigation__brand"><span className="service-navigation__avatar" aria-hidden="true"><img src="/assets/yeongnyangi/original/avatar.webp" width="54" height="44" alt="" loading="lazy" decoding="async"/></span><div><strong>Yeongnyangi · CODE DESTINY</strong><p>{ui.about}</p></div></div>
+  if(siteLocale!=='ko')return <footer className="service-navigation" lang={siteLocale}><SessionControls/><div className="service-navigation__brand"><span className="service-navigation__avatar" aria-hidden="true"><img src="/assets/yeongnyangi/original/avatar.webp" width="54" height="44" alt="" loading="lazy" decoding="async"/></span><div><strong>Yeongnyangi · 꿀꿀운세</strong><p>{ui.about}</p></div></div>
     <div className="service-navigation__links"><nav aria-label={local.serviceInfo}><a href={`/today/?lang=${siteLocale}`}>{local.today}</a><a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{chrome.library}</a><a href={`/yeongnyangi/?lang=${siteLocale}`}>{chrome.home}</a><a href={`/yeongnyangi/fortune/?lang=${siteLocale}`}>{ui.start}</a><a href={`/ggulggul/?lang=${siteLocale}`}>{local.otherService}</a></nav><nav aria-label={chrome.terms}><a href={legal.terms}>{chrome.terms}</a><a href={`/privacy-policy/?lang=${siteLocale}`}>{chrome.privacy}</a><a href={legal.refund}>{chrome.refund}</a><a href={legal.support}>{chrome.contact}</a></nav></div>
     <div className="service-navigation__notice"><ShieldCheck size={18} aria-hidden="true"/><p>{ui.limits}</p></div><p>{ui.payment}. {ui.priceHint}</p>
     <dl className="service-navigation__business"><div><dt>{local.company}</dt><dd lang="ko">{BUSINESS_IDENTITY.companyName} · {BUSINESS_IDENTITY.representative}</dd></div><div><dt>{local.registration}</dt><dd>{BUSINESS_IDENTITY.registrationNumber}</dd></div><div><dt>{local.license}</dt><dd lang="ko">{BUSINESS_IDENTITY.mailOrderNumber}</dd></div><div><dt>{local.address}</dt><dd lang="ko">{BUSINESS_IDENTITY.address}</dd></div><div><dt>{chrome.contact}</dt><dd>{BUSINESS_IDENTITY.phone} · {BUSINESS_IDENTITY.email}</dd></div></dl>
@@ -40,7 +40,7 @@ export default function ServiceNavigation() {
       <nav aria-label="영냥이 서비스 연결">
         {mainServiceLinks.map(link => <a key={link.label} href={link.href}>{link.label}</a>)}
         <a href={login}>Code Destiny 로그인</a>
-        <a href={ggulggul}>꿀꿀 운세 바로가기</a>
+        <a href={ggulggul}>꿀꿀운세 바로가기</a>
       </nav>
       <nav aria-label="법적 안내">
         {legalLinks.map(link => <a key={link.label} href={link.href}>{link.label}</a>)}
@@ -49,12 +49,12 @@ export default function ServiceNavigation() {
 
     <div className="service-navigation__notice">
       <ShieldCheck size={18} aria-hidden="true" />
-      <p>영냥이 운세 콘텐츠는 오락 및 자기 성찰 목적의 참고 정보이며, 확정된 미래나 전문 자문을 보장하지 않습니다.</p>
+      <p>영냥이 운세 콘텐츠는 각 점술 체계의 이론에 근거한 참고 해석이며, 풀이 문장 작성에 생성형 AI를 활용합니다. 확정된 미래나 전문 자문을 보장하지 않습니다.</p>
     </div>
 
     <div className="service-navigation__partner">
       <img src="/assets/yeongnyangi/original/ggulggul-fortune.webp" width="512" height="512" alt="" loading="lazy" decoding="async" />
-      <p><strong>꿀꿀 운세</strong>와 연결해 둘러볼 수 있지만, 영냥이 상담의 결제와 이용 권리는 별도 기준으로 운영해요.</p>
+      <p><strong>꿀꿀운세</strong>와 연결해 둘러볼 수 있지만, 영냥이 상담의 결제와 이용 권리는 별도 기준으로 운영해요.</p>
     </div>
 
     <dl className="service-navigation__business" aria-label="사업자 정보">
@@ -67,7 +67,7 @@ export default function ServiceNavigation() {
 
     <p className="service-navigation__fineprint">
       <PawPrint size={14} aria-hidden="true" />
-      Code Destiny 계정과 프로필을 함께 사용하며, 영냥이 상담은 Family 이용권 또는 생선 상품별 단건 결제로 이용합니다.
+      Code Destiny 계정과 프로필을 함께 사용하며, 영냥이 상담은 패밀리 꿀단지 이용권 또는 생선 상품별 단건 결제로 이용합니다.
       <Sparkles size={14} aria-hidden="true" />
     </p>
   </footer>;

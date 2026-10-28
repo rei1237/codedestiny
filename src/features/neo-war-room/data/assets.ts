@@ -161,27 +161,27 @@ export const neoWarRoomAssets = {
     ),
   },
   methods: {
-    saju: destinyWarAsset(
-      "네오 전략실 사주 이미지.webp",
-      "사주 작전 브리핑 선택 이미지",
+    saju: localNeoWarRoomAsset(
+      "/neo-operation-room/methods/saju-textless-v2-640.webp",
+      "네오가 네 기둥의 사주 명식과 오행을 짚는 상담",
       "method-cover",
       "method-saju",
     ),
-    vedic: destinyWarAsset(
-      "네오 전략실 베다점 이미지.webp",
-      "베다점 작전 브리핑 선택 이미지",
+    vedic: localNeoWarRoomAsset(
+      "/neo-operation-room/methods/vedic-textless-v2-640.webp",
+      "네오가 베다 차트와 달이 머무는 별의 자리를 살피는 상담",
       "method-cover",
       "method-vedic",
     ),
-    ziwei: destinyWarAsset(
-      "네오 전략실 자미두수 이미지.webp",
-      "자미두수 작전 브리핑 선택 이미지",
+    ziwei: localNeoWarRoomAsset(
+      "/neo-operation-room/methods/ziwei-textless-v2-640.webp",
+      "네오가 열두 궁 명반을 짚으며 삶의 영역을 살피는 상담",
       "method-cover",
       "method-ziwei",
     ),
-    astrology: destinyWarAsset(
-      "네오 전략실 점성술 이미지.webp",
-      "점성술 작전 브리핑 선택 이미지",
+    astrology: localNeoWarRoomAsset(
+      "/neo-operation-room/methods/astrology-textless-v2-640.webp",
+      "네오가 원형 출생차트의 행성과 하우스를 살피는 상담",
       "method-cover",
       "method-astrology",
     ),

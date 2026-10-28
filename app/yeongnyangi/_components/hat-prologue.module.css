@@ -1,0 +1,46 @@
+.story { --hat-brass:#b99a61; --hat-paper:#f5ead6; max-width:900px; margin:0 auto 2rem; color:var(--hat-paper); background:#17171f; border:1px solid #766146; border-radius:24px 24px 14px 14px; overflow:hidden; box-shadow:0 22px 50px #08080d55,inset 0 0 0 5px #aa895010; }
+.visual { position:relative; isolation:isolate; display:grid; justify-items:center; padding:28px 16px 12px; background:radial-gradient(ellipse at 50% 46%,#41405655,transparent 62%),repeating-linear-gradient(115deg,#d6c4a504 0 1px,transparent 1px 5px),#171922; }
+.visual::after,.dialogue::after { content:''; position:absolute; inset:0; pointer-events:none; opacity:.14; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23c7bba2' filter='url(%23n)' opacity='.6' d='M0 0h180v180H0z'/%3E%3C/svg%3E"); }
+.astrolabe { position:absolute; width:min(92%,560px); height:92%; top:0; fill:none; stroke:var(--hat-brass); stroke-width:1; opacity:.37; }
+.hatActor { position:relative; width:min(76%,390px); transform-origin:50% 83%; filter:drop-shadow(0 19px 17px #03030980); }
+.hatActor img { display:block; width:100%; height:auto; }
+.story[data-speaking=true] .hatActor { animation:hat-murmur .48s ease-in-out 8 alternate; }
+.story[data-reveal=true] .hatActor { animation:hat-proclaim .8s cubic-bezier(.16,1,.3,1); }
+.scene { position:relative; margin:10px 0 4px; font:400 .8rem/1.7 var(--font-serif,'CodeDestinySerifKR',serif); color:#cfbfaa; text-align:center; }
+.whisper { display:flex; align-items:center; justify-content:center; gap:5px; height:18px; color:var(--hat-brass); }
+.whisper i { width:2px; height:5px; border-radius:2px; background:currentColor; }
+.whisper i:nth-child(2n) { height:11px; }
+.whisper i:nth-child(3) { height:17px; }
+.story[data-speaking=true] .whisper i { animation:whisper .4s ease-in-out 10 alternate; }
+.story[data-speaking=true] .whisper i:nth-child(2n) { animation-delay:.15s; }
+.doors { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:0; margin:0 clamp(12px,3vw,28px); padding:18px 0 16px; border-block:1px solid #b99a613d; }
+.door { display:flex; flex-direction:column; align-items:center; min-width:0; padding:6px 2px 9px; color:#c1ae8b; border-radius:48px 48px 7px 7px; transition:background .45s,color .45s; }
+.door strong { margin-top:8px; font:600 .8rem/1.5 var(--font-serif,'CodeDestinySerifKR',serif); text-align:center; }
+.door[data-lit=true] { color:#ffe8ad; background:linear-gradient(180deg,#c8994726,#cb9d4510); box-shadow:inset 0 1px 0 #e8cd8580,inset 0 -2px 0 #e8cd85; }
+.emblem { position:relative; display:inline-flex; flex-direction:column; align-items:center; justify-content:center; width:72px; height:88px; flex-shrink:0; color:inherit; }
+.engraving { position:absolute; width:72px; height:72px; top:0; fill:none; stroke:currentColor; stroke-width:.8; }
+.emblemIcon { position:absolute; width:30px; height:30px; top:21px; filter:drop-shadow(0 2px 1px #000); }
+.role { position:absolute; bottom:0; font:400 .66rem/1.5 var(--font-body); letter-spacing:.06em; }
+.door[data-lit=true] .engraving { animation:seal-awaken .8s ease-out; }
+.sparkles { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+.sparkles i { position:absolute; top:60%; width:3px; height:6px; background:#fce1a1; border-radius:50%; opacity:0; animation:spark 1s ease-out; }
+.dialogueWrap { position:relative; padding:22px clamp(12px,3vw,28px) 14px; }
+.dialogue { position:relative; display:block; width:100%; min-height:214px; padding:22px clamp(18px,3vw,30px) 18px; text-align:left; color:var(--hat-paper); background:linear-gradient(120deg,#342b2a,#24212a 60%,#302828); border:1px solid #9c815557; border-radius:3px 18px 3px 18px; cursor:pointer; font-family:var(--font-serif,'CodeDestinySerifKR',serif); box-shadow:inset 0 1px 0 #eed6a524,0 8px 18px #07070a30; }
+.dialogue::before { content:''; position:absolute; inset:6px; border:1px solid #c5a77220; border-radius:1px 13px 1px 13px; pointer-events:none; }
+.speaker { position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; color:#edcf95; font-weight:700; margin-bottom:18px; font-size:1rem; }
+.speaker>span { color:#bcb0a3; font:400 .7rem/1.6 var(--font-body); }
+.body { position:relative; display:block; min-height:4.5em; font-size:clamp(1rem,1.5vw,1.16rem); line-height:1.9; word-break:keep-all; overflow-wrap:anywhere; }
+.next { position:relative; display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:18px; color:#e2c58f; font:500 .75rem/1.5 var(--font-body); }
+.controls { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:10px; color:#bcb0a3; font-size:.72rem; }
+.controls button { min-height:44px; padding:8px 4px 8px 10px; background:transparent; border:0; border-bottom:1px solid #a98b5244; border-radius:0; color:#e6d7bd; font:inherit; cursor:pointer; }
+.controls button:hover:not(:disabled) { border-color:#edcf95; color:#fff0c9; }
+.controls button:disabled { opacity:.7; cursor:wait; }
+.story button:focus-visible { outline:2px solid #f6dea2; outline-offset:3px; }
+.srOnly { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+@keyframes hat-murmur { from { transform:rotate(-1.7deg) scaleY(.985); } to { transform:rotate(1.3deg) scaleY(1.012) translateY(-3px); } }
+@keyframes hat-proclaim { 35% { transform:translateY(-12px) rotate(-4deg); } 65% { transform:rotate(3deg); } }
+@keyframes whisper { to { transform:scaleY(.35); opacity:.4; } }
+@keyframes spark { 20% { opacity:1; } to { transform:translateY(-130px); opacity:0; } }
+@keyframes seal-awaken { from { opacity:.4; transform:scale(.88); } to { opacity:1; transform:scale(1); } }
+@media(max-width:600px) { .visual { padding-top:22px; } .hatActor { width:min(86%,310px); } .doors { grid-template-columns:repeat(3,minmax(0,1fr)); row-gap:10px; padding-block:14px; } .emblem { width:60px; height:73px; } .engraving { width:60px; height:60px; } .emblemIcon { width:26px; height:26px; top:17px; } .role { font-size:.62rem; } .door strong { margin-top:5px; font-size:.75rem; } .dialogueWrap { padding-top:16px; } .body { min-height:6em; } .speaker>span { font-size:.65rem; } }
+@media(prefers-reduced-motion:reduce) { .story[data-speaking=true] .hatActor,.story[data-reveal=true] .hatActor,.story[data-speaking=true] .whisper i,.door[data-lit=true] .engraving,.sparkles i { animation:none; } .door { transition:none; } }

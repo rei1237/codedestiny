@@ -1390,6 +1390,7 @@
   gap: 16px;
 }
 .resultBody {
+  grid-template-columns: minmax(0, 1fr);
   position: relative;
   z-index: 3;
   width: 100%;
@@ -1784,7 +1785,7 @@
   filter: drop-shadow(0 0 16px rgba(232, 213, 163, 0.5));
 }
 .voyageLockText {
-  color: var(--cd-map-ink);
+  color: #342c20;
   font-size: 0.98rem;
   line-height: 1.6;
   max-width: 420px;
@@ -1800,11 +1801,12 @@
 /* ── STEP7 운명의 갈림길 ─────────────────────────────── */
 .xForm {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 12px;
   align-items: end;
 }
 .xField {
+  min-width: 0;
   display: grid;
   gap: 6px;
 }
@@ -1815,15 +1817,17 @@
   letter-spacing: 0.04em;
 }
 .xInput {
+  width: 100%;
+  min-width: 0;
   font: inherit;
   min-height: 48px;
   padding: 12px 14px;
   border-radius: 12px;
   background: #fbf7ef;
   border: 1px solid rgba(224, 169, 58, 0.34);
-  color: var(--cd-map-ink);
+  color: #342c20;
 }
-.xInput::placeholder { color: var(--cd-map-ink-soft); }
+.xInput::placeholder { color: #726751; }
 .xInput:focus { outline: 2px solid var(--cd-map-gold); outline-offset: 1px; }
 .xVs {
   align-self: center;

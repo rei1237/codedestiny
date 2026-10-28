@@ -4,9 +4,9 @@ import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 
 const EDITORIAL_POLICY_TEXT_TRANSLATIONS = {
   ko: {
-    metadataTitle: "콘텐츠 제작 및 AI 활용 고지 | Code Destiny",
-    metadataDescription: "Code Destiny의 운세 콘텐츠 제작 원칙, AI 활용 범위, 검수 기준, 광고와 편집 독립성, 정정 요청 절차를 안내합니다.",
-    metadataKeywords: ["콘텐츠 제작 원칙", "AI 활용 고지", "운세 콘텐츠", "편집 정책", "Code Destiny"],
+    metadataTitle: "콘텐츠 제작 및 AI 활용 고지 | 꿀꿀 운세",
+    metadataDescription: "꿀꿀운세의 운세 콘텐츠 제작 원칙, AI 활용 범위, 검수 기준, 광고와 편집 독립성, 정정 요청 절차를 안내합니다.",
+    metadataKeywords: ["콘텐츠 제작 원칙", "AI 활용 고지", "운세 콘텐츠", "편집 정책", "꿀꿀운세"],
     creationIntro: "다음은 공개 문서를 작성·검토할 때 적용하는 기준입니다. 이 절차를 안내하는 것만으로 모든 문서의 개별 검수가 완료되었다는 뜻은 아닙니다. 원고별 완료 여부는 해당 글의 제작·검수 안내를 확인해 주세요.",
     draftStep: "③ 초안 — 계산 근거와 참고 자료를 읽기 쉬운 문장으로 옮길 때 생성형 AI의 도움을 받을 수 있습니다. 초안은 검토 대상이며, 생성되었다는 사실만으로 발행·검수 완료를 뜻하지 않습니다.",
     publicationStep: "⑤ 발행과 갱신 — 확인 가능한 발행·수정 이력을 표시하고, 정책이나 기능이 바뀌면 관련 문서와 내부 링크를 점검합니다. 기록이 없는 날짜를 검수일로 만들어 표시하지 않습니다.",
@@ -17,17 +17,17 @@ const EDITORIAL_POLICY_TEXT_TRANSLATIONS = {
     advertising: "광고 운영정책",
   },
   en: {
-    metadataTitle: "Content Creation and AI Use Notice | Code Destiny",
-    metadataDescription: "Learn how Code Destiny creates fortune content, uses AI support, reviews quality, separates ads from editorial decisions, and handles correction requests.",
-    metadataKeywords: ["content creation standards", "AI use notice", "fortune content", "editorial policy", "Code Destiny"],
+    metadataTitle: "Content Creation and AI Use Notice | 꿀꿀 운세",
+    metadataDescription: "Learn how 꿀꿀운세 creates fortune content, uses AI support, reviews quality, separates ads from editorial decisions, and handles correction requests.",
+    metadataKeywords: ["content creation standards", "AI use notice", "fortune content", "editorial policy", "꿀꿀운세"],
     privacy: "Privacy Policy",
     disclaimer: "Disclaimer",
     advertising: "Advertising Policy",
   },
   ja: {
-    metadataTitle: "コンテンツ制作とAI活用に関する告知 | Code Destiny",
-    metadataDescription: "Code Destinyの運勢コンテンツ制作原則、AI活用範囲、検収基準、広告と編集の独立性、訂正依頼手順をご案内します。",
-    metadataKeywords: ["コンテンツ制作基準", "AI活用告知", "運勢コンテンツ", "編集方針", "Code Destiny"],
+    metadataTitle: "コンテンツ制作とAI活用に関する告知 | 꿀꿀 운세",
+    metadataDescription: "꿀꿀운세の運勢コンテンツ制作原則、AI活用範囲、検収基準、広告と編集の独立性、訂正依頼手順をご案内します。",
+    metadataKeywords: ["コンテンツ制作基準", "AI活用告知", "運勢コンテンツ", "編集方針", "꿀꿀운세"],
     privacy: "プライバシーポリシー",
     disclaimer: "免責事項",
     advertising: "広告運用ポリシー",
@@ -64,21 +64,21 @@ export default function EditorialPolicyPage() {
             <section className="policy-embed-section">
               <h2 className="policy-embed-heading">1. 제작 원칙</h2>
               <p>
-                Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다점, 타로, 마야 달력, 명상 음악과 관련된 콘텐츠를 사용자가 스스로의 흐름을 차분히 이해하도록 돕는 참고 자료로 제작합니다. 각 글은 단순 키워드 나열이 아니라 해석 기준, 사용 상황, 주의할 점, 관련 기능으로 이어지는 안내를 함께 담는 것을 원칙으로 합니다.
+                꿀꿀운세는 사주, 자미두수, 숙요점, 점성술, 베다점, 타로, 마야 달력, 명상 음악과 관련된 콘텐츠를 사용자가 스스로의 흐름을 차분히 이해하도록 돕는 참고 자료로 제작합니다. 각 글은 단순 키워드 나열이 아니라 해석 기준, 사용 상황, 주의할 점, 관련 기능으로 이어지는 안내를 함께 담는 것을 원칙으로 합니다.
               </p>
             </section>
 
             <section className="policy-embed-section">
               <h2 className="policy-embed-heading">2. AI 활용 범위</h2>
               <p>
-                AI 도구는 초안 정리, 문장 다듬기, 구조화, 번역 보조, 반복 표현 점검에 사용될 수 있습니다. 다만 게시 전에는 Code Destiny의 콘텐츠 기준에 맞춰 과장 표현, 불안 조장, 확정적 예언, 의료·법률·금융 조언처럼 오해될 수 있는 문장을 검토합니다.
+                AI 도구는 초안 정리, 문장 다듬기, 구조화, 번역 보조, 반복 표현 점검에 사용될 수 있습니다. 다만 게시 전에는 꿀꿀운세의 콘텐츠 기준에 맞춰 과장 표현, 불안 조장, 확정적 예언, 의료·법률·금융 조언처럼 오해될 수 있는 문장을 검토합니다.
               </p>
             </section>
 
             <section className="policy-embed-section">
               <h2 className="policy-embed-heading">3. 고유성과 품질 기준</h2>
               <p>
-                얇은 자동 생성 문서, 문장만 바꾼 중복 페이지, 외부 자료의 단순 요약은 게시 기준에 맞지 않습니다. 외부 자료나 전통 체계를 참고하는 경우에도 Code Destiny의 해석 기준, 비교 설명, 예시, 한계 고지를 더해 독립적인 정보 가치를 갖도록 관리합니다.
+                얇은 자동 생성 문서, 문장만 바꾼 중복 페이지, 외부 자료의 단순 요약은 게시 기준에 맞지 않습니다. 외부 자료나 전통 체계를 참고하는 경우에도 꿀꿀운세의 해석 기준, 비교 설명, 예시, 한계 고지를 더해 독립적인 정보 가치를 갖도록 관리합니다.
               </p>
             </section>
 

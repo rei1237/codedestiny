@@ -228,6 +228,51 @@ describe("individual guardian adapters", () => {
     expect(JSON.stringify(result)).not.toContain(fixtures.baseInput.birthDate);
   });
 
+  it("renders the real saju engine shape as readable Korean evidence", async () => {
+    // 엔진(life-book-ai-saju.js)의 실제 모양: relationSummary·yearlyLuck·majorLuck 은 객체/배열이다.
+    const tenGods = { 비견: 2.35, 편인: 0.35, 편관: 0.35, 편재: 0.7, 겁재: 1, 정재: 0.35, 정관: 0.35, 정인: 0.7, 상관: 1, 식신: 0.35 };
+    const result = await adapterModules.saju.buildSajuAdapter({ ...fixtures.baseInput, targetDate: "2026-10-09" }, {
+      calculator: async () => ({
+        dayMaster: "辛",
+        fiveElements: { 목: 1, 화: 0, 토: 2, 금: 4, 수: 1 },
+        tenGods,
+        unfavorableGod: "금·토 기운은 기신 후보입니다.",
+        seasonalBalance: { monthBranch: "寅", season: "봄", seasonElement: "목", climate: "생기가 열리는 초봄", adjustment: "목 기운을 희용신 후보로 봅니다.", dayElement: "금", dayMasterSeasonalState: "일간이 월령을 다루려 하여 현실 장악의 욕구가 생깁니다." },
+        relationSummary: { supportCount: 1, tensionCount: 1, supportLabels: ["진유합"], tensionLabels: ["인신충"], mainPattern: "진유합" },
+        majorLuck: { available: true, currentCycle: { pillar: "乙巳", startAge: 31, endAge: 40, stemTenGod: "편재", isCurrent: true } },
+        yearlyLuck: [
+          { year: 2026, pillar: "丙午", stemTenGod: "정관" },
+          { year: 2027, pillar: "丁未", stemTenGod: "편관" },
+        ],
+      }),
+    });
+    const serialized = JSON.stringify(result);
+
+    expect(serialized).not.toContain("[object Object]");
+    expect(result.tenGodsSummary).toEqual(expect.stringContaining("식신 0.35"));
+    Object.keys(tenGods).forEach((name) => expect(result.tenGodsSummary).toContain(name));
+    expect(result.seasonSummary).toEqual(expect.stringContaining("생기가 열리는 초봄"));
+    expect(result.seasonSummary).toContain("현실 장악의 욕구");
+    expect(result.seasonSummary).toContain("희용신 후보");
+    expect(result.relationSummary).toContain("진유합");
+    expect(result.relationSummary).toContain("인신충");
+    expect(result.currentFlow).toContain("丙午");
+    expect(result.currentFlow).toContain("정관");
+    expect(result.currentFlow).toContain("乙巳");
+    expect(result.cautions.every((caution) => typeof caution === "string" && caution.length > 0)).toBe(true);
+    expect(result.evidence).toEqual(expect.arrayContaining(["saju.season", "saju.relation"]));
+  });
+
+  it("keeps a full-sentence adapter hook as its own sentence in the opening", async () => {
+    const insight = await import("../../worker/lib/guardian-fortune-insight.js");
+    const { openingHook } = insight.buildIntegratedInsight({
+      topic: "money_work",
+      results: { saju: { personalityHook: "辛의 기질이 일에서 드러나며, 기준을 행동으로 옮기려는 힘이 있습니다." } },
+    });
+    expect(openingHook).toContain("기준을 행동으로 옮기려는 힘이 있습니다.");
+    expect(openingHook).not.toMatch(/[.!?]라는/);
+  });
+
   it("projects ziwei palaces only when birth time is available", async () => {
     const result = await adapterModules.ziwei.buildZiweiAdapter({ ...fixtures.baseInput, hasBirthTime: true }, {
       calculator: async () => ({

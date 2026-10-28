@@ -1,4 +1,8 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
@@ -48,6 +52,8 @@ const REPORT_REASON = "운명의 섬 12궁 심층 리포트";
 const REPORT_COIN_PRICE = lookupServerCoinPrice(REPORT_FEATURE_KEY)!;
 const REPORT_AMOUNT_KRW = REPORT_COIN_PRICE * 100;
 const REPORT_ENDPOINT = "/api/ziwei-island-report";
+// 출생 기반 해금(userId + 생년월일)은 저장된 프로필이 있어야 판정·계산된다.
+const REPORT_PROFILE_REQUIRED = "프로필을 저장한 뒤 구매해 주세요.";
 
 type ReportSection = { key: string; title: string; body: string };
 type ReportPalace = { title: string; focus: string; tier: number; tierLabel: string; sections: ReportSection[] };
@@ -455,7 +461,9 @@ export default function IslandConsultClient() {
   const formTouchedRef = useRef(false);
   const seedAppliedRef = useRef(false);
 
-  const { seed: profileSeed, seedVersion } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion, choose: chooseProfile } = useAiProfileSeed();
+  // 🔴 심층 리포트는 이 저장 프로필의 출생 정보로만 해금 판정·계산된다(폼의 생년월일은 서버가 쓰지 않는다).
+  const reportProfileId = profileSeed?.profileId || "";
 
   // ── 심층 리포트 상태 ──
   const { ensurePaidAccess, isPaying } = useCoinGate();
@@ -495,11 +503,11 @@ export default function IslandConsultClient() {
     if (!force && formTouchedRef.current) return;
     setForm((f) => ({
       ...f,
-      name: seed.name || f.name,
+      name: seed.name ?? f.name,
       gender: (seed.gender === "male" || seed.gender === "female" || seed.gender === "unknown") ? seed.gender as Gender : f.gender,
-      birthDate: seed.birthDate || f.birthDate,
+      birthDate: seed.birthDate ?? f.birthDate,
       birthTimeUnknown: seed.birthTimeUnknown ?? f.birthTimeUnknown,
-      birthTime: seed.birthTimeUnknown ? "" : (seed.birthTime || f.birthTime),
+      birthTime: seed.birthTimeUnknown ? "" : (seed.birthTime ?? f.birthTime),
       calendarType: (seed.calendarType === "lunar" ? "lunar" : "solar"),
       isLeapMonth: seed.calendarType === "lunar" ? (seed.isLeapMonth ?? f.isLeapMonth) : false,
       question: seed.question ? String(seed.question).slice(0, 400) : f.question,
@@ -535,10 +543,12 @@ export default function IslandConsultClient() {
   // 해금된 사용자의 리포트 본문을 가져온다. 미해금이면 서버가 402를 주므로 잠금 상태를 그대로 둔다.
   async function loadReport() {
     if (reportLoading) return;
+    if (!reportProfileId) { setReportError(REPORT_PROFILE_REQUIRED); return; }
     setReportLoading(true);
     setReportError("");
     try {
-      const { status, data } = await postJson<{ ok?: boolean; report?: IslandReport; reason?: string }>(REPORT_ENDPOINT, {
+      const { status, data } = await postJson<{ ok?: boolean; report?: IslandReport; reason?: string; requiresProfile?: boolean; message?: string }>(REPORT_ENDPOINT, {
+        profileId: reportProfileId,
         birthDate: form.birthDate,
         birthTime: form.birthTimeUnknown ? "" : form.birthTime,
         birthTimeUnknown: form.birthTimeUnknown,
@@ -549,6 +559,7 @@ export default function IslandConsultClient() {
       if (data.ok && data.report) { setReport(data.report); reportFetchedRef.current = true; return; }
       if (status === 402 || data.reason === "PAYMENT_REQUIRED") return;           // 잠금 유지
       if (status === 401 || data.reason === "LOGIN_REQUIRED") { setReportError(ERROR_TEXT.LOGIN_REQUIRED); return; }
+      if (data.requiresProfile) { setReportError(String(data.message || "") || REPORT_PROFILE_REQUIRED); return; }
       if (status === 503 || data.reason === "DB_DEGRADED") { setReportError("연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요."); return; }
       setReportError("리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
     } catch {
@@ -602,6 +613,7 @@ export default function IslandConsultClient() {
   async function unlockReport() {
     if (isPaying || reportLoading) return;
     setReportError("");
+    if (!reportProfileId) { setReportError(REPORT_PROFILE_REQUIRED); return; }
     const r = await ensurePaidAccess({
       resume: buildReportResume({
         birthDate: form.birthDate,
@@ -745,7 +757,7 @@ export default function IslandConsultClient() {
       if (!record) return;
       setPendingConsult(true);
       if (data.retryable === false) { setError("상담 내역 확인이 필요해요. 저장된 부분은 아래에서 읽을 수 있어요."); return; }
-      await generate(record.idempotencyKey, record.payload, record.extra || {});
+      setNotice("새 AI 생성은 종료되었어요. 저장된 내용은 그대로 읽을 수 있어요. 미완료 구매는 고객지원에 문의해 주세요.");
     } catch (err) {
       if (active()) { setError(err instanceof Error ? err.message : "상담을 다시 불러오지 못했어요."); setNotice(""); }
     } finally { if (active()) busyRef.current = false; }
@@ -956,6 +968,17 @@ export default function IslandConsultClient() {
     );
   }
 
+  if (!result) return (
+    <main className="ic-root"><style>{CSS}</style><section className="ic-report">
+      <h1>운명의 섬이 무료 탐험으로 바뀌었어요</h1>
+      <p>캐릭터와 열두 궁을 여행하며 성향과 시기별 이야기를 바로 읽어보세요. 새 AI 상담과 리포트 구매는 종료되었어요.</p>
+      <a className="ic-back-btn" href="/destiny-island.html">무료로 섬 탐험하기</a>
+      <a className="ic-back-btn" href="/records/">기존 구매 기록 보기</a>
+      {error && <p role="alert">{error}</p>}
+      {reportUnlocked && report && renderReportSection(palace || PALACES[0])}
+    </section></main>
+  );
+
   return (
     <div className="ic-root">
       <style>{CSS}</style>
@@ -966,8 +989,8 @@ export default function IslandConsultClient() {
         </div>
         <div className="ic-head__content">
           <p className="ic-eyebrow">紫微斗數 · 운명의 섬</p>
-          <h1 className="ic-title">12궁 심층 상담</h1>
-          <p className="ic-sub">궁의 문을 열면, 연이와 네오가 그 자리의 별과 사화·대운을 지금 고민에 맞춰 깊이 읽어드려요.</p>
+          <h1 className="ic-title">기존 12궁 상담 다시 보기</h1>
+          <p className="ic-sub">과거에 저장된 상담을 그대로 읽는 화면이에요. 새로운 이야기는 무료 섬에서 만나보세요.</p>
           <div className="ic-guides" aria-label={copy.guidesAria}><span><span className="ic-guide__avatar"><Image src={YEON_AV} alt="" width={30} height={30} unoptimized /></span><b>연이</b> 마음의 결을 살펴요</span><span><span className="ic-guide__avatar ic-guide__avatar--neo"><Image src={NEO_AV} alt="" width={30} height={30} unoptimized /></span><b>네오</b> 다음 수를 짚어요</span></div>
         </div>
       </header>
@@ -975,7 +998,7 @@ export default function IslandConsultClient() {
       {pendingConsult && <div className="ic-result" role="status">
         <p>{notice || "생성 중인 상담을 보존하고 있어요."}</p>
         {error && <p className="ic-err" role="alert">{error}</p>}
-        <button type="button" className="ic-back-btn" onClick={() => void recoverConsult()}>이어서 생성하기</button>
+        <button type="button" className="ic-back-btn" onClick={() => void recoverConsult()}>저장된 내용 새로 확인</button>
       </div>}
       {phase === "hub" && (
         <ul className="ic-grid" aria-label={copy.palaceGridAria}>
@@ -997,14 +1020,17 @@ export default function IslandConsultClient() {
         <div className="ic-stack">
           <div className="ic-picked"><PalaceBadge palace={palace} size="small" /> <strong>{palace.name}</strong> · {palace.title} <button type="button" className="ic-change" onClick={() => { setPhase("hub"); setPalace(null); }}>다른 궁</button></div>
 
+          {!report && getCurrentLoadingLocale() === "ko" && <div data-crafted-island-report style={{width:"100%",maxWidth:540,margin:"0 auto"}}><CraftedProductDisclosure featureKey={REPORT_FEATURE_KEY} /></div>}
           {renderReportSection(palace)}
 
+          {getCurrentLoadingLocale() === "ko" && <div data-crafted-island-consult style={{width:"100%",maxWidth:540,margin:"0 auto"}}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
           <ExpertValueCards theme="island" points={[{ title: "궁의 주제", description: "12궁 중 지금 질문이 머무는 삶의 영역을 먼저 고릅니다." }, { title: "별과 사화", description: "해당 궁의 별 배치와 움직임을 현재 고민에 맞춰 풀어냅니다." }, { title: "다음 전략", description: "연이의 마음 읽기와 네오의 현실 조언을 한 상담으로 정리합니다." }]} />
-          <form id="island-consultation-form" className="ic-form" onSubmit={startConsult}>
+          <form data-moonlit-form="" id="island-consultation-form" className="ic-form" onSubmit={startConsult}>
           <div className="ic-lead">
             <span className="ic-lead__tag">전문가 상담</span>
             <p className="ic-lead__desc"><strong>{palace.name} 하나</strong>를 지금 고민에 맞춰 연이·네오가 새로 읽어 드려요.</p>
           </div>
+          <SavedBirthProfilePicker disabled={reportLoading || reportExporting} onSelect={next=>{setReport(null);setReportError("");reportFetchedRef.current=false;formTouchedRef.current=true;chooseProfile(next);applySeedToForm(next,true);setBirthEditing(true);}} />
           {showBirthConfirm ? (
             <div className="ic-confirm">
               <div className="ic-confirm__head">
@@ -1021,7 +1047,7 @@ export default function IslandConsultClient() {
           ) : (
             <>
               <label className="ic-field"><span>생년월일</span><input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => patchForm({ birthDate: nextBirthDate }))} required /></label>
-              <label className="ic-field"><span>태어난 시간</span><input type="time" value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTime: e.target.value })} /></label>
+              <label className="ic-field"><span>태어난 시간</span><BirthTimeInput  value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTime: e.target.value })} /></label>
               <label className="ic-check"><input type="checkbox" checked={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTimeUnknown: e.target.checked })} /> 태어난 시간을 몰라요 (정오 기준)</label>
               <div className="ic-segrow">
                 <div className="ic-seg" role="group" aria-label={copy.genderGroupAria}>
@@ -1058,7 +1084,7 @@ export default function IslandConsultClient() {
           <button type="submit" className="ic-primary" disabled={isPaying}>🔮 {palace.name} 심층 상담 시작 · {FEATURE_AMOUNT_KRW.toLocaleString("ko-KR")}원</button>
           <p className="ic-note">이용권·월정석이 있으면 자동으로 먼저 적용돼요. 생성에 실패하면 자동 환불됩니다.</p>
           </form>
-          <ExpertStickyCta theme="island" targetId="island-consultation-form" label="이 궁 상담 시작" price={<PriceBadge featureKey={FEATURE_KEY} prefix="상담 이용 가격 " />} />
+          <ExpertStickyCta theme="island" targetId="island-consultation-form" label="별도 한 궁 AI 상담" price={<PriceBadge featureKey={FEATURE_KEY} prefix="상담 이용 가격 " />} />
         </div>
       )}
 
@@ -1088,7 +1114,7 @@ export default function IslandConsultClient() {
           })}
           <div className="ic-result__foot">
             <button type="button" className="ic-back-btn" onClick={saveConsultPdf} disabled={consultPdfBusy || pendingConsult}>{consultPdfBusy ? "PDF 만드는 중…" : "📄 PDF로 소장하기"}</button>
-            <button type="button" className="ic-back-btn" disabled={pendingConsult} onClick={() => { setResult(null); setPhase("hub"); setPalace(null); }}>다른 궁도 상담하기</button>
+            <button type="button" className="ic-back-btn" disabled={pendingConsult} onClick={() => { setResult(null); setPhase("hub"); setPalace(null); }}>무료 섬 탐험으로</button>
             <a className="ic-back" href="/ziwei-ai/" onClick={() => rememberZiweiAiPreset(result.palaceKey, form.question)}>명반 전체로 더 묻기 · 전문가 상담</a>
             <a className="ic-back" href="/destiny-island">← 운명의 섬으로</a>
           </div>

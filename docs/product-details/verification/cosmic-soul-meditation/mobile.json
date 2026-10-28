@@ -1,0 +1,270 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "images": [
+        {
+          "loaded": true,
+          "width": 318,
+          "left": 21,
+          "right": 339
+        },
+        {
+          "loaded": true,
+          "width": 318,
+          "left": 21,
+          "right": 339
+        },
+        {
+          "loaded": true,
+          "width": 318,
+          "left": 21,
+          "right": 339
+        },
+        {
+          "loaded": true,
+          "width": 318,
+          "left": 21,
+          "right": 339
+        },
+        {
+          "loaded": true,
+          "width": 318,
+          "left": 21,
+          "right": 339
+        },
+        {
+          "loaded": true,
+          "width": 318,
+          "left": 21,
+          "right": 339
+        },
+        {
+          "loaded": true,
+          "width": 318,
+          "left": 21,
+          "right": 339
+        },
+        {
+          "loaded": true,
+          "width": 318,
+          "left": 21,
+          "right": 339
+        },
+        {
+          "loaded": true,
+          "width": 318,
+          "left": 21,
+          "right": 339
+        },
+        {
+          "loaded": true,
+          "width": 318,
+          "left": 21,
+          "right": 339
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "images": [
+        {
+          "loaded": true,
+          "width": 348,
+          "left": 21,
+          "right": 369
+        },
+        {
+          "loaded": true,
+          "width": 348,
+          "left": 21,
+          "right": 369
+        },
+        {
+          "loaded": true,
+          "width": 348,
+          "left": 21,
+          "right": 369
+        },
+        {
+          "loaded": true,
+          "width": 348,
+          "left": 21,
+          "right": 369
+        },
+        {
+          "loaded": true,
+          "width": 348,
+          "left": 21,
+          "right": 369
+        },
+        {
+          "loaded": true,
+          "width": 348,
+          "left": 21,
+          "right": 369
+        },
+        {
+          "loaded": true,
+          "width": 348,
+          "left": 21,
+          "right": 369
+        },
+        {
+          "loaded": true,
+          "width": 348,
+          "left": 21,
+          "right": 369
+        },
+        {
+          "loaded": true,
+          "width": 348,
+          "left": 21,
+          "right": 369
+        },
+        {
+          "loaded": true,
+          "width": 348,
+          "left": 21,
+          "right": 369
+        }
+      ]
+    },
+    {
+      "width": 430,
+      "images": [
+        {
+          "loaded": true,
+          "width": 388,
+          "left": 21,
+          "right": 409
+        },
+        {
+          "loaded": true,
+          "width": 388,
+          "left": 21,
+          "right": 409
+        },
+        {
+          "loaded": true,
+          "width": 388,
+          "left": 21,
+          "right": 409
+        },
+        {
+          "loaded": true,
+          "width": 388,
+          "left": 21,
+          "right": 409
+        },
+        {
+          "loaded": true,
+          "width": 388,
+          "left": 21,
+          "right": 409
+        },
+        {
+          "loaded": true,
+          "width": 388,
+          "left": 21,
+          "right": 409
+        },
+        {
+          "loaded": true,
+          "width": 388,
+          "left": 21,
+          "right": 409
+        },
+        {
+          "loaded": true,
+          "width": 388,
+          "left": 21,
+          "right": 409
+        },
+        {
+          "loaded": true,
+          "width": 388,
+          "left": 21,
+          "right": 409
+        },
+        {
+          "loaded": true,
+          "width": 388,
+          "left": 21,
+          "right": 409
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "images": [
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        },
+        {
+          "loaded": true,
+          "width": 538,
+          "left": 371,
+          "right": 909
+        }
+      ]
+    }
+  ],
+  "drawPosts": 0,
+  "authPosts": 0,
+  "otherPosts": 0,
+  "devPosts": 0,
+  "fallback": true,
+  "mode": "Mock APIs; existing meditation landing; course CTA trial only; no draw, payment or reading"
+}

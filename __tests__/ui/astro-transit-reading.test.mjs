@@ -81,15 +81,23 @@ test('times read the way people say them and particles follow the last syllable'
   assert.equal(dateLabel('2026-10-04'), '10월 4일 일요일');
 });
 
-// The paid 12-month flow: AstroTransits.period() + natal periods → AstroTransitReading.year()/renderYear().
+// The paid 12-month flow: AstroTransits.period() + natal periods → server-only year()/renderYear()
+// (worker/lib/astro-section/paid-yearly.cjs). The page keeps only the free head: yearPreview() + renderYearSection().
+const Y = createRequire(import.meta.url)('../../worker/lib/astro-section/paid-yearly.cjs');
 vm.runInContext(readFileSync('js/core/astro/natal-reading.js', 'utf8'), context);
 const N = context.AstroNatalReading;
 const yearOf = (key, timeKnown, day) => {
   const c = charts[key], chart = timeKnown ? c.chart : c.noon;
   const periods = N.build(chart, { timeKnown, today: day, birth: c.birth, moonDay: c.moonDay }).periods;
-  return R.year(T.period(T.natalOf(chart, timeKnown), { today: day, lonsAt, tz: 9 }), { periods, birth: c.birth });
+  const p = T.period(T.natalOf(chart, timeKnown), { today: day, lonsAt, tz: 9 });
+  return Object.assign(Y.year(p, { periods, birth: c.birth }), { _preview: R.yearPreview(p) });
 };
 const YEARS = [['b1', true, '2026-10-04'], ['b1', false, '2026-10-04'], ['b2', true, '2027-03-15'], ['x5', false, '2026-12-28']].map(([k, tk, d]) => ({ k, tk, d, y: yearOf(k, tk, d) }));
+
+test('the page no longer carries the 12-month body generator', () => {
+  assert.equal(R.year, undefined);
+  assert.equal(R.renderYear, undefined);
+});
 
 test('the year runs 12 calendar months from today, each with one to three dated lines', () => {
   for (const { d, y } of YEARS) {
@@ -109,8 +117,10 @@ test('the year runs 12 calendar months from today, each with one to three dated 
 
 test('the free preview names only the month, never the planet or the life area', () => {
   for (const { y } of YEARS) {
-    const head = R.renderYearSection(y, '');
-    assert.match(y.preview.line, /^앞으로 12개월 중 가장 큰 변화는 \d{4}년 \d{1,2}월에 와요\.$|잔잔하게/);
+    const pv = y._preview;
+    assert.deepEqual(plain({ from: pv.from, to: pv.to, rangeLabel: pv.rangeLabel, preview: pv.preview }), plain({ from: y.from, to: y.to, rangeLabel: y.rangeLabel, preview: y.preview }));
+    const head = R.renderYearSection(pv, '');
+    assert.match(y.preview.line, /^앞으로 12개월 중 흐름이 가장 두드러지는 달은 \d{4}년 \d{1,2}월이에요\.$|주요 흐름이 계산되지/);
     assert.ok(!/태양|달의|수성|금성|화성|목성|토성|천왕성|해왕성|명왕성|첫인상|평판|역행|일식|월식/.test(bodyText(head)), bodyText(head));
     assert.match(head, /^<section class="as-reading as-year" id="asYear"/);
   }
@@ -119,7 +129,7 @@ test('the free preview names only the month, never the planet or the life area',
 test('the locked body is plain words with no repeats inside a month or a field', () => {
   const banned = [/°/, /번째 집/, /하우스/, /H \//, /체감:/, /큰 흐름:/, /Placidus/, /\bMC\b/, /\bASC\b/, /Desc/, /\{|\}/, /undefined|NaN|null/, /프로펙션|피르다리아|트랜짓/];
   for (const { k, y } of YEARS) {
-    const body = bodyText(R.renderYear(y));
+    const body = bodyText(Y.renderYear(y));
     for (const re of banned) assert.ok(!re.test(body), `${k} ${re}: ${body.match(re) && body.slice(Math.max(0, body.search(re) - 40), body.search(re) + 40)}`);
     const groups = [...y.months.map(m => m.items), ...y.fields.flatMap(f => [f.good, f.caution]), y.theme];
     for (const lines of groups) {
@@ -136,14 +146,14 @@ test('without a birth time the year skips angle events and the yearly theme, and
   assert.equal(timed.timeNote, '');
   assert.equal(untimed.theme.length, 0);
   assert.match(untimed.timeNote, /출생 시간을 넣으면/);
-  assert.ok(!bodyText(R.renderYear(untimed)).replace(untimed.timeNote, '').match(/첫인상|일과 평판과|일과 평판을/));
+  assert.ok(!bodyText(Y.renderYear(untimed)).replace(untimed.timeNote, '').match(/첫인상|일과 평판과|일과 평판을/));
 });
 
 test('a different start date moves the window and the dated lines; the same date repeats them exactly', () => {
   const a = YEARS[0].y, later = yearOf('b1', true, '2027-03-15');
   assert.notEqual(a.rangeLabel, later.rangeLabel);
   assert.notDeepEqual(plain(a.months.map(m => m.items)), plain(later.months.map(m => m.items)));
-  assert.equal(R.renderYear(a), R.renderYear(yearOf('b1', true, '2026-10-04')));
+  assert.equal(Y.renderYear(a), Y.renderYear(yearOf('b1', true, '2026-10-04')));
   assert.equal(R._text.span('2026-10-04', '2026-12-05'), '2026년 10월 4일 ~ 12월 5일');
   assert.equal(R._text.span('2026-10-04', '2027-01-05'), '2026년 10월 4일 ~ 2027년 1월 5일');
 });

@@ -1,19 +1,16 @@
 {
-  "observedAt": "2026-09-28",
-  "observationNote": "로그인 GSC UI 관측. 실적 기간·색인 보고서 갱신일 분리. Naver 재로그인 필요. 이전 관측 history에 보존.",
+  "observedAt": "2026-10-12",
+  "observationNote": "로그인된 GSC와 Naver UI 직접 관측. 실적 기간과 색인 보고서 갱신일을 분리. Query와 Page는 별도 집계.",
   "period": {
-    "start": "2026-06-26",
-    "end": "2026-09-25",
-    "searchType": "web",
-    "country": "all",
-    "device": "all"
+    "start": "2026-07-10",
+    "end": "2026-10-09"
   },
   "metrics": {
-    "organicClicks": 29,
-    "impressions": 357,
-    "ctr": 8.1,
-    "averagePosition": 24.4,
-    "indexedPages": 301,
+    "organicClicks": 30,
+    "impressions": 486,
+    "ctr": 6.2,
+    "averagePosition": 20.5,
+    "indexedPages": 370,
     "newReferringDomains": null,
     "relevantReferringDomains": null
   },
@@ -21,20 +18,50 @@
     {
       "query": "사주",
       "clicks": 3,
-      "impressions": 5,
-      "position": 22.8
+      "impressions": 7,
+      "position": 21.6
     },
     {
       "query": "숙요점",
-      "clicks": 1,
+      "clicks": 2,
       "impressions": 7,
-      "position": 22
+      "position": 17.9
     },
     {
       "query": "만세력 사주",
       "clicks": 1,
-      "impressions": 1,
-      "position": 51
+      "impressions": 2,
+      "position": 33.5
+    },
+    {
+      "query": "sukuyo 星 mansion",
+      "clicks": 0,
+      "impressions": 27,
+      "position": 5.3
+    },
+    {
+      "query": "宿曜資料",
+      "clicks": 0,
+      "impressions": 14,
+      "position": 4.2
+    },
+    {
+      "query": "宿曜占星",
+      "clicks": 0,
+      "impressions": 13,
+      "position": 3.4
+    },
+    {
+      "query": "宿曜 資料",
+      "clicks": 0,
+      "impressions": 11,
+      "position": 3
+    },
+    {
+      "query": "宿曜親子",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 10
     },
     {
       "query": "만세력",
@@ -43,64 +70,40 @@
       "position": 19.6
     },
     {
-      "query": "算命学 忌神 無料",
-      "clicks": 0,
-      "impressions": 4,
-      "position": 88.8
-    },
-    {
-      "query": "숙요점 업태",
-      "clicks": 0,
-      "impressions": 3,
-      "position": 8
-    },
-    {
-      "query": "숙요점 영친",
-      "clicks": 0,
-      "impressions": 3,
-      "position": 8.7
-    },
-    {
       "query": "숙요",
       "clicks": 0,
-      "impressions": 3,
-      "position": 13
-    },
-    {
-      "query": "숙요점 사이트",
-      "clicks": 0,
-      "impressions": 3,
-      "position": 22.7
-    },
-    {
-      "query": "점성술",
-      "clicks": 0,
-      "impressions": 3,
-      "position": 94.7
+      "impressions": 4,
+      "position": 12.8
     },
     {
       "page": "https://code-destiny.com/",
-      "clicks": 20,
-      "impressions": 154,
-      "position": 31.2
+      "clicks": 15,
+      "impressions": 148,
+      "position": 30.7
     },
     {
       "page": "https://code-destiny.com/manse/",
-      "clicks": 4,
-      "impressions": 35,
-      "position": 24.3
+      "clicks": 5,
+      "impressions": 44,
+      "position": 21.3
     },
     {
       "page": "https://code-destiny.com/sukuyo/",
+      "clicks": 3,
+      "impressions": 22,
+      "position": 9.3
+    },
+    {
+      "page": "https://code-destiny.com/ggulggul/",
       "clicks": 2,
-      "impressions": 16,
-      "position": 10.1
+      "impressions": 7,
+      "position": 3.1
     },
     {
       "page": "https://code-destiny.com/insights/sukuyo/",
       "clicks": 1,
-      "impressions": 11,
-      "position": 17.4
+      "impressions": 10,
+      "position": 14.9
     },
     {
       "page": "https://code-destiny.com/insights/sukuyo-love/",
@@ -109,172 +112,241 @@
       "position": 9.1
     },
     {
+      "page": "https://code-destiny.com/ja/fortune/today/virgo/",
+      "clicks": 1,
+      "impressions": 3,
+      "position": 74
+    },
+    {
+      "page": "https://code-destiny.com/yeongnyangi/1000-won-fortune/",
+      "clicks": 1,
+      "impressions": 2,
+      "position": 3
+    },
+    {
       "page": "https://code-destiny.com/insights/sukuyo-27-mansions/",
       "clicks": 1,
       "impressions": 2,
       "position": 5.5
     },
     {
-      "page": "https://code-destiny.com/insights/astrology-synastry-compatibility-fun-guide/",
+      "page": "https://code-destiny.com/zh-tw/sukuyo/",
       "clicks": 0,
-      "impressions": 14,
-      "position": 13.6
-    },
-    {
-      "page": "https://code-destiny.com/ja/",
-      "clicks": 0,
-      "impressions": 14,
-      "position": 42.4
-    },
-    {
-      "page": "https://code-destiny.com/insights/vedic-astrology-navamsa-basics/",
-      "clicks": 0,
-      "impressions": 12,
-      "position": 9.3
-    },
-    {
-      "page": "https://code-destiny.com/en/",
-      "clicks": 0,
-      "impressions": 12,
-      "position": 22.9
+      "impressions": 54,
+      "position": 6.2
     }
   ],
   "gscCoverage": {
     "queries": {
       "observedRows": 10,
-      "totalRows": 71
+      "totalRows": 90
     },
     "pages": {
       "observedRows": 10,
-      "totalRows": 116
+      "totalRows": null
     },
     "countries": {
       "observedRows": 10,
-      "totalRows": 17
+      "totalRows": null
     },
     "devices": {
       "observedRows": 3,
       "totalRows": 3
     },
-    "updatedDisplay": "6시간 전",
+    "updatedDisplay": "53.5시간 전",
     "updatedAt": null,
-    "note": "개별 집계이며 검색어-페이지 결합 아님. 전체 export 없음."
+    "note": "상위 표본이며 query-page 교차표 아님"
   },
   "countries": [
     {
-      "country": "KR",
-      "clicks": 28,
-      "impressions": 292,
-      "position": 24.4
+      "country": "한국",
+      "clicks": 27,
+      "impressions": 320,
+      "position": 22.4
     },
     {
-      "country": "GB",
+      "country": "일본",
       "clicks": 1,
-      "impressions": 2,
-      "position": 4
+      "impressions": 29,
+      "position": 45.1
     },
     {
-      "country": "US",
-      "clicks": 0,
-      "impressions": 26,
-      "position": 5.1
-    },
-    {
-      "country": "JP",
-      "clicks": 0,
-      "impressions": 13,
-      "position": 43.8
-    },
-    {
-      "country": "TW",
-      "clicks": 0,
+      "country": "베트남",
+      "clicks": 1,
       "impressions": 4,
-      "position": 18.3
+      "position": 50.3
     },
     {
-      "country": "IN",
+      "country": "영국",
+      "clicks": 1,
+      "impressions": 3,
+      "position": 3
+    },
+    {
+      "country": "대만",
+      "clicks": 0,
+      "impressions": 57,
+      "position": 6.6
+    },
+    {
+      "country": "미국",
+      "clicks": 0,
+      "impressions": 48,
+      "position": 5
+    },
+    {
+      "country": "캐나다",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 6.7
+    },
+    {
+      "country": "인도",
       "clicks": 0,
       "impressions": 3,
       "position": 45.3
     },
     {
-      "country": "DE",
+      "country": "말레이시아",
       "clicks": 0,
       "impressions": 2,
-      "position": 3.5
+      "position": 4
     },
     {
-      "country": "CA",
+      "country": "브라질",
       "clicks": 0,
       "impressions": 2,
-      "position": 9.5
-    },
-    {
-      "country": "HK",
-      "clicks": 0,
-      "impressions": 2,
-      "position": 27
-    },
-    {
-      "country": "RU",
-      "clicks": 0,
-      "impressions": 2,
-      "position": 34.5
+      "position": 6
     }
   ],
   "devices": [
     {
       "device": "mobile",
-      "clicks": 23,
-      "impressions": 201,
-      "position": 20.6
+      "clicks": 24,
+      "impressions": 268,
+      "position": 18.5
     },
     {
       "device": "desktop",
       "clicks": 6,
-      "impressions": 155,
-      "position": 29
+      "impressions": 215,
+      "position": 22.9
     },
     {
       "device": "tablet",
       "clicks": 0,
-      "impressions": 1,
-      "position": 99
+      "impressions": 3,
+      "position": 36.7
     }
   ],
   "indexing": {
-    "observedAt": "2026-09-28",
-    "updatedAt": "2026-09-21",
-    "excluded": 2617,
-    "crawledNotIndexed": 382,
-    "discoveredNotIndexed": 1014,
-    "differentGoogleCanonical": 4,
-    "notFound": 764,
-    "redirect": 291,
-    "noindex": 105,
-    "alternateCanonical": 25,
+    "observedAt": "2026-10-12",
+    "updatedAt": "2026-10-04",
+    "excluded": 2402,
+    "crawledNotIndexed": 249,
+    "discoveredNotIndexed": 931,
+    "differentGoogleCanonical": 3,
+    "notFound": 765,
+    "redirect": 296,
+    "noindex": 107,
+    "alternateCanonical": 19,
     "robots": 18,
     "forbidden": 5,
     "duplicateWithoutCanonical": 4,
     "other4xx": 2,
     "serverError": 2,
     "unauthorized": 1,
-    "note": "이전 관측 9/18 보고서보다 색인 +9. 원인이나 배포 효과 단정 불가. 과거 URL 표본은 history에 보존."
+    "note": "과거·대체·의도된 제외 URL 포함. 현재 사이트맵 오류 수와 동일하지 않음."
   },
   "naver": {
-    "observedAt": null,
-    "attemptedAt": "2026-09-28",
-    "status": "login-required",
-    "updatedAt": null,
-    "period": null,
+    "observedAt": "2026-10-12",
+    "status": "observed",
+    "updatedAt": "2026-10-11",
+    "period": {
+      "label": "최근 30일",
+      "start": null,
+      "end": null
+    },
     "clicks": null,
     "impressions": null,
-    "ctr": null,
+    "ctr": 0.4,
+    "display": {
+      "clicks": "3.7천",
+      "impressions": "83.9만",
+      "indexedPages": "8.3백"
+    },
     "indexedPages": null,
-    "queries": null,
-    "pages": null,
-    "links": null,
-    "note": "Search Advisor 접근 시 NAVER 로그인 화면. 이전 값을 현재 수치로 사용하지 않음."
+    "diagnosis": {
+      "updatedAt": "2026-10-10",
+      "redirect": 29,
+      "inaccessible": 14,
+      "missingDescription": 6,
+      "multipleTitle": 1,
+      "duplicateTitleDisplay": "3.5백",
+      "duplicateDescriptionDisplay": "3.5백",
+      "multipleH1": 4,
+      "missingAlt": 32
+    },
+    "queries": [
+      {
+        "query": "쥐띠운세",
+        "clicks": 57,
+        "impressions": 15227,
+        "ctr": 0.4
+      },
+      {
+        "query": "범띠운세",
+        "clicks": 53,
+        "impressions": 22634,
+        "ctr": 0.2
+      },
+      {
+        "query": "내일 운세",
+        "clicks": 24,
+        "impressions": 15515,
+        "ctr": 0.2
+      }
+    ],
+    "pages": [
+      {
+        "page": "/fortune/tomorrow/tiger/",
+        "clicks": 280,
+        "impressions": 49766,
+        "ctr": 0.6
+      },
+      {
+        "page": "/fortune/tomorrow/rat/",
+        "clicks": 266,
+        "impressions": 42829,
+        "ctr": 0.6
+      },
+      {
+        "page": "/fortune/tomorrow/snake/",
+        "clicks": 256,
+        "impressions": 39299,
+        "ctr": 0.7
+      },
+      {
+        "page": "/fortune/tomorrow/scorpio/",
+        "clicks": 110,
+        "impressions": 41562,
+        "ctr": 0.3
+      }
+    ],
+    "links": {
+      "updatedAt": "2026-10-12",
+      "domains": [
+        {
+          "domain": "dcinside.com",
+          "pages": 232
+        },
+        {
+          "domain": "naver.com",
+          "pages": 143
+        }
+      ]
+    },
+    "note": "반올림 총계는 정수로 추정하지 않음. 상위 표본을 임의로 교차 집계하지 않음. 28일/3개월 및 국가별 집계 미확인."
   },
   "acquiredLinks": [],
   "existingGscLinkDomains": [
@@ -310,26 +382,27 @@
     "재물운"
   ],
   "improvements": [
-    "최신 GSC 3개월·28일 실적, 국가·기기·색인 사유·링크 관측 갱신. 이전 관측 보존.",
-    "일본 3곳·한국 2곳 후보 본문 및 제한된 연결 페이지 재검토. 점수 상향·발송 없음.",
-    "주요 랜딩 19개·사이트맵 1300개 검사 오류 0."
+    "현재 로그인 계정 실적·색인·링크 및 이전 관측 보존 갱신.",
+    "이미 main에 있는 sitemap index 검사기 수정과 베다 비교 콘텐츠 개선을 재사용; 중복 구현 없음.",
+    "한국 2개·일본 3개 기존 후보 본문 재검수, 미확인 항목·발송 보류 유지.",
+    "AdSense 최신 거절 사유 및 ads.txt 승인 상태 갱신; 과거 계정 관측은 별도 history 보존.",
+    "월간 감사기에서 이전 홈 seed를 /ggulggul로 교체하고 robots sitemap 선언은 기존 파서 재사용; 홈 접근 검사는 유지."
   ],
   "adsense": {
     "status": "needs-attention",
     "reason": "가치가 별로 없는 콘텐츠",
-    "accountUpdatedAt": "2026-08-29",
-    "accountAdsTxt": "찾을 수 없음",
+    "accountUpdatedAt": "2026-10-06T11:50:00+09:00",
+    "accountAdsTxt": "승인됨",
     "publicAdsTxt": {
       "observedAt": "2026-09-21",
       "status": 200,
       "publisherMatches": true
     },
     "risks": [
-      "실제 거절 사유는 low value content; 특정 URL을 Google이 지목한 것은 아님",
-      "다국어 전체 실행 상태와 광고 노출 상태의 모바일 UX 확인 필요",
-      "인증 CMP 게시 및 EEA/UK/CH 실제 동의 흐름 확인 필요",
-      "공개 ads.txt 정상과 계정 과거 미발견 상태가 다름",
-      "9/21 다국어 운세 본문 표본에서 달 위상 영어 잔존/위상명 충돌 발견, 소스 수정. 전체 다국어 독립 가치 검수 완료는 아님."
+      "10/6 갱신 심사 사유 low value content 지속. 특정 URL 지목 없음.",
+      "번체 숙요 이미지·로그인 이용권 안내에 한국어 잔존, JA/EN 표와 요점 문장 중복.",
+      "유럽 규정 카드에 새 메시지 만들기 표시; 게시된 CMP 메시지 증거 미확보. 다른 CMP의 부재를 단정하지 않음.",
+      "실제 지역별 동의·광고 게재·모바일 검수 미완료."
     ],
     "readinessScore": {
       "score": 63,
@@ -338,15 +411,20 @@
       "details": "docs/seo/GROWTH_OPERATIONS.md",
       "observedAt": "2026-09-08"
     },
-    "observedAt": "2026-09-21"
+    "observedAt": "2026-10-12",
+    "cmpObservation": {
+      "observedAt": "2026-10-12",
+      "europeanRegulations": "새 메시지 만들기",
+      "publishedMessageVerified": false
+    }
   },
   "nextActions": [
-    "Naver 재로그인 후 최신 실적·색인·링크 확보.",
-    "시나스트리(14노출/13.6위)·나밤샤(12노출/9.3위)를 실제 검색어 필터 및 현행 공개 본문과 대조. 표본 확대 전 효과 단정 금지.",
-    "10월 월간 감사에서 홈 전환(/ React 영냥이, /ggulggul/ 정적 셸)·로케일·AdSense/CMP·동일 URL 성과를 재점검."
+    "28일 sukuyo 星 mansion → /en/ 실제 필터에서 0클릭·27노출·5.3위. 영어 홈에서 전문 숙요 페이지로 이어지는 안내/검색 의도 점검; 번체 숙요도 실제 query-page 필터 후 개선.",
+    "10/03·10/08·10/10 변경 혼재를 고려하여 제목 실험 관측 유지; 네이버 내일 운세 저CTR 추적.",
+    "월간 미완료 항목: 다국어·모바일·CMP 실동작과 독립 콘텐츠 가치 검수. main 실패 해소 후 이 기록 통합."
   ],
   "lastMonthlyAudit": "2026-09-08",
-  "lastWeeklyCycle": "2026-09-28",
+  "lastWeeklyCycle": "2026-10-12",
   "outreachRegistry": "docs/seo/outreach/candidates.json",
   "productionObservedSha": "06b0ad911b575abad74e049e4fdef36041fb376b",
   "automation": {
@@ -1552,54 +1630,622 @@
           "한국어 계산 설명의 정합성을 먼저 수정. 해외 모든 안내와 전체 실행 경로 전수 검증은 미완료."
         ]
       }
+    },
+    {
+      "observedAt": "2026-09-28",
+      "period": {
+        "start": "2026-06-26",
+        "end": "2026-09-25",
+        "searchType": "web",
+        "country": "all",
+        "device": "all"
+      },
+      "metrics": {
+        "organicClicks": 29,
+        "impressions": 357,
+        "ctr": 8.1,
+        "averagePosition": 24.4,
+        "indexedPages": 301,
+        "newReferringDomains": null,
+        "relevantReferringDomains": null
+      },
+      "gscRows": [
+        {
+          "query": "사주",
+          "clicks": 3,
+          "impressions": 5,
+          "position": 22.8
+        },
+        {
+          "query": "숙요점",
+          "clicks": 1,
+          "impressions": 7,
+          "position": 22
+        },
+        {
+          "query": "만세력 사주",
+          "clicks": 1,
+          "impressions": 1,
+          "position": 51
+        },
+        {
+          "query": "만세력",
+          "clicks": 0,
+          "impressions": 5,
+          "position": 19.6
+        },
+        {
+          "query": "算命学 忌神 無料",
+          "clicks": 0,
+          "impressions": 4,
+          "position": 88.8
+        },
+        {
+          "query": "숙요점 업태",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 8
+        },
+        {
+          "query": "숙요점 영친",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 8.7
+        },
+        {
+          "query": "숙요",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 13
+        },
+        {
+          "query": "숙요점 사이트",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 22.7
+        },
+        {
+          "query": "점성술",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 94.7
+        },
+        {
+          "page": "https://code-destiny.com/",
+          "clicks": 20,
+          "impressions": 154,
+          "position": 31.2
+        },
+        {
+          "page": "https://code-destiny.com/manse/",
+          "clicks": 4,
+          "impressions": 35,
+          "position": 24.3
+        },
+        {
+          "page": "https://code-destiny.com/sukuyo/",
+          "clicks": 2,
+          "impressions": 16,
+          "position": 10.1
+        },
+        {
+          "page": "https://code-destiny.com/insights/sukuyo/",
+          "clicks": 1,
+          "impressions": 11,
+          "position": 17.4
+        },
+        {
+          "page": "https://code-destiny.com/insights/sukuyo-love/",
+          "clicks": 1,
+          "impressions": 7,
+          "position": 9.1
+        },
+        {
+          "page": "https://code-destiny.com/insights/sukuyo-27-mansions/",
+          "clicks": 1,
+          "impressions": 2,
+          "position": 5.5
+        },
+        {
+          "page": "https://code-destiny.com/insights/astrology-synastry-compatibility-fun-guide/",
+          "clicks": 0,
+          "impressions": 14,
+          "position": 13.6
+        },
+        {
+          "page": "https://code-destiny.com/ja/",
+          "clicks": 0,
+          "impressions": 14,
+          "position": 42.4
+        },
+        {
+          "page": "https://code-destiny.com/insights/vedic-astrology-navamsa-basics/",
+          "clicks": 0,
+          "impressions": 12,
+          "position": 9.3
+        },
+        {
+          "page": "https://code-destiny.com/en/",
+          "clicks": 0,
+          "impressions": 12,
+          "position": 22.9
+        }
+      ],
+      "gscCoverage": {
+        "queries": {
+          "observedRows": 10,
+          "totalRows": 71
+        },
+        "pages": {
+          "observedRows": 10,
+          "totalRows": 116
+        },
+        "countries": {
+          "observedRows": 10,
+          "totalRows": 17
+        },
+        "devices": {
+          "observedRows": 3,
+          "totalRows": 3
+        },
+        "updatedDisplay": "6시간 전",
+        "updatedAt": null,
+        "note": "개별 집계이며 검색어-페이지 결합 아님. 전체 export 없음."
+      },
+      "countries": [
+        {
+          "country": "KR",
+          "clicks": 28,
+          "impressions": 292,
+          "position": 24.4
+        },
+        {
+          "country": "GB",
+          "clicks": 1,
+          "impressions": 2,
+          "position": 4
+        },
+        {
+          "country": "US",
+          "clicks": 0,
+          "impressions": 26,
+          "position": 5.1
+        },
+        {
+          "country": "JP",
+          "clicks": 0,
+          "impressions": 13,
+          "position": 43.8
+        },
+        {
+          "country": "TW",
+          "clicks": 0,
+          "impressions": 4,
+          "position": 18.3
+        },
+        {
+          "country": "IN",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 45.3
+        },
+        {
+          "country": "DE",
+          "clicks": 0,
+          "impressions": 2,
+          "position": 3.5
+        },
+        {
+          "country": "CA",
+          "clicks": 0,
+          "impressions": 2,
+          "position": 9.5
+        },
+        {
+          "country": "HK",
+          "clicks": 0,
+          "impressions": 2,
+          "position": 27
+        },
+        {
+          "country": "RU",
+          "clicks": 0,
+          "impressions": 2,
+          "position": 34.5
+        }
+      ],
+      "devices": [
+        {
+          "device": "mobile",
+          "clicks": 23,
+          "impressions": 201,
+          "position": 20.6
+        },
+        {
+          "device": "desktop",
+          "clicks": 6,
+          "impressions": 155,
+          "position": 29
+        },
+        {
+          "device": "tablet",
+          "clicks": 0,
+          "impressions": 1,
+          "position": 99
+        }
+      ],
+      "indexing": {
+        "observedAt": "2026-09-28",
+        "updatedAt": "2026-09-21",
+        "excluded": 2617,
+        "crawledNotIndexed": 382,
+        "discoveredNotIndexed": 1014,
+        "differentGoogleCanonical": 4,
+        "notFound": 764,
+        "redirect": 291,
+        "noindex": 105,
+        "alternateCanonical": 25,
+        "robots": 18,
+        "forbidden": 5,
+        "duplicateWithoutCanonical": 4,
+        "other4xx": 2,
+        "serverError": 2,
+        "unauthorized": 1,
+        "note": "이전 관측 9/18 보고서보다 색인 +9. 원인이나 배포 효과 단정 불가. 과거 URL 표본은 history에 보존."
+      },
+      "naver": {
+        "observedAt": null,
+        "attemptedAt": "2026-09-28",
+        "status": "login-required",
+        "updatedAt": null,
+        "period": null,
+        "clicks": null,
+        "impressions": null,
+        "ctr": null,
+        "indexedPages": null,
+        "queries": null,
+        "pages": null,
+        "links": null,
+        "note": "Search Advisor 접근 시 NAVER 로그인 화면. 이전 값을 현재 수치로 사용하지 않음."
+      },
+      "recent28Days": {
+        "observedAt": "2026-09-28",
+        "period": {
+          "start": "2026-08-29",
+          "end": "2026-09-25"
+        },
+        "clicks": 9,
+        "impressions": 99,
+        "ctr": 9.1,
+        "position": 23.5,
+        "devices": [
+          {
+            "device": "mobile",
+            "clicks": 8,
+            "impressions": 67,
+            "position": 21.6
+          },
+          {
+            "device": "desktop",
+            "clicks": 1,
+            "impressions": 31,
+            "position": 24.9
+          },
+          {
+            "device": "tablet",
+            "clicks": 0,
+            "impressions": 1,
+            "position": 99
+          }
+        ],
+        "queryPages": null,
+        "note": "이번 28일 실적 총계와 기기만 관측. 이전 28일과 기간이 겹치므로 독립 전후 실험 아님."
+      },
+      "improvements": [
+        "최신 GSC 3개월·28일 실적, 국가·기기·색인 사유·링크 관측 갱신. 이전 관측 보존.",
+        "일본 3곳·한국 2곳 후보 본문 및 제한된 연결 페이지 재검토. 점수 상향·발송 없음.",
+        "주요 랜딩 19개·사이트맵 1300개 검사 오류 0.",
+        "2026-10-10 한국어 서비스명 꿀꿀 운세 → 꿀꿀 사주: 사이트명 신호·대표 페이지 title·/kkul-kkul-unse/ 전환 안내·OG 카드 재렌더(rename20261010)."
+      ],
+      "weeklyLimitations": [
+        "Naver 로그인 필요: 최신 실적·진단·링크 null.",
+        "검색어와 페이지 상위 10행만 관측; 이번 실행에서 query-page 필터 대조는 미실행.",
+        "숙요 연애·나밤샤 등 기존 품질 수정이 main에 있어 중복 수정하지 않음. 새 본문 개선 0개; 적은 표본으로 수량 채우기 금지.",
+        "이번 달 9/8 월간 감사 기록이 있어 월간 전수 재감사 미실행. AdSense 재관측·CMP/모바일 검수 미실행; 과거 점수 유지.",
+        "제한된 후보 연결 3개에서 대체 자료를 제안할 깨진 링크를 확인하지 못함. 전체 링크 검사 아님."
+      ],
+      "lastWeeklyCycle": "2026-09-28",
+      "lastHealthCheck": {
+        "observedAt": "2026-09-28",
+        "landings": 19,
+        "sitemapUrls": 1300,
+        "issues": 0,
+        "coverage": "주요 랜딩 표본과 robots/사이트맵 범위; 전체 콘텐츠·모바일 감사 아님"
+      },
+      "linkObservation": {
+        "observedAt": "2026-09-28",
+        "updatedAt": null,
+        "totalExternalLinks": 9,
+        "domains": [
+          {
+            "domain": "naver.com",
+            "links": 5
+          },
+          {
+            "domain": "dcinside.com",
+            "links": 1
+          },
+          {
+            "domain": "innoforest.co.kr",
+            "links": 1
+          },
+          {
+            "domain": "x.com",
+            "links": 1
+          },
+          {
+            "domain": "xploredomains.com",
+            "links": 1
+          }
+        ],
+        "newlyObservedDomains": [
+          "naver.com",
+          "dcinside.com",
+          "innoforest.co.kr"
+        ],
+        "sourceSample": {
+          "url": "https://www.innoforest.co.kr/company/CP00040531/코드데스티니",
+          "target": "https://code-destiny.com/",
+          "evidence": "GSC drilldown",
+          "publicVerification": "web access unavailable",
+          "quality": null,
+          "acquiredAt": null
+        }
+      }
     }
   ],
   "recent28Days": {
-    "observedAt": "2026-09-28",
+    "observedAt": "2026-10-12",
     "period": {
-      "start": "2026-08-29",
-      "end": "2026-09-25"
+      "start": "2026-09-12",
+      "end": "2026-10-09"
     },
-    "clicks": 9,
-    "impressions": 99,
-    "ctr": 9.1,
-    "position": 23.5,
+    "clicks": 11,
+    "impressions": 214,
+    "ctr": 5.1,
+    "position": 13.8,
     "devices": [
       {
         "device": "mobile",
-        "clicks": 8,
-        "impressions": 67,
-        "position": 21.6
+        "clicks": 9,
+        "impressions": 115,
+        "position": 15.6
       },
       {
         "device": "desktop",
-        "clicks": 1,
-        "impressions": 31,
-        "position": 24.9
+        "clicks": 2,
+        "impressions": 97,
+        "position": 11.7
       },
       {
         "device": "tablet",
         "clicks": 0,
-        "impressions": 1,
-        "position": 99
+        "impressions": 2,
+        "position": 5.5
       }
     ],
-    "queryPages": null,
-    "note": "이번 28일 실적 총계와 기기만 관측. 이전 28일과 기간이 겹치므로 독립 전후 실험 아님."
+    "queryPages": [
+      {
+        "query": "sukuyo 星 mansion",
+        "page": "https://code-destiny.com/en/",
+        "clicks": 0,
+        "impressions": 27,
+        "position": 5.3,
+        "evidence": "GSC UI exact query filter then Pages tab; only one row"
+      }
+    ],
+    "queries": [
+      {
+        "query": "숙요점",
+        "clicks": 2,
+        "impressions": 2,
+        "position": 12
+      },
+      {
+        "query": "사주",
+        "clicks": 1,
+        "impressions": 5,
+        "position": 22.6
+      },
+      {
+        "query": "sukuyo 星 mansion",
+        "clicks": 0,
+        "impressions": 27,
+        "position": 5.3
+      },
+      {
+        "query": "宿曜資料",
+        "clicks": 0,
+        "impressions": 14,
+        "position": 4.2
+      },
+      {
+        "query": "宿曜占星",
+        "clicks": 0,
+        "impressions": 13,
+        "position": 3.4
+      },
+      {
+        "query": "宿曜 資料",
+        "clicks": 0,
+        "impressions": 11,
+        "position": 3
+      },
+      {
+        "query": "宿曜親子",
+        "clicks": 0,
+        "impressions": 5,
+        "position": 10
+      },
+      {
+        "query": "蟹 座 の 今日 の 運勢",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 8.5
+      },
+      {
+        "query": "宿曜 親子",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 10
+      },
+      {
+        "query": "숙요",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 13
+      }
+    ],
+    "pages": [
+      {
+        "page": "https://code-destiny.com/",
+        "clicks": 3,
+        "impressions": 31,
+        "position": 16.7
+      },
+      {
+        "page": "https://code-destiny.com/manse/",
+        "clicks": 2,
+        "impressions": 25,
+        "position": 21.8
+      },
+      {
+        "page": "https://code-destiny.com/sukuyo/",
+        "clicks": 2,
+        "impressions": 11,
+        "position": 8.3
+      },
+      {
+        "page": "https://code-destiny.com/ggulggul/",
+        "clicks": 2,
+        "impressions": 7,
+        "position": 3.1
+      },
+      {
+        "page": "https://code-destiny.com/ja/fortune/today/virgo/",
+        "clicks": 1,
+        "impressions": 3,
+        "position": 74
+      },
+      {
+        "page": "https://code-destiny.com/yeongnyangi/1000-won-fortune/",
+        "clicks": 1,
+        "impressions": 2,
+        "position": 3
+      },
+      {
+        "page": "https://code-destiny.com/zh-tw/sukuyo/",
+        "clicks": 0,
+        "impressions": 54,
+        "position": 6.2
+      },
+      {
+        "page": "https://code-destiny.com/en/",
+        "clicks": 0,
+        "impressions": 35,
+        "position": 6.3
+      },
+      {
+        "page": "https://code-destiny.com/privacy/",
+        "clicks": 0,
+        "impressions": 9,
+        "position": 3.3
+      },
+      {
+        "page": "https://code-destiny.com/terms/",
+        "clicks": 0,
+        "impressions": 9,
+        "position": 5.3
+      }
+    ],
+    "countries": [
+      {
+        "country": "한국",
+        "clicks": 9,
+        "impressions": 101,
+        "position": 16.1
+      },
+      {
+        "country": "일본",
+        "clicks": 1,
+        "impressions": 17,
+        "position": 43.5
+      },
+      {
+        "country": "베트남",
+        "clicks": 1,
+        "impressions": 2,
+        "position": 19
+      },
+      {
+        "country": "대만",
+        "clicks": 0,
+        "impressions": 56,
+        "position": 6.7
+      },
+      {
+        "country": "미국",
+        "clicks": 0,
+        "impressions": 28,
+        "position": 4.8
+      },
+      {
+        "country": "말레이시아",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 4
+      },
+      {
+        "country": "브라질",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 6
+      },
+      {
+        "country": "캐나다",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 1
+      },
+      {
+        "country": "영국",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 1
+      },
+      {
+        "country": "페루",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 1
+      }
+    ],
+    "note": "상위10개 query/page/country 표본. queryPages는 실제 필터한 별도 증거이며 다른 표를 조합하지 않음."
   },
   "lastHealthCheck": {
-    "observedAt": "2026-09-28",
-    "landings": 19,
-    "sitemapUrls": 1300,
+    "observedAt": "2026-10-12",
+    "landings": 27,
+    "sitemapUrls": 955,
     "issues": 0,
-    "coverage": "주요 랜딩 표본과 robots/사이트맵 범위; 전체 콘텐츠·모바일 감사 아님"
+    "coverage": "최신 origin/main 검사기 사용. 오래된 primary 검사기 958건은 sitemap index 미지원 오탐. 전체 본문 품질 또는 verified crawler IP 검증 아님."
   },
   "weeklyLimitations": [
-    "Naver 로그인 필요: 최신 실적·진단·링크 null.",
-    "검색어와 페이지 상위 10행만 관측; 이번 실행에서 query-page 필터 대조는 미실행.",
-    "숙요 연애·나밤샤 등 기존 품질 수정이 main에 있어 중복 수정하지 않음. 새 본문 개선 0개; 적은 표본으로 수량 채우기 금지.",
-    "이번 달 9/8 월간 감사 기록이 있어 월간 전수 재감사 미실행. AdSense 재관측·CMP/모바일 검수 미실행; 과거 점수 유지.",
-    "제한된 후보 연결 3개에서 대체 자료를 제안할 깨진 링크를 확인하지 못함. 전체 링크 검사 아님."
+    "기존 제목 실험과 당일 다른 세션의 콘텐츠 개선을 보존. 이번 사이클 새 본문 수정 0개; 수량 채우지 않음.",
+    "28일 및 3개월 GSC query/page/country 상위 표본만 확인. Naver 28일/3개월 및 국가별 실적 미확인.",
+    "월간 감사 진행 중: 모바일 시각 검수·다국어 전수·CMP 게시/지역 동의·광고 실게재 미검증. lastMonthlyAudit는 완료로 올리지 않음.",
+    "main aedf583e3e84a135ec20c124926103c6e43e73ab Gift transaction integrity 실패로 전달 보류.",
+    "AdSense 계정은 10/12 재관측했으며 10/6 갱신 low value content 지속, ads.txt 승인됨. 준비 점수는 과거 관측 유지.",
+    "번체 숙요 본문은 현지화됐지만 대표 이미지·로그인 이용권 안내에 한국어 잔존. 언어별 전수 검수와 모바일 재검증 필요."
   ],
   "naverObservationHistory": [
     {
@@ -1875,44 +2521,31 @@
     ]
   },
   "linkObservation": {
-    "observedAt": "2026-09-28",
-    "updatedAt": null,
-    "totalExternalLinks": 9,
+    "observedAt": "2026-10-12",
+    "totalExternalLinks": 20,
     "domains": [
       {
         "domain": "naver.com",
-        "links": 5
-      },
-      {
-        "domain": "dcinside.com",
-        "links": 1
-      },
-      {
-        "domain": "innoforest.co.kr",
-        "links": 1
+        "links": 8
       },
       {
         "domain": "x.com",
-        "links": 1
+        "links": 4
+      },
+      {
+        "domain": "dcinside.com",
+        "links": 2
+      },
+      {
+        "domain": "innoforest.co.kr",
+        "links": 2
       },
       {
         "domain": "xploredomains.com",
-        "links": 1
+        "links": 2
       }
     ],
-    "newlyObservedDomains": [
-      "naver.com",
-      "dcinside.com",
-      "innoforest.co.kr"
-    ],
-    "sourceSample": {
-      "url": "https://www.innoforest.co.kr/company/CP00040531/코드데스티니",
-      "target": "https://code-destiny.com/",
-      "evidence": "GSC drilldown",
-      "publicVerification": "web access unavailable",
-      "quality": null,
-      "acquiredAt": null
-    }
+    "note": "상위 5개 표본. 신규 획득 시점과 관련성 미확인; 신규 referring domains null."
   },
   "titleExperiment": {
     "startedAt": "2026-10-03",
@@ -3028,7 +3661,14 @@
         "baselineDays": 30,
         "postChangeCtr": null,
         "dataLagPolicy": "Record exact observed period and report update time; retry if a full post-release 30 days is not yet available.",
-        "lowImpressionsPolicy": "Defer judgment; do not infer a title-only effect."
+        "lowImpressionsPolicy": "Defer judgment; do not infer a title-only effect.",
+        "d14Result": {
+          "status": "measured",
+          "observedAt": "2026-10-22",
+          "reportUpdatedAt": "2026-10-21",
+          "record": "naver20261008.d14Measurement",
+          "kind": "intermediate; no 14-day filter"
+        }
       },
       "remainingIssues": [
         "Home mobile LCP median 11.90s -> 13.33s; desktop today LCP 3.65s -> 4.17s. Do not claim overall performance improvement.",
@@ -3037,6 +3677,1068 @@
       ],
       "artifactDirectory": "D:/Development/code-destiny/output/release-20261008-measurement",
       "policies": "No payment execution, paid LLM call, production DB write, schema change or fortune-engine calculation change in this measurement work."
+    },
+    "d14Measurement": {
+      "status": "measured",
+      "milestone": "D+14 intermediate observation",
+      "observedAt": "2026-10-22",
+      "capturedAtUtc": "2026-10-22T07:24:52.031Z",
+      "reportUpdatedAt": "2026-10-21",
+      "calendarUpdateLagDays": 1,
+      "sourceUrl": "https://searchadvisor.naver.com/console/site/report/expose?site=https%3A%2F%2Fcode-destiny.com",
+      "device": "PC + Mobile",
+      "availableWindowsDays": [
+        1,
+        7,
+        30,
+        60,
+        90
+      ],
+      "windowStart": null,
+      "windowEnd": null,
+      "dateBoundaryNote": "UI shows relative windows and update date only; exact inclusive data dates are unconfirmed. No 14-day filter offered. Update lag is not a verified data-end lag.",
+      "baselineReportUpdatedAt": "2026-10-06",
+      "baselineDays": 30,
+      "periods": {
+        "days30": {
+          "selectedLabel": "최근 30일",
+          "containsPreReleaseDays": true,
+          "totalsDisplayed": {
+            "clicks": "4.3천",
+            "impressions": "88.3만",
+            "averageDocumentCtrPercent": 0.5,
+            "rounded": true
+          },
+          "webDocumentsTop30": [
+            {
+              "rank": 1,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/rat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/rat/",
+              "clicks": 355,
+              "impressions": 43366,
+              "displayedCtrPercent": 0.8
+            },
+            {
+              "rank": 2,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/snake/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/snake/",
+              "clicks": 313,
+              "impressions": 43387,
+              "displayedCtrPercent": 0.7
+            },
+            {
+              "rank": 3,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/tiger/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/tiger/",
+              "clicks": 282,
+              "impressions": 48395,
+              "displayedCtrPercent": 0.6
+            },
+            {
+              "rank": 4,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/pig/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/pig/",
+              "clicks": 192,
+              "impressions": 44431,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 5,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/rooster/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/rooster/",
+              "clicks": 165,
+              "impressions": 37265,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 6,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/ox/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/ox/",
+              "clicks": 143,
+              "impressions": 21700,
+              "displayedCtrPercent": 0.7
+            },
+            {
+              "rank": 7,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/",
+              "clicks": 100,
+              "impressions": 7686,
+              "displayedCtrPercent": 1.3
+            },
+            {
+              "rank": 8,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/libra/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/libra/",
+              "clicks": 99,
+              "impressions": 26681,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 9,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/monkey/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/monkey/",
+              "clicks": 94,
+              "impressions": 16009,
+              "displayedCtrPercent": 0.6
+            },
+            {
+              "rank": 10,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/cancer/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/cancer/",
+              "clicks": 89,
+              "impressions": 20091,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 11,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/scorpio/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/scorpio/",
+              "clicks": 87,
+              "impressions": 25502,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 12,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/goat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/goat/",
+              "clicks": 77,
+              "impressions": 18792,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 13,
+              "rawUrl": "https://code-destiny.com/naming-ai/",
+              "canonicalGroup": "https://code-destiny.com/naming-ai/",
+              "clicks": 73,
+              "impressions": 3190,
+              "displayedCtrPercent": 2.3
+            },
+            {
+              "rank": 14,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/pisces/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/pisces/",
+              "clicks": 72,
+              "impressions": 13700,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 15,
+              "rawUrl": "https://code-destiny.com/ziwei/",
+              "canonicalGroup": "https://code-destiny.com/ziwei/",
+              "clicks": 72,
+              "impressions": 12243,
+              "displayedCtrPercent": 0.6
+            },
+            {
+              "rank": 16,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/aries/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/aries/",
+              "clicks": 68,
+              "impressions": 21762,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 17,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/horse/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/horse/",
+              "clicks": 67,
+              "impressions": 2060,
+              "displayedCtrPercent": 3.3
+            },
+            {
+              "rank": 18,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/virgo/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/virgo/",
+              "clicks": 61,
+              "impressions": 18771,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 19,
+              "rawUrl": "https://code-destiny.com/kkul-kkul-unse/",
+              "canonicalGroup": "https://code-destiny.com/kkul-kkul-unse/",
+              "clicks": 59,
+              "impressions": 267,
+              "displayedCtrPercent": 22.1
+            },
+            {
+              "rank": 20,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/rabbit/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/rabbit/",
+              "clicks": 55,
+              "impressions": 20193,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 21,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/aquarius/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/aquarius/",
+              "clicks": 54,
+              "impressions": 9993,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 22,
+              "rawUrl": "https://code-destiny.com/fortune/today/",
+              "canonicalGroup": "https://code-destiny.com/fortune/today/",
+              "clicks": 54,
+              "impressions": 6588,
+              "displayedCtrPercent": 0.8
+            },
+            {
+              "rank": 23,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/virgo/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/virgo/",
+              "clicks": 53,
+              "impressions": 7306,
+              "displayedCtrPercent": 0.7
+            },
+            {
+              "rank": 24,
+              "rawUrl": "https://code-destiny.com/insights/famous-saju/bts-jungkook/?v=22b01d70160c",
+              "canonicalGroup": "https://code-destiny.com/insights/famous-saju/bts-jungkook/",
+              "clicks": 52,
+              "impressions": 1038,
+              "displayedCtrPercent": 5
+            },
+            {
+              "rank": 25,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/goat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/goat/",
+              "clicks": 50,
+              "impressions": 5566,
+              "displayedCtrPercent": 0.9
+            },
+            {
+              "rank": 26,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/aquarius/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/aquarius/",
+              "clicks": 45,
+              "impressions": 13962,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 27,
+              "rawUrl": "https://code-destiny.com/insights/famous-saju/iu/?v=086b7d63fd62",
+              "canonicalGroup": "https://code-destiny.com/insights/famous-saju/iu/",
+              "clicks": 44,
+              "impressions": 1879,
+              "displayedCtrPercent": 2.3
+            },
+            {
+              "rank": 28,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/gemini/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/gemini/",
+              "clicks": 43,
+              "impressions": 17565,
+              "displayedCtrPercent": 0.2
+            },
+            {
+              "rank": 29,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/leo/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/leo/",
+              "clicks": 43,
+              "impressions": 15964,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 30,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/rabbit/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/rabbit/",
+              "clicks": 43,
+              "impressions": 1721,
+              "displayedCtrPercent": 2.5
+            }
+          ],
+          "tomorrowDetailSubset": {
+            "pages": 18,
+            "clicks": 2278,
+            "impressions": 455896,
+            "weightedCtrPercent": 0.49967536455682876,
+            "scope": "TOP30 subset, membership may differ; not all tomorrow detail pages"
+          }
+        },
+        "days7": {
+          "selectedLabel": "최근 7일",
+          "totalsDisplayed": {
+            "clicks": "9.0백",
+            "impressions": "12.4만",
+            "averageDocumentCtrPercent": 0.7,
+            "rounded": true
+          },
+          "weekOverWeekDisplayed": {
+            "clickChangePercent": -16.8,
+            "impressionChangePercent": -28.1,
+            "averageCtrChangeLabel": "0.1%"
+          },
+          "webDocumentsTop30": [
+            {
+              "rank": 1,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/rat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/rat/",
+              "clicks": 108,
+              "impressions": 6809,
+              "displayedCtrPercent": 1.6
+            },
+            {
+              "rank": 2,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/tiger/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/tiger/",
+              "clicks": 60,
+              "impressions": 7513,
+              "displayedCtrPercent": 0.8
+            },
+            {
+              "rank": 3,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/snake/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/snake/",
+              "clicks": 50,
+              "impressions": 2787,
+              "displayedCtrPercent": 1.8
+            },
+            {
+              "rank": 4,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/ox/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/ox/",
+              "clicks": 45,
+              "impressions": 6243,
+              "displayedCtrPercent": 0.7
+            },
+            {
+              "rank": 5,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/rooster/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/rooster/",
+              "clicks": 39,
+              "impressions": 4887,
+              "displayedCtrPercent": 0.8
+            },
+            {
+              "rank": 6,
+              "rawUrl": "https://code-destiny.com/ziwei/",
+              "canonicalGroup": "https://code-destiny.com/ziwei/",
+              "clicks": 36,
+              "impressions": 6867,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 7,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/",
+              "clicks": 33,
+              "impressions": 2336,
+              "displayedCtrPercent": 1.4
+            },
+            {
+              "rank": 8,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/monkey/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/monkey/",
+              "clicks": 24,
+              "impressions": 263,
+              "displayedCtrPercent": 9.1
+            },
+            {
+              "rank": 9,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/cancer/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/cancer/",
+              "clicks": 19,
+              "impressions": 4387,
+              "displayedCtrPercent": 0.4
+            },
+            {
+              "rank": 10,
+              "rawUrl": "https://code-destiny.com/naming-ai/",
+              "canonicalGroup": "https://code-destiny.com/naming-ai/",
+              "clicks": 19,
+              "impressions": 996,
+              "displayedCtrPercent": 1.9
+            },
+            {
+              "rank": 11,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/horse/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/horse/",
+              "clicks": 17,
+              "impressions": 570,
+              "displayedCtrPercent": 3
+            },
+            {
+              "rank": 12,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/aquarius/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/aquarius/",
+              "clicks": 16,
+              "impressions": 5891,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 13,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/pig/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/pig/",
+              "clicks": 16,
+              "impressions": 1314,
+              "displayedCtrPercent": 1.2
+            },
+            {
+              "rank": 14,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/pisces/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/pisces/",
+              "clicks": 15,
+              "impressions": 5078,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 15,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/goat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/goat/",
+              "clicks": 15,
+              "impressions": 502,
+              "displayedCtrPercent": 3
+            },
+            {
+              "rank": 16,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/aries/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/aries/",
+              "clicks": 13,
+              "impressions": 4963,
+              "displayedCtrPercent": 0.3
+            },
+            {
+              "rank": 17,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/monkey/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/monkey/",
+              "clicks": 13,
+              "impressions": 2415,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 18,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/virgo/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/virgo/",
+              "clicks": 13,
+              "impressions": 750,
+              "displayedCtrPercent": 1.7
+            },
+            {
+              "rank": 19,
+              "rawUrl": "https://code-destiny.com/kkul-kkul-unse/",
+              "canonicalGroup": "https://code-destiny.com/kkul-kkul-unse/",
+              "clicks": 13,
+              "impressions": 77,
+              "displayedCtrPercent": 16.9
+            },
+            {
+              "rank": 20,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/tiger/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/tiger/",
+              "clicks": 12,
+              "impressions": 2202,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 21,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/rat/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/rat/",
+              "clicks": 12,
+              "impressions": 368,
+              "displayedCtrPercent": 3.3
+            },
+            {
+              "rank": 22,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/scorpio/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/scorpio/",
+              "clicks": 11,
+              "impressions": 1489,
+              "displayedCtrPercent": 0.7
+            },
+            {
+              "rank": 23,
+              "rawUrl": "https://code-destiny.com/fortune/today/",
+              "canonicalGroup": "https://code-destiny.com/fortune/today/",
+              "clicks": 11,
+              "impressions": 1355,
+              "displayedCtrPercent": 0.8
+            },
+            {
+              "rank": 24,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/pisces/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/pisces/",
+              "clicks": 11,
+              "impressions": 1270,
+              "displayedCtrPercent": 0.9
+            },
+            {
+              "rank": 25,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/pig/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/pig/",
+              "clicks": 10,
+              "impressions": 623,
+              "displayedCtrPercent": 1.6
+            },
+            {
+              "rank": 26,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/dog/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/dog/",
+              "clicks": 10,
+              "impressions": 233,
+              "displayedCtrPercent": 4.3
+            },
+            {
+              "rank": 27,
+              "rawUrl": "https://code-destiny.com/fortune/weekly/dog/",
+              "canonicalGroup": "https://code-destiny.com/fortune/weekly/dog/",
+              "clicks": 10,
+              "impressions": 116,
+              "displayedCtrPercent": 8.6
+            },
+            {
+              "rank": 28,
+              "rawUrl": "https://code-destiny.com/fortune/monthly/tiger/",
+              "canonicalGroup": "https://code-destiny.com/fortune/monthly/tiger/",
+              "clicks": 9,
+              "impressions": 1864,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 29,
+              "rawUrl": "https://code-destiny.com/fortune/tomorrow/virgo/",
+              "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/virgo/",
+              "clicks": 9,
+              "impressions": 1775,
+              "displayedCtrPercent": 0.5
+            },
+            {
+              "rank": 30,
+              "rawUrl": "https://code-destiny.com/yeongnyangi/1000-won-fortune/",
+              "canonicalGroup": "https://code-destiny.com/yeongnyangi/1000-won-fortune/",
+              "clicks": 9,
+              "impressions": 390,
+              "displayedCtrPercent": 2.3
+            }
+          ],
+          "tomorrowDetailSubset": {
+            "pages": 12,
+            "clicks": 404,
+            "impressions": 41053,
+            "weightedCtrPercent": 0.9840937324921443,
+            "scope": "TOP30 subset, membership may differ; not all tomorrow detail pages"
+          }
+        }
+      },
+      "groups": {
+        "home": {
+          "url": "/ggulggul/",
+          "current30": null,
+          "current7": null,
+          "reason": "Not in TOP30; /kkul-kkul-unse/ is a distinct URL and not substituted"
+        },
+        "today": {
+          "url": "/today/",
+          "current30": null,
+          "current7": null,
+          "reason": "Not in TOP30; /fortune/today/ is a distinct URL and not substituted"
+        },
+        "tomorrowHub": {
+          "url": "/fortune/tomorrow/",
+          "baseline30": {
+            "clicks": 55,
+            "impressions": 5374,
+            "displayedCtrPercent": 1
+          },
+          "current30": {
+            "rank": 7,
+            "rawUrl": "https://code-destiny.com/fortune/tomorrow/",
+            "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/",
+            "clicks": 100,
+            "impressions": 7686,
+            "displayedCtrPercent": 1.3
+          },
+          "current7": {
+            "rank": 7,
+            "rawUrl": "https://code-destiny.com/fortune/tomorrow/",
+            "canonicalGroup": "https://code-destiny.com/fortune/tomorrow/",
+            "clicks": 33,
+            "impressions": 2336,
+            "displayedCtrPercent": 1.4
+          }
+        },
+        "tomorrowDetails": {
+          "baselineTop30Subset": {
+            "pages": 18,
+            "clicks": 2103,
+            "impressions": 484641,
+            "ctrPercent": 0.43392944468173344,
+            "note": "전체 내일 운세 합계가 아닌 상위30 URL 중18개"
+          },
+          "current30": {
+            "pages": 18,
+            "clicks": 2278,
+            "impressions": 455896,
+            "weightedCtrPercent": 0.49967536455682876,
+            "scope": "TOP30 subset, membership may differ; not all tomorrow detail pages"
+          },
+          "current7": {
+            "pages": 12,
+            "clicks": 404,
+            "impressions": 41053,
+            "weightedCtrPercent": 0.9840937324921443,
+            "scope": "TOP30 subset, membership may differ; not all tomorrow detail pages"
+          },
+          "matchedCohortVerified": false
+        },
+        "insightsHub": {
+          "url": "/insights/",
+          "current30": null,
+          "current7": null,
+          "reason": "Not in TOP30"
+        },
+        "famousHub": {
+          "url": "/insights/famous-saju/",
+          "current30": null,
+          "current7": null,
+          "reason": "Not in TOP30"
+        },
+        "celebrityDetails": {
+          "iu": {
+            "baseline30": {
+              "rawUrl": "https://code-destiny.com/insights/famous-saju/iu/?v=086b7d63fd62",
+              "clicks": 38,
+              "impressions": 1844,
+              "displayedCtrPercent": 2.1
+            },
+            "current30": {
+              "rank": 27,
+              "rawUrl": "https://code-destiny.com/insights/famous-saju/iu/?v=086b7d63fd62",
+              "canonicalGroup": "https://code-destiny.com/insights/famous-saju/iu/",
+              "clicks": 44,
+              "impressions": 1879,
+              "displayedCtrPercent": 2.3
+            },
+            "current7": null
+          },
+          "jungkook": {
+            "baseline30": null,
+            "current30": {
+              "rank": 24,
+              "rawUrl": "https://code-destiny.com/insights/famous-saju/bts-jungkook/?v=22b01d70160c",
+              "canonicalGroup": "https://code-destiny.com/insights/famous-saju/bts-jungkook/",
+              "clicks": 52,
+              "impressions": 1038,
+              "displayedCtrPercent": 5
+            },
+            "current7": null
+          },
+          "scope": "Two raw URLs present in 30-day TOP30, not the total celebrity traffic. TOP30 absence is unknown, not zero; canonical grouping is syntactic and does not prove all query variants are present."
+        }
+      },
+      "conclusion": "30-day displayed average document CTR and selected URL CTR increased, but recent 7-day clicks/impressions fell week over week. No causal uplift conclusion.",
+      "limitations": [
+        "Rolling 30-day windows overlap and mix pre/post release; not a clean before/after experiment.",
+        "TOP30 limits prevent full home/today/insight/famous group totals and matched detail-cohort verification.",
+        "Average CTR displayed by Naver is the mean of document CTRs, not aggregate clicks divided by aggregate impressions.",
+        "Multiple title/content/function/UI changes and subsequent releases confound attribution.",
+        "Low-exposure URLs such as /kkul-kkul-unse/ and monkey/horse detail samples are not grounds for success claims.",
+        "No keyword position measurement or signup/payment attribution was performed."
+      ],
+      "causalTitleEffect": null,
+      "nextMilestone": "2026-11-07",
+      "readOnlyActionsOnly": true
+    },
+    "d14IndexInspection": {
+      "observedAt": "2026-10-22",
+      "source": "Naver Search Advisor URL inspection and index status UI",
+      "pages": [
+        {
+          "path": "/fortune/tomorrow/pig/",
+          "httpStatus": 200,
+          "crawlAllowed": true,
+          "crawled": true,
+          "indexAllowed": true,
+          "indexed": true,
+          "lastUpdateDisplayed": "1시간 전"
+        },
+        {
+          "path": "/fortune/tomorrow/snake/",
+          "httpStatus": 200,
+          "crawlAllowed": true,
+          "crawled": true,
+          "indexAllowed": true,
+          "indexed": true,
+          "lastUpdateDisplayed": "8시간 전"
+        }
+      ],
+      "note": "Relative last-update labels only; exact timestamp not inferred. Current indexing succeeds; cause of earlier impression decline remains unconfirmed. No collection request submitted.",
+      "implementation": "Korean pig/snake tomorrow preparation guide and ziwei/insights/celebrity editorial navigation; existing title experiment, metadata and index policy preserved."
     }
+  },
+  "rename20261010": {
+    "date": "2026-10-10",
+    "officialName": "꿀꿀 사주",
+    "alias": "꿀꿀사주",
+    "formerNames": [
+      "꿀꿀 운세",
+      "꿀꿀운세",
+      "꿀꿀 만세력",
+      "꿀꿀만세력",
+      "꽃돼지 운세"
+    ],
+    "doc": "docs/seo/2026-10-10-ggulggul-saju-rename.md",
+    "ogImageVersion": {
+      "from": "42dedf5c85",
+      "to": "aa88d371b4"
+    },
+    "baseline": {
+      "source": "GSC 2026-06-26~09-25 (2026-09-28 관측)",
+      "clicks": 29,
+      "impressions": 357,
+      "ctr": 0.081,
+      "position": 24.4,
+      "brandQuery": {
+        "query": "꿀꿀운세",
+        "impressions": 58,
+        "clicks": 20,
+        "ctr": 0.345
+      }
+    },
+    "confounder": "2026-10-08 제목 변경이 같은 관측 기간에 겹친다",
+    "checkpoints": [
+      "2026-10-17",
+      "2026-10-24"
+    ],
+    "stagingVerifiedSha": "d9769658cee0f15747791e41e86ad352fda3e7d5",
+    "productionReleasedSha": "76aab4afda3fe222722a687c5c0e9eefe5ca162b",
+    "productionReleasedAt": "2026-10-09T18:34:44Z",
+    "searchConsoleManualSteps": "미실행 — 문서의 운영자 수동 작업 참고"
+  },
+  "searchIntent20261012": {
+    "observedAt": "2026-10-11T17:28:37.717Z",
+    "report": "docs/seo/2026-10-12-search-intent-evidence.md",
+    "evidence": "docs/seo/evidence/2026-10-12/",
+    "gsc": {
+      "period": [
+        "2026-07-10",
+        "2026-10-09"
+      ],
+      "recent28": {
+        "start": "2026-09-12",
+        "end": "2026-10-09",
+        "impressions": 214,
+        "clicks": 11,
+        "ctr": 5.1,
+        "position": 13.8
+      },
+      "previous28": {
+        "start": "2026-08-15",
+        "end": "2026-09-11",
+        "impressions": 115,
+        "clicks": 8,
+        "ctr": 7,
+        "position": 27
+      },
+      "indexedAtReportDate": 370,
+      "indexReportDate": "2026-10-04"
+    },
+    "naver": {
+      "updated": "2026-10-10",
+      "last30Display": {
+        "impressions": "83.0만",
+        "clicks": "3.7천",
+        "averagePageCtr": "0.4%"
+      },
+      "sitemap": {
+        "url": "https://code-destiny.com/sitemap-index.xml",
+        "acceptedAt": "2026-10-12T01:59:45+09:00",
+        "processing": "registration confirmed; UI does not report processing/indexing success"
+      },
+      "last7Display": {
+        "impressions": "25.2만",
+        "impressionsChangeVsPreviousWeek": "-16.4%",
+        "clicks": "1.2천",
+        "clicksChangeVsPreviousWeek": "+13.8%",
+        "averagePageCtr": "0.5%"
+      },
+      "last1Display": {
+        "impressions": "1.9만",
+        "impressionsChangeVsPreviousDay": "-12%",
+        "clicks": "1.3백",
+        "clicksChangeVsPreviousDay": "-20.4%",
+        "averagePageCtr": "0.6%"
+      },
+      "shortWindowEvidence": "docs/seo/evidence/2026-10-12/naver-short-window-observations.json",
+      "shortWindowConclusion": "Recent week and day impressions fell despite the increasing 30-day aggregate. Cause and recovery remain unproven.",
+      "healthEvidence": "docs/seo/evidence/2026-10-12/naver-health.json",
+      "indexedSample": {
+        "path": "/fortune/tomorrow/rat/",
+        "status": "indexed",
+        "storedMetadataDate": "2026-10-12",
+        "liveMetadataDate": "2026-10-13",
+        "source": "Naver index inspection and live URL inspection; one URL only"
+      }
+    },
+    "priorityQueries": [
+      "베다 서양",
+      "인도 점성술",
+      "숙요점 업태",
+      "숙요점 영친"
+    ],
+    "competition": "unquantified; narrow-intent hypothesis only",
+    "changeScope": "Vedic comparison body and modified date; comparison limits; sitemap-index health traversal; Article image URL retains asset path",
+    "titlesChanged": false,
+    "d0": null,
+    "productionVerified": false,
+    "repositoryDelivery": {
+      "status": "pushed_pending_ci",
+      "implementationCommit": "1b71a426d3844888239e4e4131b969b1815dea1c",
+      "prePush": "passed",
+      "mainCiSha": "304b3667844b685a9754e4724bba08aa76c97b9b",
+      "mainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38164701136",
+      "reason": "Integrated SEO pushed to main; final CI and approved production promotion pending",
+      "pushed": true,
+      "handoff": "docs/handoff/seo-search-intent-20261012.md",
+      "naverHealthCommit": "ebf75bb31cf6ef05b0623887d31f0670444da2d4",
+      "lastFailedMainCiSha": "e419b55bdec7b0aa667b0373323cbd4ee5fbabed",
+      "lastFailedMainCiUrl": "https://github.com/rei1237/codedestiny/actions/runs/38159918088",
+      "mainCiStatus": "success",
+      "integrationCommit": "949be171cd867980df77e470bbd45a21fb35af62",
+      "validation": {
+        "targeted": 13,
+        "paidGuards": 88,
+        "nodeTests": 3177,
+        "jestSuites": 385,
+        "jestTests": 5905,
+        "checkFast": "passed",
+        "verifyRelease": "passed",
+        "prePush": "passed"
+      },
+      "productionPromotionAuthorized": true
+    },
+    "existingExperimentsPreserved": true,
+    "bing": {
+      "property": "https://code-destiny.com/",
+      "sitemap": {
+        "url": "https://code-destiny.com/sitemap.xml",
+        "status": "Success",
+        "lastCrawl": "2026-10-09",
+        "urlsDiscovered": 955,
+        "action": "retained healthy existing submission"
+      },
+      "recent28": {
+        "clicks": 13,
+        "impressions": 555
+      },
+      "previous28": {
+        "clicks": 19,
+        "impressions": 467
+      },
+      "ai": {
+        "source": "Microsoft Copilots and Partners sample",
+        "threeMonthCitations": 203,
+        "previous28Citations": 74,
+        "recent28Citations": 78,
+        "groundingQueries": "No data available",
+        "fixedPromptAudit": false
+      },
+      "keywordResearch": {
+        "query": "베다 점성술",
+        "trend": "insufficient data",
+        "competition": "not quantified"
+      }
+    },
+    "articleImageDefect": {
+      "confirmedProduction": "JSON-LD .png/ returns 404 while visible img and OG .png return 200",
+      "localFixed": true,
+      "productionFixed": false
+    },
+    "naverDiagnosis": {
+      "reportDate": "2026-10-10",
+      "indexedDisplay": "8.3백",
+      "robotsExcluded": 945,
+      "inaccessible": 14,
+      "redirect": 29,
+      "duplicateTitle": 351,
+      "duplicateDescription": 353
+    },
+    "googleInspectedIndexed": [
+      "/ggulggul/",
+      "/kkul-kkul-unse/",
+      "/vedic/"
+    ]
+  },
+  "monthlyAuditAttempt": {
+    "observedAt": "2026-10-12",
+    "status": "partial",
+    "httpAudit": {
+      "routes": 966,
+      "sitemapUrls": 955,
+      "rawIssues": [
+        "seed drift: / 가 seedIndexablePaths 에 있는데 사이트맵에 없다 — 의도적 noindex 면 이 목록에서 지울 것",
+        "/robots.txt: missing sitemap directive"
+      ],
+      "classification": "두 건 모두 감사기 오탐: legacy root seed와 sitemap.xml 전용 정규식. 원본 report 보존. 나머지 966개 경로 HTTP/메타 검사 이슈 없음.",
+      "completedAt": "2026-10-12T00:43:29.373Z",
+      "afterFix": {
+        "scope": "seed-only recheck; full crawl not repeated",
+        "routes": 34,
+        "sitemapUrls": 955,
+        "issues": 0,
+        "generatedAt": "2026-10-12T00:45:00.813Z"
+      }
+    },
+    "adsenseRoutePolicy": "passed",
+    "adsTxt": "passed",
+    "fieldCwv": {
+      "mobile": null,
+      "desktop": null,
+      "note": "GSC 데이터 없음"
+    },
+    "localeSample": {
+      "path": "/zh-tw/sukuyo/",
+      "body": "번체 본문 확인",
+      "issues": [
+        "대표 이미지에 한국어 문구 포함",
+        "로그인된 이용권 안내 일부 한국어 잔존",
+        "일부 정책·도구 링크 한국어 페이지로 이동"
+      ],
+      "mobile": "390px override 요청했으나 결과 스크린샷은 데스크톱 폭; 모바일 검증으로 집계하지 않음",
+      "additional": [
+        "/ja/sukuyo/ 일본어 본문 확인, 입력 표와 요점 문장 중복",
+        "/en/sukuyo/ 영어 본문 확인, 동일 표-요점 중복"
+      ]
+    },
+    "cmp": "AdSense 유럽 규정 카드에 새 메시지 만들기 표시. 게시된 메시지·지역별 실제 동의 및 외부 CMP 미검증.",
+    "score": null,
+    "note": "과거 63/100을 현재 점수로 재사용하지 않음. 전체 월간 완료 아님.",
+    "brokenLinkSample": {
+      "checked": [
+        "https://yakumoin.net/support/inquiry_input",
+        "https://www.senjutsu.jp/inquiry"
+      ],
+      "replacementOpportunity": null,
+      "note": "두 문의 경로 접근 가능. 전수 broken-link 감사 아님."
+    }
+  },
+  "adsenseObservationHistory": [
+    {
+      "status": "needs-attention",
+      "reason": "가치가 별로 없는 콘텐츠",
+      "accountUpdatedAt": "2026-08-29",
+      "accountAdsTxt": "찾을 수 없음",
+      "publicAdsTxt": {
+        "observedAt": "2026-09-21",
+        "status": 200,
+        "publisherMatches": true
+      },
+      "risks": [
+        "실제 거절 사유는 low value content; 특정 URL을 Google이 지목한 것은 아님",
+        "다국어 전체 실행 상태와 광고 노출 상태의 모바일 UX 확인 필요",
+        "인증 CMP 게시 및 EEA/UK/CH 실제 동의 흐름 확인 필요",
+        "공개 ads.txt 정상과 계정 과거 미발견 상태가 다름",
+        "9/21 다국어 운세 본문 표본에서 달 위상 영어 잔존/위상명 충돌 발견, 소스 수정. 전체 다국어 독립 가치 검수 완료는 아님."
+      ],
+      "readinessScore": {
+        "score": 63,
+        "max": 100,
+        "basis": "보수적 내부 평가; 승인 확률이 아님; 미배포 수정으로 가산하지 않음",
+        "details": "docs/seo/GROWTH_OPERATIONS.md",
+        "observedAt": "2026-09-08"
+      },
+      "observedAt": "2026-09-21"
+    }
+  ],
+  "delivery20261012": {
+    "status": "blocked",
+    "baseSha": "aedf583e3e84a135ec20c124926103c6e43e73ab",
+    "mainFailure": "https://github.com/rei1237/codedestiny/actions/runs/38186277801",
+    "reason": "기존 main Gift transaction integrity 실패; 실패 중인 main 위에 push 금지",
+    "validation": {
+      "docsCheckFast": "passed",
+      "seoTests": 11,
+      "adsenseRoute": "passed",
+      "adsTxt": "passed",
+      "prePushFirstCommit": "passed",
+      "auditSyntax": "passed",
+      "fullCheckFast": "pending: automatically escalated; another session running typecheck and paid gates, available RAM about 700MB",
+      "auditSeedRecheck": "passed: zero issues"
+    },
+    "worktree": "D:\\wt\\seo-health-20261012-20261012-092305"
+  },
+  "brandSearchFinal20261013": {
+    "status": "code-validated; production-and-search-evidence-pending",
+    "brand": "꿀꿀 운세",
+    "alternateName": [
+      "꿀꿀운세"
+    ],
+    "d0": null,
+    "production": "not-promoted; baseline still uses 꿀꿀 사주",
+    "google": {
+      "search": "unverified: automation challenge",
+      "console": "unverified: login required"
+    },
+    "naver": {
+      "search": "observed official URLs for both brand spellings with obsolete title",
+      "console": "unverified: login required"
+    },
+    "evidence": "docs/seo/evidence/2026-10-13-brand-final",
+    "measurement": {
+      "days": [
+        7,
+        14,
+        28
+      ],
+      "automaticSchedule": false,
+      "comparison": "identical filters and completed periods; query and page aggregates separate; missing values remain null"
+    },
+    "codeCandidate": "9d7a92315",
+    "validation": {
+      "checkFast": "passed",
+      "nodeTests": 3210,
+      "jestSuites": 395,
+      "jestTests": 6033,
+      "paidGateSuite": 88,
+      "browserCases": 8,
+      "productionPromotion": "not executed"
+    },
+    "productionBaselineSha": "63ae9564903a789e867295a1c444520b3881c353"
+  },
+  "changeCompanion20261018": {
+    "status": "implemented-and-locally-verified",
+    "requestedAt": "2026-10-18",
+    "request": "현재 상태 SEO 최적화 및 이후 변경 시 SEO 동반 최적화",
+    "paths": [
+      "/ja/sukuyo/",
+      "/zh/sukuyo/",
+      "/zh-tw/sukuyo/",
+      "/en/sukuyo/"
+    ],
+    "changes": [
+      "기본 표와 동일한 요점 문구를 입력 대조·대화 적용·해석 한계 안내로 교체",
+      "계산기별 본명숙 차이 FAQ를 4언어에 보완; 화면과 JSON-LD의 기존 단일 데이터 소스 유지",
+      "CLAUDE와 SEO 상세 규칙에 변경 동반 SEO 점검 기준 반영"
+    ],
+    "preserved": [
+      "title/description/URL/canonical/hreflang/index 정책",
+      "기존 제목 실험",
+      "계산·결제·인증·API·DB 로직"
+    ],
+    "health": {
+      "observedAt": "2026-10-18",
+      "landings": 28,
+      "sitemapUrls": 1022,
+      "issues": 0
+    },
+    "searchMetrics": {
+      "freshObservation": false,
+      "note": "GSC/Naver 과거 관측값을 현재 실적으로 갱신하지 않음"
+    },
+    "validation": {
+      "internationalHubTests": 4,
+      "checkFast": "passed",
+      "jestSuites": 420,
+      "jestTests": 6674
+    },
+    "productionDeployed": false,
+    "remaining": [
+      "신규 수정의 운영 반영 후 언어별 화면 확인",
+      "CMP 게시·광고 실동작 검증 및 다국어 전체 감수",
+      "검색 실적은 기존 비교 기간 유지하여 후속 관측"
+    ]
   }
 }

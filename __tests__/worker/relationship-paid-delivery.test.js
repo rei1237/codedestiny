@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from '@jest/globals';
 // Stress fixture: preserve multi-part storage/lease failures at the former batch width.
 // Production's one-part contract is covered by paid-llm-sequential.test.js.
@@ -34,7 +35,7 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),structured=await import('../../worker/lib/structured-consultation.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{}}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,getOptionalUserFromRequest:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async()=>({proven:true,source:accessMode,...(accessMode==='pass'?{passRefund:docs.length?undefined:{cycleKey:'2026-10-01',cost:300}}:{transactionId:'original-'+accessMode})})}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async()=>({proven:true,source:accessMode,...(accessMode==='pass'?{passRefund:docs.length?undefined:{cycleKey:'2026-10-01',cost:300}}:{transactionId:'original-'+accessMode})})}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,RelationshipBoundaryTest:model,
   PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)},
  }));
@@ -175,4 +176,22 @@ test('a usable report under its target completes without extra generation or ref
  expect(last.status).toBe(200);expect(docs[0].status).toBe('completed');
  expect(provider).toHaveBeenCalledTimes(11);expect(refunds).toBe(0);expect(docs[0].status).toBe('completed');
  await resume();expect(provider).toHaveBeenCalledTimes(11);
+});
+
+const coupleBody = () => ({ ...body, selfInfo: { ...body.targetInfo, gender:'male', birthDate:'1988-03-21', birthTimeUnknown:true, birthTime:'' } });
+test.each(['pass','monthly','single'])('%s couple input survives interruption and delivers all five chapters once',async mode=>{
+ accessMode=mode;const request=coupleBody();expect((await post(request)).status).toBe(202);
+ expect(docs[0].llmMeta.resumeBody.selfInfo).toEqual(request.selfInfo);
+ expect(docs[0].llmMeta.mode).toBe('couple');expect(docs[0].llmMeta.facts.relationshipEvidence.cross).toHaveLength(12);
+ const saved=JSON.stringify(docs[0].llmMeta.delivery.parts);const prompts=docs[0].llmMeta.sectionPrompts.slice();
+ expect((await post({...request,selfInfo:{...request.selfInfo,birthDate:'1989-03-21'}})).status).toBe(409);
+ expect(JSON.stringify(docs[0].llmMeta.delivery.parts)).toBe(saved);
+ expect((await resume()).status).toBe(202);const result=await resume();expect(result.status).toBe(200);
+ expect(await result.json()).toMatchObject({mode:'couple',status:'completed',schemaVersion:2,sceneIds:['overview','communication','boundary','trust','future']});
+ expect(docs[0].sections.map(s=>s.title)).toEqual(['우리 관계의 큰 흐름','끌림과 소통의 결','긴장과 관계의 경계','생활을 나누고 신뢰를 쌓는 법','함께할 미래와 오늘의 선택']);
+ expect(docs[0].llmMeta.sectionPrompts).toEqual(prompts);expect(provider).toHaveBeenCalledTimes(11);
+ expect((await post(request)).status).toBe(200);expect(provider).toHaveBeenCalledTimes(11);expect(refunds).toBe(0);
+});
+test('invalid optional self information is rejected before generation',async()=>{
+ const result=await post({...body,selfInfo:{birthDate:'invalid'}});expect(result.status).toBe(422);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);
 });

@@ -89,11 +89,11 @@ test("① 회당 결제 키가 paidFeatures 에만 있어도 무료로 열리지
   expect(decision.allowed).toBe(false);
 });
 
-test("② 영구 해금 키는 계정 배열만으로 그대로 열린다 (대조군 — 돈 낸 사용자를 막지 않는다)", async () => {
+test("② 계정 기반 영구 해금 키는 계정 배열만으로 그대로 열린다 (대조군 — 돈 낸 사용자를 막지 않는다)", async () => {
   const userId = nextUserId();
-  seedUser(userId, { unlockedFeatures: ["sukuyo-relationship-encyclopedia"] });
+  seedUser(userId, { unlockedFeatures: ["flower-fc"] });
 
-  const decision = await canAccessPaidFeature(userId, "sukuyo-relationship-encyclopedia", { env: {} });
+  const decision = await canAccessPaidFeature(userId, "flower-fc", { env: {} });
 
   expect(decision.allowed).toBe(true);
   expect(decision.reason).toBe("ALREADY_PURCHASED");
@@ -143,14 +143,14 @@ test("③ requestId 가 없으면 과거 회당 결제는 근거가 되지 않�
   expect(paymentFind).not.toHaveBeenCalled();
 });
 
-test("③ 영구 해금의 Payment 조회는 여전히 결제 건을 특정하지 않는다 (대조군)", async () => {
+test("③ 계정 기반 영구 해금의 Payment 조회는 여전히 결제 건을 특정하지 않는다 (대조군)", async () => {
   const userId = nextUserId();
   seedUser(userId);
   paymentFind.mockReturnValue({
-    select: () => ({ lean: async () => [{ featureKey: "sukuyo-relationship-encyclopedia" }] }),
+    select: () => ({ lean: async () => [{ featureKey: "flower-fc" }] }),
   });
 
-  const decision = await canAccessPaidFeature(userId, "sukuyo-relationship-encyclopedia", { env: {} });
+  const decision = await canAccessPaidFeature(userId, "flower-fc", { env: {} });
 
   expect(decision.allowed).toBe(true);
   expect(paymentFind.mock.calls[0][0].$or).toBeUndefined();
@@ -187,4 +187,28 @@ test("프로필 해금 캐시를 다른 프로필에 재사용하지 않는다",
   }));
   expect((await canAccessPaidFeature(userId, "sukuyo-relationship-encyclopedia", { env: {}, profileId: "paid-profile" })).allowed).toBe(true);
   expect((await canAccessPaidFeature(userId, "sukuyo-relationship-encyclopedia", { env: {}, profileId: "other-profile" })).allowed).toBe(false);
+});
+
+/* ④ 출생 기반 키(userId + 생년월일 + contentKey). 계정 배열·계정 단위 Payment 행은 어느 생년월일로
+   샀는지 모르므로 근거가 아니다 — 요청 profileId 의 BIRTH 스냅샷만 연다. */
+test("④ 출생 기반 키는 계정 배열(unlockedFeatures/paidFeatures)만으로 열리지 않는다", async () => {
+  const userId = nextUserId();
+  seedUser(userId, { unlockedFeatures: ["section_daewun"], paidFeatures: ["section_daewun"] });
+
+  const decision = await canAccessPaidFeature(userId, "section_daewun", { env: {}, profileId: "profile-b" });
+
+  expect(decision.allowed).toBe(false);
+  expect(decision.reason).not.toBe("ALREADY_PURCHASED");
+  expect(unlockSnapshot).toHaveBeenCalledWith(expect.objectContaining({ userId, profileId: "profile-b" }));
+});
+
+test("④ 출생 기반 키는 계정 단위 Payment 행으로 열리지 않는다 (조회 자체를 하지 않는다)", async () => {
+  const userId = nextUserId();
+  seedUser(userId);
+  paymentFind.mockReturnValue(lean([{ featureKey: "sukuyo-relationship-encyclopedia" }]));
+
+  const decision = await canAccessPaidFeature(userId, "sukuyo-relationship-encyclopedia", { env: {}, profileId: "profile-b" });
+
+  expect(decision.allowed).toBe(false);
+  expect(paymentFind).not.toHaveBeenCalled();
 });

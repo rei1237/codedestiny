@@ -21,7 +21,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { buildSubmissionState, selectSubmissionDelta } from "./lib/indexnow-delta.mjs";
+import { buildSubmissionState, indexNowRetryDelayMs, selectSubmissionDelta } from "./lib/indexnow-delta.mjs";
 
 const rootDir = process.cwd();
 const dryRun = process.argv.includes("--dry-run");
@@ -84,6 +84,35 @@ function readSitemapEntries() {
   return entries;
 }
 
+/** 배치 하나를 보낸다. 429·5xx·시간 초과는 indexNowRetryDelayMs 규칙으로 최대 3회 다시 보낸다. */
+async function postBatch(contract, chunk, batchNo) {
+  for (let attempt = 0; ; attempt += 1) {
+    let response = null;
+    try {
+      response = await fetch(contract.endpoint, {
+        method: "POST",
+        signal: AbortSignal.timeout(30000),
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+          host: contract.host,
+          key: contract.key,
+          keyLocation: contract.keyLocation,
+          urlList: chunk,
+        }),
+      });
+      const body = await response.text().catch(() => "");
+      console.log(`[indexnow] batch ${batchNo} attempt ${attempt + 1}: ${response.status} ${response.statusText}${body ? ` — ${body}` : ""}`);
+      if (response.ok) return true;
+    } catch (error) {
+      console.log(`[indexnow] batch ${batchNo} attempt ${attempt + 1}: ${error instanceof Error ? error.name : "error"} ${error instanceof Error ? error.message : error}`);
+    }
+    const delay = indexNowRetryDelayMs(response ? response.status : null, response?.headers.get("retry-after"), attempt);
+    if (delay === null) return false;
+    console.log(`[indexnow] batch ${batchNo}: ${Math.ceil(delay / 1000)}초 뒤 다시 보냅니다.`);
+    await new Promise((done) => setTimeout(done, delay));
+  }
+}
+
 async function main() {
   // 🔴 스테이징 릴리스에서는 절대 제출하지 않는다. 제출 목록은 sitemap.xml 에서 나오므로
   //    스테이징에서 돌면 **프로덕션 URL** 을 아직 배포되지도 않은 변경 기준으로 알리게 된다.
@@ -123,21 +152,8 @@ async function main() {
 
   for (let index = 0; index < urls.length; index += BATCH_SIZE) {
     const chunk = urls.slice(index, index + BATCH_SIZE);
-    const response = await fetch(contract.endpoint, {
-      method: "POST",
-      signal: AbortSignal.timeout(30000),
-      headers: { "Content-Type": "application/json; charset=utf-8" },
-      body: JSON.stringify({
-        host: contract.host,
-        key: contract.key,
-        keyLocation: contract.keyLocation,
-        urlList: chunk,
-      }),
-    });
-    const body = await response.text().catch(() => "");
-    const batchNo = Math.floor(index / BATCH_SIZE) + 1;
-    console.log(`[indexnow] batch ${batchNo}: ${response.status} ${response.statusText}${body ? ` — ${body}` : ""}`);
-    if (!response.ok) process.exit(1);
+    // 실패하면 체크포인트를 옮기지 않는다. 다음 배포가 같은 변경을 다시 고른다.
+    if (!(await postBatch(contract, chunk, Math.floor(index / BATCH_SIZE) + 1))) process.exit(1);
   }
 
   writeFileSync(statePath, JSON.stringify(current));

@@ -305,3 +305,197 @@ main.starlight [role=alert] { color: #ffb8a8; }
   .momentArt { width: 76px; height: 76px; border-radius: 14px; }
   .modeSwitch button { min-width: 44px; padding: 0 8px; font-size: .76rem; }
 }
+
+/* ── 꽃과 달빛: 연이 상담실 첫 화면. 달빛 정원 그림 위에 크림 베일을 깔아 글을 읽히게 한다.
+   색은 위 .room 토큰만 섞는다(신규 색 없음). 사설 별칭은 --fr-* 로만 둔다. ── */
+.introduction {
+  --fr-veil: color-mix(in srgb, var(--bubble) 90%, transparent);
+  --fr-serif: "Gowun Batang", "Nanum Myeongjo", "Noto Serif KR", Batang, AppleMyungjo, serif;
+  /* 🔴 타임라인은 높이가 고정된 grid 라 공간이 모자라면 행이 항목의 최소 높이까지 줄어든다.
+     overflow 나 min-height 숫자를 여기 두면 그 값이 최소 높이가 되어 히어로가 40px 로 눌리고 글이 아래 칸을 덮었다.
+     min-height 는 auto(내용 높이) 그대로 두고, 잘라내기는 배경 층(.heroScene)이 맡는다. */
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  align-items: end;
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--line));
+  border-radius: 28px;
+  padding: 30px 20px 18px;
+  color: var(--ink);
+  box-shadow: 0 18px 40px color-mix(in srgb, var(--rose) 12%, transparent);
+}
+.heroScene { position: absolute; inset: 0; z-index: -1; overflow: hidden; border-radius: inherit; }
+.heroBackdrop { object-fit: cover; object-position: 72% 40%; }
+.heroScene::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background:
+    linear-gradient(100deg, var(--fr-veil) 0%, color-mix(in srgb, var(--bubble) 74%, transparent) 48%, color-mix(in srgb, var(--bubble) 14%, transparent) 100%),
+    linear-gradient(0deg, var(--fr-veil) 0%, transparent 58%);
+}
+.heroOrnament {
+  position: absolute;
+  z-index: 1;
+  top: -14px;
+  right: -18px;
+  width: clamp(112px, 28vw, 184px);
+  height: auto;
+  pointer-events: none;
+}
+.heroAvatar { align-self: end; filter: drop-shadow(0 10px 18px color-mix(in srgb, var(--rose) 22%, transparent)); }
+.heroCopy { min-width: 0; }
+.heroKicker { margin: 0 0 6px; color: var(--rose); font-size: .76rem; font-weight: 900; letter-spacing: .16em; }
+.introduction h1 { margin: 0 0 12px; font-family: var(--fr-serif); font-size: clamp(1.4rem, 4vw, 1.9rem); line-height: 1.42; letter-spacing: -.02em; }
+.introduction p, .jointOffer p { line-height: 1.75; margin: 8px 0; }
+.introduction > :last-child { grid-column: 1 / -1; }
+.heroWays { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 12px 0 4px; padding: 0; list-style: none; }
+.heroWays li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  border: 1px solid color-mix(in srgb, var(--gold) 60%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bubble) 82%, transparent);
+  padding: 0 12px;
+  font-size: .82rem;
+  font-weight: 800;
+}
+.heroWays li:last-child { border: 0; background: transparent; padding: 0; }
+.methodDetails summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--muted); }
+
+/* 꿀방울 — 금빛 물방울. 글자 대신 쓰지 않고 늘 옆에 "꿀방울" 글을 둔다. */
+.honeyDrop {
+  display: inline-block;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50% 0 50% 50%;
+  transform: rotate(-45deg);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 55%, var(--bubble)), color-mix(in srgb, var(--gold) 70%, var(--rose)));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rose) 22%, transparent);
+}
+
+/* 준비 단계 — 지금 단계(aria-current)만 로즈로 채운다. 각 단계는 그 칸으로 가는 링크다. */
+.steps { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; counter-reset: none; }
+.steps li { flex: 1 1 0; min-width: 0; }
+.steps a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bubble) 88%, transparent);
+  padding: 0 10px;
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.steps b {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--rose-soft) 34%, var(--bubble));
+  color: var(--ink);
+  font-size: .7rem;
+}
+.steps li[data-done] a { border-color: color-mix(in srgb, var(--gold) 60%, var(--line)); color: var(--ink); }
+.steps li[data-done] b { background: color-mix(in srgb, var(--gold) 60%, var(--bubble)); }
+.steps li[aria-current=step] a { border-color: var(--rose); background: var(--rose); color: var(--bubble-mine-ink); }
+.steps li[aria-current=step] b { background: var(--bubble); color: var(--rose); }
+.steps a:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+
+/* 상담 여는 방법 — 꿀방울 30개 / 이용권·1회 결제 두 장의 카드. */
+.accessPanel { justify-items: stretch; }
+.accessLead { font-family: "Gowun Batang", "Nanum Myeongjo", "Noto Serif KR", Batang, serif; }
+.accessCards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.accessCard {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--bubble);
+  padding: 14px;
+}
+.honeyCard {
+  border-color: color-mix(in srgb, var(--gold) 70%, var(--line));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 20%, var(--bubble)), var(--bubble) 72%);
+}
+.payCard { background: linear-gradient(160deg, color-mix(in srgb, var(--rose-soft) 16%, var(--bubble)), var(--bubble) 72%); }
+.accessKicker { margin: 0; color: var(--rose); font-size: .74rem; font-weight: 900; letter-spacing: .06em; }
+.accessTitle { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--ink); font-family: "Gowun Batang", "Nanum Myeongjo", "Noto Serif KR", Batang, serif; font-size: 1.08rem; }
+.accessPanel .accessNote { color: var(--ink); font-size: .86rem; }
+.honeyMeter { height: 8px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--gold) 22%, var(--bubble)); }
+.honeyMeter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 80%, var(--rose)), color-mix(in srgb, var(--gold) 55%, var(--rose)));
+  transition: width .45s cubic-bezier(.22, 1, .36, 1);
+}
+.accessPrimary,
+.accessSecondary {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 999px;
+  padding: 0 16px;
+  font: inherit;
+  font-size: .88rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.accessPrimary { border: 0; background: var(--rose); color: var(--bubble-mine-ink); box-shadow: 0 8px 18px color-mix(in srgb, var(--rose) 22%, transparent); }
+.accessSecondary { border: 1px solid color-mix(in srgb, var(--rose) 40%, var(--line)); background: var(--bubble); color: var(--rose); }
+.accessPrimary:disabled,
+.accessSecondary:disabled { opacity: .55; cursor: not-allowed; }
+.accessPrimary:focus-visible,
+.accessSecondary:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+
+.restored { margin: 0; border-radius: 14px; background: color-mix(in srgb, var(--gold) 26%, var(--bubble)); padding: 10px 12px; color: var(--ink); line-height: 1.6; }
+.accessBadge {
+  display: inline-flex;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rose-soft) 26%, var(--bubble));
+  padding: 1px 8px;
+  color: var(--ink);
+  font-size: .7rem;
+  font-weight: 800;
+}
+.accessBadge[data-access=honey] { background: color-mix(in srgb, var(--gold) 44%, var(--bubble)); }
+
+/* 패널 제목도 명조로 — 꽃과 달빛 첫 화면과 한 결로 읽힌다. */
+main:not(.starlight) .panel .sectionTitle { font-family: "Gowun Batang", "Nanum Myeongjo", "Noto Serif KR", Batang, serif; font-size: 1.04rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .heroOrnament { animation: frMoonSway 9s ease-in-out infinite alternate; }
+}
+@keyframes frMoonSway { from { transform: rotate(-2deg); } to { transform: rotate(2deg) translateY(4px); } }
+@media (prefers-reduced-motion: reduce) {
+  .honeyMeter span { transition: none; }
+}
+@media (max-width: 560px) {
+  .introduction { grid-template-columns: 1fr; gap: 10px; padding: 22px 16px 16px; border-radius: 22px; }
+  .heroScene::after {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--bubble) 22%, transparent) 0%, color-mix(in srgb, var(--bubble) 78%, transparent) 34%, var(--fr-veil) 54%);
+  }
+  .heroBackdrop { object-position: 78% 0%; }
+  .steps a { padding: 0 6px; font-size: .76rem; }
+}
+.jointOffer { padding: 24px 16px; border-top: 1px solid var(--line); color: var(--ink); }
+.jointOffer h2 { font-size: 1.1rem; margin: 0; }
+.jointOffer a { display: flex; align-items: center; min-height: 44px; color: var(--rose); text-underline-offset: 4px; }
+.jointOffer a:focus-visible, .methodDetails summary:focus-visible { outline: 2px solid var(--rose); outline-offset: 3px; }
+

@@ -16,7 +16,7 @@ export const FEATURE_ICON_MAP: Record<string, DestinyIconName> = {
 };
 
 export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
-  "/saju/basic": "yinYang",
+  "/saju": "yinYang",
   "/saju/basic/play": "compass",
   "/saju/sibyl": "seal",
   "/life-book-ai": "scroll",
@@ -29,9 +29,9 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/saju-guardian": "seal",
   "/animal/mbti": "animalPaw",
   "/ziwei/chart": "palace",
-  "/astrology/cosmic": "zodiac",
-  "/vedic/jyotish": "compass",
-  "/oracle/sukuyo": "moon",
+  "/astrology": "zodiac",
+  "/vedic": "compass",
+  "/sukuyo": "moon",
   "/oracle/rune": "rune",
   "/ifa-oracle.html": "seal",
   "/oracle/ifa": "seal",
@@ -42,7 +42,6 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/geomancy-oracle-v4.html": "compass",
   "/destiny-poker.html": "tarot",
   "/fortune-teller-fish.html": "moon",
-  "/tadagochi": "crystal",
   "/neville-meditation.html": "lotus",
   "/yoga-guru.html": "lotus",
   "/cosmic-soul-meditation.html": "sparkleLine",
@@ -52,6 +51,7 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/guides": "crystal",
   "/olympus": "stageLight",
   "/psychotest": "seal",
+  "/mini-games": "tarot",
   "/tarot/mingri": "tarot",
   "/tarot/love": "heartGlow",
   "/tarot/healing": "sun",

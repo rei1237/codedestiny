@@ -1,0 +1,89 @@
+{
+  "created": "2026-10-17",
+  "purpose": "초융합 운세 v2 영역별 8장 장면 + 다섯 마스터 단체 장면(아틀라스 9번째 칸) + 홈 시그니처 띠 히어로. 상담 로직과 무관한 장식 그림.",
+  "generationTool": "built-in image_gen (gpt-image-2 via codex exec)",
+  "build": "node scripts/design/build-fusion-domain-atlas.mjs <picked 폴더> — 원본 PNG 와 원본 대비 비교본은 저장소 밖(D:/Development/captures/fusion-domain-art-20261017)에 둔다.",
+  "outputs": {
+    "premium-domains-v1.webp": "3x3 atlas, 418px cells, order = lib/fusion-premium-report.js FUSION_DOMAIN_ART_KEYS + group",
+    "../home/fusion-signature-masters-{600,1200}.webp": "hero, 3:2 attention crop"
+  },
+  "rules": "No text/letters/numbers/logos. 윤달 손바닥 비노출, 서한비 빨강·버건디 금지, 무성은 10대 중반이며 연애·결혼 장면에 넣지 않는다.",
+  "nature": {
+    "references": [
+      "public/images/master-profiles/musung-ziwei-profile.webp",
+      "public/images/fusion-fortune/premium-chapters-v1.webp"
+    ],
+    "promptSummary": "Square scene. Musung, a quiet mid-teen boy (about 15, youthful face, slender), the character from the attached Musung sheet: messy long black hair with violet tint that covers one eye, violet eyes, black layered robe with gold star embroidery, violet tassel earring."
+  },
+  "lifeCycle": {
+    "references": [
+      "public/images/master-profiles/yun-astrology-profile.webp",
+      "public/images/fusion-fortune/premium-chapters-v1.webp"
+    ],
+    "promptSummary": "Square scene. Yundal, the man from the attached Yundal sheet: dark navy-violet hair in a loose low ponytail, gentle smile, crescent earring, navy robe with crescent-moon border embroidery over a white mandarin-collar shirt, bronze compass pendant, black fingerless gloves."
+  },
+  "love": {
+    "references": [
+      "public/images/master-profiles/yeoni-teahouse-profile.webp",
+      "public/images/fusion-fortune/premium-chapters-v1.webp"
+    ],
+    "promptSummary": "Square scene. Yeoni, the young woman from the attached Yeoni sheet: very long wavy pink hair with a pink-gold flower hair ornament, rose-pink eyes, ivory jeogori with white collar and blush pink chima embroidered with lotus (Korean hanbok)."
+  },
+  "marriage": {
+    "references": [
+      "public/images/master-profiles/hanbi-sukuyo-profile.webp",
+      "public/images/fusion-fortune/premium-chapters-v1.webp"
+    ],
+    "promptSummary": "Square scene. Seo Hanbi, the woman from the attached Hanbi sheet: very long dark wavy black hair, warm brown eyes, silver crystal drop earrings, dark navy high-collared long dress with fine gold embroidery and crescent motifs, holding an old leather-bound book with a gold crescent."
+  },
+  "wealth": {
+    "references": [
+      "public/images/master-profiles/neo-strategy-profile.webp",
+      "public/images/fusion-fortune/premium-chapters-v1.webp"
+    ],
+    "promptSummary": "Square scene. Neo, the young man from the attached Neo sheet: tousled silver-white hair, pale blue eyes, navy strategist coat with gold embroidery and gold chains, white cape, black gloves."
+  },
+  "career": {
+    "references": [
+      "public/images/master-profiles/neo-strategy-profile.webp",
+      "public/images/fusion-fortune/premium-chapters-v1.webp"
+    ],
+    "promptSummary": "Square scene. Neo, the young man from the attached Neo sheet: tousled silver-white hair, pale blue eyes, navy strategist coat with gold embroidery, white cape, black gloves. He stands on a high stone terrace at dawn, one gloved hand placing a golden chess knight on a large map-table, looking out toward a path of stone stairs climbing toward a distant glowing tower and banners; the white lion spirit faintly beside him."
+  },
+  "health": {
+    "references": [
+      "public/images/master-profiles/yun-astrology-profile.webp",
+      "public/images/fusion-fortune/premium-chapters-v1.webp"
+    ],
+    "promptSummary": "Square scene. Yundal, the man from the attached Yundal sheet: dark navy-violet hair in a loose low ponytail, gentle closed-eye smile, crescent earring, navy robe with crescent embroidery over white mandarin shirt, bronze compass pendant. Early morning in a quiet herb garden courtyard with a stone basin of clear water, steam rising from a celadon teapot, sunrise glow, herbs and white flowers, a small white cat."
+  },
+  "relations": {
+    "references": [
+      "public/images/master-profiles/hanbi-sukuyo-profile.webp",
+      "public/images/fusion-fortune/premium-chapters-v1.webp"
+    ],
+    "promptSummary": "Square scene. Seo Hanbi, the woman from the attached Hanbi sheet: very long dark wavy black hair, warm brown eyes, silver crystal drop earrings, dark navy high-collared long dress with gold embroidery."
+  },
+  "group": {
+    "references": [
+      "public/images/master-profiles/neo-strategy-profile.webp",
+      "public/images/master-profiles/yeoni-teahouse-profile.webp",
+      "public/images/master-profiles/hanbi-sukuyo-profile.webp",
+      "public/images/master-profiles/yun-astrology-profile.webp",
+      "public/images/master-profiles/musung-ziwei-profile.webp",
+      "public/images/fusion-fortune/premium-chapters-v1.webp"
+    ],
+    "promptSummary": "Square scene."
+  },
+  "hero": {
+    "references": [
+      "public/images/master-profiles/neo-strategy-profile.webp",
+      "public/images/master-profiles/yeoni-teahouse-profile.webp",
+      "public/images/master-profiles/hanbi-sukuyo-profile.webp",
+      "public/images/master-profiles/yun-astrology-profile.webp",
+      "public/images/master-profiles/musung-ziwei-profile.webp",
+      "public/images/fusion-fortune/premium-chapters-v1.webp"
+    ],
+    "promptSummary": "Wide landscape key visual."
+  }
+}

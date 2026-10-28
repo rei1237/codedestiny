@@ -8,6 +8,15 @@
     "thinkingIncludedInOutput": false,
     "scope": "Standard text/image/video tokens only. candidatesTokenCount excludes thoughtsTokenCount. Cache storage, grounding, FX and non-token charges are separate. Not sale evidence."
   },
+  "gemini/gemini-2.5-pro": {
+    "reviewedAt": "2026-10-12",
+    "sourceRefs": ["https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-pro"],
+    "inputUsdPerMillion": 1.25,
+    "cachedInputUsdPerMillion": 0.31,
+    "outputUsdPerMillion": 10,
+    "thinkingIncludedInOutput": true,
+    "scope": "Standard text tokens for prompts up to 200k tokens; output price includes thinking tokens. Cache storage, grounding, FX and non-token charges are separate. Not sale evidence."
+  },
   "cloudflare/@cf/zai-org/glm-4.7-flash": {
     "reviewedAt": "2026-09-22",
     "sourceRefs": [

@@ -1,3 +1,4 @@
+import { COMPAT_ART } from '@/js/saju-compat-art.mjs';
 // 「그 사람의 바람끼는?」 전용 장면 에셋 레지스트리.
 //
 // 🔴 챕터 ↔ 그림은 **인덱스(0~4)** 로 묶는다. 제목 문자열을 키로 쓰면 LLM 이 제목을
@@ -39,4 +40,11 @@ export function chapterScene(index: number): Scene | null {
 
 export function gradeScene(grade: Grade): Scene {
   return GRADE_SCENES[grade] ?? GRADE_SCENES.medium;
+}
+
+const COUPLE_SCENES: Readonly<Record<string, Scene>> = {
+  overview: COMPAT_ART.love, communication: COMPAT_ART.month, boundary: COMPAT_ART['past-knot'], trust: COMPAT_ART.day, future: COMPAT_ART.hour,
+};
+export function relationshipScene(mode: string | undefined, sceneId: string | undefined, index: number): Scene | null {
+  return mode === 'couple' ? (COUPLE_SCENES[sceneId || ''] || null) : chapterScene(index);
 }

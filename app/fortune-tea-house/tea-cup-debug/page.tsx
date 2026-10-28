@@ -2,7 +2,7 @@ import TeaCupDebugRouteClient from "./TeaCupDebugRouteClient";
 import { notFound } from "next/navigation";
 
 export const metadata = {
-  title: "운명의 찻집 찻잔 Crop Debug | Code Destiny",
+  title: "운명의 찻집 찻잔 Crop Debug | 꿀꿀 운세",
   description:
     "운명의 찻집 찻잔 이미지 크롭 비율을 눈으로 대조하는 개발용 검증 화면입니다. 프로덕션 빌드에서는 404 이며 검색 색인 대상이 아닙니다.",
   robots: {

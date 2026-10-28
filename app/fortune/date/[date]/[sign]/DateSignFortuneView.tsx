@@ -149,7 +149,7 @@ export default function DateSignFortuneView({ vm, faqs }: { vm: DateSignViewMode
         </section>
 
         <p className={`mt-12 break-keep text-xs leading-6 ${MUTED}`}>
-          운세 콘텐츠는 오락과 자기성찰을 위한 참고 자료입니다. 의료·법률·재무 판단을 대신하지 않으며, 중요한 선택은 실제 조건과 전문가의 조언을 함께 확인하세요.
+          운세 콘텐츠는 자기성찰을 위한 참고 자료입니다. 의료·법률·재무 판단을 대신하지 않으며, 중요한 선택은 실제 조건과 전문가의 조언을 함께 확인하세요.
         </p>
       </div>
     </main>

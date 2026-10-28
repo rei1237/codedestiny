@@ -6,6 +6,8 @@ import GiftOrders from "./GiftOrders";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { adminFetch, describeAdminError } from "../_lib/admin-api";
 import { ADMIN_INPUT, ADMIN_TOOLBAR, adminButton } from "../_components/ui";
+import { useAdminUiMode } from "../_hq/ui-mode";
+import { OrderFactBadges, OrderFactDetail, OrderQueuePanel, useOrderFacts } from "./HqOrderFacts";
 
 type AdminOrder = {
   id: string;
@@ -109,6 +111,8 @@ export default function AdminOrdersPage() {
   const [debouncedEmail, setDebouncedEmail] = useState("");
   const [status, setStatus] = useState("");
   const [paymentType, setPaymentType] = useState("");
+  // 지급 보류(delivery_failed_manual_review) — 프로필 선택 대기 주문 포함. 서버가 허용값만 받는다.
+  const [heldOnly, setHeldOnly] = useState(false);
   const [page, setPage] = useState(1);
 
   const [list, setList] = useState<ListResponse | null>(null);
@@ -129,6 +133,11 @@ export default function AdminOrdersPage() {
   const [reconciling, setReconciling] = useState(false);
   const [reconcileResult, setReconcileResult] = useState("");
 
+  // 별빛 금고 확장(읽기 전용) — 롤백(classic) 모드에서는 예전 화면 그대로.
+  const hq = useAdminUiMode().mode === "hq";
+  const listIds = useMemo(() => [...(list?.items?.map((item) => item.id) || []), ...(selectedId ? [selectedId] : [])], [list, selectedId]);
+  const facts = useOrderFacts(listIds, hq);
+
   const loadList = useCallback(async () => {
     setListLoading(true);
     setListError("");
@@ -138,6 +147,7 @@ export default function AdminOrdersPage() {
       if (debouncedEmail.trim()) params.set("email", debouncedEmail.trim());
       if (status) params.set("status", status);
       if (paymentType) params.set("paymentType", paymentType);
+      if (heldOnly) params.set("failureCode", "delivery_failed_manual_review");
       params.set("page", String(page));
       const data = await adminFetch<ListResponse>(`/api/admin/orders?${params.toString()}`);
       setList(data);
@@ -146,7 +156,7 @@ export default function AdminOrdersPage() {
     } finally {
       setListLoading(false);
     }
-  }, [debouncedQuery, debouncedEmail, status, paymentType, page]);
+  }, [debouncedQuery, debouncedEmail, status, paymentType, heldOnly, page]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -248,6 +258,8 @@ export default function AdminOrdersPage() {
             {reconcileResult && <p className="mt-2 text-[11px] font-semibold text-slate-400">{reconcileResult}</p>}
           </div>
 
+          {hq ? <OrderQueuePanel onOpen={(orderId) => void loadDetail(orderId)} selectedId={selectedId} /> : null}
+
           <div className="space-y-2 border-b border-slate-800 p-4">
             <input className={inputClass} placeholder="주문번호 / 결제ID / 기능키" value={query}
               onChange={(e) => { setPage(1); setQuery(e.target.value); }} />
@@ -267,6 +279,10 @@ export default function AdminOrdersPage() {
                 ))}
               </select>
             </div>
+            <button type="button" className={buttonClass(heldOnly ? "primary" : "ghost")} aria-pressed={heldOnly}
+              onClick={() => { setPage(1); setHeldOnly((v) => !v); }}>
+              지급 보류 · 프로필 선택 대기{heldOnly ? " ✓" : ""}
+            </button>
           </div>
 
           {list?.counts?.length ? (
@@ -295,6 +311,7 @@ export default function AdminOrdersPage() {
                     <p className="mt-1 truncate text-[11px] text-slate-400">{item.featureKey || item.productId || item.paymentType}</p>
                     <p className="mt-0.5 truncate text-[11px] text-slate-500">{item.merchantUid}</p>
                     <p className="mt-0.5 text-[11px] text-slate-500">{formatDate(item.createdAt)}</p>
+                    {hq ? <OrderFactBadges fact={facts[item.id]} /> : null}
                   </button>
                 </li>
               ))}
@@ -350,6 +367,8 @@ export default function AdminOrdersPage() {
                   ) : null}
                 </div>
               </div>
+
+              {hq ? <OrderFactDetail fact={facts[order.id]} /> : null}
 
               <div className="grid gap-4 lg:grid-cols-2">
                 <div className="rounded-xl border border-slate-800 bg-[#13131f] p-4">

@@ -11,7 +11,7 @@ import { scopedModel } from "./db-scope-connection.js";
 // 앱은 가격대 티어 SKU를 쓰므로 productId 하나에 여러 featureKey가 매달린다
 // (예: cd_content_tier_02 ← 50코인 기능 54개). 따라서 구매 토큰만으로는 "무엇을 사려던
 // 것인지" 역해석할 수 없다. 결제 도중 앱이 죽어 verify를 못 한 고아 구매를
-// queryPurchasesAsync로 복구할 때 이 기록이 유일한 단서가 된다.
+// queryPurchasesAsync 복구에서는 검증된 영수증의 의도 ID로 이 기록을 찾는다.
 const appPurchaseIntentSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   featureKey: { type: String, required: true, trim: true, maxlength: 120 },
@@ -20,6 +20,11 @@ const appPurchaseIntentSchema = new mongoose.Schema({
   passTier: { type: String, default: "", trim: true, maxlength: 40 },
   requestId: { type: String, default: "", trim: true, maxlength: 120 },
   profileId: { type: String, default: "", trim: true, maxlength: 120 },
+  // 출생 기반 영구 해금 키의 신원 스냅샷. 서버가 의도 시점에 이 계정의 저장 프로필에서 계산한다 —
+  // 결제 도중 프로필 생년월일을 고쳐도 지급 대상(BIRTH 행)이 움직이지 않게 한다.
+  partnerProfileId: { type: String, default: "", trim: true, maxlength: 120 },
+  birthKey: { type: String, default: "", trim: true, maxlength: 64 },
+  partnerBirthKey: { type: String, default: "", trim: true, maxlength: 64 },
   reportId: { type: String, default: "", trim: true, maxlength: 120 },
   sessionId: { type: String, default: "", trim: true, maxlength: 120 },
   // OPEN: 아직 대응되는 구매가 검증되지 않음 / SETTLED: verify 완료
@@ -30,7 +35,7 @@ const appPurchaseIntentSchema = new mongoose.Schema({
 }, { timestamps: true, collection: "app_purchase_intents" });
 
 appPurchaseIntentSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-// 고아 구매 복구 시 "이 유저가 이 상품으로 열어둔 가장 최근 의도"를 찾는 조회 경로.
+// 사용자별 미완료 의도 조회용 기존 인덱스. 지급 대상은 검증된 영수증의 의도 ID로 결정한다.
 appPurchaseIntentSchema.index({ userId: 1, productId: 1, status: 1, createdAt: -1 });
 
 // NOTE: db.js는 autoIndex:false로 연결하므로 이 선언만으로는 실제 인덱스가 생성되지 않는다 —
@@ -38,4 +43,6 @@ appPurchaseIntentSchema.index({ userId: 1, productId: 1, status: 1, createdAt: -
 export const AppPurchaseIntent = scopedModel(mongoose.models.AppPurchaseIntent
   || mongoose.model("AppPurchaseIntent", appPurchaseIntentSchema));
 
-export const APP_PURCHASE_INTENT_TTL_MS = 24 * 60 * 60 * 1000;
+// 편의점 입금·앱 미실행·네트워크 단절 뒤에도 원래 상담을 찾을 수 있는 복구 기간.
+// 완료 결과/구매 원장에는 적용하지 않는 임시 의도 기록의 보존 기간이다.
+export const APP_PURCHASE_INTENT_TTL_MS = 30 * 24 * 60 * 60 * 1000;

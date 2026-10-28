@@ -13,6 +13,7 @@
  * 그중 3개가 순수 중복이었다. LLM 을 전혀 쓰지 않는 결정적 경로라 왕복 사이에 지연이 끼지도 않는다.
  */
 
+import { withSettle } from "../fixtures/per-use-settle-mock.mjs";
 import { jest } from "@jest/globals";
 
 import { drawPremiumYearCards } from "../../lib/tarot/tarot-year-premium.mjs";
@@ -58,7 +59,7 @@ beforeAll(async () => {
       canAccessPaidFeature,
       PAID_FEATURE_ACCESS_USER_PROJECTION: {},
     })),
-    jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({
+    jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => withSettle({
       verifyPerUsePayment: jest.fn(async () => ({ proven: true, source: "test" })),
       logPerUsePaymentProof: jest.fn(),
     })),

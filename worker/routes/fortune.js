@@ -1,3 +1,6 @@
+import { appendBasicFortunePersona } from '../lib/expert-character-personas.js';
+import { getAmbientAiLocale } from '../lib/ai-locale-context.js';
+import { toAiLocale } from '../../lib/i18n/ai-locale.js';
 import {validateSajuNatalPayload} from "../lib/saju-correction.js";
 import { deliverFeatureQuestion, readFeatureQuestionRequest } from '../lib/feature-question-delivery.js';
 import { deliverGuardianPaid } from '../lib/guardian-paid-delivery.js';
@@ -54,7 +57,9 @@ import {
   COIN_GATE_PER_USE_REASON_COSTS,
   FEATURE_KEY_PRICE_TABLE,
   PIG_COIN_UNLOCK_PRODUCTS,
+  UNLOCK_PAID_FEATURE_KEYS,
   UNLOCK_PRODUCT_BY_FEATURE_KEY,
+  isBirthScopedUnlockFeatureKey,
   listServerPricedFeatureKeys,
   normalizePaidFeatureKey,
   resolveFeatureReasonCost,
@@ -83,6 +88,8 @@ import {
   getSajuAICategoryRubric,
   validateSajuMyeongsikTenGodText,
 } from "../lib/saju-ai-prompt.js";
+import { correctGyeokgukText, gyeokgukClaimFact } from "../../lib/saju/gyeokguk-claim-guard.mjs";
+import { NATAL_CORE_VERSION } from "../../lib/saju/natal-core/version.mjs";
 import {
   buildAstrologyAIPrompt,
   buildAstrologyAIPromptWithDomain,
@@ -121,6 +128,8 @@ import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPa
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import { claimRequestBillingEvidence, evidenceClaimErrorBody } from "../lib/billing-evidence-claim.js";
+import { assertDeductionRefundable } from "../lib/coin-refund-eligibility.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
@@ -218,14 +227,24 @@ const SAJU_AI_RESULT_FORBIDDEN_PATTERNS = [
 ];
 // Conditional traditional readings are allowed; these outcome rules reject guarantees, not a ten-god mention.
 // Keep outcome matches inside one sentence so a later action or chapter cannot turn a sound reading into a rejection.
+// B4 2026-10-11: element rules read one sentence, in either order, and include pay and promotion;
+// a word ending in an element syllable ("변화 기운") and "장기 계획" are not element or organ claims.
+const SAJU_AI_ELEMENT = String.raw`(?<![가-힣])(?:[목화토금수]\s*(?:\([木火土金水]\)\s*)?(?:오행|기운)|[목화토금수]\s*\([木火土金水]\)|[木火土金水]\s*(?:오행|기운))`;
+const SAJU_AI_ELEMENT_STATE = String.raw`(?:없\S*|부재|부족|약하\S*|약해\S*|강하\S*|강해\S*|과도\S*|과다|드러나\s*있지\s*않\S*)`;
+const SAJU_AI_SENTENCE = String.raw`[^\n.!?]`;
+const SAJU_AI_ELEMENT_MONEY = String.raw`(?:충동|규율|통제(?:력)?|재물\s*관리|재정|투자\s*성향|소유욕|사업\s*적합|수익|수입|소득|연봉|급여|승진)`;
+const SAJU_AI_ELEMENT_ORGAN = String.raw`(?:폐|대장|피부|뼈|관절|심장|소장|혈액\s*순환|신장|방광|생식기|호흡기|소화기|질환|장기(?!\s*(?:적|계획|전략|목표|투자|관점|프로젝트))|기능(?:이|의)?\s*(?:약|저하)|취약)`;
+const sajuAIElementCausality = (outcome) => new RegExp(
+  `${SAJU_AI_ELEMENT}${SAJU_AI_SENTENCE}{0,160}${SAJU_AI_ELEMENT_STATE}${SAJU_AI_SENTENCE}{0,200}${outcome}`
+  + `|${outcome}${SAJU_AI_SENTENCE}{0,160}${SAJU_AI_ELEMENT}${SAJU_AI_SENTENCE}{0,40}${SAJU_AI_ELEMENT_STATE}`, "u");
 const SAJU_AI_RESULT_UNSUPPORTED_PATTERNS = Object.freeze([
   Object.freeze({
     key: "element-causality",
-    pattern: /(?:화|목|수|금|토)(?:\([^)]*\))?\s*(?:오행|기운).{0,200}(?:없\w*|부재|부족|약하\w*|강하\w*|과도\w*|드러나\s*있지\s*않\w*).{0,320}(?:충동|규율|통제(?:력)?|재물\s*관리|투자\s*성향|소유욕|사업\s*적합|수익\s*창출)/s,
+    pattern: sajuAIElementCausality(SAJU_AI_ELEMENT_MONEY),
   }),
   Object.freeze({
     key: "element-health-causality",
-    pattern: /(?:화|목|수|금|토)(?:\([^)]*\))?\s*(?:오행|기운).{0,200}(?:없\w*|부재|부족|약하\w*|강하\w*|과도\w*|드러나\s*있지\s*않\w*).{0,320}(?:폐|대장|피부|뼈|관절|심장|소장|혈액\s*순환|신장|방광|생식기|질환|장기|기능(?:이|의)?\s*(?:약|저하)|취약)/s,
+    pattern: sajuAIElementCausality(SAJU_AI_ELEMENT_ORGAN),
   }),
   Object.freeze({
     key: "specific-financial-product",
@@ -256,6 +275,37 @@ const SAJU_AI_RESULT_UNSUPPORTED_PATTERNS = Object.freeze([
 function findSajuAIUnsupportedAdvice(text) {
   const normalized = normalizeSajuAIResultText(text);
   return SAJU_AI_RESULT_UNSUPPORTED_PATTERNS.find(({ pattern }) => pattern.test(normalized)) || null;
+}
+
+// A paid draft that fails only on one claim keeps the rest: drop each sentence that matches by itself.
+// Claims spread over several sentences stay, so the section validator still rejects them.
+function dropSajuAIUnsupportedSentences(text) {
+  let summary = false;
+  return normalizeSajuAIResultText(text).split("\n").map((line) => {
+    if (line.includes(SAJU_AI_PERSONA_SUMMARY_START)) summary = true;
+    const keep = summary || /^\s*(?:#{1,6}\s*)?(?:\*\*)?\d+[.)]\s/.test(line);
+    if (line.includes(SAJU_AI_PERSONA_SUMMARY_END)) summary = false;
+    if (keep) return line;
+    const sentences = line.match(/[^.!?]+(?:[.!?]+["'”’)\]]*|$)\s*/g) || [line];
+    const kept = sentences.filter((sentence) => !SAJU_AI_RESULT_UNSUPPORTED_PATTERNS.some(({ pattern }) => pattern.test(sentence)));
+    if (kept.length === sentences.length) return line;
+    const rest = kept.join("").trimEnd();
+    return /^[\s\-*>]*$/.test(rest) ? null : rest;
+  }).filter((line) => line !== null).join("\n");
+}
+
+function buildSajuAIUnsupportedRepairLines(key) {
+  return [
+    `현재 이 부분에 ${key} 유형의 근거 밖 인과·조언이 포함되어 품질 기준을 통과하지 못했습니다.`,
+    "해당 연결을 삭제하고, 명식은 해석 가설로만 다루며 실제 기록으로 확인할 조건과 되돌릴 수 있는 행동으로 처음부터 다시 쓰세요.",
+  ];
+}
+
+// The paid path makes one call per request, so the reason a draft was rejected travels in the checkpoint.
+function buildSajuAISectionRetryLines(lastFailure) {
+  if (!lastFailure) return [];
+  if (lastFailure !== "rejected") return buildSajuAIUnsupportedRepairLines(lastFailure);
+  return ["직전 초안은 챕터 구조나 명식 근거 검증을 통과하지 못했습니다. 챕터 제목은 지정된 번호와 제목 그대로 한 번씩만 쓰고, 그 밖의 소제목에는 번호를 붙이지 말고 굵은 글씨만 쓰세요."];
 }
 const SAJU_AI_PROGRESS_STEPS = Object.freeze([
   { progress: 0, key: "payment", message: "결제/이용권 확인 중" },
@@ -349,7 +399,7 @@ function buildSajuAISectionPromptPrefix(builtPrompt) {
     "분량을 채우려고 같은 문장을 반복하거나 말을 늘리지 말고, 아직 짚지 않은 근거와 현실의 장면, 판단 기준을 새로 더해 채우세요.",
     "사용자에게 '프롬프트', '기능', '분석 결과는', '내부 지시문' 같은 말은 쓰지 마세요.",
     Number(builtPrompt?.calibrationApplied) > 0
-      ? "사용자가 보고한 시기 캘리브레이션 검증 결과는 별도 목차를 만들지 말고 맡은 챕터 산문에 자연스럽게 녹이세요."
+      ? "사용자가 적은 과거 경험과 그 대조 결과는 별도 목차를 만들지 말고 맡은 챕터 산문에 자연스럽게 녹이세요. 맞은 경험과 어긋난 경험을 모두 그대로 다루세요."
       : "",
     formatSajuAIResultRubric(categoryRubric),
     factCard && !internalPrompt.includes(factCard) ? "내부 명식 사실 카드:" : "",
@@ -610,7 +660,7 @@ function isSajuAISectionRowShort(row) {
  *
  * 제공자 오류는 그룹 결과로 반환한다. 체크포인트 저장 오류는 호출부로 전달해 환불과 분리한다.
  */
-async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false, allowRepair = true } = {}) {
+async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, locale, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false, allowRepair = true, initialRepairLines = [] } = {}) {
   // 그룹 5개가 문자까지 같은 접두사를 각자 정가로 싣던 것을, Gemini 쪽에 한 벌만 올려 두고
   // 참조한다(명시적 컨텍스트 캐싱). null 이면 아무 일도 일어나지 않고 지금까지처럼 전체
   // 프롬프트가 나간다 — 웨이브1 직전에 채워지고, 웨이브가 끝나면 finally 에서 지운다.
@@ -619,6 +669,7 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
   const runSectionGroup = async (group, { repairLines = [], attempt = 0, timeoutMs, maxOutputTokens }) => {
     try {
       const ai = await callGeminiText(env, buildSajuAISectionPrompt(builtPrompt, group, { repairLines }), {
+        locale,
         systemPrompt,
         taskType: "fortune",
         temperature: attempt > 0 ? 0.5 : 0.56,
@@ -635,7 +686,10 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         //    웨이브2의 보강 요청은 접미사에 들어가므로 같은 핸들이 그대로 유효하다.
         geminiCachedContent: contextCache || undefined,
       });
-      return { group, ok: isCompleteLlmResponse(ai), text: normalizeSajuAIResultText(ai?.text), ai };
+      // 엔진 격국과 다른 격국 단정은 재생성하지 않고 고정 문장으로 바꾸거나 지운다(lib/saju/gyeokguk-claim-guard.mjs).
+      const guarded = correctGyeokgukText(normalizeSajuAIResultText(ai?.text), gyeokgukClaimFact(builtPrompt.factSnapshot?.majorStructures?.gyeokguk));
+      if (guarded.replaced || guarded.dropped) console.info("[SajuMyeongsikAI] gyeokguk correction", JSON.stringify({ requestId, group: group.key, replaced: guarded.replaced, dropped: guarded.dropped }));
+      return { group, ok: isCompleteLlmResponse(ai), text: guarded.text, ai };
     } catch (groupError) {
       console.warn("[SajuMyeongsikAI] section group threw", {
         requestId,
@@ -668,6 +722,7 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         systemPrompt,
       });
       sectionResults = await Promise.all(groups.map((group) => runSectionGroup(group, {
+        repairLines: initialRepairLines,
         attempt: 0,
         timeoutMs: wave1TimeoutMs,
         maxOutputTokens: SAJU_AI_SECTION_MAX_OUTPUT_TOKENS,
@@ -691,10 +746,7 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
           // 🔴 보강 지시는 형용사가 아니라 숫자로 준다. "더 길게"로는 분량이 늘지 않는다.
           const repairLines = row.ok && currentChars > 0
             ? [
-              ...(unsupported ? [
-                `현재 이 부분에 ${unsupported.key} 유형의 근거 밖 인과·조언이 포함되어 품질 기준을 통과하지 못했습니다.`,
-                "해당 연결을 삭제하고, 명식은 해석 가설로만 다루며 실제 기록으로 확인할 조건과 되돌릴 수 있는 행동으로 처음부터 다시 쓰세요.",
-              ] : []),
+              ...(unsupported ? buildSajuAIUnsupportedRepairLines(unsupported.key) : []),
               ...(currentChars < row.group.minChars ? [
               `현재 이 부분은 공백 제외 ${currentChars.toLocaleString("ko-KR")}자로 목표에 못 미칩니다.`,
               `${row.group.minChars.toLocaleString("ko-KR")}자 이상이 되도록 아직 쓰지 않은 근거와 장면, 판단 기준을 새로 더해 처음부터 다시 쓰세요.`,
@@ -1182,7 +1234,7 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
           ...(existingExecution?.result || {}),
           leaseToken,
           payloadHash,
-          resumeBody: Object.fromEntries(["question", "sajuResult", "domain", "calibration", "profileId", "selectedProfileId", "requestId", "idempotencyKey", "transactionId", "ledgerId", "purchaseId", "paymentId", "accessType", "accessMethod", "paymentMode", "accessGrant", "accessDecision", "freeBySubscription", "consume", "payment", "_paymentContext"].filter((key) => body[key] !== undefined).map((key) => [key, body[key]])),
+          resumeBody: Object.fromEntries(["locale", "question", "sajuResult", "domain", "calibration", "profileId", "selectedProfileId", "requestId", "idempotencyKey", "transactionId", "ledgerId", "purchaseId", "paymentId", "accessType", "accessMethod", "paymentMode", "accessGrant", "accessDecision", "freeBySubscription", "consume", "payment", "_paymentContext"].filter((key) => body[key] !== undefined).map((key) => [key, body[key]])),
           progress: buildSajuAIProgress(10, "generating", "명식의 흐름을 읽고 있어요"),
           order: { paymentStatus: "PAID", accessMethod },
         },
@@ -1308,8 +1360,11 @@ async function saveSajuAISectionCheckpoint({ executionId, leaseToken, sections, 
 
 function validateSajuAISection(text, group, factSnapshot, { lengthRepair = false } = {}) {
   const normalized = extractSajuAIPersonaSummaries(text).resultText;
-  const chapters = [...normalized.matchAll(/^\s*(?:#{1,6}\s*)?(?:\*\*)?(\d+)[.)]\s*([^\n]+)\n/gm)];
-  const matching = chapters.filter((match) => group.chapters.some((chapter) => chapter.no === Number(match[1]) && match[2].replace(/\*/g, "").trim() === chapter.title));
+  const isChapter = (match, list) => list.some((chapter) => chapter.no === Number(match[1]) && match[2].replace(/\*/g, "").trim() === chapter.title);
+  // Only canonical headings count, as in the client renderer; "**1) 일(직업) 리듬**" is a sub-heading (B4 004).
+  const chapters = [...normalized.matchAll(/^\s*(?:#{1,6}\s*)?(?:\*\*)?(\d+)[.)]\s*([^\n]+)\n/gm)]
+    .filter((match) => isChapter(match, SAJU_AI_SECTION_GROUPS.flatMap((item) => item.chapters)));
+  const matching = chapters.filter((match) => isChapter(match, group.chapters));
   if (matching.length !== group.chapters.length || chapters.length !== matching.length) return false;
   for (let index = 0; index < matching.length; index += 1) {
     if (Number(matching[index][1]) !== group.chapters[index].no) return false;
@@ -1866,7 +1921,14 @@ async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, 
     $or: clauses,
   };
   const minCost = Math.floor(Number(cost || 0));
-  if (minCost > 0 && !isAIPromptPassAccessPayload(body)) query.delta = { $lte: -minCost };
+  // 🔴 본문이 이용권이라고 주장해도 하한을 빼지 않는다 — 조작 본문 하나로 0원 행(다른 무료 차감)이
+  //    결제 증거가 됐다. delta 0 이용권 차감행은 서버가 쓴 accessMethod·coinCost 로만 인정한다.
+  if (minCost > 0) {
+    query.$and = [{ $or: [
+      { delta: { $lte: -minCost } },
+      { delta: 0, "metadata.accessMethod": { $in: ["PASS", "FAMILY"] }, "metadata.coinCost": { $gte: minCost } },
+    ] }];
+  }
 
   const deducted = await PointHistory.findOne(query)
     .select("_id delta balanceAfter featureKey reason metadata")
@@ -1912,9 +1974,8 @@ async function findAIPromptMonthlyCreditEvidence({ env, auth, featureKey, body, 
   // 🔴 단위 주의: 원장의 amount 는 월정석, 인자 cost 는 코인이다. 하한은 반드시 정본 변환기를 거친다
   // (하드코딩 환산은 틀리는 순간 정상 결제가 402 로 떨어진다). billing 이 원장에 쓰는 amount 도
   // 같은 calculateMembershipCreditCost 결과라 이 하한은 근사치가 아니라 정확히 일치한다.
-  const minCredit = isAIPromptPassAccessPayload(body)
-    ? 0
-    : Math.floor(Number(calculateMembershipCreditCost(cost) || 0));
+  // 본문의 이용권 주장은 월정석 하한을 낮추지 않는다(위조 가능).
+  const minCredit = Math.floor(Number(calculateMembershipCreditCost(cost) || 0));
   if (minCredit > 0 ? !(evidence.amount >= minCredit) : !(evidence.amount > 0)) return null;
 
   // 호출부(buildAIPromptVerifiedConsumePayload)가 읽는 record 모양으로 맞춘다.
@@ -2099,8 +2160,8 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
           requestId,
           coinCost: cost,
         });
-        const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
-        if (denial) return { source: "pass_denied", reason: denial, record: null };
+        // 🔴 차감이 안 됐으면 코드가 비어 있어도 열지 않는다 — 빈 코드를 통과로 보면 차감 없이 열렸다.
+        if (!consumed.covered) return { source: "pass_denied", reason: passDenialCode(consumed.reason) || "PAYMENT_REQUIRED", record: null };
         passRefund = consumed.covered && !consumed.replayed && consumed.coverage?.budgetApplies && cost > 0
           ? { cycleKey: consumed.coverage.cycleKey, cost }
           : null;
@@ -2180,7 +2241,8 @@ function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, request
   const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : 0;
   const monthlyCreditsRaw = Number(ctx.consume.remainingMembershipCredit ?? ctx.consume.monthlyStoneBalance ?? metadata.remainingMembershipCredit ?? metadata.monthlyStoneBalance ?? record.afterBalance ?? subscriptionUser?.profileSubscription?.membershipCreditBalance);
   const monthlyCredits = Number.isFinite(monthlyCreditsRaw) ? Math.max(0, Math.floor(monthlyCreditsRaw)) : 0;
-  const unlockedFeatures = normalizePersistentUnlockKeys(subscriptionUser?.unlockedFeatures);
+  // 계정 배열은 출생 기반 키의 근거가 아니다 — 응답에 실어 클라이언트가 잠금을 풀지 않게 거른다.
+  const unlockedFeatures = withoutBirthScopedPersistentKeys(normalizePersistentUnlockKeys(subscriptionUser?.unlockedFeatures));
 
   return {
     message: "Paid access already verified.",
@@ -2544,6 +2606,10 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "premium_fpti_report",
   "generateFptiDeepReport",
   "openFptiDeepReport",
+  // 🔴 레지스트리의 해금 키는 전부 영구다(2026-10-11). 위 손 목록만 두면 새 해금 키가 빠진다 —
+  //    sukuyo-extreme-t-relationship 이 빠져 /balance 의 unlockMap 에서 극T 해금이 사라졌다.
+  //    위 목록은 레지스트리에 없는 별칭·과거 묶음 키(과거 결제 조회용)를 위해 남긴다.
+  ...UNLOCK_PAID_FEATURE_KEYS,
 ]);
 
 function isPersistentUnlockFeatureKey(rawKey) {
@@ -2625,6 +2691,10 @@ function isRepairableConsumeArrayShapeError(error) {
   return /recentConsumeRequestIds|unlockedFeatures/i.test(message);
 }
 
+function withoutBirthScopedPersistentKeys(keys) {
+  return keys.filter((key) => !isBirthScopedUnlockFeatureKey(key));
+}
+
 async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId = "", env = {}) {
   const scopedProfileId = sanitizeProfileBindingId(profileId);
   if (userId && scopedProfileId) {
@@ -2645,10 +2715,15 @@ async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId 
       getUnlockedContentSnapshot({ userId, profileId: scopedProfileId }),
     ]));
     const entitlementKeys = (snapshot.featureKeys || []).filter((key) => isPersistentUnlockFeatureKey(key));
-    return normalizePersistentUnlockKeys([...scopedKeys, ...entitlementKeys]);
+    // 출생 기반 키의 차감 기록은 profileId 에 묶여 생년월일 수정 뒤에도 남는다 — BIRTH 스냅샷으로만 연다.
+    const historyKeys = withoutBirthScopedPersistentKeys(normalizePersistentUnlockKeys(scopedKeys));
+    return normalizePersistentUnlockKeys([...historyKeys, ...entitlementKeys]);
   }
 
-  const fromUser = normalizePersistentUnlockKeys(currentUnlocks);
+  /* 🔴 프로필이 없으면 출생 기반 키는 잠금이다. 아래 근거(계정 배열·계정 전체 PointHistory)는 어느
+     생년월일로 샀는지 모르므로, 계정 기반 키만 내보낸다(별칭 전개 뒤에 거른다 — 계정 키의 별칭이
+     출생 기반 키일 수 있다). 출생 기반 키는 위 profileId 분기의 BIRTH 스냅샷으로만 열린다. */
+  const fromUser = withoutBirthScopedPersistentKeys(normalizePersistentUnlockKeys(currentUnlocks));
   if (fromUser.length || !userId) return fromUser;
 
   const historyKeys = await withMongoRetry(env, () => PointHistory.distinct("featureKey", {
@@ -2656,7 +2731,7 @@ async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId 
     kind: "deduct",
     featureKey: { $in: Array.from(PERSISTENT_UNLOCK_KEY_SET) },
   }));
-  const inferred = normalizePersistentUnlockKeys(historyKeys);
+  const inferred = withoutBirthScopedPersistentKeys(normalizePersistentUnlockKeys(historyKeys));
   if (inferred.length) {
     await User.updateOne(
       { _id: userId },
@@ -2968,6 +3043,15 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       consume: true,
     });
     if (verifiedAccess && verifiedAccess.source !== "pass_denied") {
+      // 결제 증빙 1건 = 상담 1건. 이용권은 위에서 이번 requestId 로 차감했으므로 claim 할 ID 가 없다.
+      // 생성이 실패하면 라우트가 코인·카드를 자동 환불하고, 환불된 증빙은 위 조회에서 빠진다.
+      const record = verifiedAccess.record || {};
+      const evidenceIds = verifiedAccess.source === "pass_payload" ? [] : [
+        String(record._id || ""),
+        String(record.metadata?.requestId || record.requestId || record.idempotencyKey || record.sourceId || "").slice(0, 180),
+      ];
+      const evidenceClaim = await claimRequestBillingEvidence(env, { userId: String(auth.userId || ""), requestId, evidenceIds, featureKey });
+      if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
       return json(buildAIPromptVerifiedConsumePayload({
         auth,
         featureKey,
@@ -2982,7 +3066,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
     // 이용권 한도 초과는 "결제 확인 실패"와 다른 상태다 — 코드를 구분하지 않으면 클라이언트가
     // 한도 초과 사용자를 이용권 상점으로 튕긴다(pass-verdict.isMonthlyLimitPayload).
-    const passDenied = verifiedAccess?.source === "pass_denied";
+    const passDenied = verifiedAccess?.source === "pass_denied" && verifiedAccess.reason !== "PAYMENT_REQUIRED";
     const krwEquivalent = cost * 100;
     return json({
       ok: false,
@@ -3016,8 +3100,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       requestId,
       coinCost: cost,
     });
-    const passDenial = passConsumed.covered ? "" : passDenialCode(passConsumed.reason);
-    if (passDenial) {
+    const passDenial = passConsumed.covered ? "" : (passDenialCode(passConsumed.reason) || "PAYMENT_REQUIRED");
+    if (!passConsumed.covered) {
       return json({
         ok: false,
         message: "이용권 사용 한도를 모두 사용했어요. 단건 결제 또는 이용권 재구매 후 이용할 수 있습니다.",
@@ -3034,7 +3118,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
         },
       }, { status: 402 });
     }
-    const unlockedFeatures = normalizePersistentUnlockKeys(subscriptionUser.unlockedFeatures);
+    const unlockedFeatures = withoutBirthScopedPersistentKeys(normalizePersistentUnlockKeys(subscriptionUser.unlockedFeatures));
     const premiumAccessToken = await createPremiumAccessToken(env, {
       userId: String(auth.userId || ""),
       reportType: reportTypeForPremiumAccess,
@@ -3177,7 +3261,8 @@ function buildPigCoinRefundDeductQueries({ userId, cost, featureKey, sourceTrans
   };
 }
 
-async function handlePigCoinRefund(request, auth) {
+// options.failedRequestId 는 서버 라우트만 넘긴다(자기 실패 요청이 잡은 증빙 claim 만 제외). 본문 값으로 받지 않는다.
+async function handlePigCoinRefund(request, auth, options = {}) {
   const body = await readJson(request);
   const requestedCost = Number(body?.cost);
   const cost = Number.isFinite(requestedCost) && requestedCost > 0
@@ -3279,42 +3364,37 @@ async function handlePigCoinRefund(request, auth) {
     });
   }
 
-  // 🔴 환불 금액의 정본은 클라이언트가 보낸 cost 가 아니라 실제 차감 행의 delta 다.
-  // 1차 조회는 delta:-cost 로 묶여 있어 두 값이 같지만, 위 폴백은 금액 조건을 일부러 풀어 두므로
-  // 거기서 cost 를 그대로 믿으면 소액 차감 1건으로 상한(PIG_COIN_MAX_COST)까지 발행할 수 있다.
-  const refundAmount = Math.max(0, Math.floor(Math.abs(Number(deducted.delta || 0))));
-
-  const updatedUser = await User.findByIdAndUpdate(
-    auth.userId,
-    { $inc: { points: refundAmount } },
-    { returnDocument: "after", projection: { points: 1 } },
-  ).lean();
-
-  if (!updatedUser) {
-    return json({ message: "User not found." }, { status: 404 });
+  // 🔴 전달·해금이 끝난 결제는 자동 환불하지 않는다 — 결과를 받은 뒤 환불을 불러 코인만 돌려받는 구멍
+  //    (coin-refund-eligibility.js). 해금은 해지하지 않고 거절한다. 확인 실패는 503(코인 미지급).
+  const eligibility = await assertDeductionRefundable(options.env || {}, {
+    userId: auth.userId,
+    deduction: deducted,
+    failedRequestId: options.failedRequestId,
+    isPermanentUnlockKey: (key) => isPersistentUnlockFeatureKey(key) && !isBirthScopedUnlockFeatureKey(key),
+  });
+  if (!eligibility.ok) {
+    const { status, ...payload } = eligibility;
+    return json(payload, { status });
   }
 
-  const refundHistory = await PointHistory.create({
-    userId: auth.userId,
-    kind: "refund",
-    delta: refundAmount,
-    balanceAfter: Number(updatedUser.points || 0),
-    reason,
-    featureKey,
-    metadata: {
-      source: "fortune.pig-coin.refund",
-      requestId,
-      refundForPointHistoryId: String(deducted._id),
-      sourceTransactionId: String(deducted._id),
-    },
-  });
+  // All callers claiming the same source must use the same transactional marker.
+  const settle = options.settleCoinRefund || (await import("../lib/service-execution-task.js")).runCoinRefund;
+  const refund = await settle({ env: options.env, userId: auth.userId, featureKey,
+    sourceTransactionId: String(deducted._id), requestId, failedRequestId: String(options.failedRequestId || ""), reason, receiptSource: "fortune.pig-coin.refund" });
+  if (!refund.refunded) return json({ message: "Refund evidence needs review.", code: "NO_REFUNDABLE_DEDUCTION" }, { status: 409 });
+  const updatedUser = await User.findById(auth.userId).select("points").lean();
+  if (!updatedUser) throw new Error("REFUND_BALANCE_UNAVAILABLE");
+  if (refund.idempotent) return json({ message: "Refund already processed.", code: "REFUND_ALREADY_PROCESSED",
+    alreadyRefunded: true, sourceTransactionId: String(deducted._id), refundTransactionId: refund.refundTxId,
+    user: userPayload(auth, Number(updatedUser?.points || 0)) });
+  const refundAmount = refund.amount;
 
   return json({
     message: `${refundAmount.toLocaleString("ko-KR")} coins refunded.`,
     refundedCoins: refundAmount,
     sourceTransactionId: String(deducted._id),
-    refundTransactionId: String(refundHistory?._id || ""),
-    user: userPayload(auth, updatedUser.points),
+    refundTransactionId: String(refund.refundTxId || ""),
+    user: userPayload(auth, Number(updatedUser?.points || 0)),
   });
 }
 
@@ -3909,7 +3989,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
             reason: "Prashna prompt generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         refundOk = refundResponse.ok;
       } catch (refundError) {
         console.error("[fortune][vedic-prashna] refund failed:", refundError);
@@ -4443,7 +4523,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
             reason: "Astrology AI consultation generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][astrology-ai-prompt] refund failed:", refundError);
@@ -4581,7 +4661,8 @@ async function handleVedicAIPrompt(request, auth, env) {
     return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
       verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund, balanceAfter }),
-      prepare: async () => ({ built: builtPrompt, factsInput: { vedicResult, compatibilityResult } }),
+      // House rulers first: they must survive the 100-fact cap that a full chart reaches (B7).
+      prepare: async () => ({ built: builtPrompt, factsInput: { houseRulers: builtPrompt.houseRulers, vedicResult, compatibilityResult } }),
       refund: async proof => {
         ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund } = proof);
         return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
@@ -4607,7 +4688,7 @@ async function handleVedicAIPrompt(request, auth, env) {
             reason: "Vedic AI consultation generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][vedic-ai-prompt] refund failed:", refundError);
@@ -4666,6 +4747,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
   // LLM 예산의 기산점. 인증·결제·명식 검증에 쓴 시간만큼 생성 시간이 줄어든다.
   const startedAt = Date.now();
   let body = await readJson(request);
+  body = { ...body, locale: toAiLocale(getAmbientAiLocale() || body?.locale) };
   if (body?.resumeJobId) {
     const original = await findSajuAIExecutionForRead({ auth, jobId: String(body.resumeJobId) });
     if (!original) return buildSajuAIPromptError("JOB_NOT_FOUND", "상담 생성 상태를 찾을 수 없습니다.", 404);
@@ -4894,7 +4976,8 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+    // 원국 판정 규칙이 바뀌면 같은 생년월일이라도 이전 판정으로 쓴 응답을 다시 쓰지 않는다.
+    keyExtra: `${builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION}|${NATAL_CORE_VERSION}`,
     skipRead: skipCacheRead || undefined,
   };
 
@@ -4919,6 +5002,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       const group = SAJU_AI_SECTION_GROUPS.find((item) => item.key === next.key);
       await runSajuAISectionWaves(env, {
         builtPrompt,
+        locale: toAiLocale(body.locale),
         systemPrompt: await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT),
         cache: { ...sajuLlmCache, skipRead: next.attempts > 1 || sajuLlmCache.skipRead },
         deadlineAt: sajuDeadlineAt,
@@ -4927,12 +5011,18 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
         groups: [group],
         lengthRepair: true,
         allowRepair: false,
+        initialRepairLines: buildSajuAISectionRetryLines(next.lastFailure),
         onRepair: async () => {
           next.lengthRepair = true;
           next.valid = !next.qualityRepair && validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: true });
           await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections });
         },
-        onSection: async (row) => {
+        onSection: async (generated) => {
+          let row = generated;
+          if (row.ok && !validateSajuAISection(row.text, group, builtPrompt.factSnapshot, { lengthRepair: true }) && findSajuAIUnsupportedAdvice(row.text)) {
+            const salvaged = dropSajuAIUnsupportedSentences(row.text);
+            if (validateSajuAISection(salvaged, group, builtPrompt.factSnapshot, { lengthRepair: true })) row = { ...row, text: salvaged };
+          }
           const candidateText = extractSajuAIPersonaSummaries(
             sections.map(section => section.key === next.key ? row.text : section.text).join("\n\n"),
           ).resultText;
@@ -4947,6 +5037,8 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
             next.model = row.ai?.model; next.provider = row.ai?.provider;
             next.qualityRepair = false;
           }
+          if (usable) delete next.lastFailure;
+          else if (row.ok) next.lastFailure = findSajuAIUnsupportedAdvice(row.text)?.key || "rejected";
           next.valid = !next.qualityRepair && validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: true });
           await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections });
           return row;
@@ -5092,7 +5184,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
             reason: "Saju AI prompt generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         pointRefund.refundOk = refundResponse.ok;
       } catch (refundError) {
         console.error("[fortune][saju-ai-prompt] point refund failed:", refundError);
@@ -5358,6 +5450,7 @@ async function runFeatureAiConsultation(env, {
   // 요청 시작 기준 예산. 호출부가 인증·결제에 쓴 시간만큼 생성 시간이 줄어든다.
   deadlineAt = Date.now() + FEATURE_AI_LLM_BUDGET_MS,
 } = {}) {
+  const resolvedSystemPrompt = await appendBasicFortunePersona(env, SUKUYO_AI_PROMPT_FEATURE_KEY, await cmsPromptText(env, "feature-ai-result", systemPrompt));
   let finalAi = null;
   let finalText = "";
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -5374,7 +5467,7 @@ async function runFeatureAiConsultation(env, {
       repairReason: attempt > 0 ? "이전 응답이 중간에 끊겼거나 비었습니다. 처음부터 끝까지 완결해 주세요." : "",
     });
     const ai = await callGeminiText(env, prompt, {
-      systemPrompt: await cmsPromptText(env, "feature-ai-result", systemPrompt),
+      systemPrompt: resolvedSystemPrompt,
       taskType: "fortune",
       temperature: attempt > 0 ? 0.5 : 0.56,
       // 단일 질문 상담(약 9개 섹션) 기준 상한 — 잘리면 아래 이어쓰기 repair 가 덧붙인다.
@@ -5399,7 +5492,7 @@ async function runFeatureAiConsultation(env, {
       const repairTimeoutMs = featureAiCallTimeoutMs(deadlineAt, FEATURE_AI_REPAIR_TIMEOUT_MS, 0);
       if (repairTimeoutMs > 0) {
         const repairAi = await callGeminiText(env, buildFeatureAiCompletionRepairPrompt(text), {
-          systemPrompt,
+          systemPrompt: resolvedSystemPrompt,
           taskType: "fortune",
           temperature: 0.42,
           maxOutputTokens: ai.truncated ? 6000 : 4000,
@@ -5591,7 +5684,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
             reason: "Ziwei AI consultation generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][ziwei-ai-prompt] refund failed:", refundError);
@@ -5819,7 +5912,8 @@ async function handleSukuyoAIPrompt(request, auth, env) {
     return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
       verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund, balanceAfter }),
-      prepare: async () => ({ built: builtPrompt, factsInput: { basicResult, compatibilityResult } }),
+      // daily is today's date-seeded signal, not a natal fact; B5 cited it as career evidence.
+      prepare: async () => ({ built: builtPrompt, factsInput: { basicResult: { ...basicResult, daily: undefined }, compatibilityResult } }),
       refund: async proof => {
         ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund } = proof);
         return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
@@ -5845,7 +5939,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
             reason: "Sukuyo AI consultation generation failed auto-refund",
           }),
         });
-        const refundResponse = await handlePigCoinRefund(refundRequest, auth);
+        const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
         refundOk = Boolean(refundResponse?.ok);
       } catch (refundError) {
         console.error("[fortune][sukuyo-ai-prompt] refund failed:", refundError);
@@ -6059,6 +6153,8 @@ async function handleSubscriptionStatus(request, env, auth) {
   const monthlyQuota = isActive ? resolveMonthlySpendQuota(sub, canonicalEntitlement, 0) : null;
   const monthlyPassLimit = monthlyQuota && monthlyQuota.applies ? monthlyQuota.limitCoin : null;
   const monthlySpendRemaining = monthlyQuota && monthlyQuota.applies ? monthlyQuota.remainingCoin : null;
+  // 클라이언트 한도표(js/core/pass-verdict.js PASS_LIMIT_BY_POLICY)가 구 표로 떨어지지 않게 정책 버전을 싣는다.
+  const passPolicyVersion = isActive ? String(canonicalEntitlement.passPolicyVersion || "legacy") : null;
 
   return json({
     ok: true,
@@ -6073,6 +6169,7 @@ async function handleSubscriptionStatus(request, env, auth) {
       freeLimit: passLimit,
       passLimit,
       maxCoveredCoin: passLimit,
+      passPolicyVersion,
       membershipCreditBalance,
     },
     isSubscribed: Boolean(isActive),
@@ -6095,6 +6192,7 @@ async function handleSubscriptionStatus(request, env, auth) {
     freeLimit: passLimit,
     passLimit,
     maxCoveredCoin: passLimit,
+    passPolicyVersion,
     membershipCreditBalance,
     monthlyPassLimit,
     monthlySpendRemaining,
@@ -7025,7 +7123,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     await connectDb(env);
     trace.dbConnected = true;
 
-    if (method === "POST" && path === "/pig-coin/refund") return await handlePigCoinRefund(request, auth);
+    if (method === "POST" && path === "/pig-coin/refund") return await handlePigCoinRefund(request, auth, { env });
     if (method === "POST" && path === "/pig-coin/charge-simulate") return await handleChargeSimulate(request, env, auth);
     if (method === "POST" && path === "/pig-coin/profile-subscription/start-service") return await handleStartService(request, auth);
     if (method === "POST" && path === "/pig-coin/share-reward") return await handleShareReward(request, auth);
@@ -7069,6 +7167,7 @@ export const __fortuneAccessTestUtils = {
   buildAIPromptVerifiedConsumePayload,
   handleVedicPrashnaGenerate,
   isVedicPrashnaStaleGenerating,
+  resolvePersistedUnlockFeatures,
 };
 
 // 그룹 병렬 생성은 결제 경로 한가운데에 있어 mock 없이는 손댈 수 없다.

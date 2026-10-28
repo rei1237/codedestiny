@@ -1929,7 +1929,7 @@
     }, 1500);
   }
 
-  window.openDreamModal = function openDreamModal() {
+  function openDreamModalCore() {
     var overlay = $('dreamModalOverlay');
     if (!overlay) return;
 
@@ -1965,7 +1965,41 @@
         input.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }, 120);
+  }
+
+  window.openDreamModal = function openDreamModal() {
+    if (typeof window._cdOpenPaidServiceGate !== 'function') {
+      window.alert('결제 모듈을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    var opened = false;
+    function finish() {
+      if (opened) return;
+      opened = true;
+      openDreamModalCore();
+    }
+    return Promise.resolve(window._cdOpenPaidServiceGate({
+      title: '꿈해몽 티저 해석',
+      reason: '꿈해몽 티저 해석',
+      featureKey: 'dream-prompt-generator',
+      coinPrice: 30,
+      cost: 30,
+      amountKRW: 3000,
+      requestId: 'dream-prompt-generator:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9),
+      resume: { kind: 'dream-prompt-generator', action: 'openDreamModal', args: {} },
+      onGranted: finish,
+      onPassApplied: finish
+    })).then(function (result) {
+      if (result && (result.status === 'granted' || result.ok === true || result.payload)) finish();
+    }).catch(function () {});
   };
+
+  if (window.__cdCheckoutEntry && typeof window.__cdCheckoutEntry.registerPaidResumeHandler === 'function') {
+    window.__cdCheckoutEntry.registerPaidResumeHandler('dream-prompt-generator', function () {
+      openDreamModalCore();
+      return true;
+    });
+  }
 
   window.closeDreamModal = function closeDreamModal() {
     stopTyping();
@@ -3023,7 +3057,7 @@
 
   var legacyCloseDreamModal = window.closeDreamModal;
 
-  window.openDreamModal = function openDreamModal() {
+  function openDreamModalCoreV2() {
     var overlay = $('dreamModalOverlay');
     if (!overlay) return;
     window.dreamReset();
@@ -3045,7 +3079,41 @@
         input.focus();
       }
     }, 120);
+  }
+
+  window.openDreamModal = function openDreamModal() {
+    if (typeof window._cdOpenPaidServiceGate !== 'function') {
+      window.alert('결제 모듈을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    var opened = false;
+    function finish() {
+      if (opened) return;
+      opened = true;
+      openDreamModalCoreV2();
+    }
+    return Promise.resolve(window._cdOpenPaidServiceGate({
+      title: '꿈해몽 티저 해석',
+      reason: '꿈해몽 티저 해석',
+      featureKey: 'dream-prompt-generator',
+      coinPrice: 30,
+      cost: 30,
+      amountKRW: 3000,
+      requestId: 'dream-prompt-generator:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9),
+      resume: { kind: 'dream-prompt-generator', action: 'openDreamModal', args: {} },
+      onGranted: finish,
+      onPassApplied: finish
+    })).then(function (result) {
+      if (result && (result.status === 'granted' || result.ok === true || result.payload)) finish();
+    }).catch(function () {});
   };
+
+  if (window.__cdCheckoutEntry && typeof window.__cdCheckoutEntry.registerPaidResumeHandler === 'function') {
+    window.__cdCheckoutEntry.registerPaidResumeHandler('dream-prompt-generator', function () {
+      openDreamModalCoreV2();
+      return true;
+    });
+  }
 
   window.closeDreamModal = function closeDreamModal() {
     clearDreamPromptV2Timers();

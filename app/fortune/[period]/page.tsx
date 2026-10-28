@@ -227,7 +227,7 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
           </header>
 
           )}
-          {period === "tomorrow" && (
+          {(
             <nav aria-labelledby="choose-sign-heading" className={tomorrowStyles.selector}>
               <h2 id="choose-sign-heading">{copy.chooseSign}</h2>
               {[{ heading: copy.chooseAnimal, models: animalModels }, { heading: copy.chooseZodiac, models: zodiacModels }].map((group) => (
@@ -236,7 +236,7 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
                   <ul className={tomorrowStyles.links}>
                     {group.models.map((model) => (
                       <li key={model.profile.id}>
-                        <Link href={`/fortune/tomorrow/${model.profile.id}/`}>{model.profile.nameKo}</Link>
+                        <Link href={`/fortune/${period}/${model.profile.id}/`} data-cd-cross-sell={`/fortune/${period}/`} data-cd-cta-placement="primary" data-cd-target-service="zodiac">{model.profile.nameKo}</Link>
                       </li>
                     ))}
                   </ul>
@@ -304,11 +304,13 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
           {period === "monthly" && (
             <section aria-labelledby="saju-monthly-heading" className="mt-12">
               <h2 id="saju-monthly-heading" className="break-keep text-lg font-extrabold">
-                2026년 9월 일간별 사주 운세
+                일간별 월간 사주를 읽는 방법
               </h2>
               <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
-                별자리·띠가 아니라 태어난 날의 천간인 일간으로 이번 달 흐름을 보고 싶다면, 갑목부터 계수까지 10천간 월간 운세를 이어서 확인해 보세요.
+                일간은 태어난 날의 천간을 뜻합니다. 먼저 만세력에서 나의 일간을 확인한 뒤,
+                월건과 어떤 관계를 맺는지 읽어보세요. 아래 2026년 9월 해설은 읽는 방법을 보여주는 지난달 자료입니다.
               </p>
+              <Link href="/manse/" data-cd-cross-sell={`/fortune/${period}/`} data-cd-cta-placement="related" data-cd-target-service="manse" className="inline-flex min-h-12 items-center font-bold underline underline-offset-4">만세력에서 내 일간 확인하기</Link>
               <Link href="/saju/monthly/2026-09/" className={`mt-4 block p-5 transition-colors hover:border-[#b31955]/45 ${CARD}`}>
                 <span className={`text-sm font-extrabold ${ACCENT}`}>2026년 9월 일간별 운세 보기 →</span>
                 <span className={`mt-1 block break-keep text-xs leading-6 ${MUTED}`}>
@@ -326,6 +328,17 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
               ))}</ol>
             </section>
           )}
+
+          <section aria-labelledby="personal-reading-heading" className={tomorrowStyles.guide}>
+            <h2 id="personal-reading-heading">내 출생정보로 더 자세히 보고 싶다면</h2>
+            <p>이 페이지는 같은 띠·별자리에 공통으로 적용하는 {label} 운세입니다. 나의 오행과 기질을
+              알고 싶다면 생년월일로 사주 명식을 확인하고, 구체적인 고민은 영냥이 상담에서 이어갈 수 있어요.</p>
+            <div className={tomorrowStyles.jumpLinks}>
+              <Link href="/saju/" data-cd-cross-sell={`/fortune/${period}/`} data-cd-cta-placement="next_step" data-cd-target-service="saju">생년월일로 사주 보기</Link>
+              <Link href="/yeongnyangi/" data-cd-cross-sell={`/fortune/${period}/`} data-cd-cta-placement="next_step" data-cd-target-service="yeongnyangi">영냥이 상담 범위 확인하기</Link>
+            </div>
+            <p>사주 기본 결과와 개인 질문을 반영하는 별도 유료 상담은 제공 범위가 다릅니다.</p>
+          </section>
 
           <section aria-labelledby="faq-heading" className="mt-12">
             <h2 id="faq-heading" className="break-keep text-lg font-extrabold">

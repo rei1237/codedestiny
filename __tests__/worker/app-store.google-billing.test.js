@@ -63,7 +63,12 @@ const mockPaymentFindByIdAndUpdate = jest.fn(async () => ({}));
 const mockPaymentFindOneAndUpdate = jest.fn(() => ({ lean: async () => ({ _id: "pay-1" }) }));
 const mockUserFindById = jest.fn();
 const mockUserFindByIdAndUpdate = jest.fn();
+// 출생 기반 해금 신원 해석기(실물)가 읽는 저장 프로필. beforeAll 에서 fixture 로 채운다.
+let mockProfileCards = null;
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+  CONTENT_ENTITLEMENT_SOURCES: { PAYMENT: "PAYMENT" },
+  CONTENT_ENTITLEMENT_STATUSES: { ACTIVE: "ACTIVE", REFUNDED: "REFUNDED" },
+  ProfileCard: { findOne: (...args) => mockProfileCards.findOne(...args) },
   Payment: {
     findOne: mockPaymentFindOne,
     create: mockPaymentCreate,
@@ -78,7 +83,17 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   },
 }));
 
-const mockIntentCreate = jest.fn(async (doc) => ({ _id: "intent-1", ...doc }));
+// BIRTH 행 쓰기·회수는 content-unlocks 공용 함수가 맡는다 — 여기서는 호출 계약만 본다.
+const mockGrantPermanentUnlock = jest.fn(async () => ({}));
+const mockRevokePaymentContentAccess = jest.fn(async () => ({}));
+const mockFindActivePaidContentUnlock = jest.fn(async () => null);
+jest.unstable_mockModule("../../worker/lib/content-unlocks.js", () => ({
+  findActivePaidContentUnlock: mockFindActivePaidContentUnlock,
+  grantPermanentUnlock: mockGrantPermanentUnlock,
+  revokePaymentContentAccess: mockRevokePaymentContentAccess,
+}));
+
+const mockIntentCreate = jest.fn(async (doc) => ({ _id: "64b000000000000000000002", ...doc }));
 const mockIntentFindOne = jest.fn();
 const mockIntentFindOneAndUpdate = jest.fn(async () => null);
 jest.unstable_mockModule("../../worker/lib/app-store-models.js", () => ({
@@ -119,6 +134,7 @@ let appPricing;
 let perUse;   // { key, coin, tier } — 회당 결제 기능 (티어 SKU 등록 가격대)
 let unlock;   // { key, coin, tier } — 영구 해금 기능
 let freeKey;  // 앱 무료 통과(≤5코인) 기능
+let identityLib;
 
 // Google API fetch 목 상태 (테스트별로 조정)
 let googlePurchasePayload;
@@ -180,6 +196,13 @@ beforeAll(async () => {
   billingRegistry = await import("../../worker/lib/billing-feature-registry.js");
   appPricing = await import("../../worker/lib/app-store-pricing.js");
   appStore = await import("../../worker/routes/app-store.js");
+  identityLib = await import("../../worker/lib/birth-scoped-unlock-identity.js");
+  const fixture = await import("../fixtures/profile-card-model.mjs");
+  mockProfileCards = fixture.profileCardModel([
+    fixture.testCard("me", { userId: USER_ID }),
+    fixture.testCard("partner", { userId: USER_ID, gender: "M", year: 1988 }),
+    fixture.testCard("not-mine", { userId: fixture.OTHER_USER_ID }),
+  ]);
 
   perUse = pickFeatureKey(registry.PAID_FEATURE_BILLING_TYPES.PER_USE, { excludeTierId: "cd_content_tier_13" });
   unlock = pickFeatureKey(registry.PAID_FEATURE_BILLING_TYPES.UNLOCK);
@@ -188,7 +211,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  googlePurchasePayload = { purchaseState: 0, acknowledgementState: 0, obfuscatedExternalAccountId: "" };
+  googlePurchasePayload = { purchaseState: 0, acknowledgementState: 0, obfuscatedExternalAccountId: sha256Hex(`cd-account:${USER_ID}`) };
   googlePurchaseStatus = 200;
   acknowledgeCalls = [];
 
@@ -228,11 +251,59 @@ beforeEach(() => {
   mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => null }) });
 });
 
-test("Family v3 Play SKU는 검증 전 판매 준비 중으로 실패 폐쇄한다", async () => {
+test("Family v4 Play SKU는 검증 전 판매 준비 중으로 실패 폐쇄한다", async () => {
   const version=(await import("../../lib/payment/pass-policy.js")).CURRENT_PASS_POLICY_VERSION;
   const {status,payload}=await callRoute(new Request(`https://code-destiny.com/api/app-store/products?passTier=family&passPolicyVersion=${version}`));
   expect(status).toBe(503);
   expect(payload.code).toBe("APP_SKU_NOT_VERIFIED");
+});
+
+test.each(["standard", "premium", "vvip"])("승인된 %s v4 이용권은 결제 의도만 만들고 검증 전 지급하지 않는다", async (tier) => {
+  const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
+  const plan = currentPassPlan(tier);
+  const { status, payload } = await callRoute(postJson("/google/intent", {
+    passTier: tier,
+    productId: plan.appProductId,
+    passPolicyVersion: plan.passPolicyVersion,
+    requestId: `approved-pass-${tier}`,
+  }));
+  expect(status).toBe(200);
+  expect(payload.data.product).toMatchObject({ productId: plan.appProductId, amountKRW: plan.wonPrice });
+  expect(mockIntentCreate).toHaveBeenCalledTimes(1);
+  expect(mockPaymentCreate).not.toHaveBeenCalled();
+  expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+  expect(acknowledgeCalls).toHaveLength(0);
+  expect(global.fetch).not.toHaveBeenCalled();
+});
+
+test.each(["standard", "premium", "vvip"])("%s v4 이용권의 대기 결제는 지급·승인하지 않는다", async (tier) => {
+  const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
+  const plan = currentPassPlan(tier);
+  googlePurchasePayload.purchaseState = 2;
+  const { status, payload } = await callRoute(postJson("/google/verify", {
+    passTier: tier, productId: plan.appProductId, purchaseToken: `pending-pass-${tier}`,
+  }));
+  expect(status).toBe(402);
+  expect(payload.code).toBe("GOOGLE_PLAY_PURCHASE_NOT_PAID");
+  expect(mockPaymentCreate).not.toHaveBeenCalled();
+  expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+  expect(acknowledgeCalls).toHaveLength(0);
+});
+
+test.each(["standard", "premium", "vvip"])("%s v4 검증 완료 구매는 현재 가격·이용 한도·기간 없음 정책을 보존한다", async (tier) => {
+  const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
+  const plan = currentPassPlan(tier);
+  const before = Date.now();
+  const { status, payload } = await callRoute(postJson("/google/verify", {
+    passTier: tier, productId: plan.appProductId, purchaseToken: `paid-pass-${tier}`,
+  }));
+  expect(status).toBe(200);
+  expect(mockPaymentCreate.mock.calls[0][0].paymentAmount).toBe(plan.wonPrice);
+  const fields = mockUserFindByIdAndUpdate.mock.calls[0][1].$set;
+  expect(fields["profileSubscription.passPolicyVersion"]).toBe(plan.passPolicyVersion);
+  expect(fields["profileSubscription.monthlyLimitCoin"]).toBe(plan.monthlyLimitCoin);
+  expect(fields["profileSubscription.expiresAt"].getTime() - before).toBeGreaterThan(3650 * 24 * 60 * 60 * 1000);
+  expect(payload.data.appPurchase.shouldConsume).toBe(true);
 });
 
 describe("verify — 회당 결제(PER_USE)", () => {
@@ -269,7 +340,7 @@ describe("verify — 회당 결제(PER_USE)", () => {
   });
 
   test("이미 acknowledge된 영수증에는 다시 acknowledge를 보내지 않는다", async () => {
-    googlePurchasePayload = { purchaseState: 0, acknowledgementState: 1, obfuscatedExternalAccountId: "" };
+    googlePurchasePayload.acknowledgementState = 1;
     const { status, payload } = await callRoute(postJson("/google/verify", {
       featureKey: perUse.key,
       productId: perUse.tier.productId,
@@ -280,8 +351,8 @@ describe("verify — 회당 결제(PER_USE)", () => {
     expect(payload.data.payment.acknowledged).toBe(true);
   });
 
-  test("미결제 상태(purchaseState≠0)는 402로 거부하고 아무것도 기록하지 않는다", async () => {
-    googlePurchasePayload = { purchaseState: 1 };
+  test.each([1, 2, undefined, null, "", false, "0", 3])("미확정·비정상 상태(%p)는 지급·승인하지 않는다", async (purchaseState) => {
+    googlePurchasePayload = { purchaseState };
     const { status, payload } = await callRoute(postJson("/google/verify", {
       featureKey: perUse.key,
       productId: perUse.tier.productId,
@@ -290,6 +361,9 @@ describe("verify — 회당 결제(PER_USE)", () => {
     expect(status).toBe(402);
     expect(payload.code).toBe("GOOGLE_PLAY_PURCHASE_NOT_PAID");
     expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+    expect(mockGrantPermanentUnlock).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
   });
 
   test("클라이언트가 보낸 productId가 서버 티어와 다르면 400 — 임의 상품 결제 차단", async () => {
@@ -318,7 +392,7 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(update.$addToSet.paidFeatures).toBe(unlock.key);
   });
 
-  test("이용권(standard) 구매는 profileSubscription을 30일 활성으로 세팅한다", async () => {
+  test("이용권(standard) 구매는 profileSubscription을 기간 없는 활성으로 세팅한다", async () => {
     const before = Date.now();
     const { status, payload } = await callRoute(postJson("/google/verify", {
       passTier: "standard",
@@ -340,18 +414,16 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(update.$set["profileSubscription.productType"]).toBe("membership_pass");
     expect(update.$set["profileSubscription.paymentMethod"]).toBe("GOOGLE_PLAY");
     const expiresAt = update.$set["profileSubscription.expiresAt"];
-    const expectedMs = 30 * 24 * 60 * 60 * 1000;
-    expect(expiresAt.getTime() - before).toBeGreaterThan(expectedMs - 60 * 1000);
-    expect(expiresAt.getTime() - before).toBeLessThan(expectedMs + 60 * 1000);
+    // 2026-10-11 기간 없음 — 한도 소진으로만 끝난다(profile-limits.js PASS_OPEN_ENDED_MS).
+    expect(expiresAt.getTime() - before).toBeGreaterThan(3650 * 24 * 60 * 60 * 1000);
 
-    // 이용권도 inapp이므로 소비 대상이다(소비 안 하면 30일 뒤 재구매가 막힌다).
+    // 이용권도 inapp이므로 소비 대상이다(소비 안 하면 같은 상품 재구매가 막힌다).
     expect(payload.data.appPurchase.shouldConsume).toBe(true);
   });
 
-  /* 예전에는 expiresAt 을 now+30일로 **덮어썼다** — 남은 기간이 사라지고 한도도 30일치
-     그대로였다. 웹 카드 결제(profile-limits.js computePassExpiry · buildPassCycleFields)와 같은
-     규칙으로 맞춘다. */
-  test("🔴 활성 중 재구매: 남은 기간에 30일을 이어붙이고 월 한도도 함께 쌓는다", async () => {
+  /* 예전에는 expiresAt 을 now+30일로 **덮어썼다** — 한도도 1회분 그대로였다. 웹 카드 결제
+     (profile-limits.js computePassExpiry · buildPassCycleFields)와 같은 규칙으로 맞춘다. */
+  test("🔴 활성 중 재구매: 기간 없는 이용권으로 바뀌고 월 한도가 쌓인다", async () => {
     const { MONTHLY_PASS_LIMITS } = await import("../../worker/lib/profile-limits.js");
     const priorExpiresAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
     mockUserFindById.mockReturnValue({
@@ -377,8 +449,7 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(status).toBe(200);
 
     const set = mockUserFindByIdAndUpdate.mock.calls[0][1].$set;
-    const expected = priorExpiresAt.getTime() + 30 * 24 * 60 * 60 * 1000;
-    expect(Math.abs(set["profileSubscription.expiresAt"].getTime() - expected)).toBeLessThan(60 * 1000);
+    expect(set["profileSubscription.expiresAt"].getTime() - Date.now()).toBeGreaterThan(3650 * 24 * 60 * 60 * 1000);
     expect(set["profileSubscription.monthlyLimitCoin"]).toBe(MONTHLY_PASS_LIMITS.standard * 2);
     // 이미 쓴 금액은 연장으로 지워지지 않는다(지우면 사용자가 한 달치를 공짜로 더 얻는다).
     expect(set["profileSubscription.monthlySpendCoin"]).toBe(100);
@@ -533,6 +604,12 @@ describe("rtdn — 환불 회수", () => {
     expect(paymentUpdate.$set.status).toBe("cancelled");
     const userUpdate = mockUserFindByIdAndUpdate.mock.calls[0][1];
     expect(userUpdate.$pull.unlockedFeatures).toBe(unlock.key);
+    // 출생 기반 키는 BIRTH 행이 해금 근거다 — 계정 배열만 빼면 환불 뒤에도 열린 채로 남는다.
+    expect(mockRevokePaymentContentAccess).toHaveBeenCalledTimes(1);
+    expect(mockRevokePaymentContentAccess.mock.calls[0][0]).toMatchObject({
+      payment: expect.objectContaining({ _id: "pay-refunded" }),
+      revokedStatus: "REFUNDED",
+    });
   });
 
   test("🔴 같은 voided 알림이 재전송돼도 회수를 두 번 돌리지 않는다", async () => {
@@ -632,7 +709,134 @@ describe("free-grant — 앱 무료 구간", () => {
 });
 
 describe("intent — 결제 의도 기록", () => {
-  test("고등어 상담(30코인, ₩3,000 SKU)은 무료 지급으로 우회할 수 없다", async () => {
+  const originalIntentId = "64b000000000000000000101";
+
+  test("편의점 지연 완료는 최신 의도가 아닌 영수증에 묶인 원래 상담을 복구한다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
+    mockIntentFindOne.mockImplementation((query) => ({ sort: () => ({ lean: async () => (
+      String(query._id) === originalIntentId
+        ? { _id: originalIntentId, status: "OPEN", featureKey: "dream-psycho-analysis", requestId: "original-request", profileId: "me" }
+        : { featureKey: "yeongnyangi-saju-mackerel", requestId: "newer-request" }
+    ) }) }));
+    const { payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: "cd_content_tier_02", purchaseToken: "late-cash", requestId: "untrusted-request", reportId: "unrelated-report", reportSessionId: "unrelated-session" }],
+    }));
+    expect(payload.data.failedPurchases).toEqual([]);
+    expect(mockPaymentCreate.mock.calls[0][0]).toMatchObject({ featureKey: "dream-psycho-analysis", requestId: "original-request" });
+    expect(mockPaymentCreate.mock.calls[0][0]).toMatchObject({ reportId: "", sessionId: "" });
+    expect(String(mockIntentFindOneAndUpdate.mock.calls[0][0]._id)).toBe(originalIntentId);
+  });
+
+  test("verify 응답도 요청 본문 대신 원래 주문의 리포트와 세션에 연결한다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
+    mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
+      _id: originalIntentId, status: "OPEN", featureKey: perUse.key, productId: perUse.tier.productId,
+      requestId: "original-request", reportId: "original-report", sessionId: "original-session",
+    }) }) });
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: perUse.key, productId: perUse.tier.productId, purchaseToken: "late-verify",
+      requestId: "another-request", reportId: "another-report", sessionId: "another-session",
+    }));
+    expect(status).toBe(200);
+    expect(payload.data.accessGrant).toMatchObject({ requestId: "original-request", reportId: "original-report", sessionId: "original-session" });
+  });
+
+  test("원래 구매 의도가 없으면 다른 상담으로 추측 지급하지 않는다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
+    const { payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: perUse.tier.productId, purchaseToken: "late-missing-intent" }],
+    }));
+    expect(payload.data.failedPurchases[0].code).toBe("APP_STORE_INTENT_NOT_FOUND");
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
+  });
+
+  test("이미 기록된 주문은 임시 의도가 만료돼도 원래 상담으로 복구한다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
+    mockPaymentFindOne.mockReturnValue({ lean: async () => ({
+      _id: "pay-recorded", userId: USER_ID, status: "success",
+      featureKey: perUse.key, productId: perUse.tier.productId, requestId: "original-saved-request",
+    }) });
+    const { payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: perUse.tier.productId, purchaseToken: "already-recorded" }],
+    }));
+    expect(payload.data.failedPurchases).toEqual([]);
+    expect(payload.data.purchases[0].featureKey).toBe(perUse.key);
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(mockIntentFindOneAndUpdate).not.toHaveBeenCalled();
+  });
+
+  test("연결 증거 없는 구형 미기록 영수증은 클라이언트 기능명이나 최신 의도로 지급하지 않는다", async () => {
+    mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
+      featureKey: perUse.key, requestId: "unrelated-newer-request",
+    }) }) });
+    const { payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: perUse.tier.productId, purchaseToken: "legacy-unmatched", featureKey: perUse.key }],
+    }));
+    expect(payload.data.failedPurchases[0].code).toBe("APP_STORE_INTENT_NOT_FOUND");
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
+  });
+
+  test("대기 영수증을 restore해도 의도 확정·지급·승인하지 않는다", async () => {
+    googlePurchasePayload.purchaseState = 2;
+    const { payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: perUse.tier.productId, purchaseToken: "cash-pending" }],
+    }));
+    expect(payload.data.failedPurchases[0].code).toBe("GOOGLE_PLAY_PURCHASE_NOT_PAID");
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(mockIntentFindOneAndUpdate).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
+  });
+
+  test("계정 식별자가 없는 미등록 영수증의 최초 선점을 막는다", async () => {
+    googlePurchasePayload.obfuscatedExternalAccountId = "";
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: perUse.key, productId: perUse.tier.productId, purchaseToken: "unowned-legacy",
+    }));
+    expect(status).toBe(409);
+    expect(payload.code).toBe("GOOGLE_PLAY_PURCHASE_ACCOUNT_UNVERIFIED");
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
+  });
+
+  test("기존 소유자의 구형 영수증은 계정 식별자가 없어도 재구매 없이 인정한다", async () => {
+    googlePurchasePayload.obfuscatedExternalAccountId = "";
+    mockPaymentFindOne.mockReturnValue({ lean: async () => ({
+      _id: "legacy-pay", userId: USER_ID, featureKey: perUse.key, productId: perUse.tier.productId, status: "success", requestId: "legacy-request",
+    }) });
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: perUse.key, productId: perUse.tier.productId, purchaseToken: "owned-legacy",
+    }));
+    expect(status).toBe(200);
+    expect(payload.data.idempotent).toBe(true);
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+  });
+
+  test("환불 기록은 Google 상태 반영이 늦어도 재지급하지 않는다", async () => {
+    mockPaymentFindOne.mockReturnValue({ lean: async () => ({
+      _id: "refunded-pay", userId: USER_ID, featureKey: unlock.key, productId: unlock.tier.productId, status: "cancelled",
+    }) });
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: unlock.key, productId: unlock.tier.productId, purchaseToken: "refunded-token",
+    }));
+    expect(status).toBe(409);
+    expect(payload.code).toBe("GOOGLE_PLAY_PURCHASE_REVOKED");
+    expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+    expect(mockGrantPermanentUnlock).not.toHaveBeenCalled();
+    expect(acknowledgeCalls).toHaveLength(0);
+  });
+
+  test("다른 앱 패키지의 영수증은 조회 전에 거부한다", async () => {
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: perUse.key, productId: perUse.tier.productId, purchaseToken: "wrong-package", packageName: "another.app",
+    }));
+    expect(status).toBe(400);
+    expect(payload.code).toBe("GOOGLE_PLAY_PACKAGE_MISMATCH");
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  test("고등어 상담(50코인, ₩5,000 SKU)은 무료 지급으로 우회할 수 없다", async () => {
     const { status, payload } = await callRoute(postJson("/free-grant", {
       featureKey: "yeongnyangi-saju-mackerel", requestId: "yn-" + "a".repeat(64),
     }));
@@ -641,14 +845,15 @@ describe("intent — 결제 의도 기록", () => {
     expect(mockPaymentCreate).not.toHaveBeenCalled();
   });
 
-  // 2026-10-05: 영냥이는 앱 SKU 가 없어 판매가 닫혔다. 같은 복구 계약을 3,000원 등급 상품으로 확인한다.
+  // 복구는 현재 서버 가격과 일치하는 SKU로만 원래 상담 ID를 이어 간다.
   test("앱 종료 뒤 영수증 복구가 서버 의도의 상담 ID를 보존한다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
     const requestId = "dream-" + "a".repeat(32);
     mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
       featureKey: "dream-psycho-analysis", requestId, profileId: "saved-profile",
     }) }) });
     const { status, payload } = await callRoute(postJson("/google/restore", {
-      purchases: [{ productId: "cd_content_tier_01", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
+      purchases: [{ productId: "cd_content_tier_02", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
     }));
     expect(status).toBe(200);
     expect(payload.data.failedPurchases).toEqual([]);
@@ -657,27 +862,55 @@ describe("intent — 결제 의도 기록", () => {
     expect(payload.data.purchases[0].shouldConsume).toBe(true);
   });
 
-  test("앱 SKU 가 없는 영냥이 가격의 복구는 지급하지 않고 실패로 남긴다", async () => {
+  test("신규 SKU가 생긴 영냥이 연어 복구는 현재 10,000원 티어로 지급한다", async () => {
+    googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
     mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
       featureKey: "yeongnyangi-saju-salmon", requestId: "yn-" + "a".repeat(64), profileId: "saved-profile",
     }) }) });
     const { status, payload } = await callRoute(postJson("/google/restore", {
-      purchases: [{ productId: "cd_content_tier_01", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
+      purchases: [{ productId: "cd_content_tier_06", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
     }));
     expect(status).toBe(200);
-    expect(payload.data.failedPurchases).toEqual([expect.objectContaining({ code: "APP_SKU_NOT_VERIFIED" })]);
-    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(payload.data.failedPurchases).toEqual([]);
+    expect(payload.data.purchases[0]).toMatchObject({ productId: "cd_content_tier_06", shouldConsume: true });
+    expect(mockPaymentCreate).toHaveBeenCalledTimes(1);
   });
 
-  // 2026-10-05 천원 사주 콘텐츠(10코인)는 무료 구간 가격이지만 앱에서도 돈을 받는다. ₩1,000 SKU 가 없어 닫힌다.
-  const FUN_1000_KEYS = [...STATIC_READING_PRICE_KEYS,"rpt_specialCharmCard", "rpt_skillTreeCard", "rpt_energyCoordCard", "rpt_villainCard", "rpt_secretHouseEntryCard", "fun.quantumLotto.ritualReport"];
-  test.each(FUN_1000_KEYS)("천원 사주 콘텐츠 %s 는 앱 무료 통과 없이 SKU 미검증으로 닫힌다", async (featureKey) => {
-    expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS].sort()).toEqual([...FUN_1000_KEYS].sort());
-    expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey]).toMatchObject({ cost: 10, amountKRW: 1000 });
+  // 2026-10-11 앱의 모든 현행 가격대는 검증된 SKU를 쓰고, 1,000원 유료 기능만 무료 판정에서 제외한다.
+  const APP_LOW_PRICE_KEYS = ["rpt_specialCharmCard", "rpt_skillTreeCard", "fun.quantumLotto.ritualReport", "profile-card-manage"];
+  const RETIRED_ISLAND_KEYS = ["ziwei-island-deep-report", "ziwei-island-palace-consult"];
+  const APP_REGISTERED_KEYS = [...STATIC_READING_PRICE_KEYS, ...APP_LOW_PRICE_KEYS].filter(key => !RETIRED_ISLAND_KEYS.includes(key));
+  test.each(RETIRED_ISLAND_KEYS)("판매 종료된 %s 는 앱 구매 의도와 무료 해금을 생성하지 않는다", async (featureKey) => {
+    expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey].saleEnabled).toBe(false);
     for (const path of ["/free-grant", "/google/intent"]) {
-      const { status, payload } = await callRoute(postJson(path, { featureKey, requestId: "fun-" + "b".repeat(32) }));
-      expect(status).toBe(503);
-      expect(payload.code).toBe("APP_SKU_NOT_VERIFIED");
+      const { status, payload } = await callRoute(postJson(path, { featureKey, profileId: "me", requestId: "retired-island" }));
+      expect(status).toBe(409);
+      expect(payload.code).toBe("PRODUCT_SALE_DISABLED");
+    }
+    expect(mockIntentCreate).not.toHaveBeenCalled();
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+  });
+  test("음악은 10코인 무료, 천원 운세와 프로필 관리는 tier_15 유료", () => {
+    expect(appPricing.isAppFreeFeature("music-track-fixture", 10)).toBe(true);
+    expect([...appPricing.APP_PAID_LOW_PRICE_FEATURE_KEYS].sort()).toEqual([...APP_LOW_PRICE_KEYS].sort());
+    for (const featureKey of APP_LOW_PRICE_KEYS) {
+      expect(appPricing.isAppFreeFeature(featureKey, 10)).toBe(false);
+      expect(appPricing.resolveAppContentTier(10)?.productId).toBe("cd_content_tier_15");
+    }
+  });
+  test.each(APP_REGISTERED_KEYS)("유료 콘텐츠 %s 는 앱 무료 통과 없이 등록된 가격 티어를 사용한다", async (featureKey) => {
+    const expected = registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey];
+    expect(expected).toBeTruthy();
+    expect(appPricing.isAppFreeFeature(featureKey, expected.cost)).toBe(false);
+    for (const path of ["/free-grant", "/google/intent"]) {
+      // 출생 기반 키의 의도는 이 계정 저장 프로필이 있어야 열린다(MISSING_PROFILE_ID 가드) — 소유 프로필을 싣는다.
+      const { status, payload } = await callRoute(postJson(path, { featureKey, profileId: "me", requestId: "fun-" + "b".repeat(32) }));
+      expect(status).toBe(path === "/free-grant" ? 400 : 200);
+      if (path === "/free-grant") expect(payload.code).toBe("APP_STORE_PRODUCT_NOT_FREE");
+      else expect(payload.data.product).toMatchObject({
+        productId: appPricing.resolveAppContentTier(expected.cost).productId,
+        amountKRW: expected.amountKRW,
+      });
     }
     expect(mockPaymentCreate).not.toHaveBeenCalled();
   });
@@ -697,5 +930,134 @@ describe("intent — 결제 의도 기록", () => {
     expect(doc.productId).toBe(perUse.tier.productId);
     expect(doc.status).toBe("OPEN");
     expect(doc.expiresAt instanceof Date).toBe(true);
+  });
+});
+
+describe("출생 기반 영구 해금 — userId + birthKey + contentKey", () => {
+  function openIntent(doc) {
+    mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => doc }) });
+  }
+
+  async function identityFor(profileId, featureKey = unlock.key, partnerProfileId = "") {
+    return identityLib.resolveBirthUnlockIdentity({ userId: USER_ID, profileId, partnerProfileId, featureKey });
+  }
+
+  test("intent: profileId 가 없으면 400 MISSING_PROFILE_ID — 결제창을 열지 않는다", async () => {
+    const { status, payload } = await callRoute(postJson("/google/intent", { featureKey: unlock.key }));
+    expect(status).toBe(400);
+    expect(payload).toMatchObject({ ok: false, code: "MISSING_PROFILE_ID", requiresProfile: true });
+    expect(mockIntentCreate).not.toHaveBeenCalled();
+  });
+
+  test("intent: 남의 프로필이면 403 INVALID_PROFILE", async () => {
+    const { status, payload } = await callRoute(postJson("/google/intent", { featureKey: unlock.key, profileId: "not-mine" }));
+    expect(status).toBe(403);
+    expect(payload).toMatchObject({ code: "INVALID_PROFILE", requiresProfile: true });
+    expect(mockIntentCreate).not.toHaveBeenCalled();
+  });
+
+  test("intent: 궁합은 상대 프로필도 저장 프로필이어야 한다", async () => {
+    const { status, payload } = await callRoute(postJson("/google/intent", { featureKey: "section_compat", profileId: "me" }));
+    expect(status).toBe(400);
+    expect(payload).toMatchObject({ code: "MISSING_PROFILE_ID", requiresProfile: true });
+    expect(mockIntentCreate).not.toHaveBeenCalled();
+  });
+
+  test("intent: 서버가 계산한 birthKey 스냅샷을 의도에 남긴다", async () => {
+    const expected = await identityFor("me");
+    const { status } = await callRoute(postJson("/google/intent", { featureKey: unlock.key, profileId: "me" }));
+    expect(status).toBe(200);
+    expect(mockIntentCreate.mock.calls[0][0]).toMatchObject({ profileId: "me", birthKey: expected.birthKey });
+  });
+
+  test("intent: 같은 출생 정보로 이미 산 콘텐츠면 alreadyUnlocked — 결제창(상품)을 내주지 않는다", async () => {
+    const expected = await identityFor("me");
+    mockFindActivePaidContentUnlock.mockResolvedValueOnce({ contentKey: unlock.key });
+    const { status, payload } = await callRoute(postJson("/google/intent", { featureKey: unlock.key, profileId: "me" }));
+    expect(status).toBe(200);
+    expect(payload).toMatchObject({ ok: true, alreadyUnlocked: true, profileId: "me" });
+    expect(payload.data.product).toBeUndefined();
+    expect(mockFindActivePaidContentUnlock.mock.calls[0][0].birthIdentity).toMatchObject({ birthKey: expected.birthKey });
+    expect(mockIntentCreate).not.toHaveBeenCalled();
+  });
+
+  test("verify: 의도 스냅샷의 출생 신원으로 BIRTH 해금을 지급한다(계정 배열도 유지)", async () => {
+    const expected = await identityFor("me");
+    openIntent({ featureKey: unlock.key, productId: unlock.tier.productId, profileId: "me", birthKey: expected.birthKey });
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: unlock.key,
+      productId: unlock.tier.productId,
+      purchaseToken: "tok-birth-1",
+    }));
+    expect(status).toBe(200);
+    expect(payload.data.unlockMap[unlock.key]).toBe(true);
+    expect(mockPaymentCreate.mock.calls[0][0].pricingSnapshot).toMatchObject({ profileId: "me", birthKey: expected.birthKey });
+    expect(mockGrantPermanentUnlock).toHaveBeenCalledTimes(1);
+    expect(mockGrantPermanentUnlock.mock.calls[0][0]).toMatchObject({
+      userId: USER_ID,
+      featureKey: unlock.key,
+      source: "PAYMENT",
+      paymentId: "pay-new",
+      birthIdentity: expect.objectContaining({ birthKey: expected.birthKey, entitlementProfileId: expected.entitlementProfileId }),
+    });
+    expect(mockUserFindByIdAndUpdate.mock.calls[0][1].$addToSet.unlockedFeatures).toBe(unlock.key);
+  });
+
+  test("verify: 스냅샷 이전 레거시 의도는 기록된 profileId 를 소유 프로필로 다시 해석한다", async () => {
+    const expected = await identityFor("me");
+    openIntent({ featureKey: unlock.key, productId: unlock.tier.productId, profileId: "me" });
+    const { status } = await callRoute(postJson("/google/verify", {
+      featureKey: unlock.key,
+      productId: unlock.tier.productId,
+      purchaseToken: "tok-birth-legacy",
+    }));
+    expect(status).toBe(200);
+    expect(mockGrantPermanentUnlock.mock.calls[0][0].birthIdentity.birthKey).toBe(expected.birthKey);
+  });
+
+  test("verify: 지급할 프로필이 없으면 USER 행 없이 관리자 검토로 보류한다(결제 확정·acknowledge 는 유지)", async () => {
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: unlock.key,
+      productId: unlock.tier.productId,
+      purchaseToken: "tok-birth-hold",
+    }));
+    expect(status).toBe(200);
+    expect(mockGrantPermanentUnlock).not.toHaveBeenCalled();
+    expect(payload.data.adminReviewRequired).toBe(true);
+    expect(payload.data.profileSelectionRequired).toBe(true);
+    expect(payload.message).not.toContain("담당자");
+    expect(payload.data.unlockMap[unlock.key]).toBe(false);
+    const created = mockPaymentCreate.mock.calls[0][0];
+    expect(created.failureCode).toBe("delivery_failed_manual_review");
+    expect(created.pricingSnapshot).toMatchObject({ birthUnlockReviewRequired: true, birthUnlockHoldCode: "MISSING_PROFILE_ID" });
+    expect(created.pricingSnapshot.birthKey).toBeUndefined();
+    expect(acknowledgeCalls).toHaveLength(1);
+  });
+
+  test("verify 재전송: 저장된 결제 스냅샷으로만 다시 지급한다", async () => {
+    const expected = await identityFor("me");
+    mockPaymentFindOne.mockReturnValue({
+      lean: async () => ({
+        _id: "pay-existing",
+        userId: USER_ID,
+        featureKey: unlock.key,
+        productId: unlock.tier.productId,
+        merchantUid: "m-birth",
+        pricingSnapshot: { profileId: "me", birthKey: expected.birthKey },
+      }),
+    });
+    const { status, payload } = await callRoute(postJson("/google/verify", {
+      featureKey: unlock.key,
+      productId: unlock.tier.productId,
+      purchaseToken: "tok-birth-replay",
+      profileId: "partner",
+    }));
+    expect(status).toBe(200);
+    expect(payload.data.idempotent).toBe(true);
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+    expect(mockGrantPermanentUnlock.mock.calls[0][0]).toMatchObject({
+      paymentId: "pay-existing",
+      birthIdentity: expect.objectContaining({ birthKey: expected.birthKey }),
+    });
   });
 });

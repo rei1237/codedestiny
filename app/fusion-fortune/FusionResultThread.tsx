@@ -9,10 +9,16 @@
  * (둘 다 html2canvas 클론에서 빈 페이지를 만든다).
  */
 
+import type { MouseEvent } from "react";
+import { FusionSectionBody } from "./FusionSectionBody";
+import { useFusionPremiumCopy } from "./_lib/premium-copy";
+import { fusionSubchapters, isDomainFusion, FUSION_NARRATOR_BY_KEY } from "@/lib/fusion-premium-report";
+import { fusionNarrators } from "@/components/fortune/master-profiles";
 import { ExpertEvidence, useFusionExpertCopy } from "./ExpertEvidence";
 import { FusionVisualization } from "./FusionVisualization";
 import { FusionChapterArt } from "./FusionChapterArt";
 import {
+  DOMAIN_SECTION_KEYS,
   SECTION_KEYS,
   SECTION_SYSTEM_KEYS,
   STANCE_CLASS,
@@ -21,15 +27,19 @@ import {
   ThreadSpeaker,
   TypingDots,
   tintVars,
+  type DomainSectionKey,
   type Result,
 } from "./fusion-thread";
 import { useFusionSharedCopy } from "./_lib/copy";
 import { countSectionChars, countTimingChars, readingMinutes } from "./_lib/reading";
 import styles from "./fusion-fortune.module.css";
 
-export function FusionResultThread({ result, openSection, onToggleSection, exporting, readOnly = false, stageTwoGenerating = false }: {
+/** lib/fusion-premium-report.js FUSION_DOMAIN_ART_KEYS 와 같은 순서 — 영역별 아틀라스 칸. */
+const DOMAIN_ART_IDS = ["nature", "lifeCycle", "love", "marriage", "wealth", "career", "health", "relations"];
+
+export function FusionResultThread({ result, openSections, onToggleSection, exporting, readOnly = false, stageTwoGenerating = false }: {
   result: Result;
-  openSection: string;
+  openSections: Set<string>;
   onToggleSection: (key: string) => void;
   exporting: boolean;
   readOnly?: boolean;
@@ -37,15 +47,55 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
   stageTwoGenerating?: boolean;
 }) {
   const copy = useFusionSharedCopy();
+  const premiumCopy = useFusionPremiumCopy();
   const expertCopy = useFusionExpertCopy();
   const sectionMeta = (chars: number) => `${copy.charsCount(chars.toLocaleString())} · ${copy.minutesAbout(readingMinutes(chars, copy.readingCharsPerMinute))}`;
   // 캡처 중에는 "무엇을 펼쳐 뒀는지"와 무관하게 전부 보여야 한다 — 접힌 섹션은
   // display:none 이 아니라 아예 렌더되지 않으므로 캡처에서 통째로 빠진다.
-  const isOpen = (key: string, fallbackOpen = false) => exporting || openSection === key || (!openSection && fallbackOpen);
-  // Empty means the initial, first-chapter-open view. An explicit close must not return to that view.
-  const toggleVisibleSection = (key: string, expanded: boolean) => onToggleSection(expanded ? "collapsed" : key);
+  const isOpen = (key: string) => exporting || readOnly || openSections.has(key);
+  // Each chapter stays independent; opening a TOC target never closes another chapter.
+  const toggleVisibleSection = (key: string) => onToggleSection(key);
+  const navigateSubchapter = (event: MouseEvent<HTMLAnchorElement>, key: string, index: number, expanded: boolean) => {
+    event.preventDefault();
+    if (!expanded) onToggleSection(key);
+    const id = `fusion-sub-${key}-${index}`;
+    // The target is mounted by the expansion; native anchor navigation runs too early.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ block: "start", behavior: "instant" });
+      window.history.replaceState(window.history.state, "", `#${id}`);
+    }));
+  };
+
+  // v2 는 장마다 마스터가 말한다(한국어 생성분만 — 다른 로케일은 서버가 화자 지시를 넣지 않는다).
+  const domainReport = isDomainFusion(result);
+  const voiced = domainReport && (result.expertMeta?.locale || "ko").startsWith("ko");
+  const narratorOf = (key: string) => voiced ? fusionNarrators[FUSION_NARRATOR_BY_KEY[key] as keyof typeof fusionNarrators] : undefined;
+  const speakerFor = (label: string, key: string) => { const narrator = narratorOf(key); return { label: narrator ? `${label} · ${narrator.name}` : label, avatar: narrator?.avatar }; };
+  type Chapter = { kind: "chapter"; key: (typeof SECTION_KEYS)[number] | DomainSectionKey; systemKey: (typeof SECTION_SYSTEM_KEYS)[number]; artKey: string; label: string }
+    | { kind: "domains" } | { kind: "missing"; key: DomainSectionKey; label: string };
+  const chapters: Chapter[] = SECTION_KEYS.filter((key) => result[key]?.content).map((key) => {
+    const systemKey = SECTION_SYSTEM_KEYS[SECTION_KEYS.indexOf(key)];
+    return { kind: "chapter", key, systemKey, artKey: systemKey, label: systemKey === "fusion" ? expertCopy.narrator : copy.systemLabels[systemKey] };
+  });
+  // 영역별 장은 통합 리딩 뒤, 시기·행동 앞. 시도를 다 써서 빠진 장은 배달 뒤에 조용한 한 줄로만 남긴다.
+  const domainChapters: Chapter[] = DOMAIN_SECTION_KEYS.flatMap((key, index): Chapter[] => {
+    const label = premiumCopy.domainLabels[index];
+    if (result[key]?.content) return [{ kind: "chapter", key, systemKey: "fusion", artKey: DOMAIN_ART_IDS[index], label }];
+    return result.finalVerdict && !stageTwoGenerating ? [{ kind: "missing", key, label }] : [];
+  });
+  if (domainReport && domainChapters.some((chapter) => chapter.kind === "chapter")) chapters.push({ kind: "domains" }, ...domainChapters);
 
   return <>
+    {!exporting && !readOnly && <li className="flex flex-wrap gap-3 text-[var(--fx-ink-1)]">
+      <button type="button" onClick={() => onToggleSection("all")} className="min-h-11 rounded-full border border-white/20 px-4 text-sm">{premiumCopy.expandAll}</button>
+      <button type="button" onClick={() => onToggleSection("none")} className="min-h-11 rounded-full border border-white/20 px-4 text-sm">{premiumCopy.collapseAll}</button>
+    </li>}
+    {result.consultationPlan && <ThreadRow systemKey="fusion" index={0} exporting={exporting} pdfSection>
+      <ThreadBubble systemKey="fusion" exporting={exporting}>
+        <h2 className="font-display text-xl leading-relaxed text-[var(--fx-ink-1)]">{result.consultationPlan.question}</h2>
+        <ul className="mt-4 grid gap-3 text-[var(--fx-ink-2)]">{result.consultationPlan.questions.map(q => <li key={q.id}>{q.title}</li>)}</ul>
+      </ThreadBubble>
+    </ThreadRow>}
     {result.openingMessage && <ThreadRow systemKey="fusion" index={0} exporting={exporting} pdfSection tocKey="opening">
       <ThreadBubble systemKey="fusion" exporting={exporting}>
         <ThreadSpeaker label={expertCopy.narrator} note={<span className="rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80">{result.expertMeta?.complete === false ? expertCopy.review : copy.analysisCompleteBadge}</span>} />
@@ -69,34 +119,53 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
       </ThreadBubble>
     </ThreadRow>}
 
-    {SECTION_KEYS.filter((key) => result[key]?.content).map((key, index) => {
-      const expanded = isOpen(key, index === 0);
-      const systemKey = SECTION_SYSTEM_KEYS[SECTION_KEYS.indexOf(key)];
+    {chapters.map((chapter, index) => {
+      if (chapter.kind === "domains") return <li key="domains" data-fusion-pdf-section="true" className="pt-4">
+        <p className="m-0 font-display text-[0.72rem] uppercase tracking-[0.3em] text-[var(--fx-gold-2)]">{premiumCopy.domainShort}</p>
+        <h2 className={`m-0 mt-2 ${styles.readingTitle} text-[clamp(1.25rem,3.6vw,1.6rem)] text-[var(--fx-ink-1)]`}>{premiumCopy.domainHeading}</h2>
+        <p className="m-0 mt-2 max-w-[60ch] text-[0.92rem] leading-[1.75] text-[var(--fx-ink-3)]">{premiumCopy.domainIntro}</p>
+      </li>;
+      if (chapter.kind === "missing") {
+        const speaker = speakerFor(chapter.label, chapter.key);
+        return <ThreadRow key={chapter.key} systemKey="fusion" dimmed index={index + 3}>
+          <ThreadBubble systemKey="fusion" className="border-dashed border-white/[0.16] bg-transparent">
+            <ThreadSpeaker label={speaker.label} avatar={speaker.avatar} />
+            <p className="m-0 text-[0.92rem] text-[var(--fx-ink-3)]">{premiumCopy.domainPending}</p>
+          </ThreadBubble>
+        </ThreadRow>;
+      }
+      const { key, systemKey } = chapter;
+      const section = result[key]!;
+      const speaker = speakerFor(chapter.label, key);
+      const expanded = isOpen(key);
       // 첫 근거를 "핵심 한 문장"으로 올린다 — 접힌 상태에서도 이 섹션이 무엇을 말하는지 한 줄로 안다.
       // 근거 목록에서는 뺀다(같은 문장을 두 번 보이지 않게). PDF 조판은 결과 JSON 을 직접 읽으므로 무관하다.
-      const [keySentence, ...restPoints] = result[key].keyPoints || [];
+      const [keySentence, ...restPoints] = section.keyPoints || [];
       return <ThreadRow key={key} systemKey={systemKey} index={index + 3} exporting={exporting} pdfSection tocKey={key}>
         <ThreadBubble systemKey={systemKey} deferRender exporting={exporting}>
-          {!exporting && <FusionChapterArt systemKey={systemKey} />}
-          <ThreadSpeaker label={systemKey === "fusion" ? expertCopy.narrator : copy.systemLabels[systemKey]} meta={sectionMeta(countSectionChars(result[key]))} />
+          {!exporting && expanded && <FusionChapterArt systemKey={chapter.artKey} />}
+          <ThreadSpeaker label={speaker.label} avatar={speaker.avatar} meta={sectionMeta(countSectionChars(section))} />
           <h3 className="m-0">
-            {readOnly ? <span className={`${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)]`}>{result[key].title}</span> : <button
+            {readOnly ? <span className={`${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)]`}>{section.title}</span> : <button
               type="button"
               aria-expanded={expanded}
               aria-controls={`fusion-section-${key}`}
-              onClick={() => toggleVisibleSection(key, expanded)}
+              onClick={() => toggleVisibleSection(key)}
               className={`flex min-h-11 w-full flex-col items-start justify-center gap-1.5 text-left sm:flex-row sm:items-center sm:justify-between sm:gap-3 ${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint-label)] motion-reduce:transition-none`}
             >
-              <span className="min-w-0">{result[key].title}</span>
+              <span className="min-w-0">{section.title}</span>
               <b className="shrink-0 rounded-full border border-white/[0.16] px-3 py-1 text-[0.74rem] font-normal text-white/75">{expanded ? copy.collapseButton : copy.viewEvidenceButton}</b>
             </button>}
           </h3>
+          {!exporting && fusionSubchapters(section).length > 0 && <nav aria-label={section.title} className="mt-4 flex flex-col items-start gap-1">
+            {fusionSubchapters(section).map((chapter: {title: string}, chapterIndex: number) => <a key={chapterIndex} href={`#fusion-sub-${key}-${chapterIndex}`} onClick={event => navigateSubchapter(event, key, chapterIndex, expanded)} className="min-h-11 py-2 text-sm text-[var(--fx-ink-2)] underline underline-offset-4">{chapter.title}</a>)}
+          </nav>}
           {keySentence && <p className={styles.chapterKeyPoint}>
             <span>{copy.keySentenceLabel}</span>
             <q className={`[quotes:none] ${styles.readingTitle} text-[1.05rem] leading-[1.8] text-[var(--fx-ink-1)] [text-wrap:pretty]`}>{keySentence}</q>
           </p>}
           {expanded && <div id={`fusion-section-${key}`} className="mt-3 border-t border-white/[0.07] pt-4">
-            <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result[key].content}</p>
+            <FusionSectionBody section={section} sectionKey={key} />
             <ul className="mt-4 grid max-w-[72ch] list-none gap-2.5 p-0">
               {restPoints.map((point) => <li key={point} className={`grid grid-cols-[0.375rem_minmax(0,1fr)] items-start gap-3 ${styles.readingBullet} text-[var(--fx-ink-3)]`}>
                 <i aria-hidden className="mt-[0.62em] size-1.5 rounded-full bg-[color:var(--tint)]" /><span>{point}</span>
@@ -111,21 +180,25 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
       const expanded = isOpen("timing");
       return <ThreadRow systemKey="fusion" index={10} exporting={exporting} pdfSection tocKey="timing">
         <ThreadBubble systemKey="fusion" deferRender exporting={exporting}>
-          <ThreadSpeaker label={copy.whenWhatSpeaker} meta={sectionMeta(countTimingChars(result.timingAndAction))} />
+          {!exporting && expanded && <FusionChapterArt systemKey="action" />}
+          <ThreadSpeaker {...speakerFor(copy.whenWhatSpeaker, "timingAndAction")} meta={sectionMeta(countTimingChars(result.timingAndAction))} />
           <h3 className="m-0">
             {readOnly ? <span className={`${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)]`}>{result.timingAndAction.title}</span> : <button
               type="button"
               aria-expanded={expanded}
               aria-controls="fusion-section-timing"
-              onClick={() => toggleVisibleSection("timing", expanded)}
+              onClick={() => toggleVisibleSection("timing")}
               className={`flex min-h-11 w-full flex-col items-start justify-center gap-1.5 text-left sm:flex-row sm:items-center sm:justify-between sm:gap-3 ${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint-label)] motion-reduce:transition-none`}
             >
               <span className="min-w-0">{result.timingAndAction.title}</span>
               <b className="shrink-0 rounded-full border border-white/[0.16] px-3 py-1 text-[0.74rem] font-normal text-white/75">{expanded ? copy.collapseButton : copy.viewActionButton}</b>
             </button>}
           </h3>
+          {!exporting && fusionSubchapters(result.timingAndAction).length > 0 && <nav aria-label={result.timingAndAction.title} className="mt-4 flex flex-col items-start gap-1">
+            {fusionSubchapters(result.timingAndAction).map((chapter: {title: string}, chapterIndex: number) => <a key={chapterIndex} href={`#fusion-sub-timing-${chapterIndex}`} onClick={event => navigateSubchapter(event, "timing", chapterIndex, expanded)} className="min-h-11 py-2 text-sm text-[var(--fx-ink-2)] underline underline-offset-4">{chapter.title}</a>)}
+          </nav>}
           {expanded && <div id="fusion-section-timing" className="mt-3 border-t border-white/[0.07] pt-4">
-            <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.timingAndAction.content}</p>
+            <FusionSectionBody section={result.timingAndAction} sectionKey="timing" />
             {([[copy.thingsToDoHeading, result.timingAndAction.luckyActions || []], [copy.patternsToWatchHeading, result.timingAndAction.cautionPatterns || []]] as const).map(([heading, items]) => (
               <div key={heading} className="mt-5">
                 <h4 className="m-0 font-display text-[0.92rem] text-[var(--fx-gold)]">{heading}</h4>
@@ -152,7 +225,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
         />
         <p className={`m-0 max-w-[72ch] ${styles.reading} text-[1rem] text-[var(--fx-ink-3)] [text-wrap:pretty]`}>{copy.stageTwoPendingMessage}</p>
         <ul className="mt-3 flex list-none flex-wrap gap-2 p-0">
-          {[!result.executiveSummary && copy.summaryShortLabel, !result.timingAndAction?.content && copy.whenWhatSpeaker, copy.verdictShortLabel].filter(Boolean).map((label) => (
+          {[!result.executiveSummary && copy.summaryShortLabel, !result.timingAndAction?.content && copy.whenWhatSpeaker, domainReport && !DOMAIN_SECTION_KEYS.some((key) => result[key]?.content) && premiumCopy.domainHeading, copy.verdictShortLabel].filter(Boolean).map((label) => (
             <li key={label as string} className="rounded-full border border-dashed border-white/[0.16] px-2.5 py-1 text-[0.78rem] text-[var(--fx-ink-4)]">{label}</li>
           ))}
         </ul>
@@ -207,7 +280,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
 
     {result.closingMessage && <ThreadRow systemKey="fusion" index={12} exporting={exporting} pdfSection tocKey="closing">
       <ThreadBubble systemKey="fusion" exporting={exporting}>
-        {!exporting && <FusionChapterArt systemKey="fusion" closing />}
+        {!exporting && <FusionChapterArt systemKey="choice" closing />}
         <ThreadSpeaker label={expertCopy.narrator} />
         <p id="fusion-closing-message" className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.closingMessage}</p>
       </ThreadBubble>

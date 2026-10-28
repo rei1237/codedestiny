@@ -132,7 +132,7 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
       if (kicker) {
         setStyle(fonts.body, 8.5, INK.gold);
         lines(kicker, 8.5, 1.4);
-        space(1.5);
+        space(4);
       }
       setStyle(fonts.title, 17, INK.title);
       lines(title, 17, 1.35);

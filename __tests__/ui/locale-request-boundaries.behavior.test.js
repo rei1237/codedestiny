@@ -146,7 +146,7 @@ test('fusion bounds partial waves and keeps the receipt when no report is comple
   const f = fusionFixture(); let calls = 0;
   f.ctx.runStage = async () => { calls++; return { result: { text: 'saved partial' }, status: 'partial', nextStage: 1 }; };
   assert.equal(await f.run('paid-1', {}, 1, ''), false);
-  assert.equal(calls, 12);
+  assert.equal(calls, 20); // v2: 체계 6장 + 분야 8장이라 wave 상한이 20이다.
   assert.equal(f.receipts.some(([id]) => id === ''), false);
 });
 test('fusion drops recovery result after a locale switch and does not clear receipt', async () => {

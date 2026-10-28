@@ -14,18 +14,18 @@
     "ms": "Yeoni"
   },
   "sajuReading.neo": {
-    "ko": "네오",
-    "en": "Neo",
-    "ja": "Neo",
-    "zh-CN": "Neo",
-    "zh-TW": "Neo",
-    "vi": "Neo",
-    "hi": "Neo",
-    "es": "Neo",
-    "fr": "Neo",
-    "de": "Neo",
-    "nl": "Neo",
-    "ms": "Neo"
+    "ko": "영냥이",
+    "en": "Yeongnyangi",
+    "ja": "Yeongnyangi",
+    "zh-CN": "Yeongnyangi",
+    "zh-TW": "Yeongnyangi",
+    "vi": "Yeongnyangi",
+    "hi": "Yeongnyangi",
+    "es": "Yeongnyangi",
+    "fr": "Yeongnyangi",
+    "de": "Yeongnyangi",
+    "nl": "Yeongnyangi",
+    "ms": "Yeongnyangi"
   },
   "sajuReading.garden": {
     "ko": "기질을 이해하는 정원",
@@ -42,18 +42,18 @@
     "ms": "A garden for understanding yourself"
   },
   "sajuReading.room": {
-    "ko": "선택을 점검하는 작전실",
-    "en": "A strategy room for reviewing choices",
-    "ja": "A strategy room for reviewing choices",
-    "zh-CN": "A strategy room for reviewing choices",
-    "zh-TW": "A strategy room for reviewing choices",
-    "vi": "A strategy room for reviewing choices",
-    "hi": "A strategy room for reviewing choices",
-    "es": "A strategy room for reviewing choices",
-    "fr": "A strategy room for reviewing choices",
-    "de": "A strategy room for reviewing choices",
-    "nl": "A strategy room for reviewing choices",
-    "ms": "A strategy room for reviewing choices"
+    "ko": "영냥이의 별빛 다락방",
+    "en": "Yeongnyangi’s starlit attic",
+    "ja": "Yeongnyangi’s starlit attic",
+    "zh-CN": "Yeongnyangi’s starlit attic",
+    "zh-TW": "Yeongnyangi’s starlit attic",
+    "vi": "Yeongnyangi’s starlit attic",
+    "hi": "Yeongnyangi’s starlit attic",
+    "es": "Yeongnyangi’s starlit attic",
+    "fr": "Yeongnyangi’s starlit attic",
+    "de": "Yeongnyangi’s starlit attic",
+    "nl": "Yeongnyangi’s starlit attic",
+    "ms": "Yeongnyangi’s starlit attic"
   },
   "sajuReading.same": {
     "ko": "같은 명식, 다른 읽기 방식입니다. 계산값과 무료·유료 범위는 같아요.",
@@ -70,32 +70,32 @@
     "ms": "One chart, two reading styles. Calculations and free/paid access stay the same."
   },
   "sajuReading.compareNeo": {
-    "ko": "연이가 발견한 단서를 네오의 기준으로 살펴보기",
-    "en": "Review Yeoni’s clues with Neo",
-    "ja": "Review Yeoni’s clues with Neo",
-    "zh-CN": "Review Yeoni’s clues with Neo",
-    "zh-TW": "Review Yeoni’s clues with Neo",
-    "vi": "Review Yeoni’s clues with Neo",
-    "hi": "Review Yeoni’s clues with Neo",
-    "es": "Review Yeoni’s clues with Neo",
-    "fr": "Review Yeoni’s clues with Neo",
-    "de": "Review Yeoni’s clues with Neo",
-    "nl": "Review Yeoni’s clues with Neo",
-    "ms": "Review Yeoni’s clues with Neo"
+    "ko": "연이가 발견한 단서를 영냥이와 다시 살펴보기",
+    "en": "Review Yeoni’s clues with Yeongnyangi",
+    "ja": "Review Yeoni’s clues with Yeongnyangi",
+    "zh-CN": "Review Yeoni’s clues with Yeongnyangi",
+    "zh-TW": "Review Yeoni’s clues with Yeongnyangi",
+    "vi": "Review Yeoni’s clues with Yeongnyangi",
+    "hi": "Review Yeoni’s clues with Yeongnyangi",
+    "es": "Review Yeoni’s clues with Yeongnyangi",
+    "fr": "Review Yeoni’s clues with Yeongnyangi",
+    "de": "Review Yeoni’s clues with Yeongnyangi",
+    "nl": "Review Yeoni’s clues with Yeongnyangi",
+    "ms": "Review Yeoni’s clues with Yeongnyangi"
   },
   "sajuReading.compareYeon": {
-    "ko": "네오가 정리한 기준을 연이의 이야기로 읽기",
-    "en": "Read Neo’s criteria with Yeoni",
-    "ja": "Read Neo’s criteria with Yeoni",
-    "zh-CN": "Read Neo’s criteria with Yeoni",
-    "zh-TW": "Read Neo’s criteria with Yeoni",
-    "vi": "Read Neo’s criteria with Yeoni",
-    "hi": "Read Neo’s criteria with Yeoni",
-    "es": "Read Neo’s criteria with Yeoni",
-    "fr": "Read Neo’s criteria with Yeoni",
-    "de": "Read Neo’s criteria with Yeoni",
-    "nl": "Read Neo’s criteria with Yeoni",
-    "ms": "Read Neo’s criteria with Yeoni"
+    "ko": "영냥이가 짚은 기준을 연이의 이야기로 읽기",
+    "en": "Read Yeongnyangi’s criteria with Yeoni",
+    "ja": "Read Yeongnyangi’s criteria with Yeoni",
+    "zh-CN": "Read Yeongnyangi’s criteria with Yeoni",
+    "zh-TW": "Read Yeongnyangi’s criteria with Yeoni",
+    "vi": "Read Yeongnyangi’s criteria with Yeoni",
+    "hi": "Read Yeongnyangi’s criteria with Yeoni",
+    "es": "Read Yeongnyangi’s criteria with Yeoni",
+    "fr": "Read Yeongnyangi’s criteria with Yeoni",
+    "de": "Read Yeongnyangi’s criteria with Yeoni",
+    "nl": "Read Yeongnyangi’s criteria with Yeoni",
+    "ms": "Read Yeongnyangi’s criteria with Yeoni"
   },
   "sajuReading.observe": {
     "ko": "연이가 발견한 단서",
@@ -140,18 +140,18 @@
     "ms": "One small practice"
   },
   "sajuReading.diagnosis": {
-    "ko": "네오의 진단",
-    "en": "Neo’s assessment",
-    "ja": "Neo’s assessment",
-    "zh-CN": "Neo’s assessment",
-    "zh-TW": "Neo’s assessment",
-    "vi": "Neo’s assessment",
-    "hi": "Neo’s assessment",
-    "es": "Neo’s assessment",
-    "fr": "Neo’s assessment",
-    "de": "Neo’s assessment",
-    "nl": "Neo’s assessment",
-    "ms": "Neo’s assessment"
+    "ko": "영냥이가 짚은 핵심",
+    "en": "Yeongnyangi’s assessment",
+    "ja": "Yeongnyangi’s assessment",
+    "zh-CN": "Yeongnyangi’s assessment",
+    "zh-TW": "Yeongnyangi’s assessment",
+    "vi": "Yeongnyangi’s assessment",
+    "hi": "Yeongnyangi’s assessment",
+    "es": "Yeongnyangi’s assessment",
+    "fr": "Yeongnyangi’s assessment",
+    "de": "Yeongnyangi’s assessment",
+    "nl": "Yeongnyangi’s assessment",
+    "ms": "Yeongnyangi’s assessment"
   },
   "sajuReading.basis": {
     "ko": "계산 근거",
@@ -560,7 +560,7 @@
     "ms": "Choose one thing to research and one thing to test now."
   },
   "sajuReading.rules.0": {
-    "ko": "목표와 마감이 정해졌을 때 추진하세요. 시작만 늘어난다면 새 과제부터 줄이세요.",
+    "ko": "목표와 마감이 정해졌을 때 밀고 나가 봐. 시작만 자꾸 늘어난다면 새 과제부터 줄여 보자.",
     "en": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
     "ja": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
     "zh-CN": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
@@ -574,7 +574,7 @@
     "ms": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows."
   },
   "sajuReading.rules.1": {
-    "ko": "전달할 내용과 상대의 여유가 맞을 때 표현하세요. 감정이 앞서면 답을 재촉하지 마세요.",
+    "ko": "전할 내용과 상대의 여유가 맞을 때 꺼내 봐. 감정이 앞설 때는 답을 재촉하지 않는 편이 좋아.",
     "en": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
     "ja": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
     "zh-CN": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
@@ -588,7 +588,7 @@
     "ms": "Speak when the message and the listener’s availability align. Do not press for an immediate answer."
   },
   "sajuReading.rules.2": {
-    "ko": "책임과 자원이 맞을 때 맡으세요. 내 몫이 계속 늘어난다면 범위를 다시 합의하세요.",
+    "ko": "책임과 쓸 수 있는 자원이 맞을 때 맡는 게 좋아. 네 몫이 계속 늘어난다면 범위를 다시 맞춰 보자.",
     "en": "Accept a role when resources match its demands. Renegotiate a growing workload.",
     "ja": "Accept a role when resources match its demands. Renegotiate a growing workload.",
     "zh-CN": "Accept a role when resources match its demands. Renegotiate a growing workload.",
@@ -602,7 +602,7 @@
     "ms": "Accept a role when resources match its demands. Renegotiate a growing workload."
   },
   "sajuReading.rules.3": {
-    "ko": "기준이 목적에 도움이 될 때 적용하세요. 완벽함 때문에 멈춘다면 최소 조건부터 정하세요.",
+    "ko": "기준이 목적에 도움이 될 때 꺼내 써. 완벽하려다 멈춰 버린다면 최소 조건부터 정해 봐.",
     "en": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
     "ja": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
     "zh-CN": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
@@ -616,7 +616,7 @@
     "ms": "Apply standards that serve the goal. Define a minimum if perfection stalls progress."
   },
   "sajuReading.rules.4": {
-    "ko": "확인할 질문이 분명할 때 조사하세요. 정보만 쌓인다면 작은 시험의 기한을 정하세요.",
+    "ko": "확인할 질문이 분명할 때 알아봐. 정보만 쌓인다면 작게 시험해 볼 날짜부터 정해 봐.",
     "en": "Research a specific question. Set a small test deadline if information only accumulates.",
     "ja": "Research a specific question. Set a small test deadline if information only accumulates.",
     "zh-CN": "Research a specific question. Set a small test deadline if information only accumulates.",
@@ -1428,32 +1428,32 @@
     "ms": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart."
   },
   "sajuReading.paidDaeun": {
-    "ko": "10년 단위 흐름, 대운별 근거와 연도별 상세를 비교하고 싶은 분께 맞습니다.",
-    "en": "For comparing ten-year periods, chart evidence and annual details.",
-    "ja": "For comparing ten-year periods, chart evidence and annual details.",
-    "zh-CN": "For comparing ten-year periods, chart evidence and annual details.",
-    "zh-TW": "For comparing ten-year periods, chart evidence and annual details.",
-    "vi": "For comparing ten-year periods, chart evidence and annual details.",
-    "hi": "For comparing ten-year periods, chart evidence and annual details.",
-    "es": "For comparing ten-year periods, chart evidence and annual details.",
-    "fr": "For comparing ten-year periods, chart evidence and annual details.",
-    "de": "For comparing ten-year periods, chart evidence and annual details.",
-    "nl": "For comparing ten-year periods, chart evidence and annual details.",
-    "ms": "For comparing ten-year periods, chart evidence and annual details."
+    "ko": "10년마다 달라지는 삶의 흐름과 해마다의 변화를 함께 읽어요. 일·관계·재물 해설에서 지금 준비할 선택을 살펴보세요.",
+    "en": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
+    "ja": "10年ごとに変わる人生の流れと、毎年の変化をあわせて読みます。仕事・人間関係・金運の解説から、今準備しておきたい選択を確かめてください。",
+    "zh-CN": "一起解读每十年变化的人生走向和每年的变化，从事业、人际、财运的解析中看清现在该准备的选择。",
+    "zh-TW": "一起解讀每十年變化的人生走向和每年的變化，從事業、人際、財運的解析中看清現在該準備的選擇。",
+    "vi": "Cùng đọc dòng chảy cuộc đời thay đổi mỗi mười năm và những biến chuyển từng năm, rồi xem những lựa chọn cần chuẩn bị ngay từ bây giờ trong công việc, các mối quan hệ và tài chính.",
+    "hi": "हर दस साल में बदलते जीवन-प्रवाह और हर साल के बदलावों को साथ पढ़ें, और काम, रिश्तों व धन की व्याख्या से देखें कि अभी किन फ़ैसलों की तैयारी करनी है।",
+    "es": "Lee cómo cambia tu vida cada diez años junto con los cambios de cada año, y descubre qué decisiones preparar ahora en el trabajo, las relaciones y el dinero.",
+    "fr": "Lisez comment votre vie évolue tous les dix ans et d'une année à l'autre, et voyez quels choix préparer dès maintenant pour le travail, les relations et l'argent.",
+    "de": "Lesen Sie, wie sich Ihr Leben alle zehn Jahre und von Jahr zu Jahr verändert, und sehen Sie, welche Entscheidungen Sie jetzt für Arbeit, Beziehungen und Finanzen vorbereiten sollten.",
+    "nl": "Lees hoe je leven elke tien jaar en van jaar tot jaar verandert, en zie welke keuzes je nu kunt voorbereiden voor werk, relaties en geld.",
+    "ms": "Baca aliran hidup yang berubah setiap sepuluh tahun bersama perubahan setiap tahun, dan lihat pilihan yang perlu disediakan sekarang dalam kerja, hubungan dan kewangan."
   },
   "sajuReading.paidSummary": {
-    "ko": "일간·월령·오행·십성을 성격·일·관계 등 여러 주제로 이어 읽고 싶은 분께 맞습니다.",
-    "en": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
-    "ja": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
-    "zh-CN": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
-    "zh-TW": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
-    "vi": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
-    "hi": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
-    "es": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
-    "fr": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
-    "de": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
-    "nl": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.",
-    "ms": "For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships."
+    "ko": "타고난 기질과 오행·십성, 성격과 관계, 삶의 전략, 올해와 내년의 처방까지 내 명식으로 한 번에 정리해 드려요.",
+    "en": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
+    "ja": "生まれ持った気質、五行と十星、性格と人間関係、人生の戦略、今年と来年の処方まで、あなたの命式でまとめてお伝えします。",
+    "zh-CN": "从先天气质、五行与十神、性格与人际，到人生策略和今明两年的建议，按你的命盘一次整理好。",
+    "zh-TW": "從先天氣質、五行與十神、性格與人際，到人生策略和今明兩年的建議，依你的命盤一次整理好。",
+    "vi": "Khí chất bẩm sinh, ngũ hành và thập thần, tính cách và các mối quan hệ, chiến lược sống cùng lời khuyên cho năm nay và năm sau, gói gọn trong một bản luận giải theo lá số của bạn.",
+    "hi": "आपका स्वभाव, पंचतत्व और दस देव, व्यक्तित्व और रिश्ते, जीवन की रणनीति, और इस साल व अगले साल के सुझाव, सब कुछ आपके चार्ट से एक ही रीडिंग में।",
+    "es": "Tu temperamento, los cinco elementos y los Diez Dioses, tu personalidad y tus relaciones, tu estrategia de vida y consejos para este año y el próximo, reunidos en una sola lectura de tu carta.",
+    "fr": "Votre tempérament, les cinq éléments et les Dix Dieux, votre personnalité et vos relations, votre stratégie de vie et des conseils pour cette année et la suivante, réunis en une seule lecture de votre thème.",
+    "de": "Ihr Temperament, die fünf Elemente und die Zehn Götter, Persönlichkeit und Beziehungen, Lebensstrategie sowie Hinweise für dieses und nächstes Jahr, gebündelt in einer Lesung Ihres Horoskops.",
+    "nl": "Je aanleg, de vijf elementen en de Tien Goden, persoonlijkheid en relaties, levensstrategie en advies voor dit en volgend jaar, samengebracht in één lezing van je kaart.",
+    "ms": "Perangai semula jadi, lima unsur dan Sepuluh Dewa, personaliti dan hubungan, strategi hidup serta panduan untuk tahun ini dan tahun depan, semuanya dalam satu bacaan carta anda."
   },
   "sajuReading.recovery": {
     "ko": "기존 계정과 프로필로 사주 결과를 다시 열고 해당 풀이의 해금 상태를 확인하세요. 결제 후 열리지 않으면 새로 결제하지 말고 결제 내역과 함께 고객센터에 문의하세요.",
@@ -1596,7 +1596,7 @@
     "ms": "You do not need to fit every sentence. Start with one clue that connects with your own experience."
   },
   "sajuReading.endNeo": {
-    "ko": "명식은 선택을 대신하지 않습니다. 맞는 근거와 맞지 않는 해석을 구분하고, 오늘 확인할 행동 하나만 정하세요.",
+    "ko": "명식은 선택을 대신해 주지 않아. 맞는 근거와 안 맞는 해석을 가려 보고, 오늘 확인해 볼 행동 하나만 정해 봐.",
     "en": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
     "ja": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
     "zh-CN": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
@@ -1652,21 +1652,49 @@
     "ms": "This month’s cycle"
   },
   "sajuReading.summaryTitle": {
-    "ko": "종합 풀이",
-    "en": "Comprehensive reading",
-    "ja": "Comprehensive reading",
-    "zh-CN": "Comprehensive reading",
-    "zh-TW": "Comprehensive reading",
-    "vi": "Comprehensive reading",
-    "hi": "Comprehensive reading",
-    "es": "Comprehensive reading",
-    "fr": "Comprehensive reading",
-    "de": "Comprehensive reading",
-    "nl": "Comprehensive reading",
-    "ms": "Comprehensive reading"
+    "ko": "라이트 사주 풀이",
+    "en": "Light saju reading",
+    "ja": "ライト四柱推命鑑定",
+    "zh-CN": "轻量版八字解读",
+    "zh-TW": "輕量版八字解讀",
+    "vi": "Luận giải saju bản Light",
+    "hi": "लाइट साजू रीडिंग",
+    "es": "Lectura saju Light",
+    "fr": "Lecture saju Light",
+    "de": "Saju-Lesung Light",
+    "nl": "Saju-lezing Light",
+    "ms": "Bacaan saju Light"
+  },
+  "sajuReading.daeunTitle": {
+    "ko": "대운 분석 · 지금부터 다음 시기까지",
+    "en": "Your ten-year cycles",
+    "ja": "大運分析 · 今から次の時期まで",
+    "zh-CN": "大运分析 · 从现在到下一阶段",
+    "zh-TW": "大運分析 · 從現在到下一階段",
+    "vi": "Các chu kỳ mười năm của bạn",
+    "hi": "आपके दस-वर्षीय चक्र",
+    "es": "Tus ciclos de diez años",
+    "fr": "Vos cycles de dix ans",
+    "de": "Ihre Zehnjahreszyklen",
+    "nl": "Je cycli van tien jaar",
+    "ms": "Kitaran sepuluh tahun anda"
+  },
+  "sajuReading.graphTitle": {
+    "ko": "대운 흐름 비교",
+    "en": "Cycle comparison",
+    "ja": "大運の流れの比較",
+    "zh-CN": "大运走势对比",
+    "zh-TW": "大運走勢對比",
+    "vi": "So sánh các chu kỳ",
+    "hi": "चक्रों की तुलना",
+    "es": "Comparación de ciclos",
+    "fr": "Comparaison des cycles",
+    "de": "Zyklen im Vergleich",
+    "nl": "Cycli vergeleken",
+    "ms": "Perbandingan kitaran"
   },
   "sajuReading.godTraits.0": {
-    "ko": "자율적으로 방향을 정하려는 경향",
+    "ko": "스스로 방향을 정하고 싶어 하는 편이야.",
     "en": "A preference for self-directed choices",
     "ja": "A preference for self-directed choices",
     "zh-CN": "A preference for self-directed choices",
@@ -1680,7 +1708,7 @@
     "ms": "A preference for self-directed choices"
   },
   "sajuReading.godTraits.1": {
-    "ko": "협력과 경쟁에서 힘을 얻는 경향",
+    "ko": "함께 뛰거나 겨룰 때 오히려 힘이 나는 편이야.",
     "en": "Energy from cooperation and competition",
     "ja": "Energy from cooperation and competition",
     "zh-CN": "Energy from cooperation and competition",
@@ -1694,7 +1722,7 @@
     "ms": "Energy from cooperation and competition"
   },
   "sajuReading.godTraits.2": {
-    "ko": "반복하며 표현을 다듬는 경향",
+    "ko": "같은 걸 되풀이하면서 표현을 다듬어 가는 쪽이지.",
     "en": "Expression refined through practice",
     "ja": "Expression refined through practice",
     "zh-CN": "Expression refined through practice",
@@ -1708,7 +1736,7 @@
     "ms": "Expression refined through practice"
   },
   "sajuReading.godTraits.3": {
-    "ko": "익숙한 규칙을 검토하는 경향",
+    "ko": "익숙한 규칙도 그냥 넘기지 않고 한 번 따져 보는 편이야.",
     "en": "A habit of reviewing familiar rules",
     "ja": "A habit of reviewing familiar rules",
     "zh-CN": "A habit of reviewing familiar rules",
@@ -1722,7 +1750,7 @@
     "ms": "A habit of reviewing familiar rules"
   },
   "sajuReading.godTraits.4": {
-    "ko": "여러 기회를 연결하려는 경향",
+    "ko": "여러 기회를 서로 이어 보고 싶어질 수 있어.",
     "en": "Interest in connecting opportunities",
     "ja": "Interest in connecting opportunities",
     "zh-CN": "Interest in connecting opportunities",
@@ -1736,7 +1764,7 @@
     "ms": "Interest in connecting opportunities"
   },
   "sajuReading.godTraits.5": {
-    "ko": "약속과 자원을 꾸준히 관리하는 경향",
+    "ko": "약속과 자원을 꾸준히 챙기는 쪽이야.",
     "en": "Steady attention to resources and commitments",
     "ja": "Steady attention to resources and commitments",
     "zh-CN": "Steady attention to resources and commitments",
@@ -1750,7 +1778,7 @@
     "ms": "Steady attention to resources and commitments"
   },
   "sajuReading.godTraits.6": {
-    "ko": "부담이 있는 과제에 집중하는 경향",
+    "ko": "부담이 큰 일 앞에서 오히려 집중이 살아날 수도 있어.",
     "en": "Focus on demanding tasks",
     "ja": "Focus on demanding tasks",
     "zh-CN": "Focus on demanding tasks",
@@ -1764,7 +1792,7 @@
     "ms": "Focus on demanding tasks"
   },
   "sajuReading.godTraits.7": {
-    "ko": "역할과 기준을 중시하는 경향",
+    "ko": "역할과 기준이 분명할 때 마음이 놓이는 편이야.",
     "en": "Attention to roles and standards",
     "ja": "Attention to roles and standards",
     "zh-CN": "Attention to roles and standards",
@@ -1778,7 +1806,7 @@
     "ms": "Attention to roles and standards"
   },
   "sajuReading.godTraits.8": {
-    "ko": "낯선 관점을 깊이 살피는 경향",
+    "ko": "낯선 관점을 만나면 깊이 파고들고 싶어지지.",
     "en": "Deep exploration of unfamiliar views",
     "ja": "Deep exploration of unfamiliar views",
     "zh-CN": "Deep exploration of unfamiliar views",
@@ -1792,7 +1820,7 @@
     "ms": "Deep exploration of unfamiliar views"
   },
   "sajuReading.godTraits.9": {
-    "ko": "배움과 지원을 통해 준비하는 경향",
+    "ko": "배우고 도움을 주고받으면서 준비하는 편이야.",
     "en": "Preparation through learning and support",
     "ja": "Preparation through learning and support",
     "zh-CN": "Preparation through learning and support",

@@ -29,9 +29,9 @@ test("paid UI badges do not provide a numeric PriceBadge fallback", () => {
 });
 
 test("targeted mobile cards carry canonical feature keys and matching registry prices", () => {
-  assert.match(shell, /data-action="startIjikTarot"[\s\S]{0,240}data-feature-key="tarot-ijik"[\s\S]{0,240}data-price-krw="3000"/);
-  assert.match(shell, /data-action="openLoveSimulation"[\s\S]{0,240}data-feature-key="love-code"[\s\S]{0,240}data-price-krw="5000"/);
-  assert.match(shell, /data-action="openAnimalDestinyRoute"[\s\S]{0,260}data-feature-key="animal-destiny-unlock"[\s\S]{0,260}data-price-krw="1000"/);
+  assert.match(shell, /data-action="startIjikTarot"[\s\S]{0,240}data-feature-key="tarot-ijik"[\s\S]{0,240}data-price-krw="5000"/);
+  assert.doesNotMatch(shell, /<a[^>]*data-action="openLoveSimulation"/);
+  assert.match(shell, /data-action="openAnimalDestinyRoute"[\s\S]{0,260}data-feature-key="animal-destiny-unlock"[\s\S]{0,260}data-price-krw="7000"/);
 });
 
 test("React marketing sheets are lazy-mounted and use canonical pricing", () => {
@@ -67,7 +67,6 @@ test("shell price labels route through shared dictionary keys instead of Korean 
   assert.doesNotMatch(shell, /_setCtaMeta\(\s*'[^']*[가-힣]/);
 
   const wired = [
-    ["home.nav.aiConsult", 1],
     ["preview.priceLoading", 4],
     ["preview.priceUnknown", 1],
     ["preview.priceDetailCheck", 1],

@@ -1,0 +1,10 @@
+{
+  "original": "Independent SHIP after spacing and copy corrections",
+  "mobile": "Independent SHIP: all actual360 panels,3width price/notice/CTA,transcript360",
+  "evidence": "4width loaded/bounds/fallback; existing array switch changes authored product; POST0",
+  "limits": [
+    "Local mock; no real payment/LLM",
+    "Disabled start before cards confirmed remains existing behavior",
+    "Minor existing HTML orphan syllables not blocking"
+  ]
+}

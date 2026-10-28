@@ -1,0 +1,14 @@
+.loading{display:grid;justify-items:center;gap:20px;margin:28px 0;color:var(--yn-ivory);text-align:center}
+.scene{position:relative;isolation:isolate;width:min(100%,520px);aspect-ratio:3/2;overflow:hidden;border-radius:20px;background:var(--yn-surface)}
+.scene img{display:block;width:100%;height:100%;object-fit:contain}
+.sprite{position:absolute;inset:0;background-size:400% 200%;background-repeat:no-repeat;background-position:0 0;transform:scale(1.02);animation:readFrames 6.4s steps(1,end) infinite;pointer-events:none}
+.copy{max-width:42ch}.copy p{margin:0 0 8px;line-height:1.7;word-break:keep-all}
+.title{font-size:clamp(18px,4.5vw,23px);font-weight:700}.detail{color:var(--yn-muted);font-size:14px;font-variant-numeric:tabular-nums}
+.pause{min-height:44px;padding:8px 14px;border:1px solid var(--yn-line);border-radius:10px;color:var(--yn-ivory);background:var(--yn-raised);font:inherit;font-size:14px;cursor:pointer}
+.pause:hover{border-color:var(--yn-gold)}.pause:focus-visible{outline:3px solid var(--yn-gold);outline-offset:3px}
+.paused .sprite{animation-play-state:paused}
+.compact{grid-template-columns:144px minmax(0,1fr);justify-items:start;text-align:left;align-items:center;gap:16px}
+.compact .scene{border-radius:12px}.compact .title{font-size:17px}
+@keyframes readFrames{0%,100%{background-position:0 0}12.5%{background-position:33.333333% 0}25%{background-position:66.666667% 0}37.5%{background-position:100% 0}50%{background-position:0 100%}62.5%{background-position:33.333333% 100%}75%{background-position:66.666667% 100%}87.5%{background-position:100% 100%}}
+@media(max-width:430px){.compact{grid-template-columns:96px minmax(0,1fr);gap:12px}.loading{margin:20px 0}}
+@media(prefers-reduced-motion:reduce){.loading .sprite{animation:none;background-position:0 0}.pause{display:none}}

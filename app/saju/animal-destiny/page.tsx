@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import AnimalDestinyRouteClient from "./AnimalDestinyRouteClient";
+import YehwaCard from "../../components/service-intro/YehwaCard";
 
 const ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "십이운성 동물점 무료 | 내 운명의 동물 보는 곳 — 동물 도감",
+    title: "십이운성 동물점 무료 | 내 십이운성 계산·운명의 동물 도감",
     description: "생년월일로 세운 사주의 십이운성 흐름에서 나만의 운명 동물을 무료로 찾아 드립니다. 핵심 성향과 관계, 일과 재물 감각, 지금 단계의 성장 미션을 봅니다.",
   },
   en: {
-    title: "Destiny Animal Codex | Twelve Growth Animal Reading | Code Destiny",
+    title: "Destiny Animal Codex | Twelve Growth Animal Reading | 꿀꿀 운세",
     description: "Find your destiny animal through the Twelve Growth flow of your saju chart, with core traits, relationships, work and wealth senses, and growth missions at a glance.",
   },
   ja: {
-    title: "運命の動物図鑑 | 十二運星動物占い | Code Destiny",
+    title: "運命の動物図鑑 | 十二運星動物占い | 꿀꿀 운세",
     description: "生まれた四柱の十二運星の流れから自分だけの運命動物を見つけ、核心性向、関係、仕事と財の感覚、成長ミッションまで一目で確認できます。",
   },
 } as const;
@@ -21,6 +23,9 @@ const animalDestinyPageCopy = ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS.ko;
 export const metadata: Metadata = {
   title: animalDestinyPageCopy.title,
   description: animalDestinyPageCopy.description,
+  // 도구형 십이운성 검색어만 둔다. 뜻·보는법 정보형은 /insights/saju-12-unseong-complete-guide 가 대표 URL이다.
+  //   근거: 2026-10-24 네이버·구글 자동완성(docs/seo/keyword-research-2026-10).
+  keywords: ["십이운성", "십이운성 동물점", "사주 십이운성", "십이운성 계산", "내 십이운성", "운명의 동물", "동물점"],
   alternates: {
     canonical: "https://code-destiny.com/saju/animal-destiny",
   },
@@ -37,8 +42,12 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
-      <section className="sr-only" aria-label="운명의 동물 도감 안내">
+      <section className="relative z-10 mx-auto w-full max-w-3xl px-4 py-6" aria-label="운명의 동물 도감 안내">
+        <YehwaCard ornament={false}>
         <h1>운명의 동물 도감</h1>
+        <p>생년월일로 세운 사주의 십이운성을 동물 상징으로 읽습니다. 나의 성향과 관계 습관, 성장 방향을 함께 살펴보세요.</p>
+        <details className="mt-4">
+          <summary className="min-h-11 cursor-pointer py-3 font-semibold text-[var(--si-heading)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current">십이운성 동물점 해석 안내</summary>
         <p>
           태어난 사주의 십이운성 흐름은 한 사람의 기운이 어떤 속도로 피어나고, 어떤 방식으로 세상과 관계를 맺는지 조용히 드러냅니다.
           운명의 동물 도감은 그 흐름을 동물의 상징으로 옮겨, 당신 안에 오래 머문 생존 감각과 성장 방향, 관계에서 반복되는 움직임을 부드럽게 비춥니다.
@@ -78,6 +87,19 @@ export default function Page() {
           어디에서 조심스러워지고 어디에서 대담해지는지, 어떤 사람 곁에서 더 부드러워지고 어떤 일 앞에서 다시 힘을 얻는지를 읽으면
           삶의 리듬은 조금 더 선명하고 편안하게 돌아오기 시작합니다.
         </p>
+        <p>
+          계산은 일간을 기준으로 연·월·일·시 네 기둥의 지지가 각각 십이운성의 어느 단계에 있는지 표에서 찾는 방식입니다.
+          장생은 시작, 목욕은 흔들림과 매력, 관대는 자립, 건록은 자기 힘, 제왕은 절정, 쇠는 노련한 물러섬, 병은 예민한 감수성,
+          사는 정리와 몰입, 묘는 저장, 절은 끊고 다시 잇는 전환, 태는 잉태된 가능성, 양은 보살핌 속의 준비를 상징하며,
+          대표 동물은 일지의 단계로 정합니다.
+        </p>
+        </details>
+        <p className="mt-2">
+          <Link href="/insights/saju-12-unseong-complete-guide" className="font-semibold underline underline-offset-4">
+            십이운성 뜻과 보는 법 자세히 보기
+          </Link>
+        </p>
+        </YehwaCard>
       </section>
       <AnimalDestinyRouteClient />
     </>

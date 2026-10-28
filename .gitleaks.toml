@@ -1,11 +1,30 @@
 title = "Code Destiny Gitleaks Config"
 
-[[allowlists]]
-description = "Ignore public naver verification meta tags in locale index files"
-condition = "AND"
-paths = [
-  '''^public/(en|ja|zh)/index\.html$''',
-]
+# 기본 규칙을 상속한다. 이 줄이 없으면 allowlist 만 있는 설정은 규칙이 0개라 아무것도 탐지하지 못한다
+# (gitleaks v8.24.2 실측, 2026-10-13). CI 는 .github/workflows/secret-scan.yml 의 v8.24.2 를 쓴다.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "code-destiny-mongodb-uri-credentials"
+description = "MongoDB URI credential embedded in source or history"
+regex = '''(?i)mongodb(?:\+srv)?://[^:\s/"']+:([^@\s/"']+)@'''
+secretGroup = 1
+keywords = ["mongodb://", "mongodb+srv://"]
+
+[[rules]]
+id = "code-destiny-portone-api-secret"
+description = "PortOne API secret assigned in source or history"
+regex = '''(?i)PORTONE(?:_V2)?_API_SECRET\s*[:=]\s*["']?([A-Za-z0-9_-]{40,})'''
+secretGroup = 1
+keywords = ["portone"]
+
+# v8.24.2 는 [[allowlists]](복수형)와 condition = "AND" 를 적용하지 않는다(실측) → 단수 [allowlist] 만 쓴다.
+# 공개 HTML 에 그대로 노출되는 네이버 사이트 소유확인 메타 태그 한 줄만 제외한다(키 값이 아닌 공개 토큰).
+# regexTarget = "line": 이 태그가 있는 줄 전체가 대상이므로, 같은 줄에 다른 값을 넣지 않는다.
+[allowlist]
+description = "Ignore public naver verification meta tags"
+regexTarget = "line"
 regexes = [
   '''<meta\s+name="naver-site-verification"\s+content="[a-f0-9]{40}"\s*/?>''',
 ]

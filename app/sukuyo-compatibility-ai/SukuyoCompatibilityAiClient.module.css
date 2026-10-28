@@ -1504,7 +1504,7 @@
   margin-bottom: 18px;
 }
 
-.readingSection > div span {
+.readingSection > div:first-child > span {
   min-width: 28px;
   color: rgba(251, 191, 36, .74);
   font-family: var(--font-premium), var(--font-display), var(--font-body), system-ui, sans-serif;
@@ -2880,4 +2880,69 @@
 
 .screen[data-duo-linked="true"] .visualVeil {
   transform: scale(1.03);
+}
+
+.productGuide { position: relative; z-index: 1; max-width: 540px; margin-inline: auto; }
+
+/* ── 서한비 (전문가 상담 캐릭터) ────────────────────────────────────────
+   isExpertCharacterEnabled("hanbi") 일 때만 data-character 가 붙는다 — 끄면 기존 예화 밤하늘 그대로.
+   🔴 빗빛 인디고·은빛 비·옅은 금빛. 버건디는 인연의 서 마스터 색이라 쓰지 않는다. */
+.screen[data-character="hanbi"] {
+  --sk-violet: #b9c6ee;
+  --sk-ink-violet: #bccaf0;
+  background:
+    radial-gradient(ellipse at 78% 8%, rgba(255, 232, 182, .12), transparent 28%),
+    radial-gradient(circle at 18% 14%, rgba(185, 198, 238, .12), transparent 30%),
+    radial-gradient(circle at 64% 86%, rgba(150, 170, 230, .08), transparent 34%),
+    linear-gradient(155deg, #070a18 0%, #0f1530 46%, #141c3a 76%, #070a18 100%);
+}
+
+/* 키아트는 예화 씬 자리(카피 아래 칸, order: 1)에 흐른다. 원본이 3:2 라 비율을 그대로 못 박는다. */
+.hanbiKeyArt {
+  position: relative;
+  order: 1;
+  z-index: 1;
+  aspect-ratio: 3 / 2;
+  margin: 0 clamp(16px, 3vw, 32px) clamp(16px, 3vw, 32px);
+  overflow: hidden;
+  border: 1px solid rgba(223, 231, 247, .22);
+  border-radius: 8px;
+  box-shadow: 0 24px 60px rgba(4, 6, 18, .5), 0 0 0 4px rgba(185, 198, 238, .06);
+}
+
+/* 얼굴과 관계 도구를 함께 보여 주는 3:2 상담 장면. */
+.hanbiKeyArtImage {
+  object-fit: cover;
+  object-position: center;
+}
+
+.hanbiHeroStage {
+  margin-top: 18px;
+  max-width: 520px;
+}
+
+.hanbiInlineStage {
+  margin-top: 14px;
+}
+
+/* 로딩 화면은 fixed 장막 위에 오라·별이 깔린다 — 무대를 그 위로 올린다. */
+.hanbiLoadingStage {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 28px;
+}
+
+/* 맺음 편지 끝 서명 — 화면과 PDF 가 같은 컴포넌트를 쓴다. */
+.hanbiSignoff {
+  margin: 18px 0 0;
+  text-align: right;
+  color: #dfe7f7;
+  font-family: var(--font-premium), var(--font-display), var(--font-body), serif;
+  letter-spacing: .04em;
+}
+
+@media (min-width: 981px) {
+  .hanbiKeyArt {
+    margin: 0 clamp(8px, 1.6vw, 20px) clamp(20px, 3vw, 36px) clamp(4px, 1vw, 12px);
+  }
 }

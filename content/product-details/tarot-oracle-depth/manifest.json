@@ -1,0 +1,80 @@
+{
+  "id": "tarot-oracle-depth",
+  "featureKey": "tarot-prompt-maker-deep",
+  "title": "타로 오라클 · 8~10장",
+  "notice": "8~10장 배열로 질문의 여러 조건을 읽는 AI 타로 상담입니다. 생년월일 대신 질문과 분야·배열·카드·정역방향을 사용합니다. 켈틱 크로스 10장 안내는 제공 배열의 예시이며 다른 배열의 자리명은 다릅니다. 질문 기준·전체 흐름·각 자리 해석과 조언·선택된 세 카드 쌍·긴장 조건·주제 심화·주의점·현재/가까운 흐름/분기점·행동과 마무리를 포함합니다. 모든 카드 조합을 분석하거나 미래를 확정하지 않습니다. 같은 계정의 저장된 상담과 같은 브라우저의 읽던 위치를 이용하며 중단된 생성은 제공되는 안내를 따릅니다. PDF와 추가 대화는 제공하지 않습니다. 프롬프트 복사와 무료 레노먼드는 별도 구성입니다. 도식/문장은 구성 설명과 가상 예시이며 개인 결과나 고객 후기가 아닙니다. 기존 가격과 이용권·월정석·단건 결제 조건을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-under-the-same-question",
+      "title": "되풀이되는 고민, 그 아래의 조건을 읽다.",
+      "src": "/feature-details/crafted/tarot-oracle-depth/01-under-the-same-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "되풀이되는 고민,\n그 아래의 조건을 읽다.\n\n지금 드러난 문제\n\n과거의 영향과 나의 태도\n\n주변 조건과 앞으로의 선택\n\n8~10장 타로 오라클 상담.\n복잡한 고민의 여러 층을 펼쳐\n서로 어떻게 연결되는지 살펴봅니다."
+    },
+    {
+      "id": "02-a-cross-of-perspectives",
+      "title": "현재만 보지 않고, 그 아래의 원인까지.",
+      "src": "/feature-details/crafted/tarot-oracle-depth/02-a-cross-of-perspectives.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "현재만 보지 않고,\n그 아래의 원인까지.\n\n의식적 목표\n\n과거 영향\n\n현재 · 장애물\n\n가까운 미래\n\n무의식적 원인\n\n켈틱 크로스 10장 배열에서는\n현재의 문제를 둘러싼 시간과 마음의\n자리를 함께 읽습니다.\n\n실제 자리명을 재구성한 설명 도식입니다.\n카드를 뽑는 화면의 배치와는 다릅니다."
+    },
+    {
+      "id": "03-the-remaining-places",
+      "title": "문제를 보는 나와, 나를 둘러싼 현실.",
+      "src": "/feature-details/crafted/tarot-oracle-depth/03-the-remaining-places.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "문제를 보는 나와,\n나를 둘러싼 현실.\n\n나의 태도\n내가 조절할 선택\n\n주변 환경\n나 밖의 영향\n\n희망과 두려움\n원하면서 망설이는 마음\n\n종합 결과\n현재 선택이 향하는 흐름\n\n켈틱 크로스의 나머지 네 자리입니다.\n다른 8~10장 배열을 고르면\n각 자리의 질문도 달라집니다."
+    },
+    {
+      "id": "04-ask-with-a-decision",
+      "title": "“옮겨야 할까요?”에서 한 걸음 더.",
+      "src": "/feature-details/crafted/tarot-oracle-depth/04-ask-with-a-decision.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "“옮겨야 할까요?”에서\n한 걸음 더.\n새 일을 시작하고 싶지만\n이전의 실패가 자꾸 떠오릅니다.\n현실적으로 준비할 부분과\n두려움 때문에 미루는 부분을\n어떻게 구분할 수 있을까요?\n\n상황과 망설이는 이유를 적으면\n각 카드 자리를 지금의 선택에\n연결해 읽기 쉬워집니다.\n\n가상 질문 예시입니다."
+    },
+    {
+      "id": "05-the-full-reading",
+      "title": "복잡한 배열을, 읽을 수 있는 목차로.",
+      "src": "/feature-details/crafted/tarot-oracle-depth/05-the-full-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "복잡한 배열을,\n읽을 수 있는 목차로.\n\n질문의 기준 · 전체 배열의 흐름\n\n8~10개 자리의 해석과 행동 조언\n\n선택된 세 카드 쌍의 연결\n\n긴장 조건 · 주제 심화 · 주의점\n\n현재 · 가까운 흐름 · 분기점\n\n실천할 행동과 마지막 조언\n\n카드와 정·역방향을 반영한 AI 상담입니다."
+    },
+    {
+      "id": "06-read-the-pattern",
+      "title": "지난 경험과, 지금의 선택을 구분해요.",
+      "src": "/feature-details/crafted/tarot-oracle-depth/06-read-the-pattern.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "지난 경험과,\n지금의 선택을 구분해요.\n과거의 영향\n\n실패를 피하고 싶은 마음이\n새 선택의 기준을 좁힐 수 있습니다.\n\n나의 태도\n\n작은 시도로 확인할 수 있는 조건을\n정하면 두려움과 현실을\n조금 더 분리해 볼 수 있습니다.\n\n상담 방식을 보여주는 가상 해석입니다.\n실제 개인 결과나 성공의 보장이 아닙니다."
+    },
+    {
+      "id": "07-a-future-with-conditions",
+      "title": "미래를 결론내리기보다, 바뀔 조건을 읽으세요.",
+      "src": "/feature-details/crafted/tarot-oracle-depth/07-a-future-with-conditions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "미래를 결론내리기보다,\n바뀔 조건을 읽으세요.\n\n현재\n지금 판단의 근거\n\n가까운 흐름\n현 상황이 이어질 때의 조건\n\n분기점\n방향을 다시 볼 확인 신호\n\n예측에 머무르지 않고 오늘의 행동,\n일주일의 점검, 선택을 재검토할 기준을\n함께 살펴봅니다."
+    },
+    {
+      "id": "08-take-your-time",
+      "title": "한 번에 다 읽지 않아도, 돌아올 수 있게.",
+      "src": "/feature-details/crafted/tarot-oracle-depth/08-take-your-time.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한 번에 다 읽지 않아도,\n돌아올 수 있게.\n\n목차에서 필요한 장으로 이동하고,\n같은 계정으로 저장된 상담을 불러옵니다.\n\n같은 브라우저의 읽던 위치를 확인합니다.\n중단된 생성은 화면의 이어받기 안내에\n따라 진행할 수 있습니다.\n\nPDF 저장과 추가 대화는 제공하지 않습니다.\n목차 분량은 선택한 카드 수와\n상담 구성에 따라 달라집니다."
+    },
+    {
+      "id": "09-a-broader-view",
+      "title": "여러 장의 카드로, 질문을 넓게 살펴요.",
+      "src": "/feature-details/crafted/tarot-oracle-depth/09-a-broader-view.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "여러 장의 카드로,\n질문을 넓게 살펴요.\n\n내가 바꿀 수 있는 조건부터\n하나씩 구체적으로.\n\n질문과 분야를 정하고\n8~10장 배열을 선택해 시작하세요.\n\n생년월일 입력은 없습니다.\n현재 이용권·월정석·단건 결제 조건을\n기존 결제 화면에서 확인합니다.\n법률·의료·투자 판단을 대신하지 않습니다."
+    }
+  ]
+}

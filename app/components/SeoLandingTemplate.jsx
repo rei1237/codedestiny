@@ -1,3 +1,5 @@
+import { getFortuneLanding } from "../../lib/fortune-landings.mjs";
+import landingStyles from "./fortune-landing.module.css";
 import PublicRecordLink from './PublicRecordLink';
 import { getIntentCopy } from '../../lib/seo/intent-copy.mjs';
 import {FreeQuestionNext} from "./QuestionJourney";
@@ -14,7 +16,7 @@ import {
 } from "../../lib/structured-data";
 import { getSeoRouteProfile, getTopicClusterLinks } from "../../lib/seo/entity-registry.mjs";
 import SeoLandingBirthForm from "./SeoLandingBirthForm";
-import FortuneLandingHero, { hasFortuneLanding } from "./FortuneLandingHero";
+import FortuneLandingHero, { hasFortuneLanding, FortuneLandingDirectory } from "./FortuneLandingHero";
 import { SEO_SERVICE_SCOPES } from "../../lib/seo-service-scope";
 import { SEO_READING_EXAMPLES } from "../../lib/seo-reading-examples";
 
@@ -37,11 +39,10 @@ const DEFAULT_FAQS = [
 ];
 
 const DEFAULT_RELATED_LABELS = {
-  "/": "꿀꿀 운세 홈 | Code Destiny",
+  "/": "꿀꿀 운세 홈",
   "/manse": "무료 만세력 사주 분석",
   "/saju": "무료 사주팔자 분석",
   "/saju/monthly/2026-09": "2026년 9월 일간별 운세",
-  "/saju/basic": "사주 만세력 기본 해석",
   "/saju/compatibility": "사주 궁합 해석",
   "/compatibility": "궁합 보기",
   "/tarot": "무료 타로 카드 리딩",
@@ -64,6 +65,17 @@ const DEFAULT_RELATED_LABELS = {
   "/insights": "운세 인사이트 아카이브",
 };
 
+const RELATED_SERVICE_TARGETS = {
+  "/saju": "saju", "/saju/guide": "saju", "/saju/compatibility": "saju", "/saju/monthly/2026-09": "saju",
+  "/manse": "manse", "/today": "zodiac",
+  "/tarot": "tarot", "/tarot/reunion": "tarot", "/tarot/mindscan": "tarot", "/tarot/guide": "tarot",
+  "/ziwei": "ziwei", "/ziwei/chart": "ziwei", "/ziwei/guide": "ziwei",
+  "/sukuyo": "sukuyo", "/sukuyo/compatibility": "sukuyo", "/sukuyo/guide": "sukuyo",
+  "/vedic": "vedic", "/vedic/guide": "vedic", "/vedic-ai": "vedic",
+  "/astrology": "astrology", "/astrology/guide": "astrology", "/astrology-ai": "astrology",
+  "/naming-ai": "naming", "/yeongnyangi": "yeongnyangi", "/yeongnyangi/1000-won-fortune": "yeongnyangi",
+};
+
 const SEO_LANDING_TEMPLATE_COPY = {
   ko: {
     guideSaju: "사주팔자 입문 보기",
@@ -74,7 +86,7 @@ const SEO_LANDING_TEMPLATE_COPY = {
       "오늘 바로 실천할 선택을 한 가지로 정리합니다.",
     ],
     defaultResultItems: ["핵심 성향과 현재 흐름", "관계와 선택의 주의점", "실천 가능한 자기성찰 질문"],
-    disclaimer: "운세 콘텐츠는 오락과 자기성찰을 위한 참고 정보입니다. 의료, 법률, 재무 등 전문 판단을 대신하지 않습니다.",
+    disclaimer: "운세 콘텐츠는 자기성찰을 위한 참고 정보입니다. 의료, 법률, 재무 등 전문 판단을 대신하지 않습니다.",
     cards: {
       howToUse: "사용 방법",
       result: "제공 결과",
@@ -170,8 +182,10 @@ function SectionHead({ id, title, label }) {
   );
 }
 
-export default function SeoLandingTemplate({ page, hero = null }) {
+export default function SeoLandingTemplate({ page, hero = null, services = null }) {
   const fortuneLanding = hasFortuneLanding(page.path);
+  const EditorialSection = fortuneLanding ? "details" : "section";
+  const ReadingGuide = fortuneLanding ? "details" : "div";
   const landingHero = hero || (fortuneLanding ? <FortuneLandingHero path={page.path} /> : null);
   const intent = getIntentCopy(page?.path);
   const copy = page?.templateCopy || SEO_LANDING_TEMPLATE_COPY.ko;
@@ -203,7 +217,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
   const breadcrumb = [
     { name: copy.breadcrumbHome, path: "/" },
     { name: copy.breadcrumbServices, path: "/guides" },
-    { name: page.breadcrumbLabel || page.h1, path: page.path },
+    { name: page.breadcrumbLabel || (fortuneLanding ? getFortuneLanding(page.path).name : page.h1), path: page.path },
   ];
   /* 본문을 고친 날(page.dateModified, 선택 필드)은 화면의 검수 노트와 WebPage JSON-LD 에 같은 값으로
      싣는다. 넘기지 않은 랜딩의 출력은 그대로다. */
@@ -226,7 +240,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
   const faqJsonLd = buildFaqPageJsonLd(faqs);
 
   return (
-    <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[var(--cd-bg)] px-4 pb-16 pt-6 text-[var(--cd-text)] md:px-6 md:pb-24 md:pt-10">
+    <main data-fortune-landing={fortuneLanding ? "editorial" : undefined} className={`${fortuneLanding ? landingStyles.page : ""} relative isolate min-h-[100dvh] overflow-hidden bg-[var(--cd-bg)] px-4 pb-16 pt-6 text-[var(--cd-text)] md:px-6 md:pb-24 md:pt-10`}>
       <div className="mx-auto w-full max-w-5xl">
         <nav
           aria-label="Breadcrumb"
@@ -250,9 +264,9 @@ export default function SeoLandingTemplate({ page, hero = null }) {
         </nav>
 
         {landingHero || <header className="mt-[clamp(2.5rem,6vw,4rem)] border-b border-[var(--cd-border)] pb-[clamp(2.5rem,6vw,4rem)]">
-          <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[var(--cd-accent)]">
+          <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[var(--cd-text-muted)]">
             <MoonMark />
-            <span className="font-[family-name:var(--font-serif)] tracking-[0.02em]">Code Destiny</span>
+            <span className="font-[family-name:var(--font-serif)] tracking-[0.02em]">꿀꿀 운세</span>
           </p>
           <h1 className="mt-5 max-w-[20ch] break-keep font-[family-name:var(--font-serif)] text-[clamp(2.15rem,6vw,4rem)] font-bold leading-[1.16] tracking-[-0.02em] text-[var(--cd-text)] [text-wrap:balance]">
             {/* h1Question 이 있으면 키워드 H1 은 눈썹으로 내리고 고객 질문을 주인공으로 둔다(질문 우선 2026-10-02). */}
@@ -292,7 +306,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
             <Link
               href={page.ctaHref || "/"}
               data-cd-cross-sell={page?.path || ""}
-              className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--cd-cta-primary-bg)] px-7 text-[0.94rem] font-semibold text-[var(--cd-cta-primary-ink)] transition-[background-color,box-shadow,transform] duration-200 ease-out hover:bg-[var(--cd-cta-primary-bg-2)] hover:shadow-[var(--cd-shadow)] motion-safe:hover:-translate-y-0.5 ${FOCUS_RING}`}
+              className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-[var(--cd-r-control,12px)] bg-[var(--cd-primary)] px-7 text-[0.94rem] font-semibold text-[var(--cd-primary-ink)] transition-[background-color,box-shadow,transform] duration-200 ease-out hover:bg-[var(--cd-primary-hover)] hover:shadow-[var(--cd-shadow)] motion-safe:hover:-translate-y-0.5 ${FOCUS_RING}`}
             >
               <Compass className="h-4 w-4" aria-hidden="true" />
               {page.ctaLabel || copy.defaultCta}
@@ -308,6 +322,11 @@ export default function SeoLandingTemplate({ page, hero = null }) {
           )}
         </header>}
 
+        {/* 히어로 바로 아래의 서비스 목록(선택). /saju/ 의 사주 서비스 모아보기가 쓴다. */}
+        {services}
+
+        <ReadingGuide id={fortuneLanding ? "landing-guide" : undefined} className={fortuneLanding ? landingStyles.guide : undefined}>
+        {fortuneLanding && <summary>이용 방법과 제공 범위<span aria-hidden="true">+</span></summary>}
         {hero && <section aria-labelledby="sajuIntroduction" className="mt-10 max-w-[68ch]">
           <h2 id="sajuIntroduction" className="font-[family-name:var(--font-serif)] text-2xl font-bold">사주, 나를 이해하는 여덟 글자</h2>
           <p className="mt-4 break-keep text-[0.98rem] leading-[1.9] text-[var(--cd-text-muted)]">{page.intro || page.description}</p>
@@ -330,7 +349,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
                       className="absolute bottom-0 left-4 top-9 w-px -translate-x-1/2 bg-[var(--cd-border)]"
                     />
                   ) : null}
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--cd-border)] font-[family-name:var(--font-serif)] text-[0.88rem] font-bold text-[var(--cd-accent)]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--cd-border)] font-[family-name:var(--font-serif)] text-[0.88rem] font-bold text-[var(--cd-text)]">
                     {index + 1}
                   </span>
                   <p className="min-w-0 break-keep pt-[0.3rem] text-[0.95rem] leading-[1.85] text-[var(--cd-text-muted)]">
@@ -357,12 +376,12 @@ export default function SeoLandingTemplate({ page, hero = null }) {
         </div>
 
         {sections.map((section, sectionIndex) => (
-          <section
+          <EditorialSection
             key={section.heading}
             aria-labelledby={`seoLandingSection${sectionIndex}`}
-            className="mt-[clamp(3rem,7vw,5rem)]"
+            className={fortuneLanding ? landingStyles.chapter : "mt-[clamp(3rem,7vw,5rem)]"}
           >
-            <SectionHead id={`seoLandingSection${sectionIndex}`} title={section.heading} label={section.label} />
+            {fortuneLanding ? <summary><h2 id={`seoLandingSection${sectionIndex}`}>{section.heading}</h2><span aria-hidden="true">+</span></summary> : <SectionHead id={`seoLandingSection${sectionIndex}`} title={section.heading} label={section.label} />}
             {(Array.isArray(section.paragraphs) ? section.paragraphs : []).map((paragraph) => (
               <p
                 key={paragraph}
@@ -371,7 +390,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
                 {paragraph}
               </p>
             ))}
-          </section>
+          </EditorialSection>
         ))}
 
         {linkGroups.map((group, groupIndex) => (
@@ -430,7 +449,9 @@ export default function SeoLandingTemplate({ page, hero = null }) {
             {nextStep.lead}{" "}
             <Link
               href={nextStep.href}
-              data-cd-cross-sell={page?.path || ""}
+              data-cd-cross-sell={`${page.path}/`}
+              data-cd-cta-placement="next_step"
+              data-cd-target-service="yeongnyangi"
               className={`rounded-[4px] font-semibold text-[var(--cd-accent)] underline underline-offset-4 transition-colors duration-200 hover:text-[var(--cd-text)] ${FOCUS_RING}`}
             >
               {nextStep.label}
@@ -453,6 +474,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
         <ContentIntegrityNote tone="light" contentPath={page?.path || ""} dateModified={dateModified} />
 
         {["/saju","/sukuyo","/ziwei","/astrology","/vedic","/tarot"].includes(page.path) && <FreeQuestionNext category={({"/saju":"saju","/sukuyo":"sukuyo","/ziwei":"ziwei","/astrology":"astrology","/vedic":"vedic","/tarot":"tarot"})[page.path] || "general"} source="seo_guide"/>}
+
         <section aria-labelledby="seoLandingRelated" className="mt-[clamp(3.5rem,8vw,5.5rem)]">
           <SectionHead id="seoLandingRelated" title={copy.relatedFeatures} label={copy.relatedFlow} />
           {topicProfile?.topicSummary ? (
@@ -460,13 +482,16 @@ export default function SeoLandingTemplate({ page, hero = null }) {
               {topicProfile.topicSummary}
             </p>
           ) : null}
-          {/* 이 템플릿은 서버 컴포넌트라 onClick 을 달 수 없다. 대신 컨테이너에 표식만 남기고
+          {/* 이 템플릿은 서버 컴포넌트라 onClick 을 달 수 없다. 대신 링크에 표식만 남기고
               js/core/analytics.js 의 위임 리스너가 cross_sell_click 을 쏜다. */}
-          <ul className="mt-6 grid gap-x-12 sm:grid-cols-2" data-cd-cross-sell={page?.path || ""}>
+          <ul className="mt-6 grid gap-x-12 sm:grid-cols-2">
             {relatedServices.map((item) => (
               <li key={item.href} className="border-b border-[var(--cd-border)]">
                 <Link
                   href={item.href}
+                  data-cd-cross-sell={`${page.path.replace(/\/$/, "")}/`}
+                  data-cd-cta-placement="related"
+                  data-cd-target-service={RELATED_SERVICE_TARGETS[item.href.replace(/\/$/, "")]}
                   className={`group flex min-h-[3.75rem] items-center justify-between gap-4 py-4 text-[0.95rem] font-semibold text-[var(--cd-text)] transition-colors duration-200 hover:text-[var(--cd-accent)] ${FOCUS_RING}`}
                 >
                   <span className="min-w-0 break-keep">{item.label}</span>
@@ -491,7 +516,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
                   <span className="min-w-0 break-keep">{faq.question}</span>
                   <span
                     aria-hidden="true"
-                    className="mt-[0.1rem] shrink-0 text-[1.05rem] leading-none text-[var(--cd-accent)] transition-transform duration-200 ease-out group-open:rotate-45 motion-reduce:transition-none"
+                    className="mt-[0.1rem] shrink-0 text-[1.05rem] leading-none text-[var(--cd-text-muted)] transition-transform duration-200 ease-out group-open:rotate-45 motion-reduce:transition-none"
                   >
                     +
                   </span>
@@ -503,6 +528,8 @@ export default function SeoLandingTemplate({ page, hero = null }) {
             ))}
           </div>
         </section>
+        </ReadingGuide>
+        {fortuneLanding && <FortuneLandingDirectory path={page.path} />}
       </div>
 
       <DeferredShareWidget

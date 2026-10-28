@@ -64,17 +64,19 @@ const CF_READ_TOKEN = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOK
 //
 // 🔴 여기 없는 라우트는 이 파일의 전파 대기(재시도+퍼지)를 하나도 못 받는다. scripts/deploy-smoke.mjs
 // 가 브라우저로 방문하는 라우트는 재시도 없이 console.error 를 그대로 실패로 본다 — 그래서 여기
-// 목록에 없던 `/saju/basic/` 의 셸 청크(`/js/shell/s-*.js`)가 전환 구간에 일시 404 나자 스모크가
+// 목록에 없던 `/saju/` 의 셸 청크(`/js/shell/s-*.js`)가 전환 구간에 일시 404 나자 스모크가
 // 즉시 릴리스를 실패시키고 자동 롤백을 불렀다(2026-08-21, PR #920 릴리스 5a92e99, 커밋 자체는
 // `scripts/verify-karma-destiny-ai-flow.mjs` 한 줄만 바꿔 무관했다). deploy-smoke 라우트는 전부
 // 여기서도 검사해 같은 전파 지연을 롤백 전에 흡수한다.
 const ROUTES = [
   "/",
+  // 루트가 대표 홈(200)이 되면 `/` 는 더 이상 셸로 따라가지 않는다. 셸은 스모크가 직접 방문한다.
+  "/ggulggul/",
   "/points/",
   "/login/",
   "/music/",
   "/stories/",
-  "/saju/basic/",
+  "/saju/",
   "/fortune-tea-house/",
   "/app/",
   "/app/store/",

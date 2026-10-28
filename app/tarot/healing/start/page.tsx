@@ -35,7 +35,7 @@ const TAROT_HEALING_START_METADATA_COPY = {
 const META = {
   path: "/tarot/healing",
   ...TAROT_HEALING_START_METADATA_COPY.ko,
-  image: "https://code-destiny.com/fuctionassets/healing.webp",
+  image: "https://code-destiny.com/images/service-introductions/tarot-healing.webp",
   applicationCategory: "EntertainmentApplication",
   // 🔴 이 라우트는 /tarot/healing 으로 보내는 딥링크 스텁이라 서버 렌더 텍스트가 28자이고
   //    h1 이 0개다(2026-08-28 dist 실측). 그런데 x-robots 헤더가 없고 metadata 의 path 가

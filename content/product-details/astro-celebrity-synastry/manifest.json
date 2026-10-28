@@ -1,0 +1,80 @@
+{
+  "id": "astro-celebrity-synastry",
+  "featureKey": "compat-astro-synastry",
+  "title": "유명인 시나스트리 실험실",
+  "notice": "목록에서 유명인을 선택해 내 출생차트와 등록된 출생자료를 비교하는 점성술 궁합 실험실입니다. 개인의 실제 관계나 상대방의 감정을 확인하는 기능이 아닙니다. 등록된 시각이 불확실하면 정오를 사용하며 정확한 출생좌표가 없으면 국가별 대표도시를 적용할 수 있습니다. 이 한계는 달·상승궁·하우스 해석에도 영향을 줍니다. 점수·관계 유형·세 관계 해석·각도 근거·하우스 겹침·빛과 그림자와 복사 가능한 질문문을 제공합니다. 점수는 관계 성공 확률이 아닙니다. 예시는 특정 인물과 무관한 가상 편집이며 현재 화면의 가격·결제 조건을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-curiosity-about-attraction",
+      "title": "어떤 분위기에 끌리는지, 궁합 실험으로 살펴요.",
+      "alt": "어떤 분위기에 끌리는지, 궁합 실험으로 살펴요.",
+      "src": "/feature-details/crafted/astro-celebrity-synastry/01-a-curiosity-about-attraction.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "어떤 분위기에 끌리는지,\n궁합 실험으로 살펴요.\n\n목록 속 인물의 출생자료와\n내 차트를 비교하는 작은 실험실.\n\n유명인 시나스트리 · 셀럽 궁합"
+    },
+    {
+      "id": "02-a-chart-experiment",
+      "title": "실제로 모르는 사이도, 내 취향을 살펴볼 단서로.",
+      "alt": "실제로 모르는 사이도, 내 취향을 살펴볼 단서로.",
+      "src": "/feature-details/crafted/astro-celebrity-synastry/02-a-chart-experiment.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "실제로 모르는 사이도,\n내 취향을 살펴볼 단서로.\n이 실험에서\n\n두 출생차트의 배치와 관계를 비교해요.\n\n여기서 알 수 없는 것\n\n그 사람의 실제 감정,\n만남이나 관계가 이루어질 가능성\n\n상대가 나를 좋아한다는 확인이 아니에요.\n내가 끌리는 관계의 분위기를 참고해요."
+    },
+    {
+      "id": "03-registered-birth-data",
+      "title": "선택하기 전에, 자료의 한계부터 알아둬요.",
+      "alt": "선택하기 전에, 자료의 한계부터 알아둬요.",
+      "src": "/feature-details/crafted/astro-celebrity-synastry/03-registered-birth-data.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "선택하기 전에,\n자료의 한계부터 알아둬요.\n출생시각\n\n등록된 시각이 불확실하면\n정오 기준으로 읽을 수 있어요.\n\n출생지역\n\n정확한 좌표가 없으면\n국가별 대표도시를 사용할 수 있어요.\n\n달·상승궁·하우스가 달라질 수 있어요.\n자료의 정밀도와 관계의 진실은 별개예요."
+    },
+    {
+      "id": "04-the-laboratory-report",
+      "title": "한눈에 보는 요약에서, 조합의 설명으로.",
+      "alt": "한눈에 보는 요약에서, 조합의 설명으로.",
+      "src": "/feature-details/crafted/astro-celebrity-synastry/04-the-laboratory-report.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한눈에 보는 요약에서,\n조합의 설명으로.\n요약 · 점수 · 관계 유형\n\n강점 각도와 보완 포인트\n\n연애 · 비즈니스 · 영적 궁합\n\n끌림, 협업, 함께 성장하는 방향\n\n근거와 조율\n\n점수 계산 · 주요 각도 · 하우스 겹침\n빛과 그림자 · 결과 기반 질문문\n\n등록 자료와 내 차트로 구성되는 설명이에요."
+    },
+    {
+      "id": "05-light-and-shadow",
+      "title": "닮아서 편한 점과, 달라서 자극되는 점.",
+      "alt": "닮아서 편한 점과, 달라서 자극되는 점.",
+      "src": "/feature-details/crafted/astro-celebrity-synastry/05-light-and-shadow.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "닮아서 편한 점과,\n달라서 자극되는 점.\n빛\n\n두 기질이 서로 돕는 모습\n\n그림자\n\n표현과 속도의 차이에서 생기는 마찰\n\n개선의 길\n\n차이를 조율해보는 관점\n\n특정 유명인의 실제 성격이나\n사생활을 단정하는 자료로 쓰지 않아요."
+    },
+    {
+      "id": "06-read-the-basis",
+      "title": "점수의 숫자보다, 왜 그런 설명인지 살펴요.",
+      "alt": "점수의 숫자보다, 왜 그런 설명인지 살펴요.",
+      "src": "/feature-details/crafted/astro-celebrity-synastry/06-read-the-basis.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "점수의 숫자보다,\n왜 그런 설명인지 살펴요.\n행성의 각도\n\n태양·달·금성·화성 사이의 관계\n\n생활 영역의 겹침\n\n별자리 기준 하우스의 투사\n\n계산의 요약\n\n가중치·보정과 자료 기준 신뢰도\n\n점수와 신뢰도는 내부 계산의 표시예요.\n실제 인연이나 성공 확률이 아니에요."
+    },
+    {
+      "id": "07-fictional-an-attractive-style",
+      "title": "누군가의 이미지에서, 내가 바라는 것을 찾아요.",
+      "alt": "누군가의 이미지에서, 내가 바라는 것을 찾아요.",
+      "src": "/feature-details/crafted/astro-celebrity-synastry/07-fictional-an-attractive-style.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "누군가의 이미지에서,\n내가 바라는 것을 찾아요.\n\n가상 편집 예시 · 특정 인물과 무관합니다\n\n“차분히 기다려주는 분위기에 끌린다면,\n내 일상에서도 그런 관계를\n원하고 있는지 생각해보세요.\n화면 속 인물과의 가능성보다\n편안하게 느끼는 대화 방식 하나를\n내 말로 남겨보는 거예요.”"
+    },
+    {
+      "id": "08-pick-with-curiosity",
+      "title": "정답인 인연을 찾기보다, 내 취향을 이해하는 시간.",
+      "alt": "정답인 인연을 찾기보다, 내 취향을 이해하는 시간.",
+      "src": "/feature-details/crafted/astro-celebrity-synastry/08-pick-with-curiosity.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "정답인 인연을 찾기보다,\n내 취향을 이해하는 시간.\n\n목록에서 인물을 고르고,\n자료의 조건과 결과를 함께 살펴보세요.\n\n상대 직접 입력 궁합과는 별도 항목이에요.\n결과 기반 질문문은 복사할 수 있어요.\n현재 화면의 선택·결제 조건을 따릅니다."
+    }
+  ]
+}

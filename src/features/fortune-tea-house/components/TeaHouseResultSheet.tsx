@@ -1,5 +1,6 @@
 "use client";
 import { getFortuneTeaHouseConsultFeatureKey } from "../data/consultPricing";
+import { teaAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import TeaResultCompanion from "./TeaResultCompanion";
 
@@ -25,6 +26,7 @@ import TarotAssetCard from "./TarotAssetCard";
 import TeaCupVisual from "./TeaCupVisual";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
+import TeaHouseFollowUpCard, { type TeaHouseFollowUpPatch } from "./TeaHouseFollowUpCard";
 import TeaHouseSajuResultPanel from "./TeaHouseSajuResultPanel";
 import TeaHouseSajuCompatResultPanel from "./TeaHouseSajuCompatResultPanel";
 import TeaHouseSukuyoResultPanel from "./TeaHouseSukuyoResultPanel";
@@ -196,6 +198,11 @@ function buildFortuneTeaHouseResultText(result: FortuneTeaHouseConsultResponse, 
   appendTextBlock(lines, copy.ksfdsbyx, result.actionPrescription);
   appendListBlock(lines, copy.k38h08or, result.luckyKeywords);
   if (result.honeyLetter) appendTextBlock(lines, result.honeyLetter.title || copy.kykvjtg8, result.honeyLetter.body);
+  for (const item of result.followUps || []) {
+    const answer = item.answer;
+    const body = [copy.followUpTextQuestion.replace("{question}", item.question), answer.directAnswer, ...answer.evidence, answer.guidance, answer.caution, answer.closing];
+    appendTextBlock(lines, copy.followUpTextTitle, body.filter(Boolean).join("\n\n"));
+  }
   appendTextBlock(lines, copy.kqhu9dwn, result.closingLine);
 
   return lines.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd();
@@ -220,6 +227,8 @@ const KO = {
   cupLensSukuyo: "{cup}은 {topic}의 관점에서 두 사람의 질문을 바라보게 합니다. 연이는 그 향 위에 타로와 사주를 올리지 않고, 27숙 인연의 흐름만 차분히 펼쳤습니다.",
   cupLensTarot: "{cup}은 {topic}의 관점에서 질문을 바라보게 합니다. 연이는 그 향 위에 사주를 올리지 않고, 타로의 현재 상징만 깊게 읽었습니다.",
   downloadFileName: "운명의-찻집-{title}-{date}.txt",
+  followUpTextQuestion: "질문: {question}",
+  followUpTextTitle: "연이에게 한 번 더 물은 질문",
   honeyBalanceLine: "보유 꿀방울: {count}개",
   honeyCount: "{count}개",
   k18rmff7: "대표 카드",
@@ -600,6 +609,13 @@ export default function TeaHouseResultSheet({
       if (honeyMountedRef.current) setHoneyLetterLoading(false);
     }
   }, [result, honeyOwner, copy, onHoneyDropsChange, onResultUpdate]);
+  const latestRawResultRef = useRef(rawResult);
+  latestRawResultRef.current = rawResult;
+  // 추가 질문 상태는 원본 payload 에 붙인다 — 화면용 로컬라이즈 결과를 부모에 되돌려 쓰지 않는다.
+  const applyFollowUpPatch = useCallback(
+    (patch: TeaHouseFollowUpPatch) => onResultUpdate({ ...latestRawResultRef.current, ...patch }),
+    [onResultUpdate],
+  );
   const honeyResumeRef = useRef(requestHoneyLetter);
   honeyResumeRef.current = requestHoneyLetter;
 
@@ -690,7 +706,22 @@ export default function TeaHouseResultSheet({
       >
         <header className={`${styles.resultHeader} `} data-tea-pdf-section>
           {result.consultationVersion !== "tea-v2" && <p className={styles.sceneEyebrow}>{selectedCup?.eyebrow || copy.kdaff0ix}</p>}
+          {result.sajuReportVersion === 'saju-specialist-v2' && <figure className={styles.jointResultHero}>
+            <img src="/images/consultation/saju-yeoni-neo-joint-v1-640.webp" width="640" height="427" alt="명식을 펼치고 함께 이야기를 나누는 연이와 네오" />
+            <figcaption>연이는 마음의 패턴을, 네오는 선택의 조건을 짚어요.</figcaption>
+          </figure>}
           <h2 id="teaResultTitle">{result.sessionTitle}</h2>
+          {(result.sajuReportVersion === 'saju-specialist-v1' || result.sajuReportVersion === 'saju-specialist-v2') && <>
+            <h3>내 질문에 대한 핵심 답</h3>
+            <LlmParagraphs text={result.questionSummary} />
+            <details className={styles.sajuContentsDisclosure}>
+              <summary>사주 상담 목차 · 원하는 장으로 이동하기</summary>
+              <nav className={styles.sajuReadingContents} aria-label="사주 상담 목차">
+                <a href="#sajuResultPanelTitle">내 명식의 근거</a>
+                {(result.saju.deepSections || []).map((section, index) => <a key={section.id || section.title} href={`#tea-saju-chapter-${index}`}>{section.title}</a>)}
+              </nav>
+            </details>
+          </>}
           {result.consultationVersion !== "tea-v2" && result.questionSummary ? <p>{result.questionSummary}</p> : null}
           {result.consultationVersion !== "tea-v2" && <strong className={styles.resultYeoniOpening}>{yeoniOpening}</strong>}
           {result.consultationVersion !== "tea-v2" && result.yeoniReading.intro ? (
@@ -987,7 +1018,7 @@ export default function TeaHouseResultSheet({
           <h3 id="actionPrescriptionTitle">{copy.kedjmzci}</h3>
           {result.actionPrescription ? (
             <div className={styles.actionDialogue}>
-              <img src="/images/fortune-tea-house/renewal/pig-advice.webp" width="72" height="84" alt="" loading="lazy" />
+              <img src={result.sajuReportVersion === "saju-specialist-v2" ? "/images/home/illustrated/neo-human-480.webp" : "/images/fortune-tea-house/renewal/pig-advice.webp"} width="72" height="84" alt="" loading="lazy" />
               <div className={styles.yeoniReadingItem}><LlmParagraphs text={result.actionPrescription} /></div>
             </div>
           ) : null}
@@ -1001,10 +1032,12 @@ export default function TeaHouseResultSheet({
         </section>
         ) : null}
 
+        <TeaHouseFollowUpCard result={rawResult} readOnly={readOnly} onChange={applyFollowUpPatch} />
+
         <section className={`${styles.resultBlock} ${styles.honeyLetterBlock}`} aria-labelledby="honeyLetterTitle">
           <div className={styles.honeyLetterLayout}>
             <div className={styles.honeyLetterMascotWrap} aria-hidden>
-              <AssetImage className={styles.honeyLetterMascot} src="/images/fortune-tea-house/renewal/pig-cheer.webp" alt="" />
+              <AssetImage className={styles.honeyLetterMascot} src={result.sajuReportVersion === "saju-specialist-v2" ? "/images/master-profiles/yeoni-teahouse-portrait.webp" : "/images/fortune-tea-house/renewal/pig-cheer.webp"} alt="" />
               <span className={styles.honeyLetterBalance}>
                 <AssetImage className={styles.honeyLetterIcon} src={fortuneTeaHouseAssets.rewards.honeyDrop} fallbackSrc={fortuneTeaHouseAssets.rewards.honeyDrop2} alt="" />
                 {copy.honeyCount.replace("{count}", String(honeyBalance))}
@@ -1025,7 +1058,7 @@ export default function TeaHouseResultSheet({
                   {/* 편지는 문단 분할 없이 원문 개행 그대로 (white-space: pre-line) */}
                   <p>{honeyLetter.body}</p>
                 </article>
-              ) : readOnly ? null : (
+              ) : !result.honeyLetterPending ? <p>꿀방울은 꿀꿀운세 지정 상품에서 사용할 수 있어요. 이미 받은 꿀편지는 이곳에서 다시 읽을 수 있어요.</p> : readOnly ? null : (
                 <div className={styles.honeyLetterCta}>
                   <p>
                     
@@ -1073,7 +1106,7 @@ export default function TeaHouseResultSheet({
             </TeaHouseButton>
           )}
         </div>
-        <RecommendationResult service={getFortuneTeaHouseConsultFeatureKey(consultationMode, result.tarotSpread)} brand="yeoni"/>
+        <RecommendationResult service={getFortuneTeaHouseConsultFeatureKey(consultationMode, result.tarotSpread)} brand="yeoni" practiceTags={teaAdviceTopics(result)}/>
         {saveStatus ? <strong className={styles.honeyLetterStatus} aria-live="polite">{saveStatus}</strong> : null}
       </article>
     </section>

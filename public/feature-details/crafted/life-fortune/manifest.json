@@ -1,0 +1,158 @@
+{
+  "id": "life-fortune",
+  "featureKey": "life-fortune-ai-consultation",
+  "title": "인생 총운",
+  "notice": "지도와 서재는 해석의 범위를 표현한 삽화이며 실제 개인 차트가 아닙니다. 아래 상담 문장과 우선순위 도식은 이해를 돕기 위한 편집 예시로 실제 고객 결과가 아닙니다. 요약·조언·심화 해석은 결과에 포함된 경우 표시됩니다. 건강 해석은 의료적 진단이 아니며 성공·수익·관계의 결말을 보장하지 않습니다. 가격은 기존 결제 화면의 현재 값을 확인해 주세요.",
+  "panels": [
+    {
+      "id": "01-wide-map",
+      "title": "일도, 관계도, 생활도. 어디부터 정리해야 할까요.",
+      "alt": "삶의 넓은 지도를 펼치는 기존 인생 총운 삽화와 여러 고민의 우선순위를 묻는 표지.",
+      "src": "/feature-details/crafted/life-fortune/01-wide-map.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "일도, 관계도, 생활도.\n어디부터 정리해야 할까요.\n\n얽힌 고민을 명식의 근거로 나누고,\n지금 조율할 순서를 살펴봅니다.\n\n인생 총운\n삶의 여러 분야를 잇는 사주 리포트.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-fortune/01-wide-map-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-priority",
+      "title": "한곳의 부담이, 다른 곳으로 번질 때.",
+      "alt": "일의 부담, 생활의 여유, 관계의 간격이 서로 연결되는 편집 도식. 개인 운세 판정이 아니다.",
+      "src": "/feature-details/crafted/life-fortune/02-priority.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "한곳의 부담이,\n다른 곳으로 번질 때.\n\n생활의 연결을 보여주는 편집 도식\n\n일의 부담\n\n맡은 책임이 늘어나고\n\n생활의 여유\n\n쉴 시간이 줄어들고\n\n관계의 간격\n\n작은 말에도 예민해지는 순간.\n\n한 분야만 떼어 좋고 나쁨을 말하기보다,\n어떤 힘이 연결되는지 살펴보고\n먼저 손댈 조건을 정리합니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-fortune/02-priority-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-foundation-chapters",
+      "title": "명식의 중심에서, 일과 사랑의 방식까지.",
+      "alt": "인생 총운 실제 앞 다섯 목차를 명식 중심, 성격, 재능, 재물, 사랑으로 펼친다.",
+      "src": "/feature-details/crafted/life-fortune/03-foundation-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "명식의 중심에서,\n일과 사랑의 방식까지.\n\n기본 열 장 중 · 앞 다섯 장\n\n타고난 명식의 중심\n성격과 마음의 결\n재능과 일의 방향\n재물과 생활 기반\n사랑과 인연의 흐름\n\n일간은 나의 중심,\n십성은 역할과 관계의 방식을 읽는 말.\n용어 옆에 생활의 장면을 놓습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-fortune/03-foundation-chapters-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-life-chapters",
+      "title": "가까운 사람과 몸의 리듬, 그리고 다음 선택.",
+      "alt": "인생 총운 실제 뒤 다섯 목차를 가족, 생활 리듬, 대운, 세운, 선택으로 펼친다.",
+      "src": "/feature-details/crafted/life-fortune/04-life-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "가까운 사람과 몸의 리듬,\n그리고 다음 선택.\n\n기본 열 장 중 · 뒤 다섯 장\n\n관계와 가족의 장\n건강과 생활 리듬\n대운으로 보는 큰 전환\n가까운 세운의 흐름\n앞으로 열릴 선택\n\n몸의 리듬은 생활을 돌아보는 참고예요.\n질병·치료·수명을 판정하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-fortune/04-life-chapters-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-time-evidence",
+      "title": "긴 배경과 가까운 변화, 근거의 범위를 나누어요.",
+      "alt": "현재 대운과 다음 전환, 가까운 다섯 해의 세운을 구분하는 해석 범위 안내.",
+      "src": "/feature-details/crafted/life-fortune/05-time-evidence.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "긴 배경과 가까운 변화,\n근거의 범위를 나누어요.\n대운 · 큰 전환의 배경\n\n현재 구간과 다음 흐름에서\n어떤 준비가 필요한지 읽습니다.\n\n세운 · 가까운 해의 변화\n\n가까운 다섯 해의 기회와 주의를\n대운의 배경과 함께 살펴봅니다.\n\n삽화는 개인 운세 그래프가 아닙니다.\n시기는 사건 날짜의 보장이 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-fortune/05-time-evidence-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-expert",
+      "title": "그렇게 읽은 이유를, 네 주제로 더 살펴봅니다.",
+      "alt": "네 가지 명식 심화 해석 제목과 조건부 표시 안내.",
+      "src": "/feature-details/crafted/life-fortune/06-expert.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "그렇게 읽은 이유를,\n네 주제로 더 살펴봅니다.\n\n명식의 근거를 더 읽는 네 주제\n\n일간과 월지가 여는 중심 기질\n\n태어난 계절 속에서 드러나는 나.\n\n오행과 조후가 청하는 보완\n\n힘의 분포와 계절의 균형.\n\n십성으로 읽는 관계와 일의 방식\n\n역할과 책임, 표현과 배움의 연결.\n\n대운과 세운이 비추는 선택의 시기\n\n긴 배경과 가까운 해의 만남.\n\n심화 해석과 조언은 생성된 항목이\n있을 때 결과 화면에 표시됩니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-fortune/06-expert-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-practical-example",
+      "title": "재물 흐름의 해석, 조건까지 살펴요.",
+      "alt": "재물 흐름을 능력과 반복 가능한 수익, 현실 제약으로 풀어 쓴 합성 문장 예시.",
+      "src": "/feature-details/crafted/life-fortune/07-practical-example.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "재물 흐름의 해석,\n조건까지 살펴요.\n\n이해를 돕기 위한 편집 예시\n\n새 일을 더 벌이기 전에,\n이미 가진 능력을 정리해\n반복할 일을 찾아보세요.\n생활에서 확인할 것\n\n시간을 얼마나 쓸 수 있는지,\n꾸준히 이어갈 조건이 있는지.\n\n실제 고객 결과가 아닌 편집 예시예요.\n수익을 보장하는 판단이 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-fortune/07-practical-example-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-how-to-read",
+      "title": "읽고 난 뒤에는, 한 가지 순서를 정해 보세요.",
+      "alt": "리포트의 요약, 각 장 본문과 조언, PDF 저장을 활용해 현재 고민의 우선순위를 정하는 방법.",
+      "src": "/feature-details/crafted/life-fortune/08-how-to-read.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "읽고 난 뒤에는,\n한 가지 순서를 정해 보세요.\n전체의 중심을 먼저\n\n핵심 요약에서 반복되는 주제를.\n\n내 고민의 장을 천천히\n\n일·재물·관계 중 지금 필요한 장을.\n\n생활에 옮길 행동 하나\n\n장별 조언에서 작은 실행을 골라요.\n\n완성된 결과는 PDF로 저장해\n다시 살펴볼 수 있습니다.\n\n인생의 책과 별도 상품입니다.\n이야기의 연결보다 분야별 판단 근거와\n선택의 조건에 초점을 둡니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-fortune/08-how-to-read-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-method",
+      "title": "넓게 보되, 단정하지 않도록.",
+      "alt": "제작자의 경력과 오행의 장점과 그림자를 함께 해석하는 방법 및 AI 해설 고지.",
+      "src": "/feature-details/crafted/life-fortune/09-method.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "넓게 보되,\n단정하지 않도록.\n\n10년 경력 운세 상담사·명리학자가\n만든 서비스입니다.\n\n힘이 많을 때의 양면\n\n추진력이 강점이 될 수도,\n쉬지 못하는 부담이 될 수도 있어요.\n\n부족한 힘을 다루는 방식\n\n없는 것을 낙인으로 삼기보다,\n생활에서 보완할 조건을 찾습니다.\n\n계산 결과를 바탕으로 AI가 해설합니다.\n사람이 결과마다 직접 작성하거나\n감수하는 상담이 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-fortune/09-method-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-prepare",
+      "title": "삶 전체를 읽는 시간, 정확한 정보에서 시작해요.",
+      "alt": "성별, 생년월일, 달력 기준, 출생 시간을 확인하도록 안내하는 인생 총운 마무리.",
+      "src": "/feature-details/crafted/life-fortune/10-prepare.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "삶 전체를 읽는 시간,\n정확한 정보에서 시작해요.\n\n성별과 생년월일, 양력·음력 기준,\n출생 시간을 확인해 주세요.\n시간을 모르면 모름으로 선택합니다.\n\n삶을 한 번에 바꾸기보다,\n지금 조율할 한 가지를 찾는 시간.\n\n인생 총운\n명식의 근거에서 현실의 선택으로.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/life-fortune/10-prepare-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

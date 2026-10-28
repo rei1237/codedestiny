@@ -1,7 +1,7 @@
 /* ─── 공유하기 함수 ─── */
 const SHARE_TEXT_TRANSLATIONS = {
   ko: {
-    "share.001": "🐷 꿀꿀 운세",
+    "share.001": "🐷 꿀꿀운세",
     "share.002": "🐷 연이의 꿀꿀 타로",
     "share.003": "✨ 점성술 코즈믹 차트",
     "share.004": "무료 기본 숙요점 결과",
@@ -54,7 +54,7 @@ var SW_CACHE_PREFIXES = [
   'workbox',
   'code-destiny',
   'next',
-  'tadagochi',
+
   'legacy'
 ];
 
@@ -86,24 +86,7 @@ function resolveRuntimeVersion() {
 }
 
 /** 모든 SW 해제 + 모든 Cache Storage 삭제 */
-function nukeAllCachesLegacy() {
-  var tasks = [];
-  if ('serviceWorker' in navigator) {
-    tasks.push(
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        return Promise.all(regs.map(function(reg) { return reg.unregister(); }));
-      }).catch(function() {})
-    );
-  }
-  if ('caches' in window) {
-    tasks.push(
-      caches.keys().then(function(keys) {
-        return Promise.all(keys.map(function(key) { return caches.delete(key); }));
-      }).catch(function() {})
-    );
-  }
-  return Promise.all(tasks).catch(function() {});
-}
+function nukeAllCachesLegacy() { return Promise.resolve(); }
 
 function isVersionGuardVisibleElement(element) {
   if (!element) return false;
@@ -205,26 +188,7 @@ function removeVersionUpdateBanner() {
   }
 }
 
-function applyVersionRefresh(version) {
-  return nukeAllCachesLegacy().then(function() {
-    try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
-    try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
-    try {
-      sessionStorage.setItem(APP_VERSION_RELOAD_GUARD, version);
-      sessionStorage.removeItem(APP_VERSION_DEFER_GUARD);
-    } catch (e) {}
-    var nextUrl;
-    try {
-      var parsed = new URL(window.location.href);
-      parsed.searchParams.set('v', version);
-      nextUrl = parsed.toString();
-    } catch (e) {
-      nextUrl = window.location.href;
-    }
-    window.location.replace(nextUrl);
-    return version;
-  });
-}
+function applyVersionRefresh(version) { return runNuclearVersionGuard(); }
 
 function showVersionUpdateBanner(version, reason) {
   if (!document || !document.body) return;
@@ -358,86 +322,7 @@ function showVersionUpdateBanner(version, reason) {
 
 var __versionGuardInFlight = false;
 var __versionGuardLastStartedAt = 0;
-function runNuclearVersionGuard() {
-  // focus·visibilitychange·interval·이벤트가 겹쳐 version.json을 중복 요청하지 않도록 단일 실행 보장.
-  if (__versionGuardInFlight) return Promise.resolve();
-  // 🔴 ① 트리거가 겹쳐도 30초(VERSION_GUARD_MIN_GAP_MS)에 1회를 넘지 않는다 ② 결제 등 critical
-  // operation 중에는 fetch 자체를 내보내지 않는다 — 예전에는 리로드만 막고 요청은 그대로 나가서
-  // 결제 네트워크와 경쟁했다. 상태가 풀리면 cd:critical-operation-state 리스너와 60초 폴링이
-  // 늦어도 한 주기 안에 재검사한다(자동 리로드는 이미 폐지, 배너 안내라 지연 비용이 없다).
-  var now = Date.now();
-  if (now - __versionGuardLastStartedAt < VERSION_GUARD_MIN_GAP_MS) return Promise.resolve();
-  if (isCriticalOperationInProgress()) return Promise.resolve();
-  __versionGuardLastStartedAt = now;
-  __versionGuardInFlight = true;
-  return resolveRuntimeVersion().then(function(version) {
-    // dev 버전 또는 fetch 실패 시 아무 작업 안 함
-    if (!version || version === 'dev') return version;
-
-    var saved = '';
-    try { saved = localStorage.getItem(APP_VERSION_KEY) || ''; } catch (e) { saved = ''; }
-
-    // 저장값이 없다 = 이 브라우저/앱이 이 사이트를 처음 본다. 지금 손에 든 문서는 방금 받아온
-    // 것이라(셸은 no-store, 앱은 번들 에셋) 같은 URL 을 다시 로드해도 달라질 것이 없다.
-    // 이걸 "버전 불일치"로 흘려보내면 첫 방문·재설치·배포 직후 사용자가 전원 강제 리로드를
-    // 한 번씩 겪는다(=메인 화면 이중 로딩). 버전만 기록하고 캐시 정리는 그대로 수행한다.
-    if (!saved) {
-      try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
-    }
-
-    if (!saved || saved === version) {
-      removeVersionUpdateBanner();
-      // 버전 동일: SW/캐시만 정리 (이미 정리된 버전이면 skip)
-      var purged = '';
-      try { purged = localStorage.getItem(SW_PURGED_VERSION_KEY) || ''; } catch (e) {}
-      if (purged !== version) {
-        nukeAllCachesLegacy().then(function() {
-          try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
-        });
-      }
-      return version;
-    }
-
-    // 버전 불일치: 무한 reload 방지 체크
-    var reloaded = '';
-    try { reloaded = sessionStorage.getItem(APP_VERSION_RELOAD_GUARD) || ''; } catch (e) { reloaded = ''; }
-
-    if (reloaded === version) {
-      // 이미 이 버전으로 reload 했음 → 버전만 저장하고 종료
-      try { localStorage.setItem(APP_VERSION_KEY, version); } catch (e) {}
-      return version;
-    }
-
-    var deferred = '';
-    try { deferred = sessionStorage.getItem(APP_VERSION_DEFER_GUARD) || ''; } catch (e) { deferred = ''; }
-    if (deferred === version) {
-      removeVersionUpdateBanner();
-      return version;
-    }
-
-    // 🔴 자동 location.replace 는 하지 않는다(2026-08-01 폐지). 배포마다 저장된 버전과 다른 모든
-    // 재방문자가 매번 자동 리로드를 1회씩 겪었고, 하필 noncritical-defer-loader 가 share.js 를
-    // 첫 기능 탭/45초 방치/앱 전환 시점에 주입해 "탭했더니 화면이 통째로 새로고침됨"으로 보였다
-    // (15초 interval + focus + visibilitychange 가 계속 재검사한다). 스토리지가 막힌 환경(iOS
-    // 프라이빗 모드 등)에서는 무한 reload 방지 가드까지 무력화돼 15초마다 영구 리로드로 번졌다.
-    // '/' · '/index.html' 은 no-store 라 다음 문서 이동에서 어차피 최신을 받는다 — 자동 리로드는
-    // 신선도 유지의 필수 수단이 아니라 가장 거친 수단이었다. 캐시 정리는 그대로 하고 배너로 맡긴다.
-    var blockingReason = isCriticalOperationInProgress();
-    // 배너는 응답 없이 매 15초/포커스마다 재호출되므로, 캐시 정리는 이 버전당 한 번만 한다
-    // (안 그러면 SW 해제·Cache Storage 삭제가 사용자가 새로고침을 누를 때까지 계속 반복된다).
-    var purgedForVersion = '';
-    try { purgedForVersion = localStorage.getItem(SW_PURGED_VERSION_KEY) || ''; } catch (e) {}
-    if (purgedForVersion !== version) {
-      nukeAllCachesLegacy().then(function() {
-        try { localStorage.setItem(SW_PURGED_VERSION_KEY, version); } catch (e) {}
-      });
-    }
-    showVersionUpdateBanner(version, blockingReason);
-    return version;
-  }).finally(function() {
-    __versionGuardInFlight = false;
-  });
-}
+function runNuclearVersionGuard() { return window.__cdPwaLifecycle ? window.__cdPwaLifecycle.check() : Promise.resolve(); }
 
 runNuclearVersionGuard();
 
@@ -464,7 +349,7 @@ if (typeof window !== 'undefined') {
 function getShareText(){
   var name=USER_NAME||'사용자';
   var base=cdBuildShareUrl('saju');
-  return name+'님의 사주 분석 결과를 확인해보세요! 🐷✨\n꿀꿀 운세\n'+base;
+  return name+'님의 사주 분석 결과를 확인해보세요! 🐷✨\n꿀꿀운세\n'+base;
 }
 function showToast(msg){
   var t=document.getElementById('shareToast');
@@ -487,7 +372,8 @@ var CD_SHARE_ACTION_MAP = {
   ziwei: 'openZiweiModal',
   pastlifeface: 'openPastLifeFaceApp',
   lovesecret: '',
-  lifebook: ''
+  lifebook: '',
+  flower: 'openDestinyFlowerStudio'
 };
 var CD_SHARE_REFERRAL_SESSION_KEY = 'cd_share_referral_v1';
 var __cdShareReferral = null; // { ref, rs, via } | {} (없음)
@@ -518,7 +404,7 @@ function cdPrimeReferralParams(){
       .then(function(res){ return res.ok ? res.json() : null; })
       .then(function(data){
         if (data && data.ok && data.referralCode) {
-          __cdShareReferral = { ref: data.referralCode, rs: data.referralShareToken || '', via: 'kakao_reward' };
+          __cdShareReferral = { ref: data.referralCode, rs: data.referralShareToken || '', via: 'kakao_reward', kk: data.kakaoJavascriptKey || '' };
           try { sessionStorage.setItem(CD_SHARE_REFERRAL_SESSION_KEY, JSON.stringify(__cdShareReferral)); } catch (_) {}
         } else {
           __cdShareReferral = {};
@@ -568,7 +454,8 @@ if (typeof window !== 'undefined') {
 }
 
 // contentId 로 "결제 유도 지점" 딥링크 URL을 만든다(리퍼럴 파라미터 자동 부착).
-function cdBuildShareUrl(contentId){
+// extraParams 는 딥링크가 읽을 값(예: 운명의 꽃 fl·fs)만 넣는다 — 생년월일 같은 개인정보는 넣지 않는다.
+function cdBuildShareUrl(contentId, extraParams){
   var origin = 'https://code-destiny.com';
   try {
     if (window.location && window.location.origin && /^https?:/.test(window.location.origin)) origin = window.location.origin;
@@ -578,6 +465,12 @@ function cdBuildShareUrl(contentId){
   var qs = [];
   if (target.query) qs.push(target.query);
   if (action) qs.push('action=' + encodeURIComponent(action));
+  if (extraParams) {
+    Object.keys(extraParams).forEach(function(key){
+      var value = extraParams[key];
+      if (value != null && String(value) !== '') qs.push(encodeURIComponent(key) + '=' + encodeURIComponent(String(value)));
+    });
+  }
   var r = cdReadCachedReferral() || {};
   if (r.ref) {
     qs.push('ref=' + encodeURIComponent(r.ref));
@@ -587,7 +480,14 @@ function cdBuildShareUrl(contentId){
   return origin + target.path + (qs.length ? ('?' + qs.join('&')) : '');
 }
 
+function cdReadShareKakaoKey(){
+  var r = cdReadCachedReferral() || {};
+  return r.kk || '';
+}
+
 if (typeof window !== 'undefined') {
+  window.cdBuildShareUrl = cdBuildShareUrl;
+  window.cdReadShareKakaoKey = cdReadShareKakaoKey;
   if (document.readyState === 'complete') {
     cdPrimeReferralParams();
   } else {
@@ -1095,6 +995,44 @@ function cdShareResultCardImage(options){
   }, contentId);
 }
 
+// 요소를 PNG Blob 으로 미리 그려 둔다. 공유 버튼을 누른 순간 바로 파일을 넘겨야
+// navigator.share 의 사용자 활성화가 살아 있으므로, 캡처는 공유 시트를 여는 시점에 한다. 실패하면 null.
+function cdRenderElementToPngBlob(element, cb){
+  var done = typeof cb === 'function' ? cb : function(){};
+  if (!element) { done(null); return; }
+  _cdEnsureHtml2Canvas(function(h2c){
+    if (!h2c) { done(null); return; }
+    h2c(element, { backgroundColor: null, scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 }).then(function(canvas){
+      try { canvas.toBlob(function(blob){ done(blob || null); }, 'image/png'); } catch (_) { done(null); }
+    }).catch(function(){ done(null); });
+  });
+}
+
+// 미리 그린 이미지 공유: 파일 공유가 되면 시스템 공유 시트, 안 되거나 막히면 저장 + 문구 복사.
+// options: { fileName, title, text, savedMessage }
+function cdShareImageBlob(blob, options){
+  var opts = options || {};
+  if (!blob) return;
+  var name = opts.fileName || 'code-destiny-result.png';
+  var text = opts.text || '';
+  var download = function(){
+    var dl = document.createElement('a');
+    dl.href = URL.createObjectURL(blob);
+    dl.download = name;
+    document.body.appendChild(dl); dl.click(); document.body.removeChild(dl);
+    setTimeout(function(){ try { URL.revokeObjectURL(dl.href); } catch (_) {} }, 4000);
+    if (text) copyToClipboard(text, opts.savedMessage || '카드 이미지를 저장했어요. 공유 문구도 함께 복사됐어요.');
+  };
+  var file = null;
+  try { file = new File([blob], name, { type: 'image/png' }); } catch (_) {}
+  if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+    navigator.share({ files: [file], title: opts.title || _shareText('share.001'), text: text })
+      .catch(function(err){ if (!err || err.name !== 'AbortError') download(); });
+    return;
+  }
+  download();
+}
+
 /* 숙요 궁합초대 확장 — saju 궁합초대와 동일 cp(base64url 생일) 재사용하되, 대상이 React 라우트라
    레거시 DOM 프리필 대신 /sukuyo-compatibility-ai?cp= 딥링크로 보내고 React 클라가 personB를 채운다.
    (점성술 시나스트리는 리포에 존재하지 않아 대상 없음.) 기존 saju 궁합초대는 무변경(회귀 0). */
@@ -1146,6 +1084,8 @@ function shareSajuResultImage() {
 if (typeof window !== 'undefined') {
   window.cdShareFortuneKakao = cdShareFortuneKakao;
   window.cdShareResultCardImage = cdShareResultCardImage;
+  window.cdRenderElementToPngBlob = cdRenderElementToPngBlob;
+  window.cdShareImageBlob = cdShareImageBlob;
   window.shareSajuResultImage = shareSajuResultImage;
   window.shareStoryKakao = shareStoryKakao;
   window.cdAppendReferralQuery = cdAppendReferralQuery;
@@ -1319,40 +1259,7 @@ function syncThemeLogoSources(reason) {
   logThemeLogoSync(reason, 'after', pigLogo, neoLogo);
 }
 
-function retireServiceWorkers() {
-  var tasks = [];
-  var prefixes = Array.isArray(SW_CACHE_PREFIXES) && SW_CACHE_PREFIXES.length > 0
-    ? SW_CACHE_PREFIXES
-    : ['kkul-mansaeryeok-', 'workbox', 'code-destiny', 'next', 'tadagochi', 'legacy'];
-
-  if ('serviceWorker' in navigator) {
-    tasks.push(
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        return Promise.all(regs.map(function(reg) { return reg.unregister(); }));
-      }).catch(function() {})
-    );
-  }
-
-  if ('caches' in window) {
-    tasks.push(
-      caches.keys().then(function(keys) {
-        return Promise.all(
-          keys
-            .filter(function(key) {
-              var normalized = String(key || '').toLowerCase();
-              return prefixes.some(function(prefix) {
-                var token = String(prefix || '').toLowerCase();
-                return normalized.indexOf(token) >= 0;
-              });
-            })
-            .map(function(key) { return caches.delete(key); })
-        );
-      }).catch(function() {})
-    );
-  }
-
-  return Promise.all(tasks).catch(function() {});
-}
+function retireServiceWorkers() { return Promise.resolve(); }
 
 function retireServiceWorkersOnce(version) {
   var target = String(version || APP_VERSION || 'dev').trim() || 'dev';
@@ -1393,7 +1300,7 @@ function fallbackCopy(text,msg){
 }
 
 /* ═══════════════════════════════════════
-   NEO MODE — 팩폭 사자 네오 퍼소나 시스템
+   NEO MODE — 다크 모드 토글(키 이름만 neo, 페르소나는 늘 연이)
 ═══════════════════════════════════════ */
 var NEO_MODE=false;
 var THEME_PERF_PROBE_MS = 1200;
@@ -1653,11 +1560,11 @@ function toggleNeoMode(nextMode){
     body.classList.add('neo-mode');
     body.classList.remove('theme-pig');
     body.classList.add('theme-neo');
-    if(neoIcon) neoIcon.textContent = '🦁';
-    if(neoLabel) neoLabel.textContent = '🌸 연이 모드';
+    if(neoIcon) neoIcon.textContent = '🌙';
+    if(neoLabel) neoLabel.textContent = '☀️ 라이트 모드';
     var tLabel = document.getElementById('themeToggleLabel');
     if(tLabel) {
-      tLabel.innerText = '🦁 팩폭 사자 네오 모드';
+      tLabel.innerText = '🌙 다크 모드';
       tLabel.style.color = '#FFD700';
     }
     applyPwaThemeAssets(true);
@@ -1665,11 +1572,11 @@ function toggleNeoMode(nextMode){
     body.classList.remove('neo-mode');
     body.classList.remove('theme-neo');
     body.classList.add('theme-pig');
-    if(neoIcon) neoIcon.textContent = '🐷';
-    if(neoLabel) neoLabel.textContent = 'NEO MODE';
+    if(neoIcon) neoIcon.textContent = '☀️';
+    if(neoLabel) neoLabel.textContent = '🌙 다크 모드';
     var tLabel = document.getElementById('themeToggleLabel');
     if(tLabel) {
-      tLabel.innerText = '🌸 꽃돼지 연이 모드';
+      tLabel.innerText = '☀️ 라이트 모드';
       tLabel.style.color = '#FF8BA7';
     }
     applyPwaThemeAssets(false);
@@ -1687,6 +1594,8 @@ function toggleNeoMode(nextMode){
 }
 
 function applyNeoTexts(){
+  // 2026-10-13: 네오 모드는 다크 테마일 뿐 페르소나는 늘 연이다. 다크에서도 연이 문구로 되돌린다.
+  var NEO_MODE = false;
   var titles=document.querySelectorAll('.sec-title');
   titles.forEach(function(el){
     if(!el.getAttribute('data-warm')){
@@ -1816,7 +1725,7 @@ window.addEventListener('load',function(){
   var tLabel = document.getElementById('themeToggleLabel');
   if(NEO_MODE){
     if(tLabel) {
-      tLabel.innerText = '🦁 팩폭 사자 네오 모드';
+      tLabel.innerText = '🌙 다크 모드';
       tLabel.style.color = '#FFD700';
     }
   }
@@ -2187,3 +2096,5 @@ async function subscribeEmailHome() {
 }
 window.subscribeEmail = subscribeEmail;
 window.subscribeEmailHome = subscribeEmailHome;
+// isCriticalOperationInProgress 가 이제 있다. 이걸 기다리며 막혀 있던 PWA 설치·업데이트 안내(js/pwa-lifecycle.js)가 다시 판단한다.
+try { window.dispatchEvent(new Event('cd:share-ready')); } catch (_) {}

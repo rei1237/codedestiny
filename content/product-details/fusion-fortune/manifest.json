@@ -1,0 +1,107 @@
+{
+  "id": "fusion-fortune",
+  "featureKey": "fusion-fortune-consultation",
+  "title": "초융합 운세",
+  "notice": "삽화 속 마스터는 상담을 안내하는 캐릭터이며, 상담 내용은 AI가 생성합니다. 사람이 결과마다 직접 작성하는 상담이 아닙니다. 소개 문장은 풀이 방식을 설명하는 편집 예시이며 고객의 실제 결과·후기가 아닙니다. 실제 내용은 입력 정보와 생성된 결과에 따라 달라집니다. 미래나 상대의 마음을 확정하지 않습니다. 제작자의 과거 직접 1:1 상담 후기는 이 디지털 상품의 구매 후기가 아닙니다.",
+  "panels": [
+    {
+      "id": "editorial-1",
+      "title": "여섯 관점이 만나, 하나의 선택이 또렷해집니다.",
+      "text": "서로 다른 운세 해석 사이에서, 지금의 선택에 필요한 공통점과 차이를 정리해 보세요.",
+      "src": "/images/service-introductions/fusion-fortune-masters-v3.webp",
+      "width": 1200,
+      "height": 800,
+      "alt": "네오·연이·서한비·윤달·무성의 초융합 심층 리딩 상담 장면",
+      "variants": [
+        {
+          "src": "/images/service-introductions/fusion-fortune-masters-v3-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/fusion-fortune-masters-v3-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/fusion-fortune-masters-v3-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "editorial-2",
+      "title": "어떤 근거로 풀어 주나요?",
+      "text": "먼저 각 체계가 말하는 것을 독립적으로 읽습니다. 그다음 같은 주제와 시기에 해당하는 근거를 나란히 놓고, 함께 가리키는 방향과 서로 다른 해석을 살핍니다.\n\n종합 판단은 시기·관계·심리·일의 영역에 맞는 근거를 고려합니다. 의견이 모인 개수를 확률이나 적중률로 바꾸지 않습니다.",
+      "src": "/images/consultation-editorial/fusion.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/fusion-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-3",
+      "title": "상담에서 읽게 될 내용",
+      "text": "체계별 풀이와 종합 해석, 선택의 조건과 행동 조언을 읽습니다. 성향·시기·연애·결혼·재물·일·생활 리듬·관계의 분야별 해석은 생성된 결과에 따라 함께 제공됩니다.",
+      "src": "/images/consultation-editorial/fusion.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/fusion-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-4",
+      "title": "풀이를 일상으로 가져오는 방법",
+      "text": "편집 예시 · 실제 개인 결과가 아닙니다.\n\n시기의 흐름은 움직임을 지지하더라도, 일의 조건이 아직 분명하지 않다면 준비하며 확인하는 선택이 필요할 수 있습니다. 근거가 다른 이유를 살핀 뒤, 제안의 역할과 생활 조건부터 확인해 보세요.",
+      "src": "/images/consultation-editorial/fusion.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/fusion-768.webp",
+          "width": 768
+        }
+      ]
+    },
+    {
+      "id": "editorial-5",
+      "title": "상담을 준비해 주세요",
+      "text": "출생 정보와 지금 고민하는 선택을 준비해 주세요. 질문에는 현재 상황과 생각하는 기간을 함께 적으면 좋습니다.\n\n이용권·월정석·단건 결제의 적용 여부와 금액은 기존 결제 화면에서 확인해 주세요.",
+      "src": "/images/consultation-editorial/fusion.webp",
+      "width": 1536,
+      "height": 1024,
+      "alt": "",
+      "variants": [
+        {
+          "src": "/images/consultation-editorial/fusion-768.webp",
+          "width": 768
+        }
+      ]
+    }
+  ],
+  "layout": "editorial",
+  "masters": [
+    "neo",
+    "yeoni",
+    "hanbi",
+    "yun",
+    "musung"
+  ],
+  "masterRoles": {
+    "neo": "사주 · 재물 · 직업과 일 · 시기와 행동 전략",
+    "yeoni": "타로 · 연애",
+    "hanbi": "숙요 · 결혼과 배우자 · 인간관계",
+    "yun": "베다점 · 서양 점성술 · 인생의 시기 · 생활 리듬",
+    "musung": "자미두수 · 타고난 성향"
+  }
+}

@@ -1,10 +1,10 @@
+/* 사이트 공용 최소 푸터(SiteFooterHub·LocaleFooterHub). 2026-10-16 "직관성" — 전문성 한 줄, 정책 링크,
+   안내 한 줄, 사업자 정보, 그리고 접힌 "전체 서비스 보기". 루트 `/` 푸터(app/home-main.module.css .footer)와
+   같은 가운데 정렬·같은 위계를 쓴다. */
 .sfhRoot {
   /* 스테이징 정적 소개·정책 화면과 같은 꽃돼지 공용 팔레트.
-     네오 테마를 저장한 사용자는 아래 data-cd-theme 오버라이드로 기존 어두운 톤을 유지한다.
-     소셜 버튼의 브랜드색(유튜브·네이버·인스타·스레드·X)은 외부 정체성이므로 건드리지 않는다. */
+     네오 테마를 저장한 사용자는 아래 data-cd-theme 오버라이드로 기존 어두운 톤을 유지한다. */
   --sfh-bg: #fffaf7;
-  --sfh-surface: #fffdfc;
-  --sfh-surface-deep: #fff0f4;
   --sfh-line: rgba(179, 25, 85, 0.2);
   --sfh-line-soft: rgba(179, 25, 85, 0.12);
   --sfh-text: #3c1830;
@@ -12,20 +12,14 @@
   --sfh-muted: #70445c;
   --sfh-accent: #b31955;
   --sfh-gold: #81551e;
-  --sfh-ink: #fffdfc;
-  --sfh-shade: 0 10px 24px rgba(119, 31, 68, 0.08);
 
-  position: relative;
   margin-top: 42px;
   border-top: 1px solid var(--sfh-line);
   background: var(--sfh-bg);
-  overflow: hidden;
 }
 
 :global(html[data-cd-theme="neo"]) .sfhRoot {
   --sfh-bg: #0a0818;
-  --sfh-surface: rgba(24, 20, 52, 0.74);
-  --sfh-surface-deep: rgba(16, 13, 36, 0.92);
   --sfh-line: rgba(196, 181, 253, 0.26);
   --sfh-line-soft: rgba(196, 181, 253, 0.16);
   --sfh-text: #f4eeff;
@@ -33,536 +27,195 @@
   --sfh-muted: rgba(200, 170, 255, 0.7);
   --sfh-accent: #c4b5fd;
   --sfh-gold: #e8d5a3;
-  --sfh-ink: #13102a;
-  --sfh-shade: 0 10px 24px rgba(0, 0, 0, 0.42);
-}
-
-.sfhNebula {
-  position: absolute;
-  width: 360px;
-  height: 360px;
-  border-radius: 999px;
-  filter: blur(48px);
-  opacity: 0.52;
-  pointer-events: none;
-}
-
-.sfhNebulaLeft {
-  left: -110px;
-  top: -130px;
-  background: rgba(255, 214, 226, 0.66);
-}
-
-.sfhNebulaRight {
-  right: -150px;
-  bottom: -150px;
-  background: rgba(241, 216, 161, 0.5);
-}
-
-.sfhStars {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-repeat: repeat;
-  animation: sfhDrift 16s ease-in-out infinite;
-}
-
-.sfhStarsNear {
-  opacity: 0.45;
-  background-image:
-    radial-gradient(3px 3px at 20px 30px, rgba(179, 25, 85, 0.18), transparent),
-    radial-gradient(2px 2px at 130px 80px, rgba(129, 85, 30, 0.2), transparent),
-    radial-gradient(2px 2px at 190px 160px, rgba(179, 25, 85, 0.16), transparent);
-  background-size: 230px 220px;
-}
-
-.sfhStarsFar {
-  opacity: 0.22;
-  background-image:
-    radial-gradient(2px 2px at 70px 40px, rgba(179, 25, 85, 0.12), transparent),
-    radial-gradient(2px 2px at 190px 120px, rgba(129, 85, 30, 0.12), transparent),
-    radial-gradient(2px 2px at 260px 170px, rgba(179, 25, 85, 0.1), transparent);
-  background-size: 320px 300px;
-  animation-duration: 24s;
 }
 
 .sfhShell {
-  position: relative;
-  z-index: 1;
-  width: min(1180px, calc(100% - 30px));
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(1080px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 24px 0 18px;
+  padding: 26px 0 22px;
   color: var(--sfh-body);
-  font-size: 12px;
-}
-
-.sfhBrand {
-  display: inline-flex;
-  min-height: 64px;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-  color: var(--sfh-text);
-  text-decoration: none;
-}
-
-.sfhBrand img {
-  width: 56px;
-  height: 56px;
-  object-fit: contain;
-  filter: drop-shadow(0 9px 14px rgba(179, 25, 85, 0.14));
-}
-
-.sfhBrand span {
-  display: grid;
-  gap: 4px;
-}
-
-.sfhBrand strong {
-  font-family: var(--font-serif), serif;
-  font-size: 1rem;
-  letter-spacing: 0.08em;
-}
-
-.sfhBrand small {
-  color: var(--sfh-body);
-  font-size: 0.76rem;
-}
-
-.sfhBrand:focus-visible {
-  outline: 3px solid var(--sfh-accent);
-  outline-offset: 4px;
-}
-
-.sfhKicker {
-  margin: 0;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--sfh-muted);
-}
-
-.sfhTitle {
-  margin: 7px 0 0;
-  font-size: clamp(1rem, 1.8vw, 1.18rem);
-  line-height: 1.3;
-  color: var(--sfh-text);
-  font-weight: 700;
-  font-family: "Noto Serif KR", "Iowan Old Style", "Times New Roman", serif;
-}
-
-.sfhSubtitle {
-  margin: 7px 0 0;
-  color: var(--sfh-body);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.65;
-  max-width: 880px;
+  text-align: center;
+  word-break: keep-all;
 }
 
-.sfhGroupGrid {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
+/* 1. 전문성 한 줄 — 링크는 운영자 소개로 간다. */
+.sfhByline {
+  margin: 0;
 }
 
-.sfhCard {
-  border: 1px solid var(--sfh-line);
-  border-radius: 14px;
-  background: var(--sfh-surface);
-  backdrop-filter: blur(6px);
-  padding: 12px 12px 10px;
-  box-shadow: var(--sfh-shade);
-  opacity: 0;
-  transform: translateY(10px);
-  animation: sfhRise 0.72s ease forwards;
-}
-
-.sfhCard:nth-child(2) {
-  animation-delay: 0.08s;
-}
-
-.sfhCard:nth-child(3) {
-  animation-delay: 0.16s;
-}
-
-.sfhCard:nth-child(4) {
-  animation-delay: 0.24s;
-}
-
-.sfhCard:hover {
-  border-color: rgba(179, 25, 85, 0.46);
-  transform: translateY(-3px);
-  transition: transform 0.24s ease, border-color 0.24s ease;
-}
-
-.sfhGroupTitle {
-  margin: 0 0 8px;
+/* 아이콘은 글줄 안에 둔다 — 좁은 화면에서 두 줄로 접혀도 아이콘이 첫 줄 앞에 붙어 있다. */
+.sfhByline a {
+  display: inline-block;
+  min-height: 44px;
+  padding: 8px 0;
   color: var(--sfh-text);
-  font-size: 12.5px;
-  font-weight: 700;
-}
-
-.sfhLinkNav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-}
-
-.sfhLink {
-  color: var(--sfh-body);
+  font-size: 0.875rem;
   text-decoration: none;
-  font-size: 12px;
-  line-height: 1.52;
-  transition: color 0.2s ease;
+  text-wrap: balance;
 }
 
-.sfhLink:hover,
-.sfhLink:focus-visible {
-  color: var(--sfh-gold);
+.sfhByline img {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  margin-right: 8px;
+  vertical-align: middle;
+  object-fit: contain;
 }
 
+.sfhByline strong {
+  font-family: var(--font-serif), serif;
+  letter-spacing: 0.04em;
+}
+
+/* 2. 정책 링크 — 첫 줄 다섯 개, 둘째 줄은 작게. */
 .sfhPolicyNav {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-top: 13px;
-  padding-top: 12px;
-  border-top: 1px solid var(--sfh-line-soft);
-}
-
-.sfhBusinessCard {
-  margin-top: 14px;
-  border: 1px solid var(--sfh-line);
-  border-radius: 14px;
-  background: var(--sfh-surface-deep);
-  box-shadow: var(--sfh-shade);
-  padding: 14px 14px 12px;
-}
-
-.sfhBusinessTitle {
-  margin: 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--sfh-line-soft);
-  font-size: 12.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--sfh-accent);
-}
-
-.sfhBusinessList {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 0;
-  display: grid;
-  gap: 6px;
-}
-
-.sfhBusinessItem {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.72;
-  color: var(--sfh-muted);
-  word-break: keep-all;
-}
-
-.sfhBusinessItem strong {
-  color: var(--sfh-text);
-}
-
-.sfhBusinessDivider {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--sfh-line);
-}
-
-.sfhBusinessEmphasis {
-  margin: 0 0 6px;
-  font-size: 12px;
-  line-height: 1.72;
-  color: var(--sfh-body);
-  word-break: keep-all;
-}
-
-.sfhBusinessEmphasis strong {
-  color: var(--sfh-text);
-}
-
-.sfhBusinessMuted {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.72;
-  color: var(--sfh-muted);
-  word-break: keep-all;
-}
-
-.sfhRefundTitle {
-  margin: 0 0 8px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--sfh-gold);
-}
-
-.sfhRefundList {
-  margin: 0;
-  padding: 0 0 0 18px;
-  display: grid;
-  gap: 6px;
-}
-
-.sfhRefundNotice {
-  margin: 10px 0 0;
-  font-size: 11px;
-  line-height: 1.72;
-  color: var(--sfh-gold);
-  word-break: keep-all;
-}
-
-.sfhRefundNoticeStrong {
-  margin: 8px 0 0;
-  font-size: 11px;
-  line-height: 1.72;
-  font-weight: 700;
-  color: var(--sfh-gold);
-  word-break: keep-all;
-}
-
-.sfhSocialCard {
-  margin-top: 14px;
-  border: 1px solid rgba(129, 85, 30, 0.28);
-  border-radius: 14px;
-  background: var(--sfh-surface-deep);
-  box-shadow: var(--sfh-shade);
-  padding: 15px 14px;
-}
-
-.sfhSocialHeader {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px 12px;
-}
-
-.sfhSocialKicker {
-  color: var(--sfh-gold);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.sfhSocialTitle {
-  color: var(--sfh-text);
-  font-family: "Noto Serif KR", "Iowan Old Style", "Times New Roman", serif;
-  font-size: clamp(1rem, 1.7vw, 1.18rem);
-  line-height: 1.35;
-}
-
-.sfhSocialGrid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 9px;
-  margin-top: 12px;
-}
-
-.sfhSocialLink {
-  --sfh-social-accent: var(--sfh-accent);
-  --sfh-social-border: var(--sfh-line);
-  --sfh-social-glow: rgba(179, 25, 85, 0.14);
-  min-height: 46px;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  gap: 8px;
-  border: 1px solid var(--sfh-social-border);
-  border-radius: 12px;
-  background: var(--sfh-surface);
-  color: var(--sfh-text);
-  font-size: 12.5px;
-  font-weight: 800;
-  line-height: 1;
-  text-decoration: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
-  transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
-}
-
-.sfhSocialLink:hover,
-.sfhSocialLink:focus-visible {
-  border-color: var(--sfh-social-accent);
-  background: var(--sfh-surface-deep);
-  box-shadow: 0 12px 26px var(--sfh-social-glow), inset 0 1px 0 rgba(255, 255, 255, 0.75);
-  outline: none;
-  transform: translateY(-2px);
-}
-
-.sfhSocialIcon {
-  width: 24px;
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: var(--sfh-social-accent);
-  color: var(--sfh-ink);
-  font-size: 12px;
-  font-weight: 900;
-  box-shadow: 0 0 18px var(--sfh-social-glow);
-}
-
-.sfhSocialText {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sfhSocialLinkYoutube {
-  --sfh-social-accent: #ff3b3b;
-  --sfh-social-border: rgba(255, 59, 59, 0.42);
-  --sfh-social-glow: rgba(255, 59, 59, 0.24);
-  background: color-mix(in srgb, var(--sfh-surface) 88%, #ff3b3b 12%);
-}
-
-.sfhSocialLinkThreads {
-  --sfh-social-accent: #f7f7fb;
-  --sfh-social-border: rgba(247, 247, 251, 0.42);
-  --sfh-social-glow: rgba(255, 255, 255, 0.18);
-  background: color-mix(in srgb, var(--sfh-surface) 92%, var(--sfh-text) 8%);
-}
-
-.sfhSocialLinkInstagram {
-  --sfh-social-accent: #f8c7ff;
-  --sfh-social-border: rgba(248, 199, 255, 0.58);
-  --sfh-social-glow: rgba(236, 72, 153, 0.22);
-  background: color-mix(in srgb, var(--sfh-surface) 88%, #ec4899 12%);
-}
-
-.sfhSocialLinkInstagram .sfhSocialIcon {
-  background: linear-gradient(135deg, #ffd166, #ec4899 48%, #7c3aed);
-  color: #fff;
-}
-
-.sfhSocialLinkBlog {
-  --sfh-social-accent: #03c75a;
-  --sfh-social-border: rgba(3, 199, 90, 0.42);
-  --sfh-social-glow: rgba(3, 199, 90, 0.24);
-  background: color-mix(in srgb, var(--sfh-surface) 88%, #03c75a 12%);
-}
-
-.sfhSocialLinkX {
-  --sfh-social-accent: #dfe7f5;
-  --sfh-social-border: rgba(223, 231, 245, 0.42);
-  --sfh-social-glow: rgba(223, 231, 245, 0.2);
-  background: color-mix(in srgb, var(--sfh-surface) 92%, var(--sfh-text) 8%);
+  gap: 0 clamp(10px, 3vw, 16px);
+  max-width: 72ch;
 }
 
 .sfhPolicyLink {
-  color: var(--sfh-body);
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--sfh-text);
+  font-size: 0.8125rem;
   text-decoration: none;
-  font-size: 12px;
-  line-height: 1.55;
-  transition: color 0.2s ease;
 }
 
-.sfhPolicyLink:hover,
-.sfhPolicyLink:focus-visible {
+/* 개인정보처리방침은 다른 링크와 구별되게 굵게(개인정보 보호법 표시 기준). */
+.sfhPolicyLinkStrong {
+  font-weight: 800;
+}
+
+.sfhPolicyLinkQuiet {
+  color: var(--sfh-muted);
+  font-size: 0.75rem;
+}
+
+/* "쿠키 설정"은 이동이 아니라 동의 배너를 여는 버튼이다. 모양만 옆 링크와 같게 둔다. */
+.sfhCookieButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sfhBreak {
+  flex-basis: 100%;
+  height: 0;
+}
+
+/* 3. 안내 한 줄 */
+.sfhNotice {
+  margin: 0;
+  max-width: 60ch;
+  text-wrap: balance;
+}
+
+/* 4. 사업자 정보 — 전자상거래법·PG 심사 필수. 값은 번역하지 않는다. */
+.sfhBusiness {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 12px;
+  max-width: 72ch;
+  color: var(--sfh-muted);
+}
+
+/* 5. 전체 서비스 보기 — 기본은 접힘. 펼치면 그룹별 목록. */
+.sfhAll {
+  width: 100%;
+  margin-top: 4px;
+  border-top: 1px solid var(--sfh-line-soft);
+}
+
+.sfhAllToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--sfh-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.sfhAllToggle::-webkit-details-marker {
+  display: none;
+}
+
+.sfhAllToggle::after {
+  content: "+";
   color: var(--sfh-gold);
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.sfhAll[open] > .sfhAllToggle::after {
+  content: "−";
+}
+
+.sfhAllGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px 24px;
+  padding: 6px 0 14px;
+  text-align: left;
+}
+
+.sfhGroupTitle {
+  margin: 0 0 6px;
+  color: var(--sfh-text);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.sfhLinkList {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sfhLink {
+  display: inline-block;
+  padding: 3px 0;
+  color: var(--sfh-body);
+  font-size: 0.75rem;
+  text-decoration: none;
 }
 
 .sfhCopyright {
-  margin: 14px 0 0;
-  width: 100%;
-  text-align: center;
+  margin: 0;
   color: var(--sfh-muted);
-  font-size: 12px;
 }
 
-@media (max-width: 780px) {
-  .sfhShell {
-    width: calc(100% - 22px);
-    padding: 18px 0 16px;
-  }
-
-  .sfhGroupGrid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .sfhPolicyNav {
-    gap: 7px 10px;
-  }
-
-  .sfhBusinessCard {
-    padding: 12px 11px 11px;
-  }
-
-  .sfhSocialCard {
-    padding: 13px 11px;
-  }
-
-  .sfhSocialHeader {
-    justify-content: center;
-    text-align: center;
-  }
-
-  .sfhSocialGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.sfhByline a:focus-visible,
+.sfhPolicyLink:focus-visible,
+.sfhAllToggle:focus-visible,
+.sfhLink:focus-visible {
+  outline: 3px solid var(--sfh-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-@media (max-width: 360px) {
-  .sfhSocialGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sfhStars,
-  .sfhCard {
-    animation: none;
-    transform: none;
-    opacity: 1;
-  }
-
-  .sfhCard:hover {
-    transform: none;
-  }
-
-  .sfhSocialLink {
-    transition: none;
-  }
-
-  .sfhSocialLink:hover,
-  .sfhSocialLink:focus-visible {
-    transform: none;
-  }
-}
-
-@keyframes sfhDrift {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-
-  50% {
-    transform: translate3d(-38px, -24px, 0);
-  }
-
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes sfhRise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
+@media (hover: hover) {
+  .sfhPolicyLink:hover,
+  .sfhLink:hover {
+    color: var(--sfh-gold);
+    text-decoration: underline;
   }
 }

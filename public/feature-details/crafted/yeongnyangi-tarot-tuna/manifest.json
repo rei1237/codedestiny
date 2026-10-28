@@ -1,0 +1,167 @@
+{
+  "id": "yeongnyangi-tarot-tuna",
+  "featureKey": "yeongnyangi-tarot-tuna",
+  "title": "영냥이 타로 참치 상담",
+  "notice": "타로 참치는 기존 상담 선택 메뉴에서 15장 목차로 깊이 읽습니다. ‘질문으로 고르는 배열’에서는 최대 10장 중 배열 하나를 선택하며 이 안내는 10장 ‘복잡한 고민의 전체 지도’를 예로 삼습니다. 기존 고정 질문 메뉴는 종류별 카드 수를 사용하며 여러 배열이 한 번에 포함되지는 않습니다. 참치의 장기 시기 전환은 현재 타로 질문 추천에서 지원하지 않습니다. 출생 차트나 미래 날짜를 계산하는 상품이 아니라 질문·자리·카드 연결·조건을 해석합니다. 예시는 실제 추첨·고객 결과가 아닌 가상 편집이고 AI 작성 상담입니다. 가격·이용 조건은 현재 화면에서 확인하세요.",
+  "panels": [
+    {
+      "id": "01-when-everything-is-connected",
+      "title": "하나를 바꾸려는데, 모든 일이 얽혀 있다면.",
+      "alt": "마법사 고양이 영냥이가 펼친 타로 카드의 흐름을 읽는 장면",
+      "src": "/images/service-introductions/yeongnyangi-tarot.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "하나를 바꾸려는데,\n모든 일이 얽혀 있다면.\n\n눈앞의 갈등과 주변 조건을 나누고,\n먼저 풀어볼 순서를 찾아봐요.\n\n영냥이 타로 · 참치",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-tarot-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-find-the-center",
+      "title": "여러 고민 속에서도, 질문의 중심을 잡아요.",
+      "alt": "일생활변화복합상황을하나의판단질문으로묶는예시.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/02-find-the-center.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "여러 고민 속에서도,\n질문의 중심을 잡아요.\n바꾸고 싶은 것\n\n일하는 방식을 바꾸고 싶어요.\n\n함께 얽힌 조건\n\n생활비와 가족 일정,\n새로운 일에 대한 기대가 있어요.\n\n이번에 먼저 물을 것\n\n변화를 시작하기 전에\n무엇부터 정리해야 할까요?\n\n질문을 돕는 가상 상황입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/02-find-the-center-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-what-the-first-five-places-ask",
+      "title": "겉으로 보이는 문제와, 안쪽의 바람을 나눠요.",
+      "alt": "실제전체지도10자리중앞5자리역할을설명.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/03-what-the-first-five-places-ask.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "겉으로 보이는 문제와,\n안쪽의 바람을 나눠요.\n\n복잡한 고민의 전체 지도 · 앞의 다섯 자리\n\n현재 · 지금 상황의 모습\n핵심 갈등 · 크게 부딪히는 것\n배경 · 고민이 시작된 자리\n원하는 것 · 나의 진짜 바람\n외면한 요소 · 놓치고 있던 조건\n\n자리 설명이며 실제로 뽑은 카드가 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/03-what-the-first-five-places-ask-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-resources-and-another-action",
+      "title": "내가 가진 힘과, 다른 행동의 가능성을 봐요.",
+      "alt": "전체지도나머지5자리내자원외부조건대안변화종합안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/04-resources-and-another-action.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내가 가진 힘과,\n다른 행동의 가능성을 봐요.\n내 자원 · 외부 조건\n\n내가 쓸 수 있는 힘과\n내 뜻대로 바꾸기 어려운 환경\n\n대안 행동 · 가까운 변화\n\n다르게 시도할 행동과\n현재 조건에서 열릴 가능성\n\n종합 방향\n\n열 자리를 함께 읽은 흐름\n\n가까운 변화는 날짜별 사건의 예언이 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/04-resources-and-another-action-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-the-first-seven-chapters",
+      "title": "답과 근거를 읽고, 영향의 무게를 가려요.",
+      "alt": "실제전체지도15장중1~7장목차안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/05-the-first-seven-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "답과 근거를 읽고,\n영향의 무게를 가려요.\n\n전체 지도 상담 · 15장 중 1–7장\n\n1–3장 · 답을 만드는 카드\n\n질문에 대한 답 · 자리별 의미\n카드들의 연결과 충돌\n\n4–7장 · 고민의 구조\n\n중심 갈등과 주변 요인\n영향의 우선순위 · 바람과 두려움\n환경과 나의 몫\n\n좋은 카드의 개수로 결론을 정하지 않아요.\n서로 다른 신호가 나온 조건을 함께 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/05-the-first-seven-chapters-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-conditions-alternatives-and-actions",
+      "title": "하나의 해석에 닫히지 않고, 대안과 기준을 남겨요.",
+      "alt": "실제15장중8~15장조건순서자원다른해석경계행동안내.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/06-conditions-alternatives-and-actions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "하나의 해석에 닫히지 않고,\n대안과 기준을 남겨요.\n8–10장 · 풀리는 조건과 순서\n\n흐름이 갈라지는 조건\n풀리는 순서 · 쓸 수 있는 자원\n\n11–13장 · 다시 살필 여지\n\n다른 해석의 가능성\n지켜야 할 경계 · 다시 살필 기준\n\n14–15장 · 지금의 실천\n\n결과가 달라질 조건\n지금 할 수 있는 행동\n\n불확실한 부분은 확인할 질문으로 남겨요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/06-conditions-alternatives-and-actions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-one-change-before-every-change",
+      "title": "모든 것을 바꾸기 전에, 한 가지를 시험해봐요.",
+      "alt": "직무변화복합고민을작은실험으로옮기는가상조언.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/07-one-change-before-every-change.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "모든 것을 바꾸기 전에,\n한 가지를 시험해봐요.\n\n이해를 돕기 위한 편집 예시\n\n새 일을 향한 마음과\n생활을 지키려는 마음은\n함께 있을 수 있어요.\n\n당장 모든 조건을 바꾸기보다,\n작은 작업 하나를 먼저 해보고\n시간과 체력이 얼마나 드는지 기록해요.\n\n실제 카드 추첨이나 고객 결과가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/07-one-change-before-every-change-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-other-menus-other-spreads",
+      "title": "같은 참치 상담에도, 질문별 배열은 달라요.",
+      "alt": "고정메뉴3카드7카드와15목차및장기질문미지원구분.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/08-other-menus-other-spreads.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 참치 상담에도,\n질문별 배열은 달라요.\n기존 고정 질문 메뉴\n\n지금의 선택 3장 · 일과 진로 7장 등\n질문 종류별 카드 수를 사용해요.\n\n배열을 직접 고르는 메뉴\n\n최대 10장 범위에서 하나를 골라요.\n목차는 선택한 목적을 따라 달라져요.\n\n기존 메뉴의 참치 해석은 15장 목차예요.\n타로 장기 시기 전환은 현재 질문 추천에서\n지원하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/08-other-menus-other-spreads-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-prepare-the-conditions",
+      "title": "질문과 제약을 적고, 카드의 자리를 확인해요.",
+      "alt": "개인상황입력기존배열추첨공개순서및출생정보구분.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/09-prepare-the-conditions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문과 제약을 적고,\n카드의 자리를 확인해요.\n현재 상황과 선택의 조건\n\n먼저 다룰 질문, 바라는 변화,\n시간·비용·관계의 제약을 알려 주세요.\n\n배열 선택 메뉴의 이용 순서\n\n자리 확인 → 뒷면 카드 선택\n결제 후 공개 → 카드와 해석 읽기\n\n읽은 뒤에는 현실과 대조해요\n\n확인할 정보와 중단·수정 기준을\n내 생활에 맞게 적용해요.\n\n출생 정보 대신 질문과 카드의 상징을 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/09-prepare-the-conditions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-a-map-with-room-to-choose",
+      "title": "복잡함 속에서도, 내가 고를 자리가 남도록.",
+      "alt": "공식타로영냥이와AI가격저장결과안내마무리.",
+      "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/10-a-map-with-room-to-choose.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "복잡함 속에서도,\n내가 고를 자리가 남도록.\n\n한 가지 답에 나를 맡기기보다,\n움직일 순서와 확인할 기준을 가져가요.\n\nAI가 작성하며 미래를 확정하지 않습니다.\n가격과 이용 조건은 현재 화면에서,\n저장된 결과는 내 상담에서 확인해요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-tarot-tuna/10-a-map-with-room-to-choose-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

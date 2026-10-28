@@ -9,7 +9,7 @@ import {trackEvent} from '@/lib/analytics';
  */
 export default function SampleExposure({targetId,itemId}:{targetId:string;itemId:string}){
  useEffect(()=>{
-  const target=document.getElementById(targetId)?.querySelector('h2');
+  const root=document.getElementById(targetId),target=root?.querySelector('[data-sample-exposure]')??root?.querySelector('h2');
   if(!target||!('IntersectionObserver' in window))return;
   let sent=false;
   const observer=new IntersectionObserver(entries=>{

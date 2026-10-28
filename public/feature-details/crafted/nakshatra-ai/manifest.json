@@ -1,0 +1,134 @@
+{
+  "id": "nakshatra-ai",
+  "featureKey": "nakshatra-ai-consultation",
+  "title": "나크샤트라 전문가 심화 AI 상담",
+  "notice": "출생프로필과 선택입력 질문(1,000자이내)을 바탕으로 숙요·나크샤트라의 새 AI 본문9장을 생성합니다. 두별요약/본질/내면리듬/관계/재능과일/그림자/체계간차이/활용법/마무리로 구성됩니다. 장마다 핵심문장과 본문을 읽으며 생성·입력상태에 따라 내용과 분량이 달라집니다. 출생시간미상 등은 활용근거를 제한합니다. 실제전문가의 직접답변/의료진단/성공보장/무제한후속대화가 아닙니다. 저장결과를 보관함에서 읽고 완료후PDF를 저장할 수 있습니다. 생성실패는 기존이어받기안내를 따릅니다. VVIP규칙형통합서/궁합/택일은 별도상품입니다. 도식·문장은 구성설명용가상예시로 실제AI원문이나후기가 아닙니다. 이용권·월정석·단건결제 조건은 현재화면을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-one-person-two-traditions",
+      "title": "두 전통의 해석을, 내 질문 가까이.",
+      "src": "/feature-details/crafted/nakshatra-ai/01-one-person-two-traditions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "두 전통의 해석을,\n내 질문 가까이.\n\n숙요\n\n나의 질문\n\n나크샤트라\n\n나크샤트라 전문가 심화 AI 상담.\n동양 숙요와 인도 나크샤트라의 근거를\n한 사람의 성향·관계·일·선택으로\n풀어 읽는 아홉 장의 상담입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-ai/01-one-person-two-traditions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "02-bring-a-question",
+      "title": "요즘의 고민이 있다면, 함께 적어주세요.",
+      "src": "/feature-details/crafted/nakshatra-ai/02-bring-a-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "요즘의 고민이 있다면,\n함께 적어주세요.\n“사람들과 함께할 때는 좋은데,\n일이 끝나면\n혼자 있고 싶어져요.”\n\n출생 프로필을 확인하고,\n궁금한 점은 선택으로 입력합니다.\n질문은 1,000자 이내로 적을 수 있어요.\n\n질문은 가상 예시입니다.\n비워두면 기본 성향을 중심으로 읽습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-ai/02-bring-a-question-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-the-first-four-chapters",
+      "title": "나의 본질에서, 관계의 모습까지.",
+      "src": "/feature-details/crafted/nakshatra-ai/03-the-first-four-chapters.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나의 본질에서,\n관계의 모습까지.\n당신을 부르는 두 개의 별\n두 별이 말하는 나의 본질\n내면의 리듬과 돌봄\n사랑과 관계에서 원하는 것\n\n첫 장에서 두 별의 핵심을 읽고,\n안쪽 마음과 관계의 패턴을 살펴봅니다.\n\n목차를 쉽게 풀어 쓴 안내입니다.\n내면 돌봄은 의료 진단이나 치료가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-ai/03-the-first-four-chapters-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-five-chapters-to-follow",
+      "title": "잘 맞는 환경과, 반복되는 선택을 살펴요.",
+      "src": "/feature-details/crafted/nakshatra-ai/04-five-chapters-to-follow.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "잘 맞는 환경과,\n반복되는 선택을 살펴요.\n\n05   재능과 일하는 환경\n\n06   되풀이되는 그림자\n\n07   두 전통이 다르게 보는 지점\n\n08   나의 사용 설명서\n\n09   마지막 별의 문장\n\n장마다 핵심 문장과 본문을 읽습니다.\n개인별 내용과 분량은 입력에 따라 달라집니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-ai/04-five-chapters-to-follow-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-agreement-and-difference",
+      "title": "같은 결론을 찾는 것만이, 통합은 아닙니다.",
+      "src": "/feature-details/crafted/nakshatra-ai/05-agreement-and-difference.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 결론을 찾는 것만이,\n통합은 아닙니다.\n함께 가리키는 지점\n\n두 전통의 설명이 겹치는 부분을\n나의 반복 패턴과 비교해봅니다.\n\n서로 다른 강조점\n\n한쪽은 관계, 다른 쪽은 기질을\n더 강조할 수 있습니다.\n다른 관점을 지운 채 섞지 않습니다.\n\n두 체계 모두 해석의 틀이며\n성격과 미래를 확정하는 증명은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-ai/05-agreement-and-difference-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-read-it-in-your-life",
+      "title": "내가 편한 방식과, 내가 지치는 방식을.",
+      "src": "/feature-details/crafted/nakshatra-ai/06-read-it-in-your-life.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내가 편한 방식과,\n내가 지치는 방식을.\n“함께 시작하면 힘이 나지만,\n마무리는 혼자 집중해야\n잘 되는 편이었네.”\n\n해석에서 떠오른 장면을 적어보고\n관계와 일의 환경에서 바꿀 수 있는\n작은 조건을 찾아보세요.\n\n읽는 방법을 보여주는 가상 예시입니다.\n실제 AI 결과 원문이나 고객 후기가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-ai/06-read-it-in-your-life-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-what-is-generated",
+      "title": "질문을 바탕으로, 새 AI 본문을 씁니다.",
+      "src": "/feature-details/crafted/nakshatra-ai/07-what-is-generated.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "질문을 바탕으로,\n새 AI 본문을 씁니다.\n\n계산된 별자리 근거와 입력 내용을\n바탕으로 아홉 장을 생성합니다.\n완성된 내용을 차례로 읽고,\n남은 장은 이어서 받아봅니다.\n\n중단이나 오류가 보이면\n기존 이어받기 안내를 이용하세요.\n실제 사람이 직접 답하는\n전문가 상담은 아닙니다.\n\n후속 자유 대화나 무제한 추가 질문은\n이 상품에 포함되지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-ai/07-what-is-generated-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-save-and-return",
+      "title": "다시 읽을 결과와, 간직할 PDF.",
+      "src": "/feature-details/crafted/nakshatra-ai/08-save-and-return.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "다시 읽을 결과와,\n간직할 PDF.\n\n저장된 상담 결과\n\n완료 후 PDF 저장\n\n저장된 결과는 보관함에서 다시 읽고,\n상담이 완료되면 화면의 PDF 버튼으로\n파일을 내보낼 수 있습니다.\n\n생성 진행 중에는 PDF 저장이 제한됩니다.\n파일 저장 완료를 확인해주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-ai/08-save-and-return-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-before-the-consultation",
+      "title": "필요한 깊이를, 확인한 뒤 시작하세요.",
+      "src": "/feature-details/crafted/nakshatra-ai/09-before-the-consultation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "필요한 깊이를,\n확인한 뒤 시작하세요.\n\n프로필의 출생정보와 질문을 확인하고\n기존 버튼에서 가격과 이용 조건을 봅니다.\n출생시간 미상 등 조건에 따라\n활용할 수 있는 근거가 달라집니다.\n\nVVIP 규칙형 통합서, 두 사람 궁합,\n택일은 각각 별도 상품입니다.\n이 AI 상담에 함께 포함되지 않습니다.\n\n이용권·월정석·단건 결제는\n현재 화면의 기준을 따릅니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/nakshatra-ai/09-before-the-consultation-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

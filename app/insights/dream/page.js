@@ -6,15 +6,15 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 const path = "/insights/dream";
 const INSIGHTS_DREAM_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "꿈해몽 인사이트 허브 · 꿈 상징 해석 가이드 | Code Destiny",
+    title: "꿈해몽 인사이트 허브 · 꿈 상징 해석 가이드 | 꿀꿀 운세",
     description: "꿈해몽, 무료 꿈해몽, 꿈 상징 해석, 꿈 기록법을 현실적인 자기 점검과 일상 기록으로 연결하는 꿈해몽 인사이트 허브입니다.",
     keywords: ["꿈 상징 해석", "꿈 기록법", "반복되는 꿈", "꿈 상징 사전"],
-    breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "꿈해몽 인사이트"],
+    breadcrumbs: ["꿀꿀운세 홈", "운세 인사이트", "꿈해몽 인사이트"],
     archiveTitle: "꿈해몽 인사이트 허브",
     intro: "꿈 상징을 자기이해와 일상 루틴으로 연결하는 꿈해몽 실전 가이드를 제공합니다.",
   },
   en: {
-    title: "Dream Interpretation Insights Hub · Dream Symbol Guide | Code Destiny",
+    title: "Dream Interpretation Insights Hub · Dream Symbol Guide | 꿀꿀 운세",
     description: "A dream interpretation hub that connects dream symbols, free dream readings, and dream journaling with practical self-checks.",
     keywords: ["dream interpretation", "free dream interpretation", "dream symbols", "dream meaning"],
     breadcrumbs: ["Home", "Fortune Insights", "Dream Insights"],
@@ -22,7 +22,7 @@ const INSIGHTS_DREAM_PAGE_TEXT_TRANSLATIONS = {
     intro: "Practical dream guides that connect dream symbols with self-understanding and daily routines.",
   },
   ja: {
-    title: "夢占いインサイトハブ · 夢の象徴解釈ガイド | Code Destiny",
+    title: "夢占いインサイトハブ · 夢の象徴解釈ガイド | 꿀꿀 운세",
     description: "夢占い、無料夢占い、夢の象徴解釈、夢日記を現実的な自己点検と日常記録につなげる夢占いインサイトハブです。",
     keywords: ["夢占い", "無料夢占い", "夢の象徴", "夢の解釈"],
     breadcrumbs: ["ホーム", "運勢インサイト", "夢占いインサイト"],

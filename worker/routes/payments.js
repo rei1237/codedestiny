@@ -34,9 +34,12 @@ import { deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS, resolveMonthlySpendQuota } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
-import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey } from "../lib/paid-feature-registry.js";
+import { isBirthScopedUnlockFeatureKey, isLegacyLoveCodeUnlockAlias, isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "../lib/paid-feature-registry.js";
+import { isBirthUnlockIdentityError, resolveBirthUnlockIdentity } from "../lib/birth-scoped-unlock-identity.js";
+import { toBirthEntitlementProfileId } from "../lib/birth-key.js";
 import { PASS_MONTHLY_WON } from "../../lib/payment/pass-pricing.js";
 import {
+  findActivePaidContentUnlock,
   formatPermanentUnlockGrant,
   grantPermanentUnlock,
   resolvePaidContentUnlockTarget,
@@ -48,6 +51,7 @@ import {
   buildSinglePaymentRefundIdempotencyKey,
   invalidatePaidAccessDecisionCacheForUser,
   isPartialCancel,
+  logSwallowedPaymentError,
   refundPaymentAsOperator,
   revokeSinglePaymentContentAccess,
 } from "../lib/payment-refund.js";
@@ -57,6 +61,7 @@ const isPartialSingleCancel = isPartialCancel;
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { buildApiError, buildApiMeta } from "../lib/api-contract.js";
 import { resolvePaymentMethodLabel } from "../lib/payment-method-label.js";
+import { ORDER_PRODUCT_NAME_PROJECTION, resolveOrderProductName } from "../lib/payment-product-name.js";
 import { isV2OrderId } from "../payments/order-id.js";
 
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
@@ -209,7 +214,7 @@ function paymentRateLimitForPath(path = "") {
 
 async function enforcePaymentRouteSecurity(request, env, auth, path) {
   const method = request.method.toUpperCase();
-  if (method !== "POST" || path === "/webhook") return { ok: true };
+  if (method !== "POST") return { ok: true };
   const meta = getRequestMeta(request);
   return enforceSensitiveEndpointSecurity({
     env,
@@ -276,6 +281,7 @@ async function findRecentPaymentsForUser(userId, limit = 20, { includeDetails = 
     chargedPoints: 1,
     featureKey: 1,
     productId: 1,
+    ...ORDER_PRODUCT_NAME_PROJECTION,
     accessType: 1,
     paymentMethod: 1,
     paymentType: 1,
@@ -436,6 +442,7 @@ function formatPaymentResponse(payment) {
     chargedPoints: Number(payment.chargedPoints || 0),
     featureKey: String(payment.featureKey || ""),
     productId: String(payment.productId || ""),
+    productName: resolveOrderProductName(payment),
     accessType: String(payment.accessType || ""),
     requestId: String(payment.requestId || ""),
     reportId: String(payment.reportId || ""),
@@ -472,6 +479,7 @@ function formatPaymentSummaryResponse(payment) {
     chargedPoints: detail.chargedPoints,
     featureKey: detail.featureKey,
     productId: detail.productId,
+    productName: detail.productName,
     accessType: detail.accessType,
     paymentMethod: detail.paymentMethod,
     paymentMethodLabel: detail.paymentMethodLabel,
@@ -555,7 +563,7 @@ async function writeFailureLog(params = {}) {
     requestMeta: request ? getRequestMeta(request) : undefined,
     payload: summarizePayload(payload),
     rawPortOne: summarizePayload(rawPortOne),
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("failure_log_write", { paymentId: String(merchantUid || impUid || ""), stage: String(stage || "unknown") }));
 }
 
 function extractPortOneWebhookId(headers) {
@@ -665,7 +673,7 @@ async function markPortOneWebhookEventProcessed(event, response) {
       lastError: "",
       "payload.resultStatus": Number(response?.status || 200),
     },
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("webhook_event_mark_processed", { eventId: String(event._id) }));
 }
 
 async function markPortOneWebhookEventFailed(event, error) {
@@ -677,7 +685,7 @@ async function markPortOneWebhookEventFailed(event, error) {
       lastAttemptAt: new Date(),
       lastError: String(error?.message || error || "Webhook processing failed.").slice(0, 500),
     },
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("webhook_event_mark_failed", { eventId: String(event._id) }));
 }
 
 function isSukuyoYearlyPaymentKey(value) {
@@ -838,8 +846,56 @@ async function verifySinglePaymentProfileOwner(userId, profileId) {
   return null;
 }
 
-async function hasExistingSinglePaymentUnlock({ userId, profileId, featureKey, contentKey: requestedContentKey = "" }) {
+// 주문 pricingSnapshot 에 서버가 계산해 둔 출생 신원. 결제 도중 프로필 생년월일을 고쳐도 지급 대상이 움직이지 않는다.
+function birthIdentityFromSnapshot(snapshot = {}) {
+  const birthKey = String(snapshot?.birthKey || "").trim();
+  const entitlementProfileId = toBirthEntitlementProfileId(birthKey);
+  if (!entitlementProfileId) return null;
+  return {
+    entitlementProfileId,
+    birthKey,
+    partnerBirthKey: String(snapshot?.partnerBirthKey || "").trim(),
+    profileId: cleanProfileId(snapshot?.profileId || snapshot?.selectedProfileId),
+    partnerProfileId: cleanProfileId(snapshot?.partnerProfileId),
+  };
+}
+
+// 🔴 출생 기반 키의 중복 결제 판정은 userId + birthKey + contentKey 다(같은 계정의 같은 출생 정보면 이미 산 것).
+async function hasExistingBirthScopedPaymentUnlock({ userId, profileId, partnerProfileId = "", featureKey, contentKey = "", birthIdentity = null }) {
+  // 서비스 키를 다시 고정하지 않아 공통 리더가 해당 상품의 과거 키를 함께 확인한다.
+  const entitlement = await findActivePaidContentUnlock({
+    userId: String(userId),
+    profileId,
+    partnerProfileId,
+    featureKey,
+    ...(contentKey ? { contentKey } : {}),
+    ...(birthIdentity ? { birthIdentity } : {}),
+  });
+  if (entitlement) return { source: "content_entitlement", entitlement };
+  if (!birthIdentity?.birthKey) return null;
+  const paidPayment = await Payment.findOne({
+    userId,
+    paymentType: "digital_content",
+    accessType: "single_purchase",
+    featureKey,
+    status: { $in: SINGLE_PAYMENT_UNLOCKED_STATUSES },
+    "pricingSnapshot.birthKey": birthIdentity.birthKey,
+    ...(contentKey ? {
+      $or: [
+        { "pricingSnapshot.contentKey": contentKey },
+        { "pricingSnapshot.contentId": contentKey },
+      ],
+    } : {}),
+  }).sort({ createdAt: -1 }).lean();
+  if (paidPayment) return { source: "payment", payment: paidPayment };
+  return null;
+}
+
+async function hasExistingSinglePaymentUnlock({ userId, profileId, partnerProfileId = "", featureKey, contentKey: requestedContentKey = "", birthIdentity = null }) {
   const contentKey = resolveProfileUnlockContentKey(featureKey, requestedContentKey);
+  if (isBirthScopedUnlockFeatureKey(featureKey)) {
+    return hasExistingBirthScopedPaymentUnlock({ userId, profileId, partnerProfileId, featureKey, contentKey, birthIdentity });
+  }
   const serviceKey = resolveProfileUnlockServiceKey(featureKey, contentKey);
   if (contentKey && serviceKey) {
     // 결제창 호출 전에 프로필 단위 잠금 해제 이력을 먼저 확인해 중복 결제를 차단한다.
@@ -1130,7 +1186,9 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
   // 카드가 0개인 계정의 모든 결제)가 Transaction.Paid 웹훅 정산에서 INVALID_UNLOCK_TARGET 으로
   // 죽었고, 그 catch 가 자동환불을 불러 PortOne 결제 취소 + paidFeatures 회수까지 갔다
   // — 즉 "결제 직후 서비스가 사라지는" 사고였다.
-  const requiresProfile = Boolean(resolveProfileUnlockContentKey(payment?.featureKey, payment?.pricingSnapshot?.contentKey || contentId));
+  // 출생 기반 키는 주문의 프로필(그리고 서버가 계산해 둔 birthKey 스냅샷)로 BIRTH 행을 쓴다.
+  const birthScoped = isBirthScopedUnlockFeatureKey(payment?.featureKey);
+  const requiresProfile = birthScoped || Boolean(resolveProfileUnlockContentKey(payment?.featureKey, payment?.pricingSnapshot?.contentKey || contentId));
 
   // 🔴 계정 스코프 키는 주문에 profileId 가 실려 있어도 무시하고 USER 스코프로 고정한다.
   // 정적 셸(_cdBuildDirectCheckoutPayload)이 모든 단건 결제에 현재 프로필을 자동 주입하기 때문에,
@@ -1160,6 +1218,10 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
       evidenceId: String(payment?._id || payment?.merchantUid || ""),
       coinAmount: coinPrice,
       unlockedAt: paidAt,
+      ...(birthScoped ? {
+        partnerProfileId: cleanProfileId(payment?.pricingSnapshot?.partnerProfileId),
+        ...(birthIdentityFromSnapshot(payment?.pricingSnapshot) ? { birthIdentity: birthIdentityFromSnapshot(payment?.pricingSnapshot) } : {}),
+      } : {}),
     });
     return {
       ...entitlement,
@@ -1217,11 +1279,11 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
 }
 
 // 지급 대상을 식별하지 못한 실패(프로필 결손 등)와 인프라 실패(Mongo 저장 실패)를 가른다.
-// 전자는 돈을 돌려줄 사유가 아니다 — 이 시점에 recordUserPaidFeature 가 이미 권한을 줬고
-// 실제 접근 판정(paid-feature-access.js)은 paidFeatures/unlockedFeatures 만 읽는다.
+// 전자는 환불하지 않는다(2026-10-10 사용자 결정). 출생 기반 키는 계정 배열이 근거가 아니라 아직 열리지
+// 않는다 — 사용자가 프로필을 골라야 지급된다(worker/payments/birth-profile-claim.js).
 function isUnlockTargetIdentityError(error) {
   const code = String(error?.code || "").trim();
-  return code === "INVALID_UNLOCK_TARGET" || code === "MISSING_PROFILE_ID";
+  return code === "INVALID_UNLOCK_TARGET" || code === "MISSING_PROFILE_ID" || code === "INVALID_PROFILE";
 }
 
 
@@ -1285,19 +1347,19 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
         lastErrorAt: new Date(),
       },
     }).catch(() => {});
-    return { refunded: false, deferred: true, payment };
+    return { refunded: false, deferred: true, profileSelectionRequired: forceDefer, payment };
   };
   // 해금 기록 실패 응답. 식별 실패는 환불하지 않으므로 프론트가 "환불됐다"고 오안내하지 않도록
-  // 코드·문구·상태를 분리한다. 2xx 로 내려 웹훅을 processed 로 확정한다 — profileId 결손은
-  // 재시도해도 그대로라 재조정 크론이 같은 실패를 무한히 되풀이할 이유가 없다.
+  // 코드·문구·상태를 분리한다. 202 는 웹훅 processed 가 아니다(isSuccessfulWebhookResponse) — 구 웹훅은 V2 로
+  // 라우팅돼 실제 재시도는 구 재조정 크론(maxAttempts)뿐이고, 식별 실패는 프로필 선택 지급으로 푼다.
   const buildUnlockFailureResponse = (refund, fallbackPayment) => {
     if (refund.deferred) {
       return json({
         ok: false,
         code: "UNLOCK_RECORD_DEFERRED_ADMIN_REVIEW",
-        message: "결제와 이용 권한은 정상 처리됐습니다. 해금 기록만 담당자가 확인 중이며 환불은 진행되지 않았습니다.",
+        message: refund.profileSelectionRequired ? "결제는 확인됐고 열람할 프로필 확인이 필요합니다. 환불은 진행되지 않았습니다." : "결제는 확인됐습니다. 열람 권한 기록을 담당자가 확인 중이며 환불은 진행되지 않았습니다.",
         refundStatus: "not_refunded",
-        adminReviewRequired: true,
+        adminReviewRequired: true, profileSelectionRequired: Boolean(refund.profileSelectionRequired),
         payment: formatPaymentResponse(refund.payment || fallbackPayment),
       }, { status: 202 });
     }
@@ -1596,8 +1658,10 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
   const existingUnlock = await hasExistingSinglePaymentUnlock({
     userId: order.userId,
     profileId: order.pricingSnapshot?.profileId,
+    partnerProfileId: order.pricingSnapshot?.partnerProfileId,
     featureKey: order.featureKey,
     contentKey: order.pricingSnapshot?.contentKey || order.pricingSnapshot?.contentId,
+    birthIdentity: birthIdentityFromSnapshot(order.pricingSnapshot),
   });
   const paidAt = toDateFromUnixSeconds(portOnePayment.paid_at);
 
@@ -1879,7 +1943,7 @@ async function markPaymentCancellationForAdminReview({ request, paymentId, body,
       lastErrorAt: new Date(),
     },
     $inc: { confirmAttempts: 1 },
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("webhook_cancel_state_write", { paymentId: String(current._id) }));
 
   return json({
     ok: true,
@@ -1920,11 +1984,34 @@ async function handleSinglePaymentStart(request, env, auth) {
     }, { status: 400 });
   }
 
+  // 🔴 출생 기반 키는 결제창 전에 이 계정 저장 프로필의 출생 정보로 신원을 만든다(궁합은 상대 프로필도).
+  let birthIdentity = null;
+  if (isBirthScopedUnlockFeatureKey(resolved.featureKey)) {
+    try {
+      birthIdentity = await resolveBirthUnlockIdentity({
+        userId: auth.userId,
+        profileId,
+        partnerProfileId: cleanProfileId(body?.partnerProfileId),
+        featureKey: resolved.featureKey,
+      });
+    } catch (error) {
+      if (!isBirthUnlockIdentityError(error)) throw error;
+      return json({
+        message: error.message,
+        code: error.code,
+        reason: error.code === "MISSING_PROFILE_ID" ? "missing_profile_id" : "invalid_profile",
+        requiresProfile: true,
+      }, { status: error.code === "MISSING_PROFILE_ID" ? 400 : 403 });
+    }
+  }
+
   const unlockEvidence = await hasExistingSinglePaymentUnlock({
     userId: auth.userId,
     profileId,
+    partnerProfileId: birthIdentity?.partnerProfileId,
     featureKey: resolved.featureKey,
     contentKey: body?.contentKey,
+    birthIdentity,
   });
   if (unlockEvidence) {
     return json({
@@ -2038,6 +2125,11 @@ async function handleSinglePaymentStart(request, env, auth) {
       userId: String(auth.userId || ""),
       profileId,
       selectedProfileId: profileId,
+      ...(birthIdentity ? {
+        birthKey: birthIdentity.birthKey,
+        ...(birthIdentity.partnerProfileId ? { partnerProfileId: birthIdentity.partnerProfileId } : {}),
+        ...(birthIdentity.partnerBirthKey ? { partnerBirthKey: birthIdentity.partnerBirthKey } : {}),
+      } : {}),
       serviceId,
       contentId,
       contentKey,
@@ -2142,7 +2234,7 @@ async function markPaymentFailure(paymentRecord, patch = {}) {
       lastErrorAt: new Date(),
     },
     ...(patch.incrementAttempt ? { $inc: { confirmAttempts: 1 } } : {}),
-  }).catch(() => {});
+  }).catch(logSwallowedPaymentError("mark_payment_failure", { paymentId: String(paymentRecord._id) }));
 }
 
 async function findPaymentRecord(impUid, merchantUid) {
@@ -2169,7 +2261,7 @@ async function handleWebhook(request, env, ctx) {
    * PortOne 관리자 콘솔 설정:
    * 결제 연동 → 연동 관리 → 결제알림(Webhook) 관리
    * 웹훅 버전: 결제모듈 V2, 최신 웹훅 버전 사용, Content-Type: application/json
-   * Endpoint URL: https://<배포도메인>/api/webhooks/portone
+   * Endpoint URL: https://<배포도메인>/api/webhooks/portone (실제 수신은 V2 — 이 핸들러는 2026-10 부터 라우터에 등록되지 않는다)
    * 웹훅 시크릿은 환경별로 분리해 PORTONE_webhook에 저장한다.
    */
   const rawBody = await request.text();
@@ -2251,7 +2343,7 @@ async function handleWebhook(request, env, ctx) {
   if (eventType === PORTONE_WEBHOOK_EVENTS.PAID && ctx && typeof ctx.waitUntil === "function") {
     ctx.waitUntil(
       settleReservedWebhookEvent({ request, env, eventType, paymentId, body, event: reservation.event })
-        .catch(() => {}),
+        .catch(logSwallowedPaymentError("webhook_background_settle", { paymentId })),
     );
     return json({ ok: true, accepted: true, type: eventType, paymentId });
   }
@@ -2260,7 +2352,7 @@ async function handleWebhook(request, env, ctx) {
 }
 
 // 예약된 포트원 웹훅 이벤트를 실제 처리하고 결과(2xx/비-2xx)에 따라 processed/failed로 확정한다.
-// handleWebhook의 인라인 폴백 경로, waitUntil 백그라운드 경로, 재조정 크론이 공유한다.
+// handleWebhook 의 인라인 폴백·waitUntil 경로만 쓴다(POST /webhook 미등록 — 구 재조정 크론은 settleSinglePaymentForReconcile).
 async function settleReservedWebhookEvent({ request, env, eventType, paymentId, body, event }) {
   try {
     let response;
@@ -2369,7 +2461,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
           source: "cancel",
           cancelAmount: Number(canceledPortOne?.cancel_amount || requestedCancelAmount || paidAmount || 0),
         },
-      }).catch(() => {});
+      }).catch(logSwallowedPaymentError("cancel_point_history", { paymentId: String(paymentRecord._id) }));
     }
 
     return { canceledPayment, updatedPoints };
@@ -2838,7 +2930,7 @@ async function handleReportFailure(request, env, auth) {
         failureStage: "client_report",
         lastErrorAt: new Date(),
       },
-    }).catch(() => {});
+    }).catch(logSwallowedPaymentError("report_failure_cas", { paymentId: String(payment._id) }));
   }
 
   await writeFailureLog({
@@ -3236,10 +3328,10 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   // 그대로 해금 상태로 쓰고, 그러면 결제창 없이 already_unlocked 로 통과한다.
   // 회당 결제는 1회 소비로 끝난 거래라 애초에 '보유한 해금'이 아니다.
   const unlockedFeatures = (Array.isArray(safeUser.unlockedFeatures) ? safeUser.unlockedFeatures : [])
-    .filter((key) => !isPerUsePaidFeatureKey(key));
+    .filter((key) => isLegacyLoveCodeUnlockAlias(key) || !isPerUsePaidFeatureKey(key));
   const unlockMap = Object.create(null);
   for (let i = 0; i < unlockedFeatures.length; i += 1) {
-    const key = String(unlockedFeatures[i] || "").trim();
+    const key = normalizePaidFeatureKey(unlockedFeatures[i]) || String(unlockedFeatures[i] || "").trim();
     if (key) unlockMap[key] = true;
   }
 
@@ -3634,11 +3726,7 @@ export async function handlePaymentRoutes(request, env, ctx) {
       return json(buildConfigErrorBody(keyFeature, keyHealth), { status: 503 });
     }
 
-    if (method === "POST" && path === "/webhook") {
-      await connectDb(env);
-      trace.dbConnected = true;
-      return await handleWebhook(request, env, ctx);
-    }
+    // 🔴 POST /webhook 은 등록하지 않는다 — 웹훅은 worker/index.js 가 V2 로 가로챈다(구 handleWebhook 은 라우터와 분리).
 
     // 인증 확인과 동시에 결제 핸들러가 곧바로 쓰는 User 필드를 함께 읽어(authUserDoc) 인증-후 재조회
     // 왕복을 없앤다. 결제창이 뜨기까지의 Mongo 왕복이 곧 체감 지연이자 일시적 503의 표면적이라,
@@ -3663,11 +3751,14 @@ export async function handlePaymentRoutes(request, env, ctx) {
 
     if (method === "GET" && path === "/me") return await handleMe(auth, env, request);
 
+    // 🔴 구 단건결제 시작·완료는 닫았다(V2 prepare 의 지역·해외카드·환불동의 게이트 우회). 핸들러는 재조정 크론이 쓰므로 남긴다.
+    const retiredSingleEndpoint = () => json({ ok: false, code: "LEGACY_ENDPOINT_RETIRED", message: "종료된 결제 경로입니다. 최신 결제 화면에서 다시 시도해 주세요." }, { status: 410 });
+    if (method === "POST" && path === "/single/start") return retiredSingleEndpoint();
+    if (method === "POST" && path === "/single/complete") return retiredSingleEndpoint();
+
     await connectDb(env);
     trace.dbConnected = true;
 
-    if (method === "POST" && path === "/single/start") return await handleSinglePaymentStart(request, env, auth);
-    if (method === "POST" && path === "/single/complete") return await handleSinglePaymentComplete(request, env, auth);
     if (method === "POST" && path === "/single/cancel") return await handleSinglePaymentCancel(request, env, auth);
     /* /prepare · /subscription/prepare · /subscription/confirm · /confirm 은 worker/index.js 가 V2
        (worker/payments/index.js)로 가로채므로 여기까지 오지 않는다 — 네 경로의 구 핸들러는 2026-09-06 에

@@ -1,4 +1,11 @@
 "use client";
+import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import BirthTimeInput from "@/app/components/BirthTimeInput";
+
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
+import ProductMasterStrip from "@/app/components/ProductMasterStrip";
+import MasterProfile from "@/components/fortune/MasterProfile";
+import { masterProfiles, productMasters } from "@/components/fortune/master-profiles";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
@@ -15,11 +22,25 @@ import {
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { authFetch } from "@/app/_lib/auth-client";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
-import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
+import { ExpertStickyCta } from "@/app/components/expert-consulting/ExpertConsultationFrame";
+import { toDisplayText } from "@/lib/llm-text";
+import {
+  DOMAIN_CARDS,
+  READING_SECTION_TOTAL,
+  READING_STEPS,
+  buildDomainBodies,
+  classifySections,
+  isGenuineCustomQuestion,
+  splitAssistantSections,
+  type MonthLetter,
+  type ParsedSection,
+} from "./_lib/answer-sections";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationIllustration from "@/components/fortune/ConsultationIllustration";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildNewYearPreviewPayload } from "@/lib/dev-preview/fixtures/new-year";
 import SajuPillarTable from "@/components/fortune/SajuPillarTable";
@@ -349,10 +370,10 @@ function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed):
   }
   return {
     ...form,
-    userName: profile.name || form.userName,
-    gender: (profile.gender as ConsultationForm["gender"]) || form.gender,
-    birthDate: profile.birthDate || form.birthDate,
-    birthTime: profile.birthTimeUnknown ? "" : (profile.birthTime || form.birthTime),
+    userName: profile.name ?? form.userName,
+    gender: (profile.gender as ConsultationForm["gender"]) ?? form.gender,
+    birthDate: profile.birthDate ?? form.birthDate,
+    birthTime: profile.birthTimeUnknown ? "" : (profile.birthTime ?? form.birthTime),
     calendarType: profile.calendarType || form.calendarType,
   };
 }
@@ -364,11 +385,6 @@ function buildInitialForm(): ConsultationForm {
 function createIdempotencyKey() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `nyai-${crypto.randomUUID()}`;
   return `nyai-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
-}
-
-function isGenuineCustomQuestion(question: string) {
-  const trimmed = question.trim();
-  return trimmed.length >= 2;
 }
 
 function buildConsultationPayload(form: ConsultationForm) {
@@ -443,7 +459,7 @@ async function pollNewYearResult(sessionId: string, isCurrent = () => true): Pro
     if (!response.ok) throw new Error(payload.message || LLM_ERROR_MESSAGE);
     return payload;
   }
-  throw new Error("상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.");
+  throw new Error("상담 생성이 평소보다 오래 걸리고 있습니다. 저장된 분야는 그대로 남아 있으니 잠시 후 다시 시도해 주세요. 다시 결제되지 않습니다.");
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -457,169 +473,6 @@ function toText(value: unknown) {
 function toNumber(value: unknown, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
-}
-
-function splitAssistantSections(content: string) {
-  let normalized = content.replace(/\r\n/g, "\n").trim();
-  if (!normalized) return [];
-  // 구조화 파싱에 실패한 원시(잘린) JSON은 중괄호째 노출하지 않고 읽을 수 있는 문장만 복원한다.
-  if (looksLikeRawJson(normalized)) {
-    normalized = extractReadableTextFromJsonLike(normalized);
-    if (!normalized) return [];
-  }
-  // Models may separate a Markdown heading and its first paragraph with a blank line.
-  // Keep that heading attached so the question answer is not treated as an unnamed paragraph.
-  normalized = normalized.replace(/(^|\n{2,})(\*\*[^*\n]{2,70}\*\*|#{1,3}[^\n]+)\n{2,}(?=\S)/g, "$1$2\n");
-  const chunks = normalized.split(/\n{2,}/).map((chunk) => chunk.trim()).filter(Boolean);
-  return chunks.map((chunk, index) => {
-    const lines = chunk.split("\n").map((line) => line.trim()).filter(Boolean);
-    const first = lines[0] || "";
-    const headingMatch = first.match(/^(?:#{1,3}\s*)?(?:\d+[.)]\s*)?(.{2,42}?)(?:[:：])?$/);
-    const hasHeading = Boolean(headingMatch && lines.length > 1 && first.length <= 44);
-    return {
-      title: hasHeading ? headingMatch?.[1]?.replace(/\*\*/g, "").trim() || `새해 상담 편지 ${index + 1}` : `새해 상담 편지 ${index + 1}`,
-      body: hasHeading ? lines.slice(1).join("\n") : chunk,
-    };
-  });
-}
-
-type ParsedSection = { title: string; body: string };
-type MonthLetter = { ganji: string; keyword: string; body: string };
-
-const QUESTION_ANSWER_TITLE = "질문에 대한 답변";
-const MONTH_LETTER_HEADING_RE = /^(\d{1,2})월\s*[·∙・-]\s*(\S+)\s*[·∙・-]\s*(.+)$/;
-const CATEGORY_TITLE_PREFIXES = ["연애·재회", "재물·수입", "직업·이직", "건강·멘탈", "가족·관계", "학업·성장"];
-
-// 결과 화면의 네 장짜리 상담 카드. key는 서버 섹션 키(worker/routes/new-year-ai.js의
-// NEW_YEAR_AI_SECTIONS)와 같아야 한다 — 구조화 응답이 오면 이 키로 곧장 매칭한다.
-// marker는 구버전 세션(llmMeta.sections 없음)에서 조립본을 다시 가를 때 쓰는 굵은 소제목이다.
-const DOMAIN_CARDS: Array<{ key: string; label: string; marker: string; glyph: string; hint: string }> = [
-  { key: "opening", label: "타고난 성향과 지금의 마음", marker: "타고난 성향과 지금의 마음", glyph: "命", hint: "나의 강점과 반복되는 부담, 고민을 이해하는 단서" },
-  { key: "overview", label: "올해의 총운", marker: "올해의 총운", glyph: "運", hint: "세운이 일간에 만드는 조후와 억부의 변화" },
-  { key: "wealth", label: "재물과 직업", marker: "재물과 직업", glyph: "財", hint: "재성·관성의 동태와 움직일 시기" },
-  { key: "romance", label: "애정과 대인관계", marker: "애정과 대인관계", glyph: "緣", hint: "귀인과 인연, 조심해야 할 관계" },
-  { key: "health", label: "건강과 개운법", marker: "건강과 개운법", glyph: "身", hint: "오행의 쏠림과 실생활 개운법" },
-];
-const DEFAULT_DOMAIN_KEY = DOMAIN_CARDS[0].key;
-// 구버전 조립본에는 분야 마커가 없고 6개 카테고리 소제목만 있다. 그 소제목을 새 분야로 흡수해
-// 이미 결제된 과거 상담도 같은 네 장 카드로 열린다.
-const LEGACY_CATEGORY_DOMAIN: Record<string, string> = {
-  "재물·수입": "wealth",
-  "직업·이직": "wealth",
-  "연애·재회": "romance",
-  "가족·관계": "romance",
-  "건강·멘탈": "health",
-  "학업·성장": "overview",
-};
-
-function stripBold(value: string) {
-  return value.replace(/\*\*/g, "").trim();
-}
-
-// 문단의 제목 줄 또는 본문 첫 줄에서 분야 마커를 찾는다. LLM이 소제목을 자기 문단으로 떼어
-// 쓸 때와 본문 첫 줄에 붙여 쓸 때가 모두 있어 두 자리를 함께 본다.
-function domainKeyFromSection(section: ParsedSection) {
-  const heads = [stripBold(section.title), stripBold(section.body.split("\n")[0] || "")];
-  for (const card of DOMAIN_CARDS) {
-    if (heads.some((head) => head === card.marker || head.startsWith(card.marker))) return card.key;
-  }
-  return "";
-}
-
-function legacyDomainFromTitle(title: string) {
-  const head = stripBold(title);
-  const prefix = CATEGORY_TITLE_PREFIXES.find((item) => head.startsWith(item));
-  return prefix ? LEGACY_CATEGORY_DOMAIN[prefix] || "" : "";
-}
-
-// 조립본을 분야별로 되돌린다. 분야 마커는 경계라서 뒤 문단까지 끌고 가고(sticky),
-// 6개 카테고리 소제목은 더 큰 절 안의 점 표시라서 그 문단 하나만 옮긴다.
-function groupSectionsByDomain(sections: ParsedSection[]) {
-  const buckets = new Map<string, ParsedSection[]>();
-  const push = (key: string, section: ParsedSection) => {
-    const list = buckets.get(key) || [];
-    list.push(section);
-    buckets.set(key, list);
-  };
-  let current = DEFAULT_DOMAIN_KEY;
-  for (const section of sections) {
-    const explicit = domainKeyFromSection(section);
-    if (explicit) {
-      current = explicit;
-      push(current, section);
-      continue;
-    }
-    const legacy = legacyDomainFromTitle(section.title);
-    push(legacy || current, section);
-  }
-  return buckets;
-}
-
-function classifySections(sections: ParsedSection[]) {
-  const monthLetters = new Map<number, MonthLetter>();
-  const restSections: ParsedSection[] = [];
-  let questionAnswer: ParsedSection | null = null;
-  let collectingQuestion = false;
-  for (const section of sections) {
-    if (!questionAnswer && section.title.includes(QUESTION_ANSWER_TITLE)) {
-      questionAnswer = { ...section };
-      collectingQuestion = true;
-      continue;
-    }
-    if (collectingQuestion && questionAnswer && /^새해 상담 편지 \d+$/.test(section.title)) {
-      questionAnswer.body += `\n\n${section.body}`;
-      continue;
-    }
-    collectingQuestion = false;
-    const monthMatch = section.title.match(MONTH_LETTER_HEADING_RE);
-    const month = monthMatch ? Number(monthMatch[1]) : NaN;
-    if (monthMatch && month >= 1 && month <= 12 && !monthLetters.has(month)) {
-      monthLetters.set(month, { ganji: monthMatch[2], keyword: monthMatch[3], body: section.body });
-      continue;
-    }
-    restSections.push(section);
-  }
-  // restSections의 원래 순서를 그대로 보존해야 분야 경계(sticky)가 어긋나지 않는다.
-  // 구 정렬(카테고리 먼저)은 분야 그룹핑이 순서를 대신하므로 더 이상 필요 없다.
-  return { questionAnswer, monthLetters, restSections, domains: groupSectionsByDomain(restSections) };
-}
-
-// 분야 카드 본문. 서버 구조화 응답이 있으면 그대로 쓰고, 없으면 조립본 그룹핑 결과를 쓴다.
-// 분야 마커 줄만 남은 문단은 카드 제목과 중복이라 본문에서 걷어낸다.
-function buildDomainBodies(
-  serverSections: ConsultationSection[],
-  grouped: Map<string, ParsedSection[]>,
-) {
-  const bodies = new Map<string, string>();
-  for (const card of DOMAIN_CARDS) {
-    const rawServer = serverSections.find((section) => section.key === card.key)?.text || "";
-    const fromServer = card.key === "opening" && rawServer.includes(QUESTION_ANSWER_TITLE)
-      ? classifySections(splitAssistantSections(rawServer)).restSections
-        .map(section => /^새해 상담 편지 \d+$/.test(section.title) ? section.body : `**${section.title}**\n${section.body}`).join("\n\n")
-      : rawServer;
-    if (fromServer) {
-      bodies.set(card.key, stripLeadingMarker(fromServer, card.marker));
-      continue;
-    }
-    const chunks = (grouped.get(card.key) || [])
-      .map((section) => {
-        const body = stripLeadingMarker(section.body, card.marker);
-        const title = stripBold(section.title);
-        const isMarkerTitle = title === card.marker || title.startsWith(card.marker);
-        const isGeneratedTitle = /^새해 상담 편지 \d+$/.test(title);
-        return !isMarkerTitle && !isGeneratedTitle && body ? `**${title}**\n${body}` : body;
-      })
-      .filter(Boolean);
-    if (chunks.length) bodies.set(card.key, chunks.join("\n\n"));
-  }
-  return bodies;
-}
-
-function stripLeadingMarker(text: string, marker: string) {
-  const lines = text.replace(/\r\n/g, "\n").split("\n");
-  while (lines.length && !stripBold(lines[0])) lines.shift();
-  if (lines.length && stripBold(lines[0]) === marker) lines.shift();
-  return lines.join("\n").trim();
 }
 
 function AssistantMessageContent({ content, sections }: { content: string; sections: ParsedSection[] }) {
@@ -727,7 +580,7 @@ function ReadingProgressPanel({ percent }: { percent: number }) {
         <i style={{ width: `${rounded}%` }} />
       </div>
       <ol className="nyai-progress-steps">
-        {DOMAIN_CARDS.map((card, index) => {
+        {READING_STEPS.map((card, index) => {
           const startsAt = READING_STAGES[index + 1]?.at ?? READING_STAGES[READING_STAGES.length - 1].at;
           const endsAt = READING_STAGES[index + 2]?.at ?? READING_STAGES[READING_STAGES.length - 1].at;
           const done = percent >= endsAt;
@@ -740,7 +593,8 @@ function ReadingProgressPanel({ percent }: { percent: number }) {
           );
         })}
       </ol>
-      <p className="nyai-progress-note">창을 닫지 마세요. 네 분야를 동시에 읽고 있어 잠시 시간이 걸립니다.</p>
+      {/* 화면이 숨으면 생성을 멈추고, 다시 열면 서버의 진행 중 상담(pendingSessionId)부터 이어 간다. */}
+      <p className="nyai-progress-note">{READING_SECTION_TOTAL}개 분야를 읽고 있어 잠시 시간이 걸립니다. 다른 앱으로 옮기거나 창을 닫으면 잠시 멈추고, 다시 열면 저장된 분야부터 이어 갑니다. 다시 결제되지 않습니다.</p>
     </div>
   );
 }
@@ -830,15 +684,6 @@ function SajuProfilePanel({ profile }: { profile: SajuProfile | null }) {
     </section>
   );
 }
-
-// 구버전 세션 재열람 폴백(마커 없는 조립본 → 분야 카드)은 화면 없이 검증할 수 있어야 한다.
-// 이미 결제된 과거 상담이 안 열리는 회귀가 가장 비싼 실패라서 파싱만 따로 떼어 노출한다.
-export const __newYearAiParserTestUtils = {
-  splitAssistantSections,
-  classifySections,
-  buildDomainBodies,
-  DOMAIN_CARDS,
-};
 
 function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempotencyKey: string) {
   const runtimeGate = asRecord(paymentPayload.runtimeGate);
@@ -1185,7 +1030,7 @@ const NYAI_SEASON_CSS = `
   display: block;
   margin-top: 8px;
   color: var(--nyai-text-dim);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -1646,8 +1491,9 @@ export default function NewYearAiConsultationPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
-  function loadFormFromProfileCard() {
-    void reloadProfileSeed().then((seed) => {
+  function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (selectedSeed) formTouchedRef.current = true;
+    void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
@@ -1656,7 +1502,7 @@ export default function NewYearAiConsultationPage() {
     setAccessType(result.accessType || "");
     setMessages(Array.isArray(result.messages) ? result.messages : []);
     setServerSections(Array.isArray(result.sections) ? result.sections : []);
-    setReadingProgress(result.status && result.status !== "completed" ? Math.round(100 * (result.progress?.completed || 0) / (result.progress?.total || 6)) : 100);
+    setReadingProgress(result.status && result.status !== "completed" ? Math.round(100 * (result.progress?.completed || 0) / (result.progress?.total || READING_SECTION_TOTAL)) : 100);
     setSajuProfile(result.sajuProfile || null);
     setMonthlyFlow(Array.isArray(result.monthlyFlow) ? result.monthlyFlow : []);
     setTargetYearInfo(result.targetYear || null);
@@ -1707,7 +1553,7 @@ export default function NewYearAiConsultationPage() {
         applyResult(result); pendingGenerationRef.current = null; return true;
       }
       applyResult(result);
-      setNotice(`저장된 분야 ${result.progress?.completed || 0}/${result.progress?.total || 6} · 이어서 준비하고 있습니다.`);
+      setNotice(`저장된 분야 ${result.progress?.completed || 0}/${result.progress?.total || READING_SECTION_TOTAL} · 이어서 준비하고 있습니다.`);
     }
     setStatus("ready");
     return false;
@@ -1728,7 +1574,7 @@ export default function NewYearAiConsultationPage() {
       if (response.ok && result.ok && result.status === "completed") { applyResult(result); return true; }
       if (!response.ok) setError(result.message || SERVER_ERROR_MESSAGE);
     } catch (caught) {
-      if (isCurrent()) { setError(caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE); setStatus("error"); }
+      if (isCurrent()) { setError(friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE)); setStatus("error"); }
     } finally { if (isCurrent()) startLockRef.current = false; }
     return false;
   }, [applyResult, captureDeliveryScope, startConsultation]);
@@ -1850,7 +1696,7 @@ export default function NewYearAiConsultationPage() {
       return await startConsultation(payload, idempotencyKey, { billingGate: asRecord(grant?.payload) });
     } catch (caught) {
       if (!isCurrent()) return false;
-      setError(caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE);
+      setError(friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE));
       setStatus("error");
       return false;
     } finally {
@@ -1866,7 +1712,7 @@ export default function NewYearAiConsultationPage() {
     if (pending) {
       startLockRef.current = true;
       try { await startConsultation(pending.payload, pending.key, pending.access); }
-      catch (caught) { if (!isCurrent()) return; setError(caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE); setStatus("error"); }
+      catch (caught) { if (!isCurrent()) return; setError(friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE)); setStatus("error"); }
       finally { if (isCurrent()) startLockRef.current = false; }
       return;
     }
@@ -1976,7 +1822,7 @@ export default function NewYearAiConsultationPage() {
             ? PAYMENT_VERIFY_FAILED_MESSAGE
           : message.includes("payment")
             ? PAYMENT_VERIFY_FAILED_MESSAGE
-            : message || SERVER_ERROR_MESSAGE,
+            : friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE),
       );
       setStatus("error");
       failPaidFeatureGateCheck({
@@ -2010,6 +1856,7 @@ export default function NewYearAiConsultationPage() {
         fileName: `신년운세_전문가상담_${safeName}_${form.targetYear}.pdf`,
         backgroundColor: "#170b0f",
         cover: {
+          theme: "newYear",
           title: `${form.userName || "당신"}님의 ${form.targetYear}년 신년운세`,
           name: form.userName,
           date: new Date().toISOString().slice(0, 10),
@@ -2105,6 +1952,7 @@ export default function NewYearAiConsultationPage() {
         <div className="nyai-intro-copy">
           <span className="nyai-eyebrow">서비스 소개</span>
           <h2><Moon size={20} aria-hidden="true" /> 신년운세 전문가 상담</h2>
+          {copy === NEW_YEAR_AI_COPY.ko && <ProductMasterStrip label="신년운세 마스터" masters={productMasters.newYear} profileHref={!isBusy && messages.length === 0 ? "#new-year-master" : undefined} />}
           <p>새해의 기운이 당신에게 건네는 첫 번째 조언을 명식과 세운의 흐름으로 차분히 살펴드립니다.</p>
           <div className="nyai-hero-badges" aria-label={copy.heroBadgesAria}>
             <span>사주 원국</span>
@@ -2122,19 +1970,13 @@ export default function NewYearAiConsultationPage() {
         </div>
       </section>
 
+      {getCurrentLoadingLocale() === "ko" && <div style={{ width: "100%", maxWidth: 540, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
       <section className="nyai-workspace">
-        <form className="nyai-form nyai-panel" onSubmit={handleSubmit}>
+        <form data-moonlit-form="" id="new-year-form" className="nyai-form nyai-panel" onSubmit={handleSubmit}>
           <div className="nyai-form-title">
             <CalendarDays size={18} />
             <h2>새해 상담에 필요한 정보를 알려주세요</h2>
-            <button
-              type="button"
-              className="nyai-profile-load"
-              onClick={loadFormFromProfileCard}
-              aria-label={copy.profileLoadAria}
-            >
-              프로필 카드에서 불러오기
-            </button>
+            <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
           </div>
           <div className="nyai-grid">
             <label>
@@ -2156,7 +1998,7 @@ export default function NewYearAiConsultationPage() {
             </label>
             <label>
               출생시간
-              <input type="time" value={form.birthTime} onChange={updateField("birthTime")} />
+              <BirthTimeInput  value={form.birthTime} onChange={updateField("birthTime")} />
             </label>
             <label>
               양력/음력
@@ -2266,6 +2108,8 @@ export default function NewYearAiConsultationPage() {
             <span>{isBusy ? statusText : "신년운세 전문가 상담 받기"}</span>
           </button>
         </form>
+        {/* 다른 대표 상담 두 곳과 같은 규칙 — 폼이 아직 아래에 있을 때만, 제출 버튼과 같은 라벨로 뜬다. 폼(.nyai-panel)은 backdrop-filter 라 fixed 기준 상자가 되므로 폼 밖에 둔다. */}
+        {!isBusy && <ExpertStickyCta theme="newYear" targetId="new-year-form" label="신년운세 전문가 상담 받기" price={<PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />} />}
 
         <section className="nyai-chat nyai-panel" aria-live="polite">
           <div className="nyai-chat-head">
@@ -2337,6 +2181,7 @@ export default function NewYearAiConsultationPage() {
                     </RevealBlock>
                   )}
                   <DomainConsultationCards bodies={domainBodies} />
+                  {index === 0 && <ConsultationIllustration kind="newYear" />}
                   {index === 0 && (
                     <RevealBlock index={4}>
                       <MonthlyFlowCalendar rows={monthlyFlow} letters={classified.monthLetters} />
@@ -2362,6 +2207,8 @@ export default function NewYearAiConsultationPage() {
       </section>
 
       {status === "ready" && assistantMessages.length > 0 && <ReviewRewardBanner afterResult/>}
+      {/* 소개용 마스터 프로필 — 상담 진행·결과 화면에서는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
+      {copy === NEW_YEAR_AI_COPY.ko && !isBusy && messages.length === 0 && <MasterProfile id="new-year-master" palette="page" profile={masterProfiles.neoNewYear} />}
       <style>{NYAI_SEASON_CSS}</style>
       <style>{NYAI_READING_ROOM_CSS}</style>
       <style>{`
@@ -2386,6 +2233,12 @@ export default function NewYearAiConsultationPage() {
           --nyai-radius-pill: 999px;
           --nyai-label-size: 0.78rem;
           --nyai-serif: var(--font-serif, "Nanum Myeongjo", "Gowun Batang", "Noto Serif KR", Georgia, serif);
+          /* 마스터 띠·프로필이 읽는 페이지 토큰 */
+          --pe-ink: var(--nyai-text);
+          --pe-muted: var(--nyai-text-dim);
+          --pe-accent: var(--nyai-gold-bright);
+          --pe-line: var(--nyai-gold-dim);
+          --pe-accent-ink: var(--nyai-ink-0);
           min-height: 100vh;
           padding: clamp(18px, 3vw, 42px);
           color: var(--nyai-text);
@@ -2794,7 +2647,7 @@ export default function NewYearAiConsultationPage() {
           height: 0.6em;
         }
 
-        .nyai-intro-copy p {
+        .nyai-intro-copy > p {
           max-width: 62ch;
           margin: 0;
           color: var(--nyai-text-dim);
@@ -2931,7 +2784,8 @@ export default function NewYearAiConsultationPage() {
           display: grid;
           gap: 7px;
           color: var(--nyai-text);
-          font-size: var(--nyai-label-size, 0.78rem);
+          /* 입력 라벨은 도움말(14px)보다 작으면 위계가 뒤집힌다. 굵기·밝은 색으로 구분하고 크기는 같게 둔다. */
+          font-size: 0.875rem;
           font-weight: 700;
         }
 
@@ -3053,7 +2907,8 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-question-head span {
-          font-size: var(--nyai-label-size, 0.78rem);
+          font-size: 0.875rem;
+          line-height: 1.6;
           color: var(--nyai-text-dim);
         }
 
@@ -3167,7 +3022,7 @@ export default function NewYearAiConsultationPage() {
 
         .nyai-result-bundle {
           display: grid;
-          gap: 12px;
+          gap: 20px;
         }
 
         .nyai-saju-profile {
@@ -3261,7 +3116,7 @@ export default function NewYearAiConsultationPage() {
           overflow-wrap: anywhere;
         }
 
-        .nyai-message span {
+        .nyai-message > span {
           display: block;
           margin-bottom: 7px;
           color: var(--nyai-gold-bright);
@@ -3292,7 +3147,7 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-result-section {
-          padding: 15px;
+          padding: clamp(18px, 3vw, 28px);
           border: 1px solid var(--nyai-gold-hair);
           border-radius: var(--nyai-radius-md);
           background:
@@ -3301,25 +3156,25 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-result-section h3 {
-          margin: 0 0 8px;
+          margin: 0 0 16px;
           color: var(--nyai-gold-bright);
           font-family: var(--nyai-serif);
-          font-size: 16px;
-          line-height: 1.4;
+          font-size: 18px;
+          line-height: 1.5;
           letter-spacing: 0;
         }
 
         .nyai-result-section p {
           margin: 0;
           max-width: 66ch;
-          line-height: 1.82;
+          line-height: 1.9;
           word-break: keep-all;
           overflow-wrap: anywhere;
           white-space: pre-line;
         }
 
         .nyai-result-section p + p {
-          margin-top: 10px;
+          margin-top: 16px;
         }
 
         .nyai-spin {

@@ -1,0 +1,167 @@
+{
+  "id": "yeongnyangi-ziwei-salmon",
+  "featureKey": "yeongnyangi-ziwei-salmon",
+  "title": "영냥이 자미두수 연어 상담",
+  "notice": "자미두수 연어 질문 상담은 진로·시험·재물·이동 등 중요한 선택의 조건과 준비를 다룹니다. 여기에는 이직 질문 11장과 별도 기본 성향 리포트 8장의 목차를 구분해 소개합니다. 질문과 상담 종류에 따라 구성이 달라집니다. 이직은 직장 간 이동으로 다루며 사업 창업과 같게 해석하지 않습니다. 시기는 실제 계산 근거의 범위에서만 읽고 성공이나 날짜를 보장하지 않습니다. 안내의 비교표와 대화는 편집 예시이며 실제 고객 결과가 아닙니다. AI가 작성하는 상담이며 가격과 추가 질문 조건은 기존 화면에서 확인합니다.",
+  "panels": [
+    {
+      "id": "01-a-role-or-a-place",
+      "title": "옮기고 싶은 건, 회사일까요 역할일까요?",
+      "alt": "마법사 고양이 영냥이가 사각 열두 궁 명반의 별을 짚는 장면",
+      "src": "/images/service-introductions/yeongnyangi-ziwei.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "옮기고 싶은 건,\n회사일까요\n역할일까요?\n\n남는 이유와 떠나는 이유를\n같은 기준 위에 놓아 보세요.\n\n영냥이 자미두수 · 연어",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-ziwei-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-write-the-real-conditions",
+      "title": "좋아 보이는 제안에도, 내 조건은 남겨두세요.",
+      "alt": "이직 질문에 필요한 선택지 기간 현실 제약을 적는 개별 노트.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/02-write-the-real-conditions.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "좋아 보이는 제안에도,\n내 조건은 남겨두세요.\n지금 회사에 남는다면\n\n익숙한 업무와 안정적인 일정.\n하지만 역할은 더 넓어질까요?\n\n새 제안을 받아들인다면\n\n원하던 업무에 가까워져요.\n출퇴근과 생활비는 감당할까요?\n\n위 상황은 질문 작성 예시입니다.\n실제 선택지·목표 시기·지켜야 할 조건을\n알려주면 그 고민을 중심으로 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/02-write-the-real-conditions-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-three-connected-places",
+      "title": "일의 자리와, 그 바깥의 생활까지.",
+      "alt": "관록궁 재백궁 천이궁의 의미와 명궁 및 연결궁을 함께 읽는 설명.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/03-three-connected-places.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "일의 자리와,\n그 바깥의 생활까지.\n관록궁 · 맡는 역할\n어떤 일과 책임에서 힘이 살아나는지.\n재백궁 · 자원의 흐름\n얻는 만큼 지키고 관리할 수 있는지.\n천이궁 · 바깥 무대\n환경이 바뀔 때 적응하는 방식.\n\n명궁과 연결된 궁의 근거를 함께 읽어\n선택의 이점과 부담을 살핍니다.\n\n사화는 별의 성질이 드러나는 변화 신호예요.\n한 신호만으로 이직 성공을 정하지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/03-three-connected-places-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-start-with-the-answer",
+      "title": "내 질문의 답을, 바탕과 함께 읽어요.",
+      "alt": "실제 이직 질문 11장 중 앞 5장의 구성.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/04-start-with-the-answer.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "내 질문의 답을,\n바탕과 함께 읽어요.\n\n이직 질문 · 앞부분 5장\n\n자미두수의 바탕 · 명궁과 별의 성향\n강점과 부담이 되는 순간\n남을지 옮길지, 이직의 판단 기준\n판단의 근거와 달라지는 조건\n현재의 기회와 주의 조건\n\n‘옮겨라’ 한마디로 끝내지 않아요.\n어떤 근거로 판단했는지,\n무슨 조건에서 달라지는지 읽습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/04-start-with-the-answer-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-compare-then-act",
+      "title": "비교하고, 준비하고, 실행으로.",
+      "alt": "이직 질문 뒤 6장과 조건부 두드러진 영역 설명.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/05-compare-then-act.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "비교하고, 준비하고,\n실행으로.\n\n이직 질문 · 이어지는 6장\n\n현재 위치와 적성\n이동과 유지의 비교\n움직이기 좋은 시기\n질문 밖에서 두드러진 영역\n질문 밖에서 보이는 올해의 흐름\n종합 해석과 실행 계획\n\n두드러진 영역은 실제 근거에 따라 골라요.\n시기 근거가 부족하면 범위를 한정하며,\n특정 날짜의 사건을 약속하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/05-compare-then-act-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-what-changes-the-choice",
+      "title": "조건이 달라지면, 판단도 달라질 수 있어요.",
+      "alt": "연봉 대신 역할과 생활조건까지 대조하는 가상 상담 예시.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/06-what-changes-the-choice.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "조건이 달라지면,\n판단도 달라질 수 있어요.\n\n이해를 돕기 위한 편집 예시\n\n새 역할이 네 강점을 쓰게 해도,\n생활을 버티기 어려운 조건이면\n좋은 선택으로 굳히기는 어려워.\n\n업무의 범위와 정착 비용을\n확인한 뒤 다시 비교해 보자.\n\n실제 고객 명반·결과가 아닙니다.\n이직을 창업과 같게 해석하지 않고,\n두 직장의 현실 조건을 구분하는 예시예요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/06-what-changes-the-choice-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-eight-chapters-without-a-question",
+      "title": "기본 성향 여덟 장으로, 삶의 여러 자리를 읽어요.",
+      "alt": "별도 전체 성향 리포트의 실제 기본 8목차.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/07-eight-chapters-without-a-question.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기본 성향 여덟 장으로,\n삶의 여러 자리를 읽어요.\n\n전체 성향 리포트 · 기본 8장\n\n삶의 중심 · 명궁과 신궁\n마음이 끌리는 것과 연애의 즐거움\n배우자 자리와 함께 사는 법\n돈의 그릇과 쌓는 방식\n일하는 방식과 사회적 자리\n곁의 사람과 가족\n몸의 약한 고리와 회복\n올해와 내년\n\n질문 상담 11장과 다른 선택입니다.\n목차의 건강 해석은 의료 진단이 아니에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/07-eight-chapters-without-a-question-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-a-question-ready-to-read",
+      "title": "비교할 조건을 알려주세요.",
+      "alt": "필수 출생정보와 질문의 선택지 기간 제약, 다른 상품 범위.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/08-a-question-ready-to-read.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "비교할 조건을\n알려주세요.\n필수 출생 정보\n\n생년월일·달력·출생시간·성별.\n\n선택지와 목표 기간\n\n남기와 옮기기, 준비 중인 기회처럼\n비교할 대상을 적어 주세요.\n\n지켜야 할 현실 조건\n\n일정·비용·책임. 없다면 없다고 적어요.\n\n두 사람 명반 비교는 광어 질문 상담,\n현재와 다음 대한의 전환은 참치 범위예요.\n연어 상담에 자동으로 합쳐지지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/08-a-question-ready-to-read-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-turn-a-reading-into-a-check",
+      "title": "읽은 뒤에는, 확인할 일을 남겨요.",
+      "alt": "행동을 작게 나누는 현실 점검 메모의 가상 예시.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/09-turn-a-reading-into-a-check.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "읽은 뒤에는,\n확인할 일을 남겨요.\n\n행동을 정리하는 편집 예시\n\n담당자에게 물어볼 것\n\n첫 석 달의 역할과 평가 기준.\n\n내가 계산해 볼 것\n\n통근 시간과 달라지는 고정비.\n\n결정 전에 남겨둘 것\n\n포기하기 어려운 조건 한 가지.\n\n해석을 실제 정보와 맞춰 보는 과정이에요.\n합격·수익·이직 성공을 보장하지 않으며,\n마지막 선택은 내가 판단합니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/09-turn-a-reading-into-a-check-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-an-explanation-you-can-return-to",
+      "title": "결정을 서두르기보다, 기준을 또렷하게.",
+      "alt": "공식 영냥이, AI작성과 기존가격·기록·추가질문 조건 안내.",
+      "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/10-an-explanation-you-can-return-to.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "결정을 서두르기보다,\n기준을 또렷하게.\n\n명반의 근거를 AI가 풀어 쓴 상담을\n내 상황과 대조하며 읽어 보세요.\n\n가격과 추가 질문의 이용 범위는\n상담 준비 화면에서 확인합니다.\n\n완성된 결과는 같은 계정의 내 상담에서\n다시 읽을 수 있어요.\n사람이 직접 답하는 상담은 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-ziwei-salmon/10-an-explanation-you-can-return-to-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

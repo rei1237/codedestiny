@@ -1,0 +1,6 @@
+{
+  "original": "Independent SHIP10",
+  "mobile": "Independent SHIP18 captures including input form",
+  "checks": "304/334/374/540 all clipping ancestors/fallback PASS;static2;ESLint/syntax PASS",
+  "limits": "All API mocked;no analysis or purchase;main/CI pending"
+}

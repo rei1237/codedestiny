@@ -2,7 +2,7 @@ import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricin
 import type { FortuneTeaHouseConsultMode, FortuneTeaTarotSpread } from "./consult";
 
 // Keep existing product keys; amounts are resolved from the server registry below.
-export type FortuneTeaHousePriceKey = FortuneTeaHouseConsultMode | "sajuCompatibility" | "tarotFive";
+export type FortuneTeaHousePriceKey = FortuneTeaHouseConsultMode | "sajuCompatibility" | "tarotFive" | "sajuJoint";
 
 export const fortuneTeaHouseConsultPricing: Record<FortuneTeaHousePriceKey, {
   featureKey: string;
@@ -24,6 +24,7 @@ export const fortuneTeaHouseConsultPricing: Record<FortuneTeaHousePriceKey, {
     amountKRW: 0,
     label: "가격 확인 중",
   },
+  sajuJoint: { featureKey: "fortune-tea-house-saju-joint-consultation", amountKRW: 0, label: "가격 확인 중" },
   sajuCompatibility: {
     featureKey: "fortune-tea-house-saju-compatibility-consultation",
     amountKRW: 0,
@@ -46,17 +47,18 @@ for (const item of Object.values(fortuneTeaHouseConsultPricing)) {
 }
 
 /** 타로 상담은 스프레드로 상품이 갈리므로, 모드+스프레드를 가격표 키로 변환한다. */
-export function resolveFortuneTeaHousePriceKey(mode: FortuneTeaHousePriceKey, tarotSpread?: FortuneTeaTarotSpread): FortuneTeaHousePriceKey {
+export function resolveFortuneTeaHousePriceKey(mode: FortuneTeaHousePriceKey, tarotSpread?: FortuneTeaTarotSpread, sajuReportVersion?: string): FortuneTeaHousePriceKey {
+  if (mode === "saju" && sajuReportVersion === "saju-specialist-v2") return "sajuJoint";
   if (mode === "tarot" && tarotSpread === "five") return "tarotFive";
   return mode;
 }
 
-export function getFortuneTeaHouseConsultPriceLabel(mode: FortuneTeaHousePriceKey, tarotSpread?: FortuneTeaTarotSpread) {
-  return fortuneTeaHouseConsultPricing[resolveFortuneTeaHousePriceKey(mode, tarotSpread)].label;
+export function getFortuneTeaHouseConsultPriceLabel(mode: FortuneTeaHousePriceKey, tarotSpread?: FortuneTeaTarotSpread, sajuReportVersion?: string) {
+  return fortuneTeaHouseConsultPricing[resolveFortuneTeaHousePriceKey(mode, tarotSpread, sajuReportVersion)].label;
 }
 
-export function getFortuneTeaHouseConsultFeatureKey(mode: FortuneTeaHousePriceKey, tarotSpread?: FortuneTeaTarotSpread) {
-  return fortuneTeaHouseConsultPricing[resolveFortuneTeaHousePriceKey(mode, tarotSpread)].featureKey;
+export function getFortuneTeaHouseConsultFeatureKey(mode: FortuneTeaHousePriceKey, tarotSpread?: FortuneTeaTarotSpread, sajuReportVersion?: string) {
+  return fortuneTeaHouseConsultPricing[resolveFortuneTeaHousePriceKey(mode, tarotSpread, sajuReportVersion)].featureKey;
 }
 
 export function getFortuneTeaHouseResultButtonLabel(

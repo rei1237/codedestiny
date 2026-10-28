@@ -1,0 +1,152 @@
+{
+  "id": "yeongnyangi-astrology-tuna",
+  "featureKey": "yeongnyangi-astrology-tuna",
+  "title": "영냥이 서양 점성술 참치 리포트",
+  "notice": "서양 점성술 참치의 기본 출생 차트 리포트는 12장입니다. 태양·달·상승점, 행성·하우스·각과 천왕성·해왕성·명왕성을 함께 읽습니다. 기존 구성 선택 화면의 궁합·재능과 일·건강 등은 각각 별도 목차를 사용하므로 선택 후 확인해 주세요. 현재 질문 기반 추천에서는 서양 점성술의 장기 시기 전환을 지원하지 않으며, 참치가 실시간 트랜짓·다샤·월별 미래 예측을 뜻하지 않습니다. 출생시간·지역·시간대가 필요합니다. 예시는 가상 편집이고 AI 작성 리포트입니다. 가격과 이용 조건은 기존 화면에서 확인하세요.",
+  "panels": [
+    {
+      "id": "01-a-portrait-with-many-sides",
+      "title": "혼자이고 싶다가도, 함께이고 싶은 마음.",
+      "alt": "마법사 고양이 영냥이가 원형 출생차트와 행성 배치를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-astrology.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "혼자이고 싶다가도,\n함께이고 싶은 마음.\n\n서로 다른 나의 모습들을,\n한 장의 출생 차트 안에서 연결해요.\n\n영냥이 서양 점성술 · 참치",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-astrology-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-two-wishes-can-coexist",
+      "title": "모순처럼 보이는 마음, 둘 다 나의 일부라면.",
+      "alt": "자유와안정욕구를두문장으로대비하는가상생활장면.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/02-two-wishes-can-coexist.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "모순처럼 보이는 마음,\n둘 다 나의 일부라면.\n나만의 방식으로 하고 싶어요.\n\n간섭 없이 선택하고,\n새로운 것을 시도하고 싶은 마음.\n\n믿을 수 있는 자리가 필요해요.\n\n익숙한 관계와 리듬 안에서\n안심하고 싶은 마음.\n\n마음의 여러 면을 설명하는 가상 장면이에요.\n차트 하나로 성격을 단정하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/02-two-wishes-can-coexist-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-the-dialogue-between-planets",
+      "title": "행성 하나보다, 서로 주고받는 연결.",
+      "alt": "하우스행성각역할과긴장조화균형을쉬운말로설명.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/03-the-dialogue-between-planets.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "행성 하나보다,\n서로 주고받는 연결.\n행성 · 어떤 힘이 움직이나요?\n\n생각과 감정, 표현과 행동의 여러 힘.\n\n하우스 · 어디에서 드러나나요?\n\n일과 관계, 자원 등 삶의 영역.\n\n각 · 힘들이 어떻게 만날까요?\n\n긴장하는 부분과 자연스럽게 이어지는 부분.\n\n애스펙트는 행성 사이의 각을 뜻해요.\n긴장도 조정할 재능과 함께 읽습니다.\n\n한 배치만 떼어 나쁜 운으로 몰아가지 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/03-the-dialogue-between-planets-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-seven-places-in-everyday-life",
+      "title": "먼저, 매일의 나를 이루는 일곱 자리.",
+      "alt": "기본1~7장실제순서를나마음관계자원사회표현에너지로정리.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/04-seven-places-in-everyday-life.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "먼저, 매일의 나를\n이루는 일곱 자리.\n\n기본 출생 차트 · 12장 중 1–7장\n\n1–3장 · 나와 마음, 관계\n\n상승점과 태양 · 달과 감정의 결\n금성과 관계의 자리\n\n4–5장 · 자원과 사회적 자리\n\n목성과 돈의 흐름\n토성·MC와 사회적 자리\n\n6–7장 · 표현과 행동\n\n수성과 말·배움·모임\n화성과 몸의 에너지\n\nMC는 사회적 방향을 살피는 지점이에요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/04-seven-places-in-everyday-life-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-the-wider-background",
+      "title": "긴장과 조화 너머, 더 넓은 배경까지.",
+      "alt": "기본8~12장각두종류와세대행성3개의실제목차.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/05-the-wider-background.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "긴장과 조화 너머,\n더 넓은 배경까지.\n8–9장 · 힘들의 연결\n\n긴장의 애스펙트 · 조화의 애스펙트\n\n10–12장 · 세 행성의 이야기\n\n천왕성 · 해왕성 · 명왕성\n\n느리게 움직이는 행성의 배치는\n넓은 세대적 배경도 담고 있어요.\n\n내 차트의 다른 행성과 삶의 영역에\n어떻게 연결되는지 함께 읽습니다.\n\n같은 세대의 모두가 같은 삶을 산다는\n뜻으로 해석하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/05-the-wider-background-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-a-place-for-both-needs",
+      "title": "어느 마음을 지울지보다, 둘의 자리를 나눠봐요.",
+      "alt": "안정과자유욕구를일정으로조율하는허구예시.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/06-a-place-for-both-needs.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "어느 마음을 지울지보다,\n둘의 자리를 나눠봐요.\n\n이해를 돕기 위한 편집 예시\n\n안정이 필요하다고 해서\n새로운 시도를 접을 필요는 없어요.\n\n생활의 기본 리듬은 남겨두고,\n작게 실험할 시간을 따로 정해봐요.\n\n모든 것을 바꾸는 선택 대신,\n두 마음이 머물 자리를 만드는 거예요.\n\n실제 고객 결과가 아닌 가상 예시입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/06-a-place-for-both-needs-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-choose-the-kind-of-reading",
+      "title": "같은 등급 안에서도, 고르는 질문은 달라요.",
+      "alt": "기본12와선택궁합일건강15의구성을혼동없이구분.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/07-choose-the-kind-of-reading.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 등급 안에서도,\n고르는 질문은 달라요.\n기본 출생 차트 · 12장\n\n나의 성향과 삶의 여러 자리를 읽어요.\n\n기존 메뉴의 궁합 · 15장\n\n두 사람의 출생 정보로 관계를 비교해요.\n\n재능과 일 / 건강운 · 각각 15장\n\n선택한 주제로 목차가 바뀝니다.\n건강은 생활 리듬과 회복 습관으로 읽어요.\n\n선택한 구성 한 가지를 받는 리포트입니다.\n위 목차가 한 번에 모두 포함되지는 않아요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/07-choose-the-kind-of-reading-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-a-birth-chart-not-a-calendar",
+      "title": "깊게 읽는 출생 차트, 미래 달력과는 달라요.",
+      "alt": "장기질문미지원실시간트랜짓없음과필수출생정보안내.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/08-a-birth-chart-not-a-calendar.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "깊게 읽는 출생 차트,\n미래 달력과는 달라요.\n장기 시기 전환 질문\n\n현재 서양 점성술에서는 지원하지 않아요.\n베다 다샤나 사주 대운과 구분합니다.\n\n실시간 트랜짓과 사건 날짜\n\n현재 출생 차트 구성에 포함되지 않아요.\n월별 사건이나 결과를 확정하지 않습니다.\n\n출생시간과 장소\n\n정확한 생년월일·시간·지역을 알려 주세요.\n시간대와 좌표를 확인해 차트를 읽어요.\n\n모르는 출생시간은 임의로 채우지 마세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/08-a-birth-chart-not-a-calendar-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-a-more-complete-language",
+      "title": "나를 한마디로 줄이지 않는 이야기.",
+      "alt": "공식영냥이와AI작성현재가격저장결과마무리.",
+      "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/09-a-more-complete-language.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "나를 한마디로\n줄이지 않는 이야기.\n\n강점과 갈등을 함께 이해하고,\n내 선택을 설명할 언어를 넓혀보세요.\n\nAI가 계산 근거를 바탕으로 작성합니다.\n가격과 이용 조건은 현재 화면에서 확인해요.\n저장된 결과는 내 상담에서 다시 읽어요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-astrology-tuna/09-a-more-complete-language-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

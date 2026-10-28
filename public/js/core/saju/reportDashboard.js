@@ -18,7 +18,7 @@ var REPORT_DASHBOARD_TEXT_TRANSLATIONS = {
     "rd.label.003": "명리 헬스 리포트",
     "rd.cta.006": "💚 건강 리포트 확인하기",
     "rd.label.004": "사주 AI 프롬프트",
-    "rd.cta.007": "🤖 무료 프롬프트 보기",
+    "rd.cta.007": "🤖 라이트 사주 풀이에서 프롬프트 보기",
     "rd.label.005": "인생 스킬 트리",
     "rd.cta.008": "🎮 스킬 트리 펼쳐보기",
     "rd.label.006": "극T 테스트",
@@ -99,7 +99,7 @@ var SAJU_ANIMAL_TEST_FEATURE = {
   requiresProfile: false,
   cta: _reportDashboardText("rd.cta.001"),
   lockKey: 'animal-destiny-unlock',
-  coinCost: 10,
+  coinCost: 70,
   thumb: '동물점테스트.webp',
   action: 'openAnimalDestinyRoute',
   target: 'animalDestinyEntryCard'
@@ -120,7 +120,7 @@ var DESTINY_MEETING_PLACE_FEATURE = {
   requiresProfile: false,
   cta: _reportDashboardText("rd.cta.002"),
   lockKey: 'destiny_meeting_place',
-  coinCost: 10,
+  coinCost: 70,
   mainLock: false,
   selfGated: true,
   thumb: '사주로보는 인연의 장소.webp',
@@ -143,7 +143,7 @@ var LOVE_CODE_FEATURE = {
   requiresProfile: false,
   cta: _reportDashboardText("rd.cta.003"),
   lockKey: 'love-code',
-  coinCost: 10,
+  coinCost: 70,
   selfGated: true,
   thumb: 'love code.webp',
   action: 'openLoveSimulationRoute',
@@ -151,27 +151,28 @@ var LOVE_CODE_FEATURE = {
 };
 
 var REPORT_CARDS = [
+  {id:"career-style",target:"careerStyle",thumb:"career-style-yeoni.webp",label:"나의 일 스타일",desc:"성향과 월지로 내게 맞는 업무 조건을 탐색해요.",note:"프로필 카드로 보는 여덟 장의 자기이해 리포트",cta:"무료 리포트 알아보기",action:"openCareerStyleRoute",coinCost:0,mainLock:false,badge:"가입 후 무료",category:"self"},
   { id:'meryok',     label:_reportDashboardText("rd.label.001"),      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:_reportDashboardText("rd.cta.004"), thumb:'meryok-new.webp', accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:10  },
-  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:_reportDashboardText("rd.label.002"),        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:_reportDashboardText("rd.cta.005"),          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:10, badge:'1,000원 · 영구 해금'  },
-  { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:_reportDashboardText("rd.label.003"),      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:_reportDashboardText("rd.cta.006"),      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:10  },
-  { id:'sajuprompt', thumb:'사주 프롬프트.webp', label:_reportDashboardText("rd.label.004"),      desc:'물상·아바타·이상형 얼굴 등 무료 AI 이미지 프롬프트를 받아보세요.', note:'내 사주의 분위기를 다양한 컨셉의 이미지 프롬프트로 바로 가져갈 수 있습니다.', cta:_reportDashboardText("rd.cta.007"),    accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard',       coinCost:0 },
+  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:_reportDashboardText("rd.label.002"),        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:_reportDashboardText("rd.cta.005"),          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'10,000원 · 영구 해금'  },
+  { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:_reportDashboardText("rd.label.003"),      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:_reportDashboardText("rd.cta.006"),      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:50  },
+  { id:'sajuprompt', thumb:'사주 프롬프트.webp', label:_reportDashboardText("rd.label.004"),      desc:'물상·아바타·이상형 얼굴 등 AI 이미지 프롬프트 구성을 확인해보세요.', note:'라이트 사주 풀이 해금 기준을 따릅니다. 종합 운세 프롬프트는 프롬프트 허브에서 단건 결제로 만들 수 있어요.', cta:_reportDashboardText("rd.cta.007"),    accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard', lockKey:'section_summary', coinCost:100 },
   { id:'sajurpg',    thumb:'RPG 인생 스킬트리.webp', label:_reportDashboardText("rd.label.005"),        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:_reportDashboardText("rd.cta.008"),        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard',      coinCost:10  },
-  { id:'tbal',       thumb:'극T테스트.webp', label:_reportDashboardText("rd.label.006"),            desc:'The Frozen Logic, 내 논리 온도를 분석합니다.',          note:'감정보다 이성이 먼저 반응하는 순간, 당신의 판단 패턴을 콕 집어드립니다.', cta:_reportDashboardText("rd.cta.009"),      accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard',          coinCost:0   },
-  { id:'tetoegen',   thumb:'테토VS에겐.webp', label:_reportDashboardText("rd.label.007"),          desc:'사주 기반으로 나의 매력 에너지 결을 분석합니다.',       note:'강하게 끌어당기는 타입인지, 부드럽게 스며드는 타입인지 매력 결을 보여드립니다.', cta:_reportDashboardText("rd.cta.010"),      accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section',coinCost:0  },
-  { id:'trip',       thumb:'사주로 보는 여행지.webp', label:_reportDashboardText("rd.label.008"),     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:_reportDashboardText("rd.cta.011"),         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard',    coinCost:10  },
-  { id:'vilun',      label:_reportDashboardText("rd.label.009"),        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:_reportDashboardText("rd.cta.012"),          accent:'#f87171', thumb:'vilun-new.webp', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:10  },
-  { id:'lotto',      thumb:'사주 로또.webp', label:_reportDashboardText("rd.label.010"),       desc:'사주 오행과 수리 상징으로 만든 재미용 번호가 떠오릅니다.',          note:'오늘 운의 파동과 맞는 상징 번호와 행운 루틴이 가볍게 머뭅니다.', cta:_reportDashboardText("rd.cta.013"),          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
-  { id:'fortunePlanner', thumb:'사주 다이어리.webp', label:'갓생 다이어리', desc:'오늘의 일정·할 일·실천 운을 다이어리 한 화면에서 함께 정리해보세요.', note:'기존 다이어리에 생활 운세와 플래너 흐름을 통합했습니다.', cta:'다이어리 열기', accent:'#818cf8', glow:'rgba(129,140,248,.55)', action:'openFortunePlanner', coinCost:0, badge:'FREE' },
+  { id:'tbal',       thumb:'극T테스트.webp', label:_reportDashboardText("rd.label.006"),            desc:'The Frozen Logic, 내 논리 온도를 분석합니다.',          note:'감정보다 이성이 먼저 반응하는 순간, 당신의 판단 패턴을 종합 풀이 안에서 짚습니다.', cta:_reportDashboardText("rd.cta.009"),      accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard', lockKey:'section_summary', coinCost:100   },
+  { id:'tetoegen',   thumb:'테토VS에겐.webp', label:_reportDashboardText("rd.label.007"),          desc:'사주 기반으로 나의 매력 에너지 결을 분석합니다.',       note:'강하게 끌어당기는 타입인지, 부드럽게 스며드는 타입인지 종합 풀이 안에서 보여드립니다.', cta:_reportDashboardText("rd.cta.010"),      accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section', lockKey:'section_summary', coinCost:100  },
+  { id:'trip',       thumb:'사주로 보는 여행지.webp', label:_reportDashboardText("rd.label.008"),     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:_reportDashboardText("rd.cta.011"),         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard',    coinCost:70  },
+  { id:'vilun',      label:_reportDashboardText("rd.label.009"),        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:_reportDashboardText("rd.cta.012"),          accent:'#f87171', thumb:'vilun-new.webp', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
+  { id:'lotto',      thumb:'사주 로또.webp', label:_reportDashboardText("rd.label.010"),       desc:'번호와 번호별 해석, 금전 루틴을 담은 달빛 럭키 리추얼 리포트는 회당 1,000원입니다.', note:'오늘 운의 파동을 상징 번호와 작은 금전 루틴으로 살펴봅니다.', cta:_reportDashboardText("rd.cta.013"), accent:'#fde047', glow:'rgba(253,224,71,.55)', target:'lottoCard', coinCost:10 },
+  { id:'fortunePlanner', thumb:'사주 다이어리.webp', label:'갓생 다이어리', desc:'오늘의 일정·할 일을 다이어리 한 화면에서 정리해보세요.', note:'운세 해석이 아닌 기록 도구로 이동합니다.', cta:'다이어리 열기', accent:'#818cf8', glow:'rgba(129,140,248,.55)', action:'openFortunePlanner', coinCost:0, badge:'기록 도구' },
   // 이전 버전(셸 모달) 다이어리의 유일한 진입점이다. 새 /diary 앱은 홈 카드가 맡고,
   // 이전 버전은 여기 — 원국이 이미 계산돼 G_PILLARS 가 살아있는 결과 화면 안 — 에서만 연다.
   // 🔴 target 을 비우지 말 것. 아래 중복 제거가 seenTargets[c.target] 로 묶어서, target 이
   // 없으면 같은 처지인 fortunePlanner 카드와 undefined 키를 공유해 한 블록으로 합쳐지고
   // rpt-v2-section-undefined 가 두 번 나온다.
-  { id:'legacyLuckSyncDiary', thumb:'luck-sync-diary-v2.webp', label:'운기 다이어리 (이전 버전)', desc:'사주 원국과 동기화된 이전 버전 다이어리를 이 화면에서 그대로 열어봅니다.', note:'새 다이어리로 옮기기 전 쓰던 월간 운기 달력과 감성 기록 화면입니다.', cta:'이전 버전 열기', accent:'#a78bfa', glow:'rgba(167,139,250,.5)', target:'legacyLuckSyncDiary', action:'openLegacyLuckSyncDiary', coinCost:0, badge:'FREE' },
-  { id:'4CUT',       thumb:'사주 네컷.webp', label:_reportDashboardText("rd.label.012"),   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:_reportDashboardText("rd.cta.015"),            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
-  { id:'relationshipTemptation', thumb:'saju-relationship-temptation-768.webp', label:'그 사람의 바람끼는?', shortTitle:'그 사람의 바람끼는?', desc:'대상자의 생년 정보로 관계 경계와 외부 자극에 흔들릴 수 있는 경향을 살펴봅니다.', note:'도화 하나로 단정하지 않고 계산된 사주 근거와 현실적인 관계 기준을 함께 읽어드려요.', cta:'관계 성향 확인하기', accent:'#b31955', glow:'rgba(179,25,85,.38)', target:'relationshipBoundaryTestEntry', coinCost:10, selfGated:true, badge:'NEW' },
-  { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민 중독 테스트', desc:'새로운 자극을 쫓는 타입인지, 안정을 더 사랑하는 타입인지 확인해보세요.', note:'자극 지수와 등급, 자극 레이더 8축, 몰입 분야, 오늘의 미션까지 한 번에 확인합니다.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', coinCost:0, badge:'NEW' },
-  { id:'secretHouse', thumb:'시크릿 하우스.webp', label:_reportDashboardText("rd.label.013"), desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:_reportDashboardText("rd.cta.016"), accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:10 },
+  { id:'legacyLuckSyncDiary', thumb:'luck-sync-diary-v2.webp', label:'운기 다이어리 (이전 버전)', desc:'사주 원국과 동기화된 이전 버전 기록 화면입니다.', note:'새 다이어리로 옮기기 전 쓰던 기록을 확인합니다.', cta:'이전 버전 열기', accent:'#a78bfa', glow:'rgba(167,139,250,.5)', target:'legacyLuckSyncDiary', action:'openLegacyLuckSyncDiary', coinCost:0, badge:'기록 도구' },
+  { id:'4CUT',       thumb:'사주 네컷.webp', label:_reportDashboardText("rd.label.012"),   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'네 컷 해석은 라이트 사주 풀이 안에서 확인할 수 있습니다.', cta:_reportDashboardText("rd.cta.015"),            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard', lockKey:'section_summary', coinCost:100   },
+  { id:'relationshipTemptation', thumb:'saju-relationship-temptation-768.webp', label:'그 사람의 바람끼는?', shortTitle:'그 사람의 바람끼는?', desc:'상대의 관계 성향을 살펴보고, 본인 정보를 더하면 두 사람의 연애 궁합까지 읽습니다.', note:'도화 하나로 단정하지 않고 계산된 사주 근거와 현실적인 관계 기준을 함께 읽어드려요.', cta:'관계 성향·궁합 확인하기', accent:'#b31955', glow:'rgba(179,25,85,.38)', target:'relationshipBoundaryTestEntry', coinCost:100, selfGated:true, badge:'NEW' },
+  { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민·집중력과 공부법', desc:'자극에 끌리는 성향부터 집중 환경과 공부법까지, 오행과 사주 원국으로 읽어보세요.', note:'자극 지수와 등급, 자극 레이더 8축은 라이트 사주 풀이 안에서 확인합니다.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', lockKey:'section_summary', coinCost:100, badge:'잠금' },
+  { id:'secretHouse', thumb:'시크릿 하우스.webp', label:_reportDashboardText("rd.label.013"), desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'일간과 선택이 만나는 다중 엔딩 이야기입니다. 엔딩 문구와 링크를 공유할 수 있어요.', cta:_reportDashboardText("rd.cta.016"), accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
   { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
   { id: DESTINY_MEETING_PLACE_FEATURE.id, thumb: DESTINY_MEETING_PLACE_FEATURE.thumb, label: DESTINY_MEETING_PLACE_FEATURE.title, shortTitle: DESTINY_MEETING_PLACE_FEATURE.shortTitle, desc: DESTINY_MEETING_PLACE_FEATURE.description, note:'이 페이지 단독으로 생년월일 입력부터 분석까지 실행하며, 인연 장소 TOP5·국가/도시·만남 타이밍·아이템·실천 플랜을 한 번에 제시합니다.', cta: DESTINY_MEETING_PLACE_FEATURE.cta, accent:'#c084fc', glow:'rgba(192,132,252,.45)', target: DESTINY_MEETING_PLACE_FEATURE.target, action: DESTINY_MEETING_PLACE_FEATURE.action, lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey, coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost, mainLock: DESTINY_MEETING_PLACE_FEATURE.mainLock, selfGated: DESTINY_MEETING_PLACE_FEATURE.selfGated, badge: DESTINY_MEETING_PLACE_FEATURE.badge, tags: DESTINY_MEETING_PLACE_FEATURE.tags, group: DESTINY_MEETING_PLACE_FEATURE.group },
   { id: LOVE_CODE_FEATURE.id, thumb: LOVE_CODE_FEATURE.thumb, label: LOVE_CODE_FEATURE.title, shortTitle: LOVE_CODE_FEATURE.shortTitle, desc: LOVE_CODE_FEATURE.description, note:'상대의 생년월일시를 입력하면 사주 오행·일간 흐름으로 가장 닮은 러브 코드 캐릭터를 찾고, 선택에 따라 관계 온도가 달라지는 가상 데이트를 엽니다.', cta: LOVE_CODE_FEATURE.cta, accent:'#f472b6', glow:'rgba(244,114,182,.48)', target: LOVE_CODE_FEATURE.target, action: LOVE_CODE_FEATURE.action, lockKey: LOVE_CODE_FEATURE.lockKey, coinCost: LOVE_CODE_FEATURE.coinCost, selfGated: LOVE_CODE_FEATURE.selfGated, badge: LOVE_CODE_FEATURE.badge, tags: LOVE_CODE_FEATURE.tags, group: LOVE_CODE_FEATURE.group }
@@ -285,7 +286,8 @@ var REPORT_CARDS = [
     normalized.push(loveCodeCard);
   }
 
-  REPORT_CARDS = normalized;
+  // 선택형 콘텐츠는 신규 탐색에서 잠시 제외한다. 기존 결과/구매 데이터는 유지한다.
+  REPORT_CARDS = normalized.filter(function(card) { return card.id !== 'secretHouse' && card.id !== 'love-code'; });
 })();
 
 /* 카드마다 명시적으로 한 카테고리를 갖는다. 기존 id/CTA/잠금 계약은 바꾸지 않는다. */
@@ -324,7 +326,7 @@ REPORT_CARDS.forEach(function(card) { if (card && !card.category) card.category 
 })();
 
 function _rptIsDirectAction(actionName) {
-  return actionName === 'openFortunePlanner' || actionName === 'openLegacyLuckSyncDiary' || actionName === 'openRelationshipBoundaryTestRoute' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute' || actionName === 'openDestinyMeetingPlaceRoute' || actionName === 'openLoveSimulationRoute';
+  return actionName === 'openCareerStyleRoute' || actionName === 'openFortunePlanner' || actionName === 'openLegacyLuckSyncDiary' || actionName === 'openRelationshipBoundaryTestRoute' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute' || actionName === 'openDestinyMeetingPlaceRoute' || actionName === 'openLoveSimulationRoute';
 }
 
 window.openSecretHouseRoute = function() {
@@ -343,12 +345,24 @@ window.openSecretHouseRoute = function() {
   if (/^[甲乙丙丁戊己庚辛壬癸]$/.test(stem)) {
     target += '?dayStem=' + encodeURIComponent(stem);
   }
+  // 에피소드 본문은 서버가 이 프로필의 구매 기록을 확인한 뒤 배달한다 — 지금 보고 있는 프로필을 넘긴다.
+  var houseProfileId = '';
+  try {
+    houseProfileId = typeof window.cdBirthScopeCurrentProfileId === 'function' ? String(window.cdBirthScopeCurrentProfileId() || '').trim() : '';
+  } catch (_eProfile) {
+    houseProfileId = '';
+  }
+  if (houseProfileId) {
+    target += (target.indexOf('?') >= 0 ? '&' : '?') + 'profileId=' + encodeURIComponent(houseProfileId);
+  }
   try {
     window.location.assign(target);
   } catch (e) {
     window.open(target, '_blank');
   }
 };
+
+window.openCareerStyleRoute = function() { window.location.href = "/saju/career-style/"; };
 
 window.openAnimalDestinyRoute = function() {
   var target = SAJU_ANIMAL_TEST_FEATURE.href || '/saju/animal-destiny';
@@ -382,6 +396,21 @@ window.openLoveSimulationRoute = function() {
 // relationshipTemptationAnalysis.js 가 다시 렌더되어 새 결제·LLM 흐름을 우회한다.
 window.openRelationshipBoundaryTestRoute = function() {
   var target = '/relationship-boundary-test/';
+  try {
+    var profile = _sajuFunGetCurrentProfile();
+    var b = profile && profile.birth;
+    if (b && b.year && b.month && b.day) {
+      var pad = function(n) { return String(n).padStart(2, '0'); };
+      sessionStorage.setItem('cd:relationship-self-prefill', JSON.stringify({ createdAt: Date.now(), info: {
+        gender: profile.gender === 'female' || b.gender === 'female' ? 'female' : profile.gender === 'male' || b.gender === 'male' ? 'male' : '',
+        birthDate: b.year + '-' + pad(b.month) + '-' + pad(b.day),
+        birthTime: b.hour == null ? '' : pad(b.hour) + ':' + pad(b.minute || 0),
+        birthTimeUnknown: b.unknownHour === true || b.timeUnknown === true || b.hour == null,
+        calendarType: b.calendarType === 'lunar' || b.calendarType === 'lunar_leap' ? 'lunar' : 'solar',
+        isLeapMonth: b.isLeapMonth === true || b.calendarType === 'lunar_leap'
+      } }));
+    }
+  } catch (prefillError) {}
   try {
     window.location.assign(target);
   } catch (e) {
@@ -1213,16 +1242,24 @@ function _sajuFunTryRecoverTargetCard(targetId) {
         if (typeof renderLottoNumbers === 'function' && natal) renderLottoNumbers(natal, bazi);
         break;
       case 'quantumCard':
-        if (typeof renderQuantumStrategy === 'function' && p && natal) renderQuantumStrategy(p, natal, bazi);
+        // 본문은 서버(/api/saju/section, rpt_quantumCard)가 해금을 확인한 뒤 배달한다.
+        if (window.CdSajuSectionClient && p && natal) window.CdSajuSectionClient.loadQuantum();
         break;
       case 'specialCharmCard':
-        if (typeof renderSpecialCharm === 'function' && p && natal) renderSpecialCharm(p, natal);
+        // 카드 틀(무료 스텁)이 없을 때만 다시 깐다 — 다시 깔면 배달된 본문이 스텁으로 덮인다.
+        // 본문은 서버(/api/saju/section, rpt_specialCharmCard)가 해금을 확인한 뒤 배달한다.
+        if (!document.getElementById('specialCharmCard') && typeof renderSpecialCharm === 'function' && p && natal) renderSpecialCharm(p, natal);
+        if (window.CdSajuSectionClient && p && natal) window.CdSajuSectionClient.loadCard('rpt_specialCharmCard');
         break;
       case 'healthReportCard':
-        if (typeof renderHealthReport === 'function' && p && natal) renderHealthReport(p, natal, johu, power, jong);
+        // 본문은 서버(/api/saju/section, rpt_healthReportCard)가 해금을 확인한 뒤 배달한다.
+        if (window.CdSajuSectionClient && p && natal) window.CdSajuSectionClient.loadCard('rpt_healthReportCard');
         break;
       case 'skillTreeCard':
-        if (typeof renderSkillTree === 'function' && p && natal) renderSkillTree(p, natal);
+        // 본문 칸(무료 스텁 #skillTreeBody)이 없을 때만 스텁·퀘스트 칸을 다시 깐다 — 다시 깔면 배달된 시트가 스텁으로 덮인다.
+        // 클래스 시트는 서버(/api/saju/section, rpt_skillTreeCard)가 해금을 확인한 뒤 배달한다.
+        if (!document.getElementById('skillTreeBody') && typeof renderSkillTree === 'function' && p && natal) renderSkillTree(p, natal);
+        if (window.CdSajuSectionClient && p && natal) window.CdSajuSectionClient.loadCard('rpt_skillTreeCard');
         break;
       case 'tTestCard':
         if (typeof renderTTest === 'function' && p && natal) renderTTest(p, natal, johu, power);
@@ -1231,10 +1268,12 @@ function _sajuFunTryRecoverTargetCard(targetId) {
         if (typeof renderHormoneVibe === 'function' && p && power) renderHormoneVibe(p, power);
         break;
       case 'energyCoordCard':
-        if (typeof renderEnergyCoord === 'function' && natal) renderEnergyCoord(natal);
+        // 본문은 서버(/api/saju/section, rpt_energyCoordCard)가 해금을 확인한 뒤 배달한다.
+        if (window.CdSajuSectionClient && natal) window.CdSajuSectionClient.loadCard('rpt_energyCoordCard');
         break;
       case 'villainCard':
-        if (typeof renderVillain === 'function' && p && power) renderVillain(p, power);
+        // 본문은 서버(/api/saju/section, rpt_villainCard)가 해금을 확인한 뒤 배달한다.
+        if (window.CdSajuSectionClient && p && power) window.CdSajuSectionClient.loadCard('rpt_villainCard');
         break;
       case 'sajuFourCutCard':
         if (typeof renderSajuFourCutContent === 'function') renderSajuFourCutContent();
@@ -1269,12 +1308,22 @@ function _sajuFunEnsureHealthReportRendered(targetEl) {
 }
 
 /* 퀀텀 명리 엔진은 결과 계산 직후에는 스텁만 깔려 있다.
-   카드를 실제로 여는 시점(= 잠금 게이트를 통과한 시점)에만 전체 판별을 돌린다. */
+   카드를 실제로 여는 시점(= 잠금 게이트를 통과한 시점)에만 서버에 본문을 요청한다(비동기 배달). */
 function _sajuFunEnsureQuantumBlockReady(block) {
   if (!block || block.id !== 'rpt-v2-section-quantumCard') return false;
   if (window.__cdQuantumRendered) return true;
   _sajuFunTryRecoverTargetCard('quantumCard');
   return !!window.__cdQuantumRendered;
+}
+
+/* 서버가 배달하는 유료 카드(에너지 원정 리포트 등)도 결과 계산 직후에는 무료 스텁만 있다.
+   카드를 여는 시점에만 서버에 본문을 요청한다(비동기 배달). 키: 대시보드 블록 target → featureKey. */
+var _SAJU_FUN_SERVER_CARDS = { energyCoordCard: 'rpt_energyCoordCard', villainCard: 'rpt_villainCard', healthReportCard: 'rpt_healthReportCard', specialCharmCard: 'rpt_specialCharmCard', skillTreeCard: 'rpt_skillTreeCard' };
+function _sajuFunEnsureServerCardReady(block) {
+  var target = block && String(block.id || '').replace(/^rpt-v2-section-/, '');
+  var featureKey = target && _SAJU_FUN_SERVER_CARDS[target];
+  if (!featureKey || !window.CdSajuSectionClient || typeof window.CdSajuSectionClient.loadCard !== 'function') return false;
+  return window.CdSajuSectionClient.loadCard(featureKey);
 }
 
 function _sajuFunEnsureHealthReportBlockReady(block) {
@@ -1418,8 +1467,8 @@ function renderReportDashboard() {
       var rawThumb = String(img.thumb || (img.id + '.webp'));
       var thumbSrc = '/fuctionassets/' + encodeURIComponent(rawThumb).replace(/%2F/g, '/');
       var tileWonPrice = (Number(b.coinCost || 0) * 100).toLocaleString('ko-KR') + '원';
-      var tilePriceText = (b.coinCost > 0) ? (b.mainLock === false ? ('1회 ' + tileWonPrice) : ('🔒 ' + tileWonPrice + ' · 잠금 콘텐츠')) : '무료';
-      var tilePriceClass = (b.coinCost > 0) ? (b.mainLock === false ? 'rpt-v2-price-badge is-per-use' : 'rpt-v2-price-badge') : 'rpt-v2-price-badge is-free';
+      var tilePriceText = (b.coinCost > 0) ? ((b.mainLock === false || b.selfGated) ? ('1회 ' + tileWonPrice) : ('🔒 ' + tileWonPrice + ' · 잠금 콘텐츠')) : '무료';
+      var tilePriceClass = (b.coinCost > 0) ? ((b.mainLock === false || b.selfGated) ? 'rpt-v2-price-badge is-per-use' : 'rpt-v2-price-badge') : 'rpt-v2-price-badge is-free';
       gridHtml += '<button type="button" class="rpt-v2-img-wrap" data-rpt-preview-src="' + thumbSrc + '" data-rpt-preview-title="' + img.label + '" aria-label="' + img.label + ' 이미지 크게 보기">';
       gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" decoding="async" onerror="handleReportThumbError(this)">';
       gridHtml += '<span class="' + tilePriceClass + '">' + tilePriceText + '</span>';
@@ -1677,8 +1726,8 @@ function toggleReportFeatureCard(btn) {
     detail.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (open) {
       _sajuFunEnsureHealthReportBlockReady(block);
-      if (block.querySelector('#healthReportSection')) import('/js/recommendations-legacy.mjs').then(function(m){return m.mountRecommendation(document.getElementById('resultPage'),{service:'rpt_healthReportCard'},document.getElementById('shareSection'));}).catch(function(){});
       _sajuFunEnsureQuantumBlockReady(block);
+      _sajuFunEnsureServerCardReady(block);
       _sajuFunForceRevealFateScroll(block);
       _bindReportHeightWatcher(block);
       syncReportBlockHeight(block);

@@ -31,7 +31,7 @@ test("public trust dictionaries are complete, native-language and contain visibl
     assert.ok(copy.title && copy.description && copy.intro);
     assert.ok(!titles.has(copy.title)); titles.add(copy.title);
     assert.ok(!descriptions.has(copy.description)); descriptions.add(copy.description);
-    assert.doesNotMatch(JSON.stringify(copy), /[가-힣]|Translation pending/);
+    assert.doesNotMatch(JSON.stringify(copy).replaceAll('꿀꿀운세', ''), /[가-힣]|Translation pending/);
     assert.ok(copy.sections.length >= (key === "faq" ? 10 : 5));
     assert.ok(copy.sections.every(([heading, body]) => heading.length > 0 && body.length > 30));
     assert.ok(fs.existsSync(path.join(root, `app/[locale]/${key}/page.js`)));

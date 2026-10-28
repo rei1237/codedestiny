@@ -1,0 +1,167 @@
+{
+  "id": "yeongnyangi-saju-salmon",
+  "featureKey": "yeongnyangi-saju-salmon",
+  "title": "영냥이 사주 연어 상담",
+  "notice": "아래 이직 사례와 도식은 이해를 돕기 위한 편집 예시입니다. 실제 고객 결과가 아닙니다. 질문 상담의 목차는 주제와 입력 조건에 따라 달라지며, 전체 성향 리포트는 별도 선택 흐름입니다. 가격과 추가 질문 조건은 기존 상담 준비 화면에서 확인해 주세요.",
+  "panels": [
+    {
+      "id": "01-stay-or-go",
+      "title": "남아도 불안하고, 떠나기엔 망설여질 때.",
+      "alt": "마법사 고양이 영냥이가 네 기둥과 다섯 원소를 살피는 장면",
+      "src": "/images/service-introductions/yeongnyangi-saju.webp",
+      "width": 1536,
+      "height": 1024,
+      "text": "남아도 불안하고,\n떠나기엔 망설여질 때.\n\n더 좋은 선택이라는 말보다,\n내가 감당할 조건부터 알고 싶다면.\n\n영냥이 사주 · 연어\n중요한 선택을 준비하는 상담.",
+      "variants": [
+        {
+          "src": "/images/service-introductions/yeongnyangi-saju-320.webp",
+          "width": 320
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-saju-640.webp",
+          "width": 640
+        },
+        {
+          "src": "/images/service-introductions/yeongnyangi-saju-960.webp",
+          "width": 960
+        }
+      ],
+      "textBelowImage": true
+    },
+    {
+      "id": "02-two-paths",
+      "title": "선택지는 둘이어도, 비교할 것은 많으니까.",
+      "alt": "이직 고민을 현재 회사와 새 제안으로 나눠 역할, 시간, 안정, 배울 기회를 비교하는 개념 표.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-salmon/02-two-paths.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "선택지는 둘이어도,\n비교할 것은 많으니까.\n\n이직 고민을 정리하는 개념도\n\n지금 자리\n\n익숙한 역할\n지켜야 할 책임\n머물며 얻는 것\n\n새 제안\n\n새로운 업무\n달라질 생활\n배울 수 있는 것\n\n한쪽을 무조건 좋다고 정하기 전에,\n무엇을 얻고 무엇을 치러야 하는지\n사주의 기질과 현실 조건을 함께 봐요.\n\n이직 성공이나 합격을 보장하는\n판정표가 아닙니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-saju-salmon/02-two-paths-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "03-capacity",
+      "title": "같은 기회도, 맞는 방식은 달라요.",
+      "alt": "사주의 일간, 십성, 오행과 계절을 역량과 책임, 힘의 배분으로 연결한다.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-salmon/03-capacity.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "같은 기회도,\n맞는 방식은 달라요.\n일간 · 판단의 중심\n\n내가 힘을 내는 방식과\n부담에 반응하는 습관.\n\n십성 · 역할과 관계\n\n책임·표현·배움·자원을\n어떻게 다루는지 살펴요.\n\n오행과 계절 · 힘의 배분\n\n무엇을 더하고 덜어야\n지속하기 편한지 읽어요.\n\n사주의 용어는 직업을 하나로 정하는\n낙인이 아니라 판단의 참고 근거입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-saju-salmon/03-capacity-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "04-question-first",
+      "title": "이직을 묻는다면, 나와 현재 위치부터.",
+      "alt": "연어 이직 질문 상담의 앞부분 실제 목차를 기질, 강점과 부담, 답, 근거, 기회와 주의, 현재 적성으로 펼친다.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-salmon/04-question-first.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "이직을 묻는다면,\n나와 현재 위치부터.\n\n질문 상담의 구성 예 · 앞부분\n\n내 사주의 바탕과 오행의 균형\n강점과 부담이 되는 순간\n남을지 옮길지, 판단 기준\n판단의 근거와 달라지는 조건\n기회와 주의할 조건\n현재 위치와 적성\n\n어떤 일을 묻는지에 따라\n장 제목과 해석의 초점이 달라집니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-saju-salmon/04-question-first-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "05-question-next",
+      "title": "기회만 보지 않고, 비용과 준비까지.",
+      "alt": "연어 이직 상담 후반의 이동과 유지, 시기, 질문 밖 영역, 올해 흐름, 실행 계획을 보여준다.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-salmon/05-question-next.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "기회만 보지 않고,\n비용과 준비까지.\n\n질문 상담의 구성 예 · 이어지는 이야기\n\n이동과 유지의 비교\n\n머무를 때와 옮길 때의 득실.\n\n움직일 시기의 근거\n\n계산 가능한 기간과 해석의 한계.\n\n질문 밖에서 보이는 흐름\n\n두드러진 영역 · 올해의 흐름.\n\n종합 해석과 실행 계획\n\n생활에 적용할 방법과 다음 행동.\n\n시기 근거가 없으면 날짜를 만들지 않고,\n현실에서 점검할 신호로 설명합니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-saju-salmon/05-question-next-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "06-personal",
+      "title": "아직 질문이 없다면, 삶의 여러 면을 차례로.",
+      "alt": "연어 기본 사주 전체 성향 리포트의 실제 여덟 목차를 나열한다.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-salmon/06-personal.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "아직 질문이 없다면,\n삶의 여러 면을 차례로.\n\n전체 성향 리포트 · 기본 사주 구성\n\n타고난 중심과 힘의 균형\n타고난 연애 스타일\n결혼운과 배우자 자리\n돈이 모이고 새는 길\n일하는 방식과 사회적 자리\n곁의 사람들\n몸의 리듬과 회복\n올해와 내년\n\n질문 상담과 다른 목차입니다.\n선택한 상담 종류에 맞춰 확인해 주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-saju-salmon/06-personal-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "07-example",
+      "title": "“옮겨도 될까요?” 그다음에 물어볼 것.",
+      "alt": "이직에 대한 막연한 불안을 역할과 생활 조건으로 나누는 가상의 상담 문장과 행동 예시.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-salmon/07-example.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "“옮겨도 될까요?”\n그다음에 물어볼 것.\n\n이해를 돕기 위한 편집 예시\n\n남는 이유가 안정감인지,\n맡은 일을 두고 가는\n미안함인지 먼저 나눠 봐.\n결정 전에 적어 볼 한 줄\n\n“새 역할과 생활 시간은\n내 조건에 맞는가?”\n\n실제 고객의 명식이나 생성 결과가 아닌,\n선택의 조건을 정리하는 표현 예시입니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-saju-salmon/07-example-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "08-preparation",
+      "title": "조건이 더해지면, 비교도 구체적이 됩니다.",
+      "alt": "현재 상황, 선택지나 준비 목표, 살펴볼 기간, 시간과 생활 제약을 상담 입력으로 준비한다.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-salmon/08-preparation.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "조건이 더해지면,\n비교도 구체적이 됩니다.\n현재 상황\n\n어디까지 준비했고, 무엇이 막혔나요?\n\n선택지 또는 준비 목표\n\n고려하는 직장, 시험, 이동의 방향.\n\n살펴볼 기간\n\n결정을 앞둔 시점이나 준비 기간.\n\n조건과 제약\n\n쓸 수 있는 시간과 지켜야 할 생활.\n\n정확한 자산 금액은 적지 않아도 돼요.\n출생 정보와 선택의 조건을 확인해 주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-saju-salmon/08-preparation-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "09-method",
+      "title": "좋은 말의 개수보다, 판단할 근거의 연결.",
+      "alt": "제작자의 상담 경력과 AI 해설을 구분하고, 근거에서 선택의 조건으로 이어지는 방식을 소개한다.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-salmon/09-method.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "좋은 말의 개수보다,\n판단할 근거의 연결.\n\n10년 경력 운세 상담사·명리학자가\n만든 서비스입니다.\n\n근거를 쉽게 풀고,\n현실에서 확인할 조건을 나누는\n상담의 방식을 담았습니다.\n\n계산 결과를 바탕으로 AI가 해설해요.\n사람이 결과마다 직접 답하지 않습니다.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-saju-salmon/09-method-540.webp",
+          "width": 540
+        }
+      ]
+    },
+    {
+      "id": "10-close",
+      "title": "어느 길이든, 준비한 만큼 덜 막막하도록.",
+      "alt": "비교한 조건과 실행 계획을 작은 준비로 옮기자는 마무리. 두 사람 비교와 장기 전환은 별도 범위임을 안내한다.",
+      "src": "/feature-details/crafted/yeongnyangi-saju-salmon/10-close.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "어느 길이든,\n준비한 만큼\n덜 막막하도록.\n\n막연히 기다리기보다\n확인할 조건을 하나 적고,\n\n한 번에 결론 내리기보다\n작게 준비할 일을 정해 보세요.\n\n두 사람의 명식 비교와\n현재·다음 대운의 장기 전환은\n해당 범위의 다른 구성을 확인해요.\n\n영냥이 사주 · 연어\n질문과 선택지를 준비해 주세요.",
+      "variants": [
+        {
+          "src": "/feature-details/crafted/yeongnyangi-saju-salmon/10-close-540.webp",
+          "width": 540
+        }
+      ]
+    }
+  ]
+}

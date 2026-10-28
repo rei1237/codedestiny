@@ -175,14 +175,22 @@ export async function cardToFormValues(card: DestinyProfileCard): Promise<Naksha
   if (!parts) return null;
   const seed = seedFromDestinyProfile(card);
   const calType = card.calType ?? card.birth?.calType ?? card.calendarType ?? seed.calendarType;
-  const solar = await toSolarYmd(parts.year, parts.month, parts.day, calType);
+  let solar = {year:parts.year,month:parts.month,day:parts.day};
+  if (isLunarCalType(calType)) {
+    try {
+      const { lunarToSolar } = await import("@/lib/korean-calendar");
+      const converted=lunarToSolar(parts.year,parts.month,parts.day,Boolean(seed.isLeapMonth));
+      if(!converted)return null;
+      solar=converted;
+    } catch { return null; }
+  }
 
   let hour = "";
   let minute = "";
   if (seed.birthTime && /^\d{1,2}:\d{2}$/.test(seed.birthTime)) {
     [hour, minute] = seed.birthTime.split(":");
   }
-  const timeUnknown = seed.birthTimeUnknown === true;
+  const timeUnknown = seed.birthTimeUnknown === true || !seed.birthTime;
 
   return {
     name: seed.name || card.name || "",
@@ -195,7 +203,7 @@ export async function cardToFormValues(card: DestinyProfileCard): Promise<Naksha
     birthPlace: seed.region || card.location?.label || "",
     latitude: seed.latitude || (card.location?.lat != null ? String(card.location.lat) : ""),
     longitude: seed.longitude || (card.location?.lng != null ? String(card.location.lng) : ""),
-    timezone: seed.timezone || card.location?.tz || "Asia/Seoul",
+    timezone: seed.timezone || card.location?.tz || "",
     lunarConverted: isLunarCalType(calType),
   };
 }

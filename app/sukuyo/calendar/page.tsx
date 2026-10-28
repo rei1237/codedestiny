@@ -3,19 +3,19 @@ import SukuyoCalendarRouteClient from "./SukuyoCalendarRouteClient";
 
 const SUKUYO_CALENDAR_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "27숙 달력 | Code Destiny",
+    title: "27숙 달력 | 꿀꿀 운세",
     description:
       "입력 시각을 UTC와 줄리안일로 바꾸어 그 순간의 항성 달 황경에서 27숙을 찾고, 활용·주의·연애·일과 돈 조언을 한 화면에서 봅니다.",
     keywords: ["27숙 달력", "숙요 달력", "숙요점", "27수", "오늘의 숙요"],
   },
   en: {
-    title: "27 Lunar Mansion Calendar | Code Destiny",
+    title: "27 Lunar Mansion Calendar | 꿀꿀 운세",
     description:
       "Converts the selected local time to UTC and Julian Date, finds the Moon's sidereal mansion continuously, and shows daily use, caution, love, work and money guidance.",
     keywords: ["27 lunar mansion calendar", "Sukuyo calendar", "Sukuyo astrology", "daily Sukuyo"],
   },
   ja: {
-    title: "二十七宿カレンダー | Code Destiny",
+    title: "二十七宿カレンダー | 꿀꿀 운세",
     description:
       "入力した時刻をUTCとユリウス日へ変換し、その瞬間の月のサイデリアル黄経から二十七宿を求め、活用・注意・恋愛・仕事とお金の助言を確認できます。",
     keywords: ["二十七宿カレンダー", "宿曜カレンダー", "宿曜占星術", "今日の宿曜"],

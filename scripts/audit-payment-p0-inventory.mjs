@@ -6,7 +6,7 @@ import { inspectSource, isInventorySource } from "./lib/payment-inventory.mjs";
 
 const products = listProducts();
 const keys = new Set(products.map(row => row.featureKey));
-const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], { encoding: "utf8", maxBuffer: 20 * 1024 * 1024 }).split("\0").filter(isInventorySource);
+const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], { encoding: "utf8", maxBuffer: 20 * 1024 * 1024 }).split("\0").filter(isInventorySource).filter(file => fs.existsSync(file)); // ls-files 는 지웠지만 커밋 전인 추적 파일도 낸다(ENOENT 방지)
 const sources = files.map(file => inspectSource(file, fs.readFileSync(file, "utf8"), keys)).filter(source => source.keywordLines.length);
 const esc = value => String(value ?? "").replace(/\|/g, "\\|").replace(/[\r\n]/g, " ");
 const rows = products.map(product => {

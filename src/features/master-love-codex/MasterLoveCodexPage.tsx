@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
+import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import { authFetch } from "@/app/_lib/auth-client";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg, type PaidResumeArgs, type PaidResumeGrant } from "@/app/hooks/usePaidResume";
 import {
@@ -38,6 +39,7 @@ import CodexGenerating from "./components/CodexGenerating";
 import CodexShell from "./components/CodexShell";
 import type { CodexChapter } from "./components/CodexReader";
 import { masterLoveCodexBgmTracks } from "./data/assets";
+import { EMPTY_CONSULTATION } from "./_lib/consultation";
 import { codexPrologueStageOrder, type CodexPrologueChoiceKey, type CodexPrologueStage } from "./data/prologue";
 import {
   MASTER_LOVE_CODEX_PROLOGUE_SEEN_KEY,
@@ -301,6 +303,19 @@ export default function MasterLoveCodexPage() {
     setPhase("birth");
   }
 
+  // 프롤로그·입력 화면에서 브라우저 뒤로가기는 랜딩으로 돌아간다. 결제 확인 중에는 받아 두기만 한다.
+  const paymentBusy = phase === "checking" || phase === "payment";
+  useBackNavigation({
+    scope: "wizard",
+    enabled: phase === "prologue" || phase === "birth" || paymentBusy,
+    isLocked: paymentBusy,
+    canGoBack: phase === "prologue" || phase === "birth",
+    onBack: () => {
+      setPhase("landing");
+      return true;
+    },
+  });
+
   const runBatches = useCallback(async (startSessionId: string, startToken: string, seed: SessionPayload) => {
     setPhase("generating");
     setGenerationError("");
@@ -371,7 +386,7 @@ export default function MasterLoveCodexPage() {
     idempotencyRef.current = idempotencyKey;
     chargedRef.current = true;
     setError("");
-    setBirth((current) => ({ ...current, ...asRecord(restored.birthInfo), partner: restored.partnerInfo ? { ...EMPTY_CODEX_PARTNER, ...asRecord(restored.partnerInfo) } : null }));
+    setBirth((current) => ({ ...current, ...asRecord(restored.birthInfo), consultation: restored.consultation as CodexBirthInput["consultation"], partner: restored.partnerInfo ? { ...EMPTY_CODEX_PARTNER, ...asRecord(restored.partnerInfo) } : null }));
     setGenerationError("");
     setPhase("generating");
     try {
@@ -514,6 +529,7 @@ export default function MasterLoveCodexPage() {
       locale,
       idempotencyKey,
       prologueChoice,
+      consultation: birth.consultation || EMPTY_CONSULTATION,
       birthInfo: {
         name: birth.name,
         gender: birth.gender,
@@ -657,6 +673,7 @@ export default function MasterLoveCodexPage() {
   const ambience = (
     <CodexAmbience
       track={phase === "generating" ? masterLoveCodexBgmTracks.scriptorium : masterLoveCodexBgmTracks.libraryGate}
+      landing={phase === "landing"}
     />
   );
 

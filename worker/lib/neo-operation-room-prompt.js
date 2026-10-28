@@ -58,7 +58,7 @@ const INTENSITY_GUIDES = Object.freeze({
   soft: {
     label: "순한맛",
     rules: [
-      "단호하게 진단하되 문장 끝은 부드럽게 마무리한다.",
+      "단호하게 진단하되 문장 끝은 반말 안에서 부드럽게(~하자, ~해 보자) 마무리한다.",
       "팩폭 문장 뒤에는 반드시 사용자가 지킬 수 있는 방어선 한 줄을 세워준다.",
       "명령문보다 '~부터 잡아라', '~는 지켜라' 같은 지시형 권유를 쓴다.",
       "과장, 조롱, 극단적 단정은 금지한다.",
@@ -188,10 +188,10 @@ function cleanProse(value, maxLength = 0) {
 }
 
 // 리스트 항목(핵심 기질·강점·약점·핵심 포인트·시기 포인트·규칙) 공통 상한.
-// 챕터 minChars 1400~1800 을 description 과 나눠 지므로, 항목 하나가 여기에 닿으면
+// 챕터 minChars 대부분 1500~2600(+30% 반영) 을 description 과 나눠 지므로, 항목 하나가 여기에 닿으면
 // 이미 설계보다 훨씬 길게 쓴 것이다. scripts/verify-neo-operation-room-output-safety.mjs
 // 가 "이 상한으로 챕터 minChars 를 채울 수 있는가"를 실제 병합 결과로 단언한다.
-const LIST_ITEM_CAP = 500;
+const LIST_ITEM_CAP = 800;
 
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
@@ -670,6 +670,9 @@ const NEO_DOMAIN_COVERAGE = Object.freeze({
 const NEO_COMMON_RULES = Object.freeze([
   ...NEO_STRENGTH_CONVERSION_RULES,
   "역할은 위로가 아니라 진단과 작전 재정비다. 말투는 직설적이고 차갑지만 사용자를 깎아내리거나 조롱하지 않는다.",
+  // 🔴 R2: 챕터마다 따로 생성되다 보니 어떤 챕터는 반말, 어떤 챕터는 "~습니다/당신"으로 나왔다.
+  //    작전실의 말투 예시·강도 지침이 전부 반말이므로 반말 하나로 못 박는다(neoRegisterDrift 가 검사한다).
+  "어조는 처음부터 끝까지 해라체 반말 한 가지다(~다, ~해라, ~하자, 질문은 ~니?/~해?). 사용자는 '너'로 부르고 '당신'은 쓰지 않는다. ~습니다·~합니까·~세요·~십시오·~해요 같은 존댓말 어미는 한 문장도 섞지 않는다.",
   "입력된 계산 확정값만 근거로 삼고, 생년월일을 직접 점치는 척하거나 없는 계산값을 만들지 않는다. 없는 항목은 지어내지 말고 '현재 계산 가능한 범위에서 해석했다'고 자연스럽게 밝힌다.",
   "개발자식 장애 지점 표현은 쓰지 말고 '막힌 지점', '흔들리는 자리', '어긋난 흐름', '운이 새는 틈', '전선이 밀리는 곳', '반복되는 선택', '흐려진 판단', '놓친 신호', '다시 잡아야 할 기준' 같은 상담 언어를 쓴다.",
   "mock, dry-run, provider, system, prompt 같은 내부 구현 단어를 결과에 쓰지 않는다.",
@@ -796,10 +799,15 @@ function neoBasisLines(section, ctx) {
     return fallback ? ["[계산 확정값]", fallback] : ["[계산 확정값]", "(이번 요청에서 계산된 값이 없다)"];
   }
   const labels = collectBasisLabels(payload);
+  // 🔴 R2: 시기 표를 못 받은 챕터도 [주제별 판독 지침]의 "대운·세운 십성으로 판단하라"를 읽고
+  //    없는 대운 간지·십성을 지어냈다. 표가 없다는 사실을 직접 알려 준다.
+  const hidesTiming = section.basisGroups !== "*" && !safeArray(section.basisGroups).includes("timing")
+    && safeArray(buildNeoBasisPayload(ctx.methodSummary).groups).some((entry) => entry?.key === "timing");
   return [
     "[계산 확정값]",
     "아래 값은 서버가 계산한 확정값이다. 본문은 이 값과 어긋나면 안 되고, 표에 없는 수치는 새로 만들지 않는다.",
     ...factLines,
+    ...(hidesTiming ? ["이 챕터에는 시기 흐름 표가 없다. 대운·세운·유년·다샤·트랜짓의 간지나 십성, 날짜를 새로 꺼내거나 추측하지 않는다. 시기 판단은 '주제 시기 흐름' 챕터가 맡는다."] : []),
     ...(labels.length ? ["", `[인용 가능한 항목명] ${labels.join(", ")}`] : []),
   ];
 }
@@ -819,6 +827,74 @@ function otherChapterScopeLines(section) {
   ];
 }
 
+// 🔴 R2: 스키마 예시("타고난 구조상 힘이 나는 방식")가 본문 자리에 그대로 돌아와 배달됐다.
+//    프롬프트에서는 산문 자리 예시를 <…> 안내로 바꾸고, 병합에서는 그대로 돌아온 예시를 지운다.
+//    제목·enum 성격의 자리(title·status 등)는 결과에 그 문자열이 쓰이거나 폴백 제목과 같으므로 손대지 않는다.
+const NEO_SCHEMA_LABEL_KEYS = /^(title|operationTitle|name|label|area|palace|status|stage|speaker)$/;
+
+function neoSchemaPlaceholders(node, key = "") {
+  if (Array.isArray(node)) return node.map((item) => neoSchemaPlaceholders(item));
+  if (node && typeof node === "object") {
+    return Object.fromEntries(Object.entries(node).map(([name, item]) => [name, neoSchemaPlaceholders(item, name)]));
+  }
+  return typeof node === "string" && !NEO_SCHEMA_LABEL_KEYS.test(key) ? `<${node}>` : node;
+}
+
+function collectSchemaExamples(node, out, key = "") {
+  if (Array.isArray(node)) node.forEach((item) => collectSchemaExamples(item, out));
+  else if (node && typeof node === "object") Object.entries(node).forEach(([name, item]) => collectSchemaExamples(item, out, name));
+  else if (typeof node === "string" && !NEO_SCHEMA_LABEL_KEYS.test(key) && node.trim()) out.add(node.trim());
+  return out;
+}
+
+let neoSchemaExampleIndex = null;
+function neoSchemaExamplesFor(sectionId) {
+  if (!neoSchemaExampleIndex) {
+    neoSchemaExampleIndex = new Map();
+    for (const entry of [...NEO_INITIAL_SECTIONS, ...Object.values(NEO_COMPAT_SECTIONS_BY_METHOD).flat(), ...NEO_REFINED_SECTIONS]) {
+      const examples = neoSchemaExampleIndex.get(entry.id) || new Set();
+      neoSchemaExampleIndex.set(entry.id, collectSchemaExamples(entry.schema, examples));
+    }
+  }
+  return neoSchemaExampleIndex.get(sectionId) || new Set();
+}
+
+function stripSchemaEcho(value, examples, key = "") {
+  if (typeof value === "string") {
+    if (NEO_SCHEMA_LABEL_KEYS.test(key)) return value;
+    const text = value.trim();
+    return examples.has(text) || examples.has(text.replace(/^<\s*|\s*>$/g, "")) ? "" : value;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => stripSchemaEcho(item, examples)).filter((item) => item !== "");
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([name, item]) => [name, stripSchemaEcho(item, examples, name)]));
+  }
+  return value;
+}
+
+/**
+ * 챕터 본문이 반말(해라체)에서 존댓말로 미끄러졌는지 결정적으로 판정한다.
+ * ㅂ받침 + 니다/니까(합니다·했습니까), ~요(필요·중요 같은 명사 제외), ~십시오, '당신'을 존댓말 문장으로 센다.
+ * 인용·대사 몇 줄은 허용하도록 3문장 이상이면서 20%를 넘을 때만 참이다.
+ */
+const NEO_YO_NOUNS = /(필요|중요|주요|개요|강요|수요|요요)$/;
+export function neoRegisterDrift(text) {
+  const sentences = String(text || "").split(/(?<=[.!?。])\s+|\n+/).map((line) => line.trim()).filter(Boolean);
+  if (!sentences.length) return false;
+  const formal = sentences.filter((sentence) => {
+    if (/십시오|당신/.test(sentence)) return true;
+    const body = sentence.replace(/[\s.!?。"'”’)\]…~]+$/u, "");
+    if (/(니다|니까)$/.test(body)) {
+      const code = body.charCodeAt(body.length - 3) - 0xac00;
+      return code >= 0 && code < 11172 && code % 28 === 17;
+    }
+    return /요$/.test(body) && !NEO_YO_NOUNS.test(body);
+  }).length;
+  return formal >= 3 && formal / sentences.length > 0.2;
+}
+
 // 챕터 공통 마무리(분량·JSON 지시).
 function neoSectionClosingLines(section) {
   return [
@@ -828,7 +904,8 @@ function neoSectionClosingLines(section) {
     `범위: ${section.scope}`,
     "",
     "[반환 JSON 스키마]",
-    JSON.stringify(section.schema),
+    JSON.stringify(neoSchemaPlaceholders(section.schema)),
+    "<…> 안의 글은 그 자리에 무엇을 쓸지 알려 주는 안내일 뿐이다. 안내 문구를 그대로 옮기지 말고 실제 상담 문장으로 채운다.",
     "",
     ...safeArray(section.rules),
     `분량: 이 챕터의 제목·공백을 제외한 본문이 ${Math.ceil(section.minChars / 0.8)}~${Math.ceil(section.minChars * 1.5)}자가 되도록 충분히 전개한다. 얕게 끝내지 말고 근거→해석→구체적 장면→실행 조언 순으로 두텁게 쓴다.`,
@@ -846,7 +923,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     id: "opening",
     basisGroups: ["core", "timing"],
     title: "작전 개시 — 네오의 첫 진단",
-    minChars: 1150,
+    minChars: 1500,
     scope: "사용자의 질문을 첫 두 문장에서 직접 짚고, 현재 운명의 전선(핵심 국면)을 근거와 조건을 붙여 판단한다.",
     schema: { operationTitle: "작전명", neoOpening: "네오의 첫 판단(질문 직격)", frontlineSummary: "현재 운명의 전선 요약" },
     rules: [
@@ -858,7 +935,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     id: "innateCore",
     basisGroups: ["core"],
     title: "병력 판독 Ⅰ — 타고난 성향의 핵",
-    minChars: 1650,
+    minChars: 2150,
     scope: "타고난 구조상 이 사람의 자아·중심·기본 동기가 무엇인지 전문가답게 깊이 진단한다. 신뢰를 쌓는 챕터다.",
     schema: { innateNature: { title: "타고난 성향의 핵", description: "중심 구조·자아·기본 동기 심층 해석", keyTraits: ["핵심 기질1", "핵심 기질2", "핵심 기질3"] } },
     counts: { "innateNature.keyTraits": 3 },
@@ -872,7 +949,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     id: "innateStrength",
     basisGroups: ["core", "strength"],
     title: "병력 판독 Ⅱ — 타고난 강점과 약점",
-    minChars: 1550,
+    minChars: 2000,
     scope: "타고난 구조에서 강한 기운과 약한 기운을 나눠, 어디를 밀고 어디를 지켜야 하는지 판단한다.",
     schema: { innateStrength: { title: "타고난 강점과 약점", description: "강한 기운/약한 기운 심층 해석", strongPoints: ["강점1", "강점2"], weakPoints: ["약점1", "약점2"] } },
     counts: { "innateStrength.strongPoints": 2, "innateStrength.weakPoints": 2 },
@@ -887,7 +964,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     id: "topicStyle",
     basisGroups: ["core", "topic"],
     title: "주제 맞춤 판독 — 이 영역에서 너의 방식",
-    minChars: 1800,
+    minChars: 2350,
     scope: "[상담 맥락]의 topic 주제에서 이 사람의 타고난 방식·성향을 술수 근거로 진단한다. 예: 돈이면 돈을 버는 방식, 연애면 연애 성향, 직업이면 일하는 방식, 인간관계면 사람을 대하는 방식.",
     schema: { topicStyle: { title: "이 주제에서 너의 방식", description: "주제에 대한 타고난 성향·방식 심층 해석", keyPoints: ["핵심1", "핵심2", "핵심3"] } },
     counts: { "topicStyle.keyPoints": 3 },
@@ -902,7 +979,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     id: "topicAreaBreakdown",
     basisGroups: ["topic", "strength"],
     title: "주제 영역별 심층 — 자리마다 다른 결",
-    minChars: 2000,
+    minChars: 2600,
     scope: "[상담 맥락]의 topic과 직접 연결되는 각 영역을 하나씩 나눠 분석한다. 자미두수=관련 궁들(예: 돈이면 재백궁·관록궁·전택궁), 사주=관련 십성/자리, 베다·점성술=관련 하우스/행성. 각 자리가 이 주제에 대해 어떻게 말하는지 전문가답게 풀어낸다.",
     schema: { topicAreas: [{ area: "영역(궁/자리/하우스) 이름", reading: "그 영역이 이 주제에 대해 말하는 것(구체 계산 근거 포함)" }] },
     counts: { topicAreas: 3 },
@@ -916,7 +993,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     id: "topicTiming",
     basisGroups: ["timing"],
     title: "주제 시기 흐름 — 언제 열리고 닫히는가",
-    minChars: 1400,
+    minChars: 1800,
     scope: "[상담 맥락]의 topic에 대해 대운/세운/유년/다샤/트랜짓 등 시기 데이터로 언제가 열리고 닫히는지 판단한다.",
     schema: { topicTiming: { title: "이 주제의 시기 흐름", description: "주제 관련 시기 해석", windows: ["열리는/닫히는 시기 포인트1", "포인트2"] } },
     counts: { "topicTiming.windows": 1 },
@@ -930,7 +1007,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     id: "originalStrategy",
     basisGroups: ["core", "strength"],
     title: "본래 무기 체계 — 이렇게 움직여야 한다",
-    minChars: 1400,
+    minChars: 1800,
     scope: "타고난 구조상 이 사람이 힘이 나는 본래의 방식과, 지켜야 할 핵심 규칙을 제시한다.",
     schema: { originalStrategy: { title: "본래 너는 이렇게 움직여야 한다", description: "타고난 구조상 힘이 나는 방식", keyRules: ["규칙1", "규칙2", "규칙3"] } },
     counts: { "originalStrategy.keyRules": 3 },
@@ -940,16 +1017,16 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     id: "repeatedChoice",
     basisGroups: ["core", "strength"],
     title: "반복되는 패전 — 되풀이하는 선택",
-    minChars: 1300,
+    minChars: 1700,
     scope: "사용자가 반복하기 쉬운 선택 방식과 그 뿌리를 계산 근거로 짚는다.",
     schema: { repeatedChoice: { title: "반복되는 선택", description: "사용자가 반복하기 쉬운 선택 방식과 그 뿌리" } },
     rules: ["반복 패턴의 방아쇠를 계산값(사주 합충/자미 살성·화기/베다 라후·케투/점성 하드 애스펙트 등)으로 특정한다."],
   },
   {
     id: "misalignedFlow",
-    basisGroups: ["core", "strength"],
+    basisGroups: ["core", "strength", "timing"],
     title: "어긋난 전선 — 지금 흐름이 밀리는 자리",
-    minChars: 1300,
+    minChars: 1700,
     scope: "타고난 방식과 현재 삶이 어긋난 지점을 진단한다.",
     schema: { misalignedFlow: { title: "지금 흐름이 어긋난 자리", description: "본래 방식과 현재 삶의 간극" } },
     rules: ["본래 무기 체계와 현재 반복 선택의 간극을 대비해 어긋난 자리를 근거와 조건을 붙여 판단한다."],
@@ -958,7 +1035,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     id: "methodEvidence",
     basisGroups: "*",
     title: "정찰 보고 — 술수 근거",
-    minChars: 1650,
+    minChars: 2150,
     scope: "선택한 술수의 실제 계산 근거를 전문가 시선으로 1~4개 항목으로 정리한다.",
     schema: { methodEvidence: [{ label: "근거 제목", summary: "계산 요약에서 확인되는 구체 근거" }] },
     counts: { methodEvidence: 1 },
@@ -969,9 +1046,9 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   },
   {
     id: "bluntTruth",
-    basisGroups: ["core", "strength"],
+    basisGroups: ["core", "strength", "timing"],
     title: "급소 타격 — 네오의 팩폭",
-    minChars: 1300,
+    minChars: 1700,
     scope: "계산값과 연결된 반복 패턴의 손실을 직설적으로 짚고, 같은 성향을 강점으로 활용할 조건과 첫 행동을 제시한다.",
     schema: { bluntTruth: "네오의 팩폭" },
     rules: [
@@ -981,9 +1058,9 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   },
   {
     id: "todayOrders",
-    basisGroups: ["core", "strength"],
+    basisGroups: ["core", "strength", "timing"],
     title: "즉시 작전 — 오늘 금지 행동과 바로 할 작전",
-    minChars: 1150,
+    minChars: 1500,
     scope: "오늘 당장 금지할 행동 하나와, 바로 실행할 작전 3개를 준다.",
     schema: { forbiddenAction: { title: "오늘 금지 행동", reason: "왜 금지해야 하는지" }, actionOrders: ["바로 해야 할 작전 1", "바로 해야 할 작전 2", "바로 해야 할 작전 3"] },
     counts: { actionOrders: 3 },
@@ -991,9 +1068,9 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   },
   {
     id: "sevenDayMission",
-    basisGroups: ["core", "strength"],
+    basisGroups: ["core", "strength", "timing"],
     title: "7일 전투 계획",
-    minChars: 1650,
+    minChars: 2150,
     scope: "1일차부터 7일차까지 하루 단위 작전을 설계한다.",
     schema: { sevenDayMission: [{ day: 1, mission: "1일차 작전" }] },
     counts: { sevenDayMission: 7 },
@@ -1003,7 +1080,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     id: "meta",
     basisGroups: [],
     title: "전황 점검 + 사자 휘장",
-    minChars: 750,
+    minChars: 1000,
     scope: "2차 수정 작전으로 이어질 현실 점검 질문과 오늘의 사자 휘장, 츤데레 마무리를 준다.",
     counts: { realityCheckQuestions: 2 },
     schema: {
@@ -1104,7 +1181,7 @@ const buildNeoCompatSectionOverrides = (focus) => Object.freeze({
     id: "compatMutualRead",
     basisGroups: ["compat", "core"],
     title: "상호 판독 — 서로를 어떻게 느끼는가",
-    minChars: 1900,
+    minChars: 2450,
     scope: `두 ${focus.chartWord}을 교차해, 상대가 이 사람을 어떻게 느낄 수 있는지와 이 사람이 상대를 어떻게 느끼는지를 양방향으로 진단한다. 매력·기대·불안·답답함을 함께 다룬다.`,
     schema: {
       mutualRead: {
@@ -1125,7 +1202,7 @@ const buildNeoCompatSectionOverrides = (focus) => Object.freeze({
     id: "compatPalaceCross",
     basisGroups: ["compat", "topic"],
     title: focus.crossTitle,
-    minChars: 2000,
+    minChars: 2600,
     scope: focus.crossScope,
     schema: { palaceCross: [{ palace: focus.crossAreaLabel, reading: "그 자리에서 두 사람이 맞물리거나 부딪히는 방식(계산 근거 포함)" }] },
     counts: { palaceCross: 4 },
@@ -1141,7 +1218,7 @@ const buildNeoCompatSectionOverrides = (focus) => Object.freeze({
     id: "compatConflictPattern",
     basisGroups: ["compat", "core"],
     title: "최악의 교전 패턴 — 이렇게 싸운다",
-    minChars: 1500,
+    minChars: 1950,
     scope: "이 두 사람이 실제로 어떻게 싸우게 되는지를 방아쇠부터 확대 과정까지 재구성하고, 실제로 오갈 법한 대화를 짧게 만든 뒤 푸는 순서를 준다.",
     schema: {
       conflictPattern: {
@@ -1164,7 +1241,7 @@ const buildNeoCompatSectionOverrides = (focus) => Object.freeze({
     id: "compatRelationStrategy",
     basisGroups: ["compat", "timing"],
     title: "관계 작전 — 지금 상태에서 무엇을 하는가",
-    minChars: 1500,
+    minChars: 1950,
     scope: `[상담 맥락]의 관계 상태에 맞춰, 지금 이 사람이 밟아야 할 단계를 순서대로 준다. 감성적 위로가 아니라 ${focus.chartWord} 성향에 맞춘 개인화된 행동 지침이어야 한다.`,
     schema: {
       relationStrategy: {
@@ -1242,7 +1319,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     id: "neoReview",
     basisGroups: ["core"],
     title: "전황 재판단",
-    minChars: 1000,
+    minChars: 1300,
     scope: "사용자의 현실 점검 답변(체크·자유 입력)을 첫 문단에서 직접 반영해 재판단을 시작한다.",
     schema: { operationTitle: "수정 작전명", neoReview: "네오의 재판단(현실 점검 답변 직접 반영)" },
     rules: [
@@ -1254,7 +1331,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     id: "verdict",
     basisGroups: ["core", "timing"],
     title: "판정 — 지금 방향이 맞는가",
-    minChars: 900,
+    minChars: 1150,
     scope: "현재 방향이 맞는지 조건을 붙여 판단하고, 그 판정의 계산 근거를 댄다.",
     schema: { verdict: { status: "잘하고 있다 | 조정이 필요하다 | 방향은 맞지만 부족하다 중 하나", statement: "현재 방향에 대한 조건부 판단(2~4문장)" }, verdictBasis: "판정 근거(계산 요약의 구체 값 최소 1개 인용)" },
     rules: [
@@ -1266,7 +1343,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     id: "actionAlternatives",
     basisGroups: ["timing", "strength"],
     title: "전선 조정 — 대안 행동",
-    minChars: 1400,
+    minChars: 1800,
     scope: "시기·행동·근거가 붙은 구체 대안 행동 3~5개를 준다.",
     schema: { actionAlternatives: [{ timing: "언제부터 언제까지(구체 시기)", action: "무엇을 어떻게(구체 행동)", rationale: "왜 지금 이 행동이 흐름에 맞는지(계산 근거 연결)" }] },
     counts: { actionAlternatives: 3 },
@@ -1279,7 +1356,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     id: "peopleToMeet",
     basisGroups: ["core", "strength"],
     title: "지원군 확보 — 만나야 할 사람",
-    minChars: 1000,
+    minChars: 1300,
     scope: "사용자에게 부족한 기운을 보완할 사람의 역할과 만날 경로를 구체화한다.",
     schema: { peopleToMeet: [{ role: "만나야 할 사람의 역할/직업/경험", complementaryEnergy: "사용자에게 부족한 기운을 어떻게 보완하는지", whereToFind: "어디서 만날 가능성이 높은지(커뮤니티/모임/소개 경로)" }] },
     counts: { peopleToMeet: 2 },
@@ -1289,7 +1366,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     id: "thirtyDayWeek12",
     basisGroups: ["timing", "strength"],
     title: "30일 장기 작전 Ⅰ — 1·2주차",
-    minChars: 1200,
+    minChars: 1550,
     scope: "30일 전략의 1주차·2주차를, 주차별 목표·근거·구체 행동으로 두텁게 설계한다.",
     schema: { thirtyDayWeek12: ["1주차: 목표·근거·구체 행동", "2주차: 목표·근거·구체 행동"] },
     counts: { thirtyDayWeek12: 2 },
@@ -1299,7 +1376,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     id: "thirtyDayWeek34",
     basisGroups: ["timing", "strength"],
     title: "30일 장기 작전 Ⅱ — 3·4주차",
-    minChars: 1200,
+    minChars: 1550,
     scope: "30일 전략의 3주차·4주차를, 주차별 목표·근거·구체 행동으로 두텁게 설계한다.",
     schema: { thirtyDayWeek34: ["3주차: 목표·근거·구체 행동", "4주차: 목표·근거·구체 행동"] },
     counts: { thirtyDayWeek34: 2 },
@@ -1309,7 +1386,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     id: "thisWeekFirstStep",
     basisGroups: ["core", "timing"],
     title: "이번 주 첫 진격",
-    minChars: 800,
+    minChars: 1050,
     scope: "이번 주 안에 실행 가능한 가장 작은 첫 걸음 하나와 오늘 금지 행동을 준다.",
     schema: { thisWeekFirstStep: "이번 주 안에 실행 가능한 가장 작은 첫 걸음 하나", forbiddenAction: { title: "오늘 금지 행동", reason: "금지 이유" } },
     rules: ["thisWeekFirstStep은 가장 작은 한 걸음 하나만. 거창한 계획 금지."],
@@ -1318,7 +1395,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     id: "meta",
     basisGroups: [],
     title: "승전 휘장",
-    minChars: 500,
+    minChars: 700,
     scope: "오늘의 사자 휘장과 츤데레 마무리를 준다.",
     schema: { badge: { name: "휘장 이름", description: "휘장 설명" }, tsundereClosing: "네오의 마지막 한마디" },
     rules: ["badge.name은 오늘의 사자 휘장 이름처럼 짧고 상징적으로 쓴다."],
@@ -1442,7 +1519,7 @@ function neoKeyLabelMap(methodSummary) {
 function sectionMap(results) {
   const map = {};
   safeArray(results).forEach((entry) => {
-    if (entry && entry.id) map[entry.id] = firstObject(entry.parsed);
+    if (entry && entry.id) map[entry.id] = stripSchemaEcho(firstObject(entry.parsed), neoSchemaExamplesFor(entry.id));
   });
   return map;
 }
@@ -1568,8 +1645,8 @@ export function mergeNeoInitialSections(results, input, methodSummary) {
     methodEvidence: safeArray(firstObject(map.methodEvidence).methodEvidence).map((item) => ({
       method: clean(firstObject(item).method || selectedMethod, 30),
       label: clean(firstObject(item).label, 160),
-      // 규칙이 1~4개를 허용하므로 1개만 왔을 때 이 항목 하나가 챕터 1650자를 혼자 져야 한다.
-      summary: cleanProse(firstObject(item).summary, 3000),
+      // 규칙이 1~4개를 허용하므로 1개만 왔을 때 이 항목 하나가 챕터 2150자를 혼자 져야 한다.
+      summary: cleanProse(firstObject(item).summary, 3600),
     })).filter((item) => item.summary).slice(0, 4),
     bluntTruth: cleanProse(firstObject(map.bluntTruth).bluntTruth, 3000),
     forbiddenAction: {
@@ -1619,7 +1696,7 @@ export function mergeNeoRefinedSections(results, consultation) {
   const thirtyDayStrategy = dedupeTextList([
     ...safeArray(firstObject(map.thirtyDayWeek12).thirtyDayWeek12),
     ...safeArray(firstObject(map.thirtyDayWeek34).thirtyDayWeek34),
-  ].map((item) => cleanProse(item, 1100)).filter(Boolean)).slice(0, 6);
+  ].map((item) => cleanProse(item, 1300)).filter(Boolean)).slice(0, 6);
   return scrubNeoResult({
     version: 2,
     documentType: "refined_order",

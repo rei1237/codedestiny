@@ -5,15 +5,15 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 const path = "/insights/sukuyo";
 const INSIGHTS_SUKUYO_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "숙요점 인사이트 허브 · 27숙·궁합 해석 가이드 | Code Destiny",
+    title: "숙요점 인사이트 허브 · 27숙·궁합 해석 가이드 | 꿀꿀 운세",
     description: "숙요점, 숙요점 궁합, 27숙, 본명숙, 영친관계·업태관계·안괴관계를 집중 해설한 숙요점 전용 허브입니다.",
     keywords: ["숙요점 뜻", "숙요점 용어", "영친관계", "업태관계", "안괴관계"],
-    breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "숙요점 인사이트"],
+    breadcrumbs: ["꿀꿀운세 홈", "운세 인사이트", "숙요점 인사이트"],
     archiveTitle: "숙요점 인사이트 허브",
     intro: "숙요점은 본명숙과 두 숙 사이의 거리를 관계의 대화·경계 질문으로 풀어보는 체계입니다. Code Destiny는 출생 순간의 라히리 항성 달 황경을 27등분해 계산합니다. 전통 음력 날짜표와 결과가 다를 수 있으며, 상대의 마음이나 관계의 미래를 확정하지 않습니다.",
   },
   en: {
-    title: "Sukuyo Insights Hub · 27 Mansions and Compatibility Guide | Code Destiny",
+    title: "Sukuyo Insights Hub · 27 Mansions and Compatibility Guide | 꿀꿀 운세",
     description: "A dedicated Sukuyo hub focused on 27 mansions, natal mansion, and relationship patterns such as Ei-Shin, Gyotai, and Ankair.",
     keywords: ["Sukuyo", "Sukuyo compatibility", "27 mansions", "natal mansion", "Ei-Shin", "Gyotai", "Ankair"],
     breadcrumbs: ["Home", "Fortune Insights", "Sukuyo Insights"],
@@ -21,7 +21,7 @@ const INSIGHTS_SUKUYO_PAGE_TEXT_TRANSLATIONS = {
     intro: "A Sukuyo hub for 27-mansion relationship analysis, compatibility, natal mansions, and monthly mansions through practical examples.",
   },
   ja: {
-    title: "宿曜インサイトハブ · 二十七宿・相性解釈ガイド | Code Destiny",
+    title: "宿曜インサイトハブ · 二十七宿・相性解釈ガイド | 꿀꿀 운세",
     description: "宿曜、宿曜相性、二十七宿、本命宿、栄親・業胎・安壊関係を集中的に解説する宿曜専用ハブです。",
     keywords: ["宿曜", "宿曜 相性", "二十七宿", "本命宿", "栄親関係", "業胎関係", "安壊関係"],
     breadcrumbs: ["ホーム", "運勢インサイト", "宿曜インサイト"],

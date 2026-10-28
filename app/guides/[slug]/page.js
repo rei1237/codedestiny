@@ -13,7 +13,7 @@ export const dynamicParams = false;
 
 const HIGH_VALUE_DETAIL_TEXT_TRANSLATIONS = {
   ko: {
-    notFoundTitle: "문서를 찾을 수 없습니다 | Code Destiny",
+    notFoundTitle: "문서를 찾을 수 없습니다 | 꿀꿀 운세",
     home: "홈",
     guide: "운세 인사이트 가이드",
     dateLine: (publishedAt, updatedAt, author) => `작성일 ${publishedAt} · 최종 수정일 ${updatedAt} · ${author}`,
@@ -27,7 +27,7 @@ const HIGH_VALUE_DETAIL_TEXT_TRANSLATIONS = {
     nextReads: "다음에 읽을 글",
   },
   en: {
-    notFoundTitle: "Document not found | Code Destiny",
+    notFoundTitle: "Document not found | 꿀꿀 운세",
     home: "Home",
     guide: "Fortune Insight Guide",
     dateLine: (publishedAt, updatedAt, author) => `Published ${publishedAt} · Updated ${updatedAt} · ${author}`,
@@ -41,7 +41,7 @@ const HIGH_VALUE_DETAIL_TEXT_TRANSLATIONS = {
     nextReads: "Read Next",
   },
   ja: {
-    notFoundTitle: "文書が見つかりません | Code Destiny",
+    notFoundTitle: "文書が見つかりません | 꿀꿀 운세",
     home: "ホーム",
     guide: "運勢インサイトガイド",
     dateLine: (publishedAt, updatedAt, author) => `公開日 ${publishedAt} · 最終更新日 ${updatedAt} · ${author}`,
@@ -75,7 +75,7 @@ export function generateMetadata({ params }) {
 
   return buildSeoMetadata({
     path: `/guides/${page.slug}`,
-    title: `${page.title} | Code Destiny`,
+    title: `${page.title} | 꿀꿀 운세`,
     description: page.summary,
     ogImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85",
     keywords: page.keywords || [page.title, page.category, highValueDetailText("insightKeyword")],

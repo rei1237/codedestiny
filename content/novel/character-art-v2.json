@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "generator": "OpenAI built-in image generation",
+  "mode": "new transparent raster generation with canonical reference images",
+  "common": {
+    "format": "individual WebP with alpha",
+    "minimumLongEdge": 1300,
+    "style": "soft premium 2D storybook anime chibi with watercolor-like shading",
+    "constraints": ["single character", "full body", "transparent background", "no text", "no watermark", "no sprite sheet"]
+  },
+  "characters": {
+    "yeoni": {
+      "invariants": ["round pastel-pink flower pig", "large pink lotus above left ear", "lavender ribbon", "warm brown eyes", "short hooves", "curled tail"],
+      "prompt": "Create the same extra-cute and lovable canonical flower-pig heroine Yeoni with fixed lotus, ribbon, face, proportions and colors; vary only the requested expression or action.",
+      "files": {
+        "neutral": "neutral.webp", "soft-smile": "soft-smile.webp", "talk": "talk.webp", "laugh": "laugh.webp", "shy": "shy.webp",
+        "surprise": "surprise.webp", "flustered": "flustered.webp", "fear": "fear.webp", "sad": "sad.webp", "cry": "cry.webp",
+        "angry": "angry.webp", "determined": "determined.webp", "think": "think.webp", "wave": "wave.webp", "cheer": "cheer.webp",
+        "run": "run.webp", "vine-magic": "vine-magic.webp", "hug": "hug.webp", "sleep": "sleep.webp", "wedding": "wedding.webp"
+      }
+    },
+    "moka": {
+      "invariants": ["small cocoa-brown river otter", "round ears", "cream muzzle", "whiskers", "webbed paws", "long tapered tail", "purple beret and street jacket", "cream apron", "headphones", "handheld microphone"],
+      "prompt": "Create the same lovable otter rapper-chef Moka; keep unmistakable otter anatomy and fixed streetwear, apron, headphones and microphone while varying only the requested action.",
+      "files": {
+        "neutral": "neutral.webp", "talk": "talk.webp", "rap": "rap.webp", "angry": "angry.webp", "moved": "moved.webp", "laugh": "laugh.webp",
+        "cook": "cook.webp", "performance": "performance.webp", "pot-beat": "pot-beat.webp", "fire-attack": "fire-attack.webp",
+        "swim-rescue": "swim-rescue.webp", "wedding-rap": "wedding-rap.webp"
+      }
+    }
+  }
+}

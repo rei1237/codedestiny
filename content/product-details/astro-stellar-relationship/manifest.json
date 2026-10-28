@@ -1,0 +1,80 @@
+{
+  "id": "astro-stellar-relationship",
+  "featureKey": "astro_stellar_relationship_room",
+  "title": "봉인된 별의 방 · 관계의 문",
+  "notice": "본인의 출생차트로 애정 언어·끌림·관계 패턴과 생활 약속을 읽는 개별 해금 항목입니다. 금성·화성·7하우스·7하우스 룰러를 사용합니다. 아홉 문단의 해석과 관계 포인트를 제공하며, 시너스트리에서 살펴볼 기준도 설명합니다. 상대 정보로 계산한 실제 두 사람 궁합이나 속마음 결과가 포함된다는 뜻은 아닙니다. 출생시간·지역이 하우스 해석에 영향을 줍니다. 예시는 가상 편집이며 기존 가격·해금 정책을 따릅니다.",
+  "panels": [
+    {
+      "id": "01-a-place-for-love",
+      "title": "좋아하는 마음이, 함께하는 생활이 되려면.",
+      "alt": "좋아하는 마음이, 함께하는 생활이 되려면.",
+      "src": "/feature-details/crafted/astro-stellar-relationship/01-a-place-for-love.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "좋아하는 마음이,\n함께하는 생활이 되려면.\n\n끌리는 순간과 편안히 머무는 조건을\n내 출생차트에서 따로 살펴보세요.\n\n봉인된 별의 방 · 관계의 문"
+    },
+    {
+      "id": "02-affection-and-daily-life",
+      "title": "설렘은 분명한데, 약속에서는 어긋난다면.",
+      "alt": "설렘은 분명한데, 약속에서는 어긋난다면.",
+      "src": "/feature-details/crafted/astro-stellar-relationship/02-affection-and-daily-life.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "설렘은 분명한데,\n약속에서는 어긋난다면.\n끌리는 순간\n\n어떤 태도에 마음이 열리는가\n\n갈등이 생길 때\n\n원하는 것을 어떻게 표현하는가\n\n함께 보내는 하루\n\n어떤 약속이 편안함을 만드는가\n\n좋아함의 크기만으로 설명되지 않는\n관계의 조건을 나눠서 읽어요.\n\n질문을 돕기 위한 가상 상황입니다."
+    },
+    {
+      "id": "03-venus-and-mars",
+      "title": "마음을 여는 말과, 움직이게 하는 힘.",
+      "alt": "마음을 여는 말과, 움직이게 하는 힘.",
+      "src": "/feature-details/crafted/astro-stellar-relationship/03-venus-and-mars.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "마음을 여는 말과,\n움직이게 하는 힘.\n금성 · 애정의 언어\n\n편안한 분위기와 취향,\n호감을 느끼는 방식을 살펴요.\n\n화성 · 끌림과 갈등\n\n다가가는 속도와\n욕구를 표현하는 방식을 읽어요.\n\n내 성향을 읽는 글이에요.\n특정 상대의 마음을 확정하지 않아요."
+    },
+    {
+      "id": "04-the-seventh-house",
+      "title": "반복되는 상대상에서, 생활의 약속으로.",
+      "alt": "반복되는 상대상에서, 생활의 약속으로.",
+      "src": "/feature-details/crafted/astro-stellar-relationship/04-the-seventh-house.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "반복되는 상대상에서,\n생활의 약속으로.\n7하우스 · 관계의 거울\n\n어떤 관계에서 끌리고 부딪히는지\n반복되는 패턴을 살펴요.\n\n7하우스 룰러 · 생활의 자리\n\n관계가 실제 생활에서\n어느 영역으로 이어지는지 읽어요.\n\n룰러는 해당 영역을 대표하는 행성이에요.\n출생시간·지역을 확인해야 정밀하게 읽어요."
+    },
+    {
+      "id": "05-nine-paragraphs",
+      "title": "문을 여는 순간부터, 오래 머무는 태도까지.",
+      "alt": "문을 여는 순간부터, 오래 머무는 태도까지.",
+      "src": "/feature-details/crafted/astro-stellar-relationship/05-nine-paragraphs.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "문을 여는 순간부터,\n오래 머무는 태도까지.\n해석 1–3 · 감정의 시작\n\n첫 문장 · 금성의 애정 언어\n화성의 끌림과 갈등\n\n해석 4–6 · 관계의 구조\n\n7하우스의 상대상 · 룰러의 생활화\n궁합에서 먼저 볼 것\n\n해석 7–9 · 조율의 방향\n\n잘 맞는 상대의 분위기\n어긋나는 패턴 · 종합 처방\n\n본문의 아홉 문단을 묶어 안내한 목차예요."
+    },
+    {
+      "id": "06-a-guide-not-a-pair-chart",
+      "title": "궁합을 읽는 기준과, 실제 두 사람 계산은 달라요.",
+      "alt": "궁합을 읽는 기준과, 실제 두 사람 계산은 달라요.",
+      "src": "/feature-details/crafted/astro-stellar-relationship/06-a-guide-not-a-pair-chart.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "궁합을 읽는 기준과,\n실제 두 사람 계산은 달라요.\n이 방에서 읽는 것\n\n내 애정 언어와 관계 패턴,\n시너스트리에서 살펴볼 기준\n\n별도로 필요한 것\n\n특정 상대와의 실제 차트 비교는\n상대 정보와 해당 궁합 기능이 필요해요.\n\n상대의 태양·달·금성·화성을 보는 설명이\n두 사람 궁합 결과를 제공한다는 뜻은 아니에요."
+    },
+    {
+      "id": "07-fictional-small-promise",
+      "title": "원하는 태도 하나와, 지킬 태도 하나를.",
+      "alt": "원하는 태도 하나와, 지킬 태도 하나를.",
+      "src": "/feature-details/crafted/astro-stellar-relationship/07-fictional-small-promise.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "원하는 태도 하나와,\n지킬 태도 하나를.\n\n가상 편집 예시 · 실제 개인 결과가 아닙니다\n\n“연락이 늦으면 서운하다는 말 뒤에,\n어떤 약속이 필요한지 덧붙여보세요.\n상대에게 바라는 것 하나와\n내가 지킬 수 있는 것 하나를 나눠 말해요.\n마음을 알아맞히길 기다리는 대신,\n함께 조율할 자리를 만드는 거예요.”"
+    },
+    {
+      "id": "08-keep-the-door-open",
+      "title": "사랑의 답보다, 함께 맞출 조건을 남겨요.",
+      "alt": "사랑의 답보다, 함께 맞출 조건을 남겨요.",
+      "src": "/feature-details/crafted/astro-stellar-relationship/08-keep-the-door-open.webp",
+      "width": 1080,
+      "height": 1440,
+      "text": "사랑의 답보다,\n함께 맞출 조건을 남겨요.\n\n현재의 관계 경험을 떠올리며\n내 차트의 설명과 비교해보세요.\n\n개인의 관계 리딩이며 실제 궁합은 별도예요.\n기본 패키지·다른 별의 방과도 구분됩니다.\n현재 화면의 개별 해금 조건을 따릅니다."
+    }
+  ]
+}

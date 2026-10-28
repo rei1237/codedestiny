@@ -1,4 +1,5 @@
 "use client";
+import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 /**
@@ -6,13 +7,14 @@ import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
  * DirectionField.timeline(이미 계산된 결정론 데이터) 읽기 전용. 회당 결제(심화 3프리뷰 중 1). 추가 계산 없음.
  * 결제 게이트: 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등) → 통과 후에만 시점 지도 노출.
  */
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import type { PaidResumeArgs, PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
 import { Starfield } from "./Starfield";
 import { PigFace } from "./PigFace";
 import { redirectToLoginOnAuthRequired, makeGateRequestId } from "./paidGate";
 import { useDestinyCompassCopy } from "../_lib/copy";
+import { saveCompassArchive } from "../_lib/archive";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import styles from "./map.module.css";
@@ -36,6 +38,7 @@ export function FutureSim({
   onBack,
   buildResume,
   autoRevealed = false,
+  resumeRequestId = "",
 }: {
   field: DirectionField;
   onBack: () => void;
@@ -43,23 +46,30 @@ export function FutureSim({
   buildResume?: (args?: PaidResumeArgs) => PaidResumeDescriptor;
   /** 결제 복귀로 이 화면이 열렸으면 처음부터 공개 상태다(결제는 이미 끝났다). */
   autoRevealed?: boolean;
+  /** 결제 복귀면 그 결제의 requestId — 보관함 저장 증빙이다. */
+  resumeRequestId?: string;
 }) {
   const copy = useDestinyCompassCopy();
   const priceLabel = formatKrwFromCoins(lookupServerCoinPrice("destiny-compass-future-sim")!, detectLocale());
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [revealed, setRevealed] = useState(autoRevealed);
   const [error, setError] = useState<string | null>(null);
+  // 결제가 끝나 아직 보관함에 보내지 않은 결제. 공개되면 한 번 보내고 비운다.
+  const paidRef = useRef<{ requestId: string; accessMethod?: string } | null>(
+    autoRevealed && resumeRequestId ? { requestId: resumeRequestId } : null,
+  );
 
   // 결제 게이트: 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등) → 통과 후에만 콘텐츠 노출.
   const reveal = useCallback(async () => {
     if (isPaying) return;
     setError(null);
+    const requestId = makeGateRequestId("destiny-compass-future-sim");
     const r = await ensurePaidAccess({
       featureKey: "destiny-compass-future-sim",
       coinPrice: lookupServerCoinPrice("destiny-compass-future-sim")!,
       amountKRW: lookupServerCoinPrice("destiny-compass-future-sim")! * 100,
       reason: copy.futureSimGateReason,
-      requestId: makeGateRequestId("destiny-compass-future-sim"),
+      requestId,
       resume: buildResume?.(),
     });
     if (!r.ok) {
@@ -72,21 +82,38 @@ export function FutureSim({
       }
       return;
     }
+    paidRef.current = { requestId, ...(r.code === "PASS_FREE" ? { accessMethod: "pass" } : {}) };
     setRevealed(true);
   }, [isPaying, ensurePaidAccess, copy, buildResume]);
 
   // 현재(=대표 방향 기운) + 30/90/1년(timeline). 지도 경로 위 좌표(%)로 배치.
-  const nowM = field.primary.score;
-  const T = (k: TimelineKey) => field.timeline[k];
-  const stops: Stop[] = [
-    { key: "now", label: copy.futureSimStopLabel.now, x: 10, y: 72, momentum: nowM, weather: weatherOf(nowM) },
-    { key: "d30", label: copy.futureSimStopLabel.d30, x: 36, y: 52, momentum: T("d30").momentum, weather: T("d30").weather },
-    { key: "d90", label: copy.futureSimStopLabel.d90, x: 62, y: 60, momentum: T("d90").momentum, weather: T("d90").weather },
-    { key: "y1", label: copy.futureSimStopLabel.y1, x: 88, y: 30, momentum: T("y1").momentum, weather: T("y1").weather },
-  ];
+  const stops = useMemo<Stop[]>(() => {
+    const nowM = field.primary.score;
+    const T = (k: TimelineKey) => field.timeline[k];
+    return [
+      { key: "now", label: copy.futureSimStopLabel.now, x: 10, y: 72, momentum: nowM, weather: weatherOf(nowM) },
+      { key: "d30", label: copy.futureSimStopLabel.d30, x: 36, y: 52, momentum: T("d30").momentum, weather: T("d30").weather },
+      { key: "d90", label: copy.futureSimStopLabel.d90, x: 62, y: 60, momentum: T("d90").momentum, weather: T("d90").weather },
+      { key: "y1", label: copy.futureSimStopLabel.y1, x: 88, y: 30, momentum: T("y1").momentum, weather: T("y1").weather },
+    ];
+  }, [field, copy]);
   const [sel, setSel] = useState<string>("now");
   const active = stops.find((s) => s.key === sel) ?? stops[0];
   const w = copy.futureSimWeather[active.weather];
+
+  useEffect(() => {
+    const paid = paidRef.current;
+    if (!revealed || !paid) return;
+    paidRef.current = null;
+    saveCompassArchive("destiny-compass-future-sim", {
+      ...paid,
+      facts: Object.fromEntries(stops.map((s) => [s.key === "now" ? "score" : s.key, s.momentum])),
+      sections: stops.map((s) => ({
+        title: s.label,
+        body: `${copy.futureSimWeather[s.weather].label} · ${copy.cruiseIndexSuffix} ${s.momentum}\n${copy.futureSimWeather[s.weather].head}`,
+      })),
+    });
+  }, [revealed, stops, copy]);
 
   // 경로 폴리라인 좌표(viewBox 100×100)
   const poly = stops.map((s) => `${s.x},${s.y}`).join(" ");
@@ -100,6 +127,7 @@ export function FutureSim({
       </header>
 
       <div className={styles.resultBody}>
+        {!revealed && detectLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"0 auto 24px",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="destiny-compass-future-sim" summaryLabel="미래 시뮬레이션 상세 안내" /></div>}
         <div className={styles.resultSpeak}>
           <PigFace expression="talk" height={78} className={styles.speakPigDark} />
           <div className={styles.resultBubble}>

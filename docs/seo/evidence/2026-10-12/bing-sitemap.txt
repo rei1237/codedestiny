@@ -1,0 +1,144 @@
+- banner:
+  - link "Skip to main content":
+    - /url: "#content"
+  - button "Show Bing tools":
+    - generic: 
+  - img "white bwt logo microsoft bing webmaster"
+  - button "Copilot":
+  - button "Notifications":
+    - generic: 
+  - button "Help":
+    - generic: 
+  - button "Feedback":
+    - generic: 
+  - button "Settings":
+    - generic: 
+  - button "Profile":
+- button "Select website":
+  - generic: 
+  - generic: code-destiny.com/
+  - generic: 
+- navigation "Main menu":
+  - tree:
+    - treeitem "Home":
+      - generic: 
+      - text: Home
+    - treeitem "Search Performance":
+      - generic: 
+      - text: Search Performance
+    - treeitem "AI Performance BETA":
+      - generic: 
+      - text: AI Performance
+      - generic: BETA
+    - treeitem "URL Inspection":
+      - generic: 
+      - text: URL Inspection
+    - treeitem "Site Explorer":
+      - generic: 
+      - text: Site Explorer
+    - treeitem "Sitemaps" [active]:
+      - generic: 
+      - text: Sitemaps
+    - treeitem "IndexNow":
+      - text: IndexNow
+    - treeitem "Backlinks":
+      - generic: 
+      - text: Backlinks
+    - treeitem "Keyword Research":
+      - generic: 
+      - text: Keyword Research
+    - treeitem "Recommendations":
+      - generic: 
+      - text: Recommendations
+    - treeitem "Site Scan":
+      - generic: 
+      - text: Site Scan
+    - treeitem "Configuration":
+      - text: Configuration
+      - generic: 
+    - treeitem "Tools & Enhancements":
+      - text: Tools & Enhancements
+      - generic: 
+    - treeitem "Security & Privacy":
+      - text: Security & Privacy
+      - generic: 
+    - treeitem "User management":
+      - generic: 
+      - text: User management
+    - treeitem "Microsoft Clarity":
+      - generic: 
+      - text: Microsoft Clarity
+- main:
+  - heading "Sitemaps" [level=2]
+  - button "Submit sitemap":
+    - generic: Submit sitemap
+  - heading "Known sitemaps" [level=4]
+  - generic: "1"
+  - heading "Sitemaps with errors" [level=4]
+  - generic: "0"
+  - heading "Sitemaps with warnings" [level=4]
+  - generic: "0"
+  - heading "Total URLs discovered" [level=4]
+  - generic: "955"
+  - heading "Sitemap details" [level=3]
+  - combobox:
+    - generic: 
+    - generic: Type:All
+    - generic: 
+  - combobox:
+    - generic: 
+    - generic: Status:All
+    - generic: 
+  - button "Download all":
+    - generic: Download all
+    - generic: 
+  - grid "Sitemap details":
+    - row "select all items Sitemap URL, sortable Last submit, sortable Last crawl, sortable Status, sortable URLs discovered, sortable, sorted descending order Action":
+      - columnheader "select all items":
+        - checkbox "select all items":
+          - generic: 
+      - generic: select all items
+      - columnheader "Sitemap URL, sortable":
+        - button "Sitemap URL, sortable":
+          - generic: Sitemap URL
+      - columnheader "Last submit, sortable":
+        - button "Last submit, sortable":
+          - generic: Last submit
+      - columnheader "Last crawl, sortable":
+        - button "Last crawl, sortable":
+          - generic: Last crawl
+      - columnheader "Status, sortable":
+        - button "Status, sortable":
+          - generic: Status
+      - columnheader "URLs discovered, sortable, sorted descending order":
+        - button "URLs discovered, sortable, sorted descending order":
+          - generic: URLs discovered
+          - generic: 
+      - columnheader "Action":
+        - generic: Action
+    - row "select item https://code-destiny.com/sitemap.xml Sitemap URL actions 8/13/2026 Submitted 10/9/2026 Success 955 More":
+      - gridcell "select item":
+        - checkbox "select item":
+          - generic: 
+      - gridcell "https://code-destiny.com/sitemap.xml Sitemap URL actions":
+        - generic: https://code-destiny.com/sitemap.xml
+        - generic: Sitemap
+        - group "URL actions":
+          - button "Copy":
+            - generic: 
+          - button "Open in new tab":
+            - generic: 
+      - gridcell "8/13/2026 Submitted":
+        - generic: 8/13/2026
+        - generic: Submitted
+      - gridcell "10/9/2026":
+        - generic: 10/9/2026
+      - gridcell "Success":
+        - generic: Success
+      - gridcell "955":
+        - generic: "955"
+      - gridcell "More":
+        - button "More":
+          - generic: 
+  - navigation:
+    - generic: 1 row

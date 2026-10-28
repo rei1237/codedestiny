@@ -217,6 +217,17 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
         </div>
       </section>
 
+      {(compatibility.chapters || []).map((chapter, index) => (
+        <section key={chapter.title} className={styles.sukuyoPanelSection} aria-labelledby={`sukuyoChapterTitle${index}`} data-tea-pdf-section>
+          <div>
+            <h4 id={`sukuyoChapterTitle${index}`}>{chapter.title}</h4>
+          </div>
+          <div className={styles.sukuyoTextList}>
+            <LlmParagraphs text={chapter.body} />
+          </div>
+        </section>
+      ))}
+
       {compatibility.roleGuide ? (
         <section className={styles.sukuyoRoleGuide} aria-labelledby="sukuyoRoleGuideTitle" data-tea-pdf-section>
           <span>{copy.roleEyebrow}</span>
