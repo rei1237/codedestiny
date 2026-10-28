@@ -695,6 +695,8 @@ export default function AdminContentPage() {
   const copy = getAdminContentCopy(locale);
   const [items, setItems] = useState<ContentItem[]>([]);
   const [pagination, setPagination] = useState<Pagination>(EMPTY_PAGINATION);
+  const [listPage, setListPage] = useState(1);
+  const listRequest = useRef(0);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [typeFilter, setTypeFilter] = useState<"all" | ContentType>("all");
   const [sort, setSort] = useState<SortKey>("updated");
@@ -763,6 +765,7 @@ export default function AdminContentPage() {
   // 401/403 리다이렉트는 adminFetch 가 담당한다(app/admin/_lib/admin-api.ts).
 
   const loadList = useCallback(async () => {
+    const requestId = ++listRequest.current;
     setLoadingList(true);
     setError("");
     setListErrorView(null);
@@ -772,11 +775,12 @@ export default function AdminContentPage() {
       if (typeFilter !== "all") url.searchParams.set("type", typeFilter);
       if (query.trim()) url.searchParams.set("keyword", query.trim());
       url.searchParams.set("sort", sort);
-      url.searchParams.set("page", "1");
+      url.searchParams.set("page", String(listPage));
       url.searchParams.set("limit", "80");
 
       const data = await adminFetch<Record<string, any>>(`/api/admin/content?${url.searchParams.toString()}`);
 
+      if (requestId !== listRequest.current) return;
       setItems(Array.isArray(data?.items) ? data.items : []);
       setPagination({
         page: Math.max(1, Number(data?.pagination?.page || 1) || 1),
@@ -785,13 +789,14 @@ export default function AdminContentPage() {
         totalPages: Math.max(1, Number(data?.pagination?.totalPages || 1) || 1),
       });
     } catch (caught) {
+      if (requestId !== listRequest.current) return;
       setListErrorView(describeAdminError(caught, copy.errors.listNetworkFailed));
       setItems([]);
       setPagination(EMPTY_PAGINATION);
     } finally {
-      setLoadingList(false);
+      if (requestId === listRequest.current) setLoadingList(false);
     }
-  }, [copy.errors.listNetworkFailed, endpointBase, filterStatus, query, sort, typeFilter]);
+  }, [copy.errors.listNetworkFailed, endpointBase, filterStatus, query, sort, typeFilter, listPage]);
 
   const loadRevisions = useCallback(async (contentId: string) => {
     if (!contentId) {
@@ -1121,6 +1126,7 @@ export default function AdminContentPage() {
     <main className={`${styles.workshop} min-h-screen`}>
       <header className={styles.heading}>
         <div><h1>연이의 원고 공방</h1><p>질문 하나를 깊이 읽고, 독자에게 닿는 원문 한 편을 완성해요. 이곳에서 저장한 글은 본 서비스의 인사이트 콘텐츠입니다.</p></div>
+        <Link href="/admin/cms/" className={commandButtonClass()}><Eye size={16} aria-hidden="true" />사이트 화면·정적 결과 편집</Link>
         <Link href="/admin/wordpress/" className={commandButtonClass()}><ExternalLink size={16} aria-hidden="true" />WordPress 작업실</Link>
       </header>
       <ContentQuest title={Boolean(form.title.trim())} body={Boolean(bodyText)} searchReady={Boolean(resolvedSlug && resolvedMetaTitle && resolvedMetaDescription)} />
@@ -1144,12 +1150,13 @@ export default function AdminContentPage() {
               className="flex gap-2"
               onSubmit={(event) => {
                 event.preventDefault();
-                setQuery(searchInput);
+                setListPage(1); setQuery(searchInput.trim());
               }}
             >
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                 <input
+                  aria-label="원고 검색"
                   value={searchInput}
                   onChange={(event) => setSearchInput(event.target.value)}
                   className={ADMIN_INPUT_ICON}
@@ -1163,7 +1170,7 @@ export default function AdminContentPage() {
             <div className="grid grid-cols-3 gap-2">
               <select
                 value={filterStatus}
-                onChange={(event) => setFilterStatus(event.target.value as FilterStatus)}
+                onChange={(event) => { setListPage(1); setFilterStatus(event.target.value as FilterStatus); }}
                 className={ADMIN_INPUT}
               >
                 {STATUS_OPTIONS.map((option) => (
@@ -1172,7 +1179,7 @@ export default function AdminContentPage() {
               </select>
               <select
                 value={typeFilter}
-                onChange={(event) => setTypeFilter(event.target.value as "all" | ContentType)}
+                onChange={(event) => { setListPage(1); setTypeFilter(event.target.value as "all" | ContentType); }}
                 className={ADMIN_INPUT}
               >
                 <option value="all">{copy.allTypes}</option>
@@ -1182,7 +1189,7 @@ export default function AdminContentPage() {
               </select>
               <select
                 value={sort}
-                onChange={(event) => setSort(event.target.value as SortKey)}
+                onChange={(event) => { setListPage(1); setSort(event.target.value as SortKey); }}
                 className={ADMIN_INPUT}
               >
                 {SORT_OPTIONS.map((option) => (
@@ -1251,6 +1258,11 @@ export default function AdminContentPage() {
               </div>
             )}
           </div>
+          <nav aria-label="원고 목록 페이지" className="flex items-center justify-between gap-2 border-t border-slate-800 p-3">
+            <button type="button" className={commandButtonClass()} disabled={loadingList || listPage <= 1} onClick={() => setListPage((page) => page - 1)}>이전</button>
+            <span className="text-sm" role="status">{pagination.page} / {pagination.totalPages}</span>
+            <button type="button" className={commandButtonClass()} disabled={loadingList || listPage >= pagination.totalPages} onClick={() => setListPage((page) => page + 1)}>다음</button>
+          </nav>
         </aside>
 
         <section className="min-w-0">

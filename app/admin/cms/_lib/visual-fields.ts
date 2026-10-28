@@ -26,6 +26,7 @@ export function replaceVisualField(fields: Fields, path: string[], value: string
 
 export function previewPath(ns: string, key: string): string {
   if (ns === "fortune-sign") return `/fortune/today/${encodeURIComponent(key)}/`;
+  if (ns === "famous-saju") return `/insights/famous-saju/${encodeURIComponent(key)}/`;
   if (ns === "daily-fortune") return "/fortune/today/aries/";
   if (ns === "hat-reading") return "/yeongnyangi/#sorting-hat";
   if (ns === "feature-detail") return `/features/${encodeURIComponent(key)}/`;
@@ -46,4 +47,27 @@ export function safePreviewPath(input: string, origin: string): string | null {
         /^\/yeongnyangi\/(?:library|account)(?:\/|$)/.test(url.pathname)) return null;
     return `${url.pathname}${url.search}${url.hash}`;
   } catch { return null; }
+}
+
+/** Search displayed prose, including unedited defaults and multi-line Korean copy. */
+export function matchesCopy(query: string, ...values: unknown[]): boolean {
+  const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase().replace(/\s+/g, "");
+  const text = normalize(values.map((value) => typeof value === "string" ? value : JSON.stringify(value ?? "")).join(" "));
+  return query.trim().split(/\s+/).every((word) => text.includes(normalize(word)));
+}
+
+/** Partial CMS records inherit untouched rows/fields, just as the public renderer does. */
+export function mergeCopy(base: Fields, ...layers: Array<Fields | undefined>): Fields {
+  const next: Fields = { ...base };
+  for (const layer of layers) for (const [key, value] of Object.entries(layer || {})) {
+    if (["__proto__", "constructor", "prototype"].includes(key)) continue;
+    next[key] = value && typeof value === "object" && !Array.isArray(value)
+      ? mergeCopy((next[key] && typeof next[key] === "object" && !Array.isArray(next[key]) ? next[key] : {}) as Fields, value as Fields)
+      : value;
+  }
+  return next;
+}
+
+export function prefersResultCopy(ns: string): boolean {
+  return ["daily-fortune", "hat-reading", "saju-reading", "saju-animal", "saju-guardian", "sukuyo-calendar", "sukuyo-mansion", "ziwei-basic", "ziwei-deep", "vedic-nakshatra", "vedic-reading", "phrase-pool"].includes(ns);
 }

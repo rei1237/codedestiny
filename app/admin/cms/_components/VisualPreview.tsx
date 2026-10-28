@@ -2,17 +2,23 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ADMIN_CARD, ADMIN_INPUT, adminButton } from "../../_components/ui";
-import { previewPath, replaceVisualField, safePreviewPath, visualFields, type Fields, type VisualField } from "../_lib/visual-fields";
+import { matchesCopy, prefersResultCopy, previewPath, replaceVisualField, safePreviewPath, visualFields, type Fields, type VisualField } from "../_lib/visual-fields";
 import { safeDetailImage } from "@/lib/cms/detail-copy.mjs";
 import { getAdminApiBase, getFlowerAdminToken } from "../../_lib/admin-api";
 import { uploadInsightImage } from "../../insights/_lib/imageUpload";
 
-type Binding = { node: Text | HTMLImageElement; fields: VisualField[]; original: string };
-const normalize = (text: string) => text.replace(/\s+/g, " ").trim();
-const fieldId = (field: VisualField) => JSON.stringify(field.path);
+import styles from "../cms-workspace.module.css";
 
-export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
+type Choice = VisualField & { owner: string; label?: string };
+type PreviewEntry = { key: string; label: string; fields: Fields; base?: Fields };
+type Binding = { node: Text | HTMLImageElement; fields: Choice[]; original: string };
+const normalize = (text: string) => text.replace(/\s+/g, " ").trim();
+const fieldId = (field: Choice) => JSON.stringify([field.owner, ...field.path]);
+
+export default function VisualPreview({ ns, entryKey, base, value, onChange, entries = [], selectedPath = [], onSelectEntry, onPendingChange, disabled = false }: {
   ns: string; entryKey: string; base: Fields; value: Fields; onChange: (next: Fields) => void;
+  onPendingChange?: (pending: boolean) => void;
+  entries?: PreviewEntry[]; selectedPath?: string[]; onSelectEntry?: (key: string, path: string[]) => void; disabled?: boolean;
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const bindings = useRef<Binding[]>([]);
@@ -24,20 +30,49 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
   const [mobile, setMobile] = useState(true);
   const [selecting, setSelecting] = useState(true);
   const [revision, setRevision] = useState(0);
-  const [choices, setChoices] = useState<VisualField[]>([]);
+  const [choices, setChoices] = useState<Choice[]>([]);
   const [selected, setSelected] = useState("");
   const [message, setMessage] = useState("페이지를 불러오는 중입니다.");
   const [count, setCount] = useState(0);
   const [input, setInput] = useState("");
   const [problem, setProblem] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [allCopy, setAllCopy] = useState(ns === "daily-fortune" || ns === "hat-reading");
+  const [allCopy, setAllCopy] = useState(prefersResultCopy(ns));
   const [query, setQuery] = useState("");
-  const fields = useMemo(() => visualFields(value), [value]);
+  const fields = useMemo(() => visualFields(value).map((field) => ({ ...field, owner: entryKey })), [value, entryKey]);
+  const entry = useRef(entryKey); entry.current = entryKey;
+  const catalog = useRef(entries); catalog.current = entries;
+  const chooseEntry = useRef(onSelectEntry); chooseEntry.current = onSelectEntry;
+  const locked = useRef(disabled); locked.current = disabled;
+  const rescan = useRef<() => void>(() => {});
+  const editBox = useRef<HTMLTextAreaElement>(null);
+  const filteredFields = useMemo(() => fields.filter((field) => !field.image && matchesCopy(query, field.value, field.path.join(" "))), [fields, query]);
   const active = choices.find((field) => fieldId(field) === selected);
-  const baseFields = useMemo(() => visualFields(base), [base]);
+  const pending = Boolean(active && input !== active.value);
+  const pendingRef = useRef(pending); pendingRef.current = pending;
+  useEffect(() => { onPendingChange?.(pending); }, [pending, onPendingChange]);
+  useEffect(() => () => onPendingChange?.(false), [onPendingChange]);
+  useEffect(() => {
+    if (!pending) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [pending]);
+  const baseFields = useMemo(() => visualFields(base).map((field) => ({ ...field, owner: entryKey })), [base, entryKey]);
   const sourceFields = useRef(baseFields);
   sourceFields.current = baseFields;
+
+  useEffect(() => {
+    const desired = previewPath(ns, entryKey);
+    setPath(desired); setAddress(desired);
+    const field = visualFields(current.current).find((item) => JSON.stringify(item.path) === JSON.stringify(selectedPath));
+    const choice = field ? { ...field, owner: entryKey } : null;
+    setChoices(choice ? [choice] : []); setSelected(choice ? fieldId(choice) : ""); setInput(choice?.value || "");
+    setProblem("");
+    if (choice) { setMessage("선택한 문구를 수정한 뒤 ‘초안에 적용’을 누르세요."); requestAnimationFrame(() => editBox.current?.focus({ preventScroll: true })); }
+    rescan.current();
+  }, [entryKey, ns, selectedPath]);
+  useEffect(() => { rescan.current(); }, [value, entries]);
 
   // Only the administrator's iframe is changed. No runtime DOM patch ships to visitors.
   const attach = useCallback(() => {
@@ -63,6 +98,7 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
       if (!selecting) return;
       event.preventDefault();
       event.stopImmediatePropagation();
+      if (locked.current || pendingRef.current) return;
       const target = event.target as Node;
       const matches = bindings.current.filter((binding) =>
         binding.node === target || binding.node.parentElement === target ||
@@ -79,17 +115,25 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
       setProblem("");
       setSelected(options.length === 1 ? fieldId(options[0]) : "");
       setInput(options.length === 1 ? options[0].value : "");
+      if (options.length === 1) {
+        if (options[0].owner !== entry.current) chooseEntry.current?.(options[0].owner, options[0].path);
+        requestAnimationFrame(() => editBox.current?.focus({ preventScroll: true }));
+      }
       setMessage(options.length ? (options.length > 1 ? "같은 문구가 여러 항목에 있습니다. 수정할 항목을 선택하세요." : "선택한 문구를 아래에서 수정하세요.") :
-        "이 부분은 현재 선택한 콘텐츠에 연결되어 있지 않습니다. 왼쪽에서 해당 콘텐츠를 선택하세요.");
+        "이 문구는 선택한 화면·결과 그룹에 등록되어 있지 않습니다. 다른 그룹을 선택하거나 ‘모든 결과 문장’에서 찾아보세요.");
     };
     const scan = () => {
       if (disposed || !doc?.body) return;
-      const candidates = [...sourceFields.current, ...visualFields(current.current)];
-      const effective = new Map(visualFields(current.current).map((field) => [fieldId(field), field]));
-      const lookup = new Map<string, Map<string, VisualField>>();
+      const currentFields = visualFields(current.current).map((field) => ({ ...field, owner: entry.current }));
+      const candidates: Choice[] = [
+        ...catalog.current.flatMap((item) => [...visualFields(item.base || {}), ...visualFields(item.fields)].map((field) => ({ ...field, owner: item.key, label: item.label }))),
+        ...sourceFields.current, ...currentFields,
+      ];
+      const effective = new Map(currentFields.map((field) => [fieldId(field), field]));
+      const lookup = new Map<string, Map<string, Choice>>();
       for (const field of candidates) {
         const key = `${field.image ? "image:" : "text:"}${normalize(field.value)}`;
-        const bucket = lookup.get(key) || new Map<string, VisualField>();
+        const bucket = lookup.get(key) || new Map<string, Choice>();
         bucket.set(fieldId(field), field);
         lookup.set(key, bucket);
       }
@@ -120,7 +164,7 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
       }
       bindings.current = next;
       setCount(next.length);
-      const drafts = new Map(visualFields(current.current).map((field) => [fieldId(field), field.value]));
+      const drafts = new Map(currentFields.map((field) => [fieldId(field), field.value]));
       for (const binding of next) {
         if (binding.fields.length !== 1) continue;
         const draft = drafts.get(fieldId(binding.fields[0]));
@@ -134,6 +178,7 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
         }
       }
     };
+    rescan.current = scan;
     scan();
     setMessage(selecting ? "페이지의 문구나 이미지를 클릭하세요. 연결된 항목만 수정할 수 있습니다." : "화면을 이동한 뒤 ‘문구 선택’을 누르세요.");
     const observer = new MutationObserver(() => {
@@ -147,6 +192,7 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
     doc.addEventListener("submit", stopSubmit, true);
     cleanup.current = () => {
       disposed = true;
+      rescan.current = () => {};
       clearTimeout(timer);
       observer.disconnect();
       doc?.removeEventListener("click", choose, true);
@@ -161,7 +207,7 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
   }, [attach, allCopy]);
 
   const apply = () => {
-    if (!active) return;
+    if (!active || disabled || active.owner !== entryKey) return;
     if (!input.trim()) { setProblem("빈 문구는 저장할 수 없습니다."); return; }
     if (active.image && !safeDetailImage(input)) { setProblem("사이트 내부 경로나 assets.code-destiny.com의 HTTPS 이미지 주소를 입력하세요."); return; }
     if (ns === "light-novel" && active.path[0] === "beats" &&
@@ -188,49 +234,60 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
   return <section className={`${ADMIN_CARD} space-y-3 rounded-lg p-3`} aria-label="화면에서 편집">
     <div className="flex flex-wrap items-center gap-2">
       <h3 className="mr-auto font-semibold">화면에서 편집</h3>
-      <button type="button" className={adminButton(allCopy ? "primary" : "neutral")} aria-pressed={allCopy} onClick={() => setAllCopy(!allCopy)}>{allCopy ? "실제 페이지 보기" : "전체 문장 보기"}</button>
-      <button type="button" className={adminButton()} onClick={() => setMobile(!mobile)}>{mobile ? "PC 화면 보기" : "모바일 화면 보기"}</button>
-      <button type="button" className={adminButton(selecting ? "primary" : "neutral")} aria-pressed={selecting} onClick={() => setSelecting(!selecting)}>{selecting ? "문구 선택 중" : "화면 이동 중"}</button>
+      <button type="button" disabled={pending} className={adminButton(allCopy ? "primary" : "neutral")} aria-pressed={allCopy} onClick={() => setAllCopy(!allCopy)}>{allCopy ? "실제 페이지 보기" : "모든 결과 문장"}</button>
+      <button type="button" disabled={allCopy} className={adminButton()} onClick={() => setMobile(!mobile)}>{mobile ? "PC 화면 보기" : "모바일 화면 보기"}</button>
+      <button type="button" disabled={allCopy || pending} className={adminButton(selecting ? "primary" : "neutral")} aria-pressed={selecting} onClick={() => setSelecting(!selecting)}>{selecting ? "문구 선택 중" : "화면 이동 중"}</button>
     </div>
-    <form className="flex flex-wrap gap-2" onSubmit={(event) => {
+    {!allCopy ? <form className="flex flex-wrap gap-2" onSubmit={(event) => {
       event.preventDefault();
       const safe = safePreviewPath(address, window.location.origin);
       if (!safe) { setProblem("같은 사이트의 공개 페이지 주소를 입력하세요."); return; }
       setPath(safe); setRevision((n) => n + 1); setChoices([]); setProblem("");
     }}>
-      <input aria-label="미리보기 페이지 주소" className={`${ADMIN_INPUT} min-w-0 flex-1`} value={address} onChange={(event) => setAddress(event.target.value)} />
-      <button type="submit" className={adminButton()}>페이지 열기</button>
-    </form>
+      <input disabled={pending} aria-label="미리보기 페이지 주소" className={`${ADMIN_INPUT} min-w-0 flex-1`} value={address} onChange={(event) => setAddress(event.target.value)} />
+      <button type="submit" disabled={pending} className={adminButton()}>페이지 열기</button>
+    </form> : null}
     <p className="text-sm text-slate-300" role="status">{allCopy && !active ? "수정할 문장을 선택하세요." : message}</p>
     <p className="text-xs text-slate-400">{allCopy ? "" : `현재 화면에서 연결된 위치 ${count}개 · `}편집 가능한 항목 {fields.length}개. 같은 원본을 쓰는 다른 화면에도 변경이 적용됩니다.</p>
+    <div className={styles.previewLayout}>
+    <div className="min-w-0">
     {allCopy ? <div className="space-y-3">
       <p className="text-sm text-slate-300">현재 결과에 나오지 않은 문장도 모두 표시합니다. 바꿀 문장을 누르세요. 날짜나 결과에 따라 같은 원본을 쓰는 화면에 함께 반영됩니다.</p>
       <input className={ADMIN_INPUT} aria-label="결과 문장 검색" placeholder="수정할 문장 검색" value={query} onChange={(event) => setQuery(event.target.value)} />
-      <div className="max-h-[600px] overflow-y-auto divide-y divide-slate-700" aria-label="전체 결과 문장">
-        {fields.filter((field) => !field.image && field.value.includes(query)).map((field) => <button
+      <p className={styles.note} role="status">{filteredFields.length}개 문장 · 선택하면 원문과 나란히 수정할 수 있어요.</p>
+      <div className={styles.copyList} aria-label="전체 결과 문장">
+        {filteredFields.map((field) => <button
           type="button" key={fieldId(field)} aria-pressed={selected === fieldId(field)}
-          className="block w-full whitespace-pre-wrap px-3 py-4 text-left text-base leading-relaxed hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-400"
-          onClick={() => { setChoices([field]); setSelected(fieldId(field)); setInput(field.value); setProblem(""); setMessage("선택한 문장을 아래에서 수정하세요."); }}>
-          {field.value}
+          className={styles.copyRow} disabled={disabled || pending}
+          onClick={() => { setChoices([field]); setSelected(fieldId(field)); setInput(field.value); setProblem(""); setMessage("선택한 문장을 편집 패널에서 수정하세요."); requestAnimationFrame(() => { editBox.current?.focus({ preventScroll: true }); if (window.innerWidth < 1280) editBox.current?.scrollIntoView({ block: "center" }); }); }}>
+          <span>{field.path.filter((part) => part !== "record").join(" › ")}</span><p>{field.value}</p>
         </button>)}
-        {!fields.some((field) => !field.image && field.value.includes(query)) ? <p className="p-3 text-sm text-slate-400">검색한 문장이 없습니다.</p> : null}
+        {filteredFields.length === 0 ? <p className="p-3 text-sm text-slate-400">검색한 문장이 없습니다.</p> : null}
       </div>
     </div> : null}
-    {!allCopy ? <div className="overflow-x-auto rounded-lg border border-slate-700 bg-white">
+    {!allCopy ? <div className={styles.canvas}>
       <iframe key={revision} ref={frame} src={path} onLoad={attach} title="콘텐츠 실제 화면 미리보기"
-        sandbox="allow-scripts allow-same-origin" className="mx-auto block h-[600px] border-0"
-        style={{ width: mobile ? 390 : 1024, maxWidth: mobile ? "100%" : undefined }} />
+        sandbox="allow-scripts allow-same-origin" className={styles.frame}
+        style={{ width: mobile ? 390 : "100%", maxWidth: "100%" }} />
     </div> : null}
+    </div>
+    <aside className={styles.inspector} aria-label="선택한 문구 편집">
+    <h4>문구 편집</h4>
+    {!active && choices.length === 0 ? <p className={styles.note}>왼쪽 화면의 문구를 누르세요. 결과가 화면에 없으면 ‘모든 결과 문장’에서 선택하세요.</p> : null}
     {choices.length > 1 ? <label className="block text-sm">수정할 항목
-      <select className={ADMIN_INPUT} value={selected} onChange={(event) => {
+      <select disabled={pending} className={ADMIN_INPUT} value={selected} onChange={(event) => {
         setSelected(event.target.value);
-        setInput(choices.find((field) => fieldId(field) === event.target.value)?.value || "");
-      }}><option value="">항목 선택</option>{choices.map((field) => <option key={fieldId(field)} value={fieldId(field)}>{field.path.join(" › ")}</option>)}</select>
+        const choice = choices.find((field) => fieldId(field) === event.target.value);
+        setInput(choice?.value || "");
+        if (choice && choice.owner !== entryKey) onSelectEntry?.(choice.owner, choice.path);
+      }}><option value="">항목 선택</option>{choices.map((field) => <option key={fieldId(field)} value={fieldId(field)}>{field.label || field.owner} · {field.path.join(" › ")}</option>)}</select>
     </label> : null}
-    {active ? <div className="space-y-2">
+    {active ? <div className="space-y-3">
+      <p className={styles.note}>{active.path.filter((part) => part !== "record").join(" › ")}</p>
+      <details><summary className="min-h-11 cursor-pointer py-2 text-sm">기본 문장과 비교</summary><p className={styles.original}>{baseFields.find((field) => fieldId(field) === selected)?.value || "기본 문장 없음"}</p></details>
       <label className="block text-sm">
         {active.image ? "이미지 주소" : "선택한 문구"}
-        <textarea className={`${ADMIN_INPUT} mt-2 min-h-28 text-base`} value={input} onChange={(event) => setInput(event.target.value)} />
+        <textarea ref={editBox} disabled={disabled} className={`${ADMIN_INPUT} mt-2 min-h-28 text-base`} value={input} onChange={(event) => setInput(event.target.value)} />
       </label>
       {active.image ? <>
         <label className="block text-sm">교체할 이미지 파일
@@ -249,9 +306,13 @@ export default function VisualPreview({ ns, entryKey, base, value, onChange }: {
         </label>
         <p className="text-xs text-slate-400">{uploading ? "이미지를 업로드하고 있습니다." : "이미지에 박힌 글자는 여기서 바뀌지 않습니다. 글자 없는 이미지로 교체한 뒤 초안에 적용하세요. 업로드한 파일은 즉시 저장되지만 페이지는 발행 전까지 바뀌지 않습니다."}</p>
       </> : null}
-      <button type="button" onClick={apply} className={adminButton("primary")}>초안에 적용</button>
+      {pending ? <p role="status" className={styles.note}>입력한 문구가 아직 초안에 적용되지 않았어요. 적용하거나 입력을 되돌린 뒤 저장·발행하세요.</p> : null}
+      <button type="button" disabled={disabled || uploading || active.owner !== entryKey} onClick={apply} className={adminButton("primary")}>초안에 적용</button>
+      {pending ? <button type="button" className={adminButton()} disabled={disabled} onClick={() => { setInput(active.value); setProblem(""); }}>입력 되돌리기</button> : null}
     </div> : null}
     {problem ? <p role="alert" className="text-sm text-rose-300">{problem}</p> : null}
+    </aside>
+    </div>
     <p className="text-xs text-slate-400">문구가 선택되지 않으면 아래 항목 편집기를 이용하세요. 이 미리보기는 문장·이미지 확인용이며 결제와 상담 제출용이 아닙니다.</p>
   </section>;
 }

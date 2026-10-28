@@ -6,7 +6,7 @@ import { loadTsModule } from "../../scripts/lib/load-ts-module.mjs";
 import { renderFeatureDetailPanels } from "../../js/feature-detail-panels.mjs";
 import { readFileSync } from "node:fs";
 
-const { visualFields, replaceVisualField, safePreviewPath } = loadTsModule("app/admin/cms/_lib/visual-fields.ts");
+const { visualFields, replaceVisualField, safePreviewPath, matchesCopy, mergeCopy, prefersResultCopy } = loadTsModule("app/admin/cms/_lib/visual-fields.ts");
 const catalog = JSON.parse(readFileSync(new URL("../../lib/marketing/feature-visual-details.generated.json", import.meta.url)));
 const original = catalog.items["new-year-ai"];
 
@@ -63,4 +63,25 @@ test("build snapshot separates novels and rejects runtime prompts or invalid exp
   assert.equal(output.entries["light-novel"], undefined);
   assert.throws(() => splitPublishedCms({ ok: true, version: 1, entries: { "prompt.system": {} } }));
   assert.throws(() => splitPublishedCms({ ok: false }));
+});
+
+test("search finds unedited nested Korean copy regardless of spaces, case or line breaks", () => {
+  assert.equal(matchesCopy("마음의간격", {record: {love: {text: "마음의  간격을\n존중하세요."}}}), true);
+  assert.equal(matchesCopy("TAROT 조언", "tarot", {text: "선택을 위한 조언"}), true);
+  assert.equal(matchesCopy("없는 문장", {text: "마음의 간격"}), false);
+});
+
+test("partial published and local records preserve default siblings and arrays", () => {
+  const base = {record: {wood: {strength: "기존 장점", advice: "기존 조언"}, water: {text: "수기운"}}, items: ["A", "B"]};
+  const merged = mergeCopy(base, {record: {wood: {strength: "저장한 장점"}}}, {record: {wood: {advice: "브라우저 조언"}}, items: ["C"]});
+  assert.deepEqual(merged.record, {wood: {strength: "저장한 장점", advice: "브라우저 조언"}, water: {text: "수기운"}});
+  assert.deepEqual(merged.items, ["C"]);
+  assert.equal(base.record.wood.advice, "기존 조언");
+  mergeCopy({}, JSON.parse('{"__proto__":{"polluted":true}}'));
+  assert.equal({}.polluted, undefined);
+});
+
+test("conditional result groups open all their configured sentences", () => {
+  for (const ns of ["saju-reading", "ziwei-deep", "vedic-reading", "sukuyo-mansion", "daily-fortune"]) assert.equal(prefersResultCopy(ns), true);
+  assert.equal(prefersResultCopy("feature-detail"), false);
 });
