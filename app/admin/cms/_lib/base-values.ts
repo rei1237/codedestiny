@@ -328,7 +328,7 @@ export async function loadBaseEntries(ns: string): Promise<CmsBaseEntry[]> {
     return await loader();
   } catch (error) {
     console.warn(`[cms] ${ns} 기본값을 불러오지 못했습니다.`, error);
-    return [];
+    throw error;
   }
 }
 

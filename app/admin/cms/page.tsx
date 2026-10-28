@@ -27,6 +27,10 @@ import RevisionPanel, { type CmsRevision } from "./_components/RevisionPanel";
 import BeatsEditor from "./_components/BeatsEditor";
 import RecordEditor from "./_components/RecordEditor";
 import VisualPreview from "./_components/VisualPreview";
+import { matchesCopy, mergeCopy, visualFields } from "./_lib/visual-fields";
+import styles from "./cms-workspace.module.css";
+import GlobalCopySearch from "./_components/GlobalCopySearch";
+import Link from "next/link";
 
 type Fields = Record<string, unknown>;
 
@@ -95,10 +99,23 @@ function equalFields(a: Fields, b: Fields): boolean {
 export default function AdminCmsPage() {
   const [activeNs, setActiveNs] = useState<string>("feature-detail");
   const [visualMode, setVisualMode] = useState(true);
+  const [hasPendingInput, setHasPendingInput] = useState(false);
   const [baseEntries, setBaseEntries] = useState<CmsBaseEntry[]>([]);
-  const [baseLoading, setBaseLoading] = useState(false);
+  const [baseLoading, setBaseLoading] = useState(true);
+  const [baseError, setBaseError] = useState("");
+  const [loadVersion, setLoadVersion] = useState(0);
+  const [overridesLoading, setOverridesLoading] = useState(true);
+  const [selectedPath, setSelectedPath] = useState<string[]>([]);
+  const activeNsRef = useRef(activeNs);
+  activeNsRef.current = activeNs;
+  const selectedRef = useRef("");
+  const draftOwner = useRef("");
+  const overridesRequest = useRef(0);
+  const pendingSelection = useRef<{ ns: string; key: string; path: string[] } | null>(null);
+
   const [overrides, setOverrides] = useState<Record<string, CmsEntryItem>>({});
   const [selectedKey, setSelectedKey] = useState("");
+  selectedRef.current = selectedKey;
   const [draft, setDraft] = useState<Fields>({});
   const [revisions, setRevisions] = useState<CmsRevision[]>([]);
   const [keyword, setKeyword] = useState("");
@@ -145,10 +162,9 @@ export default function AdminCmsPage() {
     if (!needle) return items;
     return items.filter((item) => {
       const override = overrides[entryId(activeNs, item.key)];
-      const haystack = `${item.label} ${item.key} ${item.hint} ${override ? JSON.stringify(override.fields) : ""}`.toLowerCase();
-      return haystack.includes(needle);
+      return matchesCopy(needle, item.label, item.key, item.hint, baseByKey[item.key]?.fields, override?.fields);
     });
-  }, [namespace, baseEntries, overrides, activeNs, keyword]);
+  }, [namespace, baseEntries, baseByKey, overrides, activeNs, keyword]);
 
   const selectedOverride = selectedKey ? overrides[entryId(activeNs, selectedKey)] : undefined;
   const selectedBase = selectedKey ? baseByKey[selectedKey] : undefined;
@@ -156,49 +172,62 @@ export default function AdminCmsPage() {
   const effectiveBaseFields = useMemo<Fields>(() => selectedBase?.fields || {}, [selectedBase]);
 
   const dirty = useMemo(() => {
-    const saved = selectedOverride?.fields || {};
-    const comparable = stripDisplayOnlyFields(activeNs, draft);
-    if (Object.keys(saved).length) return !equalFields(comparable, saved);
+    const saved = mergeCopy(effectiveBaseFields, selectedOverride?.fields);
+    const comparable = stripDisplayOnlyFields(activeNs, mergeCopy(effectiveBaseFields, draft));
+    if (Object.keys(saved).length) return !equalFields(comparable, stripDisplayOnlyFields(activeNs, saved));
     return !equalFields(comparable, stripDisplayOnlyFields(activeNs, effectiveBaseFields));
   }, [draft, selectedOverride, effectiveBaseFields, activeNs]);
 
   // ── 목록/기준값 로딩 ────────────────────────────────────────────────────────
   const loadOverrides = useCallback(async (ns: string) => {
+    const requestId = ++overridesRequest.current;
+    setOverridesLoading(true);
     try {
       const data = await adminFetch<{ items?: CmsEntryItem[]; stale?: boolean }>(
         `/api/admin/cms/entries?ns=${encodeURIComponent(ns)}`,
       );
+      if (activeNsRef.current !== ns || requestId !== overridesRequest.current) return;
       const map: Record<string, CmsEntryItem> = {};
       for (const item of data?.items || []) map[entryId(item.namespace, item.key)] = item;
       setOverrides(map);
       setStale(Boolean(data?.stale));
       setError("");
     } catch (caught) {
-      setError(describeAdminError(caught, "수정본 목록을 불러오지 못했습니다.").message);
+      if (activeNsRef.current === ns && requestId === overridesRequest.current) setError(describeAdminError(caught, "수정본 목록을 불러오지 못했습니다.").message);
+    } finally {
+      if (activeNsRef.current === ns && requestId === overridesRequest.current) setOverridesLoading(false);
     }
   }, []);
 
   useEffect(() => {
     let cancelled = false;
+    draftOwner.current = "";
     setSelectedKey("");
     setDraft({});
     setRevisions([]);
     setMessage("");
     setBaseLoading(true);
+    setBaseEntries([]);
+    setOverrides({});
+    setBaseError("");
+    setSelectedPath([]);
+    setKeyword("");
 
-    void (async () => {
-      const entries = await loadBaseEntries(activeNs);
-      if (cancelled) return;
-      setBaseEntries(entries);
-      setBaseLoading(false);
-    })();
+    void loadBaseEntries(activeNs).then((entries) => {
+      if (!cancelled) setBaseEntries(entries);
+    }).catch(() => {
+      if (!cancelled) setBaseError("기본 문장을 불러오지 못했습니다. 다시 불러오기를 눌러 주세요.");
+    }).finally(() => { if (!cancelled) setBaseLoading(false); });
     void loadOverrides(activeNs);
 
     return () => { cancelled = true; };
-  }, [activeNs, loadOverrides]);
+  }, [activeNs, loadOverrides, loadVersion]);
 
   // ── 항목 선택 ──────────────────────────────────────────────────────────────
-  const selectEntry = useCallback((key: string) => {
+  const selectEntry = useCallback((key: string, path: string[] = []) => {
+    if (baseLoading || overridesLoading || saving || hasPendingInput) return;
+    draftOwner.current = entryId(activeNs, key);
+    setSelectedPath(path);
     setSelectedKey(key);
     setMessage("");
     setError("");
@@ -213,15 +242,26 @@ export default function AdminCmsPage() {
       if (raw) local = JSON.parse(raw) as Fields;
     } catch { /* 손상된 초안은 무시하고 서버 값으로 간다 */ }
 
-    setDraft({ ...(base?.fields || {}), ...(override?.fields || {}), ...(local || {}) });
+    setDraft(mergeCopy(base?.fields || {}, override?.fields, local || undefined));
     setRevisions([]);
 
     void adminFetch<{ items?: CmsRevision[] }>(
       `/api/admin/cms/entries/${encodeURIComponent(activeNs)}/${encodeURIComponent(key)}/revisions`,
     )
-      .then((data) => setRevisions(data?.items || []))
-      .catch(() => setRevisions([]));
-  }, [activeNs, overrides, baseByKey]);
+      .then((data) => { if (activeNsRef.current === activeNs && selectedRef.current === key) setRevisions(data?.items || []); })
+      .catch(() => { if (activeNsRef.current === activeNs && selectedRef.current === key) setRevisions([]); });
+  }, [activeNs, overrides, baseByKey, baseLoading, overridesLoading, saving, hasPendingInput]);
+
+  // Open a useful first preview once both defaults and saved edits are ready.
+  useEffect(() => {
+    if (!selectedKey && !baseLoading && !overridesLoading && !baseError && !error) {
+      const pending = pendingSelection.current;
+      if (pending?.ns === activeNs) { pendingSelection.current = null; selectEntry(pending.key, pending.path); }
+      else if (listItems[0]) selectEntry(listItems[0].key);
+    }
+  }, [selectedKey, baseLoading, overridesLoading, baseError, error, listItems, selectEntry, activeNs]);
+
+  const previewEntries = useMemo(() => baseEntries.map((entry) => ({ ...entry, base: entry.fields, fields: mergeCopy(entry.fields, overrides[entryId(activeNs, entry.key)]?.fields) })), [baseEntries, overrides, activeNs]);
 
   // ── 저장 ───────────────────────────────────────────────────────────────────
   /* 저장이 겹치면 나중에 도착한 응답이 앞선 것을 덮는다. 실제로 자동저장 타이머가 도는 중에
@@ -239,7 +279,7 @@ export default function AdminCmsPage() {
   }, []);
 
   const save = useCallback(async (status: string, options: { silent?: boolean } = {}) => {
-    if (!selectedKey || !namespace) return;
+    if (!selectedKey || !namespace || hasPendingInput) return;
     if (options.silent && savingRef.current) return;
 
     cancelPendingAutoSave();
@@ -262,7 +302,7 @@ export default function AdminCmsPage() {
         // 서버가 정규화한 값(빈 필드 제거·길이 절단)으로 편집본을 되맞춘다.
         // 안 그러면 draft 와 저장본이 영영 달라 "저장되지 않은 변경"이 가라앉지 않고,
         // 자동저장이 계속 재점화된다.
-        setDraft((prev) => ({ ...prev, ...data.item!.fields }));
+        setDraft(mergeCopy(effectiveBaseFields, data.item.fields));
       }
       try { window.localStorage.removeItem(`${LOCAL_DRAFT_PREFIX}${entryId(activeNs, selectedKey)}`); } catch { /* 무시 */ }
 
@@ -281,12 +321,12 @@ export default function AdminCmsPage() {
       savingRef.current = false;
       setSaving(false);
     }
-  }, [selectedKey, namespace, activeNs, draft, cancelPendingAutoSave]);
+  }, [selectedKey, namespace, activeNs, draft, effectiveBaseFields, cancelPendingAutoSave, hasPendingInput]);
 
   // ── 3초 자동 저장 ──────────────────────────────────────────────────────────
   const savedStatus = selectedOverride?.status;
   useEffect(() => {
-    if (!selectedKey || !dirty) return undefined;
+    if (!selectedKey || !dirty || draftOwner.current !== entryId(activeNs, selectedKey)) return undefined;
 
     // 서버가 잠깐 죽어도 작업물이 날아가지 않게 로컬에도 즉시 남긴다.
     try {
@@ -343,7 +383,7 @@ export default function AdminCmsPage() {
       );
       if (data?.item) {
         setOverrides((prev) => ({ ...prev, [entryId(activeNs, selectedKey)]: data.item! }));
-        setDraft({ ...effectiveBaseFields, ...data.item.fields });
+        setDraft(mergeCopy(effectiveBaseFields, data.item.fields));
       }
       setMessage(`v${version} 내용으로 복원했습니다. 확인 후 발행해 주세요.`);
     } catch (caught) {
@@ -361,11 +401,12 @@ export default function AdminCmsPage() {
       setError("키는 영문 소문자·숫자·하이픈·점·슬래시만 쓸 수 있습니다.");
       return;
     }
+    draftOwner.current = entryId(activeNs, key);
     setSelectedKey(key);
     setDraft({});
     setRevisions([]);
     setMessage("새 항목입니다. 내용을 입력하고 저장하세요.");
-  }, []);
+  }, [activeNs]);
 
   const triggerSiteDeploy = useCallback(async (mode: "preview" | "production") => {
     if (mode === "production" && !window.confirm("발행된 콘텐츠와 현재 main 코드를 운영 서비스에 배포합니다. 아직 발행하지 않은 브라우저 초안은 포함되지 않습니다. 운영에 반영할까요?")) return;
@@ -393,40 +434,20 @@ export default function AdminCmsPage() {
 
   return (
     <main className="min-h-screen">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[240px_320px_1fr]">
-        {/* 그룹 네비 — 레지스트리에서 자동 생성 */}
-        <nav className="border-b border-slate-800 bg-[#0b0d15] lg:border-b-0 lg:border-r" aria-label="콘텐츠 그룹">
-          <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
-            <h1 className="text-sm font-semibold">콘텐츠 관리</h1>
-          </div>
-          <div className="space-y-4 p-3">
-            {CMS_GROUPS.map((group: { id: string; label: string }) => {
-              const items = NAMESPACES.filter((item) => item.group === group.id);
-              if (!items.length) return null;
-              return (
-                <div key={group.id}>
-                  <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">{group.label}</p>
-                  <ul className="space-y-0.5">
-                    {items.map((item) => (
-                      <li key={item.ns}>
-                        <button
-                          type="button"
-                          onClick={() => setActiveNs(item.ns)}
-                          className={`w-full rounded-md px-2 py-1.5 text-left text-sm ${activeNs === item.ns ? "bg-violet-950 text-violet-100" : "text-slate-300 hover:bg-slate-900"}`}
-                        >
-                          {item.label}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
-        </nav>
-
+      <header className={styles.header}>
+        <div><h1>화면에서 글 편집</h1><p>페이지를 보며 문구를 선택하거나, 정적 결과의 모든 문장을 찾아 수정하세요.</p></div>
+        <Link href="/admin/content/" className={buttonClass()}>인사이트 글 편집</Link>
+      </header>
+      <div className={styles.workspace}>
         {/* 항목 목록 */}
-        <aside className="border-b border-slate-800 bg-[#10121b] lg:border-b-0 lg:border-r">
+        <aside className={styles.library} aria-label="편집할 콘텐츠 찾기">
+          <label className={styles.groupSelect}>편집할 화면·결과
+            <select className="cd-adm-input" aria-label="편집할 화면·결과" value={activeNs} disabled={saving || hasPendingInput} onChange={(event) => setActiveNs(event.target.value)}>
+              {CMS_GROUPS.map((group: { id: string; label: string }) => <optgroup key={group.id} label={group.label}>
+                {NAMESPACES.filter((item) => item.group === group.id).map((item) => <option key={item.ns} value={item.ns}>{item.label}</option>)}
+              </optgroup>)}
+            </select>
+          </label>
           <div className="space-y-2 border-b border-slate-800 p-3">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -452,14 +473,21 @@ export default function AdminCmsPage() {
                 className={ADMIN_INPUT_ICON}
               />
             </div>
+            <GlobalCopySearch key={activeNs} query={keyword} disabled={saving || hasPendingInput} onSelect={(ns, key, path) => {
+              if (ns === activeNs) { selectEntry(key, path); return; }
+              pendingSelection.current = { ns, key, path }; setActiveNs(ns);
+            }} />
           </div>
 
-          <div className="max-h-[calc(100vh-190px)] overflow-y-auto">
-            {baseLoading ? (
+          <p className={styles.resultCount} role="status">{baseLoading || overridesLoading ? "기본 문장과 저장한 수정본을 불러오고 있어요." : `검색 결과 ${listItems.length}개 · 기본 문장 포함`}</p>
+          {baseError ? <div role="alert" className="p-3 text-sm"><p>{baseError}</p><button type="button" className={buttonClass()} onClick={() => setLoadVersion((value) => value + 1)}>다시 불러오기</button></div> : null}
+          <div className={styles.entryList}>
+            {baseLoading || overridesLoading ? (
               <p className="p-4 text-sm text-slate-400">불러오는 중...</p>
             ) : listItems.length === 0 ? (
               <p className="p-4 text-sm text-slate-400">
-                {namespace?.listSource === "user" ? "아직 등록된 항목이 없습니다. + 로 추가하세요." : "표시할 항목이 없습니다."}
+                {keyword ? "이 그룹에서 일치하는 문장을 찾지 못했습니다. 검색어를 지우거나 위에서 다른 화면·결과를 선택하세요." : namespace?.listSource === "user" ? "아직 등록된 항목이 없습니다. + 로 추가하세요." : "표시할 항목이 없습니다."}
+                {keyword ? <button type="button" className={buttonClass()} onClick={() => setKeyword("")}>검색어 지우기</button> : null}
               </p>
             ) : (
               <ul className="divide-y divide-slate-800">
@@ -470,6 +498,8 @@ export default function AdminCmsPage() {
                     <li key={item.key}>
                       <button
                         type="button"
+                        disabled={saving || hasPendingInput}
+                        aria-pressed={active}
                         onClick={() => selectEntry(item.key)}
                         className={`w-full px-3 py-2.5 text-left hover:bg-slate-900 ${active ? "bg-slate-900" : ""}`}
                       >
@@ -479,6 +509,7 @@ export default function AdminCmsPage() {
                             {override ? CMS_STATUS_LABELS[override.status] || override.status : "기본값"}
                           </span>
                         </div>
+                        {keyword ? <p className={styles.matchExcerpt}>{visualFields(mergeCopy(baseByKey[item.key]?.fields || {}, override?.fields)).find((field) => matchesCopy(keyword, field.value))?.value}</p> : null}
                         {item.hint ? <p className="mt-0.5 truncate text-[11px] text-slate-500">{item.hint}</p> : null}
                       </button>
                     </li>
@@ -490,7 +521,7 @@ export default function AdminCmsPage() {
         </aside>
 
         {/* 편집 영역 */}
-        <section className="min-w-0">
+        <section className="min-w-0" aria-busy={saving}>
           <div className={ADMIN_TOOLBAR}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
@@ -507,18 +538,18 @@ export default function AdminCmsPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={() => setVisualMode((previous) => !previous)} className={buttonClass(visualMode ? "primary" : "neutral")} aria-pressed={visualMode}>
+                <button type="button" disabled={saving || hasPendingInput} onClick={() => setVisualMode((previous) => !previous)} className={buttonClass(visualMode ? "primary" : "neutral")} aria-pressed={visualMode}>
                   {visualMode ? "화면 편집 모드" : "항목 편집 모드"}
                 </button>
-                <button type="button" onClick={() => { void loadOverrides(activeNs); }} className={buttonClass()} aria-label="목록 새로고침">
+                <button type="button" disabled={saving || hasPendingInput} onClick={() => { void loadOverrides(activeNs); }} className={buttonClass()} aria-label="목록 새로고침">
                   <RefreshCw className="h-4 w-4" />
                 </button>
                 {namespace?.channel === "build" ? (
                   <>
-                  <button type="button" onClick={() => { void triggerSiteDeploy("preview"); }} disabled={deploying} className={buttonClass()}>
+                  <button type="button" onClick={() => { void triggerSiteDeploy("preview"); }} disabled={deploying || saving || hasPendingInput} className={buttonClass()}>
                     배포 검증
                   </button>
-                  <button type="button" onClick={() => { void triggerSiteDeploy("production"); }} disabled={deploying} className={buttonClass("success")}>
+                  <button type="button" onClick={() => { void triggerSiteDeploy("production"); }} disabled={deploying || saving || hasPendingInput} className={buttonClass("success")}>
                     <RefreshCw className={`h-4 w-4 ${deploying ? "animate-spin" : ""}`} />
                     운영에 반영
                   </button>
@@ -547,13 +578,14 @@ export default function AdminCmsPage() {
               </p>
             </div>
           ) : (
-            <div className="mx-auto max-w-4xl space-y-5 p-4 pb-24">
+            <fieldset disabled={saving} className="min-w-0 space-y-5 border-0 p-4 pb-24">
               <p className={`${ADMIN_CARD} rounded-lg px-3 py-2 text-xs leading-5 text-slate-400`}>
                 {visualMode ? `화면 편집 초안은 이 브라우저에 보관됩니다. ${namespace.channel === "build" ? "검토 후 ‘발행’하고 ‘운영에 반영’을 눌러 주세요." : "‘발행’을 누르면 다음 요청부터 바로 적용됩니다."}` : channel?.hint}
               </p>
-              {visualMode && namespace.channel === "build" ? (
-                <VisualPreview key={`${activeNs}:${selectedKey}`} ns={activeNs} entryKey={selectedKey}
-                  base={effectiveBaseFields} value={draft} onChange={setDraft} />
+              {visualMode && namespace.editor !== "prompt" ? (
+                <VisualPreview key={activeNs} ns={activeNs} entryKey={selectedKey}
+                  base={effectiveBaseFields} value={mergeCopy(effectiveBaseFields, draft)} onChange={setDraft}
+                  entries={previewEntries} selectedPath={selectedPath} onSelectEntry={selectEntry} onPendingChange={setHasPendingInput} disabled={saving} />
               ) : null}
 
               <details open={!visualMode}>
@@ -600,29 +632,30 @@ export default function AdminCmsPage() {
               )}
 
               </details>
-              <div className="flex flex-wrap gap-2 border-t border-slate-800 pt-4">
+              <div className={styles.saveBar}>
+                {hasPendingInput ? <p role="status" className="w-full text-sm">입력한 문구를 먼저 ‘초안에 적용’하거나 ‘입력 되돌리기’를 눌러 주세요.</p> : null}
                 <button type="button" onClick={() => {
                   if (!visualMode) { void save("draft"); return; }
                   try {
                     window.localStorage.setItem(`${LOCAL_DRAFT_PREFIX}${entryId(activeNs, selectedKey)}`, JSON.stringify(draft));
                     setMessage("이 브라우저에 초안을 저장했습니다. 서비스 발행본은 바뀌지 않았습니다.");
                   } catch { setError("브라우저 저장 공간이 부족해 초안을 저장하지 못했습니다."); }
-                }} disabled={saving} className={buttonClass()}>
+                }} disabled={saving || hasPendingInput} className={buttonClass()}>
                   {visualMode ? "브라우저에 초안 저장" : "임시저장"}
                 </button>
-                {!visualMode ? <button type="button" onClick={() => { void save("review"); }} disabled={saving} className={buttonClass()}>
+                {!visualMode ? <button type="button" onClick={() => { void save("review"); }} disabled={saving || hasPendingInput} className={buttonClass()}>
                   검수 요청
                 </button> : null}
-                <button type="button" onClick={() => { void save("published"); }} disabled={saving} className={buttonClass("primary")}>
+                <button type="button" onClick={() => { void save("published"); }} disabled={saving || hasPendingInput} className={buttonClass("primary")}>
                   <Send className="h-4 w-4" />
                   발행
                 </button>
                 {selectedOverride?.status === "published" ? (
-                  <button type="button" onClick={() => { void save("archived"); }} disabled={saving} className={buttonClass("warn")}>
+                  <button type="button" onClick={() => { void save("archived"); }} disabled={saving || hasPendingInput} className={buttonClass("warn")}>
                     발행 해제
                   </button>
                 ) : null}
-                <button type="button" onClick={() => { void revertToBase(); }} disabled={saving} className={buttonClass("danger")}>
+                <button type="button" onClick={() => { void revertToBase(); }} disabled={saving || hasPendingInput} className={buttonClass("danger")}>
                   {selectedOverride ? <Trash2 className="h-4 w-4" /> : <RotateCcw className="h-4 w-4" />}
                   기본값으로 되돌리기
                 </button>
@@ -637,7 +670,7 @@ export default function AdminCmsPage() {
                   onRestore={(version) => { void restoreRevision(version); }}
                 />
               </section>
-            </div>
+            </fieldset>
           )}
         </section>
       </div>
