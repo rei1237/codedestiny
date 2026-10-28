@@ -8,6 +8,18 @@ import {buildCareerReport,careerNatalInput,careerShare,CAREER_URL} from '@/lib/s
 import styles from './career.module.css';
 
 const login=()=>{const next='/saju/career-style/';window.location.assign(`/login/?next=${encodeURIComponent(next)}&returnTo=${encodeURIComponent(next)}`);};
+type Insight={id:string;title:string;basis:string;scene:string;condition:string;action:string};
+const chapterArt:Record<number,{src:string;alt:string;width:number;height:number;caption:string}>={
+ 0:{src:'/images/career-style/yeoni-work-style.webp',alt:'노트와 나침반으로 일의 방향을 살펴보는 연이',width:1536,height:1024,caption:'직업의 이름보다 나에게 맞는 일의 조건부터.'},
+ 2:{src:'/images/saju/yeoni-moonlight-reading.webp',alt:'달빛이 들어오는 창가에서 책을 읽는 연이',width:960,height:640,caption:'같은 성향도 어떤 환경을 만나느냐에 따라 다르게 쓰일 수 있어요.'},
+ 5:{src:'/images/career-style/yeoni-role-exploration-v1.webp',alt:'창작과 분석, 기획과 협업의 여러 활동을 살펴보는 연이',width:1200,height:800,caption:'직업을 정하기보다 여러 역할을 경험해 보세요.'},
+ 7:{src:'/images/yeoni/welcome/yeoni-welcome-v1-640.webp',alt:'꽃을 들고 새로운 시작을 응원하는 연이',width:640,height:960,caption:'작은 경험 하나가 나를 설명하는 새로운 문장이 됩니다.'},
+};
+function InsightReading({item}:{item:Insight}){return <div className={styles.insight}>
+ <h4>{item.title}</h4><p className={styles.basis}><strong>해석의 근거</strong>{item.basis}</p>
+ <p>{item.scene}</p><p><strong className={styles.conditionLabel}>도움 되는 조건</strong>{item.condition}</p>
+ <div className={styles.practice}><strong>이렇게 확인해 보세요</strong><p>{item.action}</p></div>
+</div>;}
 export default function CareerStyleClient(){
  const state=useProfiles({forceFreshOnMount:true});
  const [opened,setOpened]=useState(false),[shareStatus,setShareStatus]=useState(''),[manual,setManual]=useState(false);
@@ -64,20 +76,23 @@ export default function CareerStyleClient(){
     <p>달력: {result.report.analysis.natal.calculationMeta.original.calendarType==='solar'?'양력 (달력 미지정 시 기본값)':result.report.analysis.natal.calculationMeta.original.leapMonth?'음력 윤달':'음력'}. 출생지: {result.report.analysis.natal.calculationMeta.location.name} · {result.report.analysis.natal.calculationMeta.location.timezone}. 시각 보정: {result.report.analysis.natal.calculationMeta.timeUnknown?'시간 미상으로 시주 제외':`${result.report.analysis.natal.calculationMeta.correction.appliedMinutes}분`}.</p>
     {result.report.limitations.map((line:string)=><p key={line}>{line}</p>)}
    </details>
-   <nav className={styles.contents} aria-label="리포트 목차">{result.report.sections.map((section:{title:string},i:number)=><a key={section.title} href={`#career-chapter-${i+1}`}>{section.title}</a>)}</nav>
+   <nav className={styles.contents} aria-label="리포트 목차">{result.report.sections.map((section:{title:string},i:number)=><a key={section.title} href={`#career-chapter-${i+1}`}><span aria-hidden="true">{String(i+1).padStart(2,'0')}</span>{section.title}</a>)}</nav>
    {result.report.sections.map((section,i)=><section className={styles.chapter} key={section.title} id={`career-chapter-${i+1}`}>
-    <h3>{section.title}</h3>
-    {i===2&&<figure className={styles.chapterArt}>
-     <img src="/images/saju/yeoni-moonlight-reading.webp" alt="달빛이 들어오는 창가에서 책을 읽는 연이" width={960} height={640} loading="lazy" decoding="async"/>
-     <figcaption>내가 편안한 조건을 천천히 살펴보세요. 이해를 돕는 공통 삽화입니다.</figcaption>
+    <header className={styles.chapterHeading}><span aria-hidden="true">{String(i+1).padStart(2,'0')}</span><h3>{section.title}</h3></header>
+    <p className={styles.chapterLead}>{section.paragraphs[0]}</p>
+    {chapterArt[i]&&<figure className={`${styles.chapterArt} ${i===7?styles.closingArt:''}`}>
+     <img src={chapterArt[i].src} alt={chapterArt[i].alt} width={chapterArt[i].width} height={chapterArt[i].height} loading="lazy" decoding="async"/>
+     <figcaption>{chapterArt[i].caption}<small>이해를 돕는 공통 삽화입니다.</small></figcaption>
     </figure>}
-    {i===5&&<figure className={styles.chapterArt}>
-     <img src="/images/career-style/yeoni-role-exploration-v1.webp" alt="창작과 분석, 기획과 협업의 여러 활동을 살펴보는 연이" width={1200} height={800} loading="lazy" decoding="async"/>
-     <figcaption>직업을 정하기보다 여러 역할을 경험해 보세요. 탐색을 돕는 공통 삽화입니다.</figcaption>
-    </figure>}
-    {section.paragraphs.map((text:string)=><p key={text}>{text}</p>)}
+    {section.paragraphs.slice(1).map((text:string)=><p key={text}>{text}</p>)}
     {section.axes?.map(axis=><div className={styles.axis} key={axis.id}><h4>{axis.title}</h4><small>{axis.basis}</small><p>{axis.reading}</p><p><strong>강점을 쓰기 쉬운 조건</strong> {axis.easy}</p><p><strong>보완하면 편해지는 조건</strong> {axis.support}</p></div>)}
     {section.roles?.map((role,index)=><div className={styles.axis} key={`${role.title}-${index}`}><h4>{role.title}</h4><p>{role.reason}</p><p><strong>연습할 역량</strong> {role.skill}</p><p><strong>직접 확인할 활동</strong> {role.activity}</p></div>)}
+    {section.insights?.[0]&&<InsightReading item={section.insights[0]}/>}
+    {section.insights?.length>1&&<details className={styles.deeper}><summary>{section.title} — 추가 해석 {section.insights.length-1}가지 읽기</summary>
+     {section.insights.slice(1).map((item:Insight)=><InsightReading key={item.id} item={item}/>)}
+    </details>}
+    {section.analysisNote&&<p className={styles.analysisNote}>{section.analysisNote}</p>}
+    <a className={styles.nextChapter} href={i<7?`#career-chapter-${i+2}`:'#start'}>{i<7?`다음 장 · ${result.report.sections[i+1].title}`:'프로필 선택으로 돌아가기'}</a>
    </section>)}
    <p className={styles.notice}>{result.report.disclaimer}</p>
    <footer className={styles.share}><h3>나를 알아가는 질문, 함께 나눠 볼까요?</h3><p>공유는 선택이에요. 유형 요약과 소개 링크만 전달하며, 이름·출생정보·개인 리포트 본문은 포함하지 않습니다.</p>

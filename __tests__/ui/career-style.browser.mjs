@@ -42,6 +42,11 @@ try{
  await open();
  const first=await report.locator('header h2').innerText();
  assert.equal(await report.locator('section[id^="career-chapter-"]').count(),8);
+ const extra=report.locator('summary').filter({hasText:'추가 해석'});
+ for(const summary of await extra.all())await summary.click();
+ assert.ok(await report.getByText('해석의 근거',{exact:true}).count()>8);
+ assert.ok(await report.getByText('이렇게 확인해 보세요',{exact:true}).count()>8);
+ for(const summary of await extra.all())await summary.click();
  await page.getByRole('button',{name:/테스트 둘/}).click();
  await page.waitForFunction(first=>document.querySelector('article header h2')?.textContent!==first,first);
  await report.getByText('계산 근거와 해석 범위 확인').click();
@@ -60,7 +65,7 @@ try{
   await page.setViewportSize({width,height:900});await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';window.scrollTo({top:0,behavior:'instant'});});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),`overflow ${width}`);
   await page.screenshot({path:`.tmp/career-style/landing-${width}.png`});
-  await report.locator('header').scrollIntoViewIfNeeded();await page.screenshot({path:`.tmp/career-style/report-${width}.png`});
+  await report.locator(':scope > header').scrollIntoViewIfNeeded();await page.screenshot({path:`.tmp/career-style/report-${width}.png`});
   for(const img of await report.locator('img').all()){
    await img.scrollIntoViewIfNeeded();
    await img.evaluate(async el=>{await el.decode();if(!el.naturalWidth)throw Error('Report image failed to load');});
@@ -68,6 +73,11 @@ try{
   await page.locator('#career-chapter-3').scrollIntoViewIfNeeded();
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),`report image overflow ${width}`);
   await page.screenshot({path:`.tmp/career-style/chapter-art-${width}.png`});
+  const combination=page.locator('#career-chapter-4');
+  await combination.scrollIntoViewIfNeeded();
+  await combination.screenshot({path:`.tmp/career-style/combinations-${width}.png`});
+  await page.locator('#career-chapter-5').scrollIntoViewIfNeeded();
+  await page.screenshot({path:`.tmp/career-style/axes-${width}.png`});
  }
  await page.keyboard.press('Tab');assert.ok(await page.evaluate(()=>document.activeElement!==document.body));
  // Logout, changed account, empty cards, errors and no stale report after invalidation.
