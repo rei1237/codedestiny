@@ -6,6 +6,15 @@ let restore, history, find, mark, credit, create, external;
 const query = value => ({ lean: async () => value });
 beforeAll(async () => {
  const models = await import('../../worker/lib/models.js');
+ const paymentDb = await import('../../worker/payments/db.js');
+ jest.unstable_mockModule('../../worker/payments/db.js', () => ({ ...paymentDb,
+  withPaymentDb: async (_env, _ctx, fn) => fn({ transaction: async callback => callback({
+   findOne: async (_model, filter) => find({ ...filter, _id: String(filter._id), userId: String(filter.userId) }).lean(),
+   updateOne: async (_model, ...args) => mark(...args),
+   findOneAndUpdate: async (_model, filter, update) => credit(String(filter._id), update, expect.any(Object)),
+   insertOne: async (_model, row) => create(row),
+  }) }),
+ }));
  jest.unstable_mockModule('../../worker/lib/models.js', () => ({ ...models,
   PointHistory: { findOne: (...args) => find(...args), updateOne: (...args) => mark(...args), create: (...args) => create(...args) },
   User: { findByIdAndUpdate: (...args) => query(credit(...args)) },

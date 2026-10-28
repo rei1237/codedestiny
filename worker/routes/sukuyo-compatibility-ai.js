@@ -1740,7 +1740,6 @@ async function restorePrepaidAccessOnFailure(env, auth, access, error) {
   if (!isObjectIdLike(evidenceId)) return false; // PG 직접결제(merchantUid 문자열)는 재시도로 자가복구되므로 제외.
 
   const userId = String(auth?.userId || "");
-  const now = new Date();
   const failureMessage = clean(error?.message || error || "sukuyo compatibility generation failed", 500);
 
   try {
@@ -1749,41 +1748,8 @@ async function restorePrepaidAccessOnFailure(env, auth, access, error) {
       return await restoreSukuyoMonthlyRefund(env, { userId, evidenceId, failureMessage });
     }
 
-    // accessType === "paid" → 코인 PointHistory 차감 역계산.
-    const history = await PointHistory.findOne({
-      _id: evidenceId,
-      userId,
-      kind: "deduct",
-      featureKey: FEATURE_KEY,
-      "metadata.refundedForServiceExecution": { $ne: true },
-    }).lean();
-    if (!history) return false;
-    // 가격이나 요청 금액이 아닌 원 차감 행의 음수 delta만 복원 근거다.
-    const deducted = Number(history.delta);
-    const refundCoins = Number.isFinite(deducted) && deducted < 0 ? Math.floor(-deducted) : 0;
-    if (!refundCoins) return false;
-    const marked = await PointHistory.updateOne(
-      { _id: history._id, userId, "metadata.refundedForServiceExecution": { $ne: true } },
-      { $set: { "metadata.refundedForServiceExecution": true, "metadata.serviceExecutionRefundedAt": now, "metadata.serviceExecutionFailureMessage": failureMessage } },
-    );
-    if (!marked.modifiedCount) return false;
-    if (refundCoins > 0) {
-      const updated = await User.findByIdAndUpdate(userId, { $inc: { points: refundCoins } }, { new: true, projection: { points: 1 } }).lean();
-      await PointHistory.create({
-        userId,
-        kind: "refund",
-        delta: refundCoins,
-        balanceAfter: Math.max(0, Math.floor(Number(updated?.points || 0))),
-        reason: `${COMPATIBILITY_TITLE} 생성 실패 환급`,
-        featureKey: FEATURE_KEY,
-        metadata: {
-          refundedForServiceExecution: true,
-          originalPointHistoryId: String(history._id || ""),
-          failureMessage,
-        },
-      }).catch(() => {});
-    }
-    return true;
+    const { restoreSukuyoLegacyRefund } = await import("../lib/sukuyo-legacy-refund.js");
+    return await restoreSukuyoLegacyRefund(env, { userId, evidenceId, failureMessage });
   } catch (restoreError) {
     logSukyoAi("[Sukyo AI LLM Refund Failed]", {
       route: "/api/sukuyo-compatibility-ai/generate",
