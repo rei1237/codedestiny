@@ -34,18 +34,17 @@ async function assertEssentials(page, label) {
     ['all fortunes button', '.cdh-all-cta__btn'],
     // 미니게임은 쉬는 중이다(b8f2fcb7a). 마지막 줄은 "작은 운세 한 모금" 접힘이고, 접힘 버튼(summary)이 보이면 된다.
     ['light fortunes fold', '#cdhLightFortunes > summary'],
-    ['yeoni consultation door', '#fortuneGatewayEntry'],
+    ['fusion consultation', '#cdhFusionSignature'],
     ['neo letter consultation', '#cdhNeoLetterSlot .cdh-neo-letter'],
-    ['yeongnyangi main banner', '#cdhYeongnyangiSlot .cd-soulcat-entry .cd-soulcat-entry__cta'],
-    ['music video', '#cdhMoonlightMv'],
+    ['music video', '.cdh-story > summary'],
     ['moonlight story toggle', '.cdh-story__toggle'],
   ];
-  for (const tab of await page.locator('[data-consult-tab]').all()) {
-    await tab.click();
-    assert.equal(await tab.getAttribute('aria-selected'), 'true');
-    assert.equal(await page.locator('.cdh-consult > [role=tabpanel]:visible').count(), 1);
+  assert.equal(await page.locator('#cdSigGrid .cd-sig-card--intro').count(), 2);
+  for (const concern of await page.locator('[data-cd-concern]').all()) {
+    await concern.click();
+    assert.equal(await concern.getAttribute('aria-expanded'), 'true');
+    assert.equal(await page.locator('[data-cd-concern-panel]:visible').count(), 1);
   }
-  await page.locator('[data-consult-tab]').first().click();
   for (const [name, selector] of essentials) {
     const node = page.locator(selector).first();
     assert.ok(await node.isVisible(), `${label}: ${name} is visible`);
@@ -87,7 +86,7 @@ async function assertEssentials(page, label) {
 
       // 강약: 대표 상담 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
       const order = await page.evaluate(() => {
-        const nodes = [document.getElementById('cdSignatureConsult'), document.getElementById('cdhFusionSignature'), document.getElementById('cdQuickServices'), document.querySelector('.cdh-honey'), document.querySelector('.cdh-consult-browser'), document.getElementById('cdConcernPick'), document.getElementById('cdhPass'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.getElementById('cdhMoonlightMv'), document.querySelector('.cdh-story')];
+        const nodes = [document.getElementById('cdhFusionSignature'), document.getElementById('cdhNeoLetterSlot'), document.getElementById('cdSignatureConsult'), document.getElementById('cdConcernPick'), document.getElementById('cdQuickServices'), document.getElementById('cdhPass'), document.querySelector('.cdh-all-cta'), document.querySelector('.cdh-links'), document.querySelector('.cdh-story')];
         return {
           dom: nodes.every((node, index) => index === 0 || Boolean(nodes[index - 1].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)),
           visual: nodes.map((node) => node.getBoundingClientRect().top + scrollY),
@@ -125,30 +124,31 @@ async function assertEssentials(page, label) {
       assert.equal(await page.locator('#cdConcernPick .cd-concern__q-link img').first().evaluate((img) => getComputedStyle(img).backgroundColor) !== 'rgb(229, 229, 229)', true, `${width}px question avatar has no grey box`);
       assert.equal(await page.locator('#cdhLightFortunes').evaluate((node) => node.open), false, `${width}px light fortunes start folded`);
       assert.ok(await page.locator('#cdhLightFortunes .cdh-light__list a').count() > 0, `${width}px light fortunes fold holds its links`);
-      assert.equal(await page.locator('#fortuneGatewayEntry').count(), 1, `${width}px one Yeoni consultation door`);
-      assert.match(await page.locator('#fortuneGatewayEntry').textContent(), /5,000원/, `${width}px Yeoni door states 5,000원`);
+      assert.equal(await page.locator('#fortuneGatewayEntry').count(), 0, `${width}px no duplicate Yeoni panel`);
+      assert.equal(await page.locator('#cdSigGrid [data-cd-signature-id="fortune-chat"]').count(), 1);
+      assert.equal(await page.locator('#cdSigGrid [data-cd-signature-id="yeongnyangi-question"]').count(), 1);
       assert.deepEqual(await page.locator('#cdQuickServices .cdh-free-card').evaluateAll((cards) => cards.map((card) => card.dataset.cdSignatureId || card.dataset.cdServiceId)), ['saju', 'tarot', 'ziwei', 'sukuyo', 'vedic', 'astrology'], `${width}px free cards keep the method order`);
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card img').first().evaluate((img) => getComputedStyle(img).backgroundColor), 'rgba(0, 0, 0, 0)', `${width}px free card icon has no grey box`);
       // 달빛 이야기: 접혀 있다가 열면 노벨·음악 카드 두 장이 펼쳐진다.
       assert.equal(await page.locator('.cdh-story__card').first().isVisible(), false, `${width}px story cards start folded`);
       await page.locator('.cdh-story__toggle').click();
       const story = await page.locator('.cdh-story__card').evaluateAll((cards) => cards.map((card) => ({ href: card.getAttribute('href'), top: Math.round(card.getBoundingClientRect().top), visible: card.getBoundingClientRect().width > 0 })));
-      assert.deepEqual(story.map((card) => card.href), ['/codedestiny-novel.html', '/music/'], `${width}px story holds novel and music`);
-      // 640px 이하는 한 줄에 한 장씩 쌓는다(styles/home-funnel.css .cdh-story__spread).
-      const sideBySide = width > 640;
-      assert.ok(story.every((card) => card.visible) && (Math.abs(story[0].top - story[1].top) < 40) === sideBySide, `${width}px story cards open ${sideBySide ? 'side by side' : 'stacked'}`);
+      assert.deepEqual(story.map((card) => card.href), ['/codedestiny-novel.html'], `${width}px story holds novel and music`);
+      assert.ok(story.every(card => card.visible), 'novel remains visible inside the story');
+      assert.equal(await page.locator('.cdh-story #cdhMoonlightMv').count(), 1, 'the existing music video belongs to the story');
+      assert.equal(await page.locator('.cdh-story a[href="/music/"]').count(), 1, 'one music destination without a duplicate card');
       await page.locator('.cdh-story__toggle').click();
 
       // 모든 상담을 한 레일에서 순서대로 탐색한다.
-      assert.equal(await page.locator('#cdSigGrid .cd-sig-card').count(), 10);
-      assert.deepEqual(await page.locator('#cdSigGrid .cd-sig-card').evaluateAll(cards => cards.slice(0, 4).map(card => card.dataset.cdSignatureId || card.dataset.cdServiceId)), ['fusion-fortune', 'fortune-chat', 'neo-email', 'yeongnyangi-question']);
-      assert.equal(await page.locator('#cdhQuestionSlot').evaluate(node => node.closest('details').open), true);
+      assert.equal(await page.locator('#cdSigGrid .cd-sig-card').count(), 8);
+      assert.deepEqual(await page.locator('#cdSigGrid .cd-sig-card').evaluateAll(cards => cards.slice(0, 2).map(card => card.dataset.cdSignatureId)), ['fortune-chat', 'yeongnyangi-question']);
+      assert.equal(await page.locator('#cdSignatureConsult #cdhQuestionSlot #cdConcernPick').count(), 1);
       const viewport = page.locator('#cdSigViewport');
       assert.equal(await viewport.evaluate(node => getComputedStyle(node).overflowX), 'auto');
       await page.locator('[data-sig-next]').click();
       await page.waitForTimeout(100);
       assert.ok(await viewport.evaluate(node => node.scrollLeft) > 0);
-      assert.equal(await page.locator('[data-sig-position]').textContent(), '2 / 10');
+      assert.equal(await page.locator('[data-sig-position]').textContent(), width > 1000 ? '02–04 / 08' : width > 760 ? '02–03 / 08' : '02 / 08');
       assert.equal(await page.locator('#cdSigGrid .cd-sig-card__cta').evaluateAll((labels) => labels.filter((label) => getComputedStyle(label).backgroundColor !== 'rgba(0, 0, 0, 0)').length), 0, `${width}px deck labels stay text links`);
 
       // 채움 CTA = 배경과 대비 1.5 이상인 불투명 채움이나 그라디언트를 가진 버튼 크기(72px 이하) 요소.
@@ -265,9 +265,9 @@ async function assertEssentials(page, label) {
       await page.evaluate(() => { document.documentElement.classList.remove('neo-mode'); document.body.classList.remove('neo-mode'); });
 
       if (width === 390) {
-        const leadImage = page.locator('.cd-sig-card--love .cd-sig-card__img');
+        const leadImage = page.locator('[data-cd-signature-id="fortune-chat"] .cd-sig-card__img');
         await leadImage.scrollIntoViewIfNeeded();
-        await page.waitForFunction(() => document.querySelector('.cd-sig-card--love .cd-sig-card__img')?.naturalWidth > 0);
+        await page.waitForFunction(() => document.querySelector('[data-cd-signature-id="fortune-chat"] .cd-sig-card__img')?.naturalWidth > 0);
         assert.ok(await leadImage.evaluate((image) => image.naturalWidth > 0), 'deck card image loads from the local CDN fixture');
       }
 

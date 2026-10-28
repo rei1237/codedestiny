@@ -2,7 +2,7 @@
   "id": "new-year-expert",
   "featureKey": "new-year-ai-consultation",
   "title": "신년운세 전문가 상담",
-  "hook": "명식 위에 올해의 세운을 겹쳐, 열두 달 어디에 힘을 쓸지 짚어 주는 작전 브리핑",
+  "hook": "한 해의 기대와 걱정을 펼쳐 놓고, 준비할 일과 힘을 아낄 때를 살펴보세요.",
   "chaptersLabel": "네오의 신년 작전 브리핑 목차",
   "masters": [
     {
@@ -142,7 +142,7 @@
     {
       "id": "editorial-1",
       "title": "올해의 판세를 읽고, 나의 작전을 세웁니다.",
-      "text": "네오가 한 해의 흐름을 짚고, 힘을 쓸 때와 숨을 고를 때를 현실적인 전략으로 정리합니다.",
+      "text": "한 해의 기대와 걱정을 펼쳐 놓고, 준비할 일과 힘을 아낄 때를 살펴보세요.",
       "src": "/images/service-introductions/new-year-ai.webp",
       "width": 1536,
       "height": 1024,

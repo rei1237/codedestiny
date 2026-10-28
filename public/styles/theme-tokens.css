@@ -571,4 +571,4 @@ html[data-cd-theme="neo"] {
 }
 
 /* 꿀꿀운세 공통 달빛 예화 내비게이션: 화면 테마와 무관한 브랜드 크롬. */
-:root { --cd-nav-bg:#fff9f4; --cd-nav-surface:#fffdf9; --cd-nav-ink:#493647; --cd-nav-muted:#6b4d5e; --cd-nav-line:#ddc7b1; --cd-nav-active:#8d3658; --cd-nav-active-bg:#f8e4ea; --cd-nav-gold:#967345; --cd-nav-shadow:0 -6px 24px rgba(64,42,56,.10); }
+:root { --cd-nav-bg:#2e1425; --cd-nav-surface:#3b2031; --cd-nav-ink:#fff2df; --cd-nav-muted:#d5bfc6; --cd-nav-line:#85664f; --cd-nav-active:#f1d59c; --cd-nav-active-bg:#4b2a3c; --cd-nav-gold:#dfbd80; --cd-nav-shadow:0 8px 28px rgba(37,15,29,.24); }

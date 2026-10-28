@@ -559,16 +559,10 @@ for (const shell of [
     source.includes("html.neo-mode body .cd-sig-card__title"),
     `${shell}: 네오 모드 텍스트 오버라이드가 빠지면 배경만 바뀌고 글자가 안 보입니다(반쪽 오버라이드 금지)`,
   );
-  // 대표 상담 덱은 신규 네 장과 기존 여섯 장이다. 같은 상품을 다른 블록에 겹쳐 두지 않는다.
-  // 나침반·섬은 VVIP 서고로 이관했다. 개수를 고정하는 이유는 미관이 아니라 중복 노출 방지 —
-  // 다른 컬렉션으로 옮긴 카드가 슬그머니 되돌아오는 것을 막는다(2026-08-01: 3 → 4, 2026-09-02: 4 → 5).
-  const section = source.slice(source.indexOf('id="cdSignatureConsult"'));
-  const sectionEnd = section.indexOf("</section>");
-  const sectionHtml = sectionEnd > 0 ? section.slice(0, sectionEnd) : section;
-  assert(
-    (sectionHtml.match(/<a class="cd-sig-card/g) || []).length === 10,
-    `${shell}: 대표 운명 상담 카드는 10장이어야 합니다 (현재 ${(sectionHtml.match(/<a class="cd-sig-card/g) || []).length}장)`,
-  );
+  // Approved rail: two introductions and six products. Concern links below are independent.
+  const sectionHtml = source.match(/<div class="cd-sig__grid" id="cdSigGrid"[^>]*>([\s\S]*?)<\/div>/)?.[1] || '';
+  const cards = sectionHtml.match(/<a class="cd-sig-card/g) || [];
+  assert(cards.length === 8, shell + ': 대표 상담 소개 2장과 상품 6장이 필요합니다 (현재 ' + cards.length + '장)');
   // 2026-10-17 "직관성": 대표 상담 아래 초융합 추천 블록은 홈에서 뺐다(초융합은 전체 운세 시트에서 들어간다).
   // 홈에 다시 붙어 대표 상담 카드와 겹쳐 보이지 않도록 0장으로 고정한다.
   assert(!source.includes('class="cd-sig-card cd-sig-card--fusion"'), shell + ': 초융합 추천 카드는 홈에 다시 두지 않는다');

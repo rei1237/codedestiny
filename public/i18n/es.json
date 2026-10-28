@@ -1708,7 +1708,7 @@
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
       "allTitle": "Todas las lecturas",
-      "allSignatureLink": "Ver las seis consultas destacadas",
+      "allSignatureLink": "Ver consultas destacadas",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
       "allClear": "Clear search",
@@ -2229,6 +2229,20 @@
       "from": "Desde {price}",
       "unlock": "Desbloquear por {price}",
       "perUse": "{price} por lectura"
+    },
+    "choice": {
+      "lead": "Explora las consultas y elige qué te preocupa.",
+      "yeoniTitle": "Hablar con Yeoni",
+      "yeoniDesc": "Explora paso a paso con Yeoni lo que quieres compartir.",
+      "controls": "Cambiar tarjeta de consulta",
+      "positions": "Posición de las tarjetas",
+      "pause": "Detener el cambio automático",
+      "paused": "Cambio automático detenido",
+      "position": "Ver desde la tarjeta {number}",
+      "expand": "Ampliar",
+      "collapse": "Contraer",
+      "samplesContext": "Detalles de consulta",
+      "samplesAction": "Ver ejemplos"
     }
   },
   "terms": {

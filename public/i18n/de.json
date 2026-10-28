@@ -1708,7 +1708,7 @@
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
       "allTitle": "Alle Deutungen",
-      "allSignatureLink": "Die sechs Signature-Deutungen ansehen",
+      "allSignatureLink": "Ausgewählte Beratungen ansehen",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
       "allClear": "Clear search",
@@ -2229,6 +2229,20 @@
       "from": "Ab {price}",
       "unlock": "Für {price} freischalten",
       "perUse": "{price} je Deutung"
+    },
+    "choice": {
+      "lead": "Sieh dir die Beratungen an und wähle dein Anliegen.",
+      "yeoniTitle": "Mit Yeoni sprechen",
+      "yeoniDesc": "Besprich mit Yeoni Schritt für Schritt, was dich beschäftigt.",
+      "controls": "Beratungskarten wechseln",
+      "positions": "Position der Beratungskarten",
+      "pause": "Automatischen Kartenwechsel stoppen",
+      "paused": "Automatischer Kartenwechsel gestoppt",
+      "position": "Ab Karte {number} anzeigen",
+      "expand": "Aufklappen",
+      "collapse": "Zuklappen",
+      "samplesContext": "Beratungsinhalte",
+      "samplesAction": "Beispiele ansehen"
     }
   },
   "terms": {

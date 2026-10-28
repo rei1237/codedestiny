@@ -1708,7 +1708,7 @@
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
       "allTitle": "Semua bacaan",
-      "allSignatureLink": "Lihat enam konsultasi utama",
+      "allSignatureLink": "Lihat konsultasi pilihan",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
       "allClear": "Clear search",
@@ -2229,6 +2229,20 @@
       "from": "Dari {price}",
       "unlock": "Buka dengan {price}",
       "perUse": "{price} setiap bacaan"
+    },
+    "choice": {
+      "lead": "Lihat cara konsultasi, kemudian pilih perkara yang merisaukan anda.",
+      "yeoniTitle": "Berbual dengan Yeoni",
+      "yeoniDesc": "Bincangkan perkara yang ingin dikongsi bersama Yeoni, langkah demi langkah.",
+      "controls": "Tukar kad konsultasi",
+      "positions": "Kedudukan kad konsultasi",
+      "pause": "Hentikan pertukaran kad automatik",
+      "paused": "Pertukaran kad automatik dihentikan",
+      "position": "Lihat mulai kad {number}",
+      "expand": "Buka",
+      "collapse": "Tutup",
+      "samplesContext": "Kandungan konsultasi",
+      "samplesAction": "Lihat contoh"
     }
   },
   "terms": {

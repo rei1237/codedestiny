@@ -38,8 +38,8 @@ function installGuide() {
   showScene(0);
   const howTo=document.createElement('details');howTo.className='cd-first__howto';
   howTo.innerHTML=`<summary data-first-copy="howToTitle">${guideText('howToTitle')}</summary><div><h3 data-first-copy="profileTitle">${guideText('profileTitle')}</h3><p data-first-copy="profileBody">${guideText('profileBody')}</p><p data-first-copy="profileSaved">${guideText('profileSaved')}</p><h3 data-first-copy="readingTitle">${guideText('readingTitle')}</h3><p data-first-copy="readingBody">${guideText('readingBody')}</p><p data-first-copy="readingPace">${guideText('readingPace')}</p><h3 data-first-copy="deeperTitle">${guideText('deeperTitle')}</h3><p data-first-copy="deeperBody">${guideText('deeperBody')}</p><p data-first-copy="paymentNote">${guideText('paymentNote')}</p><h3 data-first-copy="actionTitle">${guideText('actionTitle')}</h3><p data-first-copy="actionBody">${guideText('actionBody')}</p></div>`;
-  const anchor = home.querySelector('.cdh-free');
-  if (anchor) anchor.before(root); else home.append(root);
+  const anchor = home.querySelector('.cdh-nav');
+  if (anchor) anchor.append(root); else home.prepend(root);
   const dialog = document.createElement('dialog');
   dialog.className = 'cd-first cd-first__welcome';
   dialog.setAttribute('aria-labelledby','cdFirstTitle');dialog.setAttribute('aria-describedby','cdFirstDescription');
@@ -48,6 +48,13 @@ function installGuide() {
   dialog.querySelector('img').remove();
   dialog.querySelector('[data-first-start]').before(story,howTo);
   const progress = root.querySelector('[data-first-progress]');
+  dialog.append(progress);
+  root.querySelector('.cd-first__bar > span').remove();
+  const replay = root.querySelector('[data-first-replay]');
+  replay.removeAttribute('data-first-copy'); replay.dataset.firstAria='guideLabel'; replay.setAttribute('aria-label',guideText('guideLabel'));
+  replay.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-1 .7-1.5 1-1.5 2.5M12 16v1"/></svg>';
+  dialog.querySelector('#cdFirstTitle').remove(); dialog.querySelector('#cdFirstDescription').remove();
+  story.querySelector('h2').id='cdFirstTitle'; story.querySelector('p').id='cdFirstDescription';
   const formHint = document.createElement('p');
   formHint.className = 'cd-first__form-hint';formHint.dataset.firstCopy='formHint';formHint.hidden = true;
   formHint.textContent = guideText('formHint');
@@ -66,11 +73,11 @@ function installGuide() {
   function begin(){
     close();writeFirstVisit(service,'active',profileReady()?2:1,scope);firstVisitEvent(service,'start',1);sync();
     if(typeof window.cdOneStepFreeSajuEntry === 'function')window.cdOneStepFreeSajuEntry();
-    else {progress.focus();progress.scrollIntoView({block:'center'});}
+    else {dialog.showModal();progress.focus();}
   }
   root.querySelector('[data-first-replay]').addEventListener('click',show);
-  root.querySelector('[data-first-skip]').addEventListener('click',dismiss);
-  root.querySelector('[data-first-continue]').addEventListener('click',begin);
+  dialog.querySelector('[data-first-skip]').addEventListener('click',dismiss);
+  dialog.querySelector('[data-first-continue]').addEventListener('click',begin);
   dialog.querySelector('[data-first-start]').addEventListener('click',begin);
   dialog.querySelectorAll('[data-first-close]').forEach(button=>button.addEventListener('click',dismiss));
   dialog.addEventListener('cancel',event=>{event.preventDefault();dismiss();});
@@ -96,10 +103,10 @@ function installGuide() {
     if(state.status==='active'&&ready&&state.step===1){
       writeFirstVisit(service,'active',2,scope);firstVisitEvent(service,'step',2);
     }
-    root.querySelector('[data-first-title]').textContent = ready?guideText('readyTitle'):guideText('prepareTitle');
-    root.querySelector('[data-first-description]').textContent = ready?guideText('readyBody'):guideText('prepareBody');
-    root.querySelector('[data-first-continue]').textContent = ready?guideText('openWithProfile'):guideText('prepareAction');
-    root.querySelectorAll('[data-first-step]').forEach(el=>{if(Number(el.dataset.firstStep)===(ready?2:1))el.setAttribute('aria-current','step');else el.removeAttribute('aria-current');});
+    dialog.querySelector('[data-first-title]').textContent = ready?guideText('readyTitle'):guideText('prepareTitle');
+    dialog.querySelector('[data-first-description]').textContent = ready?guideText('readyBody'):guideText('prepareBody');
+    dialog.querySelector('[data-first-continue]').textContent = ready?guideText('openWithProfile'):guideText('prepareAction');
+    dialog.querySelectorAll('[data-first-step]').forEach(el=>{if(Number(el.dataset.firstStep)===(ready?2:1))el.setAttribute('aria-current','step');else el.removeAttribute('aria-current');});
     if(resultReady && state.status==='active' && document.getElementById('resultPage')?.getClientRects().length){
       writeFirstVisit(service,'complete',3,scope);firstVisitEvent(service,'complete',3);
       progress.hidden=true;formHint.hidden=true;

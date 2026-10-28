@@ -1708,7 +1708,7 @@
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
       "allTitle": "Tất cả luận giải",
-      "allSignatureLink": "Xem sáu buổi tư vấn tiêu biểu",
+      "allSignatureLink": "Xem các tư vấn nổi bật",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
       "allClear": "Clear search",
@@ -2229,6 +2229,20 @@
       "from": "Từ {price}",
       "unlock": "Mở khóa với {price}",
       "perUse": "{price}/lần"
+    },
+    "choice": {
+      "lead": "Xem cách tư vấn rồi chọn điều bạn đang băn khoăn.",
+      "yeoniTitle": "Trò chuyện với Yeoni",
+      "yeoniDesc": "Cùng Yeoni từng bước gỡ rối điều bạn muốn chia sẻ.",
+      "controls": "Chuyển thẻ tư vấn",
+      "positions": "Vị trí thẻ tư vấn",
+      "pause": "Dừng tự động chuyển thẻ",
+      "paused": "Đã dừng tự động chuyển thẻ",
+      "position": "Xem từ thẻ số {number}",
+      "expand": "Mở rộng",
+      "collapse": "Thu gọn",
+      "samplesContext": "Nội dung tư vấn",
+      "samplesAction": "Xem ví dụ"
     }
   },
   "terms": {

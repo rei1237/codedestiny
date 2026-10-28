@@ -2,7 +2,7 @@
   "id": "love-secret",
   "featureKey": "love-secret-ai-consultation",
   "title": "연애 비책",
-  "hook": "명식으로 나의 연애 방식부터 상대·타이밍·실천까지 읽는 28개 주제",
+  "hook": "왜 비슷한 관계를 반복할까요? 나의 연애 성향과 관계의 거리감을 함께 살펴보세요.",
   "chaptersLabel": "연이와 서한비가 나눠 쓰는 연애 비책 28장",
   "masters": [
     {
@@ -242,7 +242,7 @@
     {
       "id": "editorial-1",
       "title": "마음은 연이가 듣고, 관계의 거리는 서한비가 짚습니다.",
-      "text": "나의 연애 방식에서 상대와의 거리, 갈등과 시기까지 두 마스터가 나누어 읽는 연애 비책입니다.",
+      "text": "왜 비슷한 관계를 반복할까요? 나의 연애 성향과 관계의 거리감을 함께 살펴보세요.",
       "src": "/images/service-introductions/love-secret-ai.webp",
       "width": 1536,
       "height": 1024,

@@ -1557,7 +1557,7 @@
       "chatYeoniGo": "연이와 상담하기",
       "chatNeoGo": "네오와 상담하기",
       "allTitle": "모든 운세",
-      "allSignatureLink": "대표 상담 여섯 장 보기",
+      "allSignatureLink": "대표 상담 둘러보기",
       "allSearchLabel": "모든 운세 검색",
       "allSearchPlaceholder": "이직, 재회, 궁합처럼 찾아보세요",
       "allClear": "검색어 지우기",
@@ -2078,6 +2078,20 @@
       "from": "{price}부터",
       "unlock": "{price}로 해금",
       "perUse": "1회 {price}"
+    },
+    "choice": {
+      "lead": "상담 방식을 먼저 살펴보고, 마음에 남은 고민을 골라보세요.",
+      "yeoniTitle": "연이와 대화하기",
+      "yeoniDesc": "말로 풀어놓고 싶은 고민을 연이와 차근차근 살펴봐요.",
+      "controls": "상담 카드 이동",
+      "positions": "상담 카드 위치",
+      "pause": "상담 카드 넘김 멈추기",
+      "paused": "상담 카드 자동 넘김 멈춤",
+      "position": "상담 카드 {number}번부터 보기",
+      "expand": "펼치기",
+      "collapse": "접기",
+      "samplesContext": "상담별 구성과",
+      "samplesAction": "예시 보기"
     }
   },
   "footer": {

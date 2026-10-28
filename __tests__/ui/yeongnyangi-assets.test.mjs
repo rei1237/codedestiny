@@ -1,47 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync,existsSync} from 'node:fs';
-// 2026-10-18 복구: 영냥이 메인 배너는 1:1 상담 묶음 바로 뒤, 질문 카테고리 앞(#cdhYeongnyangiSlot)에 있다.
-const homeEntry=html=>{
- const start=html.indexOf('data-marker="cd-soulcat-home-primary-v20261008"');
- assert.ok(start>=0,'Yeongnyangi main banner missing');
- return {start,entry:html.slice(start,html.indexOf('</section>',start))};
-};
-test('Yeongnyangi home entry keeps its original artwork and background without SoulCat hosting',()=>{
- const html=readFileSync('index.html','utf8');
- const {start,entry}=homeEntry(html);
- assert.equal((html.match(/class="cd-soulcat-entry"/g)||[]).length,1,'home has one Yeongnyangi entry');
- assert.ok(start>html.indexOf('id="cdhYeongnyangiSlot"'),'entry lives in its home slot');
- assert.ok(start>html.indexOf('class="cdh-consult"'),'entry follows the 1:1 consultations');
- assert.ok(start<html.indexOf('id="cdhQuestionSlot"'),'entry stays before the question catalogue');
- assert.match(entry,/<h2 id="cd-soulcat-title">/);
- assert.ok(!entry.includes('/_soulcat/'),'Independent worker asset dependency returned');
- assert.doesNotMatch(entry,/<style>/);
- const css=readFileSync('styles/saju-reading.css','utf8');
- const paths=[...new Set((entry+css).match(/\/assets\/yeongnyangi\/[a-zA-Z0-9_/.-]+\.webp/g))];
- for(const name of ['hero-800.webp','room-780.webp','room-1440.webp','mackerel.webp'])assert.ok(paths.some(p=>p.endsWith(name)),name);
- for(const path of paths)assert.ok(existsSync('public'+path),path);
+import {readFileSync, existsSync} from 'node:fs';
+
+test('home keeps one Yeongnyangi card with its destination and artwork', () => {
+ const html = readFileSync('index.html', 'utf8');
+ const cards = html.match(/<a class="cd-sig-card cd-sig-card--intro" data-cd-signature-id="yeongnyangi-question"[\s\S]*?<\/a>/g) || [];
+ assert.equal(cards.length, 1);
+ assert.match(cards[0], /href="\/yeongnyangi\/"/);
+ assert.match(cards[0], /\/images\/home\/illustrated\/root-card-yeongnyangi-600\.webp/);
+ assert.ok(existsSync('public/images/home/illustrated/root-card-yeongnyangi-600.webp'));
+ assert.doesNotMatch(html, /data-marker="cd-soulcat-home-primary-v20261008"/);
 });
-test('Yeongnyangi primary entry keeps both destinations and localized service appeal copy',()=>{
- const {entry}=homeEntry(readFileSync('index.html','utf8'));
- assert.match(entry,/href="\/yeongnyangi\/"/);
- assert.match(entry,/href="\/yeongnyangi\/room\/#daily"/);
- assert.doesNotMatch(entry,/utm_(source|medium|campaign|content)=/);
- for(const placement of ['home_hero','home_daily'])assert.ok(entry.includes(`data-cd-portal-placement="${placement}"`));
- assert.doesNotMatch(entry,/Family 이용권|단건 결제\(카드·카카오페이 등\)/);
- for(const fish of ['mackerel','salmon','flounder','tuna'])assert.match(entry,new RegExp(`data-yeongnyangi-price="${fish}"`));
- const authored=JSON.parse(readFileSync('i18n/authored/homeYeongnyangiEntry-01.json','utf8'));
- const files={ko:'ko',en:'en',ja:'ja','zh-CN':'zh-cn','zh-TW':'zh-tw',vi:'vi',hi:'hi',es:'es',fr:'fr',de:'de',nl:'nl',ms:'ms'};
- for(const [key,translations] of Object.entries(authored)){
-  assert.ok(entry.includes(key),key);
-  assert.equal(Object.keys(translations).length,12,key);
-  for(const [locale,file] of Object.entries(files)){
-   const dictionary=JSON.parse(readFileSync(`public/i18n/${file}.json`,'utf8'));
-   assert.equal(key.split('.').reduce((value,part)=>value?.[part],dictionary),translations[locale],`${locale} ${key}`);
+test('Yeongnyangi translations remain available to their other surfaces', () => {
+ const authored = JSON.parse(readFileSync('i18n/authored/homeYeongnyangiEntry-01.json','utf8'));
+ const files = {ko:'ko',en:'en',ja:'ja','zh-CN':'zh-cn','zh-TW':'zh-tw',vi:'vi',hi:'hi',es:'es',fr:'fr',de:'de',nl:'nl',ms:'ms'};
+ for (const [key, translations] of Object.entries(authored)) {
+  assert.equal(Object.keys(translations).length, 12, key);
+  for (const [locale, file] of Object.entries(files)) {
+   const dictionary = JSON.parse(readFileSync(`public/i18n/${file}.json`,'utf8'));
+   assert.equal(key.split('.').reduce((value, part) => value?.[part], dictionary), translations[locale], `${locale} ${key}`);
   }
  }
 });
-test('Yeongnyangi entry stylesheet carries a content cache key so immutable caching cannot pin old banner CSS',()=>{
- // /styles/*.css 는 1년 immutable 이다. 무버전 링크면 새 마크업이 옛 CSS 와 만나 배너가 깨진다.
- for(const file of ['index.html','public/ggulggul/index.html'])assert.match(readFileSync(file,'utf8'),/href="\/styles\/saju-reading\.css\?v=build-[0-9a-f]{12}"/,file);
+test('Yeongnyangi stylesheet carries a content cache key', () => {
+ for (const file of ['index.html','public/ggulggul/index.html']) assert.match(readFileSync(file,'utf8'), /href="\/styles\/saju-reading\.css\?v=build-[0-9a-f]{12}"/, file);
 });

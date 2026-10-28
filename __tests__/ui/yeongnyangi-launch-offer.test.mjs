@@ -1,5 +1,6 @@
 import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
+import {JSDOM} from 'jsdom';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import path from 'node:path';
@@ -34,9 +35,14 @@ test('all 28 catalog products follow the user-confirmed fish ratio and fusion pr
 test('static home fish prices agree with the consultation catalog in every published shell',()=>{
  for(const file of ['index.html','public/index.html','public/ggulggul/index.html','public/static/index.html','public/en/index.html','public/ja/index.html','public/zh/index.html','public/zh-tw/index.html']){
   const html=readFileSync(file,'utf8');
-  for(const fish of ['mackerel','salmon','flounder','tuna']){
-   const match=html.match(new RegExp(`<b data-yeongnyangi-price="${fish}"[^>]*>([^<]+)</b>`));
-   assert.equal(match?.[1],unitPrice(fish).toLocaleString('ko-KR')+'원',`${file}: ${fish}`);
+  const cards=JSDOM.fragment(html).querySelectorAll('.cd-concern__q-link[data-cd-price-key^="yeongnyangi-"]');
+  assert.ok(cards.length > 0, file+': exposes Yeongnyangi question choices');
+  for(const card of cards){
+   const fish=card.dataset.cdPriceKey.split('-').at(-1);
+   const price=card.querySelector('.cd-concern__q-price');
+   assert.ok(price, card.dataset.cdPriceKey);
+   assert.equal(Number(price.textContent.replace(/[^0-9]/g,'')),unitPrice(fish),file+': '+card.dataset.cdPriceKey);
+   assert.equal(price.dataset.cdPlayFeature,card.dataset.cdPriceKey);
   }
  }
 });

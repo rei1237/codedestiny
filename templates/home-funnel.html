@@ -83,7 +83,7 @@
             <div class="cd-af__regions" data-cd-regions role="group" aria-labelledby="cdAllFortunesExploreTitle"></div>
             <div class="cd-af__region-intro" data-cd-region-intro hidden></div>
           </section>
-          <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 여섯 장 보기</span><span aria-hidden="true">→</span></a>
+          <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 둘러보기</span><span aria-hidden="true">→</span></a>
           <div class="cd-af__group">
             <span class="cd-af__label" id="cdAllFortunesMethodTitle" data-cd-trans="shell.fortuneGatewayFilters.fortuneGatewayFilterRow.kx2ok">방식</span>
             <div class="cd-af__chips" role="group" aria-labelledby="cdAllFortunesMethodTitle">
@@ -151,13 +151,13 @@
 
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
-<!-- 강약(2026-10-23): 히어로 바로 아래 대표 상담 덱, 그다음 초융합 띠 → 무료 → 꿀방울 출석. 고민별 디스커버리는 덱과 겹쳐 브랜드 홈(/)에만 둔다. -->
+<div class="cdh-slot" id="cdhFusionSignatureSlot">{{fusionSignature}}</div>
+<div class="cdh-slot" id="cdhNeoLetterSlot">{{neoEmailConsultation}}</div>
 <div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot">{{signature}}</div></div>
-  <div class="cdh-slot">{{consultationMethods}}</div>
-  <details class="cdh-fold"><summary data-cd-trans="home.focused.fusion">여섯 체계로 깊게 읽는 초융합 운세</summary><div class="cdh-fold__content"><div class="cdh-slot" id="cdhFusionSignatureSlot">{{fusionSignature}}</div></div></details>
 <section class="cdh-free" data-home-reveal="free" aria-labelledby="cdhFreeTitle">
   <h2 class="cdh-free__title" id="cdhFreeTitle" data-cd-trans="home.simpleHome.freeTitle">무료로 먼저</h2>
   <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
+  <a class="cdh-free__more" href="/yeongnyangi/room/#daily" data-cd-portal-placement="home_daily"><span>영냥이</span> · <span data-cd-trans="home.yeongnyangiEntry.free">무료 운세 먼저 보기</span><span aria-hidden="true">→</span></a>
 </section>
   <section class="cdh cdh-honey" data-cd-honey-widget aria-labelledby="cdHoneyTitle" hidden>
     <details class="cdh-honey__details"><summary><span id="cdHoneyTitle">출석 · 꿀방울</span><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp" width="192" height="192" loading="lazy" decoding="async" alt=""><p class="cdh-honey__balance"><span>내가 모은 꿀방울</span><strong data-cd-honey-balance>확인 중</strong></p></div></summary>    <div class="cdh-honey__story">
@@ -167,76 +167,7 @@
     <div class="cdh-honey__actions"><button type="button" class="cdh-primary" data-cd-honey-attend disabled>출석 체크 하기</button><button type="button" class="cdh-honey__uses" data-cd-sheet-open="cdHoneySheet" aria-haspopup="dialog" aria-controls="cdHoneySheet">사용처 보기</button></div>
     <p data-cd-honey-status role="status" aria-live="polite"></p><button type="button" data-cd-honey-retry hidden>다시 확인하기</button></details>
   </section>
-<section class="cdh-consult-browser" aria-label="상담 방식 고르기">
-  <div class="cdh-consult-tabs" lang="ko" data-consult-tabs hidden role="tablist" aria-label="상담 방식">
-    <button type="button" id="cdhConsultYeoni" data-consult-tab role="tab" aria-controls="cdhGatewaySlot" aria-selected="true">연이 대화</button>
-    <button type="button" id="cdhConsultNeo" data-consult-tab role="tab" aria-controls="cdhNeoLetterSlot" aria-selected="false" tabindex="-1">네오 이메일</button>
-    <button type="button" id="cdhConsultCat" data-consult-tab role="tab" aria-controls="cdhYeongnyangiSlot" aria-selected="false" tabindex="-1">영냥이 질문</button>
-  </div>
-<div class="cdh-consult" role="group" aria-label="1:1 상담" data-cd-trans-attr="aria-label:home.simpleHome.consultTitle">
-<!-- 1:1 상담 두 입구(2026-10-17 복구): 연이 대화 상담 1회 5,000원(빌더가 가격표와 대조)·네오 이메일 상담. -->
-<div class="cdh-slot" id="cdhGatewaySlot"><section class="fortune-gateway" id="fortuneGatewayEntry" data-fortune-gateway-entry aria-labelledby="fortuneGatewayTitle">
-        <div class="fortune-gateway__entry-shell">
-          <!-- 장식 라인아트(금빛 잎가지·작약)는 styles/fortune-gateway.css 의 mask 로 그린다. 텍스트 없음. -->
-          <span class="fortune-gateway__flora" aria-hidden="true"></span>
 
-<div class="fortune-gateway__entry-copy">
-            <p class="fortune-gateway__eyebrow" data-cd-trans="shell.fortuneGatewayEntryShell.fortuneGatewayEntryCopy.kjx6wsf">운명의 문</p>
-            <h2 id="fortuneGatewayTitle">대화형 간단 운세 상담</h2>
-            <p data-cd-trans="home.gardenCopy.chatLead">연이가 지금 마음에 걸린 일을 대화로 함께 풀어 드려요.</p>
-          </div>
-
-          <div class="fortune-gateway__doors fortune-gateway__doors--solo">
-            <a class="fortune-gateway__door fortune-gateway__door--chat" href="/fortune-chat/?character=yeoni" data-chat-character="yeoni">
-              <!-- 달빛 예화 인장(PR-2). 좌하 모서리 밖으로 걸쳐 두어 카드의 overflow:hidden 이 호만 남긴다. -->
-              <span class="cd-yehwa-seal" aria-hidden="true"></span>
-              <!-- 2026-10-13: 상담 캐릭터는 연이 하나다(네오 상담 문 제거, 다크 모드도 연이).
-                   연이 카드는 작약 화관 꽃돼지 연이 단독 그림을 유지한다(2026-09-15 결정). -->
-              <span class="fortune-gateway__door-art" aria-hidden="true">
-                <span class="fortune-gateway__door-halo"></span>
-                <img class="fortune-gateway__door-art-yeon" src="/images/service-introductions/fortune-chat-yeoni-320.webp" srcset="/images/service-introductions/fortune-chat-yeoni-320.webp 320w, /images/service-introductions/fortune-chat-yeoni-640.webp 640w" sizes="(max-width: 640px) calc(100vw - 32px), 640px" alt="연이·꽃돼지 연이의 연이와 나누는 대화 상담 상담 장면" width="640" height="427" loading="lazy" decoding="async">
-                <span class="cd-yehwa-sparkle cd-yehwa-sparkle--a"></span><span class="cd-yehwa-sparkle cd-yehwa-sparkle--b"></span><span class="cd-yehwa-sparkle cd-yehwa-sparkle--c"></span>
-              </span>
-              <span class="fortune-gateway__door-kicker">YEONI</span>
-              <strong class="fortune-gateway__door-title" data-cd-trans="home.gardenCopy.chatYeoniTitle">연이 상담</strong>
-              <span class="fortune-gateway__door-desc" data-cd-trans="home.gardenCopy.chatYeoniDesc">꽃돼지 연이가 작은 마음부터 천천히 들어요. 지금의 흐름과 다음 선택을 다정하게 함께 정리해요.</span>
-              <span class="fortune-gateway__door-meta"><b data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n13000">1회 5,000원</b></span>
-              <span class="fortune-gateway__door-go"><span data-cd-trans="home.gardenCopy.chatYeoniGo">연이와 상담하기</span><em aria-hidden="true">→</em></span>
-            </a>
-          </div>
-
-          <p class="fortune-gateway__entry-note" data-cd-trans="shell.fortuneGatewayEntry.fortuneGatewayEntryShell.klg50va">상담 내역은 상담방에서 다시 확인할 수 있어요.</p>
-
-</div>
-      </section></div>
-<div class="cdh-slot" id="cdhNeoLetterSlot">{{neoEmailConsultation}}</div>
-<!-- 영냥이 메인 배너(2026-10-18 복구, e76391603^ 블록): 생선 가격은 빌더가 가격표에서 채운다. -->
-<div class="cdh-slot" id="cdhYeongnyangiSlot"><section class="cd-soulcat-entry" aria-labelledby="cd-soulcat-title" data-marker="cd-soulcat-home-primary-v20261008">
-      <div class="cd-soulcat-entry__copy">
-        <div class="cd-soulcat-entry__eyebrow"><p class="cd-soulcat-entry__world">CODE DESTINY · MOONLIGHT ROOM</p><p class="cd-soulcat-entry__badge"><span aria-hidden="true">🐾</span><span data-cd-trans="home.yeongnyangiEntry.badge">영냥이의 질문 상담</span></p></div>
-        <h2 id="cd-soulcat-title"><span data-cd-trans="home.yeongnyangiEntry.headingLead">질문에서 시작해, 흐름까지 읽는</span><strong data-cd-trans="home.yeongnyangiEntry.headingName">사주보는 고양이 영냥이</strong></h2>
-        <p class="cd-soulcat-entry__sub" data-cd-trans="home.yeongnyangiEntry.subtitle">한 가지 고민을 붙잡고, 내게 맞는 운세 체계로 풀어보는 달빛 상담</p>
-        <details class="cdh-consult-details"><summary lang="ko">상담 구성과 가격 살펴보기</summary>
-        <p class="cd-soulcat-entry__story"><span data-cd-trans="home.yeongnyangiEntry.storyFirst">영냥이는 사주·자미두수·숙요점·베다점·점성술의 계산을 바탕으로 지금의 질문에 답합니다.</span><br><span data-cd-trans="home.yeongnyangiEntry.storySecond">반복되는 패턴과 현재의 흐름, 오늘 해볼 다음 행동까지 일상의 언어로 차례로 정리해 드려요.</span></p>
-        <ul class="cd-soulcat-entry__fish" aria-label="영냥이 상담 생선 등급과 가격" data-cd-trans-attr="aria-label:home.yeongnyangiEntry.fishAria">
-          <li><img src="/assets/yeongnyangi/fish/mackerel.webp" width="56" height="25" alt="" decoding="async">고등어 <b data-yeongnyangi-price="mackerel" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"{{yeongnyangiMackerelPrice}}"}'>{{yeongnyangiMackerelPrice}}원</b></li>
-          <li><img src="/assets/yeongnyangi/fish/salmon.webp" width="56" height="25" alt="" decoding="async">연어 <b data-yeongnyangi-price="salmon" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"{{yeongnyangiSalmonPrice}}"}'>{{yeongnyangiSalmonPrice}}원</b></li>
-          <li><img src="/assets/yeongnyangi/fish/flounder.webp" width="56" height="25" alt="" decoding="async">광어 <b data-yeongnyangi-price="flounder" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"{{yeongnyangiFlounderPrice}}"}'>{{yeongnyangiFlounderPrice}}원</b></li>
-          <li><img src="/assets/yeongnyangi/fish/tuna.webp" width="56" height="25" alt="" decoding="async">참치 <b data-yeongnyangi-price="tuna" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"{{yeongnyangiTunaPrice}}"}'>{{yeongnyangiTunaPrice}}원</b></li>
-        </ul>
-        <div class="cd-soulcat-entry__dimension">
-          <p class="cd-soulcat-entry__notice"><span aria-hidden="true">🌙</span> <span data-cd-trans="home.yeongnyangiEntry.highlight">막연한 답 대신, 내 질문에 맞는 근거와 해석을 함께 받아보세요. 상담의 체계와 범위는 시작 전에 직접 고를 수 있어요.</span></p>
-          <blockquote class="cd-soulcat-entry__quote"><p data-cd-trans="home.yeongnyangiEntry.quote">“네가 지금 알고 싶은 한 가지부터 말해 봐. 그 흐름을 같이 짚어 볼게.”</p><footer data-cd-trans="home.yeongnyangiEntry.quoteAttribution">— 영냥이</footer></blockquote>
-        </div>
-        </details>
-        <div class="cd-soulcat-entry__actions"><a class="cd-soulcat-entry__cta" href="/yeongnyangi/" data-cd-localized-route="yeongnyangi" data-cd-portal-link data-cd-portal-placement="home_hero"><span data-cd-trans="home.yeongnyangiEntry.start">질문 상담 시작하기</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a><a class="cd-soulcat-entry__cta cd-soulcat-entry__cta--ghost" href="/yeongnyangi/room/#daily" data-cd-portal-link data-cd-portal-placement="home_daily"><span aria-hidden="true">🐟</span><span data-cd-trans="home.yeongnyangiEntry.free">무료 운세 먼저 보기</span></a></div>
-        <p class="cd-soulcat-entry__price"><span aria-hidden="true">🐟</span> <span data-cd-trans="home.yeongnyangiEntry.tagline">생선 한 마리로 여는, 나의 질문 상담</span></p>
-      </div>
-      <div class="cd-soulcat-entry__stage"><img class="cd-soulcat-entry__art" src="/assets/yeongnyangi/original/hero-800.webp" srcset="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width:600px) 240px, 400px" width="400" height="400" loading="lazy" alt="사주보는 고양이 영냥이, 보랏빛 모자를 쓰고 턱을 괸 모습" decoding="async"></div>
-    </section></div>
-</div>
-</section>
-<details class="cdh-fold" open><summary data-cd-trans="home.focused.concerns">고민별 운세 찾아보기</summary><div class="cdh-fold__content"><div class="cdh-slot" id="cdhQuestionSlot">{{questionCategories}}</div></div></details>
 <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
 <!-- 꿀꿀 운세 오프닝 음악 = 달빛 운명여행 뮤직비디오(e76391603^ 에서 복구, 동작은 js/core/home-mv.js). -->
 
@@ -247,7 +178,18 @@
   <div class="cdh-light__content"><p class="cdh-light__intro">혼자 잠깐 쉬어 가도, 친구와 결과를 비교해도 좋아요. 무료 체험부터 골라 보세요.</p><div class="cdh-light__list">{{lightFortunes}}</div><p class="cdh-light__note">유료 기능은 결제 전 조건을 확인해 주세요. 이용권·월정석 적용은 상품별 기존 기준을 따라요.</p></div>
 </details>
 <!-- 달빛 이야기 — 라이트 노벨·달빛 음악을 한 묶음으로. 열면 표지와 소개가 담긴 두 장의 서재 카드가 펼쳐진다(JS 없음). -->
-<details class="cdh-fold"><summary data-cd-trans="home.focused.music">달빛 운명여행 · 음악으로 쉬어가기</summary><div class="cdh-fold__content"><section class="cdh-mv" id="cdhMoonlightMv" aria-labelledby="cdhMvTitle" data-cd-funnel-section="moonlight_mv" data-marker="cdh-mv-moonlight-destiny-v20261015">
+
+<details class="cdh-story">
+  <summary class="cdh-story__toggle"><span class="cdh-story__backs" aria-hidden="true"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"></span><span class="cdh-story__label"><strong data-cd-trans="home.simpleHome.storyTitle">달빛 이야기</strong><small data-cd-trans="home.simpleHome.storyNote">노벨과 음악</small></span><span class="cdh-disclosure-state"><span class="cdh-when-closed">펼치기</span><span class="cdh-when-open">접기</span></span><span class="cdh-story__chev" aria-hidden="true"></span></summary>
+  <div class="cdh-story__spread">
+    <a class="cdh-story__card cdh-story__card--novel" href="/codedestiny-novel.html">
+      <span class="cdh-story__window"><img src="/images/novel/yeongnyangi-cover-640.webp" srcset="/images/novel/yeongnyangi-cover-640.webp 640w, /images/novel/yeongnyangi-cover-960.webp 960w" sizes="(max-width:640px) calc(100vw - 48px), 400px" width="640" height="427" alt="인간형 연이와 영냥이, 모카, 윤달, 서한비가 등장하는 운명 모험 표지" loading="lazy" decoding="async"></span>
+      <strong class="cdh-story__name" data-cd-trans="footer.story.novel">라이트 노벨</strong>
+      <small class="cdh-story__note">영냥이와 연이, 잃어버린 운명을 찾는 여행</small>
+    </a>
+
+  </div>
+<section class="cdh-mv" id="cdhMoonlightMv" aria-labelledby="cdhMvTitle" data-cd-funnel-section="moonlight_mv" data-marker="cdh-mv-moonlight-destiny-v20261015">
   <img class="cdh-mv__orn cdh-mv__orn--start" src="/images/home/mv/ornament-lotus-branch-320.webp" srcset="/images/home/mv/ornament-lotus-branch-320.webp 320w, /images/home/mv/ornament-lotus-branch-640.webp 640w" sizes="(max-width: 600px) 132px, 260px" width="320" height="280" loading="lazy" decoding="async" alt="">
   <img class="cdh-mv__orn cdh-mv__orn--end" src="/images/home/mv/ornament-lotus-branch-320.webp" srcset="/images/home/mv/ornament-lotus-branch-320.webp 320w, /images/home/mv/ornament-lotus-branch-640.webp 640w" sizes="(max-width: 600px) 132px, 260px" width="320" height="280" loading="lazy" decoding="async" alt="">
   <header class="cdh-mv__head">
@@ -280,21 +222,7 @@
       <a class="cdh-mv__more" href="/music/"><span data-cd-trans="home.mv.more">달빛 음악 더 듣기</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
     </div>
   </div>
-</section></div></details>
-<details class="cdh-story">
-  <summary class="cdh-story__toggle"><span class="cdh-story__backs" aria-hidden="true"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"></span><span class="cdh-story__label"><strong data-cd-trans="home.simpleHome.storyTitle">달빛 이야기</strong><small data-cd-trans="home.simpleHome.storyNote">노벨과 음악</small></span><span class="cdh-story__chev" aria-hidden="true"></span></summary>
-  <div class="cdh-story__spread">
-    <a class="cdh-story__card cdh-story__card--novel" href="/codedestiny-novel.html">
-      <span class="cdh-story__window"><img src="/images/novel/yeongnyangi-cover-640.webp" srcset="/images/novel/yeongnyangi-cover-640.webp 640w, /images/novel/yeongnyangi-cover-960.webp 960w" sizes="(max-width:640px) calc(100vw - 48px), 400px" width="640" height="427" alt="인간형 연이와 영냥이, 모카, 윤달, 서한비가 등장하는 운명 모험 표지" loading="lazy" decoding="async"></span>
-      <strong class="cdh-story__name" data-cd-trans="footer.story.novel">라이트 노벨</strong>
-      <small class="cdh-story__note">영냥이와 연이, 잃어버린 운명을 찾는 여행</small>
-    </a>
-    <a class="cdh-story__card cdh-story__card--music" href="/music/">
-      <span class="cdh-story__window"><img src="/images/home/mv/moonlight-destiny-poster-640.webp" width="640" height="360" alt="" loading="lazy" decoding="async"></span>
-      <strong class="cdh-story__name" data-cd-trans="footer.story.music">달빛 음악</strong>
-      <small class="cdh-story__note">이야기의 여운을 이어가는 달빛 선율</small>
-    </a>
-  </div>
+</section>
 </details>
 <!-- 색인 대상 허브로 가는 정본 내부 링크. 크롤러가 착지하는 /ggulggul/ 에서 2홉 안에 모든 색인 라우트가
      닿아야 한다(scripts/verify-internal-link-depth.mjs). 2026-10-17 "직관성" 단순화로 홈 안내 섹션은 뺐지만

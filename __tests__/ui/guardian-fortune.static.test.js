@@ -12,7 +12,8 @@ test('the destiny gate stands on its own after the inline home widget was retire
   const css = read('styles/fortune-gateway.css');
 
   // 2026-10-17: 연이 운명 상담(1회 5,000원) 문 카드를 홈 1:1 상담 줄에 되돌렸다. 한 번만 나온다.
-  assert.equal((html.match(/id="fortuneGatewayEntry"/g) || []).length, 1);
+  assert.equal((html.match(/id="fortuneGatewayEntry"/g) || []).length, 0);
+  assert.equal((html.match(/data-cd-signature-id="fortune-chat"/g) || []).length, 1);
   assert.match(html, /flower-pig-honey-hug\.webp/);
   // 🔴 초융합으로 가는 길은 홈에 남아 있어야 한다(히어로 CTA · #cdConcernPick · #cdSignatureConsult).
   //    2026-09-02 에 뺀 것은 "운명의 문 안의 네 번째 중복 진입" 하나뿐이다.
@@ -64,7 +65,8 @@ test('the destiny gate is back once in every home shell; the conversational read
   assert.match(read('js/core/service-registry.js'), /id: "fortune-chat",[\s\S]{0,200}href: "\/fortune-chat\/"/);
   for (const shell of shells) {
     const html = read(shell);
-    assert.equal((html.match(/id="fortuneGatewayEntry"/g) || []).length, 1, shell);
+    assert.equal((html.match(/id="fortuneGatewayEntry"/g) || []).length, 0, shell);
+    assert.equal((html.match(/data-cd-signature-id="fortune-chat"/g) || []).length, 1, shell);
     assert.match(html, /href="\/fortune-chat\/\?character=yeoni"/, shell);
     // 계정 무료 3회는 총량이라 "매일" 로 약속하면 안 된다.
     assert.doesNotMatch(html, /매일 무료|하루 무료/, shell);

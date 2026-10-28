@@ -1708,7 +1708,7 @@
       "chatYeoniGo": "和妍伊聊聊",
       "chatNeoGo": "和 Neo 聊聊",
       "allTitle": "全部運勢",
-      "allSignatureLink": "查看六張代表諮詢",
+      "allSignatureLink": "瀏覽精選諮詢",
       "allSearchLabel": "搜尋全部運勢",
       "allSearchPlaceholder": "試試搜尋「跳槽」「復合」「合盤」",
       "allClear": "清除搜尋詞",
@@ -2229,6 +2229,20 @@
       "from": "{price}起",
       "unlock": "{price}解鎖",
       "perUse": "每次{price}"
+    },
+    "choice": {
+      "lead": "先了解諮詢方式，再選擇您關心的問題。",
+      "yeoniTitle": "與蓮伊聊聊",
+      "yeoniDesc": "和蓮伊一起，慢慢梳理想要傾訴的煩惱。",
+      "controls": "切換諮詢卡片",
+      "positions": "諮詢卡片位置",
+      "pause": "停止自動切換卡片",
+      "paused": "已停止自動切換卡片",
+      "position": "從第{number}張卡片開始查看",
+      "expand": "展開",
+      "collapse": "收合",
+      "samplesContext": "諮詢內容與",
+      "samplesAction": "查看範例"
     }
   },
   "terms": {

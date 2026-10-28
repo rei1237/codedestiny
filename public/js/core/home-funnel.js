@@ -58,7 +58,7 @@
     syncConcernArrows();
   }
 
-  // 네이티브 스크롤을 유지하며 버튼과 위치 표시만 보강한다.
+  // One native-scroll rail; all other home content stays still.
   var signatureViewport = home.querySelector('#cdSigViewport');
   var signatureControls = home.querySelector('.cd-sig__controls');
   if (signatureViewport && signatureControls) {
@@ -66,32 +66,101 @@
     var signaturePrevious = signatureControls.querySelector('[data-sig-prev]');
     var signatureNext = signatureControls.querySelector('[data-sig-next]');
     var signaturePosition = signatureControls.querySelector('[data-sig-position]');
-    var signatureIndex = 0;
-    var signatureFrame = 0;
+    var signaturePause = signatureControls.querySelector('[data-sig-pause]');
+    var signatureDots = signatureControls.querySelector('[data-sig-dots]');
+    var signatureMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var signaturePaused = signatureMotion.matches, signatureIndex = 0, signatureFrame = 0, signatureAnchor = null;
+    var signatureTimer = 0, signatureVisible = false, signatureHover = false;
+    var signatureInteraction = signatureViewport.parentElement;
+    function signatureCount() { return window.innerWidth > 1000 ? 3 : window.innerWidth > 760 ? 2 : 1; }
+    function signatureLast() { return Math.max(0, signatureCards.length - signatureCount()); }
     function syncSignature() {
       signatureFrame = 0;
+      if (signatureResize && signatureWidth !== signatureViewport.clientWidth) return;
       var edge = signatureViewport.getBoundingClientRect().left;
       var best = Infinity;
       signatureCards.forEach(function (card, index) {
-        var distance = Math.abs(card.getBoundingClientRect().left - edge);
+        var distance = Math.abs(card.getBoundingClientRect().left - edge - 4);
         if (distance < best) { best = distance; signatureIndex = index; }
       });
-      signaturePrevious.disabled = signatureViewport.scrollLeft <= 2;
-      signatureNext.disabled = signatureViewport.scrollLeft + signatureViewport.clientWidth >= signatureViewport.scrollWidth - 2;
-      signaturePosition.textContent = (signatureIndex + 1) + ' / ' + signatureCards.length;
+      signatureIndex = Math.min(signatureIndex, signatureLast());
+      var end = Math.min(signatureCards.length, signatureIndex + signatureCount());
+      signaturePosition.textContent = String(signatureIndex + 1).padStart(2, '0') + (end > signatureIndex + 1 ? '–' + String(end).padStart(2, '0') : '') + ' / ' + String(signatureCards.length).padStart(2, '0');
+      signatureCards.forEach(function (card, index) { card.inert = index < signatureIndex || index >= end; });
+      if (signatureDots && signatureDots.children.length !== signatureLast() + 1) {
+        signatureDots.replaceChildren();
+        for (var i = 0; i <= signatureLast(); i++) {
+          var dot = document.createElement('button'); dot.type = 'button'; dot.dataset.sigSlide = String(i);
+          dot.setAttribute('data-cd-trans-attr', 'aria-label:home.choice.position');
+          dot.setAttribute('data-cd-vars', JSON.stringify({number: String(i + 1)}));
+          dot.setAttribute('aria-label', typeof window.cdTranslate === 'function' ? window.cdTranslate('home.choice.position', {number: String(i + 1)}, '상담 카드 ' + (i + 1) + '번부터 보기') : '상담 카드 ' + (i + 1) + '번부터 보기');
+          signatureDots.append(dot);
+        }
+      }
+      if (signatureDots) Array.prototype.forEach.call(signatureDots.children, function (dot, index) { dot.setAttribute('aria-pressed', String(index === signatureIndex)); });
     }
-    function moveSignature(direction) {
-      var target = signatureCards[Math.max(0, Math.min(signatureCards.length - 1, signatureIndex + direction))];
-      if (!target) return;
-      signatureViewport.scrollBy({ left: target.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    function scheduleSignature() {
+      window.clearInterval(signatureTimer); signatureTimer = 0;
+      signaturePause.hidden = signatureMotion.matches;
+      signaturePause.setAttribute('aria-pressed', String(signaturePaused));
+      var pauseKey = signaturePaused ? 'home.choice.paused' : 'home.choice.pause';
+      var pauseCopy = signaturePaused ? '상담 카드 자동 넘김 멈춤' : '상담 카드 넘김 멈추기';
+      signaturePause.setAttribute('data-cd-trans-attr', 'aria-label:' + pauseKey);
+      signaturePause.setAttribute('aria-label', typeof window.cdTranslate === 'function' ? window.cdTranslate(pauseKey, {}, pauseCopy) : pauseCopy);
+      signaturePause.setAttribute('aria-disabled', String(signaturePaused));
+      if (signaturePaused || signatureMotion.matches || !signatureVisible || signatureHover || document.hidden || signatureInteraction.contains(document.activeElement) || document.querySelector('dialog[open],[aria-modal="true"]:not([hidden])')) return;
+      signatureTimer = window.setInterval(function () { moveSignature(signatureIndex + 1, false); }, 8000);
     }
-    if (signatureCards.length && signaturePrevious && signatureNext && signaturePosition) {
+    function moveSignature(index, manual) {
+      if (manual) signaturePaused = true;
+      var nextIndex = (index + signatureLast() + 1) % (signatureLast() + 1);
+      var card = signatureCards[nextIndex];
+      if (!card) return;
+      signatureAnchor = nextIndex;
+      // Release inert before moving so pointer/keyboard use never targets a hidden card.
+      signatureCards.forEach(function (item) { item.inert = false; });
+      signatureViewport.scrollBy({left: card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4, behavior: signatureMotion.matches ? 'instant' : 'smooth'});
+      if (Math.abs(card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4) < 1) syncSignature();
+      scheduleSignature();
+    }
+    if (signatureCards.length && signaturePrevious && signatureNext && signaturePause) {
       signatureControls.hidden = false;
-      signaturePrevious.addEventListener('click', function () { moveSignature(-1); });
-      signatureNext.addEventListener('click', function () { moveSignature(1); });
-      signatureViewport.addEventListener('scroll', function () { if (!signatureFrame) signatureFrame = requestAnimationFrame(syncSignature); }, { passive: true });
-      window.addEventListener('resize', syncSignature);
-      syncSignature();
+      signaturePrevious.addEventListener('click', function () { moveSignature(signatureIndex - 1, true); });
+      signatureNext.addEventListener('click', function () { moveSignature(signatureIndex + 1, true); });
+      signaturePause.addEventListener('click', function () { signaturePaused = true; scheduleSignature(); });
+      if (signatureDots) signatureDots.addEventListener('click', function (event) { var dot = event.target.closest('[data-sig-slide]'); if (dot) moveSignature(Number(dot.dataset.sigSlide), true); });
+      signatureViewport.addEventListener('scroll', function () { if (!signatureFrame) signatureFrame = requestAnimationFrame(syncSignature); }, {passive:true});
+      signatureViewport.addEventListener('scrollend', syncSignature);
+      signatureViewport.addEventListener('keydown', function (event) {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        event.preventDefault(); moveSignature(signatureIndex + (event.key === 'ArrowRight' ? 1 : -1), true);
+      });
+      ['pointerdown','touchstart','wheel'].forEach(function (name) { signatureViewport.addEventListener(name, function () { signatureAnchor = null; signaturePaused = true; scheduleSignature(); }, {passive:true}); });
+      signatureInteraction.addEventListener('mouseenter', function () { signatureHover = true; scheduleSignature(); });
+      signatureInteraction.addEventListener('mouseleave', function () { signatureHover = false; scheduleSignature(); });
+      signatureInteraction.addEventListener('focusin', scheduleSignature);
+      signatureInteraction.addEventListener('focusout', function () { requestAnimationFrame(scheduleSignature); });
+      signatureMotion.addEventListener('change', function () { if (signatureMotion.matches) signaturePaused = true; scheduleSignature(); });
+      document.addEventListener('visibilitychange', scheduleSignature);
+      var signatureWidth = signatureViewport.clientWidth;
+      var signatureResize = window.ResizeObserver ? new ResizeObserver(function () {
+        if (signatureViewport.clientWidth === signatureWidth) return;
+        signatureWidth = signatureViewport.clientWidth;
+        // Keep the requested card as the resize anchor; a native drag releases it.
+        var card = signatureCards[Math.min(signatureAnchor === null ? signatureIndex : signatureAnchor, signatureLast())];
+        signatureViewport.scrollBy({left: card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4, behavior:'instant'});
+        syncSignature(); scheduleSignature();
+      }) : null;
+      if (signatureResize) signatureResize.observe(signatureViewport);
+      window.addEventListener('resize', function () { if (!signatureResize) syncSignature(); scheduleSignature(); });
+      var signatureObserver = new IntersectionObserver(function (entries) { signatureVisible = entries[0].intersectionRatio >= 0.5; scheduleSignature(); }, {threshold:[0,0.5]});
+      signatureObserver.observe(signatureViewport);
+      var signatureOverlayObserver = new MutationObserver(function (changes) {
+        if (changes.some(function (change) { return (change.type === 'childList' && Array.prototype.some.call(change.addedNodes, function (node) { return node.nodeType === 1 && (node.matches('dialog,[aria-modal="true"]') || node.querySelector('dialog,[aria-modal="true"]')); })) || (change.target.matches && change.target.matches('dialog,[aria-modal="true"]')); })) scheduleSignature();
+      });
+      signatureOverlayObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['open','hidden','aria-modal']});
+      window.addEventListener('pagehide', function () { window.clearInterval(signatureTimer); signatureObserver.disconnect(); signatureOverlayObserver.disconnect(); if (signatureResize) signatureResize.disconnect(); }, {once:true});
+      syncSignature(); scheduleSignature();
     }
   }
 

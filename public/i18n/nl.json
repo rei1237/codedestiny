@@ -1708,7 +1708,7 @@
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
       "allTitle": "Alle lezingen",
-      "allSignatureLink": "Bekijk de zes vaste consulten",
+      "allSignatureLink": "Bekijk uitgelichte consulten",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
       "allClear": "Clear search",
@@ -2229,6 +2229,20 @@
       "from": "Vanaf {price}",
       "unlock": "Ontgrendelen voor {price}",
       "perUse": "{price} per lezing"
+    },
+    "choice": {
+      "lead": "Bekijk de consulten en kies wat je bezighoudt.",
+      "yeoniTitle": "Praat met Yeoni",
+      "yeoniDesc": "Bespreek stap voor stap met Yeoni wat je wilt delen.",
+      "controls": "Consultkaarten bekijken",
+      "positions": "Positie van consultkaarten",
+      "pause": "Automatisch wisselen stoppen",
+      "paused": "Automatisch wisselen gestopt",
+      "position": "Bekijken vanaf kaart {number}",
+      "expand": "Uitklappen",
+      "collapse": "Inklappen",
+      "samplesContext": "Inhoud van consulten",
+      "samplesAction": "Voorbeelden bekijken"
     }
   },
   "terms": {

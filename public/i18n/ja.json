@@ -1708,7 +1708,7 @@
       "chatYeoniGo": "ヨニと相談する",
       "chatNeoGo": "ネオと相談する",
       "allTitle": "すべての占い",
-      "allSignatureLink": "代表相談6枚を見る",
+      "allSignatureLink": "代表的な相談を見る",
       "allSearchLabel": "すべての占いを検索",
       "allSearchPlaceholder": "転職・復縁・相性などで探してみて",
       "allClear": "検索語を消す",
@@ -2229,6 +2229,20 @@
       "from": "{price}〜",
       "unlock": "{price}で開く",
       "perUse": "1回 {price}"
+    },
+    "choice": {
+      "lead": "相談方法を見てから、気になる悩みを選んでください。",
+      "yeoniTitle": "ヨニと話す",
+      "yeoniDesc": "言葉にしたい悩みを、ヨニと一つずつ見つめてみましょう。",
+      "controls": "相談カードの操作",
+      "positions": "相談カードの位置",
+      "pause": "カードの自動切り替えを停止",
+      "paused": "カードの自動切り替え停止中",
+      "position": "{number}枚目から表示",
+      "expand": "開く",
+      "collapse": "閉じる",
+      "samplesContext": "相談内容と",
+      "samplesAction": "サンプルを見る"
     }
   },
   "terms": {

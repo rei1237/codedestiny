@@ -1708,7 +1708,7 @@
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
       "allTitle": "All readings",
-      "allSignatureLink": "See the six signature readings",
+      "allSignatureLink": "Browse featured consultations",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
       "allClear": "Clear search",
@@ -2229,6 +2229,20 @@
       "from": "From {price}",
       "unlock": "Unlock for {price}",
       "perUse": "{price} per reading"
+    },
+    "choice": {
+      "lead": "Explore the consultations, then choose what is on your mind.",
+      "yeoniTitle": "Talk with Yeoni",
+      "yeoniDesc": "Talk through what is on your mind with Yeoni, one step at a time.",
+      "controls": "Consultation cards",
+      "positions": "Consultation card positions",
+      "pause": "Stop automatic card changes",
+      "paused": "Automatic card changes stopped",
+      "position": "Show cards from {number}",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "samplesContext": "Consultation details",
+      "samplesAction": "View examples"
     }
   },
   "terms": {

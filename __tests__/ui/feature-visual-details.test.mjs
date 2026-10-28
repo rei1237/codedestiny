@@ -228,9 +228,9 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   assert.match(masterAssets, /humanHero:\s*"\/images\/service-introductions\/master-love-codex-960\.webp"/);
   assert.match(masterAssets, /cover:\s*"\/feature-details\/assets\/master-love-codex-960\.webp"/);
   assert.ok(fs.existsSync('public/feature-details/assets/master-love-codex-960.webp'));
-  // 2026-10-17: 라이트 노벨·달빛 음악은 '달빛 이야기' 한 묶음(details)에 타로 카드 두 장으로 들어갔다.
+  // The existing video and novel share the story disclosure; the music destination remains available.
   assert.ok(fragment.querySelector('.cdh-story .cdh-story__card[href="/codedestiny-novel.html"]'), 'light novel card stays on the home');
-  assert.ok(fragment.querySelector('.cdh-story .cdh-story__card[href="/music/"]'), 'music card stays on the home');
+  assert.ok(fragment.querySelector('.cdh-story #cdhMoonlightMv .cdh-mv__more[href="/music/"]'), 'music remains reachable from the existing video');
 });
 
 test('music entry responds to its card width without clipping actions', () => {

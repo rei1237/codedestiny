@@ -10,7 +10,7 @@ const registry = read("js/core/service-registry.js");
 const template = read("templates/home-funnel.html");
 
 // 2026-10-23 강약: 대표 상담 덱 → 초융합 시그니처 띠 → 무료로 먼저(여섯 장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 질문 카테고리 → 이용권 → 모든 운세 버튼 → 작은 운세 모음 → 뮤직비디오 → 달빛 이야기.
-const flow = ['id="cdhFeatured"', 'id="cdhFusionSignatureSlot"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-consult"', 'id="cdhYeongnyangiSlot"', 'id="cdhQuestionSlot"', 'id="cdhPass"', 'class="cdh-all-cta"', 'id="cdhLightFortunes"', 'id="cdhMoonlightMv"', 'class="cdh-story"'];
+const flow = ['id="cdhFusionSignatureSlot"', 'id="cdhNeoLetterSlot"', 'id="cdhFeatured"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'id="cdhPass"', 'class="cdh-all-cta"', 'id="cdhLightFortunes"', 'class="cdh-story"', 'id="cdhMoonlightMv"'];
 for (let i = 1; i < flow.length; i += 1) {
   const prev = template.indexOf(flow[i - 1]);
   const next = template.indexOf(flow[i]);
@@ -62,19 +62,25 @@ assert.doesNotMatch(quickSection, /data-cd-open-collection/, 'home tiles open th
 assert.deepEqual([...quickSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map(m => m[1]), ['saju', 'tarot', 'ziwei', 'sukuyo', 'vedic', 'astrology']);
 assert.equal([...quickSection.matchAll(/href="\/\?action=([^"]+)" data-action="\1"/g)].length, 6, 'early clicks retain the selected action before JavaScript is ready');
 
-const signatureSection = home.match(/<section[^>]*id="cdSignatureConsult"[\s\S]*?<\/section>/)?.[0] || '';
+const { JSDOM } = require('jsdom');
+const homeDocument = new JSDOM(home).window.document;
+const signatureSection = homeDocument.querySelector('#cdSignatureConsult')?.outerHTML || '';
+assert.ok(homeDocument.querySelector('#cdSignatureConsult #cdConcernPick'), 'Concern selection belongs to the consultation section');
+assert.ok(homeDocument.querySelector('.cdh-story #cdhMoonlightMv'), 'Music video belongs to the single story disclosure');
+assert.equal(homeDocument.querySelectorAll('#cdhMoonlightMv').length, 1);
+assert.doesNotMatch(template, /음악으로 쉬어가기/);
 assert.ok(signatureSection, '대표 운명 상담 섹션을 찾지 못했습니다');
 assert.match(signatureSection, /class="cd-sig__samples-link" href="\/consultation-samples\/"/, 'representative consultations expose the complete sample guide');
 assert.deepEqual(
   [...signatureSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map((match) => match[1]),
-  ['love-secret-ai', 'new-year-ai', 'life-book-ai', 'neo-operation-room', 'fortune-tea-house', 'master-love-codex'],
+  ['fortune-tea-house', 'life-book-ai', 'new-year-ai', 'love-secret-ai', 'neo-operation-room', 'master-love-codex'],
   '기존 여섯 상품을 한 번씩 유지합니다',
 );
-assert.deepEqual([...signatureSection.matchAll(/data-cd-signature-id="([^"]+)"/g)].map(match => match[1]), ['fusion-fortune', 'fortune-chat', 'neo-email', 'yeongnyangi-question']);
+assert.deepEqual([...signatureSection.matchAll(/data-cd-signature-id="([^"]+)"/g)].map(match => match[1]), ['fortune-chat', 'yeongnyangi-question']);
 assert.match(signatureSection, /data-sig-next/, '상담 카드를 넘길 수 있어야 합니다');
-assert.equal((signatureSection.match(/class="cd-sig-card__img"/g) || []).length, 10, '대표 상담 열 장 모두 이미지가 있어야 합니다');
+assert.equal((signatureSection.match(/class="cd-sig-card__img"/g) || []).length, 8, '상담 카드마다 이미지가 있어야 합니다');
 assert.equal((signatureSection.match(/class="cd-sig-card__price"/g) || []).length, 6, '대표 상담 여섯 장 모두 원화 가격을 보여줘야 합니다');
-assert.equal((signatureSection.match(/class="cd-sig-card__cta"/g) || []).length, 10, '대표 상담 열 장 모두 CTA가 있어야 합니다');
+assert.equal((signatureSection.match(/class="cd-sig-card__cta"/g) || []).length, 8, '상담 카드마다 CTA가 있어야 합니다');
 const lifeBookCard = signatureSection.match(/<a class="cd-sig-card cd-sig-card--life"[\s\S]*?<\/a>/)?.[0] || '';
 assert.match(lifeBookCard, />30,000원<\/span>/, '인생의 책 대표 카드 가격은 결제 정본과 같은 30,000원이어야 합니다');
 assert.doesNotMatch(home, /id="cdhSamples"/, '중복 결과 샘플 카드 묶음은 홈에 다시 만들지 않습니다');

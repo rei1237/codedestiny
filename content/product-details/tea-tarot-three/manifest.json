@@ -2,7 +2,7 @@
   "id": "tea-tarot-three",
   "featureKey": "fortune-tea-house-tarot-consultation",
   "title": "운명의 찻집 · 타로 3장",
-  "hook": "78장 중 세 장으로 막힌 고민의 실마리를 찾는 타로",
+  "hook": "마음에 남은 이야기를 들려주세요. 카드가 비추는 감정과 지금의 선택을 함께 살펴봐요.",
   "badge": "추가 질문 1회 포함",
   "chapters": [
     {
@@ -47,7 +47,7 @@
     {
       "id": "editorial-1",
       "title": "마음을 먼저 듣는, 연이의 타로 세 장 상담.",
-      "text": "쉽게 꺼내지 못한 마음도 천천히 들려주세요. 따뜻한 차 한 잔처럼 이야기를 듣고, 지금의 흐름을 함께 살펴봅니다.",
+      "text": "마음에 남은 이야기를 들려주세요. 카드가 비추는 감정과 지금의 선택을 함께 살펴봐요.",
       "src": "/images/service-introductions/tea-tarot.webp",
       "width": 1536,
       "height": 1024,

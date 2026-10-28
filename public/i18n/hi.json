@@ -1708,7 +1708,7 @@
       "chatYeoniGo": "Talk with Yeoni",
       "chatNeoGo": "Talk with Neo",
       "allTitle": "सभी फलादेश",
-      "allSignatureLink": "छह मुख्य परामर्श देखें",
+      "allSignatureLink": "प्रमुख परामर्श देखें",
       "allSearchLabel": "Search all readings",
       "allSearchPlaceholder": "Try “job change”, “reunion”, “compatibility”",
       "allClear": "Clear search",
@@ -2229,6 +2229,20 @@
       "from": "{price} से",
       "unlock": "{price} में खोलें",
       "perUse": "प्रति व्याख्या {price}"
+    },
+    "choice": {
+      "lead": "पहले परामर्श के तरीके देखें, फिर अपनी चिंता चुनें।",
+      "yeoniTitle": "योनी से बात करें",
+      "yeoniDesc": "योनी के साथ अपनी चिंताओं पर धीरे-धीरे बात करें।",
+      "controls": "परामर्श कार्ड बदलें",
+      "positions": "परामर्श कार्ड का स्थान",
+      "pause": "कार्ड का अपने आप बदलना रोकें",
+      "paused": "कार्ड का अपने आप बदलना बंद है",
+      "position": "कार्ड {number} से देखें",
+      "expand": "खोलें",
+      "collapse": "समेटें",
+      "samplesContext": "परामर्श का विवरण",
+      "samplesAction": "उदाहरण देखें"
     }
   },
   "terms": {

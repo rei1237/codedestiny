@@ -2,7 +2,7 @@
   "id": "neo-operation-room",
   "featureKey": "neo-operation-room-consultation",
   "title": "네오의 팩폭 작전실",
-  "hook": "네 가지 지도 중 하나로 지금의 전선을 읽고 7일 작전까지 세우는 상담",
+  "hook": "지금 막힌 지점부터 정리하자. 반복되는 선택을 짚고, 다음 행동을 세워보세요.",
   "badge": "현실 점검 질문 2회 포함",
   "chaptersLabel": "받게 될 작전 브리핑 목차",
   "chapters": [
@@ -60,7 +60,7 @@
     {
       "id": "editorial-1",
       "title": "위로 다음의 한 수, 네오와 정리해라.",
-      "text": "막연한 불안 대신 지금 바꿀 수 있는 지점을 찾습니다. 네오는 직설적으로 짚되 당신을 깎아내리지 않습니다.",
+      "text": "지금 막힌 지점부터 정리하자. 반복되는 선택을 짚고, 다음 행동을 세워보세요.",
       "src": "/images/service-introductions/neo-operation-room.webp",
       "width": 1536,
       "height": 1024,

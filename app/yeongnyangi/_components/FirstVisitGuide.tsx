@@ -59,13 +59,15 @@ export default function FirstVisitGuide(){
  },[state,profiles.loading,profiles.error,profiles.guest,selected]);
  function start(){
   clearYeongnyangiGuideHidden();setHidden(false);
-  close();writeFirstVisit('yeongnyangi','active',1);firstVisitEvent('yeongnyangi','start',1);
-  requestAnimationFrame(()=>{panel.current?.focus();panel.current?.scrollIntoView({block:'center'});});
+  writeFirstVisit('yeongnyangi','active',1);firstVisitEvent('yeongnyangi','start',1);
+  requestAnimationFrame(()=>{dialog.current?.querySelector<HTMLElement>('input,select,a')?.focus();});
  }
  const active=state?.status==='active'&&!hidden;
  return <section className={styles.guide} aria-label="처음 이용 안내" ref={panel} tabIndex={-1}>
-  <div className={styles.bar}><span>영냥이와 첫 상담 준비</span><button ref={replay} type="button" onClick={show}>이용 방법 다시 보기</button></div>
-  <div hidden={!state||hidden||state.status==='complete'}>
+  <div className={styles.bar}><button ref={replay} type="button" onClick={show} aria-label="영냥이 이용 안내 열기">이용 방법</button></div>
+  <dialog ref={dialog} className={styles.welcome} aria-labelledby="yn-first-title" onCancel={event=>{event.preventDefault();dismiss();}}>
+   <button className={styles.close} type="button" aria-label="첫 이용 안내 닫기" onClick={dismiss}><X size={20}/></button>
+   <h2 id="yn-first-title">영냥이가 알려줄게</h2>
   <div className={styles.story}>
    <nav className={styles.sceneNav} aria-label="그림으로 보는 이용 순서">{scenes.map((item,index)=><button type="button" key={item.label} aria-pressed={scene===index} onClick={()=>setScene(index)}><span>{index+1}</span>{item.label}</button>)}</nav>
    <div className={styles.scene}>
@@ -73,46 +75,23 @@ export default function FirstVisitGuide(){
     <div className={styles.speech} aria-live="polite"><span className={styles.speaker}>영냥이가 알려줄게</span><h2>{scenes[scene].title}</h2><p>{scenes[scene].speech}</p><button type="button" className={styles.nextScene} onClick={()=>setScene((scene+1)%scenes.length)}>{scene===2?'처음부터 살펴보기':'다음 이야기'} <ArrowRight size={16}/></button></div>
    </div>
   </div>
-  <p className={styles.lightStart}>처음에는 한 가지 고민이면 충분해. <a href="/yeongnyangi/fortune/?flow=question&domain=saju&fish=mackerel">고등어 상담부터 알아보기 <ArrowRight size={16}/></a></p>
-  <details className={styles.howTo}>
-   <summary>어떻게 이용하면 좋을까? 내가 알려줄게.</summary>
-   <div>
-    <h3>먼저, 누구의 이야기인지 알려줘.</h3>
-    <p>사주처럼 태어난 때를 살펴보는 상담은 프로필이 필요해. 이름과 생년월일, 양력·음력을 확인해 줘. 시간은 모르면 모른다고 해도 괜찮아. 다만 시간을 꼭 알아야 하는 상담은 준비 화면에서 따로 알려줄게.</p>
-    <p>이미 만든 프로필이 있으면 다시 적지 말고 골라줘. 출생 정보를 쓰지 않는 타로라면 질문부터 시작해도 돼.</p>
-    <h3>질문은 하나씩, 상황은 조금 구체적으로.</h3>
-    <p>막연해도 괜찮아. 추천 질문에서 가까운 고민을 골라도 되고, 네 말로 직접 적어도 돼. 지금 어떤 상황인지, 무엇을 결정하거나 이해하고 싶은지 함께 알려주면 좋아.</p>
-    <blockquote>“이직해도 될까?”보다 “지금 회사에서 역할이 줄어 고민이야. 당분간 경험을 쌓을지, 이직을 준비할지 판단할 기준이 궁금해.”처럼 적어봐.</blockquote>
-    <h3>깊이를 고르기 전에, 무엇을 받는지 봐.</h3>
-    <p>질문을 고르면 상담 방식과 살펴볼 범위, 결과 구성과 가격을 확인할 수 있어. 생선 이름만 보고 고르지 말고 네 고민에 필요한 내용인지 읽어봐. 준비 화면을 보는 것만으로 결제되지는 않아.</p>
-    <p>가볍게 둘러보고 싶다면 영냥이의 방에 있는 출석 운세도 있어. 출석으로 모은 멸치가 필요하니 그곳의 이용 조건부터 확인해 줘.</p>
-    <h3>답만 읽지 말고, 근거와 다음 행동도 챙겨.</h3>
-    <p>먼저 요약을 읽고, 왜 그렇게 해석했는지 살펴봐. 마지막에는 오늘 해볼 행동 하나를 골라보자. 운세가 네 결정을 대신하는 건 아니야. 네 상황을 정리하는 단서로 써줘.</p>
-    <p>이미 받은 상담은 ‘내 상담’에서 다시 읽을 수 있어. 새 상담을 시작하기 전에 전에 받은 이야기부터 펼쳐봐도 좋아.</p>
-   </div>
-  </details>
-  </div>
+
   {active&&<div className={styles.body}>
    <ol className={styles.steps} aria-label="상담 준비 순서"><li aria-current={state.step===1?'step':undefined}>1. 프로필</li><li aria-current={state.step>=2?'step':undefined}>2. 고민</li><li>3. 구성·가격</li></ol>
    <h2>{selected?'좋아, 프로필이 준비됐어. 어떤 고민이 있어?':'먼저, 누구의 이야기를 살펴볼까?'}</h2>
    <p>저장된 프로필이 있으면 골라줘. 없으면 하나 만들어보자. 출생 정보가 필요 없는 타로는 바로 질문을 골라도 괜찮아.</p>
    <ProfilePicker state={profiles} locale="ko" showPolicyNote={false} onLogin={()=>{firstVisitLogin('yeongnyangi');loginForCurrentPage();}}/>
    <p className={styles.note}>프로필을 만들고 관리하는 건 무료야. 상담 이용 조건은 다음 단계에서 함께 확인하자.</p>
-   <a className={styles.primary} href="#questions" onClick={()=>{writeFirstVisit('yeongnyangi','active',2);firstVisitEvent('yeongnyangi','step',2);}}>고민 고르기 <ArrowRight size={18}/></a>
+   <a className={styles.primary} href="#questions" onClick={()=>{writeFirstVisit('yeongnyangi','active',2);firstVisitEvent('yeongnyangi','step',2);close();}}>고민 고르기 <ArrowRight size={18}/></a>
    <p className={styles.note}>고민을 고르면 어떤 상담을 받을지, 가격은 얼마인지 먼저 보여줄게. 지금 결제되는 건 아니니 차분히 살펴봐.</p>
    <a href="/yeongnyangi/room/#daily">출석 운세 이용 방법 보기</a>
    <p className={styles.note}>출석 운세에는 모아둔 멸치가 필요해. 이용 방법부터 보고 골라줘.</p>
    <button className={styles.textButton} type="button" onClick={dismiss}>안내 그만 보기</button>
   </div>}
-  <dialog ref={dialog} className={styles.welcome} aria-labelledby="yn-first-title" aria-describedby="yn-first-description" onCancel={event=>{event.preventDefault();dismiss();}}>
-   <button className={styles.close} type="button" aria-label="첫 이용 안내 닫기" onClick={dismiss}><X size={20}/></button>
-   <GuideArt/>
-   <h2 id="yn-first-title">처음 왔어?<br/>내가 하나씩 알려줄게.</h2>
-   <p id="yn-first-description">프로필부터 준비하고, 마음에 남은 고민을 골라보자.<br/>어떤 이야기를 받을지, 가격은 얼마인지 먼저 보여줄게. 천천히 골라도 괜찮아.</p>
-   <button className={styles.primary} type="button" onClick={start}>상담 준비하기 <ArrowRight size={18}/></button>
+
+   {!active&&<button className={styles.primary} type="button" onClick={start}>상담 준비하기 <ArrowRight size={18}/></button>}
    <button className={styles.textButton} type="button" onClick={dismiss}>나중에 할게요</button>
    <button className={styles.textButton} type="button" onClick={hideToday}>하루 동안 보지 않기</button>
   </dialog>
  </section>;
 }
-
