@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import Image from "next/image";
+import { ArrowRight, Check, CircleCheck, Gem, LoaderCircle, RotateCcw, ShieldCheck } from "lucide-react";
 import { adminFetch, describeAdminError } from "../_lib/admin-api";
-import { adminButton } from "../_components/ui";
+import { ADMIN_INPUT, adminButton } from "../_components/ui";
+import styles from "./page.module.css";
 
 const MAX_GRANT_AMOUNT = 999999;
 
@@ -26,8 +28,7 @@ type GrantResponse = {
   grant: MonthlyCreditGrant;
 };
 
-const inputClass =
-  "w-full rounded-lg border border-[var(--cd-adm-line-strong)] bg-[var(--cd-adm-field)] px-3 py-3 text-base text-[var(--cd-adm-ink)] outline-none transition-colors placeholder:text-[var(--cd-adm-ink-quiet)] focus:border-violet-400 focus:ring-2 focus:ring-violet-400/20 sm:text-sm";
+const inputClass = `${ADMIN_INPUT} ${styles.field}`;
 
 function createIdempotencyKey() {
   const suffix = typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -51,6 +52,8 @@ function formatDate(value: string | null) {
 }
 
 export default function AdminMonthlyCreditsPage() {
+  const emailInput = useRef<HTMLInputElement>(null);
+  const resultHeading = useRef<HTMLHeadingElement>(null);
   const [email, setEmail] = useState("");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("마케팅 캠페인 예외 지급");
@@ -61,9 +64,28 @@ export default function AdminMonthlyCreditsPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [result, setResult] = useState<GrantResponse | null>(null);
+  const parsedAmount = Number(amount);
+  const validAmount = Number.isSafeInteger(parsedAmount) && parsedAmount >= 1 && parsedAmount <= MAX_GRANT_AMOUNT;
+  const ready = Boolean(email.trim() && validAmount && reason.trim());
+  const locked = submitting || Boolean(result);
+  useEffect(() => { if (result) resultHeading.current?.focus(); }, [result]);
+
+  function prepareNextGrant() {
+    setEmail("");
+    setAmount("");
+    setReason("마케팅 캠페인 예외 지급");
+    setCampaignId("");
+    setIdempotencyKey("");
+    setConfirmed(false);
+    setError("");
+    setNotice("");
+    setResult(null);
+    requestAnimationFrame(() => emailInput.current?.focus());
+  }
 
   async function submitGrant(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (locked) return;
     setError("");
     setNotice("");
     setResult(null);
@@ -119,156 +141,117 @@ export default function AdminMonthlyCreditsPage() {
   }
 
   return (
-    <main className="min-h-screen">
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-5 border-b border-slate-800 pb-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-50 sm:text-3xl">마케팅 월정석 지급</h1>
-            <p className="mt-3 text-sm leading-6 text-[var(--cd-adm-ink-quiet)]">
-              특정 계정에 월정석을 예외 지급합니다. 지급분은 별도로 기록되며 지급 후 30일이 지나면 만료됩니다.
-            </p>
-          </div>
-        </header>
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <div>
+          <h1>마케팅 월정석 지급</h1>
+          <p>지급할 계정과 수량을 입력하고, 마지막으로 확인해 주세요.</p>
+        </div>
+        <Image src="/assets/mascot/yeoni-moonstone-reward-v1-160.webp" alt="" width={80} height={80} className={styles.mascot} />
+      </header>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
-          <section className="cd-adm-card rounded-2xl p-5 sm:p-6" aria-labelledby="grant-form-title">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 id="grant-form-title" className="text-lg font-bold text-slate-50">지급 정보</h2>
-                <p className="mt-1 text-sm leading-5 text-[var(--cd-adm-ink-quiet)]">지급할 계정과 수량을 입력해 주세요.</p>
-              </div>
-              <span className="shrink-0 whitespace-nowrap rounded-full border border-emerald-700 bg-emerald-950 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">30일 만료</span>
+      <form className={styles.layout} onSubmit={submitGrant} aria-label="월정석 지급">
+        <section className={styles.entry} aria-labelledby="grant-form-title">
+          <div className={styles.sectionHeading}>
+            <h2 id="grant-form-title">지급 정보</h2>
+            <span className={styles.badge}>{result ? <><Check size={14} aria-hidden="true" />처리 완료</> : "관리자 전용"}</span>
+          </div>
+          <p className={styles.description}>{result ? "완료된 요청의 입력 내용입니다. 새 지급은 결과 아래에서 준비해 주세요." : "이메일은 정확히, 수량은 월정석 단위로 입력해 주세요."}</p>
+
+          <fieldset disabled={locked} className={styles.fields}>
+            <div className={styles.fieldGroup}>
+              <label htmlFor="grant-email">지급 대상 이메일 <span className={styles.required}>필수</span></label>
+              <input ref={emailInput} id="grant-email" type="email" required autoComplete="off" spellCheck={false}
+                value={email} onChange={(event) => { setEmail(event.target.value); setIdempotencyKey(""); setConfirmed(false); }}
+                placeholder="customer@example.com" className={inputClass} aria-describedby="grant-email-help" />
+              <p id="grant-email-help">월정석을 받을 계정의 이메일을 입력해 주세요.</p>
             </div>
 
-            <form className="mt-6 space-y-5" onSubmit={submitGrant}>
-              <div>
-                <label htmlFor="grant-email" className="text-sm font-semibold text-slate-200">지급 대상 이메일</label>
-                <input
-                  id="grant-email"
-                  type="email"
-                  required
-                  autoComplete="off"
-                  value={email}
-                  onChange={(event) => { setEmail(event.target.value); setIdempotencyKey(""); }}
-                  placeholder="customer@example.com"
-                  className={`${inputClass} mt-2`}
-                />
+            <div className={styles.fieldGroup}>
+              <label htmlFor="grant-amount">지급 수량 <span className={styles.required}>필수</span></label>
+              <div className={styles.amountField}>
+                <Gem size={20} aria-hidden="true" />
+                <input id="grant-amount" type="number" required min={1} max={MAX_GRANT_AMOUNT} step={1} inputMode="numeric"
+                  value={amount} onChange={(event) => { setAmount(event.target.value); setIdempotencyKey(""); setConfirmed(false); }}
+                  placeholder="0" className={inputClass} aria-describedby="grant-amount-help" />
+                <span>개</span>
               </div>
+              <p id="grant-amount-help">{validAmount ? <strong>{formatAmount(parsedAmount)}</strong> : "1개 이상 입력해 주세요."}<span>최대 {MAX_GRANT_AMOUNT.toLocaleString("ko-KR")}개</span></p>
+            </div>
 
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="grant-amount" className="text-sm font-semibold text-slate-200">지급 수량</label>
-                  <div className="relative mt-2">
-                    <input
-                      id="grant-amount"
-                      type="number"
-                      required
-                      min={1}
-                      max={MAX_GRANT_AMOUNT}
-                      step={1}
-                      inputMode="numeric"
-                      value={amount}
-                      placeholder="원하는 수량 입력"
-                      onChange={(event) => { setAmount(event.target.value); setIdempotencyKey(""); }}
-                      className={`${inputClass} pr-10`}
-                    />
-                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-slate-500">개</span>
-                  </div>
-                  <p className="mt-1.5 text-xs text-slate-500">최대 {MAX_GRANT_AMOUNT.toLocaleString("ko-KR")}개</p>
-                </div>
-
-                <div>
-                  <label htmlFor="grant-campaign" className="text-sm font-semibold text-slate-200">캠페인 ID <span className="font-normal text-slate-500">(선택)</span></label>
-                  <input
-                    id="grant-campaign"
-                    value={campaignId}
-                    onChange={(event) => setCampaignId(event.target.value)}
-                    placeholder="예: summer-2026"
-                    className={`${inputClass} mt-2`}
-                  />
-                  <p className="mt-1.5 text-xs text-slate-500">운영 기록과 함께 저장됩니다.</p>
-                </div>
+            <div className={styles.recordFields}>
+              <div className={styles.fieldGroup}>
+                <label htmlFor="grant-reason">지급 사유 <span className={styles.required}>필수</span></label>
+                <textarea id="grant-reason" required maxLength={120} rows={3} value={reason}
+                  onChange={(event) => { setReason(event.target.value); setConfirmed(false); }}
+                  className={inputClass} aria-describedby="grant-reason-help" />
+                <p id="grant-reason-help">관리자 지급 기록에 남는 내용입니다.<span>{reason.length}/120자</span></p>
               </div>
-
-              <div>
-                <label htmlFor="grant-reason" className="text-sm font-semibold text-slate-200">지급 사유</label>
-                <textarea
-                  id="grant-reason"
-                  required
-                  maxLength={120}
-                  rows={3}
-                  value={reason}
-                  onChange={(event) => setReason(event.target.value)}
-                  className={`${inputClass} mt-2 resize-y`}
-                />
-                <p className="mt-1.5 text-xs text-slate-500">최대 120자 · 관리자 원장에 기록됩니다.</p>
+              <div className={styles.fieldGroup}>
+                <label htmlFor="grant-campaign">캠페인 ID <span className={styles.optional}>선택</span></label>
+                <input id="grant-campaign" value={campaignId} onChange={(event) => { setCampaignId(event.target.value); setConfirmed(false); }}
+                  placeholder="예: summer-2026" className={inputClass} aria-describedby="grant-campaign-help" />
+                <p id="grant-campaign-help">같은 캠페인의 지급 기록을 구분할 때 사용해요.</p>
               </div>
+            </div>
+          </fieldset>
+        </section>
 
-              <div className="rounded-xl border border-amber-800/80 bg-amber-950/40 p-4">
-                <p className="text-sm font-semibold text-amber-100">지급 전 확인</p>
-                <p className="mt-1 text-xs leading-5 text-amber-200/80">입력한 계정과 수량을 확인해 주세요. 이 지급분은 생성 시점부터 30일 후 만료됩니다.</p>
-                <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-sm text-amber-50">
-                  <input
-                    type="checkbox"
-                    checked={confirmed}
-                    onChange={(event) => setConfirmed(event.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-950 accent-violet-500"
-                  />
-                  <span>대상 계정과 지급 수량을 확인했습니다.</span>
-                </label>
+        <aside className={styles.reviewColumn} aria-label="지급 확인과 결과">
+          {result ? (
+            <section className={styles.result} aria-labelledby="grant-result-title" role="status">
+              <div className={styles.resultHeading}>
+                <CircleCheck size={28} aria-hidden="true" />
+                <div><h2 ref={resultHeading} tabIndex={-1} id="grant-result-title">월정석 지급 완료</h2><p>{result.idempotent ? "이미 처리된 요청의 결과입니다." : "지급 내역이 기록되었습니다."}</p></div>
               </div>
-
-              {error ? <p role="alert" className="rounded-lg border border-rose-800 bg-rose-950/60 px-3 py-2.5 text-sm text-rose-200">{error}</p> : null}
-              {notice ? <p role="status" className="rounded-lg border border-emerald-800 bg-emerald-950/60 px-3 py-2.5 text-sm text-emerald-200">{notice}</p> : null}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className={`w-full ${adminButton("gift", { size: "lg" })}`}
-                style={{ minHeight: "3.5rem" }}
-              >
-                <Image src="/assets/mascot/moonstone-lotus-v2-480.webp" alt="" width={40} height={40} className="h-10 w-10 object-contain" />
-                {submitting ? "지급 처리 중…" : "월정석 지급하기"}
-              </button>
-            </form>
-          </section>
-
-          <aside className="space-y-6" aria-label="월정석 지급 안내">
-            <section className="cd-adm-card rounded-2xl p-5 sm:p-6">
-              <div className="mb-5 flex items-center gap-4 border-b border-[var(--cd-adm-line)] pb-5">
-                <Image src="/assets/mascot/yeoni-moonstone-reward-v1-160.webp" alt="" width={112} height={112} className="h-24 w-24 shrink-0 object-contain sm:h-28 sm:w-28" />
-                <div>
-                  <p className="font-semibold text-[var(--cd-adm-ink)]">꽃돼지의 월정석</p>
-                  <p className="mt-1 text-sm leading-6 text-[var(--cd-adm-ink-quiet)]">지급 전 계정과 수량을 한 번 더 확인해 주세요.</p>
-                </div>
-              </div>
-              <h2 className="text-base font-bold text-slate-50">지급 규칙</h2>
-              <dl className="mt-4 divide-y divide-slate-800 text-sm">
-                <div className="flex items-start justify-between gap-4 py-3 first:pt-0"><dt className="text-slate-500">지급 단위</dt><dd className="text-right font-semibold text-slate-200">월정석</dd></div>
-                <div className="flex items-start justify-between gap-4 py-3"><dt className="text-slate-500">수량 상한</dt><dd className="text-right font-semibold text-slate-200">{MAX_GRANT_AMOUNT.toLocaleString("ko-KR")}개</dd></div>
-                <div className="flex items-start justify-between gap-4 py-3"><dt className="text-slate-500">만료</dt><dd className="text-right font-semibold text-emerald-300">지급 후 30일</dd></div>
-                <div className="flex items-start justify-between gap-4 py-3 last:pb-0"><dt className="text-slate-500">중복 요청</dt><dd className="text-right font-semibold text-slate-200">멱등 처리</dd></div>
+              <dl className={styles.facts}>
+                <div><dt>요청 계정</dt><dd>{result.grant.email || email.trim().toLowerCase()}</dd></div>
+                <div><dt>이번 지급</dt><dd className={styles.resultAmount}>{formatAmount(result.grant.amount)}</dd></div>
+                <div><dt>지급 후 잔액</dt><dd>{formatAmount(result.grant.balanceAfter)}</dd></div>
+                <div><dt>만료 시각</dt><dd>{formatDate(result.grant.expiresAt)}</dd></div>
               </dl>
-              <p className="mt-5 rounded-lg border border-slate-700 bg-slate-950/70 px-3 py-2.5 text-xs leading-5 text-slate-400">동일한 요청을 다시 보내도 같은 idempotency key라면 중복 지급되지 않습니다.</p>
+              <p className={styles.successNote}>{notice}</p>
+              <button type="button" onClick={prepareNextGrant} className={`${adminButton("neutral", { size: "lg" })} ${styles.nextButton}`}>
+                <RotateCcw size={18} aria-hidden="true" />새 지급 준비하기
+              </button>
             </section>
+          ) : (
+            <section className={styles.review} aria-labelledby="grant-review-title" aria-busy={submitting}>
+              <div className={styles.sectionHeading}><h2 id="grant-review-title">지급 전 확인</h2><ShieldCheck size={20} aria-hidden="true" /></div>
+              <p className={styles.description}>아래 내용이 맞는지 확인해 주세요.</p>
+              <dl className={styles.facts}>
+                <div><dt>받을 계정</dt><dd className={email.trim() ? undefined : styles.placeholder}>{email.trim().toLowerCase() || "이메일을 입력해 주세요"}</dd></div>
+                <div><dt>지급할 월정석</dt><dd className={validAmount ? styles.reviewAmount : styles.placeholder}>{validAmount ? formatAmount(parsedAmount) : "수량을 입력해 주세요"}</dd></div>
+                <div><dt>지급 사유</dt><dd>{reason.trim() || "사유를 입력해 주세요"}</dd></div>
+                {campaignId.trim() ? <div><dt>캠페인</dt><dd>{campaignId.trim()}</dd></div> : null}
+                <div><dt>만료</dt><dd>지급 후 30일</dd></div>
+              </dl>
 
-            {result ? (
-              <section className="rounded-2xl border border-emerald-800/80 bg-[#101b1b] p-5 sm:p-6" aria-labelledby="grant-result-title">
-                <div className="flex items-center justify-between gap-3">
-                  <h2 id="grant-result-title" className="text-base font-bold text-emerald-100">지급 결과</h2>
-                  <span className="rounded-full border border-emerald-700 px-2 py-1 text-[11px] font-semibold text-emerald-300">{result.idempotent ? "기존 처리" : "신규 처리"}</span>
-                </div>
-                <dl className="mt-4 space-y-3 text-sm">
-                  <div><dt className="text-xs text-slate-500">대상</dt><dd className="mt-1 break-all text-slate-100">{result.grant.email}</dd></div>
-                  <div><dt className="text-xs text-slate-500">이번 지급</dt><dd className="mt-1 font-bold text-emerald-200">{formatAmount(result.grant.amount)}</dd></div>
-                  <div><dt className="text-xs text-slate-500">지급 후 잔액</dt><dd className="mt-1 text-slate-100">{formatAmount(result.grant.balanceAfter)}</dd></div>
-                  <div><dt className="text-xs text-slate-500">만료 시각</dt><dd className="mt-1 text-slate-100">{formatDate(result.grant.expiresAt)}</dd></div>
-                </dl>
-              </section>
-            ) : null}
-          </aside>
-        </div>
-      </div>
+              <label className={`${styles.confirmation}${confirmed ? " " + styles.confirmed : ""}${!ready ? " " + styles.confirmationDisabled : ""}`}>
+                <input type="checkbox" checked={confirmed} disabled={!ready || submitting} onChange={(event) => setConfirmed(event.target.checked)} />
+                <span>대상 계정과 지급 수량을 확인했습니다.</span>
+              </label>
+
+              {error ? <p role="alert" className={styles.error}>{error}</p> : null}
+              <button type="submit" disabled={!ready || !confirmed || submitting}
+                className={`${adminButton("gift", { size: "lg" })} ${styles.submitButton}`} aria-describedby="grant-submit-help">
+                {submitting ? <LoaderCircle size={20} className={styles.spinner} aria-hidden="true" /> : <Gem size={20} aria-hidden="true" />}
+                {submitting ? "지급 처리 중…" : validAmount ? `${formatAmount(parsedAmount)} 지급하기` : "월정석 지급하기"}
+                {!submitting ? <ArrowRight size={18} aria-hidden="true" /> : null}
+              </button>
+              <p id="grant-submit-help" className={styles.submitHelp} role={submitting ? "status" : undefined}>
+                {submitting ? "처리 결과를 확인하고 있어요. 잠시만 기다려 주세요." : !ready ? "필수 정보를 입력하면 지급을 준비할 수 있어요." : !confirmed ? "위 확인란을 선택하면 지급 버튼이 활성화됩니다." : "확인한 계정에 월정석을 지급합니다."}
+              </p>
+            </section>
+          )}
+
+          <section className={styles.policy} aria-labelledby="grant-policy-title">
+            <h2 id="grant-policy-title">지급 안내</h2>
+            <p>지급분은 기존 잔액과 별도로 기록되며, 지급 후 30일이 지나면 만료됩니다.</p>
+            <p>오류 뒤 다시 시도할 때는 같은 요청으로 확인해 중복 지급을 방지합니다.</p>
+          </section>
+        </aside>
+      </form>
     </main>
   );
 }

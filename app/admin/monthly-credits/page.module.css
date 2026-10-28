@@ -1,0 +1,78 @@
+
+.page {
+  max-width: 1160px;
+  margin-inline: auto;
+  padding: 32px 28px 48px;
+  color: var(--cd-adm-ink);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+.header h1 { margin: 0; font-size: 28px; line-height: 1.35; font-weight: 750; letter-spacing: -.025em; }
+.header p, .description { margin: 10px 0 0; color: var(--cd-adm-ink-quiet); font-size: 14px; line-height: 1.7; }
+.mascot { flex: none; width: 80px; height: 80px; object-fit: contain; }
+.layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(320px, .9fr); gap: 24px; align-items: start; }
+.entry, .review, .result { min-width: 0; padding: 26px; border: 1px solid var(--cd-adm-line); border-radius: var(--cd-adm-radius-lg); background: var(--cd-adm-surface); }
+.sectionHeading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.sectionHeading h2, .resultHeading h2 { margin: 0; font-size: 18px; line-height: 1.5; font-weight: 700; }
+.sectionHeading > svg { color: var(--cd-adm-ink-quiet); flex: none; }
+.badge { display: inline-flex; align-items: center; gap: 5px; flex: none; padding: 5px 9px; border: 1px solid var(--cd-adm-line); border-radius: var(--cd-adm-radius); color: var(--cd-adm-ink-quiet); font-size: 12px; }
+.fields { min-width: 0; display: grid; gap: 26px; margin: 28px 0 0; padding: 0; border: 0; }
+.fieldGroup { min-width: 0; }
+.fieldGroup > label { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 650; }
+.required, .optional { color: var(--cd-adm-ink-quiet); font-size: 12px; font-weight: 400; }
+.fieldGroup .field { min-height: 50px; padding: 12px 14px; font-size: 16px; line-height: 1.5; border-radius: var(--cd-adm-radius); caret-color: var(--cd-adm-accent); }
+.fieldGroup .field:disabled { opacity: 1; color: var(--cd-adm-ink-quiet); }
+.fieldGroup textarea.field { min-height: 104px; }
+.fieldGroup > p { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; margin: 8px 0 0; color: var(--cd-adm-ink-quiet); font-size: 12px; line-height: 1.6; }
+.fieldGroup > p strong { color: var(--cd-adm-ink); font-weight: 550; }
+.amountField { position: relative; }
+.amountField .field { padding-inline: 44px 44px; font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.amountField > svg, .amountField > span { position: absolute; top: 50%; transform: translateY(-50%); color: var(--cd-adm-ink-quiet); pointer-events: none; }
+.amountField > svg { left: 14px; }
+.amountField > span { right: 16px; font-size: 14px; }
+.recordFields { display: grid; gap: 24px; padding-top: 26px; border-top: 1px solid var(--cd-adm-line); }
+.reviewColumn { position: sticky; top: 24px; min-width: 0; }
+.review { border-color: color-mix(in srgb, var(--cd-adm-accent) 40%, var(--cd-adm-line)); }
+.facts { display: grid; gap: 18px; margin: 24px 0; }
+.facts > div { min-width: 0; }
+.facts dt { margin-bottom: 5px; color: var(--cd-adm-ink-quiet); font-size: 12px; line-height: 1.6; }
+.facts dd { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.7; overflow-wrap: anywhere; white-space: pre-wrap; }
+.facts dd.reviewAmount, .facts dd.resultAmount { font-size: 24px; font-weight: 700; line-height: 1.4; font-variant-numeric: tabular-nums; }
+.facts dd.placeholder { color: var(--cd-adm-ink-quiet); font-weight: 400; }
+.confirmation { display: flex; align-items: flex-start; gap: 12px; min-height: 58px; padding: 16px; border: 1px solid var(--cd-adm-line-strong); border-radius: var(--cd-adm-radius); background: var(--cd-adm-field); cursor: pointer; }
+.confirmation input { flex: none; width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--cd-adm-accent); }
+.confirmation span { font-size: 14px; line-height: 1.65; }
+.confirmation:focus-within { outline: 2px solid var(--cd-adm-accent); outline-offset: 3px; }
+.confirmed { border-color: var(--cd-adm-accent); background: var(--cd-adm-accent-chip); }
+.confirmationDisabled { color: var(--cd-adm-ink-quiet); cursor: not-allowed; border-color: var(--cd-adm-line); }
+.review .submitButton, .result .nextButton { width: 100%; min-height: 56px; margin-top: 18px; padding: 12px 16px; font-size: 15px; white-space: normal; }
+.review .submitButton:disabled { opacity: 1; background: var(--cd-adm-panel-2); color: var(--cd-adm-ink-quiet); border-color: var(--cd-adm-line); }
+.submitButton > svg { flex: none; }
+.submitHelp { min-height: 40px; margin: 12px 0 0; color: var(--cd-adm-ink-quiet); font-size: 12px; line-height: 1.7; text-align: center; }
+.error { margin: 18px 0 0; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--cd-adm-err) 45%, transparent); border-radius: var(--cd-adm-radius); background: color-mix(in srgb, var(--cd-adm-err) 8%, var(--cd-adm-field)); color: var(--cd-adm-err); font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+.policy { padding: 22px 4px 0; }
+.policy h2 { margin: 0; font-size: 13px; font-weight: 650; }
+.policy p { margin: 8px 0 0; color: var(--cd-adm-ink-quiet); font-size: 12px; line-height: 1.8; }
+.result { border-color: color-mix(in srgb, var(--cd-adm-ok) 50%, var(--cd-adm-line)); }
+.resultHeading { display: flex; align-items: flex-start; gap: 12px; }
+.resultHeading > svg { flex: none; margin-top: 2px; color: var(--cd-adm-ok); }
+.resultHeading p { margin: 5px 0 0; color: var(--cd-adm-ink-quiet); font-size: 13px; line-height: 1.7; }
+.resultAmount { color: var(--cd-adm-ok); }
+.successNote { margin: 0; padding-top: 18px; border-top: 1px solid var(--cd-adm-line); color: var(--cd-adm-ok); font-size: 13px; line-height: 1.7; }
+.spinner { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 1100px) { .page { padding-inline: 20px; } .layout { gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(300px, .9fr); } .entry, .review, .result { padding: 22px; } }
+@media (max-width: 760px) {
+  .page { padding: 24px 16px 32px; }
+  .header { align-items: flex-start; gap: 12px; margin-bottom: 22px; }
+  .header h1 { font-size: 24px; }
+  .header p { font-size: 14px; }
+  .mascot { width: 64px; height: 64px; }
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .entry, .review, .result { padding: 20px; }
+  .reviewColumn { position: static; }
+  .fields { gap: 24px; margin-top: 24px; }
+  .submitButton, .nextButton { min-height: 56px; }
+}
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
