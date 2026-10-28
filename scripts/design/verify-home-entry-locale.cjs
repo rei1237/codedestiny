@@ -28,11 +28,14 @@ const locales = ['ko', 'ja', 'en', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de
         assert.equal(await page.locator('[data-home-card="yeoni"] a').getAttribute('href'), '/ggulggul/');
         assert.equal(await page.locator('[data-home-card="yn"] a').getAttribute('href'), '/yeongnyangi/');
         assert.equal(await page.locator('#homeCardTitle').evaluate(e => e.closest('[lang]').lang), 'ko');
-        assert.ok((await page.locator('[data-home-disclosure]').evaluateAll(es => es.map(e => e.open))).every(open => !open));
+        assert.equal(await page.locator('[data-home-disclosure="guide"]').evaluate(e => e.open), true);
+        assert.equal(await page.locator('#homeExplore').evaluate(e => e.open), false);
         assert.equal(await page.evaluate(() => localStorage.getItem('cd_lang')), locale);
         await page.locator('[data-home-disclosure="guide"] > summary').focus();
         await page.keyboard.press('Enter');
-        assert.equal(await page.locator('.consultation-choice:visible').count(), 2);
+        assert.equal(await page.locator('[data-home-disclosure="guide"]').evaluate(e => e.open), false);
+        await page.keyboard.press('Enter');
+        assert.equal(await page.locator('.consultation-tutorial__service:visible').count(), 2);
         // Live native-app locale changes must not replace or collapse the guide.
         await page.evaluate(() => {
           window.__cdAppLanguage = 'ja';
