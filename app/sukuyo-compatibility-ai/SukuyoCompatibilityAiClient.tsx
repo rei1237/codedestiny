@@ -218,7 +218,6 @@ type Consultation = {
   saved?: boolean;
   id: string;
   status?: string;
-  reviewRequired?: boolean;
   consultationType?: ConsultationType;
   personA: { name?: string; shuku?: string };
   personB: { name?: string; shuku?: string };
@@ -616,6 +615,7 @@ type StartResult = {
   reason?: string;
   message?: string;
   status?: string;
+  reviewRequired?: boolean;
   sessionId?: string;
   consultation?: Consultation;
 };
