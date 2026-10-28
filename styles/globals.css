@@ -44,10 +44,10 @@
 	unicode-range: U+2E80-2FDF, U+3005-3007, U+3021-3029, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF;
 }
 
+/* Match the shell: native body fonts paint immediately without a full Korean TTF download. */
 @font-face {
 	font-family: "CodeDestinyBody";
-	src: local("Pretendard"), local("Apple SD Gothic Neo"), local("Malgun Gothic"),
-		url("https://assets.code-destiny.com/PretendardVariable.ttf") format("truetype-variations");
+	src: local("Pretendard"), local("Apple SD Gothic Neo"), local("Malgun Gothic");
 	font-weight: 400 900;
 	font-style: normal;
 	font-display: swap;
