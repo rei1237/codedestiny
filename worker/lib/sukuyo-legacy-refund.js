@@ -8,6 +8,10 @@ export async function restoreSukuyoLegacyRefund(env, { userId, evidenceId, failu
   if (!owner || !id) return false;
   const context = createPaymentContext({ requestId: `sukuyo-legacy-refund:${id}`, route: 'sukuyo-legacy-refund' });
   return (deps.withDb || withPaymentDb)(env, context, db => db.transaction(async tx => {
+    const receipt = await tx.findOne(PointHistory, { userId: owner, kind: 'refund',
+      featureKey: 'sukuyo-compatibility-ai', 'metadata.originalPointHistoryId': String(id),
+      'metadata.refundedForServiceExecution': true });
+    if (receipt) return true;
     const filter = { _id: id, userId: owner, kind: 'deduct', featureKey: 'sukuyo-compatibility-ai',
       'metadata.refundedForServiceExecution': { $ne: true } };
     const history = await tx.findOne(PointHistory, filter);

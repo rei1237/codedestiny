@@ -10,7 +10,7 @@ function fixture({ delta = -12, failure = '' } = {}) {
   const withDb = async (_env, _ctx, fn) => fn({ transaction: async callback => {
     const working = structuredClone(state);
     const tx = {
-      findOne: async () => working.marked ? null : { delta },
+      findOne: async (_model, filter) => filter.kind === 'refund' ? working.receipt : (working.marked ? null : { delta }),
       updateOne: async () => { working.marked = true; return { modifiedCount: 1 }; },
       findOneAndUpdate: async (_model, _filter, update) => {
         if (failure === 'balance') throw new Error('balance failed');
@@ -34,7 +34,7 @@ test('actual deduction is restored once', async () => {
   const f = fixture();
   expect(await f.run()).toBe(true);
   expect(f.state()).toMatchObject({ marked: true, balance: 19, receipt: { delta: 12, balanceAfter: 19 } });
-  expect(await f.run()).toBe(false);
+  expect(await f.run()).toBe(true);
   expect(f.state().balance).toBe(19);
 });
 
@@ -53,6 +53,6 @@ test.each(['balance', 'receipt'])('%s failure rolls back marker and balance', as
 test('lost response after commit does not restore twice', async () => {
   const f = fixture({ failure: 'response' });
   await expect(f.run()).rejects.toThrow();
-  expect(await f.run()).toBe(false);
+  expect(await f.run()).toBe(true);
   expect(f.state()).toMatchObject({ marked: true, balance: 19 });
 });

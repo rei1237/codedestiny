@@ -9,7 +9,7 @@ beforeAll(async () => {
  const paymentDb = await import('../../worker/payments/db.js');
  jest.unstable_mockModule('../../worker/payments/db.js', () => ({ ...paymentDb,
   withPaymentDb: async (_env, _ctx, fn) => fn({ transaction: async callback => callback({
-   findOne: async (_model, filter) => find({ ...filter, _id: String(filter._id), userId: String(filter.userId) }).lean(),
+   findOne: async (_model, filter) => filter.kind === 'refund' ? null : find({ ...filter, _id: String(filter._id), userId: String(filter.userId) }).lean(),
    updateOne: async (_model, ...args) => mark(...args),
    findOneAndUpdate: async (_model, filter, update) => credit(String(filter._id), update, expect.any(Object)),
    insertOne: async (_model, row) => create(row),
