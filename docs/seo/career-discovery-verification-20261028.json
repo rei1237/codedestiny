@@ -81,13 +81,13 @@
     },
     "campaign": {
       "document": "../marketing/career-campus-campaign-20261028.md",
-      "candidates": 13,
-      "universities": 8,
-      "universityContacts": 11,
+      "candidates": 20,
+      "universities": 14,
+      "universityContacts": 18,
       "platforms": 2,
       "sent": 0,
       "posts": 0,
-      "notes": "Public official contacts are not publication permission. Everytime/Campuspick community-rule bodies inaccessible; marked unverified."
+      "notes": "Concurrent main commit 5017f2bdc supplied 11 candidates and platform-rule evidence; its text is preserved. Nine distinct university contacts from this review were added, total 20. This session could not independently access platform-rule bodies. Contact availability is not publication permission."
     },
     "pending": [
       "Explicit approval for push triggering staging and remote CI",
