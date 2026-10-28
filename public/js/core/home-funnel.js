@@ -4,6 +4,20 @@
   var home = document.getElementById('cdHomeFunnel');
   if (!home) return;
 
+  // Decorative CSS scenes run only while visible; the content never depends on motion.
+  var moonlitTargets = home.querySelectorAll('.cdh-hero, .cd-choice__crest, .cd-sig__samples-link');
+  if (moonlitTargets.length && typeof IntersectionObserver === 'function') {
+    var moonlitObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        entry.target.toggleAttribute('data-moonlit-visible', entry.isIntersecting && entry.intersectionRatio >= 0.35);
+      });
+    }, { threshold: [0, 0.35] });
+    moonlitTargets.forEach(function (target) { moonlitObserver.observe(target); });
+    function pauseMoonlight() { home.toggleAttribute('data-moonlit-paused', document.hidden); }
+    document.addEventListener('visibilitychange', pauseMoonlight);
+    pauseMoonlight();
+  }
+
   // Progressive tabs retain the existing cards, links and tracking attributes.
   var consultationTabs = home.querySelector('[data-consult-tabs]');
   if (consultationTabs) {
