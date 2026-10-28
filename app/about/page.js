@@ -144,7 +144,9 @@ export default function AboutPage() {
         <p>
           {aboutPageText("editorial.author")}
         </p>
-        <p>박병하는 ‘네오’라는 이름으로 사주 분석 글을 공개해 왔습니다. <a href="https://blog.naver.com/neosaju" rel="noopener noreferrer">네오의 기존 사주 블로그</a>는 운영자의 분석 활동 기록이고, <a href="https://blog.naver.com/goodbyejieun" rel="noopener noreferrer">꿀꿀 운세 공식 블로그</a>는 서비스 소식과 이용 안내 채널입니다.</p>
+        <p>박병하는 ‘네오’라는 이름으로 사주 분석 글을 공개해 왔습니다. <a href="https://blog.naver.com/neosaju" rel="noopener noreferrer">네오사주 블로그 · 네오의 공개 분석 기록</a>는 운영자의 분석 활동 기록이고, <a href="https://blog.naver.com/goodbyejieun" rel="noopener noreferrer">꿀꿀 운세 공식 블로그</a>는 서비스 소식과 이용 안내 채널입니다.</p>
+        <h3>사주 성지를 찾고 있다면, 무엇을 확인하면 좋을까요?</h3>
+        <p>이름난 곳이라는 표현만으로 나에게 맞는 상담인지 알기는 어려워요. 공개된 해석 예시와 이용 조건, AI 생성 상담인지 사람이 작성·검수하는 서비스인지부터 확인해 보세요. 꿀꿀 운세에서는 서비스별 소개와 결과 예시를 읽고 내 고민에 맞는 방식을 선택할 수 있습니다.</p>
         <h3>날짜와 원문으로 확인하는 공개 분석 기록</h3>
         <p>공개 시점이 남아 있는 유명인 분석과 작성자가 정리한 원문 색인도 함께 제공합니다. 요약만 믿기보다 게시일과 당시 표현을 원문에서 직접 확인해 주세요.</p>
         <ul>

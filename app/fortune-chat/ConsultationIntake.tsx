@@ -8,6 +8,7 @@ import type { ChatDomain, ChatTarotKind } from "./consultation-api";
 import { TAROT_KINDS } from "./consultation-world";
 import { HONEY_COST } from "./consultation-access";
 import styles from "./yeoni-salon.module.css";
+import YeoniIllustratedGuide from './YeoniIllustratedGuide';
 
 const METHODS: { id: ChatDomain; label: string; description: string }[] = [
   { id: "saju", label: "사주", description: "타고난 기질과 시기의 흐름" },
@@ -58,10 +59,12 @@ export default function ConsultationIntake(props: Props) {
         placeholder="예: 지금 회사에 남을지, 새로운 일을 시작할지 고민돼요." aria-describedby="yeoni-question-help" />
       <div className={styles.inputMeta}><p id="yeoni-question-help">현재 상황과 고민하는 선택을 함께 적으면 좋아요.</p><span>{props.question.length}/300</span></div>
       <details className={styles.examples}><summary>질문이 떠오르지 않나요?</summary>
+        <YeoniIllustratedGuide kind="question"/>
         <div>{EXAMPLES.map((text) => <button type="button" key={text} onClick={() => props.onQuestion(text)}>{text}<ArrowRight size={15} aria-hidden="true" /></button>)}</div>
       </details>
     </div>}
     {step === 1 && <div className={styles.answer}>
+      <details className={styles.examples}><summary>처음 상담한다면, 진행 방법 살펴보기</summary><YeoniIllustratedGuide kind="steps"/></details>
       <fieldset className={styles.methods}><legend>해석 방식</legend>
         {METHODS.map((item) => <button key={item.id} type="button" aria-pressed={item.id === props.domain} onClick={() => props.onDomain(item.id)}>
           <span><strong>{item.label}</strong><small>{item.description}</small></span><span className={styles.selectionDot} aria-hidden="true">{item.id === props.domain && <Check size={13} />}</span>

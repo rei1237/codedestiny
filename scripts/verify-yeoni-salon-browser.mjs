@@ -15,6 +15,7 @@ const fixture = { id, persona: 'yeoni', state: 'COMPLETED', paid: true, accessMe
 try {
   for (const width of [360, 390, 430, 1440]) {
     const context = await browser.newContext({ viewport: { width, height: 940 }, reducedMotion: 'reduce' });
+    await context.addCookies([{name:'cd_cookie_consent',value:'essential',url:base}]);
     const calls = [];
     const errors = [];
     await context.route('**/*', async (route) => {
@@ -37,13 +38,17 @@ try {
       return route.abort();
     });
     const page = await context.newPage();
-    page.on('pageerror', (error) => errors.push(error.message));
+    page.on('pageerror', (error) => {errors.push(error.message);console.error(error.stack);});
     await page.goto(base + '/fortune-chat/', { waitUntil: 'domcontentloaded', timeout: 120000 });
     const input = page.getByLabel('나의 질문', { exact: true });
     await input.waitFor({ timeout: 90000 });
     await page.evaluate(() => document.fonts.ready);
     await page.locator('img[src*="salon-welcome"]').evaluate((img) => img.decode());
     assert(await page.getByRole('button', { name: '계속하기', exact: true }).isDisabled(), 'empty question is disabled');
+    await page.locator('#yeoni-welcome-title').scrollIntoViewIfNeeded();
+    await page.screenshot({path:output+'/welcome-'+width+'.png'});
+    await page.getByText('질문이 떠오르지 않나요?',{exact:true}).click();
+    await page.getByRole('region',{name:'연이의 상담 안내'}).locator('img').evaluate(img=>img.decode());
     await input.fill('새로운 일을 시작해도 괜찮을까요?');
     await page.screenshot({ path: output + '/question-' + width + '.png', fullPage: true });
     await page.getByRole('button', { name: '계속하기', exact: true }).click();
@@ -51,6 +56,8 @@ try {
     await page.getByRole('button', { name: /타로 출생정보 없이/ }).click();
     assert.equal(await page.getByRole('region', { name: '상담할 프로필' }).count(), 0);
     await page.getByRole('button', { name: '일과 진로', exact: true }).click();
+    await page.getByText('처음 상담한다면, 진행 방법 살펴보기',{exact:true}).click();
+    await page.getByRole('region',{name:'연이의 상담 안내'}).locator('img').evaluate(img=>img.decode());
     await page.screenshot({ path: output + '/method-' + width + '.png', fullPage: true });
     await page.getByRole('button', { name: '계속하기', exact: true }).click();
     assert(await page.getByText('타로 · 일과 진로', { exact: true }).isVisible());
