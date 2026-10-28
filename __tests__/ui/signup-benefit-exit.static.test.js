@@ -15,7 +15,7 @@ test('첫 가입 이탈 혜택은 실제 월정석 정책을 정확히 안내한
   assert.doesNotMatch(source, /5,000원 할인 쿠폰/);
 });
 
-test('게스트 종료 팝업은 접근 가능한 선택지와 기존 종료 폴백을 함께 둔다', () => {
+test('가입 혜택 선택지는 유지하고 뒤로가기에 새 팝업을 끼워 넣지 않는다', () => {
   const source = read('js/signup-benefit-exit.js');
   const staticBack = read('js/mobile-backstack-navigation.js');
   const nativeBridge = read('scripts/app-native-bridge.js');
@@ -30,7 +30,7 @@ test('게스트 종료 팝업은 접근 가능한 선택지와 기존 종료 폴
   assert.match(source, /이메일로 가입하기/);
   assert.match(source, /그냥 종료하기/);
   assert.match(source, /오늘 하루 보지 않기/);
-  assert.match(staticBack, /__cdSignupBenefitExit\.open/);
-  assert.match(nativeBridge, /__cdSignupBenefitExit\.open/);
+  assert.doesNotMatch(staticBack, /__cdSignupBenefitExit\.open/);
+  assert.doesNotMatch(nativeBridge, /__cdSignupBenefitExit\.open/);
   assert.match(shell, /\/js\/signup-benefit-exit\.js\?v=/);
 });

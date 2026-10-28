@@ -980,6 +980,11 @@
       closeEl.click();
       return true;
     }
+    // showModal() 안내창은 cancel을 통해 각 화면의 저장/포커스 복원 경로를 따른다.
+    if (rootEl.tagName === "DIALOG" && rootEl.open) {
+      if (rootEl.dispatchEvent(new Event("cancel", { cancelable: true }))) rootEl.close();
+      return true;
+    }
     dispatchEscapeKey();
     return !isOverlayVisible(rootEl);
   }
@@ -1002,7 +1007,7 @@
     // 나머지 모달(React 의 role=dialog/aria-modal, 정적 페이지의 시트 등).
     // 뒤에 붙은 것이 위에 있을 가능성이 높으므로 역순으로 본다.
     try {
-      var dialogs = document.querySelectorAll('[aria-modal="true"]');
+      var dialogs = document.querySelectorAll('[aria-modal="true"], dialog[open]');
       for (var j = dialogs.length - 1; j >= 0; j -= 1) {
         if (!isOverlayVisible(dialogs[j])) continue;
         return closeOverlayNode(dialogs[j]);
@@ -1013,7 +1018,8 @@
 
   function isRootScreen() {
     var path = String(window.location.pathname || "/").replace(/\/index\.html$/, "").replace(/\/+$/, "");
-    return path === "" || path === "/" || path === "/ggulggul";
+    path = path.replace(/^\/(ko|en|ja|zh|en-us|ja-jp|zh-cn)(?=\/|$)/i, "");
+    return path === "" || path === "/" || path === "/ggulggul" || path === "/yeongnyangi" || path === "/app";
   }
 
   function showExitHint() {
@@ -1022,17 +1028,19 @@
     var hint = document.createElement("div");
     hint.id = "cdAppExitHint";
     hint.setAttribute("role", "status");
-    hint.textContent = "한 번 더 누르면 종료됩니다";
+    hint.setAttribute("aria-live", "polite");
+    hint.textContent = "뒤로가기를 한 번 더 누르면 종료돼요";
     hint.style.cssText = [
       "position:fixed", "left:50%", "transform:translateX(-50%)",
       "bottom:calc(88px + env(safe-area-inset-bottom,0px))",
       "z-index:2147483000", "padding:10px 18px", "border-radius:999px",
       // DESIGN.md 연이 Ink(#3c1830) + Glow-Not-Shadow(로즈 틴트 그림자).
-      "background:#3c1830", "color:#fffaf7", "font-size:13px", "font-weight:700",
-      "box-shadow:0 12px 24px rgba(150,72,104,.12)", "pointer-events:none",
+      "background:var(--yn-raised,var(--cd-text))", "color:var(--yn-ivory,var(--cd-bg))", "font-size:14px", "font-weight:700",
+      "width:max-content", "max-width:calc(100vw - 32px)", "box-sizing:border-box", "text-align:center",
+      "box-shadow:var(--cd-shadow)", "pointer-events:none",
     ].join(";");
-    document.body.appendChild(hint);
-    window.setTimeout(function () { hint.remove(); }, 2000);
+    (document.querySelector(".ynOriginal, [data-yn-night]") || document.body).appendChild(hint);
+    exitHintTimer = window.setTimeout(resetExitIntent, 2000);
   }
 
   // --- 4-b) 오프라인 안내 ----------------------------------------------------
@@ -1114,37 +1122,61 @@
   }
 
   var exitArmedAt = 0;
+  var exitHintTimer = null;
+  var backButtonInstalled = false;
+  function resetExitIntent() {
+    exitArmedAt = 0;
+    if (exitHintTimer !== null) window.clearTimeout(exitHintTimer);
+    exitHintTimer = null;
+    var hint = document.getElementById("cdAppExitHint");
+    if (hint) hint.remove();
+  }
+
+  function dispatchAppBack(scope) {
+    return !window.dispatchEvent(new CustomEvent("cd:app-back", {
+      cancelable: true, detail: { scope: scope },
+    }));
+  }
+
   function installBackButton() {
     var app = appPlugin();
-    if (!app || !app.addListener) return;
+    if (!app || !app.addListener || backButtonInstalled) return;
+    backButtonInstalled = true;
+    // 복귀·이동·새 조작 뒤에는 직전 종료 의도를 이어받지 않는다.
+    window.addEventListener("pagehide", resetExitIntent);
+    window.addEventListener("pageshow", resetExitIntent);
+    window.addEventListener("popstate", resetExitIntent);
+    document.addEventListener("visibilitychange", resetExitIntent);
+    document.addEventListener("pointerdown", resetExitIntent, true);
+    document.addEventListener("keydown", resetExitIntent, true);
+    app.addListener("appStateChange", resetExitIntent);
     app.addListener("backButton", function (event) {
-      // ① 열린 모달/오버레이가 있으면 '뒤로'는 닫기다 — 이탈·종료보다 먼저.
-      if (closeTopOverlay()) return;
-      // ② React 앱 셸(useAndroidBackButton)이 등록한 인터셉트 — /app 라우트의 루트 판정을
-      //    페이지 레이어가 소유한다. 여기서 리스너를 하나 더 달면 백 1회에 2단계 후퇴한다.
-      try {
-        if (typeof window.__cdAppBackIntercept === "function" && window.__cdAppBackIntercept() === true) return;
-      } catch (e) {}
+      // 소유자가 등록한 결제/팝업 처리 → 나머지 팝업 → 내부 입력 단계 순서.
+      if (dispatchAppBack("overlay") || closeTopOverlay() || dispatchAppBack("screen")) {
+        resetExitIntent();
+        return;
+      }
       if (event && event.canGoBack && !isRootScreen()) {
+        resetExitIntent();
         window.history.back();
         return;
       }
       if (!isRootScreen()) {
-        window.location.assign("/ggulggul/index.html");
+        resetExitIntent();
+        var home = /^\/yeongnyangi\//.test(window.location.pathname) ? "/yeongnyangi/index.html" : "/ggulggul/index.html";
+        window.location.replace(home);
         return;
       }
-      try {
-        if (window.__cdSignupBenefitExit && window.__cdSignupBenefitExit.open(function () {
-          exitArmedAt = 0;
-          if (app.exitApp) app.exitApp();
-        })) {
-          exitArmedAt = 0;
-          return;
-        }
-      } catch (e) { /* 기존 2회 종료 흐름으로 안전 강등 */ }
+      // App 플러그인의 실제 종료 기능이 없는 환경에는 종료를 약속하지 않는다.
+      if (typeof app.exitApp !== "function") {
+        resetExitIntent();
+        if (event && event.canGoBack) window.history.back();
+        return;
+      }
       var now = Date.now();
-      if (now - exitArmedAt < 2000) {
-        if (app.exitApp) app.exitApp();
+      if (exitArmedAt > 0 && now - exitArmedAt < 2000) {
+        resetExitIntent();
+        Promise.resolve(app.exitApp()).catch(function () {});
         return;
       }
       exitArmedAt = now;

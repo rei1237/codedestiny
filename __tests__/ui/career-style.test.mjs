@@ -30,7 +30,7 @@ for(const input of cases)test(`canonical parity ${JSON.stringify(input)}`,()=>{
  assert.ok(!text.includes('undefined'));
  assert.equal(report.sections[4].axes.length,6);
  assert.equal(report.sections[5].roles.length,3);
- if(input.birthTimeUnknown){assert.equal(report.analysis.natal.pillars.hour,null);assert.match(text,/신강약을 완성된 판단으로 사용하지/);}
+ if(input.birthTimeUnknown){assert.equal(report.analysis.natal.pillars.hour,null);assert.match(report.sections.flatMap(s=>s.analysisParagraphs).join(" "),/신강약을 완성된 판단으로 사용하지/);}
 });
 test('all editorial keys and combinations have complete reports',()=>{
  assert.equal(Object.keys(DAY_COPY).length,10);assert.equal(Object.keys(MONTH_COPY).length,12);assert.equal(AXES.length,6);
