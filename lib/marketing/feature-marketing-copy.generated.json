@@ -3517,11 +3517,21 @@
         "faq": [],
         "featureId": "career-style",
         "headline": "나의 일 스타일",
-        "outline": [],
+        "outline": [
+          {
+            "detail": "성향과 월지, 업무 조건과 역할, 강점의 그림자, 작은 진로 실험을 차례로 살펴봐요.",
+            "title": "리포트 읽는 순서"
+          }
+        ],
         "outlineImage": "/images/career-style/yeoni-work-style.webp",
         "painPoints": [],
         "previewText": "가입·로그인 후 기존 카드를 선택하거나 만들면 무료로 확인할 수 있어요.",
-        "receives": [],
+        "receives": [
+          {
+            "detail": "프로필 카드로 읽는 여덟 장의 한국어 사주 자기이해 리포트. 성향·월지·업무 조건을 살펴봐요.",
+            "title": "나의 일 스타일"
+          }
+        ],
         "recommendedFor": [],
         "requiredInfo": [],
         "subheadline": "프로필 카드로 읽는 여덟 장의 한국어 사주 자기이해 리포트. 성향·월지·업무 조건을 살펴봐요.",

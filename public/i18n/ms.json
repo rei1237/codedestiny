@@ -17224,6 +17224,18 @@
       "premiumOutcomes": {
         "0": "Tiada kewajipan membayar, menulis ulasan atau berkongsi.",
         "1": "Kandungan refleksi diri berasaskan saju; bukan pengganti penilaian kerjaya profesional atau kaunseling psikologi."
+      },
+      "receives": {
+        "0": {
+          "title": "Gaya kerja saya",
+          "detail": "Laporan refleksi diri saju dalam bahasa Korea dengan lapan bab berdasarkan kad profil anda. Terokai kecenderungan, cabang bulan dan keadaan kerja."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Urutan membaca laporan",
+          "detail": "Terokai kecenderungan dan cabang bulan, keadaan dan peranan kerja, sisi lain kekuatan serta percubaan kerjaya kecil secara berurutan."
+        }
       }
     }
   },

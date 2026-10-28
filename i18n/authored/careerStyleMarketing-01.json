@@ -83,5 +83,61 @@
     "de": "Saju-basierte Selbstreflexion; kein Ersatz für professionelle Berufsdiagnostik oder psychologische Beratung.",
     "nl": "Zelfreflectie op basis van saju; geen vervanging voor professionele loopbaantests of psychologische begeleiding.",
     "ms": "Kandungan refleksi diri berasaskan saju; bukan pengganti penilaian kerjaya profesional atau kaunseling psikologi."
+  },
+  "featureMarketing.saju_career_style.receives.0.title": {
+    "ko": "나의 일 스타일",
+    "en": "My work style",
+    "ja": "私の働き方",
+    "zh-CN": "我的工作风格",
+    "zh-TW": "我的工作風格",
+    "vi": "Phong cách làm việc của tôi",
+    "hi": "मेरी कार्य शैली",
+    "es": "Mi estilo de trabajo",
+    "fr": "Ma façon de travailler",
+    "de": "Mein Arbeitsstil",
+    "nl": "Mijn werkstijl",
+    "ms": "Gaya kerja saya"
+  },
+  "featureMarketing.saju_career_style.receives.0.detail": {
+    "ko": "프로필 카드로 읽는 여덟 장의 한국어 사주 자기이해 리포트. 성향·월지·업무 조건을 살펴봐요.",
+    "en": "An eight-chapter Korean saju self-reflection report based on your profile card. Explore tendencies, the month branch and working conditions.",
+    "ja": "プロフィールカードで読む全8章の韓国語四柱推命レポート。傾向・月支・仕事の環境を振り返ります。",
+    "zh-CN": "根据个人资料卡生成的八章韩语四柱命理自我探索报告，了解性格倾向、月支与工作条件。",
+    "zh-TW": "依個人資料卡產生的八章韓語四柱命理自我探索報告，了解性格傾向、月支與工作條件。",
+    "vi": "Báo cáo tự khám phá saju bằng tiếng Hàn gồm tám chương dựa trên thẻ hồ sơ, tìm hiểu khuynh hướng, địa chi tháng và điều kiện làm việc.",
+    "hi": "आपके प्रोफ़ाइल कार्ड पर आधारित आठ अध्यायों वाली कोरियाई भाषा की साजू आत्मचिंतन रिपोर्ट। प्रवृत्तियों, जन्म-माह की शाखा और काम की परिस्थितियों को समझें।",
+    "es": "Informe de autoconocimiento saju en coreano, con ocho capítulos basados en tu perfil. Explora tendencias, la rama del mes y condiciones de trabajo.",
+    "fr": "Un rapport saju de connaissance de soi en coréen, en huit chapitres, basé sur votre profil. Explorez vos tendances, la branche du mois et les conditions de travail.",
+    "de": "Ein koreanischer Saju-Bericht zur Selbstreflexion in acht Kapiteln, basierend auf deiner Profilkarte. Erkunde Neigungen, den Monatszweig und Arbeitsbedingungen.",
+    "nl": "Een Koreaans saju-rapport voor zelfreflectie met acht hoofdstukken op basis van je profielkaart. Verken neigingen, de maandtak en werkomstandigheden.",
+    "ms": "Laporan refleksi diri saju dalam bahasa Korea dengan lapan bab berdasarkan kad profil anda. Terokai kecenderungan, cabang bulan dan keadaan kerja."
+  },
+  "featureMarketing.saju_career_style.outline.0.title": {
+    "ko": "리포트 읽는 순서",
+    "en": "Your report journey",
+    "ja": "レポートを読む順序",
+    "zh-CN": "报告阅读顺序",
+    "zh-TW": "報告閱讀順序",
+    "vi": "Trình tự đọc báo cáo",
+    "hi": "रिपोर्ट पढ़ने का क्रम",
+    "es": "Recorrido por el informe",
+    "fr": "Parcours du rapport",
+    "de": "Der Weg durch den Bericht",
+    "nl": "Leesvolgorde van het rapport",
+    "ms": "Urutan membaca laporan"
+  },
+  "featureMarketing.saju_career_style.outline.0.detail": {
+    "ko": "성향과 월지, 업무 조건과 역할, 강점의 그림자, 작은 진로 실험을 차례로 살펴봐요.",
+    "en": "Explore tendencies and the month branch, working conditions and roles, the downsides of strengths, and small career experiments.",
+    "ja": "傾向と月支、仕事の条件と役割、強みの裏側、小さなキャリア実験を順に振り返ります。",
+    "zh-CN": "依次了解性格倾向与月支、工作条件与角色、优势的另一面，以及小型职业探索实践。",
+    "zh-TW": "依序了解性格傾向與月支、工作條件與角色、優勢的另一面，以及小型職涯探索實踐。",
+    "vi": "Lần lượt tìm hiểu khuynh hướng và địa chi tháng, điều kiện và vai trò công việc, mặt hạn chế của điểm mạnh và những thử nghiệm nghề nghiệp nhỏ.",
+    "hi": "प्रवृत्तियों और जन्म-माह की शाखा, काम की परिस्थितियों और भूमिकाओं, खूबियों के दूसरे पहलू और छोटे करियर प्रयोगों को क्रम से समझें।",
+    "es": "Explora tendencias y la rama del mes, condiciones y roles de trabajo, los límites de tus fortalezas y pequeños experimentos profesionales.",
+    "fr": "Explorez vos tendances et la branche du mois, les conditions et rôles de travail, les limites de vos forces et de petites expériences professionnelles.",
+    "de": "Erkunde Neigungen und den Monatszweig, Arbeitsbedingungen und Rollen, die Schattenseiten von Stärken und kleine berufliche Experimente.",
+    "nl": "Verken neigingen en de maandtak, werkomstandigheden en rollen, de keerzijde van sterke punten en kleine loopbaanexperimenten.",
+    "ms": "Terokai kecenderungan dan cabang bulan, keadaan dan peranan kerja, sisi lain kekuatan serta percubaan kerjaya kecil secara berurutan."
   }
 }
