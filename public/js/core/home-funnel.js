@@ -307,9 +307,14 @@
     var inputReturn = target.closest('[data-cdh-input-return]');
     if (inputReturn && !event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
       event.preventDefault();
+      if (formPanel) formPanel.classList.remove('is-form-open');
+      var formToggle = document.getElementById('dpDestinyFormToggle');
+      if (formToggle) formToggle.setAttribute('aria-expanded', 'false');
       doc.classList.remove('cdh-input-open');
       home.hidden = false;
       if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+      var homeAction = home.querySelector('.cdh-primary');
+      if (homeAction) homeAction.focus({ preventScroll: true });
       window.scrollTo(0, 0);
       return;
     }

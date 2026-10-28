@@ -11051,6 +11051,8 @@
   document.addEventListener('click',function(event){
     var target=event.target && event.target.closest ? event.target : null;
     if(target && target.closest('[data-nav-key="home"]')) _dpHomeIntent('');
+    // 입력 취소는 home-funnel의 캡처 핸들러가 기본 이동을 막은 뒤에도 예약을 지운다.
+    if(target && target.closest('[data-cdh-input-return]') && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) _dpHomeIntent('');
   });
 
   window.cdOneStepFreeSajuEntry = function() {
