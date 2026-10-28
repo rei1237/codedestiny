@@ -43,5 +43,57 @@
   "references": [
     "https://developers.google.com/search/docs/appearance/snippet",
     "https://github.com/cosinekitty/astronomy/blob/master/source/js/README.md#SunPosition"
-  ]
+  ],
+  "continuation": {
+    "date": "2026-10-28",
+    "baseline": "1c8f19fac3772dfbd9faebd656292d6a9f5eb4cc",
+    "applicationChanges": false,
+    "localStatus": "done",
+    "finalRepositoryCheck": "npm run check:fast -- --plan selected whitespace and verify:doc-freshness; npm run check:fast exited 0 for the final documentation-only scope.",
+    "scopeDecision": "One-off browser verifier retained with local evidence, not added as repository tooling. Full suite runs triggered during the provisional script change were interrupted, not passed. Existing baseline regression evidence is reused; final repository change is documentation and JSON evidence only.",
+    "render": {
+      "passed": 17,
+      "indexable": 13,
+      "noindex": 4,
+      "evidence": "career-discovery-render-20261028.json",
+      "command": "node C:/Users/user/.codex/visualizations/2026/10/28/01a181d7-be99-7db0-bf84-7a6774e04a34/verify-career-discovery-render.mjs http://127.0.0.1:3128 OUTPUT.json",
+      "preparation": "CD_MOCK_DEV=1; LOCAL_DEV_AUTH_API_PORT=3199; npm run fortune:build-data; local Next server on port 3128",
+      "checks": [
+        "HTTP 200",
+        "server HTML title/description/H1",
+        "self canonical and sitemap for 13 indexable pages",
+        "FAQ schema matches SSR body",
+        "selected discovery links in sitemap",
+        "four existing noindex pages excluded from sitemap"
+      ],
+      "dateEvidence": {
+        "today": "2026-10-28",
+        "tomorrow": "2026-10-29",
+        "week": "2026-10-26 through 2026-11-01",
+        "month": "2026-10"
+      },
+      "limitations": [
+        "Development SSR, not production export or live account validation",
+        "JavaScript disabled; existing interactive/mobile evidence reused",
+        "Internal-link checks cover selected discovery links, not a full crawl",
+        "Existing Next params synchronous-access warnings observed; runtime 200 after data generation; no routing edits"
+      ]
+    },
+    "campaign": {
+      "document": "../marketing/career-campus-campaign-20261028.md",
+      "candidates": 13,
+      "universities": 8,
+      "universityContacts": 11,
+      "platforms": 2,
+      "sent": 0,
+      "posts": 0,
+      "notes": "Public official contacts are not publication permission. Everytime/Campuspick community-rule bodies inaccessible; marked unverified."
+    },
+    "pending": [
+      "Explicit approval for push triggering staging and remote CI",
+      "Designated real test-account read-only verification with permission",
+      "Separate production promotion approval",
+      "Approved recipient, sender identity and final text before outreach; channel permission before posting"
+    ]
+  }
 }
