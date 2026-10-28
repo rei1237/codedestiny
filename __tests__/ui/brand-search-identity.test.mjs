@@ -1,4 +1,6 @@
 import test from 'node:test';
+import { brandCopy } from '../../lib/seo/brand-copy.mjs';
+import { serpTitleWidth } from '../../lib/fortune/seo-title.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { BUSINESS_IDENTITY } from '../../lib/site-policy-config.js';
@@ -39,5 +41,14 @@ test('locale title dictionaries and manifests use the official service name', ()
     const manifest = JSON.parse(read(file));
     assert.equal(manifest.name, SERVICE, file);
     assert.equal(manifest.short_name, SERVICE, file);
+  }
+});
+
+test('public entry titles and descriptions fit the build search-width budget', () => {
+  const keys = [...read('lib/seo/brand-copy.mjs').matchAll(/\b(\w+(?:Title|Description)):/g)].map(match => match[1]);
+  assert.ok(keys.length >= 6, 'entry metadata must be discovered');
+  for (const key of keys) {
+    const limit = key.endsWith('Title') ? 60 : 160;
+    assert.ok(serpTitleWidth(brandCopy(key)) <= limit, key);
   }
 });
