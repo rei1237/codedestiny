@@ -71,6 +71,10 @@ export default function CareerStyleClient(){
      <img src="/images/saju/yeoni-moonlight-reading.webp" alt="달빛이 들어오는 창가에서 책을 읽는 연이" width={960} height={640} loading="lazy" decoding="async"/>
      <figcaption>내가 편안한 조건을 천천히 살펴보세요. 이해를 돕는 공통 삽화입니다.</figcaption>
     </figure>}
+    {i===5&&<figure className={styles.chapterArt}>
+     <img src="/images/career-style/yeoni-role-exploration-v1.webp" alt="창작과 분석, 기획과 협업의 여러 활동을 살펴보는 연이" width={1200} height={800} loading="lazy" decoding="async"/>
+     <figcaption>직업을 정하기보다 여러 역할을 경험해 보세요. 탐색을 돕는 공통 삽화입니다.</figcaption>
+    </figure>}
     {section.paragraphs.map((text:string)=><p key={text}>{text}</p>)}
     {section.axes?.map(axis=><div className={styles.axis} key={axis.id}><h4>{axis.title}</h4><small>{axis.basis}</small><p>{axis.reading}</p><p><strong>강점을 쓰기 쉬운 조건</strong> {axis.easy}</p><p><strong>보완하면 편해지는 조건</strong> {axis.support}</p></div>)}
     {section.roles?.map((role,index)=><div className={styles.axis} key={`${role.title}-${index}`}><h4>{role.title}</h4><p>{role.reason}</p><p><strong>연습할 역량</strong> {role.skill}</p><p><strong>직접 확인할 활동</strong> {role.activity}</p></div>)}

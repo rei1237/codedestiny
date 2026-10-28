@@ -18,6 +18,7 @@ import {
   Compass,
   FileText,
   Gem,
+  Home,
   LayoutGrid,
   LayoutList,
   LogOut,
@@ -262,6 +263,18 @@ function ShellFrame({ pathname, children }: { pathname: string; children: React.
                 {collapsed ? <PanelLeftOpen className="h-4 w-4" aria-hidden="true" /> : <PanelLeftClose className="h-4 w-4" aria-hidden="true" />}
               </button>
             ) : null}
+          </div>
+
+          <div className="px-3 pt-3">
+            <a
+              href="/"
+              className={`cd-adm-nav-item cd-adm-nav-item--quiet mb-1${railCollapsed ? " lg:justify-center" : ""}`}
+              aria-label="서비스 홈으로 돌아가기"
+              title="서비스 홈으로 돌아가기"
+            >
+              <Home className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className={railCollapsed ? "lg:sr-only" : ""}>서비스 홈으로 돌아가기</span>
+            </a>
           </div>
 
           {/* 모바일 서랍은 항상 펼친 목록, 데스크톱 레일은 접힘 상태를 따른다. */}
