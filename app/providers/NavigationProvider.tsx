@@ -1,17 +1,14 @@
 "use client";
 
-import { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useEffect, useMemo, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import ExitToast from "@/app/components/common/ExitToast";
 import {
   getActivePaidAttemptSession,
   isPaidAttemptInProgress,
   logPaidAttemptEvent,
 } from "@/app/_lib/paid-attempt-session";
 import { trackEvent } from "@/lib/analytics";
-import appContext from "@/js/core/app-context.js";
 import {
-  attemptAppExit,
   createPopstateDebouncer,
   ensureGuardState,
   isTransientBaseState,
@@ -47,7 +44,6 @@ type BackNavigationContextValue = {
 
 export const BackNavigationContext = createContext<BackNavigationContextValue | null>(null);
 
-const MAIN_EXIT_WINDOW_MS = 2000;
 const TRANSITION_LOCK_MS = 220;
 
 function toPathKey(pathname: string) {
@@ -61,24 +57,10 @@ function getAnalysisFallbackPath(pathname: string) {
   return `/${localeMatch[1]}/saju`;
 }
 
-// 웹 브라우저의 첫 화면에서 뒤로가기는 검색 결과 등 이전 사이트로 돌아가는 정상 이탈이다.
-// "한 번 더 누르면 종료" 가드는 뒤로가기가 곧 종료인 앱·홈 화면 설치(standalone)에서만 건다.
-function usesMainExitGuard() {
-  if (typeof window === "undefined") return false;
-  if (appContext.isApp()) return true;
-  try {
-    return Boolean(
-      window.matchMedia?.("(display-mode: standalone)")?.matches
-      || (window.navigator as Navigator & { standalone?: boolean }).standalone === true,
-    );
-  } catch (e) {
-    return false;
-  }
-}
-
+// 웹·PWA의 루트에는 종료 가드를 두지 않는다. Android 종료는 주입 브릿지가 소유한다.
 function resolveRuntimeBackPolicy(pathKey: string): BackPolicy {
   const policy = resolveBackPolicy(pathKey);
-  return policy.kind === "main" && !usesMainExitGuard() ? { kind: "none" } : policy;
+  return policy.kind === "main" ? { kind: "none" } : policy;
 }
 
 const SCOPE_PRIORITY: Record<BackHandlerScope, number> = {
@@ -111,38 +93,10 @@ export default function NavigationProvider({ children }: { children: React.React
   const handlersRef = useRef<Map<string, BackHandlerRegistration>>(new Map());
   const pathRef = useRef(pathname);
   const routeChangedAtRef = useRef(0);
-  const firstMainBackAtRef = useRef(0);
-  const hideToastTimerRef = useRef<number | null>(null);
   const popDebounceRef = useRef(createPopstateDebouncer(170));
   const analysisDepthByPathRef = useRef<Record<string, number>>({});
   const transientDismissersRef = useRef<Set<() => void>>(new Set());
   const staleTransientPathRef = useRef<string | null>(null);
-
-  const [exitToastVisible, setExitToastVisible] = useState(false);
-  const [exitToastMessage, setExitToastMessage] = useState("한 번 더 누르면 종료됩니다");
-
-  const clearToastTimer = useCallback(() => {
-    if (hideToastTimerRef.current !== null) {
-      window.clearTimeout(hideToastTimerRef.current);
-      hideToastTimerRef.current = null;
-    }
-  }, []);
-
-  const hideExitToast = useCallback(() => {
-    clearToastTimer();
-    setExitToastVisible(false);
-  }, [clearToastTimer]);
-
-  const showExitToast = useCallback((message: string) => {
-    clearToastTimer();
-    setExitToastMessage(message);
-    setExitToastVisible(true);
-    hideToastTimerRef.current = window.setTimeout(() => {
-      setExitToastVisible(false);
-      firstMainBackAtRef.current = 0;
-      hideToastTimerRef.current = null;
-    }, MAIN_EXIT_WINDOW_MS);
-  }, [clearToastTimer]);
 
   const registerBackHandler = useCallback((registration: BackHandlerRegistration) => {
     handlersRef.current.set(registration.id, registration);
@@ -220,33 +174,11 @@ export default function NavigationProvider({ children }: { children: React.React
       ensureGuardState(pathKey, policy.kind);
     }
 
-    if (policy.kind !== "main") {
-      firstMainBackAtRef.current = 0;
-      hideExitToast();
-    }
-
     analysisDepthByPathRef.current[pathKey] = 0;
-  }, [pathname, hideExitToast]);
+  }, [pathname]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    const handleMainBack = (pathKey: string) => {
-      const now = Date.now();
-      if (now - firstMainBackAtRef.current <= MAIN_EXIT_WINDOW_MS) {
-        hideExitToast();
-        const exitResult = attemptAppExit(window);
-        firstMainBackAtRef.current = 0;
-        if (!exitResult.handled) {
-          rearmGuardState(pathKey, "main");
-        }
-        return;
-      }
-
-      firstMainBackAtRef.current = now;
-      showExitToast("한 번 더 누르면 종료됩니다");
-      rearmGuardState(pathKey, "main");
-    };
 
     const handleAnalysisBack = (pathKey: string, policy: BackPolicy) => {
       const activeAttempt = getActivePaidAttemptSession();
@@ -348,21 +280,33 @@ export default function NavigationProvider({ children }: { children: React.React
         return;
       }
 
-      if (policy.kind === "main") {
-        handleMainBack(pathKey);
-        return;
-      }
-
       if (policy.kind === "analysis" || policy.kind === "transient") {
         handleAnalysisBack(pathKey, policy);
       }
     };
 
+    const onNativeBack = (event: Event) => {
+      const scope = (event as CustomEvent<{ scope: string }>).detail?.scope;
+      const active = pickActiveBackHandler(handlersRef.current);
+      if (scope === "overlay" && active?.scope !== "overlay") return;
+      if (!active) {
+        // 처리 중인 상담은 기존 이탈 보호를 네이티브에서도 우선한다.
+        if (scope !== "overlay" && isPaidAttemptInProgress()) event.preventDefault();
+        return;
+      }
+      event.preventDefault();
+      if (active.isLocked() || !active.canGoBack()) return;
+      const pathKey = toPathKey(pathRef.current);
+      ensureGuardState(pathKey, active.scope === "analysis" ? "analysis" : "transient");
+      window.history.back();
+    };
+    window.addEventListener("cd:app-back", onNativeBack);
     window.addEventListener("popstate", onPopState);
     return () => {
+      window.removeEventListener("cd:app-back", onNativeBack);
       window.removeEventListener("popstate", onPopState);
     };
-  }, [hideExitToast, router, showExitToast]);
+  }, [fallbackHistoryBack]);
 
   useEffect(() => {
     let seq = 0;
@@ -406,11 +350,38 @@ export default function NavigationProvider({ children }: { children: React.React
     });
   }, [registerBackHandler]);
 
+  // HTML dialog 기반 이용 안내·영상도 개별 화면 수정 없이 같은 뒤로가기 순서를 따른다.
   useEffect(() => {
-    return () => {
-      clearToastTimer();
+    let dialog: HTMLDialogElement | null = null;
+    let unregister: (() => void) | null = null;
+    const syncDialog = () => {
+      const dialogs = document.querySelectorAll<HTMLDialogElement>("dialog[open]");
+      const next = dialogs[dialogs.length - 1] || null;
+      if (next === dialog) return;
+      unregister?.();
+      unregister = null;
+      if (dialog) releaseTransientBackGuard();
+      dialog = next;
+      if (!next) {
+        if (pickActiveBackHandler(handlersRef.current)) ensureTransientBackGuard();
+        return;
+      }
+      unregister = registerBackHandler({
+        id: "html-dialog", scope: "overlay", priority: 10,
+        enabled: () => next.open && next.isConnected,
+        isLocked: () => false, canGoBack: () => true,
+        onBack: () => {
+          if (next.dispatchEvent(new Event("cancel", { cancelable: true }))) next.close();
+          return !next.open;
+        },
+      });
+      ensureTransientBackGuard();
     };
-  }, [clearToastTimer]);
+    const observer = new MutationObserver(syncDialog);
+    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["open"] });
+    syncDialog();
+    return () => { observer.disconnect(); unregister?.(); };
+  }, [ensureTransientBackGuard, registerBackHandler, releaseTransientBackGuard]);
 
   const contextValue = useMemo<BackNavigationContextValue>(() => {
     return {
@@ -423,7 +394,6 @@ export default function NavigationProvider({ children }: { children: React.React
   return (
     <BackNavigationContext.Provider value={contextValue}>
       {children}
-      <ExitToast visible={exitToastVisible} message={exitToastMessage} />
     </BackNavigationContext.Provider>
   );
 }
