@@ -318,9 +318,8 @@ function fileContentsText(contents) {
 function looksIncompleteJson(contents) {
   const text = fileContentsText(contents).trim();
   if (!text) return true;
-  const first = text[0];
-  const last = text[text.length - 1];
-  return (first === "{" && last !== "}") || (first === "[" && last !== "]");
+  // A partial nested object may already end with a closing brace.
+  try { JSON.parse(text); return false; } catch { return true; }
 }
 
 function readStableNextJsonSync(filePath, args, currentContents) {

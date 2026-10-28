@@ -163,7 +163,7 @@ test("dev refresh keeps shared UMD billing boundaries out of ESM-only HMR output
   const nextConfig = read("next.config.mjs");
 
   assert.match(nextConfig, /LEGACY_SHARED_BROWSER_MODULE/);
-  assert.match(nextConfig, /checkout-entry\|pass-verdict\|payment-service/);
+  assert.match(nextConfig, /checkout-entry\|pass-verdict\|payment-service\|play-display-price/);
   assert.match(nextConfig, /name\.includes\("react-refresh"\)/);
   assert.match(nextConfig, /visitWebpackRules\(config\.module\?\.rules, dev\)/);
 });

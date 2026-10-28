@@ -150,7 +150,7 @@ function buildWeekly(profile: SignProfile): SignViewModel | null {
   const entry = getSignEntry(pkg, profile.kind, profile.id);
   if (!entry) return null;
 
-  const week = loadWeekRange();
+  const week = loadWeekRange(resolvePeriodDate("today"));
   const perDay = week.days.map((cell: DayCell) => {
     const s = computeSignScore(profile, {
       ganji: cell.ganji,
@@ -243,7 +243,7 @@ function buildMonthly(profile: SignProfile): SignViewModel | null {
   const entry = getSignEntry(pkg, profile.kind, profile.id);
   if (!entry) return null;
 
-  const month = loadMonthRange();
+  const month = loadMonthRange(resolvePeriodDate("today"));
 
   // 월간의 축은 일진이 아니라 **월건**이다. 절입일에 바뀌므로 매달 12띠 배치가 통째로 회전한다.
   const score = computeSignScore(profile, {

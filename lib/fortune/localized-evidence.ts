@@ -38,7 +38,7 @@ const terms = [
   ["관계 없음", "No major relationship", "主な関係なし", "无主要关系", "無主要關係"],
   ["비화 — 같은 지지", "Same earthly branch", "同じ地支", "相同地支", "相同地支"],
   ["충 — 정면으로 부딪힘", "Clash — opposing branches", "冲 — 向かい合う地支", "相冲 — 地支对立", "相沖 — 地支對立"],
-  ["삼합 — 한 국을 이룸", "Trine — a shared group", "三合 — 一つの局を成す", "三合 — 组成同一局", "三合 — 組成同一局"],
+  ["삼합 그룹 — 두 지지의 연결, 완성 여부는 미판정", "Trine group — two branches; completion undetermined", "三合グループ — 二支のつながり、完成は未判定", "三合组 — 两支相连，未判定成局", "三合組 — 兩支相連，未判定成局"],
   ["육합 — 짝을 이룸", "Six-harmony pairing", "六合 — 対になる関係", "六合 — 相互配合", "六合 — 相互配合"],
   ["인성 — 기운이 나를 도움", "Resource — energy supports me", "印星 — 自分を支える力", "印星 — 支持自身的力量", "印星 — 支持自身的力量"],
   ["비겁 — 같은 기운이 겹침", "Companion — similar energies overlap", "比劫 — 同じ力が重なる", "比劫 — 相同力量叠加", "比劫 — 相同力量疊加"],

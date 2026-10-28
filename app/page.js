@@ -26,8 +26,8 @@ import { IS_APP_BUILD } from "../lib/app-build-target";
 // 두 캐릭터 카드의 직접 진입을 유지하고, 아래에 공개 HTML 서비스 탐색을 제공한다.
 const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
-const HOME_TITLE = `${service.name} | 사주·타로·별자리 운세 – 코드 데스티니`;
-const HOME_DESCRIPTION = `꽃돼지 연이와 사주보는 고양이 영냥이를 만나는 ${service.name}. 사주·타로·숙요점·베다점과 오늘·내일 별자리 운세를 살펴보고, 내 고민에 맞는 상담을 시작하세요.`;
+const HOME_TITLE = `${service.name} | 사주·자미두수·숙요점·베다점 종합 운세`;
+const HOME_DESCRIPTION = `명리학자 박병하(네오)가 만든 종합 운세 플랫폼 ${service.name}(꿀꿀운세). 사주·자미두수·숙요점·베다점·타로와 운세보는 영냥이 상담, MBTI·심리테스트·휴먼 디자인으로 나를 알아보세요.`;
 const HOME_IMAGE = "https://code-destiny.com/icons/moonlight-garden-v1-512.png";
 const ART = "/images/home/illustrated";
 // 카드 그림은 같은 파일명으로 다시 그려 왔고 정적 이미지는 7일 캐시된다(public/_headers).

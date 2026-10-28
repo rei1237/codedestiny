@@ -1,0 +1,272 @@
+{
+  "base": "http://127.0.0.1:3128",
+  "scope": "local dev SSR; no production/API/LLM",
+  "results": [
+    {
+      "path": "/",
+      "privatePage": false,
+      "status": 200,
+      "title": "꿀꿀 운세 | 사주·자미두수·숙요점·베다점 종합 운세",
+      "description": "명리학자 박병하(네오)가 만든 종합 운세 플랫폼 꿀꿀 운세(꿀꿀운세). 사주·자미두수·숙요점·베다점·타로와 운세보는 영냥이 상담, MBTI·심리테스트·휴먼 디자인으로 나를 알아보세요.",
+      "canonical": "https://code-destiny.com/",
+      "robots": "index, follow",
+      "headings": [
+        "어떤 운세를 만나볼까요?"
+      ],
+      "checkedInternalLinks": 4,
+      "faqCount": 0,
+      "textLength": 4343,
+      "passed": true
+    },
+    {
+      "path": "/faq/",
+      "privatePage": false,
+      "status": 200,
+      "title": "꿀꿀 운세 자주 묻는 질문",
+      "description": "무료 운세 이용, 회원가입, 개인정보, 결제와 환불, 결과 해석 기준에 대한 자주 묻는 질문을 정리했습니다.",
+      "canonical": "https://code-destiny.com/faq/",
+      "robots": "index, follow",
+      "headings": [
+        "자주 묻는 질문"
+      ],
+      "checkedInternalLinks": 1,
+      "faqCount": 21,
+      "textLength": 4559,
+      "passed": true
+    },
+    {
+      "path": "/psychotest/",
+      "privatePage": false,
+      "status": 200,
+      "title": "무료 심리테스트 22종 | MBTI·HSP·정신연령·연애",
+      "description": "성격, 연애, 직장, 공감, HSP, 정신연령 심리테스트 22종을 주제별로 비교하고 원하는 테스트를 골라 시작하세요. 모든 테스트는 무료입니다.",
+      "canonical": "https://code-destiny.com/psychotest/",
+      "robots": "index, follow",
+      "headings": [
+        "나는 어떤장면을 닮았을까."
+      ],
+      "checkedInternalLinks": 2,
+      "faqCount": 0,
+      "textLength": 1906,
+      "passed": true
+    },
+    {
+      "path": "/human-design/guide/",
+      "privatePage": false,
+      "status": 200,
+      "title": "휴먼 디자인 무료 차트·바디그래프 해석 안내 | 꿀꿀 운세",
+      "description": "휴먼 디자인의 타입·전략·권위와 9센터를 이해하고, 출생시간·시간대가 필요한 이유와 무료 차트·유료 리포트의 차이를 확인하세요.",
+      "canonical": "https://code-destiny.com/human-design/guide/",
+      "robots": "index, follow",
+      "headings": [
+        "휴먼 디자인, 나의 선택 방식을 읽는 지도"
+      ],
+      "checkedInternalLinks": 1,
+      "faqCount": 5,
+      "textLength": 3209,
+      "passed": true
+    },
+    {
+      "path": "/saju/career-style/",
+      "privatePage": false,
+      "status": 200,
+      "title": "사주로 찾는 나의 일 스타일 | 가입 후 무료 리포트 · 꿀꿀 운세",
+      "description": "내 프로필 카드로 일하는 성향과 월지의 환경을 살펴보세요. 여섯 업무 조건과 작은 진로 실험을 담은 무료 사주 자기이해 리포트. 결제·후기·공유 의무 없이 이용합니다.",
+      "canonical": "https://code-destiny.com/saju/career-style/",
+      "robots": "index, follow",
+      "headings": [
+        "사주로 찾는나의 일 스타일"
+      ],
+      "checkedInternalLinks": 0,
+      "faqCount": 0,
+      "textLength": 2510,
+      "passed": true
+    },
+    {
+      "path": "/fortune/today/tiger/",
+      "privatePage": false,
+      "status": 200,
+      "title": "범띠 오늘의 운세 2026년 10월 28일 | 명리학자가 만든 운세",
+      "description": "2026년 10월 28일 (수) 범띠 오늘의 운세 — 용기·출발. 새로운 시도에 녹색 불이 켜진 날이에요. 단, 안전장치를 함께 챙기면 더 멀리 갑니다.",
+      "canonical": "https://code-destiny.com/fortune/today/tiger/",
+      "robots": "index, follow",
+      "headings": [
+        "🐯범띠 오늘의 운세"
+      ],
+      "checkedInternalLinks": 33,
+      "faqCount": 5,
+      "textLength": 2853,
+      "passed": true
+    },
+    {
+      "path": "/fortune/today/sagittarius/",
+      "privatePage": false,
+      "status": 200,
+      "title": "궁수자리 오늘의 운세 2026년 10월 28일 | 명리학자가 만든 운세",
+      "description": "2026년 10월 28일 (수) 궁수자리 오늘의 운세 — 새 시즌·방향. 미뤄 둔 연락 하나가 오늘의 매듭입니다. 길게 쓰지 말고 한 줄로 먼저 보내 보세요.",
+      "canonical": "https://code-destiny.com/fortune/today/sagittarius/",
+      "robots": "index, follow",
+      "headings": [
+        "♐궁수자리 오늘의 운세"
+      ],
+      "checkedInternalLinks": 33,
+      "faqCount": 5,
+      "textLength": 2951,
+      "passed": true
+    },
+    {
+      "path": "/fortune/tomorrow/tiger/",
+      "privatePage": false,
+      "status": 200,
+      "title": "범띠 내일의 운세 2026년 10월 29일 | 명리학자가 만든 운세",
+      "description": "2026년 10월 29일 (목) 범띠 내일의 운세 — 용기·출발. 새로운 시도에 녹색 불이 켜진 날이에요. 단, 안전장치를 함께 챙기면 더 멀리 갑니다.",
+      "canonical": "https://code-destiny.com/fortune/tomorrow/tiger/",
+      "robots": "index, follow",
+      "headings": [
+        "🐯범띠 내일의 운세"
+      ],
+      "checkedInternalLinks": 33,
+      "faqCount": 5,
+      "textLength": 2948,
+      "passed": true
+    },
+    {
+      "path": "/fortune/tomorrow/sagittarius/",
+      "privatePage": false,
+      "status": 200,
+      "title": "궁수자리 내일의 운세 2026년 10월 29일 | 명리학자가 만든 운세",
+      "description": "2026년 10월 29일 (목) 궁수자리 내일의 운세 — 신뢰·약속. 오늘 오는 제안은 조건보다 사람을 보세요. 숫자는 나중에도 고칠 수 있습니다.",
+      "canonical": "https://code-destiny.com/fortune/tomorrow/sagittarius/",
+      "robots": "index, follow",
+      "headings": [
+        "♐궁수자리 내일의 운세"
+      ],
+      "checkedInternalLinks": 33,
+      "faqCount": 5,
+      "textLength": 3010,
+      "passed": true
+    },
+    {
+      "path": "/fortune/weekly/tiger/",
+      "privatePage": false,
+      "status": 200,
+      "title": "범띠 이번 주 운세 10월 26~11월 1일 | 명리학자가 만든 운세",
+      "description": "10월 26일 ~ 11월 1일 범띠 이번 주 운세 — 용기·출발. 새로운 시도에 녹색 불이 켜진 날이에요. 단, 안전장치를 함께 챙기면 더 멀리 갑니다.",
+      "canonical": "https://code-destiny.com/fortune/weekly/tiger/",
+      "robots": "index, follow",
+      "headings": [
+        "🐯범띠 이번 주 운세"
+      ],
+      "checkedInternalLinks": 33,
+      "faqCount": 5,
+      "textLength": 3119,
+      "passed": true
+    },
+    {
+      "path": "/fortune/weekly/sagittarius/",
+      "privatePage": false,
+      "status": 200,
+      "title": "궁수자리 이번 주 운세 10월 26~11월 1일 | 명리학자 운영",
+      "description": "10월 26일 ~ 11월 1일 궁수자리 이번 주 운세 — 연결·대화. 오늘은 결과보다 기록이 남는 날입니다. 지금 한 판단의 이유를 한 줄로 남겨 두세요.",
+      "canonical": "https://code-destiny.com/fortune/weekly/sagittarius/",
+      "robots": "index, follow",
+      "headings": [
+        "♐궁수자리 이번 주 운세"
+      ],
+      "checkedInternalLinks": 33,
+      "faqCount": 5,
+      "textLength": 3224,
+      "passed": true
+    },
+    {
+      "path": "/fortune/monthly/tiger/",
+      "privatePage": false,
+      "status": 200,
+      "title": "범띠 이번 달 운세 2026년 10월 | 명리학자가 만든 무료 운세",
+      "description": "2026년 10월 범띠 이번 달 운세 — 용기·출발. 새로운 시도에 녹색 불이 켜진 날이에요. 단, 안전장치를 함께 챙기면 더 멀리 갑니다.",
+      "canonical": "https://code-destiny.com/fortune/monthly/tiger/",
+      "robots": "index, follow",
+      "headings": [
+        "🐯범띠 이번 달 운세"
+      ],
+      "checkedInternalLinks": 33,
+      "faqCount": 5,
+      "textLength": 3117,
+      "passed": true
+    },
+    {
+      "path": "/fortune/monthly/sagittarius/",
+      "privatePage": false,
+      "status": 200,
+      "title": "궁수자리 이번 달 운세 2026년 10월 | 명리학자가 만든 운세",
+      "description": "2026년 10월 궁수자리 이번 달 운세 — 회복·휴식. 작게 시작한 일이 오늘 예상보다 멀리 갑니다. 완벽한 시작을 기다리지 마세요.",
+      "canonical": "https://code-destiny.com/fortune/monthly/sagittarius/",
+      "robots": "index, follow",
+      "headings": [
+        "♐궁수자리 이번 달 운세"
+      ],
+      "checkedInternalLinks": 33,
+      "faqCount": 5,
+      "textLength": 3126,
+      "passed": true
+    },
+    {
+      "path": "/human-design/report/",
+      "privatePage": true,
+      "status": 200,
+      "title": "휴먼 디자인 프리미엄 리포트 | 꿀꿀 운세",
+      "description": "내 바디그래프 계산 결과만 근거로 쓰는 개인 분석 리포트입니다. 18장 구성으로 웹에서 읽고 PDF 로 내려받으세요.",
+      "robots": "noindex, follow",
+      "headings": [],
+      "checkedInternalLinks": 0,
+      "faqCount": 0,
+      "textLength": 25,
+      "passed": true
+    },
+    {
+      "path": "/human-design/",
+      "privatePage": true,
+      "status": 200,
+      "title": "휴먼 디자인 · 나를 설계한 에너지 지도 | 꿀꿀 운세",
+      "description": "출생 데이터로 실제 바디그래프를 계산합니다. 88° 태양호로 찾은 디자인 시각, 26개 활성, 64 게이트·36 채널·9 센터를 눌러 탐색하세요.",
+      "robots": "noindex, follow",
+      "headings": [
+        "나를 설계한 에너지 지도"
+      ],
+      "checkedInternalLinks": 1,
+      "faqCount": 0,
+      "textLength": 365,
+      "passed": true
+    },
+    {
+      "path": "/psychotest/aura/",
+      "privatePage": true,
+      "status": 200,
+      "title": "아우라 컬러 테스트 | 힐링 심리테스트",
+      "description": "질문 기반으로 현재 분위기와 대인 인상을 아우라 컬러로 해석하는 감성 테스트. 평균 3분 내외로 가볍게 확인하고, 결과 해석 포인트까지 정리해 보세요.",
+      "canonical": "https://code-destiny.com/psychotest/aura/",
+      "robots": "noindex, follow",
+      "headings": [],
+      "checkedInternalLinks": 0,
+      "faqCount": 0,
+      "textLength": 14,
+      "passed": true
+    },
+    {
+      "path": "/records/",
+      "privatePage": true,
+      "status": 200,
+      "title": "나의 기록 보관함 | 꿀꿀 운세",
+      "description": "받았던 운세와 상담을 서비스별로 찾아 다시 읽는 나의 기록 보관함입니다.",
+      "robots": "noindex, nofollow",
+      "headings": [
+        "꿀꿀운세 보관함"
+      ],
+      "checkedInternalLinks": 0,
+      "faqCount": 0,
+      "textLength": 95,
+      "passed": true
+    }
+  ],
+  "failures": []
+}

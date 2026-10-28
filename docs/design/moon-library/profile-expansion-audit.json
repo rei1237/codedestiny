@@ -1,21 +1,24 @@
 {
-  "total": 225,
-  "addedProfiles": 66,
+  "total": 227,
+  "addedProfiles": 68,
   "publicationApprovedProfiles": 66,
-  "draftProfiles": 0,
+  "draftProfiles": 2,
   "humanReviewedProfiles": 0,
   "duplicateSlugs": 0,
   "fields": {
-    "유튜버·크리에이터": 15,
+    "유튜버·크리에이터": 16,
+    "방송·미디어": 9,
+    "가수·아이돌": 24,
+    "랩·힙합": 1,
     "감독·작가": 1,
-    "방송·미디어": 8,
     "스포츠": 8,
     "셰프·요리": 3,
     "기업인": 1,
-    "배우": 17,
-    "가수·아이돌": 23
+    "배우": 17
   },
   "slugs": [
+    "hey-jini",
+    "yang-hong-won",
     "park-wi",
     "chimchakman",
     "kian84",

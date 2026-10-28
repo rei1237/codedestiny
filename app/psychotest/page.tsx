@@ -9,7 +9,7 @@ import { introductionRoutes } from "../../lib/i18n/feature-introductions.mjs";
 
 const PSYCHOTEST_PAGE_METADATA_COPY = {
   ko: {
-    title: "심리테스트 22종 | 성격·연애·직장 테스트 모음",
+    title: "무료 심리테스트 22종 | MBTI·HSP·정신연령·연애",
     description:
       "성격, 연애, 직장, 공감, HSP, 정신연령 심리테스트 22종을 주제별로 비교하고 원하는 테스트를 골라 시작하세요. 모든 테스트는 무료입니다.",
     featureList: ["심리테스트 22종 카탈로그", "성격/연애/직장 카테고리 필터형 탐색", "기능별 요약과 추천 키워드 안내"],
