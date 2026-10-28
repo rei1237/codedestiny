@@ -16,7 +16,7 @@ function fixture({ delta = -12, failure = '', featureKey = 'test-feature', cost 
     try {
     const work = structuredClone(state);
     const tx = {
-      findOne: async (_model, filter) => filter.kind === 'refund' ? work.receipt : (work.marked ? null : { delta, featureKey, metadata: {} }),
+      findOne: async (_model, filter) => filter.kind === 'refund' ? work.receipt : !filter.kind ? null : (work.marked ? null : { delta, featureKey, metadata: {} }),
       updateOne: async () => { work.marked = true; return { modifiedCount: 1 }; },
       findOneAndUpdate: async (_model, _filter, update) => {
         if (failure === 'balance') throw new Error('balance failed');

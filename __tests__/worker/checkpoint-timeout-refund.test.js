@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
-let execution, report, lookupFails, refund, sweep, inspect, queries, external;
+let execution, report, lookupFails, refund, sweep, fail, inspect, queries, external;
 const clone=value=>structuredClone(value);
 const query=value=>({lean:async()=>clone(value),select(){return this;},sort(){return this;}});
 const resultModel={findOne:filter=>{
@@ -17,6 +17,8 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,
   HumanDesignReport:resultModel,DestinyCompassReport:resultModel,NakshatraAiConsultation:resultModel,AstrologyAiConsultation:resultModel,NeoOperationRoomConsultation:resultModel,ZiweiDeepReport:resultModel,RelationshipBoundaryTest:resultModel,
   ServiceExecutionTransaction:{
+   findOne:()=>query(execution),
+   updateOne:async(_filter,update)=>{patch(execution,update);return {modifiedCount:1};},
    findById:()=>query(execution),
    findOneAndUpdate:(filter,update)=>{
     if(filter.status!==execution.status)return query(null);
@@ -26,7 +28,7 @@ beforeAll(async()=>{
   },
  }));
  jest.unstable_mockModule('../../worker/lib/portone.js',()=>({cancelPortOnePayment:(...args)=>refund(...args)}));
- ({sweepStaleServiceExecutions:sweep}=await import('../../worker/lib/service-execution-task.js'));
+ ({sweepStaleServiceExecutions:sweep,failServiceExecution:fail}=await import('../../worker/lib/service-execution-task.js'));
  ({inspectCheckpointBeforeTimeoutRefund:inspect}=await import('../../worker/lib/checkpoint-refund-guard.js'));
 });
 beforeEach(()=>{
@@ -46,6 +48,13 @@ test.each(['human-design-report','destiny-compass-deep-report','nakshatra-ai-con
 test('verified completed result closes a lost execution completion without refund',async()=>{
  report.status='completed';await sweep({}, {limit:1});
  expect(execution).toMatchObject({status:'success',premiumStatus:'completed',deliveryStatus:'delivered'});
+});
+test.each(['completed','partial'])('an explicit failure also protects a stored %s result',async(status)=>{
+ report.status=status;
+ const result=await fail({},execution.userId,{executionKey:'original-request',reasonCode:'generation_failed'});
+ expect(result.settlement.checkpoint).toBe(status==='completed'?'completed':'recoverable');
+ expect(execution.refundStatus).toBe('none');
+ expect(execution.status).toBe(status==='completed'?'success':'pending');
 });
 test.each(['delivery_pending','generating'])('%s is recoverable from its stored snapshot',async status=>{
  report.status=status;await sweep({}, {limit:1});expect(execution.status).toBe('pending');

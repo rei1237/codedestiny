@@ -26,6 +26,7 @@ const MERCHANT_UID = "cd-order-v2-001";
 
 let failServiceExecution, runPaymentCancel;
 let cancelPortOnePaymentMock;
+let fetchPortOnePaymentMock;
 let executions;
 let payments;
 let paymentUpdates;
@@ -69,6 +70,7 @@ beforeAll(async () => {
   }));
 
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+    PaidExecutionRecord: { findOne: () => ({lean: async () => null}) },
     CONTENT_ENTITLEMENT_STATUSES: { REFUNDED: "refunded" },
     ServiceExecutionTransaction: {
       findById: (id) => thenableWithLean(executions.find((doc) => String(doc._id) === String(id)) || null),
@@ -98,6 +100,7 @@ beforeAll(async () => {
       async updateOne(filter, update) {
         paymentUpdates.push({ filter, update });
         const target = payments.find((doc) => String(doc._id) === String(filter._id));
+        if (target && filter['metadata.serviceRefundClaimedAt'] && target.metadata?.serviceRefundClaimedAt) return {matchedCount:0,modifiedCount:0};
         if (target) applySet(target, update);
         return { matchedCount: target ? 1 : 0, modifiedCount: target ? 1 : 0 };
       },
@@ -113,19 +116,24 @@ beforeAll(async () => {
   }));
 
   cancelPortOnePaymentMock = jest.fn(async () => ({ cancelled: true, status: "cancelled" }));
+  fetchPortOnePaymentMock = jest.fn(async () => ({status:"cancelled",rawV2:{status:"CANCELLED"}}));
   jest.unstable_mockModule("../../worker/lib/portone.js", () => ({
     cancelPortOnePayment: cancelPortOnePaymentMock,
+    fetchPortOnePayment: fetchPortOnePaymentMock,
   }));
   jest.unstable_mockModule("../../worker/lib/content-unlocks.js", () => ({
     revokePaymentContentAccess: jest.fn(async () => ({ unlockRevoked: true })),
   }));
 
+  jest.unstable_mockModule('../../worker/payments/db.js',()=>({createPaymentContext:x=>x,withPaymentDb:async(_e,_c,fn)=>fn({transaction:async cb=>cb({findOne:async()=>null})})}));
   ({ failServiceExecution, runPaymentCancel } = await import("../../worker/lib/service-execution-task.js"));
 });
 
 /** 카드 단건 결제로 열린 실행 1건 + 그 Payment 1건을 세운다. */
 function seed(paymentStatus) {
   jest.clearAllMocks();
+  fetchPortOnePaymentMock.mockResolvedValue({status:"cancelled",rawV2:{status:"CANCELLED"}});
+  cancelPortOnePaymentMock.mockResolvedValue({cancelled:true});
   paymentUpdates = [];
   payments = [{
     _id: PAYMENT_ID,
@@ -207,4 +215,20 @@ test.each([
   expect(result).toMatchObject({ cancelled: false, reason });
   expect(cancelPortOnePaymentMock).not.toHaveBeenCalled();
   expect(payments[0].status).toBe('paid');
+});
+
+test('lost PG response is reconciled without a second cancellation request',async()=>{
+ seed('paid');cancelPortOnePaymentMock.mockRejectedValueOnce(new Error('response lost'));fetchPortOnePaymentMock.mockRejectedValueOnce(new Error('lookup unavailable'));
+ expect(await runPaymentCancel({}, {merchantUid:MERCHANT_UID},'failed',executions[0])).toMatchObject({cancelled:false,adminReviewRequired:true});
+ expect(payments[0].status).toBe('paid');
+ expect(await runPaymentCancel({}, {merchantUid:MERCHANT_UID},'failed',{...executions[0],executionKey:'different-attempt'})).toMatchObject({cancelled:true});
+ expect(cancelPortOnePaymentMock).toHaveBeenCalledTimes(1);
+});
+test('parallel attempts for one payment issue a single cancel POST',async()=>{
+ seed('paid');await Promise.all([runPaymentCancel({}, {merchantUid:MERCHANT_UID},'failed',executions[0]),runPaymentCancel({}, {merchantUid:MERCHANT_UID},'failed',{...executions[0],executionKey:'other-attempt'})]);
+ expect(cancelPortOnePaymentMock).toHaveBeenCalledTimes(1);
+});
+test('partial cancellation is not treated as full refund or access revocation',async()=>{
+ seed('paid');fetchPortOnePaymentMock.mockResolvedValue({status:'cancelled',rawV2:{status:'PARTIAL_CANCELLED'}});
+ expect(await runPaymentCancel({}, {merchantUid:MERCHANT_UID},'failed',executions[0])).toMatchObject({cancelled:false,adminReviewRequired:true});expect(payments[0].status).toBe('paid');
 });

@@ -147,6 +147,24 @@ describe("refundSessionBillingIfNeeded", () => {
     expect(d.runPaymentCancel.mock.calls[0][1]).toEqual({ paymentId: "ord_1", merchantUid: "ord_1" });
   });
 
+  test("월정석 결과가 불명확하면 다른 결제 수단을 중복 취소하지 않는다", async () => {
+    const d = deps({ runMonthlyCreditRefund: jest.fn(async () => ({ refunded: false, adminReviewRequired: true })) });
+    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), [], d);
+    expect(result).toMatchObject({ refunded: false, adminReviewRequired: true });
+    expect(d.runPaymentCancel).not.toHaveBeenCalled();
+    expect(d.MasterLoveCodexSession.updateOne).not.toHaveBeenCalled();
+  });
+
+  test("환급 이후 세션 기록 저장 실패를 성공으로 보고하지 않는다", async () => {
+    const d = deps({
+      runMonthlyCreditRefund: jest.fn(async () => ({ refunded: true, idempotent: true })),
+      MasterLoveCodexSession: { updateOne: jest.fn(async () => { throw new Error("marker unavailable"); }) },
+    });
+    const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc(), [], d);
+    expect(result).toMatchObject({ refunded: false, adminReviewRequired: true, reason: "REFUND_SESSION_MARKER_UNCONFIRMED" });
+    expect(d.runPaymentCancel).not.toHaveBeenCalled();
+  });
+
   test("월정석 세션은 코인 갈래를 태우지 않는다 — 코인 잔액을 잘못 불려 준다", async () => {
     const d = deps({ runMonthlyCreditRefund: jest.fn(async () => ({ refunded: true, amount: 500 })) });
     const result = await refundSessionBillingIfNeeded({}, sessionId, userId, doc({ accessType: "monthly_credit" }), [], d);

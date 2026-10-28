@@ -1307,10 +1307,10 @@ async function refundSessionBillingIfNeeded(env, sessionId, userId, doc, existin
     if (accessType !== "monthly_credit" && accessType !== "membership_credit") {
       outcome.coin = await coinFn({ env, ...common, cost, sourceTransactionId: paymentId });
     }
-    if (!outcome.coin?.refunded) {
+    if (!outcome.coin?.refunded && !outcome.coin?.adminReviewRequired) {
       outcome.monthlyCredit = await monthlyFn({ env, ...common, sourceTransactionId: paymentId });
     }
-    if (!outcome.coin?.refunded && !outcome.monthlyCredit?.refunded) {
+    if (!outcome.coin?.refunded && !outcome.monthlyCredit?.refunded && !outcome.coin?.adminReviewRequired && !outcome.monthlyCredit?.adminReviewRequired) {
       outcome.payment = await cancelFn(env, { paymentId, merchantUid: paymentId }, reason, execution);
     }
   } catch (error) {
@@ -1318,14 +1318,21 @@ async function refundSessionBillingIfNeeded(env, sessionId, userId, doc, existin
     return { refunded: false, error: true };
   }
 
+  if (Object.values(outcome).some(result => result?.adminReviewRequired)) {
+    return { refunded: false, adminReviewRequired: true, outcome };
+  }
   const refunded = Boolean(outcome.coin?.refunded || outcome.monthlyCredit?.refunded || outcome.payment?.cancelled);
   if (!refunded) return { refunded: false, skipped: true, outcome };
 
   const method = outcome.coin?.refunded ? "coin" : outcome.monthlyCredit?.refunded ? "monthly_credit" : "payment";
-  await SessionModel.updateOne(
-    { id: sessionId, userId, "billingRefund.refundedAt": { $exists: false } },
-    { $set: { billingRefund: { refundedAt: new Date(), method, amount: cost, reason } } },
-  ).catch(() => {});
+  try {
+    await SessionModel.updateOne(
+      { id: sessionId, userId, "billingRefund.refundedAt": { $exists: false } },
+      { $set: { billingRefund: { refundedAt: new Date(), method, amount: cost, reason } } },
+    );
+  } catch {
+    return { refunded: false, adminReviewRequired: true, reason: "REFUND_SESSION_MARKER_UNCONFIRMED", outcome };
+  }
   console.warn("[master-love-codex] billing refunded", { sessionId, method });
   return { refunded: true, method };
 }

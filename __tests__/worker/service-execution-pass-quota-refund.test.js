@@ -12,7 +12,7 @@
 import { jest } from "@jest/globals";
 import mongoose from "mongoose";
 import { refundPassCoverage as restoreQuota } from "../../worker/lib/pass-consumption.js";
-import "../../worker/payments/db.js";
+import { toObjectId } from "../../worker/payments/db.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 import { passUsageEvidenceId } from "../../worker/payments/passes.js";
 
@@ -57,6 +57,7 @@ function applySet(target, update) {
 }
 
 beforeAll(async () => {
+  jest.unstable_mockModule('../../worker/payments/db.js', () => ({toObjectId, createPaymentContext:x=>x,withPaymentDb:async(_e,_c,fn)=>fn({transaction:async cb=>cb({findOne:async()=>null})})}));
   jest.unstable_mockModule("../../worker/payments/passes.js", () => ({ passUsageEvidenceId }));
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ refundPassCoverage: input => { refundDb.rows.splice(0, users.length, ...users); return restoreQuota({ ...input, db: refundDb }); } }));
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({
@@ -71,6 +72,7 @@ beforeAll(async () => {
   }));
 
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+    PaidExecutionRecord: { findOne: () => ({lean: async () => null}) },
     CONTENT_ENTITLEMENT_STATUSES: { REFUNDED: "refunded" },
     ServiceExecutionTransaction: {
       findById: (id) => thenableWithLean(executions.find((doc) => String(doc._id) === String(id)) || null),
