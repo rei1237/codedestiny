@@ -10,7 +10,7 @@ export default function HomeEntryState() {
     try {
       const saved = JSON.parse(sessionStorage.getItem(key) || '{}');
       nodes.forEach(node => { if (saved[node.dataset.homeDisclosure] === true) node.open = true; });
-    } catch { /* Storage is optional; default closed remains usable. */ }
+    } catch { /* Storage is optional; the native disclosure defaults remain usable. */ }
     const save = () => {
       try { sessionStorage.setItem(key, JSON.stringify(Object.fromEntries(nodes.map(node => [node.dataset.homeDisclosure, node.open])))); } catch { /* Optional storage. */ }
     };
