@@ -15,6 +15,7 @@
 .page .primary { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:12px 24px; border:0; border-radius:999px; background:var(--cd-primary); color:var(--cd-on-primary,white); font:inherit; font-weight:700; text-decoration:none; cursor:pointer; }
 .page .primary:disabled { opacity:.6; cursor:wait; }
 .page :is(a,button,input,summary):focus-visible { outline:3px solid var(--cd-primary); outline-offset:4px; }
+.intro h2 { word-break:keep-all; }
 .intro,.start,.sample { max-width:760px; margin:72px auto; }
 .notice { border-left:3px solid var(--cd-primary); padding:12px 20px; font-size:.92rem; }
 .sample { padding:30px; background:var(--cd-surface); border:1px solid var(--cd-border); border-radius:20px; }
@@ -51,7 +52,8 @@
  .hero img { border-radius:20px; order:2; }
  .heroCopy { position:static; max-width:none; padding:20px 0 28px; }
  .heroCopy h1 { font-size:2.6rem; }
- .intro,.start,.sample { margin:48px auto; }
+ .intro h2 { word-break:keep-all; }
+.intro,.start,.sample { margin:48px auto; }
  .sample,.picker { padding:20px; }
  .page .primary { width:100%; }
 }
