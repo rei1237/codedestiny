@@ -5,7 +5,7 @@
  * 이게 깨지면 섹션을 아무리 잘 생성해도 세션이 영원히 완료되지 않는다(2026-08-01 이전의 장애 형태).
  * 순수 함수만 검증하므로 모킹이 필요 없다.
  */
-import { __lifeBookAiTestUtils } from "../../worker/routes/life-book-ai.js";
+import { __lifeBookAiTestUtils, nativeLifeBookContract } from "../../worker/routes/life-book-ai.js";
 import { calculateLifeBookAiSaju } from "../../worker/lib/life-book-ai-saju.js";
 
 const {
@@ -297,4 +297,18 @@ describe("출생값 0건", () => {
     expect(JSON.stringify(body)).not.toMatch(/1990|08:30/);
     expect(buildSectionPrompt(lifeBookInput, {}, frame, "")).not.toContain("profileSummary");
   });
+});
+
+
+test('native life-book orders keep original validation, mode pricing keys and normalized input identity', () => {
+  const body={idempotencyKey:'native-original-request',birthInfo,focusArea:'overall',consultationType:'lifeBook'};
+  const book=nativeLifeBookContract(body);
+  expect(book.featureKey).toBe('life-book-ai-consultation');
+  expect(book.pricing.amountKRW).toBeGreaterThan(0);
+  expect(nativeLifeBookContract({...body,stage:2,paymentId:'untrusted'}).inputHash).toBe(book.inputHash);
+  expect(nativeLifeBookContract({...body,topic:'다른 질문'}).inputHash).not.toBe(book.inputHash);
+  const fortune=nativeLifeBookContract({...body,consultationType:'lifeFortune'});
+  expect(fortune.featureKey).toBe('life-fortune-ai-consultation');
+  expect(fortune.inputHash).not.toBe(book.inputHash);
+  expect(()=>nativeLifeBookContract({...body,birthInfo:{...birthInfo,birthDate:'not-a-date'}})).toThrow();
 });

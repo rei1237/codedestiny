@@ -1,8 +1,8 @@
 import {checkOrder,TossError} from './policy.js';
 
 export function nativeProduct(item,contract){
-  if(!item||item.approved!==true||!['tea','neo','fusion'].includes(item.nativeService)||typeof item.sku!=='string'||!item.sku
-    ||!(item.nativeService==='tea'?/^fortune-tea-house-/.test(item.featureKey):item.nativeService==='neo'?item.featureKey==='neo-operation-room-consultation':item.featureKey==='fusion-fortune-consultation')
+  if(!item||item.approved!==true||!['tea','neo','fusion','life-book'].includes(item.nativeService)||typeof item.sku!=='string'||!item.sku
+    ||!(item.nativeService==='tea'?/^fortune-tea-house-/.test(item.featureKey):item.nativeService==='neo'?item.featureKey==='neo-operation-room-consultation':item.nativeService==='life-book'?['life-book-ai-consultation','life-fortune-ai-consultation'].includes(item.featureKey):item.featureKey==='fusion-fortune-consultation')
     ||item.featureKey!==contract.featureKey||item.productId!==`native:${item.nativeService}:${contract.featureKey}`
     ||!Number.isSafeInteger(item.approvedPriceKRW)||item.approvedPriceKRW<=0
     ||item.approvedPriceKRW!==contract.pricing.amountKRW||!item.priceEvidence)

@@ -1390,7 +1390,7 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
   };
 }
 
-export default function LifeBookAiClient() {
+export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: string } = {}) {
   const copy = useLifeBookClientCopy();
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
@@ -1773,7 +1773,7 @@ export default function LifeBookAiClient() {
                 <BookOpen className="h-5 w-5" aria-hidden="true" />
                 {copy.openCta(form.mode)}
               </a>
-              <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode]} prefix={copy.priceLabelPrefix} className={intro.price} />
+              {paymentNotice ? <span className={intro.price}>토스 단건 결제</span> : <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode]} prefix={copy.priceLabelPrefix} className={intro.price} />}
             </div>
           </div>
         </header>
@@ -1891,7 +1891,7 @@ export default function LifeBookAiClient() {
               </div>
 
               <div className="mt-4 flex items-center justify-end">
-                <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix={copy.priceLabelPrefix} />
+                {paymentNotice ? <p>{paymentNotice}</p> : <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix={copy.priceLabelPrefix} />}
               </div>
               <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f2d07a] px-5 font-semibold text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:bg-[#f6dc95] hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
                 {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <WalletCards className="h-5 w-5" aria-hidden="true" />}
@@ -1924,7 +1924,7 @@ export default function LifeBookAiClient() {
                 </div>
               )}
             </form>
-            <ExpertStickyCta theme="lifeBook" targetId="life-book-form" watchId="life-book-hero-start" label={copy.openCta(form.mode || "lifeBook")} price={<PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix="상담 이용 가격 " />} />
+            <ExpertStickyCta theme="lifeBook" targetId="life-book-form" watchId="life-book-hero-start" label={copy.openCta(form.mode || "lifeBook")} price={paymentNotice ? <span>토스 단건 결제</span> : <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix="상담 이용 가격 " />} />
 
             {!isBusy && status !== "completed" && (
               <section className="rounded-lg border border-amber-200/20 bg-[#20362a] p-4 shadow-2xl shadow-black/20  sm:p-5">

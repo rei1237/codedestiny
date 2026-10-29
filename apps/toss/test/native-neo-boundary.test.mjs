@@ -22,6 +22,7 @@ state.models={
 globalThis.__nativeNeoBoundary=state;
 const root=path.resolve(import.meta.dirname,'../../..');
 const stubs={
+ 'worker/toss/native-life-book.js':'export const nativeLifeBookLibraryItem=()=>{throw Error("LIFE_OUTSIDE_TEST")};',
   'worker/lib/db.js':'export const withMongoRetry=async(e,f)=>f();',
   'worker/toss/native-fusion.js':'export const nativeFusionLibraryItem=()=>{throw Error("FUSION_OUTSIDE_TEST")};',
   'worker/toss/models.js':'export const {TossNativeConsultation,TossPurchase,TossIdentity}=globalThis.__nativeNeoBoundary.models;',
