@@ -232,4 +232,5 @@
   - 살아 있는 해는 서치어드바이저·GSC 수동 요청 체크리스트를 요약(`seo-qa/operations/new-year-season.md`)에 낸다.
   - GET만 보내고 외부 제출은 하지 않는다. IndexNow는 운영 배포의 델타 통지가 그대로 맡는다. 새 URL과 lastmod 서명이 바뀐 URL이 대상이며, 네이버·Bing에 공유된다.
 - 첫 실행 기대값: 운영 미배포라 `/fortune/2027/` 404로 실패한다. 의도된 신호다.
+- 스테이징: main `0e64bb929`에서 PR CI 전부 통과, 스테이징 배포 성공, `verify:staging` PASS. 빌드를 막던 문의 마커·FAQ 미러·2027 12띠 3홉 링크 깊이는 다른 세션이 `5f09b9457`·`0e64bb929`로 고쳤다. 같은 SHA의 스테이징 대상 점검은 13쪽 모두 200이다. noindex·robots·canonical 항목은 스테이징 보호로 걸린 것이다.
 - 재제출: 사용자가 승인했다. 이 세션은 Chrome 확장이 연결되지 않았고 GSC API 자격이 없어 하지 못했다. 운영 배포 뒤 체크리스트로 한다. 해마다 할 일은 [seo-followups-20261029.md](../handoff/seo-followups-20261029.md) I절에 있다.
