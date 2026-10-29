@@ -13,6 +13,7 @@ status: in-progress
 ## 이번 작업에서 개선한 범위
 
 - 홈과 상담가 선택에 실제 대표 홈의 영냥이·연이·네오 이미지 사용. 상담가별 색과 문체, 서비스별 타로/꽃 이미지를 유지한다. 구체적인 기준은 `design-brief.md`를 따른다.
+- 추가 요청인 하단 고급화·달빛 예화 적용: 기존 달/꽃 원화와 정본 꽃가지·인장 마스크를 사용해 크림·금빛 이중 테두리·자주색 주 버튼을 구현했다. 360/390/430/1280px 화면과 네 버튼의 이동을 직접 확인했다.
 - 12개 타로 목록·질문·카드 선택·결과 화면의 시각적 위계와 모바일 읽기 간격 개선. 장수와 선택 순서가 보이고, 선택 완료 뒤 미선택 카드만 비활성화한다.
 - 타로 전체 카드 집합을 새 상담마다 섞고, 입력과 선택 중에는 배열을 유지한다. 정·역방향도 상담을 시작할 때 정한다.
 - 토스 구매 확인 콜백은 권한의 영구 저장까지만 수행한다. 생성 작업은 승인 확인 후 별도 요청으로 실행한다.
@@ -64,7 +65,11 @@ status: in-progress
 - `npm run verify:worker-no-undef`: 760개 파일 통과.
 - `npm run verify:mongo-query-index-shapes`: 1,022개 쿼리, 위반 0. 기존 마이그레이션 귀속 경고는 남는다.
 - `impeccable detect`: App/Brand/TarotLibrary 대상 종료 코드 0. 실제 시각 검수 완료를 의미하지 않는다.
-- `npm run check:fast`: 최초 두 실행에서 기존 cron 테스트의 토스 작업 mock 누락을 발견했다. 주문 대사·연결 해제 mock을 함께 연결한 뒤 실패했던 121개 테스트는 통과했으며 전체 변경 기반 검증을 다시 실행했다. 최종 판정은 실행 로그와 전달 보고에서 확인한다.
-- `npm run check:pre-push`: 첫 실행에서 사이트맵 원장 서명 24개 불일치 발견. `npm run sitemap:generate`로 원장만 갱신했다. 공개 URL 1,020개와 날짜는 바뀌지 않았다.
+- `npm run check:fast`: 기존 cron mock 누락 수정 뒤 paid-gate-suite 90/90, lint, typecheck, Node 테스트 3,906/3,906이 통과했다. 이후 환경변수 계약에서 토스 키 7개 누락이 발견되어 이름·소비자 메타데이터를 추가했다. 비밀값이나 운영 설정은 추가하지 않았다. 통과 항목을 다시 반복하지 않고 원래 계획의 남은 검사를 이어 실행했다.
+- `npm run verify:env-parity`: 수정 후 PASS, 계약 172개 키. 로컬 환경 파일은 없으며 원격 비교는 실행하지 않았다.
+- `npm run verify:cron-mongo-op-coverage`와 `npm run verify:no-nested-retry`: 주문 대사의 환불 상태 저장 트랜잭션을 단일 DB 재시도 경계로 감싼 뒤 통과. 파트너 조회는 재시도 경계 밖에 유지했다.
+- `npm run verify:admin-route-error-context`, `npm run build:worker`, `npm run verify:entry-encoding -- --strict-core`: 통과. Worker는 빌드만 했으며 배포하지 않았다.
+- `npm run check:pre-push`: 첫 실행에서 사이트맵 원장 서명 24개 불일치 발견. `npm run sitemap:generate`로 원장만 갱신한 뒤 통과했다. 공개 URL 1,020개와 날짜는 바뀌지 않았다. 최종 커밋에서 재검증한다.
+- `node apps/toss/scripts/sync-yehwa-motifs.mjs --check`: 정본 모티프 일치. 최신 미니앱 92/92와 타입 검사·빌드도 재확인했다. 최초 재실행은 제한 환경의 로컬 천문 파일 서버 연결 차단으로 1개 실패했으며, 외부 네트워크 차단을 유지하고 로컬 서버 연결을 허용한 실행에서 통과했다.
 
-마지막 로컬 묶음: `apps/toss/ai-saju-studio.ait`, 1,834,602 bytes, deploymentId `01a182ca-99b9-79b8-8fce-8790039915bc`, SHA-256 `87565318D467F2BD396612BB1EFE3B397F1D70181B9F3ABAE37AF1D3069F824E`. 업로드·출시 증거가 아니다.
+마지막 로컬 묶음: `apps/toss/ai-saju-studio.ait`, 1,855,437 bytes, deploymentId `01a184fe-2bf5-7fb8-b2ee-a66bfc357bcf`, SHA-256 `63EF10B337C0980734952AF6C122D21332614BF498AE57B0C2409D1167A9AC01`. 보관본은 `D:\Development\code-destiny\outputs\toss-launch-20261028\ai-saju-studio-01a184fe.ait`다. 업로드·출시 증거가 아니다.
