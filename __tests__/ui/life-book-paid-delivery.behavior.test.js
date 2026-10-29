@@ -440,6 +440,7 @@ test('Toss original life-book waves use one bound order, saved chapters, recover
     'worker/lib/billing-feature-registry.js':'export const getBillingFeaturePricing=()=>({pricing:{amountKRW:6000}});',
     'worker/routes/fortune-tea-house.js':'export const nativeTeaContract=()=>{};export const nativeTeaStoredState=()=>{};export const handleFortuneTeaHouseRoutes=()=>{};',
     'worker/toss/native-fusion.js':'export const nativeFusionLibraryItem=()=>{};',
+    'worker/toss/native-love-secret.js':'export const nativeLoveSecretLibraryItem=()=>{};',
     'worker/toss/native-neo.js':'export const nativeNeoLibraryItem=()=>{};',
     'worker/routes/life-book-ai.js':`const s=globalThis.__lifeNative;
       export const nativeLifeBookContract=input=>({requestId:input.idempotencyKey,resultId:input.idempotencyKey,featureKey:'life-book-ai-consultation',inputHash:input.inputHash,pricing:{amountKRW:6000}});

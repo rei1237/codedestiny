@@ -8,7 +8,7 @@ const require=createRequire(import.meta.url),Module=require('node:module');
 const calls={profiles:[],prepared:[],followups:0};
 const auth={_id:'identity',ownerId:'owner',userId:'owner',userKey:'123',environment:'SANDBOX'};
 const mocks={
- tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],
+ tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],
  auth:async()=>auth,profile:async(...args)=>calls.profiles.push(args),
  product:sku=>({productId:sku.includes(':')?sku.split(':')[1]:sku,serviceId:sku.includes(':')?sku.split(':')[0]:'yeongnyangi',sku,approvedPriceKRW:1,approved:true}),
  prepare:async(_env,user,body,options)=>{calls.prepared.push({user,body,options});return {_id:'a'.repeat(64),productId:body.productId,amountKRW:1,snapshot:{manifest:[{id:'part',title:'answer',ordinal:0}]}};},
@@ -17,6 +17,7 @@ const mocks={
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
  'worker/toss/native-life-book.js':"export const prepareNativeLifeBook=()=>{};export const handleNativeLifeBook=()=>{};export const nativeLifeBookLibraryItem=()=>{};",
+ 'worker/toss/native-love-secret.js':"const calls=globalThis.__tossRouteMocks.nativeLove;export const prepareNativeLoveSecret=(...args)=>{calls.push(args);return {id:'offline-intent'};};export const handleNativeLoveSecret=(...args)=>{calls.push(args);return Response.json({ok:true,source:'original-love'});};export const nativeLoveSecretLibraryItem=()=>{};",
  'worker/toss/native-fusion.js':"export const prepareNativeFusion=()=>{};export const handleNativeFusion=()=>{};export const nativeFusionLibraryItem=()=>{};",
  'worker/toss/native-neo.js':"export const prepareNativeNeo=()=>{};export const handleNativeNeo=()=>{};export const nativeNeoLibraryItem=()=>{};",
  'worker/toss/native-tea.js':"export const nativeTeaCatalog=()=>[];export const prepareNativeTea=()=>{throw Error('not used')};export const readNativeTeaIntent=()=>{};export const handleNativeTea=()=>{};export const approvedNativeTeaProduct=()=>{};",
@@ -191,4 +192,19 @@ test('manse requires release readiness and account, never creates a profile or p
  const response=await request({birth},'/manse/calculate');
  assert.equal(response.status,200);assert.deepEqual(await response.json(),{stored:false});
  assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);
+});
+
+test('Love Secret routes require the release gate and verified account before the original adapter',async()=>{
+ mocks.nativeLove.length=0;
+ for(const path of ['/native/love-secret/prepare','/canonical/love-secret-ai/generate']){
+  assert.equal((await request({input:{}},path,{})).status,503);
+  mocks.denyAuth=true;try{assert.equal((await request({input:{}},path)).status,401);}finally{mocks.denyAuth=false;}
+ }
+ assert.equal(mocks.nativeLove.length,0);
+ const prepared=await request({input:{requestId:'original-love'},userId:'attacker'},'/native/love-secret/prepare');
+ assert.equal(prepared.status,200);assert.equal(mocks.nativeLove[0][1],auth);
+ assert.deepEqual(mocks.nativeLove[0][2],{requestId:'original-love'});
+ const generated=await request({userId:'attacker'},'/canonical/love-secret-ai/generate');
+ assert.equal(generated.status,200);assert.equal(mocks.nativeLove.at(-1)[2],auth);
+ assert.equal(mocks.nativeLove.at(-1)[3],'/generate');
 });
