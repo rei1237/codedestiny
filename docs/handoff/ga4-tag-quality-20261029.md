@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-29
-next: 기존 main CI 모바일 타로 실패 해소 후 검증한 계측 수정을 전달한다. 운영 승격 승인·자연 주문 대사·GA 재평가·네이버 심사는 별도 대기. 광고 OFF 유지.
+next: 타로 수정 공식 CI 성공 확인. 통합 계측 수정 전달 후 공식 CI 확인. 운영 승격 승인·자연 주문 대사·GA 재평가·네이버 심사는 별도 대기. 광고 OFF 유지.
 ---
 
 # GA4 태그 품질 개선 후속 작업
@@ -13,6 +13,10 @@ next: 기존 main CI 모바일 타로 실패 해소 후 검증한 계측 수정�
 - 동일 오류를 수정 중인 `Toss CI 확인 후 콘텐츠 진행` 채팅과 사용자 승인하에 전달 순서를 조율했다. 모바일 수정과 첫 push는 해당 채팅이 담당하고, 이 작업은 그 공식 CI 통과 후 계측 수정을 전달한다. 다른 세션의 미커밋 수정은 가져오지 않는다.
 - 수정 전 `verify:mobile-journeys`에서 390px 뒤로가기 뒤 main 상태인데 `tarotModalOverlay`와 body `overflow:hidden`이 남는 현상을 직접 재현했다. 로컬 브라우저 검사에는 외부 요청 차단이 유지된다.
 - 계측·동의·환불·PG 대사 모의 검사 49/49와 `verify:analytics-events`를 다시 실행해 통과했다. `check:fast -- --base=8f32da62caf4a921f23ebcc54eba4db83631e875`의 계획 확인 및 실행을 시작했다. 이 기록만으로 전체 검사나 공식 CI 통과를 주장하지 않는다.
+- 타로 수정 `0a83f8a49fe6c304bfba1fc86e3dc0d8e2d194d6`의 [공식 CI 40889333040](https://github.com/rei1237/codedestiny/actions/runs/40889333040) success를 확인했다. 기능 바로가기 중복 지연 호출과 유휴 정리의 모달 분리 경합을 수정했다.
+- 확대 검사에서 `npm test`, 결제 경계 90/90, lint, typecheck, sitemap 검사가 통과했다. 같은 전체 Node 테스트가 다시 시작되어 중복 실행을 종료했다. 따라서 `check:fast` 전체 성공은 아니며 이후 항목은 이 실행에서 미검증이다.
+- 타로 커밋을 로컬 통합한 뒤 관련 동작·계측 모의 검사 57/57 및 실제 브라우저 `verify:mobile-journeys`의 320/360/375/390/412/430px 검사가 통과했다. 생성 파일을 동기화했고, 캐시 참조 변경 외 SEO 본문·메타데이터·색인 정책 변경은 없다.
+- 기존 미추적 증거 2개는 `D:\Development\code-destiny\outputs\ga4-delivery-evidence-20261029`에 복사해 원본과 SHA-256 일치를 확인했다. 이미지는 커밋하지 않았다.
 
 ## 2026-10-29 후속 조사 — 경고 해결 완료 아님
 
