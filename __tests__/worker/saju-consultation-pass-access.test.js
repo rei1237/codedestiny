@@ -35,7 +35,7 @@ function fixture(route, featureKey, version = "flower-20260930", spent = 0, with
   const pricing = { featureKey, coinPrice: cost };
   const saved = { id: "session", userId: USER, idempotencyKey: "original-consultation-request", accessType: "pass", usageAppliedAt: null };
   const model = { findOne: () => chain(saved), updateOne: async () => { saved.usageAppliedAt = new Date(); } };
-  const context = vm.createContext({ Date, FEATURE_KEY: featureKey, ORDER_NAME: "상담", MESSAGES: {},
+  const context = vm.createContext({ nativeTossContext: () => null, Date, FEATURE_KEY: featureKey, ORDER_NAME: "상담", MESSAGES: {},
     clean: value => String(value || "").trim(), isAdmin: () => false,
     normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy, passDenialCode,
     getPricing: () => pricing, getConsultationOrderName: () => "상담", getConsultationFeatureKey: () => featureKey,
@@ -71,7 +71,7 @@ describe.each(services)("%s / %s Family 이용권", (route, featureKey, Model) =
       const f = fixture(route, featureKey, version);
       f.db.rows[0].profileSubscription.monthlySpendCoin = budget - f.cost;
       f.context.NewYearAiConsultation = f.model;
-      const input = { userId: USER, sessionId: f.saved.id, accessType: "pass", access: { accessType: "pass", accessSource: "license_pass" },
+      const input = { auth: { userId: USER }, userId: USER, sessionId: f.saved.id, accessType: "pass", access: { accessType: "pass", accessSource: "license_pass" },
         pricing: f.pricing, idempotencyKey: f.saved.idempotencyKey, requestId: f.saved.idempotencyKey };
       await f.apply(input);
       expect(f.db.rows[0].profileSubscription.monthlySpendCoin).toBe(budget);
@@ -84,7 +84,7 @@ describe.each(services)("%s / %s Family 이용권", (route, featureKey, Model) =
   test("잔여 한도가 부족하면 차감과 완료 표시를 모두 거절한다", async () => {
     const f = fixture(route, featureKey, "flower-20260930", 3500);
     f.context.NewYearAiConsultation = f.model;
-    await expect(f.apply({ userId: USER, sessionId: f.saved.id, accessType: "pass", access: { accessType: "pass", accessSource: "license_pass" },
+    await expect(f.apply({ auth: { userId: USER }, userId: USER, sessionId: f.saved.id, accessType: "pass", access: { accessType: "pass", accessSource: "license_pass" },
       pricing: f.pricing, idempotencyKey: f.saved.idempotencyKey, requestId: f.saved.idempotencyKey })).rejects.toMatchObject({ code: "MONTHLY_PASS_LIMIT_EXCEEDED" });
     expect(f.saved.usageAppliedAt).toBeNull();
     expect(f.db.rows[0].profileSubscription.monthlySpendCoin).toBe(3500);
