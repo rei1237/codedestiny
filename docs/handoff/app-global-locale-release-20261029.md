@@ -7,6 +7,16 @@ next: 외부 번역 API 없이 직접 번역을 작성하고 화면·소설 언�
 # 앱 전체 다국어 출시
 
 ## 2026-10-29 후속 담당 진행 상태
+- 최신 이어가기: origin/main 5d7fcf852c1eab54ff3471d4fea9630c0f4199b7(PR CI40862258511 success)을 d33fa1c69로 병합. sitemap 공식 생성 후3d6ab45b7, check:pre-push PASS. 그 이후 변경은 아직 push 전이며 다시 generator/pre-push 필요. root main은 다른 작업 변경이 있어 건드리지 않는다.
+- 870983913: 늦게 도착한 국가 기본 언어를 소설 메인/텍스트 리더에 반영. 수동 소설 언어 선택과 재생 중 읽기 위치 보존. 14검사+추가5검사 및 verify-novel-player-start PASS.
+- 9c39bbf37/f8315d189: 네이티브 홈 조언자/예시/체계설명/전체FAQ/사업자 라벨/접근성 nav라벨 연결. native-home-copy151개 직접 문구×11. 공개 KO 웹 유지. EN390px 실제 mock DOM에서 남은 한글은 공식브랜드·등록사업자원문만,scrollWidth375. 5관련검사+ESLint오류0.
+- 37488b8ef: 사주 상세38키×12(11번역) 직접작성; tarotReading-01.json은 타로41키직접작성. 가격125키×12/84markup 검사, featureMarketing111ns/46299paths 통과. 이는 전체 번역 완료 증거가 아니다.
+- 4c21a8d55: EN/JA/ZH EP.26까지 완료원고49파일 추가커밋. 이후 담당자들이 계속 작성. 최종번역파일/런타임은 아직 갱신하지 않았다.
+- 담당분담변경: novel_english는 EN전체+content/novel/hub-en.json 완료 후 ZH EP.43~53 및51S/52S/53S 두판 맡음. novel_chinese는 ZH EP.42까지(이전외전포함)만 소유, 이후hub-zh-CN/TW. novel_japanese는 JA전체후hub-ja.json. 허브는KO원문→번역map, authored폴더밖.
+- 브라우저 재연결 완료: CUA browser3, tab1473076779, 변수storeBrowser/storeTab. Play Console /u/1 기존개발자8929260153073799668 앱4971977067602742831 실제확인: 1.0.54프로덕션+15언어등록정보 검토중, managed publishing ON,8개국. 아직출시0. 현재후속버전은미제출.
+- Windows native 창읽기는 최소화오류로256초지연해중단. 재연결된Chrome extension은정상. 과거file://보안거부우회금지.
+- Android준비: worktree에release-signing.properties/local.properties없음. root의기존release-signing.properties만있음(내용/비밀값출력금지). JDK21.0.11 및SDK adb존재. 하위powershell스크립트는AuthorizationManager실패; 설정변경없이수동read-only확인. 호스트adb devices는정상실행했으나기기0, 사용자USB연결요청pending. 새빌드/설치검증아직안함.
+
 - 단독 통합 담당은 현재 대화. 기존 워크트리 그대로 사용한다. 직접 번역 담당 `novel_english`, `novel_japanese`, `novel_chinese`가 각각 authored/en-*, ja-*, zh-* 파일을 작성 중이며 커밋/최종본/출시는 담당하지 않는다. 에이전트 목록의 pending_init 표기와 실제 활성 메시지가 불일치한 적이 있어 상태만으로 완료/중단을 단정하지 않는다.
 - `23a1cb455`: 소설 UI 공통 문구 4개 언어, 텍스트 리더 `/stories`/회차 언어 선택 및 localized runtime 연결. 현재 외국어 본문은 미완성이므로 선택 불가. 본문·책갈피·기존 KO SEO 메타데이터 보존. 외국어 텍스트 리더는 전체 번역 본문/목차/이동/창작 안내를 제공하며 기존 한국어 허브의 긴 세계관·아크·로그라인은 아직 별도 외국어 편집이 필요하다.
 - `1a552dedc`: 홈 질문 54키 × 나머지 7개 언어 직접 번역. `596c07120`: authored 병합기의 배열 형제 항목 손실 방지(단일 배열 항목 번역 시 나머지 유지). 첫 잘못된 적용은 본인 사전 변경만 되돌린 뒤 재적용했고 14,564키 원복/유지 확인. `45bde93b8`: 상세 상담 공통 안내·FAQ 89키(실제 변경 807값) 직접 번역. 다른 키 변경/키 손실 없음, 가격125키×12언어 검사 통과.
@@ -22,7 +32,7 @@ next: 외부 번역 API 없이 직접 번역을 작성하고 화면·소설 언�
 - 현재 mock dev 서버 세션24045,127.0.0.1:18720(front)/18721(API), NEXT_PUBLIC_RUNTIME_TARGET=mobile-app. scripts/dev-with-local-auth.mjs로 외부 API 차단. 종료 시 본인 세션만 종료. Playwright 스크린샷은 D:/Development/code-destiny/.playwright-mcp/native-home-*.png 및 native-discovery-fr-390.png. 도구의 C:artifact 쓰기는 allowed roots 제한으로거부되어 허용된 D:출력폴더 사용.
 - 직접 원고 `8996b37dc`: EN/JA EP.13까지, ZH EP.10까지 완료분37파일 커밋. 이후 원고는3담당이 계속 작성. 마지막 재검사 EN2530/JA2313/ZH1859각 비트, 총7844(이후 늘어남). 최종4언어 파일은 아직 교체하지 않았고 미완성 언어 공개금지.
 
-- 20:45 KST 무렵 재확인: origin/main 5d7fcf852c1eab54ff3471d4fea9630c0f4199b7, PR CI 40862258511 success. 이전 f7c922d6a 실패는 f90488fa8에서 문서 수정되어 해결. 최신 main에 기존 npm test 실패2파일 수정도 포함돼 통합 예정. `c10fcb7df` 앱 운세 종류/고민 소개25문구×11 추가; 독일어390px 가로넘침 없음.
+- 2026-10-29 재확인: origin/main 5d7fcf852c1eab54ff3471d4fea9630c0f4199b7, PR CI 40862258511 success. 이전 f7c922d6a 실패는 f90488fa8에서 문서 수정되어 해결. 최신 main에 기존 npm test 실패2파일 수정도 포함돼 통합 예정. `c10fcb7df` 앱 운세 종류/고민 소개25문구×11 추가; 독일어390px 가로넘침 없음.
 
 ## 2026-10-29 최초 출시 담당 인수인계 — 아래는 인수 시점 기록
 - 사용자 최신 요청: “앱 출시까지 진행해줘 인수인계를 해서라도 마무리해”. 인수인계 자체를 완료로 보지 말고 실제 출시까지 진행한다. 번역 API 및 별도 LLM API 호출 금지. 직접 번역만 허용된다.

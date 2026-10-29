@@ -9210,7 +9210,7 @@
         },
         {
           "q": "Sau này mình có thể xem lại kết quả không?",
-          "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
+          "a": "Khả năng xem lại tùy theo tính năng. Vui lòng kiểm tra hướng dẫn trên màn hình thanh toán."
         }
       ],
       "badge": "Relationship reading",
@@ -9236,9 +9236,9 @@
         "A standard for your next choice"
       ],
       "answersQuestions": [
-        "Is it okay to change jobs now?",
-        "Should I weigh money or work more?",
-        "Is it okay to make a big decision this year?"
+        "Bây giờ mình đổi việc có ổn không?",
+        "Mình nên đặt trọng tâm vào tiền bạc hay công việc?",
+        "Năm nay có phù hợp để mình đưa ra quyết định lớn không?"
       ],
       "analysisSteps": [
         {
@@ -9260,12 +9260,12 @@
       ],
       "valueCompare": [
         {
-          "axis": "Analysis scope",
+          "axis": "Phạm vi phân tích",
           "premium": "All 12 palaces and the major-cycle flow",
           "free": "Summary of Life Palace and Body Palace"
         },
         {
-          "axis": "Reflecting your question",
+          "axis": "Phản ánh câu hỏi",
           "premium": "Rebuilt by connecting the worry to the relevant palace",
           "free": "None"
         },
@@ -9330,13 +9330,13 @@
           "detail": "Checks which position the currently transiting planets are touching."
         },
         {
-          "label": "Writing the reading",
+          "label": "Viết luận giải",
           "detail": "Ties psychological state and real-world timing together into one."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Analysis scope",
+          "axis": "Phạm vi phân tích",
           "premium": "Full planetary placement and current flow",
           "free": "Summary of Sun, Moon, Ascendant"
         },
@@ -9346,7 +9346,7 @@
           "free": "None"
         },
         {
-          "axis": "Advice",
+          "axis": "Lời khuyên",
           "premium": "What to decide right now",
           "free": "Personality description"
         }
@@ -9406,13 +9406,13 @@
           "detail": "Checks what pressure that period puts on your current worry."
         },
         {
-          "label": "Writing the reading",
+          "label": "Viết luận giải",
           "detail": "Organizes what to do now and what to hand off to the next period."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Analysis scope",
+          "axis": "Phạm vi phân tích",
           "premium": "Full chart and dasha flow",
           "free": "Rashi and nakshatra summary"
         },
@@ -9422,7 +9422,7 @@
           "free": "None"
         },
         {
-          "axis": "Reflecting your question",
+          "axis": "Phản ánh câu hỏi",
           "premium": "Rebuilt around the worry you entered",
           "free": "None"
         }
@@ -9498,7 +9498,7 @@
           "free": "A symbol's basic meaning"
         },
         {
-          "axis": "Advice",
+          "axis": "Lời khuyên",
           "premium": "Split between the attitude to take and to avoid",
           "free": "A one-line message"
         }
@@ -9574,7 +9574,7 @@
           "free": "General description"
         },
         {
-          "axis": "Advice",
+          "axis": "Lời khuyên",
           "premium": "Down to the order of what to do first",
           "free": "A general direction"
         }
@@ -9589,8 +9589,8 @@
           "a": "It generates a customized report based on your entered information. Even with the same information, the content changes if the question changes."
         },
         {
-          "q": "Is the result saved?",
-          "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
+          "q": "Kết quả có được lưu không?",
+          "a": "Khả năng xem lại tùy theo tính năng. Vui lòng kiểm tra hướng dẫn trên màn hình thanh toán."
         }
       ],
       "badge": "In-depth consultation",
@@ -9851,7 +9851,7 @@
           "premium": "20,000+ characters"
         },
         "3": {
-          "axis": "Advice",
+          "axis": "Lời khuyên",
           "free": "General direction",
           "premium": "The exact order of what to give up first"
         }
@@ -10339,7 +10339,7 @@
           "premium": "From the pattern's starting point up to now"
         },
         "2": {
-          "axis": "Advice",
+          "axis": "Lời khuyên",
           "free": "General",
           "premium": "Separates the bonds to cut from the bonds to keep"
         }
@@ -10492,7 +10492,7 @@
           "detail": "Your reading is written across four topics, from the roots of your karma to your dasha and remedies."
         },
         "2": {
-          "title": "15,000+ characters of reading",
+          "title": "Nội dung chính hướng tới 15.000 ký tự",
           "detail": "Each topic runs 3,800+ characters, adding up to a long, in-depth consultation."
         },
         "3": {
@@ -10785,7 +10785,7 @@
         "3": "A six-seat card reading and a relationship checklist"
       },
       "premiumOutcomes": {
-        "0": "Card interpretation is for reference only.",
+        "0": "Diễn giải lá bài chỉ mang tính tham khảo.",
         "1": "Payment and access checks follow the existing policy.",
         "2": "It doesn't fix or guarantee the other person's feelings."
       },
@@ -11824,7 +11824,7 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
+          "label": "Lập lá số",
           "detail": "Builds the natal chart from your birth date and time and derives the elemental spread."
         },
         "1": {
@@ -12963,7 +12963,7 @@
           "premium": "Includes the distance between you and the other person"
         },
         "2": {
-          "axis": "Advice",
+          "axis": "Lời khuyên",
           "free": "General",
           "premium": "What to say now, and what to hold back"
         }
@@ -13383,7 +13383,7 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
+          "label": "Lập lá số",
           "detail": "Builds the natal chart from your birth date and time and checks sinsal and elements."
         },
         "1": {
@@ -13511,7 +13511,7 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
+          "label": "Lập lá số",
           "detail": "Builds the natal chart from your birth date and time and measures the elemental spread."
         },
         "1": {
@@ -13631,7 +13631,7 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
+          "label": "Lập lá số",
           "detail": "Builds the natal chart from your birth date and time and reads the Ten Gods spread."
         },
         "1": {
@@ -13831,7 +13831,7 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
+          "label": "Lập lá số",
           "detail": "Builds the natal chart from your birth date and time and derives the elemental spread."
         },
         "1": {
@@ -13897,7 +13897,7 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
+          "label": "Lập lá số",
           "detail": "Builds the natal chart from your birth date and time."
         },
         "1": {
@@ -13962,7 +13962,7 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
+          "label": "Lập lá số",
           "detail": "Builds the natal chart from your birth date and time."
         },
         "1": {
@@ -14160,7 +14160,7 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
+          "label": "Lập lá số",
           "detail": "Builds the natal chart from your birth date and time and derives the elemental and Ten Gods spread."
         },
         "1": {
@@ -14236,7 +14236,7 @@
           "premium": "5 sections totaling 15,000+ characters"
         },
         "2": {
-          "axis": "Advice",
+          "axis": "Lời khuyên",
           "free": "Well-wishing",
           "premium": "What to push and what to hold off each month"
         }
@@ -14360,7 +14360,7 @@
       "fallbackCta": "Summon your guardian",
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
+          "label": "Lập lá số",
           "detail": "Your day pillar is set from your birth date and time."
         },
         "1": {
@@ -14449,7 +14449,7 @@
         "3": "A path to expand into a deeper reading"
       },
       "premiumOutcomes": {
-        "0": "The interpretation is for reference only.",
+        "0": "Bài luận giải chỉ mang tính tham khảo.",
         "1": "Interpretation can vary by school.",
         "2": "The existing service standard applies."
       }
@@ -14549,7 +14549,7 @@
         "3": "Synastry, expanding into compatibility"
       },
       "premiumOutcomes": {
-        "0": "The interpretation is for reference only.",
+        "0": "Bài luận giải chỉ mang tính tham khảo.",
         "1": "It's affected by the accuracy of your birth information.",
         "2": "The existing service standard applies."
       }
@@ -14576,7 +14576,7 @@
         "3": "The karmic meaning of this exact moment"
       },
       "premiumOutcomes": {
-        "0": "The interpretation is for reference only.",
+        "0": "Bài luận giải chỉ mang tính tham khảo.",
         "1": "Karma is a symbolic concept.",
         "2": "The existing service standard applies."
       }
@@ -14608,7 +14608,7 @@
         "6": "Your love-DNA profile · the next 3 years · a final letter"
       },
       "premiumOutcomes": {
-        "0": "You can check the structure and length before paying.",
+        "0": "Bạn có thể xem cấu trúc và độ dài trước khi thanh toán.",
         "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
         "2": "This is a reference interpretation that doesn't guarantee a relationship outcome."
       },
@@ -14649,7 +14649,7 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
+          "label": "Lập lá số",
           "detail": "Calculates both your original Saju chart and Ziwei Doushu chart from your birth date and time."
         },
         "1": {
@@ -14741,7 +14741,7 @@
         "6": "A relationship-DNA profile · the next 3 years · a final letter"
       },
       "premiumOutcomes": {
-        "0": "You can check the structure and length before paying.",
+        "0": "Bạn có thể xem cấu trúc và độ dài trước khi thanh toán.",
         "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
         "2": "This is a reference interpretation that doesn't guarantee a relationship outcome."
       },
@@ -14761,7 +14761,7 @@
           "premium": "20 chapters totaling 46,000+ characters"
         },
         "2": {
-          "axis": "Advice",
+          "axis": "Lời khuyên",
           "free": "Well-matched / not well-matched",
           "premium": "Down to what would change things if you kept it"
         }
@@ -14877,9 +14877,9 @@
         "5": "PDF saving and reopening past reports"
       },
       "premiumOutcomes": {
-        "0": "You can check the structure and length before paying.",
+        "0": "Bạn có thể xem cấu trúc và độ dài trước khi thanh toán.",
         "1": "Interpretation can vary by school.",
-        "2": "The interpretation is for reference only."
+        "2": "Bài luận giải chỉ mang tính tham khảo."
       },
       "answersQuestions": {
         "0": "What does each palace of my chart mean?",
@@ -15004,9 +15004,9 @@
         "3": "Action to take from today and the three most important insights"
       },
       "premiumOutcomes": {
-        "0": "You can check the structure and length before paying.",
+        "0": "Bạn có thể xem cấu trúc và độ dài trước khi thanh toán.",
         "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
-        "2": "The interpretation is for reference only."
+        "2": "Bài luận giải chỉ mang tính tham khảo."
       },
       "answersQuestions": {
         "0": "What shape does my inborn grain take?",
@@ -15131,7 +15131,7 @@
       "premiumOutcomes": {
         "0": "You can check the structure before paying.",
         "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
-        "2": "The interpretation is for reference only."
+        "2": "Bài luận giải chỉ mang tính tham khảo."
       },
       "answersQuestions": {
         "0": "Where is my position across all 27 lodges?",
@@ -15720,7 +15720,7 @@
       "fallbackCta": "Meet your guardian animal",
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
+          "label": "Lập lá số",
           "detail": "The day pillar and its twelve life stages are set using the Korea Astronomy and Space Science Institute calendar."
         },
         "1": {
@@ -16962,7 +16962,7 @@
       },
       "faq": {
         "0": {
-          "q": "Do I draw the cards myself?",
+          "q": "Tôi có tự rút bài không?",
           "a": "Yes. You draw all seven yourself on one screen, in the order of STAGE 1, 2 and 3."
         },
         "1": {

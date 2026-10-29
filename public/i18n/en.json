@@ -9210,7 +9210,7 @@
         },
         {
           "q": "Can I see the result again?",
-          "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
+          "a": "Availability for later viewing depends on the feature. Please check the information on the payment screen."
         }
       ],
       "badge": "Relationship reading",
@@ -9236,9 +9236,9 @@
         "A standard for your next choice"
       ],
       "answersQuestions": [
-        "Is it okay to change jobs now?",
-        "Should I weigh money or work more?",
-        "Is it okay to make a big decision this year?"
+        "Is now a good time to change jobs?",
+        "Should I place more emphasis on money or work?",
+        "Is this a suitable year to make a major decision?"
       ],
       "analysisSteps": [
         {
@@ -9260,12 +9260,12 @@
       ],
       "valueCompare": [
         {
-          "axis": "Analysis scope",
+          "axis": "Scope of analysis",
           "premium": "All 12 palaces and the major-cycle flow",
           "free": "Summary of Life Palace and Body Palace"
         },
         {
-          "axis": "Reflecting your question",
+          "axis": "Your question",
           "premium": "Rebuilt by connecting the worry to the relevant palace",
           "free": "None"
         },
@@ -9330,13 +9330,13 @@
           "detail": "Checks which position the currently transiting planets are touching."
         },
         {
-          "label": "Writing the reading",
+          "label": "Writing the interpretation",
           "detail": "Ties psychological state and real-world timing together into one."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Analysis scope",
+          "axis": "Scope of analysis",
           "premium": "Full planetary placement and current flow",
           "free": "Summary of Sun, Moon, Ascendant"
         },
@@ -9346,7 +9346,7 @@
           "free": "None"
         },
         {
-          "axis": "Advice",
+          "axis": "Guidance",
           "premium": "What to decide right now",
           "free": "Personality description"
         }
@@ -9406,13 +9406,13 @@
           "detail": "Checks what pressure that period puts on your current worry."
         },
         {
-          "label": "Writing the reading",
+          "label": "Writing the interpretation",
           "detail": "Organizes what to do now and what to hand off to the next period."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Analysis scope",
+          "axis": "Scope of analysis",
           "premium": "Full chart and dasha flow",
           "free": "Rashi and nakshatra summary"
         },
@@ -9422,7 +9422,7 @@
           "free": "None"
         },
         {
-          "axis": "Reflecting your question",
+          "axis": "Your question",
           "premium": "Rebuilt around the worry you entered",
           "free": "None"
         }
@@ -9498,7 +9498,7 @@
           "free": "A symbol's basic meaning"
         },
         {
-          "axis": "Advice",
+          "axis": "Guidance",
           "premium": "Split between the attitude to take and to avoid",
           "free": "A one-line message"
         }
@@ -9574,7 +9574,7 @@
           "free": "General description"
         },
         {
-          "axis": "Advice",
+          "axis": "Guidance",
           "premium": "Down to the order of what to do first",
           "free": "A general direction"
         }
@@ -9590,7 +9590,7 @@
         },
         {
           "q": "Is the result saved?",
-          "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
+          "a": "Availability for later viewing depends on the feature. Please check the information on the payment screen."
         }
       ],
       "badge": "In-depth consultation",
@@ -9851,7 +9851,7 @@
           "premium": "20,000+ characters"
         },
         "3": {
-          "axis": "Advice",
+          "axis": "Guidance",
           "free": "General direction",
           "premium": "The exact order of what to give up first"
         }
@@ -10192,7 +10192,7 @@
       "premiumOutcomes": {
         "0": "Chart-based features are affected by how accurate the birth time you enter is.",
         "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
-        "2": "Fortune results are for reference."
+        "2": "Fortune results are for reference only."
       },
       "answersQuestions": {
         "0": "Why do my feelings and my circumstances keep pulling apart?",
@@ -10339,7 +10339,7 @@
           "premium": "From the pattern's starting point up to now"
         },
         "2": {
-          "axis": "Advice",
+          "axis": "Guidance",
           "free": "General",
           "premium": "Separates the bonds to cut from the bonds to keep"
         }
@@ -10427,7 +10427,7 @@
       "premiumOutcomes": {
         "0": "Chart-based readings are affected by how accurate the details you enter are.",
         "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
-        "2": "Fortune results are for reference."
+        "2": "Fortune results are for reference only."
       },
       "answersQuestions": {
         "0": "Does the decision I am making now fit the longer flow?",
@@ -10492,7 +10492,7 @@
           "detail": "Your reading is written across four topics, from the roots of your karma to your dasha and remedies."
         },
         "2": {
-          "title": "15,000+ characters of reading",
+          "title": "Main text targeting 15,000 characters",
           "detail": "Each topic runs 3,800+ characters, adding up to a long, in-depth consultation."
         },
         "3": {
@@ -10785,7 +10785,7 @@
         "3": "A six-seat card reading and a relationship checklist"
       },
       "premiumOutcomes": {
-        "0": "Card interpretation is for reference only.",
+        "0": "Card interpretations are for reference.",
         "1": "Payment and access checks follow the existing policy.",
         "2": "It doesn't fix or guarantee the other person's feelings."
       },
@@ -12963,7 +12963,7 @@
           "premium": "Includes the distance between you and the other person"
         },
         "2": {
-          "axis": "Advice",
+          "axis": "Guidance",
           "free": "General",
           "premium": "What to say now, and what to hold back"
         }
@@ -13201,7 +13201,7 @@
       "premiumOutcomes": {
         "0": "It does not guarantee any actual meeting or outcome.",
         "1": "The result is calculated from the birth details you enter.",
-        "2": "Fortune results are for reference."
+        "2": "Fortune results are for reference only."
       },
       "answersQuestions": {
         "0": "In what kind of setting does a bond open up for me?",
@@ -14236,7 +14236,7 @@
           "premium": "5 sections totaling 15,000+ characters"
         },
         "2": {
-          "axis": "Advice",
+          "axis": "Guidance",
           "free": "Well-wishing",
           "premium": "What to push and what to hold off each month"
         }
@@ -14449,7 +14449,7 @@
         "3": "A path to expand into a deeper reading"
       },
       "premiumOutcomes": {
-        "0": "The interpretation is for reference only.",
+        "0": "The reading is for reference.",
         "1": "Interpretation can vary by school.",
         "2": "The existing service standard applies."
       }
@@ -14549,7 +14549,7 @@
         "3": "Synastry, expanding into compatibility"
       },
       "premiumOutcomes": {
-        "0": "The interpretation is for reference only.",
+        "0": "The reading is for reference.",
         "1": "It's affected by the accuracy of your birth information.",
         "2": "The existing service standard applies."
       }
@@ -14576,7 +14576,7 @@
         "3": "The karmic meaning of this exact moment"
       },
       "premiumOutcomes": {
-        "0": "The interpretation is for reference only.",
+        "0": "The reading is for reference.",
         "1": "Karma is a symbolic concept.",
         "2": "The existing service standard applies."
       }
@@ -14608,7 +14608,7 @@
         "6": "Your love-DNA profile · the next 3 years · a final letter"
       },
       "premiumOutcomes": {
-        "0": "You can check the structure and length before paying.",
+        "0": "You can review the structure and length before paying.",
         "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
         "2": "This is a reference interpretation that doesn't guarantee a relationship outcome."
       },
@@ -14741,7 +14741,7 @@
         "6": "A relationship-DNA profile · the next 3 years · a final letter"
       },
       "premiumOutcomes": {
-        "0": "You can check the structure and length before paying.",
+        "0": "You can review the structure and length before paying.",
         "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
         "2": "This is a reference interpretation that doesn't guarantee a relationship outcome."
       },
@@ -14761,7 +14761,7 @@
           "premium": "20 chapters totaling 46,000+ characters"
         },
         "2": {
-          "axis": "Advice",
+          "axis": "Guidance",
           "free": "Well-matched / not well-matched",
           "premium": "Down to what would change things if you kept it"
         }
@@ -14877,9 +14877,9 @@
         "5": "PDF saving and reopening past reports"
       },
       "premiumOutcomes": {
-        "0": "You can check the structure and length before paying.",
+        "0": "You can review the structure and length before paying.",
         "1": "Interpretation can vary by school.",
-        "2": "The interpretation is for reference only."
+        "2": "The reading is for reference."
       },
       "answersQuestions": {
         "0": "What does each palace of my chart mean?",
@@ -15004,9 +15004,9 @@
         "3": "Action to take from today and the three most important insights"
       },
       "premiumOutcomes": {
-        "0": "You can check the structure and length before paying.",
+        "0": "You can review the structure and length before paying.",
         "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
-        "2": "The interpretation is for reference only."
+        "2": "The reading is for reference."
       },
       "answersQuestions": {
         "0": "What shape does my inborn grain take?",
@@ -15131,7 +15131,7 @@
       "premiumOutcomes": {
         "0": "You can check the structure before paying.",
         "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
-        "2": "The interpretation is for reference only."
+        "2": "The reading is for reference."
       },
       "answersQuestions": {
         "0": "Where is my position across all 27 lodges?",
