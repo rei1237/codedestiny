@@ -1376,130 +1376,130 @@
       "people": "Các mối quan hệ",
       "q": {
         "loveMind": {
-          "t": "Why don't their words match their actions?",
-          "s": "Without claiming to know their heart, it reads the gap between words and actions, and how you can respond",
-          "b": "Words-and-Actions Tarot"
+          "t": "Vì sao lời nói và hành động của người ấy khác nhau?",
+          "s": "Nhìn vào khoảng cách giữa lời nói, hành động và cách bạn đáp lại, không khẳng định chắc chắn tâm tư của người ấy.",
+          "b": "Tarot giữa lời nói và hành động"
         },
         "loveStatus": {
-          "t": "What are we to each other right now?",
-          "s": "Six cards read the warmth left in what you both say and do",
-          "b": "Tarot · What are we to each other?"
+          "t": "Hiện tại, chúng mình là gì của nhau?",
+          "s": "6 lá bài khám phá mức độ gần gũi còn thể hiện trong lời nói và hành động của hai người.",
+          "b": "Tarot · Chúng mình là gì của nhau?"
         },
         "loveNext": {
-          "t": "When will my next relationship begin?",
-          "s": "An in-depth Saju reading of when connections arrive and the love patterns you repeat",
-          "b": "Saju · The Master Book of Bonds"
+          "t": "Khi nào chuyện tình tiếp theo của mình bắt đầu?",
+          "s": "Bát Tự chuyên sâu về thời điểm gặp gỡ và những khuôn mẫu tình yêu bạn thường lặp lại.",
+          "b": "Bát Tự · Đại thư nhân duyên"
         },
         "reunionAgain": {
-          "t": "Could we get back together?",
-          "s": "No odds or percentages — it looks at whether to reach out, and how",
-          "b": "Reunion Tarot"
+          "t": "Chúng mình có thể quay lại không?",
+          "s": "Không quy khả năng thành tỷ lệ, cùng xem có nên tiến lại gần và nên làm thế nào.",
+          "b": "Tarot tái hợp"
         },
         "reunionContact": {
-          "t": "Should I reach out again, or wait?",
-          "s": "No contact dates — the cards help you set your own test for reaching out or waiting",
+          "t": "Nên liên lạc lại hay tiếp tục chờ?",
+          "s": "Lá bài gợi tiêu chí để chọn tiến lại gần hay chờ đợi, không ấn định ngày liên lạc.",
           "b": "Yeongnyangi · Tarot"
         },
         "reunionClosure": {
-          "t": "How do I sort out these feelings?",
-          "s": "Lay out cards and Saju with Yeoni to find the paths open to you now",
-          "b": "Tarot & Saju · The Destiny Tea House"
+          "t": "Mình nên sắp xếp những cảm xúc này ra sao?",
+          "s": "Cùng Yeoni mở tarot và Bát Tự để tìm những lựa chọn có thể thực hiện lúc này.",
+          "b": "Tarot và Bát Tự · Quán trà định mệnh"
         },
         "marriagePartner": {
-          "t": "What kind of person will I marry?",
-          "s": "Without naming a spouse, Saju shows the kind of person you can comfortably share a long life with",
-          "b": "Yeongnyangi · Saju",
-          "alt": "The Master Book of Bonds"
+          "t": "Mình sẽ kết hôn với người như thế nào?",
+          "s": "Bát Tự gợi những nét ở người dễ cùng bạn gắn bó lâu dài, không khẳng định ai là bạn đời định sẵn.",
+          "b": "Yeongnyangi · Bát Tự",
+          "alt": "Đại thư nhân duyên"
         },
         "marriageClash": {
-          "t": "Where do the two of us keep clashing?",
-          "s": "Compatibility shown as the scenes where you two collide, not as a score sheet",
-          "b": "Saju · LOVE CODE Romance Simulation",
-          "alt": "East–West Compatibility"
+          "t": "Hai đứa cứ xung đột ở điểm nào?",
+          "s": "Sự hòa hợp được thể hiện qua những tình huống hai người va chạm, thay vì bảng điểm.",
+          "b": "Bát Tự · Mô phỏng tình yêu LOVE CODE",
+          "alt": "Hợp duyên Đông Tây"
         },
         "marriageDate": {
-          "t": "When is a good day for this?",
-          "s": "Picks good days for a wedding, an opening or a contract from the next 60 days",
-          "b": "Vedic astrology · Muhurta Date Picker"
+          "t": "Khi nào thích hợp để làm việc này?",
+          "s": "Chọn ngày thuận lợi cho kết hôn, khai trương hoặc ký hợp đồng trong 60 ngày tới.",
+          "b": "Chiêm tinh Ấn Độ · Chọn ngày Muhurta"
         },
         "moneyWhen": {
-          "t": "When will money start flowing my way?",
-          "s": "The basic reading covers how money comes and goes; when it arrives is read through Saju in the deeper tiers",
-          "b": "Yeongnyangi · Saju"
+          "t": "Khi nào tài chính của mình bắt đầu khởi sắc?",
+          "s": "Phần cơ bản xem khuôn mẫu thu chi; phần chuyên sâu dùng Bát Tự để xem thời điểm dòng tiền đến.",
+          "b": "Yeongnyangi · Bát Tự"
         },
         "moneyWay": {
-          "t": "What way of earning money suits me?",
-          "s": "See your wealth and work tendencies for free through the twelve palaces of your chart",
-          "b": "Zi Wei Dou Shu Chart"
+          "t": "Cách kiếm tiền nào hợp với mình?",
+          "s": "Xem miễn phí nét tài lộc và công việc qua các sao trong mười hai cung.",
+          "b": "Lá số Tử Vi Đẩu Số"
         },
         "moneyMonth": {
-          "t": "Can I see ahead which months money will gather?",
-          "s": "One card for each of the twelve months traces your money flow and turning points month by month",
-          "b": "Tarot · Zodiac Year Tarot"
+          "t": "Có thể nhận ra trước tháng dễ tích lũy tiền không?",
+          "s": "Mỗi tháng một lá bài trong mười hai tháng, cùng nhìn dòng tiền và các bước chuyển.",
+          "b": "Tarot · Thiên vận mười hai con giáp"
         },
         "careerMove": {
-          "t": "Is it okay to change jobs now?",
-          "s": "Stay or go: seven cards set out what to check before you decide",
-          "b": "Tarot · Career Move Cards"
+          "t": "Bây giờ đổi việc có ổn không?",
+          "s": "7 lá bài giúp xem xét tiêu chí để ở lại hay chuyển việc trước khi quyết định.",
+          "b": "Tarot · Lá bài chuyển việc"
         },
         "careerFit": {
-          "t": "Is there work that truly fits me?",
-          "s": "Your birth chart shows the ways of working and the settings where your talents come alive",
-          "b": "Yeongnyangi · Astrology"
+          "t": "Có công việc nào hợp với mình hơn không?",
+          "s": "Lá số chiêm tinh gợi cách làm việc và môi trường giúp tài năng của bạn phát huy.",
+          "b": "Yeongnyangi · Chiêm tinh"
         },
         "careerTurn": {
-          "t": "Is now the time to change direction?",
-          "s": "Gauges when a move would cost you least and what to sort out first",
-          "b": "4 systems · Destiny Compass",
-          "alt": "The Straight-Talk War Room"
+          "t": "Bây giờ mình đổi hướng được không?",
+          "s": "Cân nhắc khi nào hành động sẽ bớt áp lực và nên sắp xếp việc gì trước.",
+          "b": "4 hệ thống · La bàn định mệnh",
+          "alt": "Phòng chiến lược nói thẳng"
         },
         "futurePrime": {
-          "t": "When will my golden years come?",
-          "s": "Traces your ten-year cycles to show when momentum builds and what to prepare, bound into one book",
-          "b": "Saju decade cycles · Book of Life"
+          "t": "Khi nào là giai đoạn rực rỡ của đời mình?",
+          "s": "Dòng đại vận Bát Tự kết nối những thời kỳ được tiếp sức và điều cần chuẩn bị thành một cuốn sách.",
+          "b": "Đại vận Bát Tự · Cuốn sách cuộc đời"
         },
         "futureYear": {
-          "t": "What matters most for me this year?",
-          "s": "Breaks the year you pick into its big currents and what to prepare each month",
-          "b": "Saju · New Year Fortune",
-          "alt": "Zodiac Year Tarot"
+          "t": "Điều quan trọng nhất với mình năm nay là gì?",
+          "s": "Xem xu hướng lớn của năm đã chọn và điều cần chuẩn bị trong từng tháng.",
+          "b": "Bát Tự · Vận mệnh năm mới",
+          "alt": "Tarot thiên vận mười hai con giáp"
         },
         "futureCross": {
-          "t": "When readings disagree, which should I follow?",
-          "s": "Points out where six systems agree and where they diverge",
-          "b": "Six systems · Deep Fusion Reading"
+          "t": "Các phần luận giải khác nhau thì nên nghe điều gì?",
+          "s": "Cùng xem tín hiệu trùng khớp và khác biệt giữa sáu hệ thống.",
+          "b": "Đối chiếu 6 hệ thống · Luận giải hợp nhất chuyên sâu"
         },
         "selfRepeat": {
-          "t": "Why do I keep making the same choices?",
-          "s": "Saju walks through your innate temperament and the choices you keep repeating",
-          "b": "Yeongnyangi · Saju"
+          "t": "Vì sao mình cứ lặp lại những lựa chọn ấy?",
+          "s": "Bát Tự giúp từng bước nhìn vào tính cách bẩm sinh và các khuôn mẫu lựa chọn lặp lại.",
+          "b": "Yeongnyangi · Bát Tự"
         },
         "selfStrength": {
-          "t": "What strengths do I have that others don't see?",
-          "s": "Your day pillar's guardian animal shows who you are in love and at work",
-          "b": "Saju · Twelve-Stage Cycle Animal Reading",
+          "t": "Điểm mạnh nào của mình người khác chưa thấy?",
+          "s": "Linh vật của mười hai giai đoạn Trường Sinh trong trụ ngày gợi nét tính cách của bạn trong tình yêu và công việc.",
+          "b": "Bát Tự · Linh vật mười hai giai đoạn Trường Sinh",
           "alt": "Human Design"
         },
         "selfGrain": {
-          "t": "What kind of person am I, at heart?",
-          "s": "See your innate tendencies and current phase through your Saju, for free",
-          "b": "Saju (Four Pillars)"
+          "t": "Mình là người như thế nào từ bên trong?",
+          "s": "Xem miễn phí tính cách bẩm sinh và giai đoạn hiện tại qua tám chữ Bát Tự.",
+          "b": "Tứ Trụ (Bát Tự)"
         },
         "peopleTired": {
-          "t": "Why does getting closer wear me out?",
-          "s": "The 27 lunar mansions show why closeness tires you and what distance feels right",
-          "b": "Yeongnyangi · Sukuyo",
-          "alt": "Sukuyo"
+          "t": "Vì sao càng gần gũi mình càng mệt mỏi?",
+          "s": "27 tú theo hành trình Mặt Trăng gợi lý do bạn mệt khi gần gũi và khoảng cách khiến bạn dễ chịu.",
+          "b": "Yeongnyangi · Túc Diệu",
+          "alt": "Túc Diệu"
         },
         "peopleMatch": {
-          "t": "How compatible are we?",
-          "s": "Overlays India's 36-point match with Eastern Sukuyo to show where you align and where you differ",
-          "b": "Vedic & Sukuyo · East–West Compatibility"
+          "t": "Mình và người ấy hợp nhau thế nào?",
+          "s": "Đối chiếu hợp duyên Ấn Độ theo thang 36 điểm với Túc Diệu phương Đông để thấy nét giống và khác.",
+          "b": "Chiêm tinh Ấn Độ và Túc Diệu · Hợp duyên Đông Tây"
         },
         "peopleDistance": {
-          "t": "Should I keep my distance in this relationship?",
-          "s": "Talk it through with Yeoni and Neo, weighing each option in turn",
-          "b": "Conversational Reading"
+          "t": "Mối quan hệ này có cần giữ khoảng cách không?",
+          "s": "Trò chuyện cùng Yeoni và Neo để cân nhắc từng lựa chọn.",
+          "b": "Tư vấn vận mệnh qua trò chuyện"
         }
       }
     },

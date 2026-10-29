@@ -1376,130 +1376,130 @@
       "people": "Hubungan",
       "q": {
         "loveMind": {
-          "t": "Why don't their words match their actions?",
-          "s": "Without claiming to know their heart, it reads the gap between words and actions, and how you can respond",
-          "b": "Words-and-Actions Tarot"
+          "t": "Mengapa kata-kata dan tindakannya berbeza?",
+          "s": "Teliti jurang antara kata-kata, tindakan dan cara anda bertindak balas, tanpa menganggap isi hatinya sebagai sesuatu yang pasti.",
+          "b": "Tarot antara kata dan tindakan"
         },
         "loveStatus": {
-          "t": "What are we to each other right now?",
-          "s": "Six cards read the warmth left in what you both say and do",
-          "b": "Tarot · What are we to each other?"
+          "t": "Apakah hubungan kita sekarang?",
+          "s": "6 kad meneliti keakraban yang masih terlihat dalam kata-kata dan tindakan anda berdua.",
+          "b": "Tarot · Apakah hubungan kita?"
         },
         "loveNext": {
-          "t": "When will my next relationship begin?",
-          "s": "An in-depth Saju reading of when connections arrive and the love patterns you repeat",
-          "b": "Saju · The Master Book of Bonds"
+          "t": "Bilakah hubungan cinta saya yang seterusnya bermula?",
+          "s": "Bacaan BaZi mendalam tentang waktu pertemuan dan corak percintaan yang berulang.",
+          "b": "BaZi · Kitab ikatan jodoh"
         },
         "reunionAgain": {
-          "t": "Could we get back together?",
-          "s": "No odds or percentages — it looks at whether to reach out, and how",
-          "b": "Reunion Tarot"
+          "t": "Bolehkah kita kembali bersama?",
+          "s": "Tanpa memberi angka kebarangkalian, teliti sama ada sesuai untuk mendekati semula dan caranya.",
+          "b": "Tarot kembali bersama"
         },
         "reunionContact": {
-          "t": "Should I reach out again, or wait?",
-          "s": "No contact dates — the cards help you set your own test for reaching out or waiting",
+          "t": "Patutkah saya menghubunginya semula atau menunggu?",
+          "s": "Kad memberi pertimbangan untuk mendekati atau menunggu, tanpa menetapkan tarikh untuk menghubungi.",
           "b": "Yeongnyangi · Tarot"
         },
         "reunionClosure": {
-          "t": "How do I sort out these feelings?",
-          "s": "Lay out cards and Saju with Yeoni to find the paths open to you now",
-          "b": "Tarot & Saju · The Destiny Tea House"
+          "t": "Bagaimanakah saya boleh menyusun perasaan ini?",
+          "s": "Terokai tarot dan BaZi bersama Yeoni untuk mencari pilihan yang boleh dibuat sekarang.",
+          "b": "Tarot dan BaZi · Rumah teh takdir"
         },
         "marriagePartner": {
-          "t": "What kind of person will I marry?",
-          "s": "Without naming a spouse, Saju shows the kind of person you can comfortably share a long life with",
-          "b": "Yeongnyangi · Saju",
-          "alt": "The Master Book of Bonds"
+          "t": "Orang bagaimanakah yang akan saya kahwini?",
+          "s": "BaZi meneliti sifat seseorang yang mungkin selesa untuk hidup bersama dalam jangka panjang, tanpa menetapkan siapa pasangan anda.",
+          "b": "Yeongnyangi · BaZi",
+          "alt": "Kitab ikatan jodoh"
         },
         "marriageClash": {
-          "t": "Where do the two of us keep clashing?",
-          "s": "Compatibility shown as the scenes where you two collide, not as a score sheet",
-          "b": "Saju · LOVE CODE Romance Simulation",
-          "alt": "East–West Compatibility"
+          "t": "Dalam perkara apakah kami sering bertembung?",
+          "s": "Keserasian digambarkan melalui situasi perselisihan anda berdua, bukannya jadual markah.",
+          "b": "BaZi · Simulasi cinta LOVE CODE",
+          "alt": "Keserasian Timur dan Barat"
         },
         "marriageDate": {
-          "t": "When is a good day for this?",
-          "s": "Picks good days for a wedding, an opening or a contract from the next 60 days",
-          "b": "Vedic astrology · Muhurta Date Picker"
+          "t": "Bilakah masa yang sesuai untuk melakukannya?",
+          "s": "Pilih hari yang sesuai untuk perkahwinan, pembukaan perniagaan atau kontrak dalam 60 hari akan datang.",
+          "b": "Astrologi India · Pemilihan tarikh Muhurta"
         },
         "moneyWhen": {
-          "t": "When will money start flowing my way?",
-          "s": "The basic reading covers how money comes and goes; when it arrives is read through Saju in the deeper tiers",
-          "b": "Yeongnyangi · Saju"
+          "t": "Bilakah kewangan saya mula bertambah baik?",
+          "s": "Bacaan asas meneliti corak wang masuk dan keluar; bacaan mendalam menggunakan BaZi untuk meneliti waktunya.",
+          "b": "Yeongnyangi · BaZi"
         },
         "moneyWay": {
-          "t": "What way of earning money suits me?",
-          "s": "See your wealth and work tendencies for free through the twelve palaces of your chart",
-          "b": "Zi Wei Dou Shu Chart"
+          "t": "Cara menjana pendapatan apakah yang sesuai dengan saya?",
+          "s": "Terokai corak kewangan dan kerja secara percuma melalui bintang dalam dua belas istana.",
+          "b": "Carta Zi Wei Dou Shu"
         },
         "moneyMonth": {
-          "t": "Can I see ahead which months money will gather?",
-          "s": "One card for each of the twelve months traces your money flow and turning points month by month",
-          "b": "Tarot · Zodiac Year Tarot"
+          "t": "Bolehkah saya mengenal pasti bulan yang baik untuk menyimpan wang?",
+          "s": "Satu kad bagi setiap dua belas bulan meneliti aliran kewangan dan titik perubahan sepanjang tahun.",
+          "b": "Tarot · Nasib dua belas haiwan"
         },
         "careerMove": {
-          "t": "Is it okay to change jobs now?",
-          "s": "Stay or go: seven cards set out what to check before you decide",
-          "b": "Tarot · Career Move Cards"
+          "t": "Adakah sekarang masa yang sesuai untuk bertukar kerja?",
+          "s": "7 kad membantu menilai pertimbangan untuk kekal atau berpindah sebelum membuat keputusan.",
+          "b": "Tarot · Kad pertukaran kerja"
         },
         "careerFit": {
-          "t": "Is there work that truly fits me?",
-          "s": "Your birth chart shows the ways of working and the settings where your talents come alive",
-          "b": "Yeongnyangi · Astrology"
+          "t": "Adakah pekerjaan yang lebih sesuai dengan saya?",
+          "s": "Carta kelahiran meneliti cara bekerja dan persekitaran yang membantu bakat anda berkembang.",
+          "b": "Yeongnyangi · Astrologi"
         },
         "careerTurn": {
-          "t": "Is now the time to change direction?",
-          "s": "Gauges when a move would cost you least and what to sort out first",
-          "b": "4 systems · Destiny Compass",
-          "alt": "The Straight-Talk War Room"
+          "t": "Bolehkah saya menukar arah sekarang?",
+          "s": "Anggarkan masa bertindak dengan kurang tekanan dan perkara yang perlu disusun dahulu.",
+          "b": "4 sistem · Kompas takdir",
+          "alt": "Bilik strategi berterus terang"
         },
         "futurePrime": {
-          "t": "When will my golden years come?",
-          "s": "Traces your ten-year cycles to show when momentum builds and what to prepare, bound into one book",
-          "b": "Saju decade cycles · Book of Life"
+          "t": "Bilakah zaman terbaik dalam hidup saya?",
+          "s": "Kitaran nasib BaZi merangkum tempoh yang menyokong anda dan persediaan yang diperlukan dalam sebuah buku.",
+          "b": "Kitaran BaZi · Buku kehidupan"
         },
         "futureYear": {
-          "t": "What matters most for me this year?",
-          "s": "Breaks the year you pick into its big currents and what to prepare each month",
-          "b": "Saju · New Year Fortune",
-          "alt": "Zodiac Year Tarot"
+          "t": "Apakah perkara terpenting bagi saya tahun ini?",
+          "s": "Teliti arah utama tahun yang dipilih dan persediaan untuk setiap bulan.",
+          "b": "BaZi · Bacaan tahun baharu",
+          "alt": "Tarot nasib dua belas haiwan"
         },
         "futureCross": {
-          "t": "When readings disagree, which should I follow?",
-          "s": "Points out where six systems agree and where they diverge",
-          "b": "Six systems · Deep Fusion Reading"
+          "t": "Bacaan mana patut diikuti apabila tafsirannya berbeza?",
+          "s": "Teliti bersama isyarat yang sepadan dan berbeza antara enam sistem.",
+          "b": "Perbandingan 6 sistem · Bacaan gabungan mendalam"
         },
         "selfRepeat": {
-          "t": "Why do I keep making the same choices?",
-          "s": "Saju walks through your innate temperament and the choices you keep repeating",
-          "b": "Yeongnyangi · Saju"
+          "t": "Mengapa saya mengulangi pilihan yang sama?",
+          "s": "BaZi meneliti sifat semula jadi dan corak pilihan yang berulang langkah demi langkah.",
+          "b": "Yeongnyangi · BaZi"
         },
         "selfStrength": {
-          "t": "What strengths do I have that others don't see?",
-          "s": "Your day pillar's guardian animal shows who you are in love and at work",
-          "b": "Saju · Twelve-Stage Cycle Animal Reading",
+          "t": "Apakah kekuatan saya yang tidak dilihat orang lain?",
+          "s": "Haiwan penjaga bagi dua belas fasa tenaga tiang hari menggambarkan sifat anda dalam cinta dan kerja.",
+          "b": "BaZi · Haiwan dua belas fasa tenaga",
           "alt": "Human Design"
         },
         "selfGrain": {
-          "t": "What kind of person am I, at heart?",
-          "s": "See your innate tendencies and current phase through your Saju, for free",
-          "b": "Saju (Four Pillars)"
+          "t": "Siapakah saya sebenarnya?",
+          "s": "Terokai sifat semula jadi dan fasa semasa secara percuma melalui lapan aksara BaZi.",
+          "b": "Empat Tiang (BaZi)"
         },
         "peopleTired": {
-          "t": "Why does getting closer wear me out?",
-          "s": "The 27 lunar mansions show why closeness tires you and what distance feels right",
+          "t": "Mengapa semakin rapat, semakin saya penat?",
+          "s": "27 rumah bulan meneliti sebab keakraban meletihkan anda dan jarak yang terasa selesa.",
           "b": "Yeongnyangi · Sukuyo",
           "alt": "Sukuyo"
         },
         "peopleMatch": {
-          "t": "How compatible are we?",
-          "s": "Overlays India's 36-point match with Eastern Sukuyo to show where you align and where you differ",
-          "b": "Vedic & Sukuyo · East–West Compatibility"
+          "t": "Bagaimanakah keserasian kami berdua?",
+          "s": "Bandingkan persamaan dan perbezaan antara keserasian India 36 mata dengan Sukuyo Asia Timur.",
+          "b": "Astrologi India dan Sukuyo · Keserasian Timur dan Barat"
         },
         "peopleDistance": {
-          "t": "Should I keep my distance in this relationship?",
-          "s": "Talk it through with Yeoni and Neo, weighing each option in turn",
-          "b": "Conversational Reading"
+          "t": "Patutkah saya mengambil jarak dalam hubungan ini?",
+          "s": "Berbual dengan Yeoni dan Neo untuk menimbang pilihan satu demi satu.",
+          "b": "Konsultasi perjalanan hidup melalui perbualan"
         }
       }
     },
