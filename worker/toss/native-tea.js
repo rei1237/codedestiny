@@ -88,7 +88,7 @@ function teaContext(env,auth){
       const intent=await verifiedIntent(env,auth,saved);
       return {ok:true,auth:nativeAuth,featureKey:intent.featureKey,pricing:intent.pricing,deferredUsage:false,
         accessDecision:{allowed:true,reason:'TOSS_IAP',paymentId:intent.orderId,featureKey:intent.featureKey,
-          userId:auth.userId,accessSource:'toss',licenseType:'single_purchase',pricing:intent.pricing,claimEvidenceIds:[]}};
+          userId:auth.userId,accessSource:'toss',licenseType:'single_purchase',pricing:intent.pricing}};
     },
     async assertStored(doc){
       if(String(doc?.userId)!==auth.userId||doc.revokedAt||doc.refundedAt)throw new TossError('RESULT_NOT_FOUND',404);
