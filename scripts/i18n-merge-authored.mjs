@@ -56,8 +56,16 @@ function setDeep(target, dottedKey, value) {
   let node = target;
   for (let i = 0; i < parts.length - 1; i += 1) {
     const key = parts[i];
-    // Numeric path segments may address an existing array. Keep its sibling entries.
-    if (typeof node[key] !== "object" || node[key] === null) node[key] = {};
+    // Authored numeric segments denote list positions, including newly added lists.
+    const isList = /^(0|[1-9]\d*)$/.test(parts[i + 1]);
+    if (typeof node[key] !== "object" || node[key] === null) node[key] = isList ? [] : {};
+    if (isList && !Array.isArray(node[key])) {
+      const entries = Object.entries(node[key]).sort(([a], [b]) => Number(a) - Number(b));
+      if (entries.some(([index], position) => index !== String(position))) {
+        throw new Error(`Invalid authored list: ${parts.slice(0, i + 1).join('.')}`);
+      }
+      node[key] = entries.map(([, entry]) => entry);
+    }
     node = node[key];
   }
   node[parts[parts.length - 1]] = value;
