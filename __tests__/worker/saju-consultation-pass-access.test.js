@@ -7,6 +7,7 @@ import { NewYearAiConsultation, LoveSecretAiConsultation, LifeBookAiConsultation
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../../worker/lib/entitlement-policy.js";
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../../worker/lib/pass-consumption.js";
 import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
+import { nativeTossContext } from "../../worker/toss/native-context.js";
 import { makeFakePaymentDb, matches } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
@@ -37,7 +38,7 @@ function fixture(route, featureKey, version = "flower-20260930", spent = 0, with
   const model = { findOne: () => chain(saved), updateOne: async () => { saved.usageAppliedAt = new Date(); } };
   const context = vm.createContext({ nativeTossContext: () => null, Date, FEATURE_KEY: featureKey, ORDER_NAME: "상담", MESSAGES: {},
     clean: value => String(value || "").trim(), isAdmin: () => false,
-    normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy, passDenialCode,
+    nativeTossContext, normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy, passDenialCode,
     getPricing: () => pricing, getConsultationOrderName: () => "상담", getConsultationFeatureKey: () => featureKey,
     getAcceptedFeatureKeys: () => [featureKey], billingFeatureKeyOf: () => featureKey,
     withMongoRetry: async (_env, run) => run(), findPaidPayment: async () => null,
