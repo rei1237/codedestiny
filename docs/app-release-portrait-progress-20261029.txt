@@ -1,0 +1,61 @@
+status: in-progress
+작성: 2026-10-29 Asia/Seoul
+작업 공간: D:\Development\code-destiny\.codex-worktrees\app-release-portrait-20261029-130803
+시작 커밋: 8ecab342e10305e723bd7f34109521c130154f34
+
+사용자 요청: 실제 과금 없이 앱 결제/복원/결과 전달/다국어/잠금화면 부적 검증 후 Play 출시 진행. 새 스토어 소개 이미지와 설명은 초안 승인 후에만 적용.
+추가 요청: 모바일 세로 이미지 최대 8장. 제작자의 대통령 공개 분석 기록, 사주·타로·자미두수·숙요·점성술, 무료 기능, 음악, 라이트 노벨, 읽을거리, 스타트업데일리 소개를 강조. 현재 지원 언어 전체로 이미지·앱 기본언어·상담언어 일관성, 번역 누락 점검/보완.
+승인 경계: 앱 등록/심사/출시 허용. 새 이미지/문안은 승인 대기. 실과금·유료 LLM·운영 DB/고객권한 변경·웹 운영 배포·새 권한/법적 동의 금지. 실제 카드 폴백 금지.
+
+보존: 기존 global-purchase-readiness-20261029-104431 작업 공간에 다른 세션의 0c0a1bec2/8ecab342e 커밋이 작업 도중 추가됨. 해당 작업 공간의 docs/global-payment-readiness-20261029.txt 미커밋 삭제33줄과 다른 세션 파일은 건드리지 않음. 동시작업 규칙에 따라 이 작업 공간을 공식 스크립트로 분리함.
+
+직접 검증:
+- 결제 Jest 3 suites/120 tests 통과: app-store.google-billing, payments-v2.paypal, paypal-ui. mock-network-guard, LLM_DRY_RUN 사용.
+- targeted Node 10 files/53 tests 통과: native-billing-products, play-localized-listings, play-display-price, app-pass-store-return, android-app-locale, android-lockscreen-public-pool, android-lockscreen-state, talisman-locale, talisman-catalog, talisman-wallpaper-fit.
+- verify-app-store-billing-policy, verify-app-store-pricing, verify-capacitor-plugin-registration 통과.
+- run-mock-tests node는 인수 파일 외 전체 패턴을 포함하므로 최초 일괄 실행은 중단. 이후 NODE_OPTIONS=--require=./scripts/lib/mock-network-guard.cjs 와 node --test 명시 파일로 성공. 중단된 전체 검사를 통과로 표시하지 않음.
+- Play Console 1.0.54 검토 중, 관리형 게시 사용 중지. 승인 후 자동 게시 설정. 검토 중인 변경사항을 변경/취소하지 않음.
+- 라이선스 테스트 내부테스트 목록1명 체크, RESPOND_NORMALLY. 사용자 제공 Play 이메일이 기존 목록과 일치 확인. 이메일을 문서에 복제하지 않음.
+- 실제 기기 Samsung SM-M156S, Android16, 1080x2340, 설치앱 versionCode54/versionName1.0.54, installerPackageName=null. 첫 실행 화면 확인. 상단 제목과 시스템 상태 표시줄이 겹치는 현상 발견(원인/수정 미완료).
+- 현재 앱의 scripts/app-native-bridge.js 기본 API는 운영 도메인. 서버 테스트영수증 자동 DB격리는 확인되지 않았으며 intent/Payment/권한 쓰기 경로 존재. 테스트 구매 확정은 아직 하지 않음.
+- 독립 테스트 API/DB 없이 실제 Play 구매~결과 제공을 검증 완료로 표시하지 않음.
+
+이미지: built-in imagegen으로 한국어 세로 컨셉8장 생성. 생성파일은 C:\Users\user\.codex\generated_images\01a185c3-a6e9-76e0-9994-fb8c22613d80. 다국어 정확한 조판을 위해 각 배경에서 문구를 제거한 이미지 생성 중. 실제 앱 스크린샷이 아닌 삽화 초안임을 명시. 등록 최종본은 실제 앱 화면 중심 구성이 필요.
+01 exec-8f64b9ff-dc15-477d-a593-37bd6a9d72b0.png
+02 exec-c17d59b2-3717-4381-af69-68115d26aeb6.png
+03 exec-c07e5370-eb8a-4185-a8a2-4207e5648038.png
+04 exec-5f94296c-e9a1-47a2-a39b-48e2a5df34a2.png
+05 exec-0babb19f-1ccf-43e9-be75-66e3d9fc6d21.png
+06 exec-3272d9f0-393b-4ab8-a344-71fc94c6297d.png
+07 exec-674f03a8-5475-4a3b-b528-35933a746c02.png
+08 exec-65297eab-02d5-41ce-b088-e7b6933f2f89.png
+
+출처: lib/seo/public-record-copy.mjs는 대통령 예측의 일치/불일치와 자료 한계를 공개. '적중 보장' 대신 '운세 흐름을 짚은 명리학자 박병하가 만든 서비스'. lib/seo/press-coverage.mjs의 스타트업데일리 2026-09-30 소개 기사(10891). 웹 도구 기사403, 원문 재열람 미완료. 인증·보증으로 확대하지 않음.
+Play 공식 https://support.google.com/googleplay/android-developer/answer/9866151 : 기기유형별8장, 세로9:16 권장1080x1920, 실제 화면 중심.
+Google Billing 공식 https://developer.android.com/google/play/billing/test : 내부 테스트 등록만으로 무과금 아님, 라이선스 테스터 및 구매창 테스트수단 확인 필요.
+
+추가 완료:
+- 이미지 초안 96장(12언어 x8), 각1080x1920 JPG. 경로 C:\Users\user\.codex\visualizations\2026\10\29\01a185c3-a6e9-76e0-9994-fb8c22613d80\store-portrait-12-locales\index.html. manifest.json에 크기·텍스트영역 검증·이미지 출처 SHA256 기록. 실제 앱 스크린샷 아님. 초안 승인 질문 제출, 응답 대기.
+- visual-checker 읽기 전용 검수에서 표본10장 글자잘림/깨진문자 없음. 독일어 문법 수정, 미확인 중국어 인명은 로마자 정식 이름으로 통일, 작은 부제/하단문구36px로 확대 후96장 재생성·넘침검사 통과.
+- 이미지 제작 문안/제작기 커밋8634f00f7. 원본그림은 generated_images에 보존, 결과물은 위의 별도 출력 경로에 보존.
+- 지원12언어: ko,en,ja,zh-CN,zh-TW,vi,hi,es,fr,de,nl,ms.
+- 국가→웹 언어, Android 시스템/명시 선택→앱 언어, 요청헤더→상담언어 경로를 소스 및 모의 검사로 확인. 이미 저장된 상담은 구매 당시 locale 원문 유지.
+- i18n:check 통과:14564키/12사전,1501마커. 그러나 한국어 fallback인자224(기준181) 경고는 남으며 번역완료 증명 아님.
+- 홈 정적셸11개 해외언어 렌더검사: 누락키0, 잔존 한글49자는 브랜드·사업자명/주소 등 법적표기. 전체 서비스 화면 검사를 뜻하지 않음.
+- 하드코딩전수진단177868리터럴/strict실패: generated모듈·프롬프트·콘텐츠 포함하므로 미번역 UI 개수로 해석하지 않음.
+- scripts/app-native-bridge.js의 고정 한국어17문구(메뉴3, 종료, 로그인, 오프라인, 닫기)를12언어로 보완. 실제 bootstrap/DOM/언어전환/로그인오류/오프라인/종료 안내 모의검사2개 통과. 기존 back/OAuth추출 테스트의 새 문구 의존성을 연결해23개 통과. 인증·결제 행위는 변경하지 않음.
+- 기존 locale/back/request-boundary 테스트52개 통과 및 신규 테스트 초기fixture오류1개 수정 후2개 통과. 이전 fixture오류는 실제 제품오류와 구분.
+- verify-talisman-nocharge.cjs를12언어로 확장. 실제 React컴포넌트, 모의Android브리지에서12언어 적용/4오류/4복귀상태, 외부요청0, 넘침0 통과. 출력은 별도talisman-12-locales 디렉터리. 기존5언어초안을 덮어쓰지 않음.
+- Play상품설명 제안12언어로 확장. 기존상품ID·가격·이용한도 정본 유지. 제목55자/설명200자 검사 통과, product-listings.json으로 검토본 내보냄. Console 미적용.
+- 실기기54에서 영냥이 학업운 부적→잠금화면 적용 클릭, '잠금화면에 적용했어요. 기기 화면에서 확인해 주세요.' 안내 확인. 화면 잠금 뒤 미러링은 검은 화면이라 실제 잠금화면 육안 확인 질문을 사용자에게 제출함. 사용자 확인 전 실제잠금화면 최종성공 판정 보류.
+- Impeccable mechanical detect scripts/app-native-bridge.js:[]
+- check:fast -- --plan 및check:fast 실행. 자동critical승격:paid-gate90개 중86통과/4실패. 내부Jest435suites/7096tests통과. 최초실패deploy-base/LLM-resilience/analysis-basis는 외부호출차단 유지+로컬접근 허용 후 각각7/1275/96checks통과. test:node 동일조건 재실행3912/3912통과(185.5초). check:fast 전체 명령의 결과는 실패이며 중단 뒤 lint/typecheck 등 후속단계는 이 명령으로 실행되지 않음. 개별 실패4항목 재검사는 모두 통과.
+- Push전 기존main CI: dcd6cede1bc7176f1de4f501ead4ffd94a6a65b4 성공 https://github.com/rei1237/codedestiny/actions/runs/40816564012. origin/main은 시작커밋8ecab342e를 이미 포함, 다른 세션이 선행작업을 전달함. 이번 신규커밋만 통합하면 됨.
+
+전달 준비:
+- 기능보완 커밋308aa5f0e, 이미지초안8634f00f7. 최신origin/main을 충돌 없이 병합한 검증 HEAD bd10daff4614f59297b52cfec2d8906e4f8379e3.
+- check:pre-push 통과: home registry63/public mirror/sitemap1020/llms/SEO entities62. node --check 변경JS4개 통과. Impeccable detect[]
+- 로컬main에는 다른 세션의 미전달13커밋 및 world/siteSeo/globals 미커밋 변경이 있어 이를 원격에 함께 밀지 않는다. 최신origin/main 기반의 이 작업 HEAD만 원격main으로 전달하고, 로컬main은 작업HEAD를 정상 병합해 보존한다.
+- 검토묶음 ZIP: C:\Users\user\.codex\visualizations\2026\10\29\01a185c3-a6e9-76e0-9994-fb8c22613d80\store-portrait-12-locales.zip (102455057 bytes). 업로드 없음.
+
+남은 작업: 원격main 전달/최종CI 확인, 실제 잠금화면 사용자 확인, 앱 상단 겹침 원인 수정·재빌드 검증, 전체 주요경로의 번역/장문콘텐츠 누락 해소, 안전한 테스트API/DB에서 Play구매전주기 검증, 초안 승인 후 실제앱화면 중심 최종스토어 이미지 구성/적용. 앱54심사 결과는 아직 확인하지 않음. 운영 데이터 격리 미확정 상태의 실제 구매와 신규 이미지 적용은 진행하지 않음. 이 문서는 전체출시 완료 기록이 아님.
