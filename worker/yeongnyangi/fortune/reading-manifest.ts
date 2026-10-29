@@ -5,7 +5,7 @@ import type { ChapterSpec, Theme } from './book-contracts';
 import type { DomainId } from './shared/contracts';
 import { policyForReading, FUSION_READING_VERSION, FUSION_LAYOUT_VERSION, READING_V5_VERSION, READING_V6_VERSION, readingChapterCount } from './reading-policy';
 import { questionOutlines, lifeRows, timingUnits, currentFlowGuide, type LayoutStep, type LayoutTopic } from './consultation-layout';
-import { foundationGuide } from './ask/question-editorial';
+import { natureOverview } from './ask/question-editorial';
 import { topicCatalog, topicLabel, type TopicId } from './topics';
 
 type Row = { key: string; title: string; theme: Theme; systems: DomainId[]; part: string };
@@ -81,7 +81,7 @@ export function fusionManifestV2(p:Product,topicId='general'):ChapterSpec[]{
   sections:[...st.sections.map(x=>comparing({...x,instruction:x.instruction+(st.timing?' 시기 단위는 '+systems.map(d=>`${SYSTEM_NAMES[d]} ${timingUnits[d]}`).join(', ')+'이다.':'')})),evidence]});
  const rows:V2Row[]=[
   ...p.systems.map(d=>({key:d==='tarot'?'flow':'self',title:`${SYSTEM_NAMES[d]} · ${d==='tarot'?'카드에 비친 지금의 마음과 흐름':'타고난 성향과 지금의 흐름'}`,theme:'self' as Theme,systems:[d],part:'체계별 타고난 성향',role:'foundation',
-   sections:[{id:'nature',title:d==='tarot'?'지금의 태도와 마음':'나를 움직이는 기질',instruction:foundationGuide[d].instruction},
+   sections:[{id:'nature',title:d==='tarot'?'지금의 태도와 마음':'나를 움직이는 기질',instruction:natureOverview(d)},
     {id:'current-flow',title:d==='tarot'?'지금 흐르는 마음의 방향':'지금 지나고 있는 운의 흐름',instruction:currentFlowGuide[d]},
     {...evidence,title:'그렇게 읽는 이유',instruction:'이 체계의 실제 근거와 쉬운 뜻을 연결하고 한계를 설명한다.'}]})),
   ...p.systems.map(d=>{const [key,title]=expert[d].split(':');return {key,title:`${SYSTEM_NAMES[d]} · ${title}`,theme:themes[key]||'self' as Theme,systems:[d],part:'체계별 전문 해석',role:'expert',

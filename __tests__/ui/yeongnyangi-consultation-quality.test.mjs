@@ -32,15 +32,30 @@ test('reader evidence keeps calculation weights private without mutating saved f
  assert.equal(profile.value.families[0].weight,3.35);
 });
 
-test('opening is topic-specific and symbolic readings never invent birth traits',()=>{
+test('opening starts with the inborn-disposition overview, then ties it to the topic; symbolic readings never invent birth traits',()=>{
  const opening=m.readerCounsel(true,false),later=m.readerCounsel(false,false),symbolic=m.readerCounsel(true,true);
- assert.match(opening.opening,/일반적인 성격 총론은 쓰지 않는다/);
+ assert.match(opening.opening,/타고난 성향 총론을 먼저 쓴다/);
+ assert.match(opening.opening,/신뢰가 서게 시작한다/);
+ assert.match(opening.opening,/신청한 주제와 구체적인 질문에 연결한다/);
+ assert.doesNotMatch(opening.opening,/성격 총론은 쓰지 않는다/);
  assert.match(opening.opening,/재물은.*이직은.*연애는/);
  assert.match(opening.counseling,/선택의 비용·현실 조건·불확실성/);
  assert.match(opening.counseling,/조건부로 공감/);
  assert.match(opening.counseling,/작은 행동과 선택권/);
  assert.match(later.opening,/전체 성향 분석을 반복하지 않고/);
  assert.match(symbolic.opening,/타고난 성격을 지어내지 않는다/);
+});
+
+test('the first chapter gives the disposition overview the largest section share; tarot keeps its present-attitude guide',()=>{
+ const decision={version:m.QUESTION_POLICY_VERSION,category:'money',target:'self',horizon:'current',situation:'돈이 모이지 않아요',options:'',period:'',constraints:'',confirmed:true};
+ for(const domain of ['saju','ziwei','sukuyo','vedic','astrology','tarot'])for(const fish of ['mackerel','salmon','flounder','tuna']){
+  const [first]=m.questionManifest(domain,fish,decision,undefined,'돈이 모일까요?');
+  const nature=first.sections.find(s=>s.id==='nature'),others=first.sections.filter(s=>s.id!=='nature');
+  assert.ok(nature&&others.length,domain+' '+fish);
+  assert.ok(others.every(s=>nature.targetChars[1]>=Math.floor(s.targetChars[1]*1.4)),domain+' '+fish);
+  if(domain==='tarot')assert.doesNotMatch(nature.instruction,/타고난 성향 총론/);
+  else assert.match(nature.instruction,/타고난 성향 총론이다/);
+ }
 });
 
 for(const domain of ['saju','ziwei','vedic','astrology']){

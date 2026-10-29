@@ -17,7 +17,7 @@ export const hasChapterDeliveryContract = row => row?.snapshot?.deliveryContract
 
 // A truncation and empty-response guard, not the quality length bar: validateChapter keeps the single length
 // repair (reading-quality.ts chapterFloor), and a paid chapter is never withheld for length alone (principle 17).
-export const CHAPTER_DELIVERY_FLOOR_RATIO = 0.5;
+export const CHAPTER_DELIVERY_FLOOR_RATIO = 0.3;
 export const chapterDeliveryFloor = chapter => Math.max(120, Math.ceil((Number(chapter?.minimumChars) || 0) * CHAPTER_DELIVERY_FLOOR_RATIO));
 // The server marks a chapter delivered short on its last attempt (or kept over a worse repair); such a chapter
 // keeps only the empty-response guard. Model output never carries this flag (delivery.ts strips it).

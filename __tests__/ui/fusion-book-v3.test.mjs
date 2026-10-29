@@ -12,6 +12,13 @@ test('v3 has an answer first, three consecutive independent chapters per system 
   const rows=m.fusionPremiumManifest(product,topic);
   assert.equal(rows.length,m.FUSION_BOOK_CHAPTERS[product.fishId]-1,product.id+' '+topic);
   assert.equal(rows[0].layoutRole,'answer');assert.equal(rows[0].focus,m.DIRECT_FUSION_ANSWER);
+  // The answer comes first, then the cross-system inborn-disposition overview, then the evidence.
+  const answerSections=rows[0].sections.map(s=>s.id);
+  if(product.systems.some(d=>d!=='tarot')){
+   assert.deepEqual(answerSections.slice(0,2),['meaning','nature'],product.id);
+   assert.equal(rows[0].sections[1].instruction,m.FUSION_NATURE_OVERVIEW);
+   assert.ok(rows[0].sections.every(s=>s.id==='nature'||rows[0].sections[1].targetChars[1]>=Math.floor(s.targetChars[1]*1.4)),product.id);
+  }else assert.ok(!answerSections.includes('nature'),product.id);
   for(const [i,system] of product.systems.entries()){
    const group=rows.slice(1+i*3,4+i*3);
    assert.deepEqual(group.map(c=>c.layoutRole),['foundation','expert','application']);

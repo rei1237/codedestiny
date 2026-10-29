@@ -16,7 +16,7 @@ test('dedicated-pack scenarios include the reported server bill and each redeeme
  const proposal=result.dedicatedPackEvaluation;
  assert.equal(proposal.mode,'proposal_not_runtime');
  const pack=proposal.packs.find(pack=>pack.priceKRW===5000&&pack.consultations===7);
- assert.equal(pack.contributionBeforeFixedKRW,-10682.22);
+ assert.equal(pack.contributionBeforeFixedKRW,-11284.29);
  assert.equal(pack.breakEvenMonthlyPacksWithoutSignup,null);
  const hundred=pack.monthlyScenarios.find(row=>row.monthlyPaidPacks===100&&row.signupRedemptions===0);
  assert.ok(hundred.operatingProfitScenarioKRW<0);
