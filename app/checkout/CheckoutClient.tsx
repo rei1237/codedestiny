@@ -47,7 +47,6 @@ import { getCheckoutCopy, resolveCheckoutPolicyHrefs } from "./checkout-copy";
 import {fortuneApi,FortuneApiError,resultPath,type FortuneRecord} from '../yeongnyangi/_lib/api';
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { paymentAllianceCopy } from "./payment-alliance-copy";
-import {trackEvent} from '@/lib/analytics';
 import styles from "./checkout.module.css";
 import MoonstoneDiscountBalance from "./MoonstoneDiscountBalance";
 import YeongnyangiCheckout,{type ConsultationCheckoutDraft} from './YeongnyangiCheckout';
@@ -313,10 +312,6 @@ function PreparedCheckoutClient() {
       const requestId = isSoulCatMode
         ? `yn-soulcat-${params.featureKey}-${stableSlug(params.returnTo)}`
         : `yn-${params.requestId}`;
-      if (paymentMode === 'DIRECT_KRW') trackEvent('begin_checkout', {
-        currency:'KRW',value:pricing.amountKRW,service:'yeongnyangi',
-        items:[{item_id:pricing.featureKey,price:pricing.amountKRW,quantity:1}],
-      });
       const result = await runPaidAccessGate({
         featureKey: pricing.featureKey,
         reason: productName,

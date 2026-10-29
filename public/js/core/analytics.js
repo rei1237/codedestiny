@@ -237,6 +237,11 @@
       }
       if (eventName === 'page_view') safeParams.page_location = pageLocation();
       global.gtag("event", String(eventName), safeParams);
+      // Existing web checkout funnel fires once immediately before opening PG.
+      // Do not derive KRW from legacy credit units or count a modal view as checkout.
+      if (eventName === 'checkout_pg_opened') global.cdTrack('begin_checkout', {
+        currency:'KRW',items:/^[a-zA-Z0-9_-]{1,100}$/.test(safeParams.feature_key || '') ? [{item_id:safeParams.feature_key,quantity:1}] : []
+      });
     } catch (_sendError) {
       /* 계측 실패는 무시한다 */
     }
@@ -327,6 +332,34 @@
   growthAttribution();
   if (crmCampaign()) global.cdTrack('crm_landing_visit', { landing_path: global.location.pathname });
   var purchaseEvents = Object.create(null);
+  global.cdTrackConsultationCompleted = function (record) {
+    if (!record || record.status !== 'completed' || !/^[a-zA-Z0-9_-]{1,160}$/.test(record.id || '') ||
+        !/^[a-zA-Z0-9_-]{1,100}$/.test(record.featureKey || '')) return;
+    try {
+      var key = 'cd:consultation:' + record.featureKey + ':' + record.id;
+      var persisted = readConsent() === 'accepted';
+      if (purchaseEvents[key] || (persisted && global.localStorage.getItem(key))) return;
+      global.cdTrack('consultation_completed', {item_id:record.featureKey,observation:'browser_server_response',metric_version:3});
+      purchaseEvents[key] = true;
+      if (persisted) global.localStorage.setItem(key,'1');
+    } catch (_) {}
+  };
+  // Only a server-provided full-refund receipt, never a cancel button or credit restoration.
+  global.cdTrackConfirmedRefund = function (order) {
+    var receipt = order && order.analyticsRefund;
+    if (!receipt || receipt.kind !== 'full_cash_refund' || !/^[a-zA-Z0-9_-]{1,160}$/.test(receipt.transactionId || '') ||
+        !Number.isFinite(receipt.amountKRW) || receipt.amountKRW <= 0) return;
+    try {
+      var key = 'cd:refund:' + receipt.transactionId;
+      var persisted = readConsent() === 'accepted';
+      if (purchaseEvents[key] || (persisted && global.localStorage.getItem(key))) return;
+      // A history read is not the time of refund. Keep this diagnostic separate
+      // from GA4 refund until server delivery and cross-device dedupe are wired.
+      global.cdTrack('refund_observed',{transaction_id:receipt.transactionId,value:receipt.amountKRW,currency:'KRW',observation:'browser_server_response'});
+      purchaseEvents[key] = true;
+      if (persisted) global.localStorage.setItem(key,'1');
+    } catch (_) {}
+  };
   // Browser-observed server state; no profile, question, result text or request ID is sent.
   global.cdTrackFortuneDelivery = function (record) {
     if (!record || record.paid !== true || record.state !== 'COMPLETED' || !/^[a-f0-9]{64}$/.test(record.id || '')) return;

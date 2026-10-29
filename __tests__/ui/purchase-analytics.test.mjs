@@ -366,3 +366,33 @@ test('consented paid campaign survives a fresh return tab but expires and clears
  assert.equal(denied.window.localStorage.getItem(key),null);
  landing.window.close();returned.window.close();denied.window.close();
 });
+
+test('PG funnel emits one begin_checkout without leaking payload or estimating cash',()=>{
+ const dom=boot(); const w=dom.window;
+ w.cdTrack('checkout_opened',{feature_key:'fusion-fortune-consultation'});
+ assert.equal(w.dataLayer.filter(r=>r[1]==='begin_checkout').length,0);
+ w.cdTrack('checkout_pg_opened',{feature_key:'fusion-fortune-consultation',coin_price:500,question:'private'});
+ const events=w.dataLayer.filter(r=>r[1]==='begin_checkout');assert.equal(events.length,1);
+ assert.equal(events[0][2].items[0].item_id,'fusion-fortune-consultation');
+ assert.equal(events[0][2].value,undefined);assert.equal(JSON.stringify(events).includes('private'),false);dom.window.close();
+});
+test('stored consultation completion is deduplicated and rejects partial results',()=>{
+ const dom=boot();const w=dom.window;
+ const record={id:'server-result-1',featureKey:'new-year-ai-consultation',status:'partial'};
+ w.cdTrackConsultationCompleted(record);assert.equal(w.dataLayer.filter(r=>r[1]==='consultation_completed').length,0);
+ record.status='completed';w.cdTrackConsultationCompleted(record);w.cdTrackConsultationCompleted(record);
+ const rows=w.dataLayer.filter(r=>r[1]==='consultation_completed');assert.equal(rows.length,1);
+ assert.equal(JSON.stringify(rows).includes('server-result-1'),false);dom.window.close();
+});
+test('refund requires a server full cash receipt; partial or credit restoration cannot emit',async()=>{
+ const {toLegacyOrderDetail}=await import('../../worker/payments/compat.js');
+ const dom=boot();const w=dom.window;
+ const order={merchantUid:'refund-fixture',paymentAmount:5000,paidAt:'2026-10-01',refundedAt:'2026-10-02',status:'refunded',orderState:'CANCELLED'};
+ for(const change of [{status:'cancelled'},{orderState:'PARTIAL_CANCELLED'},{paidAt:null},{refundedAt:null},{paymentAmount:0}]){
+  const detail=toLegacyOrderDetail({...order,...change});assert.equal(detail.analyticsRefund,undefined);w.cdTrackConfirmedRefund(detail);
+ }
+ assert.equal(w.dataLayer.filter(r=>r[1]==='refund_observed').length,0);
+ const detail=toLegacyOrderDetail(order);w.cdTrackConfirmedRefund(detail);w.cdTrackConfirmedRefund(detail);
+ const rows=w.dataLayer.filter(r=>r[1]==='refund_observed');assert.equal(rows.length,1);assert.equal(rows[0][2].value,5000);assert.equal(rows[0][2].transaction_id,'refund-fixture');
+ assert.equal(w.dataLayer.filter(r=>r[1]==='refund').length,0,'history viewing must not backfill a refund at the wrong time');dom.window.close();
+});

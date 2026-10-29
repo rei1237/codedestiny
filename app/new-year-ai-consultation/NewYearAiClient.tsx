@@ -1,5 +1,6 @@
 "use client";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import { trackConsultationCompleted } from '@/lib/analytics';
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
@@ -1499,6 +1500,9 @@ export default function NewYearAiConsultationPage() {
   }
 
   const applyResult = useCallback((result: ConsultationResult) => {
+    if (result.ok && result.status === 'completed' && (result.sessionId || result.resultId)) {
+      trackConsultationCompleted({id:result.sessionId || result.resultId || '',status:'completed',featureKey:FEATURE_KEY});
+    }
     setAccessType(result.accessType || "");
     setMessages(Array.isArray(result.messages) ? result.messages : []);
     setServerSections(Array.isArray(result.sections) ? result.sections : []);

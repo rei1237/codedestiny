@@ -74,6 +74,9 @@ export function toLegacyOrderDetail(order) {
     createdAt: toIso(order.createdAt),
     updatedAt: toIso(order.updatedAt),
     paidAt: toIso(order.paidAt),
+    ...(order.status === 'refunded' && order.orderState === 'CANCELLED' && toIso(order.paidAt) && toIso(order.refundedAt)
+      && Number.isFinite(order.paymentAmount) && order.paymentAmount > 0
+      ? {analyticsRefund:{kind:'full_cash_refund',transactionId:merchantUid,amountKRW:order.paymentAmount}} : {}),
     orderNumberMasked: maskIdentifier(merchantUid),
     approvalNumberMasked: maskIdentifier(order.impUid),
     // 영수증은 PG 요약에만 있다. rawPortOne 은 pg.js 가 이미 PII 를 걷어낸 요약본이다.

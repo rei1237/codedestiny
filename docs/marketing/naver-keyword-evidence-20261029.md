@@ -109,3 +109,15 @@
 - 실제 읽기 전용 audit-paid-consultation-delivery --db code_destiny: 신년운세 paid/fulfilled 7건, 인생 총운 fulfilled 1건. 두 서비스 모두 unlinkedPaidOrders=0, completeBodyMissing=0. 전체 기간/지원 2서비스 범위이며 GA4 지난 28일 14건과 동일 모집단 아님. 초융합/영냥이/환불 금액/테스트 주문 분리 대사는 아직 미완료.
 - begin_checkout: 기존 checkout_pg_opened와 React 결제 진입의 발화 시점 통일 및 중복 방지 필요. consultation_completed: 영냥이 외 신년/초융합 완료 저장 응답 연결 필요. refund: 주문 상세 호환 응답에 부분환불 금액 증빙이 없어 상태만으로 금액을 추측해 전송하면 안 됨. 실제 환불 원장/PG 검증된 금액 경로 확인 후 구현해야 함.
 - 이 항목들은 수정 완료가 아니다. 광고 OFF, VAT 포함 50,000원 유지. 운영 반영/실제 GA4 신규 수신 검증 미완료.
+
+## 2026-10-29 거래번호 대사 및 추적 보완
+- GA4 거래 보고서: 2026-10-01~28, 거래 ID 14개/전자상거래 구매 14건, 표시 통화 USD 수익 101.46. GA 표시 금액을 원화 순매출로 사용하지 않는다.
+- 실제 payments 읽기 전용 대사: 14개 ID 모두 일치, 중복 ID 0, 미일치 0, 모두 KST 결제일 범위 안에 존재. 현재 상태 paid/PAID_VERIFIED 13건 104,900원, refunded/CANCELLED 1건 원결제액 29,900원. 전체 일치 주문 원결제액 134,800원. 테스트 구매 여부와 부분환불을 분리하지 않았으므로 이를 검증된 순매출로 확정하지 않는다.
+- 같은 결제일 범위 서버 주문은 89건(취소/환불 포함). GA 14건과의 차이를 전부 추적 누락으로 단정하지 않는다. 테스트 여부·동의·수집 시점 및 과거 구현 차이를 추가 분리해야 한다.
+- 재현: `node scripts/audit-marketing-orders.mjs --read-production --ga-ids=<private-json-array-path>`. 최대 1,000건 조회, DB 쓰기/실결제/GA 이벤트 주입 없음. 출력은 상태별 집계만, 원거래번호/고객정보/질문은 커밋하지 않는다. 날짜 범위는 이 감사의 2026-10-01~29 KST로 고정.
+- begin_checkout: 공통 checkout_pg_opened 직전 경로에 연결하고 React 결제 안내 페이지의 조기 이벤트 제거. 별도 이용권 결제도 PG SDK 호출 직전에 서버 주문 금액으로 발화. 코인/월정석 수를 현금으로 환산하지 않음.
+- consultation_completed: 신년/초융합의 명시적 completed 서버 응답만 연결. 부분 결과 제외, 브라우저 내 중복 방지. 재열람 시 최초 관찰도 포함하므로 서버 생성 시각의 전수 집계는 아님.
+- 환불: 서버가 확인한 전액 환불 주문 상세에 analyticsRefund 증빙을 추가. 내역 열람은 `refund_observed` 진단 이벤트만 발화한다. 과거 환불을 열람한 오늘의 GA4 `refund`로 보내거나 월정석 복원을 현금 환불로 추측하지 않는다. **정식 refund 자동 수집은 미완료**: 실제 환불 시각의 서버 전송, 기기 간 중복 방지, 부분환불 증빙, 테스트 주문 분리가 필요하다. 로컬 GA4 서버 전송 비밀키와 서비스 계정 설정 없음(값 노출 없이 존재 여부만 확인).
+- 유입 출처 복원은 동의된 공개 캠페인 코드의 30분 보존이다. GA4 표준 세션 소스/매체의 로그인 referral 제외 설정까지 검증됐다는 뜻은 아니다.
+- 검증: 최종 구매/동의 mock 30/30 통과, verify:analytics-events 통과, typecheck exit 0. 전체 check:fast는 실행했으나 완료하지 못함. sync:public 후속 이미지 생성 단계에서 vips out-of-memory가 발생해 이번 실행의 feature-details 산출물만 백업 후 복원; analytics 미러는 기존 sync-legacy-static-to-public 생성기로 갱신.
+- 광고 활성화/충전/테스트 실결제/운영 DB 수정 없음. 예산 VAT 포함 50,000원 유지. 운영 배포와 실제 신규 이벤트 수신, 정식 refund 집계까지 끝나기 전 광고 OFF.

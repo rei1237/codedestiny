@@ -17,6 +17,8 @@ declare global {
     cdTrackConfirmedPurchase?: (payload: unknown) => boolean;
     cdTrackFortuneDelivery?: (record: unknown) => void;
     cdTrackFortuneView?: (record: unknown, source: string) => void;
+    cdTrackConsultationCompleted?: (record: unknown) => void;
+    cdTrackConfirmedRefund?: (record: unknown) => void;
   }
 }
 
@@ -47,4 +49,10 @@ export function trackConfirmedPurchase(payload: unknown): void {
 }
 export function trackEvent(eventName: string, params?: Record<string, unknown>): void {
   whenReady(() => window.cdTrack?.(eventName, params || {}));
+}
+export function trackConsultationCompleted(record: {id: string; status: string; featureKey: string}): void {
+  whenReady(() => window.cdTrackConsultationCompleted?.(record));
+}
+export function trackConfirmedRefund(order: unknown): void {
+  whenReady(() => window.cdTrackConfirmedRefund?.(order));
 }
