@@ -82,3 +82,14 @@ test("이용권이 없거나 로그아웃이면 숨기고 지갑을 부르지 �
   assert.equal(window.document.getElementById("cdhMyPass").hidden, true);
   assert.deepEqual(fetched, []);
 });
+
+test("신규 기간제 이용권은 만료일, 기존 무기한 이용권은 기한 없음을 표시한다", async () => {
+  for (const expiresAt of [null, "2027-01-27T12:00:00Z"]) {
+    const { window } = boot({ snapshot: { userId: "u1", entitlementSnapshot: { tier: "free", activePasses: [] } }, packs: [{ ...pack, totalUses: 8, expiresAt }] });
+    await flush();
+    const item = window.document.querySelector('[data-my-pass="yeongnyangi"]');
+    assert.match(item.textContent, expiresAt ? /2027/ : /사용 기한 없음/);
+    if (expiresAt) assert.doesNotMatch(item.textContent, /사용 기한 없음/);
+    window.close();
+  }
+});

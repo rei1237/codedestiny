@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 const publicRoot=fileURLToPath(new URL('../../../public/',import.meta.url)).replace(/[\\/]$/,'');
 const shim=fileURLToPath(new URL('../canonical/next.jsx',import.meta.url)).replaceAll('\\','/');
 const defaults={'next/image':'Image','next/link':'Link','next/dynamic':'dynamic'};
-const asset=/["'`(](\/(?:assets|images|neo-operation-room)\/[^"'`)\s]*)(?:["'`)])/g;
+const asset=/["'`(\s,](\/(?:assets|images|icons|neo-operation-room)\/[^"'`)\s,]*)(?=["'`)\s,])/g;
 const mime={'.webp':'image/webp','.avif':'image/avif','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2','.mp3':'audio/mpeg','.json':'application/json'};
 
 // The same font bytes already exist in the original artwork tree. Resolve by
@@ -21,6 +21,9 @@ export function localBrandFonts(){
   return fonts;
  }
  return {postcssPlugin:'toss-local-brand-fonts',async Declaration(decl){
+  if(decl.prop==='src'&&decl.value.includes('https://assets.code-destiny.com/Mulmaru.woff2')){
+   decl.value=decl.value.replace('https://assets.code-destiny.com/Mulmaru.woff2','/fonts/Mulmaru.woff2');return;
+  }
   if(decl.prop!=='src'||!decl.value.includes('https://assets.code-destiny.com/fonts/serif-'))return;
   const map=await localFiles();
   decl.value=decl.value.replace(/https:\/\/assets\.code-destiny\.com\/fonts\/(serif-(?:kr|latin))\/([a-f0-9]+)\.woff2/g,(_url,family,hash)=>{
@@ -48,7 +51,7 @@ export default function serviceCompat(){
    if(id.replaceAll('\\','/').includes('/js/core/')&&code.includes('module.exports = api')){const name=code.match(/(?:globalThis|root)\.([\w]+) = api;/)?.[1];if(name)code+='\nexport default globalThis.'+name+';';}
    return code;
   },
-  resolveId(id){if(id.replaceAll('\\','/').endsWith('/app/checkout/CheckoutClient'))return fileURLToPath(new URL('./Checkout.jsx',import.meta.url));if(id==='next/navigation'||defaults[id])return '\0toss-service:'+id;},
+  resolveId(id){if(id.replaceAll('\\','/').endsWith('/app/_lib/billing-client'))return fileURLToPath(new URL('./billing.jsx',import.meta.url));if(id.replaceAll('\\','/').endsWith('/app/checkout/CheckoutClient'))return fileURLToPath(new URL('./Checkout.jsx',import.meta.url));if(id==='next/navigation'||defaults[id])return '\0toss-service:'+id;},
   load(id){if(!id.startsWith('\0toss-service:'))return;const name=id.slice('\0toss-service:'.length);return defaults[name]?`export {${defaults[name]} as default} from ${JSON.stringify(shim)};`:`export {useRouter,usePathname,useSearchParams} from ${JSON.stringify(shim)};`;},
   configureServer(server){server.middlewares.use(async(req,res,next)=>{
    let path;try{path=resolve(publicRoot,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));}catch{return next();}
@@ -61,6 +64,21 @@ export default function serviceCompat(){
    for(const entry of Object.values(bundle)){
     const source=entry.type==='chunk'?entry.code:entry.fileName.endsWith('.css')?String(entry.source):'';
     for(const match of source.matchAll(asset)){const prefix=match[1].split('${')[0];if(prefix.length>8&&prefix!=='/neo-operation-room/')references.add(prefix);}
+   }
+   // The PDF exporter constructs one of the canonical cover filenames. Do not
+   // mistake that expression for a request to package every service's artwork.
+   if(references.delete('/images/service-introductions/')){
+    const themes=await readFile(resolve(publicRoot,'../lib/pdf/report-cover-theme.ts'),'utf8');
+    for(const match of themes.matchAll(/artwork:\s*'([^']+)'/g))references.add('/images/service-introductions/'+match[1]+'-960.webp');
+   }
+   // Original product disclosures fetch their authored manifest after opening.
+   const catalogue=JSON.parse(await readFile(resolve(publicRoot,'../content/product-details/catalog.json'),'utf8'));
+   const ids=new Set(Object.entries(catalogue.products).filter(([key])=>key.startsWith('fortune-tea-house-')||key==='neo-operation-room-consultation').map(([,id])=>id));
+   for(const id of ids){
+    const ref='/feature-details/crafted/'+id+'/manifest.json';
+    const source=await readFile(resolve(publicRoot,'.'+ref),'utf8');
+    references.add(ref);
+    for(const match of source.matchAll(asset))references.add(match[1]);
    }
    const emitted=new Set();
    const collect=async(folder,prefix)=>{

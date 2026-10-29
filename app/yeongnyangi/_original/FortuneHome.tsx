@@ -49,7 +49,7 @@ function Art({
   );
 }
 
-export default function FortuneHome({offers,guide}:{offers:ProductOffers;guide?:ReactNode}) {
+export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductOffers;guide?:ReactNode;passBenefits?:ReactNode}) {
   const {siteLocale}=useReadingLanguage();
   const [panel, setPanel] = useState<Panel>(null);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
@@ -133,6 +133,7 @@ export default function FortuneHome({offers,guide}:{offers:ProductOffers;guide?:
           <HeavenLightCinema/>
           <FirstVisitGuide/>
           <QuestionJourney source="home"/>
+          {passBenefits}
           {guide}
           <div className="main-content">
             <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">

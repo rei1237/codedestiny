@@ -11,9 +11,16 @@ export function libraryFilter(auth,cursor){
   validateOrderId(id);
   return {...filter,$or:[{grantedAt:{$lt:date}},{grantedAt:date,_id:{$lt:id}}]};
 }
-export async function libraryPage(rows,read,readTarot=async()=>null){
+export async function libraryPage(rows,read,readTarot=async()=>null,readNative=async()=>{throw new Error('NATIVE_READ_UNAVAILABLE');}){
   const page=rows.slice(0,LIBRARY_PAGE_SIZE);
   const purchases=await Promise.all(page.map(async row=>{
+    if(row.nativeService){
+      let saved={state:row.requestId?'READ_FAILED':'UNASSIGNED'};
+      try{saved=await readNative(row);}catch{/* Keep the purchase visible without inventing a new entitlement. */}
+      if(row.status==='REFUNDED')saved={state:'REFUNDED'};
+      return {orderId:row._id,sku:row.sku,productId:row.productId,serviceId:row.serviceId,nativeService:row.nativeService,
+        requestId:row.requestId,status:row.status,createdAt:row.grantedAt,...saved,completedSections:saved.state==='COMPLETED'?1:0,totalSections:1};
+    }
     if(row.tarotFlowId){
       let execution=null,state='READ_FAILED';
       try { execution=await readTarot(row);state=execution?.status||'READ_FAILED'; } catch {/* A paid tarot record must not become an unassigned purchase. */}

@@ -36,12 +36,12 @@ const consume=(f,right,requestId=RID)=>consumeServicePack(f.db,{userId:USER,requ
 const terminal=f=>Object.assign(f.row,{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',leaseUntil:null,leaseToken:''});
 const restore=f=>restoreFailedServicePackUse(f.db,{userId:USER,requestId:RID});
 test('production catalog exposes approved offers and refuses unknown sales before DB work',async()=>{
- expect(Object.keys(SERVICE_PACK_PLANS)).toHaveLength(20);
+ expect(Object.keys(SERVICE_PACK_PLANS)).toHaveLength(24);
  expect(()=>resolveServicePackProduct(PLAN)).toThrow();
  const routes=createServicePackRoutes({prepareOrder:()=>{throw Error('must not reach purchase')}});
  const catalog=await (await routes['GET /service-packs/catalog'].handle()).json();
  expect(catalog).toMatchObject({ok:true,giftEnabled:false});expect(catalog.plans).toHaveLength(4);
- expect(catalog.plans.every(plan=>plan.totalUses===5)).toBe(true);
+ expect(catalog.plans.every(plan=>plan.totalUses===8)).toBe(true);
  await expect(routes['POST /service-packs/prepare'].handle({body:{planId:PLAN,idempotencyKey:'x'}})).rejects.toMatchObject({code:'PRODUCT_NOT_FOUND'});
 });
 test('same-fish entitlement has exactly six server-registry systems and immutable price/count',()=>{
@@ -281,10 +281,10 @@ test.each(['cancellationReviewRequired','yeongnyangiRefundPending','right-revoke
 });
 
 const approvedFish=[['mackerel',5000,20000],['salmon',10000,40000],['flounder',15000,60000],['tuna',30000,120000]];
-test.each(approvedFish)('%s catalog fixes approved 2026-10-11 five-use price with no usage expiry',(fish,unit,packPrice)=>{
-  const offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v5');
-  expect(offer.packSnapshot).toMatchObject({fishId:fish,unitPriceKRW:unit,totalUses:5,priceKRW:packPrice,validityDays:null,policyVersion:'yeongnyangi-pack-20261024-no-expiry'});
-  expect(packPrice).toBe(unit*5*80/100);
+test.each(approvedFish)('%s catalog fixes approved 2026-10-29 eight-use price and 90-day validity',(fish,unit,packPrice)=>{
+  const offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v6');
+  expect(offer.packSnapshot).toMatchObject({fishId:fish,unitPriceKRW:unit,totalUses:8,priceKRW:packPrice,validityDays:90,policyVersion:'yeongnyangi-pack-20261029-eight-90'});
+  expect(packPrice).toBe(unit*8*50/100);
   expect(offer.allowedPaymentMethods).toEqual(['DIRECT_KRW']);
   const right={type:'service_pack',status:'granted',packSnapshot:offer.packSnapshot,remainingUses:5,expiresAt:new Date('2099-01-01')};
   for(const [otherFish,otherPrice] of approvedFish)for(const system of ['saju','ziwei','sukuyo','vedic','astrology','tarot']){
@@ -293,11 +293,11 @@ test.each(approvedFish)('%s catalog fixes approved 2026-10-11 five-use price wit
   for(const suffix of ['saju-ziwei','sukuyo-vedic','astrology-tarot','all'])expect(servicePackCoverage(right,'yeongnyangi-fusion-'+suffix,suffix==='all'?70000:50000).covered).toBe(false);
 });
 test.each(approvedFish.flatMap(([fish])=>approvedFish.map(([target,price])=>[fish,target,price])))('%s pack quote/consume only serves %s when identical',async(fish,target,amount)=>{
- const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v5');
+ const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v6');
  const order=await createServicePackOrder(f.db,{userId:USER,product:offer,idempotencyKey:'approved',env:{}});
  await __paymentsContextTestUtils.settleVerifiedOrder(f.db,{},{order,pg:{pgTransactionId:'mock-approved',paidAt:new Date(),summary:{mock:true}}});
  const right=f.db.rows.find(r=>r.type==='service_pack');
- expect(right.expiresAt).toBeNull();
+ expect(new Date(right.expiresAt)-new Date(right.grantedAt)).toBe(90*86400000);
  Object.assign(f.row,{featureKey:'yeongnyangi-saju-'+target,amountKRW:amount});
  const quote=await quoteServicePack(f.db,{userId:USER,requestId:RID});
  expect(quote.candidates).toHaveLength(fish===target?1:0);
@@ -341,4 +341,29 @@ test.each([null,new Date(0),new Date('2026-01-01')])('historical expiry %s does 
 });
 test.each([undefined,0,-1,'30',NaN])('invalid duration %s cannot become a non-expiring offer',validityDays=>{
  expect(()=>resolveServicePackProduct(PLAN,{[PLAN]:{...fixturePlans[PLAN],validityDays}})).toThrow();
+});
+
+test('v6 grants eight uses for exactly 90 days; expiry blocks new uses but preserves completed proof',async()=>{
+ const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-mackerel-small-v6');
+ const paidAt=new Date('2026-10-29T12:00:00Z'),expiresAt=new Date(paidAt.getTime()+90*86400000);
+ const order=await createServicePackOrder(f.db,{userId:USER,product:offer,idempotencyKey:'v6-boundary',env:{}});
+ await __paymentsContextTestUtils.settleVerifiedOrder(f.db,{},{order,pg:{pgTransactionId:'mock-v6',paidAt,summary:{mock:true}}});
+ const right=f.db.rows.find(r=>r.type==='service_pack');
+ expect(right).toMatchObject({totalUses:8,remainingUses:8,expiresAt});
+ const args={userId:USER,requestId:RID,entitlementId:String(right._id)};
+ expect((await consumeServicePack(f.db,{...args,now:new Date(expiresAt-1)})).remainingUses).toBe(7);
+ // An already funded consultation and its receipt remain valid after the purchase period.
+ expect((await consumeServicePack(f.db,{...args,now:expiresAt})).replayed).toBe(true);
+ expect(await findServicePackUseEvidence(f.db,{userId:USER,requestId:RID,featureKey:consultation.featureKey})).not.toBeNull();
+ const next='d'.repeat(64);f.db.rows.push({_id:next,userId:USER,featureKey:consultation.featureKey,amountKRW:consultation.priceKRW,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});
+ expect((await quoteServicePack(f.db,{userId:USER,requestId:'yn-'+next,now:expiresAt})).candidates).toHaveLength(0);
+ await expect(consumeServicePack(f.db,{...args,requestId:'yn-'+next,now:expiresAt})).rejects.toMatchObject({code:'SERVICE_PACK_EXPIRED'});
+ expect((await listOwnedServicePacks(f.db,{userId:USER,now:expiresAt})).packs[0]).toMatchObject({expiresAt,available:false,remainingUses:7,unavailableReason:'SERVICE_PACK_EXPIRED'});
+ await grantServicePack(f.db,order);
+ expect(f.db.rows.find(r=>r.type==='service_pack')).toMatchObject({expiresAt,remainingUses:7});
+});
+
+test.each([null,'invalid',new Date(0)])('v6 never treats missing or malformed expiry %s as unlimited',expiresAt=>{
+ const packSnapshot=resolveServicePackProduct('yeongnyangi-pack-mackerel-small-v6').packSnapshot;
+ expect(servicePackCoverage({type:'service_pack',status:'granted',packSnapshot,remainingUses:8,expiresAt},consultation.featureKey,consultation.priceKRW).reason).toBe('SERVICE_PACK_EXPIRED');
 });

@@ -6,7 +6,7 @@ import HoneyPassArtwork from '@/components/yeon/HoneyPassArtwork';
 import {isOpenEndedPassExpiry,openEndedPassLabel} from '@/lib/payment/pass-expiry';
 import type {LoadingLocale} from '@/constants/loadingMessages';
 import type {OwnedServicePack} from './service-pack-client';
-import {packName,packText,servicePackCopy} from './service-pack-copy';
+import {packName,packText,servicePackCopy,packExpiry} from './service-pack-copy';
 import {APPLIED_STAMP_IMAGES,SERVICE_PACK_IMAGES} from './service-pack-images';
 
 // 🔴 표시 전용. 꽃돼지 달빛 이용권과 영냥이 전용 이용권은 따로 보유·적용되며, 상담 한 건의 차감 수단 판정은 서버(funding claim)가 한다.
@@ -51,7 +51,7 @@ export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;f
      {first?<>
       <h3 className="mt-0.5 text-base font-black leading-snug text-white">{packName(first,locale)}</h3>
       <p className={appliedLine}>{dot}<span>{copy.applied}</span></p>
-      <p className="mt-0.5 text-xs font-bold text-[color:var(--moon-silver)] [word-break:keep-all]"><span className="whitespace-nowrap text-[color:var(--moon-teal)]">{packText(copy.remaining,{total:first.totalUses,remaining:first.remainingUses})}</span> · <span className="whitespace-nowrap">{copy.validity}</span>{usable.length>1&&<> · <span className="whitespace-nowrap">{packText(copy.packOthers,{count:usable.length-1})}</span></>}</p>
+      <p className="mt-0.5 text-xs font-bold text-[color:var(--moon-silver)] [word-break:keep-all]"><span className="whitespace-nowrap text-[color:var(--moon-teal)]">{packText(copy.remaining,{total:first.totalUses,remaining:first.remainingUses})}</span> · <span className="whitespace-nowrap">{packExpiry(first,locale)}</span>{usable.length>1&&<> · <span className="whitespace-nowrap">{packText(copy.packOthers,{count:usable.length-1})}</span></>}</p>
      </>:packs==='loading'?<p role="status" className="mt-0.5 text-sm text-[color:var(--moon-silver)]">{copy.loading}</p>:packs==='error'?<>
       <p className="mt-0.5 text-sm font-bold text-[color:var(--moon-silver)]">{copy.unavailable}</p>
       <a href="#fish-packs" className="mt-1 inline-flex min-h-11 items-center text-sm font-black text-[color:var(--moon-glow)]">{copy.packBrowse} →</a>

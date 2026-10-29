@@ -108,6 +108,10 @@ function makeCountingDb(ctx, paymentConn = null, session = null) {
       count();
       return col(Model).updateOne(filter, update, opts(options));
     },
+    updateMany(Model, filter, update, options) {
+      count();
+      return col(Model).updateMany(filter, update, opts(options));
+    },
     findOneAndUpdate(Model, filter, update, options) {
       count();
       return col(Model).findOneAndUpdate(filter, update, opts(options));

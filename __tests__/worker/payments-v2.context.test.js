@@ -61,6 +61,7 @@ describe("라우트 표", () => {
       "GET /service-packs/catalog",
       "GET /service-packs/orders/:id/status",
       "GET /service-packs/wallet",
+      "POST /analytics-withdrawal",
       // 월정석 컷오버 어댑터 — 구 coin-gate 의 MOONLIGHT_STONE 분기(재작성)가 여기로 온다.
       "POST /birth-profile-pending/:id/claim",
       "POST /coin-gate/moonstone",
@@ -92,9 +93,9 @@ describe("라우트 표", () => {
     expect(matchRoute("DELETE", "/orders/cd123")).toBeNull();
   });
 
-  test("🔴 카탈로그·결제 설정·webhook 만 신원을 보지 않는다", () => {
+  test("🔴 카탈로그·결제 설정·webhook·브라우저 철회만 계정 인증 없이 접근한다", () => {
     const anonymous = Object.entries(ROUTES).filter(([, r]) => r.auth === "none").map(([k]) => k).sort();
-    expect(anonymous).toEqual(["GET /config", "GET /features", "GET /pass-offers", "GET /service-packs/catalog", "POST /webhook"]);
+    expect(anonymous).toEqual(["GET /config", "GET /features", "GET /pass-offers", "GET /service-packs/catalog", "POST /analytics-withdrawal", "POST /webhook"]);
     const privatePackRoutes = Object.entries(ROUTES)
       .filter(([key]) => key.includes(" /service-packs/") && key !== "GET /service-packs/catalog");
     expect(privatePackRoutes).toHaveLength(6);
@@ -121,12 +122,14 @@ describe("주문 표현", () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);
     order.rawPortOne = { secret: "x" };
+    order.metadata = { ga4PurchaseContext: { clientId: "123.456", receiptHash: "private-fixture" } };
     const view = presentOrder(order);
     expect(Object.keys(view).sort()).toEqual(
-      ["amountKRW", "createdAt", "entitlementGranted", "featureKey", "orderId", "paidAt", "productId", "productName", "requestId", "status"],
+      ["amountKRW", "analyticsChannel", "createdAt", "entitlementGranted", "featureKey", "orderId", "paidAt", "productId", "productName", "requestId", "status"],
     );
     expect(typeof view.productName).toBe("string");
-    expect(JSON.stringify(view)).not.toMatch(/rawPortOne|pricingSnapshot|idempotencyKey/);
+    expect(view.analyticsChannel).toBe("UNKNOWN");
+    expect(JSON.stringify(view)).not.toMatch(/rawPortOne|pricingSnapshot|idempotencyKey|clientId|receiptHash/);
   });
 });
 

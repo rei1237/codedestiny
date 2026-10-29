@@ -29,8 +29,16 @@ import { callGeminiText } from "../lib/gemini.js";
 // UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
 import { ganji as calendarGanji, lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { createHash, randomUUID } from "node:crypto";
-import { getCurrentUser, getOptionalUserFromRequest } from "../lib/auth.js";
+import { getCurrentUser as webCurrentUser, getOptionalUserFromRequest as webOptionalUser } from "../lib/auth.js";
+import { nativeTossContext } from "../toss/native-context.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
+
+function getCurrentUser(request,env,...options) {
+  return nativeTossContext(request)?.auth || webCurrentUser(request,env,...options);
+}
+function getOptionalUserFromRequest(request,env,...options) {
+  return nativeTossContext(request)?.auth || webOptionalUser(request,env,...options);
+}
 import { buildSukuyoAiCompatibility, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import {
@@ -1557,6 +1565,9 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
       response: json({ ok: false, message: pricingResult.message || "운명 찻집 상담 가격을 확인할 수 없습니다.", featureKey }, { status: 500 }),
     };
   }
+
+  const toss=nativeTossContext(request);
+  if(toss)return toss.access(body,{featureKey,pricing:pricingResult.pricing});
 
   let auth;
   try {
@@ -4888,6 +4899,7 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
           deliveryRequestId: requestId,
           generationRequestHash: requestHash,
           deliveryAccessKey: accessKey,
+          ...(auth.tossNative ? {tossNative:true} : {}),
           generationLock: {
             token: lockToken,
             requestId: cleanText(requestId || resultId, 180),
@@ -5257,7 +5269,9 @@ async function readFortuneTeaHouseResultDetail(request, env, resultId) {
   const result = doc ? publicFortuneTeaStoredResult(doc, { resultId }) : null;
   if (!result) return { ok: false, status: 404, message: "상담 기록을 찾을 수 없어요." };
   const featureKey = cleanText(doc.featureKey, 160) || resolveFortuneTeaHouseFeatureKey(doc, doc);
-  if (featureKey && await isStoredPaidResultRevoked(userId, featureKey, doc)) {
+  const toss=nativeTossContext(request);
+  if(toss)await toss.assertStored(doc);
+  if (!toss && featureKey && await isStoredPaidResultRevoked(userId, featureKey, doc)) {
     return { ok: false, status: 403, message: "취소·환불된 상담 결과는 제공할 수 없어요." };
   }
   // 추가 질문은 result 밖 최상위에 저장한다. 상담 응답은 저장본 그대로 두고, 다시 열 때만 함께 내보낸다.
@@ -5677,6 +5691,8 @@ async function handleHoneyLetter(request, env, path) {
   if (resultDoc.status !== "completed" || resultDoc.generationMeta?.mode === "local_fallback") {
     return honeyLetterError("HONEY_LETTER_RESULT_NOT_READY", 409);
   }
+  const toss=nativeTossContext(request);
+  if(toss)await toss.assertStored(resultDoc);
 
   const existingLetter = publicHoneyLetter(resultDoc.honeyLetter || resultDoc.result?.honeyLetter);
   if (existingLetter) {
@@ -5756,6 +5772,7 @@ async function handleHoneyLetter(request, env, path) {
       const saved = await results.updateOne(lockQuery, { $set: { honeyLetterDelivery: draft, updatedAt: new Date() } });
       if (!saved?.matchedCount) return unavailable();
     }
+    if(toss)await toss.assertStored(resultDoc);
     const confirmed = await results.findOne(lockQuery);
     if (confirmed?.honeyLetterDelivery?.receiptToken !== draft.receiptToken ||
         confirmed?.honeyLetterDelivery?.letter?.body !== draft.letter.body) return unavailable();
@@ -5948,7 +5965,9 @@ function teaFollowUpSuccess(doc, followUp, alreadyApplied) {
 const savedTeaFollowUp = (doc, clientQuestionId) =>
   (Array.isArray(doc?.followUps) ? doc.followUps : []).find((item) => item?.clientQuestionId === clientQuestionId) || null;
 
-async function isTeaResultRevoked(userId, doc) {
+async function isTeaResultRevoked(userId, doc, request) {
+  const toss=nativeTossContext(request);
+  if(toss){await toss.assertStored(doc);return false;}
   const featureKey = cleanText(doc?.featureKey, 160) || resolveFortuneTeaHouseFeatureKey(doc, doc);
   // 찻집 저장본은 결제 요청 id를 deliveryRequestId, 결제 id를 deliveryAccessKey에 둔다. 공용 판정이 읽는 이름으로 넘긴다.
   const paymentId = doc?.deliveryAccessKey && doc.deliveryAccessKey !== "reusable" ? doc.deliveryAccessKey : undefined;
@@ -5980,7 +5999,7 @@ async function handleTeaFollowUp(request, env, path) {
     ({ results } = honeyCollections());
     const doc = await results.findOne(query);
     if (!doc || !publicFortuneTeaStoredResult(doc)) return teaFollowUpError("RESULT_NOT_FOUND", 404);
-    if (await isTeaResultRevoked(userId, doc)) return teaFollowUpError("RESULT_REVOKED", 403);
+    if (await isTeaResultRevoked(userId, doc, request)) return teaFollowUpError("RESULT_REVOKED", 403);
     const saved = savedTeaFollowUp(doc, clientQuestionId);
     if (saved) return teaFollowUpSuccess(doc, saved, true);
     const now = new Date();
@@ -6015,7 +6034,7 @@ async function handleTeaFollowUp(request, env, path) {
       return teaFollowUpError("FOLLOW_UP_GENERATION_FAILED", 503, { retryable: true, followUpAllowance: teaFollowUpAllowance(leased) });
     }
     // 생성하는 동안 취소·환불됐을 수 있다. 저장 직전에 다시 본다.
-    if (await isTeaResultRevoked(userId, leased)) return teaFollowUpError("RESULT_REVOKED", 403);
+    if (await isTeaResultRevoked(userId, leased, request)) return teaFollowUpError("RESULT_REVOKED", 403);
     const entry = {
       id: randomUUID(),
       clientQuestionId,
@@ -6170,6 +6189,25 @@ export async function isOwnedFortuneTeaHouseResume(body, userId) {
     status: { $in: ["generating", "delivery_pending", "generation_failed", "completed"] },
   }, { projection: { status: 1, passRefund: 1, revokedAt: 1, refundedAt: 1 } });
   return Boolean(doc && !doc.passRefund?.refundedAt && !doc.revokedAt && !doc.refundedAt);
+}
+
+// The Toss preparation and execution boundary use this same normalization,
+// feature selection and immutable checkpoint identity as the original handler.
+export function nativeTeaContract(body) {
+  const request=normalizeRequest(body);
+  const requestId=readFortuneTeaRequestId(body,request);
+  const featureKey=resolveFortuneTeaHouseFeatureKey(body,request);
+  const priced=getBillingFeaturePricing({featureKey});
+  if(request.consultationVersion!=='tea-v2'||!requestId||!featureKey||!priced.ok)
+    throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'),{status:400});
+  return {requestId,resultId:buildHoneyResultId(body,request),featureKey,
+    inputHash:fortuneTeaRequestHash(request),pricing:priced.pricing};
+}
+
+export async function nativeTeaStoredState(env,userId,resultId) {
+  await connectDb(env);
+  return honeyCollections().results.findOne({userId:String(userId),resultId,serviceScope:FORTUNE_TEA_HOUSE_SCOPE},
+    {projection:{status:1,userId:1,resultId:1,featureKey:1,generationRequestHash:1,deliveryAccessKey:1,revokedAt:1,refundedAt:1}});
 }
 
 async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
@@ -6524,6 +6562,10 @@ export async function resumeConsultationOnServer(env, doc) {
   const stored = await withMongoRetry(env, () => honeyCollections().results.findOne({ userId: String(doc.userId), resultId: doc.resultId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE }));
   if (!stored?.generationCheckpoint?.requestBody) return json({ ok: false, reason: 'RESULT_NOT_FOUND' }, { status: 404 });
   const request = new Request("https://internal.invalid/api/fortune-tea-house/consult", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(stored.generationCheckpoint.requestBody) });
+  if(stored.tossNative){
+    const {bindNativeTeaRecovery}=await import('../toss/native-tea.js');
+    if(!await bindNativeTeaRecovery(request,env,stored))throw new Error('TOSS_RECOVERY_EVIDENCE_REQUIRED');
+  }
   return handleConsult(request, env, null, { userId: String(stored.userId), legacyFeatureKey: stored.featureKey });
 }
 

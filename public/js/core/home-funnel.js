@@ -502,7 +502,12 @@
         packItem.appendChild(name);
       }
       packItem.appendChild(myPassNode('span', 'cdh-mypass__line', 'home.passCopy.packRemaining', { total: String(first.totalUses), remaining: String(first.remainingUses) }, first.totalUses + '회 중 ' + first.remainingUses + '회 남음'));
-      packItem.appendChild(myPassNode('span', 'cdh-mypass__line cdh-mypass__line--muted', 'home.passCopy.packNoExpiry', null, '사용 기한 없음'));
+      if (first.expiresAt && Number.isFinite(Date.parse(first.expiresAt))) {
+        var packDate = new Intl.DateTimeFormat(document.documentElement.lang || 'ko', { dateStyle: 'medium' }).format(new Date(first.expiresAt));
+        packItem.appendChild(myPassNode('span', 'cdh-mypass__line cdh-mypass__line--muted', 'home.passCopy.packExpires', { date: packDate }, packDate + '까지'));
+      } else {
+        packItem.appendChild(myPassNode('span', 'cdh-mypass__line cdh-mypass__line--muted', 'home.passCopy.packNoExpiry', null, '사용 기한 없음'));
+      }
       if (packs.length > 1) packItem.appendChild(myPassNode('span', 'cdh-mypass__line cdh-mypass__line--muted', 'home.passCopy.packOthers', { count: String(packs.length - 1) }, '외 ' + (packs.length - 1) + '개 세트 보유'));
       myPassList.appendChild(packItem);
     }

@@ -23,6 +23,29 @@ new Function('require', 'module', 'exports', compiled.outputFiles[0].text)(creat
 const Consent = compiledModule.exports.default;
 const calls = w => Array.from(w.dataLayer || [], row => Array.from(row));
 
+test('server withdrawal persists on failure, retries online and rotates receipt only after acknowledgement',async()=>{
+  const dom=new JSDOM('<head></head>',{url:'https://code-destiny.com',runScripts:'outside-only'});
+  const w=dom.window;const requests=[];let succeed=false;
+  w.fetch=async(url,options)=>{requests.push({url,options});if(!succeed)throw Error('offline');return {status:204};};
+  const tick=()=>new Promise(resolve=>setImmediate(resolve));
+  const cookie=name=>w.document.cookie.split('; ').find(v=>v.startsWith(name+'='))?.slice(name.length+1);
+  try{
+    w.document.cookie='cd_cookie_consent=accepted; path=/';w.eval(source);
+    const original=cookie('cd_analytics_receipt');assert.match(original,/^[a-f0-9]{64}$/);
+    w.document.cookie='cd_cookie_consent=essential; path=/';w.cdSyncConsent();await tick();
+    assert.equal(cookie('cd_analytics_revoke_pending'),'1');assert.equal(cookie('cd_analytics_receipt'),original);
+    assert.equal(requests[0].url,'/api/payments/analytics-withdrawal');
+    assert.equal(requests[0].options.body,'{}');assert.equal(requests[0].options.credentials,'same-origin');
+    w.document.cookie='cd_cookie_consent=accepted; path=/';w.cdSyncConsent();await tick();
+    assert.equal(cookie('cd_analytics_receipt'),original);
+    succeed=true;w.dispatchEvent(new w.Event('online'));await tick();
+    assert.equal(cookie('cd_analytics_revoke_pending'),undefined);
+    assert.match(cookie('cd_analytics_receipt'),/^[a-f0-9]{64}$/);
+    assert.notEqual(cookie('cd_analytics_receipt'),original);
+    assert.ok(!JSON.stringify(calls(w)).includes(original));
+  }finally{w.close();}
+});
+
 test('production property is blocked on every non-production origin before tag/queue/storage writes', () => {
   for (const origin of ['http://localhost:3000', 'http://127.0.0.1:4321', 'https://staging.code-destiny.com', 'https://preview.pages.dev', 'https://code-destiny.com.example.org', 'http://code-destiny.com', 'https://code-destiny.com:8443']) {
     for (const override of ['', 'G-FMHV4ZHY3G', 'g-fmhv4zhy3g']) {

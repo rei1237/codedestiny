@@ -100,7 +100,7 @@ export async function derivePassOrderId(userId, idempotencyKey, tier) {
  * 같은 키의 기존 주문이 다른 금액·등급이면 IDEMPOTENCY_CONFLICT — 옛 가격 주문을 조용히
  * 돌려주지 않는다. 그 409 를 흡수하는 것은 아래 createPayablePassOrder 다(호출부는 그쪽을 쓴다).
  */
-export async function createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod = "card_general", paidResume = null, purchaseType = "SELF", giftDraft = null, foreignCard = null, refundConsent = false, paypalCharge = null }) {
+export async function createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod = "card_general", paidResume = null, purchaseType = "SELF", giftDraft = null, foreignCard = null, refundConsent = false, paypalCharge = null, ga4PurchaseContext = null }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   const orderId = await derivePassOrderId(userId, idempotencyKey, plan.tier);
@@ -131,6 +131,7 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
           productId: plan.planId,
           confirmAttempts: 0,
           metadata: {
+            ...(ga4PurchaseContext ? {ga4PurchaseContext} : {}),
             ...(paypalCharge ? { paypalCharge } : {}),
             ...(paidResume ? { paidResume } : {}),
             ...(giftDraft ? { giftDraft } : {}),

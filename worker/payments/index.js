@@ -20,6 +20,7 @@
  */
 import { listCurrentPassOffers } from "../lib/pass-sale-policy.js";
 import { analyticsPaymentChannel } from './analytics-channel.js';
+import { readGa4PurchaseContext, sendPendingGa4Refunds, withdrawGa4Consent } from './ga4-refunds.js';
 import { resolveOrderProductName } from "../lib/payment-product-name.js";
 import {
   CURRENT_PASS_POLICY_VERSION,
@@ -596,7 +597,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
        정책이 달라진다. 주문에 실리는 금액만 청구가로 바꾼다. */
     if (!gifts && isPassPolicyMix(userDoc?.profileSubscription || {}, plan)) throw paymentError("PASS_POLICY_CONFLICT", "현재 이용권이 종료된 후 새 이용권을 구매해 주세요.");
     const chargePlan = chargeKRW === Number(plan.wonPrice) ? plan : { ...plan, wonPrice: chargeKRW };
-    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard, refundConsent, paypalCharge });
+    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard, refundConsent, paypalCharge, ga4PurchaseContext:await readGa4PurchaseContext(request,env) });
     if (gifts) await gifts.ensureGiftForOrder(db, created);
     return { order: created, user: userDoc };
   });
@@ -1146,6 +1147,13 @@ async function claimLegacyBirthUnlock(db, { userId, orderId, profileId, partnerP
    auth: "required" 면 토큰에서 userId 를 뽑아 넘긴다(**Mongo 읽기 0회**),
          "none" 이면 신원을 보지 않는다(webhook·카탈로그). */
 const ROUTES = {
+  "POST /analytics-withdrawal": {
+    auth: "none",
+    async handle({ request, env, ctx, withDb }) {
+      const result=await withDb(env,ctx,db=>withdrawGa4Consent(request,db));
+      return new Response(null,{status:result.status,headers:{'Cache-Control':'no-store'}});
+    },
+  },
   ...createServicePackRoutes({
     prepareOrder:args=>ROUTES["POST /prepare"].handle(args),
     confirmOrder:args=>ROUTES["POST /orders/:id/confirm"].handle(args),
@@ -1307,6 +1315,7 @@ const ROUTES = {
       const paymentMethod = String(body.paymentMethod || "card_general");
       assertRegionalPaymentMethod(request, paymentMethod);
       const paypalCharge = await preparePaypalCharge(env, paymentMethod, product.priceKRW);
+      const ga4PurchaseContext = await readGa4PurchaseContext(request,env);
       const order = await withDb(env, ctx, (db) => createOrder(db, {
         env,
         requestId: body.requestId,
@@ -1315,6 +1324,7 @@ const ROUTES = {
         paymentMethod,
         paypalCharge,
         idempotencyKey: String(product.featureKey || '').startsWith('yeongnyangi-') ? body.requestId : body.idempotencyKey,
+        ga4PurchaseContext,
         profileId: body.profileId,
         partnerProfileId: body.partnerProfileId,
         contentKey: body.contentKey,
@@ -1446,6 +1456,7 @@ const ROUTES = {
           foreignCard,
           refundConsent,
           moonstoneDiscount,
+          ga4PurchaseContext:await readGa4PurchaseContext(request,env),
           ...(product.fulfillmentType==='service_pack'?{purchaseType:preparedPurchaseType,giftDraft:preparedGiftDraft,expectedOrderId:body.expectedOrderId}:{}),
         });
         if(product.fulfillmentType==='service_pack'&&preparedPurchaseType==='GIFT') {
@@ -2299,7 +2310,12 @@ export async function runPaymentsV2Reconcile(env) {
         }));
       } catch { /* Uncertain PG status keeps the reservation. The next scheduled sweep can recover it. */ }
     }
-    return { ...report, webhookReplay, giftRefunds };
+    let ga4Refunds=null;
+    try {
+      // External PG/GA requests run outside the DB slot; analytics cannot fail payment reconciliation.
+      ga4Refunds=await sendPendingGa4Refunds(env,fn=>withPaymentDb(env,ctx,fn));
+    } catch { console.error('[GA4_REFUND_RECONCILE_FAILED]'); }
+    return { ...report, webhookReplay, giftRefunds, ga4Refunds };
   } catch (error) {
     const contract = classify(error);
     status = contract.status;

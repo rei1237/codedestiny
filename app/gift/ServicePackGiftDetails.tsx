@@ -3,7 +3,7 @@ import Image from 'next/image';
 import {useEffect,useState} from 'react';
 import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
 import {SERVICE_PACK_IMAGES} from '@/app/components/service-packs/service-pack-images';
-import {servicePackCopy,packText} from '@/app/components/service-packs/service-pack-copy';
+import {servicePackCopy,packText,packDuration,packExpiry} from '@/app/components/service-packs/service-pack-copy';
 import type {OwnedServicePack} from '@/app/components/service-packs/service-pack-client';
 import type {GiftView,GiftPackProduct} from './gift-client';
 
@@ -14,10 +14,10 @@ export function usePackGiftCopy(){
  return {locale,copy:servicePackCopy(locale)};
 }
 export default function ServicePackGiftDetails({gift,owned}:{gift:GiftView;owned?:OwnedServicePack}){
- const {copy}=usePackGiftCopy();if(!isServicePackGift(gift))return null;
+ const {copy,locale}=usePackGiftCopy();if(!isServicePackGift(gift))return null;
  const product=gift.product,src=SERVICE_PACK_IMAGES[product.fishId];
  return <div className="service-pack-gift-detail">{src&&<Image src={src} width={240} height={240} sizes="240px" alt="" loading="lazy" style={{display:'block',width:'min(100%, 240px)',height:'auto',margin:'0 auto'}}/>}
  <p>{packText(copy.giftTotal,{total:product.totalUses})}</p>
- {owned?<><p>{packText(copy.remaining,{total:owned.totalUses,remaining:owned.remainingUses})}</p><p>{copy.validity}</p></>:<p>{copy.giftUsagePeriod}</p>}
+ {owned?<><p>{packText(copy.remaining,{total:owned.totalUses,remaining:owned.remainingUses})}</p><p>{packExpiry(owned,locale)}</p></>:<p>{locale==='ko'?'선물 수령 후 ':''}{packDuration(product,locale)}</p>}
  </div>;
 }

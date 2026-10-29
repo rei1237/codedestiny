@@ -3,7 +3,9 @@ import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { handleNeoStrategyBooks } from "./neo-strategy-books.js";
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest as webOptionalUser, isAuthDbInfraError } from "../lib/auth.js";
+import { nativeTossContext } from '../toss/native-context.js';
+const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import {
@@ -519,6 +521,7 @@ async function hasMonthlyConsume(env, auth, ctx, idempotencyKey) {
 }
 
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
+  if(nativeTossContext(request))return nativeTossContext(request).access(body,normalized,idempotencyKey);
   await connectDb(env);
   const token = clean(body?.accessToken || request.headers.get("x-neo-operation-room-access-token"));
   if (token) {
@@ -1287,6 +1290,7 @@ async function startRefundableExecution(env, auth, access, idempotencyKey, sessi
 }
 
 async function completeRefundableExecution(env, auth, idempotencyKey, sessionId) {
+  if(auth.tossNative)return;
   await completeServiceExecution(env, auth.userId, {
     executionKey: `${FEATURE_KEY}:${idempotencyKey}`,
     requestId: `${FEATURE_KEY}:${idempotencyKey}`,
@@ -1299,6 +1303,7 @@ async function completeRefundableExecution(env, auth, idempotencyKey, sessionId)
 }
 
 async function failRefundableExecution(env, auth, idempotencyKey, sessionId, error) {
+  if(auth.tossNative)return;
   await failServiceExecution(env, auth.userId, {
     executionKey: `${FEATURE_KEY}:${idempotencyKey}`,
     requestId: `${FEATURE_KEY}:${idempotencyKey}`,
@@ -1471,16 +1476,20 @@ async function grantNeoResultBadge(userId, sessionId) {
 
 // 최초 조회 시 서버 상담기록 기준으로 과거 완료 상담 수만큼 1회 backfill(사용자 선택).
 // migratedAt 가드로 이후 조회에서는 건너뛴다. grant가 멱등이라 중간 실패 후 재실행돼도 안전.
-async function ensureNeoBadgeBackfill(userId) {
+async function ensureNeoBadgeBackfill(userId, request) {
   const cleanUserId = clean(userId);
   if (!cleanUserId) return;
   const { wallets } = neoBadgeCollections();
   const wallet = await wallets.findOne({ userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE });
   if (wallet?.migratedAt) return;
   const sessions = await NeoOperationRoomConsultation.find({ userId: cleanUserId, status: "completed" })
-    .select("id")
+    .select("id userId idempotencyKey inputHash paymentId")
     .lean();
   for (const session of sessions) {
+    if(nativeTossContext(request)){
+      try{await nativeTossContext(request).assertStored(session);}
+      catch(error){if(['ORDER_REFUNDED','RESULT_NOT_FOUND'].includes(error.code))continue;throw error;}
+    }
     await grantNeoResultBadge(cleanUserId, session?.id);
   }
   const now = new Date();
@@ -1501,7 +1510,7 @@ async function readNeoBadgeState(request, env) {
   try {
     await connectDb(env);
     const doc = await withMongoRetry(env, async () => {
-      await ensureNeoBadgeBackfill(auth.userId);
+      await ensureNeoBadgeBackfill(auth.userId,request);
       const { wallets } = neoBadgeCollections();
       return wallets.findOne({ userId: clean(auth.userId), serviceScope: NEO_BADGE_SCOPE });
     });
@@ -1515,12 +1524,12 @@ async function readNeoBadgeState(request, env) {
 // 특정 세션 로드용: 이 세션 휘장 적립 보장 + 잔량 + 이 세션 편지/PDF 해금 여부.
 // 상담 완료 결과를 여는 첫 로드에서 적립되며(awardedNow=true → "새 휘장 수여" 연출),
 // 재조회 시에는 멱등이라 awardedNow=false. 결과 조회는 반드시 발생하므로 "상담 1회당 1개"가 보장된다.
-async function readNeoBadgeForSession(userId, sessionId) {
+async function readNeoBadgeForSession(userId, sessionId, request) {
   const cleanUserId = clean(userId);
   if (!cleanUserId) return neoBadgePayload(null, { authenticated: false });
   const cleanSessionId = clean(sessionId, 180);
   const awardedNow = await grantNeoResultBadge(cleanUserId, cleanSessionId);
-  await ensureNeoBadgeBackfill(cleanUserId);
+  await ensureNeoBadgeBackfill(cleanUserId,request);
   const { wallets, ledgers } = neoBadgeCollections();
   const [wallet, spend] = await Promise.all([
     wallets.findOne({ userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE }),
@@ -1537,7 +1546,7 @@ async function spendNeoBadges(request, env, sessionId) {
   if (!cleanSessionId) return { ok: false, reason: "missing_key", badge: neoBadgePayload(null, { authenticated: true }) };
   await connectDb(env);
   const cleanUserId = clean(auth.userId);
-  await ensureNeoBadgeBackfill(cleanUserId);
+  await ensureNeoBadgeBackfill(cleanUserId,request);
   const { wallets, ledgers } = neoBadgeCollections();
   const spendId = `spend:${cleanUserId}:${cleanSessionId}`;
 
@@ -1566,6 +1575,10 @@ async function handleEnsureAccess(request, env) {
   });
   if (!auth) return loginRequired();
   const pricing = getPricing();
+  if(nativeTossContext(request)){
+    const access=await nativeTossContext(request).access(body,normalized,idempotencyKey);
+    return access.ok?json({ok:true,accessType:access.accessType,paymentId:access.paymentId}):paymentRequired(pricing,idempotencyKey);
+  }
   const access = await resolveEnsureAccess(env, auth, pricing, idempotencyKey, normalized.inputHash);
   if (access.ok) {
     return json({
@@ -1639,6 +1652,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   const requestedId = clean(body.sessionId || body.resultId, 120);
   let existing = requestedId ? await NeoOperationRoomConsultation.findOne({ id: requestedId, userId: auth.userId }).lean() : null;
   if (requestedId && !existing) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
+  if(existing&&nativeTossContext(request))await nativeTossContext(request).assertStored(existing);
   if (existing?.status === "completed") return json(publicSession(existing));
   if (existing?.llmMeta?.resumeBody) body = existing.llmMeta.resumeBody;
   const normalized = normalizeInput(body);
@@ -1647,6 +1661,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
   existing ||= await NeoOperationRoomConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput(INVALID_INPUT_MESSAGE, 409);
+  if(existing&&nativeTossContext(request))await nativeTossContext(request).assertStored(existing);
   if (existing?.status === "completed") return json(publicSession(existing));
   if (existing?.llmMeta?.resumeBody) body = existing.llmMeta.resumeBody;
   const pricing = getPricing();
@@ -1667,7 +1682,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
     try {
       await NeoOperationRoomConsultation.create({ id: sessionId, userId: auth.userId, idempotencyKey, inputHash: normalized.inputHash,
         ...normalized.input, accessType: access.accessType, paymentId: access.paymentId || "", status: "generating",
-        llmMeta: { locale, resumeBody, sections: {}, attempts: {} } });
+        llmMeta: { locale, resumeBody, sections: {}, attempts: {}, ...(auth.tossNative?{tossNative:true}:{}) } });
       existing = await NeoOperationRoomConsultation.findOne({ id: sessionId, userId: auth.userId }).lean();
       if (!existing) throw resultStorageUnavailable(sessionId);
     } catch (error) {
@@ -1805,6 +1820,7 @@ async function handleResult(request, env, pathId = "") {
   }).lean();
   if (!consultation) return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
 
+  if(nativeTossContext(request))await nativeTossContext(request).assertStored(consultation);
   const status = clean(consultation.status);
   if (["generating", "partial", "delivery_pending"].includes(status)) {
     const body = consultation.llmMeta?.resumeBody;
@@ -1823,13 +1839,13 @@ async function handleResult(request, env, pathId = "") {
       message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
     }, { status: 409 });
   }
-  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+  if (!nativeTossContext(request)&&await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
   // 완료 세션을 여는 바로 그 로드에서 휘장 잔량이 항상 정확히 보이도록 적립(멱등)+backfill 후 payload에 싣는다.
   let badge = null;
   try {
-    badge = await withMongoRetry(env, () => readNeoBadgeForSession(auth.userId, consultation.id));
+    badge = await withMongoRetry(env, () => readNeoBadgeForSession(auth.userId, consultation.id, request));
   } catch (error) {
     console.warn("[neo-operation-room/result] badge attach failed", clean(error?.message || error, 300));
   }
@@ -1857,6 +1873,7 @@ async function handleRefine(request, env) {
   await connectDb(env);
   const existing = await withMongoRetry(env, () => NeoOperationRoomConsultation.findOne({ id: sessionId, userId: auth.userId, status: "completed" }).lean());
   if (!existing?.initialBriefing) return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
+  if(nativeTossContext(request))await nativeTossContext(request).assertStored(existing);
   if (Object.keys(body).every(key => ["sessionId", "consultationId", "id"].includes(key))) body = { sessionId, ...(existing.llmMeta?.refinement?.realityCheck || existing.realityCheck || {}) };
   const normalized = normalizeRealityCheckInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
@@ -1942,7 +1959,7 @@ export async function handleNeoOperationRoomRoutes(request, env = {}, ctx = null
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/neo-operation-room");
   try {
-    if (path === "/strategy-books" || path.startsWith("/strategy-books/")) return await handleNeoStrategyBooks(request, env, path, ensureNeoBadgeBackfill);
+    if (path === "/strategy-books" || path.startsWith("/strategy-books/")) return await handleNeoStrategyBooks(request, env, path, userId=>ensureNeoBadgeBackfill(userId,request));
     if (method === "GET" && path === "/result") return await handleResult(request, env);
     if (method === "GET" && path.startsWith("/result/")) return await handleResult(request, env, path.slice("/result/".length));
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
@@ -1958,6 +1975,7 @@ export async function handleNeoOperationRoomRoutes(request, env = {}, ctx = null
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    if(nativeTossContext(request)&&error?.status)return json({ok:false,reason:error.code||"RESULT_NOT_AVAILABLE"},{status:error.status});
     console.error("[neo-operation-room]", clean(error?.stack || error?.message || error, 1200));
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지(다른 AI 라우트와 동일 정본).
@@ -1989,9 +2007,30 @@ export const __neoOperationRoomTestUtils = {
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  // Cron deliberately selects only a small identity/locale projection. Reread
+  // the owned checkpoint before deciding which payment authority may resume it.
+  await connectDb(env);
+  const stored=await NeoOperationRoomConsultation.findOne({id:String(doc.id),userId:String(doc.userId)}).lean();
+  if(!stored)throw new Error("RECOVERY_RESULT_NOT_FOUND");
   const request = new Request("https://internal.invalid/api/neo-operation-room/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ sessionId: String(doc.id) }) });
-  return handleStart(request, env, undefined, { userId: String(doc.userId) });
+  if(stored.llmMeta?.tossNative){
+    const {bindNativeNeoRecovery}=await import("../toss/native-neo.js");
+    if(!await bindNativeNeoRecovery(request,env,stored))throw new Error("NATIVE_ORDER_NOT_FOUND");
+  }
+  return handleStart(request, env, undefined, nativeTossContext(request)?.auth||{ userId: String(doc.userId) });
+}
+
+// The native app uses the same normalization and price as the original start route.
+export function nativeNeoContract(body){
+  const normalized=normalizeInput(body||{});
+  const requestId=clean(body?.idempotencyKey||body?.attemptId||body?.requestId,180);
+  if(!normalized.ok||requestId.length<12)throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'),{status:400});
+  return {requestId,resultId:requestId,featureKey:FEATURE_KEY,inputHash:normalized.inputHash,pricing:getPricing().pricing};
+}
+export async function nativeNeoStoredState(env,userId,resultId){
+  await connectDb(env);
+  return NeoOperationRoomConsultation.findOne({userId:String(userId),$or:[{id:resultId},{idempotencyKey:resultId}]}).lean();
 }

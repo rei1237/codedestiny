@@ -1,4 +1,4 @@
-import {TossIdentity,TossPurchase} from './models.js';
+import {TossIdentity,TossPurchase,TossNativeConsultation} from './models.js';
 import {YeongnyangiRequest} from '../lib/yeongnyangi-models.js';
 import {PaidExecutionRecord} from '../lib/models.js';
 import {tossTransaction} from './session.js';
@@ -12,6 +12,12 @@ export const purchaseStore={transaction:task=>tossTransaction(session=>task({
   },
   purchase:orderId=>TossPurchase.findById(orderId).session(session).lean(),
   insertPurchase:purchase=>TossPurchase.create([purchase],{session}),
+  nativeIntent:(id,ownerId)=>TossNativeConsultation.findOne({_id:id,ownerId}).session(session).lean(),
+  async fundNativeIntent(id,ownerId,orderId){
+    const row=await TossNativeConsultation.findOneAndUpdate({_id:id,ownerId,orderId:null,status:'prepared'},
+      {$set:{orderId,status:'paid'}},{new:true,session}).lean();
+    if(!row)throw new TossError('REQUEST_ALREADY_FUNDED',409);
+  },
   request:(id,ownerId)=>YeongnyangiRequest.findOne({_id:id,userId:ownerId}).session(session).lean(),
   async attachRequest(id,ownerId,orderId) {
     const result=await YeongnyangiRequest.updateOne({_id:id,userId:ownerId,state:'CREATED',accessMethod:null,paymentId:null},
@@ -49,7 +55,9 @@ export async function recordTossRefund(auth,order) {
   await tossTransaction(async session=>{
     const purchase=await TossPurchase.findOneAndUpdate({_id:order.orderId,identityId:auth._id,sku:order.sku},
       {$set:{status:'REFUNDED',verifiedAt:new Date()}},{new:true,session}).lean();
-    if(purchase?.tarotFlowId)await PaidExecutionRecord.updateOne({orderId:order.orderId,userId:String(auth.ownerId)},
+    if(purchase?.nativeService)await TossNativeConsultation.updateOne({_id:purchase.requestId,ownerId:auth.ownerId,orderId:order.orderId},
+      {$set:{status:'refunded'}},{session});
+    else if(purchase?.tarotFlowId)await PaidExecutionRecord.updateOne({orderId:order.orderId,userId:String(auth.ownerId)},
       {$set:{status:'refunded'}},{session});
     else if(purchase?.requestId)await YeongnyangiRequest.updateOne({_id:purchase.requestId,userId:auth.ownerId,accessMethod:'TOSS_IAP'},
       {$set:{state:'REFUNDED',errorCode:'PAYMENT_NOT_ACTIVE',leaseToken:'',leaseUntil:null}},{session});

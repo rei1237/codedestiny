@@ -5,7 +5,7 @@ const COPY={
   "ko": {
     "scope": "{fish} 상담 전용 · 사용 기한 없음 · 총 {total}회",
     "title": "영냥이 전용 이용권",
-    "intro": "연이가 단골을 위한 생선 세트를 마련했어요. 선택한 생선 상담에만 1회씩 사용할 수 있어요. 다른 생선과 융합 상담에는 사용할 수 없어요.",
+    "intro": "영냥이 사이트 전용이에요. 꿀꿀운세에서는 사용할 수 없어요. 선택한 생선 상담에 1회씩 사용하며, 다른 생선과 융합 상담은 제외돼요.",
     "owned": "내 전용 이용권",
     "empty": "보유한 전용 이용권이 없어요.",
     "unavailable": "보유 상태를 확인하지 못했어요. 다시 확인해 주세요.",
@@ -1088,3 +1088,16 @@ export function servicePackCopy(locale:LoadingLocale):PackCopy{return COPY[local
 export function packText(template:string,values:Record<string,string|number>){return template.replace(/\{(\w+)\}/g,(token,key)=>String(values[key]??token));}
 // 세트 이름은 서버 정책표의 한국어 고정값(label)이다. ko 는 그대로, 다른 로케일은 어종·회수로 다시 짓는다(표시 전용 — 주문·스냅샷 비교는 label 원문).
 export function packName(pack:{label:string;fishId:string;totalUses:number},locale:LoadingLocale){return locale==='ko'?pack.label:packText(servicePackCopy(locale).packName,{fish:localizedTier(pack.fishId,locale),total:pack.totalUses});}
+
+// v3–v5 retain the no-expiry promise; only the approved v6 snapshot has a usage period.
+export function packDuration(pack:{policyVersion?:string;validityDays?:number|null},locale:LoadingLocale){
+  if(pack.policyVersion!=='yeongnyangi-pack-20261029-eight-90')return servicePackCopy(locale).validity;
+  return typeof pack.validityDays==='number' && pack.validityDays>0 ? new Intl.NumberFormat(locale,{style:'unit',unit:'day',unitDisplay:'long'}).format(pack.validityDays) : servicePackCopy(locale).unavailable;
+}
+export function packScope(pack:{fishId:string;totalUses:number;policyVersion:string;validityDays:number|null},locale:LoadingLocale){
+  const copy=servicePackCopy(locale);
+  return packText(copy.scope,{fish:localizedTier(pack.fishId,locale),total:pack.totalUses}).replace(copy.validity,packDuration(pack,locale));
+}
+export function packExpiry(pack:{expiresAt:string|null},locale:LoadingLocale){
+  return pack.expiresAt?packText(servicePackCopy(locale).expires,{date:new Intl.DateTimeFormat(locale,{dateStyle:'medium'}).format(new Date(pack.expiresAt))}):servicePackCopy(locale).validity;
+}

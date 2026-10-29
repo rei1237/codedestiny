@@ -415,7 +415,7 @@ function buildNeoSincereLetter(session: NeoResultSession, methodName: string, lo
   ).join("\n\n");
 }
 
-export default function NeoOperationRoomResultPage() {
+export default function NeoOperationRoomResultPage({ availability }: { availability?: { title: string; message: string; action?: { href: string; label: string } } } = {}) {
   const searchParams = useSearchParams();
   const attemptId = searchParams?.get("attemptId") || searchParams?.get("id") || "";
   const localPreviewEnabled = process.env.NODE_ENV !== "production";
@@ -446,7 +446,6 @@ export default function NeoOperationRoomResultPage() {
   });
   const [neoBenefitsUnlocked, setNeoBenefitsUnlocked] = useState(false);
   const documentRef = useRef<HTMLElement | null>(null);
-  const resultSealGate = useSpritePlaybackGate<HTMLDivElement>({ pauseWhenOffscreen: false });
 
   const selectedMethod = session?.selectedMethod || session?.initialBriefing?.selectedMethod || session?.refinedOrder?.selectedMethod;
   const selectedMethodDefinition = useMemo(
@@ -486,6 +485,7 @@ export default function NeoOperationRoomResultPage() {
     const ownerIsCurrent = captureOwner();
     const isCurrent = () => !cancelled && ownerIsCurrent();
     async function loadResult() {
+      if(availability){setLoading(false);setError(availability.message);return;}
       if (localPreviewMode) {
         const previewSession = buildLocalPreviewSession(localPreviewMode);
         setSession(previewSession); setLoading(false); return;
@@ -515,7 +515,7 @@ export default function NeoOperationRoomResultPage() {
     }
     void loadResult();
     return () => { cancelled = true; };
-  }, [attemptId, localPreviewMode, recoveryEpoch, captureOwner, resultCopy.loginRequiredError, resultCopy.pollTimeoutError]);
+  }, [attemptId, localPreviewMode, recoveryEpoch, captureOwner, resultCopy.loginRequiredError, resultCopy.pollTimeoutError, availability]);
 
   async function handleRefine() {
     const isCurrent = captureOwner();
@@ -696,7 +696,6 @@ export default function NeoOperationRoomResultPage() {
     "--neo-bg-desktop": `url("${buildResizedAssetUrl(neoWarRoomAssets.backgrounds.desktop.src, { width: 1600, quality: 82 })}")`,
     "--neo-bg-mobile": `url("${buildResizedAssetUrl(neoWarRoomAssets.backgrounds.mobile.src, { width: 820, quality: 82 })}")`,
   } as CSSProperties;
-  const neoResultStampAsset = resultSealGate.isMobile ? neoWarRoomAssets.badges.resultStampMobile : neoWarRoomAssets.badges.resultStamp;
 
   useEffect(() => {
     if (!session || isGenerating || isFailed) {
@@ -722,7 +721,7 @@ export default function NeoOperationRoomResultPage() {
       <div className={styles.bg} aria-hidden="true" />
       <section className={styles.hero} aria-labelledby="neo-result-title">
         <div className={styles.heroCopy}>
-          {!isGenerating ? <em className={styles.heroStatus}>{heroStatus}</em> : null}
+          {!isGenerating && session?.status === "completed" ? <em className={styles.heroStatus}>{heroStatus}</em> : null}
           <h1 id="neo-result-title">{heroOperationTitle}</h1>
           <p>{isGenerating ? resultCopy.heroSubtitleGenerating : resultCopy.heroSubtitleReady}</p>
         </div>
@@ -768,11 +767,12 @@ export default function NeoOperationRoomResultPage() {
       ) : null}
 
       {isFailed ? (
-        <section className={styles.stateCard} aria-live="assertive">
-          <NeoWarRoomAssetImage asset={neoResultStampAsset} alt="" sizes="86px" className={styles.stateSeal} imageClassName={styles.decorImage} />
-          <h2>{resultCopy.failedTitle}</h2>
+        <section className={styles.stateCard} aria-live={availability ? "polite" : "assertive"} aria-labelledby="neo-result-state-title">
+          <div className={styles.stateGuide} aria-hidden="true"><NeoBriefingArt pose="explain" /></div>
+          <h2 id="neo-result-state-title">{availability?.title || resultCopy.failedTitle}</h2>
           <p>{error || session?.generationError?.message || resultCopy.failedDefaultMessage}</p>
-          <button type="button" onClick={() => setRecoveryEpoch(value => value + 1)}>{resultCopy.retryLink}</button>
+          {availability?.action ? <Link href={availability.action.href}>{availability.action.label}</Link>
+            : <button type="button" onClick={() => setRecoveryEpoch(value => value + 1)}>{resultCopy.retryLink}</button>}
         </section>
       ) : null}
 
