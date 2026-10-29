@@ -1,4 +1,4 @@
-import PolicyGuide, { PolicyAccordion, policyPageClass } from "../components/PolicyGuide";
+import PolicyGuide, { policyPageClass } from "../components/PolicyGuide";
 import { trustRoutes } from "../../lib/i18n/public-trust-copy.mjs";
 import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
@@ -10,6 +10,7 @@ import { FAQS_DEFAULT } from "../_content/faq-copy";
 import { PUBLIC_RECORD_PATH } from "../../lib/seo/public-record-copy.mjs";
 import { getEditorNote } from "../_content/editor-notes";
 import EditorNote from "../components/EditorNote";
+import FaqExplorer from "./FaqExplorer";
 
 const seo = publicSeoPages.faq;
 
@@ -42,15 +43,9 @@ export default function FaqPage() {
         description="운세를 처음 보는 방법부터 결제와 개인정보까지, 궁금한 항목을 펼쳐 편안하게 확인하세요."
       />
 
-      <EditorNote note={getEditorNote("/faq")} className="cd-editor-note" />
+      <FaqExplorer items={faqs} />
 
-      <section className="cd-card-grid" id="faq-list">
-        {faqs.map((item) => (
-          <PolicyAccordion key={item.question} title={item.question}>
-            <p>{item.answer}</p>
-          </PolicyAccordion>
-        ))}
-      </section>
+      <EditorNote note={getEditorNote("/faq")} className="cd-editor-note" />
 
       <nav className="cd-chip-wrap" aria-label="FAQ 관련 문서">
         <Link href="/fusion-fortune/" className="cd-chip">초융합 운세</Link>

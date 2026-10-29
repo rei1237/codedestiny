@@ -1,6 +1,5 @@
-import { policyPageClass } from "../components/PolicyGuide";
+import PolicyGuide, { policyPageClass } from "../components/PolicyGuide";
 import Link from "next/link";
-import Image from "next/image";
 import { MessageCircle, Mail, Clock3, ArrowUpRight, ShieldCheck, ListChecks, Building2, FilePenLine, CircleHelp } from "lucide-react";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { BUSINESS_IDENTITY, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
@@ -52,14 +51,7 @@ export default function ContactUsPage() {
   const copy = CONTACT_US_PAGE_TEXT_TRANSLATIONS.ko;
   return (
     <main className={`policy-doc ${policyPageClass} ${styles.page}`}>
-      <header className={styles.hero}>
-        <div>
-          <h1>무엇을 도와드릴까요?</h1>
-          <p>서비스 이용부터 결과 확인까지,<br />궁금한 점을 편하게 남겨주세요.</p>
-          <p className={styles.caption}>Contact Us · 꽃돼지가 길을 안내할게요.</p>
-        </div>
-        <Image src="/icons/app-logo-512.webp" alt="연꽃을 쓴 꿀꿀운세 꽃돼지" width={512} height={512} sizes="(max-width: 600px) 72px, 112px" className={styles.mascot} priority />
-      </header>
+      <PolicyGuide kind="contact" title="무엇을 도와드릴까요?" description="서비스 이용부터 결과 확인까지, 궁금한 점을 편하게 남겨주세요." />
 
       <div className="policy-doc__single">
         <div className="policy-doc__body">

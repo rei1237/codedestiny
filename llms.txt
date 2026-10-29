@@ -39,10 +39,14 @@
 - [사주 궁합](https://code-destiny.com/saju/compatibility/): 사주 궁합의 관계 해석을 숙요점 궁합과 타로의 질문형 해석으로 이어서 살펴봅니다.
 - [연애운](https://code-destiny.com/love/): 연애운을 사주 궁합·숙요점·타로의 다른 관계 해석 관점으로 확장합니다.
 - [오늘의 운세](https://code-destiny.com/today/): 하루의 흐름을 사주·점성술·타로 콘텐츠의 실천 질문으로 확장합니다.
+- [2027년 띠별 운세·삼재띠](https://code-destiny.com/fortune/2027/): 2027년 정미년(丁未年) 세운의 천간 丁화·지지 未토가 12띠 지지와 맺는 합·충·형·해·원진 관계와 삼재 여부를 계산해 띠별·년생별·절기 월별로 정리합니다.
 - [꿈해몽](https://code-destiny.com/dream/): 꿈의 상징과 감정을 타로·점성술·자기성찰 콘텐츠로 이어서 살펴봅니다.
+- [심리테스트](https://code-destiny.com/psychotest/): 성격·연애·직장 주제의 무료 심리테스트를 한곳에 모아 운세 콘텐츠와 이어 봅니다.
+- [MBTI 궁합](https://code-destiny.com/animal/mbti/): MBTI 16유형의 관계 케미를 동물 상징으로 옮겨 사주 궁합과 나란히 봅니다.
 
 ## 통합 리포트
 
+- [운세보는 영냥이 — 꿀꿀 운세의 사주보는 고양이 상담](https://code-destiny.com/yeongnyangi/): 꿀꿀 운세 안의 사주보는 고양이 상담 서비스. 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계로 고민 하나를 챕터별로 읽고, 구매한 상담을 계정에서 다시 엽니다.
 - [천원 운세·천원사주 — 1,000원 사주 리포트](https://code-destiny.com/yeongnyangi/1000-won-fortune/): 꿀꿀 운세의 천원 운세 안내. 무료 사주 결과 화면에서 나의 매력 클래스·인생 스킬 트리·달빛 럭키 리추얼 3종을 각각 1,000원에 엽니다. 영냥이 상담은 별도 유료(고등어 등급부터)입니다.
 - [초융합 운세](https://code-destiny.com/fusion-fortune/): 사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로를 각 체계의 기준으로 읽고 AI가 공통점과 차이를 한 리포트로 정리합니다.
 - [휴먼 디자인 이용 안내](https://code-destiny.com/human-design/guide/): 무료 바디그래프의 타입·권위·센터를 읽는 순서와 필요한 입력, 유료 리포트의 범위를 안내합니다.
@@ -52,6 +56,7 @@
 - [운세 가이드](https://code-destiny.com/guides/): 정보성 가이드를 각 운세 기능 허브로 연결하는 콘텐츠 클러스터입니다.
 - [운세 인사이트](https://code-destiny.com/insights/): 정보성 인사이트를 실제 사주·타로·점성술 서비스 허브로 연결합니다.
 - [운세 콘텐츠 방법론](https://code-destiny.com/methodology/): 꿀꿀 운세의 운세 콘텐츠 원칙과 각 체계의 역할을 확인하는 신뢰 정보입니다.
+- [운세 앱 비교](https://code-destiny.com/compare/fortune-apps/): 운세 서비스마다 결과가 갈리는 이유를 계산 기준의 차이로 설명합니다.
 
 ## 브랜드
 
@@ -80,6 +85,7 @@
 - 문의: https://code-destiny.com/contact/
 
 ## 四柱推命・宿曜・タロット占い｜꿀꿀 운세
+公式サービス名は「꿀꿀 운세」で、運営会社は CODE DESTINY です。
 Code Destinyは、生年月日と生まれた時刻をもとに、四柱推命、タロット、紫微斗数、西洋・ヴェーダ占星術、宿曜、相性を一か所で見られる韓国語の占いプラットフォームです。初めての方でも流れをつかめるよう、それぞれの占いが何を見て、どう読むのかを簡潔にまとめました。すべての解釈は未来を断定する予言ではなく、自分を見つめ選択を整えるための参考資料です。
 - [四柱推命・宿曜・タロット占い｜꿀꿀 운세](https://code-destiny.com/ja/)
 - [韓国式四柱推命の命式と五行を読む](https://code-destiny.com/ja/saju/)
@@ -87,6 +93,7 @@ Code Destinyは、生年月日と生まれた時刻をもとに、四柱推命�
 - [宿曜](https://code-destiny.com/ja/sukuyo/)
 
 ## Korean Saju, Tarot & Birth Charts | 꿀꿀 운세
+The official service name is "꿀꿀 운세"; CODE DESTINY is the operating company.
 Code Destiny is a Korean fortune platform where you can explore Saju (Four Pillars), tarot, Zi Wei Dou Shu, Western and Vedic astrology, Sukuyo, and compatibility in one place — all from your birth date and time. We summarize what each reading looks at and how to read it, so even newcomers can follow along. Every interpretation is offered as a reference for self-reflection and calmer choices, never as a fixed prophecy.
 - [Korean Saju, Tarot & Birth Charts | 꿀꿀 운세](https://code-destiny.com/en/)
 - [Korean Saju: read your Four Pillars birth chart](https://code-destiny.com/en/saju/)
@@ -94,6 +101,7 @@ Code Destiny is a Korean fortune platform where you can explore Saju (Four Pilla
 - [Sukuyo](https://code-destiny.com/en/sukuyo/)
 
 ## 八字排盘·紫微斗数·塔罗占卜｜꿀꿀 운세
+官方服务名称为「꿀꿀 운세」，运营公司为 CODE DESTINY。
 Code Destiny 是一个韩语占卜平台，只需生日与出生时间，即可在一处查看四柱八字、塔罗、紫微斗数、西洋与吠陀占星、宿曜及合盘。为了让初次接触的人也能理清脉络，我们简要整理了每种占卜看什么、怎么读。所有解读都是帮助自我省察、整理当下选择的参考资料，而非断定未来的预言。
 - [八字排盘·紫微斗数·塔罗占卜｜꿀꿀 운세](https://code-destiny.com/zh/)
 - [四柱八字：从日主与五行读懂命盘](https://code-destiny.com/zh/saju/)
@@ -101,6 +109,7 @@ Code Destiny 是一个韩语占卜平台，只需生日与出生时间，即可�
 - [宿曜](https://code-destiny.com/zh/sukuyo/)
 
 ## 八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세
+官方服務名稱為「꿀꿀 운세」，營運公司為 CODE DESTINY。
 Code Destiny 是一個韓語占卜平台，只需生日與出生時間，即可在一處查看四柱八字、塔羅、紫微斗數、西洋與吠陀占星、宿曜及合盤。為了讓初次接觸的人也能理清脈絡，我們簡要整理了每種占卜看什麼、怎麼讀。所有解讀都是幫助自我省察、整理當下選擇的參考資料，而非斷定未來的預言。
 - [八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세](https://code-destiny.com/zh-tw/)
 - [四柱八字：從日主與五行讀懂命盤](https://code-destiny.com/zh-tw/saju/)

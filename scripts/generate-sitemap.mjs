@@ -14,6 +14,7 @@ import { kstYmdPreviousDay } from "./lib/fortune-date.mjs";
 import { createLiveRouteMatcher } from "./lib/live-route-matcher.mjs";
 import { createRequire } from "node:module";
 import { ILGAN_MONTHLY_MONTHS, ILGAN_MONTHLY_STEMS } from "../lib/saju/ilgan-monthly-registry.mjs";
+import { NEW_YEAR_SEASON, NEW_YEAR_SIGNS } from "../lib/fortune/new-year-registry.mjs";
 const requireJson = createRequire(import.meta.url);
 const STORY_EPISODE_SLUGS = requireJson("../lib/stories/vn/episodes.generated.json").episodes.map((e) => e.slug);
 
@@ -619,6 +620,15 @@ function extractSajuMonthlyIlganRoutes() {
   return routes;
 }
 
+/** /fortune/{연도} 신년 띠별 운세 — 원고 레지스트리를 그대로 읽어 허브 1개와 띠 12개를 전수 발견한다. */
+function extractNewYearRoutes() {
+  const routes = [{ path: NEW_YEAR_SEASON.path, changefreq: "monthly", priority: 0.9 }];
+  for (const sign of NEW_YEAR_SIGNS) {
+    routes.push({ path: `${NEW_YEAR_SEASON.path}/${sign.id}`, changefreq: "monthly", priority: 0.82 });
+  }
+  return routes;
+}
+
 function extractHighValueRoutes() {
   const source = readFileSync(highValueSourcePath, "utf8");
   const pageRegex =
@@ -795,6 +805,7 @@ async function main() {
     ...extractFortuneSignRoutes(),
     ...extractFortuneDateRoutes(),
     ...extractSajuMonthlyIlganRoutes(),
+    ...extractNewYearRoutes(),
   ];
 
   // 자체 갱신일이 없는 라우트는 여기서 콘텐츠 서명으로 날짜를 정한다.

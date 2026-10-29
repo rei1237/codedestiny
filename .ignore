@@ -194,6 +194,7 @@
 /public/js/dream-ledger.js
 /public/js/dream-meaning-library.js
 /public/js/entertain-engine.js
+/public/js/faq-search.js
 /public/js/fate-scroll-reveal.js
 /public/js/fate-scroll-top.js
 /public/js/feature-detail-panels.d.mts
@@ -275,6 +276,7 @@
 /public/js/vendor/sweph-wasm/index.js
 /public/js/vendor/sweph-wasm/wasm/swisseph.js
 /public/js/vendor/sweph-wasm/wasm/swisseph.wasm
+/public/llms-full.txt
 /public/llms.txt
 /public/manifest-neo.json
 /public/manifest.en.json

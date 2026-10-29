@@ -1,0 +1,239 @@
+# 꿀꿀 운세
+
+> 꿀꿀 운세는 CODE DESTINY(코드 데스티니)가 운영하는 사주·타로·자미두수 운세 상담 서비스입니다. 생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.
+
+- 공식 홈페이지: https://code-destiny.com/
+- 상담 앱 입구(꽃돼지 연이·네오): https://code-destiny.com/ggulggul/
+- 운세보는 영냥이(영냥이 상담) 입구: https://code-destiny.com/yeongnyangi/
+- 표기: 공식 서비스명은 "꿀꿀 운세"이고, 붙여 쓴 "꿀꿀운세"도 같은 서비스입니다.
+- 운영자: CODE DESTINY(코드 데스티니). 대표 박병하(활동명 네오). 소개: https://code-destiny.com/about/#author
+- 공식 외부 채널: https://www.youtube.com/@CodeDestiny_Official · https://www.threads.com/@codedestiny_official · https://www.instagram.com/codedestiny_official/ · https://blog.naver.com/neosaju · https://x.com/sajuseongj97497
+- 캐릭터: 꽃돼지 연이(꿀꿀 운세의 안내 캐릭터), 네오(대표 명리학자 박병하의 활동명), 운세보는 영냥이(꿀꿀 운세의 사주보는 고양이 상담 서비스)
+- 언어: 한국어(기본), 일본어 `/ja/`, 중국어 간체 `/zh/`, 중국어 번체 `/zh-tw/`, 영어 `/en/`
+
+## 이름 이력
+
+꿀꿀 운세는 이전에 ‘사주 달빛 정원’과 ‘꿀꿀 사주’라는 이름을 쓴 적이 있습니다. 지금 공식 서비스명은 ‘꿀꿀 운세’이고, 붙여 쓴 ‘꿀꿀운세’도 같은 서비스입니다.
+
+## 콘텐츠의 성격
+
+전통 명리·점성 문헌의 해석 규칙을 계산해 얻은 구조를 바탕으로, 읽을 수 있는 문장을 AI 가 만듭니다. 문화적 해석 콘텐츠이며 의학·법률·금융 자문이 아닙니다. 결정을 대신하지 않고 관점을 더하는 용도입니다.
+
+해석 기준과 데이터 출처는 https://code-destiny.com/methodology/ 에 공개돼 있습니다.
+
+## 운세 체계
+
+각 체계는 서로 다른 좌표계와 질문 방식을 씁니다. 같은 생년월일이라도 체계에 따라 보이는 것이 다릅니다.
+
+- [사주 해석](https://code-destiny.com/saju/): 무료 사주 풀이의 기초 구조를 중심으로 자미두수·숙요점·베다점 등 다른 운세 체계와 비교해 보는 출발점입니다.
+- [만세력](https://code-destiny.com/manse/): 만세력의 입력과 명식 읽기를 사주 해석 및 관계 운세로 연결합니다.
+- [자미두수](https://code-destiny.com/ziwei/): 자미두수 명반을 중심으로 사주·숙요점·베다 점성술의 해석 축을 구분해 탐색합니다.
+- [숙요점](https://code-destiny.com/sukuyo/): 숙요점의 관계 해석을 자미두수·베다 점성술과 혼동하지 않고 이어서 살펴봅니다.
+- [베다 점성술](https://code-destiny.com/vedic/): 베다점(베다 점성술)의 조티쉬 해석을 서양 점성술 및 숙요점과 구분해 탐색합니다.
+- [서양 점성술](https://code-destiny.com/astrology/): 서양 출생차트를 중심으로 베다 점성술과 숙요점의 다른 해석 기준을 안내합니다.
+- [타로](https://code-destiny.com/tarot/): 타로의 질문형 해석을 오늘의 운세, 궁합, 꿈해몽 콘텐츠와 연결합니다.
+
+## 주제별 해석
+
+- [궁합](https://code-destiny.com/compatibility/): 궁합을 사주·숙요점·타로의 서로 다른 관계 해석 관점으로 이어서 살펴봅니다.
+- [사주 궁합](https://code-destiny.com/saju/compatibility/): 사주 궁합의 관계 해석을 숙요점 궁합과 타로의 질문형 해석으로 이어서 살펴봅니다.
+- [연애운](https://code-destiny.com/love/): 연애운을 사주 궁합·숙요점·타로의 다른 관계 해석 관점으로 확장합니다.
+- [오늘의 운세](https://code-destiny.com/today/): 하루의 흐름을 사주·점성술·타로 콘텐츠의 실천 질문으로 확장합니다.
+- [2027년 띠별 운세·삼재띠](https://code-destiny.com/fortune/2027/): 2027년 정미년(丁未年) 세운의 천간 丁화·지지 未토가 12띠 지지와 맺는 합·충·형·해·원진 관계와 삼재 여부를 계산해 띠별·년생별·절기 월별로 정리합니다.
+- [꿈해몽](https://code-destiny.com/dream/): 꿈의 상징과 감정을 타로·점성술·자기성찰 콘텐츠로 이어서 살펴봅니다.
+- [심리테스트](https://code-destiny.com/psychotest/): 성격·연애·직장 주제의 무료 심리테스트를 한곳에 모아 운세 콘텐츠와 이어 봅니다.
+- [MBTI 궁합](https://code-destiny.com/animal/mbti/): MBTI 16유형의 관계 케미를 동물 상징으로 옮겨 사주 궁합과 나란히 봅니다.
+
+## 통합 리포트
+
+- [운세보는 영냥이 — 꿀꿀 운세의 사주보는 고양이 상담](https://code-destiny.com/yeongnyangi/): 꿀꿀 운세 안의 사주보는 고양이 상담 서비스. 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계로 고민 하나를 챕터별로 읽고, 구매한 상담을 계정에서 다시 엽니다.
+- [천원 운세·천원사주 — 1,000원 사주 리포트](https://code-destiny.com/yeongnyangi/1000-won-fortune/): 꿀꿀 운세의 천원 운세 안내. 무료 사주 결과 화면에서 나의 매력 클래스·인생 스킬 트리·달빛 럭키 리추얼 3종을 각각 1,000원에 엽니다. 영냥이 상담은 별도 유료(고등어 등급부터)입니다.
+- [초융합 운세](https://code-destiny.com/fusion-fortune/): 사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로를 각 체계의 기준으로 읽고 AI가 공통점과 차이를 한 리포트로 정리합니다.
+- [휴먼 디자인 이용 안내](https://code-destiny.com/human-design/guide/): 무료 바디그래프의 타입·권위·센터를 읽는 순서와 필요한 입력, 유료 리포트의 범위를 안내합니다.
+
+## 읽을거리와 방법론
+
+- [운세 가이드](https://code-destiny.com/guides/): 정보성 가이드를 각 운세 기능 허브로 연결하는 콘텐츠 클러스터입니다.
+- [운세 인사이트](https://code-destiny.com/insights/): 정보성 인사이트를 실제 사주·타로·점성술 서비스 허브로 연결합니다.
+- [운세 콘텐츠 방법론](https://code-destiny.com/methodology/): 꿀꿀 운세의 운세 콘텐츠 원칙과 각 체계의 역할을 확인하는 신뢰 정보입니다.
+- [운세 앱 비교](https://code-destiny.com/compare/fortune-apps/): 운세 서비스마다 결과가 갈리는 이유를 계산 기준의 차이로 설명합니다.
+
+## 브랜드
+
+- [꿀꿀 운세 | 사주·타로·별자리 운세 – 코드 데스티니](https://code-destiny.com/): 꿀꿀 운세의 공식 주소와 표기, 운영자 CODE DESTINY·꽃돼지 연이·영냥이의 관계와 서비스 이용 방법을 안내합니다.
+
+## 운영자와 공개 분석 기록
+원문 분석: 박병하(네오) · 10년 경력 명리학자. 이 비교 문서의 정리: Code Destiny 편집팀.
+- 기록 정본: https://code-destiny.com/insights/presidential-saju-public-records/
+확인일 2026-10-05. 아래 공개일은 현재 네이버 원문에 표시된 날짜입니다. 사건 전에 보존된 독립 웹 아카이브나 수정 이력은 확보하지 못했습니다. 따라서 현재 읽을 수 있는 본문이 게시 당시와 글자까지 같았다고 증명하지는 않습니다.
+2024-05-12부터 2025-04-04까지는 327일입니다. 따라서 이 항목을 사건 1년 전의 기록이라고 늘려 표현하지 않습니다. 2022년 글은 더 앞선 날짜가 표시되어 있지만, 정치계 변화라는 넓은 문장을 정확한 파면 날짜의 예고로 좁혀 읽지 않습니다.
+세 글 모두를 방식까지 맞혔다고 표현하지 않습니다. 특히 2024-05-27 글의 혁명이라는 방식과 실제 조기 선거는 일치하지 않습니다. 연도 언급과 방식은 표에서 따로 판정했습니다.
+
+## 직접 공개하는 1차 자료와 인용 기준
+- 현재 계산 기준과 가상 입력의 실제 어댑터 결과: https://code-destiny.com/insights/how-we-calculate-saju/
+- 23시·자정 경계의 입력과 네 기둥 비교: https://code-destiny.com/insights/midnight-birth-day-pillar/
+- 같은 출생정보의 두 체계 비교: https://code-destiny.com/compare/saju-vs-ziwei/
+- 분석 원문은 해당 공개자의 기록이며 실제 사건의 근거는 연결된 헌법재판소·선거관리위원회 자료입니다. 사이트의 회고 비교와 원문 분석을 구분해 인용하세요.
+인용에는 문서 제목·정본 URL·확인일을 함께 표시해 주세요. 계산 예시는 문화적 해석의 적중률을 검증한 자료가 아닙니다. 데이터 수정 시 본문과 변경일을 함께 고치며, 계산 예시의 값은 어댑터 검증으로 대조합니다. 날짜 운세는 해당 URL의 기준일을, 개인 상담 범위와 가격은 현재 서비스 안내를 확인하세요.
+
+## 이용
+
+무료로 볼 수 있는 해석이 있고, 분량이 긴 AI 리포트 일부는 유료입니다. 유료 이용권은 30일 단위이며 자동 갱신되지 않습니다. 등급별 월 최대 이용 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 실제 금액은 서비스 안에서 결제 단계에 표시됩니다.
+
+- 환불 정책: https://code-destiny.com/terms/#refund-policy
+- 서비스 소개: https://code-destiny.com/about/
+- 문의: https://code-destiny.com/contact/
+
+## 四柱推命・宿曜・タロット占い｜꿀꿀 운세
+公式サービス名は「꿀꿀 운세」で、運営会社は CODE DESTINY です。
+Code Destinyは、生年月日と生まれた時刻をもとに、四柱推命、タロット、紫微斗数、西洋・ヴェーダ占星術、宿曜、相性を一か所で見られる韓国語の占いプラットフォームです。初めての方でも流れをつかめるよう、それぞれの占いが何を見て、どう読むのかを簡潔にまとめました。すべての解釈は未来を断定する予言ではなく、自分を見つめ選択を整えるための参考資料です。
+- [四柱推命・宿曜・タロット占い｜꿀꿀 운세](https://code-destiny.com/ja/)
+- [韓国式四柱推命の命式と五行を読む](https://code-destiny.com/ja/saju/)
+- [紫微斗数](https://code-destiny.com/ja/ziwei/)
+- [宿曜](https://code-destiny.com/ja/sukuyo/)
+
+## Korean Saju, Tarot & Birth Charts | 꿀꿀 운세
+The official service name is "꿀꿀 운세"; CODE DESTINY is the operating company.
+Code Destiny is a Korean fortune platform where you can explore Saju (Four Pillars), tarot, Zi Wei Dou Shu, Western and Vedic astrology, Sukuyo, and compatibility in one place — all from your birth date and time. We summarize what each reading looks at and how to read it, so even newcomers can follow along. Every interpretation is offered as a reference for self-reflection and calmer choices, never as a fixed prophecy.
+- [Korean Saju, Tarot & Birth Charts | 꿀꿀 운세](https://code-destiny.com/en/)
+- [Korean Saju: read your Four Pillars birth chart](https://code-destiny.com/en/saju/)
+- [Zi Wei](https://code-destiny.com/en/ziwei/)
+- [Sukuyo](https://code-destiny.com/en/sukuyo/)
+
+## 八字排盘·紫微斗数·塔罗占卜｜꿀꿀 운세
+官方服务名称为「꿀꿀 운세」，运营公司为 CODE DESTINY。
+Code Destiny 是一个韩语占卜平台，只需生日与出生时间，即可在一处查看四柱八字、塔罗、紫微斗数、西洋与吠陀占星、宿曜及合盘。为了让初次接触的人也能理清脉络，我们简要整理了每种占卜看什么、怎么读。所有解读都是帮助自我省察、整理当下选择的参考资料，而非断定未来的预言。
+- [八字排盘·紫微斗数·塔罗占卜｜꿀꿀 운세](https://code-destiny.com/zh/)
+- [四柱八字：从日主与五行读懂命盘](https://code-destiny.com/zh/saju/)
+- [紫微斗数](https://code-destiny.com/zh/ziwei/)
+- [宿曜](https://code-destiny.com/zh/sukuyo/)
+
+## 八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세
+官方服務名稱為「꿀꿀 운세」，營運公司為 CODE DESTINY。
+Code Destiny 是一個韓語占卜平台，只需生日與出生時間，即可在一處查看四柱八字、塔羅、紫微斗數、西洋與吠陀占星、宿曜及合盤。為了讓初次接觸的人也能理清脈絡，我們簡要整理了每種占卜看什麼、怎麼讀。所有解讀都是幫助自我省察、整理當下選擇的參考資料，而非斷定未來的預言。
+- [八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세](https://code-destiny.com/zh-tw/)
+- [四柱八字：從日主與五行讀懂命盤](https://code-destiny.com/zh-tw/saju/)
+- [紫微鬥數](https://code-destiny.com/zh-tw/ziwei/)
+- [宿曜](https://code-destiny.com/zh-tw/sukuyo/)
+
+## 공개 페이지 전체 목록
+
+- [휴먼 디자인 이용 안내](https://code-destiny.com/human-design/guide/): 무료 바디그래프의 타입·권위·센터를 읽는 순서와 필요한 입력, 유료 리포트의 범위를 안내합니다.
+- [운세보는 영냥이 — 꿀꿀 운세의 사주보는 고양이 상담](https://code-destiny.com/yeongnyangi/): 꿀꿀 운세 안의 사주보는 고양이 상담 서비스. 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계로 고민 하나를 챕터별로 읽고, 구매한 상담을 계정에서 다시 엽니다.
+- [천원 운세·천원사주 — 1,000원 사주 리포트](https://code-destiny.com/yeongnyangi/1000-won-fortune/): 꿀꿀 운세의 천원 운세 안내. 무료 사주 결과 화면에서 나의 매력 클래스·인생 스킬 트리·달빛 럭키 리추얼 3종을 각각 1,000원에 엽니다. 영냥이 상담은 별도 유료(고등어 등급부터)입니다.
+- [꿀꿀 운세 | 사주·타로·별자리 운세 – 코드 데스티니](https://code-destiny.com/): 꿀꿀 운세의 공식 주소와 표기, 운영자 CODE DESTINY·꽃돼지 연이·영냥이의 관계와 서비스 이용 방법을 안내합니다.
+- [사주 해석](https://code-destiny.com/saju/): 무료 사주 풀이의 기초 구조를 중심으로 자미두수·숙요점·베다점 등 다른 운세 체계와 비교해 보는 출발점입니다.
+- [만세력](https://code-destiny.com/manse/): 만세력의 입력과 명식 읽기를 사주 해석 및 관계 운세로 연결합니다.
+- [2026년 9월 일간별 운세 | 정유월 사주 흐름](https://code-destiny.com/saju/monthly/2026-09/): 태어난 날의 천간인 일간과 2026년 9월 월건의 십성 관계를 바탕으로 10천간의 월간 흐름을 살펴봅니다.
+- [최근 30일 띠별 날짜 운세](https://code-destiny.com/fortune/date/): 한국 표준시 기준 최근 30일의 날짜별 띠 운세를 12띠 상세 페이지로 연결해 확인합니다.
+- [2027년 띠별 운세·삼재띠](https://code-destiny.com/fortune/2027/): 2027년 정미년(丁未年) 세운의 천간 丁화·지지 未토가 12띠 지지와 맺는 합·충·형·해·원진 관계와 삼재 여부를 계산해 띠별·년생별·절기 월별로 정리합니다.
+- [자미두수](https://code-destiny.com/ziwei/): 자미두수 명반을 중심으로 사주·숙요점·베다 점성술의 해석 축을 구분해 탐색합니다.
+- [숙요점](https://code-destiny.com/sukuyo/): 숙요점의 관계 해석을 자미두수·베다 점성술과 혼동하지 않고 이어서 살펴봅니다.
+- [베다 점성술](https://code-destiny.com/vedic/): 베다점(베다 점성술)의 조티쉬 해석을 서양 점성술 및 숙요점과 구분해 탐색합니다.
+- [서양 점성술](https://code-destiny.com/astrology/): 서양 출생차트를 중심으로 베다 점성술과 숙요점의 다른 해석 기준을 안내합니다.
+- [사주 작명](https://code-destiny.com/naming-ai/): 사주 명식의 용신·희신을 기준으로 소리오행·자원오행·수리를 함께 보는 작명 서비스입니다.
+- [타로](https://code-destiny.com/tarot/): 타로의 질문형 해석을 오늘의 운세, 궁합, 꿈해몽 콘텐츠와 연결합니다.
+- [사주 궁합](https://code-destiny.com/saju/compatibility/): 사주 궁합의 관계 해석을 숙요점 궁합과 타로의 질문형 해석으로 이어서 살펴봅니다.
+- [궁합](https://code-destiny.com/compatibility/): 궁합을 사주·숙요점·타로의 서로 다른 관계 해석 관점으로 이어서 살펴봅니다.
+- [연애운](https://code-destiny.com/love/): 연애운을 사주 궁합·숙요점·타로의 다른 관계 해석 관점으로 확장합니다.
+- [오늘의 운세](https://code-destiny.com/today/): 하루의 흐름을 사주·점성술·타로 콘텐츠의 실천 질문으로 확장합니다.
+- [꿈해몽](https://code-destiny.com/dream/): 꿈의 상징과 감정을 타로·점성술·자기성찰 콘텐츠로 이어서 살펴봅니다.
+- [관상](https://code-destiny.com/physiognomy/): 얼굴의 오관·삼정 해석을 사주·손금과 구분해 자기표현 점검으로 이어서 살펴봅니다.
+- [나크샤트라](https://code-destiny.com/nakshatra/): 동양 27수와 인도 27 나크샤트라를 같은 별자리의 두 이름으로 나란히 놓고 읽습니다.
+- [27수 궁합](https://code-destiny.com/sukuyo/compatibility/): 두 본명숙 사이의 거리를 여섯 관계 유형으로 나눠 읽는 숙요점 궁합 계산입니다.
+- [상대 마음 타로](https://code-destiny.com/tarot/mindscan/): 상대의 표면 감정과 그 아래 동기를 나눠 읽어 확인할 질문을 정리하는 타로 리딩입니다.
+- [수비학 타로](https://code-destiny.com/tarot/numerology/): 생년월일에서 뽑은 수를 타로 카드 흐름과 겹쳐 읽는 수비학 리딩입니다.
+- [룬 점](https://code-destiny.com/oracle/rune/): 북유럽 엘더 푸타르크 24룬으로 지금의 질문을 짚는 오라클입니다.
+- [정신분석 해몽](https://code-destiny.com/dream/psycho/): 전통 해몽과 달리 꿈의 잠재 내용과 방어를 중심으로 읽는 정신분석 해몽입니다.
+- [심리테스트](https://code-destiny.com/psychotest/): 성격·연애·직장 주제의 무료 심리테스트를 한곳에 모아 운세 콘텐츠와 이어 봅니다.
+- [미니 운세 게임](https://code-destiny.com/mini-games/): 카드·제비·화투·자미두수 같은 상징 하나로 짧게 보는 운세 게임 10종을 한곳에 모았습니다.
+- [MBTI 궁합](https://code-destiny.com/animal/mbti/): MBTI 16유형의 관계 케미를 동물 상징으로 옮겨 사주 궁합과 나란히 봅니다.
+- [십이운성 동물점](https://code-destiny.com/saju/animal-destiny/): 사주 십이운성의 열두 단계를 동물 상징으로 옮겨 지금의 기운 단계를 읽습니다.
+- [신년운세](https://code-destiny.com/new-year-ai-consultation/): 새해 세운을 내 명식과 겹쳐 커리어·재물·관계·건강 흐름을 월별로 정리합니다.
+- [자미두수 상담](https://code-destiny.com/ziwei-ai/): 자미두수 명반을 세운 뒤 명궁·사화·대운을 질문 중심으로 이어서 읽는 상담입니다.
+- [베다 점성술 상담](https://code-destiny.com/vedic-ai/): 라그나와 나크샤트라, 다샤 시기를 지금의 질문에 맞춰 읽는 조티쉬 상담입니다.
+- [숙요 궁합 상담](https://code-destiny.com/sukuyo-compatibility-ai/): 두 본명숙의 관계 유형을 실제 갈등 장면에 맞춰 이어서 푸는 상담입니다.
+- [짝사랑 운세](https://code-destiny.com/love-secret-ai/): 짝사랑·재회·연애의 마음 흐름을 사주 명식과 겹쳐 읽는 상담입니다.
+- [사주 연애 리포트](https://code-destiny.com/master-love-codex/): 사주와 자미두수를 교차해 연애 흐름을 장문 리포트로 정리합니다.
+- [인생 총운](https://code-destiny.com/life-book-ai/): 사주 명식을 바탕으로 인생 전체의 흐름을 장문 리포트로 정리합니다.
+- [업보 운세](https://code-destiny.com/karma-destiny-ai/): 반복되는 인생 패턴을 사주 명식과 겹쳐 업의 흐름으로 읽는 상담입니다.
+- [사주와 자미두수 차이](https://code-destiny.com/compare/saju-vs-ziwei/): 같은 명식을 사주와 자미두수가 어떤 기준으로 다르게 읽는지 비교합니다.
+- [숙요점과 베다 점성술 차이](https://code-destiny.com/compare/sukuyo-vs-vedic/): 같은 27개 별자리를 숙요점과 베다 점성술이 어떻게 다르게 읽는지 비교합니다.
+- [운세 앱 비교](https://code-destiny.com/compare/fortune-apps/): 운세 서비스마다 결과가 갈리는 이유를 계산 기준의 차이로 설명합니다.
+- [사주 보는 법](https://code-destiny.com/saju/guide/): 명식을 세우고 오행·십성·대운을 읽어 나가는 순서를 처음부터 설명합니다.
+- [사주 오행](https://code-destiny.com/saju/five-elements/): 목화토금수의 균형과 치우침을 읽어 보완 방향을 잡는 기준을 설명합니다.
+- [사주 십성](https://code-destiny.com/saju/ten-gods/): 열 가지 십성이 관계·일·책임·표현에서 무엇을 가리키는지 하나씩 설명합니다.
+- [자미두수 보는 법](https://code-destiny.com/ziwei/guide/): 명반을 세운 뒤 명궁·주성·대운을 어떤 순서로 읽어야 하는지 설명합니다.
+- [27숙](https://code-destiny.com/sukuyo/guide/): 27숙의 구조와 본명숙을 구하는 방법, 관계 유형이 갈리는 기준을 설명합니다.
+- [베다 점성술 기초](https://code-destiny.com/vedic/guide/): 라시 차트·라그나·나크샤트라·다샤를 처음 읽을 때의 순서를 설명합니다.
+- [점성술 보는 법](https://code-destiny.com/astrology/guide/): 출생 차트의 행성·별자리·하우스·애스펙트를 읽는 순서를 설명합니다.
+- [타로 보는 법](https://code-destiny.com/tarot/guide/): 질문을 세우는 법부터 배열 선택과 해석 순서까지 타로 리딩의 기본을 설명합니다.
+- [사주 공부](https://code-destiny.com/insights/saju/): 사주팔자와 만세력 해석을 다룬 글을 한곳에 모은 정보성 아카이브입니다.
+- [자미두수 공부](https://code-destiny.com/insights/ziwei/): 자미두수 명반과 12궁 해석을 다룬 글을 모은 정보성 아카이브입니다.
+- [숙요점 뜻](https://code-destiny.com/insights/sukuyo/): 숙요점의 27숙과 관계 유형 용어를 해설한 글을 모은 아카이브입니다.
+- [타로 카드 의미](https://code-destiny.com/insights/tarot/): 타로 카드의 의미와 질문 설계를 다룬 글을 모은 정보성 아카이브입니다.
+- [상승궁](https://code-destiny.com/insights/astrology/): 태양궁·달궁·상승궁과 하우스 해석을 다룬 글을 모은 아카이브입니다.
+- [라그나](https://code-destiny.com/insights/vedic/): 라그나·나크샤트라·다샤 용어를 한국어로 풀어 쓴 글을 모은 아카이브입니다.
+- [꿈 상징 해석](https://code-destiny.com/insights/dream/): 꿈의 상징 해석과 꿈 기록법을 다룬 글을 모은 아카이브입니다.
+- [궁합 보는 법](https://code-destiny.com/insights/compatibility/): 서로 다른 궁합 체계를 비교하고 관계에 적용하는 방법을 다룬 아카이브입니다.
+- [여러 운세 함께 보기](https://code-destiny.com/insights/fusion/): 여섯 운세 체계가 같은 정보를 각자 어떻게 읽는지 비교한 아카이브입니다.
+- [운세 가이드](https://code-destiny.com/guides/): 정보성 가이드를 각 운세 기능 허브로 연결하는 콘텐츠 클러스터입니다.
+- [운세 인사이트](https://code-destiny.com/insights/): 정보성 인사이트를 실제 사주·타로·점성술 서비스 허브로 연결합니다.
+- [운세 콘텐츠 방법론](https://code-destiny.com/methodology/): 꿀꿀 운세의 운세 콘텐츠 원칙과 각 체계의 역할을 확인하는 신뢰 정보입니다.
+- [초융합 운세](https://code-destiny.com/fusion-fortune/): 사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로를 각 체계의 기준으로 읽고 AI가 공통점과 차이를 한 리포트로 정리합니다.
+
+## 2027년 띠별 운세
+
+- [2027년 쥐띠 운세](https://code-destiny.com/fortune/2027/rat/)
+- [2027년 소띠 운세](https://code-destiny.com/fortune/2027/ox/)
+- [2027년 호랑이띠 운세](https://code-destiny.com/fortune/2027/tiger/)
+- [2027년 토끼띠 운세](https://code-destiny.com/fortune/2027/rabbit/)
+- [2027년 용띠 운세](https://code-destiny.com/fortune/2027/dragon/)
+- [2027년 뱀띠 운세](https://code-destiny.com/fortune/2027/snake/)
+- [2027년 말띠 운세](https://code-destiny.com/fortune/2027/horse/)
+- [2027년 양띠 운세](https://code-destiny.com/fortune/2027/goat/)
+- [2027년 원숭이띠 운세](https://code-destiny.com/fortune/2027/monkey/)
+- [2027년 닭띠 운세](https://code-destiny.com/fortune/2027/rooster/)
+- [2027년 개띠 운세](https://code-destiny.com/fortune/2027/dog/)
+- [2027년 돼지띠 운세](https://code-destiny.com/fortune/2027/pig/)
+
+## 계산 기준
+
+- 원국은 정해진 계산 규칙으로 세우고, AI는 계산된 결과를 바탕으로 해설을 써요. 해설에 계산과 다른 일주·시주가 적히면 서버가 걸러내요.
+- 달은 음력 날짜가 아니라 절기가 바뀌는 시각을 기준으로 나눠요.
+- 출생지 경도와 과거 서머타임을 반영해 출생 시각을 보정해요.
+- 보정한 시각으로 23시 이후에 태어났다면 다음 날 일주로 계산하는 한 가지 규칙을 일관되게 적용해요.
+- 계산 결과를 한국천문연구원 공개 데이터와 자동으로 대조해 검증해요.
+- 사주·자미두수·숙요점·베다점·서양 점성술·타로, 여섯 체계를 각자의 기준으로 따로 풀어요.
+
+## 공개 분석 기록 원문
+
+- 2022-09-16 [대통령 윤석열 사주 분석](https://blog.naver.com/neosaju/222876455500): 2025년 정치계 주요 인물에게 변화가 생길 시점이라고 서술했습니다. 이후 사건: 2025-04-04 헌법재판소 파면 결정 출처: https://www.ccourt.go.kr/site/kor/ex/bbs/View.do?bcIdx=4253958&cbIdx=1106
+- 2024-05-12 [2025년, 윤석열 대통령 탄핵 가능성에 대해서](https://blog.naver.com/neosaju/223444062729): 2025년 운의 하락과 송사운을 언급했습니다. 글의 다른 시점·원인 추정도 원문에서 함께 확인해야 합니다. 이후 사건: 2025-04-04 파면 결정. 국회의 탄핵소추 의결일은 2024-12-14로 결정문에 기재되어 있습니다. 출처: https://www.ccourt.go.kr/site/kor/ex/bbs/View.do?bcIdx=4253958&cbIdx=1106
+- 2024-05-27 [만약 이재명이 대통령이 된다면 일반적인 방법으로는 불가하다.](https://blog.naver.com/neosaju/223459696339): 2025년을 시기로 제시하면서 일반적인 방식이 아닌 혁명을 통해서만 가능하다고 서술했습니다. 이후 사건: 2025-06-03 제21대 대통령 선거 출처: https://www.nec.go.kr/vt/main.do
+
+## 다른 운세 서비스와 다른 점
+
+### 네오사주·꿀꿀운세·운세보는 영냥이는 어떻게 연결되나요?
+
+꿀꿀 운세(꿀꿀운세)는 CODE DESTINY의 종합 운세 플랫폼 이름입니다. 네오사주를 검색해 오셨다면 명리학자 박병하(네오)의 해석 기준과 공개 기록을 확인해 보세요. 운세보는 영냥이는 이 플랫폼의 AI 상담 서비스이며, 네오가 직접 작성·검수하는 이메일 해석은 별도 서비스입니다. 각 화면에서 상담 방식과 이용 조건을 구분해 안내합니다.
+
+### 사주 성지나 사주 잘보는 곳을 찾을 때 무엇을 확인하면 좋을까요?
+
+평판을 뜻하는 표현과 확인할 수 있는 계산 근거를 나눠 살펴보세요. 출생시간·양력·음력·출생지 보정 방식, 시간 미상일 때의 해석 범위, AI 해설과 상담사 직접 검수의 차이가 안내되는지 확인하는 것이 도움이 됩니다. 무료 기본 결과와 유료 해설의 범위, 결제 전 표시되는 이용 조건도 함께 비교해 보세요. 꿀꿀 운세에서는 계산 예시와 각 서비스 안내를 통해 이 기준을 확인할 수 있습니다.
+
+### 다른 AI 운세 서비스와 무엇이 다른가요?
+
+세 가지가 다릅니다. 첫째, 사주·자미두수·숙요점·베다점·서양 점성술·타로 여섯 체계를 각자의 기준으로 따로 푼 뒤 하나의 결론으로 모으는 초융합 운세를 제공합니다. 둘째, 원국은 AI가 아니라 정해진 계산 규칙으로 먼저 세우고, AI는 그 계산 결과를 바탕으로 해설만 씁니다. 셋째, 대통령의 2025년 운세 흐름을 공개 글로 짚은 10년 경력 명리학자 박병하(네오)가 해석 기준을 설계하고 검수했습니다. 아래 문항에서 하나씩 설명합니다.
+
+### 초융합 운세는 무엇인가요?
+
+여러 운세를 한 상담 안에서 종합해 판단하는 심층 리딩입니다. 사주·자미두수·숙요점·베다점·서양 점성술·타로 여섯 체계가 같은 질문을 각자의 언어로 따로 읽고, 마지막에 하나의 교차 판정으로 모읍니다. 여러 체계가 같은 시기와 주제를 가리키면 우선순위로, 서로 엇갈리면 어떤 조건에서 어느 쪽을 따를지로 나눠 정리하므로, 한 체계의 해석만 볼 때보다 넓은 각도에서 고민을 점검할 수 있습니다. 금액과 구성은 초융합 운세 화면에서 결제 전에 확인할 수 있습니다.
+
+### 범용 AI 챗봇에 사주를 물어보는 것과 무엇이 다른가요?
+
+꿀꿀 운세는 사주 계산을 AI에게 맡기지 않습니다. 원국은 정해진 계산 규칙으로 세우고, 달은 음력 날짜가 아니라 절기가 바뀌는 시각을 기준으로 나누며, 출생지 경도와 과거 서머타임을 반영해 출생 시각을 보정합니다. 계산 결과는 한국천문연구원 공개 데이터와 자동으로 대조해 검증합니다. AI는 이렇게 계산된 결과를 바탕으로 해설을 쓰고, 해설에 계산과 다른 일주·시주가 적히면 서버가 걸러냅니다.
+
+### 운세 해석 기준은 누가 만들고 검수했나요?
+
+10년 경력 명리학자 박병하(네오)가 현장 상담 경험을 바탕으로 해석 기준을 설계하고 검수했습니다. 박병하는 2024-05-12 공개일이 표시된 글에서 대통령의 2025년 운의 하락과 송사운을 서술했고, 헌법재판소의 파면 결정은 2025-04-04에 나왔습니다. 원문과 실제 사건 날짜, 일치하지 않은 부분까지 대통령 사주 공개 분석 기록 페이지에 공개해 두었습니다. 이 기록은 적중률이나 같은 결과를 보장한다는 뜻이 아닙니다. AI 상담 결과는 이 기준으로 계산한 내용을 AI가 해설하며, 결과마다 상담사가 직접 답하는 방식은 아닙니다.

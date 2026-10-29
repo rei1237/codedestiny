@@ -104,8 +104,8 @@ test('manifests, locale dictionaries, llms.txt, brand copy and mail never presen
     assert.deepEqual(findFormerBrandNames(JSON.stringify(fields)), [], name);
   }
 
-  // llms.txt 는 "## 이름 이력" 절에서만 과거 이름을 말한다.
-  for (const file of ['llms.txt', 'public/llms.txt']) {
+  // llms.txt·llms-full.txt 는 "## 이름 이력" 절에서만 과거 이름을 말한다.
+  for (const file of ['llms.txt', 'public/llms.txt', 'llms-full.txt', 'public/llms-full.txt']) {
     const text = read(file);
     assert.ok(text.includes(BRAND_FACTS.historyKo), `${file}: history section`);
     assert.deepEqual(findFormerBrandNames(text.replace(/## 이름 이력[\s\S]*?(?=\n## )/, '')), [], file);
