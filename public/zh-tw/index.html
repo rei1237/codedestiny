@@ -973,7 +973,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。">
 <meta property="og:url" content="https://code-destiny.com/zh-tw/">
 <meta property="og:locale" content="zh_TW">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-045f3f83bfb2">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-422142a20a8c">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀운세 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡">
@@ -982,7 +982,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="八字排盤·紫微斗數·塔羅占卜｜꿀꿀 운세">
 <meta name="twitter:description" content="從四柱八字、紫微斗數十二宮到宿曜關係與塔羅問題解讀。用繁體中文了解不同體系的輸入與看盤順序，選擇適合自己的命盤或諮詢入口。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-045f3f83bfb2">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-zh-tw.png?v=build-422142a20a8c">
 <meta name="twitter:image:alt" content="꿀꿀운세 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡">
 <script type="application/ld+json">
 {
@@ -1145,7 +1145,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-045f3f83bfb2",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-422142a20a8c",
       "width": 1200,
       "height": 630
     },
@@ -11970,6 +11970,11 @@ html body footer .cd-footer-byline strong{font-family:var(--font-display,serif);
 html body footer .cd-footer-byline a:hover span,html body footer .cd-footer-byline a:focus-visible span{text-decoration:underline}
 html.neo-mode body footer .cd-footer-byline a{color:#f4eeff}
 /* legal bar */
+.cd-help-entry{max-width:960px;margin:32px auto;padding:24px;border:1px solid var(--cd-yehwa-line);border-radius:var(--cd-r-section);background:var(--cd-surface-quiet);color:var(--cd-text);text-align:left;box-sizing:border-box}
+.cd-help-entry h2{margin:0;font-family:var(--font-serif);font-size:1.5rem;line-height:1.5;color:var(--cd-text)}
+.cd-help-entry p{margin:10px 0 18px;line-height:1.7;color:var(--cd-text)}
+.cd-help-entry nav{display:flex;flex-wrap:wrap;gap:10px}
+.cd-help-entry nav a{flex:1 1 160px}
 html body footer .cd-footer-legal{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 18px;width:100%;max-width:var(--cd-w-grid,1280px);margin:0 auto;padding:4px clamp(14px,3vw,26px) 14px;text-align:center}
 html body footer .cd-footer-legal__links{display:flex;flex-wrap:wrap;justify-content:center;gap:0 16px;min-width:0}
 html body footer .cd-footer-legal__break{flex:1 1 100%;height:0}
@@ -20619,6 +20624,17 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
   <!-- guide moved intact into #cdHomeFunnel at build time. -->
 
   <footer id="cdSiteFooter" style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
+    <section class="cd-help-entry" aria-label="꿀꿀 운세 이용 길잡이">
+      <h2>궁금한 순간에도, 길을 잃지 않도록</h2>
+      <p>시작 방법부터 저장한 결과까지, 필요한 안내를 바로 찾아보세요.</p>
+      <nav aria-label="이용 안내와 도움">
+        <a href="/faq/" class="cd-yehwa-button cd-yehwa-button--primary">자주 묻는 질문</a>
+        <a href="/records/" class="cd-yehwa-button cd-yehwa-button--secondary">내 결과 다시 보기</a>
+        <a href="/contact/" class="cd-yehwa-button cd-yehwa-button--secondary">문의하기</a>
+        <a href="/about/" class="cd-yehwa-button cd-yehwa-button--secondary">서비스 소개</a>
+      </nav>
+    </section>
+
     <!-- 2026-10-16 "직관성": 모든 푸터가 같은 최소 규격이다(lib/brand/site-footer.ts) — 전문성 한 줄 → 정책 링크 → 안내 한 줄 → 사업자 정보.
          개인정보 수집 안내 문단, SNS, 서비스·가이드 링크 허브(5열 28링크)는 걷어냈다. 개인정보 안내는 /privacy/ 에 있다.
          🔴 링크 둘째 줄(FAQ·면책·편집·광고 정책)은 scripts/verify-adsense-readiness.mjs 의 정적 셸 신뢰 링크 검사가 요구한다. 지우지 않는다. -->
@@ -20854,7 +20870,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-045f3f83bfb2';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-422142a20a8c';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){

@@ -32,19 +32,19 @@ const GUIDES = {
     ["서비스 철학", "미래보다 선택을 정리하는 곳", "#about-purpose"],
   ],
   faq: [
-    ["처음이라면", "무료 운세와 시작 방법", "#faq-list"],
+    ["질문 찾아보기", "시작 방법부터 결과 확인까지", "#faq-list"],
     ["유료 이용", "이용권과 단건 결제", "/refund-policy"],
     ["도움이 필요할 때", "결제·프로필·개인정보", "/contact"],
   ],
 };
 
 const POLICY_PAGES = [
+  ["faq", "자주 묻는 질문", "/faq/"],
+  ["about", "서비스 소개", "/about/"],
+  ["contact", "문의하기", "/contact/"],
   ["terms", "이용약관", "/terms"],
   ["privacy", "개인정보", "/privacy"],
   ["refund", "환불·취소", "/refund-policy"],
-  ["contact", "고객센터", "/contact"],
-  ["about", "서비스 소개", "/about"],
-  ["faq", "FAQ", "/faq"],
   ...trustDocumentLinks().map(({ key, label, href }) => [key, label, href]),
 ];
 
@@ -55,14 +55,19 @@ function PolicyHero({ title, description, meta }) {
         <h1>{title}</h1>
         {meta ? <p className={styles.meta}>{meta}</p> : null}
         <p className={styles.description}>{description}</p>
-        <p className={styles.reassurance}>필요한 내용부터 천천히 살펴보세요. 꽃돼지가 길을 안내할게요.</p>
+        <div className={styles.heroActions}>
+          {/* 정적 셸은 RSC 경로가 아니므로 문서 이동을 유지합니다. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a href="/ggulggul/" className="cd-yehwa-button cd-yehwa-button--primary">운세 둘러보기</a>
+          <Link href="/records/" className={styles.returnLink}>내 결과 다시 보기</Link>
+        </div>
       </div>
       <Image
         src="/icons/app-logo-512.webp"
         alt="연꽃을 쓴 꿀꿀운세 꽃돼지"
         width={512}
         height={512}
-        sizes="(max-width: 600px) 88px, 120px"
+        sizes="(max-width: 720px) 96px, 160px"
         className={styles.pig}
         priority
       />
@@ -89,7 +94,7 @@ function PolicySummaryCards({ kind }) {
 export function PolicyAccordion({ id, title, children }) {
   return (
     <details id={id} className={styles.accordion}>
-      <summary>{title}</summary>
+      <summary><span>{title}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></summary>
       <div>{children}</div>
     </details>
   );
@@ -98,15 +103,20 @@ export function PolicyAccordion({ id, title, children }) {
 export default function PolicyGuide({ kind, ...hero }) {
   return (
     <>
+      <nav className={styles.breadcrumb} aria-label="현재 위치"><Link href="/">꿀꿀 운세</Link><span aria-hidden="true">/</span><span>{hero.title}</span></nav>
       <PolicyHero {...hero} />
       <nav className={styles.nav} aria-label="정책 및 도움말">
-        {POLICY_PAGES.map(([key, label, href]) => (
+        {POLICY_PAGES.slice(0, 6).map(([key, label, href]) => (
           <Link key={key} href={href} aria-current={key === kind ? "page" : undefined}>
             {label}
           </Link>
         ))}
       </nav>
-      <PolicySummaryCards kind={kind} />
+      <details className={styles.moreDocs}>
+        <summary>해석 기준·콘텐츠 정책 더 보기</summary>
+        <nav aria-label="콘텐츠와 운영 기준">{POLICY_PAGES.slice(6).map(([key, label, href]) => <Link key={key} href={href}>{label}</Link>)}</nav>
+      </details>
+      {kind !== "faq" && <PolicySummaryCards kind={kind} />}
     </>
   );
 }

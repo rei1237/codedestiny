@@ -1,4 +1,5 @@
 import Image from "next/image";
+import HelpDesk from "./HelpDesk";
 import styles from "./SiteFooterHub.module.css";
 import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
 import { IS_APP_BUILD } from "../../lib/app-build-target";
@@ -153,6 +154,7 @@ const BUSINESS_INFO_ROWS = [
 export default function SiteFooterHub() {
   return (
     <footer className={styles.sfhRoot} aria-label="사이트 정보">
+      <HelpDesk />
       <div className={styles.sfhShell}>
         <p className={styles.sfhByline}>
           <a href="/about/#author">

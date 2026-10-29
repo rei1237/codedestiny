@@ -11,6 +11,7 @@ import { HOME_CATEGORIES, HOME_CONCERNS } from "../lib/seo/home-discovery.mjs";
 import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
+import HelpDesk from "./components/HelpDesk";
 import HomeEntryState from "./components/HomeEntryState";
 import { PriceBadge } from "./components/PriceBadge";
 import ConsultationDiscovery from "./components/ConsultationDiscovery";
@@ -162,6 +163,7 @@ export default function HomePage() {
             </Link>
           </li>)}</ul>
         </section>
+        <HelpDesk />
         <details id="homeExplore" data-home-disclosure="explore" className={styles.explore}>
           <summary className={styles.exploreSummary}><span>더 둘러보기</span><span className={styles.disclosureMark} aria-hidden="true" /></summary>
           <div className={styles.exploreContent}>
