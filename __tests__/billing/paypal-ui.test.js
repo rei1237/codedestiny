@@ -8,7 +8,7 @@ beforeEach(() => { dom = new JSDOM('<!doctype html><html><head></head><body></bo
 afterEach(() => { dom.window.close(); delete global.window; delete global.document; delete global.cdTranslate; });
 
 test.each([['en', '/en'], ['ja', '/ja'], ['zh-CN', '/zh'], ['zh-TW', '/zh-tw']])('PayPal %s keeps localized policy access and USD charge visible', async (locale, prefix) => {
-  const dictionary = require(`../../public/i18n/${locale}.json`);
+  const dictionary = require(`../../public/i18n/${locale.toLowerCase()}.json`);
   window.cdGetCurrentLanguage = () => locale;
   global.cdTranslate = (key, vars, fallback) => {
     const value = key.split('.').reduce((node, part) => node && node[part], dictionary);

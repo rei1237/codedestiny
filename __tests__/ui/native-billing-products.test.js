@@ -10,9 +10,9 @@ const compiled = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../
 }).outputText;
 const valid = { productId: 'pass', productType: 'inapp', formattedPrice: '¥1,280', priceCurrencyCode: 'JPY', priceAmountMicros: 1280000000 };
 function setup(queryProducts) {
-  const module = { exports: {} };
-  vm.runInNewContext(compiled, { module, exports: module.exports, window: { CodeDestinyNative: { queryProducts } } });
-  return module.exports;
+  const billingModule = { exports: {} };
+  vm.runInNewContext(compiled, { module: billingModule, exports: billingModule.exports, window: { CodeDestinyNative: { queryProducts } } });
+  return billingModule.exports;
 }
 
 test('native product lookup accepts the store price without converting it', async () => {

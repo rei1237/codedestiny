@@ -57,7 +57,7 @@ test('hat story: six houses, reveal, skip, errors, stale requests, keyboard and 
    assert.equal(await page.evaluate(()=>document.activeElement.id),'hat-result-title');
    const result=page.getByRole('article',{name:names[i],exact:true});
    await result.getByText('모자가 읽은, 타고난 마음의 결',{exact:true}).waitFor();
-   assert.ok(await result.locator('figure img').evaluate(img=>img.complete&&img.naturalWidth>0));
+   assert.ok(await result.locator('figure img').evaluate(async img=>{await img.decode();return img.complete&&img.naturalWidth>0;}));
    const secret=result.locator('details').filter({hasText:'모자의 비밀 쪽지 펼치기'});
    assert.equal(await secret.getAttribute('open'),null);await secret.locator('summary').click();assert.notEqual(await secret.getAttribute('open'),null);
    const choices=result.locator('button[aria-pressed]');await choices.nth(0).click();const reply=await result.getByRole('status').first().innerText();await choices.nth(1).click();assert.notEqual(await result.getByRole('status').first().innerText(),reply);assert.equal(await choices.nth(1).getAttribute('aria-pressed'),'true');assert.equal(await page.evaluate(()=>window.calls.length),1);
