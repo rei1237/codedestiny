@@ -54,7 +54,10 @@ status: in-progress
 - 원본 normalizer·가격 레지스트리, 여섯 그룹 생성·체크포인트·저장·재열람을 재사용한다. 토스 주문과 고정 입력을 결합하고 첫 저장 이전/이후 복구도 계정·환경·활성 identity·입력해시·환불을 확인한다. 웹 이용권/월정석 증빙 claim·차감·환불로 폴백하지 않는다.
 - 기존 결과 화면에 없는 추가 질문 API는 승인된 토스 상품이 없어 503으로 닫는다. 웹 후기·월정석 보상 배너는 토스 번들에서 제외하고 웹 원본은 유지한다.
 - mock 검사: 토스 전체 155/155, 추가 라우트 경계 19/19, 결제 어댑터 5/5, 원본 인생의 책+연애 비책 전달 81/81, 원본 입력/여섯 그룹 품질/cron Jest 18/18 통과. 외부 API·실결제·실 LLM·운영 DB를 사용하지 않았다.
-- verify:paid-access-integrity / verify:cron-mongo-op-coverage / verify:no-nested-retry / verify:worker-no-undef 통과. impeccable detector 발견 없음. check:fast 확대 검사는 실행 중이며 아직 전체 통과로 기록하지 않는다.
+- verify:paid-access-integrity / verify:cron-mongo-op-coverage / verify:no-nested-retry / verify:worker-no-undef 통과. impeccable detector 발견 없음. check:fast 확대 검사 실행 세션이 종료 결과 없이 사라져 전체 미검증으로 남긴다. 직접 관련 검사는 아래 결과대로 통과했다.
 - visual-checker: 390/1280px 입력·결과, pageerror/가로 넘침/깨진 이미지 0. 입력 다음 단계·결과 1/15→2/15·관계 전략 목차·전체보기 통과. 후기 보상 안내 제외 후 양 폭 재확인. 일반 브라우저에서 토스 SafeAreaInsets 경고가 있어 실기기 검증과 구분한다.
 - SEO: 웹 공개 URL/메타데이터/canonical/robots/사이트맵을 바꾸지 않았다. 토스 내부 진입점 추가이며 원본 H1·본문을 유지한다.
 - 출시 게이트 SERVICE_AVAILABLE=false / APPROVED_TOSS_NATIVE_PRODUCTS=[] 유지. .ait 빌드는 로컬 산출물이며 상품 승인·실기기·운영 출시 증거가 아니다.
+
+- 최종 로컬 앱 build 성공: 01a18849-55c4-75b3-aa2a-10a77c6add40.
+- main e0d312451의 CI 40893952744는 인생의 책 applyUsageOnce를 추출한 테스트가 새 nativeTossContext/auth를 준비하지 않아 8건 실패했다. 제품 정책 변경 없이 웹 테스트 문맥을 보완한 4d9ecc363은 해당 Jest 42/42 통과. 문서-only 9b839ade8 CI 40893554386 success를 전체 인생의 책 검사 통과로 확대 해석하지 않는다.
