@@ -47,9 +47,9 @@ try {
           await page.locator('[data-sig-slide="2"]').click();
           await page.waitForTimeout(600);
         }
-        const trigger = page.locator(surface==='react-neo'?'a.cd-app-surface[href="/neo-operation-room/"]':'a.cd-sig-card--tea');
+        const trigger = page.locator(surface==='react-neo'?'a.cd-app-surface[href^="/neo-operation-room"]':'a.cd-sig-card--tea');
         if(surface==='react-neo') await page.waitForFunction(()=>{
-          const link=document.querySelector('a.cd-app-surface[href="/neo-operation-room/"]');
+          const link=document.querySelector('a.cd-app-surface[href^="/neo-operation-room"]');
           return link&&Object.keys(link).some(key=>key.startsWith('__reactProps')&&typeof link[key]?.onClick==='function');
         });
         await trigger.scrollIntoViewIfNeeded();
