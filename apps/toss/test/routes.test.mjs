@@ -16,12 +16,13 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/toss/native-tea.js':"export const nativeTeaCatalog=()=>[];export const prepareNativeTea=()=>{throw Error('not used')};export const readNativeTeaIntent=()=>{};export const handleNativeTea=()=>{};export const approvedNativeTeaProduct=()=>{};",
  'worker/routes/profile.js':"export const normalizeIncomingProfile=x=>x;export const validateRequiredBirth=x=>({ok:!!x?.birth,birth:x?.birth});export const toClientProfile=x=>x;",
  'worker/toss/manse.js':"export const calculateTossManse=async()=>({stored:false});",
  'worker/yeongnyangi/fortune/question-sky.ts':"export const resolveCurrentLocation=x=>({latitude:x.latitude,longitude:x.longitude,timezone:'Asia/Seoul'});",
  'worker/yeongnyangi/retry.js':"export const retryFortune=(...args)=>globalThis.__tossRouteMocks.retry(...args);",
  'worker/toss/session.js':"import {TossError} from './policy.js';export const requireTossSession=async()=>{if(globalThis.__tossRouteMocks.denyAuth)throw new TossError('LOGIN_REQUIRED',401);return globalThis.__tossRouteMocks.auth();};export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
- 'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=globalThis.__tossRouteMocks.product;",
+ 'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const APPROVED_TOSS_NATIVE_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=globalThis.__tossRouteMocks.product;",
  'worker/toss/models.js':"export const TossPurchase={findOne:(...args)=>globalThis.__tossRouteMocks.purchase(...args)};export const TossSession={};",
  'worker/toss/partner.js':"export const lookupOrder=(...args)=>globalThis.__tossRouteMocks.lookupOrder(...args);",
  'worker/toss/tarot-library.js':"export const tarotLibraryProduct=x=>x;export const tarotLibraryFlow=()=>{};export const tarotLibraryResult=()=>{};export const attachTarotLibraryInput=()=>{};export const grantTarotLibraryOrder=async args=>{globalThis.__tossRouteMocks.grants.push(args);return {orderId:args.order.orderId,durable:true,entitlement:'granted'};};export const deliverTarotLibraryOrder=()=>{globalThis.__tossRouteMocks.deliveries++;throw Error('grant must never generate')};",

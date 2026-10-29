@@ -11,7 +11,7 @@ import styles from './records.module.css';
 
 export type SavedRecord = { id: string; source: string; key: string; serviceId: string; serviceName: string; title: string; question: string; createdAt: string | null; status: string; character: string; group: string; href: string; startHref: string; nativeHref: string; recoveryHref?: string };
 type Page = { ok: boolean; items: SavedRecord[]; failures: { source: string; name: string }[]; nextCursor?: string | null; retryCursor?: string };
-export default function RecordsClient() {
+export default function RecordsClient({ showWebReception = true }: { showWebReception?: boolean } = {}) {
   const auth = useAuthStore(), locale = useLocale(), c = recordsCopy(locale);
   const userKey = String(auth.user?.id || auth.user?.userId || '');
   const [search, setSearch] = useState(''), [group, setGroup] = useState('all');
@@ -83,7 +83,7 @@ export default function RecordsClient() {
   const statusLabel = (status: string) => (c as Record<string, string>)[status] || c.saved;
   return <RecordFrame title={c.title} lead={c.lead}>
     {auth.status === 'error' || auth.status === 'temporarilyOffline' ? <section role="alert" className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.error}</h2><p>{c.errorLead}</p><button className={recordButton} onClick={() => void refreshAuth({ silent: true }).catch(() => {})}>{c.retry}</button></section> : auth.authReady && !auth.isAuthenticated ? <section className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.loginTitle}</h2><p>{c.loginLead}</p><a className={recordButton} href="/login/?next=%2Frecords%2F">{c.login}</a></section> : <>
-      {locale === 'ko' && <p className={styles.neoRecords}><a href="/neo-consultation/#neo-records">네오 작전 결정서 접수 내역 확인하기</a> · 답변은 받으신 이메일에서 확인해 주세요.</p>}
+      {showWebReception && locale === 'ko' && <p className={styles.neoRecords}><a href="/neo-consultation/#neo-records">네오 작전 결정서 접수 내역 확인하기</a> · 답변은 받으신 이메일에서 확인해 주세요.</p>}
       <div className={styles.tools}>
         <label className={styles.search}><Search size={20} aria-hidden /><span className="sr-only">{c.search}</span><input type="search" value={search} onChange={event => { restore.current = { y: 0, pages: 1 }; setSearch(event.target.value); }} placeholder={c.search} className="min-w-0 flex-1 bg-transparent py-3 text-base outline-none" /></label>
         <div className={styles.filters} aria-label={c.title}>{(['all','report','chat','chart'] as const).map(value => <button key={value} type="button" className={recordButton} aria-pressed={group === value} onClick={() => { restore.current = { y: 0, pages: 1 }; setGroup(value); }}>{c[value]}</button>)}</div>

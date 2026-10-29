@@ -5,6 +5,7 @@ import {consultationService} from './services.js';
 // Required record: {productId, sku, approvedPriceKRW, priceEvidence, approved:true}.
 export const APPROVED_TOSS_PRODUCTS = Object.freeze([]);
 export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS = Object.freeze([]);
+export const APPROVED_TOSS_NATIVE_PRODUCTS = Object.freeze([]);
 export function approvedProduct(sku, products=APPROVED_TOSS_PRODUCTS) {
   const item=products.find(p=>p.sku===sku&&p.approved===true);
   if(!item || !/^(chat_)?(saju|astrology|ziwei|vedic|sukuyo|tarot)_(mackerel|salmon|flounder|tuna)$/.test(item.productId)
