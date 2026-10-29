@@ -69,7 +69,7 @@ export function FusionResultThread({ result, openSections, onToggleSection, expo
   // v2 는 장마다 마스터가 말한다(한국어 생성분만 — 다른 로케일은 서버가 화자 지시를 넣지 않는다).
   const domainReport = isDomainFusion(result);
   const voiced = domainReport && (result.expertMeta?.locale || "ko").startsWith("ko");
-  const narratorOf = (key: string) => voiced ? fusionNarrators[FUSION_NARRATOR_BY_KEY[key] as keyof typeof fusionNarrators] : undefined;
+  const narratorOf = (key: string) => voiced ? fusionNarrators[FUSION_NARRATOR_BY_KEY[key as keyof typeof FUSION_NARRATOR_BY_KEY] as keyof typeof fusionNarrators] : undefined;
   const speakerFor = (label: string, key: string) => { const narrator = narratorOf(key); return { label: narrator ? `${label} · ${narrator.name}` : label, avatar: narrator?.avatar }; };
   type Chapter = { kind: "chapter"; key: (typeof SECTION_KEYS)[number] | DomainSectionKey; systemKey: (typeof SECTION_SYSTEM_KEYS)[number]; artKey: string; label: string }
     | { kind: "domains" } | { kind: "missing"; key: DomainSectionKey; label: string };

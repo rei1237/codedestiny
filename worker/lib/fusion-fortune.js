@@ -204,6 +204,24 @@ export function normalizeFusionFortuneInput(input = {}) {
   };
 }
 
+/** Shared pre-purchase and generation validation; no database or provider calls. */
+export function validateFusionFortuneInput(input) {
+  const normalized = normalizeFusionFortuneInput(input);
+  if (normalized.contextVersion === 2 && (!normalized.birthTime || normalized.birthTimeUnknown || !normalized.birthPlace || !/^([01]\d|2[0-3]):[0-5]\d$/.test(normalized.birthTime))) {
+    throw Object.assign(new Error("입력 정보를 확인해 주세요."), {code:FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT,status:400});
+  }
+  if (normalized.contextVersion === 2) {
+    const [year, month, day] = normalized.birthDate.split("-").map(Number);
+    const solar = new Date(`${normalized.birthDate}T00:00:00Z`);
+    const dateValid = year >= 1900 && month >= 1 && month <= 12 && day >= 1
+      && (normalized.calendarType === "lunar" ? day <= 30 : Number.isFinite(solar.getTime()) && solar.toISOString().slice(0, 10) === normalized.birthDate);
+    let zoneValid = true;
+    try { new Intl.DateTimeFormat("en", { timeZone: normalized.birthPlace.timezone }).format(new Date()); } catch { zoneValid = false; }
+    if (!dateValid || !zoneValid) throw Object.assign(new Error("입력 정보를 확인해 주세요."), {code:FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT,status:400});
+  }
+  return normalized;
+}
+
 const FUSION_TAROT_CARD_IDS = Object.freeze(["major_fool", "major_magician", "major_high_priestess", "major_empress", "major_emperor", "major_lovers", "major_chariot", "major_strength", "major_hermit", "major_wheel_of_fortune", "major_justice", "major_temperance", "major_star", "major_sun", "major_world"]);
 
 // 카드 선택은 서버 컨텍스트 생성 단계에서만 수행한다. LLM은 이 id와 position만 해석하며 새 카드를 만들 수 없다.
@@ -1475,19 +1493,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
   // 🔴 v2 롤백 스위치. 새 요청만 v1 로 내린다 — 이미 시작한 요청(스냅샷·1단계 보관본)은 그 버전 그대로
   //    이어야 입력 신원(fusionInputIdentity 가 reportVersion 을 해시한다)과 저장된 장이 맞는다.
   else if (isDomainFusion(input) && String(env.FUSION_PREMIUM_V2_ENABLED || "").toLowerCase() === "false" && !isDomainFusion(priorResult)) input = { ...input, reportVersion: FUSION_PREMIUM_VERSION };
-  let normalized; try { normalized = normalizeFusionFortuneInput(input); } catch { return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." }; }
-  if (normalized.contextVersion === 2 && (!normalized.birthTime || normalized.birthTimeUnknown || !normalized.birthPlace || !/^([01]\d|2[0-3]):[0-5]\d$/.test(normalized.birthTime))) {
-    return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT };
-  }
-  if (normalized.contextVersion === 2) {
-    const [year, month, day] = normalized.birthDate.split("-").map(Number);
-    const solar = new Date(`${normalized.birthDate}T00:00:00Z`);
-    const dateValid = year >= 1900 && month >= 1 && month <= 12 && day >= 1
-      && (normalized.calendarType === "lunar" ? day <= 30 : Number.isFinite(solar.getTime()) && solar.toISOString().slice(0, 10) === normalized.birthDate);
-    let zoneValid = true;
-    try { new Intl.DateTimeFormat("en", { timeZone: normalized.birthPlace.timezone }).format(new Date()); } catch { zoneValid = false; }
-    if (!dateValid || !zoneValid) return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT };
-  }
+  let normalized; try { normalized = validateFusionFortuneInput(input); } catch { return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." }; }
   const safeId = safeRequestId(requestId);
   const identity = await fusionInputIdentity(normalized, safeId);
   if (priorResult?.expertMeta && !fusionCheckpointMatches(priorResult, identity)) {

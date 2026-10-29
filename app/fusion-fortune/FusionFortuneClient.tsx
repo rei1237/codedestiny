@@ -2030,7 +2030,7 @@ function useFusionFortuneCopy(): FusionFortuneCopy {
   return getFusionFortuneCopy(locale);
 }
 
-export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?: ReactNode; valuePreview?: ReactNode }) {
+export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice }: { seoContent?: ReactNode; valuePreview?: ReactNode; paymentNotice?: string }) {
   const { user: deliveryUser } = useAuthStore();
   const deliveryOwnerId = String(deliveryUser?.id || deliveryUser?.userId || deliveryUser?._id || deliveryUser?.uid || "");
   useEffect(() => { void refreshAuth({ silent: true }).catch(() => {}); }, []);
@@ -2956,7 +2956,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     <section className={styles.panel}>
       <div className={styles.status}>
         <div><span>{copy.statusScopeLabel}</span><strong>{copy.statusScopeValue}</strong><small>{copy.statusScopeNote}</small></div>
-        <div><span>{copy.statusMethodLabel}</span><strong>{copy.statusMethodValue}</strong><small>{copy.statusMethodNote}</small></div>
+        <div><span>{copy.statusMethodLabel}</span><strong>{copy.statusMethodValue}</strong><small>{paymentNotice ?? copy.statusMethodNote}</small></div>
         <button className={styles.coreButton} type="button" onClick={() => coreDialogRef.current?.showModal()} aria-haspopup="dialog">{copy.coreButtonLabel}</button>
       </div>
       {<form data-moonlit-form="" id="fusion-form" ref={formRef} className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>

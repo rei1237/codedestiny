@@ -7,7 +7,7 @@ import { FUSION_NARRATOR_BY_KEY } from "@/lib/fusion-premium-report";
 import { masterProfiles } from "@/components/fortune/master-profiles";
 export function FusionSectionBody({ section, sectionKey }: { section: Pick<Section, "content" | "subchapters">; sectionKey: string }) {
   const chapters = fusionSubchapters(section) as { title: string; paragraphs: string[] }[];
-  const narratorKey = FUSION_NARRATOR_BY_KEY[sectionKey === "timing" ? "timingAndAction" : sectionKey] as keyof typeof masterProfiles;
+  const narratorKey = FUSION_NARRATOR_BY_KEY[(sectionKey === "timing" ? "timingAndAction" : sectionKey) as keyof typeof FUSION_NARRATOR_BY_KEY] as keyof typeof masterProfiles;
   const master = masterProfiles[narratorKey];
   const portrait = master ? <figure className={styles.chapterPortrait} aria-hidden="true"><Image src={master.portrait} alt="" width={600} height={720} loading="lazy" /></figure> : null;
   const paragraphs = (items: string[], illustrated = false) => items.map((paragraph, i) => <div key={i}>
