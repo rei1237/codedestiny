@@ -1,0 +1,402 @@
+{
+  "locale": "en",
+  "episodeId": "ep-27a",
+  "tag": "Episode 27 Side Story · Punishment",
+  "title": "Punishment",
+  "sourceTitle": "벌",
+  "sourceTag": "제27화 외전 · 벌",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-27a:1",
+      "source": "빵집에서 멀리 떨어진 강 상류. 물살이 바위에 부딪혀 하얗게 부서지는 곳에, 검은 호랑이가 혼자 웅크리고 있었다.",
+      "sourceHash": "ad859054ba762cc669fd72adf957185d1d16c118fdd54721f8b90dc8ad3e1531",
+      "t": "Far upstream from the bakery, where the current broke white against rocks, the black tiger crouched alone."
+    },
+    {
+      "id": "ep-27a:2",
+      "source": "등에는 검은 손이 남긴 자국이 열두 개 있었다. 찢어진 망토 사이로 상처가 욱신거렸다. 호랑이는 상처를 핥지 않았다. 핥으면 아프다는 걸 인정하는 것 같아서.",
+      "sourceHash": "4a1c0fee87f9f7b9f01605f04b687e1bca37c460d62e7e4c4df9a869978eeaa7",
+      "t": "Twelve marks from black hands scarred its back. Wounds throbbed beneath the torn cloak. The tiger did not lick them. Licking them felt like admitting they hurt."
+    },
+    {
+      "id": "ep-27a:3",
+      "source": "대신 망토 안쪽을 더듬었다. 종이에 싼 빵이 아직 거기 있었다. 따뜻함은 다 빠져나가고, 모양만 남아 있었다.",
+      "sourceHash": "114a275d6e152d0b3366e30c59013d41bdc9e850fd281330a05ba58f1a8e02cd",
+      "t": "Instead, it felt inside its cloak. The paper-wrapped bread was still there. All the warmth had gone, leaving only its shape."
+    },
+    {
+      "id": "ep-27a:4",
+      "source": "식으면 그냥 빵이라고 했지.",
+      "sourceHash": "f7a0e25ece093dd7f0896d45f0e1f82cf79a2300b2fb0eaa7fe3cc9aa48aebe5",
+      "t": "She said once it cooled, it was just bread."
+    },
+    {
+      "id": "ep-27a:5",
+      "source": "쪽지를 펼쳤다. 삐뚤빼뚤한 글씨로 이름 세 글자가 적혀 있었다. 축제 섬의 북 치던 아이. 그녀가 박수를 거둬 간 아이.",
+      "sourceHash": "dcda739da293a80c2697c89272acc4fbba3a54e800ba1dc992716b273419d46a",
+      "t": "It unfolded the note. Three crooked syllables spelled a name. The drumming child from the festival island. The child whose applause it had collected."
+    },
+    {
+      "id": "ep-27a:6",
+      "source": "너는 아직 북 치니. 박수 없이도.",
+      "sourceHash": "44bc4d28522a545c76fba555640f23f676a7b43cf5529a44796506573b486ae9",
+      "t": "Are you still drumming? Even without applause?"
+    },
+    {
+      "id": "ep-27a:7",
+      "source": "쪽지는 대답하지 않았다. 호랑이는 쪽지를 다시 접었다. 접는 손끝이 조심스러웠다. 장부를 덮을 때와는 다른 손이었다.",
+      "sourceHash": "43d11d7b56fca555bd2a8beb2ab4327109c25238556bb38cbcb97eee2a2fa05d",
+      "t": "The note did not answer. The tiger folded it again. Its fingertips were careful, different from the paw that closed the ledger."
+    },
+    {
+      "id": "ep-27a:8",
+      "source": "호랑이는 빵을 꺼내지 않았다. 망토 안의 다른 자리를 확인했다. 북 아이의 이름이 적힌 쪽지. 그 옆에 빵. 장부에 없는 것이 둘로 늘었다.",
+      "sourceHash": "e24e61564b5cd397844a07b2c411832642e77e9d9eb85b87fc37d372921c24d4",
+      "t": "It did not take out the bread. It checked another part of the cloak. The note with the drum boy's name. Bread beside it. Two things absent from the ledger now."
+    },
+    {
+      "id": "ep-27a:9",
+      "source": "장부를 펼쳤다. 연이의 칸에는 잔고 없음이라고 적혀 있었다. 그런데 그 아래, 누가 쓴 적도 없는 줄 하나가 희미하게 번져 있었다.",
+      "sourceHash": "96172565ff294d5d7d74446bd585f8a736bb70e4819c574b54711ca6bfc6d720",
+      "t": "It opened the ledger. Yeoni's entry read No balance remaining. Yet beneath it, a faint line nobody had written was spreading."
+    },
+    {
+      "id": "ep-27a:10",
+      "source": "[ 장부 · 乙亥 연이 · 미수 1 ]",
+      "sourceHash": "292b35ab917abeae54d6bbcb5b5ad4733c37b5e41785fe1d0e39225cb3cfa5ee",
+      "t": "[ Ledger · Eulhae Yeoni · Uncollected: 1 ]"
+    },
+    {
+      "id": "ep-27a:11",
+      "source": "미수.",
+      "sourceHash": "9f6d974ff9b20c80fe3136fce7d413f768a295e642aa89dcdb53feb694655857",
+      "t": "Uncollected."
+    },
+    {
+      "id": "ep-27a:12",
+      "source": "받지 못한 돈. 받아야 할 것이 남아 있다는 뜻이었다. 호랑이는 그 줄을 발톱으로 긁었다. 줄은 지워지지 않았다. 오히려 더 선명해졌다.",
+      "sourceHash": "5cec206a22a3551f7a1f9ebe468b69b02fa9ff07ce6ea88affc3192830c7830d",
+      "t": "Money not received. Something still owed. The tiger scratched the line with a claw. It would not erase. It grew clearer instead."
+    },
+    {
+      "id": "ep-27a:13",
+      "source": "내가 뭘 못 받았는데. 다 받았어. 그 애 내일까지 전부.",
+      "sourceHash": "1b6ce518ea66b791fd9a52fe2352728ece9a4714650e245bfda2b0b172aef440",
+      "t": "What haven't I collected? I took everything. Even that child's tomorrows."
+    },
+    {
+      "id": "ep-27a:14",
+      "source": "그 말을 하는 순간, 이마에 닿았던 감촉이 되살아났다. 아무것도 없는 아이가 제 이마로 고리를 밀던 감촉. 아프면 아프다고 하라던 목소리.",
+      "sourceHash": "1236ba58f7c3bdfd376544b13f7de2b13df0dad99eec812137035ef6fc4b7530",
+      "t": "As it spoke, a touch returned. The child with nothing, pushing the ring with their forehead. The voice saying to say it hurt when it hurt."
+    },
+    {
+      "id": "ep-27a:15",
+      "source": "받은 것은 운이었다. 그런데 장부는, 그녀가 무언가를 받았다고 적고 있었다. 갚지 못한 무언가를.",
+      "sourceHash": "2f976669ab6c22105d7a51ce1635c7325ccd5d578867cf724ccb73b9797ffc27",
+      "t": "What it had collected was fortune. Yet the ledger was recording that it had received something. Something it could not repay."
+    },
+    {
+      "id": "ep-27a:16",
+      "source": "오른 앞발의 고리가 갑자기 뜨거워졌다. 금장 고리가 붉게 달아오르며 한 칸, 또 한 칸 조여들었다. 뼈가 눌리는 소리가 났다.",
+      "sourceHash": "fad05321841e651b913643f753e2d6502e894ac89efe05c3b20608cb747f4b33",
+      "t": "The ring on its right forepaw suddenly heated. Glowing red, the golden band tightened one notch, then another. Bone sounded under pressure."
+    },
+    {
+      "id": "ep-27a:17",
+      "source": "크윽.",
+      "sourceHash": "f070484e3fccbe2227a5fde3176101974edfbc623a2549bb07b89e55ffcb8510",
+      "t": "Ghh."
+    },
+    {
+      "id": "ep-27a:18",
+      "source": "강물 위로 검은 금이 하나 그어졌다. 다른 하늘로 밀려난 틈. 틈 너머에서 목소리가 고리를 타고 흘러들었다.",
+      "sourceHash": "703de746b167c8388b454f77f97a24fed2b16d923571954e4411d95f514aa673",
+      "t": "A black fissure opened over the river. The gap into the other sky where it had been driven. From beyond, a voice flowed through the ring."
+    },
+    {
+      "id": "ep-27a:19",
+      "source": "호랑이야. 내 그릇을 감싸 안던 그 앞발. 아직 붙어 있구나.",
+      "sourceHash": "2521a4a0f9f96935ee0ead9a4207b70e1e7df654e42b427c738ff90616996afb",
+      "t": "Tiger. That paw you wrapped around my vessel. Still attached, I see."
+    },
+    {
+      "id": "ep-27a:20",
+      "source": "붙어 있습니다.",
+      "sourceHash": "2b3c99ddbb9e6611d4d2e15e9c95f03372082ec140282439dce2069d014e7654",
+      "t": "It is."
+    },
+    {
+      "id": "ep-27a:21",
+      "source": "아쉽구나. 떼어 갔어야 했는데.",
+      "sourceHash": "2633e474e148b7efdf72f10b4ce21ea83de296922ae2976f9607fe159527b3ba",
+      "t": "A pity. I should have taken it off."
+    },
+    {
+      "id": "ep-27a:22",
+      "source": "고리가 다시 조여들었다. 호랑이는 비명을 지르지 않았다. 바위에 발톱을 박고 버텼다. 바위가 갈라졌다.",
+      "sourceHash": "b76cb2dbe3f9ab6ae35b901ed586a2635da462ebebfd556f5459a12703dd5d7f",
+      "t": "The ring tightened again. The tiger did not scream. It drove its claws into the rock and held on. The rock cracked."
+    },
+    {
+      "id": "ep-27a:23",
+      "source": "너는 왜 내게 왔느냐. 기억하느냐.",
+      "sourceHash": "946538619b0bbfad26c8361cd75bc44c7036f82826d50db893617e825531caef",
+      "t": "Why did you come to me? Do you remember?"
+    },
+    {
+      "id": "ep-27a:24",
+      "source": "그 아이가 괴물이 되기 전에 막으려고요.",
+      "sourceHash": "0c305a357291a9639684364d624032a9f9bc702e76f9f4a160e1012a163084fd",
+      "t": "To stop that child before they became a monster."
+    },
+    {
+      "id": "ep-27a:25",
+      "source": "그래. 그 아이는 언젠가 모두를 배신한다. 너를 배신했듯이. 그걸 막을 기회를 준 것이 누구지.",
+      "sourceHash": "c4c178be9817c1ec3679903e7cf129b84418915da50d288f5ee2b6b40f056945",
+      "t": "Yes. One day, that child will betray everyone. As they betrayed you. Who gave you the chance to prevent it?"
+    },
+    {
+      "id": "ep-27a:26",
+      "source": "당신입니다.",
+      "sourceHash": "2f8b6bea6c463d3122beac6dbafced36c2d4a1f21fe4e1f44115e03319fce4b0",
+      "t": "You did."
+    },
+    {
+      "id": "ep-27a:27",
+      "source": "그 은혜를 잊었느냐.",
+      "sourceHash": "1b154e0d646644f99c1f72f8d306e44ea377cedb8607ea7a9421cc535f20e30e",
+      "t": "Have you forgotten that kindness?"
+    },
+    {
+      "id": "ep-27a:28",
+      "source": "잊지 않았습니다. 하루도.",
+      "sourceHash": "8b6ad64d37b89d6e2df16fe1e70c3c03a15d1e7c6bbe3c5d5fef59a2c2634c41",
+      "t": "I haven't. Not for a day."
+    },
+    {
+      "id": "ep-27a:29",
+      "source": "그런데 오늘 너는 그 아이를 구했다.",
+      "sourceHash": "62a533630525f89e78324d4904e2f9a8c7286fb33835afb9296873f6e17c1e85",
+      "t": "Yet today, you saved that child."
+    },
+    {
+      "id": "ep-27a:30",
+      "source": "호랑이는 대답하지 못했다. 강물 소리만 들렸다. 대답할 말이 정말로 없었다. 왜 그랬는지, 그녀 자신도 몰랐다.",
+      "sourceHash": "8590a2786dbb9870d4eb0e71b5553a0dae203ff8044a43031180fb74715c78c6",
+      "t": "The tiger could not answer. Only the river sounded. It truly had no words. It did not know why it had done it."
+    },
+    {
+      "id": "ep-27a:31",
+      "source": "대답 대신 장면 하나가 떠올랐다. 그녀가 고른 것이 아니었다. 고리가 조일 때마다 늘 이 장면이 비어져 나왔다.",
+      "sourceHash": "d897f5b29c98da181755c5106fb87d08e3d8d7495304f45cf01fa234f2166b27",
+      "t": "Instead of an answer, a scene rose. Not one it had chosen. Whenever the ring tightened, this scene always spilled out."
+    },
+    {
+      "id": "ep-27a:32",
+      "source": "비 오는 정류장. 젖은 벤치. 누군가 우산을 반쯤 기울여 주던 손. 얼굴은 늘 빗줄기에 가려 보이지 않았다.",
+      "sourceHash": "1e2e92a3afef55ceeafa3a309098fc62fe58cc2452201b22d3d593ea86c32ef0",
+      "t": "A rainy bus stop. A wet bench. A hand tilting an umbrella halfway toward it. Rain always hid the face."
+    },
+    {
+      "id": "ep-27a:33",
+      "source": "그리고 그다음 장면. 같은 손이 그녀를 밀어내던 장면. 그 손의 주인 눈 뒤에, 무언가 검고 둥근 것이 비쳤던 것 같은 기분.",
+      "sourceHash": "b9c6bde797684176315691420f95dd384c0fe2a78095e7d42626db95dcefa1ac",
+      "t": "And then the next scene. That same hand pushing it away. A sense that something black and round had glimmered behind the hand's owner's eyes."
+    },
+    {
+      "id": "ep-27a:34",
+      "source": "그 기분은 늘 거기서 끊겼다. 끊긴 자리를 흑월의 목소리가 메웠다. 그 아이는 배신한다. 그 아이는 배신한다.",
+      "sourceHash": "395be0a1d578abdc8ba877c7b6bf032a0af1811d5a3013d1e5b29d3fe27e6722",
+      "t": "That feeling always broke off there. Black Moon's voice filled the gap. That child betrays. That child betrays."
+    },
+    {
+      "id": "ep-27a:35",
+      "source": "하나 묻자. 그 빵은 얼마였느냐.",
+      "sourceHash": "b4163976b6f643adef565d95b3dfe60c6885fc5834f17e8e760ef495420431a3",
+      "t": "One question. How much was that bread?"
+    },
+    {
+      "id": "ep-27a:36",
+      "source": "네?",
+      "sourceHash": "e90774397330b356f02b6151396edc31d5a7be718de0c4a01f9a2248aa98da3f",
+      "t": "What?"
+    },
+    {
+      "id": "ep-27a:37",
+      "source": "네 망토 안에서 냄새가 난다. 장부에 없는 냄새가.",
+      "sourceHash": "638616b91e3ed562402028c5a1ab671ad2bfd58d2f5f9c9c9cbf7e8b800fa0be",
+      "t": "I smell something inside your cloak. A smell absent from the ledger."
+    },
+    {
+      "id": "ep-27a:38",
+      "source": "호랑이는 저도 모르게 망토를 앞발로 감쌌다. 그 동작이 대답이 되었다. 틈 너머에서 웃음소리가 났다.",
+      "sourceHash": "a738ccfa76792c71206e785ae91c4b387e1749dd654af39b966c74eee917d152",
+      "t": "Without realizing, the tiger wrapped a paw around the cloak. That movement answered. Laughter came from beyond the fissure."
+    },
+    {
+      "id": "ep-27a:39",
+      "source": "공짜라더냐. 공짜는 없다. 네가 제일 잘 알지 않느냐. 그 빵 값은 나중에 반드시 청구될 것이다. 네 피로.",
+      "sourceHash": "e6734b04dfe370a2664b9a226ccaf4f5676cc9cca26f6d607018b3cff8860866",
+      "t": "They called it free? Nothing is free. You know that best. That bread's price will be charged one day. In your blood."
+    },
+    {
+      "id": "ep-27a:40",
+      "source": "빵 값은 제가 냅니다. 그 빵집은 건드리지 마세요.",
+      "sourceHash": "d18102381de59229418d8e5923fff015c0d2086d38fb0f2214d7cdd0fbbe7c90",
+      "t": "I'll pay for the bread. Leave that bakery alone."
+    },
+    {
+      "id": "ep-27a:41",
+      "source": "오호. 명령이냐.",
+      "sourceHash": "99ad5e01d5beb1e79f2c663774c65483963bfc953d4f4537c1acb07c7a81d5ea",
+      "t": "Oh? An order?"
+    },
+    {
+      "id": "ep-27a:42",
+      "source": "부탁입니다.",
+      "sourceHash": "6240fadd17489e050fa3de6de6095ed200ae85eca4ec2775f85d551171e40eed",
+      "t": "A request."
+    },
+    {
+      "id": "ep-27a:43",
+      "source": "고리가 마지막으로 크게 조였다. 호랑이의 몸이 앞으로 고꾸라졌다. 강물에 얼굴이 처박혔다. 차가운 물이 코로 들어왔다.",
+      "sourceHash": "a39791ee53177e6f42721557688a6f2db289a442cf68545b79d470929d797001",
+      "t": "The ring tightened fiercely one last time. The tiger pitched forward, face plunging into the river. Cold water entered its nose."
+    },
+    {
+      "id": "ep-27a:44",
+      "source": "부탁은 들어주마. 대신 일을 해라.",
+      "sourceHash": "ac616d52ac48dda7e2a741fce208f5e19f447ab1d0b1b3e302e21c18662317b6",
+      "t": "I'll grant your request. In return, do your job."
+    },
+    {
+      "id": "ep-27a:45",
+      "source": "그 아이는 사람의 세상으로 갔다. 저 고양이도 사람의 탈은 되찾았더구나. 이름까지 돌아온 건 아니지만.",
+      "sourceHash": "86a5f4b00998b09e467384e0f7a4c549aa847bd384431ffee1c9b83388b24f0b",
+      "t": "The child has gone to the human world. That cat regained his human shell, too. Though not his name."
+    },
+    {
+      "id": "ep-27a:46",
+      "source": "너도 가라. 사람의 얼굴로. 이번엔 저쪽에서 끝내라.",
+      "sourceHash": "9d4178790f01fc0f7034d951d2fb5f735420a371ccb2cefa755394d0e39e3af8",
+      "t": "Go as well. With a human face. This time, finish it there."
+    },
+    {
+      "id": "ep-27a:47",
+      "source": "사람의 얼굴은 오래전에.",
+      "sourceHash": "5992f0279ed70aba30d3db785d0526dd9741468b937caec63fe8152b6f4504bb",
+      "t": "My human face was lost long ago..."
+    },
+    {
+      "id": "ep-27a:48",
+      "source": "돌려주마. 빌려주는 거다. 이자는 알지?",
+      "sourceHash": "d3b1c827d4d651e7b9253c2acb0e81ebc302a6190c17a849e4e6e12933838c3c",
+      "t": "I'll return it. A loan. You know the interest."
+    },
+    {
+      "id": "ep-27a:49",
+      "source": "검은 털이 빗물처럼 흘러내렸다. 앞발이 손이 되고, 발톱이 손톱이 되었다. 고리는 사라지지 않았다. 오른 손목에 가는 금줄이 되어 살 속에 감겼다.",
+      "sourceHash": "8013fa843fef25df752349584c82b3ee2e7f211eac93c4671b55c932d61913c0",
+      "t": "Black fur streamed away like rain. Paws became hands, claws became nails. The ring did not vanish. It became a fine gold cord wound into the flesh of her right wrist."
+    },
+    {
+      "id": "ep-27a:50",
+      "source": "틈이 닫혔다. 강가에는 젖은 머리카락의 여자 하나가 무릎을 꿇고 있었다. 손에는 아직 장부가 쥐어져 있었다.",
+      "sourceHash": "da2cbb2c2100a885c0d82f3228b0948799a310f63411fd603fc52989fc884a68",
+      "t": "The fissure closed. A woman with wet hair knelt on the riverbank. She still held the ledger."
+    },
+    {
+      "id": "ep-27a:51",
+      "source": "여자는 오래 그대로 있었다. 그러다 망토를 뒤졌다. 망토는 이제 검은 코트가 되어 있었다. 안주머니에 쪽지 하나와 빵 하나.",
+      "sourceHash": "ee1d3e3463973b9dbbf16e2d0d04200565c91cb620e17755a17487348723e905",
+      "t": "She remained there a long time. Then searched her cloak, now a black coat. Inside its pocket, a note and a roll."
+    },
+    {
+      "id": "ep-27a:52",
+      "source": "여자는 빵을 꺼냈다. 종이를 벗겼다. 차가웠다. 한 입 베어 물었다.",
+      "sourceHash": "54b00ed4c5fe19882e231fb128fc25c593fbea7402d89e24cc81be4475bb949a",
+      "t": "She took out the bread, removed the paper. Cold. She bit into it."
+    },
+    {
+      "id": "ep-27a:53",
+      "source": "식은 빵이었다. 그런데 단맛이 났다. 버터 냄새가 났다. 혀끝에서 천천히, 장부에 적을 수 없는 맛이 퍼졌다.",
+      "sourceHash": "c8cbc308a1c6f10a7df4e8d2fc6845663501579bfca3ac6496ed22589ab58f3a",
+      "t": "Cold bread. Yet it was sweet. It smelled of butter. A flavor no ledger could record spread slowly across her tongue."
+    },
+    {
+      "id": "ep-27a:54",
+      "source": "여자의 어깨가 한 번 떨렸다. 울지는 않았다. 빗물이 얼굴을 타고 흘렀을 뿐이었다.",
+      "sourceHash": "4451a6adfaa6dc14a8c335053bdfcd1f9d31eb66b326d555be00319fe0c8d075",
+      "t": "Her shoulders trembled once. She did not cry. Only rainwater ran down her face."
+    },
+    {
+      "id": "ep-27a:55",
+      "source": "빵을 반만 먹고, 나머지 반은 다시 종이에 싸서 넣었다. 왜 그랬는지 묻는 사람은 없었다. 물어도 대답하지 못했을 것이다.",
+      "sourceHash": "943e499c55891194c0bd433fcb3d1705eeb155ef782c418b6da1614e060fdff6",
+      "t": "She ate half, wrapped the other half again, and put it away. No one asked why. Even if someone had, she could not have answered."
+    },
+    {
+      "id": "ep-27a:56",
+      "source": "비 오는 밤. 낡은 아파트 복도에 형광등 하나가 깜빡였다. 복도 끝 두 집. 한 집 문 앞에는 귀퉁이가 찢어진 우산꽂이가 있었다.",
+      "sourceHash": "c51d536d3c682c38498c758fe98d2c43ba620f2de8289d3ae3f626fd37e448c5",
+      "t": "A rainy night. A fluorescent light flickered in an old apartment corridor. Two homes at its end. Before one stood an umbrella holder with a torn corner."
+    },
+    {
+      "id": "ep-27a:57",
+      "source": "그 옆 빈집 문 앞에 검은 우산 하나가 세워졌다. 빗물이 우산 끝에서 바닥으로 똑똑 떨어졌다.",
+      "sourceHash": "395273d24788c0fc63626cc23f02b59cb8a7236ce4b52e74f2cf5357163f0a6e",
+      "t": "A black umbrella was propped before the vacant home next door. Water dripped from its tip onto the floor."
+    },
+    {
+      "id": "ep-27a:58",
+      "source": "문이 열렸다가 닫혔다. 복도에는 비 냄새만 남았다.",
+      "sourceHash": "e590e1a9f9e0d11f01a1bf2e848b13796151ed1002e3717c68af9fa5d9c76f8d",
+      "t": "The door opened, then closed. Only the smell of rain remained in the corridor."
+    },
+    {
+      "id": "ep-27a:59",
+      "source": "빈집은 텅 비어 있었다. 바닥에 먼지가 쌓여 있었다. 여자는 불도 켜지 않고 창가에 섰다. 젖은 코트에서 물이 떨어졌다.",
+      "sourceHash": "aae410f13307517cb012ef45b89d473b0ab8e1e2103345c6261c49897ab88cb9",
+      "t": "The vacant apartment was empty. Dust covered the floor. Without turning on the light, the woman stood by the window. Water fell from her wet coat."
+    },
+    {
+      "id": "ep-27a:60",
+      "source": "얇은 벽 너머에서 소리가 났다. 무언가 바닥에 떨어지는 소리. 그리고 졸린 목소리.",
+      "sourceHash": "7b134d8e708c02a15cbbc088a3d5fb809050b80b4fa22e3194779577c831d6af",
+      "t": "Sounds came through the thin wall. Something dropping onto the floor. Then a sleepy voice."
+    },
+    {
+      "id": "ep-27a:61",
+      "source": "네오, 그거 내 양말이야. 버리지 마. 구멍 조금 난 것뿐이잖아.",
+      "sourceHash": "3dbfdc408ce52c44b64c0d8388d7a9e21f70491db6421545008572f2ffe07b64",
+      "t": "Neo, that's my sock. Don't throw it out. It's only a little hole."
+    },
+    {
+      "id": "ep-27a:62",
+      "source": "여자는 벽에 손바닥을 댔다. 오른 손목의 금줄이 차갑게 빛났다. 벽 너머에서 낮은 목소리가 뚝 끊겼다. 누군가 이쪽의 기척을 알아챈 듯했다.",
+      "sourceHash": "7e80818a850c780a29115598f65fac43f2db623c0641c54d73780dd7423af20d",
+      "t": "The woman pressed a palm to the wall. The golden cord at her right wrist shone coldly. A low voice on the other side stopped short. As though someone had sensed her."
+    },
+    {
+      "id": "ep-27a:63",
+      "source": "여기서도 시끄럽네요, 두 분.",
+      "sourceHash": "4499d27c9e5d3198bdaa78d3bb21978b252ccad0c2cc8a25a02677d7f4e8c84a",
+      "t": "You two are noisy even here."
+    },
+    {
+      "id": "ep-27a:64",
+      "source": "여자는 손을 거두었다. 그리고 젖은 코트를 벗지 않은 채 바닥에 앉아, 벽에 등을 기댔다. 벽 너머의 소리가 잦아들 때까지.",
+      "sourceHash": "f2be35eb8423ea9a0f99b8f439e0e1228ee814900525c7829d0451e39537f59a",
+      "t": "She withdrew her hand. Without removing her wet coat, she sat on the floor and leaned against the wall. Until the sounds beyond it faded."
+    },
+    {
+      "id": "ep-27a:65",
+      "source": "장부는 무릎 위에 펼쳐져 있었다. 미수 한 줄이 어둠 속에서 희미하게 빛났다. 여자는 그 줄을 오래 바라보다가, 장부를 덮었다.",
+      "sourceHash": "989dfca2998774cebe4511a10acc447e4fa1e1ab3728fede246fe481315abb6f",
+      "t": "The ledger lay open on her knees. One uncollected line glowed faintly in the dark. She looked at it for a long time, then shut the book."
+    }
+  ]
+}

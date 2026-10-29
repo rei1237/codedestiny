@@ -1,0 +1,449 @@
+{
+  "locale": "en",
+  "episodeId": "ep-28a",
+  "tag": "Episode 28 Side Story · The Black Umbrella Next Door",
+  "title": "The Black Umbrella Next Door",
+  "sourceTitle": "옆집의 검은 우산",
+  "sourceTag": "제28화 외전 · 옆집의 검은 우산",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-28a:1",
+      "source": "사흘째 맑았다. 하늘은 높았고, 일기 예보는 일주일 내내 해 그림이었다.",
+      "sourceHash": "1b98e48f590fcbd805d2eec8f227080a484ef95e1f9ad59680f41439cb4f8bd0",
+      "t": "Three clear days in a row. A high sky, and sun icons across the whole week's forecast."
+    },
+    {
+      "id": "ep-28a:2",
+      "source": "그런데 옆집 여자는 오늘도 검은 우산을 들고 나왔다.",
+      "sourceHash": "6564101b50bf9f78b67c46500e1e06e184372a1e02f830825b74b60c492b1f38",
+      "t": "Yet the woman next door came out with her black umbrella again."
+    },
+    {
+      "id": "ep-28a:3",
+      "source": "(또 우산. 오늘 강수 확률 0퍼센트인데.)",
+      "sourceHash": "8b974205f62664b6e0d0c099af465089227a0a2070355dbe9852e2cc03b797f2",
+      "t": "(Umbrella again. Zero percent chance of rain today.)"
+    },
+    {
+      "id": "ep-28a:4",
+      "source": "엘리베이터 앞이었다. 여자는 우산을 접은 채 손잡이를 쥐고 있었다. 꼭 쥔 손이 하얬다.",
+      "sourceHash": "ce6eeee50dbb8c265d55679bfb6256118322f2b9b8bd6fe24ef9df8eec74e977",
+      "t": "They stood by the elevator. The woman held the folded umbrella's handle. Her tightly clenched hand was white."
+    },
+    {
+      "id": "ep-28a:5",
+      "source": "안녕하세요. 오늘도 우산 챙기셨네요. 제가 예보를 잘못 봤나 했어요.",
+      "sourceHash": "480020036b90b4e3d0383f7858065ea24d660e9d92e52cf28891f6a2cf95de52",
+      "t": "Hello. You brought your umbrella again. I wondered if I'd read the forecast wrong."
+    },
+    {
+      "id": "ep-28a:6",
+      "source": "안 와요. 그냥 들고 다니는 거예요.",
+      "sourceHash": "256c4ffd6ed5e8c8bfa829da773819b5acb7d0b2d7c5f18167f4b3d6198b83f0",
+      "t": "It won't rain. I just carry it.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28a:7",
+      "source": "아, 그럼 양산 같은 거예요? 햇빛 가리시는.",
+      "sourceHash": "118fee1e54fdb59d1b7973b42012514db9b67a42b69843730030cc7b6400f5eb",
+      "t": "Oh, so like a parasol? To shade you from the sun."
+    },
+    {
+      "id": "ep-28a:8",
+      "source": "비슷해요. 해가 좀 따가워서요.",
+      "sourceHash": "118d6b8fc75540f7a7026f2cd886d68c935854c4d3122011e9e48503f24e0adb",
+      "t": "Something like that. The sun stings a little.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28a:9",
+      "source": "대화는 거기서 끊겼다. 엘리베이터 숫자가 천천히 내려왔다. 침묵이 한 층씩 무거워졌다.",
+      "sourceHash": "122e4d9c4ce7f6b2e287973b9b674794b25b5de98c649b0e3202a2c3400781be",
+      "t": "The conversation ended there. The elevator numbers descended slowly. Silence grew heavier one floor at a time."
+    },
+    {
+      "id": "ep-28a:10",
+      "source": "저 연이예요. 옆집이요. 이름 여쭤봐도 돼요?",
+      "sourceHash": "83e8b68d3a0d542d11688d60bb74b4d28d833202aeae30f60094206433a7a3ad",
+      "t": "I'm Yeoni. Next door. May I ask your name?"
+    },
+    {
+      "id": "ep-28a:11",
+      "source": "이름은… 나중에 알려 드릴게요.",
+      "sourceHash": "0c600778d7e63f5438454c47a01037dfd7edc98295dfbfc0b05d7b347f8838d0",
+      "t": "My name... I'll tell you later.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28a:12",
+      "source": "왜요? 이름이 비밀이에요?",
+      "sourceHash": "f077f3049d53291d0ffc90eff92e739fb25c968410fdebda7a811f5814ef3e22",
+      "t": "Why? Is it a secret?"
+    },
+    {
+      "id": "ep-28a:13",
+      "source": "이름을 알려 주면 빚지는 기분이 들어서요. 받을 것도 없는데 주는 건 좀.",
+      "sourceHash": "e0e4ede5bc58ec205b7e2f918ffa60e89ea34996a1f6011ac6d80de9157509db",
+      "t": "Giving someone my name feels like owing them. Giving something when there's nothing to receive is a little...",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28a:14",
+      "source": "연이의 귀 뒤가 간질거렸다. 어디선가 들어 본 말 같았다. 그러나 어디서인지는 떠오르지 않았다.",
+      "sourceHash": "9ac3b9e07fac3fa8160c2f5a93137b6c0508dc7dfc8e7e73b46544c184fe94da",
+      "t": "Behind Yeoni's ear, something tingled. It sounded like something heard before. But where would not come to mind."
+    },
+    {
+      "id": "ep-28a:15",
+      "source": "(이름이 빚이라니. 뭐 그런 말이 다 있어. …근데 왜 익숙하지.)",
+      "sourceHash": "4ff2074ef7e1a62f708414544ac8b6cf60b80fb90c7a3bc76550d07750f0d5cf",
+      "t": "(A name as a debt. Who says that? ...And why does it feel familiar?)"
+    },
+    {
+      "id": "ep-28a:16",
+      "source": "엘리베이터가 도착했다. 둘은 나란히 탔다. 거울 속에 두 사람이 비쳤다. 여자는 거울을 보지 않았다.",
+      "sourceHash": "6493a71c5c738681d9371cd5e1ac60ba8b8fcc758bc989aacdc38b175d3886f0",
+      "t": "The elevator arrived. They entered side by side. Two figures reflected in its mirror. The woman did not look."
+    },
+    {
+      "id": "ep-28a:17",
+      "source": "이사 오신 지 며칠 됐는데 소리가 하나도 안 나요. 혹시 짐도 아직 안 푸셨어요?",
+      "sourceHash": "a232025bc515d585e0873bf703689a961d8f55a13a64060030197ac0e6c60639",
+      "t": "You've been here a few days, but I haven't heard a sound. Haven't you unpacked yet?"
+    },
+    {
+      "id": "ep-28a:18",
+      "source": "풀 짐이 별로 없어요. 오래 있을 집이 아니라서요.",
+      "sourceHash": "533cbfbba545cb283ce031a4f1871e39392bd80e036bfd14ae15e5a000cba6a3",
+      "t": "Not much to unpack. I won't be staying long.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28a:19",
+      "source": "아, 잠깐 지내시는 거예요? 출장 같은 거?",
+      "sourceHash": "459a37f0e297b31523cfe39bfc54a68e73dfef115d3453b4293691f4005e9ff5",
+      "t": "Oh, just a short stay? A business trip or something?"
+    },
+    {
+      "id": "ep-28a:20",
+      "source": "비슷해요. 일이 끝나면 가요. 끝나는 날은 아직 모르고요.",
+      "sourceHash": "05be09884c5bc32945a37e36e4d82455a27d5f92049fd5d5dd5276a6c36ce792",
+      "t": "Something like that. I'll leave when the job's finished. I don't know when that will be.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28a:21",
+      "source": "여자가 처음으로 연이 쪽을 보았다. 아주 짧게. 무언가를 확인하듯이. 그리고 다시 층수 표시만 보았다.",
+      "sourceHash": "0710a7915c190ea5b2b0b8f584446988c4f569e555ca621bc737d9a6872ac927",
+      "t": "For the first time, the woman looked at Yeoni. Very briefly, as if checking something. Then back to the floor display."
+    },
+    {
+      "id": "ep-28a:22",
+      "source": "(방금 왜 그렇게 봤지. 나한테 무슨 일이라도 생겼는지 살피는 것 같았어.)",
+      "sourceHash": "53a91bb13f0157c14632fabbbaf16d2866f6e89d5de104b1111c8e0b1d5540c6",
+      "t": "(Why did she look at me like that? Like she was checking whether something had happened to me.)"
+    },
+    {
+      "id": "ep-28a:23",
+      "source": "1층에서 문이 열리자 여자는 먼저 내렸다. 걸음이 빨랐다. 검은 우산 끝이 바닥을 톡, 톡 쳤다.",
+      "sourceHash": "903859f0de422bc4277699fd11ba729def2a5a9a33445859e45191f8fb50aabc",
+      "t": "When the doors opened on the first floor, the woman stepped out first, walking quickly. The black umbrella's tip tapped the floor."
+    },
+    {
+      "id": "ep-28a:24",
+      "source": "아파트 앞 놀이터에서 아이 하나가 넘어졌다. 무릎이 까졌다. 아이는 울지 않으려고 입술을 깨물었다.",
+      "sourceHash": "9729c07e94ac5c08b699a0c41190c99c01ffa336a491c4b8300107895f244522",
+      "t": "In the playground before the building, a child fell and scraped a knee. The child bit their lip, trying not to cry."
+    },
+    {
+      "id": "ep-28a:25",
+      "source": "연이가 달려가기도 전에 옆집 여자가 멈춰 섰다. 걷던 그대로, 뚝.",
+      "sourceHash": "e9b403bea3812f80a05a78e9a4e22aa6dbe093d1228e28b525bfeb3b5b683a83",
+      "t": "Before Yeoni could run over, the woman stopped. Midstride. Abruptly."
+    },
+    {
+      "id": "ep-28a:26",
+      "source": "여자는 우산을 바닥에 내려놓고 무릎을 꿇었다. 코트 안주머니에서 반창고가 나왔다. 꼭 준비해 둔 것처럼.",
+      "sourceHash": "8f0fb31b062c897556c93633efe50acfd7d1be3bc74a987cc2f872b22ba1d49b",
+      "t": "She set down the umbrella and knelt. A bandage came from her coat pocket, as though prepared in advance."
+    },
+    {
+      "id": "ep-28a:27",
+      "source": "많이 아프면 울어도 돼요. 참는다고 덜 아픈 거 아니에요.",
+      "sourceHash": "b236fcc81444c367cb9acb679200ec508c7e10f13cd4fc038e6f54dd386c81dc",
+      "t": "If it hurts a lot, you can cry. Holding it in doesn't make it hurt less.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28a:28",
+      "source": "아이는 결국 울었다. 여자는 달래지 않았다. 반창고만 조심스럽게 붙이고, 다 울 때까지 기다렸다.",
+      "sourceHash": "b692599b08f601ac920ae8d64159207a25815a339091eff140c3e6e53bc80f09",
+      "t": "The child finally cried. The woman did not soothe them. She simply applied the bandage carefully and waited until the crying was done."
+    },
+    {
+      "id": "ep-28a:29",
+      "source": "(말투는 차가운데 손은 엄청 조심스럽다.)",
+      "sourceHash": "2795959185f0e573f22dd368a3a739131797f5d3f728cdb3bcd947bf2f3991d1",
+      "t": "(Her voice is cold, but her hands are so careful.)"
+    },
+    {
+      "id": "ep-28a:30",
+      "source": "반창고를 붙이느라 소매가 걷혔다. 오른 손목에서 가는 금줄 같은 것이 반짝였다. 팔찌인가 싶었지만, 살 속에 묻혀 있는 것처럼 보였다.",
+      "sourceHash": "58cc48c237fe28c6e53a15e1759f852be7fb4032b7e80fe96e004ae397ecd60a",
+      "t": "Her sleeve rode up as she placed the bandage. Something like a thin golden cord flashed at her right wrist. A bracelet, perhaps, but it seemed embedded in the skin."
+    },
+    {
+      "id": "ep-28a:31",
+      "source": "여자는 연이의 시선을 느꼈는지 소매를 끌어내렸다. 그리고 아무 말 없이 우산을 집어 들었다.",
+      "sourceHash": "bd24abb061a4783df5b420d1d8e5e863fa8206f7354be7e721122cda3393e6b5",
+      "t": "Perhaps sensing Yeoni's gaze, she pulled down her sleeve. Then picked up her umbrella without a word."
+    },
+    {
+      "id": "ep-28a:32",
+      "source": "아이가 많이 놀랐나 봐요. 도와주셔서 다행이에요.",
+      "sourceHash": "d1605ee796f4010a50c9193ea245e132a99e3a8f45da63ffe39a9ce5f996cd67",
+      "t": "The child must have been really frightened. I'm glad you helped."
+    },
+    {
+      "id": "ep-28a:33",
+      "source": "고마울 거 없어요. 그냥 지나가다가.",
+      "sourceHash": "e21df51def6fa91b1dcb9d3f31848517d2c8faea4323d7458bfa7de8264345bd",
+      "t": "Nothing to thank me for. I was just passing.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28a:34",
+      "source": "지나가다가라기엔 그녀는 한참을 멈춰 있었다. 연이는 그 뒷모습을 오래 보았다.",
+      "sourceHash": "0a803e5eacc4f729dbfd2f2a6697862e99c17fa11c6e2c2c7d7220b1ec8af186",
+      "t": "For someone just passing, she had stopped a long time. Yeoni watched her walk away."
+    },
+    {
+      "id": "ep-28a:35",
+      "source": "아이 엄마가 뛰어와 고개를 숙였다. 여자는 인사를 받지 않고 이미 저만치 걷고 있었다. 감사 인사가 무거운 짐이라도 되는 것처럼.",
+      "sourceHash": "4abcc82b8eeaf69a0be30c869745e9b7105d4b0efd75e67421f678a90b297c13",
+      "t": "The child's mother ran up and bowed. The woman was already too far away to accept it. As though gratitude were a heavy burden."
+    },
+    {
+      "id": "ep-28a:36",
+      "source": "(고맙다는 말을 피해. 고맙다는 말 들으면 큰일 나는 사람처럼.)",
+      "sourceHash": "3da35e0acab69cbce0f21373f39f46379bbfc1f7ef9d7e5c71183c600c483e65",
+      "t": "(She avoids being thanked. Like hearing thank you would bring disaster.)"
+    },
+    {
+      "id": "ep-28a:37",
+      "source": "아이가 연이의 소매를 당겼다. 저 언니 이름이 뭐냐고 물었다. 연이도 몰랐다.",
+      "sourceHash": "8d8b3288ef46aa3aefcc8f80543d77421b3001a802e0673cc3c20cde20a4a8d7",
+      "t": "The child tugged Yeoni's sleeve and asked the woman's name. Yeoni didn't know, either."
+    },
+    {
+      "id": "ep-28a:38",
+      "source": "언니도 몰라. 다음에 만나면 꼭 물어볼게. 이번엔 대답해 주시겠지.",
+      "sourceHash": "e6ec6cdb1f5614537004e2833ea640776b6ba4b6df792dceb15a94977e116580",
+      "t": "I don't know. I'll be sure to ask next time. Maybe she'll answer then."
+    },
+    {
+      "id": "ep-28a:39",
+      "source": "집에 오니 네오가 현관에서 기다리고 있었다. 연이가 젖지 않은 소매를 걷자 그가 잠깐 고개를 기울였다.",
+      "sourceHash": "08b2fe029399132d4898f152383f5b5d8a76590afa1ae6aee7abf432a5423287",
+      "t": "At home, Neo waited in the entryway. When Yeoni rolled up a dry sleeve, he tilted his head briefly."
+    },
+    {
+      "id": "ep-28a:40",
+      "source": "「그 여자 또 만났어? 비 냄새가 나.」",
+      "sourceHash": "ba65dbf25606d878052bfe07ba1ba8dc8f11e5ccd378eaf58abf23523d5d7843",
+      "t": "“You met that woman again? You smell of rain.”"
+    },
+    {
+      "id": "ep-28a:41",
+      "source": "오늘 맑았거든요, 고객님. 비 냄새가 날 리가 없어요.",
+      "sourceHash": "30391f5a290d07fe3512e8616348b5826dfcff755fda95a4b66e9304ac5eba24",
+      "t": "It was clear today, dear customer. No possible smell of rain."
+    },
+    {
+      "id": "ep-28a:42",
+      "source": "「그러니까 이상하지. 맑은 날에 비 냄새가 나는 사람이라니.」",
+      "sourceHash": "5363ae175b6e53beec0c0cf06303d6a02af4389fb87a40dd5fee714c4d9f17c7",
+      "t": "“That's what's strange. Someone who smells of rain on a clear day.”"
+    },
+    {
+      "id": "ep-28a:43",
+      "source": "(맞아. 이상하긴 해. 맑은 날 우산, 맑은 날 비 냄새.)",
+      "sourceHash": "3407b9c5b66a20425c18daa825c8b5d7b68efcb0746b5b5cb0aab824e6f7fc79",
+      "t": "(Right. It is strange. An umbrella in clear weather. Rain scent in clear weather.)"
+    },
+    {
+      "id": "ep-28a:44",
+      "source": "연이는 소파에 앉아 메모장을 열었다. 사흘 전에 적은 목록이 있었다. 빵. 루나. 모카. 윤달. 검은 호랑이.",
+      "sourceHash": "b19f9c791c2aa940ecf7afbbdba796a65542a50369b1eb8e5026514388557257",
+      "t": "Yeoni sat on the sofa and opened their notes. The list from three days ago. Bread. Luna. Moka. Yundal. Black tiger."
+    },
+    {
+      "id": "ep-28a:45",
+      "source": "그런데 목록을 읽어도 얼굴이 잘 떠오르지 않았다. 모카의 꼬리가 무슨 색이었더라. 윤달의 장갑은 어느 손이었더라.",
+      "sourceHash": "1ec6a96f6b0c9cad04bc30317ea26923db2c5006e5cbda1bcd03430ef66af10d",
+      "t": "But reading it did not clearly bring back their faces. What color was Moka's tail? Which hand wore Yundal's glove?"
+    },
+    {
+      "id": "ep-28a:46",
+      "source": "네오. 나 벌써 흐려지고 있어. 모카 목소리가 기억이 안 나.",
+      "sourceHash": "a6bff5aa196e3499357462d29b96eac58757400f55108d50471d124b23c391bb",
+      "t": "Neo. It's already blurring. I can't remember Moka's voice."
+    },
+    {
+      "id": "ep-28a:47",
+      "source": "「나도 조금씩 흐려져. 이쪽에 오래 있을수록 저쪽 일이 멀어지는 것 같아.」",
+      "sourceHash": "903ac12739e35fa3292750e4861be50cb171ced1918009435e7c0a3880e4a511",
+      "t": "“Mine, too, little by little. The longer we're here, the farther away things over there seem.”"
+    },
+    {
+      "id": "ep-28a:48",
+      "source": "그럼 더 적을래. 지워지는 것보다 빨리.",
+      "sourceHash": "c2a4ce8af16ac082da89c5092dcc14730aceca702a23398de2786ce91e78f09e",
+      "t": "Then I'll write more. Faster than it disappears."
+    },
+    {
+      "id": "ep-28a:49",
+      "source": "연이는 목록 아래에 한 줄씩 덧붙였다. 모카, 수달, 랩 못함. 윤달, 오른손 장갑, 궁합 사기. 검은 호랑이, 붉은 눈, 이름은 빚.",
+      "sourceHash": "dc90d0cfab363e0d063052e2fdfc84420f2bf1b9b35244d6b9dec090d7183f3b",
+      "t": "Yeoni added lines beneath the list. Moka, otter, bad at rap. Yundal, right-hand glove, compatibility scams. Black tiger, red eyes, a name is a debt."
+    },
+    {
+      "id": "ep-28a:50",
+      "source": "마지막 줄을 적다가 손가락이 멈췄다. 이름은 빚. 오늘 엘리베이터 앞에서 들은 말과 같은 모양이었다.",
+      "sourceHash": "f5f95fd6dc200bf96c3d89e9ce8f2ee9a25adc3c043890b25eeef2c90a903db0",
+      "t": "At the last line, their fingers stopped. A name is a debt. The same shape as the words by the elevator today."
+    },
+    {
+      "id": "ep-28a:51",
+      "source": "(설마. 아니야. 그 호랑이는 저쪽에 있잖아. 여긴 현실이고.)",
+      "sourceHash": "bb3023a3dc1056099892ad885b80a294c17f75abd9f506ea9ca5f687527ddb03",
+      "t": "(Could it be? No. That tiger is over there. This is reality.)"
+    },
+    {
+      "id": "ep-28a:52",
+      "source": "「무슨 생각 해? 표정이 심각한데.」",
+      "sourceHash": "3b760c10fb0839571a2bc852bca0c958bdad17a55577af404e62b5e3738e43d2",
+      "t": "“What are you thinking? You look serious.”"
+    },
+    {
+      "id": "ep-28a:53",
+      "source": "아니야. 그냥, 말버릇 비슷한 사람이 세상에 많다는 생각.",
+      "sourceHash": "ac2fb908927ccbdb50965336b5c91113cbc3cc232320c09fb5d1966926cdf4e0",
+      "t": "Nothing. Just that lots of people in the world have similar ways of speaking."
+    },
+    {
+      "id": "ep-28a:54",
+      "source": "연이는 마지막 단어에 밑줄을 그었다. 옆에 놓인 휴대폰이 짧게 울렸다. 메모를 찍어 둔 화면 위로 작은 우산 표시가 깜빡였다. 처음 보는 표시였다.",
+      "sourceHash": "cb14714a64fb8e230c9270bf150ef271cb4c1e90233acd5156b7363bbfc407ea",
+      "t": "Yeoni underlined the last word. The phone beside them gave a brief chime. Over a captured image of the notes, a tiny umbrella icon blinked. An unfamiliar symbol."
+    },
+    {
+      "id": "ep-28a:55",
+      "source": "밤늦게 연이는 분리수거를 하러 복도로 나갔다. 형광등은 오늘도 깜빡였다.",
+      "sourceHash": "f1ee6a63aa26d04e340ca7b4c505a72992c2f1cbed7ccf71095e4fcbd5705ebb",
+      "t": "Late that night, Yeoni went into the corridor with the recycling. The fluorescent light flickered again."
+    },
+    {
+      "id": "ep-28a:56",
+      "source": "복도 끝 창가에 옆집 여자가 서 있었다. 검은 우산을 펼쳐 쓴 채였다. 실내에서, 비도 오지 않는 밤에.",
+      "sourceHash": "0f64906f611fca984ad02aa717c03a50d836bc0293cc04297c3e1e3eb4aca3d5",
+      "t": "At the window at the corridor's end stood the woman next door. Beneath her open black umbrella. Indoors, on a night without rain."
+    },
+    {
+      "id": "ep-28a:57",
+      "source": "…안 주무세요? 거기서 뭐 하세요?",
+      "sourceHash": "04b729c72af85cd58d7b540db1eff5d022e13e27f7813ab8e8b6ffb15bf59c0b",
+      "t": "...Not sleeping? What are you doing there?"
+    },
+    {
+      "id": "ep-28a:58",
+      "source": "여자가 천천히 돌아보았다. 우산 그늘 아래 눈이 어두웠다. 그런데 형광등이 깜빡이는 순간, 그 눈동자에 붉은빛이 스쳤다.",
+      "sourceHash": "b0b0b51a5e0ec3262ca86bde486cf8f78da171594b8cb5077ad501a49db31fe0",
+      "t": "The woman slowly turned. Her eyes were dark beneath the umbrella's shadow. But when the light flickered, red flashed in them."
+    },
+    {
+      "id": "ep-28a:59",
+      "source": "(붉은… 아니야. 형광등 탓이야.)",
+      "sourceHash": "127d88c29d8fb740b7a9644c73b33cc8bc3c31e09cad06c7cc3369dc84751796",
+      "t": "(Red... no. The fluorescent light.)"
+    },
+    {
+      "id": "ep-28a:60",
+      "source": "들어가세요. 감기 걸려요.",
+      "sourceHash": "d58a2964fd89a43f16383714a0bf880f1d3c2eae57253071eb26d6d24f96be5c",
+      "t": "Go inside. You'll catch a cold.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28a:61",
+      "source": "감기요? 비도 안 오는데요.",
+      "sourceHash": "60e94d9676f35590ea8a6d4e798dd8fbb3058d6d32e49eb1f97134694f029408",
+      "t": "A cold? It isn't even raining."
+    },
+    {
+      "id": "ep-28a:62",
+      "source": "그러네요. 안 오네요.",
+      "sourceHash": "afa8383c2d83aae643172551d539331d7fe91e67cfbefe6515780efe389911c3",
+      "t": "You're right. It isn't.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28a:63",
+      "source": "(이 사람, 지금 나한테 비를 맞지 말라고 하는 거야. 비가 안 오는데도.)",
+      "sourceHash": "4f55a16d3348573e692604d00301c89b01c18f7f37336bdfac7bc47440b9d0ce",
+      "t": "(She's telling me not to get rained on. Even though there's no rain.)"
+    },
+    {
+      "id": "ep-28a:64",
+      "source": "그쪽도 들어가세요. 복도 춥잖아요. 우산 쓰고 서 있으면 더 추워 보여요.",
+      "sourceHash": "b2f37a954fa166a2a6531e2b6646e88ab8389e06e2f2a7ad1b9c446ec1efb2f8",
+      "t": "You should go inside, too. The corridor's cold. Standing under an umbrella makes you look even colder."
+    },
+    {
+      "id": "ep-28a:65",
+      "source": "저는 괜찮아요. 여기 서 있어야 잠이 와요.",
+      "sourceHash": "76ce185488620370bac10f00691cc22fecfcfb667e4057ea07acb48fd99e5dd6",
+      "t": "I'm fine. I need to stand here before I can sleep.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28a:66",
+      "source": "이상한 대답이었다. 그런데 연이는 더 묻지 않았다. 묻으면 그 사람이 부서질 것 같았다.",
+      "sourceHash": "245d661db5347845bd5d2bcbee5d14e614596a902732b9af3df20c7de5b2d22b",
+      "t": "A strange answer. But Yeoni asked no more. It felt as though another question might break her."
+    },
+    {
+      "id": "ep-28a:67",
+      "source": "연이는 들고 있던 봉지에서 남겨 둔 빵 반쪽을 꺼냈다. 그리고 창틀 위에 조용히 올려 두었다.",
+      "sourceHash": "dbf993abb8b1a28df6c5966197bd9cb5cc29ca09976de84e6583bba4af66e13f",
+      "t": "Yeoni took the saved half-roll from the bag they carried and quietly placed it on the windowsill."
+    },
+    {
+      "id": "ep-28a:68",
+      "source": "야식이에요. 남은 거라 공짜예요. 안 드셔도 돼요.",
+      "sourceHash": "f04873ca091596a71f4b88a68870bb48a96583aa576c9ff6954bec0ec6f9221c",
+      "t": "A midnight snack. Leftover, so it's free. You don't have to eat it."
+    },
+    {
+      "id": "ep-28a:69",
+      "source": "여자는 우산을 접지 않았다. 연이가 문을 닫을 때까지 창밖만 보고 있었다. 빵에는 손대지 않았다.",
+      "sourceHash": "97ed2f1a7774b365848690b6d5775f2a3f1d90a0c1bdc540518a434805094040",
+      "t": "The woman did not fold her umbrella. Until Yeoni closed the door, she only looked outside. She did not touch the bread."
+    },
+    {
+      "id": "ep-28a:70",
+      "source": "문을 닫고 나서야 연이는 알았다. 복도 바닥에 물 자국이 이어져 있었다는 것을. 창가에서 옆집 문 앞까지. 비 한 방울 내리지 않은 밤에.",
+      "sourceHash": "b3e2b5d8c1d536942766673f86a70bd3e4cfb3b6af535782d6897ee361bbd692",
+      "t": "Only after closing the door did Yeoni realize. Water marks ran along the corridor floor, from the window to the neighbor's door. On a night without one drop of rain."
+    },
+    {
+      "id": "ep-28a:71",
+      "source": "아침에 나가 보니 창틀은 비어 있었다. 빵 봉지는 반듯하게 접혀 연이의 현관 손잡이에 걸려 있었다. 안에는 쪽지도 없었다.",
+      "sourceHash": "271d0b968934c28e2cca710913a9904ab811990259443f54d10eebee3a6fedb5",
+      "t": "The next morning, the windowsill was empty. The bread bag hung neatly folded from Yeoni's door handle. No note inside."
+    }
+  ]
+}

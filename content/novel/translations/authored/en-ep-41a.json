@@ -1,0 +1,486 @@
+{
+  "locale": "en",
+  "episodeId": "ep-41a",
+  "tag": "Episode 41 Side Story · After the Water Clears",
+  "title": "After the Water Clears",
+  "sourceTitle": "물이 맑아진 뒤",
+  "sourceTag": "제41화 외전 · 물이 맑아진 뒤",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-41a:1",
+      "source": "두 번째 글자가 떠오르기 직전이었다. 검은 것이 연이의 눈앞을 덮었다. 차가운 손바닥이 아니었다. 우산 천이었다.",
+      "sourceHash": "3305de798e0b8449a9df1a7f3242e9681b75cd391fbf1330c593bc7a71afe3c3",
+      "t": "Just before the second syllable appeared, something black covered Yeoni's view. Not a cold palm. Umbrella fabric."
+    },
+    {
+      "id": "ep-41a:2",
+      "source": "서한비가 테이프 감긴 우산을 문패 앞에 펼쳐 들고 있었다. 연이 가방 옆에 꽂혀 있던 그 우산이었다. 삐뚤어진 살 하나가 문패를 정확히 가렸다.",
+      "sourceHash": "e413fa7e5180b71cf128e4a3d385f3fcc14955bdea5f466ce9b9543d4f527666",
+      "t": "Seo Hanbi held the taped umbrella open before the nameplate. The umbrella that had been tucked beside Yeoni's bag. One crooked rib blocked the name perfectly."
+    },
+    {
+      "id": "ep-41a:3",
+      "source": "읽지 마세요. 뒤로 세 걸음. 지금.",
+      "sourceHash": "bfe1eefa7034f02cf7fe286a11f3abe9333e2cf18823ab02e124aeb960019285",
+      "t": "Don't read. Three steps back. Now."
+    },
+    {
+      "id": "ep-41a:4",
+      "source": "우산 하나로 이름을 가리겠다고. 너는 늘 그런 식이구나, 빗물아.",
+      "sourceHash": "2c2a1a9288faba82946c613ec9a881c95e7e06b3bd7785355dac2b0b9d065dbb",
+      "t": "Hide a name with one umbrella? You always act that way, rainwater."
+    },
+    {
+      "id": "ep-41a:5",
+      "source": "네. 늘 이런 식이에요. 이번엔 끝까지 이런 식으로 할 거예요.",
+      "sourceHash": "8b6c59474c34f6408d950919655f9ddd224684613f53e565d00f726ce37ac151",
+      "t": "Yes. Always. And this time, I'll keep doing it to the end."
+    },
+    {
+      "id": "ep-41a:6",
+      "source": "연이 씨, 눈 감고 뒤로. 모카 씨, 불 좀.",
+      "sourceHash": "ef6d0bb99f9a372b8ead4d2798583998617d87bb936c4c2bb79b024e0614ab18",
+      "t": "Yeoni, close your eyes and move back. Moka, some fire."
+    },
+    {
+      "id": "ep-41a:7",
+      "source": "모카가 성냥을 그었다. 작은 불이 일행 발치에 원을 그렸다. 문에서 뻗어 나오던 담쟁이가 불 앞에서 멈칫했다. 일행은 뒷걸음으로 5번 카드의 방까지 물러났다.",
+      "sourceHash": "0459cd357c26eb6843ba9d0aa9b011480673a6293d8b8bf93d8d90e83794cc8d",
+      "t": "Moka struck a match. A small flame drew a circle at their feet. The ivy reaching from the door hesitated before it. They backed into the room of Card Five."
+    },
+    {
+      "id": "ep-41a:8",
+      "source": "이 불 오래 못 가! 성냥 세 개 남았어!",
+      "sourceHash": "d96e18144a54983fb338cd2655ba9babe81b7367b28e7db136d06653988b2411",
+      "t": "This fire won't last! I've got three matches left!"
+    },
+    {
+      "id": "ep-41a:9",
+      "source": "문이 등 뒤에서 닫혔다. 담쟁이가 다시 문패를 덮었다. 흑월의 목소리도 그 안으로 잠겼다.",
+      "sourceHash": "bcd2235290193d40d83de434d29571a25c6a4e890c3f5ed4020bc6be54df1316",
+      "t": "The door closed behind them. Ivy covered the nameplate again. Black Moon's voice was sealed inside."
+    },
+    {
+      "id": "ep-41a:10",
+      "source": "5번 카드의 방은 오래된 성당 같았다. 높은 창으로 별빛이 들었다. 일행은 기둥 아래에 모여 앉았다. 모카의 불이 바닥에서 작게 탔다.",
+      "sourceHash": "3ab4b391622a6575b9414fb9b31f6113cc732f0805dc2af3f7b9f0915e4becce",
+      "t": "Card Five's room resembled an old cathedral. Starlight entered through high windows. They gathered beneath a pillar. Moka's little fire burned on the floor."
+    },
+    {
+      "id": "ep-41a:11",
+      "source": "6번 문은 밤에는 안 열려요. 이름이 제일 흐린 시간이라. 아침까지는 여기서 버텨요.",
+      "sourceHash": "dfabbf505e43e6086e809a39bb14a1a5b1f4c810896d2dc9e5e5229897275052",
+      "t": "Door Six won't open at night. That's when names are most blurred. We hold out here until morning."
+    },
+    {
+      "id": "ep-41a:12",
+      "source": "그럼 나 먼저 잔다. 윤달 오빠 불침번. 생년월일 묻지 말고.",
+      "sourceHash": "5c4b34d5c264a67c665e44d87bb89f936686f4bd254df015470bff9e6a0f5d04",
+      "t": "Then I'm sleeping first. Yundal, you're on watch. No asking birthdays."
+    },
+    {
+      "id": "ep-41a:13",
+      "source": "불침번은 물을 사람이 없어서 심심한데.",
+      "sourceHash": "1778fb03b2076e308a0ec8bca4153b577b0f837d50f45aef21fd5c16606985d5",
+      "t": "Watch duty is boring. Nobody to ask."
+    },
+    {
+      "id": "ep-41a:14",
+      "source": "모카는 대답 대신 코를 골기 시작했다. 진짜 잠든 건지 듣기 싫어서인지 알 수 없었다. 윤달은 웃으며 기둥 반대편으로 걸어갔다. 둘만 남겨 주려는 걸음이었다.",
+      "sourceHash": "67b5d0b1af5bbba786a545c08e5e0d00e4dd293a7451555cbb40fd756dd4bb1d",
+      "t": "Instead of answering, Moka began snoring. Whether he was asleep or simply refusing to listen was unclear. Yundal smiled and walked around the pillar, deliberately leaving the two alone."
+    },
+    {
+      "id": "ep-41a:15",
+      "source": "네오가 연이의 어깨에 기대 누워 있었다. 숨이 고르지 않았다. 연이는 그의 등에서 서늘한 빛이 스칠 때마다 손을 멈추고 다시 온기를 찾았다.",
+      "sourceHash": "e76aa7fa720955f3f0011a1cc3931ec46665c8c56d735a153f22d04d5a7b44c3",
+      "t": "Neo lay against Yeoni's shoulder, breathing unevenly. Whenever cool light brushed his back, Yeoni paused their hand and searched for warmth again."
+    },
+    {
+      "id": "ep-41a:16",
+      "source": "(이렇게 가벼울 리가 없는데. 내가 놓치고 있는 거 아니야?)",
+      "sourceHash": "2082b4dc318db9915607abf27696a3a8fb20ebaf95fcd2e4c71b22975c365715",
+      "t": "(He can't be this light. Am I missing something?)"
+    },
+    {
+      "id": "ep-41a:17",
+      "source": "서한비는 불 건너편에 앉아 우산을 접고 있었다. 살 하나가 계속 삐져나왔다. 접었다가, 다시 폈다가, 다시 접었다.",
+      "sourceHash": "91d68e3e09a959f996042309c2374effe1ac038e809da7951f3c8b7e64555444",
+      "t": "Across the fire, Seo Hanbi was folding the umbrella. One rib kept sticking out. She folded it, opened it, then folded it again."
+    },
+    {
+      "id": "ep-41a:18",
+      "source": "그거, 삐뚤어진 살은 원래 그래. 내가 고친 거라.",
+      "sourceHash": "43d43a60573ed24238be21c366ce0e45f57364cbc41d9f3b1c82a286de6395c3",
+      "t": "That crooked rib's always like that. I repaired it."
+    },
+    {
+      "id": "ep-41a:19",
+      "source": "알아요. 테이프를 세 겹 감았더라고요. 두 겹이면 충분했을 텐데.",
+      "sourceHash": "aa1196bf75d949f5e981ba8087e85b3354d0c034797daebf2c98e3845bfe003b",
+      "t": "I know. Three layers of tape. Two would have been enough."
+    },
+    {
+      "id": "ep-41a:20",
+      "source": "세 겹이 마음이 편해서.",
+      "sourceHash": "6c77d6924d1368580cc3b662d818cebaf1bf2506e23a62371214b333f1da8155",
+      "t": "Three makes me feel better."
+    },
+    {
+      "id": "ep-41a:21",
+      "source": "연이 씨다운 셈이네요.",
+      "sourceHash": "3ee1911cc2c455d88764574d34e64adb269ae4c3d657a2bfb63821617ddd68a7",
+      "t": "Arithmetic worthy of you, Yeoni."
+    },
+    {
+      "id": "ep-41a:22",
+      "source": "서한비가 우산을 내밀었다. 손잡이를 연이 쪽으로 돌려서. 받는 사람이 바로 쥘 수 있게.",
+      "sourceHash": "54f4f7f8700b4a36dc8aa34eae162580c12382a949250059cbf5f1beab71f9f2",
+      "t": "Seo Hanbi offered the umbrella handle-first, so Yeoni could take hold of it immediately."
+    },
+    {
+      "id": "ep-41a:23",
+      "source": "돌려드릴게요. 그날 정류장에서 받은 거. 저는 복도 바닥에 버렸고요.",
+      "sourceHash": "e3cb26bfa43ce454b877cfab882d8f958586e003f14e34f7ef45dbe1956df3e3",
+      "t": "Let me return this. What you gave me at the bus stop. I left it on the hallway floor."
+    },
+    {
+      "id": "ep-41a:24",
+      "source": "버린 거 내가 주워 온 거야. 주운 사람이 주인이지.",
+      "sourceHash": "7e02cb3f78a74212897a2ae664ce9a8265b5ae876f4cc8150271d70b10841e6d",
+      "t": "I picked it up after you threw it away. Finders keepers."
+    },
+    {
+      "id": "ep-41a:25",
+      "source": "그럼 더더욱 연이 씨 거죠.",
+      "sourceHash": "def90d7624fbc2116f9f8d73218859852e0ab5f872daf7a7708d5aed8a1829c6",
+      "t": "Then it's all the more yours."
+    },
+    {
+      "id": "ep-41a:26",
+      "source": "아니. 주운 사람이 주인이니까, 주인 마음대로 줄 수 있다고.",
+      "sourceHash": "8383eac014cb917e09fc91d9056cba6da6a467fbefc9f97e60ea05ad8392fa84",
+      "t": "No. Since finders keepers makes me the owner, I can give it away if I want."
+    },
+    {
+      "id": "ep-41a:27",
+      "source": "연이는 우산을 받지 않았다. 대신 손잡이 위에 서한비의 손을 겹쳐 놓고, 그 위를 톡톡 두드렸다. 계약서에 도장 찍듯이.",
+      "sourceHash": "74f7fb3cd33dec1090175ea2a9f890f6ed986949675cf3c15fe7f2da7b74fa96",
+      "t": "Yeoni didn't take the umbrella. Instead, they folded Seo Hanbi's hand over its handle and patted it twice, like stamping a contract."
+    },
+    {
+      "id": "ep-41a:28",
+      "source": "가져. 빌려주는 거 아님. 갚지 마.",
+      "sourceHash": "7470b13760de777f878d1c56ef64cbb7bf72bcf5aab12623ed49df86bb9accbe",
+      "t": "Keep it. It's not a loan. Don't repay me."
+    },
+    {
+      "id": "ep-41a:29",
+      "source": "서한비의 다른 손이 저도 모르게 코트 안쪽으로 갔다. 장부가 있던 자리였다. 장부는 이제 손바닥만 하게 줄어 있었다. 밤마다 한 줄씩 풀려 나가는 중이었다.",
+      "sourceHash": "f52b74dd91d2253dea9c670aad01ca81d4a498cd7bae00eb95393b00718962c9",
+      "t": "Seo Hanbi's other hand drifted unconsciously inside her coat, where the ledger lay. It had shrunk to palm size. Every night, one line was coming undone."
+    },
+    {
+      "id": "ep-41a:30",
+      "source": "습관이에요. 받으면 적으려고 해요. 손이 먼저 가요.",
+      "sourceHash": "bfc4e508255f1c06f26f972f45b24c32d66722b0eb6ab097922dfc4b3919329f",
+      "t": "Habit. When I receive something, I try to record it. My hand moves first."
+    },
+    {
+      "id": "ep-41a:31",
+      "source": "적어 봐. 어떻게 되나 보자.",
+      "sourceHash": "359cf00b66270cdbd6ea10dc02fb533eaeb093a504f043f27bfd05bb26c23aa1",
+      "t": "Try. Let's see what happens."
+    },
+    {
+      "id": "ep-41a:32",
+      "source": "서한비가 펜을 들었다. 우산 하나, 이라고 썼다. 잉크가 종이에 스미기도 전에 빗방울 하나가 그 위에 떨어졌다. 글자가 맑은 물이 되어 흘러내렸다.",
+      "sourceHash": "4c8837e56027ae5f0eecf0fe640152687358546b411720cbfed5fe79b24483cc",
+      "t": "Seo Hanbi picked up her pen and wrote: One umbrella. Before the ink could soak into the paper, a raindrop fell on it. The words became clear water and ran off."
+    },
+    {
+      "id": "ep-41a:33",
+      "source": "안 적혀요.",
+      "sourceHash": "8be77e8e7ba1204797171fe1083411aefa0bdb0ee6d4054569b55d1de94d3949",
+      "t": "It won't write."
+    },
+    {
+      "id": "ep-41a:34",
+      "source": "거봐. 장부도 갚지 말래.",
+      "sourceHash": "6e348e7cd52a26717748884bf6131bc8ecc353c2058dc2580634413b6c1290a3",
+      "t": "See? Even the ledger says not to repay it."
+    },
+    {
+      "id": "ep-41a:35",
+      "source": "서한비는 젖은 장부를 오래 내려다보았다. 그러다 아주 작게 웃었다. 소리 없이, 어깨만 한 번 흔들리는 웃음이었다.",
+      "sourceHash": "570279d8b4d5ef6a1993408771da7d7623bc4ba710b90d2b3489ef6f60dca4c8",
+      "t": "Seo Hanbi stared at the wet ledger for a long time. Then she gave a very small laugh, soundless, just one shake of her shoulders."
+    },
+    {
+      "id": "ep-41a:36",
+      "source": "불이 조금 낮아졌다. 연이가 장작 대신 마른 카드 조각 하나를 넣었다. 불꽃이 잠깐 별 모양으로 튀었다.",
+      "sourceHash": "b16136862e1fffc0acf94fb2d4d8ad3ec76e4641c65875f35708aece2361cd6d",
+      "t": "The fire burned lower. Yeoni added a dry scrap of card instead of wood. For an instant, the sparks burst into star shapes."
+    },
+    {
+      "id": "ep-41a:37",
+      "source": "저기. 하나 물어봐도 돼?",
+      "sourceHash": "361907fe3281f7cfac81edd90f9695c903ca45dcbdad8927747ec87baa5132f2",
+      "t": "Hey. Can I ask something?"
+    },
+    {
+      "id": "ep-41a:38",
+      "source": "장부 말고는 다 대답할게요.",
+      "sourceHash": "3fab60c375bb6f2c4203cc4ef27e237121514e834a4bf7ef5641edc4f769c96f",
+      "t": "Anything except the ledger."
+    },
+    {
+      "id": "ep-41a:39",
+      "source": "첫 번째 봄의 나는 너를 뭐라고 불렀어?",
+      "sourceHash": "c9d27834b324c9d8d9474c86782bb7370c534416d1aa0ad1484e8048db9df3ed",
+      "t": "What did the me from the first spring call you?"
+    },
+    {
+      "id": "ep-41a:40",
+      "source": "서한비의 손이 멈췄다. 우산 손잡이를 쥔 손가락에 힘이 들어갔다. 대답이 바로 나오지 않았다.",
+      "sourceHash": "62c6d62ce8b0c365a92d0f6e22f94936bfa49b99f7b59984f46ec614fcef7287",
+      "t": "Seo Hanbi's hand stopped. Her fingers tightened around the umbrella handle. The answer didn't come at once."
+    },
+    {
+      "id": "ep-41a:41",
+      "source": "실 타고 올 때 들은 것 같아. 흐릿하게. 근데 단어가 기억이 안 나.",
+      "sourceHash": "3d9e1c3a2b6f75187e195df5664f5c84e60730c9781c9c2838c5e46709cfdea4",
+      "t": "I think I heard it through the thread. Faintly. But I can't remember the word."
+    },
+    {
+      "id": "ep-41a:42",
+      "source": "그건 말 안 할래요.",
+      "sourceHash": "c7e382843a5e9dca254794d9252186af68050b98d4f7cb1468b902e30f8329ca",
+      "t": "I won't tell you that."
+    },
+    {
+      "id": "ep-41a:43",
+      "source": "왜. 나한테 한 말이잖아. 나 비슷한 사람이.",
+      "sourceHash": "f34c7621e002d55ee73b7753bef16e919b93254fa906aff8c545fea3c5283a3b",
+      "t": "Why? I said it to you. Someone like me, anyway."
+    },
+    {
+      "id": "ep-41a:44",
+      "source": "그 애한테 받은 거라서요. 연이 씨가 다시 부르면, 그 애가 진짜로 없어질 것 같아요.",
+      "sourceHash": "e5d8da48113e250d6c52fbfe2d776f284fd4334e38a7aca97e5d86b8e67598d6",
+      "t": "Because it was something she gave me. If you say it again, it feels as though she'll truly disappear."
+    },
+    {
+      "id": "ep-41a:45",
+      "source": "연이가 입을 다물자 불이 작게 튀었다. 네오의 눈꺼풀이 그 소리에 조금 움직였다.",
+      "sourceHash": "25f03cca82663575a4348f81aeb52333e87405ee7288b0928e1deef759d8ac45",
+      "t": "Yeoni fell silent. The fire crackled softly. Neo's eyelids stirred at the sound."
+    },
+    {
+      "id": "ep-41a:46",
+      "source": "그 애가 부럽다. 나보다 너를 먼저 알았잖아.",
+      "sourceHash": "5734a432d514c1438abcd5782afc8c3c1dc30e1c280c78d816868dc3c13a583e",
+      "t": "I'm jealous of her. She knew you before I did."
+    },
+    {
+      "id": "ep-41a:47",
+      "source": "그 애는 연이 씨예요. 같은 손으로 우산을 기울였어요.",
+      "sourceHash": "7beeefa0a229ecb9d0835b7295ba51abcb5a88bb28d8a238d00bda01859b551f",
+      "t": "She is you. The same hand tilted that umbrella."
+    },
+    {
+      "id": "ep-41a:48",
+      "source": "같은 손이어도 다른 봄이야. 그 봄은 네 거야. 내가 뺏으면 안 되지.",
+      "sourceHash": "cf965f83991837b27127074400fa170913f0951663dec4775297aaa9bfd28a70",
+      "t": "Same hand, different spring. That spring is yours. I shouldn't take it."
+    },
+    {
+      "id": "ep-41a:49",
+      "source": "그럼 나는 새로 지을게. 내 거로.",
+      "sourceHash": "d3cc60db5955060cec95bbf70881f19019147a5f71ab707b96ccc4348c9e91dd",
+      "t": "Then I'll make a new one. My own."
+    },
+    {
+      "id": "ep-41a:50",
+      "source": "뭘요?",
+      "sourceHash": "bce96873ec7d03f198e2e15076219c56b3213f8694213d4582cb8db9e0bc6c35",
+      "t": "A new what?"
+    },
+    {
+      "id": "ep-41a:51",
+      "source": "부를 이름. 서한비는 너무 길고, 서한비 씨는 너무 멀고. 호랑이 씨는 이제 틀렸고.",
+      "sourceHash": "5ac8ae3351d7c416ef4e3ffb60ad18f2b254addb7ffb3b0957bb6d33a548fcc7",
+      "t": "Name to call you. Seo Hanbi is too long. Ms. Seo Hanbi is too distant. And Ms. Tiger is wrong now."
+    },
+    {
+      "id": "ep-41a:52",
+      "source": "연이는 손가락으로 허공에 글자를 써 보았다. 하나, 둘. 지웠다. 다시 썼다.",
+      "sourceHash": "c02a11d3d568f7f13f8f075f29d433ab4b5b4277647945c7cb720865926f047f",
+      "t": "Yeoni traced letters in the air. One, two. Erased them. Wrote again."
+    },
+    {
+      "id": "ep-41a:53",
+      "source": "한비. 한비야.",
+      "sourceHash": "2629d4a583eefa01ac910b75476f2f5e1b8766bb3f312b89e2ed63b876764afd",
+      "t": "Hanbi. Hey, Hanbi."
+    },
+    {
+      "id": "ep-41a:54",
+      "source": "서한비가 고개를 들었다. 눈이 커졌다. 무언가를 말하려다 입술만 움직였다. 불빛 속에서 젖은 속눈썹이 반짝였다.",
+      "sourceHash": "efd25ce8bf669ec5ebd4ec4fdeaea071039fff0da5a971b99208671738af7125",
+      "t": "Seo Hanbi lifted her head, eyes widening. She tried to speak, but only her lips moved. Wet lashes glittered in the firelight."
+    },
+    {
+      "id": "ep-41a:55",
+      "source": "그거, 성 빼면 끝이잖아요. 너무 쉬워요.",
+      "sourceHash": "fca0ef8ad0d238569bbd4d5483af800c3e89f073921d8a6f8d7eca5954a25323",
+      "t": "That's just dropping the surname. Too easy."
+    },
+    {
+      "id": "ep-41a:56",
+      "source": "쉬운 게 좋아. 비 올 때 빨리 부를 수 있게.",
+      "sourceHash": "7f08b717503bd00a4c2e216657158d34a1bf7917f803d34912e6e425a493b3a8",
+      "t": "Easy is good. So I can call you quickly when it rains."
+    },
+    {
+      "id": "ep-41a:57",
+      "source": "비 올 때만 부르려고요?",
+      "sourceHash": "9f9d118d10d5fb621a2f781eca9a057144ea78713b319dfe74711eb7c1b9669e",
+      "t": "Only when it rains?"
+    },
+    {
+      "id": "ep-41a:58",
+      "source": "맑은 날도. 너 맑은 날에 우산 들고 다니잖아.",
+      "sourceHash": "8d0d7b71e3d33281b1c8dd9e4c1299df26f92bef65dd8f44130d6e36b66ac311",
+      "t": "On clear days too. You carry an umbrella on clear days."
+    },
+    {
+      "id": "ep-41a:59",
+      "source": "서한비는 대답 대신 우산을 품에 꼭 안았다. 테이프 감긴 손잡이가 턱에 닿았다. 그 자세 그대로 한참 있었다. 그러다 아주 조그맣게 따라 했다.",
+      "sourceHash": "140bb0ae589acc201052717cc31719f4421085e4a695c8c8af43f63b5c403614",
+      "t": "Instead of answering, Seo Hanbi hugged the umbrella. Its taped handle touched her chin. She stayed that way for a long time. Then, very softly, she repeated it."
+    },
+    {
+      "id": "ep-41a:60",
+      "source": "한비. 네. 한비 할게요.",
+      "sourceHash": "8753b6c33bfa1439dabb3db361c7a425b0ab2a0093a2d6d59ef519cff33e6f06",
+      "t": "Hanbi. Yes. I'll be Hanbi."
+    },
+    {
+      "id": "ep-41a:61",
+      "source": "높은 창 밖으로 비가 조금 내렸다. 차갑지 않은 비였다. 성당 바닥의 먼지가 가라앉고 공기가 맑아졌다.",
+      "sourceHash": "d3364712b18982c7aa642d3d99744fa89011d0a1aeb3caff37de2eda55f289ee",
+      "t": "A little rain fell beyond the high windows. It wasn't cold. Dust settled on the cathedral floor, and the air cleared."
+    },
+    {
+      "id": "ep-41a:62",
+      "source": "둘은 한동안 아무 말도 하지 않았다. 불 쪽으로 손을 내밀고 있었다. 연이의 손등이 조금 더 따뜻해 보였다. 서한비의 손은 아직 차가웠다.",
+      "sourceHash": "9268310f2514e91f4c0bee24696e01ed9220b2cf95544b219f386e01a9bc9bc7",
+      "t": "For a while, neither spoke. Both held their hands toward the fire. The backs of Yeoni's hands looked a little warmer. Seo Hanbi's were still cold."
+    },
+    {
+      "id": "ep-41a:63",
+      "source": "그럼 하나만 더. 이건 대답해 줘. 네오 왜 저래?",
+      "sourceHash": "5cf2e43ad7a80c8e6d9f73ce91761df6afbf5489304816aaf92920ec6716e176",
+      "t": "Then one more thing. Answer this. What's wrong with Neo?"
+    },
+    {
+      "id": "ep-41a:64",
+      "source": "저래, 라뇨.",
+      "sourceHash": "470833fd997eaf40165ed7146b937bc57b60db34333ebcfef3b734b000b0ab1e",
+      "t": "Wrong?"
+    },
+    {
+      "id": "ep-41a:65",
+      "source": "발소리도 안 나고 손이 카드를 통과해. 사람으로 돌아왔는데 몸이 자꾸 사라지잖아. 너는 이유를 알지?",
+      "sourceHash": "06b956a0586d92342a54517a2252a69415e630dffa3c714a69ab6c772abba82b",
+      "t": "He makes no footsteps, and his hand passes through cards. He's human again, but his body keeps disappearing. You know why, don't you?"
+    },
+    {
+      "id": "ep-41a:66",
+      "source": "서한비가 네오를 보았다. 눈은 감고 있었지만 연이의 소매를 쥔 손이 조금 움직였다. 듣고 있었다.",
+      "sourceHash": "ed395c22666d7407f17ac05962f9ae36fab763aee8a636eb05e6c425eb302f0a",
+      "t": "Seo Hanbi looked at Neo. His eyes were closed, but the hand holding Yeoni's sleeve moved a little. He was listening."
+    },
+    {
+      "id": "ep-41a:67",
+      "source": "그건 제 빚이 아니라서 제가 말할 수 없어요.",
+      "sourceHash": "9f73a489d97784ee46d8239388c941d4b2d5fa5cc8401374f6d70ac072e1355e",
+      "t": "That's not my debt, so I can't speak of it."
+    },
+    {
+      "id": "ep-41a:68",
+      "source": "빚 얘기 그만한다며.",
+      "sourceHash": "493c5ca77c4d18c1eb3b0f48a964fae8d6ce585767248280020d2dfec9aee311",
+      "t": "You said you'd stop talking about debts."
+    },
+    {
+      "id": "ep-41a:69",
+      "source": "그럼 약속이라고 할게요. 그분이랑 한 약속. 대신 하나만 알려 드릴게요.",
+      "sourceHash": "26a096724f8de6aafdbd7753a93ad73421fa964d9f28cb3e5cbd8b75fe93f01e",
+      "t": "Then call it a promise. One I made with him. But I can tell you one thing."
+    },
+    {
+      "id": "ep-41a:70",
+      "source": "내일 그 문패, 무슨 일이 있어도 읽지 마세요. 소리 내서는 더더욱.",
+      "sourceHash": "3824c535419fd7314cbf9bc0046452a5a984d5043c9e421b25d5ab728a962589",
+      "t": "Tomorrow, whatever happens, don't read that nameplate. Especially not aloud."
+    },
+    {
+      "id": "ep-41a:71",
+      "source": "연이가 내려다보자 네오가 손가락을 조금 굽혔다. 고맙다는 말 대신 그녀의 손을 약하게 쥐었다.",
+      "sourceHash": "87a369701ce3b1a3ad09d079a85b74c0e65508f7c43f750e57f4a37461b3642f",
+      "t": "As Yeoni looked down, Neo curled his fingers slightly. Instead of saying thank you, he gave their hand a weak squeeze."
+    },
+    {
+      "id": "ep-41a:72",
+      "source": "알았어. 안 읽어. 대신 아침에 다 말해 줘야 돼, 네오.",
+      "sourceHash": "e4af12d1c35e4697e8810e2b3a329f6b01d4bff88227004c06daa58150163e05",
+      "t": "All right. I won't read it. But you have to tell me everything in the morning, Neo."
+    },
+    {
+      "id": "ep-41a:73",
+      "source": "대답은 없었다. 대신 숨이 조금 고르게 돌아왔다. 연이는 네오의 등을 받친 채 기둥에 기대 잠들었다.",
+      "sourceHash": "57804c4c3cd504542630d609636475a5fa2d1ac21f79eefae632dfd7a009297b",
+      "t": "There was no answer. Instead, his breathing grew a little steadier. Supporting his back, Yeoni fell asleep against the pillar."
+    },
+    {
+      "id": "ep-41a:74",
+      "source": "새벽. 기둥 반대편에서 윤달이 하품을 했다. 손바닥의 장갑을 고쳐 끼고, 일행 쪽을 돌아보았다.",
+      "sourceHash": "1aaf500660cb2ca71755feab608e47b6761279ae099b52b7a0728d0b06fa7e7e",
+      "t": "At dawn, Yundal yawned on the other side of the pillar. He adjusted the glove over his palm and looked toward the others."
+    },
+    {
+      "id": "ep-41a:75",
+      "source": "어.",
+      "sourceHash": "b27045dc03b825266d991682e293005a0802174c22d621afbc5a86025d89cb1e",
+      "t": "Oh."
+    },
+    {
+      "id": "ep-41a:76",
+      "source": "모카는 아직 코를 골고 있었다. 서한비는 우산을 안은 채 앉아서 잠들어 있었다. 연이는 기둥에 기대 고개를 떨군 채였다.",
+      "sourceHash": "838e3e51ca30e0c1744e912561f214015c1e953f17f3b4883a98dc5b90d9cf66",
+      "t": "Moka still snored. Seo Hanbi had fallen asleep sitting up, hugging her umbrella. Yeoni's head drooped against the pillar."
+    },
+    {
+      "id": "ep-41a:77",
+      "source": "어깨가 비어 있었다. 덮어 주었던 겉옷만 바닥에 남아 있었다. 먼지 위에는 발자국조차 없었다.",
+      "sourceHash": "ed4b09525a1962268e5df57157e94d65c0550701d1e0240f08d3df97cdf7a1cf",
+      "t": "Their shoulder was empty. Only the coat that had covered him remained on the floor. Not even footprints marked the dust."
+    },
+    {
+      "id": "ep-41a:78",
+      "source": "모두 일어나요. 고양이님이 없어요.",
+      "sourceHash": "ab9fb373d9496dc08ea6c3c77ca362f5d7d84704b388670b51904de5e2d36bfd",
+      "t": "Everyone wake up. Mr. Cat is gone."
+    },
+    {
+      "id": "ep-41a:79",
+      "source": "멀리서 문 하나가 삐걱 열리는 소리가 났다. 6번 문 쪽이었다.",
+      "sourceHash": "eca594d0e79d6a5fa438db10dc0d9f32371e9221b87bc4f7ba664570b524f53a",
+      "t": "Far away, a door creaked open. Door Six."
+    }
+  ]
+}

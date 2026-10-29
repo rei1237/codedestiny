@@ -1,0 +1,426 @@
+{
+  "locale": "en",
+  "episodeId": "ep-42a",
+  "tag": "Episode 42 Side Story · An Ordinary Spring",
+  "title": "An Ordinary Spring",
+  "sourceTitle": "평범한 봄",
+  "sourceTag": "제42화 외전 · 평범한 봄",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-42a:1",
+      "source": "꿈이라는 걸 알았다. 너무 따뜻해서 알았다. 이름을 부르던 연이의 목소리가 멀어지고, 봉인 뒤에 남아 있던 어느 밤이 돌아왔다. 네오는 그 밤을 기억했다. 다만 이번에는 보내지 못했던 말을 끝까지 보낼 수 있을 것 같았다.",
+      "sourceHash": "3369b272fe0786372467681de8f6d12d5484bb68e60b1791bc99faff0212124e",
+      "t": "He knew it was a dream because it was too warm. Yeoni's voice calling his name faded, and a night left behind the seal returned. Neo remembered that night. Only this time, it felt as though he could finally send the words he hadn't sent."
+    },
+    {
+      "id": "ep-42a:2",
+      "source": "좁은 자취방. 책상 위에 휴대폰이 놓여 있었다. 스물셋의 박병하는 그 화면을 오래 보고 있었다. 보낼까 말까 망설인 문장이 하나 떠 있었다.",
+      "sourceHash": "e9d4e561503fb7937a58baf74ab406cd3c3a81e8e90794f2b858e24a5915a541",
+      "t": "A cramped rented room. A phone lay on the desk. Twenty-three-year-old Park Byeongha stared at its screen. One message hovered there, waiting for him to decide whether to send it."
+    },
+    {
+      "id": "ep-42a:3",
+      "source": "[ 너 폰 좀 이상하지 않아? 아까 알림이 계속 오던데 ]",
+      "sourceHash": "4807d83ed2f10d351e04942952765bfb7ceee7bd58ca0d74143403819a8ce13d",
+      "t": "[ Isn't something wrong with your phone? It kept getting notifications earlier. ]"
+    },
+    {
+      "id": "ep-42a:4",
+      "source": "내일 말하면 되지. 그때도 그렇게 생각했었다.",
+      "sourceHash": "efbbb34e9e24208d6d0a06ff12250c368fc90fb077c6524c068852324d231b5a",
+      "t": "I can tell them tomorrow. That's what I'd thought then too."
+    },
+    {
+      "id": "ep-42a:5",
+      "source": "이번에는 엄지가 먼저 움직였다. 전송. 화면 위로 작은 종이비행기가 날아갔다. 일 분도 안 되어 답장이 왔다.",
+      "sourceHash": "8aa11fecdc70c059a64ff2597b03b74d081ca69837ebd0b68f3e9d6c811ac3b1",
+      "t": "This time, his thumb moved first. Send. A tiny paper airplane flew across the screen. Less than a minute later came a reply."
+    },
+    {
+      "id": "ep-42a:6",
+      "source": "[ 연이 · 헐 맞아 무서워 ㅠ 그릇을 찾았다는 이상한 알림 계속 옴 ]",
+      "sourceHash": "21647148fab366326209f2d059fe3b8aa69d959f22436c3583a82fd6657e144e",
+      "t": "[ Yeoni · OMG yes, it's scary 😭 It keeps sending weird notifications saying it found a vessel. ]"
+    },
+    {
+      "id": "ep-42a:7",
+      "source": "지금 그 앱 지워. 아니, 폰 꺼. 내가 갈게.",
+      "sourceHash": "397124dffc8edd1d259b738e79f6ec76e99e01e63c0c480dfe67320fbba52e44",
+      "t": "Delete that app now. No, turn off your phone. I'm coming."
+    },
+    {
+      "id": "ep-42a:8",
+      "source": "그는 신발을 꺾어 신고 뛰었다. 봄비가 막 그친 골목이었다. 우산은 챙기지 않았다. 이번에는 펴는 시간도 아까웠다.",
+      "sourceHash": "f074f2193240b244ec26a2cdb3a54d186300e497a0cc5303d6089aa412cc5bbd",
+      "t": "He crushed his heels into his shoes and ran. Spring rain had just stopped in the alley. He didn't take an umbrella. This time, even opening one would waste time."
+    },
+    {
+      "id": "ep-42a:9",
+      "source": "연이의 문 앞. 노크를 하기도 전에 문이 열렸다. 연이가 잠옷 차림으로 휴대폰을 내밀었다. 화면이 혼자 깜빡이고 있었다.",
+      "sourceHash": "02d1118eb0572a3e5f20cae1b4cf005c5e5b1ab940f6b17e0c7ed245b531c900",
+      "t": "At Yeoni's door, it opened before he could knock. In pajamas, Yeoni held out the phone. The screen blinked on its own."
+    },
+    {
+      "id": "ep-42a:10",
+      "source": "이거 봐. 꺼도 다시 켜져. 무슨 앱인지도 모르겠어.",
+      "sourceHash": "ed548e4679c3d75cb88af4f3c29208414428dcd89ec2ccb46c670d390045e91c",
+      "t": "Look. It turns back on even when I switch it off. I don't even know what app it is."
+    },
+    {
+      "id": "ep-42a:11",
+      "source": "화면 가장자리에서 검은 손가락 하나가 비어져 나왔다. 그는 생각하지 않았다. 휴대폰을 낚아채 복도 소화전 물통에 던져 넣었다. 첨벙.",
+      "sourceHash": "e3c13e4f34d3cd1b18c2b8cec6aa3f97a3ea6597f4a995d046544940e98a387d",
+      "t": "A black finger protruded from the edge of the screen. He didn't think. He snatched the phone and threw it into the hallway's fire-water bucket. Splash."
+    },
+    {
+      "id": "ep-42a:12",
+      "source": "내 폰!",
+      "sourceHash": "56d340e085997d51242a72e242f8e048141468f14181dd7d36e795367ab80aae",
+      "t": "My phone!"
+    },
+    {
+      "id": "ep-42a:13",
+      "source": "새로 사 줄게. 할부로.",
+      "sourceHash": "eb3acc3e5377ac0650596de115f6ac7b22d845c5cf2067a1549915581996df5a",
+      "t": "I'll buy you a new one. In installments."
+    },
+    {
+      "id": "ep-42a:14",
+      "source": "할부래. 멋있는 척하다 말았어.",
+      "sourceHash": "2b4432174b572da1f3cb14debd98a0cbaa6f7eb1b982759a1d0d44f381442532",
+      "t": "Installments. You almost managed to look cool."
+    },
+    {
+      "id": "ep-42a:15",
+      "source": "물통 안에서 무언가가 한 번 버둥거리다 조용해졌다. 그는 손이 떨리는 걸 숨기려고 주머니에 넣었다. 꿈인데도 손이 떨렸다.",
+      "sourceHash": "0ef6c427a1ee0243743aa3cda2f84b2ec6a7f83c4232567fca28352c45d24e1e",
+      "t": "Something struggled once inside the bucket, then went quiet. He hid his shaking hands in his pockets. Even in a dream, they shook."
+    },
+    {
+      "id": "ep-42a:16",
+      "source": "오늘 밤엔 문 잘 잠가. 아침에 정류장에서 보자.",
+      "sourceHash": "8b12b405969048bef89e324b129a52555c73f1287afbbe59a4dfa091bbd0b297",
+      "t": "Lock your door tonight. See you at the bus stop in the morning."
+    },
+    {
+      "id": "ep-42a:17",
+      "source": "왜, 같이 가 주게? 너 원래 한 정거장 먼저 타잖아.",
+      "sourceHash": "802d598defc7cd3eace47b101ff5c838180aeb5027e0690ded3a30af8b8c92e9",
+      "t": "Why, you're coming with me? You usually board one stop earlier."
+    },
+    {
+      "id": "ep-42a:18",
+      "source": "내일은 기다릴게.",
+      "sourceHash": "e28ee16e0d0bc24d711d775fc503c0245d724392128bf53c29a496bf4448130c",
+      "t": "Tomorrow, I'll wait."
+    },
+    {
+      "id": "ep-42a:19",
+      "source": "아침. 비가 왔다. 정류장 지붕 아래에 그는 먼저 와 있었다. 흰 우산을 활짝 펴 든 채로. 오 분이나 일찍.",
+      "sourceHash": "b4fd726610265caaab8b5386031fac48e542b29be7d7eccba5cc25bc66fcef3b",
+      "t": "Morning. Rain. He had arrived first beneath the bus-stop roof, white umbrella fully open. Five whole minutes early."
+    },
+    {
+      "id": "ep-42a:20",
+      "source": "서한비가 봉투를 품에 안고 뛰어왔다. 연이가 그 뒤를 따라왔다. 노란 가방, 젖은 운동화. 둘 다 웃고 있었다.",
+      "sourceHash": "503ea062787a0de0b1d69433a9e228bf9e4d49180fda248d9ce7c702a2f36918",
+      "t": "Seo Hanbi ran up, hugging an envelope. Yeoni followed: yellow bag, wet sneakers. Both were smiling."
+    },
+    {
+      "id": "ep-42a:21",
+      "source": "반쪽아, 저분 누구야? 우산 엄청 크다.",
+      "sourceHash": "f5c14b3f1e93b34c7c500ea1b64a2ce2b302d78e57c6d6afbcf687bf6cc7b4a1",
+      "t": "Halfie, who's that? His umbrella's huge."
+    },
+    {
+      "id": "ep-42a:22",
+      "source": "어제 내 폰 물에 빠뜨린 사람.",
+      "sourceHash": "dfcec77861ac4018b5dc44d4644fd64630323b6556ff2d14603f2d851db6c4e3",
+      "t": "The person who drowned my phone yesterday."
+    },
+    {
+      "id": "ep-42a:23",
+      "source": "그게 웃으면서 할 소개야?",
+      "sourceHash": "e94cd6783f6fe7ec69b0201f2ecd5d7058ff08c2ba1793edce3bbbd34a21d2ba",
+      "t": "Is that an introduction you should give with a smile?"
+    },
+    {
+      "id": "ep-42a:24",
+      "source": "박병하입니다. 우산은 큽니다. 셋까지 들어갑니다.",
+      "sourceHash": "5f89e52ca88fd25571f580bcacf46ecfe497ee416ae99a11346f6d26b95f149b",
+      "t": "Park Byeongha. The umbrella is large. It fits three."
+    },
+    {
+      "id": "ep-42a:25",
+      "source": "셋이 우산 하나 아래 섰다. 어깨가 조금씩 젖었다. 아무도 신경 쓰지 않았다. 봉투 속 지폐가 바스락거렸다. 같이 바다 가기, 라는 글씨가 번지지 않았다.",
+      "sourceHash": "20f666d23c2f44ba2f4bbd65d587b6cacb6618397eafcab4305c8bd476b5fbf0",
+      "t": "The three stood beneath one umbrella. Their shoulders got a little wet. Nobody cared. Banknotes rustled inside the envelope. The words Go to the sea together didn't blur."
+    },
+    {
+      "id": "ep-42a:26",
+      "source": "다음 달에 바다 가는데. 같이 갈래요? 회비는 있어요.",
+      "sourceHash": "e1da6617e64fd1836b8932009dad3ef33277915cd372603e502ad4cfdf0fbe90",
+      "t": "We're going to the sea next month. Want to come? There's a contribution."
+    },
+    {
+      "id": "ep-42a:27",
+      "source": "오, 병하도 데려가자! 짐꾼 필요해.",
+      "sourceHash": "d0682d697e351422c392bad601bb11b2f9244188f440e5761a019093b32f3c63",
+      "t": "Oh, let's bring Byeongha! We need someone to carry our bags."
+    },
+    {
+      "id": "ep-42a:28",
+      "source": "짐꾼은 회비 면제인가.",
+      "sourceHash": "49cb61a172d10d401fa16c43ae2dda4313034881280b4c3eb6a4c421d033cf6b",
+      "t": "Does the porter get his fee waived?"
+    },
+    {
+      "id": "ep-42a:29",
+      "source": "장부에 적어 둘게요. 짐꾼, 미수.",
+      "sourceHash": "a5006577b4fb9a606ac61f58fc2797b31ee00811c10f24526b7609b330e186a9",
+      "t": "I'll put it in the ledger. Porter: outstanding."
+    },
+    {
+      "id": "ep-42a:30",
+      "source": "연이가 깔깔 웃었다. 서한비도 웃었다. 그 웃음 속에서 그는 이름이 불리는 소리를 들었다. 병하야. 가볍게, 아무 대가 없이.",
+      "sourceHash": "90a3c9c2e4417a43baa44b388b704ca168dc375717d88b5479e5b1ed59d861a4",
+      "t": "Yeoni laughed brightly. Seo Hanbi laughed too. In that laughter, he heard his name. Hey, Byeongha. Lightly. At no cost."
+    },
+    {
+      "id": "ep-42a:31",
+      "source": "이렇게 쉬운 거였구나.",
+      "sourceHash": "4388387cd0378c9bb914da1838d97763d47300f2cf3693479fd937fa7acab4b4",
+      "t": "So it could have been this easy."
+    },
+    {
+      "id": "ep-42a:32",
+      "source": "버스 맨 뒷자리. 셋이 나란히 앉았다. 서한비가 봉투를 무릎에 올려놓고 지폐를 세기 시작했다. 연이가 옆에서 손가락으로 같이 셌다.",
+      "sourceHash": "68a5caa54599971db3a7c1740525cfa250683f677467e8f3d8018e867f1e0f86",
+      "t": "The back seat of the bus. The three sat side by side. Seo Hanbi put the envelope on her knees and began counting notes. Yeoni counted along on their fingers."
+    },
+    {
+      "id": "ep-42a:33",
+      "source": "여기까지가 내 몫. 여기부터가 반쪽 몫. 반반 딱 맞아.",
+      "sourceHash": "b56b67eaecaa4e04843e3273b6f494cf728131943f5516b8fb0ef606bc004a63",
+      "t": "This is my share. From here, Halfie's. Exactly half each."
+    },
+    {
+      "id": "ep-42a:34",
+      "source": "와, 우리 진짜 바다 간다. 나 수영복 없는데.",
+      "sourceHash": "d4c0dfa5813f5544785a183bc2412d9f164e4a3c471d05884a0a70be43ab1bed",
+      "t": "Wow. We're really going to the sea. I don't have a swimsuit."
+    },
+    {
+      "id": "ep-42a:35",
+      "source": "발만 담그면 돼. 바다는 발만 담가도 바다야.",
+      "sourceHash": "ad66f814ef0d1f9761f3300aecafb0de8871a81e9cecba6b543feb0cbd6d2c74",
+      "t": "Just put your feet in. It's still the sea with only your feet in."
+    },
+    {
+      "id": "ep-42a:36",
+      "source": "그는 창에 머리를 기대고 둘을 보았다. 둘이 세는 소리가 빗소리와 섞였다. 만, 이만, 삼만. 지루하고 평범한 숫자였다. 그 평범함이 눈이 부셨다.",
+      "sourceHash": "2b3c91952b4aaec91c50874f26017bcaff320cc14d1b3ed8bfbd13b3c0938ce8",
+      "t": "He rested his head against the window and watched them. Their counting mingled with the rain. Ten thousand, twenty thousand, thirty thousand. Dull, ordinary numbers. Their ordinariness dazzled him."
+    },
+    {
+      "id": "ep-42a:37",
+      "source": "병하 너는 뭐 해. 바다 가면.",
+      "sourceHash": "155ca6d6b9c5fd54954515293721f1bb00d2239739909956a05d544166bd180f",
+      "t": "Byeongha, what will you do at the sea?"
+    },
+    {
+      "id": "ep-42a:38",
+      "source": "모래사장에 앉아서 너희 짐 지키지.",
+      "sourceHash": "f366f7e6c5d8a025d0dd0c73b01139c19db97bb646194b6494795d7c42ef891f",
+      "t": "Sit on the sand and guard your bags."
+    },
+    {
+      "id": "ep-42a:39",
+      "source": "진짜 짐꾼이네.",
+      "sourceHash": "4f27c356881a852781c512371c09f1aeca8ec29c2808db89e58f9e1a11a98062",
+      "t": "An actual porter."
+    },
+    {
+      "id": "ep-42a:40",
+      "source": "짐꾼이 제일 좋은 자리다. 다 보이거든.",
+      "sourceHash": "3d5a2169d3650f30b33b4f5f67afaba77d885e40ad32f5bb1bbdb6fd9c29cb9d",
+      "t": "Porter's the best position. You can see everything."
+    },
+    {
+      "id": "ep-42a:41",
+      "source": "그 말을 하면서 그는 알았다. 이건 그가 한 번도 가 보지 못한 봄이었다. 이 버스는 바다에 닿지 않는다. 꿈은 그 전에 끝난다. 그래도 그는 내리지 않았다. 한 정거장이라도 더 타고 싶었다.",
+      "sourceHash": "0c630f968cc17dff1941703fa4ad72f496abdb3078fdf69c3023657b846e4e51",
+      "t": "As he said it, he knew. This was a spring he had never reached. This bus would never arrive at the sea. The dream would end first. Still, he didn't get off. He wanted even one more stop."
+    },
+    {
+      "id": "ep-42a:42",
+      "source": "캠퍼스. 벚꽃이 반쯤 피어 있었다. 둘은 수업에 늦지 않았다. 연이는 강의실 앞에서 그를 돌아보았다.",
+      "sourceHash": "7ccee6a2a3f77553a79c14165219e448273b8f8e50beae433fbacfcfcea64941",
+      "t": "Campus. The cherry blossoms were half open. They weren't late for class. Outside the lecture room, Yeoni turned to him."
+    },
+    {
+      "id": "ep-42a:43",
+      "source": "근데 너 좀 고양이 닮았다.",
+      "sourceHash": "fc84085a9ad7318f30f77553fc313b1822156e30f4be3b58496ce88b5ab5449b",
+      "t": "You look a bit like a cat, you know."
+    },
+    {
+      "id": "ep-42a:44",
+      "source": "처음 듣는 소리인데.",
+      "sourceHash": "d538149e1a2b8e10b3412d1225d581a37e813d3b899ab47f4a914c7bbf0844bc",
+      "t": "That's a new one."
+    },
+    {
+      "id": "ep-42a:45",
+      "source": "아니, 그냥 고양이 말고. 모자 쓴 고양이? 하얀 거.",
+      "sourceHash": "1ba3ba5b866a06e6193d24c90b3334bb9e38c9c6cb8f897e481e371609090d31",
+      "t": "Not just any cat. A cat in a hat? A white one."
+    },
+    {
+      "id": "ep-42a:46",
+      "source": "칭찬으로 들을게. 잠 많고 게으르다는 뜻은 빼고.",
+      "sourceHash": "929a69260eab2c521cbb010c92deaac400f1f05d04eb02bffc2398a01f00abd7",
+      "t": "I'll take that as a compliment. Leaving out sleepy and lazy."
+    },
+    {
+      "id": "ep-42a:47",
+      "source": "그럼 별명 지어 줄게. 고양이 이름 같은 걸로. 나비? 아니야. 뭐가 좋지.",
+      "sourceHash": "2c9c0816021e8d93bf6633a8b5605fd43202445d2c8bf8f537f2b1fcb9904abc",
+      "t": "Then I'll give you a nickname. Something catlike. Nabi? No. What would be good?"
+    },
+    {
+      "id": "ep-42a:48",
+      "source": "연이가 손가락을 턱에 대고 고민했다. 그는 그 얼굴을 보다가 웃음을 참았다. 대답을 알고 있었다. 아주 오래 불려 온 이름이었다.",
+      "sourceHash": "35092ce35eb07c320f8e17ee872904e3b95ba6adec5ada34ba93047184fe4ffe",
+      "t": "Yeoni rested a finger against their chin and thought. Watching that face, he suppressed a smile. He knew the answer. A name he had been called for a very long time."
+    },
+    {
+      "id": "ep-42a:49",
+      "source": "네오. 어때. 어디서 들었는지 모르겠는데 입에 붙어.",
+      "sourceHash": "74f2d2444addb0744e9cebb01cadd10d6888a824807932ffb3b07ae83f9921ca",
+      "t": "Neo. How's that? No idea where I heard it, but it feels right."
+    },
+    {
+      "id": "ep-42a:50",
+      "source": "그 이름이 불리는 순간, 꿈이 크게 흔들렸다. 벚꽃잎이 공중에서 멈췄다. 사람들의 소리가 꺼졌다. 연이의 목소리만 남았다. 꿈 바깥에서 들려오는 목소리였다.",
+      "sourceHash": "a238a619861103dd3521f03aff18d14f920169ce48f83f34a2b1dc27108d57c6",
+      "t": "The moment the name was spoken, the dream shook. Cherry petals stopped in midair. People's voices went silent. Only Yeoni's remained, coming from outside the dream."
+    },
+    {
+      "id": "ep-42a:51",
+      "source": "네오. 네오야. 일어나. 별점 하나 준다니까.",
+      "sourceHash": "25e9ca59eab47fb3ec18c96877a0a1dfb165e736c22fcd84208740bd4762b76d",
+      "t": "Neo. Hey, Neo. Wake up. I told you, one star."
+    },
+    {
+      "id": "ep-42a:52",
+      "source": "아, 그렇지. 이건 꿈이었지.",
+      "sourceHash": "6a7f3f7e72c3bea6d20e34f0c7e4b13c5c3da6354dc509c4a3445906473d7a77",
+      "t": "Ah, right. This was a dream."
+    },
+    {
+      "id": "ep-42a:53",
+      "source": "꿈속의 연이가 아직 웃고 있었다. 그는 그 얼굴을 한 번 더 보았다. 늦지 않은 봄. 셋이 같이 쓴 우산. 아무 값도 치르지 않은 이름.",
+      "sourceHash": "c7f783492c981dd7471935a495789231937a4152352a13e4d56f08ec50fbe5b2",
+      "t": "The Yeoni in the dream was still smiling. He looked at that face once more. A spring when he wasn't late. An umbrella shared by three. A name that cost nothing."
+    },
+    {
+      "id": "ep-42a:54",
+      "source": "고맙다. 잘 놀다 간다.",
+      "sourceHash": "4b3f35ed4bc993a093a91d3a5fe26b5ef223ac341b7369c77c0e21f2f36a90ab",
+      "t": "Thank you. I had a good time."
+    },
+    {
+      "id": "ep-42a:55",
+      "source": "벚꽃잎이 다시 떨어지기 시작했다. 아래가 아니라 위로. 꿈이 하늘 쪽으로 풀려 올라갔다.",
+      "sourceHash": "a5037d54641059dfbabbe92f032ba06abf1ff000cbdd54f9e8e7cf7cee80d632",
+      "t": "Cherry petals began falling again. Upward, not down. The dream unraveled into the sky."
+    },
+    {
+      "id": "ep-42a:56",
+      "source": "덜컹, 바퀴가 울렸다. 눈을 뜨자 연이가 옆 좌석에서 내려다보고 있었다. 눈이 부어 있었다. 네오의 머리는 그녀의 어깨에 기대어 있었다.",
+      "sourceHash": "604867cdcdce6d2b589e383075a1c660b39b5b4d2e79782030209ba026774b67",
+      "t": "Clunk. Wheels rattled. He opened his eyes to Yeoni looking down from the next seat, eyes swollen. His head rested on their shoulder."
+    },
+    {
+      "id": "ep-42a:57",
+      "source": "깼다. 깼어! 하루 종일 안 깼단 말이야!",
+      "sourceHash": "7d1ef7878417c4b0f54bf9fc9c6bd5a35e64985653014814e9a4e9b54696cd41",
+      "t": "He's awake. You're awake! You didn't wake up all day!"
+    },
+    {
+      "id": "ep-42a:58",
+      "source": "「시끄럽다. 귀 아프다.」",
+      "sourceHash": "35ab3491590edfb969f023ee288f27a678d785848bed7ca6b7b9f88aead40ede",
+      "t": "“Too loud. My ears hurt.”"
+    },
+    {
+      "id": "ep-42a:59",
+      "source": "첫마디가 그거야? 별점 하나야, 진짜.",
+      "sourceHash": "ccdb26dd25ae790041a2b2208f1ebd8d5e9a71f107e2b9ea0faaa231dd8ffd9e",
+      "t": "That's your first line? One star. Seriously."
+    },
+    {
+      "id": "ep-42a:60",
+      "source": "둘은 7번 카드의 전차 위에 있었다. 두 마리 스핑크스가 끄는 전차가 카드와 카드 사이를 달리고 있었다. 모카와 윤달, 서한비가 짐칸에 매달려 있었다.",
+      "sourceHash": "20eacd45ccdd98fe291ddcb9a9f52698ee86bb1772a26d88641906d25e957bef",
+      "t": "They were aboard the chariot of Card Seven. Drawn by two sphinxes, it raced between cards. Moka, Yundal, and Seo Hanbi clung to its luggage compartment."
+    },
+    {
+      "id": "ep-42a:61",
+      "source": "깨셨어요? 전차가 혼자 달려요. 8번부터 15번까지 밤새 지나왔어요.",
+      "sourceHash": "a7052648c3bf4f22fa15642b2c8f5619d58f9d476a8f0bd3789a8d1d34e6c737",
+      "t": "Awake? The chariot drives itself. We passed Eight through Fifteen overnight."
+    },
+    {
+      "id": "ep-42a:62",
+      "source": "힘 카드 앞에서는 연이 씨가 고양이님 눈을 손으로 가렸어요. 그 빛 보면 또 깎일까 봐.",
+      "sourceHash": "3211bc3d1a17ff3d10f56d1966ed42f9ed44bc92b1894e1648a7f7ce24d668d7",
+      "t": "Before the Strength card, Yeoni covered your eyes with their hand, Mr. Cat. Afraid its light would wear you away again."
+    },
+    {
+      "id": "ep-42a:63",
+      "source": "밤새 안 잤어. 네 숨 멎을까 봐 계속 세고 있었다고.",
+      "sourceHash": "cb96ae21cbef2b23ebcfa031af96963cf43e17f9553d052b1947b82dedee82c6",
+      "t": "Didn't sleep all night. Kept counting your breaths in case they stopped."
+    },
+    {
+      "id": "ep-42a:64",
+      "source": "안 셌거든! 그냥 들은 거야!",
+      "sourceHash": "770b046b31d82f6a04368555dc79d326020a9689ce607295a86e94e7c3fd4de2",
+      "t": "I wasn't counting! Just listening!"
+    },
+    {
+      "id": "ep-42a:65",
+      "source": "「몇 번이었나.」",
+      "sourceHash": "86ce85266f1a549fc10cb3e6224abaf79864e024c4f14fd6b731a863eece281a",
+      "t": "“How many?”"
+    },
+    {
+      "id": "ep-42a:66",
+      "source": "천이백 몇 번. 중간에 한 번 끊겨서 처음부터 다시 셌어.",
+      "sourceHash": "d9d70e206c6aee78e87da956fe15eb6b1f05505cc7fcd653295fe612fbda538c",
+      "t": "Twelve hundred and something. I lost count once and started again."
+    },
+    {
+      "id": "ep-42a:67",
+      "source": "네오는 말 대신 연이의 손등에 이마를 기댔다. 꿈에서보다 지금 그 손이 조금 더 따뜻했다.",
+      "sourceHash": "f74bb8ac0c34aff80620aadf4921a5cff232e61de94ebd8e71a5b065bdf3f0bc",
+      "t": "Instead of speaking, Neo rested his forehead against the back of Yeoni's hand. It was a little warmer now than in the dream."
+    },
+    {
+      "id": "ep-42a:68",
+      "source": "전차가 갑자기 멈췄다. 앞이 막혀 있었다. 검은 구름 아래 높은 탑 하나가 서 있었다. 꼭대기에 번개가 감겨 있었다. 16번, 탑.",
+      "sourceHash": "4247e7125e580dfc44ebb4244d2d779ddad1555e1e75225eabc41f58320faf6a",
+      "t": "The chariot stopped abruptly. The way was blocked. Beneath black clouds stood a tall tower, lightning coiled around its summit. Number Sixteen, the Tower."
+    },
+    {
+      "id": "ep-42a:69",
+      "source": "「저기는…」 네오가 좌석에서 몸을 일으켰다. 「혼자 들어가면 안 돼. 무슨 일이 있어도.」",
+      "sourceHash": "6542f82dd33f45064f147744323a3e058dc8ba5018c86ed1e2b38730c706c8ca",
+      "t": "“That place...” Neo pushed himself upright in the seat. “You mustn't go in alone. Whatever happens.”"
+    }
+  ]
+}

@@ -1,0 +1,672 @@
+{
+  "locale": "en",
+  "episodeId": "ep-32",
+  "tag": "Episode 32 · The Owner of the Black Feather",
+  "title": "The Owner of the Black Feather",
+  "sourceTitle": "검은 깃털의 주인",
+  "sourceTag": "제32화 · 검은 깃털의 주인",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-32:1",
+      "source": "쇠벽 방 안이 조용해졌다. 무곡을 감은 검은 실만 맥박처럼 꿈틀거렸다.",
+      "sourceHash": "a4b47dbb42c63f564803b4c47a1cbf797dde9ca0f425d58aa913fb478f113a85",
+      "t": "The iron-walled room fell silent. Only the black threads binding Wu Qu stirred, pulsing like a heartbeat."
+    },
+    {
+      "id": "ep-32:2",
+      "source": "무성이라는 이름은 모른다. 나는 관의 문지기다.",
+      "sourceHash": "504bd6405802d59efacbbe50c86a40ca3900fa7fe2c0e670d62dab9a6baba7fd",
+      "t": "I know no one named Museong. I am the keeper of the Career gate."
+    },
+    {
+      "id": "ep-32:3",
+      "source": "거짓말. 너 대답하기 전에 오른발 엄지로 바닥 긁잖아. 무대 올라가기 전마다 그랬어.",
+      "sourceHash": "d6f8a4e318a0835ba791433e22d3f59ade004980b6cfe7855cec5b188020d2c9",
+      "t": "Liar. You scrape the floor with your right big toe before you answer. You did it every time you went onstage."
+    },
+    {
+      "id": "ep-32:4",
+      "source": "까마귀의 발톱이 바닥에서 뚝 멈췄다. 막 쇠바닥을 긁으려던 참이었다.",
+      "sourceHash": "d35b52b70f250d7c468e0594b1dbe7c74fa03a9e951880ae942e01f2d8cd228a",
+      "t": "The crow's claw stopped dead against the floor. It had been just about to scrape the iron."
+    },
+    {
+      "id": "ep-32:5",
+      "source": "(진짜 긁으려고 했어. 모카, 이런 걸 다 기억하고 있었구나.)",
+      "sourceHash": "1cd49f543c34295752ce04e4c7689f493ff7d1bfb2cad8f5087bd62e5c66aa9d",
+      "t": "(It really was about to. Moka remembered even that.)"
+    },
+    {
+      "id": "ep-32:6",
+      "source": "수달의 기억은 몰수 대상이다. 웃은 죄, 박자의 죄, 그리고 기억의 죄.",
+      "sourceHash": "c535c7698826b8d4bf66e84156020c8b5c1005608221f87d4699d3ecf033a0f6",
+      "t": "The otter's memories are subject to confiscation. The crime of laughter, the crime of rhythm, and the crime of remembering."
+    },
+    {
+      "id": "ep-32:7",
+      "source": "그럼 다 가져가. 근데 가면은 벗고 가져가.",
+      "sourceHash": "f2427877005fcc2cb919e9bf94ebd2e2a46fb38f1a3ba5526bc9a9603c0f034c",
+      "t": "Then take them all. But take off your mask first."
+    },
+    {
+      "id": "ep-32:8",
+      "source": "까마귀 가슴의 검은 깃털이 크게 뛰었다. 까마귀가 가슴을 움켜쥐었다. 날개 끝이 바들바들 떨렸다.",
+      "sourceHash": "0cb8017659e461dd57a1e799affaab3ed4ce908b7a9e3cecce157a58300ff39f",
+      "t": "The black feather in the crow's chest gave a violent throb. The crow clutched its chest. Its wingtips shivered."
+    },
+    {
+      "id": "ep-32:9",
+      "source": "깃털이 거부하고 있어요. 이름을 들으면 뿌리가 흔들리나 봐요.",
+      "sourceHash": "01e9f8361b0da40c4c6c4740e230d9cad3c2db6da89a17537ed899dcf4e0a05c",
+      "t": "The feather is resisting. Hearing his name seems to shake its roots."
+    },
+    {
+      "id": "ep-32:10",
+      "source": "수달 씨, 계속 불러요. 이름을. 대신 크게 말고, 똑바로.",
+      "sourceHash": "6a8cb246e49345a1d7ee6c305383f63797d5528a2be5e93db74b6817c3615aa1",
+      "t": "Keep calling his name, Mr. Otter. Not loudly. Just clearly."
+    },
+    {
+      "id": "ep-32:11",
+      "source": "무성아.",
+      "sourceHash": "bf5ee6d87f23e7b156ec0ec8ad05bff3547c0e724058a38db05ee99972b3622f",
+      "t": "Museong."
+    },
+    {
+      "id": "ep-32:12",
+      "source": "가면에 실금이 갔다. 이마에서 턱까지, 아주 가늘게.",
+      "sourceHash": "ab6927ae0395d50648be609b0a8c11984b3ca1e3ceb365c3f28ea5d52ffca90c",
+      "t": "A hairline crack crossed the mask, running from forehead to chin."
+    },
+    {
+      "id": "ep-32:13",
+      "source": "무성아. 해맞이 무대 다음 날, 너네 집 앞까지 갔었어. 문을 못 두드렸어.",
+      "sourceHash": "0c3f328792de10e35cc00bf5ed85e8330624eb76f22fd5e5dffb34f06fcf2ebf",
+      "t": "Museong. The day after the sunrise concert, I went to your house. I couldn't knock."
+    },
+    {
+      "id": "ep-32:14",
+      "source": "가면이 반으로 갈라져 떨어졌다. 쇠바닥에 부딪혀 두 조각이 났다. 망토 깃이 스르르 내려앉았다.",
+      "sourceHash": "d011d742210b38a3b5ff2ac15b5abdf82b0150a9d5a02428143528d46ea169d9",
+      "t": "The mask split and fell. It struck the iron floor in two pieces. The cloak's collar slid down."
+    },
+    {
+      "id": "ep-32:15",
+      "source": "그 아래 있던 것은 소년의 얼굴이었다. 연이 또래, 어쩌면 조금 어린. 눈 밑이 검게 꺼져 있었다. 오래 잠을 못 잔 얼굴이었다.",
+      "sourceHash": "4ec51bc54f56c679272ddb7381bfacf13e8ebebd020b594b0dda627522d65d06",
+      "t": "Underneath was a boy's face. About Yeoni's age, perhaps a little younger. Dark hollows lay beneath his eyes. He looked as though he hadn't slept in a long time."
+    },
+    {
+      "id": "ep-32:16",
+      "source": "…문 안 두드린 거, 알아. 창문으로 봤어. 한참 서 있다가 갔잖아.",
+      "sourceHash": "b2b9a11efa5dfaf9ecc796eaaa08067cd4fd5c3abec03c95eca4714e591a1814",
+      "t": "...I know you didn't knock. I saw you through the window. You stood there for ages, then left."
+    },
+    {
+      "id": "ep-32:17",
+      "source": "봤으면 나오지.",
+      "sourceHash": "ae7f08b49fc8a90df495bf7bfedf7370de51be086830ab74115d656c7dbb76c7",
+      "t": "You should have come out."
+    },
+    {
+      "id": "ep-32:18",
+      "source": "나가면 또 웃을까 봐.",
+      "sourceHash": "691e95fb1bb96e9fc2d243e9939258d3d64817cbb119931a94cbba06ff87d3ce",
+      "t": "I thought you might laugh again if I did."
+    },
+    {
+      "id": "ep-32:19",
+      "source": "모카의 꼬리가 바닥에 축 내려앉았다. 박자를 치던 꼬리가 아무 소리도 내지 않았다.",
+      "sourceHash": "aa6c0f970c4006ea911a9d876e9c38ee4f4ae4b3d0b5df5b5843e9c137368c1e",
+      "t": "Moka's tail slumped to the floor. The tail that always kept time made no sound."
+    },
+    {
+      "id": "ep-32:20",
+      "source": "몇 해 전 식상의 섬. 해맞이 축제의 새벽 무대였다. 아직 해가 정오에 멈추기 전, 바다 끝이 막 붉어지던 때.",
+      "sourceHash": "552e43b7d179021ceddb75312bf8888119b0bf1ce32d0ad2560fe5a33907ab5a",
+      "t": "Years earlier, on the Island of Expression. The dawn stage at the Sunrise Festival. Before the sun had stopped at noon, when the far edge of the sea was just turning red."
+    },
+    {
+      "id": "ep-32:21",
+      "source": "무대 위에 소년이 서 있었다. 눈을 감고 있었다. 객석은 꽉 차 있었다. 그는 객석을 보면 떨린다고 늘 눈을 감고 불렀다.",
+      "sourceHash": "109bcee4748977ce09e9f6adc775f13805fedb5e05a3c794345799646cc5a384",
+      "t": "A boy stood onstage with his eyes closed. The audience was packed. He always sang with his eyes closed because looking at the crowd made him nervous."
+    },
+    {
+      "id": "ep-32:22",
+      "source": "해야, 올라와라. 오늘 첫 노래는 너한테 주는 거야.",
+      "sourceHash": "a3d5a658030bf9349dc5fa87e754a2c000c22e15e240493ccbd92c5d1aec608b",
+      "t": "Rise, sun. Today's first song is for you."
+    },
+    {
+      "id": "ep-32:23",
+      "source": "북이 울렸다. 소년이 숨을 크게 들이마셨다. 그리고 첫 소절에서, 목소리가 갈라졌다. 닭 울음 같은 소리. 아주 크게. 새벽 바다 끝까지 들릴 만큼.",
+      "sourceHash": "ea57630e64c6584bcf5dfe4afe2b72dd0b73654993f4eff3080f7cd388c7aa6d",
+      "t": "The drum sounded. The boy took a deep breath. And on the very first line, his voice cracked. Like a rooster crowing. Loud enough to carry to the farthest edge of the dawn sea."
+    },
+    {
+      "id": "ep-32:24",
+      "source": "객석 맨 앞줄에서 웃음이 터졌다. 한 사람이 웃자 옆 사람이 웃었다. 웃음은 파도처럼 뒤로 번졌다.",
+      "sourceHash": "a3cf526cb4b7be9465707d3081aa96596302099fa0694d6c4b1f021cd454519d",
+      "t": "Laughter burst from the front row. One person laughed, then the next. It spread backward like a wave."
+    },
+    {
+      "id": "ep-32:25",
+      "source": "맨 앞줄 가운데에 작은 수달이 있었다. 꼬치를 든 채, 친구들 사이에서, 수달도 웃고 있었다.",
+      "sourceHash": "c9e73cf745378cc1f4b530b8cf9d94f7b2245debbee5906b2bce5f42598a3ee3",
+      "t": "A small otter sat in the middle of the front row, holding a skewer among his friends. He was laughing too."
+    },
+    {
+      "id": "ep-32:26",
+      "source": "소년이 눈을 떴다. 무대에 선 뒤 한 번도 보지 않던 객석을 보았다. 웃는 얼굴들. 그리고 그 사이의 익숙한 수달 얼굴.",
+      "sourceHash": "5cbf7fd0dbe61cef6647bfa4eedcc71490e35af79c2c2e08f3cfbab0c339b18f",
+      "t": "The boy opened his eyes. For the first time since stepping onto the stage, he looked at the audience. Laughing faces. And among them, a familiar otter's face."
+    },
+    {
+      "id": "ep-32:27",
+      "source": "소년은 마지막 소절까지 불렀다. 갈라진 목소리 그대로. 그리고 다시는 무대에 오르지 않았다.",
+      "sourceHash": "0e6eee6858a8837daf983b1850c60767cdca7da554dcd40eb95168b4be912a16",
+      "t": "The boy sang to the final line, his voice still cracked. Then he never went onstage again."
+    },
+    {
+      "id": "ep-32:28",
+      "source": "…나도 웃었어. 맨 앞에서.",
+      "sourceHash": "8c57f1125de85297c5028939943d98523a349f721168560f1a44d0f202108aa9",
+      "t": "...I laughed too. Right in the front."
+    },
+    {
+      "id": "ep-32:29",
+      "source": "모카.",
+      "sourceHash": "dd88df07164bf0c683f8cb5b6df0c591314d92e9b31060112e94d3acaa12f630",
+      "t": "Moka."
+    },
+    {
+      "id": "ep-32:30",
+      "source": "친구들이 다 웃는데 나만 안 웃으면 이상하잖아. 그래서 웃었어. 일 초. 아니, 이 초쯤.",
+      "sourceHash": "9f844034ea7da4fe4eba7c6d4c616c6e7ec2d040e1e54e7669aef0935debf1d6",
+      "t": "All my friends were laughing. Wouldn't it have been weird if I didn't? So I laughed. One second. No, maybe two."
+    },
+    {
+      "id": "ep-32:31",
+      "source": "삼 초.",
+      "sourceHash": "38b96eb764426d193aefe617debb8477f92d138e96ab793327b0f22bfba3a743",
+      "t": "Three seconds."
+    },
+    {
+      "id": "ep-32:32",
+      "source": "그래. 삼 초. 넌 그걸 셌구나.",
+      "sourceHash": "4de441548e43f895858eb8c68cafa20a3532e1d37506bb90630bb51b1cc194b8",
+      "t": "Right. Three. You counted."
+    },
+    {
+      "id": "ep-32:33",
+      "source": "모카가 꼬챙이를 내려놓았다. 늘 손에서 놓지 않던 쇠꼬챙이였다. 그리고 소년을 똑바로 보았다.",
+      "sourceHash": "9c4483424d818ccf8bb51bc629c941f5f44d57025687a76a73ace7187164ae06",
+      "t": "Moka set down his skewer. The metal skewer he never let out of his hand. Then he looked straight at the boy."
+    },
+    {
+      "id": "ep-32:34",
+      "source": "미안해. 그 삼 초. 그거 계속 갚고 싶었어. 방법을 몰라서 꼬치만 구웠어.",
+      "sourceHash": "52d1408ae23b7ea814cd6caf96fb1db290e4ad83b3d917119b11c9523459dd98",
+      "t": "I'm sorry. For those three seconds. I've wanted to make up for them ever since. I didn't know how, so all I did was grill skewers."
+    },
+    {
+      "id": "ep-32:35",
+      "source": "(모카가 맨날 숯불 앞에서 흥얼거리던 박자. 그게 이 애 노래였구나.)",
+      "sourceHash": "a320f399f57669d75bac4a503c05243e6fe9031162c506be1a599042dfdc2738",
+      "t": "(The tune Moka always hummed over the coals. It was this boy's song.)"
+    },
+    {
+      "id": "ep-32:36",
+      "source": "무성의 입술이 떨렸다. 무언가 말하려 했다. 그런데 가슴의 깃털이 먼저 움직였다. 검은 실이 확 조였다.",
+      "sourceHash": "5c7fa181f1412bfc0cd1a89ab9f4334f1e14aeff269321b725e78f7ff784d9b3",
+      "t": "Museong's lips trembled. He tried to say something. But the feather in his chest moved first. The black threads jerked tight."
+    },
+    {
+      "id": "ep-32:37",
+      "source": "크윽…!",
+      "sourceHash": "c6be73781fcf4590a4117dce39c402c479c89f0ec8f6ec64821e464b26f925a4",
+      "t": "Ghh...!"
+    },
+    {
+      "id": "ep-32:38",
+      "source": "낮고 차가운 목소리가 깃털 속에서 흘러나왔다. 소년의 목소리가 아니었다.",
+      "sourceHash": "33ea5a403ab23139489bfe45d9678e9620bbc2d7269b3eb8228f5b9027e6908c",
+      "t": "A low, cold voice seeped from the feather. It wasn't the boy's voice."
+    },
+    {
+      "id": "ep-32:39",
+      "source": "삼 초의 사과로 몇 해의 침묵을 갚겠다고. 수달아, 값이 맞지 않는구나.",
+      "sourceHash": "88682fb985fe05466dd91f6fc2c7f738dfcc2c3979e86538bb969536a6ff598a",
+      "t": "An apology for three seconds, to repay years of silence? Otter, your price is wrong."
+    },
+    {
+      "id": "ep-32:40",
+      "source": "흑월!",
+      "sourceHash": "ead9c9126cf814ca43493c39437dcc7447ed1ec1384c408b0611e604d133bc4b",
+      "t": "Black Moon!"
+    },
+    {
+      "id": "ep-32:41",
+      "source": "그 아이에게 물어보아라. 내가 깃털을 줄 때 무엇을 약속했는지.",
+      "sourceHash": "ba13718ea2481225ad4c151b5482d7b09777673a4999fd24dadd2fa3092cb318",
+      "t": "Ask the boy what I promised when I gave him the feather."
+    },
+    {
+      "id": "ep-32:42",
+      "source": "해맞이 무대가 있던 날 밤. 섬 끝의 바닷가 언덕. 소년이 혼자 앉아 있었다. 목이 쉬어 있었다.",
+      "sourceHash": "fcb7381bde13e9b8e78abcdb154281c67973c858c9fd476f12cd25b7ddc2b41b",
+      "t": "The night of the sunrise concert. A seaside hill at the edge of the island. The boy sat alone, his throat hoarse."
+    },
+    {
+      "id": "ep-32:43",
+      "source": "노래 같은 거, 안 했으면 좋았을 텐데.",
+      "sourceHash": "f69c7d81d85fcf865c60062e26e6ebb32ed294589a79568ccca918fb6bee820d",
+      "t": "I wish I'd never sung at all."
+    },
+    {
+      "id": "ep-32:44",
+      "source": "파도 소리 사이로 무언가 내려앉았다. 검은 깃털 하나. 바람도 없는데 소년의 무릎 위에 정확히 떨어졌다.",
+      "sourceHash": "c704578453f64e5460d5830756225059714ee77aa0105ac526c9ca2dbc112673",
+      "t": "Something settled through the sound of the waves. A single black feather. Though there was no wind, it landed precisely on the boy's knees."
+    },
+    {
+      "id": "ep-32:45",
+      "source": "다시는 목소리가 갈라지지 않게 해 주마.",
+      "sourceHash": "ec66318bc2162c16b4ce36199d366209dc5bcaf5adf4e33baacbdf8a386463a4",
+      "t": "I will make sure your voice never cracks again."
+    },
+    {
+      "id": "ep-32:46",
+      "source": "…진짜요?",
+      "sourceHash": "8fb0926f9a200732a8c44f5a0de7c652f4cd114af094d94fca3b86ca5c780db0",
+      "t": "...Really?"
+    },
+    {
+      "id": "ep-32:47",
+      "source": "갈라질 목소리를 아예 없애면 된다. 네 것도, 남의 것도. 아무도 노래하지 않으면, 아무도 비웃지 않는다.",
+      "sourceHash": "b1b78dce2b8d8af2147c72f7bf61f1c8fefe37562e8b48249e669d79d0f3b289",
+      "t": "Simply remove every voice that could crack. Yours, and everyone else's. If no one sings, no one can mock you."
+    },
+    {
+      "id": "ep-32:48",
+      "source": "소년은 깃털을 가슴에 꽂았다. 통증 대신 온기가 번졌다. 이제 아무도 자신을 알아보지 못할 것 같았다. 숨었던 어깨에서 힘이 풀렸다.",
+      "sourceHash": "804a4e6490ac6006dfca8a86fb9a90fdfbc5056a9e5f51d0f00f1f82be583659",
+      "t": "The boy pushed the feather into his chest. Warmth spread instead of pain. He felt as though no one would recognize him anymore. His hunched shoulders relaxed."
+    },
+    {
+      "id": "ep-32:49",
+      "source": "그날 밤 소년의 목소리는 깃털 속으로 들어갔다. 그리고 다음 날부터, 섬의 노래가 하나씩 사라졌다.",
+      "sourceHash": "a1ea5696ad235d95f330ce843b4f33465a9c7057675b79620b1ae8cac695280f",
+      "t": "That night, the boy's voice entered the feather. From the following day, the island's songs began disappearing one by one."
+    },
+    {
+      "id": "ep-32:50",
+      "source": "처음엔 시장 상인의 흥정 노래였다. 다음은 빨래터의 콧노래. 그다음은 아이들의 줄넘기 노래. 사라진 노래는 전부 같은 곳으로 갔다. 소년의 가슴, 검은 깃털 속으로.",
+      "sourceHash": "fba60f3ead3227a4c6a180d94abaa9194f7c6aee9b764465f6e48ebec88f578a",
+      "t": "First, a market seller's bargaining song. Then a hum at the washing place. Then the children's skipping songs. Every vanished song went to the same place: the black feather in the boy's chest."
+    },
+    {
+      "id": "ep-32:51",
+      "source": "깃털은 노래를 먹을수록 커졌다. 소년의 팔에 검은 깃이 돋았다. 등에 날개가 돋았다. 어느 날 아침 거울 속에는 까마귀가 서 있었다.",
+      "sourceHash": "53a00516f83871c171189e3e1b87989cb29f0881ca4bcfabadeea61d125bd4d4",
+      "t": "The more songs the feather ate, the larger it grew. Black feathers sprouted on the boy's arms. Wings emerged from his back. One morning, a crow stood in his mirror."
+    },
+    {
+      "id": "ep-32:52",
+      "source": "잘했다. 이제 너를 비웃을 사람은 없다. 아무도 노래하지 않으니까.",
+      "sourceHash": "9f7853a78e31c248eb85430a5f5e0563abcea56c2a5d5d89fa4d8f195b4aeced",
+      "t": "Well done. Now there is no one left to mock you. No one sings anymore."
+    },
+    {
+      "id": "ep-32:53",
+      "source": "…근데 왜 이렇게 조용해요. 귀가 아플 만큼.",
+      "sourceHash": "d210ce075ebf68423093f2cad2e7490df45d55de50e39fbff7daad6b8327175d",
+      "t": "...Then why is it so quiet? So quiet it hurts my ears?"
+    },
+    {
+      "id": "ep-32:54",
+      "source": "그게 평화다.",
+      "sourceHash": "a21644d96c25fba8d5c4f48cd2adf32aad079959bd91e458a17dfd6244f311f4",
+      "t": "That is peace."
+    },
+    {
+      "id": "ep-32:55",
+      "source": "무성은 거기까지 말하고 고개를 떨궜다. 모두 아무 말도 하지 않았다. 쇠벽에서 떨어지는 녹 소리만 들렸다.",
+      "sourceHash": "26bce75a913f260394d303927da0befaa4cafb35d5fb82eb2b92629bd9c83842",
+      "t": "Museong stopped there and lowered his head. No one spoke. Only the sound of rust falling from the iron walls remained."
+    },
+    {
+      "id": "ep-32:56",
+      "source": "그래서 식상의 섬에서 노래를 금지했구나. 네가 아니라 깃털이 원한 거였어.",
+      "sourceHash": "1afedc994737447d2bf7fae76493ad612e922784c69e4d3748cc796e8953b022",
+      "t": "That's why you banned singing on the Island of Expression. The feather wanted it, not you."
+    },
+    {
+      "id": "ep-32:57",
+      "source": "아니. 나도 원했어. 처음엔 진짜로 좋았어. 아무도 안 웃는 섬. 내가 만든 거야.",
+      "sourceHash": "c0381ba685ca8b83fbd230c0112fe10dbbdbf5c9a9fb8431ee8c821e24061f68",
+      "t": "No. I wanted it too. At first, I really liked it. An island where nobody laughed. I made that."
+    },
+    {
+      "id": "ep-32:58",
+      "source": "근데 웃음만 없어진 게 아니더라. 박수도 없어졌어. 아무도 노래를 안 하니까.",
+      "sourceHash": "14221f909988f25e64f2ac32038dafaf50929bdb57f393d528cf0bbb551c93ec",
+      "t": "But laughter wasn't the only thing that disappeared. The applause went too. Because no one sang."
+    },
+    {
+      "id": "ep-32:59",
+      "source": "웃었던 손으로 박수도 쳤을 거야. 상처 준 기억만 골라 잘라 낼 수 있을까.",
+      "sourceHash": "bea0e10dfa1d9946c2d2703e8a60e17eb8ebb087ff6dd418a94980b2b04878af",
+      "t": "The hands of the people who laughed probably clapped too. Can you cut out only the memories that hurt?"
+    },
+    {
+      "id": "ep-32:60",
+      "source": "(자기 팔이 저런데도 저 애 걱정부터 하네.)",
+      "sourceHash": "79748089c356c6c2af3a874f18156e875486b0d24c28b7744301faaea5369749",
+      "t": "(His own arm is like that, and he's still worrying about the boy first.)"
+    },
+    {
+      "id": "ep-32:61",
+      "source": "고양이 아저씨 말이 맞아. 그걸 알았을 땐 이미 깃털이 내 목에 뿌리를 내린 다음이었어.",
+      "sourceHash": "f3b4e2d5e528c8a5df7a02acdcd6452b2d343599c82cd70d70566ec321c1db4b",
+      "t": "The cat mister is right. By the time I realized it, the feather had already put down roots in my throat."
+    },
+    {
+      "id": "ep-32:62",
+      "source": "아저씨래.",
+      "sourceHash": "a68054561150088805bff9ab28372b3c7eb39d65822b780cc9db9269076a7f04",
+      "t": "He called you mister."
+    },
+    {
+      "id": "ep-32:63",
+      "source": "…지적할 때가 아니다.",
+      "sourceHash": "05e712bcc8124ad7d90342f776c3325cb2fffafa740a81923ef20d721308120d",
+      "t": "...This is not the moment."
+    },
+    {
+      "id": "ep-32:64",
+      "source": "무성이 바닥에 무릎을 꿇었다. 깃털에서 뻗은 실이 그의 목을 감고 있었다. 숨을 쉴 때마다 쇳소리가 났다.",
+      "sourceHash": "809a84bf91e2a1fd5cacd41d6582f96994d028793f0327852208f06c4fe21213",
+      "t": "Museong sank to his knees. Threads from the feather coiled around his neck. Every breath made a metallic sound."
+    },
+    {
+      "id": "ep-32:65",
+      "source": "이제 알겠어요. 저 깃털이 이 애 목이에요. 숨이고 목소리고 다 저 안에 있어요.",
+      "sourceHash": "85c85b486eabade2166101d874496001d632383adb02bd3e62a52925fa9bc50d",
+      "t": "I understand now. That feather is his throat. His breath, his voice—everything is inside it."
+    },
+    {
+      "id": "ep-32:66",
+      "source": "그럼 뽑으면.",
+      "sourceHash": "ed6887ae2d33e5157163c5ff0b0048e4e7ada8753cc7e7aafc63bdc5f85e36aa",
+      "t": "Then if we pull it out..."
+    },
+    {
+      "id": "ep-32:67",
+      "source": "숨이 같이 뽑혀요. 이 애는 죽어요. 제 공망으로 빨아들여도 결과는 같고요.",
+      "sourceHash": "3dd8406d52c3676c686cde17457713201b553a64d15897a0b8ce6889fec766dd",
+      "t": "His breath comes out with it. He dies. Drawing it into my Void would have the same result."
+    },
+    {
+      "id": "ep-32:68",
+      "source": "하지만 안 뽑으면 무곡이 지워진다. 사흘 뒤 정오에.",
+      "sourceHash": "cc3f1a4664a0d4e729b275d0ec43d349448793d53e88fe7100167505e4085dc3",
+      "t": "But if we leave it, Wu Qu will be erased. At noon in three days."
+    },
+    {
+      "id": "ep-32:69",
+      "source": "그건 너도 지워진다는 소리잖아!",
+      "sourceHash": "f3adf823ed8ec586d621aec57ce3862f9f6f2d0ce6b627a69f8ea368052091fd",
+      "t": "That means you'll be erased too!"
+    },
+    {
+      "id": "ep-32:70",
+      "source": "네오는 대답하지 않았다. 목덜미까지 번진 잿빛이 숨을 쉴 때마다 흔들렸다. 들숨 끝에 쇳소리가 섞여 나왔다.",
+      "sourceHash": "31f15ea15fd3252297e1130d152f71f03e080f8b456f8d1dd7bd5163da9c6e24",
+      "t": "Neo didn't answer. The gray spreading to his neck rippled with each breath. A metallic rasp mingled with the end of every inhalation."
+    },
+    {
+      "id": "ep-32:71",
+      "source": "뽑아.",
+      "sourceHash": "6b5233943c0453791099ea5511f1daf5759d3a21aa5cec3d41e71ccb9f871d6c",
+      "t": "Pull it out."
+    },
+    {
+      "id": "ep-32:72",
+      "source": "뭐?",
+      "sourceHash": "ad515411f8355b6183c96154ec9514f8daa2a114beedbd128930008eb202d731",
+      "t": "What?"
+    },
+    {
+      "id": "ep-32:73",
+      "source": "뽑아. 그럼 너희 고양이는 살아. 무곡도 살고. 몰수한 빛도 다 돌아가.",
+      "sourceHash": "b44188ee1cda42568d03552b7ede3425c9fde9898e95bec7380d680e54b630c9",
+      "t": "Pull it out. Your cat will live. Wu Qu will too. All the confiscated light will return."
+    },
+    {
+      "id": "ep-32:74",
+      "source": "어차피 나는 몇 해 전 그 언덕에서 끝난 거야. 지금은 깃털이 대신 숨 쉬어 주는 것뿐이고.",
+      "sourceHash": "6c21c1c179b3ba160a5bc5a6ecbde30d843163008c423ef7df2bcc917acf0440",
+      "t": "I ended on that hill years ago anyway. The feather is only breathing for me now."
+    },
+    {
+      "id": "ep-32:75",
+      "source": "헛소리하지 마!",
+      "sourceHash": "c0886e150b02c28fc9dae3f2ae3dea10a3e7aac2bd67bcbefb5fe5c5fa184370",
+      "t": "Don't talk nonsense!"
+    },
+    {
+      "id": "ep-32:76",
+      "source": "수달. 너 방금 사과했잖아. 그걸로 됐어. 진짜로.",
+      "sourceHash": "aa3a7894463a4bbb05975c41e802eccb50dfa85a071f2a9518328e9615aac641",
+      "t": "Otter. You just apologized. That's enough. It really is."
+    },
+    {
+      "id": "ep-32:77",
+      "source": "연이는 네오를 보았다. 그다음 무성을 보았다. 둘 다 같은 소리로 숨을 쉬고 있었다. 쇳소리. 무언가에 목을 졸리는 소리.",
+      "sourceHash": "ccb03f88b0e9f44698b46f6df5945e23f8397a07983bab4c913749cfa024a6e7",
+      "t": "Yeoni looked at Neo, then Museong. Their breathing made the same sound. Metal. The sound of something strangling them."
+    },
+    {
+      "id": "ep-32:78",
+      "source": "(하나를 살리려면 하나를 버리라고. 이거, 흑월이 제일 좋아하는 셈이야.)",
+      "sourceHash": "538c9f683f9942fea050ca61c458469468653cb66aa028bb57b8763c80effb72",
+      "t": "(Throw one away to save the other. Black Moon's favorite arithmetic.)"
+    },
+    {
+      "id": "ep-32:79",
+      "source": "연이야. 내 걱정은 하지 마. 판단은 네가 해.",
+      "sourceHash": "0cb2f67c21b39bb1296efc8dd83ade9c38930f4325b711ab118e5bbd76e55a7f",
+      "t": "Yeoni. Don't worry about me. You make the decision."
+    },
+    {
+      "id": "ep-32:80",
+      "source": "(판단. 염정이 그랬지. 가두기만 한 불은 썩는다고. 내 침묵 때문에 다치는 사람이 생긴다고.)",
+      "sourceHash": "d008e30636dea980b375ee5f3bed367d8b2b36b551ff4c4bd7dcf508e7e574c9",
+      "t": "(A decision. Lian Zhen said fire rots if you only cage it. That my silence can hurt people.)"
+    },
+    {
+      "id": "ep-32:81",
+      "source": "연이는 지금까지 자기 불을 참아 왔다. 소리치면 네오가 다쳤으니까. 그런데 참는 동안, 다들 혼자서 대가를 치르겠다고 줄을 서고 있었다.",
+      "sourceHash": "b82c9e85c71229714c11a086f6fec56bb327dc49897a167914a273fbce3bec28",
+      "t": "Yeoni had been holding their fire back all this time. Shouting hurt Neo. But while they held it in, everyone was lining up to pay the price alone."
+    },
+    {
+      "id": "ep-32:82",
+      "source": "안 뽑아.",
+      "sourceHash": "81a655574f5435a670f71343a5e8d6bc7f944d9d726d15a41701a00b1237f416",
+      "t": "I'm not pulling it out."
+    },
+    {
+      "id": "ep-32:83",
+      "source": "그럼 고양이가.",
+      "sourceHash": "b274ab1194d4e0fa9281a83f89fffce82691737257ad1b72771f7762778accea",
+      "t": "Then the cat will..."
+    },
+    {
+      "id": "ep-32:84",
+      "source": "고양이도 안 지워. 무곡도 안 지워. 너도 안 죽어. 셋 다.",
+      "sourceHash": "53d8b0a595a1d60ff261f1aad1e55aaff88dec688e9a0af6d311597ae6e2c4e0",
+      "t": "The cat won't be erased. Neither will Wu Qu. And you won't die. All three."
+    },
+    {
+      "id": "ep-32:85",
+      "source": "욕심이 많구나, 그릇아. 저울은 그렇게 기울지 않는다.",
+      "sourceHash": "759292ee5dbf9ecf58c197e39fffd7b036dad350b602d4883f9d5e8c99f5ae62",
+      "t": "Such greed, vessel. The scales do not tip that way."
+    },
+    {
+      "id": "ep-32:86",
+      "source": "연이의 가슴께에서 불이 올라왔다. 이번엔 터지는 불이 아니었다. 등불 하나만 한, 작고 곧은 불이었다.",
+      "sourceHash": "d1242584d4ead2ada6678932a4ace4e58dd503db74f180687428eaed6d587bc9",
+      "t": "Fire rose in Yeoni's chest. This time it didn't explode. It was small and steady, no larger than a lantern flame."
+    },
+    {
+      "id": "ep-32:87",
+      "source": "저울 안 써. 네 저울은 맨날 너한테 기울거든.",
+      "sourceHash": "db32b1f82cb04ff3b76f19c341d964a4314e833ca3e05c311e15987722f7ca44",
+      "t": "Then I won't use your scales. They always tip toward you."
+    },
+    {
+      "id": "ep-32:88",
+      "source": "연이가 네오를 보았다. 그는 움찔하지 않았다. 잿빛도 더 번지지 않았다. 둘은 잠깐 눈을 마주쳤다. 다른 길이 있을지도 몰랐다.",
+      "sourceHash": "c5eaa77d77877934414dec2db2817147624bd1efdb6fec0f87ea51242510a511",
+      "t": "Yeoni looked at Neo. He hadn't flinched. The gray hadn't spread any farther either. Their eyes met for a moment. There might be another way."
+    },
+    {
+      "id": "ep-32:89",
+      "source": "…안 아프다.",
+      "sourceHash": "68f0a7f09250738bb761cb322732ab5e38fa2a0d1ceb5d965a2622f10750ad26",
+      "t": "...It doesn't hurt."
+    },
+    {
+      "id": "ep-32:90",
+      "source": "(소리친 게 아니라 말한 거라서? 터뜨린 게 아니라 켠 거라서.)",
+      "sourceHash": "c0ce8f84b3ae1aa1de4b2878724930a6427c40d9c36100305a07630a3e82677a",
+      "t": "(Because I spoke instead of shouting? Because I lit it instead of making it explode?)"
+    },
+    {
+      "id": "ep-32:91",
+      "source": "뽑지도 않고 지우지도 않는다. 그럼 남는 방법은 하나예요.",
+      "sourceHash": "cf25f64fe9cd6f02d3c75c8dff35dac84579723e691039b73ff44027c504fe0e",
+      "t": "We neither pull it out nor erase anything. That leaves one option."
+    },
+    {
+      "id": "ep-32:92",
+      "source": "바꾸는 거. 忌를.",
+      "sourceHash": "bde5c4d211901c63ab21914aef78428af36ae9ac83514b93206dd35182047ef0",
+      "t": "We change it. The Obstruction."
+    },
+    {
+      "id": "ep-32:93",
+      "source": "化忌를 化祿으로. 막힌 자리를 흐르는 자리로요. 이론상으로는 돼요. 해 본 사람은 없지만.",
+      "sourceHash": "88c8c0e02e17cbe4d6c2cdd7762f353b0fb81b65f080d16b57e6f94f5eac154d",
+      "t": "Obstruction Transformation into Prosperity Transformation. Turn a blocked place into one that flows. It works in theory. Though no one has tried it."
+    },
+    {
+      "id": "ep-32:94",
+      "source": "이론상이 제일 무서운 말이야.",
+      "sourceHash": "9836bd03854170cb88a33ee472e98b47d0c89ebfe6921f07c13435023de2cd02",
+      "t": "'In theory' is the scariest phrase there is."
+    },
+    {
+      "id": "ep-32:95",
+      "source": "맞아요. 궁합도 이론상으로는 다 맞거든요.",
+      "sourceHash": "910fee7ebb4dafab29d55ccb81ca748888fdfd9577c578b08cbfb288b29a55cb",
+      "t": "True. Every compatibility reading works in theory too."
+    },
+    {
+      "id": "ep-32:96",
+      "source": "(忌는 빚이랑 비슷하다고 했어. 받을 걸 못 받아서 고인 자리.)",
+      "sourceHash": "202fa5267ec09662b5d3f350fdf2f532c3ef05178639deb637e557683b28fac6",
+      "t": "(They said Obstruction was like a debt. A place that stagnates because it never received what it was owed.)"
+    },
+    {
+      "id": "ep-32:97",
+      "source": "무성이가 못 받은 거. 그게 뭔지 알 것 같아.",
+      "sourceHash": "8b86e672585340f4f814dc8c2e5c3bd5b97442e1e5fa7c96e3835438793a234b",
+      "t": "What Museong never received. I think I know what it is."
+    },
+    {
+      "id": "ep-32:98",
+      "source": "모두가 연이를 보았다. 무성까지. 연이는 모카의 등을 살짝 밀었다.",
+      "sourceHash": "8c91587d5cef2d15e2f6f39dc4093229edc9dffdffd2504ce9018cf1385eae67",
+      "t": "Everyone looked at Yeoni, even Museong. Yeoni gently nudged Moka's back."
+    },
+    {
+      "id": "ep-32:99",
+      "source": "박수. 그날 무대에서 못 받은 거.",
+      "sourceHash": "8711b241c34fd5d902db68c3348b19bb099e5683388da8428ca9d0a550b3af5c",
+      "t": "Applause. What he didn't get onstage that day."
+    },
+    {
+      "id": "ep-32:100",
+      "source": "…박수 같은 거 필요 없어. 그런 걸로 깃털이 빠질 리가.",
+      "sourceHash": "892d44f135416f1afbbecedc22c99e4ba5431950ceac1d5b0c08841d2d52f500",
+      "t": "...I don't need applause. That couldn't possibly remove the feather."
+    },
+    {
+      "id": "ep-32:101",
+      "source": "아뇨, 말이 돼요. 忌가 받을 걸 못 받은 자리라면, 받으면 풀려요. 다만 진짜여야 해요. 동정 박수는 장부에 안 찍혀요.",
+      "sourceHash": "d49bc24db0701d9dd55be6083d8683b529bddc045fc10ca4e1bcbcda3a0d7954",
+      "t": "No, it makes sense. If Obstruction marks something unreceived, receiving it could release the blockage. But it has to be real. Pity applause doesn't enter the ledger."
+    },
+    {
+      "id": "ep-32:102",
+      "source": "진짜 박수. 그거 어떻게 하는 건데.",
+      "sourceHash": "8e5c3d4b4dd12e67d8a55b1487ae35dd0bc403405db25c00046aaa87823f98ba",
+      "t": "Real applause. How do we do that?"
+    },
+    {
+      "id": "ep-32:103",
+      "source": "너 맨날 숯불 앞에서 흥얼거렸잖아. 그 노래 끝까지 들어 본 사람, 나밖에 없어. 꽤 좋았어.",
+      "sourceHash": "2eaca72d5c0b61729c5268f0e6ee8f79b610320023908c1e641bce77506150ee",
+      "t": "You always hummed over the coals. I'm the only one who's heard that song all the way through. It was pretty good."
+    },
+    {
+      "id": "ep-32:104",
+      "source": "들었어? 언제부터?",
+      "sourceHash": "863ef287daad041c283988937514d43e2ca7d87e2045e311a3badc7b4c19c727",
+      "t": "You heard it? Since when?"
+    },
+    {
+      "id": "ep-32:105",
+      "source": "첫날부터. 랩은 진짜 못하던데, 그 노래는 좋았어.",
+      "sourceHash": "9c95758977d8f114d7f53e83e733a829f31314e7fda424f7a76e46b078ccd722",
+      "t": "The first day. Your rapping was awful, but that song was good."
+    },
+    {
+      "id": "ep-32:106",
+      "source": "모카가 무성을 보았다. 오래. 그리고 꼬리로 바닥을 한 번 쳤다. 톡.",
+      "sourceHash": "49142c5abde20186943f33eaf654612bdd5a2a044f13b6730253757576c7fd2e",
+      "t": "Moka looked at Museong for a long time. Then he tapped the floor once with his tail. Tap."
+    },
+    {
+      "id": "ep-32:107",
+      "source": "그 순간 방 전체가 흔들렸다. 쇠벽의 녹이 우수수 떨어졌다. 천장 너머에서 종이 울렸다. 한 번, 두 번.",
+      "sourceHash": "8d2bf86b6328b4bbfa4b08980aa38fbdb3a34f140de640f31612cf822eaa6f68",
+      "t": "At that moment, the entire room shook. Rust rained from the iron walls. A bell rang beyond the ceiling. Once. Twice."
+    },
+    {
+      "id": "ep-32:108",
+      "source": "사흘은 너무 길구나. 정오는 지금이다.",
+      "sourceHash": "5944a8c60e56d6d0afa20576913d31f208ba92b1621411d1d8799d1997e2ba5f",
+      "t": "Three days is too long. Noon is now."
+    },
+    {
+      "id": "ep-32:109",
+      "source": "시간을 당겼어요! 무곡이 지워지기 시작해요!",
+      "sourceHash": "e08620951885420e602bee2f27b56e1895400dbd620052f81323d365c01d6148",
+      "t": "He's moved the time forward! Wu Qu is starting to be erased!"
+    },
+    {
+      "id": "ep-32:110",
+      "source": "묶인 별의 빛이 한 줄씩 꺼지기 시작했다. 네오가 무릎을 꿇었다. 종이 세 번째로 울렸다. 열두 번째 종이 울리면, 정오였다.",
+      "sourceHash": "ce11dfe54bace757da5ed00ee6a014fc90cf5235cb2617773ff7515255812ba8",
+      "t": "Lines of light went out one by one in the bound star. Neo fell to his knees. The bell rang a third time. When the twelfth bell rang, it would be noon."
+    }
+  ]
+}

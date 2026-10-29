@@ -1,0 +1,444 @@
+{
+  "locale": "en",
+  "episodeId": "ep-28d",
+  "tag": "Episode 28 Side Story · The First to Recognize Her",
+  "title": "The First to Recognize Her",
+  "sourceTitle": "먼저 알아본 사람",
+  "sourceTag": "제28화 외전 · 먼저 알아본 사람",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-28d:1",
+      "source": "다음 날 아침, 연이는 메모장을 열고 한 줄씩 소리 내어 읽었다.",
+      "sourceHash": "69dec2ee45a44d7a498d6fb5192181b16b95ed1f64e4d8becee7d7552b4b728a",
+      "t": "The next morning, Yeoni opened their notes and read each line aloud."
+    },
+    {
+      "id": "ep-28d:2",
+      "source": "하나, 맑은 날에도 검은 우산. 둘, 맑은 날 비 냄새. 이름은 서한비, 찬비.",
+      "sourceHash": "538af1108bd988a5ac1209e6a0e958c717e5e8ceab75ac74d833d87311bcd66d",
+      "t": "One, black umbrella even on clear days. Two, rain smell in clear weather. Name: Seo Hanbi, cold rain."
+    },
+    {
+      "id": "ep-28d:3",
+      "source": "셋, 이름을 알려 주면 빚진다는 말. 넷, 빚은 남겨 두면 불어난다는 말.",
+      "sourceHash": "dcf4c4a86e43e994b88c6a766e5cba2e4aacd0ac739b8f7798e2f4289203ccbb",
+      "t": "Three, saying giving a name creates a debt. Four, saying a debt grows if left alone."
+    },
+    {
+      "id": "ep-28d:4",
+      "source": "(다섯, 오른 손목의 고리 자국. 여섯, 다친 사람 앞에서 멈추는 버릇.)",
+      "sourceHash": "96180ae47888f1a5f07cedd46b009cb80d4219dffefe5a06ff56384c04febcc9",
+      "t": "(Five, ring mark on right wrist. Six, habit of stopping before someone hurt.)"
+    },
+    {
+      "id": "ep-28d:5",
+      "source": "연이는 다음 줄을 짚었다. 일곱, 네오가 오른 손목을 경계함. 여자를 보자마자 내 앞을 막음.",
+      "sourceHash": "cbfc1bc410f06d00238d1ba4a9636e139dfcb06b64d9568972fa7a9bbc3cc108",
+      "t": "Yeoni pointed to the next line. Seven, Neo wary of her right wrist. Stepped in front of me the instant he saw her."
+    },
+    {
+      "id": "ep-28d:6",
+      "source": "「여덟, 우산 씌워 줬더니 가격을 물어봄.」",
+      "sourceHash": "37c7e85c5dff0af3fae3d46554793aa46787eeb5cb0fc39f8280bf76fc79d2e0",
+      "t": "“Eight, asked the price when you shared an umbrella.”"
+    },
+    {
+      "id": "ep-28d:7",
+      "source": "그건 내가 적으려고 했어. 고객센터가 스포일러 하지 마.",
+      "sourceHash": "70ad6cc9de99a1bcd57d1fd1eebf651d48614ff25f26ade9a5fa5beeabae18db",
+      "t": "I was about to write that. No spoilers from Customer Support."
+    },
+    {
+      "id": "ep-28d:8",
+      "source": "그리고 연이는 기억해 냈다. 인성의 도서관. 쫓고 쫓기던 서가 사이. 펄럭이던 검은 망토 안쪽에 꿰매져 있던 이름. 북 치던 아이의 이름.",
+      "sourceHash": "199ff21ee52edda3a2cf466f2610bc16ececc4d39903f7e9d0ec71b0c8af11d0",
+      "t": "Then Yeoni remembered. The Library of Resources. The chase between shelves. The name stitched inside the fluttering black cloak. The drumming child's name."
+    },
+    {
+      "id": "ep-28d:9",
+      "source": "(그 호랑이도 다친 아이 앞에서 멈칫했어. 빵을 받고 어쩔 줄 몰라 했어.)",
+      "sourceHash": "4991f619832d5e18b82883b66d533c79b528ccd7bde2581ab8800ff770bdaf91",
+      "t": "(That tiger stopped before a hurt child, too. Didn't know what to do when given bread.)"
+    },
+    {
+      "id": "ep-28d:10",
+      "source": "서한비 씨가 그 호랑이야. 검은 호랑이.",
+      "sourceHash": "5919804e54aa112530193d8d8cb1ba5059ebc40818001cccb3539f67ac628f2d",
+      "t": "Seo Hanbi is that tiger. The black tiger."
+    },
+    {
+      "id": "ep-28d:11",
+      "source": "「…맞다. 나도 이제 기억난다. 그 냄새, 강 상류에서 맡았다.」",
+      "sourceHash": "0abd8c045f313fa62d409f9c1ff6813f91a2b800a6bba56318d081d5aae2d09f",
+      "t": "“...Yes. I remember now, too. That smell. Upriver.”"
+    },
+    {
+      "id": "ep-28d:12",
+      "source": "근데 그 호랑이가 왜 우리 옆집에 살아? 그것도 사람으로?",
+      "sourceHash": "77b7f045a965174fff8ac70dea3725d21357dd8c585ed7f36fe1ba0685c61b76",
+      "t": "But why is that tiger living next door? As a human?"
+    },
+    {
+      "id": "ep-28d:13",
+      "source": "「이유는 둘 중 하나다. 너를 노리거나, 너를 지키거나.」",
+      "sourceHash": "11e9f07b03ab70b684af3575b175190632ec706341f9ab5d7f1718fa773c5192",
+      "t": "“One of two reasons. To hunt you, or protect you.”"
+    },
+    {
+      "id": "ep-28d:14",
+      "source": "(명함 뒤에 정류장 가지 말라고 썼어. 노리는 사람이 그런 걸 쓰나.)",
+      "sourceHash": "02ade826af79dcdc60919cb80775d2b6e3bab9edc5ff176fc64a54404b63b8e6",
+      "t": "(She wrote not to go to the bus stop on the card. Would someone hunting me write that?)"
+    },
+    {
+      "id": "ep-28d:15",
+      "source": "물어보면 되지. 옆집인데.",
+      "sourceHash": "d6b6b7fb2be087d1d2b56487dc3509fb060c7300afa341838f73e806e3b67797",
+      "t": "Then I'll ask. She's next door."
+    },
+    {
+      "id": "ep-28d:16",
+      "source": "「위험하다. 저쪽에서 저 여자는 너를 사냥했다. 여기서도 발톱은 있다.」",
+      "sourceHash": "986f66966668cd90ba5f2c942d47f19688561365f24f0af49832175faa7000f6",
+      "t": "“Dangerous. Over there, she hunted you. She still has claws here.”"
+    },
+    {
+      "id": "ep-28d:17",
+      "source": "알아. 근데 정류장에서 우는 거 봤어. 사냥꾼은 그렇게 안 울어.",
+      "sourceHash": "7f58573d79cf51fb12d3c4aec6cc82a5de2677b414598a91851b29bc2afdf14f",
+      "t": "I know. But I saw her cry at the stop. Hunters don't cry like that."
+    },
+    {
+      "id": "ep-28d:18",
+      "source": "「…사람 보는 눈이 좋아졌군. 고객센터 교육 덕분이다.」",
+      "sourceHash": "e9839f4e4629f5c1b78329059f0df3142693191d0bcd510fee5de1c060ab1f6b",
+      "t": "“...Your judgment of people has improved. Thanks to Customer Support's training.”"
+    },
+    {
+      "id": "ep-28d:19",
+      "source": "그건 루나 언니 빵 덕분이야. 빵 먹으면서 사람을 많이 봤거든.",
+      "sourceHash": "788de52ec7d662f5c842ae6eb550df4a85bf2ea931677f6e39b33a5878b1cad1",
+      "t": "Thanks to Luna's sister's bread. I saw a lot of people while eating bread."
+    },
+    {
+      "id": "ep-28d:20",
+      "source": "현관에서 운동화 끈을 묶는데 손이 떨렸다. 네오가 옆에 쪼그려 앉아 풀린 매듭을 잡아 주었다.",
+      "sourceHash": "ec6e1a250d24a17b61bd507916aafbda0b8988edbc567f40c364d46bd66d22b0",
+      "t": "At the door, Yeoni's hands shook while tying their sneakers. Neo crouched beside them and held the loose knot."
+    },
+    {
+      "id": "ep-28d:21",
+      "source": "「같이 간다. 내가 하악질해도 말리지 마라.」",
+      "sourceHash": "6fc70b711e472cc0808878af4d2469095338894165c4bcd2411cfbd1606d1e70",
+      "t": "“I'm coming. Don't stop me if I hiss.”"
+    },
+    {
+      "id": "ep-28d:22",
+      "source": "연이는 옆집 문 앞에 섰다. 손에는 아무것도 없었다. 빵이라도 사 올 걸 그랬나 싶었다.",
+      "sourceHash": "14f8da93cd9f6736f8bc361b8ffff9ad6a84bb308fb7be892b3e3b1eb06ed0dc",
+      "t": "Yeoni stood before the neighbor's door, empty-handed. Maybe they should have brought bread."
+    },
+    {
+      "id": "ep-28d:23",
+      "source": "세 번 두드렸다. 한참 뒤 문이 조금 열렸다. 체인이 걸린 틈으로 서한비의 눈이 보였다.",
+      "sourceHash": "ccfc1a1554a6a4db0fa9c6fe17faa6d09703747a942ae864c091d5e659537e0c",
+      "t": "Three knocks. After a long wait, the door opened a little. Seo Hanbi's eyes appeared through the chained gap."
+    },
+    {
+      "id": "ep-28d:24",
+      "source": "무슨 일이세요. 이른 시간인데.",
+      "sourceHash": "9535d2c4dd7f46841e7374a5c0ebbaf07b2aa77fd377671dab519139b0a89e64",
+      "t": "What is it? It's early."
+    },
+    {
+      "id": "ep-28d:25",
+      "source": "우산 돌려받으러 왔어요. 그리고 하나 물어보려고요.",
+      "sourceHash": "9d42260e7eac3e5a8761738223016c63fa6ee846f3a19d998a91edecb1535f8e",
+      "t": "I've come for my umbrella. And to ask something."
+    },
+    {
+      "id": "ep-28d:26",
+      "source": "문틈 사이로 테이프 감긴 우산이 내밀어졌다. 연이는 우산을 받지 않았다. 대신 문틈에 대고 조용히 불렀다.",
+      "sourceHash": "43af0c4ee673201cdf3623c64a9112164933e3484fd7823eff01b220277e7bc3",
+      "t": "The taped umbrella emerged through the gap. Yeoni did not take it. Instead, they called softly through the door."
+    },
+    {
+      "id": "ep-28d:27",
+      "source": "호랑이 씨?",
+      "sourceHash": "57bc0185fd0cf7190403ffa31e1b452c51d4ab51e892d61a82df63ccfc28dcd5",
+      "t": "Ms. Tiger?"
+    },
+    {
+      "id": "ep-28d:28",
+      "source": "우산이 바닥에 떨어졌다. 탁. 복도에 그 소리만 울렸다.",
+      "sourceHash": "7cd0969bf24d9c932b7c29c727eb0c988d65ac50abc7cc0c1f53a9a88665cdc6",
+      "t": "The umbrella fell. Tap. The sound alone echoed through the corridor."
+    },
+    {
+      "id": "ep-28d:29",
+      "source": "…잘못 찾아오셨어요.",
+      "sourceHash": "d0adfef65cc34871642070acd232e75178edb6a676f9c9e1712ccac66b381073",
+      "t": "...Wrong apartment."
+    },
+    {
+      "id": "ep-28d:30",
+      "source": "북 치던 아이 이름, 아직 갖고 있어요? 코트 안주머니에.",
+      "sourceHash": "a3f9fb9f5a3b6b5eb7590bda0981c381e519a0db594b52fcf15f1d56dbf778e4",
+      "t": "Do you still have the drumming child's name? In your coat's inner pocket?"
+    },
+    {
+      "id": "ep-28d:31",
+      "source": "서한비의 손이 저도 모르게 코트 가슴께로 갔다. 그리고 거기서 멈췄다. 늦었다.",
+      "sourceHash": "e0e1f4cea55e4fd9d4e49d20bd9b5f5871fd2dc4eedc460d800e932e4baf36dd",
+      "t": "Without knowing it, Seo Hanbi's hand went to her chest. Then stopped. Too late."
+    },
+    {
+      "id": "ep-28d:32",
+      "source": "거기 있구나. 다행이다.",
+      "sourceHash": "af58519e2fe1e198f6b9316667bb5bc347ce81137cbd0a4dcd43ca2b71b6b5c3",
+      "t": "It's there. Thank goodness."
+    },
+    {
+      "id": "ep-28d:33",
+      "source": "서한비의 얼굴에서 핏기가 빠졌다. 체인 너머로 숨을 고르는 소리가 들렸다. 문은 닫히지 않았다.",
+      "sourceHash": "45ecaa9fba91e44cafa4a85535e240cad7e58fa825e98f4d63e184761bfcd740",
+      "t": "Color drained from her face. Beyond the chain, she steadied her breathing. The door did not close."
+    },
+    {
+      "id": "ep-28d:34",
+      "source": "저는 그 아이 이름이 기억 안 나요. 여기 오니까 흐려졌어요. 근데 서한비 씨는 갖고 있잖아요.",
+      "sourceHash": "2efc541b95c1c83f9dd3dfbb05defab8bcf6c16515eee9044c2f3893194bb13c",
+      "t": "I can't remember that child's name. Things blurred after I came here. But you still have it."
+    },
+    {
+      "id": "ep-28d:35",
+      "source": "버리려고 했어요. 몇 번이나. 버리면 장부가 깨끗해지니까. 근데 못 버렸어요.",
+      "sourceHash": "e1ffc9ff65a5ed009da10b8233fcfe3812ba82bdb342579cc0c7c33f3d1ed964",
+      "t": "I tried to throw it away. So many times. It would clear the ledger. But I couldn't."
+    },
+    {
+      "id": "ep-28d:36",
+      "source": "어떻게… 여기선 다 흐려지는데. 당신은 원래 아무것도 몰라야 하는데.",
+      "sourceHash": "dfa443b5536d6051785b016f6e3efd68b170570a755b632cb139e5ebe1cf3bdd",
+      "t": "How... Everything blurs here. You weren't supposed to know anything."
+    },
+    {
+      "id": "ep-28d:37",
+      "source": "적어 놨거든요. 잊어버릴까 봐. 서한비 씨가 흘린 거 전부.",
+      "sourceHash": "fd281da676e1e1315e750ddbb9492770a743b44ad6565bb9967adf6c4c942984",
+      "t": "I wrote it down. Afraid I'd forget. Everything you let slip."
+    },
+    {
+      "id": "ep-28d:38",
+      "source": "그럼 알겠네요. 내가 당신한테 뭘 했는지. 당신 운을 다 거둬 간 게 누군지.",
+      "sourceHash": "e2de6c3b368ce9f724b5106c10ea283c5339100456605ab4da20d40ba02f3480",
+      "t": "Then you know what I did to you. Who collected all your fortune."
+    },
+    {
+      "id": "ep-28d:39",
+      "source": "알아요. 그래서 물어보러 왔어요. 왜 옆집에 왔어요? 끝내러 왔어요, 지키러 왔어요?",
+      "sourceHash": "ffe973737c0bfbf001e9ea9064033008000a7842b29b12da1cc7310ecd24e34b",
+      "t": "I know. That's why I came to ask. Why move next door? To finish it, or to protect me?"
+    },
+    {
+      "id": "ep-28d:40",
+      "source": "서한비는 대답하지 못했다. 체인 너머에서 그녀의 입술이 두 번 열렸다가 닫혔다.",
+      "sourceHash": "57c4ac90d5fd7054fdcbe26ef92ec21e43161badcd3f9f9b8c1858261665792d",
+      "t": "Seo Hanbi couldn't answer. Beyond the chain, her lips opened and closed twice."
+    },
+    {
+      "id": "ep-28d:41",
+      "source": "둘 다예요. 끝내라는 명령을 받았고, 지키고 싶었어요. 어느 쪽도 못 했고요.",
+      "sourceHash": "d85eb4a88cabed1b07525fafe149bebb8b66871f1a69c3e1e3c12a464863a2bc",
+      "t": "Both. Ordered to finish it. Wanted to protect you. Managed neither."
+    },
+    {
+      "id": "ep-28d:42",
+      "source": "그래서 맑은 날마다 우산 들고 서 있었어요? 내 문 앞 지키느라?",
+      "sourceHash": "53b2ef74b0efbac0fd6134a754e09e4a1442f3198d0b1c567af21a45b9eefcc4",
+      "t": "Is that why you stood with an umbrella every clear day? Guarding my door?"
+    },
+    {
+      "id": "ep-28d:43",
+      "source": "비가 오면 그것이 와요. 물이 있는 곳으로. 그래서 비 오는 날엔 정류장에 가지 말라고 한 거예요.",
+      "sourceHash": "f455d415702ff05cbeadbc162588c15e48442a83c7f48a20b3a8ba70927de2cf",
+      "t": "When rain comes, it comes. Where there's water. That's why I told you not to go to the stop on rainy days."
+    },
+    {
+      "id": "ep-28d:44",
+      "source": "그것이 뭔데요?",
+      "sourceHash": "ee03ad2d56af76da67d3b53a6b604ec30f6724ddd9d6115fa0e4605668337fff",
+      "t": "What comes?"
+    },
+    {
+      "id": "ep-28d:45",
+      "source": "대답 대신 연이의 주머니에서 휴대폰이 저절로 켜졌다. 화면이 새까맸다. 한가운데 검은 원 하나. 테두리만 붉게 타는 해.",
+      "sourceHash": "adf564a7516fefd0458c094dabb5ef5273689cabf6fbd0754d52d5a0a24a8a5d",
+      "t": "Instead of an answer, Yeoni's phone lit up in their pocket. A pitch-black screen. A black circle at its center. A sun burning red only at the rim."
+    },
+    {
+      "id": "ep-28d:46",
+      "source": "화면에서 검은 손이 뻗어 나왔다. 하나, 둘, 열둘. 손들이 연이의 손목과 발목을 휘감았다.",
+      "sourceHash": "224e533398a772ed75c63ebd9d1cf567b17fbb4fd2a35f78f2cdc023d584e15b",
+      "t": "Black hands reached from the screen. One, two, twelve. They wrapped around Yeoni's wrists and ankles."
+    },
+    {
+      "id": "ep-28d:47",
+      "source": "이거… 저쪽 손이잖아! 여긴 현실인데!",
+      "sourceHash": "44581290cb0d0fdf5637cd9870507c8399cfa38483bd5b3228264c0668b5715b",
+      "t": "These... those hands from over there! But this is reality!"
+    },
+    {
+      "id": "ep-28d:48",
+      "source": "늦었구나, 사냥개. 저쪽에서 끝내라 했거늘. 직접 거두마.",
+      "sourceHash": "fbea30f45f9096a5bfbe2b4b58f87b8f76da6815dca829cdbb13cb76c9238dd0",
+      "t": "Too late, hound. I told you to finish it there. I'll collect in person."
+    },
+    {
+      "id": "ep-28d:49",
+      "source": "안 돼요! 그 애는 아직 비어 있지 않아요!",
+      "sourceHash": "57c7211b73935d93ef77b705461b6e6f065adef0a360d92672520e7aa4f6d099",
+      "t": "No! That child isn't empty yet!"
+    },
+    {
+      "id": "ep-28d:50",
+      "source": "비우면 된다. 문을 열어라. 이번엔 네 손으로.",
+      "sourceHash": "c273ba3993e3dc1d957ebf05a89a72cd972b57ec7cfc011063439cd093c4a9a4",
+      "t": "Then empty it. Open the door. With your own hands this time."
+    },
+    {
+      "id": "ep-28d:51",
+      "source": "손들이 연이를 휴대폰 쪽으로 끌어당겼다. 화면이 문처럼 넓어졌다. 그 너머로 낯선 별들이 소용돌이쳤다.",
+      "sourceHash": "91a51a89fde9ba5d6510c60a6be787e00081c9dd593e5c4836ad7a0e57c34f42",
+      "t": "The hands dragged Yeoni toward the phone. The screen widened into a door. Unfamiliar stars swirled beyond."
+    },
+    {
+      "id": "ep-28d:52",
+      "source": "서한비가 체인을 뜯어냈다. 문이 활짝 열렸다. 그녀의 오른 손목에서 금줄이 붉게 타올랐다.",
+      "sourceHash": "c43dc590ed1fba173b48d5efd90707e857fc129dffe705e86f66ce35951ff1a1",
+      "t": "Seo Hanbi tore off the chain. The door flew open. At her right wrist, the gold cord burned red."
+    },
+    {
+      "id": "ep-28d:53",
+      "source": "검은 코트가 털이 되었다. 손이 앞발이 되고, 손톱이 발톱이 되었다. 복도를 가득 채운 검은 호랑이가 연이 앞에 섰다.",
+      "sourceHash": "dc9e2b5ac0f3bf65a0b2f4c0013761d122f40e2fa38766706c9c988002b2208f",
+      "t": "The black coat became fur. Hands became paws, nails claws. A black tiger filled the corridor, standing before Yeoni."
+    },
+    {
+      "id": "ep-28d:54",
+      "source": "그 애한테서 손 떼.",
+      "sourceHash": "0e064a3593ad8e808b1aefc1e8841a57842379d1d075d1a420cfbf940b5929bb",
+      "t": "Get your hands off that child."
+    },
+    {
+      "id": "ep-28d:55",
+      "source": "앞발 한 번에 손 셋이 끊겼다. 끊긴 손이 다시 자랐다. 호랑이는 또 베었다. 오른 앞발의 금장 고리가 살을 파고들었다.",
+      "sourceHash": "fc70cd2c9d91256d63f8fd221de1617c47d4d504314c22ab5ca4e2116f6a4585",
+      "t": "One sweep severed three hands. They grew back. The tiger cut again. The golden ring on its right forepaw dug into flesh."
+    },
+    {
+      "id": "ep-28d:56",
+      "source": "명령을 또 어기는구나. 그 고리가 누구 것인지 잊었느냐.",
+      "sourceHash": "3d2a4b393d40143988c4540671f0e7d8ec7caff208ef3dcaaf8b2342bf782e62",
+      "t": "Disobeying again. Have you forgotten whose ring that is?"
+    },
+    {
+      "id": "ep-28d:57",
+      "source": "안 잊었어. 그래서 이번엔 내가 갚는 거야.",
+      "sourceHash": "a6ded3825347b8a8dc51f82385db41665316aec49a5d8ebc5d67beb98be19fd7",
+      "t": "I haven't. That's why I'm repaying it myself this time."
+    },
+    {
+      "id": "ep-28d:58",
+      "source": "호랑이가 연이를 몸으로 덮었다. 손들이 이번엔 호랑이를 감았다. 연이 대신.",
+      "sourceHash": "00fca3561ba1543b6485a53319254f47bdcbb692d8386aa40a41b805334f70f9",
+      "t": "The tiger covered Yeoni with its body. This time, the hands wrapped around the tiger instead."
+    },
+    {
+      "id": "ep-28d:59",
+      "source": "호랑이 씨! 놔요, 같이 버텨요!",
+      "sourceHash": "f8739e48d5ab66ab834492a14798ae53081b3b591e86aaeab983b72c51293d21",
+      "t": "Ms. Tiger! Let go. Let's hold on together!"
+    },
+    {
+      "id": "ep-28d:60",
+      "source": "우산, 고마웠어요. 그건 장부에 적을게요. 미수로.",
+      "sourceHash": "53ef41020ad7a10d22faceae24d91b0dbd907abaa60445b113fd421d15c6e4b5",
+      "t": "Thank you for the umbrella. I'll put that in the ledger. As uncollected."
+    },
+    {
+      "id": "ep-28d:61",
+      "source": "손들이 호랑이를 화면 속으로 끌고 들어갔다. 검은 꼬리 끝이 마지막으로 연이의 손등을 스쳤다. 차가운 빗물처럼.",
+      "sourceHash": "a880d892833c4c42d09fb211f69a806076e51986f31ba4d394d8f278ba7a71e1",
+      "t": "The hands dragged the tiger into the screen. The tip of its black tail brushed Yeoni's hand last. Like cold rainwater."
+    },
+    {
+      "id": "ep-28d:62",
+      "source": "복도가 조용해졌다. 형광등이 한 번 깜빡이고, 다시 켜졌다.",
+      "sourceHash": "e34664f7cbe3605abce19d8876960e26168e2f493b30d372f3e4676ad643c3b1",
+      "t": "The corridor went quiet. The fluorescent light flickered once, then came back on."
+    },
+    {
+      "id": "ep-28d:63",
+      "source": "바닥에는 테이프 감긴 우산 하나와 젖은 발자국 하나가 남아 있었다. 붉은 발자국이었다.",
+      "sourceHash": "12350ba58e7a372f35bc2a916016ab6a1ab1a8704d0b6e24d61774f55a677c64",
+      "t": "On the floor remained a taped umbrella and one wet pawprint. A red pawprint."
+    },
+    {
+      "id": "ep-28d:64",
+      "source": "내가 불렀어. 내가 알아봐서, 그래서.",
+      "sourceHash": "ee34b87732d82eb9d1644080bb6a20fe51d043c799c18384cae63e7ad969d266",
+      "t": "I called her. I recognized her, and that's why..."
+    },
+    {
+      "id": "ep-28d:65",
+      "source": "네오가 연이 앞에 무릎을 굽혔다. 손을 내밀었지만 연이가 잡을 때까지 기다렸다. 그의 시선은 아직 복도 끝을 향해 있었다.",
+      "sourceHash": "4f56fb8e7f269da5a05658a1ea47d615118cc8415d76bd64340e75bfdf0aac12",
+      "t": "Neo knelt before Yeoni. He offered his hand but waited until they took it. His gaze still faced the corridor's end."
+    },
+    {
+      "id": "ep-28d:66",
+      "source": "「네 탓이 아니다. 네가 먼저 알아봤기 때문에, 저 여자는 자기 손으로 골랐다. 아마 처음으로.」",
+      "sourceHash": "b8415a8f6fd0647e32c134afa315a115e68496e262b0dba053d1e01d269ad707",
+      "t": "“Not your fault. Because you recognized her first, she chose with her own hands. Perhaps for the first time.”"
+    },
+    {
+      "id": "ep-28d:67",
+      "source": "[ 다른 하늘이 열렸습니다 · 열두 개의 궁 ]",
+      "sourceHash": "e1fdfca4d1b4b3494990bb864bd54bbff91982fe98d41bd2bdb613f5008d7ca7",
+      "t": "[ Another sky has opened · The Twelve Palaces ]"
+    },
+    {
+      "id": "ep-28d:68",
+      "source": "휴대폰 화면에 앱이 저절로 켜졌다. 이 앱을 처음 깔던 날처럼, 버튼 하나만 떠 있었다.",
+      "sourceHash": "e78fd776f8b3019631b09b5a5cedf1845bc8874edf10a990b15ab9667400ab0e",
+      "t": "The app opened on the phone by itself. Like the day Yeoni first installed it, only one button appeared."
+    },
+    {
+      "id": "ep-28d:69",
+      "source": "이번엔 누가 억지로 누르게 안 해. 내가 누를 거야.",
+      "sourceHash": "fb9d1ffcdfffd5dc3214df13003c3f156999c602b45ba4c32f3fe7aa5ddf2681",
+      "t": "Nobody's making me press it this time. I'll press it myself."
+    },
+    {
+      "id": "ep-28d:70",
+      "source": "연이는 바닥의 우산을 주웠다. 테이프 감긴 손잡이가 아직 따뜻했다. 서한비가 오래 쥐고 있던 온기였다.",
+      "sourceHash": "a77823bdfa30b9e92fcf754007828e6fdaa5e90d79f3207e0cec43bb9206fa15",
+      "t": "Yeoni picked up the umbrella. Its taped handle was still warm from Seo Hanbi holding it for so long."
+    },
+    {
+      "id": "ep-28d:71",
+      "source": "이거 돌려줘야 하니까. 가서 데려올 거야. 이번엔 공짜로 안 넘어가.",
+      "sourceHash": "560cf46d0ad8e6ba1d77afba876ed38068bdf528c2a7bcac55db9f279ddea5ad",
+      "t": "I have to return this. I'm going to bring her back. This time, she's not getting away for free."
+    },
+    {
+      "id": "ep-28d:72",
+      "source": "지갑 안쪽에서 윤달의 부적이 따뜻하게 빛나기 시작했다. 접힌 종이 위로, 초승달 하나가 천천히 차올랐다.",
+      "sourceHash": "9f6d6de9014e26f47764eeb6fbefef519471717ebe58e93b6746e838e19c3b4d",
+      "t": "Inside the wallet, Yundal's talisman began glowing warmly. Over the folded paper, a crescent slowly waxed."
+    }
+  ]
+}

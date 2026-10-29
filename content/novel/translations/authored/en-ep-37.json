@@ -1,0 +1,672 @@
+{
+  "locale": "en",
+  "episodeId": "ep-37",
+  "tag": "Episode 37 · Twenty-Seven Lunar Mansions",
+  "title": "Twenty-Seven Lunar Mansions",
+  "sourceTitle": "스물일곱 달집",
+  "sourceTag": "제37화 · 스물일곱 달집",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-37:1",
+      "source": "실을 타고 내려온 끝에 붉은 하늘이 있었다. 하늘 아래 돌 사원이 끝없이 이어졌다. 지붕마다 작은 달이 하나씩 떠 있었다.",
+      "sourceHash": "791e581b552acb1df9d15873c163bafaa5a8a6cdfbfbc568ae56e0ad2026f89d",
+      "t": "At the end of their descent along the threads lay a red sky. Beneath it, stone temples stretched endlessly. A little moon floated above every roof."
+    },
+    {
+      "id": "ep-37:2",
+      "source": "달이 왜 이렇게 많아요?",
+      "sourceHash": "694ff56df3d26cb86d3d1afae6eba863a43b93fd01e67241a71e66a5cd5c9ec3",
+      "t": "Why are there so many moons?"
+    },
+    {
+      "id": "ep-37:3",
+      "source": "스물일곱 개예요. 여기 하늘은 달이 하룻밤에 한 집씩 묵어 가요. 한 바퀴 도는 데 스물일곱 밤.",
+      "sourceHash": "4e6491761a7078af0c75c9e25ac587c129ad594a6951c60934dee7d21a2f0620",
+      "t": "Twenty-seven. In this sky, the Moon stays in a different house each night. Twenty-seven nights to make a full circuit."
+    },
+    {
+      "id": "ep-37:4",
+      "source": "달이 민박을 해? 숙박비는 누가 내는데.",
+      "sourceHash": "8d67a07053a709f6e75b562aa7fd8a884165f80526bd0ef625dfe23cc89cf4a2",
+      "t": "The Moon uses guesthouses? Who pays for the rooms?"
+    },
+    {
+      "id": "ep-37:5",
+      "source": "그 질문은 저도 처음 들어요. 기록해 둘게요.",
+      "sourceHash": "3e4d9fc08a0423abc5baf6cab91bd7b4463648f68bbc66865fbc6b9f32a8d3a9",
+      "t": "That's a new question for me. I'll write it down."
+    },
+    {
+      "id": "ep-37:6",
+      "source": "돌계단 양옆으로 붉은 실이 늘어져 있었다. 실은 사원 기둥에서 기둥으로, 지붕에서 하늘로 이어졌다. 바람이 불 때마다 실들이 낮게 울었다.",
+      "sourceHash": "c7351206151e0ce51be347a7c4a4e90273ea7c0981e77b3858fbe5a86c9d8c96",
+      "t": "Red threads hung along both sides of the stone steps, stretching from pillar to pillar, roof to sky. Whenever the wind blew, they hummed low."
+    },
+    {
+      "id": "ep-37:7",
+      "source": "이 실들, 열두 번째 집에서 본 거랑 비슷한데.",
+      "sourceHash": "e08f4a3f9247210a36fbbd963f7a7c84d05672197b898ca373768deb002d5cba",
+      "t": "These threads look like the ones in the twelfth house."
+    },
+    {
+      "id": "ep-37:8",
+      "source": "같은 실이에요. 거기서는 끝을 보여 주고, 여기서는 이어진 걸 보여 줘요. 생과 생 사이로 이어진 인연.",
+      "sourceHash": "ab6426768206aaf11a5aa3ad7da09b6f65f5d7f4b16c1fa3ca4e16589e0cd82a",
+      "t": "They're the same threads. There, they show endings. Here, connections. Bonds that run from one life to another."
+    },
+    {
+      "id": "ep-37:9",
+      "source": "스물일곱 달의 자리를 읽는 방식이야. 동아시아의 숙요에도 이어졌지만, 여기선 베다점의 나크샤트라를 따라가야 해.",
+      "sourceHash": "97fafec95d2e9d8e76b93882c60e40870fcc3f25443508b01d310740db62c61d",
+      "t": "It's a way of reading twenty-seven lunar stations. It also reached East Asian Sukuyo, but here we need to follow Vedic astrology's nakshatras."
+    },
+    {
+      "id": "ep-37:10",
+      "source": "그러니까 연애 점 보는 하늘이네.",
+      "sourceHash": "14b18cd6a9e5b7548b58fe4d527858b2a97e38056e9ae02702e3af1660b47ed4",
+      "t": "So this is the sky for love readings."
+    },
+    {
+      "id": "ep-37:11",
+      "source": "정확하게는 업과 인연과 연애요. 셋 다 비싸요.",
+      "sourceHash": "ea13ee7d833db1a11de5b67489efed7de53440b0ab65bde5b6e47d14e009f08d",
+      "t": "More precisely, karma, bonds, and romance. All three are expensive."
+    },
+    {
+      "id": "ep-37:12",
+      "source": "사원 입구에 돌판이 서 있었다. 돌판에 글씨 대신 그림이 새겨져 있었다. 머리만 있는 뱀, 그리고 꼬리만 있는 뱀.",
+      "sourceHash": "b6db55e91b9aac8e59abdc44d787102a430474d41fb704bd948436299634bdd5",
+      "t": "A stone tablet stood at the temple entrance. Instead of words, it bore pictures: a serpent with only a head, and a serpent with only a tail."
+    },
+    {
+      "id": "ep-37:13",
+      "source": "머리랑 꼬리가 따로 있어요. 원래 한 마리였던 것 같은데.",
+      "sourceHash": "f5960dc7cc87702b35c8d5e868eb0fad45bac16de4a3177201c421e2990a7f01",
+      "t": "The head and tail are separate. They look like they used to be one creature."
+    },
+    {
+      "id": "ep-37:14",
+      "source": "이 하늘의 옛이야기예요. 불사의 술을 몰래 마신 괴물이 목이 잘렸대요. 술이 목까지만 넘어가서 머리는 죽지 않았고요.",
+      "sourceHash": "705492af001860d6930b7bf13bfba3c37c5e03b636bea16b89f22c4cc1aef3f2",
+      "t": "An old story of this sky. A monster secretly drank the nectar of immortality and was beheaded. The nectar had only reached its throat, so the head couldn't die."
+    },
+    {
+      "id": "ep-37:15",
+      "source": "그 머리가 라후, 몸통과 꼬리가 케투. 머리는 해와 달을 원망해서 가끔 삼켜요. 그게 일식이에요.",
+      "sourceHash": "acdbc8d6b222b6316e6b2a172da1f92c796ee429dd5b78df1cde3946ec1d74ed",
+      "t": "The head is Rahu; the body and tail, Ketu. The head resents the Sun and Moon and sometimes swallows them. That's an eclipse."
+    },
+    {
+      "id": "ep-37:16",
+      "source": "근데 목이 없으니까 삼켜도 다시 빠져나오겠네.",
+      "sourceHash": "d5f91b73405214ef3286f7443eb878029ff5ff876522841ae68b41da6a9889d8",
+      "t": "But without a throat, whatever it swallows must come right back out."
+    },
+    {
+      "id": "ep-37:17",
+      "source": "맞아요. 그래서 일식은 늘 끝나요. 이 하늘 사람들은 그걸 믿고 기다려요.",
+      "sourceHash": "c04efcdeaf50a6555cff10ac3969ea501043805646782afd8cb91975a5614cab",
+      "t": "Exactly. That's why eclipses always end. The people of this sky wait, trusting that."
+    },
+    {
+      "id": "ep-37:18",
+      "source": "그럼 꼬리는요? 꼬리는 뭘 먹어요?",
+      "sourceHash": "68e590ce84795ee18ca9e41ad57db190ea6b2a8fcbb31ba94f6bcbb87c7c70b4",
+      "t": "What about the tail? What does it eat?"
+    },
+    {
+      "id": "ep-37:19",
+      "source": "꼬리는 지나간 것을 먹어요. 기억, 전생, 끝난 인연. 그래서 꼬리 쪽 사람들은 자꾸 뒤를 돌아봐요.",
+      "sourceHash": "3b110ce6807736f03a82f145f49e2fb6b7ad0504709a24ae15b03a33473c2abc",
+      "t": "The tail eats what has passed. Memories, past lives, bonds that have ended. That's why people on the tail's side keep looking back."
+    },
+    {
+      "id": "ep-37:20",
+      "source": "머리는 앞을 먹고 꼬리는 뒤를 먹고. 식성 한번 골고루네.",
+      "sourceHash": "8b76dc7ff12e73ec55830749d55c34675e752ebf4de24d1832e311e0c9230518",
+      "t": "Head eats what's ahead, tail eats what's behind. Quite a balanced diet."
+    },
+    {
+      "id": "ep-37:21",
+      "source": "편식하지 않는 적이 제일 성가시다.",
+      "sourceHash": "4c94823eb86e0b424e43736c147ade549f8cd6c9d1270398bd1e7b8f68a11eeb",
+      "t": "An enemy that isn't a picky eater is the most troublesome kind."
+    },
+    {
+      "id": "ep-37:22",
+      "source": "그 순간 하늘의 달 하나가 어두워졌다. 소의 이마처럼 둥근 집에 묵던 달이었다. 검은 그림자가 그 앞을 천천히 지나갔다.",
+      "sourceHash": "07214c9c60b13a8f4e80610334d1030e64cea42368a9fc0f1fa25c4ae5f8f59e",
+      "t": "At that moment, one moon darkened. It was staying in a house rounded like an ox's forehead. A black shadow passed slowly before it."
+    },
+    {
+      "id": "ep-37:23",
+      "source": "로히니야. 황소자리 쪽에 있는 달의 자리. 저기 머리가 보여.",
+      "sourceHash": "45b5a91307a499ba3c8c7ecf9690690cecc4eeffa2def6194aec7dae89e474fd",
+      "t": "Rohini. A lunar station in Taurus. You can see the head there."
+    },
+    {
+      "id": "ep-37:24",
+      "source": "흑월이에요?",
+      "sourceHash": "3b07d781f17f0f703b26a214dcf5974118af9214bc19c2e08968f990d12dfc52",
+      "t": "Black Moon?"
+    },
+    {
+      "id": "ep-37:25",
+      "source": "숙녀분 차트에 그렇게 나와요. 라후, 머리는 로히니. 케투, 꼬리는 반대편 제슈타. 흑월이 숙녀분 하늘에 자리를 깔고 앉은 거예요.",
+      "sourceHash": "48c542bb861e89e425dfcf0d3100cd195743deebb6724f6b1e79a7879bf74516",
+      "t": "That's what your chart says, my lady. Rahu, the head, is in Rohini. Ketu, the tail, is opposite, in Jyeshtha. Black Moon has settled into your sky."
+    },
+    {
+      "id": "ep-37:26",
+      "source": "남의 하늘에 무단으로 앉지 말라고!",
+      "sourceHash": "745fe69f090c0d78c89e1344074ea16f455d87dca5809f2a4dc28f6f1d0888e9",
+      "t": "Stop trespassing in other people's skies!"
+    },
+    {
+      "id": "ep-37:27",
+      "source": "그거 연체료 열 배로 받자. 청토끼한테 배웠잖아.",
+      "sourceHash": "a9e7491673fc64936b62b57608f14b6aa5ae91504f4d01300c1091d38620aa2a",
+      "t": "Let's charge ten times the late fees. We learned that from Blue Rabbit."
+    },
+    {
+      "id": "ep-37:28",
+      "source": "돌우물 옆에 네오가 홀로 앉아 있었다. 오른팔을 겉옷으로 덮고 있었다.",
+      "sourceHash": "e57d2a207c3fa5b81e250749c1c0bbfa5601af9b2f9d1a3cfec67bebe9232b5f",
+      "t": "Neo sat alone beside a stone well, his outer coat covering his right arm."
+    },
+    {
+      "id": "ep-37:29",
+      "source": "연이는 메모장의 밑줄을 짚었다. 네오 손, 나중에 꼭 보기. 이제 더는 나중으로 미룰 수 없었다.",
+      "sourceHash": "6f26b074a17387e8fc9c651f089657700ee3032fb8c9612e21c8648c39484900",
+      "t": "Yeoni touched an underlined note: Neo's hand. Must see it later. There could be no more later."
+    },
+    {
+      "id": "ep-37:30",
+      "source": "지금이 나중이야.",
+      "sourceHash": "c3c77a6ba9c855ad815cfb350776f1766c4c12c8d69d1807ed494039cb9a0fa4",
+      "t": "It's later now."
+    },
+    {
+      "id": "ep-37:31",
+      "source": "…그 메모를 아직 들고 다니나.",
+      "sourceHash": "41693cb89e3a02e4576969e887b8fda1b72d5e68a79f92947ea3ea82264a939d",
+      "t": "...You're still carrying that note?"
+    },
+    {
+      "id": "ep-37:32",
+      "source": "버린 적 없어. 발 내놔.",
+      "sourceHash": "d9f651133b471d639a5b9b525f95c6b2866f0ffdfe6283ae30af43626b99c0dc",
+      "t": "Never threw it away. Paw out."
+    },
+    {
+      "id": "ep-37:33",
+      "source": "네오가 천천히 겉옷을 걷었다. 팔꿈치 위까지 비어 있었다. 우물의 푸른 빛이 팔을 지나 바닥에 어렸다.",
+      "sourceHash": "e265f3750543989317b6ccf1f1f2fe2d3c491f2314b978c574e1bee7a5b8f867",
+      "t": "Neo slowly lifted his coat. His arm was empty above the elbow. Blue light from the well passed through it and pooled on the ground."
+    },
+    {
+      "id": "ep-37:34",
+      "source": "어디까지 갈 건데. 다리까지? 몸까지?",
+      "sourceHash": "bc0ab3f44387700194f3c8c3d391c354f9f7aa1c6c72a6fb5b415aef62822753",
+      "t": "How far will it go? Your legs? Your whole body?"
+    },
+    {
+      "id": "ep-37:35",
+      "source": "빌린 자리를 갚는 중이야. 갚으면 끝날 거야.",
+      "sourceHash": "80c46acbf3a4cbfbdd8586edb3995b83d22ba5674fd7f3b9d4338994f7cf677c",
+      "t": "I'm repaying a borrowed place. Once it's repaid, it will end."
+    },
+    {
+      "id": "ep-37:36",
+      "source": "뭘 빌렸는지도 말 안 하고 갚는다고만 하면, 나는 뭘 어떻게 도와!",
+      "sourceHash": "7e6b0d6ff790c7f0bf7b6cff2c03750ee97d98bdd376fffdf05d7e504af74f02",
+      "t": "If you keep saying repayment without telling me what you borrowed, how am I supposed to help?"
+    },
+    {
+      "id": "ep-37:37",
+      "source": "돕지 않아도 된다. 네가 알면, 그게 값을 올린다.",
+      "sourceHash": "fb63b57b4ccac991e11f199ac4195ccaa6384494a0a03c9f600efca4402a5c7e",
+      "t": "You don't need to. If you know, the price goes up."
+    },
+    {
+      "id": "ep-37:38",
+      "source": "연이는 투명한 발을 두 손으로 감쌌다. 아무것도 잡히지 않았다. 그래도 손을 풀지 않았다.",
+      "sourceHash": "9a6cd723c20d095bdf7846d5c621087bc4802629c771a5ea8c246f8025cf4643",
+      "t": "Yeoni cupped the transparent paw in both hands. They caught nothing. Still, they didn't let go."
+    },
+    {
+      "id": "ep-37:39",
+      "source": "그럼 모르는 채로 잡고 있을게. 그건 값 안 올리지?",
+      "sourceHash": "20086467e69b5f42bec839050733ab9e91248f64081034d3ef4a2885d20407aa",
+      "t": "Then I'll hold it without knowing. That doesn't raise the price, does it?"
+    },
+    {
+      "id": "ep-37:40",
+      "source": "…그건, 계산에 없던 거다.",
+      "sourceHash": "7e2dee2a5f15753f046851e70d453c0265fe9aa4eb8e8bb021e9a81579043bc1",
+      "t": "...That wasn't in the calculation."
+    },
+    {
+      "id": "ep-37:41",
+      "source": "바람이 멎자 우물 물도 잔잔해졌다. 물에 비친 손에 잠깐 색이 돌아왔다. 연이는 서둘러 그 윤곽을 메모장에 그렸다. 손가락 다섯 개를 빠뜨리지 않고.",
+      "sourceHash": "aafe52fa46e5475ee53654806a2c53e2f3768ed05e63713ffee8f2686bf11d40",
+      "t": "The wind stopped, and the well water stilled. Color briefly returned to the reflected hand. Yeoni hurried to draw its outline in the notebook, leaving out none of its five fingers."
+    },
+    {
+      "id": "ep-37:42",
+      "source": "모카 씨, 생일 알려 주면 달 자리 봐 드릴게요. 무료로.",
+      "sourceHash": "be384d570fc35f0c3c4855f5bcc58b9061c814b1204028414dc2843457c7eeec",
+      "t": "Moka, tell me your birthday and I'll read your lunar station. Free."
+    },
+    {
+      "id": "ep-37:43",
+      "source": "너 무료라는 말이 제일 수상해.",
+      "sourceHash": "26438d006073701a8838f337a141f13dec72c0c32bdeffa0a5619b990b9f664b",
+      "t": "'Free' is the most suspicious word you say."
+    },
+    {
+      "id": "ep-37:44",
+      "source": "그럼 맞혀 볼까요. 손이 빠르고, 칭찬을 들으면 화를 내고, 남 밥은 꼭 먼저 챙기고.",
+      "sourceHash": "76fa02f4e971edbd834c3a61f849d00a65258f2cb0dca947fb7edbd0fc737278",
+      "t": "Then shall I guess? Quick hands, angry at compliments, always making sure others eat first."
+    },
+    {
+      "id": "ep-37:45",
+      "source": "…그건 그냥 날 보고 말한 거잖아.",
+      "sourceHash": "f23643eb7587575aa3a756b9339598a4486a1505f9d6e749348060aa6e36832b",
+      "t": "...You just described what you've seen me do."
+    },
+    {
+      "id": "ep-37:46",
+      "source": "점의 절반은 관찰이에요. 나머지 절반은 용기고요.",
+      "sourceHash": "335b2588fc07682d14b18893e7017c9c1111d79632eee526a3f4d84a9a82ad06",
+      "t": "Half of divination is observation. The other half is courage."
+    },
+    {
+      "id": "ep-37:47",
+      "source": "모카 얼굴 빨개졌다.",
+      "sourceHash": "b247abc500750fd28a567b872043dddbc11d0271473da4e0f39bbaffb2e8f4e2",
+      "t": "Moka's face is red."
+    },
+    {
+      "id": "ep-37:48",
+      "source": "불 앞에 오래 있어서 그래! 요리사 직업병이야!",
+      "sourceHash": "f5ad2aaee255cde92a29a6d19ed575f0021a0649911023c91eb4c822bfde798d",
+      "t": "I've spent too long near the fire! Occupational hazard of being a chef!"
+    },
+    {
+      "id": "ep-37:49",
+      "source": "그때 사원 종이 한 번 울렸다. 지붕 위의 달 하나가 옆 지붕으로 옮겨 갔다. 하룻밤이 지났다는 신호였다.",
+      "sourceHash": "3d050e5811aab84c32f82b4b89c6c4f048795c5da883dc357ad163f4bc42eda8",
+      "t": "Then a temple bell rang once. One moon moved from its roof to the next, signaling that a night had passed."
+    },
+    {
+      "id": "ep-37:50",
+      "source": "이 하늘에선 시간이 빨리 가요. 달이 이사할 때마다 하루.",
+      "sourceHash": "c0ed62133ff7dd19bf7e60580fa7c20ff11f27a8f064b8fc3c38a990fa37d904",
+      "t": "Time moves quickly here. Every time the Moon moves house, a day passes."
+    },
+    {
+      "id": "ep-37:51",
+      "source": "그럼 우리 벌써 하루 썼어요?",
+      "sourceHash": "cd2e45f678f1fa1bb0001e38463587d5011ea26f6b69eb2dcdfe60353fbab7e2",
+      "t": "We've already used up a day?"
+    },
+    {
+      "id": "ep-37:52",
+      "source": "서두르는 게 좋겠다. 이 하늘에서 늑장은 비싸다.",
+      "sourceHash": "a078b8ea42e71fadc4d22587e90d14ec945037b90ced3e55c5a17f2ed5b1acbb",
+      "t": "We should hurry. Delay is expensive in this sky."
+    },
+    {
+      "id": "ep-37:53",
+      "source": "다들 시간 아깝다면서 내 얼굴 얘기는 왜 했는데.",
+      "sourceHash": "47ec977f2f2f4167ca273f8d4638e478a964f16db88c69ec72838325df276c08",
+      "t": "If time's so precious, why were you all talking about my face?"
+    },
+    {
+      "id": "ep-37:54",
+      "source": "사원 안쪽에 둥근 방이 있었다. 바닥에 스물일곱 칸이 원을 그렸다. 칸마다 작은 등잔이 놓여 있었다.",
+      "sourceHash": "e60f2adef61d6326cfd2c3a6ffa6415283194654e3bc74c0bbb428f58883f897",
+      "t": "A round room lay inside the temple. Twenty-seven divisions formed a circle on the floor, each holding a small oil lamp."
+    },
+    {
+      "id": "ep-37:55",
+      "source": "숙녀분 달 자리를 찾아볼게요. 태어난 밤에 달이 어느 집에 묵었는지.",
+      "sourceHash": "0cf3f79c4278566ffe9a65cb11eb115bfe19dd851e3044f24216f8c3871fc080",
+      "t": "Let's find your lunar station. The house the Moon stayed in on the night you were born."
+    },
+    {
+      "id": "ep-37:56",
+      "source": "윤달이 바닥을 따라 걸었다. 숫양의 집들을 지나다 두 번째 칸에서 멈췄다. 등잔 하나가 스스로 켜졌다.",
+      "sourceHash": "61d80fe9563a720f80ffd88f704408f9f101b7939922313a470f0d2506577752",
+      "t": "Yundal followed the circle, passing the Ram's houses and stopping at the second division. A lamp lit by itself."
+    },
+    {
+      "id": "ep-37:57",
+      "source": "바라니. 품는 별이에요.",
+      "sourceHash": "627ff1cc653d6cd80853cb9067bd13d4b81a333a81e5603bbf25d3c915b2c5ef",
+      "t": "Bharani. The star that bears."
+    },
+    {
+      "id": "ep-37:58",
+      "source": "품는 별?",
+      "sourceHash": "3c84cad3c88dace181af78de3fe2181561bd6dc4061564ff1ea16a3e12817263",
+      "t": "Bears?"
+    },
+    {
+      "id": "ep-37:59",
+      "source": "배 속에 무언가를 품었다가 세상에 내보내는 별이요. 이 하늘에선 그런 사람을 그릇이라고 불러요.",
+      "sourceHash": "8b0bb7b2ac5c0319ea95413e2e2e353e17887ec3a42258d55c0e0562090a0eae",
+      "t": "A star that holds something within and brings it into the world. In this sky, such a person is called a vessel."
+    },
+    {
+      "id": "ep-37:60",
+      "source": "연이는 저도 모르게 배를 눌렀다. 그 단어는 흑월이 쓰던 말이었다. 차갑게, 배고프게.",
+      "sourceHash": "862125439d4c2ace90c41e860861a03c6920575edb5640fc34f5f4ec110bff43",
+      "t": "Yeoni instinctively pressed their stomach. That was Black Moon's word. Cold. Hungry."
+    },
+    {
+      "id": "ep-37:61",
+      "source": "그릇이라는 말, 싫어요. 흑월이 나를 그렇게 불러요.",
+      "sourceHash": "6ed60b142eec72adec0228c1d5ca2bea74024b03af1e427241d5eebcefd80a91",
+      "t": "I hate that word. Vessel. That's what Black Moon calls me."
+    },
+    {
+      "id": "ep-37:62",
+      "source": "흑월은 반만 말한 거예요. 그릇은 비어야 담긴다. 그건 흑월의 뜻이고.",
+      "sourceHash": "e014da4737f33552c8aaa1087011f41213148f7a4e8cd9eaa57ca43ae564607b",
+      "t": "Black Moon only told you half. A vessel must be empty to hold something. That's Black Moon's meaning."
+    },
+    {
+      "id": "ep-37:63",
+      "source": "바라니의 뜻은 달라요. 품었다가 내보낸다. 담아 두는 게 아니라 길러서 돌려준다.",
+      "sourceHash": "0de0554039768cd3112cc8dc6908c4ac216bc73db23af8608a5f98ffbc750cc7",
+      "t": "Bharani means something different. Bear it, then send it out. Not keep it inside, but nurture it and give it back."
+    },
+    {
+      "id": "ep-37:64",
+      "source": "연이는 배에서 손을 떼었다. 그리고 다시 얹었다. 이번에는 조금 덜 무서웠다.",
+      "sourceHash": "ce6b21ad858163374f11d9f21f35a7e069faff14945c0eeee67e1daf748e8200",
+      "t": "Yeoni lifted their hand from their stomach, then laid it there again. This time, they felt a little less afraid."
+    },
+    {
+      "id": "ep-37:65",
+      "source": "네 달은 바라니 끝자락에 있어. 바로 다음은 불과 닿아 있는 크리티카고. 그 경계를 잘 봐.",
+      "sourceHash": "3eb0304f29dfc1936ebf75a893b484192fcbc4cd0b1978d2b1ee2cc646e30404",
+      "t": "Your Moon sits at the very end of Bharani. Next comes Krittika, connected with fire. Watch that boundary."
+    },
+    {
+      "id": "ep-37:66",
+      "source": "경계에 있다는 거야?",
+      "sourceHash": "39beef8de95616788b306a13dd17440f3fda83ec80c4413e46fb63fcfe07d1e7",
+      "t": "I'm on the boundary?"
+    },
+    {
+      "id": "ep-37:67",
+      "source": "한 걸음만 넘으면 칼을 든 별이 된다. 품는 사람과 베는 사람 사이. 그래서 고집이 센 거다.",
+      "sourceHash": "84c04f0de729a31b763d296419d8713e9e84a776d2acc3ada21c939a22b14c12",
+      "t": "One step farther and it becomes the star holding a blade. Between the one who bears and the one who cuts. That's why you're so stubborn."
+    },
+    {
+      "id": "ep-37:68",
+      "source": "결국 고집 얘기로 가네!",
+      "sourceHash": "3168057802b0a3ebe5851957933eeee2c0117fbb8b39a9372345346d706b1757",
+      "t": "So we're back to stubborn!"
+    },
+    {
+      "id": "ep-37:69",
+      "source": "근데 윤달 씨. 서한비 씨 별도 볼 수 있어요?",
+      "sourceHash": "f4500f6630fafdf63ca52486a9b19a11b31edc8c19454fb6d2c477eb68d15d53",
+      "t": "Yundal. Can you read Seo Hanbi's star too?"
+    },
+    {
+      "id": "ep-37:70",
+      "source": "생일을 모르면 못 봐요. 숙녀분은 알아요?",
+      "sourceHash": "d826ad429ae415d48f75c6513df926be47ae759a669f59357f549705aad34b63",
+      "t": "Not without her birthday. Do you know it?"
+    },
+    {
+      "id": "ep-37:71",
+      "source": "택배 송장엔 이름이랑 동 호수만 있었어요. 생일은 안 써 있더라고요.",
+      "sourceHash": "d76bace5ac4cb876ff02d0206f6b3a61e523ba86dcf4c86b77a6bbc4efcd31c9",
+      "t": "The parcel label only had her name and apartment number. No birthday."
+    },
+    {
+      "id": "ep-37:72",
+      "source": "그럼 직접 물어봐야겠네요. 그 사람이 대답해 줄 사람인지는 모르겠지만.",
+      "sourceHash": "762cdd70fd61d8ba1b638990aa606aa7d235d3f7b55128cf840ff9f3daff2785",
+      "t": "Then we'll have to ask her directly. Though I don't know whether she'll answer."
+    },
+    {
+      "id": "ep-37:73",
+      "source": "둥근 방 천장에서 붉은 실 한 가닥이 내려와 연이의 손목에 감겼다. 차갑지 않았다. 체온처럼 미지근했다.",
+      "sourceHash": "3a8151acca17f3d37d778c6959550fdc468737f7688fa5a09b69b34f531a608c",
+      "t": "A single red thread descended from the round room's ceiling and wrapped around Yeoni's wrist. It wasn't cold. It was lukewarm, like skin."
+    },
+    {
+      "id": "ep-37:74",
+      "source": "이거 나한테 왜 감겨?",
+      "sourceHash": "732d4d79e1f3d8f8dd12c64d1923a420bb640fe2f44bf95d1025f7bfde18acf9",
+      "t": "Why is this wrapping around me?"
+    },
+    {
+      "id": "ep-37:75",
+      "source": "숙녀분 인연 실이에요. 끝을 따라가면 이어진 사람이 나와요.",
+      "sourceHash": "981996710dbaf358f576041c897d3be024c495bdc37e8675357c0af0641a60f7",
+      "t": "Your thread of connection. Follow it to the end and you'll find the person you're linked to."
+    },
+    {
+      "id": "ep-37:76",
+      "source": "와. 그럼 이제 운명의 상대 공개야? 고양이 긴장해야겠네.",
+      "sourceHash": "59b9e7ef137d782b65a06321792bacbebc678593a89622a88249e74ba3d4299e",
+      "t": "Wow. Time to reveal your destined partner? The cat must be nervous."
+    },
+    {
+      "id": "ep-37:77",
+      "source": "긴장하지 않는다.",
+      "sourceHash": "e8466e79fb5581661f4f9ee199fa648f1e9d5b49430af428704a77305490aeb5",
+      "t": "I am not nervous."
+    },
+    {
+      "id": "ep-37:78",
+      "source": "실이 둘로 갈라졌다. 한 가닥은 네오에게, 다른 가닥은 사원 바닥의 틈 아래로 향했다.",
+      "sourceHash": "b029d1488ea044030a4df132009193e23c35c312fb6e317e614d2535e2d22d3e",
+      "t": "The thread split in two. One strand led to Neo, the other beneath a crack in the temple floor."
+    },
+    {
+      "id": "ep-37:79",
+      "source": "네오를 향한 실을 보던 연이의 얼굴이 굳었다. 가슴에 닿기 직전 실이 풀려 있었다. 몇 올만 남아 겨우 이어졌다.",
+      "sourceHash": "c1a1c166c3852aea49a724dcb5a5a0ad953752c117616191e7e9fd2604fb9703",
+      "t": "Yeoni's expression froze as they followed the thread toward Neo. Just before it reached his chest, it had unraveled. Only a few fibers kept it connected."
+    },
+    {
+      "id": "ep-37:80",
+      "source": "네오. 이거 왜 이래. 해졌어.",
+      "sourceHash": "d13a7fec09bf7901d265295a8dde2213c4242f4306e0cc951a98bbd7a28592b8",
+      "t": "Neo. What's wrong with this? It's frayed."
+    },
+    {
+      "id": "ep-37:81",
+      "source": "오래 쓴 실이다. 원래 그렇다.",
+      "sourceHash": "82f5f83f4312f3a3afc00527440cfeba0f189e5348db8ce66d1d6cbd807dcee8",
+      "t": "It's an old thread. That's normal."
+    },
+    {
+      "id": "ep-37:82",
+      "source": "원래 그런 게 어디 있어! 발도, 실도, 다 원래 그렇다고 할 거야?",
+      "sourceHash": "076c323bb75975c81bc8e7fe4f565c7b626e868c781e31a8efd1724e8e44a545",
+      "t": "Normal? Your paw, the thread—are you going to say it's all normal?"
+    },
+    {
+      "id": "ep-37:83",
+      "source": "네오는 손으로 실을 덮었다. 투명한 손 아래로 끊어질 듯한 가닥들이 비쳤다. 숨길 수 없었다.",
+      "sourceHash": "8e30e77d718e5c04044229a5bd01a7d5adf2cc013c8294330f03887b0bc6bd98",
+      "t": "Neo covered the thread with his hand. The fibers, close to snapping, remained visible through his transparent palm. He couldn't hide them."
+    },
+    {
+      "id": "ep-37:84",
+      "source": "숙녀분. 다른 한 가닥은요. 저건 아래로 가네요.",
+      "sourceHash": "cc29380be14aa939497e4d3762c079cf0a8e6354acef6a276fe1a9f5f40f5083",
+      "t": "My lady. The other strand. That one goes down."
+    },
+    {
+      "id": "ep-37:85",
+      "source": "(아래. 사슬 소리가 끌려간 곳.)",
+      "sourceHash": "4fa5337f932c93280e8b698d3cf6d42bfa10a8f861b72eca422e7b3fe72910a9",
+      "t": "(Down. Where the chains were dragged.)"
+    },
+    {
+      "id": "ep-37:86",
+      "source": "연이는 실을 살짝 당겨 보았다. 아래쪽에서 아주 약하게, 맞당기는 힘이 느껴졌다. 누군가 실 끝을 손가락으로 쥐고 있는 것처럼.",
+      "sourceHash": "32b1cea7e55e125da543aa4812e04360d9aaa885338b9c7c3988fc1af15983c8",
+      "t": "Yeoni tugged gently. From below came the faintest answering pull, as though someone held the other end between their fingers."
+    },
+    {
+      "id": "ep-37:87",
+      "source": "이 실은 한 생에서 생긴 게 아니에요. 몇 번을 다시 태어나도 끊기지 않을 만큼 굵어요.",
+      "sourceHash": "198025a693dd9a8664f5e4a2e684f7a8cea0aeb8674c19d31d61586ef48cd68b",
+      "t": "This thread wasn't formed in one life. It's thick enough to survive many rebirths."
+    },
+    {
+      "id": "ep-37:88",
+      "source": "그럼 아래에 있는 사람이랑 나, 다른 생에서도 만났다는 거예요?",
+      "sourceHash": "d5758a668893894957a836b7e80e1a8c70e3306cb91f53612282b51d8ea24da8",
+      "t": "Then I've met the person below in another life?"
+    },
+    {
+      "id": "ep-37:89",
+      "source": "만났고, 무언가를 주고받았겠죠. 좋은 것이든 나쁜 것이든. 업이라는 게 원래 그래요.",
+      "sourceHash": "a23062bb9be6db0eac2a6e5f77786942bfacc153d77e7d68109afd0938f38380",
+      "t": "You met and exchanged something. Good or bad. That's how karma works."
+    },
+    {
+      "id": "ep-37:90",
+      "source": "나쁜 거면 어떡해.",
+      "sourceHash": "ce74fd8b45ccf1fc80d96a4875db7749c4cc0b4bb6ae40c31568e0011ecfe948",
+      "t": "What if it was bad?"
+    },
+    {
+      "id": "ep-37:91",
+      "source": "그럼 더 따져야지.",
+      "sourceHash": "e7f9db837dcccfc84f9f7d2fe3538ba2ede246dac8ac1069dede9c304905df68",
+      "t": "Then I have even more questions."
+    },
+    {
+      "id": "ep-37:92",
+      "source": "사원 바닥이 쩍 갈라졌다. 틈 사이로 거대한 꼬리 끝이 솟았다. 뱀 꼬리처럼 비늘이 덮여 있었다. 사슬이 그 꼬리에 친친 감겨 있었다.",
+      "sourceHash": "5300b7c2665180527875d124d45f3ed6823c696669afd7824abeb1f59d1fd913",
+      "t": "The temple floor split open. The end of an enormous tail rose through the gap, covered in serpent scales. Chains coiled tightly around it."
+    },
+    {
+      "id": "ep-37:93",
+      "source": "꼬리는 기억을 먹는다. 머리는 내일을 먹는다. 그릇아, 너는 어느 쪽부터 내어 주겠느냐.",
+      "sourceHash": "e83bbb24a513359b62b91c66fe9e868f9770f89e322de7249cdee2e3367a9876",
+      "t": "The tail eats memory. The head eats tomorrow. Vessel, which will you surrender first?"
+    },
+    {
+      "id": "ep-37:94",
+      "source": "둘 다 안 줘! 우리 연이 배 안 고파!",
+      "sourceHash": "c03dd27aedebdb61039da66d269c7eaa3bd0e3e590e46a6465c04ffeb88bd401",
+      "t": "Neither! Our Yeoni isn't hungry!"
+    },
+    {
+      "id": "ep-37:95",
+      "source": "공망으로 받아요. 다들 뒤로.",
+      "sourceHash": "ce41a89431d6dc12838cd2fad9d15f54cb72254c5311be6edf10d1ce1cfd4079",
+      "t": "I'll take it into the Void. Everyone back."
+    },
+    {
+      "id": "ep-37:96",
+      "source": "윤달이 장갑을 벗으려 하자 네오가 그 손목을 눌렀다. 투명한 손인데도 잡는 힘은 남아 있었다.",
+      "sourceHash": "11114c1e81f335d8ad9f71788f87199e135dde8fbf4e6812fce8a415879928fa",
+      "t": "As Yundal reached for his glove, Neo pressed down on his wrist. His hand was transparent, but its grip still held."
+    },
+    {
+      "id": "ep-37:97",
+      "source": "아직 넓히지 마. 저건 꼬리야. 머리가 오기 전에 힘을 다 쓰면 안 돼.",
+      "sourceHash": "0aaace339379ec3eff66b4eafd22a686d2a12cb06bd567dbe820769c4d17cb33",
+      "t": "Don't widen it yet. That's the tail. Don't spend all your strength before the head arrives."
+    },
+    {
+      "id": "ep-37:98",
+      "source": "고양이님이 제 걱정을 하시다니. 감동이네요.",
+      "sourceHash": "979585c78c2a8636b48f9ce1dbd607869bd6d053ece46c26ef2e8d0d789f23ee",
+      "t": "Mr. Cat worrying about me. I'm touched."
+    },
+    {
+      "id": "ep-37:99",
+      "source": "꼬리가 바닥을 휩쓸었다. 등잔들이 쓰러졌다. 연이 손목의 붉은 실이 팽팽하게 당겨졌다. 아래쪽 끝에서 누군가 실을 붙잡고 있었다.",
+      "sourceHash": "6652ae13e3dbba7d29f3efb49bd2217b24127bc2c3b93575ce240e0ec8cf697d",
+      "t": "The tail swept the floor. Lamps toppled. The red thread around Yeoni's wrist pulled taut. Someone below was holding on."
+    },
+    {
+      "id": "ep-37:100",
+      "source": "틈 아래에서 빗소리가 올라왔다. 맑은 사원에서 들릴 리 없는 소리였다. 그리고 낮고 우아한 목소리.",
+      "sourceHash": "7513969808691e5f4ff8fd6db4343ee32f70f6ee3fbafb545ac17f5562ebc4f6",
+      "t": "Rain sounded from beneath the crack, impossible in the clear temple. Then came a low, elegant voice."
+    },
+    {
+      "id": "ep-37:101",
+      "source": "그 실, 놓지 마세요. 아직은.",
+      "sourceHash": "46ccb43b3391f4a199526cb4dfd1b606de3f6fd273ff4d1a816ca9c9cff2716a",
+      "t": "Don't let go of that thread. Not yet."
+    },
+    {
+      "id": "ep-37:102",
+      "source": "꼬리가 다시 틈 속으로 가라앉았다. 바닥이 닫혔다. 연이의 손목에 실만 남았다. 아래쪽으로 곧게, 팽팽하게.",
+      "sourceHash": "d7d4373c209eaf38f41c1c712f5e9d8efe2672a30bd3801ee1652f8b69e830a8",
+      "t": "The tail sank back into the gap. The floor closed. Only the thread remained around Yeoni's wrist, stretched straight and tight downward."
+    },
+    {
+      "id": "ep-37:103",
+      "source": "저 목소리, 알아.",
+      "sourceHash": "16f42f6adec63492b7ba5bc0605150c21fb030cf4f2d3cb6c21a3b0305f1ca2d",
+      "t": "I know that voice."
+    },
+    {
+      "id": "ep-37:104",
+      "source": "연이야.",
+      "sourceHash": "80cb95b01e8cc1368b8cd8ace84e07fc877503b06ef9dddd4795ce70845dc473",
+      "t": "Yeoni."
+    },
+    {
+      "id": "ep-37:105",
+      "source": "말리지 마. 따질 게 산더미라고 했잖아. 내려가서 따질 거야.",
+      "sourceHash": "747f938c56e76e04091e1206a17d7a48c60249d5e23c20936f5cdb6fcd4db935",
+      "t": "Don't stop me. I said I had a mountain of questions. I'm going down to ask them."
+    },
+    {
+      "id": "ep-37:106",
+      "source": "말리지 않는다. 옆에 선다고 했으니.",
+      "sourceHash": "e35c16c0d72a9d5bcb2fc18d2bd9e405f2fb4768645312a35fd45424f743ce22",
+      "t": "I'm not stopping you. I said I'd stand beside you."
+    },
+    {
+      "id": "ep-37:107",
+      "source": "나도 간다. 따지는 거면 내가 전문이야.",
+      "sourceHash": "1dba62901b397baec0e19d19d199b78ecab87bb410238c307ed042baf3a24c03",
+      "t": "I'm coming too. Giving people a hard time is my specialty."
+    },
+    {
+      "id": "ep-37:108",
+      "source": "저는 따지는 사람들 뒤에서 박수 칠게요. 박수는 공짜니까.",
+      "sourceHash": "a19bc0e4515c608dc58bad0ff16883ca6505968d38a8571e26f96a6240a298fb",
+      "t": "I'll applaud from behind the people asking questions. Applause is free."
+    },
+    {
+      "id": "ep-37:109",
+      "source": "넷은 사원 가장 깊은 계단으로 향했다. 계단 끝은 어둠 속으로 이어졌다. 연이의 손목에서 붉은 실이 길잡이처럼 앞장섰다.",
+      "sourceHash": "84521482a62628e695377add1a1b543a25bfb5e1906975a9fcdb45dc138518d4",
+      "t": "The four headed for the temple's deepest stairs. The steps led into darkness. The red thread around Yeoni's wrist guided them onward."
+    },
+    {
+      "id": "ep-37:110",
+      "source": "계단 벽에 스물일곱 개의 달이 차례로 비쳤다. 내려갈수록 하나씩 꺼졌다. 마지막 달 하나만 남았을 때 빗소리가 아주 가까워졌다.",
+      "sourceHash": "baedd23d006c0f395dc227e9965f127806ff99e79c967abdc7866aa4498a5b54",
+      "t": "Twenty-seven moons shone in sequence along the stairwell wall. As they descended, the moons went out one by one. When only the last remained, the rain sounded very close."
+    }
+  ]
+}
