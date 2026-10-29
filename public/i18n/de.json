@@ -7293,12 +7293,12 @@
         "k164wabc": {
           "ariaLabel": "Mein Bereich"
         },
-        "library": "Library",
+        "library": "Archiv",
         "consultTab": {
           "ariaLabel": "Signature-Deutung wählen"
         },
         "libraryTab": {
-          "ariaLabel": "My library"
+          "ariaLabel": "Mein Archiv"
         },
         "consult": "Signature"
       },

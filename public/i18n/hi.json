@@ -7811,12 +7811,12 @@
         "k164wabc": {
           "ariaLabel": "मेरा पेज"
         },
-        "library": "Library",
+        "library": "संग्रह",
         "consultTab": {
           "ariaLabel": "मुख्य परामर्श चुनें"
         },
         "libraryTab": {
-          "ariaLabel": "My library"
+          "ariaLabel": "मेरा संग्रह"
         },
         "consult": "मुख्य"
       },

@@ -7293,12 +7293,12 @@
         "k164wabc": {
           "ariaLabel": "Trang của tôi"
         },
-        "library": "Library",
+        "library": "Kho lưu",
         "consultTab": {
           "ariaLabel": "Chọn buổi tư vấn tiêu biểu"
         },
         "libraryTab": {
-          "ariaLabel": "My library"
+          "ariaLabel": "Kho lưu của tôi"
         },
         "consult": "Tiêu biểu"
       },

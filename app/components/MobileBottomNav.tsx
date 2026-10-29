@@ -16,8 +16,8 @@ import {
   type MobileTab,
   type MobileTabKey,
 } from "@/app/_lib/mobile-tabs";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
-import { useTPick } from "@/lib/i18n/useT";
+import { type LoadingLocale } from "@/constants/loadingMessages";
+import { useLocale, useTPick } from "@/lib/i18n/useT";
 import { MOBILE_NAV_SSR_COPY } from "@/lib/i18n/mobile-nav-ssr-copy";
 import { localeFromPathname } from "@/lib/i18n/locales";
 
@@ -27,6 +27,13 @@ const NAV_ARIA_LABEL: Partial<Record<LoadingLocale, string>> = {
   ja: "メインメニュー",
   "zh-CN": "主菜单",
   "zh-TW": "主選單",
+  vi: "Màn hình chính",
+  hi: "मुख्य स्क्रीन",
+  es: "Pantallas principales",
+  fr: "Écrans principaux",
+  de: "Hauptbereiche",
+  nl: "Hoofdschermen",
+  ms: "Skrin utama",
 };
 
 function getNavAriaLabel(locale: LoadingLocale): string {
@@ -76,22 +83,13 @@ function MobileBottomNav() {
   // 프리페인트 스크립트가 먼저 붙인 body.cd-mnav-collapsed 를 첫 커밋에서 지우지 않도록
   // 마운트 전에는 null 로 둔다. effect 에서 저장값을 읽어 실제 토글 상태를 확정한다.
   const [collapsed, setCollapsed] = useState<boolean | null>(null);
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const locale = useLocale();
   // 탭 라벨·aria 문구는 정적 셸이 쓰던 코어 사전 키를 그대로 읽는다. useTPick 은 값이
   // 없으면 넘긴 한국어를 돌려주므로 한국어 화면이 비지 않는다.
   const pick = useTPick();
   const pathLocale = localeFromPathname(pathname);
   const initialCopy = pathLocale ? MOBILE_NAV_SSR_COPY[pathLocale] : undefined;
   const navText = (key: string, original: string) => pick(key, initialCopy?.[key] ?? original);
-
-  useEffect(() => {
-    const syncLocale = () => setLocale(getCurrentLoadingLocale());
-    syncLocale();
-    window.addEventListener("cd:locale-ready", syncLocale);
-    return () => {
-      window.removeEventListener("cd:locale-ready", syncLocale);
-    };
-  }, []);
 
   useEffect(() => {
     const sync = () => {
@@ -161,7 +159,7 @@ function MobileBottomNav() {
   }, []);
 
   return (
-    <nav className="cd-mnav" aria-label={getNavAriaLabel(pathLocale === "zh" ? "zh-CN" : pathLocale || locale)}>
+    <nav className="cd-mnav" aria-label={getNavAriaLabel(locale)}>
       <button
         type="button"
         className="cd-mnav__handle"

@@ -1,0 +1,31 @@
+{
+  "_comment": "Directly authored library navigation labels, preserving destinations and saved-result policy.",
+  "shell.cdMobileBottomNav.cdMobileBottomNavMain.library": {
+    "ko": "보관함",
+    "en": "Library",
+    "ja": "保管箱",
+    "zh-CN": "收藏夹",
+    "zh-TW": "收藏夾",
+    "vi": "Kho lưu",
+    "hi": "संग्रह",
+    "es": "Archivo",
+    "fr": "Archives",
+    "de": "Archiv",
+    "nl": "Archief",
+    "ms": "Simpanan"
+  },
+  "shell.cdMobileBottomNav.cdMobileBottomNavMain.libraryTab.ariaLabel": {
+    "ko": "내 보관함",
+    "en": "My library",
+    "ja": "マイ保管箱",
+    "zh-CN": "我的收藏夹",
+    "zh-TW": "我的收藏夾",
+    "vi": "Kho lưu của tôi",
+    "hi": "मेरा संग्रह",
+    "es": "Mi archivo",
+    "fr": "Mes archives",
+    "de": "Mein Archiv",
+    "nl": "Mijn archief",
+    "ms": "Simpanan saya"
+  }
+}

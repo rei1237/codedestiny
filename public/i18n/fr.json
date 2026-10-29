@@ -7293,12 +7293,12 @@
         "k164wabc": {
           "ariaLabel": "Mon espace"
         },
-        "library": "Library",
+        "library": "Archives",
         "consultTab": {
           "ariaLabel": "Choisir une consultation phare"
         },
         "libraryTab": {
-          "ariaLabel": "My library"
+          "ariaLabel": "Mes archives"
         },
         "consult": "Phares"
       },

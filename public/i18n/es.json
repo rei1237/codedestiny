@@ -7293,12 +7293,12 @@
         "k164wabc": {
           "ariaLabel": "Mi página"
         },
-        "library": "Library",
+        "library": "Archivo",
         "consultTab": {
           "ariaLabel": "Elegir una consulta destacada"
         },
         "libraryTab": {
-          "ariaLabel": "My library"
+          "ariaLabel": "Mi archivo"
         },
         "consult": "Destacadas"
       },
