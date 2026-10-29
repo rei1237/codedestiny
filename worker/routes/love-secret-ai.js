@@ -2,7 +2,9 @@ import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest as webOptionalUser, isAuthDbInfraError } from "../lib/auth.js";
+import { nativeTossContext, bindNativeTossRequest } from '../toss/native-context.js';
+const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
@@ -1110,6 +1112,7 @@ async function refundBillingGateMonthlyCredit({ userId, evidence = {}, reason = 
 }
 
 async function restoreBillingGateAccessOnFailure({ env = {}, userId, access = {}, idempotencyKey = "", pricing = getPricing(), error = null }) {
+  if (access.accessSource === 'toss') return { restored: false };
   // 본문을 못 받은 최종 실패다 — 증빙 claim 을 풀어 결제한 사용자가 새 시도로 다시 받게 한다.
   await releaseRequestBillingEvidence(env, { userId: clean(userId), requestId: idempotencyKey, evidenceIds: access.claimEvidenceIds }).catch(() => null);
   const evidence = objectOf(access.billingEvidence);
@@ -1351,6 +1354,11 @@ async function handleEnsureAccess(request, env, route = "/api/love-secret-ai/pre
 
   const pricing = getPricing();
   logLoveSecretAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
+  if (nativeTossContext(request)) {
+    const access = await nativeTossContext(request).access(body, normalized, idempotencyKey);
+    return access.ok ? json({ok:true,accessType:'paid'}) : json({ok:false,reason:'PAYMENT_REQUIRED',
+      paymentPayload:buildBillingGatePayload(pricing,idempotencyKey)}, {status:402});
+  }
   if (isAdmin(auth)) {
     logLoveSecretAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "admin", env }));
     return json({
@@ -1396,6 +1404,7 @@ async function handleEnsureAccess(request, env, route = "/api/love-secret-ai/pre
 }
 
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
+  if (nativeTossContext(request)) return nativeTossContext(request).access(body, normalized, idempotencyKey);
   const token = clean(body?.accessToken || request.headers.get("x-love-secret-ai-access-token"));
   if (token) {
     const payload = await verifyAccessToken(env, token);
@@ -1463,13 +1472,16 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     await connectDb(env);
     const saved = await LoveSecretAiConsultation.findOne({ id: clean(body.resumeSessionId), userId: clean(resumeAuth.userId) }).lean();
     if (!saved) return invalidInput("저장된 상담을 찾을 수 없습니다.", 404);
+    if (nativeTossContext(request)) await nativeTossContext(request).assertStored(saved);
     if (saved.status === "completed") return json(publicSession(saved));
     if (!saved.llmMeta?.delivery?.resumeBody) return invalidInput("원래 상담 요청으로 다시 시도해 주세요.", 409);
     body = { ...saved.llmMeta.delivery.resumeBody, idempotencyKey: saved.idempotencyKey, requestId: saved.idempotencyKey };
     delete body.accessToken;
     const headers = new Headers(request.headers);
     headers.delete("x-love-secret-ai-access-token");
-    request = new Request(request.url, { method: "POST", headers, body: JSON.stringify(body) });
+    const native = nativeTossContext(request);
+    request = new Request(request.url, { method: "POST", headers, body: JSON.stringify(body), signal: request.signal });
+    if (native) bindNativeTossRequest(request, native);
   }
   const idempotencyKey = readIdempotencyKey(request, body);
   logLoveSecretAi("LLM Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
@@ -1497,6 +1509,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   logLoveSecretAi("LLM Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
 
   const existing = await withMongoRetry(env, () => LoveSecretAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean());
+  if (existing && nativeTossContext(request)) await nativeTossContext(request).assertStored(existing);
   if (existing && clean(existing.inputHash) !== normalized.inputHash) {
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
@@ -1511,8 +1524,10 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     return json({ ok: true, sessionId: existing.id, status: "generating", message: "연애 비책 상담을 준비하고 있습니다" }, { status: 202 });
   }
   // 결제 증빙 1건 = 상담 1건. 이용권은 정산 때 이번 키로 차감하므로 claim 할 ID 가 없다.
-  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: access.claimEvidenceIds, featureKey: FEATURE_KEY });
-  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  if (!nativeTossContext(request)) {
+    const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: access.claimEvidenceIds, featureKey: FEATURE_KEY });
+    if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  }
 
   let sajuResult;
   try {
@@ -1585,6 +1600,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     } catch (error) {
       if (error?.code === 11000) {
         const duplicate = await LoveSecretAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+        if (duplicate && nativeTossContext(request)) await nativeTossContext(request).assertStored(duplicate);
         if (duplicate?.status === "completed") return json(publicSession(duplicate));
         return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "연애 비책 상담을 준비하고 있습니다" }, { status: 202 });
       }
@@ -1743,6 +1759,7 @@ async function handleResult(request, env, pathId = "") {
   if (!consultation) {
     return json({ ok: false, reason: "RESULT_NOT_FOUND", message: "저장된 연애 비책 상담 결과를 찾을 수 없습니다." }, { status: 404 });
   }
+  if (nativeTossContext(request)) await nativeTossContext(request).assertStored(consultation);
   if (consultation.status !== "completed" && consultation.llmMeta?.delivery?.resumeBody) {
     const originalBody = consultation.llmMeta.delivery.resumeBody;
     const access = await resolveStartAccess({ request, env, auth, body: originalBody, normalized: normalizeRequestBody(originalBody), pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
@@ -1771,11 +1788,11 @@ async function handleResult(request, env, pathId = "") {
     }, { status: 503 });
   }
 
-  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+  if (!nativeTossContext(request) && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
 
-  consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: LoveSecretAiConsultation });
+  if (!nativeTossContext(request)) consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: LoveSecretAiConsultation });
 
   const payload = publicSession(consultation);
   const assistantContent = payload.messages.find((message) => message.role === "assistant")?.content || "";
@@ -1825,6 +1842,7 @@ export async function handleLoveSecretAiRoutes(request, env = {}, ctx) {
     return methodNotAllowed();
   } catch (error) {
     console.error("[love-secret-ai]", clean(error?.code || error?.message || error, 500));
+    if (nativeTossContext(request) && error?.status) return json({ok:false,reason:error.code||'RESULT_NOT_AVAILABLE'},{status:error.status});
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
@@ -1848,11 +1866,30 @@ export const __loveSecretAiTestUtils = {
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
   const request = new Request("https://internal.invalid/api/love-secret-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
-  return handleStart(request, env, undefined, undefined, { userId: String(doc.userId) });
+  const stored = await nativeLoveSecretStoredState(env, String(doc.userId), String(doc.id));
+  if (stored) {
+    const { bindNativeLoveSecretRecovery } = await import('../toss/native-love-secret.js');
+    await bindNativeLoveSecretRecovery(request, env, stored);
+  }
+  return handleStart(request, env, undefined, undefined, nativeTossContext(request)?.auth || { userId: String(doc.userId) });
+}
+
+export function nativeLoveSecretContract(body) {
+  const normalized = normalizeRequestBody(body || {});
+  const requestId = clean(body?.idempotencyKey || body?.requestId, 180);
+  if (!normalized.ok || requestId.length < 12) throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'), {status:400});
+  return {requestId,resultId:requestId,featureKey:FEATURE_KEY,inputHash:normalized.inputHash,pricing:getPricing().pricing};
+}
+export async function nativeLoveSecretStoredState(env,userId,resultId) {
+  return withMongoRetry(env,()=>LoveSecretAiConsultation.findOne({userId:String(userId),$or:[{id:resultId},{idempotencyKey:resultId}]}).lean());
+}
+export async function recoverUnstartedNativeConsultations(env,options) {
+  const { bootstrapNativeLoveSecretOrders } = await import('../toss/native-love-secret.js');
+  return bootstrapNativeLoveSecretOrders(env,options);
 }
 
 export function serverExpertFollowUpAdapter(env) {

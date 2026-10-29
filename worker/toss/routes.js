@@ -108,7 +108,18 @@ export async function handleTossRoutes(request,env) {
       const {handleNativeLifeBook}=await import('./native-life-book.js');
       return forwardServiceResponse(await handleNativeLifeBook(request,env,auth,path.slice('/canonical/life-book-ai'.length)),headers);
     }
-    const nativeIntent=path.match(/^\/native\/(tea|neo|fusion|life-book)\/intents\/([a-f0-9]{64})$/);
+    if(path==='/native/love-secret/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-love-secret-prepare',6);
+      const {prepareNativeLoveSecret}=await import('./native-love-secret.js');
+      const input=await bodyOf(request);
+      return reply(await prepareNativeLoveSecret(env,auth,input.input,input.orderId));
+    }
+    if(path.startsWith('/canonical/love-secret-ai/')&&['GET','POST'].includes(request.method)){
+      if(request.method==='POST')await limit(env,auth._id,'native-love-secret',30);
+      const {handleNativeLoveSecret}=await import('./native-love-secret.js');
+      return forwardServiceResponse(await handleNativeLoveSecret(request,env,auth,path.slice('/canonical/love-secret-ai'.length)),headers);
+    }
+    const nativeIntent=path.match(/^\/native\/(tea|neo|fusion|life-book|love-secret)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));
@@ -249,7 +260,7 @@ export async function handleTossRoutes(request,env) {
     if(path==='/library'&&request.method==='GET') {
       const rows=await TossPurchase.find(libraryFilter(auth,url.searchParams.get('cursor'))).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
       return reply(await libraryPage(rows,id=>readRequest(env,auth.userId,id),row=>PaidExecutionRecord.findOne({orderId:row._id,userId:String(auth.ownerId)}).lean(),
-        async row=>row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row)));
+        async row=>row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row)));
     }
     const tarotResultMatch=path.match(/^\/tarot-library\/results\/([a-f0-9-]{36})$/);
     if(tarotResultMatch&&request.method==='POST') {

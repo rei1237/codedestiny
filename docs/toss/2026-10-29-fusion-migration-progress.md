@@ -46,3 +46,15 @@ status: in-progress
 - 초융합 main 829e18a30103b01904b7d094ff2f7775bb490b73 CI 40876289034 success 확인.
 - 최신 main 8f32da62caf4a921f23ebcc54eba4db83631e875 CI 40877905858 failure. 실패: verify:mobile-journeys 430px browser back cleanup timeout, tarotModalOverlay와 overflow hidden 잔류. 두 커밋 사이 변경은 마케팅 문서/이미지뿐이며 실패 원인을 단정하지 않음.
 - main이 실패하면 그 위에 push하지 않는 저장소 규칙에 따라 스트림 보완과 인생의 책은 로컬 커밋 보존. 인생의 책 main CI 확인을 완료하기 전 연애 비책 구현에 착수하지 않음. 전체 이식 완료 아님.
+
+## 연애 비책 원본 연결 (2026-10-30)
+
+- 선행 모바일 뒤로가기 수정 0a83f8a49: main CI 40889333040 success. 인생의 책은 구매 모델의 nativeService 누락까지 보완해 5187074b7로 main 전달, 인수인계 필수 next 항목은 9b839ade8로 수정했다.
+- 연애 비책 원본 입력/소개/FAQ/결과/명식/목차/체크리스트/PDF를 토스에 연결했다. 새 결과 템플릿이나 샘플로 실제 상담을 대체하지 않는다.
+- 원본 normalizer·가격 레지스트리, 여섯 그룹 생성·체크포인트·저장·재열람을 재사용한다. 토스 주문과 고정 입력을 결합하고 첫 저장 이전/이후 복구도 계정·환경·활성 identity·입력해시·환불을 확인한다. 웹 이용권/월정석 증빙 claim·차감·환불로 폴백하지 않는다.
+- 기존 결과 화면에 없는 추가 질문 API는 승인된 토스 상품이 없어 503으로 닫는다. 웹 후기·월정석 보상 배너는 토스 번들에서 제외하고 웹 원본은 유지한다.
+- mock 검사: 토스 전체 155/155, 추가 라우트 경계 19/19, 결제 어댑터 5/5, 원본 인생의 책+연애 비책 전달 81/81, 원본 입력/여섯 그룹 품질/cron Jest 18/18 통과. 외부 API·실결제·실 LLM·운영 DB를 사용하지 않았다.
+- verify:paid-access-integrity / verify:cron-mongo-op-coverage / verify:no-nested-retry / verify:worker-no-undef 통과. impeccable detector 발견 없음. check:fast 확대 검사는 실행 중이며 아직 전체 통과로 기록하지 않는다.
+- visual-checker: 390/1280px 입력·결과, pageerror/가로 넘침/깨진 이미지 0. 입력 다음 단계·결과 1/15→2/15·관계 전략 목차·전체보기 통과. 후기 보상 안내 제외 후 양 폭 재확인. 일반 브라우저에서 토스 SafeAreaInsets 경고가 있어 실기기 검증과 구분한다.
+- SEO: 웹 공개 URL/메타데이터/canonical/robots/사이트맵을 바꾸지 않았다. 토스 내부 진입점 추가이며 원본 H1·본문을 유지한다.
+- 출시 게이트 SERVICE_AVAILABLE=false / APPROVED_TOSS_NATIVE_PRODUCTS=[] 유지. .ait 빌드는 로컬 산출물이며 상품 승인·실기기·운영 출시 증거가 아니다.

@@ -1884,7 +1884,7 @@ async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, i
   return extractPayment(gateResult, idempotencyKey);
 }
 
-export default function LoveSecretAiPage() {
+export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: string } = {}) {
   const copy = useLoveSecretClientCopy();
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [step, setStep] = useState(0);
@@ -2464,6 +2464,7 @@ export default function LoveSecretAiPage() {
           </form>
 
           <aside className="space-y-5">
+            {paymentNotice && <p className="text-sm leading-6 text-[var(--ls-text-muted)]">{paymentNotice}</p>}
             <LoveSecretPromiseCard />
             {(resultUrl || resultOpenMessage) && (
               <section className="rounded-3xl border border-[var(--ls-line-control)] bg-[var(--ls-surface)] p-5 shadow-[var(--ls-glow)]">

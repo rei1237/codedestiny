@@ -17,6 +17,7 @@ const loaded=new Module(path.join(root,'fusion-billing-test.cjs'));loaded.paths=
 test('original useCoinGate imports resolve to Toss progress and paid-access adapters',()=>{
  const plugin=serviceCompat(),importer=path.join(root,'app/hooks/useCoinGate.ts');
  assert.match(plugin.resolveId('./usePayment',importer),/payment-state.jsx$/);
+ for(const id of ['@/app/components/ReviewRewardBanner',path.join(root,'app/components/ReviewRewardBanner.tsx'),'../components/ReviewRewardBanner'])assert.match(plugin.resolveId(id,importer),/WebReviewReward.jsx$/);
  assert.match(plugin.resolveId('../_lib/billing-client',importer),/service[\\/]billing.jsx$/);
  assert.equal(plugin.resolveId('../../../app/_lib/billing-client.ts',path.join(root,'apps/toss/service/billing.jsx')),undefined);
 });
@@ -37,5 +38,13 @@ for(const featureKey of ['life-book-ai-consultation','life-fortune-ai-consultati
  const result=await loaded.exports.runBillingCoinGate({featureKey,requestId:'original-life-request',resume:{args:{payload:JSON.stringify(input)}}});
  assert.equal(result.ok,true);
  assert.deepEqual(state.calls[0],{path:'/native/life-book/prepare',body:{input:{...input,requestId:'original-life-request'}}});
+ delete globalThis.location;
+});
+
+test('Love Secret keeps original payload and idempotency key in its own intent',async()=>{
+ globalThis.location={search:''};state.unavailable=false;state.calls=[];
+ const input={myInfo:{birthDate:'1990-01-01'},topic:'relationship',idempotencyKey:'original-love-request',requestId:'original-love-request'};
+ const result=await loaded.exports.runBillingCoinGate({featureKey:'love-secret-ai-consultation',requestId:input.requestId,resume:{args:{payload:JSON.stringify(input)}}});
+ assert.equal(result.ok,true);assert.deepEqual(state.calls[0],{path:'/native/love-secret/prepare',body:{input}});
  delete globalThis.location;
 });
