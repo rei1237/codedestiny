@@ -53,6 +53,7 @@ export async function runConsultationRecovery(env, options = {}) {
       const model = (options.models || models)[modelName];
       const docs = !modelName ? await adapter.findRecoverableConsultations(env, consultationRecoveryFilter(now, extra)) : await withMongoRetry(env, () => model.find(consultationRecoveryFilter(now, extra))
         .sort({ updatedAt: 1, _id: 1 }).limit(1).select('id executionId executionKey userId updatedAt locale llmMeta.locale llmMeta.resumeBody.locale llmMeta.delivery.resumeBody.locale result.resumeBody.locale').lean());
+      if (adapter.recoverUnstartedNativeConsultations) outcomes.push(...await adapter.recoverUnstartedNativeConsultations(env, {now,deadline}));
       for (const doc of docs) {
         if (!doc.userId || !(doc.id || doc._id || doc.resultId)) continue;
         try {

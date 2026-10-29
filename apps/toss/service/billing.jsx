@@ -16,10 +16,10 @@ export async function runBillingCoinGate(options){
  if(pending)return {ok:false,status:409,raw:{},error:{code:'PURCHASE_IN_PROGRESS',message:'진행 중인 결제를 확인해 주세요.'}};
  pending=true;
  try{
-  const service=options.featureKey==='fusion-fortune-consultation'?'fusion':options.featureKey==='neo-operation-room-consultation'?'neo':String(options.featureKey).startsWith('fortune-tea-house-')?'tea':null;
-  const input=unpackPaidResumeArg(service==='fusion'?options.resume?.args?.body:service==='neo'?options.resume?.args?.payload:options.resume?.args?.requestPayload);
+  const service=['life-book-ai-consultation','life-fortune-ai-consultation'].includes(options.featureKey)?'life-book':options.featureKey==='fusion-fortune-consultation'?'fusion':options.featureKey==='neo-operation-room-consultation'?'neo':String(options.featureKey).startsWith('fortune-tea-house-')?'tea':null;
+  const input=unpackPaidResumeArg(service==='fusion'?options.resume?.args?.body:(service==='neo'||service==='life-book')?options.resume?.args?.payload:options.resume?.args?.requestPayload);
   if(!input||!service)throw new Error('상담 입력을 다시 확인해 주세요.');
-  if(service==='fusion')input.requestId=options.requestId||options.resume?.args?.requestId;
+  if(service==='fusion'||service==='life-book')input.requestId=options.requestId||options.resume?.args?.requestId;
   const orderId=new URLSearchParams(location.search).get('orderId');
   const intent=await api('/native/'+service+'/prepare',{input,...(orderId?{orderId}:{})});
   if(!intent.paid){

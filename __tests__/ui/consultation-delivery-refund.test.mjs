@@ -338,3 +338,14 @@ test('public refund response consistently blocks pending, reviewed and refunded 
     assert.equal(response.body.refundStatus, status);
   }
 });
+
+test('native life-book failure cannot refund a matching web payment or consume monthly credits', async () => {
+  const f=fixture(),doc=f.put(LifeBookAiConsultation,f.rows(NewYearAiConsultation).pop());
+  doc.accessSource='toss';doc.llmMeta.refundEligibleAt='2026-10-01T00:00:00Z';
+  f.payment.featureKey='life-book-ai-consultation';f.execution.featureId='life-book-ai-consultation';
+  const before=clone(doc);
+  const result=await f.settle({service:'life-book-ai'});
+  assert.equal(result.reason,'TOSS_ORDER_REVIEW_REQUIRED');assert.equal(f.cancels,0);assert.deepEqual(doc,before);
+  await runPendingConsultationRefunds({},f.deps);
+  assert.equal(f.cancels,0);assert.deepEqual(doc,before);assert.equal(f.payment.status,'paid');
+});
