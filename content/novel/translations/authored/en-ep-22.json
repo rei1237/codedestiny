@@ -1,0 +1,770 @@
+{
+  "locale": "en",
+  "episodeId": "ep-22",
+  "tag": "Episode 22 · Your Influence",
+  "title": "Your Influence",
+  "sourceTitle": "네 관성",
+  "sourceTag": "제22화 · 네 관성",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-22:1",
+      "source": "연이는 창틀을 넘어 지붕으로 기어 올라갔다. 기와가 미끄러웠다. 돼지 앞발로 붙잡기엔 너무 둥근 지붕이었다.",
+      "sourceHash": "bde1fd0b32fe692e5e1cf3ec1193aa9d9e0d3a3b10c47e7ad48dfe24f92b88a7",
+      "t": "Yeoni climbed over the window frame and onto the roof. The tiles were slippery. The roof was far too round for a pig's hooves to grip."
+    },
+    {
+      "id": "ep-22:2",
+      "source": "둘이 여기서 뭐 해. 밤에. 몰래. 비 맞으면서.",
+      "sourceHash": "e5190b5377a0df5d744cc1a82ac8a601ce6a2cf5ad03f04b8269a4140f90acf1",
+      "t": "What are you two doing here? At night. In secret. In the rain."
+    },
+    {
+      "id": "ep-22:3",
+      "source": "연이야. 들어가. 여긴 위험해.",
+      "sourceHash": "487dd0f924fc3f692d13aed4cf6ba88b78483660c1fe203d1f005dae2b0e88b3",
+      "t": "Yeoni. Go inside. It's dangerous here."
+    },
+    {
+      "id": "ep-22:4",
+      "source": "위험한 데 너 혼자 와 있는 게 더 위험하거든!",
+      "sourceHash": "f20cc3a57a42c62b847dfb692d1095da0010e177148f9100501d68098028e66f",
+      "t": "You coming to a dangerous place alone is even more dangerous!"
+    },
+    {
+      "id": "ep-22:5",
+      "source": "호랑이가 둘을 번갈아 보았다. 그리고 아주 작게, 비웃음인지 한숨인지 모를 숨을 내쉬었다.",
+      "sourceHash": "818ac29b1172ef80a2c7b930c697e42ba51db205769b7e64cda507a8432599a6",
+      "t": "The tiger looked from one to the other. Then it let out a tiny breath, somewhere between a sneer and a sigh."
+    },
+    {
+      "id": "ep-22:6",
+      "source": "오늘은 여기까지 할게. 장부에 적을 일은 없었으니까.",
+      "sourceHash": "56efea6232c7db89facf9e9829b464c0fb05faf14372c8787f0b2ed36b6f8a59",
+      "t": "That's enough for today. Nothing to put in the ledger."
+    },
+    {
+      "id": "ep-22:7",
+      "source": "기다려. 너 지금 영냥이한테 무슨 말 했어.",
+      "sourceHash": "fb82eb58e6c49a8c6ce1f04cb4a0eb1d41e9e7d5e99ddccbcce1c5bff3818a53",
+      "t": "Wait. What did you just say to Yeongnyangi?"
+    },
+    {
+      "id": "ep-22:8",
+      "source": "궁금하면 고양이한테 물어봐. 그 눈이 왜 가끔 금색이 되는지.",
+      "sourceHash": "9f7fd099b5b9addbacf26cc777cb1d442a0b398451c00d1bc511cd224c2893a3",
+      "t": "If you're curious, ask the cat. Why his eyes sometimes turn gold."
+    },
+    {
+      "id": "ep-22:9",
+      "source": "호랑이는 지붕 끝에서 뛰어내렸다. 떨어지는 소리는 없었다. 빗소리만 한 번 커졌다가 잦아들었다.",
+      "sourceHash": "4bdb8d65095453833cce3c1c61632a7b7b92734a99449964ce7f60539eb32e9f",
+      "t": "The tiger jumped from the roof's edge. There was no sound of falling. Only the rain grew louder once, then faded."
+    },
+    {
+      "id": "ep-22:10",
+      "source": "물어볼게. 네 눈, 왜 금색이 돼?",
+      "sourceHash": "774188004d23ae15283dd6d0c722ed6cdd9970e4d54294eb803cf1e8269e142a",
+      "t": "Then I'll ask. Why do your eyes turn gold?"
+    },
+    {
+      "id": "ep-22:11",
+      "source": "달빛이 반사된 거다.",
+      "sourceHash": "2801b032b2bff118c2db1d9466990ae7423522cda0d0162eb7bc56e3b6c4dc96",
+      "t": "Reflected moonlight."
+    },
+    {
+      "id": "ep-22:12",
+      "source": "저 해는 반쪽이고 달은 없어. 반사될 게 없잖아.",
+      "sourceHash": "d62925ae20af67503e2a81887742f88844897a6922de9777c4a9a383fc292c20",
+      "t": "That's half a sun, and there's no moon. Nothing to reflect."
+    },
+    {
+      "id": "ep-22:13",
+      "source": "연이야. 오늘은 그냥 들어가자. 내일 말할게.",
+      "sourceHash": "a835daeac072a23e7fbbc5b32db694673af4ad9d76bccc52ceaf48d5d72cd35a",
+      "t": "Yeoni. Let's just go inside tonight. I'll tell you tomorrow."
+    },
+    {
+      "id": "ep-22:14",
+      "source": "너는 맨날 내일이야. 맨날 나중이고, 맨날 끝나면이야.",
+      "sourceHash": "e018bb39f285ab4b4ab4aa3b59a80baaedc2d7f9bce656ad2f34b9dc3661b93f",
+      "t": "With you, it's always tomorrow. Always later, always when it's over."
+    },
+    {
+      "id": "ep-22:15",
+      "source": "연이는 앞발을 펼쳤다. 글자판이 떠올랐다. 마지막 빈칸이 벌써 희미하게 빛나고 있었다.",
+      "sourceHash": "f658df4ec6fcfce8b0f63d677de023d0bf9b7ebccde079aa7107f3f99dbf476e",
+      "t": "Yeoni opened a hoof. The chart appeared. Its last blank was already glowing faintly."
+    },
+    {
+      "id": "ep-22:16",
+      "source": "그럼 내가 확인할게.",
+      "sourceHash": "e54585c9d217d098fccb2b52f815de34c099a714e810fec56bd556a64f7fcdfb",
+      "t": "Then I'll check for myself."
+    },
+    {
+      "id": "ep-22:17",
+      "source": "연이가 한 걸음 다가갔다. 빈칸이 밝아졌다. 영냥이가 한 걸음 물러났다.",
+      "sourceHash": "585ce7ffd984c95f993ed90feb7e3c6be68dba93798453782dcbd1b87d57a38e",
+      "t": "Yeoni stepped closer. The blank brightened. Yeongnyangi stepped back."
+    },
+    {
+      "id": "ep-22:18",
+      "source": "다시 한 걸음. 다시 한 걸음. 영냥이의 뒷발이 지붕 끝에 닿았다. 더 물러날 곳이 없었다.",
+      "sourceHash": "be701a576157868af80a9bf32f266a2d0a8f75d90db1dd8282d926c6c589e53d",
+      "t": "Another step. And another. Yeongnyangi's hind paws reached the roof's edge. There was nowhere left to retreat."
+    },
+    {
+      "id": "ep-22:19",
+      "source": "연이야, 멈춰.",
+      "sourceHash": "6b35d3f66071db7757652e9f5cdf8f87aefb54bcf446f019f1af8c332c491231",
+      "t": "Yeoni, stop."
+    },
+    {
+      "id": "ep-22:20",
+      "source": "싫어.",
+      "sourceHash": "1f3356ca406676d425d3d7d95a8cdbd16d9f1fd56f25f823e63b9d8e8b0eb798",
+      "t": "No."
+    },
+    {
+      "id": "ep-22:21",
+      "source": "연이의 앞발이 영냥이의 복슬복슬한 가슴 털에 닿는 순간, 빈칸에서 하얀 빛이 터져 나왔다. 쇠를 두드리는 맑은 소리가 하늘에 울렸다.",
+      "sourceHash": "896a797ff6695aba1f137db79cf526ec32b651ad10bfb00b15d8bb6eedb68685",
+      "t": "The instant Yeoni's hoof touched the fluffy fur on Yeongnyangi's chest, white light burst from the blank. A clear ringing, like metal being struck, echoed through the sky."
+    },
+    {
+      "id": "ep-22:22",
+      "source": "빛은 칼날처럼 곧게 섰다가 글자 하나로 모였다. 차갑고 단단하고 곧은 글자였다.",
+      "sourceHash": "aea4f060b28e2679e4739f7e03d88d44b388362a468db78f443cbcbe7aad4342",
+      "t": "The light stood straight as a blade, then gathered into one character. Cold, hard, and straight."
+    },
+    {
+      "id": "ep-22:23",
+      "source": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 時 庚辰 ]  8/8",
+      "sourceHash": "9c0165cc5d19f914ad609a80f7c6b6c1da01e9f3c5a6cd45eacdeb4943f11083",
+      "t": "[ Year 壬午 · Month 丙午 · Day 乙亥 · Hour 庚辰 ]  8/8"
+    },
+    {
+      "id": "ep-22:24",
+      "source": "찼어! 여덟 칸 다 찼어! 영냥아, 봐 봐!",
+      "sourceHash": "fb12541b7f7e2cbaa19f841a7df79cae518b3620df480faa7c3e09140501f26e",
+      "t": "It's full! All eight slots! Yeongnyangi, look!"
+    },
+    {
+      "id": "ep-22:25",
+      "source": "[ 時干 庚 · 빌린 칸 · 주인 확인 불가 ]",
+      "sourceHash": "191ef1ffeeeace58a39c78ec9b3e1fe8cbc5ebcce7523ecfd165a23686e39a0f",
+      "t": "[ Hour Stem 庚 · Borrowed slot · Owner unverified ]"
+    },
+    {
+      "id": "ep-22:26",
+      "source": "빌린 칸? 주인 확인 불가? 이게 무슨 뜻이야.",
+      "sourceHash": "583b8c21954115f14b40c74743f6e34785bf4d7961c178d22903d51cfbd693cf",
+      "t": "Borrowed slot? Owner unverified? What does that mean?"
+    },
+    {
+      "id": "ep-22:27",
+      "source": "庚 자는 빛나다가 깜빡였다. 영냥이가 숨을 들이쉴 때 밝아지고, 내쉴 때 흐려졌다. 꼭 영냥이와 같이 숨을 쉬는 것처럼.",
+      "sourceHash": "b8d5eaef32334eedf1ec91dd15df344aec6e99dcfa17edecda37dc40a342c285",
+      "t": "The character 庚 shone, then flickered. It brightened when Yeongnyangi breathed in and dimmed when he breathed out. As though breathing with him."
+    },
+    {
+      "id": "ep-22:28",
+      "source": "영냥아. 이거 너야?",
+      "sourceHash": "83b9193436324f6f7eee3125c3cbb2c2f07c5567de6fae6feadfdd4d40d66f9a",
+      "t": "Yeongnyangi. Is this you?"
+    },
+    {
+      "id": "ep-22:29",
+      "source": "아니다.",
+      "sourceHash": "9e97b12e266448d8f9b26d642ae5ffa7ad855805d2002d434ee1857e097773be",
+      "t": "No."
+    },
+    {
+      "id": "ep-22:30",
+      "source": "너랑 같이 숨 쉬잖아!",
+      "sourceHash": "94141282c1c5195e30f950b909f4e52964a8ddd9ba1d0d0c4943924490cc5e78",
+      "t": "It's breathing with you!"
+    },
+    {
+      "id": "ep-22:31",
+      "source": "우연히 그렇게 된 거야.",
+      "sourceHash": "d4f412efd201e7dec7bd77fd3474a21400472e49e2752ba217e0a2a0f4f616fa",
+      "t": "Coincidence."
+    },
+    {
+      "id": "ep-22:32",
+      "source": "그 말을 하는 영냥이의 털이 아주 잠깐 빛을 잃었다. 하얀 털끝이 재처럼 흐려졌다가 다시 돌아왔다.",
+      "sourceHash": "6ff8287839d4353d9434a68ccd95540294aad96db28ddae9616e2137e191fe0e",
+      "t": "As he said it, Yeongnyangi's fur briefly lost its luster. Its white tips faded to ash, then returned."
+    },
+    {
+      "id": "ep-22:33",
+      "source": "너 방금 털. 색이 빠졌어.",
+      "sourceHash": "b255309938068c1548f703680b970c00153a7ffe4ea3666d5dc99421fdbf8a21",
+      "t": "Your fur just now. The color drained out."
+    },
+    {
+      "id": "ep-22:34",
+      "source": "밤이라 그렇다.",
+      "sourceHash": "ac287d14ab822051afad2882d922edc54e616c62f9829eeba950702b3cbf5316",
+      "t": "It's nighttime."
+    },
+    {
+      "id": "ep-22:35",
+      "source": "너 오늘 핑계를 몇 개째 대는지 알아? 달빛, 털, 밤. 다음은 뭔데.",
+      "sourceHash": "8b470d6405b97b23019637f8111b69dadaf7907d06bce1f70ab5967bec6736b0",
+      "t": "Do you know how many excuses you've made today? Moonlight, fur, night. What's next?"
+    },
+    {
+      "id": "ep-22:36",
+      "source": "날씨.",
+      "sourceHash": "d07e8162bf297d123f93e1d82eb84abb85d689c5822a5f3b34bec4775951354f",
+      "t": "Weather."
+    },
+    {
+      "id": "ep-22:37",
+      "source": "그때 지붕의 작은 창이 벌컥 열렸다. 모카가 불씨를 든 채 튀어나왔다. 그 뒤로 윤달이 하품하며 따라 올라왔다.",
+      "sourceHash": "637ce36bf16c38716438101cc8599229e184c138e57fa19bafa7c7ac689f615d",
+      "t": "Then the roof's small window burst open. Moka popped out holding an ember. Yundal climbed up behind him, yawning."
+    },
+    {
+      "id": "ep-22:38",
+      "source": "뭐야! 지붕에서 왜 종이 울려! 불난 줄 알았잖아!",
+      "sourceHash": "90c522b5c73fcd5ec8f49316639427a607fd5c58aed83d1e662ca36a58f806bf",
+      "t": "What?! Why's a bell ringing on the roof?! I thought there was a fire!"
+    },
+    {
+      "id": "ep-22:39",
+      "source": "아, 숙녀분. 그 칸. 드디어 차셨네요.",
+      "sourceHash": "4851cdba3b7bdabbf6f6bc454903b7f199d0e47dfbc2e367e64859aa2e1863e3",
+      "t": "Ah, my lady. That slot. Finally filled, I see."
+    },
+    {
+      "id": "ep-22:40",
+      "source": "윤달. 이 칸이 영냥이랑 같이 숨을 쉬어요.",
+      "sourceHash": "7d2e47a18a2f620858761176c4c543a61346dd28f5ba1ccd20cef58352f5b137",
+      "t": "Yundal. This slot is breathing with Yeongnyangi."
+    },
+    {
+      "id": "ep-22:41",
+      "source": "윤달은 글자판과 영냥이를 번갈아 보았다. 그리고 장갑 낀 손으로 입을 가렸다. 웃음을 참는 손이었다.",
+      "sourceHash": "8914efc030170c08f9e883d6a8d343463ddf2bef3f7864ef799cddf220e956ab",
+      "t": "Yundal looked between the chart and Yeongnyangi. Then he covered his mouth with his gloved hand, holding back a smile."
+    },
+    {
+      "id": "ep-22:42",
+      "source": "그렇군요. 그래서 생일을 모르셨구나.",
+      "sourceHash": "881061873632b15d78bcc0949d4959007f2fac06060ffd55f0df3278e46c9649",
+      "t": "I see. So that's why you didn't know your birthday."
+    },
+    {
+      "id": "ep-22:43",
+      "source": "그게 무슨 말이에요? 생일이랑 이 칸이 무슨 상관인데요.",
+      "sourceHash": "e5aebca021328325bcc90ba7b9813585511b8acc9e5f0823d06e85443c77df3e",
+      "t": "What does that mean? What does a birthday have to do with this slot?"
+    },
+    {
+      "id": "ep-22:44",
+      "source": "내일 말씀드릴게요. 지금 말하면 숙녀분이 지붕에서 굴러떨어지실 것 같아서요.",
+      "sourceHash": "ae5d8b25d69f297dff4827ce3b9996e05cbfbbb06fbbb1bf8b86fe17b425c735",
+      "t": "I'll tell you tomorrow. If I tell you now, you might roll off the roof."
+    },
+    {
+      "id": "ep-22:45",
+      "source": "사기꾼 너 그 말 어제도 했어. 내일 내일 하다가 고양이 될라.",
+      "sourceHash": "5c028c9d88164d9bd3125d129d5cb7d52e54d0959f8710dcf33009aefdbb5f26",
+      "t": "Con artist, you said that yesterday, too. Keep saying tomorrow, tomorrow, and you'll turn into a cat."
+    },
+    {
+      "id": "ep-22:46",
+      "source": "윤달. 이번엔 아무 말도 하지 마.",
+      "sourceHash": "98d4f3963991bbb8957db5eb6b113b44a2ebb36d0a49e0e9dad0cc9fca0b2bcb",
+      "t": "Yundal. Don't say anything this time."
+    },
+    {
+      "id": "ep-22:47",
+      "source": "다음 날 아침. 열람실 책상 하나를 가운데 두고 네 명이 둘러앉았다. 분위기가 재판정 같았다.",
+      "sourceHash": "3e96c1b9801ec63a6942e9bda318837338948ce03e43f36c8541955f3e8dc11e",
+      "t": "The next morning, the four sat around a reading-room desk. It felt like a courtroom."
+    },
+    {
+      "id": "ep-22:48",
+      "source": "정확히는 세 명과 한 마리였다. 아기 용은 연이의 손목에서 내려와 책상 한가운데에 판사처럼 똬리를 틀었다.",
+      "sourceHash": "ec3365f16da10bf54712ce774a8fce167e9e86cdf9a86a01ac9c27bd5fa59f32",
+      "t": "To be precise, three people and one animal. The baby dragon left Yeoni's wrist and coiled at the center of the desk like a judge."
+    },
+    {
+      "id": "ep-22:49",
+      "source": "아침 먹으면서 하자. 내가 꼬치 구웠다. 재판에는 원래 간식이 있어야 돼.",
+      "sourceHash": "30123b8f4e7a9343512792db20d59d1f6a12793329e50d26e935ee9833f91f8e",
+      "t": "Let's do this over breakfast. I grilled skewers. Trials need snacks."
+    },
+    {
+      "id": "ep-22:50",
+      "source": "모카가 꼬치 접시를 내려놓았다. 연이와 영냥이가 동시에 같은 꼬치로 앞발을 뻗었다. 두 앞발이 꼬치 위에서 딱 멈췄다.",
+      "sourceHash": "b55d0bb94416531507ac8a8b98ad4b6893c85f091d3da8ca169bb1916e787a71",
+      "t": "Moka set down the plate. Yeoni and Yeongnyangi reached for the same skewer at the same time. Hoof and paw froze above it."
+    },
+    {
+      "id": "ep-22:51",
+      "source": "너 먹어.",
+      "sourceHash": "54398eb6936b282fae3d3cdf31c68c84323916dd47a716d381fba1050943eecc",
+      "t": "You have it."
+    },
+    {
+      "id": "ep-22:52",
+      "source": "아니다. 네가 먹어라.",
+      "sourceHash": "f70b90792b02d8260a96a26d674d9ca368f854d6592a0a95e5d33e1ef1e75719",
+      "t": "No. You eat it."
+    },
+    {
+      "id": "ep-22:53",
+      "source": "아니야, 너 먹으라니까.",
+      "sourceHash": "389e6a02c439c9e659e9ee45051cb39abccb52b1419b16c599540b6b9905faa0",
+      "t": "No, I said you have it."
+    },
+    {
+      "id": "ep-22:54",
+      "source": "그 꼬치 하나 가지고 뭔 양보야! 열두 개 있어! 열두 개!",
+      "sourceHash": "6005393a4ab4bae2753259ff8020288c5f62cec1d32165ec6f0300c82855c768",
+      "t": "Why all the generosity over one skewer?! There are twelve! Twelve!"
+    },
+    {
+      "id": "ep-22:55",
+      "source": "어젯밤 지붕에서 무슨 일이 있었는지 꼬치가 다 말해 주네요.",
+      "sourceHash": "e9ad4a478285805a487f9f597dbd137346fc317a7d5b30065fc26efd53bc36b2",
+      "t": "That skewer tells us everything about what happened on the roof last night."
+    },
+    {
+      "id": "ep-22:56",
+      "source": "아무 일도 없었거든요! 칸 하나 켜진 것뿐이에요!",
+      "sourceHash": "e54cd84b886dfe869e9ee49f98136775d85d938e97e41fa704bc81a6d9fd4a9d",
+      "t": "Nothing happened! One slot lit up, that's all!"
+    },
+    {
+      "id": "ep-22:57",
+      "source": "그렇게 말하는 연이의 코끝이 분홍색보다 조금 더 진해졌다. 영냥이는 꼬치를 집지도 않고 창밖으로 고개를 돌렸다.",
+      "sourceHash": "3b48c3c0960771ea52dd4ccb7d03fc93c3ac9806c1a384e3d7841dd8be61d3f1",
+      "t": "As Yeoni said it, their nose grew a shade deeper than pink. Yeongnyangi turned toward the window without even taking a skewer."
+    },
+    {
+      "id": "ep-22:58",
+      "source": "자, 윤달. 어제 하려다 만 얘기 해 주세요. 여자 명식에서 관성은 뜻이 하나 더 있다면서요.",
+      "sourceHash": "254f0a6a10d44bf31b98dba68772151756e63b39881a973d02c69ea6b63c2f55",
+      "t": "All right, Yundal. Finish what you were saying yesterday. You said Influence has another meaning in a woman's chart."
+    },
+    {
+      "id": "ep-22:59",
+      "source": "정말 지금 들으실 거예요? 책상 단단한 거 확인하셨어요?",
+      "sourceHash": "1c7fb1ec4f5da3970f1ab993175c0d4ed2fd7d95263e5910ac5d05dffedab8f8",
+      "t": "You really want to hear it now? Have you checked how hard the desk is?"
+    },
+    {
+      "id": "ep-22:60",
+      "source": "빨리요.",
+      "sourceHash": "a451d4617497c5983032b860ce044182dcab566daff65e8b48f6e9ee713c3d01",
+      "t": "Hurry up."
+    },
+    {
+      "id": "ep-22:61",
+      "source": "乙목 일간에게 庚금은 정관이에요. 나를 바르게 세워 주는 기운이요. 그리고 여자 명식에서 정관은.",
+      "sourceHash": "fe9bf886d5ad0fb356588055229882de551686b81223b8fcf158908c59c73c29",
+      "t": "For an Eul Wood Day Master, Gyeong Metal is Direct Officer. The energy that helps you stand upright. And in a woman's chart, Direct Officer is..."
+    },
+    {
+      "id": "ep-22:62",
+      "source": "정관은. 뜸 들이지 마. 고기 탄다.",
+      "sourceHash": "4ddd3c15adb26efa74c23ac77216bec439f60ba872f0f3c84f43d9ba663479f0",
+      "t": "Direct Officer is. Stop dragging it out. The meat's burning."
+    },
+    {
+      "id": "ep-22:63",
+      "source": "남편성이에요.",
+      "sourceHash": "a824db4e59c5a9b560bd7c0a76873c003fa1d89d3ffe2c674652128517070d45",
+      "t": "The husband star."
+    },
+    {
+      "id": "ep-22:64",
+      "source": "연이의 이마가 책상에 쿵 떨어졌다. 윤달이 미리 받쳐 둔 책 한 권이 그 이마를 받았다.",
+      "sourceHash": "1ecf8feca83583e4c86c967e65061aab7e41b685f4770a750c2dbad824427a30",
+      "t": "Yeoni's forehead hit the desk with a thud. A book Yundal had placed there in advance caught it."
+    },
+    {
+      "id": "ep-22:65",
+      "source": "그래서 단단한 거 확인하시라고 했잖아요.",
+      "sourceHash": "9e38c2170ccf1144b1eb222df880f61b9fbd658a71fa550916b8ecd4908687a8",
+      "t": "That's why I told you to check how hard it was."
+    },
+    {
+      "id": "ep-22:66",
+      "source": "남, 남, 남편?",
+      "sourceHash": "21f9d6092dc11bc121fc3eb8f885d9862e80a3bc2a953889fbd229f3d590c5a0",
+      "t": "H-h-husband?"
+    },
+    {
+      "id": "ep-22:67",
+      "source": "켁. 쿨럭. 잠깐만. 나 꼬치 넘어갔어.",
+      "sourceHash": "9d9b5353986449466e7cc95950d9b01145016155f04990658577dbfe248f05e6",
+      "t": "Ack. Cough. Wait. A skewer went down the wrong way."
+    },
+    {
+      "id": "ep-22:68",
+      "source": "오해다.",
+      "sourceHash": "1c3916c353a68d11d2489a31f00f354cb4b8ad4b7e513244f8d973d88426d2a8",
+      "t": "A misunderstanding."
+    },
+    {
+      "id": "ep-22:69",
+      "source": "오해가 아니면 뭔데! 칸에 네 숨이 붙어 있는데!",
+      "sourceHash": "3eded8c359768e8456b6baabbcc4d922940c2d4a83c4ea38454747393636eae7",
+      "t": "What else could it be?! Your breath is attached to the slot!"
+    },
+    {
+      "id": "ep-22:70",
+      "source": "나는 고객센터다. 남편이 아니다.",
+      "sourceHash": "b205e0b81d6a3466bea5cddb874a4a45adadd3777c7e1bcec373800f45304a87",
+      "t": "I'm Customer Support. Not a husband."
+    },
+    {
+      "id": "ep-22:71",
+      "source": "누가 너랑 결혼한대! 나도 싫거든!",
+      "sourceHash": "88a4d3f56bfbf80f7cfb56205902fbcc70752e00a03669151b54719c0a543859",
+      "t": "Who said I'd marry you?! I don't want to, either!"
+    },
+    {
+      "id": "ep-22:72",
+      "source": "나도 싫다.",
+      "sourceHash": "e6d4fdd8cd183c8772b25767500e046793d6cf5e8baa167105e2086b92e2f767",
+      "t": "Neither do I."
+    },
+    {
+      "id": "ep-22:73",
+      "source": "왜 너도 싫은데!",
+      "sourceHash": "1d18407789bc3bb12d6c8d979b8003975e868f9f04be633a36697716dbe64fef",
+      "t": "Why don't you want to?!"
+    },
+    {
+      "id": "ep-22:74",
+      "source": "와. 둘이 동시에 싫대. 이거 완전 결혼한 사이 아니냐.",
+      "sourceHash": "25b159675294090d51d884b9a44286f85739b164bc066f855936ec4a797f0f2a",
+      "t": "Wow. Both saying they don't want to at once. Aren't they basically married already?"
+    },
+    {
+      "id": "ep-22:75",
+      "source": "수달 씨 말이 궁합 보는 저보다 정확하네요.",
+      "sourceHash": "9532ace7326673d6eb1a9cd729b5c4ae73964c2cd26d5d77a818a77a8a620df3",
+      "t": "Mr. Otter's more accurate than I am, and I read compatibility for a living."
+    },
+    {
+      "id": "ep-22:76",
+      "source": "윤달. 남편성이라는 게, 진짜 남편이라는 뜻은 아니죠? 그냥 별 이름이죠?",
+      "sourceHash": "feca2f91b785e708437303f870bafa23a1933ff01dfbf319145cf9af5e4b763e",
+      "t": "Yundal. Husband star doesn't mean an actual husband, right? Just the name of a star?"
+    },
+    {
+      "id": "ep-22:77",
+      "source": "별 이름이에요. 명식에서 나를 지키고, 나를 다스리고, 내가 책임지고 싶어지는 자리요.",
+      "sourceHash": "4663d1a073aadc21bd68f7f39452ce1089042262ff3915ddbd6119878fa3b185",
+      "t": "It's a star's name. A place in your chart that protects you, guides you, and makes you want to take responsibility."
+    },
+    {
+      "id": "ep-22:78",
+      "source": "꼭 결혼할 사람이라는 뜻은 아니에요. 그냥 그 자리에 앉는 사람이 있다는 거죠.",
+      "sourceHash": "5e5304c3d8154c8d192856afc6aa8ac004219bbb97b78103bf961152e2cd40c5",
+      "t": "It doesn't necessarily mean someone you'll marry. Just that there's someone who sits in that place."
+    },
+    {
+      "id": "ep-22:79",
+      "source": "(그 자리에 앉는 사람. 처음 눈 떴을 때부터 계속 옆에 있던 고양이.)",
+      "sourceHash": "9cec0b73d65e9af25e204ae83fa6206ba42fd2e0ca3459c8ab87d6eafa08aa3b",
+      "t": "(Someone who sits in that place. The cat who's stayed beside me since I first opened my eyes.)"
+    },
+    {
+      "id": "ep-22:80",
+      "source": "연이는 고개를 들어 영냥이를 보았다. 영냥이는 창밖만 보고 있었다. 귀 끝이 아주 조금 붉었다.",
+      "sourceHash": "8a3758ef7bdf81fd1520e2850f7c0ade48382d66ce683cdf92cab45c1d3d6baa",
+      "t": "Yeoni raised their head to look at Yeongnyangi. He stared only out the window. The tips of his ears were a little red."
+    },
+    {
+      "id": "ep-22:81",
+      "source": "(고양이도 귀가 빨개지는구나.)",
+      "sourceHash": "0fe4d370745ef53363001cbd447de1a25920f0eba677c702d70de2b8869b446f",
+      "t": "(So cats' ears turn red, too.)"
+    },
+    {
+      "id": "ep-22:82",
+      "source": "그런데 농담은 여기까지 하고요. 숙녀분, 칸을 다시 띄워 보시겠어요?",
+      "sourceHash": "f3a78f2fb4f9387e07b64cc780d79dff61f2f1f49a796aa8c4aed8ecaaca3af6",
+      "t": "But enough joking. My lady, could you bring up that slot again?"
+    },
+    {
+      "id": "ep-22:83",
+      "source": "연이가 앞발을 펼쳤다. 庚 자는 여전히 깜빡이고 있었다. 영냥이가 창가로 멀어질수록 점점 희미해졌다.",
+      "sourceHash": "f5dc9d984ca08949ebf1d311266886653c518815c9415400a541bba43c2d8699",
+      "t": "Yeoni opened their hoof. 庚 still flickered. The farther Yeongnyangi moved toward the window, the fainter it grew."
+    },
+    {
+      "id": "ep-22:84",
+      "source": "빌린 칸이라는 건, 이 글자가 원래 숙녀분 것이 아니라는 뜻이에요. 고양이님이 자기 걸 빌려주고 있는 거죠.",
+      "sourceHash": "2e3fc0fb21bc218e070dc3b23dfee06a0a7359c6152def3262039cb6b0f0126f",
+      "t": "A borrowed slot means this character wasn't originally yours. Mr. Cat is lending you his own."
+    },
+    {
+      "id": "ep-22:85",
+      "source": "빌려준다고요? 빌려주면 영냥이는요?",
+      "sourceHash": "cb17448111759671808be5d459cd94d7fe943ab753e954d068ca5c67bfd01857",
+      "t": "Lending it? Then what happens to Yeongnyangi?"
+    },
+    {
+      "id": "ep-22:86",
+      "source": "그만큼 비겠죠. 빌려준 만큼.",
+      "sourceHash": "c066adcb0b22c91dc8cac999a3bbc48cb461f365a35a6026f12a1106c78757cf",
+      "t": "He becomes that much emptier. By the amount he lends."
+    },
+    {
+      "id": "ep-22:87",
+      "source": "그럼 고양이가 멀리 가면 칸이 꺼지고, 가까이 오면 고양이가 비고. 뭐 이런 엉망진창 계약이 다 있냐.",
+      "sourceHash": "8c621866dd6ca998f99a2100aea5d916d9c8fee23e60c3055bcb0e25ba422dc1",
+      "t": "So when the cat goes away, the slot goes dark. When he gets close, the cat empties out. What kind of messed-up contract is this?"
+    },
+    {
+      "id": "ep-22:88",
+      "source": "계약이 원래 좀 엉망이야. 네가 신경 쓸 일은 아니고.",
+      "sourceHash": "235ba0eca6a520cb17c4417a520d107e2e932ef3ff42a4331705fdafa207d38d",
+      "t": "The contract is a bit of a mess. None of your concern."
+    },
+    {
+      "id": "ep-22:89",
+      "source": "신경을 어떻게 안 써! 너 지금 나한테 너를 빌려주고 있다는 거잖아.",
+      "sourceHash": "a939f7aeee601fb7dff82541d0b20522dae8138235c05bbc78d8722107117d46",
+      "t": "How could I not be concerned?! You're saying you're lending yourself to me."
+    },
+    {
+      "id": "ep-22:90",
+      "source": "내가 빌려준 건 아니야. 네가 다가오니까 켜졌어.",
+      "sourceHash": "a7ea6808593453803f6d9c4b449d378cd5598264a5a4bf541e0f4b66dbcfc1b3",
+      "t": "I didn't lend it. You came closer, and it lit up."
+    },
+    {
+      "id": "ep-22:91",
+      "source": "그럼 확인해 보죠. 숙녀분, 덩굴 하나만 꺼내 보시겠어요?",
+      "sourceHash": "f76bd3f18b6e8cb07833bee6747c78e8f7f06949344dc12974e62ede36d30af4",
+      "t": "Then let's check. My lady, could you bring out one vine?"
+    },
+    {
+      "id": "ep-22:92",
+      "source": "연이는 영문도 모른 채 앞발을 내밀었다. 책상 위로 가느다란 덩굴 하나가 자라났다. 덩굴은 힘없이 휘어지며 책상 모서리에 늘어졌다.",
+      "sourceHash": "c02a0791c5ae04681ada2a0648eebf313834cfa9fca640430789ab45d77f2e6d",
+      "t": "Not understanding, Yeoni held out a hoof. A slender vine grew onto the desk, bending limply over its edge."
+    },
+    {
+      "id": "ep-22:93",
+      "source": "이번엔 고양이님, 숙녀분 옆에 서 주세요.",
+      "sourceHash": "2ba912387b78b741c69affd2add748e39a80a8d134c633881e2825d185c4b4d7",
+      "t": "Now, Mr. Cat, please stand beside our lady."
+    },
+    {
+      "id": "ep-22:94",
+      "source": "싫다.",
+      "sourceHash": "a62be168fff010485ae7da3e08cd2527d95ed6445a58c3b6bbbcfa5ea6e92852",
+      "t": "No."
+    },
+    {
+      "id": "ep-22:95",
+      "source": "싫으면 내가 밀어 준다. 꼬리로.",
+      "sourceHash": "ae4d7a8c07db9fe5a10361c99b20506537b82f42739c318231df61d171056f69",
+      "t": "Say no, and I'll push you. With my tail."
+    },
+    {
+      "id": "ep-22:96",
+      "source": "모카에게 등을 떠밀린 영냥이가 마지못해 연이 옆에 섰다. 글자판의 庚 자가 환하게 켜졌다.",
+      "sourceHash": "ebf4b289acb07bb427ac586e066bbb6f102d522c0c237e24f819d855babf05c2",
+      "t": "With Moka shoving his back, Yeongnyangi reluctantly stood beside Yeoni. 庚 on the chart shone brightly."
+    },
+    {
+      "id": "ep-22:97",
+      "source": "그 순간, 늘어져 있던 덩굴이 꼿꼿하게 일어섰다. 기둥처럼 곧게 천장 쪽으로 뻗어 올라갔다. 잎이 단단하고 반짝였다.",
+      "sourceHash": "ae6f530f40433fe642fe3fc043e6f201a86ce041bb620350c83224a9f6c55ceb",
+      "t": "At once, the drooping vine stood upright. Straight as a pillar, it stretched toward the ceiling. Its leaves were firm and gleaming."
+    },
+    {
+      "id": "ep-22:98",
+      "source": "뭐야. 내 덩굴이 이렇게 곧은 거 처음 봐.",
+      "sourceHash": "92916ba9c3c1ea79a8b9a6c479a28174511ebe409a1483df25efd4b03c4c53b4",
+      "t": "What? I've never seen my vine this straight."
+    },
+    {
+      "id": "ep-22:99",
+      "source": "乙목은 혼자서는 휘어져요. 庚금이 옆에 있으면 똑바로 서요. 그게 정관이에요. 나를 세워 주는 기운.",
+      "sourceHash": "ddf2eb88b5a88ddc6949300987b51bdcb82e6f035ea4160c1e395ee75c26d162",
+      "t": "Eul Wood bends alone. With Gyeong Metal beside it, it stands straight. That's Direct Officer. The energy that helps you stand."
+    },
+    {
+      "id": "ep-22:100",
+      "source": "연이는 덩굴을 보다가 옆을 보았다. 영냥이가 이를 악물고 있었다. 왼발이 바닥에서 아주 조금 떠 있었다.",
+      "sourceHash": "2dcec143223afc41b3b75f52dc30747861e7ca5aa0f8a056068b6d6f524158a6",
+      "t": "Yeoni looked from the vine to their side. Yeongnyangi was clenching his teeth. His left paw hovered just above the floor."
+    },
+    {
+      "id": "ep-22:101",
+      "source": "영냥아. 아파?",
+      "sourceHash": "886a4e5f202c863d50be2de0dab369d993a760525b25933e5cc73a87d11b8548",
+      "t": "Yeongnyangi. Does it hurt?"
+    },
+    {
+      "id": "ep-22:102",
+      "source": "안 아프다.",
+      "sourceHash": "989fb9e1007eb656ed0889588e39ab40bde91034157437f6f188211160dacb89",
+      "t": "No."
+    },
+    {
+      "id": "ep-22:103",
+      "source": "연이가 한 걸음 떨어지자 덩굴이 다시 힘없이 휘어졌다. 영냥이의 어깨에서 힘이 빠졌다. 숨을 참고 있었던 것이다.",
+      "sourceHash": "c23a8698c9e17177d2f6051e25b7fd3aa1a52cd9fb4bfec282f52187cd285f8c",
+      "t": "When Yeoni stepped away, the vine sagged again. Tension left Yeongnyangi's shoulders. He had been holding his breath."
+    },
+    {
+      "id": "ep-22:104",
+      "source": "그럼 내가 안 다가가면 되는 거야?",
+      "sourceHash": "c5c4fbef0128026676db5f5d9cc2ef322b0f3c802f0716fa3dab2b6fe1e32bac",
+      "t": "Then I just need to stay away?"
+    },
+    {
+      "id": "ep-22:105",
+      "source": "영냥이는 대답하지 않았다. 대답하지 않는 것이 대답이었다.",
+      "sourceHash": "6f103e6202ca74a089f0eddd35737432f004ce69d1390002368734cccb3ac761",
+      "t": "Yeongnyangi did not answer. His silence was the answer."
+    },
+    {
+      "id": "ep-22:106",
+      "source": "그때 천장의 둥근 유리창이 어두워졌다. 아침인데 해가 지는 것처럼 열람실 전체가 빠르게 그늘에 잠겼다.",
+      "sourceHash": "c97420c1ef93974f335764fc7f66491c6c934e4cfb59904bb383ef2f04c2ad44",
+      "t": "Then the circular skylight darkened. Though it was morning, the entire reading room rapidly sank into shadow as if the sun were setting."
+    },
+    {
+      "id": "ep-22:107",
+      "source": "뭐야. 또 비야?",
+      "sourceHash": "92950dad6426863bdde351ff377f9d7dbdfdf040d7000949f72c4f850a123f13",
+      "t": "What now? More rain?"
+    },
+    {
+      "id": "ep-22:108",
+      "source": "아니에요. 비보다 나쁜 거예요.",
+      "sourceHash": "ed684120af3130d18306b4234b015d910de26a785ebe415b3fa8442e4db87709",
+      "t": "No. Worse than rain."
+    },
+    {
+      "id": "ep-22:109",
+      "source": "윤달은 장갑 낀 오른손을 품에 끌어안았다. 장갑 안쪽에서 무언가가 바람 빠지는 소리를 냈다. 공망이 저 혼자 숨을 들이켜고 있었다.",
+      "sourceHash": "469d187a89fa65a20e9f7ab5ce4391fc599559672e7ac3977488998df12e94dd",
+      "t": "Yundal clutched his gloved right hand to his chest. Inside the glove, something sounded like escaping air. The Void was inhaling on its own."
+    },
+    {
+      "id": "ep-22:110",
+      "source": "이 손이 이렇게 배고파하는 건 처음이에요. 저 위에 있는 게, 뭘 먹고 싶어 하는지 알 것 같아요.",
+      "sourceHash": "d9fddf8aa3e54094f1e7da718393a174758e023f7934ec2bb3bde6dbcd49375d",
+      "t": "This hand has never been so hungry. I think I know what that thing up there wants to eat."
+    },
+    {
+      "id": "ep-22:111",
+      "source": "뭘 먹고 싶은데. 돌려 말하지 마. 나 지금 무서워서 꼬리 섰어.",
+      "sourceHash": "d03b4be93baf20c9cbbba8d042e288175b90c4ae8b7078c05fcd3e777632f6b5",
+      "t": "What does it want? Don't talk around it. My tail's standing on end because I'm scared."
+    },
+    {
+      "id": "ep-22:112",
+      "source": "유리창 너머 하늘에 금이 갔다. 반쯤 먹힌 해에서 시작된 검은 금이 하늘을 가로질러 길게 뻗어 나갔다.",
+      "sourceHash": "eec8ada85a7294a104b51ba1c4b1f13446e30d0befa0f20d2701239c2d300099",
+      "t": "The sky cracked beyond the glass. Starting at the half-eaten sun, a black fissure stretched across it."
+    },
+    {
+      "id": "ep-22:113",
+      "source": "쩍, 하는 소리가 났다. 소리는 하늘이 아니라 연이의 글자판에서 났다. 庚 자의 모서리에 가는 금이 하나 그어져 있었다.",
+      "sourceHash": "a95e79d79419679c66f46fee09a9eb48fee268824168077be2d55bba47ab0523",
+      "t": "Crack. The sound came not from the sky but from Yeoni's chart. A fine fracture marked a corner of 庚."
+    },
+    {
+      "id": "ep-22:114",
+      "source": "내 칸에 금이 갔어. 영냥아, 너 괜찮아?",
+      "sourceHash": "bc596cc7ea2f35770aafd65973cd4dba7c9eebe7d7b6af39890c788aa0451a84",
+      "t": "My slot cracked. Yeongnyangi, are you okay?"
+    },
+    {
+      "id": "ep-22:115",
+      "source": "괜찮다.",
+      "sourceHash": "f6bed8da946d3b312242b7a357829a78b296812686c8bf64d25d59f6c46dcb14",
+      "t": "I'm fine."
+    },
+    {
+      "id": "ep-22:116",
+      "source": "거짓말. 고양이 너 지금 이빨 덜덜 떨고 있어. 여기까지 다 들려.",
+      "sourceHash": "2ff46c471da80059a326b4577b29c7c667b5dce4eb14597c36436a6aaaf66bf2",
+      "t": "Liar. Cat, your teeth are chattering. I can hear them from here."
+    },
+    {
+      "id": "ep-22:117",
+      "source": "고양이님. 이제는 숨기는 게 숙녀분을 더 다치게 해요.",
+      "sourceHash": "6d20959aa9b4c3a10ebc930778bd777e72a2f525abbdca41264a73363baa2cc0",
+      "t": "Mr. Cat. Hiding it is hurting our lady more now."
+    },
+    {
+      "id": "ep-22:118",
+      "source": "영냥이는 그렇게 말하며 왼발을 등 뒤로 숨겼다. 연이는 그 움직임을 보았다. 이번에는 못 본 척하지 않았다.",
+      "sourceHash": "b74ad3ffbb2338ca9a18605cbceadfe304c983542f170d65d9b10d30af70b95b",
+      "t": "As those words were spoken, Yeongnyangi hid his left paw behind his back. Yeoni saw the movement. This time, they did not pretend otherwise."
+    },
+    {
+      "id": "ep-22:119",
+      "source": "그 발. 보여 줘.",
+      "sourceHash": "6758c16df03ef1a29ef6a7a13e880310c9351d25f615c709f3574a1467f6580b",
+      "t": "That paw. Show me."
+    },
+    {
+      "id": "ep-22:120",
+      "source": "연이야.",
+      "sourceHash": "80cb95b01e8cc1368b8cd8ace84e07fc877503b06ef9dddd4795ce70845dc473",
+      "t": "Yeoni."
+    },
+    {
+      "id": "ep-22:121",
+      "source": "보여 달라고.",
+      "sourceHash": "7d371d6933c233f826d8f667c4dc8e161cbe51f0756349173eae7d8ae2a42f0b",
+      "t": "I said show me."
+    },
+    {
+      "id": "ep-22:122",
+      "source": "영냥이는 한참 연이를 보다가, 천천히 앞발을 내밀려 했다. 그러나 그 앞발이 다 나오기도 전에 유리창이 크게 떨렸다.",
+      "sourceHash": "266e98069825a449e04caab6443e7914485bf3e49f2222f7f4e22c8fb6c42cca",
+      "t": "Yeongnyangi looked at Yeoni for a long time, then slowly started to hold out his paw. But before it fully emerged, the glass shook violently."
+    },
+    {
+      "id": "ep-22:123",
+      "source": "찾았다.",
+      "sourceHash": "69ba54d2af4dc26e487591e750cb5cfdaf983ba016716cb15b1e93cd71c43059",
+      "t": "Found you.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-22:124",
+      "source": "목소리는 사방에서 동시에 들렸다. 책장 사이에서, 유리창 너머에서, 연이의 글자판 속 금 간 자리에서.",
+      "sourceHash": "3698bc97503298842b506839c05dd03594ebff512487aef30c2b413ab08b7b3c",
+      "t": "The voice sounded from everywhere at once. Between the shelves, beyond the glass, inside the crack in Yeoni's chart."
+    },
+    {
+      "id": "ep-22:125",
+      "source": "숨어 있던 다섯 번째 빛. 그 아이 옆에 있었구나.",
+      "sourceHash": "b7ab9bb309a8a597ff4c5d2516bdfe48124c59aad55e223993f6290985957f8b",
+      "t": "The hidden fifth light. There you were, beside that child.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-22:126",
+      "source": "하늘의 금이 한 뼘 더 벌어졌다. 그 틈 너머에서 무언가가 천천히 눈을 떴다.",
+      "sourceHash": "f8e6114c29c3f9f23d875bb51d54d740fe3cccf4fb2581aa4236bc26940fc83e",
+      "t": "The fissure in the sky widened another handspan. Beyond it, something slowly opened its eyes."
+    }
+  ]
+}

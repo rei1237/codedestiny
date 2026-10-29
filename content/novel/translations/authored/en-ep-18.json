@@ -1,0 +1,614 @@
+{
+  "locale": "en",
+  "episodeId": "ep-18",
+  "tag": "Episode 18 · The Drowned Shelves",
+  "title": "The Drowned Shelves",
+  "sourceTitle": "잠긴 서가",
+  "sourceTag": "제18화 · 잠긴 서가",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-18:1",
+      "source": "물은 순식간에 무릎까지, 다시 허리까지 차올랐다. 책들이 숨을 참은 채 물 위로 떠올라 둥둥 흘러갔다.",
+      "sourceHash": "09fc8d91606c89d69e9b37a26d3f183da14c83fdb8aeeb97734e1992cff7ab39",
+      "t": "In an instant, the water rose to their knees, then their waists. Holding their breath, books floated up and drifted away."
+    },
+    {
+      "id": "ep-18:2",
+      "source": "꿀악! 발이, 발이 안 닿아!",
+      "sourceHash": "3d0f2de0f29ceeb05725cc2a85720e60c21fe391907fb5f26aa1557abb49857d",
+      "t": "OIIINK! My feet! I can't touch the bottom!"
+    },
+    {
+      "id": "ep-18:3",
+      "source": "돼지는 원래 물에 뜨잖아! 침착해, 넌 지금 튜브야!",
+      "sourceHash": "a2abae7b7914f732a358ebbf208313304772377886559f2cc18dfab2d3a5d548",
+      "t": "Pigs float! Stay calm. You're a swim ring right now!"
+    },
+    {
+      "id": "ep-18:4",
+      "source": "연이는 허우적거렸다. 몸은 떴지만 마음대로 움직이지 않았다. 물살이 그녀를 서가 사이로 자꾸만 끌고 갔다.",
+      "sourceHash": "865aeb96984571c5f6bfc298f66f38c2a955b95969cbf2fa5dc2c28c50d7fecc",
+      "t": "Yeoni flailed. Their body floated, but it would not move as they wished. The current kept pulling them between the shelves."
+    },
+    {
+      "id": "ep-18:5",
+      "source": "물 한가운데가 갑자기 고요해졌다. 그 위로 검은 등줄기 하나가 천천히 떠올랐다.",
+      "sourceHash": "ab4dfbb56b8752706712588bfcf6c0a5df4a8565580d7b44039b32ce225ddf5a",
+      "t": "The middle of the water suddenly went still. A black spine slowly surfaced there."
+    },
+    {
+      "id": "ep-18:6",
+      "source": "검은 호랑이였다. 털 끝마다 물방울이 맺혀 있었고, 목의 금빛 고리가 젖은 빛을 냈다.",
+      "sourceHash": "d92838815b8b133a6ac0d8cfcfb5a154ee0b68e0fd93665389ff712337acc876",
+      "t": "The black tiger. Droplets clung to the tips of its fur, and the golden ring at its neck shone wetly."
+    },
+    {
+      "id": "ep-18:7",
+      "source": "위층에서 끝났으면 좋았을 텐데. 꼭 아래까지 따라오네.",
+      "sourceHash": "0e8c103ed4965e6171ace10e7aef1ba5b88217e0e275ec08fbc6c37102660855",
+      "t": "It would have been better if it had ended upstairs. But you had to follow me down."
+    },
+    {
+      "id": "ep-18:8",
+      "source": "내 책 돌려줘! 대출 카드에 내 이름 있었어!",
+      "sourceHash": "8cb705cc5b203a6c6feac07f55eea320a584f01e98c95ef20d02ccf6cb8076f8",
+      "t": "Give my book back! My name was on the borrowing card!"
+    },
+    {
+      "id": "ep-18:9",
+      "source": "카드는 젖으면 번져. 이름도 마찬가지고.",
+      "sourceHash": "6dd44700c7e3d707b0ce2d59f6bd9c1bdf26ad73401d0f599331d27df3e285e1",
+      "t": "Cards blur when they get wet. Names, too."
+    },
+    {
+      "id": "ep-18:10",
+      "source": "호랑이가 앞발로 수면을 내리쳤다. 물이 벽처럼 일어나 서가 하나를 통째로 삼켰다.",
+      "sourceHash": "61f64cb76bd9df3ed833c7058beb5f05e8e85f82248b863d7e28426452e093eb",
+      "t": "The tiger struck the surface with a paw. Water rose like a wall and swallowed an entire bookshelf.",
+      "skill": {
+        "name": "Submersion"
+      }
+    },
+    {
+      "id": "ep-18:11",
+      "source": "(버텨. 나무는 뿌리가 있잖아. 뿌리를 내리면 돼.)",
+      "sourceHash": "441f29603bdeaa1334775cf53aa0ca253fc62c043582343ec6c93137dcc924b4",
+      "t": "(Hold on. Wood has roots. I just need to put down roots.)"
+    },
+    {
+      "id": "ep-18:12",
+      "source": "연이의 발끝에서 초록 뿌리가 뻗어 바닥을 찾았다. 그러나 뿌리는 물속에서 길을 잃고 둥둥 떠올랐다.",
+      "sourceHash": "f8f8a2fa4f53d7c829f0684060190576f5d4697782af8e9ff6ab3256db0fd32d",
+      "t": "Green roots stretched from Yeoni's hooves, searching for the floor. But they lost their way in the water and floated upward."
+    },
+    {
+      "id": "ep-18:13",
+      "source": "안 잡혀. 뿌리가 바닥을 못 찾아!",
+      "sourceHash": "2c5e76273e06a104e38b80e94670cf3b2c8b00b2d0c7194ed4c0e12d734ab279",
+      "t": "They won't hold. My roots can't find the bottom!"
+    },
+    {
+      "id": "ep-18:14",
+      "source": "물이 너무 많아요! 물이 넘치면 나무는 뿌리째 떠내려가요. 수다목표, 水多木漂!",
+      "sourceHash": "38983e867885265d63c5de13fd013f06069ee53e5263092f3f163bfddb9f14dc",
+      "t": "There's too much water! When water overflows, it carries Wood away, roots and all. Excess Water Sets Wood Adrift—水多木漂!"
+    },
+    {
+      "id": "ep-18:15",
+      "source": "사자성어 말고 구명조끼를 달라고!",
+      "sourceHash": "8c6c56594b2d65922a8d7c27b3bebb6c4d5d2bada83f6fdf4c67a28dcf69e43b",
+      "t": "Give me a life jacket, not a proverb!"
+    },
+    {
+      "id": "ep-18:16",
+      "source": "다음 물결이 연이를 덮쳤다. 그녀의 작은 몸이 서가 틈 사이로 빨려 들어갔다.",
+      "sourceHash": "736b6411fa4198546ad1804c9b8672a5aa6ab4e4751b0d873e968e538617504b",
+      "t": "The next wave swallowed Yeoni. Their small body was sucked between the shelves."
+    },
+    {
+      "id": "ep-18:17",
+      "source": "연이야.",
+      "sourceHash": "80cb95b01e8cc1368b8cd8ace84e07fc877503b06ef9dddd4795ce70845dc473",
+      "t": "Yeoni."
+    },
+    {
+      "id": "ep-18:18",
+      "source": "영냥이가 망설임 없이 물에 뛰어들었다. 그런데 복슬복슬한 털이 물을 먹자마자, 작은 몸이 돌처럼 가라앉기 시작했다.",
+      "sourceHash": "05128488132876791f95666f6bcf5611a626c0283c7df2cd6bea53d6b7c02766",
+      "t": "Yeongnyangi plunged in without hesitation. But the moment his fluffy fur soaked up water, his small body began sinking like a stone."
+    },
+    {
+      "id": "ep-18:19",
+      "source": "고양이님! 쇠는 물을 낳는 기운이라 물속에선 힘이 빠져요! 金生水라고요!",
+      "sourceHash": "9141e4e9879e84ceebd048e60f02092192189fee465adc2b5da0246aaa591fd4",
+      "t": "Mr. Cat! Metal generates Water, so water drains your strength! Metal generates Water—金生水!"
+    },
+    {
+      "id": "ep-18:20",
+      "source": "알아. 아는데, 지금 그게 중요하냐.",
+      "sourceHash": "8ab784912ded8c128ab55be5a2adf92b89f851822d9605709fc77bebcf826f64",
+      "t": "I know. I know, but does that matter right now?"
+    },
+    {
+      "id": "ep-18:21",
+      "source": "영냥이는 이를 악물고 발을 저었다. 앞으로 한 뼘 나아갈 때마다 아래로 두 뼘씩 가라앉았다.",
+      "sourceHash": "a2af2a44e71523a8102640bb056f0a6b46852655a6f7a123e82a8cbc43e1188c",
+      "t": "Yeongnyangi gritted his teeth and paddled. For every handspan forward, he sank two."
+    },
+    {
+      "id": "ep-18:22",
+      "source": "아, 진짜. 다들 비켜. 여기서 수영 되는 애가 누구야?",
+      "sourceHash": "b90c3bf035bb32dddafd7e8dd5ae2e74cafbe3c25974ec27b94c08ae2851d221",
+      "t": "Oh, honestly. Everyone move. Who here can actually swim?"
+    },
+    {
+      "id": "ep-18:23",
+      "source": "모카가 국자를 이빨에 물고 물속으로 미끄러졌다. 보랏빛 꼬리가 노처럼 한 번 휘자 물살이 갈라졌다.",
+      "sourceHash": "8543350047a4c1fa6d478bebb3159d5dc9af970c668dce1bc253d2f3ae2c45ba",
+      "t": "Moka clamped his ladle between his teeth and slipped underwater. One sweep of his violet tail like an oar split the current."
+    },
+    {
+      "id": "ep-18:24",
+      "source": "수달한테 물로 덤비냐? 이건 우리 집 앞마당이야.",
+      "sourceHash": "e1299722711540c5257016443651c7706ca3ba7e0ad1826b3c04e65a21a5d0dc",
+      "t": "You're coming at an otter with water? This is my front yard."
+    },
+    {
+      "id": "ep-18:25",
+      "source": "모카는 가라앉는 영냥이의 망토 깃을 한 움큼 움켜쥐고 위로 끌어당겼다. 흠뻑 젖은 고양이가 수달 손에 대롱대롱 매달려 수면 위로 고개를 내밀었다.",
+      "sourceHash": "82133a441395d9e07438328ef53c52965ff6ebf88649605acb1d4f4753353512",
+      "t": "Moka grabbed a fistful of the sinking Yeongnyangi's cloak collar and pulled him up. Dangling from the otter's hand, the drenched cat broke the surface."
+    },
+    {
+      "id": "ep-18:26",
+      "source": "망토 놔라. 뒷덜미 잡혀 끌려가는 건 고양이 체면이 아니다.",
+      "sourceHash": "0b71b73a4f1faae8965743d417e76e069f5857bbbc61c00b6df315252741f52a",
+      "t": "Let go of the cloak. Being dragged by the scruff is beneath a cat's dignity."
+    },
+    {
+      "id": "ep-18:27",
+      "source": "체면은 물 빠지면 찾아. 지금은 숨이나 쉬어, 이 무거운 쇳덩이야.",
+      "sourceHash": "292336ccc67598cdcf3458d7421a52819dcfe6588903eaa2d0add499b90152ee",
+      "t": "Find your dignity after the water drains. For now, just breathe, you heavy lump of iron."
+    },
+    {
+      "id": "ep-18:28",
+      "source": "나 말고, 연이부터 찾아.",
+      "sourceHash": "f8220114bf20a8e0e11cbd363fb456c9bb1074c022031250d9ad3f4cb0596338",
+      "t": "Find Yeoni first. Not me."
+    },
+    {
+      "id": "ep-18:29",
+      "source": "알아, 알아. 근데 너부터 건져야 돼지를 건지지. 둘 다 가라앉으면 내가 왕복 두 번 해야 하잖아.",
+      "sourceHash": "c73d7369899cd796f89db3df4d509953e7c8c83bee31f2d6c58ed4441063ddf5",
+      "t": "I know, I know. But I've got to fish you out before I fish out the pig. If you both sink, that's two round trips for me."
+    },
+    {
+      "id": "ep-18:30",
+      "source": "모카는 영냥이를 떠 있는 책장 위로 밀어 올리고는 다시 물속으로 몸을 던졌다. 이번엔 아래로, 연이가 사라진 쪽으로.",
+      "sourceHash": "3699d8c06ad93d8e2992f3f341a5eeecaf9c9c18601748fcbad50a60b09724ae",
+      "t": "Moka pushed Yeongnyangi onto a floating bookshelf, then threw himself back into the water. This time downward, toward where Yeoni had vanished."
+    },
+    {
+      "id": "ep-18:31",
+      "source": "물속은 조용했다. 젖은 책들이 해파리처럼 천천히 떠다녔고, 페이지 사이로 누군가의 기억이 흐릿하게 비쳤다.",
+      "sourceHash": "4c354fed73842d8f6fe2b1a20dbbed390a0b09a0f8590de2444080dd5f40deb6",
+      "t": "Underwater, all was quiet. Soaked books drifted slowly like jellyfish, and someone's memories glimmered faintly between their pages."
+    },
+    {
+      "id": "ep-18:32",
+      "source": "(숨. 숨을 받쳐. 영냥이가 그랬잖아. 잡아당기지 말고 바닥에 내려놓으라고.)",
+      "sourceHash": "dfaea74729b497290d3836bded21cc56e962b2ae3afb8ccc3c7d72d18b32abc8",
+      "t": "(Breathe. Support the breath. Yeongnyangi said so. Don't pull it up. Set it down on the ground.)"
+    },
+    {
+      "id": "ep-18:33",
+      "source": "연이는 허우적거리던 앞발을 멈췄다. 몸에 힘을 빼자 물살이 그녀를 밀어내지 않고 감싸 안았다.",
+      "sourceHash": "19bc734af15a01ae555b528a1b989fcc2047d9923436604815dd9f5a567d2ad2",
+      "t": "Yeoni stopped flailing their hooves. As they relaxed, the current stopped shoving them and wrapped around them instead."
+    },
+    {
+      "id": "ep-18:34",
+      "source": "바로 앞에 낡은 우산 하나가 거꾸로 뒤집힌 채 떠다녔다. 다락방 구석에 버려 둔 그녀의 우산과 똑같은 모양이었다.",
+      "sourceHash": "8497cdaaf12a86d8d69a22e62ea1723b8157657ae4f971b09abf80a1800395ec",
+      "t": "Right ahead, an old umbrella drifted upside down. It was exactly like the one Yeoni had left abandoned in the corner of their attic room."
+    },
+    {
+      "id": "ep-18:35",
+      "source": "우산 밑에 찢어진 페이지 한 장이 붙어 있었다. 비 오는 정류장. 우산 하나 아래에 두 사람. 얼굴은 물에 번져 보이지 않았다.",
+      "sourceHash": "0a48d85373e6d8acd28aed4d6f9d46f2bedd1b979ac6a58eb6e733e9f4ece271",
+      "t": "A torn page clung beneath it. A bus stop in the rain. Two people under one umbrella. Their faces were blurred by water."
+    },
+    {
+      "id": "ep-18:36",
+      "source": "(이거… 나야? 나 같은데, 이런 기억은 없는데.)",
+      "sourceHash": "abbc1bd0e5c59a3736ade8b4971c41345cbbac5c79c0b43eb4a1b52fe1ba6ce0",
+      "t": "(Is that... me? It looks like me, but I don't remember this.)"
+    },
+    {
+      "id": "ep-18:37",
+      "source": "검은 앞발이 페이지를 낚아챘다. 호랑이가 바로 앞에서 그녀를 보고 있었다. 물속인데도 목소리가 또렷하게 들렸다.",
+      "sourceHash": "c26c16e367f9bb2dc57364b72761b236e59bfcc098cb254cf6f572cb948f2a28",
+      "t": "A black paw snatched the page. The tiger stared at Yeoni from directly ahead. Even underwater, its voice rang clear."
+    },
+    {
+      "id": "ep-18:38",
+      "source": "보지 마. 그건 네가 볼 게 아니야.",
+      "sourceHash": "5edb13bb93d37279e2cff9029181b22dd0cd352b3e9ed0fe1dfc35eb6ec0dcbd",
+      "t": "Don't look. That isn't for you to see."
+    },
+    {
+      "id": "ep-18:39",
+      "source": "왜? 내 이름으로 빌린 책이잖아. 왜 네가 정하는데?",
+      "sourceHash": "ab214f7303b115edc4c8e7f8f6b5720549214579f23ac62131a2c2d76434d5a3",
+      "t": "Why? It's a book borrowed in my name. Why do you get to decide?"
+    },
+    {
+      "id": "ep-18:40",
+      "source": "모르는 게 나은 빚도 있어. 갚을 수 없는 빚이면 더더욱.",
+      "sourceHash": "65b087a32cb79a7736bcf7b9c124ca17882f99627711b43af486ab2b401b82eb",
+      "t": "Some debts are better left unknown. Especially ones you can never repay."
+    },
+    {
+      "id": "ep-18:41",
+      "source": "(이 냄새. 카드에서 나던 비 냄새. 대출자 칸을 지운 게 너였구나.)",
+      "sourceHash": "c55e208cf5a051a950fc3de85d4e7a7595a28af35a3837a854bc7cb91a82db21",
+      "t": "(This smell. The rain smell from the card. You were the one who erased the borrower's name.)"
+    },
+    {
+      "id": "ep-18:42",
+      "source": "너, 나 알아? 처음 만났을 때부터 계속 나를 아는 것처럼 굴었잖아.",
+      "sourceHash": "f6fefa0265e0d271ef73681e5b2ba0ef25a8354cb855b5dc52477e923a8de421",
+      "t": "Do you know me? You've acted like you know me ever since we first met."
+    },
+    {
+      "id": "ep-18:43",
+      "source": "몰라. 알 필요도 없고. 나는 장부에 적힌 걸 거둘 뿐이야.",
+      "sourceHash": "de9b561c837d730ee599a683ce42bb439b28a33324d6c83a28cd20f84f43b109",
+      "t": "No. And I don't need to. I only collect what's written in the ledger."
+    },
+    {
+      "id": "ep-18:44",
+      "source": "거짓말. 장부에 적힌 거면 아까 그 페이지는 왜 그렇게 빨리 숨겼는데.",
+      "sourceHash": "ce8db72aa77bd893f27d2f8e73b3ea9f98ba8619ac6511cbac09263c24847008",
+      "t": "Liar. If it was just something in your ledger, why did you hide that page so quickly?"
+    },
+    {
+      "id": "ep-18:45",
+      "source": "호랑이의 붉은 눈이 아주 잠깐 흔들렸다. 물속에서 그 눈만 젖지 않은 것처럼 보였다.",
+      "sourceHash": "1895a2de71b4dfbb900f64db6bc1fa167fa45c3fbf1c1fbcb66bf197b8fd1c43",
+      "t": "The tiger's red eyes wavered for a moment. They alone seemed untouched by the water."
+    },
+    {
+      "id": "ep-18:46",
+      "source": "호랑이는 페이지를 앞발 안에서 구겼다. 그런데 그 동작이 이상하게 조심스러웠다. 버리는 게 아니라 숨기는 것처럼.",
+      "sourceHash": "df59cf00cfad0e4d5ef8253f192b560c9f1289df24540ac3c8f5ea3b33ea5122",
+      "t": "The tiger crumpled the page in its paw. Yet the movement was strangely careful. As though hiding it, not throwing it away."
+    },
+    {
+      "id": "ep-18:47",
+      "source": "그때 물 밑바닥의 어둠이 갈라졌다. 검은 손가락 다섯 개가 해초처럼 솟아올라 호랑이의 고리를 감았다.",
+      "sourceHash": "115582e167cabd2826e97b901fbc6ca7b5997278082ef836ebb0afb128469ecc",
+      "t": "Then the darkness at the bottom split. Five black fingers rose like seaweed and wrapped around the tiger's ring."
+    },
+    {
+      "id": "ep-18:48",
+      "source": "무엇을 망설이느냐. 그 돼지를 가라앉혀라.",
+      "sourceHash": "c80508649fde789efe6d9cfd0d3e3ff809957b785e562050102af9c8eae391d1",
+      "t": "What are you hesitating for? Sink that pig.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-18:49",
+      "source": "책만 회수하면 된다고 하셨습니다. 돼지까지는…",
+      "sourceHash": "40523877faf3e83c30aea35de3fc53123f8fa2d53f9a88abe4b8b3cf1251fad8",
+      "t": "You said I only needed to retrieve the book. As for the pig..."
+    },
+    {
+      "id": "ep-18:50",
+      "source": "명령이다. 네 장부에 미수를 남긴 값이다.",
+      "sourceHash": "7956867dbe3aa6f64cd201533759608f8b217e340966bb3fdb3583fa7becc6bd",
+      "t": "That is an order. The price for leaving an uncollected entry in your ledger.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-18:51",
+      "source": "금빛 고리가 조여들었다. 호랑이가 짧게 숨을 삼키더니, 앞발을 들어 연이의 머리 위에 얹었다.",
+      "sourceHash": "26ca074b7e84f204d6aa080aa09cb46b9047d68004114ed0af7610b05fbab9f0",
+      "t": "The golden ring tightened. The tiger caught a short breath, then raised its paw and laid it on Yeoni's head."
+    },
+    {
+      "id": "ep-18:52",
+      "source": "(눌린다. 아래로, 아래로.)",
+      "sourceHash": "59f8c745ec5b4a62a66353a8e3140de3913f420ee673bb5ae3adee395ba97a46",
+      "t": "(It's pressing me. Down, down.)"
+    },
+    {
+      "id": "ep-18:53",
+      "source": "그런데 앞발은 바로 내리누르지 않았다. 한 박자. 아주 짧은 한 박자 동안, 호랑이는 그대로 멈춰 있었다.",
+      "sourceHash": "4357a124c6dfe81c0cb48a6a18bcdcee554a6911c9e28d1a84ee425885ccd5f3",
+      "t": "But the paw did not press immediately. For one beat, one very short beat, the tiger stayed still."
+    },
+    {
+      "id": "ep-18:54",
+      "source": "그 발 치워, 줄무늬!",
+      "sourceHash": "24b6125249a908ab0a5fef03f45c19fefc78a8ed55896717c5ae9f3daf2deeaa",
+      "t": "Get that paw off, Stripes!"
+    },
+    {
+      "id": "ep-18:55",
+      "source": "모카가 물살을 가르며 돌진했다. 꼬리로 호랑이의 옆구리를 후려치고, 그 틈에 연이의 목덜미를 물어 끌어올렸다.",
+      "sourceHash": "de258e98622c84f0eff7b656d0c23cddf5db742eeaa54a2593af75476a8acf2f",
+      "t": "Moka charged through the current. He lashed the tiger's side with his tail, then seized Yeoni's scruff in his teeth and pulled them up."
+    },
+    {
+      "id": "ep-18:56",
+      "source": "연이의 손목에서 아기 용이 눈을 번쩍 떴다. 용은 물을 한 번 보더니, 입을 쩍 벌렸다.",
+      "sourceHash": "8c133b47be8271786d463bc8e8e478449584971725ffe377078b2ac03efb5888",
+      "t": "The baby dragon on Yeoni's wrist snapped its eyes open. It looked at the water once, then opened its mouth wide."
+    },
+    {
+      "id": "ep-18:57",
+      "source": "용이 물을 마시기 시작했다. 작은 입으로 소용돌이가 빨려 들어갔고, 서가를 삼킨 물이 쑥쑥 줄어들었다.",
+      "sourceHash": "5e4e8a9e68ab2beabe9aab7adff3522c738b985347ddb55f00a5780ed3f7f46d",
+      "t": "The dragon began drinking. A whirlpool streamed into its tiny mouth, and the water swallowing the shelves swiftly receded.",
+      "skill": {
+        "name": "Water Storehouse"
+      }
+    },
+    {
+      "id": "ep-18:58",
+      "source": "물이 빠진 서고 바닥은 진흙처럼 질척했다. 젖은 책들이 여기저기 쓰러진 채 가늘게 숨을 골랐다.",
+      "sourceHash": "047bbe398dad034f0c9166461b21b048614a5c9fdb191c21c36f6f2fba348efe",
+      "t": "The drained library floor was sodden as mud. Soaked books lay scattered everywhere, catching their breath in thin gasps."
+    },
+    {
+      "id": "ep-18:59",
+      "source": "얘가, 이 조그만 게, 저 물을 다 마셨어?",
+      "sourceHash": "1d15ae40831d2b51a6210da153bd2e91b6abca66dffdee3837df0115bf176dab",
+      "t": "This little thing drank all that water?"
+    },
+    {
+      "id": "ep-18:60",
+      "source": "진토는 물의 창고예요. 辰은 물을 가둬 두는 흙이거든요. 그 용이 숙녀분한테 온 게 우연이 아니네요.",
+      "sourceHash": "2e786941900a2490ee4021a5a835c3bc95449aab0350ee29a05bbe9eadea7f90",
+      "t": "Chen Earth is a storehouse for water. 辰 is the earth that holds water in. That dragon didn't come to you by chance, my lady."
+    },
+    {
+      "id": "ep-18:61",
+      "source": "배 터지겠다. 야, 용. 너 물 몇 리터 마신 거야.",
+      "sourceHash": "4d9f0e3cbb1dedb1ba1a49970ac3442c9feaf7177e35d288024d65bfbdc26590",
+      "t": "Its belly's going to burst. Hey, dragon. How many liters did you drink?"
+    },
+    {
+      "id": "ep-18:62",
+      "source": "아기 용은 배가 볼록해진 채 연이의 손목에 다시 감겼다. 그리고 꺽, 하고 작은 물방울 트림을 했다.",
+      "sourceHash": "f6a92042b0407ab0a45eb02ca4e1e684a2a3cfae1f9f77e8fcd52bfd1de9a149",
+      "t": "With its belly bulging, the baby dragon curled around Yeoni's wrist again. Then it gave a small burp of water droplets."
+    },
+    {
+      "id": "ep-18:63",
+      "source": "별 다섯 개. 아니, 여섯 개 줄게. 별점 규정 위반이지만.",
+      "sourceHash": "0e0b977c30535ea2d0a3f76004d4ca06f54ddb8594eb2c555ac7b694a3042e82",
+      "t": "Five stars. No, six. Even if it breaks the rating rules."
+    },
+    {
+      "id": "ep-18:64",
+      "source": "진흙 바닥 끝, 아래로 내려가는 계단참에 호랑이가 서 있었다. 목의 고리가 아직 붉게 달아올라 있었다.",
+      "sourceHash": "d2aeec9b530451d19887c3746b4ac1ea92ba4065a24e9996046b6913cc6899cd",
+      "t": "At the far end of the muddy floor, the tiger stood on the landing leading down. The ring at its neck still glowed red-hot."
+    },
+    {
+      "id": "ep-18:65",
+      "source": "용까지 데리고 다니는 줄은 몰랐네. 다음엔 그것도 안 통해.",
+      "sourceHash": "be13e407c96db2054f458f323c5436be84c1f702453d738b7b792fad2b70bb8b",
+      "t": "I didn't know you traveled with a dragon, too. That won't work next time, either."
+    },
+    {
+      "id": "ep-18:66",
+      "source": "너 아까 왜 멈췄어? 나 누르라고 했을 때. 한 박자 멈췄잖아.",
+      "sourceHash": "9e48117b1db36aca1424c5f28c3c9ac5c4ce4b225d12fedbcb05b90b763a2fef",
+      "t": "Why did you stop earlier? When it told you to push me down. You stopped for one beat."
+    },
+    {
+      "id": "ep-18:67",
+      "source": "착각이야. 물속에선 다 느려 보여.",
+      "sourceHash": "b11b0327725a2f410c50e0b7883d20ea75cbe3464b4949e14417917ac4c98bd9",
+      "t": "You imagined it. Everything looks slow underwater."
+    },
+    {
+      "id": "ep-18:68",
+      "source": "호랑이는 등을 돌렸다. 계단을 내려가기 전, 구겨 쥔 앞발을 한 번 가슴께로 당겼다. 무언가 젖지 않게 지키는 사람처럼.",
+      "sourceHash": "69bc2290810c3ead68a57fa2bfbae8ff348fd5d11aaae966ff06ae5b8bb1c46e",
+      "t": "The tiger turned away. Before descending, it drew its clenched paw once toward its chest, like someone protecting something from getting wet."
+    },
+    {
+      "id": "ep-18:69",
+      "source": "검은 꼬리가 계단 아래 어둠 속으로 사라졌다. 젖은 발자국만 한 칸씩 아래로 이어졌다.",
+      "sourceHash": "c0662e49d67b615bdcf0e5abd3435df314a6bea23c59a7657fe3c9d347161b3f",
+      "t": "Its black tail vanished into the darkness below. Only wet pawprints continued down, one step at a time."
+    },
+    {
+      "id": "ep-18:70",
+      "source": "영냥이가 물가에서 몸을 털었다. 털이 몸에 착 달라붙어 평소보다 반은 작아 보였다. 모자 끝 술에서 물이 뚝뚝 떨어졌다. 그는 콜록이며 일어섰다.",
+      "sourceHash": "bbafd9d5f83cae1c9d38e3eb78d519999809188ca3b3bbb5f2ba4c9fef7bda08",
+      "t": "At the water's edge, Yeongnyangi shook himself. With his fur plastered to his body, he looked half his usual size. Water dripped from his hat's tassel. Coughing, he stood."
+    },
+    {
+      "id": "ep-18:71",
+      "source": "고양이님! 괜찮아? 물 많이 먹었어?",
+      "sourceHash": "32c6efddc5178e2f2279f00d8102a9b29d2413fcd11f2ccf4e9bba7ef9945ef1",
+      "t": "Mr. Cat! Are you okay? Did you swallow much water?"
+    },
+    {
+      "id": "ep-18:72",
+      "source": "괜찮아. 모카 덕분에 살았어. 두 번 말하게 하진 마.",
+      "sourceHash": "13cd28f545bd4d4f243346bf3e133a7a343adcc1f5dc078ee1cd2d6d02e47de1",
+      "t": "I'm fine. Moka saved my life. Don't make me say it twice."
+    },
+    {
+      "id": "ep-18:73",
+      "source": "녹음해 둘 걸. 평생 우려먹을 수 있었는데.",
+      "sourceHash": "8ba23fb2e23879decb734ca07f2d5603050ef4be1fd2d5db7da9e4da39f27a1e",
+      "t": "Should've recorded that. I could've milked it for the rest of my life."
+    },
+    {
+      "id": "ep-18:74",
+      "source": "연이는 영냥이의 왼 앞발을 보았다. 그을린 자국 위로 붉은 녹 같은 얼룩이 번져 있었다. 그가 재빨리 앞발을 망토 밑으로 감추었다.",
+      "sourceHash": "e4c0278a0a86e0407c023f6498d4af51c18e79272b831286577a849d0460e600",
+      "t": "Yeoni looked at Yeongnyangi's left paw. A stain like red rust spread over the scorched patches. He quickly hid it beneath his cloak."
+    },
+    {
+      "id": "ep-18:75",
+      "source": "그 발. 아까부터 이상해. 보여 줘.",
+      "sourceHash": "4cf9c633bb669d51a2a798d125d550c81492899ff47b85fd1176e7bab237059c",
+      "t": "That paw. It's been strange for a while. Show me."
+    },
+    {
+      "id": "ep-18:76",
+      "source": "젖어서 그래. 쇠도 젖으면 녹슬잖아. 말리면 좀 나아질 거야.",
+      "sourceHash": "caee0a7ba04705251f5b3ae65ef18c5a5b47c0a97a98569176732fa5341f2520",
+      "t": "It's because it's wet. Iron rusts when it gets wet, too. It'll be better once it dries."
+    },
+    {
+      "id": "ep-18:77",
+      "source": "윤달이 영냥이를 한 번 보았다. 그는 아무 말도 하지 않았다. 대신 장갑 낀 손을 주머니 깊숙이 넣었다.",
+      "sourceHash": "f078c57c224c42f12186d16c92b055ac019d00d9cbcabda010c0ddffd419e731",
+      "t": "Yundal glanced at Yeongnyangi. He said nothing. Instead, he pushed his gloved hand deep into his pocket."
+    },
+    {
+      "id": "ep-18:78",
+      "source": "(다들 뭔가 알아. 나만 모르는 게 있어.)",
+      "sourceHash": "2b9f5454a0b03b61cd73ed82a641949fa9ee13ed28e56fe39c9f59b73b190dcd",
+      "t": "(They all know something. There's something only I don't know.)"
+    },
+    {
+      "id": "ep-18:79",
+      "source": "젖은 책들이 바닥에서 힘겹게 숨을 쉬었다. 몇 권은 페이지가 서로 들러붙어 숨구멍이 막혀 있었다.",
+      "sourceHash": "0b2dbf60043e411b293f32064a0049da6d8175d6914efe2b9c5dec3b23e10a04",
+      "t": "The soaked books struggled to breathe on the floor. Some had pages stuck together, blocking their airways."
+    },
+    {
+      "id": "ep-18:80",
+      "source": "이대로 두면 얘네 다 굳어 버리겠다. 근데 불은 아까 그 꼴 났잖아.",
+      "sourceHash": "7c4e3d319bf3e9cbd4c8e632766108d43347462579f06fbf29693c3e986129d3",
+      "t": "Leave them like this, and they'll all stiffen up. But we saw what happened with fire earlier."
+    },
+    {
+      "id": "ep-18:81",
+      "source": "불을 세게 쓰니까 그렇지. 돼지, 빵 구울 때 화력 최대로 하냐?",
+      "sourceHash": "8ba5d83b4bcd3fc2e16c7e740d83eccb3e8286ae8a31488a134e48792a7005b3",
+      "t": "That's because you used too much heat. Pig, do you bake bread with the heat turned all the way up?"
+    },
+    {
+      "id": "ep-18:82",
+      "source": "아니. 그러면 겉만 타고 속은 안 익어.",
+      "sourceHash": "74a1755f30f6cf4456f9da0938682ffd6fa87342a7a372ad4df1f2c6be0da3e4",
+      "t": "No. Then the outside burns and the inside stays raw."
+    },
+    {
+      "id": "ep-18:83",
+      "source": "그거야. 책 말리는 것도 똑같아. 약하게, 오래. 손바닥 온기 정도로.",
+      "sourceHash": "14f466f354a35fc7855206646dee97da6b05ee6e78f780e6ddd2bc25559ef7a5",
+      "t": "Exactly. Drying books is the same. Low and slow. About as warm as your palm."
+    },
+    {
+      "id": "ep-18:84",
+      "source": "연이는 앞발을 책 위에 가만히 올렸다. 불꽃 대신 따뜻한 기운만 천천히 흘려보냈다. 햇볕에 내놓은 이불 같은 온기였다.",
+      "sourceHash": "b3326a3fab4ceebdb487582651528a99233f5b1d176c21e17cdfc32443b5492d",
+      "t": "Yeoni gently rested a hoof on a book. Instead of flames, they slowly let warmth flow through. Warm as a quilt laid in the sunshine."
+    },
+    {
+      "id": "ep-18:85",
+      "source": "들러붙어 있던 페이지가 하나씩 떨어졌다. 젖은 책이 작게 기침을 하더니, 다시 숨을 쉬기 시작했다.",
+      "sourceHash": "a7739389271a1e6ed543d47712d20a21d2efd23ea1f2d9d41b8559f4aa07ca2c",
+      "t": "The stuck pages separated one by one. The wet book gave a little cough, then began breathing again."
+    },
+    {
+      "id": "ep-18:86",
+      "source": "됐다! 숨 쉰다. 모카, 너 진짜 천재 아니야?",
+      "sourceHash": "fa1cc2b683d3e53dcd3e35ec67ee491b381978329d47376ff1fefe4af00099d5",
+      "t": "It worked! It's breathing. Moka, are you actually a genius?"
+    },
+    {
+      "id": "ep-18:87",
+      "source": "이제 알았냐. 요리는 불 다루는 학문이야. 랩은 숨 다루는 학문이고.",
+      "sourceHash": "69ec24a41072f672d36b13558dffbc4ef969b34f5a860a57ceca00169081d75d",
+      "t": "Only noticing now? Cooking is the study of handling fire. Rap is the study of handling breath."
+    },
+    {
+      "id": "ep-18:88",
+      "source": "식상이 인성을 돕네요. 불로 젖은 기억을 말리다니, 이 도서관 생기고 처음 보는 장면일걸요.",
+      "sourceHash": "bfe584ce734714833daad73e0e9fcfe288517649d358234646e544c255936f82",
+      "t": "Expression helping Resources. Using fire to dry soaked memories—this may be a first in the library's history."
+    },
+    {
+      "id": "ep-18:89",
+      "source": "연이는 손에 쥔 것을 내려다보았다. 호랑이가 구겨 가져간 페이지의 귀퉁이 하나가 그녀의 발톱에 걸려 남아 있었다.",
+      "sourceHash": "0e72424ca0d3f15bfdafa4159a260fc1c915fc4ea2642a1f13ec21573c69516a",
+      "t": "Yeoni looked down at what they held. A corner of the page the tiger had crumpled and taken had caught on their hoof and stayed behind."
+    },
+    {
+      "id": "ep-18:90",
+      "source": "손톱만 한 종이였다. 거꾸로 뒤집힌 우산의 끝자락. 그리고 아주 작은 글씨 한 줄. 같이 쓰자, 우산.",
+      "sourceHash": "1f4de45656c06f086ccc5133a3823354be53fd783316ca66cdbaa6851740e4d7",
+      "t": "A scrap the size of a fingernail. The edge of an upturned umbrella. And one tiny line of writing. Let's share the umbrella."
+    },
+    {
+      "id": "ep-18:91",
+      "source": "(같이 쓰자. 누가 누구한테 한 말이지.)",
+      "sourceHash": "3b3225119384402264382fad3da7ac15c2230dfbc0802d314894137eccf0618a",
+      "t": "(Let's share. Who said that to whom?)"
+    },
+    {
+      "id": "ep-18:92",
+      "source": "물이 빠진 벽 아래에서 계단 하나가 드러났다. 계단 입구에 젖은 금빛 글씨가 걸려 있었다.",
+      "sourceHash": "f739c6c7ffc306b87e7101b8ce16c274105d8fcd2283be695ef6b3a64131e045",
+      "t": "A staircase emerged beneath the wall as the water drained. Wet golden writing hung above its entrance."
+    },
+    {
+      "id": "ep-18:93",
+      "source": "[ 지하 3층 · 일어나지 않은 일 · 열람 주의 ]",
+      "sourceHash": "9211b7ae9e94bae58aa421a8552f448eb34f232343491bdfcffbc4f3be46069b",
+      "t": "[ Basement Level 3 · Things That Have Not Happened · Read with Caution ]"
+    },
+    {
+      "id": "ep-18:94",
+      "source": "일어나지 않은 일의 서가요. 저도 여긴 안 내려가 봤어요. 거긴 아직 아무도 살아 보지 않은 기억들이래요.",
+      "sourceHash": "1739d79e15a18b51fc58744b3f94de3d5ff8bf7548ff94e945c2bd2910038843",
+      "t": "The shelves of things that haven't happened. Even I've never gone down here. They say those are memories no one has lived yet."
+    },
+    {
+      "id": "ep-18:95",
+      "source": "호랑이도 아래로 갔어. 계단에 젖은 발자국이 남았네.",
+      "sourceHash": "2ccdcd0febbb4cc0ca016d3af02bf1c11bef00436acd214fbdf2ae9d04fbbb0e",
+      "t": "The tiger went down, too. There are wet pawprints on the stairs."
+    },
+    {
+      "id": "ep-18:96",
+      "source": "연이는 종이 귀퉁이를 접어 앞발 안쪽에 넣었다. 계단 아래에서 빗소리 같은 것이 아주 작게 들려왔다.",
+      "sourceHash": "c8dfaf21b3a7245acef927fac661de027da0c39c9eb5dd45dfb030f28e827efd",
+      "t": "Yeoni folded the scrap and tucked it inside their hoof. A faint sound like rain came from below."
+    },
+    {
+      "id": "ep-18:97",
+      "source": "내려가자. 내 봄이 저 밑에 있어.",
+      "sourceHash": "015efadba153f387e825110c1fe7e6238dd99c2b7920c415c629c5046e39adac",
+      "t": "Let's go down. My spring is down there."
+    },
+    {
+      "id": "ep-18:98",
+      "source": "가자. 대신 이번엔 물 나오면 고양이 말고 돼지부터 건진다. 순서 바꾼다.",
+      "sourceHash": "4253a8b19868b6ba3c0c9306529b312002ac34abb5bf738b4844e67d9763313e",
+      "t": "Let's go. But if there's water this time, I'm rescuing the pig before the cat. Changing the order."
+    },
+    {
+      "id": "ep-18:99",
+      "source": "손목의 아기 용이 볼록한 배를 끌어안고 작게 울었다. 계단 아래 어딘가에서 누군가 우산을 접는 소리가 들렸다.",
+      "sourceHash": "5b7af57f9c272cc89e09e64fa1fd433d90d4950bd98e11a07ae3e211d8894557",
+      "t": "The baby dragon on Yeoni's wrist hugged its swollen belly and gave a little cry. Somewhere below, someone folded an umbrella."
+    }
+  ]
+}

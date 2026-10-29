@@ -1,0 +1,632 @@
+{
+  "locale": "en",
+  "episodeId": "ep-17",
+  "tag": "Episode 17 · Breathing Books",
+  "title": "Breathing Books",
+  "sourceTitle": "숨 쉬는 책",
+  "sourceTag": "제17화 · 숨 쉬는 책",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-17:1",
+      "source": "새벽 다섯 시. 빵집 다락은 아직 어두웠고, 연이의 앞발 아래에서 대출 카드 한 장만 따뜻했다.",
+      "sourceHash": "f987d76a0d0a90e4c402b91a2d8ebf8666d3957d41b806285cb8b287cd071f81",
+      "t": "Five in the morning. The bakery attic was still dark, and only the borrowing card beneath Yeoni's hoof was warm."
+    },
+    {
+      "id": "ep-17:2",
+      "source": "(첫 번째 봄. 반납되지 않음. 나는 그런 책을 빌린 적이 없는데.)",
+      "sourceHash": "c0c3578a8de18587c9bcc52b0b2a1de5d74a0b38c95bc6a2fefe06926c0a47d0",
+      "t": "(The First Spring. Not returned. But I've never borrowed a book like that.)"
+    },
+    {
+      "id": "ep-17:3",
+      "source": "카드 모서리에서 물 냄새가 났다. 비 그친 정류장 바닥에서 나는 것 같은, 차갑고 조금 쓸쓸한 냄새였다.",
+      "sourceHash": "54ef50d61d33f10ab5afd035cc195eab8ecff0540e751f472d774e6a90911796",
+      "t": "The corner of the card smelled of water. Cold and a little lonely, like the ground at a bus stop after the rain."
+    },
+    {
+      "id": "ep-17:4",
+      "source": "안 자고 뭐 하냐. 해 뜨려면 아직 멀었다.",
+      "sourceHash": "ecb5c31e07b89f0591474f2e24cd571598ee0d918a7d63aeadeb2718f74365a7",
+      "t": "Why aren't you asleep? Dawn's still a long way off."
+    },
+    {
+      "id": "ep-17:5",
+      "source": "이거 봐. 내 이름으로 빌려 간 책이 있대. 근데 나는 기억이 하나도 없어.",
+      "sourceHash": "9e0eda8ca7a350b299b2b455f79cd0c92d66278c592e414a4fd173f8067b5983",
+      "t": "Look. Apparently, there's a book checked out in my name. But I don't remember a thing."
+    },
+    {
+      "id": "ep-17:6",
+      "source": "영냥이는 카드를 내려다보았다. 아주 잠깐, 그의 왼 앞발이 바닥에서 들렸다가 조용히 내려앉았다.",
+      "sourceHash": "42cb5de5cdd0c318a8db14b790b8bea8f66a42a6b94666928cb4a92c47b21235",
+      "t": "Yeongnyangi looked down at the card. For a fleeting moment, his left paw lifted from the floor, then settled quietly again."
+    },
+    {
+      "id": "ep-17:7",
+      "source": "도서관 연체료는 무섭다더라. 그러니까 자라.",
+      "sourceHash": "c9e73c02875e213cb7dbd97c5dd76551507ac432bf17be5bed9982074633fa29",
+      "t": "I've heard library overdue fines are terrifying. So go to sleep."
+    },
+    {
+      "id": "ep-17:8",
+      "source": "(방금 그 앞발. 또 아픈 건가. 물어보면 또 아니라고 하겠지.)",
+      "sourceHash": "debbe6efcdc9ebb222d028904852fc6b5f81ab34c580cc8826f9c1a6e3818980",
+      "t": "(That paw just now. Is it hurting again? If I ask, he'll just say no again.)"
+    },
+    {
+      "id": "ep-17:9",
+      "source": "손목에 감겨 자던 아기 용이 꼬리를 털며 깨어났다. 용은 카드 냄새를 킁킁 맡더니, 카드에 대고 크게 재채기를 했다.",
+      "sourceHash": "58251e04af4fd8e1992682e86b9150259ca824e977a17deb8465e65660cc7fa0",
+      "t": "The baby dragon sleeping around Yeoni's wrist woke with a flick of its tail. It sniffed the card, then sneezed loudly onto it."
+    },
+    {
+      "id": "ep-17:10",
+      "source": "다락 벽에 책장 하나만 한 틈이 열렸다. 틈 너머에서 종이 넘기는 소리가 숨소리처럼 밀려 나왔다.",
+      "sourceHash": "48db84bde3a1ea4fc67c8aed268dc8bbc289ecb601793f0291a30322fe56b4c4",
+      "t": "A bookshelf-sized opening appeared in the attic wall. The sound of turning pages swept through it like breathing."
+    },
+    {
+      "id": "ep-17:11",
+      "source": "뭐야, 새벽부터. 돼지 너 또 뭐 열었어? 이번엔 냉장고 아니지?",
+      "sourceHash": "6acc91f82111a14a22baea3ac74f5ac7d1f6cb0843c4de1439548f39603606bc",
+      "t": "What now, this early? Pig, what did you open this time? It's not a fridge, is it?"
+    },
+    {
+      "id": "ep-17:12",
+      "source": "아, 이 문. 오랜만이네요. 인성의 도서관이에요.",
+      "sourceHash": "d89df672b2a43d13c3d0cb46f7704312a2c774886dfe9cc7103cc506c02fe748",
+      "t": "Ah, this door. It's been a while. The Library of Resources."
+    },
+    {
+      "id": "ep-17:13",
+      "source": "아저씨 여기 와 봤어요?",
+      "sourceHash": "8b729f347f6027cda7a22591cd2860243d6ffe6bcaced9d8a300308357f5d1fe",
+      "t": "Mister, you've been here before?"
+    },
+    {
+      "id": "ep-17:14",
+      "source": "3년 동안 안 가 본 하늘이 없거든요. 여긴 조용히만 하면 꽤 친절한 곳이에요.",
+      "sourceHash": "dfd46502d95b014ec7f4ec0a5236171ecd6869f80d7352b41994da61777d1a85",
+      "t": "There isn't a sky I haven't visited in three years. This place is quite friendly, as long as you keep quiet."
+    },
+    {
+      "id": "ep-17:15",
+      "source": "조용히. 나한테 제일 어려운 단어네. 그다음이 다이어트.",
+      "sourceHash": "9ad28498d049da2f014776ed760d95bb0e03d0afa978e7c50760e19e0e9a743c",
+      "t": "Quiet. The hardest word in the world for me. Followed by diet."
+    },
+    {
+      "id": "ep-17:16",
+      "source": "틈을 지나자 둥근 천장 아래로 책장이 끝없이 이어졌다. 책들은 모두 아주 천천히 부풀었다가 가라앉았다.",
+      "sourceHash": "1f697af1edf3f21897d982a40296da57cd1106568c390d4ab28b2c690b94b03f",
+      "t": "Beyond the opening, endless bookshelves stretched beneath a domed ceiling. All the books slowly swelled and sank."
+    },
+    {
+      "id": "ep-17:17",
+      "source": "책이… 숨을 쉬어. 진짜로 쉬어.",
+      "sourceHash": "179bf5343bb434c88190284ba685bb5bca81d5a63dfa266cb6dd19adfb724c90",
+      "t": "The books... they're breathing. They really are."
+    },
+    {
+      "id": "ep-17:18",
+      "source": "여기 책은 전부 누군가의 기억이에요. 주인이 살아서 기억하는 동안은 이렇게 숨을 쉬죠.",
+      "sourceHash": "e992ce2dce7f1fd31ab2aa49e5aeadfa6244fa7355c7a4077f5a640b92c56cc6",
+      "t": "Every book here is someone's memory. As long as its owner lives and remembers, it breathes like this."
+    },
+    {
+      "id": "ep-17:19",
+      "source": "바닥의 대리석 위로 금빛 글씨가 천천히 떠올랐다. 이 도서관의 규칙이었다.",
+      "sourceHash": "1bd56384fa24d24885dfbe14b1a882a4f8cf92a87ebaeb0c3f89dbc6dc00ae47",
+      "t": "Golden letters slowly rose over the marble floor. The rules of the library."
+    },
+    {
+      "id": "ep-17:20",
+      "source": "[ 인성의 도서관 · 손님 한 분당 열람은 한 권 · 읽은 책은 되돌릴 수 없음 ]",
+      "sourceHash": "0bbfe1cba2c02d342cf2802683f5f6011fa88c7710c11fec6f4d9c5181475c89",
+      "t": "[ Library of Resources · One book per visitor · A book once read cannot be undone ]"
+    },
+    {
+      "id": "ep-17:21",
+      "source": "(딱 한 권. 그럼 첫 번째 봄 하나만 찾으면 되는 거네. 간단하잖아.)",
+      "sourceHash": "43db4646b35e60bbe8f4648cc9163d437bf9f849c229b023a77b9f239dda9c9b",
+      "t": "(Exactly one book. Then I only need to find The First Spring. Simple.)"
+    },
+    {
+      "id": "ep-17:22",
+      "source": "한 권? 짜다, 짜. 시장 시식 코너도 세 번까지는 봐주는데.",
+      "sourceHash": "ddc3c5890ef33baff072a02351bb3b7bed1b31fdd93e54b506d97c62282070d5",
+      "t": "One book? Stingy, stingy. Even a market sample stand lets you come back three times."
+    },
+    {
+      "id": "ep-17:23",
+      "source": "모카의 목소리가 천장까지 울렸다. 가까운 책장의 책 수십 권이 동시에 탁, 하고 표지를 닫았다.",
+      "sourceHash": "1dabecf53ddb50d5fe6e2fd2aa2da4e6121e73ed673292c6e494da49c7b147f3",
+      "t": "Moka's voice echoed to the ceiling. Dozens of books on the nearest shelf snapped their covers shut at once."
+    },
+    {
+      "id": "ep-17:24",
+      "source": "이어서 사방에서 쉬이이, 하는 종이 소리가 번졌다. 모카가 슬그머니 국자를 입에 물었다.",
+      "sourceHash": "9e7f5e367308283fd5787fbcf96190e76a45925f7619cfe99ccbb0b82643906e",
+      "t": "Then a papery shhhh spread from all directions. Moka quietly put his ladle between his teeth."
+    },
+    {
+      "id": "ep-17:25",
+      "source": "책들한테 혼난 거예요. 수달 씨, 랩은 속삭이는 걸로 부탁해요.",
+      "sourceHash": "9eb3fa420cb05ad65fb34761882fcd92e5dafdea8fc03a5a819040f129583376",
+      "t": "The books are telling you off. Mr. Otter, please keep the rapping to a whisper."
+    },
+    {
+      "id": "ep-17:26",
+      "source": "속삭이는 랩은 랩이 아니라 기도야. 내 장르를 바꾸라는 거냐고.",
+      "sourceHash": "809f04ce1899c87a047e81c3312ac7cd4659b4e0e5e73abce1cceca5412447ef",
+      "t": "Whispered rap isn't rap. It's prayer. You're asking me to change genres."
+    },
+    {
+      "id": "ep-17:27",
+      "source": "영냥이는 한 걸음 뒤에서 따라왔다. 숨 쉬는 책들 사이에서 그 혼자만 숨을 참고 걷는 것 같았다.",
+      "sourceHash": "31651d9a4d578287f229c9825bab73ceece54f82860e56df900aed713b343488",
+      "t": "Yeongnyangi followed a step behind. Among all the breathing books, he alone seemed to walk holding his breath."
+    },
+    {
+      "id": "ep-17:28",
+      "source": "중앙 안내대에는 사서가 없었다. 대신 커다란 목록 책 한 권이 펼쳐진 채 저 혼자 페이지를 넘기고 있었다.",
+      "sourceHash": "6885f57c8a8926390fd07b305bf864a8eb13a86aad41e714d2a2250b2bf60da1",
+      "t": "There was no librarian at the central desk. Instead, a large catalog lay open, turning its own pages."
+    },
+    {
+      "id": "ep-17:29",
+      "source": "이름을 대면 서가를 알려 줘요. 숙녀분 먼저 하세요.",
+      "sourceHash": "ded875a00122f73c473c4c4c65406bbf4f46045b7b9bd5e11c4d6b9f0dfa5651",
+      "t": "Give it your name, and it'll tell you your shelf. Ladies first."
+    },
+    {
+      "id": "ep-17:30",
+      "source": "연이요. 아, 혹시 모르니까 꽃돼지로도 찾아봐 주세요.",
+      "sourceHash": "18f521811dc4c78b27ad78f292aeaeaa83ee36e5b3ecb7eeb9436f498d507b46",
+      "t": "Yeoni. Oh, and just in case, could you look under Flower Pig, too?"
+    },
+    {
+      "id": "ep-17:31",
+      "source": "목록 책의 글자들이 먹물처럼 번지더니 한 줄로 모여들었다.",
+      "sourceHash": "3c5489f6ee20f02082deb99428deb4f530ef0c4e9321faae3eef43533b7451f3",
+      "t": "The catalog's letters spread like ink, then gathered into a single line."
+    },
+    {
+      "id": "ep-17:32",
+      "source": "[ 꽃돼지 · 소장 23권 · 대출 중 1권 「첫 번째 봄」 · 대출자 : ■■■ ]",
+      "sourceHash": "82dd878e09d4a2817e3f494921d060e94ec156537061e21bd677f16944f22ae7",
+      "t": "[ Flower Pig · Collection: 23 volumes · On loan: 1 volume, The First Spring · Borrower: ■■■ ]"
+    },
+    {
+      "id": "ep-17:33",
+      "source": "대출자 이름이… 지워져 있어. 누가 일부러 칠한 것처럼.",
+      "sourceHash": "4a3bbffe84089f565881ca79353d42e65fee34dda5d626a77c329a39a652367f",
+      "t": "The borrower's name... it's erased. Like someone deliberately blacked it out."
+    },
+    {
+      "id": "ep-17:34",
+      "source": "그보다 23권? 돼지 네 인생이 23권이나 돼? 대부분 먹는 얘기겠지.",
+      "sourceHash": "35f7464a6092865c345b748b21c6b6071a938879d1d6c56019ab0627f23675d1",
+      "t": "More importantly, twenty-three volumes? Your life's twenty-three books long, pig? Mostly about eating, I bet."
+    },
+    {
+      "id": "ep-17:35",
+      "source": "반은 리뷰야! 별점 리뷰도 엄연히 기억이라고.",
+      "sourceHash": "0847860a657483c0891d0e2c57b05ad923c637d067e913e34917ccf51dd7e56a",
+      "t": "Half of them are reviews! Star ratings are perfectly legitimate memories."
+    },
+    {
+      "id": "ep-17:36",
+      "source": "다들 웃는 사이, 영냥이만 목록을 오래 보았다. 지워진 대출자 칸 위에 아주 작은 물방울 하나가 맺혀 있었다.",
+      "sourceHash": "dd41babb4ac2b13d775324cc7ed1cde3560c387a6c14e9e101ca210ef6e23928",
+      "t": "While the others laughed, Yeongnyangi studied the catalog. A tiny bead of water had formed over the erased borrower's name."
+    },
+    {
+      "id": "ep-17:37",
+      "source": "서가부터 가자. 여긴 오래 머물 곳이 아니야.",
+      "sourceHash": "60023a5064b59606029aac7b5c869ef996983a1028d89fc921e1b9c7710291e1",
+      "t": "Let's find the shelf. This isn't somewhere to linger."
+    },
+    {
+      "id": "ep-17:38",
+      "source": "연이의 서가로 가는 길에 윤달이 한 칸 앞에서 걸음을 멈췄다. 장갑 낀 손바닥을 다른 손으로 꾹 눌렀다.",
+      "sourceHash": "e31953ac7cc93fc13bd3c485bc25ab202b77123ee13a1158bac12690331327e7",
+      "t": "On the way to Yeoni's shelves, Yundal stopped at another section. He pressed his gloved palm hard with his other hand."
+    },
+    {
+      "id": "ep-17:39",
+      "source": "아저씨 책도 여기 있어요?",
+      "sourceHash": "41f200ff8040641d7468be0f5633d5cefdc71080b29d5da17d0915b831d08aac",
+      "t": "Is your book here, too, mister?"
+    },
+    {
+      "id": "ep-17:40",
+      "source": "있죠. 보실래요? 숙녀분 한 권은 아껴야 하니까, 표지만 구경하는 걸로.",
+      "sourceHash": "2bdc683a8bbdf6455e83bc3c87cc1db73aaa61561eca051d9b1a7c6c42238510",
+      "t": "It is. Want to see? You need to save your one book, so just the cover."
+    },
+    {
+      "id": "ep-17:41",
+      "source": "윤달이 꺼낸 책은 얇았다. 표지의 이름 자리는 비어 있었고, 책은 아주 얕게 숨을 쉬었다.",
+      "sourceHash": "128c97d29772659910c5b3d50bb10293567d4de541050bceb01e3caa330e45ac",
+      "t": "The book Yundal pulled out was thin. The place for a name on its cover was blank, and its breathing was very shallow."
+    },
+    {
+      "id": "ep-17:42",
+      "source": "사람들이 절 잊을 때마다 한 장씩 빠져요. 작년엔 이것보다 두 배는 두꺼웠는데.",
+      "sourceHash": "3d39c1b5d7b0278dfcbc6b30a7f315ea5cb3d4cdbc255f8d710d9a826d448348",
+      "t": "Every time someone forgets me, it loses a page. Last year, it was twice this thick."
+    },
+    {
+      "id": "ep-17:43",
+      "source": "연이는 대답을 찾지 못하고 그 얇은 책을 보았다. 마지막 장에 연필 글씨 한 줄이 새로 적혀 있었다. 숙녀분이 윤달이라고 불러 줌.",
+      "sourceHash": "9b95b6b860bb398b7479b100ea35c2012fc7242224c3326e91041eef4a765881",
+      "t": "Unable to find an answer, Yeoni stared at the thin book. A fresh line of pencil writing appeared on its last page. The lady called me Yundal."
+    },
+    {
+      "id": "ep-17:44",
+      "source": "그거, 어제 일이잖아요.",
+      "sourceHash": "71e4fdb70019869d779666f3423b245a778764bb65ae935dffbbcd963e572deb",
+      "t": "That was yesterday."
+    },
+    {
+      "id": "ep-17:45",
+      "source": "네. 덕분에 한 장 늘었어요. 이 도서관에서 제 책이 두꺼워진 건 3년 만이에요.",
+      "sourceHash": "b828928227e006e99e06316106611e2ace956f7a8b9c8ee86f47fe5a9f4a3719",
+      "t": "Yes. Thanks to you, I gained a page. It's the first time my book has grown thicker in three years."
+    },
+    {
+      "id": "ep-17:46",
+      "source": "야, 사기꾼. 그런 얘기는 밥 먹을 때 해. 체하잖아, 듣는 사람이.",
+      "sourceHash": "ae8b188151a7f3d3bd8c4590bcf54c371464b8e05dd40cd5228a35d19c5df6b0",
+      "t": "Hey, con artist. Save that kind of story for mealtimes. You're giving your listeners indigestion."
+    },
+    {
+      "id": "ep-17:47",
+      "source": "그럼 오늘 저녁은 수달 씨가 사시는 걸로.",
+      "sourceHash": "3cb6b3142eff5150032d2abbe1d37c851489bb444856eb07580fb7c4f0bd87dc",
+      "t": "Then dinner tonight is on Mr. Otter."
+    },
+    {
+      "id": "ep-17:48",
+      "source": "그 얘기가 왜 그렇게 돼!",
+      "sourceHash": "ee778add6350e002ec300d10201a62e521c42906443a6cd39cb45ac7c74101bb",
+      "t": "How did you get that from what I said?!"
+    },
+    {
+      "id": "ep-17:49",
+      "source": "연이의 서가는 생각보다 낮았다. 책등마다 작은 꽃 무늬가 찍혀 있었고, 맨 끝에 책 한 권만 한 빈칸이 있었다.",
+      "sourceHash": "7ce93b6c0e8d264121d02aa46995e4f958584b7f2262dd1639e16e8655436862",
+      "t": "Yeoni's shelf was lower than expected. Every spine bore a tiny flower, and at the far end was a gap the width of one book."
+    },
+    {
+      "id": "ep-17:50",
+      "source": "와, 내 책들이다. 이건 「초등학교 급식 별점 모음」. 이건 「첫 알바 사장님 미워」.",
+      "sourceHash": "ce6037e8b1c676cdcf9077eabec2bb1cb424c10ba5e3184d02d5fb278d2d53a9",
+      "t": "Wow, my books. This is My Elementary School Lunch Ratings. And this is I Hate the Boss at My First Part-Time Job."
+    },
+    {
+      "id": "ep-17:51",
+      "source": "제목 짓는 건 어릴 때랑 똑같네.",
+      "sourceHash": "4cc62a82dd396007f1297f635b96d350f9d806adf92c08639640217e59323e8e",
+      "t": "Your way of naming things hasn't changed since childhood."
+    },
+    {
+      "id": "ep-17:52",
+      "source": "칭찬이지? 칭찬으로 들을게. 반박은 안 받아.",
+      "sourceHash": "26ed4cef3556c6af7bd88b73ed4c626e99f5c9677afce05049f05fecaecd20d0",
+      "t": "That's a compliment, right? I'll take it as one. No objections accepted."
+    },
+    {
+      "id": "ep-17:53",
+      "source": "연이는 빈칸에 앞발을 넣어 보았다. 서가 안쪽이 축축했다. 누군가 젖은 손으로 책을 꺼내 간 자리였다.",
+      "sourceHash": "ad1c6bcc2abaf90e94cc8938b4f8c6f191b1471e0c07231309e7b9fd7db95caf",
+      "t": "Yeoni slipped a hoof into the gap. The inside of the shelf was damp. Someone had taken the book with wet hands."
+    },
+    {
+      "id": "ep-17:54",
+      "source": "(여기 꽂혀 있었구나. 첫 번째 봄.)",
+      "sourceHash": "a048bffe651bee28b665aa06f41297036b3bc9d5b104a3bee67564ae9b1e18b9",
+      "t": "(This is where it was. The First Spring.)"
+    },
+    {
+      "id": "ep-17:55",
+      "source": "연이야. 그 책을 찾으면 어떻게 할 거야?",
+      "sourceHash": "0e6adc2c932cb7153e913523852fc9ac065043557c9ed429b3ae3b223b9db350",
+      "t": "Yeoni. What will you do if you find that book?"
+    },
+    {
+      "id": "ep-17:56",
+      "source": "읽어야지. 내 책이잖아. 근데 왜?",
+      "sourceHash": "feb79a91248465cbe2e12d9de8bc03320e992d9340033f7bb80d37f148cf00cf",
+      "t": "Read it. It's my book. Why?"
+    },
+    {
+      "id": "ep-17:57",
+      "source": "아니다. 그냥 물어봤다.",
+      "sourceHash": "4983e78cca2ed15fc51c1094d6a904bef54fd49b17ca3eac561c80601002246a",
+      "t": "Nothing. Just asking."
+    },
+    {
+      "id": "ep-17:58",
+      "source": "영냥이는 빈칸에서 눈을 돌렸다. 연이가 그 얼굴을 다시 보려 한 바로 그때였다.",
+      "sourceHash": "6aec4b00863aaf00f936642386a4b4bfb184a406268d94b30658673fc724be1b",
+      "t": "Yeongnyangi looked away from the gap. Yeoni was just turning to look at his face again."
+    },
+    {
+      "id": "ep-17:59",
+      "source": "그때 도서관 안쪽에서 유리 깨지는 소리가 났다. 숨 쉬던 책들이 일제히 숨을 멈췄다.",
+      "sourceHash": "2d39565430b19fc078fd2d77ad8e3e2325cc1eed169ef00f4c443be5a9c22c52",
+      "t": "Then glass shattered deep in the library. Every breathing book held its breath at once."
+    },
+    {
+      "id": "ep-17:60",
+      "source": "깊은 열람실. 유리장 안에 가장 소중한 기억들이 놓여 있었다. 그 유리장 위로 검은 손 여러 개가 거미처럼 기어올랐다.",
+      "sourceHash": "86c6181912608f2e9377db38ac494c95bb18bea71272db67629c9e06af5ff448",
+      "t": "In the inner reading room, the most precious memories lay in glass cases. Several black hands crawled over the cases like spiders."
+    },
+    {
+      "id": "ep-17:61",
+      "source": "보호 서가예요. 주인이 절대 잊으면 안 되는 기억만 저기 넣어요.",
+      "sourceHash": "913a3c682bcc55af7dd305597a57d00602d7c16175fcc94a92a65a53b21a8e7c",
+      "t": "The protected shelves. They only keep memories there that the owner must never forget."
+    },
+    {
+      "id": "ep-17:62",
+      "source": "검은 손 하나가 유리를 뚫고 들어가 얇은 책 한 권을 집었다. 그리고 한 장씩, 아주 맛있게 뜯어 먹었다.",
+      "sourceHash": "f487851a4888a9f98010fc68f87fc8320f8aefa1f2a2e58eb9bc77b32af09fb0",
+      "t": "One black hand pierced the glass and picked up a thin book. Then it tore out and ate the pages one by one, savoring them."
+    },
+    {
+      "id": "ep-17:63",
+      "source": "[ 「엄마의 자장가」 · 소유자 : 아기 수달 · 남은 페이지 9 → 6 ]",
+      "sourceHash": "1cbf54d340f0eb370bda567f3b0d6eb57c3004da4f7fe1dcb3868e626cbb7ee0",
+      "t": "[ Mother's Lullaby · Owner: Baby Otter · Pages remaining: 9 → 6 ]"
+    },
+    {
+      "id": "ep-17:64",
+      "source": "아기 수달? 야, 그거 우리 섬 꼬맹이 거야! 뱉어!",
+      "sourceHash": "427407f2fd0dbc9093f6f45607f6931742775f10edab95763d1b034c5ee695be",
+      "t": "Baby otter? Hey, that belongs to a kid from our island! Spit it out!"
+    },
+    {
+      "id": "ep-17:65",
+      "source": "영냥이가 먼저 뛰었다. 발톱이 검은 손을 갈랐지만, 잘린 손가락은 먹물처럼 흩어졌다가 다시 붙었다.",
+      "sourceHash": "ee7ca66e96ed93913d1c65ef50ed8f78b466873580531c7724c250c95ad04215",
+      "t": "Yeongnyangi leaped first. His claws split the black hand, but the severed fingers scattered like ink, then joined again."
+    },
+    {
+      "id": "ep-17:66",
+      "source": "안 잘린다. 이건 몸이 아니다.",
+      "sourceHash": "88a7f7ce8b3fbce226e739e7b25490cbba84354b848da4ccedb5e5029943c2fe",
+      "t": "I can't cut it. This isn't a body."
+    },
+    {
+      "id": "ep-17:67",
+      "source": "잘 읽었다. 남의 기억은… 언제 먹어도 달구나.",
+      "sourceHash": "cf5d5897d69f0100b9b038d29a0193c0bdde19b6cd5a9e56ebe404345b16ff03",
+      "t": "A fine read. Other people's memories... always taste so sweet.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-17:68",
+      "source": "목소리는 어느 한 곳에서 나지 않았다. 책장 사이의 어둠 전체가 한꺼번에 입을 연 것 같았다.",
+      "sourceHash": "6fa323fd82bd0c91575fd955910ff7647b05e9667befd3a2cf83e5966a2cd464",
+      "t": "The voice came from no single place. It was as though all the darkness between the shelves had opened its mouth at once."
+    },
+    {
+      "id": "ep-17:69",
+      "source": "그거 내려놔. 남의 자장가야!",
+      "sourceHash": "7354c8d3008c4fac48633e3ab7693f1a447e14f20cc1803693653536ab8b94f3",
+      "t": "Put that down. It's someone else's lullaby!"
+    },
+    {
+      "id": "ep-17:70",
+      "source": "연이의 앞발에서 불꽃이 튀었다. 검은 손이 움찔 물러났고, 동시에 가까운 책장 모서리에 불이 옮겨붙었다.",
+      "sourceHash": "f41f2bc018d384b413c8daa663ba2208b325892527ef11c2b1d8341721a88ca9",
+      "t": "Flames burst from Yeoni's hoof. The black hand flinched back, and at the same moment, a nearby bookshelf's corner caught fire."
+    },
+    {
+      "id": "ep-17:71",
+      "source": "숙녀분! 여긴 도서관이에요, 도서관!",
+      "sourceHash": "5bcbb6a67d4b47ac765e8ec9fea92be97db35e3ff9d1df94df0406fed0e05847",
+      "t": "My lady! This is a library! A library!"
+    },
+    {
+      "id": "ep-17:72",
+      "source": "모카가 국자로 불붙은 책장을 두드렸다. 책들이 비명처럼 바스락거리며 서로 몸을 붙였다.",
+      "sourceHash": "59da1718226fd01d4314d942bff733bde35e968d869b175b2b7e8368807eeb8f",
+      "t": "Moka beat the burning shelf with his ladle. The books huddled together, rustling like screams."
+    },
+    {
+      "id": "ep-17:73",
+      "source": "(불은 안 돼. 여기선 내가 세질수록 다른 사람 기억이 타.)",
+      "sourceHash": "fe27fb8b74767eb95f5a0178e5f7274d7a648528245c1af4034ac6f6770af883",
+      "t": "(No fire. Here, the stronger I get, the more other people's memories burn.)"
+    },
+    {
+      "id": "ep-17:74",
+      "source": "연이야. 숨부터. 바닥에 내려놔.",
+      "sourceHash": "20a9fbc14f712e8f42110ecf8c107208be03a6814f302b0ee9ccc1cc3982c05f",
+      "t": "Yeoni. Breathe first. Set it down on the ground."
+    },
+    {
+      "id": "ep-17:75",
+      "source": "연이는 불을 거두었다. 앞발이 떨렸다. 검은 손은 다시 자장가의 남은 페이지를 향해 기어갔다.",
+      "sourceHash": "17b3660864bae17d39c2bbc3d821060c28c7271482e2b70ff07ca768fb498a85",
+      "t": "Yeoni drew back the fire. Their hoof trembled. The black hand crawled toward the lullaby's remaining pages again."
+    },
+    {
+      "id": "ep-17:76",
+      "source": "그때 바닥의 규칙 글씨가 희미하게 빛났다. 연이는 그 아래에 붙은 작은 글씨를 그제야 보았다.",
+      "sourceHash": "3f5e329bffabadc26307b9d63779fac461ddc87c97e42ea262f536c0ff4506a2",
+      "t": "Then the rules on the floor glowed faintly. Only now did Yeoni see the small writing beneath them."
+    },
+    {
+      "id": "ep-17:77",
+      "source": "[ 덧붙임 · 아끼는 마음으로 소리 내어 읽은 기억은 주인에게 돌아간다 ]",
+      "sourceHash": "49f7e622d78419ea57c562e78e3dea682bfa6f2c87a80e8fef152f28c1aa6d38",
+      "t": "[ Addendum · A memory read aloud with care returns to its owner ]"
+    },
+    {
+      "id": "ep-17:78",
+      "source": "(소리 내어 읽으면 돌아간다. 대신 그게 내 한 권이 되는 거고.)",
+      "sourceHash": "4fb4cccd213537bcdcd20d509980cc3b86648800f6547ae27eb6d32d441075f6",
+      "t": "(Read it aloud, and it goes back. But that will use up my one book.)"
+    },
+    {
+      "id": "ep-17:79",
+      "source": "숙녀분, 그걸 쓰면 첫 번째 봄은 못 열어요. 한 사람에 한 권이에요.",
+      "sourceHash": "9a557cc04a26697b3227ae6bf0ca8b7e914d21eaf86f586e7af5f1d28944b1cd",
+      "t": "My lady, if you use it now, you won't be able to open The First Spring. One book per person."
+    },
+    {
+      "id": "ep-17:80",
+      "source": "알아요. 근데 내 봄은 좀 기다려 줄 수 있잖아요. 이건 지금 먹히고 있어요.",
+      "sourceHash": "f579cd725b1151c2c05c6a6362702d14c22a87a58cd3451b791f5f9463ef62a0",
+      "t": "I know. But my spring can wait a little. This one's being eaten right now."
+    },
+    {
+      "id": "ep-17:81",
+      "source": "연이는 검은 손 사이로 뛰어들어 자장가 책을 끌어안았다. 남은 여섯 장이 품 안에서 작게 떨렸다.",
+      "sourceHash": "273e0e973a947504a5383276f07fc8a6455b1a55ebd78bf540d8908f55d891b6",
+      "t": "Yeoni jumped between the black hands and hugged the lullaby book. The six remaining pages trembled against their chest."
+    },
+    {
+      "id": "ep-17:82",
+      "source": "연이는 첫 장을 소리 내어 읽었다. 잘 자라, 우리 아기. 물결이 너를 안고, 엄마가 물결을 안고.",
+      "sourceHash": "0e79a0e25f93c689a06e9eccc0a094f61d77ff3efc0a09552de5b1dd427a09c2",
+      "t": "Yeoni read the first page aloud. Sleep well, my baby. The ripples hold you, and Mama holds the ripples."
+    },
+    {
+      "id": "ep-17:83",
+      "source": "달이 뜨면 강도 잠들고, 너도 잠들고. 엄마는 여기 있어. 눈 뜨면 여기 있어.",
+      "sourceHash": "fd0b494cb04682f2cc20dfacb54e1d7b98a64d617cc2a137213c6dbd4354fb72",
+      "t": "When the moon rises, the river sleeps, and you sleep, too. Mama is here. When you open your eyes, I'll be here."
+    },
+    {
+      "id": "ep-17:84",
+      "source": "서툰 목소리였다. 음정도 없었다. 그런데 한 줄 읽을 때마다 검은 손이 하나씩 책에서 미끄러져 떨어졌다.",
+      "sourceHash": "0d04d05f0ed583cada910afa7d253346eac523234cc89b9b12ea782f9b8f729d",
+      "t": "The voice was awkward, without a tune. Yet with each line, another black hand slipped from the book."
+    },
+    {
+      "id": "ep-17:85",
+      "source": "아끼는 마음이라. 그런 건 맛이 없다.",
+      "sourceHash": "8834cf2e382184a8135038eb1da5bc5cc48e78367384697df3a4bbfcc3de485d",
+      "t": "Care, is it? There's no flavor in that.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-17:86",
+      "source": "목소리가 물러가자 검은 손들도 어둠 속으로 녹아 사라졌다. 열람실에는 연이의 읽는 소리만 남았다.",
+      "sourceHash": "0b92595b1e4e9f700db9ba76adf9adca49534a7e04b028f6292c499b2467bdfd",
+      "t": "As the voice retreated, the black hands dissolved into the darkness. Only Yeoni's reading remained in the room."
+    },
+    {
+      "id": "ep-17:87",
+      "source": "마지막 장을 읽자 책이 금빛으로 녹아 천장 너머로 날아갔다. 어딘가 먼 섬에서 잠 못 드는 아기 수달에게로.",
+      "sourceHash": "1153957681f8461d33074615dcdd620a0b9ceeb9ed9966b985112f27bcedf22d",
+      "t": "At the last page, the book melted into golden light and flew through the ceiling. Toward a sleepless baby otter on some faraway island."
+    },
+    {
+      "id": "ep-17:88",
+      "source": "[ 「엄마의 자장가」 · 반환 완료 · 열람자 : 꽃돼지 (1/1) ]",
+      "sourceHash": "fdb37818db7d4f6eb7e1bd39aeef4227a2c55dd6c3956bbac48a7e0d6a7fba94",
+      "t": "[ Mother's Lullaby · Returned · Reader: Flower Pig (1/1) ]"
+    },
+    {
+      "id": "ep-17:89",
+      "source": "돼지… 너 방금 네 한 권 날렸어. 23권짜리 인생 찾으러 와서.",
+      "sourceHash": "c8da07a401dc66a6e9f9af516ca2ee29b78074ed64dc987e1b7c37e9d2c1371d",
+      "t": "Pig... you just threw away your one book. You came here to find your twenty-three-volume life."
+    },
+    {
+      "id": "ep-17:90",
+      "source": "안 날렸어. 빌려준 거야. 반납은 안 받을 거지만.",
+      "sourceHash": "cfeb0e02c82edab6df4c5057a954cefc14779bc57f2ed540a9b49821c5511e05",
+      "t": "I didn't throw it away. I lent it. Though I won't ask for it back."
+    },
+    {
+      "id": "ep-17:91",
+      "source": "이 도서관에서 남의 책에 한 권을 쓴 손님은 처음 봐요. 사서가 있었으면 상 줬을 텐데.",
+      "sourceHash": "b17d067bd8399e896cef326fb182329737d2af825e8fc1bd24ab3cdc3821928b",
+      "t": "I've never seen a visitor spend their one book on someone else's. If there were a librarian, you'd get a prize."
+    },
+    {
+      "id": "ep-17:92",
+      "source": "상은 내가 주지. 오늘 밤 간식 반.",
+      "sourceHash": "256eaf597a7bff96fa51fa80e7470522cbc93ca5d251410e17ad6bf6e44e325f",
+      "t": "I'll give the prize. Half my snack tonight."
+    },
+    {
+      "id": "ep-17:93",
+      "source": "반? 반만? 고양이님 오늘 좀 짜다.",
+      "sourceHash": "6d265916c5ad347928cc63b74ddc921b2496df8a28e637a7564db9613bff5ac7",
+      "t": "Half? Only half? Mr. Cat's a little stingy today."
+    },
+    {
+      "id": "ep-17:94",
+      "source": "검은 손이 물러간 도서관은 다시 숨을 쉬기 시작했다. 그런데 숨소리가 어딘가 눅눅했다.",
+      "sourceHash": "6c8761e2dde4a93eb09bb49a39bf2ff140b2b17c78dc11b8a5d9401cb425dc60",
+      "t": "With the black hands gone, the library began breathing again. But something about its breathing sounded damp."
+    },
+    {
+      "id": "ep-17:95",
+      "source": "이상하네요. 여긴 종이를 지키느라 비도 안 내리는 하늘인데.",
+      "sourceHash": "519dcbbed15ee879b93b2cb49bb2ff1cbd2a6fa12372b77f9d56eda27fc781fd",
+      "t": "Strange. This sky doesn't even get rain, to protect the paper."
+    },
+    {
+      "id": "ep-17:96",
+      "source": "연이의 발밑에서 찰박, 소리가 났다. 대리석 틈으로 차가운 물이 스며 오르고 있었다.",
+      "sourceHash": "ed14d373c541ec3116c3c76912e91ae2f689db592273cc43af78960495d1c166",
+      "t": "A splash sounded beneath Yeoni's hoof. Cold water seeped up through the cracks in the marble."
+    },
+    {
+      "id": "ep-17:97",
+      "source": "물웅덩이 위에 커다란 발자국이 찍혀 있었다. 고양이를 닮았지만 고양이보다 몇 배는 큰 발자국이었다.",
+      "sourceHash": "985d34e50e8fdfb73dd4d163274c2e23133cdfe8939d898fd75060db8b37b517",
+      "t": "A large pawprint marked the puddle. It resembled a cat's, but was several times larger."
+    },
+    {
+      "id": "ep-17:98",
+      "source": "젖은 발자국은 열람실을 한 바퀴 돌고, 아래층으로 내려가는 계단 쪽으로 이어졌다. 지워진 대출자 칸의 물방울과 같은 냄새가 났다.",
+      "sourceHash": "7be656534d28ccd2309107bf598810e5a15fa09f9f0c01faed6f1b3103d99d59",
+      "t": "The wet tracks circled the reading room and led to the stairs descending below. They smelled like the drop of water on the erased borrower's name."
+    },
+    {
+      "id": "ep-17:99",
+      "source": "호랑이야. 우리보다 먼저 왔어.",
+      "sourceHash": "b0a08f258a47cae79883eb115c1478a5f9a13fdce803ad6d9f16b097a6bac176",
+      "t": "The tiger. It got here before us."
+    },
+    {
+      "id": "ep-17:100",
+      "source": "(비 냄새. 카드에서 나던 그 냄새랑 똑같아.)",
+      "sourceHash": "21e68706e0fe5802d175aa6cb29e68aeec2a23e7512183f651be50a0fa3bfeeb",
+      "t": "(The smell of rain. Exactly the same smell as the card.)"
+    },
+    {
+      "id": "ep-17:101",
+      "source": "계단 아래에서 물 차오르는 소리가 났다. 그리고 낮고 서늘한 목소리 하나가 물 위로 떠올랐다.",
+      "sourceHash": "45fdaee0955af01bea3ea67cc6e951acde80fea832a8d365b9c4335cd546d8f9",
+      "t": "Water rose with a rushing sound below the stairs. Then a low, chilling voice floated over it."
+    },
+    {
+      "id": "ep-17:102",
+      "source": "첫 번째 봄은 내가 가져간다. 너는 거기서 떠내려가, 돼지.",
+      "sourceHash": "320cfad1ae17eb11f527f7fe81ef37f1a7096108d343b4b859b9aef4e2612e70",
+      "t": "I'm taking The First Spring. You can wash away right there, pig."
+    },
+    {
+      "id": "ep-17:103",
+      "source": "계단에서 물이 거꾸로 쏟아져 올라왔다. 숨 쉬던 책들이 일제히 숨을 크게 들이켰다.",
+      "sourceHash": "65e95372f7e23a4b621fa489bbd721121fb562656076bd5bbd1ed664eafeccbc",
+      "t": "Water surged upward from the stairs. Every breathing book drew a deep breath at once."
+    }
+  ]
+}

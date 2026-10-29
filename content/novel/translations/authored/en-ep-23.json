@@ -1,0 +1,703 @@
+{
+  "locale": "en",
+  "episodeId": "ep-23",
+  "tag": "Episode 23 · Hurting Officer Meets Officer",
+  "title": "Hurting Officer Meets Officer",
+  "sourceTitle": "상관견관",
+  "sourceTag": "제23화 · 상관견관",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-23:1",
+      "source": "하늘의 틈에서 검은 손이 쏟아져 내렸다. 둥근 유리창이 깨지고, 손들이 비처럼 열람실 안으로 떨어졌다.",
+      "sourceHash": "5ba4059132757488cd3311a0626e718b3aa4f458b773288f21fe41a25efd7829",
+      "t": "Black hands poured from the fissure in the sky. The round skylight shattered, and hands fell into the reading room like rain."
+    },
+    {
+      "id": "ep-23:2",
+      "source": "비보다 나쁜 거 맞네! 사기꾼, 이럴 땐 사기 좀 쳐 봐!",
+      "sourceHash": "7f648b7356b4d486619aba52101f879151c390153733bae454c29722bb97dfd7",
+      "t": "Definitely worse than rain! Con artist, now would be a great time for a con!"
+    },
+    {
+      "id": "ep-23:3",
+      "source": "수달 씨, 숙녀분 왼쪽 맡아 주세요. 저는 오른쪽을 먹을게요.",
+      "sourceHash": "0b857f3c72e58fa69e4e9f3330b5c3945aa0d098cf1097f8f92cf6224b1ef6f4",
+      "t": "Mr. Otter, take our lady's left. I'll eat the right."
+    },
+    {
+      "id": "ep-23:4",
+      "source": "윤달이 장갑을 벗었다. 손바닥의 구멍이 소용돌이치며 가장 가까운 검은 손 셋을 빨아들였다. 구멍 가장자리가 손톱만큼 넓어졌다.",
+      "sourceHash": "e71fc6edca7321ff8733ed888a490145e350168138f76f3003894c3121d4e0ae",
+      "t": "Yundal removed his glove. The hole in his palm swirled and sucked in the three nearest black hands. Its rim widened by a fingernail's width."
+    },
+    {
+      "id": "ep-23:5",
+      "source": "윤달, 손! 구멍 커지잖아요!",
+      "sourceHash": "50024d17f22a0b55565086fc6b16c565e3bc817a8d220109cab2bf752a2909b4",
+      "t": "Yundal, your hand! The hole's growing!"
+    },
+    {
+      "id": "ep-23:6",
+      "source": "지금은 커지는 것보다 숙녀분이 작아지는 게 더 무서워요.",
+      "sourceHash": "1eea1af6dc814a1a27f58b71777086ffd3112647f27261984afd75e33f91e6f0",
+      "t": "Right now, I'm more afraid of you getting smaller than it getting bigger."
+    },
+    {
+      "id": "ep-23:7",
+      "source": "모카가 불씨를 공처럼 던졌다. 검은 손 하나가 불에 데어 움찔 물러났다. 그러나 손들은 연이를 지나쳐 갔다.",
+      "sourceHash": "cc2bd05e4b7e5e4f4bda4e41e749bfa1e4a870c41d2d06940a435aa21e8e200a",
+      "t": "Moka hurled an ember like a ball. One black hand recoiled from the burn. But the hands passed Yeoni by."
+    },
+    {
+      "id": "ep-23:8",
+      "source": "어? 얘네 돼지한테 안 오는데?",
+      "sourceHash": "e2a6b1d4b3610f2a3d3eeb6dc5b0d42abb04c0c4a5d2f44a85108d48a3218f26",
+      "t": "Huh? They're not coming for the pig."
+    },
+    {
+      "id": "ep-23:9",
+      "source": "나 말고 누구한테.",
+      "sourceHash": "56bf68ce3d119fef7680c6011c050fd1aa8167ccf4c666a3e036bcf5b02477e2",
+      "t": "Then who?"
+    },
+    {
+      "id": "ep-23:10",
+      "source": "연이는 덩굴을 뻗어 가장 가까운 손 하나를 붙잡았다. 덩굴은 손에 닿자마자 검게 시들었다. 붙잡는 것이 아니라 먹히고 있었다.",
+      "sourceHash": "4fe1b529fdbc652b34d31fd8de6b07f7f2dea83a31a078a22bab9a51eb26d056",
+      "t": "Yeoni stretched out a vine and caught the nearest hand. The instant it touched, the vine withered black. It wasn't holding the hand. It was being eaten."
+    },
+    {
+      "id": "ep-23:11",
+      "source": "내 덩굴을 먹어. 얘네 왜 이렇게 배가 고파.",
+      "sourceHash": "e1c48d64c5654dc31c24ee088cafca1faa58eaeb4d70927934f41a7bd9e7d07f",
+      "t": "They're eating my vine. Why are they so hungry?"
+    },
+    {
+      "id": "ep-23:12",
+      "source": "굶은 지 오래된 손이에요. 그리고 오늘은 숙녀분보다 더 맛있는 게 보이나 봐요.",
+      "sourceHash": "946e19471b3ef35d331cf7264faf9e1a1ae476fa8ef8a152720d19b428009c01",
+      "t": "They've been starving a long time. And today, they seem to have found something tastier than you, my lady."
+    },
+    {
+      "id": "ep-23:13",
+      "source": "손들은 한 방향으로만 몰려갔다. 창가에 선 하얀 고양이에게로.",
+      "sourceHash": "a47bb24a7475c5be7e9523bff37e588a92f7bb48dfe55cbd8ef736917ba8948f",
+      "t": "The hands swarmed in only one direction. Toward the white cat by the window."
+    },
+    {
+      "id": "ep-23:14",
+      "source": "연이야, 엎드려!",
+      "sourceHash": "74ed1924d6fc4b12086aa279f17688eb8b135363d9306ef19c92f4764f63327d",
+      "t": "Yeoni, get down!"
+    },
+    {
+      "id": "ep-23:15",
+      "source": "영냥이가 온몸의 털을 곤두세웠다. 앞발에서 금빛 칼날이 솟아 검은 손 여럿을 한꺼번에 베어 냈다. 그러나 베인 손은 둘로 갈라져 다시 달려들었다.",
+      "sourceHash": "81d8fc54cf292f235536d261c54ba0efe077a4ad10d8c10e873f33fcf4f5baec",
+      "t": "Yeongnyangi bristled all over. Golden blades rose from his paws and severed several black hands at once. But each cut hand split into two and lunged again."
+    },
+    {
+      "id": "ep-23:16",
+      "source": "고양이야. 너는 칼이지. 칼은 칼집에 꽂혀야 한다.",
+      "sourceHash": "225a4f60a836ba9727fc1888d60828da9135886db17e251e20df23bd2d7291c3",
+      "t": "Cat. You are a blade. A blade belongs in its sheath.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-23:17",
+      "source": "검은 손 하나가 영냥이의 녹슨 왼발을 움켜쥐었다. 영냥이의 무릎이 꺾였다.",
+      "sourceHash": "e16140e0118e3cbb08b0f5c4be607daa921961c40284922c1e0989350323063c",
+      "t": "A black hand seized Yeongnyangi's rusted left paw. His knee buckled."
+    },
+    {
+      "id": "ep-23:18",
+      "source": "놔라. 이건 네 것이 아니다.",
+      "sourceHash": "a61b761df61b00b713a8dfb479d00577ec41c04db10d18cd80dbf3745b89ad4a",
+      "t": "Let go. This isn't yours."
+    },
+    {
+      "id": "ep-23:19",
+      "source": "손은 놓지 않았다. 오히려 손가락 사이로 검은 실이 뻗어 나와 영냥이의 다리를 칭칭 감기 시작했다. 하얀 털끝이 잿빛으로 변했다.",
+      "sourceHash": "74b50d8d63528ef9b3dbe49cdc61840627e8f4be852753115010e09c9a8d221f",
+      "t": "The hand did not release him. Black threads spread between its fingers and began winding tightly around his leg. The tips of his white fur turned gray."
+    },
+    {
+      "id": "ep-23:20",
+      "source": "그 발 놔!",
+      "sourceHash": "ed9cc3a01c0f8f8f2bf767cd02b6673231b6c7b86ca22d736f0d1b72d2a46a33",
+      "t": "Let go of his paw!"
+    },
+    {
+      "id": "ep-23:21",
+      "source": "연이의 가슴 깊은 곳에서 무언가가 터졌다. 한낮의 해 같은 불길이 앞발에서 쏟아져 나왔다. 丙 자가 글자판에서 붉게 타올랐다.",
+      "sourceHash": "817399c14429b37376dcede2c9403fc2752dc418625a617c3440c84708b55910",
+      "t": "Something burst deep in Yeoni's chest. Fire like the noonday sun poured from their hoof. 丙 blazed red on the chart."
+    },
+    {
+      "id": "ep-23:22",
+      "source": "불길은 검은 손을 태웠다. 그리고 멈추지 않았다. 손을 태운 불이 그대로 손이 쥐고 있던 하얀 앞발까지 덮쳤다.",
+      "sourceHash": "9439240442195d481419ea2bee8c937b73fc2ab810e2dbd7181f1634be2437d7",
+      "t": "The flames burned the black hand. And did not stop. The fire that consumed the hand swept straight over the white paw in its grip."
+    },
+    {
+      "id": "ep-23:23",
+      "source": "크윽.",
+      "sourceHash": "f070484e3fccbe2227a5fde3176101974edfbc623a2549bb07b89e55ffcb8510",
+      "t": "Ghh."
+    },
+    {
+      "id": "ep-23:24",
+      "source": "검은 손들이 비명처럼 흩어졌다. 하늘의 틈이 천천히 닫혔다. 열람실에는 타는 냄새와 쇠 녹는 냄새만 남았다.",
+      "sourceHash": "2c281dec7c4405109a6f4d44e19aeb3acf9fd50934bde1760ffe6bd4c0cea5b1",
+      "t": "The black hands scattered like screams. The sky's fissure slowly closed. Only the smells of burning and melting metal remained in the reading room."
+    },
+    {
+      "id": "ep-23:25",
+      "source": "끝났어? 끝난 거지? 돼지, 방금 그거 너야? 축제 섬 해보다 뜨거웠어.",
+      "sourceHash": "947044a26a10bf1328ed65024f8e06892b24928bba1b0e8bc1918b6829e9da68",
+      "t": "Is it over? It's over, right? Pig, was that you? Hotter than the festival island's sun."
+    },
+    {
+      "id": "ep-23:26",
+      "source": "숙녀분, 불 좀 낮춰 주세요. 책들이 땀을 흘려요.",
+      "sourceHash": "6ebd7655eeccd5be59d322460cc1018ce54a7ce72e525641351ddb5bd1f2db32",
+      "t": "My lady, please turn down the fire. The books are sweating."
+    },
+    {
+      "id": "ep-23:27",
+      "source": "연이는 자기 앞발을 내려다보았다. 아직 불씨가 손톱 끝에서 타닥거리고 있었다. 연이는 서둘러 앞발을 털었다.",
+      "sourceHash": "dfb92c470966894981416edbd1c1c03d5ae0589338e07274398ccad61bb6a941",
+      "t": "Yeoni looked at their own hooves. Embers still crackled at the tips. They hastily shook them out."
+    },
+    {
+      "id": "ep-23:28",
+      "source": "나 이렇게까지 해 본 적 없어. 그냥, 영냥이 발을 잡길래.",
+      "sourceHash": "6af3d64991ef76ac7947b277476aae57d3591793ee4b3038cb20708cf9166a2b",
+      "t": "I've never done that much before. It was just... they grabbed Yeongnyangi's paw."
+    },
+    {
+      "id": "ep-23:29",
+      "source": "그때 창가 쪽에서 낮은 신음이 들렸다.",
+      "sourceHash": "b642ca8ed3d5831dadb8c18037c2814bfa47fe1a4d698b7fb2b121fe153e7730",
+      "t": "Then a low groan came from the window."
+    },
+    {
+      "id": "ep-23:30",
+      "source": "영냥이가 바닥에 쓰러져 있었다. 왼발을 덮던 망토 자락이 다 타 버려서, 그 아래 숨겨 두었던 것이 그대로 드러나 있었다.",
+      "sourceHash": "e8230e0b1d8a4de9583b71bd9963807e51c809e678ad460ced5f843a21551f8d",
+      "t": "Yeongnyangi lay collapsed on the floor. The cloak covering his left paw had burned away, exposing everything he had hidden beneath."
+    },
+    {
+      "id": "ep-23:31",
+      "source": "영냥아.",
+      "sourceHash": "4e238d17bcace17a6779aa443afb5b719dc0df20359c6df256558b61f3a53770",
+      "t": "Yeongnyangi."
+    },
+    {
+      "id": "ep-23:32",
+      "source": "그을린 자국은 앞발에서 어깨까지 번져 있었다. 그 위를 붉은 녹이 덮고 있었다. 하루 이틀에 생긴 상처가 아니었다.",
+      "sourceHash": "0dbd57c6ced30bb6f9b3bfb21c47ba6e9ea3bd4cd4832a3828cec35995c9f9bf",
+      "t": "Scorch marks spread from paw to shoulder. Red rust covered them. This was no wound from the last day or two."
+    },
+    {
+      "id": "ep-23:33",
+      "source": "이거 언제부터야. 오늘 생긴 거 아니잖아.",
+      "sourceHash": "aa501ec5a27a607ef63620289c105420d1e48a7d7cd4d159c3d11953799cf5ec",
+      "t": "How long has it been like this? This didn't happen today."
+    },
+    {
+      "id": "ep-23:34",
+      "source": "별것 아니다.",
+      "sourceHash": "bd3072a5d1b15728611f5adb0d7991d42acf759c92b25e926c2c9401e89461aa",
+      "t": "It's nothing."
+    },
+    {
+      "id": "ep-23:35",
+      "source": "별것 아닌 게 어깨까지 와?",
+      "sourceHash": "4f2c2f8f8c00fd451d357f521cc576f24c99f7ff4bd9ee6477beb8133fc5acd2",
+      "t": "Nothing spreads all the way to your shoulder?"
+    },
+    {
+      "id": "ep-23:36",
+      "source": "대답보다 먼저 연이의 앞발이 움직였다. 연이는 덩굴을 가늘게 뽑아 영냥이의 앞발에 감기 시작했다. 감을수록 덩굴 끝이 그을음에 닿아 바스러졌다.",
+      "sourceHash": "b61172e0611c3cc274b688bcef20afac998e1ea9abcccf425b279fad15de89b5",
+      "t": "Yeoni's hoof moved before an answer came. They drew out a thin vine and began wrapping his paw. As they wound it, the vine's tip touched the scorch marks and crumbled."
+    },
+    {
+      "id": "ep-23:37",
+      "source": "그만해. 지금은 소용없어.",
+      "sourceHash": "d8b74c2f0c2efb89aff2b93ea0db309ba7e078aba00040a5abb2f1afdc90067b",
+      "t": "Stop. It won't help right now."
+    },
+    {
+      "id": "ep-23:38",
+      "source": "가만있어. 소용없는지 아닌지는 내가 정해.",
+      "sourceHash": "d74a2834bdd22797d2a4a7d20311fed34ef2a724b82a3aba9709f05783688348",
+      "t": "Stay still. I'll decide whether it helps."
+    },
+    {
+      "id": "ep-23:39",
+      "source": "숙녀분. 앉으세요. 제가 말씀드릴게요.",
+      "sourceHash": "6f50b45c4b2eff65fdd84543f36d7f2bbd086a5663d12b629e91f384805b9afe",
+      "t": "My lady. Sit down. I'll explain."
+    },
+    {
+      "id": "ep-23:40",
+      "source": "윤달도 알았어요?",
+      "sourceHash": "550f8bd37fdbc2fd8346ef2833465eeb7c8da992fd3e73505ebb4767f994c5e3",
+      "t": "You knew, too, Yundal?"
+    },
+    {
+      "id": "ep-23:41",
+      "source": "네. 고양이님이 숨 수련 시켜 주시던 날부터요.",
+      "sourceHash": "e2c19c46f3dfc3c8f6a6832677cc9ad9bea91689c45e568dcb9cf8e2b622ff25",
+      "t": "Yes. Since the day Mr. Cat taught you the breathing exercise."
+    },
+    {
+      "id": "ep-23:42",
+      "source": "모카 너도?",
+      "sourceHash": "276d5d3d42604f3599fba3bd1138e3c5dc8008d535a6573769c09810fd834e9d",
+      "t": "Moka, you too?"
+    },
+    {
+      "id": "ep-23:43",
+      "source": "나는 축제 섬에서부터. 재판정에서 네가 처음 소리 지른 날. 고양이 앞발에서 연기 났어.",
+      "sourceHash": "2ad39a4d928d6793bc95a9c69f4e098a9a8c0bd21dc084cc977e36ff48bfefa1",
+      "t": "Since the festival island. The day you first shouted in the courtroom. Smoke came from the cat's paw."
+    },
+    {
+      "id": "ep-23:44",
+      "source": "내가 물어보니까 고양이가 그러더라. 돼지한테 말하면 꼬치에 독 넣는다고.",
+      "sourceHash": "39c97235edc5575c6710f5a51900da7987da61d34d54e30fa7edf442acb95d4e",
+      "t": "When I asked him, he said he'd poison my skewers if I told the pig."
+    },
+    {
+      "id": "ep-23:45",
+      "source": "그런 말 안 했어. 꼬치를 다 먹어 버린다고 했지.",
+      "sourceHash": "64cc635a17f54525f81c666071210b5374c8f5e89064b0e8161e6b1cf7c5f293",
+      "t": "I never said that. I said I'd eat them all."
+    },
+    {
+      "id": "ep-23:46",
+      "source": "그게 더 잔인하거든!",
+      "sourceHash": "b14b2ec335bd0a571a9207eb1c6f485d1b009be39fdf99e4b3cf056541664f50",
+      "t": "That's even crueler!"
+    },
+    {
+      "id": "ep-23:47",
+      "source": "그때부터? 그 많은 날 동안, 다들 나만 빼고?",
+      "sourceHash": "3d433170b80a232e79993118a2255bd478464d7c5fb6088189c288258b6bc3e7",
+      "t": "Since then? All those days, everyone but me?"
+    },
+    {
+      "id": "ep-23:48",
+      "source": "아무도 대답하지 않았다. 모카는 꼬리를 내렸고, 윤달은 장갑 낀 손을 주머니에 넣었다. 그 침묵이 대답이었다.",
+      "sourceHash": "0ca2f98c88f6f70428c116f976d78cac4000ca62b0d28551e4d5b61ed08eff2c",
+      "t": "Nobody answered. Moka lowered his tail, and Yundal put his gloved hand in his pocket. Their silence was the answer."
+    },
+    {
+      "id": "ep-23:49",
+      "source": "나만 몰랐구나. 나만 신나서 불 내고 다녔구나.",
+      "sourceHash": "bfd8b26dd74a656971a6bffcc6f41e97de747a925e3690508f90c1827a366035",
+      "t": "So I was the only one who didn't know. I was the only one happily going around making fire."
+    },
+    {
+      "id": "ep-23:50",
+      "source": "숙녀분 월간이 丙화예요. 상관이에요. 하고 싶은 말을 하게 하고, 틀을 깨게 하는 불.",
+      "sourceHash": "c6c88f23c48f51085bb40c02dfd1d83d1f1d5e77f753ad2b54e6e483e812a637",
+      "t": "Your Month Stem is Byeong Fire. Hurting Officer. Fire that lets you say what you want and break free of constraints."
+    },
+    {
+      "id": "ep-23:51",
+      "source": "그리고 고양이님은 庚금, 정관이에요. 틀이고 규칙이고 이름표예요.",
+      "sourceHash": "6046f18d834af5ed396928d6b94729fe6c33ef1dac50155e94ee5e43935bd2a4",
+      "t": "And Mr. Cat is Gyeong Metal, Direct Officer. The structure, the rules, the name tag."
+    },
+    {
+      "id": "ep-23:52",
+      "source": "상관이 정관을 보면 정관이 다쳐요. 상관견관이라고 해요. 숙녀분 불이 커질수록, 고양이님이 녹아요.",
+      "sourceHash": "ede612b1fa78ca171d22e2c15c97becaa3bdb0b97fdf5721e499b442c91b0695",
+      "t": "When Hurting Officer meets Direct Officer, Direct Officer gets hurt. It's called Hurting Officer Meets Officer. The stronger your fire, the more Mr. Cat melts."
+    },
+    {
+      "id": "ep-23:53",
+      "source": "[ 丙 상관 → 庚 정관 · 상관견관 ]",
+      "sourceHash": "d8fe29238d258ef63929cfdfd70e6de714bd16b3caf43b60a107d4f2fee14c71",
+      "t": "[ 丙 Hurting Officer → 庚 Direct Officer · Hurting Officer Meets Officer ]"
+    },
+    {
+      "id": "ep-23:54",
+      "source": "글자판의 丙 자가 아직 붉게 달아 있었다. 그 열기가 닿는 庚 자 모서리마다 검은 그을음이 번져 있었다.",
+      "sourceHash": "0f88d71afe78df19099af8fb55f227ac5a315f680f3b51868f43f70d31e6ca94",
+      "t": "丙 on the chart was still red-hot. Wherever its heat touched the corners of 庚, black scorch marks spread."
+    },
+    {
+      "id": "ep-23:55",
+      "source": "그러니까. 내가 한 거야? 재판정에서도, 정오 무대에서도, 지금도?",
+      "sourceHash": "edd4962897bbfb2fa20a0bc25de9682dd785ab5d2053f2400bf0a298be0f34d0",
+      "t": "So. I did this? In the courtroom, at the noon concert, and now?"
+    },
+    {
+      "id": "ep-23:56",
+      "source": "네 잘못은 아니야. 이 명식에선 그렇게 부딪히는 거야.",
+      "sourceHash": "581856c2bfd80e137bd60dc3014339a0e51072486477b045bd3b66a257cee503",
+      "t": "It isn't your fault. That's how the energies clash in this chart."
+    },
+    {
+      "id": "ep-23:57",
+      "source": "그런 명식이면 말해 줬어야지!",
+      "sourceHash": "5eca32a71eb2a91f3fa1f966529487d8f07c616859178711d839fcc1ad04b20c",
+      "t": "Then you should have told me that's how the chart works!"
+    },
+    {
+      "id": "ep-23:58",
+      "source": "왜 말 안 했어?",
+      "sourceHash": "e53aedc73aaf70269a7c41025f15b61751b5cec90e81f0826d1afd65787cd349",
+      "t": "Why didn't you tell me?"
+    },
+    {
+      "id": "ep-23:59",
+      "source": "말하면 너는 불을 끌 거니까.",
+      "sourceHash": "160c666f7360a255e56005f7c593a290f1e6edbf325d6fab5d7dc12f6c182e23",
+      "t": "Because you would put out your fire."
+    },
+    {
+      "id": "ep-23:60",
+      "source": "당연하지! 내 불 때문에 네가 이렇게 되는데!",
+      "sourceHash": "e36685b13347d3caad0d2c2a11c9826e716329eb706a0a520effb78dd4f7aa33",
+      "t": "Of course I would! If my fire does this to you!"
+    },
+    {
+      "id": "ep-23:61",
+      "source": "그래서 말 안 한 거다. 불을 끈 너는 너가 아니다. 노래 못 하는 축제, 맛없는 꼬치. 너도 봤잖아.",
+      "sourceHash": "a1d7ddaaadd2df3c73f2d5b2b290acf622cd12e5d977192b320ad06625ae8196",
+      "t": "That's why I didn't say it. Without your fire, you aren't you. A festival that can't sing. Skewers with no taste. You saw them, too."
+    },
+    {
+      "id": "ep-23:62",
+      "source": "그럼 너는? 너는 녹아도 돼?",
+      "sourceHash": "78f40a4ca1a2a320b384f83483f628d074da2fe29488009f2309e57610cf76be",
+      "t": "Then what about you? It's okay for you to melt?"
+    },
+    {
+      "id": "ep-23:63",
+      "source": "그러려고 네 옆에 있는 거야.",
+      "sourceHash": "bf3ddd695b48055db3f9127dbab8d19ac919e2a5b2b8db361318209bdbf3989a",
+      "t": "That's why I'm by your side."
+    },
+    {
+      "id": "ep-23:64",
+      "source": "그런 말 하지 마. 그런 말 하는 거, 하나도 멋있지 않아.",
+      "sourceHash": "ebec84774c53635558821984f59e557da1465a887333ca8213ffe57ae0dbd0e2",
+      "t": "Don't say that. Saying things like that isn't cool at all."
+    },
+    {
+      "id": "ep-23:65",
+      "source": "영냥이는 입을 다물었다. 연이는 앞발로 눈을 문질렀다. 눈물이 그을음과 섞여 검게 번졌다.",
+      "sourceHash": "bdd45598256564249ee6e25968928ed0abc0ea5185d9cbfde1ca0d73f25521e6",
+      "t": "Yeongnyangi fell silent. Yeoni rubbed their eyes with a hoof. Tears mixed with soot and smeared black."
+    },
+    {
+      "id": "ep-23:66",
+      "source": "너는 맨날 나중이야. 끝나면 말해 준다며. 이게 끝나면이야? 네 어깨까지 녹이 올라와야 끝이야?",
+      "sourceHash": "6ab5255bfc7924efa9deaafc0d3a97978548570596df89c3d27d0c0859f0129e",
+      "t": "With you, it's always later. You said you'd tell me when it was over. Is this when it's over? When the rust reaches your shoulder?"
+    },
+    {
+      "id": "ep-23:67",
+      "source": "미안하다.",
+      "sourceHash": "4f1db53872912bc2982dc04156dd209134d4aa62d2ca82be9f473cda4bff85a8",
+      "t": "I'm sorry."
+    },
+    {
+      "id": "ep-23:68",
+      "source": "미안하다는 말 듣고 싶은 거 아니야!",
+      "sourceHash": "00156b726bc6a9b1d0a4b31300832c3d4b95c5e26f310ee9626203b2da9bec0f",
+      "t": "I'm not asking for an apology!"
+    },
+    {
+      "id": "ep-23:69",
+      "source": "그럼 무슨 말을 듣고 싶지.",
+      "sourceHash": "2c96dbf1613a3fbb4d454d0b238a47fa0d7d00638e4002a4997fab64d863cde1",
+      "t": "Then what do you want me to say?"
+    },
+    {
+      "id": "ep-23:70",
+      "source": "몰라! 그냥, 그냥 아프면 아프다고 해. 그게 그렇게 어려워?",
+      "sourceHash": "dc049c83064718db48281d6c124502f89aadc9f435177e657ee47bbdad2782a6",
+      "t": "I don't know! Just... just say it hurts when it hurts. Is that so hard?"
+    },
+    {
+      "id": "ep-23:71",
+      "source": "열람실이 조용해졌다. 모카는 꼬치 접시를 든 채 굳어 있었고, 윤달은 장갑을 다시 끼는 손을 멈추고 있었다.",
+      "sourceHash": "fa90b60a3de307b5f2c286413fcfcf98f7321db1f4442fa3778b050d303c7b01",
+      "t": "The reading room went quiet. Moka stood frozen with the skewer plate, and Yundal's hand had stopped halfway through putting on his glove."
+    },
+    {
+      "id": "ep-23:72",
+      "source": "아프다.",
+      "sourceHash": "1c6f941bbc5ce9b640fd347c156b4b9636b5dff1d6cba50bf30c5de5a19c5009",
+      "t": "It hurts."
+    },
+    {
+      "id": "ep-23:73",
+      "source": "어?",
+      "sourceHash": "3591e5439b1d2e05500126145688d17338074e45a643a8215e47d2b7bcb9c4c7",
+      "t": "Huh?"
+    },
+    {
+      "id": "ep-23:74",
+      "source": "아프다. 네가 불을 낼 때마다. 그런데 네가 불을 못 내면, 그게 더 아프다.",
+      "sourceHash": "3751e616f1f14dc1e34e86b5cb83676e097aa5ca77716f72bff0ffc2c42552f5",
+      "t": "It hurts. Every time you make fire. But if you can't make fire, that hurts more."
+    },
+    {
+      "id": "ep-23:75",
+      "source": "연이는 아무 말도 하지 못했다. 영냥이는 천천히 몸을 일으켰다. 녹슨 앞발이 바닥에 끌렸다.",
+      "sourceHash": "fcf9ac0531951660aed1a8e0c181883998de7742e9b135b693c222a9dc3ac954",
+      "t": "Yeoni could say nothing. Yeongnyangi slowly pushed himself up. His rusted paw dragged on the floor."
+    },
+    {
+      "id": "ep-23:76",
+      "source": "내가 옆에 있으면 너는 작아지고, 네가 커지면 나는 녹는다. 그게 우리 명식이다.",
+      "sourceHash": "acf876b2e06938c04dcc8f40da8aa3a411fdc0ee2deffd1466b25e464d1c92f0",
+      "t": "When I stay beside you, you become smaller. When you grow, I melt. That's our chart."
+    },
+    {
+      "id": "ep-23:77",
+      "source": "그럼 어떡하라고. 둘 중 하나는 계속 아파야 해?",
+      "sourceHash": "7aea9fe96ccb0f6fe2eec974331080eeeeb44f35317ac666a2ef87c2bb8ccc9b",
+      "t": "Then what are we supposed to do? One of us has to keep hurting?"
+    },
+    {
+      "id": "ep-23:78",
+      "source": "아니. 하나가 비켜 주면 된다.",
+      "sourceHash": "3f4084a96903a888ff80145b81fd36a465c5543c488b32dcedaad7c11c9f6afb",
+      "t": "No. One of us can step aside."
+    },
+    {
+      "id": "ep-23:79",
+      "source": "영냥아.",
+      "sourceHash": "4e238d17bcace17a6779aa443afb5b719dc0df20359c6df256558b61f3a53770",
+      "t": "Yeongnyangi."
+    },
+    {
+      "id": "ep-23:80",
+      "source": "그 순간 연이의 입에서 생각보다 먼저 말이 튀어나왔다. 불처럼, 막을 틈도 없이.",
+      "sourceHash": "4df97425154ac7851d1da7872be043cc1bfa6daa5e2a09ad04b1854b42fc270a",
+      "t": "In that instant, words escaped Yeoni's mouth before thought could catch them. Like fire, with no time to stop them."
+    },
+    {
+      "id": "ep-23:81",
+      "source": "그럼 비켜! 다치면서 옆에 있지 마! 그런 거 하나도 고맙지 않아!",
+      "sourceHash": "8a9d1306fcc5f26229f2920c1c4899f5d2cd5419200970007049f8ffaea42bf7",
+      "t": "Then step aside! Don't stay next to me getting hurt! I'm not grateful for that at all!"
+    },
+    {
+      "id": "ep-23:82",
+      "source": "말이 끝나자마자 연이는 후회했다. 그러나 말은 이미 열람실 바닥에 떨어져 굴러가고 있었다.",
+      "sourceHash": "efd0936c93cc7581259cd53f0df8c866e9da73e92e58aae973d24b9a83f899f3",
+      "t": "Yeoni regretted it as soon as the words were out. But they had already fallen to the reading-room floor and rolled away."
+    },
+    {
+      "id": "ep-23:83",
+      "source": "그래. 그게 맞다.",
+      "sourceHash": "7f24f61895fb95ce9c22f2b3915212fa6545f90a9bb50f37e519aca76f34f3ec",
+      "t": "Yes. That's right."
+    },
+    {
+      "id": "ep-23:84",
+      "source": "아니, 그게 아니라.",
+      "sourceHash": "218c764b89083c05d057299807d497f785747f227cc0737790817f191da76d48",
+      "t": "No, that's not..."
+    },
+    {
+      "id": "ep-23:85",
+      "source": "영냥이는 등을 돌렸다. 하얀 꼬리가 문틈으로 사라졌다. 문은 조용히 닫혔다. 이번에는 큰 소리도 나지 않았다.",
+      "sourceHash": "5d198d18b9bed544200835ee1ab97d0f67004831dbd76442723fe8a0cbec3b48",
+      "t": "Yeongnyangi turned away. His white tail vanished through the doorway. The door closed quietly. This time, there wasn't even a loud sound."
+    },
+    {
+      "id": "ep-23:86",
+      "source": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 時 □辰 ]  7/8",
+      "sourceHash": "8f887fc56589e671aca85baf487140da883a8fb1349e148aef62ba4a63041e79",
+      "t": "[ Year 壬午 · Month 丙午 · Day 乙亥 · Hour □辰 ]  7/8"
+    },
+    {
+      "id": "ep-23:87",
+      "source": "글자판의 庚 자가 꺼졌다. 빈칸이 다시 비었다. 연이의 앞발에 감겨 있던 덩굴이 힘없이 바닥으로 늘어졌다.",
+      "sourceHash": "0a2d01ea10e5308cafa41e0690c51a71c409575bcc54f2a634226f29de92e2d3",
+      "t": "庚 went dark on the chart. The blank was empty again. The vine around Yeoni's hoof drooped limply to the floor."
+    },
+    {
+      "id": "ep-23:88",
+      "source": "내가 비키라고 했어. 진짜로 간 거야.",
+      "sourceHash": "bcdbe1c088051b1386399df7ef6d3067554914d109fb0a1354c0d89cd602181e",
+      "t": "I told him to move aside. He really left."
+    },
+    {
+      "id": "ep-23:89",
+      "source": "야. 돼지.",
+      "sourceHash": "91c1afe008b4019b6ab40d8d28bf54271851158a9c4e822f7891b6a088ef1215",
+      "t": "Hey. Pig."
+    },
+    {
+      "id": "ep-23:90",
+      "source": "왜.",
+      "sourceHash": "2d0c4328e35c27d195260a5977cd84356325af0a18d2481849ec97f2574c4a60",
+      "t": "What?"
+    },
+    {
+      "id": "ep-23:91",
+      "source": "울지 말고 가서 잡아. 너 원래 그런 애잖아. 말 먼저 하고 뛰는 애.",
+      "sourceHash": "463818d138b7037970faed6ac28288610e286f6dc7659b45e8397f83fb3a8851",
+      "t": "Stop crying and go catch him. That's who you are. Talk first, run after."
+    },
+    {
+      "id": "ep-23:92",
+      "source": "고양이님 걸음이면 지금쯤 계단 끝이에요. 녹슨 발로는 빨리 못 가요.",
+      "sourceHash": "bbf40a8eb058ac2d88363077634d48bcd9085ad6ae305d15c3fbbe16b7fd2e5b",
+      "t": "At Mr. Cat's pace, he'll be at the bottom of the stairs about now. He can't go fast on that rusted paw."
+    },
+    {
+      "id": "ep-23:93",
+      "source": "잡아서 뭐라고 해. 내가 옆에 있으면 또 녹을 텐데.",
+      "sourceHash": "ca8a09461b4b9d839eb3680b36c975b54869c66f02a27c2771e2e65e759b1ce5",
+      "t": "What do I say when I catch him? Stay beside me, and he'll melt again."
+    },
+    {
+      "id": "ep-23:94",
+      "source": "그건 나중에 같이 풀어요. 명식은 문제지 판결이 아니에요. 풀 방법이 없는 문제는 제가 아직 못 봤어요.",
+      "sourceHash": "c59e28a068ca2f9ca829301efaecdcd82f80b619341ead60db1a6e87aef7a432",
+      "t": "We'll solve that together later. A chart is a problem, not a verdict. I've yet to see a problem without a way to solve it."
+    },
+    {
+      "id": "ep-23:95",
+      "source": "사기꾼 말 처음으로 믿어 본다. 빨리 가!",
+      "sourceHash": "42739a240d02cdd91763a9d5c192153cfe54d1dd433640600d0a757371b69b3d",
+      "t": "First time I'm trusting the con artist. Hurry!"
+    },
+    {
+      "id": "ep-23:96",
+      "source": "연이는 눈물을 소매로 훔쳤다. 그리고 문을 박차고 뛰어나갔다.",
+      "sourceHash": "15fd1f519b72957e3b8df847eae9d23c9d2f93b3b3b9da7d5340a3e6ff6cb05b",
+      "t": "Yeoni wiped their tears with a sleeve. Then they kicked open the door and ran."
+    },
+    {
+      "id": "ep-23:97",
+      "source": "계단을 뛰어 내려가는 동안 연이의 머릿속으로 장면들이 지나갔다. 별 하나를 받고도 고개만 끄덕이던 고양이. 재판정에서 앞을 막아서던 등.",
+      "sourceHash": "be3027d8b5f7fa6fe8c7c97eb491b3b43f62dbe9676ea66aff7e0afc90db4096",
+      "t": "As they raced downstairs, scenes flashed through Yeoni's mind. The cat who only nodded even after receiving one star. The back that stood before them in the courtroom."
+    },
+    {
+      "id": "ep-23:98",
+      "source": "정오 무대가 끝나고 혼자 강가로 가던 뒷모습. 물에 빠진 뒤 이상하게 걷던 왼발. 전부 봤는데, 전부 못 본 척했다.",
+      "sourceHash": "7e3e6f7e7c6158d422826662616e8bb64df90d1c9f39d01b583385ec90d6dce3",
+      "t": "His figure going alone to the river after the noon concert. His left paw walking strangely after the water. Yeoni had seen it all, and pretended not to see any of it."
+    },
+    {
+      "id": "ep-23:99",
+      "source": "(나도 알았어. 다들 말 안 한 게 아니라, 내가 안 물어본 거야.)",
+      "sourceHash": "b601b5c7f41aa4a711eff1635487700fa6d8eef1c877029eb106e3c1f35dec03",
+      "t": "(I knew, too. It wasn't just that nobody told me. I didn't ask.)"
+    },
+    {
+      "id": "ep-23:100",
+      "source": "도서관 밖은 강이었다. 별빛이 흐르는 강 위에 빈 나룻배 하나가 흔들리고 있었다.",
+      "sourceHash": "c8c0b7f059a8c4b6eaebb742d8a6327db5da15e629dd09a1204525069d485960",
+      "t": "Outside the library lay a river. An empty ferryboat rocked on the current of starlight."
+    },
+    {
+      "id": "ep-23:101",
+      "source": "영냥아! 영냥아, 내가 잘못 말했어! 돌아와!",
+      "sourceHash": "ee99460a129701f4cbf430e42f4e1050522917f0e3c240eb5a7c8ac64ee628d4",
+      "t": "Yeongnyangi! Yeongnyangi, I said it wrong! Come back!"
+    },
+    {
+      "id": "ep-23:102",
+      "source": "목소리가 강물에 떨어져 흘러갔다. 나룻배가 한 번 흔들렸다. 연이는 배 쪽으로 달려가 안을 들여다보았다. 비어 있었다.",
+      "sourceHash": "15552252e69545f805ec880e4a0f2e6e69d282e91d510c530407979036331588",
+      "t": "The call fell into the river and drifted away. The boat rocked once. Yeoni rushed over and looked inside. Empty."
+    },
+    {
+      "id": "ep-23:103",
+      "source": "비키라고 해서 진짜 비키는 고양이가 어디 있어. 평소엔 내 말 하나도 안 들으면서.",
+      "sourceHash": "451c43404829c20e871e3c89353342109ea458bb24af102f250180a4a1209fd1",
+      "t": "What cat actually moves aside because you tell him to? Usually, you don't listen to a thing I say."
+    },
+    {
+      "id": "ep-23:104",
+      "source": "배 바닥에 하얀 털 한 가닥이 떨어져 있었다. 연이는 그것을 앞발에 감았다. 아직 따뜻했다.",
+      "sourceHash": "b693663b4c76308d8ee97d189a9ac55a7eb082eec25ecc9610e8510f90aba710",
+      "t": "A single white hair lay on the boat's floor. Yeoni wound it around a hoof. Still warm."
+    },
+    {
+      "id": "ep-23:105",
+      "source": "대답은 없었다. 강가 돌 위에 붉은 녹 자국이 점점이 찍혀 있었다. 발자국은 강 하류 쪽으로 이어지다가 안개 속에서 끊겼다.",
+      "sourceHash": "7cf65066330a5b2a5d251201df2aaa10af35dbea76b56e061d99603884cf9339",
+      "t": "There was no reply. Dots of red rust marked the river stones. The pawprints led downstream, then ended in the fog."
+    },
+    {
+      "id": "ep-23:106",
+      "source": "안개가 짙었다. 연이는 앞발을 들어 올렸다. 불을 조금만 피우면 길이 보일 것 같았다.",
+      "sourceHash": "2e0179b07c76c1ea25aa8bdc8c8e9305c9f5249f026419b3e539f48d4ab73a8e",
+      "t": "The mist was thick. Yeoni raised a hoof. Just a little fire would show the way."
+    },
+    {
+      "id": "ep-23:107",
+      "source": "손톱 끝에 불씨가 맺혔다. 연이는 그 불씨를 한참 바라보다가, 앞발을 꼭 쥐어 껐다.",
+      "sourceHash": "9d84b009a6edd64056ba9fc6fbb86027a30e22e13ddb3fef555e8c98d27605ef",
+      "t": "An ember formed at the tip. Yeoni stared at it for a long time, then clenched their hoof and put it out."
+    },
+    {
+      "id": "ep-23:108",
+      "source": "이 불 켜면, 너 어딘가에서 또 아프겠지.",
+      "sourceHash": "1a2a25a68e814e32029dc0c73c9f41f3402b3780dee66b36b10b440c5e6122c6",
+      "t": "If I light this fire, you'll hurt again somewhere."
+    },
+    {
+      "id": "ep-23:109",
+      "source": "연이는 불 없이 안개 속으로 걸었다. 녹 자국을 하나씩 손으로 더듬으며 따라갔다. 차가운 돌에 앞발이 자꾸 미끄러졌다.",
+      "sourceHash": "e61ea1005f6c82aad630bca5ec1dd379a2110bb54e1f46c3cfe44decc90255f6",
+      "t": "Without fire, Yeoni walked into the mist. Feeling out each rust mark, they followed. Their hooves kept slipping on the cold stones."
+    },
+    {
+      "id": "ep-23:110",
+      "source": "넘어질 때마다 앞발에 감은 하얀 털을 먼저 확인했다. 털은 그때마다 조금씩 식어 가고 있었다.",
+      "sourceHash": "5831ec1916d4d7b74b4045b39b289cb1b95df7da4854b472664c5726e8bf40c7",
+      "t": "Each time they fell, they checked the white hair first. Each time, it had grown a little colder."
+    },
+    {
+      "id": "ep-23:111",
+      "source": "별 하나 준 거 취소할게. 다섯 개 줄게. 그러니까 대답 좀 해.",
+      "sourceHash": "f77ce2e16d4f9a0dde3cd7aa07fc7ac36d2716e895bf72897cc32ae373f029fa",
+      "t": "I'll take back that one star. Give you five. So please answer me."
+    },
+    {
+      "id": "ep-23:112",
+      "source": "안개 저편에서 물소리만 대답했다. 발자국은 거기서 끝나 있었다.",
+      "sourceHash": "8c1063411e6e0bbd17c92a1db0b4e60e8df36ecafa127188c146105735586d8c",
+      "t": "Only the water answered beyond the mist. The pawprints ended there."
+    },
+    {
+      "id": "ep-23:113",
+      "source": "끊긴 발자국 위로, 검은 그림자 하나가 천천히 기어가고 있었다. 사람 손 모양의 그림자였다.",
+      "sourceHash": "91fa8c1c9af5dd0b06c2dabdeebcc10983f9d85a56a33b29985bb5cd07f020f2",
+      "t": "Over the broken trail, a black shadow slowly crawled. A shadow shaped like a human hand."
+    },
+    {
+      "id": "ep-23:114",
+      "source": "안 돼.",
+      "sourceHash": "8c6e35f1500682e012a4314a410e6c5e49257cb6b41c64b550b5ed0ab5b96e9d",
+      "t": "No."
+    },
+    {
+      "id": "ep-23:115",
+      "source": "그림자는 안개 속으로 미끄러져 사라졌다. 녹 냄새와 함께.",
+      "sourceHash": "cb76ef80a40a65f57c8ac12009cf14423a55185a0c7c161fb09b0129df6312ec",
+      "t": "The shadow slipped into the fog and vanished. Along with the smell of rust."
+    }
+  ]
+}

@@ -1,0 +1,699 @@
+{
+  "locale": "en",
+  "episodeId": "ep-19",
+  "tag": "Episode 19 · The First Spring",
+  "title": "The First Spring",
+  "sourceTitle": "첫 번째 봄",
+  "sourceTag": "제19화 · 첫 번째 봄",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-19:1",
+      "source": "계단은 생각보다 길었다. 한 칸 내려갈 때마다 빗소리가 조금씩 가까워졌다. 지하인데도 비가 내리는 것 같았다.",
+      "sourceHash": "b76c0db074f76f7ec61003d54290e572c797adc5ea84ad18a3072dfeb155e28b",
+      "t": "The stairs were longer than expected. With every step down, the rain sounded a little closer. It felt as though rain was falling even underground."
+    },
+    {
+      "id": "ep-19:2",
+      "source": "지하에 비라니. 이 도서관 배수 공사 누가 했냐. 별 하나.",
+      "sourceHash": "9f7e4ea448e7260444f477f3a8e138d701636b9253e8858f747d88928279a0a3",
+      "t": "Rain in a basement. Who did this library's drainage? One star."
+    },
+    {
+      "id": "ep-19:3",
+      "source": "(별점은 내 일인데. 모카가 내 영역을 침범하고 있어.)",
+      "sourceHash": "b9711e8b3bb487a239d0c6aed1b925014626b3532e14c63c85c59a4a36dfd23c",
+      "t": "(Star ratings are my job. Moka's invading my territory.)"
+    },
+    {
+      "id": "ep-19:4",
+      "source": "계단 끝의 문이 저절로 열렸다. 안쪽 공기는 차갑고 맑았다. 마치 아직 아무도 숨 쉬어 본 적 없는 공기 같았다.",
+      "sourceHash": "d6146c22774777f20e38d530e49f8c098b26b8b62c2e56bdb9065a95a0f34847",
+      "t": "The door at the bottom opened by itself. The air inside was cold and clear, as though nobody had ever breathed it before."
+    },
+    {
+      "id": "ep-19:5",
+      "source": "유리병처럼 투명한 책들이 붉은 실에 매달려 공중에 떠 있었다. 바닥에 금빛 규칙이 떠올랐다.",
+      "sourceHash": "2a4f05ba1615b2e7aa5d27f43b4093d0aabeba6f7b0a4863808679872424bd45",
+      "t": "Books as transparent as glass bottles hung in midair from red threads. Golden rules appeared on the floor."
+    },
+    {
+      "id": "ep-19:6",
+      "source": "[ 지하 3층 · 일어나지 않은 일 · 펼치면 그 일이 조금 가까워진다 ]",
+      "sourceHash": "38bc2f3ed47de6268d79df361b2b4988bb6564f2e29a8981dd158e67f38fa0f8",
+      "t": "[ Basement Level 3 · Things That Have Not Happened · Open a book, and it comes a little closer ]"
+    },
+    {
+      "id": "ep-19:7",
+      "source": "아직 안 일어난 일이 책으로 있다고요? 그럼 여기 미래가 다 있는 거예요?",
+      "sourceHash": "91e1939e8b265dcd75f5fc44cb60643d65816298e28440a6f55b346eecdd79cc",
+      "t": "Things that haven't happened are in books? Then is the whole future here?"
+    },
+    {
+      "id": "ep-19:8",
+      "source": "미래라기보다는, 일어날 수도 있었던 일들이요. 될 수도 있고 영영 안 될 수도 있고.",
+      "sourceHash": "a5fb23c9ef23c4b44050348efce800ba208c70fffb20bed7ed7852ffa11d1312",
+      "t": "Less the future than things that might happen. They might come to be, or never happen at all."
+    },
+    {
+      "id": "ep-19:9",
+      "source": "잠깐. 야, 이거 봐. 「모카, 지하 무대 단독 공연 전석 매진」. 이거 펼쳐도 돼?",
+      "sourceHash": "f2b0adf48cb3591f102bd4136c9c0e49d1d20d348efd093084f68520069974e0",
+      "t": "Wait. Hey, look. Moka's Solo Underground Show Sells Out. Can I open this?"
+    },
+    {
+      "id": "ep-19:10",
+      "source": "펼치면 조금 가까워진대요. 연습은 안 해도 된다는 말은 없고요.",
+      "sourceHash": "0a27b911b2b90a79e221a3f3a10d004e8fcecba8481108bdf1ede7269785df63",
+      "t": "It says opening it brings it a little closer. It doesn't say you can skip practice."
+    },
+    {
+      "id": "ep-19:11",
+      "source": "그럼 의미 없잖아! 매진이 다가와도 내 실력이 그대로면 망신만 다가오는 거잖아.",
+      "sourceHash": "03a44b303753596dc189a7b8b2301e85f2f57c448717088a945ef5ed8dccfd35",
+      "t": "Then what's the point?! If a sold-out show gets closer but my skills stay the same, that's just humiliation getting closer."
+    },
+    {
+      "id": "ep-19:12",
+      "source": "모카 진짜 랩 연습 안 하는구나.",
+      "sourceHash": "d84102174eb4833d4f1e58ea0835f24aa5f3f476f13f79cdea2d18cbd272f4c1",
+      "t": "Moka really doesn't practice his rap, huh."
+    },
+    {
+      "id": "ep-19:13",
+      "source": "하거든! 너 잘 때 한다고!",
+      "sourceHash": "7063dc62885cc001d1c0134588bd11c63f0ac162b328b43215ee3e200cababc2",
+      "t": "I do! While you're asleep!"
+    },
+    {
+      "id": "ep-19:14",
+      "source": "밤마다 벽 너머에서 들리던 박자가 그거였구나.",
+      "sourceHash": "4260a327674b557d277d2ef4fdc116c670173b08a35626f65fce8a43d5d0a7f4",
+      "t": "So that was the rhythm coming through the wall every night."
+    },
+    {
+      "id": "ep-19:15",
+      "source": "쥐 아니고 비트박스야! 고양이 귀는 장식이냐?",
+      "sourceHash": "101554cd4dcadab13e9afcb9508292ab355c8e09688e1a49a8fb6e6d2575d2af",
+      "t": "Beatboxing, not mice! Are those cat ears just decorations?"
+    },
+    {
+      "id": "ep-19:16",
+      "source": "손목의 아기 용이 빗소리 쪽으로 고개를 쭉 뺐다. 아까 마신 물이 아직 배 속에서 출렁거렸다.",
+      "sourceHash": "1d95d094de5a46802c992ddb5d9899986c703540e19838473522c112944ab51d",
+      "t": "The baby dragon on Yeoni's wrist stretched its neck toward the rain. The water it had drunk earlier still sloshed inside its belly."
+    },
+    {
+      "id": "ep-19:17",
+      "source": "너 또 마시려고? 안 돼. 배 터져. 이번엔 진짜 별 하나 준다.",
+      "sourceHash": "4955fa0ccb03720a190c7b2db7304a57a54cda43ac9c5bfa37fd595e28ced028",
+      "t": "Want another drink? No. You'll burst. I'll really give you one star this time."
+    },
+    {
+      "id": "ep-19:18",
+      "source": "윤달은 웃으며 옆 책장으로 걸음을 옮겼다. 손끝이 얇은 책 한 권에 닿았다가 멈췄다.",
+      "sourceHash": "ac2f3ddbd55af03948c54f9a6438105cd54d8926a2e9377061a8696646265c7d",
+      "t": "Smiling, Yundal moved toward the next shelf. His fingertips touched a thin book, then stopped."
+    },
+    {
+      "id": "ep-19:19",
+      "source": "[ 「윤달, 집에 돌아감」 · 0쪽 ]",
+      "sourceHash": "ba06d31622883d5f1ae619ff440c52c576a23659a3cbf66706e054a104ee0853",
+      "t": "[ Yundal Goes Home · 0 pages ]"
+    },
+    {
+      "id": "ep-19:20",
+      "source": "아저씨. 0쪽이에요.",
+      "sourceHash": "5edc7553bd146a692484a12ef3e52564a6b87f2ef5ea9a334bd9088bc6cf8598",
+      "t": "Mister. Zero pages."
+    },
+    {
+      "id": "ep-19:21",
+      "source": "사기꾼 너 진짜 안 돌아갈 생각이었냐? 왜 한 줄도 없어.",
+      "sourceHash": "c1e8d76688bdcd8d52e619df55c3bf218cd83b474e35f2dfc4fe532ec7a1d7ae",
+      "t": "Con artist, did you really plan on never going back? Why isn't there even one line?"
+    },
+    {
+      "id": "ep-19:22",
+      "source": "표지는 있네요. 그럼 됐어요. 표지가 있다는 건 아직 안 끝났다는 뜻이니까.",
+      "sourceHash": "c4c8b158377802d0e4edd3ef2c6ad2cc1b190ac08d5a24292ae0d02fd5486334",
+      "t": "It has a cover. That's enough. Having a cover means it isn't over yet."
+    },
+    {
+      "id": "ep-19:23",
+      "source": "그는 책을 건드리지 않고 손을 거두었다. 장갑 안쪽의 구멍이 아주 작게 바람 소리를 냈다.",
+      "sourceHash": "a434fc03ed8a34116022000bd438d6fc766fd680ed157f4b83fcac405c3e37c2",
+      "t": "He withdrew his hand without touching the book again. Inside his glove, the hole made a tiny sound of wind."
+    },
+    {
+      "id": "ep-19:24",
+      "source": "그럼 제가 매일 불러 드릴게요. 윤달, 윤달. 그럼 위층 아저씨 책도 매일 한 장씩 두꺼워지잖아요.",
+      "sourceHash": "c2b848bb6cf976440a1ed2a347ed89a839d121355236559f3b2c67c7423ee123",
+      "t": "Then I'll call your name every day. Yundal, Yundal. That'll make your book upstairs one page thicker every day, too."
+    },
+    {
+      "id": "ep-19:25",
+      "source": "하루 한 장이면 10년이면 3천 장인데요. 그 책 무거워서 못 들고 다니겠네요.",
+      "sourceHash": "fb2fe1b87755bfa6fed6c92009197a426d95a1af5a42f08fbdd9656beff91814",
+      "t": "A page a day means three thousand pages in ten years. That book will be too heavy to carry."
+    },
+    {
+      "id": "ep-19:26",
+      "source": "걱정 마. 내가 들어 줄게. 운반비는 따로 받고.",
+      "sourceHash": "7d9a0c966c82ec8fad4d866b140f7e747f4f88806c1279a778527aa5fc193fb3",
+      "t": "Don't worry. I'll carry it. Delivery fee charged separately."
+    },
+    {
+      "id": "ep-19:27",
+      "source": "윤달은 웃었다. 이번에는 장난이 하나도 섞이지 않은 웃음이었다.",
+      "sourceHash": "425aac7ee18721791586a04b289423dfeacfae16756c7bed81b3cb155a688a5d",
+      "t": "Yundal smiled. This time, there wasn't a trace of teasing in it."
+    },
+    {
+      "id": "ep-19:28",
+      "source": "영냥이는 그 사이 혼자 앞서 걷고 있었다. 갈림길이 나와도 망설이지 않았다. 몇 번이고 와 본 길처럼.",
+      "sourceHash": "6fa4dc075fd896bc61bde920d55b7cf49954ad482317aaef533c6efacce56aad",
+      "t": "Meanwhile, Yeongnyangi walked ahead alone. Even at forks, he never hesitated. Like a route he'd taken many times."
+    },
+    {
+      "id": "ep-19:29",
+      "source": "고양이님, 길 알아? 여기 처음 아니야?",
+      "sourceHash": "62fd7295f1972a4a0da6a3bf8f05623f1e72c9d724cbf669b4150a656fc75c09",
+      "t": "Mr. Cat, do you know the way? Isn't this your first time here?"
+    },
+    {
+      "id": "ep-19:30",
+      "source": "냄새를 따라온 거야. 젖은 발자국도 이쪽이고.",
+      "sourceHash": "2f42b2a89117c8eb1198f78c86937113c39e57d20798a2f49866f7be93cbb1a5",
+      "t": "I'm following the smell. The wet pawprints go this way, too."
+    },
+    {
+      "id": "ep-19:31",
+      "source": "(발자국은 아까 계단에서 끊겼는데.)",
+      "sourceHash": "8990742a535ee8b38e3713b872152ea683a7b8e7c9578ed58a9dc46b660eb1e3",
+      "t": "(The pawprints ended back on the stairs.)"
+    },
+    {
+      "id": "ep-19:32",
+      "source": "영냥이를 따라가던 연이의 눈에 책 한 권이 걸렸다. 연분홍 표지 위의 제목이 반쯤 번져 있었다.",
+      "sourceHash": "d0b43989224c16cf30cff7c884b153e5b00418b2cb2b51b1d4ca79d484710f78",
+      "t": "Following Yeongnyangi, Yeoni noticed a book. Half the title on its pale pink cover was blurred."
+    },
+    {
+      "id": "ep-19:33",
+      "source": "[ 「꽃돼지 · 하얀 □□와 벚꽃 강가에서」 · 0쪽 ]",
+      "sourceHash": "e57411b108616a5a08c81add86caa8c346aaeba7e3a67e7a8e92e78071003548",
+      "t": "[ Flower Pig · By the Cherry-Blossom River with the White □□ · 0 pages ]"
+    },
+    {
+      "id": "ep-19:34",
+      "source": "하얀 뭐? 하얀 뭐랑? 이거 왜 하필 거기만 번졌어!",
+      "sourceHash": "250f11cd9617b58a28c2a2868e59cd7a890d90d6a0656fc31757c54bf22c2e65",
+      "t": "White what? With a white what? Why is that the part that's blurred?!"
+    },
+    {
+      "id": "ep-19:35",
+      "source": "하얀 떡. 너라면 하얀 떡이야. 벚꽃 강가에서 떡 먹는 책.",
+      "sourceHash": "3d04b425b8cf47a8c3c6915ea598b8a7cb6b0ebbced4d982d7b7e6f5932816f2",
+      "t": "White rice cake. For you, it's a white rice cake. A book about eating rice cakes by a cherry-blossom river."
+    },
+    {
+      "id": "ep-19:36",
+      "source": "0쪽짜리 책에서까지 나를 먹보로 만들지 마!",
+      "sourceHash": "50ce37d16fa2ac1371ae66475a6269d0797ce52336c6076216a6bb346da893b5",
+      "t": "Don't make me a glutton even in a book with zero pages!"
+    },
+    {
+      "id": "ep-19:37",
+      "source": "앞서 걷던 영냥이의 꼬리가 아주 잠깐 멈췄다가 다시 흔들렸다. 그는 뒤돌아보지 않았다.",
+      "sourceHash": "868c304df1ebcf3d8537a35c49f6b99f3526e047d3e2bc073b0de9fbd1184810",
+      "t": "Ahead, Yeongnyangi's tail stopped for the briefest instant, then swayed again. He did not turn."
+    },
+    {
+      "id": "ep-19:38",
+      "source": "가장 깊은 곳, 작은 받침대 위에 책 한 권이 놓여 있었다. 다른 책들과 달리 투명하지 않았다. 검은 천으로 감싸고 검은 사슬로 묶여 있었다.",
+      "sourceHash": "1881fad5834d937df2b856e495354fd90ba50b12d82cca3afb68b33c5d94d196",
+      "t": "In the deepest part stood a small pedestal with one book on it. Unlike the others, it was not transparent. Black cloth covered it, and black chains bound it."
+    },
+    {
+      "id": "ep-19:39",
+      "source": "표지에 하얀 글씨가 박혀 있었다. 꽃돼지 · 첫 번째 봄.",
+      "sourceHash": "a6b94e67c97f2b508984344f82d90993226bbfeb164a9ad024b6f2cc4e5f0105",
+      "t": "White letters marked the cover. Flower Pig · The First Spring."
+    },
+    {
+      "id": "ep-19:40",
+      "source": "찾았다. 여기 있었어.",
+      "sourceHash": "dc11eea9e7fbed47c2f9f49e47b3f3e925d7dca9c14b3fe1a3f93b0a66239c30",
+      "t": "Found it. It was here."
+    },
+    {
+      "id": "ep-19:41",
+      "source": "잠깐만요. 대출 중이라던 책이 왜 여기 있을까요. 그리고 이 서가는 일어나지 않은 일의 서가예요.",
+      "sourceHash": "c9070c0415b20ae099dc5c096f64fe20588707b7d445b2eca71ad3288619e81c",
+      "t": "One moment. Why is a book that's supposedly on loan here? And these are the shelves of things that haven't happened."
+    },
+    {
+      "id": "ep-19:42",
+      "source": "그게 무슨 뜻인데요?",
+      "sourceHash": "247ece530d773ff44ebf221ac141d9c4235f321eac2a6e7699993be18d552bf7",
+      "t": "What does that mean?"
+    },
+    {
+      "id": "ep-19:43",
+      "source": "어디선가 있었는데, 지금은 없던 일이 된 봄이라는 뜻이요. 누가 이 책을 여기 숨겨 놓은 거예요.",
+      "sourceHash": "2574f41c229b1ea3deb8cc979907882e03ccfbb3b79995b5d286f6025721e5e2",
+      "t": "It means a spring that happened somewhere has now become something that never happened. Someone hid this book here."
+    },
+    {
+      "id": "ep-19:44",
+      "source": "사슬 가운데에 자물쇠가 달려 있었다. 자물쇠에는 두 글자가 새겨져 있었다. 壬午.",
+      "sourceHash": "9a2f98d9b161cfbfcd4e071fb6d3c023c0f4b0b6520df7943a16a008994c5601",
+      "t": "A padlock hung at the center of the chains. Two characters were engraved on it. 壬午."
+    },
+    {
+      "id": "ep-19:45",
+      "source": "연이의 가슴이 쿵 하고 울렸다. 명식판의 빈칸, 年 자리가 그 두 글자를 향해 끌려가는 것 같았다.",
+      "sourceHash": "6f069e4b833a3eae9b95458eb33f036f05955c1f394260674caa7d979c7c4d78",
+      "t": "Yeoni's heart thudded. The empty Year space on their chart seemed to pull toward those two characters."
+    },
+    {
+      "id": "ep-19:46",
+      "source": "[ 年 □□ · 月 丙午 · 日 乙亥 · 時 □辰 ]  5/8 — 반응 : 壬午",
+      "sourceHash": "ba2ad59893e7359fb6176adb9df52209f8c254673feaeac3773f387fc364ea01",
+      "t": "[ Year □□ · Month 丙午 · Day 乙亥 · Hour □辰 ]  5/8 — Response: 壬午"
+    },
+    {
+      "id": "ep-19:47",
+      "source": "내 年柱야. 이 책 안에 내 글자가 있어.",
+      "sourceHash": "006f2ae7f75c47a8241528ddec36d97c66fe66515eca12bd306aa3e103da1a11",
+      "t": "My Year Pillar. My characters are inside this book."
+    },
+    {
+      "id": "ep-19:48",
+      "source": "연이는 자물쇠에 앞발을 댔다. 그 순간 바닥의 금빛 글씨가 붉게 바뀌었다.",
+      "sourceHash": "913283b821a333e3fb15f28e866ce0c5b02bc170a33114feb0b2ffc0157ac5b1",
+      "t": "Yeoni touched the lock with a hoof. Instantly, the golden writing on the floor turned red."
+    },
+    {
+      "id": "ep-19:49",
+      "source": "[ 열람 불가 · 꽃돼지 님은 이미 한 권을 읽으셨습니다 (1/1) ]",
+      "sourceHash": "487db053c4e34c9c73c0f3f97b0b237df360f30f967cf495b8b15135df9c853c",
+      "t": "[ Access denied · Flower Pig has already read one book (1/1) ]"
+    },
+    {
+      "id": "ep-19:50",
+      "source": "아. 자장가.",
+      "sourceHash": "5ce47c3db677c55ffdce4230131721a4f7e747bf419764bccfe516d7b61f5585",
+      "t": "Oh. The lullaby."
+    },
+    {
+      "id": "ep-19:51",
+      "source": "그럼 내가 열어 줄게. 비켜 봐.",
+      "sourceHash": "7686fd69f5ffe36312a74bf3541a3a9c8f33673a728b3a7e24a20e14811d2e22",
+      "t": "Then I'll open it. Move over."
+    },
+    {
+      "id": "ep-19:52",
+      "source": "모카가 자물쇠를 잡자 사슬이 뱀처럼 꿈틀거리며 그 앞발을 튕겨 냈다.",
+      "sourceHash": "2de0c92ccd6935d61a7c8a3923a4cce66610d53237876a7e8dd9862fac5b6f58",
+      "t": "When Moka grabbed the lock, the chains writhed like snakes and flung his paw away."
+    },
+    {
+      "id": "ep-19:53",
+      "source": "[ 열람 불가 · 소유자 외 열람 금지 ]",
+      "sourceHash": "34dee4edd9692c72fe62f7b08664e56163168e9a16b64509dcebab819d2ef031",
+      "t": "[ Access denied · Owner only ]"
+    },
+    {
+      "id": "ep-19:54",
+      "source": "주인은 못 열고 남은 못 열고. 그럼 이 책은 누가 열어!",
+      "sourceHash": "7620e677356b226dfcd2775950500644ff8dd414099e2e5a1fd3999f18371813",
+      "t": "The owner can't open it, nobody else can open it. Then who can open this book?!"
+    },
+    {
+      "id": "ep-19:55",
+      "source": "괜찮아. 후회 안 해. 그 꼬맹이는 오늘 밤에 잘 잘 거야.",
+      "sourceHash": "9c90e7f076c6311b114feb410318b41247998531411c412b9495439298b6c351",
+      "t": "It's okay. I don't regret it. That little one will sleep well tonight."
+    },
+    {
+      "id": "ep-19:56",
+      "source": "연이는 웃었다. 그런데 웃는 앞발 끝이 조금 떨렸다. 바로 눈앞에 있는데 손댈 수 없는 봄이었다.",
+      "sourceHash": "d51fd448858612c0c855a4c6305b7658c3a10096d2ea9862b6824b3317b26754",
+      "t": "Yeoni smiled. Yet the tips of their hooves trembled a little. Their spring was right before their eyes, beyond their reach."
+    },
+    {
+      "id": "ep-19:57",
+      "source": "연이야. 그 책은 열지 마. 방법도 찾지 마.",
+      "sourceHash": "b3c16e2332585fee52698010638ee847fd06088ffcb4f16a48c3fc5dad17f203",
+      "t": "Yeoni. Don't open that book. Don't look for a way, either."
+    },
+    {
+      "id": "ep-19:58",
+      "source": "목소리가 이상하게 낮았다. 연이는 천천히 고개를 돌려 영냥이를 보았다.",
+      "sourceHash": "8149574a4a33b09b16cabf1872a145a5e28319be5880842a0ad621fd87685339",
+      "t": "His voice was strangely low. Yeoni slowly turned to look at Yeongnyangi."
+    },
+    {
+      "id": "ep-19:59",
+      "source": "너 이 책 알지.",
+      "sourceHash": "dd65a6149175a2a432688bd44c645a437c189158743f624620da93133958c4b2",
+      "t": "You know this book."
+    },
+    {
+      "id": "ep-19:60",
+      "source": "나도 몰라. 이 책은 처음 봐.",
+      "sourceHash": "e0f4eb4c553c86ef657a99bd33957a031adc2efa383acea9fab525101c169cf4",
+      "t": "I don't know, either. It's the first time I've seen it."
+    },
+    {
+      "id": "ep-19:61",
+      "source": "거짓말. 너 거짓말할 때 털끝이 서. 지금 섰어.",
+      "sourceHash": "0a831f17c48bd343c6ca181959302a6a2ef0917642be34c3a77d5899c980b570",
+      "t": "Liar. Your fur stands up when you lie. It's standing up now."
+    },
+    {
+      "id": "ep-19:62",
+      "source": "영냥이가 대답하지 않았다. 대신 왼 앞발을 조금 들었다. 연이의 목소리가 날카로워질수록 그 앞발의 그을린 자국이 짙어졌다.",
+      "sourceHash": "fc5b12a45e01a3b13429e78c318c6f4025fd6b451ca9c24d683b481a4fb74331",
+      "t": "Yeongnyangi did not answer. Instead, he lifted his left paw a little. As Yeoni's voice sharpened, the scorch marks on it darkened."
+    },
+    {
+      "id": "ep-19:63",
+      "source": "대출 카드에서 비 냄새 날 때도, 빈칸 볼 때도, 너만 이상했어. 뭔데. 뭘 숨기는데.",
+      "sourceHash": "db0cd2de06d09ebbb8eb42257ac02e3a52ef68880c8e01cd5cc99955976bc52b",
+      "t": "When the card smelled of rain, when we saw the empty shelf—you were the only one acting strange. What is it? What are you hiding?"
+    },
+    {
+      "id": "ep-19:64",
+      "source": "지금은 말할 수 없어. 미안해.",
+      "sourceHash": "e2656e6114f337a8104ba8f88822093bdca5620254d9942853c073b93ad21f47",
+      "t": "I can't tell you now. I'm sorry."
+    },
+    {
+      "id": "ep-19:65",
+      "source": "지금은? 그럼 언제? 너는 맨날 나중이야!",
+      "sourceHash": "a66786e15bd241979d3eebf8b1a22fe03e626ebd13d43a675654cf2708038bee",
+      "t": "Now? Then when? With you, it's always later!"
+    },
+    {
+      "id": "ep-19:66",
+      "source": "야, 야. 둘 다 진정해. 싸우는 건 밥 먹고 해. 공복에 싸우면 말이 세져.",
+      "sourceHash": "b6cb60ce163f43b26dbf3e854e42a34716249e35c4922a9157ca21849f32a196",
+      "t": "Hey, hey. Both of you, calm down. Fight after a meal. An empty stomach makes your words harsher."
+    },
+    {
+      "id": "ep-19:67",
+      "source": "모카는 빠져. 이건 우리 둘 얘기야.",
+      "sourceHash": "b816e13e5ddbf2098528ea70a3823d97a00a5367d6271d9946b891f67f256e00",
+      "t": "Stay out of it, Moka. This is between us."
+    },
+    {
+      "id": "ep-19:68",
+      "source": "연이 말이 맞다. 이건 내 문제다.",
+      "sourceHash": "d0686dee3850c3bf142c365c4589c5c8b270b43848ca9f0f5f1c89301b02a743",
+      "t": "Yeoni's right. This is my problem."
+    },
+    {
+      "id": "ep-19:69",
+      "source": "둘 다 똑같은 소리 하네. 그러니까 싸우는 거야.",
+      "sourceHash": "f4133be8575bed2dcfca9f83be32ed863598cae192dbfe7bf6cd535e45b813df",
+      "t": "You're both saying the same thing. That's why you're fighting."
+    },
+    {
+      "id": "ep-19:70",
+      "source": "영냥이의 앞발이 다시 움찔했다. 연이는 보지 못했다. 그녀는 이미 책 쪽으로 고개를 돌린 뒤였다.",
+      "sourceHash": "87d78a62237f862d4dae33868672082a1b0762b791f75ef2c9871fcfb5b59350",
+      "t": "Yeongnyangi's paw twitched again. Yeoni didn't see. They had already turned back toward the book."
+    },
+    {
+      "id": "ep-19:71",
+      "source": "두 분. 잠깐만요. 공기가 바뀌었어요.",
+      "sourceHash": "806f4d381a9adb2c0859619e8d50050e307c1c2197da42af253563fd1ab7f77e",
+      "t": "You two. Wait a moment. The air has changed."
+    },
+    {
+      "id": "ep-19:72",
+      "source": "받침대 밑의 그림자가 부풀어 올랐다. 사슬 틈마다 검은 손가락이 솟아 책을 감싸 쥐었다.",
+      "sourceHash": "7d3b1bbe013eae0e5654810274d88f2be941f22cbcf522259f62b6a96de53a3b",
+      "t": "The shadow beneath the pedestal swelled. Black fingers rose through every gap in the chains and clutched the book."
+    },
+    {
+      "id": "ep-19:73",
+      "source": "그릇의 첫 번째 봄. 그건 처음부터 내 것이었다.",
+      "sourceHash": "608060cb75a62dc09d655a81f476151752fc32265227a8c4849803169c0dbe00",
+      "t": "The vessel's first spring. That was mine from the beginning.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-19:74",
+      "source": "또 너야? 남의 책 좀 그만 먹어!",
+      "sourceHash": "4f571903f0fc741563d555bb6e06a822ec92efa1ea78988720e3c29f408eadb0",
+      "t": "You again? Stop eating other people's books!"
+    },
+    {
+      "id": "ep-19:75",
+      "source": "먹는 게 아니다, 아이야. 돌려받는 것이지.",
+      "sourceHash": "5ada441806ff34793ea40abfa9a72ac1e191008243cc87ed78567f3e14e03016",
+      "t": "Not eating, child. Taking back.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-19:76",
+      "source": "검은 손 수십 개가 한꺼번에 덮쳐 왔다. 영냥이가 앞으로 뛰어나가 발톱을 휘둘렀고, 모카의 국자 끝에서 불이 튀었다.",
+      "sourceHash": "2488ccc68299853be7d40de91b28d3dd1fe711639c0358ec0978521f446ec808",
+      "t": "Dozens of black hands lunged at once. Yeongnyangi sprang forward, slashing his claws, and fire sparked from Moka's ladle."
+    },
+    {
+      "id": "ep-19:77",
+      "source": "윤달이 장갑을 벗었다. 손바닥의 구멍이 바람 소리를 내며 검은 손들을 한 움큼씩 빨아들였다.",
+      "sourceHash": "92fc7cdad93faaae430ba4079ff12fb5d7b3139eaf5e384591d99aadff118290",
+      "t": "Yundal took off his glove. With a rush of wind, the hole in his palm sucked in handfuls of black hands."
+    },
+    {
+      "id": "ep-19:78",
+      "source": "크… 오늘 메뉴는 좀 많이 짜네요.",
+      "sourceHash": "8dc08ff292cefe819a8c2e573fa55190ea0f295d2e302a2f0e782758fdf33251",
+      "t": "Urgh... Today's menu is rather salty."
+    },
+    {
+      "id": "ep-19:79",
+      "source": "손바닥의 구멍이 손목 쪽으로 한 마디쯤 번졌다. 윤달은 웃는 얼굴로 그 손을 다시 들었다.",
+      "sourceHash": "bf96009b7342bb0f802c9e81b22000852fe60963c9bc232bbc3a555319c23cc0",
+      "t": "The hole spread about a finger joint toward his wrist. Still smiling, Yundal raised the hand again."
+    },
+    {
+      "id": "ep-19:80",
+      "source": "아저씨, 그만해요! 구멍이 커지잖아요!",
+      "sourceHash": "d2714fbc7eaddbc821efd4c07013214ca1acf50893298d7b5193315e7201f770",
+      "t": "Mister, stop! The hole's getting bigger!"
+    },
+    {
+      "id": "ep-19:81",
+      "source": "괜찮아요. 숙녀분 책 지키는 거면, 이 정도는 외상으로 해 둘게요.",
+      "sourceHash": "cbc6ab532189903cc31da89d771218cf3d89f730dc9a5d7b51a5f8f328e07b5b",
+      "t": "It's all right. If it's to protect your book, my lady, I'll put this much on your tab."
+    },
+    {
+      "id": "ep-19:82",
+      "source": "그때 천장에서 진짜 비가 떨어지기 시작했다. 검은 손들 사이로 검은 그림자 하나가 빗줄기를 타고 미끄러져 내려왔다.",
+      "sourceHash": "00c014468dbb0e1f07fda63cb8c56af3341cdb8670e9beca6c412a03f8d81464",
+      "t": "Then real rain began falling from the ceiling. Between the black hands, a black shadow slid down the streams of rain."
+    },
+    {
+      "id": "ep-19:83",
+      "source": "호랑이였다. 그녀는 받침대 위로 뛰어올라 책을 앞발로 눌렀다. 검은 손들이 주인을 알아본 듯 물러났다.",
+      "sourceHash": "8da93663836fe1b500abf9c30010259757831cd4edd33362dcf6cb695e6f0664",
+      "t": "The tiger. It leaped onto the pedestal and pressed a paw onto the book. The black hands withdrew as though recognizing a master."
+    },
+    {
+      "id": "ep-19:84",
+      "source": "회수합니다. 이건 제가 가져가겠습니다.",
+      "sourceHash": "e379623b671dbfdec216530e3f3f6de5e960baeebe6f73df93c31f250fe46635",
+      "t": "Retrieving it. I'll take this."
+    },
+    {
+      "id": "ep-19:85",
+      "source": "회수? 그거 내 이름 적힌 책이야. 네 장부엔 남의 봄까지 적혀 있어?",
+      "sourceHash": "73f7fbedb26c7c66090f766eb36342dba5c305dcf752363e1edfedf4a0e5dde3",
+      "t": "Retrieving? That's my name on the book. Does your ledger even include other people's springs?"
+    },
+    {
+      "id": "ep-19:86",
+      "source": "늦었구나. 그래도 좋다. 가져와라.",
+      "sourceHash": "48d8a0e49ee6e05cd5d57141443982167bb713c13b848936e4c964194f8daff8",
+      "t": "You're late. But very well. Bring it.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-19:87",
+      "source": "안 돼!",
+      "sourceHash": "4dec9bcfd493bcac51d8ab82c1d8561dc2e5ace0e6699e72306b3203ad613d5f",
+      "t": "No!"
+    },
+    {
+      "id": "ep-19:88",
+      "source": "연이가 뛰어올라 책 반대편을 붙잡았다. 사슬 위에서 돼지의 앞발과 호랑이의 앞발이 맞닿았다.",
+      "sourceHash": "8736c58450d61220a826612d10da3e22b92b46d83a09c7c2a062c1f53975bedd",
+      "t": "Yeoni leaped up and grabbed the other side of the book. Over the chains, the pig's hoof and the tiger's paw touched."
+    },
+    {
+      "id": "ep-19:89",
+      "source": "짧은 순간이었다. 호랑이의 앞발이 움찔 떨렸다. 빗방울이 연이의 정수리에 똑 떨어졌다.",
+      "sourceHash": "dde2b23968e88e8f4bc7a4fd09f3a40da40d099d76ed09bb69c73f7f83c83e13",
+      "t": "It lasted only an instant. The tiger's paw trembled. A raindrop fell onto the top of Yeoni's head."
+    },
+    {
+      "id": "ep-19:90",
+      "source": "너는… 왜 비 맞으면서 웃어.",
+      "sourceHash": "9ccb22b03f936e1ed0a2bd73e935ae93313605e7a426ecdaad306e5c6dcdcc93",
+      "t": "Why... are you smiling in the rain?"
+    },
+    {
+      "id": "ep-19:91",
+      "source": "몰라. 그냥 비 오면 기분이 좋아. 옛날부터 그랬어.",
+      "sourceHash": "fdf62ccf2c9d0513a1053063be4e5d739cf9b2d807d58f0259771adc4b38e528",
+      "t": "I don't know. Rain just makes me happy. It always has."
+    },
+    {
+      "id": "ep-19:92",
+      "source": "호랑이의 붉은 눈이 크게 흔들렸다. 그러나 다음 순간, 목의 고리가 번쩍 빛나며 조여들었다.",
+      "sourceHash": "33fb89e3ca38456f29bfa12fd1d5b7e692ecd8d821914264073040d43beb46eb",
+      "t": "The tiger's red eyes shook. But the next moment, the ring at its neck flashed and tightened."
+    },
+    {
+      "id": "ep-19:93",
+      "source": "호랑이는 책을 홱 잡아당겼다. 연이의 앞발에서 사슬이 미끄러져 나갔다.",
+      "sourceHash": "8be9d6d95b409fe07e5942d4fac49f77e4a0ad0b6fcdc3b5271c9bc916b07c99",
+      "t": "The tiger jerked the book away. The chains slipped from Yeoni's hooves."
+    },
+    {
+      "id": "ep-19:94",
+      "source": "비는 그냥 비야. 기분 좋을 것도 없어.",
+      "sourceHash": "94f613af9f63b1f3f146be11f8c2957d146ed1bc025d5a7894fe606aab369212",
+      "t": "Rain is just rain. There's nothing to be happy about."
+    },
+    {
+      "id": "ep-19:95",
+      "source": "너 그 책 왜 가져가? 너도 그 봄에 있었어? 그래서 대출자 칸을 지운 거야?",
+      "sourceHash": "09c82f9f3bf72ebb54c879ac5d1549bba62db81595ae1bada22828a690267b80",
+      "t": "Why are you taking that book? Were you in that spring, too? Is that why you erased the borrower's name?"
+    },
+    {
+      "id": "ep-19:96",
+      "source": "질문이 많네. 빚진 쪽은 원래 질문을 안 하는 법인데.",
+      "sourceHash": "ad72ed66d8c89ee9d951cc9a7121861302d0cbaad95df058fcb6d0243e815ca3",
+      "t": "So many questions. Debtors aren't supposed to ask questions."
+    },
+    {
+      "id": "ep-19:97",
+      "source": "나 너한테 빚진 거 없어!",
+      "sourceHash": "92cf1c18c3624f54ed52bf0f7f0f1adc1cfdc7babfab70d61d1b5386530e8f80",
+      "t": "I don't owe you anything!"
+    },
+    {
+      "id": "ep-19:98",
+      "source": "그래. 이번엔 그렇게 끝내. 그게 너한테 나아.",
+      "sourceHash": "9a39687a1482f7066e0066102c6a29b7a9058d95173af168499fce6b607f1bf6",
+      "t": "Yes. Let it end that way this time. That's better for you."
+    },
+    {
+      "id": "ep-19:99",
+      "source": "호랑이는 책을 물고 계단 위로 뛰어올랐다. 한 번에 서너 칸씩, 젖은 발자국을 남기며 둥근 천장 쪽으로 사라졌다.",
+      "sourceHash": "53248f76794be9c201d31359bd3586afe43f6913a9916281c307678ec795d2d7",
+      "t": "With the book in its mouth, the tiger bounded up the stairs. Three or four steps at a time, leaving wet tracks, it vanished toward the domed ceiling."
+    },
+    {
+      "id": "ep-19:100",
+      "source": "쫓아가! 저 줄무늬, 이번엔 내가 꼬리에 리본 묶어 준다.",
+      "sourceHash": "406fd3a66f211a93ae791015f9c4cbc37ced5b8d02c489922b76b2e3433cff0a",
+      "t": "After it! This time, I'm tying a ribbon on that striped tail."
+    },
+    {
+      "id": "ep-19:101",
+      "source": "윤달이 받침대에 등을 기댄 채 주저앉았다. 장갑 없는 손을 품에 감싸 쥐고 있었다.",
+      "sourceHash": "e8d0ad22ace0ba3a435ac83a75236fa583bbdfc2106f73e36e635a2017a80f0f",
+      "t": "Yundal sank down with his back against the pedestal. He cradled his ungloved hand against his chest."
+    },
+    {
+      "id": "ep-19:102",
+      "source": "가세요. 저는 잠깐만 앉았다 갈게요. 수달 씨가 옆에 있어 주시면 좋겠네요.",
+      "sourceHash": "845b5e3040ecc75f9620f41c3043ffdbcc80c41e3dc8da5f73fc230527e87807",
+      "t": "Go ahead. I'll sit for a moment and follow. It would be nice if Mr. Otter stayed beside me."
+    },
+    {
+      "id": "ep-19:103",
+      "source": "왜 하필 나야.",
+      "sourceHash": "fcf88f4a7b51439e00da0f8e265af5b1e3975aa960032b5dc82ac228b46174d8",
+      "t": "Why me, of all people?"
+    },
+    {
+      "id": "ep-19:104",
+      "source": "제일 시끄러우니까요. 시끄러운 사람 옆에 있으면 안 잊혀요.",
+      "sourceHash": "285c456f0032f636f9f296616a11df27f98a6b2b1ad64ec20bb98abc46e268af",
+      "t": "Because you're the loudest. Beside a loud person, I don't get forgotten."
+    },
+    {
+      "id": "ep-19:105",
+      "source": "그 말 반칙이다, 사기꾼. 알았어. 대신 나중에 밥 사.",
+      "sourceHash": "6946495b4add538783262959239c8b82ba11999b44b6e57b7baa3413333bb398",
+      "t": "That's cheating, con artist. Fine. But you owe me a meal later."
+    },
+    {
+      "id": "ep-19:106",
+      "source": "같이 간다.",
+      "sourceHash": "0ae783064a743d7f5c4638faceb39d05a6f55ed37b278647d24cb1e3525b10a1",
+      "t": "We're going together."
+    },
+    {
+      "id": "ep-19:107",
+      "source": "응. 대신 끝나면 다 말해 줘. 약속해.",
+      "sourceHash": "84aaf79b866d9fb0c2629d1424fd48e337e9dbc9157cda5c66c70aa1c94b50d5",
+      "t": "Okay. But when this is over, tell me everything. Promise."
+    },
+    {
+      "id": "ep-19:108",
+      "source": "끝나면.",
+      "sourceHash": "a4f268f8a30e725ddacce844fbd874f4e3fa7932ed3f5fd81ec9154347eb579a",
+      "t": "When it's over."
+    },
+    {
+      "id": "ep-19:109",
+      "source": "고양이. 돼지 놓치지 마라. 놓치면 내가 너 털 다 밀어 버린다.",
+      "sourceHash": "d607207b519388bec1886320f15f35bf043b2d5c4bd28ca264398910841b18a2",
+      "t": "Cat. Don't lose the pig. If you do, I'll shave off all your fur."
+    },
+    {
+      "id": "ep-19:110",
+      "source": "수달한테 협박받는 날이 올 줄은 몰랐군.",
+      "sourceHash": "bd1b6d7d5b3a7d849abf7fd3b214a5f8ce9c494631a6f9cbba254f352244390d",
+      "t": "Never thought I'd live to be threatened by an otter."
+    },
+    {
+      "id": "ep-19:111",
+      "source": "연이는 그 대답이 약속인지 아닌지 끝내 묻지 않았다. 둘은 젖은 계단을 나란히 뛰어올랐다.",
+      "sourceHash": "1e59ec87ef5cf0b6e9a131602d3c817dc8cc70ddf5004ef3ff2e20bc6b7e3f80",
+      "t": "Yeoni never asked whether that answer was a promise. Side by side, the two ran up the wet stairs."
+    },
+    {
+      "id": "ep-19:112",
+      "source": "계단 꼭대기 너머에서 빗소리가 점점 커졌다. 둥근 천장 아래, 숨 쉬던 도서관 전체가 천천히 젖어 가고 있었다.",
+      "sourceHash": "0ff70910a50ee837ded97fd7689173ec681a877845e2d29a41214b16f04fe68f",
+      "t": "Beyond the top of the stairs, the rain grew louder. Under the domed ceiling, the entire breathing library was slowly getting soaked."
+    },
+    {
+      "id": "ep-19:113",
+      "source": "[ 「첫 번째 봄」 · 대출 중 · 대출자 : ■■■ ]",
+      "sourceHash": "767a9830399b41ab7f7ac6ae93994f17956757c3774114b3cf2d43b3ddad1313",
+      "t": "[ The First Spring · On loan · Borrower: ■■■ ]"
+    },
+    {
+      "id": "ep-19:114",
+      "source": "대출 카드 위의 검은 칸 세 개가 빗물에 젖어 조금씩 번지고 있었다. 마치 그 아래 이름 석 자가 떠오르려는 것처럼.",
+      "sourceHash": "d693467f720d0fb388b9f7feeccc797ce78e365f80d8fbcae7fc13c6dd7bcc21",
+      "t": "The three black squares on the borrowing card blurred little by little in the rain, as though a three-syllable name were about to rise from beneath them."
+    }
+  ]
+}

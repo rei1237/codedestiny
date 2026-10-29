@@ -1,0 +1,998 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "locale": "ja",
+  "episodeId": "ep-20",
+  "sourceTitle": "이름은 빚이야",
+  "sourceTag": "제20화 · 이름은 빚이야",
+  "title": "名前は借りだ",
+  "tag": "第20話 · 名前は借りだ",
+  "rows": [
+    {
+      "id": "ep-20:1",
+      "source": "둥근 천장으로 오르는 나선 계단은 끝이 보이지 않았다. 층마다 책장 사이로 빗물이 폭포처럼 쏟아졌다.",
+      "sourceHash": "4ea2f6e177b665503170868de108f960f0217a25cf82688bdea90e101367e632",
+      "translations": {
+        "ja": "丸い天井へ上るらせん階段は、終わりが見えなかった。階ごとに、本棚の間から雨水が滝のように降り注いだ。"
+      }
+    },
+    {
+      "id": "ep-20:2",
+      "source": "저 위야! 젖은 발자국이 계속 위로 이어져.",
+      "sourceHash": "17086de03d667412d4ba722c567fa3d098debe27712cd997384ecbfc3543eef1",
+      "translations": {
+        "ja": "あの上だ！　濡れた足跡が、ずっと上へ続いてる。"
+      }
+    },
+    {
+      "id": "ep-20:3",
+      "source": "계단이 미끄럽다. 난간 쪽으로 붙어라.",
+      "sourceHash": "036399b1440814ec483567dd88edce533e973ef38eebd937016822b04ca31564",
+      "translations": {
+        "ja": "階段が滑る。手すり側に寄れ。"
+      }
+    },
+    {
+      "id": "ep-20:4",
+      "source": "(영냥이 왼발, 또 감싸 쥐고 있어. 아까부터 계속.)",
+      "sourceHash": "1ae0c5b58c5e5c93d97fc4ce9e1d981f971bdc473f66d5de3c41d00b046f3cb0",
+      "translations": {
+        "ja": "（Yeongnyangi、また左足をかばってる。さっきからずっと。）"
+      }
+    },
+    {
+      "id": "ep-20:5",
+      "source": "너 발 괜찮아? 아까 물에 빠지고 나서부터 이상하게 걷는데.",
+      "sourceHash": "2e5e9047b82a683b449e5f62cea3420bf36788858e400158aa36fbdd4837cfad",
+      "translations": {
+        "ja": "足、大丈夫？　さっき水に落ちてから、歩き方が変だけど。"
+      }
+    },
+    {
+      "id": "ep-20:6",
+      "source": "고양이는 원래 이렇게 걷는다. 위엄 있게.",
+      "sourceHash": "aee33a8db2953775c1d2524aa837a1cee94accd87d2209a6d6df475982023850",
+      "translations": {
+        "ja": "猫はもともとこう歩く。威厳を持ってな。"
+      }
+    },
+    {
+      "id": "ep-20:7",
+      "source": "위엄이 절뚝거려.",
+      "sourceHash": "216f877a0e3d136b3e2995213923f6e94ffb8a0800da61d395ce77f9f60147d4",
+      "translations": {
+        "ja": "その威厳、足を引きずってるよ。"
+      }
+    },
+    {
+      "id": "ep-20:8",
+      "source": "그때 위쪽에서 검은 물살이 계단을 타고 굴러 내려왔다. 떠내려온 책들이 낙엽처럼 발목을 쳤다.",
+      "sourceHash": "2b28035af4c12a5246160c016ff7e9fbb821c6b58e505c6ed8fd30d3fe4b7fef",
+      "translations": {
+        "ja": "そのとき、上から黒い流れが階段を転がり落ちてきた。流された本が落ち葉のように足首を打った。"
+      }
+    },
+    {
+      "id": "ep-20:9",
+      "source": "또 물이야? 쟤는 물을 무슨 수도꼭지처럼 틀어!",
+      "sourceHash": "dfdabf65483230cce8881851122a1458b7173d4f262158c636340f88b18cd2f8",
+      "translations": {
+        "ja": "また水？　あいつ、水道の蛇口みたいに水を出す！"
+      }
+    },
+    {
+      "id": "ep-20:10",
+      "source": "물살이 한 번에 세 칸을 삼켰다. 연이의 발이 계단에서 떨어지려는 순간, 손목이 따뜻하게 꿈틀거렸다.",
+      "sourceHash": "f03df334b2ebaf02d68818bd76f50c3237de2fc25ec96078d63fdc819ae18cd2",
+      "translations": {
+        "ja": "流れが一度に三段をのみ込んだ。Yeoniの足が階段から離れかけた瞬間、手首で温かなものが動いた。"
+      }
+    },
+    {
+      "id": "ep-20:11",
+      "source": "아기 용이 고개를 내밀고 입을 크게 벌렸다. 쏟아지던 물이 소용돌이치며 그 작은 입속으로 빨려 들어갔다.",
+      "sourceHash": "962cba5d8f3396ce7e8427e889bed8fa5a4267abd32008a617f46675034096f5",
+      "translations": {
+        "ja": "竜の赤ちゃんが顔を出し、口を大きく開けた。降り注ぐ水が渦を巻き、その小さな口に吸い込まれた。"
+      }
+    },
+    {
+      "id": "ep-20:12",
+      "source": "또 마셨어? 아까 배 터진다고 했잖아!",
+      "sourceHash": "03b9227bf8c9e51943ecc27a799d878bb34f41dd1967864ab5e1aae5a3890dd4",
+      "translations": {
+        "ja": "また飲んだの？　さっき、お腹が破裂するって言ったじゃん！"
+      }
+    },
+    {
+      "id": "ep-20:13",
+      "source": "아기 용은 대답 대신 트림을 했다. 비 냄새가 났다. 연이는 웃음이 터질 뻔했다가 꾹 참았다.",
+      "sourceHash": "079b5a931a4c95c56e86839efe1397232c6e6a83dda7a1f1a32385f9fc7ec2cd",
+      "translations": {
+        "ja": "竜の赤ちゃんは答える代わりにげっぷをした。雨の匂いがした。Yeoniは吹き出しそうになり、ぐっとこらえた。"
+      }
+    },
+    {
+      "id": "ep-20:14",
+      "source": "물을 가두는 창고다. 아직 덜 찼다는 뜻이겠지.",
+      "sourceHash": "f825cdce2bf9072a635b42f508d8e167f6b7d2d8cc0b41ef8d1766c49707c39c",
+      "translations": {
+        "ja": "水を蓄える蔵だ。まだいっぱいにはなっていないんだろう。"
+      }
+    },
+    {
+      "id": "ep-20:15",
+      "source": "좋아. 그럼 오늘은 무한 리필이야.",
+      "sourceHash": "6a21d34e1a344aa092df24a3823d84723194951177963f84355740a461026eea",
+      "translations": {
+        "ja": "よし。じゃあ今日はおかわり自由だね。"
+      }
+    },
+    {
+      "id": "ep-20:16",
+      "source": "계단 몇 칸 위에서 둔탁한 소리가 났다. 물에 젖은 계단 한 구간이 통째로 무너져 내리고 있었다.",
+      "sourceHash": "804e55d1954caea1d4020b4eea4c0eea9452b661db0a9eaf3f7da790f655019e",
+      "translations": {
+        "ja": "数段上で鈍い音がした。水に濡れた階段の一部が、丸ごと崩れ落ちていた。"
+      }
+    },
+    {
+      "id": "ep-20:17",
+      "source": "끊겼다. 건너편까지 다섯 걸음은 된다.",
+      "sourceHash": "59eeb375aa8083b68b127da241490367d38aedbebe7f87aea4e2d897f44ff00e",
+      "translations": {
+        "ja": "途切れた。向こうまで五歩はある。"
+      }
+    },
+    {
+      "id": "ep-20:18",
+      "source": "(고양이는 뛰면 되지만 난 돼지야. 돼지는 다섯 걸음 못 날아.)",
+      "sourceHash": "49a5b0de6927808004a83c1575e98bb067b1acc67cda2cdb13ad2139d691ac89",
+      "translations": {
+        "ja": "（猫なら跳べるけど、私はブタ。ブタは五歩ぶんも飛べない。）"
+      }
+    },
+    {
+      "id": "ep-20:19",
+      "source": "연이는 무너진 계단 아래를 내려다보았다. 젖은 책장 틈마다 연둣빛 덩굴이 아직 숨을 쉬고 있었다.",
+      "sourceHash": "3692213603a4b6dec9d6660904984659d145d4eb4899e1b57e5737c48fcc5b10",
+      "translations": {
+        "ja": "Yeoniは崩れた階段の下を見た。濡れた本棚の隙間で、黄緑色の蔓がまだ息をしていた。"
+      }
+    },
+    {
+      "id": "ep-20:20",
+      "source": "영냥아. 먼저 건너가. 나는 내 방식대로 갈게.",
+      "sourceHash": "fd291a860753bb2f6e318955374ca18c814dfb09539cfea4a311bad3f8eaa772",
+      "translations": {
+        "ja": "Yeongnyangi、先に渡って。私は自分のやり方で行く。"
+      }
+    },
+    {
+      "id": "ep-20:21",
+      "source": "무슨 방식.",
+      "sourceHash": "5cbb8cb855ad05743bc44ff697cf6b09e8a609d4b9734da3a917ff813e340e82",
+      "translations": {
+        "ja": "どんなやり方だ。"
+      }
+    },
+    {
+      "id": "ep-20:22",
+      "source": "돼지식 공중그네.",
+      "sourceHash": "d47dbb6f3ad7d0d5622393f9c634aed55a53fc9a5c63afa6841b231f3aa88be4",
+      "translations": {
+        "ja": "ブタ式空中ブランコ。"
+      }
+    },
+    {
+      "id": "ep-20:23",
+      "source": "연이가 앞발을 뻗자 덩굴이 책장에서 튀어나와 그 발에 감겼다. 연이는 그대로 허공으로 몸을 던졌다.",
+      "sourceHash": "c00ffbf41fe35158d8dbf2ce380fe697b9f0c21251fe7d369522123e71665257",
+      "translations": {
+        "ja": "Yeoniが前足を伸ばすと、蔓が本棚から飛び出して巻きついた。Yeoniはそのまま宙へ身を投げた。"
+      }
+    },
+    {
+      "id": "ep-20:24",
+      "source": "덩굴이 활처럼 휘었다가 튕겼다. 작은 분홍 몸이 빗줄기를 가르며 건너편 계단에 굴러떨어졌다.",
+      "sourceHash": "d70c4ac46137654b83e2ee857ceb13ee3a740cb69a3b33ac7d1bf851b8d6999a",
+      "translations": {
+        "ja": "蔓は弓のようにしなり、はじけた。小さな桃色の体が雨筋を切り、向こうの階段へ転がり落ちた。"
+      }
+    },
+    {
+      "id": "ep-20:25",
+      "source": "착지 성공! 꿀악! 별 다섯 개!",
+      "sourceHash": "47874c169a0d285c8ca6f957617a6e26d1f22e594aa65cc2d391c07db7c374ef",
+      "translations": {
+        "ja": "着地成功！　ブギャッ！　星五つ！"
+      }
+    },
+    {
+      "id": "ep-20:26",
+      "source": "착지가 아니라 굴렀지.",
+      "sourceHash": "e100933b0ad2386be762c6857407d7d5a91de80cafe53582e895b99b38356427",
+      "translations": {
+        "ja": "着地じゃなくて転がったんだ。"
+      }
+    },
+    {
+      "id": "ep-20:27",
+      "source": "구른 것도 착지야. 돼지 규칙이야.",
+      "sourceHash": "06db9a10366a9d15e2b87c684e636dfe5da5980736d9c53b585315a42ff40fd4",
+      "translations": {
+        "ja": "転がるのも着地。ブタのルールだから。"
+      }
+    },
+    {
+      "id": "ep-20:28",
+      "source": "영냥이가 가볍게 뛰어 건너왔다. 착지하는 순간, 그의 왼발이 아주 잠깐 접혔다. 연이는 그것을 보았지만 아무 말도 하지 않았다.",
+      "sourceHash": "5c2e2734263b58fa28558755cec3256d506baa89cda04d63421c2faf5be9663d",
+      "translations": {
+        "ja": "Yeongnyangiが軽やかに跳んできた。着地した瞬間、左足がほんの一瞬折れた。Yeoniは見ていたが、何も言わなかった。"
+      }
+    },
+    {
+      "id": "ep-20:29",
+      "source": "계단 끝에 작은 문이 있었다. 문틈으로 이상한 빛이 새어 나왔다. 낮도 밤도 아닌, 검게 먹힌 해의 빛이었다.",
+      "sourceHash": "7ab88c391bf0bb01ea62f9c3b04c2c284fb268e107ffd63e211d5ecc32e8892e",
+      "translations": {
+        "ja": "階段の先に小さな扉があった。隙間から奇妙な光が漏れていた。昼でも夜でもない、黒く食われた太陽の光だった。"
+      }
+    },
+    {
+      "id": "ep-20:30",
+      "source": "문 너머는 도서관 지붕 위였다. 하늘 한가운데에 해가 떠 있었는데, 그 해의 절반이 검게 지워져 있었다.",
+      "sourceHash": "53a54b62c3d92d96bd730280386413655a25cddb50a75064f399a4063af2fb06",
+      "translations": {
+        "ja": "扉の向こうは図書館の屋根だった。空の真ん中に太陽が浮かんでいたが、半分が黒く消えていた。"
+      }
+    },
+    {
+      "id": "ep-20:31",
+      "source": "저거 해야? 왜 반쪽이 없어.",
+      "sourceHash": "8a6f437aaddc47dd6c86e99d96c913dcbfd3b0fbfdcad8a1317efe17df1e3e0e",
+      "translations": {
+        "ja": "あれ、太陽？　どうして半分ないの。"
+      }
+    },
+    {
+      "id": "ep-20:32",
+      "source": "먹힌 거야. 섬마다 나타나던 검은 손 기억하지? 그 주인이 저쪽에 있어.",
+      "sourceHash": "1b00c8f3b491fdb39956e8d883036eafac8cf81fb69f14fd6415fd2c37427d23",
+      "translations": {
+        "ja": "食われたんだ。島ごとに現れた黒い手を覚えているだろう。あの主が向こうにいる。"
+      }
+    },
+    {
+      "id": "ep-20:33",
+      "source": "지붕 끝, 빗물받이 위에 검은 호랑이가 서 있었다. 입에 문 검은 책에서 사슬이 늘어져 바람에 흔들렸다.",
+      "sourceHash": "967b3114977dfdc41af94dfd0cf5e31e4b9fb3c2101664f1792480177ccf44af",
+      "translations": {
+        "ja": "屋根の端、雨どいの上に黒い虎が立っていた。口にくわえた黒い本から鎖が垂れ、風に揺れていた。"
+      }
+    },
+    {
+      "id": "ep-20:34",
+      "source": "끈질기네. 도서관에서는 조용히 하라고 배우지 않았어?",
+      "sourceHash": "d81b0f4e8b13411291c0ffa6b8ceb613c9e3ca5dcd800a6754f00a72add47b80",
+      "translations": {
+        "ja": "しつこいな。図書館では静かにしろと習わなかったのか？"
+      }
+    },
+    {
+      "id": "ep-20:35",
+      "source": "남의 책 들고 튄 사람한테 그런 말 듣기 싫거든.",
+      "sourceHash": "35a868d6590b254166c177a250f849d7a3e0f68f13df735525fd6855d1188683",
+      "translations": {
+        "ja": "他人の本を持ち逃げした相手に、そんなこと言われたくないんだけど。"
+      }
+    },
+    {
+      "id": "ep-20:36",
+      "source": "남의 책 아니야. 그 책은 처음부터 내 장부에 있었어.",
+      "sourceHash": "de3993812a95f5197886c3286028d1f54496549d0048d9117789455a6f5d53f2",
+      "translations": {
+        "ja": "他人の本じゃない。その本は最初から私の帳簿にあった。"
+      }
+    },
+    {
+      "id": "ep-20:37",
+      "source": "그럼 보여 줘. 그 장부. 내 이름이 왜 거기 있는지.",
+      "sourceHash": "b0c020aaed30ae8b88f7cf627794ce0068497f310041917df3286b635d661559",
+      "translations": {
+        "ja": "じゃあ見せて、その帳簿。どうして私の名前がそこにあるのか。"
+      }
+    },
+    {
+      "id": "ep-20:38",
+      "source": "호랑이는 대답하지 않았다. 대신 앞발을 들었다. 빗줄기가 그 발끝으로 모여들었다.",
+      "sourceHash": "f4b7474f3bba6a05cb6baf0892a1c865cb5135761279c4bffb43f61ba63c4971",
+      "translations": {
+        "ja": "虎は答えなかった。代わりに前足を上げた。雨筋が足先へ集まった。"
+      }
+    },
+    {
+      "id": "ep-20:39",
+      "source": "지붕 위의 빗물이 일제히 솟구쳐 연이를 향해 쏟아졌다. 아기 용이 입을 벌렸지만, 이번에는 물이 너무 많았다.",
+      "sourceHash": "b14330dccf73b54ebf1d94e8d90a6df59b36c373821965ed9852dcf2b525c631",
+      "translations": {
+        "ja": "屋根の雨水がいっせいに吹き上がり、Yeoniに降りかかった。竜の赤ちゃんが口を開いたが、今度は水が多すぎた。"
+      }
+    },
+    {
+      "id": "ep-20:40",
+      "source": "연이야.",
+      "sourceHash": "80cb95b01e8cc1368b8cd8ace84e07fc877503b06ef9dddd4795ce70845dc473",
+      "translations": {
+        "ja": "Yeoni。"
+      }
+    },
+    {
+      "id": "ep-20:41",
+      "source": "영냥이가 연이 앞으로 뛰어들었다. 물살이 남색 망토를 때렸고, 작은 고양이의 몸이 한 걸음 뒤로 밀려났다.",
+      "sourceHash": "6c746bbb69dc31aa1f2b0fdaeb500bec7ab764dfbd24d2753a37cab93c46a54f",
+      "translations": {
+        "ja": "YeongnyangiがYeoniの前へ飛び込んだ。流れが藍色のマントを打ち、小さな猫の体が一歩押し戻された。"
+      }
+    },
+    {
+      "id": "ep-20:42",
+      "source": "영냥아, 비켜! 너 물 맞으면 안 되잖아!",
+      "sourceHash": "a3bfba148b4384330452c04d866e0a1067772c2997af5a3890ab948a243715d9",
+      "translations": {
+        "ja": "Yeongnyangi、どいて！　君は水に当たっちゃだめでしょ！"
+      }
+    },
+    {
+      "id": "ep-20:43",
+      "source": "그러니까 비키라는 거다. 네가 맞으면 안 되니까.",
+      "sourceHash": "d15bffd4d8301003ed998f0824d4a7d46e1461ff1e42358d8be4c145021acbe3",
+      "translations": {
+        "ja": "だから、どけと言ってるんだ。君に当たってはいけないから。"
+      }
+    },
+    {
+      "id": "ep-20:44",
+      "source": "물살이 그친 틈에 연이가 몸을 날렸다. 덩굴 하나가 호랑이의 망토 끝을 붙잡았다.",
+      "sourceHash": "dab1110fec8b98309f04270b0d7cb8ef5c1ae37b2dbe72876aeb926840c6c503",
+      "translations": {
+        "ja": "流れの途切れた隙に、Yeoniが跳んだ。蔓が一本、虎のマントの端をつかんだ。"
+      }
+    },
+    {
+      "id": "ep-20:45",
+      "source": "망토가 크게 젖혀졌다. 호랑이가 몸을 틀었지만 연이는 끝까지 놓지 않았다.",
+      "sourceHash": "120f162633776e819be266ebec22f8261792d90c1a4c76a98bd813a065886b65",
+      "translations": {
+        "ja": "マントが大きくめくれた。虎は身をひねったが、Yeoniは最後まで離さなかった。"
+      }
+    },
+    {
+      "id": "ep-20:46",
+      "source": "그리고 연이는 보았다.",
+      "sourceHash": "85b629ff6b4f0fcf3da39c34cdb19d7d93dd1b4718eab41ce2158950797845de",
+      "translations": {
+        "ja": "そして、Yeoniは見た。"
+      }
+    },
+    {
+      "id": "ep-20:47",
+      "source": "망토 안쪽은 금실로 빽빽하게 꿰매져 있었다. 그 금빛 한가운데에 검은 실로 꿰맨 글자 몇 개가 있었다.",
+      "sourceHash": "bbe8db400f503d9b5365a305e1d053e0d91f25a827df1bb94f9779dcb2a73baf",
+      "translations": {
+        "ja": "マントの内側は金糸でびっしり縫われていた。その金色の真ん中に、黒い糸で縫った文字がいくつかあった。"
+      }
+    },
+    {
+      "id": "ep-20:48",
+      "source": "글자는 물에 비친 것처럼 흔들려 읽히지 않았다. 그 옆에 작은 북 모양 매듭 하나와 회색 깃털 하나가 함께 꿰매져 있었다.",
+      "sourceHash": "ec68604fc78b09bccd5cd4c30ec6adce524186d70bea62e185fd1e504427cace",
+      "translations": {
+        "ja": "文字は水に映るように揺れ、読めなかった。その隣には小さな太鼓型の結び目と、灰色の羽が一枚、一緒に縫い留められていた。"
+      }
+    },
+    {
+      "id": "ep-20:49",
+      "source": "저 깃털. 까마귀 섬에서 내가 놓친 거야.",
+      "sourceHash": "8b078d1008b3268fac73b71aaffe7dc2b07d3de3ac033b85315c07292bf9f8ec",
+      "translations": {
+        "ja": "あの羽。カラスの島で僕が取り逃したものだ。"
+      }
+    },
+    {
+      "id": "ep-20:50",
+      "source": "그리고 그 북 매듭. 북 대장이지? 그 애 이름이지?",
+      "sourceHash": "6c1ae0332e1474d2d9ae04b2f8c3954b89b8747b51cf5f8b723993715fb816d5",
+      "translations": {
+        "ja": "それに、その太鼓の結び目。太鼓隊長でしょ？　あの子の名前でしょ？"
+      }
+    },
+    {
+      "id": "ep-20:51",
+      "source": "놔.",
+      "sourceHash": "03b24838127c1153146902259c4a6aa1c0d6983a7cbe65378e7ce5f98612266f",
+      "translations": {
+        "ja": "離せ。"
+      }
+    },
+    {
+      "id": "ep-20:52",
+      "source": "대답하면 놓을게. 왜 그 애 이름을 간직해? 장부에 넘기면 끝이라며.",
+      "sourceHash": "debe4f2477ccac73ff7d3bfff00d64998d87f10ba268de68a8e328301ecb3fdf",
+      "translations": {
+        "ja": "答えてくれたら離す。どうしてあの子の名前を取ってあるの？　帳簿に渡したら終わりだって言ってたのに。"
+      }
+    },
+    {
+      "id": "ep-20:53",
+      "source": "넘기면 끝이니까. 끝나면 그 애 손목 흉터는 영영 안 아물어.",
+      "sourceHash": "fe6ffa34c60954c039ab04afe1ad43fdf80e552977e60bdf120a37d44743cc01",
+      "translations": {
+        "ja": "渡したら終わりだからだ。終われば、あの子の手首の傷は二度と癒えない。"
+      }
+    },
+    {
+      "id": "ep-20:54",
+      "source": "그럼, 지켜 주고 있었던 거야?",
+      "sourceHash": "0fc62db661f9a92eda8bd03d9caafbf97cb88ec2892a8f4cd1c9ff966d85ac17",
+      "translations": {
+        "ja": "じゃあ、守っていたの？"
+      }
+    },
+    {
+      "id": "ep-20:55",
+      "source": "착각하지 마. 보관 중일 뿐이야. 언제든 넘길 수 있어.",
+      "sourceHash": "86858a2e7764a647a20620e5e6e192421d8aa143ab9c1ac3394a9acc1db645b2",
+      "translations": {
+        "ja": "勘違いするな。保管しているだけだ。いつでも渡せる。"
+      }
+    },
+    {
+      "id": "ep-20:56",
+      "source": "근데 아직 안 넘겼잖아.",
+      "sourceHash": "1e86a6531df27044ed9a24095ffe98e62e531d7e78146746ce22feef43b6668f",
+      "translations": {
+        "ja": "でも、まだ渡してないじゃん。"
+      }
+    },
+    {
+      "id": "ep-20:57",
+      "source": "호랑이의 붉은 눈이 흔들렸다. 빗물이 수염 끝에서 뚝뚝 떨어졌다.",
+      "sourceHash": "2994ddb0985cd282dd5708f025c9e4bf7aa762214e715220563a0fc7210bc586",
+      "translations": {
+        "ja": "虎の赤い目が揺れた。ひげの先から、雨水がぽたぽた落ちた。"
+      }
+    },
+    {
+      "id": "ep-20:58",
+      "source": "하나만 더 묻자. 네 이름은 뭐야?",
+      "sourceHash": "1cb719b6a9f581829160beb061c4a44e298aca40034446069223edb3755daa71",
+      "translations": {
+        "ja": "もう一つだけ聞かせて。名前は何？"
+      }
+    },
+    {
+      "id": "ep-20:59",
+      "source": "이름은 빚이야.",
+      "sourceHash": "de65ed98582300ee824e7cf9f29dbd21a5c27ffacabdf947fec6bcc324ccc13f",
+      "translations": {
+        "ja": "名前は借りだ。"
+      }
+    },
+    {
+      "id": "ep-20:60",
+      "source": "뭐?",
+      "sourceHash": "ad515411f8355b6183c96154ec9514f8daa2a114beedbd128930008eb202d731",
+      "translations": {
+        "ja": "え？"
+      }
+    },
+    {
+      "id": "ep-20:61",
+      "source": "누가 불러 주면, 그 사람한테 빚지는 거야. 나는 더는 아무한테도 빚 안 져.",
+      "sourceHash": "4c502c29327cc4676be651492b0a82bd55a6d5c666957f426212520ea1529a77",
+      "translations": {
+        "ja": "誰かが呼んでくれたら、その人に借りができる。私はもう、誰にも借りを作らない。"
+      }
+    },
+    {
+      "id": "ep-20:62",
+      "source": "그럼 내가 먼저 빌려줄게. 이자 없이.",
+      "sourceHash": "94076d0fc29e807c7ee9de09e8cabf98d79c3ae637a581c702ffbc7bff155a97",
+      "translations": {
+        "ja": "じゃあ、私から先に貸してあげる。利息なしで。"
+      }
+    },
+    {
+      "id": "ep-20:63",
+      "source": "그런 말, 예전에도 들은 적 있어. 그 대가가 이 목줄이야.",
+      "sourceHash": "9f7c23885774720bd52255ef187747a464da4dddcc9ac243f9e67a945dba445b",
+      "translations": {
+        "ja": "その言葉は、前にも聞いたことがある。その代償がこの首輪だ。"
+      }
+    },
+    {
+      "id": "ep-20:64",
+      "source": "해의 검은 쪽에서 무언가가 흘러내렸다. 검은 손들이 하늘에 금을 긋듯 길게 뻗어 왔다.",
+      "sourceHash": "3b0d4d171180ab6ff05418434ee8fb7fa7a71105ed46f1a9dcfa2b4ba3cfcceb",
+      "translations": {
+        "ja": "太陽の黒い側から何かが垂れた。黒い手が、空にひびを引くように長く伸びてきた。"
+      }
+    },
+    {
+      "id": "ep-20:65",
+      "source": "무엇을 지체하느냐. 책을 가져와라. 그리고 그 돼지의 남은 운도.",
+      "sourceHash": "06153877a8f8610135da201100c6daec97b6369bcda19dc3c96e6600a5cf006b",
+      "translations": {
+        "ja": "何を手間取っている。本を持ってこい。それから、そのブタに残った運も。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "声"
+        }
+      }
+    },
+    {
+      "id": "ep-20:66",
+      "source": "호랑이 목의 금장 고리가 붉게 달아올랐다. 그녀가 숨을 삼키며 몸을 웅크렸다.",
+      "sourceHash": "a07bccfb527e6da3e90a81b1819dfbdb3cf15b166bad2415baff85b332b5dcb8",
+      "translations": {
+        "ja": "虎の首の金飾りの輪が赤く熱を帯びた。彼女は息をのみ、身を縮めた。"
+      }
+    },
+    {
+      "id": "ep-20:67",
+      "source": "야, 너 목. 괜찮아?",
+      "sourceHash": "49e58bd24e0c6ab881ef4440d1804bc291bda2df081273d019edc0e37e31c7c0",
+      "translations": {
+        "ja": "ねえ、その首。大丈夫？"
+      }
+    },
+    {
+      "id": "ep-20:68",
+      "source": "비켜, 돼지. 지금 내 옆에 있으면 너까지 쓸려.",
+      "sourceHash": "cb507b532c737d71e69a54eff227da199ead207919c29743130a49bfa4446c83",
+      "translations": {
+        "ja": "離れろ、ブタ。今そばにいると、お前まで巻き込まれる。"
+      }
+    },
+    {
+      "id": "ep-20:69",
+      "source": "빚을 잊었느냐. 네가 나에게 무엇을 빌렸는지.",
+      "sourceHash": "e499e57efd595c18c6c26e8416363cde80564d041993181784352c87aed716f6",
+      "translations": {
+        "ja": "借りを忘れたか。お前が私に何を借りたのか。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "声"
+        }
+      }
+    },
+    {
+      "id": "ep-20:70",
+      "source": "고리가 한 번 더 조여들었다. 호랑이는 비틀거리며 책을 지붕 위에 떨어뜨렸다.",
+      "sourceHash": "7f97793092e4fa14476297fb060b84a72215a8fafefa64e08f4bc20c13745cfc",
+      "translations": {
+        "ja": "輪がもう一度締まった。虎はよろめき、屋根に本を落とした。"
+      }
+    },
+    {
+      "id": "ep-20:71",
+      "source": "책이 지붕에 부딪히는 순간, 사슬에 걸린 자물쇠가 쨍 하고 갈라졌다. 자물쇠에 새겨진 두 글자가 빛이 되어 튀어 올랐다.",
+      "sourceHash": "2f5839dff231d617fbf461090ca3e16dc71748acd4c215959c7e0cebcdb870e4",
+      "translations": {
+        "ja": "本が屋根にぶつかった瞬間、鎖の錠前が鋭い音を立てて割れた。刻まれていた二文字が光になって跳ね上がった。"
+      }
+    },
+    {
+      "id": "ep-20:72",
+      "source": "壬午. 연이야, 네 연주야.",
+      "sourceHash": "53fd9596f1a0649cd3bc590204c08fbc6e528a8c3f2d2005f8551a5b1b086b99",
+      "translations": {
+        "ja": "壬午。Yeoni、君の年柱だ。"
+      }
+    },
+    {
+      "id": "ep-20:73",
+      "source": "두 글자의 빛이 연이의 가슴으로 날아들었다. 연이의 눈앞에 익숙한 글자판이 떠올랐다.",
+      "sourceHash": "8dcc1e022185fd36162f2dcc2b5aa0323bafa3bb121680614ea5ac1dba85fe54",
+      "translations": {
+        "ja": "二文字の光がYeoniの胸へ飛び込んだ。目の前に、見慣れた文字盤が浮かんだ。"
+      }
+    },
+    {
+      "id": "ep-20:74",
+      "source": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 時 □辰 ]  7/8",
+      "sourceHash": "8f887fc56589e671aca85baf487140da883a8fb1349e148aef62ba4a63041e79",
+      "translations": {
+        "ja": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 時 □辰 ]  7/8"
+      }
+    },
+    {
+      "id": "ep-20:75",
+      "source": "들어왔어! 일곱 개야. 이제 하나만 남았어!",
+      "sourceHash": "c383d8746385a6d260388e2e2327890782e9765b0324cd44b29c8d96f4fb5ead",
+      "translations": {
+        "ja": "入った！　七つだ。あと一つだけ！"
+      }
+    },
+    {
+      "id": "ep-20:76",
+      "source": "그런데 연이는 곧 웃음을 멈췄다. 연주의 첫 글자가 이상했다.",
+      "sourceHash": "dad89ccbf17414c9e81ce62c2b2359b8894cb94bb97f131d3d9f290225e282ba",
+      "translations": {
+        "ja": "だがYeoniはすぐに笑うのをやめた。年柱の最初の文字がおかしかった。"
+      }
+    },
+    {
+      "id": "ep-20:77",
+      "source": "[ 年 壬 · 결빙 ]",
+      "sourceHash": "17ab1517e07c293020c55ff21c7af14624d961cc49b4a891edc4fa06cab599f7",
+      "translations": {
+        "ja": "[ 年 壬 · 凍結 ]"
+      }
+    },
+    {
+      "id": "ep-20:78",
+      "source": "壬 자는 검은 얼음에 갇혀 있었다. 다른 글자들은 따뜻하게 빛나는데, 그 한 글자만 숨을 쉬지 않았다.",
+      "sourceHash": "e0304271e760ce6382a20f1ffe425201eeddc703a990ab294126c4740d11f169",
+      "translations": {
+        "ja": "壬の字は黒い氷に閉じ込められていた。他の文字は温かく光っているのに、その一文字だけは息をしていなかった。"
+      }
+    },
+    {
+      "id": "ep-20:79",
+      "source": "왜 얼어 있어? 나 이거 받았는데 안 받은 것 같아.",
+      "sourceHash": "c2beb17943cccdf2f137f3cb8731b1e44f5ede7d7d8f40d910008c948955a11d",
+      "translations": {
+        "ja": "どうして凍ってるの？　受け取ったのに、受け取れてないみたい。"
+      }
+    },
+    {
+      "id": "ep-20:80",
+      "source": "녹이려고 하지 마.",
+      "sourceHash": "b35189c8431877b107c1aa1c306e9bfcb43a30ecb517db6bf5fe602c88285bbf",
+      "translations": {
+        "ja": "溶かそうとするな。"
+      }
+    },
+    {
+      "id": "ep-20:81",
+      "source": "뭐?",
+      "sourceHash": "ad515411f8355b6183c96154ec9514f8daa2a114beedbd128930008eb202d731",
+      "translations": {
+        "ja": "え？"
+      }
+    },
+    {
+      "id": "ep-20:82",
+      "source": "녹으면 아파. 그 안에 든 거, 너는 아직 몰라도 돼.",
+      "sourceHash": "05dc3a070570562850d39489c2c32fa61c4954392362ffdd85e67fe3b31cc8b4",
+      "translations": {
+        "ja": "溶けたら痛む。その中にあるものを、お前はまだ知らなくていい。"
+      }
+    },
+    {
+      "id": "ep-20:83",
+      "source": "호랑이가 지붕 위의 책을 다시 물었다. 자물쇠는 깨졌지만 검은 사슬은 그대로 책을 감고 있었다.",
+      "sourceHash": "aa3b5e65c189d6cd24e50973d45c5066ecd510251c6e5f45b7c4710631bec680",
+      "translations": {
+        "ja": "虎は屋根の本を再びくわえた。錠前は壊れたが、黒い鎖はまだ本に巻きついていた。"
+      }
+    },
+    {
+      "id": "ep-20:84",
+      "source": "기다려! 그 안에 든 게 뭔데. 너 진짜 그 봄에 있었지?",
+      "sourceHash": "cedc9b3858172b321449761059a621e6422c62181195b4d50540ace72e53ff14",
+      "translations": {
+        "ja": "待って！　中に何があるの。本当に、あんたもあの春にいたんでしょ？"
+      }
+    },
+    {
+      "id": "ep-20:85",
+      "source": "호랑이는 돌아보지 않았다. 빗줄기 속으로 뛰어든 검은 몸이 그대로 비가 되어 흩어졌다.",
+      "sourceHash": "e827262172d3161b2c0882a5ef1a2d03d6451cf95262ce9366c3d7bfb6fa70d1",
+      "translations": {
+        "ja": "虎は振り向かなかった。雨筋へ跳び込んだ黒い体は、そのまま雨になって散った。"
+      }
+    },
+    {
+      "id": "ep-20:86",
+      "source": "해의 검은 쪽에서 뻗어 나온 손들도 천천히 물러났다. 마치 오늘은 이 정도면 충분하다는 듯이.",
+      "sourceHash": "304cf2ca264e0e2e15565faffd203f4ac8058915f15a3d8675409e5c9d08d46c",
+      "translations": {
+        "ja": "太陽の黒い側から伸びた手も、ゆっくり退いた。今日はこれで十分だと言うように。"
+      }
+    },
+    {
+      "id": "ep-20:87",
+      "source": "둥근 천장 아래로 돌아오자 비가 그쳐 있었다. 젖은 책들 사이로 모카가 불씨를 굴리며 책장을 말리고 있었다.",
+      "sourceHash": "c1805f84ddfa55f65c87b81080f24063f1336a0125883681668ec14864e77f30",
+      "translations": {
+        "ja": "丸い天井の下へ戻ると、雨はやんでいた。濡れた本の間で、Mokaが火種を転がしながら棚を乾かしていた。"
+      }
+    },
+    {
+      "id": "ep-20:88",
+      "source": "왔냐, 돼지. 표정 보니까 또 놓쳤네.",
+      "sourceHash": "029a56438008f720e59e810e348d0f78f369a15114ee3261e16f219b73153355",
+      "translations": {
+        "ja": "戻ったね、ブタ。その顔だと、また逃したみたいだね。"
+      }
+    },
+    {
+      "id": "ep-20:89",
+      "source": "놓쳤어. 근데 하나 받았어. 반만.",
+      "sourceHash": "47b2c5330f97d88ebe0db76767b7ab701e64d31da5b3d913906391d34e165c06",
+      "translations": {
+        "ja": "逃した。でも一つ受け取ったよ。半分だけ。"
+      }
+    },
+    {
+      "id": "ep-20:90",
+      "source": "반만이라고요? 숙녀분, 명식 좀 보여 주시겠어요.",
+      "sourceHash": "d3b7fe20cb31db84f564a62f37c969b1b69bea17427ae152f08911412d4d84ce",
+      "translations": {
+        "ja": "半分だけですか？　お嬢さん、命式を見せてもらえますか。"
+      }
+    },
+    {
+      "id": "ep-20:91",
+      "source": "연이가 앞발을 내밀었다. 글자판이 떠오르자 윤달이 장갑 낀 손으로 턱을 괴었다.",
+      "sourceHash": "85dde4eaacdef082c8fe00579e71b3cbf4a1fda9628d06c03caa482d1dbff8eb",
+      "translations": {
+        "ja": "Yeoniが前足を差し出した。文字盤が浮かぶと、Yundalは手袋をはめた手を顎に当てた。"
+      }
+    },
+    {
+      "id": "ep-20:92",
+      "source": "壬午. 연주군요. 壬은 숙녀분에게 정인이에요. 나를 길러 주고 감싸 주는 물.",
+      "sourceHash": "e5ecc442fc97d379b2c05907c89839d82dc8f5fd7e0ff649ed22c6ee6042aa5c",
+      "translations": {
+        "ja": "壬午。年柱ですね。壬はお嬢さんにとって正印です。自分を育て、包んでくれる水。"
+      }
+    },
+    {
+      "id": "ep-20:93",
+      "source": "정인. 엄마 같은 거예요?",
+      "sourceHash": "b0b823fe2e5ddf3af97fe003bdd06c48041af44196b54297d817cf07664d2103",
+      "translations": {
+        "ja": "正印。お母さんみたいなものですか？"
+      }
+    },
+    {
+      "id": "ep-20:94",
+      "source": "비슷해요. 여름에 태어난 乙목에게 제일 필요한 게 비거든요. 그런데 그 비가 얼어 있어요.",
+      "sourceHash": "07e546c5fc4416e6ca8570e96a75a8ee5a2222f40b8a68429c3bf969f45f696f",
+      "translations": {
+        "ja": "似ています。夏に生まれた乙の木に、いちばん必要なのは雨ですから。でも、その雨が凍っています。"
+      }
+    },
+    {
+      "id": "ep-20:95",
+      "source": "얼면 어떻게 되는데.",
+      "sourceHash": "8fe1a14ef9feb5c00173d3867cc0a26a2cb18e6b28516933f85f55b8a865919b",
+      "translations": {
+        "ja": "凍るとどうなるの。"
+      }
+    },
+    {
+      "id": "ep-20:96",
+      "source": "그래도 돌아온 건 돌아온 거예요. 얼어 있어도 숙녀분 자리에 앉아 있잖아요.",
+      "sourceHash": "dbfd3ec5fc5f27cf258673dc9e1c5a93b2c5e9c835c057e838dbdfc941bf05a3",
+      "translations": {
+        "ja": "それでも、戻ったことには変わりありません。凍っていても、お嬢さんの場所に収まっているでしょう。"
+      }
+    },
+    {
+      "id": "ep-20:97",
+      "source": "그러니까 얼면 뭐가 문제냐고. 빙수 되냐.",
+      "sourceHash": "de37d31bdf590694db45791c0f0ecb3e2614793f863aeb43918616e44157d23c",
+      "translations": {
+        "ja": "だから、凍ると何がまずいの。かき氷になるの？"
+      }
+    },
+    {
+      "id": "ep-20:98",
+      "source": "비가 안 오죠. 나무가 목말라요. 그리고 금이 나무를 벨 때, 사이에서 받쳐 줄 물이 없어요.",
+      "sourceHash": "c59fba16b6891b07b7a4374351459a86767f86cd30174470bb552236aa07f3fc",
+      "translations": {
+        "ja": "雨が降りません。木が渇きます。それに金が木を切るとき、間で支える水がありません。"
+      }
+    },
+    {
+      "id": "ep-20:99",
+      "source": "윤달은 말끝을 흐리며 영냥이 쪽을 힐끗 보았다. 영냥이는 젖은 모자를 털어 고쳐 쓰며 모르는 척 시선을 피했다.",
+      "sourceHash": "e1a8b8e05a9545507dd598fdb9f633b317bcc0e3042918dd95472a515fcb13cc",
+      "translations": {
+        "ja": "Yundalは言葉を濁し、Yeongnyangiのほうをちらりと見た。Yeongnyangiは濡れた帽子を振ってかぶり直し、知らないふりで目をそらした。"
+      }
+    },
+    {
+      "id": "ep-20:100",
+      "source": "그럼 녹이면 되잖아요.",
+      "sourceHash": "d05f408074c8dd11e180b40431a2c89ced354e38d40ca3d0f32e0ea7538a683d",
+      "translations": {
+        "ja": "じゃあ、溶かせばいいんですよね。"
+      }
+    },
+    {
+      "id": "ep-20:101",
+      "source": "녹이는 방법을 아는 분이 방금 비가 되어 사라졌죠.",
+      "sourceHash": "9b2ccf6f51f0b2eaf9e0045c7d7c303ac243080d42c3278fbdc44613cf9d81be",
+      "translations": {
+        "ja": "溶かす方法を知っている方が、たった今、雨になって消えました。"
+      }
+    },
+    {
+      "id": "ep-20:102",
+      "source": "줄무늬 걔? 걔가 얼려 놓고 걔가 녹이는 법을 안다고? 사기꾼 너보다 더한 사기꾼이네.",
+      "sourceHash": "347dfa52ca86209131f2e9d2f330cd13f9a3d4d9e2a9de2825ff3493ffad2b43",
+      "translations": {
+        "ja": "あの縞模様？　自分で凍らせて、自分だけ溶かし方を知ってるって？　詐欺師、あんた以上の詐欺師だね。"
+      }
+    },
+    {
+      "id": "ep-20:103",
+      "source": "저는 궁합만 속여요. 얼음은 안 다뤄요.",
+      "sourceHash": "80e6e2a1f0491a6b5f8193ef6c3390f2c7f9c9ce0294b2bb43fce718a3204eff",
+      "translations": {
+        "ja": "僕がごまかすのは相性だけです。氷は扱いません。"
+      }
+    },
+    {
+      "id": "ep-20:104",
+      "source": "속인다고 인정했다. 방금 다들 들었지?",
+      "sourceHash": "56497808f642a125f3c7ea5d442c4fdf12a17a0f6e8260a91a5109810569b5bb",
+      "translations": {
+        "ja": "ごまかすって認めた。今の、みんな聞いたよね？"
+      }
+    },
+    {
+      "id": "ep-20:105",
+      "source": "수달 씨, 기억해 주셔서 고마워요. 진심으로요.",
+      "sourceHash": "97ebf553b8ea822549bbf966b2c7dc0b413279279c9ad6d0f5933981bb66c9ad",
+      "translations": {
+        "ja": "カワウソさん、覚えていてくれてありがとう。本当に。"
+      }
+    },
+    {
+      "id": "ep-20:106",
+      "source": "걔가 그랬어요. 녹으면 아프다고.",
+      "sourceHash": "f8ba1ee3ffebab16b460b295da10c85869712281bb5ef369b782f81b8c64bdc5",
+      "translations": {
+        "ja": "あの子が言ったんです。溶けたら痛むって。"
+      }
+    },
+    {
+      "id": "ep-20:107",
+      "source": "아무도 대답하지 않았다. 모카의 불씨만 작게 탁 소리를 냈다.",
+      "sourceHash": "b2f88e230ebcd49e114ee9a60881b3db2fa12316c6ee62bbbfd244e36cb836c9",
+      "translations": {
+        "ja": "誰も答えなかった。Mokaの火種だけが、小さくぱちりと鳴った。"
+      }
+    },
+    {
+      "id": "ep-20:108",
+      "source": "(내 이름이 적힌 책. 망토 속 북 대장. 이름은 빚이라는 말. 같이 쓰자던 우산.)",
+      "sourceHash": "ac5e909c27f64f6ce8239a37a56b8c2da973797acfedbcc84cb9673f89d8ae25",
+      "translations": {
+        "ja": "（私の名前が書かれた本。マントの中の太鼓隊長。名前は借りだという言葉。一緒に入ろうと言った傘。）"
+      }
+    },
+    {
+      "id": "ep-20:109",
+      "source": "(전부 하나로 이어질 것 같은데, 아직 실이 안 보여.)",
+      "sourceHash": "da846804b01af33f61b09e52e64717515057d429d40ee3b5b44fb969217452e7",
+      "translations": {
+        "ja": "（全部一つにつながりそうなのに、まだ糸が見えない。）"
+      }
+    },
+    {
+      "id": "ep-20:110",
+      "source": "연이는 고개를 들어 글자판을 다시 보았다. 일곱 칸이 찼다. 마지막 남은 칸은 시주의 첫 글자였다.",
+      "sourceHash": "7768e742672f5c238538b3d4e707b4ab7731bf1299b527845ba9432de51524a3",
+      "translations": {
+        "ja": "Yeoniは顔を上げ、もう一度文字盤を見た。七つの欄が埋まっていた。最後に残るのは時柱の最初の文字だった。"
+      }
+    },
+    {
+      "id": "ep-20:111",
+      "source": "[ 時 □ · 비어 있음 ]",
+      "sourceHash": "52a36c870f5ed46146d85ee84dfd66d8871b581dcdb87d8faf6ccb393440244c",
+      "translations": {
+        "ja": "[ 時 □ · 空欄 ]"
+      }
+    },
+    {
+      "id": "ep-20:112",
+      "source": "이상하네요. 이 빈칸, 처음 뵀을 때부터 비어 있었어요. 다른 칸처럼 뺏긴 흔적이 없어요.",
+      "sourceHash": "1bac3bd70b66ba2e7907fc2956fb94ea87a43506c0b6d0e3740252b212c10203",
+      "translations": {
+        "ja": "不思議ですね。この空欄は、初めて会ったときから空いていました。他の欄のように奪われた跡がありません。"
+      }
+    },
+    {
+      "id": "ep-20:113",
+      "source": "뺏긴 게 아니면 뭔데요?",
+      "sourceHash": "0b88cfaff5525869c98e53ba99519226428a7b97511ff66521c51f10b01ac322",
+      "translations": {
+        "ja": "奪われたのでなければ、何なんですか？"
+      }
+    },
+    {
+      "id": "ep-20:114",
+      "source": "원래 누가 앉을 자리인데, 그 누가 아직 안 앉은 것 같아요.",
+      "sourceHash": "7832a334a179cc25d7aee83f095921d2deaab761c5386e1519788fa9f4a255ed",
+      "translations": {
+        "ja": "本来は誰かが座る場所なのに、その誰かがまだ座っていないようです。"
+      }
+    },
+    {
+      "id": "ep-20:115",
+      "source": "그때 빈칸이 희미하게 빛났다. 연이가 앞발을 움직이자 빛도 따라 움직였다. 빛이 가장 밝아지는 쪽에는 영냥이가 서 있었다.",
+      "sourceHash": "7ced44fcd7c703cf04a1d52f199e5a022505ddece55282615a8246c2eab2c52e",
+      "translations": {
+        "ja": "そのとき空欄がかすかに光った。Yeoniが前足を動かすと、光もついて動いた。光がいちばん強くなる先に、Yeongnyangiが立っていた。"
+      }
+    },
+    {
+      "id": "ep-20:116",
+      "source": "영냥아. 너 쪽으로 가면 빛이 세져.",
+      "sourceHash": "ed5a93771734b6aa9ab3672ef564c3070f38c6315c149a996d4a12a48bc0dc5f",
+      "translations": {
+        "ja": "Yeongnyangi。君のほうへ行くと、光が強くなる。"
+      }
+    },
+    {
+      "id": "ep-20:117",
+      "source": "잘못 본 거야. 신경 쓰지 마.",
+      "sourceHash": "83bac370ed545d0274b6fc5562d2389fb83ad3136307bbaf23ec2b7b213aea68",
+      "translations": {
+        "ja": "見間違いだ。気にするな。"
+      }
+    },
+    {
+      "id": "ep-20:118",
+      "source": "영냥이가 한 걸음 물러섰다. 빈칸의 빛이 그만큼 약해졌다. 연이가 한 걸음 다가가자 빛이 다시 밝아졌다.",
+      "sourceHash": "07a3a805bb04c9ba1cb3d00b3667d41a69db98ca4abb8a6098b2506606b2115d",
+      "translations": {
+        "ja": "Yeongnyangiが一歩下がった。空欄の光は、そのぶん弱まった。Yeoniが一歩近づくと、また明るくなった。"
+      }
+    },
+    {
+      "id": "ep-20:119",
+      "source": "기분 탓 아닌데.",
+      "sourceHash": "b303fb6dff7b8c39ef46ca89e88bf0ed18d40fe893d9d24aaf79388bf613c744",
+      "translations": {
+        "ja": "気のせいじゃないけど。"
+      }
+    },
+    {
+      "id": "ep-20:120",
+      "source": "그 순간, 영냥이의 눈동자 깊은 곳에서 금빛이 번쩍 스쳤다. 칼날에 햇빛이 닿을 때 같은 빛이었다.",
+      "sourceHash": "e53cd71d7d03e6cec4dd8ca845aa0bcff2ff0753dc8146afa3e5053f0960ac26",
+      "translations": {
+        "ja": "その瞬間、Yeongnyangiの瞳の奥で金色がひらめいた。刃に日差しが当たるときのような光だった。"
+      }
+    },
+    {
+      "id": "ep-20:121",
+      "source": "연이야. 오늘은 여기까지 하자.",
+      "sourceHash": "261b4ae59b0d7ed8ab1fcd0db56ce240e2caf5c9f74400ac9a3e6612211c1f50",
+      "translations": {
+        "ja": "Yeoni。今日はここまでにしよう。"
+      }
+    },
+    {
+      "id": "ep-20:122",
+      "source": "영냥이는 돌아서서 젖은 계단 쪽으로 걸어갔다. 왼발을 끄는 소리가 빈 도서관에 오래 울렸다.",
+      "sourceHash": "74fd1e9b393ceeb5bc452b57109a5a97ed7b051281091f9ba180182b2a328c12",
+      "translations": {
+        "ja": "Yeongnyangiは背を向け、濡れた階段へ歩いていった。左足を引きずる音が、誰もいない図書館に長く響いた。"
+      }
+    }
+  ]
+}
