@@ -24,7 +24,7 @@ export function approvedNativeTeaProduct(sku){
 export function nativeTeaCatalog(){
   return APPROVED_TOSS_NATIVE_PRODUCTS.map(item=>{
     const product=approvedNativeTeaProduct(item.sku);
-    return {id:product.productId,name:product.nativeService==='life-book'?'인생의 책':product.nativeService==='fusion'?'초융합 운세':product.nativeService==='neo'?'네오의 팩폭 전략실':'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
+    return {id:product.productId,name:product.nativeService==='love-secret'?'연애 비책':product.nativeService==='life-book'?'인생의 책':product.nativeService==='fusion'?'초융합 운세':product.nativeService==='neo'?'네오의 팩폭 전략실':'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
       approvedPriceKRW:product.approvedPriceKRW,available:true};
   });
 }
@@ -148,8 +148,8 @@ export async function nativeTeaRecords(env,auth,params){
   const group=params.get('group')||'all';
   if(!['all','report'].includes(group))return {ok:true,items:[],failures:[],nextCursor:null};
   const source=params.get('source');
-  if(source&&!['tea','neo','fusion','life-book'].includes(source))return {ok:true,items:[],failures:[],nextCursor:null};
-  const filter={...ownerFilter(auth),nativeService:source||{$in:['tea','neo','fusion','life-book']},status:'paid'};
+  if(source&&!['tea','neo','fusion','life-book','love-secret'].includes(source))return {ok:true,items:[],failures:[],nextCursor:null};
+  const filter={...ownerFilter(auth),nativeService:source||{$in:['tea','neo','fusion','life-book','love-secret']},status:'paid'};
   const q=(params.get('q')||'').trim().slice(0,160);
   if(q)filter['input.question']={$regex:q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),$options:'i'};
   const cursor=params.get('cursor');
@@ -167,10 +167,11 @@ export async function nativeTeaRecords(env,auth,params){
     const neo=row.nativeService==='neo';
     const fusion=row.nativeService==='fusion';
     const lifeBook=row.nativeService==='life-book';
-    const saved=lifeBook?await (await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,purchase):fusion?await (await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,purchase):neo?await (await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,purchase):await nativeTeaLibraryItem(env,auth,purchase);
-    items.push({id:saved.resultId||row.resultId,key:row.nativeService+':'+row.resultId,source:row.nativeService,serviceId:row.nativeService,serviceName:lifeBook?'인생의 책':fusion?'초융합 운세':neo?'네오의 팩폭 전략실':'연이의 운명 찻집',
-      title:saved.question||(lifeBook?'인생의 책':fusion?'초융합 운세':neo?'네오의 팩폭 전략실':'운명의 찻집'),question:saved.question,createdAt:row.createdAt,status:saved.state==='COMPLETED'?'completed':'generating',
-      character:neo?'neo':(fusion||lifeBook)?'':'yeoni',group:'report',href:saved.href,nativeHref:saved.href,startHref:lifeBook?'/life-book-ai/':fusion?'/fusion-fortune/':neo?'/neo-operation-room/':'/fortune-tea-house/'});
+    const loveSecret=row.nativeService==='love-secret';
+    const saved=loveSecret?await (await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,purchase):lifeBook?await (await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,purchase):fusion?await (await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,purchase):neo?await (await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,purchase):await nativeTeaLibraryItem(env,auth,purchase);
+    items.push({id:saved.resultId||row.resultId,key:row.nativeService+':'+row.resultId,source:row.nativeService,serviceId:row.nativeService,serviceName:loveSecret?'연애 비책':lifeBook?'인생의 책':fusion?'초융합 운세':neo?'네오의 팩폭 전략실':'연이의 운명 찻집',
+      title:saved.question||(loveSecret?'연애 비책':lifeBook?'인생의 책':fusion?'초융합 운세':neo?'네오의 팩폭 전략실':'운명의 찻집'),question:saved.question,createdAt:row.createdAt,status:saved.state==='COMPLETED'?'completed':'generating',
+      character:neo?'neo':(fusion||lifeBook||loveSecret)?'':'yeoni',group:'report',href:saved.href,nativeHref:saved.href,startHref:loveSecret?'/love-secret-ai/':lifeBook?'/life-book-ai/':fusion?'/fusion-fortune/':neo?'/neo-operation-room/':'/fortune-tea-house/'});
   }
   const last=rows[49];
   return {ok:true,items,failures:[],nextCursor:rows.length>50?`${new Date(last.createdAt).toISOString()},${last._id}`:null};

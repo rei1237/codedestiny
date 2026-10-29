@@ -3,7 +3,7 @@ import {Button} from './Button';
 import {questions} from './content';
 
 type Destination='daily'|'manse'|'tarot-library'|'flower'|'bias'|'library'|'settings';
-export default function UnifiedHome({onOpen,onConsult}:{onOpen:(page:Destination)=>void;onConsult:(service:'yeongnyangi'|'yeoni'|'neo'|'fusion'|'life-book',question?:typeof questions[number])=>void}){
+export default function UnifiedHome({onOpen,onConsult}:{onOpen:(page:Destination)=>void;onConsult:(service:'yeongnyangi'|'yeoni'|'neo'|'fusion'|'life-book'|'love-secret',question?:typeof questions[number])=>void}){
  const [world,setWorld]=useState<'home'|'yeongnyangi'|'ggulggul'>('home');
  return <div className={'unified-home world-'+world}>
   <header className="unified-brand"><img src="/assets/yeoni-flower-pig.webp" alt="" width={40} height={40}/><strong>꿀꿀 운세</strong><button onClick={()=>onOpen('settings')}>내 정보</button></header>
@@ -15,7 +15,7 @@ export default function UnifiedHome({onOpen,onConsult}:{onOpen:(page:Destination
    <section className="world-flower-hero"><div><p className="eyebrow">꽃돼지 연이의 안내</p><h1>오늘은 어떤<br/>이야기를 펼칠까요?</h1><p>나를 알아가는 사주,<br/>마음을 비추는 타로와 운세.</p></div><img src="/assets/yeoni-flower-guide.webp" alt="꽃을 든 연이" width={500} height={500}/></section>
    <h2>나를 알아가는 운세</h2><div className="world-services">{[{id:'manse' as const,title:'사주·만세력',body:'태어난 날에 담긴 명식과 오행'}, {id:'tarot-library' as const,title:'타로 리딩',body:'오늘의 마음부터 관계의 질문까지'},{id:'flower' as const,title:'운명의 꽃',body:'네 가지 체계로 읽는 나의 꽃'},{id:'bias' as const,title:'최애운명',body:'내 최애와 나의 케미'}].map(item=><button key={item.id} onClick={()=>onOpen(item.id)}><strong>{item.title}</strong><small>{item.body}</small><span aria-hidden>→</span></button>)}</div>
    <h2>마음을 나누는 상담실</h2><div className="world-rooms"><button onClick={()=>onConsult('yeoni')}><img src="/assets/yeoni-flower-pig.webp" alt="" width={96} height={96}/><span><strong>연이 · 꽃빛 상담실</strong><small>마음과 관계를 다정한 편지로</small></span><span aria-hidden>›</span></button><button onClick={()=>onConsult('neo')}><img src="/assets/neo.webp" alt="" width={96} height={96}/><span><strong>네오 · 별빛 전략실</strong><small>고민을 현실적인 다음 행동으로</small></span><span aria-hidden>›</span></button></div>
-   <section className="world-port-status"><h2>깊이 읽는 리포트</h2><Button onClick={()=>onConsult('fusion')}>초융합 운세 둘러보기</Button><Button onClick={()=>onConsult('life-book')}>인생의 책 둘러보기</Button><p>연애 비책 · 전문가 상담</p><small>기존 서비스의 전용 화면을 옮기는 중이에요. 토스에서는 아직 시작할 수 없어요.</small></section>
+   <section className="world-port-status"><h2>깊이 읽는 리포트</h2><Button onClick={()=>onConsult('fusion')}>초융합 운세 둘러보기</Button><Button onClick={()=>onConsult('life-book')}>인생의 책 둘러보기</Button><Button onClick={()=>onConsult('love-secret')}>연애 비책 둘러보기</Button><p>전문가 상담</p><small>기존 서비스의 전용 화면을 옮기는 중이에요. 토스에서는 아직 시작할 수 없어요.</small></section>
   </>}
   <footer className="world-footer"><button onClick={()=>onOpen('library')}>기록 보관함</button><button onClick={()=>onOpen('settings')}>설정·고객지원</button></footer>
  </div>;
