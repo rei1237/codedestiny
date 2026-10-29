@@ -157,7 +157,7 @@ body.neo-mode .saju-cycle-guide {background:#21182f;color:#f4eafa;border-color:#
 
 
 /* The closing note is a continuous letter, separate from analytical cards. */
-#resultPage #letterBox {padding:28px clamp(18px,4vw,44px);background:var(--reading-paper);border:1px solid var(--reading-line);}
+#resultPage #letterBox {width:calc(100% - 24px);padding:28px clamp(18px,4vw,44px);background:var(--reading-paper);border:1px solid var(--reading-line);}
 #resultPage #letterTitle {color:var(--reading-accent);line-height:1.6;margin:0 0 24px;}
 #resultPage .saju-letter {padding:0;border-radius:0;background:transparent;text-align:left;}
 #resultPage .saju-letter p {max-width:62ch;margin-inline:auto;line-height:2.05;word-break:keep-all;overflow-wrap:anywhere;}

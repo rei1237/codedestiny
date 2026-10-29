@@ -62,7 +62,10 @@ test('new non-Korean copy does not fall back to Korean',()=>{
 test('all reading editions retain the full personal letter, chart variables and distinct voices',()=>{
   for(const lang of ['en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms']){
     const dictionary=JSON.parse(readFileSync(`public/i18n/${lang.toLowerCase()}.json`,'utf8'));
-    const translatedContext=vm.createContext({cdTranslate:key=>key.split('.').reduce((value,part)=>value?.[part],dictionary)||''});
+    const translatedContext=vm.createContext({cdTranslate:(key,vars={})=>{
+      const value=key.split('.').reduce((entry,part)=>entry?.[part],dictionary)||'';
+      return String(value).replace(/\{(\w+)\}/g,(_,name)=>vars[name]??'');
+    }});
     vm.runInContext(readFileSync('js/core/saju/reading-personas.js','utf8'),translatedContext);
     const presentation=translatedContext.SajuReadingPresentation;
     const yeon=presentation.build({...fixture,name:'Alex'},'pig',lang).letter;

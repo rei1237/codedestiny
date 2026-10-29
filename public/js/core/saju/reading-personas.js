@@ -323,7 +323,9 @@
     Object.keys(fallback).forEach(function(key){
       function translated(value,suffix){
         if(typeof root.cdTranslate!=='function')return value;
-        var full='sajuReading.'+key+(suffix===undefined?'':'.'+suffix), found=root.cdTranslate(full,{},'');
+        var vars={};
+        String(value).replace(/\{(\w+)\}/g,function(token,name){vars[name]=token;return token;});
+        var full='sajuReading.'+key+(suffix===undefined?'':'.'+suffix), found=root.cdTranslate(full,vars,'');
         return found&&found!==full&&found!=='Translation pending'?found:value;
       }
       result[key]=Array.isArray(fallback[key])?fallback[key].map(function(value,i){return translated(value,i);}):translated(fallback[key]);
