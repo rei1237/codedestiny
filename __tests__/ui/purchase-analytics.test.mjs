@@ -48,6 +48,36 @@ function boot(url='https://code-destiny.com/points/?token=private',{consent='',s
   dom.window.eval(source);return dom;
 }
 
+test('consenting after a purchase preserves dedupe across a later recovery without replaying it',()=>{
+ const payload={payment:{merchantUid:'fixture-consent-recovery',paymentAmount:1000,status:'paid',analyticsChannel:'LIVE'}};
+ const first=boot(undefined,{consent:'essential'}),w=first.window;
+ try {
+  w.cdTrackConfirmedPurchase(payload);
+  assert.equal(w.localStorage.getItem('cd:purchase:fixture-consent-recovery'),null);
+  w.document.cookie='cd_cookie_consent=accepted; path=/';
+  w.cdSyncConsent();
+  assert.equal(w.dataLayer.filter(row=>row[1]==='purchase').length,1);
+  const stored=Object.fromEntries(Object.keys(w.localStorage).map(key=>[key,w.localStorage.getItem(key)]));
+  const recovered=boot(undefined,{consent:'accepted',stored});
+  try {
+   recovered.window.cdTrackConfirmedPurchase(payload);
+   assert.equal(recovered.window.dataLayer.filter(row=>row[1]==='purchase').length,0);
+   assert.equal(recovered.window.dataLayer.filter(row=>row[1]==='entitlement_granted').length,0);
+  } finally { recovered.window.close(); }
+ } finally { w.close(); }
+});
+
+test('SPA purchase uses its current sanitized route instead of the initial records page',()=>{
+ const dom=boot('https://code-destiny.com/records/?token=private',{consent:'accepted'}),w=dom.window;
+ try {
+  w.history.pushState({},'', '/points/?paymentId=private#private');
+  w.cdTrackConfirmedPurchase({payment:{merchantUid:'fixture-spa-location',paymentAmount:1000,status:'paid',analyticsChannel:'LIVE'}});
+  const purchase=w.dataLayer.find(row=>row[1]==='purchase')[2];
+  assert.equal(purchase.page_location,'https://code-destiny.com/points/');
+  assert.equal(JSON.stringify(purchase).includes('private'),false);
+ } finally { w.close(); }
+});
+
 test('brand campaign follows site-wide purchases and keeps product revenue separate', async()=>{
  const dom=boot('https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_brand&utm_content=A_ko&utm_term=K01',{consent:'accepted'}),w=dom.window;
  const products=[['fusion-fortune-consultation',50000],['new-year-ai-consultation',30000],['yeongnyangi-saju-mackerel',5000]];
