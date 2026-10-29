@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import Image from 'next/image';
 import {ArrowRight,X} from 'lucide-react';
+import {useLocale} from '@/lib/i18n/useT';
 import ProfilePicker from './ProfilePicker';
 import {useProfiles} from '../_lib/use-profiles';
 import {useFirstVisit} from '../_lib/use-first-visit';
@@ -17,6 +18,7 @@ function GuideArt({step=0}:{step?:number}){
  return <span className={styles.art} aria-hidden="true"><Image src="/images/first-visit/yeongnyangi-tutorial-v1.webp" alt="" width={1440} height={480} style={{left:`-${step*100}%`}}/></span>;
 }
 export default function FirstVisitGuide(){
+ const locale=useLocale();
  const {state,scope}=useFirstVisit();
  const profiles=useProfiles();
  const [scene,setScene]=useState(0);
@@ -81,7 +83,7 @@ export default function FirstVisitGuide(){
    <ol className={styles.steps} aria-label="상담 준비 순서"><li aria-current={state.step===1?'step':undefined}>1. 프로필</li><li aria-current={state.step>=2?'step':undefined}>2. 고민</li><li>3. 구성·가격</li></ol>
    <h2>{selected?'좋아, 프로필이 준비됐어. 어떤 고민이 있어?':'먼저, 누구의 이야기를 살펴볼까?'}</h2>
    <p>저장된 프로필이 있으면 골라줘. 없으면 하나 만들어보자. 출생 정보가 필요 없는 타로는 바로 질문을 골라도 괜찮아.</p>
-   <ProfilePicker state={profiles} locale="ko" showPolicyNote={false} onLogin={()=>{firstVisitLogin('yeongnyangi');loginForCurrentPage();}}/>
+   <ProfilePicker state={profiles} locale={locale} showPolicyNote={false} onLogin={()=>{firstVisitLogin('yeongnyangi');loginForCurrentPage();}}/>
    <p className={styles.note}>프로필을 만들고 관리하는 건 무료야. 상담 이용 조건은 다음 단계에서 함께 확인하자.</p>
    <a className={styles.primary} href="#questions" onClick={()=>{writeFirstVisit('yeongnyangi','active',2);firstVisitEvent('yeongnyangi','step',2);close();}}>고민 고르기 <ArrowRight size={18}/></a>
    <p className={styles.note}>고민을 고르면 어떤 상담을 받을지, 가격은 얼마인지 먼저 보여줄게. 지금 결제되는 건 아니니 차분히 살펴봐.</p>

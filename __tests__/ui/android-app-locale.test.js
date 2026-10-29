@@ -13,17 +13,24 @@ function visit(node) {
 visit(source);
 assert.ok(installer);
 const flush = () => new Promise(resolve => setImmediate(resolve));
-function setup({ language = 'de', previous = '', missing = false, delayed = false } = {}) {
+function setup({ language = 'de', previous = '', missing = false, delayed = false, followsSystem = false, geo } = {}) {
   const events = new Map(), storage = new Map(), calls = [], emitted = [];
   let nativeListener, resolveInit;
   const location = new URL('https://localhost/lock-screen-fortune/index.html?content=quote&lang=ko#detail');
   const plugin = {
-    initialize: options => { calls.push(['initialize', options.language]); return delayed ? new Promise(resolve => { resolveInit = resolve; }) : Promise.resolve({ language }); },
+    initialize: options => { calls.push(['initialize', options.language]); return delayed ? new Promise(resolve => { resolveInit = resolve; }) : Promise.resolve({ language, followsSystem }); },
     addListener: (_name, listener) => { nativeListener = listener; return Promise.resolve({ remove() {} }); },
     setLanguage: options => { calls.push(['set', options.language]); return Promise.resolve({ language: options.language }); },
   };
   const window = {
     location,
+    CODE_DESTINY_API_BASE_URL: 'https://code-destiny.test',
+    fetch: (url, options) => {
+      assert.equal(url, 'https://code-destiny.test/api/geo');
+      assert.equal(options.credentials, 'omit');
+      assert.ok(geo, 'Unexpected country request for an explicit language');
+      return geo();
+    },
     Capacitor: { Plugins: missing ? {} : { CodeDestinyLocale: plugin } },
     history: { state: { input: 'preserved' }, replaceState(state, _title, href) { assert.equal(state.input, 'preserved'); location.href = href; } },
     localStorage: { setItem: (key, value) => storage.set(key, value) },
@@ -31,7 +38,7 @@ function setup({ language = 'de', previous = '', missing = false, delayed = fals
     dispatchEvent(event) { emitted.push(event.type); for (const fn of events.get(event.type) || []) fn(event); },
   };
   const document = { cookie: '', documentElement: { setAttribute() {} } };
-  vm.runInNewContext(installer + ';installAppLocaleBridge()', { window, document, URL, previousAppLanguage: previous, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } } });
+  vm.runInNewContext(installer + ';installAppLocaleBridge()', { window, document, URL, AbortSignal, previousAppLanguage: previous, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } } });
   return { window, storage, calls, emitted, native: state => nativeListener(state), init: state => resolveInit(state), select: lang => window.dispatchEvent({ type: 'cd:locale-ready', detail: { lang, source: 'user' } }) };
 }
 test('OS locale replaces stale URL without navigation or losing detail/history', async () => {
@@ -41,6 +48,35 @@ test('OS locale replaces stale URL without navigation or losing detail/history',
   assert.equal(ctx.window.location.searchParams.get('content'), 'quote');
   assert.equal(ctx.window.location.hash, '#detail');
   assert.deepEqual(ctx.calls, [['initialize', '']]);
+});
+
+test('fresh installs use the visiting country for all 12 supported languages and keep it on resume', async () => {
+  for (const [country, locale, language] of [
+    ['KR','ko-KR','ko'],['US','en-US','en'],['JP','ja-JP','ja'],['CN','zh-CN','zh-CN'],
+    ['TW','zh-TW','zh-TW'],['VN','vi-VN','vi'],['IN','hi-IN','hi'],['ES','es-ES','es'],
+    ['FR','fr-FR','fr'],['DE','de-DE','de'],['NL','nl-NL','nl'],['MY','ms-MY','ms'],['TH','th-TH','en'],
+  ]) {
+    const ctx = setup({ language: 'ko', followsSystem: true, geo: async () => ({ ok: true, json: async () => ({ ok: true, country, locale }) }) });
+    await flush();
+    assert.equal(ctx.storage.get('cd_lang'), language, country);
+    ctx.native({ language: 'ko', followsSystem: true });
+    assert.equal(ctx.storage.get('cd_lang'), language, 'resume ' + country);
+    assert.deepEqual(ctx.calls, [['initialize', '']], 'automatic detection must not become a permanent manual setting');
+  }
+});
+
+test('an explicit choice made while country detection is pending wins the late response', async () => {
+  let finish;
+  const ctx = setup({ followsSystem: true, geo: () => new Promise(resolve => { finish = resolve; }) });
+  await flush(); ctx.select('ja'); await flush();
+  finish({ ok: true, json: async () => ({ ok: true, country: 'FR', locale: 'fr-FR' }) });
+  await flush(); assert.equal(ctx.storage.get('cd_lang'), 'ja');
+});
+
+test('offline or unavailable country detection retains the system language without retry', async () => {
+  let count = 0;
+  const ctx = setup({ followsSystem: true, geo: async () => { count++; throw new Error('offline'); } });
+  await flush(); assert.equal(ctx.storage.get('cd_lang'), 'de'); assert.equal(count, 1);
 });
 test('explicit previous choice is offered only to native migration', async () => {
   const ctx = setup({ previous: 'ja', language: 'fr' }); await flush();

@@ -10,6 +10,17 @@ const dictionary = readFileSync('lib/i18n/dictionary.ts', 'utf8');
 const normalizer = readFileSync('lib/i18n/locale-normalize.js', 'utf8').replaceAll('export ', '');
 const native = readFileSync('js/cd-lang-native.js', 'utf8');
 const routes = JSON.parse(readFileSync('public/_routes.json', 'utf8'));
+test('the native country API agrees with every Pages country-language group', () => {
+  const api = ts.createSourceFile('worker.js', readFileSync('worker/index.js', 'utf8'), ts.ScriptTarget.Latest, true);
+  const resolve = api.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'detectLocale');
+  assert.ok(resolve);
+  const groups = runInNewContext(source.slice(source.indexOf('const COUNTRY_LANGUAGE_GROUPS'), source.indexOf('const VISITOR_LANGUAGES')) + ';COUNTRY_LANGUAGE_GROUPS;');
+  const detect = runInNewContext(resolve.getText(api) + ';detectLocale;');
+  const normalize = runInNewContext(normalizer + ';normalizeLocale;');
+  for (const [locale, countries] of Object.entries(groups)) for (const country of countries.split(' ')) {
+    assert.equal(normalize(detect(country)), locale, country);
+  }
+});
 const asset = { ASSETS: { fetch: async () => new Response('<html>content</html>', { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'public, max-age=3600' } }) } };
 function edge(fetchImpl = () => { throw Error('Unexpected network'); }) {
   return runInNewContext(source.replace('export default {', 'globalThis.worker = {') + '\nworker;', { URL, Response, Headers, console, fetch: fetchImpl });
