@@ -31,3 +31,38 @@ test('brand refresh preserves core keys and still rejects untranslated Korean', 
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('authoring creates arrays and repairs numeric maps without losing sibling copy', () => {
+  const root = mkdtempSync(join(tmpdir(), 'authored-lists-'));
+  const locales = { ko: 'ko', en: 'en', ja: 'ja', 'zh-CN': 'zh-cn', 'zh-TW': 'zh-tw', vi: 'vi', hi: 'hi', es: 'es', fr: 'fr', de: 'de', nl: 'nl', ms: 'ms' };
+  try {
+    mkdirSync(join(root, 'i18n/authored'), { recursive: true });
+    mkdirSync(join(root, 'public/i18n'), { recursive: true });
+    for (const file of Object.values(locales)) {
+      const feats = file === 'ko' ? { 0: 'Old', 1: 'Keep sibling' } : ['Old', 'Keep sibling'];
+      writeFileSync(join(root, `public/i18n/${file}.json`), JSON.stringify({ featureMarketing: { reading: { feats } } }));
+    }
+    const translations = Object.fromEntries(Object.keys(locales).map(locale => [locale, 'Reviewed copy']));
+    writeFileSync(join(root, 'i18n/authored/lists-01.json'), JSON.stringify({
+      'featureMarketing.reading.feats.0': translations,
+      'featureMarketing.reading.answers.0': translations,
+    }));
+    const run = () => spawnSync(process.execPath, [fileURLToPath(new URL('../../scripts/i18n-merge-authored.mjs', import.meta.url)), '--namespace', 'lists', '--core'], { cwd: root, encoding: 'utf8' });
+    const result = run();
+    assert.equal(result.status, 0, result.stderr);
+    for (const file of Object.values(locales)) {
+      const reading = JSON.parse(readFileSync(join(root, `public/i18n/${file}.json`), 'utf8')).featureMarketing.reading;
+      assert.deepEqual(reading.feats, ['Reviewed copy', 'Keep sibling']);
+      assert.deepEqual(reading.answers, ['Reviewed copy']);
+    }
+    const target = join(root, 'public/i18n/ko.json');
+    const invalid = { featureMarketing: { reading: { feats: { 0: 'Keep', unexpected: 'Do not discard' } } } };
+    writeFileSync(target, JSON.stringify(invalid));
+    const rejected = run();
+    assert.notEqual(rejected.status, 0);
+    assert.match(rejected.stderr, /Invalid authored list/);
+    assert.deepEqual(JSON.parse(readFileSync(target, 'utf8')), invalid);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
