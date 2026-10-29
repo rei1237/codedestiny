@@ -26,6 +26,7 @@
  */
 
 import { resolvePaymentMethodLabel } from "../lib/payment-method-label.js";
+import { analyticsPaymentChannel } from './analytics-channel.js';
 import { paymentOrderName, resolveOrderProductName } from "../lib/payment-product-name.js";
 
 /** 구 응답과 같은 마스킹. 끝 4자만 남긴다(payments.js maskPaymentIdentifier 와 동일). */
@@ -185,7 +186,7 @@ export function legacyConfirmEnvelope(order, { granted = false, replayed = false
       code: "GRANT_PENDING",
       recoveryRequired: true,
       status: "paid",
-      payment: { merchantUid, status: "paid", paymentAmount: Number(order?.paymentAmount || 0) },
+      payment: { merchantUid, status: "paid", paymentAmount: Number(order?.paymentAmount || 0), analyticsChannel: analyticsPaymentChannel(order) },
       merchantUid,
       featureKey,
       // 소급 출생 기반 주문은 자동으로 열리지 않는다 — "준비 중" 대신 프로필 선택을 안내한다(code 는 유지).
@@ -214,6 +215,7 @@ export function legacyConfirmEnvelope(order, { granted = false, replayed = false
     ...(unlock && featureKey ? { unlockedFeatures: [featureKey], unlockMap: { [featureKey]: true } } : {}),
     payment: {
       merchantUid,
+      analyticsChannel: analyticsPaymentChannel(order),
       paymentId: impUid || merchantUid,
       transactionId: impUid || merchantUid,
       status: "paid",

@@ -397,6 +397,8 @@
     try {
       var payment = payload && (payload.payment || payload.order);
       if (!payment || !/^(paid|success|fulfilled)$/i.test(String(payment.status || ''))) return false;
+      // Unknown older receipts remain reconcilable in the PG audit, never guessed as live revenue.
+      if (payment.analyticsChannel !== 'LIVE') return false;
       var id = String(payment.merchantUid || payment.orderId || '');
       var value = Number(payment.paymentAmount == null ? payment.amountKRW : payment.paymentAmount);
       // 지급 완료 봉투(worker/payments/compat.js legacyConfirmEnvelope)는 featureKey 를 accessGrant 안에만 싣는다.
