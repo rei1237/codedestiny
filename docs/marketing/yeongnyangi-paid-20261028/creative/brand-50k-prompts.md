@@ -18,4 +18,3 @@ Use case: ads-marketing. Create ONE finished landscape 16:9 Korean brand banner 
 
 ## 제외한 중간안
 대통령 기록 포스터를 잘못 A로 선택하여 생성한 인간 네오+고양이 사각형은 사용자 정정에 따라 이번 실험에서 제외. 파일 배포/업로드하지 않음.
-

@@ -87,4 +87,3 @@ production_deployed: false
 - https://ads.naver.com/help/faq/1175 — 일 예산은 보조 장치, 중지 지연에 따른 초과 과금 가능.
 - https://ads.naver.com/help/faq/768 — 가중치와 최저 입찰.
 - https://ads.naver.com/help/faq/1169 — 광고그룹 URL/매체/가중치 설정.
-

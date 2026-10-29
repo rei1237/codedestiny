@@ -132,4 +132,3 @@ production_deployed: false
 
 - 추가 공식 검사: verify:payment-freeze, verify:checkout-pass-card, verify:portone-single-payment 모두 exit 0. 포트원 모의 회귀 중 미연결 failure-log 모델의 10초 buffering timeout 경고 2건이 있었으나 검사는 PASS. 실제 결제 승인이나 운영 DB 기록 성공을 뜻하지 않는다.
 - UI 검수 캡처와 영상: yeongnyangi-paid-20261028/qa/verification.json, yeongnyangi-ep1-15s.webm. 전체 Next 앱 빌드가 아니라 기존 스타일을 포함한 실제 랜딩 컴포넌트의 격리 렌더다.
-
