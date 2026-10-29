@@ -9,6 +9,7 @@ import {
 import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
+import Link from "next/link";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/new-year-ai-consultation/";
@@ -138,6 +139,12 @@ export default function NewYearAiConsultationPage() {
         <p>
           새해 운세는 한 해를 단정하는 예언이 아니라, 계절의 흐름을 미리 아는 달력에 가깝습니다.
           연초가 아니어도 남은 달의 방향을 잡거나 다가올 해를 미리 살피는 데 언제든 활용할 수 있습니다.
+        </p>
+        {/* 무료 띠별 풀이(년주 하나)와 이 상담(전체 명식)의 범위를 나눠 안내한다 — 2026-10-29 감사 X-S2. */}
+        <p>
+          태어난 해의 띠 하나로 먼저 큰 흐름을 보고 싶다면{" "}
+          <Link href="/fortune/2027">{SEASON_YEAR}년 띠별 운세</Link>에서 12띠와 정미년의 합·충 관계, 삼재, 절기별 월건을 무료로
+          확인할 수 있습니다. 이 상담은 띠가 아니라 생년월일시 전체 명식에 세운을 겹쳐 봅니다.
         </p>
         <p>
           같은 해라도 사람마다 사주 명식이 다르기 때문에 세운이 만드는 결도 저마다 다릅니다.
