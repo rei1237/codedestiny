@@ -86,7 +86,18 @@ export async function handleTossRoutes(request,env) {
       const input=await bodyOf(request);
       return reply(await prepareNativeNeo(env,auth,input.input,input.orderId));
     }
-    const nativeIntent=path.match(/^\/native\/(tea|neo)\/intents\/([a-f0-9]{64})$/);
+    if(path==='/native/fusion/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-fusion-prepare',6);
+      const {prepareNativeFusion}=await import('./native-fusion.js');
+      const input=await bodyOf(request);
+      return reply(await prepareNativeFusion(env,auth,input.input,input.orderId));
+    }
+    if(path.startsWith('/canonical/fusion-fortune/')&&['GET','POST'].includes(request.method)){
+      if(request.method==='POST')await limit(env,auth._id,'native-fusion',30);
+      const {handleNativeFusion}=await import('./native-fusion.js');
+      return forwardServiceResponse(await handleNativeFusion(request,env,auth,path.slice('/canonical/fusion-fortune'.length)),headers);
+    }
+    const nativeIntent=path.match(/^\/native\/(tea|neo|fusion)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));
@@ -227,7 +238,7 @@ export async function handleTossRoutes(request,env) {
     if(path==='/library'&&request.method==='GET') {
       const rows=await TossPurchase.find(libraryFilter(auth,url.searchParams.get('cursor'))).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
       return reply(await libraryPage(rows,id=>readRequest(env,auth.userId,id),row=>PaidExecutionRecord.findOne({orderId:row._id,userId:String(auth.ownerId)}).lean(),
-        async row=>row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row)));
+        async row=>row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row)));
     }
     const tarotResultMatch=path.match(/^\/tarot-library\/results\/([a-f0-9-]{36})$/);
     if(tarotResultMatch&&request.method==='POST') {

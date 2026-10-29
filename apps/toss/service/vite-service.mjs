@@ -51,7 +51,7 @@ export default function serviceCompat(){
    if(id.replaceAll('\\','/').includes('/js/core/')&&code.includes('module.exports = api')){const name=code.match(/(?:globalThis|root)\.([\w]+) = api;/)?.[1];if(name)code+='\nexport default globalThis.'+name+';';}
    return code;
   },
-  resolveId(id){if(id.replaceAll('\\','/').endsWith('/app/_lib/billing-client'))return fileURLToPath(new URL('./billing.jsx',import.meta.url));if(id.replaceAll('\\','/').endsWith('/app/checkout/CheckoutClient'))return fileURLToPath(new URL('./Checkout.jsx',import.meta.url));if(id==='next/navigation'||defaults[id])return '\0toss-service:'+id;},
+  resolveId(id,importer){const sourceId=id.startsWith('.')&&importer?resolve(dirname(importer.split('?')[0]),id):id;if(sourceId.replaceAll('\\','/').endsWith('/app/hooks/usePayment'))return fileURLToPath(new URL('./payment-state.jsx',import.meta.url));if(sourceId.replaceAll('\\','/').endsWith('/app/_lib/billing-client'))return fileURLToPath(new URL('./billing.jsx',import.meta.url));if(id.replaceAll('\\','/').endsWith('/app/checkout/CheckoutClient'))return fileURLToPath(new URL('./Checkout.jsx',import.meta.url));if(id==='next/navigation'||defaults[id])return '\0toss-service:'+id;},
   load(id){if(!id.startsWith('\0toss-service:'))return;const name=id.slice('\0toss-service:'.length);return defaults[name]?`export {${defaults[name]} as default} from ${JSON.stringify(shim)};`:`export {useRouter,usePathname,useSearchParams} from ${JSON.stringify(shim)};`;},
   configureServer(server){server.middlewares.use(async(req,res,next)=>{
    let path;try{path=resolve(publicRoot,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));}catch{return next();}
@@ -73,7 +73,7 @@ export default function serviceCompat(){
    }
    // Original product disclosures fetch their authored manifest after opening.
    const catalogue=JSON.parse(await readFile(resolve(publicRoot,'../content/product-details/catalog.json'),'utf8'));
-   const ids=new Set(Object.entries(catalogue.products).filter(([key])=>key.startsWith('fortune-tea-house-')||key==='neo-operation-room-consultation').map(([,id])=>id));
+   const ids=new Set(Object.entries(catalogue.products).filter(([key])=>key.startsWith('fortune-tea-house-')||key==='neo-operation-room-consultation'||key==='fusion-fortune-consultation').map(([,id])=>id));
    for(const id of ids){
     const ref='/feature-details/crafted/'+id+'/manifest.json';
     const source=await readFile(resolve(publicRoot,'.'+ref),'utf8');

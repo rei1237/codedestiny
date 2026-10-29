@@ -69,6 +69,7 @@ export async function runFusionFortuneRecovery(env, options = {}) {
   await (options.connectDb || connectDb)(env);
   const runStage = options.runStage || runFusionFortuneDeliveryStage;
   const bootstrapped = await bootstrapApprovedFusionOrders(env, now, deadline, runStage);
+  const nativeBootstrapped = await (await import('../toss/native-fusion.js')).bootstrapNativeFusionOrders(env, {now, deadline, runStage});
   const candidates = await withMongoRetry(env, () => FusionFortuneConsultation.find(buildAbandonedFusionFilter(now)).sort({ updatedAt: 1 }).limit(MAX_PER_TICK).lean());
   const outcomes = [];
   // Continue saved progress within this tick, rotating between owners. Otherwise
@@ -107,5 +108,5 @@ export async function runFusionFortuneRecovery(env, options = {}) {
     }
   }
   console.log('[fusion-fortune-recovery]', JSON.stringify({ bootstrapped, scanned: candidates.length, outcomes }));
-  return { ok: true, bootstrapped, scanned: candidates.length, outcomes };
+  return { ok: true, bootstrapped, nativeBootstrapped, scanned: candidates.length, outcomes };
 }

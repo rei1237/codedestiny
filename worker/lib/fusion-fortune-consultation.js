@@ -239,7 +239,7 @@ export async function listFusionFortuneConsultations({ userId, limit = 10 } = {}
   if (!text(userId, 120)) return [];
   const size = Math.min(Math.max(Number(limit) || 10, 1), 20);
   return FusionFortuneConsultation.find({ userId: text(userId, 120), status: "completed" })
-    .select("id title inputSummary generationSource qualityTier status createdAt")
+    .select("id idempotencyKey title inputSummary generationSource qualityTier status createdAt")
     .sort({ createdAt: -1 })
     .limit(size)
     .lean();

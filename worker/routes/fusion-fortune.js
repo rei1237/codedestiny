@@ -1,3 +1,5 @@
+import { TossError } from "../toss/policy.js";
+import { nativeTossContext } from "../toss/native-context.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -55,7 +57,8 @@ function disabledStatus() {
  * 🔴 proven === null 은 DB 장애로 "확인 못 함"이다. 402 로 내리면 3만원을 낸 사용자가
  * 결과를 못 받으므로 degraded 로 올려 503(재시도 가능)으로 만든다.
  */
-function buildFusionFortunePaidAccessResolver(env, requireExisting = false) {
+function buildFusionFortunePaidAccessResolver(env, requireExisting = false, native = null, body = null) {
+  if (native) return ({ requestId }) => native.access(body, requestId);
   const coinPrice = Number(FEATURE_KEY_PRICE_TABLE[FUSION_FORTUNE_PAID_FEATURE_KEY]?.cost || 0);
   return async ({ userId, requestId }) => {
     if (!userId) return { ok: false };
@@ -114,8 +117,9 @@ function canGenerateFusionFortune(env) {
  *
  * 저장·재조회가 확인된 결과만 완료로 전달한다. 저장 장애는 같은 결제 키로 재시도한다.
  */
-async function persistFusionDelivery({ userId, input, delivery }) {
+async function persistFusionDelivery({ env, userId, input, delivery, native = null }) {
   try {
+    if (native) await native.assertDelivery(delivery?.requestId, input);
     const payload = {
       requestId: delivery?.requestId,
       userId,
@@ -129,14 +133,15 @@ async function persistFusionDelivery({ userId, input, delivery }) {
       lease: delivery?.lease,
     };
     if (delivery?.status === "completed") {
-      const pending = await saveFusionFortuneConsultation({ ...payload, deliveryState: "delivery_pending" });
+      const pending = await withMongoRetry(env, () => saveFusionFortuneConsultation({ ...payload, deliveryState: "delivery_pending" }), { retries: 0 });
       if (!pending) throw resultStorageUnavailable(delivery?.requestId);
-      await assertFusionDeliveryAccess(userId, delivery?.requestId);
+      await assertFusionDeliveryAccess(userId, delivery?.requestId, native);
     }
-    const id = await saveFusionFortuneConsultation(payload);
+    const id = await withMongoRetry(env, () => saveFusionFortuneConsultation(payload), { retries: 0 });
     if (!id) throw resultStorageUnavailable(delivery?.requestId);
     return id;
   } catch (error) {
+    if (native && error instanceof TossError) throw error;
     if (error?.code === "RESULT_ACCESS_REVOKED") throw error;
     console.warn("[fusion-fortune-persist-failed]", {
       requestId: String(delivery?.requestId || "").slice(0, 120),
@@ -146,7 +151,8 @@ async function persistFusionDelivery({ userId, input, delivery }) {
   }
 }
 
-async function assertFusionDeliveryAccess(userId, requestId) {
+async function assertFusionDeliveryAccess(userId, requestId, native = null) {
+  if (native) { await native.assertDelivery(requestId); return; }
   try {
     if (await isPaidResultRevoked(userId, FUSION_FORTUNE_PAID_FEATURE_KEY, [requestId])) {
       throw Object.assign(new Error("취소·환불된 결제의 결과는 제공할 수 없어요."), { code: "RESULT_ACCESS_REVOKED", status: 403, resultId: requestId });
@@ -157,9 +163,9 @@ async function assertFusionDeliveryAccess(userId, requestId) {
   }
 }
 
-async function replayCompletedFusion(consultation) {
+async function replayCompletedFusion(consultation, native = null) {
   if (!consultation?.result || (consultation.status && consultation.status !== "completed")) return null;
-  await assertFusionDeliveryAccess(consultation.userId, consultation.idempotencyKey);
+  await assertFusionDeliveryAccess(consultation.userId, consultation.idempotencyKey, native);
   return json({ ok: true, status: "completed", stage: 2, nextStage: null,
     requestId: consultation.idempotencyKey, consultationId: consultation.id, result: consultation.result,
     qualityTier: consultation.qualityTier || "full", qualityNotice: consultation.qualityNotice || "",
@@ -181,30 +187,32 @@ async function loadFusionPriorConsultation({ userId, requestId }) {
 }
 
 /** A browser or scheduled recovery executes exactly one original paid stage. */
-export async function runFusionFortuneDeliveryStage(env, { userId, requestId, body, stage, prior, ctx = null, requireExisting = false }) {
+export async function runFusionFortuneDeliveryStage(env, { userId, requestId, body, stage, prior, ctx = null, requireExisting = false, native = null }) {
+  if (!native && requireExisting) native = await (await import("../toss/native-fusion.js")).nativeFusionRecoveryContext(env, userId, requestId);
+  if (native && (await native.access(body, requestId)).ok) await native.assertDelivery(requestId, body);
   let consultationId = "";
   const result = await generateFusionFortuneRequest({
     input: body, userId, requestId, dateKey: getFusionFortuneDateKey(),
-    store: createMongoFusionFortuneStore(env), resolvePaidAccess: buildFusionFortunePaidAccessResolver(env, requireExisting), env, ctx, stage,
+    store: createMongoFusionFortuneStore(env), resolvePaidAccess: buildFusionFortunePaidAccessResolver(env, requireExisting, native, body), env, ctx, stage,
     priorResult: prior?.result || null, priorGenerationSource: prior?.generationSource || "", priorSnapshot: prior?.generationSnapshot || null,
     onSnapshot: snapshot => withMongoRetry(env, () => saveFusionGenerationSnapshot({ ...snapshot, userId }), { retries: 0 }),
     onReserved: () => withMongoRetry(env, () => claimFusionDeliveryLease({ userId, requestId }), { retries: 0 }),
     onRecoveryRequested: body?.resumeGeneration === true ? lease => requestFusionRecovery({ userId, requestId, lease }) : undefined,
     onReleased: lease => withMongoRetry(env, () => releaseFusionDeliveryLease({ userId, requestId, lease }), { retries: 0 }),
     onAttempt: (groupId, lease, attemptOptions) => withMongoRetry(env, () => reserveFusionGroupAttempt({ userId, requestId, groupId, lease, ...attemptOptions }), { retries: 0 }),
-    onCheckpoint: delivery => withMongoRetry(env, () => persistFusionDelivery({ userId, input: prior?.generationSnapshot?.input || body, delivery }), { retries: 0 }),
+    onCheckpoint: delivery => persistFusionDelivery({ env, userId, input: prior?.generationSnapshot?.input || body, delivery, native }),
     onDelivery: async delivery => {
-      consultationId = await withMongoRetry(env, () => persistFusionDelivery({ userId, input: prior?.generationSnapshot?.input || body, delivery }), { retries: 0 });
+      consultationId = await persistFusionDelivery({ env, userId, input: prior?.generationSnapshot?.input || body, delivery, native });
     },
   });
   return { ...result, consultationId };
 }
 
-async function respondFusionConsultation(consultation) {
+async function respondFusionConsultation(consultation, native = null) {
   if (!consultation) {
     return respond({ ok: false, status: 404, error: "FUSION_FORTUNE_RESULT_NOT_FOUND", message: "저장된 결과를 찾지 못했어요." });
   }
-  await assertFusionDeliveryAccess(consultation.userId, consultation.idempotencyKey);
+  await assertFusionDeliveryAccess(consultation.userId, consultation.idempotencyKey, native);
   return respond({
     ok: true,
     status: ["partial", "delivery_pending", "generating"].includes(consultation.status) ? 202 : 200,
@@ -235,9 +243,10 @@ async function respondFusionConsultation(consultation) {
  *    생성 플래그(canGenerateFusionFortune)와도 무관하다: 생성이 꺼져도 재열람은 열려 있어야 한다.
  */
 async function handleFusionFortuneResultRoute(request, env) {
+  const native = nativeTossContext(request);
   let auth;
   try {
-    auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
+    auth = (nativeTossContext(request)?.auth || await requireUserFromRequest(request, env, { allowDbFallback: true }));
   } catch (error) {
     // DB 장애로 신원을 확인하지 못한 것을 401 로 내리면 로그인한 사용자가 자기 결과를
     // 못 보고 재로그인을 반복한다. 재시도 가능한 503 으로 표면화한다.
@@ -251,13 +260,14 @@ async function handleFusionFortuneResultRoute(request, env) {
   // 🔴 결제 증빙 키로 되찾는 경로. 스트림이 result 를 못 보내고 끊긴 사용자가 3만원짜리
   //    결과를 회수하는 유일한 자리다 — 저장이 배달보다 먼저 끝나므로 여기 있으면 있다.
   const requestId = params.get("requestId") || "";
-  if (!id && !requestId && params.get("pending") === "1") return respondFusionConsultation(await getLatestPendingFusionConsultation({ userId }));
+  if (!id && !requestId && params.get("pending") === "1") return respondFusionConsultation(await getLatestPendingFusionConsultation({ userId }), native);
   if (!id && requestId) {
-    return respondFusionConsultation(await getFusionFortuneConsultationByRequestId({ userId, requestId }));
+    return respondFusionConsultation(await getFusionFortuneConsultationByRequestId({ userId, requestId }), native);
   }
 
   if (!id) {
     const consultations = await listFusionFortuneConsultations({ userId });
+    if (native) for (const item of consultations) await native.assertDelivery(item.idempotencyKey);
     return respond({
       ok: true,
       consultations: consultations.map((item) => ({
@@ -272,10 +282,11 @@ async function handleFusionFortuneResultRoute(request, env) {
   }
 
   const consultation = await getFusionFortuneConsultation({ userId, id });
-  return respondFusionConsultation(consultation);
+  return respondFusionConsultation(consultation, native);
 }
 
 async function handleFusionFortuneStreamRoute(request, env, ctx) {
+  const native = nativeTossContext(request);
   if (!canGenerateFusionFortune(env)) {
     return respond({
       ok: false,
@@ -285,12 +296,12 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
     });
   }
 
-  const auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
+  const auth = (nativeTossContext(request)?.auth || await requireUserFromRequest(request, env, { allowDbFallback: true }));
   const body = await readJson(request);
   await connectDb(env);
   const streamRequestId = String(body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key") || "").slice(0, 120);
   const priorConsultation = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId: streamRequestId });
-  const completed = await replayCompletedFusion(priorConsultation);
+  const completed = await replayCompletedFusion(priorConsultation, native);
   if (completed) return completed;
   const transformer = new TransformStream();
   const writer = transformer.writable.getWriter();
@@ -360,7 +371,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         requestId: body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key"),
         dateKey: getFusionFortuneDateKey(),
         store: createMongoFusionFortuneStore(env),
-        resolvePaidAccess: buildFusionFortunePaidAccessResolver(env),
+        resolvePaidAccess: buildFusionFortunePaidAccessResolver(env, false, native, body),
         env,
         ctx,
         abortSignal: abortController.signal,
@@ -378,12 +389,12 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         // 저장을 배달보다 **먼저** 한다. 마지막 write 직전 연결이 끊겨도 결과는 남아
         // 재열람이 복구 경로가 된다(예전에는 그 순간 3만원짜리 결과가 그대로 사라졌다).
         onCheckpoint: async (delivery) => {
-          const id = await persistFusionDelivery({ userId: String(auth.userId), input: priorConsultation?.generationSnapshot?.input || body, delivery });
+          const id = await persistFusionDelivery({ env, userId: String(auth.userId), input: priorConsultation?.generationSnapshot?.input || body, delivery, native });
           if (!id) throw new Error("FUSION_CHECKPOINT_SAVE_FAILED");
           await writeFusionFortuneSse(writer, "checkpoint", { result: delivery.result });
         },
         onDelivery: async (delivery) => {
-          consultationId = await persistFusionDelivery({ userId: String(auth.userId), input: priorConsultation?.generationSnapshot?.input || body, delivery });
+          consultationId = await persistFusionDelivery({ env, userId: String(auth.userId), input: priorConsultation?.generationSnapshot?.input || body, delivery, native });
           const publicDelivery = { ...delivery };
           delete publicDelivery.lease;
           await writeFusionFortuneSse(writer, "result", { ...publicDelivery, consultationId });
@@ -440,6 +451,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
 
 
 export async function handleFusionFortuneRoutes(request, env, ctx = null) {
+  const native = nativeTossContext(request);
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/fusion-fortune");
   try {
@@ -450,7 +462,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
 
     if (method === "GET" && path === "/status") {
       if (!isFusionFortuneUiEnabled(env)) return disabledStatus();
-      const auth = await getOptionalUserFromRequest(request, env, { allowDbFallback: true, surfaceDbInfraError: true });
+      const auth = (native?.auth || await getOptionalUserFromRequest(request, env, { allowDbFallback: true, surfaceDbInfraError: true }));
       await connectDb(env);
       const status = await buildFusionFortuneStatus({ userId: auth?.userId || "", enabled: true });
       return respond({ ok: true, ...status });
@@ -460,16 +472,16 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       if (!isFusionFortuneMockFlowEnabled(env) && !isFusionFortuneRealLlmAllowed(env)) {
         return respond({ ok: false, status: 503, error: FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED, message: "초융합 운세 생성은 아직 준비 중입니다." });
       }
-      const auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
+      const auth = (nativeTossContext(request)?.auth || await requireUserFromRequest(request, env, { allowDbFallback: true }));
       const body = await readJson(request);
       await connectDb(env);
       const requestId = String(body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key") || "").slice(0, 120);
       // 한 요청에는 한 단계만 실행한다. 다음 단계도 같은 결제 요청 ID를 사용한다.
       const stage = Number(body?.stage) === 2 ? 2 : 1;
       const prior = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId });
-      const completed = await replayCompletedFusion(prior);
+      const completed = await replayCompletedFusion(prior, native);
       if (completed) return completed;
-      const result = await runFusionFortuneDeliveryStage(env, { userId: String(auth.userId), requestId, body, stage, prior, ctx });
+      const result = await runFusionFortuneDeliveryStage(env, { userId: String(auth.userId), requestId, body, stage, prior, ctx, native });
       if (!result.ok) return respond(result);
       return json({ ...result, status: result.stageStatus || "completed" }, { status: result.stageStatus === "partial" ? 202 : 200 });
     }
@@ -486,6 +498,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
     if (["/status", "/generate", "/generate/stream", "/result"].includes(path)) return methodNotAllowed();
     return notFound();
   } catch (error) {
+    if (native && error instanceof TossError) return json({ok:false,error:error.code,retryable:false}, {status:error.status});
     if (error?.code === "RESULT_ACCESS_REVOKED") return json({ ok: false, reason: error.code, retryable: false, resultId: error.resultId, message: error.message }, { status: 403 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     return handleRouteError(error, { request, env, trace: { route: "fusion-fortune", method, requestPath: new URL(request.url).pathname } });

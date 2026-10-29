@@ -13,12 +13,13 @@ export const loadPaidServiceRuntimeGate=async()=>null;
 
 let pending=false;
 export async function runBillingCoinGate(options){
- if(pending)return {ok:false,error:{code:'PURCHASE_IN_PROGRESS',message:'진행 중인 결제를 확인해 주세요.'}};
+ if(pending)return {ok:false,status:409,raw:{},error:{code:'PURCHASE_IN_PROGRESS',message:'진행 중인 결제를 확인해 주세요.'}};
  pending=true;
  try{
-  const service=options.featureKey==='neo-operation-room-consultation'?'neo':String(options.featureKey).startsWith('fortune-tea-house-')?'tea':null;
-  const input=unpackPaidResumeArg(service==='neo'?options.resume?.args?.payload:options.resume?.args?.requestPayload);
+  const service=options.featureKey==='fusion-fortune-consultation'?'fusion':options.featureKey==='neo-operation-room-consultation'?'neo':String(options.featureKey).startsWith('fortune-tea-house-')?'tea':null;
+  const input=unpackPaidResumeArg(service==='fusion'?options.resume?.args?.body:service==='neo'?options.resume?.args?.payload:options.resume?.args?.requestPayload);
   if(!input||!service)throw new Error('상담 입력을 다시 확인해 주세요.');
+  if(service==='fusion')input.requestId=options.requestId||options.resume?.args?.requestId;
   const orderId=new URLSearchParams(location.search).get('orderId');
   const intent=await api('/native/'+service+'/prepare',{input,...(orderId?{orderId}:{})});
   if(!intent.paid){
@@ -35,7 +36,9 @@ export async function runBillingCoinGate(options){
   }
   const saved=await api('/native/'+service+'/intents/'+intent.id);
   if(!saved.paid)throw new Error('결제한 상담의 저장 상태를 확인하지 못했어요. 구매 복구를 이용해 주세요.');
-  return {ok:true,data:{accessGrant:{allowed:true,accessMethod:'TOSS_IAP'},payment:{orderId:saved.orderId},requestId:options.requestId}};
- }catch(error){return {ok:false,error:{code:error.code||'PURCHASE_FAILED',message:error.code==='TOSS_RELEASE_PENDING'?'상품 등록과 검수가 완료되면 상담을 시작할 수 있어요.':error.message||'결제 상태를 확인하지 못했어요. 구매 복구를 이용해 주세요.'}};}
+  return {ok:true,status:200,raw:{},data:{pricing:{amountKRW:intent.amountKRW,featureKey:options.featureKey},consume:{transactionId:saved.orderId,chargedCoins:0,accessType:'single_purchase',paymentMode:'TOSS_IAP'},accessGrant:{allowed:true,accessMethod:'TOSS_IAP'},payment:{orderId:saved.orderId},requestId:options.requestId}};
+ }catch(error){return {ok:false,status:error.status||503,raw:{},error:{code:error.code||'PURCHASE_FAILED',message:error.code==='TOSS_RELEASE_PENDING'?'상품 등록과 검수가 완료되면 상담을 시작할 수 있어요.':error.message||'결제 상태를 확인하지 못했어요. 구매 복구를 이용해 주세요.'}};}
  finally{pending=false;}
 }
+
+export const runPaidAccessGate=runBillingCoinGate;

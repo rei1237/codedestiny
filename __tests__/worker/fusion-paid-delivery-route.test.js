@@ -53,6 +53,7 @@ const model = {
 
 const ENV={ENABLE_FUSION_FORTUNE_API:'true',ENABLE_FUSION_FORTUNE_UI:'true',ENABLE_FUSION_FORTUNE_MOCK_FLOW:'true'};
 beforeAll(async()=>{
+ jest.unstable_mockModule('../../worker/toss/native-fusion.js',()=>({nativeFusionRecoveryContext:async()=>null,bootstrapNativeFusionOrders:async()=>[]}));
  jest.spyOn(console,'warn').mockImplementation(()=>{});
  globalThis.fetch=()=>{throw Error('External fetch forbidden in delivery mocks')};
  const models=await import('../../worker/lib/models.js');
