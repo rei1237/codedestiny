@@ -94,3 +94,11 @@
 - sitemap:generate로 원장 1항목 갱신 후 b5f7a54a4 커밋. check:pre-push 전체 exit 0: registry/public mirror/sitemap/llms/SEO entity 통과.
 - 원격 main 04780b8d54bbca7f32cef11a6fda06fd91643df0 CI 진행 중. 공유 체크아웃의 world/SEO/CSS 미커밋 작업 보존. 이번 코드 push/운영 반영 미실행.
 - 실제 GA4 G-FMHV4ZHY3G 수신 확인용 접근 요청. 환불 이벤트 및 실결제 대사는 완료 아님. 광고 OFF 유지.
+
+## 2026-10-29 GA4 실제 계정 확인
+- 연결된 Saju Life 계정에서 속성 526361229, 계정 385841808 확인. 웹 스트림 꿀만세력(13684562754)의 URL https://code-destiny.com/ 및 측정 ID G-FMHV4ZHY3G가 코드와 일치.
+- 지난 48시간 수집 활성. purchase는 이미 주요 이벤트이고 최근 28일 스트림 수신 확인. purchase_attempt/purchase_complete도 최근 목록에 존재하므로 별도 구매 건수로 합산하지 않는다.
+- 홈의 지난 28일 구매 표시값 14. 테스트/중복/환불/서버 주문 대사 전 GA 표시값이며 네이버 광고 성과가 아니다.
+- 최근 활동 99개 이벤트 목록에서 검색: refund, begin_checkout, consultation_completed는 결과 없음. 미발생/미배포/미수신의 원인은 아직 구분하지 못함.
+- 유입 보고서에서 nid.naver.com / referral과 paid / (not set)도 관찰. 로그인 후 출처 보존 및 UTM 정합성 추가 검증 필요.
+- 설정 변경, 테스트 purchase 주입, 결제, 광고 활성화 없음. VAT 포함 50,000원 유지. 구매 수신은 확인됐지만 출시 게이트는 미충족.
