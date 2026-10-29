@@ -1,6 +1,6 @@
 import React, {lazy, Suspense, useSyncExternalStore} from 'react';
 
-// CSR equivalents used only by the isolated canonical-screen test entry.
+// CSR equivalents shared by the original-screen release and isolated test entries.
 export function Image({src,fill,priority,quality,unoptimized,loader,placeholder,blurDataURL,onLoadingComplete,style,...props}) {
   return <img {...props} src={typeof src==='string'?src:src.src} loading={priority?'eager':props.loading} style={fill?{position:'absolute',inset:0,width:'100%',height:'100%',...style}:style} onLoad={event=>{props.onLoad?.(event);onLoadingComplete?.(event.currentTarget);}}/>;
 }

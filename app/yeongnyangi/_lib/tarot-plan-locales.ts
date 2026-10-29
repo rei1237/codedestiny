@@ -40,5 +40,5 @@ const hints:[RegExp,string][]=[
  [/relationship|関係|关系|關係|mối quan hệ|रिश्त|relación|relation|beziehung|relatie|hubungan/iu,'관계'],
 ];
 function recommendationText(question:string,locale:ReadingLocale){return locale==='ko'?question:[question,...hints.filter(([pattern])=>pattern.test(question)).map(([,hint])=>hint)].join(' ');}
-export function localizedTarotRecommendation(input:Parameters<typeof recommendTarotSpread>[0],locale:ReadingLocale){return recommendTarotSpread({...input,question:recommendationText(String(input?.question||''),locale)});}
+export function localizedTarotRecommendation(input:Parameters<typeof recommendTarotSpread>[0]&{question?:string;presetId?:string;options?:{a:string;b:string};period?:string;tier?:string},locale:ReadingLocale){return recommendTarotSpread({...input,question:recommendationText(String(input?.question||''),locale)});}
 export function localizedTarotQuestionFeatures(question:string,locale:ReadingLocale){return questionFeatures({question:recommendationText(question,locale)});}
