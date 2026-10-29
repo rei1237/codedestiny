@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {Button} from '@toss/tds-mobile';
+import {Button} from './Button';
 export type TarotSpreadView={id:string;title:string;summary:string;cardCount:number;deckSize:number;drawn:boolean;positions:{id:string;label:string;drawOrder:number}[]};
 export default function TarotDraw({spread,busy,onConfirm}:{spread:TarotSpreadView;busy:boolean;onConfirm:(picks:number[])=>void}){
   const [picks,setPicks]=useState<number[]>([]);

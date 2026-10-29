@@ -66,6 +66,18 @@ export async function handleTossRoutes(request,env) {
     if(path==='/session'&&request.method==='GET')return reply({authenticated:true,environment:auth.environment});
     if(path==='/logout'&&request.method==='POST') {await TossSession.deleteOne({_id:auth.sessionId});return reply({ok:true});}
     if(path==='/unlink'&&request.method==='POST')return reply(await disconnectIdentity(env,auth));
+    if(path.startsWith('/daily/')){
+      const daily=await import('./daily.js');
+      if(path==='/daily/status'&&request.method==='GET')return reply(await daily.attendanceStatus(env,auth.userId));
+      if(path==='/daily/attendance'&&request.method==='POST')return reply(await daily.attend(env,auth.userId));
+      if(path==='/daily/unlock'&&request.method==='POST')return reply(await daily.unlockToday(env,auth.userId));
+      if(path==='/daily/reading'&&request.method==='POST'){
+        await limit(env,auth._id,'daily-reading',6);
+        return reply(await daily.prepareTossDaily(env,auth,await bodyOf(request)));
+      }
+      if(path==='/daily/reading'&&request.method==='GET')return reply(await daily.getFreeReading(env,auth.userId,url.searchParams.get('category')));
+      throw new TossError('NOT_FOUND',404);
+    }
     if(path==='/flower/match'&&request.method==='POST') {
       await limit(env,auth._id,'flower',6);
       const [{matchTossFlowers},{domains}]=await Promise.all([import('./flower.js'),import('../yeongnyangi/fortune/index.ts')]);
@@ -180,6 +192,8 @@ export async function handleTossRoutes(request,env) {
     throw new TossError('NOT_FOUND',404);
   } catch(error) {
     const known=error instanceof TossError;
+    const dailyErrors={DAILY_PASS_REQUIRED:403,ANCHOVY_REQUIRED:409,FREE_READING_INPUT_FROZEN:409,FREE_READING_PENDING:409,INVALID_CATEGORY:400,INVALID_INPUT:400,FREE_PROFILE_REQUIRED:400,HORARY_FREE_PROMPT_REQUIRED:400};
+    if(path.startsWith('/daily/')&&Object.hasOwn(dailyErrors,error?.code))return reply({error:error.code,errorId:crypto.randomUUID()},dailyErrors[error.code]);
     const inputErrors=['QUESTION_SCOPE_REQUIRED','QUESTION_SCOPE_UNSUPPORTED','QUESTION_PRODUCT_MISMATCH','PARTNER_REQUIRED','PARTNER_NOT_SUPPORTED','BIRTH_TIME_REQUIRED','PROFILE_REQUIRED','INVALID_BIRTH','QUESTION_FOLLOWUP_BUSY','QUESTION_FOLLOWUP_SUPPORT','FOLLOWUP_NOT_AVAILABLE','FOLLOWUP_INPUT_INVALID','QUESTION_CONVERSATION_CLOSED'];
     if(inputErrors.includes(error?.code))return reply({error:error.code,errorId:crypto.randomUUID()},400);
     // Engine messages are not echoed; request IDs are random and contain no personal data.

@@ -1,5 +1,5 @@
 import {useState,type FormEvent} from 'react';
-import {Button} from '@toss/tds-mobile';
+import {Button} from './Button';
 import {BirthFields,emptyBirth,birthPayload} from './BirthFields';
 import {api} from './platform';
 import {buildFlowerSvg} from '../../../js/services/destiny-flower-art.js';

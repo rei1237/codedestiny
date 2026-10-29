@@ -37,6 +37,13 @@ export const cities=[
   {label:'제주',lat:33.4996,lng:126.5312,tz:'Asia/Seoul'},
 ];
 export const errors:Record<string,string>={
+  DAILY_PASS_REQUIRED:'오늘의 운세를 먼저 열어 주세요. 출석 화면에서 보유 멸치를 확인할 수 있어요.',
+  ANCHOVY_REQUIRED:'오늘의 운세를 열 멸치가 부족해요. 출석으로 모은 뒤 다시 확인해 주세요.',
+  FREE_READING_INPUT_FROZEN:'오늘 처음 저장한 출생정보로 결과가 보관되어 있어요. 저장된 이야기를 다시 확인해 주세요.',
+  FREE_READING_PENDING:'이전 요청의 결과를 정리하고 있어요. 잠시 후 기록을 다시 확인해 주세요.',
+  INVALID_CATEGORY:'살펴볼 운세 종류를 다시 선택해 주세요.',
+  INVALID_INPUT:'입력 내용을 확인해 주세요. 긴 항목은 1,000자 안으로 정리해 주세요.',
+  FREE_PROFILE_REQUIRED:'풀이에 사용할 출생정보를 먼저 입력해 주세요.',
   TOSS_UNLINK_PENDING:'이전 연결 해제를 마무리하고 있어요. 잠시 후 다시 로그인해 주세요. 계속되면 고객지원으로 문의해 주세요.',
   INVALID_TAROT_SPREAD:'카드 펼침을 다시 선택해 주세요.',
   INVALID_TAROT_PICKS:'필요한 수만큼 서로 다른 카드를 선택해 주세요.',

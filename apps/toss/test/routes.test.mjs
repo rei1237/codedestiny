@@ -8,7 +8,7 @@ const require=createRequire(import.meta.url),Module=require('node:module');
 const calls={profiles:[],prepared:[],followups:0};
 const auth={_id:'identity',ownerId:'owner',userId:'owner',userKey:'123',environment:'SANDBOX'};
 const mocks={
- tarotProducts:[],grants:[],deliveries:0,
+ tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],
  auth:async()=>auth,profile:async(...args)=>calls.profiles.push(args),
  product:sku=>({productId:sku.includes(':')?sku.split(':')[1]:sku,serviceId:sku.includes(':')?sku.split(':')[0]:'yeongnyangi',sku,approvedPriceKRW:1,approved:true}),
  prepare:async(_env,user,body,options)=>{calls.prepared.push({user,body,options});return {_id:'a'.repeat(64),productId:body.productId,amountKRW:1,snapshot:{manifest:[{id:'part',title:'answer',ordinal:0}]}};},
@@ -30,6 +30,7 @@ const stubMap={
  'worker/yeongnyangi/queue.js':"export const enqueueConsultation=()=>{};",
  'worker/yeongnyangi/fortune/index.ts':"export const domains={};",
  'worker/toss/flower.js':"export const matchTossFlowers=async()=>{globalThis.__tossRouteMocks.flowerCalls++;return {sources:{},stored:false};};",
+ 'worker/toss/daily.js':"const call=(...args)=>{globalThis.__tossRouteMocks.dailyCalls.push(args);return {ok:true};};export const attendanceStatus=call,attend=call,unlockToday=call,getFreeReading=call,prepareTossDaily=call;",
  'worker/yeongnyangi/question-followup.ts':"export const questionConversation=globalThis.__tossRouteMocks.followup;"
 };
 const root=path.resolve(import.meta.dirname,'../../..');
@@ -44,6 +45,26 @@ async function request(body,path='/prepare',env={TOSS_RELEASE_READY:'true'}){
  return handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{method:'POST',headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com','Content-Type':'application/json'},body:JSON.stringify(body)}),env);
 }
 test('release gate prevents any profile or prepared row write',async()=>{const r=await request(input(),'/prepare',{});assert.equal(r.status,503);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);});
+
+test('daily adapter requires release readiness and a verified account before any operation',async()=>{
+ mocks.dailyCalls.length=0;
+ for(const path of ['/daily/attendance','/daily/unlock','/daily/reading']){
+  assert.equal((await request({category:'basic'},path,{})).status,503);
+  mocks.denyAuth=true;
+  try{assert.equal((await request({category:'basic'},path)).status,401);}finally{mocks.denyAuth=false;}
+ }
+ assert.equal(mocks.dailyCalls.length,0);
+});
+
+test('daily operations use the verified account instead of caller-supplied ownership',async()=>{
+ mocks.dailyCalls.length=0;
+ for(const path of ['/daily/attendance','/daily/unlock']){
+  assert.equal((await request({userId:'attacker'},path)).status,200);
+  assert.equal(mocks.dailyCalls.at(-1)[1],auth.userId);
+ }
+ assert.equal((await request({category:'basic',userId:'attacker'},'/daily/reading')).status,200);
+ assert.equal(mocks.dailyCalls.at(-1)[1],auth);
+});
 
 test('tarot recovery routes the approved SKU on the server and acknowledges without generation',async()=>{
  const orderId='01900000-1111-7111-8111-000000000042',product={sku:'approved-tarot',flow:{id:'tarot-mindscan'}};

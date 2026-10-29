@@ -1,5 +1,5 @@
 import {useRef,useState} from 'react';
-import {Button} from '@toss/tds-mobile';
+import {Button} from './Button';
 import {saveTarotResultCardPng,shareTarotResultSummary} from './media';
 import {ApiError} from './platform';
 

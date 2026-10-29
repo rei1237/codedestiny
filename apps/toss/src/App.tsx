@@ -9,7 +9,8 @@ import {SERVICE_AVAILABLE} from './release';
 import {BirthFields,emptyBirth,birthPayload} from './BirthFields';
 import {QUESTION_POLICY_VERSION,questionTopics,recommendQuestion,type QuestionDecision} from '../../../worker/yeongnyangi/fortune/ask/question-policy';
 import {lazy,Suspense,useEffect,useRef,useState,type FormEvent} from 'react';
-import {Button,TextField,TextArea} from '@toss/tds-mobile';
+import {TextField,TextArea} from '@toss/tds-mobile';
+import {Button} from './Button';
 import {SafeArea,Screen,graniteEvent} from '@apps-in-toss/web-framework';
 import {api,ApiError,isToss,login,logout,restoreSession,saleProducts,tarotLibraryProducts,purchase,restorePurchases,clearSession,event,type SaleProduct,type TarotLibraryProduct} from './platform';
 import {errors,questions,readings,birthSystems,consultationServices,selectionFor} from './content';
@@ -18,14 +19,15 @@ const ResultEvidence=lazy(()=>import('./ResultEvidence'));
 const BiasReading=lazy(()=>import('./BiasReading'));
 const FlowerReading=lazy(()=>import('./FlowerReading'));
 const TarotLibrary=lazy(()=>import('./TarotLibrary'));
+const DailyReadings=lazy(()=>import('./DailyReadings'));
 const yeongnyangiSpreads=canonicalTarotSpreads as {id:string;title:string;summary:string;cardCount:number;requiredInputs:string[];topic:string}[];
 const tarotLibraryTitle=new Map((TOSS_TAROT_LIBRARY_FLOWS as readonly {id:string;name:string}[]).map(flow=>[flow.id,flow.name]));
 
-type Page='draw'|'flower'|'bias'|'tarot-library'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
+type Page='daily'|'draw'|'flower'|'bias'|'tarot-library'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
 type Chapter={title:string;summary:string;analysis:string[];advice?:string;example?:string;persona?:string;blocks?:{id:string;title:string;paragraphs:string[]}[];questionAnswers?:{answer:string;reason?:string;basis?:string;timing:string;action:string;review:string}[]};
 type Result={charts?:ReadingChart[];serviceId?:string;conversation?:Conversation;id:string;state:string;chapters:Chapter[];manifest:{id:string;title:string}[];recovery:{savedChapters:number;totalChapters:number;canRetryNow:boolean;reviewRequired:boolean};errorCode?:string};
 type Purchase={serviceId:string;selectionId:string;orderId:string;sku:string;productId:string;requestId:string|null;status:string;state:string;completedSections:number;totalSections:number|null;createdAt:string};
-const allowedPages=new Set<Page>(['draw','flower','bias','tarot-library','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
+const allowedPages=new Set<Page>(['daily','draw','flower','bias','tarot-library','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
 function currentPage():Page {const value=location.pathname.slice(1) as Page;return allowedPages.has(value)?value:'home';}
 
 export default function App(){
@@ -116,6 +118,7 @@ export default function App(){
   return <main className={`page-${page} adviser-${activeService}`}>
     {!SERVICE_AVAILABLE?<div className="preview-note">출시 전 화면 테스트 · 로그인·구매·상담 생성은 아직 제공하지 않아요</div>:!isToss()&&<div className="preview-note">브라우저 미리보기 · 로그인과 구매는 토스 앱에서 가능해요</div>}
     {message&&<div role="alert" className="notice">{message}<Button size="small" variant="weak" onClick={()=>setMessage('')}>닫기</Button></div>}
+    {page==='daily'&&<Suspense fallback={<p role="status">오늘의 이야기를 준비하고 있어요.</p>}><DailyReadings loggedIn={loggedIn} onLogin={()=>requireLogin('daily')} onError={failure}/></Suspense>}
     {page==='bias'&&<Suspense fallback={<p role="status">최애운명 화면을 불러오고 있어요.</p>}><BiasReading/></Suspense>}
     {page==='flower'&&<Suspense fallback={<p role="status">운명의 꽃 화면을 불러오고 있어요.</p>}><FlowerReading loggedIn={loggedIn} onLogin={()=>requireLogin('flower')} onError={failure}/></Suspense>}
     {page==='tarot-library'&&<Suspense fallback={<p role="status">타로 리딩을 준비하고 있어요.</p>}><TarotLibrary products={tarotProducts} loggedIn={loggedIn} onLogin={()=>requireLogin('tarot-library')} onError={failure} onBack={()=>go('home')} initialOrderId={tarotLibraryOrderId} onRereadClosed={()=>setTarotLibraryOrderId('')}/></Suspense>}
@@ -128,6 +131,7 @@ export default function App(){
     {page==='home'&&<>
       <section className="hero"><div><p className="eyebrow">영냥이 사주운세</p><h1 ref={titleRef} tabIndex={-1}>마음에 걸리는<br/>그 질문부터.</h1><p>나를 이해하는 이야기,<br/>오늘의 작은 선택으로.</p><Button size="medium" onClick={()=>go('catalog')}>내 질문으로 상담 찾기</Button></div><img src="/assets/yeongnyangi.webp" alt="별과 달이 있는 남색 모자와 망토를 입은 흰 고양이 영냥이" width="800" height="800"/></section>
       <p className="ai-note">계산된 사주를 바탕으로 AI가 해석해요. 미래를 확정하는 예언이 아닌, 선택을 돕는 참고 이야기예요.</p>
+      <button className="daily-entry" onClick={()=>go('daily')}><span className="moonlight-seal" aria-hidden="true"/><span><strong>오늘을 읽는 작은 이야기</strong><small>출석과 오늘의 운세 살펴보기</small></span><span aria-hidden="true">→</span></button>
       <section className="home-section"><h2>어떤 목소리로 만나볼까요?</h2><p className="section-description">차분한 해석, 다정한 편지, 현실적인 전략.</p><AdviserChoices onChoose={id=>{setSelected(selectionFor(id,activeDomain,'mackerel')!);setDraft(null);setRestoredOrder(null);go('catalog', '?product='+encodeURIComponent(selectionFor(id,activeDomain,'mackerel')!));}}/></section>
       <section className="home-section"><h2>마음이 끌리는 이야기</h2><button className="feature-entry feature-tarot" onClick={()=>go('tarot-library')}><img src="/assets/tarot-320.webp" alt="" width="320" height="213" loading="lazy" decoding="async"/><span><small>카드가 비추는 지금의 마음</small><strong>타로 리딩</strong><span className="feature-action">질문 고르기 <span aria-hidden>→</span></span></span></button>
       <div className="feature-pair"><button className="feature-entry" onClick={()=>go('flower')}><img src="/assets/destiny-flower.webp" alt="" width="320" height="213" loading="lazy" decoding="async"/><span><strong>운명의 꽃</strong><small>네 가지 체계로 읽는 나의 꽃</small></span></button><button className="feature-entry" onClick={()=>go('bias')}><img src="/assets/bias-stage.webp" alt="" width="104" height="104" loading="lazy" decoding="async"/><span><strong>최애운명</strong><small>내 최애와 나, 어떤 케미일까요?</small></span></button></div></section>
