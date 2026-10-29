@@ -1109,7 +1109,7 @@ body.neo-mode .tile-pvw-overlay {
   font-size: calc(0.97 * var(--pvw-rem));
   line-height: 1.72;
   word-break: keep-all;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-feats li::before {
