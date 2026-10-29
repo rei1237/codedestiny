@@ -26,6 +26,10 @@ export function NativeHomeText({children}: {children: string}) {
   return translate(children, useContext(HomeLocale));
 }
 
+export function NativeHomeNav({children, className, 'aria-label': label}: {children: ReactNode; className: string; 'aria-label': string}) {
+  return <nav className={className} aria-label={translate(label, useContext(HomeLocale))}>{children}</nav>;
+}
+
 export function NativeHomeDictionaryText({translationKey, children}: {translationKey: string; children: string}) {
   const locale = useContext(HomeLocale);
   const pick = useTPick();

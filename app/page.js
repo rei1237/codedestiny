@@ -12,7 +12,7 @@ import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
 import HomeEntryState from "./components/HomeEntryState";
-import { NativeHomeRoot, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
+import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import { PriceBadge } from "./components/PriceBadge";
 import ConsultationDiscovery from "./components/ConsultationDiscovery";
 import ConsultationMethodGuide from "./components/ConsultationMethodGuide";
@@ -182,11 +182,11 @@ export default function HomePage() {
                 </Link>
               </li>)}
             </ul>
-            <nav className={styles.quickLinks} aria-label="바로 확인하는 운세">
+            <NativeHomeNav className={styles.quickLinks} aria-label="바로 확인하는 운세">
               <Link href="/manse/" {...discoveryTracking("manse")}><NativeHomeText>만세력으로 명식 확인하기</NativeHomeText></Link>
               <Link href="/fortune/tomorrow/" {...discoveryTracking("zodiac")}><NativeHomeText>내일 운세 보기</NativeHomeText></Link>
               <Link href="/fortune/monthly/" {...discoveryTracking("zodiac")}><NativeHomeText>이번 달 운세 보기</NativeHomeText></Link>
-            </nav>
+            </NativeHomeNav>
           </section>
           <section className={styles.section} aria-labelledby="homeConcerns">
             <div className={styles.sectionHeading}><h2 id="homeConcerns"><NativeHomeText>지금 마음에 걸리는 이야기</NativeHomeText></h2><p><NativeHomeText>연애·일·돈·관계, 질문에서 시작해도 좋아요.</NativeHomeText></p></div>
@@ -223,8 +223,8 @@ export default function HomePage() {
           <section className={styles.section} aria-labelledby="homeFaq">
             <div className={styles.sectionHeading}><h2 id="homeFaq"><NativeHomeText>시작하기 전에 궁금한 점</NativeHomeText></h2><p><NativeHomeText>꿀꿀 운세의 공식 홈페이지는 code-destiny.com이에요. CODE DESTINY(코드 데스티니)가 운영해요.</NativeHomeText></p></div>
             <div className={styles.faqList}>{HOME_FAQS.map(item => <details key={item.question}><summary><NativeHomeText>{item.question}</NativeHomeText></summary><p><NativeHomeText>{item.answer}</NativeHomeText>{item.link && <> <Link href={item.link.href}><NativeHomeText>{item.link.label}</NativeHomeText></Link></>}</p></details>)}</div>
-            <details className={styles.history} data-brand-history=""><summary>이전 서비스 이름 안내</summary><p>{BRAND_FACTS.historyKo} 같은 계정으로 이전 구매 내역과 저장된 결과를 확인할 수 있어요.</p></details>
-            <nav className={styles.quickLinks} aria-label="상담 방식과 이용 안내"><Link href="/about/">운영자와 해석 방식</Link><Link href="/editorial-policy/">콘텐츠 편집 원칙</Link><Link href="/faq/">전체 이용 안내</Link></nav>
+            <details className={styles.history} data-brand-history=""><summary><NativeHomeText>이전 서비스 이름 안내</NativeHomeText></summary><p><NativeHomeText>{BRAND_FACTS.historyKo}</NativeHomeText> <NativeHomeText>같은 계정으로 이전 구매 내역과 저장된 결과를 확인할 수 있어요.</NativeHomeText></p></details>
+            <NativeHomeNav className={styles.quickLinks} aria-label="상담 방식과 이용 안내"><Link href="/about/"><NativeHomeText>운영자와 해석 방식</NativeHomeText></Link><Link href="/editorial-policy/"><NativeHomeText>콘텐츠 편집 원칙</NativeHomeText></Link><Link href="/faq/"><NativeHomeText>전체 이용 안내</NativeHomeText></Link></NativeHomeNav>
           </section>
         </div>
           </div>
@@ -232,18 +232,18 @@ export default function HomePage() {
       </main>
 
       <footer className={styles.footer}>
-        <nav className={styles.footerNav} aria-label="정책과 문의">
+        <NativeHomeNav className={styles.footerNav} aria-label="정책과 문의">
           {FOOTER_LINKS.map(link => <Link key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
-        </nav>
+        </NativeHomeNav>
         {/* 둘째 줄(작게): dist/index.html 도 scripts/verify-adsense-readiness.mjs 의 신뢰 링크 8종 검사 대상이다. */}
-        <nav className={`${styles.footerNav} ${styles.footerQuiet}`} aria-label="안내 페이지">
+        <NativeHomeNav className={`${styles.footerNav} ${styles.footerQuiet}`} aria-label="안내 페이지">
           {FOOTER_TRUST_LINKS.map(link => <Link key={link.href} href={link.href}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
           {!IS_APP_BUILD && <button type="button" data-cd-cookie-settings className={styles.footerButton}>쿠키 설정</button>}
-        </nav>
+        </NativeHomeNav>
         <p className={styles.business}>
-          <span>상호 {BUSINESS_IDENTITY.companyName}</span><span>대표 {BUSINESS_IDENTITY.representative}</span><span>사업자등록번호 {BUSINESS_IDENTITY.registrationNumber}</span>
-          <span>통신판매업 신고 {BUSINESS_IDENTITY.mailOrderNumber}</span><span>전화 {BUSINESS_IDENTITY.phone}</span><span>이메일 {BUSINESS_IDENTITY.email}</span>
-          <span>주소 {BUSINESS_IDENTITY.address}</span>
+          <span><NativeHomeText>상호</NativeHomeText> {BUSINESS_IDENTITY.companyName}</span><span><NativeHomeText>대표</NativeHomeText> {BUSINESS_IDENTITY.representative}</span><span><NativeHomeText>사업자등록번호</NativeHomeText> {BUSINESS_IDENTITY.registrationNumber}</span>
+          <span><NativeHomeText>통신판매업 신고</NativeHomeText> {BUSINESS_IDENTITY.mailOrderNumber}</span><span><NativeHomeText>전화</NativeHomeText> {BUSINESS_IDENTITY.phone}</span><span><NativeHomeText>이메일</NativeHomeText> {BUSINESS_IDENTITY.email}</span>
+          <span><NativeHomeText>주소</NativeHomeText> {BUSINESS_IDENTITY.address}</span>
         </p>
         <p className={styles.notice}><NativeHomeDictionaryText translationKey="footer.disclaimerNote">{FOOTER_NOTICE}</NativeHomeDictionaryText></p>
       </footer>
