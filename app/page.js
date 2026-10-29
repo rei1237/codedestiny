@@ -197,32 +197,32 @@ export default function HomePage() {
               <Link href="/fortune-tea-house/" {...discoveryTracking("tea", "related")}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`${ART}/yeoni-hanbok-240.webp`} width={240} height={360} alt="" loading="lazy" decoding="async" />
-                <span><strong>연이의 운명의 찻집</strong><span>마음을 정리하는 다정한 편지</span><b>연이에게 이야기하기 <span aria-hidden="true">→</span></b></span>
+                <span><strong><NativeHomeText>연이의 운명의 찻집</NativeHomeText></strong><span><NativeHomeText>마음을 정리하는 다정한 편지</NativeHomeText></span><b><NativeHomeText>연이에게 이야기하기</NativeHomeText> <span aria-hidden="true">→</span></b></span>
               </Link>
               <Link href="/neo-operation-room/" {...discoveryTracking("neo", "related")}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`${ART}/neo-human-240.webp`} width={240} height={360} alt="" loading="lazy" decoding="async" />
-                <span><strong>네오의 팩폭 전략실</strong><span>복잡한 고민을 실행할 전략으로</span><b>네오와 전략 세우기 <span aria-hidden="true">→</span></b></span>
+                <span><strong><NativeHomeText>네오의 팩폭 전략실</NativeHomeText></strong><span><NativeHomeText>복잡한 고민을 실행할 전략으로</NativeHomeText></span><b><NativeHomeText>네오와 전략 세우기</NativeHomeText> <span aria-hidden="true">→</span></b></span>
               </Link>
             </div>
           </section>
           <section className={`${styles.section} ${styles.readingSection}`} aria-labelledby="homeExample">
-            <div className={styles.sectionHeading}><h2 id="homeExample">결과를 읽고, 작은 행동으로</h2><p>기질 설명과 현실적인 조언을 함께 읽어보세요. 아래는 공개 쥐띠 운세에 쓰이는 해설의 일부예요.</p></div>
-            <figure className={styles.readingExample}><figcaption>쥐띠 운세의 기질·습관 해설 예시</figcaption><blockquote><p>{RESULT_EXAMPLE.strength}</p><p>{RESULT_EXAMPLE.luckyHabit}</p></blockquote><p className={styles.exampleNote}>개인 사주 결과가 아닌 공통 기질 해설이에요. 날짜별 운세에서는 해당 날짜의 일진과 별의 흐름도 함께 확인할 수 있어요.</p><Link href="/fortune/tomorrow/rat/" {...discoveryTracking("zodiac", "next_step")}>쥐띠 내일 운세 전체 읽기</Link></figure>
+            <div className={styles.sectionHeading}><h2 id="homeExample"><NativeHomeText>결과를 읽고, 작은 행동으로</NativeHomeText></h2><p><NativeHomeText>기질 설명과 현실적인 조언을 함께 읽어보세요. 아래는 공개 쥐띠 운세에 쓰이는 해설의 일부예요.</NativeHomeText></p></div>
+            <figure className={styles.readingExample}><figcaption><NativeHomeText>쥐띠 운세의 기질·습관 해설 예시</NativeHomeText></figcaption><blockquote><p><NativeHomeText>{RESULT_EXAMPLE.strength}</NativeHomeText></p><p><NativeHomeText>{RESULT_EXAMPLE.luckyHabit}</NativeHomeText></p></blockquote><p className={styles.exampleNote}><NativeHomeText>개인 사주 결과가 아닌 공통 기질 해설이에요. 날짜별 운세에서는 해당 날짜의 일진과 별의 흐름도 함께 확인할 수 있어요.</NativeHomeText></p><Link href="/fortune/tomorrow/rat/" {...discoveryTracking("zodiac", "next_step")}><NativeHomeText>쥐띠 내일 운세 전체 읽기</NativeHomeText></Link></figure>
           </section>
           <section className={styles.section} aria-labelledby="homeMethods">
-            <div className={styles.sectionHeading}><h2 id="homeMethods">서로 다른 체계, 나를 이해하는 여러 관점</h2></div>
+            <div className={styles.sectionHeading}><h2 id="homeMethods"><NativeHomeText>서로 다른 체계, 나를 이해하는 여러 관점</NativeHomeText></h2></div>
             <dl className={styles.methods}>
-              <div><dt>사주와 자미두수</dt><dd>사주는 생년월일시의 오행·십성·운의 흐름을, 자미두수는 별이 놓인 12궁 명반을 중심으로 읽어요. 꽃돼지 사주와 꽃돼지 자미두수는 각 체계에 맞는 입력과 해석을 제공해요.</dd></div>
-              <div><dt>숙요점·베다점·서양 점성술</dt><dd>숙요점은 본명숙과 관계 유형, 베다점은 항성황도에 따른 라그나·다샤, 서양 점성술은 출생차트의 태양·달·상승궁을 살펴봐요. 같은 이름의 별이나 궁이라도 계산 기준과 해석을 섞지 않아요.</dd></div>
-              <div><dt>타로와 고민 상담</dt><dd>타로는 질문과 카드의 상징을 통해 마음과 선택지를 읽어요. 영냥이 질문 상담과 운명의 찻집, 네오의 팩폭 전략실에서는 내 상황을 정리하고 실천할 조언을 찾아갈 수 있어요.</dd></div>
+              <div><dt><NativeHomeText>사주와 자미두수</NativeHomeText></dt><dd><NativeHomeText>사주는 생년월일시의 오행·십성·운의 흐름을, 자미두수는 별이 놓인 12궁 명반을 중심으로 읽어요. 꽃돼지 사주와 꽃돼지 자미두수는 각 체계에 맞는 입력과 해석을 제공해요.</NativeHomeText></dd></div>
+              <div><dt><NativeHomeText>숙요점·베다점·서양 점성술</NativeHomeText></dt><dd><NativeHomeText>숙요점은 본명숙과 관계 유형, 베다점은 항성황도에 따른 라그나·다샤, 서양 점성술은 출생차트의 태양·달·상승궁을 살펴봐요. 같은 이름의 별이나 궁이라도 계산 기준과 해석을 섞지 않아요.</NativeHomeText></dd></div>
+              <div><dt><NativeHomeText>타로와 고민 상담</NativeHomeText></dt><dd><NativeHomeText>타로는 질문과 카드의 상징을 통해 마음과 선택지를 읽어요. 영냥이 질문 상담과 운명의 찻집, 네오의 팩폭 전략실에서는 내 상황을 정리하고 실천할 조언을 찾아갈 수 있어요.</NativeHomeText></dd></div>
             </dl>
-            <p className={styles.methodLink}>여러 체계를 함께 읽는 방식은 <Link href="/fusion-fortune/">초융합 운세 안내</Link>에서 확인할 수 있어요.</p>
+            <p className={styles.methodLink}><NativeHomeText>여러 체계를 함께 읽는 방식은</NativeHomeText> <Link href="/fusion-fortune/"><NativeHomeText>초융합 운세 안내</NativeHomeText></Link><NativeHomeText>에서 확인할 수 있어요.</NativeHomeText></p>
             <p className={styles.byline}><Link href="/about/#author"><NativeHomeDictionaryText translationKey="footer.byline">{FOOTER_BYLINE}</NativeHomeDictionaryText></Link></p>
           </section>
           <section className={styles.section} aria-labelledby="homeFaq">
-            <div className={styles.sectionHeading}><h2 id="homeFaq">시작하기 전에 궁금한 점</h2><p>꿀꿀 운세의 공식 홈페이지는 code-destiny.com이에요. CODE DESTINY(코드 데스티니)가 운영해요.</p></div>
-            <div className={styles.faqList}>{HOME_FAQS.map(item => <details key={item.question}><summary><NativeHomeText>{item.question}</NativeHomeText></summary><p>{item.answer}{item.link && <> <Link href={item.link.href}>{item.link.label}</Link></>}</p></details>)}</div>
+            <div className={styles.sectionHeading}><h2 id="homeFaq"><NativeHomeText>시작하기 전에 궁금한 점</NativeHomeText></h2><p><NativeHomeText>꿀꿀 운세의 공식 홈페이지는 code-destiny.com이에요. CODE DESTINY(코드 데스티니)가 운영해요.</NativeHomeText></p></div>
+            <div className={styles.faqList}>{HOME_FAQS.map(item => <details key={item.question}><summary><NativeHomeText>{item.question}</NativeHomeText></summary><p><NativeHomeText>{item.answer}</NativeHomeText>{item.link && <> <Link href={item.link.href}><NativeHomeText>{item.link.label}</NativeHomeText></Link></>}</p></details>)}</div>
             <details className={styles.history} data-brand-history=""><summary>이전 서비스 이름 안내</summary><p>{BRAND_FACTS.historyKo} 같은 계정으로 이전 구매 내역과 저장된 결과를 확인할 수 있어요.</p></details>
             <nav className={styles.quickLinks} aria-label="상담 방식과 이용 안내"><Link href="/about/">운영자와 해석 방식</Link><Link href="/editorial-policy/">콘텐츠 편집 원칙</Link><Link href="/faq/">전체 이용 안내</Link></nav>
           </section>
