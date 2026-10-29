@@ -1,0 +1,969 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "locale": "ja",
+  "episodeId": "ep-52",
+  "sourceTitle": "벚꽃 강가의 약속",
+  "sourceTag": "제52화 · 벚꽃 강가의 약속",
+  "title": "桜の川辺の約束",
+  "tag": "第52話 · 桜の川辺の約束",
+  "rows": [
+    {
+      "id": "ep-52:1",
+      "source": "월요일. 연이는 수업이 끝나자마자 자전거를 끌고 강변으로 나갔다. 동쪽 물가. 꽃이 지기 전. 단서는 그게 전부였다.",
+      "sourceHash": "36ce314796b2664da6032202da0adbdf9cc86e8dfeb97b7eadd920a3fb940faf",
+      "translations": {
+        "ja": "月曜日。Yeoniは授業が終わると、自転車を引いて川辺へ向かった。東の水辺。花が散る前。手がかりは、それだけだった。"
+      }
+    },
+    {
+      "id": "ep-52:2",
+      "source": "화요일에는 다리 세 개를 지났다. 수요일에는 다섯 개. 하얀 우산은 어디에도 없었다. 벚꽃만 하루가 다르게 졌다.",
+      "sourceHash": "3e29f235f141746f3ed5e2ad83b4ea9292873da6c5ed28429877aba4a4af2424",
+      "translations": {
+        "ja": "火曜日には橋を三つ渡った。水曜日には五つ。白い傘はどこにもなかった。桜だけが、日に日に散った。"
+      }
+    },
+    {
+      "id": "ep-52:3",
+      "source": "꽃이 다 지면 끝이야? 점이 그렇게 야박해?",
+      "sourceHash": "0e62986d67da09f5bc5031fe291e84c49ebac26a39841632cdcc5fc0825caf91",
+      "translations": {
+        "ja": "全部散ったら終わりなの？　占いって、そんなに薄情？"
+      }
+    },
+    {
+      "id": "ep-52:4",
+      "source": "[ 앱 알림 · 강새벽: 오늘 목요일. 꽃 지기 전 마지막 날. 연이 씨 일진 좋음. 궁합 상담비는 나중에 ]",
+      "sourceHash": "a4e4aabb3067b955ebcfdb61e768d1d4af6010fcd3186c2cc1e68af4e5f71b43",
+      "translations": {
+        "ja": "[ アプリ通知 · Kang Saebyeok：今日は木曜。花が散る前の最終日。Yeoniさんの日運は良好。相性相談料は後日 ]"
+      }
+    },
+    {
+      "id": "ep-52:5",
+      "source": "상담비를 왜 받아. 동쪽 물가가 몇 킬로인지 알기나 해? 내 종아리 값부터 내놔.",
+      "sourceHash": "9a5e240dcb8efec5a51af6767472bb8c3bc5630a35a9652dbec3e7cb1fb366cf",
+      "translations": {
+        "ja": "なんで相談料を取るの。東の水辺が何キロあるか知ってる？　先に私のふくらはぎ代を払って。"
+      }
+    },
+    {
+      "id": "ep-52:6",
+      "source": "그러면서도 연이는 페달을 밟았다. 오늘은 양말을 일부러 짝짝이로 신고 나왔다. 왼쪽은 노란색, 오른쪽은 줄무늬.",
+      "sourceHash": "e145e3ec8b12a3890a1cf3b138e0893f12b0df87d5ba527704bcd26348696109",
+      "translations": {
+        "ja": "そう言いながらもペダルを踏んだ。今日は、わざと左右の違う靴下で来た。左は黄色、右は縞模様。"
+      }
+    },
+    {
+      "id": "ep-52:7",
+      "source": "시험이야. 그 사람이 진짜면, 이걸 그냥 못 지나칠 거야.",
+      "sourceHash": "ab63cf4443731e485316da78ed8d10c1950432fb4a37a9b3c60a8bab783b4639",
+      "translations": {
+        "ja": "試験だよ。本物なら、これを見逃せないはず。"
+      }
+    },
+    {
+      "id": "ep-52:8",
+      "source": "아침에 그 양말을 신으면서 연이는 혼자 웃었다. 이걸로 사람을 찾겠다는 건 세상에서 제일 이상한 수사법이었다.",
+      "sourceHash": "b5d92e806f56eb49719b8657ccbdbcc5fb60396f8f12edcf83b2521ea1f5d1a7",
+      "translations": {
+        "ja": "朝、靴下を履きながら一人で笑った。これで人を探すなんて、世界でいちばん変な捜査方法だった。"
+      }
+    },
+    {
+      "id": "ep-52:9",
+      "source": "[ 앱 알림 · 모카: 찾았어? 못 찾았으면 랩으로 응원해 줌. 요 요 박 씨 어디 있니 ]",
+      "sourceHash": "885cc9168201082ea390e900db34abf8593e94dff43a6a970f7edeaf9cb468b4",
+      "translations": {
+        "ja": "[ アプリ通知 · Moka：見つけた？　まだならラップで応援する。ヨーヨー、Parkさん、どこにいるの ]"
+      }
+    },
+    {
+      "id": "ep-52:10",
+      "source": "응원이 아니라 방해잖아.",
+      "sourceHash": "43d7cdd2779057ba678a63cb274920ad086987751e7512afd721355cb5c2a363",
+      "translations": {
+        "ja": "応援じゃなくて、邪魔でしょ。"
+      }
+    },
+    {
+      "id": "ep-52:11",
+      "source": "강바람이 불었다. 둑길 벚나무에서 꽃잎이 한 움큼 떨어졌다. 연이는 그 꽃잎을 세다가 그만두었다. 셀수록 초조해졌다.",
+      "sourceHash": "6f9f44d68dfadf62c1576531e235c21f881a57ce2be5992bc3e9a8ea931b90e5",
+      "translations": {
+        "ja": "川風が吹いた。堤の桜から、花びらがひと掴み落ちた。Yeoniは数えかけてやめた。数えるほど焦った。"
+      }
+    },
+    {
+      "id": "ep-52:12",
+      "source": "꽃이 지면 진짜 끝이면 어떡하지. 그 사람이 나를 모르는 채로.",
+      "sourceHash": "edb595c77c3692cc4f32bb2e4abe5a9bc2fa25411e7bcf000a22a45df6a3229d",
+      "translations": {
+        "ja": "花が散ったら、本当に終わりだったらどうしよう。あの人が、私を知らないままで。"
+      }
+    },
+    {
+      "id": "ep-52:13",
+      "source": "연이는 자전거 손잡이를 꽉 쥐었다. 손바닥 한가운데가 아주 조금 따뜻했다. 金 조각이 머물던 자리였다.",
+      "sourceHash": "05d0ec88b2aed14d6044cba390b202459d6fcfd437290009053a541dcfad32c9",
+      "translations": {
+        "ja": "Yeoniはハンドルを強く握った。手のひらの真ん中が、ほんの少し温かかった。金の欠片が留まった場所だった。"
+      }
+    },
+    {
+      "id": "ep-52:14",
+      "source": "오후 네 시. 다리 일곱 개째. 연이는 강변 벤치에 털썩 주저앉았다. 종아리가 터질 것 같았다. 자전거가 옆에서 쓰러졌다.",
+      "sourceHash": "d17df6e847b959adbd9c50e5744312169765a576da66c746c7a5da55b5a133a0",
+      "translations": {
+        "ja": "午後四時。七つ目の橋。Yeoniは川辺のベンチへどさりと座った。ふくらはぎが破裂しそうだった。自転車が隣で倒れた。"
+      }
+    },
+    {
+      "id": "ep-52:15",
+      "source": "별점 하나. 우주 고객센터 별점 하나. 아니 반 개.",
+      "sourceHash": "6b1fc11c45df9db0a6bb348dc2dba084600c93821c4a3f17a1ef31908cb6d6f9",
+      "translations": {
+        "ja": "星一つ。宇宙の問い合わせ窓口、星一つ。いや、半分。"
+      }
+    },
+    {
+      "id": "ep-52:16",
+      "source": "연이는 메모장을 꺼내 펼쳤다. 하얀 머리일 수도. 양말에 집착함. 별점에 예민함. 하얀 우산. 고양이 알레르기. 강 쪽.",
+      "sourceHash": "e74b66c5444dba5e37cb33dbf21c6e110243ad4cd840b1cb98130cef61e4c8de",
+      "translations": {
+        "ja": "メモ帳を開いた。白い髪かもしれない。靴下に執着する。星評価に敏感。白い傘。猫アレルギー。川のほう。"
+      }
+    },
+    {
+      "id": "ep-52:17",
+      "source": "이만큼 적었는데. 얼굴은 하나도 안 떠올라.",
+      "sourceHash": "5428039e14af6cce903f61ba64d5080b63bc8e7668b7d0a999f4f15ebabcda68",
+      "translations": {
+        "ja": "こんなに書いたのに。顔が少しも浮かばない。"
+      }
+    },
+    {
+      "id": "ep-52:18",
+      "source": "메모장을 덮으려는데 꽃잎 하나가 페이지 사이에 내려앉았다. 연이는 그걸 털어 내지 않고 그대로 끼워 두었다.",
+      "sourceHash": "ebb38ab442b20128d9aacf48f13ebde3925fd54588252c060742ff478787cfca",
+      "translations": {
+        "ja": "閉じようとすると、頁の間に花びらが一枚降りた。Yeoniは払わず、そのまま挟んだ。"
+      }
+    },
+    {
+      "id": "ep-52:19",
+      "source": "그때 벤치 반대편 끝에서 재채기 소리가 났다. 연이는 고개를 돌렸다.",
+      "sourceHash": "8e9a467182b148f1dd49ac5b5f5b9b2c5de4f2c1fdb534572ea98fce568c1b9d",
+      "translations": {
+        "ja": "そのときベンチの反対の端で、くしゃみが聞こえた。Yeoniは振り向いた。"
+      }
+    },
+    {
+      "id": "ep-52:20",
+      "source": "하얀 우산이 벤치에 기대어 있었다. 그 옆에 남자가 앉아 있었다. 무릎에 책을 펴 둔 채로. 발치에는 길고양이 한 마리가 웅크리고 있었다.",
+      "sourceHash": "9851bd3acda70deb00c809ec71454cbd3a6ccf1dd3f55b36a3753b982898e19e",
+      "translations": {
+        "ja": "白い傘がベンチに立てかけてあった。隣に男が座っていた。膝に本を開いて。足元には野良猫が一匹、うずくまっていた。"
+      }
+    },
+    {
+      "id": "ep-52:21",
+      "source": "아, 죄송합니다. 고양이 알레르기가 있어서요.",
+      "sourceHash": "e3b822dc43c57a63dcbed033b6f660d6e48b5ae02e495f3fa6ea5cd6e1d5e3a5",
+      "translations": {
+        "ja": "あ、すみません。猫アレルギーなんです。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:22",
+      "source": "근데 왜 안 쫓아요?",
+      "sourceHash": "a93b6e4da863733b8d2283000ef1f15f072876e39d1d2d28b59be7a0e0d38113",
+      "translations": {
+        "ja": "でも、どうして追い払わないんですか？"
+      }
+    },
+    {
+      "id": "ep-52:23",
+      "source": "먼저 앉아 있었으니까요. 쟤 자리예요.",
+      "sourceHash": "e70224fb2439bc0312f6a4a559c530a382ccd40256df3838ca104b58f6120098",
+      "translations": {
+        "ja": "先に座っていたから。あの子の場所です。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:24",
+      "source": "남자의 머리카락 한 줄기가 하얗게 바래 있었다. 염색이 아니라 원래 그런 것처럼. 눈매는 무뚝뚝했고 목소리는 낮았다.",
+      "sourceHash": "2349c1c72a85cad19f7f2f462fcf22a9654e9a9d09ffb65bfc6044f738af5afe",
+      "translations": {
+        "ja": "男の髪は、一筋だけ白く色が抜けていた。染めたのではなく、もともとそうであるかのように。目つきは無愛想で、声は低かった。"
+      }
+    },
+    {
+      "id": "ep-52:25",
+      "source": "연이는 숨을 참았다. 심장이 귀까지 올라와 쿵쿵거렸다. 확신은 없었다. 하얀 머리카락이야 세상에 많았다.",
+      "sourceHash": "f6257c0f29c8d7dd9c95fb1b006650ca608da1c893ada5e5a503ad1c655578dc",
+      "translations": {
+        "ja": "Yeoniは息を止めた。心臓が耳元まで上がり、どくどく鳴った。確信はなかった。白い髪など、世の中にたくさんある。"
+      }
+    },
+    {
+      "id": "ep-52:26",
+      "source": "자전거 쓰러졌는데요.",
+      "sourceHash": "30b825e0253dcbf40b35cc4e610fcd39a1f2384c39af323a9f826d4b20acc7de",
+      "translations": {
+        "ja": "自転車、倒れていますけど。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:27",
+      "source": "아. 네. 알아요. 일부러요.",
+      "sourceHash": "47cf72df5b6dcf5bf47f9c70765668ecf1e25670c198fda781d352716d51facd",
+      "translations": {
+        "ja": "あ。はい。知っています。わざとです。"
+      }
+    },
+    {
+      "id": "ep-52:28",
+      "source": "일부러 쓰러뜨리는 사람은 처음 봐서요.",
+      "sourceHash": "aff802fc258163df2e6c6dcd49868b5360cd89ede225447dbfb6421f679afd75",
+      "translations": {
+        "ja": "わざと倒す人は、初めて見たので。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:29",
+      "source": "남자가 다시 책으로 시선을 내렸다. 그러다 멈췄다. 시선이 연이의 발목에서 걸렸다. 노란 양말과 줄무늬 양말 사이에서.",
+      "sourceHash": "dcaf1a74deac30c84161e3d0c87a1c5ca64ef7cdb5ede3973b2d476059402e1a",
+      "translations": {
+        "ja": "男はまた本へ目を落とした。そして止まった。視線がYeoniの足首に留まった。黄色と縞の靴下の間に。"
+      }
+    },
+    {
+      "id": "ep-52:30",
+      "source": "저기. 양말 짝이 안 맞는데요.",
+      "sourceHash": "c308c18a4c253ee97e2b0858b326a98c4d99cb9eb03fefb7ffe23f8297ac67a1",
+      "translations": {
+        "ja": "あの。靴下の左右が合っていませんよ。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:31",
+      "source": "연이는 대답하지 못했다. 입술을 꼭 물었다. 눈이 뜨거워졌다. 남자는 당황한 얼굴로 책을 덮었다.",
+      "sourceHash": "ce7a9cff4b97a7dace0e536ae78e5d0fdfa0b56e815d2619bbe1b93b9516fa51",
+      "translations": {
+        "ja": "Yeoniは答えられなかった。唇を強く噛んだ。目が熱くなった。男は戸惑い、本を閉じた。"
+      }
+    },
+    {
+      "id": "ep-52:32",
+      "source": "아, 죄송합니다. 이상한 말을. 저도 왜 그 말이 나왔는지 모르겠네요. 처음 보는 분한테.",
+      "sourceHash": "a6ceb2d596f865b9819a391facb4c01a2fba68e773d6a5de80092508d53cbaad",
+      "translations": {
+        "ja": "ああ、すみません。変なことを。僕も、どうして口に出たのかわからなくて。初対面の方に。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:33",
+      "source": "괜찮아요. 맨날 듣던 말이라서요.",
+      "sourceHash": "e3d6f300ec09c41396c4768b203b0a311a68d5441aeb8a585bbbd4792bb55320",
+      "translations": {
+        "ja": "大丈夫です。いつも聞いていた言葉なので。"
+      }
+    },
+    {
+      "id": "ep-52:34",
+      "source": "맨날이요? 누구한테요?",
+      "sourceHash": "9390b6dbe5a8ac599eb8db3d18a8d18668f78243a1a292f69b4da0508a6b0ab3",
+      "translations": {
+        "ja": "いつも？　誰からですか？"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:35",
+      "source": "잔소리 많은 사람한테요. 처음엔 평범한 고양이인 줄 알았는데 아니었고, 나중에는 사람이 됐어요.",
+      "sourceHash": "1a3488fadec55d2578a9baebc1a8d944947e9c0372133b2ef7e6a3f143ceb301",
+      "translations": {
+        "ja": "小言の多い人から。最初は普通の猫だと思ったら、違っていて。あとから人になりました。"
+      }
+    },
+    {
+      "id": "ep-52:36",
+      "source": "남자가 고개를 기울였다. 믿기 어려운 이야기인데도 웃어넘기지 않았다. 연이는 그 표정에 울다가 웃어 버렸다.",
+      "sourceHash": "ce66eac63341bad366670c92c22e939a829b236aa1093fca97eb5d5d0b3c848c",
+      "translations": {
+        "ja": "男は首をかしげた。信じがたい話なのに、笑って流さなかった。Yeoniはその表情に、泣きながら笑ってしまった。"
+      }
+    },
+    {
+      "id": "ep-52:37",
+      "source": "그 사람은 지금 어디 있어요?",
+      "sourceHash": "72bd473c77aca8a25766bb300b727e2909dba489c4c15ce4eecff5b532dcbba9",
+      "translations": {
+        "ja": "その人は、今どこに？"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:38",
+      "source": "집에 갔어요. 아주 먼 데로. 인사도 대충 하고.",
+      "sourceHash": "912e11e3f2d8d4f30bc234c11425bec4d646a74dac1dd7694ab3bfb28ad5e59b",
+      "translations": {
+        "ja": "家に帰りました。とても遠くへ。挨拶も適当に済ませて。"
+      }
+    },
+    {
+      "id": "ep-52:39",
+      "source": "많이 기다리게 했네요. 그분이.",
+      "sourceHash": "4337c2b4930fa80eec27e742388eedea587af88091804b8502c08ed2fafb1153",
+      "translations": {
+        "ja": "ずいぶん待たせたんですね、その方は。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:40",
+      "source": "그쵸? 진짜 무책임해요. 마지막 말이 양말 얘기였어요.",
+      "sourceHash": "e1f8f8a1c2fc0ec9576af948b424c33cafd0e88558bda76b40c01184a7723633",
+      "translations": {
+        "ja": "でしょう？　本当に無責任です。最後の言葉が、靴下の話でした。"
+      }
+    },
+    {
+      "id": "ep-52:41",
+      "source": "그건 좀 너무했네요. 이상하게 제가 찔리는데요.",
+      "sourceHash": "405229a3f8ba52f106034c09b6c8546fc52e56fe4550e6615816c7e2fffb8429",
+      "translations": {
+        "ja": "それは、少しひどいですね。なぜか僕が胸に刺さるんですが。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:42",
+      "source": "남자는 자기도 모르게 관자놀이를 문질렀다. 두통이 오는 사람처럼. 연이는 그 손짓을 놓치지 않았다.",
+      "sourceHash": "64aeaaf0e607bd32983f6e9c3cf99a4685c6fd3894c6d0e2296fc61fbfcd6039",
+      "translations": {
+        "ja": "男は無意識にこめかみをこすった。頭痛がする人のように。Yeoniは、その仕草を見逃さなかった。"
+      }
+    },
+    {
+      "id": "ep-52:43",
+      "source": "둘은 어쩌다 같이 걷게 되었다. 남자가 쓰러진 자전거를 세워 주었고, 연이가 고맙다고 했고, 방향이 같았다. 그게 다였다.",
+      "sourceHash": "9ccaa6dee2082b30f61d3911668c8f6c28ee3e9f66c8c5f9065fa8a86c33e2ec",
+      "translations": {
+        "ja": "二人は成り行きで、一緒に歩くことになった。男が自転車を起こし、Yeoniが礼を言い、方向が同じだった。それだけだった。"
+      }
+    },
+    {
+      "id": "ep-52:44",
+      "source": "벚나무 길이 강을 따라 길게 이어져 있었다. 꽃잎이 바람에 날려 둘의 어깨 위로 떨어졌다. 마지막 꽃잎들이었다.",
+      "sourceHash": "e6f77fb8928a8fa71ae38803c6906361b9db44f0bce1332afc33ccc08de99a1e",
+      "translations": {
+        "ja": "桜の道が、川に沿って長く続いていた。風に舞う花びらが、二人の肩に落ちた。最後の花びらだった。"
+      }
+    },
+    {
+      "id": "ep-52:45",
+      "source": "이상한 얘기 하나 해도 돼요? 요즘 계속 같은 꿈을 꿔요.",
+      "sourceHash": "832226da188aafb56c34de1328e2946d016a784ecd438cc471842644d5d94788",
+      "translations": {
+        "ja": "変な話をしてもいいですか？　最近、ずっと同じ夢を見るんです。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:46",
+      "source": "무슨 꿈인데요?",
+      "sourceHash": "072e30333139308e5551463171316763c71db7db0aef63c377c85f9a5fa0da40",
+      "translations": {
+        "ja": "どんな夢ですか？"
+      }
+    },
+    {
+      "id": "ep-52:47",
+      "source": "노란 우산 든 사람이랑 이 길을 걷는 꿈이요. 그리고 가끔 돼지가 나와요. 분홍색 꽃 달린.",
+      "sourceHash": "8ccee411a3faec74c0c5bef2795284f10c6c55958b5275df2326ba7ce5210e01",
+      "translations": {
+        "ja": "黄色い傘の人と、この道を歩く夢です。それから、ときどきブタが出ます。ピンクの花がついた。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:48",
+      "source": "돼지요?",
+      "sourceHash": "3e83d8e287421c325eb6e684a440231381988817bfba88e59aeaa75eea4b876c",
+      "translations": {
+        "ja": "ブタですか？"
+      }
+    },
+    {
+      "id": "ep-52:49",
+      "source": "로또 사라는 꿈인 줄 알고 세 번 샀어요. 다 꽝이었어요.",
+      "sourceHash": "dc9b581b55c305305b8323ca443e9ec04e910d7510734a2942e66aaca96f445c",
+      "translations": {
+        "ja": "宝くじを買えという夢だと思って、三回買いました。全部外れました。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:50",
+      "source": "그건 로또 꿈이 아니에요. 진짜로.",
+      "sourceHash": "fc7e0257918b9959cd5cf7ff93c07d385769d847d21bfd953c9a60b5a73cf954",
+      "translations": {
+        "ja": "それ、宝くじの夢じゃありません。本当に。"
+      }
+    },
+    {
+      "id": "ep-52:51",
+      "source": "그럼 무슨 꿈인데요? 해몽 아세요?",
+      "sourceHash": "6c97ac44fca668d75db68e7e0012c7594c5e34580721099b65c3eacbc9a8d970",
+      "translations": {
+        "ja": "では、何の夢ですか？　夢占いをご存じなんですか？"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:52",
+      "source": "돼지가 나오면 귀인을 만나는 꿈이래요. 방금 지어냈어요.",
+      "sourceHash": "fe991590fdbea24edd178f84ad5d9fb1cb33f14609b2bd7198bc550edc0eb00b",
+      "translations": {
+        "ja": "ブタが出たら、貴人に会う夢なんですって。今、作りました。"
+      }
+    },
+    {
+      "id": "ep-52:53",
+      "source": "남자는 왜 웃는지 모르겠다는 얼굴이었다. 연이는 웃음을 그치지 못했다. 꽃잎 하나가 그의 하얀 머리카락에 걸렸다.",
+      "sourceHash": "3325d490bb51ff101ce91106db617f9a16d04948d39fb6549ae0a613de9cdfac",
+      "translations": {
+        "ja": "男は、なぜ笑うのかわからないという顔だった。Yeoniは笑いが止まらなかった。花びらが一枚、彼の白い髪に引っかかった。"
+      }
+    },
+    {
+      "id": "ep-52:54",
+      "source": "저기요. 이름이 뭐예요?",
+      "sourceHash": "85871abe1bfafbad060f9aeb425b297a55e7a91943d89b5316931b591e20a3fa",
+      "translations": {
+        "ja": "あの。お名前は？"
+      }
+    },
+    {
+      "id": "ep-52:55",
+      "source": "박병하요. 그쪽은요?",
+      "sourceHash": "a9dd45668520d8c684b2f7932a0bf5f24929ac05b5de9b198ffe3d4a0ff7ee8e",
+      "translations": {
+        "ja": "Park Byeonghaです。あなたは？"
+      },
+      "fields": {
+        "ja": {
+          "nm": "見知らぬ男"
+        }
+      }
+    },
+    {
+      "id": "ep-52:56",
+      "source": "박병하. 연이는 그 이름을 한 번 속으로 굴려 보았다. 연인 카드에서 처음 읽었던 이름. 부르면 그가 사라진다던 이름.",
+      "sourceHash": "37ce87e1addb1dfa41c3376fe9df40eeee4822c444f5f5a7256dbbf7ca9d3ffb",
+      "translations": {
+        "ja": "Park Byeongha。Yeoniはその名を、心の中で一度転がした。恋人のカードで初めて読んだ名前。呼べば彼が消えると言われた名前。"
+      }
+    },
+    {
+      "id": "ep-52:57",
+      "source": "그 규칙은 저쪽 세계의 것이었다. 연이는 23번 카드에 직접 써 넣었다. 문은 안에서도 열린다고.",
+      "sourceHash": "5f21aef53e30a496bb622872b283c2098268d4a596b1bc40297760cdbcb527df",
+      "translations": {
+        "ja": "その規則は、向こうの世界のものだった。Yeoniは二十三番のカードに、自分で書いた。扉は内側からも開くと。"
+      }
+    },
+    {
+      "id": "ep-52:58",
+      "source": "그래도. 저 이름은 그 사람이 지은 거고.",
+      "sourceHash": "6a76210644645739102f19134144b20b3d1b2bb291c3b464f48d5bcf7d0315a1",
+      "translations": {
+        "ja": "それでも。あの名は、その人がつけたもので。"
+      }
+    },
+    {
+      "id": "ep-52:59",
+      "source": "연이는 고개를 저었다. 부를 이름은 따로 있었다. 자기가 지어 준 이름. 별점 하나를 걸고 지어 준 이름.",
+      "sourceHash": "c1abd047ea61a96b342b778f28cfaf9c7c83f61a702c1dde06a3295066d5862c",
+      "translations": {
+        "ja": "Yeoniは首を振った。呼ぶ名前は別にあった。自分がつけた名前。星一つを懸けてつけた名前。"
+      }
+    },
+    {
+      "id": "ep-52:60",
+      "source": "저는 연이요. 그리고 하나 부탁해도 돼요?",
+      "sourceHash": "d242c1c5f45725f0adceb51db2f4504b88a3b4a65a5610de1d8d68525205edff",
+      "translations": {
+        "ja": "私はYeoniです。それから、一つお願いしてもいいですか？"
+      }
+    },
+    {
+      "id": "ep-52:61",
+      "source": "뭔데요?",
+      "sourceHash": "ed9813edb7dce9b8f77520ab3c7d9e006c840e39056346e498f141189ca1793a",
+      "translations": {
+        "ja": "何ですか？"
+      },
+      "fields": {
+        "ja": {
+          "nm": "Park Byeongha"
+        }
+      }
+    },
+    {
+      "id": "ep-52:62",
+      "source": "지금부터 이상한 이름 하나 부를 거예요. 대답 안 해도 돼요. 그냥 들어만 줘요.",
+      "sourceHash": "6a38a4914707da4d02bea5f5b0af4c8eb73c16233c2a3b5f67f97c2c87e190f0",
+      "translations": {
+        "ja": "今から変な名前を一つ呼びます。答えなくてもいいです。ただ聞いてください。"
+      }
+    },
+    {
+      "id": "ep-52:63",
+      "source": "네오.",
+      "sourceHash": "0f5aedb09f51d8d61131334ff9c07257ec2fbae8564c0f75998d645df5c126fa",
+      "translations": {
+        "ja": "Neo。"
+      }
+    },
+    {
+      "id": "ep-52:64",
+      "source": "바람이 멎었다. 떨어지던 꽃잎이 공중에서 잠깐 멈춘 것처럼 보였다. 박병하가 걸음을 멈추었다.",
+      "sourceHash": "5267ce3d20bddc39d615085751a8d5a5b31d62bbd0f3512a8f48586fc316d9df",
+      "translations": {
+        "ja": "風が止まった。舞い落ちる花びらが、一瞬宙で止まったように見えた。Park Byeonghaは足を止めた。"
+      }
+    },
+    {
+      "id": "ep-52:65",
+      "source": "아.",
+      "sourceHash": "df2132c55e071020e61238c28e57da03164d821b974da358cb7f6b6d12170127",
+      "translations": {
+        "ja": "あ。"
+      },
+      "fields": {
+        "ja": {
+          "nm": "Park Byeongha"
+        }
+      }
+    },
+    {
+      "id": "ep-52:66",
+      "source": "그가 이마를 짚었다. 아픈 사람처럼. 눈을 감았다. 감은 눈꺼풀 아래로 무언가가 빠르게 지나가고 있었다.",
+      "sourceHash": "a18be9b61c779c93a0baeecdecb013b8d9181007efa6c93e3bcfb87c62cf147e",
+      "translations": {
+        "ja": "彼は額を押さえた。痛む人のように。目を閉じた。まぶたの下を、何かが速く通り過ぎていた。"
+      }
+    },
+    {
+      "id": "ep-52:67",
+      "source": "비 오는 정류장. 뒤집힌 우산. 침대 끝의 고양이 자리. 식상의 섬의 해. 금고의 용 알. 물에 잠긴 서가. 공망 속의 하얀 빛.",
+      "sourceHash": "13463c19d893552176e1633de8eaea2dd2259bb4204fdab7b18ecbd45bd9599f",
+      "translations": {
+        "ja": "雨のバス停。裏返った傘。ベッドの端の猫の場所。食傷の島の太陽。金庫の竜の卵。水に沈む書架。空亡の中の白い光。"
+      }
+    },
+    {
+      "id": "ep-52:68",
+      "source": "그리고 강 위의 배에서 사람 손을 처음 잡아 주던 연이. 그때 어깨에 닿았던 온기.",
+      "sourceHash": "f78e1d7bd80d3a457d4cd7a6f35af06795345009fd8ea3fe530d7be6f5054ef2",
+      "translations": {
+        "ja": "そして川の船で、初めて人の手を取ってくれたYeoni。あのとき肩に触れた温もり。"
+      }
+    },
+    {
+      "id": "ep-52:69",
+      "source": "연이야.",
+      "sourceHash": "80cb95b01e8cc1368b8cd8ace84e07fc877503b06ef9dddd4795ce70845dc473",
+      "translations": {
+        "ja": "Yeoni。"
+      }
+    },
+    {
+      "id": "ep-52:70",
+      "source": "응. 나야. 짝짝이 양말.",
+      "sourceHash": "2a6157aef23c2b80fb119abe90bc74e4677a8d8b1879efbbbff94980c9297c9d",
+      "translations": {
+        "ja": "うん。私。左右の違う靴下。"
+      }
+    },
+    {
+      "id": "ep-52:71",
+      "source": "별점은 정했어? 정하면 알려 준댔잖아.",
+      "sourceHash": "1a20e0058a5183ae505f94605e5f0858f17a102a0d927de2a6daee4b007ad6e4",
+      "translations": {
+        "ja": "星は決めた？　決まったら教えると言ったよね。"
+      }
+    },
+    {
+      "id": "ep-52:72",
+      "source": "말투가 바뀌어 있었다. 무뚝뚝하고, 조금 건방지고, 끝이 이상하게 다정한. 연이가 아는 그 말투였다.",
+      "sourceHash": "1746ed8a811c911c27df5cd98100f78972913c9779175f0fd65c4891ae625f99",
+      "translations": {
+        "ja": "口調が変わっていた。無愛想で、少し生意気で、語尾が不思議と優しい。Yeoniの知る、あの口調だった。"
+      }
+    },
+    {
+      "id": "ep-52:73",
+      "source": "다섯 개. 늦게 와서 하나 빼려다가 참았어. 대신 리뷰는 길게 쓸 거야.",
+      "sourceHash": "fc019384bb1a5dce8a5617d941031332b9a45e2cc28173218c6675ae2dbf931e",
+      "translations": {
+        "ja": "五つ。遅れたから一つ減らそうとして、やめた。その代わり、レビューは長く書く。"
+      }
+    },
+    {
+      "id": "ep-52:74",
+      "source": "후하네.",
+      "sourceHash": "0c3db80da50ca8ee842908e518e72afd27fad41235a83732b10cf106d2d68e6f",
+      "translations": {
+        "ja": "気前がいいね。"
+      }
+    },
+    {
+      "id": "ep-52:75",
+      "source": "연이는 그의 셔츠를 붙잡고 울었다. 병하가 잠깐 망설이다 연이의 등을 감쌌다. 이번에는 몸 어디도 흐려지지 않았다.",
+      "sourceHash": "4e1646a97ab936ac08c00756340fc0c381091ad5ac2ba32ebc867ec09e60e135",
+      "translations": {
+        "ja": "Yeoniは彼のシャツをつかんで泣いた。Byeonghaは少しためらい、彼女の背を抱いた。今度は体のどこもかすまなかった。"
+      }
+    },
+    {
+      "id": "ep-52:76",
+      "source": "이번엔 손이 안 비치네. 이렇게 안아 줘도… 괜찮지?",
+      "sourceHash": "796c2da8ba90ecf6f48d9b2e7da35a61a995532a68f9a601e7b5bfd4f127d501",
+      "translations": {
+        "ja": "今度は手が透けないね。こうして抱きしめても……いいかな？"
+      }
+    },
+    {
+      "id": "ep-52:77",
+      "source": "머리. 머리면 돼. 쓰다듬는 건 할 줄 알잖아.",
+      "sourceHash": "e184c9ebe5ffc2fb15893f4b4f3602d1746dfe4eac9d300677abbd9a8eca52cc",
+      "translations": {
+        "ja": "頭。頭でいい。撫でるのは、できるでしょ。"
+      }
+    },
+    {
+      "id": "ep-52:78",
+      "source": "그리고 연이야. 양말은 왜 또 짝짝이야?",
+      "sourceHash": "8c42f7d8ba8b51ebab93d26e31c311391db03a6ad7bdd3da1295ae3ce35e1b31",
+      "translations": {
+        "ja": "それからYeoni。靴下は、なぜまた左右が違うの？"
+      }
+    },
+    {
+      "id": "ep-52:79",
+      "source": "시험이었어. 합격.",
+      "sourceHash": "85c82c7b530beb4b4c58a5ef6bff74c767e10a3eb216d76c58af4f28fd63d82e",
+      "translations": {
+        "ja": "試験だったの。合格。"
+      }
+    },
+    {
+      "id": "ep-52:80",
+      "source": "발치에서 따라오던 길고양이가 야옹 울었다. 박병하는 재채기를 했다. 연이는 소리 내어 웃었다.",
+      "sourceHash": "6136e859d160fa9a1679f63688080c2da8e63454a846cb043db5ac6b777afdb1",
+      "translations": {
+        "ja": "足元をついてきた野良猫が鳴いた。Park Byeonghaはくしゃみをした。Yeoniは声を出して笑った。"
+      }
+    },
+    {
+      "id": "ep-52:81",
+      "source": "이 알레르기만은 그대로네. 돌아올 때 좀 고쳐 주지. 고객센터에 내가 전화해야겠어.",
+      "sourceHash": "8a6979715fec34f36794bf46cba3bfc86da725b9ccc9a6d8fb24c26ac998bc56",
+      "translations": {
+        "ja": "このアレルギーだけは、そのままだな。帰るときに直してくれればよかったのに。僕が問い合わせないと。"
+      }
+    },
+    {
+      "id": "ep-52:82",
+      "source": "고객센터에 민원 넣자. 대기 1명이니까 금방 연결될 거야.",
+      "sourceHash": "eedf63cfbaa8dbf1ed18a527dda8ca8d21e1e7857b8f5dcfb672da3a034584eb",
+      "translations": {
+        "ja": "苦情を入れよう。待ち一人だから、すぐつながるよ。"
+      }
+    },
+    {
+      "id": "ep-52:83",
+      "source": "근데 너 진짜 다 기억나? 박 뭐시기로 산 거랑 네오였던 거랑 둘 다?",
+      "sourceHash": "17dbed93d9ca50623ba9b32cda476e53a97fee84cdc9d830ccd7e62eec5a3e27",
+      "translations": {
+        "ja": "でも本当に全部覚えてる？　Park何とかとして生きたことも、Neoだったことも？"
+      }
+    },
+    {
+      "id": "ep-52:84",
+      "source": "둘 다 기억해. 회사 다니고 월세 내던 병하도, 네 곁에 있던 네오도. 배 위에서 잡아 준 손까지.",
+      "sourceHash": "05f82218fe06bcdd96697987f1534dfdf398f22b4f4049bd4c59ee4d4d6f3241",
+      "translations": {
+        "ja": "両方覚えている。会社へ通い、家賃を払っていたByeonghaも、きみのそばにいたNeoも。船の上で握ってくれた手まで。"
+      }
+    },
+    {
+      "id": "ep-52:85",
+      "source": "이상하게 하나도 안 섞인다. 둘 다 나라서 그런가 보다.",
+      "sourceHash": "a9e2a3f4cc246c904a170549720b1e2883b0a461825cd1acb4014bdc4aa6f2d1",
+      "translations": {
+        "ja": "不思議と、少しも混ざらない。どちらも僕だからだろうね。"
+      }
+    },
+    {
+      "id": "ep-52:86",
+      "source": "그럼 뭐라고 불러? 병하 씨? 네오?",
+      "sourceHash": "0a92bfbb85890df256e1822e7b64a05e5df496f15d2251d1946258041ae31f5d",
+      "translations": {
+        "ja": "じゃあ、何て呼べばいい？　Byeonghaさん？　Neo？"
+      }
+    },
+    {
+      "id": "ep-52:87",
+      "source": "네가 지어 준 이름으로 불러 줘. 영냥이. 다른 사람들 앞에서는 병하고. 회사에서 영냥이라고 부르면 설명이 길어져.",
+      "sourceHash": "57aa40b01b734f5607bbf37bd2d88d116dd386f5147f8c265c98d2340c90e8f2",
+      "translations": {
+        "ja": "きみのつけた名で呼んで。Yeongnyangi。ほかの人の前ではByeonghaで。会社でYeongnyangiと呼ばれたら、説明が長くなる。"
+      }
+    },
+    {
+      "id": "ep-52:88",
+      "source": "회사까지 찾아갈 생각은 없었는데. 이제 생겼어.",
+      "sourceHash": "1dc05348e261a8bf34cfa2cb614f1caba3bf3329d715a7ffcd7581935d994f61",
+      "translations": {
+        "ja": "会社まで行くつもりはなかったけど。今、その気になった。"
+      }
+    },
+    {
+      "id": "ep-52:89",
+      "source": "병하가 웃었다. 한쪽 입꼬리가 먼저 올라가는, 조금 서툰 웃음이었다. 연이는 그 표정을 이제 잊지 않을 것 같았다.",
+      "sourceHash": "d4d804bb4b673903ffce6b9e948af4c744c8405208fa9f9c29a76dfdef09df9e",
+      "translations": {
+        "ja": "Byeonghaは笑った。片方の口角が先に上がる、少し不器用な笑みだった。Yeoniは、その表情をもう忘れない気がした。"
+      }
+    },
+    {
+      "id": "ep-52:90",
+      "source": "해가 강 위로 기울었다. 꽃잎이 물 위에 떠서 천천히 흘러갔다. 둘은 강가 난간에 나란히 기대어 섰다.",
+      "sourceHash": "e97520ab452c3e8ee0acb662b79ac3fb7722be932811f252bfdb5439ee4c84b7",
+      "translations": {
+        "ja": "太陽が川の上へ傾いた。花びらが水に浮き、ゆっくり流れた。二人は川辺の手すりに並んでもたれた。"
+      }
+    },
+    {
+      "id": "ep-52:91",
+      "source": "꿈에서 이 길을 걸었다. 평범한 봄에. 너랑.",
+      "sourceHash": "8cddd672b1c9f9ed9b124111a1ebd8a912d7a414f43da3356165fb51bafd787e",
+      "translations": {
+        "ja": "夢で、この道を歩いた。普通の春に。きみと。"
+      }
+    },
+    {
+      "id": "ep-52:92",
+      "source": "꿈에서 우리 뭐 했는데? 설마 싸웠어?",
+      "sourceHash": "c1d13215c8d5ebd979322f01e1dd4042dcd9ac243abac17272641174bda5cca7",
+      "translations": {
+        "ja": "夢では何してた？　まさか、けんか？"
+      }
+    },
+    {
+      "id": "ep-52:93",
+      "source": "아무것도. 그냥 걸었다. 그게 제일 좋았다. 싸움은 깨서 했다.",
+      "sourceHash": "02cbeeabb5c6bf50adc65c45ec9fcc7553dadaf07d1e1e970078042ec6bab421",
+      "translations": {
+        "ja": "何も。ただ歩いた。それがいちばんよかった。けんかは、目覚めてからした。"
+      }
+    },
+    {
+      "id": "ep-52:94",
+      "source": "그럼 약속해. 매년 봄마다 여기 걷자. 꽃이 지기 전에. 아무것도 안 하고.",
+      "sourceHash": "1d61a580a836dcd71d640788583b943a0811ab52fa1a80fa19f574069cc4f345",
+      "translations": {
+        "ja": "じゃあ約束して。毎年、春にここを歩こう。花が散る前に。何もしないで。"
+      }
+    },
+    {
+      "id": "ep-52:95",
+      "source": "약속은 지키라고 있는 거다. 비 오면 우산은 네가 들어라. 노란 거.",
+      "sourceHash": "467fa187f0207ee6361e3f76fdd5ca1a5a35517c31fa77226b7f60ab0e7ddb30",
+      "translations": {
+        "ja": "約束は守るためにある。雨なら、傘はきみが持って。黄色いのを。"
+      }
+    },
+    {
+      "id": "ep-52:96",
+      "source": "[ 앱 알림 · 서한비: 바다 오월 둘째 주 토요일. 한 명 더 와도 돼요. 털 날리는 사람 말고요 ]",
+      "sourceHash": "0c83f17cc98ae76f957d821dc8d120cca4ca41a031c20829e24faa9d00fa36f1",
+      "translations": {
+        "ja": "[ アプリ通知 · Seo Hanbi：海は五月の第二土曜。もう一人来てもいいですよ。毛を飛ばす人以外なら ]"
+      }
+    },
+    {
+      "id": "ep-52:97",
+      "source": "털 안 날린 지 꽤 됐는데. 아직도 그 얘기야?",
+      "sourceHash": "19bf2b721f00dee07c929ba5c9470a79f6d14f932489b1dc3b1305b89710ad6e",
+      "translations": {
+        "ja": "毛を飛ばさなくなって、ずいぶんたつのに。まだその話？"
+      }
+    },
+    {
+      "id": "ep-52:98",
+      "source": "재채기는 하잖아.",
+      "sourceHash": "aeaa32a035b9a5204630a5d298be862436caf402eb8756d17d286ee174d90084",
+      "translations": {
+        "ja": "くしゃみはするでしょ。"
+      }
+    },
+    {
+      "id": "ep-52:99",
+      "source": "연이는 답장을 썼다. 한 명 추가. 사람임. 털 없음. 양말 검사 담당.",
+      "sourceHash": "238139809206672092385f849218c7d0d41f26d83f887f79a88ee3836a194cc9",
+      "translations": {
+        "ja": "Yeoniは返事を書いた。一人追加。人間。毛なし。靴下検査担当。"
+      }
+    },
+    {
+      "id": "ep-52:100",
+      "source": "[ 앱 알림 · 강새벽: 찾으셨군요. 일진 맞혔으니 상담비 청구합니다. 그리고 그분 생시 좀 ]",
+      "sourceHash": "14263f6702d4b3c4af4e6985afaa88e32ec2e42d48ebc689aa97d305ac61f51a",
+      "translations": {
+        "ja": "[ アプリ通知 · Kang Saebyeok：見つかりましたね。日運が当たったので相談料を請求します。それと、あの方の出生時刻を ]"
+      }
+    },
+    {
+      "id": "ep-52:101",
+      "source": "이 사람은 왜 아직도 생시를 묻냐.",
+      "sourceHash": "5c72f79f72d3fdf77c92c568b568f55f4351d53479a41591c55dd8f6b2f10d7b",
+      "translations": {
+        "ja": "どうして、まだ出生時刻を聞くんだ。"
+      }
+    },
+    {
+      "id": "ep-52:102",
+      "source": "궁합 보고 싶대. 너랑 나랑.",
+      "sourceHash": "55f45a141b7f7727fa87b4e4fa371f1325601090a564b7d8c6460ec4668670af",
+      "translations": {
+        "ja": "相性を見たいんだって。あんたと私の。"
+      }
+    },
+    {
+      "id": "ep-52:103",
+      "source": "우리한텐 乙庚合이면 됐어. 여기까지 같이 왔잖아.",
+      "sourceHash": "a548497a73a099a05860c1f944d35e32bdf75602205d423b77c01d8a447093c9",
+      "translations": {
+        "ja": "僕たちは乙庚合で十分だよ。一緒に、ここまで来たんだから。"
+      }
+    },
+    {
+      "id": "ep-52:104",
+      "source": "그래도 궁금하잖아. 점수가 몇 점인지.",
+      "sourceHash": "54869b78d3d48691e2e7ecc391c70fe3c30128ccfefabc56d646a0b8e8f62e59",
+      "translations": {
+        "ja": "でも気になるでしょ。何点なのか。"
+      }
+    },
+    {
+      "id": "ep-52:105",
+      "source": "백 점 아니면 그 점쟁이 별점 하나 줘라.",
+      "sourceHash": "a3b8cdd38a26b3624c2118d5d3d5274c583a7c058fc1530a8b85ac5c482ef117",
+      "translations": {
+        "ja": "百点じゃなかったら、あの占い師には星一つをつけて。"
+      }
+    },
+    {
+      "id": "ep-52:106",
+      "source": "연이는 웃으며 휴대폰을 주머니에 넣었다. 그리고 박병하의 손을 잡았다. 사람 손은 생각보다 크고, 생각보다 조금 차가웠다.",
+      "sourceHash": "1a2b429ba85b7c0dda5a2fc4dbcefaa0209747d816933d7b3a65e1fa8aec17ff",
+      "translations": {
+        "ja": "Yeoniは笑って携帯をポケットへ入れた。そしてPark Byeonghaの手を握った。人の手は、思ったより大きく、少し冷たかった。"
+      }
+    },
+    {
+      "id": "ep-52:107",
+      "source": "손 차갑다. 庚金이라 그런가.",
+      "sourceHash": "f7cebcc2fb7c18f0c16f723967db0b3ce08f821c8e54403ceeea84401bbaf5c7",
+      "translations": {
+        "ja": "手、冷たいね。庚金だからかな。"
+      }
+    },
+    {
+      "id": "ep-52:108",
+      "source": "네 손이 따뜻한 거다. 乙목이라 그렇지.",
+      "sourceHash": "b5504f5c1b1e6089337bc1d98e0697b3a07380f95fa6c3e500384fc60ab6c8ca",
+      "translations": {
+        "ja": "きみの手が温かいんだ。乙木だからね。"
+      }
+    },
+    {
+      "id": "ep-52:109",
+      "source": "둘은 손을 잡은 채 강을 따라 걸었다. 길고양이가 멀찍이 뒤를 따랐다. 박병하가 또 재채기를 했다. 강물 위로 마지막 꽃잎이 흘러갔다.",
+      "sourceHash": "3c3275db4cf88edbec8080f13a5c85a8cee50fda37f1a38e04139b17d10d9f33",
+      "translations": {
+        "ja": "二人は手をつなぎ、川に沿って歩いた。野良猫が離れた後ろをついてきた。Park Byeonghaがまたくしゃみをした。川面を、最後の花びらが流れた。"
+      }
+    }
+  ]
+}
