@@ -20,6 +20,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
+import { ENGLISH_READING_LOCALES, applyDetailedReadingEdition } from "./lib/detailed-reading-locale-policy.mjs";
 
 const rootDir = process.cwd();
 const i18nDir = resolve(rootDir, "public", "i18n");
@@ -126,4 +127,15 @@ for (const [namespace, byLocale] of Object.entries(byNamespace)) {
   console.log(`[merge-authored] ${namespace}: ${Object.keys(byLocale.ko).length}키 × ${LOCALES.length}로케일`);
 }
 
+// Keep the explicitly selected English static reading edition after every core authoring batch.
+// This affects neither basic UI namespaces nor the requested consultation response language.
+if (toCore) {
+  const english = JSON.parse(readFileSync(join(i18nDir, 'en.json'), 'utf8'));
+  for (const locale of ENGLISH_READING_LOCALES) {
+    const target = join(i18nDir, `${FILE_BY_LOCALE[locale]}.json`);
+    const original = JSON.parse(readFileSync(target, 'utf8'));
+    const next = applyDetailedReadingEdition(original, english, locale);
+    if (JSON.stringify(original) !== JSON.stringify(next)) writeFileSync(target, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
+  }
+}
 console.log(`[merge-authored] 저작 파일 ${files.length}개 / 항목 ${entryCount}개 → 사전 ${written}개 갱신`);

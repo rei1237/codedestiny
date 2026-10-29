@@ -1,0 +1,2369 @@
+{
+  "_comment": "Directly authored English, Japanese, Simplified Chinese and Traditional Chinese detailed guides. Other reading editions intentionally use English. No translation API.",
+  "_direct": {
+    "oracle": {
+      "category": [
+        "Oracle",
+        "オラクル",
+        "神谕",
+        "神諭"
+      ],
+      "badge": [
+        "Symbolic reading",
+        "シンボルリーディング",
+        "象征解读",
+        "象徵解讀"
+      ],
+      "headline": [
+        "Take a moment to notice easily missed signals through the language of symbols.",
+        "見落としがちなサインを、象徴の言葉で短く確かめてみましょう。",
+        "用象征的语言，简要看看当下容易忽略的信号。",
+        "用象徵的語言，簡要看看當下容易忽略的訊號。"
+      ],
+      "subheadline": [
+        "An oracle reading to help you gather your thoughts before a choice.",
+        "選択を前に、心を整理するためのオラクルリーディングです。",
+        "通过神谕式解读，梳理做选择前的心绪。",
+        "透過神諭式解讀，梳理做選擇前的心緒。"
+      ],
+      "painPoints.0": [
+        "When a decision is needed but you feel unsure",
+        "決める必要はあるのに、確信が持てないとき",
+        "需要决定，却缺乏把握时",
+        "需要決定，卻缺乏把握時"
+      ],
+      "painPoints.1": [
+        "When you sense a recurring signal",
+        "同じサインが繰り返されていると感じるとき",
+        "觉得某种信号反复出现时",
+        "覺得某種訊號反覆出現時"
+      ],
+      "painPoints.2": [
+        "When you want a brief, clear interpretation of a symbol",
+        "短くても明確な象徴の解釈がほしいとき",
+        "想要简短而清晰的象征解读时",
+        "想要簡短而清晰的象徵解讀時"
+      ],
+      "unlockBenefits.0": [
+        "A symbolic message for your current question",
+        "今の問いに向けた象徴のメッセージ",
+        "围绕当前问题的象征信息",
+        "圍繞當前問題的象徵訊息"
+      ],
+      "unlockBenefits.1": [
+        "Details that are easy to overlook",
+        "見落としやすいポイント",
+        "容易忽略的要点",
+        "容易忽略的要點"
+      ],
+      "unlockBenefits.2": [
+        "Patterns that deserve care",
+        "気をつけたい流れ",
+        "需要留意的趋势",
+        "需要留意的趨勢"
+      ],
+      "unlockBenefits.3": [
+        "Hints for your next step",
+        "次の行動へのヒント",
+        "下一步行动的提示",
+        "下一步行動的提示"
+      ],
+      "recommendedFor.0": [
+        "For those facing a decision without a clear sense of certainty",
+        "決断を前に、確信を持てずにいる方",
+        "面临决定却拿不准的人",
+        "面臨決定卻拿不準的人"
+      ],
+      "recommendedFor.1": [
+        "For those who sense recurring signals",
+        "繰り返されるサインが気になる方",
+        "在意反复出现的信号的人",
+        "在意反覆出現的訊號的人"
+      ],
+      "recommendedFor.2": [
+        "For those seeking a brief, clear symbolic reading",
+        "短く明確な象徴の解釈を求める方",
+        "希望获得简短清晰的象征解读的人",
+        "希望獲得簡短清晰的象徵解讀的人"
+      ],
+      "answersQuestions.0": [
+        "Is this choice taking me in the right direction?",
+        "今の選択は、望む方向へつながっていますか？",
+        "现在这个选择，方向合适吗？",
+        "現在這個選擇，方向合適嗎？"
+      ],
+      "answersQuestions.1": [
+        "What signal might I be overlooking?",
+        "私はどんなサインを見落としているのでしょう？",
+        "我可能忽略了什么信号？",
+        "我可能忽略了什麼訊號？"
+      ],
+      "answersQuestions.2": [
+        "Should I press ahead or wait this time?",
+        "今回は進めるべきでしょうか、それとも待つべきでしょうか？",
+        "这件事该继续推进，还是再等一等？",
+        "這件事該繼續推進，還是再等一等？"
+      ],
+      "analysisSteps.0.label": [
+        "Set the question",
+        "問いを定める",
+        "确定问题",
+        "確定問題"
+      ],
+      "analysisSteps.0.detail": [
+        "Narrow what you want to ask down to one clear sentence.",
+        "聞きたいことを一文に絞り、問いを定めます。",
+        "将想问的事收束为一句明确的问题。",
+        "將想問的事收束為一句明確的問題。"
+      ],
+      "analysisSteps.1.label": [
+        "Draw the symbols",
+        "象徴を引く",
+        "抽取象征",
+        "抽取象徵"
+      ],
+      "analysisSteps.1.detail": [
+        "Draw symbols in response to that question.",
+        "その問いに応じる象徴を引きます。",
+        "围绕这个问题，抽取对应的象征。",
+        "圍繞這個問題，抽取對應的象徵。"
+      ],
+      "analysisSteps.2.label": [
+        "Connect the meaning",
+        "意味をつなぐ",
+        "联系含义",
+        "連結含義"
+      ],
+      "analysisSteps.2.detail": [
+        "Read the chosen symbols in the context of your current situation.",
+        "引いた象徴を、今の状況の文脈に重ねて読み解きます。",
+        "结合当前情境，理解抽到的象征。",
+        "結合當前情境，理解抽到的象徵。"
+      ],
+      "analysisSteps.3.label": [
+        "Gather the guidance",
+        "メッセージを整理する",
+        "整理指引",
+        "整理指引"
+      ],
+      "analysisSteps.3.detail": [
+        "Summarize the attitudes to adopt and those to avoid now.",
+        "今取りたい姿勢と、避けたい姿勢を整理します。",
+        "整理此刻适合采取与需要避免的态度。",
+        "整理此刻適合採取與需要避免的態度。"
+      ],
+      "valueCompare.rows.0.axis": [
+        "Number of symbols",
+        "象徴の数",
+        "象征数量",
+        "象徵數量"
+      ],
+      "valueCompare.rows.0.free": [
+        "One",
+        "一つ",
+        "一个",
+        "一個"
+      ],
+      "valueCompare.rows.0.premium": [
+        "A full combination of symbols suited to your question",
+        "問いに合わせた象徴の組み合わせ全体",
+        "符合问题的完整象征组合",
+        "符合問題的完整象徵組合"
+      ],
+      "valueCompare.rows.1.free": [
+        "The symbol's basic meaning",
+        "象徴の基本的な意味",
+        "象征的基本含义",
+        "象徵的基本含義"
+      ],
+      "valueCompare.rows.1.premium": [
+        "An interpretation grounded in your current situation",
+        "今の状況に重ねた文脈のある解釈",
+        "结合当前情境的具体解读",
+        "結合當前情境的具體解讀"
+      ],
+      "valueCompare.rows.2.free": [
+        "A one-line message",
+        "一言のメッセージ",
+        "一句话提示",
+        "一句話提示"
+      ],
+      "valueCompare.rows.2.premium": [
+        "Attitudes to adopt and to avoid, considered separately",
+        "取りたい姿勢と避けたい姿勢を分けて整理",
+        "分别说明适合采取与应避免的态度",
+        "分別說明適合採取與應避免的態度"
+      ],
+      "faq.0.q": [
+        "Is an oracle a form of fortune-telling?",
+        "オラクルは占いですか？",
+        "神谕是在算命吗？",
+        "神諭是在算命嗎？"
+      ],
+      "faq.0.a": [
+        "It uses symbols to revisit signals you may have missed, rather than predicting future events.",
+        "未来を当てるためではなく、心が見落としたサインを象徴から振り返る方法です。",
+        "它通过象征回看当下可能忽略的信号，而非预言未来。",
+        "它透過象徵回看當下可能忽略的訊號，而非預言未來。"
+      ],
+      "faq.1.q": [
+        "What if I do not like the result?",
+        "結果に納得できないときは？",
+        "不喜欢结果怎么办？",
+        "不喜歡結果怎麼辦？"
+      ],
+      "faq.1.a": [
+        "A symbol is not a verdict. Its meaning can change with the situation, so use the guidance as a direction to consider.",
+        "象徴は判決ではありません。同じ象徴でも状況によって意味合いが変わります。助言の方向を参考にしてください。",
+        "象征不是定论。同一象征在不同情境中也会有不同含义，请将建议作为思考方向。",
+        "象徵不是定論。同一象徵在不同情境中也會有不同含義，請將建議作為思考方向。"
+      ],
+      "faq.2.q": [
+        "How often should I use it?",
+        "どのくらいの頻度で見ればよいですか？",
+        "多久看一次比较合适？",
+        "多久看一次比較合適？"
+      ],
+      "faq.2.a": [
+        "Return when your question has genuinely changed. Repeating the same question can make your judgment less clear.",
+        "問いが実際に変わったときに見るのがおすすめです。同じ問いを繰り返すと、かえって判断が曖昧になります。",
+        "建议在问题确实发生变化时再看。反复问同一个问题，反而容易让判断变得模糊。",
+        "建議在問題確實發生變化時再看。反覆問同一個問題，反而容易讓判斷變得模糊。"
+      ]
+    },
+    "report": {
+      "category": [
+        "Premium report",
+        "プレミアムレポート",
+        "深度报告",
+        "深度報告"
+      ],
+      "badge": [
+        "In-depth consultation",
+        "深く読み解く相談",
+        "深度咨询",
+        "深度諮詢"
+      ],
+      "headline": [
+        "Bring scattered thoughts together in one reading.",
+        "散らばった思いを、一つの解釈につなげてみましょう。",
+        "用一份解读，串起纷杂的思绪。",
+        "用一份解讀，串起紛雜的思緒。"
+      ],
+      "subheadline": [
+        "A premium reading that explores your current concerns and patterns in greater detail.",
+        "今の悩みや流れを、より具体的に整理するプレミアム解釈です。",
+        "更具体地梳理当前烦恼与走势的深度解读。",
+        "更具體地梳理當前煩惱與走勢的深度解讀。"
+      ],
+      "painPoints.0": [
+        "When the same concern seems to keep returning",
+        "同じ悩みを繰り返していると感じるとき",
+        "觉得同样的烦恼反复出现时",
+        "覺得同樣的煩惱反覆出現時"
+      ],
+      "painPoints.1": [
+        "When you need a clearer picture than a brief summary",
+        "短い要約よりも、具体的な流れを知りたいとき",
+        "需要比简要总结更具体的脉络时",
+        "需要比簡要總結更具體的脈絡時"
+      ],
+      "painPoints.2": [
+        "When you want to organize your thoughts before choosing",
+        "選ぶ前に、自分の考えを整理したいとき",
+        "想在做选择前理清思路时",
+        "想在做選擇前理清思路時"
+      ],
+      "unlockBenefits.0": [
+        "A summary of the central patterns",
+        "中心となる流れの要約",
+        "核心走势总结",
+        "核心走勢總結"
+      ],
+      "unlockBenefits.1": [
+        "Key interpretations by topic",
+        "テーマ別の解釈ポイント",
+        "各主题的解读要点",
+        "各主題的解讀要點"
+      ],
+      "unlockBenefits.2": [
+        "Patterns to watch out for",
+        "気をつけたいパターン",
+        "需要留意的模式",
+        "需要留意的模式"
+      ],
+      "unlockBenefits.3": [
+        "Criteria for deciding your next step",
+        "次の行動を選ぶ基準",
+        "下一步行动的判断依据",
+        "下一步行動的判斷依據"
+      ],
+      "recommendedFor.0": [
+        "For those who want to bring several concerns into focus",
+        "いくつもの悩みをまとめて整理したい方",
+        "想一起梳理纷杂烦恼的人",
+        "想一起梳理紛雜煩惱的人"
+      ],
+      "recommendedFor.1": [
+        "For those seeking more detail than a summary",
+        "要約よりも具体的な流れを知りたい方",
+        "需要比摘要更具体的脉络的人",
+        "需要比摘要更具體的脈絡的人"
+      ],
+      "recommendedFor.2": [
+        "For those who want to settle their thoughts before a choice",
+        "選ぶ前に考えをまとめたい方",
+        "想在选择前整理好思绪的人",
+        "想在選擇前整理好思緒的人"
+      ],
+      "answersQuestions.0": [
+        "Which of my concerns should I address first?",
+        "いくつもある悩みのうち、何から手をつければよいでしょう？",
+        "这么多烦恼，该先处理哪一个？",
+        "這麼多煩惱，該先處理哪一個？"
+      ],
+      "answersQuestions.1": [
+        "Why does one area stay stuck despite my efforts?",
+        "努力しても、一つの分野だけ行き詰まるのはなぜでしょう？",
+        "为什么努力了，某个方面却总是卡住？",
+        "為什麼努力了，某個方面卻總是卡住？"
+      ],
+      "answersQuestions.2": [
+        "How do I tell what to sustain from what to change now?",
+        "今続けることと変えることを、どう分ければよいでしょう？",
+        "怎样分清现在该坚持什么、改变什么？",
+        "怎樣分清現在該堅持什麼、改變什麼？"
+      ],
+      "analysisSteps.0.label": [
+        "Review your information",
+        "入力情報を確認",
+        "确认输入信息",
+        "確認輸入資訊"
+      ],
+      "analysisSteps.0.detail": [
+        "We take your birth details together with your current concern.",
+        "生まれた年などの情報と、今の悩みを受け取ります。",
+        "结合出生信息与您当前的烦恼。",
+        "結合出生資訊與您當前的煩惱。"
+      ],
+      "analysisSteps.1.label": [
+        "Analyze the reading system",
+        "占術に沿って分析",
+        "按运势体系分析",
+        "按運勢體系分析"
+      ],
+      "analysisSteps.1.detail": [
+        "The report's calculation system is used to explore temperament and patterns.",
+        "レポートで用いる計算体系から、気質や流れを読み解きます。",
+        "使用该报告所采用的计算体系，分析气质与走势。",
+        "使用該報告所採用的計算體系，分析氣質與走勢。"
+      ],
+      "analysisSteps.2.label": [
+        "Connect your concern",
+        "悩みと結びつける",
+        "联系当前烦恼",
+        "連結當前煩惱"
+      ],
+      "analysisSteps.2.detail": [
+        "We identify the parts of the analysis that relate to your current question.",
+        "分析結果から、今の問いに関わる部分を選び出します。",
+        "从分析结果中筛选出与当前问题相关的部分。",
+        "從分析結果中篩選出與當前問題相關的部分。"
+      ],
+      "analysisSteps.3.label": [
+        "Prepare the report",
+        "レポートをまとめる",
+        "整理报告",
+        "整理報告"
+      ],
+      "analysisSteps.3.detail": [
+        "The findings are organized into a document that clarifies priorities and next steps.",
+        "優先順位と次の行動が見えるよう、一つの文書にまとめます。",
+        "整理成一份报告，明确优先次序与下一步行动。",
+        "整理成一份報告，明確優先次序與下一步行動。"
+      ],
+      "valueCompare.rows.0.axis": [
+        "Length",
+        "分量",
+        "篇幅",
+        "篇幅"
+      ],
+      "valueCompare.rows.0.free": [
+        "Key summary",
+        "要点の要約",
+        "重点摘要",
+        "重點摘要"
+      ],
+      "valueCompare.rows.0.premium": [
+        "An in-depth report organized by topic",
+        "テーマ別に分かれた詳細レポート",
+        "按主题展开的深度报告",
+        "按主題展開的深度報告"
+      ],
+      "valueCompare.rows.1.free": [
+        "General explanations",
+        "一般的な説明",
+        "一般说明",
+        "一般說明"
+      ],
+      "valueCompare.rows.1.premium": [
+        "Written around the information and concern you provide",
+        "入力した情報と悩みに合わせて作成",
+        "结合您输入的信息与烦恼撰写",
+        "結合您輸入的資訊與煩惱撰寫"
+      ],
+      "valueCompare.rows.2.free": [
+        "A suggested direction",
+        "方向性の提示",
+        "提供方向",
+        "提供方向"
+      ],
+      "valueCompare.rows.2.premium": [
+        "Guidance on what to do first and in what order",
+        "何から始めるか、その順序まで",
+        "说明先做什么、按什么顺序进行",
+        "說明先做什麼、按什麼順序進行"
+      ],
+      "faq.0.q": [
+        "How does this differ from the free reading?",
+        "無料版とは何が違いますか？",
+        "与免费解读有什么不同？",
+        "與免費解讀有什麼不同？"
+      ],
+      "faq.0.a": [
+        "The free reading is a key summary. The premium report uses your information for deeper analysis by topic and more specific guidance.",
+        "無料版は要点の要約です。プレミアム版は入力情報をもとに、テーマ別の詳しい分析と具体的な助言をまとめます。",
+        "免费版提供重点摘要。深度版则根据输入信息，按主题深入分析并给出具体建议。",
+        "免費版提供重點摘要。深度版則根據輸入資訊，按主題深入分析並給出具體建議。"
+      ],
+      "faq.1.q": [
+        "Is the report generated automatically by AI?",
+        "AIが自動で作成しますか？",
+        "报告由 AI 自动生成吗？",
+        "報告由 AI 自動產生嗎？"
+      ],
+      "faq.1.a": [
+        "A personalized report is generated from your information. Even with the same details, a different question leads to different content.",
+        "入力情報をもとに、あなたに合わせたレポートを生成します。同じ情報でも、問いが変わると内容は変わります。",
+        "报告根据您输入的信息生成。即使信息相同，问题不同，内容也会随之变化。",
+        "報告根據您輸入的資訊產生。即使資訊相同，問題不同，內容也會隨之變化。"
+      ]
+    },
+    "music": {
+      "category": [
+        "Music",
+        "音楽",
+        "音乐",
+        "音樂"
+      ],
+      "badge": [
+        "An emotional experience",
+        "気持ちに触れる体験",
+        "情绪体验",
+        "情緒體驗"
+      ],
+      "headline": [
+        "Open a song like a scene that matches the mood you are in.",
+        "今の気持ちに近い空気を、一曲の風景のように開いてみましょう。",
+        "像打开一幕场景那样，走进与此刻心情相近的一首歌。",
+        "像打開一幕場景那樣，走進與此刻心情相近的一首歌。"
+      ],
+      "subheadline": [
+        "An atmospheric experience centered on music and the world of our characters.",
+        "音楽とキャラクターの世界観を、雰囲気とともに楽しむコンテンツです。",
+        "围绕音乐与角色世界的氛围展开的情感体验。",
+        "圍繞音樂與角色世界的氛圍展開的情感體驗。"
+      ],
+      "painPoints.0": [
+        "When you want to explore a feeling through atmosphere rather than words",
+        "言葉よりも雰囲気を通して、気持ちを整理したいとき",
+        "想通过氛围而非语言梳理情绪时",
+        "想透過氛圍而非語言梳理情緒時"
+      ],
+      "painPoints.1": [
+        "When you want a brief, immersive emotional experience",
+        "短い時間、気持ちを重ねて没入したいとき",
+        "想短暂沉浸在情感内容中时",
+        "想短暫沉浸在情感內容中時"
+      ],
+      "painPoints.2": [
+        "When you want to choose individual songs for the experience you need",
+        "必要な体験を、一曲ずつ選んで楽しみたいとき",
+        "想按歌曲选择适合自己的体验时",
+        "想按歌曲選擇適合自己的體驗時"
+      ],
+      "unlockBenefits.0": [
+        "An emotional experience shaped by song and atmosphere",
+        "曲と雰囲気を通した感情の体験",
+        "以歌曲与氛围为中心的情绪体验",
+        "以歌曲與氛圍為中心的情緒體驗"
+      ],
+      "unlockBenefits.1": [
+        "Scenes connected to the characters' world",
+        "キャラクターの世界につながる場面",
+        "与角色世界相连的场景",
+        "與角色世界相連的場景"
+      ],
+      "unlockBenefits.2": [
+        "Basic information available before purchase",
+        "購入前に確認できる基本情報",
+        "购买前可查看的基本信息",
+        "購買前可查看的基本資訊"
+      ],
+      "unlockBenefits.3": [
+        "Continue to the existing music player after payment",
+        "決済後はいつもの音楽画面へ",
+        "付款后进入原有音乐页面",
+        "付款後進入原有音樂頁面"
+      ],
+      "recommendedFor.0": [
+        "For those who want to process feelings through atmosphere",
+        "雰囲気を通して気持ちを整理したい方",
+        "希望通过氛围梳理情绪的人",
+        "希望透過氛圍梳理情緒的人"
+      ],
+      "recommendedFor.1": [
+        "For those seeking a short, immersive emotional experience",
+        "短く没入できる情感豊かな体験を探している方",
+        "寻找短暂沉浸式情感体验的人",
+        "尋找短暫沉浸式情感體驗的人"
+      ],
+      "recommendedFor.2": [
+        "For those who want to choose only the songs they need",
+        "聴きたい曲だけを選んで楽しみたい方",
+        "想只选取所需歌曲的人",
+        "想只選取所需歌曲的人"
+      ],
+      "answersQuestions.0": [
+        "Which song suits the way I feel right now?",
+        "今の気分に合う曲は何でしょう？",
+        "哪首歌适合我现在的心情？",
+        "哪首歌適合我現在的心情？"
+      ],
+      "answersQuestions.1": [
+        "How can I work through a feeling I cannot put into words?",
+        "言葉にならない気持ちを、どうほどけばよいでしょう？",
+        "说不清的情绪，可以怎样舒展？",
+        "說不清的情緒，可以怎樣舒展？"
+      ],
+      "answersQuestions.2": [
+        "Is there an emotional experience I can immerse myself in briefly?",
+        "短い時間で没入できる、心に触れるコンテンツはありますか？",
+        "有没有适合短暂沉浸的情感内容？",
+        "有沒有適合短暫沉浸的情感內容？"
+      ],
+      "analysisSteps.0.label": [
+        "Choose a mood",
+        "雰囲気を選ぶ",
+        "选择氛围",
+        "選擇氛圍"
+      ],
+      "analysisSteps.0.detail": [
+        "Choose the mood closest to how you feel now.",
+        "今の気持ちに近い雰囲気を選びます。",
+        "选择与当前情绪相近的氛围。",
+        "選擇與當前情緒相近的氛圍。"
+      ],
+      "analysisSteps.1.label": [
+        "Connect a song",
+        "曲をつなぐ",
+        "连接歌曲",
+        "連結歌曲"
+      ],
+      "analysisSteps.1.detail": [
+        "A matching song is connected with a scene from the characters' world.",
+        "その雰囲気に合う曲と、キャラクターの世界の場面をつなぎます。",
+        "将契合氛围的歌曲与角色世界的场景连接起来。",
+        "將契合氛圍的歌曲與角色世界的場景連結起來。"
+      ],
+      "analysisSteps.2.label": [
+        "Shape the scene",
+        "場面を組み立てる",
+        "构成场景",
+        "構成場景"
+      ],
+      "analysisSteps.2.detail": [
+        "Each song is arranged to unfold like a single scene.",
+        "一曲が一つの場面のようにつながる構成にします。",
+        "让一首歌像一幕完整场景那样展开。",
+        "讓一首歌像一幕完整場景那樣展開。"
+      ],
+      "analysisSteps.3.label": [
+        "Get ready to listen",
+        "聴く準備をする",
+        "准备聆听",
+        "準備聆聽"
+      ],
+      "analysisSteps.3.detail": [
+        "After purchase, continue listening in the existing music player.",
+        "購入後は、いつもの音楽画面で続けて聴けます。",
+        "购买后，在原有音乐页面继续收听。",
+        "購買後，在原有音樂頁面繼續收聽。"
+      ],
+      "valueCompare.rows.0.axis": [
+        "Listening access",
+        "聴ける範囲",
+        "收听范围",
+        "收聽範圍"
+      ],
+      "valueCompare.rows.0.free": [
+        "Preview segment",
+        "試聴区間",
+        "试听片段",
+        "試聽片段"
+      ],
+      "valueCompare.rows.0.premium": [
+        "The full song",
+        "曲全体",
+        "完整歌曲",
+        "完整歌曲"
+      ],
+      "valueCompare.rows.1.axis": [
+        "Scenes",
+        "場面",
+        "场景",
+        "場景"
+      ],
+      "valueCompare.rows.1.premium": [
+        "Scenes linked to the characters' world",
+        "キャラクターの世界につながる場面",
+        "与角色世界相连的场景",
+        "與角色世界相連的場景"
+      ],
+      "valueCompare.rows.2.axis": [
+        "Listening",
+        "利用方法",
+        "使用方式",
+        "使用方式"
+      ],
+      "valueCompare.rows.2.free": [
+        "Stream as you go",
+        "その都度ストリーミング",
+        "随时在线播放",
+        "隨時線上播放"
+      ],
+      "valueCompare.rows.2.premium": [
+        "Keep listening to the songs you have purchased",
+        "購入した曲を中心に続けて聴く",
+        "围绕已购歌曲继续聆听",
+        "圍繞已購歌曲繼續聆聽"
+      ],
+      "faq.0.q": [
+        "Can I listen to a preview?",
+        "試聴できますか？",
+        "可以先试听吗？",
+        "可以先試聽嗎？"
+      ],
+      "faq.0.a": [
+        "Yes. Listen to the preview segment before purchase to get a feel for the song.",
+        "はい。購入前に試聴区間で曲の雰囲気を確かめられます。",
+        "可以。购买前可通过试听片段感受歌曲氛围。",
+        "可以。購買前可透過試聽片段感受歌曲氛圍。"
+      ],
+      "faq.1.q": [
+        "Where do I listen after purchase?",
+        "購入後はどこで聴けますか？",
+        "购买后在哪里收听？",
+        "購買後在哪裡收聽？"
+      ],
+      "faq.1.a": [
+        "Once payment is complete, continue to the existing music screen to listen.",
+        "決済が完了すると、いつもの音楽画面へ移動して続けて聴けます。",
+        "付款完成后，进入原有音乐页面即可继续收听。",
+        "付款完成後，進入原有音樂頁面即可繼續收聽。"
+      ],
+      "faq.2.q": [
+        "Is each song purchased separately?",
+        "曲ごとに購入する仕組みですか？",
+        "每首歌需要分别购买吗？",
+        "每首歌需要分別購買嗎？"
+      ],
+      "faq.2.a": [
+        "You choose the songs you want to use. Check the payment screen for the exact terms.",
+        "必要な曲を選んで利用する仕組みです。詳しい条件は決済画面の案内をご確認ください。",
+        "您可以选择需要的歌曲使用。具体条件请以付款页面的说明为准。",
+        "您可以選擇需要的歌曲使用。具體條件請以付款頁面的說明為準。"
+      ]
+    }
+  },
+  "featureMarketing.template_oracle.badge": {
+    "ko": "상징 리딩",
+    "en": "Symbolic reading",
+    "ja": "シンボルリーディング",
+    "zh-CN": "象征解读",
+    "zh-TW": "象徵解讀",
+    "vi": "Symbolic reading",
+    "hi": "Symbolic reading",
+    "es": "Symbolic reading",
+    "fr": "Symbolic reading",
+    "de": "Symbolic reading",
+    "nl": "Symbolic reading",
+    "ms": "Symbolic reading"
+  },
+  "featureMarketing.template_oracle.headline": {
+    "ko": "지금 놓치기 쉬운 신호를 상징의 언어로 짧게 확인해보세요.",
+    "en": "Take a moment to notice easily missed signals through the language of symbols.",
+    "ja": "見落としがちなサインを、象徴の言葉で短く確かめてみましょう。",
+    "zh-CN": "用象征的语言，简要看看当下容易忽略的信号。",
+    "zh-TW": "用象徵的語言，簡要看看當下容易忽略的訊號。",
+    "vi": "Take a moment to notice easily missed signals through the language of symbols.",
+    "hi": "Take a moment to notice easily missed signals through the language of symbols.",
+    "es": "Take a moment to notice easily missed signals through the language of symbols.",
+    "fr": "Take a moment to notice easily missed signals through the language of symbols.",
+    "de": "Take a moment to notice easily missed signals through the language of symbols.",
+    "nl": "Take a moment to notice easily missed signals through the language of symbols.",
+    "ms": "Take a moment to notice easily missed signals through the language of symbols."
+  },
+  "featureMarketing.template_oracle.tagline": {
+    "ko": "선택 앞의 마음을 정리하는 신탁형 리딩입니다.",
+    "en": "An oracle reading to help you gather your thoughts before a choice.",
+    "ja": "選択を前に、心を整理するためのオラクルリーディングです。",
+    "zh-CN": "通过神谕式解读，梳理做选择前的心绪。",
+    "zh-TW": "透過神諭式解讀，梳理做選擇前的心緒。",
+    "vi": "An oracle reading to help you gather your thoughts before a choice.",
+    "hi": "An oracle reading to help you gather your thoughts before a choice.",
+    "es": "An oracle reading to help you gather your thoughts before a choice.",
+    "fr": "An oracle reading to help you gather your thoughts before a choice.",
+    "de": "An oracle reading to help you gather your thoughts before a choice.",
+    "nl": "An oracle reading to help you gather your thoughts before a choice.",
+    "ms": "An oracle reading to help you gather your thoughts before a choice."
+  },
+  "featureMarketing.template_oracle.feats.0": {
+    "ko": "결정은 해야 하는데 확신이 부족할 때",
+    "en": "When a decision is needed but you feel unsure",
+    "ja": "決める必要はあるのに、確信が持てないとき",
+    "zh-CN": "需要决定，却缺乏把握时",
+    "zh-TW": "需要決定，卻缺乏把握時",
+    "vi": "When a decision is needed but you feel unsure",
+    "hi": "When a decision is needed but you feel unsure",
+    "es": "When a decision is needed but you feel unsure",
+    "fr": "When a decision is needed but you feel unsure",
+    "de": "When a decision is needed but you feel unsure",
+    "nl": "When a decision is needed but you feel unsure",
+    "ms": "When a decision is needed but you feel unsure"
+  },
+  "featureMarketing.template_oracle.feats.1": {
+    "ko": "반복되는 신호가 있다고 느낄 때",
+    "en": "When you sense a recurring signal",
+    "ja": "同じサインが繰り返されていると感じるとき",
+    "zh-CN": "觉得某种信号反复出现时",
+    "zh-TW": "覺得某種訊號反覆出現時",
+    "vi": "When you sense a recurring signal",
+    "hi": "When you sense a recurring signal",
+    "es": "When you sense a recurring signal",
+    "fr": "When you sense a recurring signal",
+    "de": "When you sense a recurring signal",
+    "nl": "When you sense a recurring signal",
+    "ms": "When you sense a recurring signal"
+  },
+  "featureMarketing.template_oracle.feats.2": {
+    "ko": "짧지만 선명한 상징 해석이 필요할 때",
+    "en": "When you want a brief, clear interpretation of a symbol",
+    "ja": "短くても明確な象徴の解釈がほしいとき",
+    "zh-CN": "想要简短而清晰的象征解读时",
+    "zh-TW": "想要簡短而清晰的象徵解讀時",
+    "vi": "When you want a brief, clear interpretation of a symbol",
+    "hi": "When you want a brief, clear interpretation of a symbol",
+    "es": "When you want a brief, clear interpretation of a symbol",
+    "fr": "When you want a brief, clear interpretation of a symbol",
+    "de": "When you want a brief, clear interpretation of a symbol",
+    "nl": "When you want a brief, clear interpretation of a symbol",
+    "ms": "When you want a brief, clear interpretation of a symbol"
+  },
+  "featureMarketing.template_oracle.premiumChapters.0": {
+    "ko": "현재 질문의 상징 메시지",
+    "en": "A symbolic message for your current question",
+    "ja": "今の問いに向けた象徴のメッセージ",
+    "zh-CN": "围绕当前问题的象征信息",
+    "zh-TW": "圍繞當前問題的象徵訊息",
+    "vi": "A symbolic message for your current question",
+    "hi": "A symbolic message for your current question",
+    "es": "A symbolic message for your current question",
+    "fr": "A symbolic message for your current question",
+    "de": "A symbolic message for your current question",
+    "nl": "A symbolic message for your current question",
+    "ms": "A symbolic message for your current question"
+  },
+  "featureMarketing.template_oracle.premiumChapters.1": {
+    "ko": "놓치기 쉬운 포인트",
+    "en": "Details that are easy to overlook",
+    "ja": "見落としやすいポイント",
+    "zh-CN": "容易忽略的要点",
+    "zh-TW": "容易忽略的要點",
+    "vi": "Details that are easy to overlook",
+    "hi": "Details that are easy to overlook",
+    "es": "Details that are easy to overlook",
+    "fr": "Details that are easy to overlook",
+    "de": "Details that are easy to overlook",
+    "nl": "Details that are easy to overlook",
+    "ms": "Details that are easy to overlook"
+  },
+  "featureMarketing.template_oracle.premiumChapters.2": {
+    "ko": "주의해야 할 흐름",
+    "en": "Patterns that deserve care",
+    "ja": "気をつけたい流れ",
+    "zh-CN": "需要留意的趋势",
+    "zh-TW": "需要留意的趨勢",
+    "vi": "Patterns that deserve care",
+    "hi": "Patterns that deserve care",
+    "es": "Patterns that deserve care",
+    "fr": "Patterns that deserve care",
+    "de": "Patterns that deserve care",
+    "nl": "Patterns that deserve care",
+    "ms": "Patterns that deserve care"
+  },
+  "featureMarketing.template_oracle.premiumChapters.3": {
+    "ko": "다음 행동을 위한 힌트",
+    "en": "Hints for your next step",
+    "ja": "次の行動へのヒント",
+    "zh-CN": "下一步行动的提示",
+    "zh-TW": "下一步行動的提示",
+    "vi": "Hints for your next step",
+    "hi": "Hints for your next step",
+    "es": "Hints for your next step",
+    "fr": "Hints for your next step",
+    "de": "Hints for your next step",
+    "nl": "Hints for your next step",
+    "ms": "Hints for your next step"
+  },
+  "featureMarketing.template_oracle.premiumIntro": {
+    "ko": "오라클은 미래를 확정하지 않고, 지금 질문 주변에 떠오르는 상징을 비춥니다.",
+    "en": "The oracle doesn't fix the future. It lights up the symbols surfacing around your question right now.",
+    "ja": "オラクルは未来を確定せず、いま問いのまわりに浮かぶ象徴を照らします。",
+    "zh-CN": "神谕不确定未来，只照亮此刻问题周围浮现的象征。",
+    "zh-TW": "神諭不確定未來，只照亮此刻問題周圍浮現的象徵。",
+    "vi": "The oracle doesn't fix the future. It lights up the symbols surfacing around your question right now.",
+    "hi": "The oracle doesn't fix the future. It lights up the symbols surfacing around your question right now.",
+    "es": "The oracle doesn't fix the future. It lights up the symbols surfacing around your question right now.",
+    "fr": "The oracle doesn't fix the future. It lights up the symbols surfacing around your question right now.",
+    "de": "The oracle doesn't fix the future. It lights up the symbols surfacing around your question right now.",
+    "nl": "The oracle doesn't fix the future. It lights up the symbols surfacing around your question right now.",
+    "ms": "The oracle doesn't fix the future. It lights up the symbols surfacing around your question right now."
+  },
+  "featureMarketing.template_oracle.premiumAudience.0": {
+    "ko": "결정은 해야 하는데 확신이 부족한 분",
+    "en": "For those facing a decision without a clear sense of certainty",
+    "ja": "決断を前に、確信を持てずにいる方",
+    "zh-CN": "面临决定却拿不准的人",
+    "zh-TW": "面臨決定卻拿不準的人",
+    "vi": "For those facing a decision without a clear sense of certainty",
+    "hi": "For those facing a decision without a clear sense of certainty",
+    "es": "For those facing a decision without a clear sense of certainty",
+    "fr": "For those facing a decision without a clear sense of certainty",
+    "de": "For those facing a decision without a clear sense of certainty",
+    "nl": "For those facing a decision without a clear sense of certainty",
+    "ms": "For those facing a decision without a clear sense of certainty"
+  },
+  "featureMarketing.template_oracle.premiumAudience.1": {
+    "ko": "반복되는 신호가 있다고 느끼는 분",
+    "en": "For those who sense recurring signals",
+    "ja": "繰り返されるサインが気になる方",
+    "zh-CN": "在意反复出现的信号的人",
+    "zh-TW": "在意反覆出現的訊號的人",
+    "vi": "For those who sense recurring signals",
+    "hi": "For those who sense recurring signals",
+    "es": "For those who sense recurring signals",
+    "fr": "For those who sense recurring signals",
+    "de": "For those who sense recurring signals",
+    "nl": "For those who sense recurring signals",
+    "ms": "For those who sense recurring signals"
+  },
+  "featureMarketing.template_oracle.premiumAudience.2": {
+    "ko": "짧지만 선명한 상징 해석이 필요한 분",
+    "en": "For those seeking a brief, clear symbolic reading",
+    "ja": "短く明確な象徴の解釈を求める方",
+    "zh-CN": "希望获得简短清晰的象征解读的人",
+    "zh-TW": "希望獲得簡短清晰的象徵解讀的人",
+    "vi": "For those seeking a brief, clear symbolic reading",
+    "hi": "For those seeking a brief, clear symbolic reading",
+    "es": "For those seeking a brief, clear symbolic reading",
+    "fr": "For those seeking a brief, clear symbolic reading",
+    "de": "For those seeking a brief, clear symbolic reading",
+    "nl": "For those seeking a brief, clear symbolic reading",
+    "ms": "For those seeking a brief, clear symbolic reading"
+  },
+  "featureMarketing.template_oracle.answersQuestions.0": {
+    "ko": "지금 이 선택이 맞는 방향일까요?",
+    "en": "Is this choice taking me in the right direction?",
+    "ja": "今の選択は、望む方向へつながっていますか？",
+    "zh-CN": "现在这个选择，方向合适吗？",
+    "zh-TW": "現在這個選擇，方向合適嗎？",
+    "vi": "Is this choice taking me in the right direction?",
+    "hi": "Is this choice taking me in the right direction?",
+    "es": "Is this choice taking me in the right direction?",
+    "fr": "Is this choice taking me in the right direction?",
+    "de": "Is this choice taking me in the right direction?",
+    "nl": "Is this choice taking me in the right direction?",
+    "ms": "Is this choice taking me in the right direction?"
+  },
+  "featureMarketing.template_oracle.answersQuestions.1": {
+    "ko": "내가 놓치고 있는 신호는 뭘까요?",
+    "en": "What signal might I be overlooking?",
+    "ja": "私はどんなサインを見落としているのでしょう？",
+    "zh-CN": "我可能忽略了什么信号？",
+    "zh-TW": "我可能忽略了什麼訊號？",
+    "vi": "What signal might I be overlooking?",
+    "hi": "What signal might I be overlooking?",
+    "es": "What signal might I be overlooking?",
+    "fr": "What signal might I be overlooking?",
+    "de": "What signal might I be overlooking?",
+    "nl": "What signal might I be overlooking?",
+    "ms": "What signal might I be overlooking?"
+  },
+  "featureMarketing.template_oracle.answersQuestions.2": {
+    "ko": "이번 일을 밀어붙일까요, 기다릴까요?",
+    "en": "Should I press ahead or wait this time?",
+    "ja": "今回は進めるべきでしょうか、それとも待つべきでしょうか？",
+    "zh-CN": "这件事该继续推进，还是再等一等？",
+    "zh-TW": "這件事該繼續推進，還是再等一等？",
+    "vi": "Should I press ahead or wait this time?",
+    "hi": "Should I press ahead or wait this time?",
+    "es": "Should I press ahead or wait this time?",
+    "fr": "Should I press ahead or wait this time?",
+    "de": "Should I press ahead or wait this time?",
+    "nl": "Should I press ahead or wait this time?",
+    "ms": "Should I press ahead or wait this time?"
+  },
+  "featureMarketing.template_oracle.analysisSteps.0.label": {
+    "ko": "질문 봉인",
+    "en": "Set the question",
+    "ja": "問いを定める",
+    "zh-CN": "确定问题",
+    "zh-TW": "確定問題",
+    "vi": "Set the question",
+    "hi": "Set the question",
+    "es": "Set the question",
+    "fr": "Set the question",
+    "de": "Set the question",
+    "nl": "Set the question",
+    "ms": "Set the question"
+  },
+  "featureMarketing.template_oracle.analysisSteps.0.detail": {
+    "ko": "묻고 싶은 것을 한 문장으로 좁혀 고정합니다.",
+    "en": "Narrow what you want to ask down to one clear sentence.",
+    "ja": "聞きたいことを一文に絞り、問いを定めます。",
+    "zh-CN": "将想问的事收束为一句明确的问题。",
+    "zh-TW": "將想問的事收束為一句明確的問題。",
+    "vi": "Narrow what you want to ask down to one clear sentence.",
+    "hi": "Narrow what you want to ask down to one clear sentence.",
+    "es": "Narrow what you want to ask down to one clear sentence.",
+    "fr": "Narrow what you want to ask down to one clear sentence.",
+    "de": "Narrow what you want to ask down to one clear sentence.",
+    "nl": "Narrow what you want to ask down to one clear sentence.",
+    "ms": "Narrow what you want to ask down to one clear sentence."
+  },
+  "featureMarketing.template_oracle.analysisSteps.1.label": {
+    "ko": "상징 추출",
+    "en": "Draw the symbols",
+    "ja": "象徴を引く",
+    "zh-CN": "抽取象征",
+    "zh-TW": "抽取象徵",
+    "vi": "Draw the symbols",
+    "hi": "Draw the symbols",
+    "es": "Draw the symbols",
+    "fr": "Draw the symbols",
+    "de": "Draw the symbols",
+    "nl": "Draw the symbols",
+    "ms": "Draw the symbols"
+  },
+  "featureMarketing.template_oracle.analysisSteps.1.detail": {
+    "ko": "그 질문에 응답하는 상징을 뽑습니다.",
+    "en": "Draw symbols in response to that question.",
+    "ja": "その問いに応じる象徴を引きます。",
+    "zh-CN": "围绕这个问题，抽取对应的象征。",
+    "zh-TW": "圍繞這個問題，抽取對應的象徵。",
+    "vi": "Draw symbols in response to that question.",
+    "hi": "Draw symbols in response to that question.",
+    "es": "Draw symbols in response to that question.",
+    "fr": "Draw symbols in response to that question.",
+    "de": "Draw symbols in response to that question.",
+    "nl": "Draw symbols in response to that question.",
+    "ms": "Draw symbols in response to that question."
+  },
+  "featureMarketing.template_oracle.analysisSteps.2.label": {
+    "ko": "의미 연결",
+    "en": "Connect the meaning",
+    "ja": "意味をつなぐ",
+    "zh-CN": "联系含义",
+    "zh-TW": "連結含義",
+    "vi": "Connect the meaning",
+    "hi": "Connect the meaning",
+    "es": "Connect the meaning",
+    "fr": "Connect the meaning",
+    "de": "Connect the meaning",
+    "nl": "Connect the meaning",
+    "ms": "Connect the meaning"
+  },
+  "featureMarketing.template_oracle.analysisSteps.2.detail": {
+    "ko": "뽑힌 상징을 지금 상황의 맥락에 붙여 읽습니다.",
+    "en": "Read the chosen symbols in the context of your current situation.",
+    "ja": "引いた象徴を、今の状況の文脈に重ねて読み解きます。",
+    "zh-CN": "结合当前情境，理解抽到的象征。",
+    "zh-TW": "結合當前情境，理解抽到的象徵。",
+    "vi": "Read the chosen symbols in the context of your current situation.",
+    "hi": "Read the chosen symbols in the context of your current situation.",
+    "es": "Read the chosen symbols in the context of your current situation.",
+    "fr": "Read the chosen symbols in the context of your current situation.",
+    "de": "Read the chosen symbols in the context of your current situation.",
+    "nl": "Read the chosen symbols in the context of your current situation.",
+    "ms": "Read the chosen symbols in the context of your current situation."
+  },
+  "featureMarketing.template_oracle.analysisSteps.3.label": {
+    "ko": "신탁 정리",
+    "en": "Gather the guidance",
+    "ja": "メッセージを整理する",
+    "zh-CN": "整理指引",
+    "zh-TW": "整理指引",
+    "vi": "Gather the guidance",
+    "hi": "Gather the guidance",
+    "es": "Gather the guidance",
+    "fr": "Gather the guidance",
+    "de": "Gather the guidance",
+    "nl": "Gather the guidance",
+    "ms": "Gather the guidance"
+  },
+  "featureMarketing.template_oracle.analysisSteps.3.detail": {
+    "ko": "지금 취할 태도와 피할 태도로 정리합니다.",
+    "en": "Summarize the attitudes to adopt and those to avoid now.",
+    "ja": "今取りたい姿勢と、避けたい姿勢を整理します。",
+    "zh-CN": "整理此刻适合采取与需要避免的态度。",
+    "zh-TW": "整理此刻適合採取與需要避免的態度。",
+    "vi": "Summarize the attitudes to adopt and those to avoid now.",
+    "hi": "Summarize the attitudes to adopt and those to avoid now.",
+    "es": "Summarize the attitudes to adopt and those to avoid now.",
+    "fr": "Summarize the attitudes to adopt and those to avoid now.",
+    "de": "Summarize the attitudes to adopt and those to avoid now.",
+    "nl": "Summarize the attitudes to adopt and those to avoid now.",
+    "ms": "Summarize the attitudes to adopt and those to avoid now."
+  },
+  "featureMarketing.template_oracle.valueCompare.0.axis": {
+    "ko": "상징 수",
+    "en": "Number of symbols",
+    "ja": "象徴の数",
+    "zh-CN": "象征数量",
+    "zh-TW": "象徵數量",
+    "vi": "Number of symbols",
+    "hi": "Number of symbols",
+    "es": "Number of symbols",
+    "fr": "Number of symbols",
+    "de": "Number of symbols",
+    "nl": "Number of symbols",
+    "ms": "Number of symbols"
+  },
+  "featureMarketing.template_oracle.valueCompare.0.free": {
+    "ko": "한 개",
+    "en": "One",
+    "ja": "一つ",
+    "zh-CN": "一个",
+    "zh-TW": "一個",
+    "vi": "One",
+    "hi": "One",
+    "es": "One",
+    "fr": "One",
+    "de": "One",
+    "nl": "One",
+    "ms": "One"
+  },
+  "featureMarketing.template_oracle.valueCompare.0.premium": {
+    "ko": "질문에 맞춘 상징 조합 전체",
+    "en": "A full combination of symbols suited to your question",
+    "ja": "問いに合わせた象徴の組み合わせ全体",
+    "zh-CN": "符合问题的完整象征组合",
+    "zh-TW": "符合問題的完整象徵組合",
+    "vi": "A full combination of symbols suited to your question",
+    "hi": "A full combination of symbols suited to your question",
+    "es": "A full combination of symbols suited to your question",
+    "fr": "A full combination of symbols suited to your question",
+    "de": "A full combination of symbols suited to your question",
+    "nl": "A full combination of symbols suited to your question",
+    "ms": "A full combination of symbols suited to your question"
+  },
+  "featureMarketing.template_oracle.valueCompare.1.axis": {
+    "ko": "해석",
+    "en": "Interpretation",
+    "ja": "解釈",
+    "zh-CN": "解读",
+    "zh-TW": "解讀",
+    "vi": "Interpretation",
+    "hi": "Interpretation",
+    "es": "Interpretation",
+    "fr": "Interpretation",
+    "de": "Interpretation",
+    "nl": "Interpretation",
+    "ms": "Interpretation"
+  },
+  "featureMarketing.template_oracle.valueCompare.1.free": {
+    "ko": "상징의 기본 뜻",
+    "en": "The symbol's basic meaning",
+    "ja": "象徴の基本的な意味",
+    "zh-CN": "象征的基本含义",
+    "zh-TW": "象徵的基本含義",
+    "vi": "The symbol's basic meaning",
+    "hi": "The symbol's basic meaning",
+    "es": "The symbol's basic meaning",
+    "fr": "The symbol's basic meaning",
+    "de": "The symbol's basic meaning",
+    "nl": "The symbol's basic meaning",
+    "ms": "The symbol's basic meaning"
+  },
+  "featureMarketing.template_oracle.valueCompare.1.premium": {
+    "ko": "지금 상황에 붙인 맥락 해석",
+    "en": "An interpretation grounded in your current situation",
+    "ja": "今の状況に重ねた文脈のある解釈",
+    "zh-CN": "结合当前情境的具体解读",
+    "zh-TW": "結合當前情境的具體解讀",
+    "vi": "An interpretation grounded in your current situation",
+    "hi": "An interpretation grounded in your current situation",
+    "es": "An interpretation grounded in your current situation",
+    "fr": "An interpretation grounded in your current situation",
+    "de": "An interpretation grounded in your current situation",
+    "nl": "An interpretation grounded in your current situation",
+    "ms": "An interpretation grounded in your current situation"
+  },
+  "featureMarketing.template_oracle.valueCompare.2.axis": {
+    "ko": "조언",
+    "en": "Guidance",
+    "ja": "アドバイス",
+    "zh-CN": "建议",
+    "zh-TW": "建議",
+    "vi": "Guidance",
+    "hi": "Guidance",
+    "es": "Guidance",
+    "fr": "Guidance",
+    "de": "Guidance",
+    "nl": "Guidance",
+    "ms": "Guidance"
+  },
+  "featureMarketing.template_oracle.valueCompare.2.free": {
+    "ko": "한 줄 메시지",
+    "en": "A one-line message",
+    "ja": "一言のメッセージ",
+    "zh-CN": "一句话提示",
+    "zh-TW": "一句話提示",
+    "vi": "A one-line message",
+    "hi": "A one-line message",
+    "es": "A one-line message",
+    "fr": "A one-line message",
+    "de": "A one-line message",
+    "nl": "A one-line message",
+    "ms": "A one-line message"
+  },
+  "featureMarketing.template_oracle.valueCompare.2.premium": {
+    "ko": "취할 태도와 피할 태도를 나눠서",
+    "en": "Attitudes to adopt and to avoid, considered separately",
+    "ja": "取りたい姿勢と避けたい姿勢を分けて整理",
+    "zh-CN": "分别说明适合采取与应避免的态度",
+    "zh-TW": "分別說明適合採取與應避免的態度",
+    "vi": "Attitudes to adopt and to avoid, considered separately",
+    "hi": "Attitudes to adopt and to avoid, considered separately",
+    "es": "Attitudes to adopt and to avoid, considered separately",
+    "fr": "Attitudes to adopt and to avoid, considered separately",
+    "de": "Attitudes to adopt and to avoid, considered separately",
+    "nl": "Attitudes to adopt and to avoid, considered separately",
+    "ms": "Attitudes to adopt and to avoid, considered separately"
+  },
+  "featureMarketing.template_oracle.faq.0.q": {
+    "ko": "오라클은 점인가요?",
+    "en": "Is an oracle a form of fortune-telling?",
+    "ja": "オラクルは占いですか？",
+    "zh-CN": "神谕是在算命吗？",
+    "zh-TW": "神諭是在算命嗎？",
+    "vi": "Is an oracle a form of fortune-telling?",
+    "hi": "Is an oracle a form of fortune-telling?",
+    "es": "Is an oracle a form of fortune-telling?",
+    "fr": "Is an oracle a form of fortune-telling?",
+    "de": "Is an oracle a form of fortune-telling?",
+    "nl": "Is an oracle a form of fortune-telling?",
+    "ms": "Is an oracle a form of fortune-telling?"
+  },
+  "featureMarketing.template_oracle.faq.0.a": {
+    "ko": "미래를 맞히는 도구가 아니라, 지금 마음이 놓친 신호를 상징으로 되짚는 방식입니다.",
+    "en": "It uses symbols to revisit signals you may have missed, rather than predicting future events.",
+    "ja": "未来を当てるためではなく、心が見落としたサインを象徴から振り返る方法です。",
+    "zh-CN": "它通过象征回看当下可能忽略的信号，而非预言未来。",
+    "zh-TW": "它透過象徵回看當下可能忽略的訊號，而非預言未來。",
+    "vi": "It uses symbols to revisit signals you may have missed, rather than predicting future events.",
+    "hi": "It uses symbols to revisit signals you may have missed, rather than predicting future events.",
+    "es": "It uses symbols to revisit signals you may have missed, rather than predicting future events.",
+    "fr": "It uses symbols to revisit signals you may have missed, rather than predicting future events.",
+    "de": "It uses symbols to revisit signals you may have missed, rather than predicting future events.",
+    "nl": "It uses symbols to revisit signals you may have missed, rather than predicting future events.",
+    "ms": "It uses symbols to revisit signals you may have missed, rather than predicting future events."
+  },
+  "featureMarketing.template_oracle.faq.1.q": {
+    "ko": "결과가 마음에 안 들면요?",
+    "en": "What if I do not like the result?",
+    "ja": "結果に納得できないときは？",
+    "zh-CN": "不喜欢结果怎么办？",
+    "zh-TW": "不喜歡結果怎麼辦？",
+    "vi": "What if I do not like the result?",
+    "hi": "What if I do not like the result?",
+    "es": "What if I do not like the result?",
+    "fr": "What if I do not like the result?",
+    "de": "What if I do not like the result?",
+    "nl": "What if I do not like the result?",
+    "ms": "What if I do not like the result?"
+  },
+  "featureMarketing.template_oracle.faq.1.a": {
+    "ko": "상징은 판결이 아닙니다. 같은 상징도 상황에 따라 다르게 작동하니 조언의 방향만 참고해 주세요.",
+    "en": "A symbol is not a verdict. Its meaning can change with the situation, so use the guidance as a direction to consider.",
+    "ja": "象徴は判決ではありません。同じ象徴でも状況によって意味合いが変わります。助言の方向を参考にしてください。",
+    "zh-CN": "象征不是定论。同一象征在不同情境中也会有不同含义，请将建议作为思考方向。",
+    "zh-TW": "象徵不是定論。同一象徵在不同情境中也會有不同含義，請將建議作為思考方向。",
+    "vi": "A symbol is not a verdict. Its meaning can change with the situation, so use the guidance as a direction to consider.",
+    "hi": "A symbol is not a verdict. Its meaning can change with the situation, so use the guidance as a direction to consider.",
+    "es": "A symbol is not a verdict. Its meaning can change with the situation, so use the guidance as a direction to consider.",
+    "fr": "A symbol is not a verdict. Its meaning can change with the situation, so use the guidance as a direction to consider.",
+    "de": "A symbol is not a verdict. Its meaning can change with the situation, so use the guidance as a direction to consider.",
+    "nl": "A symbol is not a verdict. Its meaning can change with the situation, so use the guidance as a direction to consider.",
+    "ms": "A symbol is not a verdict. Its meaning can change with the situation, so use the guidance as a direction to consider."
+  },
+  "featureMarketing.template_oracle.faq.2.q": {
+    "ko": "얼마나 자주 봐도 되나요?",
+    "en": "How often should I use it?",
+    "ja": "どのくらいの頻度で見ればよいですか？",
+    "zh-CN": "多久看一次比较合适？",
+    "zh-TW": "多久看一次比較合適？",
+    "vi": "How often should I use it?",
+    "hi": "How often should I use it?",
+    "es": "How often should I use it?",
+    "fr": "How often should I use it?",
+    "de": "How often should I use it?",
+    "nl": "How often should I use it?",
+    "ms": "How often should I use it?"
+  },
+  "featureMarketing.template_oracle.faq.2.a": {
+    "ko": "질문이 실제로 바뀌었을 때 보는 편이 좋습니다. 같은 질문을 반복하면 판단만 흐려집니다.",
+    "en": "Return when your question has genuinely changed. Repeating the same question can make your judgment less clear.",
+    "ja": "問いが実際に変わったときに見るのがおすすめです。同じ問いを繰り返すと、かえって判断が曖昧になります。",
+    "zh-CN": "建议在问题确实发生变化时再看。反复问同一个问题，反而容易让判断变得模糊。",
+    "zh-TW": "建議在問題確實發生變化時再看。反覆問同一個問題，反而容易讓判斷變得模糊。",
+    "vi": "Return when your question has genuinely changed. Repeating the same question can make your judgment less clear.",
+    "hi": "Return when your question has genuinely changed. Repeating the same question can make your judgment less clear.",
+    "es": "Return when your question has genuinely changed. Repeating the same question can make your judgment less clear.",
+    "fr": "Return when your question has genuinely changed. Repeating the same question can make your judgment less clear.",
+    "de": "Return when your question has genuinely changed. Repeating the same question can make your judgment less clear.",
+    "nl": "Return when your question has genuinely changed. Repeating the same question can make your judgment less clear.",
+    "ms": "Return when your question has genuinely changed. Repeating the same question can make your judgment less clear."
+  },
+  "featureMarketing.template_report.badge": {
+    "ko": "심화 상담형",
+    "en": "In-depth consultation",
+    "ja": "深く読み解く相談",
+    "zh-CN": "深度咨询",
+    "zh-TW": "深度諮詢",
+    "vi": "In-depth consultation",
+    "hi": "In-depth consultation",
+    "es": "In-depth consultation",
+    "fr": "In-depth consultation",
+    "de": "In-depth consultation",
+    "nl": "In-depth consultation",
+    "ms": "In-depth consultation"
+  },
+  "featureMarketing.template_report.headline": {
+    "ko": "흩어진 생각을 하나의 해석으로 묶어보세요.",
+    "en": "Bring scattered thoughts together in one reading.",
+    "ja": "散らばった思いを、一つの解釈につなげてみましょう。",
+    "zh-CN": "用一份解读，串起纷杂的思绪。",
+    "zh-TW": "用一份解讀，串起紛雜的思緒。",
+    "vi": "Bring scattered thoughts together in one reading.",
+    "hi": "Bring scattered thoughts together in one reading.",
+    "es": "Bring scattered thoughts together in one reading.",
+    "fr": "Bring scattered thoughts together in one reading.",
+    "de": "Bring scattered thoughts together in one reading.",
+    "nl": "Bring scattered thoughts together in one reading.",
+    "ms": "Bring scattered thoughts together in one reading."
+  },
+  "featureMarketing.template_report.tagline": {
+    "ko": "현재 고민과 흐름을 더 구체적으로 정리해보는 프리미엄 해석입니다.",
+    "en": "A premium reading that explores your current concerns and patterns in greater detail.",
+    "ja": "今の悩みや流れを、より具体的に整理するプレミアム解釈です。",
+    "zh-CN": "更具体地梳理当前烦恼与走势的深度解读。",
+    "zh-TW": "更具體地梳理當前煩惱與走勢的深度解讀。",
+    "vi": "A premium reading that explores your current concerns and patterns in greater detail.",
+    "hi": "A premium reading that explores your current concerns and patterns in greater detail.",
+    "es": "A premium reading that explores your current concerns and patterns in greater detail.",
+    "fr": "A premium reading that explores your current concerns and patterns in greater detail.",
+    "de": "A premium reading that explores your current concerns and patterns in greater detail.",
+    "nl": "A premium reading that explores your current concerns and patterns in greater detail.",
+    "ms": "A premium reading that explores your current concerns and patterns in greater detail."
+  },
+  "featureMarketing.template_report.feats.0": {
+    "ko": "같은 고민이 반복된다고 느낄 때",
+    "en": "When the same concern seems to keep returning",
+    "ja": "同じ悩みを繰り返していると感じるとき",
+    "zh-CN": "觉得同样的烦恼反复出现时",
+    "zh-TW": "覺得同樣的煩惱反覆出現時",
+    "vi": "When the same concern seems to keep returning",
+    "hi": "When the same concern seems to keep returning",
+    "es": "When the same concern seems to keep returning",
+    "fr": "When the same concern seems to keep returning",
+    "de": "When the same concern seems to keep returning",
+    "nl": "When the same concern seems to keep returning",
+    "ms": "When the same concern seems to keep returning"
+  },
+  "featureMarketing.template_report.feats.1": {
+    "ko": "단순 요약보다 구체적인 흐름이 필요할 때",
+    "en": "When you need a clearer picture than a brief summary",
+    "ja": "短い要約よりも、具体的な流れを知りたいとき",
+    "zh-CN": "需要比简要总结更具体的脉络时",
+    "zh-TW": "需要比簡要總結更具體的脈絡時",
+    "vi": "When you need a clearer picture than a brief summary",
+    "hi": "When you need a clearer picture than a brief summary",
+    "es": "When you need a clearer picture than a brief summary",
+    "fr": "When you need a clearer picture than a brief summary",
+    "de": "When you need a clearer picture than a brief summary",
+    "nl": "When you need a clearer picture than a brief summary",
+    "ms": "When you need a clearer picture than a brief summary"
+  },
+  "featureMarketing.template_report.feats.2": {
+    "ko": "선택 전에 내 생각을 정리하고 싶을 때",
+    "en": "When you want to organize your thoughts before choosing",
+    "ja": "選ぶ前に、自分の考えを整理したいとき",
+    "zh-CN": "想在做选择前理清思路时",
+    "zh-TW": "想在做選擇前理清思路時",
+    "vi": "When you want to organize your thoughts before choosing",
+    "hi": "When you want to organize your thoughts before choosing",
+    "es": "When you want to organize your thoughts before choosing",
+    "fr": "When you want to organize your thoughts before choosing",
+    "de": "When you want to organize your thoughts before choosing",
+    "nl": "When you want to organize your thoughts before choosing",
+    "ms": "When you want to organize your thoughts before choosing"
+  },
+  "featureMarketing.template_report.premiumChapters.0": {
+    "ko": "핵심 흐름 요약",
+    "en": "A summary of the central patterns",
+    "ja": "中心となる流れの要約",
+    "zh-CN": "核心走势总结",
+    "zh-TW": "核心走勢總結",
+    "vi": "A summary of the central patterns",
+    "hi": "A summary of the central patterns",
+    "es": "A summary of the central patterns",
+    "fr": "A summary of the central patterns",
+    "de": "A summary of the central patterns",
+    "nl": "A summary of the central patterns",
+    "ms": "A summary of the central patterns"
+  },
+  "featureMarketing.template_report.premiumChapters.1": {
+    "ko": "주제별 해석 포인트",
+    "en": "Key interpretations by topic",
+    "ja": "テーマ別の解釈ポイント",
+    "zh-CN": "各主题的解读要点",
+    "zh-TW": "各主題的解讀要點",
+    "vi": "Key interpretations by topic",
+    "hi": "Key interpretations by topic",
+    "es": "Key interpretations by topic",
+    "fr": "Key interpretations by topic",
+    "de": "Key interpretations by topic",
+    "nl": "Key interpretations by topic",
+    "ms": "Key interpretations by topic"
+  },
+  "featureMarketing.template_report.premiumChapters.2": {
+    "ko": "조심해야 할 패턴",
+    "en": "Patterns to watch out for",
+    "ja": "気をつけたいパターン",
+    "zh-CN": "需要留意的模式",
+    "zh-TW": "需要留意的模式",
+    "vi": "Patterns to watch out for",
+    "hi": "Patterns to watch out for",
+    "es": "Patterns to watch out for",
+    "fr": "Patterns to watch out for",
+    "de": "Patterns to watch out for",
+    "nl": "Patterns to watch out for",
+    "ms": "Patterns to watch out for"
+  },
+  "featureMarketing.template_report.premiumChapters.3": {
+    "ko": "다음 행동 기준",
+    "en": "Criteria for deciding your next step",
+    "ja": "次の行動を選ぶ基準",
+    "zh-CN": "下一步行动的判断依据",
+    "zh-TW": "下一步行動的判斷依據",
+    "vi": "Criteria for deciding your next step",
+    "hi": "Criteria for deciding your next step",
+    "es": "Criteria for deciding your next step",
+    "fr": "Criteria for deciding your next step",
+    "de": "Criteria for deciding your next step",
+    "nl": "Criteria for deciding your next step",
+    "ms": "Criteria for deciding your next step"
+  },
+  "featureMarketing.template_report.premiumIntro": {
+    "ko": "프리미엄 해석은 결과를 과장하지 않고, 지금 필요한 질문의 결을 차분히 정리합니다.",
+    "en": "The premium reading doesn't overstate results. It calmly sets out the texture of the question you need now.",
+    "ja": "プレミアム解釈は結果を誇張せず、いま必要な問いの質感を落ち着いて整理します。",
+    "zh-CN": "高级解读不夸大结果，而是平静地理清此刻你需要的问题的纹理。",
+    "zh-TW": "進階解讀不誇大結果，而是平靜地理清此刻你需要的問題的紋理。",
+    "vi": "The premium reading doesn't overstate results. It calmly sets out the texture of the question you need now.",
+    "hi": "The premium reading doesn't overstate results. It calmly sets out the texture of the question you need now.",
+    "es": "The premium reading doesn't overstate results. It calmly sets out the texture of the question you need now.",
+    "fr": "The premium reading doesn't overstate results. It calmly sets out the texture of the question you need now.",
+    "de": "The premium reading doesn't overstate results. It calmly sets out the texture of the question you need now.",
+    "nl": "The premium reading doesn't overstate results. It calmly sets out the texture of the question you need now.",
+    "ms": "The premium reading doesn't overstate results. It calmly sets out the texture of the question you need now."
+  },
+  "featureMarketing.template_report.premiumAudience.0": {
+    "ko": "흩어진 고민을 한 번에 정리하고 싶은 분",
+    "en": "For those who want to bring several concerns into focus",
+    "ja": "いくつもの悩みをまとめて整理したい方",
+    "zh-CN": "想一起梳理纷杂烦恼的人",
+    "zh-TW": "想一起梳理紛雜煩惱的人",
+    "vi": "For those who want to bring several concerns into focus",
+    "hi": "For those who want to bring several concerns into focus",
+    "es": "For those who want to bring several concerns into focus",
+    "fr": "For those who want to bring several concerns into focus",
+    "de": "For those who want to bring several concerns into focus",
+    "nl": "For those who want to bring several concerns into focus",
+    "ms": "For those who want to bring several concerns into focus"
+  },
+  "featureMarketing.template_report.premiumAudience.1": {
+    "ko": "요약보다 구체적인 흐름이 필요한 분",
+    "en": "For those seeking more detail than a summary",
+    "ja": "要約よりも具体的な流れを知りたい方",
+    "zh-CN": "需要比摘要更具体的脉络的人",
+    "zh-TW": "需要比摘要更具體的脈絡的人",
+    "vi": "For those seeking more detail than a summary",
+    "hi": "For those seeking more detail than a summary",
+    "es": "For those seeking more detail than a summary",
+    "fr": "For those seeking more detail than a summary",
+    "de": "For those seeking more detail than a summary",
+    "nl": "For those seeking more detail than a summary",
+    "ms": "For those seeking more detail than a summary"
+  },
+  "featureMarketing.template_report.premiumAudience.2": {
+    "ko": "선택 전에 생각을 매듭짓고 싶은 분",
+    "en": "For those who want to settle their thoughts before a choice",
+    "ja": "選ぶ前に考えをまとめたい方",
+    "zh-CN": "想在选择前整理好思绪的人",
+    "zh-TW": "想在選擇前整理好思緒的人",
+    "vi": "For those who want to settle their thoughts before a choice",
+    "hi": "For those who want to settle their thoughts before a choice",
+    "es": "For those who want to settle their thoughts before a choice",
+    "fr": "For those who want to settle their thoughts before a choice",
+    "de": "For those who want to settle their thoughts before a choice",
+    "nl": "For those who want to settle their thoughts before a choice",
+    "ms": "For those who want to settle their thoughts before a choice"
+  },
+  "featureMarketing.template_report.answersQuestions.0": {
+    "ko": "여러 고민 중 무엇부터 손대야 할까요?",
+    "en": "Which of my concerns should I address first?",
+    "ja": "いくつもある悩みのうち、何から手をつければよいでしょう？",
+    "zh-CN": "这么多烦恼，该先处理哪一个？",
+    "zh-TW": "這麼多煩惱，該先處理哪一個？",
+    "vi": "Which of my concerns should I address first?",
+    "hi": "Which of my concerns should I address first?",
+    "es": "Which of my concerns should I address first?",
+    "fr": "Which of my concerns should I address first?",
+    "de": "Which of my concerns should I address first?",
+    "nl": "Which of my concerns should I address first?",
+    "ms": "Which of my concerns should I address first?"
+  },
+  "featureMarketing.template_report.answersQuestions.1": {
+    "ko": "왜 노력해도 한 영역만 계속 막힐까요?",
+    "en": "Why does one area stay stuck despite my efforts?",
+    "ja": "努力しても、一つの分野だけ行き詰まるのはなぜでしょう？",
+    "zh-CN": "为什么努力了，某个方面却总是卡住？",
+    "zh-TW": "為什麼努力了，某個方面卻總是卡住？",
+    "vi": "Why does one area stay stuck despite my efforts?",
+    "hi": "Why does one area stay stuck despite my efforts?",
+    "es": "Why does one area stay stuck despite my efforts?",
+    "fr": "Why does one area stay stuck despite my efforts?",
+    "de": "Why does one area stay stuck despite my efforts?",
+    "nl": "Why does one area stay stuck despite my efforts?",
+    "ms": "Why does one area stay stuck despite my efforts?"
+  },
+  "featureMarketing.template_report.answersQuestions.2": {
+    "ko": "지금 버틸 것과 바꿀 것을 어떻게 나눌까요?",
+    "en": "How do I tell what to sustain from what to change now?",
+    "ja": "今続けることと変えることを、どう分ければよいでしょう？",
+    "zh-CN": "怎样分清现在该坚持什么、改变什么？",
+    "zh-TW": "怎樣分清現在該堅持什麼、改變什麼？",
+    "vi": "How do I tell what to sustain from what to change now?",
+    "hi": "How do I tell what to sustain from what to change now?",
+    "es": "How do I tell what to sustain from what to change now?",
+    "fr": "How do I tell what to sustain from what to change now?",
+    "de": "How do I tell what to sustain from what to change now?",
+    "nl": "How do I tell what to sustain from what to change now?",
+    "ms": "How do I tell what to sustain from what to change now?"
+  },
+  "featureMarketing.template_report.analysisSteps.0.label": {
+    "ko": "입력 정보 확인",
+    "en": "Review your information",
+    "ja": "入力情報を確認",
+    "zh-CN": "确认输入信息",
+    "zh-TW": "確認輸入資訊",
+    "vi": "Review your information",
+    "hi": "Review your information",
+    "es": "Review your information",
+    "fr": "Review your information",
+    "de": "Review your information",
+    "nl": "Review your information",
+    "ms": "Review your information"
+  },
+  "featureMarketing.template_report.analysisSteps.0.detail": {
+    "ko": "생년 정보와 지금의 고민을 함께 받습니다.",
+    "en": "We take your birth details together with your current concern.",
+    "ja": "生まれた年などの情報と、今の悩みを受け取ります。",
+    "zh-CN": "结合出生信息与您当前的烦恼。",
+    "zh-TW": "結合出生資訊與您當前的煩惱。",
+    "vi": "We take your birth details together with your current concern.",
+    "hi": "We take your birth details together with your current concern.",
+    "es": "We take your birth details together with your current concern.",
+    "fr": "We take your birth details together with your current concern.",
+    "de": "We take your birth details together with your current concern.",
+    "nl": "We take your birth details together with your current concern.",
+    "ms": "We take your birth details together with your current concern."
+  },
+  "featureMarketing.template_report.analysisSteps.1.label": {
+    "ko": "운세 체계 분석",
+    "en": "Analyze the reading system",
+    "ja": "占術に沿って分析",
+    "zh-CN": "按运势体系分析",
+    "zh-TW": "按運勢體系分析",
+    "vi": "Analyze the reading system",
+    "hi": "Analyze the reading system",
+    "es": "Analyze the reading system",
+    "fr": "Analyze the reading system",
+    "de": "Analyze the reading system",
+    "nl": "Analyze the reading system",
+    "ms": "Analyze the reading system"
+  },
+  "featureMarketing.template_report.analysisSteps.1.detail": {
+    "ko": "해당 리포트가 쓰는 계산 체계로 기질과 흐름을 산출합니다.",
+    "en": "The report's calculation system is used to explore temperament and patterns.",
+    "ja": "レポートで用いる計算体系から、気質や流れを読み解きます。",
+    "zh-CN": "使用该报告所采用的计算体系，分析气质与走势。",
+    "zh-TW": "使用該報告所採用的計算體系，分析氣質與走勢。",
+    "vi": "The report's calculation system is used to explore temperament and patterns.",
+    "hi": "The report's calculation system is used to explore temperament and patterns.",
+    "es": "The report's calculation system is used to explore temperament and patterns.",
+    "fr": "The report's calculation system is used to explore temperament and patterns.",
+    "de": "The report's calculation system is used to explore temperament and patterns.",
+    "nl": "The report's calculation system is used to explore temperament and patterns.",
+    "ms": "The report's calculation system is used to explore temperament and patterns."
+  },
+  "featureMarketing.template_report.analysisSteps.2.label": {
+    "ko": "고민 연결",
+    "en": "Connect your concern",
+    "ja": "悩みと結びつける",
+    "zh-CN": "联系当前烦恼",
+    "zh-TW": "連結當前煩惱",
+    "vi": "Connect your concern",
+    "hi": "Connect your concern",
+    "es": "Connect your concern",
+    "fr": "Connect your concern",
+    "de": "Connect your concern",
+    "nl": "Connect your concern",
+    "ms": "Connect your concern"
+  },
+  "featureMarketing.template_report.analysisSteps.2.detail": {
+    "ko": "산출된 결과 가운데 지금 질문과 맞닿는 지점을 추립니다.",
+    "en": "We identify the parts of the analysis that relate to your current question.",
+    "ja": "分析結果から、今の問いに関わる部分を選び出します。",
+    "zh-CN": "从分析结果中筛选出与当前问题相关的部分。",
+    "zh-TW": "從分析結果中篩選出與當前問題相關的部分。",
+    "vi": "We identify the parts of the analysis that relate to your current question.",
+    "hi": "We identify the parts of the analysis that relate to your current question.",
+    "es": "We identify the parts of the analysis that relate to your current question.",
+    "fr": "We identify the parts of the analysis that relate to your current question.",
+    "de": "We identify the parts of the analysis that relate to your current question.",
+    "nl": "We identify the parts of the analysis that relate to your current question.",
+    "ms": "We identify the parts of the analysis that relate to your current question."
+  },
+  "featureMarketing.template_report.analysisSteps.3.label": {
+    "ko": "리포트 작성",
+    "en": "Prepare the report",
+    "ja": "レポートをまとめる",
+    "zh-CN": "整理报告",
+    "zh-TW": "整理報告",
+    "vi": "Prepare the report",
+    "hi": "Prepare the report",
+    "es": "Prepare the report",
+    "fr": "Prepare the report",
+    "de": "Prepare the report",
+    "nl": "Prepare the report",
+    "ms": "Prepare the report"
+  },
+  "featureMarketing.template_report.analysisSteps.3.detail": {
+    "ko": "우선순위와 다음 행동이 보이도록 하나의 문서로 정리합니다.",
+    "en": "The findings are organized into a document that clarifies priorities and next steps.",
+    "ja": "優先順位と次の行動が見えるよう、一つの文書にまとめます。",
+    "zh-CN": "整理成一份报告，明确优先次序与下一步行动。",
+    "zh-TW": "整理成一份報告，明確優先次序與下一步行動。",
+    "vi": "The findings are organized into a document that clarifies priorities and next steps.",
+    "hi": "The findings are organized into a document that clarifies priorities and next steps.",
+    "es": "The findings are organized into a document that clarifies priorities and next steps.",
+    "fr": "The findings are organized into a document that clarifies priorities and next steps.",
+    "de": "The findings are organized into a document that clarifies priorities and next steps.",
+    "nl": "The findings are organized into a document that clarifies priorities and next steps.",
+    "ms": "The findings are organized into a document that clarifies priorities and next steps."
+  },
+  "featureMarketing.template_report.valueCompare.0.axis": {
+    "ko": "분량",
+    "en": "Length",
+    "ja": "分量",
+    "zh-CN": "篇幅",
+    "zh-TW": "篇幅",
+    "vi": "Length",
+    "hi": "Length",
+    "es": "Length",
+    "fr": "Length",
+    "de": "Length",
+    "nl": "Length",
+    "ms": "Length"
+  },
+  "featureMarketing.template_report.valueCompare.0.free": {
+    "ko": "핵심 요약",
+    "en": "Key summary",
+    "ja": "要点の要約",
+    "zh-CN": "重点摘要",
+    "zh-TW": "重點摘要",
+    "vi": "Key summary",
+    "hi": "Key summary",
+    "es": "Key summary",
+    "fr": "Key summary",
+    "de": "Key summary",
+    "nl": "Key summary",
+    "ms": "Key summary"
+  },
+  "featureMarketing.template_report.valueCompare.0.premium": {
+    "ko": "주제별로 나뉜 심층 리포트",
+    "en": "An in-depth report organized by topic",
+    "ja": "テーマ別に分かれた詳細レポート",
+    "zh-CN": "按主题展开的深度报告",
+    "zh-TW": "按主題展開的深度報告",
+    "vi": "An in-depth report organized by topic",
+    "hi": "An in-depth report organized by topic",
+    "es": "An in-depth report organized by topic",
+    "fr": "An in-depth report organized by topic",
+    "de": "An in-depth report organized by topic",
+    "nl": "An in-depth report organized by topic",
+    "ms": "An in-depth report organized by topic"
+  },
+  "featureMarketing.template_report.valueCompare.1.axis": {
+    "ko": "개인화",
+    "en": "Personalised",
+    "ja": "パーソナライズ",
+    "zh-CN": "个性化",
+    "zh-TW": "個人化",
+    "vi": "Personalised",
+    "hi": "Personalised",
+    "es": "Personalised",
+    "fr": "Personalised",
+    "de": "Personalised",
+    "nl": "Personalised",
+    "ms": "Personalised"
+  },
+  "featureMarketing.template_report.valueCompare.1.free": {
+    "ko": "일반적인 설명",
+    "en": "General explanations",
+    "ja": "一般的な説明",
+    "zh-CN": "一般说明",
+    "zh-TW": "一般說明",
+    "vi": "General explanations",
+    "hi": "General explanations",
+    "es": "General explanations",
+    "fr": "General explanations",
+    "de": "General explanations",
+    "nl": "General explanations",
+    "ms": "General explanations"
+  },
+  "featureMarketing.template_report.valueCompare.1.premium": {
+    "ko": "입력한 정보와 고민 기준으로 작성",
+    "en": "Written around the information and concern you provide",
+    "ja": "入力した情報と悩みに合わせて作成",
+    "zh-CN": "结合您输入的信息与烦恼撰写",
+    "zh-TW": "結合您輸入的資訊與煩惱撰寫",
+    "vi": "Written around the information and concern you provide",
+    "hi": "Written around the information and concern you provide",
+    "es": "Written around the information and concern you provide",
+    "fr": "Written around the information and concern you provide",
+    "de": "Written around the information and concern you provide",
+    "nl": "Written around the information and concern you provide",
+    "ms": "Written around the information and concern you provide"
+  },
+  "featureMarketing.template_report.valueCompare.2.axis": {
+    "ko": "조언",
+    "en": "Guidance",
+    "ja": "アドバイス",
+    "zh-CN": "建议",
+    "zh-TW": "建議",
+    "vi": "Guidance",
+    "hi": "Guidance",
+    "es": "Guidance",
+    "fr": "Guidance",
+    "de": "Guidance",
+    "nl": "Guidance",
+    "ms": "Guidance"
+  },
+  "featureMarketing.template_report.valueCompare.2.free": {
+    "ko": "방향 제시",
+    "en": "A suggested direction",
+    "ja": "方向性の提示",
+    "zh-CN": "提供方向",
+    "zh-TW": "提供方向",
+    "vi": "A suggested direction",
+    "hi": "A suggested direction",
+    "es": "A suggested direction",
+    "fr": "A suggested direction",
+    "de": "A suggested direction",
+    "nl": "A suggested direction",
+    "ms": "A suggested direction"
+  },
+  "featureMarketing.template_report.valueCompare.2.premium": {
+    "ko": "무엇부터 할지 순서까지",
+    "en": "Guidance on what to do first and in what order",
+    "ja": "何から始めるか、その順序まで",
+    "zh-CN": "说明先做什么、按什么顺序进行",
+    "zh-TW": "說明先做什麼、按什麼順序進行",
+    "vi": "Guidance on what to do first and in what order",
+    "hi": "Guidance on what to do first and in what order",
+    "es": "Guidance on what to do first and in what order",
+    "fr": "Guidance on what to do first and in what order",
+    "de": "Guidance on what to do first and in what order",
+    "nl": "Guidance on what to do first and in what order",
+    "ms": "Guidance on what to do first and in what order"
+  },
+  "featureMarketing.template_report.faq.0.q": {
+    "ko": "무료와 무엇이 다른가요?",
+    "en": "How does this differ from the free reading?",
+    "ja": "無料版とは何が違いますか？",
+    "zh-CN": "与免费解读有什么不同？",
+    "zh-TW": "與免費解讀有什麼不同？",
+    "vi": "How does this differ from the free reading?",
+    "hi": "How does this differ from the free reading?",
+    "es": "How does this differ from the free reading?",
+    "fr": "How does this differ from the free reading?",
+    "de": "How does this differ from the free reading?",
+    "nl": "How does this differ from the free reading?",
+    "ms": "How does this differ from the free reading?"
+  },
+  "featureMarketing.template_report.faq.0.a": {
+    "ko": "무료는 핵심 요약입니다. 프리미엄은 입력한 정보를 바탕으로 주제별 심층 분석과 구체적인 조언까지 담습니다.",
+    "en": "The free reading is a key summary. The premium report uses your information for deeper analysis by topic and more specific guidance.",
+    "ja": "無料版は要点の要約です。プレミアム版は入力情報をもとに、テーマ別の詳しい分析と具体的な助言をまとめます。",
+    "zh-CN": "免费版提供重点摘要。深度版则根据输入信息，按主题深入分析并给出具体建议。",
+    "zh-TW": "免費版提供重點摘要。深度版則根據輸入資訊，按主題深入分析並給出具體建議。",
+    "vi": "The free reading is a key summary. The premium report uses your information for deeper analysis by topic and more specific guidance.",
+    "hi": "The free reading is a key summary. The premium report uses your information for deeper analysis by topic and more specific guidance.",
+    "es": "The free reading is a key summary. The premium report uses your information for deeper analysis by topic and more specific guidance.",
+    "fr": "The free reading is a key summary. The premium report uses your information for deeper analysis by topic and more specific guidance.",
+    "de": "The free reading is a key summary. The premium report uses your information for deeper analysis by topic and more specific guidance.",
+    "nl": "The free reading is a key summary. The premium report uses your information for deeper analysis by topic and more specific guidance.",
+    "ms": "The free reading is a key summary. The premium report uses your information for deeper analysis by topic and more specific guidance."
+  },
+  "featureMarketing.template_report.faq.1.q": {
+    "ko": "AI가 자동으로 만드나요?",
+    "en": "Is the report generated automatically by AI?",
+    "ja": "AIが自動で作成しますか？",
+    "zh-CN": "报告由 AI 自动生成吗？",
+    "zh-TW": "報告由 AI 自動產生嗎？",
+    "vi": "Is the report generated automatically by AI?",
+    "hi": "Is the report generated automatically by AI?",
+    "es": "Is the report generated automatically by AI?",
+    "fr": "Is the report generated automatically by AI?",
+    "de": "Is the report generated automatically by AI?",
+    "nl": "Is the report generated automatically by AI?",
+    "ms": "Is the report generated automatically by AI?"
+  },
+  "featureMarketing.template_report.faq.1.a": {
+    "ko": "입력하신 정보를 바탕으로 맞춤 리포트를 생성합니다. 같은 정보라도 질문이 달라지면 내용이 달라집니다.",
+    "en": "A personalized report is generated from your information. Even with the same details, a different question leads to different content.",
+    "ja": "入力情報をもとに、あなたに合わせたレポートを生成します。同じ情報でも、問いが変わると内容は変わります。",
+    "zh-CN": "报告根据您输入的信息生成。即使信息相同，问题不同，内容也会随之变化。",
+    "zh-TW": "報告根據您輸入的資訊產生。即使資訊相同，問題不同，內容也會隨之變化。",
+    "vi": "A personalized report is generated from your information. Even with the same details, a different question leads to different content.",
+    "hi": "A personalized report is generated from your information. Even with the same details, a different question leads to different content.",
+    "es": "A personalized report is generated from your information. Even with the same details, a different question leads to different content.",
+    "fr": "A personalized report is generated from your information. Even with the same details, a different question leads to different content.",
+    "de": "A personalized report is generated from your information. Even with the same details, a different question leads to different content.",
+    "nl": "A personalized report is generated from your information. Even with the same details, a different question leads to different content.",
+    "ms": "A personalized report is generated from your information. Even with the same details, a different question leads to different content."
+  },
+  "featureMarketing.template_report.faq.2.q": {
+    "ko": "결과는 저장되나요?",
+    "en": "Is the result saved?",
+    "ja": "結果は保存されますか？",
+    "zh-CN": "结果会保存吗？",
+    "zh-TW": "結果會儲存嗎？",
+    "vi": "Is the result saved?",
+    "hi": "Is the result saved?",
+    "es": "Is the result saved?",
+    "fr": "Is the result saved?",
+    "de": "Is the result saved?",
+    "nl": "Is the result saved?",
+    "ms": "Is the result saved?"
+  },
+  "featureMarketing.template_report.faq.2.a": {
+    "ko": "재열람 가능 여부는 기능마다 다릅니다. 결제 화면의 안내를 확인해 주세요.",
+    "en": "Availability for later viewing depends on the feature. Please check the information on the payment screen.",
+    "ja": "再閲覧できるかは機能によって異なります。決済画面の案内をご確認ください。",
+    "zh-CN": "能否再次查看因功能而异，请确认付款页面的说明。",
+    "zh-TW": "能否再次查看因功能而異，請確認付款頁面的說明。",
+    "vi": "Availability for later viewing depends on the feature. Please check the information on the payment screen.",
+    "hi": "Availability for later viewing depends on the feature. Please check the information on the payment screen.",
+    "es": "Availability for later viewing depends on the feature. Please check the information on the payment screen.",
+    "fr": "Availability for later viewing depends on the feature. Please check the information on the payment screen.",
+    "de": "Availability for later viewing depends on the feature. Please check the information on the payment screen.",
+    "nl": "Availability for later viewing depends on the feature. Please check the information on the payment screen.",
+    "ms": "Availability for later viewing depends on the feature. Please check the information on the payment screen."
+  },
+  "featureMarketing.template_music.badge": {
+    "ko": "감정 경험형",
+    "en": "An emotional experience",
+    "ja": "気持ちに触れる体験",
+    "zh-CN": "情绪体验",
+    "zh-TW": "情緒體驗",
+    "vi": "An emotional experience",
+    "hi": "An emotional experience",
+    "es": "An emotional experience",
+    "fr": "An emotional experience",
+    "de": "An emotional experience",
+    "nl": "An emotional experience",
+    "ms": "An emotional experience"
+  },
+  "featureMarketing.template_music.headline": {
+    "ko": "지금 감정에 가까운 분위기를 한 곡의 장면처럼 열어보세요.",
+    "en": "Open a song like a scene that matches the mood you are in.",
+    "ja": "今の気持ちに近い空気を、一曲の風景のように開いてみましょう。",
+    "zh-CN": "像打开一幕场景那样，走进与此刻心情相近的一首歌。",
+    "zh-TW": "像打開一幕場景那樣，走進與此刻心情相近的一首歌。",
+    "vi": "Open a song like a scene that matches the mood you are in.",
+    "hi": "Open a song like a scene that matches the mood you are in.",
+    "es": "Open a song like a scene that matches the mood you are in.",
+    "fr": "Open a song like a scene that matches the mood you are in.",
+    "de": "Open a song like a scene that matches the mood you are in.",
+    "nl": "Open a song like a scene that matches the mood you are in.",
+    "ms": "Open a song like a scene that matches the mood you are in."
+  },
+  "featureMarketing.template_music.tagline": {
+    "ko": "음악과 캐릭터 세계관의 분위기를 중심으로 경험하는 감성형 콘텐츠입니다.",
+    "en": "An atmospheric experience centered on music and the world of our characters.",
+    "ja": "音楽とキャラクターの世界観を、雰囲気とともに楽しむコンテンツです。",
+    "zh-CN": "围绕音乐与角色世界的氛围展开的情感体验。",
+    "zh-TW": "圍繞音樂與角色世界的氛圍展開的情感體驗。",
+    "vi": "An atmospheric experience centered on music and the world of our characters.",
+    "hi": "An atmospheric experience centered on music and the world of our characters.",
+    "es": "An atmospheric experience centered on music and the world of our characters.",
+    "fr": "An atmospheric experience centered on music and the world of our characters.",
+    "de": "An atmospheric experience centered on music and the world of our characters.",
+    "nl": "An atmospheric experience centered on music and the world of our characters.",
+    "ms": "An atmospheric experience centered on music and the world of our characters."
+  },
+  "featureMarketing.template_music.feats.0": {
+    "ko": "감정을 말보다 분위기로 정리하고 싶을 때",
+    "en": "When you want to explore a feeling through atmosphere rather than words",
+    "ja": "言葉よりも雰囲気を通して、気持ちを整理したいとき",
+    "zh-CN": "想通过氛围而非语言梳理情绪时",
+    "zh-TW": "想透過氛圍而非語言梳理情緒時",
+    "vi": "When you want to explore a feeling through atmosphere rather than words",
+    "hi": "When you want to explore a feeling through atmosphere rather than words",
+    "es": "When you want to explore a feeling through atmosphere rather than words",
+    "fr": "When you want to explore a feeling through atmosphere rather than words",
+    "de": "When you want to explore a feeling through atmosphere rather than words",
+    "nl": "When you want to explore a feeling through atmosphere rather than words",
+    "ms": "When you want to explore a feeling through atmosphere rather than words"
+  },
+  "featureMarketing.template_music.feats.1": {
+    "ko": "짧게 몰입할 감성 콘텐츠가 필요할 때",
+    "en": "When you want a brief, immersive emotional experience",
+    "ja": "短い時間、気持ちを重ねて没入したいとき",
+    "zh-CN": "想短暂沉浸在情感内容中时",
+    "zh-TW": "想短暫沉浸在情感內容中時",
+    "vi": "When you want a brief, immersive emotional experience",
+    "hi": "When you want a brief, immersive emotional experience",
+    "es": "When you want a brief, immersive emotional experience",
+    "fr": "When you want a brief, immersive emotional experience",
+    "de": "When you want a brief, immersive emotional experience",
+    "nl": "When you want a brief, immersive emotional experience",
+    "ms": "When you want a brief, immersive emotional experience"
+  },
+  "featureMarketing.template_music.feats.2": {
+    "ko": "곡 단위로 필요한 경험만 열어보고 싶을 때",
+    "en": "When you want to choose individual songs for the experience you need",
+    "ja": "必要な体験を、一曲ずつ選んで楽しみたいとき",
+    "zh-CN": "想按歌曲选择适合自己的体验时",
+    "zh-TW": "想按歌曲選擇適合自己的體驗時",
+    "vi": "When you want to choose individual songs for the experience you need",
+    "hi": "When you want to choose individual songs for the experience you need",
+    "es": "When you want to choose individual songs for the experience you need",
+    "fr": "When you want to choose individual songs for the experience you need",
+    "de": "When you want to choose individual songs for the experience you need",
+    "nl": "When you want to choose individual songs for the experience you need",
+    "ms": "When you want to choose individual songs for the experience you need"
+  },
+  "featureMarketing.template_music.premiumChapters.0": {
+    "ko": "곡과 분위기 중심의 감정 경험",
+    "en": "An emotional experience shaped by song and atmosphere",
+    "ja": "曲と雰囲気を通した感情の体験",
+    "zh-CN": "以歌曲与氛围为中心的情绪体验",
+    "zh-TW": "以歌曲與氛圍為中心的情緒體驗",
+    "vi": "An emotional experience shaped by song and atmosphere",
+    "hi": "An emotional experience shaped by song and atmosphere",
+    "es": "An emotional experience shaped by song and atmosphere",
+    "fr": "An emotional experience shaped by song and atmosphere",
+    "de": "An emotional experience shaped by song and atmosphere",
+    "nl": "An emotional experience shaped by song and atmosphere",
+    "ms": "An emotional experience shaped by song and atmosphere"
+  },
+  "featureMarketing.template_music.premiumChapters.1": {
+    "ko": "캐릭터 세계관과 연결된 장면",
+    "en": "Scenes connected to the characters' world",
+    "ja": "キャラクターの世界につながる場面",
+    "zh-CN": "与角色世界相连的场景",
+    "zh-TW": "與角色世界相連的場景",
+    "vi": "Scenes connected to the characters' world",
+    "hi": "Scenes connected to the characters' world",
+    "es": "Scenes connected to the characters' world",
+    "fr": "Scenes connected to the characters' world",
+    "de": "Scenes connected to the characters' world",
+    "nl": "Scenes connected to the characters' world",
+    "ms": "Scenes connected to the characters' world"
+  },
+  "featureMarketing.template_music.premiumChapters.2": {
+    "ko": "구매 전 확인 가능한 기본 정보",
+    "en": "Basic information available before purchase",
+    "ja": "購入前に確認できる基本情報",
+    "zh-CN": "购买前可查看的基本信息",
+    "zh-TW": "購買前可查看的基本資訊",
+    "vi": "Basic information available before purchase",
+    "hi": "Basic information available before purchase",
+    "es": "Basic information available before purchase",
+    "fr": "Basic information available before purchase",
+    "de": "Basic information available before purchase",
+    "nl": "Basic information available before purchase",
+    "ms": "Basic information available before purchase"
+  },
+  "featureMarketing.template_music.premiumChapters.3": {
+    "ko": "결제 후 기존 음악 화면으로 이동",
+    "en": "Continue to the existing music player after payment",
+    "ja": "決済後はいつもの音楽画面へ",
+    "zh-CN": "付款后进入原有音乐页面",
+    "zh-TW": "付款後進入原有音樂頁面",
+    "vi": "Continue to the existing music player after payment",
+    "hi": "Continue to the existing music player after payment",
+    "es": "Continue to the existing music player after payment",
+    "fr": "Continue to the existing music player after payment",
+    "de": "Continue to the existing music player after payment",
+    "nl": "Continue to the existing music player after payment",
+    "ms": "Continue to the existing music player after payment"
+  },
+  "featureMarketing.template_music.premiumIntro": {
+    "ko": "음악 콘텐츠는 감정을 보장하지 않고, 지금의 분위기를 다른 결로 환기하는 경험을 제공합니다.",
+    "en": "The music doesn't promise a feeling. It offers an experience that shifts your current mood into a different grain.",
+    "ja": "音楽コンテンツは感情を保証しません。いまの雰囲気を別の質感へと切り替える体験を届けます。",
+    "zh-CN": "音乐内容不保证情绪，只提供把当下气氛换成另一种质地的体验。",
+    "zh-TW": "音樂內容不保證情緒，只提供把當下氣氛換成另一種質地的體驗。",
+    "vi": "The music doesn't promise a feeling. It offers an experience that shifts your current mood into a different grain.",
+    "hi": "The music doesn't promise a feeling. It offers an experience that shifts your current mood into a different grain.",
+    "es": "The music doesn't promise a feeling. It offers an experience that shifts your current mood into a different grain.",
+    "fr": "The music doesn't promise a feeling. It offers an experience that shifts your current mood into a different grain.",
+    "de": "The music doesn't promise a feeling. It offers an experience that shifts your current mood into a different grain.",
+    "nl": "The music doesn't promise a feeling. It offers an experience that shifts your current mood into a different grain.",
+    "ms": "The music doesn't promise a feeling. It offers an experience that shifts your current mood into a different grain."
+  },
+  "featureMarketing.template_music.premiumAudience.0": {
+    "ko": "말보다 분위기로 감정을 정리하고 싶은 분",
+    "en": "For those who want to process feelings through atmosphere",
+    "ja": "雰囲気を通して気持ちを整理したい方",
+    "zh-CN": "希望通过氛围梳理情绪的人",
+    "zh-TW": "希望透過氛圍梳理情緒的人",
+    "vi": "For those who want to process feelings through atmosphere",
+    "hi": "For those who want to process feelings through atmosphere",
+    "es": "For those who want to process feelings through atmosphere",
+    "fr": "For those who want to process feelings through atmosphere",
+    "de": "For those who want to process feelings through atmosphere",
+    "nl": "For those who want to process feelings through atmosphere",
+    "ms": "For those who want to process feelings through atmosphere"
+  },
+  "featureMarketing.template_music.premiumAudience.1": {
+    "ko": "짧게 몰입할 감성 콘텐츠를 찾는 분",
+    "en": "For those seeking a short, immersive emotional experience",
+    "ja": "短く没入できる情感豊かな体験を探している方",
+    "zh-CN": "寻找短暂沉浸式情感体验的人",
+    "zh-TW": "尋找短暫沉浸式情感體驗的人",
+    "vi": "For those seeking a short, immersive emotional experience",
+    "hi": "For those seeking a short, immersive emotional experience",
+    "es": "For those seeking a short, immersive emotional experience",
+    "fr": "For those seeking a short, immersive emotional experience",
+    "de": "For those seeking a short, immersive emotional experience",
+    "nl": "For those seeking a short, immersive emotional experience",
+    "ms": "For those seeking a short, immersive emotional experience"
+  },
+  "featureMarketing.template_music.premiumAudience.2": {
+    "ko": "필요한 곡만 골라 열어보고 싶은 분",
+    "en": "For those who want to choose only the songs they need",
+    "ja": "聴きたい曲だけを選んで楽しみたい方",
+    "zh-CN": "想只选取所需歌曲的人",
+    "zh-TW": "想只選取所需歌曲的人",
+    "vi": "For those who want to choose only the songs they need",
+    "hi": "For those who want to choose only the songs they need",
+    "es": "For those who want to choose only the songs they need",
+    "fr": "For those who want to choose only the songs they need",
+    "de": "For those who want to choose only the songs they need",
+    "nl": "For those who want to choose only the songs they need",
+    "ms": "For those who want to choose only the songs they need"
+  },
+  "featureMarketing.template_music.answersQuestions.0": {
+    "ko": "지금 이 기분에 맞는 곡이 뭘까요?",
+    "en": "Which song suits the way I feel right now?",
+    "ja": "今の気分に合う曲は何でしょう？",
+    "zh-CN": "哪首歌适合我现在的心情？",
+    "zh-TW": "哪首歌適合我現在的心情？",
+    "vi": "Which song suits the way I feel right now?",
+    "hi": "Which song suits the way I feel right now?",
+    "es": "Which song suits the way I feel right now?",
+    "fr": "Which song suits the way I feel right now?",
+    "de": "Which song suits the way I feel right now?",
+    "nl": "Which song suits the way I feel right now?",
+    "ms": "Which song suits the way I feel right now?"
+  },
+  "featureMarketing.template_music.answersQuestions.1": {
+    "ko": "말로 정리가 안 되는 감정을 어떻게 풀까요?",
+    "en": "How can I work through a feeling I cannot put into words?",
+    "ja": "言葉にならない気持ちを、どうほどけばよいでしょう？",
+    "zh-CN": "说不清的情绪，可以怎样舒展？",
+    "zh-TW": "說不清的情緒，可以怎樣舒展？",
+    "vi": "How can I work through a feeling I cannot put into words?",
+    "hi": "How can I work through a feeling I cannot put into words?",
+    "es": "How can I work through a feeling I cannot put into words?",
+    "fr": "How can I work through a feeling I cannot put into words?",
+    "de": "How can I work through a feeling I cannot put into words?",
+    "nl": "How can I work through a feeling I cannot put into words?",
+    "ms": "How can I work through a feeling I cannot put into words?"
+  },
+  "featureMarketing.template_music.answersQuestions.2": {
+    "ko": "짧게 몰입할 감성 콘텐츠가 있을까요?",
+    "en": "Is there an emotional experience I can immerse myself in briefly?",
+    "ja": "短い時間で没入できる、心に触れるコンテンツはありますか？",
+    "zh-CN": "有没有适合短暂沉浸的情感内容？",
+    "zh-TW": "有沒有適合短暫沉浸的情感內容？",
+    "vi": "Is there an emotional experience I can immerse myself in briefly?",
+    "hi": "Is there an emotional experience I can immerse myself in briefly?",
+    "es": "Is there an emotional experience I can immerse myself in briefly?",
+    "fr": "Is there an emotional experience I can immerse myself in briefly?",
+    "de": "Is there an emotional experience I can immerse myself in briefly?",
+    "nl": "Is there an emotional experience I can immerse myself in briefly?",
+    "ms": "Is there an emotional experience I can immerse myself in briefly?"
+  },
+  "featureMarketing.template_music.analysisSteps.0.label": {
+    "ko": "분위기 선택",
+    "en": "Choose a mood",
+    "ja": "雰囲気を選ぶ",
+    "zh-CN": "选择氛围",
+    "zh-TW": "選擇氛圍",
+    "vi": "Choose a mood",
+    "hi": "Choose a mood",
+    "es": "Choose a mood",
+    "fr": "Choose a mood",
+    "de": "Choose a mood",
+    "nl": "Choose a mood",
+    "ms": "Choose a mood"
+  },
+  "featureMarketing.template_music.analysisSteps.0.detail": {
+    "ko": "지금 감정에 가까운 결을 고릅니다.",
+    "en": "Choose the mood closest to how you feel now.",
+    "ja": "今の気持ちに近い雰囲気を選びます。",
+    "zh-CN": "选择与当前情绪相近的氛围。",
+    "zh-TW": "選擇與當前情緒相近的氛圍。",
+    "vi": "Choose the mood closest to how you feel now.",
+    "hi": "Choose the mood closest to how you feel now.",
+    "es": "Choose the mood closest to how you feel now.",
+    "fr": "Choose the mood closest to how you feel now.",
+    "de": "Choose the mood closest to how you feel now.",
+    "nl": "Choose the mood closest to how you feel now.",
+    "ms": "Choose the mood closest to how you feel now."
+  },
+  "featureMarketing.template_music.analysisSteps.1.label": {
+    "ko": "곡 연결",
+    "en": "Connect a song",
+    "ja": "曲をつなぐ",
+    "zh-CN": "连接歌曲",
+    "zh-TW": "連結歌曲",
+    "vi": "Connect a song",
+    "hi": "Connect a song",
+    "es": "Connect a song",
+    "fr": "Connect a song",
+    "de": "Connect a song",
+    "nl": "Connect a song",
+    "ms": "Connect a song"
+  },
+  "featureMarketing.template_music.analysisSteps.1.detail": {
+    "ko": "그 결에 맞는 곡과 캐릭터 세계관의 장면을 잇습니다.",
+    "en": "A matching song is connected with a scene from the characters' world.",
+    "ja": "その雰囲気に合う曲と、キャラクターの世界の場面をつなぎます。",
+    "zh-CN": "将契合氛围的歌曲与角色世界的场景连接起来。",
+    "zh-TW": "將契合氛圍的歌曲與角色世界的場景連結起來。",
+    "vi": "A matching song is connected with a scene from the characters' world.",
+    "hi": "A matching song is connected with a scene from the characters' world.",
+    "es": "A matching song is connected with a scene from the characters' world.",
+    "fr": "A matching song is connected with a scene from the characters' world.",
+    "de": "A matching song is connected with a scene from the characters' world.",
+    "nl": "A matching song is connected with a scene from the characters' world.",
+    "ms": "A matching song is connected with a scene from the characters' world."
+  },
+  "featureMarketing.template_music.analysisSteps.2.label": {
+    "ko": "장면 구성",
+    "en": "Shape the scene",
+    "ja": "場面を組み立てる",
+    "zh-CN": "构成场景",
+    "zh-TW": "構成場景",
+    "vi": "Shape the scene",
+    "hi": "Shape the scene",
+    "es": "Shape the scene",
+    "fr": "Shape the scene",
+    "de": "Shape the scene",
+    "nl": "Shape the scene",
+    "ms": "Shape the scene"
+  },
+  "featureMarketing.template_music.analysisSteps.2.detail": {
+    "ko": "한 곡이 하나의 장면처럼 이어지도록 구성합니다.",
+    "en": "Each song is arranged to unfold like a single scene.",
+    "ja": "一曲が一つの場面のようにつながる構成にします。",
+    "zh-CN": "让一首歌像一幕完整场景那样展开。",
+    "zh-TW": "讓一首歌像一幕完整場景那樣展開。",
+    "vi": "Each song is arranged to unfold like a single scene.",
+    "hi": "Each song is arranged to unfold like a single scene.",
+    "es": "Each song is arranged to unfold like a single scene.",
+    "fr": "Each song is arranged to unfold like a single scene.",
+    "de": "Each song is arranged to unfold like a single scene.",
+    "nl": "Each song is arranged to unfold like a single scene.",
+    "ms": "Each song is arranged to unfold like a single scene."
+  },
+  "featureMarketing.template_music.analysisSteps.3.label": {
+    "ko": "감상 준비",
+    "en": "Get ready to listen",
+    "ja": "聴く準備をする",
+    "zh-CN": "准备聆听",
+    "zh-TW": "準備聆聽",
+    "vi": "Get ready to listen",
+    "hi": "Get ready to listen",
+    "es": "Get ready to listen",
+    "fr": "Get ready to listen",
+    "de": "Get ready to listen",
+    "nl": "Get ready to listen",
+    "ms": "Get ready to listen"
+  },
+  "featureMarketing.template_music.analysisSteps.3.detail": {
+    "ko": "구매 후 기존 음악 화면에서 바로 이어 듣습니다.",
+    "en": "After purchase, continue listening in the existing music player.",
+    "ja": "購入後は、いつもの音楽画面で続けて聴けます。",
+    "zh-CN": "购买后，在原有音乐页面继续收听。",
+    "zh-TW": "購買後，在原有音樂頁面繼續收聽。",
+    "vi": "After purchase, continue listening in the existing music player.",
+    "hi": "After purchase, continue listening in the existing music player.",
+    "es": "After purchase, continue listening in the existing music player.",
+    "fr": "After purchase, continue listening in the existing music player.",
+    "de": "After purchase, continue listening in the existing music player.",
+    "nl": "After purchase, continue listening in the existing music player.",
+    "ms": "After purchase, continue listening in the existing music player."
+  },
+  "featureMarketing.template_music.valueCompare.0.axis": {
+    "ko": "감상 범위",
+    "en": "Listening access",
+    "ja": "聴ける範囲",
+    "zh-CN": "收听范围",
+    "zh-TW": "收聽範圍",
+    "vi": "Listening access",
+    "hi": "Listening access",
+    "es": "Listening access",
+    "fr": "Listening access",
+    "de": "Listening access",
+    "nl": "Listening access",
+    "ms": "Listening access"
+  },
+  "featureMarketing.template_music.valueCompare.0.free": {
+    "ko": "미리듣기 구간",
+    "en": "Preview segment",
+    "ja": "試聴区間",
+    "zh-CN": "试听片段",
+    "zh-TW": "試聽片段",
+    "vi": "Preview segment",
+    "hi": "Preview segment",
+    "es": "Preview segment",
+    "fr": "Preview segment",
+    "de": "Preview segment",
+    "nl": "Preview segment",
+    "ms": "Preview segment"
+  },
+  "featureMarketing.template_music.valueCompare.0.premium": {
+    "ko": "곡 전체",
+    "en": "The full song",
+    "ja": "曲全体",
+    "zh-CN": "完整歌曲",
+    "zh-TW": "完整歌曲",
+    "vi": "The full song",
+    "hi": "The full song",
+    "es": "The full song",
+    "fr": "The full song",
+    "de": "The full song",
+    "nl": "The full song",
+    "ms": "The full song"
+  },
+  "featureMarketing.template_music.valueCompare.1.axis": {
+    "ko": "장면",
+    "en": "Scenes",
+    "ja": "場面",
+    "zh-CN": "场景",
+    "zh-TW": "場景",
+    "vi": "Scenes",
+    "hi": "Scenes",
+    "es": "Scenes",
+    "fr": "Scenes",
+    "de": "Scenes",
+    "nl": "Scenes",
+    "ms": "Scenes"
+  },
+  "featureMarketing.template_music.valueCompare.1.free": {
+    "ko": "없음",
+    "en": "None",
+    "ja": "なし",
+    "zh-CN": "无",
+    "zh-TW": "無",
+    "vi": "None",
+    "hi": "None",
+    "es": "None",
+    "fr": "None",
+    "de": "None",
+    "nl": "None",
+    "ms": "None"
+  },
+  "featureMarketing.template_music.valueCompare.1.premium": {
+    "ko": "캐릭터 세계관과 이어진 장면",
+    "en": "Scenes linked to the characters' world",
+    "ja": "キャラクターの世界につながる場面",
+    "zh-CN": "与角色世界相连的场景",
+    "zh-TW": "與角色世界相連的場景",
+    "vi": "Scenes linked to the characters' world",
+    "hi": "Scenes linked to the characters' world",
+    "es": "Scenes linked to the characters' world",
+    "fr": "Scenes linked to the characters' world",
+    "de": "Scenes linked to the characters' world",
+    "nl": "Scenes linked to the characters' world",
+    "ms": "Scenes linked to the characters' world"
+  },
+  "featureMarketing.template_music.valueCompare.2.axis": {
+    "ko": "이용",
+    "en": "Listening",
+    "ja": "利用方法",
+    "zh-CN": "使用方式",
+    "zh-TW": "使用方式",
+    "vi": "Listening",
+    "hi": "Listening",
+    "es": "Listening",
+    "fr": "Listening",
+    "de": "Listening",
+    "nl": "Listening",
+    "ms": "Listening"
+  },
+  "featureMarketing.template_music.valueCompare.2.free": {
+    "ko": "그때그때 스트리밍",
+    "en": "Stream as you go",
+    "ja": "その都度ストリーミング",
+    "zh-CN": "随时在线播放",
+    "zh-TW": "隨時線上播放",
+    "vi": "Stream as you go",
+    "hi": "Stream as you go",
+    "es": "Stream as you go",
+    "fr": "Stream as you go",
+    "de": "Stream as you go",
+    "nl": "Stream as you go",
+    "ms": "Stream as you go"
+  },
+  "featureMarketing.template_music.valueCompare.2.premium": {
+    "ko": "구매한 곡 중심으로 이어 듣기",
+    "en": "Keep listening to the songs you have purchased",
+    "ja": "購入した曲を中心に続けて聴く",
+    "zh-CN": "围绕已购歌曲继续聆听",
+    "zh-TW": "圍繞已購歌曲繼續聆聽",
+    "vi": "Keep listening to the songs you have purchased",
+    "hi": "Keep listening to the songs you have purchased",
+    "es": "Keep listening to the songs you have purchased",
+    "fr": "Keep listening to the songs you have purchased",
+    "de": "Keep listening to the songs you have purchased",
+    "nl": "Keep listening to the songs you have purchased",
+    "ms": "Keep listening to the songs you have purchased"
+  },
+  "featureMarketing.template_music.faq.0.q": {
+    "ko": "미리 들어볼 수 있나요?",
+    "en": "Can I listen to a preview?",
+    "ja": "試聴できますか？",
+    "zh-CN": "可以先试听吗？",
+    "zh-TW": "可以先試聽嗎？",
+    "vi": "Can I listen to a preview?",
+    "hi": "Can I listen to a preview?",
+    "es": "Can I listen to a preview?",
+    "fr": "Can I listen to a preview?",
+    "de": "Can I listen to a preview?",
+    "nl": "Can I listen to a preview?",
+    "ms": "Can I listen to a preview?"
+  },
+  "featureMarketing.template_music.faq.0.a": {
+    "ko": "네. 구매 전 미리듣기 구간으로 분위기를 확인할 수 있습니다.",
+    "en": "Yes. Listen to the preview segment before purchase to get a feel for the song.",
+    "ja": "はい。購入前に試聴区間で曲の雰囲気を確かめられます。",
+    "zh-CN": "可以。购买前可通过试听片段感受歌曲氛围。",
+    "zh-TW": "可以。購買前可透過試聽片段感受歌曲氛圍。",
+    "vi": "Yes. Listen to the preview segment before purchase to get a feel for the song.",
+    "hi": "Yes. Listen to the preview segment before purchase to get a feel for the song.",
+    "es": "Yes. Listen to the preview segment before purchase to get a feel for the song.",
+    "fr": "Yes. Listen to the preview segment before purchase to get a feel for the song.",
+    "de": "Yes. Listen to the preview segment before purchase to get a feel for the song.",
+    "nl": "Yes. Listen to the preview segment before purchase to get a feel for the song.",
+    "ms": "Yes. Listen to the preview segment before purchase to get a feel for the song."
+  },
+  "featureMarketing.template_music.faq.1.q": {
+    "ko": "구매하면 어디서 듣나요?",
+    "en": "Where do I listen after purchase?",
+    "ja": "購入後はどこで聴けますか？",
+    "zh-CN": "购买后在哪里收听？",
+    "zh-TW": "購買後在哪裡收聽？",
+    "vi": "Where do I listen after purchase?",
+    "hi": "Where do I listen after purchase?",
+    "es": "Where do I listen after purchase?",
+    "fr": "Where do I listen after purchase?",
+    "de": "Where do I listen after purchase?",
+    "nl": "Where do I listen after purchase?",
+    "ms": "Where do I listen after purchase?"
+  },
+  "featureMarketing.template_music.faq.1.a": {
+    "ko": "결제 완료 후 기존 음악 화면으로 이동해 바로 이어 들을 수 있습니다.",
+    "en": "Once payment is complete, continue to the existing music screen to listen.",
+    "ja": "決済が完了すると、いつもの音楽画面へ移動して続けて聴けます。",
+    "zh-CN": "付款完成后，进入原有音乐页面即可继续收听。",
+    "zh-TW": "付款完成後，進入原有音樂頁面即可繼續收聽。",
+    "vi": "Once payment is complete, continue to the existing music screen to listen.",
+    "hi": "Once payment is complete, continue to the existing music screen to listen.",
+    "es": "Once payment is complete, continue to the existing music screen to listen.",
+    "fr": "Once payment is complete, continue to the existing music screen to listen.",
+    "de": "Once payment is complete, continue to the existing music screen to listen.",
+    "nl": "Once payment is complete, continue to the existing music screen to listen.",
+    "ms": "Once payment is complete, continue to the existing music screen to listen."
+  },
+  "featureMarketing.template_music.faq.2.q": {
+    "ko": "곡마다 따로 결제하나요?",
+    "en": "Is each song purchased separately?",
+    "ja": "曲ごとに購入する仕組みですか？",
+    "zh-CN": "每首歌需要分别购买吗？",
+    "zh-TW": "每首歌需要分別購買嗎？",
+    "vi": "Is each song purchased separately?",
+    "hi": "Is each song purchased separately?",
+    "es": "Is each song purchased separately?",
+    "fr": "Is each song purchased separately?",
+    "de": "Is each song purchased separately?",
+    "nl": "Is each song purchased separately?",
+    "ms": "Is each song purchased separately?"
+  },
+  "featureMarketing.template_music.faq.2.a": {
+    "ko": "필요한 곡만 골라 이용하는 방식입니다. 자세한 기준은 결제 화면의 안내를 확인해 주세요.",
+    "en": "You choose the songs you want to use. Check the payment screen for the exact terms.",
+    "ja": "必要な曲を選んで利用する仕組みです。詳しい条件は決済画面の案内をご確認ください。",
+    "zh-CN": "您可以选择需要的歌曲使用。具体条件请以付款页面的说明为准。",
+    "zh-TW": "您可以選擇需要的歌曲使用。具體條件請以付款頁面的說明為準。",
+    "vi": "You choose the songs you want to use. Check the payment screen for the exact terms.",
+    "hi": "You choose the songs you want to use. Check the payment screen for the exact terms.",
+    "es": "You choose the songs you want to use. Check the payment screen for the exact terms.",
+    "fr": "You choose the songs you want to use. Check the payment screen for the exact terms.",
+    "de": "You choose the songs you want to use. Check the payment screen for the exact terms.",
+    "nl": "You choose the songs you want to use. Check the payment screen for the exact terms.",
+    "ms": "You choose the songs you want to use. Check the payment screen for the exact terms."
+  }
+}
