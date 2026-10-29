@@ -308,43 +308,55 @@
  * 톤: 짙은 밤하늘 바탕, 금색 얇은 선, 세리프 제목. 장식은 선과 빛 번짐으로만 준다.
  */
 @layer components {
+	.cd-world-page {
+		--world-ink: #eee7d9;
+		--world-muted: #cbc8d2;
+		--world-gold: #e2c783;
+		--world-rule: rgba(226, 199, 131, 0.25);
+		color: var(--world-ink);
+	}
 	.cd-world-hero {
-		display: grid;
-		grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
-		gap: clamp(24px, 4vw, 56px);
-		align-items: center;
-		margin-bottom: 44px;
-		padding: clamp(22px, 3vw, 38px);
-		border: 1px solid rgba(232, 213, 163, 0.18);
-		border-radius: 28px;
-		background:
-			radial-gradient(90% 120% at 0% 0%, rgba(167, 139, 250, 0.14), transparent 62%),
-			radial-gradient(70% 90% at 100% 100%, rgba(232, 213, 163, 0.07), transparent 60%),
-			linear-gradient(160deg, rgba(20, 16, 44, 0.96), rgba(8, 6, 20, 0.96));
+		position: relative;
+		isolation: isolate;
+		display: flex;
+		min-height: min(760px, 82svh);
+		align-items: flex-end;
+		overflow: hidden;
+		margin-bottom: 52px;
+		padding: clamp(28px, 6vw, 72px);
+		border: 1px solid var(--world-rule);
+		border-radius: 26px;
+		background: #080b14;
 		box-shadow: 0 30px 80px rgba(2, 1, 10, 0.5), inset 0 1px 0 rgba(244, 238, 255, 0.06);
 	}
 	.cd-world-hero-copy {
+		position: relative;
+		z-index: 2;
 		min-width: 0;
+		width: min(680px, 72%);
 	}
 	.cd-world-hero .cd-home-kicker {
 		margin: 0 0 14px;
-		color: #e8d5a3;
-		letter-spacing: 0.24em;
+		color: var(--world-gold);
+		letter-spacing: 0.22em;
+		font-size: 0.68rem;
 	}
 	.cd-world-hero .cd-main-title {
 		margin: 0;
-		color: #f8f4ff;
+		color: var(--world-ink);
 		font-family: var(--font-serif);
-		font-size: clamp(2.1rem, 4.6vw, 3.1rem);
+		font-size: clamp(2.7rem, 6.8vw, 5.3rem);
 		font-weight: 500;
-		line-height: 1.2;
+		line-height: 1.1;
 		letter-spacing: -0.01em;
 		text-wrap: balance;
 	}
 	.cd-world-hero .cd-main-intro {
 		margin: 18px 0 0;
-		color: #d8d0e9;
-		line-height: 1.95;
+		max-width: 58ch;
+		color: #dedbe3;
+		font-size: clamp(1rem, 1.5vw, 1.12rem);
+		line-height: 1.85;
 		word-break: keep-all;
 	}
 	.cd-world-hero-trail {
@@ -352,62 +364,102 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 8px 10px;
-		margin: 22px 0 0;
-		color: #e8d5a3;
+		margin: 20px 0 0;
+		color: var(--world-gold);
 		font-family: var(--font-serif);
 		font-size: 0.86rem;
 		letter-spacing: 0.04em;
 	}
 	.cd-world-hero-trail span {
-		color: rgba(196, 181, 253, 0.7);
+		color: rgba(226, 199, 131, 0.78);
+	}
+	.cd-world-hero-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 26px;
+	}
+	.cd-world-hero-links a {
+		display: inline-flex;
+		min-height: 46px;
+		align-items: center;
+		gap: 10px;
+		padding: 10px 16px;
+		border: 1px solid rgba(226, 199, 131, 0.5);
+		border-radius: 999px;
+		background: rgba(8, 11, 20, 0.72);
+		color: #f1e5c7;
+		font-size: 0.88rem;
+		text-decoration: none;
+		transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+	}
+	.cd-world-hero-links a:hover {
+		transform: translateY(-1px);
+		border-color: var(--world-gold);
+		background: rgba(226, 199, 131, 0.12);
+	}
+	.cd-world-hero-links a:focus-visible,
+	.cd-world-chips a:focus-visible,
+	.cd-world-cta:focus-visible {
+		outline: 2px solid var(--world-gold);
+		outline-offset: 4px;
 	}
 	.cd-world-hero-art {
-		position: relative;
+		position: absolute;
+		z-index: -1;
+		inset: 0;
 		margin: 0;
 		overflow: hidden;
-		border-radius: 20px;
-		background: #07061a;
-		box-shadow: 0 0 0 1px rgba(232, 213, 163, 0.26), 0 0 46px rgba(147, 51, 234, 0.2);
+		background: #080b14;
 	}
 	.cd-world-hero-art::after {
 		content: "";
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(180deg, transparent 50%, rgba(7, 6, 26, 0.82));
+		background: linear-gradient(90deg, rgba(8, 11, 20, 0.88) 0%, rgba(8, 11, 20, 0.52) 46%, transparent 82%), linear-gradient(0deg, #080b14 0%, rgba(8, 11, 20, 0.82) 11%, transparent 65%);
 		pointer-events: none;
 	}
 	.cd-world-hero-art img {
 		display: block;
 		width: 100%;
-		height: auto;
-		aspect-ratio: 16 / 9;
+		height: 100%;
 		object-fit: cover;
+		object-position: center 36%;
+		filter: saturate(0.92);
 	}
 	.cd-world-hero-art figcaption {
 		position: absolute;
 		z-index: 1;
-		inset: auto 18px 16px;
-		color: #f4eeff;
+		inset: 24px 28px auto;
+		color: rgba(238, 231, 217, 0.82);
 		font-family: var(--font-serif);
 		font-size: 0.82rem;
 		letter-spacing: 0.02em;
+	}
+	.cd-world-hero-art figcaption span {
+		display: block;
+		margin-bottom: 7px;
+		color: var(--world-gold);
+		font-family: var(--font-body);
+		font-size: 0.62rem;
+		letter-spacing: 0.2em;
 	}
 	.cd-world-prologue {
 		position: relative;
 		margin: 0 0 48px;
 		padding: 8px 0 8px clamp(20px, 3vw, 32px);
-		border-left: 1px solid rgba(232, 213, 163, 0.46);
+		border-left: 1px solid rgba(226, 199, 131, 0.55);
 	}
 	.cd-world-prologue-label {
 		margin: 0 0 12px;
-		color: #e8d5a3;
+		color: var(--world-gold);
 		font-size: 0.7rem;
 		font-weight: 600;
 		letter-spacing: 0.24em;
 	}
 	.cd-world-prologue h2 {
 		margin: 0;
-		color: #f4eeff;
+		color: var(--world-ink);
 		font-family: var(--font-serif);
 		font-size: clamp(1.4rem, 2.8vw, 1.9rem);
 		font-weight: 500;
@@ -417,7 +469,7 @@
 	.cd-world-prologue p:not(.cd-world-prologue-label) {
 		max-width: 68ch;
 		margin: 14px 0 0;
-		color: #cfc6e2;
+		color: var(--world-muted);
 		line-height: 1.9;
 		word-break: keep-all;
 	}
@@ -429,7 +481,7 @@
 		align-items: center;
 		gap: 16px;
 		margin: 0 0 14px;
-		color: #f8f4ff;
+		color: var(--world-ink);
 		font-family: var(--font-serif);
 		font-size: clamp(1.35rem, 2.6vw, 1.7rem);
 		font-weight: 500;
@@ -439,7 +491,7 @@
 		content: "";
 		flex: 1;
 		height: 1px;
-		background: linear-gradient(90deg, rgba(232, 213, 163, 0.42), transparent);
+		background: linear-gradient(90deg, rgba(226, 199, 131, 0.52), transparent);
 	}
 	.cd-world-section-intro,
 	.cd-world-group-intro {
@@ -455,7 +507,7 @@
 		align-items: center;
 		gap: 14px;
 		margin: 0;
-		color: #e8d5a3;
+		color: var(--world-gold);
 		font-family: var(--font-serif);
 		font-size: 0.98rem;
 		font-weight: 500;
@@ -465,7 +517,7 @@
 		content: "";
 		flex: 1;
 		height: 1px;
-		background: rgba(232, 213, 163, 0.18);
+		background: rgba(226, 199, 131, 0.2);
 	}
 	.cd-world-group-intro {
 		margin: 8px 0 20px;
@@ -482,7 +534,7 @@
 		padding: 14px;
 		border: 1px solid rgba(232, 213, 163, 0.14);
 		border-radius: 24px;
-		background: linear-gradient(180deg, rgba(22, 18, 48, 0.72), rgba(9, 7, 22, 0.86));
+		background: linear-gradient(180deg, rgba(18, 26, 47, 0.88), rgba(8, 11, 20, 0.96));
 		box-shadow: 0 18px 40px rgba(2, 1, 10, 0.32);
 	}
 	.cd-world-character-portrait {
@@ -492,7 +544,7 @@
 		overflow: hidden;
 		margin: 0;
 		border-radius: 18px;
-		background: radial-gradient(circle at 50% 36%, rgba(167, 139, 250, 0.2), transparent 64%), #07061a;
+		background: radial-gradient(circle at 50% 36%, rgba(74, 100, 155, 0.24), transparent 64%), #080d1b;
 	}
 	.cd-world-character-portrait img {
 		display: block;
@@ -500,18 +552,23 @@
 		height: 100%;
 		object-fit: cover;
 	}
+	.cd-world-character--tiger .cd-world-character-portrait img {
+		object-fit: contain;
+		padding: 8px;
+		filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.34));
+	}
 	.cd-world-character-portrait::after {
 		content: "";
 		position: absolute;
 		inset: 40% 0 0;
-		background: linear-gradient(180deg, transparent, rgba(7, 6, 26, 0.9));
+		background: linear-gradient(180deg, transparent, rgba(7, 10, 20, 0.9));
 		pointer-events: none;
 	}
 	.cd-world-character-portrait figcaption {
 		position: absolute;
 		z-index: 1;
 		inset: auto 16px 14px;
-		color: #f4eeff;
+		color: var(--world-ink);
 		font-family: var(--font-serif);
 		font-size: 0.84rem;
 		letter-spacing: 0.02em;
@@ -522,14 +579,14 @@
 	}
 	.cd-world-role {
 		margin: 6px 0 0;
-		color: #e8d5a3;
+		color: var(--world-gold);
 		font-size: 0.7rem;
 		font-weight: 600;
 		letter-spacing: 0.16em;
 	}
 	.cd-world-name {
 		margin: 0;
-		color: #f8f4ff;
+		color: var(--world-ink);
 		font-family: var(--font-serif);
 		font-size: 1.32rem;
 		font-weight: 500;
@@ -538,7 +595,7 @@
 	.cd-world-character > p {
 		margin: 0;
 		padding: 0 4px 6px;
-		color: #cfc6e2;
+		color: var(--world-muted);
 		font-size: 0.95rem;
 		line-height: 1.85;
 		word-break: keep-all;
@@ -554,7 +611,7 @@
 		padding: 24px 26px;
 		border: 1px solid rgba(232, 213, 163, 0.14);
 		border-radius: 22px;
-		background: linear-gradient(180deg, rgba(22, 18, 48, 0.6), rgba(9, 7, 22, 0.8));
+		background: linear-gradient(180deg, rgba(18, 26, 47, 0.72), rgba(8, 11, 20, 0.92));
 	}
 	.cd-world-story-part .cd-world-name {
 		font-size: 1.12rem;
@@ -574,7 +631,7 @@
 		bottom: 6px;
 		left: 4px;
 		width: 1px;
-		background: linear-gradient(180deg, rgba(232, 213, 163, 0.55), rgba(232, 213, 163, 0.08));
+		background: linear-gradient(180deg, rgba(226, 199, 131, 0.68), rgba(226, 199, 131, 0.12));
 	}
 	.cd-world-story-stops li {
 		position: relative;
@@ -589,7 +646,7 @@
 		width: 9px;
 		height: 9px;
 		border-radius: 50%;
-		background: #e8d5a3;
+		background: var(--world-gold);
 		box-shadow: 0 0 0 4px rgba(232, 213, 163, 0.12);
 	}
 	.cd-world-story-name {
@@ -613,12 +670,12 @@
 		padding: 12px;
 		border: 1px solid rgba(232, 213, 163, 0.14);
 		border-radius: 22px;
-		background: linear-gradient(180deg, rgba(22, 18, 48, 0.6), rgba(9, 7, 22, 0.8));
+		background: linear-gradient(180deg, rgba(18, 26, 47, 0.72), rgba(8, 11, 20, 0.92));
 	}
 	.cd-world-place > p {
 		margin: 0;
 		padding: 0 6px 6px;
-		color: #cfc6e2;
+		color: var(--world-muted);
 		font-size: 0.92rem;
 		line-height: 1.75;
 		word-break: keep-all;
@@ -699,20 +756,52 @@
 			padding: 0;
 		}
 	}
+	@media (min-width: 1040px) {
+		.cd-world-characters,
+		.cd-world-places {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
 	@media (max-width: 720px) {
 		.cd-world-hero {
-			grid-template-columns: 1fr;
+			min-height: min(740px, 84svh);
+			padding: 26px;
+		}
+		.cd-world-hero-copy {
+			width: min(100%, 560px);
+		}
+		.cd-world-hero-art img {
+			object-position: center 34%;
+		}
+		.cd-world-hero-art::after {
+			background: linear-gradient(0deg, #080b14 0%, rgba(8, 11, 20, 0.84) 11%, rgba(8, 11, 20, 0.12) 68%), linear-gradient(90deg, rgba(8, 11, 20, 0.1), transparent);
+		}
+		.cd-world-hero-art figcaption {
+			inset: 18px 18px auto;
+			font-size: 0.75rem;
 		}
 	}
 	@media (max-width: 560px) {
 		.cd-world-hero {
-			gap: 20px;
-			margin-bottom: 30px;
-			padding: 18px;
+			margin-bottom: 38px;
+			padding: 22px;
 			border-radius: 22px;
 		}
 		.cd-world-hero .cd-main-title {
-			font-size: 2rem;
+			font-size: clamp(2.25rem, 10vw, 3.3rem);
+		}
+		.cd-world-hero .cd-main-intro {
+			font-size: 0.92rem;
+			line-height: 1.72;
+		}
+		.cd-world-hero-links {
+			gap: 8px;
+			margin-top: 20px;
+		}
+		.cd-world-hero-links a {
+			min-height: 46px;
+			padding-inline: 13px;
+			font-size: 0.82rem;
 		}
 		.cd-world-character {
 			padding: 12px;
@@ -722,7 +811,8 @@
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.cd-world-cta {
+		.cd-world-cta,
+		.cd-world-hero-links a {
 			transition: none;
 		}
 	}

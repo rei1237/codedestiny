@@ -44,72 +44,37 @@ const jsonLd = JSON.stringify({
 
 export default function WorldPage() {
   return (
-    <main className="cd-main-shell">
+    <main className="cd-main-shell cd-world-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
 
       <header className="cd-main-header cd-world-hero">
         <div className="cd-world-hero-copy">
-          <p className="cd-home-kicker">꿀꿀운세 · 이야기</p>
+          <p className="cd-home-kicker">CODE DESTINY · MOONLIGHT NOVEL</p>
           <h1 className="cd-main-title">캐릭터와 세계관</h1>
           <p className="cd-main-intro">
-            꿀꿀운세의 사주·타로·자미두수 화면 뒤에는 하나의 이야기가 깔려 있습니다.
-            대학생 연이가 이상한 앱을 열었다가 운명 세계로 떨어지고,
-            흩어진 제 사주 여덟 글자를 되찾아 가는 여정입니다.
-            상담 화면의 연이, 찻집과 달빛 음악은 전부 이 세계에서 왔습니다.
+            꽃돼지가 된 연이와 비밀을 품은 영냥이 네오.
+            사주의 강을 건너 흩어진 운명의 글자를 찾아가는 두 주인공의 이야기를 만나보세요.
           </p>
           <p className="cd-world-hero-trail">타로의 문 <span aria-hidden="true">→</span> 사주의 강 <span aria-hidden="true">→</span> 비겁의 섬</p>
+          <nav className="cd-world-hero-links" aria-label="세계관 바로가기">
+            <a href="#cast">주요 인물 만나기 <span aria-hidden="true">↓</span></a>
+            <a href="#story-map">이야기 지도 <span aria-hidden="true">↓</span></a>
+          </nav>
         </div>
         <figure className="cd-world-hero-art">
           <img
-            src="/images/novel/remaster/river-of-names-v1.webp"
-            alt="사주의 강으로 이어지는 운명 세계"
-            width="1200"
-            height="675"
+            src="/images/novel/yeoni-youngyangi-hero-v1.webp"
+            alt="달빛과 벚꽃이 흐르는 운명 세계에서 함께 모험하는 연이와 영냥이 네오"
+            width="1024"
+            height="1536"
+            fetchPriority="high"
           />
-          <figcaption>사주의 강을 지키는 네오</figcaption>
+          <figcaption><span>MOONLIGHT NOVEL</span>연이와 영냥이, 운명의 길 위에서</figcaption>
         </figure>
       </header>
 
-      <section className="cd-world-prologue" aria-labelledby="cd-world-prologue-title">
-        <p className="cd-world-prologue-label">THE WORLD BEHIND THE READING</p>
-        <h2 id="cd-world-prologue-title">한 장의 운명 카드에서 시작된 세계</h2>
-        <p>
-          연이는 타로의 문을 지나 운명 세계에 도착했습니다.
-          사주 여덟 글자를 되찾는 여정은 사주의 강과 네 개의 섬, 기억이 잠든 도서관으로 이어집니다.
-          꽃돼지는 다른 캐릭터가 아니라 그 여정에서 드러난 연이의 다른 모습입니다.
-        </p>
-        <p>
-          이 세계관은 운세 결과를 대신 해석하지 않습니다.
-          계산 엔진이 만든 값을 연이의 목소리로 전하고, 사용자는 그 문장을 자기 오늘에 비춰 봅니다.
-        </p>
-      </section>
-
-      <EditorNote note={getEditorNote("/world")} className="my-6" />
-
-      <section className="cd-world-section" aria-labelledby="cd-world-story">
-        <h2 id="cd-world-story" className="cd-world-h2">이야기 지도</h2>
-        <p className="cd-muted cd-world-section-intro">
-          여기서는 1부와 2부 초입까지만 다룹니다. 그 뒤의 이야기는 라이트 노벨 본편에서 읽을 수 있습니다.
-        </p>
-        <div className="cd-world-story">
-          {STORY_MAP.map((part) => (
-            <div key={part.part} className="cd-card cd-world-story-part">
-              <h3 className="cd-world-name">{part.part}</h3>
-              <ol className="cd-world-story-stops">
-                {part.stops.map((stop) => (
-                  <li key={stop.name}>
-                    <span className="cd-world-story-name">{stop.name}</span>
-                    <span className="cd-world-story-note">{stop.note}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="cd-world-section" aria-labelledby="cd-world-characters">
-        <h2 id="cd-world-characters" className="cd-world-h2">인물</h2>
+      <section id="cast" className="cd-world-section" aria-labelledby="cd-world-characters">
+        <h2 id="cd-world-characters" className="cd-world-h2">여정의 동행들</h2>
         {CHARACTER_GROUPS.map((group) => (
           <div key={group.id} className="cd-world-group">
             <h3 className="cd-world-group-title">{group.title}</h3>
@@ -141,6 +106,44 @@ export default function WorldPage() {
         ))}
       </section>
 
+      <section className="cd-world-prologue" aria-labelledby="cd-world-prologue-title">
+        <p className="cd-world-prologue-label">THE WORLD BEHIND THE READING</p>
+        <h2 id="cd-world-prologue-title">한 장의 운명 카드에서 시작된 세계</h2>
+        <p>
+          연이는 타로의 문을 지나 운명 세계에 도착했습니다.
+          사주 여덟 글자를 되찾는 여정은 사주의 강과 네 개의 섬, 기억이 잠든 도서관으로 이어집니다.
+          꽃돼지는 다른 캐릭터가 아니라 그 여정에서 드러난 연이의 다른 모습입니다.
+        </p>
+        <p>
+          이 세계관은 운세 결과를 대신 해석하지 않습니다.
+          계산 엔진이 만든 값을 연이의 목소리로 전하고, 사용자는 그 문장을 자기 오늘에 비춰 봅니다.
+        </p>
+      </section>
+
+      <EditorNote note={getEditorNote("/world")} className="my-6" />
+
+      <section id="story-map" className="cd-world-section" aria-labelledby="cd-world-story">
+        <h2 id="cd-world-story" className="cd-world-h2">이야기 지도</h2>
+        <p className="cd-muted cd-world-section-intro">
+          본편 초반의 여정만 담았습니다. 그 뒤의 이야기는 라이트 노벨에서 이어집니다.
+        </p>
+        <div className="cd-world-story">
+          {STORY_MAP.map((part) => (
+            <div key={part.part} className="cd-card cd-world-story-part">
+              <h3 className="cd-world-name">{part.part}</h3>
+              <ol className="cd-world-story-stops">
+                {part.stops.map((stop) => (
+                  <li key={stop.name}>
+                    <span className="cd-world-story-name">{stop.name}</span>
+                    <span className="cd-world-story-note">{stop.note}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="cd-world-section" aria-labelledby="cd-world-places">
         <h2 id="cd-world-places" className="cd-world-h2">장소</h2>
         <div className="cd-world-places">
@@ -166,9 +169,8 @@ export default function WorldPage() {
         <h2 id="cd-world-usage" className="cd-world-h2">세계관이 닿는 곳</h2>
         <div className="cd-card">
           <p>
-            화면의 ☀️ · 🌙 버튼은 라이트·다크 화면만 바꾸고, 상담자는 언제나 연이입니다.
-            연이는 마음부터 짚고 결론과 다음 할 일을 정리해 줍니다.
-            계산 자체는 화면 모드와 상관없이 같은 엔진을 씁니다 — 명식과 별자리 값은 사람이 아니라 계산기가 냅니다.
+            이 세계관은 운세 해석을 대신하지 않습니다. 명식과 별자리 값은 계산 엔진이 만들고,
+            연이와 네오는 그 결과를 각자의 목소리로 전합니다.
           </p>
           <nav className="cd-chip-wrap cd-world-chips" aria-label="이야기 관련 링크">
             {RELATED_LINKS.map((link) => (
