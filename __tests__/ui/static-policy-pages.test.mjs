@@ -33,7 +33,8 @@ for (const route of STATIC_POLICY_ROUTES) test(`${route.canonical} is complete s
     assert.match(html, /id="author"/);
     assert.doesNotMatch(html, /9,900원|4,900원|운영 반영 전|게시용 이미지/);
   } else {
-    assert.match(html, /꽃돼지가 길을 안내할게요/);
+    assert.match(html, /<a href="\/ggulggul\/"[^>]*>운세 둘러보기<\/a>/);
+    assert.match(html, /<a href="\/records\/"[^>]*>내 결과 다시 보기<\/a>/);
     assert.doesNotMatch(html, /href="\/styles\/service-intro\.css/);
   }
   assert.match(html, /<meta name="robots" content="index, follow">/);
@@ -60,7 +61,12 @@ for (const route of STATIC_POLICY_ROUTES) test(`${route.canonical} is complete s
     for (const locale of ['ja', 'en', 'zh']) assert.ok(languages[locale]?.startsWith(`https://code-destiny.com/${locale}/`), `${route.key}: missing return link for ${locale}`);
   }
   for (const anchor of anchors) assert.ok(ids.has(anchor), `broken section anchor: ${anchor}`);
-  assert.equal(scripts.length, route.key === 'contact' ? 1 : 0);
+  const expectedScripts = route.key === 'contact' ? ['/js/static-policy-contact.js']
+    : route.key === 'faq' ? ['/js/faq-search.js'] : [];
+  assert.deepEqual(scripts.map((src) => src.split('?')[0]), expectedScripts);
+  if (route.key === 'faq') {
+    assert.match(html, /<script type="module" src="\/js\/faq-search\.js\?v=/);
+  }
 });
 
 test('static contact composes mail without an API request and has a copy fallback', async () => {
