@@ -1,0 +1,5173 @@
+{
+  "sourceCommit": "d3f1ed91f9015324e63d19a981fbe682f8ad8a10",
+  "policy": "Review only. Registry entries may be historical. Active route wins; no sales registration authorized by this file.",
+  "maxNonGameSkus": 30,
+  "priceDecision": "user-review-required",
+  "skuGrouping": "same price alone does not establish equal entitlement",
+  "features": [
+    {
+      "featureKey": "animal-destiny-unlock",
+      "webPriceKRW": 7000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "animal-totem-basic",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "animal-totem-deep",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astro_basic_deep_pack",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astro_career_talent_deep",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astro_growth_shadow_deep",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astro_monthly_transit",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astro_relationship_deep",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astro_stellar_career_room",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astro_stellar_growth_room",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astro_stellar_relationship_room",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astro_stellar_talent_room",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astro_talent_attraction_deep",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astro_yearly_transit",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astrology-ai-consultation",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "astrology_ai_prompt_generator",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "coin-gate-per-use",
+      "webPriceKRW": null,
+      "billingType": null,
+      "accessModel": null,
+      "reviewCandidates": [],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "compat-astro-direct-synastry",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "compat-astro-synastry",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "compat-saju-compatibility",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "compat-sukuyo-compatibility",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "compat-ziwei-compatibility",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "cosmic-soul-meditation",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "daily-fortune-reading",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "destiny-bias-analyze",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "destiny-compass-crossroads",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "destiny-compass-deep-report",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "destiny-compass-future-sim",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "destiny-compass-life-voyage",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "destiny_meeting_place",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "dream-prompt-generator",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "dream-psycho-analysis",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "egyptOracle",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "egyptian_oracle_ai_prompt",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "sukuyo-extreme-t-relationship",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "flower-fc",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-chat-consultation",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 13630,
+          "estimatedFinalKRW": 14993,
+          "differenceKRW": -7
+        },
+        {
+          "supplyKRW": 13640,
+          "estimatedFinalKRW": 15004,
+          "differenceKRW": 4
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-chat-question-tuna",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-prompt-hub-generate",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-tea-house-saju-compatibility-consultation",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-tea-house-saju-consultation",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-tea-house-saju-joint-consultation",
+      "webPriceKRW": 15000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 13630,
+          "estimatedFinalKRW": 14993,
+          "differenceKRW": -7
+        },
+        {
+          "supplyKRW": 13640,
+          "estimatedFinalKRW": 15004,
+          "differenceKRW": 4
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-tea-house-sukuyo-compatibility-consultation",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-tea-house-tarot-consultation",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fortune-tea-house-tarot-five-consultation",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fun.quantumLotto.ritualReport",
+      "webPriceKRW": 1000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 900,
+          "estimatedFinalKRW": 990,
+          "differenceKRW": -10
+        },
+        {
+          "supplyKRW": 910,
+          "estimatedFinalKRW": 1001,
+          "differenceKRW": 1
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "fusion-fortune-consultation",
+      "webPriceKRW": 50000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 45450,
+          "estimatedFinalKRW": 49995,
+          "differenceKRW": -5
+        },
+        {
+          "supplyKRW": 45460,
+          "estimatedFinalKRW": 50006,
+          "differenceKRW": 6
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "premium-fpti-report",
+      "webPriceKRW": 10000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "premium-sibyl-dominator",
+      "webPriceKRW": 20000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 18180,
+          "estimatedFinalKRW": 19998,
+          "differenceKRW": -2
+        },
+        {
+          "supplyKRW": 18190,
+          "estimatedFinalKRW": 20009,
+          "differenceKRW": 9
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "geomancy",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "premium-naming-prompt",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "neo-operation-room-consultation",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "sukuyo-compatibility-ai",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "vedic-ai-consultation",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "ziwei-ai-consultation",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "healthReport",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "human-design-chart",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "human-design-report",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "ifa-oracle",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "karma-destiny-ai-consultation",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "life-book-ai-consultation",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "life-fortune-ai-consultation",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "love-code",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "love-secret-ai-consultation",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "master-love-codex",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "master-love-codex-compat",
+      "webPriceKRW": 50000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 45450,
+          "estimatedFinalKRW": 49995,
+          "differenceKRW": -5
+        },
+        {
+          "supplyKRW": 45460,
+          "estimatedFinalKRW": 50006,
+          "differenceKRW": 6
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "maya-prompt-generator",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "mbti-animal-compat",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "nakshatra-ai-consultation",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "nakshatra-basic-reading",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "nakshatra-compat",
+      "webPriceKRW": 20000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 18180,
+          "estimatedFinalKRW": 19998,
+          "differenceKRW": -2
+        },
+        {
+          "supplyKRW": 18190,
+          "estimatedFinalKRW": 20009,
+          "differenceKRW": 9
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "nakshatra-dasha-map",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "nakshatra-lord-report",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "nakshatra-muhurta",
+      "webPriceKRW": 7000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "nakshatra-vvip-codex",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "neo-email-consultation",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "neville-meditation",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "new-year-ai-consultation",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "olympus-fc",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-celestial-harmony",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-crystal-soul-reading",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "openGeomancyOracle",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-ijik",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "openJuyukModal",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "openKemetModal",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-mindscan",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "royal-tea-oracle",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "stonehengeRunes",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "saju-guardian-unlock",
+      "webPriceKRW": 7000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-love-relationship",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-reunion-reading",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-year-fortune",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tetogen_deep_report",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yoga-guru-per-use",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "palm-reading-ai-consult",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "palm-reading-general",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "pet-compatibility-ai",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "pet-saju-ai-consultation",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "physiognomy-compatibility",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "physiognomy-ogwan-mole-deep",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "physiognomy-pastlife-compatibility",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "premium-sukuyo-compat-extra",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "premiumDivinationPack",
+      "webPriceKRW": 30000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "premiumTarot",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "profile-card-manage",
+      "webPriceKRW": 1000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 900,
+          "estimatedFinalKRW": 990,
+          "differenceKRW": -10
+        },
+        {
+          "supplyKRW": 910,
+          "estimatedFinalKRW": 1001,
+          "differenceKRW": 1
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "psychotest-reading",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "relationship-boundary-test",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "rpgCharacter",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "rpt_energyCoordCard",
+      "webPriceKRW": 7000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "rpt_healthReportCard",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "rpt_quantumCard",
+      "webPriceKRW": 10000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "rpt_secretHouseEntryCard",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "rpt_skillTreeCard",
+      "webPriceKRW": 1000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 900,
+          "estimatedFinalKRW": 990,
+          "differenceKRW": -10
+        },
+        {
+          "supplyKRW": 910,
+          "estimatedFinalKRW": 1001,
+          "differenceKRW": 1
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "rpt_specialCharmCard",
+      "webPriceKRW": 1000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 900,
+          "estimatedFinalKRW": 990,
+          "differenceKRW": -10
+        },
+        {
+          "supplyKRW": 910,
+          "estimatedFinalKRW": 1001,
+          "differenceKRW": 1
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "rpt_villainCard",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "sajuDiary",
+      "webPriceKRW": 10000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "saju_ai_question_prompt",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "secretHouseEpisodes",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "section_compat",
+      "webPriceKRW": 10000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "section_daewun",
+      "webPriceKRW": 20000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 18180,
+          "estimatedFinalKRW": 19998,
+          "differenceKRW": -2
+        },
+        {
+          "supplyKRW": 18190,
+          "estimatedFinalKRW": 20009,
+          "differenceKRW": 9
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "section_summary",
+      "webPriceKRW": 10000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-myeongri-three-card",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "stonehenge-runes-ai-prompt",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "stonehenge-runes-deep",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "stonehenge-runes-single",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "stonehenge-runes-triad",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "stonehenge-runes-yearly",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "sukuyo-monthly-fortune",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "sukuyo-nature-deep-dive",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "sukuyo-past-life-reading",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "sukuyo-relationship-encyclopedia",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "sukuyo-symbolic-comparison",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "sukuyo_ai_prompt_generator",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "sukyo_yearly_fortune_unlock",
+      "webPriceKRW": 7000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-numerology-reading",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-prompt-maker",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-prompt-maker-deep",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-prompt-maker-master",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "tarot-prompt-maker-standard",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "travelDestiny",
+      "webPriceKRW": 7000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 6360,
+          "estimatedFinalKRW": 6996,
+          "differenceKRW": -4
+        },
+        {
+          "supplyKRW": 6370,
+          "estimatedFinalKRW": 7007,
+          "differenceKRW": 7
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "turtleIChing",
+      "webPriceKRW": 3000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 2720,
+          "estimatedFinalKRW": 2992,
+          "differenceKRW": -8
+        },
+        {
+          "supplyKRW": 2730,
+          "estimatedFinalKRW": 3003,
+          "differenceKRW": 3
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "vedic-compatibility-per-use",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "vedic_ai_prompt_generator",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "vedic_basic_reading",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "vedic_prashna_prompt",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-astrology-flounder",
+      "webPriceKRW": 15000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 13630,
+          "estimatedFinalKRW": 14993,
+          "differenceKRW": -7
+        },
+        {
+          "supplyKRW": 13640,
+          "estimatedFinalKRW": 15004,
+          "differenceKRW": 4
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-astrology-mackerel",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-astrology-salmon",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-astrology-tuna",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-fusion-all",
+      "webPriceKRW": 60000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 54540,
+          "estimatedFinalKRW": 59994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 54550,
+          "estimatedFinalKRW": 60005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-fusion-astrology-tarot",
+      "webPriceKRW": 50000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 45450,
+          "estimatedFinalKRW": 49995,
+          "differenceKRW": -5
+        },
+        {
+          "supplyKRW": 45460,
+          "estimatedFinalKRW": 50006,
+          "differenceKRW": 6
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-fusion-saju-ziwei",
+      "webPriceKRW": 50000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 45450,
+          "estimatedFinalKRW": 49995,
+          "differenceKRW": -5
+        },
+        {
+          "supplyKRW": 45460,
+          "estimatedFinalKRW": 50006,
+          "differenceKRW": 6
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-fusion-sukuyo-vedic",
+      "webPriceKRW": 50000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 45450,
+          "estimatedFinalKRW": 49995,
+          "differenceKRW": -5
+        },
+        {
+          "supplyKRW": 45460,
+          "estimatedFinalKRW": 50006,
+          "differenceKRW": 6
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-saju-flounder",
+      "webPriceKRW": 15000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 13630,
+          "estimatedFinalKRW": 14993,
+          "differenceKRW": -7
+        },
+        {
+          "supplyKRW": 13640,
+          "estimatedFinalKRW": 15004,
+          "differenceKRW": 4
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-saju-mackerel",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-saju-salmon",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-saju-tuna",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-sukuyo-flounder",
+      "webPriceKRW": 15000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 13630,
+          "estimatedFinalKRW": 14993,
+          "differenceKRW": -7
+        },
+        {
+          "supplyKRW": 13640,
+          "estimatedFinalKRW": 15004,
+          "differenceKRW": 4
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-sukuyo-mackerel",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-sukuyo-salmon",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-sukuyo-tuna",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-tarot-flounder",
+      "webPriceKRW": 15000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 13630,
+          "estimatedFinalKRW": 14993,
+          "differenceKRW": -7
+        },
+        {
+          "supplyKRW": 13640,
+          "estimatedFinalKRW": 15004,
+          "differenceKRW": 4
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-tarot-mackerel",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-tarot-salmon",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-tarot-tuna",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-vedic-flounder",
+      "webPriceKRW": 15000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 13630,
+          "estimatedFinalKRW": 14993,
+          "differenceKRW": -7
+        },
+        {
+          "supplyKRW": 13640,
+          "estimatedFinalKRW": 15004,
+          "differenceKRW": 4
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-vedic-mackerel",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-vedic-salmon",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-vedic-tuna",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-ziwei-flounder",
+      "webPriceKRW": 15000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 13630,
+          "estimatedFinalKRW": 14993,
+          "differenceKRW": -7
+        },
+        {
+          "supplyKRW": 13640,
+          "estimatedFinalKRW": 15004,
+          "differenceKRW": 4
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-ziwei-mackerel",
+      "webPriceKRW": 5000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-ziwei-salmon",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "yeongnyangi-ziwei-tuna",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "ziwei_ai_prompt_generator",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "ziwei-deep-pdf",
+      "webPriceKRW": 30000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 27270,
+          "estimatedFinalKRW": 29997,
+          "differenceKRW": -3
+        },
+        {
+          "supplyKRW": 27280,
+          "estimatedFinalKRW": 30008,
+          "differenceKRW": 8
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "ziwei-island-deep-report",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "ziwei-island-palace-consult",
+      "webPriceKRW": 10000,
+      "billingType": "per_use",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 9090,
+          "estimatedFinalKRW": 9999,
+          "differenceKRW": -1
+        },
+        {
+          "supplyKRW": 9100,
+          "estimatedFinalKRW": 10010,
+          "differenceKRW": 10
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "ziwei_decade_luck",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "ziwei_life_yearly_flow",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "ziwei_love_deep",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "ziwei_symbolic_layer",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    },
+    {
+      "featureKey": "ziwei_twelve_palaces",
+      "webPriceKRW": 5000,
+      "billingType": "unlock",
+      "accessModel": null,
+      "reviewCandidates": [
+        {
+          "supplyKRW": 4540,
+          "estimatedFinalKRW": 4994,
+          "differenceKRW": -6
+        },
+        {
+          "supplyKRW": 4550,
+          "estimatedFinalKRW": 5005,
+          "differenceKRW": 5
+        }
+      ],
+      "approvedSku": null,
+      "approvedFinalKRW": null,
+      "feeEvidence": null,
+      "llmCostEvidence": null,
+      "status": "requires-active-route-and-price-review"
+    }
+  ],
+  "consultations": [
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "saju_mackerel",
+      "featureKey": "yeongnyangi-saju-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "saju_salmon",
+      "featureKey": "yeongnyangi-saju-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "saju_flounder",
+      "featureKey": "yeongnyangi-saju-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "saju_tuna",
+      "featureKey": "yeongnyangi-saju-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "ziwei_mackerel",
+      "featureKey": "yeongnyangi-ziwei-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "ziwei_salmon",
+      "featureKey": "yeongnyangi-ziwei-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "ziwei_flounder",
+      "featureKey": "yeongnyangi-ziwei-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "ziwei_tuna",
+      "featureKey": "yeongnyangi-ziwei-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "sukuyo_mackerel",
+      "featureKey": "yeongnyangi-sukuyo-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "sukuyo"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "sukuyo_salmon",
+      "featureKey": "yeongnyangi-sukuyo-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "sukuyo"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "sukuyo_flounder",
+      "featureKey": "yeongnyangi-sukuyo-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "sukuyo"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "sukuyo_tuna",
+      "featureKey": "yeongnyangi-sukuyo-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "sukuyo"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "vedic_mackerel",
+      "featureKey": "yeongnyangi-vedic-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "vedic_salmon",
+      "featureKey": "yeongnyangi-vedic-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "vedic_flounder",
+      "featureKey": "yeongnyangi-vedic-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "vedic_tuna",
+      "featureKey": "yeongnyangi-vedic-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "astrology_mackerel",
+      "featureKey": "yeongnyangi-astrology-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "astrology"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "astrology_salmon",
+      "featureKey": "yeongnyangi-astrology-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "astrology"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "astrology_flounder",
+      "featureKey": "yeongnyangi-astrology-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "astrology"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "astrology_tuna",
+      "featureKey": "yeongnyangi-astrology-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "astrology"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "tarot_mackerel",
+      "featureKey": "yeongnyangi-tarot-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "tarot"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "tarot_salmon",
+      "featureKey": "yeongnyangi-tarot-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "tarot"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "tarot_flounder",
+      "featureKey": "yeongnyangi-tarot-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "tarot"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "tarot_tuna",
+      "featureKey": "yeongnyangi-tarot-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "tarot"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "fusion_saju_ziwei",
+      "featureKey": "yeongnyangi-fusion-saju-ziwei",
+      "webPriceKRW": 50000,
+      "systems": [
+        "saju",
+        "ziwei"
+      ],
+      "depth": "assorted",
+      "manifestVersion": "fusion-book-v1",
+      "chapterCount": 9,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "fusion_sukuyo_vedic",
+      "featureKey": "yeongnyangi-fusion-sukuyo-vedic",
+      "webPriceKRW": 50000,
+      "systems": [
+        "sukuyo",
+        "vedic"
+      ],
+      "depth": "assorted",
+      "manifestVersion": "fusion-book-v1",
+      "chapterCount": 9,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "fusion_astrology_tarot",
+      "featureKey": "yeongnyangi-fusion-astrology-tarot",
+      "webPriceKRW": 50000,
+      "systems": [
+        "astrology",
+        "tarot"
+      ],
+      "depth": "assorted",
+      "manifestVersion": "fusion-book-v1",
+      "chapterCount": 9,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeongnyangi",
+      "productId": "fusion_all",
+      "featureKey": "yeongnyangi-fusion-all",
+      "webPriceKRW": 60000,
+      "systems": [
+        "saju",
+        "ziwei",
+        "sukuyo",
+        "vedic",
+        "astrology",
+        "tarot"
+      ],
+      "depth": "omakase",
+      "manifestVersion": "fusion-book-v1",
+      "chapterCount": 12,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_saju_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_saju_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_saju_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_saju_tuna",
+      "featureKey": "fortune-chat-question-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_ziwei_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_ziwei_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_ziwei_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_ziwei_tuna",
+      "featureKey": "fortune-chat-question-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_sukuyo_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "sukuyo"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_sukuyo_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "sukuyo"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_sukuyo_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "sukuyo"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_vedic_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_vedic_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_vedic_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_vedic_tuna",
+      "featureKey": "fortune-chat-question-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_astrology_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "astrology"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_astrology_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "astrology"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_astrology_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "astrology"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_tarot_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "tarot"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_tarot_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "tarot"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "yeoni",
+      "productId": "chat_tarot_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "tarot"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_saju_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_saju_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_saju_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_saju_tuna",
+      "featureKey": "fortune-chat-question-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "saju"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_ziwei_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_ziwei_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_ziwei_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_ziwei_tuna",
+      "featureKey": "fortune-chat-question-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "ziwei"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_sukuyo_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "sukuyo"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_sukuyo_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "sukuyo"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_sukuyo_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "sukuyo"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_vedic_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_vedic_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_vedic_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_vedic_tuna",
+      "featureKey": "fortune-chat-question-tuna",
+      "webPriceKRW": 30000,
+      "systems": [
+        "vedic"
+      ],
+      "depth": "tuna",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 15,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_astrology_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "astrology"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_astrology_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "astrology"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_astrology_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "astrology"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_tarot_mackerel",
+      "featureKey": "fortune-chat-question-mackerel",
+      "webPriceKRW": 5000,
+      "systems": [
+        "tarot"
+      ],
+      "depth": "mackerel",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 5,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_tarot_salmon",
+      "featureKey": "fortune-chat-question-salmon",
+      "webPriceKRW": 10000,
+      "systems": [
+        "tarot"
+      ],
+      "depth": "salmon",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 8,
+      "approvedSku": null
+    },
+    {
+      "serviceId": "neo",
+      "productId": "chat_tarot_flounder",
+      "featureKey": "fortune-chat-question-flounder",
+      "webPriceKRW": 15000,
+      "systems": [
+        "tarot"
+      ],
+      "depth": "flounder",
+      "manifestVersion": "destiny-book-v6",
+      "chapterCount": 11,
+      "approvedSku": null
+    }
+  ]
+}

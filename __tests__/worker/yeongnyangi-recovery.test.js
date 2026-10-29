@@ -16,6 +16,10 @@ jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({Yeongnya
 jest.unstable_mockModule('../../worker/yeongnyangi/service',()=>({providerReady:()=>false,activateFortune:jest.fn(),generateNextChapter:jest.fn()}));
 let runYeongnyangiRecovery,abandonedRequestFilter,holdAlertMessage;
 beforeAll(async()=>{({runYeongnyangiRecovery,abandonedRequestFilter,holdAlertMessage}=await import('../../worker/yeongnyangi/recovery.js'));});
+
+test('Toss paid rows remain in the durable recovery scan after queue publication fails',()=>{
+  expect(abandonedRequestFilter(Date.now()).$or).toContainEqual({accessMethod:'TOSS_IAP',paymentClaimOrderId:{$ne:null}});
+});
 beforeEach(()=>{orders=[];candidates=[];held=[];stopped=[];alerts=[];filters=[];keepHold.mockClear();markHoldAlerted.mockClear();});
 test('disabled provider scans stored work without activating purchases or reviving holds',async()=>{
   const connectDb=jest.fn(),generate=jest.fn(),activate=jest.fn(),resumeAfterFix=jest.fn(),escalate=jest.fn(),enqueue=jest.fn();

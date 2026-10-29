@@ -1066,6 +1066,13 @@ jobs:
         # test:node already runs in the required guards lane for every tier.
         run: npm run test:jest
 
+      - name: Verify Toss miniapp and offline platform contracts
+        if: needs.classify.outputs.runs_critical == 'true'
+        run: |
+          npm ci --prefix apps/toss
+          npm test --prefix apps/toss
+          npm run build --prefix apps/toss
+
       # 🔴 `deploy:critical` 의 게이트를 머지 전으로 당긴다 (2026-08-24).
       #
       # deploy-safe.mjs:724-729 는 risk=high 이거나 deep 이 걸리면 `npm run deploy:critical` 을

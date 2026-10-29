@@ -1,0 +1,5440 @@
+{
+  "sourceCommit": "d3f1ed91f9015324e63d19a981fbe682f8ad8a10",
+  "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
+  "sourceCounts": {
+    "home": 63,
+    "react": 18,
+    "visual": 85
+  },
+  "entries": [
+    {
+      "id": "animal-destiny",
+      "name": "십이운성 동물점",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "animal-destiny",
+          "name": "십이운성 동물점",
+          "entry": "/saju/animal-destiny/",
+          "featureKey": "animal-destiny-unlock",
+          "accessEvidence": "7,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "animal-destiny",
+          "name": "운명의 동물 도감",
+          "entry": "/saju/animal-destiny/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "animal-guardian-unlock",
+      "name": "십이운성 동물점",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "animal-guardian-unlock",
+          "name": "십이운성 동물점",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "animal-totem",
+      "name": "애니멀 토템",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "animal-totem",
+          "name": "애니멀 토템",
+          "entry": "openAnimalTotemModal",
+          "featureKey": "animal-totem-basic",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "react-registry",
+          "id": "animal-totem",
+          "name": "애니멀 토템",
+          "entry": "/index.html?action=openAnimalTotemModal",
+          "featureKey": "animal-totem-basic",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "animal-totem",
+          "name": "animal-totem",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "astrology",
+      "name": "점성술",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "astrology",
+          "name": "점성술",
+          "entry": "/?action=cdHomeAstroEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "astrology",
+          "name": "서양 점성술 차트 분석",
+          "entry": "/index.html?action=openAstroModal",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "astrology",
+          "name": "서양 점성술 차트 분석",
+          "entry": "/index.html?action=openAstroModal",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "astrology-ai",
+      "name": "점성술 전문가 상담",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "astrology-ai",
+          "name": "점성술 전문가 상담",
+          "entry": "/astrology-ai",
+          "featureKey": "astrology-ai-consultation",
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "astrology-flower",
+      "name": "점성술 꽃",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "astrology-flower",
+          "name": "점성술 꽃",
+          "entry": "/index.html?action=openAstrologyFlowerStudio",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "bias-destiny",
+      "name": "최애운명",
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "bias-destiny",
+          "name": "최애운명",
+          "entry": "/saju/destiny-bias",
+          "featureKey": "destiny-bias-analyze",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "bias-destiny",
+          "name": "bias-destiny",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "career-style",
+      "name": "나의 일 스타일",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "career-style",
+          "name": "나의 일 스타일",
+          "entry": "/saju/career-style/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "cosmic-soul-meditation",
+      "name": "코스믹 소울 명상",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "cosmic-soul-meditation",
+          "name": "코스믹 소울 명상",
+          "entry": "/cosmic-soul-meditation.html",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "daily-fortune",
+      "name": "오늘의 운세",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "daily-fortune",
+          "name": "오늘의 운세",
+          "entry": "/today/",
+          "featureKey": "daily-fortune-reading",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "daily-fortune",
+          "name": "daily-fortune",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "destiny-compass",
+      "name": "운명의 나침반",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "destiny-compass",
+          "name": "운명의 나침반",
+          "entry": "/destiny-compass/",
+          "featureKey": "destiny-compass-life-voyage",
+          "accessEvidence": "7,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "destiny-compass",
+          "name": "destiny-compass",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "destiny-flower",
+      "name": "운명의 꽃 아틀리에",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "destiny-flower",
+          "name": "운명의 꽃 아틀리에",
+          "entry": "/index.html?action=openDestinyFlowerStudio",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "destiny-meeting-place",
+      "name": "사주로 보는 인연의 장소",
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "destiny-meeting-place",
+          "name": "사주로 보는 인연의 장소",
+          "entry": "/saju/destiny-meeting-place",
+          "featureKey": "destiny_meeting_place",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "destiny-meeting-place",
+          "name": "destiny-meeting-place",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "dream",
+      "name": "꿈해몽",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "dream",
+          "name": "꿈해몽",
+          "entry": "/dream/",
+          "featureKey": "dream-prompt-generator",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "dream",
+          "name": "dream",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "dream-psycho-analysis",
+      "name": "정신분석 해몽",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "dream-psycho-analysis",
+          "name": "정신분석 해몽",
+          "entry": "openPsychoDreamModal",
+          "featureKey": "dream-psycho-analysis",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "dream-psycho-analysis",
+          "name": "dream-psycho-analysis",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "energy-travel",
+      "name": "사주로 보는 여행지",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "energy-travel",
+          "name": "사주로 보는 여행지",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "face-reading",
+      "name": "전문가 관상 분석",
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "face-reading",
+          "name": "전문가 관상 분석",
+          "entry": "/animal/physio",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "face-reading",
+          "name": "전문가 동물 관상",
+          "entry": "/animal/physio",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "famous-saju",
+      "name": "유명인 사주",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "famous-saju",
+          "name": "유명인 사주",
+          "entry": "/insights/famous-saju/",
+          "featureKey": null,
+          "accessEvidence": "읽을거리"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "famous-saju",
+          "name": "famous-saju",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "flower",
+      "name": "운명의 꽃",
+      "evidence": [
+        {
+          "source": "app/flower/page.tsx",
+          "entry": "/flower/"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "fortune-chat",
+      "name": "대화형 운명 상담",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "fortune-chat",
+          "name": "대화형 운명 상담",
+          "entry": "/fortune-chat/",
+          "featureKey": "fortune-chat-consultation",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "fortune-chat",
+          "name": "fortune-chat",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "fortune-tea-house",
+      "name": "운명의 찻집",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "fortune-tea-house",
+          "name": "운명의 찻집",
+          "entry": "/fortune-tea-house/",
+          "featureKey": "fortune-tea-house-tarot-consultation",
+          "accessEvidence": "5,000원~15,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "fortune-tea-house",
+          "name": "운명의 찻집",
+          "entry": "/fortune-tea-house/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "fusion-fortune",
+      "name": "초융합 심층 리딩",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "fusion-fortune",
+          "name": "초융합 심층 리딩",
+          "entry": "/fusion-fortune/",
+          "featureKey": "fusion-fortune-consultation",
+          "accessEvidence": "50,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "fusion-fortune",
+          "name": "fusion-fortune",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "geomancy-oracle",
+      "name": "지오맨시 흙점",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "geomancy-oracle",
+          "name": "지오맨시 흙점",
+          "entry": "openGeomancyOracle",
+          "featureKey": "openGeomancyOracle",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "geomancy-oracle",
+          "name": "geomancy-oracle",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "health-rhythm",
+      "name": "명리 헬스 리포트",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "health-rhythm",
+          "name": "명리 헬스 리포트",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "human-design",
+      "name": "휴먼 디자인",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "human-design",
+          "name": "휴먼 디자인",
+          "entry": "/human-design/",
+          "featureKey": "human-design-chart",
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "human-design",
+          "name": "human-design",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "ifa-oracle",
+      "name": "IFÀ 오라클",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "ifa-oracle",
+          "name": "IFÀ 오라클",
+          "entry": "/ifa-oracle.html",
+          "featureKey": "ifa-oracle",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "ifa-oracle",
+          "name": "ifa-oracle",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "juyuk-turtle",
+      "name": "주역 거북점",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "juyuk-turtle",
+          "name": "주역 거북점",
+          "entry": "/oracle/juyuk/",
+          "featureKey": "openJuyukModal",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "juyuk-turtle",
+          "name": "juyuk-turtle",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "karma-destiny-ai",
+      "name": "네오와 서한비의 붉은 실",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "karma-destiny-ai",
+          "name": "네오와 서한비의 붉은 실",
+          "entry": "/karma-destiny-ai/",
+          "featureKey": "karma-destiny-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "karma-destiny-ai",
+          "name": "karma-destiny-ai",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "kemet-oracle",
+      "name": "이집트 신탁",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "kemet-oracle",
+          "name": "이집트 신탁",
+          "entry": "openKemetModal",
+          "featureKey": "openKemetModal",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "kemet-oracle",
+          "name": "kemet-oracle",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "life-book-ai",
+      "name": "인생의 책",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "life-book-ai",
+          "name": "인생의 책",
+          "entry": "/life-book-ai/",
+          "featureKey": "life-book-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "life-book-ai",
+          "name": "인생의 책",
+          "entry": "/life-book-ai/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "life-fortune-report",
+      "name": "인생 총운 전문가 상담",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "life-fortune-report",
+          "name": "인생 총운 전문가 상담",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "life-skill-tree",
+      "name": "인생 스킬 트리",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "life-skill-tree",
+          "name": "인생 스킬 트리",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "love-code",
+      "name": "러브 코드",
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "love-code",
+          "name": "러브 코드",
+          "entry": "/index.html?action=openLoveSimulation",
+          "featureKey": "love-code",
+          "accessEvidence": "paid"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "love-secret-ai",
+      "name": "연애 비책",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "love-secret-ai",
+          "name": "연애 비책",
+          "entry": "/love-secret-ai/",
+          "featureKey": "love-secret-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "love-secret-ai",
+          "name": "연애 비책",
+          "entry": "/love-secret-ai/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "love-simulation",
+      "name": "LOVE CODE 연애 시뮬레이션",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "love-simulation",
+          "name": "LOVE CODE 연애 시뮬레이션",
+          "entry": "/saju/love-simulation/",
+          "featureKey": "love-code",
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "luck-sync-diary",
+      "name": "운기 다이어리와 플래너",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "luck-sync-diary",
+          "name": "운기 다이어리와 플래너",
+          "entry": "/diary/",
+          "featureKey": null,
+          "accessEvidence": "기록 도구"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "luck-sync-diary",
+          "name": "luck-sync-diary",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "manse",
+      "name": "만세력",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "manse",
+          "name": "만세력",
+          "entry": "/manse/",
+          "featureKey": null,
+          "accessEvidence": "차트 공개"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "manse",
+          "name": "manse",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "master-love-codex",
+      "name": "마스터 인연의 서",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "master-love-codex",
+          "name": "마스터 인연의 서",
+          "entry": "/master-love-codex/",
+          "featureKey": "master-love-codex",
+          "accessEvidence": "30,000원~50,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "master-love-codex",
+          "name": "마스터 인연의 서",
+          "entry": "/master-love-codex/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "master-love-codex-compat",
+      "name": "마스터 인연의 서 · 궁합편",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "master-love-codex-compat",
+          "name": "마스터 인연의 서 · 궁합편",
+          "entry": "/master-love-codex/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "maya",
+      "name": "마야점",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "maya",
+          "name": "마야점",
+          "entry": "/maya/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "maya",
+          "name": "maya",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "mbti-animal-compat",
+      "name": "MBTI 동물 궁합",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "mbti-animal-compat",
+          "name": "MBTI 동물 궁합",
+          "entry": "openMbtiModal",
+          "featureKey": "mbti-animal-compat",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "mbti-animal-compat",
+          "name": "mbti-animal-compat",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "music",
+      "name": "달빛 음악 플레이어",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "music",
+          "name": "달빛 음악 플레이어",
+          "entry": "/music/",
+          "featureKey": null,
+          "accessEvidence": "스트리밍 · 다운로드 1,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "music",
+          "name": "music",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "nakshatra",
+      "name": "나크샤트라 결정판",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra",
+          "name": "나크샤트라 결정판",
+          "entry": "/nakshatra/",
+          "featureKey": "nakshatra-basic-reading",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "nakshatra",
+          "name": "nakshatra",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "nakshatra-ai",
+      "name": "숙요·나크샤트라 통합 상담",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-ai",
+          "name": "숙요·나크샤트라 통합 상담",
+          "entry": "/nakshatra/ai/",
+          "featureKey": "nakshatra-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "nakshatra-ai",
+          "name": "숙요·나크샤트라 통합 상담",
+          "entry": "/nakshatra/ai",
+          "featureKey": "nakshatra-ai-consultation",
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "nakshatra-compat",
+      "name": "동서 통합 궁합",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-compat",
+          "name": "동서 통합 궁합",
+          "entry": "/nakshatra/compat/",
+          "featureKey": "nakshatra-compat",
+          "accessEvidence": "20,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "nakshatra-compat",
+          "name": "동서 통합 궁합",
+          "entry": "/nakshatra/compat/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "nakshatra-muhurta",
+      "name": "택일 무후르타",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-muhurta",
+          "name": "택일 무후르타",
+          "entry": "/nakshatra/muhurta/",
+          "featureKey": "nakshatra-muhurta",
+          "accessEvidence": "7,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "nakshatra-muhurta",
+          "name": "nakshatra-muhurta",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "nakshatra-vvip-codex",
+      "name": "나크샤트라 VVIP 코덱스",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-vvip-codex",
+          "name": "나크샤트라 VVIP 코덱스",
+          "entry": "/nakshatra/vvip/",
+          "featureKey": "nakshatra-vvip-codex",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "nakshatra-vvip-codex",
+          "name": "나크샤트라 VVIP 코덱스",
+          "entry": "/nakshatra/vvip",
+          "featureKey": "nakshatra-vvip-codex",
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "naming-ai",
+      "name": "전문가 작명소",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "naming-ai",
+          "name": "전문가 작명소",
+          "entry": "/naming-ai/",
+          "featureKey": "premium-naming-prompt",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "naming-ai",
+          "name": "naming-ai",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "neo-consultation",
+      "name": "네오에게 물어봐",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "neo-consultation",
+          "name": "네오에게 물어봐",
+          "entry": "/neo-consultation/",
+          "featureKey": "neo-email-consultation",
+          "accessEvidence": "30,000원"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "neo-operation-room",
+      "name": "팩폭 전략소",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "neo-operation-room",
+          "name": "팩폭 전략소",
+          "entry": "/neo-operation-room/",
+          "featureKey": "neo-operation-room-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "neo-operation-room",
+          "name": "네오의 팩폭 작전실",
+          "entry": "/neo-operation-room/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "neville-meditation",
+      "name": "네빌 명상 실습",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "neville-meditation",
+          "name": "네빌 명상 실습",
+          "entry": "/neville-meditation.html",
+          "featureKey": "neville-meditation",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "neville-meditation",
+          "name": "neville-meditation",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "new-year-ai",
+      "name": "신년운세",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "new-year-ai",
+          "name": "신년운세",
+          "entry": "/new-year-ai-consultation/",
+          "featureKey": "new-year-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "new-year-ai",
+          "name": "신년운세",
+          "entry": "/new-year-ai-consultation/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "novel",
+      "name": "라이트 노벨",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "novel",
+          "name": "라이트 노벨",
+          "entry": "/codedestiny-novel.html",
+          "featureKey": null,
+          "accessEvidence": "연재 읽을거리"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "novel",
+          "name": "novel",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "olympus-oracle",
+      "name": "올림푸스 신탁",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "olympus-oracle",
+          "name": "올림푸스 신탁",
+          "entry": "/index.html?action=openOlympusOracleModal",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "omikuji",
+      "name": "이모이 오미쿠지",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "omikuji",
+          "name": "이모이 오미쿠지",
+          "entry": "/emoi_omikuji_v2.html",
+          "featureKey": null,
+          "accessEvidence": "무료"
+        },
+        {
+          "source": "react-registry",
+          "id": "omikuji",
+          "name": "이모이 오미쿠지",
+          "entry": "/emoi_omikuji_v2.html",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "omikuji",
+          "name": "omikuji",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "palm-reading",
+      "name": "손금",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "palm-reading",
+          "name": "손금",
+          "entry": "/palm-reading/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "palm-reading",
+          "name": "전문가 손금 분석",
+          "entry": "/palm-reading",
+          "featureKey": null,
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "palm-reading",
+          "name": "palm-reading",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "personal-charm",
+      "name": "나의 매력 클래스",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "personal-charm",
+          "name": "나의 매력 클래스",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "physiognomy",
+      "name": "관상",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "physiognomy",
+          "name": "관상",
+          "entry": "/physiognomy/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "physiognomy",
+          "name": "physiognomy",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "points",
+      "name": "달빛 이용권",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "points",
+          "name": "달빛 이용권",
+          "entry": "/points/",
+          "featureKey": null,
+          "accessEvidence": "이용권"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "psychotest",
+      "name": "심리테스트",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "psychotest",
+          "name": "심리테스트",
+          "entry": "/psychotest/",
+          "featureKey": null,
+          "accessEvidence": "무료"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "psychotest",
+          "name": "psychotest",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "quantum-saju",
+      "name": "퀀텀 명리 엔진",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "quantum-saju",
+          "name": "퀀텀 명리 엔진",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "relationship-boundaries",
+      "name": "빌런 블랙리스트",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "relationship-boundaries",
+          "name": "빌런 블랙리스트",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "royal-tea-oracle",
+      "name": "영국 홍차점",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "royal-tea-oracle",
+          "name": "영국 홍차점",
+          "entry": "openRoyalTeaOracle",
+          "featureKey": "royal-tea-oracle",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "royal-tea-oracle",
+          "name": "royal-tea-oracle",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "saju",
+      "name": "사주",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju",
+          "name": "사주",
+          "entry": "/?action=cdOneStepFreeSajuEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "saju",
+          "name": "사주 정밀 분석",
+          "entry": "/?action=cdOneStepFreeSajuEntry",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "saju",
+          "name": "사주 정밀 분석",
+          "entry": "/saju/basic/play",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "saju-animal",
+      "name": "사주 가디언 아트",
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "saju-animal",
+          "name": "사주 가디언 아트",
+          "entry": "/saju-guardian",
+          "featureKey": null,
+          "accessEvidence": "free"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "saju-compatibility",
+      "name": "사주 궁합",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-compatibility",
+          "name": "사주 궁합",
+          "entry": "/saju/compatibility/",
+          "featureKey": "compat-saju-compatibility",
+          "accessEvidence": "10,000원"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "saju-fpti",
+      "name": "사주 FPTI",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-fpti",
+          "name": "사주 FPTI",
+          "entry": "/saju-fpti/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "saju-guardian",
+      "name": "사주 가디언 소환진",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-guardian",
+          "name": "사주 가디언 소환진",
+          "entry": "openSajuGuardianPage",
+          "featureKey": "saju-guardian-unlock",
+          "accessEvidence": "7,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "saju-guardian",
+          "name": "saju-guardian",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "saju-lifebook",
+      "name": "인생의 책 전문가 상담",
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "saju-lifebook",
+          "name": "인생의 책 전문가 상담",
+          "entry": "/life-book-ai",
+          "featureKey": "life-book-ai-consultation",
+          "accessEvidence": "paid"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "saju-sibyl",
+      "name": "시빌라 연간 대비 리포트",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-sibyl",
+          "name": "시빌라 연간 대비 리포트",
+          "entry": "/saju/sibyl/",
+          "featureKey": "premium-sibyl-dominator",
+          "accessEvidence": "20,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "saju-sibyl",
+          "name": "saju-sibyl",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "secret-house",
+      "name": "시크릿 하우스",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "secret-house",
+          "name": "시크릿 하우스",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "stonehenge-rune",
+      "name": "스톤헨지 룬점",
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "stonehenge-rune",
+          "name": "스톤헨지 룬점",
+          "entry": "/index.html?action=openRuneOracle",
+          "featureKey": "stonehengeRunes",
+          "accessEvidence": "paid"
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "stonehenge-runes",
+      "name": "스톤헨지 룬",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "stonehenge-runes",
+          "name": "스톤헨지 룬",
+          "entry": "openRuneOracle",
+          "featureKey": "stonehenge-runes-single",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "stonehenge-runes",
+          "name": "stonehenge-runes",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "sukuyo",
+      "name": "숙요점",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "sukuyo",
+          "name": "숙요점",
+          "entry": "/?action=cdHomeSukuyoEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "sukuyo",
+          "name": "sukuyo",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "sukuyo-compatibility-ai",
+      "name": "숙요점 궁합 전문가 상담",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "sukuyo-compatibility-ai",
+          "name": "숙요점 궁합 전문가 상담",
+          "entry": "/sukuyo-compatibility-ai/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "sukuyo-flower",
+      "name": "숙요 꽃",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "sukuyo-flower",
+          "name": "숙요 꽃",
+          "entry": "/index.html?action=openSukuyoFlowerStudio",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "sukyo",
+      "name": "숙요 인연 레이더",
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "sukyo",
+          "name": "숙요 인연 레이더",
+          "entry": "/index.html?action=openSukuyoModal",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "sukyo",
+          "name": "숙요 인연 레이더",
+          "entry": "/index.html?action=openSukuyoModal",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "tarot",
+      "name": "타로",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot",
+          "name": "타로",
+          "entry": "/?action=cdHomeTarotEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "tarot",
+          "name": "타로 리딩",
+          "entry": "/index.html?action=openTarotModal",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot",
+          "name": "tarot",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "tarot-celestial-harmony",
+      "name": "천체의 선율",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-celestial-harmony",
+          "name": "천체의 선율",
+          "entry": "/celestial-harmony.html",
+          "featureKey": "tarot-celestial-harmony",
+          "accessEvidence": "10,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-celestial-harmony",
+          "name": "tarot-celestial-harmony",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "tarot-crystal-soul",
+      "name": "원석 소울 타로",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-crystal-soul",
+          "name": "원석 소울 타로",
+          "entry": "/tarot/crystal-soul/",
+          "featureKey": "tarot-crystal-soul-reading",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-crystal-soul",
+          "name": "tarot-crystal-soul",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "tarot-ijik",
+      "name": "이직 운명의 카드",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-ijik",
+          "name": "이직 운명의 카드",
+          "entry": "/tarot-ijik.html",
+          "featureKey": "tarot-ijik",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-ijik",
+          "name": "tarot-ijik",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "tarot-love-relationship",
+      "name": "우리는 무슨 사이?",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-love-relationship",
+          "name": "우리는 무슨 사이?",
+          "entry": "openTarotLoveModal",
+          "featureKey": "tarot-love-relationship",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-love-relationship",
+          "name": "우리는 무슨 사이?",
+          "entry": "/index.html?action=openTarotLoveModal",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "tarot-mindscan",
+      "name": "말과 행동 사이 타로",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-mindscan",
+          "name": "말과 행동 사이 타로",
+          "entry": "/tarot/mindscan/",
+          "featureKey": "tarot-mindscan",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-mindscan",
+          "name": "말과 행동 사이 타로",
+          "entry": "/tarot/mindscan/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "tarot-numerology",
+      "name": "수비학 타로",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-numerology",
+          "name": "수비학 타로",
+          "entry": "/tarot/numerology/",
+          "featureKey": "tarot-numerology-reading",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-numerology",
+          "name": "tarot-numerology",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "tarot-prompt-maker",
+      "name": "타로 오라클 상담",
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "tarot-prompt-maker",
+          "name": "타로 오라클 상담",
+          "entry": "/tarot/prompt-maker",
+          "featureKey": "tarot-prompt-maker",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-prompt-maker",
+          "name": "tarot-prompt-maker",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "tarot-reunion",
+      "name": "재회운 타로",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-reunion",
+          "name": "재회운 타로",
+          "entry": "openTarotReunionModal",
+          "featureKey": "tarot-reunion-reading",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-reunion",
+          "name": "재회운 타로",
+          "entry": "/index.html?action=openTarotReunionModal",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "tarot-year-fortune",
+      "name": "십이지신 천운 타로",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-year-fortune",
+          "name": "십이지신 천운 타로",
+          "entry": "openTarotYearFortuneModal",
+          "featureKey": "tarot-year-fortune",
+          "accessEvidence": "10,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-year-fortune",
+          "name": "tarot-year-fortune",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "today-hub",
+      "name": "오늘의 운세 허브",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "today-hub",
+          "name": "오늘의 운세 허브",
+          "entry": "/today/",
+          "featureKey": "daily-fortune-reading",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "today-hub",
+          "name": "today-hub",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "vedic",
+      "name": "베다점",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "vedic",
+          "name": "베다점",
+          "entry": "/?action=cdHomeVedicEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "vedic",
+          "name": "베다 점성술 분석",
+          "entry": "/index.html?action=navigateToVedic",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "vedic",
+          "name": "베다 점성술 분석",
+          "entry": "/index.html?action=navigateToVedic",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "vedic-ai",
+      "name": "윤달의 베다점 상담",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "vedic-ai",
+          "name": "윤달의 베다점 상담",
+          "entry": "/vedic-ai",
+          "featureKey": "vedic-ai-consultation",
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "yeongnyangi",
+      "name": "영냥이",
+      "evidence": [
+        {
+          "source": "app/yeongnyangi/page.tsx",
+          "entry": "/yeongnyangi/"
+        }
+      ],
+      "toss": {
+        "screen": "saju-preview-only",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "yoga-guru",
+      "name": "Divya Yoga",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "yoga-guru",
+          "name": "Divya Yoga",
+          "entry": "/yoga-guru.html",
+          "featureKey": "yoga-guru-per-use",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "yoga-guru",
+          "name": "yoga-guru",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "ziwei",
+      "name": "자미두수",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "ziwei",
+          "name": "자미두수",
+          "entry": "/?action=cdHomeZiweiEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "ziwei",
+          "name": "심화 자미두수 12궁 상담",
+          "entry": "/ziwei/chart",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "ziwei",
+          "name": "심화 자미두수 12궁 상담",
+          "entry": "/ziwei/chart",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "ziwei-ai",
+      "name": "자미두수 전문가 상담",
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "ziwei-ai",
+          "name": "자미두수 전문가 상담",
+          "entry": "/ziwei-ai",
+          "featureKey": "ziwei-ai-consultation",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "ziwei-ai",
+          "name": "ziwei-ai",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "ziwei-deep-report",
+      "name": "자미두수 심층 리포트",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "ziwei-deep-report",
+          "name": "자미두수 심층 리포트",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    },
+    {
+      "id": "ziwei-flower",
+      "name": "자미두수 꽃",
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "ziwei-flower",
+          "name": "자미두수 꽃",
+          "entry": "/index.html?action=openJamidusuFlowerStudio",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "toss": {
+        "screen": "not-ported",
+        "login": "not-verified",
+        "iapSku": null,
+        "result": "not-verified",
+        "library": "not-verified",
+        "device": "not-tested"
+      }
+    }
+  ],
+  "canonicalCandidates": [
+    {
+      "id": "animal-destiny",
+      "discoveryIds": [
+        "animal-destiny"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "animal-destiny",
+          "name": "십이운성 동물점",
+          "entry": "/saju/animal-destiny/",
+          "featureKey": "animal-destiny-unlock",
+          "accessEvidence": "7,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "animal-destiny",
+          "name": "운명의 동물 도감",
+          "entry": "/saju/animal-destiny/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "animal-guardian-unlock",
+      "discoveryIds": [
+        "animal-guardian-unlock"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "animal-guardian-unlock",
+          "name": "십이운성 동물점",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "animal-totem",
+      "discoveryIds": [
+        "animal-totem"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "animal-totem",
+          "name": "애니멀 토템",
+          "entry": "openAnimalTotemModal",
+          "featureKey": "animal-totem-basic",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "react-registry",
+          "id": "animal-totem",
+          "name": "애니멀 토템",
+          "entry": "/index.html?action=openAnimalTotemModal",
+          "featureKey": "animal-totem-basic",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "animal-totem",
+          "name": "animal-totem",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "astrology",
+      "discoveryIds": [
+        "astrology"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "astrology",
+          "name": "점성술",
+          "entry": "/?action=cdHomeAstroEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "astrology",
+          "name": "서양 점성술 차트 분석",
+          "entry": "/index.html?action=openAstroModal",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "astrology",
+          "name": "서양 점성술 차트 분석",
+          "entry": "/index.html?action=openAstroModal",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "astrology-ai",
+      "discoveryIds": [
+        "astrology-ai"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "astrology-ai",
+          "name": "점성술 전문가 상담",
+          "entry": "/astrology-ai",
+          "featureKey": "astrology-ai-consultation",
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "bias-destiny",
+      "discoveryIds": [
+        "bias-destiny"
+      ],
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "bias-destiny",
+          "name": "최애운명",
+          "entry": "/saju/destiny-bias",
+          "featureKey": "destiny-bias-analyze",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "bias-destiny",
+          "name": "bias-destiny",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/bias",
+      "sku": null,
+      "inputContract": "app/saju/destiny-bias/engine/chemiReportBridge.ts",
+      "resultRenderer": "apps/toss/src/BiasReading.tsx + BiasReport.tsx",
+      "storageContract": "native-card-save-summary-share-mocked; device-and-web-history-parity-pending"
+    },
+    {
+      "id": "career-style",
+      "discoveryIds": [
+        "career-style"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "career-style",
+          "name": "나의 일 스타일",
+          "entry": "/saju/career-style/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "cosmic-soul-meditation",
+      "discoveryIds": [
+        "cosmic-soul-meditation"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "cosmic-soul-meditation",
+          "name": "코스믹 소울 명상",
+          "entry": "/cosmic-soul-meditation.html",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "destiny-compass",
+      "discoveryIds": [
+        "destiny-compass"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "destiny-compass",
+          "name": "운명의 나침반",
+          "entry": "/destiny-compass/",
+          "featureKey": "destiny-compass-life-voyage",
+          "accessEvidence": "7,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "destiny-compass",
+          "name": "destiny-compass",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "destiny-meeting-place",
+      "discoveryIds": [
+        "destiny-meeting-place"
+      ],
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "destiny-meeting-place",
+          "name": "사주로 보는 인연의 장소",
+          "entry": "/saju/destiny-meeting-place",
+          "featureKey": "destiny_meeting_place",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "destiny-meeting-place",
+          "name": "destiny-meeting-place",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "dream",
+      "discoveryIds": [
+        "dream"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "dream",
+          "name": "꿈해몽",
+          "entry": "/dream/",
+          "featureKey": "dream-prompt-generator",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "dream",
+          "name": "dream",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "dream-psycho-analysis",
+      "discoveryIds": [
+        "dream-psycho-analysis"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "dream-psycho-analysis",
+          "name": "정신분석 해몽",
+          "entry": "openPsychoDreamModal",
+          "featureKey": "dream-psycho-analysis",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "dream-psycho-analysis",
+          "name": "dream-psycho-analysis",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "energy-travel",
+      "discoveryIds": [
+        "energy-travel"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "energy-travel",
+          "name": "사주로 보는 여행지",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "face-reading",
+      "discoveryIds": [
+        "face-reading"
+      ],
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "face-reading",
+          "name": "전문가 관상 분석",
+          "entry": "/animal/physio",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "face-reading",
+          "name": "전문가 동물 관상",
+          "entry": "/animal/physio",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "famous-saju",
+      "discoveryIds": [
+        "famous-saju"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "famous-saju",
+          "name": "유명인 사주",
+          "entry": "/insights/famous-saju/",
+          "featureKey": null,
+          "accessEvidence": "읽을거리"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "famous-saju",
+          "name": "famous-saju",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "flower",
+      "discoveryIds": [
+        "astrology-flower",
+        "destiny-flower",
+        "flower",
+        "sukuyo-flower",
+        "ziwei-flower"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "astrology-flower",
+          "name": "점성술 꽃",
+          "entry": "/index.html?action=openAstrologyFlowerStudio",
+          "featureKey": null,
+          "accessEvidence": null
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "destiny-flower",
+          "name": "운명의 꽃 아틀리에",
+          "entry": "/index.html?action=openDestinyFlowerStudio",
+          "featureKey": null,
+          "accessEvidence": null
+        },
+        {
+          "source": "app/flower/page.tsx",
+          "entry": "/flower/"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "sukuyo-flower",
+          "name": "숙요 꽃",
+          "entry": "/index.html?action=openSukuyoFlowerStudio",
+          "featureKey": null,
+          "accessEvidence": null
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "ziwei-flower",
+          "name": "자미두수 꽃",
+          "entry": "/index.html?action=openJamidusuFlowerStudio",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [
+        "app/flower/destiny/page.tsx",
+        "app/flower/astrology/page.tsx",
+        "app/flower/jamidusu/page.tsx",
+        "app/flower/sukuyo/page.tsx"
+      ],
+      "status": "local-partial",
+      "tossRoute": "/flower",
+      "sku": null,
+      "inputContract": "worker/toss/flower.js",
+      "resultRenderer": "apps/toss/src/FlowerReading.tsx",
+      "storageContract": "not-stored-by-current-policy"
+    },
+    {
+      "id": "fortune-chat",
+      "discoveryIds": [
+        "fortune-chat"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "fortune-chat",
+          "name": "대화형 운명 상담",
+          "entry": "/fortune-chat/",
+          "featureKey": "fortune-chat-consultation",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "fortune-chat",
+          "name": "fortune-chat",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/catalog",
+      "sku": null,
+      "inputContract": "worker/toss/services.js",
+      "resultRenderer": "apps/toss/src/App.tsx",
+      "storageContract": "persona-bound-TossPurchase-to-YeongnyangiRequest"
+    },
+    {
+      "id": "fortune-tea-house",
+      "discoveryIds": [
+        "fortune-tea-house"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "fortune-tea-house",
+          "name": "운명의 찻집",
+          "entry": "/fortune-tea-house/",
+          "featureKey": "fortune-tea-house-tarot-consultation",
+          "accessEvidence": "5,000원~15,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "fortune-tea-house",
+          "name": "운명의 찻집",
+          "entry": "/fortune-tea-house/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "fusion-fortune",
+      "discoveryIds": [
+        "fusion-fortune"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "fusion-fortune",
+          "name": "초융합 심층 리딩",
+          "entry": "/fusion-fortune/",
+          "featureKey": "fusion-fortune-consultation",
+          "accessEvidence": "50,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "fusion-fortune",
+          "name": "fusion-fortune",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "geomancy-oracle",
+      "discoveryIds": [
+        "geomancy-oracle"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "geomancy-oracle",
+          "name": "지오맨시 흙점",
+          "entry": "openGeomancyOracle",
+          "featureKey": "openGeomancyOracle",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "geomancy-oracle",
+          "name": "geomancy-oracle",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "health-rhythm",
+      "discoveryIds": [
+        "health-rhythm"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "health-rhythm",
+          "name": "명리 헬스 리포트",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "human-design",
+      "discoveryIds": [
+        "human-design"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "human-design",
+          "name": "휴먼 디자인",
+          "entry": "/human-design/",
+          "featureKey": "human-design-chart",
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "human-design",
+          "name": "human-design",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "ifa-oracle",
+      "discoveryIds": [
+        "ifa-oracle"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "ifa-oracle",
+          "name": "IFÀ 오라클",
+          "entry": "/ifa-oracle.html",
+          "featureKey": "ifa-oracle",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "ifa-oracle",
+          "name": "ifa-oracle",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "juyuk-turtle",
+      "discoveryIds": [
+        "juyuk-turtle"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "juyuk-turtle",
+          "name": "주역 거북점",
+          "entry": "/oracle/juyuk/",
+          "featureKey": "openJuyukModal",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "juyuk-turtle",
+          "name": "juyuk-turtle",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "karma-destiny-ai",
+      "discoveryIds": [
+        "karma-destiny-ai"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "karma-destiny-ai",
+          "name": "네오와 서한비의 붉은 실",
+          "entry": "/karma-destiny-ai/",
+          "featureKey": "karma-destiny-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "karma-destiny-ai",
+          "name": "karma-destiny-ai",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "kemet-oracle",
+      "discoveryIds": [
+        "kemet-oracle"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "kemet-oracle",
+          "name": "이집트 신탁",
+          "entry": "openKemetModal",
+          "featureKey": "openKemetModal",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "kemet-oracle",
+          "name": "kemet-oracle",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "life-book-ai",
+      "discoveryIds": [
+        "life-book-ai",
+        "saju-lifebook"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "life-book-ai",
+          "name": "인생의 책",
+          "entry": "/life-book-ai/",
+          "featureKey": "life-book-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "life-book-ai",
+          "name": "인생의 책",
+          "entry": "/life-book-ai/",
+          "featureKey": null,
+          "accessEvidence": null
+        },
+        {
+          "source": "react-registry",
+          "id": "saju-lifebook",
+          "name": "인생의 책 전문가 상담",
+          "entry": "/life-book-ai",
+          "featureKey": "life-book-ai-consultation",
+          "accessEvidence": "paid"
+        }
+      ],
+      "aliasEvidence": [
+        "js/core/service-registry.js",
+        "app/_lib/serviceFeatureRegistry.ts"
+      ],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "life-fortune-report",
+      "discoveryIds": [
+        "life-fortune-report"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "life-fortune-report",
+          "name": "인생 총운 전문가 상담",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "life-skill-tree",
+      "discoveryIds": [
+        "life-skill-tree"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "life-skill-tree",
+          "name": "인생 스킬 트리",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "love-code",
+      "discoveryIds": [
+        "love-code",
+        "love-simulation"
+      ],
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "love-code",
+          "name": "러브 코드",
+          "entry": "/index.html?action=openLoveSimulation",
+          "featureKey": "love-code",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "love-simulation",
+          "name": "LOVE CODE 연애 시뮬레이션",
+          "entry": "/saju/love-simulation/",
+          "featureKey": "love-code",
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [
+        "js/core/index-inline-runtime.js:openLoveSimulation"
+      ],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "love-secret-ai",
+      "discoveryIds": [
+        "love-secret-ai"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "love-secret-ai",
+          "name": "연애 비책",
+          "entry": "/love-secret-ai/",
+          "featureKey": "love-secret-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "love-secret-ai",
+          "name": "연애 비책",
+          "entry": "/love-secret-ai/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "luck-sync-diary",
+      "discoveryIds": [
+        "luck-sync-diary"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "luck-sync-diary",
+          "name": "운기 다이어리와 플래너",
+          "entry": "/diary/",
+          "featureKey": null,
+          "accessEvidence": "기록 도구"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "luck-sync-diary",
+          "name": "luck-sync-diary",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "manse",
+      "discoveryIds": [
+        "manse"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "manse",
+          "name": "만세력",
+          "entry": "/manse/",
+          "featureKey": null,
+          "accessEvidence": "차트 공개"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "manse",
+          "name": "manse",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "master-love-codex",
+      "discoveryIds": [
+        "master-love-codex"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "master-love-codex",
+          "name": "마스터 인연의 서",
+          "entry": "/master-love-codex/",
+          "featureKey": "master-love-codex",
+          "accessEvidence": "30,000원~50,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "master-love-codex",
+          "name": "마스터 인연의 서",
+          "entry": "/master-love-codex/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "master-love-codex-compat",
+      "discoveryIds": [
+        "master-love-codex-compat"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "master-love-codex-compat",
+          "name": "마스터 인연의 서 · 궁합편",
+          "entry": "/master-love-codex/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "maya",
+      "discoveryIds": [
+        "maya"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "maya",
+          "name": "마야점",
+          "entry": "/maya/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "maya",
+          "name": "maya",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "mbti-animal-compat",
+      "discoveryIds": [
+        "mbti-animal-compat"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "mbti-animal-compat",
+          "name": "MBTI 동물 궁합",
+          "entry": "openMbtiModal",
+          "featureKey": "mbti-animal-compat",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "mbti-animal-compat",
+          "name": "mbti-animal-compat",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "music",
+      "discoveryIds": [
+        "music"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "music",
+          "name": "달빛 음악 플레이어",
+          "entry": "/music/",
+          "featureKey": null,
+          "accessEvidence": "스트리밍 · 다운로드 1,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "music",
+          "name": "music",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "nakshatra",
+      "discoveryIds": [
+        "nakshatra"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra",
+          "name": "나크샤트라 결정판",
+          "entry": "/nakshatra/",
+          "featureKey": "nakshatra-basic-reading",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "nakshatra",
+          "name": "nakshatra",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "nakshatra-ai",
+      "discoveryIds": [
+        "nakshatra-ai"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-ai",
+          "name": "숙요·나크샤트라 통합 상담",
+          "entry": "/nakshatra/ai/",
+          "featureKey": "nakshatra-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "nakshatra-ai",
+          "name": "숙요·나크샤트라 통합 상담",
+          "entry": "/nakshatra/ai",
+          "featureKey": "nakshatra-ai-consultation",
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "nakshatra-compat",
+      "discoveryIds": [
+        "nakshatra-compat"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-compat",
+          "name": "동서 통합 궁합",
+          "entry": "/nakshatra/compat/",
+          "featureKey": "nakshatra-compat",
+          "accessEvidence": "20,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "nakshatra-compat",
+          "name": "동서 통합 궁합",
+          "entry": "/nakshatra/compat/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "nakshatra-muhurta",
+      "discoveryIds": [
+        "nakshatra-muhurta"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-muhurta",
+          "name": "택일 무후르타",
+          "entry": "/nakshatra/muhurta/",
+          "featureKey": "nakshatra-muhurta",
+          "accessEvidence": "7,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "nakshatra-muhurta",
+          "name": "nakshatra-muhurta",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "nakshatra-vvip-codex",
+      "discoveryIds": [
+        "nakshatra-vvip-codex"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "nakshatra-vvip-codex",
+          "name": "나크샤트라 VVIP 코덱스",
+          "entry": "/nakshatra/vvip/",
+          "featureKey": "nakshatra-vvip-codex",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "nakshatra-vvip-codex",
+          "name": "나크샤트라 VVIP 코덱스",
+          "entry": "/nakshatra/vvip",
+          "featureKey": "nakshatra-vvip-codex",
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "naming-ai",
+      "discoveryIds": [
+        "naming-ai"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "naming-ai",
+          "name": "전문가 작명소",
+          "entry": "/naming-ai/",
+          "featureKey": "premium-naming-prompt",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "naming-ai",
+          "name": "naming-ai",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "neo-consultation",
+      "discoveryIds": [
+        "neo-consultation"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "neo-consultation",
+          "name": "네오에게 물어봐",
+          "entry": "/neo-consultation/",
+          "featureKey": "neo-email-consultation",
+          "accessEvidence": "30,000원"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "neo-operation-room",
+      "discoveryIds": [
+        "neo-operation-room"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "neo-operation-room",
+          "name": "팩폭 전략소",
+          "entry": "/neo-operation-room/",
+          "featureKey": "neo-operation-room-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "neo-operation-room",
+          "name": "네오의 팩폭 작전실",
+          "entry": "/neo-operation-room/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "neville-meditation",
+      "discoveryIds": [
+        "neville-meditation"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "neville-meditation",
+          "name": "네빌 명상 실습",
+          "entry": "/neville-meditation.html",
+          "featureKey": "neville-meditation",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "neville-meditation",
+          "name": "neville-meditation",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "new-year-ai",
+      "discoveryIds": [
+        "new-year-ai"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "new-year-ai",
+          "name": "신년운세",
+          "entry": "/new-year-ai-consultation/",
+          "featureKey": "new-year-ai-consultation",
+          "accessEvidence": "30,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "new-year-ai",
+          "name": "신년운세",
+          "entry": "/new-year-ai-consultation/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "novel",
+      "discoveryIds": [
+        "novel"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "novel",
+          "name": "라이트 노벨",
+          "entry": "/codedestiny-novel.html",
+          "featureKey": null,
+          "accessEvidence": "연재 읽을거리"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "novel",
+          "name": "novel",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "olympus-oracle",
+      "discoveryIds": [
+        "olympus-oracle"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "olympus-oracle",
+          "name": "올림푸스 신탁",
+          "entry": "/index.html?action=openOlympusOracleModal",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "omikuji",
+      "discoveryIds": [
+        "omikuji"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "omikuji",
+          "name": "이모이 오미쿠지",
+          "entry": "/emoi_omikuji_v2.html",
+          "featureKey": null,
+          "accessEvidence": "무료"
+        },
+        {
+          "source": "react-registry",
+          "id": "omikuji",
+          "name": "이모이 오미쿠지",
+          "entry": "/emoi_omikuji_v2.html",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "omikuji",
+          "name": "omikuji",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "palm-reading",
+      "discoveryIds": [
+        "palm-reading"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "palm-reading",
+          "name": "손금",
+          "entry": "/palm-reading/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "palm-reading",
+          "name": "전문가 손금 분석",
+          "entry": "/palm-reading",
+          "featureKey": null,
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "palm-reading",
+          "name": "palm-reading",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "personal-charm",
+      "discoveryIds": [
+        "personal-charm"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "personal-charm",
+          "name": "나의 매력 클래스",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "pet-saju",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "source": "index.html",
+          "entry": "/pet-saju.html",
+          "api": "/api/pet-saju/blueprint"
+        }
+      ],
+      "status": "not-ported",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "physiognomy",
+      "discoveryIds": [
+        "physiognomy"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "physiognomy",
+          "name": "관상",
+          "entry": "/physiognomy/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "physiognomy",
+          "name": "physiognomy",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "points",
+      "discoveryIds": [
+        "points"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "points",
+          "name": "달빛 이용권",
+          "entry": "/points/",
+          "featureKey": null,
+          "accessEvidence": "이용권"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "psychotest",
+      "discoveryIds": [
+        "psychotest"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "psychotest",
+          "name": "심리테스트",
+          "entry": "/psychotest/",
+          "featureKey": null,
+          "accessEvidence": "무료"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "psychotest",
+          "name": "psychotest",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "quantum-saju",
+      "discoveryIds": [
+        "quantum-saju"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "quantum-saju",
+          "name": "퀀텀 명리 엔진",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "relationship-boundaries",
+      "discoveryIds": [
+        "relationship-boundaries"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "relationship-boundaries",
+          "name": "빌런 블랙리스트",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "royal-tea-oracle",
+      "discoveryIds": [
+        "royal-tea-oracle"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "royal-tea-oracle",
+          "name": "영국 홍차점",
+          "entry": "openRoyalTeaOracle",
+          "featureKey": "royal-tea-oracle",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "royal-tea-oracle",
+          "name": "royal-tea-oracle",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "saju",
+      "discoveryIds": [
+        "saju"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju",
+          "name": "사주",
+          "entry": "/?action=cdOneStepFreeSajuEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "saju",
+          "name": "사주 정밀 분석",
+          "entry": "/?action=cdOneStepFreeSajuEntry",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "saju",
+          "name": "사주 정밀 분석",
+          "entry": "/saju/basic/play",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "saju-animal",
+      "discoveryIds": [
+        "saju-animal"
+      ],
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "saju-animal",
+          "name": "사주 가디언 아트",
+          "entry": "/saju-guardian",
+          "featureKey": null,
+          "accessEvidence": "free"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "saju-compatibility",
+      "discoveryIds": [
+        "saju-compatibility"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-compatibility",
+          "name": "사주 궁합",
+          "entry": "/saju/compatibility/",
+          "featureKey": "compat-saju-compatibility",
+          "accessEvidence": "10,000원"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "saju-fpti",
+      "discoveryIds": [
+        "saju-fpti"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-fpti",
+          "name": "사주 FPTI",
+          "entry": "/saju-fpti/",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "saju-guardian",
+      "discoveryIds": [
+        "saju-guardian"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-guardian",
+          "name": "사주 가디언 소환진",
+          "entry": "openSajuGuardianPage",
+          "featureKey": "saju-guardian-unlock",
+          "accessEvidence": "7,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "saju-guardian",
+          "name": "saju-guardian",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "saju-sibyl",
+      "discoveryIds": [
+        "saju-sibyl"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "saju-sibyl",
+          "name": "시빌라 연간 대비 리포트",
+          "entry": "/saju/sibyl/",
+          "featureKey": "premium-sibyl-dominator",
+          "accessEvidence": "20,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "saju-sibyl",
+          "name": "saju-sibyl",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "secret-house",
+      "discoveryIds": [
+        "secret-house"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "secret-house",
+          "name": "시크릿 하우스",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "stonehenge-runes",
+      "discoveryIds": [
+        "stonehenge-rune",
+        "stonehenge-runes"
+      ],
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "stonehenge-rune",
+          "name": "스톤헨지 룬점",
+          "entry": "/index.html?action=openRuneOracle",
+          "featureKey": "stonehengeRunes",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "home-registry",
+          "id": "stonehenge-runes",
+          "name": "스톤헨지 룬",
+          "entry": "openRuneOracle",
+          "featureKey": "stonehenge-runes-single",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "stonehenge-runes",
+          "name": "stonehenge-runes",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [
+        "js/core/index-inline-runtime.js:openRuneOracle"
+      ],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "sukuyo",
+      "discoveryIds": [
+        "sukuyo",
+        "sukyo"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "sukuyo",
+          "name": "숙요점",
+          "entry": "/?action=cdHomeSukuyoEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "sukuyo",
+          "name": "sukuyo",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        },
+        {
+          "source": "react-registry",
+          "id": "sukyo",
+          "name": "숙요 인연 레이더",
+          "entry": "/index.html?action=openSukuyoModal",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "sukyo",
+          "name": "숙요 인연 레이더",
+          "entry": "/index.html?action=openSukuyoModal",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [
+        "js/core/service-registry.js",
+        "app/_lib/serviceFeatureRegistry.ts"
+      ],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "sukuyo-compatibility-ai",
+      "discoveryIds": [
+        "sukuyo-compatibility-ai"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "sukuyo-compatibility-ai",
+          "name": "숙요점 궁합 전문가 상담",
+          "entry": "/sukuyo-compatibility-ai/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "tarot",
+      "discoveryIds": [
+        "tarot"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot",
+          "name": "타로",
+          "entry": "/?action=cdHomeTarotEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "tarot",
+          "name": "타로 리딩",
+          "entry": "/index.html?action=openTarotModal",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot",
+          "name": "tarot",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "local-reading-not-server-stored",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "tarot-celestial-harmony",
+      "discoveryIds": [
+        "tarot-celestial-harmony"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-celestial-harmony",
+          "name": "천체의 선율",
+          "entry": "/celestial-harmony.html",
+          "featureKey": "tarot-celestial-harmony",
+          "accessEvidence": "10,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-celestial-harmony",
+          "name": "tarot-celestial-harmony",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "tarot-crystal-soul",
+      "discoveryIds": [
+        "tarot-crystal-soul"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-crystal-soul",
+          "name": "원석 소울 타로",
+          "entry": "/tarot/crystal-soul/",
+          "featureKey": "tarot-crystal-soul-reading",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-crystal-soul",
+          "name": "tarot-crystal-soul",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "tarot-healing",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "source": "index.html:tarotCollection",
+          "entry": "/tarot/healing/",
+          "implementation": "app/tarot/healing/TarotHealingRouteClient.tsx"
+        }
+      ],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "local-reading-not-server-stored",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "tarot-ijik",
+      "discoveryIds": [
+        "tarot-ijik"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-ijik",
+          "name": "이직 운명의 카드",
+          "entry": "/tarot-ijik.html",
+          "featureKey": "tarot-ijik",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-ijik",
+          "name": "tarot-ijik",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "tarot-love-relationship",
+      "discoveryIds": [
+        "tarot-love-relationship"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-love-relationship",
+          "name": "우리는 무슨 사이?",
+          "entry": "openTarotLoveModal",
+          "featureKey": "tarot-love-relationship",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-love-relationship",
+          "name": "우리는 무슨 사이?",
+          "entry": "/index.html?action=openTarotLoveModal",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "tarot-mindscan",
+      "discoveryIds": [
+        "tarot-mindscan"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-mindscan",
+          "name": "말과 행동 사이 타로",
+          "entry": "/tarot/mindscan/",
+          "featureKey": "tarot-mindscan",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-mindscan",
+          "name": "말과 행동 사이 타로",
+          "entry": "/tarot/mindscan/",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "tarot-numerology",
+      "discoveryIds": [
+        "tarot-numerology"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-numerology",
+          "name": "수비학 타로",
+          "entry": "/tarot/numerology/",
+          "featureKey": "tarot-numerology-reading",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-numerology",
+          "name": "tarot-numerology",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "tarot-prompt-maker",
+      "discoveryIds": [
+        "tarot-prompt-maker"
+      ],
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "tarot-prompt-maker",
+          "name": "타로 오라클 상담",
+          "entry": "/tarot/prompt-maker",
+          "featureKey": "tarot-prompt-maker",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-prompt-maker",
+          "name": "tarot-prompt-maker",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "tarot-reunion",
+      "discoveryIds": [
+        "tarot-reunion"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-reunion",
+          "name": "재회운 타로",
+          "entry": "openTarotReunionModal",
+          "featureKey": "tarot-reunion-reading",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-reunion",
+          "name": "재회운 타로",
+          "entry": "/index.html?action=openTarotReunionModal",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "tarot-self-esteem",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "source": "index.html:tarotCollection",
+          "entry": "/tarot/self-esteem/",
+          "implementation": "js/tarot-self-esteem-experience.js"
+        }
+      ],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "local-reading-not-server-stored",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "tarot-year-fortune",
+      "discoveryIds": [
+        "tarot-year-fortune"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "tarot-year-fortune",
+          "name": "십이지신 천운 타로",
+          "entry": "openTarotYearFortuneModal",
+          "featureKey": "tarot-year-fortune",
+          "accessEvidence": "10,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "tarot-year-fortune",
+          "name": "tarot-year-fortune",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/tarot-library",
+      "sku": null,
+      "inputContract": "lib/tarot/toss-library-flows.mjs",
+      "resultRenderer": "apps/toss/src/TarotLibrary.tsx",
+      "storageContract": "owned-TossPurchase-to-PaidExecutionRecord",
+      "verification": "mock-contracts-only; device-and-web-parity-pending"
+    },
+    {
+      "id": "today-hub",
+      "discoveryIds": [
+        "daily-fortune",
+        "today-hub"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "daily-fortune",
+          "name": "오늘의 운세",
+          "entry": "/today/",
+          "featureKey": "daily-fortune-reading",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "daily-fortune",
+          "name": "daily-fortune",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        },
+        {
+          "source": "home-registry",
+          "id": "today-hub",
+          "name": "오늘의 운세 허브",
+          "entry": "/today/",
+          "featureKey": "daily-fortune-reading",
+          "accessEvidence": "3,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "today-hub",
+          "name": "today-hub",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [
+        "js/core/service-registry.js"
+      ],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "vedic",
+      "discoveryIds": [
+        "vedic"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "vedic",
+          "name": "베다점",
+          "entry": "/?action=cdHomeVedicEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "vedic",
+          "name": "베다 점성술 분석",
+          "entry": "/index.html?action=navigateToVedic",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "vedic",
+          "name": "베다 점성술 분석",
+          "entry": "/index.html?action=navigateToVedic",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "vedic-ai",
+      "discoveryIds": [
+        "vedic-ai"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "vedic-ai",
+          "name": "윤달의 베다점 상담",
+          "entry": "/vedic-ai",
+          "featureKey": "vedic-ai-consultation",
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "yeongnyangi",
+      "discoveryIds": [
+        "yeongnyangi"
+      ],
+      "evidence": [
+        {
+          "source": "app/yeongnyangi/page.tsx",
+          "entry": "/yeongnyangi/"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/catalog",
+      "sku": null,
+      "inputContract": "worker/toss/routes.js",
+      "resultRenderer": "apps/toss/src/App.tsx",
+      "storageContract": "owned-TossPurchase-to-YeongnyangiRequest"
+    },
+    {
+      "id": "yoga-guru",
+      "discoveryIds": [
+        "yoga-guru"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "yoga-guru",
+          "name": "Divya Yoga",
+          "entry": "/yoga-guru.html",
+          "featureKey": "yoga-guru-per-use",
+          "accessEvidence": "5,000원"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "yoga-guru",
+          "name": "yoga-guru",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "ziwei",
+      "discoveryIds": [
+        "ziwei"
+      ],
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "ziwei",
+          "name": "자미두수",
+          "entry": "/?action=cdHomeZiweiEntry",
+          "featureKey": null,
+          "accessEvidence": "무료 시작"
+        },
+        {
+          "source": "react-registry",
+          "id": "ziwei",
+          "name": "심화 자미두수 12궁 상담",
+          "entry": "/ziwei/chart",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "ziwei",
+          "name": "심화 자미두수 12궁 상담",
+          "entry": "/ziwei/chart",
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "ziwei-ai",
+      "discoveryIds": [
+        "ziwei-ai"
+      ],
+      "evidence": [
+        {
+          "source": "react-registry",
+          "id": "ziwei-ai",
+          "name": "자미두수 전문가 상담",
+          "entry": "/ziwei-ai",
+          "featureKey": "ziwei-ai-consultation",
+          "accessEvidence": "paid"
+        },
+        {
+          "source": "shell-visual-details",
+          "id": "ziwei-ai",
+          "name": "ziwei-ai",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "ziwei-deep-report",
+      "discoveryIds": [
+        "ziwei-deep-report"
+      ],
+      "evidence": [
+        {
+          "source": "shell-visual-details",
+          "id": "ziwei-deep-report",
+          "name": "자미두수 심층 리포트",
+          "entry": null,
+          "featureKey": null,
+          "accessEvidence": null
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "requires-full-flow-port-and-verification",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    },
+    {
+      "id": "ziwei-island",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "source": "index.html",
+          "entry": "/destiny-island.html",
+          "api": "/api/ziwei-island/blueprint"
+        }
+      ],
+      "status": "not-ported",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null
+    }
+  ]
+}

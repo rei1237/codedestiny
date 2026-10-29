@@ -1095,6 +1095,11 @@ const app = {
     try {
       const url = new URL(request.url);
 
+      if (url.pathname.startsWith('/api/toss/')) {
+        const {handleTossRoutes} = await import('./toss/routes.js');
+        return handleTossRoutes(request, env);
+      }
+
       if (request.method === "OPTIONS") {
         return new Response(null, {
           status: 204,
@@ -2006,6 +2011,14 @@ const app = {
     const cron = String(event?.cron || "").trim();
 
     if (cron === PAYMENT_RECONCILE_CRON) {
+      const { runTossOrderReconciliation } = await import('./toss/order-reconciliation.js');
+      ctx.waitUntil(runTossOrderReconciliation(env).catch(() => {
+        console.error('[toss-order-reconciliation] task failed');
+      }));
+      const { runTossUnlinkRecovery } = await import('./toss/unlink-recovery.js');
+      ctx.waitUntil(runTossUnlinkRecovery(env).catch(() => {
+        console.error('[toss-unlink-recovery] task failed');
+      }));
       const { runPaymentReconcileTask } = await import("./lib/payment-reconcile-task.js");
       ctx.waitUntil(runPaymentReconcileTask(env).catch((error) => {
         console.error("[payment-reconcile] task failed:", error?.message || error);

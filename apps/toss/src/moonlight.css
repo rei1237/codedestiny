@@ -1,0 +1,56 @@
+/* Moonlight Yehwa: canonical floral line art, ivory paper and champagne edges. */
+:root{
+  --toss-serif:'Noto Serif KR','AppleMyungjo','Batang',Georgia,serif;
+  --moon-paper:#fcf8f0;
+  --moon-line:#d7bf92;
+  --moon-line-soft:#eee1c9;
+  --moon-ink:#47364f;
+  --moon-muted:#776477;
+  --moon-gold:#947344;
+}
+.hero::after{
+  content:'';position:absolute;right:0;top:0;width:95px;height:68px;
+  background:var(--moon-gold);mask:var(--yn-yehwa-mask-branch-spray) center/contain no-repeat;
+  opacity:.4;pointer-events:none;
+}
+.home-section h2{font-size:23px;letter-spacing:-.7px}
+.adviser-choice strong,.feature-entry strong{font-family:var(--toss-serif)}
+.moonlight-navigation{
+  margin:36px -8px 0;padding:24px 16px 12px;border-radius:26px;
+  background:var(--moon-paper) url('/assets/moon-floral-light.webp') top center/100% auto no-repeat;
+  border:1px solid var(--moon-line-soft);color:var(--moon-ink);
+}
+.moonlight-divider{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 20px;color:var(--moon-gold)}
+.moonlight-divider::before,.moonlight-divider::after{content:'';height:1px;width:58px;background:var(--moon-line)}
+.moonlight-divider span{display:block;width:32px;height:25px;background:currentColor;mask:var(--cd-yehwa-mask-seal) center/contain no-repeat}
+.moonlight-action{
+  position:relative;isolation:isolate;display:flex;align-items:center;gap:12px;
+  width:100%;min-height:88px;padding:18px 16px;border:1px solid var(--moon-line);border-radius:18px;
+  background:#fffdf9;color:var(--moon-ink);text-align:left;
+  box-shadow:inset 0 0 0 3px #fffdf9,inset 0 0 0 4px var(--moon-line-soft),0 6px 12px -10px #7c5e3c;
+  transition:transform 140ms ease,box-shadow 140ms ease;
+}
+.moonlight-action::before{
+  content:'';position:absolute;right:5px;top:5px;width:50px;height:32px;
+  background:var(--moon-gold);mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;
+  opacity:.25;pointer-events:none;
+}
+.moonlight-action-primary{min-height:96px;padding:20px 16px;background:#413451;color:#fff9ec;border-color:#b9a176;box-shadow:inset 0 0 0 3px #413451,inset 0 0 0 4px #847052,0 8px 20px -15px #413451}
+.moonlight-action-primary::before{background:#e8d5a3;opacity:.45}
+.moonlight-action-copy{display:grid;gap:6px;min-width:0;flex:1}
+.moonlight-action strong{font:700 17px/1.5 var(--toss-serif);word-break:keep-all}
+.moonlight-action small{color:var(--moon-muted);font-size:12px;line-height:1.6;word-break:keep-all}
+.moonlight-action-primary strong{font-size:20px}
+.moonlight-action-primary small{color:#e7d9e7;font-size:13px}
+.moonlight-action>svg{flex-shrink:0;width:18px;color:var(--moon-gold)}
+.moonlight-action-primary>svg{color:#e8d5a3}
+.moonlight-seal{flex-shrink:0;width:42px;height:42px;background:#ead6a6;mask:var(--cd-yehwa-mask-seal) center/contain no-repeat}
+.moonlight-navigation-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.moonlight-navigation-pair .moonlight-action{padding:18px 14px;gap:4px}
+.moonlight-example{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:52px;margin-top:12px;padding:12px 8px;border:0;background:transparent;color:#72566e;font-size:13px;font-weight:600}
+.moonlight-example svg{width:16px}
+.moonlight-action:focus-visible,.moonlight-example:focus-visible{outline:3px solid #7054b3;outline-offset:4px}
+.moonlight-action:active{transform:translateY(1px)}
+@media(hover:hover){.moonlight-action:hover{transform:translateY(-1px);box-shadow:inset 0 0 0 3px #fffdf9,inset 0 0 0 4px var(--moon-line-soft),0 10px 20px -15px #7c5e3c}.moonlight-action-primary:hover{box-shadow:inset 0 0 0 3px #413451,inset 0 0 0 4px #b9a176,0 10px 20px -15px #413451}}
+@media(max-width:360px){.moonlight-navigation{padding-inline:12px}.moonlight-seal{width:32px;height:36px}.moonlight-action-primary strong{font-size:18px}.moonlight-navigation-pair{gap:8px}.moonlight-action small{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.moonlight-action{transition:none}.moonlight-action:active,.moonlight-action:hover{transform:none}}

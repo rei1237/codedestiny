@@ -128,6 +128,8 @@ jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePas
 jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:verifyPerUse}));
 jest.unstable_mockModule('../../worker/payments/passes.js',()=>({passUsageEvidenceId:()=> '507f1f77bcf86cd799439099'}));
 let repo;
+const tossEvidence=jest.fn(async(row,userId)=>String(userId)===owner&&row.paymentClaimOrderId==='toss-order'?{_id:'toss-order'}:null);
+jest.unstable_mockModule('../../worker/toss/purchases.js',()=>({findTossPurchaseEvidence:tossEvidence}));
 beforeAll(async()=>{repo=await import('../../worker/yeongnyangi/repository.js');});
 const values={profileId:'p1',productId:'saju_mackerel',featureKey:'yeongnyangi-saju-mackerel',amountKRW:1000,fingerprint:'fixed',snapshot:{manifest:[{},{}]}};
 test('tuna stops at item 9 of 15 and resumes from item 9 under concurrent recovery',async()=>{
@@ -159,9 +161,35 @@ test('tuna stops at item 9 of 15 and resumes from item 9 under concurrent recove
   expect(consumePass).not.toHaveBeenCalled();
 });
 beforeEach(()=>{
+  tossEvidence.mockClear();
   loseStoredDraftAtClaim=false;requests=[];payments=[{_id:'pay1',requestId:'yn-id',userId:owner,featureKey:values.featureKey,paymentType:'digital_content',status:'paid',paymentAmount:1000,metadata:{}}];
   evidences=[];accounts=[];honey={wallets:[],ledgers:[]};familyUser=null;consumePass.mockReset();refundPass.mockReset();refundMoonstone.mockReset();verifyPerUse.mockReset();
   failWrite=false;failFinalRead=false;failFinalComplete=false;refundBeforeFinalization=false;tail=Promise.resolve();
+});
+
+test('Toss entitlement resumes the ninth of fifteen chapters on the same order without web billing',async()=>{
+  const id='b'.repeat(64);
+  await repo.createRequest({},owner,id,{...values,productId:'saju_tuna',snapshot:{manifest:Array.from({length:15},(_,i)=>({id:`part-${i}`}))}});
+  Object.assign(requests[0],{state:'PAID',accessMethod:'TOSS_IAP',paymentClaimOrderId:'toss-order'});
+  const originalPayments=structuredClone(payments);
+  for(let i=0;i<8;i++){const claim=await repo.claimChapter({},owner,id);await repo.finishChapter({},owner,id,claim.token,i,{summary:`saved-${i}`},15);}
+  const saved=structuredClone(requests[0].chapters);
+  const ninth=await repo.claimChapter({},owner,id);
+  await repo.failChapter({},owner,id,ninth.token,'FORTUNE_PROVIDER_TIMEOUT',1,'provider');
+  requests[0].nextAttemptAt=null;
+  const claims=await Promise.all([repo.claimChapter({},owner,id),repo.claimChapter({},owner,id)]);
+  expect(claims.filter(c=>c.token)).toHaveLength(1);
+  const retry=claims.find(c=>c.token);
+  await repo.finishChapter({},owner,id,retry.token,8,{summary:'recovered-9'},15);
+  for(let i=9;i<15;i++){const claim=await repo.claimChapter({},owner,id);await repo.finishChapter({},owner,id,claim.token,i,{summary:`saved-${i}`},15);}
+  expect(requests[0].state).toBe('COMPLETED');
+  expect(requests[0].chapters.slice(0,8)).toEqual(saved);
+  expect(requests[0].chapterAttempts[8]).toBe(2);
+  expect(requests[0].paymentClaimOrderId).toBe('toss-order');
+  expect(payments).toEqual(originalPayments);
+  expect(consumePass).not.toHaveBeenCalled();
+  expect(tossEvidence).toHaveBeenCalled();
+  await expect(repo.readRequest({},other,id)).rejects.toMatchObject({status:404});
 });
 test('ask generation evidence is stored separately and an intent replay cannot replace it',async()=>{
   const generationCheckpoint={version:'ask-generation-v1',evidence:{packet_version:'ask-evidence-v1',facts:[{id:'F001',value:'first draw'}]}};

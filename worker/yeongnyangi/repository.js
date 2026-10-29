@@ -35,6 +35,7 @@ const failure = (status, code, payload = {}) => {
 const readOptions={retries:1,retryOnOperationTimeout:true,retryAdmissionOnOverload:true};
 
 export function requestAccessMethod(row = {}) {
+  if (row.accessMethod === 'TOSS_IAP') return 'TOSS_IAP';
   if (row.accessMethod === 'PER_USE') return 'PER_USE';
   if (row.accessMethod === 'ACCOUNT_FREE_TRIAL') return 'ACCOUNT_FREE_TRIAL';
   if (row.accessMethod === 'SERVICE_PACK' || row.packEntitlementId) return 'SERVICE_PACK';
@@ -107,6 +108,10 @@ async function loadFamilyLedger() {
 
 export async function findNonCashEvidence(row, userId, session = null, commitMarker = '') {
   const id=String(row._id);
+  if(requestAccessMethod(row)==='TOSS_IAP') {
+    const {findTossPurchaseEvidence}=await import('../toss/purchases.js');
+    return findTossPurchaseEvidence(row,ownerId(userId),session,commitMarker);
+  }
   if(requestAccessMethod(row)==='PER_USE') {
     const {findPerUseEvidence}=await import('./per-use-access.js');
     return findPerUseEvidence(row,ownerId(userId),session,commitMarker);

@@ -1,0 +1,26 @@
+{
+  "version": "20261008-1",
+  "purpose": "앱인토스 등록용 아이콘 및 실제 테스트 화면 캡처",
+  "source": {
+    "app": "apps/toss",
+    "buildMode": "local CSR preview",
+    "serviceAvailable": false,
+    "loginPurchaseConsultation": "not available in this preview"
+  },
+  "consoleMapping": {
+    "darkModeAppLogo": "ai-saju-studio-icon-600.png",
+    "portraitScreenshots": [
+      "01-home-636x1048.png",
+      "02-product-636x1048.png",
+      "03-example-636x1048.png"
+    ],
+    "landscapeScreenshot": "04-home-1504x741.png"
+  },
+  "files": [
+    {"file":"01-home-636x1048.png","width":636,"height":1048,"bytes":133270,"sha256":"e29279c9b2fb6eb2462c0772b4fce16fd89a987376d6b50fa52596a284b183f2"},
+    {"file":"02-product-636x1048.png","width":636,"height":1048,"bytes":136570,"sha256":"7a044afab60ec5a7d3b36fc3ef5bfe9736559e7417a57cb089f7e2b47139faf3"},
+    {"file":"03-example-636x1048.png","width":636,"height":1048,"bytes":82967,"sha256":"b812e937e7c17bbc68baa213ad195c65afcae2e9c8c08fbbab6d83a360e786c7"},
+    {"file":"04-home-1504x741.png","width":1504,"height":741,"bytes":125020,"sha256":"7b75042a605fe395c62a0a5609e45382715d37cd99b22a7c78fdc8fd2b3e5b88"},
+    {"file":"ai-saju-studio-icon-600.png","width":600,"height":600,"bytes":757546,"sha256":"81f964a70a89b6fb076b2b33c9c56bf1fb395f06cf3f2836afc5053a375596a0"}
+  ]
+}

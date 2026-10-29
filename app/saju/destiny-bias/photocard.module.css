@@ -521,9 +521,9 @@
   min-height: 44px;
   padding: 0 18px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  background: rgba(255, 255, 255, 0.07);
-  color: #f7f1ff;
+  border: 1px solid var(--dbk-flip-border, rgba(255, 255, 255, 0.34));
+  background: var(--dbk-flip-background, rgba(255, 255, 255, 0.07));
+  color: var(--dbk-flip-text, #f7f1ff);
   font-family: var(--dbk-font-poster);
   font-size: 13px;
   letter-spacing: 0.18em;
