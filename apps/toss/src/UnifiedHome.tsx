@@ -1,0 +1,22 @@
+import {useState} from 'react';
+import {Button} from './Button';
+import {questions} from './content';
+
+type Destination='daily'|'manse'|'tarot-library'|'flower'|'bias'|'library'|'settings';
+export default function UnifiedHome({onOpen,onConsult}:{onOpen:(page:Destination)=>void;onConsult:(service:'yeongnyangi'|'yeoni'|'neo',question?:typeof questions[number])=>void}){
+ const [world,setWorld]=useState<'home'|'yeongnyangi'|'ggulggul'>('home');
+ return <div className={'unified-home world-'+world}>
+  <header className="unified-brand"><img src="/assets/yeoni-flower-pig.webp" alt="" width={40} height={40}/><strong>꿀꿀 운세</strong><button onClick={()=>onOpen('settings')}>내 정보</button></header>
+  <nav className="world-navigation" aria-label="서비스 공간">{[['home','전체'],['ggulggul','꿀꿀 운세'],['yeongnyangi','영냥이']].map(([id,label])=><button key={id} aria-current={world===id?'page':undefined} onClick={()=>setWorld(id as typeof world)}>{label}</button>)}</nav>
+  {world==='home'?<><p className="eyebrow">오늘의 마음이 조금 가벼워지는 곳</p><h1>어떤 운세를<br/>만나볼까요?</h1><div className="world-entries">{[{id:'ggulggul' as const,art:'yeoni',title:'꿀꿀 운세',description:'사주·타로부터 주제별 리포트까지',action:'운세 골라보기'},{id:'yeongnyangi' as const,art:'yeongnyangi',title:'운세보는 영냥이',description:'내 질문과 상황을 바탕으로 깊이 읽기',action:'영냥이 만나기'}].map(item=><button key={item.id} className={'world-entry world-entry-'+item.id} onClick={()=>setWorld(item.id)}><img src={'/assets/root-card-'+item.art+'.webp'} alt="" width={360} height={480}/><span><strong>{item.title}</strong><small>{item.description}</small><b>{item.action} <span aria-hidden>→</span></b></span></button>)}</div><p className="world-footnote">원하는 운세를 고르거나, 마음에 남은 질문부터 시작하세요.</p></>:world==='yeongnyangi'?<>
+   <section className="world-cat-hero"><img className="world-room" src="/assets/consultation-room-mobile.webp" alt="" width={768} height={1152}/><div><p className="eyebrow">운세보는 영냥이</p><h1>무슨 고민이야?<br/>편하게 앉아.</h1><p>네 질문과 상황을 듣고,<br/>답과 근거, 지금 해볼 행동을 함께 읽어.</p><Button onClick={()=>onConsult('yeongnyangi')}>내 고민 상담하기</Button></div><img className="world-cat" src="/assets/yeongnyangi.webp" alt="이야기를 기다리는 영냥이" width={800} height={800}/></section>
+   <h2>지금, 어떤 마음인가요?</h2><div className="questions">{questions.map(q=><button key={q.title} onClick={()=>onConsult('yeongnyangi',q)}><span><strong>{q.title}</strong><small>{q.hint}</small></span><span aria-hidden>›</span></button>)}</div><button className="daily-entry" onClick={()=>onOpen('daily')}><span><strong>오늘의 운세와 출석</strong><small>영냥이와 오늘의 흐름 살펴보기</small></span><span aria-hidden>→</span></button><button className="world-crosslink" onClick={()=>setWorld('ggulggul')}>사주·타로·주제별 운세는 꿀꿀 운세에서 <span aria-hidden>→</span></button>
+  </>:<>
+   <section className="world-flower-hero"><div><p className="eyebrow">꽃돼지 연이의 안내</p><h1>오늘은 어떤<br/>이야기를 펼칠까요?</h1><p>나를 알아가는 사주,<br/>마음을 비추는 타로와 운세.</p></div><img src="/assets/yeoni-flower-guide.webp" alt="꽃을 든 연이" width={500} height={500}/></section>
+   <h2>나를 알아가는 운세</h2><div className="world-services">{[{id:'manse' as const,title:'사주·만세력',body:'태어난 날에 담긴 명식과 오행'}, {id:'tarot-library' as const,title:'타로 리딩',body:'오늘의 마음부터 관계의 질문까지'},{id:'flower' as const,title:'운명의 꽃',body:'네 가지 체계로 읽는 나의 꽃'},{id:'bias' as const,title:'최애운명',body:'내 최애와 나의 케미'}].map(item=><button key={item.id} onClick={()=>onOpen(item.id)}><strong>{item.title}</strong><small>{item.body}</small><span aria-hidden>→</span></button>)}</div>
+   <h2>마음을 나누는 상담실</h2><div className="world-rooms"><button onClick={()=>onConsult('yeoni')}><img src="/assets/yeoni-flower-pig.webp" alt="" width={96} height={96}/><span><strong>연이 · 꽃빛 상담실</strong><small>마음과 관계를 다정한 편지로</small></span><span aria-hidden>›</span></button><button onClick={()=>onConsult('neo')}><img src="/assets/neo.webp" alt="" width={96} height={96}/><span><strong>네오 · 별빛 전략실</strong><small>고민을 현실적인 다음 행동으로</small></span><span aria-hidden>›</span></button></div>
+   <section className="world-port-status"><h2>깊이 읽는 리포트</h2><p>인생의 책 · 연애 비책 · 초융합 · 전문가 상담</p><small>기존 서비스의 전용 화면을 옮기는 중이에요. 토스에서는 아직 시작할 수 없어요.</small></section>
+  </>}
+  <footer className="world-footer"><button onClick={()=>onOpen('library')}>기록 보관함</button><button onClick={()=>onOpen('settings')}>설정·고객지원</button></footer>
+ </div>;
+}

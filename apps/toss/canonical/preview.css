@@ -1,0 +1,4 @@
+.canonical-preview-bar{position:relative;z-index:100;background:var(--cd-surface);color:var(--cd-text);padding:12px 16px;border-bottom:1px solid var(--cd-border);font:14px/1.6 system-ui,sans-serif}
+.canonical-preview-bar strong,.canonical-preview-bar span{display:block}
+.canonical-preview-bar nav{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:6px}
+.canonical-preview-bar a{display:inline-flex;min-height:44px;align-items:center;text-decoration:underline;text-underline-offset:4px;color:inherit}

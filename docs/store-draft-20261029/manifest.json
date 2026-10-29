@@ -1,0 +1,141 @@
+{
+  "approved": false,
+  "uploaded": false,
+  "images": [
+    {
+      "file": "feature-ko.png",
+      "width": 1024,
+      "height": 500,
+      "locale": "ko",
+      "kind": "feature",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "art-ko.png",
+      "width": 1080,
+      "height": 1920,
+      "locale": "ko",
+      "kind": "art",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "screen-ko.png",
+      "width": 1080,
+      "height": 1920,
+      "locale": "ko",
+      "kind": "screen",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "feature-en.png",
+      "width": 1024,
+      "height": 500,
+      "locale": "en",
+      "kind": "feature",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "art-en.png",
+      "width": 1080,
+      "height": 1920,
+      "locale": "en",
+      "kind": "art",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "screen-en.png",
+      "width": 1080,
+      "height": 1920,
+      "locale": "en",
+      "kind": "screen",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "feature-ja.png",
+      "width": 1024,
+      "height": 500,
+      "locale": "ja",
+      "kind": "feature",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "art-ja.png",
+      "width": 1080,
+      "height": 1920,
+      "locale": "ja",
+      "kind": "art",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "screen-ja.png",
+      "width": 1080,
+      "height": 1920,
+      "locale": "ja",
+      "kind": "screen",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "feature-zh-CN.png",
+      "width": 1024,
+      "height": 500,
+      "locale": "zh-CN",
+      "kind": "feature",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "art-zh-CN.png",
+      "width": 1080,
+      "height": 1920,
+      "locale": "zh-CN",
+      "kind": "art",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "screen-zh-CN.png",
+      "width": 1080,
+      "height": 1920,
+      "locale": "zh-CN",
+      "kind": "screen",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "feature-zh-TW.png",
+      "width": 1024,
+      "height": 500,
+      "locale": "zh-TW",
+      "kind": "feature",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "art-zh-TW.png",
+      "width": 1080,
+      "height": 1920,
+      "locale": "zh-TW",
+      "kind": "art",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    },
+    {
+      "file": "screen-zh-TW.png",
+      "width": 1080,
+      "height": 1920,
+      "locale": "zh-TW",
+      "kind": "screen",
+      "status": "draft-not-approved",
+      "actualDeviceScreenshot": false
+    }
+  ]
+}

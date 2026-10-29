@@ -18,7 +18,9 @@ permissions:
   contents: read
 jobs:
   replica-transactions:
-    runs-on: ubuntu-latest
+    # MongoDB 8.0 cannot start on Linux 6.19–7.0.13 (SERVER-121912).
+    # Ubuntu 22.04 runners use the compatible 6.8 kernel; retain MongoDB 8 parity.
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -29,16 +31,36 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Start isolated local replica set
         run: |
-          docker run -d --name gift-test-mongo -p 127.0.0.1:27029:27029 mongo:8.0 --port 27029 --replSet gift-test --bind_ip_all --setParameter enableTestCommands=1
+          uname -r
+          docker run -d --name gift-test-mongo -p 127.0.0.1:27029:27029 mongo:8.0 mongod --port 27029 --replSet gift-test --bind_ip_all --setParameter enableTestCommands=1
+          for attempt in $(seq 1 30); do
+            if docker exec gift-test-mongo mongosh --port 27029 --quiet --eval 'quit(db.adminCommand({ping:1}).ok === 1 ? 0 : 1)'; then
+              break
+            fi
+            test "$(docker inspect --format '{{.State.Running}}' gift-test-mongo)" = true
+            test "$attempt" -lt 30
+            sleep 2
+          done
           node <<'NODE'
           const { MongoClient } = require('mongodb');
           (async () => {
             const c = await MongoClient.connect('mongodb://127.0.0.1:27029/?directConnection=true', { serverSelectionTimeoutMS: 30000 });
-            await c.db('admin').command({ replSetInitiate: { _id: 'gift-test', members: [{ _id: 0, host: '127.0.0.1:27029' }] } });
-            await c.close();
+            try {
+              await c.db('admin').command({ replSetInitiate: { _id: 'gift-test', members: [{ _id: 0, host: 'localhost:27029' }] } });
+              for (let attempt = 0; attempt < 30; attempt++) {
+                if ((await c.db('admin').command({ hello: 1 })).isWritablePrimary) return;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+              throw new Error('Local gift test replica set did not elect a primary');
+            } finally { await c.close(); }
           })().catch(e => { console.error(e.message); process.exit(1); });
           NODE
       - run: npm run test:gifts:replica
+      - name: Diagnose local test database failure
+        if: failure()
+        run: |
+          docker inspect --format '{{json .State}}' gift-test-mongo || true
+          docker logs --tail 120 gift-test-mongo || true
       - name: Stop local test database
         if: always()
         run: docker rm -f gift-test-mongo

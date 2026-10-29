@@ -1,6 +1,12 @@
+---
+status: done
+updated: 2026-10-29
+next: 후속 진행은 docs/toss/2026-10-28-launch-plan.md를 따른다. 이 문서는 당시 기록으로 보존한다.
+---
+
 # 앱인토스 전체 이식 진행 상태
 
-status: in-progress
+이전 인수인계는 후속 실행 계획으로 이관했다. 아래는 2026-10-08 당시 기록이며 전체 이식이나 출시 완료를 뜻하지 않는다.
 
 - 작업 디렉터리: `D:\Development\code-destiny\.codex-worktrees\toss-miniapp-20261007-223959`
 - 브랜치: `wt/toss-miniapp-20261007-223959`, PR 없음. 루트 main은 다른 세션이 사용하므로 수정 금지.

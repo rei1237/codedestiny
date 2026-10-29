@@ -7,7 +7,66 @@
   --moon-ink:#47364f;
   --moon-muted:#776477;
   --moon-gold:#947344;
+  --moon-surface:#fffdf9;
+  --moon-accent:#4b395c;
+  --moon-focus:#76539a;
 }
+main{background:var(--moon-surface);color:var(--moon-ink);--line:#e8ddce;--brand:var(--moon-accent)}
+main.adviser-yeongnyangi{--moon-accent:#285a87;--moon-focus:#346ea1;--moon-paper:#eef5fb;--moon-surface:#fbfdff;--moon-ink:#263e55;--moon-muted:#536b80;--moon-line:#a9c4da;--moon-line-soft:#d9e6f1}
+main.adviser-yeoni,main.adviser-ggulggul{--moon-accent:#914663;--moon-focus:#a34b70;--moon-paper:#fff0f5;--moon-surface:#fffbfd;--moon-ink:#543341;--moon-muted:#805968;--moon-line:#d9aabd;--moon-line-soft:#f0d9e2}
+main.adviser-neo{--moon-accent:#34455d;--moon-focus:#4e6689}
+main::selection{background:#e4d3c5;color:#352b40}
+main input,main textarea{caret-color:var(--moon-accent)}
+main a{color:var(--moon-accent);text-underline-offset:4px}
+main h1{max-width:19ch;text-wrap:balance}
+main h3,main legend{font-family:var(--toss-serif)}
+main .intro,main .muted,main small,main .section-description{color:var(--moon-muted)}
+.page-manse,.page-catalog,.page-product,.page-birth,.page-login,.page-purchase,.page-result,.page-library,.page-recovery,.page-settings,.page-terms,.page-support,.page-withdraw,.page-example,.page-daily{
+  background-image:url('/assets/moon-floral-light.webp');background-repeat:no-repeat;background-size:100% 165px;
+}
+main>h1,main>section>h1{position:relative}
+.preview-note{background:#f5eee3;color:#756251;border:1px solid #e6d9c4}
+.paper,.notice,.status,.tarot-result-actions{background:var(--moon-paper);border:1px solid var(--moon-line-soft);border-radius:18px;box-shadow:inset 0 0 0 3px var(--moon-surface),inset 0 0 0 4px var(--moon-line-soft)}
+.paper{position:relative;padding:24px}
+.paper::after{content:'';position:absolute;right:8px;top:8px;width:40px;height:28px;background:var(--moon-gold);mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;opacity:.28;pointer-events:none}
+.notice{color:#74452d;background:#fff5e9}
+.status{color:var(--moon-accent);line-height:1.7}
+.chapter{border-top-color:var(--moon-line);padding-top:26px}
+.chapter blockquote{border:1px solid var(--moon-line);border-radius:14px;background:var(--moon-paper);color:var(--moon-ink)}
+.record{padding:22px 16px;margin:14px 0;border:1px solid var(--moon-line-soft);border-radius:16px;background:var(--moon-paper);box-shadow:inset 0 0 0 3px var(--moon-surface),inset 0 0 0 4px var(--moon-line-soft)}
+.record strong,.reading strong,.tarot-library-item strong{font-family:var(--toss-serif);color:var(--moon-accent)}
+.record span{line-height:1.7}
+.reading:focus-visible,.record:focus-visible,main summary:focus-visible{outline:3px solid var(--moon-focus);outline-offset:4px}
+main select,.tarot-input-label input{background:var(--moon-surface);border-color:var(--moon-line);color:var(--moon-ink)}
+main input[type=checkbox]{accent-color:var(--moon-accent)}
+.birth-fields{padding:20px 0;border-top:1px solid var(--moon-line);border-bottom:1px solid var(--moon-line-soft)}
+.birth-fields legend{padding:0 10px 0 0;color:var(--moon-accent)}
+.result-evidence,.bias-reading details{border-color:var(--moon-line-soft)}
+main summary{min-height:52px;padding:15px 4px;line-height:1.6;color:var(--moon-accent)}
+.result-chart-options button{background:var(--moon-paper);border-color:var(--moon-line);color:var(--moon-ink)}
+.result-chart-options button[aria-pressed=true]{background:#eee5d7;border-color:var(--moon-accent)}
+.result-wheel{color:var(--moon-accent)}
+.result-chart-detail dl>div{border-bottom-color:var(--moon-line-soft);font-size:14px;line-height:1.7}
+button.moon-button{min-height:52px;padding:0;border-radius:15px;line-height:1.6;font-size:15px;font-weight:650;white-space:normal;height:auto;transition:transform 120ms ease,background 120ms ease}
+button.moon-button-primary{background:var(--moon-accent);color:#fff9ef;border:1px solid #b39a76;box-shadow:inset 0 0 0 3px var(--moon-accent),inset 0 0 0 4px #9a815f,0 6px 12px -10px #4b395c}
+button.moon-button-secondary{background:var(--moon-paper);color:var(--moon-accent);border:1px solid var(--moon-line);box-shadow:inset 0 0 0 3px var(--moon-surface),inset 0 0 0 4px var(--moon-line-soft)}
+button.moon-button:disabled{opacity:1;background:#eee8df;color:#8c7c8a;border-color:#ded4c6;box-shadow:none;cursor:default}
+button.moon-button:focus-visible{outline:3px solid var(--moon-focus);outline-offset:4px}
+button.moon-button:active:not(:disabled){transform:translateY(1px)}
+main>.moon-button+.moon-button,.paper>.moon-button+.moon-button{margin-top:12px}
+@media(hover:hover){button.moon-button:hover:not(:disabled){filter:brightness(.97)}}
+.daily-entry{display:flex;align-items:center;gap:14px;width:100%;min-height:88px;padding:20px 16px;margin:24px 0;background:var(--moon-paper);border:1px solid var(--moon-line);border-radius:18px;color:var(--moon-accent);text-align:left;box-shadow:inset 0 0 0 3px var(--moon-surface),inset 0 0 0 4px var(--moon-line-soft)}
+.daily-entry>span:nth-child(2){flex:1}.daily-entry strong,.daily-entry small{display:block}.daily-entry strong{font:700 18px/1.6 var(--toss-serif)}
+.daily-entry .moonlight-seal{background:var(--moon-gold);width:32px;height:32px}.daily-entry small{font-size:13px;margin-top:5px}
+.daily-attendance h2{margin-top:0}.daily-attendance p{font-size:14px}.daily-attended{color:var(--moon-accent);font-weight:650}
+.daily-options{display:flex;gap:9px;flex-wrap:wrap;margin:20px 0 32px}
+.daily-options button{font:inherit;font-size:14px;line-height:1.5;min-height:48px;padding:12px 16px;border:1px solid var(--moon-line);border-radius:12px;color:var(--moon-accent);background:var(--moon-paper)}
+.daily-options button[aria-pressed=true]{background:var(--moon-accent);color:#fff9ef;border-color:var(--moon-accent)}
+.daily-options button:focus-visible{outline:3px solid var(--moon-focus);outline-offset:3px}
+.daily-field{display:grid;gap:8px;font-size:14px;font-weight:650}.daily-choices{display:grid;gap:14px;padding:0;border:0;min-width:0}.daily-choices legend{margin-bottom:14px}
+.daily-basis{margin-bottom:0}.daily-basis>div{padding:12px 0;border-bottom:1px solid var(--moon-line-soft);line-height:1.8;font-size:14px}.daily-basis>div:last-child{border:0}.daily-basis dt{color:var(--moon-muted)}.daily-basis dd{margin:4px 0 0;font-weight:650;overflow-wrap:anywhere}
+.daily-form h2{margin-bottom:0}.daily-form>p{margin-top:0}.daily-result .chapter p{font-size:16px}
+@media(prefers-reduced-motion:reduce){button.moon-button{transition:none}button.moon-button:active:not(:disabled){transform:none}}
 .hero::after{
   content:'';position:absolute;right:0;top:0;width:95px;height:68px;
   background:var(--moon-gold);mask:var(--yn-yehwa-mask-branch-spray) center/contain no-repeat;
@@ -35,7 +94,7 @@
   background:var(--moon-gold);mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;
   opacity:.25;pointer-events:none;
 }
-.moonlight-action-primary{min-height:96px;padding:20px 16px;background:#413451;color:#fff9ec;border-color:#b9a176;box-shadow:inset 0 0 0 3px #413451,inset 0 0 0 4px #847052,0 8px 20px -15px #413451}
+.moonlight-action-primary{min-height:96px;padding:20px 16px;background:var(--moon-accent);color:#fff9ec;border-color:#b9a176;box-shadow:inset 0 0 0 3px var(--moon-accent),inset 0 0 0 4px #847052,0 8px 20px -15px #413451}
 .moonlight-action-primary::before{background:#e8d5a3;opacity:.45}
 .moonlight-action-copy{display:grid;gap:6px;min-width:0;flex:1}
 .moonlight-action strong{font:700 17px/1.5 var(--toss-serif);word-break:keep-all}
@@ -51,6 +110,23 @@
 .moonlight-example svg{width:16px}
 .moonlight-action:focus-visible,.moonlight-example:focus-visible{outline:3px solid #7054b3;outline-offset:4px}
 .moonlight-action:active{transform:translateY(1px)}
-@media(hover:hover){.moonlight-action:hover{transform:translateY(-1px);box-shadow:inset 0 0 0 3px #fffdf9,inset 0 0 0 4px var(--moon-line-soft),0 10px 20px -15px #7c5e3c}.moonlight-action-primary:hover{box-shadow:inset 0 0 0 3px #413451,inset 0 0 0 4px #b9a176,0 10px 20px -15px #413451}}
+@media(hover:hover){.moonlight-action:hover{transform:translateY(-1px);box-shadow:inset 0 0 0 3px #fffdf9,inset 0 0 0 4px var(--moon-line-soft),0 10px 20px -15px #7c5e3c}.moonlight-action-primary:hover{box-shadow:inset 0 0 0 3px var(--moon-accent),inset 0 0 0 4px #b9a176,0 10px 20px -15px #413451}}
 @media(max-width:360px){.moonlight-navigation{padding-inline:12px}.moonlight-seal{width:32px;height:36px}.moonlight-action-primary strong{font-size:18px}.moonlight-navigation-pair{gap:8px}.moonlight-action small{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.moonlight-action{transition:none}.moonlight-action:active,.moonlight-action:hover{transform:none}}
+.daily-prompt{width:100%;min-height:240px;padding:16px;border:1px solid var(--moon-line);border-radius:14px;background:var(--moon-paper);color:var(--moon-ink);font:inherit;line-height:1.7;resize:vertical}
+
+.fish-portrait{width:72px;height:72px;object-fit:contain;flex-shrink:0}
+.page-product>.fish-portrait{display:block;width:112px;height:112px;margin:16px auto}
+main .adviser-message strong,main .eyebrow{color:var(--moon-accent)}
+.adviser-choice.adviser-yeongnyangi{--choice-ink:#285a87;--choice-paper:#eef5fb;--choice-line:#a9c4da}
+.adviser-choice.adviser-yeoni{--choice-ink:#914663;--choice-paper:#fff0f5;--choice-line:#d9aabd}
+.adviser-choice.adviser-neo{--choice-ink:#34455d;--choice-paper:#eeedf5;--choice-line:#abb8ce}
+.adviser-choice .adviser-art{background:var(--choice-paper)}
+.adviser-choice[aria-pressed=true]{background:var(--choice-paper);border-color:var(--choice-line)}
+.adviser-choice .adviser-selected{color:var(--choice-ink)}
+.manse-input{border:0;padding:0;margin:0;min-width:0}
+.manse-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--moon-line);border-radius:14px;overflow:hidden;background:var(--moon-paper)}
+.manse-pillars>div{padding:16px 4px;text-align:center}.manse-pillars dt{font-size:14px}.manse-pillars dd{margin:10px 0 0}.manse-pillars strong{display:block;font:700 22px/1.6 var(--toss-serif)}.manse-pillars span{display:block;font-size:12px;color:var(--moon-muted)}
+.manse-result{margin-top:32px}
+.manse-result li{margin:12px 0;line-height:1.8}
+@media(max-width:360px){.fish-portrait{width:56px;height:56px}}

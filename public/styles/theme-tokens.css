@@ -8,6 +8,17 @@
  */
 
 :root {
+  /* App pass shop: approved pink Yehwa surface, independent of device theme. */
+  --cd-pass-paper: #fff3f7;
+  --cd-pass-card: #fffafb;
+  --cd-pass-ink: #48253b;
+  --cd-pass-muted: #755166;
+  --cd-pass-rose: #a52e54;
+  --cd-pass-rose-deep: #85213f;
+  --cd-pass-line: #e8c4d1;
+  --cd-pass-ornament: #be869b;
+  --cd-pass-petal: #f7dfe8;
+  --cd-pass-on-rose: #ffffff;
   /* Consultation introductions keep the bright Ggulggul palette in every host. */
   --cd-samples-paper: #fff9f4;
   --cd-samples-sheet: #ffffff;

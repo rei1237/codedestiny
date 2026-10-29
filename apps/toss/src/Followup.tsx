@@ -1,5 +1,6 @@
 import {useRef,useState} from 'react';
-import {Button,TextArea} from '@toss/tds-mobile';
+import {TextArea} from '@toss/tds-mobile';
+import {Button} from './Button';
 import {api} from './platform';
 export type Conversation={limit:number;remaining:number;closed:boolean;ready:boolean;pending?:{id:string;question:string;retryAt:number};exchanges:{id:string;question:string;kind:string;text:string}[]};
 export function Followup({id,conversation,onResult,onError}:{id:string;conversation:Conversation;onResult:(result:any)=>void;onError:(error:unknown)=>void}){

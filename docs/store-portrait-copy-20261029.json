@@ -1,0 +1,521 @@
+{
+  "status": "draft-not-approved",
+  "format": "1080x1920",
+  "note": "Illustrated concept drafts. These are not app screenshots. Review and actual localized app captures are required before store upload.",
+  "topics": [
+    "creator",
+    "saju",
+    "tarot",
+    "traditions",
+    "free",
+    "music-stories",
+    "talisman",
+    "reading-press"
+  ],
+  "locales": {
+    "ko": [
+      [
+        "나를 이해하는\n운세의 시작",
+        "대통령의 운세 흐름을 짚은\n명리학자 박병하가 만든 서비스",
+        "공개 분석 기록과 해석 기준을 바탕으로"
+      ],
+      [
+        "사주로 읽는\n나의 흐름",
+        "기질과 관계, 일과 삶의 방향까지",
+        "어려운 용어는 쉽게, 해석은 차분하게"
+      ],
+      [
+        "마음이 복잡한 날,\n타로 한 장",
+        "연애 · 관계 · 선택의 갈림길",
+        "카드가 건네는 질문과 현실적인 조언"
+      ],
+      [
+        "사주 너머,\n다양한 운세의 세계",
+        "자미두수 · 숙요점 · 점성술 · 베다점",
+        "각 체계의 관점으로 나를 더 깊이"
+      ],
+      [
+        "가볍게 시작하는\n매일의 운세",
+        "무료 기능으로 둘러보는 나의 하루",
+        "일부 심층 상담과 콘텐츠는 유료예요"
+      ],
+      [
+        "음악을 듣고,\n이야기에 머물고",
+        "음악 감상과 라이트 노벨",
+        "운세를 넘어, 쉬어 가는 작은 세계"
+      ],
+      [
+        "나의 작은 바람을\n잠금화면에",
+        "연이와 영냥이의 부적",
+        "화면에 맞춰 크기와 위치를 조절해요"
+      ],
+      [
+        "읽을수록 넓어지는\n나를 위한 이야기",
+        "운세 읽을거리부터 상담 이야기까지",
+        "스타트업데일리 소개 서비스 · 2026.09.30"
+      ]
+    ],
+    "en": [
+      [
+        "A little insight.\nA deeper you.",
+        "Created by Saju practitioner Park Byeong-ha,\nwho published readings on a Korean president",
+        "Explore the public records and approach"
+      ],
+      [
+        "Discover your\npatterns with Saju",
+        "Temperament, relationships, work and life",
+        "Traditional ideas, clearly explained"
+      ],
+      [
+        "A tarot card for\na complicated day",
+        "Love, relationships and crossroads",
+        "Questions to reflect on. Practical guidance."
+      ],
+      [
+        "Many traditions.\nNew perspectives.",
+        "Zi Wei Dou Shu · Sukuyo\nWestern and Vedic astrology",
+        "Explore each tradition on its own terms"
+      ],
+      [
+        "Start your day\nwith a little insight",
+        "Explore the free features",
+        "Some in-depth readings and content are paid"
+      ],
+      [
+        "Listen to music.\nStay for a story.",
+        "Music and light novels",
+        "A small world to unwind in"
+      ],
+      [
+        "A little wish\non your lock screen",
+        "Talismans with Yeoni and Yeongnyangi",
+        "Adjust the size and position to fit your screen"
+      ],
+      [
+        "More to read.\nMore to reflect on.",
+        "From fortune articles to consultation stories",
+        "Featured in StartupDaily · 30 Sep 2026"
+      ]
+    ],
+    "ja": [
+      [
+        "自分を知る、\n占いのはじまり",
+        "韓国大統領の運勢分析を公開した\n命理学者パク・ビョンハが手がけるサービス",
+        "公開された分析記録と解釈の基準をもとに"
+      ],
+      [
+        "四柱推命で読む\nあなたの流れ",
+        "気質、人間関係、仕事、人生の方向性",
+        "難しい用語はやさしく、解釈は丁寧に"
+      ],
+      [
+        "心が揺れる日に、\nタロットを一枚",
+        "恋愛 · 人間関係 · 選択の分かれ道",
+        "カードが問いかけること、今できること"
+      ],
+      [
+        "四柱推命の先に、\n多彩な占いの世界",
+        "紫微斗数 · 宿曜占星術\n西洋占星術 · インド占星術",
+        "それぞれの視点から、自分を深く知る"
+      ],
+      [
+        "気軽に始める\n毎日の占い",
+        "無料機能で今日の自分を見つめる",
+        "一部の詳しい鑑定・コンテンツは有料です"
+      ],
+      [
+        "音楽を聴いて、\n物語にひたって",
+        "音楽鑑賞とライトノベル",
+        "占いの先にある、ひと休みの世界"
+      ],
+      [
+        "小さな願いを\nロック画面に",
+        "ヨニとヨンニャンイのお守り",
+        "画面に合わせて大きさと位置を調整"
+      ],
+      [
+        "読むほど広がる\n自分のための物語",
+        "占いの記事から相談の物語まで",
+        "StartupDailyで紹介 · 2026年9月30日"
+      ]
+    ],
+    "zh-CN": [
+      [
+        "从了解自己开始\n走进命理的世界",
+        "由曾公开分析韩国总统运势的\n命理学者Park Byeong-ha打造",
+        "以公开分析记录与解读原则为基础"
+      ],
+      [
+        "以四柱八字\n读懂自己的节奏",
+        "性情、关系、事业与人生方向",
+        "术语浅显易懂，解读细致平和"
+      ],
+      [
+        "心绪纷乱时\n抽一张塔罗牌",
+        "爱情 · 人际关系 · 选择的路口",
+        "从牌面得到启发，寻找可行的行动"
+      ],
+      [
+        "不止四柱八字\n探索多种命理体系",
+        "紫微斗数 · 宿曜\n西方占星 · 吠陀占星",
+        "从各自的视角，更深入地了解自己"
+      ],
+      [
+        "轻松开启\n每日运势",
+        "用免费功能探索今天的自己",
+        "部分深度咨询与内容需付费"
+      ],
+      [
+        "听一段音乐\n读一篇故事",
+        "音乐欣赏与轻小说",
+        "在运势之外，留一处休憩的空间"
+      ],
+      [
+        "把小小心愿\n放在锁屏上",
+        "Yeoni 与 Yeongnyangi的护符",
+        "按屏幕调整大小与位置"
+      ],
+      [
+        "越读越丰富\n属于自己的故事",
+        "从命理文章到咨询故事",
+        "StartupDaily专题介绍 · 2026年9月30日"
+      ]
+    ],
+    "zh-TW": [
+      [
+        "從了解自己開始\n走進命理的世界",
+        "由曾公開分析韓國總統運勢的\n命理學者Park Byeong-ha打造",
+        "以公開分析紀錄與解讀原則為基礎"
+      ],
+      [
+        "以四柱八字\n讀懂自己的節奏",
+        "性情、關係、事業與人生方向",
+        "術語淺顯易懂，解讀細緻平和"
+      ],
+      [
+        "心緒紛亂時\n抽一張塔羅牌",
+        "愛情 · 人際關係 · 選擇的路口",
+        "從牌面得到啟發，尋找可行的行動"
+      ],
+      [
+        "不只四柱八字\n探索多種命理體系",
+        "紫微斗數 · 宿曜\n西洋占星 · 吠陀占星",
+        "從各自的視角，更深入地了解自己"
+      ],
+      [
+        "輕鬆開啟\n每日運勢",
+        "用免費功能探索今天的自己",
+        "部分深度諮詢與內容需付費"
+      ],
+      [
+        "聽一段音樂\n讀一篇故事",
+        "音樂欣賞與輕小說",
+        "在運勢之外，留一處休憩的空間"
+      ],
+      [
+        "把小小心願\n放在鎖定畫面上",
+        "Yeoni 與 Yeongnyangi的護符",
+        "依螢幕調整大小與位置"
+      ],
+      [
+        "越讀越豐富\n屬於自己的故事",
+        "從命理文章到諮詢故事",
+        "StartupDaily專題介紹 · 2026年9月30日"
+      ]
+    ],
+    "vi": [
+      [
+        "Hiểu mình hơn\nqua từng góc nhìn",
+        "Do chuyên gia Tứ trụ Park Byeong-ha sáng lập,\nngười từng công bố luận giải về tổng thống Hàn Quốc",
+        "Tìm hiểu các bài phân tích và phương pháp đã công bố"
+      ],
+      [
+        "Khám phá bản thân\nqua Tứ trụ",
+        "Tính cách, quan hệ, công việc và cuộc sống",
+        "Thuật ngữ dễ hiểu, luận giải nhẹ nhàng"
+      ],
+      [
+        "Một lá Tarot\ncho ngày rối lòng",
+        "Tình yêu · Quan hệ · Những lựa chọn",
+        "Gợi mở suy ngẫm và lời khuyên thiết thực"
+      ],
+      [
+        "Nhiều hệ thống\nNhiều góc nhìn",
+        "Tử Vi Đẩu Số · Tú Diệu\nChiêm tinh phương Tây và Vệ Đà",
+        "Khám phá từng hệ thống theo cách riêng"
+      ],
+      [
+        "Bắt đầu ngày mới\nthật nhẹ nhàng",
+        "Khám phá các tính năng miễn phí",
+        "Một số nội dung và luận giải chuyên sâu có tính phí"
+      ],
+      [
+        "Lắng nghe nhạc\nĐắm mình trong truyện",
+        "Âm nhạc và light novel",
+        "Một thế giới nhỏ để nghỉ ngơi"
+      ],
+      [
+        "Gửi điều ước nhỏ\nlên màn hình khóa",
+        "Bùa may mắn cùng Yeoni và Yeongnyangi",
+        "Điều chỉnh kích thước và vị trí cho vừa màn hình"
+      ],
+      [
+        "Đọc thêm một chút\nHiểu mình thêm chút",
+        "Bài viết về vận mệnh và chuyện tư vấn",
+        "Được giới thiệu trên StartupDaily · 30/09/2026"
+      ]
+    ],
+    "hi": [
+      [
+        "खुद को समझने की\nएक नई शुरुआत",
+        "साजू विशेषज्ञ पार्क ब्योंग-हा द्वारा निर्मित, जिन्होंने\nकोरियाई राष्ट्रपति के भाग्य पर विश्लेषण प्रकाशित किए",
+        "सार्वजनिक विश्लेषण और पद्धति को जानें"
+      ],
+      [
+        "साजू से समझें\nअपनी जीवन-लय",
+        "स्वभाव, रिश्ते, काम और जीवन की दिशा",
+        "पारंपरिक विचार, सरल व्याख्या"
+      ],
+      [
+        "उलझे हुए दिन में\nएक टैरो कार्ड",
+        "प्रेम · रिश्ते · चुनाव के मोड़",
+        "सोचने के सवाल और व्यावहारिक सुझाव"
+      ],
+      [
+        "कई परंपराएँ\nनई दृष्टियाँ",
+        "ज़ी वेई डोऊ शू · सुकुयो\nपाश्चात्य और वैदिक ज्योतिष",
+        "हर पद्धति को उसके अपने दृष्टिकोण से जानें"
+      ],
+      [
+        "हर दिन की शुरुआत\nथोड़ी समझ के साथ",
+        "निःशुल्क सुविधाएँ आज़माएँ",
+        "कुछ विस्तृत परामर्श और सामग्री सशुल्क हैं"
+      ],
+      [
+        "संगीत सुनें\nकहानियों में खो जाएँ",
+        "संगीत और लाइट नॉवेल",
+        "सुकून के लिए एक छोटी-सी दुनिया"
+      ],
+      [
+        "छोटी-सी कामना\nआपकी लॉक स्क्रीन पर",
+        "योनी और योंगन्यांगी के शुभ तावीज़",
+        "स्क्रीन के अनुसार आकार और स्थान बदलें"
+      ],
+      [
+        "और पढ़ें\nखुद को और जानें",
+        "भाग्य पर लेखों से परामर्श की कहानियों तक",
+        "StartupDaily में परिचय · 30 सितंबर 2026"
+      ]
+    ],
+    "es": [
+      [
+        "Una mirada nueva\nhacia ti",
+        "Creado por Park Byeong-ha, experto en Saju que\npublicó lecturas sobre un presidente de Corea",
+        "Conoce sus análisis públicos y su método"
+      ],
+      [
+        "Descubre tus patrones\ncon el Saju",
+        "Carácter, relaciones, trabajo y vida",
+        "Ideas tradicionales, explicadas con claridad"
+      ],
+      [
+        "Una carta de tarot\npara un día difícil",
+        "Amor · Relaciones · Decisiones",
+        "Preguntas para reflexionar y consejos prácticos"
+      ],
+      [
+        "Muchas tradiciones\nNuevas perspectivas",
+        "Zi Wei Dou Shu · Sukuyo\nAstrología occidental y védica",
+        "Explora cada tradición desde su propia visión"
+      ],
+      [
+        "Empieza el día\ncon otra perspectiva",
+        "Descubre las funciones gratuitas",
+        "Algunas lecturas detalladas y contenidos son de pago"
+      ],
+      [
+        "Escucha música\nQuédate por un relato",
+        "Música y novelas ligeras",
+        "Un pequeño mundo para desconectar"
+      ],
+      [
+        "Un pequeño deseo\nen tu pantalla",
+        "Talismanes con Yeoni y Yeongnyangi",
+        "Ajusta el tamaño y la posición en la pantalla de bloqueo"
+      ],
+      [
+        "Más para leer\nMás para descubrir",
+        "Artículos de astrología e historias de consultas",
+        "Presentado en StartupDaily · 30 sep 2026"
+      ]
+    ],
+    "fr": [
+      [
+        "Un nouveau regard\nsur vous-même",
+        "Créé par Park Byeong-ha, praticien du Saju ayant\npublié des analyses sur un président coréen",
+        "Découvrez ses analyses publiques et sa méthode"
+      ],
+      [
+        "Explorez vos tendances\navec le Saju",
+        "Tempérament, relations, travail et vie",
+        "Des notions traditionnelles expliquées simplement"
+      ],
+      [
+        "Une carte de tarot\npour les jours troublés",
+        "Amour · Relations · Choix de vie",
+        "Des pistes de réflexion et des conseils concrets"
+      ],
+      [
+        "Plusieurs traditions\nDe nouveaux regards",
+        "Zi Wei Dou Shu · Sukuyo\nAstrologie occidentale et védique",
+        "Découvrez la perspective propre à chaque tradition"
+      ],
+      [
+        "Commencez la journée\navec un autre regard",
+        "Explorez les fonctions gratuites",
+        "Certaines analyses approfondies et certains contenus sont payants"
+      ],
+      [
+        "Écoutez la musique\nEntrez dans un récit",
+        "Musique et light novels",
+        "Un petit univers pour souffler"
+      ],
+      [
+        "Un petit souhait\nsur votre écran",
+        "Les talismans de Yeoni et Yeongnyangi",
+        "Ajustez la taille et la position sur l’écran verrouillé"
+      ],
+      [
+        "Lisez, découvrez\nPrenez du recul",
+        "Articles et récits de consultations",
+        "Présenté dans StartupDaily · 30 sept. 2026"
+      ]
+    ],
+    "de": [
+      [
+        "Ein neuer Blick\nauf dich selbst",
+        "Vom Saju-Experten Park Byeong-ha, der Deutungen\nzu einem koreanischen Präsidenten veröffentlichte",
+        "Entdecke seine öffentlichen Analysen und seine Methode"
+      ],
+      [
+        "Erkenne deine Muster\nmit Saju",
+        "Persönlichkeit, Beziehungen, Beruf und Leben",
+        "Traditionelle Ideen verständlich erklärt"
+      ],
+      [
+        "Eine Tarotkarte\nfür bewegte Tage",
+        "Liebe · Beziehungen · Entscheidungen",
+        "Fragen zum Nachdenken und praktische Impulse"
+      ],
+      [
+        "Viele Traditionen\nNeue Perspektiven",
+        "Zi Wei Dou Shu · Sukuyo\nWestliche und vedische Astrologie",
+        "Entdecke jede Tradition aus ihrer eigenen Sicht"
+      ],
+      [
+        "Ein leichter Einstieg\nin deinen Tag",
+        "Entdecke die kostenlosen Funktionen",
+        "Einige ausführliche Beratungen und Inhalte sind kostenpflichtig"
+      ],
+      [
+        "Musik hören\nIn Geschichten reisen",
+        "Musik und Light Novels",
+        "Eine kleine Welt zum Durchatmen"
+      ],
+      [
+        "Ein kleiner Wunsch\nauf deinem Sperrbildschirm",
+        "Talismane mit Yeoni und Yeongnyangi",
+        "Größe und Position an deinen Bildschirm anpassen"
+      ],
+      [
+        "Mehr lesen\nMehr entdecken",
+        "Artikel und Geschichten aus der Beratung",
+        "Vorgestellt bei StartupDaily · 30.09.2026"
+      ]
+    ],
+    "nl": [
+      [
+        "Een frisse blik\nop jezelf",
+        "Van Saju-deskundige Park Byeong-ha, die duidingen\nover een Koreaanse president publiceerde",
+        "Ontdek zijn openbare analyses en werkwijze"
+      ],
+      [
+        "Ontdek je patronen\nmet Saju",
+        "Karakter, relaties, werk en leven",
+        "Traditionele ideeën, helder uitgelegd"
+      ],
+      [
+        "Een tarotkaart\nvoor een onrustige dag",
+        "Liefde · Relaties · Keuzes",
+        "Vragen om over na te denken en praktische inzichten"
+      ],
+      [
+        "Veel tradities\nNieuwe perspectieven",
+        "Zi Wei Dou Shu · Sukuyo\nWesterse en Vedische astrologie",
+        "Ontdek de eigen visie van elke traditie"
+      ],
+      [
+        "Begin je dag\nmet een nieuwe blik",
+        "Ontdek de gratis functies",
+        "Sommige uitgebreide lezingen en inhoud zijn betaald"
+      ],
+      [
+        "Luister naar muziek\nVerdwaal in een verhaal",
+        "Muziek en light novels",
+        "Een kleine wereld om tot rust te komen"
+      ],
+      [
+        "Een kleine wens\nop je vergrendelscherm",
+        "Talismans met Yeoni en Yeongnyangi",
+        "Pas het formaat en de positie aan je scherm aan"
+      ],
+      [
+        "Meer lezen\nMeer ontdekken",
+        "Artikelen en verhalen over consulten",
+        "Uitgelicht in StartupDaily · 30 september 2026"
+      ]
+    ],
+    "ms": [
+      [
+        "Pandangan baharu\nuntuk memahami diri",
+        "Dicipta oleh pakar Saju Park Byeong-ha yang pernah\nmenerbitkan tafsiran tentang presiden Korea",
+        "Terokai analisis awam dan pendekatannya"
+      ],
+      [
+        "Kenali corak diri\nmelalui Saju",
+        "Perwatakan, hubungan, kerjaya dan kehidupan",
+        "Idea tradisional dengan penerangan yang jelas"
+      ],
+      [
+        "Sekeping kad tarot\nuntuk hati yang kusut",
+        "Cinta · Hubungan · Persimpangan pilihan",
+        "Soalan untuk direnung dan panduan praktikal"
+      ],
+      [
+        "Pelbagai tradisi\nPerspektif baharu",
+        "Zi Wei Dou Shu · Sukuyo\nAstrologi Barat dan Vedik",
+        "Terokai setiap tradisi melalui sudut pandangnya"
+      ],
+      [
+        "Mulakan hari\ndengan lebih tenang",
+        "Terokai ciri-ciri percuma",
+        "Sesetengah bacaan mendalam dan kandungan berbayar"
+      ],
+      [
+        "Dengarkan muzik\nHayati sebuah kisah",
+        "Muzik dan novel ringan",
+        "Dunia kecil untuk berehat seketika"
+      ],
+      [
+        "Harapan kecil\npada skrin kunci",
+        "Azimat bersama Yeoni dan Yeongnyangi",
+        "Laraskan saiz dan kedudukan mengikut skrin"
+      ],
+      [
+        "Lebih banyak dibaca\nLebih banyak difahami",
+        "Daripada artikel ramalan hingga kisah perundingan",
+        "Diperkenalkan di StartupDaily · 30 Sep 2026"
+      ]
+    ]
+  }
+}

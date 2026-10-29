@@ -1,5 +1,6 @@
 import {useState, type FormEvent} from 'react';
-import {Button,TextField} from '@toss/tds-mobile';
+import {TextField} from '@toss/tds-mobile';
+import {Button} from './Button';
 import {listRosterGroups,listGroupMembers,resolvePartner,type CalendarType} from '../../../lib/idol-chemi/index.js';
 import {buildChemiReport,BIAS_MOODS,type ChemiReport} from '../../../app/saju/destiny-bias/engine/chemiReportBridge';
 import ChemiCoreCard from '../../../app/saju/destiny-bias/components/chemi/ChemiCoreCard';

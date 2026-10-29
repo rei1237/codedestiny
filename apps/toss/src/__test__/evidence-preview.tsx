@@ -3,6 +3,8 @@ import React from 'react';
 import {createRoot} from 'react-dom/client';
 import ResultEvidence,{type ReadingChart} from '../ResultEvidence';
 import '../style.css';
+import '../yehwa-motifs.generated.css';
+import '../moonlight.css';
 const charts:ReadingChart[]=['saju','astrology','ziwei','vedic','sukuyo','tarot'].map(domain=>({
  domain,title:`${domain} · 모의 저장 데이터`,source:'실제 사용자 정보가 아닌 화면 검수용 데이터',limitations:['출생 시각이 없으면 일부 항목을 확인할 수 없어요.'],
  ...(domain==='astrology'?{cusps:[0,30,60,90,120,150,180,210,240,270,300,330]}:{}),

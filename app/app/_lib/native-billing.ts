@@ -82,7 +82,15 @@ export async function queryAppProducts(productIds: string[]): Promise<AppProduct
   try {
     const result = await bridge.queryProducts({ productIds, productType: "inapp" });
     if (!result?.ok || !Array.isArray(result.products)) return [];
-    return result.products.map((product) => ({
+    // A returned row is not proof that this customer can buy it. Missing price
+    // details must never enable a checkout with a blank or guessed price.
+    return result.products.filter((product) => product
+      && productIds.includes(String(product.productId || ""))
+      && (!product.productType || product.productType === "inapp")
+      && Boolean(String(product.formattedPrice || "").trim())
+      && /^[A-Z]{3}$/.test(String(product.priceCurrencyCode || ""))
+      && Number.isSafeInteger(Number(product.priceAmountMicros))
+      && Number(product.priceAmountMicros) > 0).map((product) => ({
       productId: String(product.productId || ""),
       productType: String(product.productType || "inapp"),
       title: String(product.title || ""),

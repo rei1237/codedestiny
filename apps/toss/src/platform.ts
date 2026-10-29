@@ -48,21 +48,27 @@ export async function tarotLibraryProducts():Promise<TarotLibraryProduct[]>{
 type Receipt={orderId:string;requestId:string|null;entitlement:string;durable:boolean};
 const validReceipt=(r:Receipt,id:string)=>r.orderId===id&&r.entitlement==='granted'&&r.durable===true;
 export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,onError:(error:unknown)=>void){
+  if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
+  if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
-  let clean:()=>void=()=>{};
+  let clean:()=>void=()=>{},granted=false,settled=false;
   clean=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
-    try{const receipt=await api<Receipt>('/orders/grant',{sku:product.sku,orderId,requestId});return validReceipt(receipt,orderId);}
+    granted=false;
+    try{const receipt=await api<Receipt>('/orders/grant',{sku:product.sku,orderId,requestId});granted=validReceipt(receipt,orderId)&&receipt.requestId===requestId;return granted;}
     catch(error){onError(error);return false;}
-  }},onEvent:()=>{clean();onDone();},onError:error=>{clean();onError(error);}});
+  }},onEvent:()=>{if(settled)return;settled=true;clean();if(granted)onDone();else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:error=>{if(settled)return;settled=true;clean();onError(error);}});
   return ()=>clean();
 }
 export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,onDone:(orderId:string)=>void,onError:(error:unknown)=>void){
+  if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
+  if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
-  let clean:()=>void=()=>{},grantedOrder='';
+  let clean:()=>void=()=>{},grantedOrder='',settled=false;
   clean=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
-    try{grantedOrder=orderId;const receipt=await api<Receipt>('/tarot-library/orders/grant',{sku:product.sku,orderId,input});return validReceipt(receipt,orderId);}
+    grantedOrder='';
+    try{const receipt=await api<Receipt>('/tarot-library/orders/grant',{sku:product.sku,orderId,input});const granted=validReceipt(receipt,orderId);grantedOrder=granted?orderId:'';return granted;}
     catch(error){onError(error);return false;}
-  }},onEvent:()=>{clean();onDone(grantedOrder);},onError:error=>{clean();onError(error);}});
+  }},onEvent:()=>{if(settled)return;settled=true;clean();if(grantedOrder)onDone(grantedOrder);else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:error=>{if(settled)return;settled=true;clean();onError(error);}});
   return ()=>clean();
 }
 export async function restorePurchases(){

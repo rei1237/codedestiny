@@ -76,12 +76,12 @@ const CARDS = [
   { key: "yn", className: "ynCard", art: "yeongnyangi", name: "운세보는 영냥이", href: YEONGNYANGI.path, tag: "내 질문과 상황을 바탕으로 깊이 읽기", action: "영냥이 만나기", night: true },
 ];
 const CARD_ART_SIZES = "(min-width: 800px) 306px, (min-width: 641px) 38vw, 42vw";
-// 강약(2026-10-23): 대표 상담 3종을 두 입구 카드 바로 아래 한 줄로 둔다. 채움 버튼은 첫 장 하나뿐이다.
+// 대표 상담 3종은 접힌 탐색 영역 밖에서 처음부터 읽고 선택할 수 있다.
 // 그림·질문은 /ggulggul/ 대표 덱(scripts/design/build-home-funnel.mjs)과 같고, 가격은 서버 정본(PriceBadge)이 말한다.
 const SIGNATURE_CONSULTATIONS = [
-  { key: "love-secret", title: "연애 비책", master: "연이 · 서한비", href: "/love-secret-ai/", art: "love-secret-ai", featureKey: "love-secret-ai-consultation", question: "마음부터 들려주세요. 두 분 사이의 거리는 서한비가 재어 드릴게요.", action: "연애 비책 시작하기" },
-  { key: "new-year", title: "신년운세", master: "네오", href: "/new-year-ai-consultation/", art: "new-year-ai", featureKey: "new-year-ai-consultation", question: "올해 판세는 내가 먼저 읽는다. 어디서 밀고, 언제 멈출까?", action: "신년운세 받기" },
-  { key: "life-book", title: "인생의 책", master: "윤달", href: "/life-book-ai/", art: "life-book-ai", featureKey: "life-book-ai-consultation", question: "당신의 인생, 첫 장부터 읽어 드릴게요.", action: "인생의 책 펼치기" },
+  { key: "love-secret", title: "연애 비책", master: "연이 · 서한비", href: "/love-secret-ai/", art: "love-secret-ai", featureKey: "love-secret-ai-consultation", question: "두 사람의 마음과 관계의 흐름을 함께 살펴봐요.", action: "연애 비책 시작하기" },
+  { key: "new-year", title: "신년운세", master: "네오", href: "/new-year-ai-consultation/", art: "new-year-ai", featureKey: "new-year-ai-consultation", question: "한 해의 기회와 주의할 시기, 선택의 방향을 짚어봐요.", action: "신년운세 받기" },
+  { key: "life-book", title: "인생의 책", master: "윤달", href: "/life-book-ai/", art: "life-book-ai", featureKey: "life-book-ai-consultation", question: "타고난 성향부터 인생의 큰 흐름까지, 한 권으로 읽어요.", action: "인생의 책 펼치기" },
 ];
 const SIGNATURE_ART = "/images/service-introductions";
 const RESULT_EXAMPLE = getSignProfile("rat");
@@ -145,19 +145,16 @@ export default function HomePage() {
           })}
         </HomeCardDeck>
         <ConsultationMethodGuide id="home-consultation-methods" variant="entry" />
-        <details id="homeExplore" data-home-disclosure="explore" className={styles.explore}>
-          <summary className={styles.exploreSummary}><span>더 둘러보기</span><span className={styles.disclosureMark} aria-hidden="true" /></summary>
-          <div className={styles.exploreContent}>
         {/* 카드 전체가 한 링크다. 클릭 귀속은 /ggulggul/ 덱과 같은 섹션 키(signature_consult)로 남는다(js/core/analytics.js). */}
         <section className={styles.signature} aria-labelledby="homeSignature" data-cd-funnel-section="signature_consult">
-          <div className={styles.signatureHeading}><h2 id="homeSignature">대표 상담</h2><p>연애·한 해·인생, 큰 질문 하나를 마스터가 깊게 읽어 드려요.</p></div>
+          <div className={styles.signatureHeading}><svg className={styles.signatureMoon} width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.25" aria-hidden="true"><path d="M26 5a15 15 0 1 0 9 23A15 15 0 0 1 26 5Z"/><path d="M29 12v8m-4-4h8M15 29c-4-2-5-5-4-8 4 1 6 4 4 8Zm0 0c4-2 5-5 4-8-4 1-6 4-4 8Z"/></svg><h2 id="homeSignature">마음이 머무는 대표 상담</h2><p>연애, 한 해, 인생. 지금의 고민에 가까운 이야기를 골라보세요.</p></div>
           <ul className={styles.signatureList}>{SIGNATURE_CONSULTATIONS.map((item, index) => <li key={item.key} data-home-signature={item.key}>
             <Link href={item.href} className={styles.signatureCard}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className={styles.signatureArt} src={`${SIGNATURE_ART}/${item.art}-640.webp`} srcSet={`${SIGNATURE_ART}/${item.art}-320.webp 320w, ${SIGNATURE_ART}/${item.art}-640.webp 640w`} sizes="(min-width: 641px) 320px, 38vw" width={640} height={427} alt="" loading="lazy" decoding="async" />
               <div className={styles.signatureCopy}>
-                <span className={styles.signatureMaster}>{item.master}</span>
                 <h3>{item.title}</h3>
+                <span className={styles.signatureMaster}>{item.master}</span>
                 <p className={styles.signatureQuestion}>{item.question}</p>
                 <PriceBadge featureKey={item.featureKey} className={styles.signaturePrice} />
                 <span className={index === 0 ? styles.signaturePrimary : styles.signatureLink}>{item.action}<span aria-hidden="true">→</span></span>
@@ -165,6 +162,9 @@ export default function HomePage() {
             </Link>
           </li>)}</ul>
         </section>
+        <details id="homeExplore" data-home-disclosure="explore" className={styles.explore}>
+          <summary className={styles.exploreSummary}><span>더 둘러보기</span><span className={styles.disclosureMark} aria-hidden="true" /></summary>
+          <div className={styles.exploreContent}>
         <ConsultationDiscovery />
         <div className={styles.discovery}>
           <section className={styles.section} aria-labelledby="homeServices">

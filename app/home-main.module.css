@@ -90,19 +90,22 @@
 .cardFoil::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at var(--hm-shine-x, 50%) var(--hm-shine-y, 30%), color-mix(in srgb, var(--cd-gold-soft) 28%, transparent), transparent 65%), linear-gradient(115deg, transparent 35%, color-mix(in srgb, var(--cd-gold-soft) 16%, transparent) 49%, transparent 63%); opacity: 0; transition: opacity 450ms ease-out; }
 .ynCard .cardFoil::after { background: radial-gradient(ellipse at var(--hm-shine-x, 50%) var(--hm-shine-y, 30%), color-mix(in srgb, var(--yn-gold) 30%, transparent), transparent 65%); }
 .card:active { transform: rotate(var(--hm-card-angle)) scale(.985); transition-duration: var(--cd-dur-fast); }
-/* 대표 상담 3종 — 입구 카드 아래 한 줄. 카드 전체가 한 링크이고 채움 버튼은 첫 장 하나뿐이다(DESIGN.md 버튼 위계). */
-.signature { width: 100%; max-width: 1040px; padding-top: 12px; }
-.signatureHeading { max-width: 66ch; margin-bottom: 16px; }
-.signatureHeading h2 { font-size: clamp(1.25rem, 4.5vw, 1.75rem); line-height: 1.4; }
-.signatureHeading p { margin-top: 8px; color: var(--cd-text-muted); font-size: 0.9375rem; }
-.signatureList { display: grid; gap: 12px; }
-.signatureCard { display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr); gap: 14px; align-items: start; height: 100%; box-sizing: border-box; padding: 12px; border: 1px solid var(--hm-gold-line); border-radius: var(--cd-r-md); background: var(--cd-surface); text-decoration: none; transition: border-color var(--cd-dur-emph) var(--cd-ease-out); }
-.signatureArt { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--cd-r-sm); }
-.signatureCopy { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; height: 100%; }
-.signatureMaster { color: var(--hm-gold-ink); font-size: 0.75rem; font-weight: 700; }
-.signatureQuestion { color: var(--cd-text-muted); font-size: 0.875rem; line-height: 1.6; word-break: keep-all; }
-.signaturePrice { margin-top: 2px; color: var(--cd-text); font-size: 0.9375rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-.signaturePrimary, .signatureLink { display: inline-flex; align-items: center; gap: 6px; max-width:100%; min-height: 44px; margin-top: auto; font-size: 0.875rem; font-weight: 700; white-space: normal; overflow-wrap:anywhere; }
+/* Always-visible signature consultations, with existing prices and destinations. */
+.signature { width: min(100%, 920px); padding-top: 16px; }
+.signatureHeading { text-align: center; margin: 0 auto 28px; max-width: 60ch; }
+.signatureMoon { display: block; margin: 0 auto 12px; color: var(--hm-gold-ink); }
+.signatureHeading h2 { font-size: clamp(1.5rem, 4.5vw, 1.875rem); line-height: 1.4; }
+.signatureHeading p { margin-top: 12px; color: var(--cd-text-muted); font-size: 1rem; text-wrap: balance; }
+.signatureList { display: grid; gap: 20px; }
+.signatureCard { display: grid; grid-template-columns: minmax(0, 32%) minmax(0, 1fr); gap: 18px; align-items: start; height: 100%; box-sizing: border-box; padding: 16px; border: 1px solid var(--hm-gold-line); border-radius: var(--cd-r-card); background: var(--cd-surface); text-decoration: none; box-shadow: 0 12px 24px -24px color-mix(in srgb, var(--cd-text) 30%, transparent); transition: border-color var(--cd-dur-emph) var(--cd-ease-out); }
+.signatureArt { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: var(--cd-r-control); }
+.signatureCopy { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; height: 100%; }
+.signatureCopy h3 { margin: 0; color: var(--cd-text); font: 600 1.25rem/1.4 var(--font-serif); }
+.signatureMaster { color: var(--hm-gold-ink); font-size: .875rem; }
+.signatureQuestion { color: var(--cd-text-muted); font-size: 1rem; line-height: 1.65; word-break: keep-all; }
+.signaturePrice { margin-top: 4px; color: var(--cd-text); font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.signaturePrimary, .signatureLink { display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box; min-height: 44px; margin-top: auto; padding: 8px 0; border-top: 1px solid var(--hm-gold-line); font-size: .875rem; font-weight: 600; color: var(--cd-text); white-space: normal; overflow-wrap: anywhere; }
+
 .signaturePrimary { padding: 0 20px; border: 1px solid var(--cd-cta-hairline); border-radius: var(--cd-r-pill); background: var(--cd-cta); color: var(--cd-cta-text); }
 .signatureLink { color: var(--cd-text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.25em; }
 .discovery { width: 100%; max-width: 1040px; margin-top: 12px; }
@@ -165,7 +168,7 @@
   .deck[data-selecting] .card:not([data-selected]), .deck .card, .deck .card:hover, .deck .card:active, .deck .card:has(.cardLink:focus-visible) { transform: rotate(var(--hm-card-angle)); opacity: 1; }
   .card:hover { outline: 2px solid var(--hm-card-edge); outline-offset: 3px; }
   .cardArt img, .serviceList a:hover .methodArt, .card:hover .cardAction svg { transform: none; }
-  .signatureCard:hover { border-color: var(--hm-gold-ink); }
+
 }
 @media (min-width: 641px) {
   .page { --hm-gutter: 32px; --hm-floral: url('/images/home/illustrated/moon-floral-light-1280.webp'); }
@@ -178,7 +181,8 @@
   .concernList { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 36px; }
   .advisers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; }
   .signatureList { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
-  .signatureCard { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px; }
+  .signatureCard { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 16px; }
+  .signatureArt { aspect-ratio: 3 / 2; }
   .advisers img { width: 112px; height: 168px; }
   .section { padding-block: 48px; }
   .readingSection { display: grid; grid-template-columns: 1fr 1.25fr; gap: 32px; align-items: start; }
@@ -194,7 +198,7 @@
 .cardAction::before { content: ''; flex: none; width: 20px; height: 20px; background: currentColor; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='none' stroke='black' stroke-width='1.5' stroke-linejoin='round' d='M16 26C10 22 10 13 16 5c6 8 6 17 0 21ZM16 26C8 25 5 18 6 10c7 3 10 8 10 16Zm0 0c8-1 11-8 10-16-7 3-10 8-10 16ZM16 26C8 28 2 23 2 16c6 1 11 4 14 10Zm0 0c8 2 14-3 14-10-6 1-11 4-14 10ZM10 29h12'/%3E%3C/svg%3E") center / contain no-repeat; }
 @media(max-width:640px) { .cardAction { font-size: .875rem; gap: 4px; } .cardAction svg { display: none; } .cardAction::before { width: 16px; height: 16px; } }
 
-/* Entry composition: two illustrated doors, two quiet disclosures. */
+/* Two doors, an open guide and visible signature consultations. */
 .cardArt img { transform: none; }
 .yeoniCard .cardAction { background: var(--cd-samples-blush); border-color: var(--cd-samples-line); }
 .ynCard .cardAction::before { mask-image: var(--yn-yehwa-mask-sparkle); }
@@ -207,6 +211,6 @@
 .explore[open] .exploreSummary { border-bottom: 1px solid var(--hm-gold-line); }
 .exploreContent { display: grid; gap: 32px; padding-top: 36px; }
 .footer { max-width: 1040px; margin-inline: auto; }
-@media(hover:hover) { .card:hover .cardAction { background: color-mix(in oklab, var(--hm-card-ink) 12%, var(--hm-card-bg)); } .exploreSummary:hover { color: var(--cd-text); } }
+@media(hover:hover) { .signatureCard:hover { border-color: var(--hm-gold-ink); } .card:hover .cardAction { background: color-mix(in oklab, var(--hm-card-ink) 12%, var(--hm-card-bg)); } .exploreSummary:hover { color: var(--cd-text); } }
 @media(max-width:22rem) { .page .deck { grid-template-columns: minmax(0,1fr); max-width: 20rem; } }
 @media(prefers-reduced-motion:reduce) { .cardAction { transition: none; } }

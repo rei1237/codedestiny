@@ -1,5 +1,5 @@
 import {useRef,useState} from 'react';
-import {Button} from '@toss/tds-mobile';
+import {Button} from './Button';
 import {PhotocardFront} from '../../../app/saju/destiny-bias/components/chemi/PhotocardFace';
 import {toPhotocardView} from '../../../app/saju/destiny-bias/components/chemi/ChemiCoreCard';
 import type {ChemiReport} from '../../../app/saju/destiny-bias/engine/chemiReportBridge';

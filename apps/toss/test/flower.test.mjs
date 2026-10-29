@@ -47,3 +47,20 @@ test('lunar input keeps leap selection for the canonical validator',()=>{
   const raw=flowerBirthInput({...birth,date:{...birth.date,calType:'lunar_leap'}});
   assert.equal(raw.personA.calendarType,'lunar');assert.equal(raw.personA.leapMonth,true);
 });
+
+// Manse shares the same canonical birth normalization and screen calculation.
+test('manse projects canonical pillars and counts without private input or saved entitlement',async()=>{
+ const {calculateTossManse}=await import('../../../worker/toss/manse.js');
+ const context=await domains.saju.calculate(domains.saju.validateInput(flowerBirthInput(birth)));
+ const facts=Object.fromEntries(context.facts.map(f=>[f.label,f.value]));
+ const result=await calculateTossManse({birth},domains.saju);
+ assert.equal(result.stored,false);
+ assert.deepEqual(Object.fromEntries(result.pillars.map(p=>[p.key,p.ganji])),facts.pillars);
+ assert.deepEqual(result.elements,facts.fiveElements.counts);
+ assert.deepEqual(result.cycles,facts.majorLuck.cycles.filter(c=>typeof c.label==='string').map(c=>({label:c.label})));
+ assert.ok(result.cycles.length>0);
+ assert.equal(result.birth,undefined);assert.equal(result.profile,undefined);
+ const unknown=await calculateTossManse({birth:{...birth,date:{...birth.date,timeUnknown:true,hour:null,minute:null}}},domains.saju);
+ assert.equal(unknown.pillars.find(p=>p.key==='hour').ganji,null);assert.deepEqual(unknown.cycles,[]);
+ await assert.rejects(calculateTossManse({birth:{...birth,date:{...birth.date,month:13}}},domains.saju));
+});

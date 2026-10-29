@@ -5,7 +5,29 @@ const quote = { currency: 'USD', totalAmount: 733, priceKRW: 9900, rateDate: '20
 const request = { paymentId: 'order-test', orderName: '<script>unsafe</script>', totalAmount: 9900, storeId: 'test-store', channelKey: 'test-channel', customer: { customerId: 'buyer-test', email: 'buyer@example.test' }, payMethod: 'EASY_PAY', bypass: { inicis_v2: {} } };
 let dom;
 beforeEach(() => { dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://example.test' }); global.window = dom.window; global.document = dom.window.document; });
-afterEach(() => { dom.window.close(); delete global.window; delete global.document; });
+afterEach(() => { dom.window.close(); delete global.window; delete global.document; delete global.cdTranslate; });
+
+test.each([['en', '/en'], ['ja', '/ja'], ['zh-CN', '/zh'], ['zh-TW', '/zh-tw']])('PayPal %s keeps localized policy access and USD charge visible', async (locale, prefix) => {
+  const dictionary = require(`../../public/i18n/${locale.toLowerCase()}.json`);
+  window.cdGetCurrentLanguage = () => locale;
+  global.cdTranslate = (key, vars, fallback) => {
+    const value = key.split('.').reduce((node, part) => node && node[part], dictionary);
+    return typeof value === 'string' ? value.replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? '') : fallback;
+  };
+  window.PortOne = { loadPaymentUI: jest.fn() };
+  const payment = entry.requestPaypalPayment(request, quote);
+  const dialog = document.getElementById('cdPaypalCheckout');
+  for (const suffix of ['terms-of-service', 'refund-policy', 'privacy-policy']) {
+    const link = dialog.querySelector(`a[href="${prefix}/${suffix}"]`);
+    expect(link).not.toBeNull();
+    expect(link.target).toBe('_blank');
+    expect(link.rel).toContain('noopener');
+    expect(link.textContent).not.toMatch(/[가-힣]/);
+  }
+  expect(dialog.querySelector('#cdPaypalAmount').textContent).toContain('7.33');
+  dialog.querySelector('button').click();
+  await expect(payment).resolves.toEqual({ paymentId: 'order-test' });
+});
 test('PayPal stays closed until configured and uses USD SPB rather than requestPayment', async () => {
   expect(entry.isDirectPayMethodEnabled('PAYPAL')).toBe(false);
   entry.setDirectPayMethodAvailability({ paypalChannelKey: 'test-channel' });
