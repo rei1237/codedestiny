@@ -75,6 +75,28 @@ export const GUIDE_CTA_TARGETS = {
       { href: "/saju", label: "사주 전체 분석" },
     ],
   },
+  "/fortune/2027": {
+    from: "fortune-new-year-hub",
+    kicker: "내 생년월일로 이어서",
+    heading: "띠 운세 다음은 내 사주에서 2027년을 확인해 보세요",
+    body: "띠별 운세는 태어난 해 하나로 보는 공통 흐름입니다. 만세력으로 내 년주와 일주를 확인하면 정미년이 내 명식 어디에 닿는지 볼 수 있습니다.",
+    primary: { href: "/manse", label: "무료로 만세력 보기", note: "무료 · 가입 없이" },
+    secondary: [
+      { href: "/saju", label: "무료 사주 분석" },
+      { href: "/new-year-ai-consultation", label: "2027 신년운세 개인 상담" },
+    ],
+  },
+  "/fortune/2027/[sign]": {
+    from: "fortune-new-year-sign",
+    kicker: "내 명식으로 넓혀 보기",
+    heading: "같은 띠라도 생년월일시에 따라 2027년이 달라집니다",
+    body: "띠 운세는 년주 하나만 본 풀이입니다. 월주·일주와 대운까지 넣어 보면 정미년의 합·충이 실제로 어느 영역에서 드러나는지 더 분명해집니다.",
+    primary: { href: "/manse", label: "무료로 만세력 보기", note: "무료 · 가입 없이" },
+    secondary: [
+      { href: "/saju", label: "무료 사주 분석" },
+      { href: "/new-year-ai-consultation", label: "2027 신년운세 개인 상담" },
+    ],
+  },
   "/fortune/date": {
     from: "fortune-date-archive",
     kicker: "오늘의 흐름도 이어서",
