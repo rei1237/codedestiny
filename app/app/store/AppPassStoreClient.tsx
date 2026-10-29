@@ -295,20 +295,21 @@ export default function AppPassStoreClient() {
           return (
             <article
               key={plan.passTier}
-              className="cd-app-surface cd-app-enter p-4"
+              className="cd-app-surface cd-app-enter cd-pass-card p-4"
+              data-recommended={plan.recommended || undefined}
               style={{
                 animationDelay: `${index * 40}ms`,
                 borderColor: plan.recommended ? "var(--cd-app-gold-deep)" : undefined,
               }}
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className="cd-pass-card-heading flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="cd-app-heading">{plan.title}</h2>
                   <p className="cd-app-body mt-1">{plan.blurb}</p>
                 </div>
                 {plan.recommended ? (
                   <span
-                    className="shrink-0 rounded-[var(--cd-app-radius-pill)] px-2.5 py-1 text-[11px] font-black"
+                    className="cd-pass-badge shrink-0 rounded-[var(--cd-app-radius-pill)] px-2.5 py-1 text-[11px] font-black"
                     style={{ background: "var(--cd-app-gold)", color: "var(--cd-app-on-gold)" }}
                   >
                     {copy.recommendedBadge}
@@ -325,7 +326,7 @@ export default function AppPassStoreClient() {
                 ))}
               </ul>
 
-              <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="cd-pass-card-footer mt-4 flex items-center justify-between gap-3">
                 {/* 가격은 Play가 준 formattedPrice를 그대로 쓴다 — 하드코딩하면 Play Console 변경과 어긋난다. */}
                 <span className="cd-app-num text-lg font-black" style={{ color: "var(--cd-app-gold)" }}>
                   {detail?.formattedPrice || "—"}
@@ -335,7 +336,7 @@ export default function AppPassStoreClient() {
                   disabled={disabled}
                   aria-busy={busy}
                   onClick={() => void buy(plan)}
-                  className="cd-app-tap cd-app-press inline-flex items-center gap-2 rounded-[var(--cd-app-radius-md)] px-5 text-sm font-black disabled:opacity-50"
+                  className="cd-pass-buy cd-app-tap cd-app-press inline-flex items-center gap-2 rounded-[var(--cd-app-radius-md)] px-5 text-sm font-black disabled:opacity-50"
                   style={{ background: "var(--cd-app-gold)", color: "var(--cd-app-on-gold)" }}
                 >
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
