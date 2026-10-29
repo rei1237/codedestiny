@@ -45,15 +45,15 @@ const SECTIONS = [
   },
   {
     heading: "주제별 해석",
-    paths: ["/compatibility", "/saju/compatibility", "/love", "/today", "/dream"],
+    paths: ["/compatibility", "/saju/compatibility", "/love", "/today", "/fortune/2027", "/dream", "/psychotest", "/animal/mbti"],
   },
   {
     heading: "통합 리포트",
-    paths: ["/yeongnyangi/1000-won-fortune", "/fusion-fortune", "/human-design/guide"],
+    paths: ["/yeongnyangi", "/yeongnyangi/1000-won-fortune", "/fusion-fortune", "/human-design/guide"],
   },
   {
     heading: "읽을거리와 방법론",
-    paths: ["/guides", "/insights", "/methodology"],
+    paths: ["/guides", "/insights", "/methodology", "/compare/fortune-apps"],
   },
   {
     heading: "브랜드",
@@ -160,9 +160,18 @@ lines.push("");
 
 // Use the same reviewed, visible locale copy as the entry pages, not a second
 // promotional description. Only existing translated hubs are listed here.
+// 🔴 로케일 lead 는 운영사명(Code Destiny)을 주어로 쓴다. 서비스 엔티티가 운영사명으로 갈라지지 않게
+//    공식 서비스명과 운영사를 먼저 밝힌다(2026-10-29 감사 G-L1). 로마자 표기는 소유자가 정하기 전까지 쓰지 않는다.
+const SERVICE_NAME_LINE = {
+  ja: `公式サービス名は「${service.name}」で、運営会社は ${operator.name} です。`,
+  en: `The official service name is "${service.name}"; ${operator.name} is the operating company.`,
+  zh: `官方服务名称为「${service.name}」，运营公司为 ${operator.name}。`,
+  'zh-tw': `官方服務名稱為「${service.name}」，營運公司為 ${operator.name}。`,
+};
 for (const [locale, dictionaryName] of Object.entries({ ja: 'ja', en: 'en', zh: 'zh-cn', 'zh-tw': 'zh-tw' })) {
   const dictionary = JSON.parse(readFileSync(resolve(rootDir, 'public/i18n', `${dictionaryName}.json`), 'utf8'));
   lines.push(`## ${dictionary.shell.CODEDESTINY}`);
+  lines.push(SERVICE_NAME_LINE[locale]);
   lines.push(dictionary.home.homeGuide.lead);
   lines.push(`- [${dictionary.shell.CODEDESTINY}](${siteBaseUrl}/${locale}/)`);
   for (const topic of ['saju', 'ziwei', 'sukuyo']) {
@@ -174,10 +183,40 @@ for (const [locale, dictionaryName] of Object.entries({ ja: 'ja', en: 'en', zh: 
 
 const body = `${lines.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd()}\n`;
 
-for (const target of [resolve(rootDir, "llms.txt"), resolve(rootDir, "public", "llms.txt")]) {
-  if (process.argv.includes("--check")) {
-    if (readFileSync(target, "utf8") !== body) throw new Error(`[llms.txt] stale: ${target}`);
-  } else writeFileSync(target, body, "utf8");
+/**
+ * llms-full.txt — llms.txt 본문 뒤에 레지스트리 전체 목록·계산 기준·공개 기록 원문·차별점 Q&A 를 붙인다.
+ * 🔴 새 문장을 만들지 않는다. 전부 화면에 이미 공개된 정본(brand·entity·public-record 레지스트리)에서 파생한다.
+ */
+const { EXPERTISE_FACTS } = await import(pathToFileURL(resolve(rootDir, "lib/brand/expertise-facts.mjs")).href);
+const { DIFFERENTIATION_FAQS } = await import(pathToFileURL(resolve(rootDir, "lib/brand/differentiation-faqs.mjs")).href);
+const { NEW_YEAR_SEASON, NEW_YEAR_SIGNS } = await import(
+  pathToFileURL(resolve(rootDir, "lib/fortune/new-year-registry.mjs")).href
+);
+const full = [body.trimEnd(), ""];
+full.push("## 공개 페이지 전체 목록", "");
+for (const profile of Object.values(SEO_ROUTE_PROFILES)) {
+  full.push(`- [${profile.title}](${siteBaseUrl}${profile.path === "/" ? "/" : `${profile.path}/`}): ${profile.topicSummary}`);
+}
+full.push("", `## ${NEW_YEAR_SEASON.year}년 띠별 운세`, "");
+for (const sign of NEW_YEAR_SIGNS) {
+  full.push(`- [${NEW_YEAR_SEASON.year}년 ${sign.name} 운세](${siteBaseUrl}${NEW_YEAR_SEASON.path}/${sign.id}/)`);
+}
+full.push("", "## 계산 기준", "");
+for (const fact of EXPERTISE_FACTS) full.push(`- ${fact.ko}`);
+full.push("", "## 공개 분석 기록 원문", "");
+for (const row of publicRecordCopy.ko.rows) {
+  full.push(`- ${row.date} [${row.title}](${row.url}): ${row.summary} 이후 사건: ${row.event} 출처: ${row.source}`);
+}
+full.push("", "## 다른 운세 서비스와 다른 점", "");
+for (const faq of DIFFERENTIATION_FAQS) full.push(`### ${faq.question}`, "", faq.answer, "");
+const fullBody = `${full.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd()}\n`;
+
+for (const [name, content] of [["llms.txt", body], ["llms-full.txt", fullBody]]) {
+  for (const target of [resolve(rootDir, name), resolve(rootDir, "public", name)]) {
+    if (process.argv.includes("--check")) {
+      if (readFileSync(target, "utf8") !== content) throw new Error(`[llms.txt] stale: ${target}`);
+    } else writeFileSync(target, content, "utf8");
+  }
 }
 
-console.log(`[llms.txt] Generated ${body.length} chars -> llms.txt, public/llms.txt`);
+console.log(`[llms.txt] Generated ${body.length} chars -> llms.txt, public/llms.txt; ${fullBody.length} chars -> llms-full.txt, public/llms-full.txt`);
