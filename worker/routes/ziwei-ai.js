@@ -1871,6 +1871,8 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     attempts[group.id] = Number(attempts[group.id] || 0) + 1;
     await checkpoint({ groups, attempts, meta, rawResponses }); // Reserve before the provider; a lost response consumes this attempt.
     const config = await cmsPromptModelConfig(env, "ziwei-ai", { minTokens: tokensRequiredForChars(MIN_INITIAL_CONSULTATION_BODY_CHARS), maxTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS });
+    // 직전 시도가 MAX_TOKENS 로 잘렸으면 같은 예산 재시도는 또 잘려 환불된다 — 재시도만 2배(≤32768). 기본 예산(원가 예약)은 그대로.
+    const groupTokens = attempts[`${group.id}:truncated`] ? Math.max(SECTION_GROUP_TARGET_TOKENS, Math.min(32768, SECTION_GROUP_TARGET_TOKENS * 2)) : SECTION_GROUP_TARGET_TOKENS;
     let generated;
     try {
       generated = await callGeminiJsonWithRetry(env, [
@@ -1882,8 +1884,8 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
         systemPrompt: await resolveSystemPrompt(env, input.locale), taskType: "fortune", responseMimeType: "application/json",
         responseSchema: jsonSchemaFromExample({ sections: buildSectionSchemaFor(group.sections) }),
         temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
-        baseTokens: Math.max(SECTION_GROUP_TARGET_TOKENS, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / SECTION_GROUP_SPECS.length)),
-        capTokens: SECTION_GROUP_TARGET_TOKENS, fallbackToWorkersAI: false,
+        baseTokens: Math.max(groupTokens, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / SECTION_GROUP_SPECS.length)),
+        capTokens: groupTokens, fallbackToWorkersAI: false,
         cache: { store: createLlmCacheStore(env), deterministic: true, keyExtra: `ziwei-delivery-v1-${group.id}`, skipRead: attempts[group.id] > 1 },
         logContext: { ...logContext, sectionGroup: group.id },
       });
@@ -1892,6 +1894,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     }
     const mockBlocked = (generated?.isMock === true || /mock/i.test(generated?.provider || "")) && !isStagingLlmMockEnabled(env);
     rawResponses[group.id] = generated?.rawText || generated?.text || '';
+    if (generated?.truncated) attempts[`${group.id}:truncated`] = 1;
     await checkpoint({ groups, attempts, meta, rawResponses });
     const parsed = generated?.ok && !mockBlocked ? (salvageTruncatedJsonObject(generated.text)?.sections || parseSectionsFromGroupText(generated.text)) : {};
     const source = Object.fromEntries(group.sections.filter(key => typeof parsed[key]?.body === "string").map(key => [key, { ...parsed[key], title: clean(parsed[key].title) || key, body: normalizeNarrativeBody(parsed[key].body) }]));
@@ -1935,7 +1938,8 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
   const checked = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart);
   const text = applyZiweiHanjaToStructuredText(cleanForbiddenResult(checked.text));
   const chars = countPaidReportBodyChars(ziweiSectionBody(parseSectionsFromGroupText(text)));
-  return { text, complete: !metaPending && SECTION_GROUP_SPECS.every(accepted) && chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS, meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
+  // 분량 초과로 막지 않는다 — 그룹마다 문장 경계에서 이미 잘랐고, 여기서 막으면 결제본이 partial 에 영영 묶인다.
+  return { text, complete: !metaPending && SECTION_GROUP_SPECS.every(accepted), meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
 }
 
 async function saveZiweiDelivery(filter, fields, resultId) {

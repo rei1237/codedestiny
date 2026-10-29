@@ -158,3 +158,16 @@ test('part prompts carry no whole-oracle schema, later parts get the earlier gis
  const total=docs[0].metadata.paidNarrative.tasks.reduce((sum,task)=>sum+task.minChars,0);
  expect(total).toBeGreaterThanOrEqual(12000);expect(total).toBeLessThanOrEqual(14000);
 });
+test('a part cut at the token limit retries once with a doubled budget',async()=>{
+ const {capturePaidGenerationRaw}=await import('../../worker/lib/paid-generation-context.js');
+ const good=provider.getMockImplementation();let firstId,cut=false;
+ provider.mockImplementation(async(...args)=>{
+  const id=args[1].split('[이번 호출 범위] ')[1].split(':')[0];firstId ||= id;
+  if(id===firstId&&!cut){cut=true;const text='{"body":"끊긴 본문은 문장 중간에서';capturePaidGenerationRaw(text);return {ok:true,provider:'gemini',truncated:true,finishReason:'MAX_TOKENS',text};}
+  return good(...args);
+ });
+ await start();expect((await finish()).status).toBe(200);
+ const budgets=provider.mock.calls.map(call=>[call[1].split('[이번 호출 범위] ')[1].split(':')[0],call[2].maxOutputTokens]);
+ expect(budgets.filter(([id])=>id===firstId).map(([,tokens])=>tokens)).toEqual([11000,22000]);
+ expect(budgets.filter(([id])=>id!==firstId).every(([,tokens])=>tokens===11000)).toBe(true);
+});

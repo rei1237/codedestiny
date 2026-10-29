@@ -392,6 +392,21 @@ test('실제 챕터 생성은 짧거나 잘린 본문을 완료하지 않고 보
   assert.equal((await ctx.generateChapter({}, {}, {}, definition, {}, 'ko', 2)).ok, true);
   assert.ok(observed[0].cache); assert.equal(observed[1].cache, undefined); assert.equal(observed[1].maxOutputTokens, 9000);
 });
+test('잘린 장의 재시도는 저장된 잘림 표시로 출력 예산을 2배로 올리고 환불 없이 완성한다', async () => {
+  const f = fixture(), budgets = new Map();
+  Object.assign(f.ctx, { buildZiweiDeepChapterPrompt: (_chart, _birth, definition) => definition.id, createLlmCacheStore: () => ({}),
+    callGeminiText: async (_env, prompt, options) => {
+      const id = prompt.split('\n')[0];
+      budgets.set(id, [...(budgets.get(id) || []), options.maxOutputTokens]);
+      const text = Array.from({ length: 70 }, (_, i) => `${id}의 ${i}번째 흐름은 계산한 명반의 조건을 바탕으로 현실에서 선택할 수 있는 행동을 구체적으로 설명합니다.`).join('\n');
+      return id === 'chapter0' && budgets.get(id).length === 1 ? { ok: true, provider: 'gemini', text: text.slice(0, 500), truncated: true, finishReason: 'MAX_TOKENS' } : { ok: true, provider: 'gemini', text };
+    },
+  });
+  load(f.ctx, 'worker/routes/ziwei-deep-report.js', ['generateChapter']);
+  for (let i = 0; i < 4; i++) assert.equal((await f.post()).status, i === 3 ? 200 : 202);
+  assert.deepEqual(budgets.get('chapter0'), [9000, 18000]); assert.deepEqual(budgets.get('chapter1'), [9000]);
+  assert.equal(f.doc.llmMeta.attempts['chapter0:truncated'], 1); assert.equal(f.doc.status, 'completed'); assert.equal(f.refunds, 0);
+});
 for (const metadata of [{ isMock: true }, { provider: 'staging-mock' }, { provider: 'fallback' }, { finishReason: 'MAX_TOKENS' }, { finishReason: 'length' }]) test(`공급자 완료 표시 ${JSON.stringify(metadata)}는 충분한 본문이어도 실패 장이다`, async () => {
   const ctx = fixture().ctx;
   const text = Array.from({ length: 90 }, (_, i) => `${i + 1}번째 관찰은 계산한 명반의 근거를 생활 속 선택과 연결하고, 조건이 달라질 때 다시 확인할 행동을 구체적으로 설명합니다.`).join('\n');

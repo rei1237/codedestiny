@@ -4412,7 +4412,8 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
       systemPrompt: buildSystemPrompt(consultationMode),
       taskType: "fortune",
       temperature: attempt > 0 ? 0.54 : 0.62,
-      maxOutputTokens: FORTUNE_TEA_GROUP_MAX_OUTPUT_TOKENS,
+      // 재시도는 출력 상한을 두 배로 — 잘린(MAX_TOKENS) 그룹을 같은 상한으로 다시 부르면 또 잘려 환불로 끝난다.
+      maxOutputTokens: attempt > 0 ? Math.min(32768, FORTUNE_TEA_GROUP_MAX_OUTPUT_TOKENS * 2) : FORTUNE_TEA_GROUP_MAX_OUTPUT_TOKENS,
       responseSchema: fortuneTeaGroupResponseSchema(group),
       timeoutMs: clampSyncLlmTimeoutMs(timeoutMs),
       responseMimeType: "application/json",

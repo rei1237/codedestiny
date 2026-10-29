@@ -197,6 +197,17 @@ it("trims overlong sections without rejecting or regenerating them", async () =>
   expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(6);
   for (const row of Object.values(docs[0].llmMeta.sections)) expect(countPaidReportBodyChars(row.text)).toBeLessThanOrEqual(6000);
 });
+it("delivers a complete report whose list lines push the total past the result cap", async () => {
+  const list = seed => Array.from({ length: 40 }, (_, i) => `${i + 1}. ${seed} 점검 ${i}번 항목은 하우스 배치와 트랜짓 흐름을 함께 봅니다`).join("\n");
+  provider.mockImplementation(async () => {
+    const seed = `총량${provider.mock.calls.length}`; const [head, ...rest] = prose(seed, 6500).split("\n");
+    return { ok: true, provider: "gemini", text: [head, list(seed), ...rest].join("\n") };
+  });
+  for (let i = 0; i < 3; i++) await start();
+  const content = Object.values(docs[0].llmMeta.sections).map(row => row.text).join("\n\n");
+  expect(content.replace(/\s/g, "").length).toBeGreaterThan(38000);
+  expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(6); expect(refund).not.toHaveBeenCalled();
+});
 it("delivers all usable short sections after one length repair each", async () => {
   provider.mockImplementation(async () => ({ ok: true, provider: "gemini", text: prose(`부족${provider.mock.calls.length}`, 1000) }));
   for (let i = 0; i < 14 && docs[0]?.status !== "completed"; i++) expect((await start()).status).not.toBe(503);

@@ -1493,22 +1493,24 @@ function sukuyoSectionCache(env, keyExtra) {
 }
 
 /** 그룹 하나(장 3개)를 생성한다. 실패하면 빈 객체를 돌려주고 나머지 그룹을 죽이지 않는다. */
-async function generateSectionGroup(env, input, calculation, group, systemPrompt, attempt = 1, existingSections = {}) {
+async function generateSectionGroup(env, input, calculation, group, systemPrompt, attempt = 1, existingSections = {}, truncationRetry = false) {
   const groupMinChars = group.keys.reduce((sum, key) => sum + SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars, 0);
+  // 직전 시도가 MAX_TOKENS 로 잘렸으면 같은 예산 재시도는 또 잘려 환불된다 — 재시도만 2배(≤32768). 기본 예산(원가 예약)은 그대로.
+  const tokens = truncationRetry ? Math.max(SUKUYO_SECTION_BASE_TOKENS, Math.min(32768, SUKUYO_SECTION_BASE_TOKENS * 2)) : SUKUYO_SECTION_BASE_TOKENS;
   try {
     const ai = await callGeminiJsonWithRetry(env, buildSectionGroupPrompt(input, calculation, group) + (attempt > 1 ? "\n직전 초안의 빠진 근거와 행동 조언을 보강하여 목표 분량의 완결된 본문을 작성하세요. 같은 문장을 반복하지 마세요." : ""), {
       systemPrompt,
       taskType: "fortune",
       temperature: 0.74,
       attempts: 1,
-      baseTokens: SUKUYO_SECTION_BASE_TOKENS,
-      capTokens: SUKUYO_SECTION_CAP_TOKENS,
+      baseTokens: tokens,
+      capTokens: Math.max(tokens, SUKUYO_SECTION_CAP_TOKENS),
       responseMimeType: "application/json",
       responseSchema: jsonSchemaFromExample(Object.fromEntries(group.keys.map(key => [key, { body: "" }]))),
       timeoutMs: SUKUYO_SECTION_TIMEOUT_MS,
-      // 🔴 유료 라우트에서 폴백을 켰으면 fallbackMinChars 는 필수다(관례: 최소 분량 × 0.4).
+      // 🔴 유료 라우트에서 폴백을 켰으면 fallbackMinChars 는 필수다(관례: 최소 분량 × 0.3).
       // 없으면 Workers AI 폴백이 8% 분량을 정상 결제로 통과시킨다.
-      fallbackMinChars: Math.round(groupMinChars * 0.4),
+      fallbackMinChars: Math.round(groupMinChars * 0.3),
       cache: attempt === 1 ? sukuyoSectionCache(env, group.id) : undefined,
     });
     const provider = clean(ai?.provider || "");
@@ -1529,7 +1531,7 @@ async function generateSectionGroup(env, input, calculation, group, systemPrompt
         sourceBodies[key] = { body: rawBody };
       }
     });
-    return { sections, provider, model, rawText: ai.rawText || ai.text };
+    return { sections, provider, model, rawText: ai.rawText || ai.text, truncated: ai.truncated === true };
   } catch (error) {
     logSukyoAi("[Sukyo AI Section Group Failed]", {
       route: "/api/sukuyo-compatibility-ai/generate",
@@ -1601,7 +1603,8 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
     attempts[group.id] = attempt;
     await options.onReserve?.(group.id, attempt, lengthRepair);
     const systemPrompt = await appendExpertPersona(env, "hanbi", await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT));
-    const generated = await generateSectionGroup(env, input, calculation, group, systemPrompt, attempt, sections);
+    const generated = await generateSectionGroup(env, input, calculation, group, systemPrompt, attempt, sections, Boolean(attempts[`${group.id}:truncated`]));
+    if (generated.truncated) attempts[`${group.id}:truncated`] = 1;
     for (const [key, row] of Object.entries(generated.sections)) {
       const others = Object.entries(sections).filter(([other]) => other !== key).map(([, value]) => value.body).join("\n");
       if (hasRepeatedReportPassage(`${others}\n${row.body}`)) continue;
@@ -1609,7 +1612,7 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
     }
     rawResponses[group.id] = generated.rawText || "";
     provider = generated.provider; model = generated.model;
-    await options.onCheckpoint?.({ sections, summary, rawResponses });
+    await options.onCheckpoint?.({ sections, summary, rawResponses, truncatedGroup: generated.truncated ? group.id : "" });
   }
   if (!group && !summary && !attempts.summary) {
     attempts.summary = 1;
@@ -2045,7 +2048,7 @@ async function handleStart(request, env, recoveryAuth = null) {
         ? await runWithAiLocale(storedAiLocale(existing || seedFields), async () => createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation, {
           sections: existing?.llmMeta?.sections || {}, attempts: existing?.llmMeta?.attempts || {}, summary: existing?.llmMeta?.summary, rawResponses: existing?.llmMeta?.rawResponses,
           onReserve: (groupId, attempt, lengthRepair) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { [`llmMeta.attempts.${groupId}`]: attempt, ...(lengthRepair ? { [`llmMeta.attempts.${groupId}:lengthRepair`]: 1 } : {}) }),
-          onCheckpoint: ({ sections, summary, rawResponses }) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { 'llmMeta.sections': sections, 'llmMeta.summary': summary, 'llmMeta.rawResponses': rawResponses }),
+          onCheckpoint: ({ sections, summary, rawResponses, truncatedGroup }) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { 'llmMeta.sections': sections, 'llmMeta.summary': summary, 'llmMeta.rawResponses': rawResponses, ...(truncatedGroup ? { [`llmMeta.attempts.${truncatedGroup}:truncated`]: 1 } : {}) }),
         }))
         : await runWithAiLocale(storedAiLocale(existing || seedFields), async () => createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation));
     } catch (genError) {

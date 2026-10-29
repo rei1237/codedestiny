@@ -721,7 +721,8 @@ async function generateChapter(env, {
 
     // 기존 공급자 폴백은 유지하되 어느 공급자든 같은 분량·완결 기준을 적용한다.
     const raced = await withDeadline(callGeminiText(env, prompt, {
-      maxOutputTokens: 8000,
+      // A cut-off chapter is not salvaged; its reserved retry gets twice the room.
+      maxOutputTokens: previousError === "LLM_OUTPUT_TRUNCATED" ? 16000 : 8000,
       maxProviderAttempts: 1,
       temperature: 0.72,
       fallbackToWorkersAI: false,

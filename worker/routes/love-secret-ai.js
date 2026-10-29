@@ -772,8 +772,13 @@ async function generateLoveSecretGroup(env, {
   logContext = {},
   repairLines = [],
   previousResult = null,
+  clipped = false,
 }) {
   const startedAt = Date.now();
+  // 앞 시도가 토큰 상한에서 끊겼으면 이번 시도만 예산 2배(최대 32768)로 산다. 기본 예산은 비용 추정·검증 스크립트가 쓴다.
+  const maxTokens = clipped
+    ? Math.max(LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS, Math.min(32768, LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS * 2))
+    : LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS;
   const fail = (reason) => ({
     key: group.key,
     ok: false,
@@ -803,12 +808,12 @@ async function generateLoveSecretGroup(env, {
       temperature: 0.72,
       // 내부 잘림 재시도는 데드라인을 모른 채 벽시계를 2배로 만든다 — 수리는 wave 2가 예산을 알고 한다.
       attempts: 1,
-      baseTokens: LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS,
-      capTokens: LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS,
+      baseTokens: maxTokens,
+      capTokens: maxTokens,
       timeoutMs: clampSyncLlmTimeoutMs(timeoutMs),
       taskType: "fortune",
-      // 그룹 최소 분량 × 0.4. 단일 호출 시절의 3,000은 2만자 목표에서 도달 불가능해 무용지물이었다.
-      fallbackMinChars: Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.4),
+      // 그룹 최소 분량 × 0.3. 단일 호출 시절의 3,000은 2만자 목표에서 도달 불가능해 무용지물이었다.
+      fallbackMinChars: Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.3),
       maxProviderAttempts: 1,
       cache,
     });
@@ -822,12 +827,14 @@ async function generateLoveSecretGroup(env, {
     const provider = clean(ai?.provider);
     const model = clean(ai?.model);
     const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
-    if (!ai?.ok || ai.truncated || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)) || isMock || !clean(ai.text)) {
-      return { ...fail(clean(ai?.error || ai?.message || "LLM_FAILED", 60)), provider, model };
+    // 끊긴 응답은 문장 중간이라 받지 않는다. 대신 truncated 표시로 다음 시도의 예산을 늘린다.
+    const cutOff = Boolean(ai?.ok) && (ai.truncated === true || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)));
+    if (!ai?.ok || cutOff || isMock || !clean(ai.text)) {
+      return { ...fail(clean(ai?.error || ai?.message || "LLM_FAILED", 60)), provider, model, ...(cutOff && { truncated: true }) };
     }
 
     const parsed = parseLoveSecretGroupResponse(ai.text, group, { lengthRepair: true });
-    if (!parsed.ok) return { ...fail(parsed.reason || "PARSE_FAILED"), provider, model };
+    if (!parsed.ok) return { ...fail(parsed.reason || "PARSE_FAILED"), provider, model, ...(ai.recoveredLocally === true && { truncated: true }) };
     return { ...parsed, key: group.key, provider, model, startedAt, endedAt: Date.now() };
   } catch (error) {
     logLoveSecretAi("Group Generation Error", {
@@ -898,9 +905,12 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     cache: { ...cache, skipRead: checkpointed && (attempts[group.key] || 0) > 1 },
     timeoutMs: budgetedTimeout(groupTimeoutCap),
     logContext,
+    clipped: previous?.truncated === true,
     });
     const row = choose(previous, generated);
     if (row.ok) row.lengthRepair = true;
+    // 끊긴 시도를 체크포인트에 남겨 다음 요청의 같은 그룹만 예산을 늘린다.
+    if (generated?.truncated) row.truncated = true; else delete row.truncated;
     if (checkpointed) await options.onCheckpoint(row);
     return row;
   }));
@@ -934,9 +944,11 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
         logContext,
         repairLines,
         previousResult,
+        clipped: previousResult?.truncated === true,
       });
       const row = choose(previousResult, generated);
       row.lengthRepair = true;
+      if (generated?.truncated) row.truncated = true; else delete row.truncated;
       if (checkpointed) await options.onCheckpoint(row);
       return row;
     }));

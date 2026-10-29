@@ -332,4 +332,28 @@ describe("rejected section recovery", () => {
     expect(h.record().result.sections[0]).toMatchObject({ valid: true, attempts: 2 });
     expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(2);
   });
+  test("a MAX_TOKENS cut is not salvaged and the retry gets twice the token budget", async () => {
+    const h = harness();
+    h.ctx.callGeminiText.mockReset()
+      .mockResolvedValueOnce({ ok: true, text: groupBody(first).slice(0, -30), finishReason: "MAX_TOKENS" })
+      .mockResolvedValueOnce({ ok: true, text: groupBody(first) });
+    expect((await h.post()).status).toBe(503);
+    expect(h.ctx.callGeminiText.mock.calls[0][2]).toMatchObject({ maxOutputTokens: prompt.SAJU_AI_SECTION_MAX_OUTPUT_TOKENS });
+    expect(h.ctx.callGeminiText.mock.calls[0][2].preserveTermination).toBeUndefined();
+    expect(h.record().result.sections[0]).toMatchObject({ valid: false, attempts: 1, truncated: true });
+    expect((await h.post()).status).toBe(202);
+    expect(h.ctx.callGeminiText.mock.calls[1][2].maxOutputTokens).toBe(prompt.SAJU_AI_SECTION_MAX_OUTPUT_TOKENS * 2);
+    expect(h.record().result.sections[0]).toMatchObject({ valid: true, attempts: 2 });
+    expect(h.record().result.sections[0].truncated).toBeUndefined();
+  });
+  test("a locally recovered cut that fails validation also gets twice the token budget", async () => {
+    const h = harness();
+    h.ctx.callGeminiText.mockReset()
+      .mockResolvedValueOnce({ ok: true, text: "1.\n\n짧게 남은 문장입니다.", finishReason: "LOCAL_RECOVERY", recoveredLocally: true })
+      .mockResolvedValueOnce({ ok: true, text: groupBody(first) });
+    expect((await h.post()).status).toBe(503);
+    expect(h.record().result.sections[0]).toMatchObject({ valid: false, attempts: 1, truncated: true });
+    expect((await h.post()).status).toBe(202);
+    expect(h.ctx.callGeminiText.mock.calls[1][2].maxOutputTokens).toBe(prompt.SAJU_AI_SECTION_MAX_OUTPUT_TOKENS * 2);
+  });
 });

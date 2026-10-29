@@ -657,7 +657,8 @@ export function resolveFusionFortuneDelivery(result = {}, options = {}) {
 }
 
 export function parseFusionFortuneLLMResponse(rawResponse) {
-  if (typeof rawResponse !== "string" || rawResponse.length === 0 || rawResponse.length > 120000) return { ok: false, errorCode: "FUSION_LLM_PARSE_FAILED" };
+  // No upper bound: a long but valid paid answer is delivered, never refused for its length.
+  if (typeof rawResponse !== "string" || rawResponse.length === 0) return { ok: false, errorCode: "FUSION_LLM_PARSE_FAILED" };
   const source = rawResponse.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
   const first = source.indexOf("{");
   const last = source.lastIndexOf("}");
@@ -1167,6 +1168,10 @@ export async function generateFusionFortuneWithRealLLM({
     const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(group.id, { lengthRepair }) : null;
     attemptCounts[group.id] = reservedAttempt || Number(attemptCounts[group.id] || 0) + 1;
     if (lengthRepair) lengthRepairs[group.id] = true;
+    // Paid requests do not persist why the last attempt failed. A retry that still has no valid draft is
+    // almost always a cut-off answer (salvage drops the cut key), so it gets twice the room; the base stays the cost plan.
+    const plannedTokens = fusionGroupTokens(group, env, context);
+    const groupTokens = !savedValid && Number(attemptCounts[group.id]) > 1 ? Math.max(plannedTokens, Math.min(32768, plannedTokens * 2)) : plannedTokens;
     providerCalls += 1;
     let response;
     try {
@@ -1178,7 +1183,7 @@ export async function generateFusionFortuneWithRealLLM({
         //    해제할 때는 위 schemaInPrompt도 true로 되돌려 출력 계약을 유지한다.
         responseSchema: groupPrompt.geminiSchema,
         attempts,
-        maxOutputTokens: fusionGroupTokens(group, env, context),
+        maxOutputTokens: groupTokens,
         temperature: 0.62,
         timeoutMs: clampedTimeoutMs,
         model: groupModel(group),

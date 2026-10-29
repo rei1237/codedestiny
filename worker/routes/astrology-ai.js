@@ -1221,8 +1221,8 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       timeoutMs,
       attempts: 1,
       fallbackToWorkersAI: options.fallbackToWorkersAI,
-      // 섹션 단위 문턱 — 전체 목표가 아니라 이 섹션 목표의 40%.
-      fallbackMinChars: Math.round(section.minChars * 0.4),
+      // 섹션 단위 문턱 — 전체 목표가 아니라 이 섹션 목표의 30%.
+      fallbackMinChars: Math.round(section.minChars * 0.3),
       cache: { ...astrologyLlmCache, keyExtra: `${astrologyLlmCache.keyExtra}-${section.key}-a${attempt}` },
     });
     const provider = clean(ai?.provider || "");
@@ -1290,7 +1290,9 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
     if (storageFailure) throw storageFailure.reason;
     const content = ASTROLOGY_SECTIONS.map(section => sections[section.key]?.text || "").filter(Boolean).join("\n\n");
     const complete = ASTROLOGY_SECTIONS.every(accepted);
-    const issues = complete ? getConsultationQualityIssues(content, { maxLength }) : [];
+    // No total cap here: each section is already clipped at hardMaxChars, and headings/short list lines
+    // count toward the total but not the section body — over-length never fails a paid delivery.
+    const issues = complete ? getConsultationQualityIssues(content) : [];
     if (complete && (issues.length || hasRepeatedReportPassage(content))) {
       throw Object.assign(new Error("LLM_QUALITY_CHECK_FAILED"), { code: "LLM_QUALITY_CHECK_FAILED", issues });
     }
