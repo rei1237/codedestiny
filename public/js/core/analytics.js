@@ -332,6 +332,15 @@
   growthAttribution();
   if (crmCampaign()) global.cdTrack('crm_landing_visit', { landing_path: global.location.pathname });
   var purchaseEvents = Object.create(null);
+  function persistObservedPurchases() {
+    if (readConsent() !== 'accepted') return;
+    // Consent may arrive after purchase. Remember only events already observed
+    // in this document; never replay them or persist identifiers before consent.
+    Object.keys(purchaseEvents).forEach(function (key) {
+      if (key.indexOf('cd:purchase:') !== 0) return;
+      try { global.localStorage.setItem(key, '1'); } catch (_) {}
+    });
+  }
   global.cdTrackConsultationCompleted = function (record) {
     if (!record || record.status !== 'completed' || !/^[a-zA-Z0-9_-]{1,160}$/.test(record.id || '') ||
         !/^[a-zA-Z0-9_-]{1,100}$/.test(record.featureKey || '')) return;
@@ -410,7 +419,8 @@
       var seen = purchaseEvents[key];
       if (persisted) { try { seen = seen || global.localStorage.getItem(key); } catch (_) {} }
       if (!seen) {
-        global.cdTrack('purchase', {transaction_id:id,value:value,currency:'KRW',items:[{item_id:item,price:value,quantity:1}]});
+        // The confirmation can follow SPA navigation from the initial page.
+        global.cdTrack('purchase', {transaction_id:id,value:value,currency:'KRW',page_location:pageLocation(),items:[{item_id:item,price:value,quantity:1}]});
         purchaseEvents[key] = true;
         if (persisted) { try { global.localStorage.setItem(key, '1'); } catch (_) {} }
       }
@@ -467,6 +477,7 @@
   }
   global.cdSyncConsent = function cdSyncConsent() {
     syncServerConsent();
+    persistObservedPurchases();
     try {
       global.gtag("consent", "update", { analytics_storage: analyticsStorageState() });
     } catch (_consentError) {

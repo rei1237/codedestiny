@@ -1,10 +1,63 @@
 ---
-status: active
+status: done
 updated: 2026-10-29
-next: 남은 GA4 거래번호 중복 경고의 실제 발생 경로를 규명하고 최소 수정·검증한다. 광고 OFF 유지.
+next: 코드 수정·통합 검증 완료. main push의 공식 CI 결과를 확인하고 운영 승격은 별도 승인 후 진행한다. 자연 주문 대사·GA 재평가·네이버 심사는 미완료이며 광고 OFF 유지.
 ---
 
 # GA4 태그 품질 개선 후속 작업
+
+## 2026-10-29 전달 재개
+
+- 인계 HEAD `47c1b83d2815047fbd2a1d9d64f8f7c704524a0e`와 계측 수정 `4c751e97e6d4384b57faf4fcbcadd2d186f14fb4`를 확인했다.
+- 사용자가 모바일 타로 CI 실패 수정과 계측 전달을 승인했다. 운영 배포와 광고 ON은 계속 별도 승인 대상이다.
+- 동일 오류를 수정 중인 `Toss CI 확인 후 콘텐츠 진행` 채팅과 사용자 승인하에 전달 순서를 조율했다. 모바일 수정과 첫 push는 해당 채팅이 담당하고, 이 작업은 그 공식 CI 통과 후 계측 수정을 전달한다. 다른 세션의 미커밋 수정은 가져오지 않는다.
+- 수정 전 `verify:mobile-journeys`에서 390px 뒤로가기 뒤 main 상태인데 `tarotModalOverlay`와 body `overflow:hidden`이 남는 현상을 직접 재현했다. 로컬 브라우저 검사에는 외부 요청 차단이 유지된다.
+- 계측·동의·환불·PG 대사 모의 검사 49/49와 `verify:analytics-events`를 다시 실행해 통과했다. `check:fast -- --base=8f32da62caf4a921f23ebcc54eba4db83631e875`의 계획 확인 및 실행을 시작했다. 이 기록만으로 전체 검사나 공식 CI 통과를 주장하지 않는다.
+- 타로 수정 `0a83f8a49fe6c304bfba1fc86e3dc0d8e2d194d6`의 [공식 CI 40889333040](https://github.com/rei1237/codedestiny/actions/runs/40889333040) success를 확인했다. 기능 바로가기 중복 지연 호출과 유휴 정리의 모달 분리 경합을 수정했다.
+- 확대 검사에서 `npm test`, 결제 경계 90/90, lint, typecheck, sitemap 검사가 통과했다. 같은 전체 Node 테스트가 다시 시작되어 중복 실행을 종료했다. 따라서 `check:fast` 전체 성공은 아니며 이후 항목은 이 실행에서 미검증이다.
+- 타로 커밋을 로컬 통합한 뒤 관련 동작·계측 모의 검사 57/57 및 실제 브라우저 `verify:mobile-journeys`의 320/360/375/390/412/430px 검사가 통과했다. 생성 파일을 동기화했고, 캐시 참조 변경 외 SEO 본문·메타데이터·색인 정책 변경은 없다.
+- 기존 미추적 증거 2개는 `D:\Development\code-destiny\outputs\ga4-delivery-evidence-20261029`에 복사해 원본과 SHA-256 일치를 확인했다. 이미지는 커밋하지 않았다.
+- 통합 후 `check:pre-push`가 통과했다. 이후 다른 세션이 전달한 main `5187074b7addeb71efa91383d8b617410994831d`를 충돌 없이 병합했으며, 공유 main의 미커밋 파일 8개는 수정하지 않았다. 이 문서는 코드 수정·검증 작업을 닫는 기록이며 GA 경고 소멸·실주문 검증·운영 배포·광고 활성화 완료를 의미하지 않는다.
+
+## 2026-10-29 후속 조사 — 경고 해결 완료 아님
+
+- 기존 폴더를 인수해 사용했다. 새 브랜치·PR·워크트리는 만들지 않았다. 공유 main의 다른 세션 변경과 기존 untracked 이미지 2개를 보존했다.
+- GA 진단을 새 연결에서 다시 확인했다. 남은 항목은 1개, 거래 ID는 기존 2개, 이벤트는 purchase, 영향 페이지는 `/records/`다. 진단 표에는 발생 시각·client ID·기기 정보가 없어 과거 고객 2건의 구체적인 재전송 원인은 확정하지 못했다.
+- 22:45 KST 읽기 전용 DB 확인: 10/29 00:00 이후 paidAt 신규 주문 0건. 경고 주문 2건 모두 `metadata.ga4PurchaseContext`가 없어 당시 동의·GA 식별자 상태를 역추적할 수 없다. 주문번호·고객정보·비밀값은 이 문서에 저장하지 않았다. DB 쓰기·PG 재결제·과거 purchase 재전송 없음.
+- Google 공식 진단 설명은 동일 transaction ID가 서로 다른 사용자 식별자에 재사용될 때 경고한다고 명시한다. 거래번호 형식 변경으로 우회하지 않는다: https://support.google.com/analytics/answer/16729583?hl=en / https://support.google.com/analytics/answer/12313109?hl=en
+
+### 재현한 결함과 최소 수정
+
+1. 구매를 동의 전 메모리에서 관측 → 같은 문서에서 분석 동의 → 새 문서에서 구매 복구 순서에서 중복 방지 표식이 저장되지 않아 purchase가 다시 큐에 들어갔다. 모의 회귀 검사로 수정 전 `1 !== 0` 실패 확인. `cdSyncConsent`에서 **이미 관측한 purchase/grant 표식만 동의 후 저장**하도록 수정했다. 이벤트를 재전송하거나 동의 전 저장하지 않는다.
+2. `/records/` 최초 진입 후 SPA로 `/points/` 이동한 구매 이벤트에는 자체 `page_location`이 없었다. 초기 config 주소를 상속할 가능성을 없애도록 구매 이벤트에 현재 정제 주소를 명시했다. 토큰·paymentId·hash는 제거하며 기존 UTM 규칙을 유지한다. 이는 주소 귀속 개선이며 중복 자체를 해결하는 장치는 아니다.
+3. 다른 기기·저장소 삭제·계속 동의 거부 상태의 문서 간 복구는 기존 브라우저 중복 방지만으로 전역 차단되지 않는다. 이를 해결했다고 주장하지 않는다. 원인 증거 없이 새 서버 구매 전송 시스템이나 무동의 식별자 저장을 추가하지 않았다.
+4. 전 이벤트 공통 주소 삽입 시도는 기존 `cross_sell_click` 매개변수 검증과 충돌했다. 그 변경은 되돌리고 구매 이벤트만 수정했다. 기존 검증 계약을 약화하지 않았다.
+
+수정 정본은 `js/core/analytics.js`, 회귀 검사는 `__tests__/ui/purchase-analytics.test.mjs`다. `npm run sync:public`으로 public 미러와 HTML 캐시 참조를 생성했다. 결제·인증·API·DB·가격·이용권 정책 변경 없음. 공개 SEO 본문·title·canonical·robots·sitemap 변경 없음(HTML 변경은 생성된 자산 버전 참조만).
+
+### 전달 차단과 검증
+
+- 인계된 main `8f32da62caf4a921f23ebcc54eba4db83631e875`의 [공식 CI](https://github.com/rei1237/codedestiny/actions/runs/40877905858)는 failure다. `verify:mobile-journeys`의 430px 뒤로가기에서 `tarotModalOverlay`와 `overflow:hidden`이 남아 5초 제한을 초과했다. 이번 계측 수정 전부터 실패했고 이 작업에서 관련 UI는 수정하지 않았다.
+- 저장소 전달 규칙에 따라 빨간 main 위로 새 push를 쌓지 않는다. 검증 가능한 수정은 로컬 커밋으로 보존하고, 미전달 작업이 있으므로 이 워크트리와 활성 인계 문서를 유지한다.
+- 재현 검사: 수정 전 신규 2개 실패 확인. 최종 코드의 결제/동의/환불/PG 대사 무과금 모의 검사 49/49 통과. 구매 전용 주소로 범위를 줄인 뒤 `verify:analytics-events` 통과. `sync:public` 통과.
+- `check:fast -- --plan` 실행, `check:fast`는 lint/typecheck/sitemap 통과 뒤 `test:node`에서 실패했다. Windows 임시 checkpoint rename EPERM 및 로컬 천문 데이터 로딩 오류 등이 출력되었다. 해당 두 테스트 파일만 권한이 허용된 실행 환경에서 mock 네트워크 차단을 유지해 재확인한 결과 7/7 통과. 전체 `check:fast` 성공으로 확대 해석하지 않으며, 중단 이후 검사 항목은 이 실행에서 미실행이다.
+
+### 네이버 광고 활성화 전 상태
+
+- 캠페인 `꿀꿀운세_사이트홍보_5만원` OFF, A/B 그룹 모두 OFF. 소재 자체는 각각 ON 준비 상태지만 상위 OFF이므로 활성화하지 않았다.
+- 비즈채널 및 A/B 소재 모두 검토중. 비즈채널 원본 목록에서 `꿀꿀운세_A`의 PC·모바일 모두 검토중, 전환 추적 관리 사용 안 함 확인. B 소재 상태 안내는 비즈채널 검토중/노출제한 동안 소재 심사가 진행되지 않는다고 명시한다. 현재 확인한 화면에는 반려 사유나 구체적 보완 요청이 없다.
+- 잔액 50,000원, 캠페인 일예산 2,700원(균등노출), 그룹 기본입찰 100원, 기간 10/29~11/07 유지. 부가세 포함 총 50,000원 사용자 상한 유지. 추가 충전·기간 연장·광고 ON 없음. 일예산은 엄밀한 총청구 한도의 증거가 아니므로 승인 직전 누적 비용과 잔액을 다시 확인한다.
+- A/B 연결 URL의 `paid_20261028_brand`, `utm_source=naver`, `utm_medium=cpc`, `utm_content=A_ko/B_ko` 확인. 소재를 다시 등록해 심사를 초기화하지 않았다.
+- 남은 순서: 기존 CI 실패 해소 → 로컬 수정 main 전달/공식 CI → 변경 범위 설명 후 운영 승격 승인 → 자연 신규 주문과 GA 대사/경고 재평가 → 비즈채널·소재 심사 통과 및 네이버 전환 신청 재확인 → 최종 예산 확인 → **사용자의 별도 광고 ON 승인**. 아직 ON만 하면 되는 완료 상태가 아니다.
+
+### 이번 실행의 최종 보존 상태
+
+- 구현 커밋: `4c751e97e6d4384b57faf4fcbcadd2d186f14fb4` (`fix(analytics): retain purchase dedupe on consent`). 로컬에만 있으며 push하지 않았다. 문서 결과 기록 커밋은 이 뒤에 있으며 `git log -1 --format=%H`로 확인한다.
+- `npm run check:pre-push` → pass: home-service-registry, public-mirror-fresh, sitemap-drift(1,020 URL), llms.txt check, seo-entity-registry(62 profiles). `verify:payment-freeze` → pass(region 4/file 3/상한 2), `verify:entry-encoding -- --strict-core` → pass. 최종 관련 모의 검사 49/49 pass.
+- 마지막 원격 확인: `origin/main=8f32da62caf4a921f23ebcc54eba4db83631e875`, 공식 CI failure 유지. 전체 check:fast는 위 환경 오류로 실패한 실행만 존재하며 공식 CI로 대체 완료하지 않았다.
+- 수정 파일은 구현 2개(정본/public 미러), 회귀 검사 1개, 이 문서, 자동 생성 HTML 캐시 참조 8개다. 추적 파일의 미커밋 변경은 없고 기존 untracked 증거 2개는 보존한다. 새 작업용 임시 파일은 남기지 않았다. 미머지 커밋과 운영 승인 대기가 있어 워크트리를 삭제하지 않는다.
+- 재개 위치: `D:\Development\code-destiny\.codex-worktrees\paid-media-webtoon-20261028-215429`. 문서: `D:\Development\code-destiny\.codex-worktrees\paid-media-webtoon-20261028-215429\docs\handoff\ga4-tag-quality-20261029.md`.
+- 첫 다음 행동: 최신 main CI에서 모바일 타로 뒤로가기 실패가 해결됐는지 확인한다. 해결 전에는 push하지 않는다. 해결 후 공유 main의 다른 세션 변경을 보존하면서 구현 커밋을 통합하고 전달 검사를 수행한다. 이번 미배포 변경을 운영에 적용하기 전 별도 승인, 광고 ON에는 다시 별도 승인이 필요하다.
 
 ## 사용자 요청과 제한
 - 사용자는 긴 대화 대신 새 채팅에서 GA4 태그 품질 긴급 상태의 원인을 규명하고 품질을 개선하기를 요청했다.
