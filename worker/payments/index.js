@@ -20,6 +20,7 @@
  */
 import { listCurrentPassOffers } from "../lib/pass-sale-policy.js";
 import { analyticsPaymentChannel } from './analytics-channel.js';
+import { readGa4PurchaseContext, sendPendingGa4Refunds } from './ga4-refunds.js';
 import { resolveOrderProductName } from "../lib/payment-product-name.js";
 import {
   CURRENT_PASS_POLICY_VERSION,
@@ -596,7 +597,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
        정책이 달라진다. 주문에 실리는 금액만 청구가로 바꾼다. */
     if (!gifts && isPassPolicyMix(userDoc?.profileSubscription || {}, plan)) throw paymentError("PASS_POLICY_CONFLICT", "현재 이용권이 종료된 후 새 이용권을 구매해 주세요.");
     const chargePlan = chargeKRW === Number(plan.wonPrice) ? plan : { ...plan, wonPrice: chargeKRW };
-    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard, refundConsent, paypalCharge });
+    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard, refundConsent, paypalCharge, ga4PurchaseContext:readGa4PurchaseContext(request,env) });
     if (gifts) await gifts.ensureGiftForOrder(db, created);
     return { order: created, user: userDoc };
   });
@@ -1315,6 +1316,7 @@ const ROUTES = {
         paymentMethod,
         paypalCharge,
         idempotencyKey: String(product.featureKey || '').startsWith('yeongnyangi-') ? body.requestId : body.idempotencyKey,
+        ga4PurchaseContext:readGa4PurchaseContext(request,env),
         profileId: body.profileId,
         partnerProfileId: body.partnerProfileId,
         contentKey: body.contentKey,
@@ -1446,6 +1448,7 @@ const ROUTES = {
           foreignCard,
           refundConsent,
           moonstoneDiscount,
+          ga4PurchaseContext:readGa4PurchaseContext(request,env),
           ...(product.fulfillmentType==='service_pack'?{purchaseType:preparedPurchaseType,giftDraft:preparedGiftDraft,expectedOrderId:body.expectedOrderId}:{}),
         });
         if(product.fulfillmentType==='service_pack'&&preparedPurchaseType==='GIFT') {
@@ -2299,7 +2302,12 @@ export async function runPaymentsV2Reconcile(env) {
         }));
       } catch { /* Uncertain PG status keeps the reservation. The next scheduled sweep can recover it. */ }
     }
-    return { ...report, webhookReplay, giftRefunds };
+    let ga4Refunds=null;
+    try {
+      // External PG/GA requests run outside the DB slot; analytics cannot fail payment reconciliation.
+      ga4Refunds=await sendPendingGa4Refunds(env,fn=>withPaymentDb(env,ctx,fn));
+    } catch { console.error('[GA4_REFUND_RECONCILE_FAILED]'); }
+    return { ...report, webhookReplay, giftRefunds, ga4Refunds };
   } catch (error) {
     const contract = classify(error);
     status = contract.status;
