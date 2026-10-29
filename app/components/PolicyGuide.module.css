@@ -120,7 +120,9 @@
 .nav a[aria-current="page"] { background: var(--cd-cta-primary-bg); color: var(--cd-cta-primary-ink); border-color: var(--cd-cta-hairline); }
 .nav a:hover { border-color: var(--pg-accent); }
 .moreDocs { margin-top: 8px; color: var(--pg-muted); font-size: .875rem; }
-.moreDocs summary { min-height: 44px; padding-block: 10px; cursor: pointer; }
+.moreDocs summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; padding-block: 12px; cursor: pointer; list-style: none; border-bottom: 1px solid var(--pg-line); }
+.moreDocs summary::-webkit-details-marker { display: none; }
+.moreDocs nav { padding-top: 12px; }
 .moreDocs nav { display: flex; flex-wrap: wrap; gap: 8px 24px; }
 .moreDocs a { display: inline-flex; align-items: center; min-height: 44px; color: var(--pg-accent); }
 
@@ -265,15 +267,15 @@
 
 .accordion {
   margin: 0;
-  padding: 8px 22px;
+  padding: 0 24px;
   scroll-margin-top: 20px;
   border: 1px solid var(--pg-line);
-  border-radius: 16px;
-  background: var(--pg-card);
+  border-radius: var(--cd-r-card);
+  background: var(--pg-surface);
 }
 
 .accordion summary {
-  min-height: 48px;
+  min-height: 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -281,14 +283,16 @@
   list-style: none;
   padding: 14px 0;
   color: var(--pg-ink);
-  font-size: 0.94rem;
+  font-size: 1rem;
   font-weight: 750;
   cursor: pointer;
 }
 
 .accordion > div {
   max-width: 70ch;
-  padding: 4px 0 14px;
+  margin-right: 56px;
+  padding: 18px 0 24px;
+  border-top: 1px solid var(--pg-line);
   color: var(--pg-muted);
   font-size: 1rem;
 }
@@ -298,9 +302,17 @@
 }
 
 .accordion summary::-webkit-details-marker { display: none; }
-.accordion summary svg { width: 20px; height: 20px; flex: 0 0 20px; fill: none; stroke: var(--pg-accent); stroke-width: 1.6; }
-.accordion[open] summary svg { transform: rotate(180deg); }
-.accordion[open] { border-color: var(--pg-accent); }
+.accordion summary svg, .moreDocs summary svg { box-sizing: border-box; width: 36px; height: 36px; flex: 0 0 36px; padding: 8px; border: 1px solid var(--pg-motif); border-radius: var(--cd-r-pill); background: var(--pg-card); fill: none; stroke: var(--pg-ink); stroke-width: 1.6; }
+.accordion summary:hover { color: var(--pg-accent); }
+.accordion[open] .toggleVertical, .moreDocs[open] .toggleVertical { display: none; }
+.accordion[open] summary svg, .moreDocs[open] summary svg { background: var(--pg-ink); stroke: var(--pg-surface); border-color: var(--pg-ink); }
+.accordion[open] { border-color: var(--pg-motif); background: var(--pg-card); }
+.accordion[open] summary { color: var(--pg-ink); }
+@media (max-width: 540px) {
+  .accordion { padding-inline: 18px; }
+  .accordion summary { gap: 14px; min-height: 76px; font-size: .9375rem; }
+  .accordion > div { margin-right: 0; }
+}
 .accordion p { margin: 0; white-space: pre-line; }
 .page ::selection { background: var(--cd-accent-soft); color: var(--pg-ink); }
 :global(html.neo-mode) .page,

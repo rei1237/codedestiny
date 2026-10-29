@@ -74,7 +74,7 @@ for (const file of ['service-intro.css', 'service-intro-fonts.css']) {
 const introVersion = createHash('sha256').update(fs.readFileSync('app/about/service-intro.css', 'utf8').replace(/\r\n?/g, '\n')).digest('hex').slice(0, 12);
 const themeVersion = createHash('sha256').update(fs.readFileSync('styles/theme-tokens.css')).digest('hex').slice(0, 12);
 const cssVersion = createHash('sha256').update(styles).digest('hex').slice(0, 12);
-const faqSource = fs.readFileSync('js/faq-search.mjs');
+const faqSource = fs.readFileSync('js/faq-search.mjs', 'utf8').replace(/\r\n?/g, '\n');
 const faqVersion = createHash('sha256').update(faqSource).digest('hex').slice(0, 12);
 const contactSource = fs.readFileSync('js/static-policy-contact.js');
 const contactVersion = createHash('sha256').update(contactSource).digest('hex').slice(0, 12);
@@ -123,7 +123,7 @@ for (let index = 0; index < STATIC_POLICY_ROUTES.length; index += 1) {
   summary.push({ route: route.canonical, aliases: route.aliases, bytes: Buffer.byteLength(html), reactRuntime: false });
 }
 
-fs.copyFileSync('js/faq-search.mjs', 'public/js/faq-search.mjs');
+fs.writeFileSync('public/js/faq-search.mjs', faqSource);
 fs.copyFileSync('js/static-policy-contact.js', 'public/js/static-policy-contact.js');
 fs.writeFileSync(path.join(cache, 'manifest.json'), JSON.stringify(summary, null, 2));
 console.log('[static-policies] generated 6 pages from current content, without React runtime');

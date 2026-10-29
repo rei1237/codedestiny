@@ -11,6 +11,7 @@ import { PUBLIC_RECORD_PATH } from "../../lib/seo/public-record-copy.mjs";
 import { getEditorNote } from "../_content/editor-notes";
 import EditorNote from "../components/EditorNote";
 import FaqExplorer from "./FaqExplorer";
+import styles from "./faq.module.css";
 
 const seo = publicSeoPages.faq;
 
@@ -47,15 +48,23 @@ export default function FaqPage() {
 
       <EditorNote note={getEditorNote("/faq")} className="cd-editor-note" />
 
-      <nav className="cd-chip-wrap" aria-label="FAQ 관련 문서">
-        <Link href="/fusion-fortune/" className="cd-chip">초융합 운세</Link>
-        <Link href={PUBLIC_RECORD_PATH} className="cd-chip">대통령 사주 공개 분석 기록</Link>
-        <Link href="/" className="cd-chip">공식 사이트 안내</Link>
-        <Link href="/about" className="cd-chip">서비스 소개</Link>
-        <Link href="/methodology" className="cd-chip">운세 콘텐츠 방법론</Link>
-        <Link href="/privacy" className="cd-chip">개인정보처리방침</Link>
-        <Link href="/terms" className="cd-chip">이용약관</Link>
-      </nav>
+      <section className={styles.readingGuide} aria-labelledby="faq-guide-title">
+        <div className={styles.guideIntro}>
+          <h2 id="faq-guide-title">조금 더 알아보고 싶다면</h2>
+          <p>상담을 고르기 전에, 풀이의 기준과 서비스 이야기를 살펴보세요.</p>
+          <Link href="/fusion-fortune/" className={styles.guidePrimary}>초융합 운세 살펴보기<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></Link>
+        </div>
+        <nav className={styles.guideReading} aria-label="FAQ 관련 문서">
+          <Link href={PUBLIC_RECORD_PATH}><span><strong>대통령 사주 공개 분석 기록</strong><small>공개 원문과 실제 사건의 흐름을 비교해요</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></Link>
+          <Link href="/methodology"><span><strong>운세 콘텐츠 방법론</strong><small>계산과 해석이 만들어지는 기준을 읽어보세요</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></Link>
+        </nav>
+        <nav className={styles.guidePolicies} aria-label="서비스 및 이용 정책">
+          <Link href="/">공식 사이트 안내</Link>
+          <Link href="/about">서비스 소개</Link>
+          <Link href="/privacy">개인정보처리방침</Link>
+          <Link href="/terms">이용약관</Link>
+        </nav>
+      </section>
     </main>
   );
 }

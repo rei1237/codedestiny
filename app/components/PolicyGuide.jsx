@@ -94,7 +94,7 @@ function PolicySummaryCards({ kind }) {
 export function PolicyAccordion({ id, title, children }) {
   return (
     <details id={id} className={styles.accordion}>
-      <summary><span>{title}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></summary>
+      <summary><span>{title}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /><path className={styles.toggleVertical} d="M12 5v14" /></svg></summary>
       <div>{children}</div>
     </details>
   );
@@ -113,7 +113,7 @@ export default function PolicyGuide({ kind, ...hero }) {
         ))}
       </nav>
       <details className={styles.moreDocs}>
-        <summary>해석 기준·콘텐츠 정책 더 보기</summary>
+        <summary><span>해석 기준·콘텐츠 정책 더 보기</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /><path className={styles.toggleVertical} d="M12 5v14" /></svg></summary>
         <nav aria-label="콘텐츠와 운영 기준">{POLICY_PAGES.slice(6).map(([key, label, href]) => <Link key={key} href={href}>{label}</Link>)}</nav>
       </details>
       {kind !== "faq" && <PolicySummaryCards kind={kind} />}
