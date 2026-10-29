@@ -14,6 +14,7 @@
  * 사용법:
  *   node scripts/i18n-merge-authored.mjs                 전체 병합
  *   node scripts/i18n-merge-authored.mjs --namespace ns  해당 네임스페이스만
+ *   node scripts/i18n-merge-authored.mjs --file ns-01.json  검수한 저작 파일 하나만
  *   node scripts/i18n-merge-authored.mjs --core          코어 사전(public/i18n/<lang>.json)으로
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
@@ -28,6 +29,10 @@ const args = process.argv.slice(2);
 const toCore = args.includes("--core");
 // Refresh copy without installing unrelated namespace keys in the core bundle.
 const existingOnly = args.includes("--existing-only");
+// Apply a reviewed authoring batch without overwriting unrelated older batches.
+const fileIndex = args.indexOf("--file");
+const fileFilter = fileIndex >= 0 ? args[fileIndex + 1] : null;
+if (fileIndex >= 0 && (!fileFilter || !/^[\w-]+\.json$/.test(fileFilter))) throw new Error("--file requires an authored JSON basename");
 const nsFilter = (() => {
   const i = args.indexOf("--namespace");
   return i >= 0 && args[i + 1] ? args[i + 1] : null;
@@ -59,6 +64,7 @@ function setDeep(target, dottedKey, value) {
 // 저작 파일 수집: <namespace>-<번호>.json
 const files = readdirSync(authoredDir)
   .filter((f) => f.endsWith(".json"))
+  .filter((f) => !fileFilter || f === fileFilter)
   .filter((f) => !nsFilter || f.startsWith(`${nsFilter}-`))
   .sort();
 

@@ -908,7 +908,17 @@ function detectLocale(country) {
     MY: "ms-MY",
   };
 
-  return localeMap[country] || "en-US";
+  if (localeMap[country]) return localeMap[country];
+  // Match the Pages country defaults, including territories and shared languages.
+  const regionalLanguages = {
+    "zh-TW": "HK MO", "ms-MY": "BN", "de-DE": "AT LI CH", "nl-NL": "BE SR",
+    "fr-FR": "MC LU SN CI BF ML NE TG BJ GN CD CG GA CM TD CF DJ MG KM SC RE GP MQ GF PF NC",
+    "es-ES": "BO CL CR CU DO EC GT HN NI PA PR PY SV UY VE GQ",
+  };
+  for (const [locale, countries] of Object.entries(regionalLanguages)) {
+    if (countries.split(" ").includes(country)) return locale;
+  }
+  return "en-US";
 }
 
 function isLoop(requestUrl, upstreamOrigin) {
