@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {classifyMarketingPayment as classify} from '../scripts/lib/marketing-pg-reconciliation.mjs';
+import {classifyMarketingPayment as classify} from '../../scripts/lib/marketing-pg-reconciliation.mjs';
 const order={merchantUid:'fixture-order',paymentAmount:5000};
 const payment={id:'fixture-order',currency:'KRW',channel:{type:'LIVE'},status:'PAID',amount:{total:5000,cancelled:0}};
 test('live paid and full/partial cancellations produce PG balance only',()=>{

@@ -1,7 +1,7 @@
-import '../scripts/lib/mock-network-guard.cjs';
+import '../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readGa4PurchaseContext,buildGa4RefundReceipts,sendPendingGa4Refunds,withdrawGa4Consent} from '../worker/payments/ga4-refunds.js';
+import {readGa4PurchaseContext,buildGa4RefundReceipts,sendPendingGa4Refunds,withdrawGa4Consent} from '../../worker/payments/ga4-refunds.js';
 const now=new Date('2026-10-29T10:00:00Z');
 const env={GA4_SERVER_REFUNDS_ENABLED:'true',GA4_MEASUREMENT_ID:'G-FIXTURE123',GA4_API_SECRET:'fixture-only-secret'};
 const token='a'.repeat(64);
