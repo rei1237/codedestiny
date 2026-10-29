@@ -6,6 +6,16 @@ next: 외부 번역 API 없이 직접 번역을 작성하고 화면·소설 언�
 
 # 앱 전체 다국어 출시
 
+## 2026-10-30 최종 제출 진행 — 아래 기록보다 우선
+- 소설4언어 각각73화/7844비트 및 상세4언어 직접 번역 완료. 다른7언어 긴 안내/소설은 EN, 기본 UI·상담12언어 유지. API 번역0. 국가/UI/상담 mock58검사와 fake provider12언어 PASS; 실제 해외IP/실LLM 검증은 아니다.
+- Android55 서명 빌드 성공(61분22초), USB RFCXB0CP4AR install-r 성공. EN/JA/CN/TW 실제 메인 언어 선택→번역 본문 모두 확인. 앱 재시작 후 기본 한국어 유지. 증거 D:/Development/code-destiny/.playwright-mcp/android55-novel-{en,ja,zh-CN,zh-TW}.png.
+- 기기 홈 상단 상태바 겹침 때문에55는 심사 제출하지 않는다. GlobalHeader.module.css 안전 여백 수정675456972e463318598d501a28da5c5344f707cd(관련5검사PASS), 웹 담당이 f871d187e로 통합. 수정 포함 Android56 sync 성공, Gradle bundleRelease assembleRelease 진행(session96771, .tmp/android-gradle-56.log). 종료 후 버전56/서명 확인→install-r→상단 실기기 확인→Play56업로드/제출. 산출 경로에 남은55를 잘못 제출하지 말 것.
+- Play55 저장/심사전송전. 56 새 임시버전 출시명/15언어노트 저장, 새AAB 아직 미업로드. 54 검토중. 승인96이미지/15등록언어 유지, 출시19국 저장. managed publishing ON. 일반 제출/출시는 승인됐지만 심사전 공개완료라고 보고하지 않는다.
+- Chrome3 releaseFresh tab1473077441. dev8929260153073799668/app4971977067602742831/track4697542548292933451. 오래된1473077411 재사용금지. .tmp/release-notes-1.0.55.txt는56에도 재사용가능(본문버전없음).
+- main0e64bb92974f84e58ff1ace3005aa65efbba4f18 CI40921979719 success. 웹 운영 담당 채팅01a187c3-555f-71e0-bb9f-5fb769196a9a가 승인된 production 배포중. 중복dispatch금지. Pages/Worker SHA·FAQ/안내버튼 실화면 결과를 받는다.
+- ownHEAD675456972e는 main에 동일패치가 cherry-pick됐으므로 단순FF불가. root/다른main체크아웃 dirty보존. capacitor 로컬경로 생성물/RSS4파일은HEAD정리. 재Gradle에는 .tmp/capacitor.settings.local.gradle 또는공식sync 필요. js/faq-search.mjs는LF정규화후HEAD와동일hash이나stat M일수있어 실제diff확인.
+- 전체check:fast90suite는 리소스경합으로 본인프로세스중단; 전체PASS아님. 공식CI와 기록된targeted결과만 사용. 실제결제/LLM/운영DB쓰기 테스트없음. 최종 앱 제출/웹운영일치/정리 아직 미완료.
+
 ## 2026-10-30 현재 진행 상태 — 아래 과거 기록보다 우선
 - c696b77c1215977834404ca1e26c28d9daf20433를 origin main에 non-force push 완료. main CI40905181451은 빌드/핵심검사 PASS, static guards 두 검사와 lint 세 오류로 실패. 원인은 새 NativeHomeCardLink에 맞지 않는 구 검사, featureMarketing이 없는 브랜드 fixture, 테스트 module 변수/익명 mock 컴포넌트. b84ad2e17에서 수정하고 관련18검사 PASS/lint 오류0 확인. 9719040b4는 최종 앱 링크 검사 수정이며 아직 후속 push 전.
 - 소설4언어 각각73화/7844비트, 상세4언어 직접 번역 완료. 나머지7언어 EN 안내/소설, UI 및 상담12언어 유지. API 번역0. 국가/UI/상담 mock 계약58검사 및 fake provider12언어 PASS. 실제 해외IP/실LLM 검증 아님.
