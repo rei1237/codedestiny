@@ -1,0 +1,1909 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "episodeId": "ep-06",
+  "sourceTitle": "거울 너머, 나를 안다",
+  "sourceTag": "제6화 · 거울 너머, 나를 안다",
+  "metadata": {
+    "zh-CN": {
+      "title": "镜子那头，认识自己",
+      "tag": "第6话 · 镜子那头，认识自己"
+    },
+    "zh-TW": {
+      "title": "鏡子那頭，認識自己",
+      "tag": "第6話 · 鏡子那頭，認識自己"
+    }
+  },
+  "rows": [
+    {
+      "id": "ep-06:1",
+      "source": "거울 속 연이가 검은 날개를 펼쳤다. 깃털이 아니라, 깨진 거울 조각이 겹겹이 붙어 만든 날개였다.",
+      "sourceHash": "cde9a2a1b7f0dee7c7a046166891385d914689845e412b018d04af7784083ed1",
+      "translations": {
+        "zh-CN": "镜中的Yeoni展开黑翼。那不是羽毛，而是破碎镜片层层叠成的翅膀。",
+        "zh-TW": "鏡中的Yeoni展開黑翼。那不是羽毛，而是破碎鏡片層層疊成的翅膀。"
+      }
+    },
+    {
+      "id": "ep-06:2",
+      "source": "조각 하나하나마다 연이의 얼굴이 비쳤다. 비교하는 연이, 질투하는 연이, 포기하는 연이.",
+      "sourceHash": "b0c1ac090c836912d13787f195cec31f4c2de66b55f910a811decb1d72d2cb53",
+      "translations": {
+        "zh-CN": "每片都映着Yeoni的脸。比较的Yeoni，嫉妒的Yeoni，放弃的Yeoni。",
+        "zh-TW": "每片都映著Yeoni的臉。比較的Yeoni，嫉妒的Yeoni，放棄的Yeoni。"
+      }
+    },
+    {
+      "id": "ep-06:3",
+      "source": "괜찮은 척 웃는 연이. 그리고 자기 자신을 못 믿는 연이.",
+      "sourceHash": "4093437214f2dfad1a7508b66ff780676d8c5faa21dba37ef87cb9df59a221fb",
+      "translations": {
+        "zh-CN": "装没事笑着的Yeoni，以及不相信自己的Yeoni。",
+        "zh-TW": "裝沒事笑著的Yeoni，以及不相信自己的Yeoni。"
+      }
+    },
+    {
+      "id": "ep-06:4",
+      "source": "와…… 나 진짜 내부 인원 많네.",
+      "sourceHash": "68f93c61f20b3711a087d48418bd6ffad6ea9b0af15fd95f69cd33addb01dde1",
+      "translations": {
+        "zh-CN": "哇……我的内部人员真多。",
+        "zh-TW": "哇……我的內部人員真多。"
+      }
+    },
+    {
+      "id": "ep-06:5",
+      "source": "근데 다들 나보다 표정이 살아 있네. 원본이 제일 시무룩한 건 좀 억울한데.",
+      "sourceHash": "4ed6ae4442b8aa92c603bd98677f1f54fdab1a8d256ab474e26613e296e85a81",
+      "translations": {
+        "zh-CN": "可大家的表情都比我鲜活。原版反而最没精神，有点委屈啊。",
+        "zh-TW": "可大家的表情都比我鮮活。原版反而最沒精神，有點委屈啊。"
+      }
+    },
+    {
+      "id": "ep-06:6",
+      "source": "정신 차려라. 저건 전부 네 자리를 흔드는 겁재다.",
+      "sourceHash": "3126c5a035d7d861cc70cdd3e14c0a954a6ffb50554112372b6710eff8a44cd4",
+      "translations": {
+        "zh-CN": "集中精神，那些全是动摇你位置的劫财。",
+        "zh-TW": "集中精神，那些全是動搖你位置的劫財。"
+      }
+    },
+    {
+      "id": "ep-06:7",
+      "source": "겉모습은 난데?",
+      "sourceHash": "525cd8bb76a1a98867d85ae3635a72c05b329fdd3ffc14716d9ad50a5645af1b",
+      "translations": {
+        "zh-CN": "可外表都是我啊？",
+        "zh-TW": "可外表都是我啊？"
+      }
+    },
+    {
+      "id": "ep-06:8",
+      "source": "그래서 더 위험하다.",
+      "sourceHash": "3338af2c744c2cd7d6cd7942da7c540c4609cb0119c0c1ecfa0142e50cd49e5b",
+      "translations": {
+        "zh-CN": "所以更危险。",
+        "zh-TW": "所以更危險。"
+      }
+    },
+    {
+      "id": "ep-06:9",
+      "source": "내 얼굴 무단 도용에 무단 복제까지. 이거 초상권 신고는 어디다 하냐.",
+      "sourceHash": "91c812495ab3f8d8b2c44a373c1049974e9978ba92059e1584f2e917b0e5beb0",
+      "translations": {
+        "zh-CN": "擅自盗用我的脸，还非法复制。肖像侵权要去哪里举报？",
+        "zh-TW": "擅自盜用我的臉，還非法複製。肖像侵權要去哪裡檢舉？"
+      }
+    },
+    {
+      "id": "ep-06:10",
+      "source": "거울 속 연이가 천천히 떠올랐다. 등 뒤의 조각들이 회전하자 섬 전체가 종처럼 떨렸다.",
+      "sourceHash": "e7aa628bee8cb55a038cc7c43ac364ed723808d176ef3e75522596c87d2e5066",
+      "translations": {
+        "zh-CN": "镜中的Yeoni缓缓升起，背后碎片旋转，整座岛像钟一般震颤。",
+        "zh-TW": "鏡中的Yeoni緩緩升起，背後碎片旋轉，整座島像鐘一般震顫。"
+      }
+    },
+    {
+      "id": "ep-06:11",
+      "source": "[비겁의 섬 · 최종 시험]",
+      "sourceHash": "e160e335fc77921358d5931aede5106ca9b37c88e5933566d6a2cbd39c6e664d",
+      "translations": {
+        "zh-CN": "[比劫之岛 · 最终试炼]",
+        "zh-TW": "[比劫之島 · 最終試煉]"
+      }
+    },
+    {
+      "id": "ep-06:12",
+      "source": "[거울 속의 나를 회수하라.]",
+      "sourceHash": "ed85ace1872832cf1ab07c840d41c4efbf0368e153f1749783184fc2d17b7928",
+      "translations": {
+        "zh-CN": "[找回镜中的自己。]",
+        "zh-TW": "[找回鏡中的自己。]"
+      }
+    },
+    {
+      "id": "ep-06:13",
+      "source": "[실패 시, 현실 귀환 권한이 거울 연이에게 이전됩니다.]",
+      "sourceHash": "6224bcfe636e67ec60fbadfe128d51aab020a23003aeb92e487d0f7cc33a37a3",
+      "translations": {
+        "zh-CN": "[失败时，返回现实的权限将移交给镜中Yeoni。]",
+        "zh-TW": "[失敗時，返回現實的權限將移交給鏡中Yeoni。]"
+      }
+    },
+    {
+      "id": "ep-06:14",
+      "source": "잠깐만. 권한 이전?",
+      "sourceHash": "c24680b4108d6810e66a2eec6df8ff19e3da14ad1da7a43a021670a128412b01",
+      "translations": {
+        "zh-CN": "等等，权限移交？",
+        "zh-TW": "等等，權限移交？"
+      }
+    },
+    {
+      "id": "ep-06:15",
+      "source": "응. 네 인생 계정, 내가 로그인.",
+      "sourceHash": "0a21aeff1f0062c219101e8f3e08091f595ba8a68036b7a18643776c4e18f647",
+      "translations": {
+        "zh-CN": "嗯，你的人生账号，我来登录。",
+        "zh-TW": "嗯，你的人生帳號，我來登入。"
+      }
+    },
+    {
+      "id": "ep-06:16",
+      "source": "미쳤네. 이거 완전 계정 탈취잖아.",
+      "sourceHash": "86f44035a6965248abc9ef8bac565c6ed9ed4673c467f230e29c3d8b929974e9",
+      "translations": {
+        "zh-CN": "疯了吧，根本是盗号啊。",
+        "zh-TW": "瘋了吧，根本是盜帳號啊。"
+      }
+    },
+    {
+      "id": "ep-06:17",
+      "source": "비슷해.",
+      "sourceHash": "c2563667f83a506e3b7358fe45534e561e7d3eaaba2e162aa7ef7366613cd3c4",
+      "translations": {
+        "zh-CN": "差不多。",
+        "zh-TW": "差不多。"
+      }
+    },
+    {
+      "id": "ep-06:18",
+      "source": "이중 인증 없어?",
+      "sourceHash": "82e6c0951bf20a00a042a8379544bd820313cea9fcbe7a4e490216f819b9b055",
+      "translations": {
+        "zh-CN": "没有双重验证？",
+        "zh-TW": "沒有雙重驗證？"
+      }
+    },
+    {
+      "id": "ep-06:19",
+      "source": "있었지.",
+      "sourceHash": "9502551128ad5039ba1f905207dc7a9295d35ac60b7a468345a22c0405a552bf",
+      "translations": {
+        "zh-CN": "有过啊。",
+        "zh-TW": "有過啊。"
+      }
+    },
+    {
+      "id": "ep-06:20",
+      "source": "거울 속 연이가 연이의 머리 위 꽃을 가리켰다.",
+      "sourceHash": "1a44de6e4ba7ddebdf9fdd3dab47a9e2a390fe9b5ac6db2e4330b3fd07e27b0c",
+      "translations": {
+        "zh-CN": "镜中的Yeoni指向Yeoni头顶的花。",
+        "zh-TW": "鏡中的Yeoni指向Yeoni頭頂的花。"
+      }
+    },
+    {
+      "id": "ep-06:21",
+      "source": "네가 방금 찾은 乙亥.",
+      "sourceHash": "e9fb9cec316849f54f8405052f33bedf1eb46961e3f2606168d0450ef184d2d9",
+      "translations": {
+        "zh-CN": "你刚找回的乙亥。",
+        "zh-TW": "你剛找回的乙亥。"
+      }
+    },
+    {
+      "id": "ep-06:22",
+      "source": "연이는 앞발 안쪽의 따뜻한 기운을 다시 붙잡았다. 乙, 작은 새싹. 亥, 깊은 물. 둘은 아직 하나가 되지 못한 채 희미하게 빛났다.",
+      "sourceHash": "1218c3c9a89d44fff46460e33619688cfbf1a352e88dff95193ff6c68b7fbe7b",
+      "translations": {
+        "zh-CN": "Yeoni再次抓紧前蹄内侧的暖意。乙，小小嫩芽；亥，深水。两者尚未完全合一，发着微光。",
+        "zh-TW": "Yeoni再次抓緊前蹄內側的暖意。乙，小小嫩芽；亥，深水。兩者尚未完全合一，發著微光。"
+      }
+    },
+    {
+      "id": "ep-06:23",
+      "source": "하지만 아직 100%는 아니야.",
+      "sourceHash": "8d3adde5482e6d4b280d152235f62ccf8b8bd6a458f7532ecc22c00433b35ef9",
+      "translations": {
+        "zh-CN": "但还没到100%。",
+        "zh-TW": "但還沒到100%。"
+      }
+    },
+    {
+      "id": "ep-06:24",
+      "source": "공중에 숫자가 떠올랐다.",
+      "sourceHash": "1d986e448f8c5b38608e5c896f0bac6c14ffa8ca6c205518f81e4940c3796c4a",
+      "translations": {
+        "zh-CN": "数字浮在空中。",
+        "zh-TW": "數字浮在空中。"
+      }
+    },
+    {
+      "id": "ep-06:25",
+      "source": "[乙亥 일주 회수율 87%]",
+      "sourceHash": "9bfbf074817e275e35dcae5aff8297671d012aee3af4b9368b0c848b716a8ce4",
+      "translations": {
+        "zh-CN": "[乙亥日柱回收率87%]",
+        "zh-TW": "[乙亥日柱回收率87%]"
+      }
+    },
+    {
+      "id": "ep-06:26",
+      "source": "아니, 왜 하필 87%야. 애매하게 사람 불안하게.",
+      "sourceHash": "4187928f18b1cd3d1994fef6a0499c635b0771e760b5f3de4042e841bd07bef9",
+      "translations": {
+        "zh-CN": "为什么偏偏是87%？不尴不尬的，让人不安。",
+        "zh-TW": "為什麼偏偏是87%？不上不下的，讓人不安。"
+      }
+    },
+    {
+      "id": "ep-06:27",
+      "source": "완성도 87. 딱 다 된 것 같은데 안 끝나는 다운로드 바 있잖아. 그거야.",
+      "sourceHash": "a3a504a222ec53ed4eea2684958ff90afd7a248b25a283a17abbc35592999f1e",
+      "translations": {
+        "zh-CN": "完成度87。就像看似快好却迟迟不结束的下载进度条，就是那个。",
+        "zh-TW": "完成度87。就像看似快好卻遲遲不結束的下載進度條，就是那個。"
+      }
+    },
+    {
+      "id": "ep-06:28",
+      "source": "마지막 13%가 남았다.",
+      "sourceHash": "120dc123d9133f238caae93e27ed68228e5ebe01e6fc79c4465e02fc9f70b5c4",
+      "translations": {
+        "zh-CN": "还剩最后13%。",
+        "zh-TW": "還剩最後13%。"
+      }
+    },
+    {
+      "id": "ep-06:29",
+      "source": "그게 뭔데?",
+      "sourceHash": "dfae7757eab6598ecd95c8ea0750eaf8be8141b417d6d0ef200230b629d3b8b7",
+      "translations": {
+        "zh-CN": "那是什么？",
+        "zh-TW": "那是什麼？"
+      }
+    },
+    {
+      "id": "ep-06:30",
+      "source": "저 환영.",
+      "sourceHash": "e20e6fc078c07ce48fe297a55981ff78fd3b341556265a0f144385bc00cc2ad1",
+      "translations": {
+        "zh-CN": "那个幻影。",
+        "zh-TW": "那個幻影。"
+      }
+    },
+    {
+      "id": "ep-06:31",
+      "source": "맞아. 나를 회수해야 완성돼.",
+      "sourceHash": "938fa674efd503d9c9b296073b81d3f00a736d4c29ca2b0c5b2c44e9c3e8b95a",
+      "translations": {
+        "zh-CN": "没错，找回我，才算完整。",
+        "zh-TW": "沒錯，找回我，才算完整。"
+      }
+    },
+    {
+      "id": "ep-06:32",
+      "source": "너를?",
+      "sourceHash": "8b5ae256477bdc55bdb5d3ef17886f35cfd98720d1603f3f042a38ed66bde39d",
+      "translations": {
+        "zh-CN": "找回你？",
+        "zh-TW": "找回你？"
+      }
+    },
+    {
+      "id": "ep-06:33",
+      "source": "나는 네가 인정하기 싫어서 떼어낸 너니까.",
+      "sourceHash": "5bb0dfcee0edcbf06ebc463095125d3925abc330d3bea91252f50b72ab9eb4f3",
+      "translations": {
+        "zh-CN": "因为我是你不想承认、剥离出去的自己。",
+        "zh-TW": "因為我是你不想承認、剝離出去的自己。"
+      }
+    },
+    {
+      "id": "ep-06:34",
+      "source": "그러니까 너를 이겨야 하는 게 아니라…….",
+      "sourceHash": "9f3303400b7690c9ed70698a0bf267317029d96dc099a0ec2f4f7759b26660dd",
+      "translations": {
+        "zh-CN": "所以不是要赢过你……",
+        "zh-TW": "所以不是要贏過你……"
+      }
+    },
+    {
+      "id": "ep-06:35",
+      "source": "나를 다시 가져가야 해. 할 수 있겠어?",
+      "sourceHash": "679dc3eab765f99c01e5c1189d077149fee5310f4b5c2a7467d603a1fd99c19c",
+      "translations": {
+        "zh-CN": "是把我重新带回去。做得到吗？",
+        "zh-TW": "是把我重新帶回去。做得到嗎？"
+      }
+    },
+    {
+      "id": "ep-06:36",
+      "source": "그 말이 이상하게 섬뜩했다. 부수는 거라면 차라리 쉬웠다. 가짜라 여기고 박살 내면 그만이니까. 그런데 다시 가져가라니, 자기 안으로 들여보내라니.",
+      "sourceHash": "686ea5b44e5a0f9b43fd12c5ec5aa1aac261f3b5a6114a2caba79ef517053577",
+      "translations": {
+        "zh-CN": "那句话莫名令人发寒。若只是打碎，反而容易，当成假的砸烂就好。可居然要带回去，要让她进入自己心里。",
+        "zh-TW": "那句話莫名令人發寒。若只是打碎，反而容易，當成假的砸爛就好。可居然要帶回去，要讓她進入自己心裡。"
+      }
+    },
+    {
+      "id": "ep-06:37",
+      "source": "저 얼굴은 얄미웠고 말은 재수 없었다. 도망치고 싶은 부분만 골라 찔렀다. 그래도 결국, 저것도 나였다.",
+      "sourceHash": "d784ac629a1c1516582fb3fb0a4803976973335464ef0091f6047a7a6a035ba8",
+      "translations": {
+        "zh-CN": "那张脸很讨厌，说话又欠揍，只挑让人想逃的地方刺。可到头来，那也是自己。",
+        "zh-TW": "那張臉很討厭，說話又欠揍，只挑讓人想逃的地方刺。可到頭來，那也是自己。"
+      }
+    },
+    {
+      "id": "ep-06:38",
+      "source": "진짜 어렵게 산다, 나.",
+      "sourceHash": "35bcdcc1e39b6a10d14bd9d2954f7ecec345cb4dca517770e6ea3ec1fa4ea342",
+      "translations": {
+        "zh-CN": "我活得真够费劲。",
+        "zh-TW": "我活得真夠費勁。"
+      }
+    },
+    {
+      "id": "ep-06:39",
+      "source": "그러게.",
+      "sourceHash": "164e565f7ac3501f1937df93759171bbc479ecf9a64ff510a9293f1d242e54a9",
+      "translations": {
+        "zh-CN": "是啊。",
+        "zh-TW": "是啊。"
+      }
+    },
+    {
+      "id": "ep-06:40",
+      "source": "그 순간 날개가 크게 펼쳐지며 검은 조각들이 빗발처럼 쏟아졌다.",
+      "sourceHash": "c4972af235905ba0d959ea225b19f2494bde91431915c7f20ed5cd022bb766c8",
+      "translations": {
+        "zh-CN": "就在这时，翅膀猛地展开，黑色碎片如暴雨倾泻。",
+        "zh-TW": "就在這時，翅膀猛地展開，黑色碎片如暴雨傾瀉。"
+      }
+    },
+    {
+      "id": "ep-06:41",
+      "source": "뒤로!",
+      "sourceHash": "d6d13849728ea7a978ad89ac21bc2a5553f8af02065d026c6ee53ce42770e096",
+      "translations": {
+        "zh-CN": "退后！",
+        "zh-TW": "退後！"
+      }
+    },
+    {
+      "id": "ep-06:42",
+      "source": "금빛 발톱이 허공을 갈랐다. 쨍, 쨍, 쨍. 조각들이 사방으로 튕겼다.",
+      "sourceHash": "8ecbfe8343fcc459c6b8bc1f0166e7d11c4323195a240207b57774457b6bee11",
+      "translations": {
+        "zh-CN": "金爪划破半空。锵，锵，锵。碎片四处弹开。",
+        "zh-TW": "金爪劃破半空。鏘，鏘，鏘。碎片四處彈開。"
+      }
+    },
+    {
+      "id": "ep-06:43",
+      "source": "하지만 조각은 깨져도 다시 붙었다. 한 번 베면 둘, 둘을 베면 넷이 되었다.",
+      "sourceHash": "05f817e16277a76e911a7248a9370a81b389835a35b14ba3ce57602562cd49ec",
+      "translations": {
+        "zh-CN": "可碎片破了又合上。一斩成二，二斩成四。",
+        "zh-TW": "可碎片破了又合上。一斬成二，二斬成四。"
+      }
+    },
+    {
+      "id": "ep-06:44",
+      "source": "아니, 왜 증식해?",
+      "sourceHash": "d9ff157437d0b463bef9e18e9b82418de801a2cd6e7c9370da5dd0a3bfed3452",
+      "translations": {
+        "zh-CN": "不是，怎么还会增殖？",
+        "zh-TW": "不是，怎麼還會增殖？"
+      }
+    },
+    {
+      "id": "ep-06:45",
+      "source": "빼앗을수록 불어나고 있어. 베기만 해서는 끝나지 않아.",
+      "sourceHash": "a721e87fe26decb957602334ede0cc75a115b64435b9f94503975485b74610ad",
+      "translations": {
+        "zh-CN": "越夺取越膨胀，只斩击没法结束。",
+        "zh-TW": "越奪取越膨脹，只斬擊沒法結束。"
+      }
+    },
+    {
+      "id": "ep-06:46",
+      "source": "그걸 지금 알려주면 어떡해!",
+      "sourceHash": "8831b385852c305f630bae7d8eff1dd5146c0c30d9e2c4dde50cdb510d07ad3f",
+      "translations": {
+        "zh-CN": "现在才告诉我，怎么行！",
+        "zh-TW": "現在才告訴我，怎麼行！"
+      }
+    },
+    {
+      "id": "ep-06:47",
+      "source": "지금 보고 있으니까 말하는 거다!",
+      "sourceHash": "772d9f18cdcf2212ec1c7512e1f93bdf0e8b990d13b27a6d5a4238af1417da34",
+      "translations": {
+        "zh-CN": "就是现在看见了，才说啊！",
+        "zh-TW": "就是現在看見了，才說啊！"
+      }
+    },
+    {
+      "id": "ep-06:48",
+      "source": "짧은 다리로는 구르는 것도 일이라고! 뒤로 빼려다 코부터 박게 생겼어!",
+      "sourceHash": "3b5db18f7931d0cc39d740787998e43e622764fea6c6a0e683ae2fa5c8e86fa8",
+      "translations": {
+        "zh-CN": "腿这么短，连打滚都费劲！想往后躲，鼻子倒要先撞地了！",
+        "zh-TW": "腿這麼短，連打滾都費勁！想往後躲，鼻子倒要先撞地了！"
+      }
+    },
+    {
+      "id": "ep-06:49",
+      "source": "거울 속 연이가 손을 내렸다. 이번엔 조각들이 영냥이가 아니라 연이를 향해 몰려왔다.",
+      "sourceHash": "99a37e52afffa038d8e1e6eac3be6eac71b9b43312830f4caaff06368065b0e2",
+      "translations": {
+        "zh-CN": "镜中的Yeoni放下手。这次碎片没有奔向Yeongnyangi，而是朝Yeoni聚来。",
+        "zh-TW": "鏡中的Yeoni放下手。這次碎片沒有奔向Yeongnyangi，而是朝Yeoni聚來。"
+      }
+    },
+    {
+      "id": "ep-06:50",
+      "source": "너는 늦어. 너는 약해. 너는 맨날 웃는 척해.",
+      "sourceHash": "0d1ba2d8db975706b07336a140a69636d01d1afd9549a5c398162b7c50e88a39",
+      "translations": {
+        "zh-CN": "你迟钝，你弱小，你总是假装在笑。",
+        "zh-TW": "你遲鈍，你弱小，你總是假裝在笑。"
+      }
+    },
+    {
+      "id": "ep-06:51",
+      "source": "네 자리는 없어. 네가 못 하면 내가 할게.",
+      "sourceHash": "43d5ee43a7bb4b695e4d05211a0494a130e996e95db4025a8077ced5018c8815",
+      "translations": {
+        "zh-CN": "没有你的位置。你不行，就由我来。",
+        "zh-TW": "沒有你的位置。你不行，就由我來。"
+      }
+    },
+    {
+      "id": "ep-06:52",
+      "source": "목소리들이 한꺼번에 귀를 파고들었다. 해수의 심연에서 사라진 줄 알았던 말들이 다시 떠올랐다. 괜찮은 척하기, 웃어넘기기, 도망치기.",
+      "sourceHash": "21cfedcd55694ee584d1bd6ed16014eaf7ad122c0eb4062a56bdd721d5b63a87",
+      "translations": {
+        "zh-CN": "声音一齐钻进耳朵。原以为在亥水深渊消失的话又浮出来。装没事，笑着带过，逃跑。",
+        "zh-TW": "聲音一齊鑽進耳朵。原以為在亥水深淵消失的話又浮出來。裝沒事，笑著帶過，逃跑。"
+      }
+    },
+    {
+      "id": "ep-06:53",
+      "source": "봐. 너는 아직도 흔들려.",
+      "sourceHash": "ce75514ef78a28815e05a06f5cc9cda8d4fedd76d73f4f4399a73df1b533f50a",
+      "translations": {
+        "zh-CN": "看，你还是在动摇。",
+        "zh-TW": "看，你還是在動搖。"
+      }
+    },
+    {
+      "id": "ep-06:54",
+      "source": "연이는 앞발을 땅에 디뎠다.",
+      "sourceHash": "49735fe6b9e0c4526ce8a3c5788f472bb1aef618136db4a87a1bfd7ae9eca758",
+      "translations": {
+        "zh-CN": "Yeoni把前蹄踩在地上。",
+        "zh-TW": "Yeoni把前蹄踩在地上。"
+      }
+    },
+    {
+      "id": "ep-06:55",
+      "source": "흔들리면 안 돼?",
+      "sourceHash": "7bef1d3f6f012d3ddeb734b64fd9c55f244f72204fb1b494d3f19ec39e269104",
+      "translations": {
+        "zh-CN": "不能动摇吗？",
+        "zh-TW": "不能動搖嗎？"
+      }
+    },
+    {
+      "id": "ep-06:56",
+      "source": "거울 속 연이의 눈썹이 살짝 올라갔다.",
+      "sourceHash": "09fb762c91c468795d2f0a25a646eb17df8a3ee28077375071e8d2ab3934f2ea",
+      "translations": {
+        "zh-CN": "镜中的Yeoni微微挑眉。",
+        "zh-TW": "鏡中的Yeoni微微挑眉。"
+      }
+    },
+    {
+      "id": "ep-06:57",
+      "source": "나 을목이라며. 작은 풀이라며. 그럼 흔들리는 게 정상 아니야?",
+      "sourceHash": "e31eb746a9aba2f324d6770c56bf9c17ab4b47c86073bd82ee6392de86a5000d",
+      "translations": {
+        "zh-CN": "不是说我是乙木，是小草吗？那摇摆不是很正常？",
+        "zh-TW": "不是說我是乙木，是小草嗎？那搖擺不是很正常？"
+      }
+    },
+    {
+      "id": "ep-06:58",
+      "source": "…맞다.",
+      "sourceHash": "7d8dc2c673086ac347ddc566d38aaa3d3709dde2de8e2507708ab8fb9d27df4b",
+      "translations": {
+        "zh-CN": "……没错。",
+        "zh-TW": "……沒錯。"
+      }
+    },
+    {
+      "id": "ep-06:59",
+      "source": "흔들린다고 가짜는 아니잖아.",
+      "sourceHash": "3be57b1cafd78d37d4829dee6770b3f39a2a78bb436b8cb02e5d166be08e4fb7",
+      "translations": {
+        "zh-CN": "会动摇，又不代表我是假的。",
+        "zh-TW": "會動搖，又不代表我是假的。"
+      }
+    },
+    {
+      "id": "ep-06:60",
+      "source": "그 순간 乙의 빛이 강해지며 초록빛 덩굴이 앞발 아래에서 자라났다. 덩굴은 조각들을 부수지 않고 꽉 묶어 하나씩 바닥에 내려놓았다. 쨍그랑.",
+      "sourceHash": "1cde68fb0f7b37207c9decff456d169bd40739442ff5578ad704004d8d953778",
+      "translations": {
+        "zh-CN": "那一刻，乙的光增强，绿藤从前蹄下生长。藤蔓没有打碎镜片，而是牢牢绑住，一片片放在地上。哗啦。",
+        "zh-TW": "那一刻，乙的光增強，綠藤從前蹄下生長。藤蔓沒有打碎鏡片，而是牢牢綁住，一片片放在地上。嘩啦。"
+      }
+    },
+    {
+      "id": "ep-06:61",
+      "source": "왜 안 부숴?",
+      "sourceHash": "ba98c7f2d1b77f3030a32aff584255de3968f2816d24dc8389270f41feb474ae",
+      "translations": {
+        "zh-CN": "为什么不打碎？",
+        "zh-TW": "為什麼不打碎？"
+      }
+    },
+    {
+      "id": "ep-06:62",
+      "source": "부수면 너만 늘어난다며. 그럼 묶어야지.",
+      "sourceHash": "0a348e054c6d7610120d9a14706d41eea70225ba5c4bc004dfa19bc2f0690881",
+      "translations": {
+        "zh-CN": "不是说打碎只会让你变多吗？那就绑起来。",
+        "zh-TW": "不是說打碎只會讓你變多嗎？那就綁起來。"
+      }
+    },
+    {
+      "id": "ep-06:63",
+      "source": "머리는 굴리네?",
+      "sourceHash": "513a67471eb2821e96b70224ceaab9961149f1d49467f1525ecce5e324eb84a3",
+      "translations": {
+        "zh-CN": "还会动脑子嘛？",
+        "zh-TW": "還會動腦子嘛？"
+      }
+    },
+    {
+      "id": "ep-06:64",
+      "source": "나 원래 머리는 좀 굴려.",
+      "sourceHash": "c41c784bea3ce643e9844a2577fa18ba95e530f2849f1a36cc30408bdd8f71a2",
+      "translations": {
+        "zh-CN": "我本来就挺会动脑子的。",
+        "zh-TW": "我本來就挺會動腦子的。"
+      }
+    },
+    {
+      "id": "ep-06:65",
+      "source": "그런 애가 왜 맨날 늦었는데?",
+      "sourceHash": "70f18a0fc41add926740c9371fee522b813bd3dc21b106a4e7727d6513d94963",
+      "translations": {
+        "zh-CN": "那为什么总是迟到？",
+        "zh-TW": "那為什麼總是遲到？"
+      }
+    },
+    {
+      "id": "ep-06:66",
+      "source": "그건 좀 아프니까 나중에 상담하자.",
+      "sourceHash": "f286f6e0b17af11ed753c671a8c8a9a44681e98a3e34f9ea9d52215f783f91c0",
+      "translations": {
+        "zh-CN": "这个有点痛，以后再咨询吧。",
+        "zh-TW": "這個有點痛，以後再諮詢吧。"
+      }
+    },
+    {
+      "id": "ep-06:67",
+      "source": "그 얘기는 나가서 하자. 지금은 움직여.",
+      "sourceHash": "9cf4c69594670c2fe6189ae7131c28f8906c64519ebdfee32a9276fa11fe0fbf",
+      "translations": {
+        "zh-CN": "出去再聊，现在先行动。",
+        "zh-TW": "出去再聊，現在先行動。"
+      }
+    },
+    {
+      "id": "ep-06:68",
+      "source": "알아.",
+      "sourceHash": "4167bd50bea30dc931bd2a3cac3a7f3498d488493e0a3a582aff497aac71c39e",
+      "translations": {
+        "zh-CN": "知道。",
+        "zh-TW": "知道。"
+      }
+    },
+    {
+      "id": "ep-06:69",
+      "source": "연이가 앞발을 더 단단히 디뎠다. 바닥 아래에서 亥의 푸른 물결이 번져 덩굴 뿌리를 받쳤다. 초록빛 덩굴은 더 굵어졌다.",
+      "sourceHash": "2f978b299aa486a04ac3c2ea44ea5a8cdb709d0b520d383e02b97bbd7d200a0f",
+      "translations": {
+        "zh-CN": "Yeoni把前蹄踩得更稳。亥的蓝色水波从地底漫开，托住藤根，绿藤变得更粗。",
+        "zh-TW": "Yeoni把前蹄踩得更穩。亥的藍色水波從地底漫開，托住藤根，綠藤變得更粗。"
+      }
+    },
+    {
+      "id": "ep-06:70",
+      "source": "예전 같으면 흔들리는 마음을 농담으로 덮고 괜찮은 척했을 것이다. 하지만 흔들리는 마음도, 깊은 물도 자신이었다. 그 물을 밀어내지 않아야 꽃이 살 수 있었다.",
+      "sourceHash": "59280a7264ae4f583db0afc4e8f4ebd36ec1559103a1bb78cc352bcfabb3d543",
+      "translations": {
+        "zh-CN": "以前一定会用笑话盖住动摇的心，假装没事。可动摇的心、深水，全是自己。不推开那片水，花才能活。",
+        "zh-TW": "以前一定會用笑話蓋住動搖的心，假裝沒事。可動搖的心、深水，全是自己。不推開那片水，花才能活。"
+      }
+    },
+    {
+      "id": "ep-06:71",
+      "source": "그럼 이건?",
+      "sourceHash": "da5a7708175648841d88efbf94f96788321e7efa8d9edb2300b809a6459096b7",
+      "translations": {
+        "zh-CN": "那这个呢？",
+        "zh-TW": "那這個呢？"
+      }
+    },
+    {
+      "id": "ep-06:72",
+      "source": "거울 속 연이의 등 뒤로 거대한 거울이 떠올랐다. 그 안에 연이의 현실이 비쳤다. 방, 침대 위 휴대폰, 켜진 Code Destiny 앱.",
+      "sourceHash": "82e6e5e337f9a52e56a8bfc515f3cb59218271b85d8a3797d16f8cd1b55c61d2",
+      "translations": {
+        "zh-CN": "镜中的Yeoni背后升起一面巨镜，映出Yeoni的现实。房间，床上的手机，打开的Code Destiny应用。",
+        "zh-TW": "鏡中的Yeoni背後升起一面巨鏡，映出Yeoni的現實。房間，床上的手機，打開的Code Destiny應用程式。"
+      }
+    },
+    {
+      "id": "ep-06:73",
+      "source": "그 앞에 인간 연이가 앉아 있었다. 거울 속 연이와 똑같은 얼굴이었다. 연이는 숨을 멈췄다.",
+      "sourceHash": "39f3dbe331894f517ae3c9b345e826bcb79e928ef7a2719cb3a2a9fd6fca6ecc",
+      "translations": {
+        "zh-CN": "人类Yeoni坐在面前，和镜中的Yeoni有一模一样的脸。Yeoni屏住了呼吸。",
+        "zh-TW": "人類Yeoni坐在面前，和鏡中的Yeoni有一模一樣的臉。Yeoni屏住了呼吸。"
+      }
+    },
+    {
+      "id": "ep-06:74",
+      "source": "저건 뭐야?",
+      "sourceHash": "afbd870de8eefedd415fe98efed95aa67083288743f2f1647275d375d289fdad",
+      "translations": {
+        "zh-CN": "那是什么？",
+        "zh-TW": "那是什麼？"
+      }
+    },
+    {
+      "id": "ep-06:75",
+      "source": "동기화.",
+      "sourceHash": "d10ec0b27897cff8d9cc75f9a607f2c58507ff4b5bebe95ec7d262018cd22137",
+      "translations": {
+        "zh-CN": "同步。",
+        "zh-TW": "同步。"
+      }
+    },
+    {
+      "id": "ep-06:76",
+      "source": "[현실 귀환 프로토콜 접속 중]",
+      "sourceHash": "6e79d90432b7d2cb0a1ce33393b1ce10c8d6d50140a4dd6adb5c0d6946f2e11a",
+      "translations": {
+        "zh-CN": "[正在连接现实返回协议]",
+        "zh-TW": "[正在連線現實返回協定]"
+      }
+    },
+    {
+      "id": "ep-06:77",
+      "source": "[후보자: 연이 / 후보자: 거울 연이]",
+      "sourceHash": "0963d6a5d2148d1f75a38046121a1d4ed3ba1ec5d27ccdb1cbeed2035c2a0bac",
+      "translations": {
+        "zh-CN": "[候选者：Yeoni / 候选者：镜中Yeoni]",
+        "zh-TW": "[候選者：Yeoni / 候選者：鏡中Yeoni]"
+      }
+    },
+    {
+      "id": "ep-06:78",
+      "source": "[본체 인증 잔여율: 13%]",
+      "sourceHash": "af253e7d00655d415cec918dba65ab8abd06a8a4c2f6c67dc8aef1c0bc644594",
+      "translations": {
+        "zh-CN": "[本体验证剩余：13%]",
+        "zh-TW": "[本體驗證剩餘：13%]"
+      }
+    },
+    {
+      "id": "ep-06:79",
+      "source": "네가 여기서 망설이는 동안, 나는 현실 쪽에 먼저 접속할 수 있어.",
+      "sourceHash": "1d8e4b36d31847f5dc6897c7606f73bc6b7084a233f15e5b2eef6fe8ba013cba",
+      "translations": {
+        "zh-CN": "你在这里犹豫时，我可以先连接上现实。",
+        "zh-TW": "你在這裡猶豫時，我可以先連接上現實。"
+      }
+    },
+    {
+      "id": "ep-06:80",
+      "source": "진짜 계정 탈취 맞잖아!",
+      "sourceHash": "dd9b1297a26a41e21ff713bbb55a5168a0d121842d1eb796381248f1949f52d4",
+      "translations": {
+        "zh-CN": "这不真的是盗号吗！",
+        "zh-TW": "這不真的是盜帳號嗎！"
+      }
+    },
+    {
+      "id": "ep-06:81",
+      "source": "말했잖아. 네가 못 하면 내가 한다고.",
+      "sourceHash": "e81fa20ef37e15954280f52400a6a1e87c43783ff198dbaab86558fc13a7b0de",
+      "translations": {
+        "zh-CN": "我说过，你不行就由我来。",
+        "zh-TW": "我說過，你不行就由我來。"
+      }
+    },
+    {
+      "id": "ep-06:82",
+      "source": "거울 속 현실의 연이가 휴대폰을 들었다. 화면에 [귀환 승인] 버튼이 떠올랐다. 연이가 달려가려 했지만 검은 조각들이 길을 막았다.",
+      "sourceHash": "6423fb6af5d60df4f71e28aa5eb4e8bccd86ce9d8964033bd80dcb727b97528f",
+      "translations": {
+        "zh-CN": "镜中现实里的Yeoni拿起手机，屏幕浮出[批准返回]按钮。Yeoni想冲过去，却被黑色碎片挡住。",
+        "zh-TW": "鏡中現實裡的Yeoni拿起手機，螢幕浮出[批准返回]按鈕。Yeoni想衝過去，卻被黑色碎片擋住。"
+      }
+    },
+    {
+      "id": "ep-06:83",
+      "source": "안 돼!",
+      "sourceHash": "4dec9bcfd493bcac51d8ab82c1d8561dc2e5ace0e6699e72306b3203ad613d5f",
+      "translations": {
+        "zh-CN": "不行！",
+        "zh-TW": "不行！"
+      }
+    },
+    {
+      "id": "ep-06:84",
+      "source": "왜? 너는 아직도 이 몸이 싫잖아.",
+      "sourceHash": "50b0798ed7ab3643cbdbef36023c938d9d33380362599327c13c42326fcf3b91",
+      "translations": {
+        "zh-CN": "为什么？你还是讨厌这身体啊。",
+        "zh-TW": "為什麼？你還是討厭這身體啊。"
+      }
+    },
+    {
+      "id": "ep-06:85",
+      "source": "거울 속 연이가 연이의 꽃돼지 몸을 가리켰다.",
+      "sourceHash": "c5b8be5be749097d63455b907152394e760b524ee8a1c062196876a1badbee38",
+      "translations": {
+        "zh-CN": "镜中的Yeoni指着Yeoni的花猪身体。",
+        "zh-TW": "鏡中的Yeoni指著Yeoni的花豬身體。"
+      }
+    },
+    {
+      "id": "ep-06:86",
+      "source": "현실로 돌아가도 누가 너를 알아보겠어?",
+      "sourceHash": "19c35f8092e1e7fc370d6808b5033efffa3ff7273fcc705c0437aa10044d6f39",
+      "translations": {
+        "zh-CN": "就算回到现实，谁会认出你？",
+        "zh-TW": "就算回到現實，誰會認出你？"
+      }
+    },
+    {
+      "id": "ep-06:87",
+      "source": "그 말은 날카로웠다. 분홍빛 몸, 짧은 다리, 머리 위 꽃. 지금의 자신은 현실의 연이와 너무 달랐다.",
+      "sourceHash": "17c58523eef0004ef1a19aa2954f996e055f3f8471308f7e865dd4bc84b8f8c2",
+      "translations": {
+        "zh-CN": "话很锋利。粉红身体，短腿，头顶的花。现在的自己，与现实中的Yeoni差得太远。",
+        "zh-TW": "話很鋒利。粉紅身體，短腿，頭頂的花。現在的自己，與現實中的Yeoni差得太遠。"
+      }
+    },
+    {
+      "id": "ep-06:88",
+      "source": "내가 돌아가면 아무도 이상하게 생각하지 않을 거야. 나는 네 얼굴이니까.",
+      "sourceHash": "5ed98ba715c18de31f565113be87489fd70e98306f64436c9ee31caead8cfc64",
+      "translations": {
+        "zh-CN": "我回去，谁都不会觉得奇怪。因为我有你的脸。",
+        "zh-TW": "我回去，誰都不會覺得奇怪。因為我有你的臉。"
+      }
+    },
+    {
+      "id": "ep-06:89",
+      "source": "거울 속 현실의 연이가 손가락을 버튼 위에 올렸다. 연이의 꽃이 흔들리고, 乙亥의 빛도 흔들렸다.",
+      "sourceHash": "cf1890481f829da79aa61e092bbe0cb8e8478b0630d4f1a0a1912edbe7dc2509",
+      "translations": {
+        "zh-CN": "镜中现实里的Yeoni把手指放上按钮。Yeoni的花动摇了，乙亥的光也动摇了。",
+        "zh-TW": "鏡中現實裡的Yeoni把手指放上按鈕。Yeoni的花動搖了，乙亥的光也動搖了。"
+      }
+    },
+    {
+      "id": "ep-06:90",
+      "source": "연이야.",
+      "sourceHash": "80cb95b01e8cc1368b8cd8ace84e07fc877503b06ef9dddd4795ce70845dc473",
+      "translations": {
+        "zh-CN": "Yeoni。",
+        "zh-TW": "Yeoni。"
+      }
+    },
+    {
+      "id": "ep-06:91",
+      "source": "연이는 입을 다물었다. 틀린 말은 아니었다. 얼굴도 목소리도 기억도 같았다. 흔들리지 않고 늦지 않는 연이라면 더 나을지도. 정말 아주 잠깐, 그런 생각이 들었다.",
+      "sourceHash": "9aed32ef1672b1a1dd6f0e1069cdd56da3df04240638649671ca2eb07c8b843b",
+      "translations": {
+        "zh-CN": "Yeoni闭上嘴。话没说错，脸、声音、记忆都一样。不动摇、不迟到的Yeoni，也许更好。真的只有极短一瞬，这样想过。",
+        "zh-TW": "Yeoni閉上嘴。話沒說錯，臉、聲音、記憶都一樣。不動搖、不遲到的Yeoni，也許更好。真的只有極短一瞬，這樣想過。"
+      }
+    },
+    {
+      "id": "ep-06:92",
+      "source": "하지만 해수의 심연에서 보았던 것들이 떠올랐다. 괜찮은 척했던 밤, 보내지 못한 말, 혼자 참았던 마음. 그리고 그 깊은 물에서 피어난 작은 꽃.",
+      "sourceHash": "e1370c9ad62d94070a0736d390bed2b7b0fbc749d3fa711d76eb153fa373420e",
+      "translations": {
+        "zh-CN": "可亥水深渊里的画面浮了上来。装没事的夜晚，没能说出的话，独自忍耐的心，以及深水中开出的小花。",
+        "zh-TW": "可亥水深淵裡的畫面浮了上來。裝沒事的夜晚，沒能說出的話，獨自忍耐的心，以及深水中開出的小花。"
+      }
+    },
+    {
+      "id": "ep-06:93",
+      "source": "연이는 천천히 숨을 들이쉬었다.",
+      "sourceHash": "77c90c42109b44037127dcdd9caa73bc4d66dbdff24cc419317925534ff9d5e1",
+      "translations": {
+        "zh-CN": "Yeoni慢慢吸气。",
+        "zh-TW": "Yeoni慢慢吸氣。"
+      }
+    },
+    {
+      "id": "ep-06:94",
+      "source": "아니.",
+      "sourceHash": "f05525bb2385ed4397718fde4e64cfb5e0cd4a6ecaaf74e5f1f5f23fdf63599f",
+      "translations": {
+        "zh-CN": "不。",
+        "zh-TW": "不。"
+      }
+    },
+    {
+      "id": "ep-06:95",
+      "source": "뭐가 아니야?",
+      "sourceHash": "92f02137dd7f6621bfe2ffcc4ad153c8dad94e536e1e9f5f07f2950224ff129b",
+      "translations": {
+        "zh-CN": "什么不？",
+        "zh-TW": "什麼不？"
+      }
+    },
+    {
+      "id": "ep-06:96",
+      "source": "너는 내 얼굴이야.",
+      "sourceHash": "4b6737dbf0e7f9b54619398e2f5434924ebd90815c5e65ec42af5d730b846585",
+      "translations": {
+        "zh-CN": "你是我的脸。",
+        "zh-TW": "你是我的臉。"
+      }
+    },
+    {
+      "id": "ep-06:97",
+      "source": "머리 위 꽃이 빛나고, 앞발 아래로 덩굴이 뻗었다.",
+      "sourceHash": "ff20d914d5feb16f0f10f9b9f44137d75b0362fad69f5b0f09b5c03c1de7ae13",
+      "translations": {
+        "zh-CN": "头顶的花发亮，前蹄下藤蔓延伸。",
+        "zh-TW": "頭頂的花發亮，前蹄下藤蔓延伸。"
+      }
+    },
+    {
+      "id": "ep-06:98",
+      "source": "내 목소리도 알고, 내 기억도 알아. 근데 내가 왜 웃었는지는 몰라.",
+      "sourceHash": "21a3ea7753fd44a21cda701e6c802397b1f7b06869278b5e36219903057eec3f",
+      "translations": {
+        "zh-CN": "知道我的声音，知道我的记忆。可你不知道我为什么笑。",
+        "zh-TW": "知道我的聲音，知道我的記憶。可你不知道我為什麼笑。"
+      }
+    },
+    {
+      "id": "ep-06:99",
+      "source": "뭐?",
+      "sourceHash": "ad515411f8355b6183c96154ec9514f8daa2a114beedbd128930008eb202d731",
+      "translations": {
+        "zh-CN": "什么？",
+        "zh-TW": "什麼？"
+      }
+    },
+    {
+      "id": "ep-06:100",
+      "source": "내가 왜 괜찮은 척했는지, 왜 말 못 했는지, 왜 늦었는지, 왜 혼자 무너졌는지.",
+      "sourceHash": "e26215f18acc4b1fc64663a03bfd593e2f73288638a26b1677500c38986cf6ee",
+      "translations": {
+        "zh-CN": "我为什么装没事，为什么说不出口，为什么迟到，为什么独自崩溃。",
+        "zh-TW": "我為什麼裝沒事，為什麼說不出口，為什麼遲到，為什麼獨自崩潰。"
+      }
+    },
+    {
+      "id": "ep-06:101",
+      "source": "푸른 물결이 덩굴 아래로 흘렀다.",
+      "sourceHash": "849fd49c8e437dcd6c1f92d8a964e3e41c248f373625263c1e2e590bbf3e35f1",
+      "translations": {
+        "zh-CN": "蓝色水波流过藤蔓下方。",
+        "zh-TW": "藍色水波流過藤蔓下方。"
+      }
+    },
+    {
+      "id": "ep-06:102",
+      "source": "너는 그걸 정답처럼 말하기만 하지, 아파하지는 않잖아. 그래서 넌 내가 아니야.",
+      "sourceHash": "b1513047d164f59cd8a3bf6b6c59030efb08a09055756a1b0267950709a7066e",
+      "translations": {
+        "zh-CN": "你只是把那些当成正确答案说出来，却不会疼。所以你不是我。",
+        "zh-TW": "你只是把那些當成正確答案說出來，卻不會疼。所以你不是我。"
+      }
+    },
+    {
+      "id": "ep-06:103",
+      "source": "공중의 거울들이 흔들렸다. 현실 쪽 거울에서 [귀환 승인] 버튼이 깜빡였다.",
+      "sourceHash": "0851732255bab2d95e6f2d38afc2dbc2261c3f7aba98625e14676fc4dbd21820",
+      "translations": {
+        "zh-CN": "空中的镜子摇晃起来。现实那边的镜面里，[批准返回]按钮闪烁着。",
+        "zh-TW": "空中的鏡子搖晃起來。現實那邊的鏡面裡，[批准返回]按鈕閃爍著。"
+      }
+    },
+    {
+      "id": "ep-06:104",
+      "source": "그럼 내가 뭔데?",
+      "sourceHash": "a858ee5f4fb79d05fe12dc4503ffea1aa6b41b87136c7a70cc5e94247b64dd92",
+      "translations": {
+        "zh-CN": "那我是什么？",
+        "zh-TW": "那我是什麼？"
+      }
+    },
+    {
+      "id": "ep-06:105",
+      "source": "그 질문은 화난 듯 들렸지만, 아주 조금은 상처 입은 목소리 같기도 했다. 연이는 그 목소리를 놓치지 않고 한 걸음 나아갔다.",
+      "sourceHash": "2592736ac71a5d7615f9047a8f97685d11e35dda9264d84619499eb72f297ca4",
+      "translations": {
+        "zh-CN": "问题听着愤怒，却也带着一点受伤的声音。Yeoni没有漏听，往前走了一步。",
+        "zh-TW": "問題聽著憤怒，卻也帶著一點受傷的聲音。Yeoni沒有漏聽，往前走了一步。"
+      }
+    },
+    {
+      "id": "ep-06:106",
+      "source": "너는 내가 버리려고 했던 나.",
+      "sourceHash": "75cfff43648fdb8c495932b6baba20369a90b01949e1adace352f92bdb99529f",
+      "translations": {
+        "zh-CN": "你是我曾想丢掉的自己。",
+        "zh-TW": "你是我曾想丟掉的自己。"
+      }
+    },
+    {
+      "id": "ep-06:107",
+      "source": "완벽한 척하는 나. 상처 안 받은 척하는 나.",
+      "sourceHash": "4ffe650558491f860e18d106b33c4d8bcf544e5ecd077a5e470974daae4d5b44",
+      "translations": {
+        "zh-CN": "假装完美的我，假装没受伤的我。",
+        "zh-TW": "假裝完美的我，假裝沒受傷的我。"
+      }
+    },
+    {
+      "id": "ep-06:108",
+      "source": "나 대신 멀쩡한 척 서 있으려고 했던 나.",
+      "sourceHash": "bb530214c8f2ea835a8383f204045793fe88e81dfd0e1fe1e617054aaa96d548",
+      "translations": {
+        "zh-CN": "想替我装作安然无恙、站在那里的我。",
+        "zh-TW": "想替我裝作安然無恙、站在那裡的我。"
+      }
+    },
+    {
+      "id": "ep-06:109",
+      "source": "그럼 날 부숴!",
+      "sourceHash": "3cfdaccca13fd72cbb3353c28b0f470ff6c78622189bcbab168f6c2330d3b0a7",
+      "translations": {
+        "zh-CN": "那就打碎我！",
+        "zh-TW": "那就打碎我！"
+      }
+    },
+    {
+      "id": "ep-06:110",
+      "source": "검은 거울 날개가 크게 펼쳐졌다.",
+      "sourceHash": "29a3aef6b930db919e41af80fed0879f8d3bb8d673975b4dfc17d3cd00f58514",
+      "translations": {
+        "zh-CN": "黑色镜翼猛地张开。",
+        "zh-TW": "黑色鏡翼猛地張開。"
+      }
+    },
+    {
+      "id": "ep-06:111",
+      "source": "부숴야 네가 이기는 거잖아!",
+      "sourceHash": "3696c6b28aae96e7fba46bedc240180447f243efa0b73d16ba35abb0faabc240",
+      "translations": {
+        "zh-CN": "打碎我，你才赢得了啊！",
+        "zh-TW": "打碎我，你才贏得了啊！"
+      }
+    },
+    {
+      "id": "ep-06:112",
+      "source": "조각들이 다시 몰려왔다. 영냥이가 뛰어들려 했지만 연이가 먼저 말했다.",
+      "sourceHash": "46e06ab149c4c2847187811971e6149200986579964a5e0dba096bff26ec6f26",
+      "translations": {
+        "zh-CN": "碎片再次涌来。Yeongnyangi想冲进去，Yeoni却先开口。",
+        "zh-TW": "碎片再次湧來。Yeongnyangi想衝進去，Yeoni卻先開口。"
+      }
+    },
+    {
+      "id": "ep-06:113",
+      "source": "아니.",
+      "sourceHash": "f05525bb2385ed4397718fde4e64cfb5e0cd4a6ecaaf74e5f1f5f23fdf63599f",
+      "translations": {
+        "zh-CN": "不。",
+        "zh-TW": "不。"
+      }
+    },
+    {
+      "id": "ep-06:114",
+      "source": "초록빛 덩굴이 벽처럼 자라나, 조각들을 찌르는 대신 감싸 안았다.",
+      "sourceHash": "8fc3d9894c6371398d7d968c2a38f07b04a3916c47e85dbc2dab270f24f37524",
+      "translations": {
+        "zh-CN": "绿藤如墙般长起，没有刺向碎片，而是将它们包裹、拥住。",
+        "zh-TW": "綠藤如牆般長起，沒有刺向碎片，而是將它們包裹、擁住。"
+      }
+    },
+    {
+      "id": "ep-06:115",
+      "source": "안 부술 거야.",
+      "sourceHash": "2106a1c696e4e06c76f100a2a6702098adf971a3cae01bec4220bacb9a66d111",
+      "translations": {
+        "zh-CN": "我不会打碎你。",
+        "zh-TW": "我不會打碎你。"
+      }
+    },
+    {
+      "id": "ep-06:116",
+      "source": "뭐?",
+      "sourceHash": "ad515411f8355b6183c96154ec9514f8daa2a114beedbd128930008eb202d731",
+      "translations": {
+        "zh-CN": "什么？",
+        "zh-TW": "什麼？"
+      }
+    },
+    {
+      "id": "ep-06:117",
+      "source": "너를 없애면, 내가 버리고 싶었던 부분을 또 못 본 척하는 거잖아.",
+      "sourceHash": "b6d9f9aa67b67ace9f0fd5ac407566e6e96857acbc87820592d762219b478687",
+      "translations": {
+        "zh-CN": "让你消失，不就是又假装看不见那些我想丢掉的部分吗。",
+        "zh-TW": "讓你消失，不就是又假裝看不見那些我想丟掉的部分嗎。"
+      }
+    },
+    {
+      "id": "ep-06:118",
+      "source": "그 말이 섬 전체에 울렸다. 거울들이 하나둘 멈췄다. 거울 속 연이는 처음으로 아무 말도 하지 못했다.",
+      "sourceHash": "16cd3ed67124e53ecd21e118c73c948d80862591a8eff5d864451fb34fc3e6c7",
+      "translations": {
+        "zh-CN": "那句话回荡全岛。镜子一面面停住，镜中的Yeoni第一次一句话也说不出。",
+        "zh-TW": "那句話迴盪全島。鏡子一面面停住，鏡中的Yeoni第一次一句話也說不出。"
+      }
+    },
+    {
+      "id": "ep-06:119",
+      "source": "연이는 천천히 다가갔다. 솔직히 무서웠다. 저 가짜가 언제 공격할지 몰랐다. 귀환 버튼은 아직 깜빡였고 날개는 여전히 날카로웠다. 하지만 멈추지 않았다.",
+      "sourceHash": "ac85d970acb333e0933b083e0b67824fe30076811a9af4b505284b814c136962",
+      "translations": {
+        "zh-CN": "Yeoni慢慢靠近。说实话，很怕。不知道那冒牌货何时会攻击。返回按钮还闪着，翅膀也依旧锋利。可没有停下。",
+        "zh-TW": "Yeoni慢慢靠近。說實話，很怕。不知道那冒牌貨何時會攻擊。返回按鈕還閃著，翅膀也依舊鋒利。可沒有停下。"
+      }
+    },
+    {
+      "id": "ep-06:120",
+      "source": "머리 위 꽃이 빛났다. 앞발 안의 乙이 따뜻했고, 가슴 깊은 곳의 亥가 조용히 받쳐주었다. 연이는 거울 속 연이 앞에 섰다.",
+      "sourceHash": "bd021d40187f36e22c25b6e4e62c14857b8760302a60cf811ffbae8d2011ea9e",
+      "translations": {
+        "zh-CN": "头顶的花亮着，前蹄里的乙温暖，胸中深处的亥静静支撑。Yeoni站到镜中Yeoni面前。",
+        "zh-TW": "頭頂的花亮著，前蹄裡的乙溫暖，胸中深處的亥靜靜支撐。Yeoni站到鏡中Yeoni面前。"
+      }
+    },
+    {
+      "id": "ep-06:121",
+      "source": "인간의 얼굴과 꽃돼지의 얼굴이 마주 보았다.",
+      "sourceHash": "b68226e35dd7b520c591672313e107d3b5a15669a307fc72f96cf935763fa761",
+      "translations": {
+        "zh-CN": "人的脸与花猪的脸相互凝望。",
+        "zh-TW": "人的臉與花豬的臉相互凝望。"
+      }
+    },
+    {
+      "id": "ep-06:122",
+      "source": "나를 받아들이면, 너는 또 흔들릴 거야.",
+      "sourceHash": "aa9a9e12aa38232c1bab1dc67bae27d74a5712b688700fae9cd68e5e6a92c011",
+      "translations": {
+        "zh-CN": "接纳我，你还会动摇。",
+        "zh-TW": "接納我，你還會動搖。"
+      }
+    },
+    {
+      "id": "ep-06:123",
+      "source": "알아.",
+      "sourceHash": "4167bd50bea30dc931bd2a3cac3a7f3498d488493e0a3a582aff497aac71c39e",
+      "translations": {
+        "zh-CN": "知道。",
+        "zh-TW": "知道。"
+      }
+    },
+    {
+      "id": "ep-06:124",
+      "source": "또 비교하고, 또 질투하고, 또 괜찮은 척할 거야.",
+      "sourceHash": "cde67ed8447d1281f5d96682d4015590c50f2df7e252345c4d14d1e42ffd5ba9",
+      "translations": {
+        "zh-CN": "又会比较，又会嫉妒，又会假装没事。",
+        "zh-TW": "又會比較，又會嫉妒，又會假裝沒事。"
+      }
+    },
+    {
+      "id": "ep-06:125",
+      "source": "그럴 수도 있겠지.",
+      "sourceHash": "eb408d57d6a532b3fe7c4cf9559d02f4fa4a7c27510517fe6dd13b18dfdb0c2a",
+      "translations": {
+        "zh-CN": "也许会吧。",
+        "zh-TW": "也許會吧。"
+      }
+    },
+    {
+      "id": "ep-06:126",
+      "source": "그런데도?",
+      "sourceHash": "0c63fc41bf2de559c2fa87095c222245bcace7bd343b8f690e7bc9e9b52e1d3d",
+      "translations": {
+        "zh-CN": "即使这样？",
+        "zh-TW": "即使這樣？"
+      }
+    },
+    {
+      "id": "ep-06:127",
+      "source": "그런 내가 나와도, 이제는 모른 척하지 않을 거야.",
+      "sourceHash": "42e5451ae3084d230ccf613a4ee4d58b99c94d37108e80b670739007685444b2",
+      "translations": {
+        "zh-CN": "那样的我再出现，我也不会再装作不认识。",
+        "zh-TW": "那樣的我再出現，我也不會再裝作不認識。"
+      }
+    },
+    {
+      "id": "ep-06:128",
+      "source": "거울 속 연이의 눈동자가 흔들렸다. 연이는 앞발을 내밀었다.",
+      "sourceHash": "7455f38c35abdc6f930945aca2041208e751ac4262137398c930aa4fd415a482",
+      "translations": {
+        "zh-CN": "镜中的Yeoni眼神摇晃。Yeoni伸出前蹄。",
+        "zh-TW": "鏡中的Yeoni眼神搖晃。Yeoni伸出前蹄。"
+      }
+    },
+    {
+      "id": "ep-06:129",
+      "source": "그러니까 와.",
+      "sourceHash": "5f25ef15f5915c1129e7b793b481c1558b8d3e5adccd2dc0c927680f56b8da75",
+      "translations": {
+        "zh-CN": "所以，来吧。",
+        "zh-TW": "所以，來吧。"
+      }
+    },
+    {
+      "id": "ep-06:130",
+      "source": "거울 속 연이가 연이의 앞발을 내려다봤다.",
+      "sourceHash": "e348ffacbb7970808355fa40c29f837ddcbfa451246c97a7b433765980d09184",
+      "translations": {
+        "zh-CN": "镜中的Yeoni低头看着Yeoni的前蹄。",
+        "zh-TW": "鏡中的Yeoni低頭看著Yeoni的前蹄。"
+      }
+    },
+    {
+      "id": "ep-06:131",
+      "source": "손도 아니잖아.",
+      "sourceHash": "933d187d1b25a34941ac39358c09070b66a9f656cf22bb4b31f6105f13dca512",
+      "translations": {
+        "zh-CN": "这都不是手啊。",
+        "zh-TW": "這都不是手啊。"
+      }
+    },
+    {
+      "id": "ep-06:132",
+      "source": "지금 그게 중요해?",
+      "sourceHash": "fd1298d98840aab8e443c12c4032e7f7a8ebfbdb1768532bd40fe0fd0a9deddd",
+      "translations": {
+        "zh-CN": "现在那重要吗？",
+        "zh-TW": "現在那重要嗎？"
+      }
+    },
+    {
+      "id": "ep-06:133",
+      "source": "조금 웃기긴 해.",
+      "sourceHash": "ffc6da250ee233ca75f92686ef239d8b139e1cff2a9f11db5e40738b3a1b135c",
+      "translations": {
+        "zh-CN": "是有点好笑。",
+        "zh-TW": "是有點好笑。"
+      }
+    },
+    {
+      "id": "ep-06:134",
+      "source": "나도 알아. 빨리 잡아. 민망하니까.",
+      "sourceHash": "089b1014539bc8e67f38f3089285ffaa34f8dc3a53745867ccf9c1232ed40251",
+      "translations": {
+        "zh-CN": "我也知道。快抓住，怪难为情的。",
+        "zh-TW": "我也知道。快抓住，怪難為情的。"
+      }
+    },
+    {
+      "id": "ep-06:135",
+      "source": "거울 속 연이가 아주 작게 웃었다. 이번엔 비웃음이 아니었다. 조금 얄밉고, 조금 지치고, 조금 안심한, 정말 연이 같은 웃음이었다.",
+      "sourceHash": "2797cdb6648f15877071e5d31f3552a00864f025d964d8467d77b9926ea6eb74",
+      "translations": {
+        "zh-CN": "镜中的Yeoni轻轻笑了。这次不是嘲笑。有点讨厌，有点疲惫，又有点安心，是真正像Yeoni的笑。",
+        "zh-TW": "鏡中的Yeoni輕輕笑了。這次不是嘲笑。有點討厭，有點疲憊，又有點安心，是真正像Yeoni的笑。"
+      }
+    },
+    {
+      "id": "ep-06:136",
+      "source": "거울 속 연이가 손을 뻗었다. 손바닥이 연이의 앞발에 닿았다.",
+      "sourceHash": "c399b0cdf4ebb7963a580fa1aa7c52e2ff6076fa911afa3b9c7e5c9b5aa4581e",
+      "translations": {
+        "zh-CN": "镜中的Yeoni伸出手，手掌碰到Yeoni的前蹄。",
+        "zh-TW": "鏡中的Yeoni伸出手，手掌碰到Yeoni的前蹄。"
+      }
+    },
+    {
+      "id": "ep-06:137",
+      "source": "그 순간 검은 날개가 산산이 흩어졌다. 쨍그랑! 하지만 아프지 않았다. 오래된 껍질이 벗겨지는 소리 같았다.",
+      "sourceHash": "1f19e70d291932edfd40408a833f173031e046d876bbe1993da701972d050cab",
+      "translations": {
+        "zh-CN": "那一刻，黑翼四散。哗啦！却不疼，像一层陈旧外壳脱落的声音。",
+        "zh-TW": "那一刻，黑翼四散。嘩啦！卻不疼，像一層陳舊外殼脫落的聲音。"
+      }
+    },
+    {
+      "id": "ep-06:138",
+      "source": "거울 속 연이의 몸이 빛으로 풀려 연이의 몸 안으로 천천히 스며들었다.",
+      "sourceHash": "693e2cbdb1a8a543673aeefa566546a2cd98823007684b4250288614e0df4a58",
+      "translations": {
+        "zh-CN": "镜中的Yeoni化成光，慢慢渗入Yeoni身体。",
+        "zh-TW": "鏡中的Yeoni化成光，慢慢滲入Yeoni身體。"
+      }
+    },
+    {
+      "id": "ep-06:139",
+      "source": "연이는 눈을 감았다. 비교했던 마음, 부러웠던 마음, 잘하고 싶었던 마음, 지지 않으려 애썼던 마음, 괜찮은 척했던 마음이 한꺼번에 밀려왔다.",
+      "sourceHash": "b7284cc7f522dad35253d12769990965996813871603ee2ca04ac1868ee29a50",
+      "translations": {
+        "zh-CN": "Yeoni闭眼。比较的心，羡慕的心，想做好的心，努力不输的心，假装没事的心，一齐涌来。",
+        "zh-TW": "Yeoni閉眼。比較的心，羨慕的心，想做好的心，努力不輸的心，假裝沒事的心，一齊湧來。"
+      }
+    },
+    {
+      "id": "ep-06:140",
+      "source": "전부 낯설고 불편했지만 전부 자신이었다. 연이는 밀어내지 않고 그냥 숨을 들이쉬었다. 깊은 물처럼. 그리고 작게 내쉬었다. 꽃잎이 흔들렸다.",
+      "sourceHash": "e207a647bd6ca661be43e3e0f8c5ffe73fec465cf995f99cf8464280bb7e1cd2",
+      "translations": {
+        "zh-CN": "全都陌生不适，却全是自己。Yeoni没有推开，只是吸气，像深水一般，再轻轻呼出。花瓣摇动。",
+        "zh-TW": "全都陌生不適，卻全是自己。Yeoni沒有推開，只是吸氣，像深水一般，再輕輕呼出。花瓣搖動。"
+      }
+    },
+    {
+      "id": "ep-06:141",
+      "source": "[본체 인증 100% · 현실 귀환 권한: 연이]",
+      "sourceHash": "0cba579b08705f9d3892c7924d0f2e5139c8afb61f73c935e7dfd36299202283",
+      "translations": {
+        "zh-CN": "[本体验证100% · 现实返回权限：Yeoni]",
+        "zh-TW": "[本體驗證100% · 現實返回權限：Yeoni]"
+      }
+    },
+    {
+      "id": "ep-06:142",
+      "source": "[비겁의 섬 최종 시험 완료]",
+      "sourceHash": "8b2f70f538b93639d8c1ff87f27e8acdb2b85d2cbe83b7c6092b958bef321bae",
+      "translations": {
+        "zh-CN": "[比劫之岛最终试炼完成]",
+        "zh-TW": "[比劫之島最終試煉完成]"
+      }
+    },
+    {
+      "id": "ep-06:143",
+      "source": "[겁재 정화 · 비견의 조각 획득]",
+      "sourceHash": "6f372bf9c79bb52f299793efce3d39a32ff7b541a913a06d0e7f5458768fb141",
+      "translations": {
+        "zh-CN": "[劫财净化 · 获得比肩碎片]",
+        "zh-TW": "[劫財淨化 · 獲得比肩碎片]"
+      }
+    },
+    {
+      "id": "ep-06:144",
+      "source": "축하해, 연이야.",
+      "sourceHash": "8d972376759892d7d8ec52a18116f24a4e973eb22b7e81e60545eaaea8f1c1c5",
+      "translations": {
+        "zh-CN": "恭喜，Yeoni。",
+        "zh-TW": "恭喜，Yeoni。"
+      }
+    },
+    {
+      "id": "ep-06:145",
+      "source": "방금 이름 불렀어?",
+      "sourceHash": "1b495570e02ee64c3a96f932ab70bdcd92f460c5498f92e38a7284848d6aa0b9",
+      "translations": {
+        "zh-CN": "你刚叫我名字了？",
+        "zh-TW": "你剛叫我名字了？"
+      }
+    },
+    {
+      "id": "ep-06:146",
+      "source": "원래 알고 있었다.",
+      "sourceHash": "c0368a3206949b991dc5ca1fef59a80606122aca38f4eb044485374877965a9e",
+      "translations": {
+        "zh-CN": "本来就知道。",
+        "zh-TW": "本來就知道。"
+      }
+    },
+    {
+      "id": "ep-06:147",
+      "source": "그동안은 사용자 취급하더니?",
+      "sourceHash": "5442232b319580d5801f99d26cb462513f2947cee412a15beb38fc5b7608390e",
+      "translations": {
+        "zh-CN": "之前不是一直把我当用户？",
+        "zh-TW": "之前不是一直把我當使用者？"
+      }
+    },
+    {
+      "id": "ep-06:148",
+      "source": "이제는 구분할 필요가 없으니까.",
+      "sourceHash": "ff2087083d58665bb6165ea7c6dbae342ca0fe9bbb7749616830b7c388cec14c",
+      "translations": {
+        "zh-CN": "因为现在不用区分了。",
+        "zh-TW": "因為現在不用區分了。"
+      }
+    },
+    {
+      "id": "ep-06:149",
+      "source": "깨진 조각들 중 세 개가 연이 앞으로 날아왔다. 붉은 조각, 은색 조각, 푸른 조각.",
+      "sourceHash": "028b4e50672e575406901d95e51e6feec3be7d80b43c4660722b2809d6801952",
+      "translations": {
+        "zh-CN": "碎片中有三块飞到Yeoni面前。红的，银的，蓝的。",
+        "zh-TW": "碎片中有三塊飛到Yeoni面前。紅的，銀的，藍的。"
+      }
+    },
+    {
+      "id": "ep-06:150",
+      "source": "이제 네 안에서 널 받쳐 줄 조각들이야. 비견이 된 거지.",
+      "sourceHash": "adcf3a3d47eb347f4916d4cdcb9dfaaf4ac9cb16b825df51c3ddf48918f08497",
+      "translations": {
+        "zh-CN": "今后它们会在你内心支持你，已经成为比肩了。",
+        "zh-TW": "今後它們會在你內心支持你，已經成為比肩了。"
+      }
+    },
+    {
+      "id": "ep-06:151",
+      "source": "아이템이야?",
+      "sourceHash": "e1570985bd622452edd2b84f8ceebe1a8278fe460b6f619ee217ee5e5e328146",
+      "translations": {
+        "zh-CN": "是道具？",
+        "zh-TW": "是道具？"
+      }
+    },
+    {
+      "id": "ep-06:152",
+      "source": "부적에 가깝다.",
+      "sourceHash": "3eacffff125989ccc6890d9a5e1e7ca2ac249c6874757761014a3596f8437be2",
+      "translations": {
+        "zh-CN": "更接近护符。",
+        "zh-TW": "更接近護符。"
+      }
+    },
+    {
+      "id": "ep-06:153",
+      "source": "좋아. 아이템창에 넣을게.",
+      "sourceHash": "f48b29b4476bf1880401ddb2aa2e61b83155ef1817976ba9f53087e28b58eeb8",
+      "translations": {
+        "zh-CN": "好，放进道具栏。",
+        "zh-TW": "好，放進道具欄。"
+      }
+    },
+    {
+      "id": "ep-06:154",
+      "source": "아이템창을 찾아도 안 나와.",
+      "sourceHash": "bab4ca462cb15566c7b126fec8961e36ce3449001a073d5793b9ca0d19d96675",
+      "translations": {
+        "zh-CN": "找也找不到道具栏的。",
+        "zh-TW": "找也找不到道具欄的。"
+      }
+    },
+    {
+      "id": "ep-06:155",
+      "source": "아, UI 진짜 불친절하네.",
+      "sourceHash": "18859aeeaab4351a86deffdd46ab0987486b35c106b95272d83e0a695f6e819a",
+      "translations": {
+        "zh-CN": "啊，界面真不友好。",
+        "zh-TW": "啊，介面真不友善。"
+      }
+    },
+    {
+      "id": "ep-06:156",
+      "source": "불친절한 게 아니라, 그냥 없는 거다.",
+      "sourceHash": "4a2c95a9e5c4fb645a322e7ca63356fffb807f1da3b859caa6bd44c5efaff432",
+      "translations": {
+        "zh-CN": "不是不友好，是根本没有。",
+        "zh-TW": "不是不友善，是根本沒有。"
+      }
+    },
+    {
+      "id": "ep-06:157",
+      "source": "세 조각은 연이의 머리 위 꽃 주위를 돌더니 작은 꽃잎 장식처럼 붙었다. 붉은 꽃잎, 은빛 꽃잎, 푸른 꽃잎.",
+      "sourceHash": "10ba076a89865b81df8a843c75cd8d06423f4ed4a44c387466aef2d450e81069",
+      "translations": {
+        "zh-CN": "三块碎片绕着Yeoni头顶的花旋转，像小小的花瓣饰品般贴上去。红花瓣，银花瓣，蓝花瓣。",
+        "zh-TW": "三塊碎片繞著Yeoni頭頂的花旋轉，像小小的花瓣飾品般貼上去。紅花瓣，銀花瓣，藍花瓣。"
+      }
+    },
+    {
+      "id": "ep-06:158",
+      "source": "나 좀 업그레이드된 것 같은데?",
+      "sourceHash": "8723b36dcc6c23aa1e6428ff85a6910084207b9a4b89e4b7ae58e16babd3d01b",
+      "translations": {
+        "zh-CN": "感觉我升级了？",
+        "zh-TW": "感覺我升級了？"
+      }
+    },
+    {
+      "id": "ep-06:159",
+      "source": "비겁의 힘이다. 이제 흔들릴 때, 너를 무너뜨리는 목소리와 지탱하는 목소리를 조금 더 구분할 수 있을 거다.",
+      "sourceHash": "8a791e57adaccfff7f9d3cf0b44e64ba3742ed0c6a883277f14ba9b3a62dc444",
+      "translations": {
+        "zh-CN": "这是比劫之力。以后动摇时，你会更能分清让你崩溃的声音与支撑你的声音。",
+        "zh-TW": "這是比劫之力。以後動搖時，你會更能分清讓你崩潰的聲音與支撐你的聲音。"
+      }
+    },
+    {
+      "id": "ep-06:160",
+      "source": "오. 그러니까 멘탈 필터 생긴 거네?",
+      "sourceHash": "977a146f0613e63615eca003762208c67b2f874002dbc89ca94ad31965d99978",
+      "translations": {
+        "zh-CN": "哦，所以多了个心理过滤器？",
+        "zh-TW": "喔，所以多了個心理過濾器？"
+      }
+    },
+    {
+      "id": "ep-06:161",
+      "source": "아주 단순하게 말하면 그렇다.",
+      "sourceHash": "ee2c82e96762558c023508e75304be0a418c1146daea2c34aec24cf01fd273d0",
+      "translations": {
+        "zh-CN": "极其简化地说，是。",
+        "zh-TW": "極其簡化地說，是。"
+      }
+    },
+    {
+      "id": "ep-06:162",
+      "source": "좋네. 이건 실생활에도 필요했어.",
+      "sourceHash": "bb5efba8b0fbb07b06b436753843ebe9cc0e237bedfa53bd0cf5e7692bf5a115",
+      "translations": {
+        "zh-CN": "不错，现实生活里我也需要这个。",
+        "zh-TW": "不錯，現實生活裡我也需要這個。"
+      }
+    },
+    {
+      "id": "ep-06:163",
+      "source": "그때 섬 전체가 흔들렸다. 거울들이 하늘로 떠오르고, 검은 유리 바닥에 금이 갔다. 그 아래에서 초록빛과 푸른빛이 동시에 올라왔다.",
+      "sourceHash": "5f6ba001cb7efa3eebb60b339e3245003789f60d76e0a11c2e62a16605ba0349",
+      "translations": {
+        "zh-CN": "这时，整座岛摇动，镜子升向天空，黑玻璃地面裂开，绿光与蓝光同时从下方升起。",
+        "zh-TW": "這時，整座島搖動，鏡子升向天空，黑玻璃地面裂開，綠光與藍光同時從下方升起。"
+      }
+    },
+    {
+      "id": "ep-06:164",
+      "source": "乙亥. 두 글자가 연이 앞에 떠올랐다. 작은 새싹이 깊은 물 위에 뿌리내린 형상이었다. 이번에는 낯설지 않았다. 마음 한가운데에 딱 맞는 이름 같았다.",
+      "sourceHash": "dcdc4bfd5dbd232ca5e9edeb632aec188217580cccd543a91454f33efc8632b2",
+      "translations": {
+        "zh-CN": "乙亥。两个字浮在Yeoni面前，像小芽在深水上扎根。这次不陌生了，像恰好契合心之中央的名字。",
+        "zh-TW": "乙亥。兩個字浮在Yeoni面前，像小芽在深水上紮根。這次不陌生了，像恰好契合心之中央的名字。"
+      }
+    },
+    {
+      "id": "ep-06:165",
+      "source": "을해일주.",
+      "sourceHash": "ad6046e0bbf304889b1f3c26edfb967cd348bd639df15024205c49def17407ad",
+      "translations": {
+        "zh-CN": "乙亥日柱。",
+        "zh-TW": "乙亥日柱。"
+      }
+    },
+    {
+      "id": "ep-06:166",
+      "source": "두 글자가 가슴으로 스며들며 따뜻한 기운과 차가운 기운이 동시에 퍼졌다. 이상했지만 불편하지 않았다. 작은 꽃이 더 선명하게 피어났다.",
+      "sourceHash": "f1a6fc951e1c04281ac98e3b3feef27c4d52112971060dc0db09d1c202831215",
+      "translations": {
+        "zh-CN": "两个字渗入胸口，暖与冷的气息同时扩散。奇异，却不难受。小花开得更加鲜明。",
+        "zh-TW": "兩個字滲入胸口，暖與冷的氣息同時擴散。奇異，卻不難受。小花開得更加鮮明。"
+      }
+    },
+    {
+      "id": "ep-06:167",
+      "source": "[사주 글자 회수 완료 · 日柱: 乙亥]",
+      "sourceHash": "fff54269a8fa649273f3d5f55d1efa13204e83a0c4113e4782e6739f97559bcc",
+      "translations": {
+        "zh-CN": "[四柱文字回收完成 · 日柱：乙亥]",
+        "zh-TW": "[四柱文字回收完成 · 日柱：乙亥]"
+      }
+    },
+    {
+      "id": "ep-06:168",
+      "source": "[일주 각인 완료 · 乙亥는 더 이상 회수 대상이 아닙니다]",
+      "sourceHash": "280bf12bec3fc438ae2513474831b1714d021a8a6db7cb62dc47884bea86ba80",
+      "translations": {
+        "zh-CN": "[日柱刻印完成 · 乙亥不再属于待回收目标]",
+        "zh-TW": "[日柱刻印完成 · 乙亥不再屬於待回收目標]"
+      }
+    },
+    {
+      "id": "ep-06:169",
+      "source": "나 진짜 첫 스테이지 깬 거야?",
+      "sourceHash": "5e28cf50c65eee24374270a41d4b056ccb10fbfac1986fa68b88e23c3ed6ecd5",
+      "translations": {
+        "zh-CN": "我真的过了第一关？",
+        "zh-TW": "我真的過了第一關？"
+      }
+    },
+    {
+      "id": "ep-06:170",
+      "source": "그래. 첫 관문은 넘었다.",
+      "sourceHash": "52921b1c41cac8a310e24b19f6e131ccd6f1766d46961f4cf738b31bd06525b6",
+      "translations": {
+        "zh-CN": "嗯，第一道关卡过了。",
+        "zh-TW": "嗯，第一道關卡過了。"
+      }
+    },
+    {
+      "id": "ep-06:171",
+      "source": "보상은?",
+      "sourceHash": "22ebecb67f1fd58d80ede9805f5cbcfd7d5787df9d0f29e78ab9ddaa829599e3",
+      "translations": {
+        "zh-CN": "奖励呢？",
+        "zh-TW": "獎勵呢？"
+      }
+    },
+    {
+      "id": "ep-06:172",
+      "source": "방금 받았다.",
+      "sourceHash": "ebb50eb29dd1b4060c0761643b2cfb61468281ce952f585591929e9b6ea43e9c",
+      "translations": {
+        "zh-CN": "刚拿到了。",
+        "zh-TW": "剛拿到了。"
+      }
+    },
+    {
+      "id": "ep-06:173",
+      "source": "좀 더 현물 같은 건 없어? 코인이라든가.",
+      "sourceHash": "b34118efeb506501fa54a7a587d4276a58cfd12ebfc2a0a6c79b9c4eb3bcb608",
+      "translations": {
+        "zh-CN": "没点更实在的吗？比如金币。",
+        "zh-TW": "沒點更實在的嗎？比如金幣。"
+      }
+    },
+    {
+      "id": "ep-06:174",
+      "source": "없다.",
+      "sourceHash": "528ae90c45c937ef64424b0cd8530aa6c9722809f9ac1fb345ce3ea20493ceb7",
+      "translations": {
+        "zh-CN": "没有。",
+        "zh-TW": "沒有。"
+      }
+    },
+    {
+      "id": "ep-06:175",
+      "source": "이 세계 경제관념 아쉽네.",
+      "sourceHash": "eeb2b02d154ec1fb0944ee44dc5ca293e2b3fd4184241f6b772d169043fc1976",
+      "translations": {
+        "zh-CN": "这个世界的经济观念令人失望。",
+        "zh-TW": "這個世界的經濟觀念令人失望。"
+      }
+    },
+    {
+      "id": "ep-06:176",
+      "source": "환불이라도 넣게 고객센터 좀 알려줘. …꿀.",
+      "sourceHash": "4fac803bd7b07fa3edb5fe665a1b06767d0c52013d895164ae19898aed0b5ca7",
+      "translations": {
+        "zh-CN": "至少给个客服，让我申请退款……哼唧。",
+        "zh-TW": "至少給個客服，讓我申請退款……哼唧。"
+      }
+    },
+    {
+      "id": "ep-06:177",
+      "source": "영냥이가 한숨을 쉬었다. 하지만 입가에는 아주 작은 웃음이 걸려 있었다.",
+      "sourceHash": "2f51457c8dab1c4dfa313181b4140229aa50ee8301027f2aee9a18dc5641b631",
+      "translations": {
+        "zh-CN": "Yeongnyangi叹了口气，嘴边却挂着极淡的笑。",
+        "zh-TW": "Yeongnyangi嘆了口氣，嘴邊卻掛著極淡的笑。"
+      }
+    },
+    {
+      "id": "ep-06:178",
+      "source": "그때 멀리서 소리가 들렸다. 둥. 둥. 둥. 처음엔 심장 소리 같더니 곧 리듬이 되었다. 박자, 음악, 사람들의 함성.",
+      "sourceHash": "35b06c3763d798f205f16941b9d48eb0d0e90768a27c34698472472b87832e3c",
+      "translations": {
+        "zh-CN": "这时，远处传来声音。咚，咚，咚。起初像心跳，很快变成节奏。拍子，音乐，人群的欢呼。",
+        "zh-TW": "這時，遠處傳來聲音。咚，咚，咚。起初像心跳，很快變成節奏。拍子，音樂，人群的歡呼。"
+      }
+    },
+    {
+      "id": "ep-06:179",
+      "source": "연이는 고개를 들었다. 안개가 걷힌 비겁의 섬 너머, 전혀 다른 섬이 반짝이고 있었다. 색색의 등불, 춤추는 그림자, 맛있는 냄새, 하늘로 올라가는 노랫소리.",
+      "sourceHash": "a3e3f0643792907cec6092e7034ec332772edc42d958a22664b9a4f71a2fb520",
+      "translations": {
+        "zh-CN": "Yeoni抬头。雾散后的比劫之岛那头，一座截然不同的岛闪闪发亮。彩灯，舞动的影子，食物香气，升向天空的歌声。",
+        "zh-TW": "Yeoni抬頭。霧散後的比劫之島那頭，一座截然不同的島閃閃發亮。彩燈，舞動的影子，食物香氣，升向天空的歌聲。"
+      }
+    },
+    {
+      "id": "ep-06:180",
+      "source": "잠깐. 뭐야, 저기 냄새 미쳤는데?",
+      "sourceHash": "52abf5416e4b7b1171c9ad75bf695160426994f25242c0deab5e183dbbf28724",
+      "translations": {
+        "zh-CN": "等等，什么啊，那边的香味也太绝了？",
+        "zh-TW": "等等，什麼啊，那邊的香味也太誇張了？"
+      }
+    },
+    {
+      "id": "ep-06:181",
+      "source": "코가 먼저 반응했어. 콧구멍이 저 혼자 벌렁대잖아. …꿀.",
+      "sourceHash": "4042f4775c87d209cce465c73909ce3126052b28f7bea01ef9f31ae47766fc8c",
+      "translations": {
+        "zh-CN": "鼻子先反应过来了，鼻孔自己在动……哼唧。",
+        "zh-TW": "鼻子先反應過來了，鼻孔自己在動……哼唧。"
+      }
+    },
+    {
+      "id": "ep-06:182",
+      "source": "다음 섬이다.",
+      "sourceHash": "4edeffe2a416c61b1b0db56edda5eda88dca3b8a3338f784ecc888d03fd55b55",
+      "translations": {
+        "zh-CN": "下一座岛。",
+        "zh-TW": "下一座島。"
+      }
+    },
+    {
+      "id": "ep-06:183",
+      "source": "설마 음식 나와?",
+      "sourceHash": "a26638d82cde4e5cfef1b797d28f29b73727eee072b1a0050efa8c87737d2982",
+      "translations": {
+        "zh-CN": "难道有吃的？",
+        "zh-TW": "難道有吃的？"
+      }
+    },
+    {
+      "id": "ep-06:184",
+      "source": "음식도 있고, 노래도 있고, 무대도 있다.",
+      "sourceHash": "21143c8070052fd11f64945e6d85f6c47104c235ce1f924f1522dee564c9941d",
+      "translations": {
+        "zh-CN": "有食物，有歌声，也有舞台。",
+        "zh-TW": "有食物，有歌聲，也有舞台。"
+      }
+    },
+    {
+      "id": "ep-06:185",
+      "source": "오. 드디어 힐링 파트?",
+      "sourceHash": "0f837dbcb9a30e5ff6a8db46d4148f1a942cf5ada5eaf430415b472f14be8e23",
+      "translations": {
+        "zh-CN": "哦，终于到治愈篇了？",
+        "zh-TW": "喔，終於到療癒篇了？"
+      }
+    },
+    {
+      "id": "ep-06:186",
+      "source": "영냥이는 대답하지 않았다. 그 침묵이 살짝 불길했다.",
+      "sourceHash": "6fd6aaee9e69e59178230154ea60153f51ad24580b10f3517b32dd9cb7aa97c6",
+      "translations": {
+        "zh-CN": "Yeongnyangi没有回答，那份沉默有点不祥。",
+        "zh-TW": "Yeongnyangi沒有回答，那份沉默有點不祥。"
+      }
+    },
+    {
+      "id": "ep-06:187",
+      "source": "왜 대답 안 해?",
+      "sourceHash": "1f29feba7d64fe3dbb7c72c8355828efad074212eec6479c820998d914e71a86",
+      "translations": {
+        "zh-CN": "怎么不回答？",
+        "zh-TW": "怎麼不回答？"
+      }
+    },
+    {
+      "id": "ep-06:188",
+      "source": "식상의 섬.",
+      "sourceHash": "863a1a33d8d05a7065fe39ddfa0bf60ba800f64231fe2f6b5882c5ee44aff3a3",
+      "translations": {
+        "zh-CN": "食伤之岛。",
+        "zh-TW": "食傷之島。"
+      }
+    },
+    {
+      "id": "ep-06:189",
+      "source": "식상?",
+      "sourceHash": "d1b56ca63c22d3a8a7470a7191e6ed19ebef19cec62d96fa9f5db0820d23bf02",
+      "translations": {
+        "zh-CN": "食伤？",
+        "zh-TW": "食傷？"
+      }
+    },
+    {
+      "id": "ep-06:190",
+      "source": "표현, 말, 재능, 먹는 즐거움, 만드는 힘. 네 안에서 밖으로 흘러나오는 기운의 섬이다.",
+      "sourceHash": "7807647c9ae33b721e2d2db5ade41386c8a9b509e3a9e5500311874316856b5c",
+      "translations": {
+        "zh-CN": "表达，言语，才华，饮食的快乐，创造的力量。是你内在之气向外流出的岛。",
+        "zh-TW": "表達，言語，才華，飲食的快樂，創造的力量。是你內在之氣向外流出的島。"
+      }
+    },
+    {
+      "id": "ep-06:191",
+      "source": "그러니까 먹고 말하고 노래하는 섬?",
+      "sourceHash": "126bdcd77d59abe2c5d7830e62e96094459db3718f0c8fa0c84e65fb0be65a7a",
+      "translations": {
+        "zh-CN": "所以就是吃饭、说话、唱歌的岛？",
+        "zh-TW": "所以就是吃飯、說話、唱歌的島？"
+      }
+    },
+    {
+      "id": "ep-06:192",
+      "source": "대충 맞다.",
+      "sourceHash": "930ef411b2e2d6b75249bc85b38700a574f53078d157466412d44946d9369d08",
+      "translations": {
+        "zh-CN": "大致如此。",
+        "zh-TW": "大致如此。"
+      }
+    },
+    {
+      "id": "ep-06:193",
+      "source": "좋은데?",
+      "sourceHash": "0d1d9c36ba7c672475d2f3fb6a140810065e6894e9099798e7094d14efe41c7e",
+      "translations": {
+        "zh-CN": "挺好啊？",
+        "zh-TW": "挺好啊？"
+      }
+    },
+    {
+      "id": "ep-06:194",
+      "source": "겉으로는.",
+      "sourceHash": "acc82bb1f5f84afe923772d85bf13ee8224b9e822a13b47fb0d37e651eb900ee",
+      "translations": {
+        "zh-CN": "表面上。",
+        "zh-TW": "表面上。"
+      }
+    },
+    {
+      "id": "ep-06:195",
+      "source": "또 그 말투네. 불안하게.",
+      "sourceHash": "8847ea948cc27918ec2514742dec77ba4668e03f64b6a10299acc1bca9062e91",
+      "translations": {
+        "zh-CN": "又用这种语气，让人不安。",
+        "zh-TW": "又用這種語氣，讓人不安。"
+      }
+    },
+    {
+      "id": "ep-06:196",
+      "source": "연잎 배가 다시 강 위로 떠올랐다. 비겁의 섬은 천천히 뒤로 멀어졌다.",
+      "sourceHash": "3cceaaada2f5be1e1aa2f8c9fd7e78500e75a8dde2387383cbd144700d4b883a",
+      "translations": {
+        "zh-CN": "荷叶船再次浮上河流，比劫之岛慢慢向后远去。",
+        "zh-TW": "荷葉船再次浮上河流，比劫之島慢慢向後遠去。"
+      }
+    },
+    {
+      "id": "ep-06:197",
+      "source": "바로 그때, 멀리 식상의 섬 하늘 위로 검은 깃털 하나가 떨어졌다. 깃털이 가장 높은 무대 위로 내려앉자, 방금까지 들리던 음악이 뚝 끊겼다.",
+      "sourceHash": "51ac2c2e4c520c21ce22215fa9b6f209c45a998af7eddc2948d516ad7ad1d73b",
+      "translations": {
+        "zh-CN": "就在这时，一根黑羽从远处食伤之岛的天空落下。羽毛落在最高舞台上的瞬间，刚才还在响的音乐骤然中断。",
+        "zh-TW": "就在這時，一根黑羽從遠處食傷之島的天空落下。羽毛落在最高舞台上的瞬間，剛才還在響的音樂驟然中斷。"
+      }
+    },
+    {
+      "id": "ep-06:198",
+      "source": "……힐링 파트 아니네?",
+      "sourceHash": "cce8e878c4d3b86dc51f8f32956c18e9f429be73f825fce22378f055c91f6bc5",
+      "translations": {
+        "zh-CN": "……不是治愈篇啊？",
+        "zh-TW": "……不是療癒篇啊？"
+      }
+    },
+    {
+      "id": "ep-06:199",
+      "source": "아닌 것 같군.",
+      "sourceHash": "ae25cdb7046a244997c5f89e25fa029e0ef631ea6005e8a9f6af8af4a71848e9",
+      "translations": {
+        "zh-CN": "看来不是。",
+        "zh-TW": "看來不是。"
+      }
+    },
+    {
+      "id": "ep-06:200",
+      "source": "연이는 가슴 안쪽의 乙亥를 느꼈다. 작은 새싹과 깊은 물. 방금 되찾은 자신의 중심. 짧은 앞발을 들어 올렸다.",
+      "sourceHash": "77e93020160074be700ffff76a34a87e0d066b31e5a4deb78781d084ab1bb799",
+      "translations": {
+        "zh-CN": "Yeoni感受着胸中的乙亥。小芽与深水，刚找回的自我核心。举起了短短的前蹄。",
+        "zh-TW": "Yeoni感受著胸中的乙亥。小芽與深水，剛找回的自我核心。舉起了短短的前蹄。"
+      }
+    },
+    {
+      "id": "ep-06:201",
+      "source": "좋아. 다음 길도 가보자.",
+      "sourceHash": "c87a46aa3619c329b6960914334c38e90f3a1e2af3000a908b20f36d85e93e69",
+      "translations": {
+        "zh-CN": "好，下一段路也去看看。",
+        "zh-TW": "好，下一段路也去看看。"
+      }
+    },
+    {
+      "id": "ep-06:202",
+      "source": "갈 준비 됐나?",
+      "sourceHash": "1d22e232a8b92f2bb8f9b6d0654252ea76947bfa84ffa59a2d43245f03587785",
+      "translations": {
+        "zh-CN": "准备好出发了？",
+        "zh-TW": "準備好出發了？"
+      }
+    },
+    {
+      "id": "ep-06:203",
+      "source": "연이는 식상의 섬을 바라봤다. 아직 무서웠지만 방금 전보다 덜 흔들렸다.",
+      "sourceHash": "fefc283c599e05e4e112518defd22a51926646635e6f765b2d70adef3cc57df3",
+      "translations": {
+        "zh-CN": "Yeoni望向食伤之岛。依然害怕，却比刚才稳了一些。",
+        "zh-TW": "Yeoni望向食傷之島。依然害怕，卻比剛才穩了一些。"
+      }
+    },
+    {
+      "id": "ep-06:204",
+      "source": "응. 근데 이번엔 제발 돼지 몸으로 무대 서는 일은 없겠지?",
+      "sourceHash": "9adbfaf2172a52c0ff68e7a25fdaac618cf014b89d12c84f6ba6fe3bb08aa3a5",
+      "translations": {
+        "zh-CN": "嗯。不过这次拜托，应该不会让我用猪身体上台吧？",
+        "zh-TW": "嗯。不過這次拜託，應該不會讓我用豬身體上臺吧？"
+      }
+    },
+    {
+      "id": "ep-06:205",
+      "source": "영냥이는 대답하지 않았다.",
+      "sourceHash": "927dd778ba8bf8892a64a0c6b331f815d618cf7a2c66fafe68ffdf4bf6fa0c7d",
+      "translations": {
+        "zh-CN": "Yeongnyangi没有回答。",
+        "zh-TW": "Yeongnyangi沒有回答。"
+      }
+    },
+    {
+      "id": "ep-06:206",
+      "source": "야. 왜 대답 안 해?",
+      "sourceHash": "d7115d7b57566f727f1e028d0a0246d4b0599bca6e518142ee7ec38ec007c7d2",
+      "translations": {
+        "zh-CN": "喂，为什么不回答？",
+        "zh-TW": "喂，為什麼不回答？"
+      }
+    },
+    {
+      "id": "ep-06:207",
+      "source": "가보면 안다.",
+      "sourceHash": "490634e9f5a9b5aa4057e090ebf3c7de77745c44698ebfd804eba1b7e9f9581c",
+      "translations": {
+        "zh-CN": "去了就知道。",
+        "zh-TW": "去了就知道。"
+      }
+    },
+    {
+      "id": "ep-06:208",
+      "source": "나 지금 진짜 불안해졌어.",
+      "sourceHash": "b6685e015eb8faf791268984f1b15515aabf18292ce9f8975373fe9eb72433c6",
+      "translations": {
+        "zh-CN": "我现在真的不安起来了。",
+        "zh-TW": "我現在真的不安起來了。"
+      }
+    },
+    {
+      "id": "ep-06:209",
+      "source": "[제2섬 · 식신 상관의 섬 진입]",
+      "sourceHash": "9bccb81de219e6b7ea92bc9a3b567610ef9a4c94aeefdb857de9cdef16910da9",
+      "translations": {
+        "zh-CN": "[进入第2岛 · 食神伤官之岛]",
+        "zh-TW": "[進入第2島 · 食神傷官之島]"
+      }
+    },
+    {
+      "id": "ep-06:210",
+      "source": "연잎 배가 노랫소리와 불빛을 향해 미끄러졌다. 그리고 그 무대 위에는 검은 깃털이 여전히 조용히 놓여 있었다.",
+      "sourceHash": "7355a5dac0b2006fa7219b86d08d293ac0152f7e6e42fa6841a115eb41e6a73f",
+      "translations": {
+        "zh-CN": "荷叶船朝歌声与灯火滑去。那舞台上，黑羽依旧静静躺着。",
+        "zh-TW": "荷葉船朝歌聲與燈火滑去。那舞臺上，黑羽依舊靜靜躺著。"
+      }
+    }
+  ]
+}

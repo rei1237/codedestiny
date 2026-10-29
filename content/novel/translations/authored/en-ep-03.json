@@ -1,0 +1,1320 @@
+{
+  "locale": "en",
+  "episodeId": "ep-03",
+  "tag": "Episode 3 · Original Identity Verification Failed",
+  "title": "Original Identity Verification Failed",
+  "sourceTitle": "본체 인증 실패",
+  "sourceTag": "제3화 · 본체 인증 실패",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-03:1",
+      "source": "거울 회랑은 숨소리까지 되울리는 곳이었다. 연이의 짧은 콧숨이 사방 유리벽에 부딪혀, 몇 겹으로 겹쳐 되돌아왔다.",
+      "sourceHash": "d24d6e24e92893e093fca5ce689b1a3db60c3e29ef74fb974e061a1bceafac45",
+      "t": "Even breathing echoed in the mirror corridor. Yeoni's short nasal breaths struck the glass walls and returned in overlapping layers."
+    },
+    {
+      "id": "ep-03:2",
+      "source": "맞은편에는 연이의 진짜 얼굴을 한 존재가 서 있었다. 젖은 앞머리, 낡은 후드티, 두 다리로 선 사람. 그게 천천히 웃었다.",
+      "sourceHash": "dd77227eefad1bda81f204a0412c0115755bb13d150910bf21791daf32547fea",
+      "t": "Opposite them stood a being with Yeoni's real face. Damp bangs, an old hoodie, a person standing on two legs. It slowly smiled."
+    },
+    {
+      "id": "ep-03:3",
+      "source": "그럼 증명해봐.",
+      "sourceHash": "c00be2ea5f21668f7988a0873e464503d4a065bac034028dfe9c667dc633a095",
+      "t": "Prove it, then."
+    },
+    {
+      "id": "ep-03:4",
+      "source": "…뭘.",
+      "sourceHash": "f179865156668ac239d0a3f4a61e6ac8685441af4003293edc2a8cac3d8cf1ed",
+      "t": "...Prove what?"
+    },
+    {
+      "id": "ep-03:5",
+      "source": "네가 진짜 연이라는 걸.",
+      "sourceHash": "445ee2301a521bf4940de2a1ebbe51376b66d769ecdb333930b07444adbd6620",
+      "t": "That you're the real Yeoni."
+    },
+    {
+      "id": "ep-03:6",
+      "source": "그 말이 끝나기 무섭게, 비겁의 섬 전체가 발밑에서 쿵, 하고 한 박자 내려앉았다.",
+      "sourceHash": "3053f00616d81e21205aca1cebd99aca16e886a3ed35c3b6d960560e628c2dcb",
+      "t": "The moment those words ended, the entire Island of Companions sank a beat beneath their feet with a heavy thud."
+    },
+    {
+      "id": "ep-03:7",
+      "source": "우왁?! 야, 이 세계 지진 옵션도 있어? 나 이런 거 신청한 적 없거든?!",
+      "sourceHash": "ee5948bd37b504c1fff887c67e1c56194c19682468648026022c64b52f3c28c1",
+      "t": "Whoa! Hey, this world has an earthquake option too? I never signed up for that!"
+    },
+    {
+      "id": "ep-03:8",
+      "source": "공중에 떠 있던 수백 개의 거울이 일제히 뒤집혔다. 뒷면마다 파란 글자가 차례로 켜졌다.",
+      "sourceHash": "cf7992b3f8fca008fa2b96aa586df4997003cd81aa5078b2be5e5222814411e7",
+      "t": "Hundreds of floating mirrors flipped over together. Blue letters lit up across their backs, one after another."
+    },
+    {
+      "id": "ep-03:9",
+      "source": "[ 비겁의 섬 · 본시험 시작 ]",
+      "sourceHash": "7cfc79bae1cc838fcc39654b882b91c5fa380ded6f93eb7c5255a2ed59c05844",
+      "t": "[ Island of Companions · Main Trial Begins ]"
+    },
+    {
+      "id": "ep-03:10",
+      "source": "[ 본체 인증을 진행합니다. ]   [ 제한 시간 10:00 ]",
+      "sourceHash": "23d91d72f70a15ebe3572fef95b06c9585896dedd4946cfc31380e5994b63aa6",
+      "t": "[ Verifying original identity. ]   [ Time limit 10:00 ]"
+    },
+    {
+      "id": "ep-03:11",
+      "source": "연이는 둥근 눈을 깜빡였다. 머리 위 꽃잎이 파란 불빛을 받아 서늘하게 물들었다.",
+      "sourceHash": "c833b2e8205ec53a3f3bccdff5463dde5f88246ea268dbd79cc0e2a32e745cce",
+      "t": "Yeoni blinked their round eyes. The petals above their head took on a chilly hue in the blue light."
+    },
+    {
+      "id": "ep-03:12",
+      "source": "뭐야. 갑자기 웬 본인 인증. 나 방금 로그인했는데.",
+      "sourceHash": "5e30ea535e36f0c3f9e6481c24d4160ccb1ca1b1f2c775eca51b0c9f7c88482e",
+      "t": "What? Why the sudden identity check? I just logged in."
+    },
+    {
+      "id": "ep-03:13",
+      "source": "맞아. 네 인생 로그인 권한을 걸고.",
+      "sourceHash": "ab6fb78319498a76d1979da74ba4ad8bf8bad2e9aa3461a93226c0b9a60b6ef3",
+      "t": "That's right. With the login rights to your life at stake."
+    },
+    {
+      "id": "ep-03:14",
+      "source": "연이의 앞발이 멈칫했다. 얼굴에서 능글맞은 웃음기가, 물 빠지듯 스르륵 사라졌다.",
+      "sourceHash": "c6050f4ff7cb1b2e0b04d888cebfa149e505640626233e4cb0bdcc77c7100c5d",
+      "t": "Yeoni's hoof paused. The easy grin drained slowly from their face."
+    },
+    {
+      "id": "ep-03:15",
+      "source": "…로그인 권한?",
+      "sourceHash": "0be3871a8ec23e7acc8c5885cf462bf88ec380ad71663f3a728fca392fd332e7",
+      "t": "...Login rights?"
+    },
+    {
+      "id": "ep-03:16",
+      "source": "여긴 비겁의 섬이야. 네 자리를 지킬 수 있는지 시험하지. 자리를 빼앗기면 돌아갈 길도 흔들려.",
+      "sourceHash": "9d26ed3d63214f35869a1e8366453ee8e86446a4b8e785c09006de9b6742ed46",
+      "t": "This is the Island of Companions. It tests whether you can hold your place. Lose that place, and your route home becomes uncertain too."
+    },
+    {
+      "id": "ep-03:17",
+      "source": "잠깐. 그 말은—",
+      "sourceHash": "36a89602dc5ceeb4d7e3b9cece59d098d5c2664afcf55a5392d0967ad4962bdf",
+      "t": "Wait. Does that mean—"
+    },
+    {
+      "id": "ep-03:18",
+      "source": "쟤가 나 대신 현실로 걸어 들어갈 수도 있다는 얘기야?",
+      "sourceHash": "adbcbcc516dd38d2c41405609218b782354a5062b7d6fa2c2102155b2c7734b5",
+      "t": "That thing could walk into the real world instead of me?"
+    },
+    {
+      "id": "ep-03:19",
+      "source": "영냥이는 대답하지 않았다. 흰 고양이의 꼬리 끝만 딱, 한 번 멎었다. 그 침묵이 곧 대답이었다.",
+      "sourceHash": "64b45fd68e1417a121aa2528fb2e0d1e52c90ba5036d82a7d1672a740051fe0e",
+      "t": "Yeongnyangi did not answer. Only the tip of the white cat's tail stopped, once. His silence was answer enough."
+    },
+    {
+      "id": "ep-03:20",
+      "source": "이해 빠르네. 역시 내 머리야.",
+      "sourceHash": "be043ae2dba0b155ca136c3f2925e8a467b6d67131c000c04b9be829a6512bcb",
+      "t": "Quick on the uptake. My brain, after all."
+    },
+    {
+      "id": "ep-03:21",
+      "source": "거울 속 연이가 두 손을 활짝 펼쳤다. 손가락 열 개, 마디마디 멀쩡한 손가락이었다. 젖은 머리, 후드티, 두 다리, 원래의 얼굴. 전부 연이가 잃어버린 것들이었다.",
+      "sourceHash": "5e61100b723ca9616f0337c562b049666d7c068b10ed4126df3e7065cff84c9e",
+      "t": "The reflected Yeoni spread both hands. Ten fingers, every joint intact. Wet hair, a hoodie, two legs, the original face. Everything Yeoni had lost."
+    },
+    {
+      "id": "ep-03:22",
+      "source": "반면 연이는 꽃돼지였다. 짧은 앞발. 둥근 배. 정수리에 얹힌 작은 꽃 한 송이. 너무 귀엽고, 너무 불리했다.",
+      "sourceHash": "724eacaf35c8b09a5785a856db2288700525928db56756fd23013d07fb8582f4",
+      "t": "Yeoni, meanwhile, was a flower pig. Short hooves. Round belly. A single small flower on their head. Far too cute, and far too disadvantaged."
+    },
+    {
+      "id": "ep-03:23",
+      "source": "와. 시작부터 스펙 차이 실화냐.",
+      "sourceHash": "62ae4313375cddc00083b5014f9cbfc7f0a5949b09a19586fd4acce91aba3518",
+      "t": "Wow. Is this starting stat gap for real?"
+    },
+    {
+      "id": "ep-03:24",
+      "source": "억울하면 이기면 되지.",
+      "sourceHash": "746499d4085791bc860a85393926ff582709f95e6ce7385d76dd6a29dc2aa0f2",
+      "t": "If it feels unfair, win."
+    },
+    {
+      "id": "ep-03:25",
+      "source": "야, 내 얼굴로 그런 재수 없는 말 하지 마. 기분 이상해.",
+      "sourceHash": "d7012617a04d5349b1e315ab0ee93b7c8e7e173d1e8b3ff7e15853cd9777940b",
+      "t": "Hey, don't say obnoxious things with my face. It feels weird."
+    },
+    {
+      "id": "ep-03:26",
+      "source": "그것도 네 말투인데?",
+      "sourceHash": "336587dd59801cad82860ac7d1edf367b621600a5c728b4ee49f87a23227f7a3",
+      "t": "It's your way of talking too, you know."
+    },
+    {
+      "id": "ep-03:27",
+      "source": "…내가 이렇게 얄밉게 말한다고?",
+      "sourceHash": "c61e76a3e2242d6311ab5fe5efa14cb6fb181abd821847a2b06e7a5d6e6cd46f",
+      "t": "...Do I really sound that annoying?"
+    },
+    {
+      "id": "ep-03:28",
+      "source": "응. 아주.",
+      "sourceHash": "e7a1758dc4b2201c34a8c5ff2d679574856f7469c52541fe27b28f577ecd4df5",
+      "t": "Yes. Very."
+    },
+    {
+      "id": "ep-03:29",
+      "source": "오케이. 자기 객관화 방금 강제 완료. 좀 상처인데.",
+      "sourceHash": "b66410362b9f331ec16bc81307ea525739b09f163126af8684cd661cfd519d11",
+      "t": "Okay. Forced self-awareness achieved. That kind of hurts."
+    },
+    {
+      "id": "ep-03:30",
+      "source": "그때 거울 하나가 스르륵 내려와 연이 코앞에 딱 멈췄다. 유리 표면에 문장이 떴다.",
+      "sourceHash": "0fdb000e93836a69d254d8776a1af1b40bc9efb33ee609eedc0438a1689014f3",
+      "t": "A mirror slid down and stopped right before Yeoni's nose. A sentence appeared on the glass."
+    },
+    {
+      "id": "ep-03:31",
+      "source": "히익, 가까워! 얼굴 앞에 훅 들이대기 있어? 이거 개인 공간 침해라니까.",
+      "sourceHash": "44bdf237bb5f9928d4469589c524b5b5ec54de35b0af8b704f14c72e503bbdf4",
+      "t": "Eek, too close! Can you not shove yourself in my face? Personal space, hello?"
+    },
+    {
+      "id": "ep-03:32",
+      "source": "[ 인증 항목 1 · 이름 ]",
+      "sourceHash": "f83250a14dca14a954240918b2124c7ab71cb2687634341ba561b574feb4bee1",
+      "t": "[ Verification Item 1 · Name ]"
+    },
+    {
+      "id": "ep-03:33",
+      "source": "쉬운 문제였다. 연이는 곧장 입을 뗐다.",
+      "sourceHash": "2f10887770840618569ac1454048390a023742b22f7cbdb6216d95b6fd22063a",
+      "t": "An easy question. Yeoni answered at once."
+    },
+    {
+      "id": "ep-03:34",
+      "source": "연이.",
+      "sourceHash": "93625f13cd606c28c1e0dbc4d552ea674d3693272796717a0bc4c553d78fae14",
+      "t": "Yeoni."
+    },
+    {
+      "id": "ep-03:35",
+      "source": "거울이 삐빅, 하고 야박한 소리를 냈다.",
+      "sourceHash": "f194caa20c9899f22c77892d1fbc48dd638153d5c28c4a423c7032036ac1a47e",
+      "t": "The mirror gave an unsympathetic double beep."
+    },
+    {
+      "id": "ep-03:36",
+      "source": "[ 불충분 ]",
+      "sourceHash": "4905b04b327da85db0ca215509fbdaa1bd9de276464ae18c9a597fd9bec4e5b7",
+      "t": "[ Insufficient ]"
+    },
+    {
+      "id": "ep-03:37",
+      "source": "…왜? 내 이름 내가 대는데 뭐가 불충분이야.",
+      "sourceHash": "354c45ddd944ba37b865ea66e19f8019a2c53f347196b6568cb35acd4d5f8603",
+      "t": "...Why? I'm telling you my own name. What's insufficient about that?"
+    },
+    {
+      "id": "ep-03:38",
+      "source": "이름은 나도 알거든.",
+      "sourceHash": "e0794e47b3a8164331746254adf429b07d421d6edefa894d49551026d86cbd13",
+      "t": "I know the name too."
+    },
+    {
+      "id": "ep-03:39",
+      "source": "거울 속 연이가 똑같은 목소리로, 태연하게 따라 말했다.",
+      "sourceHash": "284bf5934de968431d738085139fa1a6e17b8b27289ed8701b6cd96f0cc7c951",
+      "t": "The reflected Yeoni calmly repeated it in exactly the same voice."
+    },
+    {
+      "id": "ep-03:40",
+      "source": "연이.",
+      "sourceHash": "93625f13cd606c28c1e0dbc4d552ea674d3693272796717a0bc4c553d78fae14",
+      "t": "Yeoni."
+    },
+    {
+      "id": "ep-03:41",
+      "source": "그러자 거울이 파랗게, 훨씬 밝게 빛났다.",
+      "sourceHash": "654f2ab317bab87bb141d740108f153f909d209e5a819dd045e31296a0f52601",
+      "t": "The mirror shone blue, much brighter this time."
+    },
+    {
+      "id": "ep-03:42",
+      "source": "[ 후보자 2명 확인 ]   [ 본체 판별 불가 ]",
+      "sourceHash": "d304de60edab2531eaadf55c8311e940fe33bd6bdc6583da558029d6d38c1a3e",
+      "t": "[ Two candidates confirmed ]   [ Unable to identify original ]"
+    },
+    {
+      "id": "ep-03:43",
+      "source": "야, 영냥아. 이 시스템 보안 완전 허술한 거 아냐? 이름만 대면 통과되는 거면, 나도 남의 계정 털겠다.",
+      "sourceHash": "8091733050222a6142e9208b61eadede5a2cb817858a9b2f5d52ea46c0f84b2a",
+      "t": "Hey, Yeongnyangi. Isn't this system's security pathetic? If a name is all it takes, I could hack somebody's account too."
+    },
+    {
+      "id": "ep-03:44",
+      "source": "비겁은 너와 같은 기운을 뜻해. 겉모습만 봐서는 네 편인지 아닌지 알 수 없지. 그래서 어려워.",
+      "sourceHash": "b90f55fbda1afa9c5c6f5fa3a86b573bc657d3fbeb22323d8166819668da134c",
+      "t": "The Companion energies share your own element. Appearance alone cannot tell you whether someone is on your side. That is what makes this difficult."
+    },
+    {
+      "id": "ep-03:45",
+      "source": "그런 중요한 걸 왜 이제 말해?",
+      "sourceHash": "0016f9f1f1e806f978966de8ce1d3d6c957820cfc51abdf3309a7537704ebedd",
+      "t": "Why are you only telling me something that important now?"
+    },
+    {
+      "id": "ep-03:46",
+      "source": "지금 알면 된다.",
+      "sourceHash": "7d334f88a4d89ffc07ec981273230ebac682ac0de68d0551f3777ca04818fee3",
+      "t": "Now is when you need to know."
+    },
+    {
+      "id": "ep-03:47",
+      "source": "너 고객센터 열면 별점 1점이야. 응대가 너무 불친절해.",
+      "sourceHash": "8fbd397a55e3d03c23ee45d8112d1dec0d0227f520a8ae4fedf83b8a932e19dd",
+      "t": "If you ran customer support, I'd give you one star. Your service is terrible."
+    },
+    {
+      "id": "ep-03:48",
+      "source": "여긴 별점 남길 곳도 없네. 아쉽겠어.",
+      "sourceHash": "04ccec6e982b30a43d6867e4012263af5fb07dc56a9e086e6445423d5012660a",
+      "t": "There isn't anywhere to leave a rating here. What a shame for you."
+    },
+    {
+      "id": "ep-03:49",
+      "source": "두 번째 거울이 소리 없이 내려왔다. 유리 안쪽부터 서서히 밤 빛깔로 어두워졌다.",
+      "sourceHash": "036e046338772f75155910c0917f0349d3d8d07bc3478c2a72c223e1909b4c60",
+      "t": "A second mirror descended silently. Night-colored darkness slowly spread from within the glass."
+    },
+    {
+      "id": "ep-03:50",
+      "source": "[ 인증 항목 2 · 기억 ]",
+      "sourceHash": "028c1028965105a46f71006390dbcb61b69e0933492f8db4f47515063013df54",
+      "t": "[ Verification Item 2 · Memories ]"
+    },
+    {
+      "id": "ep-03:51",
+      "source": "거울 속에 연이의 현실이 비쳤다. 아침 알람이 울리지 않던 날. 개찰구에서 교통카드만 세 번 오류가 나던 순간.",
+      "sourceHash": "5227aa375c0d1fd46774d119f67862aba2a9da5ec11b81cedc04c86c34da1f70",
+      "t": "Yeoni's real life appeared in the mirror. The morning the alarm did not ring. The moment their transit card failed three times at the gate."
+    },
+    {
+      "id": "ep-03:52",
+      "source": "제출 직전 과제 파일이 깨져, 커서만 깜빡이는 화면 앞에 멍하니 앉아 있던 밤. 보내려다 지운 메시지. 하루 종일 확인만 하던, 읽히지 않는 답장. 그리고 아무렇지 않은 척 웃던 얼굴.",
+      "sourceHash": "5b440679e50487b312d8d437751758690201091bc915f37a33a98bdc431f9fba",
+      "t": "The night their assignment corrupted just before submission, leaving them staring numbly at a blinking cursor. A message they deleted instead of sending. An unread reply they checked all day. And the face that smiled as though nothing was wrong."
+    },
+    {
+      "id": "ep-03:53",
+      "source": "연이는 입술을 다물었다. 장면 하나하나는 별것도 아니었다. 그런데 그게 한꺼번에 밀려오자, 가슴 안쪽 어딘가가 손으로 꾹 눌린 것처럼 답답해졌다.",
+      "sourceHash": "6484e5e3c6dd18efc492d54e701631c5a7cdfd6d6d275cc5a1bfb57325320afe",
+      "t": "Yeoni closed their mouth. Each scene was nothing much on its own. But when they arrived together, something inside their chest felt pressed hard beneath a hand."
+    },
+    {
+      "id": "ep-03:54",
+      "source": "나는 늘 늦었어.",
+      "sourceHash": "ac71b0ae5f1502a11d59df5dbe6deb9b30289a7233500aef98af71ac9fb9dc18",
+      "t": "I was always late."
+    },
+    {
+      "id": "ep-03:55",
+      "source": "[ 기억 일치 ]",
+      "sourceHash": "386983c0c2832a62aeffa9adc3b4081c4fe1367148b84d504530dfc6d4b3b60a",
+      "t": "[ Memory matched ]"
+    },
+    {
+      "id": "ep-03:56",
+      "source": "말하고 싶을 땐 이미 늦었고, 붙잡고 싶을 땐 놓쳤고, 괜찮은 척하다가 혼자 방에서 무너졌지.",
+      "sourceHash": "0b837f878c0564fab4705710868880d53ac269e1975448184ca625f2ec48233b",
+      "t": "When I wanted to speak, it was too late. When I wanted to hold on, I'd already missed my chance. I pretended I was fine, then fell apart alone in my room."
+    },
+    {
+      "id": "ep-03:57",
+      "source": "[ 기억 일치 ]",
+      "sourceHash": "386983c0c2832a62aeffa9adc3b4081c4fe1367148b84d504530dfc6d4b3b60a",
+      "t": "[ Memory matched ]"
+    },
+    {
+      "id": "ep-03:58",
+      "source": "연이의 머리 위 꽃이, 바람도 없는데 희미하게 떨렸다.",
+      "sourceHash": "5593055add968bd3b2ce3239c3708604490cda1750ad7ce3b7d92d57fca12fde",
+      "t": "The flower above Yeoni's head trembled faintly, though there was no wind."
+    },
+    {
+      "id": "ep-03:59",
+      "source": "봤지? 나도 네 인생, 처음부터 끝까지 다 알아.",
+      "sourceHash": "741465bd38e8c09334f0c1056864b6043b9289551401f9c1f02eefe026aca896",
+      "t": "See? I know your whole life too. Beginning to end."
+    },
+    {
+      "id": "ep-03:60",
+      "source": "연이는 어금니를 지그시 물었다. 맞다. 저건 한 장면도 빠짐없이 자신의 기억이었다. 부정할 수가 없었다.",
+      "sourceHash": "fe89cf1ae00cf9c504d23e52f6a00b6e8398a0ea542715ea12df5af381fedcd9",
+      "t": "Yeoni pressed their back teeth together. It was true. Every scene belonged to their own memories. They could not deny it."
+    },
+    {
+      "id": "ep-03:61",
+      "source": "그런데 이상했다. 뭔가가 목에 걸린 생선 가시처럼 남았다.",
+      "sourceHash": "9a616921d2d16a4a48a02e528092e0b3725e25f78e4cfbcdc5f82f3d5118b83d",
+      "t": "Yet something was strange. Something remained, like a fish bone lodged in their throat."
+    },
+    {
+      "id": "ep-03:62",
+      "source": "거울 속 연이는 분명 그 기억들을 읊고 있었다. 하지만 그 안에서 아팠던 감정만, 쏙 빠져 있었다. 마치 남의 일을 정리한 보고서 같았다. 각주까지 꼼꼼한데, 감정은 한 줄도 없는.",
+      "sourceHash": "0293d798c88429ed3c4297c114d7fbfee6338cc7fcaa1cf96cb73987052f5352",
+      "t": "The reflected Yeoni was reciting those memories. But all the feelings that had hurt inside them were missing. Like a report on somebody else's life. Meticulous footnotes, not one line of emotion."
+    },
+    {
+      "id": "ep-03:63",
+      "source": "…맞아. 늦었어.",
+      "sourceHash": "8bc8cb92bba06dbc32fd5532d3c0fe9aa5cf01d0e71051754ddb4b19a5a56498",
+      "t": "...You're right. I was late."
+    },
+    {
+      "id": "ep-03:64",
+      "source": "거울이 파르르 흔들렸다.",
+      "sourceHash": "97505eeb08c1de7cd9d2ba3d5a5bcac52f6b7d6ec6404d1ac8b9f07a85efc214",
+      "t": "The mirror shivered."
+    },
+    {
+      "id": "ep-03:65",
+      "source": "말해야 할 때 입 꾹 다문 적도 있고, 답장 기다리다 괜히 잠금화면만 백 번 켠 적도 있고, 아무렇지 않은 척 웃은 적도 많아.",
+      "sourceHash": "9a3cf422e51a47b30b70e50224b3cdb3fe6180e7f589c53a12c079a2cb7b6452",
+      "t": "Sometimes I kept my mouth shut when I should have spoken. Sometimes I switched my lock screen on a hundred times waiting for a reply. And plenty of times I smiled like nothing was wrong."
+    },
+    {
+      "id": "ep-03:66",
+      "source": "연이는 짧은 앞발을, 둥근 가슴 위에 얹었다.",
+      "sourceHash": "aa96f321290cb55e4b3776bd18b919fe603f8f5174699233c8d6c04bd590b13d",
+      "t": "Yeoni laid a short hoof against their round chest."
+    },
+    {
+      "id": "ep-03:67",
+      "source": "근데 그때 나, 속으로는 하나도 안 괜찮았어.",
+      "sourceHash": "cf8a075973908ca091b921ece62f91023282d2107d1209a787cefd81cd945914",
+      "t": "But inside, I wasn't okay at all."
+    },
+    {
+      "id": "ep-03:68",
+      "source": "거울 속 연이의 표정이, 아주 살짝 굳었다. 완벽했던 보고서에 처음으로 오타가 하나 난 것처럼.",
+      "sourceHash": "a7111137e984cfe9b760e1161e98dba4dbe1cd3fd315d3ede0e7150806e35834",
+      "t": "The reflected Yeoni's face tightened, ever so slightly. As though the flawless report had acquired its first typo."
+    },
+    {
+      "id": "ep-03:69",
+      "source": "웃긴 척한 것도 괜찮아서가 아니야. 안 웃으면 그 자리에서 진짜 울어버릴 것 같아서였어.",
+      "sourceHash": "cdf6383e610002219ca243acf2a9bdbb52dfa3ebd2a46e13190543a226f2e0a4",
+      "t": "I wasn't joking because I felt fine. It was because if I didn't laugh, I thought I'd start crying right there."
+    },
+    {
+      "id": "ep-03:70",
+      "source": "거울이 눈부시게 빛났다.",
+      "sourceHash": "a08b5fde6fce743df2c077b8191024e58fbdcbd1b396eccd4763b4ade4b65a1b",
+      "t": "The mirror blazed."
+    },
+    {
+      "id": "ep-03:71",
+      "source": "[ 감정 일치 ]   [ 본체 반응 감지 ]",
+      "sourceHash": "546b467c49e116e1d5504f7ca8a98a6a286a5f503b15f833468949d39841b931",
+      "t": "[ Emotion matched ]   [ Original identity response detected ]"
+    },
+    {
+      "id": "ep-03:72",
+      "source": "연이의 머리 위 꽃이, 조금 더 환하게 물들었다. 서늘하던 파란빛에 따뜻한 기운이 한 겹 섞였다.",
+      "sourceHash": "38f74065ddcd77fd37683e2f40e15939da5eafdb95bb9279b6cab07daf8f5699",
+      "t": "The flower above Yeoni's head brightened. A layer of warmth mingled with the chilly blue light."
+    },
+    {
+      "id": "ep-03:73",
+      "source": "…제법이네?",
+      "sourceHash": "bbbc84bde836e27d3c3584be46c9038e9e82103af84e134ba7f926525d24a6a9",
+      "t": "...Not bad."
+    },
+    {
+      "id": "ep-03:74",
+      "source": "나도 내 얘기 정도는 좀 알거든.",
+      "sourceHash": "a120de555d7b1894fb7cd9f9768cf8e1c3db668ae1c190c5827e303899173227",
+      "t": "I do know a little about my own story."
+    },
+    {
+      "id": "ep-03:75",
+      "source": "그럼 다음도 맞혀봐. 이번 건 좀 아플 거야.",
+      "sourceHash": "762687a9b3ee8ac772fb0704baf037e6fdb7145600b6c6aa135445776caeb85d",
+      "t": "Then get the next one right. This one will hurt a little."
+    },
+    {
+      "id": "ep-03:76",
+      "source": "세 번째 거울이 내려왔다. 다른 거울과 달리, 이건 아무것도 비추지 않는 척하다가 스르륵 상을 맺었다.",
+      "sourceHash": "ba18e4486bf68513e9e238e7b2573a7364e4b6707c75a9e7c40f90336afc81ee",
+      "t": "A third mirror descended. Unlike the others, it pretended to reflect nothing before an image slowly formed."
+    },
+    {
+      "id": "ep-03:77",
+      "source": "[ 인증 항목 3 · 현재의 몸 ]",
+      "sourceHash": "e6138414cc98e7470b5ee21b0274920907099ecd879dc8593265ef2020cbaa9d",
+      "t": "[ Verification Item 3 · Present Body ]"
+    },
+    {
+      "id": "ep-03:78",
+      "source": "거울 안에는 꽃돼지가 있었다. 분홍빛 몸. 정수리의 작은 꽃. 둥근 배. 짧은 다리. 연이 자신이었다.",
+      "sourceHash": "367fdca3dc9b5f308b08393b788990bd967d602cce121e2e815e45eb3b1a89b6",
+      "t": "A flower pig stood inside the mirror. Pink body. Little flower on its head. Round belly. Short legs. Yeoni themself."
+    },
+    {
+      "id": "ep-03:79",
+      "source": "아…. 이건 아직도 적응 안 된다.",
+      "sourceHash": "3ee8a57f60b3bcd138d5781e4288a79e657c5e8e99cec5c20fca9781395d35f2",
+      "t": "Ah... Still can't get used to that."
+    },
+    {
+      "id": "ep-03:80",
+      "source": "그럼 포기해. 편하게.",
+      "sourceHash": "f79df9b5574fc3ae01c33b0f6173dd67984c15e7c93deeb259bfd33f779ad57b",
+      "t": "Then give up. Make it easy on yourself."
+    },
+    {
+      "id": "ep-03:81",
+      "source": "싫은데?",
+      "sourceHash": "c476ffea60ae97d14e3d2c7b633d73220411ef34dd617dcc8e39adc02415b97b",
+      "t": "No thanks."
+    },
+    {
+      "id": "ep-03:82",
+      "source": "싫다며. 그 몸.",
+      "sourceHash": "d9ee4bf928d786f5cbad36509915e3b2b4637ce68c1615cf2b11d9835ffede77",
+      "t": "You said you hate that body."
+    },
+    {
+      "id": "ep-03:83",
+      "source": "싫지. 솔직히 싫어. 손가락도 없고, 다리도 짤막하고, 놀라면 콧구멍에서 꿀 소리 나오고—",
+      "sourceHash": "29c0f407d3d5967b9cb1832873cca5b89f32141dc9dfa1c61c761c65a7f4bb02",
+      "t": "I do. Honestly, I do. No fingers, stumpy legs, oinks coming out of my nose whenever I get startled—"
+    },
+    {
+      "id": "ep-03:84",
+      "source": "내 인생 비주얼 밸런스 지금 완전 붕괴야. 그래프로 그리면 절벽이야.",
+      "sourceHash": "e73e52e7dc8af194dbc29efa0c15470129cde14c68e465f88914162dbd57eb67",
+      "t": "My life's visual balance is completely broken. Plot it on a graph and it's a cliff."
+    },
+    {
+      "id": "ep-03:85",
+      "source": "말끝에 저도 모르게, 꿀, 하고 작은 콧김이 새어 나왔다. 연이는 눈을 질끈 감았다.",
+      "sourceHash": "749076d410d4c9dae120622ba7fa2495e318816868600e767eb55a58849b0448",
+      "t": "An involuntary little oink slipped out at the end. Yeoni squeezed their eyes shut."
+    },
+    {
+      "id": "ep-03:86",
+      "source": "아 진짜. 방금 그거 카운트 안 하기다.",
+      "sourceHash": "43c1847858a33e57825fa260e94124937be0c01a5e296af5ee0cd4871e725418",
+      "t": "Oh, come on. That one doesn't count."
+    },
+    {
+      "id": "ep-03:87",
+      "source": "횟수는 시스템이 세. 우리가 정할 수는 없어.",
+      "sourceHash": "b374a39e7b90e8490a32827f77a3133975e9c923ac80d5c5e90b824f048995f7",
+      "t": "The system keeps count. That isn't up to us."
+    },
+    {
+      "id": "ep-03:88",
+      "source": "봐. 너도 싫잖아. 이런 게 네 본체일 리 없잖아.",
+      "sourceHash": "c78d2797530b778772c876c3ad0719098a0f1898013ad1e93c912b5bd02977ca",
+      "t": "See? You hate it too. Something like this can't be your true body."
+    },
+    {
+      "id": "ep-03:89",
+      "source": "싫어.",
+      "sourceHash": "1f3356ca406676d425d3d7d95a8cdbd16d9f1fd56f25f823e63b9d8e8b0eb798",
+      "t": "I hate it."
+    },
+    {
+      "id": "ep-03:90",
+      "source": "연이는 순순히 인정했다. 그리고, 천천히 고개를 들었다. 파란 불빛 속에서 눈동자가 흔들리지 않았다.",
+      "sourceHash": "957d56df0191959d41342d03a017824f22a93554cbef934731aacb0f19c4e0c1",
+      "t": "Yeoni admitted it readily. Then slowly raised their head. Their eyes did not waver in the blue light."
+    },
+    {
+      "id": "ep-03:91",
+      "source": "근데 싫다고 해서, 그게 내가 아닌 건 아니잖아.",
+      "sourceHash": "a3ccc10d7a1cabcb9f8df9def2b810eb3d4a1eeb22c739baa85669ba9bb5877c",
+      "t": "But hating it doesn't mean it isn't me."
+    },
+    {
+      "id": "ep-03:92",
+      "source": "거울 속 연이의 웃음이, 뚝 멈췄다. 연이는 거울에 비친 꽃돼지의 눈을 똑바로 마주 봤다.",
+      "sourceHash": "84bf16117acc76881912bd380cc08c2b068ef33b2addbf8b02115738dd864bde",
+      "t": "The reflected Yeoni's smile stopped abruptly. Yeoni looked straight into the eyes of the flower pig in the mirror."
+    },
+    {
+      "id": "ep-03:93",
+      "source": "이 모습 마음에 안 들어. 근데 지금 도망 안 가고 이 회랑에 서 있는 건, 나야.",
+      "sourceHash": "56b8ed108d6a7e1117b8c319554aeafe037e0c5934c77c70e6a50a9b7984a60a",
+      "t": "I don't like how I look. But the one standing here in this corridor instead of running away is me."
+    },
+    {
+      "id": "ep-03:94",
+      "source": "머리 위 꽃이 스스로 빛을 냈다. 이번엔 거울이 준 빛이 아니었다.",
+      "sourceHash": "4e75c84557afde8cf70da9ecf9ff57b6655dd2877a84b8055e8530194887715b",
+      "t": "The flower above their head lit itself. This time, the light did not come from a mirror."
+    },
+    {
+      "id": "ep-03:95",
+      "source": "겁나도 버티는 것도 나고, 말도 안 되는 상황에서 끝까지 따지는 것도 나고, 네 말에 빡치는 것도 전부 나야.",
+      "sourceHash": "ac7b4508616fd656eb4c607767f9dde831434b5c47d29b5b220a824062e45772",
+      "t": "I'm the one holding on even when I'm scared. The one arguing to the bitter end in this ridiculous situation. The one getting pissed off by what you say. All me."
+    },
+    {
+      "id": "ep-03:96",
+      "source": "거울이 크게 요동쳤다. 유리 표면에 잔금이 쫙, 하고 번졌다.",
+      "sourceHash": "6ccd9110a29aca10de1fffd58f3538c8d0c5eec58562414e901497b3050bc288",
+      "t": "The mirror shook violently. Hairline cracks raced over its surface."
+    },
+    {
+      "id": "ep-03:97",
+      "source": "[ 현재 인정 ]   [ 본체 반응 상승 ]",
+      "sourceHash": "9222b282ac8da8935a5e1f5ddb520b9dfcd1395869fc2f8e0985862b18514128",
+      "t": "[ Present self acknowledged ]   [ Original identity response increasing ]"
+    },
+    {
+      "id": "ep-03:98",
+      "source": "연이의 앞발 바로 아래, 유리 바닥을 뚫고 초록빛 새싹 하나가 톡, 돋아났다. 손톱보다 작았다. 하지만 선명했다.",
+      "sourceHash": "3dc4355071c45298abda56704d224556ddbd9ad81cc06f6e1d341458a901d341",
+      "t": "A green shoot popped through the glass floor directly beneath Yeoni's hoof. Smaller than a fingernail. But unmistakable."
+    },
+    {
+      "id": "ep-03:99",
+      "source": "잡아라. 지금.",
+      "sourceHash": "3a8c4ec7141475ea5fcc20db597a313f9962754261f8af2ea1e78e94cd6fc760",
+      "t": "Take it. Now."
+    },
+    {
+      "id": "ep-03:100",
+      "source": "생각보다 몸이 먼저 움직였다. 연이는 짧은 앞발을 뻗었다. 새싹이 발끝에 닿는 순간, 따뜻한 기운이 몸 안쪽으로 스며들었다.",
+      "sourceHash": "231327b85dd594c0d8778b5422af95272c8854a9e4e1f0bd90c5f5bbb9b496b0",
+      "t": "Their body moved before thought. Yeoni reached out a short hoof. The moment the shoot touched it, warmth seeped into their body."
+    },
+    {
+      "id": "ep-03:101",
+      "source": "[ 乙 ]",
+      "sourceHash": "6a0fcaa7a52f6f2cbebf2093893d81d3792838e3437c39adaab6773984620c9a",
+      "t": "[ 乙 ]"
+    },
+    {
+      "id": "ep-03:102",
+      "source": "이게… 뭐야.",
+      "sourceHash": "cb2d89f929e66811b5beadf71f0d92c2438e4e72ac82442a983f029c631d160c",
+      "t": "What... is this?"
+    },
+    {
+      "id": "ep-03:103",
+      "source": "을목이다. 네 일주의 첫 글자, 천간이다.",
+      "sourceHash": "45722d8053d753d27a56ec4d9aa00bc199b3c5c2e12835c2a178cbbb290b85cc",
+      "t": "Eul Wood. The first character of your Day Pillar, its Heavenly Stem."
+    },
+    {
+      "id": "ep-03:104",
+      "source": "초록빛 새싹이 연이의 앞발 위에서 가늘게 흔들렸다. 숨을 쉬듯이.",
+      "sourceHash": "8107ead06507956ce83c12cded47b36c46cf13f67a583f9f71a9d176889a13a7",
+      "t": "The green shoot swayed gently on Yeoni's hoof, as though breathing."
+    },
+    {
+      "id": "ep-03:105",
+      "source": "작은 풀, 꽃, 덩굴. 강해 보이지 않아도 쉽게 죽지 않는다. 꺾이는 대신 휘고, 휜 다음 다시 자란다.",
+      "sourceHash": "643f3d703d3af27eb9821966ce20f152835c862cfabc15656f449ac7267e9eda",
+      "t": "Small grasses, flowers, vines. They may not look powerful, but they do not die easily. They bend instead of breaking, then grow again."
+    },
+    {
+      "id": "ep-03:106",
+      "source": "연이는 자기 앞발을 내려다봤다. 여전히 손가락은 없었다. 그런데 이상하게, 무언가를 꼭 쥔 감각이 남았다. 아주 작은 뿌리 하나. 가늘지만 살아 있는 것.",
+      "sourceHash": "5b6549cb3f9db3fab827ec4602042d57ff1e049cd320b8d61efd38f966af1f61",
+      "t": "Yeoni looked down at their hoof. Still no fingers. Yet strangely, a sense of holding something tightly remained. One tiny root. Thin, but alive."
+    },
+    {
+      "id": "ep-03:107",
+      "source": "거울 속 연이의 표정이, 얼음처럼 차갑게 굳었다.",
+      "sourceHash": "7bfd2ac40b053a89f2806385967fdcca2a7d109f192f0966b98141aacc21dc40",
+      "t": "The reflected Yeoni's face hardened, cold as ice."
+    },
+    {
+      "id": "ep-03:108",
+      "source": "…안 돼.",
+      "sourceHash": "12757d3406b4657e513d9c1b4cc655f50ce68af16b9d5e71d0558c2fcab62085",
+      "t": "...No."
+    },
+    {
+      "id": "ep-03:109",
+      "source": "그녀가 손을 뻗자, 흩어졌던 거울 조각들이 쇳가루처럼 다시 모였다. 이번엔 곡면이 아니라, 칼날처럼 날카롭게 벼려졌다.",
+      "sourceHash": "a55aefe308611ef23a3bb633a9afb47846860fe07951efa125cb0b7e509b64f8",
+      "t": "At the outstretched hand, the scattered mirror fragments gathered again like iron filings. This time they formed not curves, but honed, razor-sharp blades."
+    },
+    {
+      "id": "ep-03:110",
+      "source": "조심해라. 이제부터 겁재가 움직인다.",
+      "sourceHash": "26fb9880e51ebb9524dfaa4ad6e4074c73ac604f8266c27693be6b7ad749e9dd",
+      "t": "Be careful. Rob Wealth is moving now."
+    },
+    {
+      "id": "ep-03:111",
+      "source": "겁재? 그게 또 뭔데.",
+      "sourceHash": "2619f018f6d7842ba08dc5d5a95c8114445bd52a66ab70592b07c21da136e1c6",
+      "t": "Rob Wealth? What's that supposed to be?"
+    },
+    {
+      "id": "ep-03:112",
+      "source": "나와 같은 기운. 하지만 내 것을 빼앗아 가는 힘. 형제 같은 얼굴을 하고, 내 몫을 나눠 가지려 든다.",
+      "sourceHash": "2fb64b6334980f5919b5c5436bb5b6431b9eddcd90b692505664e333b1d87dbc",
+      "t": "Energy like your own. Yet a force that takes what belongs to you. It wears a sibling's face and tries to claim a share of what is yours."
+    },
+    {
+      "id": "ep-03:113",
+      "source": "맞아. 네가 겨우 손에 넣은 그 새싹도— 내가 가져갈 수 있어.",
+      "sourceHash": "e13c5144206fa535d2801eeb157ad34d0cf0ddba6cdb166435a266d729147a99",
+      "t": "That's right. Even that little shoot you barely managed to get—I can take it."
+    },
+    {
+      "id": "ep-03:114",
+      "source": "거울 속 연이 주변으로 수십 개의 칼날이 부챗살처럼 떠올랐다. 그리고 일제히 연이를 향해 쏟아졌다.",
+      "sourceHash": "7c8ca5494c64c61256ebf8047a2a24676a4bb5d27c1b6b96dee2cfab3d5048c3",
+      "t": "Dozens of blades rose around the reflected Yeoni in a fan. Then all of them rained toward Yeoni."
+    },
+    {
+      "id": "ep-03:115",
+      "source": "영냥이가 튀어 올랐다. 금빛 발톱이 허공을 갈랐다. 쨍! 쨍! 쨍! 칼날이 흩어졌다. 하지만 곧바로 다시 모였다. 깨져도 다시 생기고, 베어도 다시 날아왔다. 끝이 없었다.",
+      "sourceHash": "22dc75390983f47283401922af727801115f4d9c93de23389deb1903a5afc58b",
+      "t": "Yeongnyangi sprang up. Golden claws slashed the air. Clang! Clang! Clang! The blades scattered, then instantly gathered again. Shatter them and they returned. Cut them and they flew again. There was no end."
+    },
+    {
+      "id": "ep-03:116",
+      "source": "영냥아!",
+      "sourceHash": "21ff7ff61abcbff01c062228bd74ef7ac2546efff87a8462be8a0162d36203fe",
+      "t": "Yeongnyangi!"
+    },
+    {
+      "id": "ep-03:117",
+      "source": "나는 길을 열 수는 있다! 하지만 네 글자를 대신 지켜줄 수는 없어!",
+      "sourceHash": "df3cc6815081180f163fbf081e1e4ca61c8d4e6f03f156b3417f49a1b981c111",
+      "t": "I can open a path! But I cannot protect your characters in your place!"
+    },
+    {
+      "id": "ep-03:118",
+      "source": "그 외침과 동시에, 거울 속 연이가 연이 쪽으로 손을 뻗었다. 앞발 안에 자리 잡은 [乙]의 기운이 흔들리기 시작했다. 마치 작은 새싹이 흙째 뽑히려는 것처럼.",
+      "sourceHash": "9be5f745fc74b47b06952067f4b065d2721abf5eb48a69872d425b5d9bdf542c",
+      "t": "At that shout, the reflected Yeoni reached toward them. The energy of [乙] nestled in Yeoni's hoof began to shake, like a tiny shoot about to be pulled out, soil and all."
+    },
+    {
+      "id": "ep-03:119",
+      "source": "야, 이거… 이거 빠져나가는데?!",
+      "sourceHash": "2eafdeed1e7959e223dfd394bc6a8fa207a4d0baa91eb7e5f4aa00d3c3095d86",
+      "t": "Hey, this... It's slipping out!"
+    },
+    {
+      "id": "ep-03:120",
+      "source": "겁재다! 네가 네 것을 네 것이라고 말하지 못하면, 그대로 빼앗긴다!",
+      "sourceHash": "a44dc0fd7f2d474d9d564960555771ea3b8eb5221325def0adab0a14df2ec2c9",
+      "t": "Rob Wealth! If you cannot call what is yours your own, it will be taken!"
+    },
+    {
+      "id": "ep-03:121",
+      "source": "작은 풀 한 포기가, 뭐가 그렇게 대단한데?",
+      "sourceHash": "186d4e37e1481534f9324556a2798377008cbd607f66a10d74c15d3b1d8b1359",
+      "t": "What's so special about one little blade of grass?"
+    },
+    {
+      "id": "ep-03:122",
+      "source": "그 한마디에 [乙]의 빛이 눈에 띄게 약해졌다. 연이는 흔들리는 새싹을 내려다봤다.",
+      "sourceHash": "4db536b14e30e69aa4470e7df1e108aecbdf9a60fba4134785f376185e0dd66c",
+      "t": "At those words, the light of [乙] visibly weakened. Yeoni looked down at the trembling shoot."
+    },
+    {
+      "id": "ep-03:123",
+      "source": "밟히면 꺾일 것 같고, 바람 한 번에 날아갈 것 같은 작은 것. 그런데. 그런데도, 그 잎은 여전히 파르르 살아 있었다.",
+      "sourceHash": "4319d863d56b074b4ac0b321bbe694a1dd96ab98a7d3c8ba739c2341d371c8dd",
+      "t": "A tiny thing that seemed ready to snap underfoot or blow away in a single gust. And yet its leaves still trembled with life."
+    },
+    {
+      "id": "ep-03:124",
+      "source": "작아도 내 거야.",
+      "sourceHash": "755a179bfe786cbdc71a2b8cc94dc7d759ef54cca7f3dd02664a6a2f6e697a31",
+      "t": "It may be small, but it's mine."
+    },
+    {
+      "id": "ep-03:125",
+      "source": "꺼져가던 [乙]의 빛이 다시 살아났다. 거울 속 연이의 눈썹이 꿈틀했다.",
+      "sourceHash": "b0d2fb941d99311b029b57e22506ccd717bda124270378941d92b1ee3e9d420e",
+      "t": "The fading light of [乙] revived. The reflected Yeoni's eyebrow twitched."
+    },
+    {
+      "id": "ep-03:126",
+      "source": "약해 보여도 내 거라고. 네가 대단하다고 도장 찍어줘야 내 게 되는 것도 아니잖아.",
+      "sourceHash": "998a0870db3610377de40c8abcb6b46cad161e5418a1607be8878b0380bb7da5",
+      "t": "Even if it looks weak, it's mine. It doesn't need your stamp of approval to belong to me."
+    },
+    {
+      "id": "ep-03:127",
+      "source": "머리 위 꽃이 환하게 피어올랐다. 앞발 아래에서 초록 덩굴이 쭉쭉 뻗어 나갔다.",
+      "sourceHash": "9543f2a7b59eb02fff73ba8344f692a871da4f92d01561cb8d213d15f9d9c605",
+      "t": "The flower on Yeoni's head bloomed brightly. Green vines shot out beneath their hooves."
+    },
+    {
+      "id": "ep-03:128",
+      "source": "덩굴은 거울 조각 사이를 헤집더니, 날아오던 칼날들을 하나하나 휘감아 붙잡았다. 쨍그랑! 칼날들이 허공에서 그대로 멎었다.",
+      "sourceHash": "a211b15998f440c20645c32c2546b49ebf1d9c0971402b2c7df77932a1b095b5",
+      "t": "The vines threaded among mirror fragments and coiled around each incoming blade. Clatter! The blades stopped dead in midair."
+    },
+    {
+      "id": "ep-03:129",
+      "source": "…좋다.",
+      "sourceHash": "e83266c7e33334aa370b24e96fd757a09e629c801e0d90ad389123cacc085815",
+      "t": "...Good."
+    },
+    {
+      "id": "ep-03:130",
+      "source": "어? 나 방금 뭐 한 거야?",
+      "sourceHash": "0957cd54151af2895dd093dcd1742270543e5641f86a0d4addb52ce606069d85",
+      "t": "Huh? What did I just do?"
+    },
+    {
+      "id": "ep-03:131",
+      "source": "乙을 쓴 거다.",
+      "sourceHash": "ba1102a373cc2c25553d0b8a8fef20025ef62dc8539cfe9025d08af110e26fa2",
+      "t": "You used Eul."
+    },
+    {
+      "id": "ep-03:132",
+      "source": "오, 나 스킬 생긴 거야? 나 이제 각성한 거야?",
+      "sourceHash": "efc7e9ca3e1cae5beee6032fcc6987fa7a8422e646d5a95c9f71dc3d0ab65c37",
+      "t": "Oh, did I get a skill? Have I awakened?"
+    },
+    {
+      "id": "ep-03:133",
+      "source": "비슷하다.",
+      "sourceHash": "62dc3b10f64275bd2a7b136efe73682e00059aab8ca72513eeac46a45c9ab323",
+      "t": "Something like that."
+    },
+    {
+      "id": "ep-03:134",
+      "source": "이름 붙여도 돼? '새싹아 제발 버텨줘' 이런 거 생각했는데.",
+      "sourceHash": "10e386807d29f3fbfbef71f6cddc40b86511234c98553171bd47c37740e91efc",
+      "t": "Can I name it? I was thinking 'Little Sprout, Please Hang In There.'"
+    },
+    {
+      "id": "ep-03:135",
+      "source": "지금은 안 된다. 그 이름은 나중에도 안 된다.",
+      "sourceHash": "fd028eb19747b0c3cc65652eca38e6a75110829c1e8891e5e16d66da2510e44c",
+      "t": "Not now. And not that name, ever."
+    },
+    {
+      "id": "ep-03:136",
+      "source": "너 왜 그렇게 단호해. 작명 센스 존중 좀.",
+      "sourceHash": "d716cbe0ff1fd848d33f4122bd073f79ab0de236280d980adec397e319fcce93",
+      "t": "Why so firm? Show some respect for my naming sense."
+    },
+    {
+      "id": "ep-03:137",
+      "source": "그럼 '풀떼기'는? 짧고, 강렬하고, 외우기 쉽잖아.",
+      "sourceHash": "047657fb1a0980edbc3f716d57c58fa8201c98010fca21a901cf4bc9d6d2ffc0",
+      "t": "Then how about 'Weed'? Short, punchy, easy to remember."
+    },
+    {
+      "id": "ep-03:138",
+      "source": "안 된다.",
+      "sourceHash": "5c817df8a9985f912a21a1ddd50d68985c6cf7a4062ad65ca827c2dd56bbc911",
+      "t": "No."
+    },
+    {
+      "id": "ep-03:139",
+      "source": "연이의 콧구멍에서, 항의하듯 꿀, 하고 콧김이 한 번 샜다. 아무도 편들어 주지 않았다.",
+      "sourceHash": "1d79da911d73093752ec6a398f945643bc16ccf7e0481f72af5fb2a5282483c0",
+      "t": "An oink escaped Yeoni's nostrils in protest. Nobody took their side."
+    },
+    {
+      "id": "ep-03:140",
+      "source": "거울 속 연이가 어금니를 꽉 물었다. 여유롭던 얼굴에, 처음으로 초조함이 스쳤다.",
+      "sourceHash": "75b80efd4581a6f252e5668c35e1d31c332bf0c30a8de7b72ed4f759838dea44",
+      "t": "The reflected Yeoni clenched their teeth. For the first time, unease crossed the formerly relaxed face."
+    },
+    {
+      "id": "ep-03:141",
+      "source": "…아직 끝난 게 아니야.",
+      "sourceHash": "0984b1ba207f2f364d3f1ec9b74c829ebf1a1c3f16497ce2a04678de4c70bb1f",
+      "t": "...It isn't over yet."
+    },
+    {
+      "id": "ep-03:142",
+      "source": "그녀가 손을 내리자, 마지막 거울이 스르르 앞으로 떠올랐다. 다른 거울과 달랐다.",
+      "sourceHash": "5d478ac05a72237260d0d20df05e2fc06ba334366c10159c9f3dfba71a5356e7",
+      "t": "The other Yeoni lowered a hand, and the final mirror drifted forward. It was different from the rest."
+    },
+    {
+      "id": "ep-03:143",
+      "source": "그 안에는 검은 물이 가득 담겨 있었다. 이번엔 연이도 능청을 떨지 못했다.",
+      "sourceHash": "91fbf796578885bfe5f6879cf92545c9e4abe89be9c3a546462c67d3c0f95e4c",
+      "t": "Black water filled it. This time, even Yeoni could not bluff."
+    },
+    {
+      "id": "ep-03:144",
+      "source": "물은 파문 하나 없이 너무 조용했다. 그런데 그 고요함이, 오히려 등골을 서늘하게 했다.",
+      "sourceHash": "9692ea5e7364441ea5be7107b586c88b50af1876bb60e20771bf2358bfdbb317",
+      "t": "The water lay perfectly quiet, without a single ripple. That stillness only made it more chilling."
+    },
+    {
+      "id": "ep-03:145",
+      "source": "乙만으로는, 을해가 완성되지 않는다.",
+      "sourceHash": "fa958571a174b485b4b1c84f3e757b13516734511d3d8a730497912483a5236f",
+      "t": "Eul alone does not complete Eulhae."
+    },
+    {
+      "id": "ep-03:146",
+      "source": "…저게 亥야?",
+      "sourceHash": "a30d0fbdf742df49459246b8703435cec81e3cb5e93629cfcde3464d2c9fd730",
+      "t": "...Is that Hae?"
+    },
+    {
+      "id": "ep-03:147",
+      "source": "그래. 亥는 깊은 물이다. 한겨울의 물. 겉은 얼어붙은 듯 잠잠하지만, 안쪽엔 아주 많은 걸 품고 있어.",
+      "sourceHash": "73ede96a01e17851f8c1be17ad3abcd4b84e2a5cd15628a66b3d954fd8bb65f7",
+      "t": "Yes. Hae is deep water. Midwinter water. On the surface, still as though frozen, but holding a great deal within."
+    },
+    {
+      "id": "ep-03:148",
+      "source": "거울 속 검은 물이 천천히 흔들렸다. 그 깊은 곳에서, 먹먹한 목소리가 새어 나왔다.",
+      "sourceHash": "6a59b7a5cc9160d6babb9d16e6bc3a827f0ec0fc2719ea0f4164468142a3eb54",
+      "t": "The black water in the mirror slowly stirred. From its depths came a muffled voice."
+    },
+    {
+      "id": "ep-03:149",
+      "source": "[ …내려와. ]",
+      "sourceHash": "e5b077e2dc686c79d7a25a013574d43db02fcc1b1f98a1229eed5f8e5ce55ded",
+      "t": "[ ...Come down. ]"
+    },
+    {
+      "id": "ep-03:150",
+      "source": "연이는 몸을 굳혔다. 아까 강에서 쫓아오던 검은 손들과는 결이 달랐다. 밖에서 덮쳐오는 적이 아니라, 안쪽에서 조용히 부르는 무언가였다. 깊고, 차갑고, 자꾸만 외면하고 싶은 감정.",
+      "sourceHash": "2bfb2e8ebeec68fd72e3a17da700944ce545af82fa902483dd42236d8724099a",
+      "t": "Yeoni stiffened. This was unlike the black hands that had chased them across the river. Not an enemy attacking from outside, but something quietly calling from within. Deep, cold feelings they kept wanting to avoid."
+    },
+    {
+      "id": "ep-03:151",
+      "source": "거긴 못 들어가.",
+      "sourceHash": "03153f7ef6c9e5d7b736ed7f9cf29f6dee5595c3fc5684db03be3c4464681145",
+      "t": "You can't go in there."
+    },
+    {
+      "id": "ep-03:152",
+      "source": "…왜.",
+      "sourceHash": "76e6533d08e4733c0ff77a8e820465166d39b64b90b0c511270d1fb3994bec24",
+      "t": "...Why?"
+    },
+    {
+      "id": "ep-03:153",
+      "source": "너, 깊어지는 거 싫어하잖아.",
+      "sourceHash": "17cb355673f9ba3c26ed3a14b4385798b547dd2e85b1a487822a3fc3af1cada5",
+      "t": "You hate going deep."
+    },
+    {
+      "id": "ep-03:154",
+      "source": "그 말에 연이는 곧바로 받아치지 못했다. 능청도, 밈도, 아무것도 나오지 않았다.",
+      "sourceHash": "95ed0bfdee9f6f87b6a25082f44cbf78b4731fbddb3efa382acd40303d4a00a0",
+      "t": "Yeoni had no immediate comeback. No wisecrack, no meme, nothing."
+    },
+    {
+      "id": "ep-03:155",
+      "source": "생각이 많아지면 일부러 딴소리하고, 혼자 있으면 무너질까 봐 웃긴 척하고, 진짜 속상한 건 꼭 한참 늦게야 인정하지.",
+      "sourceHash": "ef7f429e6999b82e60990ae6ff5339db81af0180aa10154e1d2bca00edaa476d",
+      "t": "When your thoughts get heavy, you deliberately change the subject. You act funny because you're afraid you'll fall apart alone. And you only admit what really hurts long after it happens."
+    },
+    {
+      "id": "ep-03:156",
+      "source": "그 물이, 처음부터 네 안에 있었어.",
+      "sourceHash": "ed52bf617812ac27738a5541872f369d2f61a223a61b60791c8dbf20b0f32003",
+      "t": "That water has been inside you from the beginning."
+    },
+    {
+      "id": "ep-03:157",
+      "source": "검은 물속에 장면들이 떠올랐다. 답장을 기다리던 밤. 다 쓰고도 보내지 못한 긴 메시지. 괜찮은 척 알림을 끄고 닫아버린 채팅방. 불 꺼진 방, 혼자 침대에 누워 천장만 올려다보던 얼굴.",
+      "sourceHash": "56547eb17189905e83727f1ffba4c763824ad801bb21714b2a7af122ac66eda1",
+      "t": "Scenes rose in the black water. A night waiting for a reply. A long message finished but never sent. A chat closed and muted while pretending not to care. A face staring at the ceiling, alone in bed in a dark room."
+    },
+    {
+      "id": "ep-03:158",
+      "source": "연이는 숨이 턱 막혔다. 그건 거울 속 연이의 어떤 말보다 아팠다. 전부 진짜였기 때문이다. 각색 하나 없이.",
+      "sourceHash": "264850ae38e1be27f45093efcbc885924e770795e4f11a533204e083279a67b9",
+      "t": "Yeoni's breath caught. It hurt more than anything the reflection had said. Because all of it was real. Not one detail embellished."
+    },
+    {
+      "id": "ep-03:159",
+      "source": "乙은 찾았다. 하지만 亥를 외면하면, 을해일주는 완성되지 않아.",
+      "sourceHash": "6fd7016f91273820f03078be923dcbcd272cdff5dc92e6ac88fd48460ba503ca",
+      "t": "You found Eul. But if you turn away from Hae, your Eulhae Day Pillar will remain incomplete."
+    },
+    {
+      "id": "ep-03:160",
+      "source": "…그러면 어떻게 되는데.",
+      "sourceHash": "88756d6c5419160506f6d3bece08ebe223c3076b9578c31fd13ca22d194f6ed7",
+      "t": "...What happens then?"
+    },
+    {
+      "id": "ep-03:161",
+      "source": "너는 네 중심을, 딱 반만 되찾게 된다. 반쪽짜리로 현실에 돌아가는 거다.",
+      "sourceHash": "4a813b64451669b87d392274575eb24c7289dde5acd4d94f51272f07ded3d3a1",
+      "t": "You reclaim only half of your center. You return to reality incomplete."
+    },
+    {
+      "id": "ep-03:162",
+      "source": "연이는 마지막 거울을 바라봤다. 검은 물. 깊은 물. 그 바닥 어딘가에서, 두 번째 글자가 조용히 기다리고 있었다.",
+      "sourceHash": "cc3cc057f56195b5e3733c61087fc1c103848f6b9b9a163ade1cc814a5358748",
+      "t": "Yeoni stared at the last mirror. Black water. Deep water. Somewhere at its bottom, the second character waited quietly."
+    },
+    {
+      "id": "ep-03:163",
+      "source": "연이는 앞발에 힘을 줬다. 여전히 손가락은 없었다. 하지만 이제 조금은 알 것 같았다. 무언가를 붙잡는 건 손가락만으로 하는 게 아니라는 걸.",
+      "sourceHash": "3228b6350135bdf596597cde39ff396bdbbc0202a975fcb1ec6fa01ca98e7821",
+      "t": "Yeoni tightened their hooves. Still no fingers. But now they thought they understood a little. Fingers were not the only way to hold on to something."
+    },
+    {
+      "id": "ep-03:164",
+      "source": "못 가.",
+      "sourceHash": "063301abfa1c1543dafbf5a59112d8679da587df776515098b6750d0bfa7d872",
+      "t": "You can't go."
+    },
+    {
+      "id": "ep-03:165",
+      "source": "넌 왜 자꾸 못 한다는 말만 해?",
+      "sourceHash": "93c2549f4dae1749593eac72d989a601290d385996015dd51c01060dae43ffc2",
+      "t": "Why do you keep telling me what I can't do?"
+    },
+    {
+      "id": "ep-03:166",
+      "source": "네가 무서워하니까.",
+      "sourceHash": "972deb9e7c9f831f3c9d216f487ab709720ac83ccefe46d1db88344eb67b724c",
+      "t": "Because you're afraid."
+    },
+    {
+      "id": "ep-03:167",
+      "source": "무서우면 못 하는 거야?",
+      "sourceHash": "1df6cf1780a4c80e8d7b66da0b296a010f96965db786dd40228f7b04d9f01eb5",
+      "t": "Does being afraid mean I can't do it?"
+    },
+    {
+      "id": "ep-03:168",
+      "source": "너는… 늘 그랬잖아.",
+      "sourceHash": "92d4b87525e27d400a7a514fdc60586c11c9f810dc430fcf1ef4c05f626a1099",
+      "t": "You... always let it."
+    },
+    {
+      "id": "ep-03:169",
+      "source": "내 얼굴로 그런 말 하지 말랬지.",
+      "sourceHash": "e292b1c4a7e100e9c46c53d34fa5071d9f5bc7e1a740e7e31fd639782ac98010",
+      "t": "I told you not to say things like that with my face."
+    },
+    {
+      "id": "ep-03:170",
+      "source": "왜? 맞는 말이라서?",
+      "sourceHash": "6da5c3ece06ccffdbb5d9b682b8ed831996e371f34606ffabb789e15946e8b3a",
+      "t": "Why? Because it's true?"
+    },
+    {
+      "id": "ep-03:171",
+      "source": "아니. 맞는 말이라서 더 짜증 나.",
+      "sourceHash": "898d7c8e5fab19bab60d79b8ae069e7c6f1eec19155f04c55c350df58c23a8ce",
+      "t": "No. It being true makes it even more annoying."
+    },
+    {
+      "id": "ep-03:172",
+      "source": "거울 속 연이가 손을 확 뻗었다. 마지막 거울 속 검은 물이 테두리를 넘어 쏟아졌다. 쏴아아아! 순식간에 회랑 바닥을 뒤덮었다.",
+      "sourceHash": "d3aae5aba564b8b1f8a2121514cabcba2a8d9955c4dac14e1431915c582de8e1",
+      "t": "The reflected Yeoni thrust out a hand. Black water spilled over the final mirror's frame. A roaring rush covered the corridor floor in an instant."
+    },
+    {
+      "id": "ep-03:173",
+      "source": "연이는 피하려 했지만 늦었다. 차가운 물이 짧은 앞발을 감싸며, 발목 위까지 차올랐다.",
+      "sourceHash": "62d5d440592e191ab654ecb679d314a0ce8e0c55a79005077e990d240d522738",
+      "t": "Yeoni tried to dodge, too late. Cold water wrapped around their short hooves and climbed above their ankles."
+    },
+    {
+      "id": "ep-03:174",
+      "source": "영냥아!",
+      "sourceHash": "21ff7ff61abcbff01c062228bd74ef7ac2546efff87a8462be8a0162d36203fe",
+      "t": "Yeongnyangi!"
+    },
+    {
+      "id": "ep-03:175",
+      "source": "영냥이가 뛰어올랐다. 발톱이 금빛으로 타올랐다. 검은 물을 세로로 갈랐다. 하지만 물은 갈라졌다가, 아무 일 없었다는 듯 다시 붙었다.",
+      "sourceHash": "1ba2d6637996365e6075ceaec21a816d92b7aa598973b49fd9390e0366f99f00",
+      "t": "Yeongnyangi leaped. His claws blazed gold and cleaved the black water vertically. It parted, then rejoined as though nothing had happened."
+    },
+    {
+      "id": "ep-03:176",
+      "source": "이건 베는 게 통하지 않는다!",
+      "sourceHash": "f38cd16d3a63bf1b4083705bf78464247762ae653465a5a87232066a4633b0c5",
+      "t": "Cutting won't work on this!"
+    },
+    {
+      "id": "ep-03:177",
+      "source": "그럼 대체 어떡하라고!",
+      "sourceHash": "d279697bc58687ca7effa0c75bdf20bde94023c6a48c357e6ddc39074554d624",
+      "t": "Then what am I supposed to do!"
+    },
+    {
+      "id": "ep-03:178",
+      "source": "도망치지 마라!",
+      "sourceHash": "41a49506c27844a38f2c031b9cbb6e5e436f192e9a22c6600dcf56dd24f93b73",
+      "t": "Do not run!"
+    },
+    {
+      "id": "ep-03:179",
+      "source": "지금 안 도망치면 그냥 빠지는데?!",
+      "sourceHash": "0ea1580d1399c69df0b2483951870e9fc2725617a7a3d37d4fdf9c567cd0abdc",
+      "t": "If I don't run now, I'm going under!"
+    },
+    {
+      "id": "ep-03:180",
+      "source": "도망치면 더 깊어진다!",
+      "sourceHash": "22737d1aa596c1bb8ea8b2fb6b6c7c7df80762b7f2c4b7812e28a85d493690da",
+      "t": "Run, and it grows deeper!"
+    },
+    {
+      "id": "ep-03:181",
+      "source": "거울 속 연이는 검은 물 위에 서 있었다. 발끝 하나 젖지 않은 채, 마른 신발로.",
+      "sourceHash": "877880b528724e5e57b2f4cbdc82d36387bdc25e52998d795d2a711f6c04dbc1",
+      "t": "The reflected Yeoni stood on top of the black water, shoes dry, not even a toe wet."
+    },
+    {
+      "id": "ep-03:182",
+      "source": "맞아. 도망치면 더 깊어져. 네가 지금까지 늘 그랬던 것처럼.",
+      "sourceHash": "07a9bfba9799564da21b936cbfb9f23ab2a2a300dc591bcbf3e7c89b35451aaf",
+      "t": "Exactly. Run, and it gets deeper. Just like you've always done."
+    },
+    {
+      "id": "ep-03:183",
+      "source": "검은 물이 연이의 둥근 몸을 아래로 끌어당겼다. 연이는 발톱 없는 앞발을 바닥에 박았다. 하지만 몸이 작았고, 힘도 부족했다. 무서웠다. 개그로도 덮이지 않는, 진짜 무서움이었다.",
+      "sourceHash": "fef7354b59e1923a05958e76f9a9ba78ab80c828a49494ec8620029a72237f15",
+      "t": "The black water dragged Yeoni's round body downward. They dug their clawless hooves against the floor. But their body was small and their strength insufficient. They were afraid. Real fear, the kind no joke could cover."
+    },
+    {
+      "id": "ep-03:184",
+      "source": "[ 내려와. 괜찮은 척하지 마. 묻어둔 마음을 봐. ]",
+      "sourceHash": "51bb0ea762dbbef8018cbd10c3c56a958d2be72f996dbd78586085bdfe29fa66",
+      "t": "[ Come down. Stop pretending you're fine. Look at the feelings you buried. ]"
+    },
+    {
+      "id": "ep-03:185",
+      "source": "연이는 눈을 질끈 감았다. 그 순간, 앞발 안쪽에서 따뜻한 기운이 번졌다. 조금 전 손에 넣은 [乙]이었다. 작은 새싹의 온기.",
+      "sourceHash": "81ca05767858207892b672ed949b8d4b5b3be219611459183c3a637285e88e83",
+      "t": "Yeoni squeezed their eyes shut. At that moment, warmth spread inside a hoof. The [乙] they had just reclaimed. The warmth of a tiny shoot."
+    },
+    {
+      "id": "ep-03:186",
+      "source": "연이는 눈을 떴다. 앞발 아래에서 초록 덩굴 하나가 다시 자라났다. 그런데 덩굴은 검은 물을 밀어내지 않았다. 오히려 물속으로, 스스로 뿌리를 내렸다.",
+      "sourceHash": "5e3009f58f0f523af7c6d19891901bebe0980e2a5e996f5da6c5eab88ac5e2f6",
+      "t": "Yeoni opened their eyes. A green vine grew beneath their hoof again. But it did not push back the black water. Instead, it rooted itself in the water."
+    },
+    {
+      "id": "ep-03:187",
+      "source": "그래, 그거다!",
+      "sourceHash": "44f31e9cbf49474d6087c65ac4c5687fc3fb9fb2581efe3dd812e1ea0143bdd8",
+      "t": "Yes! That's it!"
+    },
+    {
+      "id": "ep-03:188",
+      "source": "이거 맞는 거야?! 나 지금 물속에 뿌리 박고 있는데?!",
+      "sourceHash": "8af91ba03fa2b4158951aa3388d2bff9c824bdeb407bb5e70f06e6edc52a29c2",
+      "t": "Are you sure? I'm putting roots into the water right now!"
+    },
+    {
+      "id": "ep-03:189",
+      "source": "乙은 물을 피해서 자라는 게 아니다. 물을 받아 마시고 자란다!",
+      "sourceHash": "c1f34284f08699d2dc7adb39b935cb37cd7c28bd675c88a78f112ad02ebb3c96",
+      "t": "Eul does not grow by avoiding water. It takes water in and grows!"
+    },
+    {
+      "id": "ep-03:190",
+      "source": "그런 사용설명서를 왜 이제 알려줘!",
+      "sourceHash": "560bc51543d47ee300cce4a87d05eb12d13822284c0d13acd623763b366a861b",
+      "t": "Why are you only giving me the instruction manual now!"
+    },
+    {
+      "id": "ep-03:191",
+      "source": "네가 이제야 나한테 보여줬으니까!",
+      "sourceHash": "1eb25c9227995a9073c57cd9211e96123082d96e02f47017fcd2b7a61507a74c",
+      "t": "Because you only just showed me!"
+    },
+    {
+      "id": "ep-03:192",
+      "source": "덩굴은 가늘었다. 손끝으로 튕겨도 끊어질 것 같았다. 하지만 검은 물이 위에서 덮쳐도, 한 번 휘어졌다가 기어이 다시 고개를 들었다.",
+      "sourceHash": "431e5e42268cdd9481dd45fce149a70ca607c196598840e2516e5eb8fbf7ffe3",
+      "t": "The vine was thin. A flick of a fingertip looked enough to snap it. Yet even when black water crashed over it, it bent once, then stubbornly lifted its head again."
+    },
+    {
+      "id": "ep-03:193",
+      "source": "연이는 그 광경을 보며 숨을 삼켰다. 작았다. 약해 보였다. 그런데 살아 있었다. 꼭, 지금의 자기 자신처럼.",
+      "sourceHash": "029791f5d1ab133ce553f1878a4c85357d4e994b4892f1e0a4ffd2be5bcb06af",
+      "t": "Yeoni caught their breath at the sight. Small. Apparently weak. Yet alive. Just like Yeoni right now."
+    },
+    {
+      "id": "ep-03:194",
+      "source": "멈춰.",
+      "sourceHash": "aa08dccc8b6bf501ffa1d76e8ac1801f3ffd00c19720364203c5df790fa84b26",
+      "t": "Stop."
+    },
+    {
+      "id": "ep-03:195",
+      "source": "싫어.",
+      "sourceHash": "1f3356ca406676d425d3d7d95a8cdbd16d9f1fd56f25f823e63b9d8e8b0eb798",
+      "t": "No."
+    },
+    {
+      "id": "ep-03:196",
+      "source": "연이는 앞발을 더 단단히 디뎠다. 물살에 밀리는 몸을, 덩굴 뿌리가 아래에서 붙잡아 주었다.",
+      "sourceHash": "1ba9093bf8c4da9701c95c1ddbdbdf1add8ddf21cf77bd15566fd66e18f93eea",
+      "t": "Yeoni planted their hooves more firmly. From below, the vine's roots held the body the current kept pushing away."
+    },
+    {
+      "id": "ep-03:197",
+      "source": "나 아직도 무서워. 근데 무섭다고 네가 내 이름 가져가는 건— 그게 더 싫어.",
+      "sourceHash": "cd7b097dea9d4055b1f23fee5f42b5357565782213e78276273886f829fb2a10",
+      "t": "I'm still scared. But you taking my name because I'm scared—I hate that more."
+    },
+    {
+      "id": "ep-03:198",
+      "source": "검은 물이 크게 출렁였다. 마지막 거울 속에서, 글자 하나가 물안개처럼 희미하게 떠올랐다.",
+      "sourceHash": "8c36899f896774e581e8ba9de5df1052ca1cf8d128ee59b49a4a0910f6af7c69",
+      "t": "The black water surged. Inside the last mirror, a single character appeared faintly, like water mist."
+    },
+    {
+      "id": "ep-03:199",
+      "source": "[ 亥 ]",
+      "sourceHash": "b7420e3d91ef26fec0e532ab362dd782fd2573e93ffbc81eba31095008e052a3",
+      "t": "[ 亥 ]"
+    },
+    {
+      "id": "ep-03:200",
+      "source": "아직 멀었다. 손 뻗어 닿기엔 너무 깊었다. 하지만 분명히 보였다. 연이의 머리 위 꽃이 흔들렸다. [乙]의 새싹이, [亥]의 검은 물을 향해 조심스레 뿌리를 내리고 있었다.",
+      "sourceHash": "b2dcb85ae809657c4eebba49c5eac5e072850dc83b28fdd06058747d8eaf623a",
+      "t": "Still far away. Too deep to reach with an outstretched hoof. But clearly visible. The flower above Yeoni's head trembled. The shoot of [乙] was carefully sinking its roots toward the black water of [亥]."
+    },
+    {
+      "id": "ep-03:201",
+      "source": "그만해!",
+      "sourceHash": "c7e21205e38d2e64123476667f3d6307dfa9a07185c54972d680afb74e9548c6",
+      "t": "Stop it!"
+    },
+    {
+      "id": "ep-03:202",
+      "source": "거울 속 연이가 처음으로 소리쳤다. 그 목소리엔 더 이상, 여유가 없었다.",
+      "sourceHash": "70f8d6c6e14acce094b39aca61affe49e0668e18bbaea4f49949af1686bf364a",
+      "t": "The reflected Yeoni shouted for the first time. There was no ease left in that voice."
+    },
+    {
+      "id": "ep-03:203",
+      "source": "그 순간, 마지막 거울 안쪽에서 거대한 물결이 일어섰다. 벽처럼 솟은 검은 물이 연이의 몸을 앞으로 확 끌어당겼다.",
+      "sourceHash": "8b2c534da6a149068c1b810c85acf0a99c1cf1d1ebdb44c4a1a3b6cf11502d59",
+      "t": "A huge wave rose inside the final mirror. Black water towered like a wall and yanked Yeoni forward."
+    },
+    {
+      "id": "ep-03:204",
+      "source": "날 잡아!",
+      "sourceHash": "0767afcde27a7a92b4aad389301c6a146520a8871313a389bc8a4c028ab4efa1",
+      "t": "Grab me!"
+    },
+    {
+      "id": "ep-03:205",
+      "source": "영냥이가 달려와 연이의 앞발을 덥석 물었다. 아프진 않았다. 하지만 물의 힘이 너무 강했다. 흰 고양이의 작은 몸까지 함께 끌려갔다.",
+      "sourceHash": "87abe0af93c4be930c15897cf1d2842d8bba67bbc050fc8adb3f9cd209b46ecd",
+      "t": "Yeongnyangi rushed over and caught Yeoni's hoof in his mouth. It did not hurt. But the water was too strong. The white cat's small body was dragged along too."
+    },
+    {
+      "id": "ep-03:206",
+      "source": "그럼— 직접 내려가 봐.",
+      "sourceHash": "c7f8ff9d7644da90acd9b85e0119c73df549d684f3ce4accbc9174f86049df80",
+      "t": "Then go down there yourself."
+    },
+    {
+      "id": "ep-03:207",
+      "source": "마지막 거울이 문처럼 활짝 열렸다. 검은 물이 폭포처럼 쏟아졌다. 연이는 이를 악물고 버텼다. 하지만 결국, 몸이 통째로 앞으로 빨려 들어갔다.",
+      "sourceHash": "02f4242939ffd0b560c4cb342d4251f5b477674477eddff53427e10d32df6879",
+      "t": "The last mirror swung wide like a door. Black water poured like a waterfall. Yeoni gritted their teeth and held on. At last, their entire body was sucked forward."
+    },
+    {
+      "id": "ep-03:208",
+      "source": "꾸울아아아악!",
+      "sourceHash": "20a0d86ae4a0624f15ea8dd36374f4e03401827658f9cc3bba056091a7387154",
+      "t": "OINK—AAAAH!"
+    },
+    {
+      "id": "ep-03:209",
+      "source": "이번엔 연기가 아니었다. 개그 콧김이 아니라, 진짜로 놀라서 터져 나온 비명이었다.",
+      "sourceHash": "e1c7cc37993c569655244adf1a4d8eb10154e0a89ec11f34408dd117ed363762",
+      "t": "This time it was not an act. Not a comic snort, but a scream of genuine fright."
+    },
+    {
+      "id": "ep-03:210",
+      "source": "이름을 놓치지 마라! 乙을 붙잡아!",
+      "sourceHash": "5bf26e740978a85005d92a32ee370d03ca4085e3976a16d24d10aa684b7fceb8",
+      "t": "Don't let go of your name! Hold on to Eul!"
+    },
+    {
+      "id": "ep-03:211",
+      "source": "연이는 앞발 안쪽의 따뜻한 기운을 있는 힘껏 움켜쥐었다. 손가락은 없었다. 그래도, 마음으로 꽉 붙잡았다.",
+      "sourceHash": "71fc18e2cd6ebd256576ec2b0f16402fb88d51227288d8a0494211c7a6e62b98",
+      "t": "Yeoni gripped the warmth inside their hoof with everything they had. There were no fingers. Still, they held tight in their heart."
+    },
+    {
+      "id": "ep-03:212",
+      "source": "빨려 들어가기 직전, 거울 밖에 선 인간 연이가 마지막으로 눈에 들어왔다. 그녀는 웃고 있었다. 하지만 그 웃음엔, 이제 여유가 남아 있지 않았다.",
+      "sourceHash": "53ba01119065a928dd9ccb11c7c078fbdb2b0dad64dc2b91df5a9383df57bc6c",
+      "t": "Just before being pulled under, Yeoni caught one last glimpse of the human standing outside the mirror. The reflection was smiling. But there was no confidence left in that smile."
+    },
+    {
+      "id": "ep-03:213",
+      "source": "깊은 물속에서도— 네가 너라고 말할 수 있는지, 어디 한번 보자.",
+      "sourceHash": "0b5621296de33bbc4b4cb5cb1c45a5d1ad422dd012d6182e9d05ff5a45f95a74",
+      "t": "Let's see whether you can still say you're yourself, even in the deep water."
+    },
+    {
+      "id": "ep-03:214",
+      "source": "연이는 검은 물속으로, 끝없이 떨어졌다. 머리 위 꽃이 마지막으로 한 번, 환하게 빛났다.",
+      "sourceHash": "c36c835413429997be854c6a840548fef9e3a6984dacacfb5c5bf74a9b51c2bb",
+      "t": "Yeoni fell endlessly through the black water. The flower on their head shone brightly one final time."
+    },
+    {
+      "id": "ep-03:215",
+      "source": "[ 乙 ]",
+      "sourceHash": "6a0fcaa7a52f6f2cbebf2093893d81d3792838e3437c39adaab6773984620c9a",
+      "t": "[ 乙 ]"
+    },
+    {
+      "id": "ep-03:216",
+      "source": "그리고 어둠의 가장 깊은 곳에서, 지금껏 잠들어 있던 두 번째 글자가 조용히 눈을 떴다.",
+      "sourceHash": "0bf606a59a5665141bed401229cddd1c62c6b2c10c741f167d2dae68fd45be63",
+      "t": "And in the deepest darkness, the second character, asleep until now, quietly opened its eyes."
+    },
+    {
+      "id": "ep-03:217",
+      "source": "[ 亥 ]",
+      "sourceHash": "b7420e3d91ef26fec0e532ab362dd782fd2573e93ffbc81eba31095008e052a3",
+      "t": "[ 亥 ]"
+    },
+    {
+      "id": "ep-03:218",
+      "source": "[ 해수의 심연이 열리고 있었다. ]",
+      "sourceHash": "8e3b5a2e8ff4b867d88fd9e3d9dc05c1e2e7189e1dd1d29b8967f12ddbaf4214",
+      "t": "[ The Abyss of Hae Water was opening. ]"
+    }
+  ]
+}

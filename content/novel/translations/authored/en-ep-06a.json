@@ -1,0 +1,228 @@
+{
+  "locale": "en",
+  "episodeId": "ep-06a",
+  "tag": "EP.06A · Borrowed Applause",
+  "title": "Borrowed Applause",
+  "sourceTitle": "빌려 간 박수",
+  "sourceTag": "EP.06A · 빌려 간 박수",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-06a:1",
+      "source": "연잎 배에서 내리자 튀긴 설탕 냄새가 먼저 달려들었다. 노래를 부르는 가게와 리듬을 두드리는 접시가 골목을 채웠다. 연이는 방금 끝난 거울의 시험보다 지금 코앞의 음식이 더 믿기 어려웠다. 배가 고프다는 건, 살아 있다는 가장 단순한 증거였다.",
+      "sourceHash": "064f70e987f33899d6752cca127f67f130046a999e6d247ac21eef4b88071f58",
+      "t": "The smell of fried sugar rushed at them as soon as they stepped off the lotus-leaf boat. Singing shops and plates tapping rhythms filled the alley. Yeoni found the food before their nose harder to believe than the mirror trial they had just finished. Hunger was the simplest proof of being alive."
+    },
+    {
+      "id": "ep-06a:2",
+      "source": "저거 봐. 구름을 튀겨. 진짜로 구름인데 기름에 넣어도 안 사라져. 영냥아, 설명 말고 먹어도 되는지만 빨리 알려 줘.",
+      "sourceHash": "44bbcb05086b26b32f3070015a8f16c338d55f4927a9d094eed5a25c15c97347",
+      "t": "Look at that. They're frying clouds. Actual clouds, and they don't disappear in the oil. Yeongnyangi, skip the explanation. Just tell me if I can eat them."
+    },
+    {
+      "id": "ep-06a:3",
+      "source": "먹어도 돼. 다만 값을 낼 때 돈 말고 무엇을 가져가는지도 봐. 공짜라고 먼저 말하는 가게라면 더더욱.",
+      "sourceHash": "d03c0b4fb37ff8b7800fac67de596c7be972954bf9507d3a1c25ac81cd452cef",
+      "t": "You can. But when you pay, watch what they take besides money. Especially if the first thing a shop says is that it's free."
+    },
+    {
+      "id": "ep-06a:4",
+      "source": "골목 안에서 아이가 작은 북을 치고 있었다. 사람들은 손뼉을 치다가도 북소리가 끝나면 표정을 잃었다. 아이 앞에는 동전 대신 투명한 조각들이 쌓였다. 조각마다 누군가의 웃는 입술이 잠깐씩 비쳤다.",
+      "sourceHash": "9d56c27edb46c52ef60b758caa5426af7d09d864f1024ae5e14d0b0c728c3a34",
+      "t": "A child was playing a small drum in the alley. People clapped, but their expressions vanished when the drumming stopped. Clear fragments piled up before the child instead of coins. In each, someone's smiling lips appeared briefly."
+    },
+    {
+      "id": "ep-06a:5",
+      "source": "저건 돈이 아니잖아. 웃음을 주는 거야? 아이가 웃기긴 하는데, 나중에 돌려받는 건지 먼저 물어봐야 하는 거 아니야?",
+      "sourceHash": "ac7f90f4e4b39b04f00a96a8d094a397b9c1e7274769bcbe6e06539942a4be4e",
+      "t": "That isn't money. Are they giving away their smiles? The kid is entertaining, but shouldn't someone ask if they get those smiles back afterward?"
+    },
+    {
+      "id": "ep-06a:6",
+      "source": "돌려받으면 장사가 안 되지. 받은 사람은 오늘 기분이 좋고, 준 사람은 오늘 배가 부르면 된 거야. 내일의 일까지 계산하면 아무것도 못 사.",
+      "sourceHash": "f9fe19617302e4f4190dba5806f291096c99eff5140a7e86803a317a3a8ffcac",
+      "t": "No business would work if you got them back. The receiver feels good today; the giver gets a full stomach today. That's enough. Calculate tomorrow too, and you'll never buy anything."
+    },
+    {
+      "id": "ep-06a:7",
+      "source": "지붕의 붉은 천막 위에 검은 호랑이가 앉아 있었다. 앞발의 고리 자국은 망토 아래 가려졌지만, 젖었던 금장에는 아직 강의 모래가 붙어 있었다. 연이가 반가워 앞발을 들자 호랑이는 주위를 살핀 뒤에야 고개를 끄덕였다.",
+      "sourceHash": "bc0b302e519b7b4a1ead6245ddf8f5c5803e088b1081a210a022f52afaceb07a",
+      "t": "The black tiger sat on a red rooftop awning. The ring mark on its forepaw was hidden under the cloak, but river sand still clung to the damp gold trim. Yeoni raised a hoof in greeting. Only after checking the surroundings did the tiger nod."
+    },
+    {
+      "id": "ep-06a:8",
+      "source": "너 발 괜찮아? 그렇게 높은 데 올라가면 또 다치는 거 아니야? 내려와. 지금은 나도 높은 데까지 구하러 못 가.",
+      "sourceHash": "7ff060e3b145287a35cf7718e37daa6f5555889b06aa63a3f0d30400fbfd9af9",
+      "t": "Is your paw okay? Won't you hurt it again climbing so high? Come down. I can't come rescue you all the way up there right now."
+    },
+    {
+      "id": "ep-06a:9",
+      "source": "너는 다시 만난 사람한테 늘 상처부터 물어? 뭘 얻었는지보다 뭘 다쳤는지가 먼저 궁금해? 참 피곤한 버릇이네.",
+      "sourceHash": "a1877100df2288b3222d56ae520af5f9d4e88f951ae3664f49ac9129db414fb9",
+      "t": "Do you always ask about wounds first when you meet someone again? More interested in what they hurt than what they gained? What an exhausting habit."
+    },
+    {
+      "id": "ep-06a:10",
+      "source": "호랑이는 뛰어내렸다. 그 아래에는 마침 빈 접시가 있었고, 접시는 발이 닿기 전에 옆으로 비켜났다. 영냥이는 그 움직임을 보았지만 연이는 아이의 북채만 보고 있었다. 아이는 손잡이가 손바닥에 파고들 만큼 북채를 꽉 쥐고 있었다.",
+      "sourceHash": "391ccd48ebebd97491041c80ffc98a18f88a5eae407ffd7ba1f60802dbe4ad9a",
+      "t": "The tiger jumped down. An empty plate happened to be beneath it, but slid aside before its paw landed. Yeongnyangi noticed. Yeoni was watching only the child's drumsticks. The child gripped them so tightly that the handles dug into small palms."
+    },
+    {
+      "id": "ep-06a:11",
+      "source": "쉬어도 되지 않아? 계속 같은 곡만 치잖아. 아까부터 손에서 피 나잖아. 박수 받는 게 그렇게 아플 필요는 없는데.",
+      "sourceHash": "aae69aa8a38fb953b222b6582b040179f9aa653d69cb070dcef18ac992dbdc65",
+      "t": "Can't you rest? You've been playing the same song over and over. Your hands have been bleeding for a while. Getting applause doesn't have to hurt that much."
+    },
+    {
+      "id": "ep-06a:12",
+      "source": "아이는 북을 멈추려다 다시 두드렸다. 목에 걸린 표찰이 떨렸다. 표찰에는 오늘의 박수를 미리 빌렸다는 문장이 작게 적혀 있었다. 박수를 갚기 전에는 무대를 떠날 수 없다는 줄은 뒷면에 있었다.",
+      "sourceHash": "a7a5bbe218d3870af052ceb23b03ccbe9ba7c3d6e2fe6c7b49f2c066898bd4a4",
+      "t": "The child tried to stop, then resumed drumming. A tag hanging around their neck trembled. Small print on it said they had borrowed today's applause in advance. The line saying they could not leave the stage until it was repaid was on the back."
+    },
+    {
+      "id": "ep-06a:13",
+      "source": "저 아이는 선택했어. 아무도 듣지 않는 노래보다는, 빚을 내서라도 관객을 얻고 싶었던 거지. 바라는 걸 들어주면 꼭 나중에 나쁜 사람 취급을 하더라.",
+      "sourceHash": "b5378d6be2bd676274f6e32afedfcab184d151bf56dc8b627a5fda01bdef7fa5",
+      "t": "That child chose it. Rather than a song nobody heard, they wanted an audience even if it meant debt. Grant someone's wish and they always call you the villain afterward."
+    },
+    {
+      "id": "ep-06a:14",
+      "source": "바란 게 박수였지 피 나는 손은 아니잖아. 저 뒷면을 읽을 시간도 줬어? 멋진 앞면만 보여 주고 선택이라고 하면, 그건 좀 비겁하지 않아?",
+      "sourceHash": "fc52917f5d1a36fc38bdfc2c51d4f6e1b3fda319c7ae3f75283bae6bd9b93072",
+      "t": "They wished for applause, not bleeding hands. Did you even give them time to read the back? Showing only the pretty front and calling it a choice is pretty underhanded, isn't it?"
+    },
+    {
+      "id": "ep-06a:15",
+      "source": "호랑이는 귀를 천천히 뒤로 눕혔다. 영냥이가 연이 앞으로 나오려 하자 호랑이는 물러서지 않았다. 대신 제 목의 붉은 보석을 앞발로 눌렀다. 아이의 북소리가 한 번 끊겼다가, 더 빠르게 달리기 시작했다.",
+      "sourceHash": "87d6f9e53929c7b112a8533c95d1036f27200fcc981b63eac8e44e2cc27dc5e1",
+      "t": "The tiger slowly flattened its ears. When Yeongnyangi moved in front of Yeoni, the tiger did not retreat. Instead, it pressed the red jewel at its throat with a paw. The child's drumming broke for a beat, then accelerated."
+    },
+    {
+      "id": "ep-06a:16",
+      "source": "저 목걸이에 손대지 마, 연이야. 여기서 힘으로 끊으면 북이 아니라 아이의 목소리가 찢어진다. 계약을 쓰는 놈들은 늘 피해자를 방패로 세운다.",
+      "sourceHash": "12c39e7d1e6f108e82fb52892f5a6a8c6a433df11800c743d0e64504e55eb5d1",
+      "t": "Don't touch that necklace, Yeoni. Break it by force here and you tear the child's voice, not the drum. Those who write these contracts always use the victim as a shield."
+    },
+    {
+      "id": "ep-06a:17",
+      "source": "그럼 우리도 관객이 되면 되잖아. 빌린 박수 말고, 지금 들은 사람이 치는 박수. 영냥아, 리듬 감각 있어? 없으면 그냥 내 옆에서 발만 맞춰.",
+      "sourceHash": "2e14c1760f907735dedf077ac4fe1217c93869c862512632c06762cebdaaf493",
+      "t": "Then we can be the audience. Not borrowed applause—applause from people listening right now. Yeongnyangi, got any rhythm? If not, just match your paws to mine."
+    },
+    {
+      "id": "ep-06a:18",
+      "source": "연이는 북의 빠른 박자를 따라 하려다 두 번 넘어졌다. 구경꾼들이 웃었다. 연이는 바닥에서 일어나 다시 앞발로 바닥을 두드렸다. 잘하는 척을 포기하자 그제야 북소리가 제대로 들렸다. 아이가 가장 힘들어하는 곳은 늘 후렴 직전이었다.",
+      "sourceHash": "bc3f5c6d6ded9112e758395deb6a971aae0c140978edc50b7412de62e07a8753",
+      "t": "Yeoni tried to follow the quick drumbeat and fell twice. Onlookers laughed. They got up and tapped the ground again. Only after giving up on looking skilled could they properly hear the drum. The child always struggled most just before the chorus."
+    },
+    {
+      "id": "ep-06a:19",
+      "source": "여기서 쉬어. 내가 그 박자 칠게. 네가 다시 들어올 때까지만. 혼자 다 해야 한다는 줄은 없잖아. 있으면 지금 보여 줘.",
+      "sourceHash": "8b3ccf8657a2d1dcfdc4b1e5dc863186dd32f7e407097c0c57ec143e486c58d7",
+      "t": "Rest here. I'll take that beat until you come back in. There's no line saying you have to do everything alone. If there is, show it to me now."
+    },
+    {
+      "id": "ep-06a:20",
+      "source": "작은 앞발 둘이 바닥을 두드렸다. 박수라고 부르기에는 둔한 소리였다. 그래도 아이가 처음으로 고개를 들었다. 누군가 노래가 끝나기를 기다리는 게 아니라, 노래 안으로 들어와 빈자리를 맡아 주고 있었다.",
+      "sourceHash": "c029dc0d176f66eda291ba40057eee8e289dc19ca816c2afd00d3be96f7bcae7",
+      "t": "Two small hooves tapped the ground. A dull sound to call applause. Yet the child looked up for the first time. Someone was not waiting for the song to end, but stepping inside it to fill an empty space."
+    },
+    {
+      "id": "ep-06a:21",
+      "source": "셋까지 세고 숨 쉬어. 네 박자를 놓치지 마. 남한테 맞추느라 숨이 차면 잠깐 쉬어도 돼.",
+      "sourceHash": "aef284d067f0f7b9f0056b26899c43c2769c7f079e875763424fc886d35262f8",
+      "t": "Count to three, then breathe. Keep hold of your own beat. If matching other people leaves you breathless, you can rest a moment."
+    },
+    {
+      "id": "ep-06a:22",
+      "source": "영냥이의 꼬리가 바닥을 쳤다. 느리고 정확한 소리가 아이의 손을 붙들었다. 구경꾼 한 명이 같은 박자를 따라 했다. 둘, 셋. 골목의 소리가 조금씩 바뀌었다. 팔려 온 환호 사이에, 지금 태어난 박수가 섞였다.",
+      "sourceHash": "dd2e518089662e2215d27382640cdb998711a8151f55a2f131b35a6d68b4963e",
+      "t": "Yeongnyangi's tail tapped the floor. Its slow, precise sound steadied the child's hands. One onlooker followed the same rhythm. Then two, three. The alley's sound gradually changed. Among purchased cheers, newly born applause began to mingle."
+    },
+    {
+      "id": "ep-06a:23",
+      "source": "그렇게 엉망으로 맞추는데 왜 좋아해? 틀렸잖아. 박자도 놓치고, 목소리도 갈라졌는데. 정해진 것보다 못한데.",
+      "sourceHash": "fcf6aa04951b934a78c8a885eaf4e20d29d6e8e145d6dae4cc255aa1e4744387",
+      "t": "Why do they like such a mess? It's wrong. Missed beats, cracked voices. Worse than the arranged performance."
+    },
+    {
+      "id": "ep-06a:24",
+      "source": "지금 저 애가 우리 보고 웃었잖아. 우리가 맞춰 주는 걸 알아서. 잘하는 건 다음에 해도 돼. 오늘은 손부터 쉬어야지.",
+      "sourceHash": "db98fe35f07c72b6ae50f0d3842a5361fec88e6442855ddd9057d0a6fe155b78",
+      "t": "That kid just smiled at us. They know we're matching them. Being good at it can wait. Today, those hands need to rest first."
+    },
+    {
+      "id": "ep-06a:25",
+      "source": "호랑이는 아이의 표찰을 보았다. 앞면에 새겨진 빚이 한 획씩 옅어지고 있었다. 받은 박수를 갚아서가 아니었다. 더는 빌릴 필요가 없어졌기 때문이었다. 장부에는 그런 방식의 상환이 적혀 있지 않았다.",
+      "sourceHash": "f339bce5520fc9e762e4855067457b879a54fef7464e929083cbb7dceb378db4",
+      "t": "The tiger looked at the child's tag. The debt engraved on its front was fading stroke by stroke. Not because the borrowed applause had been repaid, but because borrowing was no longer necessary. That form of repayment did not appear in the ledger."
+    },
+    {
+      "id": "ep-06a:26",
+      "source": "검은 물방울이 호랑이의 발끝에서 튀어 표찰을 찍었다. 아이를 붙잡던 마지막 줄이 번졌다. 동시에 표찰 가장자리의 작은 이름이 물방울 속으로 빨려 들어갔다. 북채를 놓은 아이는 숨을 몰아쉬느라 그것을 보지 못했다.",
+      "sourceHash": "8b84218ccff5c74b3a5647300cbb8311f0a60e321fb98429ff86bb53e3264796",
+      "t": "A black droplet sprang from the tiger's paw and struck the tag. The final line binding the child blurred. At the same moment, the tiny name on the tag's edge was sucked into the droplet. The child, catching their breath after setting down the drumsticks, did not see."
+    },
+    {
+      "id": "ep-06a:27",
+      "source": "너 방금 도왔지? 봤어. 못 본 척하라고 해도 봤으니까. 고맙다고는 할 거야. 듣기 싫으면 귀를 접든가.",
+      "sourceHash": "0512e9df4fc635c3fd21b5307e897461a9251b4cee2f393921a16f1dd8cac8c9",
+      "t": "You just helped, didn't you? I saw it. Even if you tell me to pretend I didn't, I did. I'm saying thank you. Fold your ears if you don't want to hear it."
+    },
+    {
+      "id": "ep-06a:28",
+      "source": "네가 보고 싶은 걸 본 거겠지. 오늘은 저 애를 데려가도 좋아. 대신 그 표찰은 두고 가. 계산이 끝난 종이는 내가 치우니까.",
+      "sourceHash": "bf742f2739a953e83e924b503e58402135411104997cdccd626edd44f3eecdb2",
+      "t": "You saw what you wanted to see. You can take the child today. But leave the tag. I clear away the paperwork when accounts are settled."
+    },
+    {
+      "id": "ep-06a:29",
+      "source": "아이는 구름 튀김 하나를 반으로 갈랐다. 반쪽은 연이에게 주고, 나머지 반쪽은 호랑이 앞에 놓았다. 호랑이는 음식보다 잘린 단면을 먼저 보았다. 어느 쪽이 더 큰지 재려는 듯했다. 아이는 크기를 보지도 않고 다시 웃었다.",
+      "sourceHash": "65133565f015cfce6f43adefb2e925a1ec09fe413d017b2738f8cdd59ec6afb9",
+      "t": "The child broke a fried cloud in half. One half went to Yeoni; the other was placed before the tiger. The tiger looked first at the cut edges, as though measuring which portion was larger. The child smiled again without even looking at the sizes."
+    },
+    {
+      "id": "ep-06a:30",
+      "source": "네 것도 있어. 이번엔 뒷면 없어. 먹어 보고 맛없으면 화내도 되는데, 내가 튀긴 건 아니라서 책임은 못 져.",
+      "sourceHash": "d8dab5b90e997a9a2ab09e6fa2db49a2b76a608a49e3d8727abff0ef9a54d919",
+      "t": "There's some for you too. No fine print on the back this time. Taste it. You can get angry if it's bad, though I didn't fry it, so I can't take responsibility."
+    },
+    {
+      "id": "ep-06a:31",
+      "source": "호랑이는 튀김을 한 입 베어 물었다. 아이는 고맙다며 웃었다. 빼앗긴 것을 모르는 얼굴이었다. 호랑이는 그 웃음과 연이의 웃음을 번갈아 보았다. 빚을 지웠다는 말을 믿게 만드는 데는, 장부 한 장조차 필요하지 않았다.",
+      "sourceHash": "4434a068241fb0e9965592f5a089c3ed805b4df078f4490b8f04a3515dd10a90",
+      "t": "The tiger took a bite. The child smiled and thanked it, unaware of what had been stolen. The tiger looked from that smile to Yeoni's. It did not take even a single ledger page to make them believe a debt had been erased."
+    },
+    {
+      "id": "ep-06a:32",
+      "source": "가자, 연이야. 쉬게 해 줘야 할 사람은 쉬게 두고. 네가 받은 것을 계속 확인하려 들면 고마움도 족쇄가 돼.",
+      "sourceHash": "901ab535f78ce894bfcf37fb73a7a13d2ef66706291552748e6fe0a86cf3ba06",
+      "t": "Let's go, Yeoni. Leave someone who needs rest to rest. Keep demanding proof of what you've received, and even gratitude becomes a shackle."
+    },
+    {
+      "id": "ep-06a:33",
+      "source": "연이가 아이와 함께 골목을 떠났다. 영냥이는 마지막까지 호랑이의 발을 보았다. 발밑의 물방울이 천막 뒤로 숨자 영냥이의 보랏빛 눈이 가늘어졌다. 호랑이는 그 시선을 피하지 않고 남은 튀김을 삼켰다.",
+      "sourceHash": "6b14b60e6fe0b9929dbc9ac5ac9be53389ed0062bf70d383554ce851a46e29c9",
+      "t": "Yeoni left the alley with the child. Yeongnyangi watched the tiger's paws to the last. When the droplet at its feet slipped behind the awning, his violet eyes narrowed. The tiger swallowed the remaining food without avoiding his gaze."
+    },
+    {
+      "id": "ep-06a:34",
+      "source": "한 번 풀어 주면 두 번째 줄은 안 보더라. 너는 언제쯤 보게 될까, 연이. 그 고양이 없이도 알아볼 수 있을까.",
+      "sourceHash": "23a801646371cf7bb4ea98a0024cf43474af256d3d8d35373ea414e5e289454b",
+      "t": "Free them once, and they never see the second line. When will you see it, Yeoni? Could you recognize it without that cat?"
+    },
+    {
+      "id": "ep-06a:35",
+      "source": "호랑이는 천막 위로 올라가 골목을 내려다보았다. 박수를 빌려 주던 가게 주인은 사라졌고 장부만 남아 있었다. 표지 안쪽에는 붉은 문양이 찍혀 있었다. 호랑이 이마에 있는 것과 같은 모양이었다.",
+      "sourceHash": "be55c9d6c608cc26c4420cb80561b15c57258f3d6cad12ace20dd5dde28e321c",
+      "t": "The tiger climbed onto the awning and looked down the alley. The shopkeeper who lent applause had vanished. Only the ledger remained. A red mark was stamped inside the cover—the same shape as the marking on the tiger's forehead."
+    },
+    {
+      "id": "ep-06a:36",
+      "source": "호랑이는 아이의 이름을 원래 장부에서 지웠다. 없앤 것이 아니라 자기 망토 안쪽으로 옮겼다. 금실 하나가 검게 변했다. 뒤표지를 닫는 발은 떨리지 않았다. 연이에게 내일 보여 줄 표찰은 이제 깨끗했다.",
+      "sourceHash": "0d6e433791e146ad3acfac96081540ebd580353868ebf15edd700eeca52a5f5e",
+      "t": "The tiger erased the child's name from the original ledger. Not destroyed it: moved it into the lining of its own cloak. One golden thread turned black. The paw closing the back cover did not tremble. The tag it would show Yeoni tomorrow was clean now."
+    }
+  ]
+}

@@ -1,0 +1,1692 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "locale": "ja",
+  "episodeId": "ep-06",
+  "sourceTitle": "거울 너머, 나를 안다",
+  "sourceTag": "제6화 · 거울 너머, 나를 안다",
+  "title": "鏡の向こうで、自分を知る",
+  "tag": "第6話 · 鏡の向こうで、自分を知る",
+  "rows": [
+    {
+      "id": "ep-06:1",
+      "source": "거울 속 연이가 검은 날개를 펼쳤다. 깃털이 아니라, 깨진 거울 조각이 겹겹이 붙어 만든 날개였다.",
+      "sourceHash": "cde9a2a1b7f0dee7c7a046166891385d914689845e412b018d04af7784083ed1",
+      "translations": {
+        "ja": "鏡のYeoniが黒い翼を広げた。羽根ではなく、割れた鏡のかけらを幾重にも重ねてできた翼だった。"
+      }
+    },
+    {
+      "id": "ep-06:2",
+      "source": "조각 하나하나마다 연이의 얼굴이 비쳤다. 비교하는 연이, 질투하는 연이, 포기하는 연이.",
+      "sourceHash": "b0c1ac090c836912d13787f195cec31f4c2de66b55f910a811decb1d72d2cb53",
+      "translations": {
+        "ja": "破片の一つひとつにYeoniの顔が映った。比べるYeoni、嫉妬するYeoni、諦めるYeoni。"
+      }
+    },
+    {
+      "id": "ep-06:3",
+      "source": "괜찮은 척 웃는 연이. 그리고 자기 자신을 못 믿는 연이.",
+      "sourceHash": "4093437214f2dfad1a7508b66ff780676d8c5faa21dba37ef87cb9df59a221fb",
+      "translations": {
+        "ja": "平気なふりで笑うYeoni。そして、自分自身を信じられないYeoni。"
+      }
+    },
+    {
+      "id": "ep-06:4",
+      "source": "와…… 나 진짜 내부 인원 많네.",
+      "sourceHash": "68f93c61f20b3711a087d48418bd6ffad6ea9b0af15fd95f69cd33addb01dde1",
+      "translations": {
+        "ja": "うわ……私、内部メンバー多すぎ。"
+      }
+    },
+    {
+      "id": "ep-06:5",
+      "source": "근데 다들 나보다 표정이 살아 있네. 원본이 제일 시무룩한 건 좀 억울한데.",
+      "sourceHash": "4ed6ae4442b8aa92c603bd98677f1f54fdab1a8d256ab474e26613e296e85a81",
+      "translations": {
+        "ja": "でも、みんな私より表情が生き生きしてるね。オリジナルが一番しょんぼりしてるの、ちょっと納得いかない。"
+      }
+    },
+    {
+      "id": "ep-06:6",
+      "source": "정신 차려라. 저건 전부 네 자리를 흔드는 겁재다.",
+      "sourceHash": "3126c5a035d7d861cc70cdd3e14c0a954a6ffb50554112372b6710eff8a44cd4",
+      "translations": {
+        "ja": "気を引き締めろ。あれは全部、お前の居場所を揺るがす劫財だ。"
+      }
+    },
+    {
+      "id": "ep-06:7",
+      "source": "겉모습은 난데?",
+      "sourceHash": "525cd8bb76a1a98867d85ae3635a72c05b329fdd3ffc14716d9ad50a5645af1b",
+      "translations": {
+        "ja": "見た目は私だけど？"
+      }
+    },
+    {
+      "id": "ep-06:8",
+      "source": "그래서 더 위험하다.",
+      "sourceHash": "3338af2c744c2cd7d6cd7942da7c540c4609cb0119c0c1ecfa0142e50cd49e5b",
+      "translations": {
+        "ja": "だから、なおさら危険なんだ。"
+      }
+    },
+    {
+      "id": "ep-06:9",
+      "source": "내 얼굴 무단 도용에 무단 복제까지. 이거 초상권 신고는 어디다 하냐.",
+      "sourceHash": "91c812495ab3f8d8b2c44a373c1049974e9978ba92059e1584f2e917b0e5beb0",
+      "translations": {
+        "ja": "私の顔を無断使用して、複製まで。肖像権侵害って、どこに通報するの。"
+      }
+    },
+    {
+      "id": "ep-06:10",
+      "source": "거울 속 연이가 천천히 떠올랐다. 등 뒤의 조각들이 회전하자 섬 전체가 종처럼 떨렸다.",
+      "sourceHash": "e7aa628bee8cb55a038cc7c43ac364ed723808d176ef3e75522596c87d2e5066",
+      "translations": {
+        "ja": "鏡のYeoniがゆっくり浮かび上がった。背後の破片が回転すると、島全体が鐘のように震えた。"
+      }
+    },
+    {
+      "id": "ep-06:11",
+      "source": "[비겁의 섬 · 최종 시험]",
+      "sourceHash": "e160e335fc77921358d5931aede5106ca9b37c88e5933566d6a2cbd39c6e664d",
+      "translations": {
+        "ja": "［比劫の島 · 最終試験］"
+      }
+    },
+    {
+      "id": "ep-06:12",
+      "source": "[거울 속의 나를 회수하라.]",
+      "sourceHash": "ed85ace1872832cf1ab07c840d41c4efbf0368e153f1749783184fc2d17b7928",
+      "translations": {
+        "ja": "［鏡の中の自分を回収せよ。］"
+      }
+    },
+    {
+      "id": "ep-06:13",
+      "source": "[실패 시, 현실 귀환 권한이 거울 연이에게 이전됩니다.]",
+      "sourceHash": "6224bcfe636e67ec60fbadfe128d51aab020a23003aeb92e487d0f7cc33a37a3",
+      "translations": {
+        "ja": "［失敗した場合、現実への帰還権限は鏡のYeoniに移ります。］"
+      }
+    },
+    {
+      "id": "ep-06:14",
+      "source": "잠깐만. 권한 이전?",
+      "sourceHash": "c24680b4108d6810e66a2eec6df8ff19e3da14ad1da7a43a021670a128412b01",
+      "translations": {
+        "ja": "待って。権限が移る？"
+      }
+    },
+    {
+      "id": "ep-06:15",
+      "source": "응. 네 인생 계정, 내가 로그인.",
+      "sourceHash": "0a21aeff1f0062c219101e8f3e08091f595ba8a68036b7a18643776c4e18f647",
+      "translations": {
+        "ja": "うん。あんたの人生アカウントに、私がログインする。"
+      }
+    },
+    {
+      "id": "ep-06:16",
+      "source": "미쳤네. 이거 완전 계정 탈취잖아.",
+      "sourceHash": "86f44035a6965248abc9ef8bac565c6ed9ed4673c467f230e29c3d8b929974e9",
+      "translations": {
+        "ja": "ありえない。完全にアカウント乗っ取りじゃん。"
+      }
+    },
+    {
+      "id": "ep-06:17",
+      "source": "비슷해.",
+      "sourceHash": "c2563667f83a506e3b7358fe45534e561e7d3eaaba2e162aa7ef7366613cd3c4",
+      "translations": {
+        "ja": "近いね。"
+      }
+    },
+    {
+      "id": "ep-06:18",
+      "source": "이중 인증 없어?",
+      "sourceHash": "82e6c0951bf20a00a042a8379544bd820313cea9fcbe7a4e490216f819b9b055",
+      "translations": {
+        "ja": "二段階認証はないの？"
+      }
+    },
+    {
+      "id": "ep-06:19",
+      "source": "있었지.",
+      "sourceHash": "9502551128ad5039ba1f905207dc7a9295d35ac60b7a468345a22c0405a552bf",
+      "translations": {
+        "ja": "あったよ。"
+      }
+    },
+    {
+      "id": "ep-06:20",
+      "source": "거울 속 연이가 연이의 머리 위 꽃을 가리켰다.",
+      "sourceHash": "1a44de6e4ba7ddebdf9fdd3dab47a9e2a390fe9b5ac6db2e4330b3fd07e27b0c",
+      "translations": {
+        "ja": "鏡のYeoniが、Yeoniの頭の花を指した。"
+      }
+    },
+    {
+      "id": "ep-06:21",
+      "source": "네가 방금 찾은 乙亥.",
+      "sourceHash": "e9fb9cec316849f54f8405052f33bedf1eb46961e3f2606168d0450ef184d2d9",
+      "translations": {
+        "ja": "あんたが、たった今見つけた乙亥。"
+      }
+    },
+    {
+      "id": "ep-06:22",
+      "source": "연이는 앞발 안쪽의 따뜻한 기운을 다시 붙잡았다. 乙, 작은 새싹. 亥, 깊은 물. 둘은 아직 하나가 되지 못한 채 희미하게 빛났다.",
+      "sourceHash": "1218c3c9a89d44fff46460e33619688cfbf1a352e88dff95193ff6c68b7fbe7b",
+      "translations": {
+        "ja": "Yeoniは前足の内側の温かな気を、もう一度つかんだ。乙、小さな芽。亥、深い水。二つはまだ一つになりきれず、かすかに光っていた。"
+      }
+    },
+    {
+      "id": "ep-06:23",
+      "source": "하지만 아직 100%는 아니야.",
+      "sourceHash": "8d3adde5482e6d4b280d152235f62ccf8b8bd6a458f7532ecc22c00433b35ef9",
+      "translations": {
+        "ja": "でも、まだ100%じゃない。"
+      }
+    },
+    {
+      "id": "ep-06:24",
+      "source": "공중에 숫자가 떠올랐다.",
+      "sourceHash": "1d986e448f8c5b38608e5c896f0bac6c14ffa8ca6c205518f81e4940c3796c4a",
+      "translations": {
+        "ja": "空中に数字が浮かんだ。"
+      }
+    },
+    {
+      "id": "ep-06:25",
+      "source": "[乙亥 일주 회수율 87%]",
+      "sourceHash": "9bfbf074817e275e35dcae5aff8297671d012aee3af4b9368b0c848b716a8ce4",
+      "translations": {
+        "ja": "［乙亥の日柱 回収率87%］"
+      }
+    },
+    {
+      "id": "ep-06:26",
+      "source": "아니, 왜 하필 87%야. 애매하게 사람 불안하게.",
+      "sourceHash": "4187928f18b1cd3d1994fef6a0499c635b0771e760b5f3de4042e841bd07bef9",
+      "translations": {
+        "ja": "いや、なんでよりによって87%なの。中途半端で不安になるじゃん。"
+      }
+    },
+    {
+      "id": "ep-06:27",
+      "source": "완성도 87. 딱 다 된 것 같은데 안 끝나는 다운로드 바 있잖아. 그거야.",
+      "sourceHash": "a3a504a222ec53ed4eea2684958ff90afd7a248b25a283a17abbc35592999f1e",
+      "translations": {
+        "ja": "完成度87。ほぼ終わったようで終わらないダウンロードバーってあるでしょ。あれだよ。"
+      }
+    },
+    {
+      "id": "ep-06:28",
+      "source": "마지막 13%가 남았다.",
+      "sourceHash": "120dc123d9133f238caae93e27ed68228e5ebe01e6fc79c4465e02fc9f70b5c4",
+      "translations": {
+        "ja": "最後の13%が残っている。"
+      }
+    },
+    {
+      "id": "ep-06:29",
+      "source": "그게 뭔데?",
+      "sourceHash": "dfae7757eab6598ecd95c8ea0750eaf8be8141b417d6d0ef200230b629d3b8b7",
+      "translations": {
+        "ja": "それって何？"
+      }
+    },
+    {
+      "id": "ep-06:30",
+      "source": "저 환영.",
+      "sourceHash": "e20e6fc078c07ce48fe297a55981ff78fd3b341556265a0f144385bc00cc2ad1",
+      "translations": {
+        "ja": "あの幻影だ。"
+      }
+    },
+    {
+      "id": "ep-06:31",
+      "source": "맞아. 나를 회수해야 완성돼.",
+      "sourceHash": "938fa674efd503d9c9b296073b81d3f00a736d4c29ca2b0c5b2c44e9c3e8b95a",
+      "translations": {
+        "ja": "そう。私を回収しないと完成しない。"
+      }
+    },
+    {
+      "id": "ep-06:32",
+      "source": "너를?",
+      "sourceHash": "8b5ae256477bdc55bdb5d3ef17886f35cfd98720d1603f3f042a38ed66bde39d",
+      "translations": {
+        "ja": "あんたを？"
+      }
+    },
+    {
+      "id": "ep-06:33",
+      "source": "나는 네가 인정하기 싫어서 떼어낸 너니까.",
+      "sourceHash": "5bb0dfcee0edcbf06ebc463095125d3925abc330d3bea91252f50b72ab9eb4f3",
+      "translations": {
+        "ja": "私は、あんたが認めたくなくて切り離した自分だから。"
+      }
+    },
+    {
+      "id": "ep-06:34",
+      "source": "그러니까 너를 이겨야 하는 게 아니라…….",
+      "sourceHash": "9f3303400b7690c9ed70698a0bf267317029d96dc099a0ec2f4f7759b26660dd",
+      "translations": {
+        "ja": "つまり、あんたに勝つんじゃなくて……。"
+      }
+    },
+    {
+      "id": "ep-06:35",
+      "source": "나를 다시 가져가야 해. 할 수 있겠어?",
+      "sourceHash": "679dc3eab765f99c01e5c1189d077149fee5310f4b5c2a7467d603a1fd99c19c",
+      "translations": {
+        "ja": "私を連れ戻さなきゃ。できる？"
+      }
+    },
+    {
+      "id": "ep-06:36",
+      "source": "그 말이 이상하게 섬뜩했다. 부수는 거라면 차라리 쉬웠다. 가짜라 여기고 박살 내면 그만이니까. 그런데 다시 가져가라니, 자기 안으로 들여보내라니.",
+      "sourceHash": "686ea5b44e5a0f9b43fd12c5ec5aa1aac261f3b5a6114a2caba79ef517053577",
+      "translations": {
+        "ja": "その言葉は妙にぞっとした。壊すのなら、まだ簡単だった。偽物だと思って、叩き割れば済むのだから。でも、連れ戻すなんて。自分の中へ迎え入れるなんて。"
+      }
+    },
+    {
+      "id": "ep-06:37",
+      "source": "저 얼굴은 얄미웠고 말은 재수 없었다. 도망치고 싶은 부분만 골라 찔렀다. 그래도 결국, 저것도 나였다.",
+      "sourceHash": "d784ac629a1c1516582fb3fb0a4803976973335464ef0091f6047a7a6a035ba8",
+      "translations": {
+        "ja": "あの顔は憎らしく、言葉は嫌味だった。逃げたいところばかり狙って突いてきた。それでも結局、あれも自分だった。"
+      }
+    },
+    {
+      "id": "ep-06:38",
+      "source": "진짜 어렵게 산다, 나.",
+      "sourceHash": "35bcdcc1e39b6a10d14bd9d2954f7ecec345cb4dca517770e6ea3ec1fa4ea342",
+      "translations": {
+        "ja": "ほんと、生きづらいね、私。"
+      }
+    },
+    {
+      "id": "ep-06:39",
+      "source": "그러게.",
+      "sourceHash": "164e565f7ac3501f1937df93759171bbc479ecf9a64ff510a9293f1d242e54a9",
+      "translations": {
+        "ja": "そうだね。"
+      }
+    },
+    {
+      "id": "ep-06:40",
+      "source": "그 순간 날개가 크게 펼쳐지며 검은 조각들이 빗발처럼 쏟아졌다.",
+      "sourceHash": "c4972af235905ba0d959ea225b19f2494bde91431915c7f20ed5cd022bb766c8",
+      "translations": {
+        "ja": "その瞬間、翼が大きく開き、黒い破片が雨のように降り注いだ。"
+      }
+    },
+    {
+      "id": "ep-06:41",
+      "source": "뒤로!",
+      "sourceHash": "d6d13849728ea7a978ad89ac21bc2a5553f8af02065d026c6ee53ce42770e096",
+      "translations": {
+        "ja": "下がれ！"
+      }
+    },
+    {
+      "id": "ep-06:42",
+      "source": "금빛 발톱이 허공을 갈랐다. 쨍, 쨍, 쨍. 조각들이 사방으로 튕겼다.",
+      "sourceHash": "8ecbfe8343fcc459c6b8bc1f0166e7d11c4323195a240207b57774457b6bee11",
+      "translations": {
+        "ja": "金色の爪が空を裂いた。キン、キン、キン。破片が四方へ弾け飛んだ。"
+      }
+    },
+    {
+      "id": "ep-06:43",
+      "source": "하지만 조각은 깨져도 다시 붙었다. 한 번 베면 둘, 둘을 베면 넷이 되었다.",
+      "sourceHash": "05f817e16277a76e911a7248a9370a81b389835a35b14ba3ce57602562cd49ec",
+      "translations": {
+        "ja": "けれど、破片は砕けてもまたつながった。一度斬れば二つに、二つを斬れば四つになった。"
+      }
+    },
+    {
+      "id": "ep-06:44",
+      "source": "아니, 왜 증식해?",
+      "sourceHash": "d9ff157437d0b463bef9e18e9b82418de801a2cd6e7c9370da5dd0a3bfed3452",
+      "translations": {
+        "ja": "なんで増殖するの？"
+      }
+    },
+    {
+      "id": "ep-06:45",
+      "source": "빼앗을수록 불어나고 있어. 베기만 해서는 끝나지 않아.",
+      "sourceHash": "a721e87fe26decb957602334ede0cc75a115b64435b9f94503975485b74610ad",
+      "translations": {
+        "ja": "奪うほど増えている。斬るだけでは終わらない。"
+      }
+    },
+    {
+      "id": "ep-06:46",
+      "source": "그걸 지금 알려주면 어떡해!",
+      "sourceHash": "8831b385852c305f630bae7d8eff1dd5146c0c30d9e2c4dde50cdb510d07ad3f",
+      "translations": {
+        "ja": "それを今言われても！"
+      }
+    },
+    {
+      "id": "ep-06:47",
+      "source": "지금 보고 있으니까 말하는 거다!",
+      "sourceHash": "772d9f18cdcf2212ec1c7512e1f93bdf0e8b990d13b27a6d5a4238af1417da34",
+      "translations": {
+        "ja": "今、見て分かったから言っている！"
+      }
+    },
+    {
+      "id": "ep-06:48",
+      "source": "짧은 다리로는 구르는 것도 일이라고! 뒤로 빼려다 코부터 박게 생겼어!",
+      "sourceHash": "3b5db18f7931d0cc39d740787998e43e622764fea6c6a0e683ae2fa5c8e86fa8",
+      "translations": {
+        "ja": "短い足だと転がるだけでも大変なんだから！ 後ろへ下がろうとしたら、鼻から突っ込みそう！"
+      }
+    },
+    {
+      "id": "ep-06:49",
+      "source": "거울 속 연이가 손을 내렸다. 이번엔 조각들이 영냥이가 아니라 연이를 향해 몰려왔다.",
+      "sourceHash": "99a37e52afffa038d8e1e6eac3be6eac71b9b43312830f4caaff06368065b0e2",
+      "translations": {
+        "ja": "鏡のYeoniが手を下ろした。今度は破片がYeongnyangiではなく、Yeoniに殺到した。"
+      }
+    },
+    {
+      "id": "ep-06:50",
+      "source": "너는 늦어. 너는 약해. 너는 맨날 웃는 척해.",
+      "sourceHash": "0d1ba2d8db975706b07336a140a69636d01d1afd9549a5c398162b7c50e88a39",
+      "translations": {
+        "ja": "あんたは遅い。弱い。いつも笑ってるふりをする。"
+      }
+    },
+    {
+      "id": "ep-06:51",
+      "source": "네 자리는 없어. 네가 못 하면 내가 할게.",
+      "sourceHash": "43d5ee43a7bb4b695e4d05211a0494a130e996e95db4025a8077ced5018c8815",
+      "translations": {
+        "ja": "あんたの居場所はないよ。できないなら、私がやってあげる。"
+      }
+    },
+    {
+      "id": "ep-06:52",
+      "source": "목소리들이 한꺼번에 귀를 파고들었다. 해수의 심연에서 사라진 줄 알았던 말들이 다시 떠올랐다. 괜찮은 척하기, 웃어넘기기, 도망치기.",
+      "sourceHash": "21cfedcd55694ee584d1bd6ed16014eaf7ad122c0eb4062a56bdd721d5b63a87",
+      "translations": {
+        "ja": "声が一斉に耳の奥へ入り込んだ。亥の水の深淵で消えたと思った言葉が、また浮かんだ。平気なふり。笑って流すこと。逃げること。"
+      }
+    },
+    {
+      "id": "ep-06:53",
+      "source": "봐. 너는 아직도 흔들려.",
+      "sourceHash": "ce75514ef78a28815e05a06f5cc9cda8d4fedd76d73f4f4399a73df1b533f50a",
+      "translations": {
+        "ja": "ほら。まだ揺らいでる。"
+      }
+    },
+    {
+      "id": "ep-06:54",
+      "source": "연이는 앞발을 땅에 디뎠다.",
+      "sourceHash": "49735fe6b9e0c4526ce8a3c5788f472bb1aef618136db4a87a1bfd7ae9eca758",
+      "translations": {
+        "ja": "Yeoniは前足を地面につけた。"
+      }
+    },
+    {
+      "id": "ep-06:55",
+      "source": "흔들리면 안 돼?",
+      "sourceHash": "7bef1d3f6f012d3ddeb734b64fd9c55f244f72204fb1b494d3f19ec39e269104",
+      "translations": {
+        "ja": "揺らいじゃ駄目なの？"
+      }
+    },
+    {
+      "id": "ep-06:56",
+      "source": "거울 속 연이의 눈썹이 살짝 올라갔다.",
+      "sourceHash": "09fb762c91c468795d2f0a25a646eb17df8a3ee28077375071e8d2ab3934f2ea",
+      "translations": {
+        "ja": "鏡のYeoniの眉が、少し上がった。"
+      }
+    },
+    {
+      "id": "ep-06:57",
+      "source": "나 을목이라며. 작은 풀이라며. 그럼 흔들리는 게 정상 아니야?",
+      "sourceHash": "e31eb746a9aba2f324d6770c56bf9c17ab4b47c86073bd82ee6392de86a5000d",
+      "translations": {
+        "ja": "私、乙の木なんでしょ。小さな草なんでしょ。だったら、揺れるのが普通じゃない？"
+      }
+    },
+    {
+      "id": "ep-06:58",
+      "source": "…맞다.",
+      "sourceHash": "7d8dc2c673086ac347ddc566d38aaa3d3709dde2de8e2507708ab8fb9d27df4b",
+      "translations": {
+        "ja": "……そうだ。"
+      }
+    },
+    {
+      "id": "ep-06:59",
+      "source": "흔들린다고 가짜는 아니잖아.",
+      "sourceHash": "3be57b1cafd78d37d4829dee6770b3f39a2a78bb436b8cb02e5d166be08e4fb7",
+      "translations": {
+        "ja": "揺れるからって、偽物じゃないでしょ。"
+      }
+    },
+    {
+      "id": "ep-06:60",
+      "source": "그 순간 乙의 빛이 강해지며 초록빛 덩굴이 앞발 아래에서 자라났다. 덩굴은 조각들을 부수지 않고 꽉 묶어 하나씩 바닥에 내려놓았다. 쨍그랑.",
+      "sourceHash": "1cde68fb0f7b37207c9decff456d169bd40739442ff5578ad704004d8d953778",
+      "translations": {
+        "ja": "その瞬間、乙の光が強まり、前足の下から緑の蔓が伸びた。蔓は破片を壊さず、しっかり縛って一つずつ床へ下ろした。ガシャン。"
+      }
+    },
+    {
+      "id": "ep-06:61",
+      "source": "왜 안 부숴?",
+      "sourceHash": "ba98c7f2d1b77f3030a32aff584255de3968f2816d24dc8389270f41feb474ae",
+      "translations": {
+        "ja": "なんで壊さないの？"
+      }
+    },
+    {
+      "id": "ep-06:62",
+      "source": "부수면 너만 늘어난다며. 그럼 묶어야지.",
+      "sourceHash": "0a348e054c6d7610120d9a14706d41eea70225ba5c4bc004dfa19bc2f0690881",
+      "translations": {
+        "ja": "壊すと、そっちが増えるんでしょ。だったら、縛ればいい。"
+      }
+    },
+    {
+      "id": "ep-06:63",
+      "source": "머리는 굴리네?",
+      "sourceHash": "513a67471eb2821e96b70224ceaab9961149f1d49467f1525ecce5e324eb84a3",
+      "translations": {
+        "ja": "頭は回るんだ？"
+      }
+    },
+    {
+      "id": "ep-06:64",
+      "source": "나 원래 머리는 좀 굴려.",
+      "sourceHash": "c41c784bea3ce643e9844a2577fa18ba95e530f2849f1a36cc30408bdd8f71a2",
+      "translations": {
+        "ja": "もともと、頭はそれなりに使うよ。"
+      }
+    },
+    {
+      "id": "ep-06:65",
+      "source": "그런 애가 왜 맨날 늦었는데?",
+      "sourceHash": "70f18a0fc41add926740c9371fee522b813bd3dc21b106a4e7727d6513d94963",
+      "translations": {
+        "ja": "そんな子が、なんでいつも遅かったの？"
+      }
+    },
+    {
+      "id": "ep-06:66",
+      "source": "그건 좀 아프니까 나중에 상담하자.",
+      "sourceHash": "f286f6e0b17af11ed753c671a8c8a9a44681e98a3e34f9ea9d52215f783f91c0",
+      "translations": {
+        "ja": "それ、ちょっと痛いから、後で相談しよう。"
+      }
+    },
+    {
+      "id": "ep-06:67",
+      "source": "그 얘기는 나가서 하자. 지금은 움직여.",
+      "sourceHash": "9cf4c69594670c2fe6189ae7131c28f8906c64519ebdfee32a9276fa11fe0fbf",
+      "translations": {
+        "ja": "その話は出てからにしろ。今は動け。"
+      }
+    },
+    {
+      "id": "ep-06:68",
+      "source": "알아.",
+      "sourceHash": "4167bd50bea30dc931bd2a3cac3a7f3498d488493e0a3a582aff497aac71c39e",
+      "translations": {
+        "ja": "分かってる。"
+      }
+    },
+    {
+      "id": "ep-06:69",
+      "source": "연이가 앞발을 더 단단히 디뎠다. 바닥 아래에서 亥의 푸른 물결이 번져 덩굴 뿌리를 받쳤다. 초록빛 덩굴은 더 굵어졌다.",
+      "sourceHash": "2f978b299aa486a04ac3c2ea44ea5a8cdb709d0b520d383e02b97bbd7d200a0f",
+      "translations": {
+        "ja": "Yeoniはさらに強く前足を踏ん張った。床の下から亥の青い波が広がり、蔓の根を支えた。緑の蔓は、いっそう太くなった。"
+      }
+    },
+    {
+      "id": "ep-06:70",
+      "source": "예전 같으면 흔들리는 마음을 농담으로 덮고 괜찮은 척했을 것이다. 하지만 흔들리는 마음도, 깊은 물도 자신이었다. 그 물을 밀어내지 않아야 꽃이 살 수 있었다.",
+      "sourceHash": "59280a7264ae4f583db0afc4e8f4ebd36ec1559103a1bb78cc352bcfabb3d543",
+      "translations": {
+        "ja": "前なら、揺れる心を冗談でごまかし、平気なふりをしただろう。でも、揺れる心も、深い水も自分だった。その水を押しのけなければこそ、花は生きられた。"
+      }
+    },
+    {
+      "id": "ep-06:71",
+      "source": "그럼 이건?",
+      "sourceHash": "da5a7708175648841d88efbf94f96788321e7efa8d9edb2300b809a6459096b7",
+      "translations": {
+        "ja": "じゃあ、これは？"
+      }
+    },
+    {
+      "id": "ep-06:72",
+      "source": "거울 속 연이의 등 뒤로 거대한 거울이 떠올랐다. 그 안에 연이의 현실이 비쳤다. 방, 침대 위 휴대폰, 켜진 Code Destiny 앱.",
+      "sourceHash": "82e6e5e337f9a52e56a8bfc515f3cb59218271b85d8a3797d16f8cd1b55c61d2",
+      "translations": {
+        "ja": "鏡のYeoniの背後に、巨大な鏡が浮かんだ。その中にYeoniの現実が映った。部屋、ベッドの上のスマートフォン、開かれたCode Destinyのアプリ。"
+      }
+    },
+    {
+      "id": "ep-06:73",
+      "source": "그 앞에 인간 연이가 앉아 있었다. 거울 속 연이와 똑같은 얼굴이었다. 연이는 숨을 멈췄다.",
+      "sourceHash": "39f3dbe331894f517ae3c9b345e826bcb79e928ef7a2719cb3a2a9fd6fca6ecc",
+      "translations": {
+        "ja": "その前に、人間のYeoniが座っていた。鏡のYeoniと同じ顔だった。Yeoniは息を止めた。"
+      }
+    },
+    {
+      "id": "ep-06:74",
+      "source": "저건 뭐야?",
+      "sourceHash": "afbd870de8eefedd415fe98efed95aa67083288743f2f1647275d375d289fdad",
+      "translations": {
+        "ja": "あれは何？"
+      }
+    },
+    {
+      "id": "ep-06:75",
+      "source": "동기화.",
+      "sourceHash": "d10ec0b27897cff8d9cc75f9a607f2c58507ff4b5bebe95ec7d262018cd22137",
+      "translations": {
+        "ja": "同期。"
+      }
+    },
+    {
+      "id": "ep-06:76",
+      "source": "[현실 귀환 프로토콜 접속 중]",
+      "sourceHash": "6e79d90432b7d2cb0a1ce33393b1ce10c8d6d50140a4dd6adb5c0d6946f2e11a",
+      "translations": {
+        "ja": "［現実帰還プロトコルに接続中］"
+      }
+    },
+    {
+      "id": "ep-06:77",
+      "source": "[후보자: 연이 / 후보자: 거울 연이]",
+      "sourceHash": "0963d6a5d2148d1f75a38046121a1d4ed3ba1ec5d27ccdb1cbeed2035c2a0bac",
+      "translations": {
+        "ja": "［候補者：Yeoni / 候補者：鏡のYeoni］"
+      }
+    },
+    {
+      "id": "ep-06:78",
+      "source": "[본체 인증 잔여율: 13%]",
+      "sourceHash": "af253e7d00655d415cec918dba65ab8abd06a8a4c2f6c67dc8aef1c0bc644594",
+      "translations": {
+        "ja": "［本体認証残り：13%］"
+      }
+    },
+    {
+      "id": "ep-06:79",
+      "source": "네가 여기서 망설이는 동안, 나는 현실 쪽에 먼저 접속할 수 있어.",
+      "sourceHash": "1d8e4b36d31847f5dc6897c7606f73bc6b7084a233f15e5b2eef6fe8ba013cba",
+      "translations": {
+        "ja": "あんたがここで迷ってる間に、私は先に現実へ接続できる。"
+      }
+    },
+    {
+      "id": "ep-06:80",
+      "source": "진짜 계정 탈취 맞잖아!",
+      "sourceHash": "dd9b1297a26a41e21ff713bbb55a5168a0d121842d1eb796381248f1949f52d4",
+      "translations": {
+        "ja": "本当にアカウント乗っ取りじゃん！"
+      }
+    },
+    {
+      "id": "ep-06:81",
+      "source": "말했잖아. 네가 못 하면 내가 한다고.",
+      "sourceHash": "e81fa20ef37e15954280f52400a6a1e87c43783ff198dbaab86558fc13a7b0de",
+      "translations": {
+        "ja": "言ったでしょ。あんたができないなら、私がやるって。"
+      }
+    },
+    {
+      "id": "ep-06:82",
+      "source": "거울 속 현실의 연이가 휴대폰을 들었다. 화면에 [귀환 승인] 버튼이 떠올랐다. 연이가 달려가려 했지만 검은 조각들이 길을 막았다.",
+      "sourceHash": "6423fb6af5d60df4f71e28aa5eb4e8bccd86ce9d8964033bd80dcb727b97528f",
+      "translations": {
+        "ja": "鏡に映る現実のYeoniがスマートフォンを持った。画面に［帰還承認］ボタンが現れた。Yeoniは駆け寄ろうとしたが、黒い破片が道を塞いだ。"
+      }
+    },
+    {
+      "id": "ep-06:83",
+      "source": "안 돼!",
+      "sourceHash": "4dec9bcfd493bcac51d8ab82c1d8561dc2e5ace0e6699e72306b3203ad613d5f",
+      "translations": {
+        "ja": "駄目！"
+      }
+    },
+    {
+      "id": "ep-06:84",
+      "source": "왜? 너는 아직도 이 몸이 싫잖아.",
+      "sourceHash": "50b0798ed7ab3643cbdbef36023c938d9d33380362599327c13c42326fcf3b91",
+      "translations": {
+        "ja": "どうして？ まだ、その体が嫌いなんでしょ。"
+      }
+    },
+    {
+      "id": "ep-06:85",
+      "source": "거울 속 연이가 연이의 꽃돼지 몸을 가리켰다.",
+      "sourceHash": "c5b8be5be749097d63455b907152394e760b524ee8a1c062196876a1badbee38",
+      "translations": {
+        "ja": "鏡のYeoniが、花ブタになったYeoniの体を指した。"
+      }
+    },
+    {
+      "id": "ep-06:86",
+      "source": "현실로 돌아가도 누가 너를 알아보겠어?",
+      "sourceHash": "19c35f8092e1e7fc370d6808b5033efffa3ff7273fcc705c0437aa10044d6f39",
+      "translations": {
+        "ja": "現実に戻っても、誰があんただって分かるの？"
+      }
+    },
+    {
+      "id": "ep-06:87",
+      "source": "그 말은 날카로웠다. 분홍빛 몸, 짧은 다리, 머리 위 꽃. 지금의 자신은 현실의 연이와 너무 달랐다.",
+      "sourceHash": "17c58523eef0004ef1a19aa2954f996e055f3f8471308f7e865dd4bc84b8f8c2",
+      "translations": {
+        "ja": "その言葉は鋭かった。ピンク色の体、短い足、頭の花。今の自分は、現実のYeoniとあまりに違っていた。"
+      }
+    },
+    {
+      "id": "ep-06:88",
+      "source": "내가 돌아가면 아무도 이상하게 생각하지 않을 거야. 나는 네 얼굴이니까.",
+      "sourceHash": "5ed98ba715c18de31f565113be87489fd70e98306f64436c9ee31caead8cfc64",
+      "translations": {
+        "ja": "私が帰れば、誰も変だと思わない。私は、あんたの顔だから。"
+      }
+    },
+    {
+      "id": "ep-06:89",
+      "source": "거울 속 현실의 연이가 손가락을 버튼 위에 올렸다. 연이의 꽃이 흔들리고, 乙亥의 빛도 흔들렸다.",
+      "sourceHash": "cf1890481f829da79aa61e092bbe0cb8e8478b0630d4f1a0a1912edbe7dc2509",
+      "translations": {
+        "ja": "鏡に映る現実のYeoniが、ボタンに指を載せた。Yeoniの花が揺れ、乙亥の光も揺らいだ。"
+      }
+    },
+    {
+      "id": "ep-06:90",
+      "source": "연이야.",
+      "sourceHash": "80cb95b01e8cc1368b8cd8ace84e07fc877503b06ef9dddd4795ce70845dc473",
+      "translations": {
+        "ja": "Yeoni。"
+      }
+    },
+    {
+      "id": "ep-06:91",
+      "source": "연이는 입을 다물었다. 틀린 말은 아니었다. 얼굴도 목소리도 기억도 같았다. 흔들리지 않고 늦지 않는 연이라면 더 나을지도. 정말 아주 잠깐, 그런 생각이 들었다.",
+      "sourceHash": "9aed32ef1672b1a1dd6f0e1069cdd56da3df04240638649671ca2eb07c8b843b",
+      "translations": {
+        "ja": "Yeoniは口を閉じた。間違った話ではなかった。顔も声も記憶も同じ。揺らがず、遅れないYeoniなら、そのほうがいいのかもしれない。本当にほんの一瞬、そう思った。"
+      }
+    },
+    {
+      "id": "ep-06:92",
+      "source": "하지만 해수의 심연에서 보았던 것들이 떠올랐다. 괜찮은 척했던 밤, 보내지 못한 말, 혼자 참았던 마음. 그리고 그 깊은 물에서 피어난 작은 꽃.",
+      "sourceHash": "e1370c9ad62d94070a0736d390bed2b7b0fbc749d3fa711d76eb153fa373420e",
+      "translations": {
+        "ja": "けれど、亥の水の深淵で見たものが浮かんだ。平気なふりをした夜、送れなかった言葉、一人で耐えた心。そして、その深い水から咲いた小さな花。"
+      }
+    },
+    {
+      "id": "ep-06:93",
+      "source": "연이는 천천히 숨을 들이쉬었다.",
+      "sourceHash": "77c90c42109b44037127dcdd9caa73bc4d66dbdff24cc419317925534ff9d5e1",
+      "translations": {
+        "ja": "Yeoniはゆっくり息を吸った。"
+      }
+    },
+    {
+      "id": "ep-06:94",
+      "source": "아니.",
+      "sourceHash": "f05525bb2385ed4397718fde4e64cfb5e0cd4a6ecaaf74e5f1f5f23fdf63599f",
+      "translations": {
+        "ja": "違う。"
+      }
+    },
+    {
+      "id": "ep-06:95",
+      "source": "뭐가 아니야?",
+      "sourceHash": "92f02137dd7f6621bfe2ffcc4ad153c8dad94e536e1e9f5f07f2950224ff129b",
+      "translations": {
+        "ja": "何が違うの？"
+      }
+    },
+    {
+      "id": "ep-06:96",
+      "source": "너는 내 얼굴이야.",
+      "sourceHash": "4b6737dbf0e7f9b54619398e2f5434924ebd90815c5e65ec42af5d730b846585",
+      "translations": {
+        "ja": "あんたは、私の顔だよ。"
+      }
+    },
+    {
+      "id": "ep-06:97",
+      "source": "머리 위 꽃이 빛나고, 앞발 아래로 덩굴이 뻗었다.",
+      "sourceHash": "ff20d914d5feb16f0f10f9b9f44137d75b0362fad69f5b0f09b5c03c1de7ae13",
+      "translations": {
+        "ja": "頭の花が光り、前足の下から蔓が伸びた。"
+      }
+    },
+    {
+      "id": "ep-06:98",
+      "source": "내 목소리도 알고, 내 기억도 알아. 근데 내가 왜 웃었는지는 몰라.",
+      "sourceHash": "21a3ea7753fd44a21cda701e6c802397b1f7b06869278b5e36219903057eec3f",
+      "translations": {
+        "ja": "私の声も知ってるし、私の記憶も知ってる。でも、私がなんで笑ったかは知らない。"
+      }
+    },
+    {
+      "id": "ep-06:99",
+      "source": "뭐?",
+      "sourceHash": "ad515411f8355b6183c96154ec9514f8daa2a114beedbd128930008eb202d731",
+      "translations": {
+        "ja": "何？"
+      }
+    },
+    {
+      "id": "ep-06:100",
+      "source": "내가 왜 괜찮은 척했는지, 왜 말 못 했는지, 왜 늦었는지, 왜 혼자 무너졌는지.",
+      "sourceHash": "e26215f18acc4b1fc64663a03bfd593e2f73288638a26b1677500c38986cf6ee",
+      "translations": {
+        "ja": "なんで平気なふりをしたのか、なんで言えなかったのか、なんで遅れたのか、なんで一人で崩れ落ちたのか。"
+      }
+    },
+    {
+      "id": "ep-06:101",
+      "source": "푸른 물결이 덩굴 아래로 흘렀다.",
+      "sourceHash": "849fd49c8e437dcd6c1f92d8a964e3e41c248f373625263c1e2e590bbf3e35f1",
+      "translations": {
+        "ja": "青い波が、蔓の下へ流れた。"
+      }
+    },
+    {
+      "id": "ep-06:102",
+      "source": "너는 그걸 정답처럼 말하기만 하지, 아파하지는 않잖아. 그래서 넌 내가 아니야.",
+      "sourceHash": "b1513047d164f59cd8a3bf6b6c59030efb08a09055756a1b0267950709a7066e",
+      "translations": {
+        "ja": "あんたは、それを正解みたいに言うだけで、痛いとは思わないでしょ。だから、あんたは私じゃない。"
+      }
+    },
+    {
+      "id": "ep-06:103",
+      "source": "공중의 거울들이 흔들렸다. 현실 쪽 거울에서 [귀환 승인] 버튼이 깜빡였다.",
+      "sourceHash": "0851732255bab2d95e6f2d38afc2dbc2261c3f7aba98625e14676fc4dbd21820",
+      "translations": {
+        "ja": "宙の鏡が揺れた。現実側の鏡で、［帰還承認］ボタンが点滅した。"
+      }
+    },
+    {
+      "id": "ep-06:104",
+      "source": "그럼 내가 뭔데?",
+      "sourceHash": "a858ee5f4fb79d05fe12dc4503ffea1aa6b41b87136c7a70cc5e94247b64dd92",
+      "translations": {
+        "ja": "じゃあ、私は何なの？"
+      }
+    },
+    {
+      "id": "ep-06:105",
+      "source": "그 질문은 화난 듯 들렸지만, 아주 조금은 상처 입은 목소리 같기도 했다. 연이는 그 목소리를 놓치지 않고 한 걸음 나아갔다.",
+      "sourceHash": "2592736ac71a5d7615f9047a8f97685d11e35dda9264d84619499eb72f297ca4",
+      "translations": {
+        "ja": "怒ったような問いだった。でも、ほんの少し傷ついた声にも聞こえた。Yeoniはその響きを聞き逃さず、一歩進んだ。"
+      }
+    },
+    {
+      "id": "ep-06:106",
+      "source": "너는 내가 버리려고 했던 나.",
+      "sourceHash": "75cfff43648fdb8c495932b6baba20369a90b01949e1adace352f92bdb99529f",
+      "translations": {
+        "ja": "あんたは、私が捨てようとした自分。"
+      }
+    },
+    {
+      "id": "ep-06:107",
+      "source": "완벽한 척하는 나. 상처 안 받은 척하는 나.",
+      "sourceHash": "4ffe650558491f860e18d106b33c4d8bcf544e5ecd077a5e470974daae4d5b44",
+      "translations": {
+        "ja": "完璧なふりをする私。傷ついてないふりをする私。"
+      }
+    },
+    {
+      "id": "ep-06:108",
+      "source": "나 대신 멀쩡한 척 서 있으려고 했던 나.",
+      "sourceHash": "bb530214c8f2ea835a8383f204045793fe88e81dfd0e1fe1e617054aaa96d548",
+      "translations": {
+        "ja": "私の代わりに、何でもない顔で立とうとしてた私。"
+      }
+    },
+    {
+      "id": "ep-06:109",
+      "source": "그럼 날 부숴!",
+      "sourceHash": "3cfdaccca13fd72cbb3353c28b0f470ff6c78622189bcbab168f6c2330d3b0a7",
+      "translations": {
+        "ja": "だったら、壊してよ！"
+      }
+    },
+    {
+      "id": "ep-06:110",
+      "source": "검은 거울 날개가 크게 펼쳐졌다.",
+      "sourceHash": "29a3aef6b930db919e41af80fed0879f8d3bb8d673975b4dfc17d3cd00f58514",
+      "translations": {
+        "ja": "黒い鏡の翼が大きく開いた。"
+      }
+    },
+    {
+      "id": "ep-06:111",
+      "source": "부숴야 네가 이기는 거잖아!",
+      "sourceHash": "3696c6b28aae96e7fba46bedc240180447f243efa0b73d16ba35abb0faabc240",
+      "translations": {
+        "ja": "壊さなきゃ、勝てないんでしょ！"
+      }
+    },
+    {
+      "id": "ep-06:112",
+      "source": "조각들이 다시 몰려왔다. 영냥이가 뛰어들려 했지만 연이가 먼저 말했다.",
+      "sourceHash": "46e06ab149c4c2847187811971e6149200986579964a5e0dba096bff26ec6f26",
+      "translations": {
+        "ja": "破片が再び押し寄せた。Yeongnyangiが飛び込もうとしたが、Yeoniが先に言った。"
+      }
+    },
+    {
+      "id": "ep-06:113",
+      "source": "아니.",
+      "sourceHash": "f05525bb2385ed4397718fde4e64cfb5e0cd4a6ecaaf74e5f1f5f23fdf63599f",
+      "translations": {
+        "ja": "違う。"
+      }
+    },
+    {
+      "id": "ep-06:114",
+      "source": "초록빛 덩굴이 벽처럼 자라나, 조각들을 찌르는 대신 감싸 안았다.",
+      "sourceHash": "8fc3d9894c6371398d7d968c2a38f07b04a3916c47e85dbc2dab270f24f37524",
+      "translations": {
+        "ja": "緑の蔓が壁のように伸び、破片を突き刺す代わりに包み込んだ。"
+      }
+    },
+    {
+      "id": "ep-06:115",
+      "source": "안 부술 거야.",
+      "sourceHash": "2106a1c696e4e06c76f100a2a6702098adf971a3cae01bec4220bacb9a66d111",
+      "translations": {
+        "ja": "壊さない。"
+      }
+    },
+    {
+      "id": "ep-06:116",
+      "source": "뭐?",
+      "sourceHash": "ad515411f8355b6183c96154ec9514f8daa2a114beedbd128930008eb202d731",
+      "translations": {
+        "ja": "何？"
+      }
+    },
+    {
+      "id": "ep-06:117",
+      "source": "너를 없애면, 내가 버리고 싶었던 부분을 또 못 본 척하는 거잖아.",
+      "sourceHash": "b6d9f9aa67b67ace9f0fd5ac407566e6e96857acbc87820592d762219b478687",
+      "translations": {
+        "ja": "あんたを消したら、捨てたかった自分の一部を、また見なかったふりすることになるでしょ。"
+      }
+    },
+    {
+      "id": "ep-06:118",
+      "source": "그 말이 섬 전체에 울렸다. 거울들이 하나둘 멈췄다. 거울 속 연이는 처음으로 아무 말도 하지 못했다.",
+      "sourceHash": "16cd3ed67124e53ecd21e118c73c948d80862591a8eff5d864451fb34fc3e6c7",
+      "translations": {
+        "ja": "その言葉が島全体に響いた。鏡が一つ、また一つと止まった。鏡のYeoniは初めて、何も言えなくなった。"
+      }
+    },
+    {
+      "id": "ep-06:119",
+      "source": "연이는 천천히 다가갔다. 솔직히 무서웠다. 저 가짜가 언제 공격할지 몰랐다. 귀환 버튼은 아직 깜빡였고 날개는 여전히 날카로웠다. 하지만 멈추지 않았다.",
+      "sourceHash": "ac85d970acb333e0933b083e0b67824fe30076811a9af4b505284b814c136962",
+      "translations": {
+        "ja": "Yeoniはゆっくり近づいた。正直、怖かった。偽物がいつ襲ってくるか分からなかった。帰還ボタンはまだ点滅し、翼は変わらず鋭かった。それでも止まらなかった。"
+      }
+    },
+    {
+      "id": "ep-06:120",
+      "source": "머리 위 꽃이 빛났다. 앞발 안의 乙이 따뜻했고, 가슴 깊은 곳의 亥가 조용히 받쳐주었다. 연이는 거울 속 연이 앞에 섰다.",
+      "sourceHash": "bd021d40187f36e22c25b6e4e62c14857b8760302a60cf811ffbae8d2011ea9e",
+      "translations": {
+        "ja": "頭の花が光った。前足の乙は温かく、胸の奥の亥が静かに支えていた。Yeoniは鏡のYeoniの前に立った。"
+      }
+    },
+    {
+      "id": "ep-06:121",
+      "source": "인간의 얼굴과 꽃돼지의 얼굴이 마주 보았다.",
+      "sourceHash": "b68226e35dd7b520c591672313e107d3b5a15669a307fc72f96cf935763fa761",
+      "translations": {
+        "ja": "人間の顔と花ブタの顔が、向かい合った。"
+      }
+    },
+    {
+      "id": "ep-06:122",
+      "source": "나를 받아들이면, 너는 또 흔들릴 거야.",
+      "sourceHash": "aa9a9e12aa38232c1bab1dc67bae27d74a5712b688700fae9cd68e5e6a92c011",
+      "translations": {
+        "ja": "私を受け入れたら、また揺らぐよ。"
+      }
+    },
+    {
+      "id": "ep-06:123",
+      "source": "알아.",
+      "sourceHash": "4167bd50bea30dc931bd2a3cac3a7f3498d488493e0a3a582aff497aac71c39e",
+      "translations": {
+        "ja": "分かってる。"
+      }
+    },
+    {
+      "id": "ep-06:124",
+      "source": "또 비교하고, 또 질투하고, 또 괜찮은 척할 거야.",
+      "sourceHash": "cde67ed8447d1281f5d96682d4015590c50f2df7e252345c4d14d1e42ffd5ba9",
+      "translations": {
+        "ja": "また比べて、また嫉妬して、また平気なふりをするよ。"
+      }
+    },
+    {
+      "id": "ep-06:125",
+      "source": "그럴 수도 있겠지.",
+      "sourceHash": "eb408d57d6a532b3fe7c4cf9559d02f4fa4a7c27510517fe6dd13b18dfdb0c2a",
+      "translations": {
+        "ja": "そうかもしれないね。"
+      }
+    },
+    {
+      "id": "ep-06:126",
+      "source": "그런데도?",
+      "sourceHash": "0c63fc41bf2de559c2fa87095c222245bcace7bd343b8f690e7bc9e9b52e1d3d",
+      "translations": {
+        "ja": "それでも？"
+      }
+    },
+    {
+      "id": "ep-06:127",
+      "source": "그런 내가 나와도, 이제는 모른 척하지 않을 거야.",
+      "sourceHash": "42e5451ae3084d230ccf613a4ee4d58b99c94d37108e80b670739007685444b2",
+      "translations": {
+        "ja": "そんな自分が出てきても、もう知らないふりはしない。"
+      }
+    },
+    {
+      "id": "ep-06:128",
+      "source": "거울 속 연이의 눈동자가 흔들렸다. 연이는 앞발을 내밀었다.",
+      "sourceHash": "7455f38c35abdc6f930945aca2041208e751ac4262137398c930aa4fd415a482",
+      "translations": {
+        "ja": "鏡のYeoniの瞳が揺れた。Yeoniは前足を差し出した。"
+      }
+    },
+    {
+      "id": "ep-06:129",
+      "source": "그러니까 와.",
+      "sourceHash": "5f25ef15f5915c1129e7b793b481c1558b8d3e5adccd2dc0c927680f56b8da75",
+      "translations": {
+        "ja": "だから、おいで。"
+      }
+    },
+    {
+      "id": "ep-06:130",
+      "source": "거울 속 연이가 연이의 앞발을 내려다봤다.",
+      "sourceHash": "e348ffacbb7970808355fa40c29f837ddcbfa451246c97a7b433765980d09184",
+      "translations": {
+        "ja": "鏡のYeoniは、その前足を見下ろした。"
+      }
+    },
+    {
+      "id": "ep-06:131",
+      "source": "손도 아니잖아.",
+      "sourceHash": "933d187d1b25a34941ac39358c09070b66a9f656cf22bb4b31f6105f13dca512",
+      "translations": {
+        "ja": "手でもないじゃん。"
+      }
+    },
+    {
+      "id": "ep-06:132",
+      "source": "지금 그게 중요해?",
+      "sourceHash": "fd1298d98840aab8e443c12c4032e7f7a8ebfbdb1768532bd40fe0fd0a9deddd",
+      "translations": {
+        "ja": "今、それ重要？"
+      }
+    },
+    {
+      "id": "ep-06:133",
+      "source": "조금 웃기긴 해.",
+      "sourceHash": "ffc6da250ee233ca75f92686ef239d8b139e1cff2a9f11db5e40738b3a1b135c",
+      "translations": {
+        "ja": "ちょっと笑っちゃうけど。"
+      }
+    },
+    {
+      "id": "ep-06:134",
+      "source": "나도 알아. 빨리 잡아. 민망하니까.",
+      "sourceHash": "089b1014539bc8e67f38f3089285ffaa34f8dc3a53745867ccf9c1232ed40251",
+      "translations": {
+        "ja": "私も分かってる。早くつかんで。恥ずかしいから。"
+      }
+    },
+    {
+      "id": "ep-06:135",
+      "source": "거울 속 연이가 아주 작게 웃었다. 이번엔 비웃음이 아니었다. 조금 얄밉고, 조금 지치고, 조금 안심한, 정말 연이 같은 웃음이었다.",
+      "sourceHash": "2797cdb6648f15877071e5d31f3552a00864f025d964d8467d77b9926ea6eb74",
+      "translations": {
+        "ja": "鏡のYeoniが、ごく小さく笑った。今度は嘲笑ではなかった。少し憎たらしく、少し疲れていて、少し安心した、本当にYeoniらしい笑みだった。"
+      }
+    },
+    {
+      "id": "ep-06:136",
+      "source": "거울 속 연이가 손을 뻗었다. 손바닥이 연이의 앞발에 닿았다.",
+      "sourceHash": "c399b0cdf4ebb7963a580fa1aa7c52e2ff6076fa911afa3b9c7e5c9b5aa4581e",
+      "translations": {
+        "ja": "鏡のYeoniが手を伸ばした。手のひらがYeoniの前足に触れた。"
+      }
+    },
+    {
+      "id": "ep-06:137",
+      "source": "그 순간 검은 날개가 산산이 흩어졌다. 쨍그랑! 하지만 아프지 않았다. 오래된 껍질이 벗겨지는 소리 같았다.",
+      "sourceHash": "1f19e70d291932edfd40408a833f173031e046d876bbe1993da701972d050cab",
+      "translations": {
+        "ja": "その瞬間、黒い翼が粉々に散った。ガシャン！ けれど、痛くはなかった。古い殻が剝がれる音のようだった。"
+      }
+    },
+    {
+      "id": "ep-06:138",
+      "source": "거울 속 연이의 몸이 빛으로 풀려 연이의 몸 안으로 천천히 스며들었다.",
+      "sourceHash": "693e2cbdb1a8a543673aeefa566546a2cd98823007684b4250288614e0df4a58",
+      "translations": {
+        "ja": "鏡のYeoniの体が光へほどけ、Yeoniの中へゆっくり染み込んだ。"
+      }
+    },
+    {
+      "id": "ep-06:139",
+      "source": "연이는 눈을 감았다. 비교했던 마음, 부러웠던 마음, 잘하고 싶었던 마음, 지지 않으려 애썼던 마음, 괜찮은 척했던 마음이 한꺼번에 밀려왔다.",
+      "sourceHash": "b7284cc7f522dad35253d12769990965996813871603ee2ca04ac1868ee29a50",
+      "translations": {
+        "ja": "Yeoniは目を閉じた。比べた心、うらやんだ心、うまくやりたかった心、負けまいと頑張った心、平気なふりをした心が、一度に押し寄せた。"
+      }
+    },
+    {
+      "id": "ep-06:140",
+      "source": "전부 낯설고 불편했지만 전부 자신이었다. 연이는 밀어내지 않고 그냥 숨을 들이쉬었다. 깊은 물처럼. 그리고 작게 내쉬었다. 꽃잎이 흔들렸다.",
+      "sourceHash": "e207a647bd6ca661be43e3e0f8c5ffe73fec465cf995f99cf8464280bb7e1cd2",
+      "translations": {
+        "ja": "全部なじめず、居心地が悪かった。それでも全部、自分だった。Yeoniは押しのけず、ただ息を吸った。深い水のように。そして小さく吐いた。花びらが揺れた。"
+      }
+    },
+    {
+      "id": "ep-06:141",
+      "source": "[본체 인증 100% · 현실 귀환 권한: 연이]",
+      "sourceHash": "0cba579b08705f9d3892c7924d0f2e5139c8afb61f73c935e7dfd36299202283",
+      "translations": {
+        "ja": "［本体認証100% · 現実帰還権限：Yeoni］"
+      }
+    },
+    {
+      "id": "ep-06:142",
+      "source": "[비겁의 섬 최종 시험 완료]",
+      "sourceHash": "8b2f70f538b93639d8c1ff87f27e8acdb2b85d2cbe83b7c6092b958bef321bae",
+      "translations": {
+        "ja": "［比劫の島 最終試験完了］"
+      }
+    },
+    {
+      "id": "ep-06:143",
+      "source": "[겁재 정화 · 비견의 조각 획득]",
+      "sourceHash": "6f372bf9c79bb52f299793efce3d39a32ff7b541a913a06d0e7f5458768fb141",
+      "translations": {
+        "ja": "［劫財浄化 · 比肩のかけら獲得］"
+      }
+    },
+    {
+      "id": "ep-06:144",
+      "source": "축하해, 연이야.",
+      "sourceHash": "8d972376759892d7d8ec52a18116f24a4e973eb22b7e81e60545eaaea8f1c1c5",
+      "translations": {
+        "ja": "おめでとう、Yeoni。"
+      }
+    },
+    {
+      "id": "ep-06:145",
+      "source": "방금 이름 불렀어?",
+      "sourceHash": "1b495570e02ee64c3a96f932ab70bdcd92f460c5498f92e38a7284848d6aa0b9",
+      "translations": {
+        "ja": "今、名前で呼んだ？"
+      }
+    },
+    {
+      "id": "ep-06:146",
+      "source": "원래 알고 있었다.",
+      "sourceHash": "c0368a3206949b991dc5ca1fef59a80606122aca38f4eb044485374877965a9e",
+      "translations": {
+        "ja": "もともと知っていた。"
+      }
+    },
+    {
+      "id": "ep-06:147",
+      "source": "그동안은 사용자 취급하더니?",
+      "sourceHash": "5442232b319580d5801f99d26cb462513f2947cee412a15beb38fc5b7608390e",
+      "translations": {
+        "ja": "ずっとユーザー扱いだったのに？"
+      }
+    },
+    {
+      "id": "ep-06:148",
+      "source": "이제는 구분할 필요가 없으니까.",
+      "sourceHash": "ff2087083d58665bb6165ea7c6dbae342ca0fe9bbb7749616830b7c388cec14c",
+      "translations": {
+        "ja": "もう、区別する必要がないからな。"
+      }
+    },
+    {
+      "id": "ep-06:149",
+      "source": "깨진 조각들 중 세 개가 연이 앞으로 날아왔다. 붉은 조각, 은색 조각, 푸른 조각.",
+      "sourceHash": "028b4e50672e575406901d95e51e6feec3be7d80b43c4660722b2809d6801952",
+      "translations": {
+        "ja": "砕けたかけらのうち、三つがYeoniの前へ飛んできた。赤いかけら、銀のかけら、青いかけら。"
+      }
+    },
+    {
+      "id": "ep-06:150",
+      "source": "이제 네 안에서 널 받쳐 줄 조각들이야. 비견이 된 거지.",
+      "sourceHash": "adcf3a3d47eb347f4916d4cdcb9dfaaf4ac9cb16b825df51c3ddf48918f08497",
+      "translations": {
+        "ja": "これから、お前の中で支えになるかけらだ。比肩になったんだ。"
+      }
+    },
+    {
+      "id": "ep-06:151",
+      "source": "아이템이야?",
+      "sourceHash": "e1570985bd622452edd2b84f8ceebe1a8278fe460b6f619ee217ee5e5e328146",
+      "translations": {
+        "ja": "アイテム？"
+      }
+    },
+    {
+      "id": "ep-06:152",
+      "source": "부적에 가깝다.",
+      "sourceHash": "3eacffff125989ccc6890d9a5e1e7ca2ac249c6874757761014a3596f8437be2",
+      "translations": {
+        "ja": "お守りに近い。"
+      }
+    },
+    {
+      "id": "ep-06:153",
+      "source": "좋아. 아이템창에 넣을게.",
+      "sourceHash": "f48b29b4476bf1880401ddb2aa2e61b83155ef1817976ba9f53087e28b58eeb8",
+      "translations": {
+        "ja": "よし。アイテム欄に入れるね。"
+      }
+    },
+    {
+      "id": "ep-06:154",
+      "source": "아이템창을 찾아도 안 나와.",
+      "sourceHash": "bab4ca462cb15566c7b126fec8961e36ce3449001a073d5793b9ca0d19d96675",
+      "translations": {
+        "ja": "アイテム欄を探しても出てこないぞ。"
+      }
+    },
+    {
+      "id": "ep-06:155",
+      "source": "아, UI 진짜 불친절하네.",
+      "sourceHash": "18859aeeaab4351a86deffdd46ab0987486b35c106b95272d83e0a695f6e819a",
+      "translations": {
+        "ja": "ああ、UIほんと不親切。"
+      }
+    },
+    {
+      "id": "ep-06:156",
+      "source": "불친절한 게 아니라, 그냥 없는 거다.",
+      "sourceHash": "4a2c95a9e5c4fb645a322e7ca63356fffb807f1da3b859caa6bd44c5efaff432",
+      "translations": {
+        "ja": "不親切なのではなく、存在しないだけだ。"
+      }
+    },
+    {
+      "id": "ep-06:157",
+      "source": "세 조각은 연이의 머리 위 꽃 주위를 돌더니 작은 꽃잎 장식처럼 붙었다. 붉은 꽃잎, 은빛 꽃잎, 푸른 꽃잎.",
+      "sourceHash": "10ba076a89865b81df8a843c75cd8d06423f4ed4a44c387466aef2d450e81069",
+      "translations": {
+        "ja": "三つのかけらは頭の花の周りを巡り、小さな花びらの飾りのように寄り添った。赤い花びら、銀の花びら、青い花びら。"
+      }
+    },
+    {
+      "id": "ep-06:158",
+      "source": "나 좀 업그레이드된 것 같은데?",
+      "sourceHash": "8723b36dcc6c23aa1e6428ff85a6910084207b9a4b89e4b7ae58e16babd3d01b",
+      "translations": {
+        "ja": "ちょっとアップグレードした気がするんだけど？"
+      }
+    },
+    {
+      "id": "ep-06:159",
+      "source": "비겁의 힘이다. 이제 흔들릴 때, 너를 무너뜨리는 목소리와 지탱하는 목소리를 조금 더 구분할 수 있을 거다.",
+      "sourceHash": "8a791e57adaccfff7f9d3cf0b44e64ba3742ed0c6a883277f14ba9b3a62dc444",
+      "translations": {
+        "ja": "比劫の力だ。これから揺らぐとき、自分を壊す声と支える声を、もう少し見分けられるだろう。"
+      }
+    },
+    {
+      "id": "ep-06:160",
+      "source": "오. 그러니까 멘탈 필터 생긴 거네?",
+      "sourceHash": "977a146f0613e63615eca003762208c67b2f874002dbc89ca94ad31965d99978",
+      "translations": {
+        "ja": "おお。つまり、メンタルフィルターがついたのね？"
+      }
+    },
+    {
+      "id": "ep-06:161",
+      "source": "아주 단순하게 말하면 그렇다.",
+      "sourceHash": "ee2c82e96762558c023508e75304be0a418c1146daea2c34aec24cf01fd273d0",
+      "translations": {
+        "ja": "かなり単純に言えば、そうだ。"
+      }
+    },
+    {
+      "id": "ep-06:162",
+      "source": "좋네. 이건 실생활에도 필요했어.",
+      "sourceHash": "bb5efba8b0fbb07b06b436753843ebe9cc0e237bedfa53bd0cf5e7692bf5a115",
+      "translations": {
+        "ja": "いいね。実生活にも欲しかった。"
+      }
+    },
+    {
+      "id": "ep-06:163",
+      "source": "그때 섬 전체가 흔들렸다. 거울들이 하늘로 떠오르고, 검은 유리 바닥에 금이 갔다. 그 아래에서 초록빛과 푸른빛이 동시에 올라왔다.",
+      "sourceHash": "5f6ba001cb7efa3eebb60b339e3245003789f60d76e0a11c2e62a16605ba0349",
+      "translations": {
+        "ja": "そのとき、島全体が揺れた。鏡が空へ浮かび、黒いガラスの床にひびが入った。その下から、緑と青の光が同時に昇った。"
+      }
+    },
+    {
+      "id": "ep-06:164",
+      "source": "乙亥. 두 글자가 연이 앞에 떠올랐다. 작은 새싹이 깊은 물 위에 뿌리내린 형상이었다. 이번에는 낯설지 않았다. 마음 한가운데에 딱 맞는 이름 같았다.",
+      "sourceHash": "dcdc4bfd5dbd232ca5e9edeb632aec188217580cccd543a91454f33efc8632b2",
+      "translations": {
+        "ja": "乙亥。二つの文字がYeoniの前に浮かんだ。小さな芽が深い水の上に根を張る姿だった。今度は知らないものではなかった。心の真ん中に、ぴたりとはまる名前のようだった。"
+      }
+    },
+    {
+      "id": "ep-06:165",
+      "source": "을해일주.",
+      "sourceHash": "ad6046e0bbf304889b1f3c26edfb967cd348bd639df15024205c49def17407ad",
+      "translations": {
+        "ja": "乙亥の日柱。"
+      }
+    },
+    {
+      "id": "ep-06:166",
+      "source": "두 글자가 가슴으로 스며들며 따뜻한 기운과 차가운 기운이 동시에 퍼졌다. 이상했지만 불편하지 않았다. 작은 꽃이 더 선명하게 피어났다.",
+      "sourceHash": "f1a6fc951e1c04281ac98e3b3feef27c4d52112971060dc0db09d1c202831215",
+      "translations": {
+        "ja": "二文字が胸へ染み込み、温かな気と冷たい気が同時に広がった。不思議でも、不快ではなかった。小さな花が、いっそう鮮やかに咲いた。"
+      }
+    },
+    {
+      "id": "ep-06:167",
+      "source": "[사주 글자 회수 완료 · 日柱: 乙亥]",
+      "sourceHash": "fff54269a8fa649273f3d5f55d1efa13204e83a0c4113e4782e6739f97559bcc",
+      "translations": {
+        "ja": "［四柱の文字 回収完了 · 日柱：乙亥］"
+      }
+    },
+    {
+      "id": "ep-06:168",
+      "source": "[일주 각인 완료 · 乙亥는 더 이상 회수 대상이 아닙니다]",
+      "sourceHash": "280bf12bec3fc438ae2513474831b1714d021a8a6db7cb62dc47884bea86ba80",
+      "translations": {
+        "ja": "［日柱の刻印完了 · 乙亥は回収対象ではなくなりました］"
+      }
+    },
+    {
+      "id": "ep-06:169",
+      "source": "나 진짜 첫 스테이지 깬 거야?",
+      "sourceHash": "5e28cf50c65eee24374270a41d4b056ccb10fbfac1986fa68b88e23c3ed6ecd5",
+      "translations": {
+        "ja": "本当に、最初のステージをクリアしたの？"
+      }
+    },
+    {
+      "id": "ep-06:170",
+      "source": "그래. 첫 관문은 넘었다.",
+      "sourceHash": "52921b1c41cac8a310e24b19f6e131ccd6f1766d46961f4cf738b31bd06525b6",
+      "translations": {
+        "ja": "ああ。最初の関門は越えた。"
+      }
+    },
+    {
+      "id": "ep-06:171",
+      "source": "보상은?",
+      "sourceHash": "22ebecb67f1fd58d80ede9805f5cbcfd7d5787df9d0f29e78ab9ddaa829599e3",
+      "translations": {
+        "ja": "報酬は？"
+      }
+    },
+    {
+      "id": "ep-06:172",
+      "source": "방금 받았다.",
+      "sourceHash": "ebb50eb29dd1b4060c0761643b2cfb61468281ce952f585591929e9b6ea43e9c",
+      "translations": {
+        "ja": "今、受け取った。"
+      }
+    },
+    {
+      "id": "ep-06:173",
+      "source": "좀 더 현물 같은 건 없어? 코인이라든가.",
+      "sourceHash": "b34118efeb506501fa54a7a587d4276a58cfd12ebfc2a0a6c79b9c4eb3bcb608",
+      "translations": {
+        "ja": "もう少し現物っぽいのはない？ コインとか。"
+      }
+    },
+    {
+      "id": "ep-06:174",
+      "source": "없다.",
+      "sourceHash": "528ae90c45c937ef64424b0cd8530aa6c9722809f9ac1fb345ce3ea20493ceb7",
+      "translations": {
+        "ja": "ない。"
+      }
+    },
+    {
+      "id": "ep-06:175",
+      "source": "이 세계 경제관념 아쉽네.",
+      "sourceHash": "eeb2b02d154ec1fb0944ee44dc5ca293e2b3fd4184241f6b772d169043fc1976",
+      "translations": {
+        "ja": "この世界、経済観念が惜しいね。"
+      }
+    },
+    {
+      "id": "ep-06:176",
+      "source": "환불이라도 넣게 고객센터 좀 알려줘. …꿀.",
+      "sourceHash": "4fac803bd7b07fa3edb5fe665a1b06767d0c52013d895164ae19898aed0b5ca7",
+      "translations": {
+        "ja": "返金でも申請したいから、カスタマーセンター教えて。……ブー。"
+      }
+    },
+    {
+      "id": "ep-06:177",
+      "source": "영냥이가 한숨을 쉬었다. 하지만 입가에는 아주 작은 웃음이 걸려 있었다.",
+      "sourceHash": "2f51457c8dab1c4dfa313181b4140229aa50ee8301027f2aee9a18dc5641b631",
+      "translations": {
+        "ja": "Yeongnyangiはため息をついた。けれど口元には、ごく小さな笑みがあった。"
+      }
+    },
+    {
+      "id": "ep-06:178",
+      "source": "그때 멀리서 소리가 들렸다. 둥. 둥. 둥. 처음엔 심장 소리 같더니 곧 리듬이 되었다. 박자, 음악, 사람들의 함성.",
+      "sourceHash": "35b06c3763d798f205f16941b9d48eb0d0e90768a27c34698472472b87832e3c",
+      "translations": {
+        "ja": "そのとき、遠くから音が聞こえた。どん。どん。どん。最初は心臓の音かと思ったが、すぐにリズムになった。拍子、音楽、人々の歓声。"
+      }
+    },
+    {
+      "id": "ep-06:179",
+      "source": "연이는 고개를 들었다. 안개가 걷힌 비겁의 섬 너머, 전혀 다른 섬이 반짝이고 있었다. 색색의 등불, 춤추는 그림자, 맛있는 냄새, 하늘로 올라가는 노랫소리.",
+      "sourceHash": "a3e3f0643792907cec6092e7034ec332772edc42d958a22664b9a4f71a2fb520",
+      "translations": {
+        "ja": "Yeoniは顔を上げた。霧の晴れた比劫の島の向こうで、まったく違う島が輝いていた。色とりどりの灯り、踊る影、おいしそうな匂い、空へ昇る歌声。"
+      }
+    },
+    {
+      "id": "ep-06:180",
+      "source": "잠깐. 뭐야, 저기 냄새 미쳤는데?",
+      "sourceHash": "52abf5416e4b7b1171c9ad75bf695160426994f25242c0deab5e183dbbf28724",
+      "translations": {
+        "ja": "待って。何、あそこ、すごくいい匂いしない？"
+      }
+    },
+    {
+      "id": "ep-06:181",
+      "source": "코가 먼저 반응했어. 콧구멍이 저 혼자 벌렁대잖아. …꿀.",
+      "sourceHash": "4042f4775c87d209cce465c73909ce3126052b28f7bea01ef9f31ae47766fc8c",
+      "translations": {
+        "ja": "鼻が先に反応しちゃった。勝手にひくひくしてる。……ブー。"
+      }
+    },
+    {
+      "id": "ep-06:182",
+      "source": "다음 섬이다.",
+      "sourceHash": "4edeffe2a416c61b1b0db56edda5eda88dca3b8a3338f784ecc888d03fd55b55",
+      "translations": {
+        "ja": "次の島だ。"
+      }
+    },
+    {
+      "id": "ep-06:183",
+      "source": "설마 음식 나와?",
+      "sourceHash": "a26638d82cde4e5cfef1b797d28f29b73727eee072b1a0050efa8c87737d2982",
+      "translations": {
+        "ja": "もしかして、ご飯が出るの？"
+      }
+    },
+    {
+      "id": "ep-06:184",
+      "source": "음식도 있고, 노래도 있고, 무대도 있다.",
+      "sourceHash": "21143c8070052fd11f64945e6d85f6c47104c235ce1f924f1522dee564c9941d",
+      "translations": {
+        "ja": "食べ物も、歌も、舞台もある。"
+      }
+    },
+    {
+      "id": "ep-06:185",
+      "source": "오. 드디어 힐링 파트?",
+      "sourceHash": "0f837dbcb9a30e5ff6a8db46d4148f1a942cf5ada5eaf430415b472f14be8e23",
+      "translations": {
+        "ja": "おお。やっと癒やしパート？"
+      }
+    },
+    {
+      "id": "ep-06:186",
+      "source": "영냥이는 대답하지 않았다. 그 침묵이 살짝 불길했다.",
+      "sourceHash": "6fd6aaee9e69e59178230154ea60153f51ad24580b10f3517b32dd9cb7aa97c6",
+      "translations": {
+        "ja": "Yeongnyangiは答えなかった。その沈黙が少し不吉だった。"
+      }
+    },
+    {
+      "id": "ep-06:187",
+      "source": "왜 대답 안 해?",
+      "sourceHash": "1f29feba7d64fe3dbb7c72c8355828efad074212eec6479c820998d914e71a86",
+      "translations": {
+        "ja": "なんで答えないの？"
+      }
+    },
+    {
+      "id": "ep-06:188",
+      "source": "식상의 섬.",
+      "sourceHash": "863a1a33d8d05a7065fe39ddfa0bf60ba800f64231fe2f6b5882c5ee44aff3a3",
+      "translations": {
+        "ja": "食傷の島。"
+      }
+    },
+    {
+      "id": "ep-06:189",
+      "source": "식상?",
+      "sourceHash": "d1b56ca63c22d3a8a7470a7191e6ed19ebef19cec62d96fa9f5db0820d23bf02",
+      "translations": {
+        "ja": "食傷？"
+      }
+    },
+    {
+      "id": "ep-06:190",
+      "source": "표현, 말, 재능, 먹는 즐거움, 만드는 힘. 네 안에서 밖으로 흘러나오는 기운의 섬이다.",
+      "sourceHash": "7807647c9ae33b721e2d2db5ade41386c8a9b509e3a9e5500311874316856b5c",
+      "translations": {
+        "ja": "表現、言葉、才能、食べる喜び、作る力。自分の内側から外へ流れ出す気の島だ。"
+      }
+    },
+    {
+      "id": "ep-06:191",
+      "source": "그러니까 먹고 말하고 노래하는 섬?",
+      "sourceHash": "126bdcd77d59abe2c5d7830e62e96094459db3718f0c8fa0c84e65fb0be65a7a",
+      "translations": {
+        "ja": "つまり、食べてしゃべって歌う島？"
+      }
+    },
+    {
+      "id": "ep-06:192",
+      "source": "대충 맞다.",
+      "sourceHash": "930ef411b2e2d6b75249bc85b38700a574f53078d157466412d44946d9369d08",
+      "translations": {
+        "ja": "大体合っている。"
+      }
+    },
+    {
+      "id": "ep-06:193",
+      "source": "좋은데?",
+      "sourceHash": "0d1d9c36ba7c672475d2f3fb6a140810065e6894e9099798e7094d14efe41c7e",
+      "translations": {
+        "ja": "いいじゃん。"
+      }
+    },
+    {
+      "id": "ep-06:194",
+      "source": "겉으로는.",
+      "sourceHash": "acc82bb1f5f84afe923772d85bf13ee8224b9e822a13b47fb0d37e651eb900ee",
+      "translations": {
+        "ja": "表向きは。"
+      }
+    },
+    {
+      "id": "ep-06:195",
+      "source": "또 그 말투네. 불안하게.",
+      "sourceHash": "8847ea948cc27918ec2514742dec77ba4668e03f64b6a10299acc1bca9062e91",
+      "translations": {
+        "ja": "また、その言い方。不安になるから。"
+      }
+    },
+    {
+      "id": "ep-06:196",
+      "source": "연잎 배가 다시 강 위로 떠올랐다. 비겁의 섬은 천천히 뒤로 멀어졌다.",
+      "sourceHash": "3cceaaada2f5be1e1aa2f8c9fd7e78500e75a8dde2387383cbd144700d4b883a",
+      "translations": {
+        "ja": "蓮の葉の舟が再び川に浮いた。比劫の島が、ゆっくり後ろへ遠ざかった。"
+      }
+    },
+    {
+      "id": "ep-06:197",
+      "source": "바로 그때, 멀리 식상의 섬 하늘 위로 검은 깃털 하나가 떨어졌다. 깃털이 가장 높은 무대 위로 내려앉자, 방금까지 들리던 음악이 뚝 끊겼다.",
+      "sourceHash": "51ac2c2e4c520c21ce22215fa9b6f209c45a998af7eddc2948d516ad7ad1d73b",
+      "translations": {
+        "ja": "ちょうどそのとき、遠くの食傷の島の空から、一枚の黒い羽根が落ちた。羽根が一番高い舞台に降りると、さっきまで聞こえていた音楽がぷつりと止まった。"
+      }
+    },
+    {
+      "id": "ep-06:198",
+      "source": "……힐링 파트 아니네?",
+      "sourceHash": "cce8e878c4d3b86dc51f8f32956c18e9f429be73f825fce22378f055c91f6bc5",
+      "translations": {
+        "ja": "……癒やしパートじゃないね？"
+      }
+    },
+    {
+      "id": "ep-06:199",
+      "source": "아닌 것 같군.",
+      "sourceHash": "ae25cdb7046a244997c5f89e25fa029e0ef631ea6005e8a9f6af8af4a71848e9",
+      "translations": {
+        "ja": "そのようだな。"
+      }
+    },
+    {
+      "id": "ep-06:200",
+      "source": "연이는 가슴 안쪽의 乙亥를 느꼈다. 작은 새싹과 깊은 물. 방금 되찾은 자신의 중심. 짧은 앞발을 들어 올렸다.",
+      "sourceHash": "77e93020160074be700ffff76a34a87e0d066b31e5a4deb78781d084ab1bb799",
+      "translations": {
+        "ja": "Yeoniは胸の内側の乙亥を感じた。小さな芽と深い水。今取り戻した、自分の中心。短い前足を持ち上げた。"
+      }
+    },
+    {
+      "id": "ep-06:201",
+      "source": "좋아. 다음 길도 가보자.",
+      "sourceHash": "c87a46aa3619c329b6960914334c38e90f3a1e2af3000a908b20f36d85e93e69",
+      "translations": {
+        "ja": "よし。次の道も進んでみよう。"
+      }
+    },
+    {
+      "id": "ep-06:202",
+      "source": "갈 준비 됐나?",
+      "sourceHash": "1d22e232a8b92f2bb8f9b6d0654252ea76947bfa84ffa59a2d43245f03587785",
+      "translations": {
+        "ja": "行く準備はできたか？"
+      }
+    },
+    {
+      "id": "ep-06:203",
+      "source": "연이는 식상의 섬을 바라봤다. 아직 무서웠지만 방금 전보다 덜 흔들렸다.",
+      "sourceHash": "fefc283c599e05e4e112518defd22a51926646635e6f765b2d70adef3cc57df3",
+      "translations": {
+        "ja": "Yeoniは食傷の島を見た。まだ怖かったけれど、さっきほどは揺らがなかった。"
+      }
+    },
+    {
+      "id": "ep-06:204",
+      "source": "응. 근데 이번엔 제발 돼지 몸으로 무대 서는 일은 없겠지?",
+      "sourceHash": "9adbfaf2172a52c0ff68e7a25fdaac618cf014b89d12c84f6ba6fe3bb08aa3a5",
+      "translations": {
+        "ja": "うん。でも今度こそ、ブタの体で舞台に立つことだけはないよね？"
+      }
+    },
+    {
+      "id": "ep-06:205",
+      "source": "영냥이는 대답하지 않았다.",
+      "sourceHash": "927dd778ba8bf8892a64a0c6b331f815d618cf7a2c66fafe68ffdf4bf6fa0c7d",
+      "translations": {
+        "ja": "Yeongnyangiは答えなかった。"
+      }
+    },
+    {
+      "id": "ep-06:206",
+      "source": "야. 왜 대답 안 해?",
+      "sourceHash": "d7115d7b57566f727f1e028d0a0246d4b0599bca6e518142ee7ec38ec007c7d2",
+      "translations": {
+        "ja": "ねえ。なんで答えないの？"
+      }
+    },
+    {
+      "id": "ep-06:207",
+      "source": "가보면 안다.",
+      "sourceHash": "490634e9f5a9b5aa4057e090ebf3c7de77745c44698ebfd804eba1b7e9f9581c",
+      "translations": {
+        "ja": "行けば分かる。"
+      }
+    },
+    {
+      "id": "ep-06:208",
+      "source": "나 지금 진짜 불안해졌어.",
+      "sourceHash": "b6685e015eb8faf791268984f1b15515aabf18292ce9f8975373fe9eb72433c6",
+      "translations": {
+        "ja": "今、ほんとに不安になったんだけど。"
+      }
+    },
+    {
+      "id": "ep-06:209",
+      "source": "[제2섬 · 식신 상관의 섬 진입]",
+      "sourceHash": "9bccb81de219e6b7ea92bc9a3b567610ef9a4c94aeefdb857de9cdef16910da9",
+      "translations": {
+        "ja": "［第2の島 · 食神と傷官の島へ進入］"
+      }
+    },
+    {
+      "id": "ep-06:210",
+      "source": "연잎 배가 노랫소리와 불빛을 향해 미끄러졌다. 그리고 그 무대 위에는 검은 깃털이 여전히 조용히 놓여 있었다.",
+      "sourceHash": "7355a5dac0b2006fa7219b86d08d293ac0152f7e6e42fa6841a115eb41e6a73f",
+      "translations": {
+        "ja": "蓮の葉の舟は、歌声と灯りへ滑っていった。そして、あの舞台の上には、黒い羽根が今も静かに置かれていた。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,494 @@
+{
+  "locale": "en",
+  "episodeId": "ep-12a",
+  "tag": "EP.12A · The Empty Line in the Ledger",
+  "title": "The Empty Line in the Ledger",
+  "sourceTitle": "장부의 빈 줄",
+  "sourceTag": "EP.12A · 장부의 빈 줄",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-12a:1",
+      "source": "해가 돌아온 섬에 처음으로 저녁이 왔다. 해는 제 시간에 맞춰 수평선으로 내려가고 있었다. 광장 쪽에서는 아직 냄비 뚜껑 소리가 띄엄띄엄 들렸다.",
+      "sourceHash": "9516b62adefd2e8e43ac9a78d8615e41970982528d1e9728096f00c867ceb65e",
+      "t": "Evening came for the first time to the island whose sun had returned. The sun descended toward the horizon on schedule. Occasional pot-lid beats still drifted from the square."
+    },
+    {
+      "id": "ep-12a:2",
+      "source": "바닷가 언덕은 조용했다. 파도가 모래를 핥고 물러날 때마다 젖은 소금 냄새가 올라왔다.",
+      "sourceHash": "47a47884a4f028ed6bb7fb5914e3057c4409d457c6795b6c8d9027fbf5f3c75a",
+      "t": "The seaside hill was quiet. Each time the waves licked the sand and withdrew, the smell of wet salt rose."
+    },
+    {
+      "id": "ep-12a:3",
+      "source": "검은 호랑이가 바위 위에 엎드려 있었다. 앞발 사이에 두꺼운 장부 한 권이 펼쳐져 있었다.",
+      "sourceHash": "4be3bf67c36311c6963402fa5ec63d7d7a50af2f53e902d5a2ef46afbf3907a8",
+      "t": "The black tiger lay on a rock. A thick ledger was open between its forepaws."
+    },
+    {
+      "id": "ep-12a:4",
+      "source": "종이는 낡았는데 글씨는 새것처럼 반짝였다. 빌려준 것과 거둔 것이 한 줄도 어긋남 없이 적혀 있었다.",
+      "sourceHash": "f16654a05202534046cdca493cb25862ac670168dc5324a71f799d1fc5476044",
+      "t": "The paper was old, but the writing gleamed as though new. Every loan and collection recorded, not one line out of place."
+    },
+    {
+      "id": "ep-12a:5",
+      "source": "정리하자. 오늘 들어온 것부터.",
+      "sourceHash": "b34ae593751827c9487e80202c9fa4ecfb2ff686087fd08a65c4b7242ccc200a",
+      "t": "Let's settle things. Start with today's receipts."
+    },
+    {
+      "id": "ep-12a:6",
+      "source": "발톱 끝이 첫 장을 넘겼다. 종이 넘어가는 소리가 파도 소리 사이에 또렷하게 끼어들었다.",
+      "sourceHash": "c6ca540489143f7f3497d23744901e888f15ee7ef960d178c6867367d05d36e8",
+      "t": "A claw turned the first page. The rustle cut clearly between the sounds of waves."
+    },
+    {
+      "id": "ep-12a:7",
+      "source": "지하 무대. 빌려준 박수 열두 묶음, 회수 완료.",
+      "sourceHash": "8758dd167df544cb5660274e15446d3972ab4cd39660deaf43aaea87fea1d781",
+      "t": "Underground stage. Twelve bundles of applause lent. Collection complete."
+    },
+    {
+      "id": "ep-12a:8",
+      "source": "노래꾼 여울. 목소리 한 가닥, 회수 완료.",
+      "sourceHash": "034cb6c351f5288e10543f4b515699ec92848b33f267b88c002a910485a54eb8",
+      "t": "Singer Yeoul. One strand of voice. Collection complete."
+    },
+    {
+      "id": "ep-12a:9",
+      "source": "빌린 박수로 무대에 섰으면, 내려올 때 갚는 게 맞아. 누구도 억지로 빌리게 하진 않았어.",
+      "sourceHash": "79fe07e88ad1d8e27cccc2c769cdc3db012e48e078ee58d3fa2bed2a9e232622",
+      "t": "If you stood onstage with borrowed applause, you repay it when you leave. Nobody forced anyone to borrow."
+    },
+    {
+      "id": "ep-12a:10",
+      "source": "장부 사이에서 은빛 실 한 가닥이 저절로 풀려 올라왔다. 실은 바람도 없는데 가늘게 떨었다.",
+      "sourceHash": "18723340b95693a6ecab7bae1f27e066a6906fbfdc0615eef31d54f3a119116f",
+      "t": "A silver thread unwound by itself between the ledger pages. It trembled finely, though there was no wind."
+    },
+    {
+      "id": "ep-12a:11",
+      "source": "실 끝에서 아주 작은 소리가 났다. 누군가 숨을 들이마시고, 첫 음을 고르는 소리였다.",
+      "sourceHash": "c720da3f47ef464fa91c4ce6e5267af35fa4d0d4ac693912aea41cf3406b00c2",
+      "t": "A tiny sound came from its tip. Someone drawing breath and choosing a first note."
+    },
+    {
+      "id": "ep-12a:12",
+      "source": "쉿. 넌 내 거야. 값은 치렀잖아.",
+      "sourceHash": "cfa499680eff7375787307dad94163ed109e15f9435edc05dd1c2c954e84ea88",
+      "t": "Shh. You're mine. The price was paid."
+    },
+    {
+      "id": "ep-12a:13",
+      "source": "호랑이는 실을 발톱으로 눌러 다시 종이 사이에 끼웠다. 떨림은 한참 뒤에야 멎었다.",
+      "sourceHash": "cc6194c4e2bc0e02690fe0432df25b1a4ebc8ea7d5ca1374ae4f3de2603f1834",
+      "t": "The tiger pinned the thread with a claw and tucked it between the pages. It took a long time for the trembling to stop."
+    },
+    {
+      "id": "ep-12a:14",
+      "source": "그때 수평선에 걸린 해가 한 번 깜빡였다.",
+      "sourceHash": "2b5a4090979cba9bb2e10a586adb1103f5b097bdb71d5f9906f9f5bd2f4f91ca",
+      "t": "Then the sun on the horizon flickered once."
+    },
+    {
+      "id": "ep-12a:15",
+      "source": "빛이 꺼진 자리에서 물결이 거꾸로 일었다. 모래 위에 검은 손가락 자국이 하나씩 찍히며 다가왔다.",
+      "sourceHash": "e15b1a336c62a3094f59f7273abc4388d98bb97ede54b540efb144a768e467de",
+      "t": "Where the light went out, the waves rose backward. Black finger marks approached across the sand, one by one."
+    },
+    {
+      "id": "ep-12a:16",
+      "source": "수면 위로 검은 손 여러 개가 솟았다. 손들은 호랑이를 둘러싸고 손바닥을 위로 펼쳤다.",
+      "sourceHash": "8e331d9ac16fbb3e419441a6b2d6a818fe49adcf78503a88351d0aee5d7ca1f1",
+      "t": "Several black hands rose above the water. They encircled the tiger and opened their palms upward."
+    },
+    {
+      "id": "ep-12a:17",
+      "source": "해가 돌아왔더구나.",
+      "sourceHash": "7887aa6d3d04ac33a2dd4f0df84e268392c94952ca317ee8325b03cb4b5f4b1f",
+      "t": "The sun has returned.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-12a:18",
+      "source": "…돌아왔습니다. 노래 때문에요.",
+      "sourceHash": "f1ff5ffc998c40d6e5a71c2ca911b3c57a618e541bc8c85922bda65a67634fc5",
+      "t": "...It has. Because of the song."
+    },
+    {
+      "id": "ep-12a:19",
+      "source": "노래. 그 돼지의 노래.",
+      "sourceHash": "ade8d22fc7a049b59a63c7bd70abc6fe8869949e53032953e9686fdf1bfbb8d9",
+      "t": "A song. That pig's song.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-12a:20",
+      "source": "깃털 하나를 잃었다. 그 아이는 쓸 만한 그릇이었는데.",
+      "sourceHash": "2ffcc75e533cf31afb89fb4ab07f45174352e5a9b743466bd7f944f082d6eaed",
+      "t": "I lost a feather. That child was a useful vessel.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-12a:21",
+      "source": "까마귀는 제 몫이 아니었습니다. 저는 박수만 맡았어요.",
+      "sourceHash": "00e402535970a6689d321305cd408f891b9a74cb7c1f632ecd16445b0fb47694",
+      "t": "The crow wasn't my assignment. I was only responsible for applause."
+    },
+    {
+      "id": "ep-12a:22",
+      "source": "그래서 박수는 거뒀느냐.",
+      "sourceHash": "447882b89a63a9db4c4782e4cd7f54f9fee237229cc5b022071f1a8fcfcc9126",
+      "t": "Then did you collect the applause?",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-12a:23",
+      "source": "호랑이의 수염이 아주 조금 움직였다. 장부 위에 올린 앞발에 힘이 들어갔다.",
+      "sourceHash": "b57253f32bb4588c098b1c53a6551171e0d8fd6252cecf0259c7725fac030764",
+      "t": "The tiger's whiskers moved slightly. Its paw pressed harder against the ledger."
+    },
+    {
+      "id": "ep-12a:24",
+      "source": "…대부분은요.",
+      "sourceHash": "9d2db4eff2a6f3f6ed1366094f6654dd77b3a692c6a99e34ea5f85bd10e10368",
+      "t": "...Most of it."
+    },
+    {
+      "id": "ep-12a:25",
+      "source": "오른 앞발의 금 고리가 달아올랐다. 고리는 한 칸 좁아지며 털을 파고들었다.",
+      "sourceHash": "e3a47cbe2b77240916c7a0d53104e50f64c061405aed0bc8eddf708d90b7aff0",
+      "t": "The gold ring on its right forepaw heated. It narrowed a notch, biting into fur."
+    },
+    {
+      "id": "ep-12a:26",
+      "source": "크읏…!",
+      "sourceHash": "61b54c46ad6005d3dd5dc04d112bec724db29cd78f243d1083ac7db49b386cbc",
+      "t": "Ghh...!"
+    },
+    {
+      "id": "ep-12a:27",
+      "source": "대부분. 나는 대부분을 맡긴 적이 없다.",
+      "sourceHash": "4f2a3672a70516b4b90108c16be7d6861a9bbf909c23986292a9c8b63d2f5a6c",
+      "t": "Most. I never entrusted you with most.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-12a:28",
+      "source": "호랑이는 고개를 숙였다. 숨을 고르는 동안 고리 아래로 가는 열이 계속 번졌다.",
+      "sourceHash": "aba8d7f2029cd6177bacca173b7793082293c2223e7b49f0c3a2ce2b77c34f44",
+      "t": "The tiger lowered its head. As it steadied its breathing, fine heat kept spreading beneath the ring."
+    },
+    {
+      "id": "ep-12a:29",
+      "source": "다음엔 남기지 않겠습니다.",
+      "sourceHash": "73111005e2f29ac8250d72ba61056452625e75218de695ccc9da2539565f3c5a",
+      "t": "Next time, I will leave nothing."
+    },
+    {
+      "id": "ep-12a:30",
+      "source": "너는 약속을 지키는 짐승이지. 그래서 골랐다. 잊지 마라, 네가 왜 여기 있는지.",
+      "sourceHash": "4c154665f26f98c7d23609d8cbd829faf129cae9b265330edd4eff6a71a6e948",
+      "t": "You are a beast that keeps promises. That is why I chose you. Do not forget why you are here.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-12a:31",
+      "source": "잊은 적 없습니다. 그 아이가 괴물이 되기 전에 막는 것.",
+      "sourceHash": "89255bd64a1a28ffab1c0f2ec1e1358224a4079d3601753239c290096b4ab2f9",
+      "t": "I have never forgotten. To stop that child before they become a monster."
+    },
+    {
+      "id": "ep-12a:32",
+      "source": "다음 섬은 시간을 사고파는 곳이다. 거기서 그 돼지의 시간을 거둬라.",
+      "sourceHash": "c11e30654dc473206f12820a67fad86a878eb7546866cbb9340e44dfd25f3d0b",
+      "t": "The next island trades in time. Collect the pig's time there.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-12a:33",
+      "source": "한 시간도 남기지 마라. 비어야 담긴다.",
+      "sourceHash": "f9e4e16c05e286f5059c69d5c25d7f00407f25de0814b1f6bfdd36fc68e63fbd",
+      "t": "Leave not one hour. Only what is empty can be filled.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-12a:34",
+      "source": "담긴다니요. 무엇이—",
+      "sourceHash": "9e459d3408337de0563ab2a1eb44a251d9984454603fc7991effd7176fd3a201",
+      "t": "Filled? With what—"
+    },
+    {
+      "id": "ep-12a:35",
+      "source": "대답 대신 손들이 물속으로 꺼졌다. 노을이 다시 번졌고, 파도는 아무 일 없었다는 듯 모래를 핥았다.",
+      "sourceHash": "c38314e285e9692243cf146badf2b753d36536254171a4b651783bce32fa33b9",
+      "t": "Instead of answering, the hands sank. Sunset spread again. As though nothing had happened, waves licked the sand."
+    },
+    {
+      "id": "ep-12a:36",
+      "source": "고리의 열은 쉽게 식지 않았다. 호랑이는 앞발을 바닷물에 담갔다가, 한참 뒤에 꺼냈다.",
+      "sourceHash": "591072dfa90cda2412543fa9f11f0dcc6483c0e3173e1e994ace888874a87322",
+      "t": "The ring's heat did not fade easily. The tiger dipped its paw in seawater and withdrew it only much later."
+    },
+    {
+      "id": "ep-12a:37",
+      "source": "비어야 담긴다. 뭘 담겠다는 건지.",
+      "sourceHash": "d297f263cb0da343f1ef1a83a22602a7fb48c85dc156b396eca51f9b670c72bd",
+      "t": "Empty to be filled. Filled with what?"
+    },
+    {
+      "id": "ep-12a:38",
+      "source": "상관없어. 시키는 대로 거두면 끝나. 그게 계약이니까.",
+      "sourceHash": "0b4336f8844f78a0b320e800f3f3b4a1cf2d3bd16a54695b4e31db16d4d361d2",
+      "t": "Doesn't matter. Collect what I'm told and it's over. That's the contract."
+    },
+    {
+      "id": "ep-12a:39",
+      "source": "호랑이는 다시 장부를 넘겼다. 식상의 섬 마지막 장, 거기에 꽃돼지의 줄이 있었다.",
+      "sourceHash": "9c506e68011b6a872f1696bc86635198fc97455a8382d57c01b75a33e8072f87",
+      "t": "The tiger turned pages again. The final page for the Island of Expression held a line for the flower pig."
+    },
+    {
+      "id": "ep-12a:40",
+      "source": "받은 것은 없었다. 거절한 박수 천 개. 거절한 거래 하나. 그 옆에 붉은 글씨가 저절로 떠올랐다.",
+      "sourceHash": "5e34592f433044514223ec07a243d8b8ad8b14ae11cd8c6cb29c1f2ecc61fe06",
+      "t": "Nothing received. A thousand refused claps. One refused deal. Red writing appeared beside them of its own accord."
+    },
+    {
+      "id": "ep-12a:41",
+      "source": "[ 꽃돼지 · 미수(未收) ]",
+      "sourceHash": "e9f6fafe977388a49a9e784d869c9ac65fc58e333e2847e11efa73a79067e959",
+      "t": "[ Flower Pig · Uncollected ]"
+    },
+    {
+      "id": "ep-12a:42",
+      "source": "미수…?",
+      "sourceHash": "b1a4b6e74067832a9f817d0ed738e4c290b5853f468972289bf4366b250fa298",
+      "t": "Uncollected...?"
+    },
+    {
+      "id": "ep-12a:43",
+      "source": "호랑이는 앞발로 글자를 문질렀다. 붉은 글씨는 번지지도 않고 사라지지도 않았다.",
+      "sourceHash": "6b8c3f9fe391eb55108a2fcf5879c0a2fac6fa4ed84d779f86fd6959cbfaefd5",
+      "t": "The tiger rubbed the letters with a paw. The red writing neither smeared nor vanished."
+    },
+    {
+      "id": "ep-12a:44",
+      "source": "내 장부에 미수는 없어. 지금까지 한 번도.",
+      "sourceHash": "36fb104c4285a85a7e0a1e4365d029496ca42456176b8f919dc392be3679b30b",
+      "t": "My ledger has no uncollected entries. Never has."
+    },
+    {
+      "id": "ep-12a:45",
+      "source": "거절한 값은 따로 받는다고 했잖아. 그럼 받으면 돼. 간단한 계산이야.",
+      "sourceHash": "da1d603e0aee7aeb8c5065525aca85a5c380da342f53a41fe779622b7f1c41ad",
+      "t": "I said refusal had its own price. So collect it. Simple arithmetic."
+    },
+    {
+      "id": "ep-12a:46",
+      "source": "말은 그렇게 했지만 발톱은 그 줄 위에서 오래 멈춰 있었다.",
+      "sourceHash": "0b849c1e832a923100e24abaad8a87dd75b5d099b0de68d8943ce92c349c6f21",
+      "t": "Despite those words, the claw lingered over the line."
+    },
+    {
+      "id": "ep-12a:47",
+      "source": "낮에 본 장면이 자꾸 겹쳤다. 목소리도 없이 무대 위에 서서 냄비 뚜껑을 들고 있던 분홍 돼지.",
+      "sourceHash": "a19f78580f9b4388d1dfff50a4dc46c726c46a14b2992ea383563ec9e33b000e",
+      "t": "The daytime scene kept overlapping it. A pink pig standing voiceless onstage, holding up a pot lid."
+    },
+    {
+      "id": "ep-12a:48",
+      "source": "바보 같은 녀석. 빌린 박수였으면 훨씬 쉬웠을 텐데.",
+      "sourceHash": "4d30f70550a1b28ca4602565a3ee4bf24f1db6eb7d63bc060fd2ec5f80fc40a2",
+      "t": "Idiot. Borrowed applause would have been so much easier."
+    },
+    {
+      "id": "ep-12a:49",
+      "source": "다친 걸 보면 멈추고, 공짜로 주고, 받을 건 안 받고. 그런 녀석은 오래 못 버텨.",
+      "sourceHash": "c2f5dd07da489645534d07942c673bd13663e2ae1e96bbae8fdd31d3f96e1b54",
+      "t": "Stops at every injury. Gives freely. Refuses what's offered. Someone like that won't last."
+    },
+    {
+      "id": "ep-12a:50",
+      "source": "…그런 녀석이 괴물이 된다고? 계산이 안 맞잖아.",
+      "sourceHash": "dc11bd01b27b810e48e98ca48addfd06675a86197a437e5fa991d9249e69f3ad",
+      "t": "...And someone like that becomes a monster? The numbers don't add up."
+    },
+    {
+      "id": "ep-12a:51",
+      "source": "그때 바다 쪽에서 빗소리가 났다. 호랑이는 고개를 들었다. 하늘은 맑았고, 노을만 붉었다.",
+      "sourceHash": "1ddcae595efc64a845e044f4ff9c17ab9ff6cb5a0812466af1e28df6e96a2706",
+      "t": "Then rain sounded from the sea. The tiger lifted its head. The sky was clear, only the sunset red."
+    },
+    {
+      "id": "ep-12a:52",
+      "source": "빗소리는 귀 안쪽에서만 들리고 있었다.",
+      "sourceHash": "11e0b2a361d3c6cc21527da01b0b0b0a181cbd6ec2912c4319128b666a221c45",
+      "t": "The rain was sounding only inside its ears."
+    },
+    {
+      "id": "ep-12a:53",
+      "source": "아주 짧은 장면이 스쳤다. 젖은 아스팔트. 버스 정류장의 깜빡이는 불빛. 머리 위로 기울어진 노란 우산.",
+      "sourceHash": "d35e68ab0bd571ba44e401a99bff5576d81ba79bcb11116856fe3b40481e32d5",
+      "t": "A brief scene flashed. Wet asphalt. A flickering bus-stop light. A yellow umbrella tilted overhead."
+    },
+    {
+      "id": "ep-12a:54",
+      "source": "우산 아래에서 누군가 웃었다. 얼굴은 보이지 않았다. 반쯤 젖은 어깨만 보였다.",
+      "sourceHash": "d0031e41c1a302d74c9f287274980884ab5a3576adf43d5015069972874db9d4",
+      "t": "Someone smiled beneath the umbrella. No face visible. Only a half-soaked shoulder."
+    },
+    {
+      "id": "ep-12a:55",
+      "source": "…뭐야, 지금 건.",
+      "sourceHash": "55a90017a5901c8ba719d76cf5519e190477e31b2653969a9f2ceb833b69ffde",
+      "t": "...What was that?"
+    },
+    {
+      "id": "ep-12a:56",
+      "source": "빗소리가 뚝 끊겼다. 파도 소리만 남았다. 호랑이는 앞발로 이마를 눌렀다.",
+      "sourceHash": "ead3e2c3acd6df7af69124f59c9803b819195828fbe75d30cfb3e96a2d41d77f",
+      "t": "The rain cut off. Only waves remained. The tiger pressed a paw to its forehead."
+    },
+    {
+      "id": "ep-12a:57",
+      "source": "피곤한 거야. 섬 하나를 통째로 단속했으니까.",
+      "sourceHash": "04357c0809f784eafde92c63a130b1b902802dfa43160b659dab3375fed49ecd",
+      "t": "I'm tired. I policed an entire island."
+    },
+    {
+      "id": "ep-12a:58",
+      "source": "호랑이는 장부를 몇 장 거꾸로 넘겼다. 비겁의 섬 장. 거기에는 지워야 할 줄이 하나 남아 있었다.",
+      "sourceHash": "3b1c03ded1eae4dcbbf555be9c4b621ed5324e8ed2803e4407b475cd5317698d",
+      "t": "The tiger turned back several pages. The Island of Companions. One line still needed erasing there."
+    },
+    {
+      "id": "ep-12a:59",
+      "source": "[ 북 치는 아이 · 이름 — 보관 중 ]",
+      "sourceHash": "a9f27b0e1376714ce919c757c801b6b344fd95e0d6b7af50f9ba6f6dd2825f3c",
+      "t": "[ Drumming child · Name — Held in safekeeping ]"
+    },
+    {
+      "id": "ep-12a:60",
+      "source": "이름 하나. 보관 중이 아니라 회수 완료로 고치면 끝이야.",
+      "sourceHash": "b4275db7b3b65f87ab9192ce72fc683dd45e6ac782272183a372d907e4a5426d",
+      "t": "One name. Change safekeeping to collection complete, and it's done."
+    },
+    {
+      "id": "ep-12a:61",
+      "source": "호랑이는 망토 안쪽을 더듬었다. 금실로 꿰맨 작은 주머니 안에서 이름 하나가 따뜻하게 맥박 쳤다.",
+      "sourceHash": "e0aa4b35f889bb20941bf031de71373c02c254c957e522c52bb375157b4b2667",
+      "t": "The tiger felt inside its cloak. In a small pocket stitched with gold thread, one name pulsed warmly."
+    },
+    {
+      "id": "ep-12a:62",
+      "source": "발톱으로 한 번만 그으면 아이의 이름이 장부로 넘어갔다. 호랑이는 손목에 남을 흉터를 내려다보았다. 한번 넘긴 이름은 쉽게 돌려받을 수 없었다.",
+      "sourceHash": "c79f14c8664aea093542bf7c1c38ed897875d8a2ebe9508034b4d11041469c58",
+      "t": "One stroke of a claw would transfer the child's name into the ledger. The tiger looked down at the scar that would remain on the wrist. Once handed over, a name was not easily returned."
+    },
+    {
+      "id": "ep-12a:63",
+      "source": "…",
+      "sourceHash": "b4935894c8ce16bde67bbffc672428b1533c4f1e1e8b1ce21a2933183db6bfa5",
+      "t": "..."
+    },
+    {
+      "id": "ep-12a:64",
+      "source": "발톱은 내려가지 않았다. 호랑이는 주머니를 망토 안쪽 더 깊은 곳으로 밀어 넣었다.",
+      "sourceHash": "f3043b3e164154168a32466dc5164e41fce348d0038400c25e59f130e2aafabb",
+      "t": "The claw did not fall. The tiger pushed the pocket deeper into the cloak."
+    },
+    {
+      "id": "ep-12a:65",
+      "source": "나중에. 다음 섬 끝나고.",
+      "sourceHash": "276c0f247d78bf11103b48de012fc4d340153392eb97374778213cdd5d31f2df",
+      "t": "Later. After the next island."
+    },
+    {
+      "id": "ep-12a:66",
+      "source": "낮에 광장에서 아이가 북을 치던 소리가 귓가에 남아 있었다. 이름도 모르면서 박자는 하나도 틀리지 않던 소리였다.",
+      "sourceHash": "f2af1e412ef98fddc45ea6eb8dcbea114e6f64efa56c12439f0c1091d93cc2d2",
+      "t": "The child's drumming in the square still echoed in its ears. A beat that never faltered, played by someone who did not even know his own name."
+    },
+    {
+      "id": "ep-12a:67",
+      "source": "마지막으로 호랑이는 망토 안에서 회색 깃털을 꺼냈다. 까마귀가 남기고 간 깃털이었다.",
+      "sourceHash": "c6d7b094a7d9034db72d22a10d38c2c192e5d3c286ae72f95d16b11978a8bf52",
+      "t": "Last, the tiger took the gray feather from its cloak. The feather the crow had left behind."
+    },
+    {
+      "id": "ep-12a:68",
+      "source": "깃털 끝은 아직 따뜻했다. 귀를 가까이 대자, 아주 희미한 허밍이 들렸다.",
+      "sourceHash": "56dc2a3bae33ebaed18edb336c29a8c115c2f73047b6900734a220c046606dc5",
+      "t": "Its tip was still warm. Bringing an ear close, the tiger heard the faintest humming."
+    },
+    {
+      "id": "ep-12a:69",
+      "source": "같이 부르고 싶었다, 라.",
+      "sourceHash": "4e9fce05de63cd0619f81a64dff97affed34d12ded42524cf6f624a967bc9938",
+      "t": "Wanted to sing together, did you."
+    },
+    {
+      "id": "ep-12a:70",
+      "source": "누구든 처음엔 그렇게 말해. 그러다 비웃음을 한 번 받으면 끝이야.",
+      "sourceHash": "6ed2f922062f0a66ae4f80b923aaa03aa638a7a9f1604f6a0f5bb6559f90c2a6",
+      "t": "Everyone says that at first. One bout of ridicule, and it's over."
+    },
+    {
+      "id": "ep-12a:71",
+      "source": "나도 그랬으니까.",
+      "sourceHash": "6156e43bfc5e828e87a5fca76bdb058067b31d645a5ad40c025badf1058b4962",
+      "t": "It was for me too."
+    },
+    {
+      "id": "ep-12a:72",
+      "source": "호랑이는 제가 한 말에 놀란 듯 입을 다물었다. 무엇을 그랬다는 건지 자신도 기억나지 않았다.",
+      "sourceHash": "4b31dfadff9ce4cb128b8914ceb9b8084942b7303f4be056bb11d0af96f3f4ea",
+      "t": "The tiger shut its mouth, startled by its own words. It could not remember what it meant."
+    },
+    {
+      "id": "ep-12a:73",
+      "source": "깃털은 장부에 적지 않았다. 대신 북 대장의 이름 옆, 망토의 가장 안쪽에 함께 넣었다.",
+      "sourceHash": "fe4227eeaaf941a0b691fa7cf66d46402da00739b01f551843fd0707e41c07a9",
+      "t": "It did not enter the feather in the ledger. Instead, it tucked it into the innermost part of the cloak, beside Captain Drum's name."
+    },
+    {
+      "id": "ep-12a:74",
+      "source": "금 고리가 다시 한 번 조여 왔다. 호랑이는 이를 악물고 장부를 덮었다.",
+      "sourceHash": "d0c477415f65703dd1902703613728ff4106d90c8dede882e9afd93323dbceb8",
+      "t": "The gold ring tightened again. The tiger gritted its teeth and closed the book."
+    },
+    {
+      "id": "ep-12a:75",
+      "source": "다음 섬. 시간을 파는 곳. 그 돼지의 시간을 남김없이.",
+      "sourceHash": "7c1a9bbfd230de166a340cbcbaf12c85a04e5b99ab40cbb46b41b333d4fdb970",
+      "t": "The next island. Where they sell time. Every last moment of that pig's time."
+    },
+    {
+      "id": "ep-12a:76",
+      "source": "빚은 남겨 두면 불어나. 그러니까 이번엔, 미수 없이.",
+      "sourceHash": "c2c7ef9bec5cf34f441ebf343a2d44be98b233ea69cf1eda29f29d75806bc381",
+      "t": "Debts grow when you leave them. So this time, nothing uncollected."
+    },
+    {
+      "id": "ep-12a:77",
+      "source": "호랑이가 언덕을 내려갔다. 젖은 모래 위로 발자국이 이어지다가 물가에서 끊겼다.",
+      "sourceHash": "2c52d72b24052d7774116c73ef6a666b9846010be6b10ca0f12030bb754c4ac6",
+      "t": "The tiger descended the hill. Footprints trailed across wet sand, then ended at the water."
+    },
+    {
+      "id": "ep-12a:78",
+      "source": "바람이 장부 한 귀퉁이를 들춰 올렸다. 덮인 장부 안에서 붉은 두 글자가 아직 꺼지지 않고 있었다.",
+      "sourceHash": "0d128f76ff4b52ac45809671c7d831b8cd864758dfd8058d17e839c2a93d24f8",
+      "t": "Wind lifted one corner of the ledger. Inside the closed book, the two red characters still refused to go dark."
+    },
+    {
+      "id": "ep-12a:79",
+      "source": "호랑이의 몸이 검은 안개로 풀어져 바다 위로 흩어졌다. 수평선 너머, 시계 소리가 나는 섬 쪽으로.",
+      "sourceHash": "52ea5d2b55421dc7b1337f752162bd7d57683b5487812c28317cef86f05e2788",
+      "t": "The tiger's body dissolved into black mist and scattered over the sea. Beyond the horizon, toward the island of ticking clocks."
+    }
+  ]
+}
