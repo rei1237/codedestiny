@@ -9651,9 +9651,9 @@
       },
       "premiumIntro": "不是一次性的摘要，而是依照所选主题与写下的烦恼，逐处对照命盘写成的咨询文。",
       "premiumAudience": {
-        "0": "Those who want one proper look at their Ziwei Doushu chart",
+        "0": "想认真了解自己紫微斗数命盘的人",
         "1": "希望得到贴合当下烦恼之答案的人",
-        "2": "Those who want a long-form interpretation"
+        "2": "想阅读详细长篇解读的人"
       },
       "premiumChapters": {
         "0": "十二宫命盘与大限时间轴",
@@ -9663,7 +9663,7 @@
         "4": "PDF保存与回看过往记录"
       },
       "premiumOutcomes": {
-        "0": "You can check what the feature does before paying.",
+        "0": "付款前可以了解功能内容。",
         "1": "Pass, moonstone, and single-payment decisions follow the existing payment policy as-is.",
         "2": "Fortune results are for reference; please confirm important choices alongside real-world judgment."
       },
@@ -10158,7 +10158,7 @@
       "premiumOutcomes": {
         "0": "Chart-based features are affected by how accurate the birth time you enter is.",
         "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
-        "2": "Fortune results are for reference."
+        "2": "运势结果仅供参考。"
       },
       "answersQuestions": {
         "0": "Why do my feelings and my circumstances keep pulling apart?",
@@ -10192,7 +10192,7 @@
         },
         "1": {
           "axis": "Length",
-          "premium": "Main text of at least 15,000 characters"
+          "premium": "正文至少15,000字"
         },
         "2": {
           "axis": "保存",
@@ -10387,13 +10387,13 @@
       "premiumChapters": {
         "0": "Rasi chart and nakshatra derivation",
         "1": "A consultation across four topics",
-        "2": "Main text of at least 15,000 characters",
+        "2": "正文至少15,000字",
         "3": "A summary of the flow behind the reading"
       },
       "premiumOutcomes": {
         "0": "基于星盘的解读会受到你输入信息准确度的影响。",
         "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
-        "2": "Fortune results are for reference."
+        "2": "运势结果仅供参考。"
       },
       "answersQuestions": {
         "0": "Does the decision I am making now fit the longer flow?",
@@ -10823,8 +10823,8 @@
       "premiumOutcomes": {
         "0": "Reunion outcomes are not guaranteed.",
         "1": "解读依照牌位以事先准备好的语句写成。",
-        "2": "Card interpretations are for reference.",
-        "3": "The existing payment policy applies."
+        "2": "卡牌解读仅供参考。",
+        "3": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "Do they still have feelings for me?",
@@ -10852,7 +10852,7 @@
           "a": "No. The five-seat card reading starts straight away with no input."
         },
         "1": {
-          "q": "Can I see the result again later?",
+          "q": "以后可以重新查看结果吗？",
           "a": "不会另行保存，是当场查看的解读，可以在结果页面分享。"
         }
       },
@@ -10923,9 +10923,9 @@
         "3": "登录后可接着查看同一年的结果"
       },
       "premiumOutcomes": {
-        "0": "It does not fix the future.",
-        "1": "Card interpretations are for reference.",
-        "2": "The existing payment policy applies."
+        "0": "这并不意味着未来已经确定。",
+        "1": "卡牌解读仅供参考。",
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "Which period this year should I be most careful in?",
@@ -10949,7 +10949,7 @@
       },
       "faq": {
         "0": {
-          "q": "Can I see the result again later?",
+          "q": "以后可以重新查看结果吗？",
           "a": "处于登录状态时会保存同一年的结果，再次进入时可以接着看。"
         },
         "1": {
@@ -11026,7 +11026,7 @@
       },
       "premiumOutcomes": {
         "0": "Compatibility is calculated inside the app, directly from the birth details you enter.",
-        "1": "It does not guarantee any actual relationship or outcome.",
+        "1": "不保证实际的关系发展或结果。",
         "2": "Fortune results are for reference; please check important choices against practical judgement as well."
       },
       "answersQuestions": {
@@ -11156,7 +11156,7 @@
       },
       "premiumOutcomes": {
         "0": "A free feature with no payment step beyond signing in.",
-        "1": "It does not guarantee any actual relationship or outcome.",
+        "1": "不保证实际的关系发展或结果。",
         "2": "Please take the reading as reference and for enjoyment."
       },
       "answersQuestions": {
@@ -11387,7 +11387,7 @@
       "premiumOutcomes": {
         "0": "Oracle interpretations are for reference.",
         "1": "This content is a modern reconstruction of mythic symbolism.",
-        "2": "The existing payment policy applies."
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "Where did this situation come from and where is it going?",
@@ -11858,7 +11858,7 @@
       "premiumOutcomes": {
         "0": "The divination is for reference.",
         "1": "Please check important choices against practical judgement as well.",
-        "2": "The existing payment policy applies."
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "Can I push this forward now?",
@@ -11959,7 +11959,7 @@
       "premiumOutcomes": {
         "0": "Oracle results are for reference.",
         "1": "This content is a modern reconstruction of a traditional reading.",
-        "2": "The existing payment policy applies."
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "Can I go ahead with this now?",
@@ -11987,7 +11987,7 @@
           "a": "The meanings of the 16 base Odu combine in pairs, so the message differs according to which pair opens."
         },
         "1": {
-          "q": "Can I keep the result?",
+          "q": "可以保存结果吗？",
           "a": "You can download it as a text file from the result screen and keep it."
         }
       },
@@ -12061,8 +12061,8 @@
       },
       "premiumOutcomes": {
         "0": "Rune interpretations are for reference.",
-        "1": "It does not fix the future.",
-        "2": "The existing payment policy applies."
+        "1": "这并不意味着未来已经确定。",
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "Where did this flow begin?",
@@ -12162,7 +12162,7 @@
       "premiumOutcomes": {
         "0": "The reading is written by AI and is for reference.",
         "1": "It does not stand in for investment or contract decisions.",
-        "2": "The existing payment policy applies."
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "Does the shape of this matter favour me or not?",
@@ -12261,8 +12261,8 @@
       },
       "premiumOutcomes": {
         "0": "The tea-leaf reading is for reference.",
-        "1": "It does not fix the future.",
-        "2": "The existing payment policy applies."
+        "1": "这并不意味着未来已经确定。",
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "What moves in the next couple of weeks?",
@@ -12362,8 +12362,8 @@
       },
       "premiumOutcomes": {
         "0": "The interpretation mixes in humour and is for reference.",
-        "1": "It does not fix the future.",
-        "2": "The existing payment policy applies."
+        "1": "这并不意味着未来已经确定。",
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "Who is my star sign's guardian?",
@@ -12391,7 +12391,7 @@
           "a": "Each star sign has its own Greek god assigned, so identifying your sign settles your guardian."
         },
         "1": {
-          "q": "If I pay once, can I keep viewing it?",
+          "q": "支付一次后，还能继续查看吗？",
           "a": "Yes. It is a permanent unlock, so you can re-enter any time, and the oracle opens anew with the date."
         }
       }
@@ -12596,7 +12596,7 @@
           "a": "Difficulty is marked beginner, intermediate or advanced, and every pose comes with its cautions."
         },
         "2": {
-          "q": "What happens if generation fails?",
+          "q": "生成失败会怎样处理？",
           "a": "If the course cannot be built, the amount used is refunded automatically."
         }
       },
@@ -13167,7 +13167,7 @@
       "premiumOutcomes": {
         "0": "It does not guarantee any actual meeting or outcome.",
         "1": "The result is calculated from the birth details you enter.",
-        "2": "Fortune results are for reference."
+        "2": "运势结果仅供参考。"
       },
       "answersQuestions": {
         "0": "In what kind of setting does a bond open up for me?",
@@ -14303,7 +14303,7 @@
       },
       "premiumIntro": "The guardian carries saju terminology over into the language of a character, so you meet your chart as a being that protects it.",
       "premiumAudience": {
-        "0": "People who found saju terminology hard going",
+        "0": "觉得四柱命理术语难懂的人",
         "1": "People who want a guardian character of their own",
         "2": "People who want a short fortune-turning routine"
       },
@@ -14314,9 +14314,9 @@
         "3": "The talisman pouch — today's colour · summoning phrase · small action · time key"
       },
       "premiumOutcomes": {
-        "0": "The reading is for reference.",
+        "0": "解读仅供参考。",
         "1": "The character image is generated by AI.",
-        "2": "The existing payment policy applies."
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "What does my day pillar's guardian look like?",
@@ -15344,7 +15344,7 @@
         "0": "A line reading for each hand you upload",
         "1": "A summary of 4 major lines, 9 minor lines, and 7 mounts",
         "2": "An overall reading that ties lines, mounts, and markings together",
-        "3": "A reading aimed at around 3,000 characters"
+        "3": "以约3,000字为目标的解读"
       },
       "premiumOutcomes": {
         "0": "Analysis accuracy varies with image quality.",
@@ -15382,7 +15382,7 @@
         },
         "1": {
           "axis": "Reading length",
-          "premium": "A reading aimed at around 3,000 characters"
+          "premium": "以约3,000字为目标的解读"
         },
         "2": {
           "axis": "Both-hand comparison",
@@ -15469,9 +15469,9 @@
         "3": "从今天开始的调和练习指引"
       },
       "premiumOutcomes": {
-        "0": "The interpretation is written by AI and does not fix the future.",
-        "1": "Card interpretations are for reference.",
-        "2": "The existing payment policy applies."
+        "0": "解读由AI生成，并不意味着未来已经确定。",
+        "1": "卡牌解读仅供参考。",
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "Which axis is shaking me the most right now?",
@@ -15499,7 +15499,7 @@
           "a": "AI ties the whole card spread together and writes the interpretation; if generation does not go smoothly, a prepared interpretation is used instead."
         },
         "1": {
-          "q": "Can I see the result again?",
+          "q": "以后可以重新查看结果吗？",
           "a": "在同一台设备上会还原最近一次结果，处于登录状态时可以调出已保存的结果。"
         }
       },
@@ -15574,8 +15574,8 @@
       },
       "premiumOutcomes": {
         "0": "The consultation is written by AI and does not guarantee outcomes.",
-        "1": "Card interpretations are for reference.",
-        "2": "The existing payment policy applies."
+        "1": "卡牌解读仅供参考。",
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "Which spread fits this situation?",
@@ -15603,7 +15603,7 @@
           "a": "The amount is set by the number of cards in the spread you chose, and you can check it first on the payment screen."
         },
         "1": {
-          "q": "What happens if generation fails?",
+          "q": "生成失败会怎样处理？",
           "a": "在同一次付款内可以按既定次数重试，若仍不顺利，会改为提供已完成的提问文本。"
         }
       },
@@ -15663,7 +15663,7 @@
       },
       "premiumIntro": "The twelve life stages are the axis of saju that reads the growth stage of your energy. Those stages are carried over into twelve animal characters, so anyone can read them.",
       "premiumAudience": {
-        "0": "People who found saju terminology hard going",
+        "0": "觉得四柱命理术语难懂的人",
         "1": "People who want to keep their disposition as a character",
         "2": "People who want a light compatibility comparison with a partner or friend"
       },
@@ -15674,9 +15674,9 @@
         "3": "Saving the result card as a high-resolution image"
       },
       "premiumOutcomes": {
-        "0": "The reading is for reference.",
+        "0": "解读仅供参考。",
         "1": "It does not fix your future or your disposition.",
-        "2": "The existing payment policy applies."
+        "2": "适用现行支付政策。"
       },
       "answersQuestions": {
         "0": "What is my guardian animal?",
@@ -15700,11 +15700,11 @@
       },
       "faq": {
         "0": {
-          "q": "If I pay once, can I keep viewing it?",
+          "q": "支付一次后，还能继续查看吗？",
           "a": "Yes. It is a permanent unlock, so you can open it again at any time."
         },
         "1": {
-          "q": "Can I keep the result?",
+          "q": "可以保存结果吗？",
           "a": "You can save the result card as a portrait high-resolution image."
         }
       },
@@ -16160,7 +16160,7 @@
       ],
       "answersQuestions": [
         "What is my wealth flow like?",
-        "What kind of work suits me?",
+        "什么样的工作适合我？",
         "What phase is my career luck in now?"
       ],
       "fallbackCta": "See your chart for free"
@@ -16216,7 +16216,7 @@
       "premiumAudience": [
         "Anyone who wants to go a little deeper than sun signs",
         "Anyone curious about their relationship tendencies",
-        "Anyone who knows their birth time"
+        "知道自己出生时间的人"
       ],
       "answersQuestions": [
         "What combination makes up my disposition?",
@@ -16304,7 +16304,7 @@
       "premiumAudience": [
         "Anyone who wants their essence pinned down",
         "Anyone who only wants the core of Vedic astrology",
-        "Anyone who knows their birth time"
+        "知道自己出生时间的人"
       ],
       "answersQuestions": [
         "What is my nakshatra?",
@@ -16389,7 +16389,7 @@
       "answersQuestions": [
         "How is my impression read?",
         "What strengths show through?",
-        "What kind of work suits me?"
+        "什么样的工作适合我？"
       ],
       "fallbackCta": "See your face reading for free"
     },
@@ -16728,7 +16728,7 @@
       },
       "faq": {
         "0": {
-          "q": "Do I have to write a question?",
+          "q": "必须填写问题吗？",
           "a": "是的。解读会随提问而不同，所以需要填写。"
         },
         "1": {
@@ -16737,9 +16737,9 @@
         }
       },
       "premiumOutcomes": {
-        "0": "The interpretation is written by AI and does not fix the future.",
-        "1": "Card interpretations are for reference.",
-        "2": "The existing payment policy applies."
+        "0": "解读由AI生成，并不意味着未来已经确定。",
+        "1": "卡牌解读仅供参考。",
+        "2": "适用现行支付政策。"
       },
       "receives": {
         "0": {
@@ -16832,14 +16832,14 @@
           "a": "Start a new reading and you choose the stone again from the beginning."
         },
         "1": {
-          "q": "Do I have to write a question?",
+          "q": "必须填写问题吗？",
           "a": "没有填写提问的地方。解读由你选的原石和牌卡排布生成。"
         }
       },
       "premiumOutcomes": {
         "0": "解读依照所选原石与牌位以事先准备好的语句写成，不会断定未来。",
-        "1": "Card interpretations are for reference.",
-        "2": "The existing payment policy applies."
+        "1": "卡牌解读仅供参考。",
+        "2": "适用现行支付政策。"
       },
       "receives": {
         "0": {
@@ -16938,8 +16938,8 @@
       },
       "premiumOutcomes": {
         "0": "解读依照牌位以事先准备好的语句写成，不会断定未来。",
-        "1": "Card interpretations are for reference.",
-        "2": "The existing payment policy applies."
+        "1": "卡牌解读仅供参考。",
+        "2": "适用现行支付政策。"
       },
       "receives": {
         "0": {
@@ -17037,9 +17037,9 @@
         }
       },
       "premiumOutcomes": {
-        "0": "The calculation follows the calendar system; the reading is for reference.",
-        "1": "Auspicious dates and compatibility do not stand in for your decision.",
-        "2": "The existing payment policy applies."
+        "0": "计算依据历法体系，解读仅供参考。",
+        "1": "吉日和合盘解读不能替代你自己的决定。",
+        "2": "适用现行支付政策。"
       },
       "receives": {
         "0": {
@@ -17141,9 +17141,9 @@
         }
       },
       "premiumOutcomes": {
-        "0": "The calculation follows the calendar system; the reading is for reference.",
-        "1": "Auspicious dates and compatibility do not stand in for your decision.",
-        "2": "The existing payment policy applies."
+        "0": "计算依据历法体系，解读仅供参考。",
+        "1": "吉日和合盘解读不能替代你自己的决定。",
+        "2": "适用现行支付政策。"
       },
       "receives": {
         "0": {
