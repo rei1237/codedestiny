@@ -6,7 +6,7 @@ export function createPreviewApi(server,root){
  const owner='canonical-preview-user', rows=new Map(),attempts=new Map(),teaRows=new Map();
  const profiles=[{profileId:'canonical-preview-profile',name:'화면 테스트 프로필',gender:'F',birth:{year:1990,month:5,day:15,hour:12,minute:0,timeUnknown:false,calType:'solar'},location:{label:'대한민국 서울',tz:'Asia/Seoul',lat:37.5665,lng:126.978}}];
  const tea=createTeaMock();
- const module=path=>server.ssrLoadModule('/@fs/'+root.replaceAll('\\','/')+'/'+path);
+ const loadContract=path=>server.ssrLoadModule('/@fs/'+root.replaceAll('\\','/')+'/'+path);
  return async(req,res)=>{
   const send=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Code-Destiny-Mock':'1'});res.end(JSON.stringify(data));};
   if(req.headers['x-cd-preview']!=='canonical')return send(403,{ok:false});
@@ -42,12 +42,12 @@ export function createPreviewApi(server,root){
     send(status,data);
    });
    if(path==='/api/yeongnyangi/products'){
-    const {products}=await module('worker/yeongnyangi/payments/catalog.ts');
+    const {products}=await loadContract('worker/yeongnyangi/payments/catalog.ts');
     return send(200,{products:products.map(product=>({...product,available:product.domain==='saju'}))});
    }
    if(path==='/api/yeongnyangi/requests'&&req.method==='POST'){
-    const {products}=await module('worker/yeongnyangi/payments/catalog.ts');
-    const {questionManifest,questionDecision,FOLLOWUP_LIMITS}=await module('worker/yeongnyangi/fortune/ask/question-policy.ts');
+    const {products}=await loadContract('worker/yeongnyangi/payments/catalog.ts');
+    const {questionManifest,questionDecision,FOLLOWUP_LIMITS}=await loadContract('worker/yeongnyangi/fortune/ask/question-policy.ts');
     const product=products.find(p=>p.id===input.productId);
     if(!product||product.domain!=='saju')return send(422,{message:'이번 테스트는 영냥이 사주 질문 상담부터 제공해요.'});
     const attempt=String(input.consultationAttemptId||'');if(!attempt)return send(400,{message:'상담 요청 식별자가 필요해요.'});
