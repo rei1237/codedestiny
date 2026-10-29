@@ -8,6 +8,7 @@
   --gh-line: var(--cd-nav-line);
   position: sticky;
   top: 0;
+  padding-top: env(safe-area-inset-top, 0px);
   z-index: 70;
   border-bottom: 1px solid var(--gh-line);
   background: var(--gh-bg);
