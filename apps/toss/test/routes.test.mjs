@@ -16,6 +16,7 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/toss/manse.js':"export const calculateTossManse=async()=>({stored:false});",
  'worker/toss/session.js':"import {TossError} from './policy.js';export const requireTossSession=async()=>{if(globalThis.__tossRouteMocks.denyAuth)throw new TossError('LOGIN_REQUIRED',401);return globalThis.__tossRouteMocks.auth();};export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
  'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=globalThis.__tossRouteMocks.product;",
  'worker/toss/models.js':"export const TossPurchase={findOne:(...args)=>globalThis.__tossRouteMocks.purchase(...args)};export const TossSession={};",
@@ -148,4 +149,13 @@ test('tarot resume rejects an unpaid or cancelled partner order before attaching
  }
  assert.equal(mocks.deliveries,0);
  }finally{mocks.purchase=previous;}
+});
+
+test('manse requires release readiness and account, never creates a profile or purchase',async()=>{
+ assert.equal((await request({birth},'/manse/calculate',{})).status,503);
+ mocks.denyAuth=true;
+ try{assert.equal((await request({birth},'/manse/calculate')).status,401);}finally{mocks.denyAuth=false;}
+ const response=await request({birth},'/manse/calculate');
+ assert.equal(response.status,200);assert.deepEqual(await response.json(),{stored:false});
+ assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);
 });

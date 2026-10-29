@@ -15,3 +15,9 @@ export function AdviserChoices({selected,onChoose}:{selected?:string;onChoose:(i
 export function TarotCover({flowId='tarot'}:{flowId?:string}){
   return <img className="tarot-cover" src={`/assets/${flowId}-320.webp`} alt="" width={320} height={213} decoding="async"/>;
 }
+
+export function FishPortrait({fish}:{fish:string}){
+  const names:Record<string,string>={mackerel:'고등어',salmon:'연어',flounder:'광어',tuna:'참치'};
+  if(!names[fish])return null;
+  return <img className="fish-portrait" src={'/assets/fish/'+fish+'.webp'} alt="" width={96} height={96} loading="lazy" decoding="async"/>;
+}
