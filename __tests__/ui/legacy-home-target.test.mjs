@@ -107,7 +107,9 @@ test("static shell entries use document navigation instead of Next RSC prefetch"
   // 2026-10-16: the only /ggulggul/ entry is card I, which renders <a> through its `external` flag.
   assert.equal(BRAND_FACTS.service.appEntryPath, "/ggulggul/");
   assert.match(homeSource, /href: service\.appEntryPath, external: true\b/);
-  assert.match(homeSource, /card\.external \? <a \{\.\.\.linkProps\}>/);
+  assert.match(homeSource, /<NativeHomeCardLink \{\.\.\.linkProps\}[^>]*external=\{card\.external\}/);
+  const cardSource = readFileSync(new URL('../../app/components/NativeHomeCopy.tsx', import.meta.url), 'utf8');
+  assert.match(cardSource, /return external\s*\? <a \{\.\.\.props\}/);
   assert.doesNotMatch(homeSource, /<Link\b[^>]*\bhref="\/ggulggul\//, "/ggulggul/ has no Next RSC payload; it needs a full document navigation");
 });
 
