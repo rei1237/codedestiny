@@ -73,3 +73,15 @@ status: in-progress
 - `node apps/toss/scripts/sync-yehwa-motifs.mjs --check`: 정본 모티프 일치. 최신 미니앱 92/92와 타입 검사·빌드도 재확인했다. 최초 재실행은 제한 환경의 로컬 천문 파일 서버 연결 차단으로 1개 실패했으며, 외부 네트워크 차단을 유지하고 로컬 서버 연결을 허용한 실행에서 통과했다.
 
 마지막 로컬 묶음: `apps/toss/ai-saju-studio.ait`, 1,855,437 bytes, deploymentId `01a184fe-2bf5-7fb8-b2ee-a66bfc357bcf`, SHA-256 `63EF10B337C0980734952AF6C122D21332614BF498AE57B0C2409D1167A9AC01`. 보관본은 `D:\Development\code-destiny\outputs\toss-launch-20261028\ai-saju-studio-01a184fe.ait`다. 업로드·출시 증거가 아니다.
+
+## 2026-10-29 전체 화면 톤과 오늘의 운세 이식
+
+- `moonlight.css`와 TDS 기반 `Button.tsx`로 상담 선택·입력·로그인·구매·결과·보관함·복구·설정·약관·지원 화면의 아이보리 종이, 자주색 행동, 금빛 테두리, 명조 제목을 통일했다. 연이는 꽃빛, 네오는 남색 강조를 유지한다.
+- `DailyReadings.tsx`와 `worker/toss/daily.js`가 영냥이의 기존 오늘의 운세 15개 유형을 연결한다. 출석, 서버가 정한 열기 비용, KST 날짜, 저장 원문 재열람, 차트·근거·한계·프롬프트를 재사용한다. 호라리는 별도 입력 계약이 필요해 제외했다.
+- 실제 계산 결과와 질문·상징 정리 결과를 구분한다. 15개 유형을 독립 웹 서비스 15개 완전 이식으로 집계하지 않는다. 원장의 91개 후보/16개 부분 구현/75개 잔여 수는 유지한다.
+- 인증된 소유자만 사용하고, 열기 권한 확인 전 프로필을 저장하지 않는다. 기존 저장 결과가 있으면 계산이나 프로필 생성 없이 원문을 반환한다. 운영 DB·실결제·실 LLM은 호출하지 않았다.
+- 미니앱 테스트 103/103, 타입 검사, AIT 빌드, Worker dry-run, worker-no-undef, 중첩 재시도 검사, 디자인 정적 검사 통과. Worker 빌드 자체는 성공했으나 제한 환경의 사용자 로그 폴더 쓰기 경고가 있었다.
+- 360/390/430/1280px에서 입력·결과·공개 진입의 가로 넘침이 없었다. 주요 TDS 버튼 54px, 유형 선택 48px. 실제 TDS 날짜/시각 입력의 접근성 이름도 확인했다. 로컬 브라우저에는 토스 네이티브 safeAreaInsets가 없어 SDK 경고가 남으며 실기기 검증은 미완료다.
+- CI 오류 2건을 확인했다. Gift 검사: MongoDB 8과 Linux 6.19 이후 커널 충돌로 컨테이너가 즉시 종료됨. MongoDB 8을 유지하고 호환 커널의 Ubuntu 22.04 검증 환경으로 고정했다. Static guards: 과거 Toss 인수인계의 필수 frontmatter 누락. 이전 기록을 보존하면서 후속 계획으로 이관하고 문서 검사 242개 통과.
+- `npm run check:fast`의 확대 모의 검사는 실행 중이다. 완료 전에는 전체 통과로 간주하지 않는다. 새 커밋의 main CI 결과와 실제 콘솔 검수는 별도 확인한다.
+- 화면 증거: `D:\Development\code-destiny\outputs\toss-launch-20261029\moonlight-daily-390.jpg`, `daily-result-430.jpg`.
