@@ -4,7 +4,6 @@ import {
   buildBreadcrumbJsonLd,
   buildCollectionPageJsonLd,
   buildFaqPageJsonLd,
-  buildWebPageJsonLd,
 } from "@/lib/structured-data";
 import { SIGN_PROFILES } from "@/lib/fortune/sign-profiles";
 import { resolveFortuneArchiveDates } from "@/lib/fortune/daily-data";
@@ -56,7 +55,7 @@ export default function DateFortuneArchivePage() {
     { name: "오늘의 운세", path: "/today" },
     { name: TITLE, path: PATH },
   ]);
-  const webPageJsonLd = buildWebPageJsonLd({ title: TITLE, description, path: PATH });
+  // CollectionPage 는 WebPage 와 같은 @id 를 쓰므로 하나만 낸다(2026-10-29 감사 S1).
   const collectionJsonLd = buildCollectionPageJsonLd({ title: TITLE, description, path: PATH });
   const faqJsonLd = buildFaqPageJsonLd(FAQS);
 
@@ -140,7 +139,6 @@ export default function DateFortuneArchivePage() {
           운세 콘텐츠는 자기성찰을 위한 참고 정보입니다. 건강·법률·재무처럼 중요한 결정은 실제 조건과 해당 분야 전문가의 조언을 함께 확인하세요.
         </p>
       </main>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />

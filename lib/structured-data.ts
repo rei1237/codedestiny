@@ -292,7 +292,8 @@ export function buildArticleJsonLd(input: {
       input.author === SITE_AUTHOR.name
         ? buildAuthorPersonJsonLd()
         : !input.author || input.author.includes("편집팀") || input.author === "Code Destiny" || input.author === "Code Destiny Editorial Team"
-          ? { "@type": "Organization", "@id": `${siteSeo.siteUrl}/#organization`, name: input.author || siteSeo.organization.name }
+          // 🔴 같은 @id 노드에 이름이 둘이면 엔티티가 갈라진다(2026-10-29 감사 S2). 편집팀 표기는 화면 바이라인에만 둔다.
+          ? { "@type": "Organization", "@id": `${siteSeo.siteUrl}/#organization`, name: siteSeo.organization.name }
           : { "@type": "Person", name: input.author },
     publisher: {
       "@type": "Organization",

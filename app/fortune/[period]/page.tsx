@@ -12,8 +12,8 @@ import { fortuneHubCopy } from "@/lib/i18n/fortune-hub-copy.mjs";
 import {
   buildBreadcrumbJsonLd,
   buildCollectionPageJsonLd,
-  buildWebPageJsonLd,
 } from "@/lib/structured-data";
+import { resolvePeriodDate } from "@/lib/fortune/daily-data";
 import { buildSignViewModel } from "@/lib/fortune/build-view";
 import {
   FORTUNE_PERIOD_IDS,
@@ -168,8 +168,12 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
     },
   ];
 
-  const webPageJsonLd = buildWebPageJsonLd({ title: seo.title, description: seo.description, path: seo.path });
-  const collectionJsonLd = buildCollectionPageJsonLd({ title: seo.title, description: seo.description, path: seo.path });
+  // 🔴 CollectionPage 는 WebPage 와 같은 @id(#webpage)를 쓴다. 둘 다 내면 한 노드가 @type 둘로 갈라진다(2026-10-29 감사 S1).
+  //    허브는 날마다 다시 계산되므로 발행일을 dateModified 로 단다(S12).
+  const collectionJsonLd = {
+    ...buildCollectionPageJsonLd({ title: seo.title, description: seo.description, path: seo.path }),
+    dateModified: `${resolvePeriodDate("today")}T00:00:00+09:00`,
+  };
   const itemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -384,7 +388,6 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
           </p>
         </div>
       </main>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
