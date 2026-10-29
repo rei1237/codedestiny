@@ -13,10 +13,11 @@ import {resolveStoredProduct} from '../yeongnyangi/payments/catalog.ts';
 import {consultationService,consultationSelection,requestMatchesService} from './services.js';
 import {LIBRARY_PAGE_SIZE,libraryFilter,libraryPage} from './library.js';
 import {questionDecision,questionTopic,assertQuestionOrder} from '../yeongnyangi/fortune/ask/question-policy.ts';
-import {prepareFortune,presentFortune,drawTarotSpread} from '../yeongnyangi/service.ts';
+import {prepareFortune,presentFortune,drawTarotSpread,experienceCheckFortune} from '../yeongnyangi/service.ts';
 import {publicTarotSpread} from '../yeongnyangi/fortune/tarot/spread-v3.ts';
 import {readRequest,resumeRequest} from '../yeongnyangi/repository.js';
 import {enqueueConsultation} from '../yeongnyangi/queue.js';
+import {canonicalProducts,canonicalSale,canonicalProfiles,prepareCanonicalFortune,drawCanonicalFortune,canonicalLibraryPage} from './canonical-yeongnyangi.js';
 import {attachTarotLibraryInput,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryFlow,tarotLibraryProduct,tarotLibraryResult} from './tarot-library.js';
 
 async function bodyOf(request) {
@@ -30,7 +31,11 @@ async function limit(env,subject,endpoint,max) {
   if(state.count>max)throw new TossError('TOO_MANY_REQUESTS',429);
 }
 export async function handleTossRoutes(request,env) {
-  const url=new URL(request.url),path=url.pathname.slice('/api/toss'.length);
+  const url=new URL(request.url);
+  let path=url.pathname.slice('/api/toss'.length);
+  const canonical=path.startsWith('/canonical/');
+  const canonicalResult=path.match(/^\/canonical\/yeongnyangi\/requests\/([a-f0-9]{64})(\/(?:generate|activate|conversation))?$/);
+  if(canonicalResult)path='/results/'+canonicalResult[1]+(canonicalResult[2]==='/conversation'?'/conversation':canonicalResult[2]?'/resume':'');
   const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Vary':'Origin','X-Content-Type-Options':'nosniff'};
   const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers});
   try {
@@ -63,6 +68,38 @@ export async function handleTossRoutes(request,env) {
     }
     const auth=await requireTossSession(request,env);
     await limit(env,auth._id,'authenticated',120);
+    if(path==='/canonical/auth/me'&&request.method==='GET')return reply({ok:true,authenticated:true,user:{id:auth.userId,_id:auth.userId,name:'토스 사용자',role:'user'}});
+    if(path==='/canonical/yeongnyangi/products'&&request.method==='GET')return reply({products:canonicalProducts()});
+    if(path==='/canonical/geocode'&&request.method==='GET'){
+      await limit(env,auth._id,'geocode',10);
+      const {geocodePlace}=await import('../lib/geocode.js');
+      const result=await geocodePlace(url.searchParams.get('place'));
+      return reply(result.data,result.status);
+    }
+    if(path==='/canonical/yeongnyangi/location'&&request.method==='POST'){
+      await limit(env,auth._id,'location',10);
+      const {resolveCurrentLocation}=await import('../yeongnyangi/fortune/question-sky.ts');
+      return reply({ok:true,location:resolveCurrentLocation(await bodyOf(request))});
+    }
+    if(path==='/canonical/yeongnyangi/saju/experience-check'&&request.method==='POST'){
+      await limit(env,auth._id,'experience-check',6);
+      return reply({ok:true,...await experienceCheckFortune(env,auth.userId,await bodyOf(request))});
+    }
+    if(path==='/canonical/yeongnyangi/profiles'&&['GET','POST'].includes(request.method))return reply(await canonicalProfiles(auth,request.method==='POST'?await bodyOf(request):undefined));
+    if(path==='/canonical/yeongnyangi/requests'&&request.method==='POST'){
+      await limit(env,auth._id,'prepare',6);
+      return reply(await prepareCanonicalFortune(env,auth,await bodyOf(request)));
+    }
+    if(path==='/canonical/yeongnyangi/requests'&&request.method==='GET'){
+      const rows=await TossPurchase.find({...libraryFilter(auth,url.searchParams.get('cursor')),serviceId:'yeongnyangi',tarotFlowId:''}).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
+      return reply(await canonicalLibraryPage(rows,id=>readRequest(env,auth.userId,id)));
+    }
+    const canonicalDraw=path.match(/^\/canonical\/yeongnyangi\/requests\/([a-f0-9]{64})\/tarot-draw$/);
+    if(canonicalDraw&&request.method==='POST'){
+      const row=await readRequest(env,auth.userId,canonicalDraw[1]);
+      if(!requestMatchesService(row,canonicalSale(row.productId)))throw new TossError('REQUEST_NOT_FOUND',404);
+      return reply(await drawCanonicalFortune(env,auth,canonicalDraw[1],await bodyOf(request)));
+    }
     if(path==='/session'&&request.method==='GET')return reply({authenticated:true,environment:auth.environment});
     if(path==='/logout'&&request.method==='POST') {await TossSession.deleteOne({_id:auth.sessionId});return reply({ok:true});}
     if(path==='/unlink'&&request.method==='POST')return reply(await disconnectIdentity(env,auth));
@@ -172,20 +209,34 @@ export async function handleTossRoutes(request,env) {
     const resultMatch=path.match(/^\/results\/([a-f0-9]{64})(\/(?:resume|conversation))?$/);
     if(resultMatch&&request.method===(resultMatch[2]?'POST':'GET')) {
       const purchase=await TossPurchase.findOne({identityId:auth._id,requestId:resultMatch[1],environment:auth.environment}).lean();
+      if(!purchase&&canonical&&request.method==='GET'){
+        const pending=await readRequest(env,auth.userId,resultMatch[1]);
+        if(!pending.persona&&!pending.accessMethod&&!pending.paymentId&&['CREATED','AWAITING_DRAW'].includes(pending.state))return reply({fortune:presentFortune(pending)});
+      }
       if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
+      if(canonical&&consultationService(purchase).id!=='yeongnyangi')throw new TossError('RESULT_NOT_FOUND',404);
       const owned=await readRequest(env,auth.userId,resultMatch[1]);
       if(!requestMatchesService(owned,purchase))throw new TossError('RESULT_NOT_FOUND',404);
       const order=await lookupOrder(env,auth.userKey,purchase._id);
       if(order.sku!==purchase.sku||order.orderId!==purchase._id)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
       if(!['PURCHASED','PAYMENT_COMPLETED'].includes(order.status))throw new TossError('ORDER_NOT_PAID',409);
+      if(canonical&&resultMatch[2]==='/resume'){
+        // Keep the original held-chapter recovery and queue acknowledgement. The
+        // Toss grant must already fund this row; never fall back to web payment.
+        if(owned.accessMethod!=='TOSS_IAP')throw new TossError('RESULT_NOT_FOUND',404);
+        const {retryFortune}=await import('../yeongnyangi/retry.js');
+        const row=await retryFortune(env,auth.userId,resultMatch[1]);
+        return reply({fortune:presentFortune(row)},row.state==='COMPLETED'?200:202);
+      }
       if(resultMatch[2]==='/conversation'){
         await limit(env,auth._id,'followup',4);
-        return reply({...presentFortune(await questionConversation(env,auth.userId,resultMatch[1],await bodyOf(request))),serviceId:consultationService(purchase).id});
+        const fortune=presentFortune(await questionConversation(env,auth.userId,resultMatch[1],await bodyOf(request)));
+        return reply(canonical?{fortune}:{...fortune,serviceId:consultationService(purchase).id});
       }
       const row=resultMatch[2]?await resumeRequest(env,auth.userId,resultMatch[1]):await readRequest(env,auth.userId,resultMatch[1]);
       if(resultMatch[2])await enqueueConsultation(env,row);
-      return reply({...presentFortune(row),serviceId:consultationService(purchase).id});
+      return reply(canonical?{fortune:presentFortune(row)}:{...presentFortune(row),serviceId:consultationService(purchase).id});
     }
     if(path==='/events'&&request.method==='POST') {
       const input=await bodyOf(request);

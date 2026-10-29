@@ -110,7 +110,7 @@ export function tarotSpreadEvidence(ctx:DomainContext,spread:Spread,inputs:Tarot
  return {version:TAROT_SPREAD_VERSION,kind:TAROT_SPREAD_KIND,spreadId:spread.id,questionType,
   spread:{id:spread.id,version:spread.version,catalogVersion:YEONGNYANGI_SPREAD_CATALOG_VERSION,title:spread.title,purpose:spread.purpose,summary:spread.summary,source:spread.source.kind},
   inputs:{...(inputs.options?{options:inputs.options}:{}),...(inputs.period?{period:tarotPeriods[inputs.period]}:{}),...(inputs.relationStatus?{relationStatus:tarotRelationStatuses[inputs.relationStatus]}:{})},
-  cards,links:spread.links.map(link=>({...link,ids:[...link.ids]})),...(spread.symmetry?{symmetry:{a:[...spread.symmetry.a],b:[...spread.symmetry.b]}}:{}),
+  cards,links:spread.links.map((link:{ids:string[]})=>({...link,ids:[...link.ids]})),...(spread.symmetry?{symmetry:{a:[...spread.symmetry.a],b:[...spread.symmetry.b]}}:{}),
   rules:tarotSpreadRules,limits:TAROT_EVIDENCE_LIMIT};
 }
 

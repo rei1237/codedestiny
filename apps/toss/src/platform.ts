@@ -14,6 +14,16 @@ export async function api<T>(path:string,body?:unknown):Promise<T>{
   if(!response.ok){if(response.status===401)await clearSession();throw new ApiError(data.error,data.errorId,response.status);}
   return data;
 }
+/** Original screen contract, with Toss credentials only (never web cookies). */
+export async function canonicalResponse(path:string,request:Request):Promise<Response>{
+  if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING','',503);
+  if(!/^\/canonical\//.test(path)||!['GET','POST'].includes(request.method))throw new ApiError('NOT_FOUND','',404);
+  const response=await fetch(API+path,{method:request.method,credentials:'omit',
+    headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},
+    ...(request.method==='POST'?{body:await request.text()}:{}),signal:request.signal});
+  if(response.status===401)await clearSession();
+  return response;
+}
 export async function restoreSession(){
   if(!isToss())return false;
   token=await Storage.getItem('toss-session');

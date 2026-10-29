@@ -1335,171 +1335,171 @@
     },
     "concernPick": {
       "title": "Was beschäftigt Sie gerade am meisten?",
-      "lead": "Pick what you're wondering about, and we'll show the readings that answer it, with their prices.",
-      "love": "Love",
-      "money": "Money",
-      "career": "Work",
+      "lead": "Wähle, was dich beschäftigt. Wir zeigen dir passende Deutungen und ihre Preise.",
+      "love": "Liebe",
+      "money": "Geld",
+      "career": "Arbeit",
       "freeCta": "Erst kostenlos prüfen",
       "fusionLine": "Wenn Sie alle sechs Systeme abgleichen möchten",
-      "altLabel": "Another way",
-      "ask": "Ask in your own words",
+      "altLabel": "Ein anderer Weg",
+      "ask": "Eigene Frage stellen",
       "price": {
-        "free": "Free",
+        "free": "Kostenlos",
         "from1000": "From ₩1,000",
         "w3000": "₩3,000",
         "w5000": "₩5,000",
         "w10000": "₩10,000",
-        "from10000": "From ₩10,000",
+        "from10000": "Ab ₩10,000",
         "w30000": "₩30,000",
         "w50000": "₩50,000",
         "w20000": "₩20,000",
-        "from3000": "From ₩3,000",
+        "from3000": "Ab ₩3,000",
         "w1000": "₩1,000",
-        "from5000": "From ₩5,000",
+        "from5000": "Ab ₩5,000",
         "w7000": "₩7,000",
-        "from30000": "From ₩30,000"
+        "from30000": "Ab ₩30,000"
       },
       "chip": {
-        "love": "Their feelings · My next love",
-        "reunion": "A chance to meet again",
-        "marriage": "The one I'll marry",
-        "money": "When money starts to flow",
-        "career": "Should I change jobs?",
-        "future": "My golden years · What matters most this year",
-        "self": "Why do I keep making the same choices?",
-        "people": "Why does getting closer wear me out?"
+        "love": "Die Gefühle der anderen Person · Meine nächste Beziehung",
+        "reunion": "Die Chance auf ein Wiedersehen",
+        "marriage": "Die Person, die ich heiraten werde",
+        "money": "Wann sich meine Finanzen entspannen",
+        "career": "Sollte ich den Job wechseln?",
+        "future": "Meine beste Lebensphase · Was dieses Jahr zählt",
+        "self": "Warum treffe ich immer wieder dieselben Entscheidungen?",
+        "people": "Warum erschöpft mich zunehmende Nähe?"
       },
-      "reunion": "Reunion",
-      "marriage": "Marriage",
-      "future": "Future",
-      "self": "Myself",
-      "people": "Relationships",
+      "reunion": "Wieder zueinanderfinden",
+      "marriage": "Heirat",
+      "future": "Zukunft",
+      "self": "Ich selbst",
+      "people": "Beziehungen",
       "q": {
         "loveMind": {
-          "t": "Why don't their words match their actions?",
-          "s": "Without claiming to know their heart, it reads the gap between words and actions, and how you can respond",
-          "b": "Words-and-Actions Tarot"
+          "t": "Warum passen die Worte und Taten dieser Person nicht zusammen?",
+          "s": "Betrachte die Lücke zwischen Worten und Taten und deine Reaktion darauf, ohne die Gefühle der anderen Person als sicher darzustellen.",
+          "b": "Tarot zwischen Worten und Taten"
         },
         "loveStatus": {
-          "t": "What are we to each other right now?",
-          "s": "Six cards read the warmth left in what you both say and do",
-          "b": "Tarot · What are we to each other?"
+          "t": "Was sind wir gerade füreinander?",
+          "s": "6 Karten beleuchten die Nähe, die in euren Worten und Taten sichtbar wird.",
+          "b": "Tarot · Was verbindet uns?"
         },
         "loveNext": {
-          "t": "When will my next relationship begin?",
-          "s": "An in-depth Saju reading of when connections arrive and the love patterns you repeat",
-          "b": "Saju · The Master Book of Bonds"
+          "t": "Wann beginnt meine nächste Beziehung?",
+          "s": "Eine vertiefende BaZi-Deutung zu Zeiten neuer Begegnungen und wiederkehrenden Beziehungsmustern.",
+          "b": "BaZi · Das große Buch der Verbindungen"
         },
         "reunionAgain": {
-          "t": "Could we get back together?",
-          "s": "No odds or percentages — it looks at whether to reach out, and how",
-          "b": "Reunion Tarot"
+          "t": "Könnten wir wieder zusammenfinden?",
+          "s": "Ohne die Chancen in Zahlen zu fassen, erkundest du, ob und wie eine Annäherung sinnvoll sein könnte.",
+          "b": "Tarot zum Wiederfinden"
         },
         "reunionContact": {
-          "t": "Should I reach out again, or wait?",
-          "s": "No contact dates — the cards help you set your own test for reaching out or waiting",
+          "t": "Soll ich mich wieder melden oder warten?",
+          "s": "Die Karten geben Anhaltspunkte für Annäherung oder Abwarten, ohne einen Kontakttag festzulegen.",
           "b": "Yeongnyangi · Tarot"
         },
         "reunionClosure": {
-          "t": "How do I sort out these feelings?",
-          "s": "Lay out cards and Saju with Yeoni to find the paths open to you now",
-          "b": "Tarot & Saju · The Destiny Tea House"
+          "t": "Wie kann ich meine Gefühle ordnen?",
+          "s": "Erkunde mit Yeoni Tarot und BaZi, um deine jetzigen Handlungsmöglichkeiten zu entdecken.",
+          "b": "Tarot und BaZi · Das Teehaus des Schicksals"
         },
         "marriagePartner": {
-          "t": "What kind of person will I marry?",
-          "s": "Without naming a spouse, Saju shows the kind of person you can comfortably share a long life with",
-          "b": "Yeongnyangi · Saju",
-          "alt": "The Master Book of Bonds"
+          "t": "Was für einen Menschen werde ich heiraten?",
+          "s": "BaZi erkundet Eigenschaften eines Menschen, mit dem langfristiges Zusammenleben gut passen könnte, ohne einen bestimmten Partner festzulegen.",
+          "b": "Yeongnyangi · BaZi",
+          "alt": "Das große Buch der Verbindungen"
         },
         "marriageClash": {
-          "t": "Where do the two of us keep clashing?",
-          "s": "Compatibility shown as the scenes where you two collide, not as a score sheet",
-          "b": "Saju · LOVE CODE Romance Simulation",
-          "alt": "East–West Compatibility"
+          "t": "Woran geraten wir immer wieder aneinander?",
+          "s": "Die Partnerschaftsanalyse zeigt typische Konfliktsituationen zwischen euch statt einer Punktetabelle.",
+          "b": "BaZi · LOVE CODE Beziehungssimulation",
+          "alt": "Partnerschaftsanalyse aus Ost und West"
         },
         "marriageDate": {
-          "t": "When is a good day for this?",
-          "s": "Picks good days for a wedding, an opening or a contract from the next 60 days",
-          "b": "Vedic astrology · Muhurta Date Picker"
+          "t": "Wann ist ein guter Zeitpunkt dafür?",
+          "s": "Wähle günstige Tage für Hochzeit, Geschäftseröffnung oder Vertrag aus den nächsten 60 Tagen.",
+          "b": "Indische Astrologie · Terminwahl mit Muhurta"
         },
         "moneyWhen": {
-          "t": "When will money start flowing my way?",
-          "s": "The basic reading covers how money comes and goes; when it arrives is read through Saju in the deeper tiers",
-          "b": "Yeongnyangi · Saju"
+          "t": "Wann entspannen sich meine Finanzen?",
+          "s": "Die Basisdeutung betrachtet Muster von Einnahmen und Ausgaben; die Vertiefung untersucht ihre Zeiträume mit BaZi.",
+          "b": "Yeongnyangi · BaZi"
         },
         "moneyWay": {
-          "t": "What way of earning money suits me?",
-          "s": "See your wealth and work tendencies for free through the twelve palaces of your chart",
-          "b": "Zi Wei Dou Shu Chart"
+          "t": "Welche Art, Geld zu verdienen, passt zu mir?",
+          "s": "Erkunde kostenlos die Muster von Geld und Arbeit anhand der Sterne in den zwölf Palästen.",
+          "b": "Zi Wei Dou Shu Geburtsdiagramm"
         },
         "moneyMonth": {
-          "t": "Can I see ahead which months money will gather?",
-          "s": "One card for each of the twelve months traces your money flow and turning points month by month",
-          "b": "Tarot · Zodiac Year Tarot"
+          "t": "Lassen sich gute Monate zum Sparen erkennen?",
+          "s": "Eine Karte für jeden der zwölf Monate beleuchtet Geldflüsse und Wendepunkte im Jahresverlauf.",
+          "b": "Tarot · Glück der zwölf Tierzeichen"
         },
         "careerMove": {
-          "t": "Is it okay to change jobs now?",
-          "s": "Stay or go: seven cards set out what to check before you decide",
-          "b": "Tarot · Career Move Cards"
+          "t": "Kann ich jetzt den Job wechseln?",
+          "s": "7 Karten helfen dir, vor der Entscheidung die Kriterien für Bleiben oder Wechseln zu prüfen.",
+          "b": "Tarot · Karten zum Jobwechsel"
         },
         "careerFit": {
-          "t": "Is there work that truly fits me?",
-          "s": "Your birth chart shows the ways of working and the settings where your talents come alive",
-          "b": "Yeongnyangi · Astrology"
+          "t": "Gibt es eine Arbeit, die besser zu mir passt?",
+          "s": "Dein Geburtsdiagramm zeigt Arbeitsweisen und Umgebungen, in denen deine Talente aufleben können.",
+          "b": "Yeongnyangi · Astrologie"
         },
         "careerTurn": {
-          "t": "Is now the time to change direction?",
-          "s": "Gauges when a move would cost you least and what to sort out first",
-          "b": "4 systems · Destiny Compass",
-          "alt": "The Straight-Talk War Room"
+          "t": "Kann ich jetzt die Richtung ändern?",
+          "s": "Schätze ab, wann ein Schritt weniger Belastung bringt und was du zuerst ordnen solltest.",
+          "b": "4 Systeme · Der Schicksalskompass",
+          "alt": "Das Klartext-Strategiebüro"
         },
         "futurePrime": {
-          "t": "When will my golden years come?",
-          "s": "Traces your ten-year cycles to show when momentum builds and what to prepare, bound into one book",
-          "b": "Saju decade cycles · Book of Life"
+          "t": "Wann kommt meine beste Lebensphase?",
+          "s": "Die BaZi-Glückszyklen bündeln Zeiten mit Rückenwind und passende Vorbereitungen in einem Buch.",
+          "b": "BaZi-Glückszyklen · Das Buch des Lebens"
         },
         "futureYear": {
-          "t": "What matters most for me this year?",
-          "s": "Breaks the year you pick into its big currents and what to prepare each month",
-          "b": "Saju · New Year Fortune",
-          "alt": "Zodiac Year Tarot"
+          "t": "Was ist dieses Jahr für mich am wichtigsten?",
+          "s": "Betrachte die großen Linien des gewählten Jahres und die Vorbereitungen für jeden Monat.",
+          "b": "BaZi · Neujahrsdeutung",
+          "alt": "Tarot zum Glück der zwölf Tierzeichen"
         },
         "futureCross": {
-          "t": "When readings disagree, which should I follow?",
-          "s": "Points out where six systems agree and where they diverge",
-          "b": "Six systems · Deep Fusion Reading"
+          "t": "Woran halte ich mich bei widersprüchlichen Deutungen?",
+          "s": "Betrachte übereinstimmende und abweichende Signale aus sechs Systemen gemeinsam.",
+          "b": "Abgleich von 6 Systemen · Vertiefende Fusionsdeutung"
         },
         "selfRepeat": {
-          "t": "Why do I keep making the same choices?",
-          "s": "Saju walks through your innate temperament and the choices you keep repeating",
-          "b": "Yeongnyangi · Saju"
+          "t": "Warum treffe ich immer wieder dieselben Entscheidungen?",
+          "s": "BaZi betrachtet Schritt für Schritt dein Temperament und wiederkehrende Entscheidungsmuster.",
+          "b": "Yeongnyangi · BaZi"
         },
         "selfStrength": {
-          "t": "What strengths do I have that others don't see?",
-          "s": "Your day pillar's guardian animal shows who you are in love and at work",
-          "b": "Saju · Twelve-Stage Cycle Animal Reading",
+          "t": "Welche meiner Stärken übersehen andere?",
+          "s": "Das Schutztier der zwölf Energiephasen deiner Tagessäule beleuchtet deine Seiten in Liebe und Arbeit.",
+          "b": "BaZi · Tierdeutung der zwölf Energiephasen",
           "alt": "Human Design"
         },
         "selfGrain": {
-          "t": "What kind of person am I, at heart?",
-          "s": "See your innate tendencies and current phase through your Saju, for free",
-          "b": "Saju (Four Pillars)"
+          "t": "Was für ein Mensch bin ich im Innersten?",
+          "s": "Erkunde kostenlos deine Veranlagung und die aktuelle Lebensphase anhand der acht BaZi-Zeichen.",
+          "b": "Vier Säulen (BaZi)"
         },
         "peopleTired": {
-          "t": "Why does getting closer wear me out?",
-          "s": "The 27 lunar mansions show why closeness tires you and what distance feels right",
+          "t": "Warum erschöpft mich zunehmende Nähe?",
+          "s": "Die 27 Mondhäuser helfen dir zu verstehen, warum Nähe müde macht und welcher Abstand angenehm ist.",
           "b": "Yeongnyangi · Sukuyo",
           "alt": "Sukuyo"
         },
         "peopleMatch": {
-          "t": "How compatible are we?",
-          "s": "Overlays India's 36-point match with Eastern Sukuyo to show where you align and where you differ",
-          "b": "Vedic & Sukuyo · East–West Compatibility"
+          "t": "Wie passen wir zueinander?",
+          "s": "Vergleiche Gemeinsamkeiten und Unterschiede zwischen der indischen Analyse mit 36 Punkten und dem ostasiatischen Sukuyo.",
+          "b": "Indische Astrologie und Sukuyo · Partnerschaft aus Ost und West"
         },
         "peopleDistance": {
-          "t": "Should I keep my distance in this relationship?",
-          "s": "Talk it through with Yeoni and Neo, weighing each option in turn",
-          "b": "Conversational Reading"
+          "t": "Sollte ich in dieser Beziehung Abstand nehmen?",
+          "s": "Gehe im Gespräch mit Yeoni und Neo deine Möglichkeiten einzeln durch.",
+          "b": "Beratung zu deinem Lebensweg im Gespräch"
         }
       }
     },
@@ -1654,32 +1654,32 @@
       "daily": "Kostenloses Tagesorakel mit Yeoni"
     },
     "gardenCopy": {
-      "bubble1": "Hi! I'm Yeoni, the flower pig.",
-      "bubble2": "What color is your heart today?",
-      "bubble3": "Let's start light with three tarot cards!",
-      "bubble4": "Take your time. I'll listen to every worry.",
-      "bubbleAria": "Hear another line from Yeoni",
+      "bubble1": "Hallo! Ich bin Yeoni, das Blumenferkel.",
+      "bubble2": "Welche Farbe hat dein Herz heute?",
+      "bubble3": "Fangen wir ganz entspannt mit drei Tarotkarten an!",
+      "bubble4": "Lass dir Zeit. Ich höre dir bis zum Ende zu.",
+      "bubbleAria": "Noch einen Satz von Yeoni hören",
       "saysName": "Yeoni",
-      "saysLine": "Which reading shall we start with? Just one is plenty.",
-      "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "Pass ohne Laufzeitbegrenzung und ohne automatische Verlängerung",
-      "passTitle": "Yeoni stellt dir den Pass vor",
-      "passDesc": "Ab und zu per Einzelzahlung, bei häufiger Nutzung mit einem Pass. Prüfe, welche Beratungen du nutzen kannst, und dein Nutzungslimit.",
-      "passPer": "· Ohne Laufzeitbegrenzung",
-      "passBadge": "Incl. Yeongnyangi",
-      "passNote": "Kleines, Mittleres und Großes Honigglas gelten für Flower-Pig-Deutungen; das Familien-Honigglas gilt für kostenpflichtige Deutungen von Flower Pig und Yeongnyangi. Bereits gekaufte Pässe behalten die Bedingungen zum Kaufzeitpunkt.",
-      "passCta": "See all 4 passes",
-      "moreTitle": "Yeonis Atelier entdecken",
-      "moreItems": "Daily readings · consultations · records · stories",
-      "moreClose": "Show less",
-      "searchLead": "Find the reading you need by concern, method or price.",
-      "searchPlaceholder": "Love, money, a job move… search readings",
-      "filterToggle": "Filters",
-      "filterMorePurpose": "More concerns",
-      "shareReward": "100 Moonstones when a friend signs up",
-      "shareTerms": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days",
-      "todayGateCta": "Create a profile to see today's fortune",
-      "todayGateDesc": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart.",
+      "saysLine": "Mit welcher Deutung fangen wir an? Eine reicht völlig.",
+      "passMascotAlt": "Blumenferkel Yeoni lächelt mit einer Passkarte in der Hand",
+      "passEyebrow": "Pass ohne Zeitlimit oder automatische Verlängerung",
+      "passTitle": "Yeoni erklärt die Pässe",
+      "passDesc": "Für gelegentliche Deutungen kannst du einzeln bezahlen, für häufige Nutzung einen Pass wählen. Prüfe, welche Beratungen enthalten sind und welche Nutzungsgrenzen gelten.",
+      "passPer": "· Ohne Zeitlimit",
+      "passBadge": "Auch für Yeongnyangi",
+      "passNote": "Die kleinen, mittleren und großen Honigtöpfe gelten für GGULGGUL Fortune. Der Familien-Honigtopf gilt für kostenpflichtige Deutungen von GGULGGUL Fortune und Yeongnyangi. Bereits gekaufte Pässe behalten ihre ursprünglichen Kaufbedingungen.",
+      "passCta": "Passenden Pass ansehen",
+      "moreTitle": "Mehr in Yeonis Atelier entdecken",
+      "moreItems": "Tagesdeutung · Beratung · Aufzeichnungen und Geschichten",
+      "moreClose": "Weniger anzeigen",
+      "searchLead": "Finde die passende Deutung nach Anliegen, Methode oder Preis.",
+      "searchPlaceholder": "Liebe, Geld, Jobwechsel … Deutungen suchen",
+      "filterToggle": "Filter",
+      "filterMorePurpose": "Weitere Anliegen",
+      "shareReward": "100 Mondlichtsteine, wenn sich ein Freund registriert",
+      "shareTerms": "Nur wenn dein Freund die Registrierung über den mit diesem Button geteilten Link abschließt · Höchstens 500 pro Tag · Ab Erhalt 30 Tage nutzbar",
+      "todayGateCta": "Profil erstellen und Tagesdeutung ansehen",
+      "todayGateDesc": "Anhand deines Geburtsdatums berechnen wir den heutigen Saju-Tagespfeiler, die 27 Sukuyo-Mondhäuser und die vedische Mondposition passend zu deinem Geburtshoroskop.",
       "sheetClose": "Close",
       "sheetPass": "Check my pass",
       "sheetProfile": "My profile cards",
@@ -1737,9 +1737,9 @@
       "publicRecordsLink": "Daten, Originaltexte und Ergebnisse vergleichen"
     },
     "chatEntry": {
-      "title": "Ask Yeoni and Neo the one thing on your mind right now",
-      "cta": "Talk through my concern",
-      "price": "3.000 ₩ je Sitzung"
+      "title": "Frag Yeoni und Neo, was dich gerade am meisten beschäftigt",
+      "cta": "Mein Anliegen besprechen",
+      "price": "₩3,000 pro Gespräch"
     },
     "svcQuestion": {
       "master-love-codex": "When will my next relationship begin?",

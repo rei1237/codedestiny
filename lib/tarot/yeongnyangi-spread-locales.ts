@@ -40,7 +40,7 @@ const moneyTitles:Record<Native,[string,string]>={en:['Money flow and preparatio
 for(const locale of Object.keys(moneyTitles) as Native[]){titleTable[locale].yn_money_flow_seven=moneyTitles[locale][0];titleTable[locale].yn_money_map_ten=moneyTitles[locale][1];}
 export const tarotSpreadTitle=(id:string,original:string,locale:ReadingLocale)=>locale==='ko'?original:titleTable[locale][id]||original;
 export const tarotSpreadPosition=(id:string,original:string,locale:ReadingLocale)=>locale==='ko'?original:positionTable[locale][id]||original;
-const storedLabels=new Map<string,string>(yeongnyangiSpreads.flatMap(spread=>spread.positions.map(position=>[position.label,position.id] as const)));
+const storedLabels=new Map<string,string>(yeongnyangiSpreads.flatMap((spread:{positions:{label:string;id:string}[]})=>spread.positions.map(position=>[position.label,position.id] as const)));
 export function tarotSpreadStoredLabel(label:string,locale:ReadingLocale){const id=storedLabels.get(label);return id&&locale!=='ko'?positionTable[locale][id]:undefined;}
 const explore:Record<Native,string>={en:'Explore',ja:'見るポイント','zh-CN':'探索要点','zh-TW':'探索重點',vi:'Các khía cạnh',hi:'इन पहलुओं पर विचार करें',es:'Aspectos que explorar',fr:'Points à explorer',de:'Aspekte zum Erkunden',nl:'Te onderzoeken aspecten',ms:'Aspek untuk diterokai'};
 /** Compact native position guides; the original full questions remain in the saved LLM evidence. */

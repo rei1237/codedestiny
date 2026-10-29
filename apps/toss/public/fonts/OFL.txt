@@ -1,0 +1,17 @@
+Code Destiny brand serif webfonts
+================================
+
+The woff2 files under fonts/serif-latin/, fonts/serif-kr/ and fonts/playful/ are
+subsets of:
+
+  - Cinzel          (c) Natanael Gama,  SIL Open Font License 1.1
+  - Nanum Myeongjo  (c) NAVER Corp.,    SIL Open Font License 1.1
+  - Gowun Dodum     (c) Yanghee Ryu,    SIL Open Font License 1.1
+
+They are redistributed here under the terms of the SIL Open Font License 1.1
+(https://openfontlicense.org). Because these files are modified (subset) copies,
+they are renamed to "CodeDestinySerifLatin", "CodeDestinySerifKR" and
+"CodeDestinyPlayful" so that the Reserved Font Names "Cinzel", "Nanum Myeongjo"
+and "Gowun Dodum" are not used, as the license requires.
+
+Full license text: https://openfontlicense.org/open-font-license-official-text/

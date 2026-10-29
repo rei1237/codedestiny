@@ -13,7 +13,7 @@ const SERVICE: Record<string, {bar: string; sender: string}> = {
 // 메신저 대화창형 후기 카드. 문구는 원문 그대로 출력만 한다(가공·재배열 없음).
 // quote: 원문 속 한 구절(highlight)을 크게 띄운다. 말풍선과 같은 글이라 보조기기에는 숨긴다.
 function ReviewCard({review, quote, hero = false}: {review: Review; quote: boolean; hero?: boolean}) {
- const excerpt = review.bubbles.some(text => text.includes('…'));
+ const excerpt = review.bubbles.some((text:string) => text.includes('…'));
  const service = SERVICE[review.service];
  return <article className={hero ? `${styles.card} ${styles.hero}` : styles.card}>
   {quote && review.highlight && <p className={styles.quote} aria-hidden="true" data-review-text>{review.highlight}</p>}
@@ -22,7 +22,7 @@ function ReviewCard({review, quote, hero = false}: {review: Review; quote: boole
    <span className={styles.avatar} aria-hidden="true"><UserRound size={18} strokeWidth={1.75}/></span>
    <div className={styles.bubbles}>
     <span className={styles.sender}>{service.sender}</span>
-    {review.bubbles.map((text, index) => <p key={index} className={styles.bubble} data-review-text>{text}</p>)}
+    {review.bubbles.map((text:string, index:number) => <p key={index} className={styles.bubble} data-review-text>{text}</p>)}
    </div>
   </div>
   <footer className={styles.meta}>

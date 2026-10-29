@@ -40,6 +40,29 @@
     var ready = false;
     var pendingSelection = "";
     var activeLanguage = "";
+    var countryLanguage = "";
+
+    function automaticLanguage(state) {
+      return state && state.followsSystem && countryLanguage ? { language: countryLanguage } : state;
+    }
+
+    function loadCountryLanguage(state) {
+      // A manual Android/web choice wins. Offline first launches retain the OS language.
+      if (!state || !state.followsSystem || previousAppLanguage || typeof window.fetch !== "function") return;
+      var request = revision;
+      window.fetch(window.CODE_DESTINY_API_BASE_URL + "/api/geo", {
+        credentials: "omit", signal: AbortSignal.timeout(2500)
+      }).then(function (response) {
+        if (!response.ok) throw new Error("Country language unavailable");
+        return response.json();
+      }).then(function (geo) {
+        if (!geo || !geo.ok || !geo.country || request !== revision || pendingSelection) return;
+        var parts = String(geo.locale || "").toLowerCase().replace(/_/g, "-").split("-");
+        var lang = parts[0] === "zh" ? (parts.some(function (part) { return ["tw", "hk", "mo", "hant"].indexOf(part) >= 0; }) ? "zh-TW" : "zh-CN") : parts[0];
+        countryLanguage = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"].indexOf(lang) >= 0 ? lang : "en";
+        applyLanguage({ language: countryLanguage });
+      }).catch(function () { /* No retry or paid fallback; keep the native language. */ });
+    }
 
     function applyLanguage(state) {
       if (!state || !state.language) return;
@@ -79,12 +102,15 @@
       if (ready) void selectLanguage(lang);
     });
     plugin.addListener("languageChanged", function (state) {
-      if (ready) { revision++; applyLanguage(state); }
+      if (ready) {
+        if (!state.followsSystem) revision++;
+        applyLanguage(automaticLanguage(state));
+      }
     });
     plugin.initialize({ language: previousAppLanguage }).then(function (state) {
       ready = true;
       if (pendingSelection) void selectLanguage(pendingSelection);
-      else applyLanguage(state);
+      else { applyLanguage(state); loadCountryLanguage(state); }
     }).catch(function () { /* Older/native-unavailable builds keep the existing web language. */ });
   }
 

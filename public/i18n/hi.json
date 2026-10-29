@@ -1335,171 +1335,171 @@
     },
     "concernPick": {
       "title": "अभी आपके मन में सबसे बड़ा सवाल क्या है?",
-      "lead": "Pick what you're wondering about, and we'll show the readings that answer it, with their prices.",
-      "love": "Love",
-      "money": "Money",
-      "career": "Work",
+      "lead": "अपना सवाल चुनें। उससे जुड़ी रीडिंग और उनके मूल्य तुरंत दिखेंगे।",
+      "love": "प्यार",
+      "money": "धन",
+      "career": "काम",
       "freeCta": "पहले मुफ़्त में जाँचें",
       "fusionLine": "छहों पद्धतियों का मिलान चाहिए तो",
-      "altLabel": "Another way",
-      "ask": "Ask in your own words",
+      "altLabel": "दूसरा तरीका",
+      "ask": "अपने शब्दों में पूछें",
       "price": {
-        "free": "Free",
+        "free": "मुफ़्त",
         "from1000": "From ₩1,000",
         "w3000": "₩3,000",
         "w5000": "₩5,000",
         "w10000": "₩10,000",
-        "from10000": "From ₩10,000",
+        "from10000": "₩10,000 से",
         "w30000": "₩30,000",
         "w50000": "₩50,000",
         "w20000": "₩20,000",
-        "from3000": "From ₩3,000",
+        "from3000": "₩3,000 से",
         "w1000": "₩1,000",
-        "from5000": "From ₩5,000",
+        "from5000": "₩5,000 से",
         "w7000": "₩7,000",
-        "from30000": "From ₩30,000"
+        "from30000": "₩30,000 से"
       },
       "chip": {
-        "love": "Their feelings · My next love",
-        "reunion": "A chance to meet again",
-        "marriage": "The one I'll marry",
-        "money": "When money starts to flow",
-        "career": "Should I change jobs?",
-        "future": "My golden years · What matters most this year",
-        "self": "Why do I keep making the same choices?",
-        "people": "Why does getting closer wear me out?"
+        "love": "उनके मन की बात · मेरा अगला प्रेम संबंध",
+        "reunion": "दोबारा मिलने की संभावना",
+        "marriage": "मेरा जीवनसाथी कौन होगा",
+        "money": "आर्थिक स्थिति कब बेहतर होगी",
+        "career": "क्या मुझे नौकरी बदलनी चाहिए?",
+        "future": "जीवन का सुनहरा दौर · इस साल की सबसे अहम बात",
+        "self": "मैं बार-बार वही चुनाव क्यों करता हूँ?",
+        "people": "नज़दीकी बढ़ने पर थकान क्यों होती है?"
       },
-      "reunion": "Reunion",
-      "marriage": "Marriage",
-      "future": "Future",
-      "self": "Myself",
-      "people": "Relationships",
+      "reunion": "फिर मिलना",
+      "marriage": "विवाह",
+      "future": "भविष्य",
+      "self": "मैं स्वयं",
+      "people": "रिश्ते",
       "q": {
         "loveMind": {
-          "t": "Why don't their words match their actions?",
-          "s": "Without claiming to know their heart, it reads the gap between words and actions, and how you can respond",
-          "b": "Words-and-Actions Tarot"
+          "t": "उनकी बातों और व्यवहार में अंतर क्यों है?",
+          "s": "उनके मन की बात को निश्चित माने बिना, शब्दों और व्यवहार के अंतर तथा आपकी प्रतिक्रिया को समझें।",
+          "b": "बातों और व्यवहार के बीच का टैरो"
         },
         "loveStatus": {
-          "t": "What are we to each other right now?",
-          "s": "Six cards read the warmth left in what you both say and do",
-          "b": "Tarot · What are we to each other?"
+          "t": "अभी हमारे बीच कैसा रिश्ता है?",
+          "s": "6 कार्ड आपकी बातों और व्यवहार में दिखने वाली नज़दीकी को समझने में मदद करते हैं।",
+          "b": "टैरो · हमारा रिश्ता क्या है?"
         },
         "loveNext": {
-          "t": "When will my next relationship begin?",
-          "s": "An in-depth Saju reading of when connections arrive and the love patterns you repeat",
-          "b": "Saju · The Master Book of Bonds"
+          "t": "मेरा अगला प्रेम संबंध कब शुरू होगा?",
+          "s": "बाज़ी से नई मुलाकातों के समय और बार-बार लौटने वाले प्रेम संबंधों के ढर्रे की गहरी रीडिंग।",
+          "b": "बाज़ी · संबंधों का महाग्रंथ"
         },
         "reunionAgain": {
-          "t": "Could we get back together?",
-          "s": "No odds or percentages — it looks at whether to reach out, and how",
-          "b": "Reunion Tarot"
+          "t": "क्या हम फिर साथ आ सकते हैं?",
+          "s": "संभावना को प्रतिशत में बाँधे बिना समझें कि करीब जाना उचित होगा या नहीं और कैसे।",
+          "b": "दोबारा मिलने का टैरो"
         },
         "reunionContact": {
-          "t": "Should I reach out again, or wait?",
-          "s": "No contact dates — the cards help you set your own test for reaching out or waiting",
-          "b": "Yeongnyangi · Tarot"
+          "t": "क्या फिर संपर्क करूँ या इंतज़ार करूँ?",
+          "s": "संपर्क की तारीख तय किए बिना, कार्ड करीब जाने या प्रतीक्षा करने के लिए विचार करने योग्य बातें बताते हैं।",
+          "b": "Yeongnyangi · टैरो"
         },
         "reunionClosure": {
-          "t": "How do I sort out these feelings?",
-          "s": "Lay out cards and Saju with Yeoni to find the paths open to you now",
-          "b": "Tarot & Saju · The Destiny Tea House"
+          "t": "इन भावनाओं को कैसे सुलझाऊँ?",
+          "s": "Yeoni के साथ टैरो और बाज़ी के ज़रिए अभी उपलब्ध रास्तों को तलाशें।",
+          "b": "टैरो और बाज़ी · भाग्य का चायघर"
         },
         "marriagePartner": {
-          "t": "What kind of person will I marry?",
-          "s": "Without naming a spouse, Saju shows the kind of person you can comfortably share a long life with",
-          "b": "Yeongnyangi · Saju",
-          "alt": "The Master Book of Bonds"
+          "t": "मेरा विवाह किस तरह के व्यक्ति से होगा?",
+          "s": "किसी जीवनसाथी को निश्चित बताए बिना, बाज़ी से उन गुणों को समझें जिनके साथ लंबे समय तक रहना सहज हो सकता है।",
+          "b": "Yeongnyangi · बाज़ी",
+          "alt": "संबंधों का महाग्रंथ"
         },
         "marriageClash": {
-          "t": "Where do the two of us keep clashing?",
-          "s": "Compatibility shown as the scenes where you two collide, not as a score sheet",
-          "b": "Saju · LOVE CODE Romance Simulation",
-          "alt": "East–West Compatibility"
+          "t": "हम दोनों बार-बार कहाँ टकराते हैं?",
+          "s": "अनुकूलता को अंकों की तालिका के बजाय आपके बीच टकराव पैदा करने वाली स्थितियों से समझें।",
+          "b": "बाज़ी · LOVE CODE प्रेम सिमुलेशन",
+          "alt": "पूर्व और पश्चिम का संयुक्त अनुकूलता विश्लेषण"
         },
         "marriageDate": {
-          "t": "When is a good day for this?",
-          "s": "Picks good days for a wedding, an opening or a contract from the next 60 days",
-          "b": "Vedic astrology · Muhurta Date Picker"
+          "t": "इस काम के लिए अच्छा समय कब होगा?",
+          "s": "आने वाले 60 दिनों में विवाह, व्यवसाय शुरू करने या अनुबंध के लिए अनुकूल दिन चुनें।",
+          "b": "भारतीय ज्योतिष · मुहूर्त चयन"
         },
         "moneyWhen": {
-          "t": "When will money start flowing my way?",
-          "s": "The basic reading covers how money comes and goes; when it arrives is read through Saju in the deeper tiers",
-          "b": "Yeongnyangi · Saju"
+          "t": "मेरी आर्थिक स्थिति कब सुधरने लगेगी?",
+          "s": "मूल रीडिंग आय और खर्च के ढर्रे को देखती है; विस्तृत रीडिंग में बाज़ी से उनके समय को समझें।",
+          "b": "Yeongnyangi · बाज़ी"
         },
         "moneyWay": {
-          "t": "What way of earning money suits me?",
-          "s": "See your wealth and work tendencies for free through the twelve palaces of your chart",
-          "b": "Zi Wei Dou Shu Chart"
+          "t": "कमाई का कौन-सा तरीका मेरे लिए उपयुक्त है?",
+          "s": "बारह भावों में स्थित तारों से धन और काम के रुझान मुफ़्त में समझें।",
+          "b": "ज़ी वेई दोउ शू जन्म चार्ट"
         },
         "moneyMonth": {
-          "t": "Can I see ahead which months money will gather?",
-          "s": "One card for each of the twelve months traces your money flow and turning points month by month",
-          "b": "Tarot · Zodiac Year Tarot"
+          "t": "क्या बचत के अनुकूल महीने पहले पहचान सकता हूँ?",
+          "s": "बारह महीनों के लिए एक-एक कार्ड से हर महीने के धन प्रवाह और बदलाव के मोड़ समझें।",
+          "b": "टैरो · बारह पशु राशियों का भाग्य"
         },
         "careerMove": {
-          "t": "Is it okay to change jobs now?",
-          "s": "Stay or go: seven cards set out what to check before you decide",
-          "b": "Tarot · Career Move Cards"
+          "t": "क्या अभी नौकरी बदलना ठीक होगा?",
+          "s": "7 कार्ड निर्णय लेने से पहले रुकने या नौकरी बदलने के पहलुओं को परखने में मदद करते हैं।",
+          "b": "टैरो · नौकरी बदलने के कार्ड"
         },
         "careerFit": {
-          "t": "Is there work that truly fits me?",
-          "s": "Your birth chart shows the ways of working and the settings where your talents come alive",
-          "b": "Yeongnyangi · Astrology"
+          "t": "क्या कोई काम मेरे लिए अधिक उपयुक्त है?",
+          "s": "जन्म चार्ट से ऐसे काम करने के तरीके और वातावरण समझें जहाँ आपकी प्रतिभा निखर सके।",
+          "b": "Yeongnyangi · ज्योतिष"
         },
         "careerTurn": {
-          "t": "Is now the time to change direction?",
-          "s": "Gauges when a move would cost you least and what to sort out first",
-          "b": "4 systems · Destiny Compass",
-          "alt": "The Straight-Talk War Room"
+          "t": "क्या अभी दिशा बदल सकता हूँ?",
+          "s": "परखें कि कब कदम बढ़ाने से दबाव कम होगा और पहले किस बात को व्यवस्थित करना चाहिए।",
+          "b": "4 प्रणालियाँ · भाग्य का दिशासूचक",
+          "alt": "दो-टूक रणनीति कक्ष"
         },
         "futurePrime": {
-          "t": "When will my golden years come?",
-          "s": "Traces your ten-year cycles to show when momentum builds and what to prepare, bound into one book",
-          "b": "Saju decade cycles · Book of Life"
+          "t": "मेरे जीवन का सुनहरा दौर कब आएगा?",
+          "s": "बाज़ी के भाग्य चक्रों से सहायक दौर और उनकी तैयारी को एक पुस्तक में समझें।",
+          "b": "बाज़ी के भाग्य चक्र · जीवन की पुस्तक"
         },
         "futureYear": {
-          "t": "What matters most for me this year?",
-          "s": "Breaks the year you pick into its big currents and what to prepare each month",
-          "b": "Saju · New Year Fortune",
-          "alt": "Zodiac Year Tarot"
+          "t": "इस साल मेरे लिए सबसे महत्वपूर्ण क्या होगा?",
+          "s": "चुने हुए वर्ष के बड़े रुझान और हर महीने की तैयारी को अलग-अलग समझें।",
+          "b": "बाज़ी · नववर्ष फल",
+          "alt": "बारह पशु राशियों के भाग्य का टैरो"
         },
         "futureCross": {
-          "t": "When readings disagree, which should I follow?",
-          "s": "Points out where six systems agree and where they diverge",
-          "b": "Six systems · Deep Fusion Reading"
+          "t": "रीडिंग आपस में अलग हों तो किसे मानूँ?",
+          "s": "छह प्रणालियों के मेल खाते और अलग पड़ते संकेतों को साथ देखें।",
+          "b": "6 प्रणालियों का तुलनात्मक गहन विश्लेषण"
         },
         "selfRepeat": {
-          "t": "Why do I keep making the same choices?",
-          "s": "Saju walks through your innate temperament and the choices you keep repeating",
-          "b": "Yeongnyangi · Saju"
+          "t": "मैं बार-बार वही चुनाव क्यों करता हूँ?",
+          "s": "बाज़ी से अपने जन्मजात स्वभाव और दोहराए जाने वाले चुनावों के ढर्रे को धीरे-धीरे समझें।",
+          "b": "Yeongnyangi · बाज़ी"
         },
         "selfStrength": {
-          "t": "What strengths do I have that others don't see?",
-          "s": "Your day pillar's guardian animal shows who you are in love and at work",
-          "b": "Saju · Twelve-Stage Cycle Animal Reading",
-          "alt": "Human Design"
+          "t": "मेरी कौन-सी खूबियाँ दूसरों को नहीं दिखतीं?",
+          "s": "दिन के स्तंभ की बारह ऊर्जा अवस्थाओं के संरक्षक पशु से प्रेम और काम में अपने गुणों को समझें।",
+          "b": "बाज़ी · बारह ऊर्जा अवस्थाओं के पशु",
+          "alt": "ह्यूमन डिज़ाइन"
         },
         "selfGrain": {
-          "t": "What kind of person am I, at heart?",
-          "s": "See your innate tendencies and current phase through your Saju, for free",
-          "b": "Saju (Four Pillars)"
+          "t": "मैं भीतर से कैसा व्यक्ति हूँ?",
+          "s": "बाज़ी के आठ अक्षरों से अपने जन्मजात रुझान और वर्तमान दौर को मुफ़्त में समझें।",
+          "b": "फोर पिलर्स (बाज़ी)"
         },
         "peopleTired": {
-          "t": "Why does getting closer wear me out?",
-          "s": "The 27 lunar mansions show why closeness tires you and what distance feels right",
-          "b": "Yeongnyangi · Sukuyo",
-          "alt": "Sukuyo"
+          "t": "नज़दीकी बढ़ने पर थकान क्यों होती है?",
+          "s": "चंद्रमा के 27 नक्षत्र-स्थानों से समझें कि बढ़ती नज़दीकी क्यों थकाती है और कैसी दूरी सहज लगती है।",
+          "b": "Yeongnyangi · सुकुयो",
+          "alt": "सुकुयो"
         },
         "peopleMatch": {
-          "t": "How compatible are we?",
-          "s": "Overlays India's 36-point match with Eastern Sukuyo to show where you align and where you differ",
-          "b": "Vedic & Sukuyo · East–West Compatibility"
+          "t": "हम दोनों कितने अनुकूल हैं?",
+          "s": "भारतीय 36 गुणों के मिलान और पूर्वी एशिया की सुकुयो पद्धति की समानताएँ और अंतर साथ देखें।",
+          "b": "भारतीय ज्योतिष और सुकुयो · पूर्व-पश्चिम अनुकूलता"
         },
         "peopleDistance": {
-          "t": "Should I keep my distance in this relationship?",
-          "s": "Talk it through with Yeoni and Neo, weighing each option in turn",
-          "b": "Conversational Reading"
+          "t": "क्या इस रिश्ते में थोड़ी दूरी रखनी चाहिए?",
+          "s": "Yeoni और Neo से बातचीत करते हुए हर विकल्प पर विचार करें।",
+          "b": "बातचीत के ज़रिए जीवन-पथ परामर्श"
         }
       }
     },
@@ -1654,32 +1654,32 @@
       "daily": "योनी के साथ निःशुल्क दैनिक भाग्य"
     },
     "gardenCopy": {
-      "bubble1": "Hi! I'm Yeoni, the flower pig.",
-      "bubble2": "What color is your heart today?",
-      "bubble3": "Let's start light with three tarot cards!",
-      "bubble4": "Take your time. I'll listen to every worry.",
-      "bubbleAria": "Hear another line from Yeoni",
+      "bubble1": "नमस्ते! मैं फूलों वाली नन्ही सूअर Yeoni हूँ।",
+      "bubble2": "आज आपके मन का रंग कैसा है?",
+      "bubble3": "आइए, तीन टैरो कार्ड से सहज शुरुआत करें!",
+      "bubble4": "आराम से बताइए, मैं आपकी पूरी बात सुनूँगी।",
+      "bubbleAria": "Yeoni की एक और बात सुनें",
       "saysName": "Yeoni",
-      "saysLine": "Which reading shall we start with? Just one is plenty.",
-      "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
-      "passEyebrow": "बिना समय-सीमा और ऑटो-नवीनीकरण वाला पास",
-      "passTitle": "Yeoni बताती है पास के बारे में",
-      "passDesc": "कभी-कभार के लिए एकल भुगतान, और अक्सर देखते हैं तो पास का उपयोग करें। उपलब्ध परामर्श और अपनी उपयोग सीमा जाँच लें।",
-      "passPer": "· कोई समय-सीमा नहीं",
-      "passBadge": "Incl. Yeongnyangi",
-      "passNote": "छोटा, मध्यम और बड़ा शहद जार Flower Pig रीडिंग पर लागू होते हैं; फ़ैमिली शहद जार Flower Pig और Yeongnyangi दोनों की सशुल्क रीडिंग पर लागू होता है। पहले से खरीदे गए पास खरीद के समय की शर्तें बनाए रखते हैं।",
-      "passCta": "See all 4 passes",
-      "moreTitle": "Yeoni के अटेलियर में और देखें",
-      "moreItems": "Daily readings · consultations · records · stories",
-      "moreClose": "Show less",
-      "searchLead": "Find the reading you need by concern, method or price.",
-      "searchPlaceholder": "Love, money, a job move… search readings",
-      "filterToggle": "Filters",
-      "filterMorePurpose": "More concerns",
-      "shareReward": "100 Moonstones when a friend signs up",
-      "shareTerms": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days",
-      "todayGateCta": "Create a profile to see today's fortune",
-      "todayGateDesc": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart.",
+      "saysLine": "किस रीडिंग से शुरुआत करें? एक चुनना भी काफी है।",
+      "passMascotAlt": "उपयोग-पास पकड़े मुस्कुराती फूलों वाली नन्ही सूअर Yeoni",
+      "passEyebrow": "बिना समय-सीमा या अपने-आप नवीनीकरण वाला पास",
+      "passTitle": "Yeoni से जानिए उपयोग-पास के बारे में",
+      "passDesc": "कभी-कभार उपयोग के लिए एक बार का भुगतान करें, और नियमित उपयोग के लिए पास देखें। शामिल परामर्श और उपयोग की सीमा पहले जाँच लें।",
+      "passPer": "· समय की कोई सीमा नहीं",
+      "passBadge": "Yeongnyangi भी शामिल",
+      "passNote": "छोटे, मध्यम और बड़े हनी जार GGULGGUL Fortune पर लागू होते हैं। फैमिली हनी जार GGULGGUL Fortune और Yeongnyangi, दोनों की सशुल्क रीडिंग पर लागू होता है। पहले खरीदे गए पास पर खरीद के समय की शर्तें ही रहेंगी।",
+      "passCta": "अपने लिए सही पास देखें",
+      "moreTitle": "Yeoni की रचनात्मक दुनिया में और देखें",
+      "moreItems": "आज का भाग्य · परामर्श · रिकॉर्ड और कहानियाँ",
+      "moreClose": "समेटें",
+      "searchLead": "अपनी चिंता, पद्धति या कीमत के अनुसार ज़रूरी रीडिंग खोजें।",
+      "searchPlaceholder": "प्रेम, धन, नौकरी बदलना… अपनी रीडिंग खोजें",
+      "filterToggle": "फ़िल्टर",
+      "filterMorePurpose": "अन्य चिंताएँ",
+      "shareReward": "मित्र के साइन अप करने पर 100 मूनलाइट स्टोन",
+      "shareTerms": "मित्र के इस बटन से साझा किए गए लिंक द्वारा पंजीकरण पूरा करने पर ही दिए जाएँगे · प्रतिदिन अधिकतम 500 · मिलने की तारीख से 30 दिन तक उपयोग योग्य",
+      "todayGateCta": "प्रोफ़ाइल बनाकर आज का भाग्य देखें",
+      "todayGateDesc": "आपकी जन्मतिथि के आधार पर आज का साजू दिन-स्तंभ, सुकुयो के 27 नक्षत्र और वैदिक चंद्र राशि आपकी जन्म-कुंडली के अनुसार निकाली जाती है।",
       "sheetClose": "Close",
       "sheetPass": "Check my pass",
       "sheetProfile": "My profile cards",
@@ -1737,9 +1737,9 @@
       "publicRecordsLink": "तारीखें, मूल लेख और परिणाम की तुलना करें"
     },
     "chatEntry": {
-      "title": "Ask Yeoni and Neo the one thing on your mind right now",
-      "cta": "Talk through my concern",
-      "price": "₩3,000 प्रति बार"
+      "title": "अभी मन में जो सबसे बड़ा सवाल है, Yeoni और Neo से पूछें",
+      "cta": "अपनी चिंता पर बात करें",
+      "price": "प्रति सत्र ₩3,000"
     },
     "svcQuestion": {
       "master-love-codex": "When will my next relationship begin?",

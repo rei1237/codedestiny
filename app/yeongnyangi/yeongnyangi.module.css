@@ -4,7 +4,7 @@
   min-height: 100dvh;
   font-family: "Yeongnyangi Noto", var(--font-noto-sans-kr), sans-serif;
   line-height: 1.75;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--toss-service-bottom, env(safe-area-inset-bottom));
   color-scheme: dark;
 }
 .page * {
