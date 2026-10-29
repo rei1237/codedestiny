@@ -18,8 +18,9 @@ next: "운영 배포 승인 여부를 사용자에게 받은 뒤, 승인되면 �
 
 ## 지금 상태
 
-- 이번 세션 구현(main·스테이징까지, 운영 미배포): 2027 띠별 운세 허브 + 12띠 상세, llms-full.txt 신설·llms.txt 정비(G-L1~L3), 스키마 S1·S2·S3·S12, 신년운세 상담 → 무료 2027 허브 링크(C6 일부).
+- 이번 세션 구현(main push `61ec2b936`, 스테이징 미반영, 운영 미배포): 2027 띠별 운세 허브 + 12띠 상세, llms-full.txt 신설·llms.txt 정비(G-L1~L3), 스키마 S1·S2·S3·S12, 신년운세 상담 → 무료 2027 허브 링크(C6 일부).
 - T5(내일 상세 미래 datePublished)는 고쳤다가 되돌렸다. 아래 D 절을 본다.
+- 🔴 스테이징 배포는 실패했다([런 40907636662](https://github.com/rei1237/codedestiny/actions/runs/40907636662)). 원인은 이번 변경이 아니라 앞서 main에 들어온 `5f2b10b55`(FAQ 검색)다. `js/faq-search.js`가 `export`를 쓰는데 package.json이 `"type": "commonjs"`라 webpack이 비모듈로 읽어 Next 빌드가 멈추고, 문의 페이지에서 `Contact Us` 마커가 빠져 `verify-adsense-readiness`도 멈춘다. `12f0b1831`부터 main PR CI의 Build·Static guards가 같은 이유로 실패한다. 그 커밋이 고쳐진 뒤 `npm run verify:staging -- --sha=<그때 main SHA>`로 스테이징을 확인한다.
 - 운영 배포, 서치어드바이저·GSC 제출, 수집 요청은 **하지 않았다**. 사용자 승인 대기.
 - 네이버 서치어드바이저·검색광고 키워드도구는 이번 세션에 조회하지 못했다(Chrome 확장 미연결). 키워드 경쟁도는 실측값이 없다.
 
