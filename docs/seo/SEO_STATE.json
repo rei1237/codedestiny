@@ -4767,7 +4767,7 @@
       "운세 허브·/fortune/date/ 중복 WebPage 제거, #webpage CollectionPage 하나와 dateModified(S1·S12)",
       "편집팀 author를 #organization CODE DESTINY 하나로(S2), 빈 FAQPage 제거(S3)",
       "/new-year-ai-consultation/ → /fortune/2027/ 내부 링크(C6 일부)",
-      "sitemap lastmod는 기존 생성기로 갱신(entity-registry·structured-data import 폐쇄 변화로 818개 경로)"
+      "sitemap lastmod는 기존 생성기로 갱신(entity-registry·structured-data import 폐쇄 변화로 최신 main 대비 기존 176개 날짜 변경·629개 서명만 변경, 신규 13개)"
     ],
     "reverted": [
       "T5 내일 상세 datePublished를 발행일로: scripts/lib/fortune-date-contract.mjs:64 게이트(대상일 요구)와 충돌해 되돌림"
