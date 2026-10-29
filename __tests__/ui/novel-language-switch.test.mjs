@@ -11,6 +11,7 @@ function setup({ search = '', cookie = '', saved = '', language = 'ko-KR' } = {}
   const select = { options: ['ko','en','ja','zh-CN','zh-TW'].map(value => ({value})) };
   const status = {};
   const root = {
+    applyNovelUiCopy: () => {},
     URL, URLSearchParams, window: {}, navigator: { language },
     document: {cookie, documentElement: {}, getElementById: id => id === 'novelLanguage' ? select : status},
     location: {search, href: 'https://local.test/codedestiny-novel.html'+search, assign: url => writes.push(['url',url])},

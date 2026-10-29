@@ -279,6 +279,12 @@ function writeJson(path, value, pretty = false) {
 }
 
 export function writeNovelRuntime(runtime = buildNovelPayload()) {
+  const uiCopy = JSON.parse(readFileSync(resolve(ROOT, 'content/novel/ui-copy.json'), 'utf8'));
+  for (const [key, values] of Object.entries(uiCopy.copy)) {
+    if (values.length !== 4 || values.some(value => typeof value !== 'string' || !value.trim())) throw new Error(`Incomplete novel UI copy: ${key}`);
+  }
+  mkdirSync(OUTPUT_DIR, { recursive: true });
+  writeFileSync(resolve(OUTPUT_DIR, 'ui-copy.js'), `/* Generated from content/novel/ui-copy.json. */\nwindow.NOVEL_UI_COPY=${JSON.stringify(uiCopy)};\n`, 'utf8');
   mkdirSync(CHUNK_DIR, { recursive: true });
   const wantedChunks = new Set(runtime.episodes.map((episode) => `${episode.id}.json`));
   for (const file of readdirSync(CHUNK_DIR)) {

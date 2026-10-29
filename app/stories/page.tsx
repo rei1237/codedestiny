@@ -1,4 +1,5 @@
 import Link from "next/link";
+import StoryEdition from "./StoryEdition";
 import StoryIntegrityNote from "../components/StoryIntegrityNote";
 import YehwaCard from "../components/service-intro/YehwaCard";
 import { buildSeoMetadata } from "../../lib/seo";
@@ -48,6 +49,7 @@ const storiesBreadcrumbJsonLd = buildBreadcrumbJsonLd([
 
 export default function StoriesHubPage() {
   return (
+    <StoryEdition>
     <main className="mx-auto w-full max-w-4xl px-4 py-10 text-slate-100 md:px-6 md:py-14">
       <script
         type="application/ld+json"
@@ -172,5 +174,6 @@ export default function StoriesHubPage() {
 
       <StoryIntegrityNote />
     </main>
+    </StoryEdition>
   );
 }

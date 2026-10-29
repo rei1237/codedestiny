@@ -1,4 +1,5 @@
 import Link from "next/link";
+import StoryEdition from "../StoryEdition";
 import { notFound } from "next/navigation";
 import StoryIntegrityNote from "../../components/StoryIntegrityNote";
 import { buildSeoMetadata } from "../../../lib/seo";
@@ -61,6 +62,7 @@ export default function StoryEpisodePage({ params }: { params: { episode: string
   ]);
 
   return (
+    <StoryEdition episodeId={episode.slug}>
     <main className="mx-auto w-full max-w-3xl px-4 py-10 text-slate-100 md:px-6 md:py-14">
       <script
         type="application/ld+json"
@@ -170,5 +172,6 @@ export default function StoryEpisodePage({ params }: { params: { episode: string
 
       <StoryIntegrityNote />
     </main>
+    </StoryEdition>
   );
 }
