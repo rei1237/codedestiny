@@ -9645,7 +9645,7 @@
       "feats": {
         "0": "Builds your twelve-palace chart from your name, birth date, and time",
         "1": "You pick one of sixteen consultation topics and write your own concern",
-        "2": "The main text runs to at least 20,700 characters",
+        "2": "Main text targeting 20,700 characters",
         "3": "Sums up the Life and Body palaces, the key stars, and the consultation keywords up front",
         "4": "You can download the finished consultation as a PDF"
       },
@@ -9658,30 +9658,30 @@
       "premiumChapters": {
         "0": "The twelve-palace chart and the decade timeline",
         "1": "A summary of the Life and Body palaces and the key stars",
-        "2": "Main text of at least 20,700 characters",
+        "2": "Main text targeting 20,700 characters",
         "3": "An answer to your question, and what to do about it",
         "4": "PDF saving and reopening past records"
       },
       "premiumOutcomes": {
-        "0": "You can check what the feature does before paying.",
-        "1": "Pass, moonstone, and single-payment decisions follow the existing payment policy as-is.",
-        "2": "Fortune results are for reference; please confirm important choices alongside real-world judgment."
+        "0": "You can review the structure and length before paying.",
+        "1": "Pass, Moonstone and one-time payment eligibility follows the existing payment policy.",
+        "2": "Fortune readings are for reference. Weigh important choices alongside practical judgment."
       },
       "answersQuestions": {
-        "0": "Is it all right to change jobs now?",
-        "1": "Where should I put my weight, money or work?",
-        "2": "Can I make a big decision this year?"
+        "0": "Is now a good time to change jobs?",
+        "1": "Should I place more emphasis on money or work?",
+        "2": "Is this a suitable year to make a major decision?"
       },
-      "fallbackCta": "Open the Ziwei Doushu consultation",
+      "fallbackCta": "Open Zi Wei Dou Shu consultation",
       "ctaNote": "After payment, the twelve-palace chart and a consultation of at least 20,700 characters open.",
       "analysisSteps": {
         "0": {
           "label": "Chart construction",
-          "detail": "Places the major stars and the Four Transformations across the twelve palaces from your birth date and time."
+          "detail": "Places the main stars and Four Transformations in the twelve palaces using your birth date and time."
         },
         "1": {
           "label": "Palace strength",
-          "detail": "Sorts out which palaces carry weight and which are empty."
+          "detail": "Identifies which palaces carry more strength and which are empty."
         },
         "2": {
           "label": "Topic-by-topic writing",
@@ -9695,7 +9695,7 @@
       "valueCompare": {
         "0": {
           "axis": "Length",
-          "premium": "Main text of at least 20,700 characters"
+          "premium": "Main text targeting 20,700 characters"
         },
         "1": {
           "axis": "Structure",
@@ -9717,12 +9717,12 @@
         },
         "2": {
           "q": "How long is it?",
-          "a": "It comes out at at least 20,700 characters of main text."
+          "a": "The main text targets 20,700 characters. Its length may vary with your input and the consultation."
         }
       },
       "receives": {
         "0": {
-          "title": "A consultation of 20,700+ characters",
+          "title": "Main text targeting 20,700 characters",
           "detail": "From the order in which your chart is read through to the answer to your question and what to do about it, written out at length across separate pages."
         },
         "1": {

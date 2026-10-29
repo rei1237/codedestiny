@@ -9645,7 +9645,7 @@
       "feats": {
         "0": "お名前と生年月日時から十二宮の命盤を立てます",
         "1": "十六の相談テーマから一つを選び、悩みをご自身で書きます",
-        "2": "本文は20,700字以上です",
+        "2": "本文は20,700文字を目安に作成",
         "3": "命宮・身宮と主要な星、相談キーワードを先にまとめて示します",
         "4": "完成した相談文はPDFで保存できます"
       },
@@ -9658,30 +9658,30 @@
       "premiumChapters": {
         "0": "十二宮の命盤と大限のタイムライン",
         "1": "命宮・身宮と主要な星のまとめ",
-        "2": "20,700字以上の相談本文",
+        "2": "本文は20,700文字を目安に作成",
         "3": "質問への答えと処方",
         "4": "PDF保存と過去の記録の閲覧"
       },
       "premiumOutcomes": {
-        "0": "支払い前に機能の内容を確認できます。",
-        "1": "Pass, moonstone, and single-payment decisions follow the existing payment policy as-is.",
-        "2": "Fortune results are for reference; please confirm important choices alongside real-world judgment."
+        "0": "支払い前に構成と分量を確認できます。",
+        "1": "利用券・月精石・単品決済の適用判断は、既存の決済ポリシーに従います。",
+        "2": "占いの結果は参考情報です。大切な選択は、現実的な判断と合わせてご検討ください。"
       },
       "answersQuestions": {
-        "0": "Is it all right to change jobs now?",
-        "1": "Where should I put my weight, money or work?",
-        "2": "Can I make a big decision this year?"
+        "0": "今、転職しても大丈夫？",
+        "1": "お金と仕事、どちらに重きを置くべきでしょうか？",
+        "2": "今年、大きな決断をしてもよいでしょうか？"
       },
-      "fallbackCta": "Open the Ziwei Doushu consultation",
+      "fallbackCta": "紫微斗数の相談を開く",
       "ctaNote": "決済後に十二宮の命盤と20,700字以上の相談文が開きます。",
       "analysisSteps": {
         "0": {
           "label": "Chart construction",
-          "detail": "Places the major stars and the Four Transformations across the twelve palaces from your birth date and time."
+          "detail": "生年月日と出生時刻から、十二宮に主星と四化を配置します。"
         },
         "1": {
           "label": "Palace strength",
-          "detail": "Sorts out which palaces carry weight and which are empty."
+          "detail": "どの宮に力が集まり、どこが空いているかを見分けます。"
         },
         "2": {
           "label": "テーマ別の執筆",
@@ -9695,7 +9695,7 @@
       "valueCompare": {
         "0": {
           "axis": "Length",
-          "premium": "Main text of at least 20,700 characters"
+          "premium": "本文は20,700文字を目安に作成"
         },
         "1": {
           "axis": "構成",
@@ -9717,12 +9717,12 @@
         },
         "2": {
           "q": "How long is it?",
-          "a": "It comes out at at least 20,700 characters of main text."
+          "a": "本文は20,700文字を目安に作成し、入力内容や相談内容によって分量が変わる場合があります。"
         }
       },
       "receives": {
         "0": {
-          "title": "20,700字以上の相談文",
+          "title": "本文は20,700文字を目安に作成",
           "detail": "命盤を読む順序から、今の質問への答えと処方まで、章を分けて長く書きます。"
         },
         "1": {

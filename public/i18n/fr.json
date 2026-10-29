@@ -9645,7 +9645,7 @@
       "feats": {
         "0": "Builds your twelve-palace chart from your name, birth date, and time",
         "1": "You pick one of sixteen consultation topics and write your own concern",
-        "2": "The main text runs to at least 20,700 characters",
+        "2": "Texte principal visant 20 700 caractères",
         "3": "Sums up the Life and Body palaces, the key stars, and the consultation keywords up front",
         "4": "You can download the finished consultation as a PDF"
       },
@@ -9658,30 +9658,30 @@
       "premiumChapters": {
         "0": "The twelve-palace chart and the decade timeline",
         "1": "A summary of the Life and Body palaces and the key stars",
-        "2": "Main text of at least 20,700 characters",
+        "2": "Texte principal visant 20 700 caractères",
         "3": "An answer to your question, and what to do about it",
         "4": "PDF saving and reopening past records"
       },
       "premiumOutcomes": {
-        "0": "Vous pouvez découvrir la fonction avant de payer.",
-        "1": "Pass, moonstone, and single-payment decisions follow the existing payment policy as-is.",
-        "2": "Fortune results are for reference; please confirm important choices alongside real-world judgment."
+        "0": "Vous pouvez consulter la structure et la longueur avant de payer.",
+        "1": "L’utilisation des pass, des pierres de lune et du paiement à l’unité suit la politique de paiement en vigueur.",
+        "2": "Les lectures sont indicatives. Pour les choix importants, tenez aussi compte de votre jugement pratique."
       },
       "answersQuestions": {
-        "0": "Is it all right to change jobs now?",
-        "1": "Where should I put my weight, money or work?",
-        "2": "Can I make a big decision this year?"
+        "0": "Est-ce le bon moment pour changer d’emploi ?",
+        "1": "Dois-je accorder plus d’importance à l’argent ou au travail ?",
+        "2": "Cette année convient-elle pour prendre une décision importante ?"
       },
-      "fallbackCta": "Open the Ziwei Doushu consultation",
+      "fallbackCta": "Ouvrir la consultation de Zi Wei Dou Shu",
       "ctaNote": "After payment, the twelve-palace chart and a consultation of at least 20,700 characters open.",
       "analysisSteps": {
         "0": {
           "label": "Chart construction",
-          "detail": "Places the major stars and the Four Transformations across the twelve palaces from your birth date and time."
+          "detail": "Place les étoiles principales et les Quatre Transformations dans les douze palais à partir de votre date et heure de naissance."
         },
         "1": {
           "label": "Palace strength",
-          "detail": "Sorts out which palaces carry weight and which are empty."
+          "detail": "Distingue les palais qui concentrent de la force de ceux qui sont vides."
         },
         "2": {
           "label": "Topic-by-topic writing",
@@ -9695,7 +9695,7 @@
       "valueCompare": {
         "0": {
           "axis": "Length",
-          "premium": "Main text of at least 20,700 characters"
+          "premium": "Texte principal visant 20 700 caractères"
         },
         "1": {
           "axis": "Structure",
@@ -9717,12 +9717,12 @@
         },
         "2": {
           "q": "How long is it?",
-          "a": "It comes out at at least 20,700 characters of main text."
+          "a": "Le texte principal vise 20 700 caractères. Sa longueur peut varier selon vos informations et la consultation."
         }
       },
       "receives": {
         "0": {
-          "title": "A consultation of 20,700+ characters",
+          "title": "Texte principal visant 20 700 caractères",
           "detail": "From the order in which your chart is read through to the answer to your question and what to do about it, written out at length across separate pages."
         },
         "1": {

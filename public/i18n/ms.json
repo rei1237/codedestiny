@@ -9645,7 +9645,7 @@
       "feats": {
         "0": "Builds your twelve-palace chart from your name, birth date, and time",
         "1": "You pick one of sixteen consultation topics and write your own concern",
-        "2": "The main text runs to at least 20,700 characters",
+        "2": "Teks utama menyasarkan 20,700 aksara",
         "3": "Sums up the Life and Body palaces, the key stars, and the consultation keywords up front",
         "4": "You can download the finished consultation as a PDF"
       },
@@ -9658,30 +9658,30 @@
       "premiumChapters": {
         "0": "The twelve-palace chart and the decade timeline",
         "1": "A summary of the Life and Body palaces and the key stars",
-        "2": "Main text of at least 20,700 characters",
+        "2": "Teks utama menyasarkan 20,700 aksara",
         "3": "An answer to your question, and what to do about it",
         "4": "PDF saving and reopening past records"
       },
       "premiumOutcomes": {
-        "0": "Anda boleh menyemak fungsi yang disediakan sebelum membayar.",
-        "1": "Pass, moonstone, and single-payment decisions follow the existing payment policy as-is.",
-        "2": "Fortune results are for reference; please confirm important choices alongside real-world judgment."
+        "0": "Anda boleh menyemak struktur dan panjang kandungan sebelum membayar.",
+        "1": "Kelayakan pas, batu bulan dan bayaran sekali tertakluk pada dasar pembayaran sedia ada.",
+        "2": "Bacaan ramalan adalah untuk rujukan. Pertimbangkan pilihan penting bersama penilaian praktikal."
       },
       "answersQuestions": {
-        "0": "Is it all right to change jobs now?",
-        "1": "Where should I put my weight, money or work?",
-        "2": "Can I make a big decision this year?"
+        "0": "Adakah sesuai untuk saya bertukar kerja sekarang?",
+        "1": "Patutkah saya lebih mengutamakan wang atau pekerjaan?",
+        "2": "Adakah tahun ini sesuai untuk membuat keputusan besar?"
       },
-      "fallbackCta": "Open the Ziwei Doushu consultation",
+      "fallbackCta": "Buka konsultasi Zi Wei Dou Shu",
       "ctaNote": "After payment, the twelve-palace chart and a consultation of at least 20,700 characters open.",
       "analysisSteps": {
         "0": {
           "label": "Chart construction",
-          "detail": "Places the major stars and the Four Transformations across the twelve palaces from your birth date and time."
+          "detail": "Menempatkan bintang utama dan Empat Transformasi dalam dua belas istana berdasarkan tarikh dan waktu lahir."
         },
         "1": {
           "label": "Palace strength",
-          "detail": "Sorts out which palaces carry weight and which are empty."
+          "detail": "Mengenal pasti istana yang lebih kuat dan istana yang kosong."
         },
         "2": {
           "label": "Topic-by-topic writing",
@@ -9695,7 +9695,7 @@
       "valueCompare": {
         "0": {
           "axis": "Length",
-          "premium": "Main text of at least 20,700 characters"
+          "premium": "Teks utama menyasarkan 20,700 aksara"
         },
         "1": {
           "axis": "Structure",
@@ -9717,12 +9717,12 @@
         },
         "2": {
           "q": "How long is it?",
-          "a": "It comes out at at least 20,700 characters of main text."
+          "a": "Teks utama menyasarkan 20,700 aksara. Panjangnya mungkin berbeza mengikut maklumat yang dimasukkan dan kandungan konsultasi."
         }
       },
       "receives": {
         "0": {
-          "title": "A consultation of 20,700+ characters",
+          "title": "Teks utama menyasarkan 20,700 aksara",
           "detail": "From the order in which your chart is read through to the answer to your question and what to do about it, written out at length across separate pages."
         },
         "1": {

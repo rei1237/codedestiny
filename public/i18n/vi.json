@@ -9645,7 +9645,7 @@
       "feats": {
         "0": "Builds your twelve-palace chart from your name, birth date, and time",
         "1": "You pick one of sixteen consultation topics and write your own concern",
-        "2": "The main text runs to at least 20,700 characters",
+        "2": "Nội dung chính hướng tới 20.700 ký tự",
         "3": "Sums up the Life and Body palaces, the key stars, and the consultation keywords up front",
         "4": "You can download the finished consultation as a PDF"
       },
@@ -9658,30 +9658,30 @@
       "premiumChapters": {
         "0": "The twelve-palace chart and the decade timeline",
         "1": "A summary of the Life and Body palaces and the key stars",
-        "2": "Main text of at least 20,700 characters",
+        "2": "Nội dung chính hướng tới 20.700 ký tự",
         "3": "An answer to your question, and what to do about it",
         "4": "PDF saving and reopening past records"
       },
       "premiumOutcomes": {
-        "0": "Bạn có thể xem chức năng cung cấp gì trước khi thanh toán.",
-        "1": "Pass, moonstone, and single-payment decisions follow the existing payment policy as-is.",
-        "2": "Fortune results are for reference; please confirm important choices alongside real-world judgment."
+        "0": "Bạn có thể xem cấu trúc và độ dài trước khi thanh toán.",
+        "1": "Việc áp dụng vé, Nguyệt tinh thạch và thanh toán lẻ tuân theo chính sách thanh toán hiện hành.",
+        "2": "Kết quả vận số chỉ để tham khảo. Hãy cân nhắc những lựa chọn quan trọng cùng đánh giá thực tế."
       },
       "answersQuestions": {
-        "0": "Is it all right to change jobs now?",
-        "1": "Where should I put my weight, money or work?",
-        "2": "Can I make a big decision this year?"
+        "0": "Bây giờ mình đổi việc có ổn không?",
+        "1": "Mình nên đặt trọng tâm vào tiền bạc hay công việc?",
+        "2": "Năm nay có phù hợp để mình đưa ra quyết định lớn không?"
       },
-      "fallbackCta": "Open the Ziwei Doushu consultation",
+      "fallbackCta": "Mở tư vấn Tử Vi Đẩu Số",
       "ctaNote": "After payment, the twelve-palace chart and a consultation of at least 20,700 characters open.",
       "analysisSteps": {
         "0": {
           "label": "Chart construction",
-          "detail": "Places the major stars and the Four Transformations across the twelve palaces from your birth date and time."
+          "detail": "Dựa vào ngày giờ sinh để an chính tinh và Tứ Hóa vào mười hai cung."
         },
         "1": {
           "label": "Palace strength",
-          "detail": "Sorts out which palaces carry weight and which are empty."
+          "detail": "Xác định cung nào có sức mạnh nổi trội và cung nào trống."
         },
         "2": {
           "label": "Topic-by-topic writing",
@@ -9695,7 +9695,7 @@
       "valueCompare": {
         "0": {
           "axis": "Length",
-          "premium": "Main text of at least 20,700 characters"
+          "premium": "Nội dung chính hướng tới 20.700 ký tự"
         },
         "1": {
           "axis": "Structure",
@@ -9717,12 +9717,12 @@
         },
         "2": {
           "q": "How long is it?",
-          "a": "It comes out at at least 20,700 characters of main text."
+          "a": "Nội dung chính hướng tới 20.700 ký tự; độ dài có thể thay đổi theo thông tin nhập và nội dung tư vấn."
         }
       },
       "receives": {
         "0": {
-          "title": "A consultation of 20,700+ characters",
+          "title": "Nội dung chính hướng tới 20.700 ký tự",
           "detail": "From the order in which your chart is read through to the answer to your question and what to do about it, written out at length across separate pages."
         },
         "1": {

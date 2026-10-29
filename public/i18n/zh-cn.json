@@ -9645,7 +9645,7 @@
       "feats": {
         "0": "以姓名与出生年月日时排出十二宫命盘",
         "1": "从十六个咨询主题中选一个，并亲自写下烦恼",
-        "2": "正文在20,700字以上",
+        "2": "正文目标20,700字",
         "3": "先整理命宫、身宫与核心星曜、咨询关键词",
         "4": "完成的咨询可下载为PDF"
       },
@@ -9658,30 +9658,30 @@
       "premiumChapters": {
         "0": "十二宫命盘与大限时间轴",
         "1": "命宫、身宫与核心星曜摘要",
-        "2": "20,700字以上的咨询正文",
+        "2": "正文目标20,700字",
         "3": "对问题的回答与建议",
         "4": "PDF保存与回看过往记录"
       },
       "premiumOutcomes": {
-        "0": "付款前可以了解功能内容。",
-        "1": "Pass, moonstone, and single-payment decisions follow the existing payment policy as-is.",
-        "2": "Fortune results are for reference; please confirm important choices alongside real-world judgment."
+        "0": "付款前可先了解内容结构与篇幅。",
+        "1": "使用券、月精石及单次支付的适用规则遵循现行支付政策。",
+        "2": "运势结果仅供参考，重要选择请结合现实情况判断。"
       },
       "answersQuestions": {
-        "0": "Is it all right to change jobs now?",
-        "1": "Where should I put my weight, money or work?",
-        "2": "Can I make a big decision this year?"
+        "0": "现在跳槽可以吗？",
+        "1": "金钱和工作，我该更重视哪一方面？",
+        "2": "今年适合做重大决定吗？"
       },
-      "fallbackCta": "Open the Ziwei Doushu consultation",
+      "fallbackCta": "打开紫微斗数咨询",
       "ctaNote": "付款后开启十二宫命盘与20,700字以上的咨询文。",
       "analysisSteps": {
         "0": {
           "label": "Chart construction",
-          "detail": "Places the major stars and the Four Transformations across the twelve palaces from your birth date and time."
+          "detail": "根据出生年月日时，在十二宫中安置主星与四化。"
         },
         "1": {
           "label": "Palace strength",
-          "detail": "Sorts out which palaces carry weight and which are empty."
+          "detail": "判断哪些宫位力量较强，哪些宫位为空。"
         },
         "2": {
           "label": "分主题撰写",
@@ -9695,7 +9695,7 @@
       "valueCompare": {
         "0": {
           "axis": "Length",
-          "premium": "Main text of at least 20,700 characters"
+          "premium": "正文目标20,700字"
         },
         "1": {
           "axis": "结构",
@@ -9717,12 +9717,12 @@
         },
         "2": {
           "q": "How long is it?",
-          "a": "It comes out at at least 20,700 characters of main text."
+          "a": "正文以20,700字为目标，具体篇幅可能因输入信息和咨询内容而有所不同。"
         }
       },
       "receives": {
         "0": {
-          "title": "20,700字以上的咨询文",
+          "title": "正文目标20,700字",
           "detail": "从阅读命盘的顺序，到对当下问题的回答与建议，分章长篇写就。"
         },
         "1": {

@@ -9645,7 +9645,7 @@
       "feats": {
         "0": "Builds your twelve-palace chart from your name, birth date, and time",
         "1": "You pick one of sixteen consultation topics and write your own concern",
-        "2": "The main text runs to at least 20,700 characters",
+        "2": "मुख्य पाठ का लक्ष्य 20,700 अक्षर",
         "3": "Sums up the Life and Body palaces, the key stars, and the consultation keywords up front",
         "4": "You can download the finished consultation as a PDF"
       },
@@ -9658,30 +9658,30 @@
       "premiumChapters": {
         "0": "The twelve-palace chart and the decade timeline",
         "1": "A summary of the Life and Body palaces and the key stars",
-        "2": "Main text of at least 20,700 characters",
+        "2": "मुख्य पाठ का लक्ष्य 20,700 अक्षर",
         "3": "An answer to your question, and what to do about it",
         "4": "PDF saving and reopening past records"
       },
       "premiumOutcomes": {
-        "0": "भुगतान से पहले आप जान सकते हैं कि यह सुविधा क्या करती है।",
-        "1": "Pass, moonstone, and single-payment decisions follow the existing payment policy as-is.",
-        "2": "Fortune results are for reference; please confirm important choices alongside real-world judgment."
+        "0": "भुगतान से पहले आप सामग्री की संरचना और लंबाई देख सकते हैं।",
+        "1": "पास, मूनस्टोन और एकल भुगतान की पात्रता मौजूदा भुगतान नीति के अनुसार तय होती है।",
+        "2": "ज्योतिषीय परिणाम संदर्भ के लिए हैं। महत्वपूर्ण फैसलों में व्यावहारिक समझ भी शामिल करें।"
       },
       "answersQuestions": {
-        "0": "Is it all right to change jobs now?",
-        "1": "Where should I put my weight, money or work?",
-        "2": "Can I make a big decision this year?"
+        "0": "क्या अभी नौकरी बदलना ठीक होगा?",
+        "1": "पैसे और काम में किसे अधिक महत्व दूँ?",
+        "2": "क्या यह वर्ष कोई बड़ा फैसला लेने के लिए उपयुक्त है?"
       },
-      "fallbackCta": "Open the Ziwei Doushu consultation",
+      "fallbackCta": "ज़िवेई दोउशू परामर्श खोलें",
       "ctaNote": "After payment, the twelve-palace chart and a consultation of at least 20,700 characters open.",
       "analysisSteps": {
         "0": {
           "label": "Chart construction",
-          "detail": "Places the major stars and the Four Transformations across the twelve palaces from your birth date and time."
+          "detail": "जन्म तिथि और समय के आधार पर बारह महलों में मुख्य तारों और चार रूपांतरणों को रखा जाता है।"
         },
         "1": {
           "label": "Palace strength",
-          "detail": "Sorts out which palaces carry weight and which are empty."
+          "detail": "यह पहचानता है कि किन महलों में अधिक बल है और कौन-से खाली हैं।"
         },
         "2": {
           "label": "Topic-by-topic writing",
@@ -9695,7 +9695,7 @@
       "valueCompare": {
         "0": {
           "axis": "Length",
-          "premium": "Main text of at least 20,700 characters"
+          "premium": "मुख्य पाठ का लक्ष्य 20,700 अक्षर"
         },
         "1": {
           "axis": "Structure",
@@ -9717,12 +9717,12 @@
         },
         "2": {
           "q": "How long is it?",
-          "a": "It comes out at at least 20,700 characters of main text."
+          "a": "मुख्य पाठ का लक्ष्य 20,700 अक्षर है। आपकी दी हुई जानकारी और परामर्श के अनुसार लंबाई बदल सकती है।"
         }
       },
       "receives": {
         "0": {
-          "title": "A consultation of 20,700+ characters",
+          "title": "मुख्य पाठ का लक्ष्य 20,700 अक्षर",
           "detail": "From the order in which your chart is read through to the answer to your question and what to do about it, written out at length across separate pages."
         },
         "1": {

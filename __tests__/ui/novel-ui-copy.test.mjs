@@ -26,3 +26,17 @@ for(const locale of copy.locales){
     }finally{dom.window.close();}
   });
 }
+
+test('dynamic menu, playback controls and chapter buttons use the edition language',()=>{
+  const dom=new JSDOM(html,{runScripts:'outside-only'});
+  try{
+    const w=dom.window;w.NOVEL_UI_COPY=copy;w.NOVEL_LOCALE='en';w.eval(helpers);
+    Object.assign(w,{S:{save:null,ep:0},EPISODES:[{no:'PROLOGUE',title:'Opening',beatCount:77}],NOVEL_MANIFEST:{},openOv:()=>{},startNovel:()=>{},escapeHtml:value=>value});
+    w.eval(html.slice(html.indexOf('function openScenePicker('),html.indexOf('/* --- background swap')));
+    w.eval(html.slice(html.indexOf('var MENU=['),html.indexOf('function buildEnterPig(')));
+    w.eval(html.slice(html.indexOf('function buildCtl('),html.indexOf('function chapSkip(')));
+    w.buildMenu();w.buildCtl();w.openScenePicker();
+    for(const selector of ['#menu','#serviceMenu','#ctl','#idxList'])assert.doesNotMatch(w.document.querySelector(selector).textContent,/[가-힣]/);
+    assert.equal(w.document.querySelector('.idxEpTog').getAttribute('aria-label'),'Show scenes');
+  }finally{dom.window.close();}
+});
