@@ -268,3 +268,15 @@ test('life book reserved length repair resumes without calling that section agai
   assert.equal(f.doc.status, 'completed'); assert.ok(!f.calls.includes('section0'));
   assert.equal(f.doc.llmMeta.sections.section0.attempts, 2);
 });
+test('life book section cut at the token cap retries with the doubled-budget flag and still delivers', async () => {
+  const f = fixture(); const flags = [];
+  const base = f.ctx.generateSectionOnce;
+  f.ctx.generateSectionOnce = async (...args) => {
+    if (args[1].id !== 'section0') return base(...args);
+    flags.push(args[3].truncatedRetry);
+    return flags.length === 1 ? { ok: false, body: null, chars: 0, error: 'SECTION_TRUNCATED' } : base(...args);
+  };
+  for (let i = 0; i < 8 && f.doc?.status !== 'completed'; i++) await f.post();
+  assert.deepEqual(flags, [false, true]);
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.refunds, 0);
+});

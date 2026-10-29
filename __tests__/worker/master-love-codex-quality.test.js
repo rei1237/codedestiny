@@ -193,13 +193,15 @@ test("provider outage preserves its cause instead of consuming manuscript repair
   expect(call).toHaveBeenCalledTimes(1);
 });
 
-test.each([["LLM_OUTPUT_TRUNCATED", 11000], ["LLM_EVIDENCE_INVALID", 8000], ["LLM_JSON_INVALID", 8000]])("persisted %s corrects the next wave using %i tokens", async (previousError, tokens) => {
+// A cut-off draft is never salvaged, so its retry gets twice the planned 8000 (and the cap must not undo that).
+test.each([["LLM_OUTPUT_TRUNCATED", 16000], ["LLM_EVIDENCE_INVALID", 8000], ["LLM_JSON_INVALID", 8000]])("persisted %s corrects the next wave using %i tokens", async (previousError, tokens) => {
   const chapter = utils.resolveMode("solo").chapters[0];
   const call = jest.fn().mockResolvedValue({ text: JSON.stringify(fixture(chapter)) });
   await generateCodexChapterResponse(call, "prompt", { chapter, previousError, maxAttempts: 1 });
   expect(call).toHaveBeenCalledTimes(1);
   expect(call.mock.calls[0][0]).toContain(previousError);
   expect(call.mock.calls[0][1]).toMatchObject({ attempts: 1, maxProviderAttempts: 1, baseTokens: tokens });
+  expect(call.mock.calls[0][1].capTokens).toBeGreaterThanOrEqual(tokens);
 });
 
 test("a length repair names the chapter's character target instead of a generic rewrite", async () => {

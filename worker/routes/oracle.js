@@ -101,6 +101,13 @@ function oracleInput(body) {
     flow: normalizeCard(body.flow || body.cards?.flow || judge, "흐름"), judge: normalizeCard(judge, "신탁") };
 }
 
+// 앞 시도의 원문이 닫히지 않은 JSON이면 토큰 상한에서 끊긴 것이다. 그 부분의 재시도만 예산 2배(최대 32768)로 산다.
+// 기본 예산(11000)은 비용 추정·검증 스크립트가 쓰므로 그대로 둔다.
+function clippedRetryOptions(raw, options) {
+  if (!raw) return options;
+  try { JSON.parse(raw); return options; } catch { return { ...options, maxOutputTokens: Math.max(options.maxOutputTokens, Math.min(32768, options.maxOutputTokens * 2)) }; }
+}
+
 // The route and the server resume task share produce and render.
 export function geomancyNarrativeAdapter(env) {
   return {
@@ -109,9 +116,9 @@ export function geomancyNarrativeAdapter(env) {
       const scope = task.id === "answer" ? "" : " 세 형상의 기본 상징 설명은 앞 부분에서 했으니 반복하지 말고 이번 범위로 바로 들어가세요.";
       const timingScope = task.id === "timing" ? "\n7일·21일·40일을 각각 하나의 점검 단계로 쓰세요. 각 단계에는 확인할 현실 자료, 실행할 작은 행동, 중단하거나 수정할 조건을 넣으세요. 형상의 뜻·불의 충동·질문 요약으로 시작하지 말고 '7일 동안'의 행동부터 시작하세요. 세 단계가 끝나면 마무리하며 종합 해석을 다시 쓰지 마세요." : "";
       const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}${narrativePriorDigest(state, task)}\n이번 부분만 JSON {"body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자입니다.${scope} 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.${timingScope}`;
-      const ai = await callGeminiText(env, prompt, { model: clean(env.GEOMANCY_GEMINI_MODEL), temperature: 0.65,
+      const ai = await callGeminiText(env, prompt, clippedRetryOptions(state.rawResponses?.[task.id], { model: clean(env.GEOMANCY_GEMINI_MODEL), temperature: 0.65,
         timeoutMs: Math.min(45000, Math.max(15000, Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS) || 45000)),
-        maxOutputTokens: 11000, thinkingBudget: 0, fallbackToWorkersAI: false, responseMimeType: "application/json", responseSchema: NARRATIVE_RESPONSE_SCHEMA });
+        maxOutputTokens: 11000, thinkingBudget: 0, fallbackToWorkersAI: false, responseMimeType: "application/json", responseSchema: NARRATIVE_RESPONSE_SCHEMA }));
       if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
       return parseNarrativeResponse(ai.text, state.evidenceHash);
     },

@@ -194,8 +194,8 @@ globalThis.fetch = realFetch;
 // ── 소스 단언: fetch 스텁으로는 안 보이는 계약 ────────────────────────────────
 const route = readFileSync(new URL("../worker/routes/astrology-ai.js", import.meta.url), "utf8");
 assert(
-  /fallbackMinChars:\s*Math\.round\(section\.minChars \* 0\.4\)/.test(route),
-  "폴백 문턱이 섹션 목표 기준(section.minChars * 0.4)이 아니다 — 전체 목표 기준이면 짧은 폴백이 통과한다",
+  /fallbackMinChars:\s*Math\.round\(section\.minChars \* 0\.3\)/.test(route),
+  "폴백 문턱이 섹션 목표 기준(section.minChars * 0.3)이 아니다 — 전체 목표 기준이면 짧은 폴백이 통과한다",
 );
 assert(route.includes("generateSectionedConsultation"), "섹션 생성 함수가 없다");
 

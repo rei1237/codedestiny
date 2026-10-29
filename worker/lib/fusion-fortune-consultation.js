@@ -32,6 +32,26 @@ function newConsultationId() {
     || `fusion-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+// Shortens the longest string field (keys, arrays and structure stay) until the document fits.
+// null only when no prose is left to clip, e.g. a runaway array of short strings.
+function clipFusionResultToCap(result, cap) {
+  const copy = JSON.parse(JSON.stringify(result));
+  for (let size = JSON.stringify(copy).length, pass = 0; size > cap && pass < 400; size = JSON.stringify(copy).length, pass += 1) {
+    let longest = null;
+    const visit = node => Object.keys(node).forEach(key => {
+      if (typeof node[key] === "string") { if (!longest || node[key].length > longest.node[longest.key].length) longest = { node, key }; }
+      else if (node[key] && typeof node[key] === "object") visit(node[key]);
+    });
+    visit(copy);
+    const value = longest ? longest.node[longest.key] : "";
+    if (value.length < 2) return null;
+    const keep = Math.max(Math.floor(value.length / 2), value.length - (size - cap));
+    const head = value.slice(0, keep), end = Math.max(...[".", "!", "?", "。", "\n"].map(mark => head.lastIndexOf(mark)));
+    longest.node[longest.key] = (end >= keep / 2 ? head.slice(0, end + 1) : head).trim();
+  }
+  return JSON.stringify(copy).length <= cap ? copy : null;
+}
+
 /**
  * 보관본 문서를 만든다. DB 를 건드리지 않는 순수 함수 — 프라이버시 경계와 상한을
  * 여기서 확인하므로 테스트가 DB 없이 계약 전체를 검증할 수 있다.
@@ -50,7 +70,9 @@ export function buildFusionConsultationDoc({ requestId, userId, input = {}, resu
     return { ok: false, reason: "unserializable_result" };
   }
   if (!serialized || serialized.length > FUSION_CONSULTATION_MAX_RESULT_CHARS) {
-    return { ok: false, reason: "result_too_large" };
+    // A paid result is never refused for its length: prose is clipped at a sentence end to fit the cap.
+    result = serialized ? clipFusionResultToCap(result, FUSION_CONSULTATION_MAX_RESULT_CHARS) : null;
+    if (!result) return { ok: false, reason: "result_too_large" };
   }
 
   return {

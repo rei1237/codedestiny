@@ -383,7 +383,9 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
       const systemPrompt = await resolveSystemPrompt(env), cacheStore = createLlmCacheStore(env);
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(wave.map(async spec => {
-        const result = await generateCompassSection(env, spec, context, { systemPrompt, cacheStore, timeoutMs: COMPASS_SECTION_TIMEOUT_MS, repairIssues: attempts[spec.key] > 1 ? ["분량과 계산 근거를 보완하세요."] : [] });
+        // 앞 시도가 토큰 상한에서 끊겼으면 이 섹션의 재시도만 예산 2배(최대 32768). 기본 예산은 비용 추정·검증이 쓴다.
+        const clippedTokens = attempts[`${spec.key}:truncated`] ? Math.max(COMPASS_SECTION_MAX_OUTPUT_TOKENS, Math.min(32768, COMPASS_SECTION_MAX_OUTPUT_TOKENS * 2)) : 0;
+        const result = await generateCompassSection(env, spec, context, { systemPrompt, cacheStore, timeoutMs: COMPASS_SECTION_TIMEOUT_MS, repairIssues: attempts[spec.key] > 1 ? ["분량과 계산 근거를 보완하세요."] : [], maxOutputTokens: clippedTokens });
         const write = queue.catch(() => {}).then(async () => {
           const otherBodies = [...saved].filter(([key]) => key !== spec.key).map(([, row]) => row.body);
           const body = trimPaidReportText(result.text, spec.maxChars);
@@ -396,6 +398,7 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
             }
             attempts[`${spec.key}:lengthDraft`] = 1;
           } else failures[spec.key] = Number(failures[spec.key] || 0) + 1;
+          if (result.truncated) attempts[`${spec.key}:truncated`] = 1;
           const sections = new Map((current.sections || []).map(row => [row.key, row]));
           if (result.ok && !sections.has(spec.key)) sections.set(spec.key, toPublicSection({ ...result, issues: ["quality_incomplete"] }, context));
           for (const [key, row] of saved) sections.set(key, { ...row, status: accepted(getCompassSection(key)) ? "ok" : "degraded" });
@@ -458,7 +461,7 @@ async function generateCompassSection(env, spec, context, options) {
       systemPrompt,
       taskType: "fortune",
       temperature: repairIssues?.length ? 0.58 : 0.68,
-      maxOutputTokens: COMPASS_SECTION_MAX_OUTPUT_TOKENS,
+      maxOutputTokens: options.maxOutputTokens || COMPASS_SECTION_MAX_OUTPUT_TOKENS,
       timeoutMs,
       fallbackToWorkersAI: false,
       // 🔴 폴백을 켠 유료 라우트는 문턱을 반드시 함께 준다. 없으면 8% 분량이 정상 결제로 나간다.

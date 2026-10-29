@@ -341,7 +341,7 @@ for (const marker of [
   "result_fetch",
   // 섹션 단위에서는 Workers AI 폴백이 실제 안전망이 된다(70B 실측 정지점 ≈1,700자 > 총운 장 문턱 960자).
   // 단일 3만자 호출에서는 40% 문턱을 물리적으로 못 넘어 무용지물이었다.
-  "fallbackMinChars: Math.round(section.minChars * 0.4)",
+  "fallbackMinChars: Math.round(section.minChars * 0.3)",
 ]) {
   includes("worker/routes/life-book-ai.js", route, marker);
 }

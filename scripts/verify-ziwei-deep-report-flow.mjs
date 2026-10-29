@@ -211,7 +211,7 @@ const { __ziweiDeepReportTestUtils: utils } = await import("../worker/routes/ziw
   assert(utils.publicStoredReport({ ...doc, locale: "ja" }).locale === "ja", "저장된 locale은 재열람 응답에 그대로 나가야 한다");
   assert(utils.publicStoredReport(doc).locale === "ko", "locale 없는 과거 저장본은 기존 한국어 결과로 명시해야 한다");
   assert(route.includes("normalized.locale = stored?.locale || normalized.locale"), "배치 재개 토큰은 최초 생성 locale을 이어가야 한다");
-  assert(route.includes("generateChapter(env, chart, normalized.birthInfo, definition, normalized.consultation, normalized.locale, attempt)"), "후속 배치는 현재 탭이 아닌 고정 locale로 생성해야 한다");
+  assert(route.includes("generateChapter(env, chart, normalized.birthInfo, definition, normalized.consultation, normalized.locale, attempt, "), "후속 배치는 현재 탭이 아닌 고정 locale로 생성해야 한다");
   assert(/index\(\{ userId: 1, idempotencyKey: 1 \}, \{ unique: true \}\)/.test(models), "locale을 결제 멱등 키에 넣어서는 안 된다");
   pass("멱등 재요청이 재과금 없이 저장본을 돌려주고, 미완성이면 이어받는다");
 }

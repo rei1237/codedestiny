@@ -49,7 +49,8 @@ assert(route.includes("MIN_INITIAL_CONSULTATION_BODY_CHARS = 20700"), "initial c
 assert(route.includes("MAX_INITIAL_CONSULTATION_BODY_CHARS = 38000"), "initial consultation 38,000 char cap missing");
 assert(route.includes("countStructuredConsultationBodyChars"), "structured body char counter missing");
 assert(route.includes("SECTION_GROUP_SPECS.every(accepted)"), "initial generation requires every usable group");
-assert(route.includes("chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS"), "initial generation max body guard missing");
+// 분량 초과는 그룹별 문장 경계 자르기로 처리한다. 완료 판정에서 막으면 결제본이 partial 에 묶인다.
+assert(!route.includes("chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS"), "over-length must not hold the paid result in partial");
 // 토큰 상한은 요구 분량 상한 + 완충을 담을 수 있어야 한다. 특정 숫자를 고정하면 예산을 올릴 때마다
 // 이 가드가 먼저 깨져 낡은 값으로 되돌리게 만든다 — 최소 기준으로 단언한다(정본은 verify:llm-generation-resilience).
 const ziweiTokenBudget = Number(/INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = (\d+)/.exec(route)?.[1] || 0);

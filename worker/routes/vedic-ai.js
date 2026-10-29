@@ -1434,6 +1434,8 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
     maxTokens: VEDIC_GROUP_MAX_OUTPUT_TOKENS,
   });
   const groupBaseTokens = modelConfig.maxOutputTokens ?? VEDIC_GROUP_MAX_OUTPUT_TOKENS;
+  // 직전 시도가 MAX_TOKENS 로 잘렸으면 같은 예산 재시도가 또 잘려 환불된다 — 재시도만 2배(≤32768). 기본 예산(원가 예약)은 그대로.
+  const tokens = options.truncationRetry ? Math.max(groupBaseTokens, Math.min(32768, groupBaseTokens * 2)) : groupBaseTokens;
   try {
     const result = await callGeminiJsonWithRetry(env, buildGroupPrompt(input, chart, group, repairLines), {
       systemPrompt: await appendExpertPersona(env, "yunVedic", await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT)),
@@ -1443,8 +1445,8 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
         ? Math.min(modelConfig.temperature ?? 0.72, 0.62)
         : (modelConfig.temperature ?? 0.72),
       attempts: 1,
-      baseTokens: groupBaseTokens,
-      capTokens: Math.round(groupBaseTokens * 1.3),
+      baseTokens: tokens,
+      capTokens: Math.max(tokens, Math.round(groupBaseTokens * 1.3)),
       responseMimeType: "application/json",
       responseSchema: jsonSchemaFromExample(buildGroupOutputExample(group)),
       timeoutMs: vedicTimeoutMs,
@@ -1469,7 +1471,7 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
     });
     const provider = clean(result?.provider || result?.model || "gemini");
     if (!result?.ok || ((/mock/i.test(provider) || result?.isMock === true) && !isStagingLlmMockEnabled(env))) return { group, text: "", provider: "", model: "" };
-    return { group, rawText: result?.rawText || result?.text || "", text: sanitizeAssistantText(result?.text || ""), provider, model: clean(result?.model || "") };
+    return { group, rawText: result?.rawText || result?.text || "", text: sanitizeAssistantText(result?.text || ""), provider, model: clean(result?.model || ""), truncated: result?.truncated === true };
   } catch (error) {
     logVedicAi("Group Generation Failed", { ...context, group: group.key, message: clean(error?.message, 200) }, "warn");
     return { group, text: "", provider: "", model: "" };
@@ -1538,7 +1540,8 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
         `직전 본문은 공백 제외 ${countPaidReportBodyChars(bodies(rows[group.key].text))}자입니다. 목표 ${group.targetMinChars}자까지 계산 근거와 생활 장면을 보강해 완결된 JSON으로 다시 작성하세요.`,
         "같은 문장을 반복하지 말고 아직 다루지 않은 해석과 행동 조언을 더하세요.",
       ] : [];
-      const row = await generateVedicGroup(env, input, chart, group, context, repairLines, { ...options, skipCacheRead: attempts[group.key] > 1 });
+      const row = await generateVedicGroup(env, input, chart, group, context, repairLines, { ...options, skipCacheRead: attempts[group.key] > 1, truncationRetry: Boolean(attempts[`${group.key}:truncated`]) });
+      if (row.truncated) attempts[`${group.key}:truncated`] = 1;
       rawResponses[group.key] = row.rawText || row.text;
       await options.checkpoint({ groups: rows, attempts, rawResponses });
       const recovered = parseStructuredConsultationText(row.text) || salvageTruncatedJsonObject(row.text);

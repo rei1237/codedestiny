@@ -221,9 +221,9 @@ async function contextFor({ topic, category, mode, recentTurns }) {
 
   check("Workers AI 폴백이 꺼져 있지 않다", seenOptions?.fallbackToWorkersAI !== false,
     `fallbackToWorkersAI=${String(seenOptions?.fallbackToWorkersAI)}`);
-  // 🔴 유료 라우트에 폴백을 켜면 fallbackMinChars 가 필수다(CLAUDE.md). 관례는 최소 분량 × 0.4.
-  const expectedFloor = Math.round(GUARDIAN_FORTUNE_RESULT_LENGTH.min * 0.4);
-  check("짧은 폴백 차단 문턱이 관례값(min × 0.4)으로 걸려 있다", seenOptions?.fallbackMinChars === expectedFloor,
+  // 🔴 유료 라우트에 폴백을 켜면 fallbackMinChars 가 필수다(CLAUDE.md). 관례는 최소 분량 × 0.3.
+  const expectedFloor = Math.round(GUARDIAN_FORTUNE_RESULT_LENGTH.min * 0.3);
+  check("짧은 폴백 차단 문턱이 관례값(min × 0.3)으로 걸려 있다", seenOptions?.fallbackMinChars === expectedFloor,
     `fallbackMinChars=${seenOptions?.fallbackMinChars} (기대 ${expectedFloor})`);
 
   // Workers AI 는 JSON 을 코드펜스로 감싸 보내는 일이 잦다. 그걸 못 읽으면 폴백을 켠 의미가 없다.

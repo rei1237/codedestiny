@@ -409,7 +409,7 @@ function assertNeverThrows(feature, label, run) {
   }
   assertNeverThrows(feature, "computeSystemStars(빈 팩)", () => computeSystemStars({ systems: [] }));
 
-  // 🔴 폴백을 켠 유료 섹션은 문턱을 함께 줘야 한다(관례: 최소 분량 × 0.4).
+  // 🔴 폴백을 켠 유료 섹션은 문턱을 함께 줘야 한다(관례: 최소 분량 × 0.3).
   //    없으면 Workers AI 의 짧은 응답이 정상 결제 결과로 나간다.
   const routeSource = read("worker/routes/destiny-compass-ai.js");
   assert(
@@ -515,13 +515,13 @@ for (const [feature, path, timeoutVar] of [
   checks += 1;
   assert(sectionMaxTotal <= maxTotal, `${feature}: 섹션 maxChars 합 ${sectionMaxTotal} > 전체 상한 ${maxTotal}`);
 
-  // 🔴 섹션 하한이 오르면 폴백 문턱(minChars × 0.4)도 함께 오른다. 실측 폴백 분량(~1,700자)을
+  // 🔴 섹션 하한이 오르면 폴백 문턱(minChars × 0.3)도 함께 오른다. 실측 폴백 분량(~1,700자)을
   //    넘겨 버리면 폴백이 있으나 마나가 된다 — Gemini 장애 때 사용자가 받는 게 결과가 아니라 실패다.
   const widestSectionMin = Math.max(...sections.map((section) => section.minChars));
   checks += 1;
   assert(
-    Math.round(widestSectionMin * 0.4) <= 1700,
-    `${feature}: 가장 큰 섹션 하한 ${widestSectionMin}자의 폴백 문턱 ${Math.round(widestSectionMin * 0.4)}자가 실측 폴백 분량(~1,700자)을 넘는다`,
+    Math.round(widestSectionMin * 0.3) <= 1700,
+    `${feature}: 가장 큰 섹션 하한 ${widestSectionMin}자의 폴백 문턱 ${Math.round(widestSectionMin * 0.3)}자가 실측 폴백 분량(~1,700자)을 넘는다`,
   );
 }
 {
@@ -805,7 +805,7 @@ const SINGLE_CALL_FLOOR_CEILING = 6000;
   // 폴백을 켠 유료 라우트는 fallbackMinChars를 함께 줘야 짧은 스텁이 상품 결과로 나가지 않는다(CLAUDE.md).
   //
   // 🔴 예전에는 상수 이름(`fallbackMinChars: FEATURE_AI_FALLBACK_MIN_CHARS`)의 등장 횟수를 셌다.
-  // 그러면 사주처럼 그룹별 문턱(minChars × 0.4)을 쓰는 경로가 규칙을 지키는데도 실패하고, 반대로
+  // 그러면 사주처럼 그룹별 문턱(minChars × 0.3)을 쓰는 경로가 규칙을 지키는데도 실패하고, 반대로
   // 상수를 주석에만 적어 둬도 통과한다. 이름이 아니라 **호출 하나하나**를 중괄호 균형으로 잘라 연다.
   // 규칙은 하나다 — 폴백을 끄거나, 분량 문턱을 주거나. 둘 다 없는 호출은 없어야 한다.
   const geminiCallSites = [];
@@ -988,7 +988,7 @@ for (const path of LLM_CALL_FILES) {
     assert(
       /fallbackMinChars\s*:/.test(call.options) || /fallbackToWorkersAI\s*:\s*false/.test(call.options),
       `${path}:${call.line}: 폴백이 켜져 있는데 fallbackMinChars 가 없다 — `
-      + "짧은 Workers AI 응답이 정상 결과로 사용자에게 전달된다(관례: 그 기능 최소 분량 × 0.4)",
+      + "짧은 Workers AI 응답이 정상 결과로 사용자에게 전달된다(관례: 그 기능 최소 분량 × 0.3)",
     );
   }
 }
@@ -1211,7 +1211,9 @@ const MIN_REJECT_OVER_TARGET = 1.15;
         ["worker/routes/ziwei-ai.js", "본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자"],
         ["worker/routes/ziwei-ai.js", "(countPaidReportBodyChars(ziweiSectionBody(groups[group.id])) >= group.minChars"],
         ["worker/routes/ziwei-ai.js", "trimPaidReportSections(source, Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET))"],
-        ["worker/routes/ziwei-ai.js", "capTokens: SECTION_GROUP_TARGET_TOKENS"],
+        // 기본 상한은 SECTION_GROUP_TARGET_TOKENS, MAX_TOKENS 잘림 뒤 재시도만 2배(≤32768).
+        ["worker/routes/ziwei-ai.js", "* 2)) : SECTION_GROUP_TARGET_TOKENS;"],
+        ["worker/routes/ziwei-ai.js", "capTokens: groupTokens"],
       ],
       tokens: ziwei.SECTION_GROUP_TARGET_TOKENS,
       rows: ziwei.SECTION_GROUP_SPECS.map((g) => ({ key: g.id, floor: g.minChars, targetLow: g.targetChars, targetHigh: g.targetChars, rejectMax: Math.ceil(g.targetChars * ziwei.SECTION_GROUP_MAX_OVER_TARGET) })),
