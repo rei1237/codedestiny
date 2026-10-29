@@ -18,6 +18,7 @@ function render(native, locale) {
     if (name.endsWith('/app-build-target')) return {IS_APP_BUILD: native};
     if (name.endsWith('/useT')) return {useLocale: () => locale};
     if (name.endsWith('/native-home-copy.json')) return copy;
+    if (name.endsWith('/native-home-html.mjs')) return require('../../lib/i18n/native-home-html.mjs');
     if (name === 'next/link') return props => React.createElement('a', props);
     return require(name);
   }});

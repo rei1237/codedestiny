@@ -1,9 +1,11 @@
 "use client";
 import { useEffect } from "react";
+import { useLocale } from "@/lib/i18n/useT";
 
 // Native details and links work without this enhancement. Only the entry page
 // disclosures are remembered; product/search state belongs to its own controller.
 export default function HomeEntryState() {
+  const locale = useLocale();
   useEffect(() => {
     const nodes = [...document.querySelectorAll('[data-home-disclosure]')];
     const key = 'cd:home-disclosures:v2';
@@ -39,6 +41,6 @@ export default function HomeEntryState() {
       window.removeEventListener('pageshow', revealHash);
       window.removeEventListener('pagehide', save);
     };
-  }, []);
+  }, [locale]);
   return null;
 }

@@ -6,6 +6,7 @@ import {IS_APP_BUILD} from '@/lib/app-build-target';
 import {useLocale} from '@/lib/i18n/useT';
 import type {RuntimeLocale} from '@/lib/i18n/dictionary';
 import copy from '@/lib/i18n/native-home-copy.json';
+import {localizeNativeHomeHtml} from '@/lib/i18n/native-home-html.mjs';
 
 // The public Korean home keeps its SEO copy. The packaged app uses the same
 // markup and links, with text rendered by React in the selected app language.
@@ -23,6 +24,11 @@ export function NativeHomeRoot({className, children}: {className: string; childr
 
 export function NativeHomeText({children}: {children: string}) {
   return translate(children, useContext(HomeLocale));
+}
+
+export function NativeHomeHtml({html, className}: {html: string; className?: string}) {
+  const locale = useContext(HomeLocale);
+  return <div className={className} dangerouslySetInnerHTML={{__html: localizeNativeHomeHtml(html, locale, rows)}} />;
 }
 
 export function NativeHomeCardLink({name, action, external, ...props}: {
