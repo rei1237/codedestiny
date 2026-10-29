@@ -10,6 +10,7 @@ const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js')
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
 let handleFortuneTeaHouseRoutes;
+let nativeTeaContract, bindNativeTossRequest;
 let authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
 let paidAccessAllowed = true;
 let callGeminiTextMock;
@@ -316,6 +317,8 @@ beforeAll(async () => {
   }));
   const mod = await import("../../worker/routes/fortune-tea-house.js");
   handleFortuneTeaHouseRoutes = mod.handleFortuneTeaHouseRoutes;
+  nativeTeaContract = mod.nativeTeaContract;
+  ({bindNativeTossRequest}=await import('../../worker/toss/native-context.js'));
 });
 
 beforeEach(() => {
@@ -343,6 +346,61 @@ const FEATURE_KEYS = {
   saju: "fortune-tea-house-saju-consultation",
   sukuyo: "fortune-tea-house-sukuyo-compatibility-consultation",
 };
+
+test('Toss context uses the original card draw, checkpoints, stored result and revocation without web billing', async () => {
+  authState=null;paidAccessAllowed=false;
+  const body={...teaFixtures.consultBody({attemptId:'toss-native-original'}),consultationVersion:'tea-v2',
+    tarotSpreadId:'yn_knot_three',requestId:'toss-native-original',featureKey:FEATURE_KEYS.tarot};
+  delete body.draftResult;
+  const contract=nativeTeaContract(body),auth={userId:USER_ID,tossNative:true};
+  let revoked=false,checks=0;
+  const context={auth,access:async input=>{
+    expect(nativeTeaContract(input)).toEqual(contract);checks++;
+    if(revoked)throw Object.assign(new Error('ORDER_REFUNDED'),{status:409});
+    return {ok:true,auth,featureKey:contract.featureKey,pricing:contract.pricing,deferredUsage:false,
+      accessDecision:{allowed:true,reason:'TOSS_IAP',accessSource:'toss',paymentId:'toss-order',claimEvidenceIds:[]}};
+  },assertStored:async doc=>{
+    expect(doc.userId).toBe(USER_ID);expect(doc.generationRequestHash).toBe(contract.inputHash);
+    expect(doc.deliveryAccessKey).toBe('toss-order');
+    if(revoked)throw Object.assign(new Error('ORDER_REFUNDED'),{status:409});
+  }};
+  const send=async(path,input)=>{
+    const request=new Request('https://example.com/api/fortune-tea-house'+path,{method:input?'POST':'GET',
+      headers:{'content-type':'application/json','cf-connecting-ip':'toss-native-original'},...(input?{body:JSON.stringify(input)}:{})});
+    bindNativeTossRequest(request,context);
+    return readJson(await handleFortuneTeaHouseRoutes(request,{NODE_ENV:'test',GEMINIF_API_KEY:'mock-key'}));
+  };
+  expect((await send('/tarot/prepare',body)).status).toBe(200);
+  const drafts=collection('fortune_tea_house_tarot_drafts');
+  const draft=drafts.all()[0];
+  await drafts.updateOne({_id:draft._id},{$set:{'deck.order':['P10','C05','M04'],'deck.reversed':[false,false,false]}});
+  const drawn=await send('/tarot/draw',{attemptId:body.attemptId,picks:[0,1,2]});
+  expect(drawn.status).toBe(200);
+  callGeminiTextMock.mockImplementation(async()=>{
+    const output=teaFixtures.buildLlmPayload('three');
+    output.tarotCardReadings.forEach((card,index)=>{card.positionId=drawn.payload.draft.cards[index].positionId;});
+    return {ok:true,provider:'gemini',model:'offline-fixture',text:JSON.stringify(output)
+      .replaceAll('minor_pentacles_10','P10').replaceAll('minor_cups_05','C05').replaceAll('major_04_emperor','M04')
+      .replaceAll('펜타클 10','펜타클 텐').replaceAll('컵 5','컵 파이브')};
+  });
+  let response;
+  for(let wave=0;wave<12;wave++){
+    response=await send('/consult',body);
+    if(response.status!==202)break;
+  }
+  if(response.status!==200){const {completedSections,...progress}=response.payload;throw new Error(JSON.stringify({status:response.status,progress,parts:completedSections?.map(s=>s.key),checkpoint:collection('fortune_tea_house_results').all()[0]?.generationCheckpoint?.errors}).slice(0,2500));}
+  expect(response.payload.result.resultId).toBe(contract.resultId);
+  const count=callGeminiTextMock.mock.calls.length;
+  expect(count).toBeGreaterThan(0);expect(checks).toBeGreaterThan(1);
+  const saved=await send('/results/'+encodeURIComponent(contract.resultId));
+  expect(saved.status).toBe(200);expect(saved.payload.result.tarotSpreadCards).toEqual(response.payload.result.tarotSpreadCards);
+  expect(callGeminiTextMock).toHaveBeenCalledTimes(count);expect(billingCalls).toHaveLength(0);expect(settleCalls).toHaveLength(0);
+  expect(collection('fortune_tea_house_results').all()[0].tossNative).toBe(true);
+  revoked=true;
+  expect((await send('/results/'+encodeURIComponent(contract.resultId))).status).toBe(409);
+  expect((await send('/consult',body)).status).toBe(409);
+  expect(callGeminiTextMock).toHaveBeenCalledTimes(count);
+});
 
 function consultBodyForMode(mode, attemptId) {
   const body = {

@@ -1977,7 +1977,7 @@
       "packPass": "Pass Yeongnyangi",
       "packTitle": "Pass de consultation Yeongnyangi",
       "packName": "Lot {fish} de {total} utilisations",
-      "packScope": "Consultations {fish} uniquement · Sans limite de durée · {total} utilisations",
+      "packScope": "Consultations {fish} uniquement · {days} jours · {total} utilisations",
       "packRemaining": "{remaining} utilisations restantes sur {total}",
       "packExpires": "Jusqu’au {date}",
       "packOthers": "+{count} autres packs",

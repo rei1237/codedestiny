@@ -1977,7 +1977,7 @@
       "packPass": "योंगन्यांगी पास",
       "packTitle": "योंगन्यांगी के परामर्श पास",
       "packName": "{fish} सेट ({total} उपयोग)",
-      "packScope": "केवल {fish} परामर्श · उपयोग की समय सीमा नहीं · {total} उपयोग",
+      "packScope": "केवल {fish} परामर्श · {days} दिन · {total} उपयोग",
       "packRemaining": "{total} में से {remaining} उपयोग शेष",
       "packExpires": "{date} तक",
       "packOthers": "+{count} और पैक",

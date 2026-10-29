@@ -3,7 +3,7 @@
 // 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
 import { lunarToSolar, solarToLunar } from "@/lib/korean-calendar";
 import { buildSukuyoAiCompatibility, describeSukuyoDirectionalRelation } from "@/worker/lib/sukuyo-ai-calculation.js";
-import { buildSukuyoFromMoonLongitude } from "@/worker/lib/sukuyo-astronomy.js";
+import { buildSukuyoFromMoonLongitude } from "@/worker/lib/sukuyo-coordinate.js";
 import type {
   FortuneTeaHouseCalendarType,
   FortuneTeaHouseConsultRequest,

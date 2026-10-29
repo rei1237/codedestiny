@@ -49,6 +49,14 @@ export async function saleProducts():Promise<SaleProduct[]>{
     return item&&p.available?[{...p,displayAmount:item.displayAmount}]:[];
   });
 }
+export async function nativeSaleProducts():Promise<SaleProduct[]>{
+  if(!SERVICE_AVAILABLE||!isToss())return [];
+  const [catalog,items]=await Promise.all([api<{products:CatalogProduct[]}>('/native/catalog'),IAP.getProductItemList()]);
+  return catalog.products.flatMap(product=>{
+    const item=items?.products.find(row=>row.sku===product.sku&&row.type==='CONSUMABLE');
+    return item&&product.available?[{...product,displayAmount:item.displayAmount}]:[];
+  });
+}
 export type TarotLibraryProduct={id:string;name:string;sku:string;featureKey:string;approvedPriceKRW:number;displayAmount:string};
 export async function tarotLibraryProducts():Promise<TarotLibraryProduct[]>{
   if(!SERVICE_AVAILABLE||!isToss())return [];

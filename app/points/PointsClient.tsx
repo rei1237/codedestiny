@@ -1,4 +1,5 @@
 "use client";
+import "./pass-selection.css";
 
 import { getGiftGuidance } from "@/lib/payment/gift-policy.js";
 import { trackConfirmedPurchase, trackEvent } from "@/lib/analytics";
@@ -2401,11 +2402,11 @@ function MoonlightShopPlans({
   const overseasCharge = useOverseasCharge();
 
   return (
-    <section id="moonlight-plans" className="moon-card scroll-mt-24 rounded-[24px] p-5 sm:p-6" aria-label={copy.subscriptionAria}>
+    <section id="moonlight-plans" className="moon-pass-benefits moon-card scroll-mt-24 rounded-[24px] p-5 sm:p-6" aria-label={copy.subscriptionAria}>
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">이용권 상품</p>
-          <h2 className="mt-2 text-2xl font-black text-white">꿀꿀운세 이용권 4종</h2>
+
+          <h2 className="mt-2 text-2xl font-black text-white">문라이트 패스! 나에게 맞는 꿀단지</h2>
         </div>
         {subscription.isActive && subscription.tier !== "free" ? (
           <button
@@ -2419,7 +2420,7 @@ function MoonlightShopPlans({
         ) : null}
       </div>
 
-      <p className="mb-3 text-[12px] leading-relaxed text-[color:var(--moon-mist)]">{copy.passTerminationNote}</p>
+      <p className="mb-3 text-[12px] leading-relaxed text-[color:var(--moon-mist)]">{copy.passTerminationNote}</p><p className="mb-4 text-sm text-[color:var(--moon-gold)]">패밀리는 꿀꿀운세 + 영냥이 두 사이트 공통 · 그 외 꿀단지는 꿀꿀운세 전용</p>
       {saleStatus === "error" ? (
         <div role="status" className="mb-4 rounded-xl border border-[color:var(--moon-rim)] p-4 text-sm text-[color:var(--moon-mist)]">
           <p>이용권 판매 정보를 불러오지 못했어요. 다시 확인해 주세요.</p>
@@ -2474,7 +2475,7 @@ function MoonlightShopPlans({
                   </div>
                 </div>
                 <div className="flex flex-col gap-3 sm:min-w-[176px] sm:items-end">
-                  <p className="text-2xl font-black text-[color:var(--moon-gold)]">{formatWon(plan.wonPrice, copy, formatLocale)}</p>
+                  <p className="text-xs text-[color:var(--moon-mist)]">단건 기준 최대 이용 가치 <s>{formatWon((currentPassPlan(plan.tier)?.monthlyLimitCoin || 0)*100, copy, formatLocale)}</s></p><p className="text-2xl font-bold text-[color:var(--moon-gold)]">{formatWon(plan.wonPrice, copy, formatLocale)}</p><p className="text-xs text-[color:var(--moon-mist)]">적용 대상 이용 한도를 모두 사용했을 때 기준</p>
                   {overseasCharge?.approx(plan.wonPrice) ? (
                     <p className="text-xs font-bold text-[color:var(--moon-mist)]">{overseasCharge.approx(plan.wonPrice)}</p>
                   ) : null}

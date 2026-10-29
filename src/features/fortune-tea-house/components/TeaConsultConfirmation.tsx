@@ -25,14 +25,16 @@ const KO = {
  selectCount:"선택", terms:"정·역방향을 같은 확률로 사용하며, 역방향은 무조건 나쁜 뜻이 아니에요.",
 };
 type Draft={attemptId:string;status:string;deckSize:number;cards?:unknown[];spread:{cardCount:number;title:string;positions:{id:string;label:string}[]}};
+type TeaSpread={id:string;cardCount:number;positions:{id:string}[]};
+const availableSpreads:TeaSpread[]=teaSpreads;
 export default function TeaConsultConfirmation({input,cupId,onConfirm,onBack,busy=false}:{input:FortuneTeaHouseQuestionInput;cupId:string;onConfirm:(input:FortuneTeaHouseQuestionInput)=>void;onBack:()=>void;busy?:boolean}){
  const copy=useTeaHouseCopy("confirmation",KO);
  const locale=useLocale();
  const spreadsCopy=useTeaHouseCopy("spreadV2",teaSpreadCopy);
  const isTarot=input.consultationMode==="tarot";
- const [spreadId,setSpreadId]=useState(()=>teaSpreads.find(s=>s.id===input.tarotSpreadId)?.id||recommendTeaSpread(input.question,input.tarotSpread)?.id||"yn_knot_three");
+ const [spreadId,setSpreadId]=useState<string>(()=>availableSpreads.find(s=>s.id===input.tarotSpreadId)?.id||recommendTeaSpread(input.question,input.tarotSpread)?.id||"yn_knot_three");
  const [draft,setDraft]=useState<Draft|null>(null),[picks,setPicks]=useState<number[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState("");
- const chosen=teaSpreads.find(s=>s.id===spreadId)!;
+ const chosen=availableSpreads.find(s=>s.id===spreadId)!;
  const spreadCopy=spreadsCopy[chosen.id as keyof typeof spreadsCopy];
  const people=input.consultationMode==="sukuyo" ? [input.sukuyo?.user,input.sukuyo?.partner] : input.consultationMode==="sajuCompatibility" ? [input.sajuCompatibility?.user,input.sajuCompatibility?.partner] : [input];
  const size=chosen.cardCount===5?"five":"three";
@@ -68,7 +70,7 @@ export default function TeaConsultConfirmation({input,cupId,onConfirm,onBack,bus
     "birthPlace" in person ? person.birthPlace : "",
   ].filter(Boolean).join(" · ")}</li>)}</ul></div>}
   <TeaCalculationPolicy mode={input.consultationMode}/>
-  {isTarot&&<><label>{copy.spread}<select value={spreadId} disabled={!!draft||loading} onChange={e=>setSpreadId(e.target.value)}>{teaSpreads.map(s=><option key={s.id} value={s.id}>{spreadsCopy[s.id as keyof typeof spreadsCopy].title} · {s.cardCount}</option>)}</select></label>
+  {isTarot&&<><label>{copy.spread}<select value={spreadId} disabled={!!draft||loading} onChange={e=>setSpreadId(e.target.value)}>{availableSpreads.map(s=><option key={s.id} value={s.id}>{spreadsCopy[s.id as keyof typeof spreadsCopy].title} · {s.cardCount}</option>)}</select></label>
    <p>{spreadCopy.reason}</p><ol>{chosen.positions.map(p=><li key={p.id}>{(spreadCopy.positions as Record<string,string>)[p.id]}</li>)}</ol><p>{copy.drawHelp}</p><p>{copy.terms}</p>
    {!draft?<TeaHouseButton onClick={()=>void prepare()} loading={loading}>{copy.prepare}</TeaHouseButton>:draft.status==="drawn"?<p role="status">{copy.ready}</p>:<>
     <p role="status">{copy.selectCount} {picks.length}/{chosen.cardCount}</p>

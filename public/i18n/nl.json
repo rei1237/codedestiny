@@ -1977,7 +1977,7 @@
       "packPass": "Yeongnyangi-pas",
       "packTitle": "Yeongnyangi-consultatiepassen",
       "packName": "{fish}-set van {total} keer",
-      "packScope": "Alleen {fish}-consulten · Geen gebruikstermijn · {total} keer",
+      "packScope": "Alleen {fish}-consulten · {days} dagen · {total} keer",
       "packRemaining": "{remaining} van {total} beurten over",
       "packExpires": "Tot {date}",
       "packOthers": "+{count} pakketten meer",

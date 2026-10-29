@@ -74,6 +74,8 @@ add(MUSIC_TRACK_UNLOCK_PRICE_KRW);
 for (const won of Object.values(PASS_MONTHLY_WON)) add(won);
 for (const plan of Object.values(CURRENT_PASS_PLANS)) {
   add(plan.wonPrice); add(plan.maxCoveredCoin * 100); add(plan.monthlyLimitCoin * 100);
+  // Home comparison shows the saving at full usage, derived from the same plan.
+  add(plan.monthlyLimitCoin * 100 - plan.wonPrice);
 }
 // 2026-10-16: 홈 이용권 배너가 영냥이 세트 가격을 보여 준다. 세트 가격 정본은 이 표 하나다.
 for (const plan of Object.values(SERVICE_PACK_PLANS)) add(plan.priceKRW);

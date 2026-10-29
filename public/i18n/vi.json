@@ -1977,7 +1977,7 @@
       "packPass": "Vé Yeongnyangi",
       "packTitle": "Vé tư vấn riêng Yeongnyangi",
       "packName": "Bộ {fish} {total} lượt",
-      "packScope": "Chỉ tư vấn {fish} · Không có hạn sử dụng · {total} lượt",
+      "packScope": "Chỉ tư vấn {fish} · {days} ngày · {total} lượt",
       "packRemaining": "Còn {remaining}/{total} lượt",
       "packExpires": "Đến {date}",
       "packOthers": "và {count} gói khác",

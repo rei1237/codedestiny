@@ -28,18 +28,32 @@ const PREVIOUS_SERVICE_PACK_PLANS = Object.fromEntries([
 ]));
 // Approved 2026-10-24: no usage expiry, including remaining historical rights.
 // Keep old offer snapshots intact so pending orders and gifts can still replay.
-const CURRENT_SERVICE_PACK_PLANS = Object.fromEntries(Object.entries(PREVIOUS_SERVICE_PACK_PLANS)
+const NO_EXPIRY_SERVICE_PACK_PLANS = Object.fromEntries(Object.entries(PREVIOUS_SERVICE_PACK_PLANS)
   .map(([id, plan]) => [id.replace('-v4', '-v5'), Object.freeze({...plan,
     validityDays: null, policyVersion: 'yeongnyangi-pack-20261024-no-expiry'})]));
-export const SERVICE_PACK_PLANS = Object.freeze({ ...LEGACY_SERVICE_PACK_PLANS, ...PREVIOUS_SERVICE_PACK_PLANS, ...CURRENT_SERVICE_PACK_PLANS });
+export const CURRENT_SERVICE_PACK_POLICY = 'yeongnyangi-pack-20261029-eight-90';
+const CURRENT_SERVICE_PACK_PLANS = Object.fromEntries(Object.entries(NO_EXPIRY_SERVICE_PACK_PLANS)
+  .map(([id, plan]) => [id.replace('-v5', '-v6'), Object.freeze({...plan,
+    name: plan.name.replace('5회', '8회'), totalUses: 8, validityDays: 90,
+    policyVersion: CURRENT_SERVICE_PACK_POLICY})]));
+export const SERVICE_PACK_PLANS = Object.freeze({ ...LEGACY_SERVICE_PACK_PLANS, ...PREVIOUS_SERVICE_PACK_PLANS, ...NO_EXPIRY_SERVICE_PACK_PLANS, ...CURRENT_SERVICE_PACK_PLANS });
 const FISH = Object.freeze(['mackerel','salmon','flounder','tuna']);
 
 // Historical definitions remain readable for fulfillment, gifts and order recovery.
-// Only five-use packs are offered for new purchases.
+// Approved 2026-10-29: new purchases only, unchanged price, eight uses over 90 days.
 export const SERVICE_PACK_SALE_IDS = Object.freeze(Object.keys(SERVICE_PACK_PLANS)
-  .filter(id => id.endsWith('-small-v5')));
+  .filter(id => id.endsWith('-small-v6')));
 export function isRetiredServicePack(planId) {
   return Boolean(SERVICE_PACK_PLANS[planId]) && !SERVICE_PACK_SALE_IDS.includes(planId);
+}
+
+// The 2026-10-24 no-expiry promise continues for all earlier snapshots.
+export function hasServicePackExpiry(snapshot) {
+  return snapshot?.policyVersion === CURRENT_SERVICE_PACK_POLICY;
+}
+export function servicePackExpiry(snapshot, startsAt) {
+  return hasServicePackExpiry(snapshot)
+    ? new Date(new Date(startsAt).getTime() + snapshot.validityDays * 86400000) : null;
 }
 
 export function servicePackFeatures(fishId) {
@@ -76,10 +90,13 @@ export function servicePackCoverage(right,featureKey,amountKRW,now=new Date()) {
     ||!snapshot.eligibleFeatureKeys?.includes(featureKey)
     ||!(Number(snapshot.unitPriceKRW)>0&&Number(snapshot.unitPriceKRW)<=Number(amountKRW)))
     return {covered:false,reason:'SERVICE_PACK_NOT_COVERED'};
-  // Historical expiresAt remains audit data; usage is limited by count and paid proof.
+  if(hasServicePackExpiry(snapshot) &&
+    (!right.expiresAt || !(new Date(right.expiresAt).getTime() > new Date(now).getTime())))
+    return {covered:false,reason:'SERVICE_PACK_EXPIRED'};
   const remainingUses=Number(right.remainingUses);
   if(!Number.isSafeInteger(remainingUses)||remainingUses<=0)return {covered:false,reason:'SERVICE_PACK_EXHAUSTED'};
-  return {covered:true,remainingUses,consumeUses:1,fishId:snapshot.fishId,expiresAt:null};
+  return {covered:true,remainingUses,consumeUses:1,fishId:snapshot.fishId,
+    expiresAt:hasServicePackExpiry(snapshot)?right.expiresAt:null};
 }
 
 export function listServicePackPlans() {

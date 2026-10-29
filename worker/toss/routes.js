@@ -2,7 +2,7 @@ import {questionConversation} from '../yeongnyangi/question-followup.ts';
 import {checkOrder,TossError,requireTossOrigin,verifiedUserKey,analyticsEvent} from './policy.js';
 import {callbackAuthorized,identityId,hash} from './crypto.js';
 import {createTossSession,requireTossSession,invalidateIdentity,disconnectIdentity} from './session.js';
-import {APPROVED_TOSS_PRODUCTS,APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS,approvedProduct} from './catalog.js';
+import {APPROVED_TOSS_PRODUCTS,APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS,APPROVED_TOSS_NATIVE_PRODUCTS,approvedProduct} from './catalog.js';
 import {TossPurchase,TossSession} from './models.js';
 import {lookupOrder} from './partner.js';
 import {grantVerifiedOrder} from './grant.js';
@@ -68,7 +68,30 @@ export async function handleTossRoutes(request,env) {
     }
     const auth=await requireTossSession(request,env);
     await limit(env,auth._id,'authenticated',120);
+    if(path==='/canonical/records'&&request.method==='GET')return reply(await (await import('./native-tea.js')).nativeTeaRecords(env,auth,url.searchParams));
+    if(path==='/native/catalog'&&request.method==='GET'){
+      const {nativeTeaCatalog}=await import('./native-tea.js');
+      return reply({products:nativeTeaCatalog()});
+    }
+    if(path==='/native/tea/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-tea-prepare',6);
+      const {prepareNativeTea}=await import('./native-tea.js');
+      const input=await bodyOf(request);
+      return reply(await prepareNativeTea(env,auth,input.input,input.orderId));
+    }
+    const nativeIntent=path.match(/^\/native\/tea\/intents\/([a-f0-9]{64})$/);
+    if(nativeIntent&&request.method==='GET'){
+      const {readNativeTeaIntent}=await import('./native-tea.js');
+      return reply(await readNativeTeaIntent(env,auth,nativeIntent[1]));
+    }
+    if(path.startsWith('/canonical/fortune-tea-house/')&&['GET','POST'].includes(request.method)){
+      if(request.method==='POST')await limit(env,auth._id,'native-tea',30);
+      const {handleNativeTea}=await import('./native-tea.js');
+      const response=await handleNativeTea(request,env,auth,path.slice('/canonical/fortune-tea-house'.length));
+      return new Response(await response.text(),{status:response.status,headers:{...Object.fromEntries(response.headers),...headers}});
+    }
     if(path==='/canonical/auth/me'&&request.method==='GET')return reply({ok:true,authenticated:true,user:{id:auth.userId,_id:auth.userId,name:'토스 사용자',role:'user'}});
+    if(path==='/canonical/profile'&&request.method==='GET')return reply(await canonicalProfiles(auth));
     if(path==='/canonical/yeongnyangi/products'&&request.method==='GET')return reply({products:canonicalProducts()});
     if(path==='/canonical/geocode'&&request.method==='GET'){
       await limit(env,auth._id,'geocode',10);
@@ -165,11 +188,19 @@ export async function handleTossRoutes(request,env) {
     if((path==='/orders/grant'||path==='/orders/restore')&&request.method==='POST') {
       const input=await bodyOf(request);
       const tarotProduct=path==='/orders/restore'&&APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS.find(item=>item.sku===input.sku);
-      const product=tarotProduct?tarotLibraryProduct(tarotProduct):approvedProduct(input.sku);
+      const stored=await TossPurchase.findOne({_id:input.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment}).lean();
+      const native=!!stored?.nativeService||APPROVED_TOSS_NATIVE_PRODUCTS.some(item=>item.sku===input.sku);
+      if(stored&&stored.sku!==input.sku)throw new TossError('ORDER_MISMATCH',403);
+      const product=stored?.nativeService?(await import('./native-consultation.js')).retainedNativeProduct(stored,auth):native?(await import('./native-tea.js')).approvedNativeTeaProduct(input.sku):tarotProduct?tarotLibraryProduct(tarotProduct):approvedProduct(input.sku);
       const order=await lookupOrder(env,auth.userKey,input.orderId);
+      if(order.orderId!==input.orderId||order.sku!==input.sku)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
       if(tarotProduct)return reply(await grantTarotLibraryOrder({store:purchaseStore,auth,order,product}));
       if(input.requestId!==undefined&&!/^[a-f0-9]{64}$/.test(input.requestId))throw new TossError('REQUEST_ID_INVALID');
+      if(native){
+        const {grantNativeOrder}=await import('./native-consultation.js');
+        return reply(await grantNativeOrder({store:purchaseStore,auth,order,product,requestId:input.requestId||null}));
+      }
       return reply(await grantVerifiedOrder({store:purchaseStore,auth,order,product,requestId:input.requestId||null,
         enqueue:async id=>enqueueConsultation(env,await readRequest(env,auth.userId,id))}));
     }
@@ -182,7 +213,8 @@ export async function handleTossRoutes(request,env) {
     }
     if(path==='/library'&&request.method==='GET') {
       const rows=await TossPurchase.find(libraryFilter(auth,url.searchParams.get('cursor'))).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
-      return reply(await libraryPage(rows,id=>readRequest(env,auth.userId,id),row=>PaidExecutionRecord.findOne({orderId:row._id,userId:String(auth.ownerId)}).lean()));
+      return reply(await libraryPage(rows,id=>readRequest(env,auth.userId,id),row=>PaidExecutionRecord.findOne({orderId:row._id,userId:String(auth.ownerId)}).lean(),
+        async row=>(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row)));
     }
     const tarotResultMatch=path.match(/^\/tarot-library\/results\/([a-f0-9-]{36})$/);
     if(tarotResultMatch&&request.method==='POST') {

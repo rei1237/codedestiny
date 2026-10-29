@@ -1977,7 +1977,7 @@
       "packPass": "Pas Yeongnyangi",
       "packTitle": "Pas konsultasi Yeongnyangi",
       "packName": "Set {fish} {total} penggunaan",
-      "packScope": "Konsultasi {fish} sahaja · Tiada had tempoh penggunaan · {total} penggunaan",
+      "packScope": "Konsultasi {fish} sahaja · {days} hari · {total} penggunaan",
       "packRemaining": "Baki {remaining} daripada {total} penggunaan",
       "packExpires": "Sehingga {date}",
       "packOthers": "+{count} pek lagi",

@@ -1977,7 +1977,7 @@
       "packPass": "Yeongnyangi-Pass",
       "packTitle": "Yeongnyangi-Beratungspässe",
       "packName": "{fish}-Set mit {total} Nutzungen",
-      "packScope": "Nur {fish}-Beratungen · Keine Nutzungsfrist · {total} Nutzungen",
+      "packScope": "Nur {fish}-Beratungen · {days} Tage · {total} Nutzungen",
       "packRemaining": "{remaining} von {total} Nutzungen übrig",
       "packExpires": "Bis {date}",
       "packOthers": "+{count} weitere Pakete",
