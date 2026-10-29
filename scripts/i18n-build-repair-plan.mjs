@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { RUNTIME_LOCALES } from '../lib/i18n/locale-normalize.js';
+import { NOVEL_LOCALES } from '../lib/stories/vn/locales.mjs';
 
 const root = process.cwd();
 const outputArg = process.argv.find(arg => arg.startsWith('--output='));
@@ -60,7 +61,7 @@ const novelRaw = readFileSync(resolve(root, novelFile), 'utf8');
 const novel = JSON.parse(novelRaw);
 const sourceHash = hash(novelRaw);
 // Include names, choices and skill labels as well as prose: the former draft tool omitted them.
-for (const locale of locales) {
+for (const locale of NOVEL_LOCALES.filter(locale => locale !== 'ko')) {
   novel.episodes.forEach((episode, index) => {
     const episodeId = episode.no === 'PROLOGUE' ? 'prologue' : episode.no.toLowerCase().replace('.', '-');
     const texts = flatten(episode);

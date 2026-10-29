@@ -1,4 +1,5 @@
-import Link from "next/link";
+import {StoryHubText, StoryHubEpisodeTitle, StoryHubLink as Link} from "./StoryHubCopy";
+import StoryEdition from "./StoryEdition";
 import StoryIntegrityNote from "../components/StoryIntegrityNote";
 import YehwaCard from "../components/service-intro/YehwaCard";
 import { buildSeoMetadata } from "../../lib/seo";
@@ -48,6 +49,7 @@ const storiesBreadcrumbJsonLd = buildBreadcrumbJsonLd([
 
 export default function StoriesHubPage() {
   return (
+    <StoryEdition>
     <main className="mx-auto w-full max-w-4xl px-4 py-10 text-slate-100 md:px-6 md:py-14">
       <script
         type="application/ld+json"
@@ -55,73 +57,73 @@ export default function StoriesHubPage() {
       />
       <YehwaCard as="header">
         <p>Code Destiny Novel</p>
-        <h1>
+        <h1><StoryHubText>
           연이의 운명 노벨
-        </h1>
-        <p>
+        </StoryHubText></h1>
+        <p><StoryHubText>
           알람 세 개를 다 끄고도 일어나지 못하던 아침, 깔린 적 없는 앱 하나가 화면에 떠 있었습니다.
           평범한 대학생 연이는 그 앱을 열고 꽃돼지의 몸으로 낯선 세계에 떨어집니다. 이 이야기는
           그가 십성의 섬과 자미두수·점성술·베다·타로의 네 하늘을 차례로 건너며 자기 이름을 되찾는
           73화 완결 창작 소설입니다. 마지막 선택에서 현실의 봄과 운세 세계의 봄을 모두 읽을 수 있습니다.
-        </p>
-        <p>
-          전체 분량은 한글 약 {Math.round(TOTAL_KOREAN / 10000)}만 자, 처음부터 끝까지 읽는 데
-          대략 {Math.round(TOTAL_MINUTES / 60)}시간 남짓 걸립니다. 아래 목차에서 원하는 화로 바로
-          들어갈 수 있고, 연출과 음악이 함께 흐르는{" "}
-          <a href="/codedestiny-novel.html" className="text-amber-100 underline">
+        </StoryHubText></p>
+        <p><StoryHubText>
+          전체 분량은 한글 약 </StoryHubText>{Math.round(TOTAL_KOREAN / 10000)}<StoryHubText>만 자, 처음부터 끝까지 읽는 데
+          대략 </StoryHubText>{Math.round(TOTAL_MINUTES / 60)}<StoryHubText>시간 남짓 걸립니다. 아래 목차에서 원하는 화로 바로
+          들어갈 수 있고, 연출과 음악이 함께 흐르는</StoryHubText>{" "}
+          <a href="/codedestiny-novel.html" className="text-amber-100 underline"><StoryHubText>
             비주얼 노벨 버전
-          </a>
+          </StoryHubText></a><StoryHubText>
           으로도 같은 이야기를 읽을 수 있습니다.
-        </p>
+        </StoryHubText></p>
       </YehwaCard>
 
       <YehwaCard as="section" id="world" ornament={false} className="mt-8">
-        <h2>세계관 — 명식이 지도가 되는 곳</h2>
-        <p>
+        <h2><StoryHubText>세계관 — 명식이 지도가 되는 곳</StoryHubText></h2>
+        <p><StoryHubText>
           이 세계의 지형은 사주 명리학의 십성(十星)에서 왔습니다. 나와 같은 기운이 모인 비겁의 섬,
           만들고 표현하는 식상의 섬, 가진 것을 다루는 재성의 섬, 배우고 물려받는 인성의 도서관이
           차례로 이어집니다. 명식에서 어떤 기운이 강하고 어떤 기운이 비었는지가 그대로 지형이 되는
           셈이라, 연이가 어느 섬에서 헤매는지가 곧 그가 지금 무엇을 배우는 중인지를 말해 줍니다.
-        </p>
-        <p>
+        </StoryHubText></p>
+        <p><StoryHubText>
           후반부에는 무대가 네 개의 하늘로 넓어집니다. 자미두수의 열두 궁, 점성술의 열두 집,
           베다의 스물일곱 낙샤트라, 타로의 스물두 장이 차례로 열리고, 그 모든 하늘을 먹어 드는
           일식 흑월과의 싸움이 이어집니다. 이야기가 진행될수록 보는 범위가 나에게서 세상으로 넓어집니다.
-        </p>
-        <p>
-          다만 작품 속 설정은 서사를 위해 각색한 것입니다. 각 체계의 실제 해석 규칙이 궁금하다면{" "}
-          <Link href="/saju/ten-gods/" className="text-amber-100 underline">
+        </StoryHubText></p>
+        <p><StoryHubText>
+          다만 작품 속 설정은 서사를 위해 각색한 것입니다. 각 체계의 실제 해석 규칙이 궁금하다면</StoryHubText>{" "}
+          <Link href="/saju/ten-gods/" className="text-amber-100 underline"><StoryHubText>
             십성 해석 가이드
-          </Link>
-          와{" "}
-          <Link href="/ziwei/guide/" className="text-amber-100 underline">
+          </StoryHubText></Link><StoryHubText>
+          와</StoryHubText>{" "}
+          <Link href="/ziwei/guide/" className="text-amber-100 underline"><StoryHubText>
             자미두수 명반 읽는 법
-          </Link>
+          </StoryHubText></Link><StoryHubText>
           을 함께 보시길 권합니다.
-        </p>
-        <p>
-          섬마다 만나는 인물과 장소는{" "}
-          <Link href="/world/" className="text-amber-100 underline">
+        </StoryHubText></p>
+        <p><StoryHubText>
+          섬마다 만나는 인물과 장소는</StoryHubText>{" "}
+          <Link href="/world/" className="text-amber-100 underline"><StoryHubText>
             캐릭터와 세계관
-          </Link>
-          {" "}페이지에 정리해 두었습니다. 그 페이지도 1부와 2부 초입까지만 다룹니다.
-        </p>
+          </StoryHubText></Link>
+          {" "}<StoryHubText>페이지에 정리해 두었습니다. 그 페이지도 1부와 2부 초입까지만 다룹니다.
+        </StoryHubText></p>
       </YehwaCard>
 
       <YehwaCard as="section" id="characters" ornament={false} className="mt-8">
-        <h2>등장인물</h2>
+        <h2><StoryHubText>등장인물</StoryHubText></h2>
         <dl className="mt-4 space-y-3">
           {CHARACTERS.map((character) => (
             <div key={character.key} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
-              <dt className="text-sm font-semibold text-slate-100">{STORY_SPEAKERS[character.key]}</dt>
-              <dd className="mt-1 break-keep text-sm leading-7 text-slate-300">{character.role}</dd>
+              <dt className="text-sm font-semibold text-slate-100"><StoryHubText>{STORY_SPEAKERS[character.key]}</StoryHubText></dt>
+              <dd className="mt-1 break-keep text-sm leading-7 text-slate-300"><StoryHubText>{character.role}</StoryHubText></dd>
             </div>
           ))}
         </dl>
       </YehwaCard>
 
       <YehwaCard as="section" id="arcs" ornament={false} className="mt-8">
-        <h2>{STORY_ARCS.length}개 아크 구성</h2>
+        <h2>{STORY_ARCS.length}<StoryHubText>개 아크 구성</StoryHubText></h2>
         <div className="mt-4 space-y-4">
           {STORY_ARCS.map((arc) => {
             const episodes = STORY_EPISODES.slice(arc.from, arc.to + 1);
@@ -129,15 +131,15 @@ export default function StoriesHubPage() {
             const guide = ARC_GUIDE_LINKS[arc.key];
             return (
               <div key={arc.key} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-                <h3 className="text-base font-semibold text-slate-50">{arc.title}</h3>
-                <p className="mt-2 break-keep text-sm leading-7 text-slate-300">{arc.summary}</p>
+                <h3 className="text-base font-semibold text-slate-50"><StoryHubText>{arc.title}</StoryHubText></h3>
+                <p className="mt-2 break-keep text-sm leading-7 text-slate-300"><StoryHubText>{arc.summary}</StoryHubText></p>
                 <p className="mt-2 text-xs text-slate-400">
-                  {episodes.length}화 · 한글 약 {korean.toLocaleString()}자
-                  {guide ? (
+                  {episodes.length}<StoryHubText>화 · 한글 약 </StoryHubText>{korean.toLocaleString()}<StoryHubText>자
+                  </StoryHubText>{guide ? (
                     <>
-                      {" · 관련 가이드 "}
+                      <StoryHubText>{" · 관련 가이드 "}</StoryHubText>
                       <Link href={guide.href} className="text-amber-100 underline">
-                        {guide.label}
+                        <StoryHubText>{guide.label}</StoryHubText>
                       </Link>
                     </>
                   ) : null}
@@ -149,7 +151,7 @@ export default function StoriesHubPage() {
       </YehwaCard>
 
       <YehwaCard as="section" id="toc" ornament={false} className="mt-8">
-        <h2>전체 목차 — {STORY_EPISODES.length}화</h2>
+        <h2><StoryHubText>전체 목차 — </StoryHubText>{STORY_EPISODES.length}<StoryHubText>화</StoryHubText></h2>
         <ol className="mt-4 space-y-2">
           {STORY_EPISODES.map((episode) => (
             <li key={episode.slug}>
@@ -158,11 +160,11 @@ export default function StoriesHubPage() {
                 className="block rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 transition hover:border-amber-200/40 hover:bg-white/[0.08]"
               >
                 <p className="text-xs text-slate-400">
-                  {episode.no} · 읽는 시간 약 {readingMinutes(episode)}분
-                </p>
-                <p className="mt-1 text-sm font-semibold text-slate-100">{episode.title}</p>
+                  {episode.no}<StoryHubText> · 읽는 시간 약 </StoryHubText>{readingMinutes(episode)}<StoryHubText>분
+                </StoryHubText></p>
+                <p className="mt-1 text-sm font-semibold text-slate-100"><StoryHubEpisodeTitle id={episode.slug}>{episode.title}</StoryHubEpisodeTitle></p>
                 <p className="mt-1 break-keep text-xs leading-6 text-slate-300">
-                  {STORY_LOGLINES[episode.slug] || ""}
+                  <StoryHubText>{STORY_LOGLINES[episode.slug] || ""}</StoryHubText>
                 </p>
               </Link>
             </li>
@@ -172,5 +174,6 @@ export default function StoriesHubPage() {
 
       <StoryIntegrityNote />
     </main>
+    </StoryEdition>
   );
 }

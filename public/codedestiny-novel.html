@@ -543,6 +543,9 @@ body.novel-paused *{animation-play-state:paused!important}
 
 /* 성운 44개는 무한 애니메이션이라 불투명한 플레이어 뒤에서도 계속 합성된다. 플레이어가 떠 있는 동안 뺀다. */
 body.novel-playing #nebula{display:none}
+.novelLanguage{display:grid;gap:6px;max-width:100%;margin:16px 0;color:var(--gold);font:inherit}
+.novelLanguage select{font:inherit;min-height:44px;max-width:100%;width:100%;padding:8px 12px;background:#10182a;color:#fff;border:1px solid #b99b57;border-radius:8px}
+.novelLanguage small{font-size:.8rem;line-height:1.5;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -576,6 +579,10 @@ body.novel-playing #nebula{display:none}
     <h2><span>연이의</span><span>운명 노벨</span></h2>
     <p class="tag">꽃돼지가 된 연이와 비밀을 품은 영냥이. 낯선 세계를 건너며, 정해진 운명 너머의 답을 함께 찾아가는 이야기.</p>
     <nav id="menu" aria-label="소설 읽기"></nav>
+    <label class="novelLanguage" for="novelLanguage"><span>언어 · Language</span>
+      <select id="novelLanguage"><option value="ko">한국어</option><option value="en">English</option><option value="ja">日本語</option><option value="zh-CN">简体中文</option><option value="zh-TW">繁體中文</option></select>
+      <small id="novelLanguageStatus" role="status" aria-live="polite"></small>
+    </label>
     <a class="novelWorld" href="/world/" aria-label="캐릭터와 세계관 페이지 보기">
       <svg class="novelWorldMark" aria-hidden="true" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="24" cy="24" r="16"/><ellipse cx="24" cy="24" rx="7" ry="16"/><path d="M8 24h32M12.5 15.5h23M12.5 32.5h23M24 2v8m0 28v8m-22-22h8m28 0h8"/><path d="m24 15 2.2 6.8L33 24l-6.8 2.2L24 33l-2.2-6.8L15 24l6.8-2.2L24 15Z" fill="currentColor" stroke="none"/></svg>
       <span class="novelWorldCopy"><strong>캐릭터와 세계관</strong><small>연이와 영냥이가 걷는 세계를 살펴보세요</small></span>
@@ -623,8 +630,33 @@ body.novel-playing #nebula{display:none}
 
 <div id="toast"></div>
 
+<script src="/data/novel/ui-copy.js"></script>
 <script>
 "use strict";
+function nt(source){
+  var dictionary=window.NOVEL_UI_COPY,locale=typeof NOVEL_LOCALE==='string'?NOVEL_LOCALE:requestedNovelLocale();
+  if(locale==='ko'||!dictionary)return source;
+  var row=dictionary.copy[source],index=dictionary.locales.indexOf(locale);
+  return row&&index>=0?row[index]:source;
+}
+function applyNovelUiCopy(){
+  document.querySelectorAll('#enter, #main, #player, .ov, #bgmBtn').forEach(function(root){
+    var walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),node;
+    while((node=walker.nextNode())){
+      if(node.parentElement.tagName==='OPTION')continue;
+      var original=node.__novelSource||node.nodeValue;node.__novelSource=original;
+      var trimmed=original.trim();if(trimmed)node.nodeValue=original.replace(trimmed,nt(trimmed));
+    }
+    [root].concat(Array.from(root.querySelectorAll('[aria-label], [title], [alt]'))).forEach(function(element){
+      ['aria-label','title','alt'].forEach(function(attribute){
+        if(!element.hasAttribute(attribute))return;
+        var key='data-novel-'+attribute,original=element.getAttribute(key)||element.getAttribute(attribute);
+        element.setAttribute(key,original);element.setAttribute(attribute,nt(original));
+      });
+    });
+  });
+  document.title='Code Destiny Novel · '+nt('연이의 운명 노벨');
+}
 /* ============================================================
    에셋 config — 전부 R2 원격(assets.code-destiny.com) 실측 확인
    ============================================================ */
@@ -1095,13 +1127,13 @@ function buildMenu(){
   var m=document.getElementById("menu");m.innerHTML="";
   var hasSave=!!(S.save&&(S.save.beatId||S.save.ep>0||S.save.bi>0));
   var primary=document.createElement("button");primary.type="button";primary.className="readPrimary";
-  primary.textContent=hasSave?"이어 읽기":"이야기 시작하기";
-  if(hasSave){var ep=EPISODES[resolveSavedEpisode(S.save)],note=document.createElement("small");note.textContent=ep?ep.no+" · "+ep.title:"저장한 장면부터";primary.appendChild(note);}
+  primary.textContent=hasSave?nt("이어 읽기"):nt("이야기 시작하기");
+  if(hasSave){var ep=EPISODES[resolveSavedEpisode(S.save)],note=document.createElement("small");note.textContent=ep?ep.no+" · "+ep.title:nt("저장한 장면부터");primary.appendChild(note);}
   primary.onclick=function(){startNovel(!hasSave);};m.appendChild(primary);
-  var chapters=document.createElement("button");chapters.type="button";chapters.className="readSecondary";chapters.textContent="회차 선택";chapters.onclick=openScenePicker;m.appendChild(chapters);
+  var chapters=document.createElement("button");chapters.type="button";chapters.className="readSecondary";chapters.textContent=nt("회차 선택");chapters.onclick=openScenePicker;m.appendChild(chapters);
   var services=document.getElementById("serviceMenu");services.innerHTML="";
   MENU.forEach(function(it){var link=document.createElement("a");link.href=it.href;link.className="novelService";
-    link.innerHTML='<span><strong>'+it.label+'</strong><small>'+it.sub+'</small></span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';services.appendChild(link);});
+    link.innerHTML='<span><strong>'+nt(it.label)+'</strong><small>'+nt(it.sub)+'</small></span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';services.appendChild(link);});
   document.getElementById("mainSettings").onclick=function(){openOv("setOv");};
 }
 function buildEnterPig(){
@@ -1119,6 +1151,7 @@ function buildEnterPig(){
 }
 function showMain(){
   S.screen="main";
+  refreshNovelLocale().catch(showNovelLocaleError);
   document.getElementById("enter").classList.add("hidden");
   var mh=document.getElementById("mainHero"),heroPath="/images/novel/yeoni-youngyangi-hero-v1.webp";
   if(location.protocol==="file:")heroPath="images/novel/yeoni-youngyangi-hero-v1.webp";
@@ -1177,7 +1210,7 @@ async function startNovel(fromStart,selection){
     await initNovelData();
     if(selection){S.ep=selection.ep;}else if(!fromStart&&S.save){S.ep=resolveSavedEpisode(S.save);}else{S.ep=0;}
     await ensureEpisodeLoaded(S.ep);
-  }catch(e){if(returnToMain){toast("소설 데이터를 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.");}else{showNovelDataError(e);}return;}
+  }catch(e){if(returnToMain){toast(nt("소설 데이터를 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요."));}else{showNovelDataError(e);}return;}
   if(selection){S.bi=selection.bi;}else if(!fromStart&&S.save){S.bi=resolveSavedBeat(S.ep,S.save);}else{S.bi=0;}
   preloadFirstBg(S.ep);preloadCoreSprites();
   S.screen="player";buildCtl();S.started=true;
@@ -1216,11 +1249,11 @@ function showNovelDataError(error){
   setNovelPlaying(true);
   var main=document.getElementById("main");if(main){main.classList.add("hidden");}
   var enter=document.getElementById("enter");if(enter){enter.classList.add("hidden");}
-  var tag=document.getElementById("epTag");if(tag)tag.textContent="데이터 연결 확인 필요";
+  var tag=document.getElementById("epTag");if(tag)tag.textContent=nt("데이터 연결 확인 필요");
   if(dlg){dlg.dataset.spk="sys";dlg.dataset.typing="false";dlg.dataset.done="true";}
   if(spkIcon)spkIcon.textContent="!";
   if(spkName)spkName.textContent="CODE DESTINY";
-  if(dlgBody)dlgBody.textContent="대사를 불러오지 못했어요. 네트워크를 확인한 뒤 다시 시도해 주세요.";
+  if(dlgBody)dlgBody.textContent=nt("대사를 불러오지 못했어요. 네트워크를 확인한 뒤 다시 시도해 주세요.");
 }
 function backToMain(){
   document.getElementById("player").classList.remove("on");
@@ -1232,29 +1265,29 @@ function backToMain(){
 function buildCtl(){
   var ctl=document.getElementById("ctl");
   var items=[
-    {k:"back",t:"⌂",lbl:"메인"},
-    {k:"prevCh",t:"⏮",lbl:"이전화"},
-    {k:"nextCh",t:"⏭",lbl:"다음화"},
-    {k:"prev",t:"◀",lbl:"이전"},
-    {k:"idx",t:"☰",lbl:"목차·연출"},
-    {k:"auto",t:"AUTO",lbl:"자동"},
-    {k:"skip",t:"SKIP",lbl:"빠르게"},
-    {k:"log",t:"LOG",lbl:"지난대사"},
-    {k:"save",t:"SAVE",lbl:"저장"},
-    {k:"load",t:"LOAD",lbl:"불러오기"},
-    {k:"set",t:"⚙",lbl:"설정"}
+    {k:"back",t:"⌂",lbl:nt("메인")},
+    {k:"prevCh",t:"⏮",lbl:nt("이전화")},
+    {k:"nextCh",t:"⏭",lbl:nt("다음화")},
+    {k:"prev",t:"◀",lbl:nt("이전")},
+    {k:"idx",t:"☰",lbl:nt("목차·연출")},
+    {k:"auto",t:"AUTO",lbl:nt("자동")},
+    {k:"skip",t:"SKIP",lbl:nt("빠르게")},
+    {k:"log",t:"LOG",lbl:nt("지난대사")},
+    {k:"save",t:"SAVE",lbl:nt("저장")},
+    {k:"load",t:"LOAD",lbl:nt("불러오기")},
+    {k:"set",t:"⚙",lbl:nt("설정")}
   ];
   ctl.innerHTML="";
   items.forEach(function(it){
-    var b=document.createElement("button");b.className="cbtn";b.dataset.k=it.k;b.innerHTML=it.t+'<span class="lbl">'+it.lbl+'</span>';
+    var b=document.createElement("button");b.className="cbtn";b.dataset.k=it.k;b.innerHTML=it.t+'<span class="lbl">'+nt(it.lbl)+'</span>';
     b.addEventListener("click",function(e){e.stopPropagation();ctlAct(it.k,b);});
     ctl.appendChild(b);
   });
 }
 function chapSkip(dir){
   var t=S.ep+dir;
-  if(t<0){toast("첫 화예요");return;}
-  if(t>=EPISODES.length){toast("마지막 화예요");return;}
+  if(t<0){toast(nt("첫 화예요"));return;}
+  if(t>=EPISODES.length){toast(nt("마지막 화예요"));return;}
   S.bi=0;enterEpisode(t,true);
 }
 function ctlAct(k,b){
@@ -1266,18 +1299,18 @@ function ctlAct(k,b){
   else if(k==="auto"){S.auto=!S.auto;b.classList.toggle("active",S.auto);if(S.auto&&!S.typing)scheduleAuto();}
   else if(k==="skip"){S.skip=!S.skip;b.classList.toggle("active",S.skip);if(S.skip)doSkipStep();}
   else if(k==="log")openLog();
-  else if(k==="save"){saveBookmark(S.ep,S.bi);toast("저장했어요 · 이 자리에서 이어볼 수 있어요");}
+  else if(k==="save"){saveBookmark(S.ep,S.bi);toast(nt("저장했어요 · 이 자리에서 이어볼 수 있어요"));}
   else if(k==="load")jumpToBookmark();
   else if(k==="set")openOv("setOv");
 }
 /* 🔴 저장은 episodeId·beatId 까지 남기는데 불러오기만 인덱스를 그대로 썼다 — 정본 빌드로 화·비트
    순서가 바뀌면 엉뚱한 자리로 뛴다. 저장·부팅과 같은 해석기를 태우고, 청크가 붙은 뒤에 알린다. */
 async function jumpToBookmark(){
-  if(!S.save){toast("저장된 지점이 없어요");return;}
+  if(!S.save){toast(nt("저장된 지점이 없어요"));return;}
   var ep=resolveSavedEpisode(S.save);
   try{await ensureEpisodeLoaded(ep);}catch(e){showNovelDataError(e);return;}
   await hydrateTo(ep,resolveSavedBeat(ep,S.save));
-  toast("불러왔어요");
+  toast(nt("불러왔어요"));
 }
 
 async function enterEpisode(ei,showCard){
@@ -1376,8 +1409,8 @@ async function nextEpisode(){
   else{endStory();}
 }
 function endStory(episode){
-  var label=episode&&episode.ending?episode.ending.label:"이야기의 봄";
-  showBeatText({s:"sys",t:"[ "+label+" · 운명은 읽는 것이 아니라, 쓰는 것이다. ]"});
+  var label=episode&&episode.ending?episode.ending.label:nt("이야기의 봄");
+  showBeatText({s:"sys",t:"[ "+label+nt(" · 운명은 읽는 것이 아니라, 쓰는 것이다. ]")});
   S.save={ep:0,bi:0};
   dlg.dataset.done="true";
   curBeat={end:true};
@@ -1461,14 +1494,14 @@ function buildSceneRows(ep,ei,body){
   ep.beats.forEach(function(b,bi){
     var row=document.createElement("div");
     row.className="idxRow"+((b.s==="n"||b.s==="sys")?" n":"")+((ei===S.ep&&bi===S.bi)?" here":"");
-    var who=speakerName(b.s,ei,bi)||(b.s==="sys"?"코드":"");
+    var who=speakerName(b.s,ei,bi)||(b.s==="sys"?nt("코드"):"");
     var tags=[];
     if(b.bg)tags.push(b.bg);
     if(b.fx)tags.push("fx:"+b.fx);
     if(b.skill&&b.skill.name)tags.push("技:"+b.skill.name);
     if(b.bgm)tags.push("♪"+b.bgm);
-    if(b.form)tags.push(b.form==="pig"?"→꽃돼지":"→사람");
-    if(b.im)tags.push("임팩트");
+    if(b.form)tags.push(b.form==="pig"?nt("→꽃돼지"):nt("→사람"));
+    if(b.im)tags.push(nt("임팩트"));
     row.innerHTML='<span class="idxNo">#'+bi+'</span><span class="idxWho">'+(who||"—")+'</span>'+
       '<span class="idxTxt">'+escapeHtml((b.t||"").slice(0,28))+'</span>'+
       (tags.length?'<span class="idxTags">'+escapeHtml(tags.join(" · "))+'</span>':'');
@@ -1482,16 +1515,16 @@ function selectNovelScene(ep,bi){
   return hydrateTo(ep,bi);
 }
 function openScenePicker(){
-  if(!NOVEL_MANIFEST){toast("소설 데이터를 불러오면 회차를 선택할 수 있어요.");return;}
+  if(!NOVEL_MANIFEST){toast(nt("소설 데이터를 불러오면 회차를 선택할 수 있어요."));return;}
   var list=document.getElementById("idxList");list.innerHTML="";
   EPISODES.forEach(function(ep,ei){
     var wrap=document.createElement("div");wrap.className="idxEpWrap"+(ei===S.ep?" cur":"");
-    var h=document.createElement("div");h.className="idxEp";h.tabIndex=0;h.setAttribute("role","button");h.setAttribute("aria-label",ep.no+" "+ep.title+" 읽기");
+    var h=document.createElement("div");h.className="idxEp";h.tabIndex=0;h.setAttribute("role","button");h.setAttribute("aria-label",ep.no+" "+ep.title+" "+nt("읽기"));
     h.addEventListener("keydown",function(e){if(e.target===h&&(e.key==="Enter"||e.key===" ")){e.preventDefault();selectNovelScene(ei,0);}});
     h.innerHTML='<span class="idxEpNo">'+ep.no+'</span><span class="idxEpTi">'+escapeHtml(ep.title)+'</span>'+
-      (ei===S.ep?'<span class="idxEpNow">읽는 중</span>':'')+
-      '<span class="idxEpMeta">'+(ep.beatCount||(ep.beats?ep.beats.length:0))+'컷</span>'+
-      '<button type="button" class="idxEpTog" aria-label="장면 연출 펼치기">연출 ▾</button>';
+      (ei===S.ep?'<span class="idxEpNow">'+nt('읽는 중')+'</span>':'')+
+      '<span class="idxEpMeta">'+(ep.beatCount||(ep.beats?ep.beats.length:0))+nt('컷')+'</span>'+
+      '<button type="button" class="idxEpTog" aria-label="'+nt('장면 연출 펼치기')+'">'+nt('연출 ▾')+'</button>';
     h.addEventListener("click",function(e){
       if(e.target.classList.contains("idxEpTog"))return;
       selectNovelScene(ei,0);
@@ -1502,19 +1535,19 @@ function openScenePicker(){
     tog.addEventListener("click",function(e){
       e.stopPropagation();
       var shown=body.style.display!=="none";
-      if(shown){body.style.display="none";tog.textContent="연출 ▾";return;}
+      if(shown){body.style.display="none";tog.textContent=nt("연출 ▾");return;}
       if(!built){
         if(!Array.isArray(ep.beats)){
-          tog.textContent="여는 중…";
+          tog.textContent=nt("여는 중…");
           ensureEpisodeLoaded(ei).then(function(loaded){
             buildSceneRows(loaded,ei,body);built=true;
-            body.style.display="";tog.textContent="연출 ▴";
-          }).catch(function(){tog.textContent="연출 ▾";});
+            body.style.display="";tog.textContent=nt("연출 ▴");
+          }).catch(function(){tog.textContent=nt("연출 ▾");});
           return;
         }
         buildSceneRows(ep,ei,body);built=true;
       }
-      body.style.display="";tog.textContent="연출 ▴";
+      body.style.display="";tog.textContent=nt("연출 ▴");
     });
     wrap.appendChild(body);
     list.appendChild(wrap);
@@ -1710,8 +1743,8 @@ var ICON={yeon:"연",neo:"NEO",mu:"무",geo:"?",moka:"모카",crow:"까악",luna
 var NAME={yeon:"연이",neo:"네오",mu:"무성",geo:"거울 속 연이",moka:"모카",crow:"까마귀",luna:"루나블룸",n:"",sys:"",
   ln:"루나",lns:"루나 언니",rab:"청토끼",pje:"서한비",tiger:"검은 호랑이",god:"운명의 신",yun:"윤달",heuk:"흑월"};
 /* 네오는 인간이 되기 전까지 고양이 영냥이로 불린다. */
-function speakerName(s,ep,bi){return s==="neo"&&neoFormAt(ep,bi)!=="human"?"영냥이":(NAME[s]||"");}
-function speakerIcon(s,ep,bi){return s==="neo"&&neoFormAt(ep,bi)!=="human"?"냥":(ICON[s]||"달");}
+function speakerName(s,ep,bi){return s==="neo"&&neoFormAt(ep,bi)!=="human"?nt("영냥이"):nt(NAME[s]||"");}
+function speakerIcon(s,ep,bi){if(NOVEL_LOCALE!=="ko")return speakerName(s,ep,bi).slice(0,2)||"·";return s==="neo"&&neoFormAt(ep,bi)!=="human"?"냥":(ICON[s]||"달");}
 function showDialogue(b){
   document.getElementById("player").dataset.shot=b.shot||"medium";
   clearTimeout(typeTimer);
@@ -1915,7 +1948,7 @@ function fxHeart(){var d=mkOverlay();d.style.animation="heartEdge 1.1s ease 2";c
 function fxTarot(){
   var d=mkOverlay();d.style.display="flex";d.style.alignItems="center";d.style.justifyContent="center";
   var glow=document.createElement("div");glow.style.cssText="position:absolute;left:50%;top:50%;width:62vh;height:62vh;max-width:640px;max-height:640px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(233,196,106,.26),rgba(185,156,255,.14) 42%,transparent 68%);animation:pigGlow 3s ease-in-out infinite";d.appendChild(glow);
-  var card=document.createElement("img");card.alt="타로의 문 카드";
+  var card=document.createElement("img");card.alt=nt("타로의 문 카드");
   card.style.cssText="position:relative;height:58vh;max-height:560px;border-radius:14px;filter:drop-shadow(0 18px 40px rgba(0,0,0,.5)) drop-shadow(0 0 44px rgba(233,196,106,.5));opacity:0;transform:translateY(34px) scale(.9);transition:opacity .7s var(--ease),transform .9s var(--ease)";
   var fb=svgData('<defs><linearGradient id="c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1026"/><stop offset="1" stop-color="#141a37"/></linearGradient></defs><rect width="300" height="460" rx="16" fill="url(#c)" stroke="#c9a227" stroke-width="3"/><path d="M180 60a70 70 0 1 0 30 92 56 56 0 0 1-30-92Z" fill="#e9c46a"/><circle cx="150" cy="330" r="10" fill="#f8bbdd"/><path d="M150 330c0-30 0-70 0-120" stroke="#e9c46a" stroke-width="2"/><text x="150" y="420" fill="#e8e4d9" font-size="22" text-anchor="middle" letter-spacing="4">THE DOOR</text>',300,460);
   setImg(card,TAROT,fb);d.appendChild(card);
@@ -2254,6 +2287,63 @@ var NOVEL_MANIFEST=null;
 var NOVEL_DATA_READY=null;
 var NOVEL_EPISODE_LOADS={};
 var _episodeLRU=[];
+var NOVEL_LOCALE='ko';
+var NOVEL_ROOT_MANIFEST=null;
+function requestedNovelLocale(){
+  var saved='';try{saved=localStorage.getItem('cd:novel:language')||'';}catch(_){}
+  var cookies=document.cookie.split(';').map(function(value){return value.trim();});
+  function cookie(name){var item=cookies.find(function(value){return value.indexOf(name+'=')===0;});return item?decodeURIComponent(item.slice(name.length+1)):'';}
+  var site=window.__cdAppLanguage||new URLSearchParams(location.search).get('lang')||(cookie('cd_locale_explicit')==='1'?cookie('cd_locale'):'')||cookie('cd_geo_locale')||cookie('cd_locale');
+  var tag=(new URLSearchParams(location.search).get('novelLang')||saved||site||navigator.language||'en').toLowerCase().replace(/_/g,'-');
+  if(/^ko(?:-|$)/.test(tag))return 'ko';if(/^ja(?:-|$)/.test(tag))return 'ja';
+  if(/^zh(?:-|$)/.test(tag))return /(?:^|-)(?:hant|tw|hk|mo)(?:-|$)/.test(tag)?'zh-TW':'zh-CN';
+  return 'en';
+}
+function selectNovelEdition(manifest){
+  var available=manifest.availableLocales||['ko'],requested=requestedNovelLocale();
+  var select=document.getElementById('novelLanguage'),status=document.getElementById('novelLanguageStatus');
+  NOVEL_LOCALE=available.indexOf(requested)>=0?requested:'ko';
+  if(select){
+    Array.from(select.options).forEach(function(option){option.disabled=available.indexOf(option.value)<0;});
+    select.value=NOVEL_LOCALE;
+    select.onchange=function(){
+      if(available.indexOf(select.value)<0)return;
+      try{localStorage.setItem('cd:novel:language',select.value);}catch(_){}
+      var url=new URL(location.href);url.searchParams.set('novelLang',select.value);url.hash='';location.assign(url.href);
+    };
+  }
+  if(status)status.textContent=requested!==NOVEL_LOCALE?'This edition is being prepared. The Korean original is shown.':'한국어 · English · 日本語 · 简体中文 · 繁體中文';
+  document.documentElement.lang=NOVEL_LOCALE;
+  applyNovelUiCopy();
+  if(NOVEL_LOCALE==='ko')return manifest;
+  return fetch('/data/novel/'+NOVEL_LOCALE+'/manifest.json',{cache:'no-cache'}).then(function(response){
+    if(!response.ok)throw new Error('Novel edition unavailable');return response.json();
+  }).then(function(translated){
+    if(translated.sourceHash!==manifest.sourceHash||translated.locale!==NOVEL_LOCALE)throw new Error('Novel edition is stale');
+    return translated;
+  });
+}
+function refreshNovelLocale(){
+  return initNovelData().then(async function(){
+    document.documentElement.lang=NOVEL_LOCALE;
+    if(S.screen==='player'||!NOVEL_ROOT_MANIFEST)return;
+    var available=NOVEL_ROOT_MANIFEST.availableLocales||['ko'];
+    var requested=requestedNovelLocale();
+    var target=available.indexOf(requested)>=0?requested:'ko';
+    if(target===NOVEL_LOCALE)return;
+    // Finish old preloads before replacing caches; never mix language chunks.
+    await Promise.allSettled(Object.values(NOVEL_EPISODE_LOADS));
+    if(S.screen==='player')return;
+    NOVEL_DATA_READY=null;NOVEL_EPISODE_LOADS={};_episodeLRU=[];
+    return initNovelData();
+  });
+}
+function showNovelLocaleError(error){
+  NOVEL_DATA_READY=null;
+  var status=document.getElementById('novelLanguageStatus');
+  if(status)status.textContent=nt('소설 데이터를 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.');
+  console.error('[CODE DESTINY VN] edition load failed',error);
+}
 function retainEpisode(index,episode){
   EPISODES[index]=episode;
   _episodeLRU=_episodeLRU.filter(function(i){return i!==index;});_episodeLRU.push(index);
@@ -2269,7 +2359,7 @@ function initNovelData(){
   NOVEL_DATA_READY=fetch("/data/novel/manifest.json",{cache:"no-cache"}).then(function(response){
     if(!response.ok)throw new Error("manifest HTTP "+response.status);
     return response.json();
-  }).then(function(manifest){
+  }).then(function(manifest){NOVEL_ROOT_MANIFEST=manifest;return selectNovelEdition(manifest);}).then(function(manifest){
     if(!manifest||!Array.isArray(manifest.episodes)||!manifest.episodes.length)throw new Error("invalid manifest");
     // A fixed reading order, independent of previous reader selections.
     manifest.episodes=manifest.episodes.filter(function(episode){return !episode.branch||episode.branch==="reality";});
@@ -2310,7 +2400,7 @@ function resolveSavedBeat(ep,save){
 }
 function warmNextEpisode(index){
   var next=index+1;if(next>=EPISODES.length)return;
-  setTimeout(function(){if(S.ep===index)ensureEpisodeLoaded(next).catch(function(){});},0);
+  setTimeout(function(){if(S.screen==="player"&&S.ep===index)ensureEpisodeLoaded(next).catch(function(){});},0);
 }
 function ensureEpisodeLoaded(index){
   return initNovelData().then(function(){
@@ -2325,7 +2415,7 @@ function ensureEpisodeLoaded(index){
       chunk.beats=chunk.beats.map(function(beat){
         if(!beat.choice)return beat;
         var narrative=Object.assign({},beat);delete narrative.choice;
-        narrative.t="[ 스물세 번째 카드 · 두 사람은 현실로 돌아간다 ]";
+        narrative.t=nt("[ 스물세 번째 카드 · 두 사람은 현실로 돌아간다 ]");
         return narrative;
       });
       retainEpisode(index,chunk);preloadFirstBg(index);return chunk;
@@ -2341,14 +2431,15 @@ document.addEventListener("visibilitychange",function(){
     if(S.bgmOn&&audio.src&&S.bgmKey!=="none")audio.play().catch(function(){});
   }
 });
+window.addEventListener("cd:locale-ready",function(){refreshNovelLocale().catch(showNovelLocaleError);});
 initNovelData().then(function(){
   window.__NOVEL_READY=true;
   if(location.hash==="#play"||location.hash==="#novel")bootDirectPlay();
 }).catch(function(error){
   window.__NOVEL_READY=false;
   NOVEL_DATA_READY=null;
-  var button=document.getElementById("enterBtn");if(button){button.disabled=false;button.textContent="메인 화면 보기";}
-  var hint=document.querySelector("#enter .hint");if(hint)hint.textContent="소설 데이터를 불러오지 못했어요. 메인 화면은 둘러볼 수 있어요.";
+  var button=document.getElementById("enterBtn");if(button){button.disabled=false;button.textContent=nt("메인 화면 보기");}
+  var hint=document.querySelector("#enter .hint");if(hint)hint.textContent=nt("소설 데이터를 불러오지 못했어요. 메인 화면은 둘러볼 수 있어요.");
   if(location.hash==="#play"||location.hash==="#novel")showNovelDataError(error);
   else console.error("[CODE DESTINY VN] data load failed",error);
 });

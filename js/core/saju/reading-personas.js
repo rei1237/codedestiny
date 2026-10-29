@@ -49,6 +49,7 @@
       inputs: '현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.',
       pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '라이트 사주 풀이', daeunTitle: '대운 분석 · 지금부터 다음 시기까지', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거부터 짚어 줄게. 그다음 지금 해 볼 작은 걸음 하나를 같이 고르자.', paidRead: '풀이 확인하기',
       catTitle: '영냥이 상담', catPurpose: '명식의 흐름을 고양이 상담사와', catGo: '살펴보기', catPrice: '{price}부터',
+      letterVerdictJong: '한 방향으로 흐르는 힘을 따라가는 구조', letterVerdictStrong: '스스로 길을 내는 힘이 비교적 넉넉한 구조', letterVerdictWeak: '곁의 도움과 준비된 시간이 있을 때 더 편안히 빛나는 구조',
       letterGreeting: '{name}님께,', letterGuest: '이 편지를 읽는 당신', letterSignature: '연이가 온 마음을 담아',
       letterOpening: '긴 풀이를 읽으며 어떤 문장에서는 고개를 끄덕이고, 어떤 대목에서는 잠시 마음이 멈췄을지도 모르겠어요. 오늘은 답을 서둘러 정하기보다 따뜻한 차 한 잔을 사이에 두고, 당신의 이야기를 조금 더 듣는 마음으로 이 편지를 남겨요.',
       letterDay: '명식에서 나를 읽는 기준인 일간은 {stem}이에요. {image} 이 모습이 익숙하게 느껴진다면, 요즘 그 힘을 어디에 쓰고 있는지 천천히 떠올려보세요. 타고난 기질은 지켜야 할 숙제가 아니라, 나를 조금 덜 오해하기 위한 실마리니까요.',
@@ -102,16 +103,213 @@
       godRulesNeo: ['혼자 정할 일과 같이 정할 일을 나누고, 협의가 필요한 일엔 의견부터 확인해 봐.', '경쟁 전에 비용과 역할부터 맞춰 둬. 비교가 목표를 바꾸기 시작하면 잠깐 멈춰도 돼.', '반복할 수 있는 분량으로 시작해 봐. 완성한 결과를 기준으로 다음 단계를 정하면 돼.', '문제를 짚을 땐 대안도 같이 내 봐. 상대를 평가하는 말은 빼는 게 좋아.', '기회마다 필요한 시간과 손실 한도를 적어 봐. 범위를 넘으면 보류해도 돼.', '수입·지출과 약속을 기록해 둬. 안정이 좋다고 필요한 변화까지 미루진 마.', '압박을 감당할 자원부터 확인해 봐. 수면과 회복이 무너지면 일을 나누는 게 좋아.', '책임 범위부터 확인해 봐. 규칙이 목적과 어긋나면 근거를 들고 조정하면 돼.', '직관은 가설로 두고 실제 사례로 확인해 봐. 근거 없이 큰 결정은 내리지 마.', '배운 것 하나를 직접 써 봐. 도움을 받더라도 마지막 선택은 네가 한 번 더 점검해 봐.']
     },
     en: {
-      yeon: 'Yeoni', neo: 'Yeongnyangi', garden: 'A garden for understanding yourself', room: 'Yeongnyangi’s starlit attic', same: 'One chart, two reading styles. Calculations and free/paid access stay the same.', compareNeo: 'Review Yeoni’s clues with Yeongnyangi', compareYeon: 'Read Yeongnyangi’s criteria with Yeoni', observe: 'What Yeoni notices', life: 'In everyday life', practice: 'One small practice', diagnosis: 'Yeongnyangi’s assessment', basis: 'Chart evidence', action: 'Decision criteria', element: 'Five-element balance', temperament: 'Natural temperament', ten: 'Roles in the Ten Gods', climate: 'Seasonal balance', strength: 'How support is distributed', flow: 'Current cycles', letter: 'A final note',
-      names: ['Wood', 'Fire', 'Earth', 'Metal', 'Water'], traits: ['starting and developing ideas', 'expressing thoughts and feelings', 'sustaining commitments', 'setting standards and simplifying', 'observing and adapting'],
-      scenes: ['You may start several things at once. Leave room to finish them.', 'You may bring energy to conversations. Give others time to respond.', 'Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.', 'Clear standards may help with uncertainty. Too many rules can leave little room to breathe.', 'You may notice subtle changes. When reflection stretches on, try a small experiment.'],
-      actions: ['Finish one existing task before adding another.', 'Pause after an important message and listen to the response.', 'Write down the boundary of one responsibility this week.', 'Separate one essential standard from one flexible preference.', 'Choose one thing to research and one thing to test now.'],
-      rules: ['Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.', 'Speak when the message and the listener’s availability align. Do not press for an immediate answer.', 'Accept a role when resources match its demands. Renegotiate a growing workload.', 'Apply standards that serve the goal. Define a minimum if perfection stalls progress.', 'Research a specific question. Set a small test deadline if information only accumulates.'],
-      godNames: ['Peer · autonomy', 'Competitor · cooperation', 'Expression · consistency', 'Challenger · improvement', 'Opportunity · resources', 'Stewardship · accumulation', 'Pressure · response', 'Responsibility · order', 'Insight · perspective', 'Learning · support'],
-      godTraits: ["A preference for self-directed choices", "Energy from cooperation and competition", "Expression refined through practice", "A habit of reviewing familiar rules", "Interest in connecting opportunities", "Steady attention to resources and commitments", "Focus on demanding tasks", "Attention to roles and standards", "Deep exploration of unfamiliar views", "Preparation through learning and support"],
-      godLife: ['Making your own decisions may feel comfortable. Hear another view too.', 'Working alongside others may energise you. Notice when comparison becomes draining.', 'Regular practice and expression may help you develop a skill.', 'You may question familiar rules. Explain the reason for a proposed change.', 'Connecting opportunities may interest you. Check what you can realistically manage.', 'Keeping small financial commitments and promises may bring stability.', 'Demanding tasks may focus your attention. Make recovery part of the schedule.', 'Clear roles may feel comfortable. Practise adjusting when expectations change.', 'You may explore unfamiliar perspectives deeply. Test them against experience.', 'Learning and support may renew your energy. Put one lesson into practice.'],
-      godRules: ['Separate individual from shared decisions and consult where needed.', 'Agree on costs and roles before competing. Pause if comparison replaces the goal.', 'Start with a repeatable workload. Use completed work to plan the next step.', 'Offer an alternative when identifying a problem. Avoid judging the person.', 'List time and downside limits for each opportunity. Defer what exceeds them.', 'Record income, costs and commitments. Do not let stability prevent necessary change.', 'Check resources before accepting pressure. Share work if rest suffers.', 'Clarify responsibility. Adjust rules with evidence when they undermine their purpose.', 'Treat intuition as a hypothesis. Verify before making a major decision.', 'Apply one lesson directly. Review the final choice even when receiving help.'],
-      distribution: 'Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.', dominant: '{element} at {value}% is relatively prominent: a clue to {trait}.', balanced: 'Several elements share the largest proportion. Consider how different situations bring out different strengths.', dayBasis: 'Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.', godBasis: '{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.', unknown: 'Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.', cold: 'The seasonal score leans cooler. Notice what helps you prepare before starting an activity.', hot: 'The seasonal score leans warmer. Leave recovery intervals when increasing your pace.', neutral: 'The temperature score is centred. Observe your actual routine rather than compensating in one direction.', climateBasis: 'Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.', climateAction: 'Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.', strong: 'The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.', weak: 'Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.', jong: 'The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.', strengthBasis: 'Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.', strengthAction: 'Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.', flowBasis: '{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.', flowOpen: 'The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.', flowCare: 'The existing assessment suggests adjustment. Review pace, responsibilities and schedules.', flowRuleOpen: 'Start small when resources and plans are ready. A score does not guarantee an outcome.', flowRuleCare: 'Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.', period: 'Current ten-year cycle', year: 'Current annual cycle', more: 'Read more', sample: 'Sample · a fictional chart', sampleNote: 'An example of the format, not your personal result.', paidDifference: 'The free reading introduces your temperament. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.', paidDaeun: 'Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.', paidSummary: 'Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.', recovery: 'Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.', inputs: 'Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.', pricePending: 'Checking price', priceUnavailable: 'Confirm the price in the payment information', summaryTitle: 'Light saju reading', daeunTitle: 'Your ten-year cycles', graphTitle: 'Cycle comparison', yeonIntro: 'Read your temperament and the season you are in, one page at a time.', neoIntro: 'Review the chart evidence and turn it into practical choices.', paidRead: 'View reading', catTitle: 'Yeongnyangi readings', catPurpose: 'Explore your chart with the cat guide', catGo: 'Explore', catPrice: 'From {price}', endYeon: 'You do not need to fit every sentence. Start with one clue that connects with your own experience.', endNeo: 'A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.'
+      "yeon": "Yeoni",
+      "neo": "Yeongnyangi",
+      "garden": "Yeoni’s moonlit saju",
+      "room": "Yeongnyangi’s starlit attic",
+      "same": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
+      "compareNeo": "Switch to Yeongnyangi’s reading",
+      "compareYeon": "Switch to Yeoni’s reading",
+      "observe": "What Yeoni notices",
+      "life": "In everyday life",
+      "practice": "One small practice",
+      "diagnosis": "What Yeongnyangi notices",
+      "basis": "Chart evidence",
+      "action": "Decision criteria",
+      "element": "Five-element balance",
+      "temperament": "Natural temperament",
+      "ten": "Roles in the Ten Gods",
+      "climate": "Seasonal balance",
+      "strength": "How support is distributed",
+      "flow": "Current cycles",
+      "letter": "Letter",
+      "names": [
+        "Wood",
+        "Fire",
+        "Earth",
+        "Metal",
+        "Water"
+      ],
+      "traits": [
+        "starting and developing ideas",
+        "expressing thoughts and feelings",
+        "sustaining commitments",
+        "setting standards and simplifying",
+        "observing and adapting"
+      ],
+      "scenes": [
+        "You may start several things at once. Leave room to finish them.",
+        "You may bring energy to conversations. Give others time to respond.",
+        "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
+        "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
+        "You may notice subtle changes. When reflection stretches on, try a small experiment."
+      ],
+      "actions": [
+        "Finish one existing task before adding another.",
+        "Pause after an important message and listen to the response.",
+        "Write down the boundary of one responsibility this week.",
+        "Separate one essential standard from one flexible preference.",
+        "Choose one thing to research and one thing to test now."
+      ],
+      "rules": [
+        "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
+        "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
+        "Accept a role when resources match its demands. Renegotiate a growing workload.",
+        "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
+        "Research a specific question. Set a small test deadline if information only accumulates."
+      ],
+      "godNames": [
+        "Peer · autonomy",
+        "Competitor · cooperation",
+        "Expression · consistency",
+        "Challenger · improvement",
+        "Opportunity · resources",
+        "Stewardship · accumulation",
+        "Pressure · response",
+        "Responsibility · order",
+        "Insight · perspective",
+        "Learning · support"
+      ],
+      "godLife": [
+        "Making your own decisions may feel comfortable. Hear another view too.",
+        "Working alongside others may energise you. Notice when comparison becomes draining.",
+        "Regular practice and expression may help you develop a skill.",
+        "You may question familiar rules. Explain the reason for a proposed change.",
+        "Connecting opportunities may interest you. Check what you can realistically manage.",
+        "Keeping small financial commitments and promises may bring stability.",
+        "Demanding tasks may focus your attention. Make recovery part of the schedule.",
+        "Clear roles may feel comfortable. Practise adjusting when expectations change.",
+        "You may explore unfamiliar perspectives deeply. Test them against experience.",
+        "Learning and support may renew your energy. Put one lesson into practice."
+      ],
+      "godRules": [
+        "Separate individual from shared decisions and consult where needed.",
+        "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
+        "Start with a repeatable workload. Use completed work to plan the next step.",
+        "Offer an alternative when identifying a problem. Avoid judging the person.",
+        "List time and downside limits for each opportunity. Defer what exceeds them.",
+        "Record income, costs and commitments. Do not let stability prevent necessary change.",
+        "Check resources before accepting pressure. Share work if rest suffers.",
+        "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
+        "Treat intuition as a hypothesis. Verify before making a major decision.",
+        "Apply one lesson directly. Review the final choice even when receiving help."
+      ],
+      "distribution": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
+      "dominant": "{element} at {value}% is relatively prominent: a clue to {trait}.",
+      "balanced": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
+      "dayBasis": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
+      "godBasis": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
+      "unknown": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
+      "cold": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
+      "hot": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
+      "neutral": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
+      "climateBasis": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
+      "climateAction": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
+      "strong": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
+      "weak": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
+      "jong": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
+      "strengthBasis": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
+      "strengthAction": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
+      "flowBasis": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
+      "flowOpen": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
+      "flowCare": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
+      "flowRuleOpen": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
+      "flowRuleCare": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
+      "period": "Current ten-year cycle",
+      "year": "Current annual cycle",
+      "more": "Read more",
+      "sample": "Sample · a fictional chart",
+      "sampleNote": "An example of the format, not your personal result.",
+      "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+      "paidDaeun": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
+      "paidSummary": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
+      "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
+      "inputs": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
+      "pricePending": "Checking price",
+      "priceUnavailable": "Confirm the price in the payment information",
+      "paidRead": "View reading",
+      "catTitle": "Yeongnyangi readings",
+      "catPurpose": "Explore your chart with the cat guide",
+      "catGo": "Explore",
+      "catPrice": "From {price}",
+      "endYeon": "You do not need to fit every sentence. Start with one clue that connects with your own experience.",
+      "endNeo": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
+      "catFree": "Free fortune",
+      "today": "Today’s cycle",
+      "month": "This month’s cycle",
+      "summaryTitle": "Light saju reading",
+      "daeunTitle": "Ten-year cycles: from now to the next phase",
+      "graphTitle": "Cycle comparison",
+      "godTraits": [
+        "A preference for self-directed choices",
+        "Energy from cooperation and competition",
+        "Expression refined through practice",
+        "A habit of reviewing familiar rules",
+        "Interest in connecting opportunities",
+        "Steady attention to resources and commitments",
+        "Focus on demanding tasks",
+        "Attention to roles and standards",
+        "Deep exploration of unfamiliar views",
+        "Preparation through learning and support"
+      ],
+      "neoIntro": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
+      "letterGreeting": "Dear {name},",
+      "letterGuest": "You, the reader of this letter",
+      "letterSignature": "With all my heart, Yeoni",
+      "letterOpening": "As you read the longer interpretation, perhaps some lines made you nod, while others gave you a moment’s pause. Today, rather than rushing to settle on an answer, I would like to leave this letter as though we were sitting over a warm cup of tea, with time to hear a little more of your story.",
+      "letterDay": "Your Day Master—the reference point used to read you in the chart—is {stem}. {image} If that picture feels familiar, take your time recalling where you have been using that strength lately. Your innate temperament is not homework you must live up to; it is a clue that may help you misunderstand yourself a little less.",
+      "letterImages": [
+        "Picture a tall tree extending its branches: choosing a direction and moving forward, one step at a time.",
+        "Picture grass and vines finding room to grow: taking in your surroundings and adjusting your path.",
+        "Picture sunlight brightening a room: sharing your thoughts and feelings with the world around you.",
+        "Picture a small lamp lighting the space nearby: paying close attention to the people and work you care about.",
+        "Picture a mountain holding its ground: looking for a steady center when circumstances are unsettled.",
+        "Picture soil holding a seed: tending the small conditions of everyday life and giving growth time to bear fruit.",
+        "Picture sharpening a tool’s edge: untangling complicated matters and making the decisions that are needed.",
+        "Picture examining a gemstone’s grain: noticing subtle differences and caring for the standards you value.",
+        "Picture a river finding its way: considering many possibilities and allowing your thoughts to range widely.",
+        "Picture quiet rain soaking into the ground: looking deeply at the hints and feelings others might pass by."
+      ],
+      "letterBalance": "In the distribution of the Five Elements, {observation} {scene} Even a strength that serves you well can become a burden when it is used without rest. And a smaller share of an element does not mean you lack the ability it represents. Rather than trying to fill a numerical gap, consider both the ways of living that have felt comfortable and the moments that have left you tired.",
+      "letterTied": "Several elements appear in similar proportions. Instead of defining you through a single trait, I would like to make room for the feelings that change with your circumstances. The you who takes the lead one day and the you who quietly observes another day are both you.",
+      "letterStrong": "The chart suggests relatively strong support for your Day Master. If you are used to setting your own direction, it may help to notice whether you are carrying everything simply because you can manage on your own. Asking for help does not mean giving up your strength. It can mean sharing the load so that strength lasts longer.",
+      "letterWeak": "The chart reads the demands around you as greater than the support for your Day Master. That does not mean you are weak-hearted or lack ability. Think of it as a reminder that your own strength can feel easier to use when you have time to prepare, someone to talk things through with, and somewhere to rest.",
+      "letterJong": "The chart has been considered for a following structure, in which momentum gathers in one direction. Rather than describing you with the single word “strong” or “weak,” it may be more useful to notice the environments in which your energy carries forward naturally. Please place your own lived experience ahead of the interpretation.",
+      "letterCare": "If things have not been going as you hoped lately and you have become harder on yourself, I hope you will not tie the result directly to your worth. A difficult time is not necessarily a sign that something good is about to arrive. But you can still choose something that eases today’s burden: take one task off your list, or tell someone you trust what is happening. A small choice is enough to begin.",
+      "letterPractice": "If you take just one thing from this letter today, perhaps you could begin here: {action} This is not an assignment to impress someone else. It is a small experiment to see whether your day can become a little more comfortable. If it does not suit you, it is fine to choose another approach.",
+      "letterSynthesis": "The you who opened this letter and the you now approaching its last lines may be feeling a little differently. {image} {observation} At this point in your life, the chart also suggests {verdict}. These may look like separate stories, yet all their textures point to one person: you. The meeting of your innate patterns and present circumstances offers a particular picture of who you are now. Even if the rest of today’s reading fades, I hope you will keep this one thought close: you are already finding your own way through your life.",
+      "letterClosing": "As you might set down a teacup, let the words you have read rest beside you for a while. Keep the sentences that stay with you, and let the ones that do not fit pass by. You are the person who has lived closest to your own life. Even if the next step is not yet clear, Yeoni hopes you will keep enough room beside you to choose without pushing yourself too hard.",
+      "neoLetterTitle": "A note beneath the stars",
+      "neoGreeting": "{name}, let’s look at one last thing together.",
+      "neoSignature": "Yeongnyangi · The next step is yours to choose",
+      "neoDominant": "{element} at {value}% stands out relatively strongly. It is a clue to explore {trait}.",
+      "neoTied": "Several elements share the largest proportion. Rather than boxing yourself into one trait, notice how you respond in different situations.",
+      "neoScenes": [
+        "If you tend to start several new things, set aside time to finish them too.",
+        "If expression comes strongly to you, leave room for the other person to respond.",
+        "Check whether holding on to your responsibilities has led you to carry someone else’s share too.",
+        "Clear standards are a strength. Just check whether protecting those standards has made you lose sight of the goal.",
+        "If you notice small changes readily, decide when to turn those observations into action."
+      ],
+      "neoActions": [
+        "Before adding a new task, set a deadline for one you already have.",
+        "First consider what you want to say and whether the other person has room to hear it. After speaking, wait for their response.",
+        "Write down the scope of the work and the time you can give it before taking it on.",
+        "Separate one standard you must keep from one you can change.",
+        "Choose one question to verify and one small thing to try."
+      ],
+      "letterGuestGreeting": "To you, reading this letter,",
+      "neoGuestGreeting": "Let’s look at one last thing together.",
+      "neoOpening": "Hmph, you made it through a long reading. A chart is a reference for noticing patterns, not an instruction manual that makes decisions for you. Use what fits, and put aside interpretations that do not match your experience. What you need now is less a collection of pleasant words and more one practical criterion you can try for yourself.",
+      "neoClue": "{observation} The point here is how you use your energy, not whether you are better or worse. {scene} Think back to a recent choice and check whether this pattern really does repeat.",
+      "neoStrong": "Support for the Day Master is relatively strong. Being able to push ahead alone can make it tempting to take everything on. But confidence does not automatically give you more time or resources. Start by separating what you will handle from what you can share, and make room to hear one other perspective.",
+      "neoWeak": "The demands around you are large relative to the Day Master. That does not mean you lack ability. If you keep adding roles without time to prepare or support to lean on, you may tire quickly. When the load feels too heavy alone, reducing its scope or asking for help is a perfectly sound choice.",
+      "neoJong": "The chart has been considered for a following structure, where the momentum runs in one direction. So let’s not jump to a conclusion using the usual strong-versus-weak formula. First recall whether adapting to the environment has actually helped things go well in your experience.",
+      "neoAction": "Today’s experiment is simple. {action} Write down when you will try it and what will tell you whether it helped. If it does not fit once you try it, change the approach. Revising a plan is not losing; it is part of finding a path that works for you.",
+      "neoClosing": "Whether it is a relationship or work, do not make a major decision from the chart alone. Look at what people actually do, the terms you agreed to and the costs you can bear. I am not trying to corner you. I only want your choices to become a little clearer. Start with whatever you can genuinely do today, meow.",
+      "letterVerdictJong": "a structure that follows momentum gathering in one direction",
+      "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
+      "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare"
     }
   };
   function locale() {
@@ -125,7 +323,9 @@
     Object.keys(fallback).forEach(function(key){
       function translated(value,suffix){
         if(typeof root.cdTranslate!=='function')return value;
-        var full='sajuReading.'+key+(suffix===undefined?'':'.'+suffix), found=root.cdTranslate(full,{},'');
+        var vars={};
+        String(value).replace(/\{(\w+)\}/g,function(token,name){vars[name]=token;return token;});
+        var full='sajuReading.'+key+(suffix===undefined?'':'.'+suffix), found=root.cdTranslate(full,vars,'');
         return found&&found!==full&&found!=='Translation pending'?found:value;
       }
       result[key]=Array.isArray(fallback[key])?fallback[key].map(function(value,i){return translated(value,i);}):translated(fallback[key]);
@@ -165,11 +365,11 @@
     model.strength=section(c.strength,pick(c,jong.isJong?'jong':pw.isStrong?'strong':'weak',neo),fmt(pick(c,'strengthBasis',neo),{score:pw.score,support:(pw.yongshin||[]).map(function(e){return c.names[elements.indexOf(e)]||e;}).join(' · ')}),pw.isStrong?c.scenes[0]:c.scenes[2],pick(c,'strengthAction',neo));
     model.flow=(input.flow||[]).map(function(row) { var good=row.score>=60, tone=pick(c,good?'flowOpen':'flowCare',neo); return section(row.kind==='year'?c.year:c.period,tone,fmt(pick(c,'flowBasis',neo),{label:row.kind==='year'?c.year:c.period,stem:row.g,branch:row.j,score:row.score}),tone,pick(c,good?'flowRuleOpen':'flowRuleCare',neo)); });
     var name=String(input.name||'').trim();
-    if(lang==='ko') {
+    if(c.letterOpening && c.neoOpening) {
       var stemIndex=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'].indexOf(p.d.g);
       model.letter={title:neo?c.neoLetterTitle:c.letter, greeting:name?fmt(neo?c.neoGreeting:c.letterGreeting,{name:name}):(neo?c.neoGuestGreeting:c.letterGuestGreeting), signature:neo?c.neoSignature:c.letterSignature,
         paragraphs:neo?[c.neoOpening,fmt(c.neoClue,{observation:tied?c.neoTied:fmt(c.neoDominant,{element:c.names[dominant],value:ratios[dominant].toFixed(0),trait:c.traits[dominant]}),scene:c.neoScenes[dominant]}),jong.isJong?c.neoJong:pw.isStrong?c.neoStrong:c.neoWeak,fmt(c.neoAction,{action:c.neoActions[day]}),c.neoClosing]:[
-          c.letterOpening,fmt(c.letterDay,{stem:p.d.g,image:c.letterImages[stemIndex<0?day*2:stemIndex]}),tied?c.letterTied:fmt(c.letterBalance,{observation:elementText,scene:c.scenes[dominant]}),jong.isJong?c.letterJong:pw.isStrong?c.letterStrong:c.letterWeak,c.letterCare,fmt(c.letterPractice,{action:c.actions[day]}),fmt(c.letterSynthesis,{image:c.letterImages[stemIndex<0?day*2:stemIndex],observation:elementText,verdict:jong.isJong?'한 방향으로 흐르는 힘을 따라가는 구조':pw.isStrong?'스스로 길을 내는 힘이 비교적 넉넉한 구조':'곁의 도움과 준비된 시간이 있을 때 더 편안히 빛나는 구조'}),c.letterClosing], evidence:model.day.evidence};
+          c.letterOpening,fmt(c.letterDay,{stem:p.d.g,image:c.letterImages[stemIndex<0?day*2:stemIndex]}),tied?c.letterTied:fmt(c.letterBalance,{observation:elementText,scene:c.scenes[dominant]}),jong.isJong?c.letterJong:pw.isStrong?c.letterStrong:c.letterWeak,c.letterCare,fmt(c.letterPractice,{action:c.actions[day]}),fmt(c.letterSynthesis,{image:c.letterImages[stemIndex<0?day*2:stemIndex],observation:elementText,verdict:jong.isJong?c.letterVerdictJong:pw.isStrong?c.letterVerdictStrong:c.letterVerdictWeak}),c.letterClosing], evidence:model.day.evidence};
     } else {
       model.letter={title:c.letter,greeting:neo?c.neo:c.yeon,signature:neo?c.neo:c.yeon,paragraphs:[elementText,c.scenes[day],neo?c.rules[day]:c.actions[day],neo?c.endNeo:c.endYeon],evidence:model.day.evidence};
     }
@@ -261,7 +461,7 @@
       reading.blocks=dn?[{label:c.diagnosis,text:pick(c,good?'flowOpen':'flowCare',dn)},{label:c.basis,text:reading.evidence},{label:c.action,text:gi>=0?pick(c,'godRules',dn)[gi]:pick(c,'strengthAction',dn)}]:[{label:c.observe,text:good?c.flowOpen:c.flowCare},{label:c.life,text:gi>=0?c.godLife[gi]:c.scenes[0]},{label:c.practice,text:gi>=0?c.godRules[gi]:c.strengthAction}];
       write(i===0?'dailyPanel':'monthlyPanel',(rich&&rich.daily(row,i,facts,model.mode))||markup(reading,model,true));
     });
-    if(section==='letter'||section==='all') {write('letterTitle',mode()==='neo'?esc(c.neo)+' · '+esc(model.letter.title):esc(c.yeon)+'의 '+esc(model.letter.title));write('letterContent',letterMarkup(model));}
+    if(section==='letter'||section==='all') {write('letterTitle',mode()==='neo'?esc(c.neo)+' · '+esc(model.letter.title):esc(c.yeon)+(locale()==='ko'?'의 ':' · ')+esc(model.letter.title));write('letterContent',letterMarkup(model));}
     renderHeader();
   }
   function refreshCopy() {

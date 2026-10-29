@@ -1,0 +1,510 @@
+{
+  "locale": "en",
+  "episodeId": "ep-14a",
+  "tag": "EP.14A · How to Support a Breath",
+  "title": "How to Support a Breath",
+  "sourceTitle": "숨을 받치는 법",
+  "sourceTag": "EP.14A · 숨을 받치는 법",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-14a:1",
+      "source": "빵집 다락. 밀가루 포대를 쌓아 만든 탁자 위에 윤달이 종이 한 장을 펼쳤다. 숯으로 그린 시계탑 단면도였다.",
+      "sourceHash": "5acea60443dc9972b1d1774c34db501f13798f10b8c8d85c80f14a1cc5c075c8",
+      "t": "In the bakery attic, Yundal unfolded a sheet of paper on a table made of stacked flour sacks. It showed a charcoal cross section of the clock tower."
+    },
+    {
+      "id": "ep-14a:2",
+      "source": "금고는 시계탑 아래 일곱 층이에요. 층이 깊어질수록 시간이 느려져요.",
+      "sourceHash": "6e5eb54836c182137abf1621fc8fdb3fe008bcc19ccd68cda2b125c3fa000715",
+      "t": "The vault has seven levels beneath the clock tower. The deeper you go, the slower time moves."
+    },
+    {
+      "id": "ep-14a:3",
+      "source": "마지막 칸쯤 가면 한 걸음 떼는 데 한 시간쯤 걸리죠. 숨 한 번이 하루일 수도 있고요.",
+      "sourceHash": "633906e645370f298bb4a7f8be8d30ceab82435d53deb49ad79ce834a5039937",
+      "t": "By the last chamber, a single step takes about an hour. One breath could take a day."
+    },
+    {
+      "id": "ep-14a:4",
+      "source": "그럼 거기서 재채기하면 일주일 날아가는 거야?",
+      "sourceHash": "45d67a76258d87fbec7991a0bc4cf854fe519225ddc2fe9774b35b1a0a6a1629",
+      "t": "So if you sneeze down there, you lose a week?"
+    },
+    {
+      "id": "ep-14a:5",
+      "source": "재채기는 참으세요. 모카 씨는 특히.",
+      "sourceHash": "fab8751aaeb58a1e4072d693346054b9f4768a1f77101a57454091f6fe126a70",
+      "t": "Hold in your sneezes. Especially you, Moka."
+    },
+    {
+      "id": "ep-14a:6",
+      "source": "왜 나만 특히야.",
+      "sourceHash": "7acfa2e683890c91d16515efa30e1949b53ad0db682a3acab6f4cf4917b1f639",
+      "t": "Why especially me?"
+    },
+    {
+      "id": "ep-14a:7",
+      "source": "수달은 코가 예민하잖아요. 아, 그러고 보니 모카 씨 생시는 언제예요?",
+      "sourceHash": "616d7a9a2e9f9772d0b7baadff2e27e2002924ad209e583894efd35b16f768b4",
+      "t": "Otters have sensitive noses. Oh, speaking of which, what time were you born, Moka?"
+    },
+    {
+      "id": "ep-14a:8",
+      "source": "지금 이 상황에 수달한테 생시를 물어? 별 하나.",
+      "sourceHash": "ba85888eeae5574ff47c4ffe3addda0d761d3d2303bc6f772fbcbfd03a374cad",
+      "t": "You're asking an otter his birth time at a moment like this? One star."
+    },
+    {
+      "id": "ep-14a:9",
+      "source": "아저씨 그거 버릇이죠. 만나는 사람마다 묻는 거.",
+      "sourceHash": "88fe3e4ee067a313f9dd45f6d123b592337f8e737bac5954fd5c98ea16db1a5e",
+      "t": "That's a habit of yours, isn't it? Asking everyone you meet."
+    },
+    {
+      "id": "ep-14a:10",
+      "source": "직업병이에요. 생시를 알면 그 사람이 어디서 넘어질지 보이거든요.",
+      "sourceHash": "becee08221b4c88237c08aad71cae3a59325ee70374b603d8931bef392f0f3d8",
+      "t": "Occupational hazard. Once I know someone's birth hour, I can see where they're likely to stumble."
+    },
+    {
+      "id": "ep-14a:11",
+      "source": "일곱째 칸에서 자꾸 넘어지고 있어. 거기만 시간이 거의 멈춰 있거든.",
+      "sourceHash": "aa4e9df24e7123818a1c098a7271182f2b32f14f78ff466bc8cad52ebc03a9f1",
+      "t": "I keep stumbling at the seventh chamber. Time has almost stopped there."
+    },
+    {
+      "id": "ep-14a:12",
+      "source": "거기선 보통 숨으로는 못 버텨요. 숨이 얼어서 가슴에 걸리거든요.",
+      "sourceHash": "cee0d6a06f344708e3fcaf7504b65ed663185a9a2da0c319851907e13928181d",
+      "t": "Ordinary breathing won't sustain you there. Your breath freezes and catches in your chest."
+    },
+    {
+      "id": "ep-14a:13",
+      "source": "숨이 얼어? 그럼 어떻게 들어가?",
+      "sourceHash": "38e145a37d01a3780495231b075861efdb4a6f26d10de814816fcdb082b6fecf",
+      "t": "Your breath freezes? Then how do we get in?"
+    },
+    {
+      "id": "ep-14a:14",
+      "source": "받치면 된다. 숨이 떨어지지 않게 아래에서 받쳐 주는 거다.",
+      "sourceHash": "675420ada113b87c4f9011620e19babf388a3be186fed2123e9a71ccb6fd754c",
+      "t": "Support it. Hold it up from underneath so it doesn't fall."
+    },
+    {
+      "id": "ep-14a:15",
+      "source": "그 전에 역할부터 나눌게요. 모카 씨는 입구에서 냄새로 경비를 홀리고.",
+      "sourceHash": "57912b9a8a660c0699c417ffc6d9d5d636ebd8cf239c0e76715b46444e7e7f24",
+      "t": "Before that, let's assign our roles. Moka, you'll lure the guards at the entrance with food smells."
+    },
+    {
+      "id": "ep-14a:16",
+      "source": "경비가 뭔데. 토끼야?",
+      "sourceHash": "b2913546d2142b2aaf6fbd70729ebc57292fd374830dbc0e0a8a8859aae43a91",
+      "t": "What are the guards? Rabbits?"
+    },
+    {
+      "id": "ep-14a:17",
+      "source": "시간을 못 갚은 사람들이에요. 금고 앞에 빚 대신 서 있죠. 배가 고플 거예요. 아주 오래.",
+      "sourceHash": "f132fc3ac022dac2e38ad84d1adb26e2b34060fcf372e86bd82aabfa4ef6b64b",
+      "t": "People who couldn't repay their time. They stand guard outside the vault to pay their debts. They'll be hungry. They've been hungry a very long time."
+    },
+    {
+      "id": "ep-14a:18",
+      "source": "그럼 홀리는 게 아니라 먹이는 거네. 그건 자신 있어.",
+      "sourceHash": "9661e87183a9781f1e04015b4af7cda59b9c207497fe6568d1044f2e7a195425",
+      "t": "Then I'm feeding them, not luring them. That I can do."
+    },
+    {
+      "id": "ep-14a:19",
+      "source": "모카의 수염이 축 처졌다가 다시 섰다. 맛을 잃었던 식상의 섬 사람들 얼굴이 스친 모양이었다.",
+      "sourceHash": "2e84ecd355f62f7e3b16441eb837bfcf64ac7c63e9a8c9cbfd375022fddaabbe",
+      "t": "Moka's whiskers drooped, then rose again. He seemed to be remembering the faces of the people on the Island of Expression who had lost their sense of taste."
+    },
+    {
+      "id": "ep-14a:20",
+      "source": "고양이님은 길을 열고, 저는 잠긴 문을 먹고. 숙녀분은 가장 깊은 칸까지.",
+      "sourceHash": "ca08775bc335ba94ea7990cd947ca2f54512462eea40e9ab69c140d795c81d9a",
+      "t": "Mr. Cat opens the way, I eat the locked doors, and our lady goes to the deepest chamber."
+    },
+    {
+      "id": "ep-14a:21",
+      "source": "왜 내가 제일 깊이 가?",
+      "sourceHash": "abbd5e180e99fac946ca8814785a57596f776a6f112e39c7766e29dc716940bb",
+      "t": "Why do I have to go deepest?"
+    },
+    {
+      "id": "ep-14a:22",
+      "source": "일곱째 칸 문은 제 손으로 번 시간으로만 열려요. 우리 중에 그걸 가진 사람은 숙녀분뿐이에요.",
+      "sourceHash": "5e584752159b4d32e80f38169bbbeb80b22ee55e5adeccad936eaf9e3da6a9c7",
+      "t": "The seventh chamber only opens with time you've earned yourself. You're the only one of us who has any."
+    },
+    {
+      "id": "ep-14a:23",
+      "source": "(내 12분.)",
+      "sourceHash": "2da678d6381bce4b63fbe99ee23e2d192c2b15eb7a55a3bb5c5a3c7b0e0c1d5b",
+      "t": "(My twelve minutes.)"
+    },
+    {
+      "id": "ep-14a:24",
+      "source": "연이는 앞발의 작은 글씨를 다른 앞발로 가렸다. 액자에 넣겠다던 12분이 갑자기 무거워졌다.",
+      "sourceHash": "dc13c2a3d01759af460e62da0997eef364b88a052a3ae93fe218f158684ac60b",
+      "t": "Yeoni covered the small writing on one hoof with the other. The twelve minutes they had meant to frame suddenly felt heavy."
+    },
+    {
+      "id": "ep-14a:25",
+      "source": "이 계획 리뷰해도 돼? 무모함 별 다섯, 디테일 별 셋. 생존율은 아직 별을 못 정하겠어.",
+      "sourceHash": "ebeb40386598deeaeae2ee330a3cae6f1c1860adc4bab6050c44b15a8d5e8610",
+      "t": "Can I review this plan? Five stars for recklessness, three for detail. I can't give the survival rate a rating yet."
+    },
+    {
+      "id": "ep-14a:26",
+      "source": "정직한 리뷰네요. 3년 동안 받은 것 중에 제일이에요.",
+      "sourceHash": "b92dcfe2ebf1baa3ea7a02a805699dac88f4ad94d7f4e621df273ade866b8abb",
+      "t": "An honest review. The best I've had in three years."
+    },
+    {
+      "id": "ep-14a:27",
+      "source": "지붕 위. 섬의 째깍 소리가 멀어졌다. 영냥이는 연이를 마주 보고 앉아 제 앞발을 내밀었다.",
+      "sourceHash": "4125cd2642cb51514438e140713b36bebb7dacf8e4e305b450f1d169eca3cbfc",
+      "t": "On the roof, the island's ticking grew distant. Yeongnyangi sat facing Yeoni and held out a paw."
+    },
+    {
+      "id": "ep-14a:28",
+      "source": "내 발 위에 네 앞발을 얹어. 들이쉴 때 살짝 누르고, 내쉴 때도 떼지 마. 같이 해 보자.",
+      "sourceHash": "08632e9037f373ffcfd78b396bbab88022c27793eca9fd27fc8ee9fb0b7f9ea8",
+      "t": "Rest your hoof on my paw. Press lightly as you breathe in, and don't lift it when you breathe out. Let's try it together."
+    },
+    {
+      "id": "ep-14a:29",
+      "source": "누르고, 놓지 말고. 알았어. 쉬운데?",
+      "sourceHash": "8e7a03dd603c116659912ff4a3cd80b4ca3139c2e5750c6756362497186aab8b",
+      "t": "Press, don't let go. Got it. Seems easy enough."
+    },
+    {
+      "id": "ep-14a:30",
+      "source": "첫 숨은 쉬웠다. 두 번째 숨에서 가슴 한가운데가 뻐근해졌다. 세 번째 숨에서 연이의 앞발이 미끄러졌다.",
+      "sourceHash": "501ba0ff36e34ae96f8c23690aec85f51844390d0a2945e33ad7dae5341d4625",
+      "t": "The first breath was easy. On the second, the center of Yeoni's chest began to ache. On the third, their hoof slipped."
+    },
+    {
+      "id": "ep-14a:31",
+      "source": "하나도 안 쉬워. 숨이 자꾸 위로 도망가.",
+      "sourceHash": "f613c3a9ba501159ed8571ab4db960dba1cf4b68580fd7e3dd7f6bb0c2b0f4cb",
+      "t": "Not easy at all. My breath keeps running upward."
+    },
+    {
+      "id": "ep-14a:32",
+      "source": "위로 끌어올리니까 그렇다. 잡아당기지 말고 바닥에 내려놔라.",
+      "sourceHash": "82df1dd787abcf1ecf8cca6d4ad17276467990885cb328501d6446f6d2ecab87",
+      "t": "Because you're pulling it up. Don't tug at it. Set it down on the ground."
+    },
+    {
+      "id": "ep-14a:33",
+      "source": "(잡아당기지 말고. 어디서 들어 본 말인데.)",
+      "sourceHash": "366f6f5b156a87b19a0b8e843d4ce0a6816ab00955aa741c9d9c6c8c8db43f60",
+      "t": "(Don't tug at it. I've heard that somewhere before.)"
+    },
+    {
+      "id": "ep-14a:34",
+      "source": "연이가 눈을 감았다. 숨을 가슴이 아니라 배 아래까지 내려보냈다. 영냥이의 앞발이 그 숨을 아래에서 떠받쳤다.",
+      "sourceHash": "ebc0490f15f5fd569068cab47dd4858ded1aff9a4f0a027da1cefea7068b815b",
+      "t": "Yeoni closed their eyes. They sent the breath down below their belly, instead of into their chest. Yeongnyangi's paw supported it from beneath."
+    },
+    {
+      "id": "ep-14a:35",
+      "source": "연이의 앞발 끝에서 연둣빛 싹이 하나 돋았다. 싹은 영냥이의 발등을 타고 천천히 감겨 올라갔다.",
+      "sourceHash": "db7493b9726f64b11e5cea834f692a39f2a22353f2a41fdb1a0ccf78b8745841",
+      "t": "A pale green shoot sprouted from the tip of Yeoni's hoof. It slowly wound its way up over Yeongnyangi's paw."
+    },
+    {
+      "id": "ep-14a:36",
+      "source": "됐다! 봤어? 싹 났어!",
+      "sourceHash": "ec5f1d45b44bb45608f92017627a7d24de7f7b9d43ddae6437c9afc829ec6d3a",
+      "t": "I did it! Did you see? A sprout!"
+    },
+    {
+      "id": "ep-14a:37",
+      "source": "그 순간 영냥이의 발에서 은빛이 번쩍였다. 감겨 오르던 싹이 소리도 없이 잘려 지붕 위로 떨어졌다.",
+      "sourceHash": "3f0f9be07c3db68d319f72daca0a23d282c023754d03c4ddb791d85d3f9be779",
+      "t": "At that moment, silver flashed from Yeongnyangi's paw. The climbing shoot was silently severed and fell to the roof."
+    },
+    {
+      "id": "ep-14a:38",
+      "source": "어… 왜 잘렸어?",
+      "sourceHash": "1bd755a0c10298d77dabcff48cdd8d3b17484c17476c88a8e3e474cbe056ce94",
+      "t": "Uh... why did it get cut?"
+    },
+    {
+      "id": "ep-14a:39",
+      "source": "내 기운은 금이야. 나무를 벨 수 있는 힘이지.",
+      "sourceHash": "1e6fb0b9266510047c7c03bf1c91e697f75e1cd3482cf1baaa7ac89649fc4e59",
+      "t": "My energy is Metal. A power that can cut Wood."
+    },
+    {
+      "id": "ep-14a:40",
+      "source": "기억해 둬라. 나는 너를 다치게 하는 기운이야. 가까이 붙을수록 더.",
+      "sourceHash": "10f86f8fee4041ebc23a67d8123d12f4c56b9fdc9f6cf38a5c1e51c1279df4dc",
+      "t": "Remember that. Mine is an energy that hurts you. The closer you get, the more it does."
+    },
+    {
+      "id": "ep-14a:41",
+      "source": "근데 방금 숨은 네가 받쳐 줬잖아. 다치게 하는 기운이 그렇게 받쳐 줘?",
+      "sourceHash": "847175240a443d6ef9a592b2e3071148909705302c7db2454acd568df99156a8",
+      "t": "But you just supported my breath. Would an energy that hurts me hold me up like that?"
+    },
+    {
+      "id": "ep-14a:42",
+      "source": "그건…",
+      "sourceHash": "cef635a32c13a24926971986165c309301257093846a9ec26397a80680611bf9",
+      "t": "That's..."
+    },
+    {
+      "id": "ep-14a:43",
+      "source": "대답 못 하지. 그럼 내 해석이 맞는 걸로 할게. 반은 베고 반은 받쳐 주는 기운.",
+      "sourceHash": "2fb1c0137231f99276851509a8bafc32e7367534b34ef5c814a40762c3b61c66",
+      "t": "You can't answer, can you? Then I'll go with my interpretation. Half cutting, half supporting."
+    },
+    {
+      "id": "ep-14a:44",
+      "source": "영냥이는 대답 대신 잘린 싹을 주워 연이의 귀 뒤에 꽂아 주었다.",
+      "sourceHash": "77862eb32ca8a0584c9759a035ff302834d6bc1bd9b8bdb10d540248061c5757",
+      "t": "Instead of answering, Yeongnyangi picked up the severed sprout and tucked it behind Yeoni's ear."
+    },
+    {
+      "id": "ep-14a:45",
+      "source": "이거… 장식이야? 리본 같은 거야?",
+      "sourceHash": "7ba3541001b38a78664fbb625f48e188ebc17aa28536826ca90cf49be076bc56",
+      "t": "Is this... a decoration? Like a ribbon?"
+    },
+    {
+      "id": "ep-14a:46",
+      "source": "증거로 남겨 둬. 수련하다 다쳤다고 나중에 딴말 못 하게.",
+      "sourceHash": "d7e4df757e5ae63629c3f8d9359d9ecdb89a09c08088e19abbe10ab8d5e434a5",
+      "t": "Keep it as evidence. So you can't change your story later about getting hurt in training."
+    },
+    {
+      "id": "ep-14a:47",
+      "source": "증거물을 귀에 꽂아 주는 고양이는 처음 봐. 별 네 개.",
+      "sourceHash": "c651e6053b01872e91f63ae13eba69b580cabf3280ce78e243f709615889c4ea",
+      "t": "First cat I've ever seen tuck evidence behind someone's ear. Four stars."
+    },
+    {
+      "id": "ep-14a:48",
+      "source": "하나는 왜 빼지.",
+      "sourceHash": "e584fd560f38c33cabab760ab741e91e51ee2aafe303b0c3ecf3eb3da469b289",
+      "t": "Why deduct one?"
+    },
+    {
+      "id": "ep-14a:49",
+      "source": "설명이 너무 짧았으니까.",
+      "sourceHash": "9d80c6d581a4b1d60687e6071c12968cace6424d1faee10426d709ca646e2bb0",
+      "t": "Your explanation was too short."
+    },
+    {
+      "id": "ep-14a:50",
+      "source": "다락 창문 아래에서 모카가 꼬치를 뒤집다가 혀를 찼다. 저 둘 수련하는 거야, 데이트하는 거야.",
+      "sourceHash": "a6fca8a733b84a1c1866dc3e9bffa016a33e88a71247ab878bde296c319a8b09",
+      "t": "Beneath the attic window, Moka clicked his tongue as he turned a skewer. Are those two training or dating?"
+    },
+    {
+      "id": "ep-14a:51",
+      "source": "다 들려! 수련이거든! 증거물도 있거든!",
+      "sourceHash": "b0cb22291d8a062c432be6bdfabb6b14a79b7935fc41e5e8b17d42ecf747b461",
+      "t": "We can hear you! We're training! I've even got evidence!"
+    },
+    {
+      "id": "ep-14a:52",
+      "source": "연이가 다시 다락으로 내려간 뒤에도 영냥이는 지붕 끝에 남았다. 달빛 아래로 그가 왼 앞발을 뒤집었다.",
+      "sourceHash": "3c6040bc11ec51750d4ebd28ed1d2b46c694d1172d14c70697714e189a7fa08e",
+      "t": "After Yeoni went back down to the attic, Yeongnyangi stayed at the roof's edge. In the moonlight, he turned his left paw over."
+    },
+    {
+      "id": "ep-14a:53",
+      "source": "발바닥의 털이 군데군데 타 있었다. 까마귀 재판정에서 그을린 자리였다. 상처 위로 방금 싹이 남긴 초록 물이 번져 있었다.",
+      "sourceHash": "a778a1b3404a1749bdc6bd44adf90e9ccdfed9575d204d627faae9613b990675",
+      "t": "The fur on its underside was burned in patches, scorched in the crow's courtroom. Green sap from the sprout had spread over the wound."
+    },
+    {
+      "id": "ep-14a:54",
+      "source": "그 발, 아직 안 나았네요.",
+      "sourceHash": "f2c6dcff1aa18b79a2179e8c3a1efaff52fc5bac3d70269d4343e1c03c732678",
+      "t": "That paw still hasn't healed."
+    },
+    {
+      "id": "ep-14a:55",
+      "source": "언제부터 봤지.",
+      "sourceHash": "7350de75e67aede971f5b2e61f6e794c94f18f5f416b9c45cb65fc54cb18b5d8",
+      "t": "How long have you been watching?"
+    },
+    {
+      "id": "ep-14a:56",
+      "source": "처음 천막에서요. 고양이님 발 디딜 때 왼쪽이 늘 반 박자 늦더라고요.",
+      "sourceHash": "824a5a9377b4497a8cddc1c735eafe73cd945814f34f912ca5849d430a3f9df1",
+      "t": "Since we first met in the tent. Whenever you take a step, your left paw is always half a beat late."
+    },
+    {
+      "id": "ep-14a:57",
+      "source": "숙녀분 명식에 상관이 커요. 말이 불이 되는 기운. 그 불이 커질수록 관이 다치죠.",
+      "sourceHash": "f9fb6d279a415172b786819faf159f6be6e5d95c3fa4cd4f502152de4c1857eb",
+      "t": "Hurting Officer is strong in our lady's chart. The energy that makes words into fire. The stronger that fire grows, the more it hurts the Officer."
+    },
+    {
+      "id": "ep-14a:58",
+      "source": "그 관이 누구인지 말하지 마라. 그녀에게도.",
+      "sourceHash": "39318e55243ce5808a471ebaced6e064559d2e98462f7309f61a9ebadc6764b1",
+      "t": "Don't say who that Officer is. Not to Yeoni, either."
+    },
+    {
+      "id": "ep-14a:59",
+      "source": "말 안 하면 언젠가 터져요. 상처는 숨긴다고 작아지지 않거든요.",
+      "sourceHash": "b234d91f87a73a82ac46439076e8437542f73b00ec5a743e5ca54c3f6bf147cc",
+      "t": "If you don't say it, it'll all come out someday. Hiding a wound doesn't make it smaller."
+    },
+    {
+      "id": "ep-14a:60",
+      "source": "알고 있다. 그래도 지금은 아니다. 그녀가 자기 불을 무서워하게 되는 건 싫다.",
+      "sourceHash": "26e188d285e06a4696f7c1e5ad81950ac089632bd457f0bc9b29f82ca1822eb4",
+      "t": "I know. But not now. I don't want Yeoni to become afraid of their own fire."
+    },
+    {
+      "id": "ep-14a:61",
+      "source": "윤달은 한동안 영냥이의 옆얼굴을 보았다. 보랏빛 고양이 눈이 금빛으로 번지며, 다락 창의 불빛 쪽만 향해 있었다.",
+      "sourceHash": "182f9420a7f86c28e947d92e90e4c44cb93149d41a07aab11046dbb2bf59f646",
+      "t": "Yundal watched Yeongnyangi's profile for a while. The cat's violet eyes spread into gold, fixed only on the light in the attic window."
+    },
+    {
+      "id": "ep-14a:62",
+      "source": "비밀 하나 맡는 값은 비싼데요. 고양이님 생시 하나면 될 것 같은데.",
+      "sourceHash": "4796356df2229acac9654e92c9cc5eac5f5c539ac4c5118c8456192eff7c0aa9",
+      "t": "Keeping a secret is expensive. Your birth hour should cover it, Mr. Cat."
+    },
+    {
+      "id": "ep-14a:63",
+      "source": "모른다. 내 생일은.",
+      "sourceHash": "9d70267b2afc4c59e148ea25f4dd57873a91932b2e444e0b03381d010ea3a620",
+      "t": "I don't know it. My birthday."
+    },
+    {
+      "id": "ep-14a:64",
+      "source": "진짜 모르는 거였어요? 어제 농담인 줄 알았는데.",
+      "sourceHash": "6a50b37c19d841ad1e32722560ff31fd469dd206f0c5ecf63d152b6fc5bc24c8",
+      "t": "You really don't know? I thought you were joking yesterday."
+    },
+    {
+      "id": "ep-14a:65",
+      "source": "윤달은 웃음을 거두고, 장갑 낀 손으로 영냥이의 어깨를 한 번 두드렸다.",
+      "sourceHash": "f27f633ac79204243d024b9bf7e2b4ad23fdcc9d2263f7569f89efab45cdfd1b",
+      "t": "Yundal stopped smiling and patted Yeongnyangi's shoulder once with his gloved hand."
+    },
+    {
+      "id": "ep-14a:66",
+      "source": "좋아요. 외상으로 해 둘게요. 저도 외상 인생이라 그 기분 알아요.",
+      "sourceHash": "bc692630e1ecd6d802cf26611f515fd4b3b2d23bd2004cb45eaf7209cc01534b",
+      "t": "All right. I'll put it on your tab. My whole life's on credit, too. I know the feeling."
+    },
+    {
+      "id": "ep-14a:67",
+      "source": "새벽 두 시. 넷은 시계탑 아래 광장 그늘에 모였다. 탑 꼭대기의 바늘이 느릿느릿 돌았다.",
+      "sourceHash": "79f2649273ad1ac51bc2c365ed0f8f470b53c7f0042587b70e517da09c234026",
+      "t": "At two in the morning, the four gathered in the shadows of the square beneath the clock tower. Its hands turned sluggishly overhead."
+    },
+    {
+      "id": "ep-14a:68",
+      "source": "냄새 교란용 꼬치 마흔 개. 매운맛 스무 개, 단맛 스무 개.",
+      "sourceHash": "cbf17bc11db0be3931a6faf40748114b5f66f23d3ca13f8536b1d53a7e507186",
+      "t": "Forty skewers for the scent diversion. Twenty spicy, twenty sweet."
+    },
+    {
+      "id": "ep-14a:69",
+      "source": "루나 언니 남은 시간은 네 시간. 해 뜨기 전에 나온다.",
+      "sourceHash": "866b145fcd3b500858908ebdedf81d11be93c86c869323b8af67b0ebad413a89",
+      "t": "Luna's sister has four hours left. We get out before sunrise."
+    },
+    {
+      "id": "ep-14a:70",
+      "source": "[ 루나 언니 · 남은 오늘 03:58:12 ]",
+      "sourceHash": "1cb73be4becf2b2182d4280961607b31e86d9079e68029dce4c587ac9087a028",
+      "t": "[ Luna's sister · Today remaining: 03:58:12 ]"
+    },
+    {
+      "id": "ep-14a:71",
+      "source": "숨 받치는 법, 잊지 마라.",
+      "sourceHash": "216330b5742b167b692b99e5bb429ec83fbf9214204d33dfb8b7b421cffa6e15",
+      "t": "Don't forget how to support your breath."
+    },
+    {
+      "id": "ep-14a:72",
+      "source": "귀에 증거물 꽂고 다니는데 어떻게 잊어.",
+      "sourceHash": "00ad7dabcabb509ebd9c101423d12d40e5db8302cbb830967a72ba5b5c4d91be",
+      "t": "How could I? I've got the evidence tucked behind my ear."
+    },
+    {
+      "id": "ep-14a:73",
+      "source": "연이는 시계탑 꼭대기를 올려다보았다. 바늘 위에는 아무도 없었다. 그게 더 무서웠다.",
+      "sourceHash": "7f80b9b100f1655800d8079d7664cb348db51832f969461a940317aad2983c2e",
+      "t": "Yeoni looked up at the clock tower. Nobody stood on its hands. That was even more frightening."
+    },
+    {
+      "id": "ep-14a:74",
+      "source": "호랑이는 아래에 있어요. 금고지기는 금고 앞을 떠나지 않으니까.",
+      "sourceHash": "15488f87ecdcc3ff8945111ee51a5566d9e3120d33a3382d304c7ef05045a695",
+      "t": "The tiger is below. A vault keeper doesn't leave its vault."
+    },
+    {
+      "id": "ep-14a:75",
+      "source": "그 줄무늬, 식상의 섬에서 박수를 걷어 간 녀석이지. 이번엔 내 차례야.",
+      "sourceHash": "1b3f46e8f17134fd761c6f9de8b6593f67656ae72445c7b478cb114c06c21c47",
+      "t": "Those stripes. That's the one that collected the applause on the Island of Expression. This time, it's my turn."
+    },
+    {
+      "id": "ep-14a:76",
+      "source": "싸우러 가는 거 아니야. 돌려받으러 가는 거야.",
+      "sourceHash": "f8232919f8850498d79fe6a218678a7344abeea4a7982a4836c0fd335c08dd57",
+      "t": "We're not going to fight. We're going to get things back."
+    },
+    {
+      "id": "ep-14a:77",
+      "source": "그 말, 일곱째 칸에서도 기억해라.",
+      "sourceHash": "4822feddc8d98c35d387a8dabf587b6c87df90e049edf1de94d2c3519a27e78c",
+      "t": "Remember those words in the seventh chamber, too."
+    },
+    {
+      "id": "ep-14a:78",
+      "source": "윤달이 장갑을 고쳐 끼었다. 손가락 끝이 아주 조금 떨렸다.",
+      "sourceHash": "59d31d88d85862197b0f402cc40a51de01508656b88459f906cc89e31733039d",
+      "t": "Yundal adjusted his glove. His fingertips trembled ever so slightly."
+    },
+    {
+      "id": "ep-14a:79",
+      "source": "아저씨 이름도 찾자. 찾으면 내가 제일 먼저 불러 줄게.",
+      "sourceHash": "4a9f848c9e7d4416dfd4d4991785f4cd9330fff89c4df829a67e50e454f6204b",
+      "t": "Let's find your name, too. Once we do, I'll be the first to call you by it."
+    },
+    {
+      "id": "ep-14a:80",
+      "source": "그럼 숙녀분이 제 이름을 부르는 세 번째 사람이 되겠네요.",
+      "sourceHash": "f58adc9856aecb1e683c80c037e3fa6cb5b778cc3a99224546e494fa065c3c42",
+      "t": "Then you'll be the third person to say my name, my lady."
+    },
+    {
+      "id": "ep-14a:81",
+      "source": "왜 세 번째예요?",
+      "sourceHash": "f736038897a42a1a4c6469650f16469d298ee23c0067f8639eae40a41a725411",
+      "t": "Why third?"
+    },
+    {
+      "id": "ep-14a:82",
+      "source": "첫 번째는 엄마, 두 번째는 저. 그다음이 숙녀분.",
+      "sourceHash": "5cd64534f33bdf1044b6a223da972a97e5f0f6dcc8c78b66297a764cd8c0136d",
+      "t": "First my mother, second me. Then you."
+    },
+    {
+      "id": "ep-14a:83",
+      "source": "탑의 종이 두 번 울렸다. 넷은 그림자를 따라 시계탑의 문 안으로 미끄러져 들어갔다.",
+      "sourceHash": "762ae18b73c65cae91417f3ba70fd324c6cb100ffa3d0dd26fecbe958607f9d2",
+      "t": "The tower bell rang twice. Following the shadows, the four slipped through the clock tower door."
+    }
+  ]
+}

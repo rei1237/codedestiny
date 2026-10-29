@@ -1,0 +1,666 @@
+{
+  "locale": "en",
+  "episodeId": "ep-31",
+  "tag": "Episode 31 · Obstruction Transformation",
+  "title": "Obstruction Transformation",
+  "sourceTitle": "화기",
+  "sourceTag": "제31화 · 화기",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-31:1",
+      "source": "장터의 별등이 하나둘 꺼졌다. 별 사람들은 천막을 걷고 돌아갔다. 윤달의 천막에만 숯불 하나가 남아 있었다.",
+      "sourceHash": "6e6905a57e6ac12bc8995c07a0dd643b3125df50f19bd37437364cc6e6e5ddb0",
+      "t": "The market's star lamps went out one by one. The star people folded their tents and left. Only one charcoal fire remained in Yundal's tent."
+    },
+    {
+      "id": "ep-31:2",
+      "source": "모카는 꼬치를 굽지 않았다. 쇠꼬챙이만 손에 쥐고 숯불을 보고 있었다. 수염이 아직도 가끔 떨렸다.",
+      "sourceHash": "870231b56d108e4252475d36c1781aad5375392910ec5a1b8d8ba7c652a9dd5b",
+      "t": "Moka wasn't grilling. He simply held a metal skewer and watched the coals. His whiskers still trembled now and then."
+    },
+    {
+      "id": "ep-31:3",
+      "source": "모카. 아까 그 목소리, 누군데?",
+      "sourceHash": "c95bc8517a17b052c20a07748c8d17684ef6dd8adb0cbfd9aa2cceabe918627b",
+      "t": "Moka. That voice earlier. Who was it?"
+    },
+    {
+      "id": "ep-31:4",
+      "source": "축제 섬에 노래하던 애가 있었어. 무성이. 목소리가 엄청 컸어. 박자는 엄청 못 맞췄고.",
+      "sourceHash": "741abccc18bd1bf708933a8056009834b0389021f6239c8059741e0ba6cf4610",
+      "t": "A kid used to sing on the festival island. Museong. Huge voice. Terrible at keeping time."
+    },
+    {
+      "id": "ep-31:5",
+      "source": "노래를 못했어?",
+      "sourceHash": "9aab4b545e6dd8f9af5756832ac98caab928c071e8c0d201299f417840f2a7f8",
+      "t": "Couldn't sing?"
+    },
+    {
+      "id": "ep-31:6",
+      "source": "못했지. 근데 즐거워 보였어. 무대에 올라가면 꼭 눈을 감고 불렀어. 관객을 보면 떨린다고.",
+      "sourceHash": "dd477dbcb0384ba5e4c94665c5c844f81ca66b07956878d49822374d1dcd9d7c",
+      "t": "Terrible. But he looked happy. Always closed his eyes onstage. Said looking at the audience made him nervous."
+    },
+    {
+      "id": "ep-31:7",
+      "source": "숯불에서 불티 하나가 튀었다. 모카가 그것을 꼬챙이 끝으로 눌러 껐다. 꼬챙이를 쥔 손에 힘이 들어갔다.",
+      "sourceHash": "fe2877cc242604ff3cc66aa8fc538adae1d860c659f5f448d14b9f80c59b7eef",
+      "t": "A spark jumped from the coals. Moka pressed it out with the skewer's tip. His grip tightened."
+    },
+    {
+      "id": "ep-31:8",
+      "source": "어느 해 해맞이 무대에서, 그 애 목소리가 갈라졌어. 첫 소절에서. 아주 크게.",
+      "sourceHash": "5c398c6fc6591b726321ca5b8e61a7babfa6e62127d990872d75cbae1be82521",
+      "t": "One year, at the sunrise concert, his voice cracked. First line. Really loudly."
+    },
+    {
+      "id": "ep-31:9",
+      "source": "그래서?",
+      "sourceHash": "f04bbd37504b582fc9415a5af8d59e9c133f0acfeb9cd94955a00517d41f8452",
+      "t": "And?"
+    },
+    {
+      "id": "ep-31:10",
+      "source": "다들 웃었어. 그다음 날부터 그 애가 안 보였어. 그리고 몇 해 뒤에 까마귀가 왔어. 노래하는 사람은 비웃음을 받는다면서.",
+      "sourceHash": "d912944b3a88ae77d096f6e7cf9bfe4febf900087a742d88a9df562f7d86d43a",
+      "t": "Everyone laughed. From the next day, he was gone. A few years later, the crow came. Saying anyone who sings gets mocked."
+    },
+    {
+      "id": "ep-31:11",
+      "source": "모카는 거기서 말을 멈췄다. 무언가 더 하려다 삼킨 얼굴이었다. 연이는 묻지 않았다. 묻지 않아도 언젠가 꺼낼 얼굴이었다.",
+      "sourceHash": "b1d112291f85eff98d5f06c34d3c110c0be54249704d53024b0c24e2229e1823",
+      "t": "Moka stopped. His face held something more, swallowed back. Yeoni didn't ask. It was a face that would speak someday without being asked."
+    },
+    {
+      "id": "ep-31:12",
+      "source": "식상의 섬에서 까마귀 가면 아래 소년 얼굴이 비쳤다고 하셨죠. 그 소년이 이 하늘에서 문지기를 하고 있다면, 이유가 있을 거예요.",
+      "sourceHash": "9db7a8a35fd8ed0a86ac14bc090b2b800348b885896c8528b3e95906041eae15",
+      "t": "You said a boy's face showed beneath the crow mask on the Island of Expression. If that boy guards a gate here, there must be a reason."
+    },
+    {
+      "id": "ep-31:13",
+      "source": "흑월이 데려온 거겠지. 깃털을 거둔다고 했었어. 남은 노래까지.",
+      "sourceHash": "283920cd25aa538362e88a0a37ef5a692ef4b2dd522f6307394681225a03c7e9",
+      "t": "Black Moon brought him, probably. Said it would collect his feathers. Even his remaining song."
+    },
+    {
+      "id": "ep-31:14",
+      "source": "그 망할 일식. 남의 노래를 왜 자꾸 거둬.",
+      "sourceHash": "8d2c7c687b939e937a12897de1bbbd6fe17e19d3a2b7d76eac83d805635aa748",
+      "t": "That damned eclipse. Why keep taking other people's songs?"
+    },
+    {
+      "id": "ep-31:15",
+      "source": "숯불 너머에서 낮은 숨소리가 들렸다. 네오가 천막 기둥에 등을 기댄 채 눈을 감고 있었다. 오른팔은 팔꿈치까지 검었다.",
+      "sourceHash": "e600fab5a1bc293a445d349cce8f3ea1a94013e28ff30dfb97e1aca0205cb892",
+      "t": "A low breath came from beyond the coals. Neo leaned against a tent pole with his eyes closed. His right arm was black to the elbow."
+    },
+    {
+      "id": "ep-31:16",
+      "source": "네오. 아까보다 더 올라왔어.",
+      "sourceHash": "67765b0ee9d46693a9f63af1690362090a83fef273f3f374fc03c8df81b3ed84",
+      "t": "Neo. It's farther up than before."
+    },
+    {
+      "id": "ep-31:17",
+      "source": "번지면 말한다고 했지. 지금 말할게. 더 번졌어.",
+      "sourceHash": "b71141aadcf31f2bb79ddebcc91c4f163e7bccbccd58beab6fcd4bd37394803f",
+      "t": "Said I'd tell you when it spread. Telling you now. It spread."
+    },
+    {
+      "id": "ep-31:18",
+      "source": "그걸 그렇게 담담하게 말하면 어떡해!",
+      "sourceHash": "9ef7d303c3e32ed5b176e7a9a4086dc225ac5f633c99bf7b91c72688a1926115",
+      "t": "How can you say it so calmly?!"
+    },
+    {
+      "id": "ep-31:19",
+      "source": "윤달이 탁자 위 명반을 다시 펼쳤다. 午의 칸은 아까보다 더 까맸다. 검은 기운이 옆 칸으로 실처럼 뻗어 있었다.",
+      "sourceHash": "3534c920467616493ab8be3d37522113cb8524c2235899bafe4bacc5c225d103",
+      "t": "Yundal reopened the chart on the table. The Wu space was blacker than before. Black energy stretched into its neighbor like thread."
+    },
+    {
+      "id": "ep-31:20",
+      "source": "化忌는 지울 수 없어요. 태어난 해가 붙여 놓은 꼬리표라서. 숙녀분이 壬년에 태어난 이상, 무곡에 忌가 붙는 건 정해진 일이에요.",
+      "sourceHash": "2d49647c75922b931cd1cf455233c66866c5f42d809950ddc3abd5ed3dff65f1",
+      "t": "Obstruction Transformation can't be erased. It's a label attached by your birth year. As long as you were born in an Im year, Obstruction attaching to Wu Qu is fixed."
+    },
+    {
+      "id": "ep-31:21",
+      "source": "그럼 방법이 없다는 거예요?",
+      "sourceHash": "330678408cde632d7480a40d3527e47102a19121606fc7424cd03917ea7bd139",
+      "t": "Then there's no way?"
+    },
+    {
+      "id": "ep-31:22",
+      "source": "지울 수 없다는 거지, 방법이 없다는 건 아니에요. 忌는 빚이랑 비슷해요. 받을 걸 못 받아서 고인 자리. 흑월은 그 고인 자리를 빨대처럼 쓰는 거고요.",
+      "sourceHash": "285f9145bff85508fa33e7bf211652d57cf2b9c6c77f567be9934724d93c821c",
+      "t": "Can't erase it doesn't mean no way. Obstruction resembles a debt. A stagnant place where something owed was never received. Black Moon uses that place like a straw."
+    },
+    {
+      "id": "ep-31:23",
+      "source": "(빚. 미수. 그 사람이 맨날 하던 말이랑 같네.)",
+      "sourceHash": "cb763bdf577536b1a4f451b82620e4de45fbb2a28e06b271ec6df871efcca479",
+      "t": "(Debt. Uncollected. Just like the words she always used.)"
+    },
+    {
+      "id": "ep-31:24",
+      "source": "빨대를 뽑으려면 그 방 안에 뭐가 꽂혀 있는지부터 봐야 해요. 午의 방, 관록궁에 들어가야 해요.",
+      "sourceHash": "5d163ddc320af5403224efe61542c5f335e5fa99fe0f25b7d1a812d58843682b",
+      "t": "To pull out the straw, we first need to see what's stuck inside that room. The Wu room. We have to enter the Career Palace."
+    },
+    {
+      "id": "ep-31:25",
+      "source": "내가 간다.",
+      "sourceHash": "957bf47c38c0ce91ec60ff2fce03b90339f77dc3ef41865e32bec70bfd8e3701",
+      "t": "I'll go."
+    },
+    {
+      "id": "ep-31:26",
+      "source": "안 돼. 거기 金 먹는 데잖아. 네가 제일 가면 안 되는 사람이야.",
+      "sourceHash": "804a21187810232fed2b99ede517df6efc379b4987b0615d93cef6a8b103e0af",
+      "t": "No. That's where it eats Metal. You're the last person who should go."
+    },
+    {
+      "id": "ep-31:27",
+      "source": "그래서 내가 가야 해. 무곡은 쇠의 별이니까. 그 문에 반응할 수 있는 건 나야.",
+      "sourceHash": "93a85cddea43dc9a779b8d763a2129dda4a0aa55057c7a746fe18a793f0c74fd",
+      "t": "That's why I have to. Wu Qu is a Metal star. I'm the one that door can respond to."
+    },
+    {
+      "id": "ep-31:28",
+      "source": "…그건 사실이에요. 관록궁 문은 金 기운에만 반응해요. 숙녀분 명반에서 金은 고양이님 하나뿐이고요.",
+      "sourceHash": "69608ea835a1873f1a0bdfc445dc25fd572b3f16583dcb13dcf629b45a3e56cf",
+      "t": "...True. The Career Palace door only responds to Metal. And Mr. Cat is the only Metal in your chart."
+    },
+    {
+      "id": "ep-31:29",
+      "source": "그런 건 미리 말해 줘요!",
+      "sourceHash": "f011879f30aaa343e4fdf8d96a91e0b7886b6df92ca786785a3389147805fc4b",
+      "t": "Tell me things like that beforehand!"
+    },
+    {
+      "id": "ep-31:30",
+      "source": "지금 말했잖아요. 고양이님 버릇 옮았나 봐요.",
+      "sourceHash": "cd527117991e0541da040ca349decd33d57491991040e692e0f66cd4a7f13910",
+      "t": "I just did. Must have caught Mr. Cat's habits."
+    },
+    {
+      "id": "ep-31:31",
+      "source": "연이는 입술을 깨물었다. 저 검은 칸에도, 담담한 얼굴로 버티는 네오에게도, 자신을 그릇이라 부르는 일식에게도 소리치고 싶었다.",
+      "sourceHash": "0a3f863bbbb67a3ec66359d84fb3858b90f207fa0575b72368f623590b289ed0",
+      "t": "Yeoni bit their lip. They wanted to shout at the black space, at Neo enduring with that calm face, at the eclipse calling them a vessel."
+    },
+    {
+      "id": "ep-31:32",
+      "source": "(참아. 소리치면 네오가 다쳐. 근데 참기만 하면, 썩는 불이라고 했지.)",
+      "sourceHash": "9b0b50fd7d915fd0af2e15efc2a4eb4d0a97de207fbc514afbbceeb7092b6739",
+      "t": "(Hold it in. Shout, and Neo gets hurt. But only holding it in makes fire rot.)"
+    },
+    {
+      "id": "ep-31:33",
+      "source": "그럼 같이 가. 혼자는 절대 안 돼. 그게 조건이야.",
+      "sourceHash": "36e7f3f7518c79397bfc9ffab37fbb48a933bf78dabdeb1c3c889915995e0e1b",
+      "t": "Then together. You absolutely don't go alone. That's the condition."
+    },
+    {
+      "id": "ep-31:34",
+      "source": "협상도 할 줄 아네, 이제.",
+      "sourceHash": "7151cb13cc34a86a6c9264f1fa149a9d8fc377bb2efc70b7c1ca86860c3c00dd",
+      "t": "Negotiating now, too."
+    },
+    {
+      "id": "ep-31:35",
+      "source": "시간을 파는 섬 출신이거든.",
+      "sourceHash": "04ffb0a5f5ac59d35edad2f1aa1c3cc9699fdbf96a158b8759f62997ebfe791a",
+      "t": "Graduate of the island that sold time."
+    },
+    {
+      "id": "ep-31:36",
+      "source": "午의 문으로 가는 길은 궁전 남쪽 끝이었다. 하늘이 갈수록 어두워졌다. 별이 하나씩 검은 물에 잠긴 것처럼 꺼져 있었다.",
+      "sourceHash": "5961c4dc36ed69bb4aad40373ccaec4d8bbc61060e6ce04cfd542b5e73e8a58f",
+      "t": "The way to the Wu gate lay at the palace's southern edge. The sky darkened as they went. Stars had gone out one by one, as though drowned in black water."
+    },
+    {
+      "id": "ep-31:37",
+      "source": "회색 얼굴의 별 사람들이 줄을 서 있었다. 줄 끝에는 높은 판결대가 있었다. 판결대 위에 검은 망토를 두른 것이 앉아 있었다.",
+      "sourceHash": "315ec49e078b93aaf711054d5959abe3f8e0a75be4eb00c7561a89004e453afe",
+      "t": "Gray-faced star people lined up. At the line's end stood a high judgment bench. Something in a black cloak sat atop it."
+    },
+    {
+      "id": "ep-31:38",
+      "source": "다음.",
+      "sourceHash": "c22b8b2f856ce6379ff500dd796a86c70d24b0fca71fdc796b29d55c9f319180",
+      "t": "Next."
+    },
+    {
+      "id": "ep-31:39",
+      "source": "줄 맨 앞의 별 사람이 등불을 내밀었다. 판결대 위의 것이 망치를 내리쳤다. 등불의 빛이 실처럼 뽑혀 판결대 뒤의 문 안으로 빨려 들어갔다.",
+      "sourceHash": "60a693c043fd9d625a92220dc9f0b30532375c14c244d2ba0d801c4bdb6593dd",
+      "t": "The person at the front offered a lantern. The figure struck its hammer. Light drew from the lantern like thread and streamed through the door behind the bench."
+    },
+    {
+      "id": "ep-31:40",
+      "source": "몰수. 웃은 죄.",
+      "sourceHash": "4ec6acc012b1e9eb07b91c3599052589f9fdc521791e5662846a3ea3902d3550",
+      "t": "Confiscated. Crime: laughing."
+    },
+    {
+      "id": "ep-31:41",
+      "source": "웃었다고 빛을 뺏어?",
+      "sourceHash": "43fdb432abd6515f0ba4b5c0fe2d09d40c0750871b21f5810c49a95a78947b80",
+      "t": "Taking their light for laughing?"
+    },
+    {
+      "id": "ep-31:42",
+      "source": "쉿. 판결대 뒤가 관록궁이에요. 빼앗긴 빛이 다 저리로 들어가요. 무곡한테.",
+      "sourceHash": "ff2607b87580db776d7df0d76efcc419fdb6c49ab5c5104acba74731eb3ad670",
+      "t": "Shh. Behind the bench is the Career Palace. All the stolen light goes there. To Wu Qu."
+    },
+    {
+      "id": "ep-31:43",
+      "source": "까마귀였다. 식상의 섬에서 본 것과 같은 검은 가면. 같은 망토. 다만 가슴께에 꽂힌 깃털 하나가 유난히 검었다. 숯처럼, 잉크처럼.",
+      "sourceHash": "a01224e36967bdb603a1f9015b5c2c1f7627be6b9a5f336fc79fc72e6ab69e60",
+      "t": "The crow. The same black mask and cloak from the Island of Expression. But one feather at its chest was unusually black. Like charcoal. Like ink."
+    },
+    {
+      "id": "ep-31:44",
+      "source": "(저 깃털. 명반에서 무곡에 들러붙던 검은 거랑 같은 색이야.)",
+      "sourceHash": "0cead09ab7a52e78e4da44d735e200fa0c7e3ce167dd0f2839c22626a6ef034b",
+      "t": "(That feather. Same color as the black thing clinging to Wu Qu on the chart.)"
+    },
+    {
+      "id": "ep-31:45",
+      "source": "저거 봐. 저 깃털에서 검은 게 문 안으로 이어져 있어.",
+      "sourceHash": "39c38834d0dc303e61632d869bd05c293e6efa9934acf3119f72d378d610e6dd",
+      "t": "Look. Blackness runs from that feather into the door."
+    },
+    {
+      "id": "ep-31:46",
+      "source": "모카 말대로였다. 가슴의 검은 깃털에서 먹물 같은 실이 흘러나와 문틈으로 이어져 있었다. 실은 살아 있는 것처럼 맥박을 쳤다.",
+      "sourceHash": "6390ec657f297c6a77a18d646530bb4f3734d5ca7fbe222975d2b7cbb48c2fd8",
+      "t": "Moka was right. An ink-like thread streamed from the chest feather into the doorway. It pulsed as though alive."
+    },
+    {
+      "id": "ep-31:47",
+      "source": "저게 빨대예요. 化忌의 뿌리. 까마귀가 이 하늘에 꽂힌 흑월의 빨대를 쥐고 있어요.",
+      "sourceHash": "29cf6b203437f92071867ee55431258ba03163c00f14f8e61097091f19ea4f71",
+      "t": "That's the straw. The root of Obstruction Transformation. The crow holds Black Moon's straw planted in this sky."
+    },
+    {
+      "id": "ep-31:48",
+      "source": "윤달이 작전을 냈다. 회색 얼굴로 위장해서 줄에 섞이자는 것이었다. 장갑을 벗은 오른손을 연이 앞에 내밀었다.",
+      "sourceHash": "652850aab9ade3b8a52284aeac514013c33c117f000fcae0e9584bf9b82ba0c4",
+      "t": "Yundal proposed a plan. Disguise themselves as gray faces and join the line. He removed his glove and offered his right hand to Yeoni."
+    },
+    {
+      "id": "ep-31:49",
+      "source": "제 구멍으로 숙녀분 빛을 잠깐 빨아들일게요. 얼굴이 회색이 될 거예요. 문만 넘으면 돌려 드릴게요.",
+      "sourceHash": "50b814b9679dbf87c551830fad746f4d5b9e022fd7118e413eab46bc1e6a4c8c",
+      "t": "I'll draw in your light briefly. Your face will turn gray. I'll return it once we're through."
+    },
+    {
+      "id": "ep-31:50",
+      "source": "그거 윤달 씨 손 아프잖아요.",
+      "sourceHash": "78efef5155eb4d3a7aad524d2df25e23ee626687e3ecd6745b225d80baa56c93",
+      "t": "But that hurts your hand."
+    },
+    {
+      "id": "ep-31:51",
+      "source": "아파요. 외상으로 달아 둘게요.",
+      "sourceHash": "26b16b997b64cef77b44bef88c36c94fd5b6260bd866de2f7a901319bca886b9",
+      "t": "It does. I'll put it on your tab."
+    },
+    {
+      "id": "ep-31:52",
+      "source": "손바닥 한가운데 검은 구멍이 있었다. 구멍 주변의 살이 금이 간 그릇처럼 갈라져 있었다. 처음 봤을 때보다 넓었다.",
+      "sourceHash": "8bef765123e1ddba577ceb6e3b93361e494598d46a6779996887d41c8a7f3802",
+      "t": "A black hole sat at the palm's center. The surrounding flesh cracked like a broken vessel. Wider than when Yeoni first saw it."
+    },
+    {
+      "id": "ep-31:53",
+      "source": "구멍이 숨을 들이쉬었다. 연이의 볼에서 따뜻한 기운이 빠져나갔다. 거울을 보지 않아도 알았다. 얼굴이 잿빛이 되었다.",
+      "sourceHash": "e2eb289200de0ab4bece6aa9d53a26ef4b396bf1626da9fbdd84c9371d51a9ba",
+      "t": "The hole inhaled. Warmth drained from Yeoni's cheeks. They knew without a mirror. Their face had turned ash gray."
+    },
+    {
+      "id": "ep-31:54",
+      "source": "…크. 숙녀분 빛, 생각보다 뜨겁네요.",
+      "sourceHash": "313964dfe6a8686752dc936c2041b1a63607fe370c4908e7acbc933977e736f1",
+      "t": "...Urgh. Your light is hotter than I expected."
+    },
+    {
+      "id": "ep-31:55",
+      "source": "나도 해. 빨리.",
+      "sourceHash": "bb5fc5fc94b08cb725fa9c592df88f3ac29229b743e3ea5613cb33fded68a15c",
+      "t": "Me too. Hurry."
+    },
+    {
+      "id": "ep-31:56",
+      "source": "수달 씨는 원래 표정이 회색이에요.",
+      "sourceHash": "2d862e15918f1a36f819653dd98ef5db4988c92865b5383dec7b993ca4cc7a52",
+      "t": "Mr. Otter's expression is already gray."
+    },
+    {
+      "id": "ep-31:57",
+      "source": "이 사기꾼이!",
+      "sourceHash": "aaead07bbd6f47b5ec732d254b38f7479eca0e367589a5c299c6f3bbd4870498",
+      "t": "You con artist!"
+    },
+    {
+      "id": "ep-31:58",
+      "source": "모카까지 잿빛으로 위장했다. 하지만 네오의 금 기운은 가릴 수 없었다. 그는 줄 옆 기둥 뒤에 숨어 문이 열리는 순간을 기다리기로 했다.",
+      "sourceHash": "0d657e671e899bbbfb383c7c51cfda91f0825dc22fea6fe545d89350b27c6992",
+      "t": "Moka disguised himself in gray, too. But Neo's Metal could not be concealed. He would hide behind a pillar beside the line and wait for the door to open."
+    },
+    {
+      "id": "ep-31:59",
+      "source": "(회색 얼굴. 식상의 섬 사람들이 이런 기분이었구나. 아무것도 맛있을 것 같지 않아.)",
+      "sourceHash": "9b70649ef97bc512c9d67df1ec5a24c610173b0c819842b7d93c28cf1ce319f9",
+      "t": "(Gray face. So this is what the people on the Island of Expression felt. Nothing seems like it would taste good.)"
+    },
+    {
+      "id": "ep-31:60",
+      "source": "줄이 줄었다. 판결대가 가까워졌다. 연이 차례였다. 연이는 등불 대신 빈손을 내밀었다.",
+      "sourceHash": "ea82718d7e9be319a355a391293d4c65490aef5a102b7410b8952bc5ad80f05f",
+      "t": "The line shortened. The bench drew near. Yeoni's turn. They offered empty hands instead of a lantern."
+    },
+    {
+      "id": "ep-31:61",
+      "source": "등불은.",
+      "sourceHash": "bd90e25591e833bf2d747edf2f29c6b63136fb8afb77d270c7e2a0fa3c75250f",
+      "t": "Your lantern."
+    },
+    {
+      "id": "ep-31:62",
+      "source": "없어요. 처음부터 없었어요.",
+      "sourceHash": "8aa57deb90dede5b3094dd2d50f83a97666c3b7fe7f2e74f7b0ae78c92d57252",
+      "t": "Don't have one. Never did."
+    },
+    {
+      "id": "ep-31:63",
+      "source": "빛이 없는 자는 몰수할 것도 없다. 통과.",
+      "sourceHash": "942141640b91926c00b3168175b4952aec43bad78b26d0b7f9cf484d5415d6f7",
+      "t": "No light, nothing to confiscate. Pass."
+    },
+    {
+      "id": "ep-31:64",
+      "source": "연이는 판결대를 지나쳤다. 다음은 모카였다. 모카는 잿빛 얼굴로 고개를 숙였다. 그런데.",
+      "sourceHash": "83df20c4d922f0bb065dae22e4928d36aa25e4fb8dba7e7046e45c448bc87434",
+      "t": "Yeoni passed the bench. Next, Moka. He lowered his gray face. But..."
+    },
+    {
+      "id": "ep-31:65",
+      "source": "모카의 꼬리가 바닥을 톡, 톡 쳤다. 박자였다. 저도 모르게. 숯불 앞에서 늘 흥얼거리던 그 박자.",
+      "sourceHash": "2b6431adba1baefbea96e1d67fa4ce4dbae86c50d5d6bcfd024de2aa649255f2",
+      "t": "His tail tapped the floor. Tap, tap. A rhythm. Unconsciously. The beat he always hummed by the charcoal."
+    },
+    {
+      "id": "ep-31:66",
+      "source": "…방금 그 박자.",
+      "sourceHash": "0810b59b1db431eaa91d55a4855d63d89ffe81be2f449a960aa12fe4dfa0cb86",
+      "t": "...That rhythm just now."
+    },
+    {
+      "id": "ep-31:67",
+      "source": "박자 아니야. 꼬리가 원래 그래.",
+      "sourceHash": "8c14e7ce723db69b52cb60bb84c9dc97fea2104660b3742b55594168ec836230",
+      "t": "No rhythm. My tail just does that."
+    },
+    {
+      "id": "ep-31:68",
+      "source": "거짓말. 몰수.",
+      "sourceHash": "89732d7e25fe76eb07879f97ece7cf53c4ac69192e1ccb7f10919cb5f4bab8e9",
+      "t": "Lies. Confiscated."
+    },
+    {
+      "id": "ep-31:69",
+      "source": "망치가 올라갔다. 그 순간 판결대 뒤의 문이 덜컥 흔들렸다. 문틈에서 쇳소리가 났다. 문이 저절로 열리려 하고 있었다. 기둥 그림자 쪽으로.",
+      "sourceHash": "adf17676285503571fe6eb2a69cc5d0e936a48d9ec66061b3cc08f0cb5023803",
+      "t": "The hammer rose. At that moment, the door behind the bench rattled. A metallic sound came through the crack. It was trying to open on its own, toward the pillar's shadow."
+    },
+    {
+      "id": "ep-31:70",
+      "source": "고양이님 金에 문이 반응했어요! 지금이에요!",
+      "sourceHash": "a19214bbb7dd1bd9c4a5cdee85b08051c39f6fc278ad546a651a060e7afa528e",
+      "t": "The door reacted to Mr. Cat's Metal! Now!"
+    },
+    {
+      "id": "ep-31:71",
+      "source": "네오가 그림자 밖으로 달렸다. 판결대를 짚고 넘어 문에 손을 댔다. 문이 열리자 연이와 모카, 윤달이 뒤따라 뛰어들었다.",
+      "sourceHash": "8904f19382b1add68e09cb3c1943112e450fbcb235b8c049657db855f2139dab",
+      "t": "Neo ran from the shadows, vaulted over the bench, and touched the door. As it opened, Yeoni, Moka, and Yundal rushed after him."
+    },
+    {
+      "id": "ep-31:72",
+      "source": "침입자! 金이다! 金이 들어왔다!",
+      "sourceHash": "7421a0549ee2b8b4ad96f5b2bc249af791ec3ac51999f15a22f59eced25efd46",
+      "t": "Intruders! Metal! Metal has entered!"
+    },
+    {
+      "id": "ep-31:73",
+      "source": "관록궁 안은 쇠로 지은 신전 같았다. 기둥도 벽도 온통 쇠였다. 그런데 쇠가 녹슬어 있었다. 검은 녹. 바닥에 잿빛 등불들이 산처럼 쌓여 있었다.",
+      "sourceHash": "fd5d09b49b9404aefd0c318d24e02318efa57011189e5316084720bbe0690c3e",
+      "t": "The Career Palace resembled an iron temple. Walls and pillars, all metal. But rusted. Black rust. Ash-gray lanterns lay piled like mountains on the floor."
+    },
+    {
+      "id": "ep-31:74",
+      "source": "방 한가운데 큰 별 두 개가 떠 있었다. 하나는 흙빛으로 묵직하게 빛났다. 다른 하나는 쇳빛이었는데, 온몸이 검은 실에 칭칭 감겨 있었다.",
+      "sourceHash": "14f7f75366b53f8a2c3bd096b4f77776afa0637db72a4639f38983a549708d54",
+      "t": "Two great stars floated at the center. One shone heavily in earthy light. The other gleamed like metal, its whole body bound in black thread."
+    },
+    {
+      "id": "ep-31:75",
+      "source": "천부, 그리고 무곡. 창고의 별과 쇠의 장군 별이에요. 둘 다 원래는 엄청 밝아요.",
+      "sourceHash": "82df6b249d37e53ae1139becd8e2ccc5498d4a61a5e637a97db6d094f71676a1",
+      "t": "Tian Fu and Wu Qu. The storehouse star and the Metal general. Both are normally incredibly bright."
+    },
+    {
+      "id": "ep-31:76",
+      "source": "무곡이 묶여 있어. 저 실, 까마귀 깃털에서 온 거야.",
+      "sourceHash": "f2a53c10d5d47cd41d3bd28e4c2860f8468431eed32cfa701c80c1d98428adde",
+      "t": "Wu Qu is tied up. Those threads came from the crow's feather."
+    },
+    {
+      "id": "ep-31:77",
+      "source": "묶인 별이 신음했다. 쇳소리가 섞인 낮은 울음이었다. 네오가 숨을 삼켰다. 자기 몸 안에서도 같은 소리가 났다.",
+      "sourceHash": "f47fcce625d9b7b5836a1956066fccb283941a84b092c1dba6d274b8cb460f57",
+      "t": "The bound star groaned, a low cry edged with metal. Neo caught his breath. The same sound came from inside his body."
+    },
+    {
+      "id": "ep-31:78",
+      "source": "「…쇠의 아이로구나. 오지 마라. 이 실은 쇠를 먹는다.」",
+      "sourceHash": "f08e42535de771e7c15060a7735aab4e5a657fc3d9ca9c9f20df8663e0e03480",
+      "t": "“...A child of Metal. Don't come. These threads eat Metal.”"
+    },
+    {
+      "id": "ep-31:79",
+      "source": "알고 왔다. 실을 끊으면 되나.",
+      "sourceHash": "9acf8263b23871b4c6facc7b2f6ffabcde0a6987b8a44d6e04945efcfba1bd0b",
+      "t": "I knew when I came. Do I cut them?"
+    },
+    {
+      "id": "ep-31:80",
+      "source": "「끊으면 다시 자란다. 뿌리를 뽑아야 한다. 뿌리는 저 판결대 위에 앉은 아이의 가슴에 꽂혀 있다.」",
+      "sourceHash": "75277bdc784153001342f0c474b2105dca1f1556cb143988cca847ed0450db8e",
+      "t": "“Cut them, and they grow again. Uproot them. Their root is planted in the chest of the child on that judgment bench.”"
+    },
+    {
+      "id": "ep-31:81",
+      "source": "네오가 손끝의 날로 실 다섯 가닥을 끊었다. 잘린 끝이 뱀처럼 몸을 틀어 그의 팔로 달려들었다.",
+      "sourceHash": "083f149dfab04621ef07a284607f4901b58d5ad52a98e480f01d9d8918d3e688",
+      "t": "With fingertip blades, Neo severed five threads. The cut ends twisted like snakes and sprang at his arm."
+    },
+    {
+      "id": "ep-31:82",
+      "source": "네오!",
+      "sourceHash": "b045fd81406390f003aaff010f10c90f5feaa4e8cd8949775e05ae1446a84f9c",
+      "t": "Neo!"
+    },
+    {
+      "id": "ep-31:83",
+      "source": "검은 실이 네오의 손목을 타고 올랐다. 팔꿈치를 지나 어깨로, 목덜미로. 은빛 머리카락 끝까지 잿빛이 번졌다.",
+      "sourceHash": "81d4f261992edcb6f20055be82d9f81cce39dbca8d85907a862f8b09074ca57c",
+      "t": "Black threads climbed his wrist, past the elbow, to shoulder and neck. Ash gray spread to the ends of his silver hair."
+    },
+    {
+      "id": "ep-31:84",
+      "source": "크윽…!",
+      "sourceHash": "c6be73781fcf4590a4117dce39c402c479c89f0ec8f6ec64821e464b26f925a4",
+      "t": "Ghh...!"
+    },
+    {
+      "id": "ep-31:85",
+      "source": "고양이님, 멈춰요! 金이 끊을수록 忌가 金으로 옮겨 가요!",
+      "sourceHash": "105159ec6af78636f2b2d4d1156795e496a76f6d3e47bd5430b88b764aade043",
+      "t": "Mr. Cat, stop! The more Metal cuts, the more Obstruction moves into Metal!"
+    },
+    {
+      "id": "ep-31:86",
+      "source": "윤달이 오른손을 내밀었다. 구멍이 검은 실을 빨아들이기 시작했다. 실 몇 가닥이 구멍 속으로 사라졌다. 그만큼 구멍 가장자리의 금이 손목 쪽으로 번졌다.",
+      "sourceHash": "bb2a2d73e90238ed52a4a857dc855cd45a9523d63de394d6e18efa0206a17837",
+      "t": "Yundal extended his right hand. The hole began drawing in threads. Several vanished inside. By that same amount, cracks along the hole's rim spread toward his wrist."
+    },
+    {
+      "id": "ep-31:87",
+      "source": "윤달 씨, 그만해요! 손이 갈라지고 있어요!",
+      "sourceHash": "3f3a0f35e0c6d7b2042f3a8e212fe378df794e1c892be6811d04f1a05970872a",
+      "t": "Yundal, stop! Your hand is splitting!"
+    },
+    {
+      "id": "ep-31:88",
+      "source": "괜찮아요. 아직 손목이에요.",
+      "sourceHash": "9c6c8cc18b9f079d8ec90fa713255553421d741f8562b021464ee673e7332ab2",
+      "t": "Fine. Still only the wrist."
+    },
+    {
+      "id": "ep-31:89",
+      "source": "다들 왜 그래! 왜 다들 괜찮다고만 해!",
+      "sourceHash": "ba726cc66e349aa26abf2a1930ecaa01f0fd25c4aeebe5bddd15ded9924d9e82",
+      "t": "What's wrong with all of you?! Why do you all only say you're fine?!"
+    },
+    {
+      "id": "ep-31:90",
+      "source": "연이의 목소리가 쇠벽에 부딪혀 울렸다. 상관의 불이 확 피어올랐다. 그리고 연이는 보았다. 네오의 몸이 움찔하는 것을.",
+      "sourceHash": "57bccc2e15a520dd0feeb3e7de9881d2a3edece7112f07841bcf3147c63b4fef",
+      "t": "Yeoni's voice struck the iron walls and rang. Hurting Officer's fire flared. And Yeoni saw Neo flinch."
+    },
+    {
+      "id": "ep-31:91",
+      "source": "…미안. 또 소리쳤어.",
+      "sourceHash": "20875b755437bb437d45c3263b6e52fb53bf53b4a3ba84019ba2778a671aca2a",
+      "t": "...Sorry. Shouted again."
+    },
+    {
+      "id": "ep-31:92",
+      "source": "아니다. 지금 건 간지럽지도 않았다.",
+      "sourceHash": "453d52c92ba6c5f21652b1e498ada8f399e0515c55aa539acb2bda82a096dd40",
+      "t": "No. That didn't even tickle."
+    },
+    {
+      "id": "ep-31:93",
+      "source": "거짓말이었다. 네오의 목 위로 잿빛이 더 번져 있었다. 연이는 말 대신 주먹을 쥐었다. 손톱이 손바닥을 파고들었다.",
+      "sourceHash": "c151f6aa22299f5f48d7274ad94138fae8d01de30362199a0ae4e6229cc21d00",
+      "t": "A lie. More gray had spread over Neo's neck. Instead of speaking, Yeoni clenched their fists. Nails dug into palms."
+    },
+    {
+      "id": "ep-31:94",
+      "source": "(말하면 다치고, 참으면 다들 혼자 다쳐. 대체 어떡하라는 거야.)",
+      "sourceHash": "ea234fa2b0f96cba7a2824fd59fb70d2cf297be514da9555400ec0abb21f8bd6",
+      "t": "(Speak, and he hurts. Hold it in, and everyone hurts alone. What am I supposed to do?)"
+    },
+    {
+      "id": "ep-31:95",
+      "source": "등 뒤에서 문이 쾅 닫혔다. 날개 퍼덕이는 소리. 판결대 위에 앉아 있던 것이 방 안으로 들어와 있었다.",
+      "sourceHash": "11bb6a0c07bcf205733a19c4b3f24ed738f6137425f10baa476831134faca325",
+      "t": "The door slammed behind them. Wings beat. The figure from the judgment bench had entered."
+    },
+    {
+      "id": "ep-31:96",
+      "source": "金이 스스로 걸어 들어왔군. 판결할 수고를 덜었다.",
+      "sourceHash": "1c5711aa337f20cde465548f46f139824471d106935d8a931cd3abc56a52fa82",
+      "t": "Metal walks in of its own accord. Saves me the trouble of a trial."
+    },
+    {
+      "id": "ep-31:97",
+      "source": "판결한다. 이 쇠는 忌에 묶였다. 사흘 뒤 정오, 이 하늘에서 지워진다.",
+      "sourceHash": "34db4d9c2e6c7697e190993d30f24ceedff087b20e95fdedf6d741e6c3bfc532",
+      "t": "Judgment. This Metal is bound to Obstruction. At noon in three days, it will be erased from this sky."
+    },
+    {
+      "id": "ep-31:98",
+      "source": "무슨 권리로! 네가 뭔데 남의 이름을 지워!",
+      "sourceHash": "ffdc13a20ae477e8548e8eb0ed4615e33dc21cde50b10b14381823d692f9e1ad",
+      "t": "By what right?! Who are you to erase someone else's name?!"
+    },
+    {
+      "id": "ep-31:99",
+      "source": "이름이 있으니 비웃음을 받는다. 지우면 아무도 비웃지 않는다. 그게 자비다.",
+      "sourceHash": "377223c26c6b4107640fae84ab81a9f0864f1479a34d55473d784ff4600d9be2",
+      "t": "A name invites ridicule. Erase it, and nobody laughs. That is mercy."
+    },
+    {
+      "id": "ep-31:100",
+      "source": "까마귀가 망치를 들었다. 그런데 그 손이 떨리고 있었다. 가슴의 검은 깃털이 맥박을 칠 때마다, 까마귀의 어깨가 함께 움찔했다.",
+      "sourceHash": "e8d6fafe28bf3f97c43fcdb66166b82d302de9c86d277c499088b7344b62ea3b",
+      "t": "The crow raised its hammer. But its hand shook. Whenever the black feather pulsed, its shoulders flinched."
+    },
+    {
+      "id": "ep-31:101",
+      "source": "(아파하고 있어. 저 깃털이 쟤도 먹고 있어.)",
+      "sourceHash": "3b3eb7b1d3eb4ec39f3228704acc54c0fd6052f025f60458e7a371fe3425eabc",
+      "t": "(It hurts. That feather's eating the crow, too.)"
+    },
+    {
+      "id": "ep-31:102",
+      "source": "그때 모카가 앞으로 나섰다. 잿빛이 풀린 얼굴이었다. 윤달이 빛을 돌려준 것이 아니었다. 모카가 스스로 털어낸 것이었다.",
+      "sourceHash": "9315eb62204c651fc50c3884a7ca7709eb064a58278b57cb2ce813bf7b7f2a1d",
+      "t": "Then Moka stepped forward. The gray had left his face. Not because Yundal returned his light. Moka had shaken it off himself."
+    },
+    {
+      "id": "ep-31:103",
+      "source": "야.",
+      "sourceHash": "b22be8aae24cd48c68a21def3493ad80e7c5ab1cb4a888d48b9643cf53f6ab06",
+      "t": "Hey."
+    },
+    {
+      "id": "ep-31:104",
+      "source": "수달. 박자의 죄로 몰수.",
+      "sourceHash": "f26e7ddae6bf9958c3b611ffa2b357ce1c0cbfde01b5dfb97273ff793dff91f4",
+      "t": "Otter. Confiscated for the crime of rhythm."
+    },
+    {
+      "id": "ep-31:105",
+      "source": "그 박자. 너도 알잖아. 해맞이 무대 뒤에서 너랑 나랑 맞추던 거.",
+      "sourceHash": "ba5eba92c30f4c039e5a033e582ae37ca470251424107a2c44074754b67f4cd7",
+      "t": "You know that rhythm, too. The one we practiced behind the sunrise stage."
+    },
+    {
+      "id": "ep-31:106",
+      "source": "모카의 꼬리가 바닥을 쳤다. 톡, 톡, 톡. 그리고 한 박자 쉬고, 톡.",
+      "sourceHash": "607eae83fa022bab3f40f386d44224b9f8d8c2ec8edadf9f3941ff67d8691aa4",
+      "t": "Moka's tail tapped the floor. Tap, tap, tap. A pause, then tap."
+    },
+    {
+      "id": "ep-31:107",
+      "source": "까마귀의 손에서 망치가 떨어졌다. 쇠바닥에 부딪히는 소리가 방 안을 오래 울렸다.",
+      "sourceHash": "4f551e9e5b0b623642f66461702cb6ce538a760d54cf3c2ddeb58572be590084",
+      "t": "The hammer fell from the crow's hand. Its impact on the iron floor echoed for a long time."
+    },
+    {
+      "id": "ep-31:108",
+      "source": "…그 박자를 어떻게.",
+      "sourceHash": "517ae4c16e4710908988e6e30c144ce00be3b5dd3a8fb9cc68d6f4b422779327",
+      "t": "...How do you know that rhythm?"
+    },
+    {
+      "id": "ep-31:109",
+      "source": "무성아. 너지.",
+      "sourceHash": "0fdc67f9e8ae258ca2a6cb13d1163c0a4169b158aa97d3414bbf5ddb371a8228",
+      "t": "Museong. It's you."
+    }
+  ]
+}

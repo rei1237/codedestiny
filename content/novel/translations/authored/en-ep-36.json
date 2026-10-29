@@ -1,0 +1,690 @@
+{
+  "locale": "en",
+  "episodeId": "ep-36",
+  "tag": "Episode 36 · Yundal",
+  "title": "Yundal",
+  "sourceTitle": "윤달",
+  "sourceTag": "제36화 · 윤달",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-36:1",
+      "source": "하늘배 갑판에 새벽빛이 번졌다. 별구름 아래로 옅은 금빛 길이 하나 열려 있었다. 아까까지 없던 길이었다.",
+      "sourceHash": "9c2cd187dafe4784fc063fb7a1d46607728f9f6d94361db09d8abf1e1cd78a1b",
+      "t": "Dawn spread across the skyship's deck. Beneath the star clouds, a pale golden path had opened where none had been before."
+    },
+    {
+      "id": "ep-36:2",
+      "source": "저거 길이에요? 하늘에 길이 났어요.",
+      "sourceHash": "49c7322d19a2c0179dce77db0b9ae295dc2379e8f38ec9142c2f6f9c63aac693",
+      "t": "Is that a road? There's a road in the sky."
+    },
+    {
+      "id": "ep-36:3",
+      "source": "시를 되찾은 사람한테만 보이는 길이에요. 집으로 가는.",
+      "sourceHash": "9988fa0ee716de6e1b745ff7da31e9a6feb56b62fd6051c4bc00b10d04525361",
+      "t": "A road visible only to someone who's recovered their hour. A road home."
+    },
+    {
+      "id": "ep-36:4",
+      "source": "그럼 너, 가는 거야?",
+      "sourceHash": "19a7bb180e28ef4a84e7ab722ee918aa8c79c573ac1087ea24d11901e6229dac",
+      "t": "Then are you going?"
+    },
+    {
+      "id": "ep-36:5",
+      "source": "윤달은 대답 대신 장갑 낀 손을 들어 보였다. 장갑 한가운데가 안쪽으로 오목하게 꺼져 있었다.",
+      "sourceHash": "a70f9f7b603c3112dae842664831007d969006be02082b04908c2caf1e586a66",
+      "t": "Instead of answering, Yundal raised his gloved hand. The center of the glove sagged inward."
+    },
+    {
+      "id": "ep-36:6",
+      "source": "가면 이 손도 같이 가요. 그 동네 사람들은 저를 계속 잊고요. 엄마가 아들을 세 번째로 처음 보는 집이죠.",
+      "sourceHash": "8ec5df3cac7d865f93a47108bf20d28cc7641d3ca4a734dc667c2f9e2110cdb7",
+      "t": "If I go, this hand goes with me. And the people there keep forgetting me. A home where my mother meets her son for the first time, for the third time."
+    },
+    {
+      "id": "ep-36:7",
+      "source": "그럼 안 가는 거예요?",
+      "sourceHash": "a47ef6ce8b9f60b8ad6a299f9c99b0a521e639d82e9e9f75713893af70932c07",
+      "t": "Then you're not going?"
+    },
+    {
+      "id": "ep-36:8",
+      "source": "그건 아침 먹고 정할래요. 사람은 배가 고프면 비싼 결정을 해요.",
+      "sourceHash": "bfe003a78a0b5ed9e5c82c613b250d087ccb1a34f36ad0e124283914de625433",
+      "t": "I'll decide after breakfast. Hungry people make expensive decisions."
+    },
+    {
+      "id": "ep-36:9",
+      "source": "그건 맞는 말이네. 요리사로서 인정.",
+      "sourceHash": "a71be671bfb4f4ba1bb4c3868583510068838622c126c2f343332843ee59d3ca",
+      "t": "That's true. As a chef, I approve."
+    },
+    {
+      "id": "ep-36:10",
+      "source": "모카가 갑판 한쪽에 작은 화로를 피웠다. 별구름에서 건진 이슬로 죽을 끓였다. 냄새가 소박하고 따뜻했다.",
+      "sourceHash": "81cd387a9eb389bdb4731343477239575bf3a8cb54472f7a6c5cdab4886a1146",
+      "t": "Moka lit a small brazier on one side of the deck. He cooked porridge with dew gathered from the star clouds. It smelled simple and warm."
+    },
+    {
+      "id": "ep-36:11",
+      "source": "꿀꿀. 아니, 냄새 좋다.",
+      "sourceHash": "320792afbab2dfcd88c3dd4da9963a90bf03a43c81a8074daf910720c590f533",
+      "t": "Oink. I mean, that smells good."
+    },
+    {
+      "id": "ep-36:12",
+      "source": "지금 꿀꿀이라고 했지.",
+      "sourceHash": "78a52e82ec60166a1f32befce1dfaf185ccb0ad3dc7693d62436f6dd4b5334ee",
+      "t": "You just said oink."
+    },
+    {
+      "id": "ep-36:13",
+      "source": "안 했어.",
+      "sourceHash": "217f4478dfeb87169460d65e20cd2ceaf0a696e8e12c3a8a2688065f5a21e043",
+      "t": "I didn't."
+    },
+    {
+      "id": "ep-36:14",
+      "source": "했다. 기록해 두었다.",
+      "sourceHash": "21ef055a5807a0a808e5d27a68e3ef93de88e401518555ac0548aaf77eb65a46",
+      "t": "You did. I have recorded it."
+    },
+    {
+      "id": "ep-36:15",
+      "source": "그 기록, 저도 한 부 받을 수 있을까요. 협박용으로.",
+      "sourceHash": "ce7bd0bd87205dafedb42e5f1bf24ea894267b6bb854099aeb14c41e1377f441",
+      "t": "Could I get a copy of that record? For blackmail."
+    },
+    {
+      "id": "ep-36:16",
+      "source": "둘이 언제 이렇게 친해졌어!",
+      "sourceHash": "a4c2de59f8b8c6600119f0da711362bc5d5c3d0c7b216e511dc92648e8e865f2",
+      "t": "When did you two become such friends?!"
+    },
+    {
+      "id": "ep-36:17",
+      "source": "윤달은 웃으며 품에서 접힌 종이를 꺼냈다. 자기 명식이었다. 시 칸 하나가 오래 비어 있던 자리에 새 글자가 반듯하게 들어가 있었다.",
+      "sourceHash": "717bb1de17521e4d775f65dc0cd74d527ab2a4753d6ce65131f4e977f2603c40",
+      "t": "Smiling, Yundal drew a folded sheet from his clothes. His own Four Pillars chart. New characters sat neatly in the Hour column that had been empty for so long."
+    },
+    {
+      "id": "ep-36:18",
+      "source": "여덟 글자가 다 찬 걸 보니까 이상해요. 남의 옷을 입은 것 같기도 하고, 드디어 맞는 옷 같기도 하고.",
+      "sourceHash": "cf8431317c2a7e8dce542e1ac615a418ff46bf010368e78d702e794535dde816",
+      "t": "It's strange seeing all eight characters filled in. Like wearing someone else's clothes, and like finally wearing clothes that fit."
+    },
+    {
+      "id": "ep-36:19",
+      "source": "그래서, 뭐라고 나왔는데. 너 팔자.",
+      "sourceHash": "74d134245f19cff88f95f0f455d415a142b4fde0db32f017b9558518db8a7650",
+      "t": "So what does it say? Your fate."
+    },
+    {
+      "id": "ep-36:20",
+      "source": "말년에 여자 복이 터진대요. 숙녀분, 모카 씨, 혹시 생일이.",
+      "sourceHash": "02a5685212e3a1b661bc93150018494575952b773f8c69c06be8f391edcf80d4",
+      "t": "Wonderful luck with women in my later years. My lady, Moka, would you happen to know your birth—"
+    },
+    {
+      "id": "ep-36:21",
+      "source": "죽 엎는다.",
+      "sourceHash": "60f2883001b318c780d05e0e8cb76a8e139d2d9c8150bb681e001398d057c926",
+      "t": "I'll tip the porridge over."
+    },
+    {
+      "id": "ep-36:22",
+      "source": "농담이에요. 사실은 이렇게 나왔어요. 남의 길을 밝히다가 자기 길을 늦게 찾는 사람.",
+      "sourceHash": "1f2c29db64261e654721502d1fb4f4b8e7b7029ccce3692b621a217e612ac858",
+      "t": "I'm joking. What it actually says is: someone who lights other people's paths and finds his own late."
+    },
+    {
+      "id": "ep-36:23",
+      "source": "그거 지금 딱 맞네요.",
+      "sourceHash": "bd640326bd176e909f6e576173e32a6ab4bde1bbf7560b9abeccae97b57e5e5f",
+      "t": "That's exactly right at the moment."
+    },
+    {
+      "id": "ep-36:24",
+      "source": "그쵸. 점술가가 자기 점은 제일 못 본다는 말, 이제 믿어요.",
+      "sourceHash": "120f4b086a27f9d25dd3905d6ced5f8b60f6d5ebf6f98b0477d5e181468199f2",
+      "t": "Isn't it? I finally believe the saying that fortune-tellers are worst at reading their own fortunes."
+    },
+    {
+      "id": "ep-36:25",
+      "source": "남의 생년월일은 잘도 묻더니.",
+      "sourceHash": "10c1fffe1a4361fe2808de2b5da3768faf0ac3223eb6161af7c354ab14e119df",
+      "t": "You ask for everyone else's birthdays easily enough."
+    },
+    {
+      "id": "ep-36:26",
+      "source": "그건 영업이고요. 이건 진료예요. 진료비는 안 받아요.",
+      "sourceHash": "66fb737d6ef40876d9333d04aefa7a1352e27afa84adb96ad4e55190f2344fd2",
+      "t": "That's business. This is a consultation. No consultation fee."
+    },
+    {
+      "id": "ep-36:27",
+      "source": "넷은 화로 둘레에 앉았다. 윤달이 죽 그릇을 두 손으로 감쌌다. 연이는 그 손을 보다가 메모장을 꺼냈다.",
+      "sourceHash": "e3d02df7e47d9640d841f9fb1bd98a539924969cc01f7a0d22ad27ce6eea18bc",
+      "t": "The four sat around the brazier. Yundal cradled his bowl in both hands. Yeoni watched his hands, then took out their notebook."
+    },
+    {
+      "id": "ep-36:28",
+      "source": "윤달 씨. 그 이름, 진짜 이름 아니죠.",
+      "sourceHash": "b16b32f21c0c71ce45a2acfbd8cd0c896b588c7cbc5f17b39d25abf2647874b1",
+      "t": "Yundal. That's not your real name, is it?"
+    },
+    {
+      "id": "ep-36:29",
+      "source": "들켰네요. 언제부터 알았어요?",
+      "sourceHash": "6cbb99ed53c8f240ebdc30f568da3162d54cbc1a99aad76b757edbaff1ebe5e2",
+      "t": "Caught me. How long have you known?"
+    },
+    {
+      "id": "ep-36:30",
+      "source": "계약서 제7조. 본인 입으로 시각을 말하랬는데 이름은 안 물어봤잖아요. 청토끼가 이름을 이미 갖고 있었던 거예요.",
+      "sourceHash": "6f4df5e6e9dca918571f9a9c948cd3fd71e59004b851f93a0f6144091132ded7",
+      "t": "Article Seven. It said you had to state your birth time yourself, but it never asked your name. Blue Rabbit already had your name."
+    },
+    {
+      "id": "ep-36:31",
+      "source": "숙녀분은 회계 감사를 했어야 해요.",
+      "sourceHash": "08f8bab427adf1a0db0d38424e012417fa6d62e9c6bcbbe0c3acbbfd251e8c63",
+      "t": "My lady, you should have become an auditor."
+    },
+    {
+      "id": "ep-36:32",
+      "source": "윤달은 달력 사이에 한 달을 더 넣는 거야. 원래 열두 달에는 없는 자리지.",
+      "sourceHash": "8ffb5c2539ed322aeffc65bc9d4d43a838618d9647c02dd192622b7f11bebb9c",
+      "t": "Yundal means an extra month inserted into the calendar. A place outside the usual twelve months."
+    },
+    {
+      "id": "ep-36:33",
+      "source": "맞아요. 있는데 없는 달. 제사도 안 지내고 생일도 안 쳐 주는 달.",
+      "sourceHash": "ed21e8cbab72add9ef65d33efd030a791a7a4f29b4cfb692568f2eb6f4eebd64",
+      "t": "That's right. A month that exists and doesn't. No ancestral rites, no birthdays counted."
+    },
+    {
+      "id": "ep-36:34",
+      "source": "잊히는 사람한테 딱이라 제가 지었어요. 작명 실력도 진짜죠.",
+      "sourceHash": "fd4b8f12e6332ea17de9e10e25446fd9b1cdaf0d50ebd487a5a864f074e35713",
+      "t": "Perfect for someone people forget, so I chose it myself. My naming skills are the real thing too."
+    },
+    {
+      "id": "ep-36:35",
+      "source": "웃음 끝에 짧은 정적이 왔다. 화로의 숯이 탁 튀었다. 연이는 펜을 내려놓았다.",
+      "sourceHash": "f5a87236240985439dc94996ea5043f41414c8afe442babf3daa930b2e39a36c",
+      "t": "A brief silence followed his laugh. Charcoal cracked in the brazier. Yeoni put down their pen."
+    },
+    {
+      "id": "ep-36:36",
+      "source": "본명, 나중에 꼭 알려 줘요. 내가 적어 둘게요.",
+      "sourceHash": "57d693324df6dd4503db8473b55f3eab817d86c5a409140c2c0452c044cef1d0",
+      "t": "Tell me your real name someday. I'll write it down."
+    },
+    {
+      "id": "ep-36:37",
+      "source": "적어 둬도 잊힐 거예요. 종이는 남는데 읽는 사람이 이상하다고 생각하겠죠. 이건 누구 이름이지.",
+      "sourceHash": "8ec76cedca969bf8f14caf5e412e292537e8c9a1e5b59c94cbb075d3568f9ba0",
+      "t": "Even written down, it'll be forgotten. The paper will remain, but whoever reads it will wonder: whose name is this?"
+    },
+    {
+      "id": "ep-36:38",
+      "source": "그럼 계속 읽을게요. 이상하다고 생각할 때마다.",
+      "sourceHash": "e43670fa6a2f72952ba7c17be77ea3ada17b526339ec7dded6f314091f43c6b9",
+      "t": "Then I'll keep reading it. Every time I wonder."
+    },
+    {
+      "id": "ep-36:39",
+      "source": "…숙녀분은 정말 고집이 세네요.",
+      "sourceHash": "856199758051adeae94ed486f4d11b59db02b99b16052ed3fa2bec53c051c7b2",
+      "t": "...You really are stubborn."
+    },
+    {
+      "id": "ep-36:40",
+      "source": "쟤 원래 그래. 맛없는 걸 맛없다고 끝까지 말하는 애야.",
+      "sourceHash": "1b86b77a39f961a3a9d7ec7a932461d5d4150008995996105bc18a6b080a2c9a",
+      "t": "Always has been. If something tastes bad, they'll say so to the bitter end."
+    },
+    {
+      "id": "ep-36:41",
+      "source": "하늘이 갑자기 어두워졌다. 금빛 길 위로 검은 손 셋이 기어올랐다. 손가락마다 사슬이 감겨 있었다.",
+      "sourceHash": "ec942dc743d19e1aa77b6e2d501cb455e743d1c0e19dfccc3efd738d4f61a09e",
+      "t": "The sky suddenly darkened. Three black hands crawled onto the golden path, chains wrapped around every finger."
+    },
+    {
+      "id": "ep-36:42",
+      "source": "집으로 가는 길은 내 손바닥 위에 있다. 걸어 보아라.",
+      "sourceHash": "741290d83fcfaeeafcf17829ea87ed75f7be05883939ce3f348507ce980ea679",
+      "t": "The road home lies upon my palm. Try walking it."
+    },
+    {
+      "id": "ep-36:43",
+      "source": "저 길 막으려고 온 거야? 치사하게!",
+      "sourceHash": "29fcf8278ef1fdd052eac007339b2341fa7079fd5af984b72405311ed65f7256",
+      "t": "You came to block the road? That's low!"
+    },
+    {
+      "id": "ep-36:44",
+      "source": "아뇨, 길 막으러 온 거 아니에요. 저 보러 온 거예요. 제가 갈지 안 갈지.",
+      "sourceHash": "d49bc2bfcbb96cb9f7b768f5fe4db77f6c358ac6a3dbd3d75241915c53a05382",
+      "t": "No. It didn't come to block the road. It came to watch me. To see whether I go."
+    },
+    {
+      "id": "ep-36:45",
+      "source": "윤달이 일어섰다. 장갑을 벗었다. 이번에는 망설이지 않았다. 손바닥의 구멍이 검은 소용돌이를 뿜었다.",
+      "sourceHash": "1a4acc7cde45154a5f1efaba31f8fb7b8f311a4373469ffd6a7ee48523272bd8",
+      "t": "Yundal stood and removed his glove. This time he didn't hesitate. A black vortex poured from the hole in his palm."
+    },
+    {
+      "id": "ep-36:46",
+      "source": "검은 손 셋이 구멍 쪽으로 끌려 왔다. 손톱이 갑판을 긁었다. 하나, 둘, 셋. 차례로 구멍 속으로 사라졌다.",
+      "sourceHash": "a9992dfbb8d23bda47fda1934a3de6b771acbc825a64e68f5dce9f6d81c9347e",
+      "t": "The three black hands were dragged toward the hole, nails scraping the deck. One, two, three. Each disappeared into it."
+    },
+    {
+      "id": "ep-36:47",
+      "source": "구멍이 넓어졌다. 내 것을 먹을수록 너는 나를 닮는다.",
+      "sourceHash": "1113c39aeefd618b38595c88858929a6c2a73289377d6020adf577aaa64a9ae5",
+      "t": "The hole has grown. The more of mine you eat, the more you resemble me."
+    },
+    {
+      "id": "ep-36:48",
+      "source": "그럼 많이 먹어 둘게요. 당신 배고프게.",
+      "sourceHash": "a3cabf4b7bdbe3e99800864aada9f136fe79a141facbddae2e31896a560f0ccf",
+      "t": "Then I'll eat plenty. Leave you hungry."
+    },
+    {
+      "id": "ep-36:49",
+      "source": "윤달은 무릎을 꿇었다. 이마에 땀이 맺혔다. 구멍 가장자리가 손목 쪽으로 손가락 하나만큼 번져 있었다.",
+      "sourceHash": "2cf563fb0a658417b611fb0197e7325ad466754842a345d19a6f6d383b95258d",
+      "t": "Yundal dropped to his knees. Sweat beaded on his forehead. The rim of the hole had spread another finger's length toward his wrist."
+    },
+    {
+      "id": "ep-36:50",
+      "source": "왜 또 썼어요! 커진다면서!",
+      "sourceHash": "870ec98c4757cfe50511db3c38c40195b0d1212c2453922ee502a57a90f653ca",
+      "t": "Why did you use it again? You said it grows!"
+    },
+    {
+      "id": "ep-36:51",
+      "source": "결정했어요, 숙녀분. 저 안 가요.",
+      "sourceHash": "9ce1a3ad95d269e4f60df1f3d8bf080faf4eedd076988a8ec741a8c436553d9c",
+      "t": "I've decided, my lady. I'm not going."
+    },
+    {
+      "id": "ep-36:52",
+      "source": "이 구멍, 흑월이 죽어야 닫혀요. 그럼 흑월한테 가는 사람 옆에 있는 게 제일 빠른 길이죠.",
+      "sourceHash": "c68cd9e6316efc7cc63178c4096828858c3eeb8abaf8c607a31f99dd371c635a",
+      "t": "This hole closes only when Black Moon dies. So the quickest way is to stay beside the person heading toward Black Moon."
+    },
+    {
+      "id": "ep-36:53",
+      "source": "그건 우리 때문에 남는 거잖아요.",
+      "sourceHash": "124e97f2bf059e2b4b8825e9d3c8d38099286ae93741d136ba60ae4efbd5c102",
+      "t": "Then you're staying because of us."
+    },
+    {
+      "id": "ep-36:54",
+      "source": "아뇨, 저 때문이에요. 이렇게 말하면 덜 미안하죠?",
+      "sourceHash": "e7c0668d84bf88a6af393885a2983172e7506de4fbb34943a3fbb6271cbe6b9d",
+      "t": "No, because of me. Does putting it that way make you feel less guilty?"
+    },
+    {
+      "id": "ep-36:55",
+      "source": "연이와 모카가 선실에서 잠들자 네오는 윤달을 뱃머리로 불렀다. 이번에는 투명해진 손을 감추지 않았다.",
+      "sourceHash": "cf8b030faa83ddd585f7687282f63d6428d247159ce7212c48c9739aecdc0461",
+      "t": "After Yeoni and Moka fell asleep in the cabin, Neo called Yundal to the bow. This time, he didn't hide his transparent hand."
+    },
+    {
+      "id": "ep-36:56",
+      "source": "부탁 하나만 할게.",
+      "sourceHash": "f9f3cc93581335b9a9525457c37e4709ec9ab1235dc402eb1935335e99d54afd",
+      "t": "One favor."
+    },
+    {
+      "id": "ep-36:57",
+      "source": "고양이님이 저한테요? 내일 해가 서쪽에서 뜨겠네요.",
+      "sourceHash": "8fdd9b710b034c5a95a210e6e256e4f7e7a9768d499d0e3581751fcc68308a5d",
+      "t": "Mr. Cat asking me? The sun will rise in the west tomorrow."
+    },
+    {
+      "id": "ep-36:58",
+      "source": "내가 없어지면, 그 애 옆에 있어 줘라.",
+      "sourceHash": "947c789bbd1902d32578e7c323937cc91e7073ae27ccc529cb74d03540ec9956",
+      "t": "If I disappear, stay beside them."
+    },
+    {
+      "id": "ep-36:59",
+      "source": "윤달의 웃음이 멎었다. 손목 아래가 비어 있었다. 별빛이 네오의 손을 그냥 통과했다.",
+      "sourceHash": "f80cbd160e873c978631ae0ea8e8ea461513608f48e13c94c44233c58a3c860b",
+      "t": "Yundal stopped smiling. Below Neo's wrist was empty space. Starlight passed straight through his hand."
+    },
+    {
+      "id": "ep-36:60",
+      "source": "언제부터예요.",
+      "sourceHash": "52ba7ea1582eb2dad4b4c597a12d82a9667fc08d8a3bdf7cddd4bb2d5df5c279",
+      "t": "Since when?"
+    },
+    {
+      "id": "ep-36:61",
+      "source": "열두 집의 하늘에 오고 나서. 아니, 그보다 조금 전부터.",
+      "sourceHash": "9172c172faed2b8ecd543978272c0b5acf0620fa2379b08b3532ad132e0dc803",
+      "t": "Since we reached the sky of twelve houses. No, a little before that."
+    },
+    {
+      "id": "ep-36:62",
+      "source": "숙녀분은 알아요?",
+      "sourceHash": "e3b2e468a434e6711b369a1417c3b7ac5fc0fab9eca1eeba50d9e7789eeb0337",
+      "t": "Does my lady know?"
+    },
+    {
+      "id": "ep-36:63",
+      "source": "메모장에 써 놨더라. 네오 손, 나중에 꼭 보기. 그때까지 미뤄 둘 수가 없어서.",
+      "sourceHash": "9cfc8d78c5e16d823d2e2be333ccd9c9da59537dee2b9e371526b79b6b134599",
+      "t": "They wrote it in their notebook. Neo's hand. Must see it later. I can't leave this until then."
+    },
+    {
+      "id": "ep-36:64",
+      "source": "싫어요.",
+      "sourceHash": "a5f6345b803c9ec9da48b499665b80264cd18852c6f9cd7f566444349c4c87e2",
+      "t": "No."
+    },
+    {
+      "id": "ep-36:65",
+      "source": "…뭐라고 했나.",
+      "sourceHash": "5da3bd35a3fe91179733beb7da485d6215316c426e16e56c3238f1eb5abb60aa",
+      "t": "...What did you say?"
+    },
+    {
+      "id": "ep-36:66",
+      "source": "궁합이 안 맞아요. 숙녀분이랑 저. 제가 봤거든요. 고양이님 자리는 고양이님이 지키세요.",
+      "sourceHash": "e16ee8e780b45b23d6c37e9946157bf843ece3f067383bad25e7f514ed5e688a",
+      "t": "Our compatibility is wrong. My lady and I. I've checked. Keep your own place, Mr. Cat."
+    },
+    {
+      "id": "ep-36:67",
+      "source": "지금 농담할 때가 아니다.",
+      "sourceHash": "fa90f46940fe75cb2545ea795bc21cf455a21d1e5e6a21643e10ded8d10eeb13",
+      "t": "This isn't the time for jokes."
+    },
+    {
+      "id": "ep-36:68",
+      "source": "농담 아니에요. 사라질 생각부터 하는 수호자는 위험해요. 그 생각이 진짜 문을 열어요.",
+      "sourceHash": "f6918f0d36d95732525e7f0cab96620d84dac7b4a2ec36b64b9bfec6dfe6dd8a",
+      "t": "I'm not joking. A guardian whose first thought is to disappear is dangerous. That thought opens a real door."
+    },
+    {
+      "id": "ep-36:69",
+      "source": "네오는 고개를 숙였다. 망토 끝이 바람에 흔들렸다. 한참 뒤에야 말을 꺼냈다.",
+      "sourceHash": "936d7b16462454df6c8c02dcc475dedc6c89f137b13e2299abb48b22d4b346bc",
+      "t": "Neo lowered his head. The edge of his cloak stirred in the wind. Only after a long silence did he speak."
+    },
+    {
+      "id": "ep-36:70",
+      "source": "그럼 이것만. 그 애가 날 잊으면 네가 기억해 줘. 늘 잊히던 너한테 이런 부탁까지 해서 미안해.",
+      "sourceHash": "3c3352b510e22041e0911bf5da5728c885134835fd71ca2dfa9c54999786dee9",
+      "t": "Then just this. If they forget me, remember me. I'm sorry to ask even that of you, when you've always been the forgotten one."
+    },
+    {
+      "id": "ep-36:71",
+      "source": "그건 받을게요. 잊히는 사람끼리 하는 계약이니까.",
+      "sourceHash": "ea9005919babd212425897315a2ba5a7e8da83588b0e8ccb2e6406e1549329db",
+      "t": "That, I'll accept. A contract between people who are forgotten."
+    },
+    {
+      "id": "ep-36:72",
+      "source": "네오가 선실로 돌아간 뒤에도 윤달은 뱃머리에 남았다. 희미한 달 하나가 하늘 가장자리에 걸려 있었다. 그가 들어갈 자리를 비워 둔 것 같았다.",
+      "sourceHash": "52fd15ae72b68fd9d2848979b220b64d8f3a3dd990691ef87abb03fb598b94d3",
+      "t": "After Neo returned to the cabin, Yundal remained at the bow. A faint moon hung at the edge of the sky, as though leaving a place open for him."
+    },
+    {
+      "id": "ep-36:73",
+      "source": "할머니. 저 시 찾았어요. 닭보다 먼저 울었대요, 제가.",
+      "sourceHash": "f94c8a430ac7e52a34d956231947a890b9f02847d6687d48980c974e4ed4d7fa",
+      "t": "Grandmother. I found my hour. They say I cried before the rooster."
+    },
+    {
+      "id": "ep-36:74",
+      "source": "대답하는 사람은 없었다. 윤달은 장갑 낀 손을 가슴에 얹었다. 손바닥 구멍이 심장 소리를 조금씩 삼키는 것 같았다.",
+      "sourceHash": "78f8a154e8d77cbef76213007e89ee9680a42b9b1d85c46fab5c01024e5939a6",
+      "t": "No one answered. Yundal laid his gloved hand over his chest. The hole in his palm seemed to swallow his heartbeat bit by bit."
+    },
+    {
+      "id": "ep-36:75",
+      "source": "이름은 아직이에요. 그건 끝에서 찾을게요. 그 숙녀분이 적어 준다니까.",
+      "sourceHash": "9ea3fad16115b3dbf59e0fdfb4ca23fd3f0ef28da91a3ae7ac5e35e804d7a1a7",
+      "t": "Not my name yet. I'll find that at the end. My lady says they'll write it down."
+    },
+    {
+      "id": "ep-36:76",
+      "source": "갑판 아래 선실 창에 작은 불빛이 하나 켜져 있었다. 연이가 잠결에 메모장을 끌어안고 있었다.",
+      "sourceHash": "40c83b86229bd6183f2a3647aa2db83fb3edc481dffe517b55d8c2da0678ec91",
+      "t": "A small light shone through the cabin window beneath the deck. Half asleep, Yeoni hugged their notebook."
+    },
+    {
+      "id": "ep-36:77",
+      "source": "아침에 하늘배는 열두 번째 집 앞에 닿았다. 구름 속에 문 하나가 떠 있었다. 문틀 둘레에 낡은 사슬이 감겨 있었다.",
+      "sourceHash": "4271073e05c871ffe77eea2dbff5921e367618acad8ff9cb412c9354af6fdeea",
+      "t": "In the morning, the skyship reached the twelfth house. A door floated among the clouds, old chains wound around its frame."
+    },
+    {
+      "id": "ep-36:78",
+      "source": "숙녀분, 출생 시각.",
+      "sourceHash": "ade6262d463448a7666bb59189d188568fd74b1e2dc7b77a732c5dfd6b9c7437",
+      "t": "My lady. Your birth time."
+    },
+    {
+      "id": "ep-36:79",
+      "source": "2002년 7월 6일, 아침 여덟 시 삼십 분. 엄마가 아침 드라마 끝나는 걸 보고 기억했대요.",
+      "sourceHash": "a81ac10fb8d043406325cf3cc616a5d020a99a1afc0107325d78b5abc617fc08",
+      "t": "July 6, 2002. Eight thirty in the morning. Mom remembered because her morning drama had just finished."
+    },
+    {
+      "id": "ep-36:80",
+      "source": "문 위의 숫자판이 철컥 돌았다. 여덟 시 삼십 분. 사슬이 풀려 바닥에 떨어졌다. 문이 안쪽으로 열렸다.",
+      "sourceHash": "972b0e6a5d9d427fc943b7e831b14ad506bcf1087f92eb07ff9c03841bb1d18b",
+      "t": "The number display above the door clicked around. Eight thirty. The chains loosened and fell. The door swung inward."
+    },
+    {
+      "id": "ep-36:81",
+      "source": "안은 끝없는 베틀 방이었다. 천장에서 내려온 실들이 바닥 아래로 내려갔다. 실마다 작은 장면이 맺혀 있었다.",
+      "sourceHash": "cc8f0a3ca8979eea84a758a0a323278f0294bb2766d9e4420c3a0bd5c14ffada",
+      "t": "Inside stretched an endless room of looms. Threads descended from the ceiling and continued beneath the floor. Tiny scenes formed along every thread."
+    },
+    {
+      "id": "ep-36:82",
+      "source": "여긴 또 뭐야. 뜨개질 공장?",
+      "sourceHash": "d94b8573744ff794553f08226ae431747223ab89468439c7080e0cde80a80e41",
+      "t": "What's this now? A knitting factory?"
+    },
+    {
+      "id": "ep-36:83",
+      "source": "열두 번째 집은 끝과 숨은 것의 방이에요. 여기엔 이번 생 말고 다른 생들의 끝이 걸려 있어요.",
+      "sourceHash": "c2773a6bb47418a8b09ee7faa11fde970727fc0011b06ebe12a91025e01961e6",
+      "t": "The twelfth house is the room of endings and hidden things. Here hang the endings of lives other than this one."
+    },
+    {
+      "id": "ep-36:84",
+      "source": "연이는 가까운 실 하나에 손을 대었다. 장면이 번쩍 떠올랐다. 비 오는 정류장. 우산 하나. 젖은 운동화 두 켤레.",
+      "sourceHash": "4f5ffbf3fdccfc556ae24a07b3faf5a176beeec7ffa468afaf2937c5c94dd8c7",
+      "t": "Yeoni touched a nearby thread. A scene flashed up: a rainy bus stop. One umbrella. Two pairs of wet sneakers."
+    },
+    {
+      "id": "ep-36:85",
+      "source": "이거, 나야?",
+      "sourceHash": "a03028164d5097e16e8bf696a0093aea4476756118b2a074bbaefd06755128c5",
+      "t": "Is that me?"
+    },
+    {
+      "id": "ep-36:86",
+      "source": "놔라. 지금 당장.",
+      "sourceHash": "f9cbde513aaa823328c7d76fae2a8c9bcc369bd3c3cde0bcbdf6bd5708cc0e14",
+      "t": "Let go. Right now."
+    },
+    {
+      "id": "ep-36:87",
+      "source": "네오의 다급한 목소리에 연이는 손을 뗐다. 장면이 사라졌다. 손끝에는 비에 젖은 듯한 냉기만 남았다.",
+      "sourceHash": "f01ea689292bfcfe9cee97ad9db2dbde719a908a3e75c7b9f8b22d875ecf9129",
+      "t": "At the urgency in Neo's voice, Yeoni released the thread. The scene vanished. Only a rain-soaked chill remained on their fingertips."
+    },
+    {
+      "id": "ep-36:88",
+      "source": "(왜 네오가 저렇게 무서워하지. 저 정류장을 아는 사람처럼.)",
+      "sourceHash": "2192994f937e581c90562463c5fcb87d61420c45385352f978e930fc607dc577",
+      "t": "(Why is Neo so frightened? Like someone who knows that bus stop.)"
+    },
+    {
+      "id": "ep-36:89",
+      "source": "윤달이 실들 사이를 천천히 걸었다. 천장 가까이 붉은 별과 푸른 별이 나란히 떠 있었다. 두 별에서 내려온 실이 굵게 꼬여 있었다.",
+      "sourceHash": "21f3bc7455b5b196c1dba3409af0129424132f702bb3ccad89c5283a4dceefe5",
+      "t": "Yundal walked slowly between the threads. Near the ceiling, a red star and a blue star floated side by side. Their descending threads twisted into one thick cord."
+    },
+    {
+      "id": "ep-36:90",
+      "source": "숙녀분 차트에서 열두 번째 집에 든 별 둘이에요. 싸우는 별 화성, 베푸는 별 목성.",
+      "sourceHash": "a6a25f2ec355decd8380978a49e7707638c3a3f4bc201b5d7adf18177c869577",
+      "t": "The two stars in your twelfth house. Mars, the fighting star. Jupiter, the giving star."
+    },
+    {
+      "id": "ep-36:91",
+      "source": "싸우는 거랑 베푸는 게 한 방에 있어요?",
+      "sourceHash": "a6957ffa02fdd95b14c69132c01e8d1d83a329008487901207eb6ae1cd9209fd",
+      "t": "Fighting and giving in the same room?"
+    },
+    {
+      "id": "ep-36:92",
+      "source": "그래서 이 집이 어려워요. 숨은 적도 여기 있고, 숨은 도움도 여기 있어요. 누가 어느 쪽인지는 끝까지 가 봐야 알죠.",
+      "sourceHash": "fd1f1b1e65c3684a977a79c41bc9879c138857b43bc05e0d3fbeafefd4c531db",
+      "t": "That's why this house is difficult. Hidden enemies are here, and hidden help too. You have to go all the way to the end to know which is which."
+    },
+    {
+      "id": "ep-36:93",
+      "source": "끝까지 가기 전에 정하면 대개 틀린다.",
+      "sourceHash": "f35df8e74119b5ab18dd314654fc9b819d968f252d671fa8cfa8ba5f2929cc2f",
+      "t": "Decide before the end and you're usually wrong."
+    },
+    {
+      "id": "ep-36:94",
+      "source": "모카가 슬쩍 다른 실을 건드렸다. 장면이 떠올랐다. 낯선 부엌, 김이 오르는 솥, 누군가의 웃음소리. 모카는 화들짝 손을 뺐다.",
+      "sourceHash": "fab7d3001e5cf1aa68502fb9c26112d546a3db6d0149065db60377f9559c8b04",
+      "t": "Moka furtively touched another thread. A scene appeared: an unfamiliar kitchen, a steaming pot, someone's laughter. He snatched his paw away."
+    },
+    {
+      "id": "ep-36:95",
+      "source": "아무것도 못 봤어. 진짜야. 요리 장면 같은 거 없었어.",
+      "sourceHash": "6ef25cdbe8b111dc2254c32b9c1c63baa55b7bdc17cbbb070a020e63e6f48468",
+      "t": "Didn't see anything. Really. No cooking scenes or anything."
+    },
+    {
+      "id": "ep-36:96",
+      "source": "나 아무 말도 안 했는데.",
+      "sourceHash": "3bae43bcf6c8bca4d535382365e9888516bf61ca9a4e44234a7a7967efa696c8",
+      "t": "I didn't say a word."
+    },
+    {
+      "id": "ep-36:97",
+      "source": "…다른 생에서도 요리했나 봐. 지겹게도.",
+      "sourceHash": "0df84a985212f95e57c81d9298749b59ab13afcc45ca83e62a00b682f4c9492c",
+      "t": "...Guess I cooked in another life too. Never ends."
+    },
+    {
+      "id": "ep-36:98",
+      "source": "방 깊은 곳에서 사슬 끌리는 소리가 들렸다. 젖은 발소리도 섞여 있었다. 무언가 무거운 것이 아래로 끌려가는 소리였다.",
+      "sourceHash": "3ea044e56b041ce76198a7a49f83da34d4e7569a609981cc8ea155b9fa0f35dc",
+      "t": "Deep in the room came the sound of dragging chains, mixed with wet footsteps. Something heavy was being dragged downward."
+    },
+    {
+      "id": "ep-36:99",
+      "source": "저쪽이야. 사슬 소리.",
+      "sourceHash": "362acd632e4aea90cb0bd7e5f712e631e502185bccec5f591394b741a31e410b",
+      "t": "That way. The chains."
+    },
+    {
+      "id": "ep-36:100",
+      "source": "바닥을 봐요. 실들이 다 아래로 내려가죠. 열두 번째 집 밑은 다른 하늘이에요.",
+      "sourceHash": "640936d3769fe79bd5097a893e59a901544281c0007a009a2e71b9b5850b4287",
+      "t": "Look at the floor. All the threads go down. Beneath the twelfth house is another sky."
+    },
+    {
+      "id": "ep-36:101",
+      "source": "스물일곱 달이 사는 하늘이다. 사슬이 그쪽으로 끌려간다.",
+      "sourceHash": "e1a684e6bcdf71711534285bb5946de4996a4379b56e8b918e85e7365e195fb2",
+      "t": "A sky inhabited by twenty-seven moons. The chains are being dragged there."
+    },
+    {
+      "id": "ep-36:102",
+      "source": "그럼 저 소리, 우리가 쫓던 거야?",
+      "sourceHash": "091216fb57c212ef92292c25ef3e08385fefd3487356f9d37c01bf8f7e5b19aa",
+      "t": "Then is that the sound we've been following?"
+    },
+    {
+      "id": "ep-36:103",
+      "source": "아무도 대답하지 않았다. 대신 바닥 틈 사이로 빗물 냄새가 올라왔다. 맑은 날의 하늘배에서는 맡을 수 없는 냄새였다.",
+      "sourceHash": "b36a1b93b53bd991821bf98342d0459f953453ac33c85a8f319971c76ebf0db4",
+      "t": "No one answered. Instead, the smell of rainwater rose between gaps in the floor. A smell that didn't belong aboard a skyship on a clear day."
+    },
+    {
+      "id": "ep-36:104",
+      "source": "연이는 배를 꾹 눌렀다. 안쪽이 텅 비어 있는 느낌이었다. 무언가를 담으려고 기다리는 그릇처럼.",
+      "sourceHash": "2687ba6b866e8c9454495271b80853cecd53ccecab3bd5ada6711a974aed7e87",
+      "t": "Yeoni pressed their stomach. It felt empty inside, like a vessel waiting to be filled."
+    },
+    {
+      "id": "ep-36:105",
+      "source": "따라오너라, 그릇. 네가 잃어버린 봄이 아래에 있다.",
+      "sourceHash": "d16e449316f77ff0884396e77afd2f8b7601913c9b7c0a1dc7f4ce64a4c7c6dd",
+      "t": "Follow, vessel. The spring you lost lies below."
+    },
+    {
+      "id": "ep-36:106",
+      "source": "내 봄은 내가 정해.",
+      "sourceHash": "bf5662a30460e82cc43a7eeeb12d6e351de366d973dfe9a566c930a1c9717799",
+      "t": "I decide my own spring."
+    },
+    {
+      "id": "ep-36:107",
+      "source": "목소리는 대답하지 않았다. 대신 바닥의 실들이 한꺼번에 팽팽해졌다. 무언가 아래에서 그 실을 잡아당기고 있었다.",
+      "sourceHash": "07b1833b820b85c517bcbdd085efeb632ef85125feb70eaf7d3f43685d14696a",
+      "t": "The voice didn't answer. Instead, every thread in the floor pulled taut. Something below was tugging on them."
+    },
+    {
+      "id": "ep-36:108",
+      "source": "내려가면 돌아올 수는 있는 거야?",
+      "sourceHash": "9df69615afeab58274bb2d8e15d0a269d7b331b05789fd4e52af61ced79ebe99",
+      "t": "If we go down, can we come back?"
+    },
+    {
+      "id": "ep-36:109",
+      "source": "내려간 사람은 다 돌아왔어요. 제가 아는 한은요. 물론 제가 아는 게 별로 없죠.",
+      "sourceHash": "f93199395b9922bec239e2e51cada391ee0de9a59b4b9677233a5331bf758468",
+      "t": "Everyone who went down came back. As far as I know. Admittedly, I don't know much."
+    },
+    {
+      "id": "ep-36:110",
+      "source": "내가 앞에 설게. 연이는 내 뒤에 있어.",
+      "sourceHash": "edd9c75dec50ff9c001d6e4e08536804bc1da72d305fde05c527043173cba854",
+      "t": "I'll lead. Yeoni, stay behind me."
+    },
+    {
+      "id": "ep-36:111",
+      "source": "아니. 옆.",
+      "sourceHash": "f5fc0b0b37ed6dcb2243a36660fcfdd1628d0bc81ac8f4b34d75e80ccd1e40a3",
+      "t": "No. Beside you."
+    },
+    {
+      "id": "ep-36:112",
+      "source": "네오는 잠깐 연이를 보다가 한 걸음 비켰다. 투명한 손가락 사이로 실의 빛이 새어 나왔다.",
+      "sourceHash": "18f6e9a291dae94ea3161724000943f3f1b15153f921993a9bd29d32ab67c25d",
+      "t": "Neo looked at Yeoni for a moment, then stepped aside. Light from the threads leaked through his transparent fingers."
+    },
+    {
+      "id": "ep-36:113",
+      "source": "연이는 메모장에 짧게 적었다. 열두 번째 집, 아래, 사슬, 비 냄새. 그리고 줄을 그어 하나를 더 적었다. 같이 내려가기.",
+      "sourceHash": "cfd97991cb6e62f2f6f0859402c3839cfe2200b91424f148154019366d90fc9b",
+      "t": "Yeoni jotted in their notebook: Twelfth house. Below. Chains. Smell of rain. Then they drew a line and added one more thing: Go down together."
+    }
+  ]
+}

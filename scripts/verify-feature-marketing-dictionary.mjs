@@ -30,6 +30,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { extractObjectLiteral, safeKey, resolveMarketingCopy, originMarketingKey } from "./lib/feature-marketing-extract.mjs";
+import { ENGLISH_READING_LOCALES } from "./lib/detailed-reading-locale-policy.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SHELL = resolve(ROOT, "index.html");
@@ -219,6 +220,11 @@ const enDict = dictionaries.get("en");
 if (!enDict) {
   console.error("[verify:feature-marketing-dictionary] en.json 을 읽지 못했습니다.");
   process.exit(1);
+}
+for (const locale of ENGLISH_READING_LOCALES) {
+  if (JSON.stringify(dictionaries.get(locale)) !== JSON.stringify(enDict)) {
+    fail(`${locale}: 상세 안내문은 영어판을 사용합니다. node scripts/sync-detailed-reading-locales.mjs 를 실행하세요.`);
+  }
 }
 
 /**

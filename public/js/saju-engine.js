@@ -28,6 +28,9 @@
 ═══════════════════════════════════════ */
 var SAJU_ENGINE_TEXT_TRANSLATIONS = {
   ko: {
+    "astro_swiss_unavailable_title": "점성술 엔진 연결 중",
+    "astro_swiss_unavailable_body": "정확한 차트 계산용 Swiss 라이브러리 연결에 실패했습니다.",
+    "astro_swiss_unavailable_retry": "출생지/출생시간 입력을 확인한 뒤 다시 시도해 주세요. 문제가 반복되면 잠시 후 다시 열어 주세요.",
     "se_10026_prop_title": "일·공부",
     "se_10027_prop_title": "연애·관계",
     "se_10028_prop_title": "돈·생활",
@@ -11255,10 +11258,10 @@ function renderAstroSwissUnavailable(reason) {
   area.innerHTML = ''
     + '<div class="astro-body astro-readable cosmic-theme star-container" id="astroBodyWrap" style="background:linear-gradient(180deg,#060a16 0%,#0d1428 50%,#121a32 100%);border-radius:20px;padding:12px;">'
     + '<div class="astro-section" style="border:1px solid rgba(248,113,113,.4);background:linear-gradient(160deg,rgba(30,10,20,.78),rgba(20,20,45,.88));border-radius:16px;padding:14px;">'
-    + '<div class="astro-subhead" style="color:#fecdd3;margin-bottom:8px;">🛰 점성술 엔진 연결 중</div>'
+    + '<div class="astro-subhead" style="color:#fecdd3;margin-bottom:8px;">🛰 ' + _sajuEngineText("astro_swiss_unavailable_title") + '</div>'
     + '<div class="astro-desc" style="line-height:1.75;">'
-    + '<p style="margin:0;color:#ffe4e6;">정확한 차트 계산용 Swiss 라이브러리 연결에 실패했습니다.</p>'
-    + '<p style="margin:8px 0 0 0;color:#cbd5e1;">출생지/출생시간 입력을 확인한 뒤 다시 시도해 주세요. 문제가 반복되면 잠시 후 다시 열어 주세요.</p>'
+    + '<p style="margin:0;color:#ffe4e6;">' + _sajuEngineText("astro_swiss_unavailable_body") + '</p>'
+    + '<p style="margin:8px 0 0 0;color:#cbd5e1;">' + _sajuEngineText("astro_swiss_unavailable_retry") + '</p>'
     + '</div></div></div>';
 }
 

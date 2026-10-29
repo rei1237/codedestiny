@@ -1,0 +1,630 @@
+{
+  "locale": "en",
+  "episodeId": "ep-49",
+  "tag": "Episode 49 · The World Tree",
+  "title": "The World Tree",
+  "sourceTitle": "세계수",
+  "sourceTag": "제49화 · 세계수",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-49:1",
+      "source": "뿌리를 따라 한참을 내려갔다. 어둠이 끝나는 곳에 나무 한 그루가 서 있었다. 하늘 다섯 개를 다 합친 것보다 큰 나무였다.",
+      "sourceHash": "a1938fd798454fe762f4f9d428fad785d65cb7ab357bbb201ae3272731566359",
+      "t": "They descended along the root for a long time. Where darkness ended stood one tree, larger than all five skies combined."
+    },
+    {
+      "id": "ep-49:2",
+      "source": "가지마다 잎 대신 작은 종이가 매달려 있었다. 종이마다 여덟 칸이 그려져 있었다. 누군가의 생년월일시였다.",
+      "sourceHash": "e6a2b935e014a5129fe1f89d9a8e4fa450637f6e4d86d5dec491a1611d93a50f",
+      "t": "Small papers hung from its branches instead of leaves. Each bore eight spaces: someone's birth year, month, day, and hour."
+    },
+    {
+      "id": "ep-49:3",
+      "source": "세계수. 모든 명식이 매달린 나무예요. 점술가들 사이에서는 전설인데. 진짜 있었네.",
+      "sourceHash": "cca3e92cf90b7e488b1d3e2307b148d9c01a3f5bed6965a054582c170bd1f581",
+      "t": "The World Tree. The tree holding every Four Pillars chart. A legend among fortune-tellers. It really exists."
+    },
+    {
+      "id": "ep-49:4",
+      "source": "저 종이 하나하나가 사람이야?",
+      "sourceHash": "b3797f8faae80acc525e9e82ce8084fbed285e988180622ea05e317d1b7d8452",
+      "t": "Every paper is a person?"
+    },
+    {
+      "id": "ep-49:5",
+      "source": "네. 모카 씨 것도, 제 것도, 연이 씨 엄마 것도 어딘가에 있어요.",
+      "sourceHash": "478fe9b74f423cdcbca9315b5be08afe619d46a166d7d322d1703a47d0c586b9",
+      "t": "Yes. Yours, mine, Yeoni's mother's—somewhere up there."
+    },
+    {
+      "id": "ep-49:6",
+      "source": "(엄마 것도. 저기 어딘가에.)",
+      "sourceHash": "461b56899d308aedc60856bd0a4c34ecea1ea06148499d465661db6163f61336",
+      "t": "(Mom's too. Somewhere there.)"
+    },
+    {
+      "id": "ep-49:7",
+      "source": "찾지 마. 보면 만지고 싶어질 거야. 여기 종이에는 남의 시간이 담겨 있어.",
+      "sourceHash": "9e655fbd2ad5c8a74e16f04a425b999fc472c2c7224dc809c1b401d40d761d37",
+      "t": "Don't look for it. Once you see it, you'll want to touch it. These papers hold other people's time."
+    },
+    {
+      "id": "ep-49:8",
+      "source": "안 찾아. 그냥 저기 있다는 것만 알면 돼.",
+      "sourceHash": "9747e8cddc28647f9eac5ac635873cba4669eaa3a71e77c84cc61251cf53d0ea",
+      "t": "I won't. It's enough to know it's there."
+    },
+    {
+      "id": "ep-49:9",
+      "source": "연이는 위를 올려다보았다. 바람이 불 때마다 종이 잎이 바스락거렸다. 수십억 개의 생일이 한꺼번에 속삭이는 소리였다.",
+      "sourceHash": "f3e50766b7ed4e87394be895a53fab91582d23d9be362c80deeeda40e8a818aa",
+      "t": "Yeoni looked up. Paper leaves rustled whenever the wind blew. Billions of birthdays whispering at once."
+    },
+    {
+      "id": "ep-49:10",
+      "source": "그런데 바스락 소리 사이로 다른 소리가 섞여 있었다. 무언가를 갉아먹는 소리였다.",
+      "sourceHash": "f05261291508ead8e822bf887648d9cc283725b084aa50fb5436dc590849133f",
+      "t": "But another sound mingled with the rustling. Something gnawing."
+    },
+    {
+      "id": "ep-49:11",
+      "source": "줄기 한가운데에 검은 구멍이 나 있었다. 씨앗만 하던 흑월이 그 안으로 파고들고 있었다. 구멍 둘레의 나이테가 하나씩 검게 변했다.",
+      "sourceHash": "a1d47c77766be3a21d77298a30a5145968371c550f41830241ff703b48bffd0b",
+      "t": "A black hole had opened in the middle of the trunk. Seed-sized Black Moon was burrowing inside. Growth rings around the hole blackened one by one."
+    },
+    {
+      "id": "ep-49:12",
+      "source": "나이테를 먹고 있어. 한 줄이 누군가의 일 년이야.",
+      "sourceHash": "3fc6a070b2eb4079c21a94b24a557614696a7d3b97a74f3ca73a5a058927e3bc",
+      "t": "It's eating the rings. Each line is a year of someone's life."
+    },
+    {
+      "id": "ep-49:13",
+      "source": "위쪽에서 종이 잎 몇 장이 팔랑 떨어졌다. 땅에 닿기도 전에 글자가 지워졌다.",
+      "sourceHash": "fcc1f64bd303b963c846e4ee405c93bed284a9cd120389c2a047d52e6fc93a09",
+      "t": "Several paper leaves fluttered from above. Their writing vanished before they reached the ground."
+    },
+    {
+      "id": "ep-49:14",
+      "source": "저 사람들, 어떻게 돼? 종이가 지워지면?",
+      "sourceHash": "d9a5163b193ad595a61530d70bf5a19f4ec8446cc609a2ecc08231c62db427e5",
+      "t": "What happens to those people when their papers are erased?"
+    },
+    {
+      "id": "ep-49:15",
+      "source": "현실에서 누군가의 일 년이 없어져요. 생일이 기억에서 빠지거나, 이름이 흐려지거나. 제가 겪은 것처럼요.",
+      "sourceHash": "c6e7c1c6136fe027142186fec891de48dc784b05bb4b0a5c2e9655781b15b8bc",
+      "t": "In reality, someone loses a year. A birthday slips from memory, or a name grows faint. Like what happened to me."
+    },
+    {
+      "id": "ep-49:16",
+      "source": "뿌리가 마르고 있어요. 물을 줄게요.",
+      "sourceHash": "a80246176966d339d329aabb4411c8f667d21e14f49c9c37fe3a14b8cdeb0ed5",
+      "t": "The roots are drying. I'll water them."
+    },
+    {
+      "id": "ep-49:17",
+      "source": "서한비가 우산을 거꾸로 들었다. 우산 안에 비가 고였다가 넘쳐흘렀다. 물이 뿌리를 따라 스며들었다. 시든 잔뿌리가 하나씩 고개를 들었다.",
+      "sourceHash": "4c5e84fc0f6fba49ef7e9ea88893e2041555488edf815cb7de7b1e55fbfdbe83",
+      "t": "Seo Hanbi held the umbrella upside down. Rain gathered in it, then overflowed, soaking along the roots. Withered rootlets lifted one by one."
+    },
+    {
+      "id": "ep-49:18",
+      "source": "나도 뭐 해야지. 불 붙여서 저거 태워 버릴까?",
+      "sourceHash": "f4b9bf9321fff7a73b3d517b60d649ce8bdb43ee16e35776d66e69e1e8ce0bcb",
+      "t": "I should do something too. Burn that thing out?"
+    },
+    {
+      "id": "ep-49:19",
+      "source": "안 돼요! 여긴 나무예요! 모카 씨 불 붙이면 세계가 장작 돼요!",
+      "sourceHash": "43efba707a62749052717e46175306d1cdad0abed7604ef216b1293370716b97",
+      "t": "No! This is a tree! Set it on fire and the world becomes firewood!"
+    },
+    {
+      "id": "ep-49:20",
+      "source": "나 할 줄 아는 게 불밖에 없는데!",
+      "sourceHash": "93140e0b7829ffd004b0fbc657a1b6cb5b199460cc9c6ea521aabf724233d4e0",
+      "t": "Fire's the only thing I know!"
+    },
+    {
+      "id": "ep-49:21",
+      "source": "불 말고 따뜻하게. 우리 섬에서 했잖아. 해 뜰 때.",
+      "sourceHash": "c2e0c032ab04056b145659ab554df840f55bdf539f4dd7d36d025187444ae01d",
+      "t": "Warmth, not fire. You did it on our island. When the sun rose."
+    },
+    {
+      "id": "ep-49:22",
+      "source": "모카가 입을 다물었다. 그리고 두 손을 모아 줄기에 댔다. 불꽃이 아니라 온기가 퍼졌다. 줄기 겉의 서리가 녹았다. 잎 사이에서 잠든 새들이 깨어났다.",
+      "sourceHash": "6ee29a62261d52e3503f4c80c1cca618762c169b63007404f60b892da6d64bbc",
+      "t": "Moka closed his mouth, then pressed both paws to the trunk. Warmth spread instead of flame. Frost melted from the bark. Sleeping birds among the leaves woke."
+    },
+    {
+      "id": "ep-49:23",
+      "source": "이렇게 하는 거구나. 태우지 않고 데우는 거.",
+      "sourceHash": "a2412b981e4d3ce57ca4e60d365f13b7e803584594ce9e87251d1a402a59d3d4",
+      "t": "So that's how. Warming without burning."
+    },
+    {
+      "id": "ep-49:24",
+      "source": "모카 씨, 방금 그거 꽤 멋있었어요.",
+      "sourceHash": "de6462fa571c1dcda9d58d442b67e5c41a7ce0cdbc14d96f6bf1610e45bcf301",
+      "t": "Moka, that was rather impressive."
+    },
+    {
+      "id": "ep-49:25",
+      "source": "칭찬하지 마. 어색해. 너 장부 쓸 때가 더 편했어.",
+      "sourceHash": "48149191ca92f7d6a6275f504ad9ea3bff6a8101cde335ab88b5f2f8994df81b",
+      "t": "Don't praise me. It's awkward. You were easier when you wrote ledgers."
+    },
+    {
+      "id": "ep-49:26",
+      "source": "서한비가 소리 내어 웃었다. 우산 끝에서 떨어지는 물방울이 웃음에 맞춰 흔들렸다.",
+      "sourceHash": "cdc4f509d8b35b817bd8a7720f1dae187d8f4f36451926d7c4e38f0c7cb1f09d",
+      "t": "Seo Hanbi laughed aloud. Droplets at the umbrella's tip trembled with her laughter."
+    },
+    {
+      "id": "ep-49:27",
+      "source": "구멍을 넓혀서 놈을 끄집어내겠다.",
+      "sourceHash": "567787b4a43c56b3f431a06322f763bc27374f465c18918b14987c3626d72f74",
+      "t": "I'll widen the hole and pull it out."
+    },
+    {
+      "id": "ep-49:28",
+      "source": "네오가 손을 들었다. 손끝에 금빛 날이 섰다. 날은 나무에 닿기 직전 멈췄다.",
+      "sourceHash": "7c2698e3526bffbc70d72aacecd6cd960396c3eb2522610ed9a1463bb0ce9409",
+      "t": "Neo raised a hand. A golden blade formed at his fingertips, then stopped just before touching the tree."
+    },
+    {
+      "id": "ep-49:29",
+      "source": "왜 멈춰.",
+      "sourceHash": "dbfb92bd013a3b21bb583d02b705851bc4c6394f25fa1a8aeeca7457ef2742a7",
+      "t": "Why stop?"
+    },
+    {
+      "id": "ep-49:30",
+      "source": "내 힘은 나무를 베어. 놈을 꺼내려면 이 줄기까지 갈라야 해.",
+      "sourceHash": "f3e91d151fb7e8b4c067eba6b0832354482e9f0b9c31e5ed58ef7ed855d4d686",
+      "t": "My power cuts Wood. To get it out, I'd have to split this trunk too."
+    },
+    {
+      "id": "ep-49:31",
+      "source": "네오의 손이 떨렸다. 연이는 섬에서 그와 숨을 맞추던 날을 떠올렸다. 널 다치게 할 수 있다고 말하던 목소리도.",
+      "sourceHash": "fda0b38133a06167dca07c83bf69edd4c15aa347ea28f6ad440904ad07cd9b2c",
+      "t": "Neo's hand trembled. Yeoni remembered matching breaths with him on the island. His voice saying he could hurt them."
+    },
+    {
+      "id": "ep-49:32",
+      "source": "그럼 베지 마. 받쳐 줘. 나한테 했던 것처럼.",
+      "sourceHash": "dc04c0767fb4b5e344d27267aa03a231bbe5632bf4e6ad2b1822f610277c3f1d",
+      "t": "Then don't cut. Support it. Like you supported me."
+    },
+    {
+      "id": "ep-49:33",
+      "source": "네오가 날을 거두고 두 손으로 줄기를 받쳤다. 금빛이 버팀목처럼 나무를 감쌌다. 갈라지던 나이테가 멈췄다.",
+      "sourceHash": "44137677c3d823235cf988fd4d05b77e8851d15c6ad7a9c4c18c2ecc86902638",
+      "t": "Neo withdrew the blade and braced the trunk with both hands. Gold wrapped the tree like a prop. The splitting growth rings stopped."
+    },
+    {
+      "id": "ep-49:34",
+      "source": "이렇게는 놈을 못 꺼내. 그래도 나무가 쓰러지는 건 막을 수 있어.",
+      "sourceHash": "41d305ba111477cbb2a756f2ce4d84cbe02bbbe07f9596deb79bc6eb0df0ddfe",
+      "t": "This won't get it out. But I can keep the tree from falling."
+    },
+    {
+      "id": "ep-49:35",
+      "source": "그게 맞아. 넌 원래 그쪽이야. 받치는 쪽.",
+      "sourceHash": "e9e161c37f95573763fd0fd192a616bc9ffbaffb8b62edc80e36a84d70759eac",
+      "t": "That's right. That's always been your part. Supporting."
+    },
+    {
+      "id": "ep-49:36",
+      "source": "받쳐 봐라. 버텨 봐라. 결국 나는 이 안에 있다.",
+      "sourceHash": "a2b70f7cc637aeab8f7548401cb5c68544a03cff0b6f860a10251f213a19d6a8",
+      "t": "Support it. Hold on. In the end, I am still inside."
+    },
+    {
+      "id": "ep-49:37",
+      "source": "줄기 속에서 검은 손이 뻗어 나왔다. 이번엔 수백 개가 아니었다. 단 하나. 대신 크고 굵었다. 나무의 결을 따라 위로 기어올랐다.",
+      "sourceHash": "58e9cff296c98571b9b39b74b7baa1a0ce7e5a993cae3f54d5d690ca0956bfbe",
+      "t": "A black hand reached from the trunk. Not hundreds this time. Just one, thick and enormous. It crawled upward along the grain."
+    },
+    {
+      "id": "ep-49:38",
+      "source": "이 나무가 내 마지막 몸이다. 나를 꺼내려면 나무를 죽여야 하고, 나무를 살리려면 나를 둬야 하지.",
+      "sourceHash": "b2c7f8fb849b9ca0a611b3270b3fd3828aab68d4b885cede89fa638aa20bbf3a",
+      "t": "This tree is my final body. To remove me, you must kill it. To save it, you must leave me."
+    },
+    {
+      "id": "ep-49:39",
+      "source": "비겁해! 남의 집에 숨어서 협박이나 하고!",
+      "sourceHash": "1b56966d76b0e2f14704a2c762552818e84ef3ad3ca2527ee8a4c46621d17eb3",
+      "t": "Coward! Hiding in someone else's home and threatening us!"
+    },
+    {
+      "id": "ep-49:40",
+      "source": "그게 내가 사는 법이다. 빈 곳에 들어가 사는 것. 너희 그릇이 차 버렸으니 이제 여기밖에 없다.",
+      "sourceHash": "c730a1223ecae23fce94cb607b544fdff9289d753bb7974f5c63e1c59fe0555b",
+      "t": "That is how I live. Entering empty places. Your vessel has filled, so this is all I have left."
+    },
+    {
+      "id": "ep-49:41",
+      "source": "연이는 그 말을 곱씹었다. 빈 곳에 들어가 사는 것. 비어 있어서 무엇이든 들어가는 자리.",
+      "sourceHash": "e06935612caf57284b9598d6330feb98547ab74ac799d6dbe3d4cc6899912d99",
+      "t": "Yeoni turned those words over. Living in empty places. A place that admits anything because it is empty."
+    },
+    {
+      "id": "ep-49:42",
+      "source": "(빈 곳. 비어 있는 자리. 어디서 들었더라.)",
+      "sourceHash": "22eca3a4d76f72775b7b2db80c95c97c41c304ffd96f3d5f7ad1a090d1692de9",
+      "t": "(Empty. An empty place. Where did I hear that?)"
+    },
+    {
+      "id": "ep-49:43",
+      "source": "연이는 고개를 돌렸다. 윤달이 이미 장갑을 벗고 있었다.",
+      "sourceHash": "1692c094d134da5de4802797d8cb745663a4b2b4a254e285586b979e3f2c47b9",
+      "t": "Yeoni turned. Yundal was already removing his glove."
+    },
+    {
+      "id": "ep-49:44",
+      "source": "너희도 알지 않느냐. 비어 있는 건 배가 고프다. 나는 처음부터 배가 고팠을 뿐이다.",
+      "sourceHash": "8d276330810bf191ab3a8be7008ffb8db0998ab6a7b2fa1946b45ed88749d7cf",
+      "t": "You know it too. Emptiness is hungry. I was only hungry from the beginning."
+    },
+    {
+      "id": "ep-49:45",
+      "source": "배고픈 건 알아. 근데 남의 생일을 먹으면 안 되지. 그건 그 사람 거야.",
+      "sourceHash": "818e5e27b4a94b3d5ac652df2ed4480fcb513e8ed8d56c1b684aaadd8d163d4c",
+      "t": "I know you're hungry. But you can't eat other people's birthdays. Those belong to them."
+    },
+    {
+      "id": "ep-49:46",
+      "source": "그럼 나는 무엇을 먹느냐. 나에게는 생일이 없다.",
+      "sourceHash": "4b88504f85f14b00a3a8af103ac97883a25971c19881b8568f9403be6c66b3f0",
+      "t": "Then what should I eat? I have no birthday."
+    },
+    {
+      "id": "ep-49:47",
+      "source": "연이는 대답하지 못했다. 그 물음은 이상하게 오래 귀에 남았다. 생일이 없는 것. 아무도 불러 주지 않는 것.",
+      "sourceHash": "6bcb5d78f313c515c00a7cc00062b2e1a29faab4ea1240eae82c5d49b3cd4b2c",
+      "t": "Yeoni couldn't answer. The question lingered strangely in their ears. Something without a birthday. Something no one called by name."
+    },
+    {
+      "id": "ep-49:48",
+      "source": "연이 씨가 방금 생각한 거, 저도 생각했어요.",
+      "sourceHash": "e8740a4c09383b022672a69caf963d7ecbad841b4b295549bcded39eac1aa601",
+      "t": "Yeoni. I thought what you just thought too."
+    },
+    {
+      "id": "ep-49:49",
+      "source": "아니에요. 생각 안 했어요. 진짜 안 했어요.",
+      "sourceHash": "3640f294feb91f266e8a738f3fb1fd924130583086267b19c861a1bfd618cd42",
+      "t": "No. I didn't think it. I really didn't."
+    },
+    {
+      "id": "ep-49:50",
+      "source": "빈 곳은 빈 곳이 먹어요. 제 손바닥은 흑월이 처음 만든 구멍이에요. 청토끼가 제 시를 먹을 때 뚫린 자리. 원래 저놈 거라고요.",
+      "sourceHash": "4e410875490a9d8b940ae9ab77380966963c2e852d6e1e8d4b4628671be17557",
+      "t": "Emptiness eats emptiness. My palm is the hole Black Moon first made. It opened when Blue Rabbit ate my hour. It belonged to that thing originally."
+    },
+    {
+      "id": "ep-49:51",
+      "source": "그러니까 돌려주는 거죠. 주인한테. 아주 꽉.",
+      "sourceHash": "1fdeb0c6836f3a38a5c1adf6a50e60d1ffb88a3aa7a907d473203e6a6df90532",
+      "t": "So I'm giving it back. To its owner. Very tightly."
+    },
+    {
+      "id": "ep-49:52",
+      "source": "그걸 먹으면 너도.",
+      "sourceHash": "49f08fe7823aeef1022a4f23d3882f9b2b2863f3324066980e4b4e358d6b3408",
+      "t": "If you swallow it, you'll..."
+    },
+    {
+      "id": "ep-49:53",
+      "source": "압니다. 공망이 얼마나 커질지 모르죠. 저도 같이 비워질 수도 있고요.",
+      "sourceHash": "db07f035f5764b716056f26494e2397c75a09b28c2b27a5c92f03b26f470031c",
+      "t": "I know. We don't know how large the Void will grow. I might be emptied with it."
+    },
+    {
+      "id": "ep-49:54",
+      "source": "그건 갚는 게 아니에요. 그냥 사라지는 거예요.",
+      "sourceHash": "dcb46d57333db3ffe94dd4206517ed9ae3611761623ec9557e4212b32fa1e511",
+      "t": "That isn't repayment. It's simply disappearing."
+    },
+    {
+      "id": "ep-49:55",
+      "source": "제가 할게요. 저는 원래 흑월 쪽에 있던 사람이에요. 빚이 있는 사람이 하는 게 맞아요.",
+      "sourceHash": "4744b5b4fdffac74c510ad877d31ca8e88fb1f2a84c27f5a60ee7c90b2a42f31",
+      "t": "I'll do it. I used to be on Black Moon's side. The one who owes a debt should do it."
+    },
+    {
+      "id": "ep-49:56",
+      "source": "서한비 씨 손은 물이에요. 물은 구멍을 못 메워요. 그냥 흘러 들어가죠. 이건 제 손이어야 해요.",
+      "sourceHash": "1c825eff569964d6b97ac2d387e1dae17225979767312cc841dca4948b22caf5",
+      "t": "Your hands are Water, Seo Hanbi. Water can't fill a hole like this. It just flows in. This has to be my hand."
+    },
+    {
+      "id": "ep-49:57",
+      "source": "서한비 씨한테 그런 말을 들을 줄이야. 많이 컸네요, 우리 장부 전문가.",
+      "sourceHash": "e9b29a83edddb0ce3c5433a88a61289cf713dc418d8e888814b39a8e91c194b8",
+      "t": "Never thought I'd hear that from you. You've grown, our ledger expert."
+    },
+    {
+      "id": "ep-49:58",
+      "source": "윤달은 웃으며 손바닥을 줄기의 검은 구멍에 댔다. 장갑 없는 맨손이었다. 손목까지 번진 검은 원이 구멍과 맞닿았다.",
+      "sourceHash": "13b67946b9dcc51c3c480490d212e3f6ff18b3cfe0bea86c47152b0f01365911",
+      "t": "Smiling, Yundal pressed his bare palm against the black hole in the trunk. The dark circle spreading to his wrist met it."
+    },
+    {
+      "id": "ep-49:59",
+      "source": "빨아들이는 소리가 났다. 아주 길고 깊은 숨 같은 소리. 검은 손이 줄기에서 뜯겨 나와 윤달의 손바닥으로 끌려 들어갔다.",
+      "sourceHash": "22e10d23a59a41103400347ddeb87726e12f218d47be2beca1b16d99b3d81dc5",
+      "t": "A sucking sound rose, like a very long, deep breath. The black hand tore free of the trunk and was drawn into Yundal's palm."
+    },
+    {
+      "id": "ep-49:60",
+      "source": "놓아라. 이건 내 구멍이다. 내가 뚫은.",
+      "sourceHash": "4de8d6be0aaa88d6ac2e5cc3ba3d79d0c8860f6a811530e17e0afce955925463",
+      "t": "Let go. This is my hole. I made it."
+    },
+    {
+      "id": "ep-49:61",
+      "source": "그러니까요. 당신이 뚫었으니까 당신이 메워야죠.",
+      "sourceHash": "dd19c6f25f4d1a2ab84adc62aef672ab7779e63c096d4d93454339069afd310b",
+      "t": "Exactly. You made it. You should fill it."
+    },
+    {
+      "id": "ep-49:62",
+      "source": "윤달의 얼굴이 하얗게 질렸다. 검은 원이 손목을 넘어 팔꿈치까지 번졌다. 그의 윤곽이 조금씩 흐려지기 시작했다.",
+      "sourceHash": "706b41aa34085b893b5db8b4526a0950cc97dfaabffebc80b70c9e668058c0a9",
+      "t": "Yundal's face went white. The black circle spread beyond his wrist to his elbow. His outline began fading."
+    },
+    {
+      "id": "ep-49:63",
+      "source": "어, 저기, 저 사람. 누구였지. 이름이.",
+      "sourceHash": "3b949d4a9dfdc64a5f816c437e29aba48e03428d3aff18b05ad2293110af45d7",
+      "t": "Uh, that person. Who was he? His name..."
+    },
+    {
+      "id": "ep-49:64",
+      "source": "모카가 말하다 멈췄다. 입술이 움직이는데 이름이 나오지 않았다. 모카 자신도 놀란 얼굴이었다.",
+      "sourceHash": "7a423c10da9d50ef85aa403b8121831f9acea3dbc8e487b6f7eac7b1e3444d30",
+      "t": "Moka stopped mid-sentence. His lips moved, but no name came out. He looked shocked at himself."
+    },
+    {
+      "id": "ep-49:65",
+      "source": "윤달 씨!",
+      "sourceHash": "fd67e17bcdc363218c1dce48f8ab468679ae1025a8783ae28023835f6112670e",
+      "t": "Yundal!"
+    },
+    {
+      "id": "ep-49:66",
+      "source": "연이가 소리쳤다. 이름이 공중에 걸렸다. 윤달의 윤곽이 그 소리에 아주 조금 선명해졌다.",
+      "sourceHash": "9f40966c34f69e02a77cd50b35fdbdb2087135312052759db6e62c1170858f2a",
+      "t": "Yeoni shouted. The name hung in the air. At its sound, Yundal's outline sharpened a little."
+    },
+    {
+      "id": "ep-49:67",
+      "source": "그거 가명이에요. 있어도 없는 달. 그래서 잘 안 붙어요.",
+      "sourceHash": "e7e44bc0b135ff18bc228b3667602f5495b469f1a80c5ebf2df7f29362d2ecdf",
+      "t": "That's an alias. A month that exists and doesn't. It doesn't stick well."
+    },
+    {
+      "id": "ep-49:68",
+      "source": "가명이어도 우리가 부른 이름이에요! 네오도 별명인데 돌아왔잖아요!",
+      "sourceHash": "2df18787ae087e75c60ca542f9ff5b0d110979b5de7691a5cbcda272a87b2f08",
+      "t": "Alias or not, it's the name we called you! Neo came back with a nickname!"
+    },
+    {
+      "id": "ep-49:69",
+      "source": "윤달 씨. 윤달 씨.",
+      "sourceHash": "e83719436d1e1345ccbc0af6d432646a89aa3d6021e80eb0e0f173d7765a5091",
+      "t": "Yundal. Yundal."
+    },
+    {
+      "id": "ep-49:70",
+      "source": "윤달 오빠! 생년월일 물어봐도 돼! 다 알려 줄게!",
+      "sourceHash": "d75d3b7ed3b664045ccdf50f20c827b3ae8fd6e959e2b049a51d3296d35c8506",
+      "t": "Yundal! You can ask my birthday! I'll tell you everything!"
+    },
+    {
+      "id": "ep-49:71",
+      "source": "이름이 한 번 불릴 때마다 윤달의 윤곽이 한 겹씩 돌아왔다. 넷의 목소리가 그를 바닥에 붙잡아 두었다.",
+      "sourceHash": "34b6ad5fe65b21b7e4a216666e558718b248f823a411cfe05216cd6678982e9b",
+      "t": "Each time his name was called, another layer of Yundal's outline returned. Four voices held him to the ground."
+    },
+    {
+      "id": "ep-49:72",
+      "source": "윤달. 아직 연이 어깨에서 손 치우라는 말 덜 했다. 돌아와라.",
+      "sourceHash": "660e95c177144a632aa3d5d018e446e02c798da1b75b28611fea2dcd559dcc4a",
+      "t": "Yundal. I'm not done telling you to take your hand off Yeoni's shoulder. Come back."
+    },
+    {
+      "id": "ep-49:73",
+      "source": "아, 그 말 들으니까 돌아가고 싶네요. 질투받으러.",
+      "sourceHash": "7100ea93fa111e15a6c8be3554931067e8251d21b50c13396a79027ac7c38ebf",
+      "t": "Ah, that makes me want to return. To be envied."
+    },
+    {
+      "id": "ep-49:74",
+      "source": "마지막 한 가닥까지 빨려 들어갔다. 윤달의 손바닥 위에서 검은 원이 오므라들었다. 점점 작게, 작게. 마침내 점 하나가 되었다.",
+      "sourceHash": "f98dda53474a63daf243ddc8ea32e930120a58bc95831daaa3ba4461bded266e",
+      "t": "The last strand was swallowed. The black circle on Yundal's palm contracted. Smaller, smaller. Finally, one dot."
+    },
+    {
+      "id": "ep-49:75",
+      "source": "그리고 그 점마저 사라졌다. 남은 것은 평범한 손바닥이었다. 손금이 있고, 굳은살이 있고, 조금 떨리는 손.",
+      "sourceHash": "71a141eade6d990a16e88ccc8af72da11b830ec3e0f8100ecf2290a251521ff9",
+      "t": "Then even the dot vanished. What remained was an ordinary palm. Lines, calluses, a slight tremble."
+    },
+    {
+      "id": "ep-49:76",
+      "source": "흑월의 목소리는 들리지 않았다. 마지막으로 남은 것은 아주 작은 한숨이었다. 배부른 한숨인지, 배고픈 한숨인지는 아무도 알 수 없었다.",
+      "sourceHash": "ebe27d6dab582fe7c2bd094978e4e3ec337392b85692671db0025d0360ff86e8",
+      "t": "Black Moon's voice was gone. The last thing left was a tiny sigh. No one could tell whether it was a sigh of fullness or hunger."
+    },
+    {
+      "id": "ep-49:77",
+      "source": "(잘 가. 다음엔 네 생일이 있는 데서 태어나.)",
+      "sourceHash": "6319f3bbae6185b43be51ac1e2fb1ef9260fabd9e385b04cffb91f49d05c1d63",
+      "t": "(Goodbye. Next time, be born somewhere you have a birthday.)"
+    },
+    {
+      "id": "ep-49:78",
+      "source": "닫혔어요. 공망이. 비어 있는 게 비어 있는 걸 먹으니까 메워졌어요.",
+      "sourceHash": "ccd398432a3345157231f05afe5ed9cb17e35b2d2e7b30eaa2239f8f374eab15",
+      "t": "It closed. The Void. Emptiness ate emptiness, and filled."
+    },
+    {
+      "id": "ep-49:79",
+      "source": "윤달이 손을 쥐었다 폈다. 몇 번이나. 쥐어지는 감각이 낯선 것처럼.",
+      "sourceHash": "83883e36db1b511a75369aa10afc664905df6c2c49897adcf7c5d113f10dbcbc",
+      "t": "Yundal clenched and opened his hand again and again, as though the feeling of closing it were new."
+    },
+    {
+      "id": "ep-49:80",
+      "source": "줄기의 구멍도 아물었다. 검게 변했던 나이테가 다시 갈색으로 돌아왔다. 떨어졌던 종이 잎들이 바람을 타고 가지로 되돌아가 매달렸다.",
+      "sourceHash": "f41e95cd4e81fe41f1aea57adf1d70b9089485773def749ed90b9a304ae7d855",
+      "t": "The trunk's hole healed too. Blackened growth rings returned to brown. Fallen paper leaves rode the wind back to their branches."
+    },
+    {
+      "id": "ep-49:81",
+      "source": "윤달 오빠. 이름 기억나. 아까 왜 안 났지. 미안해.",
+      "sourceHash": "b8e770462d2af763bbedadfd260d0f1568b9886cd34bd1119849d08509b4a39e",
+      "t": "Yundal. I remember your name. Why couldn't I before? Sorry."
+    },
+    {
+      "id": "ep-49:82",
+      "source": "괜찮아요. 저도 제 이름 모르는데요.",
+      "sourceHash": "d480cb452dd56b4d273724129e7067851ee3903ce1222f36bba8dacaa04ef150",
+      "t": "It's fine. I don't know my own name either."
+    },
+    {
+      "id": "ep-49:83",
+      "source": "그 순간 윤달의 손목 위로 작은 빛이 떠올랐다. 시계 바늘이었다. 다섯 시 이십 분. 바늘이 거기서 딱 멈췄다.",
+      "sourceHash": "49d0bc965f89a3dcca2b36df4224d40236c457ffed288c0333f54d2c658c0076",
+      "t": "At that moment, a small light rose above Yundal's wrist. A clock hand. Five twenty. It stopped precisely there."
+    },
+    {
+      "id": "ep-49:84",
+      "source": "[ 卯時 · 05:20 · 돌아옴 ]",
+      "sourceHash": "7532cb8e4c8290a6b72761b8cbf6ab66ff921685d7bef4a20bac97b33a800f2f",
+      "t": "[ Hour of the Rabbit · 05:20 · Returned ]"
+    },
+    {
+      "id": "ep-49:85",
+      "source": "제 시예요. 진짜 제 시. 새벽 다섯 시 이십 분. 해 뜨기 직전.",
+      "sourceHash": "5fcd34fe0e1803d99dccd5c9931023b3e7c9f91c2283935e716947ac4e5ac518",
+      "t": "My hour. My real hour. Five twenty in the morning. Just before sunrise."
+    },
+    {
+      "id": "ep-49:86",
+      "source": "윤달은 오래 말이 없었다. 그러다 손등으로 눈을 문질렀다. 누구도 그 모습을 놀리지 않았다.",
+      "sourceHash": "30cd0831d3c452aee5d3d8d5a8dc89bf6e55694fc52c45a1671621e9793f09dc",
+      "t": "Yundal said nothing for a long time. Then he rubbed his eyes with the back of his hand. No one teased him."
+    },
+    {
+      "id": "ep-49:87",
+      "source": "그럼 이름도요? 진짜 이름.",
+      "sourceHash": "a8b76cde2380c156ed3d828b8737e11ade33fdc635cc416fc404dc2f4b6758c8",
+      "t": "Your name too? Your real name?"
+    },
+    {
+      "id": "ep-49:88",
+      "source": "그건 비밀. 아직 집에 안 갔잖아요. 집 문 앞에서 말할게요.",
+      "sourceHash": "2b1ce76a36d2cfe67e38150ba5e265fd9bd10d18acbb8f0b504402c1d40f8209",
+      "t": "Secret. We're not home yet. I'll tell you at my front door."
+    },
+    {
+      "id": "ep-49:89",
+      "source": "끝까지 능글맞군.",
+      "sourceHash": "5d377b732981fe3d47489209d8715fc86907db83a1c7fbc92441fb76171fd922",
+      "t": "Smooth to the very end."
+    },
+    {
+      "id": "ep-49:90",
+      "source": "고양이님이야말로. 아까 제 이름 부를 때 목소리 떨리던데요.",
+      "sourceHash": "c3b6279e4af04c6cde2452ffc33c2b78e85be20f52bfa784026d503e217c6660",
+      "t": "You too, Mr. Cat. Your voice trembled when you called my name."
+    },
+    {
+      "id": "ep-49:91",
+      "source": "안 떨렸다.",
+      "sourceHash": "704440235f258b5a383de02655ea493c0a9ab3da1f24fe0efb9737172b3788ea",
+      "t": "It did not."
+    },
+    {
+      "id": "ep-49:92",
+      "source": "떨렸어. 나 들었어. 별점 하나 추가.",
+      "sourceHash": "006b9ed29b430f34126b581ab30f5df226397562b820c86ab96280cc8d86a7e4",
+      "t": "It did. I heard. One more star."
+    },
+    {
+      "id": "ep-49:93",
+      "source": "나무 꼭대기가 열렸다. 가장 높은 가지 끝에서 카드 한 장이 천천히 내려왔다. 아무것도 그려지지 않은 빈 카드였다.",
+      "sourceHash": "34b75a2525ba5cbe4dbe44933b7087e7743b935e46bbe1871019910143343c0f",
+      "t": "The treetop opened. From the tip of its highest branch, a card descended slowly. A blank card with no illustration."
+    },
+    {
+      "id": "ep-49:94",
+      "source": "카드 위쪽에 숫자만 적혀 있었다. 23. 이름 칸은 비어 있었다. 그림도, 글자도 없었다.",
+      "sourceHash": "542355a8c02094fd6937efe74441c039682ea50b6b90726bb7ab613189ee8c70",
+      "t": "Only a number appeared at the top: 23. The name field was empty. No picture, no words."
+    },
+    {
+      "id": "ep-49:95",
+      "source": "23번째 카드. 아직 아무도 쓰지 않은 운명이다.",
+      "sourceHash": "cc569030a8b2c423bd3998b55facd46c1e4fea9f5b409b5e3834a7f692cf7a82",
+      "t": "The twenty-third card. A destiny no one has written yet."
+    },
+    {
+      "id": "ep-49:96",
+      "source": "비어 있으면 또 누가 먹으러 오는 거 아냐?",
+      "sourceHash": "df31fdab51d677fb99f02f6518f43f282e52c4b2868b8f87e2f3c00411857c10",
+      "t": "If it's empty, won't someone come to eat it again?"
+    },
+    {
+      "id": "ep-49:97",
+      "source": "그래서 누가 써야 한다. 이번엔 먹는 놈 말고, 쓰는 사람이.",
+      "sourceHash": "6dd0b21c46bb9f4a007a121d984e127a3390db9030e197202ab6e36f400c3875",
+      "t": "That's why someone must write it. This time a writer, not a devourer."
+    },
+    {
+      "id": "ep-49:98",
+      "source": "그때 연이의 주머니에서 휴대폰이 울렸다. 이 세계에 온 뒤 한 번도 울린 적 없는 휴대폰이었다.",
+      "sourceHash": "f621cc4594de8ece41937b56cdf3e8fb6a58d1847dce3f954dce5b643c0df51e",
+      "t": "Then Yeoni's phone rang in their pocket. It hadn't rung once since they entered this world."
+    },
+    {
+      "id": "ep-49:99",
+      "source": "[ 고객센터: 우주 · 연결 대기 1명 ]",
+      "sourceHash": "39f1e9dc8eb0ad49092f3dd72576d226f1cfabe45ab53077b70e78ba0f92a4f0",
+      "t": "[ Customer Support: Universe · 1 waiting to connect ]"
+    },
+    {
+      "id": "ep-49:100",
+      "source": "대기 1명. 9,999명이 아니라.",
+      "sourceHash": "c8423dd23be6732f3b8329ba5e433d6b2b8dbab167d6e63b2bcd1dd2ace5b31b",
+      "t": "One waiting. Not 9,999."
+    },
+    {
+      "id": "ep-49:101",
+      "source": "받아라. 이번엔 받을 거다.",
+      "sourceHash": "ca90dea1c03c69691b11c8a59c56948d5a6aeb7dde6a6cd6f70ff16a0ba1e20b",
+      "t": "Answer. This time, they'll pick up."
+    },
+    {
+      "id": "ep-49:102",
+      "source": "연이는 통화 버튼 위에서 엄지를 멈췄다. 모두가 연이를 보고 있었다. 모카, 윤달, 서한비, 네오. 하나도 빠지지 않고.",
+      "sourceHash": "3822ca6b937809434b54c896d5ea113424e9b332748cbe460506810be5f2873a",
+      "t": "Yeoni paused their thumb over the call button. Everyone watched: Moka, Yundal, Seo Hanbi, Neo. Not one missing."
+    },
+    {
+      "id": "ep-49:103",
+      "source": "별점 리뷰 쓸 준비 됐어. 다섯 개짜리로.",
+      "sourceHash": "6b595abee319fdb645894d8ab22dcb7c9a840891157203f75edf97ef5fb44f37",
+      "t": "Ready to write my review. A five-star one."
+    }
+  ]
+}

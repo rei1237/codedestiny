@@ -1,0 +1,582 @@
+{
+  "locale": "en",
+  "episodeId": "ep-43",
+  "tag": "Episode 43 · The Tower",
+  "title": "The Tower",
+  "sourceTitle": "탑",
+  "sourceTag": "제43화 · 탑",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-43:1",
+      "source": "탑은 가까이서 보니 더 높았다. 벽돌 틈마다 검은 물이 배어 나왔다. 꼭대기의 번개는 치지도 않고 사라지지도 않았다. 그냥 감겨 있었다.",
+      "sourceHash": "33e9863bd14c695388ccbd815e725b39c61118f54816f84017716dc4b880555a",
+      "t": "Up close, the tower looked taller still. Black water seeped between its bricks. Lightning at its summit neither struck nor vanished. It simply coiled there."
+    },
+    {
+      "id": "ep-43:2",
+      "source": "16번, 탑. 갑자기 무너지는 카드예요. 쌓아 둔 게 한 번에.",
+      "sourceHash": "baa905ddb254f34bf83bdd793397d2bc9fcaf604905606cb73a8e5fb8ec41282",
+      "t": "Sixteen, the Tower. Sudden collapse. Everything you've built, all at once."
+    },
+    {
+      "id": "ep-43:3",
+      "source": "좋은 카드야, 나쁜 카드야?",
+      "sourceHash": "bc09e78cdb6b679a9ed0c68afde8ccecdc3048a39340a45eb55d2745fa0a0f7e",
+      "t": "Good card or bad card?"
+    },
+    {
+      "id": "ep-43:4",
+      "source": "거짓으로 쌓은 거면 무너지는 게 좋은 거고요. 진짜로 쌓은 거면 아프죠.",
+      "sourceHash": "8bd89cca9948fe99983a8613577d4552cd501d336bc521a58a31e021265c8738",
+      "t": "If you built it on lies, collapse is good. If you built something real, it hurts."
+    },
+    {
+      "id": "ep-43:5",
+      "source": "그러니까 둘 다라는 거네. 점술가들은 왜 다 이래.",
+      "sourceHash": "50f209451fcfb5b89b06c80b9aba34cda69d8ba5a561c9d9671688f7076b9dc7",
+      "t": "So both. Why are fortune-tellers always like this?"
+    },
+    {
+      "id": "ep-43:6",
+      "source": "(탑이 무너지는 게 좋은 카드일 수도 있다고. 그럼 제발 거짓말만 무너져라. 우리 말고.)",
+      "sourceHash": "2ba65f9d7c2dc39ee6868bc145ac3f3aca301059d72db6a12d1bece0dcfdfa78",
+      "t": "(A collapsing tower can be a good card. Then please, let only the lies collapse. Not us.)"
+    },
+    {
+      "id": "ep-43:7",
+      "source": "네오가 연이의 어깨에서 몸을 일으켰다. 탑 꼭대기를 올려다보는 눈빛이 굳었다.",
+      "sourceHash": "4ccd3dfa75518cbad94228042de6721e982a6a6e2ca82ca4638b90e0447e845c",
+      "t": "Neo lifted himself from Yeoni's shoulder. His gaze hardened as he looked at the summit."
+    },
+    {
+      "id": "ep-43:8",
+      "source": "「저 위에 흑월이 있다. 머리도 꼬리도. 다 모였다.」",
+      "sourceHash": "fabcd03b2002603c13165b73f357c04ceb839d855841dc73b2f789c074ad4b4f",
+      "t": "“Black Moon is up there. Head and tail. All together.”"
+    },
+    {
+      "id": "ep-43:9",
+      "source": "그럼 다 같이 가. 아까 너 혼자 들어가면 안 된다고 했지? 너도 마찬가지야.",
+      "sourceHash": "41218b2f795cbf66a73f9ef13a1f93c76b85e34e375a98ac90ef31be56e80139",
+      "t": "Then we all go. You said no one should enter alone, remember? That includes you."
+    },
+    {
+      "id": "ep-43:10",
+      "source": "「나는 들어가면 안 된다.」",
+      "sourceHash": "9dc5cb15c15dbb0083c6749703a4b97733333f7dc0edf29bd9b7c75da6e871f2",
+      "t": "“I mustn't go in.”"
+    },
+    {
+      "id": "ep-43:11",
+      "source": "그 말 들으니까 더 데려가야겠어.",
+      "sourceHash": "4d58a3c39d66a9acc360fe3902c1718db14f8e0ca0c55bc34dcf7344016a24ca",
+      "t": "That makes me want to bring you even more."
+    },
+    {
+      "id": "ep-43:12",
+      "source": "제가 앞에 설게요. 그건 아직 유효하죠?",
+      "sourceHash": "c1a3c8b9d1cb6376a6d6b3f6a5183d5615a3d268667ca97802e1bcfa679ed734",
+      "t": "I'll take the front. That still stands, right?"
+    },
+    {
+      "id": "ep-43:13",
+      "source": "반 걸음만.",
+      "sourceHash": "7d4c038028625393bb36ad1aedf4acafa3f82255e3b87d1fa10701fb3b17c68e",
+      "t": "Only half a step."
+    },
+    {
+      "id": "ep-43:14",
+      "source": "탑 안은 계단뿐이었다. 바깥벽을 따라 빙빙 돌아 올라가는 계단. 난간이 없었다. 한 칸 오를 때마다 아래가 더 깊어졌다.",
+      "sourceHash": "af3fd29c4a9e4398801d8a4101c2a6cebc9e4824913063c9f2160fb14d0a9591",
+      "t": "Inside the tower was nothing but stairs, spiraling upward along the outer wall. No railing. With every step, the drop below grew deeper."
+    },
+    {
+      "id": "ep-43:15",
+      "source": "올라오너라. 꼭대기에 네 자리를 마련해 두었다.",
+      "sourceHash": "2dac8fa7a5cc24cd9637d1de01656432635b83d27676fb50cf615e53955bdf16",
+      "t": "Come up. I have prepared your place at the top."
+    },
+    {
+      "id": "ep-43:16",
+      "source": "벽돌마다 같은 목소리가 울렸다. 연이는 네오를 받친 팔에 힘을 주었다. 앞에서는 서한비가 우산을 지팡이처럼 짚었다.",
+      "sourceHash": "200a6df49acea99c50dcacba37a7bbc2b60e3b75d71c9d17d6cb7eb69ab93e4f",
+      "t": "The same voice echoed from every brick. Yeoni tightened the arm supporting Neo. Ahead, Seo Hanbi used her umbrella as a walking stick."
+    },
+    {
+      "id": "ep-43:17",
+      "source": "계단 한 칸이 무너졌다. 모카가 발을 헛디뎠다. 윤달이 장갑 낀 손으로 모카의 꼬리를 잡았다.",
+      "sourceHash": "ac7efc3c0aba5545d682e7d2885605d912f6385058d682e3292daa28c70a88bd",
+      "t": "A step crumbled. Moka lost his footing. Yundal caught his tail with his gloved hand."
+    },
+    {
+      "id": "ep-43:18",
+      "source": "꼬리 잡지 마! 꼬리는 신체야!",
+      "sourceHash": "18a07b5479858eb3391e5dc3c1d5fc4b4afdff670eedc782a5d3528767ced12f",
+      "t": "Don't grab my tail! It's part of my body!"
+    },
+    {
+      "id": "ep-43:19",
+      "source": "그럼 손 주세요. 생년월일시도 같이.",
+      "sourceHash": "8ea066b949eda4526b5abccd55d733512621d64be4ff88d5bfb328389954baa3",
+      "t": "Then give me your hand. And your birth date and time."
+    },
+    {
+      "id": "ep-43:20",
+      "source": "지금?!",
+      "sourceHash": "127293dec4c5092ebf12b62819ce4bb69ce4c70b61935c47cec57d113aa5ae36",
+      "t": "Now?!"
+    },
+    {
+      "id": "ep-43:21",
+      "source": "둘이 투닥거리는 사이 무너진 자리 위로 벽돌이 하나씩 떠올라 계단이 다시 이어졌다. 웃음이 아주 잠깐 계단에 남았다. 그 웃음이 사라질 때까지, 아래쪽 어둠은 올라오지 않았다.",
+      "sourceHash": "442045536ccdf3710aaed99439839b908d073c660be6a0df5cb9b80c16e3e413",
+      "t": "While they bickered, bricks floated into the broken space one by one, reconnecting the stairs. Laughter lingered there briefly. Until it faded, the darkness below did not rise."
+    },
+    {
+      "id": "ep-43:22",
+      "source": "벽에 그림자 두 개가 붙어 따라오고 있었다. 하나는 머리, 하나는 꼬리. 베다의 하늘에서 카드 속으로 숨었던 라후와 케투였다.",
+      "sourceHash": "50a88cd2891e360d50a483e2041c3b4ec577f4a7138d6df089ffe579ec2df4c1",
+      "t": "Two shadows followed along the wall. A head and a tail: Rahu and Ketu, who had hidden in the cards after the Vedic sky."
+    },
+    {
+      "id": "ep-43:23",
+      "source": "저 둘, 위로 올라가고 있어요. 우리보다 빨리.",
+      "sourceHash": "ebc3f5dce69adf4cb76808d3a38e3224a35be20f3bf5e587f4d816db19edb763",
+      "t": "Those two are heading up. Faster than us."
+    },
+    {
+      "id": "ep-43:24",
+      "source": "합치러 가는 거예요. 일식이 완성되려면 머리랑 꼬리가 만나야 하니까.",
+      "sourceHash": "343dc589db331630c1c59c95f4e248a2e356ede1f54f13cf8eef7949e0065e45",
+      "t": "Going to merge. Head and tail must meet to complete the eclipse."
+    },
+    {
+      "id": "ep-43:25",
+      "source": "그럼 뛰어! 쟤들보다 먼저 가면 되잖아!",
+      "sourceHash": "ee0526a63d719f9a97de093cef2e2151255f0bb4647c7fa5cd382c7606104b1c",
+      "t": "Then run! We just have to get there first!"
+    },
+    {
+      "id": "ep-43:26",
+      "source": "계단이 우리 발을 세고 있어요. 뛰면 더 길어져요. 이 탑은 서두르는 사람한테 길어지는 탑이에요.",
+      "sourceHash": "80ec1b867a4ff220d105ca6974c813d747d2ed3bc4caa750c62b92b7d65ef5e1",
+      "t": "The stairs count our footsteps. Run, and they grow longer. This tower stretches for people in a hurry."
+    },
+    {
+      "id": "ep-43:27",
+      "source": "일행은 숨을 맞춰 걸었다. 네오가 한 번 숨을 내쉬면 연이도 한 계단 올랐다. 모두 같은 속도가 되자 계단은 더 늘어나지 않았다.",
+      "sourceHash": "9642aef117a25f94b8c50563b9be78ea7015dc12134c4e7eff01bb83c32d759a",
+      "t": "They walked with their breathing matched. Each time Neo exhaled, Yeoni climbed one step. Once everyone shared the same pace, the stairs stopped lengthening."
+    },
+    {
+      "id": "ep-43:28",
+      "source": "빗물아. 너는 왜 거기 서 있느냐. 그 아이 앞에. 그 봄에 네 봉투를 들고 간 얼굴이다.",
+      "sourceHash": "7eec156ab261f406560413a591314bbe7579c6b2d35227e31d3b3e0ecab42581",
+      "t": "Rainwater. Why do you stand there, in front of that child? That is the face that took your envelope that spring."
+    },
+    {
+      "id": "ep-43:29",
+      "source": "그 얼굴 빌려 쓴 게 누군지 이제 알아요.",
+      "sourceHash": "20891ff921af7a893e0095b2ff822a34952be3c7da4adf6d26a0a477edb2edaf",
+      "t": "I know now who borrowed that face."
+    },
+    {
+      "id": "ep-43:30",
+      "source": "알아도 그 얼굴을 보면 아프지 않으냐.",
+      "sourceHash": "0ac0ca4cfbe4ebbcc09aa2c6f7394ee0c023a74ae3f588c1ff325878db88a859",
+      "t": "Even knowing, does it not hurt to see it?"
+    },
+    {
+      "id": "ep-43:31",
+      "source": "아파요. 그래서 앞에 서는 거예요. 아픈 쪽이 앞에 서야 뒤에 있는 사람이 덜 아프니까.",
+      "sourceHash": "0c3366375063ab7fcbba6c1fbbbaab6668cd9a2e9518ebbc7910e2a70ad18f73",
+      "t": "It hurts. That's why I stand in front. If the one who hurts takes the front, the person behind hurts less."
+    },
+    {
+      "id": "ep-43:32",
+      "source": "벽의 목소리가 잠깐 끊겼다. 연이는 서한비의 등을 보았다. 젖은 코트, 곧은 어깨. 연이는 아무 말도 하지 않고 그 등에 손바닥을 한 번 댔다가 뗐다.",
+      "sourceHash": "0bba0f211d09a1efde191c960585a445e82f1a9390769f065716b0138e84b8b9",
+      "t": "The voice in the wall paused. Yeoni looked at Seo Hanbi's back: wet coat, straight shoulders. Without a word, they touched her back once, then withdrew their hand."
+    },
+    {
+      "id": "ep-43:33",
+      "source": "꼭대기는 지붕이 없었다. 하늘 한가운데 검은 해가 걸려 있었다. 라후와 케투의 그림자가 그 검은 해 속으로 빨려 들어갔다. 해의 테두리가 붉게 타올랐다.",
+      "sourceHash": "e6fcf171ef28522225380a0e07ca8aef0ff054c73b10652dafe5e20669f56e81",
+      "t": "The summit had no roof. A black sun hung in the center of the sky. Rahu and Ketu's shadows were drawn into it. Its rim flared red."
+    },
+    {
+      "id": "ep-43:34",
+      "source": "드디어 얼굴을 보는구나, 그릇아.",
+      "sourceHash": "8b8c45c6b8c4ba4a0fea3d67ce707bfcaaabf11d50890ac027a469a0b8b5f400",
+      "t": "At last we meet face-to-face, vessel."
+    },
+    {
+      "id": "ep-43:35",
+      "source": "얼굴은 없었다. 둥근 어둠 가장자리로 붉은 빛만 둥글게 돌았다. 그런데 연이는 그 어둠이 웃고 있다는 걸 알 수 있었다.",
+      "sourceHash": "cc71b50f74a3f2a9fc3c5ca0dcc5fc30c06c593cb5ffafb48d16d30457b16d88",
+      "t": "There was no face. Only red light circling the edge of round darkness. Yet Yeoni knew that darkness was smiling."
+    },
+    {
+      "id": "ep-43:36",
+      "source": "그릇 그릇 하지 마. 나 이름 있어. 연이야.",
+      "sourceHash": "c8fdd60f0bca2d2eb32209d3bf0b2acf0690c9294c30063546704d4f9067372b",
+      "t": "Stop saying vessel. I have a name. Yeoni."
+    },
+    {
+      "id": "ep-43:37",
+      "source": "이름이라. 그래, 이름 이야기를 하자. 네 품의 짐승 말이다.",
+      "sourceHash": "9be33325bf2cf8ece3f18b1b6e64f08083d0696f9fbe64e69ac836fe2a6b20d7",
+      "t": "A name. Yes, let us discuss names. The beast in your arms."
+    },
+    {
+      "id": "ep-43:38",
+      "source": "그는 네 명식의 마지막 칸에 앉아 있다. 시간의 칸. 庚. 그가 앉아 있는 한 그릇의 뚜껑이 닫혀 있지.",
+      "sourceHash": "ba3b675630641a85ec02f71f1759485d86dfd4204a4707feb922aa85173fbc14",
+      "t": "He occupies the last column of your Four Pillars. The Hour column. Gyeong. As long as he sits there, the vessel's lid stays closed."
+    },
+    {
+      "id": "ep-43:39",
+      "source": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 時 庚辰 ]  8/8",
+      "sourceHash": "9c0165cc5d19f914ad609a80f7c6b6c1da01e9f3c5a6cd45eacdeb4943f11083",
+      "t": "[ Year: Im-o · Month: Byeong-o · Day: Eulhae · Hour: Gyeong-Chen ] 8/8"
+    },
+    {
+      "id": "ep-43:40",
+      "source": "뚜껑이요? 그럼 고양이님이 빠지면 연이 씨는.",
+      "sourceHash": "99e204fe9236fff7b1c109b1eb6910b08b340593b11c0d736ebe966c8e0e972a",
+      "t": "A lid? Then if Mr. Cat leaves, Yeoni..."
+    },
+    {
+      "id": "ep-43:41",
+      "source": "열린다. 그리고 나는 들어간다. 오래 기다렸다.",
+      "sourceHash": "664f693d03da93a020a66c0cecc1606441a12d396bec3c8e67bc2e5815391043",
+      "t": "Opens. And I enter. I have waited long."
+    },
+    {
+      "id": "ep-43:42",
+      "source": "웃기지 마. 내 사주에 내가 누구 앉힐지는 내가 정해.",
+      "sourceHash": "dd6ab65318d4491245cbcbcd913066e7dd02860415d6a95d15fe777cc756dd78",
+      "t": "Don't be ridiculous. I decide whom I put in my own Four Pillars."
+    },
+    {
+      "id": "ep-43:43",
+      "source": "네가 정했느냐. 그가 스스로 앉았지. 네 허락도 없이. 이름까지 숨기고.",
+      "sourceHash": "140016aed30b55297ff5516f549f20d23f000f8a2f9d1c5d6f3bc66b906038a1",
+      "t": "Did you decide? He seated himself. Without your permission. Hiding even his name."
+    },
+    {
+      "id": "ep-43:44",
+      "source": "연이의 입이 닫혔다. 그 말에는 반박할 수가 없었다. 숨긴 건 맞았다. 다친 걸 숨기고, 이름을 숨기고, 첫 번째 봄을 숨겼다.",
+      "sourceHash": "1aa879e3f87ee50251cbc59d7b01c4a5f50fdce77adb32c050f78ef27474b33d",
+      "t": "Yeoni's mouth closed. They couldn't deny it. He had hidden things: his wounds, his name, the first spring."
+    },
+    {
+      "id": "ep-43:45",
+      "source": "숨긴 건 화나. 엄청 화나. 근데 그건 내가 따질 거야. 네가 따질 일이 아니야.",
+      "sourceHash": "d204b1cb41931476ad4a98ba531b1a967c7f1dd6774f06d3724d9c7fa297d8f3",
+      "t": "I'm angry he hid it. Very angry. But that's for me to confront him about. Not you."
+    },
+    {
+      "id": "ep-43:46",
+      "source": "네오가 연이의 어깨에서 팔을 풀었다. 붙잡으려던 손이 그의 소매를 통과했다. 그는 흑월을 향해 한 걸음 나섰다.",
+      "sourceHash": "c6f06be2a1bee5d6f94fd4d94d07657885ce1bcedc9a03c23002d9eea1d5349f",
+      "t": "Neo slipped his arm from Yeoni's shoulder. Their reaching hand passed through his sleeve. He stepped toward Black Moon."
+    },
+    {
+      "id": "ep-43:47",
+      "source": "네오, 돌아와. 내 앞에 서지 마.",
+      "sourceHash": "1c5f4dcd3afa1b638b458be9974e78346039e5bb56360f9d3080c96a91d2558e",
+      "t": "Neo, come back. Don't stand in front of me."
+    },
+    {
+      "id": "ep-43:48",
+      "source": "「이번엔 늦지 않으려고.」",
+      "sourceHash": "b18c12dc9af027e2f34b23f518b0559c4c14697221cd338ac7f7c60ec5a8e7fd",
+      "t": "“This time, I won't be late.”"
+    },
+    {
+      "id": "ep-43:49",
+      "source": "네오가 남은 이름의 힘을 끌어올렸다. 투명했던 몸이 마지막으로 선명해졌다. 손끝에 금빛 날이 길게 섰다. 연이를 지킬 때 쓰던 바로 그 힘이었다.",
+      "sourceHash": "ebf22a4db1d6a81d9ef5edd3f8d32472025b061f81c3daaadce920c9e6e294e0",
+      "t": "Neo gathered the power remaining in his name. His transparent body became clear one final time. A long golden blade formed at his fingertips. The very power he had used to protect Yeoni."
+    },
+    {
+      "id": "ep-43:50",
+      "source": "그 아이는 그릇이 아니다. 내가 앉은 자리는 뚜껑이 아니라 의자다. 같이 앉으려고 가져다 놓은.",
+      "sourceHash": "58ea81833a2e66b0738faa1dbf8d30fb969775bf822b735ca4c8a69d609ea720",
+      "t": "That child is not a vessel. The place where I sit isn't a lid. It's a chair. One I brought so we could sit together."
+    },
+    {
+      "id": "ep-43:51",
+      "source": "의자든 뚜껑이든. 치우면 그만이다.",
+      "sourceHash": "13f6a43945b8538b79bff7e4302a0a4d3b38adfe7619d189f174ed620649c43c",
+      "t": "Chair or lid. I need only remove it."
+    },
+    {
+      "id": "ep-43:52",
+      "source": "네오, 그 몸 얼마나 가? 대답해.",
+      "sourceHash": "976fe81395ef292367906ae44183c41290d49146254376a04c65b2a0f5d45cf8",
+      "t": "Neo, how long will that body last? Answer me."
+    },
+    {
+      "id": "ep-43:53",
+      "source": "잔소리 한 번 할 시간은 돼. 연이야, 양말은 짝 맞춰 신어.",
+      "sourceHash": "4b530f6bbe6cf0a3f106335318d82d98639861dbdd9f1a08633ea2ab3d8893f7",
+      "t": "Long enough for one scolding. Yeoni, wear matching socks."
+    },
+    {
+      "id": "ep-43:54",
+      "source": "지금 그게 잔소리야?! 마지막 말 같은 거 하지 마!",
+      "sourceHash": "4c378ea12d386724f5662243f52a4ec15933b3e1669fc526d4272adc7ec4f951",
+      "t": "That's your scolding now?! Don't talk like those are your last words!"
+    },
+    {
+      "id": "ep-43:55",
+      "source": "네오가 웃었다. 은빛 머리카락 끝에서 빛이 한 올씩 흩어졌다. 연이 발치까지 내려온 빛은 닿기 전에 사라졌다.",
+      "sourceHash": "dc40cefcb6f12c83529f9575ab416febbf3ebf9dbd4826d6a06ce12ccda42b7c",
+      "t": "Neo smiled. Strands of light scattered from the tips of his silver hair. They drifted toward Yeoni's feet and vanished before touching them."
+    },
+    {
+      "id": "ep-43:56",
+      "source": "네오가 검은 해를 향해 뛰어올랐다. 금빛 날이 붉은 테두리를 갈랐다. 하늘이 찢어지는 소리와 함께 탑 꼭대기에 번개가 떨어졌다.",
+      "sourceHash": "117acaca539ea07543ec05ff821634b0bc1f06509cc60a8d95a898dd26aa0765",
+      "t": "Neo leaped toward the black sun. His golden blade split its red rim. With a sound like the sky tearing, lightning struck the tower's summit."
+    },
+    {
+      "id": "ep-43:57",
+      "source": "무너진다! 계단 무너져!",
+      "sourceHash": "d59e4bc403b1005754d86f3eeee28c1fbfefdaddbc2516f1ac5e0dd083bf4859",
+      "t": "It's collapsing! The stairs!"
+    },
+    {
+      "id": "ep-43:58",
+      "source": "연이 씨, 이쪽! 우산 잡아요!",
+      "sourceHash": "7a92110677cc5dc10b87eeacfbc1327e6d64caf9b8b5c5d38ea14eaa12b2d1db",
+      "t": "Yeoni, this way! Grab the umbrella!"
+    },
+    {
+      "id": "ep-43:59",
+      "source": "바닥이 기울었다. 벽돌이 쏟아졌다. 연이의 발밑이 사라졌다. 서한비가 우산 손잡이를 내밀었다. 연이의 손가락이 손잡이 테이프에 닿았다가 미끄러졌다.",
+      "sourceHash": "435003e7b4002dae2e5be6870a5ce7918e4cd203aaf3134959ee7713eb360f80",
+      "t": "The floor tilted. Bricks rained down. The ground disappeared beneath Yeoni. Seo Hanbi held out the umbrella handle. Yeoni's fingers touched the tape, then slipped."
+    },
+    {
+      "id": "ep-43:60",
+      "source": "연이는 무너진 바닥 아래로 떨어졌다. 그때 네오가 벽을 딛고 솟아올라 그녀의 허리를 붙잡았다. 두 사람의 무게가 한 팔에 실렸다.",
+      "sourceHash": "0908656747d78028928a8db6922b80b5ae09372af8652a3656cf14bbb71ee6ae",
+      "t": "Yeoni fell through the collapsed floor. Neo kicked off the wall and caught them around the waist. Both their weights hung on one arm."
+    },
+    {
+      "id": "ep-43:61",
+      "source": "외투 잡아. 놓치지 마!",
+      "sourceHash": "b7ff9224d65c783ac1ef4f789a4e3b91803fa8a9421c05ea995edd6e06dfe68c",
+      "t": "Grab my coat. Don't let go!"
+    },
+    {
+      "id": "ep-43:62",
+      "source": "잡을 수가 없어! 손이 통과해!",
+      "sourceHash": "9c2e8a96a34dd316beb85522a7576df3a765387e418793c97ca407112cd803e2",
+      "t": "I can't! My hands go through!"
+    },
+    {
+      "id": "ep-43:63",
+      "source": "그럼 내가 잡지.",
+      "sourceHash": "d2b9ef8db4a153061380b17c3c54b3c2285b18d2ab57b9eca42df2f8980c2216",
+      "t": "Then I'll hold on."
+    },
+    {
+      "id": "ep-43:64",
+      "source": "네오가 연이를 남은 계단 쪽으로 밀어 올렸다. 윤달이 손목을 낚아챘다. 서한비가 윤달의 허리를, 모카가 서한비의 옷자락을 붙들었다.",
+      "sourceHash": "e7ec1029c6e313ffb079822a2f1f1d00ca8289f9acee0e82d0f89136323f7442",
+      "t": "Neo pushed Yeoni toward the remaining stairs. Yundal caught their wrist. Seo Hanbi held Yundal's waist; Moka held Seo Hanbi's coat."
+    },
+    {
+      "id": "ep-43:65",
+      "source": "네오는 아래에 남았다. 검은 손들이 그의 다리와 허리, 망토를 붙잡았다.",
+      "sourceHash": "cea9c7d93ebbda60d9d9879e4fea687786441114ed3b1b2ebda72d9fe218259c",
+      "t": "Neo stayed below. Black hands seized his legs, waist, and cloak."
+    },
+    {
+      "id": "ep-43:66",
+      "source": "네오! 네오야!",
+      "sourceHash": "f01651613f926e8cbf7387a0eef3f7c6a53dc326aa03c45869b4836432059cf4",
+      "t": "Neo! Neo!"
+    },
+    {
+      "id": "ep-43:67",
+      "source": "연이는 그 이름만 불렀다. 다른 이름은 부르지 않았다. 입술까지 올라온 세 글자 중 두 글자를, 이를 악물고 삼켰다.",
+      "sourceHash": "8dd57d38ae399e935cf03b68cc1d206515677e5023dd65f22487d16e82c7b1d5",
+      "t": "Yeoni called only that name. No other. Two syllables of the three-syllable name rose to their lips; they clenched their teeth and swallowed them."
+    },
+    {
+      "id": "ep-43:68",
+      "source": "잘했다. 그거면 된다.",
+      "sourceHash": "a4e8ccf6c9f879988fa65a5ee9ad77b706af4395d3654d4a29ac3df2c57871e7",
+      "t": "Well done. That's enough."
+    },
+    {
+      "id": "ep-43:69",
+      "source": "이름 없는 짐승은 맛이 없다. 그래도 금은 금이지.",
+      "sourceHash": "9ca49cac3c0c5d80fe65b0c8bab1e40edbbd0675bcf1a2c1ff068b95946ec9fa",
+      "t": "A nameless beast has little flavor. Still, Metal is Metal."
+    },
+    {
+      "id": "ep-43:70",
+      "source": "검은 해가 벌어졌다. 네오가 그 안으로 끌려 들어갔다. 마지막까지 연이를 보던 얼굴이 어둠에 가렸다. 해가 닫혔다.",
+      "sourceHash": "acd60ef65610dad4ea9bb52b697efe377892ccdfff88f737088ad19369e1bfe5",
+      "t": "The black sun opened. Neo was dragged inside. Darkness covered the face that watched Yeoni until the very end. The sun closed."
+    },
+    {
+      "id": "ep-43:71",
+      "source": "조용했다. 탑은 반쯤 남아 있었다. 일행은 무너진 계단 끝에 엉켜 쓰러져 있었다. 하늘의 검은 해는 사라지고 없었다. 배가 부른 짐승처럼, 어딘가로 물러난 것이었다.",
+      "sourceHash": "cc599a37998dc5653aaf5f57fdbdae98f1c303206e4077a0d588890cf8f362cb",
+      "t": "Silence. Half the tower remained. The others lay tangled at the end of the broken stairs. The black sun was gone, withdrawn somewhere like a beast with a full belly."
+    },
+    {
+      "id": "ep-43:72",
+      "source": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 時 □辰 ]  7/8",
+      "sourceHash": "8f887fc56589e671aca85baf487140da883a8fb1349e148aef62ba4a63041e79",
+      "t": "[ Year: Im-o · Month: Byeong-o · Day: Eulhae · Hour: □-Chen ] 7/8"
+    },
+    {
+      "id": "ep-43:73",
+      "source": "연이가 일어나 손바닥을 폈다. 쓸린 손안에 금실 한 가닥이 걸려 있었다. 누구 옷에서 풀린 실인지 기억나지 않았다.",
+      "sourceHash": "2fdb8bd02f06bdada57bf8c9a580a6748bcb5e6b1652137823cbfcfdab0ca20a",
+      "t": "Yeoni stood and opened their palm. One golden thread lay across the scraped skin. They couldn't remember whose clothes it had come from."
+    },
+    {
+      "id": "ep-43:74",
+      "source": "(이 실은 어디서 묻었지. 누가 금실이 달린 옷을 입고 있었는데.)",
+      "sourceHash": "97066504c80b0a45b2678ca49534f9285a5b3fff9291ec47e5e4155c49fee813",
+      "t": "(Where did this thread come from? Someone was wearing clothes with gold thread.)"
+    },
+    {
+      "id": "ep-43:75",
+      "source": "다들 괜찮아? 나 꼬리 멀쩡해? 근데 우리 몇 명이었지. 넷?",
+      "sourceHash": "ceb6fd799ac4669b5cf34c5e5c434cda4242a36ec53c766235fc666ba3c837bb",
+      "t": "Everyone okay? Is my tail intact? Wait, how many of us were there? Four?"
+    },
+    {
+      "id": "ep-43:76",
+      "source": "넷이요. 아니, 다섯. 흰 우산 든 사람이 있었던 것 같은데.",
+      "sourceHash": "c1d384641840a811a1db156782a1b3597066356e79ea11733d2c27b5b29af35c",
+      "t": "Four. No, five. I think there was someone with a white umbrella."
+    },
+    {
+      "id": "ep-43:77",
+      "source": "서한비가 말을 멈췄다. 흰 우산. 정류장. 늦게 온 남자. 그 얼굴이 기억에서 다시 지우개질을 당하고 있었다.",
+      "sourceHash": "e1becf96ae1c11640f675fd3a5a162177259ebc0530f6b1cd4520cbf88fbe34c",
+      "t": "Seo Hanbi stopped. White umbrella. Bus stop. The man who arrived late. His face was being rubbed out of her memory again."
+    },
+    {
+      "id": "ep-43:78",
+      "source": "아니에요. 잊으면 안 되는 사람이에요. 저 그분이랑 약속한 게 있어요. 무슨 약속이었는지가.",
+      "sourceHash": "1d81e199294abadc486e57b122840b757c59103c8b04ce34de46ce41909b4cc8",
+      "t": "No. He's someone we mustn't forget. I made him a promise. But what promise..."
+    },
+    {
+      "id": "ep-43:79",
+      "source": "서한비가 코트 안쪽 장부를 꺼냈다. 손바닥만 해진 장부를 급하게 넘겼다. 빈 줄, 빈 줄, 빈 줄. 비가 다 풀어 버린 장부에는 아무것도 남아 있지 않았다.",
+      "sourceHash": "e1d0f36a589167ba8d454415767e4d81cb30501c2368f8b52933576947777be1",
+      "t": "She pulled the ledger from her coat and flipped urgently through its palm-sized pages. Blank line, blank line, blank line. Rain had unraveled everything. Nothing remained."
+    },
+    {
+      "id": "ep-43:80",
+      "source": "하필 지금. 하필 지금 다 지워졌어요. 적어 둘걸. 하나만이라도 적어 둘걸.",
+      "sourceHash": "7f519c28885cc79f1aa4cc2c6e9e341ce1919fd40ccff80f522b49e4a052d0a3",
+      "t": "Why now? Why is it all gone now? I should have written it down. Even one thing."
+    },
+    {
+      "id": "ep-43:81",
+      "source": "울지 마. 너 울면 나도 울어. 누군지도 모르는데 왜 이렇게 목이 메지.",
+      "sourceHash": "8e0f5bfd9552894025b59f56db450708a56d154bf576a0091a584c60eb806132",
+      "t": "Don't cry. If you cry, I will too. I don't even know who it is. Why's my throat so tight?"
+    },
+    {
+      "id": "ep-43:82",
+      "source": "모카가 코를 훌쩍였다. 이유를 모르는 눈물이었다. 그런데 눈물은 이유보다 먼저 알고 있었다. 누군가가 빠진 자리를.",
+      "sourceHash": "4b27ccec9a488f8d8504473223be560567fc5d9ac4ce81f4bec394e952ed4163",
+      "t": "Moka sniffled. Tears without a known reason. But the tears knew before the reason did: someone was missing."
+    },
+    {
+      "id": "ep-43:83",
+      "source": "다섯이었어요. 네오 씨가 있었어요. 예전에는 고양이였고, 지금은 사람인… 우리랑 같이 온 분요.",
+      "sourceHash": "466a9b846910856debd70e186ab87d529c25804a2090caa18f98359434783eac",
+      "t": "There were five. Neo was here. A cat before, a person now... Someone who came with us."
+    },
+    {
+      "id": "ep-43:84",
+      "source": "네오. 어디서 들었는데. 왜 얼굴이 생각 안 나지?",
+      "sourceHash": "5cdb985931c438a8e5c2fbc573e97240121f64b989698829352446e0862faac5",
+      "t": "Neo. I've heard that somewhere. Why can't I remember his face?"
+    },
+    {
+      "id": "ep-43:85",
+      "source": "연이 씨가 지은 이름이에요. 연이 씨가 제일 많이 불렀어요.",
+      "sourceHash": "de43e4c6dfd4b9ca710fbed62a86a54499769d6e02c7091a1eae9026354b6164",
+      "t": "The name you gave him, Yeoni. You said it more than anyone."
+    },
+    {
+      "id": "ep-43:86",
+      "source": "오빠는 어떻게 기억해? 우린 다 흐릿한데.",
+      "sourceHash": "d72f831c46425d67a2098e6c05ef512d807850565c6e4545cf2c59e0071a90fb",
+      "t": "How do you remember? It's all blurred for us."
+    },
+    {
+      "id": "ep-43:87",
+      "source": "저는 잊히는 쪽이라서요. 잊히는 게 어떤 건지 알아서, 남이 잊히는 건 꽉 붙잡게 돼요.",
+      "sourceHash": "a926fd7a7d3a5374770af458f79e246ad74436013b1060784d77c1a0f270d435",
+      "t": "Because I'm the one forgotten. I know what that feels like, so when someone else is forgotten, I hold on tight."
+    },
+    {
+      "id": "ep-43:88",
+      "source": "윤달이 장갑을 쥐었다 폈다. 그의 손바닥 공망이 아주 미세하게 따뜻했다. 무언가 금빛 한 줄기가 그 안에 걸려 있었다. 윤달은 그 이야기를 아직 하지 않았다.",
+      "sourceHash": "41d03b803bb1ef95a61fc31dfed97a528e0cf8e55c6abf9003287d0c096ff4ce",
+      "t": "Yundal clenched and opened his gloved hand. The Void in his palm was very slightly warm. A thread of gold had caught inside it. He didn't mention it yet."
+    },
+    {
+      "id": "ep-43:89",
+      "source": "연이의 가방에서 메모장이 떨어졌다. 마지막으로 쓴 쪽이 펼쳐졌다. 꾹꾹 눌러 쓴, 자기 글씨였다.",
+      "sourceHash": "d2fe3db9f9bd21bfe37eb6ba14f43ee5afecd032a46e2afff40c58f77efd841e",
+      "t": "Yeoni's notebook fell from their bag and opened to the last page they had written. Their own handwriting, pressed hard."
+    },
+    {
+      "id": "ep-43:90",
+      "source": "[ 모습이 달라도 네오. 내 편. ]",
+      "sourceHash": "89fec60353922ea6b7f07729162e95fd83d104bec8a1971f87d6edece8d35b48",
+      "t": "[ Even in a different form, Neo. On my side. ]"
+    },
+    {
+      "id": "ep-43:91",
+      "source": "이거, 내 글씨야. 내가 쓴 거야. 근데.",
+      "sourceHash": "a0d23ead132052dde94e63d46ce6d4a6b429d0e2c03e349664287a9a7d159e10",
+      "t": "This is my handwriting. I wrote it. But..."
+    },
+    {
+      "id": "ep-43:92",
+      "source": "연이는 그 글씨를 손가락으로 따라 그었다. 종이가 움푹 들어가 있었다. 찢어질 만큼 세게 쓴 자국이었다. 그만큼 잊고 싶지 않았던 무언가.",
+      "sourceHash": "d8454b24f9415fe18901abaac12d5125229bb9bf1d21482fa591c15718055a77",
+      "t": "Yeoni traced the words with a finger. The paper was deeply indented, nearly torn by the force of writing. Something they had wanted that badly not to forget."
+    },
+    {
+      "id": "ep-43:93",
+      "source": "왜 기억이 안 나. 이렇게 세게 썼는데. 내 편이라며. 내 편이 누군데.",
+      "sourceHash": "3216663b50289ed9090cd4b34f03d5fd117b6d507c3bd208fd50f11d634115bf",
+      "t": "Why can't I remember? I pressed so hard. It says on my side. Who was on my side?"
+    },
+    {
+      "id": "ep-43:94",
+      "source": "연이 씨. 그 글씨, 믿으세요. 기억은 지워져도 손은 거짓말 못 해요.",
+      "sourceHash": "40f69a88b5180a0b4bc3070a26d5b405a7efcfe436c6c7451091b590316d4969",
+      "t": "Yeoni. Trust those words. Memories can be erased, but your hand can't lie."
+    },
+    {
+      "id": "ep-43:95",
+      "source": "네오가… 누구였지?",
+      "sourceHash": "087e5f960ef5faaa16ed4d1f4e6713bf171cd496807f2337a4fd6bc5f9be7331",
+      "t": "Who... was Neo?"
+    }
+  ]
+}

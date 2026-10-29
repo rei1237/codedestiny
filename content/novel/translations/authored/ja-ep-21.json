@@ -1,0 +1,964 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "locale": "ja",
+  "episodeId": "ep-21",
+  "sourceTitle": "다섯 번째 빛",
+  "sourceTag": "제21화 · 다섯 번째 빛",
+  "title": "五つ目の光",
+  "tag": "第21話 · 五つ目の光",
+  "rows": [
+    {
+      "id": "ep-21:1",
+      "source": "아침이 오자 도서관은 언제 젖었냐는 듯 조용해졌다. 둥근 천장 아래 열람 책상마다 말린 책들이 줄지어 펼쳐져 있었다.",
+      "sourceHash": "f94aac77f0c4a0ccc19e80a119b78b40a30e57f96fe473e78000aa4bfb538924",
+      "translations": {
+        "ja": "朝になると、図書館は濡れたことなどなかったかのように静まった。丸い天井の下、閲覧机には乾かした本が並べて開かれていた。"
+      }
+    },
+    {
+      "id": "ep-21:2",
+      "source": "백열두 권째. 돼지, 내가 지금 불로 뭘 하고 있는지 알아? 책 말리기야. 요리사가.",
+      "sourceHash": "031fb65fd9f94aab9745e6aec2264514e633438aeff6e37fd8773bae05a8597e",
+      "translations": {
+        "ja": "百十二冊目。ブタ、私が今、火で何をしてるかわかる？　本を乾かしてるんだよ。料理人が。"
+      }
+    },
+    {
+      "id": "ep-21:3",
+      "source": "고생했어. 별 다섯 개. 다림질 서비스 추가.",
+      "sourceHash": "e406f84001c70e304c9815734516805696072601ccdd49fbfe5c229143259523",
+      "translations": {
+        "ja": "お疲れさま。星五つ。アイロンサービスも追加。"
+      }
+    },
+    {
+      "id": "ep-21:4",
+      "source": "별 말고 밥으로 줘. 별은 못 먹어.",
+      "sourceHash": "349ae27747e3db673ebf34e11b42428e229303bc47f84dcd343693389407eb47",
+      "translations": {
+        "ja": "星じゃなくてご飯で払って。星は食べられない。"
+      }
+    },
+    {
+      "id": "ep-21:5",
+      "source": "모카가 불씨를 굴릴 때마다 젖은 책장이 사르륵 펴졌다. 책에서 따뜻한 빵 냄새 같은 것이 피어올랐다.",
+      "sourceHash": "435f5bc60b89f918ee1a834a8cf5792266417e374ca8a92c0f794a0af15d0931",
+      "translations": {
+        "ja": "Mokaが火種を転がすたび、濡れたページがさらりと開いた。本から温かいパンのような匂いが立ち上った。"
+      }
+    },
+    {
+      "id": "ep-21:6",
+      "source": "좋은 냄새네요. 누군가의 생일 아침이 적힌 책인가 봐요.",
+      "sourceHash": "ca83e846f82a5fe0cd00915afd82ad845852a5930cd6fd4b4a94442d90f7497a",
+      "translations": {
+        "ja": "いい匂いですね。誰かの誕生日の朝が書かれた本でしょうか。"
+      }
+    },
+    {
+      "id": "ep-21:7",
+      "source": "책 냄새로 그런 것도 알아요?",
+      "sourceHash": "ddffd78cc48e79197f0b539771adeec150b4518b57c34fcb005daa24177465ca",
+      "translations": {
+        "ja": "本の匂いでそんなことまでわかるんですか？"
+      }
+    },
+    {
+      "id": "ep-21:8",
+      "source": "아뇨. 그냥 말해 봤어요. 그럴듯하죠.",
+      "sourceHash": "39bfbf231646c0bcdd31a516936055e1630cbbbeca23ed00342d5b55b9963c70",
+      "translations": {
+        "ja": "いいえ。言ってみただけです。それらしいでしょう。"
+      }
+    },
+    {
+      "id": "ep-21:9",
+      "source": "봐. 사기꾼은 아침부터 사기 친다.",
+      "sourceHash": "bcc653463365ff9e5f25459ec964dc0d5fb761cec8e5a7e680eef0c10a307460",
+      "translations": {
+        "ja": "ほら。詐欺師は朝から詐欺をする。"
+      }
+    },
+    {
+      "id": "ep-21:10",
+      "source": "수달 씨는 아침부터 기억해 주시네요. 고마워요.",
+      "sourceHash": "319d79b985d0e6862977701f37f86f9fd695e1b8c783a25804c9c23370be13c9",
+      "translations": {
+        "ja": "カワウソさんは朝から覚えていてくれますね。ありがとう。"
+      }
+    },
+    {
+      "id": "ep-21:11",
+      "source": "그런 식으로 말하지 마. 화를 못 내겠잖아.",
+      "sourceHash": "29853115988b5f05b3ca455b14d00c171f217566490829182d4a37c945315631",
+      "translations": {
+        "ja": "そういう言い方しないで。怒れなくなるじゃん。"
+      }
+    },
+    {
+      "id": "ep-21:12",
+      "source": "연이의 손목에서 아기 용이 꾸물꾸물 기어 나왔다. 배가 동그랗게 부풀어 있었고, 하품할 때마다 작은 물방울이 튀었다.",
+      "sourceHash": "e236ec8222a1046aacf7e4ba6c44f15e9e90397e1faedd931998780758623499",
+      "translations": {
+        "ja": "Yeoniの手首から、竜の赤ちゃんがもぞもぞはい出した。お腹が丸く膨らみ、あくびのたびに小さなしずくが飛んだ。"
+      }
+    },
+    {
+      "id": "ep-21:13",
+      "source": "얘 봐. 어제 마신 홍수 아직 소화 중이야.",
+      "sourceHash": "33573e6f0404e0a422377c48f8a99e2d778a190bb580acfd76b38e3ddc95b71a",
+      "translations": {
+        "ja": "この子を見て。昨日飲んだ洪水、まだ消化中だ。"
+      }
+    },
+    {
+      "id": "ep-21:14",
+      "source": "용이 물 먹고 배탈 나면 그거 무슨 날씨냐. 장마냐.",
+      "sourceHash": "c1ffb1d0e084db1123aa5641fe69fb586502c3f79676e046c5da81f5c3e72965",
+      "translations": {
+        "ja": "竜が水を飲んでお腹を壊したら、それってどんな天気なの。梅雨？"
+      }
+    },
+    {
+      "id": "ep-21:15",
+      "source": "창고가 덜 찼다는 건 좋은 소식이에요. 다음 홍수에도 마셔 줄 수 있다는 뜻이니까.",
+      "sourceHash": "36af655751de9279ae95afc48e95a4371399f8660a626b806cdb03f2d5f1be00",
+      "translations": {
+        "ja": "蔵がまだいっぱいではないのは、いい知らせです。次の洪水でも飲んでくれるということですから。"
+      }
+    },
+    {
+      "id": "ep-21:16",
+      "source": "들었지? 너는 우리 팀 공식 정수기야.",
+      "sourceHash": "043ae872fef1aa5d0d22486c50afb4312876c0871141451537bf6ed52470d2c7",
+      "translations": {
+        "ja": "聞いた？　君はチーム公認の浄水器だよ。"
+      }
+    },
+    {
+      "id": "ep-21:17",
+      "source": "아기 용은 그 말이 마음에 드는지 꼬리를 연이의 앞발에 한 번 감고 다시 잠들었다.",
+      "sourceHash": "a84304a2b3b336430aa41491de422b77164cc4d1e4b92c6d07af972d63892c7f",
+      "translations": {
+        "ja": "竜の赤ちゃんはその言葉が気に入ったのか、Yeoniの前足に尻尾を一度巻きつけ、また眠った。"
+      }
+    },
+    {
+      "id": "ep-21:18",
+      "source": "연이는 책상 끝에 앉아 앞발을 펼쳤다. 여덟 칸 글자판이 떠올랐다. 일곱 칸이 찼고, 그중 한 칸은 검게 얼어 있었다.",
+      "sourceHash": "ba8ed0c5d0d2ee97fea821a131d6e27f3370d875738a56018ee009014ce44071",
+      "translations": {
+        "ja": "Yeoniは机の端に座り、前足を広げた。八つの欄の文字盤が浮かんだ。七つは埋まり、そのうち一つは黒く凍っていた。"
+      }
+    },
+    {
+      "id": "ep-21:19",
+      "source": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 時 □辰 ]  7/8",
+      "sourceHash": "8f887fc56589e671aca85baf487140da883a8fb1349e148aef62ba4a63041e79",
+      "translations": {
+        "ja": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 時 □辰 ]  7/8"
+      }
+    },
+    {
+      "id": "ep-21:20",
+      "source": "(이제 하나 남았어. 근데 이 빈칸은 어디서 찾아야 하지.)",
+      "sourceHash": "e06306d7782b951141c12aefa3d1a218cd6da502040377a59d0e7ba71c985717",
+      "translations": {
+        "ja": "（あと一つ。でも、この空欄はどこで探せばいいんだろう。）"
+      }
+    },
+    {
+      "id": "ep-21:21",
+      "source": "윤달, 이 마지막 칸이요. 시주의 첫 글자. 이건 무슨 자리예요?",
+      "sourceHash": "2fd2c6ba6f89d417fcd93f6d53ce4e6fdd435e8d58426b1597656e0a73f024d3",
+      "translations": {
+        "ja": "Yundal、この最後の欄です。時柱の最初の文字。ここは何の場所ですか？"
+      }
+    },
+    {
+      "id": "ep-21:22",
+      "source": "숙녀분 일간이 乙목이니까, 이 자리에 올 수 있는 건 정해져 있어요. 庚금. 관성 자리예요.",
+      "sourceHash": "c993f6a89bab758dea902910aec4c9432ce90c83bcf300fd5571ab43a7c3b3d8",
+      "translations": {
+        "ja": "お嬢さんの日干は乙木ですから、ここに入る文字は決まっています。庚金。官星の場所です。"
+      }
+    },
+    {
+      "id": "ep-21:23",
+      "source": "관성. 식상, 재성, 인성 다음 그거요?",
+      "sourceHash": "49675534da91aca69b5a7885e52d116adf4defe498120ce85c36102aa54fbe89",
+      "translations": {
+        "ja": "官星。食傷、財星、印星の次の、あれですか？"
+      }
+    },
+    {
+      "id": "ep-21:24",
+      "source": "네. 나를 다스리고 지켜 주는 기운이요. 규칙, 책임, 이름표 같은 거.",
+      "sourceHash": "f3b3d0a5fb8a8e35399bb0c385c39f42def62d4986515010e2f058a32be01971",
+      "translations": {
+        "ja": "はい。自分を律し、守ってくれる気です。規則や責任、名札のようなものですね。"
+      }
+    },
+    {
+      "id": "ep-21:25",
+      "source": "근데 이상해요. 다른 칸은 다 섬에서 찾았잖아요. 관성의 섬은 없었어요.",
+      "sourceHash": "0f9d77f05e7d0068554f563f4499237de373055fbf4945571f99cff7f4f3a394",
+      "translations": {
+        "ja": "でも変です。他の欄は全部、島で見つけたでしょう。官星の島はありませんでした。"
+      }
+    },
+    {
+      "id": "ep-21:26",
+      "source": "관성 없는 명식은 없어요. 안 보이면 숨어 있는 거예요.",
+      "sourceHash": "9fe9ff6b8094bfa0a9bd6deac528ca575fb24abb688fa2172f81a2e01e1ae0be",
+      "translations": {
+        "ja": "官星のない命式はありません。見えないなら、隠れているんです。"
+      }
+    },
+    {
+      "id": "ep-21:27",
+      "source": "연이는 첫날을 떠올렸다. 강 위의 안개, 그리고 그 너머에 떠오르던 빛들.",
+      "sourceHash": "9fb5d104fc3c420d1d7f6a53a006a4fcd5b7936137145eb9107ec3262f07bbb5",
+      "translations": {
+        "ja": "Yeoniは最初の日を思い出した。川の上の霧と、その向こうに浮かんでいた光。"
+      }
+    },
+    {
+      "id": "ep-21:28",
+      "source": "(그때 영냥이가 그랬어. 네 사주 글자는 네 개의 섬에 흩어져 있다고.)",
+      "sourceHash": "a4ed800ed0e4ba22bcaa5e5419469631b903ea4ab5546d2e75031a883e5f06ce",
+      "translations": {
+        "ja": "（あのときYeongnyangiは言った。私の四柱の文字は四つの島に散らばっているって。）"
+      }
+    },
+    {
+      "id": "ep-21:29",
+      "source": "푸른빛, 흔들리는 불빛, 황금빛, 오래된 책장 같은 빛. 그때 본 빛은 분명히 네 개였다.",
+      "sourceHash": "2b1234838ea38a5ce976d704cf917f3b37c5413acee44251a35cd68f9a402c84",
+      "translations": {
+        "ja": "青い光、揺れる火の光、金色の光、古い本棚のような光。あのとき見た光は、確かに四つだった。"
+      }
+    },
+    {
+      "id": "ep-21:30",
+      "source": "섬은 네 개였어. 비겁, 식상, 재성, 인성. 근데 십성은 다섯 개잖아요.",
+      "sourceHash": "2696080c8edfb0a6d9ea5daaa63ea767f644674925bf791d5a0d711e36dd9f34",
+      "translations": {
+        "ja": "島は四つだった。比劫、食傷、財星、印星。でも十星のグループは五つですよね。"
+      }
+    },
+    {
+      "id": "ep-21:31",
+      "source": "숙녀분, 공부 많이 하셨네요. 제 궁합 부스에서 알바하실래요?",
+      "sourceHash": "465e292e118fbb5a65bf953f095ef6c0a90697303ff64c114ca967e94710ca9f",
+      "translations": {
+        "ja": "お嬢さん、ずいぶん勉強しましたね。僕の相性占いの屋台でアルバイトしませんか？"
+      }
+    },
+    {
+      "id": "ep-21:32",
+      "source": "지금 그 얘기 아니잖아요.",
+      "sourceHash": "ce8e369c93275fdc787934243c2ab0d8614b990b3f4dceaf2a6e6feeaa3721e2",
+      "translations": {
+        "ja": "今はその話じゃありません。"
+      }
+    },
+    {
+      "id": "ep-21:33",
+      "source": "다섯 번째 빛은 어디 갔는데. 누가 주머니에 넣었냐.",
+      "sourceHash": "9ad63ed908bbc19e484234962c0cdf8ca1ad36689cc3b28261befc563d67621d",
+      "translations": {
+        "ja": "五つ目の光はどこへ行ったの。誰かがポケットに入れた？"
+      }
+    },
+    {
+      "id": "ep-21:34",
+      "source": "庚금은 칼이고 쇠예요. 단단하고, 차갑고, 곧아요. 乙목한테는 제일 어려운 상대죠.",
+      "sourceHash": "e79903b977bd0611871be37e0d0ce463113f527f88d61bfb8910dffc0e684120",
+      "translations": {
+        "ja": "庚金は刃であり、鉄です。硬く、冷たく、まっすぐ。乙木にとって最も手ごわい相手ですね。"
+      }
+    },
+    {
+      "id": "ep-21:35",
+      "source": "어려운 상대가 내 자리에 앉아야 한다고요?",
+      "sourceHash": "e6ff03ec7fc6fa25a1651ac205b4c1e0deb570596ce805584df76de839f0350d",
+      "translations": {
+        "ja": "手ごわい相手が、私の場所に座らなきゃいけないんですか？"
+      }
+    },
+    {
+      "id": "ep-21:36",
+      "source": "어려운 상대가 짝이 되면 제일 단단해져요. 乙과 庚은 서로 끌어당기는 사이거든요.",
+      "sourceHash": "9df76a88046d598836a35413c8ea70df2af7db9bdc0ad6515aa5146b18b43788",
+      "translations": {
+        "ja": "手ごわい相手と対になると、いちばん強固になります。乙と庚は、互いに引き合う関係なんです。"
+      }
+    },
+    {
+      "id": "ep-21:37",
+      "source": "(차갑고 곧은 쇠. 왜 자꾸 누가 떠오르지.)",
+      "sourceHash": "af7479ff540a87cca77c9112b8db58612fe41d842514767265df0f15eb1d8f12",
+      "translations": {
+        "ja": "（冷たくて、まっすぐな鉄。どうしてさっきから、誰かの顔が浮かぶんだろう。）"
+      }
+    },
+    {
+      "id": "ep-21:38",
+      "source": "그때 열람실 문이 열렸다. 영냥이가 들어왔다. 털은 반쯤 말라 있었고, 왼발을 디딜 때마다 아주 작게 망설였다.",
+      "sourceHash": "fa6ff55fa3e838a84523fcfa4b76bae9db9b72814f02fdf6c1bc6e837fafc3d4",
+      "translations": {
+        "ja": "そのとき閲覧室の扉が開いた。Yeongnyangiが入ってきた。毛は半分ほど乾いていたが、左足をつくたび、ほんの少しためらっていた。"
+      }
+    },
+    {
+      "id": "ep-21:39",
+      "source": "영냥아, 마침 잘 왔다. 처음에 네가 섬이 네 개라고 했잖아. 다섯 번째는?",
+      "sourceHash": "986f9dc03ee8de05b68ec436c92ddd3a129e2420e87223844620e4e5116427b2",
+      "translations": {
+        "ja": "Yeongnyangi、ちょうどよかった。最初、島は四つって言ったよね。五つ目は？"
+      }
+    },
+    {
+      "id": "ep-21:40",
+      "source": "지금은 없어.",
+      "sourceHash": "65821f9c1861b544ab39aefc41821388982b0bdee8bc144bd079993ec7b35964",
+      "translations": {
+        "ja": "今はない。"
+      }
+    },
+    {
+      "id": "ep-21:41",
+      "source": "없어? 십성이 다섯 개인데?",
+      "sourceHash": "3a3de5fcc4f2961c499163db34c274feb1a7dccac876f3acc78088b006b84050",
+      "translations": {
+        "ja": "ない？　十星のグループは五つなのに？"
+      }
+    },
+    {
+      "id": "ep-21:42",
+      "source": "고객센터 영업시간 끝났다.",
+      "sourceHash": "fd33a616c9e7437b3a2fdcb51fe764e805574554e371c630b55e0efbdf442d14",
+      "translations": {
+        "ja": "カスタマーセンターの営業時間は終了した。"
+      }
+    },
+    {
+      "id": "ep-21:43",
+      "source": "너 그 말 할 때마다 별점 깎는다.",
+      "sourceHash": "86d4f4ab7eb65b157bb8edcbff2c5f82cc677a2fbf1b732bf4f7b112f38e4d93",
+      "translations": {
+        "ja": "その言葉を言うたびに、星を減らすからね。"
+      }
+    },
+    {
+      "id": "ep-21:44",
+      "source": "영냥이는 책상 반대편 끝에 앉았다. 평소라면 연이 옆에 앉았을 자리였다. 연이는 그 빈자리를 한 번 보았다.",
+      "sourceHash": "49a5bd4bdf1f16031f76d2f10b8d8159f35fde58e0116bfc7a16b8f7ba0044ba",
+      "translations": {
+        "ja": "Yeongnyangiは机の向こう端に座った。いつもならYeoniの隣に座るところだった。Yeoniはその空いた席を一度見た。"
+      }
+    },
+    {
+      "id": "ep-21:45",
+      "source": "(어제부터 계속 이래. 내가 다가가면 한 발 물러나.)",
+      "sourceHash": "9ccae94ff7f6285d41d9ab5d6a1674eda78f921896d4f2d5153a05263154d15e",
+      "translations": {
+        "ja": "（昨日からずっとこう。私が近づくと、一歩下がる。）"
+      }
+    },
+    {
+      "id": "ep-21:46",
+      "source": "고양이님, 혹시 생일이 언제세요?",
+      "sourceHash": "2bc5f21ae523c4b026d97415383e7e04bb20b911186e575a31120de52678fc54",
+      "translations": {
+        "ja": "猫さん、誕生日はいつですか？"
+      }
+    },
+    {
+      "id": "ep-21:47",
+      "source": "왜 묻지.",
+      "sourceHash": "81d25643ede9b2fa3e0a80a11d210baad8dc286c9fbeae2c09776d6ff7c8f3b5",
+      "translations": {
+        "ja": "なぜ聞く。"
+      }
+    },
+    {
+      "id": "ep-21:48",
+      "source": "습관이에요. 만나는 분마다 물어봐요. 특히 숙녀분 옆에 계속 계시는 분은 더요.",
+      "sourceHash": "1b7c81990b78926c1f45cb9042bf9cdd028d0bb850caaff822b35ae128d120d8",
+      "translations": {
+        "ja": "癖ですよ。会う方みんなに聞くんです。お嬢さんのそばにずっといる方なら、なおさら。"
+      }
+    },
+    {
+      "id": "ep-21:49",
+      "source": "모른다.",
+      "sourceHash": "b7113aab36634ae36d0f458229e7278554f32bd14867c5665fd55eaa083ae24d",
+      "translations": {
+        "ja": "知らない。"
+      }
+    },
+    {
+      "id": "ep-21:50",
+      "source": "모르신다고요. 그것도 재밌네요.",
+      "sourceHash": "32265bfba1d2b316eef3648b1cef272e4ecf067ec9201e76da14493a6c7ef0a4",
+      "translations": {
+        "ja": "知らないんですか。それも興味深いですね。"
+      }
+    },
+    {
+      "id": "ep-21:51",
+      "source": "사기꾼 너 지금 고양이 떠보는 거지. 나도 다 보인다.",
+      "sourceHash": "adfed6465a9ed9021813869743ffef1b36e733ac1bbf6a12028b7519b357abef",
+      "translations": {
+        "ja": "詐欺師、今、猫を探ってるでしょ。私にも丸わかり。"
+      }
+    },
+    {
+      "id": "ep-21:52",
+      "source": "연이는 자리에서 일어나 글자판을 앞발에 띄운 채 천천히 책상 사이를 걸었다.",
+      "sourceHash": "50a1f4d7791fc0a39633b36ea069f78d47d1310b368639ec6bd196f2847f02aa",
+      "translations": {
+        "ja": "Yeoniは席を立ち、前足に文字盤を浮かべたまま、ゆっくり机の間を歩いた。"
+      }
+    },
+    {
+      "id": "ep-21:53",
+      "source": "실험 하나만 할게. 다들 가만히 있어.",
+      "sourceHash": "cf531211a520784a11fc9f5a00f5c509478e81858547b0792186f0e0bb21123e",
+      "translations": {
+        "ja": "一つだけ実験させて。みんな動かないで。"
+      }
+    },
+    {
+      "id": "ep-21:54",
+      "source": "또 뭔데. 돼지 실험은 보통 내가 다치던데.",
+      "sourceHash": "c51c8f5fd8f0f02b75b01f491d71ed57f48496ac88d281d89c0c1e11a155e229",
+      "translations": {
+        "ja": "今度は何。ブタの実験って、だいたい私が痛い目を見るんだけど。"
+      }
+    },
+    {
+      "id": "ep-21:55",
+      "source": "연이가 모카 앞으로 갔다. 빈칸은 조용했다. 윤달 앞으로 갔다. 빈칸이 아주 조금 떨렸다가 다시 멎었다.",
+      "sourceHash": "6eae8850d7cd57b64f02701c33a02e3ee09ce3e7027afd3282f82b61ed275941",
+      "translations": {
+        "ja": "YeoniはMokaの前に行った。空欄は静かなままだった。Yundalの前に行くと、ほんの少し震え、また止まった。"
+      }
+    },
+    {
+      "id": "ep-21:56",
+      "source": "저도 시가 비어 있어서요. 서로 빈 데끼리 인사만 한 거예요.",
+      "sourceHash": "86c6619879dd5f314a7cb831d85e564ec4a3409841b13cc1c266cb3b1818604e",
+      "translations": {
+        "ja": "僕も時刻が空いていますから。空いた場所同士で挨拶しただけですよ。"
+      }
+    },
+    {
+      "id": "ep-21:57",
+      "source": "연이는 마지막으로 영냥이 쪽으로 걸었다. 한 걸음, 두 걸음. 빈칸이 점점 밝아졌다.",
+      "sourceHash": "c9c8d502660a43fea4a9b13d0836759129414e8a17dc5e95547f4ff355ad4e9f",
+      "translations": {
+        "ja": "最後にYeoniはYeongnyangiへ向かった。一歩、二歩。空欄は次第に明るくなった。"
+      }
+    },
+    {
+      "id": "ep-21:58",
+      "source": "영냥이 바로 앞에서 빈칸이 하얗게 타올랐다. 차가운 쇠에 햇빛이 닿는 것 같은 빛이었다.",
+      "sourceHash": "0b4d462d9899727f4d4578462afd41ee857c608aaa1276bc40ec1232b0618c15",
+      "translations": {
+        "ja": "Yeongnyangiのすぐ前で、空欄が白く燃え上がった。冷たい鉄に日差しが当たるような光だった。"
+      }
+    },
+    {
+      "id": "ep-21:59",
+      "source": "어제도 이랬어. 오늘도 이래. 이것도 기분 탓이야?",
+      "sourceHash": "25fbb7b031576fa8f8aa5592367e270180bb82a3825212b1fb7cf320cbefc3a1",
+      "translations": {
+        "ja": "昨日もこうだった。今日も同じ。これも気のせい？"
+      }
+    },
+    {
+      "id": "ep-21:60",
+      "source": "빛은 원래 밝은 쪽으로 간다. 내 털이 하얘서 그렇다.",
+      "sourceHash": "fbf4e8ed378521b21b1ec07f1a3a7168336c45fbd58eae43dd23490611ebbfe2",
+      "translations": {
+        "ja": "光はもともと明るいほうへ向かう。僕の毛が白いからだ。"
+      }
+    },
+    {
+      "id": "ep-21:61",
+      "source": "그런 말도 안 되는 변명은 처음 들어 봐.",
+      "sourceHash": "f37d553bf0456330f680de3152dc328ead4f5b89a72fabb3c5d8141c5a359ea6",
+      "translations": {
+        "ja": "そんな無茶な言い訳、初めて聞いた。"
+      }
+    },
+    {
+      "id": "ep-21:62",
+      "source": "연이야. 뒤로 물러서.",
+      "sourceHash": "e887cbb30d46df1ef1bf6c5dcddee0d2789f8cca679bb60f1985d9b700915731",
+      "translations": {
+        "ja": "Yeoni。後ろへ下がれ。"
+      }
+    },
+    {
+      "id": "ep-21:63",
+      "source": "왜? 내가 가까이 가면 뭐가 문제인데.",
+      "sourceHash": "757028568d2d6038076b425b3f9a49f882d0966b3bc75f6b4e9affa04901accb",
+      "translations": {
+        "ja": "どうして？　私が近づくと、何がまずいの。"
+      }
+    },
+    {
+      "id": "ep-21:64",
+      "source": "영냥이는 대답 대신 의자를 밀고 일어섰다. 빈칸의 빛이 확 줄었다. 그가 연이에게서 멀어진 만큼이었다.",
+      "sourceHash": "c786003658f639dbe3c86d0176c6aef33dfd3afb4d1b7528d21c385f0a4f0b8b",
+      "translations": {
+        "ja": "Yeongnyangiは答える代わりに椅子を押して立った。空欄の光が一気に弱まった。彼がYeoniから離れたぶんだけ。"
+      }
+    },
+    {
+      "id": "ep-21:65",
+      "source": "별일 아니야. 오늘 좀 피곤해서 그래.",
+      "sourceHash": "de3cd57780a522408cc00ab7c6d16dcd0423d2ef742f6c05a77ea50b42ca64db",
+      "translations": {
+        "ja": "大したことじゃない。今日は少し疲れただけだ。"
+      }
+    },
+    {
+      "id": "ep-21:66",
+      "source": "영냥이는 열람실을 나갔다. 문이 닫히는 소리가 유난히 크게 울렸다.",
+      "sourceHash": "878904c7f175885ecc0866dcacff3d9597cfe0b90508c22bf49c5ee64c95a7e3",
+      "translations": {
+        "ja": "Yeongnyangiは閲覧室を出ていった。扉の閉まる音が、ひどく大きく響いた。"
+      }
+    },
+    {
+      "id": "ep-21:67",
+      "source": "야, 고양이 쟤 요즘 왜 저래. 원래도 재수 없었는데 요즘은 재수 없는 게 슬퍼 보여.",
+      "sourceHash": "6dbc2c058f0fa16a1f17675055163964d2b2cca417888c85fee455c73b273534",
+      "translations": {
+        "ja": "ねえ、あの猫、最近どうしたの。もともと感じ悪かったけど、最近はその感じ悪さが悲しそうに見える。"
+      }
+    },
+    {
+      "id": "ep-21:68",
+      "source": "몰라. 물어보면 맨날 나중이래.",
+      "sourceHash": "c5235ec9a450a1a49e73748ad58c4b8743c13ea024ce9e6d1ec0f03f6931f1c0",
+      "translations": {
+        "ja": "わからない。聞いても、いつも後でって。"
+      }
+    },
+    {
+      "id": "ep-21:69",
+      "source": "윤달은 영냥이가 나간 문을 오래 보았다. 장갑 낀 손가락이 책상 위를 두 번 두드렸다.",
+      "sourceHash": "efe91df99cc1667aa5b0f47b20f9c47189be72afd1f78ccb108dcd073a4206da",
+      "translations": {
+        "ja": "YundalはYeongnyangiの出ていった扉を長く見ていた。手袋の指が机を二度たたいた。"
+      }
+    },
+    {
+      "id": "ep-21:70",
+      "source": "숙녀분. 여자 명식에서 관성은 뜻이 하나 더 있어요.",
+      "sourceHash": "a44a96033b04219894eee6d9b97e19a9be4145aa4a4bf78b97b99902883a7fbb",
+      "translations": {
+        "ja": "お嬢さん。女性の命式では、官星にはもう一つ意味があります。"
+      }
+    },
+    {
+      "id": "ep-21:71",
+      "source": "뭔데요?",
+      "sourceHash": "ed9813edb7dce9b8f77520ab3c7d9e006c840e39056346e498f141189ca1793a",
+      "translations": {
+        "ja": "何ですか？"
+      }
+    },
+    {
+      "id": "ep-21:72",
+      "source": "아, 이건 다음에 말씀드릴게요. 지금 말하면 숙녀분이 책상에 머리 박으실 것 같아서.",
+      "sourceHash": "b6ceb8da11d8e5a2694c6aa9ff493bdbff1ec92541411f0d9250891668b611cc",
+      "translations": {
+        "ja": "ああ、それはまた今度お話しします。今言うと、お嬢さんが机に頭をぶつけそうなので。"
+      }
+    },
+    {
+      "id": "ep-21:73",
+      "source": "그러니까 더 궁금하잖아요!",
+      "sourceHash": "1691c777308d4efd4883f073296d2d328d86f954231e54fb4dee32362055bcd3",
+      "translations": {
+        "ja": "そんなこと言われたら、余計に気になるじゃないですか！"
+      }
+    },
+    {
+      "id": "ep-21:74",
+      "source": "나도 궁금해. 말해. 안 말하면 장갑 태운다.",
+      "sourceHash": "477d8b8a3517d34f4ccc74ea01c7df7196a104c9a4bff1fb16b353ec1d7bd3e7",
+      "translations": {
+        "ja": "私も気になる。言って。言わないと手袋を燃やす。"
+      }
+    },
+    {
+      "id": "ep-21:75",
+      "source": "그럼 더더욱 비밀이에요.",
+      "sourceHash": "1445daa6c7ff500fcf5aea4d925759f037a96942f6318275828cdf7efaba2285",
+      "translations": {
+        "ja": "それなら、ますます秘密です。"
+      }
+    },
+    {
+      "id": "ep-21:76",
+      "source": "오후 내내 연이는 다섯 번째 빛을 찾아 도서관을 돌아다녔다. 모카가 투덜거리며 뒤를 따랐다.",
+      "sourceHash": "6fa94d01a7fccb9d89c459046c1efdccf1b7d4134250437697c105ca93340396",
+      "translations": {
+        "ja": "午後の間ずっと、Yeoniは五つ目の光を探して図書館を歩き回った。Mokaが文句を言いながらついてきた。"
+      }
+    },
+    {
+      "id": "ep-21:77",
+      "source": "도서관이잖아. 모르는 건 찾아보면 돼. 목록 데스크 가 보자.",
+      "sourceHash": "518d5c40714475efac89caa9af3999475de12a0e2453344b8e76c38dd91dd51e",
+      "translations": {
+        "ja": "図書館なんだから、わからないことは調べればいい。目録のカウンターに行こう。"
+      }
+    },
+    {
+      "id": "ep-21:78",
+      "source": "첫날 그 수다쟁이 카드함? 그거 나한테 조용히 하라고 한 놈이야.",
+      "sourceHash": "bc5dff4f2863226074bde282b2a41593833c68f0f057557b218240627489aca8",
+      "translations": {
+        "ja": "初日にいた、おしゃべりなカード箱？　あいつ、私に静かにしろって言ったやつだよ。"
+      }
+    },
+    {
+      "id": "ep-21:79",
+      "source": "목록 데스크의 서랍들이 둘을 보자마자 덜컥덜컥 열렸다. 카드 한 장이 날아와 연이의 코앞에 멈췄다.",
+      "sourceHash": "2b16fce40b4ec70d71d5dffa6a138adf61381cf14764abd1c65bd85205894224",
+      "translations": {
+        "ja": "目録カウンターの引き出しは、二人を見るとすぐにがたがた開いた。カードが一枚飛んできて、Yeoniの鼻先で止まった。"
+      }
+    },
+    {
+      "id": "ep-21:80",
+      "source": "[ 검색어를 말씀해 주세요 · 대출 한도 0/1 ]",
+      "sourceHash": "16b082f1ff3909875e9f89e8e0c9ca0be0438dee6c8055e651593cf63eba41e9",
+      "translations": {
+        "ja": "[ 検索語をお伝えください · 貸出上限 0/1 ]"
+      }
+    },
+    {
+      "id": "ep-21:81",
+      "source": "꽃돼지. 관성. 다섯 번째 빛.",
+      "sourceHash": "7e1b3b3ad9b42aff9fd9ab196ef5b953ddf593720160e0f9a933e0a85f245cd1",
+      "translations": {
+        "ja": "花ブタ。官星。五つ目の光。"
+      }
+    },
+    {
+      "id": "ep-21:82",
+      "source": "카드 위의 글자가 잉크처럼 번졌다가 다시 모였다. 이번에는 결과가 한 줄뿐이었다.",
+      "sourceHash": "1f7157bb4370f2ba2514b8f0734a64e50e08312cc3084b02cef6d6ef989b1012",
+      "translations": {
+        "ja": "カードの文字がインクのようににじみ、また集まった。今度は一行だけの結果だった。"
+      }
+    },
+    {
+      "id": "ep-21:83",
+      "source": "[ 검색 결과 없음 · 소장처 : 도서관 밖 · 담당자 : 고객센터 ]",
+      "sourceHash": "a067678f79efabb73eed355fede22cee0cecd877c5b0306a7e9a25580a0fd872",
+      "translations": {
+        "ja": "[ 検索結果なし · 所蔵先：図書館の外 · 担当者：カスタマーセンター ]"
+      }
+    },
+    {
+      "id": "ep-21:84",
+      "source": "고객센터?",
+      "sourceHash": "b7d05bdbfc384028ed3ea2b00e019ac8e7e2f572ad3c974aeb1d1d0910713240",
+      "translations": {
+        "ja": "カスタマーセンター？"
+      }
+    },
+    {
+      "id": "ep-21:85",
+      "source": "고객센터가 뭔데. 여기 그런 것도 있냐?",
+      "sourceHash": "df0852fb0eb04233a6f594c5eabdc118bfd95c92eb1dbc93c838a99fadac8641",
+      "translations": {
+        "ja": "カスタマーセンターって何。ここ、そんなものまであるの？"
+      }
+    },
+    {
+      "id": "ep-21:86",
+      "source": "있어. 첫날부터 있었어. 불만도 걱정도 접수 안 하는 고객센터.",
+      "sourceHash": "3ea436960c2cf8e64453236b5e22a24f4b75e421974cced67bd8f60665df69a9",
+      "translations": {
+        "ja": "あるよ。初日からあった。苦情も心配も受け付けないカスタマーセンター。"
+      }
+    },
+    {
+      "id": "ep-21:87",
+      "source": "연이는 카드를 뒤집어 보았다. 뒷면은 비어 있었다. 아니, 아주 희미하게 앞발 자국 하나가 찍혀 있었다.",
+      "sourceHash": "ab7dde7e9fac99fa2af6b65883227b697008e73cfe84c41b53300f01ab993573",
+      "translations": {
+        "ja": "Yeoniはカードを裏返した。裏面は空白だった。いや、ごく薄く前足の跡が一つ押されていた。"
+      }
+    },
+    {
+      "id": "ep-21:88",
+      "source": "이거 고양이 발이잖아. 크기 봐. 쟤 발 맨날 내 꼬치 위에 올려놔서 내가 알아.",
+      "sourceHash": "9b6452fbd103d7785ffc2572aeaa5463290ca34cc17f13e1288e6828b2cbfc07",
+      "translations": {
+        "ja": "これ、猫の足じゃん。大きさを見て。あいつ、いつも私の串焼きの上に足を置くからわかる。"
+      }
+    },
+    {
+      "id": "ep-21:89",
+      "source": "(네 개의 섬. 다섯 번째 빛은 섬이 아니라 도서관 밖에 있대. 담당자는 고객센터.)",
+      "sourceHash": "4c71130762ebf6773684cacfb572aece7573bddd7e31836d70f59fc03b9c552e",
+      "translations": {
+        "ja": "（四つの島。五つ目の光は島じゃなくて、図書館の外にある。担当者はカスタマーセンター。）"
+      }
+    },
+    {
+      "id": "ep-21:90",
+      "source": "모카. 너 혹시 영냥이에 대해서 나한테 안 한 말 있어?",
+      "sourceHash": "1930d4f381c547e4599896a6fa5d88e42f4ddfdfa78e81656a9450fe6a9bf457",
+      "translations": {
+        "ja": "Moka。Yeongnyangiについて、私に話してないこと、何かある？"
+      }
+    },
+    {
+      "id": "ep-21:91",
+      "source": "어? 없어. 왜 나한테 물어. 나 수달이야. 수달은 비밀 같은 거 몰라.",
+      "sourceHash": "83bf92799249c7e3a0bf932cc617b23a19e8b32d19793a958e5a3dcfb0e2e507",
+      "translations": {
+        "ja": "え？　ないよ。なんで私に聞くの。私はカワウソ。カワウソは秘密なんて知らない。"
+      }
+    },
+    {
+      "id": "ep-21:92",
+      "source": "너 지금 꼬리가 엄청 빨리 흔들려.",
+      "sourceHash": "a87461e212efd08ede61773cb1de82140fb2cf3236c3f35603a6c11a8aa9ba01",
+      "translations": {
+        "ja": "今、尻尾がものすごい速さで動いてる。"
+      }
+    },
+    {
+      "id": "ep-21:93",
+      "source": "이건 털 말리는 거야! 책 말리다 젖어서!",
+      "sourceHash": "2fb5a75be8219fef50c3429c4e290b8b24469ec2c1eb26ca4551c6a81aff74f0",
+      "translations": {
+        "ja": "これは毛を乾かしてるの！　本を乾かしてたら濡れたから！"
+      }
+    },
+    {
+      "id": "ep-21:94",
+      "source": "모카는 서둘러 다른 책장 쪽으로 사라졌다. 연이는 그 뒷모습을 오래 보았다.",
+      "sourceHash": "4ed7a47b9da03358c58f94b059b0e5b2fc23b31ecf48f21dc94953bb08e26aef",
+      "translations": {
+        "ja": "Mokaは急いで別の棚へ消えた。Yeoniはその後ろ姿を長い間見つめた。"
+      }
+    },
+    {
+      "id": "ep-21:95",
+      "source": "(모카도 알아. 윤달도 아는 눈치였어. 나만 모르는 거야.)",
+      "sourceHash": "0a900711867d337235c3fd974ea2b4048279829a9c16ca578a700b5a019a298d",
+      "translations": {
+        "ja": "（Mokaも知ってる。Yundalも知ってそうだった。私だけが知らないんだ。）"
+      }
+    },
+    {
+      "id": "ep-21:96",
+      "source": "그날 밤. 도서관 깊은 곳의 작은 방에서 다들 잠들어 있었다. 모카는 책 베개를 베고 코를 골았다.",
+      "sourceHash": "7e4dcaeb8d628efb6cdccb47b5afa36bf9bbf55f307ba50cda546009d0ac12b5",
+      "translations": {
+        "ja": "その夜。図書館の奥の小部屋で、みんな眠っていた。Mokaは本を枕に、いびきをかいていた。"
+      }
+    },
+    {
+      "id": "ep-21:97",
+      "source": "(잠이 안 와. 빈칸이 자꾸 생각나.)",
+      "sourceHash": "c619e233a9f8fa54ab4be219b42cea4f3edd3dd3b7824b42180ca9718eeb214d",
+      "translations": {
+        "ja": "（眠れない。あの空欄のことばかり考えちゃう。）"
+      }
+    },
+    {
+      "id": "ep-21:98",
+      "source": "연이는 몸을 뒤척이다가 방 구석을 보았다. 영냥이가 늘 웅크려 자던 자리가 비어 있었다.",
+      "sourceHash": "0b40411529c4bd6ecc7e52d49feeddedc501d01e531457ebb2bc78d944c84ca5",
+      "translations": {
+        "ja": "Yeoniは寝返りを打ち、部屋の隅を見た。Yeongnyangiがいつも丸くなって眠る場所が空いていた。"
+      }
+    },
+    {
+      "id": "ep-21:99",
+      "source": "영냥아?",
+      "sourceHash": "86663af92ad38a9438a9b0ac575fa0b0d7e419f6c76ca55dc463d7d9a3d580ed",
+      "translations": {
+        "ja": "Yeongnyangi？"
+      }
+    },
+    {
+      "id": "ep-21:100",
+      "source": "대답이 없었다. 연이는 이불을 걷고 일어나 앉았다. 모카의 코 고는 소리 사이로 자기 심장 소리가 들렸다.",
+      "sourceHash": "95cd5b312a2281ff4867dec60b908f12b5814a53c9d4b26e6a973b70e03c6326",
+      "translations": {
+        "ja": "返事はなかった。Yeoniは布団をめくって起き上がった。Mokaのいびきの間から、自分の心臓の音が聞こえた。"
+      }
+    },
+    {
+      "id": "ep-21:101",
+      "source": "빈자리에는 하얀 털 몇 가닥과 쪽지 한 장이 놓여 있었다. 앞발 자국 모양의 서명이 찍혀 있었다.",
+      "sourceHash": "1a6b3f60d5bede4665de0cac90075cf4478ecf262697df957cbc50d9aefd0d61",
+      "translations": {
+        "ja": "空いた場所に、白い毛が数本と、紙切れが一枚置かれていた。前足の跡の形の署名が押されていた。"
+      }
+    },
+    {
+      "id": "ep-21:102",
+      "source": "[ 금방 온다. 걱정은 접수하지 않는다. · 고객센터 ]",
+      "sourceHash": "cf894a340d82bc37608bad067f16f3b5b5e13f5f1b1e09fcdb7fff1f4a665406",
+      "translations": {
+        "ja": "[ すぐ戻る。心配は受け付けない。 · カスタマーセンター ]"
+      }
+    },
+    {
+      "id": "ep-21:103",
+      "source": "이게 무슨 쪽지야. 걱정을 왜 접수 안 해!",
+      "sourceHash": "1e0f73762507c5c393b1531e6460af67ecc76cef0af8368609db2a0c2fbedbbb",
+      "translations": {
+        "ja": "何、この書き置き。どうして心配を受け付けないの！"
+      }
+    },
+    {
+      "id": "ep-21:104",
+      "source": "(언제부터 우리 고객센터가 이렇게 말없이 문을 닫았지.)",
+      "sourceHash": "5f6cb63b191cee3df907d6f1e2b3b2b62eaa217c401c2eb9d1726724f40212a3",
+      "translations": {
+        "ja": "（いつから私たちのカスタマーセンターは、こんなに黙って閉まるようになったんだろう。）"
+      }
+    },
+    {
+      "id": "ep-21:105",
+      "source": "연이는 쪽지를 들고 일어났다. 손목의 아기 용이 잠결에 눈을 떴다. 그리고 창문 쪽으로 고개를 돌렸다.",
+      "sourceHash": "cdca3d89f6e540c0719d5866799d735ee16cb21b861e32c6f01331ee5752da59",
+      "translations": {
+        "ja": "Yeoniは紙を持って立ち上がった。手首の竜の赤ちゃんが、寝ぼけたまま目を開けた。そして窓へ顔を向けた。"
+      }
+    },
+    {
+      "id": "ep-21:106",
+      "source": "창밖에서 빗소리가 들렸다. 하늘은 맑았는데, 비 냄새만 났다.",
+      "sourceHash": "f270393b80250322ce2f06c61710e2e64b7b45f20d6d30a4dc8d26c884c59682",
+      "translations": {
+        "ja": "窓の外から雨音がした。空は晴れているのに、雨の匂いだけがした。"
+      }
+    },
+    {
+      "id": "ep-21:107",
+      "source": "이 냄새, 알아.",
+      "sourceHash": "8bdf9f689ae16f278b86edf8c9b781dbb0d8b6b72850ad54c767e2167e405c37",
+      "translations": {
+        "ja": "この匂い、知ってる。"
+      }
+    },
+    {
+      "id": "ep-21:108",
+      "source": "(물에 잠긴 서가에서도, 사슬 위에서도 났던 냄새. 젖은 망토 냄새.)",
+      "sourceHash": "4572cc051d25ddf6236391e9ba0ad39bfff47d9cea644febdfecebd5fce1102d",
+      "translations": {
+        "ja": "（水に沈んだ書架でも、鎖の上でもした匂い。濡れたマントの匂い。）"
+      }
+    },
+    {
+      "id": "ep-21:109",
+      "source": "연이는 쪽지를 접어 앞발에 꼭 쥐었다. 그리고 소리 나지 않게 창문을 열었다.",
+      "sourceHash": "63236abd8fd07d96749dc3edc6a06f1427657a9b45e9fd1b280bc465dda32783",
+      "translations": {
+        "ja": "Yeoniは書き置きを折り、前足で強く握った。そして音を立てないよう窓を開けた。"
+      }
+    },
+    {
+      "id": "ep-21:110",
+      "source": "연이는 창틀에 매달려 위를 올려다보았다. 둥근 지붕 꼭대기에 두 개의 그림자가 서 있었다.",
+      "sourceHash": "4e0959dfc4cc910c3ea2aed81ae54211f59913f221826e360c21a369943816e8",
+      "translations": {
+        "ja": "Yeoniは窓枠につかまり、上を見た。丸い屋根の頂上に、二つの影が立っていた。"
+      }
+    },
+    {
+      "id": "ep-21:111",
+      "source": "하나는 모자를 쓴 하얀 고양이였다. 반쯤 먹힌 해 아래에서도 모자의 초승달이 금빛으로 빛났다.",
+      "sourceHash": "a6e25a82e415f6cf8a9b9cbe29ab9024b43c104119024c0f069ef682b2bec8b1",
+      "translations": {
+        "ja": "一つは帽子をかぶった白い猫だった。半分食われた太陽の下でも、帽子の三日月は金色に輝いていた。"
+      }
+    },
+    {
+      "id": "ep-21:112",
+      "source": "다른 하나는 검은 호랑이였다. 젖은 망토 끝에서 빗물이 끊임없이 떨어지고 있었다.",
+      "sourceHash": "e183ec9d9914b3f4c69e40cfb570623f0290c9ccae1e59def506bc0d7e7f87c4",
+      "translations": {
+        "ja": "もう一つは黒い虎だった。濡れたマントの端から、雨水が絶えず落ちていた。"
+      }
+    },
+    {
+      "id": "ep-21:113",
+      "source": "둘이 왜 같이 있어. 싸우는 거야?",
+      "sourceHash": "5be453861cf7c656adb5ed4cc54658f64116b17c0b779d6554fc9284a6ec2e27",
+      "translations": {
+        "ja": "どうして二人が一緒にいるの。戦ってるの？"
+      }
+    },
+    {
+      "id": "ep-21:114",
+      "source": "손목의 아기 용이 연이의 앞발을 꽉 물었다. 가지 말라는 건지 빨리 가라는 건지 알 수 없었다.",
+      "sourceHash": "582cf825887a115577599f632cbf9812219a279842ca290233bd70661dc17894",
+      "translations": {
+        "ja": "手首の竜の赤ちゃんが、Yeoniの前足を強くかんだ。行くなというのか、早く行けというのかはわからなかった。"
+      }
+    },
+    {
+      "id": "ep-21:115",
+      "source": "알았어. 조용히 갈게. 너도 숨 참아.",
+      "sourceHash": "78050a1deebce56094e311d7ea8f3900b5e2eeea898490df0323e4a28be4d597",
+      "translations": {
+        "ja": "わかった。静かに行く。君も息を止めて。"
+      }
+    },
+    {
+      "id": "ep-21:116",
+      "source": "둘은 싸우고 있지 않았다. 조금 떨어져서, 같은 쪽을 보고 서 있었다. 오래 알고 지낸 사이처럼.",
+      "sourceHash": "7b1bcb16c82a5ee8a60f0f130f5da916853818a75168359bfd239142dee1186c",
+      "translations": {
+        "ja": "二人は戦っていなかった。少し離れ、同じ方向を見て立っていた。昔から知っている者同士のように。"
+      }
+    },
+    {
+      "id": "ep-21:117",
+      "source": "바람이 불었다. 영냥이의 눈이 금빛으로 번쩍였다. 칼날 같은 빛이 지붕을 한 번 가르고 사라졌다.",
+      "sourceHash": "478c8feaf5b78e1a8d026b85c58f18f0f2636ff6fec16396023b3d33c87f0c96",
+      "translations": {
+        "ja": "風が吹いた。Yeongnyangiの目が金色に光った。刃のような光が一度屋根を横切り、消えた。"
+      }
+    },
+    {
+      "id": "ep-21:118",
+      "source": "(영냥아. 너 지금, 누구 편이야.)",
+      "sourceHash": "e3b42658f3fe53487672de672d8579b22204f9ed16cd37949e5b8020b2170714",
+      "translations": {
+        "ja": "（Yeongnyangi。君は今、誰の味方なの。）"
+      }
+    },
+    {
+      "id": "ep-21:119",
+      "source": "연이가 창틀을 넘으려는 순간, 지붕 위의 두 그림자가 동시에 이쪽을 돌아보았다.",
+      "sourceHash": "4aed2af92243f97f6364e18c992aafbca40cdf56b6f3a4807dd8ba4aa9cf909e",
+      "translations": {
+        "ja": "Yeoniが窓枠を越えようとした瞬間、屋根の二つの影が同時にこちらを振り向いた。"
+      }
+    }
+  ]
+}

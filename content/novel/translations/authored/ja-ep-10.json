@@ -1,0 +1,1092 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "locale": "ja",
+  "episodeId": "ep-10",
+  "sourceTitle": "정오 공연 작전",
+  "sourceTag": "제10화 · 정오 공연 작전",
+  "title": "正午公演作戦",
+  "tag": "第10話 · 正午公演作戦",
+  "rows": [
+    {
+      "id": "ep-10:1",
+      "source": "모카의 지하 부엌 벽에 커다란 종이가 붙었다. 맨 위에 삐뚤빼뚤한 글씨가 적혀 있었다. 정오 공연 작전.",
+      "sourceHash": "a568bc87a7205b4e236e33037d6312385e3f1f09778fb0fa510d76a2591e9159",
+      "translations": {
+        "ja": "Mokaの地下の台所の壁に、大きな紙が貼られた。一番上には、曲がった字でこう書いてあった。正午公演作戦。"
+      }
+    },
+    {
+      "id": "ep-10:2",
+      "source": "자, 회의 시작. 목표는 해를 정오까지 올리는 것.",
+      "sourceHash": "eae79bc7a6f0d5d450c0ab211d54f4779cd29f27a51b6b4d3c8b3f955aeef594",
+      "translations": {
+        "ja": "では、会議を始めます。目標は、太陽を正午まで昇らせること。"
+      }
+    },
+    {
+      "id": "ep-10:3",
+      "source": "동화 한 줄 듣고 작전을 짜는 돼지는 처음 봐.",
+      "sourceHash": "effb96214a6d9471ff11a8d438855e064aa2a2a9360e34c8abc5233c3ea1933a",
+      "translations": {
+        "ja": "おとぎ話を一行聞いただけで作戦を立てるブタ、初めて見たよ。"
+      }
+    },
+    {
+      "id": "ep-10:4",
+      "source": "그 동화 꺼낸 게 너거든.",
+      "sourceHash": "f7f4c3ffd44480f1cda0a13840a383a6245611c2be8efe625ab15d355d9b7b43",
+      "translations": {
+        "ja": "そのおとぎ話を持ち出したの、そっちでしょ。"
+      }
+    },
+    {
+      "id": "ep-10:5",
+      "source": "셋만 준비하자. 높은 무대, 함께 부를 사람들, 그리고 첫 소리를 낼 용기.",
+      "sourceHash": "79f8259bad75a65b3b68dab3f5571bb51780552c52837d39c0fc318273c8563b",
+      "translations": {
+        "ja": "三つだけ用意しよう。高い舞台、一緒に歌う人々、そして最初の声を出す勇気だ。"
+      }
+    },
+    {
+      "id": "ep-10:6",
+      "source": "무대는 섬에서 제일 높은 데. 검은 깃털이 떨어졌던 그 무대.",
+      "sourceHash": "f9702b48e9691615af3990862ca6856dc528d2976944682c33953c8c741243c9",
+      "translations": {
+        "ja": "舞台は、島で一番高いところ。黒い羽根が落ちてた、あそこね。"
+      }
+    },
+    {
+      "id": "ep-10:7",
+      "source": "해시계 무대. 원래 정오마다 공연하던 데야. 지금은 까마귀 둥지고.",
+      "sourceHash": "85a8db75ab2806cfeb1a902f2e2e5cdc4256a386adb986d844f715789af470a6",
+      "translations": {
+        "ja": "日時計の舞台だ。もともと正午ごとに公演してた場所。今はカラスの巣だけど。"
+      }
+    },
+    {
+      "id": "ep-10:8",
+      "source": "사람들은 내가 모을게. 홍보는 자신 있어.",
+      "sourceHash": "98d3bef6fe3ddd157f17115030193a98126c4de76d77f0c5c6d3c7a01433f267",
+      "translations": {
+        "ja": "人は私が集める。宣伝なら自信あるよ。"
+      }
+    },
+    {
+      "id": "ep-10:9",
+      "source": "노래 금지인 섬에서 노래 공연 홍보를 어떻게 하는데.",
+      "sourceHash": "62b8e635cdff4c50901f2187d1e3eff35150389f9467aa16c582a8a0db724400",
+      "translations": {
+        "ja": "歌が禁止の島で、歌の公演をどう宣伝するんだよ。"
+      }
+    },
+    {
+      "id": "ep-10:10",
+      "source": "노래라고 안 쓰면 되지. 정오에 꼬치 공짜. 이러면 다 와.",
+      "sourceHash": "b8ced72f0974ef2ad46c55e94f6827d0620f30bd3bc3ba79e1324163e6aed3f7",
+      "translations": {
+        "ja": "歌って書かなきゃいいじゃん。正午に串が無料。これならみんな来る。"
+      }
+    },
+    {
+      "id": "ep-10:11",
+      "source": "그 꼬치 누가 굽는데.",
+      "sourceHash": "ca64cdcc004850a32d81fcc4620fb7f6d6f4e3e0f6e746d74aced3351233ff96",
+      "translations": {
+        "ja": "その串、誰が焼くんだ。"
+      }
+    },
+    {
+      "id": "ep-10:12",
+      "source": "이 섬에서 꼬치 제일 잘 굽는 수달이 누구더라.",
+      "sourceHash": "448c5399a10f1cc5827f0fe9983157ee31500f4c03374af477e1d81e23423a4f",
+      "translations": {
+        "ja": "この島で一番、串を焼くのがうまいカワウソって、誰だったっけ。"
+      }
+    },
+    {
+      "id": "ep-10:13",
+      "source": "목소리가 불이 되는 돼지가 홍보를 하겠다고.",
+      "sourceHash": "cffe0d53b819ac12a8b203430fedd7273b71cf06e1dc6538daa7d6109f33f028",
+      "translations": {
+        "ja": "声が火になるブタが、宣伝するのか。"
+      }
+    },
+    {
+      "id": "ep-10:14",
+      "source": "그건 조절할게. 아마.",
+      "sourceHash": "600785f5795a258eccbfeca0193d93dfcb5fb15d651cb7451089b26661ff9d0b",
+      "translations": {
+        "ja": "そこは調節するよ。たぶん。"
+      }
+    },
+    {
+      "id": "ep-10:15",
+      "source": "그럼 마지막. 첫 소리는 누가 내는데.",
+      "sourceHash": "fc37a17b87778594e5e0ffaecbfcfd1e1a300985d68d70cb965f290275aa270f",
+      "translations": {
+        "ja": "じゃあ最後。最初の声は誰が出すんだよ。"
+      }
+    },
+    {
+      "id": "ep-10:16",
+      "source": "연이와 영냥이가 동시에 모카를 보았다. 모카는 국자를 든 채 뒷걸음질 쳤다.",
+      "sourceHash": "ad464682a3a68ef4c6e3b8ac52a1fe775acc96df6a0b57e7909ec777693f3eca",
+      "translations": {
+        "ja": "YeoniとYeongnyangiが同時にMokaを見た。Mokaはお玉を持ったまま後ずさった。"
+      }
+    },
+    {
+      "id": "ep-10:17",
+      "source": "왜 나를 봐.",
+      "sourceHash": "c6cb6f5f25a8ba3b210e04d44bf40076467bff79c6b6aeb11567ec976d8e66dd",
+      "translations": {
+        "ja": "なんで俺を見る。"
+      }
+    },
+    {
+      "id": "ep-10:18",
+      "source": "이 섬에서 박자 제일 좋은 수달이 누구더라.",
+      "sourceHash": "a3272c4c5de9050dac887144847010e7db332cff2b484ca84d8c0eff9929d9aa",
+      "translations": {
+        "ja": "この島で一番リズム感のいいカワウソって、誰だったっけ。"
+      }
+    },
+    {
+      "id": "ep-10:19",
+      "source": "레시피라니까!",
+      "sourceHash": "7a5bdc5d559b56166362964d8c74b4171359a6ce6a3481e23140656b2e554d4a",
+      "translations": {
+        "ja": "レシピだって言ってるだろ！"
+      }
+    },
+    {
+      "id": "ep-10:20",
+      "source": "정오가 되면 레시피를 읽어. 멀리까지 들리게.",
+      "sourceHash": "3387caca6e5f2e6c585fb55f28fd6854964ea0bc848162a49b94dffbbdc7e54e",
+      "translations": {
+        "ja": "正午になったらレシピを読め。遠くまで聞こえるように。"
+      }
+    },
+    {
+      "id": "ep-10:21",
+      "source": "…고양이 너, 농담도 하는구나.",
+      "sourceHash": "7bfd1071b7c4ed63ad553603964209c10aa13a90cde383f6af2ae5a89698a97a",
+      "translations": {
+        "ja": "……猫、お前、冗談も言うんだな。"
+      }
+    },
+    {
+      "id": "ep-10:22",
+      "source": "농담 아니다.",
+      "sourceHash": "f239044a848e6261ca1939e3d5904ca3c7e92a2fca5fba3a020b2df1dfb50062",
+      "translations": {
+        "ja": "冗談ではない。"
+      }
+    },
+    {
+      "id": "ep-10:23",
+      "source": "연이는 회색 시장으로 나섰다. 사람을 모으려면 먼저 사람을 만나야 했다.",
+      "sourceHash": "93d2452dc54d45d704378da94b33d0fac5609e9ce36e77b00c76f133277da824",
+      "translations": {
+        "ja": "Yeoniは灰色の市場へ出た。人を集めるには、まず人に会わなければならなかった。"
+      }
+    },
+    {
+      "id": "ep-10:24",
+      "source": "시장은 여전히 조용했다. 그런데 골목 어귀에서 작은 소리가 들렸다. 톡, 톡톡. 젓가락이 나무 상자를 두드리는 소리였다.",
+      "sourceHash": "96e020b9456ca3a4ec2d1edc9011eb35938cffe2d9e4dac99e15c312b0c68a5e",
+      "translations": {
+        "ja": "市場はまだ静かだった。それでも路地の入口から、小さな音が聞こえた。とん、ととん。箸で木箱を叩く音だった。"
+      }
+    },
+    {
+      "id": "ep-10:25",
+      "source": "소리가 나네? 도장 안 맞은 사람이 있어?",
+      "sourceHash": "c79682d5cf70afe9fd90bcab33666c4e1f931e8f825fba9229ed9e98844bb765",
+      "translations": {
+        "ja": "音がするね？ 印を押されてない人がいるの？"
+      }
+    },
+    {
+      "id": "ep-10:26",
+      "source": "상자 앞에 열 살쯤 된 남자아이가 앉아 있었다. 손등이 깨끗했다. 도장이 없었다. 아이는 연이를 보더니 젓가락을 등 뒤로 숨겼다.",
+      "sourceHash": "e8c9f572e644106797cf879a6286666d513a77665e9647b05eb8e790654021c9",
+      "translations": {
+        "ja": "箱の前に、十歳くらいの男の子が座っていた。手の甲はきれいで、印がなかった。男の子はYeoniを見ると、箸を背中に隠した。"
+      }
+    },
+    {
+      "id": "ep-10:27",
+      "source": "숨기지 마. 나 단속반 아니야. 보다시피 돼지야.",
+      "sourceHash": "c0a65a38dc48456e2d4aa88c89aa9a9843a44340af620a4abddd83760d17a324",
+      "translations": {
+        "ja": "隠さなくていいよ。取り締まり係じゃないから。見てのとおり、ブタです。"
+      }
+    },
+    {
+      "id": "ep-10:28",
+      "source": "아이는 한참 연이를 보다가 피식 웃었다. 그리고 다시 상자를 두드렸다. 톡, 톡톡, 톡.",
+      "sourceHash": "a076d62e7f69bacf5d21713f45798c2a08068c2296a1d2c19a47e78878dc2693",
+      "translations": {
+        "ja": "男の子はしばらくYeoniを見て、ふっと笑った。それから、また箱を叩いた。とん、ととん、とん。"
+      }
+    },
+    {
+      "id": "ep-10:29",
+      "source": "박자 좋다. 너 북 쳐 봤구나?",
+      "sourceHash": "2debb7b8485298cdac311b75b17433b2f81e5e7094c05b07cb1b680a97d3f336",
+      "translations": {
+        "ja": "いいリズムだね。太鼓を叩いたことあるんでしょ？"
+      }
+    },
+    {
+      "id": "ep-10:30",
+      "source": "아이는 고개를 끄덕였다. 그러다 갑자기 고개를 갸웃했다. 언제 쳐 봤는지 생각이 안 나는 얼굴이었다.",
+      "sourceHash": "7a5e102d7706c0c82ab8c1ea2b3eb06242ff62d00d98a0c9fc9044dfbc310952",
+      "translations": {
+        "ja": "男の子はうなずいた。それから急に首をかしげた。いつ叩いたのか、思い出せない顔だった。"
+      }
+    },
+    {
+      "id": "ep-10:31",
+      "source": "이름이 뭐야?",
+      "sourceHash": "46351005d9ffe50394bdc335009fc634b9779bc1648c69b04e03e2a6a81add9c",
+      "translations": {
+        "ja": "名前は？"
+      }
+    },
+    {
+      "id": "ep-10:32",
+      "source": "아이의 입이 열렸다가 닫혔다. 다시 열렸다. 아무 이름도 나오지 않았다.",
+      "sourceHash": "daf217b893dd86a9434f0534c1829cc77e829820ea97b8c74a8292f330a98dcc",
+      "translations": {
+        "ja": "男の子の口が開いて、閉じた。また開いた。名前は何も出てこなかった。"
+      }
+    },
+    {
+      "id": "ep-10:33",
+      "source": "괜찮아. 생각 안 나면 나중에 말해도 돼.",
+      "sourceHash": "201facad644a50571eb0abfa92e50ea93468a4ee638c720dbd08d11baf2e41c4",
+      "translations": {
+        "ja": "大丈夫。思い出せなかったら、後で教えてくれてもいいよ。"
+      }
+    },
+    {
+      "id": "ep-10:34",
+      "source": "아이야. 엄마나 친구가 너를 뭐라고 부르지?",
+      "sourceHash": "ba0873dbdea6ea4abb7c3536f82d183747a23c039c141130925aa1b463ba0b05",
+      "translations": {
+        "ja": "お母さんや友達は、お前のことを何と呼ぶ？"
+      }
+    },
+    {
+      "id": "ep-10:35",
+      "source": "아이는 어깨를 으쓱했다. 그 질문은 아주 쉬운데 왜 답이 없는지 모르겠다는 얼굴이었다.",
+      "sourceHash": "d18843d8f1fbc2bacdd9f15ae0d761f36f55b8ac195257583eedbaa430f4c5ad",
+      "translations": {
+        "ja": "男の子は肩をすくめた。とても簡単な質問なのに、なぜ答えがないのか分からない、という顔だった。"
+      }
+    },
+    {
+      "id": "ep-10:36",
+      "source": "아이는 손가락으로 상자 위에 무언가를 쓰려 했다. 첫 획을 긋고 멈췄다. 두 번째 획이 어디로 가야 하는지 몰랐다.",
+      "sourceHash": "8f7a270bce613e7a59e328cbc462ba503430599736ae6df4426b0913808860c7",
+      "translations": {
+        "ja": "男の子は指で、箱の上に何かを書こうとした。一画目を書いて止まった。二画目をどこへ引けばいいのか、分からなかった。"
+      }
+    },
+    {
+      "id": "ep-10:37",
+      "source": "연이야, 저 아이 손목을 봐.",
+      "sourceHash": "7122f371d4bc592c4df0de929f0ea29c86ed5369ff3b32ef87e2a239de2a33dc",
+      "translations": {
+        "ja": "Yeoni、あの子の手首を見ろ。"
+      }
+    },
+    {
+      "id": "ep-10:38",
+      "source": "아이의 손목에 금실 자국이 있었다. 실을 묶었다가 끊어 낸 것처럼 가느다란 흉터였다. 금빛이 아직 조금 남아 있었다.",
+      "sourceHash": "7ffaaecc05d7d5d1d030e190cd1205db5b8145f23f62632b841c74c39f671577",
+      "translations": {
+        "ja": "男の子の手首には、金糸の痕があった。糸を結んでから切ったような、細い傷だった。金色がまだ少し残っていた。"
+      }
+    },
+    {
+      "id": "ep-10:39",
+      "source": "빚으로 묶인 줄을 끊은 자국이야. 그런데 이름도 같이 끊겨 있어.",
+      "sourceHash": "997de464cfdc086ee71eed22b2e9c9d36fc1d2785e18a37e846e94ffc09a8d51",
+      "translations": {
+        "ja": "借りで結ばれた糸を切った痕だ。だが、名前まで一緒に切れている。"
+      }
+    },
+    {
+      "id": "ep-10:40",
+      "source": "누가 그랬는지 알 것 같아.",
+      "sourceHash": "89bf6f343ec24a355387f245559dba36bed25ad7f91ec840b3634d21ee96c3b8",
+      "translations": {
+        "ja": "誰がやったか、分かった気がする。"
+      }
+    },
+    {
+      "id": "ep-10:41",
+      "source": "연이는 지하 무대 바닥에 떨어져 있던 금실 한 올을 떠올렸다. 같은 색이었다.",
+      "sourceHash": "c584ff626ef293a328898c08489cc5679511e08a02a18075e359e81688dcba8b",
+      "translations": {
+        "ja": "Yeoniは地下の舞台の床に落ちていた、一本の金糸を思い出した。同じ色だった。"
+      }
+    },
+    {
+      "id": "ep-10:42",
+      "source": "그럼 일단 내가 부를게. 북 대장. 어때?",
+      "sourceHash": "46a42101eb2201aa2e2d6ad430b44a3f096faed12a72013e528b3056f8a23935",
+      "translations": {
+        "ja": "じゃあ、とりあえず私が呼ぶね。太鼓隊長。どう？"
+      }
+    },
+    {
+      "id": "ep-10:43",
+      "source": "아이의 눈이 동그래졌다. 그리고 가장 큰 소리로 상자를 두드렸다. 톡, 톡, 쿵.",
+      "sourceHash": "4e9edf430874e3ed052ab888ecb1ffa274ddd10bd4347b025132c0f9481f3bef",
+      "translations": {
+        "ja": "男の子の目が丸くなった。それから、一番大きな音で箱を叩いた。とん、とん、どん。"
+      }
+    },
+    {
+      "id": "ep-10:44",
+      "source": "마음에 든다는 뜻이지? 북 대장, 정오에 우리랑 공연하자.",
+      "sourceHash": "d7b589c1c6eae21f1507d51c82cdedadb2d4d213ee072f1277b68ab587d9fdc4",
+      "translations": {
+        "ja": "気に入ったってことだよね？ 太鼓隊長、正午に一緒に公演しよう。"
+      }
+    },
+    {
+      "id": "ep-10:45",
+      "source": "바닷가 언덕. 영냥이는 바위 위에 앉아 수업을 시작했다. 학생은 돼지 하나, 수달 하나, 북 대장 하나였다.",
+      "sourceHash": "9e30781ecf6db6a90ca215b7d2e93c4f3ef19e557064eb1582dcd51f4eccacfa",
+      "translations": {
+        "ja": "海辺の丘。Yeongnyangiは岩の上に座り、授業を始めた。生徒はブタ一匹、カワウソ一匹、太鼓隊長一人だった。"
+      }
+    },
+    {
+      "id": "ep-10:46",
+      "source": "불을 쓰는 법 두 가지. 하나는 식신, 하나는 상관.",
+      "sourceHash": "cfbed9fc09c44b24e7bfd80d756b2fcb474585c4d976bd9f8375725086bc1d88",
+      "translations": {
+        "ja": "火の使い方は二つ。一つは食神、一つは傷官だ。"
+      }
+    },
+    {
+      "id": "ep-10:47",
+      "source": "오, 드디어 스킬 트리 열리는 거야?",
+      "sourceHash": "240b5189ce5b156ab480766f584f42c6844cc76ee0db1b3c2300a4f8aa425edb",
+      "translations": {
+        "ja": "おお、ついにスキルツリー解放？"
+      }
+    },
+    {
+      "id": "ep-10:48",
+      "source": "트리는 없다. 꼬치만 있다.",
+      "sourceHash": "64b7a785b8b80ccd650da0e3a466631f9169c61db861c11e67a9a5eff2bb602d",
+      "translations": {
+        "ja": "ツリーはない。串しかない。"
+      }
+    },
+    {
+      "id": "ep-10:49",
+      "source": "영냥이가 모카에게 눈짓했다. 모카가 꼬치 여섯 개를 석쇠에 올렸다.",
+      "sourceHash": "2cbbed509da4616c518dc3395ac4e1a0ec3c7179e1da64a2e96607a266cbd453",
+      "translations": {
+        "ja": "YeongnyangiがMokaに目配せした。Mokaは串を六本、焼き網に載せた。"
+      }
+    },
+    {
+      "id": "ep-10:50",
+      "source": "식신부터. 불을 꼬치에 보내라. 화내지 말고. 맛있어져라, 하고.",
+      "sourceHash": "f6d7308ea62336328e99d003b824d3d797374e992c1f341e57b50fd21b274e85",
+      "translations": {
+        "ja": "まず食神だ。火を串へ送れ。怒るのではなく、おいしくなれと。"
+      }
+    },
+    {
+      "id": "ep-10:51",
+      "source": "맛있어져라.",
+      "sourceHash": "f2803b96c1fcfbadb614904d6af47e094c8539fabc48573c87bb55379b982bcf",
+      "translations": {
+        "ja": "おいしくなれ。"
+      }
+    },
+    {
+      "id": "ep-10:52",
+      "source": "연이는 앞발을 석쇠 쪽으로 내밀었다. 아무 일도 없었다. 다시 내밀었다. 꼬치 하나가 살짝 데워졌다.",
+      "sourceHash": "19814b8b5a0e3984a52e4df7d2aac2ee6504c6df5000178bf3866dc9e034b0b5",
+      "translations": {
+        "ja": "Yeoniは前足を焼き網へ向けた。何も起きなかった。もう一度向けた。串が一本、少しだけ温まった。"
+      }
+    },
+    {
+      "id": "ep-10:53",
+      "source": "미지근해. 손님한테 내면 별 한 개야.",
+      "sourceHash": "378393cb33a519881b3a3a42d4d8a9945aa697aa9c04e0d85a36d0992920ddf9",
+      "translations": {
+        "ja": "ぬるい。客に出したら星一つだな。"
+      }
+    },
+    {
+      "id": "ep-10:54",
+      "source": "너 지금 내 마음에 불 지르는 거 알아?",
+      "sourceHash": "b4bc91ee461290a1a5fbdfe70619f8f49a2898ef2763ab280b9bfbb6e1e4c3e2",
+      "translations": {
+        "ja": "今、私の心に火をつけてるって分かってる？"
+      }
+    },
+    {
+      "id": "ep-10:55",
+      "source": "그 순간 꼬치 여섯 개가 한꺼번에 불길에 휩싸였다. 순식간에 숯이 되었다.",
+      "sourceHash": "705015c2813df0a5f6827e93847d0d67024b45a5c4b70e1346e29a8b46b31d2d",
+      "translations": {
+        "ja": "その瞬間、六本の串が一斉に炎に包まれた。あっという間に炭になった。"
+      }
+    },
+    {
+      "id": "ep-10:56",
+      "source": "내 꼬치!",
+      "sourceHash": "ee82de68f83c39d33dbd7b688844d0d3ed73bc351930525db5204993359b1357",
+      "translations": {
+        "ja": "俺の串！"
+      }
+    },
+    {
+      "id": "ep-10:57",
+      "source": "그게 상관이다.",
+      "sourceHash": "30c08685b927963f2a267324d5ec0d59b86e8c0c9bfdfc4b3bd15dc9094a83b0",
+      "translations": {
+        "ja": "それが傷官だ。"
+      }
+    },
+    {
+      "id": "ep-10:58",
+      "source": "어, 미안. 화가 나니까 확 나갔어.",
+      "sourceHash": "61446392a6f6ec381939fbbc391404028948b8aeda3751079c2ddd3fc513d089",
+      "translations": {
+        "ja": "あ、ごめん。むかっとしたら、一気に出ちゃった。"
+      }
+    },
+    {
+      "id": "ep-10:59",
+      "source": "같은 불이다. 마음이 어디를 보고 있느냐만 다르다. 다시.",
+      "sourceHash": "b8cdc65bd07ae32f49dc47ced3a057275ed64fac8e71daec26bcc650a0cae5f9",
+      "translations": {
+        "ja": "同じ火だ。心がどこを向いているかだけが違う。もう一度。"
+      }
+    },
+    {
+      "id": "ep-10:60",
+      "source": "꼬치 여섯 개가 다시 올라갔다. 연이는 눈을 감았다. 할머니 포장마차를 떠올렸다. 노래 못 하는 손님에게 두 개를 줬다는 할머니.",
+      "sourceHash": "ba17418e0db35a49e9b7c983ede45168e21037c31f3ee5b7fec1cafb01214947",
+      "translations": {
+        "ja": "また六本の串が載せられた。Yeoniは目を閉じた。おばあさんの屋台を思い浮かべた。歌の下手な客に二本くれたという、おばあさんを。"
+      }
+    },
+    {
+      "id": "ep-10:61",
+      "source": "석쇠 위에서 간장이 졸아드는 소리가 났다. 꼬치들이 고르게 노릇해졌다. 모카가 하나를 집어 맛을 보았다.",
+      "sourceHash": "b9c29dc53638108b8b2e5412e88f315f5b123ddc0d9565687c5b2e306de6d72d",
+      "translations": {
+        "ja": "焼き網の上で、醤油が煮詰まる音がした。串に、むらなくきつね色の焼き目がついた。Mokaが一本取り、味を見た。"
+      }
+    },
+    {
+      "id": "ep-10:62",
+      "source": "…별 네 개.",
+      "sourceHash": "9eaf620c6bde2d85512f615c3d3b36595a916c5a09fe95ccf8f2cc46872eb2aa",
+      "translations": {
+        "ja": "……星四つ。"
+      }
+    },
+    {
+      "id": "ep-10:63",
+      "source": "네 개? 다섯 개는 왜 안 돼?",
+      "sourceHash": "671e135e3bf5c6ddac777b9c4bf64ee86d0519826fb09d1bba1227e12e708c27",
+      "translations": {
+        "ja": "四つ？ なんで五つじゃないの？"
+      }
+    },
+    {
+      "id": "ep-10:64",
+      "source": "다섯 개는 우리 할머니 거야. 넘보지 마.",
+      "sourceHash": "b3b7bb7a469e42a43549618b10845d949f46fad9930df731de4fba98baa85a56",
+      "translations": {
+        "ja": "五つは、ばあちゃんのものだ。狙うな。"
+      }
+    },
+    {
+      "id": "ep-10:65",
+      "source": "이제 상관. 상관은 날이다. 날은 좁게 써야 한다. 저 밧줄만 끊어라.",
+      "sourceHash": "8835788d3f9cba350c92a043ac2042a3cc53e774430bdc9d55eeb35f319659d8",
+      "translations": {
+        "ja": "次は傷官だ。傷官は刃。その刃は、狭く使わなければならない。あの縄だけを切れ。"
+      }
+    },
+    {
+      "id": "ep-10:66",
+      "source": "영냥이가 바위 끝에 매달린 밧줄 하나를 가리켰다. 밧줄 끝에는 빈 냄비가 걸려 있었다.",
+      "sourceHash": "285d796537f2f31963430ab655b037a27601a8af8bdd2b9084d80158fa5a261f",
+      "translations": {
+        "ja": "Yeongnyangiが、岩の先に下がる縄を一本指した。先には空の鍋がついていた。"
+      }
+    },
+    {
+      "id": "ep-10:67",
+      "source": "말로 끊으라는 거지? 한 마디로?",
+      "sourceHash": "dd54a20d2a925954b17c46c689cb18f027ff4678d5323be6083b809ca49b15ee",
+      "translations": {
+        "ja": "言葉で切るってことね？ 一言で？"
+      }
+    },
+    {
+      "id": "ep-10:68",
+      "source": "가장 짧고 가장 정확한 말로.",
+      "sourceHash": "f58be93f9968fffa2b4f8dddc701952df4608f71daf139d95887d835d3242da6",
+      "translations": {
+        "ja": "最も短く、最も正確な言葉で。"
+      }
+    },
+    {
+      "id": "ep-10:69",
+      "source": "끊어!",
+      "sourceHash": "4028359436f9ceb6be9885096a706617e964cebfcf4bda89b71ad6e9f3c4bdde",
+      "translations": {
+        "ja": "切れ！"
+      }
+    },
+    {
+      "id": "ep-10:70",
+      "source": "불꽃 글자 두 개가 날아갔다. 밧줄 옆의 바위를 깎고, 냄비를 날려 버리고, 바다로 떨어졌다. 밧줄은 멀쩡했다.",
+      "sourceHash": "2ce79356ad10a395108066e4e8ccf7892546ee2ee5390016d3f64d9a49b99560",
+      "translations": {
+        "ja": "二文字の炎が飛んだ。縄の隣の岩を削り、鍋を吹き飛ばし、海へ落ちた。縄は無事だった。"
+      }
+    },
+    {
+      "id": "ep-10:71",
+      "source": "그 냄비 할머니 거야!",
+      "sourceHash": "20273b1b2fc126c47c2290cbb29f5ec641969434ab844a795b70f1410884ed95",
+      "translations": {
+        "ja": "その鍋、ばあちゃんのだぞ！"
+      }
+    },
+    {
+      "id": "ep-10:72",
+      "source": "오늘 할머니 유품 너무 많이 죽는다.",
+      "sourceHash": "a2906f1ff12580114f3abfd47b15e48636d2d1d234eae0eeb9df42e029d62e00",
+      "translations": {
+        "ja": "今日、おばあちゃんの形見を壊しすぎてる。"
+      }
+    },
+    {
+      "id": "ep-10:73",
+      "source": "연이는 열 번 더 외쳤다. 아홉 번째에 밧줄이 끊어졌다. 북 대장이 상자를 두드렸다. 쿵, 쿵.",
+      "sourceHash": "541f0263c0707e53761a9f1c0d6cac017e8f9c06e4be9dc64fd591139561fff5",
+      "translations": {
+        "ja": "Yeoniはさらに十回叫んだ。九回目で縄が切れた。太鼓隊長が箱を叩いた。どん、どん。"
+      }
+    },
+    {
+      "id": "ep-10:74",
+      "source": "됐다. 지금 그 느낌을 기억해라.",
+      "sourceHash": "57726e6f9985fef08a47aa034aa44c404ef232667fd90df948cab6b5fbfef598",
+      "translations": {
+        "ja": "できた。今の感覚を覚えておけ。"
+      }
+    },
+    {
+      "id": "ep-10:75",
+      "source": "영냥이가 일어서다가 잠깐 비틀거렸다. 오른 앞발을 디딜 때였다. 그는 아무렇지 않은 얼굴로 다시 앉았다.",
+      "sourceHash": "65316d194ced635212d0823058fa72d9f381089fabb52ee79f088354a437edd2",
+      "translations": {
+        "ja": "Yeongnyangiは立ち上がりかけ、少しよろめいた。右の前足をついたときだった。彼は何でもない顔で座り直した。"
+      }
+    },
+    {
+      "id": "ep-10:76",
+      "source": "영냥아, 다리 저려?",
+      "sourceHash": "44e784532e8673d372832fc1e32cd15756f15df2b229b7f66beecc335bb6196d",
+      "translations": {
+        "ja": "Yeongnyangi、足しびれた？"
+      }
+    },
+    {
+      "id": "ep-10:77",
+      "source": "고양이도 오래 앉아 있으면 저린다.",
+      "sourceHash": "7609f9edb6c3f392e6eab18fdab801b7dd9b573287853f504f9c7a6936eab8bd",
+      "translations": {
+        "ja": "猫も長く座ればしびれる。"
+      }
+    },
+    {
+      "id": "ep-10:78",
+      "source": "고양이 나이가 몇인데.",
+      "sourceHash": "5f94c1e5795a51af42d68fc10b860e65c516e0cb90120ff7861f7b808c23ece9",
+      "translations": {
+        "ja": "猫さん、何歳なの。"
+      }
+    },
+    {
+      "id": "ep-10:79",
+      "source": "묻지 마라.",
+      "sourceHash": "d159227f2e952d1f2317df9a74b987c7be2aea48e33dc6e824eff583d1290d24",
+      "translations": {
+        "ja": "聞くな。"
+      }
+    },
+    {
+      "id": "ep-10:80",
+      "source": "할아버지 고양이구나.",
+      "sourceHash": "03a12eccecdd26527b3f6cf0730dfd99504b492d4251d3f5fd751c3be04b340a",
+      "translations": {
+        "ja": "おじいちゃん猫なんだ。"
+      }
+    },
+    {
+      "id": "ep-10:81",
+      "source": "묻지 말라고 했다.",
+      "sourceHash": "edf17c6e95988f8e95f0a6ef9f77f58d9460baf03e879e4c174a7060d6ad82f0",
+      "translations": {
+        "ja": "聞くなと言った。"
+      }
+    },
+    {
+      "id": "ep-10:82",
+      "source": "이제 내 차례지. 연습.",
+      "sourceHash": "2d82fb4d65824b93912103195be3c98732b0c6aabb0777947392518efe43f84e",
+      "translations": {
+        "ja": "次は俺の番だな。練習。"
+      }
+    },
+    {
+      "id": "ep-10:83",
+      "source": "오오, 레시피 낭독 리허설!",
+      "sourceHash": "77d55b0f631a45170a3a3740f467dfdebafdf2e30fb3e26ae26b6df23c5a946c",
+      "translations": {
+        "ja": "おお、レシピ朗読のリハーサル！"
+      }
+    },
+    {
+      "id": "ep-10:84",
+      "source": "모카는 바위 위에 올라섰다. 돼지와 고양이와 아이가 올려다보았다. 모카는 입을 열었다.",
+      "sourceHash": "0f1a6f5ac428c4118a53ed954727e866dc7c7ff8bae72cabbf7d87ba99be3ebf",
+      "translations": {
+        "ja": "Mokaは岩に上がった。ブタと猫と子どもが見上げた。Mokaは口を開いた。"
+      }
+    },
+    {
+      "id": "ep-10:85",
+      "source": "아무 소리도 나오지 않았다. 도장 때문이 아니었다. 모카의 손에는 도장이 없었다.",
+      "sourceHash": "c4d366bd2e24af9aff46d7601412eb685115dc90d433cc10276cb6852f750986",
+      "translations": {
+        "ja": "声は出なかった。印のせいではない。Mokaの手には印がなかった。"
+      }
+    },
+    {
+      "id": "ep-10:86",
+      "source": "…눈 감아. 다들.",
+      "sourceHash": "a9b0f541feee959a244a48cceb98f1faa9271c9eb83cb24df4e3df90549c980e",
+      "translations": {
+        "ja": "……目、閉じろ。みんな。"
+      }
+    },
+    {
+      "id": "ep-10:87",
+      "source": "우리 셋이 보는데도 안 돼?",
+      "sourceHash": "474013ae7fa07df1d536d3d552141146c4a35e97f8612c3e107d42469e6a282a",
+      "translations": {
+        "ja": "私たち三人が見てるだけでも駄目？"
+      }
+    },
+    {
+      "id": "ep-10:88",
+      "source": "셋이 제일 무서워. 냄비는 나를 안 봐.",
+      "sourceHash": "ed8d802594adde6a14455c02759cffdb78adaa48ec1c3d36c37414ff299a5236",
+      "translations": {
+        "ja": "その三人が一番怖いんだよ。鍋は俺を見ないから。"
+      }
+    },
+    {
+      "id": "ep-10:89",
+      "source": "북 대장이 가방에서 냄비 뚜껑을 꺼내 제 얼굴 앞에 들었다. 연이도 따라 했다. 영냥이는 앞발로 눈을 가렸다.",
+      "sourceHash": "9c558aff26b50de5c3d4c3a8658dd2d1d3974d2c30df5154fd52772d346d4c68",
+      "translations": {
+        "ja": "太鼓隊長が鞄から鍋の蓋を出し、顔の前に掲げた。Yeoniもまねた。Yeongnyangiは前足で目を覆った。"
+      }
+    },
+    {
+      "id": "ep-10:90",
+      "source": "간장 두 숟갈, 설탕 한 숟갈, 불은 세게, 마음은 약하게.",
+      "sourceHash": "e5248a290b4fe37578fb0dbfd42fefb1f0a6658608cd2a2bc22bea0a599d56dd",
+      "translations": {
+        "ja": "醤油は二杯、砂糖は一杯、火は強く、心は柔らかく。"
+      }
+    },
+    {
+      "id": "ep-10:91",
+      "source": "작은 목소리였다. 그래도 박자가 있었다. 북 대장이 뚜껑 뒤에서 무릎을 두드렸다. 연이의 꼬리가 박자에 맞춰 흔들렸다.",
+      "sourceHash": "5a79404ac10dd800c57531b8f2672f8be6ba0c9b8a19813d89b6a375d506cdbd",
+      "translations": {
+        "ja": "小さな声だった。それでも拍子があった。太鼓隊長が蓋の後ろで膝を叩いた。Yeoniの尻尾が、拍子に合わせて揺れた。"
+      }
+    },
+    {
+      "id": "ep-10:92",
+      "source": "거봐. 뚜껑 하나 사이에 두면 되잖아.",
+      "sourceHash": "fe0e83dbadb4a375e36f7f76a24a484861c9925304096579358d1927a5bd5b34",
+      "translations": {
+        "ja": "ほら。蓋一枚挟めば、できるじゃん。"
+      }
+    },
+    {
+      "id": "ep-10:93",
+      "source": "정오에 섬사람 다 앞에서 뚜껑 쓰고 있으라고 할 거야?",
+      "sourceHash": "715f6c6162df80cec4e22e542681bdb761a13ad0a60bf3d86dbfc579fe2d5bba",
+      "translations": {
+        "ja": "正午に、島中の人に顔へ蓋をかぶれって言うのか？"
+      }
+    },
+    {
+      "id": "ep-10:94",
+      "source": "그것도 나쁘지 않은데? 뚜껑 축제.",
+      "sourceHash": "da45942c0b96045a98012e41cdc150e1f7cb6429449ef28065589d7efb162af2",
+      "translations": {
+        "ja": "それも悪くないね。蓋祭り。"
+      }
+    },
+    {
+      "id": "ep-10:95",
+      "source": "해 질 녘이 조금도 움직이지 않는 저녁. 연이는 홍보 전단을 품에 안고 골목을 돌았다. 전단에는 그림만 그렸다. 해와 꼬치와 웃는 얼굴.",
+      "sourceHash": "7f819b7e646ed46076cff3b8e8b328d1a745e5e46ebc889e89f1abe593f7eae0",
+      "translations": {
+        "ja": "夕暮れが少しも進まない夕方。Yeoniは宣伝の紙を抱えて、路地を回った。紙には絵だけ描いた。太陽と串と、笑顔。"
+      }
+    },
+    {
+      "id": "ep-10:96",
+      "source": "골목 모퉁이에서 등불이 하나 꺼졌다. 연이는 걸음을 멈췄다. 이제 이 순서를 알았다.",
+      "sourceHash": "33cc52b7613d3d287ced4d6e362900e1e35906551c10d299c2820dda2d985a3e",
+      "translations": {
+        "ja": "路地の角で、灯りが一つ消えた。Yeoniは足を止めた。この順序は、もう知っていた。"
+      }
+    },
+    {
+      "id": "ep-10:97",
+      "source": "전단이 귀엽네. 그림 실력은 별 둘.",
+      "sourceHash": "3c9ab334c4920f78a3727f60908141536871436d0813ce11cde6f997b40bcc0c",
+      "translations": {
+        "ja": "かわいいチラシだね。絵の腕前は星二つ。"
+      }
+    },
+    {
+      "id": "ep-10:98",
+      "source": "남의 홍보물에 별점 매기지 마.",
+      "sourceHash": "ca9d0e1f2eed11212ecb1ac48b5292ee805b02e3efe105832facc7234e5a6f2c",
+      "translations": {
+        "ja": "人の宣伝物に、星をつけないで。"
+      }
+    },
+    {
+      "id": "ep-10:99",
+      "source": "정오 공연. 소문 다 났어. 까마귀도 알아.",
+      "sourceHash": "87131847f952c9d59ef012232ebec8685ae34dc6234eddf12a4be8d5cdafd3e5",
+      "translations": {
+        "ja": "正午公演。もう噂になってるよ。カラスも知ってる。"
+      }
+    },
+    {
+      "id": "ep-10:100",
+      "source": "…벌써?",
+      "sourceHash": "b9a18a538b180da953eb305c31382712b5395e79b1df566828ffc75c159a359a",
+      "translations": {
+        "ja": "……もう？"
+      }
+    },
+    {
+      "id": "ep-10:101",
+      "source": "이 섬에선 소문이 노래보다 빨라. 노래는 금지고 소문은 아니니까.",
+      "sourceHash": "ddacd6e02f216c61c485c701703394c4b3c75cdc6c7bcba8ab6143bf80f4b922",
+      "translations": {
+        "ja": "この島では、噂は歌より速いんだ。歌は禁止でも、噂は禁止されてないから。"
+      }
+    },
+    {
+      "id": "ep-10:102",
+      "source": "호랑이는 장부를 펼쳤다. 빈 줄이 한 칸 있었다. 맨 위에 연이의 이름이 적혀 있었다.",
+      "sourceHash": "b14354e62a5fc05f0d1ea72a7d131568dbd186becaab4141fae833f955c4291e",
+      "translations": {
+        "ja": "虎は帳簿を開いた。空欄が一つあった。一番上には、Yeoniの名前が書かれていた。"
+      }
+    },
+    {
+      "id": "ep-10:103",
+      "source": "그래서 제안. 박수 빌려줄게. 정오에 무대 아래서 천 명이 너한테 박수를 쳐 줄 거야.",
+      "sourceHash": "0448cdd5e4b88a334e469ad208ea93d8f154abeef87757bab0900029850e6f5e",
+      "translations": {
+        "ja": "そこで提案。拍手を貸してあげる。正午、舞台の下で千人が君に拍手するよ。"
+      }
+    },
+    {
+      "id": "ep-10:104",
+      "source": "천 명?",
+      "sourceHash": "8e7ecd8bd5729995341bc549ad89d19d94bd9f8ee4890f596bd6d09dad740cdf",
+      "translations": {
+        "ja": "千人？"
+      }
+    },
+    {
+      "id": "ep-10:105",
+      "source": "박수가 크면 해도 올라가. 노래가 좀 서툴러도. 확실하게.",
+      "sourceHash": "1b2175b5cff58570d49e8adc02ac493e6511a80962596c680ba1f132749f4b37",
+      "translations": {
+        "ja": "拍手が大きければ、太陽も昇る。歌が少し下手でも。確実にね。"
+      }
+    },
+    {
+      "id": "ep-10:106",
+      "source": "연이는 장부를 보았다. 빈 줄이 반짝였다. 쉬워 보였다. 너무 쉬워 보였다.",
+      "sourceHash": "0e2933e9540415d2575dd6adf9327bf427b28629f52af4a8d4c06dadef8a14cd",
+      "translations": {
+        "ja": "Yeoniは帳簿を見た。空欄がきらめいた。簡単そうだった。あまりにも簡単そうだった。"
+      }
+    },
+    {
+      "id": "ep-10:107",
+      "source": "이자는?",
+      "sourceHash": "79ab77d3802e2dea57ff047c75a85158590566398bf8da5cb7bc780e3dc449da",
+      "translations": {
+        "ja": "利子は？"
+      }
+    },
+    {
+      "id": "ep-10:108",
+      "source": "이제 그런 것도 묻네.",
+      "sourceHash": "00f209ce431a3bc8c01b695f2632dcdc22d666e1d3eb34e9b5b8de1fce1ca81b",
+      "translations": {
+        "ja": "そういうことも聞くようになったんだ。"
+      }
+    },
+    {
+      "id": "ep-10:109",
+      "source": "지하 무대에서 배웠어. 여울 누나 목소리 값으로.",
+      "sourceHash": "bf1d14fcb591a7fb1721a5a92c19360fdd4181e1ce31c7f6e35a7097210e800b",
+      "translations": {
+        "ja": "地下の舞台で覚えた。Yeoul姉さんの声を代償にね。"
+      }
+    },
+    {
+      "id": "ep-10:110",
+      "source": "나중에 정해. 너한테는 싸게 해 줄게.",
+      "sourceHash": "6eef7932d1e0abb193ba6a7910c58742e812d1393092a34d6b1155f8b907b254",
+      "translations": {
+        "ja": "後で決めよう。君には安くしてあげる。"
+      }
+    },
+    {
+      "id": "ep-10:111",
+      "source": "싫어.",
+      "sourceHash": "1f3356ca406676d425d3d7d95a8cdbd16d9f1fd56f25f823e63b9d8e8b0eb798",
+      "translations": {
+        "ja": "嫌。"
+      }
+    },
+    {
+      "id": "ep-10:112",
+      "source": "호랑이의 꼬리가 멈췄다.",
+      "sourceHash": "0a86c3c307d0044a89e163deacaaac8c5daab5de14b87428b87385900735020d",
+      "translations": {
+        "ja": "虎の尻尾が止まった。"
+      }
+    },
+    {
+      "id": "ep-10:113",
+      "source": "빌린 박수로 뜬 해는 갚을 때 또 지잖아. 그럼 이 섬은 평생 너한테 이자 내면서 살아야 하고.",
+      "sourceHash": "d8071a07c395bd706fa8ab320889143235ed4f9b53842862c78e63ffc5990e78",
+      "translations": {
+        "ja": "借りた拍手で昇った太陽は、返すときにまた沈むでしょ。そしたら、この島は一生、あんたに利子を払い続けることになる。"
+      }
+    },
+    {
+      "id": "ep-10:114",
+      "source": "서툴러도 진짜 박수로 띄울 거야. 안 뜨면, 내일 또 부르고.",
+      "sourceHash": "dc0e7358f5e66fda30be7b626178b438dc749e36f5958efca6249c050fe47aa9",
+      "translations": {
+        "ja": "下手でも、本物の拍手で昇らせるよ。昇らなかったら、明日また歌う。"
+      }
+    },
+    {
+      "id": "ep-10:115",
+      "source": "…내일이 없을 수도 있는데?",
+      "sourceHash": "9c315f022ed3fa7632a06b5712c63496c301aee0223005d8b02fe419acfc2f1a",
+      "translations": {
+        "ja": "……明日が、ないかもしれないのに？"
+      }
+    },
+    {
+      "id": "ep-10:116",
+      "source": "너 지금 걱정해 주는 거야?",
+      "sourceHash": "fc28a53535c05fb814f4cb2d5ad972c1764ae169d8db157f04f9bdd3f848bceb",
+      "translations": {
+        "ja": "今、心配してくれてるの？"
+      }
+    },
+    {
+      "id": "ep-10:117",
+      "source": "장사 얘기야. 손님이 사라지면 장부가 비잖아.",
+      "sourceHash": "759977a7efce8d69e77d6a7966a0c15b0875a6c18ef063e4292852b8590869eb",
+      "translations": {
+        "ja": "商売の話だよ。客が消えたら、帳簿が空になるでしょ。"
+      }
+    },
+    {
+      "id": "ep-10:118",
+      "source": "그럼 오늘 잘 부르면 되지.",
+      "sourceHash": "41a08f32356d6621e215e819ca8f58723fcb4ea2c05fc235ac9b3fd7de83b907",
+      "translations": {
+        "ja": "じゃあ、今日うまく歌えばいいね。"
+      }
+    },
+    {
+      "id": "ep-10:119",
+      "source": "호랑이는 장부를 덮었다. 덮는 소리가 평소보다 조금 컸다.",
+      "sourceHash": "e838122dcaea11521251a3b574e04bb764435661e12d9c0d50a917fd0cfd5ee3",
+      "translations": {
+        "ja": "虎は帳簿を閉じた。閉じる音は、いつもより少し大きかった。"
+      }
+    },
+    {
+      "id": "ep-10:120",
+      "source": "빚은 남겨 두면 불어나. 안 진 빚도 마찬가지야. 거절한 값은 따로 받아.",
+      "sourceHash": "32b96bbc8e2054fd7410656c8ebb66ba9bff1fa477c9df8f0576e8b73ba7dae1",
+      "translations": {
+        "ja": "借りは残しておくと膨らむ。借りなかったものも同じだよ。断った代金は、別に取る。"
+      }
+    },
+    {
+      "id": "ep-10:121",
+      "source": "그리고 연이. 오늘 밤엔 지붕에 올라가지 마.",
+      "sourceHash": "3ae528b9164dce29417e1494c3be3d85fd7142dac625c33e5120d52528a1621d",
+      "translations": {
+        "ja": "それとYeoni。今夜は、屋根に上がらないで。"
+      }
+    },
+    {
+      "id": "ep-10:122",
+      "source": "그건 무슨 뜻이야? 경고야, 협박이야?",
+      "sourceHash": "e0c168310f3729df8924b3551fb82c4125075733b352761ccce51681c8145be7",
+      "translations": {
+        "ja": "それ、どういう意味？ 警告？ 脅し？"
+      }
+    },
+    {
+      "id": "ep-10:123",
+      "source": "대답은 없었다. 등불이 다시 켜졌을 때 골목에는 아무도 없었다.",
+      "sourceHash": "00fbda11c99077d0074be12dd86d0b62223295fafb757bddae6f95be7ec91ed6",
+      "translations": {
+        "ja": "答えはなかった。灯りが再びともったとき、路地には誰もいなかった。"
+      }
+    },
+    {
+      "id": "ep-10:124",
+      "source": "그날 밤, 연이는 잠이 오지 않았다. 지하 부엌의 뚜껑을 살짝 밀고 지붕으로 올라갔다. 하지 말라는 일은 늘 궁금했다.",
+      "sourceHash": "e0d97c03ea20f1d5193bb6cc5d384f6b2d2dab1c712ebf017bdd3398d8428c5e",
+      "translations": {
+        "ja": "その夜、Yeoniは眠れなかった。地下の台所の蓋を少し押して、屋根に上がった。するなと言われることほど、いつも気になった。"
+      }
+    },
+    {
+      "id": "ep-10:125",
+      "source": "연습 한 번만. 아주 작게.",
+      "sourceHash": "2dbab9a11a4bafa151ff333256e5850593dfe6c45556d0b9f84c631184ca2f7e",
+      "translations": {
+        "ja": "一回だけ練習。ほんの小さく。"
+      }
+    },
+    {
+      "id": "ep-10:126",
+      "source": "연이는 해시계 무대 쪽을 바라보며 콧노래를 불렀다. 솔에서 미로. 그물 속 재판정에서 비웃음을 산 그 음정이었다. 이상하게 기분이 좋았다.",
+      "sourceHash": "65375fcb42ab9ee66b1ff0eb9280b7d31bc52ceba1784a33513ebe50065ea737",
+      "translations": {
+        "ja": "Yeoniは日時計の舞台を見て、鼻歌を歌った。ソからミへ。網に包まれた法廷で笑われた、あの音程だった。不思議と気分がよかった。"
+      }
+    },
+    {
+      "id": "ep-10:127",
+      "source": "콧노래가 끝날 무렵, 달이 없는 하늘이 한 군데 더 검어졌다. 날개였다.",
+      "sourceHash": "4f16736d6f013aeace503a777fa8ba6980bc477dfc9dd19ea339ab97d1327254",
+      "translations": {
+        "ja": "鼻歌が終わりかけたころ、月のない空が、一か所だけいっそう黒くなった。翼だった。"
+      }
+    },
+    {
+      "id": "ep-10:128",
+      "source": "정오에 무대를 띄울 목소리.",
+      "sourceHash": "8d2f19dc03e30a39d1ff52c1da3d4cb9812f7ff6a764e829f8d6b3b5eededeab",
+      "translations": {
+        "ja": "正午に舞台を動かす声。"
+      }
+    },
+    {
+      "id": "ep-10:129",
+      "source": "몰수한다.",
+      "sourceHash": "7b309f16187bfa1e5a8bf3144381e5447318b31c6c5fe5f75b7c45fa7127fd5f",
+      "translations": {
+        "ja": "没収する。"
+      }
+    },
+    {
+      "id": "ep-10:130",
+      "source": "잠깐, 판결은 재판정에서만, 아니 그런 법 없지 참.",
+      "sourceHash": "c06c0602ab0c9ed546f6232274f291725a633dd47382b5c4239acc823b38676b",
+      "translations": {
+        "ja": "待って、判決は法廷でしか……いや、そんな法律なかったね。"
+      }
+    },
+    {
+      "id": "ep-10:131",
+      "source": "까마귀가 부리를 벌렸다. 연이의 목에서 빛나는 실이 풀려 나왔다. 실은 솔과 미의 모양으로 떨리며 가면 속으로 빨려 들어갔다.",
+      "sourceHash": "ddd39d063415f88870d873f68397181bbdb9cddc3e4e943a5c99667095a1fec4",
+      "translations": {
+        "ja": "カラスがくちばしを開いた。Yeoniの喉から、光る糸がほどけた。糸はソとミの形で震えながら、仮面の中へ吸い込まれた。"
+      }
+    },
+    {
+      "id": "ep-10:132",
+      "source": "연이는 소리치려고 했다. 숨이 목을 지나갔다. 아무것도 나오지 않았다.",
+      "sourceHash": "68ec12d5845dbfa20067e34581895c574d977decfc43ef21bb3a55d93b1c4b1f",
+      "translations": {
+        "ja": "Yeoniは叫ぼうとした。息が喉を通った。何も出なかった。"
+      }
+    },
+    {
+      "id": "ep-10:133",
+      "source": "까마귀는 날아갔다. 지붕 위에는 돼지 한 마리와 검은 깃털 하나만 남았다.",
+      "sourceHash": "2bd6646045130cb718600711e1adf1a607d0a55fb05e0b3b64e480fc9af96acf",
+      "translations": {
+        "ja": "カラスは飛び去った。屋根にはブタ一匹と、黒い羽根が一枚だけ残った。"
+      }
+    },
+    {
+      "id": "ep-10:134",
+      "source": "아래에서 뚜껑이 열리는 소리가 났다. 영냥이가 올라오고 있었다. 연이는 그를 불렀다.",
+      "sourceHash": "4522e04960fd565dfbe2b1924a48357c4e0d7bf6a5bc48128867f322c8357185",
+      "translations": {
+        "ja": "下で蓋の開く音がした。Yeongnyangiが上がってきていた。Yeoniは彼を呼んだ。"
+      }
+    },
+    {
+      "id": "ep-10:135",
+      "source": "영냥아. 입 모양은 분명 그렇게 움직였다. 아무 소리도 나지 않았다.",
+      "sourceHash": "d55138159433f2d659b5501d7fd607e982e16a5d16e7e048112f75f1f7fdaa1b",
+      "translations": {
+        "ja": "Yeongnyangi。口は確かに、そう動いた。声は何も出なかった。"
+      }
+    }
+  ]
+}

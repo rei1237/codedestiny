@@ -1,0 +1,678 @@
+{
+  "locale": "en",
+  "episodeId": "ep-45",
+  "tag": "Episode 45 · The Moon and the Sun",
+  "title": "The Moon and the Sun",
+  "sourceTitle": "달과 해",
+  "sourceTag": "제45화 · 달과 해",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-45:1",
+      "source": "18번 카드, 달. 하늘에 달이 두 개 떠 있었다. 하나는 차갑게 빛났고, 하나는 그 그림자처럼 검었다.",
+      "sourceHash": "66a96362807e88f0337f0c21b33764d76b496e4856aa6cffd828e3a2ba39af51",
+      "t": "Card Eighteen, the Moon. Two moons hung in the sky. One shone coldly. The other was black as its shadow."
+    },
+    {
+      "id": "ep-45:2",
+      "source": "길 양옆에 탑이 하나씩 서 있었다. 멀리서 개와 늑대가 번갈아 울었다. 어느 쪽이 개인지는 끝까지 알 수 없었다.",
+      "sourceHash": "35bf5ecff49fe19b3fc33ad1cfbee550749383d41c1fb25bdf9dc46fce9507ae",
+      "t": "A tower stood on either side of the path. Far away, a dog and wolf cried in turn. There was no way to tell which was the dog."
+    },
+    {
+      "id": "ep-45:3",
+      "source": "달 카드의 규칙은 하나예요. 보이는 걸 믿지 말 것.",
+      "sourceHash": "39c12674e8f7ee97e28d7136c3eb720ff73389e15d53dc2db3909d6ce4f08d05",
+      "t": "The Moon has one rule. Don't trust what you see."
+    },
+    {
+      "id": "ep-45:4",
+      "source": "그럼 뭘 믿어. 눈 감고 걸어?",
+      "sourceHash": "34f6315f0ca40191a3425410441cc5f193a329c633544c05dbd5b94e84f5ff3d",
+      "t": "Then what do we trust? Walk with our eyes shut?"
+    },
+    {
+      "id": "ep-45:5",
+      "source": "서로를 믿으세요. 손 잡고, 이름 부르고. 대답이 오는지 확인하고.",
+      "sourceHash": "4254696c0835d7f8afe328d033f132cbc9c3ce8324309a51e70e58be354a1c0e",
+      "t": "Trust each other. Hold hands, call names, and check that someone answers."
+    },
+    {
+      "id": "ep-45:6",
+      "source": "연이는 주머니 속 메모장을 한 번 만졌다. 종이 모서리가 손끝에 닿았다. 그것만으로 조금 안심이 되었다.",
+      "sourceHash": "3403a5da3cdc4814349fc869134b8e4dcba0a9a3b11c2186fb218fc1c3e0fcbf",
+      "t": "Yeoni touched the notebook in their pocket. Its paper corner brushed their fingertips. That alone was a little reassuring."
+    },
+    {
+      "id": "ep-45:7",
+      "source": "(내 편 얼굴은 몰라도 내 편 글씨는 알아. 그거면 돼.)",
+      "sourceHash": "0b0ab697758c9f9a927e65f0fcda2fe2070c7c91286bcbf3f280e0319f776a60",
+      "t": "(I don't know the face of the person on my side. But I know the handwriting. That's enough.)"
+    },
+    {
+      "id": "ep-45:8",
+      "source": "웅덩이마다 달이 비쳤다. 그리고 웅덩이마다 연이가 비쳤다. 연이가 걸음을 멈춰도 물속의 연이는 반 박자 늦게 멈췄다.",
+      "sourceHash": "a2efa30f26fe573baf5d558f9722d9cdfbbf628a9aadf34e684bd40abfade4db",
+      "t": "Every puddle reflected a moon. Every puddle reflected Yeoni. Even when Yeoni stopped, the Yeoni in the water stopped half a beat late."
+    },
+    {
+      "id": "ep-45:9",
+      "source": "쟤, 아까부터 나 따라 해. 근데 조금씩 늦어.",
+      "sourceHash": "cbdac9631bb1eba3aeb105a17cf208f93173e2eaa68d9c722c397a2c8e346a47",
+      "t": "That's been copying me. But a little late each time."
+    },
+    {
+      "id": "ep-45:10",
+      "source": "보지 마세요. 웅덩이는 밟지 말고 건너요.",
+      "sourceHash": "8dd1b1d8821727e6db948f886c6aa898e7d1625cf8b20351a25e79bde71e3760",
+      "t": "Don't look. Step over the puddles, not in them."
+    },
+    {
+      "id": "ep-45:11",
+      "source": "그때 안개가 내려왔다. 발목에서 무릎으로, 무릎에서 어깨로. 순식간이었다.",
+      "sourceHash": "e39ad0532b5234841987d18bffd58102b4ad3bae9fecc8ef537cc81799d71653",
+      "t": "Then mist descended. Ankles to knees, knees to shoulders. In an instant."
+    },
+    {
+      "id": "ep-45:12",
+      "source": "야, 손! 손 잡아!",
+      "sourceHash": "bcfdfa7904dd78cf6e2c19b65f7416b9086d8a8ca772f3a206d6c68cf40d313b",
+      "t": "Hey, hands! Hold hands!"
+    },
+    {
+      "id": "ep-45:13",
+      "source": "연이가 손을 뻗었다. 손끝에 무언가가 스쳤다. 그리고 놓쳤다. 안개 속에서 모두의 목소리가 멀어졌다.",
+      "sourceHash": "39133113bf09754794a7e2417caa2694fe0f17af6073a666008cbfabf7d66d85",
+      "t": "Yeoni reached out. Something brushed their fingertips, then slipped away. Everyone's voices receded into the mist."
+    },
+    {
+      "id": "ep-45:14",
+      "source": "서한비는 우산을 펴 들고 섰다. 테이프 감긴 살이 안개를 조금 밀어냈다. 옆에는 윤달만 남아 있었다.",
+      "sourceHash": "6da07d7e99d264cbb9f20fb202ad93ce694385cb4e40cdd7c633a38e0294d059",
+      "t": "Seo Hanbi stood with the umbrella open. Its taped ribs pushed back a little mist. Only Yundal remained beside her."
+    },
+    {
+      "id": "ep-45:15",
+      "source": "모카 씨랑 연이 씨가 반대편으로 갔어요. 소리로는 그래요.",
+      "sourceHash": "c14561c2ca2ac4fba7de040202332d4a96198eeff7fa938546c1a7a2425bd308",
+      "t": "Moka and Yeoni went the other way. From the sound of it."
+    },
+    {
+      "id": "ep-45:16",
+      "source": "소리를 믿으면 안 되는 카드라면서요.",
+      "sourceHash": "2821cc448cae853c1b0798aede142a90b97e59b18e0bad912dc8a66b15ce6d90",
+      "t": "Didn't you say this was a card where we can't trust sounds?"
+    },
+    {
+      "id": "ep-45:17",
+      "source": "맞아요. 그래서 지금 제 말도 반만 믿으세요.",
+      "sourceHash": "d72ffce6e747fd21dda82e667ae8f7f7032108f7b666ccea983009510d22fab4",
+      "t": "True. So believe only half of what I'm saying too."
+    },
+    {
+      "id": "ep-45:18",
+      "source": "안개 너머에서 발소리가 다가왔다. 노란 가방이 먼저 보였다. 그다음 연이의 얼굴이.",
+      "sourceHash": "2442b1ac463f5f47743604969a8d83388edce203faf487e10cc5394e91b00c8b",
+      "t": "Footsteps approached through the mist. First a yellow bag appeared. Then Yeoni's face."
+    },
+    {
+      "id": "ep-45:19",
+      "source": "한비야! 찾았다. 윤달 씨도.",
+      "sourceHash": "8b58d276b8082735df00cd2ced9ccabfcfc1e372a3f6bde7cc760ad21dc12e75",
+      "t": "Hanbi! Found you. Yundal too."
+    },
+    {
+      "id": "ep-45:20",
+      "source": "서한비가 반 걸음 앞으로 나가려다 멈췄다. 연이의 운동화가 말라 있었다. 웅덩이를 그렇게 지나왔는데.",
+      "sourceHash": "1717c0ca8b626b7a05eb3a0a3a0d10bcb28ef508937bd6f801496ccbde202518",
+      "t": "Seo Hanbi began stepping forward, then stopped. Yeoni's sneakers were dry. After all those puddles."
+    },
+    {
+      "id": "ep-45:21",
+      "source": "모카 씨는요?",
+      "sourceHash": "080b643b29106db899e70b0c4da3f8d343f56d539378739359baa47d23c9f57e",
+      "t": "Where's Moka?"
+    },
+    {
+      "id": "ep-45:22",
+      "source": "저쪽에서 헤어졌어. 근데 그것보다, 한비야. 나 아까부터 생각했는데.",
+      "sourceHash": "610e9dd869efb2c554c6098993900a9286cc5eeea1920406c3af84b25d5504f5",
+      "t": "We got separated over there. More importantly, Hanbi. I've been thinking."
+    },
+    {
+      "id": "ep-45:23",
+      "source": "네오가 먹힌 거, 너 때문 아냐?",
+      "sourceHash": "022f241989580ca7be29b40d40354d271461e63513cfb6ff4e5fecb3eccd9e98",
+      "t": "Wasn't it your fault Neo got eaten?"
+    },
+    {
+      "id": "ep-45:24",
+      "source": "안개가 조용해졌다. 개도 늑대도 울지 않았다.",
+      "sourceHash": "323b9b5600ba6f994f1be81975a49cb024db168a4d4018e73b1f72995060cc71",
+      "t": "The mist went quiet. Neither dog nor wolf cried."
+    },
+    {
+      "id": "ep-45:25",
+      "source": "연이 씨.",
+      "sourceHash": "78b51d8577a3d81b356af5097612c5227f3c6f530fa6624f55c413e86c6c51c4",
+      "t": "Yeoni."
+    },
+    {
+      "id": "ep-45:26",
+      "source": "첫 번째 봄에도 너였잖아. 네가 문을 열어 줬잖아. 이번에도 네가 앞에 섰는데 네오가 먹혔어.",
+      "sourceHash": "b4052a974831f280b45fdd458d5dba0cdf1daf7bfb0391a994e1a52c84d0567a",
+      "t": "It was you in the first spring too. You opened the door. This time, you stood in front, and Neo got eaten."
+    },
+    {
+      "id": "ep-45:27",
+      "source": "연이 씨, 그건.",
+      "sourceHash": "b3594d1548a214c6eaf90830152582d0aeba77bab342434f23c0a70cf949273a",
+      "t": "Yeoni, that's..."
+    },
+    {
+      "id": "ep-45:28",
+      "source": "윤달 씨는 빠져. 이건 우리 둘 얘기야.",
+      "sourceHash": "e0188e8a65f87a2afe8eda987f946db5477c6448b744c6f2ca94901a6cdd6e97",
+      "t": "Stay out of this, Yundal. This is between us."
+    },
+    {
+      "id": "ep-45:29",
+      "source": "서한비의 우산 끝이 떨렸다. 대답하려는 입술이 움직였지만 소리가 나오지 않았다. 그 말은 서한비가 매일 밤 장부에 적던 말이었다.",
+      "sourceHash": "41484a20986248c18222d1bafa678fef07f865ebb308e8eb7ccb062aa6266e2b",
+      "t": "Seo Hanbi's umbrella tip trembled. Her lips moved to answer, but no sound emerged. Those were the words she wrote in her ledger every night."
+    },
+    {
+      "id": "ep-45:30",
+      "source": "맞아요. 그래서 저는 갚으려고.",
+      "sourceHash": "3a7a42cbfe8b9dcc103177cfde6ccbdefe4e870d99eabd9b3b1167306c4799f5",
+      "t": "Yes. That's why I'm trying to repay..."
+    },
+    {
+      "id": "ep-45:31",
+      "source": "그럼 그 우산부터 줘. 그거 원래 내 거잖아.",
+      "sourceHash": "b4fdbb0d2927ef74a4d4ef2c9bb2992203ec99c979d9babd4448a548625da62f",
+      "t": "Then give me the umbrella first. It was mine to begin with."
+    },
+    {
+      "id": "ep-45:32",
+      "source": "비가 내리기 시작했다. 달빛 속의 비였다. 그때 안개를 가르고 또 다른 발소리가 달려왔다. 첨벙, 첨벙. 웅덩이를 그대로 밟는 소리였다.",
+      "sourceHash": "babcba8090c8b6b6199f48fee5f8ff1bf890c99112435fb5e331e5567cc0f476",
+      "t": "Rain began falling through the moonlight. Then more footsteps ran through the mist. Splash, splash. Straight through the puddles."
+    },
+    {
+      "id": "ep-45:33",
+      "source": "두 번째 연이가 나타났다. 머리부터 운동화까지 흠뻑 젖어 있었다. 무릎에는 넘어진 자국이 있었다. 뒤에서 모카가 헐떡이며 따라왔다.",
+      "sourceHash": "0e00e8926a7f0df802f96e76ba11ff891ca3fa515b24acf8dc9bd6845f238990",
+      "t": "A second Yeoni appeared, soaked from head to sneakers. Their knees bore signs of a fall. Moka followed, panting."
+    },
+    {
+      "id": "ep-45:34",
+      "source": "저거 뭐야! 연이가 왜 둘이야!",
+      "sourceHash": "5e1cb2ef2db56fc11472b930563a3b1eae55642922eacc6045a0f19b59054680",
+      "t": "What is that?! Why are there two Yeonis?!"
+    },
+    {
+      "id": "ep-45:35",
+      "source": "아, 이건 반만 믿을 수도 없네요.",
+      "sourceHash": "049c88e86cbd7e6561c810e628ee2db613adf97fa2c5d75b77fba8c7db3e9c80",
+      "t": "Ah. Can't even half believe this."
+    },
+    {
+      "id": "ep-45:36",
+      "source": "젖은 연이가 마른 연이를 보았다. 마른 연이도 젖은 연이를 보았다. 둘의 얼굴은 똑같았다. 눈 밑의 부기까지.",
+      "sourceHash": "bf09d87b57d10dbbba729b1de7148c6bbf79f059934aa5099ebbc1b1099a9f27",
+      "t": "Wet Yeoni looked at dry Yeoni. Dry Yeoni looked back. Their faces were identical, down to the swelling beneath their eyes."
+    },
+    {
+      "id": "ep-45:37",
+      "source": "너 뭐야. 내 얼굴로 뭐 하는 거야.",
+      "sourceHash": "66eb06d8d6e52eb503bd1843e924188b86c0c33934de619eea44bfa3a05d7594",
+      "t": "What are you? What are you doing with my face?"
+    },
+    {
+      "id": "ep-45:38",
+      "source": "그건 내가 묻고 싶은데. 한비야, 쟤가 가짜야. 아까 웅덩이에서 웃던 거 기억하지?",
+      "sourceHash": "99b617eab6a1e5b2581c14e242fc4dbae0c0e7fa530d764b8985e48a8a807c6c",
+      "t": "I was about to ask you. Hanbi, that's the fake. Remember the thing smiling in the puddle?"
+    },
+    {
+      "id": "ep-45:39",
+      "source": "서한비가 둘을 번갈아 보았다. 마른 연이의 웃음이 익숙했다. 너무 익숙해서 숨이 막혔다.",
+      "sourceHash": "cd00a61359f6084d7209cb56c4320471bf96a29dc5de1ae6ccb824f1222f1689",
+      "t": "Seo Hanbi looked between them. Dry Yeoni's smile was familiar. So familiar she couldn't breathe."
+    },
+    {
+      "id": "ep-45:40",
+      "source": "확인할게요. 연이 씨 생년월일시.",
+      "sourceHash": "0caefac36f9831efd0ecc298e74f158718e7db9fb0a314fc3ac229c4c1e103bf",
+      "t": "Let's verify. Yeoni's birth date and time."
+    },
+    {
+      "id": "ep-45:41",
+      "source": "이천이년 칠월 육일, 여덟 시 반. 乙亥 일주.",
+      "sourceHash": "b1ba39dedb2649a4fae2c035e0657f66fed4e970ddc389f29693275018a07f1c",
+      "t": "July 6, 2002. Eight thirty. Eulhae Day Pillar."
+    },
+    {
+      "id": "ep-45:42",
+      "source": "맞아. 그거 나야. 근데 쟤도 알잖아!",
+      "sourceHash": "342fb4000c11fb21dfe51bb5e303c78ece5707db2f730698d5a8d070859e1342",
+      "t": "Right. That's me. But that thing knows too!"
+    },
+    {
+      "id": "ep-45:43",
+      "source": "둘 다 정답이에요. 흑월은 명식을 먹는 놈이라. 숫자로는 못 가려요.",
+      "sourceHash": "56a24342350ac28ccd7978cfcfce4fd4344d45a7d25fa55dc99884ec7fec35d5",
+      "t": "Both correct. Black Moon eats Four Pillars charts. Numbers won't distinguish them."
+    },
+    {
+      "id": "ep-45:44",
+      "source": "그럼 내가 할게. 연이야, 나한테 처음 준 별점 몇 개야?",
+      "sourceHash": "44dec24d9988cbe04681297725c12fcdb7fa0fb62fd2e9ee3c4a79c9831cda74",
+      "t": "Then my turn. Yeoni, how many stars did you first give me?"
+    },
+    {
+      "id": "ep-45:45",
+      "source": "두 개. 맛이 범죄라서.",
+      "sourceHash": "52cdeb07d023a60d1aba4e650453aefe271ab5a1ac837e58d80c7f0956dec00f",
+      "t": "Two. Because the flavor was a crime."
+    },
+    {
+      "id": "ep-45:46",
+      "source": "두 개! 아 진짜, 그것까지 알아?",
+      "sourceHash": "d6cdb0208cc90cfd312092c097eaa0b848b88207263daaaa2a6a6c48a051a977",
+      "t": "Two! Seriously, it knows that too?"
+    },
+    {
+      "id": "ep-45:47",
+      "source": "이것도 둘 다 맞네. 미치겠다.",
+      "sourceHash": "8ba46c074568e0c896f0293e32b20cc76d44edee75d640f076b955d6a10d3232",
+      "t": "Both right again. This is driving me crazy."
+    },
+    {
+      "id": "ep-45:48",
+      "source": "비가 굵어졌다. 젖은 연이는 이를 딱딱 부딪쳤다. 마른 연이는 비를 맞는데도 젖지 않았다. 아무도 그걸 가리킬 만큼 침착하지 않았다.",
+      "sourceHash": "4dbbfdd6a9bff178050199c8a272f29d8658dc6da857d925af1678a861364691",
+      "t": "The rain thickened. Wet Yeoni's teeth chattered. Dry Yeoni stood in the rain without getting wet. No one was calm enough to point it out."
+    },
+    {
+      "id": "ep-45:49",
+      "source": "어차피 같은 얼굴이란다, 빗물아. 첫 번째 봄에도 너는 고르지 못했지.",
+      "sourceHash": "4ee28824de7565ce2c6be32ff786a4bcd63365c84e992a785a11877d9f8a2223",
+      "t": "The same face either way, rainwater. You couldn't choose in the first spring either."
+    },
+    {
+      "id": "ep-45:50",
+      "source": "서한비가 고개를 들었다. 그 목소리. 정류장 벤치 뒤에서 들리던, 장부를 처음 건네주던 목소리였다.",
+      "sourceHash": "c96126372ecdcc7a4e96ca743af056fcc7bf437b44e9924450756243efcbdcce",
+      "t": "Seo Hanbi raised her head. That voice. The one from behind the bus-stop bench, the one that first gave her the ledger."
+    },
+    {
+      "id": "ep-45:51",
+      "source": "그때는 못 골랐어요. 이번엔 고를 수 있어요.",
+      "sourceHash": "35908f76aea7e9c89bd019f1ccb3ee5819a511fefe365159e8b2f7851b828a51",
+      "t": "I couldn't then. I can now."
+    },
+    {
+      "id": "ep-45:52",
+      "source": "서한비가 우산을 접었다. 비가 그대로 그녀의 머리 위로 쏟아졌다. 차가운 비가 코트 안까지 스몄다.",
+      "sourceHash": "c83e5d24ab6494561d852b1d45810e15f4d2018f40328a41b370c697948fc1c2",
+      "t": "Seo Hanbi closed the umbrella. Rain poured directly onto her head. Cold water soaked into her coat."
+    },
+    {
+      "id": "ep-45:53",
+      "source": "마른 연이가 손을 뻗었다. 서한비의 손에 든 우산을 향해서였다.",
+      "sourceHash": "b4ab85423ad82fcf9db4d7c0544a1f12937f066bd0f49dce0f744176ddb9b7d5",
+      "t": "Dry Yeoni reached toward the umbrella in her hand."
+    },
+    {
+      "id": "ep-45:54",
+      "source": "잘했어. 이리 줘. 내 거니까.",
+      "sourceHash": "374f8af41c12c256629b85a21d12c8b60abd7448baa427c0a465515f5fcbb94d",
+      "t": "Good. Give it here. It's mine."
+    },
+    {
+      "id": "ep-45:55",
+      "source": "젖은 연이도 움직였다. 이를 부딪치며, 비틀거리며 서한비 쪽으로 걸어왔다. 그리고 가방을 머리 위로 들어 서한비의 머리를 가렸다. 자기 머리는 비에 그대로 둔 채로.",
+      "sourceHash": "40d32a516743a06954ec090131af0406b705ac2201f024512f6b2fb14d3b6f94",
+      "t": "Wet Yeoni moved too. Teeth chattering, staggering toward Seo Hanbi. Then they raised their bag to cover her head, leaving their own in the rain."
+    },
+    {
+      "id": "ep-45:56",
+      "source": "바보야, 우산을 왜 접어. 감기 걸려.",
+      "sourceHash": "1ac56f83fc4d644339c003306362e0ec536a8b685f21769a76dbdf85eb248edc",
+      "t": "Idiot, why close the umbrella? You'll catch a cold."
+    },
+    {
+      "id": "ep-45:57",
+      "source": "노란 가방 아래로 빗물이 갈라졌다. 서한비의 머리 위에 작은 지붕이 생겼다. 서툴고 비뚤어진, 반쪽짜리 지붕이었다.",
+      "sourceHash": "228d4d806a7191df4dca18bc68dc045faa2084c9a3ab32cfea2a7f71c3b408a4",
+      "t": "Rain parted around the yellow bag. A small roof formed above Seo Hanbi. Clumsy, crooked, only half a roof."
+    },
+    {
+      "id": "ep-45:58",
+      "source": "진짜 연이는 우산을 먼저 내밀어요. 달라고 하지 않아요.",
+      "sourceHash": "ac5335b7e359b4059d3cf4a1ffdae0d31927132f252933626b3dc9ecb4a0ac0b",
+      "t": "The real Yeoni offers an umbrella first. Never asks to take one."
+    },
+    {
+      "id": "ep-45:59",
+      "source": "우산이 없으면 가방이라도요.",
+      "sourceHash": "d18bc33dc7de3d9a6bbad505a95ebaf45fe559015e7d446b4eeb84b882ba7374",
+      "t": "And if there's no umbrella, even a bag."
+    },
+    {
+      "id": "ep-45:60",
+      "source": "서한비가 마른 연이를 향해 돌아섰다. 접힌 우산 끝이 그 가슴을 겨눴다.",
+      "sourceHash": "ed901670e6ae58a6a9428553314e5f8b0ea57eeee94a42bcbf095b2ab2b9a3d2",
+      "t": "Seo Hanbi turned toward dry Yeoni. The folded umbrella's tip aimed at its chest."
+    },
+    {
+      "id": "ep-45:61",
+      "source": "그 얼굴 벗어요. 그건 당신이 가질 수 있는 얼굴이 아니에요.",
+      "sourceHash": "78bbd6666ba6199e3d3b3f63c523e30216a2c62db3bd2091d4d7450872b5c777",
+      "t": "Take off that face. It's not a face you get to own."
+    },
+    {
+      "id": "ep-45:62",
+      "source": "마른 연이의 얼굴이 웃은 채로 금이 갔다. 금 사이로 검은빛이 새어 나왔다. 입꼬리가 귀까지 찢어졌다.",
+      "sourceHash": "00a08c46b5a86a9b2e8f7619667ff5fd7a1833bcf457d2d93cfec53debbbf243",
+      "t": "Dry Yeoni's smiling face cracked. Black light seeped through. The corners of its mouth split to its ears."
+    },
+    {
+      "id": "ep-45:63",
+      "source": "아깝구나. 이번엔 오래 쓰려고 했는데.",
+      "sourceHash": "a3a8cc7be913530a794e9d143eb0e8f404db8dcccdccb0af325e3a21e14da8d5",
+      "t": "A pity. I meant to use it for longer this time."
+    },
+    {
+      "id": "ep-45:64",
+      "source": "얼굴이 조각조각 떨어졌다. 그 아래에는 아무것도 없었다. 검은 원 하나가 달빛을 먹고 있었다. 두 개였던 달 중 검은 쪽이었다.",
+      "sourceHash": "41dbc4fe30467e61dafe4467d9d202d15dfb40a9eaebef873254de1621a11e83",
+      "t": "The face fell away in pieces. Beneath it was nothing. One black circle devoured moonlight: the dark one of the two moons."
+    },
+    {
+      "id": "ep-45:65",
+      "source": "하지만 상관없다. 달 카드 안에서는 내가 무엇이든 될 수 있지. 너희의 엄마도, 친구도, 그 고양이도.",
+      "sourceHash": "96c7c0fd306f12f1adfed086345a61dd7aca9601badd7aed9ac1ee568b51a434",
+      "t": "But it doesn't matter. Inside the Moon card, I can become anything. Your mother, your friends, even that cat."
+    },
+    {
+      "id": "ep-45:66",
+      "source": "안개 속에 연이와 서한비, 모카의 얼굴이 떠올랐다. 그 뒤에는 은빛 머리에 남색 옷을 입은 사람도 있었다.",
+      "sourceHash": "436423c0e05a4ec8126f6c43e62127bba714c6ad79f0126a2e196681700dd7c8",
+      "t": "Faces appeared in the mist: Yeoni, Seo Hanbi, Moka. Behind them stood someone with silver hair and dark blue clothes."
+    },
+    {
+      "id": "ep-45:67",
+      "source": "네오.",
+      "sourceHash": "0f5aedb09f51d8d61131334ff9c07257ec2fbae8564c0f75998d645df5c126fa",
+      "t": "Neo."
+    },
+    {
+      "id": "ep-45:68",
+      "source": "이름이 먼저 입 밖으로 나왔다. 누구인지 떠올릴 수 없는데, 은빛 외투 자락을 보자 손끝이 떨렸다.",
+      "sourceHash": "f79f08bb2cb45ae9990c371578a0fce0b7bf99a8212a6b52964d6688f623c6b2",
+      "t": "The name escaped first. Yeoni couldn't recall who he was, but at the sight of the silver coat hem, their fingertips trembled."
+    },
+    {
+      "id": "ep-45:69",
+      "source": "연이 씨, 저건 가짜예요. 진짜는 옷이 저렇게 멀쩡하지 않았어요. 다친 팔을 가리느라 소매 끝이 다 해졌었어요.",
+      "sourceHash": "2172c35b5b6fe057d4234c657378d7c767ffd72861574e6f184d83315e10361f",
+      "t": "Yeoni, that's a fake. The real one's clothes weren't that intact. His cuffs were frayed from hiding his injured arm."
+    },
+    {
+      "id": "ep-45:70",
+      "source": "그걸 왜 지금 알려 줘. 더 보고 싶어지잖아.",
+      "sourceHash": "ab05194d700ba3650be13d0a10508fccc9def0eeaee5363d2b73311591cc87f5",
+      "t": "Why tell me that now? It makes me want to see him more."
+    },
+    {
+      "id": "ep-45:71",
+      "source": "됐어, 다 비켜. 거짓말엔 불이야.",
+      "sourceHash": "d75ef9b6460e7be2d1228757780bf0563656a85075b7ead96e57f76bd3041e3f",
+      "t": "Enough. Everyone move. Fire for lies."
+    },
+    {
+      "id": "ep-45:72",
+      "source": "모카가 성냥을 그었다. 남은 두 개를 한꺼번에. 불꽃이 손가락 사이에서 커지더니 하늘로 솟구쳤다.",
+      "sourceHash": "520749879896c19f7b8fb5b74aa01cc051c1f4da8117b3f23cac79952c605d7f",
+      "t": "Moka struck his matches. Both remaining matches at once. Flame swelled between his fingers, then surged into the sky."
+    },
+    {
+      "id": "ep-45:73",
+      "source": "해가 떴다. 19번 카드, 해. 안개가 한순간에 타올랐다. 달빛에 숨어 있던 얼굴들이 종이처럼 말려 사라졌다.",
+      "sourceHash": "286f1797bce357a349f305d9d3c9e8300ccc4b475afbe7d32e57209c42db0668",
+      "t": "The sun rose. Card Nineteen, the Sun. Mist burned away in an instant. Faces hidden in moonlight curled like paper and vanished."
+    },
+    {
+      "id": "ep-45:74",
+      "source": "눈을 뜨자 일행은 낯익은 무대 위에 서 있었다. 정오의 해가 걸린 무대였다. 해 카드 속 세상은 모카의 섬과 닮아 있었다.",
+      "sourceHash": "4af8f662bf812116abe93e2d74a2ad0a108fa5a09cf3be5661080edea2e28037",
+      "t": "When they opened their eyes, they stood on a familiar stage beneath a noon sun. The world inside the Sun card resembled Moka's island."
+    },
+    {
+      "id": "ep-45:75",
+      "source": "우리 섬이네. 해 돌아온 날 그 무대.",
+      "sourceHash": "61fb97a207154d60649f3372892c7ef6c7a1f1864597ca45fdc09b0859cf9a3b",
+      "t": "Our island. The stage from the day the sun returned."
+    },
+    {
+      "id": "ep-45:76",
+      "source": "모카 씨 진짜 해였네. 성냥 두 개로 해를 띄우다니.",
+      "sourceHash": "32c9ca6b1365667f086d8f13aed60bd2e83efcd55ad673206db870ffa04ccb8a",
+      "t": "Moka, you really were the sun. Raising it with two matches."
+    },
+    {
+      "id": "ep-45:77",
+      "source": "두 개 다 썼다는 얘기야. 이제 나 맨손이다. 책임져.",
+      "sourceHash": "3065e1421603e6c66d23a9747a9617245f8063a9cf40cce02deb2a39a748687f",
+      "t": "Meaning I've used both. I'm empty-handed now. You're responsible."
+    },
+    {
+      "id": "ep-45:78",
+      "source": "장부에 적을까요? 성냥 두 개, 미수.",
+      "sourceHash": "0c245dde24459a6db2c36cadb7d5c65b0e127955ee52d8af23f681ea5b4754a1",
+      "t": "Shall I put it in the ledger? Two matches, outstanding."
+    },
+    {
+      "id": "ep-45:79",
+      "source": "너 그 장부 안 적힌다며!",
+      "sourceHash": "cea2699e721649d254c92406dab9dca476ee130e2d94d45a21327b45c674e711",
+      "t": "You said that ledger won't write anymore!"
+    },
+    {
+      "id": "ep-45:80",
+      "source": "서한비는 대답 대신 젖은 머리를 털었다. 그리고 연이 쪽으로 손을 내밀었다. 연이가 그 손을 잡았다. 둘 다 아직 젖어 있었다.",
+      "sourceHash": "7e3cdbc92327c37f6c9b160ebaaa1eab7a48aace1e23f4acb9b6fdbc948f714f",
+      "t": "Instead of answering, Seo Hanbi shook out her wet hair and offered Yeoni a hand. Yeoni took it. Both were still drenched."
+    },
+    {
+      "id": "ep-45:81",
+      "source": "한비야. 아까 그 말, 고마워. 근데 나도 헷갈렸어. 저게 나인 줄 알았어.",
+      "sourceHash": "af7068183240332c744a25c59dde64f01a49db401411adc50a5a5fbf920d5522",
+      "t": "Hanbi. Thank you for what you said. But even I got confused. I thought that thing might be me."
+    },
+    {
+      "id": "ep-45:82",
+      "source": "저도 헷갈렸어요. 웃는 얼굴은 똑같았거든요.",
+      "sourceHash": "6e95777bd0d299981cda643c26f00688b69457ff1a5e99478679261186f185ad",
+      "t": "I was confused too. The smiling faces were identical."
+    },
+    {
+      "id": "ep-45:83",
+      "source": "그럼 뭘 보고 골랐어?",
+      "sourceHash": "c4c9b3b9823edfcdf91761dd6fef000aa56fb8c3fd4b82d37406348512126ebc",
+      "t": "Then how did you choose?"
+    },
+    {
+      "id": "ep-45:84",
+      "source": "젖은 쪽이요. 연이 씨는 늘 젖은 쪽이에요.",
+      "sourceHash": "91d3b83ac690cdb243f248e9fdb227f1d3720c3a9b43ce2609678f48fd4718c5",
+      "t": "The wet one. You're always the wet one, Yeoni."
+    },
+    {
+      "id": "ep-45:85",
+      "source": "해 카드의 무대 뒤로 문이 하나 열려 있었다. 그 너머에서 나팔 소리가 들렸다. 20번 카드, 심판.",
+      "sourceHash": "b5432327de713f76d14a345d4d4b2b5ff60be3fdb560d2bfdfa4b34038382962",
+      "t": "A door stood open behind the Sun card's stage. A trumpet sounded beyond it. Card Twenty, Judgement."
+    },
+    {
+      "id": "ep-45:86",
+      "source": "하늘의 천사가 나팔을 불 때마다 땅에서 이름이 하나씩 떠올랐다. 흑월에게 먹힌 이름들이었다. 하지만 이름들은 다시 가라앉았다. 부를 사람이 없었다.",
+      "sourceHash": "1539d0e9cd7f94faf98a234a0d17282f2044f4e78e73dea82a2a89543545918f",
+      "t": "Each time the angel in the sky blew its trumpet, a name rose from the ground. Names Black Moon had eaten. But they sank again. No one was there to call them."
+    },
+    {
+      "id": "ep-45:87",
+      "source": "심판은 부르는 카드예요. 누가 불러 줘야 이름이 일어나요.",
+      "sourceHash": "3d0f2128e52dc74e11771a6e9792d10c1de9691c73da56973d727f42e8513dc9",
+      "t": "Judgement calls. Someone has to call a name for it to rise."
+    },
+    {
+      "id": "ep-45:88",
+      "source": "그럼 내가 부르면 되잖아.",
+      "sourceHash": "a2a8b868851ec48e1a921e23ebd12e2a991311969e2a2b78a246fe731ac61eae",
+      "t": "Then I'll call them."
+    },
+    {
+      "id": "ep-45:89",
+      "source": "주인을 알아야 불러요. 연이 씨가 아는 이름은 몇 개 없어요. 저도 제 이름을 몰라요.",
+      "sourceHash": "f383f779e378834d654de046f886f0576b16e83fe437acaa3dd989ab9102a95e",
+      "t": "You have to know the owner. You only know a few names, Yeoni. I don't even know my own."
+    },
+    {
+      "id": "ep-45:90",
+      "source": "윤달이 장갑 낀 손을 꽉 쥐었다. 손바닥 안쪽이 검게 비쳐 보였다. 공망이 조금 넓어져 있었다.",
+      "sourceHash": "fde41a58f52386ae700c2b29eac1d842d4cbd907f293c42083296fbefb6195d1",
+      "t": "Yundal clenched his gloved hand. Black showed through the palm. The Void had grown a little."
+    },
+    {
+      "id": "ep-45:91",
+      "source": "손, 아까보다 커졌어요.",
+      "sourceHash": "238a25a2ea8ddd0406a73eca7ba5e7bb08f08a5e56319dce491cf1a85c05a813",
+      "t": "Your hand. It's bigger than before."
+    },
+    {
+      "id": "ep-45:92",
+      "source": "오늘 안개를 좀 마셨거든요. 괜찮아요. 아직은 장갑에 들어가요.",
+      "sourceHash": "04951a7b2bf74059ea0828bdc317d960c5d9b8239b9e23ddaab10b1584741eaf",
+      "t": "I swallowed some mist today. I'm fine. It still fits in the glove."
+    },
+    {
+      "id": "ep-45:93",
+      "source": "그다음 문은 21번, 세계였다. 둥근 월계 고리 안에서 사람이 춤추고 있었다. 바보의 여행이 끝나는 카드였다.",
+      "sourceHash": "366846c6fcf2d5b3ca605ba28db3a70c0b5414652f228851ac2b62e3592a1904",
+      "t": "The next door was Twenty-One, the World. A figure danced within a round laurel wreath. The card where the Fool's journey ended."
+    },
+    {
+      "id": "ep-45:94",
+      "source": "끝이면, 이제 흑월 있는 데로 가는 거야?",
+      "sourceHash": "86f9ce38e71db6cf0511efe5a511f08089169978633c84311da83a091380ab9f",
+      "t": "If that's the end, do we go to Black Moon now?"
+    },
+    {
+      "id": "ep-45:95",
+      "source": "원래는 21장에서 끝나요. 바보가 0번이니까 스물두 장. 근데 보세요.",
+      "sourceHash": "dee3a10a83dc50b3330ee0f32d1cbcf68d3cc5cff86d0139cd677a504251b06a",
+      "t": "Normally it ends at Twenty-One. With the Fool as Zero, that's twenty-two cards. But look."
+    },
+    {
+      "id": "ep-45:96",
+      "source": "월계 고리 아래, 카드와 카드 사이에 좁은 틈이 있었다. 카드 한 장이 들어갈 만한 폭이었다. 그 틈에서 바람이 새어 나왔다.",
+      "sourceHash": "8953616a085ce1a4f3cef0f02977e20da3b47ad964b0d6d77c4a072928ff9820",
+      "t": "Beneath the laurel wreath, a narrow gap stood between the cards. Wide enough for one more card. Wind leaked through it."
+    },
+    {
+      "id": "ep-45:97",
+      "source": "[ 23 · THE DOOR ]",
+      "sourceHash": "ba51a3f7437711cd7f36513c2edf7ec5dea6e8bed9e340c252e956db6dd385de",
+      "t": "[ 23 · THE DOOR ]"
+    },
+    {
+      "id": "ep-45:98",
+      "source": "틈 위로 글자가 떠올랐다가 사라졌다. 연이는 그 글자를 본 적이 있었다. 첫날 밤 방 안에서, 이 모든 일이 시작되기 전에.",
+      "sourceHash": "5553a36353b0bf97f981ac0f102eb1e10fa5f4e54f2112fba1c7b1b026baf1de",
+      "t": "Letters appeared above the gap, then vanished. Yeoni had seen them before. In their room on the first night, before all this began."
+    },
+    {
+      "id": "ep-45:99",
+      "source": "저 문. 나 저 문 알아. 내 방에 있던 거.",
+      "sourceHash": "37aa253c9a9708887d627935e791dcc71def8ecc3908bde43e9890d7f1e32b55",
+      "t": "That door. I know that door. It was in my room."
+    },
+    {
+      "id": "ep-45:100",
+      "source": "틈이 벌어지자 문이 나타났다. 나무 문이었다. 손잡이가 낡았고 문패 자리는 비어 있었다. 아무 이름도 적혀 있지 않았다.",
+      "sourceHash": "a44cc43f908ab0990a45ae833c72f28b584a0f79954c3271b09b5bc3053030e5",
+      "t": "The gap widened, revealing a wooden door. Its handle was worn; the place for a nameplate was blank. No name at all."
+    },
+    {
+      "id": "ep-45:101",
+      "source": "이번엔 문패가 비었네요. 읽을 것도 없어요.",
+      "sourceHash": "e09c1a1d0610d5d987cb5a5c99a7c6d3ccccd354074bd174ae0a8b23e0aec308",
+      "t": "An empty nameplate this time. Nothing to read."
+    },
+    {
+      "id": "ep-45:102",
+      "source": "그게 더 무섭다, 얘.",
+      "sourceHash": "cf9ec70b081dad503819e4b89da8a07507dbbe0b4d01fcdd4021eafe09a7f805",
+      "t": "That's scarier, kid."
+    },
+    {
+      "id": "ep-45:103",
+      "source": "윤달이 문 앞에 섰다. 장갑을 벗었다. 손바닥의 검은 원이 문 쪽으로 기울었다. 물이 아래로 흐르듯이.",
+      "sourceHash": "1c46136052498be89cf959ab88f8b4d817b99f36b045afff0caa55d311666218",
+      "t": "Yundal stood before the door and removed his glove. The black circle in his palm tilted toward it, like water flowing downhill."
+    },
+    {
+      "id": "ep-45:104",
+      "source": "이 너머, 제 손바닥이랑 같은 냄새가 나요. 비어 있는 냄새.",
+      "sourceHash": "e4e881e59552cbfb043b9d735c975fc3d595ff8077cdeec7caf0da6719bd01e9",
+      "t": "Beyond this, it smells like my palm. The smell of emptiness."
+    },
+    {
+      "id": "ep-45:105",
+      "source": "공망이에요. 흑월의 집이에요. 그리고 아마, 고양이님이 있는 곳이에요.",
+      "sourceHash": "88490b6dfe46823d64fc4c85b416e586a2fe93214ded1a929692b820c9894ca2",
+      "t": "The Void. Black Moon's home. And probably where Mr. Cat is."
+    },
+    {
+      "id": "ep-45:106",
+      "source": "그럼 열어.",
+      "sourceHash": "fe59b482039551976e38e851a9aa685183c819c6766959139baafdfc0c16fe98",
+      "t": "Then open it."
+    },
+    {
+      "id": "ep-45:107",
+      "source": "단호하시네. 들어가면 다섯 하늘이 다 거기로 무너져요. 각오는요?",
+      "sourceHash": "61f6260b9b3e3161b265569a062a96ea0c586ab784c154934b42164baeee01ac",
+      "t": "Very decisive. Once we enter, all five skies collapse into it. Are you ready?"
+    },
+    {
+      "id": "ep-45:108",
+      "source": "메모에 써 놨어. 기억 안 나도 감.",
+      "sourceHash": "eb74d3d4fbab8a2520fd5889dacdac02e851421e8937156d0f648b7766d84170",
+      "t": "I wrote it in my note. Going, even without remembering."
+    },
+    {
+      "id": "ep-45:109",
+      "source": "연이가 손잡이를 잡았다. 차가웠다. 그때 문 너머에서 소리가 들렸다. 아주 작게, 그러나 분명하게.",
+      "sourceHash": "a4c904362cbbc5a5479ef92eaa17f52166cb46cdb5068138788e16f1f8d59aef",
+      "t": "Yeoni gripped the handle. Cold. Then came a sound from the other side. Very faint, but unmistakable."
+    },
+    {
+      "id": "ep-45:110",
+      "source": "「양말. 짝 맞춰 신어라.」",
+      "sourceHash": "3ef267eaed2bae4c6f1def7dc41bb3c27b784133257a761af9e82a62403d96a3",
+      "t": "“Your socks. Wear matching ones.”"
+    },
+    {
+      "id": "ep-45:111",
+      "source": "연이의 손이 손잡이 위에서 굳었다. 누구의 목소리인지 몰랐다. 그런데 눈물이 먼저 났다. 연이는 자기 발을 내려다보았다. 짝이 다른 양말이었다.",
+      "sourceHash": "68023046c20c6f757b2f4fdcc511c4b7d677aa127b05962de6c60451d597d08e",
+      "t": "Yeoni's hand froze on the handle. They didn't know whose voice it was. But the tears came first. They looked down at their feet. Mismatched socks."
+    }
+  ]
+}

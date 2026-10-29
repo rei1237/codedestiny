@@ -1,0 +1,456 @@
+{
+  "locale": "en",
+  "episodeId": "ep-21a",
+  "tag": "EP.21A · The Forgotten Name",
+  "title": "The Forgotten Name",
+  "sourceTitle": "기억하지 못한 이름",
+  "sourceTag": "EP.21A · 기억하지 못한 이름",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-21a:1",
+      "source": "영냥이는 잠든 방을 소리 없이 빠져나왔다. 문을 닫기 전에 한 번 뒤를 돌아보았다. 연이는 이불을 차 낸 채 입을 벌리고 자고 있었다.",
+      "sourceHash": "a71ea59a4b8cfa66bae116aee8fcef92afebd48c50891c4c335412e34a5dcbb0",
+      "t": "Yeongnyangi slipped silently out of the sleeping room. Before closing the door, he looked back once. Yeoni slept with their mouth open, having kicked away the blanket."
+    },
+    {
+      "id": "ep-21a:2",
+      "source": "이불은 덮고 자라. 감기 걸리면 또 고객센터 탓을 하겠지.",
+      "sourceHash": "a251a11ef8ea52e1fb5fc7bbdbc25182a969c9376da4a822a4df0441dc33f7d3",
+      "t": "Keep your blanket on. Catch a cold, and you'll blame Customer Support again."
+    },
+    {
+      "id": "ep-21a:3",
+      "source": "그는 앞발로 이불 끝을 물어 연이의 어깨까지 끌어 올렸다. 연이가 뒤척이며 그 앞발을 베개처럼 끌어안았다.",
+      "sourceHash": "601b0920a1a627e342a0cffae0ec3c2962ae3cc104f3b7978627828db8e23906",
+      "t": "He caught the blanket's edge with his paw and pulled it up to Yeoni's shoulders. Turning in their sleep, Yeoni hugged that paw like a pillow."
+    },
+    {
+      "id": "ep-21a:4",
+      "source": "놔라. 나는 베개가 아니다.",
+      "sourceHash": "b618d21a17e34911a6a23a309da559e515e839dbad7e013c2b0d71d6d1b7fb6b",
+      "t": "Let go. I'm not a pillow."
+    },
+    {
+      "id": "ep-21a:5",
+      "source": "연이는 놓지 않았다. 영냥이는 한참을 그렇게 엎드려 있다가, 아주 천천히 앞발을 빼냈다. 그 자리에 책 한 권을 대신 밀어 넣었다.",
+      "sourceHash": "91cd8b34bddd96a030a07afbea020f7ea2a29e376c25d6b5765d7440b787ce07",
+      "t": "Yeoni did not let go. Yeongnyangi lay there for a long time, then very slowly freed his paw. He slid a book into its place."
+    },
+    {
+      "id": "ep-21a:6",
+      "source": "미안하다. 오늘은 그 책이 대신 고객센터다.",
+      "sourceHash": "769c2c5cc101692d1aa89a49fa00b8e8dd0aa5edffb3325637f0f996cb65efbf",
+      "t": "Sorry. That book is Customer Support for today."
+    },
+    {
+      "id": "ep-21a:7",
+      "source": "대답은 없었다. 대신 연이가 잠꼬대로 별 하나, 하고 중얼거렸다. 영냥이는 아주 작게 웃었다.",
+      "sourceHash": "f9c7239a4d0f2f8cee6363d8e5ac390406cda3225de0b40813ff675e6c9490c4",
+      "t": "There was no answer. Instead, Yeoni mumbled one star in their sleep. Yeongnyangi smiled very faintly."
+    },
+    {
+      "id": "ep-21a:8",
+      "source": "계단을 오르다 그는 벽에 어깨를 기댔다. 왼발이 또 말을 듣지 않았다.",
+      "sourceHash": "baa7a311a23a8f85b06afdf892d08256ffcc56696bc94070381611f8fa03ccd9",
+      "t": "Climbing the stairs, he leaned a shoulder against the wall. His left paw refused to obey again."
+    },
+    {
+      "id": "ep-21a:9",
+      "source": "앞발을 들어 보았다. 그을린 자국 위로 붉은 녹이 번져 있었다. 물에 빠진 뒤로 녹은 하루에 한 마디씩 자랐다.",
+      "sourceHash": "36710537a792287f22b227c5301deb15ee0e6c3cb055cf663aee63019c2eb273",
+      "t": "He lifted it to look. Red rust spread over the scorch marks. Since his plunge into the water, it had grown one finger joint a day."
+    },
+    {
+      "id": "ep-21a:10",
+      "source": "불에는 그을리고 물에는 녹슬고. 쇠도 손이 많이 가네.",
+      "sourceHash": "b5589601d5a8e9452611a29b5cdcf060bdfd3551644c3e23d632701b357bac4f",
+      "t": "Scorched by fire, rusted by water. Iron needs quite a lot of care, too."
+    },
+    {
+      "id": "ep-21a:11",
+      "source": "그는 녹을 망토 자락으로 덮었다. 내일 아침에도 연이가 보지 못하게. 모카와 윤달에게는 이미 들켰지만, 그 둘은 입이 무거웠다.",
+      "sourceHash": "b816118de39ba891c4bd8b4a121987515149a9ef5556657eda0a0538e49be375",
+      "t": "He covered the rust with his cloak. So Yeoni wouldn't see it tomorrow morning, either. Moka and Yundal had already noticed, but both could keep a secret."
+    },
+    {
+      "id": "ep-21a:12",
+      "source": "아니, 수달은 무겁지 않았다. 오늘 오후 그 꼬리가 다 말해 버렸을 것이다.",
+      "sourceHash": "da27433263a122ac5fe75bec51726ec0af4f8318e3be5ccac27a5778967cce22",
+      "t": "No, the otter couldn't. That tail had probably told everything this afternoon."
+    },
+    {
+      "id": "ep-21a:13",
+      "source": "계단 창으로 비 냄새가 흘러들었다. 그 냄새를 맡을 때마다 영냥이의 머릿속에서 무언가가 덜컥 열렸다가 닫혔다.",
+      "sourceHash": "5420ec372b40d22744bc50b37ca60038d419265331ee96c158126260f4d224b9",
+      "t": "The smell of rain drifted through the stairwell window. Whenever he caught it, something in Yeongnyangi's mind rattled open, then shut."
+    },
+    {
+      "id": "ep-21a:14",
+      "source": "비 오는 정류장. 낡은 지붕 아래로 빗물이 줄을 이어 떨어졌다.",
+      "sourceHash": "dd5e583783d32fa37de4ade877c3f41f2c0ed55360704b0642bb11c2638e7ad6",
+      "t": "A bus stop in the rain. Water falling in strings from an old roof."
+    },
+    {
+      "id": "ep-21a:15",
+      "source": "누군가의 손이 우산을 들고 있었다. 작은 손이었다. 우산은 반쯤 기울어 옆 사람 쪽으로 가 있었다.",
+      "sourceHash": "2aee3c3a3fa6f5229b55e9119dacff4635622782bf492a1f03760a0c0d074af3",
+      "t": "Someone's hand held an umbrella. A small hand. The umbrella tilted halfway toward the person beside it."
+    },
+    {
+      "id": "ep-21a:16",
+      "source": "우산 아래에서 누군가 웃었다. 비를 맞으면서, 바보처럼, 아주 즐겁게.",
+      "sourceHash": "63bbf5a435c381317c78117aeba80a201168b54a07c64d4cb23224ccff905dcf",
+      "t": "Beneath it, someone laughed. In the rain, like a fool, utterly happy."
+    },
+    {
+      "id": "ep-21a:17",
+      "source": "같이 쓰자. 기억 속에서 누군가 그렇게 말했다. 영냥이는 그 목소리를 붙잡으려 했지만, 손에 잡히는 것은 빗물뿐이었다.",
+      "sourceHash": "b9c91e8ae2200cdd5dd5c764080479db8d6926a24cdd5eccd6b94353401fd030",
+      "t": "Let's share. Someone said it in his memory. Yeongnyangi tried to catch the voice, but only rainwater filled his grasp."
+    },
+    {
+      "id": "ep-21a:18",
+      "source": "영냥이는 이마를 차가운 벽에 댔다. 기억은 언제나 거기까지였다. 우산을 든 손. 그 손이 누구의 것이었는지, 그 옆에 누가 서 있었는지.",
+      "sourceHash": "6615edfd076ab9da5bf658d2b131a6f93a3031be184df0bff3162de8fc37d4f2",
+      "t": "He pressed his forehead to the cold wall. The memory always ended there. The hand holding the umbrella. Whose hand it was, who stood beside it."
+    },
+    {
+      "id": "ep-21a:19",
+      "source": "이름만 알면 될 텐데.",
+      "sourceHash": "4ade026be9a666f8ed35361ecb4104e764b089f40febec71d140b79f8222704b",
+      "t": "If only I knew the name."
+    },
+    {
+      "id": "ep-21a:20",
+      "source": "[ 계약 조항 제1조 · 수호자는 자기 이름을 말할 수 없다 · 이름이 불리는 순간 계약은 끝난다 ]",
+      "sourceHash": "f8f233f364ae8b03d23488a6668d510f51c553b2ed4a9526adf5d28c111e44f5",
+      "t": "[ Contract, Article 1 · The guardian may not speak his own name · The moment the name is called, the contract ends ]"
+    },
+    {
+      "id": "ep-21a:21",
+      "source": "눈앞에 금빛 글자가 떠올랐다가 사라졌다. 고객센터의 규칙이었다. 처음 이 일을 맡을 때 그가 직접 서명한 규칙이었다.",
+      "sourceHash": "dd606b1356d257206591e92158d4133d102d1d32970f30414389e01dbbf947d7",
+      "t": "Golden letters appeared before his eyes, then vanished. Customer Support's rules. The rules he had personally signed when he first took the job."
+    },
+    {
+      "id": "ep-21a:22",
+      "source": "알아. 잊은 적 없어.",
+      "sourceHash": "29a70076f1f118c0ef1c12b922d353e24861d0a5bbbe42ef451450b022148c2a",
+      "t": "I know. I've never forgotten."
+    },
+    {
+      "id": "ep-21a:23",
+      "source": "자기 이름이 무엇이었는지는 잊었다. 그러나 그 이름을 버리고 무엇을 얻기로 했는지는 잊지 않았다.",
+      "sourceHash": "005b036d0400d81365d7fad8a31d9dce5b0f959d4a550a040d9dab84a47dbfe5",
+      "t": "He had forgotten what his name was. But he had not forgotten what he had agreed to gain by giving it up."
+    },
+    {
+      "id": "ep-21a:24",
+      "source": "한 번만 더. 이번에는 끝까지 옆에서.",
+      "sourceHash": "add9af54a606d7e42928371ebb758334b85688300fcf9944d6b5e89aaa2d7d68",
+      "t": "Just once more. This time, by your side until the end."
+    },
+    {
+      "id": "ep-21a:25",
+      "source": "그는 계단 창에 비친 자기 모습을 보았다. 남색 모자, 금빛으로 번지는 보랏빛 눈, 녹슨 앞발. 모자 쓴 고양이의 얼굴이었다.",
+      "sourceHash": "67a92d8aa893b8836b66b24e1e8c4c18835ea9fc80f5089fe2275d76ec2381e2",
+      "t": "He looked at his reflection in the stairwell window. Navy hat, violet eyes spreading into gold, rusted paw. The face of a cat in a hat."
+    },
+    {
+      "id": "ep-21a:26",
+      "source": "이 얼굴로 처음 눈을 떴을 때, 그 애는 나를 보고 그냥 고양이냐고 물었지.",
+      "sourceHash": "9dcb2e261f3d33a2cda0ca8aecfa953fa4fb8cb08400d401dd7e61285bb85bb0",
+      "t": "When I first opened my eyes with this face, you looked at me and asked if I was just a cat."
+    },
+    {
+      "id": "ep-21a:27",
+      "source": "그리고 별점을 매겼다. 하나. 영냥이는 그날 받은 별 하나를 아직도 정확히 기억했다. 자기 이름은 기억하지 못하면서.",
+      "sourceHash": "bd5932ce897c9cef9653ffbf1bde6bf2c3f568db2d3ed0920c0023d25771446b",
+      "t": "And gave him a star rating. One. Yeongnyangi still remembered that one star exactly, though he could not remember his own name."
+    },
+    {
+      "id": "ep-21a:28",
+      "source": "지붕 위는 바람이 셌다. 반쯤 먹힌 해가 밤하늘에 걸려 있었다. 낮도 밤도 아닌 하늘이었다.",
+      "sourceHash": "c7106ded3b905f1b28903882351e2385802585bebed6b9c47716d9483ea95884",
+      "t": "The wind was strong on the roof. A half-eaten sun hung in the night sky. A sky that was neither day nor night."
+    },
+    {
+      "id": "ep-21a:29",
+      "source": "지붕 끝에 검은 호랑이가 앉아 있었다. 마치 처음부터 그를 기다린 것처럼.",
+      "sourceHash": "c35dadb3d76c5027e1bd22559c76146ebcf572b504661c7554055817b1ce47a3",
+      "t": "The black tiger sat at the roof's edge, as though it had been waiting for him all along."
+    },
+    {
+      "id": "ep-21a:30",
+      "source": "늦었네, 고양이.",
+      "sourceHash": "114644d2fc5db3ff54a38507bb9e3ae83695e911209b6ad96490568cc8dcd466",
+      "t": "You're late, cat."
+    },
+    {
+      "id": "ep-21a:31",
+      "source": "비 냄새가 나서 와 봤다. 이번엔 누구 책을 훔치러 왔지.",
+      "sourceHash": "85e9375adfcb51dff525c03e2d6facb656e929d8594b15f4426ad94c9afe0037",
+      "t": "I smelled rain and came to look. Whose book are you here to steal this time?"
+    },
+    {
+      "id": "ep-21a:32",
+      "source": "오늘은 일하러 온 거 아니야. 너한테 할 말이 있어서.",
+      "sourceHash": "ef18ed9bafdea07a9c7f682861bdbd1ca5ce34c41b681cf440bf377090ddb4b9",
+      "t": "I'm not here to work today. I have something to tell you."
+    },
+    {
+      "id": "ep-21a:33",
+      "source": "돼지한테는 반말, 나한테도 반말. 존댓말은 누구한테 쓰지.",
+      "sourceHash": "a9a4967bcf16c7ad455c6f55181e3a52b517bc869b7fee3baa59c9e02dbb0dfb",
+      "t": "No politeness for the pig, none for me. Who do you speak politely to?"
+    },
+    {
+      "id": "ep-21a:34",
+      "source": "쓸데없는 질문 하지 마.",
+      "sourceHash": "70187bd913e27f838ed933b0a6185f2d1f03bf73f1f52ebd6545614b7d6035bf",
+      "t": "Don't ask pointless questions."
+    },
+    {
+      "id": "ep-21a:35",
+      "source": "장부 주인한테 쓰나. 그 목소리한테.",
+      "sourceHash": "e27c51fac34b9648c842df1de37b29375dae37a5fbc446b923e884a9adcb5de6",
+      "t": "The ledger's owner? That voice?"
+    },
+    {
+      "id": "ep-21a:36",
+      "source": "입 다물어. 그 목소리는 지금도 듣고 있어.",
+      "sourceHash": "918d8ac2e62b26a1062e7a8e9a6d34f14e9ca30201d1a06092231fca33ef37be",
+      "t": "Shut up. That voice is listening even now."
+    },
+    {
+      "id": "ep-21a:37",
+      "source": "호랑이가 하늘을 힐끗 올려다보았다. 반쯤 먹힌 해의 검은 쪽이 아주 느리게 꿈틀거렸다.",
+      "sourceHash": "89900abd6964d4c8441ff9e78b102cec2da6ebbce247d2ca9d1fb061539ce49b",
+      "t": "The tiger glanced at the sky. The black half of the eaten sun writhed very slowly."
+    },
+    {
+      "id": "ep-21a:38",
+      "source": "호랑이의 붉은 눈이 영냥이의 왼발로 내려갔다. 망토 자락으로 덮어 둔 녹을 정확히 찾아냈다.",
+      "sourceHash": "ec42a7d6e6022ae2498d45923fc87cf8a1544ac12d8ba9fe7ee7e461cdefb59d",
+      "t": "Its red eyes lowered to Yeongnyangi's left paw, finding the rust hidden beneath his cloak precisely."
+    },
+    {
+      "id": "ep-21a:39",
+      "source": "그 발. 하루에 한 마디씩 번지지.",
+      "sourceHash": "e73af28a7156100c37d37ab637b1717bd6529e23cf6b99deeca0473a7c37e37e",
+      "t": "That paw. Spreading a joint a day, isn't it?"
+    },
+    {
+      "id": "ep-21a:40",
+      "source": "어떻게 알지.",
+      "sourceHash": "b5a865c742142b9f28e8eebfad3408f6eea07eab9b79f9d152558205afe289be",
+      "t": "How do you know?"
+    },
+    {
+      "id": "ep-21a:41",
+      "source": "장부에 다 적혀. 네가 그 애 옆에서 다칠 때마다, 그 애 쪽 칸이 한 줄씩 무거워져.",
+      "sourceHash": "99f808ec24c58080b54fa0d6939ffab102ca8014670fdbc798895ec9870c7b06",
+      "t": "It's all in the ledger. Every time you're hurt beside that child, the child's column grows heavier by a line."
+    },
+    {
+      "id": "ep-21a:42",
+      "source": "그 애 칸은 건드리지 마.",
+      "sourceHash": "89f2e9e14083124bb91308eb6b32773158e197f7ec17160eba661d490cc7b83d",
+      "t": "Keep your paws off that column."
+    },
+    {
+      "id": "ep-21a:43",
+      "source": "건드리는 건 내가 아니야. 너야. 그 애 불이 커질수록 넌 녹고, 네가 버틸수록 그 애는 작아져.",
+      "sourceHash": "5d97aa2d779b8dd048a076fbfcf17d9f89523d6997d018e43739b7bb046ff259",
+      "t": "I'm not the one touching it. You are. The stronger that child's fire grows, the more you melt. And the longer you hold on, the smaller that child becomes."
+    },
+    {
+      "id": "ep-21a:44",
+      "source": "영냥이는 대답하지 않았다. 반박할 말이 없다는 것을 둘 다 알고 있었다.",
+      "sourceHash": "47b0e108530468b59a31416d7ff0e3e1e96c781d923e55acefdc1836a42fb3b7",
+      "t": "Yeongnyangi said nothing. They both knew he had no answer."
+    },
+    {
+      "id": "ep-21a:45",
+      "source": "떠나. 지금 떠나면 그 애는 일곱 칸으로 살 수 있어.",
+      "sourceHash": "ef65dfdc877d31b217705b26c5dd8b2eafb23b226d47c0b97839171040dc1fd2",
+      "t": "Leave. Leave now, and that child can live with seven slots."
+    },
+    {
+      "id": "ep-21a:46",
+      "source": "일곱 칸이면 그릇이 된다. 너도 알 텐데.",
+      "sourceHash": "76ccd7cef287a27823da2facfa9ab1ecfb6745b4ce5f96b908d5b7cdcd2862b1",
+      "t": "Seven slots make a vessel. You know that, too."
+    },
+    {
+      "id": "ep-21a:47",
+      "source": "너, 그걸 어떻게.",
+      "sourceHash": "42bdd4178304f60ae9ca7d4834e5916b83f29c1f0e34dffff061f812fa0956dd",
+      "t": "How do you know about that?"
+    },
+    {
+      "id": "ep-21a:48",
+      "source": "나도 장부는 못 봐도 하늘은 본다. 저 먹힌 해가 원하는 게 뭔지쯤은.",
+      "sourceHash": "9cee375a116331bf0c163e1b9190d0078f739a7866e2c832f7e630f3b76110f0",
+      "t": "I can't read the ledger, but I can read the sky. Enough to know what that eaten sun wants."
+    },
+    {
+      "id": "ep-21a:49",
+      "source": "빗방울이 둘 사이에 떨어지기 시작했다. 하늘은 맑은데 둘이 선 자리에만 비가 내렸다.",
+      "sourceHash": "e43a859db6299ad834aaae6e017b60f03518b71d5768aa59c832ecd07bd2ba7a",
+      "t": "Raindrops began falling between them. The sky was clear, but rain fell only where they stood."
+    },
+    {
+      "id": "ep-21a:50",
+      "source": "그런데 네 비 냄새, 전에 맡아 본 것 같아.",
+      "sourceHash": "3c84abeae320ee0b16c48ef8e80e747398078820d366a7cad9a97de82518f036",
+      "t": "And your rain. I think I've smelled it before."
+    },
+    {
+      "id": "ep-21a:51",
+      "source": "착각이야.",
+      "sourceHash": "0b0f58a2172a5380b69465a2b06cc23626c98ac7ccf47720fb154d940c62c326",
+      "t": "You're imagining it."
+    },
+    {
+      "id": "ep-21a:52",
+      "source": "우산. 정류장. 같이 쓰자는 말.",
+      "sourceHash": "b07aadd42fd07c324688389f05ac8cfe1d2a4b009257cc5b26484dc5c38d5c99",
+      "t": "An umbrella. A bus stop. An offer to share."
+    },
+    {
+      "id": "ep-21a:53",
+      "source": "호랑이의 꼬리가 바닥을 세게 쳤다. 빗물이 튀어 올랐다.",
+      "sourceHash": "1eabd178bc77b4e3cf24853afd8927bab659a379f459c01bfc3fea313a309cb0",
+      "t": "The tiger's tail struck the roof hard. Rainwater splashed upward."
+    },
+    {
+      "id": "ep-21a:54",
+      "source": "그 얘기 하지 마. 너는 그 봄 얘기 할 자격 없어.",
+      "sourceHash": "2bb7cd2076ac729945947a6d5e50585db44e3094629fc86782c13b15f2019d5d",
+      "t": "Don't talk about that. You have no right to speak of that spring."
+    },
+    {
+      "id": "ep-21a:55",
+      "source": "그럼 맞군.",
+      "sourceHash": "1351f97b11435b082b4d45a60b5a2c32f0af6a7a785af5cd2dea185251f0007d",
+      "t": "Then I was right."
+    },
+    {
+      "id": "ep-21a:56",
+      "source": "우린 같은 봄에서 왔지.",
+      "sourceHash": "3a9b5b70efbccbe28fea474a6ae7e089a1dcc624f3d8c8890b1e0cf3b0daeaa0",
+      "t": "We came from the same spring."
+    },
+    {
+      "id": "ep-21a:57",
+      "source": "호랑이는 대답하지 않았다. 대신 앞발을 들어 목의 고리를 꽉 쥐었다. 고리는 아무 짓도 하지 않았는데도.",
+      "sourceHash": "16a1b299ab6d90e569ebce2905eff29efe2ff4f7db4ebb0f9e1bdef043d97c8c",
+      "t": "The tiger did not answer. Instead, it raised a paw and gripped the ring at its neck. Though the ring had done nothing."
+    },
+    {
+      "id": "ep-21a:58",
+      "source": "기억 안 나면서 아는 척하지 마. 그게 제일 잔인해.",
+      "sourceHash": "9cbb4236310e66104e5b3548c16e96eb8e1bfb06a98fbd8b4ec309bf341f284a",
+      "t": "Don't pretend to know when you can't remember. That's the cruelest thing of all."
+    },
+    {
+      "id": "ep-21a:59",
+      "source": "기억 안 난다. 그래서 묻는 거다.",
+      "sourceHash": "7b21ce8d19f7bb76875a520fb4ec43a9df87994a67e0baf6cd3ce7082896e16b",
+      "t": "I can't remember. That's why I'm asking."
+    },
+    {
+      "id": "ep-21a:60",
+      "source": "나는 다 기억나. 하나도 안 빼고. 그래서 이렇게 사는 거야.",
+      "sourceHash": "90cb3844f12f859d9ac46e9cd1f7f71293dfa1d929f08834a1cdbda388b9fe4a",
+      "t": "I remember everything. Every last thing. That's why I live like this."
+    },
+    {
+      "id": "ep-21a:61",
+      "source": "그 봄에 무슨 일이 있었지.",
+      "sourceHash": "0a28c4eaafcd4a61f46d9d209184eb6a11a026296f526de8050989491d0e9b74",
+      "t": "What happened that spring?"
+    },
+    {
+      "id": "ep-21a:62",
+      "source": "네가 지키겠다던 사람이 사라졌어. 그게 다야.",
+      "sourceHash": "8abce2f69ba57fa97ce96bb3d422830d3624ee6a768f9cfc7837109d959cbda3",
+      "t": "The person you said you'd protect disappeared. That's all."
+    },
+    {
+      "id": "ep-21a:63",
+      "source": "영냥이의 앞발이 움찔했다. 녹이 번진 자리가 갑자기 화끈거렸다. 기억은 없는데 몸이 먼저 아파했다.",
+      "sourceHash": "e2496c431575ffff4284d2cf237384d681142718da7dde9996e5709fedb96566",
+      "t": "Yeongnyangi's paw twitched. The rusted area suddenly burned. He had no memory, yet his body hurt before his mind could."
+    },
+    {
+      "id": "ep-21a:64",
+      "source": "그랬군. 그래서 이번엔 내가 이 일을 맡았나 보다.",
+      "sourceHash": "5ab6cd9bef1aaf6e417e3fee17f0735f2e593a812333b86ae79bf74eac082b31",
+      "t": "I see. That must be why I took this job this time."
+    },
+    {
+      "id": "ep-21a:65",
+      "source": "이번에도 똑같이 끝날 거야. 너는 또 늦고, 나는 또 혼자 남고.",
+      "sourceHash": "b477065ceed3ef9ae64a2e0b95acaec23aaf64d092802231193ec1a117b701d1",
+      "t": "It'll end the same way again. You'll be late again, and I'll be left alone again."
+    },
+    {
+      "id": "ep-21a:66",
+      "source": "묻지 마. 이름도 모르는 고양이한테 내가 왜 대답해.",
+      "sourceHash": "9828ee759a0624400ed8ccc1eed7dd3d02d5bbcfd27882b9db8ba64aa0e5860d",
+      "t": "Don't ask. Why should I answer a cat who doesn't even know his name?"
+    },
+    {
+      "id": "ep-21a:67",
+      "source": "그건 피차일반이군. 나도 네 이름을 모른다.",
+      "sourceHash": "cd4dbe92f7a2b993f4f09a8486a04e465e57a9dffbcbe3e8409a2eebb882ee55",
+      "t": "We're even, then. I don't know yours, either."
+    },
+    {
+      "id": "ep-21a:68",
+      "source": "바람이 불었다. 영냥이의 눈 깊은 곳에서 금빛이 번쩍 일었다가 사라졌다. 자기도 모르게 일어난 빛이었다.",
+      "sourceHash": "b24d3335254fc8eba75466fff968e240aa5a6c64465de70c5ef1ebb9b83becb0",
+      "t": "The wind blew. Deep in Yeongnyangi's eyes, gold flashed and vanished. A light that came without his knowing."
+    },
+    {
+      "id": "ep-21a:69",
+      "source": "너 지금 그 눈.",
+      "sourceHash": "a11b9b3153ec2d3b445a6684289d8511821c2825780b5c2ff4e7eb30f6d6e71d",
+      "t": "Those eyes just now."
+    },
+    {
+      "id": "ep-21a:70",
+      "source": "신경 쓰지 마라.",
+      "sourceHash": "5125e703aee35c7a946490a9bc4a2307d75333a2eb0d5ce9f752b3745b2af89f",
+      "t": "Ignore it."
+    },
+    {
+      "id": "ep-21a:71",
+      "source": "빈칸 앞에서도 그 눈이었지. 너 스스로도 모르는 거야, 아니면 모르는 척하는 거야.",
+      "sourceHash": "f1f625d48f0c50014ff498637fb5c3470fac9328ec8317f287be5a7f14821af9",
+      "t": "They were like that before the empty slot, too. Do you not know yourself, or are you pretending not to?"
+    },
+    {
+      "id": "ep-21a:72",
+      "source": "고객센터는 사적인 질문에 답하지 않는다.",
+      "sourceHash": "067afae793a2b7550587b83e3345eee62b46f5f94680e1fa8ac54ffeee353c29",
+      "t": "Customer Support does not answer personal questions."
+    },
+    {
+      "id": "ep-21a:73",
+      "source": "그때 아래쪽에서 창문 여는 소리가 났다. 아주 조심스럽게, 그러나 돼지답게 조금 시끄럽게.",
+      "sourceHash": "a75dab95211b5571f0c7e5dc8894b94006e7a3fa8e09b5fb487e202a1e2632af",
+      "t": "Then a window opened below. Very carefully, but a little noisily, as a pig would."
+    },
+    {
+      "id": "ep-21a:74",
+      "source": "하얀 고양이와 검은 호랑이는 동시에 고개를 돌렸다. 창틀에 분홍색 앞발 하나가 걸려 있었다.",
+      "sourceHash": "23d9d9d5c44169787d4acf1a4d080bc20e685f104e1fb2920ccaab0a6d0a06fe",
+      "t": "The white cat and the black tiger turned at the same moment. A pink hoof hooked over the window frame."
+    }
+  ]
+}

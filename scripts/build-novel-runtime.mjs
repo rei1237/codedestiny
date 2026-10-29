@@ -3,6 +3,8 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BEAT_FORMS, BEAT_MAX_LENGTH, BEAT_TONES, FORBIDDEN_STORY_NAMES } from "./lib/novel-constraints.mjs";
+import { localizeNovelRuntime } from './lib/novel-localized-runtime.mjs';
+import { NOVEL_LOCALES } from '../lib/stories/vn/locales.mjs';
 
 const ROOT = resolve(import.meta.dirname, "..");
 export const SOURCE_PATH = resolve(ROOT, "content/novel/episodes.source.json");
@@ -277,6 +279,12 @@ function writeJson(path, value, pretty = false) {
 }
 
 export function writeNovelRuntime(runtime = buildNovelPayload()) {
+  const uiCopy = JSON.parse(readFileSync(resolve(ROOT, 'content/novel/ui-copy.json'), 'utf8'));
+  for (const [key, values] of Object.entries(uiCopy.copy)) {
+    if (values.length !== 4 || values.some(value => typeof value !== 'string' || !value.trim())) throw new Error(`Incomplete novel UI copy: ${key}`);
+  }
+  mkdirSync(OUTPUT_DIR, { recursive: true });
+  writeFileSync(resolve(OUTPUT_DIR, 'ui-copy.js'), `/* Generated from content/novel/ui-copy.json. */\nwindow.NOVEL_UI_COPY=${JSON.stringify(uiCopy)};\n`, 'utf8');
   mkdirSync(CHUNK_DIR, { recursive: true });
   const wantedChunks = new Set(runtime.episodes.map((episode) => `${episode.id}.json`));
   for (const file of readdirSync(CHUNK_DIR)) {
@@ -301,6 +309,26 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
       path: `/data/novel/episodes/${episode.id}.json`,
     })),
   };
+  // Only complete, current manuscripts become selectable editions.
+  manifest.availableLocales = ['ko'];
+  for (const locale of NOVEL_LOCALES.filter(value => value !== 'ko')) {
+    const path = resolve(ROOT, 'content/novel/translations', `${locale}.json`);
+    if (!existsSync(path)) continue;
+    let translated;
+    try { translated = localizeNovelRuntime(runtime, JSON.parse(readFileSync(path, 'utf8'))); }
+    catch (error) { console.warn(`[novel:${locale}] unpublished: ${error.message}`); continue; }
+    const base = `/data/novel/${locale}`;
+    const localizedManifest = { ...manifest, locale, episodes: manifest.episodes.map((episode, index) => ({
+      ...episode, title: translated.episodes[index].title, tag: translated.episodes[index].tag,
+      ...(translated.episodes[index].ending ? { ending: translated.episodes[index].ending } : {}),
+      path: `${base}/episodes/${episode.id}.json`,
+    })) };
+    writeJson(resolve(OUTPUT_DIR, locale, 'manifest.json'), localizedManifest);
+    translated.episodes.forEach(episode => writeJson(resolve(OUTPUT_DIR, locale, 'episodes', `${episode.id}.json`), {
+      version: runtime.version, sourceHash: runtime.sourceHash, locale, ...episode,
+    }));
+    manifest.availableLocales.push(locale);
+  }
   writeJson(MANIFEST_PATH, manifest);
   runtime.episodes.forEach((episode) => writeJson(resolve(CHUNK_DIR, `${episode.id}.json`), {
     version: runtime.version,

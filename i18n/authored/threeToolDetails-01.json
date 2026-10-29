@@ -1,0 +1,695 @@
+{
+  "_comment": "Direct JA/CN/TW translations for the remaining numerology, Human Design and relationship tarot guide copy; English checked against canonical source.",
+  "_direct": {
+    "tarot_numerology": {
+      "feats.0": [
+        "一枚のカードでは話が途切れてしまうとき",
+        "一张牌无法展开完整脉络时",
+        "一張牌無法展開完整脈絡時"
+      ],
+      "feats.1": [
+        "今日の流れを、もう少し根拠とともに見たいとき",
+        "想更有依据地了解今日走势时",
+        "想更有依據地了解今日走勢時"
+      ],
+      "feats.2": [
+        "数字とカードを一緒に読みたいとき",
+        "想结合数字与牌面来解读时",
+        "想結合數字與牌面來解讀時"
+      ],
+      "premiumAudience.0": [
+        "数秘術に関心のある方",
+        "对数字命理感兴趣的人",
+        "對數字命理感興趣的人"
+      ],
+      "premiumAudience.1": [
+        "日々の流れを確かめたい方",
+        "想梳理每日走势的人",
+        "想梳理每日走勢的人"
+      ],
+      "premiumAudience.2": [
+        "タロットを、より構造的に読みたい方",
+        "想更有结构地阅读塔罗的人",
+        "想更有結構地閱讀塔羅的人"
+      ],
+      "answersQuestions.0": [
+        "今日の私に必要な姿勢は何でしょう？",
+        "今天我需要采取怎样的态度？",
+        "今天我需要採取怎樣的態度？"
+      ],
+      "answersQuestions.1": [
+        "生まれ持った数は何を語っていますか？",
+        "我的先天数字传达什么含义？",
+        "我的先天數字傳達什麼含義？"
+      ],
+      "answersQuestions.2": [
+        "今の流れは、どこへ向かっていますか？",
+        "当前的走势正朝向哪里？",
+        "當前的走勢正朝向哪裡？"
+      ],
+      "fallbackCta": [
+        "数秘術タロット5枚を開く",
+        "打开数字命理五张塔罗",
+        "打開數字命理五張塔羅"
+      ]
+    },
+    "human_design": {
+      "feats.0": [
+        "頑張っているのに、何度も疲れ切ってしまうとき",
+        "总是努力，却反复感到疲惫时",
+        "總是努力，卻反覆感到疲憊時"
+      ],
+      "feats.1": [
+        "どのように決めればよいか分からないとき",
+        "不知道该怎样做决定时",
+        "不知道該怎樣做決定時"
+      ],
+      "feats.2": [
+        "性格検査の結果がしっくりこないとき",
+        "觉得性格测试结果不太符合自己时",
+        "覺得性格測試結果不太符合自己時"
+      ],
+      "premiumAudience.0": [
+        "自分の決め方を知りたい方",
+        "想了解自己决策方式的人",
+        "想了解自己決策方式的人"
+      ],
+      "premiumAudience.1": [
+        "消耗するパターンを減らしたい方",
+        "想减少消耗性模式的人",
+        "想減少消耗性模式的人"
+      ],
+      "premiumAudience.2": [
+        "MBTI以外の自己理解の道具を探している方",
+        "寻找 MBTI 以外自我理解工具的人",
+        "尋找 MBTI 以外自我理解工具的人"
+      ],
+      "answersQuestions.0": [
+        "私はどのタイプですか？",
+        "我属于哪种类型？",
+        "我屬於哪種類型？"
+      ],
+      "answersQuestions.1": [
+        "どんな決め方が自分に合っていますか？",
+        "怎样的决策方式适合我？",
+        "怎樣的決策方式適合我？"
+      ],
+      "answersQuestions.2": [
+        "どこでエネルギーを消耗していますか？",
+        "我的精力在哪里被消耗？",
+        "我的精力在哪裡被消耗？"
+      ],
+      "fallbackCta": [
+        "無料でチャートを計算する",
+        "免费计算图表",
+        "免費計算圖表"
+      ]
+    },
+    "tarot_mindscan": {
+      "tagline": [
+        "五つの位置に主カードを置き、隠れた感情を読む補助カード五枚を重ねる10枚のリーディング。今の関係の温度差と、送る言葉のヒントを整理します。",
+        "在五个位置放置主牌，再叠加五张隐藏情绪辅助牌。这份十张牌解读梳理关系中的温差，以及此刻适合传达的话。",
+        "在五個位置放置主牌，再疊加五張隱藏情緒輔助牌。這份十張牌解讀梳理關係中的溫差，以及此刻適合傳達的話。"
+      ],
+      "feats.0": [
+        "言葉・心の内・ためらい・願い・現実の五つの位置",
+        "表面言语 · 内在感受 · 停顿 · 期待 · 现实，五个牌位",
+        "表面言語 · 內在感受 · 停頓 · 期待 · 現實，五個牌位"
+      ],
+      "feats.2": [
+        "78枚の正式なデッキから主カード5枚と補助カード5枚",
+        "从完整的78张牌组中抽取5张主牌与5张辅助牌",
+        "從完整的78張牌組中抽取5張主牌與5張輔助牌"
+      ],
+      "premiumChapters.0": [
+        "二人の距離をめぐる全体の流れ",
+        "关系距离的整体氛围",
+        "關係距離的整體氛圍"
+      ],
+      "premiumIntro": [
+        "質問に合わせて五つの位置を定め、表に出た言葉と内に残る気持ちを分けて読みます。",
+        "根据您写下的问题设置五个牌位，分别解读说出口的话与留在心里的感受。",
+        "根據您寫下的問題設置五個牌位，分別解讀說出口的話與留在心裡的感受。"
+      ],
+      "premiumAudience.0": [
+        "相手の本心を考える手がかりがほしい方",
+        "想探索对方真实感受的人",
+        "想探索對方真實感受的人"
+      ],
+      "premiumAudience.1": [
+        "次の連絡をどうするか決められない方",
+        "迟疑下一步该如何联系的人",
+        "遲疑下一步該如何聯絡的人"
+      ],
+      "premiumAudience.2": [
+        "関係の温度差を言葉で整理したい方",
+        "想用语言理清关系温差的人",
+        "想用語言理清關係溫差的人"
+      ],
+      "answersQuestions.0": [
+        "相手の言葉と気持ちには、どんな隔たりがありますか？",
+        "对方的话与内心感受之间有多大距离？",
+        "對方的話與內心感受之間有多大距離？"
+      ],
+      "answersQuestions.1": [
+        "今、関係が止まっているのはなぜでしょう？",
+        "这段关系现在停滞的原因是什么？",
+        "這段關係現在停滯的原因是什麼？"
+      ],
+      "analysisSteps.0.label": [
+        "質問を入力",
+        "输入问题",
+        "輸入問題"
+      ],
+      "analysisSteps.0.detail": [
+        "確かめたい関係と質問を書きます。",
+        "写下想了解的关系与问题。",
+        "寫下想了解的關係與問題。"
+      ],
+      "analysisSteps.1.label": [
+        "10枚を並べる",
+        "布置十张牌",
+        "布置十張牌"
+      ],
+      "analysisSteps.2.label": [
+        "距離を読み解く",
+        "解读关系距离",
+        "解讀關係距離"
+      ],
+      "faq.1.q": [
+        "補助カードとは何ですか？",
+        "辅助牌是什么？",
+        "輔助牌是什麼？"
+      ],
+      "fallbackCta": [
+        "関係の距離を読む",
+        "解读关系距离",
+        "解讀關係距離"
+      ]
+    }
+  },
+  "featureMarketing.tarot_numerology.feats.0": {
+    "ko": "카드 한 장으로는 이야기가 끊길 때",
+    "en": "When a single card leaves the story unfinished",
+    "ja": "一枚のカードでは話が途切れてしまうとき",
+    "zh-CN": "一张牌无法展开完整脉络时",
+    "zh-TW": "一張牌無法展開完整脈絡時",
+    "vi": "When a single card leaves the story unfinished",
+    "hi": "When a single card leaves the story unfinished",
+    "es": "When a single card leaves the story unfinished",
+    "fr": "When a single card leaves the story unfinished",
+    "de": "When a single card leaves the story unfinished",
+    "nl": "When a single card leaves the story unfinished",
+    "ms": "When a single card leaves the story unfinished"
+  },
+  "featureMarketing.tarot_numerology.feats.1": {
+    "ko": "오늘 흐름을 조금 더 근거 있게 보고 싶을 때",
+    "en": "When you want today's flow read with a bit more grounding",
+    "ja": "今日の流れを、もう少し根拠とともに見たいとき",
+    "zh-CN": "想更有依据地了解今日走势时",
+    "zh-TW": "想更有依據地了解今日走勢時",
+    "vi": "When you want today's flow read with a bit more grounding",
+    "hi": "When you want today's flow read with a bit more grounding",
+    "es": "When you want today's flow read with a bit more grounding",
+    "fr": "When you want today's flow read with a bit more grounding",
+    "de": "When you want today's flow read with a bit more grounding",
+    "nl": "When you want today's flow read with a bit more grounding",
+    "ms": "When you want today's flow read with a bit more grounding"
+  },
+  "featureMarketing.tarot_numerology.feats.2": {
+    "ko": "숫자와 카드를 함께 보고 싶을 때",
+    "en": "When you want numbers and cards seen together",
+    "ja": "数字とカードを一緒に読みたいとき",
+    "zh-CN": "想结合数字与牌面来解读时",
+    "zh-TW": "想結合數字與牌面來解讀時",
+    "vi": "When you want numbers and cards seen together",
+    "hi": "When you want numbers and cards seen together",
+    "es": "When you want numbers and cards seen together",
+    "fr": "When you want numbers and cards seen together",
+    "de": "When you want numbers and cards seen together",
+    "nl": "When you want numbers and cards seen together",
+    "ms": "When you want numbers and cards seen together"
+  },
+  "featureMarketing.tarot_numerology.premiumAudience.0": {
+    "ko": "수비학에 관심 있는 분",
+    "en": "Anyone interested in numerology",
+    "ja": "数秘術に関心のある方",
+    "zh-CN": "对数字命理感兴趣的人",
+    "zh-TW": "對數字命理感興趣的人",
+    "vi": "Anyone interested in numerology",
+    "hi": "Anyone interested in numerology",
+    "es": "Anyone interested in numerology",
+    "fr": "Anyone interested in numerology",
+    "de": "Anyone interested in numerology",
+    "nl": "Anyone interested in numerology",
+    "ms": "Anyone interested in numerology"
+  },
+  "featureMarketing.tarot_numerology.premiumAudience.1": {
+    "ko": "매일의 흐름을 짚고 싶은 분",
+    "en": "Anyone who wants a read on the daily flow",
+    "ja": "日々の流れを確かめたい方",
+    "zh-CN": "想梳理每日走势的人",
+    "zh-TW": "想梳理每日走勢的人",
+    "vi": "Anyone who wants a read on the daily flow",
+    "hi": "Anyone who wants a read on the daily flow",
+    "es": "Anyone who wants a read on the daily flow",
+    "fr": "Anyone who wants a read on the daily flow",
+    "de": "Anyone who wants a read on the daily flow",
+    "nl": "Anyone who wants a read on the daily flow",
+    "ms": "Anyone who wants a read on the daily flow"
+  },
+  "featureMarketing.tarot_numerology.premiumAudience.2": {
+    "ko": "타로를 조금 더 구조적으로 보고 싶은 분",
+    "en": "Anyone who wants tarot with a bit more structure",
+    "ja": "タロットを、より構造的に読みたい方",
+    "zh-CN": "想更有结构地阅读塔罗的人",
+    "zh-TW": "想更有結構地閱讀塔羅的人",
+    "vi": "Anyone who wants tarot with a bit more structure",
+    "hi": "Anyone who wants tarot with a bit more structure",
+    "es": "Anyone who wants tarot with a bit more structure",
+    "fr": "Anyone who wants tarot with a bit more structure",
+    "de": "Anyone who wants tarot with a bit more structure",
+    "nl": "Anyone who wants tarot with a bit more structure",
+    "ms": "Anyone who wants tarot with a bit more structure"
+  },
+  "featureMarketing.tarot_numerology.answersQuestions.0": {
+    "ko": "오늘 나에게 필요한 태도는 무엇인가요?",
+    "en": "What attitude do I need today?",
+    "ja": "今日の私に必要な姿勢は何でしょう？",
+    "zh-CN": "今天我需要采取怎样的态度？",
+    "zh-TW": "今天我需要採取怎樣的態度？",
+    "vi": "What attitude do I need today?",
+    "hi": "What attitude do I need today?",
+    "es": "What attitude do I need today?",
+    "fr": "What attitude do I need today?",
+    "de": "What attitude do I need today?",
+    "nl": "What attitude do I need today?",
+    "ms": "What attitude do I need today?"
+  },
+  "featureMarketing.tarot_numerology.answersQuestions.1": {
+    "ko": "내 타고난 수는 무엇을 말하나요?",
+    "en": "What does my life number say?",
+    "ja": "生まれ持った数は何を語っていますか？",
+    "zh-CN": "我的先天数字传达什么含义？",
+    "zh-TW": "我的先天數字傳達什麼含義？",
+    "vi": "What does my life number say?",
+    "hi": "What does my life number say?",
+    "es": "What does my life number say?",
+    "fr": "What does my life number say?",
+    "de": "What does my life number say?",
+    "nl": "What does my life number say?",
+    "ms": "What does my life number say?"
+  },
+  "featureMarketing.tarot_numerology.answersQuestions.2": {
+    "ko": "지금 흐름은 어디로 향하나요?",
+    "en": "Where is the current flow heading?",
+    "ja": "今の流れは、どこへ向かっていますか？",
+    "zh-CN": "当前的走势正朝向哪里？",
+    "zh-TW": "當前的走勢正朝向哪裡？",
+    "vi": "Where is the current flow heading?",
+    "hi": "Where is the current flow heading?",
+    "es": "Where is the current flow heading?",
+    "fr": "Where is the current flow heading?",
+    "de": "Where is the current flow heading?",
+    "nl": "Where is the current flow heading?",
+    "ms": "Where is the current flow heading?"
+  },
+  "featureMarketing.tarot_numerology.fallbackCta": {
+    "ko": "수비학 타로 5카드 열기",
+    "en": "Open the 5-card numerology tarot",
+    "ja": "数秘術タロット5枚を開く",
+    "zh-CN": "打开数字命理五张塔罗",
+    "zh-TW": "打開數字命理五張塔羅",
+    "vi": "Open the 5-card numerology tarot",
+    "hi": "Open the 5-card numerology tarot",
+    "es": "Open the 5-card numerology tarot",
+    "fr": "Open the 5-card numerology tarot",
+    "de": "Open the 5-card numerology tarot",
+    "nl": "Open the 5-card numerology tarot",
+    "ms": "Open the 5-card numerology tarot"
+  },
+  "featureMarketing.human_design.feats.0": {
+    "ko": "늘 애쓰는데 자꾸 지칠 때",
+    "en": "When you're always trying hard and always ending up drained",
+    "ja": "頑張っているのに、何度も疲れ切ってしまうとき",
+    "zh-CN": "总是努力，却反复感到疲惫时",
+    "zh-TW": "總是努力，卻反覆感到疲憊時",
+    "vi": "When you're always trying hard and always ending up drained",
+    "hi": "When you're always trying hard and always ending up drained",
+    "es": "When you're always trying hard and always ending up drained",
+    "fr": "When you're always trying hard and always ending up drained",
+    "de": "When you're always trying hard and always ending up drained",
+    "nl": "When you're always trying hard and always ending up drained",
+    "ms": "When you're always trying hard and always ending up drained"
+  },
+  "featureMarketing.human_design.feats.1": {
+    "ko": "결정을 어떻게 내려야 할지 모를 때",
+    "en": "When you don't know how you should be making decisions",
+    "ja": "どのように決めればよいか分からないとき",
+    "zh-CN": "不知道该怎样做决定时",
+    "zh-TW": "不知道該怎樣做決定時",
+    "vi": "When you don't know how you should be making decisions",
+    "hi": "When you don't know how you should be making decisions",
+    "es": "When you don't know how you should be making decisions",
+    "fr": "When you don't know how you should be making decisions",
+    "de": "When you don't know how you should be making decisions",
+    "nl": "When you don't know how you should be making decisions",
+    "ms": "When you don't know how you should be making decisions"
+  },
+  "featureMarketing.human_design.feats.2": {
+    "ko": "성격 검사 결과가 잘 안 맞을 때",
+    "en": "When personality-test results never quite fit",
+    "ja": "性格検査の結果がしっくりこないとき",
+    "zh-CN": "觉得性格测试结果不太符合自己时",
+    "zh-TW": "覺得性格測試結果不太符合自己時",
+    "vi": "When personality-test results never quite fit",
+    "hi": "When personality-test results never quite fit",
+    "es": "When personality-test results never quite fit",
+    "fr": "When personality-test results never quite fit",
+    "de": "When personality-test results never quite fit",
+    "nl": "When personality-test results never quite fit",
+    "ms": "When personality-test results never quite fit"
+  },
+  "featureMarketing.human_design.premiumAudience.0": {
+    "ko": "자기 결정 방식을 알고 싶은 분",
+    "en": "Anyone who wants to know how they decide",
+    "ja": "自分の決め方を知りたい方",
+    "zh-CN": "想了解自己决策方式的人",
+    "zh-TW": "想了解自己決策方式的人",
+    "vi": "Anyone who wants to know how they decide",
+    "hi": "Anyone who wants to know how they decide",
+    "es": "Anyone who wants to know how they decide",
+    "fr": "Anyone who wants to know how they decide",
+    "de": "Anyone who wants to know how they decide",
+    "nl": "Anyone who wants to know how they decide",
+    "ms": "Anyone who wants to know how they decide"
+  },
+  "featureMarketing.human_design.premiumAudience.1": {
+    "ko": "소모되는 패턴을 줄이고 싶은 분",
+    "en": "Anyone who wants to cut down on draining patterns",
+    "ja": "消耗するパターンを減らしたい方",
+    "zh-CN": "想减少消耗性模式的人",
+    "zh-TW": "想減少消耗性模式的人",
+    "vi": "Anyone who wants to cut down on draining patterns",
+    "hi": "Anyone who wants to cut down on draining patterns",
+    "es": "Anyone who wants to cut down on draining patterns",
+    "fr": "Anyone who wants to cut down on draining patterns",
+    "de": "Anyone who wants to cut down on draining patterns",
+    "nl": "Anyone who wants to cut down on draining patterns",
+    "ms": "Anyone who wants to cut down on draining patterns"
+  },
+  "featureMarketing.human_design.premiumAudience.2": {
+    "ko": "MBTI 외의 자기 이해 도구를 찾는 분",
+    "en": "Anyone looking for a self-understanding tool beyond MBTI",
+    "ja": "MBTI以外の自己理解の道具を探している方",
+    "zh-CN": "寻找 MBTI 以外自我理解工具的人",
+    "zh-TW": "尋找 MBTI 以外自我理解工具的人",
+    "vi": "Anyone looking for a self-understanding tool beyond MBTI",
+    "hi": "Anyone looking for a self-understanding tool beyond MBTI",
+    "es": "Anyone looking for a self-understanding tool beyond MBTI",
+    "fr": "Anyone looking for a self-understanding tool beyond MBTI",
+    "de": "Anyone looking for a self-understanding tool beyond MBTI",
+    "nl": "Anyone looking for a self-understanding tool beyond MBTI",
+    "ms": "Anyone looking for a self-understanding tool beyond MBTI"
+  },
+  "featureMarketing.human_design.answersQuestions.0": {
+    "ko": "저는 어떤 타입인가요?",
+    "en": "What type am I?",
+    "ja": "私はどのタイプですか？",
+    "zh-CN": "我属于哪种类型？",
+    "zh-TW": "我屬於哪種類型？",
+    "vi": "What type am I?",
+    "hi": "What type am I?",
+    "es": "What type am I?",
+    "fr": "What type am I?",
+    "de": "What type am I?",
+    "nl": "What type am I?",
+    "ms": "What type am I?"
+  },
+  "featureMarketing.human_design.answersQuestions.1": {
+    "ko": "결정은 어떻게 내리는 게 맞나요?",
+    "en": "How should I actually be making decisions?",
+    "ja": "どんな決め方が自分に合っていますか？",
+    "zh-CN": "怎样的决策方式适合我？",
+    "zh-TW": "怎樣的決策方式適合我？",
+    "vi": "How should I actually be making decisions?",
+    "hi": "How should I actually be making decisions?",
+    "es": "How should I actually be making decisions?",
+    "fr": "How should I actually be making decisions?",
+    "de": "How should I actually be making decisions?",
+    "nl": "How should I actually be making decisions?",
+    "ms": "How should I actually be making decisions?"
+  },
+  "featureMarketing.human_design.answersQuestions.2": {
+    "ko": "어디서 에너지가 새고 있나요?",
+    "en": "Where is my energy leaking?",
+    "ja": "どこでエネルギーを消耗していますか？",
+    "zh-CN": "我的精力在哪里被消耗？",
+    "zh-TW": "我的精力在哪裡被消耗？",
+    "vi": "Where is my energy leaking?",
+    "hi": "Where is my energy leaking?",
+    "es": "Where is my energy leaking?",
+    "fr": "Where is my energy leaking?",
+    "de": "Where is my energy leaking?",
+    "nl": "Where is my energy leaking?",
+    "ms": "Where is my energy leaking?"
+  },
+  "featureMarketing.human_design.fallbackCta": {
+    "ko": "무료로 차트 계산하기",
+    "en": "Calculate your chart for free",
+    "ja": "無料でチャートを計算する",
+    "zh-CN": "免费计算图表",
+    "zh-TW": "免費計算圖表",
+    "vi": "Calculate your chart for free",
+    "hi": "Calculate your chart for free",
+    "es": "Calculate your chart for free",
+    "fr": "Calculate your chart for free",
+    "de": "Calculate your chart for free",
+    "nl": "Calculate your chart for free",
+    "ms": "Calculate your chart for free"
+  },
+  "featureMarketing.tarot_mindscan.tagline": {
+    "ko": "다섯 자리에 메인 카드를 놓고 숨은 감정 보조 카드 다섯 장을 겹쳐, 지금 관계에 남은 온도차와 보내기 좋은 말까지 정리하는 10장 리딩입니다.",
+    "en": "A ten-card reading: five main positions with five hidden-feeling cards laid over them, mapping the gap in warmth left in the relationship and the words worth sending now.",
+    "ja": "五つの位置に主カードを置き、隠れた感情を読む補助カード五枚を重ねる10枚のリーディング。今の関係の温度差と、送る言葉のヒントを整理します。",
+    "zh-CN": "在五个位置放置主牌，再叠加五张隐藏情绪辅助牌。这份十张牌解读梳理关系中的温差，以及此刻适合传达的话。",
+    "zh-TW": "在五個位置放置主牌，再疊加五張隱藏情緒輔助牌。這份十張牌解讀梳理關係中的溫差，以及此刻適合傳達的話。",
+    "vi": "A ten-card reading: five main positions with five hidden-feeling cards laid over them, mapping the gap in warmth left in the relationship and the words worth sending now.",
+    "hi": "A ten-card reading: five main positions with five hidden-feeling cards laid over them, mapping the gap in warmth left in the relationship and the words worth sending now.",
+    "es": "A ten-card reading: five main positions with five hidden-feeling cards laid over them, mapping the gap in warmth left in the relationship and the words worth sending now.",
+    "fr": "A ten-card reading: five main positions with five hidden-feeling cards laid over them, mapping the gap in warmth left in the relationship and the words worth sending now.",
+    "de": "A ten-card reading: five main positions with five hidden-feeling cards laid over them, mapping the gap in warmth left in the relationship and the words worth sending now.",
+    "nl": "A ten-card reading: five main positions with five hidden-feeling cards laid over them, mapping the gap in warmth left in the relationship and the words worth sending now.",
+    "ms": "A ten-card reading: five main positions with five hidden-feeling cards laid over them, mapping the gap in warmth left in the relationship and the words worth sending now."
+  },
+  "featureMarketing.tarot_mindscan.feats.0": {
+    "ko": "겉말 · 마음결 · 멈춤 · 바람 · 현실 다섯 자리 배치",
+    "en": "Five positions: spoken words · inner grain · the stall · the wish · reality",
+    "ja": "言葉・心の内・ためらい・願い・現実の五つの位置",
+    "zh-CN": "表面言语 · 内在感受 · 停顿 · 期待 · 现实，五个牌位",
+    "zh-TW": "表面言語 · 內在感受 · 停頓 · 期待 · 現實，五個牌位",
+    "vi": "Five positions: spoken words · inner grain · the stall · the wish · reality",
+    "hi": "Five positions: spoken words · inner grain · the stall · the wish · reality",
+    "es": "Five positions: spoken words · inner grain · the stall · the wish · reality",
+    "fr": "Five positions: spoken words · inner grain · the stall · the wish · reality",
+    "de": "Five positions: spoken words · inner grain · the stall · the wish · reality",
+    "nl": "Five positions: spoken words · inner grain · the stall · the wish · reality",
+    "ms": "Five positions: spoken words · inner grain · the stall · the wish · reality"
+  },
+  "featureMarketing.tarot_mindscan.feats.2": {
+    "ko": "78장 정식 덱에서 뽑는 메인 5장과 보조 5장",
+    "en": "Five main and five support cards drawn from the full 78-card deck",
+    "ja": "78枚の正式なデッキから主カード5枚と補助カード5枚",
+    "zh-CN": "从完整的78张牌组中抽取5张主牌与5张辅助牌",
+    "zh-TW": "從完整的78張牌組中抽取5張主牌與5張輔助牌",
+    "vi": "Five main and five support cards drawn from the full 78-card deck",
+    "hi": "Five main and five support cards drawn from the full 78-card deck",
+    "es": "Five main and five support cards drawn from the full 78-card deck",
+    "fr": "Five main and five support cards drawn from the full 78-card deck",
+    "de": "Five main and five support cards drawn from the full 78-card deck",
+    "nl": "Five main and five support cards drawn from the full 78-card deck",
+    "ms": "Five main and five support cards drawn from the full 78-card deck"
+  },
+  "featureMarketing.tarot_mindscan.premiumChapters.0": {
+    "ko": "관계 간격의 전체 기류",
+    "en": "The overall current of the gap between you",
+    "ja": "二人の距離をめぐる全体の流れ",
+    "zh-CN": "关系距离的整体氛围",
+    "zh-TW": "關係距離的整體氛圍",
+    "vi": "The overall current of the gap between you",
+    "hi": "The overall current of the gap between you",
+    "es": "The overall current of the gap between you",
+    "fr": "The overall current of the gap between you",
+    "de": "The overall current of the gap between you",
+    "nl": "The overall current of the gap between you",
+    "ms": "The overall current of the gap between you"
+  },
+  "featureMarketing.tarot_mindscan.premiumIntro": {
+    "ko": "질문을 적어 넣으면 그 질문에 맞춰 다섯 자리를 세우고, 겉으로 보이는 말과 안에 남은 마음을 나눠 읽습니다.",
+    "en": "Write your question and the five positions are set to it, reading what was said aloud apart from what stayed inside.",
+    "ja": "質問に合わせて五つの位置を定め、表に出た言葉と内に残る気持ちを分けて読みます。",
+    "zh-CN": "根据您写下的问题设置五个牌位，分别解读说出口的话与留在心里的感受。",
+    "zh-TW": "根據您寫下的問題設置五個牌位，分別解讀說出口的話與留在心裡的感受。",
+    "vi": "Write your question and the five positions are set to it, reading what was said aloud apart from what stayed inside.",
+    "hi": "Write your question and the five positions are set to it, reading what was said aloud apart from what stayed inside.",
+    "es": "Write your question and the five positions are set to it, reading what was said aloud apart from what stayed inside.",
+    "fr": "Write your question and the five positions are set to it, reading what was said aloud apart from what stayed inside.",
+    "de": "Write your question and the five positions are set to it, reading what was said aloud apart from what stayed inside.",
+    "nl": "Write your question and the five positions are set to it, reading what was said aloud apart from what stayed inside.",
+    "ms": "Write your question and the five positions are set to it, reading what was said aloud apart from what stayed inside."
+  },
+  "featureMarketing.tarot_mindscan.premiumAudience.0": {
+    "ko": "상대의 진심을 확인하고 싶은 분",
+    "en": "People who want to check what the other person truly means",
+    "ja": "相手の本心を考える手がかりがほしい方",
+    "zh-CN": "想探索对方真实感受的人",
+    "zh-TW": "想探索對方真實感受的人",
+    "vi": "People who want to check what the other person truly means",
+    "hi": "People who want to check what the other person truly means",
+    "es": "People who want to check what the other person truly means",
+    "fr": "People who want to check what the other person truly means",
+    "de": "People who want to check what the other person truly means",
+    "nl": "People who want to check what the other person truly means",
+    "ms": "People who want to check what the other person truly means"
+  },
+  "featureMarketing.tarot_mindscan.premiumAudience.1": {
+    "ko": "연락의 다음 수를 고르지 못한 분",
+    "en": "People stuck on what to send next",
+    "ja": "次の連絡をどうするか決められない方",
+    "zh-CN": "迟疑下一步该如何联系的人",
+    "zh-TW": "遲疑下一步該如何聯絡的人",
+    "vi": "People stuck on what to send next",
+    "hi": "People stuck on what to send next",
+    "es": "People stuck on what to send next",
+    "fr": "People stuck on what to send next",
+    "de": "People stuck on what to send next",
+    "nl": "People stuck on what to send next",
+    "ms": "People stuck on what to send next"
+  },
+  "featureMarketing.tarot_mindscan.premiumAudience.2": {
+    "ko": "관계의 온도차를 말로 정리하고 싶은 분",
+    "en": "People who want the temperature gap put into words",
+    "ja": "関係の温度差を言葉で整理したい方",
+    "zh-CN": "想用语言理清关系温差的人",
+    "zh-TW": "想用語言理清關係溫差的人",
+    "vi": "People who want the temperature gap put into words",
+    "hi": "People who want the temperature gap put into words",
+    "es": "People who want the temperature gap put into words",
+    "fr": "People who want the temperature gap put into words",
+    "de": "People who want the temperature gap put into words",
+    "nl": "People who want the temperature gap put into words",
+    "ms": "People who want the temperature gap put into words"
+  },
+  "featureMarketing.tarot_mindscan.answersQuestions.0": {
+    "ko": "상대의 말과 마음은 얼마나 벌어져 있나요?",
+    "en": "How far apart are their words and their feelings?",
+    "ja": "相手の言葉と気持ちには、どんな隔たりがありますか？",
+    "zh-CN": "对方的话与内心感受之间有多大距离？",
+    "zh-TW": "對方的話與內心感受之間有多大距離？",
+    "vi": "How far apart are their words and their feelings?",
+    "hi": "How far apart are their words and their feelings?",
+    "es": "How far apart are their words and their feelings?",
+    "fr": "How far apart are their words and their feelings?",
+    "de": "How far apart are their words and their feelings?",
+    "nl": "How far apart are their words and their feelings?",
+    "ms": "How far apart are their words and their feelings?"
+  },
+  "featureMarketing.tarot_mindscan.answersQuestions.1": {
+    "ko": "지금 관계가 멈춰 있는 이유는 무엇인가요?",
+    "en": "Why has this relationship stalled?",
+    "ja": "今、関係が止まっているのはなぜでしょう？",
+    "zh-CN": "这段关系现在停滞的原因是什么？",
+    "zh-TW": "這段關係現在停滯的原因是什麼？",
+    "vi": "Why has this relationship stalled?",
+    "hi": "Why has this relationship stalled?",
+    "es": "Why has this relationship stalled?",
+    "fr": "Why has this relationship stalled?",
+    "de": "Why has this relationship stalled?",
+    "nl": "Why has this relationship stalled?",
+    "ms": "Why has this relationship stalled?"
+  },
+  "featureMarketing.tarot_mindscan.analysisSteps.0.label": {
+    "ko": "질문 입력",
+    "en": "Enter your question",
+    "ja": "質問を入力",
+    "zh-CN": "输入问题",
+    "zh-TW": "輸入問題",
+    "vi": "Enter your question",
+    "hi": "Enter your question",
+    "es": "Enter your question",
+    "fr": "Enter your question",
+    "de": "Enter your question",
+    "nl": "Enter your question",
+    "ms": "Enter your question"
+  },
+  "featureMarketing.tarot_mindscan.analysisSteps.0.detail": {
+    "ko": "확인하고 싶은 관계와 질문을 적습니다.",
+    "en": "You write down the relationship and the question you want looked at.",
+    "ja": "確かめたい関係と質問を書きます。",
+    "zh-CN": "写下想了解的关系与问题。",
+    "zh-TW": "寫下想了解的關係與問題。",
+    "vi": "You write down the relationship and the question you want looked at.",
+    "hi": "You write down the relationship and the question you want looked at.",
+    "es": "You write down the relationship and the question you want looked at.",
+    "fr": "You write down the relationship and the question you want looked at.",
+    "de": "You write down the relationship and the question you want looked at.",
+    "nl": "You write down the relationship and the question you want looked at.",
+    "ms": "You write down the relationship and the question you want looked at."
+  },
+  "featureMarketing.tarot_mindscan.analysisSteps.1.label": {
+    "ko": "10장 배치",
+    "en": "Lay ten cards",
+    "ja": "10枚を並べる",
+    "zh-CN": "布置十张牌",
+    "zh-TW": "布置十張牌",
+    "vi": "Lay ten cards",
+    "hi": "Lay ten cards",
+    "es": "Lay ten cards",
+    "fr": "Lay ten cards",
+    "de": "Lay ten cards",
+    "nl": "Lay ten cards",
+    "ms": "Lay ten cards"
+  },
+  "featureMarketing.tarot_mindscan.analysisSteps.2.label": {
+    "ko": "간격 해석",
+    "en": "Read the gap",
+    "ja": "距離を読み解く",
+    "zh-CN": "解读关系距离",
+    "zh-TW": "解讀關係距離",
+    "vi": "Read the gap",
+    "hi": "Read the gap",
+    "es": "Read the gap",
+    "fr": "Read the gap",
+    "de": "Read the gap",
+    "nl": "Read the gap",
+    "ms": "Read the gap"
+  },
+  "featureMarketing.tarot_mindscan.faq.1.q": {
+    "ko": "보조 카드는 무엇인가요?",
+    "en": "What are the support cards?",
+    "ja": "補助カードとは何ですか？",
+    "zh-CN": "辅助牌是什么？",
+    "zh-TW": "輔助牌是什麼？",
+    "vi": "What are the support cards?",
+    "hi": "What are the support cards?",
+    "es": "What are the support cards?",
+    "fr": "What are the support cards?",
+    "de": "What are the support cards?",
+    "nl": "What are the support cards?",
+    "ms": "What are the support cards?"
+  },
+  "featureMarketing.tarot_mindscan.fallbackCta": {
+    "ko": "관계 간격 읽기",
+    "en": "Read the gap",
+    "ja": "関係の距離を読む",
+    "zh-CN": "解读关系距离",
+    "zh-TW": "解讀關係距離",
+    "vi": "Read the gap",
+    "hi": "Read the gap",
+    "es": "Read the gap",
+    "fr": "Read the gap",
+    "de": "Read the gap",
+    "nl": "Read the gap",
+    "ms": "Read the gap"
+  }
+}

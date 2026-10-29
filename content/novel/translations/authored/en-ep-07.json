@@ -1,0 +1,816 @@
+{
+  "locale": "en",
+  "episodeId": "ep-07",
+  "tag": "Episode 7 · The Festival Where the Sun Stopped",
+  "title": "The Festival Where the Sun Stopped",
+  "sourceTitle": "해가 멈춘 축제",
+  "sourceTag": "제7화 · 해가 멈춘 축제",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-07:1",
+      "source": "해 질 녘의 축제 거리는 냄새부터 시끄러웠다. 설탕 굽는 냄새, 꼬치 타는 냄새, 북소리에 묻어나는 웃음.",
+      "sourceHash": "c0130e266501cf1895b552b4c4840a98f3d6d9fc83cd230af22f0ce7b4cd1df2",
+      "t": "At sunset, even the smells of the festival street were noisy. Browning sugar, charring skewers, laughter mingled with drumbeats."
+    },
+    {
+      "id": "ep-07:2",
+      "source": "영냥아. 나 결정했어. 이 섬에 뼈를 묻을래.",
+      "sourceHash": "9e0657b635b900dd5e82bad9ddc423a3e8db09cb52d8db38f23cfc4ae150e3b8",
+      "t": "Yeongnyangi. I've decided. I'm spending the rest of my life on this island."
+    },
+    {
+      "id": "ep-07:3",
+      "source": "도착한 지 한 시간도 안 됐다.",
+      "sourceHash": "5646769917764cdd9daae1d2f80d03d3cb8f3e742c2aa30f4fcb910825996cef",
+      "t": "We arrived less than an hour ago."
+    },
+    {
+      "id": "ep-07:4",
+      "source": "한 시간이면 충분해. 구름을 튀기는 섬이야. 여기가 천국이 아니면 어디가 천국이야.",
+      "sourceHash": "955705612eaa26a01b3fd84132c0e23e0ee8c43968cf32ba9599a0f2eb5bc970",
+      "t": "An hour is enough. They fry clouds here. If this isn't heaven, what is?"
+    },
+    {
+      "id": "ep-07:5",
+      "source": "연이의 앞발 사이에는 구름 튀김 반쪽이 끼워져 있었다. 북 치던 아이가 갈라 준 것이었다. 아직 김이 올랐다.",
+      "sourceHash": "e28256e5054f2267e155055cbf7cb651a6686128c37e750dd721007c13084f00",
+      "t": "Half a fried cloud was wedged between Yeoni's hooves. The drumming child had split it for them. Steam still rose from it."
+    },
+    {
+      "id": "ep-07:6",
+      "source": "첫입은 경건하게 갈게. 별점은 삼키고 나서.",
+      "sourceHash": "33649fc3c1abfb8212df686fab39e67edf6499ef062488e42e40e4b0dabd7728",
+      "t": "The first bite deserves reverence. Star rating after I swallow."
+    },
+    {
+      "id": "ep-07:7",
+      "source": "뜨겁다. 불어서 먹어라.",
+      "sourceHash": "e6ed80af54915791e6a0a052e319fcb37d69d11ec5ab4bdc2dc817d4078ca98b",
+      "t": "It's hot. Blow on it first."
+    },
+    {
+      "id": "ep-07:8",
+      "source": "걱정 마. 돼지는 뜨거운 거 잘 먹어. …아마도.",
+      "sourceHash": "973e5c655aed92d138ee563c66b55c64b826564e46e1a4e81f9567621be38981",
+      "t": "Don't worry. Pigs handle hot food well. ...Probably."
+    },
+    {
+      "id": "ep-07:9",
+      "source": "거리는 노래로 꽉 차 있었다. 국자로 솥을 두드리며 노래하는 국숫집, 손님 이름으로 즉석에서 노래를 지어 주는 떡집.",
+      "sourceHash": "b67f24860d370d614cf4407aa4d38e31270440e5469d0f1e7b9b6e111ad99493",
+      "t": "Song packed the street. A noodle shop sang while tapping pots with ladles. A rice-cake shop improvised songs from customers' names."
+    },
+    {
+      "id": "ep-07:10",
+      "source": "아무도 잘 부르지 않았다. 다들 크게 불렀다.",
+      "sourceHash": "b7d5bb1dabca6c959855a3b14fc6c1a7526e5e74b6f1ee8f12af7cf8d0ea10d6",
+      "t": "Nobody sang well. Everybody sang loudly."
+    },
+    {
+      "id": "ep-07:11",
+      "source": "저 아저씨 음정 완전 나갔는데, 손님들이 더 좋아해.",
+      "sourceHash": "8e4979c65731fe0a591286eb14a108a0e22401cf25425ea4bc3bb27b3676683f",
+      "t": "That man's completely off-key, and the customers love it even more."
+    },
+    {
+      "id": "ep-07:12",
+      "source": "이 섬에선 그게 맞는 박자다.",
+      "sourceHash": "967e2c87b4e333c183113f71a53cad96c0d91e17e4c56d461da77c99f2ba3782",
+      "t": "On this island, that is the right rhythm."
+    },
+    {
+      "id": "ep-07:13",
+      "source": "연이가 입을 크게 벌렸다. 그 순간 거리 끝, 가장 높은 무대에서 종이 울렸다. 뎅.",
+      "sourceHash": "e1a9f88427a76c30c1244414c1cb6ce85001bb86fa82097f485ea1ca1a90fc47",
+      "t": "Yeoni opened their mouth wide. At that moment, a bell rang from the highest stage at the street's far end. Dong."
+    },
+    {
+      "id": "ep-07:14",
+      "source": "북소리가 박자 한가운데서 끊겼다. 노래도, 웃음도, 기름 튀는 소리까지 한꺼번에.",
+      "sourceHash": "43e89ec919edb666887196ba0d7523642fa0d46212a9df631b2e31f8a8547ab0",
+      "t": "The drums stopped midbeat. Songs, laughter, even the crackle of frying oil—all at once."
+    },
+    {
+      "id": "ep-07:15",
+      "source": "…뭐야. 누가 음소거 눌렀어?",
+      "sourceHash": "86eda85ca7cecba3d3f140bc2ca7b2b3cdea7fd8345e1623917dd8cee54f0a09",
+      "t": "...What? Who pressed Mute?"
+    },
+    {
+      "id": "ep-07:16",
+      "source": "수평선에 반쯤 잠긴 해가 그 자리에 멈춰 있었다. 지지도, 다시 뜨지도 않았다. 고장 난 화면처럼, 붉은 반원이 하늘에 박혀 있었다.",
+      "sourceHash": "71cdf2c4e2a103d00b56bda448c224bf6474311d3bbfac22b766f8370cd0aaac",
+      "t": "The sun, half-submerged at the horizon, had stopped. Neither setting nor rising. A red semicircle pinned to the sky like a frozen screen."
+    },
+    {
+      "id": "ep-07:17",
+      "source": "해가 멈췄다.",
+      "sourceHash": "c1ebd0485a0ed5256125931f1a6645af65df41d407d7502a52f94294600e757e",
+      "t": "The sun has stopped."
+    },
+    {
+      "id": "ep-07:18",
+      "source": "해는 멈추는 물건이 아니잖아.",
+      "sourceHash": "bb5137a77bd27c6cc9566e4e63e0c65a87e6af3d90f2ed91292a5172efa8ac57",
+      "t": "The sun isn't something that stops."
+    },
+    {
+      "id": "ep-07:19",
+      "source": "저기를 봐라.",
+      "sourceHash": "e836af07dd550a541a63a2518dc576580b8a90ad3ad49e2eb407601f5129aac1",
+      "t": "Look there."
+    },
+    {
+      "id": "ep-07:20",
+      "source": "가장 높은 무대 꼭대기에 검은 깃털 하나가 꽂혀 있었다. 강 위에서 떨어지던, 바로 그 깃털이었다.",
+      "sourceHash": "6a699c5b615da7d86d604207853ee88781c8f7b1695fcf4dcdfa52f18a921990",
+      "t": "One black feather stood embedded at the top of the highest stage. The very feather they had seen falling over the river."
+    },
+    {
+      "id": "ep-07:21",
+      "source": "깃털 아래로 까마귀 떼가 쏟아졌다. 수백 마리가 지붕마다 내려앉았다. 한 마리도 울지 않았다.",
+      "sourceHash": "98f54967abed44bcf34c7799c83cd8436084af7637809b6a6dc1d844422a6ee5",
+      "t": "Crows poured down beneath it. Hundreds settled on every rooftop. Not one cawed."
+    },
+    {
+      "id": "ep-07:22",
+      "source": "공지한다.",
+      "sourceHash": "6cddce4baf33291c13f12aacb793668234bac97c397be6cbcca7709adfd4e175",
+      "t": "Hear this announcement."
+    },
+    {
+      "id": "ep-07:23",
+      "source": "무대 위, 검은 법복을 입은 커다란 까마귀가 깃털 옆에 서 있었다. 얼굴에는 웃지도 울지도 않는 하얀 가면을 쓰고 있었다.",
+      "sourceHash": "7bc8210898c0c8c13a31d73dd40ef63f6949574042de62836320b76703f5c127",
+      "t": "A large crow in black judicial robes stood beside the feather. A white mask, neither smiling nor weeping, covered its face."
+    },
+    {
+      "id": "ep-07:24",
+      "source": "이 시각부로 이 섬에서 노래를 금한다. 박자, 휘파람, 큰 웃음도 마찬가지다.",
+      "sourceHash": "b814befb07e68173bdea5366a7abf70b2bb1d63a5e4ece6a4d7eeb4c46ce7b52",
+      "t": "From this moment, singing is forbidden on this island. So are rhythm, whistling, and loud laughter."
+    },
+    {
+      "id": "ep-07:25",
+      "source": "어긴 입에는 도장을 찍는다. 이상.",
+      "sourceHash": "41345ff747c59de7027615d9c5873dd64c76945ec7428ca502f92ea5c11bd550",
+      "t": "Offending mouths will be stamped. That is all."
+    },
+    {
+      "id": "ep-07:26",
+      "source": "축제 한복판에 노래 금지? 그럼 이 축제는 뭘로 해. 묵념으로 해?",
+      "sourceHash": "b9220f2d85f65a9b10c1e28c406ca9143c74ee2ea249c2619946908746ebf418",
+      "t": "A singing ban in the middle of a festival? What's the festival supposed to run on? A minute of silence?"
+    },
+    {
+      "id": "ep-07:27",
+      "source": "목소리 낮춰라. 저 까마귀들은 전부 귀다.",
+      "sourceHash": "3962a37a81c00bedd8f1a6405a8b8662f70481ad67a23808eb3503cc1e707782",
+      "t": "Lower your voice. Those crows are all ears."
+    },
+    {
+      "id": "ep-07:28",
+      "source": "노래 금지면, 콧노래는?",
+      "sourceHash": "fde8e2f06057c5ed9af7f3c1cc22d557ab872a6596cdf0f45ecc141a6f2d7c8b",
+      "t": "If singing's banned, what about humming?"
+    },
+    {
+      "id": "ep-07:29",
+      "source": "노래다.",
+      "sourceHash": "a0f52563ea743586dab3279265665cf53b4af67d5495c1864841137b81d87dd8",
+      "t": "Singing."
+    },
+    {
+      "id": "ep-07:30",
+      "source": "박수는?",
+      "sourceHash": "b0a2074817cd0d98487f570363350a50b3d34c60a891fef882a0c7deb688f0d2",
+      "t": "Clapping?"
+    },
+    {
+      "id": "ep-07:31",
+      "source": "박자다.",
+      "sourceHash": "7aaf351ee1f99481bc3fb90efde10d4f5d76aa9ba6f00b3f8c4d7ffbeb57a1fa",
+      "t": "Rhythm."
+    },
+    {
+      "id": "ep-07:32",
+      "source": "그럼 숨은? 숨도 리듬 있잖아.",
+      "sourceHash": "8c858fe00f50d21bbd4d13536c7063132936e02a63f875cd54deb0001989a93a",
+      "t": "Then breathing? Breath has rhythm too."
+    },
+    {
+      "id": "ep-07:33",
+      "source": "숨은 아직 괜찮다. 아직은.",
+      "sourceHash": "9f6772bd7bbcbcd05b3e7e3a7b046853e5b2716f5d870bd633ddfa7658e8b31e",
+      "t": "Breathing is still allowed. For now."
+    },
+    {
+      "id": "ep-07:34",
+      "source": "사람들이 하나둘 입을 다물었다. 국자를 내려놓고, 북채를 소매에 숨겼다. 이유를 묻는 사람은 없었다.",
+      "sourceHash": "49537ded82a8b05af24b85ebd8525ee2999dc77cc96d2363a9a0283070fd7c6a",
+      "t": "One by one, people closed their mouths. They put down ladles and hid drumsticks in their sleeves. Nobody asked why."
+    },
+    {
+      "id": "ep-07:35",
+      "source": "꼬치집 주인만 참지 못했다. 손님이 꼬치를 떨어뜨린 게 웃겼던 모양이다. 하, 하, 하.",
+      "sourceHash": "7f5475413f08bc256690af64616b108e45c17e2da123443918376abeedec5341",
+      "t": "Only the skewer seller could not hold back. A customer dropping a skewer apparently struck him as funny. Ha, ha, ha."
+    },
+    {
+      "id": "ep-07:36",
+      "source": "까마귀 한 마리가 내리꽂혔다. 부리가 주인의 손등을 찍었다. 손등에 회색 도장이 남았다.",
+      "sourceHash": "b2fb6189954219aa0d778a2b69eed09594c5a8a61fd2442313d53ff5c5ac8fa9",
+      "t": "A crow dived. Its beak struck the back of his hand, leaving a gray stamp."
+    },
+    {
+      "id": "ep-07:37",
+      "source": "저 사람 그냥 웃은 거잖아!",
+      "sourceHash": "d6dcf40fffe40fc5f26f5ab0f7e5c4dea5713af822a741e79dce0f7c7ba2143a",
+      "t": "He was only laughing!"
+    },
+    {
+      "id": "ep-07:38",
+      "source": "주인은 다시 웃으려고 입을 벌렸다. 하, 하. 소리 대신 바람만 나왔다. 처음보다 한 뼘쯤 작은 바람이었다.",
+      "sourceHash": "d36d341a579925f7b3dbb75bc91ba237eac0751317e5c549e55ce4c968764244",
+      "t": "The seller opened his mouth to laugh again. Ha, ha. Instead of sound, only air came out. Less air than before."
+    },
+    {
+      "id": "ep-07:39",
+      "source": "도장을 찍을 때마다 목소리가 줄어들어. 식상은 안에 있는 걸 밖으로 내보내는 기운이야. 말이나 노래, 네가 만드는 맛처럼.",
+      "sourceHash": "e570fc7aac0f08658a3777622a93c77ae0a8b33cfc1932867785d08fbcffab3a",
+      "t": "Each stamp diminishes the voice. Expression is the energy that brings what is inside outward. Words, songs, flavors you create."
+    },
+    {
+      "id": "ep-07:40",
+      "source": "입을 막으면 셋이 같이 막힌다.",
+      "sourceHash": "1faf81a9efd2c5935cf3e3a4ee7d9b979265b45f295d14bf80ada404c77c3d98",
+      "t": "Block the mouth and all three are blocked together."
+    },
+    {
+      "id": "ep-07:41",
+      "source": "셋이 같이? 맛도?",
+      "sourceHash": "73396cb54808caec672021c05f300190894aa3bcab0b2170bb75e43d07a2c7b5",
+      "t": "All three? Taste too?"
+    },
+    {
+      "id": "ep-07:42",
+      "source": "연이는 앞발 사이의 구름 튀김을 내려다보았다. 아까까지 반짝이던 설탕 옷이 어느새 잿빛이었다.",
+      "sourceHash": "be462eba22036c07ec16ff499b34e94a31047bc5f59080c71db887a6678a3bc5",
+      "t": "Yeoni looked down at the fried cloud between their hooves. The sparkling sugar coating had turned ash-gray."
+    },
+    {
+      "id": "ep-07:43",
+      "source": "연이는 한 입 베어 물었다. 씹었다. 한 번 더 씹었다.",
+      "sourceHash": "7c873584e39e57f6b4c94f7ae94d6421bf08a48644bc951140f91b76927c53df",
+      "t": "Yeoni bit into it. Chewed. Chewed again."
+    },
+    {
+      "id": "ep-07:44",
+      "source": "…맛이, 없어.",
+      "sourceHash": "0c060e0fe8b6b0949b4f0002727f513a5a532bd62e45cfe5ddf2b6885b724309",
+      "t": "...There's no taste."
+    },
+    {
+      "id": "ep-07:45",
+      "source": "해가 멈추면 불이 식는다. 이 섬의 맛은 저 해가 굽는 거다.",
+      "sourceHash": "809e1982b847c87449f5842d232c9f787b10c56e6471416b1bf312a5a702b2c1",
+      "t": "When the sun stops, fire cools. That sun cooks the flavors of this island."
+    },
+    {
+      "id": "ep-07:46",
+      "source": "이건 범죄야. 구름을 튀겨 놓고 맛을 뺀다고? 이건 사기고, 범죄고, 국제 문제야.",
+      "sourceHash": "1e9168ea1e463a32bff0dbd382d9ffbe8d46e1f66066c89e3aad3a2fc0c74763",
+      "t": "This is a crime. You fry a cloud, then take away its flavor? That's fraud, a crime, an international incident."
+    },
+    {
+      "id": "ep-07:47",
+      "source": "여긴 나라가 아니다.",
+      "sourceHash": "ef143d5b5bb30a021b8de78c163b785947ee07acbe13c436b8d63ce28f157452",
+      "t": "This is not a nation."
+    },
+    {
+      "id": "ep-07:48",
+      "source": "그럼 우주적 문제야. 별점 테러 할 거야. 이 섬 전체에.",
+      "sourceHash": "b92b76b65f53c05cc0b86869f2ded5e75d4589c4c3630263344ee390ff67b84d",
+      "t": "Then it's a cosmic incident. I'm review-bombing this entire island."
+    },
+    {
+      "id": "ep-07:49",
+      "source": "너무 억울해서였을까. 연이의 콧구멍에서 소리가 터져 나왔다.",
+      "sourceHash": "fd94ed25104527349c3ecbe048a5b43bc4571b20d7cad3c97861e1c9584421e3",
+      "t": "Perhaps the injustice was too much. A sound burst from Yeoni's nose."
+    },
+    {
+      "id": "ep-07:50",
+      "source": "꾸우우울!",
+      "sourceHash": "38eb5442679bfda87c8dc07b90747346fd5314ecb7287118df460ad851844a76",
+      "t": "OIIIIIINK!"
+    },
+    {
+      "id": "ep-07:51",
+      "source": "거리 전체가 연이를 돌아보았다. 지붕 위의 까마귀 수백 마리도 동시에 고개를 꺾었다.",
+      "sourceHash": "98c3ff20a90cca9179da2490e62d79feb7711629362b54805ca7967e50d6141d",
+      "t": "The entire street turned toward Yeoni. Hundreds of rooftop crows cocked their heads at the same moment."
+    },
+    {
+      "id": "ep-07:52",
+      "source": "방금 그 소리. 음정이 있었다.",
+      "sourceHash": "defdbde0e65ec43d188ac48985f3131cded29a3e090a0802fb3bd60e810d3c6c",
+      "t": "That sound had pitch."
+    },
+    {
+      "id": "ep-07:53",
+      "source": "아니, 그건 노래가 아니라 돼지 소리야!",
+      "sourceHash": "ee1201082add9f5c0688a8af6ca28308fc70565d0586bd0c139af964b46b4960",
+      "t": "No, that wasn't singing! It was a pig noise!"
+    },
+    {
+      "id": "ep-07:54",
+      "source": "끝음이 올라갔다. 노래다.",
+      "sourceHash": "49445dfceae08555c1a995e6428ab137ef3cd95339de94b2d6ff0661d18b0826",
+      "t": "The final note rose. Singing."
+    },
+    {
+      "id": "ep-07:55",
+      "source": "까만 그림자가 연이의 앞발을 스쳤다. 따끔했다. 분홍색 발등에 동전만 한 회색 도장이 찍혀 있었다.",
+      "sourceHash": "e271b04f469b4f219fb5f2e1bed5d44b4269fd9eb44543e3694121e22bfcd6a6",
+      "t": "A black shadow brushed Yeoni's hoof. A sting. A coin-sized gray stamp marked the pink skin."
+    },
+    {
+      "id": "ep-07:56",
+      "source": "내 발! 내 귀여운 발에 낙인 찍혔어!",
+      "sourceHash": "64a7584eecb33ea5bac490289cbb1e0a185b1ce1ff7e71ca52f11c9efd388d41",
+      "t": "My hoof! My cute little hoof's been branded!"
+    },
+    {
+      "id": "ep-07:57",
+      "source": "이 아이는 다른 섬에서 왔어. 여기 규칙을 알리지도 않고 도장부터 찍을 순 없지.",
+      "sourceHash": "3733cb2fd053e1536574ab5018f2ad37629f8e4eb24e052a9d2a9f602cfbbbe6",
+      "t": "This child came from another island. You can't stamp them before even explaining the rules here."
+    },
+    {
+      "id": "ep-07:58",
+      "source": "가면 쓴 까마귀가 영냥이를 내려다보았다. 가면의 구멍 너머로 눈이 보이지 않았다.",
+      "sourceHash": "bc9a505e2956341c734c4b19313740463070a1099bb2deea82b41a287e71d5bc",
+      "t": "The masked crow looked down at Yeongnyangi. No eyes were visible through the mask's holes."
+    },
+    {
+      "id": "ep-07:59",
+      "source": "이 섬에 발을 디뎠으면 이 섬의 귀에 들린다. 변명은 재판에서 해라. 다음 도장부터는.",
+      "sourceHash": "6d8886fe18302cb74f707ece27c6e192861d6ab9131efa759c7658e0a1795db2",
+      "t": "Set foot on this island and its ears hear you. Make your excuses at trial. Starting with the next stamp."
+    },
+    {
+      "id": "ep-07:60",
+      "source": "법복이 펄럭였다. 까마귀는 깃털 쪽으로 사라졌다. 남은 까마귀들은 지붕에서 움직이지 않았다.",
+      "sourceHash": "b61121f379975b4bd53bc46c142e5bc30a1d102313fc2279016492816bb84f73",
+      "t": "Judicial robes fluttered. The crow vanished toward the feather. The other crows remained motionless on the rooftops."
+    },
+    {
+      "id": "ep-07:61",
+      "source": "…영냥아. 나 목소리 한 뼘 줄었어?",
+      "sourceHash": "aa6285ca39b92db2f4bc5f6f2431d26afaaec23ea4ab5864331bbb8eaa772c01",
+      "t": "...Yeongnyangi. Is my voice smaller now?"
+    },
+    {
+      "id": "ep-07:62",
+      "source": "목소리 멀쩡하네. 아직 걱정할 정도는 아니야.",
+      "sourceHash": "3836498fe76221ebbf6b7de36437522bfc0710085e46578093dc775d30d4ed60",
+      "t": "Your voice sounds fine. Nothing to worry about yet."
+    },
+    {
+      "id": "ep-07:63",
+      "source": "그게 위로라는 거 알아서 더 슬퍼.",
+      "sourceHash": "692de4dddf1e7498ab788f2e24dddcc964e2ebece0da9f23df917ee283fd6415",
+      "t": "Knowing that's supposed to comfort me makes it sadder."
+    },
+    {
+      "id": "ep-07:64",
+      "source": "축제 거리 뒤편은 야시장이었다. 아니, 야시장이었던 곳이었다. 천막은 그대로인데 색이 빠져 있었다. 꼬치도, 사탕도, 사람들의 얼굴도 회색이었다.",
+      "sourceHash": "2f6594d4d4eb5b2879e24a0f85eaccafbfaa056f1de8e36869eb5e4feb619003",
+      "t": "Behind the festival street lay a night market. Or what had once been one. The awnings remained, but their colors had drained away. Skewers, candy, people's faces—all gray."
+    },
+    {
+      "id": "ep-07:65",
+      "source": "아까 그 거리보다 더 조용하네.",
+      "sourceHash": "8b3b1695a8a6bcc62d3ded475d16e00e17b75cf383aab1ce7d5b41f16c6e20ac",
+      "t": "It's even quieter here than on that street."
+    },
+    {
+      "id": "ep-07:66",
+      "source": "여기 사람들은 먼저 찍혔다. 해가 멈추기 전부터 깃털이 이 섬을 조금씩 갉아먹고 있었던 거다.",
+      "sourceHash": "c7ae8501c9921c3804f011bdbf22e46809afe5d8e979053e3a6cc07d1ff48dea",
+      "t": "These people were stamped earlier. The feather had been eating away at this island long before the sun stopped."
+    },
+    {
+      "id": "ep-07:67",
+      "source": "상인들의 손등에는 회색 도장이 두 개, 세 개씩 찍혀 있었다. 손님이 오면 말 대신 손가락으로 값을 가리켰다.",
+      "sourceHash": "c28d49ca5524aa97c57e43a2fa4464604a38f7be9cb9775ee3aadf301c8b3a69",
+      "t": "Two or three gray stamps marked the backs of the merchants' hands. When customers came, they pointed at prices instead of speaking."
+    },
+    {
+      "id": "ep-07:68",
+      "source": "사탕 가게 할머니가 연이의 앞발을 보더니 손짓했다. 가까이 오라는 손짓이었다.",
+      "sourceHash": "db5121b645146ec28e37c25180ed0671bbd414622b2d3510092b1f794dee2ae0",
+      "t": "An old woman at a candy stall saw Yeoni's hoof and beckoned them closer."
+    },
+    {
+      "id": "ep-07:69",
+      "source": "안녕하세요. 저 무서운 돼지 아니에요. 이 섬 처음 왔어요.",
+      "sourceHash": "3d4fff36cb3ee3c0cc7627c81b7278cd168398e51ebb9c714c4807657c5f465e",
+      "t": "Hello. I'm not a scary pig. It's my first time here."
+    },
+    {
+      "id": "ep-07:70",
+      "source": "할머니는 목소리 대신 숨으로 말했다. 바람 빠진 풍선 같은 소리였다.",
+      "sourceHash": "e35b53e6bf4f58dac172e98d3e119206b23e2d435379833e009b3b13dd2e1bb4",
+      "t": "The woman spoke with breath instead of voice. Like air escaping a balloon."
+    },
+    {
+      "id": "ep-07:71",
+      "source": "하나면 웃음, 둘이면 노래, 셋이면 말까지. 할머니의 손등에는 도장이 셋이었다.",
+      "sourceHash": "b03044e332216782288f6a7a8984a552eae40641b06449a3d3a0416d71067d8f",
+      "t": "One takes laughter, two take song, three take speech. There were three stamps on her hand."
+    },
+    {
+      "id": "ep-07:72",
+      "source": "할머니는… 말을 못 하시는 거구나.",
+      "sourceHash": "030fcbc48fd0c2c694c732a616fa9c024ecbf5a20a0c9bcb78ad469429d904bd",
+      "t": "You... can't speak anymore."
+    },
+    {
+      "id": "ep-07:73",
+      "source": "할머니가 고개를 저었다. 그리고 사탕 한 알을 연이의 앞발에 쥐여 주었다. 회색 사탕이었다.",
+      "sourceHash": "84fb1a2fe973aa7727be9fb2b61a7b612e79a055d306b42bf17c218f61b72314",
+      "t": "She shook her head, then placed one candy in Yeoni's hoof. A gray candy."
+    },
+    {
+      "id": "ep-07:74",
+      "source": "감사합니다. 맛없어도 잘 먹을게요. 아니, 맛있게 먹을게요.",
+      "sourceHash": "a366f6c8d8a6140050090058dd65c69f54eb30cc2e1b42eee9a9918318d446fb",
+      "t": "Thank you. I'll enjoy it even if it has no taste. I mean, I'll enjoy it."
+    },
+    {
+      "id": "ep-07:75",
+      "source": "할머니가 눈을 접고 웃었다. 소리 없는 웃음이었다. 연이는 그 웃음에 도장을 찍을 수 있는 사람이 있다는 게 믿기지 않았다.",
+      "sourceHash": "26e8962428c82a548cd81c6d082da0cdac7cf9330918a4d20d7e73e40bea912e",
+      "t": "The woman's eyes crinkled in a smile. A silent smile. Yeoni could not believe anyone could put a stamp on that."
+    },
+    {
+      "id": "ep-07:76",
+      "source": "연이는 사탕을 물었다. 아무 맛도 나지 않았다. 그래도 끝까지 굴려 먹었다.",
+      "sourceHash": "4077ea6d000986c26f867abac109a111313362a179815d09b37c3806c8b0378b",
+      "t": "Yeoni put the candy in their mouth. It tasted of nothing. Still, they rolled it around until it was gone."
+    },
+    {
+      "id": "ep-07:77",
+      "source": "영냥아. 이 섬, 원래는 어땠어?",
+      "sourceHash": "8b7103a9c12532d42d9c5a641c085ecf45c991b5e285396a5d90bf345494a45d",
+      "t": "Yeongnyangi. What did this island used to be like?"
+    },
+    {
+      "id": "ep-07:78",
+      "source": "하루 종일 한낮이었다. 정오에 축제를 열고, 노래가 끝나야 해가 졌다.",
+      "sourceHash": "ddcd3f76ca9e8598b138cc27afb86f96dd305057a19682abefbe1cd822747f88",
+      "t": "It was midday all day. The festival began at noon, and the sun set only when the songs ended."
+    },
+    {
+      "id": "ep-07:79",
+      "source": "저 해는 丙, 한낮의 볕이야. 다시 정오에 닿아야 이 섬에도 다음 날이 와.",
+      "sourceHash": "60db8bd6e6d25c18930641c88cd3ac13253bc420ca74919677b98104ed0867c3",
+      "t": "That sun is Byeong, the light of high noon. It must reach noon again before this island can have another day."
+    },
+    {
+      "id": "ep-07:80",
+      "source": "그럼 해를 정오까지 밀어 올리면 되는 거지?",
+      "sourceHash": "eb6b5b197b6093caf4647546f930cb4772e0c892750825de3dce0934bbbc41e8",
+      "t": "Then we just push the sun back up to noon, right?"
+    },
+    {
+      "id": "ep-07:81",
+      "source": "말은 쉽다.",
+      "sourceHash": "4aa46be30adb3a6ed192ed8091527315dae8b0f59f4497e8228e38c47d682049",
+      "t": "Easy to say."
+    },
+    {
+      "id": "ep-07:82",
+      "source": "말은 원래 쉬워. 말하는 섬이잖아. …아, 지금은 말하면 안 되는 섬이구나.",
+      "sourceHash": "6bc6fb9c666acf41e53d70e5f54c385bba5d50affc3c53165dcefe9596bc6876",
+      "t": "Talking's always easy. It's the talking island. ...Oh, right, currently the no-talking island."
+    },
+    {
+      "id": "ep-07:83",
+      "source": "시장 저쪽에서 북 하나가 굴러 나왔다. 누군가 손에서 놓친 것이었다. 둥. 소리가 너무 크게 울렸다.",
+      "sourceHash": "309c74d4e0d3025473c4f0a400928048550690fb891a6eb4b9c5c9e5d1254909",
+      "t": "A drum rolled out from the far side of the market. Someone had dropped it. Boom. The sound rang far too loudly."
+    },
+    {
+      "id": "ep-07:84",
+      "source": "지붕 위 까마귀들이 일제히 날개를 폈다. 북 주인은 이미 천막 뒤로 숨어 버렸다. 연이는 북을 주워 들었다가 얼어붙었다.",
+      "sourceHash": "f63bb1483e2a5af24fc1db219a5b454226cb315d8ee55783a690b56b60c1fedc",
+      "t": "The crows on the roofs spread their wings together. The drum's owner had already hidden behind an awning. Yeoni picked up the drum and froze."
+    },
+    {
+      "id": "ep-07:85",
+      "source": "…아. 이거 내가 친 거 아니야. 진짜로.",
+      "sourceHash": "11b77d8e27f7e1f45e1596543f5501a5d305ea40be4d90a6eb86e816dfc1cc41",
+      "t": "...Oh. I didn't play it. Seriously."
+    },
+    {
+      "id": "ep-07:86",
+      "source": "놔라. 천천히.",
+      "sourceHash": "0b334550c81e3ccd2bd11ecb176d1a3698e153c0dbafeeab7939a71c81c84654",
+      "t": "Put it down. Slowly."
+    },
+    {
+      "id": "ep-07:87",
+      "source": "연이는 북을 가만히 바닥에 내려놓았다. 까마귀들이 고개를 갸웃거리다 다시 날개를 접었다.",
+      "sourceHash": "264b3b9b8581634fa140f33c70316eea75212b3bd0b27c319aee72b5a671f067",
+      "t": "Yeoni lowered the drum gently. The crows tilted their heads, then folded their wings again."
+    },
+    {
+      "id": "ep-07:88",
+      "source": "이건 섬이 아니라 도서관이야. 그것도 사서가 백 마리쯤 있는 도서관.",
+      "sourceHash": "61a562688733b6b09cbae88557d76045e82fc0d751e50f5878c199e2cd6eed42",
+      "t": "This isn't an island. It's a library. With about a hundred librarians."
+    },
+    {
+      "id": "ep-07:89",
+      "source": "수백 마리다.",
+      "sourceHash": "e6953f1685594cd8d4d1be447780ce8d97ce48e983512e40912bc4eaea91b41c",
+      "t": "Hundreds."
+    },
+    {
+      "id": "ep-07:90",
+      "source": "정정 고마워. 하나도 안 고마워.",
+      "sourceHash": "bbd12a06565b80d56585b1936f48c7babfac573e915b02350703cde2d1726889",
+      "t": "Thanks for the correction. Not thankful at all."
+    },
+    {
+      "id": "ep-07:91",
+      "source": "연이는 회색 천막 사이를 걸었다. 걸을수록 배가 고팠다. 먹을 것은 사방에 있는데, 먹고 싶은 것은 하나도 없었다.",
+      "sourceHash": "4d50fc8c59f579549c4e1ff0da94506b20b3fc2203d382db2bbb46046772d50e",
+      "t": "Yeoni walked among gray awnings. Their hunger grew with every step. Food was everywhere, yet there was nothing they wanted to eat."
+    },
+    {
+      "id": "ep-07:92",
+      "source": "이게 제일 무섭다. 배고픈데 먹고 싶은 게 없는 거.",
+      "sourceHash": "206e88ba83321cf12f3a54a72e08aa40cc49d3831435c09d2602c7c4c65c4586",
+      "t": "This is the scariest part. Being hungry but wanting none of the food."
+    },
+    {
+      "id": "ep-07:93",
+      "source": "사람이 시드는 순서다. 먼저 맛을 잃고, 다음엔 웃음을 잃는다.",
+      "sourceHash": "11dc6fe918e3758629796fe6f5897a6d7428c7be6bb840f6154d03f554d612e5",
+      "t": "That is how people wither. First they lose flavor, then laughter."
+    },
+    {
+      "id": "ep-07:94",
+      "source": "그럼 이 섬 사람들은 지금 전부 시드는 중이네.",
+      "sourceHash": "ca90c906b7bee33cfa2d18ad90cd9f574bfeb699cc309e7fa2b2908b09c16e45",
+      "t": "Then everyone on this island is withering right now."
+    },
+    {
+      "id": "ep-07:95",
+      "source": "그래서 오래 있으면 안 된다. 네 발에도 하나 찍혔다.",
+      "sourceHash": "a81b2a7774163a546e4285391647a8a95fae95be5db1b43379f37dcf51a43d50",
+      "t": "That is why we must not stay long. You have a stamp too."
+    },
+    {
+      "id": "ep-07:96",
+      "source": "안 돼. 나 아직 이 섬 대표 메뉴 하나도 못 먹었어. 맛 돌려받기 전엔 못 가.",
+      "sourceHash": "3bc6571bcbb15ab7f50fb92b7f302a3a5b1a2fe4ccce052c72792038110404d6",
+      "t": "No way. I haven't tasted a single specialty yet. I'm not leaving before the flavor comes back."
+    },
+    {
+      "id": "ep-07:97",
+      "source": "동기가 식욕이군.",
+      "sourceHash": "090f733ed085686d89a12073dacb2251756d7a17e33b77b79ff369411ae5c0c4",
+      "t": "Motivated by appetite."
+    },
+    {
+      "id": "ep-07:98",
+      "source": "식욕은 숭고해. 인류는 배고파서 불을 발견했어.",
+      "sourceHash": "d33a238581bb1053ad0442ea5656c7e3326b6ebb9244621bc715094684084270",
+      "t": "Appetite is noble. Humanity discovered fire because it was hungry."
+    },
+    {
+      "id": "ep-07:99",
+      "source": "너는 지금 돼지다.",
+      "sourceHash": "08eb62c22d2f703a4c622e67651ad76928acf5ac73cfeefca9ce2fb57870822c",
+      "t": "You are currently a pig."
+    },
+    {
+      "id": "ep-07:100",
+      "source": "돼지도 숭고해!",
+      "sourceHash": "95b21e8ee2f6ddafcf9fe0d8f304acd39b8bf1e22b0a3d45281a48b2fa6cb3cf",
+      "t": "Pigs are noble too!"
+    },
+    {
+      "id": "ep-07:101",
+      "source": "그때였다. 회색 냄새 사이로 다른 냄새 하나가 끼어들었다. 간장 졸이는 냄새, 깨 볶는 냄새, 그리고 아주 살짝 탄 냄새.",
+      "sourceHash": "019504e31ecf9b02160807320e49cd3472489c3ab9c08e537d27118dc8d0dec2",
+      "t": "Then another scent slipped among the gray smells. Simmering soy sauce, toasting sesame, and the faintest hint of something burned."
+    },
+    {
+      "id": "ep-07:102",
+      "source": "잠깐. 영냥아. 맡았어?",
+      "sourceHash": "d2e153ecb3445728be13e454a9bd1418b08bc39ae81b574dfebcfaf185143c3d",
+      "t": "Wait. Yeongnyangi. Did you smell that?"
+    },
+    {
+      "id": "ep-07:103",
+      "source": "무엇을.",
+      "sourceHash": "855bc3244d4ee99ae36c9bddcebe4e4fb249a2a057183dadc66c782fd67dd906",
+      "t": "What?"
+    },
+    {
+      "id": "ep-07:104",
+      "source": "맛있는 냄새! 진짜로 맛있는 냄새! 회색이 아닌 냄새!",
+      "sourceHash": "1714aa6d60fccd0a4f21206b9d553db1726f0e9c2518000c86d916041987e6be",
+      "t": "Something delicious! Actually delicious! A smell that isn't gray!"
+    },
+    {
+      "id": "ep-07:105",
+      "source": "연이의 코가 저 혼자 움직였다. 앞발이 코를 따라갔다. 영냥이가 붙잡을 틈도 없었다.",
+      "sourceHash": "638dbbd336de6fed03b75bb999bfaf49feed6feb77872f3a4ab83ad5b725aa26",
+      "t": "Yeoni's nose moved on its own. Their hooves followed it. Yeongnyangi had no chance to stop them."
+    },
+    {
+      "id": "ep-07:106",
+      "source": "연이야. 함부로 따라가지 마.",
+      "sourceHash": "be6eae456fa3825dde80dd9ebe12ddbf4acb7e6eeec89841a9aea632cb4f662d",
+      "t": "Yeoni. Don't just follow it."
+    },
+    {
+      "id": "ep-07:107",
+      "source": "코가 먼저 갔어. 나는 그냥 코를 따라가는 거야.",
+      "sourceHash": "5f9fd946d6a90639216f08ee08708a078c81c8e160cde5fe5a4e2cc80a55359a",
+      "t": "My nose went first. I'm only following my nose."
+    },
+    {
+      "id": "ep-07:108",
+      "source": "냄새는 시장 끝의 좁은 골목으로 이어졌다. 해가 닿지 않는 골목이었다. 처마마다 등불만 켜져 있었다.",
+      "sourceHash": "0792b6025700588418191320267a850fc43a9b762b17357fd999b051dd285e0f",
+      "t": "The scent led to a narrow alley at the market's end. Sunlight never reached it. Only lamps under the eaves were lit."
+    },
+    {
+      "id": "ep-07:109",
+      "source": "골목 깊은 곳에서 기름 튀는 소리가 났다. 그리고 아주 작은 목소리.",
+      "sourceHash": "26381d9fdb1e69e56b373dbbc473b8a1264b56e0529fb8e0c33c26a143da659d",
+      "t": "Deep inside came the crackle of frying oil. And a very small voice."
+    },
+    {
+      "id": "ep-07:110",
+      "source": "노래는 아니었다. 노래라기엔 너무 빨랐고, 말이라기엔 박자가 있었다.",
+      "sourceHash": "2606f87f827ee032eeb6b1ad98216e85a2552ffe65174602979f2c1b4d9dc9cc",
+      "t": "It was not a song. Too fast for a song, too rhythmic for ordinary speech."
+    },
+    {
+      "id": "ep-07:111",
+      "source": "불 올려, 기름 둘러. 입은 막아도 맛은 못 막아. 회색 하늘 아래 내 냄비만 빨개.",
+      "sourceHash": "a99adcd0ef832dc5c35656bc6a8ace54e6d992190de30fcdfb90d19cf97dd978",
+      "t": "Turn up the heat, oil the pot. Mute the mouth, but flavor won't stop. Gray sky overhead, my pan burns red."
+    },
+    {
+      "id": "ep-07:112",
+      "source": "…랩이야? 이 섬에서? 지금?",
+      "sourceHash": "3c897c078a7058ba601c5dee0d266b69a35affa5ce715aacbc8171302bde2b0a",
+      "t": "...Is that rap? On this island? Right now?"
+    },
+    {
+      "id": "ep-07:113",
+      "source": "들키면 도장 셋으로 끝나지 않는다.",
+      "sourceHash": "a132b7b61f3113e246b92039e2767030e91bd1084c47605b5be5ac4a6af7ed97",
+      "t": "If discovered, that won't end with just three stamps."
+    },
+    {
+      "id": "ep-07:114",
+      "source": "골목 끝, 다 쓰러져 가는 포장마차 안에 갈색 수달 하나가 웅크리고 있었다. 작은 냄비 앞에서 떡꼬치를 굴리며 냄비에게만 들리게 중얼거렸다.",
+      "sourceHash": "c3ebfcb52bdd117599e404b36aa2e8f4c68b7e6b53c87fc76d314f6eb88c8146",
+      "t": "A brown otter crouched in a ramshackle food cart at the alley's end. Turning rice-cake skewers over a small pan, the otter muttered so softly that only the pan could hear."
+    },
+    {
+      "id": "ep-07:115",
+      "source": "냄비 속 떡꼬치가 주황빛으로 빛났다. 회색 섬 한가운데서, 그것만 색이 있었다.",
+      "sourceHash": "b8bb2844eb261f4ed3ab74519476b0b1e320fe764cb143b98c7f635264368ef3",
+      "t": "The rice-cake skewers glowed orange. In the middle of the gray island, they alone had color."
+    },
+    {
+      "id": "ep-07:116",
+      "source": "…불씨다.",
+      "sourceHash": "00786014609fd0d09c139b2eb32cfb313c379b9ff776f53fdd9846f77c40ac9f",
+      "t": "...An ember."
+    },
+    {
+      "id": "ep-07:117",
+      "source": "저 불은 해에서 빌린 불이 아니다. 자기 안에서 피운 불이다.",
+      "sourceHash": "43adadf9380c907717f7c3c287f876322c02ba327ef38853ce64bdb0248266b3",
+      "t": "That fire was not borrowed from the sun. It was kindled within."
+    },
+    {
+      "id": "ep-07:118",
+      "source": "연이는 저도 모르게 한 걸음 다가갔다. 발밑에서 회색 접시가 깨졌다. 쨍.",
+      "sourceHash": "c5ee50cb9e1bd2b3706a7fba9ee8f6541439e1b8ac153e02651049f3e7cd4332",
+      "t": "Yeoni took a step without realizing it. A gray plate broke underfoot. Clink."
+    },
+    {
+      "id": "ep-07:119",
+      "source": "수달이 펄쩍 뛰었다. 들고 있던 떡꼬치가 허공으로 날았다. 연이가 그것을 입으로 받았다.",
+      "sourceHash": "571e0f3971fbb181fdb445891fffc7cc783603b51a2d62389dd9a26e23ea5de8",
+      "t": "The otter jumped. The skewer in its paw flew into the air. Yeoni caught it in their mouth."
+    },
+    {
+      "id": "ep-07:120",
+      "source": "야. 그거 내 꼬치야.",
+      "sourceHash": "9f9679e852e9d12f5be6c35c9358e50a3ac0cb65d430a4add60a6aed23a5d39e",
+      "t": "Hey. That's my skewer."
+    },
+    {
+      "id": "ep-07:121",
+      "source": "…맛있어.",
+      "sourceHash": "03b50784588ec399c82feb4652c4d795dcf7a1681761cf94567893afb08d5e73",
+      "t": "...Delicious."
+    },
+    {
+      "id": "ep-07:122",
+      "source": "당연히 맛있지. 내가 구웠으니까. 근데 너 뭐야. 돼지야?",
+      "sourceHash": "a5ea74f2f4282216e31d966f16d08e61ff91a24589b8cbcd1568d421b97dbdef",
+      "t": "Of course it is. I grilled it. But what are you? A pig?"
+    },
+    {
+      "id": "ep-07:123",
+      "source": "별 다섯 개. 아니, 여섯 개.",
+      "sourceHash": "f217fa81fad01fb4b467a9329eefc7154a11bafb1dc08c3f7878b2cb0310eb34",
+      "t": "Five stars. No, six."
+    },
+    {
+      "id": "ep-07:124",
+      "source": "별은 다섯 개까지밖에 없어, 이 꽃 달린 돼지야.",
+      "sourceHash": "b90b3a7a3c5906c0e8323f99e667d44b68114064d8f34410ea063501f5bda3dc",
+      "t": "Stars only go up to five, you flower-headed pig."
+    },
+    {
+      "id": "ep-07:125",
+      "source": "그리고 꽃 달린 돼지가 남의 골목에서 왜 코를 킁킁대.",
+      "sourceHash": "5c109c4eacbbda3bd3e7453129be0e9951a50ada613d151801ce3c3f64ec5bc5",
+      "t": "And why is a flower-headed pig sniffing around someone else's alley?"
+    },
+    {
+      "id": "ep-07:126",
+      "source": "냄새가 먼저 말 걸었어. 나 맛있다고.",
+      "sourceHash": "9d564b9638483c318e643def67bbb4041868d569c026f58ad0eb0006464801c1",
+      "t": "The smell spoke to me first. Said it was delicious."
+    },
+    {
+      "id": "ep-07:127",
+      "source": "수달이 랩을 하는 섬이었군.",
+      "sourceHash": "6fbbfc8a1fc3f27922a00682c670983b363bc13591e71c9062d82c3f4d5fde86",
+      "t": "So this is an island where otters rap."
+    },
+    {
+      "id": "ep-07:128",
+      "source": "랩 아니야. 레시피 낭독이야. 박자가 좀 붙었을 뿐이지.",
+      "sourceHash": "b0110b8f1f78f66b66c5d6cdae0a1d1123ea4f9914a91fad0bc5de0c76d596dd",
+      "t": "Not rap. A recipe recital. Just happened to have a beat."
+    },
+    {
+      "id": "ep-07:129",
+      "source": "박자 붙은 레시피를 사람들은 랩이라고 불러.",
+      "sourceHash": "abda000a96263f6f9e62d98fe87d93b0a501904b9f53357be52922f47fdcdb8a",
+      "t": "People call a recipe with a beat rap."
+    },
+    {
+      "id": "ep-07:130",
+      "source": "사람들이 틀렸어.",
+      "sourceHash": "d26944a67bbb337fde2042db64bf428a97fa6229f3bf39f996b2d0dab83c2257",
+      "t": "People are wrong."
+    },
+    {
+      "id": "ep-07:131",
+      "source": "머리 위에서 날갯짓 소리가 쏟아졌다. 골목 입구가 까맣게 막혔다. 까마귀들이 소리를 찾아 내려오고 있었다.",
+      "sourceHash": "be9def5c48df1af6af7df3152de337bb9a70ed46f0277beb2b50d7b784c92a68",
+      "t": "Wingbeats poured overhead. The alley entrance darkened. Crows were descending toward the sound."
+    },
+    {
+      "id": "ep-07:132",
+      "source": "봤지. 다 봤지. 랩도 들었지.",
+      "sourceHash": "1bd439446a38583679dec848455db5bf3b98bc29539d0b7fe33d53108eabbc3d",
+      "t": "You saw it. All of it. Heard the rap too."
+    },
+    {
+      "id": "ep-07:133",
+      "source": "아, 아무것도 못 들었어. 나 귀 접혀 있었어.",
+      "sourceHash": "0e90720ef99dc13d4b232d92d81ca064781a6315d27d14d4852ab5bc8fd4c330",
+      "t": "Ah, I heard nothing. My ears were folded."
+    },
+    {
+      "id": "ep-07:134",
+      "source": "들었으면 공범이야. 뛰어, 돼지.",
+      "sourceHash": "d7537c5651d61aaffa2cee1be4d2fdee313ec9e4d5d1fcfa830b685a276fcd41",
+      "t": "If you heard it, you're an accomplice. Run, pig."
+    }
+  ]
+}

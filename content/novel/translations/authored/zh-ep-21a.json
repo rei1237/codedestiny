@@ -1,0 +1,685 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "episodeId": "ep-21a",
+  "sourceTitle": "기억하지 못한 이름",
+  "sourceTag": "EP.21A · 기억하지 못한 이름",
+  "metadata": {
+    "zh-CN": {
+      "title": "想不起的名字",
+      "tag": "EP.21A · 想不起的名字"
+    },
+    "zh-TW": {
+      "title": "想不起的名字",
+      "tag": "EP.21A · 想不起的名字"
+    }
+  },
+  "rows": [
+    {
+      "id": "ep-21a:1",
+      "source": "영냥이는 잠든 방을 소리 없이 빠져나왔다. 문을 닫기 전에 한 번 뒤를 돌아보았다. 연이는 이불을 차 낸 채 입을 벌리고 자고 있었다.",
+      "sourceHash": "a71ea59a4b8cfa66bae116aee8fcef92afebd48c50891c4c335412e34a5dcbb0",
+      "translations": {
+        "zh-CN": "Yeongnyangi悄悄走出熟睡的房间。关门前，他回头看了一眼。Yeoni踢开被子，张着嘴睡着。",
+        "zh-TW": "Yeongnyangi悄悄走出熟睡的房間。關門前，他回頭看了一眼。Yeoni踢開被子，張著嘴睡著。"
+      }
+    },
+    {
+      "id": "ep-21a:2",
+      "source": "이불은 덮고 자라. 감기 걸리면 또 고객센터 탓을 하겠지.",
+      "sourceHash": "a251a11ef8ea52e1fb5fc7bbdbc25182a969c9376da4a822a4df0441dc33f7d3",
+      "translations": {
+        "zh-CN": "盖好被子再睡。感冒了，又要怪客服吧。",
+        "zh-TW": "蓋好被子再睡。感冒了，又要怪客服吧。"
+      }
+    },
+    {
+      "id": "ep-21a:3",
+      "source": "그는 앞발로 이불 끝을 물어 연이의 어깨까지 끌어 올렸다. 연이가 뒤척이며 그 앞발을 베개처럼 끌어안았다.",
+      "sourceHash": "601b0920a1a627e342a0cffae0ec3c2962ae3cc104f3b7978627828db8e23906",
+      "translations": {
+        "zh-CN": "他用前爪夹住被角，拉到Yeoni肩头。Yeoni翻了个身，把那只前爪当枕头，抱进怀里。",
+        "zh-TW": "他用前爪夾住被角，拉到Yeoni肩頭。Yeoni翻了個身，把那隻前爪當枕頭，抱進懷裡。"
+      }
+    },
+    {
+      "id": "ep-21a:4",
+      "source": "놔라. 나는 베개가 아니다.",
+      "sourceHash": "b618d21a17e34911a6a23a309da559e515e839dbad7e013c2b0d71d6d1b7fb6b",
+      "translations": {
+        "zh-CN": "放手。我不是枕头。",
+        "zh-TW": "放手。我不是枕頭。"
+      }
+    },
+    {
+      "id": "ep-21a:5",
+      "source": "연이는 놓지 않았다. 영냥이는 한참을 그렇게 엎드려 있다가, 아주 천천히 앞발을 빼냈다. 그 자리에 책 한 권을 대신 밀어 넣었다.",
+      "sourceHash": "91cd8b34bddd96a030a07afbea020f7ea2a29e376c25d6b5765d7440b787ce07",
+      "translations": {
+        "zh-CN": "Yeoni没松开。Yeongnyangi就这样趴了许久，才极慢地抽出前爪，塞了一本书进去代替。",
+        "zh-TW": "Yeoni沒鬆開。Yeongnyangi就這樣趴了許久，才極慢地抽出前爪，塞了一本書進去代替。"
+      }
+    },
+    {
+      "id": "ep-21a:6",
+      "source": "미안하다. 오늘은 그 책이 대신 고객센터다.",
+      "sourceHash": "769c2c5cc101692d1aa89a49fa00b8e8dd0aa5edffb3325637f0f996cb65efbf",
+      "translations": {
+        "zh-CN": "抱歉。今天这本书代班客服。",
+        "zh-TW": "抱歉。今天這本書代班客服。"
+      }
+    },
+    {
+      "id": "ep-21a:7",
+      "source": "대답은 없었다. 대신 연이가 잠꼬대로 별 하나, 하고 중얼거렸다. 영냥이는 아주 작게 웃었다.",
+      "sourceHash": "f9c7239a4d0f2f8cee6363d8e5ac390406cda3225de0b40813ff675e6c9490c4",
+      "translations": {
+        "zh-CN": "没有回答。Yeoni只在梦里，含糊地说了一句，一星。Yeongnyangi轻轻笑了。",
+        "zh-TW": "沒有回答。Yeoni只在夢裡，含糊地說了一句，一星。Yeongnyangi輕輕笑了。"
+      }
+    },
+    {
+      "id": "ep-21a:8",
+      "source": "계단을 오르다 그는 벽에 어깨를 기댔다. 왼발이 또 말을 듣지 않았다.",
+      "sourceHash": "baa7a311a23a8f85b06afdf892d08256ffcc56696bc94070381611f8fa03ccd9",
+      "translations": {
+        "zh-CN": "上楼时，他把肩膀靠在墙上。左爪又不听使唤了。",
+        "zh-TW": "上樓時，他把肩膀靠在牆上。左爪又不聽使喚了。"
+      }
+    },
+    {
+      "id": "ep-21a:9",
+      "source": "앞발을 들어 보았다. 그을린 자국 위로 붉은 녹이 번져 있었다. 물에 빠진 뒤로 녹은 하루에 한 마디씩 자랐다.",
+      "sourceHash": "36710537a792287f22b227c5301deb15ee0e6c3cb055cf663aee63019c2eb273",
+      "translations": {
+        "zh-CN": "他抬起前爪。红锈沿着焦痕蔓延。落水之后，锈每天长出一指节。",
+        "zh-TW": "他抬起前爪。紅鏽沿著焦痕蔓延。落水之後，鏽每天長出一指節。"
+      }
+    },
+    {
+      "id": "ep-21a:10",
+      "source": "불에는 그을리고 물에는 녹슬고. 쇠도 손이 많이 가네.",
+      "sourceHash": "b5589601d5a8e9452611a29b5cdcf060bdfd3551644c3e23d632701b357bac4f",
+      "translations": {
+        "zh-CN": "遇火烧焦，遇水生锈。金属也真难照顾。",
+        "zh-TW": "遇火燒焦，遇水生鏽。金屬也真難照顧。"
+      }
+    },
+    {
+      "id": "ep-21a:11",
+      "source": "그는 녹을 망토 자락으로 덮었다. 내일 아침에도 연이가 보지 못하게. 모카와 윤달에게는 이미 들켰지만, 그 둘은 입이 무거웠다.",
+      "sourceHash": "b816118de39ba891c4bd8b4a121987515149a9ef5556657eda0a0538e49be375",
+      "translations": {
+        "zh-CN": "他用斗篷下摆盖住锈迹。明早也不能让Yeoni看见。虽然摩卡和闰月已经发现，不过那两人嘴很严。",
+        "zh-TW": "他用斗篷下襬蓋住鏽跡。明早也不能讓Yeoni看見。雖然摩卡和閏月已經發現，不過那兩人嘴很嚴。"
+      }
+    },
+    {
+      "id": "ep-21a:12",
+      "source": "아니, 수달은 무겁지 않았다. 오늘 오후 그 꼬리가 다 말해 버렸을 것이다.",
+      "sourceHash": "da27433263a122ac5fe75bec51726ec0af4f8318e3be5ccac27a5778967cce22",
+      "translations": {
+        "zh-CN": "不对，水獭不严。今天下午，那条尾巴，大概什么都说了。",
+        "zh-TW": "不對，水獺不嚴。今天下午，那條尾巴，大概什麼都說了。"
+      }
+    },
+    {
+      "id": "ep-21a:13",
+      "source": "계단 창으로 비 냄새가 흘러들었다. 그 냄새를 맡을 때마다 영냥이의 머릿속에서 무언가가 덜컥 열렸다가 닫혔다.",
+      "sourceHash": "5420ec372b40d22744bc50b37ca60038d419265331ee96c158126260f4d224b9",
+      "translations": {
+        "zh-CN": "雨的气味从楼梯窗飘进来。每次闻到，Yeongnyangi脑海里，就有什么咔嗒打开，又合上。",
+        "zh-TW": "雨的氣味從樓梯窗飄進來。每次聞到，Yeongnyangi腦海裡，就有什麼喀噠打開，又合上。"
+      }
+    },
+    {
+      "id": "ep-21a:14",
+      "source": "비 오는 정류장. 낡은 지붕 아래로 빗물이 줄을 이어 떨어졌다.",
+      "sourceHash": "dd5e583783d32fa37de4ade877c3f41f2c0ed55360704b0642bb11c2638e7ad6",
+      "translations": {
+        "zh-CN": "雨中的车站。雨水从旧屋檐下，连成线落下。",
+        "zh-TW": "雨中的車站。雨水從舊屋簷下，連成線落下。"
+      }
+    },
+    {
+      "id": "ep-21a:15",
+      "source": "누군가의 손이 우산을 들고 있었다. 작은 손이었다. 우산은 반쯤 기울어 옆 사람 쪽으로 가 있었다.",
+      "sourceHash": "2aee3c3a3fa6f5229b55e9119dacff4635622782bf492a1f03760a0c0d074af3",
+      "translations": {
+        "zh-CN": "某个人的手，握着伞。是一只小手。伞倾斜一半，朝向身旁的人。",
+        "zh-TW": "某個人的手，握著傘。是一隻小手。傘傾斜一半，朝向身旁的人。"
+      }
+    },
+    {
+      "id": "ep-21a:16",
+      "source": "우산 아래에서 누군가 웃었다. 비를 맞으면서, 바보처럼, 아주 즐겁게.",
+      "sourceHash": "63bbf5a435c381317c78117aeba80a201168b54a07c64d4cb23224ccff905dcf",
+      "translations": {
+        "zh-CN": "伞下，有人笑着。淋着雨，傻乎乎的，却无比开心。",
+        "zh-TW": "傘下，有人笑著。淋著雨，傻乎乎的，卻無比開心。"
+      }
+    },
+    {
+      "id": "ep-21a:17",
+      "source": "같이 쓰자. 기억 속에서 누군가 그렇게 말했다. 영냥이는 그 목소리를 붙잡으려 했지만, 손에 잡히는 것은 빗물뿐이었다.",
+      "sourceHash": "b9c91e8ae2200cdd5dd5c764080479db8d6926a24cdd5eccd6b94353401fd030",
+      "translations": {
+        "zh-CN": "一起撑吧。记忆里，有人这样说。Yeongnyangi想抓住那个声音，可手里抓到的，只有雨水。",
+        "zh-TW": "一起撐吧。記憶裡，有人這樣說。Yeongnyangi想抓住那個聲音，可手裡抓到的，只有雨水。"
+      }
+    },
+    {
+      "id": "ep-21a:18",
+      "source": "영냥이는 이마를 차가운 벽에 댔다. 기억은 언제나 거기까지였다. 우산을 든 손. 그 손이 누구의 것이었는지, 그 옆에 누가 서 있었는지.",
+      "sourceHash": "6615edfd076ab9da5bf658d2b131a6f93a3031be184df0bff3162de8fc37d4f2",
+      "translations": {
+        "zh-CN": "Yeongnyangi把额头抵在冰冷的墙上。记忆总到这里为止。握伞的手。那是谁的手，旁边又站着谁。",
+        "zh-TW": "Yeongnyangi把額頭抵在冰冷的牆上。記憶總到這裡為止。握傘的手。那是誰的手，旁邊又站著誰。"
+      }
+    },
+    {
+      "id": "ep-21a:19",
+      "source": "이름만 알면 될 텐데.",
+      "sourceHash": "4ade026be9a666f8ed35361ecb4104e764b089f40febec71d140b79f8222704b",
+      "translations": {
+        "zh-CN": "要是知道名字就好了。",
+        "zh-TW": "要是知道名字就好了。"
+      }
+    },
+    {
+      "id": "ep-21a:20",
+      "source": "[ 계약 조항 제1조 · 수호자는 자기 이름을 말할 수 없다 · 이름이 불리는 순간 계약은 끝난다 ]",
+      "sourceHash": "f8f233f364ae8b03d23488a6668d510f51c553b2ed4a9526adf5d28c111e44f5",
+      "translations": {
+        "zh-CN": "[ 契约第一条 · 守护者不得说出自己的名字 · 名字被唤出的瞬间，契约即告终结 ]",
+        "zh-TW": "[ 契約第一條 · 守護者不得說出自己的名字 · 名字被喚出的瞬間，契約即告終結 ]"
+      }
+    },
+    {
+      "id": "ep-21a:21",
+      "source": "눈앞에 금빛 글자가 떠올랐다가 사라졌다. 고객센터의 규칙이었다. 처음 이 일을 맡을 때 그가 직접 서명한 규칙이었다.",
+      "sourceHash": "dd606b1356d257206591e92158d4133d102d1d32970f30414389e01dbbf947d7",
+      "translations": {
+        "zh-CN": "金色文字在眼前浮现，又消失。那是客服的规则。也是当初接下这份工作时，他亲手签下的规则。",
+        "zh-TW": "金色文字在眼前浮現，又消失。那是客服的規則。也是當初接下這份工作時，他親手簽下的規則。"
+      }
+    },
+    {
+      "id": "ep-21a:22",
+      "source": "알아. 잊은 적 없어.",
+      "sourceHash": "29a70076f1f118c0ef1c12b922d353e24861d0a5bbbe42ef451450b022148c2a",
+      "translations": {
+        "zh-CN": "我知道。从来没忘。",
+        "zh-TW": "我知道。從來沒忘。"
+      }
+    },
+    {
+      "id": "ep-21a:23",
+      "source": "자기 이름이 무엇이었는지는 잊었다. 그러나 그 이름을 버리고 무엇을 얻기로 했는지는 잊지 않았다.",
+      "sourceHash": "005b036d0400d81365d7fad8a31d9dce5b0f959d4a550a040d9dab84a47dbfe5",
+      "translations": {
+        "zh-CN": "他忘了自己的名字。却没有忘记，舍弃那个名字，是为了换来什么。",
+        "zh-TW": "他忘了自己的名字。卻沒有忘記，捨棄那個名字，是為了換來什麼。"
+      }
+    },
+    {
+      "id": "ep-21a:24",
+      "source": "한 번만 더. 이번에는 끝까지 옆에서.",
+      "sourceHash": "add9af54a606d7e42928371ebb758334b85688300fcf9944d6b5e89aaa2d7d68",
+      "translations": {
+        "zh-CN": "再一次就好。这一次，一直陪在身边，到最后。",
+        "zh-TW": "再一次就好。這一次，一直陪在身邊，到最後。"
+      }
+    },
+    {
+      "id": "ep-21a:25",
+      "source": "그는 계단 창에 비친 자기 모습을 보았다. 남색 모자, 금빛으로 번지는 보랏빛 눈, 녹슨 앞발. 모자 쓴 고양이의 얼굴이었다.",
+      "sourceHash": "67a92d8aa893b8836b66b24e1e8c4c18835ea9fc80f5089fe2275d76ec2381e2",
+      "translations": {
+        "zh-CN": "他看着楼梯窗映出的自己。深蓝帽子，泛着金光的紫眼睛，生锈的前爪。那是戴帽子的猫的脸。",
+        "zh-TW": "他看著樓梯窗映出的自己。深藍帽子，泛著金光的紫眼睛，生鏽的前爪。那是戴帽子的貓的臉。"
+      }
+    },
+    {
+      "id": "ep-21a:26",
+      "source": "이 얼굴로 처음 눈을 떴을 때, 그 애는 나를 보고 그냥 고양이냐고 물었지.",
+      "sourceHash": "9dcb2e261f3d33a2cda0ca8aecfa953fa4fb8cb08400d401dd7e61285bb85bb0",
+      "translations": {
+        "zh-CN": "第一次用这张脸睁开眼，她看着我，问我是不是普通的猫。",
+        "zh-TW": "第一次用這張臉睜開眼，她看著我，問我是不是普通的貓。"
+      }
+    },
+    {
+      "id": "ep-21a:27",
+      "source": "그리고 별점을 매겼다. 하나. 영냥이는 그날 받은 별 하나를 아직도 정확히 기억했다. 자기 이름은 기억하지 못하면서.",
+      "sourceHash": "bd5932ce897c9cef9653ffbf1bde6bf2c3f568db2d3ed0920c0023d25771446b",
+      "translations": {
+        "zh-CN": "然后，她打了分。一星。Yeongnyangi至今仍清楚记得，那天收到的一星。明明连自己的名字都想不起来。",
+        "zh-TW": "然後，她打了分。一星。Yeongnyangi至今仍清楚記得，那天收到的一星。明明連自己的名字都想不起來。"
+      }
+    },
+    {
+      "id": "ep-21a:28",
+      "source": "지붕 위는 바람이 셌다. 반쯤 먹힌 해가 밤하늘에 걸려 있었다. 낮도 밤도 아닌 하늘이었다.",
+      "sourceHash": "c7106ded3b905f1b28903882351e2385802585bebed6b9c47716d9483ea95884",
+      "translations": {
+        "zh-CN": "屋顶上，风很大。被吞去一半的太阳，挂在夜空。那是既非白昼，也非黑夜的天空。",
+        "zh-TW": "屋頂上，風很大。被吞去一半的太陽，掛在夜空。那是既非白晝，也非黑夜的天空。"
+      }
+    },
+    {
+      "id": "ep-21a:29",
+      "source": "지붕 끝에 검은 호랑이가 앉아 있었다. 마치 처음부터 그를 기다린 것처럼.",
+      "sourceHash": "c35dadb3d76c5027e1bd22559c76146ebcf572b504661c7554055817b1ce47a3",
+      "translations": {
+        "zh-CN": "屋顶尽头，坐着黑虎。仿佛从一开始，就在等他。",
+        "zh-TW": "屋頂盡頭，坐著黑虎。彷彿從一開始，就在等他。"
+      }
+    },
+    {
+      "id": "ep-21a:30",
+      "source": "늦었네, 고양이.",
+      "sourceHash": "114644d2fc5db3ff54a38507bb9e3ae83695e911209b6ad96490568cc8dcd466",
+      "translations": {
+        "zh-CN": "来晚了，猫。",
+        "zh-TW": "來晚了，貓。"
+      }
+    },
+    {
+      "id": "ep-21a:31",
+      "source": "비 냄새가 나서 와 봤다. 이번엔 누구 책을 훔치러 왔지.",
+      "sourceHash": "85e9375adfcb51dff525c03e2d6facb656e929d8594b15f4426ad94c9afe0037",
+      "translations": {
+        "zh-CN": "闻到雨味，就来看看。这次又想偷谁的书。",
+        "zh-TW": "聞到雨味，就來看看。這次又想偷誰的書。"
+      }
+    },
+    {
+      "id": "ep-21a:32",
+      "source": "오늘은 일하러 온 거 아니야. 너한테 할 말이 있어서.",
+      "sourceHash": "ef18ed9bafdea07a9c7f682861bdbd1ca5ce34c41b681cf440bf377090ddb4b9",
+      "translations": {
+        "zh-CN": "今天不是来工作的。有话对你说。",
+        "zh-TW": "今天不是來工作的。有話對你說。"
+      }
+    },
+    {
+      "id": "ep-21a:33",
+      "source": "돼지한테는 반말, 나한테도 반말. 존댓말은 누구한테 쓰지.",
+      "sourceHash": "a9a4967bcf16c7ad455c6f55181e3a52b517bc869b7fee3baa59c9e02dbb0dfb",
+      "translations": {
+        "zh-CN": "对猪说话不客气，对我也不客气。你会对谁恭恭敬敬呢。",
+        "zh-TW": "對豬說話不客氣，對我也不客氣。妳會對誰恭恭敬敬呢。"
+      }
+    },
+    {
+      "id": "ep-21a:34",
+      "source": "쓸데없는 질문 하지 마.",
+      "sourceHash": "70187bd913e27f838ed933b0a6185f2d1f03bf73f1f52ebd6545614b7d6035bf",
+      "translations": {
+        "zh-CN": "别问没用的问题。",
+        "zh-TW": "別問沒用的問題。"
+      }
+    },
+    {
+      "id": "ep-21a:35",
+      "source": "장부 주인한테 쓰나. 그 목소리한테.",
+      "sourceHash": "e27c51fac34b9648c842df1de37b29375dae37a5fbc446b923e884a9adcb5de6",
+      "translations": {
+        "zh-CN": "对账簿的主人吗。对那个声音。",
+        "zh-TW": "對帳簿的主人嗎。對那個聲音。"
+      }
+    },
+    {
+      "id": "ep-21a:36",
+      "source": "입 다물어. 그 목소리는 지금도 듣고 있어.",
+      "sourceHash": "918d8ac2e62b26a1062e7a8e9a6d34f14e9ca30201d1a06092231fca33ef37be",
+      "translations": {
+        "zh-CN": "闭嘴。那个声音，现在也在听。",
+        "zh-TW": "閉嘴。那個聲音，現在也在聽。"
+      }
+    },
+    {
+      "id": "ep-21a:37",
+      "source": "호랑이가 하늘을 힐끗 올려다보았다. 반쯤 먹힌 해의 검은 쪽이 아주 느리게 꿈틀거렸다.",
+      "sourceHash": "89900abd6964d4c8441ff9e78b102cec2da6ebbce247d2ca9d1fb061539ce49b",
+      "translations": {
+        "zh-CN": "老虎瞥了一眼天空。半轮太阳的黑色一侧，极缓慢地蠕动着。",
+        "zh-TW": "老虎瞥了一眼天空。半輪太陽的黑色一側，極緩慢地蠕動著。"
+      }
+    },
+    {
+      "id": "ep-21a:38",
+      "source": "호랑이의 붉은 눈이 영냥이의 왼발로 내려갔다. 망토 자락으로 덮어 둔 녹을 정확히 찾아냈다.",
+      "sourceHash": "ec42a7d6e6022ae2498d45923fc87cf8a1544ac12d8ba9fe7ee7e461cdefb59d",
+      "translations": {
+        "zh-CN": "老虎的红眼，落到Yeongnyangi的左爪上。准确地找到了，斗篷下摆盖住的锈迹。",
+        "zh-TW": "老虎的紅眼，落到Yeongnyangi的左爪上。準確地找到了，斗篷下襬蓋住的鏽跡。"
+      }
+    },
+    {
+      "id": "ep-21a:39",
+      "source": "그 발. 하루에 한 마디씩 번지지.",
+      "sourceHash": "e73af28a7156100c37d37ab637b1717bd6529e23cf6b99deeca0473a7c37e37e",
+      "translations": {
+        "zh-CN": "那只爪子。每天蔓延一指节，对吧。",
+        "zh-TW": "那隻爪子。每天蔓延一指節，對吧。"
+      }
+    },
+    {
+      "id": "ep-21a:40",
+      "source": "어떻게 알지.",
+      "sourceHash": "b5a865c742142b9f28e8eebfad3408f6eea07eab9b79f9d152558205afe289be",
+      "translations": {
+        "zh-CN": "你怎么知道。",
+        "zh-TW": "妳怎麼知道。"
+      }
+    },
+    {
+      "id": "ep-21a:41",
+      "source": "장부에 다 적혀. 네가 그 애 옆에서 다칠 때마다, 그 애 쪽 칸이 한 줄씩 무거워져.",
+      "sourceHash": "99f808ec24c58080b54fa0d6939ffab102ca8014670fdbc798895ec9870c7b06",
+      "translations": {
+        "zh-CN": "账簿上全记着。每次你在那孩子身边受伤，她那一栏，就有一行变得更重。",
+        "zh-TW": "帳簿上全記著。每次你在那孩子身邊受傷，她那一欄，就有一行變得更重。"
+      }
+    },
+    {
+      "id": "ep-21a:42",
+      "source": "그 애 칸은 건드리지 마.",
+      "sourceHash": "89f2e9e14083124bb91308eb6b32773158e197f7ec17160eba661d490cc7b83d",
+      "translations": {
+        "zh-CN": "别动她那一栏。",
+        "zh-TW": "別動她那一欄。"
+      }
+    },
+    {
+      "id": "ep-21a:43",
+      "source": "건드리는 건 내가 아니야. 너야. 그 애 불이 커질수록 넌 녹고, 네가 버틸수록 그 애는 작아져.",
+      "sourceHash": "5d97aa2d779b8dd048a076fbfcf17d9f89523d6997d018e43739b7bb046ff259",
+      "translations": {
+        "zh-CN": "动的不是我。是你。她的火越大，你越会熔化。你越硬撑，她就越渺小。",
+        "zh-TW": "動的不是我。是你。她的火越大，你越會熔化。你越硬撐，她就越渺小。"
+      }
+    },
+    {
+      "id": "ep-21a:44",
+      "source": "영냥이는 대답하지 않았다. 반박할 말이 없다는 것을 둘 다 알고 있었다.",
+      "sourceHash": "47b0e108530468b59a31416d7ff0e3e1e96c781d923e55acefdc1836a42fb3b7",
+      "translations": {
+        "zh-CN": "Yeongnyangi没回答。两人都知道，他无话反驳。",
+        "zh-TW": "Yeongnyangi沒回答。兩人都知道，他無話反駁。"
+      }
+    },
+    {
+      "id": "ep-21a:45",
+      "source": "떠나. 지금 떠나면 그 애는 일곱 칸으로 살 수 있어.",
+      "sourceHash": "ef65dfdc877d31b217705b26c5dd8b2eafb23b226d47c0b97839171040dc1fd2",
+      "translations": {
+        "zh-CN": "离开吧。现在走，她还能靠七格活下去。",
+        "zh-TW": "離開吧。現在走，她還能靠七格活下去。"
+      }
+    },
+    {
+      "id": "ep-21a:46",
+      "source": "일곱 칸이면 그릇이 된다. 너도 알 텐데.",
+      "sourceHash": "76ccd7cef287a27823da2facfa9ab1ecfb6745b4ce5f96b908d5b7cdcd2862b1",
+      "translations": {
+        "zh-CN": "七格，会变成容器。你也知道吧。",
+        "zh-TW": "七格，會變成容器。妳也知道吧。"
+      }
+    },
+    {
+      "id": "ep-21a:47",
+      "source": "너, 그걸 어떻게.",
+      "sourceHash": "42bdd4178304f60ae9ca7d4834e5916b83f29c1f0e34dffff061f812fa0956dd",
+      "translations": {
+        "zh-CN": "你，怎么知道那个。",
+        "zh-TW": "你，怎麼知道那個。"
+      }
+    },
+    {
+      "id": "ep-21a:48",
+      "source": "나도 장부는 못 봐도 하늘은 본다. 저 먹힌 해가 원하는 게 뭔지쯤은.",
+      "sourceHash": "9cee375a116331bf0c163e1b9190d0078f739a7866e2c832f7e630f3b76110f0",
+      "translations": {
+        "zh-CN": "就算看不了账簿，我也会看天。被吞掉的太阳想要什么，我还是看得出来。",
+        "zh-TW": "就算看不了帳簿，我也會看天。被吞掉的太陽想要什麼，我還是看得出來。"
+      }
+    },
+    {
+      "id": "ep-21a:49",
+      "source": "빗방울이 둘 사이에 떨어지기 시작했다. 하늘은 맑은데 둘이 선 자리에만 비가 내렸다.",
+      "sourceHash": "e43a859db6299ad834aaae6e017b60f03518b71d5768aa59c832ecd07bd2ba7a",
+      "translations": {
+        "zh-CN": "雨滴开始落在两人之间。明明天很晴，只有他们站着的地方下起了雨。",
+        "zh-TW": "雨滴開始落在兩人之間。明明天很晴，只有他們站著的地方下起了雨。"
+      }
+    },
+    {
+      "id": "ep-21a:50",
+      "source": "그런데 네 비 냄새, 전에 맡아 본 것 같아.",
+      "sourceHash": "3c84abeae320ee0b16c48ef8e80e747398078820d366a7cad9a97de82518f036",
+      "translations": {
+        "zh-CN": "不过，你的雨味，我好像以前闻过。",
+        "zh-TW": "不過，妳的雨味，我好像以前聞過。"
+      }
+    },
+    {
+      "id": "ep-21a:51",
+      "source": "착각이야.",
+      "sourceHash": "0b0f58a2172a5380b69465a2b06cc23626c98ac7ccf47720fb154d940c62c326",
+      "translations": {
+        "zh-CN": "错觉。",
+        "zh-TW": "錯覺。"
+      }
+    },
+    {
+      "id": "ep-21a:52",
+      "source": "우산. 정류장. 같이 쓰자는 말.",
+      "sourceHash": "b07aadd42fd07c324688389f05ac8cfe1d2a4b009257cc5b26484dc5c38d5c99",
+      "translations": {
+        "zh-CN": "雨伞。车站。一起撑吧，那句话。",
+        "zh-TW": "雨傘。車站。一起撐吧，那句話。"
+      }
+    },
+    {
+      "id": "ep-21a:53",
+      "source": "호랑이의 꼬리가 바닥을 세게 쳤다. 빗물이 튀어 올랐다.",
+      "sourceHash": "1eabd178bc77b4e3cf24853afd8927bab659a379f459c01bfc3fea313a309cb0",
+      "translations": {
+        "zh-CN": "老虎的尾巴重重拍在地上。雨水飞溅。",
+        "zh-TW": "老虎的尾巴重重拍在地上。雨水飛濺。"
+      }
+    },
+    {
+      "id": "ep-21a:54",
+      "source": "그 얘기 하지 마. 너는 그 봄 얘기 할 자격 없어.",
+      "sourceHash": "2bb7cd2076ac729945947a6d5e50585db44e3094629fc86782c13b15f2019d5d",
+      "translations": {
+        "zh-CN": "别说那个。你没资格谈那个春天。",
+        "zh-TW": "別說那個。你沒資格談那個春天。"
+      }
+    },
+    {
+      "id": "ep-21a:55",
+      "source": "그럼 맞군.",
+      "sourceHash": "1351f97b11435b082b4d45a60b5a2c32f0af6a7a785af5cd2dea185251f0007d",
+      "translations": {
+        "zh-CN": "那就没错了。",
+        "zh-TW": "那就沒錯了。"
+      }
+    },
+    {
+      "id": "ep-21a:56",
+      "source": "우린 같은 봄에서 왔지.",
+      "sourceHash": "3a9b5b70efbccbe28fea474a6ae7e089a1dcc624f3d8c8890b1e0cf3b0daeaa0",
+      "translations": {
+        "zh-CN": "我们来自同一个春天。",
+        "zh-TW": "我們來自同一個春天。"
+      }
+    },
+    {
+      "id": "ep-21a:57",
+      "source": "호랑이는 대답하지 않았다. 대신 앞발을 들어 목의 고리를 꽉 쥐었다. 고리는 아무 짓도 하지 않았는데도.",
+      "sourceHash": "16a1b299ab6d90e569ebce2905eff29efe2ff4f7db4ebb0f9e1bdef043d97c8c",
+      "translations": {
+        "zh-CN": "老虎没回答，却抬起前爪，紧紧握住颈上的金环。明明金环什么也没做。",
+        "zh-TW": "老虎沒回答，卻抬起前爪，緊緊握住頸上的金環。明明金環什麼也沒做。"
+      }
+    },
+    {
+      "id": "ep-21a:58",
+      "source": "기억 안 나면서 아는 척하지 마. 그게 제일 잔인해.",
+      "sourceHash": "9cbb4236310e66104e5b3548c16e96eb8e1bfb06a98fbd8b4ec309bf341f284a",
+      "translations": {
+        "zh-CN": "想不起来，就别装知道。那最残忍。",
+        "zh-TW": "想不起來，就別裝知道。那最殘忍。"
+      }
+    },
+    {
+      "id": "ep-21a:59",
+      "source": "기억 안 난다. 그래서 묻는 거다.",
+      "sourceHash": "7b21ce8d19f7bb76875a520fb4ec43a9df87994a67e0baf6cd3ce7082896e16b",
+      "translations": {
+        "zh-CN": "我想不起来。所以才问。",
+        "zh-TW": "我想不起來。所以才問。"
+      }
+    },
+    {
+      "id": "ep-21a:60",
+      "source": "나는 다 기억나. 하나도 안 빼고. 그래서 이렇게 사는 거야.",
+      "sourceHash": "90cb3844f12f859d9ac46e9cd1f7f71293dfa1d929f08834a1cdbda388b9fe4a",
+      "translations": {
+        "zh-CN": "我全都记得。一点不漏。所以，才会这样活着。",
+        "zh-TW": "我全都記得。一點不漏。所以，才會這樣活著。"
+      }
+    },
+    {
+      "id": "ep-21a:61",
+      "source": "그 봄에 무슨 일이 있었지.",
+      "sourceHash": "0a28c4eaafcd4a61f46d9d209184eb6a11a026296f526de8050989491d0e9b74",
+      "translations": {
+        "zh-CN": "那个春天，发生了什么。",
+        "zh-TW": "那個春天，發生了什麼。"
+      }
+    },
+    {
+      "id": "ep-21a:62",
+      "source": "네가 지키겠다던 사람이 사라졌어. 그게 다야.",
+      "sourceHash": "8abce2f69ba57fa97ce96bb3d422830d3624ee6a768f9cfc7837109d959cbda3",
+      "translations": {
+        "zh-CN": "你说要保护的人，消失了。就这样。",
+        "zh-TW": "你說要保護的人，消失了。就這樣。"
+      }
+    },
+    {
+      "id": "ep-21a:63",
+      "source": "영냥이의 앞발이 움찔했다. 녹이 번진 자리가 갑자기 화끈거렸다. 기억은 없는데 몸이 먼저 아파했다.",
+      "sourceHash": "e2496c431575ffff4284d2cf237384d681142718da7dde9996e5709fedb96566",
+      "translations": {
+        "zh-CN": "Yeongnyangi的前爪一颤。生锈的地方，突然灼痛起来。记忆还没回来，身体已经先痛了。",
+        "zh-TW": "Yeongnyangi的前爪一顫。生鏽的地方，突然灼痛起來。記憶還沒回來，身體已經先痛了。"
+      }
+    },
+    {
+      "id": "ep-21a:64",
+      "source": "그랬군. 그래서 이번엔 내가 이 일을 맡았나 보다.",
+      "sourceHash": "5ab6cd9bef1aaf6e417e3fee17f0735f2e593a812333b86ae79bf74eac082b31",
+      "translations": {
+        "zh-CN": "原来如此。难怪这一次，我接下了这份工作。",
+        "zh-TW": "原來如此。難怪這一次，我接下了這份工作。"
+      }
+    },
+    {
+      "id": "ep-21a:65",
+      "source": "이번에도 똑같이 끝날 거야. 너는 또 늦고, 나는 또 혼자 남고.",
+      "sourceHash": "b477065ceed3ef9ae64a2e0b95acaec23aaf64d092802231193ec1a117b701d1",
+      "translations": {
+        "zh-CN": "这次，也会一样结束。你又迟到，我又独自留下。",
+        "zh-TW": "這次，也會一樣結束。你又遲到，我又獨自留下。"
+      }
+    },
+    {
+      "id": "ep-21a:66",
+      "source": "묻지 마. 이름도 모르는 고양이한테 내가 왜 대답해.",
+      "sourceHash": "9828ee759a0624400ed8ccc1eed7dd3d02d5bbcfd27882b9db8ba64aa0e5860d",
+      "translations": {
+        "zh-CN": "别问了。我凭什么回答一只连名字都不知道的猫。",
+        "zh-TW": "別問了。我憑什麼回答一隻連名字都不知道的貓。"
+      }
+    },
+    {
+      "id": "ep-21a:67",
+      "source": "그건 피차일반이군. 나도 네 이름을 모른다.",
+      "sourceHash": "cd4dbe92f7a2b993f4f09a8486a04e465e57a9dffbcbe3e8409a2eebb882ee55",
+      "translations": {
+        "zh-CN": "彼此彼此。我也不知道你的名字。",
+        "zh-TW": "彼此彼此。我也不知道妳的名字。"
+      }
+    },
+    {
+      "id": "ep-21a:68",
+      "source": "바람이 불었다. 영냥이의 눈 깊은 곳에서 금빛이 번쩍 일었다가 사라졌다. 자기도 모르게 일어난 빛이었다.",
+      "sourceHash": "b24d3335254fc8eba75466fff968e240aa5a6c64465de70c5ef1ebb9b83becb0",
+      "translations": {
+        "zh-CN": "风吹过。Yeongnyangi眼眸深处，金光骤起，又消失。那道光，连他自己也没察觉。",
+        "zh-TW": "風吹過。Yeongnyangi眼眸深處，金光驟起，又消失。那道光，連他自己也沒察覺。"
+      }
+    },
+    {
+      "id": "ep-21a:69",
+      "source": "너 지금 그 눈.",
+      "sourceHash": "a11b9b3153ec2d3b445a6684289d8511821c2825780b5c2ff4e7eb30f6d6e71d",
+      "translations": {
+        "zh-CN": "你刚才的眼睛。",
+        "zh-TW": "你剛才的眼睛。"
+      }
+    },
+    {
+      "id": "ep-21a:70",
+      "source": "신경 쓰지 마라.",
+      "sourceHash": "5125e703aee35c7a946490a9bc4a2307d75333a2eb0d5ce9f752b3745b2af89f",
+      "translations": {
+        "zh-CN": "别在意。",
+        "zh-TW": "別在意。"
+      }
+    },
+    {
+      "id": "ep-21a:71",
+      "source": "빈칸 앞에서도 그 눈이었지. 너 스스로도 모르는 거야, 아니면 모르는 척하는 거야.",
+      "sourceHash": "f1f625d48f0c50014ff498637fb5c3470fac9328ec8317f287be5a7f14821af9",
+      "translations": {
+        "zh-CN": "在空格前，也是那双眼睛。你自己也不知道，还是装不知道。",
+        "zh-TW": "在空格前，也是那雙眼睛。你自己也不知道，還是裝不知道。"
+      }
+    },
+    {
+      "id": "ep-21a:72",
+      "source": "고객센터는 사적인 질문에 답하지 않는다.",
+      "sourceHash": "067afae793a2b7550587b83e3345eee62b46f5f94680e1fa8ac54ffeee353c29",
+      "translations": {
+        "zh-CN": "客服不回答私人问题。",
+        "zh-TW": "客服不回答私人問題。"
+      }
+    },
+    {
+      "id": "ep-21a:73",
+      "source": "그때 아래쪽에서 창문 여는 소리가 났다. 아주 조심스럽게, 그러나 돼지답게 조금 시끄럽게.",
+      "sourceHash": "a75dab95211b5571f0c7e5dc8894b94006e7a3fa8e09b5fb487e202a1e2632af",
+      "translations": {
+        "zh-CN": "这时，下方传来开窗声。极其小心，却又像猪会做的那样，还是有点吵。",
+        "zh-TW": "這時，下方傳來開窗聲。極其小心，卻又像豬會做的那樣，還是有點吵。"
+      }
+    },
+    {
+      "id": "ep-21a:74",
+      "source": "하얀 고양이와 검은 호랑이는 동시에 고개를 돌렸다. 창틀에 분홍색 앞발 하나가 걸려 있었다.",
+      "sourceHash": "23d9d9d5c44169787d4acf1a4d080bc20e685f104e1fb2920ccaab0a6d0a06fe",
+      "translations": {
+        "zh-CN": "白猫与黑虎同时转头。窗框上，挂着一只粉红色前蹄。",
+        "zh-TW": "白貓與黑虎同時轉頭。窗框上，掛著一隻粉紅色前蹄。"
+      }
+    }
+  ]
+}

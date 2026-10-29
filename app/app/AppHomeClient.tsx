@@ -18,7 +18,7 @@ const CORE_SLUGS = [
   "ziwei",
 ] as const;
 
-function buildSpotlightFeatures(copy: AppShellCopy): Array<FeatureMarketingTarget & { eyebrow: string; image: string }> {
+function buildSpotlightFeatures(copy: AppShellCopy, locale: string): Array<FeatureMarketingTarget & { eyebrow: string; image: string }> {
   return [
     {
       title: copy.spotlightTeaHouseTitle,
@@ -43,7 +43,9 @@ function buildSpotlightFeatures(copy: AppShellCopy): Array<FeatureMarketingTarge
       accessType: "paid",
       badges: [{ text: copy.spotlightNeoRoomBadge }],
       eyebrow: copy.spotlightSectionTitle,
-      image: "https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp",
+      image: locale === "ko"
+        ? "https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp"
+        : "/images/consultation-editorial/neo.webp",
     },
   ];
 }
@@ -69,7 +71,7 @@ export default function AppHomeClient() {
   const copy = getAppShellCopy(locale);
   const featureBySlug = new Map(listServiceFeatures(locale).map((feature) => [feature.slug, feature]));
   const features = CORE_SLUGS.map((slug) => featureBySlug.get(slug)).filter(isDefined);
-  const spotlightFeatures = buildSpotlightFeatures(copy);
+  const spotlightFeatures = buildSpotlightFeatures(copy, locale);
 
   return (
     <>

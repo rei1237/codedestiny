@@ -1,0 +1,472 @@
+{
+  "locale": "en",
+  "episodeId": "ep-28b",
+  "tag": "Episode 28 Side Story · The Price of a Safe Tomorrow",
+  "title": "The Price of a Safe Tomorrow",
+  "sourceTitle": "안전한 내일의 가격",
+  "sourceTag": "제28화 외전 · 안전한 내일의 가격",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-28b:1",
+      "source": "행운은 일주일째 계속되었다. 연이는 조금 무서워지기 시작했다.",
+      "sourceHash": "12a0b3879f5ea2e9173251e4df1c7ecbb49bf3bef06375739cb143685ee920fa",
+      "t": "The good luck continued for a week. Yeoni began to feel a little afraid."
+    },
+    {
+      "id": "ep-28b:2",
+      "source": "장학금 서류가 한 번에 통과됐다. 사고 싶던 운동화가 반값이었다. 엘리베이터는 연이가 갈 때마다 1층에 서 있었다.",
+      "sourceHash": "13253d8e90c70b82bc6fdae2f0b2da9749df469da13ad9dfd52906f137950e4c",
+      "t": "The scholarship paperwork passed on the first try. The sneakers they wanted were half price. Whenever they needed it, the elevator waited on the first floor."
+    },
+    {
+      "id": "ep-28b:3",
+      "source": "(불운이 출근을 안 하니까 오히려 불안해. 이게 무슨 체질이야.)",
+      "sourceHash": "777a5f17b64794430b4d3392e83b8812ccd0374c12111526dc72648a9cd30521",
+      "t": "(Bad luck not showing up for work makes me more anxious. What kind of person am I?)"
+    },
+    {
+      "id": "ep-28b:4",
+      "source": "「너는 운이 좋으면 의심부터 하는군.」",
+      "sourceHash": "aa6599a0b44fa4ff6c84033618e7a2af554a1eb4acf525da0b34f3fc81c46c3e",
+      "t": "“Good fortune makes you suspicious first.”"
+    },
+    {
+      "id": "ep-28b:5",
+      "source": "그걸 가르친 게 저쪽 세계거든. 공짜 빵 빼고 공짜는 없더라.",
+      "sourceHash": "630d7edfbf0fcb18379dc308d0d76ddb60b4870f1da2a9559a8701fe0c2858b7",
+      "t": "The other world taught me that. Nothing was free except the bread."
+    },
+    {
+      "id": "ep-28b:6",
+      "source": "「빵 봉지 접혀서 돌아온 거, 아직도 생각하나.」",
+      "sourceHash": "ce2750ccfd946bd01ddf18b7b017291a6bc4a543730a69f6c3510ffa4dccdd7d",
+      "t": "“Still thinking about the bread bag coming back folded?”"
+    },
+    {
+      "id": "ep-28b:7",
+      "source": "(응. 빵은 먹었을까. 봉지만 돌려준 걸까. 반듯하게 접은 게 꼭 영수증 같았어.)",
+      "sourceHash": "15310caeb593af35592e91935dab8818d90db73a3b407428d89274bf68b12d64",
+      "t": "(Yes. Did she eat it? Just return the bag? Folded so neatly, it looked like a receipt.)"
+    },
+    {
+      "id": "ep-28b:8",
+      "source": "그 사람, 받는 걸 무서워하는 것 같아. 받으면 갚아야 하니까.",
+      "sourceHash": "6464832e6693d41127da165d3aadd3de040407908c5ccddcba8a72a02944e02c",
+      "t": "I think she's afraid to receive things. Because then she has to repay them."
+    },
+    {
+      "id": "ep-28b:9",
+      "source": "「그런 사람은 대개 많이 빼앗겨 본 사람이다. 혹은 많이 빼앗아 본 사람이거나.」",
+      "sourceHash": "20e5a46ccfc1315380ad0e2990150ec644a9dd7c23e77d8246d0fbb35e6fa61e",
+      "t": "“People like that have usually had a lot taken from them. Or taken a lot from others.”"
+    },
+    {
+      "id": "ep-28b:10",
+      "source": "둘 다일 수도 있겠네.",
+      "sourceHash": "33529b25ab0963f4591e67338696f997006887c125a77642cc47e6a0c62f868e",
+      "t": "Could be both."
+    },
+    {
+      "id": "ep-28b:11",
+      "source": "초인종이 울렸다. 문을 여니 옆집 여자가 상자 하나를 들고 서 있었다.",
+      "sourceHash": "22b34b27ddfff0e0f359edaba4581a750dda30726c3968f51ef36018ebc10dd4",
+      "t": "The doorbell rang. The woman next door stood outside holding a box."
+    },
+    {
+      "id": "ep-28b:12",
+      "source": "택배가 저희 집으로 잘못 왔어요. 이 집 거예요.",
+      "sourceHash": "312d358206df8cae7acfad521ef187b44c203e824a549750201d9753064bebf3",
+      "t": "Your package came to my apartment by mistake. It's yours.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:13",
+      "source": "아, 감사합니다. 들어오실래요? 차라도 한잔.",
+      "sourceHash": "6f1dda3088ed39dda544a03fe2a67950fb5bb40c526ea18ee907199cbddaebb2",
+      "t": "Oh, thank you. Would you like to come in? Have some tea?"
+    },
+    {
+      "id": "ep-28b:14",
+      "source": "괜찮아요. 금방 갈 거예요.",
+      "sourceHash": "e9b03fb23e8a802d1ce557e5999a35d136a29ac060dc252bc90fa857e914aa11",
+      "t": "I'm fine. I'll leave in a moment.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:15",
+      "source": "그러면서도 여자는 돌아가지 않았다. 현관에 선 채 방 안쪽을 보았다. 구석에 세워 둔, 테이프 감긴 우산을.",
+      "sourceHash": "5148535babe1bca2bfe7c6d390d62690dd31e919770d55e5e3f6000af674d2b5",
+      "t": "Yet she did not go. Standing in the doorway, she looked inside. At the taped umbrella in the corner."
+    },
+    {
+      "id": "ep-28b:16",
+      "source": "우산을 고치셨네요. 버리지 않고.",
+      "sourceHash": "8a5e5267fec5cdb38412e074f92619ec716ef1e6fc6435d992a83677ae82ea21",
+      "t": "You repaired the umbrella. Instead of throwing it away.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:17",
+      "source": "네. 뒤집혔는데 살 수 있겠더라고요. 버리긴 아깝잖아요.",
+      "sourceHash": "c7a675667b49f45940f255c6972300d6e4a02297249cac112914c6fd6a0f766c",
+      "t": "Yes. It flipped, but it looked like it could survive. A waste to throw it out."
+    },
+    {
+      "id": "ep-28b:18",
+      "source": "소파 곁에 앉아 있던 네오가 여자를 보았다. 손잡이를 짚은 손에 힘이 들어갔다.",
+      "sourceHash": "e22b45e3124ce72d3cfd53aac63b8ef741cba0fbeee3949590a073e40e65653b",
+      "t": "Seated beside the sofa, Neo looked at her. His hand tightened on the armrest."
+    },
+    {
+      "id": "ep-28b:19",
+      "source": "그 우산 뒤집혔던 날이 제 인생 최악의 날이었거든요. 버스 놓치고, 비 맞고, 앱에다 별점 하나 줬어요.",
+      "sourceHash": "cf8c32f2b73f4f6d3c5a31378de4d990d2311ee833737ff8738995e2eb94a499",
+      "t": "The day that umbrella flipped was the worst day of my life. Missed the bus, got soaked, gave an app one star."
+    },
+    {
+      "id": "ep-28b:20",
+      "source": "별점이요?",
+      "sourceHash": "6dc91ee0943e22b7458fc5a39fce1b24eb9b4c311c69dfb67f70a0ba855f72f0",
+      "t": "A rating?",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:21",
+      "source": "네. 우주한테요. 그랬더니 진짜 우주가 답장을 하더라고요. 믿기 어렵겠지만.",
+      "sourceHash": "ec809d112b6fa0ec649dd8c36794d9861efad5828eb44bc37467bb8c18a4cacb",
+      "t": "Yes. To the universe. And the universe actually replied. Hard to believe, I know."
+    },
+    {
+      "id": "ep-28b:22",
+      "source": "여자의 입꼬리가 아주 조금 움직였다. 웃음이라 부르기엔 짧았다. 금세 사라졌다.",
+      "sourceHash": "869393e63f0676a305b99d018766e3f1b3c79e3d1b8f93422d0aa1ec005a1749",
+      "t": "The corner of her mouth moved very slightly. Too brief to call a smile. Gone at once."
+    },
+    {
+      "id": "ep-28b:23",
+      "source": "믿어요. 우주는 답장을 하죠. 대신 늘 늦게.",
+      "sourceHash": "68bd0eb454a34cf602bf851038b44e48ff3bce65ed3d54f3302d441e614a0fc8",
+      "t": "I believe you. The universe replies. Always late, though.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:24",
+      "source": "어, 그거 경험담 같은데요?",
+      "sourceHash": "87feb63a08be52eed21ee30c969f02b2e207646496bb7b8b8f887bebd2ab5d10",
+      "t": "Oh, that sounds like experience."
+    },
+    {
+      "id": "ep-28b:25",
+      "source": "그냥 하는 말이에요. 신경 쓰지 마세요.",
+      "sourceHash": "555ab35fea2da3def574e09acbae6ac99cc679e4dbf5b204ea396f5a57f1a0c4",
+      "t": "Just saying things. Never mind.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:26",
+      "source": "요즘 운이 좋으시죠.",
+      "sourceHash": "f98baff0eda9dc8767ba872a4bef9f9aa647aed9ea8a7a29dbae710ff4aeed64",
+      "t": "You've been lucky lately, haven't you?",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:27",
+      "source": "어떻게 아셨어요?",
+      "sourceHash": "ae33f6ff309ddc6c0070015bfb7ee0b058afda37b577cb536b28ad798a89e2c0",
+      "t": "How did you know?"
+    },
+    {
+      "id": "ep-28b:28",
+      "source": "얼굴에 써 있어요. 근데 좋은 운은 오래 안 가요. 그건 아시죠.",
+      "sourceHash": "d6e630d670b8506c663c4a2d0e2904f6f6bc4d52c2a4cb9d6b100018b4ce19d8",
+      "t": "Written on your face. But good luck doesn't last. You know that, right?",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:29",
+      "source": "여자가 코트 안주머니에서 명함 한 장을 꺼냈다. 검은 바탕에 금색 글씨. 내일 보증 상담.",
+      "sourceHash": "f5706a2214426bd78d6148a60d83cfdd2c0f092b9d910b1728a689cb4fbba6af",
+      "t": "She took a business card from her coat pocket. Gold letters on black. Tomorrow Guarantee Consultation."
+    },
+    {
+      "id": "ep-28b:30",
+      "source": "명함에는 짧은 계약서가 접혀 붙어 있었다. 이용자의 내일을 대신 보관하고 지켜 드립니다. 어떤 불운도 당신에게 닿지 않습니다.",
+      "sourceHash": "fc9027dac4d534e17e4e227e4a87bd58e9c31dcb141634fd4f7dc2445853ea01",
+      "t": "A short folded contract was attached. We hold and protect your tomorrows on your behalf. No misfortune will reach you."
+    },
+    {
+      "id": "ep-28b:31",
+      "source": "불운이 다시 오기 전에 미리 맡겨 두세요. 그럼 아무것도 잃지 않아요.",
+      "sourceHash": "5e1bbc3878047a5aeff18ab78f1bf721b1e1671ea0495ff1e737c9bbedb97d74",
+      "t": "Leave them in our care before bad luck returns. Then you won't lose anything.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:32",
+      "source": "(시간을 파는 섬에서 이런 거 본 적 있다. 청토끼 계약서. 작은 글씨부터 읽자.)",
+      "sourceHash": "8c601bcafae6796d2fd082fcba232932bcbc88192884f1a5925a3946961a01e7",
+      "t": "(I've seen this on the island that sold time. Blue Rabbit's contract. Read the fine print first.)"
+    },
+    {
+      "id": "ep-28b:33",
+      "source": "연이는 계약서를 끝까지 읽었다. 맨 아래, 아주 작은 글씨가 있었다. 보관 기간 중 이용자의 중요한 결정은 보관자와 사전 협의한다.",
+      "sourceHash": "b3ef4d4eaedd851d56957e21bb3db329fa8a74c569fc7697a692df10d7f158c2",
+      "t": "Yeoni read to the end. At the bottom, in tiny letters: During custody, the user's important decisions must be discussed with the custodian beforehand."
+    },
+    {
+      "id": "ep-28b:34",
+      "source": "중요한 결정이 뭔데요. 범위가 안 적혀 있네요.",
+      "sourceHash": "bf0c2f5ed8052a04581de67d1cbaeb73e7c7c5410dbc89074c74eccdfa43c4f0",
+      "t": "What counts as important? It doesn't define the scope."
+    },
+    {
+      "id": "ep-28b:35",
+      "source": "전부요. 위험한 결정은 전부.",
+      "sourceHash": "f399dfa39e0d8e3f7f1d714ce35a37d0b68b1aacef9a6ec74830495a7aa6590d",
+      "t": "Everything. Every risky decision.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:36",
+      "source": "그럼 지켜 주는 대신 제가 고르는 걸 맡기라는 거잖아요.",
+      "sourceHash": "7704fe58b4e59543cbe3899216ff88d5cc3c0e398056044d6739fe76b81d34a1",
+      "t": "So in exchange for protection, I hand over my choices."
+    },
+    {
+      "id": "ep-28b:37",
+      "source": "고르다가 다치는 것보단 낫죠. 당신은 고르다가 다치는 사람이에요. 아주 많이.",
+      "sourceHash": "822c3dcdc027b022a7534f8afea74e932227027df9b370d89becb07aa0f08770",
+      "t": "Better than choosing and getting hurt. You're someone who gets hurt making choices. A great deal.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:38",
+      "source": "그 말에는 이상한 확신이 있었다. 연이가 다치는 걸 여러 번 본 사람처럼.",
+      "sourceHash": "3b7f3ac08d020bc33724b2360c7f3935384dd0bd059b8b0890f858c9e893d53e",
+      "t": "There was strange certainty in her words. Like someone who had seen Yeoni hurt many times."
+    },
+    {
+      "id": "ep-28b:39",
+      "source": "다치는 것도 제가 고를게요. 감사하지만 안 할래요.",
+      "sourceHash": "309377f3a94cb1a0a0b8e935b8fddca96de8b4b10f3052aded346b28b1c89423",
+      "t": "I'll choose whether to get hurt, too. Thank you, but no."
+    },
+    {
+      "id": "ep-28b:40",
+      "source": "왜요. 다치면 아파요. 아픈 거 싫잖아요. 누구나 싫어해요.",
+      "sourceHash": "4ea06016e1d3175db5a5a51d51db3594671525126d83a283fa59afff976b007c",
+      "t": "Why? Getting hurt is painful. You don't like pain. Nobody does.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:41",
+      "source": "싫죠. 근데 남이 골라 준 안전한 길로만 가면, 그건 제 내일이 아니잖아요.",
+      "sourceHash": "06fae264934ed8c194ff04ba3dd3a32b55efcf85ef7a47b5acb619b0487d914c",
+      "t": "I don't. But if I only take safe paths someone else chooses, that isn't my tomorrow."
+    },
+    {
+      "id": "ep-28b:42",
+      "source": "여자가 입을 열었다가 닫았다. 무언가 반박하려다 단어를 잃은 얼굴이었다.",
+      "sourceHash": "39addf6f9c52a6ce605be00799f1ff6e0ab6b44302979112823c832dd69a657a",
+      "t": "The woman opened her mouth, then closed it. As though about to argue and losing the words."
+    },
+    {
+      "id": "ep-28b:43",
+      "source": "여자의 손가락이 명함 모서리를 꽉 쥐었다. 종이가 구겨졌다.",
+      "sourceHash": "63348ccc4ce10a5362698b498d26bb3ee0c37e02ad7d0cf1a7aab99fe79f0bc9",
+      "t": "Her fingers clutched the card's corner. The paper crumpled."
+    },
+    {
+      "id": "ep-28b:44",
+      "source": "빚은 남겨 두면 불어나요.",
+      "sourceHash": "af5fc45c30c45944b27bfbae4d765572ce33ead76a16d00b7b2d87b8526e3c99",
+      "t": "Leave a debt alone, and it grows.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:45",
+      "source": "방 안이 조용해졌다. 연이의 등에 소름이 돋았다. 그 말투. 그 문장. 시간을 파는 섬의 금고 앞에서 들었던.",
+      "sourceHash": "e3f23f8acd9fb060dd3a06a5094d876bd5aee4db00849b33b0e4595a9faa74f6",
+      "t": "The room fell quiet. Goosebumps rose along Yeoni's back. That tone. That sentence. Heard before the vault on the island that sold time."
+    },
+    {
+      "id": "ep-28b:46",
+      "source": "…방금 뭐라고 하셨어요?",
+      "sourceHash": "ea678332e9399dd8ac948af8d49cb6d38eb1bdf3000ca68ff0acb22c2443d65d",
+      "t": "...What did you just say?"
+    },
+    {
+      "id": "ep-28b:47",
+      "source": "아무것도요. 그냥 어른들이 하는 말이에요.",
+      "sourceHash": "ad5958b21837e8e91e33bc0a7dbc7fead56075e5e28bb654f55d5e506234621c",
+      "t": "Nothing. Just something adults say.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:48",
+      "source": "여자가 명함을 거두려 손을 뻗었다. 소매가 밀려 올라갔다.",
+      "sourceHash": "0a8f6a6d4f993dd5d34f7feb544adab4f7429845f14fcc5f3639929d75b7a3cc",
+      "t": "The woman reached to retrieve the card. Her sleeve slid up."
+    },
+    {
+      "id": "ep-28b:49",
+      "source": "오른 손목에 흉터가 있었다. 손목을 한 바퀴 감은 둥근 자국. 무언가에 오래 조여 있던 것처럼. 그 한가운데 가는 금줄이 박혀 있었다.",
+      "sourceHash": "f423b0080acfb0cbdb6a331bb5489788dc87ec6279ebe5cd6913b35e1e81de47",
+      "t": "A scar circled her right wrist, as though something had squeezed it for a long time. A thin gold cord was embedded at its center."
+    },
+    {
+      "id": "ep-28b:50",
+      "source": "(고리 자국. 오른쪽. …오른 앞발.)",
+      "sourceHash": "8d1f125cd73c2eddf27327736e89522ec18282857508efeece180c88644b0974",
+      "t": "(A ring mark. On the right. ...The right forepaw.)"
+    },
+    {
+      "id": "ep-28b:51",
+      "source": "연이는 그 기억을 붙잡으려 했다. 검은 털, 금장 고리, 이마로 밀던 감촉. 그러나 기억은 젖은 종이처럼 번졌다.",
+      "sourceHash": "7bbd0042e92e0494dd9ab517e87e7305a2a39ff6f08841a25a29f77f9502a085",
+      "t": "Yeoni tried to catch the memory. Black fur, golden ring, the feel of pushing with their forehead. But it blurred like wet paper."
+    },
+    {
+      "id": "ep-28b:52",
+      "source": "그때 네오가 소파 옆에서 일어났다. 여자가 내민 손목을 붙잡으려다 멈췄다. 손끝이 소매 아래 금줄에 스쳤다.",
+      "sourceHash": "5aa4354485c8657ad2fa0a0d0d24d24173fb1e5a7efdd20942d6f1fed3216b13",
+      "t": "Then Neo rose beside the sofa. He started to grab the woman's outstretched wrist, then stopped. His fingertips brushed the gold beneath her sleeve."
+    },
+    {
+      "id": "ep-28b:53",
+      "source": "네오! 안 돼! 손님이야!",
+      "sourceHash": "09fd60fe816fe732d7344672c2f765b1f947b8d7b163ea04c877052702b8f2af",
+      "t": "Neo! Don't! She's a guest!"
+    },
+    {
+      "id": "ep-28b:54",
+      "source": "…괜찮아요. 안 다쳤어요.",
+      "sourceHash": "61bd91ac1ec2a77ed091b60766f364e7d80663689030bd2567b4cee466084e3c",
+      "t": "...It's all right. I'm not hurt.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:55",
+      "source": "여자는 네오의 눈을 피했다. 소매를 끌어 내리고 한 걸음 물러났다.",
+      "sourceHash": "b5cb6e49dc220e9c31441c1402caca23b0dfce3dbc4cfc7dd9eb82f0087e29f9",
+      "t": "She avoided Neo's eyes, pulled down her sleeve, and stepped back."
+    },
+    {
+      "id": "ep-28b:56",
+      "source": "실례했어요. 명함은 두고 갈게요. 마음 바뀌면 문 두드리세요.",
+      "sourceHash": "54b0c85977e536817eb548d116f3057cb46e571d1b99dedf5ebb0b3452d0718b",
+      "t": "Excuse me. I'll leave the card. Knock if you change your mind.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28b:57",
+      "source": "문이 닫혔다. 연이는 바닥에 떨어진 명함을 주웠다. 앞면은 계약서. 그리고 뒷면.",
+      "sourceHash": "230b942537ccec0bcf37f4ee46485791b86e9b78bdd98889aae1a4b7ad0d72c9",
+      "t": "The door closed. Yeoni picked up the fallen card. A contract on the front. And the back."
+    },
+    {
+      "id": "ep-28b:58",
+      "source": "명함 뒷면에는 손으로 쓴 글씨가 있었다. 가늘고 단정한 글씨. 장부에 적듯 한 획씩 꾹꾹 누른.",
+      "sourceHash": "d7587cd96c3a691790d03c5f27e9430d512409b20be19f7bc7cb0ddf00dfaa53",
+      "t": "Handwriting covered the back. Thin and neat. Every stroke pressed carefully, like writing in a ledger."
+    },
+    {
+      "id": "ep-28b:59",
+      "source": "[ 비 오는 날엔 정류장에 가지 마세요 ]",
+      "sourceHash": "6687fe5abf6b953969eef11481c43a2ae64629aed8c041a1db92bafd12398354",
+      "t": "[ Don't go to the bus stop on rainy days ]"
+    },
+    {
+      "id": "ep-28b:60",
+      "source": "(정류장? 왜 하필 정류장이야.)",
+      "sourceHash": "7cafab73c1133fe99274c7f32c42cee01283942bbfb752089e09b5b50932fd88",
+      "t": "(The bus stop? Why the bus stop?)"
+    },
+    {
+      "id": "ep-28b:61",
+      "source": "「경고인지 협박인지 모르겠네.」 네오가 의자 팔걸이를 짚었다. 손마디에 힘이 들어갔다.",
+      "sourceHash": "d8b7cc88386c9a33d57faade22a243a4ddeb0673b835bd9e32a8ace47da27f5a",
+      "t": "“Can't tell if that's a warning or a threat.” Neo braced against the chair's armrest, his knuckles tense."
+    },
+    {
+      "id": "ep-28b:62",
+      "source": "둘 다 아닐 수도 있어. 걱정일 수도 있잖아.",
+      "sourceHash": "f5f4f4a115e2cf9268e0ad0b888d8c04e503d7e2da268ffaccb7f42d3f78a3e3",
+      "t": "Could be neither. Could be concern."
+    },
+    {
+      "id": "ep-28b:63",
+      "source": "「걱정하는 사람이 계약서부터 내미나.」",
+      "sourceHash": "fed774f0d2baade6f6c0f1dbc8abdfb874ca6ae52829220cdbe94e7c27f74b65",
+      "t": "“Who shows concern by offering a contract first?”"
+    },
+    {
+      "id": "ep-28b:64",
+      "source": "(그런데 왜 정류장이지. 우리 동네 정류장은 그냥 평범한 버스 정류장인데.)",
+      "sourceHash": "da398ab7b09d04b9d210eff44434cfde6f055a5e4f5fa1d24802538a529195e8",
+      "t": "(But why the bus stop? The one in our neighborhood is just an ordinary stop.)"
+    },
+    {
+      "id": "ep-28b:65",
+      "source": "연이는 창밖을 보았다. 아파트 앞 정류장이 가로등 아래 조용히 서 있었다. 지붕 끝에서 물방울이 떨어지는 모양이 이상하게 낯익었다.",
+      "sourceHash": "3bea0b243aa65cbcd23283892cc350602ae72ee94caf987277e06f27b9afe6a4",
+      "t": "Yeoni looked outside. The bus stop before the apartment stood quietly beneath a streetlight. Water dripping from its roof's edge looked strangely familiar."
+    },
+    {
+      "id": "ep-28b:66",
+      "source": "아주 잠깐, 그 정류장 아래 누군가 서 있는 것 같았다. 우산을 반쯤 기울인 채로. 눈을 깜빡이자 아무도 없었다.",
+      "sourceHash": "38544dab44aa64a774290670523824938eb24920ac345bda6c03eab3ccdf6f67",
+      "t": "For an instant, someone seemed to stand beneath it, an umbrella tilted halfway. One blink, and nobody was there."
+    },
+    {
+      "id": "ep-28b:67",
+      "source": "네오. 방금 정류장에 누구 있었어?",
+      "sourceHash": "bea95ebe866f9cb20e0bb5839983c9cf8c5e053b85668baeada93d19cfa43ac9",
+      "t": "Neo. Was someone at the stop just now?"
+    },
+    {
+      "id": "ep-28b:68",
+      "source": "「아무도 없다. 하지만 비 냄새는 났다.」",
+      "sourceHash": "a88ab588ef52a06278c327b5ae7f3589b91b0be542f998a195d037405fa52c71",
+      "t": "“Nobody. But I smelled rain.”"
+    },
+    {
+      "id": "ep-28b:69",
+      "source": "저쪽에선 다들 그랬잖아. 걱정을 가격표로밖에 말 못 하는 사람들.",
+      "sourceHash": "e8781cc5c9870fa9ff912128dda794efc6a146efea8af5ec40a2c97e70b6e8a9",
+      "t": "People over there did that, too. Could only express worry through a price tag."
+    },
+    {
+      "id": "ep-28b:70",
+      "source": "연이는 명함을 메모장 옆에 두었다. 그리고 목록 맨 아래에 한 줄을 더 적었다. 옆집 여자. 맑은 날 우산. 오른 손목 고리 자국. 빚은 남겨 두면 불어나.",
+      "sourceHash": "e665a667e7aa8160aaf8bbbf7e9a4b6b7cebcdb1bac272ad422a317285324b67",
+      "t": "Yeoni set the card beside their notes and added one more line. Woman next door. Umbrella on clear days. Ring mark on right wrist. Leave a debt alone, and it grows."
+    },
+    {
+      "id": "ep-28b:71",
+      "source": "잠들기 전, 연이는 벽에 손바닥을 대 보았다. 차가웠다. 벽 너머에서 아주 작게, 종이 넘기는 소리가 났다. 한 장, 또 한 장.",
+      "sourceHash": "0b034b9fee5939bf3c38279d1f2f364a5867c569b187a275e323a53f3ca6c255",
+      "t": "Before sleeping, Yeoni pressed a palm to the wall. Cold. Very faintly, paper turned beyond it. One page, then another."
+    },
+    {
+      "id": "ep-28b:72",
+      "source": "(장부. 그 호랑이도 늘 뭔가를 적고 있었어. 누가 얼마를 빚졌는지.)",
+      "sourceHash": "3c866784baf10150aa1bf4c26222fcd4127b59ad696cbf09b08d2a22a180da24",
+      "t": "(A ledger. That tiger was always writing things, too. Who owed how much.)"
+    },
+    {
+      "id": "ep-28b:73",
+      "source": "소리는 오래 이어지다가 어느 순간 뚝 멈췄다. 그리고 아주 낮게, 누군가 숨을 삼키는 소리가 들렸다.",
+      "sourceHash": "ee6368a5a078ec30ca483ae37d928366599daa6839bd58a45ad06268d7a83413",
+      "t": "The sound continued a long time, then stopped abruptly. Someone caught a breath, very quietly."
+    },
+    {
+      "id": "ep-28b:74",
+      "source": "일기 예보 앱이 알림을 띄웠다. 내일, 오후 세 시부터 소나기.",
+      "sourceHash": "a1a977b61e087a0fd0d47b9b51cd5094b8ee5ed79f60edb6b590eb82dffbf79f",
+      "t": "The weather app sent a notification. Tomorrow: showers from three in the afternoon."
+    }
+  ]
+}

@@ -1,0 +1,620 @@
+{
+  "locale": "en",
+  "episodeId": "ep-28",
+  "tag": "Episode 28 · The Room I Came Back To",
+  "title": "The Room I Came Back To",
+  "sourceTitle": "돌아온 방",
+  "sourceTag": "제28화 · 돌아온 방",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-28:1",
+      "source": "눈을 떴을 때, 천장에 낯익은 얼룩이 있었다. 비가 새던 자리. 연이의 방이었다.",
+      "sourceHash": "f14520803470da2970378a5a7f3576dd391f11e92a5f2148395b120b336b10e5",
+      "t": "When Yeoni opened their eyes, a familiar stain marked the ceiling. Where rain leaked. Their room."
+    },
+    {
+      "id": "ep-28:2",
+      "source": "창밖은 아직 어두웠다. 빗소리가 유리창을 두드렸다. 꿈을 오래 꾼 사람처럼 몸이 무거웠다.",
+      "sourceHash": "d6ed824b3b2994385583b54883e52543b20a67bf689fc21d4d317ba22082e37a",
+      "t": "It was still dark outside. Rain tapped the window. Their body felt heavy, like someone waking from a long dream."
+    },
+    {
+      "id": "ep-28:3",
+      "source": "여기… 내 방이야? 진짜 내 방?",
+      "sourceHash": "0bb4b4f789640c86e29dcec682a0e8b7eb7c8ccd840680b4a7666519eaa4eac5",
+      "t": "This... is my room? My actual room?"
+    },
+    {
+      "id": "ep-28:4",
+      "source": "손을 들어 보았다. 분홍 발굽이 아니었다. 다섯 손가락. 손톱 밑에 밀가루가 조금 끼어 있었다.",
+      "sourceHash": "8fe6b7c85b3396706bdfacd94f9bed0e40eff38a60e0e8b28dad57d606b40333",
+      "t": "They raised a hand. No pink hoof. Five fingers. A little flour beneath the nails."
+    },
+    {
+      "id": "ep-28:5",
+      "source": "(빵집 밀가루. 꿈 아니었어.)",
+      "sourceHash": "2c63701967d41057388cddfb16c135ce868c8c4e3dda76d421e4a6b01e63670c",
+      "t": "(Bakery flour. It wasn't a dream.)"
+    },
+    {
+      "id": "ep-28:6",
+      "source": "머리맡의 휴대폰이 켜졌다. 날짜는 겨우 하룻밤 뒤였다. 섬 다섯 개를 돌고 온 시간이, 하룻밤.",
+      "sourceHash": "bfac9b027eb83a11a89e915d192d9d4da0b8e5db1d3b252f97cd48712b468779",
+      "t": "The phone beside the pillow lit up. The date was only one night later. All the time spent circling five islands, one night."
+    },
+    {
+      "id": "ep-28:7",
+      "source": "[ Code Destiny · 운명 코드 8/8 · 귀환 완료 ]",
+      "sourceHash": "d2abee31a2fff8792869e6d090ab78fc7508224d09034ac89ff2d5be42d07919",
+      "t": "[ Code Destiny · Destiny code 8/8 · Return complete ]"
+    },
+    {
+      "id": "ep-28:8",
+      "source": "하룻밤? 나 거기서 빵만 몇 개를 먹었는데. 그게 다 하룻밤이라고?",
+      "sourceHash": "eaa8cb2754f0b1b4b4d603a75031fe67913677feaee08d9554e24065664afb8d",
+      "t": "One night? Do you know how much bread I ate over there? All of that in one night?"
+    },
+    {
+      "id": "ep-28:9",
+      "source": "침대 곁에서 천이 스치는 소리가 났다. 네오가 의자에 앉아 있었다. 은빛 머리와 짙은 남색 옷. 강 위에서 보았던 사람의 모습 그대로였다.",
+      "sourceHash": "097295fbec5a6b8287ee5e9373a22dece6414c9d9966e579a3d3e0c63f822a71",
+      "t": "Fabric brushed beside the bed. Neo sat in a chair. Silver hair and deep navy clothes. The same human form Yeoni had seen on the river."
+    },
+    {
+      "id": "ep-28:10",
+      "source": "…네오? 너 네오 맞지?",
+      "sourceHash": "3602ce362d8c43dcc10023624d0c2efd7b54cccbf91d343505e2f874639508bc",
+      "t": "...Neo? You're Neo, right?"
+    },
+    {
+      "id": "ep-28:11",
+      "source": "네오는 밤새 앉아 있었는지 굳은 어깨를 폈다. 그리고 평소처럼 사무적인 목소리로 말했다.",
+      "sourceHash": "85909b17bc3d317234fc590668f4c8e75182e86e96aa42b2e2abbd1aedec426b",
+      "t": "Neo stretched stiff shoulders, as though he'd sat there all night. Then spoke in his usual businesslike tone."
+    },
+    {
+      "id": "ep-28:12",
+      "source": "「고객센터입니다. 귀환 후 첫 아침, 불편하신 점 있으십니까.」",
+      "sourceHash": "6b965fe86661d8ec4e1703f4f33a3c1e4d8a1886700f0d27f7344324ef88055c",
+      "t": "“Customer Support. On your first morning after returning, are you experiencing any difficulties?”"
+    },
+    {
+      "id": "ep-28:13",
+      "source": "너도 같이 돌아왔네. 진짜 여기까지 온 거야?",
+      "sourceHash": "f6511c13c9d533960854445201fef018f8dd269296cc813309a0819a411b2e49",
+      "t": "You came back with me. You really came all the way here?"
+    },
+    {
+      "id": "ep-28:14",
+      "source": "「이쪽에서도 다른 사람들 눈에 보여. 그러니까 밖에서는 고객센터라고 부르지 마. 설명하기 곤란해.」",
+      "sourceHash": "e2d78e72dc70d3f0a2b68fbd7afe8d86afa2d56f5ff4a689df50bd3f5900ef3f",
+      "t": "“Other people can see me here, too. So don't call me Customer Support outside. Awkward to explain.”"
+    },
+    {
+      "id": "ep-28:15",
+      "source": "나 원래 좀 이상한 사람이었거든. 너 때문에 더 이상해지는 거지.",
+      "sourceHash": "ceb69eebd05bfb0774822a549ed07d7ce29c06d3497c02ee6cdec59ff8b47913",
+      "t": "I was always a little weird. You're just making me weirder."
+    },
+    {
+      "id": "ep-28:16",
+      "source": "「모습은 그대로네. 신분증까지 생긴 건 아니지만. 설명할 게 좀 많겠어.」",
+      "sourceHash": "43624d4441fa4f5960d37106b4da12dfde8ac0747bae641ee2efea29be689e79",
+      "t": "“Still the same form. Though that doesn't mean I have an ID. Quite a lot to explain.”"
+    },
+    {
+      "id": "ep-28:17",
+      "source": "연이는 네오의 손목을 조심히 잡았다. 손은 따뜻했다. 왼쪽 소매 아래에는 강에서 보았던 녹빛 상처가 아직 남아 있었다.",
+      "sourceHash": "7b1b22fac055b39493816fceea31ce8574ae0a8b446f6fe9b6254b526f70768c",
+      "t": "Yeoni carefully held Neo's wrist. His hand was warm. Beneath his left sleeve, the rust-colored wound from the river remained."
+    },
+    {
+      "id": "ep-28:18",
+      "source": "사람 손이네. 아직도 신기해.",
+      "sourceHash": "a323fb3066e5765b27730ebbbff734c973597f45f967da6633e0a060e15a5556",
+      "t": "A human hand. Still feels amazing."
+    },
+    {
+      "id": "ep-28:19",
+      "source": "「너도 어제까지 앞발이었잖아. 서로 너무 신기해하진 말자.」",
+      "sourceHash": "4be4097599a8196e13da16ef2e13c5eec3e059634f8b82770fa3eb64d59f224b",
+      "t": "“You had hooves until yesterday, too. Let's not get too amazed at each other.”"
+    },
+    {
+      "id": "ep-28:20",
+      "source": "그러니까 아프면 말해. 사람 됐다고 약속까지 바뀌는 건 아니야.",
+      "sourceHash": "d6d1162c2408017060272897c394d976f87a710d93b5618ef43de04b703407ae",
+      "t": "So tell me if it hurts. Becoming human doesn't change the promise."
+    },
+    {
+      "id": "ep-28:21",
+      "source": "「알아. 손부터 확인하는 거 보니 숨기기도 어렵겠네.」",
+      "sourceHash": "a26cb58c3936a4d2039116437e6a31ca4b9ee6fdfe4a86d6e166729ea3e769e9",
+      "t": "“I know. Hard to hide it when checking my hand is the first thing you do.”"
+    },
+    {
+      "id": "ep-28:22",
+      "source": "네오는 그렇게 말하면서도 손을 빼지 않았다. 오히려 연이의 손가락을 잠깐 마주 쥐었다.",
+      "sourceHash": "a9475b46a3ceb39157bcc69ba4cfe7a4b7133527418839f2b89933dd43560229",
+      "t": "Even as he spoke, Neo did not pull away. Instead, he briefly closed his fingers around Yeoni's."
+    },
+    {
+      "id": "ep-28:23",
+      "source": "해가 뜨자 방이 제 모습을 드러냈다. 쌓인 과제, 말라 버린 화분, 그리고 구석에 처박힌 우산 하나.",
+      "sourceHash": "b379157f0bf3532930e714d2a05fef37ef3b74bb28bab124456d7882c93e982d",
+      "t": "As the sun rose, the room revealed itself. Piled assignments, a dried-out plant, and an umbrella shoved into a corner."
+    },
+    {
+      "id": "ep-28:24",
+      "source": "우산은 뒤집혀 있었다. 살이 두 개 부러진 채였다. 저쪽 세계로 가기 전날 밤, 바람에 뒤집힌 그대로.",
+      "sourceHash": "6e8b46bbb0f5e2999dc79947bdc194c88299f1c03a3eef7234ae18f0a7a19e9e",
+      "t": "The umbrella was inside out, two ribs broken. Just as the wind had left it the night before Yeoni went to the other world."
+    },
+    {
+      "id": "ep-28:25",
+      "source": "(그날 진짜 최악이었지. 우산 뒤집히고, 버스 놓치고, 별점 테러하고.)",
+      "sourceHash": "48b74ec5f7b8b3f5e75f53d580172be9209ef255f99db0ceb6dbb692184297dc",
+      "t": "(That day really was the worst. Umbrella flipped, bus missed, angry ratings posted.)"
+    },
+    {
+      "id": "ep-28:26",
+      "source": "우산 옆에는 카드 한 장이 엎어져 있었다. 언제부터 거기 있었는지 모를 카드. 뒷면에 작은 별 무늬가 찍혀 있었다.",
+      "sourceHash": "012f41f20900877f5067eb377e5bb070c5bbc8f2ca7d8913b36124c559706066",
+      "t": "A card lay facedown beside the umbrella. Who knew how long it had been there. A small star pattern marked its back."
+    },
+    {
+      "id": "ep-28:27",
+      "source": "이 카드는 뭐야. 원래 우리 집에 있었나?",
+      "sourceHash": "394913b29a260c7502fb63fdc6436a4cfeed7108012b9477eee5b7310544d79f",
+      "t": "What's this card? Was it always in my home?"
+    },
+    {
+      "id": "ep-28:28",
+      "source": "연이는 카드를 뒤집으려 했다. 손끝에서 카드가 미끄러졌다. 몇 번을 해도 뒤집히지 않았다. 아직 때가 아니라는 듯이.",
+      "sourceHash": "476adcbcf5f5b4db21d094bab891b8c88a611b3c66d77d2c05895c4b01a3b0ac",
+      "t": "Yeoni tried turning it over. It slipped from their fingers. No matter how often they tried, it would not turn. As though the time had not yet come."
+    },
+    {
+      "id": "ep-28:29",
+      "source": "「그 카드는 네 거야. 준비가 되면 뒤집힐 테니까 지금은 그냥 둬.」",
+      "sourceHash": "ac3f9b7af6058047334c81d51742719445188ef602f0e37b96a5c90899e333db",
+      "t": "“That card is yours. It'll turn when you're ready. Leave it for now.”"
+    },
+    {
+      "id": "ep-28:30",
+      "source": "고객센터는 꼭 중요한 건 나중에 알려 주더라. 별 하나 깎는다.",
+      "sourceHash": "beb7ef766df6a2c5ebd6f9ab31b9b30c28ce5f0b149261b3ea532debd120438a",
+      "t": "Customer Support always saves the important things for later. One star deducted."
+    },
+    {
+      "id": "ep-28:31",
+      "source": "연이는 카드 대신 우산을 집었다. 부러진 살을 테이프로 감았다. 휜 살은 손으로 천천히 폈다. 잡아당기지 않고, 밀어서.",
+      "sourceHash": "06af2e25f92d9c9512dd7e1b307d9191bb2b64741b22aa5acb7e1aa46ba392cf",
+      "t": "Instead of the card, Yeoni picked up the umbrella. They taped the broken ribs and slowly straightened the bent ones by hand. Not pulling. Pushing."
+    },
+    {
+      "id": "ep-28:32",
+      "source": "뒤집힌 건 고치면 되지. 버리지 말고.",
+      "sourceHash": "d94b414fde84f7b0de037df8155481ff8b49e99245a2de9797fbb75b01f10d3e",
+      "t": "If it's flipped, fix it. Don't throw it away."
+    },
+    {
+      "id": "ep-28:33",
+      "source": "우산이 펴졌다. 조금 삐뚤었지만 비는 막을 수 있었다. 연이는 그게 마음에 들었다.",
+      "sourceHash": "78d37abd2ba170207c2e445c8f9017117a977ec53c1d70f90563bee0841f37fe",
+      "t": "The umbrella opened. A little crooked, but it would keep out rain. Yeoni liked it."
+    },
+    {
+      "id": "ep-28:34",
+      "source": "책상 위에는 종이 봉지가 하나 놓여 있었다. 루나가 문 앞에서 안겨 준 빵 봉지. 봉지는 아직 따뜻했다.",
+      "sourceHash": "adba5c274ed84c23aeae679257118f67961e84ecd2b5fdd661a1cbe52f7d67f8",
+      "t": "A paper bag rested on the desk. The bread Luna had pressed into their arms at the door. Still warm."
+    },
+    {
+      "id": "ep-28:35",
+      "source": "루나 빵이다. 이거 진짜 가져왔네. 진짜로.",
+      "sourceHash": "00b0172c326d67579f091c5163856c065886baee45273134bd68b06aa20df08a",
+      "t": "Luna's bread. I really brought it back. Really."
+    },
+    {
+      "id": "ep-28:36",
+      "source": "한 입 베어 물자 버터 냄새가 방 안에 퍼졌다. 운은 가져가도 입맛은 못 가져간다던 말이 떠올랐다.",
+      "sourceHash": "77598eadc7431301a707ae298220c1563cf068254cd888e44cf4c662b103d46a",
+      "t": "One bite spread the scent of butter through the room. Yeoni remembered the words: fortune could be taken, appetite could not."
+    },
+    {
+      "id": "ep-28:37",
+      "source": "봉지 바닥에서 접힌 종이 한 장이 나왔다. 붓으로 그린 초승달 하나, 그리고 알아볼 수 없는 글자들.",
+      "sourceHash": "bd4655887b294a58797ad46599cd2d0e1a356460935099e4aca814b6a1a163fa",
+      "t": "A folded sheet came from the bag's bottom. A brush-drawn crescent and unreadable characters."
+    },
+    {
+      "id": "ep-28:38",
+      "source": "(이게 뭐지. 영수증은 아닌데. 루나 언니 글씨도 아니고.)",
+      "sourceHash": "9909842e9bc30fe9382e083de8ff6d9ddbd12364b5ed0fd71a6ea1887d7624f9",
+      "t": "(What's this? Not a receipt. Not Luna's sister's handwriting.)"
+    },
+    {
+      "id": "ep-28:39",
+      "source": "「부적이다. 냄새가 난다. 궁합 사기꾼 냄새.」",
+      "sourceHash": "efbca8226fc42986423749001ace30d8aab95f22259706176ea09908c7eda19f",
+      "t": "“A talisman. I can smell it. Smells of a compatibility con artist.”"
+    },
+    {
+      "id": "ep-28:40",
+      "source": "윤달 씨? 이 사람 언제 이걸 넣었대.",
+      "sourceHash": "34a32c3286e6e7a2352be501bc6635a88f8680acf1ebd64745a4a1ca177d8a57",
+      "t": "Yundal? When did he slip this in?"
+    },
+    {
+      "id": "ep-28:41",
+      "source": "종이는 펴지지 않았다. 억지로 펴려 하자 손끝이 따끔했다. 연이는 종이를 지갑 안쪽에 접어 넣었다.",
+      "sourceHash": "4ebb00ff3edb63397d37eac5d1a2450632df7700d0ef66011ba144ee6bede145",
+      "t": "The paper would not unfold. Trying to force it made Yeoni's fingertips sting. They tucked it, still folded, inside their wallet."
+    },
+    {
+      "id": "ep-28:42",
+      "source": "나중에 꼭 물어봐야지. 다시 갈 길이 있으면.",
+      "sourceHash": "47bf961fdf7fcc6757088fca7358243437934b44ba2cc9ce9574f1afee17eca6",
+      "t": "I'll definitely ask him later. If there's a way back."
+    },
+    {
+      "id": "ep-28:43",
+      "source": "「문은 닫혔어. 당장 돌아갈 길은 없어.」 네오는 창밖을 보았다. 무릎 위에 놓인 손이 천천히 굳었다.",
+      "sourceHash": "0dd2b543d7563c29a275e50480bbd150bb905a65c42a0db0539fd9752ad76aea",
+      "t": "“The door's closed. No way back right now.” Neo looked outside. The hand on his knee slowly stiffened."
+    },
+    {
+      "id": "ep-28:44",
+      "source": "학교 가는 길은 이상할 만큼 순조로웠다. 버스는 정시에 왔고, 앞자리가 비어 있었다.",
+      "sourceHash": "d654fe1aef0e28ff3aa083ef8abb75fd65659cb8956c93138f85d8687e754463",
+      "t": "The trip to school was strangely smooth. The bus came on time, with a front seat empty."
+    },
+    {
+      "id": "ep-28:45",
+      "source": "자판기에 동전을 넣자 음료가 두 개 떨어졌다. 교수님은 지각한 연이를 보고도 웃으며 출석을 불러 주었다.",
+      "sourceHash": "f74b64fb99e20f5a75dd788ccd55a28c50bba94d158729e70203e2aa431bcac9",
+      "t": "A coin in the vending machine brought down two drinks. Even though Yeoni was late, the professor smiled and marked them present."
+    },
+    {
+      "id": "ep-28:46",
+      "source": "이상해. 너무 이상해. 오늘 아무도 내 발을 안 밟았어.",
+      "sourceHash": "debf1780165f21ff4b58702fadd4c40a8942baf8b32f76a0caa2efbb07fb39e6",
+      "t": "Weird. So weird. Nobody stepped on my foot today."
+    },
+    {
+      "id": "ep-28:47",
+      "source": "강의실 앞에서 동기 하나가 연이를 붙잡았다. 조별 과제 자료를 날린 줄 알았는데, 연이 파일만 멀쩡히 살아 있다고 했다.",
+      "sourceHash": "ef104ef56a7c0a6266a00b1436544c5fcccc00e45f13b80e7f6d4ad1e1b7841f",
+      "t": "Outside the classroom, a classmate caught Yeoni. They thought the group-project materials were lost, but Yeoni's file alone had survived intact."
+    },
+    {
+      "id": "ep-28:48",
+      "source": "내 파일만? 원래 내 파일이 제일 먼저 날아가는 게 국룰인데.",
+      "sourceHash": "054fb6bf4130cf8eaf80a3cff9fdbe3c0a84b1df8ae74fe6966bb32091efd178",
+      "t": "Only my file? Usually mine is the first one to vanish. That's practically a law of nature."
+    },
+    {
+      "id": "ep-28:49",
+      "source": "동기는 연이를 구세주 보듯 보았다. 연이는 어색하게 웃었다. 칭찬받는 쪽은 익숙하지 않았다.",
+      "sourceHash": "812e3471fc7f806e95418e5040786b7b169c0c702f9bcbe7d50cb9bfc0307595",
+      "t": "The classmate looked at Yeoni like a savior. Yeoni smiled awkwardly. Being the one praised was unfamiliar."
+    },
+    {
+      "id": "ep-28:50",
+      "source": "오늘 내가 좀 운이 좋나 봐. 복권 사야 하나.",
+      "sourceHash": "b23e1462134d355e0ba5fa75c3b1679ffb9226bfbd26ac6220eefb733e1b5bf3",
+      "t": "Guess I'm lucky today. Should I buy a lottery ticket?"
+    },
+    {
+      "id": "ep-28:51",
+      "source": "가방 속에서 휴대폰이 진동했다. 메시지 미리보기 창에 한 줄이 떠 있었다. 발신자는 없었다.",
+      "sourceHash": "30b283964ca6240f6632632f1e2cdb67fb3e4fe22d72ffcab9b0724f60fe0ed7",
+      "t": "The phone in their bag vibrated. One line appeared in the message preview. No sender."
+    },
+    {
+      "id": "ep-28:52",
+      "source": "「고객센터입니다. 복권은 권장하지 않습니다. 운은 그렇게 쓰는 게 아니다.」",
+      "sourceHash": "5c970e8e6618d9d19feeb72fc8428f309bd62f6f22784a0ad27688cefd2b5e5a",
+      "t": "“Customer Support. Lottery tickets are not recommended. That's not how you use fortune.”"
+    },
+    {
+      "id": "ep-28:53",
+      "source": "(언제 문자를 보냈지? 내 폰 비밀번호는 또 어떻게 알고.)",
+      "sourceHash": "188dcfb4ed878bc60830b9f8b5a52594dc9883a494856da8e3b3fe5ba94a26e9",
+      "t": "(When did he send a message? And how does he know my phone password?)"
+    },
+    {
+      "id": "ep-28:54",
+      "source": "꿈도 못 꾸게 하네. 별 하나 더 깎는다.",
+      "sourceHash": "8f6db9b6e0515b77c02425fc34912b839ee9896d30d90191b5e026225d6efc92",
+      "t": "Won't even let me dream. Another star deducted."
+    },
+    {
+      "id": "ep-28:55",
+      "source": "연이의 불운은 원래 성실했다. 하루도 빠짐없이 출근했다. 그런데 오늘은 연락도 없이 결근이었다.",
+      "sourceHash": "b93d71a9be573310f382b7a76e6c09021169a4568e24bc1ec785ea47b265fd10",
+      "t": "Yeoni's bad luck had always been diligent. Showed up to work every day without fail. Today, it was absent without notice."
+    },
+    {
+      "id": "ep-28:56",
+      "source": "(8/8이라서 그런가. 코드가 다 맞춰지면 운도 정상이 되는 거야?)",
+      "sourceHash": "1e84bfe6ee71685747d97df6820b3b3aad133c9e9eb64868a8806680f556cb43",
+      "t": "(Because it's 8/8? Once the code is complete, does luck become normal, too?)"
+    },
+    {
+      "id": "ep-28:57",
+      "source": "점심때 연이는 벤치에서 빵 반쪽을 먹었다. 나머지 반은 남겨 두었다. 왠지 누군가에게 줄 것 같은 기분이 들었다.",
+      "sourceHash": "14fad7d7e9d0e987bdf23d9534acdb471f38d1a836a4f9fa290596cd536e6367",
+      "t": "At lunch, Yeoni ate half a roll on a bench. They saved the rest. Somehow, it felt as though they would give it to someone."
+    },
+    {
+      "id": "ep-28:58",
+      "source": "다이어트는 아니고. 그냥 반은 남겨 두고 싶었어. 빵한테 예의랄까.",
+      "sourceHash": "90ce9c79ac13ee6237d22a59eba740383bca70e9d8a18e2928def8d1f6df4374",
+      "t": "Not dieting. Just wanted to save half. Respect for the bread, maybe."
+    },
+    {
+      "id": "ep-28:59",
+      "source": "그때 맑은 하늘에서 빗방울 하나가 연이의 손등에 떨어졌다. 차가웠다. 올려다보니 구름 한 점 없었다.",
+      "sourceHash": "907a67d6da125b370204d890a64d96618ec79a6751846e27aa884ee2da71bbff",
+      "t": "Then a raindrop fell from the clear sky onto the back of Yeoni's hand. Cold. Looking up, they saw not a single cloud."
+    },
+    {
+      "id": "ep-28:60",
+      "source": "(비 냄새.)",
+      "sourceHash": "7fbeadd50c25b9ac7ded0d83b6811dab63350cd72ab55e32794f8a1a017fd782",
+      "t": "(The smell of rain.)"
+    },
+    {
+      "id": "ep-28:61",
+      "source": "연이는 그 냄새를 알았다. 어디선가 맡았던 냄새. 강가에서, 그리고 젖은 망토에서.",
+      "sourceHash": "084e788d383a3fc2c937b7dcd997c2dded5ecee0edd1c2c8d1362e6e982aeab5",
+      "t": "Yeoni knew it. A smell from somewhere before. By the river, and from a wet cloak."
+    },
+    {
+      "id": "ep-28:62",
+      "source": "기분 탓이겠지. 여름이니까. 여름엔 원래 냄새가 많아.",
+      "sourceHash": "9990f93f0af9dae1be6f844fec9e0787ffdf356a833737f4ba7c197e38e1177d",
+      "t": "Must be my imagination. It's summer. Summer has lots of smells."
+    },
+    {
+      "id": "ep-28:63",
+      "source": "그러나 손등의 물방울은 한참 동안 마르지 않았다.",
+      "sourceHash": "cd013aa23cfdca135ca68a70bbacb6d12cfe8405c13efe9770dcb91e33d6cb67",
+      "t": "But the drop on their hand did not dry for a long time."
+    },
+    {
+      "id": "ep-28:64",
+      "source": "연이는 남겨 둔 빵 반쪽을 다시 봉지에 넣었다. 누구에게 줄지는 몰랐다. 그냥, 반은 누군가의 몫 같았다.",
+      "sourceHash": "0a47a97a50fdb02fd5530870987286c256ec4348b862852e1fbfe0c2814fad89",
+      "t": "Yeoni returned the remaining half-roll to the bag. They didn't know who it was for. Half simply felt like someone's share."
+    },
+    {
+      "id": "ep-28:65",
+      "source": "저쪽에서 배운 거야. 빵은 나누면 두 배가 된대. 루나 언니가 그랬어.",
+      "sourceHash": "a70cdd1c36290093c663d6fdb099bdc1930be99ad51669eda9284027f1a0eba3",
+      "t": "Learned that over there. Bread doubles when you share it. Luna's sister said so."
+    },
+    {
+      "id": "ep-28:66",
+      "source": "저녁이 되자 진짜 비가 내렸다. 아파트 복도에서 형광등 하나가 깜빡였다.",
+      "sourceHash": "3fbc319715691e6a5a6a7bf309bcaa5d3c5e0620b28044816fdbc2588735facd",
+      "t": "By evening, real rain fell. A fluorescent light flickered in the apartment corridor."
+    },
+    {
+      "id": "ep-28:67",
+      "source": "옆집 앞에 이삿짐 상자가 쌓여 있었다. 오래 비어 있던 집이었다.",
+      "sourceHash": "be8984c03400a6cea814c2c893c30953b221314bb049950c8104d5a7fc5ac038",
+      "t": "Moving boxes stood outside the home next door. It had been vacant a long time."
+    },
+    {
+      "id": "ep-28:68",
+      "source": "그 집 문 앞에는 검은 우산 하나가 세워져 있었다. 어젯밤부터 거기 있던 우산. 끝에서는 여전히 물이 똑똑 떨어졌다.",
+      "sourceHash": "2cc5c92ddd9463e2b4956073bdea6baeed93a76f8fd8220146bb61767c78bef2",
+      "t": "A black umbrella rested before its door. There since last night. Water still dripped from its tip."
+    },
+    {
+      "id": "ep-28:69",
+      "source": "(어젯밤에도 저 우산 있었지. 짐보다 우산이 먼저 이사 왔네.)",
+      "sourceHash": "b76152522050a388ba339acb5401def3ad5c4bfd39f34e844f7858e8b89c3d02",
+      "t": "(That umbrella was there last night, too. It moved in before the boxes.)"
+    },
+    {
+      "id": "ep-28:70",
+      "source": "이삿짐 기사가 마지막 상자를 내려놓고 서명을 받았다. 서명하는 사람은 검은 코트를 입은 여자였다. 등을 돌린 채였다.",
+      "sourceHash": "bfd3d878a6ba8816d03cc164e4d418f67dd235fd35c929880af600cc6eb3faef",
+      "t": "A mover set down the last box and asked for a signature. A woman in a black coat signed, her back turned."
+    },
+    {
+      "id": "ep-28:71",
+      "source": "젖은 머리카락이 코트 깃 위로 흘렀다. 키가 컸다. 서명하는 손이 이상하게 느렸다. 한 획 한 획, 장부에 적듯이.",
+      "sourceHash": "72a6a03c7d617c235b1273321faea9efb8478d9f472882fa673dce6564550bfb",
+      "t": "Wet hair spilled over her collar. Tall. Her signing hand moved strangely slowly. Stroke by stroke, like writing in a ledger."
+    },
+    {
+      "id": "ep-28:72",
+      "source": "안녕하세요, 옆집이에요. 비 오는 날 이사하시느라 고생 많으셨죠.",
+      "sourceHash": "f0c8ec18811e840d09add53fe1b0fdfd4515fff8a9cb125d4370685f1a88a9ea",
+      "t": "Hello, I'm next door. Moving in the rain must have been hard."
+    },
+    {
+      "id": "ep-28:73",
+      "source": "여자의 어깨가 아주 잠깐 굳었다. 돌아보지는 않았다.",
+      "sourceHash": "2128158ea8b5c8f7fcac9fe18a10751fea334f2a83b3ece9a0cba1b0f1860bac",
+      "t": "The woman's shoulders stiffened for an instant. She did not turn."
+    },
+    {
+      "id": "ep-28:74",
+      "source": "네. 감사합니다. 시끄럽게 해서 죄송해요.",
+      "sourceHash": "83954586f61c9c9e2302a75ebf684c124be3af6ce18e8d20aa6ae4720ea7f728",
+      "t": "Yes. Thank you. Sorry for the noise.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28:75",
+      "source": "짧고 정중한 목소리였다. 끝음이 서늘했다. 빗물처럼.",
+      "sourceHash": "e2f4da9f8a17ef41af21fc182ea65fa56b652259fcdc58f44dd98d55b92f3327",
+      "t": "A brief, polite voice. Its ending was cool. Like rainwater."
+    },
+    {
+      "id": "ep-28:76",
+      "source": "그때 등 뒤에서 문이 열렸다. 따라 나온 네오가 연이 옆에 멈춰 섰다.",
+      "sourceHash": "2b9d65ef0f69a55f7ad902c762c503ce359c745dfb7bf0f258d72724c3106d41",
+      "t": "Then the door behind Yeoni opened. Neo came out and stopped beside them."
+    },
+    {
+      "id": "ep-28:77",
+      "source": "네오의 시선이 여자의 오른 손목에 박혔다. 그는 연이 앞을 반쯤 가로막았다. 인사를 건네려던 입술이 굳게 닫혔다.",
+      "sourceHash": "04f70a943354e07b34abb2b8a9aa0afb02c1e86deba5b3fd7ca48ee1b1f9a0a4",
+      "t": "Neo's gaze fixed on the woman's right wrist. He half stepped in front of Yeoni. Lips about to offer a greeting shut tight."
+    },
+    {
+      "id": "ep-28:78",
+      "source": "네오! 왜 그래, 이웃한테. 죄송해요, 얘가 원래 이런 애가 아닌데.",
+      "sourceHash": "5ea5dfe4d21b528946bb466cd6d91ded524b3bfe56c673f05d9515d2d057ef44",
+      "t": "Neo! What's wrong? She's our neighbor. Sorry, he's not usually like this."
+    },
+    {
+      "id": "ep-28:79",
+      "source": "괜찮아요. 일행분이 저를 좀 경계하시네요.",
+      "sourceHash": "2add6ce23ac788d963fc2945a72ebe1cf91ffe53f2a434e09c795af9dff4f7c7",
+      "t": "It's all right. Your companion seems a little wary of me.",
+      "nm": "Woman Next Door"
+    },
+    {
+      "id": "ep-28:80",
+      "source": "여자는 끝내 얼굴을 보여 주지 않았다. 검은 우산을 집어 들고 문 안으로 들어갔다.",
+      "sourceHash": "ce9a4b2105aa8252b7964f5dc6bcb0a6b4853f334831db6eac19d0361712bfb8",
+      "t": "The woman never showed her face. Taking the black umbrella, she went inside."
+    },
+    {
+      "id": "ep-28:81",
+      "source": "문이 닫혔다. 복도에는 비 냄새만 남았다. 낮에 손등에서 맡았던, 바로 그 냄새.",
+      "sourceHash": "5b3ec9d0a05d0d778a9957a08f26b66779d8ad7ac4691bac3e04e80d4d1e3bbe",
+      "t": "The door closed. Only the smell of rain remained. Exactly the smell from the drop on Yeoni's hand that afternoon."
+    },
+    {
+      "id": "ep-28:82",
+      "source": "그날 밤 네오는 잠들지 않았다. 창틀에 앉아 벽 쪽만 노려보았다.",
+      "sourceHash": "60acc70c3b4662f60d20c54496a5c3867292a49013e272eec01229a56cda81e9",
+      "t": "That night, Neo did not sleep. Sitting on the windowsill, he stared only at the wall."
+    },
+    {
+      "id": "ep-28:83",
+      "source": "(얘가 저렇게 경계하는 거 처음 봐. 고양이일 때도 안 그랬는데.)",
+      "sourceHash": "c537cff9855b6c9713fb361f162e77d2b48b73923a0799b1a8b651e21126d5ff",
+      "t": "(I've never seen him this guarded. Not even when he was a cat.)"
+    },
+    {
+      "id": "ep-28:84",
+      "source": "네오. 그 사람 왜 싫어해? 얼굴도 못 봤잖아.",
+      "sourceHash": "5aefe7e47d7091259290358a3c7e70eda2c5306abca173e5bfa74eee5e10c92e",
+      "t": "Neo. Why don't you like her? You haven't even seen her face."
+    },
+    {
+      "id": "ep-28:85",
+      "source": "「모르겠다. 냄새가 난다. 어디서 맡아 본 냄새인데, 기억이 안 난다.」",
+      "sourceHash": "91295bd3d55a5ebf5807bc2f6ca56104b14392f40ee204dd5c342d71296f0ae5",
+      "t": "“I don't know. There's a smell. I've smelled it somewhere, but I can't remember.”"
+    },
+    {
+      "id": "ep-28:86",
+      "source": "네가 기억이 안 난다고? 고객센터가?",
+      "sourceHash": "c101b637a3437e4de006796e274a9b00cdcb307717024e2f9e5cdfa8cde1a1c2",
+      "t": "You can't remember? Customer Support?"
+    },
+    {
+      "id": "ep-28:87",
+      "source": "「여기서는 저쪽 일이 흐려진다. 윤달이 그랬잖아. 꿈처럼 흐려질 수도 있다고.」",
+      "sourceHash": "0fb7ed49fd4547049544afa4c2fe045f213b0cd2f800f61c3bdbdd5050d189e0",
+      "t": "“Things from there blur here. Yundal said it. They might fade like a dream.”"
+    },
+    {
+      "id": "ep-28:88",
+      "source": "연이는 이불을 끌어당겼다. 그 말이 무서웠다. 루나의 웃음, 모카의 독설, 호랑이의 붉은 눈. 벌써 가장자리가 번지고 있었다.",
+      "sourceHash": "ca0f503dbc40b1341d0377cd086d3a45fba041b856acbaee9be81f84b0b8192c",
+      "t": "Yeoni pulled up the blanket. The words were frightening. Luna's smile, Moka's sharp tongue, the tiger's red eyes. Their edges were already blurring."
+    },
+    {
+      "id": "ep-28:89",
+      "source": "연이는 휴대폰 메모장을 열었다. 그리고 떠오르는 대로 적었다. 빵. 루나. 모카. 윤달. 검은 호랑이.",
+      "sourceHash": "c22e563c2978f66bbcb229ce6c369b67cf799357eed0418dc55dd57f46dfb48c",
+      "t": "Yeoni opened the phone's notes and wrote whatever came to mind. Bread. Luna. Moka. Yundal. Black tiger."
+    },
+    {
+      "id": "ep-28:90",
+      "source": "잊어버리면 안 돼. 적어 두면 덜 흐려지겠지.",
+      "sourceHash": "2309a5c182c5ee759b29f183ac5e557ec575351c1c8a30f12218f87ff5b3350a",
+      "t": "Can't forget. Writing it down should keep it from blurring so much."
+    },
+    {
+      "id": "ep-28:91",
+      "source": "손가락이 멈칫했다. 호랑이 다음에 적을 말이 떠오르지 않았다. 북 치던 아이의 이름. 분명히 보았는데, 글자 모양이 물에 번진 것처럼 흐렸다.",
+      "sourceHash": "d7027bedd0ae309f24e1db22127da8ed2cfae30850f8775397f5d7b3641a205b",
+      "t": "Their fingers faltered. Nothing came after tiger. The drumming child's name. They had definitely seen it, but the shapes were blurred as if by water."
+    },
+    {
+      "id": "ep-28:92",
+      "source": "아이 이름이 기억 안 나. 그 망토 안에서 봤는데.",
+      "sourceHash": "b560e05c327b93493321bbee788a048133f1d14515996413e96cba3262a91e70",
+      "t": "I can't remember the child's name. I saw it inside that cloak."
+    },
+    {
+      "id": "ep-28:93",
+      "source": "「그 이름은 호랑이가 갖고 있다. 네가 몰라도 없어지지 않는다.」",
+      "sourceHash": "95d0537523d5568a8582e61910ba1803c08103753483f9a540f981c5099bf911",
+      "t": "“The tiger has it. Not knowing it doesn't make it disappear.”"
+    },
+    {
+      "id": "ep-28:94",
+      "source": "(호랑이가 갖고 있다. 그것도 적어 두자.)",
+      "sourceHash": "317983b998b30d2116e9bc27224d732f9d3ab7d7ee1f34022030c8c27f69ebdd",
+      "t": "(The tiger has it. Write that down, too.)"
+    },
+    {
+      "id": "ep-28:95",
+      "source": "연이는 한 줄을 더 썼다. 북 아이 이름, 호랑이 망토 안. 그리고 그 옆에 작은 물음표를 붙였다.",
+      "sourceHash": "314999d889c6742a7194e66fef28e6c9896b3c0223647ed8b38ee9bcc91043cf",
+      "t": "Yeoni added a line. Drum boy's name, inside tiger's cloak. Then a small question mark beside it."
+    },
+    {
+      "id": "ep-28:96",
+      "source": "「…좋은 습관이다. 별 다섯 개 주지.」 네오의 목소리가 조금 부드러워졌다.",
+      "sourceHash": "6f3e39638400d4aa58dc2cc8bfb64997acafab318d9279d83eb59354c1127204",
+      "t": "“...Good habit. Five stars.” Neo's voice softened a little."
+    },
+    {
+      "id": "ep-28:97",
+      "source": "고객센터가 고객한테 별점 주는 건 처음 보네.",
+      "sourceHash": "1a676a9b67e179454132934a167556364c9b6e8f9152071bb5e8f829e2a71b2f",
+      "t": "First time I've seen Customer Support rate the customer."
+    },
+    {
+      "id": "ep-28:98",
+      "source": "벽 너머에서는 아무 소리도 나지 않았다. 사람이 사는 집인데, 숨소리조차 없었다.",
+      "sourceHash": "a47a4b0914430c567ef6a8f835380093a9e37afd65ceec1b9a9ef0ed39a018c0",
+      "t": "No sound came from beyond the wall. Someone lived there, yet there wasn't even a breath."
+    },
+    {
+      "id": "ep-28:99",
+      "source": "그때 휴대폰 화면이 한 번 깜빡였다. 앱 아이콘 귀퉁이에 검은 점 하나가 번졌다. 해를 가리는 달처럼.",
+      "sourceHash": "5907571e667b5fbd644c066069f47e81b07f937dd30ffbb3b283dc087cd59df2",
+      "t": "Then the phone screen flickered. A black dot spread in the app icon's corner. Like a moon covering the sun."
+    },
+    {
+      "id": "ep-28:100",
+      "source": "[ 연결 상태 확인 중 · · · ]",
+      "sourceHash": "75581c933fc64c7c5564694c8826c509a32ed98bd43b15ba9ffb45181c38e675",
+      "t": "[ Checking connection · · · ]"
+    },
+    {
+      "id": "ep-28:101",
+      "source": "연이가 화면을 다시 보았을 때 점은 사라져 있었다. 빗소리만 계속되었다. 창틀의 네오는 끝까지 벽에서 눈을 떼지 않았다.",
+      "sourceHash": "00f51092be116c8b15aa95d9aa3c008bae7c0c46462c6bde05e63502378127c0",
+      "t": "When Yeoni looked again, the dot was gone. Only the rain continued. On the windowsill, Neo never took his eyes from the wall."
+    }
+  ]
+}

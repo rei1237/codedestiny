@@ -1,0 +1,624 @@
+{
+  "locale": "en",
+  "episodeId": "ep-41",
+  "tag": "Episode 41 · The Fool's Journey",
+  "title": "The Fool's Journey",
+  "sourceTitle": "바보의 여행",
+  "sourceTag": "제41화 · 바보의 여행",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-41:1",
+      "source": "회랑은 끝이 보이지 않았다. 양쪽 벽에 문짝만 한 카드가 줄지어 걸려 있었다. 카드마다 그림이 움직였다. 바람이 불고, 별이 돌고, 누군가 걸었다.",
+      "sourceHash": "27a2e72c9bca37c44e5704ead4cd83aa744522e58c9407af99e64953f7f85521",
+      "t": "The corridor had no visible end. Door-sized cards lined both walls. Every picture moved: wind blowing, stars turning, someone walking."
+    },
+    {
+      "id": "ep-41:2",
+      "source": "여기가 타로 하늘이야? 전시회 같은데. 입장료 받는 거 아니지?",
+      "sourceHash": "d4179baaf07dd68c471a4b45e44a052eb1d50a3ddab22c54e5588281f922659e",
+      "t": "Is this the tarot sky? Looks like an exhibition. There's no admission fee, right?"
+    },
+    {
+      "id": "ep-41:3",
+      "source": "받으면 제가 낼게요. 대신 생년월일시를.",
+      "sourceHash": "a23cae5369eeb7477702e7f7724c0196c2c2930fe13c424c1f3e64f47c96b431",
+      "t": "If there is, I'll pay. In exchange for your birth date and time."
+    },
+    {
+      "id": "ep-41:4",
+      "source": "저 사람 입에 뭐 좀 물려 놔.",
+      "sourceHash": "627d7711a73dc7ee62e34cc1fe7c8118236700c4cf44f5f34502f886f4619b7e",
+      "t": "Someone put something in his mouth."
+    },
+    {
+      "id": "ep-41:5",
+      "source": "[ 메이저 아르카나 · 0 → 21 ]  순서대로 지나가십시오",
+      "sourceHash": "dc5386f4c585b851d2488473b6005e79bfa795f2e8d447d62a37a1d3951f61c2",
+      "t": "[ Major Arcana · 0 → 21 ] Proceed in order"
+    },
+    {
+      "id": "ep-41:6",
+      "source": "타로의 큰 카드 스물두 장은 원래 이야기 하나예요. 바보가 길을 떠나서 세상 끝까지 가는 이야기. 순서를 건너뛰면 문이 안 열려요.",
+      "sourceHash": "12edad70fa2278038aa6ad3fee156e17fc7d5e10ad2cc971f112d3849a7945f7",
+      "t": "The twenty-two Major Arcana form one story: the Fool sets out and travels to the world's end. Skip the order and the doors won't open."
+    },
+    {
+      "id": "ep-41:7",
+      "source": "장부랑 비슷하네요. 앞줄이 맞아야 다음 줄을 쓸 수 있으니까.",
+      "sourceHash": "85fdb04017dff326ae9998bf24e96bcb2fa4442b54d2b4bf299e53eef6d91e95",
+      "t": "Like a ledger. You have to balance one line before writing the next."
+    },
+    {
+      "id": "ep-41:8",
+      "source": "서한비는 일행 맨 뒤에서 걸었다. 연이와 세 걸음 거리. 연이가 멈추면 같이 멈췄다. 보호관찰은 그런 식으로 지켜지고 있었다.",
+      "sourceHash": "0cf35e1a52c5425c361412855746c66b516e7553695bb398bb2f8a40b7e62581",
+      "t": "Seo Hanbi walked at the back, three steps behind Yeoni. When Yeoni stopped, so did she. That was how probation was being observed."
+    },
+    {
+      "id": "ep-41:9",
+      "source": "연이는 주머니 속 카드를 만졌다. 별 무늬 뒷면. 아직 뒤집히지 않는 그 카드가 손끝에서 미지근했다.",
+      "sourceHash": "324f33357d2e6e1f927614bd13af241f7663cb1d5237936a683fecc3a823cc6d",
+      "t": "Yeoni touched the card in their pocket. Its star-patterned back. The card that still wouldn't turn over felt warm beneath their fingertips."
+    },
+    {
+      "id": "ep-41:10",
+      "source": "(아까부터 계속 앉아 있네. 손만 아픈 게 아닌가.)",
+      "sourceHash": "faf8b51c5928199a78def1535bc3c92ea613653d3ff06738e2703c630d2405f3",
+      "t": "(He keeps sitting down. Maybe it isn't only his hand that hurts.)"
+    },
+    {
+      "id": "ep-41:11",
+      "source": "네오, 걷기 싫어? 업어 줄까?",
+      "sourceHash": "5c1b4779530a3a1fa4f78037b64cc1f751b3c56db8b1be9173b16746d7e33871",
+      "t": "Neo, don't feel like walking? Want a piggyback?"
+    },
+    {
+      "id": "ep-41:12",
+      "source": "네가 날 업겠다고? 이제 키 차이도 있는데.",
+      "sourceHash": "d2bd9f5ee2e0ab93b88c412be2cc932af40fb6c7e9579504d0fdc62565af1b99",
+      "t": "You'd carry me? We have a bit of a height difference now."
+    },
+    {
+      "id": "ep-41:13",
+      "source": "못 업을 것 같아? 손으로 버티지 말고 일단 기대 봐.",
+      "sourceHash": "d69240bbc278b7321d9c6fcb0c515c6777b3fca48504c72e8c7b49f19581ad0c",
+      "t": "Think I can't? Stop bracing on your hands and try leaning on me."
+    },
+    {
+      "id": "ep-41:14",
+      "source": "네오가 연이의 등을 가볍게 밀고 앞장섰다. 돌바닥에 발소리가 나지 않았다. 연이는 그가 일부러 조심히 걷는 줄 알았다.",
+      "sourceHash": "330e24bdb71c5bc0e7f5587da04c22d9764ab0c5761ba8a0e7dcbfe9a4689762",
+      "t": "Neo gave Yeoni's back a gentle push and led the way. His footsteps made no sound on the stone. Yeoni thought he was deliberately walking softly."
+    },
+    {
+      "id": "ep-41:15",
+      "source": "첫 번째 카드 앞. 0번, 바보. 짐 보따리를 멘 젊은이가 절벽 끝에서 하늘을 보고 있었다. 발치에서 작은 흰 개가 짖었다.",
+      "sourceHash": "1439681759f9074983f99a2b767d57df15793651496a093a440278894a2cccbb",
+      "t": "Before the first card: Zero, the Fool. A young traveler carrying a bundle gazed skyward from a cliff's edge. A small white dog barked at the traveler's feet."
+    },
+    {
+      "id": "ep-41:16",
+      "source": "개는 있고 수달은 없네. 차별이야.",
+      "sourceHash": "e08566f5829075cb3d8ba4245977221b24ec0af64f1712d61480fb5021f796b7",
+      "t": "A dog but no otter. Discrimination."
+    },
+    {
+      "id": "ep-41:17",
+      "source": "바보 카드는 겁이 없는 시작이에요. 절벽인 줄 알면서 한 발 내딛는.",
+      "sourceHash": "82a9b26125f6301324cd8832216de93d0e553563254010b494d9da6e6b9eea50",
+      "t": "The Fool is a fearless beginning. Taking a step even knowing it's a cliff."
+    },
+    {
+      "id": "ep-41:18",
+      "source": "설마 우리도 저기서 뛰어내려야 돼?",
+      "sourceHash": "caf946cea479f6026c99df9b5b6b949dd75ad9f526da562f28e0dfef41955b5d",
+      "t": "Don't tell me we have to jump too."
+    },
+    {
+      "id": "ep-41:19",
+      "source": "그럴 줄 알았어.",
+      "sourceHash": "938da2d67d0a3eeaab2cdc0735d9fecd89d88f6ae18862499a9dc0dcd1a1cce1",
+      "t": "Knew it."
+    },
+    {
+      "id": "ep-41:20",
+      "source": "카드 속 절벽이 앞으로 다가왔다. 발밑이 사라지고 구름만 펼쳐졌다. 연이는 네오의 팔을 잡으려다 허공을 쥐었다.",
+      "sourceHash": "48af5adcba6b31612b87f1d14608ddcb1013584bec43e3ba16c2dbf47f058a3d",
+      "t": "The cliff inside the card came toward them. The ground vanished, leaving only clouds. Yeoni reached for Neo's arm and caught empty air."
+    },
+    {
+      "id": "ep-41:21",
+      "source": "꿀악! 미리 말해 주는 카드는 없어?!",
+      "sourceHash": "2a7759b30b639b3b5af84e0fc1b52400c9500fc05ffc7e6bfdabef2d4508bd50",
+      "t": "Oiiink! Isn't there a card that gives advance warning?!"
+    },
+    {
+      "id": "ep-41:22",
+      "source": "다섯은 구름 위로 떨어졌다. 아프지 않았다. 구름이 그대로 다음 카드의 바닥이 되었다. 1번, 마법사의 탁자 위였다.",
+      "sourceHash": "0908a71d3a30404e04415e80247840ff8a94d6e7db650492021cdf068f02a36c",
+      "t": "The five fell onto clouds. It didn't hurt. The clouds became the floor of the next card: the Magician's table, Number One."
+    },
+    {
+      "id": "ep-41:23",
+      "source": "탁자에는 네 가지가 놓여 있었다. 잔, 칼, 지팡이, 동전. 그리고 꺼진 촛불 하나. 불을 켜야 다음 문이 열린다는 듯이.",
+      "sourceHash": "bcdb02effb82fc74af701aea8c9444bf721debfb3b711699eea96542667d52e8",
+      "t": "Four things lay on the table: a cup, a sword, a wand, and a coin. Beside them, an unlit candle. As though lighting it would open the next door."
+    },
+    {
+      "id": "ep-41:24",
+      "source": "불? 그건 내 전문이지.",
+      "sourceHash": "0a0500207f1e317ec12169068fdb45415a2a464890eef444b2bec66d01ad5139",
+      "t": "Fire? My specialty."
+    },
+    {
+      "id": "ep-41:25",
+      "source": "모카가 앞치마에서 성냥을 꺼냈다. 한 번에 붙었다. 촛불이 켜지자 마법사가 그림 속에서 모카를 향해 모자를 벗었다.",
+      "sourceHash": "16e17d18c3ba425d140c51d3e9cc428c98d4bb1bf1d720eafe4055c43d4f71c5",
+      "t": "Moka took a match from his apron. It lit on the first strike. As the candle caught, the Magician in the picture doffed his hat to Moka."
+    },
+    {
+      "id": "ep-41:26",
+      "source": "봤어? 인사했어. 나한테. 이 하늘 사람들은 예의가 있네.",
+      "sourceHash": "690aafa8006acc1ffee9f7f019aef1b8b7b97375bd112b4a49189fb32193582d",
+      "t": "See that? He greeted me. Me. People in this sky have manners."
+    },
+    {
+      "id": "ep-41:27",
+      "source": "2번 문에서는 예의가 더 필요할 거예요. 여사제 방이라.",
+      "sourceHash": "14dce3e65ba8c5680977e1cd9b3fe7a946a140b1124425c8cf1f2ad20a58edf9",
+      "t": "You'll need even better manners at Door Two. The High Priestess's room."
+    },
+    {
+      "id": "ep-41:28",
+      "source": "2번, 여사제의 방은 조용했다. 벽에 금이 쓰여 있었다. 말하는 자는 돌아간다. 윤달이 입을 다물었다. 표정이 몹시 괴로웠다.",
+      "sourceHash": "7f7bb9c9b54050d4afd50798db804d1c719e1c578e23527cb530676b249044af",
+      "t": "Number Two, the High Priestess's room, was silent. A prohibition marked the wall: Whoever speaks must return. Yundal shut his mouth. His expression was agonized."
+    },
+    {
+      "id": "ep-41:29",
+      "source": "연이는 윤달의 얼굴을 보며 웃음을 참았다. 서한비가 윤달 앞에 종이와 펜을 내밀었다. 윤달이 휘갈겨 썼다. 숙녀분들 생년월일시.",
+      "sourceHash": "72d6d289daa65f3e3326dbfbd737b817280f7029b79a4b3a6345fb221304a561",
+      "t": "Yeoni fought a laugh at Yundal's face. Seo Hanbi offered him paper and a pen. He scribbled: Ladies' birth dates and times."
+    },
+    {
+      "id": "ep-41:30",
+      "source": "글로 써도 안 알려 드려요.",
+      "sourceHash": "33b689e9e6b56b530f87aeafb5e5edffa90b34112a81440c3977c93a65a867f6",
+      "t": "Writing it won't make me tell you."
+    },
+    {
+      "id": "ep-41:31",
+      "source": "방을 나서자마자 윤달이 숨을 크게 쉬었다. 이 분 참은 사람치고는 너무 큰 숨이었다.",
+      "sourceHash": "30c183d179a2af46465ff3878efc46f81e4c1efa8d692ba123605542cbc2156c",
+      "t": "The moment they left, Yundal took an enormous breath. Far too enormous for someone who'd held back for two minutes."
+    },
+    {
+      "id": "ep-41:32",
+      "source": "제 인생에서 제일 긴 이 분이었어요.",
+      "sourceHash": "6667fcd2d458ee09fd7790c338af7cfaddfd216ae86327305ef38567905978d1",
+      "t": "The longest two minutes of my life."
+    },
+    {
+      "id": "ep-41:33",
+      "source": "3번, 황후의 밀밭은 금빛이었다. 이삭이 바람에 고개를 숙였다. 서한비가 지나가자 밀 이삭이 그녀 쪽으로만 기울었다. 물 냄새를 맡은 것처럼.",
+      "sourceHash": "b9099623d9b84090b7cb2cec738e6f05f47a693645b5d5f8be78ab31dd628d83",
+      "t": "Number Three, the Empress's wheat field, glowed gold. Ears of grain bowed in the wind. As Seo Hanbi passed, they leaned only toward her, as though scenting water."
+    },
+    {
+      "id": "ep-41:34",
+      "source": "저 아무것도 안 했어요.",
+      "sourceHash": "912dd6bb767718b8510a41ebf418023fbaddf9c0081758af8e120005210b1bdd",
+      "t": "I didn't do anything."
+    },
+    {
+      "id": "ep-41:35",
+      "source": "비 오는 사람한테 곡식이 기우는 건 당연하죠. 궁합이 좋은 거예요.",
+      "sourceHash": "94b403ed5dfd3e1c3501d8c608ec30c0d5187988e468e5f0c0cf701ff5b43dcf",
+      "t": "Of course grain leans toward someone who brings rain. Good compatibility."
+    },
+    {
+      "id": "ep-41:36",
+      "source": "4번, 황제의 계단 꼭대기에 돌 왕좌가 있었다. 왕좌는 비어 있었다. 목소리만 울렸다. 무엇을 다스리느냐. 대답한 자만 지나가라.",
+      "sourceHash": "48898b77bc6fd2ec378c0e09431d11d017f38abc651cb115f793f5df133b15f7",
+      "t": "At the top of Number Four, the Emperor's stairs, stood an empty stone throne. Only a voice echoed: What do you govern? Answer, and pass."
+    },
+    {
+      "id": "ep-41:37",
+      "source": "내 부엌.",
+      "sourceHash": "a83f13218768856450055fb135dfb1a1c9f2d91269b51fa4bdeea1864930909b",
+      "t": "My kitchen."
+    },
+    {
+      "id": "ep-41:38",
+      "source": "제 입. 잘 안 되지만요.",
+      "sourceHash": "e7053d95a8f2843e69eb64d11dc1317656a78907f9e77fafd3a18de26a83a89c",
+      "t": "My mouth. Not very successfully."
+    },
+    {
+      "id": "ep-41:39",
+      "source": "제 장부요. 이제부터는.",
+      "sourceHash": "92d62b0748a80b007274d1a4db46690199ba167c88f7588dfe6ac4ff07bfd67e",
+      "t": "My ledger. From now on."
+    },
+    {
+      "id": "ep-41:40",
+      "source": "연이 차례였다. 연이는 한참 생각하다가 메모장을 꺼내 흔들었다.",
+      "sourceHash": "32bf330d09bf4667c66dd3683efed7bda99ffad7d75f310a3ff07b31f5543cb7",
+      "t": "Yeoni's turn. After a long moment's thought, they took out their notebook and waved it."
+    },
+    {
+      "id": "ep-41:41",
+      "source": "이거. 내가 까먹는 거, 여기다 다 적어 놔. 이게 나를 다스려.",
+      "sourceHash": "bbbded0a2964051c7f014ac69b0f001a965a5a2790880d2802a960512f1bbc30",
+      "t": "This. I write everything I forget in here. It governs me."
+    },
+    {
+      "id": "ep-41:42",
+      "source": "계단 위 돌문이 열렸다. 왕좌가 작게 웃은 것 같았다. 5번 교황의 종탑에서는 종이 세 번 울렸다. 문은 하나씩 열렸다. 모카가 불을 켜고, 윤달이 길을 읽고, 연이가 질문에 답했다.",
+      "sourceHash": "fef9ec1d414a19e9f6550d27213d84e0465c68250f9d1eb5d8331a956bd9fd06",
+      "t": "The stone door above the stairs opened. The throne seemed to give a little chuckle. At Number Five, the Hierophant's bell tower, a bell rang three times. Doors opened one by one. Moka lit fires, Yundal read paths, Yeoni answered questions."
+    },
+    {
+      "id": "ep-41:43",
+      "source": "생각보다 순조로운데? 이러다 오늘 안에 스물한 장 다 끝나겠다.",
+      "sourceHash": "edbb0b21fe53c58f391f7a297b319dfa12721d1791eb4199bcb49b1aef61dc08",
+      "t": "Smoother than I expected. At this rate we'll finish all twenty-one cards today."
+    },
+    {
+      "id": "ep-41:44",
+      "source": "그런 말은 장부에 적으면 안 되는 말이에요.",
+      "sourceHash": "f1c6e027e466e984873f31b41bcd2ff29ed65861e2352f02a0a6dd59d5c94fdf",
+      "t": "That's the sort of thing you must never write in a ledger."
+    },
+    {
+      "id": "ep-41:45",
+      "source": "왜?",
+      "sourceHash": "fd7b0d2da76a76ea02c72a4e18e7490fc8a851a07f870761de786b99af42eeac",
+      "t": "Why?"
+    },
+    {
+      "id": "ep-41:46",
+      "source": "꼭 그다음 줄에 사고가 나거든요.",
+      "sourceHash": "850a739c6d2fa55c9b63e22c4ac79891b0bc85555a79fb6be5a9ad337ca9a802",
+      "t": "Because the next line always contains an accident."
+    },
+    {
+      "id": "ep-41:47",
+      "source": "6번 문 앞에서 일행은 쉬기로 했다. 문은 담쟁이로 덮여 있었다. 윤달이 품에서 자기 카드 묶음을 꺼냈다. 손때 묻은 낡은 카드였다.",
+      "sourceHash": "7773dead5e09f7901717e43b5cd11c605e108391120384a416fa747e45e30f01",
+      "t": "They decided to rest before Door Six, covered in ivy. Yundal took his own deck from his clothes. The cards were old and worn by use."
+    },
+    {
+      "id": "ep-41:48",
+      "source": "쉬는 김에 한 장씩 뽑아 볼까요. 타로 하늘에서 뽑는 타로는 잘 맞거든요.",
+      "sourceHash": "a3aad9ba9deddfa6129bd8c003a8aa85efab46b4af6dc4f661369305602d2984",
+      "t": "While we rest, shall we each draw one? Tarot drawn in the tarot sky is quite accurate."
+    },
+    {
+      "id": "ep-41:49",
+      "source": "나 먼저! 아니다, 모카 먼저.",
+      "sourceHash": "37759a5c57b882f1ec31a199785653eac5d952f152e113ea1eaa5bdeaf1c0b4e",
+      "t": "Me first! No, Moka first."
+    },
+    {
+      "id": "ep-41:50",
+      "source": "왜 나야. 됐어. 운세 같은 거 안 믿어.",
+      "sourceHash": "f679b949cba55534acddc946d15c08c0cf980d7ff35aed024ed33a892532ce86",
+      "t": "Why me? No thanks. I don't believe in fortune-telling."
+    },
+    {
+      "id": "ep-41:51",
+      "source": "모카는 그렇게 말하고 제일 먼저 한 장을 뽑았다. 뒤집었다. 벌거벗은 두 사람과 천사. 6번, 연인.",
+      "sourceHash": "70f0e5fbdc0e6b2b7d2f392c72c134ca9d484410eb5a0ad7bd4e78c5ad35a0fa",
+      "t": "Saying that, Moka was the first to draw. He turned the card over: two naked figures and an angel. Number Six, the Lovers."
+    },
+    {
+      "id": "ep-41:52",
+      "source": "오. 연인. 모카 씨 상대는 아마 바로 앞에 있는 사람일 텐데요.",
+      "sourceHash": "5c906cc29cd35ca8cdb23ad03b8225828163bc0d4e93c024b0216a330f3ce2ec",
+      "t": "Oh. The Lovers. Your partner is probably the person right in front of you, Moka."
+    },
+    {
+      "id": "ep-41:53",
+      "source": "너 지금 이 카드 바꿔치기했지?! 손 내놔! 장갑 벗어!",
+      "sourceHash": "0fa46cee1b1472dea09ed6e3b572ab9dcf5d99cbc403fa52997ef68f9d8c84e8",
+      "t": "You switched that card, didn't you?! Hands out! Gloves off!"
+    },
+    {
+      "id": "ep-41:54",
+      "source": "장갑은 진짜 안 돼요! 거기 구멍 있어요!",
+      "sourceHash": "83b313c061c3b18277b1dc915cc2570f50916a547c7721cd1796d40a76b3c633",
+      "t": "Not the glove! There's actually a hole in there!"
+    },
+    {
+      "id": "ep-41:55",
+      "source": "둘이 카드 한 장을 두고 엎치락뒤치락했다. 연이는 배를 잡고 웃었다. 서한비는 그 모습을 보다가 한 장을 뽑았다.",
+      "sourceHash": "8a435324fde05ad5d7ae4e73927d9d844f79836d722d365d0eebf13a5d9563a4",
+      "t": "The two wrestled over a single card. Yeoni laughed, clutching their stomach. After watching them, Seo Hanbi drew one."
+    },
+    {
+      "id": "ep-41:56",
+      "source": "11번. 저울 든 사람이네요.",
+      "sourceHash": "ec111e436aaf7888532c4213f73703fb0f334f4d333a6b89049db89888286583",
+      "t": "Eleven. Someone holding scales."
+    },
+    {
+      "id": "ep-41:57",
+      "source": "정의예요. 숙녀분한테 잘 어울려요.",
+      "sourceHash": "5ee7a90c26cd6f65122e9b1e861c4c4dbf94a728c1ab14ecb65860b71982d9b5",
+      "t": "Justice. It suits you, my lady."
+    },
+    {
+      "id": "ep-41:58",
+      "source": "벌 받는 카드라는 뜻이죠.",
+      "sourceHash": "dd89542d2102ba256042c551616631a381bb36025002094486780a206f1d75aa",
+      "t": "Meaning a card of punishment."
+    },
+    {
+      "id": "ep-41:59",
+      "source": "아니요. 정의는 벌이 아니라 저울이에요. 기울어진 쪽을 맞추는 거. 지금 숙녀분이 하는 일이 딱 그거잖아요.",
+      "sourceHash": "e7270a59ef36d528c4a969436f9edb936f56ae63f7e1afce362ac5ef874d087f",
+      "t": "No. Justice is scales, not punishment. Balancing what has tipped. Exactly what you're doing now."
+    },
+    {
+      "id": "ep-41:60",
+      "source": "서한비는 대답하지 않았다. 카드를 한참 보다가, 장부 사이에 조심스럽게 끼웠다.",
+      "sourceHash": "d3e8ba618e4df566f67807e1dbc4d590470e8a8a4736a72e27e9b983157f9567",
+      "t": "Seo Hanbi didn't answer. She studied the card for a long time, then carefully tucked it into the ledger."
+    },
+    {
+      "id": "ep-41:61",
+      "source": "네오도 뽑아. 네 카드는 뭐가 나올까?",
+      "sourceHash": "0e53b26e2b0e4cecd69f9173163439a7450aab637082a293e27cbfb0de5f10f8",
+      "t": "Your turn, Neo. What card will you get?"
+    },
+    {
+      "id": "ep-41:62",
+      "source": "나는 됐다.",
+      "sourceHash": "db361faa70f25f51faaa3fd96b2bff14187964df2b0ee80ed3c208997cc351de",
+      "t": "I'll pass."
+    },
+    {
+      "id": "ep-41:63",
+      "source": "안 돼. 다 뽑았어. 단체 생활이야.",
+      "sourceHash": "7981ebf0fa2c5c3d109b4ac0bbd9b7f23f85d3db0ff8769b3177295eba0cf77d",
+      "t": "No. Everyone drew one. We're traveling as a group."
+    },
+    {
+      "id": "ep-41:64",
+      "source": "네오가 오른손을 뻗었다. 손끝이 카드를 통과했다. 그가 재빨리 왼손으로 바꿔 한 장을 집었다. 연이는 그 짧은 틈을 보았다.",
+      "sourceHash": "8c538da51fa91e389df8ee62faeae0ad56b600c99f797b19f22aee1bc63ece7e",
+      "t": "Neo reached with his right hand. His fingertips passed through the cards. He quickly switched to his left and picked one. Yeoni saw that brief moment."
+    },
+    {
+      "id": "ep-41:65",
+      "source": "(방금 손이 카드를 통과했어. 내가 잘못 본 게 아니야.)",
+      "sourceHash": "0e0441c0413e917a5af29de1258515ed4b851e223eb2d174d6524a79a39dd754",
+      "t": "(His hand just passed through the card. I didn't imagine it.)"
+    },
+    {
+      "id": "ep-41:66",
+      "source": "네오가 카드를 내려놓았다. 8번, 힘. 하얀 옷의 여자가 발톱을 세운 흰 고양이를 맨손으로 달래고 있었다. 고양이는 발톱을 거두고 여자에게 머리를 기대고 있었다.",
+      "sourceHash": "83c924ef48eba4c222f60803188d6c6aa3980e605cb56448de439e2e8ae1c7cf",
+      "t": "Neo laid the card down. Number Eight, Strength. A woman in white soothed a white cat with bared claws using her bare hands. The cat retracted its claws and leaned its head against her."
+    },
+    {
+      "id": "ep-41:67",
+      "source": "힘이네요. 억센 힘이 아니라 길들이는 힘. 부드러운 손이 사나운 것을 이기는 카드.",
+      "sourceHash": "ffd47aa31ac122f9d56691e03db5194ef2aff2c6324a9e71b1022e225addd9b8",
+      "t": "Strength. Not brute force, but the power to tame. Gentle hands overcoming something fierce."
+    },
+    {
+      "id": "ep-41:68",
+      "source": "고양이 나왔네. 그럼 이건 네오 카드다.",
+      "sourceHash": "93893c9888f52954c73d78e9422b9f58b6a328f4c0ac211023560f12453bb89f",
+      "t": "A cat. Definitely Neo's card."
+    },
+    {
+      "id": "ep-41:69",
+      "source": "여자 얼굴을 봐라.",
+      "sourceHash": "ee7e1037dfc66b13ccb6fec3bb675f49c89b036fbf3be58f31159376d2f4d08a",
+      "t": "Look at the woman's face."
+    },
+    {
+      "id": "ep-41:70",
+      "source": "연이가 카드를 들여다보았다. 그림 속 여자가 고개를 들었다. 연이와 똑같은 얼굴이었다. 그리고 그 여자가 쓰다듬는 고양이의 앞발은, 투명했다.",
+      "sourceHash": "02ddb77f610e06905df8a5706d0107be8471b47b9ed1a1e083839ed21f5054d7",
+      "t": "Yeoni peered at the card. The woman in the picture lifted her head. She had exactly Yeoni's face. And the forepaw of the cat she stroked was transparent."
+    },
+    {
+      "id": "ep-41:71",
+      "source": "네오. 이거.",
+      "sourceHash": "d161c0e486564f31b9d498e3471eb0b0391f14c28927097ce7c0b3095c134a4d",
+      "t": "Neo. This..."
+    },
+    {
+      "id": "ep-41:72",
+      "source": "카드 그림이잖아. 지금 모습이랑 꼭 같진 않아.",
+      "sourceHash": "ff48c8c26809b2f53c9e079c022ab96932ce2f3994b1a1dbb2ba7b1cd3aee3c4",
+      "t": "It's a card illustration. It doesn't have to match how we look now."
+    },
+    {
+      "id": "ep-41:73",
+      "source": "그날 밤. 회랑 벽의 카드들이 하나씩 꺼졌다. 8번 힘 카드만 남아 희게 빛났다. 빛이 닿는 곳마다 네오의 몸이 흐려졌다.",
+      "sourceHash": "57ddbb25a65fa73dc56d52c18a491e258befa76a365d14ac1aad478c16041ad8",
+      "t": "That night, the cards along the corridor walls went dark one by one. Only Number Eight, Strength, shone white. Wherever its light touched, Neo's body faded."
+    },
+    {
+      "id": "ep-41:74",
+      "source": "네오가 일어서려다 주저앉았다. 투명한 것은 이제 다리만이 아니었다. 가슴께까지 빛이 비쳐 보였다.",
+      "sourceHash": "b5fab2f29fe33a231cc1a6ade259fc7b7a19ce8da1187faab60d8c8d28086fbd",
+      "t": "Neo tried to stand, then sank down. It wasn't only his legs that were transparent now. Light showed through his chest."
+    },
+    {
+      "id": "ep-41:75",
+      "source": "여긴 이름에 유난히 예민하네.",
+      "sourceHash": "67ffeecf6ff9edf6c4b1e78274c3af60410a998eec3aa85920e6ebbd75e41d50",
+      "t": "This place is unusually sensitive to names."
+    },
+    {
+      "id": "ep-41:76",
+      "source": "네오의 무릎이 꺾였다. 연이가 팔을 받쳤지만 무게가 거의 느껴지지 않았다. 몸 곳곳으로 바닥의 무늬가 비치기 시작했다.",
+      "sourceHash": "8ec9c86db2d5efb5d4ee6fc7e124b9c3ef5e39f851fb0a574554e9f39f804020",
+      "t": "Neo's knees buckled. Yeoni caught his arm but felt almost no weight. The floor's pattern began showing through parts of his body."
+    },
+    {
+      "id": "ep-41:77",
+      "source": "네오! 정신 차려. 내 어깨 잡아. 천천히, 숨부터 쉬자.",
+      "sourceHash": "be16e521ec9d3890b26cb8cf0ea7f37e9bda23a6b85eeb912ed01203b2365a39",
+      "t": "Neo! Stay with me. Hold my shoulder. Slowly. Breathe first."
+    },
+    {
+      "id": "ep-41:78",
+      "source": "네오는 대답할 숨을 고르지 못했다. 연이는 그의 팔을 자기 어깨에 걸쳤다. 남아 있는 왼손이 연이의 소매를 붙들었다.",
+      "sourceHash": "983d78b3fd9cca27c20b96c907184aff48d71831815efc8cf2c9163f2fd1ac23",
+      "t": "Neo couldn't gather enough breath to answer. Yeoni draped his arm over their shoulder. His remaining left hand clung to their sleeve."
+    },
+    {
+      "id": "ep-41:79",
+      "source": "기대. 괜찮은 척하지 말고. 지금은 내가 잡을게.",
+      "sourceHash": "f29f62eb955475cabe43bc20883f174af5e31aec77ef09e81b3ee669a50aeafd",
+      "t": "Lean on me. Stop pretending you're okay. I'll hold you now."
+    },
+    {
+      "id": "ep-41:80",
+      "source": "네오는 겨우 고개를 끄덕였다. 말을 아끼는 게 아니었다. 한마디를 내는 데도 숨이 필요했다.",
+      "sourceHash": "824e35f9c1ba80ee9d678ce7c88710c269b20c4ff9225d08d51b2bc74c566dc0",
+      "t": "Neo barely managed a nod. He wasn't saving words. Even one word required breath."
+    },
+    {
+      "id": "ep-41:81",
+      "source": "힘 카드의 빛이 저분을 깎고 있어요. 저 카드 안에 뭔가 있어요.",
+      "sourceHash": "ab8926b4189fabaf4bba522c0ae16c71ca1a6440cfc8997959e3cab5e7bd0428",
+      "t": "The Strength card's light is wearing him away. There's something inside it."
+    },
+    {
+      "id": "ep-41:82",
+      "source": "케투예요. 꼬리가 카드 그림 뒤에 숨었어요. 지난 걸 먹는 꼬리니까, 고양이님 지난날을 갉고 있는 거예요.",
+      "sourceHash": "9d860a7cf0aa63097e73a80b875b4cd6af6a442aac236715e287d612f6997c9f",
+      "t": "Ketu. The tail is hiding behind the illustration. It eats the past, so it's gnawing at Mr. Cat's past."
+    },
+    {
+      "id": "ep-41:83",
+      "source": "그럼 저 카드 태워 버려!",
+      "sourceHash": "e78a36ce55f747a46bcd4f95fec5308e6ee0cdd5cae389dc7bfdaf83f135cae1",
+      "t": "Then burn that card!"
+    },
+    {
+      "id": "ep-41:84",
+      "source": "태우면 길이 끊겨요. 8번을 못 지나면 21번까지 못 가요.",
+      "sourceHash": "8ad236c866017f96af462086b1bf3ccf673276c9091db955c5b8d9d41af7657a",
+      "t": "Burn it and the path breaks. Without passing Number Eight, we can't reach Twenty-One."
+    },
+    {
+      "id": "ep-41:85",
+      "source": "다음 길은 6번 문 너머였다. 연이는 네오를 부축한 채 담쟁이가 덮인 문 앞에 멈췄다.",
+      "sourceHash": "60699001bb27307f6a26d1cc47e022f7d12b8a0721421b2580b29e5e1d9a4be3",
+      "t": "The next path lay beyond Door Six. Supporting Neo, Yeoni stopped before the ivy-covered entrance."
+    },
+    {
+      "id": "ep-41:86",
+      "source": "잠깐. 고양이 저 꼴인데 지금 가? 하룻밤 쉬고 가자.",
+      "sourceHash": "752f046e26e1beab0100c70caf6d4d0b314f723bf564d42e1ee9c4768f1e0f2e",
+      "t": "Wait. We're going now, with the cat like that? Let's rest for a night."
+    },
+    {
+      "id": "ep-41:87",
+      "source": "쉬면 더 깎여요. 8번 빛은 밤에 더 세지거든요. 지나가는 게 제일 빨라요.",
+      "sourceHash": "b85073ebd00bc3a6a497389b764ee1b6ee60d6982c9b1911ab542012626d5999",
+      "t": "Resting will wear him away further. Number Eight's light is stronger at night. Going through is the fastest way."
+    },
+    {
+      "id": "ep-41:88",
+      "source": "그럼 제가 앞에 설게요. 문 너머에 뭐가 있든 먼저 맞는 건 저로 해요.",
+      "sourceHash": "332e15fa7fbd3d92aaccae43d78eaad96abc1a428a25537cc965774b87d280e2",
+      "t": "Then I'll stand in front. Whatever is beyond the door, let it hit me first."
+    },
+    {
+      "id": "ep-41:89",
+      "source": "너 힘 없다며.",
+      "sourceHash": "97e9fb45857966a967fd6ec848e973060aabbff6f98bbd9f2657ea19d7df0013",
+      "t": "You said you have no power."
+    },
+    {
+      "id": "ep-41:90",
+      "source": "없어서 앞에 서는 거예요. 잃을 게 제일 적으니까.",
+      "sourceHash": "032515884d7126cf866111dcfd0a42e6e1cf9c10d78fbe67d14353120ebdeeb0",
+      "t": "That's why I'm going first. I have the least to lose."
+    },
+    {
+      "id": "ep-41:91",
+      "source": "연이는 뭐라고 하려다 그만두었다. 대신 서한비 코트 자락을 한 번 잡아당겼다. 너무 앞으로 가지 말라는 뜻이었다. 서한비는 반 걸음만 앞에 섰다.",
+      "sourceHash": "6b998fc5a9b3ad5a299716c7b6d96bc53e5cc47de5269de3b004c0b03d6e20e8",
+      "t": "Yeoni started to speak, then stopped. Instead, they tugged Seo Hanbi's coat once: don't go too far ahead. Seo Hanbi stood only half a step in front."
+    },
+    {
+      "id": "ep-41:92",
+      "source": "그럼 빨리 지나가자. 연인이든 뭐든.",
+      "sourceHash": "7658ca3403d6d813d5e2e4643b422d663d5c9244a414de5ea452bd64125ae811",
+      "t": "Then let's get through quickly. Lovers or whatever."
+    },
+    {
+      "id": "ep-41:93",
+      "source": "연인 카드면 고백하는 문 아니야? 윤달 오빠 또 생년월일부터 묻겠네.",
+      "sourceHash": "573dfefd3dfa8b1cb35cd67bfd0e8ca12b5249c84327a23471ddb422c3330987",
+      "t": "If it's the Lovers, is it a door for confessions? Yundal will ask birthdays again."
+    },
+    {
+      "id": "ep-41:94",
+      "source": "이번엔 안 물어요. 이 문은 묻는 문이 아니라 읽게 하는 문이거든요.",
+      "sourceHash": "df170420619b54bb679447cd59dd5be9e9e749609dde8bd1d65eb127a694c04b",
+      "t": "Not this time. This door doesn't make you ask. It makes you read."
+    },
+    {
+      "id": "ep-41:95",
+      "source": "읽게 한다고? 뭘?",
+      "sourceHash": "fa8685a91a53ac1d83e4eb4f1b844e5f0d5032b44971cf7a7869d86463247acb",
+      "t": "Read what?"
+    },
+    {
+      "id": "ep-41:96",
+      "source": "그게 문제예요. 문마다 꼭 하나씩, 제일 아픈 걸 읽게 해요.",
+      "sourceHash": "bbdc741a19e03001a5237b7284e30c9d61aa7d16601c04ea4550132b8a54ee59",
+      "t": "That's the trouble. Each door makes you read one thing: whatever hurts most."
+    },
+    {
+      "id": "ep-41:97",
+      "source": "네오의 턱이 굳었다. 연이는 소매를 붙든 그의 손 위에 자기 손을 얹었다. 괜찮다는 말을 함부로 할 수는 없었다.",
+      "sourceHash": "e5822a419f2c2bc0d6dae136430f400615ef7bd91e672d602941509d47843b89",
+      "t": "Neo's jaw tightened. Yeoni laid their hand over his where it clung to their sleeve. They couldn't lightly say it would be all right."
+    },
+    {
+      "id": "ep-41:98",
+      "source": "담쟁이가 저절로 걷혔다. 문 한가운데 문패가 있었다. 글씨는 아직 흐렸다. 세 글자. 첫 글자만 겨우 보였다. 박.",
+      "sourceHash": "20281364312eb931246ef30e7d4dc33674651dc2840d573f232569c56be5a808",
+      "t": "The ivy drew back by itself. In the center of the door was a nameplate. The lettering was still blurred. A three-syllable name. Only the first was barely visible: Park."
+    },
+    {
+      "id": "ep-41:99",
+      "source": "이 문은 이름을 부르는 자에게만 열린다. 문패를 읽어라, 그릇아.",
+      "sourceHash": "e359b0fd38a6da04aaf62591d8a36645b79acb2dfd00039894aa0b5d80e20c00",
+      "t": "This door opens only to one who speaks the name. Read the nameplate, vessel."
+    },
+    {
+      "id": "ep-41:100",
+      "source": "네오가 연이의 소매를 움켜쥐었다. 남은 힘을 모두 쓴 듯 손이 떨렸다. 아주 작고 다급한 목소리가 들렸다.",
+      "sourceHash": "8d328d82f3b93b3f98fd69b9198e69cab3f689902019bcf2eef1e92ae9580663",
+      "t": "Neo seized Yeoni's sleeve. His hand shook, as though he had spent every last bit of strength. A very small, urgent voice reached them."
+    },
+    {
+      "id": "ep-41:101",
+      "source": "「읽지 마라. 연이. 그것만은.」",
+      "sourceHash": "f529665398a11dbcc2d93c9a11a3e8ca1010bac0784ca687f633d7b7943d0d6c",
+      "t": "“Don't read it. Yeoni. Not that.”"
+    },
+    {
+      "id": "ep-41:102",
+      "source": "문패의 두 번째 글자가 떠오르기 시작했다. 연이는 눈을 떼지 못했다. 소매를 쥔 네오의 손에 힘이 더 들어갔다.",
+      "sourceHash": "49b4f7fa4f55d2f538767b8a15184bdb8de404aa9d5ac18f8bee19d5d2548442",
+      "t": "The second part of the name began to appear. Yeoni couldn't look away. Neo's hand tightened on their sleeve."
+    }
+  ]
+}

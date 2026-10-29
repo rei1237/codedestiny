@@ -20,6 +20,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
+import { ENGLISH_READING_LOCALES, applyDetailedReadingEdition } from "./lib/detailed-reading-locale-policy.mjs";
 
 const rootDir = process.cwd();
 const i18nDir = resolve(rootDir, "public", "i18n");
@@ -55,10 +56,19 @@ function setDeep(target, dottedKey, value) {
   let node = target;
   for (let i = 0; i < parts.length - 1; i += 1) {
     const key = parts[i];
-    if (typeof node[key] !== "object" || node[key] === null || Array.isArray(node[key])) node[key] = {};
+    // Numeric path segments may address an existing array. Keep its sibling entries.
+    if (typeof node[key] !== "object" || node[key] === null) node[key] = {};
     node = node[key];
   }
   node[parts[parts.length - 1]] = value;
+}
+
+function trimAuthoredArray(target, dottedKey, length) {
+  if (!Number.isSafeInteger(length) || length < 0) throw new Error(`Invalid reviewed array length: ${dottedKey}`);
+  const value = dottedKey.split('.').reduce((node, key) => node?.[key], target);
+  if (value === undefined) return;
+  if (!Array.isArray(value) || value.length < length) throw new Error(`Incomplete reviewed array: ${dottedKey}`);
+  value.length = length;
 }
 
 // 저작 파일 수집: <namespace>-<번호>.json
@@ -79,12 +89,14 @@ const stripBrandNames = (text) => BRAND_TOKENS.reduce((value, name) => value.rep
 
 /** namespace → { locale → { key → value } } */
 const byNamespace = {};
+const arrayLengths = {};
 const problems = [];
 let entryCount = 0;
 
 for (const file of files) {
   const namespace = file.replace(/-\d+\.json$/, "");
   const authored = JSON.parse(readFileSync(join(authoredDir, file), "utf8"));
+  if (authored._arrayLengths) arrayLengths[namespace] = { ...arrayLengths[namespace], ...authored._arrayLengths };
   for (const [key, translations] of Object.entries(authored)) {
     if (key.startsWith("_")) continue;
     entryCount += 1;
@@ -119,10 +131,22 @@ for (const [namespace, byLocale] of Object.entries(byNamespace)) {
       if (existingOnly && key.split(".").reduce((node, part) => node?.[part], current) === undefined) continue;
       setDeep(current, key, value);
     }
+    for (const [key, length] of Object.entries(arrayLengths[namespace] || {})) trimAuthoredArray(current, key, length);
     writeFileSync(target, `${JSON.stringify(current, null, 2)}\n`, "utf8");
     written += 1;
   }
   console.log(`[merge-authored] ${namespace}: ${Object.keys(byLocale.ko).length}키 × ${LOCALES.length}로케일`);
 }
 
+// Keep the explicitly selected English static reading edition after every core authoring batch.
+// This affects neither basic UI namespaces nor the requested consultation response language.
+if (toCore) {
+  const english = JSON.parse(readFileSync(join(i18nDir, 'en.json'), 'utf8'));
+  for (const locale of ENGLISH_READING_LOCALES) {
+    const target = join(i18nDir, `${FILE_BY_LOCALE[locale]}.json`);
+    const original = JSON.parse(readFileSync(target, 'utf8'));
+    const next = applyDetailedReadingEdition(original, english, locale);
+    if (JSON.stringify(original) !== JSON.stringify(next)) writeFileSync(target, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
+  }
+}
 console.log(`[merge-authored] 저작 파일 ${files.length}개 / 항목 ${entryCount}개 → 사전 ${written}개 갱신`);

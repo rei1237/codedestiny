@@ -22,9 +22,17 @@ for (const locale of locales) {
     const src = source.episodes[index]; const tr = data.episodes?.[index]; const id = src.no === "PROLOGUE" ? "prologue" : src.no.toLowerCase().replace(".", "-");
     if (!tr || tr.id !== id || tr.no !== src.no || tr.beats?.length !== src.beats.length || !tr.tag || !tr.title) { errors.push(`${locale}: ${id} episode shape`); continue; }
     if (invalidText(tr.tag) || invalidText(tr.title)) errors.push(`${locale}: ${id} tag/title incomplete`);
+    if (src.ending && invalidText(tr.ending?.label)) errors.push(`${locale}: ${id} ending label incomplete`);
     for (let beat = 0; beat < src.beats.length; beat += 1) {
       const item = tr.beats[beat];
       if (!item || item.id !== (src.beats[beat].id || `${id}:${beat + 1}`) || invalidText(item.t)) errors.push(`${locale}: ${id}:${beat + 1} missing/Korean/marker`);
+      const original = src.beats[beat];
+      if (original.nm && invalidText(item?.nm)) errors.push(`${locale}: ${id}:${beat + 1} speaker incomplete`);
+      if (original.skill?.name && invalidText(item?.skill?.name)) errors.push(`${locale}: ${id}:${beat + 1} skill name incomplete`);
+      if (original.skill?.unit && invalidText(item?.skill?.unit)) errors.push(`${locale}: ${id}:${beat + 1} skill unit incomplete`);
+      for (const option of original.choice?.options || []) {
+        if (invalidText(item?.choice?.options?.find(candidate => candidate.id === option.id)?.label)) errors.push(`${locale}: ${id}:${beat + 1} choice ${option.id} incomplete`);
+      }
     }
   }
 }

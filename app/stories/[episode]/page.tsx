@@ -1,4 +1,5 @@
 import Link from "next/link";
+import StoryEdition from "../StoryEdition";
 import { notFound } from "next/navigation";
 import StoryIntegrityNote from "../../components/StoryIntegrityNote";
 import { buildSeoMetadata } from "../../../lib/seo";
@@ -22,8 +23,8 @@ export function generateStaticParams() {
   return STORY_EPISODES.map((episode) => ({ episode: episode.slug }));
 }
 
-export function generateMetadata({ params }: { params: { episode: string } }) {
-  const episode = getEpisodeBySlug(params.episode);
+export async function generateMetadata({ params }: { params: Promise<{ episode: string }> }) {
+  const episode = getEpisodeBySlug((await params).episode);
   if (!episode) return {};
 
   const logline = STORY_LOGLINES[episode.slug] || "";
@@ -42,8 +43,8 @@ export function generateMetadata({ params }: { params: { episode: string } }) {
   });
 }
 
-export default function StoryEpisodePage({ params }: { params: { episode: string } }) {
-  const episode = getEpisodeBySlug(params.episode);
+export default async function StoryEpisodePage({ params }: { params: Promise<{ episode: string }> }) {
+  const episode = getEpisodeBySlug((await params).episode);
   if (!episode) notFound();
 
   const index = getEpisodeIndex(episode.slug);
@@ -61,6 +62,7 @@ export default function StoryEpisodePage({ params }: { params: { episode: string
   ]);
 
   return (
+    <StoryEdition episodeId={episode.slug}>
     <main className="mx-auto w-full max-w-3xl px-4 py-10 text-slate-100 md:px-6 md:py-14">
       <script
         type="application/ld+json"
@@ -170,5 +172,6 @@ export default function StoryEpisodePage({ params }: { params: { episode: string
 
       <StoryIntegrityNote />
     </main>
+    </StoryEdition>
   );
 }

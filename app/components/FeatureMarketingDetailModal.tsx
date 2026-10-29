@@ -658,9 +658,9 @@ export function FeatureMarketingDetailModal({
                           </div>
                           {copy.valueCompare.rows.slice(0, 5).map((row) => (
                             <div key={row.axis} role="row" className="cd-detail-table-row">
-                              <span role="cell" className="cd-detail-table-cell cd-detail-table-cell--axis">{row.axis}</span>
-                              <span role="cell" className="cd-detail-table-cell cd-detail-table-cell--free">{row.free?.trim() || "—"}</span>
-                              <span role="cell" className="cd-detail-table-cell cd-detail-table-cell--premium">{row.premium}</span>
+                              <span role="cell" data-label="" className="cd-detail-table-cell cd-detail-table-cell--axis">{row.axis}</span>
+                              <span role="cell" data-label={t("preview.compareFree")} className="cd-detail-table-cell cd-detail-table-cell--free">{row.free?.trim() || "—"}</span>
+                              <span role="cell" data-label={t("preview.comparePremium")} className="cd-detail-table-cell cd-detail-table-cell--premium">{row.premium}</span>
                             </div>
                           ))}
                         </div>

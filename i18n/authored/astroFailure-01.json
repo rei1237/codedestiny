@@ -1,0 +1,45 @@
+{
+  "_comment": "Directly authored astrology engine failure UI in all 12 languages. Existing error and retry meaning retained. No API.",
+  "sajuEngine.astro_swiss_unavailable_title": {
+    "ko": "점성술 엔진 연결 중",
+    "en": "Connecting to the astrology engine",
+    "ja": "占星術エンジンに接続中",
+    "zh-CN": "正在连接占星引擎",
+    "zh-TW": "正在連接占星引擎",
+    "vi": "Đang kết nối công cụ chiêm tinh",
+    "hi": "ज्योतिष इंजन से कनेक्ट हो रहा है",
+    "es": "Conectando con el motor de astrología",
+    "fr": "Connexion au moteur astrologique",
+    "de": "Verbindung zur Astrologie-Engine wird hergestellt",
+    "nl": "Verbinding maken met de astrologie-engine",
+    "ms": "Menyambung ke enjin astrologi"
+  },
+  "sajuEngine.astro_swiss_unavailable_body": {
+    "ko": "정확한 차트 계산용 Swiss 라이브러리 연결에 실패했습니다.",
+    "en": "We could not connect to the Swiss library used for precise chart calculations.",
+    "ja": "正確なチャート計算に使うSwissライブラリに接続できませんでした。",
+    "zh-CN": "无法连接用于精确星盘计算的Swiss库。",
+    "zh-TW": "無法連接用於精確星盤計算的Swiss程式庫。",
+    "vi": "Không thể kết nối thư viện Swiss dùng để tính lá số chính xác.",
+    "hi": "सटीक चार्ट गणना के लिए Swiss लाइब्रेरी से कनेक्ट नहीं हो सका।",
+    "es": "No se pudo conectar con la biblioteca Swiss para calcular la carta con precisión.",
+    "fr": "Impossible de se connecter à la bibliothèque Swiss utilisée pour calculer le thème avec précision.",
+    "de": "Die Verbindung zur Swiss-Bibliothek für präzise Horoskopberechnungen ist fehlgeschlagen.",
+    "nl": "De verbinding met de Swiss-bibliotheek voor nauwkeurige horoscoopberekeningen is mislukt.",
+    "ms": "Tidak dapat menyambung ke pustaka Swiss untuk pengiraan carta yang tepat."
+  },
+  "sajuEngine.astro_swiss_unavailable_retry": {
+    "ko": "출생지/출생시간 입력을 확인한 뒤 다시 시도해 주세요. 문제가 반복되면 잠시 후 다시 열어 주세요.",
+    "en": "Check your birth location and birth time, then try again. If the problem continues, reopen this page after a short wait.",
+    "ja": "出生地と出生時刻の入力を確認して、もう一度お試しください。問題が続く場合は、少し待ってから開き直してください。",
+    "zh-CN": "请检查出生地点与出生时刻后重试。若问题持续，请稍后重新打开。",
+    "zh-TW": "請檢查出生地點與出生時刻後重試。若問題持續，請稍後重新開啟。",
+    "vi": "Hãy kiểm tra nơi sinh và giờ sinh rồi thử lại. Nếu lỗi tiếp diễn, hãy đợi một lát rồi mở lại.",
+    "hi": "जन्मस्थान और जन्म समय जाँचकर फिर प्रयास करें। समस्या बनी रहे तो थोड़ी देर बाद इसे दोबारा खोलें।",
+    "es": "Comprueba el lugar y la hora de nacimiento e inténtalo de nuevo. Si el problema continúa, espera un momento y vuelve a abrir la página.",
+    "fr": "Vérifiez le lieu et l’heure de naissance, puis réessayez. Si le problème persiste, patientez un peu avant de rouvrir cette page.",
+    "de": "Prüfen Sie Geburtsort und Geburtszeit und versuchen Sie es erneut. Falls das Problem bestehen bleibt, öffnen Sie die Seite nach einer kurzen Wartezeit erneut.",
+    "nl": "Controleer je geboorteplaats en geboortetijd en probeer het opnieuw. Blijft het probleem bestaan, wacht dan even en open de pagina opnieuw.",
+    "ms": "Semak tempat dan waktu lahir, kemudian cuba lagi. Jika masalah berterusan, tunggu sebentar sebelum membukanya semula."
+  }
+}

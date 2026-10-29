@@ -1,0 +1,1169 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "episodeId": "ep-22",
+  "sourceTitle": "네 관성",
+  "sourceTag": "제22화 · 네 관성",
+  "metadata": {
+    "zh-CN": {
+      "title": "你的官星",
+      "tag": "第22话 · 你的官星"
+    },
+    "zh-TW": {
+      "title": "妳的官星",
+      "tag": "第22話 · 妳的官星"
+    }
+  },
+  "rows": [
+    {
+      "id": "ep-22:1",
+      "source": "연이는 창틀을 넘어 지붕으로 기어 올라갔다. 기와가 미끄러웠다. 돼지 앞발로 붙잡기엔 너무 둥근 지붕이었다.",
+      "sourceHash": "bde1fd0b32fe692e5e1cf3ec1193aa9d9e0d3a3b10c47e7ad48dfe24f92b88a7",
+      "translations": {
+        "zh-CN": "Yeoni翻过窗框，爬上屋顶。瓦片很滑。这座圆顶，对猪前蹄来说，太难抓稳。",
+        "zh-TW": "Yeoni翻過窗框，爬上屋頂。瓦片很滑。這座圓頂，對豬前蹄來說，太難抓穩。"
+      }
+    },
+    {
+      "id": "ep-22:2",
+      "source": "둘이 여기서 뭐 해. 밤에. 몰래. 비 맞으면서.",
+      "sourceHash": "e5190b5377a0df5d744cc1a82ac8a601ce6a2cf5ad03f04b8269a4140f90acf1",
+      "translations": {
+        "zh-CN": "你们两个在这儿干吗。半夜。偷偷的。还淋着雨。",
+        "zh-TW": "你們兩個在這兒幹嘛。半夜。偷偷的。還淋著雨。"
+      }
+    },
+    {
+      "id": "ep-22:3",
+      "source": "연이야. 들어가. 여긴 위험해.",
+      "sourceHash": "487dd0f924fc3f692d13aed4cf6ba88b78483660c1fe203d1f005dae2b0e88b3",
+      "translations": {
+        "zh-CN": "Yeoni，进去。这里危险。",
+        "zh-TW": "Yeoni，進去。這裡危險。"
+      }
+    },
+    {
+      "id": "ep-22:4",
+      "source": "위험한 데 너 혼자 와 있는 게 더 위험하거든!",
+      "sourceHash": "f20cc3a57a42c62b847dfb692d1095da0010e177148f9100501d68098028e66f",
+      "translations": {
+        "zh-CN": "你一个人跑到危险的地方，才更危险！",
+        "zh-TW": "你一個人跑到危險的地方，才更危險！"
+      }
+    },
+    {
+      "id": "ep-22:5",
+      "source": "호랑이가 둘을 번갈아 보았다. 그리고 아주 작게, 비웃음인지 한숨인지 모를 숨을 내쉬었다.",
+      "sourceHash": "818ac29b1172ef80a2c7b930c697e42ba51db205769b7e64cda507a8432599a6",
+      "translations": {
+        "zh-CN": "老虎轮流看看两人，轻轻吐出一口气。不知是嗤笑，还是叹息。",
+        "zh-TW": "老虎輪流看看兩人，輕輕吐出一口氣。不知是嗤笑，還是嘆息。"
+      }
+    },
+    {
+      "id": "ep-22:6",
+      "source": "오늘은 여기까지 할게. 장부에 적을 일은 없었으니까.",
+      "sourceHash": "56efea6232c7db89facf9e9829b464c0fb05faf14372c8787f0b2ed36b6f8a59",
+      "translations": {
+        "zh-CN": "今天就到这里。反正也没有值得记到账簿上的事。",
+        "zh-TW": "今天就到這裡。反正也沒有值得記到帳簿上的事。"
+      }
+    },
+    {
+      "id": "ep-22:7",
+      "source": "기다려. 너 지금 영냥이한테 무슨 말 했어.",
+      "sourceHash": "fb82eb58e6c49a8c6ce1f04cb4a0eb1d41e9e7d5e99ddccbcce1c5bff3818a53",
+      "translations": {
+        "zh-CN": "等一下。你刚才对Yeongnyangi说了什么。",
+        "zh-TW": "等一下。妳剛才對Yeongnyangi說了什麼。"
+      }
+    },
+    {
+      "id": "ep-22:8",
+      "source": "궁금하면 고양이한테 물어봐. 그 눈이 왜 가끔 금색이 되는지.",
+      "sourceHash": "9f7fd099b5b9addbacf26cc777cb1d442a0b398451c00d1bc511cd224c2893a3",
+      "translations": {
+        "zh-CN": "想知道，就问猫。问他的眼睛，为什么有时会变成金色。",
+        "zh-TW": "想知道，就問貓。問他的眼睛，為什麼有時會變成金色。"
+      }
+    },
+    {
+      "id": "ep-22:9",
+      "source": "호랑이는 지붕 끝에서 뛰어내렸다. 떨어지는 소리는 없었다. 빗소리만 한 번 커졌다가 잦아들었다.",
+      "sourceHash": "4bdb8d65095453833cce3c1c61632a7b7b92734a99449964ce7f60539eb32e9f",
+      "translations": {
+        "zh-CN": "老虎跃下屋顶。没有落地声。只有雨声猛地大了一下，又渐渐平息。",
+        "zh-TW": "老虎躍下屋頂。沒有落地聲。只有雨聲猛地大了一下，又漸漸平息。"
+      }
+    },
+    {
+      "id": "ep-22:10",
+      "source": "물어볼게. 네 눈, 왜 금색이 돼?",
+      "sourceHash": "774188004d23ae15283dd6d0c722ed6cdd9970e4d54294eb803cf1e8269e142a",
+      "translations": {
+        "zh-CN": "那我问了。你的眼睛，为什么会变金色？",
+        "zh-TW": "那我問了。你的眼睛，為什麼會變金色？"
+      }
+    },
+    {
+      "id": "ep-22:11",
+      "source": "달빛이 반사된 거다.",
+      "sourceHash": "2801b032b2bff118c2db1d9466990ae7423522cda0d0162eb7bc56e3b6c4dc96",
+      "translations": {
+        "zh-CN": "月光反射。",
+        "zh-TW": "月光反射。"
+      }
+    },
+    {
+      "id": "ep-22:12",
+      "source": "저 해는 반쪽이고 달은 없어. 반사될 게 없잖아.",
+      "sourceHash": "d62925ae20af67503e2a81887742f88844897a6922de9777c4a9a383fc292c20",
+      "translations": {
+        "zh-CN": "那太阳只剩一半，月亮根本没有。哪里有光可反射。",
+        "zh-TW": "那太陽只剩一半，月亮根本沒有。哪裡有光可反射。"
+      }
+    },
+    {
+      "id": "ep-22:13",
+      "source": "연이야. 오늘은 그냥 들어가자. 내일 말할게.",
+      "sourceHash": "a835daeac072a23e7fbbc5b32db694673af4ad9d76bccc52ceaf48d5d72cd35a",
+      "translations": {
+        "zh-CN": "Yeoni，今天先进去吧。明天再说。",
+        "zh-TW": "Yeoni，今天先進去吧。明天再說。"
+      }
+    },
+    {
+      "id": "ep-22:14",
+      "source": "너는 맨날 내일이야. 맨날 나중이고, 맨날 끝나면이야.",
+      "sourceHash": "e018bb39f285ab4b4ab4aa3b59a80baaedc2d7f9bce656ad2f34b9dc3661b93f",
+      "translations": {
+        "zh-CN": "你永远都说明天。永远是以后，永远是结束再说。",
+        "zh-TW": "你永遠都說明天。永遠是以後，永遠是結束再說。"
+      }
+    },
+    {
+      "id": "ep-22:15",
+      "source": "연이는 앞발을 펼쳤다. 글자판이 떠올랐다. 마지막 빈칸이 벌써 희미하게 빛나고 있었다.",
+      "sourceHash": "f658df4ec6fcfce8b0f63d677de023d0bf9b7ebccde079aa7107f3f99dbf476e",
+      "translations": {
+        "zh-CN": "Yeoni摊开前蹄。文字面板浮现。最后那个空格，已经隐隐亮起。",
+        "zh-TW": "Yeoni攤開前蹄。文字面板浮現。最後那個空格，已經隱隱亮起。"
+      }
+    },
+    {
+      "id": "ep-22:16",
+      "source": "그럼 내가 확인할게.",
+      "sourceHash": "e54585c9d217d098fccb2b52f815de34c099a714e810fec56bd556a64f7fcdfb",
+      "translations": {
+        "zh-CN": "那我自己确认。",
+        "zh-TW": "那我自己確認。"
+      }
+    },
+    {
+      "id": "ep-22:17",
+      "source": "연이가 한 걸음 다가갔다. 빈칸이 밝아졌다. 영냥이가 한 걸음 물러났다.",
+      "sourceHash": "585ce7ffd984c95f993ed90feb7e3c6be68dba93798453782dcbd1b87d57a38e",
+      "translations": {
+        "zh-CN": "Yeoni上前一步，空格亮了。Yeongnyangi后退一步。",
+        "zh-TW": "Yeoni上前一步，空格亮了。Yeongnyangi後退一步。"
+      }
+    },
+    {
+      "id": "ep-22:18",
+      "source": "다시 한 걸음. 다시 한 걸음. 영냥이의 뒷발이 지붕 끝에 닿았다. 더 물러날 곳이 없었다.",
+      "sourceHash": "be701a576157868af80a9bf32f266a2d0a8f75d90db1dd8282d926c6c589e53d",
+      "translations": {
+        "zh-CN": "又一步，再一步。Yeongnyangi的后爪，碰到屋顶边缘。无处可退。",
+        "zh-TW": "又一步，再一步。Yeongnyangi的後爪，碰到屋頂邊緣。無處可退。"
+      }
+    },
+    {
+      "id": "ep-22:19",
+      "source": "연이야, 멈춰.",
+      "sourceHash": "6b35d3f66071db7757652e9f5cdf8f87aefb54bcf446f019f1af8c332c491231",
+      "translations": {
+        "zh-CN": "Yeoni，停下。",
+        "zh-TW": "Yeoni，停下。"
+      }
+    },
+    {
+      "id": "ep-22:20",
+      "source": "싫어.",
+      "sourceHash": "1f3356ca406676d425d3d7d95a8cdbd16d9f1fd56f25f823e63b9d8e8b0eb798",
+      "translations": {
+        "zh-CN": "不要。",
+        "zh-TW": "不要。"
+      }
+    },
+    {
+      "id": "ep-22:21",
+      "source": "연이의 앞발이 영냥이의 복슬복슬한 가슴 털에 닿는 순간, 빈칸에서 하얀 빛이 터져 나왔다. 쇠를 두드리는 맑은 소리가 하늘에 울렸다.",
+      "sourceHash": "896a797ff6695aba1f137db79cf526ec32b651ad10bfb00b15d8bb6eedb68685",
+      "translations": {
+        "zh-CN": "Yeoni的前蹄碰上Yeongnyangi胸前蓬松白毛的一瞬，空格里爆发出白光。清脆的金属敲击声，响彻天空。",
+        "zh-TW": "Yeoni的前蹄碰上Yeongnyangi胸前蓬鬆白毛的一瞬，空格裡爆發出白光。清脆的金屬敲擊聲，響徹天空。"
+      }
+    },
+    {
+      "id": "ep-22:22",
+      "source": "빛은 칼날처럼 곧게 섰다가 글자 하나로 모였다. 차갑고 단단하고 곧은 글자였다.",
+      "sourceHash": "aea4f060b28e2679e4739f7e03d88d44b388362a468db78f443cbcbe7aad4342",
+      "translations": {
+        "zh-CN": "光如刀锋般笔直竖起，又凝成一个字。冰冷，坚硬，笔直的字。",
+        "zh-TW": "光如刀鋒般筆直豎起，又凝成一個字。冰冷，堅硬，筆直的字。"
+      }
+    },
+    {
+      "id": "ep-22:23",
+      "source": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 時 庚辰 ]  8/8",
+      "sourceHash": "9c0165cc5d19f914ad609a80f7c6b6c1da01e9f3c5a6cd45eacdeb4943f11083",
+      "translations": {
+        "zh-CN": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 时 庚辰 ]  8/8",
+        "zh-TW": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 時 庚辰 ]  8/8"
+      }
+    },
+    {
+      "id": "ep-22:24",
+      "source": "찼어! 여덟 칸 다 찼어! 영냥아, 봐 봐!",
+      "sourceHash": "fb12541b7f7e2cbaa19f841a7df79cae518b3620df480faa7c3e09140501f26e",
+      "translations": {
+        "zh-CN": "满了！八格全满了！Yeongnyangi，快看！",
+        "zh-TW": "滿了！八格全滿了！Yeongnyangi，快看！"
+      }
+    },
+    {
+      "id": "ep-22:25",
+      "source": "[ 時干 庚 · 빌린 칸 · 주인 확인 불가 ]",
+      "sourceHash": "191ef1ffeeeace58a39c78ec9b3e1fe8cbc5ebcce7523ecfd165a23686e39a0f",
+      "translations": {
+        "zh-CN": "[ 时干 庚 · 借来的格子 · 无法确认主人 ]",
+        "zh-TW": "[ 時干 庚 · 借來的格子 · 無法確認主人 ]"
+      }
+    },
+    {
+      "id": "ep-22:26",
+      "source": "빌린 칸? 주인 확인 불가? 이게 무슨 뜻이야.",
+      "sourceHash": "583b8c21954115f14b40c74743f6e34785bf4d7961c178d22903d51cfbd693cf",
+      "translations": {
+        "zh-CN": "借来的格子？无法确认主人？这是什么意思。",
+        "zh-TW": "借來的格子？無法確認主人？這是什麼意思。"
+      }
+    },
+    {
+      "id": "ep-22:27",
+      "source": "庚 자는 빛나다가 깜빡였다. 영냥이가 숨을 들이쉴 때 밝아지고, 내쉴 때 흐려졌다. 꼭 영냥이와 같이 숨을 쉬는 것처럼.",
+      "sourceHash": "b8d5eaef32334eedf1ec91dd15df344aec6e99dcfa17edecda37dc40a342c285",
+      "translations": {
+        "zh-CN": "庚字亮着，又闪了一下。Yeongnyangi吸气，它就亮；呼气，它就暗。仿佛在和他一起呼吸。",
+        "zh-TW": "庚字亮著，又閃了一下。Yeongnyangi吸氣，它就亮；呼氣，它就暗。彷彿在和他一起呼吸。"
+      }
+    },
+    {
+      "id": "ep-22:28",
+      "source": "영냥아. 이거 너야?",
+      "sourceHash": "83b9193436324f6f7eee3125c3cbb2c2f07c5567de6fae6feadfdd4d40d66f9a",
+      "translations": {
+        "zh-CN": "Yeongnyangi。这个，是你吗？",
+        "zh-TW": "Yeongnyangi。這個，是你嗎？"
+      }
+    },
+    {
+      "id": "ep-22:29",
+      "source": "아니다.",
+      "sourceHash": "9e97b12e266448d8f9b26d642ae5ffa7ad855805d2002d434ee1857e097773be",
+      "translations": {
+        "zh-CN": "不是。",
+        "zh-TW": "不是。"
+      }
+    },
+    {
+      "id": "ep-22:30",
+      "source": "너랑 같이 숨 쉬잖아!",
+      "sourceHash": "94141282c1c5195e30f950b909f4e52964a8ddd9ba1d0d0c4943924490cc5e78",
+      "translations": {
+        "zh-CN": "它明明在跟你一起呼吸！",
+        "zh-TW": "它明明在跟你一起呼吸！"
+      }
+    },
+    {
+      "id": "ep-22:31",
+      "source": "우연히 그렇게 된 거야.",
+      "sourceHash": "d4f412efd201e7dec7bd77fd3474a21400472e49e2752ba217e0a2a0f4f616fa",
+      "translations": {
+        "zh-CN": "只是碰巧。",
+        "zh-TW": "只是碰巧。"
+      }
+    },
+    {
+      "id": "ep-22:32",
+      "source": "그 말을 하는 영냥이의 털이 아주 잠깐 빛을 잃었다. 하얀 털끝이 재처럼 흐려졌다가 다시 돌아왔다.",
+      "sourceHash": "6ff8287839d4353d9434a68ccd95540294aad96db28ddae9616e2137e191fe0e",
+      "translations": {
+        "zh-CN": "说这话时，Yeongnyangi的毛，短暂地失去光泽。白毛尖淡得像灰烬，又恢复原样。",
+        "zh-TW": "說這話時，Yeongnyangi的毛，短暫地失去光澤。白毛尖淡得像灰燼，又恢復原樣。"
+      }
+    },
+    {
+      "id": "ep-22:33",
+      "source": "너 방금 털. 색이 빠졌어.",
+      "sourceHash": "b255309938068c1548f703680b970c00153a7ffe4ea3666d5dc99421fdbf8a21",
+      "translations": {
+        "zh-CN": "你刚才的毛，褪色了。",
+        "zh-TW": "你剛才的毛，褪色了。"
+      }
+    },
+    {
+      "id": "ep-22:34",
+      "source": "밤이라 그렇다.",
+      "sourceHash": "ac287d14ab822051afad2882d922edc54e616c62f9829eeba950702b3cbf5316",
+      "translations": {
+        "zh-CN": "因为是晚上。",
+        "zh-TW": "因為是晚上。"
+      }
+    },
+    {
+      "id": "ep-22:35",
+      "source": "너 오늘 핑계를 몇 개째 대는지 알아? 달빛, 털, 밤. 다음은 뭔데.",
+      "sourceHash": "8b470d6405b97b23019637f8111b69dadaf7907d06bce1f70ab5967bec6736b0",
+      "translations": {
+        "zh-CN": "知道你今天找几个借口了吗？月光，白毛，夜晚。接下来呢。",
+        "zh-TW": "知道你今天找幾個藉口了嗎？月光，白毛，夜晚。接下來呢。"
+      }
+    },
+    {
+      "id": "ep-22:36",
+      "source": "날씨.",
+      "sourceHash": "d07e8162bf297d123f93e1d82eb84abb85d689c5822a5f3b34bec4775951354f",
+      "translations": {
+        "zh-CN": "天气。",
+        "zh-TW": "天氣。"
+      }
+    },
+    {
+      "id": "ep-22:37",
+      "source": "그때 지붕의 작은 창이 벌컥 열렸다. 모카가 불씨를 든 채 튀어나왔다. 그 뒤로 윤달이 하품하며 따라 올라왔다.",
+      "sourceHash": "637ce36bf16c38716438101cc8599229e184c138e57fa19bafa7c7ac689f615d",
+      "translations": {
+        "zh-CN": "这时，屋顶的小窗猛地打开。摩卡拿着火种冲出来，后面，闰月打着哈欠爬上来。",
+        "zh-TW": "這時，屋頂的小窗猛地打開。摩卡拿著火種衝出來，後面，閏月打著呵欠爬上來。"
+      }
+    },
+    {
+      "id": "ep-22:38",
+      "source": "뭐야! 지붕에서 왜 종이 울려! 불난 줄 알았잖아!",
+      "sourceHash": "90c522b5c73fcd5ec8f49316639427a607fd5c58aed83d1e662ca36a58f806bf",
+      "translations": {
+        "zh-CN": "怎么回事！屋顶上怎么有钟声！还以为着火了！",
+        "zh-TW": "怎麼回事！屋頂上怎麼有鐘聲！還以為著火了！"
+      }
+    },
+    {
+      "id": "ep-22:39",
+      "source": "아, 숙녀분. 그 칸. 드디어 차셨네요.",
+      "sourceHash": "4851cdba3b7bdabbf6f6bc454903b7f199d0e47dfbc2e367e64859aa2e1863e3",
+      "translations": {
+        "zh-CN": "啊，女士。那一格，终于填满了呢。",
+        "zh-TW": "啊，女士。那一格，終於填滿了呢。"
+      }
+    },
+    {
+      "id": "ep-22:40",
+      "source": "윤달. 이 칸이 영냥이랑 같이 숨을 쉬어요.",
+      "sourceHash": "7d2e47a18a2f620858761176c4c543a61346dd28f5ba1ccd20cef58352f5b137",
+      "translations": {
+        "zh-CN": "闰月。这一格，在和Yeongnyangi一起呼吸。",
+        "zh-TW": "閏月。這一格，在和Yeongnyangi一起呼吸。"
+      }
+    },
+    {
+      "id": "ep-22:41",
+      "source": "윤달은 글자판과 영냥이를 번갈아 보았다. 그리고 장갑 낀 손으로 입을 가렸다. 웃음을 참는 손이었다.",
+      "sourceHash": "8914efc030170c08f9e883d6a8d343463ddf2bef3f7864ef799cddf220e956ab",
+      "translations": {
+        "zh-CN": "闰月看看面板，又看看Yeongnyangi，然后用戴手套的手遮住嘴。那是忍笑的手势。",
+        "zh-TW": "閏月看看面板，又看看Yeongnyangi，然後用戴手套的手遮住嘴。那是忍笑的手勢。"
+      }
+    },
+    {
+      "id": "ep-22:42",
+      "source": "그렇군요. 그래서 생일을 모르셨구나.",
+      "sourceHash": "881061873632b15d78bcc0949d4959007f2fac06060ffd55f0df3278e46c9649",
+      "translations": {
+        "zh-CN": "原来如此。所以，才不知道生日啊。",
+        "zh-TW": "原來如此。所以，才不知道生日啊。"
+      }
+    },
+    {
+      "id": "ep-22:43",
+      "source": "그게 무슨 말이에요? 생일이랑 이 칸이 무슨 상관인데요.",
+      "sourceHash": "e5aebca021328325bcc90ba7b9813585511b8acc9e5f0823d06e85443c77df3e",
+      "translations": {
+        "zh-CN": "什么意思？生日跟这一格，有什么关系。",
+        "zh-TW": "什麼意思？生日跟這一格，有什麼關係。"
+      }
+    },
+    {
+      "id": "ep-22:44",
+      "source": "내일 말씀드릴게요. 지금 말하면 숙녀분이 지붕에서 굴러떨어지실 것 같아서요.",
+      "sourceHash": "ae5d8b25d69f297dff4827ce3b9996e05cbfbbb06fbbb1bf8b86fe17b425c735",
+      "translations": {
+        "zh-CN": "明天告诉您。现在说，怕您会从屋顶滚下去。",
+        "zh-TW": "明天告訴您。現在說，怕您會從屋頂滾下去。"
+      }
+    },
+    {
+      "id": "ep-22:45",
+      "source": "사기꾼 너 그 말 어제도 했어. 내일 내일 하다가 고양이 될라.",
+      "sourceHash": "5c028c9d88164d9bd3125d129d5cb7d52e54d0959f8710dcf33009aefdbb5f26",
+      "translations": {
+        "zh-CN": "骗子，这话你昨天也说过。明天明天地说，小心变成猫。",
+        "zh-TW": "騙子，這話你昨天也說過。明天明天地說，小心變成貓。"
+      }
+    },
+    {
+      "id": "ep-22:46",
+      "source": "윤달. 이번엔 아무 말도 하지 마.",
+      "sourceHash": "98d4f3963991bbb8957db5eb6b113b44a2ebb36d0a49e0e9dad0cc9fca0b2bcb",
+      "translations": {
+        "zh-CN": "闰月。这次，什么也别说。",
+        "zh-TW": "閏月。這次，什麼也別說。"
+      }
+    },
+    {
+      "id": "ep-22:47",
+      "source": "다음 날 아침. 열람실 책상 하나를 가운데 두고 네 명이 둘러앉았다. 분위기가 재판정 같았다.",
+      "sourceHash": "3e96c1b9801ec63a6942e9bda318837338948ce03e43f36c8541955f3e8dc11e",
+      "translations": {
+        "zh-CN": "次日早晨，四人围坐在阅览室的一张桌子旁。气氛像审判庭。",
+        "zh-TW": "次日早晨，四人圍坐在閱覽室的一張桌子旁。氣氛像審判庭。"
+      }
+    },
+    {
+      "id": "ep-22:48",
+      "source": "정확히는 세 명과 한 마리였다. 아기 용은 연이의 손목에서 내려와 책상 한가운데에 판사처럼 똬리를 틀었다.",
+      "sourceHash": "ec3365f16da10bf54712ce774a8fce167e9e86cdf9a86a01ac9c27bd5fa59f32",
+      "translations": {
+        "zh-CN": "准确地说，是三位加一只。小龙从Yeoni腕上下来，像法官一样，盘踞在桌子中央。",
+        "zh-TW": "準確地說，是三位加一隻。小龍從Yeoni腕上下來，像法官一樣，盤踞在桌子中央。"
+      }
+    },
+    {
+      "id": "ep-22:49",
+      "source": "아침 먹으면서 하자. 내가 꼬치 구웠다. 재판에는 원래 간식이 있어야 돼.",
+      "sourceHash": "30123b8f4e7a9343512792db20d59d1f6a12793329e50d26e935ee9833f91f8e",
+      "translations": {
+        "zh-CN": "边吃早饭边说。我烤了串。审判本来就该有零食。",
+        "zh-TW": "邊吃早飯邊說。我烤了串。審判本來就該有零食。"
+      }
+    },
+    {
+      "id": "ep-22:50",
+      "source": "모카가 꼬치 접시를 내려놓았다. 연이와 영냥이가 동시에 같은 꼬치로 앞발을 뻗었다. 두 앞발이 꼬치 위에서 딱 멈췄다.",
+      "sourceHash": "b55d0bb94416531507ac8a8b98ad4b6893c85f091d3da8ca169bb1916e787a71",
+      "translations": {
+        "zh-CN": "摩卡放下烤串盘。Yeoni和Yeongnyangi同时伸向同一串。两只前爪，就在烤串上方停住。",
+        "zh-TW": "摩卡放下烤串盤。Yeoni和Yeongnyangi同時伸向同一串。兩隻前爪，就在烤串上方停住。"
+      }
+    },
+    {
+      "id": "ep-22:51",
+      "source": "너 먹어.",
+      "sourceHash": "54398eb6936b282fae3d3cdf31c68c84323916dd47a716d381fba1050943eecc",
+      "translations": {
+        "zh-CN": "你吃。",
+        "zh-TW": "你吃。"
+      }
+    },
+    {
+      "id": "ep-22:52",
+      "source": "아니다. 네가 먹어라.",
+      "sourceHash": "f70b90792b02d8260a96a26d674d9ca368f854d6592a0a95e5d33e1ef1e75719",
+      "translations": {
+        "zh-CN": "不用，你吃。",
+        "zh-TW": "不用，妳吃。"
+      }
+    },
+    {
+      "id": "ep-22:53",
+      "source": "아니야, 너 먹으라니까.",
+      "sourceHash": "389e6a02c439c9e659e9ee45051cb39abccb52b1419b16c599540b6b9905faa0",
+      "translations": {
+        "zh-CN": "不是，让你吃啊。",
+        "zh-TW": "不是，讓你吃啊。"
+      }
+    },
+    {
+      "id": "ep-22:54",
+      "source": "그 꼬치 하나 가지고 뭔 양보야! 열두 개 있어! 열두 개!",
+      "sourceHash": "6005393a4ab4bae2753259ff8020288c5f62cec1d32165ec6f0300c82855c768",
+      "translations": {
+        "zh-CN": "一根烤串，让来让去干吗！有十二根！十二根！",
+        "zh-TW": "一根烤串，讓來讓去幹嘛！有十二根！十二根！"
+      }
+    },
+    {
+      "id": "ep-22:55",
+      "source": "어젯밤 지붕에서 무슨 일이 있었는지 꼬치가 다 말해 주네요.",
+      "sourceHash": "e9ad4a478285805a487f9f597dbd137346fc317a7d5b30065fc26efd53bc36b2",
+      "translations": {
+        "zh-CN": "昨晚屋顶上发生了什么，烤串都告诉我们了。",
+        "zh-TW": "昨晚屋頂上發生了什麼，烤串都告訴我們了。"
+      }
+    },
+    {
+      "id": "ep-22:56",
+      "source": "아무 일도 없었거든요! 칸 하나 켜진 것뿐이에요!",
+      "sourceHash": "e54cd84b886dfe869e9ee49f98136775d85d938e97e41fa704bc81a6d9fd4a9d",
+      "translations": {
+        "zh-CN": "什么也没发生！只是亮了一格而已！",
+        "zh-TW": "什麼也沒發生！只是亮了一格而已！"
+      }
+    },
+    {
+      "id": "ep-22:57",
+      "source": "그렇게 말하는 연이의 코끝이 분홍색보다 조금 더 진해졌다. 영냥이는 꼬치를 집지도 않고 창밖으로 고개를 돌렸다.",
+      "sourceHash": "3b48c3c0960771ea52dd4ccb7d03fc93c3ac9806c1a384e3d7841dd8be61d3f1",
+      "translations": {
+        "zh-CN": "说这话时，Yeoni鼻尖的颜色，比原本的粉红又深了一点。Yeongnyangi没有拿烤串，转头望向窗外。",
+        "zh-TW": "說這話時，Yeoni鼻尖的顏色，比原本的粉紅又深了一點。Yeongnyangi沒有拿烤串，轉頭望向窗外。"
+      }
+    },
+    {
+      "id": "ep-22:58",
+      "source": "자, 윤달. 어제 하려다 만 얘기 해 주세요. 여자 명식에서 관성은 뜻이 하나 더 있다면서요.",
+      "sourceHash": "254f0a6a10d44bf31b98dba68772151756e63b39881a973d02c69ea6b63c2f55",
+      "translations": {
+        "zh-CN": "好了，闰月。把昨天没说完的话说完。你说女性命盘里，官星还有另一层意思。",
+        "zh-TW": "好了，閏月。把昨天沒說完的話說完。你說女性命盤裡，官星還有另一層意思。"
+      }
+    },
+    {
+      "id": "ep-22:59",
+      "source": "정말 지금 들으실 거예요? 책상 단단한 거 확인하셨어요?",
+      "sourceHash": "1c7fb1ec4f5da3970f1ab993175c0d4ed2fd7d95263e5910ac5d05dffedab8f8",
+      "translations": {
+        "zh-CN": "真要现在听？确认过桌子够结实了吗？",
+        "zh-TW": "真要現在聽？確認過桌子夠結實了嗎？"
+      }
+    },
+    {
+      "id": "ep-22:60",
+      "source": "빨리요.",
+      "sourceHash": "a451d4617497c5983032b860ce044182dcab566daff65e8b48f6e9ee713c3d01",
+      "translations": {
+        "zh-CN": "快说。",
+        "zh-TW": "快說。"
+      }
+    },
+    {
+      "id": "ep-22:61",
+      "source": "乙목 일간에게 庚금은 정관이에요. 나를 바르게 세워 주는 기운이요. 그리고 여자 명식에서 정관은.",
+      "sourceHash": "fe9bf886d5ad0fb356588055229882de551686b81223b8fcf158908c59c73c29",
+      "translations": {
+        "zh-CN": "对乙木日干来说，庚金是正官。是让自己站得端正的气息。而在女性命盘里，正官是。",
+        "zh-TW": "對乙木日干來說，庚金是正官。是讓自己站得端正的氣息。而在女性命盤裡，正官是。"
+      }
+    },
+    {
+      "id": "ep-22:62",
+      "source": "정관은. 뜸 들이지 마. 고기 탄다.",
+      "sourceHash": "4ddd3c15adb26efa74c23ac77216bec439f60ba872f0f3c84f43d9ba663479f0",
+      "translations": {
+        "zh-CN": "正官是。别卖关子。肉都要焦了。",
+        "zh-TW": "正官是。別賣關子。肉都要焦了。"
+      }
+    },
+    {
+      "id": "ep-22:63",
+      "source": "남편성이에요.",
+      "sourceHash": "a824db4e59c5a9b560bd7c0a76873c003fa1d89d3ffe2c674652128517070d45",
+      "translations": {
+        "zh-CN": "夫星。",
+        "zh-TW": "夫星。"
+      }
+    },
+    {
+      "id": "ep-22:64",
+      "source": "연이의 이마가 책상에 쿵 떨어졌다. 윤달이 미리 받쳐 둔 책 한 권이 그 이마를 받았다.",
+      "sourceHash": "1ecf8feca83583e4c86c967e65061aab7e41b685f4770a750c2dbad824427a30",
+      "translations": {
+        "zh-CN": "Yeoni的额头，咚地砸向桌面。闰月事先垫好的一本书，接住了额头。",
+        "zh-TW": "Yeoni的額頭，咚地砸向桌面。閏月事先墊好的一本書，接住了額頭。"
+      }
+    },
+    {
+      "id": "ep-22:65",
+      "source": "그래서 단단한 거 확인하시라고 했잖아요.",
+      "sourceHash": "9e38c2170ccf1144b1eb222df880f61b9fbd658a71fa550916b8ecd4908687a8",
+      "translations": {
+        "zh-CN": "所以才让您确认结不结实啊。",
+        "zh-TW": "所以才讓您確認結不結實啊。"
+      }
+    },
+    {
+      "id": "ep-22:66",
+      "source": "남, 남, 남편?",
+      "sourceHash": "21f9d6092dc11bc121fc3eb8f885d9862e80a3bc2a953889fbd229f3d590c5a0",
+      "translations": {
+        "zh-CN": "丈、丈、丈夫？",
+        "zh-TW": "丈、丈、丈夫？"
+      }
+    },
+    {
+      "id": "ep-22:67",
+      "source": "켁. 쿨럭. 잠깐만. 나 꼬치 넘어갔어.",
+      "sourceHash": "9d9b5353986449466e7cc95950d9b01145016155f04990658577dbfe248f05e6",
+      "translations": {
+        "zh-CN": "咳。咳咳。等一下。我被烤串呛到了。",
+        "zh-TW": "咳。咳咳。等一下。我被烤串嗆到了。"
+      }
+    },
+    {
+      "id": "ep-22:68",
+      "source": "오해다.",
+      "sourceHash": "1c3916c353a68d11d2489a31f00f354cb4b8ad4b7e513244f8d973d88426d2a8",
+      "translations": {
+        "zh-CN": "误会。",
+        "zh-TW": "誤會。"
+      }
+    },
+    {
+      "id": "ep-22:69",
+      "source": "오해가 아니면 뭔데! 칸에 네 숨이 붙어 있는데!",
+      "sourceHash": "3eded8c359768e8456b6baabbcc4d922940c2d4a83c4ea38454747393636eae7",
+      "translations": {
+        "zh-CN": "不是误会还能是什么！格子上连你的呼吸都在！",
+        "zh-TW": "不是誤會還能是什麼！格子上連你的呼吸都在！"
+      }
+    },
+    {
+      "id": "ep-22:70",
+      "source": "나는 고객센터다. 남편이 아니다.",
+      "sourceHash": "b205e0b81d6a3466bea5cddb874a4a45adadd3777c7e1bcec373800f45304a87",
+      "translations": {
+        "zh-CN": "我是客服。不是丈夫。",
+        "zh-TW": "我是客服。不是丈夫。"
+      }
+    },
+    {
+      "id": "ep-22:71",
+      "source": "누가 너랑 결혼한대! 나도 싫거든!",
+      "sourceHash": "88a4d3f56bfbf80f7cfb56205902fbcc70752e00a03669151b54719c0a543859",
+      "translations": {
+        "zh-CN": "谁说要跟你结婚！我也不愿意好吧！",
+        "zh-TW": "誰說要跟你結婚！我也不願意好吧！"
+      }
+    },
+    {
+      "id": "ep-22:72",
+      "source": "나도 싫다.",
+      "sourceHash": "e6d4fdd8cd183c8772b25767500e046793d6cf5e8baa167105e2086b92e2f767",
+      "translations": {
+        "zh-CN": "我也不愿意。",
+        "zh-TW": "我也不願意。"
+      }
+    },
+    {
+      "id": "ep-22:73",
+      "source": "왜 너도 싫은데!",
+      "sourceHash": "1d18407789bc3bb12d6c8d979b8003975e868f9f04be633a36697716dbe64fef",
+      "translations": {
+        "zh-CN": "你为什么也不愿意！",
+        "zh-TW": "你為什麼也不願意！"
+      }
+    },
+    {
+      "id": "ep-22:74",
+      "source": "와. 둘이 동시에 싫대. 이거 완전 결혼한 사이 아니냐.",
+      "sourceHash": "25b159675294090d51d884b9a44286f85739b164bc066f855936ec4a797f0f2a",
+      "translations": {
+        "zh-CN": "哇。两个人同时说不愿意。这不就是结了婚的样子吗。",
+        "zh-TW": "哇。兩個人同時說不願意。這不就是結了婚的樣子嗎。"
+      }
+    },
+    {
+      "id": "ep-22:75",
+      "source": "수달 씨 말이 궁합 보는 저보다 정확하네요.",
+      "sourceHash": "9532ace7326673d6eb1a9cd729b5c4ae73964c2cd26d5d77a818a77a8a620df3",
+      "translations": {
+        "zh-CN": "水獭先生说得，比我这个看合婚的还准。",
+        "zh-TW": "水獺先生說得，比我這個看合婚的還準。"
+      }
+    },
+    {
+      "id": "ep-22:76",
+      "source": "윤달. 남편성이라는 게, 진짜 남편이라는 뜻은 아니죠? 그냥 별 이름이죠?",
+      "sourceHash": "feca2f91b785e708437303f870bafa23a1933ff01dfbf319145cf9af5e4b763e",
+      "translations": {
+        "zh-CN": "闰月。夫星，不是指真正的丈夫吧？只是星的名字，对吧？",
+        "zh-TW": "閏月。夫星，不是指真正的丈夫吧？只是星的名字，對吧？"
+      }
+    },
+    {
+      "id": "ep-22:77",
+      "source": "별 이름이에요. 명식에서 나를 지키고, 나를 다스리고, 내가 책임지고 싶어지는 자리요.",
+      "sourceHash": "4663d1a073aadc21bd68f7f39452ce1089042262ff3915ddbd6119878fa3b185",
+      "translations": {
+        "zh-CN": "是星的名字。命盘里保护我、管束我，也让我想负起责任的位置。",
+        "zh-TW": "是星的名字。命盤裡保護我、管束我，也讓我想負起責任的位置。"
+      }
+    },
+    {
+      "id": "ep-22:78",
+      "source": "꼭 결혼할 사람이라는 뜻은 아니에요. 그냥 그 자리에 앉는 사람이 있다는 거죠.",
+      "sourceHash": "5e5304c3d8154c8d192856afc6aa8ac004219bbb97b78103bf961152e2cd40c5",
+      "translations": {
+        "zh-CN": "不一定指会结婚的人。只是说，有人坐在那个位置。",
+        "zh-TW": "不一定指會結婚的人。只是說，有人坐在那個位置。"
+      }
+    },
+    {
+      "id": "ep-22:79",
+      "source": "(그 자리에 앉는 사람. 처음 눈 떴을 때부터 계속 옆에 있던 고양이.)",
+      "sourceHash": "9cec0b73d65e9af25e204ae83fa6206ba42fd2e0ca3459c8ab87d6eafa08aa3b",
+      "translations": {
+        "zh-CN": "（坐在那个位置的人。从第一次睁开眼，就一直在身边的猫。）",
+        "zh-TW": "（坐在那個位置的人。從第一次睜開眼，就一直在身邊的貓。）"
+      }
+    },
+    {
+      "id": "ep-22:80",
+      "source": "연이는 고개를 들어 영냥이를 보았다. 영냥이는 창밖만 보고 있었다. 귀 끝이 아주 조금 붉었다.",
+      "sourceHash": "8a3758ef7bdf81fd1520e2850f7c0ade48382d66ce683cdf92cab45c1d3d6baa",
+      "translations": {
+        "zh-CN": "Yeoni抬头看Yeongnyangi。他只望着窗外。耳尖，微微红了。",
+        "zh-TW": "Yeoni抬頭看Yeongnyangi。他只望著窗外。耳尖，微微紅了。"
+      }
+    },
+    {
+      "id": "ep-22:81",
+      "source": "(고양이도 귀가 빨개지는구나.)",
+      "sourceHash": "0fe4d370745ef53363001cbd447de1a25920f0eba677c702d70de2b8869b446f",
+      "translations": {
+        "zh-CN": "（原来猫，耳朵也会红。）",
+        "zh-TW": "（原來貓，耳朵也會紅。）"
+      }
+    },
+    {
+      "id": "ep-22:82",
+      "source": "그런데 농담은 여기까지 하고요. 숙녀분, 칸을 다시 띄워 보시겠어요?",
+      "sourceHash": "f3a78f2fb4f9387e07b64cc780d79dff61f2f1f49a796aa8c4aed8ecaaca3af6",
+      "translations": {
+        "zh-CN": "不过，玩笑到这里。女士，能再把格子叫出来吗？",
+        "zh-TW": "不過，玩笑到這裡。女士，能再把格子叫出來嗎？"
+      }
+    },
+    {
+      "id": "ep-22:83",
+      "source": "연이가 앞발을 펼쳤다. 庚 자는 여전히 깜빡이고 있었다. 영냥이가 창가로 멀어질수록 점점 희미해졌다.",
+      "sourceHash": "f5dc9d984ca08949ebf1d311266886653c518815c9415400a541bba43c2d8699",
+      "translations": {
+        "zh-CN": "Yeoni摊开前蹄。庚字仍在闪烁。Yeongnyangi越往窗边远去，它就越暗。",
+        "zh-TW": "Yeoni攤開前蹄。庚字仍在閃爍。Yeongnyangi越往窗邊遠去，它就越暗。"
+      }
+    },
+    {
+      "id": "ep-22:84",
+      "source": "빌린 칸이라는 건, 이 글자가 원래 숙녀분 것이 아니라는 뜻이에요. 고양이님이 자기 걸 빌려주고 있는 거죠.",
+      "sourceHash": "2e3fc0fb21bc218e070dc3b23dfee06a0a7359c6152def3262039cb6b0f0126f",
+      "translations": {
+        "zh-CN": "借来的格子，意味着这个字本来不属于您。是猫先生，把自己的借给了您。",
+        "zh-TW": "借來的格子，意味著這個字本來不屬於您。是貓先生，把自己的借給了您。"
+      }
+    },
+    {
+      "id": "ep-22:85",
+      "source": "빌려준다고요? 빌려주면 영냥이는요?",
+      "sourceHash": "cb17448111759671808be5d459cd94d7fe943ab753e954d068ca5c67bfd01857",
+      "translations": {
+        "zh-CN": "借给我？借了以后，Yeongnyangi呢？",
+        "zh-TW": "借給我？借了以後，Yeongnyangi呢？"
+      }
+    },
+    {
+      "id": "ep-22:86",
+      "source": "그만큼 비겠죠. 빌려준 만큼.",
+      "sourceHash": "c066adcb0b22c91dc8cac999a3bbc48cb461f365a35a6026f12a1106c78757cf",
+      "translations": {
+        "zh-CN": "就会空出相应的分量。借出去多少，就空多少。",
+        "zh-TW": "就會空出相應的分量。借出去多少，就空多少。"
+      }
+    },
+    {
+      "id": "ep-22:87",
+      "source": "그럼 고양이가 멀리 가면 칸이 꺼지고, 가까이 오면 고양이가 비고. 뭐 이런 엉망진창 계약이 다 있냐.",
+      "sourceHash": "8c621866dd6ca998f99a2100aea5d916d9c8fee23e60c3055bcb0e25ba422dc1",
+      "translations": {
+        "zh-CN": "所以，猫走远了，格子熄灭；猫靠近了，猫自己空掉。怎么会有这么乱七八糟的契约。",
+        "zh-TW": "所以，貓走遠了，格子熄滅；貓靠近了，貓自己空掉。怎麼會有這麼亂七八糟的契約。"
+      }
+    },
+    {
+      "id": "ep-22:88",
+      "source": "계약이 원래 좀 엉망이야. 네가 신경 쓸 일은 아니고.",
+      "sourceHash": "235ba0eca6a520cb17c4417a520d107e2e932ef3ff42a4331705fdafa207d38d",
+      "translations": {
+        "zh-CN": "契约本来就有点乱。不是你该操心的事。",
+        "zh-TW": "契約本來就有點亂。不是你該操心的事。"
+      }
+    },
+    {
+      "id": "ep-22:89",
+      "source": "신경을 어떻게 안 써! 너 지금 나한테 너를 빌려주고 있다는 거잖아.",
+      "sourceHash": "a939f7aeee601fb7dff82541d0b20522dae8138235c05bbc78d8722107117d46",
+      "translations": {
+        "zh-CN": "怎么可能不操心！你现在，是把你自己借给我啊。",
+        "zh-TW": "怎麼可能不操心！你現在，是把你自己借給我啊。"
+      }
+    },
+    {
+      "id": "ep-22:90",
+      "source": "내가 빌려준 건 아니야. 네가 다가오니까 켜졌어.",
+      "sourceHash": "a7ea6808593453803f6d9c4b449d378cd5598264a5a4bf541e0f4b66dbcfc1b3",
+      "translations": {
+        "zh-CN": "不是我借的。是你靠近，它才亮了。",
+        "zh-TW": "不是我借的。是妳靠近，它才亮了。"
+      }
+    },
+    {
+      "id": "ep-22:91",
+      "source": "그럼 확인해 보죠. 숙녀분, 덩굴 하나만 꺼내 보시겠어요?",
+      "sourceHash": "f76bd3f18b6e8cb07833bee6747c78e8f7f06949344dc12974e62ede36d30af4",
+      "translations": {
+        "zh-CN": "那就确认一下。女士，能叫出一根藤蔓吗？",
+        "zh-TW": "那就確認一下。女士，能叫出一根藤蔓嗎？"
+      }
+    },
+    {
+      "id": "ep-22:92",
+      "source": "연이는 영문도 모른 채 앞발을 내밀었다. 책상 위로 가느다란 덩굴 하나가 자라났다. 덩굴은 힘없이 휘어지며 책상 모서리에 늘어졌다.",
+      "sourceHash": "c02a0791c5ae04681ada2a0648eebf313834cfa9fca640430789ab45d77f2e6d",
+      "translations": {
+        "zh-CN": "Yeoni不明所以，伸出前蹄。一根细藤在桌上长出，无力地弯下，垂在桌角。",
+        "zh-TW": "Yeoni不明所以，伸出前蹄。一根細藤在桌上長出，無力地彎下，垂在桌角。"
+      }
+    },
+    {
+      "id": "ep-22:93",
+      "source": "이번엔 고양이님, 숙녀분 옆에 서 주세요.",
+      "sourceHash": "2ba912387b78b741c69affd2add748e39a80a8d134c633881e2825d185c4b4d7",
+      "translations": {
+        "zh-CN": "这次，请猫先生站到女士旁边。",
+        "zh-TW": "這次，請貓先生站到女士旁邊。"
+      }
+    },
+    {
+      "id": "ep-22:94",
+      "source": "싫다.",
+      "sourceHash": "a62be168fff010485ae7da3e08cd2527d95ed6445a58c3b6bbbcfa5ea6e92852",
+      "translations": {
+        "zh-CN": "不要。",
+        "zh-TW": "不要。"
+      }
+    },
+    {
+      "id": "ep-22:95",
+      "source": "싫으면 내가 밀어 준다. 꼬리로.",
+      "sourceHash": "ae4d7a8c07db9fe5a10361c99b20506537b82f42739c318231df61d171056f69",
+      "translations": {
+        "zh-CN": "不去，我就推你。用尾巴。",
+        "zh-TW": "不去，我就推你。用尾巴。"
+      }
+    },
+    {
+      "id": "ep-22:96",
+      "source": "모카에게 등을 떠밀린 영냥이가 마지못해 연이 옆에 섰다. 글자판의 庚 자가 환하게 켜졌다.",
+      "sourceHash": "ebf4b289acb07bb427ac586e066bbb6f102d522c0c237e24f819d855babf05c2",
+      "translations": {
+        "zh-CN": "被摩卡从背后推着，Yeongnyangi不情愿地站到Yeoni旁边。面板上的庚字，亮了起来。",
+        "zh-TW": "被摩卡從背後推著，Yeongnyangi不情願地站到Yeoni旁邊。面板上的庚字，亮了起來。"
+      }
+    },
+    {
+      "id": "ep-22:97",
+      "source": "그 순간, 늘어져 있던 덩굴이 꼿꼿하게 일어섰다. 기둥처럼 곧게 천장 쪽으로 뻗어 올라갔다. 잎이 단단하고 반짝였다.",
+      "sourceHash": "ae6f530f40433fe642fe3fc043e6f201a86ce041bb620350c83224a9f6c55ceb",
+      "translations": {
+        "zh-CN": "一瞬间，软垂的藤蔓，笔直地立了起来。像柱子一样，直直伸向天花板。叶片坚实而闪亮。",
+        "zh-TW": "一瞬間，軟垂的藤蔓，筆直地立了起來。像柱子一樣，直直伸向天花板。葉片堅實而閃亮。"
+      }
+    },
+    {
+      "id": "ep-22:98",
+      "source": "뭐야. 내 덩굴이 이렇게 곧은 거 처음 봐.",
+      "sourceHash": "92916ba9c3c1ea79a8b9a6c479a28174511ebe409a1483df25efd4b03c4c53b4",
+      "translations": {
+        "zh-CN": "怎么回事。第一次见我的藤蔓这么直。",
+        "zh-TW": "怎麼回事。第一次見我的藤蔓這麼直。"
+      }
+    },
+    {
+      "id": "ep-22:99",
+      "source": "乙목은 혼자서는 휘어져요. 庚금이 옆에 있으면 똑바로 서요. 그게 정관이에요. 나를 세워 주는 기운.",
+      "sourceHash": "ddf2eb88b5a88ddc6949300987b51bdcb82e6f035ea4160c1e395ee75c26d162",
+      "translations": {
+        "zh-CN": "乙木独自生长，就会弯曲。庚金在旁边，就能站直。那就是正官。扶我站起来的气息。",
+        "zh-TW": "乙木獨自生長，就會彎曲。庚金在旁邊，就能站直。那就是正官。扶我站起來的氣息。"
+      }
+    },
+    {
+      "id": "ep-22:100",
+      "source": "연이는 덩굴을 보다가 옆을 보았다. 영냥이가 이를 악물고 있었다. 왼발이 바닥에서 아주 조금 떠 있었다.",
+      "sourceHash": "2dcec143223afc41b3b75f52dc30747861e7ca5aa0f8a056068b6d6f524158a6",
+      "translations": {
+        "zh-CN": "Yeoni看着藤蔓，又看向身边。Yeongnyangi正咬紧牙。左爪微微离开地面。",
+        "zh-TW": "Yeoni看著藤蔓，又看向身邊。Yeongnyangi正咬緊牙。左爪微微離開地面。"
+      }
+    },
+    {
+      "id": "ep-22:101",
+      "source": "영냥아. 아파?",
+      "sourceHash": "886a4e5f202c863d50be2de0dab369d993a760525b25933e5cc73a87d11b8548",
+      "translations": {
+        "zh-CN": "Yeongnyangi，疼吗？",
+        "zh-TW": "Yeongnyangi，疼嗎？"
+      }
+    },
+    {
+      "id": "ep-22:102",
+      "source": "안 아프다.",
+      "sourceHash": "989fb9e1007eb656ed0889588e39ab40bde91034157437f6f188211160dacb89",
+      "translations": {
+        "zh-CN": "不疼。",
+        "zh-TW": "不疼。"
+      }
+    },
+    {
+      "id": "ep-22:103",
+      "source": "연이가 한 걸음 떨어지자 덩굴이 다시 힘없이 휘어졌다. 영냥이의 어깨에서 힘이 빠졌다. 숨을 참고 있었던 것이다.",
+      "sourceHash": "c23a8698c9e17177d2f6051e25b7fd3aa1a52cd9fb4bfec282f52187cd285f8c",
+      "translations": {
+        "zh-CN": "Yeoni退开一步，藤蔓又无力地弯下。Yeongnyangi肩膀松了下来。原来，他一直屏着气。",
+        "zh-TW": "Yeoni退開一步，藤蔓又無力地彎下。Yeongnyangi肩膀鬆了下來。原來，他一直屏著氣。"
+      }
+    },
+    {
+      "id": "ep-22:104",
+      "source": "그럼 내가 안 다가가면 되는 거야?",
+      "sourceHash": "c5c4fbef0128026676db5f5d9cc2ef322b0f3c802f0716fa3dab2b6fe1e32bac",
+      "translations": {
+        "zh-CN": "那只要我不靠近，就行了吗？",
+        "zh-TW": "那只要我不靠近，就行了嗎？"
+      }
+    },
+    {
+      "id": "ep-22:105",
+      "source": "영냥이는 대답하지 않았다. 대답하지 않는 것이 대답이었다.",
+      "sourceHash": "6f103e6202ca74a089f0eddd35737432f004ce69d1390002368734cccb3ac761",
+      "translations": {
+        "zh-CN": "Yeongnyangi没有回答。不回答，就是回答。",
+        "zh-TW": "Yeongnyangi沒有回答。不回答，就是回答。"
+      }
+    },
+    {
+      "id": "ep-22:106",
+      "source": "그때 천장의 둥근 유리창이 어두워졌다. 아침인데 해가 지는 것처럼 열람실 전체가 빠르게 그늘에 잠겼다.",
+      "sourceHash": "c97420c1ef93974f335764fc7f66491c6c934e4cfb59904bb383ef2f04c2ad44",
+      "translations": {
+        "zh-CN": "这时，天花板的圆形玻璃窗暗了下来。明明是早晨，整间阅览室却像日落般，迅速陷入阴影。",
+        "zh-TW": "這時，天花板的圓形玻璃窗暗了下來。明明是早晨，整間閱覽室卻像日落般，迅速陷入陰影。"
+      }
+    },
+    {
+      "id": "ep-22:107",
+      "source": "뭐야. 또 비야?",
+      "sourceHash": "92950dad6426863bdde351ff377f9d7dbdfdf040d7000949f72c4f850a123f13",
+      "translations": {
+        "zh-CN": "怎么了。又下雨？",
+        "zh-TW": "怎麼了。又下雨？"
+      }
+    },
+    {
+      "id": "ep-22:108",
+      "source": "아니에요. 비보다 나쁜 거예요.",
+      "sourceHash": "ed684120af3130d18306b4234b015d910de26a785ebe415b3fa8442e4db87709",
+      "translations": {
+        "zh-CN": "不。比雨更糟。",
+        "zh-TW": "不。比雨更糟。"
+      }
+    },
+    {
+      "id": "ep-22:109",
+      "source": "윤달은 장갑 낀 오른손을 품에 끌어안았다. 장갑 안쪽에서 무언가가 바람 빠지는 소리를 냈다. 공망이 저 혼자 숨을 들이켜고 있었다.",
+      "sourceHash": "469d187a89fa65a20e9f7ab5ce4391fc599559672e7ac3977488998df12e94dd",
+      "translations": {
+        "zh-CN": "闰月把戴手套的右手抱进怀里。手套内侧，有什么发出漏气声。空亡独自在吸气。",
+        "zh-TW": "閏月把戴手套的右手抱進懷裡。手套內側，有什麼發出漏氣聲。空亡獨自在吸氣。"
+      }
+    },
+    {
+      "id": "ep-22:110",
+      "source": "이 손이 이렇게 배고파하는 건 처음이에요. 저 위에 있는 게, 뭘 먹고 싶어 하는지 알 것 같아요.",
+      "sourceHash": "d9fddf8aa3e54094f1e7da718393a174758e023f7934ec2bb3bde6dbcd49375d",
+      "translations": {
+        "zh-CN": "第一次见这只手这么饿。我好像知道，上面的东西，想吃什么了。",
+        "zh-TW": "第一次見這隻手這麼餓。我好像知道，上面的東西，想吃什麼了。"
+      }
+    },
+    {
+      "id": "ep-22:111",
+      "source": "뭘 먹고 싶은데. 돌려 말하지 마. 나 지금 무서워서 꼬리 섰어.",
+      "sourceHash": "d03b4be93baf20c9cbbba8d042e288175b90c4ae8b7078c05fcd3e777632f6b5",
+      "translations": {
+        "zh-CN": "想吃什么。别绕弯子。我现在怕得尾巴都竖了。",
+        "zh-TW": "想吃什麼。別繞彎子。我現在怕得尾巴都豎了。"
+      }
+    },
+    {
+      "id": "ep-22:112",
+      "source": "유리창 너머 하늘에 금이 갔다. 반쯤 먹힌 해에서 시작된 검은 금이 하늘을 가로질러 길게 뻗어 나갔다.",
+      "sourceHash": "eec8ada85a7294a104b51ba1c4b1f13446e30d0befa0f20d2701239c2d300099",
+      "translations": {
+        "zh-CN": "玻璃窗外，天空裂开。从半蚀太阳延伸的黑色裂缝，长长地横过天际。",
+        "zh-TW": "玻璃窗外，天空裂開。從半蝕太陽延伸的黑色裂縫，長長地橫過天際。"
+      }
+    },
+    {
+      "id": "ep-22:113",
+      "source": "쩍, 하는 소리가 났다. 소리는 하늘이 아니라 연이의 글자판에서 났다. 庚 자의 모서리에 가는 금이 하나 그어져 있었다.",
+      "sourceHash": "a95e79d79419679c66f46fee09a9eb48fee268824168077be2d55bba47ab0523",
+      "translations": {
+        "zh-CN": "咔的一声。不是天空，而是Yeoni的文字面板发出的。庚字的一角，划出一道细细的裂纹。",
+        "zh-TW": "喀的一聲。不是天空，而是Yeoni的文字面板發出的。庚字的一角，劃出一道細細的裂紋。"
+      }
+    },
+    {
+      "id": "ep-22:114",
+      "source": "내 칸에 금이 갔어. 영냥아, 너 괜찮아?",
+      "sourceHash": "bc596cc7ea2f35770aafd65973cd4dba7c9eebe7d7b6af39890c788aa0451a84",
+      "translations": {
+        "zh-CN": "我的格子裂了。Yeongnyangi，你还好吗？",
+        "zh-TW": "我的格子裂了。Yeongnyangi，你還好嗎？"
+      }
+    },
+    {
+      "id": "ep-22:115",
+      "source": "괜찮다.",
+      "sourceHash": "f6bed8da946d3b312242b7a357829a78b296812686c8bf64d25d59f6c46dcb14",
+      "translations": {
+        "zh-CN": "没事。",
+        "zh-TW": "沒事。"
+      }
+    },
+    {
+      "id": "ep-22:116",
+      "source": "거짓말. 고양이 너 지금 이빨 덜덜 떨고 있어. 여기까지 다 들려.",
+      "sourceHash": "2ff46c471da80059a326b4577b29c7c667b5dce4eb14597c36436a6aaaf66bf2",
+      "translations": {
+        "zh-CN": "骗人。猫，你现在牙齿都在打颤。我在这儿都听见了。",
+        "zh-TW": "騙人。貓，你現在牙齒都在打顫。我在這兒都聽見了。"
+      }
+    },
+    {
+      "id": "ep-22:117",
+      "source": "고양이님. 이제는 숨기는 게 숙녀분을 더 다치게 해요.",
+      "sourceHash": "6d20959aa9b4c3a10ebc930778bd777e72a2f525abbdca41264a73363baa2cc0",
+      "translations": {
+        "zh-CN": "猫先生。现在再隐瞒，只会让女士更受伤。",
+        "zh-TW": "貓先生。現在再隱瞞，只會讓女士更受傷。"
+      }
+    },
+    {
+      "id": "ep-22:118",
+      "source": "영냥이는 그렇게 말하며 왼발을 등 뒤로 숨겼다. 연이는 그 움직임을 보았다. 이번에는 못 본 척하지 않았다.",
+      "sourceHash": "b74ad3ffbb2338ca9a18605cbceadfe304c983542f170d65d9b10d30af70b95b",
+      "translations": {
+        "zh-CN": "Yeongnyangi一边这样说，一边把左爪藏到背后。Yeoni看见了那个动作。这一次，她没有假装没看见。",
+        "zh-TW": "Yeongnyangi一邊這樣說，一邊把左爪藏到背後。Yeoni看見了那個動作。這一次，她沒有假裝沒看見。"
+      }
+    },
+    {
+      "id": "ep-22:119",
+      "source": "그 발. 보여 줘.",
+      "sourceHash": "6758c16df03ef1a29ef6a7a13e880310c9351d25f615c709f3574a1467f6580b",
+      "translations": {
+        "zh-CN": "那只爪子。给我看。",
+        "zh-TW": "那隻爪子。給我看。"
+      }
+    },
+    {
+      "id": "ep-22:120",
+      "source": "연이야.",
+      "sourceHash": "80cb95b01e8cc1368b8cd8ace84e07fc877503b06ef9dddd4795ce70845dc473",
+      "translations": {
+        "zh-CN": "Yeoni。",
+        "zh-TW": "Yeoni。"
+      }
+    },
+    {
+      "id": "ep-22:121",
+      "source": "보여 달라고.",
+      "sourceHash": "7d371d6933c233f826d8f667c4dc8e161cbe51f0756349173eae7d8ae2a42f0b",
+      "translations": {
+        "zh-CN": "我说，给我看。",
+        "zh-TW": "我說，給我看。"
+      }
+    },
+    {
+      "id": "ep-22:122",
+      "source": "영냥이는 한참 연이를 보다가, 천천히 앞발을 내밀려 했다. 그러나 그 앞발이 다 나오기도 전에 유리창이 크게 떨렸다.",
+      "sourceHash": "266e98069825a449e04caab6443e7914485bf3e49f2222f7f4e22c8fb6c42cca",
+      "translations": {
+        "zh-CN": "Yeongnyangi看了Yeoni许久，终于慢慢伸出前爪。可是还没完全伸出来，玻璃窗就剧烈震颤。",
+        "zh-TW": "Yeongnyangi看了Yeoni許久，終於慢慢伸出前爪。可是還沒完全伸出來，玻璃窗就劇烈震顫。"
+      }
+    },
+    {
+      "id": "ep-22:123",
+      "source": "찾았다.",
+      "sourceHash": "69ba54d2af4dc26e487591e750cb5cfdaf983ba016716cb15b1e93cd71c43059",
+      "translations": {
+        "zh-CN": "找到了。",
+        "zh-TW": "找到了。"
+      },
+      "fields": {
+        "zh-CN": {
+          "nm": "声音"
+        },
+        "zh-TW": {
+          "nm": "聲音"
+        }
+      }
+    },
+    {
+      "id": "ep-22:124",
+      "source": "목소리는 사방에서 동시에 들렸다. 책장 사이에서, 유리창 너머에서, 연이의 글자판 속 금 간 자리에서.",
+      "sourceHash": "3698bc97503298842b506839c05dd03594ebff512487aef30c2b413ab08b7b3c",
+      "translations": {
+        "zh-CN": "声音同时从四面八方传来。书架之间，玻璃窗外，还有Yeoni面板中的裂缝里。",
+        "zh-TW": "聲音同時從四面八方傳來。書架之間，玻璃窗外，還有Yeoni面板中的裂縫裡。"
+      }
+    },
+    {
+      "id": "ep-22:125",
+      "source": "숨어 있던 다섯 번째 빛. 그 아이 옆에 있었구나.",
+      "sourceHash": "b7ab9bb309a8a597ff4c5d2516bdfe48124c59aad55e223993f6290985957f8b",
+      "translations": {
+        "zh-CN": "藏起来的第五道光。原来就在那孩子身边。",
+        "zh-TW": "藏起來的第五道光。原來就在那孩子身邊。"
+      },
+      "fields": {
+        "zh-CN": {
+          "nm": "声音"
+        },
+        "zh-TW": {
+          "nm": "聲音"
+        }
+      }
+    },
+    {
+      "id": "ep-22:126",
+      "source": "하늘의 금이 한 뼘 더 벌어졌다. 그 틈 너머에서 무언가가 천천히 눈을 떴다.",
+      "sourceHash": "f8e6114c29c3f9f23d875bb51d54d740fe3cccf4fb2581aa4236bc26940fc83e",
+      "translations": {
+        "zh-CN": "天空的裂缝又张开一掌宽。缝隙那头，有什么缓缓睁开了眼。",
+        "zh-TW": "天空的裂縫又張開一掌寬。縫隙那頭，有什麼緩緩睜開了眼。"
+      }
+    }
+  ]
+}

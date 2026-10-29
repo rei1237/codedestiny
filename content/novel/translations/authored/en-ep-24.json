@@ -1,0 +1,773 @@
+{
+  "locale": "en",
+  "episodeId": "ep-24",
+  "tag": "Episode 24 · Because There Is No Water",
+  "title": "Because There Is No Water",
+  "sourceTitle": "물이 없어서",
+  "sourceTag": "제24화 · 물이 없어서",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-24:1",
+      "source": "새벽 강가에는 물안개가 낮게 깔려 있었다. 젖은 돌 위에 분홍 돼지 한 마리가 웅크리고 잠들어 있었다.",
+      "sourceHash": "edb50fe64c55faff5c4ef75d3c70db8adc7993e7c3421268a48f3890a3b07be3",
+      "t": "At dawn, mist lay low along the river. A pink pig slept curled on a wet stone."
+    },
+    {
+      "id": "ep-24:2",
+      "source": "앞발에는 하얀 털 한 가닥이 감겨 있었다. 밤새 몇 번이나 고쳐 감았는지, 매듭이 세 겹이었다.",
+      "sourceHash": "79c7c8366d6a472f685157fbaf6e1ebeba56abbd6678806530a187f692aa7575",
+      "t": "A white hair was wound around one hoof. Refastened who knew how many times through the night, the knot had three layers."
+    },
+    {
+      "id": "ep-24:3",
+      "source": "찾았다. 여기서 잤냐, 진짜.",
+      "sourceHash": "e5b8ccc950614e18594e0b8bdd850ec8ef37e811079d673543cde89c25684d4b",
+      "t": "Found you. You really slept here?"
+    },
+    {
+      "id": "ep-24:4",
+      "source": "모카. 영냥이는?",
+      "sourceHash": "88c4a4ab69fdf0ad600a5d9f22337b6aabd05d177aa1c394a3ad066997e9bd63",
+      "t": "Moka. Where's Yeongnyangi?"
+    },
+    {
+      "id": "ep-24:5",
+      "source": "아직.",
+      "sourceHash": "9e15843a1dd3a2cd3e0b41ca23ddfe1b8ce012376ab48be298b94af05ec518f0",
+      "t": "Not yet."
+    },
+    {
+      "id": "ep-24:6",
+      "source": "연이는 고개를 끄덕였다. 울지는 않았다. 밤새 울 만큼 울어서, 더 나올 것이 없는 얼굴이었다.",
+      "sourceHash": "9ba6d3230aad62b9dc1052bff278ab0676c98b2e6308e62c9d2a8874c5d0161e",
+      "t": "Yeoni nodded. They did not cry. Their face had cried all it could through the night, with nothing left to give."
+    },
+    {
+      "id": "ep-24:7",
+      "source": "숙녀분, 일단 들어가요. 찬 돌에서 자면 乙목은 뿌리부터 상해요.",
+      "sourceHash": "7edf1b678d54d9d5cb3e60aa69a0d969d4a5e657e18931edee0f5cfcb3c386aa",
+      "t": "My lady, let's go inside first. Sleep on cold stones, and Eul Wood takes damage from the roots up."
+    },
+    {
+      "id": "ep-24:8",
+      "source": "들어가서 뭐 해요. 여기 있다가 오면 바로 보게.",
+      "sourceHash": "7ccc4aca5d2bd9c9571a0ecc8baa4f11787a7397fe24039df68fcc285cf31fd4",
+      "t": "What would I do inside? If I stay here, I'll see him as soon as he comes back."
+    },
+    {
+      "id": "ep-24:9",
+      "source": "들어가서 밥 먹어. 고양이가 와서 네 꼴 보면 나한테 화낼 거야. 그건 내가 싫어.",
+      "sourceHash": "9ed1cb0e630c4f83b9331dbcd2b0b1a46ed500e3e5cd7282864b469a6b816f31",
+      "t": "Go inside and eat. If the cat comes back and sees you like this, he'll get mad at me. I don't want that."
+    },
+    {
+      "id": "ep-24:10",
+      "source": "모카가 연이의 뒷덜미를 물고 끌었다. 연이는 끌려가면서도 자꾸 강 쪽을 돌아보았다.",
+      "sourceHash": "16c7e790cc11fc967a602ad78c30e7a4743a587022808c222051b3b0d782f0a8",
+      "t": "Moka took Yeoni's scruff in his teeth and dragged them. Even as they were pulled away, Yeoni kept looking back at the river."
+    },
+    {
+      "id": "ep-24:11",
+      "source": "강물 위로 안개가 흩어졌다가 다시 모였다. 그 사이로 검은 물결 하나가 소리 없이 지나갔다. 아무도 보지 못했다.",
+      "sourceHash": "1cb890948e749fb26518295cd2b36304e0ea1a0855556143650ab3d0dfc9bf16",
+      "t": "Mist over the water scattered and gathered again. Between it, one black ripple passed silently. Nobody saw."
+    },
+    {
+      "id": "ep-24:12",
+      "source": "열람실의 긴 탁자 위에 낯선 물건들이 놓여 있었다. 주전자, 쇠 숟가락, 화분 하나, 그리고 촛불 하나.",
+      "sourceHash": "297a4e812d67e9244342b5b7e4ef9cd16196d93c71134391040c75b7f722425e",
+      "t": "Unfamiliar objects stood on the long reading-room table. A kettle, a metal spoon, a plant pot, and a candle."
+    },
+    {
+      "id": "ep-24:13",
+      "source": "자, 수업 시작할게요. 오늘 수강료는 숙녀분 생년월일시.",
+      "sourceHash": "ff11c543191d524194a2ff2b444ea16a6be808407fed3d9f8cfe1aa061b7870c",
+      "t": "All right, class begins. Today's tuition is your birth date and time, my lady."
+    },
+    {
+      "id": "ep-24:14",
+      "source": "이미 알잖아요.",
+      "sourceHash": "740b555d88de3bace5f199e8f31516fcc87724a1c3233b906f2a46e6cad80f4a",
+      "t": "You already know it."
+    },
+    {
+      "id": "ep-24:15",
+      "source": "알아도 한 번 더 듣고 싶은 게 있어요.",
+      "sourceHash": "c506e1b1266ba429c42d7c838c08740dde76f7775df54a514020a08e1745635e",
+      "t": "Some things you want to hear again even when you know them."
+    },
+    {
+      "id": "ep-24:16",
+      "source": "사기꾼, 지금 그럴 때야?",
+      "sourceHash": "18ddca4593440167f6dd5438a8cf6d62773b7244a367dd6fa9bccefb2bc888b3",
+      "t": "Con artist, is this really the time?"
+    },
+    {
+      "id": "ep-24:17",
+      "source": "그럴 때예요. 숙녀분 얼굴에 웃음 하나 붙이는 데 이것보다 싼 방법이 없거든요.",
+      "sourceHash": "890c2abd489b306e845bb49af43728cce34aae5ead9d4c0acd60f534804e14d9",
+      "t": "It is. There's no cheaper way to put a smile on our lady's face."
+    },
+    {
+      "id": "ep-24:18",
+      "source": "연이는 웃지 않았다. 그래도 고개를 조금 들었다. 윤달은 그것으로 충분하다는 듯 쇠 숟가락을 집어 들었다.",
+      "sourceHash": "b8f6c72bc4b83531319d7d07164175530eb564d964d8b1e4d54e76a82d5f223f",
+      "t": "Yeoni did not smile. But they raised their head a little. As though that were enough, Yundal picked up the metal spoon."
+    },
+    {
+      "id": "ep-24:19",
+      "source": "이게 고양이님. 庚금이에요. 단단하고, 날이 서 있고, 나무를 벨 수 있어요.",
+      "sourceHash": "f0dd69ae45b6708e299c7c9027d8069f7ff6f981cd76b6a3c07446c804c7f7b3",
+      "t": "This is Mr. Cat. Gyeong Metal. Hard, sharp, able to cut Wood."
+    },
+    {
+      "id": "ep-24:20",
+      "source": "윤달이 숟가락 끝으로 화분의 작은 나무를 툭 건드렸다. 잎사귀 하나가 떨어졌다.",
+      "sourceHash": "82bfc5c348687225c960b47c7870080466682a522a37d04b9e3d535b9f9e95a7",
+      "t": "Yundal tapped the small tree in the pot with the spoon's tip. One leaf fell."
+    },
+    {
+      "id": "ep-24:21",
+      "source": "하지 마요.",
+      "sourceHash": "b2ff10bc2253e399a4ceaabc8c59fbe4185a47042de692f461bb5fcd112f7bb5",
+      "t": "Don't."
+    },
+    {
+      "id": "ep-24:22",
+      "source": "네. 그래서 고양이님은 숙녀분 옆에 있으면 늘 조심했어요. 金克木. 금은 나무를 이겨요.",
+      "sourceHash": "c8f1e7ef6c13bddf798fe4d33c14676d9f95b7584a2d27cf423f7044d7ff906b",
+      "t": "Yes. That's why Mr. Cat was always careful beside you. Metal controls Wood—金克木. Metal overcomes Wood."
+    },
+    {
+      "id": "ep-24:23",
+      "source": "그럼 처음부터 안 맞는 거잖아요. 영냥이랑 나.",
+      "sourceHash": "91377e994011ae1a1581755df3953f6e186b8bd967a801ff5eca97a322072eb0",
+      "t": "Then we were wrong for each other from the start. Yeongnyangi and me."
+    },
+    {
+      "id": "ep-24:24",
+      "source": "아뇨. 여기서부터가 진짜 수업이에요.",
+      "sourceHash": "df9a3aaef2b7d36e28929731cce8eb93258fb2222890f62a8b6df2465e740d00",
+      "t": "No. This is where the real lesson begins."
+    },
+    {
+      "id": "ep-24:25",
+      "source": "윤달은 주전자를 들어 숟가락 위로 물을 부었다. 물은 숟가락을 타고 흘러 화분 흙으로 스며들었다.",
+      "sourceHash": "b0c48940046c6ef91bd6995c393e1e04cb01319339e8cd3d04c4e7006f9330ee",
+      "t": "Yundal lifted the kettle and poured water over the spoon. The water ran along it and soaked into the pot's soil."
+    },
+    {
+      "id": "ep-24:26",
+      "source": "금은 물을 낳아요. 물은 나무를 키워요. 사이에 물이 있으면, 금은 나무를 베지 않고 나무를 먹여요.",
+      "sourceHash": "34288bc3e03d5570b0771198c8bbcf546e727a62e09cc4baba8738cb1fef7c00",
+      "t": "Metal generates Water. Water nourishes Wood. With Water between them, Metal feeds Wood instead of cutting it."
+    },
+    {
+      "id": "ep-24:27",
+      "source": "[ 庚 관성 → 壬 인성 → 乙 일간 · 관인상생 ]",
+      "sourceHash": "abd6024e27fea7aa5c1745c7633e644913279cb610576e12139dcac7dfac89bf",
+      "t": "[ 庚 Influence → 壬 Resource → 乙 Day Master · Officer and Resource in Mutual Generation ]"
+    },
+    {
+      "id": "ep-24:28",
+      "source": "관인상생이라고 해요. 관은 인을 낳고, 인은 나를 낳는다. 고양이님이 칼이 아니라 우물이 되는 길이에요.",
+      "sourceHash": "77d12f6c1907b39ba02319b5f142dd732ff931f152e201442521f8aad55268b0",
+      "t": "It's called Officer and Resource in Mutual Generation. Officer generates Resource, and Resource generates me. A way for Mr. Cat to become a well instead of a blade."
+    },
+    {
+      "id": "ep-24:29",
+      "source": "화분의 나무가 물을 마시고 잎을 조금 펼쳤다. 연이는 그 잎사귀를 한참 바라보았다.",
+      "sourceHash": "1f2397d8bcd26e803eae4e8c3397f6b7c60d003a2a4fb49c6dd32accdb7506d2",
+      "t": "The little tree drank and spread its leaves slightly. Yeoni stared at those leaves for a long time."
+    },
+    {
+      "id": "ep-24:30",
+      "source": "그럼, 영냥이가 안 아파도 돼요?",
+      "sourceHash": "21449e37ff2e245f9ff765c116830160de9248bd40d2e6a378bd0e3f8193d3fd",
+      "t": "Then... Yeongnyangi doesn't have to hurt?"
+    },
+    {
+      "id": "ep-24:31",
+      "source": "물만 있으면요.",
+      "sourceHash": "424141750fb1e7621f756c31ebb3d455d869d8fa2410f129e2e6e9a4625c24cf",
+      "t": "As long as there's Water."
+    },
+    {
+      "id": "ep-24:32",
+      "source": "그리고 불은? 돼지 불 때문에 고양이 녹는다며.",
+      "sourceHash": "bdba17457f949e4db5522a137518319929a32384b30b51811277e011cbd0d9e9",
+      "t": "And the fire? You said the pig's fire melts the cat."
+    },
+    {
+      "id": "ep-24:33",
+      "source": "그것도 물이에요.",
+      "sourceHash": "65f4968ef9ce97c9f6882de59c91ee08fdabe3ed41e7d1e63d3090f724947f87",
+      "t": "Water for that, too."
+    },
+    {
+      "id": "ep-24:34",
+      "source": "윤달이 촛불 위에 손바닥을 가볍게 덮었다. 불은 꺼지지 않았다. 다만 흔들림이 멎고, 크기가 알맞게 줄었다.",
+      "sourceHash": "4b062c4e400db5cd0493b5e75f1b3902e42a0f595d050063e0ef57d836186c19",
+      "t": "Yundal lightly cupped his palm above the candle. Its flame did not go out. It merely stopped wavering and shrank to a suitable size."
+    },
+    {
+      "id": "ep-24:35",
+      "source": "인은 상관을 다스려요. 상관패인. 불을 끄는 게 아니라, 불에 길을 내 주는 거예요.",
+      "sourceHash": "7736f0cf585ea83fc34bb6edbc2abdb498360c771d0b27b8d422b26bb6570017",
+      "t": "Resource guides Hurting Officer. Hurting Officer Balanced by Resource. Not putting out the fire, but giving it a path."
+    },
+    {
+      "id": "ep-24:36",
+      "source": "(불을 안 꺼도 된다. 끄지 않아도, 영냥이가 안 다친다.)",
+      "sourceHash": "994f0257afe4a6409c405de71946bfe2cba2a77f7f017a9823c029335023d63d",
+      "t": "(I don't have to put it out. Even if I don't, Yeongnyangi won't get hurt.)"
+    },
+    {
+      "id": "ep-24:37",
+      "source": "연이의 눈에 처음으로 빛이 돌아왔다. 연이는 탁자를 짚고 벌떡 일어섰다.",
+      "sourceHash": "b15adbc2c065433d24cbccbfc804f382bc3b080feee9587b98df8950af47068f",
+      "t": "For the first time, light returned to Yeoni's eyes. Bracing against the table, they sprang up."
+    },
+    {
+      "id": "ep-24:38",
+      "source": "물. 물이면 돼. 물 어디 있어요? 강에 잔뜩 있잖아요!",
+      "sourceHash": "97d7515d74329e0a90d1d8099a8188222b9f74789e2d57c17000dc655d548d0e",
+      "t": "Water. All we need is water. Where is it? There's a whole river full!"
+    },
+    {
+      "id": "ep-24:39",
+      "source": "그 물은 아닐걸.",
+      "sourceHash": "164585b370d4112b80a3150f93c255c310ff3290fee4b5cd32d2839399495e7f",
+      "t": "Probably not that water."
+    },
+    {
+      "id": "ep-24:40",
+      "source": "왜!",
+      "sourceHash": "04d0d753b8c76eccf72608919b6b6a20a93b1c2ffd6158234a82520396738e4c",
+      "t": "Why?!"
+    },
+    {
+      "id": "ep-24:41",
+      "source": "그 물이면 내가 벌써 고양이를 강에 담갔지.",
+      "sourceHash": "70a1a87cae7dc5696b08b7106255110fba4579a4157b17925ecc7c3637656d28",
+      "t": "If it were that water, I'd have dunked the cat in the river already."
+    },
+    {
+      "id": "ep-24:42",
+      "source": "수달 씨 말이 맞아요. 강물은 그냥 물이고, 필요한 건 숙녀분 명식 안의 물이에요.",
+      "sourceHash": "7805d5c5a57d5dc369408c97c9787d0019464257e6deca229a3fb50a1145d9b3",
+      "t": "Mr. Otter is right. River water is just water. We need the Water in your chart."
+    },
+    {
+      "id": "ep-24:43",
+      "source": "숙녀분 年간. 壬수. 그게 숙녀분 인성이에요.",
+      "sourceHash": "d494ab6ccb346fed0f334409bf58eba9a2edc0ae00471eb026f2df3b85165bb5",
+      "t": "Your Year Stem. Im Water, 壬. That's your Resource."
+    },
+    {
+      "id": "ep-24:44",
+      "source": "세 사람은 기억 금고로 내려갔다. 금고 한가운데에 연이의 글자판이 떠 있었다. 여덟 칸 가운데 일곱 칸에 불이 들어와 있었다.",
+      "sourceHash": "92e80f2ad2ec9df3d6a5bae3f1ddc6caac7c5a7a1ce51369787a8b1b75927113",
+      "t": "The three went down to the memory vault. Yeoni's chart floated at its center. Seven of its eight slots were lit."
+    },
+    {
+      "id": "ep-24:45",
+      "source": "[ 年 壬午 · 月 丙午 · 日 乙亥 · 時 □辰 ]  7/8",
+      "sourceHash": "8f887fc56589e671aca85baf487140da883a8fb1349e148aef62ba4a63041e79",
+      "t": "[ Year 壬午 · Month 丙午 · Day 乙亥 · Hour □辰 ]  7/8"
+    },
+    {
+      "id": "ep-24:46",
+      "source": "맨 앞의 壬 자는 글자라기보다 얼음덩어리 같았다. 검게 얼어서, 안쪽에서 무언가가 갇힌 채 꿈틀거리고 있었다.",
+      "sourceHash": "841a6d4c9eaffbc655fb7af166c588022f0725f54fe3d1ac956fb2c6a8bbc0dd",
+      "t": "The first character, 壬, looked more like a lump of ice than writing. Frozen black, it held something writhing inside."
+    },
+    {
+      "id": "ep-24:47",
+      "source": "이게 왜 이래요. 도서관에서 찾았을 때부터 이랬어요.",
+      "sourceHash": "13208217634bc27848c3641b4ac158a65d37031e3acb7e38885bae83c9a2db77",
+      "t": "Why is it like this? It's been this way since we found it in the library."
+    },
+    {
+      "id": "ep-24:48",
+      "source": "호랑이한테서 되찾은 글자니까요. 그 호랑이 물은 차고 검어요. 숙녀분 물을 얼려 버린 거예요.",
+      "sourceHash": "03027d6371432f1de5112560c0138c046aa09e9fcd17119327c7aad39899647c",
+      "t": "Because you recovered it from the tiger. That tiger's water is cold and black. It froze yours."
+    },
+    {
+      "id": "ep-24:49",
+      "source": "그 줄무늬 진짜. 볼 때마다 뭘 하나씩 망가뜨려 놓고 가.",
+      "sourceHash": "94086252b608cbabb67dc2d3c953c040731f2b7f6d8150f6308b8a2377768d40",
+      "t": "That striped jerk. Every time we see it, it breaks something else before leaving."
+    },
+    {
+      "id": "ep-24:50",
+      "source": "그럼 녹이면 되잖아.",
+      "sourceHash": "d120c6e5cd890fd5ad96368477d065cc980c1b7082abb6228ad6fe6c121a1ead",
+      "t": "Then we melt it."
+    },
+    {
+      "id": "ep-24:51",
+      "source": "숙녀분, 잠깐만요.",
+      "sourceHash": "1146a6dd55f629ac99e0d811fcaf6cb0e9ccfc27e1deb09847926d7cd806dcfd",
+      "t": "My lady, wait."
+    },
+    {
+      "id": "ep-24:52",
+      "source": "연이는 이미 앞발을 들고 있었다. 손톱 끝에 丙화의 불씨가 맺혔다.",
+      "sourceHash": "18155ec06aaea6b59040d688f2a54a770a0fc4ec4842ff7375f206a147691e99",
+      "t": "Yeoni had already raised a hoof. An ember of Byeong Fire formed at its tip."
+    },
+    {
+      "id": "ep-24:53",
+      "source": "얼음은 불로 녹이는 거야. 나 불은 많아.",
+      "sourceHash": "95833177c26c2f6a2572d9fd48d528472af856c6c3bb9db81bf2b31916b17a18",
+      "t": "You melt ice with fire. I've got plenty of fire."
+    },
+    {
+      "id": "ep-24:54",
+      "source": "그게 문제예요!",
+      "sourceHash": "c49be73532813c487585b5334e460278fd7c9b22a996a67888927838f8bbf462",
+      "t": "That's the problem!"
+    },
+    {
+      "id": "ep-24:55",
+      "source": "불길이 壬 자를 감쌌다. 얼음 표면에서 하얀 김이 솟았다. 그리고 연이의 가슴 안쪽이 쩍 갈라지는 것처럼 아팠다.",
+      "sourceHash": "74a9003117dc97c45d5878cf60d95780de72c575d63bfdb6ba01a6dc9a424ee2",
+      "t": "Flames wrapped around 壬. White steam rose from the ice. Then pain split the inside of Yeoni's chest as though it were cracking apart."
+    },
+    {
+      "id": "ep-24:56",
+      "source": "아, 아파!",
+      "sourceHash": "9cb8b43e6c52a9f563a0f2b7879f300e5c2b33f57ef2d1b8a6c099241a4fbe6e",
+      "t": "Ah—it hurts!"
+    },
+    {
+      "id": "ep-24:57",
+      "source": "연이는 불을 거두지 않았다. 이를 악물고 앞발을 더 앞으로 밀었다. 얼음에 가는 금이 하나 갔다.",
+      "sourceHash": "e18fc9f0af50831888f8bba9f29aacfff82b6b827a22847f0c064e28885e2bb9",
+      "t": "Yeoni did not withdraw the fire. Gritting their teeth, they pushed their hoof farther forward. One fine crack appeared in the ice."
+    },
+    {
+      "id": "ep-24:58",
+      "source": "갈라진 틈으로 다른 장면이 쏟아져 들어왔다. 비가 오고 있었다. 정류장 지붕 끝에서 빗물이 줄처럼 떨어졌다.",
+      "sourceHash": "adb9a117bcd822bb568c0077b4baee7ca3c017965d89c07e851a3105c60599c4",
+      "t": "Through it, another scene poured in. Rain was falling. Water streamed in strings from the edge of a bus stop roof."
+    },
+    {
+      "id": "ep-24:59",
+      "source": "누군가 정류장 구석에 혼자 서 있었다. 우산이 없었다. 젖은 머리카락이 얼굴을 가리고 있어서, 얼굴이 보이지 않았다.",
+      "sourceHash": "d1df7bdb35c30dc554dc1afdf8ea0123a3342c5ed6722272a164b900070c07e0",
+      "t": "Someone stood alone in a corner of the stop. Without an umbrella. Wet hair covered their face, hiding it."
+    },
+    {
+      "id": "ep-24:60",
+      "source": "그 사람에게 우산 하나가 반쯤 기울었다. 우산을 든 손은 작고, 낯이 익었다. 연이 자신의 손이었다.",
+      "sourceHash": "5033d539ca87bc3ee9f088beef5c3d0e3d8cc1a23d7752f1ee7b8a298169c470",
+      "t": "An umbrella tilted halfway toward that person. The hand holding it was small and familiar. Yeoni's own hand."
+    },
+    {
+      "id": "ep-24:61",
+      "source": "빗소리 너머로 웃음소리가 났다. 누구의 웃음인지 알 수 없었다. 따뜻하고, 조금 쑥스러운 웃음이었다.",
+      "sourceHash": "07a2241d633686beaaa39a7ad39d3664cb30c0e05d5b448a307b3315edad9d62",
+      "t": "Laughter sounded beyond the rain. Yeoni couldn't tell whose. Warm laughter, a little shy."
+    },
+    {
+      "id": "ep-24:62",
+      "source": "장면이 끊겼다. 연이는 불을 놓쳤다. 김이 가라앉은 자리에, 壬 자는 그대로 얼어 있었다. 오히려 금 간 자리가 더 검어졌다.",
+      "sourceHash": "f2c601c7f7723d75d1bbc6fbfb808bab44cf440d80316d921a9ed37040d84491",
+      "t": "The scene broke. Yeoni lost hold of the fire. Where the steam settled, 壬 remained frozen. If anything, the crack had turned darker."
+    },
+    {
+      "id": "ep-24:63",
+      "source": "방금 그거 뭐야. 정류장. 비. 나 저기 간 적 없어.",
+      "sourceHash": "f296e39a7b42ca763e012b5cae6b7aa2cb148d97a3dbc6cba1cb8883215f25d1",
+      "t": "What was that? A bus stop. Rain. I've never been there."
+    },
+    {
+      "id": "ep-24:64",
+      "source": "얼음 안에 갇힌 기억이에요. 숙녀분 것인데, 숙녀분이 모르는 기억.",
+      "sourceHash": "009ebd9b900d8ef1ba97e6719b623b83a36b07d3cb91a4d76ce77a18d99ab1b6",
+      "t": "A memory trapped inside the ice. Yours, yet one you don't know."
+    },
+    {
+      "id": "ep-24:65",
+      "source": "돼지, 너 코피 나.",
+      "sourceHash": "7ebfacc4ff9c41d8da73fe137458fdc43e1c7087d215df09d9b738be939c6c9c",
+      "t": "Pig, your nose is bleeding."
+    },
+    {
+      "id": "ep-24:66",
+      "source": "연이는 코를 문질렀다. 앞발에 붉은 것이 묻어 나왔다. 가슴 안쪽이 아직도 욱신거렸다.",
+      "sourceHash": "57bedf6b30fa6fa824d113a99ec9d46343e8a39d52f98008dd6af345d137bb79",
+      "t": "Yeoni rubbed their nose. Red stained their hoof. Their chest still throbbed inside."
+    },
+    {
+      "id": "ep-24:67",
+      "source": "불로 얼음을 녹이면 물은 끓어서 날아가요. 녹은 물이 숙녀분을 먹이기 전에 다 타 버려요.",
+      "sourceHash": "5802d7b52f8c9698541f5a6c0cf44249103f94bc3d03eac9c7ccdf0a81028559",
+      "t": "Melt this ice with fire, and the water boils away. It all burns off before the thawed water can nourish you."
+    },
+    {
+      "id": "ep-24:68",
+      "source": "그럼 어떻게 녹여요. 불 말고 나한테 뭐가 있어요.",
+      "sourceHash": "938791c31bb0c7ed946861344b5cb3e5adbe1f908a035d5082f8ce0ca0bf2895",
+      "t": "Then how do I melt it? What do I have besides fire?"
+    },
+    {
+      "id": "ep-24:69",
+      "source": "그건 저도 아직 몰라요. 얼음은 원래, 얼린 사람이 풀어야 제일 쉽게 풀리거든요.",
+      "sourceHash": "a3d25f25f703553cf9f558ef14abc072a1f6b7795c21726db6bcac946f960dd8",
+      "t": "I don't know yet, either. Ice is usually easiest to release when the one who froze it does the thawing."
+    },
+    {
+      "id": "ep-24:70",
+      "source": "그 호랑이가 풀어 줄 리가 없잖아.",
+      "sourceHash": "e9f1344ce9fa6f7f4ab17fcf32f175f9c5993bba43dbffbbe2234faebeec4570",
+      "t": "That tiger would never do that for us."
+    },
+    {
+      "id": "ep-24:71",
+      "source": "그러니까요.",
+      "sourceHash": "af27349b069b5a886e524c2985d5f431ebb365ec8a86010f3a0377bc6ecb619d",
+      "t": "Exactly."
+    },
+    {
+      "id": "ep-24:72",
+      "source": "금고 안이 조용해졌다. 얼어붙은 壬 자 안에서, 비 냄새가 아주 희미하게 났다.",
+      "sourceHash": "41e69d5267a7284c73066e974e18dd7893eac155e4483042a9e24530504b5bd6",
+      "t": "The vault fell quiet. Inside the frozen 壬, the smell of rain lingered very faintly."
+    },
+    {
+      "id": "ep-24:73",
+      "source": "오후가 되자 연이는 가만히 앉아 있지 못했다. 열람실 안을 빙빙 돌다가 탁자 모서리에 세 번 부딪쳤다.",
+      "sourceHash": "7b349de232dc49df305358c4fe09310e92fa0acfd05219c1f1230042478c723f",
+      "t": "By afternoon, Yeoni could no longer sit still. Pacing around the reading room, they bumped into the table's corner three times."
+    },
+    {
+      "id": "ep-24:74",
+      "source": "나눠서 찾자. 영냥이도, 물도. 앉아만 있으면 미칠 것 같아.",
+      "sourceHash": "61ac253e2c18a5ccda041aea0dbdf5686dc70a8b9b114531ce43fe2f887523d2",
+      "t": "Let's split up and search. For Yeongnyangi and for Water. I'll go crazy just sitting here."
+    },
+    {
+      "id": "ep-24:75",
+      "source": "좋아요. 저는 아래층 서가요. 물에 관한 책이 거기 많아요.",
+      "sourceHash": "c1ab509b9579fa5429f2f59efdf729a99a76690d3afd94da58641c0215373493",
+      "t": "All right. I'll take the lower shelves. Plenty of books about Water there."
+    },
+    {
+      "id": "ep-24:76",
+      "source": "나는 시장. 고양이 같은 거 지나갔는지 물어볼게. 하얗고 동그랗고 무뚝뚝한 거. 모자 쓴 거.",
+      "sourceHash": "fb50f3500639ba4a645bf810660e877a8f1535bf9a3376cd7e1403cfb8157a56",
+      "t": "I'll try the market. Ask if a cat-shaped thing passed by. White, round, grumpy. Wearing a hat."
+    },
+    {
+      "id": "ep-24:77",
+      "source": "나는 강. 거기서 마지막으로 봤으니까.",
+      "sourceHash": "00025b6fc09c476620e0333b2fa8da3efd02ab267b22899e33a99078e5618ab6",
+      "t": "I'll take the river. That's where I last saw him."
+    },
+    {
+      "id": "ep-24:78",
+      "source": "숙녀분. 해 지기 전에 여기로 다시 모여요. 오늘 하늘이 이상해요.",
+      "sourceHash": "eeb910ac07f6e860ef50b2e2f09e0fd5498cf5c286e778a65e007482af8cdf4d",
+      "t": "My lady. Let's meet here again before sunset. The sky's strange today."
+    },
+    {
+      "id": "ep-24:79",
+      "source": "윤달은 창밖을 가리켰다. 어제 금이 갔던 하늘이 오늘은 이상하게 어두웠다. 해 한쪽 귀퉁이가 무언가에 베어 먹힌 것처럼 보였다.",
+      "sourceHash": "b0f4df9aceb353c25f801c60619fa09044e37c10d1f4ac3b912599a3039b1ffd",
+      "t": "Yundal pointed outside. Yesterday's cracked sky was strangely dark today. A corner of the sun looked as though something had bitten into it."
+    },
+    {
+      "id": "ep-24:80",
+      "source": "해가 왜 저래. 축제 섬 때랑 똑같은데.",
+      "sourceHash": "608e5f17ea1c55a1c51e0d35e9f58d2cb7f98d6cde75965680fdd19a4b8631b4",
+      "t": "What's wrong with the sun? Just like on the festival island."
+    },
+    {
+      "id": "ep-24:81",
+      "source": "그래서 하는 말이에요. 혼자 오래 있지 마요.",
+      "sourceHash": "e5b06ca7231627afc66ffde1f3cb56a7a50f8cdfdb03f3310f1f7258a251e9bc",
+      "t": "That's why I'm saying this. Don't stay alone too long."
+    },
+    {
+      "id": "ep-24:82",
+      "source": "같은 시각, 강 하류. 안개가 가장 짙은 곳에 하얀 고양이가 앉아 있었다.",
+      "sourceHash": "c0acf61a514c7c8fa296868a6f5d592b052ddc1133d65f6a211a048eda34fdf2",
+      "t": "At the same time, downstream, a white cat sat where the mist was thickest."
+    },
+    {
+      "id": "ep-24:83",
+      "source": "영냥이는 녹슨 앞발을 강물에 담그고 있었다. 물이 닿은 자리의 녹이 아주 조금씩 풀려 흘러갔다. 아주 조금씩.",
+      "sourceHash": "8d559eb529b49106a5f498eb5c51f870ead9b1e32e0d992eeb89d14e0d272d8f",
+      "t": "Yeongnyangi soaked his rusted paw in the river. Where the water touched it, tiny amounts of rust loosened and flowed away. Very tiny amounts."
+    },
+    {
+      "id": "ep-24:84",
+      "source": "금은 물을 낳는다. 물이 있으면, 칼이 아니어도 된다.",
+      "sourceHash": "f36f41785dc30d8cc15dc21fb0dc514de8f435a3bb2d4558fc07cbf4ef50c0b2",
+      "t": "Metal generates Water. With Water, I don't have to be a blade."
+    },
+    {
+      "id": "ep-24:85",
+      "source": "윤달이 오전에 했던 말과 같은 말이었다. 영냥이는 그것을 누구에게 배운 적이 없었다. 그냥 알고 있었다.",
+      "sourceHash": "d59bf6c433e4ccdfe4aaa2f1aa6749552727d2be07a35b0188dda49454ad2c61",
+      "t": "The same words Yundal had spoken that morning. No one had taught them to Yeongnyangi. He simply knew."
+    },
+    {
+      "id": "ep-24:86",
+      "source": "그 애 물은 아직 얼어 있어. 금인 내가 직접 녹일 수는 없어.",
+      "sourceHash": "00ddf09051c8283d393954ca555fe54c9d75f75ef933702d85e7550376a6c780",
+      "t": "That child's Water is still frozen. As Metal, I can't melt it myself."
+    },
+    {
+      "id": "ep-24:87",
+      "source": "영냥이는 강물에 비친 자기 얼굴을 보았다. 보랏빛 눈이 잠깐 금빛으로 일렁였다가 다시 가라앉았다.",
+      "sourceHash": "63ea3594304ea6ad00e5e0969f3e2ee5acbe1d92c0b2ac3500fb731aa8f62f0a",
+      "t": "Yeongnyangi looked at his reflection in the river. His violet eyes briefly rippled gold, then settled again."
+    },
+    {
+      "id": "ep-24:88",
+      "source": "비키라고 했지.",
+      "sourceHash": "7fbbd48951bdf65aba7f503e7caa63b5bee59b0af67cbdaeb5885360e9e7e95c",
+      "t": "You told me to step aside."
+    },
+    {
+      "id": "ep-24:89",
+      "source": "영냥이는 그 말을 곱씹듯 한 번 더 중얼거렸다. 그리고 아주 작게, 웃었다.",
+      "sourceHash": "dd056be7b04da5c079f4cefb7a00596a5c08807be1ed2b9ceedc3984e513f205",
+      "t": "He murmured it once more, as though turning the words over in his mouth. Then he smiled very faintly."
+    },
+    {
+      "id": "ep-24:90",
+      "source": "그래도 불은 남아 있었네. 다행이야.",
+      "sourceHash": "0592002818a7f011ce1126eec74529599bdee38a90d98973dba4915c32baec5b",
+      "t": "Still, your fire was there. That's a relief."
+    },
+    {
+      "id": "ep-24:91",
+      "source": "강물이 검게 뒤집혔다. 물속에서 검은 손 수십 개가 한꺼번에 솟구쳤다. 영냥이의 앞발이 담겨 있던 바로 그 자리였다.",
+      "sourceHash": "595de22f9d2384709f3b47443e9e9a187ef883bc27211daa0e70e90f91ce3ebc",
+      "t": "The river turned black. Dozens of black hands shot from the water at once, exactly where Yeongnyangi's paw had been soaking."
+    },
+    {
+      "id": "ep-24:92",
+      "source": "물이 그리웠나, 고양이야. 물은 여기 있다. 네가 가장 약할 때, 가장 가까이.",
+      "sourceHash": "f39586046ca60a326baea8d31cc71cdc3330cb950600df70534b9e667f16eed0",
+      "t": "Did you miss Water, cat? Here it is. Closest to you when you are weakest.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-24:93",
+      "source": "너구나. 도서관 하늘에 금을 낸 게.",
+      "sourceHash": "154cbc9e0149240fd3d0d753a1aef70408ae91c257463c40f3de0308a9b14e70",
+      "t": "You. The one who cracked the sky above the library."
+    },
+    {
+      "id": "ep-24:94",
+      "source": "금은 네가 낸 거다. 그 애 옆에 있겠다고, 남의 명식에 칼을 꽂아 넣었지.",
+      "sourceHash": "0a8dc5b3785ca8d9fcd3419debb91c873d8c3975d1725533dfde4ee8e1b0a52f",
+      "t": "You made that crack. To stay beside that child, you thrust a blade into someone else's chart.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-24:95",
+      "source": "영냥이가 일어섰다. 녹슨 앞발에서 금빛 칼날이 솟았다. 그러나 칼날은 어제보다 반쯤 짧았다. 날 끝에 녹이 번져 있었다.",
+      "sourceHash": "499d8e11f8aacc2cdfd6633dd395a6f78c5da24663809bb275793e830ec6a607",
+      "t": "Yeongnyangi stood. A golden blade rose from his rusted paw. But it was half as long as yesterday, with rust spreading along its tip."
+    },
+    {
+      "id": "ep-24:96",
+      "source": "칼날이 검은 손 셋을 베었다. 손은 여섯이 되어 돌아왔다. 여섯은 열둘이 되었다.",
+      "sourceHash": "42f520480fe8ddfadf74d7ea137cb0170b605004ea7fc2cc3fa48ee97d433fa7",
+      "t": "The blade severed three black hands. They came back as six. Six became twelve."
+    },
+    {
+      "id": "ep-24:97",
+      "source": "너는 빌린 칸이다. 빌린 것은 돌려줘야지. 그 애한테서 빠져나와, 내게 꽂혀라.",
+      "sourceHash": "84315f7e84103c5678b6e181421deba9b2dba7d5f856b3bd958149327eb30faa",
+      "t": "You are a borrowed slot. What's borrowed must be returned. Leave that child, and sink into me.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-24:98",
+      "source": "싫어. 내 담당은 그 애 하나야.",
+      "sourceHash": "fda1e24a19bf0286ca45fc25ab4de737f4a50ca5f27533ab2d442290fc38825f",
+      "t": "No. That child is my only assignment."
+    },
+    {
+      "id": "ep-24:99",
+      "source": "검은 손 하나가 영냥이의 목덜미를 움켜쥐었다. 또 하나가 왼발을, 또 하나가 꼬리를 잡았다. 작은 몸이 물 쪽으로 끌려갔다.",
+      "sourceHash": "cafb0746412f6d8b777ce2026da1782da98c7819b2d1361b905686e1390dab14",
+      "t": "One black hand seized Yeongnyangi's scruff. Another his left paw, another his tail. His small body was dragged toward the water."
+    },
+    {
+      "id": "ep-24:100",
+      "source": "연이야.",
+      "sourceHash": "80cb95b01e8cc1368b8cd8ace84e07fc877503b06ef9dddd4795ce70845dc473",
+      "t": "Yeoni."
+    },
+    {
+      "id": "ep-24:101",
+      "source": "영냥이는 그 이름을 부르다 말고 입을 다물었다. 부르면 그 애가 올 것이다. 오면, 그 애가 이 손들 앞에 서게 된다.",
+      "sourceHash": "17fb6b9edf8bf0541a7f7f795b5fa138de646881d892bed8136398cbdd80079c",
+      "t": "Halfway through calling the name, Yeongnyangi closed his mouth. If he called, Yeoni would come. And then that child would stand before these hands."
+    },
+    {
+      "id": "ep-24:102",
+      "source": "하얀 고양이는 아무 소리도 내지 않고 검은 물속으로 끌려 들어갔다. 물결이 한 번 크게 일었다가, 거짓말처럼 잔잔해졌다.",
+      "sourceHash": "2d1fcfd2b1a6e27e3fc5e67c95acd992b10cefd9d0f7a490b913053c930b2748",
+      "t": "Without another sound, the white cat was dragged into black water. One great ripple rose, then the river grew impossibly calm."
+    },
+    {
+      "id": "ep-24:103",
+      "source": "강가에는 아무것도 남지 않았다. 안개가 다시 내려앉았다.",
+      "sourceHash": "e9978318c7659f5b9abe5be64ef391e60be49f05ed7fe03fd52dadeb5988e325",
+      "t": "Nothing remained on the bank. Mist settled again."
+    },
+    {
+      "id": "ep-24:104",
+      "source": "해 질 녘, 모카가 시장에서 돌아오다 강가로 방향을 틀었다. 시장에서 들은 말 때문이었다. 하얗고 동그란 게 강 하류로 내려가더라는 말.",
+      "sourceHash": "7712fc9110fc72cc8a4e2ca1f2b68769ffd593bedb53241c7631e380c142c264",
+      "t": "At sunset, Moka turned toward the river on his way back from the market. Because of something he'd heard there: a white, round thing had gone downstream."
+    },
+    {
+      "id": "ep-24:105",
+      "source": "고양이? 야, 고객센터. 있으면 대답해. 돼지가 밤새 울었다고 고자질하러 왔어.",
+      "sourceHash": "c33ed7e4f7ba7475fc8068ce735c7986393850a1eaf86c9f183ca47053778b29",
+      "t": "Cat? Hey, Customer Support. Answer if you're there. I came to tell on the pig for crying all night."
+    },
+    {
+      "id": "ep-24:106",
+      "source": "대답이 없었다. 모카는 코를 킁킁거리며 젖은 돌을 하나씩 밟아 나갔다. 쇠 녹는 냄새와, 처음 맡아 보는 차가운 냄새가 섞여 있었다.",
+      "sourceHash": "0c8953e60dc86465a98e0b1372d3f3ddb4cc3032ef4323a7effcee6aaa543759",
+      "t": "No answer. Sniffing, Moka stepped from wet stone to wet stone. The smell of melting metal mingled with an unfamiliar cold scent."
+    },
+    {
+      "id": "ep-24:107",
+      "source": "물가의 진흙 위에 커다란 손바닥 자국이 찍혀 있었다. 사람 손보다 훨씬 컸고, 손가락이 너무 길었다. 그 손자국 한가운데에 하얀 털 한 가닥이 박혀 있었다.",
+      "sourceHash": "51b91e0cfa91c5503e11369465318975056ad68793fec18b6e5090c74aad9b93",
+      "t": "A large palmprint marked the mud beside the water. Much larger than a human hand, its fingers far too long. At its center lay a strand of white fur."
+    },
+    {
+      "id": "ep-24:108",
+      "source": "이거.",
+      "sourceHash": "658770a82c4eea7b37b05f5dd35492896c9272f1ca81e2aaab2f26352ea1ee6a",
+      "t": "This."
+    },
+    {
+      "id": "ep-24:109",
+      "source": "모카는 털을 집어 들었다. 영냥이의 털이었다. 연이가 앞발에 감고 다니는 것과 똑같은 털이었다. 그러나 이것은 차가웠다. 강물보다 차가웠다.",
+      "sourceHash": "177d8c98390a890b2a779f911e20a4f6bcbb68bad368684fa617978d1ab2bd7e",
+      "t": "Moka picked it up. Yeongnyangi's fur. Just like the strand Yeoni wore around their hoof. But this one was cold. Colder than the river."
+    },
+    {
+      "id": "ep-24:110",
+      "source": "모카! 너도 여기 왔어? 나 하류 끝까지 갔다 왔는데 아무것도.",
+      "sourceHash": "f40c202ac0e48f19f8efdf2e549344bff07d9e5b52af8bca271b8646fa6ca7d4",
+      "t": "Moka! You came here, too? I went all the way downstream, but nothing..."
+    },
+    {
+      "id": "ep-24:111",
+      "source": "연이는 말을 멈추었다. 모카의 발에 들린 하얀 털을 보았다. 그 아래 진흙 위의 커다란 손자국을 보았다.",
+      "sourceHash": "99d1ebb3855845ac45bbc81b92dba4c3c0727c09148ab5f9bbaa4ad431e1ee2f",
+      "t": "Yeoni stopped. They saw the white fur in Moka's paw. And the great handprint in the mud beneath it."
+    },
+    {
+      "id": "ep-24:112",
+      "source": "그거 어디서 났어.",
+      "sourceHash": "21e3699c922a21ef7ee1c1f982f1eb29945d030a49244b5c343f4892141d6665",
+      "t": "Where did you get that?"
+    },
+    {
+      "id": "ep-24:113",
+      "source": "돼지. 앉아. 일단 앉아서 들어.",
+      "sourceHash": "f441872a30196303c621eb4c65269f94619ec6ad1f4d9cfef44b8e5163672ae7",
+      "t": "Pig. Sit down. Sit down first and listen."
+    },
+    {
+      "id": "ep-24:114",
+      "source": "어디서 났냐고!",
+      "sourceHash": "369981f755453055f0fc00776f5d34796268c96611581393f3d47cf07d0a9852",
+      "t": "Where did you get it?!"
+    },
+    {
+      "id": "ep-24:115",
+      "source": "윤달이 숨을 헐떡이며 뛰어왔다. 장갑을 벗은 손바닥의 구멍이 저 혼자 소용돌이치고 있었다. 무언가 큰 것이 가까이 왔다 갔다는 듯이.",
+      "sourceHash": "3537408b9b28cbd2bafa7dfca4ab007a958f68535c3bb52d0efa979f841e85c5",
+      "t": "Yundal ran up, panting. With his glove off, the hole in his palm swirled on its own, as though something enormous had just passed nearby."
+    },
+    {
+      "id": "ep-24:116",
+      "source": "늦었네요. 이 손, 방금까지 여기 있었어요. 아주 많이.",
+      "sourceHash": "661200969e17e43ed6b288fc3d8d3a18f825791f01192c22c369d48c0b03e9ea",
+      "t": "We're late. Those hands were here just now. A great many of them."
+    },
+    {
+      "id": "ep-24:117",
+      "source": "[ 時干 庚 · 빌린 칸 · 연결 끊김 ]",
+      "sourceHash": "0aa29f89f0840787354e2fabdb60db58319cf20b216fee6dfea574b5baf3b30b",
+      "t": "[ Hour Stem 庚 · Borrowed slot · Connection lost ]"
+    },
+    {
+      "id": "ep-24:118",
+      "source": "연이의 가슴 안쪽에서, 무언가가 툭 끊어지는 소리가 났다. 아무도 못 들었다. 연이만 들었다.",
+      "sourceHash": "cac74275502e15ccb1f43275bfe8121474b9eee63aa12083dc665461f232ec2d",
+      "t": "Inside Yeoni's chest, something snapped. Nobody else heard it. Only Yeoni."
+    },
+    {
+      "id": "ep-24:119",
+      "source": "영냥이가 잡혀갔어.",
+      "sourceHash": "a416d48338da8f233f86739ca325fb7dcdb43eaa978b9abe0cc6e66912467922",
+      "t": "They took Yeongnyangi."
+    },
+    {
+      "id": "ep-24:120",
+      "source": "하늘의 해가 마지막 귀퉁이까지 먹혀 들어갔다. 둥근 검은 원 하나가 강 위에 떴다. 그 둘레로 붉은 빛이 고리처럼 타올랐다.",
+      "sourceHash": "e95631ce47b24f51eb876d88947f8fc333e49b538f9c93f42adc1d435ad16575",
+      "t": "The sun's last corner was eaten away. A black disk hung over the river. Red light burned in a ring around its rim."
+    },
+    {
+      "id": "ep-24:121",
+      "source": "해가. 해가 없어졌어.",
+      "sourceHash": "72ab3fbde743b4e918a0886c6e9c5a479cb43c19ddbbbe8a30ef75dda7e4eebd",
+      "t": "The sun. The sun's gone."
+    },
+    {
+      "id": "ep-24:122",
+      "source": "일식이에요. 이제야 몸을 드러내네요.",
+      "sourceHash": "026de318416936e06b0a890057dc5115badd54c0d1acd0d1c6517577f610459d",
+      "t": "An eclipse. It's finally revealing its body."
+    },
+    {
+      "id": "ep-24:123",
+      "source": "고양이는 잘 받았다, 꼬마 돼지. 칼집이 비어 있어서 마침 쓸 데가 있었지.",
+      "sourceHash": "c63645c428c11fdc6fa5938c8cb8971f27edbfe0137a0bf790b5711e9747a928",
+      "t": "The cat arrived safely, little pig. My sheath was empty, so I had just the use for him.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-24:124",
+      "source": "돌려줘. 영냥이 돌려줘!",
+      "sourceHash": "181b42afab4625b3f8cc5b8c5c85a0a7c1d2a59f88759720e987d1828c47114f",
+      "t": "Give him back. Give Yeongnyangi back!"
+    },
+    {
+      "id": "ep-24:125",
+      "source": "돌려주마. 대신, 네가 오너라. 빈 그릇이 되어서.",
+      "sourceHash": "4db0380629d9b0b30d6919cd98e72b8f1861c2f8c304713027d0aef3a9ad790f",
+      "t": "I will. In return, you must come. As an empty vessel.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-24:126",
+      "source": "검은 원이 천천히 깜빡였다. 눈꺼풀처럼. 그리고 강 위의 모든 그림자가 연이 쪽으로 고개를 돌렸다.",
+      "sourceHash": "a0d246d84e091fd1b12798560f3df47aa2c20e9c0158f96e15758f92787b7901",
+      "t": "The black disk slowly blinked, like an eyelid. And every shadow over the river turned toward Yeoni."
+    }
+  ]
+}

@@ -813,17 +813,17 @@ body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-note {
 
   .cd-detail-table-cell--axis::before,
   .tile-pvw-cmp-row .tile-pvw-cmp-c:first-child::before {
-    content: "기준";
+    content: attr(data-label);
   }
 
   .cd-detail-table-cell--free::before,
   .tile-pvw-cmp-row .tile-pvw-cmp-c:nth-child(2)::before {
-    content: "기본";
+    content: attr(data-label);
   }
 
   .cd-detail-table-cell--premium::before,
   .tile-pvw-cmp-row .tile-pvw-cmp-c:nth-child(3)::before {
-    content: "상세 보기";
+    content: attr(data-label);
   }
 }
 
@@ -1076,6 +1076,7 @@ body.neo-mode .tile-pvw-overlay {
   letter-spacing: -0.005em;
   line-height: 1.45;
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-sec-title::before {
@@ -1108,7 +1109,7 @@ body.neo-mode .tile-pvw-overlay {
   font-size: calc(0.97 * var(--pvw-rem));
   line-height: 1.72;
   word-break: keep-all;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-feats li::before {
@@ -1284,6 +1285,7 @@ body.neo-mode .tile-pvw-overlay {
   font-size: calc(0.9375 * var(--pvw-rem));
   line-height: 1.6;
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 @media (min-width: 600px) {
@@ -1315,6 +1317,7 @@ body.neo-mode .tile-pvw-overlay {
   font-size: calc(0.97 * var(--pvw-rem));
   line-height: 1.75;
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-steps {
@@ -1554,6 +1557,7 @@ body.neo-mode .tile-pvw-overlay {
 .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-q-text {
   min-width: 0;
   flex: 1 1 auto;
+  overflow-wrap: anywhere;
 }
 
 .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-mark {

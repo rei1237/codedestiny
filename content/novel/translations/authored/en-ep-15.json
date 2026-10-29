@@ -1,0 +1,678 @@
+{
+  "locale": "en",
+  "episodeId": "ep-15",
+  "tag": "Episode 15 · The Vault Heist",
+  "title": "The Vault Heist",
+  "sourceTitle": "금고 털이",
+  "sourceTag": "제15화 · 금고 털이",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-15:1",
+      "source": "시계탑 뒷문은 생각보다 초라했다. 빵 바구니 하나가 겨우 지나갈 만한 쪽문에, 녹슨 승강기 줄이 매달려 있었다.",
+      "sourceHash": "f847abd5678bcd3ea3ea63e0076080f24b8d8d4c7ff61cdb47861cedbd84e000",
+      "t": "The clock tower's back entrance was shabbier than expected. A rusty lift rope hung beside a narrow door barely wide enough for a bread basket."
+    },
+    {
+      "id": "ep-15:2",
+      "source": "언니가 매일 새벽 여기로 빵을 내려보냈어. 금고 경비 아저씨들 아침밥.",
+      "sourceHash": "6f528b07ca3638b3e47177a13f265da5db08a07cc6b165776b0767db47a4f49f",
+      "t": "My sister sends bread down here every morning before dawn. Breakfast for the vault guards."
+    },
+    {
+      "id": "ep-15:3",
+      "source": "루나 양 덕분에 정문 일곱 겹을 건너뛰네요. 오늘의 일등 공신이에요.",
+      "sourceHash": "ebf276c10dc86934ba80a83b331ea0e0c432939177e1e31e342072f83653a515",
+      "t": "Thanks to Miss Luna, we can skip seven layers of front doors. You're today's star contributor."
+    },
+    {
+      "id": "ep-15:4",
+      "source": "그럼 나 별 다섯 개야?",
+      "sourceHash": "d0ea8dc92ec0e42aa9b2daf6ea60c7b1c103c057cd5794e88e4190c2db71b73a",
+      "t": "Then do I get five stars?"
+    },
+    {
+      "id": "ep-15:5",
+      "source": "별 다섯 개에 꽃 도장까지. 언니 깨면 자랑하자.",
+      "sourceHash": "32a7ec262b5458fdd1659926b8ecbf0ae170b78848a5b962a12dceb7e2437e39",
+      "t": "Five stars and a flower stamp. Let's tell your sister when she wakes up."
+    },
+    {
+      "id": "ep-15:6",
+      "source": "광장 끝에서 등불 하나가 흔들렸다. 파란 제복을 입은 토끼 순찰이 하품을 하며 지나갔다.",
+      "sourceHash": "907b46fb24af12541db9b615bec584d5a6b344461458258e4b68a9b629b5c6da",
+      "t": "At the far end of the square, a lantern swayed. A rabbit patrol in a blue uniform passed by, yawning."
+    },
+    {
+      "id": "ep-15:7",
+      "source": "숙여라. 순찰은 정각마다 돈다. 다음 정각까지 4분.",
+      "sourceHash": "3397edea1c04e09a7e8b8e942391ed72bec38063078fd2de2b8a665112febbac",
+      "t": "Get down. The patrol comes around on the hour. Four minutes until the next one."
+    },
+    {
+      "id": "ep-15:8",
+      "source": "(4분. 이 섬에선 4분이면 빵 하나 반이야.)",
+      "sourceHash": "6a279c3af6ddb5fc817c4426a9ef3d436c88ead948b5f7a7b695fad18ebd7697",
+      "t": "(Four minutes. On this island, that's a roll and a half.)"
+    },
+    {
+      "id": "ep-15:9",
+      "source": "순찰 토끼 귀 봐. 꼬치 냄새 맡고 실룩거려. 저것도 배고픈 거야.",
+      "sourceHash": "422adb71716989e78de671e0652a0cd863cb1dcf53f42ae55bd4991ea76ba2c6",
+      "t": "Look at that patrol rabbit's ears. They're twitching at the smell of skewers. That one's hungry, too."
+    },
+    {
+      "id": "ep-15:10",
+      "source": "순찰이 모퉁이를 돌자 넷은 그림자에서 그림자로 건너뛰었다. 루나가 앞장서서 쪽문의 빗장을 들어 올렸다.",
+      "sourceHash": "096c06410ec598ea9cfc32ac87e12b37dabf0378274fa20793104647b1c48462",
+      "t": "Once the patrol turned the corner, the four darted from shadow to shadow. Luna led the way and lifted the narrow door's bolt."
+    },
+    {
+      "id": "ep-15:11",
+      "source": "승강기 바구니가 삐걱이며 내려갔다. 넷과 루나는 차례로 줄에 매달려 어둠 속으로 미끄러졌다.",
+      "sourceHash": "abd823baefb73b0ce7b97b6cddd07378387d6d0189d032400779700aa51ede2f",
+      "t": "The lift basket creaked downward. One after another, the four and Luna clung to the rope and slid into darkness."
+    },
+    {
+      "id": "ep-15:12",
+      "source": "첫 층은 공장이었다. 수백 명이 말없이 기계를 돌리고 있었다. 기계에서는 동전 대신 째깍거리는 모래알이 쏟아졌다.",
+      "sourceHash": "cc0deae3aa88555ce87698647bc7695b426f461109fed37f78f93b6f8d0971a6",
+      "t": "The first level was a factory. Hundreds of people worked machines in silence. Instead of coins, ticking grains of sand poured from them."
+    },
+    {
+      "id": "ep-15:13",
+      "source": "이 사람들 다 경비야? 경비가 아니라 일꾼 같아.",
+      "sourceHash": "e26d0962d0d3e779e0b10a09e3990ed6ac227c466a83f5860c5d41a99dc2ac88",
+      "t": "Are these all guards? They look more like workers."
+    },
+    {
+      "id": "ep-15:14",
+      "source": "빚진 시간을 몸으로 갚는 층이에요. 여기서 일하는 동안은 하루가 안 흘러요. 대신 집에도 못 가죠.",
+      "sourceHash": "c6c4954f33c856689f82cd34f657a0462f44375548b3a6db385878ba5f13cd3c",
+      "t": "This is the level where people work off the time they owe. Their days don't pass while they work here. But they can't go home, either."
+    },
+    {
+      "id": "ep-15:15",
+      "source": "일꾼들의 얼굴은 하나같이 흐렸다. 누구는 아이였고 누구는 노인이었다. 흐린 얼굴들 가운데 커다란 판다 하나가 졸음을 참고 있었다.",
+      "sourceHash": "e56263cf76de2babd6f4e8d136a08b062eb8ea23062a1f0132b460cee44bb393",
+      "t": "Every worker's face was blurred. Some were children, others elderly. Among the indistinct faces, one large panda struggled to stay awake."
+    },
+    {
+      "id": "ep-15:16",
+      "source": "다들 배고픈 얼굴이야. 맛을 잃은 얼굴.",
+      "sourceHash": "13d771ccb6c3796d5f1bc10c73550e58d5060eeafa8fd4f5e8a4fad1fdce56f8",
+      "t": "They all look hungry. Faces that have lost their taste."
+    },
+    {
+      "id": "ep-15:17",
+      "source": "계획 바꿀게. 홀리는 게 아니라 먹일 거야. 냄새 교란은 덤.",
+      "sourceHash": "6da5b9d633d831ef35cbc905b620dc06813d68ad325faa7a3aaa2abbacc2cb4b",
+      "t": "Change of plan. I'm feeding them, not luring them. The scent diversion is a bonus."
+    },
+    {
+      "id": "ep-15:18",
+      "source": "모카가 휴대 화로에 불을 붙였다. 매운 꼬치 스무 개가 한꺼번에 지글거리자 공장 안 공기가 흔들렸다.",
+      "sourceHash": "b5341f6390cc3e6fa3b15ee68607f62c8d374cdb382324bede65f29989bf784e",
+      "t": "Moka lit his portable brazier. Twenty spicy skewers sizzled at once, stirring the factory air."
+    },
+    {
+      "id": "ep-15:19",
+      "source": "기계 소리가 하나씩 멈췄다. 일꾼들이 고개를 들었다. 흐린 얼굴들 사이로 침 삼키는 소리가 번졌다.",
+      "sourceHash": "f434b58e0db16b5cae3e0bf7835b3aa9f18af68bdc5e7a01c810b6679067d59b",
+      "t": "One by one, the machines fell silent. The workers raised their heads. The sound of swallowing spread among the blurred faces."
+    },
+    {
+      "id": "ep-15:20",
+      "source": "줄 서. 값은 안 받아. 대신 맛있으면 맛있다고 말해. 그게 값이야.",
+      "sourceHash": "a73b89f59cd7c811c652dceb762263b7ca64be89df680db2f776f01ae60bc3dc",
+      "t": "Line up. No charge. But if it's good, tell me it's good. That's your payment."
+    },
+    {
+      "id": "ep-15:21",
+      "source": "판다가 맨 먼저 꼬치를 받았다. 한 입 베어 문 판다의 흐린 눈가가 잠깐 또렷해졌다. 맛있다. 아주 작은 목소리였다.",
+      "sourceHash": "0c5bff8f584d1edb44f1f82aba373769c6ab2b383efd0c560c5ed74aabea90cd",
+      "t": "The panda took the first skewer. With one bite, the blurred edges of its eyes briefly cleared. Delicious, it said in the smallest voice."
+    },
+    {
+      "id": "ep-15:22",
+      "source": "들었어? 맛있대!",
+      "sourceHash": "ae7b9a8ad7332099ff7a2532dc9038931e2b50716863b65e2485b4218a742cd1",
+      "t": "Did you hear? It's delicious!"
+    },
+    {
+      "id": "ep-15:23",
+      "source": "당연하지. 이번엔 진짜 맛이니까.",
+      "sourceHash": "d19af705a62db6903deb856fe4b2864c67a548f3f2ec534aaffa11b74b4e47d6",
+      "t": "Of course. This time, the flavor is real."
+    },
+    {
+      "id": "ep-15:24",
+      "source": "꼬치 줄 맨 끝에 작은 아이 하나가 서 있었다. 귀가 접힌 아기 토끼였다. 아이는 꼬치를 받고도 먹지 않고 손목만 들여다보았다.",
+      "sourceHash": "5349da88056d742c36eae1452caa1de8020175e277aecb2bd7534cbe8436fd6a",
+      "t": "A small child stood at the end of the skewer line, a baby rabbit with folded ears. Even after receiving a skewer, the child only stared at their wrist without eating."
+    },
+    {
+      "id": "ep-15:25",
+      "source": "안 먹어? 맛있는데.",
+      "sourceHash": "e75c3e98909ab713726325ea8bb140ad83ca85dc6fa092cf62d55dad15fddfdc",
+      "t": "Not eating? It's good."
+    },
+    {
+      "id": "ep-15:26",
+      "source": "아이가 손목을 내밀었다. 작은 숫자가 깜빡이고 있었다. 집까지 남은 빚 00:01:00.",
+      "sourceHash": "a10dfb0b59f68f73333c52d1dd07e1950192fb657ebbda0584bb1fb3f738ebf5",
+      "t": "The child held out a wrist. Tiny numbers blinked on it. Debt remaining before home: 00:01:00."
+    },
+    {
+      "id": "ep-15:27",
+      "source": "1분? 1분 때문에 여기 있는 거야?",
+      "sourceHash": "a7c2e6a79c5fa54ddc3683f191824e891612493b45ad8c62011a9490f5d22d20",
+      "t": "One minute? You're here because of one minute?"
+    },
+    {
+      "id": "ep-15:28",
+      "source": "아이는 고개를 끄덕였다. 1분만 더 일하면 엄마한테 간다고, 꼬치 냄새 너머로 작게 말했다.",
+      "sourceHash": "0c65a4956487de701cf30fa974401c7982493f064c04f01da2385d95b433c466",
+      "t": "The child nodded. Just one more minute of work, and they could go to their mother, they said softly through the smell of skewers."
+    },
+    {
+      "id": "ep-15:29",
+      "source": "(1분. 내가 번 12분이면…)",
+      "sourceHash": "9fff5b96e811eef967a57889942920c0f5365bf9726be627684e5d6dcc1a4925",
+      "t": "(One minute. With the twelve I earned...)"
+    },
+    {
+      "id": "ep-15:30",
+      "source": "숙녀분, 지금은 안 돼요. 일곱째 칸 문값이에요. 돌아오는 길에 다시 봐요.",
+      "sourceHash": "4fb85df72468b67ad8f35a21321f7c4b23b22293aeb853d5abc985ec053327a0",
+      "t": "Not now, my lady. That's the price of the seventh chamber's door. We'll see them again on the way back."
+    },
+    {
+      "id": "ep-15:31",
+      "source": "기다려. 돌아올 때 꼭 들를게. 꼬치 식기 전에 먹고 있어.",
+      "sourceHash": "823ad92fb69edc715ff8fd36e480498b3446d444188fc3dec4f4b6477fca1c88",
+      "t": "Wait for me. I'll make sure to stop here on our way back. Eat your skewer before it gets cold."
+    },
+    {
+      "id": "ep-15:32",
+      "source": "언니 빵 냄새랑 비슷해. 따뜻한 냄새.",
+      "sourceHash": "ce10a6af7b9fbc4fbeaaec0ddddd632b031dee6422b903ed4ffdfabbd96011b6",
+      "t": "It smells like my sister's bread. A warm smell."
+    },
+    {
+      "id": "ep-15:33",
+      "source": "모카가 시선을 끄는 동안 내려간다. 둘째 층부터는 시간이 느려진다.",
+      "sourceHash": "b136a80614fe8fc22a6d90ea5d441f41f90c723ba965d623a83ff952bfefb010",
+      "t": "We go down while Moka keeps their attention. Time slows from the second level onward."
+    },
+    {
+      "id": "ep-15:34",
+      "source": "루나 양은 모카 씨 옆에 있어요. 아래는 어른들이 갈게요.",
+      "sourceHash": "1465f8fc91731e4873f4b4d6c79daf368cd74a00b7d49481863ebbf735b4e6c9",
+      "t": "Miss Luna, stay beside Moka. The grown-ups will go below."
+    },
+    {
+      "id": "ep-15:35",
+      "source": "싫어. 우리 언니 하루야. 내가 찾을 거야.",
+      "sourceHash": "e9323306eab9963524a938be9dfb5ce9e731cbfb79aabc25b0704feace194a15",
+      "t": "No. It's my sister's day. I'm going to find it."
+    },
+    {
+      "id": "ep-15:36",
+      "source": "그럼 셋째 층까지만 같이 가자. 거기서 기다리면 내가 언니 거 꼭 들고 올게. 약속.",
+      "sourceHash": "c57b106dc19e644865b62a423d3d98d339df3b69fd3271144b1370c6b2d75860",
+      "t": "Then come with us as far as the third level. Wait there, and I'll bring it back for you. I promise."
+    },
+    {
+      "id": "ep-15:37",
+      "source": "둘째 층. 황금빛 회랑이 끝없이 이어졌다. 벽에 박힌 계기판 바늘들이 꿀처럼 느리게 움직였다.",
+      "sourceHash": "89efd38e60d0263e0f7ec8a28155d62176169cac719a811871a6a66c69d78463",
+      "t": "The second level. A golden corridor stretched on endlessly. Needles on the gauges set into the walls moved as slowly as honey."
+    },
+    {
+      "id": "ep-15:38",
+      "source": "한 걸음을 떼자 발이 무거워졌다. 두 걸음째에는 귀에서 제 심장 소리가 천둥처럼 울렸다.",
+      "sourceHash": "15f33e37a11acf55c834768fe3430c6ea21c51692155b56f7a70bfaa1e1bc99e",
+      "t": "After one step, Yeoni's feet grew heavy. At the second, their own heartbeat thundered in their ears."
+    },
+    {
+      "id": "ep-15:39",
+      "source": "숨이… 위로 올라와.",
+      "sourceHash": "199e0673f9c3997c42e81adf7f12c5ffbad5475364b5681c9d1c45dc56be6b18",
+      "t": "My breath... it's rising."
+    },
+    {
+      "id": "ep-15:40",
+      "source": "받쳐라. 어제처럼. 아래로 내려놓고.",
+      "sourceHash": "6cbde0ffde188684b44299a35a0d831ce6d83f70e96d85f4a6809783f9c36f3d",
+      "t": "Support it. Like yesterday. Set it down low."
+    },
+    {
+      "id": "ep-15:41",
+      "source": "연이는 배 아래로 숨을 내려보냈다. 귀 뒤에 꽂은 잘린 싹이 살짝 흔들렸다. 다리가 다시 움직였다.",
+      "sourceHash": "77688482b9c185d2d755ab35764b97788c82df0ee7dbec8249961d366311cc49",
+      "t": "Yeoni sent their breath below their belly. The severed sprout behind their ear stirred slightly. Their legs moved again."
+    },
+    {
+      "id": "ep-15:42",
+      "source": "셋째 층 문 앞에서 회랑이 덜컹 흔들렸다. 바닥 판이 뒤집히며 금속 팔들이 솟구쳤다. 경보도 없이 조용한 함정이었다.",
+      "sourceHash": "15ade6f5cdf92af5a20e90823b05b454ecdcf48d9e0fae437c75b9e99d0aab04",
+      "t": "Before the third-level door, the corridor jolted. Floor panels flipped, and metal arms shot upward. A silent trap, without even an alarm."
+    },
+    {
+      "id": "ep-15:43",
+      "source": "영냥이가 앞으로 뛰쳐나갔다. 금빛 발톱이 금속 팔 셋을 한 번에 베었다. 잘린 팔들이 느린 시간 속에서 천천히 떨어졌다.",
+      "sourceHash": "ee574beceac9f8bc7ae74829fd9503640b3a724d26fd588cf869b55aeced7898",
+      "t": "Yeongnyangi sprang forward. His golden claws cut three metal arms in one stroke. The severed arms fell slowly through the slowed time."
+    },
+    {
+      "id": "ep-15:44",
+      "source": "길은 열었어. 저 문은 네가 열어야 해.",
+      "sourceHash": "a0b287ff2fb8cb1075f47635ae5b7b19b4ed0464453dbe7ad6a45ecce246ca04",
+      "t": "The way's clear. You need to open that door."
+    },
+    {
+      "id": "ep-15:45",
+      "source": "네, 네. 잠긴 건 제가 먹을게요.",
+      "sourceHash": "24d616b763bde0680fd991268d5d8df9bd54d9d171b308f2daff222cfe9dd587",
+      "t": "Yes, yes. I'll eat the locked parts."
+    },
+    {
+      "id": "ep-15:46",
+      "source": "윤달이 문고리에 손바닥을 댔다. 자물쇠가 통째로 구멍 안으로 사라졌다. 윤달의 어깨가 한 번 움찔했다.",
+      "sourceHash": "66843bb820a44e7308c29ecda1f56a7a726a276196ab5544373cdc37d2bd5091",
+      "t": "Yundal pressed his palm to the door handle. The whole lock disappeared into the hole. His shoulders twitched once."
+    },
+    {
+      "id": "ep-15:47",
+      "source": "이 섬 자물쇠는 철 맛이 진하네요. 이빨이 시려요.",
+      "sourceHash": "31990a7e6c3020c927d7446bdc6f362237363919042434e49d0f0665ed1968f6",
+      "t": "Locks on this island taste strongly of iron. Makes my teeth ache."
+    },
+    {
+      "id": "ep-15:48",
+      "source": "아저씨, 방금 또 커졌죠. 손 줘 봐요.",
+      "sourceHash": "3f7c44731280246277333987a8c0ca02d3b4caaab38e61e3ae9fbaa68eb8e7e6",
+      "t": "Mister, it got bigger again just now, didn't it? Let me see your hand."
+    },
+    {
+      "id": "ep-15:49",
+      "source": "숙녀분이 손을 잡아 주시면 덜 아플지도요.",
+      "sourceHash": "c3a0b2a8cd5e46823b810cbf029c6b0c9222336fdb4180d690cc731aed75197a",
+      "t": "It might hurt less if a lady held my hand."
+    },
+    {
+      "id": "ep-15:50",
+      "source": "그런 말은 손 안 아플 때 해요!",
+      "sourceHash": "4584b61702b38591b73d5cd955a496dc6753d0d2b7084f401e743cf9847fc84c",
+      "t": "Say things like that when your hand isn't hurting!"
+    },
+    {
+      "id": "ep-15:51",
+      "source": "셋째 층에서 루나와 헤어졌다. 루나는 문 앞에 쪼그려 앉아 손가락 다섯 개를 펴 보였다. 다섯 시간 안에 와.",
+      "sourceHash": "68ed9defa4dd2d27871ffd1c567397f231c3d6c79f15798d7e72f1841f26c31b",
+      "t": "They parted with Luna on the third level. She crouched by the door and spread five fingers. Come back within five hours."
+    },
+    {
+      "id": "ep-15:52",
+      "source": "넷째, 다섯째, 여섯째 층. 내려갈수록 시간이 짙어졌다. 떨어지는 물방울이 공중에 멈춰 진주처럼 걸려 있었다.",
+      "sourceHash": "6a99d3785b9821da9ea84e26f60b22eda5ea6bb386efdfc765c026229410bcc5",
+      "t": "The fourth, fifth, and sixth levels. Time thickened as they descended. Falling drops of water hung suspended like pearls."
+    },
+    {
+      "id": "ep-15:53",
+      "source": "나 재채기 나올 것 같아.",
+      "sourceHash": "34d5f45101325e95d3fa0945e47282f4ebb4d4e1923556d76e54f857b1b752b1",
+      "t": "I think I'm going to sneeze."
+    },
+    {
+      "id": "ep-15:54",
+      "source": "지금 하면 일주일이에요.",
+      "sourceHash": "6d2fdbabc3b4f07721ea2d08d86b5ad8d753ed7d2984a9f8e9c2ab8e7e40e186",
+      "t": "Do it now, and that's a week."
+    },
+    {
+      "id": "ep-15:55",
+      "source": "알아. 그래서 참고 있잖아. 별 하나짜리 층이야, 여기.",
+      "sourceHash": "41af1d83e8fa853915bac6b4190518949463986ecb042fe7d2900cc223f941c7",
+      "t": "I know. That's why I'm holding it in. This level gets one star."
+    },
+    {
+      "id": "ep-15:56",
+      "source": "모카의 코가 씰룩였다. 영냥이가 말없이 망토 자락으로 모카의 코를 덮었다. 재채기는 별 자수 안감 속에서 조용히 사라졌다.",
+      "sourceHash": "7d6e3680a73a2e8914b6eae227a8b9a2f18b7592ee6b4757f1debefe6a2e0c05",
+      "t": "Moka's nose twitched. Without a word, Yeongnyangi covered it with the hem of his cloak. The sneeze vanished quietly into the star-embroidered lining."
+    },
+    {
+      "id": "ep-15:57",
+      "source": "영냥이 망토, 재채기 필터 기능도 있어? 별 하나 추가.",
+      "sourceHash": "ebc3740b7739beb6f207f1cfc3d9e186de2aea0cb862f4399e83e88dbc7261b7",
+      "t": "Your cloak has a sneeze filter, too, Yeongnyangi? One extra star."
+    },
+    {
+      "id": "ep-15:58",
+      "source": "공짜다. 오늘만.",
+      "sourceHash": "5f6f09572b315a832aa2f02811ade1c064a47a9f0f27af78ae638bf14d901156",
+      "t": "Free of charge. Today only."
+    },
+    {
+      "id": "ep-15:59",
+      "source": "일곱째 칸. 거대한 원형 금고가 열려 있었다. 벽을 따라 수천 개의 모래시계가 층층이 꽂혀 있었다.",
+      "sourceHash": "76e3badd060f6ea20013ecc40ccd66738d89616ab5eb595fc1e07f9e99122c55",
+      "t": "The seventh chamber. A vast circular vault stood open. Thousands of hourglasses lined the walls in tier upon tier."
+    },
+    {
+      "id": "ep-15:60",
+      "source": "이게 다 누군가의 하루야?",
+      "sourceHash": "0538093585de908b8224625f4cf695e9c9d4492c71bd83d79fbf9fc3cf1106cd",
+      "t": "Is every one of these someone's day?"
+    },
+    {
+      "id": "ep-15:61",
+      "source": "하루, 한 달, 십 년. 이 섬에서 팔리고 빼앗긴 시간들이요.",
+      "sourceHash": "34f4abda0cfa047cce13e8841d2093524650cd1bfc2bf180ed33419447c0d7aa",
+      "t": "A day, a month, ten years. Time sold and stolen on this island."
+    },
+    {
+      "id": "ep-15:62",
+      "source": "모래시계마다 아주 작은 소리가 났다. 아이 웃음소리, 밥 짓는 소리, 누군가 이름을 부르는 소리. 팔려 온 하루의 소리였다.",
+      "sourceHash": "079287b960240df1041524e74859b7a793508ea863573e8aac9e0cd44fb90c36",
+      "t": "Each hourglass made a tiny sound. A child's laughter, rice cooking, someone calling a name. The sounds of days that had been sold."
+    },
+    {
+      "id": "ep-15:63",
+      "source": "여기 소리 다 맛이 있어. 누구 집 저녁 냄새 같은 소리.",
+      "sourceHash": "2ad4fd1124e6d376283cb9e553bba17d17afded92638fdc57edc76ff230fb7ab",
+      "t": "All these sounds have flavor. Sounds like the smell of dinner in someone's home."
+    },
+    {
+      "id": "ep-15:64",
+      "source": "너무 오래 듣진 마. 남의 하루를 따라가다 네 발이 묶일 수 있어.",
+      "sourceHash": "d7cf46ab3ccb5e487ae955e2551253d0e7408c1b42567e6df8962dda0dba3d58",
+      "t": "Don't listen too long. Follow someone else's day, and you could find yourself stuck in it."
+    },
+    {
+      "id": "ep-15:65",
+      "source": "[ 루나 언니 · 남은 오늘 01:12:40 ]",
+      "sourceHash": "afdaa8d1098aa4b5e89e2c887390fabe12df95b82d2d7545b89804b7c48885cd",
+      "t": "[ Luna's sister · Today remaining: 01:12:40 ]"
+    },
+    {
+      "id": "ep-15:66",
+      "source": "연이는 이름표를 하나하나 훑었다. 셋째 줄 끝에서 밀가루 묻은 손 그림이 그려진 모래시계를 찾았다.",
+      "sourceHash": "76c919f7f8fc1170203525fc9ff4fa83d24735713f5a8971f00d5cfde75f43a4",
+      "t": "Yeoni searched the labels one by one. At the end of the third row, they found an hourglass bearing a drawing of flour-covered hands."
+    },
+    {
+      "id": "ep-15:67",
+      "source": "찾았다! 언니 거! 손 그림 있어!",
+      "sourceHash": "f75ead3e695b859cd3f7bd5127144d0623580a61590eff2ab8454bd804fd22b5",
+      "t": "Found it! Hers! It has a picture of hands!"
+    },
+    {
+      "id": "ep-15:68",
+      "source": "윤달은 반대편 벽으로 달려갔다. 맨 아래 서랍 하나에 이름 대신 빈 이름표가 붙어 있었다. 서랍은 비어 있었다.",
+      "sourceHash": "9c1607ed63cbe780ea019858b808182bf3e0ddda3a64eb956cd2d84cfaf89c22",
+      "t": "Yundal ran to the opposite wall. One drawer at the very bottom had a blank label instead of a name. The drawer was empty."
+    },
+    {
+      "id": "ep-15:69",
+      "source": "없네요. 묘시가 있어야 할 자리가.",
+      "sourceHash": "bfc562bcc5881ed3d7c62aa9c1a3d0842ef934ea0de11efc73aa4b97b6122747",
+      "t": "It's gone. The place where my birth hour should be."
+    },
+    {
+      "id": "ep-15:70",
+      "source": "아저씨…",
+      "sourceHash": "2446dc8b4fa5292de95c0c5fe6cd12ae8310ed50e692965cd2afe0d99bd41c8c",
+      "t": "Mister..."
+    },
+    {
+      "id": "ep-15:71",
+      "source": "괜찮아요. 그 토끼가 들고 다니나 봐요. 먹은 걸 아까워하는 타입이거든요.",
+      "sourceHash": "4d0bf0aac3b5f19684355bb2a811973c50a93d73700582c08addf358fd8bb918",
+      "t": "It's all right. That rabbit must carry it around. The type that gets attached to things it's eaten."
+    },
+    {
+      "id": "ep-15:72",
+      "source": "그때 금고 한가운데서 종이 넘기는 소리가 났다. 아주 느리고 아주 또박또박한 소리였다.",
+      "sourceHash": "fdfdbedb25e9241b6f0c0b4c8394075f0cf6c8f5f84d8bb3a8fc4507525265a3",
+      "t": "Then came the sound of a page turning in the center of the vault. Very slowly, very deliberately."
+    },
+    {
+      "id": "ep-15:73",
+      "source": "금고 중앙의 둥근 단 위에 검은 호랑이가 앉아 있었다. 망토 위로 장부가 펼쳐져 있었고, 발밑에는 금빛 알 하나가 놓여 있었다.",
+      "sourceHash": "1a9ec14143e3cafab6e8a51c4b2c6ff3f0f97e4e21c52b3140e4c2795d1db057",
+      "t": "A black tiger sat on a round dais at the vault's center. A ledger lay open over its cloak, and a golden egg rested at its feet."
+    },
+    {
+      "id": "ep-15:74",
+      "source": "늦었네, 돼지. 빵집 승강기로 올 줄은 알았지만.",
+      "sourceHash": "ba988650d228a4fca85d88194f3e14d78be29347feff946e333d8bfd3a28ffb9",
+      "t": "You're late, pig. Though I knew you'd take the bakery lift."
+    },
+    {
+      "id": "ep-15:75",
+      "source": "알았으면서 막지 않았어?",
+      "sourceHash": "d5d8d7ef3409b3aeb7fcba76ac1a02cd2c367cf4f3f2c468b369eb367918373c",
+      "t": "You knew, and you didn't stop us?"
+    },
+    {
+      "id": "ep-15:76",
+      "source": "오는 손님을 막는 금고지기는 없어. 나가는 손님을 막지.",
+      "sourceHash": "299a19481dfb12663896b77fcec52df6552266cd970f4373ea2fb7423d5d4ea0",
+      "t": "No vault keeper stops guests coming in. It stops them leaving."
+    },
+    {
+      "id": "ep-15:77",
+      "source": "호랑이가 장부를 한 장 넘겼다. 연이는 똑똑히 보았다. 빼곡한 줄들 가운데 한 줄만 비어 있었다.",
+      "sourceHash": "fb746e2c7dc3807734895c82c11aea0b0be1db406798177d55f77d36249030ad",
+      "t": "The tiger turned a page. Yeoni saw it clearly. Among the densely filled lines, only one was empty."
+    },
+    {
+      "id": "ep-15:78",
+      "source": "[ 꽃돼지 · 미수(未收) ]",
+      "sourceHash": "e9f6fafe977388a49a9e784d869c9ac65fc58e333e2847e11efa73a79067e959",
+      "t": "[ Flower Pig · Uncollected ]"
+    },
+    {
+      "id": "ep-15:79",
+      "source": "다음 섬에서 너의 시간을 거두라는 말을 들었어. 그런데 네가 제 발로 금고까지 왔네.",
+      "sourceHash": "bd3cade61002a03c828745f69f15ff2d277f93cfd2ea1222c3a30c7d80557e03",
+      "t": "I was told to collect your time on the next island. But you've walked right into the vault yourself."
+    },
+    {
+      "id": "ep-15:80",
+      "source": "누가 그런 말을 했는데. 네 장부엔 사장도 적혀 있어?",
+      "sourceHash": "74b9f788c837eb5fbdfc4e89106c597e86695936393b2bdf9057658db8aa05b7",
+      "t": "Who told you that? Is your boss in that ledger, too?"
+    },
+    {
+      "id": "ep-15:81",
+      "source": "질문이 많네. 빚은 남겨 두면 불어나. 그러니까 제때 거둬야지.",
+      "sourceHash": "539f0ddab9ac8e4366dc64ed2c287aead9d12d544ee14bdf6834365eb540ccde",
+      "t": "So many questions. Leave a debt alone, and it grows. That's why you collect on time."
+    },
+    {
+      "id": "ep-15:82",
+      "source": "그럼 너는? 너는 누구한테 뭘 빌렸는데.",
+      "sourceHash": "aadda5f5ac01069b7b07b4cafa806a9a6beb68be5415202507b72a1c5a28e566",
+      "t": "Then what about you? What did you borrow, and from whom?"
+    },
+    {
+      "id": "ep-15:83",
+      "source": "호랑이의 꼬리가 멈췄다. 장부를 넘기던 앞발이 아주 잠깐 허공에 걸렸다.",
+      "sourceHash": "c7997c9744f7b3ceb4bdb9c04deddd87f49102485edf9c5bffee59a4ace97b54",
+      "t": "The tiger's tail stopped. Its page-turning paw hung in the air for the briefest moment."
+    },
+    {
+      "id": "ep-15:84",
+      "source": "돼지가 알 필요 없는 거.",
+      "sourceHash": "8ebbd51b44fbc2ad6059aad3f206babbfc7938396c951a371b9d9043941ba434",
+      "t": "Nothing a pig needs to know."
+    },
+    {
+      "id": "ep-15:85",
+      "source": "(방금, 대답을 못 했어.)",
+      "sourceHash": "e9bf3557ab4e4ecc43bd25c831e68c827db4767932c1b5c9063d4b1ae349462f",
+      "t": "(Just now, it couldn't answer.)"
+    },
+    {
+      "id": "ep-15:86",
+      "source": "연이한테서 손 떼.",
+      "sourceHash": "f3f732a910c54d6d1f88d8d6c1a0d218c908b3175871b6b89a456c7641c60f29",
+      "t": "Keep your paws off Yeoni."
+    },
+    {
+      "id": "ep-15:87",
+      "source": "고양이는 빠져. 너도 이미 금이 갔잖아. 왼발.",
+      "sourceHash": "027dfa494ccfe9c8bd7eb6c979dfb43557f39450fe3f9bc171df32679db96dd3",
+      "t": "Stay out of it, cat. You're already cracked, too. That left paw."
+    },
+    {
+      "id": "ep-15:88",
+      "source": "영냥이의 왼 앞발이 미세하게 움찔했다. 연이는 그 움직임을 보지 못했다. 연이의 눈은 호랑이 발밑의 알에 가 있었다.",
+      "sourceHash": "61df707095d465dd081be4b3eb5c2cd4ffef6379b3f74b28efa032591275e1a2",
+      "t": "Yeongnyangi's left front paw twitched almost imperceptibly. Yeoni missed it. Their eyes were on the egg at the tiger's feet."
+    },
+    {
+      "id": "ep-15:89",
+      "source": "(저 알… 왜 이렇게 낯익지. 내 안에서 뭔가가 부르는 것 같아.)",
+      "sourceHash": "352cc1278e39a0cb99b48b8459c821dd594d1633eafc44e32ac082906a3cabd6",
+      "t": "(That egg... why does it seem so familiar? It's like something inside me is calling.)"
+    },
+    {
+      "id": "ep-15:90",
+      "source": "숙녀분, 그 알이에요. 辰. 숙녀분 시지의 글자. 진토는 창고예요. 이 금고 전체가 그 알 위에 지어진 거예요.",
+      "sourceHash": "3171dc2a795d79fe9ddd053b79162939f2ab4985bdf8ddcba60b5afc2e51563d",
+      "t": "My lady, that egg. 辰, Chen. The character for your Hour Branch. Chen Earth is a storehouse. This entire vault was built on that egg."
+    },
+    {
+      "id": "ep-15:91",
+      "source": "[ 年 □□ · 月 丙午 · 日 乙亥 · 時 □辰 ? ]",
+      "sourceHash": "e980194194a74483fcbcf0ae77f03b25a143afd1318973cae0e96e43a63d5b17",
+      "t": "[ Year □□ · Month 丙午 · Day 乙亥 · Hour □辰 ? ]"
+    },
+    {
+      "id": "ep-15:92",
+      "source": "내 글자가 왜 금고 바닥에 깔려 있어?",
+      "sourceHash": "dd75a6af62ab71006716d097cc7b6f2134af864cdbec5f724fcf770302d35c7b",
+      "t": "Why is my character buried under a vault?"
+    },
+    {
+      "id": "ep-15:93",
+      "source": "알은 연이를 알아보기라도 한 듯 아주 작게 흔들렸다. 금빛 껍질 아래로 무언가 꿈틀거렸다.",
+      "sourceHash": "2e07ceac777d48199107226902272482f811aacf771e0e62a0b3744d74b475e1",
+      "t": "As though it recognized Yeoni, the egg trembled very slightly. Something stirred beneath its golden shell."
+    },
+    {
+      "id": "ep-15:94",
+      "source": "시간이 비어 있는 명식은 창고가 열려 있는 집이야. 누구든 들어와서 쌓아 둘 수 있지.",
+      "sourceHash": "1fd4571d56a93d317442147e7cf61a4b0dec14450e4e44641e388ad451bd588f",
+      "t": "A chart with an empty hour is a house with its storehouse left open. Anyone can come in and stack things inside."
+    },
+    {
+      "id": "ep-15:95",
+      "source": "말 길다. 알 내놔. 언니 하루도 내놔.",
+      "sourceHash": "1f8924c63d30c263b54debdbe868d7eb44d20a0ac4a0a37ea82343b45c525079",
+      "t": "You're talking too much. Give me the egg. And give her day back."
+    },
+    {
+      "id": "ep-15:96",
+      "source": "호랑이가 꼬리를 한 번 휘둘렀다. 바닥의 시곗바늘을 따라 검은 물이 번져 나갔다. 물은 발목에 닿자마자 시간을 얼렸다.",
+      "sourceHash": "d5f0b870fd53199abda2dadd5fbb26027443102f8067d28b72798afbe529d36c",
+      "t": "The tiger swept its tail once. Black water spread along the clock hands on the floor. The moment it touched an ankle, it froze time."
+    },
+    {
+      "id": "ep-15:97",
+      "source": "물에 닿지 마! 거기 닿으면 멈춰!",
+      "sourceHash": "b5c146399d00986597d093a3c16629bb91fb8cae1bf4adfb171e04763986f605",
+      "t": "Don't touch the water! Touch it, and you'll stop!"
+    },
+    {
+      "id": "ep-15:98",
+      "source": "영냥이가 금선을 뽑아 물길을 갈랐다. 물이 갈라진 틈으로 모카가 몸을 날려 언니의 모래시계를 품에 안았다.",
+      "sourceHash": "5fe3379d85820bf788d82d6ea7e7e27a8941e81a56a05db6baeb7fd4e389c78e",
+      "t": "Yeongnyangi drew out a golden line and split the flow. Through the opening, Moka leaped and clutched Luna's sister's hourglass to his chest."
+    },
+    {
+      "id": "ep-15:99",
+      "source": "챙겼어! 언니 거, 내 품에 있어!",
+      "sourceHash": "b74d269d4ad253aaabdddbe1d7d06564b14855394822b2cfa7ddc9eea7c9214d",
+      "t": "Got it! Hers! I've got it right here!"
+    },
+    {
+      "id": "ep-15:100",
+      "source": "그건 가져가. 원래 내 장부에 없는 거니까. 토끼 몫이야.",
+      "sourceHash": "9d1340d2c877298001550c15075570d0dc8015617e4bd1d5d41de1431617153b",
+      "t": "Take that one. It wasn't in my ledger to begin with. It belongs to the rabbit's share."
+    },
+    {
+      "id": "ep-15:101",
+      "source": "그럼 저 알도 가져갈게.",
+      "sourceHash": "be8f7c2a841690f6489ab204d42058e5831c1dbbb5c7327b3df155dc9f82a7d3",
+      "t": "Then I'll take that egg, too."
+    },
+    {
+      "id": "ep-15:102",
+      "source": "그건 안 돼.",
+      "sourceHash": "5de4e688220113b2cc81a9c23ffe068cf2d4482caf2d74760fdd3c6647db750a",
+      "t": "That, you may not."
+    },
+    {
+      "id": "ep-15:103",
+      "source": "연이가 단 위로 뛰어올랐다. 앞발이 알에 닿는 순간, 단 전체가 거대한 시계판으로 바뀌었다.",
+      "sourceHash": "0a7f0b10acfcf815e6204f2c4e0100005bf18eb07f066f557e7436883a0d8e02",
+      "t": "Yeoni leaped onto the dais. The instant their hoof touched the egg, the entire dais became a giant clock face."
+    },
+    {
+      "id": "ep-15:104",
+      "source": "종소리가 일곱 번 울렸다. 시곗바늘이 연이를 중심으로 빙글 돌더니, 연이의 몸 둘레에 투명한 유리벽이 솟았다.",
+      "sourceHash": "286cbba5bdb27325963fe2c6b2d87dd436fdc8aceb94d0325b84fd2099caa573",
+      "t": "A bell rang seven times. The clock hands spun around Yeoni, and transparent glass walls rose around their body."
+    },
+    {
+      "id": "ep-15:105",
+      "source": "움직일 수가 없어! 숨이… 숨이 안 내려가!",
+      "sourceHash": "003c3323f1ddcea04503c9f47a9c63003a1f4336e9c857be0a6c799a9f77f2a7",
+      "t": "I can't move! My breath... I can't get my breath down!"
+    },
+    {
+      "id": "ep-15:106",
+      "source": "[ 시간 덫 · 탈출 값 72:00:00  보유 71:53:09  부족 00:06:51 ]",
+      "sourceHash": "f95b97896569991d1481d85b4a8f3532061ab1e4b2a8a77c06f646f29104288e",
+      "t": "[ Time trap · Escape price: 72:00:00  Held: 71:53:09  Shortfall: 00:06:51 ]"
+    },
+    {
+      "id": "ep-15:107",
+      "source": "연이야.",
+      "sourceHash": "80cb95b01e8cc1368b8cd8ace84e07fc877503b06ef9dddd4795ce70845dc473",
+      "t": "Yeoni."
+    },
+    {
+      "id": "ep-15:108",
+      "source": "미안하다는 말은 안 해. 장부에 그런 칸은 없으니까.",
+      "sourceHash": "b559d8140c5b342aa2fa0ce89ad1c123b8526a7eb788142b3dec906fbf858a3c",
+      "t": "I won't say I'm sorry. There's no column for that in the ledger."
+    },
+    {
+      "id": "ep-15:109",
+      "source": "유리벽 바깥, 금고 천장의 환기구에서 파란 귀 두 개가 쏙 내려왔다. 청토끼가 거꾸로 매달려 손을 흔들었다.",
+      "sourceHash": "9202ece37d937ef69896d87d11152e9263a4413eee54ab2d49d01c3990dfc871",
+      "t": "Beyond the glass, two blue ears dropped from a vent in the vault ceiling. Blue Rabbit hung upside down and waved."
+    },
+    {
+      "id": "ep-15:110",
+      "source": "어머~ 딱 6분 51초 모자라시네요? 청토끼 금융이 빌려드릴까요? 이자는 아주아주 조금!",
+      "sourceHash": "597dd2b5ed4642b1d71399a976f8a2b098f3903d0755f9d3d9f3b00667da631d",
+      "t": "Oh my! You're exactly six minutes and fifty-one seconds short. Shall Blue Rabbit Finance lend it to you? Just a teeny-tiny bit of interest!"
+    },
+    {
+      "id": "ep-15:111",
+      "source": "(빌리면 나간다. 안 빌리면, 여기서 멈춘다.)",
+      "sourceHash": "1b6f298ca032baefab098e639730774885bad77ce2fb5851c5638fb2cdd4432e",
+      "t": "(Borrow, and I get out. Refuse, and I stop here.)"
+    }
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "episodeId": "prologue",
+  "rows": [
+    {
+      "id": "prologue:11",
+      "source": "문제는 버스였다. 카드를 댔는데 — 삑. 다시 대주세요.",
+      "sourceHash": "eb338d8e428f0439207501e059df5e8e1e9264a797890af190dbd22215689d70",
+      "translations": {
+        "en": "The real trouble was the bus. Yeoni tapped the card—beep. Please try again.",
+        "ja": "問題はバスだった。カードをかざすと――ピッ。もう一度タッチしてください。",
+        "zh-CN": "真正的麻烦在公交车上。Yeoni把卡贴上去——滴。请重新刷卡。",
+        "zh-TW": "真正的麻煩在公車上。Yeoni把卡貼上去——嗶。請重新感應。"
+      }
+    },
+    {
+      "id": "prologue:12",
+      "source": "다시 댔다. 삑, 다시 대주세요. 또 댔다. 삑, 다시 대주세요. 뒤에 선 사람들이, 아무 말 없이 연이를 봤다.",
+      "sourceHash": "84e63d8212dab27917eda16031a59dd860e11f438740f76059f3e94dcbd8fe09",
+      "translations": {
+        "en": "Another tap. Beep. Please try again. And another. Beep. Please try again. The people behind Yeoni watched without a word.",
+        "ja": "もう一度かざした。ピッ、もう一度タッチしてください。またかざした。ピッ、もう一度タッチしてください。後ろに並ぶ人たちが、何も言わずYeoniを見ていた。",
+        "zh-CN": "又贴了一次。滴，请重新刷卡。再贴一次。滴，请重新刷卡。排在后面的人一言不发地看着Yeoni。",
+        "zh-TW": "又貼了一次。嗶，請重新感應。再貼一次。嗶，請重新感應。排在後面的人一言不發地看著Yeoni。"
+      }
+    },
+    {
+      "id": "prologue:13",
+      "source": "(그 침묵이 제일 무서웠다.) …너 어제까진 멀쩡했잖아.",
+      "sourceHash": "7d38a0f388bd928920daef59833151b404909f908e812ae4e4d69de4544b47e0",
+      "translations": {
+        "en": "(That silence was the worst part.) …You worked fine yesterday.",
+        "ja": "（あの沈黙がいちばん怖かった。）……昨日まではちゃんと動いてたじゃん。",
+        "zh-CN": "（那种沉默才最可怕。）……你昨天不是还好好的吗。",
+        "zh-TW": "（那種沉默才最可怕。）……你昨天不是還好好的嗎。"
+      }
+    },
+    {
+      "id": "prologue:14",
+      "source": "카드는 네 번째에야 찍혔다. 이미 둘 사이의 신뢰는, 조금 깨진 뒤였다.",
+      "sourceHash": "eb091f1c9a2a8559afc2c153df58036d953da407227b20a0cd28a2fb7ba71929",
+      "translations": {
+        "en": "The card finally registered on the fourth try. By then, the trust between them had already taken a small hit.",
+        "ja": "カードが反応したのは四度目だった。二人の信頼関係には、もう少しだけひびが入っていた。",
+        "zh-CN": "直到第四次，卡才刷成功。可彼此之间的信任，已经裂开了一小道缝。",
+        "zh-TW": "直到第四次，卡才感應成功。可彼此之間的信任，已經裂開了一小道縫。"
+      }
+    },
+    {
+      "id": "prologue:15",
+      "source": "(마음속으로 별점을 매겼다.) 교통카드… 별 하나. 사유: 네 번 만에 인식. 재구매 의사 없음.",
+      "sourceHash": "60186db2fc148319c3b7813a886be241e80f4bb7d0a0f8347b0c1ee4eaa1364c",
+      "translations": {
+        "en": "(Yeoni left a mental review.) Transit card… one star. Reason: took four tries. Would not buy again.",
+        "ja": "（心の中でレビューを付けた。）交通系カード……星一つ。理由、認識するまで四回。リピート購入はなし。",
+        "zh-CN": "（Yeoni在心里打了个分。）公交卡……一星。理由：刷四次才认出来。不会回购。",
+        "zh-TW": "（Yeoni在心裡打了個分。）交通卡……一星。理由：感應四次才認出來。不會回購。"
+      }
+    },
+    {
+      "id": "prologue:16",
+      "source": "점심엔 참치마요 삼각김밥을 샀다. 뜯자마자 바닥으로 엎어졌다. 밥알이 흩어지고, 김이 반쯤 벗겨진 얼굴이 너무 처참했다.",
+      "sourceHash": "259b8125860f668781e28d396f9fde9f679a74436f2561979d3b008584b10c61",
+      "translations": {
+        "en": "For lunch, Yeoni bought a tuna-mayo rice triangle. The moment the wrapper came off, it fell face-first onto the floor. Rice scattered everywhere; with half its seaweed peeled away, it looked utterly forlorn.",
+        "ja": "昼にはツナマヨのおにぎりを買った。包みを開けた途端、床にうつぶせに落ちた。米粒が散らばり、海苔が半分はがれたその顔は、あまりにも哀れだった。",
+        "zh-CN": "午饭买了个金枪鱼蛋黄酱三角饭团。包装刚拆开，它就脸朝下摔在地上。米粒散了一地，海苔脱掉一半的那张脸，实在惨不忍睹。",
+        "zh-TW": "午餐買了個鮪魚美乃滋三角飯糰。包裝剛拆開，它就臉朝下摔在地上。米粒散了一地，海苔脫掉一半的那張臉，實在慘不忍睹。"
+      }
+    },
+    {
+      "id": "prologue:17",
+      "source": "(꼭, 제 운명을 못 받아들인 얼굴이었다.) …미안하다. 넌 좋은 참치마요였어.",
+      "sourceHash": "6f8e76819154cdb59f194830cffd317810882266d895488ee59222c03d11be9a",
+      "translations": {
+        "en": "(It looked as though it couldn’t accept its own fate.) …I’m sorry. You were a good tuna mayo.",
+        "ja": "（まるで自分の運命を受け入れられない顔だった。）……ごめん。お前はいいツナマヨだったよ。",
+        "zh-CN": "（活像一张无法接受自己命运的脸。）……对不起。你本来是个好好的金枪鱼蛋黄酱饭团。",
+        "zh-TW": "（活像一張無法接受自己命運的臉。）……對不起。你本來是個好好的鮪魚美乃滋飯糰。"
+      }
+    },
+    {
+      "id": "prologue:18",
+      "source": "다시 샀다. 이번엔 안 떨어뜨렸다. 그런데 한입 물자마자 입안이 불탔다. 매운 제육이었다. 포장엔 분명, 참치마요라고 적혀 있었는데.",
+      "sourceHash": "050a4e9cbee9ece6e465ad5d2ffe2129475e35d644eb59e51761c633174cd8aa",
+      "translations": {
+        "en": "Yeoni bought another one. This time, it didn’t fall. But the first bite set their mouth on fire. Spicy pork. The wrapper had clearly said tuna mayo.",
+        "ja": "もう一つ買った。今度は落とさなかった。なのに一口かじった瞬間、口の中が燃えた。豚肉の辛炒めだった。包みには確かにツナマヨと書いてあったのに。",
+        "zh-CN": "又买了一个。这次没掉。可才咬第一口，嘴里就像着了火。是辣炒猪肉。包装上明明写着金枪鱼蛋黄酱。",
+        "zh-TW": "又買了一個。這次沒掉。可才咬第一口，嘴裡就像著了火。是辣炒豬肉。包裝上明明寫著鮪魚美乃滋。"
+      }
+    },
+    {
+      "id": "prologue:19",
+      "source": "아니, 이제 삼각김밥도 나를 속이네?",
+      "sourceHash": "0291d66c2cdbb461c8ec342f82f1d069f8f157db2858db504c06e3d700570b89",
+      "translations": {
+        "en": "Seriously? Even the rice triangles are lying to me now?",
+        "ja": "ちょっと、今度はおにぎりまで私をだますの？",
+        "zh-CN": "不是吧，现在连三角饭团也来骗我？",
+        "zh-TW": "不是吧，現在連三角飯糰也來騙我？"
+      }
+    },
+    {
+      "id": "prologue:20",
+      "source": "삼각김밥은 대답하지 않았다. 당연했다. 그건 삼각김밥이니까.",
+      "sourceHash": "b3ca508bbe4dd305840d6346c615631a6e1de572de076419756b1841a6ff99f5",
+      "translations": {
+        "en": "The rice triangle said nothing. Naturally. It was a rice triangle.",
+        "ja": "おにぎりは答えなかった。当然だった。おにぎりなのだから。",
+        "zh-CN": "饭团没有回答。那当然。毕竟它只是个饭团。",
+        "zh-TW": "飯糰沒有回答。那當然。畢竟它只是個飯糰。"
+      }
+    },
+    {
+      "id": "prologue:21",
+      "source": "포장은 참치마요, 속은 매운 제육. 이거 허위광고 아니야? 소비자원에 민원 넣는다, 진짜.",
+      "sourceHash": "e7c43072aad587693fad7d5abacfc9f60230b1640a032254c8a4d8ab2f740fe4",
+      "translations": {
+        "en": "Tuna mayo on the outside, spicy pork on the inside. Isn’t that false advertising? I’m filing a consumer complaint. I mean it.",
+        "ja": "包みはツナマヨ、中身は豚肉の辛炒め。これ、虚偽広告じゃない？ 消費者相談窓口に言うからね、本当に。",
+        "zh-CN": "外面写金枪鱼蛋黄酱，里面却是辣炒猪肉。这不算虚假宣传吗？我要找消费者机构投诉，真的。",
+        "zh-TW": "外面寫鮪魚美乃滋，裡面卻是辣炒豬肉。這不算不實廣告嗎？我要找消費者機構申訴，真的。"
+      }
+    },
+    {
+      "id": "prologue:22",
+      "source": "거기까지는 웃겼다. 친구한테 말하면 'ㅋㅋㅋ 너 오늘 왜 그래'로 넘어갈 정도의.",
+      "sourceHash": "97721bc97e14a54f5f5adec37c021753de71fe355face125ba38741331260b61",
+      "translations": {
+        "en": "Up to that point, it had been funny. The sort of thing a friend would laugh off with, “What is going on with you today?”",
+        "ja": "そこまでは笑えた。友達に話せば「今日どうしちゃったの」と笑って済ませられる程度のことだった。",
+        "zh-CN": "到这里为止，还算好笑。讲给朋友听，大概一句“哈哈哈你今天怎么回事”就能翻篇。",
+        "zh-TW": "到這裡為止，還算好笑。講給朋友聽，大概一句「哈哈哈你今天怎麼回事」就能帶過。"
+      }
+    },
+    {
+      "id": "prologue:23",
+      "source": "그런데 며칠 뒤부터는 — 웃기지 않았다.",
+      "sourceHash": "3c0cce8bd6feef30a765ce3c2f5677b7cd0dfccf15379f5faf6df2ee6f5e66c2",
+      "translations": {
+        "en": "But a few days later—it stopped being funny.",
+        "ja": "けれど、何日か経つと――笑えなくなった。",
+        "zh-CN": "可过了几天——就不好笑了。",
+        "zh-TW": "可過了幾天——就不好笑了。"
+      }
+    },
+    {
+      "id": "prologue:24",
+      "source": "아르바이트 면접은 당일 취소됐다. 과제 파일은 제출 직전에 깨졌다. 택배는 다른 동으로 갔다. 카페 쿠폰은 쓰려는 순간, 어제 만료였다.",
+      "sourceHash": "761ef4106755dd06c79abdd6c26d1cfddc1ddb2c4f3cfba736ae65902676d138",
+      "translations": {
+        "en": "A part-time job interview was canceled that very day. An assignment file became corrupted just before submission. A parcel went to the wrong building. A café coupon had expired yesterday, discovered only at the counter.",
+        "ja": "バイトの面接は当日にキャンセル。課題のファイルは提出直前に壊れた。荷物は別の棟へ届き、カフェのクーポンは使おうとした瞬間、昨日で期限切れだとわかった。",
+        "zh-CN": "兼职面试当天被取消。作业文件在提交前一刻损坏。快递送去了别的楼。咖啡店优惠券刚想用，才发现昨天就过期了。",
+        "zh-TW": "打工面試當天被取消。作業檔案在提交前一刻損壞。包裹送去了別棟樓。咖啡店優惠券剛想用，才發現昨天就過期了。"
+      }
+    },
+    {
+      "id": "prologue:25",
+      "source": "중요한 메시지에는 전송 실패가 떴다. 사과는 늘 한발 늦었고, 잘해 보려던 말은 엉뚱한 뜻으로 전해졌다.",
+      "sourceHash": "34f209cbf586f1a7c8c63c7df23773142e91361187a5612d61c1d086f5808be0",
+      "translations": {
+        "en": "An important message came back as failed to send. Apologies always arrived a moment too late, and words meant to help somehow came out wrong.",
+        "ja": "大事なメッセージには送信失敗と出た。謝るのはいつも一歩遅く、よかれと思った言葉は見当違いの意味で伝わった。",
+        "zh-CN": "重要的消息显示发送失败。道歉总是晚一步，本想把话说好的心意，传过去却变了味。",
+        "zh-TW": "重要的訊息顯示傳送失敗。道歉總是晚一步，本想把話說好的心意，傳過去卻變了味。"
+      }
+    },
+    {
+      "id": "prologue:26",
+      "source": "한 번은, 답장창에 점 세 개가 반짝였다. 뭔가 오려다가 — 스르르 사라졌다.",
+      "sourceHash": "86d29a172dce05ddd8b31a17c5755e9c4ad79734a7f0bd6bd58320a9cea473b8",
+      "translations": {
+        "en": "Once, three dots flickered in a chat window. Something was about to arrive—then quietly vanished.",
+        "ja": "あるとき、返信欄に三つの点がまたたいた。何かが届きかけて――すうっと消えた。",
+        "zh-CN": "有一次，聊天窗口里闪起三个小点。仿佛有什么话快要发来——然后悄悄消失了。",
+        "zh-TW": "有一次，聊天視窗裡閃起三個小點。彷彿有什麼話快要傳來——然後悄悄消失了。"
+      }
+    },
+    {
+      "id": "prologue:27",
+      "source": "연이는 그 점 세 개가 지워진 자리를 한참 보고 있다가, 휴대폰을 뒤집어 놓았다.",
+      "sourceHash": "ad7f5b67c1cd72f993fcdfa7e3ac31213567b4c6842ff0d1f40b35d546a4ccfc",
+      "translations": {
+        "en": "Yeoni stared for a long time at the space where those three dots had been, then turned the phone face down.",
+        "ja": "Yeoniはその三つの点が消えた場所をしばらく見つめ、それからスマホを伏せた。",
+        "zh-CN": "Yeoni盯着那三个小点消失的位置看了很久，最后把手机翻了过去。",
+        "zh-TW": "Yeoni盯著那三個小點消失的位置看了很久，最後把手機翻了過去。"
+      }
+    },
+    {
+      "id": "prologue:28",
+      "source": "엎어놓은 휴대폰 위로, 방 안의 어둠이 조용히 내려앉았다. 연이는 이불을 코끝까지 끌어올렸다. 누구 탓도 아닌데 자꾸 미안해지는 밤이었다. 이런 밤이 요즘 부쩍 늘었다.",
+      "sourceHash": "ff9eaadfcccd2a88cf93205953487d4fc74a2ff2bfcb96f33dea1a609b1be6ec",
+      "translations": {
+        "en": "The room’s darkness settled softly over the overturned phone. Yeoni pulled the blanket up to their nose. It was one of those nights when no one was to blame, yet everything made you feel sorry. There had been more and more nights like that.",
+        "ja": "伏せたスマホの上に、部屋の暗闇が静かに降りた。Yeoniは布団を鼻先まで引き上げた。誰のせいでもないのに、なぜか申し訳なくなる夜。最近、そんな夜がずいぶん増えていた。",
+        "zh-CN": "房间里的黑暗静静落在反扣的手机上。Yeoni把被子拉到鼻尖。明明不是谁的错，却总觉得抱歉的夜晚。最近，这样的夜晚越来越多了。",
+        "zh-TW": "房間裡的黑暗靜靜落在反扣的手機上。Yeoni把被子拉到鼻尖。明明不是誰的錯，卻總覺得抱歉的夜晚。最近，這樣的夜晚越來越多了。"
+      }
+    },
+    {
+      "id": "prologue:29",
+      "source": "…요즘 왜 이렇게 꼬이지. 내가, 뭘 잘못했나.",
+      "sourceHash": "c14e8b3c3a70ce586b69b595f1cfed204d3f7feed988491cae5bc4f6dbe6a059",
+      "translations": {
+        "en": "…Why does everything keep going wrong? Did I do something?",
+        "ja": "……なんで最近、こんなにうまくいかないんだろ。私、何かした？",
+        "zh-CN": "……最近怎么总是不顺。我做错什么了吗。",
+        "zh-TW": "……最近怎麼總是不順。我做錯什麼了嗎。"
+      }
+    },
+    {
+      "id": "prologue:30",
+      "source": "작은 불운들이 매일 조금씩 연이의 하루를 갉아먹었다. 처음엔 우연이라 웃어넘겼다. 그런데 우연도 며칠씩 겹치면, 등 뒤에 누가 서 있는 것처럼 목덜미가 서늘해진다. 웃자고 시작한 하루가, 자꾸 변명거리를 찾는 하루로 바뀌어 있었다.",
+      "sourceHash": "91d98f099e0860ee8ae5520fb0a657d8d7796c2a2d84c2d3779b298b0bd708b2",
+      "translations": {
+        "en": "Small misfortunes gnawed a little more out of each day. At first, Yeoni had laughed them off as coincidences. But when coincidences pile up for days, the back of your neck grows cold, as if someone is standing behind you. Days begun with a joke had become days spent looking for excuses.",
+        "ja": "小さな不運が毎日少しずつ、Yeoniの一日をかじっていった。最初は偶然だと笑い飛ばした。でも偶然も何日も続くと、背後に誰かが立っているように首筋が冷える。笑って始めたはずの一日が、いつの間にか言い訳を探す一日に変わっていた。",
+        "zh-CN": "小小的倒霉每天啃去Yeoni生活的一点。起初还能笑着说是巧合。可巧合接连发生好几天，后颈也会阵阵发凉，像有人站在背后。原本想笑着开始的一天，渐渐变成了不停寻找借口的一天。",
+        "zh-TW": "小小的倒楣每天啃去Yeoni生活的一點。起初還能笑著說是巧合。可巧合接連發生好幾天，後頸也會陣陣發涼，像有人站在背後。原本想笑著開始的一天，漸漸變成了不停尋找藉口的一天。"
+      }
+    }
+  ]
+}

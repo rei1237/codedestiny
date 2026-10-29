@@ -1,0 +1,666 @@
+{
+  "locale": "en",
+  "episodeId": "ep-39",
+  "tag": "Episode 39 · Karma",
+  "title": "Karma",
+  "sourceTitle": "업",
+  "sourceTag": "제39화 · 업",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-39:1",
+      "source": "위에서는 연이가 실을 쥐고 있었다. 아래에서는 꼬리가 사슬을 쥐고 있었다. 그 사이에 검은 호랑이가 매달려 있었다.",
+      "sourceHash": "b20255a21e938a58a228b95539bf124955686277537fb24fee847edc18591c3a",
+      "t": "Above, Yeoni held the thread. Below, the tail held the chain. Between them hung the black tiger."
+    },
+    {
+      "id": "ep-39:2",
+      "source": "회장님. 장부 마지막 줄, 제가 직접 쓸게요.",
+      "sourceHash": "c5d44e2a4290df649d9d3cbaee303e94448ff32536f5c5357e03079481e6fa0c",
+      "t": "Chairman. I'll write the ledger's last line myself."
+    },
+    {
+      "id": "ep-39:3",
+      "source": "무슨 줄이냐.",
+      "sourceHash": "0e28d4173ac59064341b3b20290a601cf28647e3610c507bbeeb74a1365dec7e",
+      "t": "What line?"
+    },
+    {
+      "id": "ep-39:4",
+      "source": "서한비. 갚음. 금장 고리 한 개.",
+      "sourceHash": "ed8eb9bfd7b9c741f263f1774001b6af383e647cdfc462fcca3947d457ab4716",
+      "t": "Seo Hanbi. Repaid. One golden ring."
+    },
+    {
+      "id": "ep-39:5",
+      "source": "호랑이가 오른 앞발로 목의 고리를 움켜쥐었다. 발톱이 금속에 박혔다. 고리가 뜨거워졌다. 털 타는 냄새가 났다.",
+      "sourceHash": "5a70e4d37cca112b848b7f4617b0455b7dad9e044a0f24ed1d69893fd5e3b9f9",
+      "t": "The tiger seized the ring around its neck with its right forepaw. Its claws sank into metal. The ring grew hot. Burning fur filled the air."
+    },
+    {
+      "id": "ep-39:6",
+      "source": "놓아라. 그 고리가 네 몸이다. 끊으면 네 힘도, 돌아갈 길도 함께 끊긴다.",
+      "sourceHash": "1d338f0462765076b3f2567367f4ca267705215c8a08485feb0dfde6ac4b12da",
+      "t": "Let go. That ring is your body. Break it, and your power and road home break with it."
+    },
+    {
+      "id": "ep-39:7",
+      "source": "알아요. 그래서 끊는 거예요.",
+      "sourceHash": "0aaa5d553da79e3cd3ee1e18245e334936ac061aa52f456115d341d4fe9fd1b3",
+      "t": "I know. That's why I'm breaking it."
+    },
+    {
+      "id": "ep-39:8",
+      "source": "고리에 금이 갔다. 한 줄, 두 줄. 금 사이로 검은 연기가 새어 나왔다. 꼬리가 비명을 질렀다. 사슬이 미친 듯이 흔들렸다.",
+      "sourceHash": "0156517ec9523e9bed10c3ef9489f2d2d69e0648da342dad111b02337a67c159",
+      "t": "Cracks split the ring. One, then two. Black smoke leaked through them. The tail screamed. The chain thrashed wildly."
+    },
+    {
+      "id": "ep-39:9",
+      "source": "고리가 두 동강 났다. 소리는 작았다. 유리컵 하나 깨지는 소리. 그 작은 소리에 일식 아래가 통째로 울렸다.",
+      "sourceHash": "04d14eaf8e1efb7c382a173ae3c41d6dbfdb7175e68562da325eb4fc70a123ae",
+      "t": "The ring broke in two. The sound was small, like a single glass breaking. Yet that little sound reverberated through everything beneath the eclipse."
+    },
+    {
+      "id": "ep-39:10",
+      "source": "검은 털이 빗물처럼 흘러내렸다. 발톱이 오그라들었다. 큰 몸이 줄어들었다. 남은 것은 젖은 코트를 입은 사람 하나였다.",
+      "sourceHash": "afaa311b0d8867f8527d27d6c5880fe7f5f743fbd5af66da5c62292360fe5028",
+      "t": "Black fur streamed away like rain. Claws shrank. The great body grew smaller. All that remained was a person in a wet coat."
+    },
+    {
+      "id": "ep-39:11",
+      "source": "아. 생각보다, 춥네요.",
+      "sourceHash": "3b52757939934c5d387a1e18fb2df2ea20c71e306e8e0ac612e3ad066bf28a6c",
+      "t": "Oh. It's colder than I expected."
+    },
+    {
+      "id": "ep-39:12",
+      "source": "사람은 떨어졌다. 아래에는 이제 붙잡을 사슬도 없었다. 손목에 감긴 붉은 실 한 가닥만 남았다.",
+      "sourceHash": "316f157ac48cf87408d4e5b838bbc516fe903f75614fb786e907421dcd4013e6",
+      "t": "She fell. Below, there was no chain left to catch her. Only a single red thread around her wrist."
+    },
+    {
+      "id": "ep-39:13",
+      "source": "위쪽, 스물일곱 달집의 우물가. 실이 갑자기 무거워졌다. 연이가 앞으로 고꾸라졌다. 무릎이 돌바닥에 찧혔다.",
+      "sourceHash": "435cbb0b6e9a60c273a5e4971ec9818a3e5df34a499bd6295fa2d57dc11ca642",
+      "t": "Above, beside the well among the twenty-seven lunar mansions, the thread suddenly grew heavy. Yeoni pitched forward, knees striking stone."
+    },
+    {
+      "id": "ep-39:14",
+      "source": "무거워! 아까보다 무거워졌어! 왜?!",
+      "sourceHash": "545fd00693087ecff3c90ff8e75faca6df880123eb994688713f4901e655dc42",
+      "t": "Heavy! Heavier than before! Why?!"
+    },
+    {
+      "id": "ep-39:15",
+      "source": "호랑이 무게가 아니다. 사람 하나 무게다. 그리고 버티는 힘이 하나도 안 남은 무게.",
+      "sourceHash": "1aab1a58af4fcaed0c799caed64addd95ce24ca735d05a38a2f721f5251c0408",
+      "t": "Not a tiger's weight. One person's weight. With no strength left to hold on."
+    },
+    {
+      "id": "ep-39:16",
+      "source": "네오가 실을 물려고 고개를 숙였다. 앞다리가 실을 그대로 통과했다. 어깨까지 맑아진 다리는 아무것도 붙잡지 못했다.",
+      "sourceHash": "fa9aecc51c57dffc01f3262d93fcc1aebbcad8d84e8ca6e9139b1e7caab07657",
+      "t": "Neo lowered his head to bite the thread. His foreleg passed straight through it. Transparent to the shoulder, it couldn't grasp anything."
+    },
+    {
+      "id": "ep-39:17",
+      "source": "이럴 때 힘이 안 들어가네. 젠장.",
+      "sourceHash": "d9425d9c551db0fe10d2805460eae96d4e677e2b3cb473c3592be0ac3088f8fe",
+      "t": "Of all times to lose my strength. Damn it."
+    },
+    {
+      "id": "ep-39:18",
+      "source": "비켜, 고양이! 앞치마는 이럴 때 쓰는 거야!",
+      "sourceHash": "f5e19a8335c45afe3163a65d6daae19ec716c0cbc7d521f06b4ccf3c4877227c",
+      "t": "Move, cat! This is what aprons are for!"
+    },
+    {
+      "id": "ep-39:19",
+      "source": "모카가 앞치마를 풀어 실에 묶었다. 윤달이 그 끝을 잡았다. 셋이 한 줄로 서서 당겼다. 줄다리기 같았다. 상대가 우주라는 게 다를 뿐.",
+      "sourceHash": "f044d35458f9c283e6d678a3543f3cb21b9f74b548d13f003a97d459f602f4fc",
+      "t": "Moka untied his apron and knotted it around the thread. Yundal grabbed the end. The three lined up and pulled. Like tug-of-war, except their opponent was the universe."
+    },
+    {
+      "id": "ep-39:20",
+      "source": "하나, 둘, 셋. 저 원래 이런 거 안 하는 사람인데요.",
+      "sourceHash": "f3f826508311235f50fc40d3c8944954bb2fe9a5d27aecd932615b27f3460141",
+      "t": "One, two, three. I'm not normally the sort of person who does this."
+    },
+    {
+      "id": "ep-39:21",
+      "source": "입 다물고 당겨! 궁합은 나중에 봐!",
+      "sourceHash": "db90ccd5a0487da4415eeb9e11b1f77dd6ff7bbc444b805f151dd395b6191e0f",
+      "t": "Shut up and pull! Compatibility later!"
+    },
+    {
+      "id": "ep-39:22",
+      "source": "우물 아래에서 젖은 손 하나가 올라왔다. 오른 손목에 고리 모양의 흉터가 있었다. 연이가 그 손목을 잡았다. 차가웠다.",
+      "sourceHash": "fdc866733e857d164445c967e8525c99b390c1163478b678a9df501b21719240",
+      "t": "A wet hand rose from the well. A ring-shaped scar circled its right wrist. Yeoni seized it. It was cold."
+    },
+    {
+      "id": "ep-39:23",
+      "source": "끌려 올라온 사람은 돌바닥에 엎드려 기침을 했다. 검은 코트에서 물이 줄줄 흘렀다. 품에는 젖은 장부가 안겨 있었다.",
+      "sourceHash": "26a7aa43a2fc838047180a5c01ecba9cbe11f37c91d385c14a65b6fbc4fc0038",
+      "t": "The person they hauled up lay coughing on the stone. Water streamed from her black coat. She clutched a soaked ledger."
+    },
+    {
+      "id": "ep-39:24",
+      "source": "옆집 사람.",
+      "sourceHash": "16e17e9f25565b3385497f3f56fde668c11321fef2aadf25b46f00595765981c",
+      "t": "My next-door neighbor."
+    },
+    {
+      "id": "ep-39:25",
+      "source": "안녕하세요. 이 시간에 실례가 많네요.",
+      "sourceHash": "44091c53368690baf7445fb09550f2f2bec871308d6dec8035abb9b0626080a9",
+      "t": "Hello. Sorry to impose at this hour."
+    },
+    {
+      "id": "ep-39:26",
+      "source": "연이는 할 말을 잃었다. 맑은 날에도 검은 우산을 들던 이웃. 벽 너머로 양말 잔소리를 하던 목소리. 송장에 적힌 이름. 전부 같은 사람이었다.",
+      "sourceHash": "d3de293974048014bacea309cfbf923d9e68a716e653e25d7db4030f516356d4",
+      "t": "Yeoni was speechless. The neighbor who carried a black umbrella even on clear days. The voice nagging about socks through the wall. The name on the parcel label. All the same person."
+    },
+    {
+      "id": "ep-39:27",
+      "source": "실례 맞아. 엄청 큰 실례야.",
+      "sourceHash": "23955bc2225630394b04b1f664539a1a3e201b901c8d12214dff73a26af8e3de",
+      "t": "You are imposing. A lot."
+    },
+    {
+      "id": "ep-39:28",
+      "source": "비가 그쳤다. 우물가에 다섯이 둘러앉았다. 아니, 넷과 하나. 서한비만 조금 떨어져 앉아 있었다.",
+      "sourceHash": "5a34629d81bb8fad0a545fc2e08fd028202ddb248bc247a9e9b90dbf71848a0d",
+      "t": "The rain stopped. Five sat around the well. Or rather, four and one. Seo Hanbi sat a little apart."
+    },
+    {
+      "id": "ep-39:29",
+      "source": "기운이 거의 없네요. 물 한 방울 정도. 호랑이 시절의 백분의 일도 안 돼요.",
+      "sourceHash": "fbf5b9b4782ae0f109d5e940e2d75896f4a7173d7eeb74d7e57ae70d02ee01f0",
+      "t": "Almost no energy left. About one drop of water. Less than a hundredth of what you had as a tiger."
+    },
+    {
+      "id": "ep-39:30",
+      "source": "정확하시네요. 그분 손이 원래 그렇게 정확해요?",
+      "sourceHash": "8f949cfcf42554f915ceebb8ca987f582040c2532649329854ee3b69098c1f3f",
+      "t": "Very accurate. Are your readings always that precise?"
+    },
+    {
+      "id": "ep-39:31",
+      "source": "궁합 볼 때만요. 생년월일시 알려 주시면 더 정확해집니다.",
+      "sourceHash": "1979ed3999b6260db8474b43a9d02b2b4fc1d0a93f111a2bbf7a4b0e6c54e3cf",
+      "t": "Only with compatibility. Your birth date and time would improve the accuracy."
+    },
+    {
+      "id": "ep-39:32",
+      "source": "그건 빚이에요.",
+      "sourceHash": "ceb34b35b12f6b096b4143c6f8b74b297deaa1924358e5249f2d11b8c36c8e47",
+      "t": "That's a debt."
+    },
+    {
+      "id": "ep-39:33",
+      "source": "지금 이 사람한테까지 궁합이야?! 이 사람이 우리 섬 목소리 다 가져갔다고!",
+      "sourceHash": "49fbf22567a0c1235832057176152208ec46043625a36fef8714eeba17170791",
+      "t": "You're pitching compatibility to her now?! She took every voice on our island!"
+    },
+    {
+      "id": "ep-39:34",
+      "source": "모카의 수염이 떨렸다. 앞발이 앞치마 끝을 꽉 쥐었다. 서한비는 고개를 들어 모카를 보았다. 피하지 않았다.",
+      "sourceHash": "c3b026144050067cad938743e45df69c29dd4a1dee5e3e5ae54ac87a4223006d",
+      "t": "Moka's whiskers trembled. His forepaws gripped his apron tightly. Seo Hanbi lifted her head and faced him without looking away."
+    },
+    {
+      "id": "ep-39:35",
+      "source": "맞아요. 제가 가져갔어요. 시장 할머니 목소리, 지하 무대 랩하던 아이들 목소리. 장부에 다 적혀 있어요.",
+      "sourceHash": "5369f457751e4a00bba3c44cf69ede02aa0d755e03fd644b0c996b709bb96257",
+      "t": "Yes. I took them. The market grandmothers' voices. The children rapping on the underground stage. They're all in the ledger."
+    },
+    {
+      "id": "ep-39:36",
+      "source": "그걸 그렇게 담담하게 말해?!",
+      "sourceHash": "7c1e7f29ce6fa04f3d7b96a062d1dd9eaca5a316aa46ac30b5481bac2f5ee16c",
+      "t": "How can you say that so calmly?!"
+    },
+    {
+      "id": "ep-39:37",
+      "source": "담담한 척하는 거예요. 안 그러면 말이 안 나와서.",
+      "sourceHash": "22a7d7c9e6845f40bb865723c0f129dfac2a093abc391d408a132cdb090a7f56",
+      "t": "I'm pretending to be calm. Otherwise I can't get the words out."
+    },
+    {
+      "id": "ep-39:38",
+      "source": "모카는 입을 다물었다. 화가 풀린 얼굴은 아니었다. 그래도 더 소리치지 않았다.",
+      "sourceHash": "cd806b653c3b6893db664096c708d4b409845ad138cebc03cc5cd9e1a208538f",
+      "t": "Moka closed his mouth. He didn't look any less angry. But he stopped shouting."
+    },
+    {
+      "id": "ep-39:39",
+      "source": "서한비가 장부를 펼쳤다. 젖은 페이지에 이름들이 빼곡했다. 그 사이에 연이 이름이 있었다. 옆 칸에는 미수, 미수.",
+      "sourceHash": "0ff9d7bbc69a7c8a28858e608d41a8e084158399d5ef46f02046a1bfca9d328d",
+      "t": "Seo Hanbi opened the ledger. Names crowded the wet pages. Yeoni's name stood among them. In the next column: Outstanding. Outstanding."
+    },
+    {
+      "id": "ep-39:40",
+      "source": "변명부터 할게요. 그래야 그다음 말이 거짓말이 안 되니까.",
+      "sourceHash": "56025d2fc242846ffc3717a47aead227e37aa461e76b0fc8aad88bb57816590d",
+      "t": "I'll start with the excuse. Otherwise what comes afterward won't be honest."
+    },
+    {
+      "id": "ep-39:41",
+      "source": "해 봐.",
+      "sourceHash": "eb74cdbb534f43c1cb931d83438f9415ee3c0d6b585a1d83270ab2d29f819269",
+      "t": "Go ahead."
+    },
+    {
+      "id": "ep-39:42",
+      "source": "그 봄에, 저는 속았어요. 흑월이 당신 얼굴로 와서 제 봉투를 가져갔어요. 저는 당신이 날 버렸다고 믿었어요.",
+      "sourceHash": "4382b66afc355f794dc4486a84476bdb4b530f6d0e12000e446bdcf1a8a15c84",
+      "t": "That spring, I was deceived. Black Moon came wearing your face and took my envelope. I believed you'd abandoned me."
+    },
+    {
+      "id": "ep-39:43",
+      "source": "그래서 괴물이 되기 전에 막겠다고 했어요. 그 대가로 고리를 찼어요. 거기까지는 흑월 탓이에요.",
+      "sourceHash": "a60268545d0dd3c421a2c554c987d291e7ff79621a21727a810c884e468cabbf",
+      "t": "So I said I'd stop you before you became a monster. I wore the ring as the price. Up to that point, Black Moon was to blame."
+    },
+    {
+      "id": "ep-39:44",
+      "source": "서한비는 잠깐 말을 멈췄다. 손가락이 장부 모서리를 문질렀다. 종이가 일어났다.",
+      "sourceHash": "5bd36217e45b7b1d96ebadd456547182e9acc5fed1607b0cd8bc5365b8b44c1c",
+      "t": "Seo Hanbi paused. Her finger rubbed the ledger's corner, raising the paper's fibers."
+    },
+    {
+      "id": "ep-39:45",
+      "source": "그런데 속은 건 흑월 탓이지만, 아이의 박수를 빼앗은 건 내 손이었어요.",
+      "sourceHash": "e7508002f65fbed142172ed481de93de98c3a533c053352d93b67d3735f6263f",
+      "t": "But although Black Moon deceived me, the hand that stole the child's applause was mine."
+    },
+    {
+      "id": "ep-39:46",
+      "source": "북 치는 아이가 울 때 저는 장부에 적었어요. 회수 완료. 모카 씨 섬에서도, 시간 섬에서도. 다 제 손으로 했어요.",
+      "sourceHash": "52cc74877b20fdf0824ebbd68a6d6b5427575e076e909bcedee52f93c3fd5bf3",
+      "t": "When the drummer child cried, I wrote: Collection complete. On Moka's island, on the island of time too. I did it all with my own hands."
+    },
+    {
+      "id": "ep-39:47",
+      "source": "아무도 말하지 않았다. 우물 바닥에서 물 떨어지는 소리만 났다. 똑. 똑.",
+      "sourceHash": "8673efd84ef1798e2a3101b67f7b79dd915cccb1608bec6fc6b8fcc8004614f8",
+      "t": "No one spoke. Only water dripped at the bottom of the well. Drip. Drip."
+    },
+    {
+      "id": "ep-39:48",
+      "source": "고마워. 아까 구해 준 거. 그리고 지금 변명 안 한 거.",
+      "sourceHash": "26ff16d1cac2c8f23ac9ac01ba8d34c649e07b19aff0cfff44bc112816773eda",
+      "t": "Thank you. For saving me earlier. And for not making excuses now."
+    },
+    {
+      "id": "ep-39:49",
+      "source": "네.",
+      "sourceHash": "8445741d7d6a831276e8794b874cebee94940ba0e963d4f109bf72f437426789",
+      "t": "Yes."
+    },
+    {
+      "id": "ep-39:50",
+      "source": "근데 용서는 안 해. 지금은.",
+      "sourceHash": "71897522ad8fd4debe0104a53c14b52fca6729b07833befdbba6904e255fb10b",
+      "t": "But I don't forgive you. Not now."
+    },
+    {
+      "id": "ep-39:51",
+      "source": "연이의 목소리가 떨렸다. 화가 나서인지, 울음이 나서인지 본인도 몰랐다. 그래도 끝까지 말했다.",
+      "sourceHash": "a336a7f9713ac33b24c6ea4a5ad2a219eb87a8774131a5ea60dc8d6f31c29126",
+      "t": "Yeoni's voice shook. Even they couldn't tell whether it was anger or tears. Still, they finished."
+    },
+    {
+      "id": "ep-39:52",
+      "source": "북 치던 애, 그날 진짜 울었어. 나 그거 봤어. 모카네 섬 할머니들도. 그 사람들한테 아무것도 안 돌려줬는데 내가 먼저 용서하면 안 되잖아.",
+      "sourceHash": "4e79083ddb79e51df9ffdc7fc93aa17ffeb0233a59cda915439e3df410e59248",
+      "t": "That drummer child really cried that day. I saw it. So did the grandmothers on Moka's island. You haven't returned anything to them. I can't forgive you ahead of them."
+    },
+    {
+      "id": "ep-39:53",
+      "source": "지금은 고맙다고만 할게. 용서는 나중에. 그것도 내가 정해.",
+      "sourceHash": "112e6f9d67c3a13ee5372919e33a9d406f766d46197209929ab2f56d2fcc82b9",
+      "t": "For now, I'll only say thank you. Forgiveness comes later. I decide that too."
+    },
+    {
+      "id": "ep-39:54",
+      "source": "그게 맞아요. 저도 지금 용서받으면 장부가 안 맞아요.",
+      "sourceHash": "c24f423b2ff8136c38b5122ba3af20875d943e7de3c8dc451e37c2817af4ebda",
+      "t": "That's right. If I were forgiven now, my ledger wouldn't balance either."
+    },
+    {
+      "id": "ep-39:55",
+      "source": "또 장부.",
+      "sourceHash": "f5b5bc3e39b8a141bf4fe48257d36ff7a3bafadfdd33fadd9c77831a7cd0f7b6",
+      "t": "The ledger again."
+    },
+    {
+      "id": "ep-39:56",
+      "source": "버릇이에요. 고칠게요. 천천히.",
+      "sourceHash": "f316f3b14367b2005e5ae761f9fc545a848242db6435d80a8e0a60dd45b54a81",
+      "t": "A habit. I'll work on it. Slowly."
+    },
+    {
+      "id": "ep-39:57",
+      "source": "서한비는 장부를 다시 넘겼다. 회수란에 적힌 목소리 하나를 손가락으로 짚었다. 글자를 거꾸로 밀어 보았다. 잉크는 꼼짝하지 않았다.",
+      "sourceHash": "49b00fc1d5c864f140312dc1233d5c4ce275d5d62011394d9b5ec9f2aad6e107",
+      "t": "Seo Hanbi turned the ledger's pages again and placed a finger on one voice in the collection column. She tried to push the letters backward. The ink wouldn't move."
+    },
+    {
+      "id": "ep-39:58",
+      "source": "아. 돌려줄 힘도 같이 냈네요. 고리 값으로.",
+      "sourceHash": "f13792a3e0f8d8d3275c4eebcec2d9c94fdb7bf9c2a2a5d72bb6b34e262a469e",
+      "t": "Ah. I paid away the power to return things too. As part of the ring's price."
+    },
+    {
+      "id": "ep-39:59",
+      "source": "호랑이 힘으로 거둔 건 호랑이 힘으로만 풀려요. 지금 몸으로는 못 해요.",
+      "sourceHash": "4f086cf4478c3af59caebb5634a9be63627843e1b0b541c68ab15631b0137b81",
+      "t": "What tiger power collected can only be released by tiger power. You can't do it in this body."
+    },
+    {
+      "id": "ep-39:60",
+      "source": "그럼 다른 방법을 찾아야겠네요. 시간이 좀 걸리더라도.",
+      "sourceHash": "e44f3e186bba3e1408fd8a9fe55d912b77cbd0b0bb28cf2f5fc4b6a9b98f24b1",
+      "t": "Then I'll have to find another way. Even if it takes time."
+    },
+    {
+      "id": "ep-39:61",
+      "source": "걸려도 해. 할머니들 기다리고 계셔.",
+      "sourceHash": "cbb54430a007476b95a240141d3f0f8fad00bda959654ae30eaf6ffca61fd8ef",
+      "t": "Do it, however long it takes. The grandmothers are waiting."
+    },
+    {
+      "id": "ep-39:62",
+      "source": "모카는 그 말만 하고 돌아앉았다. 그래도 자리를 뜨지는 않았다. 서한비 쪽으로 남은 성냥 한 갑을 밀어 놓았다. 젖은 코트를 말리라는 듯이.",
+      "sourceHash": "b85a13d62f7859d54b8adbb6c410dcc41d8d7f7bc8b94b22d1575ed1571b54c5",
+      "t": "Moka said only that and turned away. But he didn't leave. He pushed his remaining box of matches toward Seo Hanbi, as though telling her to dry her coat."
+    },
+    {
+      "id": "ep-39:63",
+      "source": "이거, 받아도 돼요? 값은 어떻게.",
+      "sourceHash": "7d5b3ee4c5d8d16fab9dff1d3ab4e51aeca9baede829abaa9eab8fce9369c3d8",
+      "t": "May I take these? What do I owe?"
+    },
+    {
+      "id": "ep-39:64",
+      "source": "값 같은 소리 하네. 그냥 쓰라고. 불은 나눠도 안 줄어.",
+      "sourceHash": "402c622c73b4a44c981746e20d1d9fa5ace80891b154c8ab685984511ca3bd44",
+      "t": "Owe, my tail. Just use them. Sharing fire doesn't make it smaller."
+    },
+    {
+      "id": "ep-39:65",
+      "source": "밤이 되었다. 스물일곱 개의 달이 하나씩 켜졌다. 연이는 우물 턱에 앉아 메모장을 꺼냈다. 네오가 옆에 엎드렸다.",
+      "sourceHash": "6546e4214d1fe67f0d9d3dc5692650df072b6c6bc6492bae02bd8f70191d84fe",
+      "t": "Night came. The twenty-seven moons lit one by one. Yeoni sat on the well's edge and took out their notebook. Neo lay down beside them."
+    },
+    {
+      "id": "ep-39:66",
+      "source": "서한비, 구조됨. 용서 보류. 북 아이 이름, 아직 모름.",
+      "sourceHash": "9bab99eee5fc5961594f28bbc9e0985f4df502b8c7843521c3122515fc858d56",
+      "t": "Seo Hanbi. Rescued. Forgiveness pending. Drummer child's name: still unknown."
+    },
+    {
+      "id": "ep-39:67",
+      "source": "연이가 펜을 멈췄다. 실을 타고 올라온 장면이 머릿속에 남아 있었다. 비 오는 정류장. 그리고 흰 우산을 떨어뜨린 남자.",
+      "sourceHash": "8824ab52324ff38caa80e597fa778d710fd2dea15da3a34d995631d952f78d08",
+      "t": "Yeoni's pen stopped. The scene that had traveled up the thread remained in their mind. The rainy bus stop. The man who dropped his white umbrella."
+    },
+    {
+      "id": "ep-39:68",
+      "source": "네오. 그 정류장에 너도 있었어?",
+      "sourceHash": "d41914ccdc4498f33b4a9cb16a38b4e303a7f7b27462f432a02edb79f822535f",
+      "t": "Neo. Were you at that bus stop too?"
+    },
+    {
+      "id": "ep-39:69",
+      "source": "무슨 정류장.",
+      "sourceHash": "7b00a73c18fe0af2d02c42da976b58bd57f3417e40d028dd57b5dd8f8bba939d",
+      "t": "What bus stop?"
+    },
+    {
+      "id": "ep-39:70",
+      "source": "흰 우산. 늦었구나, 내가 또. 그 목소리, 너였잖아.",
+      "sourceHash": "0b3628bf9306aab7784510ddeafc980cff0e495f765b2b9e69644184c846608a",
+      "t": "The white umbrella. 'Too late. Again.' That voice was yours."
+    },
+    {
+      "id": "ep-39:71",
+      "source": "네오의 손이 멈췄다. 그는 대답 대신 자기 팔을 내려다보았다. 어깨까지 투명했다.",
+      "sourceHash": "d5dda022cb13a14b5c685eea5e8879f1d4fb2453bf618e00871954bd78301f52",
+      "t": "Neo's hand went still. Instead of answering, he looked down at his arm. It was transparent to the shoulder."
+    },
+    {
+      "id": "ep-39:72",
+      "source": "말하면 안 되는 게 있어. 숨기고 싶어서만은 아니야.",
+      "sourceHash": "40655093e59c71ab6408ba7a00a80564ec36b4ff042c3b606499d0a9cdd2d106",
+      "t": "There are things I can't say. Not simply because I want to hide them."
+    },
+    {
+      "id": "ep-39:73",
+      "source": "또 그거야? 다들 비밀이 너무 많아. 이 세계 고객센터는 공지사항이라는 게 없어?",
+      "sourceHash": "71fa948f17adfd3dccca307409f671eb1dbf7c13ac364544a6bbaf43b9024351",
+      "t": "That again? Everyone has too many secrets. Does this world's customer support not have a notices page?"
+    },
+    {
+      "id": "ep-39:74",
+      "source": "있어. 아무도 읽질 않아서 그렇지.",
+      "sourceHash": "2018f6462c6278926f769b2a916962dda1ba3df40294376e28b8154913d601e4",
+      "t": "It does. Nobody reads it."
+    },
+    {
+      "id": "ep-39:75",
+      "source": "웃기지 마. 지금 하나도 안 웃겨.",
+      "sourceHash": "5b65a705bd63222391b87567d2890d30a1443f5dc4f876f41605c9ced35598db",
+      "t": "Don't be funny. None of this is funny."
+    },
+    {
+      "id": "ep-39:76",
+      "source": "연이는 네오의 투명한 앞다리를 보았다. 만져 보려다가 손을 멈췄다. 손이 통과해 버리면 그게 더 무서울 것 같았다.",
+      "sourceHash": "2b67bb32c2dfbef273ee089407e681181fdaa5d9b262e1248af9875d1bcfdd39",
+      "t": "Yeoni looked at Neo's transparent foreleg. They reached to touch it, then stopped. It seemed even more frightening to feel their hand pass through."
+    },
+    {
+      "id": "ep-39:77",
+      "source": "그럼 하나만 대답해. 그 봄에도, 너 내 편이었어?",
+      "sourceHash": "82d56b28d543f6107f575ffb866df88b553c7acad45aa0ed9574479a33cd1ac2",
+      "t": "Then answer just one thing. That spring too—were you on my side?"
+    },
+    {
+      "id": "ep-39:78",
+      "source": "그건 말할 수 있어. 네 편이야. 처음부터 지금까지.",
+      "sourceHash": "f4bef005bf926c292640b409961802abca0816b64443fe992003957fbf9be83d",
+      "t": "That I can say. I'm on your side. From the beginning to now."
+    },
+    {
+      "id": "ep-39:79",
+      "source": "(모습이 달라도 네오. 내 편. 이것만은 꼭 남겨 둬야 해.)",
+      "sourceHash": "a89c6987b3658db5aff96e6ce0fab0262f5be3eeb9f07dcd1a173ca35fcefb03",
+      "t": "(Even in a different form, Neo. On my side. I have to preserve that much.)"
+    },
+    {
+      "id": "ep-39:80",
+      "source": "연이는 메모장 귀퉁이에 꾹꾹 눌러 썼다. 네오는 그 글씨를 보지 않은 척했다.",
+      "sourceHash": "b71d47381304b303a91e0e1c2a944475b8137a234e310f7e39fd30e89b3fb6ba",
+      "t": "Yeoni pressed the words into a corner of the notebook. Neo pretended not to see."
+    },
+    {
+      "id": "ep-39:81",
+      "source": "우물 반대편. 서한비가 혼자 달을 세고 있었다. 네오가 소리 없이 걸어와 옆에 섰다.",
+      "sourceHash": "7bd2e918c24cd133716497d19a7620265e56904f1baf853261594b163f54ac45",
+      "t": "Across the well, Seo Hanbi counted moons alone. Neo walked over silently and stood beside her."
+    },
+    {
+      "id": "ep-39:82",
+      "source": "그때 늦게 온 거, 당신이죠. 흰 우산.",
+      "sourceHash": "e9f3488b2ca1eed5d212b0704886c357b50ba51cf894e177129a40cb9f7dadf8",
+      "t": "You were the one who arrived late then. The white umbrella."
+    },
+    {
+      "id": "ep-39:83",
+      "source": "그래. 너는 거기 남아 있었고.",
+      "sourceHash": "8aab0daf9c7628d3534372a737c4d4f534e6aae3343280b4bb4a11d2400c55fb",
+      "t": "Yes. And you were still there."
+    },
+    {
+      "id": "ep-39:84",
+      "source": "둘 다 못 지켰네요.",
+      "sourceHash": "a8c6b73bd9aeaa76625e50fe0e948fab027d24961356427fa882ea0c6c5f96b6",
+      "t": "Neither of us protected her."
+    },
+    {
+      "id": "ep-39:85",
+      "source": "이번엔 다르게 할 거다. 너도.",
+      "sourceHash": "fa28cac747d2ad0bfeaa7dde11466e25a4e635918271375a093c1a30f266df7a",
+      "t": "This time will be different. For you too."
+    },
+    {
+      "id": "ep-39:86",
+      "source": "저는 이제 힘이 없어요. 네오 씨처럼 빛을 다룰 수도 없고.",
+      "sourceHash": "1f44911063d238a44d254c87031f6233e3632249d18986d330a85c0ba1eca939",
+      "t": "I have no power now. I can't wield light the way you can."
+    },
+    {
+      "id": "ep-39:87",
+      "source": "지금은 빛을 다루기도 힘들어. 이 팔부터 사라지고 있으니까.",
+      "sourceHash": "d183c1ef35888f560f7e6d200d59d7fd0516d518269b6690dbe202bfd8d4bf79",
+      "t": "It's hard for me to wield it now too. This arm is disappearing first."
+    },
+    {
+      "id": "ep-39:88",
+      "source": "서한비가 네오의 다리를 내려다보았다. 처음으로 웃음기 없는 얼굴이 굳었다.",
+      "sourceHash": "3f776093fd6386587f7338d152192c37172306e8b191c9c55265ea4b06b1dd86",
+      "t": "Seo Hanbi looked down at Neo's leg. For the first time, her unsmiling face tightened."
+    },
+    {
+      "id": "ep-39:89",
+      "source": "그 애, 알아요?",
+      "sourceHash": "0a88ef992e3db839cca7947635679d334733bcfcbeaec45b1d7b496c605113f0",
+      "t": "Does she know?"
+    },
+    {
+      "id": "ep-39:90",
+      "source": "모른다. 몰라야 한다. 너도 말하지 마라.",
+      "sourceHash": "d810a87efa780af362c078e72fa598bb74d279deb6be813ae7a204f9025b2613",
+      "t": "No. She mustn't. Don't tell her either."
+    },
+    {
+      "id": "ep-39:91",
+      "source": "빚지게 하시네요.",
+      "sourceHash": "f58a52c48dfc6e26487d313826f4f3cff8373c748d1610d3519b0363405005da",
+      "t": "You're putting me in your debt."
+    },
+    {
+      "id": "ep-39:92",
+      "source": "그래. 나중에 갚아라.",
+      "sourceHash": "d5edf8a7612acb209865d77ff0a5627f7ebc25161413d15b4110fe80295948be",
+      "t": "Yes. Repay me later."
+    },
+    {
+      "id": "ep-39:93",
+      "source": "새벽. 스물일곱 달 중 하나가 갑자기 꺼졌다. 연이의 달, 바라니였다. 하늘 한쪽이 둥글게 검어졌다.",
+      "sourceHash": "1643a7fe00f6e7d3a666e84631fddaf1fdbc031c9dfb6233eb0a2d8050cdab1d",
+      "t": "At dawn, one of the twenty-seven moons abruptly went dark. Yeoni's moon, Bharani. A round patch blackened in the sky."
+    },
+    {
+      "id": "ep-39:94",
+      "source": "어, 이상해. 속이 또 비는 느낌이야.",
+      "sourceHash": "3fa365b8a5905126c8bb70abb2af1066c28dedb5dd31b5b3a63d45aa640e55da",
+      "t": "Oh. That's strange. I feel hollow again."
+    },
+    {
+      "id": "ep-39:95",
+      "source": "검은 원 안에서 거대한 머리가 내려왔다. 몸이 없는 머리. 라후였다. 입을 벌릴 때마다 별빛이 빨려 들어갔다.",
+      "sourceHash": "18365053e14b3079b37ac81e1f705f7f6979c364cc35a881dc5f0a27bf2ca884",
+      "t": "An enormous head descended from the black circle. A head without a body: Rahu. Each time its mouth opened, starlight was sucked inside."
+    },
+    {
+      "id": "ep-39:96",
+      "source": "머리는 앞날을 먹어요. 숙녀분, 메모장!",
+      "sourceHash": "bd5a42358a2df7fe12e87ab7739f59eff480f79419880bf6674e37619f202560",
+      "t": "The head eats the future. My lady, your notebook!"
+    },
+    {
+      "id": "ep-39:97",
+      "source": "연이가 메모장을 펼쳤다. 다음 주 할 일 목록이 한 줄씩 지워지고 있었다. 장보기. 과제 제출. 바다 가기. 글자가 검은 연기가 되어 하늘로 올라갔다.",
+      "sourceHash": "a03c393a89d7a912fec446bb7159209f9c68d2619134fd1ff161f1911ed91a40",
+      "t": "Yeoni opened it. Next week's to-do list was disappearing line by line. Grocery shopping. Submit assignment. Go to the sea. The words turned into black smoke and rose into the sky."
+    },
+    {
+      "id": "ep-39:98",
+      "source": "바다 가기는 왜! 그건 아직 날짜도 안 정했단 말이야!",
+      "sourceHash": "d83a3fd1567a614bce11d455595d75e88666d41c83ebc45d89badddf02521832",
+      "t": "Why the sea?! We haven't even picked a date!"
+    },
+    {
+      "id": "ep-39:99",
+      "source": "날짜가 없는 약속이 가장 맛있다. 너희 둘이 한 번 지키지 못한 그 약속처럼.",
+      "sourceHash": "05f8457e44761a5cb98d10395a4c0be12c612339efeb71d718c5b6ed240db602",
+      "t": "Promises without dates taste best. Like the promise you two once failed to keep."
+    },
+    {
+      "id": "ep-39:100",
+      "source": "서한비의 얼굴이 하얗게 질렸다. 그 약속을 아는 것은 둘뿐이었다. 그리고 그 둘 사이에 끼어든 그것.",
+      "sourceHash": "a9b3c3dfb5fd31b4f1d998f1190724260ce13b4a4f6255e07ca34f73700e21c8",
+      "t": "Seo Hanbi went pale. Only the two of them knew that promise. And the thing that had slipped between them."
+    },
+    {
+      "id": "ep-39:101",
+      "source": "[ 年 壬午 · 결빙 ]  균열 확산 중",
+      "sourceHash": "18a8a18dd460362a61e8edcad912750263b3e69ac1251e6352eeb7415b8eb12b",
+      "t": "[ Year: Im-o · Frozen ] Cracks spreading"
+    },
+    {
+      "id": "ep-39:102",
+      "source": "고리 없는 개는 필요 없다. 그 그릇과 함께 비워 주마.",
+      "sourceHash": "320298687d1a257b7eb70a08aeb887718880a0472b4a78164590b05e6d708a1b",
+      "t": "I have no use for a dog without a collar. I shall empty you along with that vessel."
+    },
+    {
+      "id": "ep-39:103",
+      "source": "머리가 내려왔다. 연이가 뒤로 물러섰다. 네오가 앞으로 나섰지만 다리가 바닥을 디디지 못했다.",
+      "sourceHash": "f2ab6f96d091eb4af4ef9d7f5c241c098f77c48fbacac425c52edfe65e962aee",
+      "t": "The head descended. Yeoni stepped back. Neo moved forward, but his legs couldn't find purchase on the floor."
+    },
+    {
+      "id": "ep-39:104",
+      "source": "그 앞을 막아선 것은 젖은 코트 한 벌이었다. 발톱도, 송곳니도 없는 맨몸의 서한비.",
+      "sourceHash": "7f2cb885b42e4be55cc855bed9c3db205e97eb7e67bfa1d8ac38665e44f9b535",
+      "t": "What stepped in front of them was a wet coat. Seo Hanbi, unarmed, without claws or fangs."
+    },
+    {
+      "id": "ep-39:105",
+      "source": "뭐 해! 힘 없다며!",
+      "sourceHash": "7401ca6fc54101f6546bd9c4f88e97ba2aae5bf9ffca14c123c3dffba724b3b1",
+      "t": "What are you doing? You said you have no power!"
+    },
+    {
+      "id": "ep-39:106",
+      "source": "없어요. 그런데 이번엔 저쪽으로 안 걸어갈 거예요.",
+      "sourceHash": "9cff79e5a9d35397efb696b78f608d8d7ab4b771823cd0ad06cfb49367a81778",
+      "t": "I don't. But this time I won't walk toward that side."
+    },
+    {
+      "id": "ep-39:107",
+      "source": "우산도 없네요. 반반은커녕.",
+      "sourceHash": "8d8fa76fd2ae97eabd5e28f5f037f96ec784988f77781855b0350664057b1525",
+      "t": "I don't even have an umbrella. Let alone half of one."
+    },
+    {
+      "id": "ep-39:108",
+      "source": "라후의 입이 열렸다. 그때 서한비의 손바닥 위로 무언가 떨어졌다. 차가운 물방울 하나. 검지 않고, 맑은.",
+      "sourceHash": "833f84ead0482ce72d77f80febd259a2ad67d2351b3cfe810164f50e2f472ccf",
+      "t": "Rahu's mouth opened. Then something fell onto Seo Hanbi's palm. A single cold drop. Clear, not black."
+    },
+    {
+      "id": "ep-39:109",
+      "source": "…비?",
+      "sourceHash": "9799685394b821e70e23892d374340828dad3b2611789810b1f13d2cccdc8a80",
+      "t": "...Rain?"
+    }
+  ]
+}

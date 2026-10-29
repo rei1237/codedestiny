@@ -1,0 +1,117 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "episodeId": "prologue",
+  "rows": [
+    {
+      "id": "prologue:1",
+      "source": "연이는 요즘 되는 일이 없었다. 하루쯤 운이 나쁜 거라면 넘겼을 텐데, 작은 어긋남이 며칠째 쌓이고 있었다.",
+      "sourceHash": "6943902bb9100c50e7c81f2d1e22fe94553d0cd14d525b79bfb185ba5191d0e0",
+      "translations": {
+        "en": "Nothing had been going Yeoni’s way lately. One unlucky day would have been easy enough to shrug off, but little things had been going wrong for days.",
+        "ja": "最近のYeoniは、何をやってもうまくいかなかった。一日くらい運が悪いだけなら流せたはずなのに、小さな食い違いが何日も積み重なっていた。",
+        "zh-CN": "Yeoni最近诸事不顺。要只是倒霉一天，忍忍也就过去了，可这些小小的差错已经接连堆积了好几天。",
+        "zh-TW": "Yeoni最近諸事不順。要只是倒楣一天，忍忍也就過去了，可這些小小的差錯已經接連堆積了好幾天。"
+      }
+    },
+    {
+      "id": "prologue:2",
+      "source": "그날 아침도 그랬다. 알람은 분명 세 개였다. 7시 10분, 7시 15분, 7시 20분. 이름까지 야무지게 붙여 뒀는데.",
+      "sourceHash": "29b64b1698a7866caa6a31a0ca1960b827a1492391a661e8bb18461a99e05459",
+      "translations": {
+        "en": "That morning was no different. There had definitely been three alarms: 7:10, 7:15, and 7:20. Yeoni had even given each one a proper name.",
+        "ja": "その朝もそうだった。アラームは確かに三つ。7時10分、7時15分、7時20分。名前まできっちり付けておいたのに。",
+        "zh-CN": "那天早晨也是。明明设了三个闹钟：7点10分、7点15分、7点20分。连名字都认真起好了。",
+        "zh-TW": "那天早晨也是。明明設了三個鬧鐘：7點10分、7點15分、7點20分。連名字都認真取好了。"
+      }
+    },
+    {
+      "id": "prologue:3",
+      "source": "[ 일어나 ]   [ 진짜 일어나 ]   [ 이러다 인생 망함 ]",
+      "sourceHash": "a259fbdf06063208d97679f963996c755c90656c0dbd657617c2eab065c99d09",
+      "translations": {
+        "en": "[ Get up ]   [ Seriously, get up ]   [ Keep this up and your life is over ]",
+        "ja": "［ 起きろ ］   ［ 本当に起きろ ］   ［ このままだと人生終わる ］",
+        "zh-CN": "［ 起床 ］   ［ 真的该起床了 ］   ［ 再这样下去人生就完了 ］",
+        "zh-TW": "［ 起床 ］   ［ 真的該起床了 ］   ［ 再這樣下去人生就完了 ］"
+      }
+    },
+    {
+      "id": "prologue:4",
+      "source": "하나도 울리지 않았다. 눈을 떴을 때, 커튼 틈으로 들어온 빛이 이미 노랬다. 딱 '늦었다'의 색이었다.",
+      "sourceHash": "b3a25b086204ae5e50718c4301d70f5b426a1bd3a376283ec348bcd1426c5fc9",
+      "translations": {
+        "en": "Not one had rung. By the time Yeoni opened their eyes, the light slipping through the curtains had turned yellow. Exactly the color of being late.",
+        "ja": "一つも鳴らなかった。目を開けると、カーテンの隙間から差す光はもう黄色かった。まさに「遅刻」の色だった。",
+        "zh-CN": "一个都没响。睁开眼时，从窗帘缝里照进来的光已经黄了。那分明就是“迟到了”的颜色。",
+        "zh-TW": "一個都沒響。睜開眼時，從窗簾縫裡照進來的光已經黃了。那分明就是「遲到了」的顏色。"
+      }
+    },
+    {
+      "id": "prologue:5",
+      "source": "휴대폰은 1퍼센트. 충전기는 콘센트에 얌전히 꽂혀 있었다. 문제는, 빠진 게 휴대폰 쪽이었다는 거다.",
+      "sourceHash": "c36eb4239a3decf393c441ad42783690871d51b6e47cfd54c55e3bec441bbfb9",
+      "translations": {
+        "en": "The phone was at 1 percent. The charger sat neatly in the outlet. The problem was the other end: it wasn’t connected to the phone.",
+        "ja": "スマホの充電は1パーセント。充電器はコンセントにおとなしく収まっていた。問題は、抜けていたのがスマホ側だったことだ。",
+        "zh-CN": "手机只剩1%的电。充电器好端端地插在插座上。问题在于，没插上的，是手机那一头。",
+        "zh-TW": "手機只剩1%的電。充電器好端端地插在插座上。問題在於，沒插上的，是手機那一頭。"
+      }
+    },
+    {
+      "id": "prologue:6",
+      "source": "…너도 나랑 손절했냐?",
+      "sourceHash": "b97ecc3e140524e8ed6dee5960fdc7ffc5a759643873f96102690f398acc5811",
+      "translations": {
+        "en": "…You cutting me off too?",
+        "ja": "……お前まで縁を切るの？",
+        "zh-CN": "……连你也要跟我绝交？",
+        "zh-TW": "……連你也要跟我絕交？"
+      }
+    },
+    {
+      "id": "prologue:7",
+      "source": "충전기는 대답하지 않았다. 그날따라 세상 모든 게, 연이한테만 조용히 등을 돌리고 있는 것 같았다.",
+      "sourceHash": "d3f66e1352de404515e97c56e13613480b35783143f4137a64c15c5e116cf1dd",
+      "translations": {
+        "en": "The charger said nothing. That day, it felt as though everything in the world had quietly turned its back on Yeoni alone.",
+        "ja": "充電器は答えなかった。その日はなぜか、世界中の何もかもがYeoniにだけ、静かに背を向けている気がした。",
+        "zh-CN": "充电器没有回答。那一天，整个世界仿佛都在悄悄背过身去，唯独把Yeoni留在身后。",
+        "zh-TW": "充電器沒有回答。那一天，整個世界彷彿都在悄悄背過身去，唯獨把Yeoni留在身後。"
+      }
+    },
+    {
+      "id": "prologue:8",
+      "source": "신고 나온 양말은 왼쪽 흰색, 오른쪽 회색. 무늬까지 달랐다. 발을 내려다보는 데 3초쯤 걸렸다.",
+      "sourceHash": "1bff15dd48ecb1bf4d24539554e7f0162d8f931e9fc78c683dd65223d805a226",
+      "translations": {
+        "en": "The sock on the left was white; the one on the right, gray. Even the patterns were different. Yeoni stared down for about three seconds.",
+        "ja": "履いてきた靴下は左が白、右が灰色。柄まで違った。足元を見つめること、三秒ほど。",
+        "zh-CN": "穿出门的袜子，左脚白色，右脚灰色，连花纹都不一样。Yeoni低头看了大约三秒。",
+        "zh-TW": "穿出門的襪子，左腳白色，右腳灰色，連花紋都不一樣。Yeoni低頭看了大約三秒。"
+      }
+    },
+    {
+      "id": "prologue:9",
+      "source": "…요즘은 믹스매치도 패션이라던데.",
+      "sourceHash": "5c4321314da6490376e3d834b4abcafc0eeaef2fbca9efab11b4265baa198724",
+      "translations": {
+        "en": "…They say mixing and matching is fashionable these days.",
+        "ja": "……最近はミックスマッチもおしゃれっていうし。",
+        "zh-CN": "……现在不都说混搭也是时尚吗。",
+        "zh-TW": "……現在不都說混搭也是時尚嗎。"
+      }
+    },
+    {
+      "id": "prologue:10",
+      "source": "연이는 긍정적으로 생각하기로 했다. 긍정은, 연이가 불운을 견디는 유일한 방법이었으니까.",
+      "sourceHash": "cf969d6bf61b3970c2ad671425fded998da2caf0203d37dcfed16e247956fbe3",
+      "translations": {
+        "en": "Yeoni decided to look on the bright side. Staying positive was the only way they knew to weather bad luck.",
+        "ja": "Yeoniは前向きに考えることにした。それが、不運をやり過ごすために知っている唯一の方法だったから。",
+        "zh-CN": "Yeoni决定往好处想。毕竟，保持乐观，是自己熬过坏运气的唯一办法。",
+        "zh-TW": "Yeoni決定往好處想。畢竟，保持樂觀，是自己熬過壞運氣的唯一辦法。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1198 @@
+{
+  "status": "draft",
+  "method": "directly authored; no translation API",
+  "episodeId": "ep-08",
+  "sourceTitle": "마지막 불씨",
+  "sourceTag": "제8화 · 마지막 불씨",
+  "metadata": {
+    "zh-CN": {
+      "title": "最后的火种",
+      "tag": "第8话 · 最后的火种"
+    },
+    "zh-TW": {
+      "title": "最後的火種",
+      "tag": "第8話 · 最後的火種"
+    }
+  },
+  "rows": [
+    {
+      "id": "ep-08:1",
+      "source": "수달은 냄비를 끌어안고 뛰었다. 연이는 그 뒤를 굴러가듯 따라갔다. 영냥이는 가장 뒤에서 까마귀가 내려오는 쪽을 노려보았다.",
+      "sourceHash": "cd6844f0fe0aec52fd76a101b169b42857f0e96b44eb2fe307e88eadeef16990",
+      "translations": {
+        "zh-CN": "水獭抱着锅奔跑，Yeoni像滚着一样追在后面。Yeongnyangi断后，盯着乌鸦扑来的方向。",
+        "zh-TW": "水獺抱著鍋奔跑，Yeoni像滾著一樣追在後面。Yeongnyangi殿後，盯著烏鴉撲來的方向。"
+      }
+    },
+    {
+      "id": "ep-08:2",
+      "source": "왼쪽! 아니, 네 왼쪽 말고 내 왼쪽!",
+      "sourceHash": "7a8fca110039fec91488f45a7ad2ce518b82583100ea437fd612ee2598af3847",
+      "translations": {
+        "zh-CN": "左边！不，不是你的左边，我的左边！",
+        "zh-TW": "左邊！不，不是你的左邊，我的左邊！"
+      }
+    },
+    {
+      "id": "ep-08:3",
+      "source": "앞에서 뛰는 사람 기준으로 말해 줘! 나 지금 다리가 네 개라 헷갈려!",
+      "sourceHash": "0fcd52819cd0d877b37491737aa384a3869638183d7ec3d0d76a4da7b14b9c82",
+      "translations": {
+        "zh-CN": "按前面跑的人来指方向！我现在有四条腿，搞不清啊！",
+        "zh-TW": "按前面跑的人來指方向！我現在有四條腿，搞不清啊！"
+      }
+    },
+    {
+      "id": "ep-08:4",
+      "source": "골목은 개미굴처럼 꺾였다. 수달은 막다른 벽 앞에서 멈추더니 바닥의 나무 뚜껑을 발로 걷어찼다.",
+      "sourceHash": "766803165a438a59d3af9e30fe4a65f76de6e7d4fbeda046f17b1e3b4c886ce8",
+      "translations": {
+        "zh-CN": "巷子像蚁穴般拐来拐去。水獭在死路的墙前停住，一脚踢开地上的木盖。",
+        "zh-TW": "巷子像蟻穴般拐來拐去。水獺在死路的牆前停住，一腳踢開地上的木蓋。"
+      }
+    },
+    {
+      "id": "ep-08:5",
+      "source": "들어가. 머리 조심. 아, 넌 머리보다 배가 먼저 걸리겠구나.",
+      "sourceHash": "1aeecbac01e94c78f20f397bbfb06887f966feb1f283023f41b8963c43f51774",
+      "translations": {
+        "zh-CN": "进去，小心头。啊，你会先卡住的应该是肚子。",
+        "zh-TW": "進去，小心頭。啊，你會先卡住的應該是肚子。"
+      }
+    },
+    {
+      "id": "ep-08:6",
+      "source": "처음 본 사이에 체형 평가하지 마!",
+      "sourceHash": "b50d6d6088a71468dbe52c64860fe9378ccbc2bbd13d6ddfa4104524818023f2",
+      "translations": {
+        "zh-CN": "初次见面，不要评价别人身材！",
+        "zh-TW": "初次見面，不要評價別人身材！"
+      }
+    },
+    {
+      "id": "ep-08:7",
+      "source": "셋이 차례로 떨어졌다. 뚜껑이 닫히는 순간 머리 위로 날갯짓이 지나갔다. 한참을 맴돌던 소리가 멀어졌다.",
+      "sourceHash": "f45d8284dae08118100c030141597e0860fa85239ef7d396195f694857b17f07",
+      "translations": {
+        "zh-CN": "三个依次落下，盖子合上的瞬间，振翅声从头顶掠过。盘旋了许久，声音才远去。",
+        "zh-TW": "三個依次落下，蓋子合上的瞬間，振翅聲從頭頂掠過。盤旋了許久，聲音才遠去。"
+      }
+    },
+    {
+      "id": "ep-08:8",
+      "source": "지하는 좁은 부엌이었다. 벽에는 국자와 체가 빼곡히 걸려 있었고, 가운데에는 작은 흙 단지가 놓여 있었다. 단지 안에서 불씨 하나가 숨을 쉬듯 깜빡였다.",
+      "sourceHash": "3fc4befd808577919c95796e6ad67f39a0f23b1057e238670e77ec4f1a96db46",
+      "translations": {
+        "zh-CN": "地下是一间狭窄厨房，墙上挂满汤勺和筛子，中央放着小陶罐。罐里一颗火种像呼吸般闪烁。",
+        "zh-TW": "地下是一間狹窄廚房，牆上掛滿湯勺和篩子，中央放著小陶罐。罐裡一顆火種像呼吸般閃爍。"
+      }
+    },
+    {
+      "id": "ep-08:9",
+      "source": "소개는 짧게 하자. 모카. 수달. 요리사.",
+      "sourceHash": "fb32872b530ab5f3ede507b4ba4cd9f4b641c95e908c3ca08c09e6e3b284ff01",
+      "translations": {
+        "zh-CN": "介绍简短点。摩卡，水獭，厨师。",
+        "zh-TW": "介紹簡短點。摩卡，水獺，廚師。"
+      }
+    },
+    {
+      "id": "ep-08:10",
+      "source": "연이. 사람. 지금은 사정상 돼지.",
+      "sourceHash": "155063f807efed7fe91f738cc2a8d1eae55a161ac03b4988c6a1f08a5d92cf36",
+      "translations": {
+        "zh-CN": "Yeoni，人，因故暂时是猪。",
+        "zh-TW": "Yeoni，人，因故暫時是豬。"
+      }
+    },
+    {
+      "id": "ep-08:11",
+      "source": "영냥이.",
+      "sourceHash": "c1ecd3bcd020c8d5bfc4a549617adbfcd2de0f79fe6f9b08f75b9f6ba04f3333",
+      "translations": {
+        "zh-CN": "Yeongnyangi。",
+        "zh-TW": "Yeongnyangi。"
+      }
+    },
+    {
+      "id": "ep-08:12",
+      "source": "고양이?",
+      "sourceHash": "85ba91b8870d288b321b13a92dc4ac7d10f0570b6531f00c09981e8ac92a3e0d",
+      "translations": {
+        "zh-CN": "猫？",
+        "zh-TW": "貓？"
+      }
+    },
+    {
+      "id": "ep-08:13",
+      "source": "그냥 고양이는 아니다.",
+      "sourceHash": "a8921786263e7fa1ca5e1fee4d0e72b9daad0d1b08e6e8da5013d2e3ffd9b5c2",
+      "translations": {
+        "zh-CN": "不是普通的猫。",
+        "zh-TW": "不是普通的貓。"
+      }
+    },
+    {
+      "id": "ep-08:14",
+      "source": "그냥 고양이가 아닌데 이렇게 작아? 이 섬은 정말 끝났구나.",
+      "sourceHash": "d044db6a5f44dd10d50b2285676c511305ad001b06ae4f7980075e78023bd834",
+      "translations": {
+        "zh-CN": "不是普通的猫，还这么小？这座岛果然完了。",
+        "zh-TW": "不是普通的貓，還這麼小？這座島果然完了。"
+      }
+    },
+    {
+      "id": "ep-08:15",
+      "source": "그치? 나도 처음에 그랬어.",
+      "sourceHash": "0d14f33e6ea79622e22afc77aefa216ef49473e44bba7a36d74049898e7b7b91",
+      "translations": {
+        "zh-CN": "是吧？我一开始也这么说。",
+        "zh-TW": "是吧？我一開始也這麼說。"
+      }
+    },
+    {
+      "id": "ep-08:16",
+      "source": "둘이 오늘 처음 만난 거 맞지?",
+      "sourceHash": "803bad0b95287affd9fc0ea4ad08d12349ea5c0bfeb1d7c799f7a76b8d0f4e9b",
+      "translations": {
+        "zh-CN": "你们俩真的是今天才认识？",
+        "zh-TW": "你們倆真的是今天才認識？"
+      }
+    },
+    {
+      "id": "ep-08:17",
+      "source": "모카는 대답 대신 냄비를 불씨 단지 위에 올렸다. 아까 그 떡꼬치였다. 간장이 졸아드는 소리가 났다.",
+      "sourceHash": "18279126aac708dc8aed136fd30f755fa931244e7dc98a6423136a42700a02a9",
+      "translations": {
+        "zh-CN": "摩卡没有回答，把锅架上火种罐。里面是刚才的年糕串，酱油发出收汁声。",
+        "zh-TW": "摩卡沒有回答，把鍋架上火種罐。裡面是剛才的年糕串，醬油發出收汁聲。"
+      }
+    },
+    {
+      "id": "ep-08:18",
+      "source": "그 냄새. 그 냄새야. 나를 여기까지 끌고 온 냄새.",
+      "sourceHash": "5ac7da847cc592bf722d967fc9b174ea69d833bc5a3533d1e57d740e7d13ef20",
+      "translations": {
+        "zh-CN": "那个香味，就是那个。把我一路带来的香味。",
+        "zh-TW": "那個香味，就是那個。把我一路帶來的香味。"
+      }
+    },
+    {
+      "id": "ep-08:19",
+      "source": "넌 냄새한테 끌려다니는 인생이냐.",
+      "sourceHash": "2fa13ac7b67d2b96fa8ae106bd15461944caa5734654c8ece195012e5b0b760d",
+      "translations": {
+        "zh-CN": "你的人生是被香味牵着走的吗。",
+        "zh-TW": "你的人生是被香味牽著走的嗎。"
+      }
+    },
+    {
+      "id": "ep-08:20",
+      "source": "냄새는 거짓말을 안 해.",
+      "sourceHash": "60c12f747963e42d3cbc249d10d652a35f00bb12905051bdd1d39c0ec3900f2d",
+      "translations": {
+        "zh-CN": "香味不会说谎。",
+        "zh-TW": "香味不會說謊。"
+      }
+    },
+    {
+      "id": "ep-08:21",
+      "source": "모카가 꼬치 하나를 건넸다. 연이는 앞발의 회색 도장을 힐끔 보았다. 맛이 안 나면 어쩌나 싶었다.",
+      "sourceHash": "4886e2d8953e8e76e4d7eaab52f2bb32892ac9e277e06408e005c64ce40d445f",
+      "translations": {
+        "zh-CN": "摩卡递来一串。Yeoni瞄了瞄前蹄的灰印，担心会不会尝不出味道。",
+        "zh-TW": "摩卡遞來一串。Yeoni瞄了瞄前蹄的灰印，擔心會不會嚐不出味道。"
+      }
+    },
+    {
+      "id": "ep-08:22",
+      "source": "한 입. 단짠이 혀끝에서 터졌다. 불 맛이 그 뒤를 따라왔다. 연이의 눈에 눈물이 맺혔다.",
+      "sourceHash": "492762c2853835c4b74b79bebb3baf6e9b340f3d7a7377a105893c24914233ad",
+      "translations": {
+        "zh-CN": "一口。咸甜在舌尖炸开，炭烤香紧随其后。Yeoni眼里噙起泪。",
+        "zh-TW": "一口。鹹甜在舌尖炸開，炭烤香緊隨其後。Yeoni眼裡噙起淚。"
+      }
+    },
+    {
+      "id": "ep-08:23",
+      "source": "맛이 나. 도장이 찍혔는데도 맛이 나.",
+      "sourceHash": "5a5103bd72765405418e33698ec3baee1bdd5c17a3b6e86046ca1362cc8c8f9d",
+      "translations": {
+        "zh-CN": "有味道。盖了印，还是有味道。",
+        "zh-TW": "有味道。蓋了印，還是有味道。"
+      }
+    },
+    {
+      "id": "ep-08:24",
+      "source": "우, 울어? 꼬치 하나에?",
+      "sourceHash": "a6fb53e0172f290cf398380b5fe9db64efb0270e8413d4f436fd6c2c8d126df6",
+      "translations": {
+        "zh-CN": "哭、哭了？就为一串？",
+        "zh-TW": "哭、哭了？就為一串？"
+      }
+    },
+    {
+      "id": "ep-08:25",
+      "source": "꼬치 하나가 아니야. 오늘 하루치 억울함이야.",
+      "sourceHash": "7aaf731628ece8570c816609afd72dcc114b7879a17c1776fd061c8242664627",
+      "translations": {
+        "zh-CN": "不只是一串，是今天一整天的委屈。",
+        "zh-TW": "不只是一串，是今天一整天的委屈。"
+      }
+    },
+    {
+      "id": "ep-08:26",
+      "source": "연이는 꼬치를 다 먹고 나서야 앞발을 내려다보았다. 회색 도장의 한쪽 귀퉁이가 그을린 종이처럼 옅어져 있었다.",
+      "sourceHash": "bc2697d1d520c1cb761a67cedab42b983706c36d5532fca11a4a00d813fc44f4",
+      "translations": {
+        "zh-CN": "吃完串，Yeoni才低头看前蹄。灰印的一角像烧焦的纸，颜色淡了。",
+        "zh-TW": "吃完串，Yeoni才低頭看前蹄。灰印的一角像燒焦的紙，顏色淡了。"
+      }
+    },
+    {
+      "id": "ep-08:27",
+      "source": "영냥아, 이거 봐. 도장이 조금 지워졌어.",
+      "sourceHash": "13e9c83bac7883ea221b59740e49d1fe5bab81fb1c86d9ea4809c969f1f4f053",
+      "translations": {
+        "zh-CN": "Yeongnyangi，看，印子擦掉了一点。",
+        "zh-TW": "Yeongnyangi，看，印子擦掉了一點。"
+      }
+    },
+    {
+      "id": "ep-08:28",
+      "source": "진짜 맛이 도장을 태운 거다. 아주 조금이지만.",
+      "sourceHash": "aca922d294ad23b032e1c5ecd83c5a04d4cac7b413a047a7582d67748de87499",
+      "translations": {
+        "zh-CN": "真正的滋味烧掉了印，虽然只有一点。",
+        "zh-TW": "真正的滋味燒掉了印，雖然只有一點。"
+      }
+    },
+    {
+      "id": "ep-08:29",
+      "source": "그래서 내가 매일 밤 몰래 굽는 거야. 한 사람이라도 맛을 기억하라고.",
+      "sourceHash": "ef9f59f497d78a71c42a9a22d5c52df9d3809a1db378c91595df2b8b11ed8629",
+      "translations": {
+        "zh-CN": "所以我每晚偷偷烤。哪怕只让一个人记住味道也好。",
+        "zh-TW": "所以我每晚偷偷烤。哪怕只讓一個人記住味道也好。"
+      }
+    },
+    {
+      "id": "ep-08:30",
+      "source": "丁火야. 등잔처럼 작은 불이지. 해가 멈춰도 누군가 돌보는 동안은 남아 있어.",
+      "sourceHash": "03efa2afdcf88cf0899facf858929fb4ed2b8631321d9ff379e24e485efb9fc4",
+      "translations": {
+        "zh-CN": "这是丁火，像灯盏一样的小火。即使太阳停住，只要有人照看，它就还在。",
+        "zh-TW": "這是丁火，像燈盞一樣的小火。即使太陽停住，只要有人照看，它就還在。"
+      }
+    },
+    {
+      "id": "ep-08:31",
+      "source": "어려운 말은 모르겠고. 우리 할머니 불이야.",
+      "sourceHash": "8828b1c5b64eab4ddcea6405e29295e6b974935a3e9064a892db78098a0fa7dc",
+      "translations": {
+        "zh-CN": "难懂的词我不懂。它是我奶奶的火。",
+        "zh-TW": "難懂的詞我不懂。它是我奶奶的火。"
+      }
+    },
+    {
+      "id": "ep-08:32",
+      "source": "모카는 불씨 단지를 앞발로 감쌌다. 털이 그을린 자국이 손바닥에 여럿 있었다.",
+      "sourceHash": "8498b562714dbb2fd9abefda862c3abe936f469c985f82a96086c101db6119a2",
+      "translations": {
+        "zh-CN": "摩卡用前爪拢住火种罐，掌上有好几处毛被烧焦的痕迹。",
+        "zh-TW": "摩卡用前爪攏住火種罐，掌上有好幾處毛被燒焦的痕跡。"
+      }
+    },
+    {
+      "id": "ep-08:33",
+      "source": "할머니가 이 섬에서 제일 시끄러운 포장마차를 했거든. 손님한테 노래 한 곡 시키면 꼬치 하나 공짜.",
+      "sourceHash": "b69a197a159ea10290cf76b24f82794af0eaf78504347612f76c6e5bf208239e",
+      "translations": {
+        "zh-CN": "奶奶以前开这岛上最吵的小吃摊。客人唱一首，就送一串。",
+        "zh-TW": "奶奶以前開這島上最吵的小吃攤。客人唱一首，就送一串。"
+      }
+    },
+    {
+      "id": "ep-08:34",
+      "source": "완전 내 스타일 가게다.",
+      "sourceHash": "27c40c788528962ff298bf7425dd3fd60cd67147f933c0cccd44b287444622e3",
+      "translations": {
+        "zh-CN": "完全是我喜欢的店。",
+        "zh-TW": "完全是我喜歡的店。"
+      }
+    },
+    {
+      "id": "ep-08:35",
+      "source": "노래 못 하는 손님은 두 개 줬어. 용기 값이라고.",
+      "sourceHash": "cc23bfc3a1eb93956304036daa530ae5cf3f96a183bb6ab73136f865d0134b98",
+      "translations": {
+        "zh-CN": "唱不好的送两串，说是给勇气的酬劳。",
+        "zh-TW": "唱不好的送兩串，說是給勇氣的酬勞。"
+      }
+    },
+    {
+      "id": "ep-08:36",
+      "source": "할머니 최고다. 별 다섯 개.",
+      "sourceHash": "8a40b6751e0411ffd366b59cfb2f59985e599f096ced0a35ba945902f8bf197d",
+      "translations": {
+        "zh-CN": "奶奶最棒，五星。",
+        "zh-TW": "奶奶最棒，五星。"
+      }
+    },
+    {
+      "id": "ep-08:37",
+      "source": "할머니는 별 여섯 개야. 아까 너 여섯 개 된다며.",
+      "sourceHash": "b282e7d77c64d3b9467c996d3ba30a62c7c5d30d720b175f1872623d9ce45aba",
+      "translations": {
+        "zh-CN": "奶奶是六星。你刚才不是说能给六星？",
+        "zh-TW": "奶奶是六星。你剛才不是說能給六星？"
+      }
+    },
+    {
+      "id": "ep-08:38",
+      "source": "할머니 한정으로 인정.",
+      "sourceHash": "860fa55fb01bf4184fb2f3ca1738be8dbdcedea674aefd386e06e80c6d2bbdee",
+      "translations": {
+        "zh-CN": "奶奶特例，认可。",
+        "zh-TW": "奶奶特例，認可。"
+      }
+    },
+    {
+      "id": "ep-08:39",
+      "source": "그 할머니는 지금 어디 있지.",
+      "sourceHash": "60352c5c33f70babc9e56f2dd0be409f07c9430f6bfd4130e3585b41cc0e0456",
+      "translations": {
+        "zh-CN": "她现在在哪里。",
+        "zh-TW": "她現在在哪裡。"
+      }
+    },
+    {
+      "id": "ep-08:40",
+      "source": "모카의 손이 잠깐 멈췄다. 기름이 한 번 튀었다.",
+      "sourceHash": "95da1b77d182361c0e067759ce39122a2d0001e509a5b45a4566a6b316f718de",
+      "translations": {
+        "zh-CN": "摩卡的手停了片刻，油溅了一下。",
+        "zh-TW": "摩卡的手停了片刻，油濺了一下。"
+      }
+    },
+    {
+      "id": "ep-08:41",
+      "source": "해 지기 전에 돌아가셨어. 그 뒤로 내가 불만 지키고 있어.",
+      "sourceHash": "6627fd1f7a7a6465f1fd52664d1ff0853ea59b0f4ef1ef03f9f59b8d98ebeb2d",
+      "translations": {
+        "zh-CN": "太阳落下前，她就去世了。之后只剩我守着火。",
+        "zh-TW": "太陽落下前，她就去世了。之後只剩我守著火。"
+      }
+    },
+    {
+      "id": "ep-08:42",
+      "source": "…미안. 괜히 물었다.",
+      "sourceHash": "f6196a41dc720edd31ed9fa4517f992da7673bfcee2d34c4376c0f7b441b4cfe",
+      "translations": {
+        "zh-CN": "……抱歉，不该问的。",
+        "zh-TW": "……抱歉，不該問的。"
+      }
+    },
+    {
+      "id": "ep-08:43",
+      "source": "네가 물은 거 아니잖아. 고양이가 물었지.",
+      "sourceHash": "c687247e3766a197293b2f817961357ece26ed299c2aca17c1444219ebf431c3",
+      "translations": {
+        "zh-CN": "又不是你问的，是猫问的。",
+        "zh-TW": "又不是你問的，是貓問的。"
+      }
+    },
+    {
+      "id": "ep-08:44",
+      "source": "미안하다.",
+      "sourceHash": "4f1db53872912bc2982dc04156dd209134d4aa62d2ca82be9f473cda4bff85a8",
+      "translations": {
+        "zh-CN": "对不起。",
+        "zh-TW": "對不起。"
+      }
+    },
+    {
+      "id": "ep-08:45",
+      "source": "됐어. 그래서 나는 노래는 안 해. 요리만 해.",
+      "sourceHash": "279905aaaba549a61dcb48940c73356fd4ad9248315e8bbc6235a9be6dc6cc9c",
+      "translations": {
+        "zh-CN": "算了。所以我不唱歌，只做饭。",
+        "zh-TW": "算了。所以我不唱歌，只做飯。"
+      }
+    },
+    {
+      "id": "ep-08:46",
+      "source": "아까 그건 노래 아니었어?",
+      "sourceHash": "a92dc58d5aaf5957a503fe270771586bb23a5e57523c7d2fe2dc0948f1f68155",
+      "translations": {
+        "zh-CN": "刚才那个不是歌吗？",
+        "zh-TW": "剛才那個不是歌嗎？"
+      }
+    },
+    {
+      "id": "ep-08:47",
+      "source": "레시피라니까.",
+      "sourceHash": "d884951142ceaad799700a7cc3cf25a8ea23ffe63d3727572280614e96d34e22",
+      "translations": {
+        "zh-CN": "都说了，是食谱。",
+        "zh-TW": "都說了，是食譜。"
+      }
+    },
+    {
+      "id": "ep-08:48",
+      "source": "박자가 그렇게 좋은 레시피는 처음 들어 봐.",
+      "sourceHash": "3a041346df938a544a261f1b6a7e810a206936c7aa967829b7e3c66f83166f7e",
+      "translations": {
+        "zh-CN": "第一次听到节奏这么好的食谱。",
+        "zh-TW": "第一次聽到節奏這麼好的食譜。"
+      }
+    },
+    {
+      "id": "ep-08:49",
+      "source": "모카의 귀 끝이 붉어졌다. 그는 괜히 국자로 냄비를 저었다.",
+      "sourceHash": "598e0563e4ef91e20282c9986f2ffc1db7a0e085daa1bdadc64931ae453412a4",
+      "translations": {
+        "zh-CN": "摩卡耳尖红了，故意拿汤勺搅了搅锅。",
+        "zh-TW": "摩卡耳尖紅了，故意拿湯勺攪了攪鍋。"
+      }
+    },
+    {
+      "id": "ep-08:50",
+      "source": "사람 앞에서 하면 안 나와. 냄비 앞에서만 나와.",
+      "sourceHash": "9f6ac20fe66fe4ed0341fcf859e997ef19477a0c53090ad6ed3434c1fd5e6179",
+      "translations": {
+        "zh-CN": "在人面前就说不出来，只能对着锅。",
+        "zh-TW": "在人面前就說不出來，只能對著鍋。"
+      }
+    },
+    {
+      "id": "ep-08:51",
+      "source": "왜?",
+      "sourceHash": "fd7b0d2da76a76ea02c72a4e18e7490fc8a851a07f870761de786b99af42eeac",
+      "translations": {
+        "zh-CN": "为什么？",
+        "zh-TW": "為什麼？"
+      }
+    },
+    {
+      "id": "ep-08:52",
+      "source": "몰라. 사람 눈이 냄비보다 무서우니까.",
+      "sourceHash": "9af40b1c14995eb2070c91e6de51176893954b41ff1c53ca25e57e14522abb05",
+      "translations": {
+        "zh-CN": "不知道，人的眼睛比锅可怕。",
+        "zh-TW": "不知道，人的眼睛比鍋可怕。"
+      }
+    },
+    {
+      "id": "ep-08:53",
+      "source": "대부분 그렇다.",
+      "sourceHash": "3fb8f1ce025ca584e4d3979200524d228b2275d3db0826c31ff2142a2102eded",
+      "translations": {
+        "zh-CN": "大多如此。",
+        "zh-TW": "大多如此。"
+      }
+    },
+    {
+      "id": "ep-08:54",
+      "source": "아무튼. 이 섬에 노래가 아직 남은 데가 딱 한 군데 있어. 오늘 밤이 마지막일지도 모르는 데.",
+      "sourceHash": "8931146d1f2daf628baf199b4ba4bde7e0ab7fae0c84e0228b5bb2320f93cda5",
+      "translations": {
+        "zh-CN": "总之，这座岛还有一个地方留着歌声。今晚也许是最后一次。",
+        "zh-TW": "總之，這座島還有一個地方留著歌聲。今晚也許是最後一次。"
+      }
+    },
+    {
+      "id": "ep-08:55",
+      "source": "어딘데?",
+      "sourceHash": "1bc3b1e85ef525820b7a53b2647fbdecec7b4e53f87636bec98e22332c5786db",
+      "translations": {
+        "zh-CN": "哪里？",
+        "zh-TW": "哪裡？"
+      }
+    },
+    {
+      "id": "ep-08:56",
+      "source": "지하 무대. 같이 갈래? 거기 가면 너도 알 거야. 이 섬이 원래 어떤 소리를 냈는지.",
+      "sourceHash": "01ed9a31631e8de0bedbc1111a0799e256318e65b203950e2015953645d1cff9",
+      "translations": {
+        "zh-CN": "地下舞台。一起去吗？到了你就知道，这座岛原本是什么声音。",
+        "zh-TW": "地下舞臺。一起去嗎？到了你就知道，這座島原本是什麼聲音。"
+      }
+    },
+    {
+      "id": "ep-08:57",
+      "source": "위험하다.",
+      "sourceHash": "8bdb613bb397a766db1ccb78d84cc68e6a23010fc2820ccab1c1d0de75062e53",
+      "translations": {
+        "zh-CN": "危险。",
+        "zh-TW": "危險。"
+      }
+    },
+    {
+      "id": "ep-08:58",
+      "source": "위험하니까 가야지. 노래가 남아 있는 마지막 장소라며.",
+      "sourceHash": "12e28b5047a57901ec4a1f55d5d4314f39ea3cc50379bd1bfd267e42cc891aa2",
+      "translations": {
+        "zh-CN": "危险才要去，不是说那是最后还留着歌声的地方吗。",
+        "zh-TW": "危險才要去，不是說那是最後還留著歌聲的地方嗎。"
+      }
+    },
+    {
+      "id": "ep-08:59",
+      "source": "너랑 말하면 꼭 여기서 막히더라.",
+      "sourceHash": "346fdc9dea261322fa06a0b0544f1634b2544a52adf49405b766f0e502bbd626",
+      "translations": {
+        "zh-CN": "跟你说话，总是在这里被堵住。",
+        "zh-TW": "跟你說話，總是在這裡被堵住。"
+      }
+    },
+    {
+      "id": "ep-08:60",
+      "source": "머리 위 뚜껑이 덜컹 울렸다. 셋은 숨을 멈췄다. 발톱이 나무를 긁는 소리가 천천히 지나갔다.",
+      "sourceHash": "b8046886e733821333975cad1ca08d9753499efe1f2f39a15a642a92d328c89d",
+      "translations": {
+        "zh-CN": "头顶的盖子哐当响了，三个都屏住呼吸。爪子刮过木头的声音慢慢经过。",
+        "zh-TW": "頭頂的蓋子哐噹響了，三個都屏住呼吸。爪子刮過木頭的聲音慢慢經過。"
+      }
+    },
+    {
+      "id": "ep-08:61",
+      "source": "매일 밤 이래. 이제 발소리만 들어도 몇 마리인지 알아.",
+      "sourceHash": "af6b65c82c59d53390c2f736ec80d52d3d68c8135fc03c856d935d2551b7110a",
+      "translations": {
+        "zh-CN": "每晚都这样。现在只听脚步，就知道有几只。",
+        "zh-TW": "每晚都這樣。現在只聽腳步，就知道有幾隻。"
+      }
+    },
+    {
+      "id": "ep-08:62",
+      "source": "지금은 몇 마리였는데?",
+      "sourceHash": "3f977c922747b5b98b1aaeb8d530c8001f76415b32898763034ec2cfc5342034",
+      "translations": {
+        "zh-CN": "刚才几只？",
+        "zh-TW": "剛才幾隻？"
+      }
+    },
+    {
+      "id": "ep-08:63",
+      "source": "한 마리. 근데 저 한 마리가 제일 무거워.",
+      "sourceHash": "75baf596fbb79e2819e22bb65db4eab9526a4dbcad328d13b90ca2e12200c0a9",
+      "translations": {
+        "zh-CN": "一只。但那一只最重。",
+        "zh-TW": "一隻。但那一隻最重。"
+      }
+    },
+    {
+      "id": "ep-08:64",
+      "source": "재판관이 왔네.",
+      "sourceHash": "940a7e7f64241221a4f56f0a02b0a692aa813a00dd8600dadd0d3b93e38e5698",
+      "translations": {
+        "zh-CN": "审判官来了。",
+        "zh-TW": "審判官來了。"
+      }
+    },
+    {
+      "id": "ep-08:65",
+      "source": "소문으로는 저 까마귀도 옛날엔 무대에 섰대. 첫 소절에서 다들 웃어 버렸다나.",
+      "sourceHash": "bd05d49159a3f346c3171172889a3352e395057374efbbdcc79b84ded93f8694",
+      "translations": {
+        "zh-CN": "听说那乌鸦以前也上过舞台，第一句一出口，大家就都笑了。",
+        "zh-TW": "聽說那烏鴉以前也上過舞臺，第一句一出口，大家就都笑了。"
+      }
+    },
+    {
+      "id": "ep-08:66",
+      "source": "그래서 노래를 다 없앤 거야? 복수로?",
+      "sourceHash": "9c0ac931c09b2156cc2572a4481649a5d59b3b09fca12eda8345bbfbf08b06e5",
+      "translations": {
+        "zh-CN": "所以把歌全抹掉了？为了报复？",
+        "zh-TW": "所以把歌全抹掉了？為了報復？"
+      }
+    },
+    {
+      "id": "ep-08:67",
+      "source": "몰라. 그날 이후로 아무도 그 애 이름을 기억 못 해.",
+      "sourceHash": "2231c826beeb5116e7aa96d56f50ed4692aede0fef00f2b48661e0b72a16680a",
+      "translations": {
+        "zh-CN": "不知道。从那天起，就没人记得它的名字。",
+        "zh-TW": "不知道。從那天起，就沒人記得牠的名字。"
+      }
+    },
+    {
+      "id": "ep-08:68",
+      "source": "지하 무대는 버려진 물탱크 안에 있었다. 둥근 벽을 따라 등불이 걸렸고, 바닥에는 서른 명 남짓한 사람들이 무릎을 맞대고 앉아 있었다.",
+      "sourceHash": "3fb909145ac1e1dfa9d1acb6782ad2e5e04b9cc1aa8095c8b55dd7f83925743d",
+      "translations": {
+        "zh-CN": "地下舞台在废弃水箱里。圆墙沿线挂着灯，地面有约三十人膝挨膝地坐着。",
+        "zh-TW": "地下舞臺在廢棄水箱裡。圓牆沿線掛著燈，地面有約三十人膝挨膝地坐著。"
+      }
+    },
+    {
+      "id": "ep-08:69",
+      "source": "무대 위의 연주자들은 천으로 감싼 북을 쳤다. 피리 끝에는 솜을 끼웠다. 가수는 노래를 속삭였다.",
+      "sourceHash": "a194320156b3e6abc642b54966c27336f9f83a257d61b1f8f00fb769fe34d9a9",
+      "translations": {
+        "zh-CN": "台上的乐手敲着裹布的鼓，笛口塞了棉花，歌手轻声低唱。",
+        "zh-TW": "臺上的樂手敲著裹布的鼓，笛口塞了棉花，歌手輕聲低唱。"
+      }
+    },
+    {
+      "id": "ep-08:70",
+      "source": "가수는 은빛 머리를 짧게 자른 여자였다. 목소리는 실처럼 가늘었지만 끊기지 않았다.",
+      "sourceHash": "1ac047ecbaf063482fa1e7dc14e030ece243c1295b271a38a8060420a626cf32",
+      "translations": {
+        "zh-CN": "歌手是银色短发的女人。声音细如丝，却不断。",
+        "zh-TW": "歌手是銀色短髮的女人。聲音細如絲，卻不斷。"
+      }
+    },
+    {
+      "id": "ep-08:71",
+      "source": "여울 누나. 이 섬에서 노래 제일 잘하는 사람. 할머니 가게 단골이었어.",
+      "sourceHash": "500eb056c6bca2a0c5dce05eb6fcd50924ed437b1df45e1cec92a1251cf88f82",
+      "translations": {
+        "zh-CN": "Yeoul姐，岛上唱得最好的人，奶奶店里的常客。",
+        "zh-TW": "Yeoul姐，島上唱得最好的人，奶奶店裡的常客。"
+      }
+    },
+    {
+      "id": "ep-08:72",
+      "source": "너 지금 엄청 자랑스러운 얼굴이다.",
+      "sourceHash": "0e791f2c30e69ad8958c883248f291da199c9276f06ad9dca01e7f2236467e13",
+      "translations": {
+        "zh-CN": "你现在一脸骄傲啊。",
+        "zh-TW": "你現在一臉驕傲啊。"
+      }
+    },
+    {
+      "id": "ep-08:73",
+      "source": "아니거든. 원래 얼굴이 이래.",
+      "sourceHash": "19b38600994868c249c9dd9a6d6c8d38172fe3ef74ac7c27ab374f5d9126ba1b",
+      "translations": {
+        "zh-CN": "才没有，我本来就长这样。",
+        "zh-TW": "才沒有，我本來就長這樣。"
+      }
+    },
+    {
+      "id": "ep-08:74",
+      "source": "근데 이거, 속삭이는 콘서트야.",
+      "sourceHash": "97bf5988f49516f76e7cdf9559e2f26fb509c1af32738152a472d865a2f9f95b",
+      "translations": {
+        "zh-CN": "不过这是低声演唱会啊。",
+        "zh-TW": "不過這是低聲演唱會啊。"
+      }
+    },
+    {
+      "id": "ep-08:75",
+      "source": "여기서도 크게 부르면 위에서 들려. 그래서 다들 작게 불러. 대신 끝까지 불러.",
+      "sourceHash": "18c786dd024c2b1558707f0ea74d9906a82e7abe10666d60365777cc50bf7b19",
+      "translations": {
+        "zh-CN": "这里唱大声，上面也听得见。所以大家唱得小声，但一定唱到最后。",
+        "zh-TW": "這裡唱大聲，上面也聽得見。所以大家唱得小聲，但一定唱到最後。"
+      }
+    },
+    {
+      "id": "ep-08:76",
+      "source": "속삭임이 모이자 이상하게 크게 들렸다. 서른 명의 숨이 같은 박자로 오르내렸다. 연이의 앞발이 저도 모르게 바닥을 두드렸다.",
+      "sourceHash": "76d68eb6a5d0517a1c53c45a1637c01b0968bc9c74ff9a456033faa4537ce66c",
+      "translations": {
+        "zh-CN": "低声汇聚，竟奇妙地响亮起来。三十人的呼吸以同一节拍起伏，Yeoni的前蹄不觉敲着地。",
+        "zh-TW": "低聲匯聚，竟奇妙地響亮起來。三十人的呼吸以同一節拍起伏，Yeoni的前蹄不覺敲著地。"
+      }
+    },
+    {
+      "id": "ep-08:77",
+      "source": "숨은 괜찮다고 했지.",
+      "sourceHash": "810b45b41219b7cb130939155b02ba9903630e883645ab1bcb4e4ced2adc52ea",
+      "translations": {
+        "zh-CN": "说过呼吸没关系吧。",
+        "zh-TW": "說過呼吸沒關係吧。"
+      }
+    },
+    {
+      "id": "ep-08:78",
+      "source": "응. 숨은 괜찮아. 지금 다들 숨으로 노래하고 있어.",
+      "sourceHash": "d572d0ead1dc2e967f611b57143c498cb1f2050e14eeb4e2d03d796557424c87",
+      "translations": {
+        "zh-CN": "嗯，呼吸没关系。大家现在都在用呼吸唱歌。",
+        "zh-TW": "嗯，呼吸沒關係。大家現在都在用呼吸唱歌。"
+      }
+    },
+    {
+      "id": "ep-08:79",
+      "source": "노래가 끝났다. 사람들은 박수 대신 손바닥을 서로의 손바닥에 갖다 댔다. 소리 없는 박수였다.",
+      "sourceHash": "7ba081fa734d5ce7d959e5a16ff8231477adbe3f4903241c77a9ba8df4afb97d",
+      "translations": {
+        "zh-CN": "歌结束了，人们不用鼓掌，而是彼此掌心相贴。无声的掌声。",
+        "zh-TW": "歌結束了，人們不用鼓掌，而是彼此掌心相貼。無聲的掌聲。"
+      }
+    },
+    {
+      "id": "ep-08:80",
+      "source": "이거 좋다. 이 섬 사람들, 진짜 노래 좋아하는구나.",
+      "sourceHash": "95db349f5730c4bd8847aab9906e20390afbd46e9de5fabb5af39973045028f1",
+      "translations": {
+        "zh-CN": "这样真好。岛上的人，真的喜欢歌啊。",
+        "zh-TW": "這樣真好。島上的人，真的喜歡歌啊。"
+      }
+    },
+    {
+      "id": "ep-08:81",
+      "source": "좋아하지. 그래서 사는 거야.",
+      "sourceHash": "0976ea7a0ca8ecd4f4bf225ee8e5f4b565dde27566e6bf1fa9c6d55f13c525fe",
+      "translations": {
+        "zh-CN": "喜欢，所以才活着。",
+        "zh-TW": "喜歡，所以才活著。"
+      }
+    },
+    {
+      "id": "ep-08:82",
+      "source": "그때 등불 하나가 꺼졌다. 또 하나. 무대 쪽에서부터 차례로 어둠이 걸어왔다.",
+      "sourceHash": "434aa6fe56c02bafbfd0665389072f6cfdbe298d0c36a98c2397763542076f68",
+      "translations": {
+        "zh-CN": "这时，一盏灯灭了，又一盏。黑暗从舞台那边依次走来。",
+        "zh-TW": "這時，一盞燈滅了，又一盞。黑暗從舞臺那邊依次走來。"
+      }
+    },
+    {
+      "id": "ep-08:83",
+      "source": "공연 잘 봤어. 그럼 이제 정산하자.",
+      "sourceHash": "6b1fb6e819878f53f61391d450d48c68b36937f0840fbadd13e11060bb013903",
+      "translations": {
+        "zh-CN": "演出看得很愉快。那么，现在结账吧。",
+        "zh-TW": "演出看得很愉快。那麼，現在結帳吧。"
+      }
+    },
+    {
+      "id": "ep-08:84",
+      "source": "무대 끝에 검은 호랑이가 앉아 있었다. 금실 망토, 붉은 눈, 이마의 붉은 문양. 앞발 아래에는 두꺼운 장부가 펼쳐져 있었다.",
+      "sourceHash": "649b5237c0f0ebf3c5c3026c469fbc12f1ef943bf2428acb1be5f056a95f642c",
+      "translations": {
+        "zh-CN": "黑虎坐在舞台尽头。金线斗篷，红眼睛，额头的红纹。前爪下摊着厚厚的账本。",
+        "zh-TW": "黑虎坐在舞臺盡頭。金線斗篷，紅眼睛，額頭的紅紋。前爪下攤著厚厚的帳本。"
+      }
+    },
+    {
+      "id": "ep-08:85",
+      "source": "호랑이?",
+      "sourceHash": "06c949addae76aa4e1d925f3fa92759edff8f3e967e39288f3cdc285341e6252",
+      "translations": {
+        "zh-CN": "老虎？",
+        "zh-TW": "老虎？"
+      }
+    },
+    {
+      "id": "ep-08:86",
+      "source": "또 만났네, 연이. 모자 쓴 고양이는 여전히 옆에 있고. 섬을 옮겨도 안 떨어지는구나.",
+      "sourceHash": "d65462ac26606bfea00782ac6d41fc22a72a723631a0355723c25a6bdb7ad503",
+      "translations": {
+        "zh-CN": "又见面了，Yeoni。戴帽子的猫还在旁边，换座岛也不分开啊。",
+        "zh-TW": "又見面了，Yeoni。戴帽子的貓還在旁邊，換座島也不分開啊。"
+      }
+    },
+    {
+      "id": "ep-08:87",
+      "source": "여기서 뭘 하는 거지.",
+      "sourceHash": "4b1ac00d5ed227804766a95fc2ac0d96201990d6da82a94fd093d764769db139",
+      "translations": {
+        "zh-CN": "你在这里做什么。",
+        "zh-TW": "你在這裡做什麼。"
+      }
+    },
+    {
+      "id": "ep-08:88",
+      "source": "일. 이 사람들 중에 박수를 빌려 간 사람들이 있거든. 오늘이 갚는 날이야.",
+      "sourceHash": "1e9274adbd2c36f3f4a5628170d3fda50b028a0a4fb9398cb877a6d6db8d2b55",
+      "translations": {
+        "zh-CN": "工作。这些人里，有人借过掌声，今天该还了。",
+        "zh-TW": "工作。這些人裡，有人借過掌聲，今天該還了。"
+      }
+    },
+    {
+      "id": "ep-08:89",
+      "source": "운을 빌려주고 이자를 받는 장사인가.",
+      "sourceHash": "d5d268c1b98585d924fa68be40d3e75b0ef6d77f47c94bd4ea4677c972c8a014",
+      "translations": {
+        "zh-CN": "出借运气，收取利息的生意吗。",
+        "zh-TW": "出借運氣，收取利息的生意嗎。"
+      }
+    },
+    {
+      "id": "ep-08:90",
+      "source": "장사가 잘돼. 이 섬은 특히. 다들 박수가 고팠거든.",
+      "sourceHash": "08dff2a4193b6c8f61698175057c016dd6e7b5069b1302786450f1037340bd85",
+      "translations": {
+        "zh-CN": "生意很好，尤其这座岛。大家都渴望掌声。",
+        "zh-TW": "生意很好，尤其這座島。大家都渴望掌聲。"
+      }
+    },
+    {
+      "id": "ep-08:91",
+      "source": "무대 위의 가수가 얼굴이 하얘졌다. 그녀의 목에도 작은 표찰이 걸려 있었다. 골목의 북 아이가 걸고 있던 것과 같은 표찰이었다.",
+      "sourceHash": "bb59de0dd65caa468a6ddb7beb2c7df7de7ce75e51341ba3a6c01182443ba002",
+      "translations": {
+        "zh-CN": "舞台上的歌手脸色发白。她脖子也挂着小牌子，和巷子里敲鼓的孩子戴的一样。",
+        "zh-TW": "舞臺上的歌手臉色發白。她脖子也掛著小牌子，和巷子裡敲鼓的孩子戴的一樣。"
+      }
+    },
+    {
+      "id": "ep-08:92",
+      "source": "여울 누나 건드리지 마. 누나는 노래 그만두려다가 그거 빌린 거야. 한 번만 큰 박수 받아 보고 싶다고.",
+      "sourceHash": "3edb80324f2e3f508a71355ec75b7a7d0e14ae5e064ab8bcafdaa738ff5c20c3",
+      "translations": {
+        "zh-CN": "别碰Yeoul姐。她本来要放弃唱歌，才借的。说只想得到一次热烈掌声。",
+        "zh-TW": "別碰Yeoul姐。她本來要放棄唱歌，才借的。說只想得到一次熱烈掌聲。"
+      }
+    },
+    {
+      "id": "ep-08:93",
+      "source": "그래서 받았잖아. 커다란 박수. 그날 밤 이 무대가 무너질 만큼.",
+      "sourceHash": "578efbf5ce934cdc5dbc233174a900a46b7a87c64950b5ad91c1002212a65871",
+      "translations": {
+        "zh-CN": "所以不是得到了吗？盛大的掌声，那晚大得像要把这舞台震塌。",
+        "zh-TW": "所以不是得到了嗎？盛大的掌聲，那晚大得像要把這舞臺震塌。"
+      }
+    },
+    {
+      "id": "ep-08:94",
+      "source": "받은 건 돌려줘야지. 박수는 박수로 갚을 수 없어. 목소리로 갚아.",
+      "sourceHash": "e553ffd0b955f630a7f117d628ba9b3a565faa954cc3cabb9c11c70b91e6256f",
+      "translations": {
+        "zh-CN": "收下的就得还。掌声不能用掌声还，要用声音还。",
+        "zh-TW": "收下的就得還。掌聲不能用掌聲還，要用聲音還。"
+      }
+    },
+    {
+      "id": "ep-08:95",
+      "source": "호랑이가 장부를 앞발로 눌렀다. 가수의 목에서 빛나는 실 한 가닥이 풀려 나왔다. 실은 공중을 건너 장부 속으로 빨려 들어갔다.",
+      "sourceHash": "a94d3d407531c668323b1f0851761f8363a99732696e0cfd1a5d9cf7ea3fbfa8",
+      "translations": {
+        "zh-CN": "黑虎用前爪按住账本。一根发光的线从歌手喉中抽出，穿过半空，被吸进账本。",
+        "zh-TW": "黑虎用前爪按住帳本。一根發光的線從歌手喉中抽出，穿過半空，被吸進帳本。"
+      }
+    },
+    {
+      "id": "ep-08:96",
+      "source": "그만해!",
+      "sourceHash": "c7e21205e38d2e64123476667f3d6307dfa9a07185c54972d680afb74e9548c6",
+      "translations": {
+        "zh-CN": "住手！",
+        "zh-TW": "住手！"
+      }
+    },
+    {
+      "id": "ep-08:97",
+      "source": "가수가 입을 벌렸다. 속삭임조차 나오지 않았다. 사람들이 일어섰지만 아무도 무대로 다가가지 못했다.",
+      "sourceHash": "4beeaf2dc5b2f24644e16ae2d24391979fdbc604077f470477d528259ef72fef",
+      "translations": {
+        "zh-CN": "歌手张嘴，连低语也发不出。人们站了起来，却没人敢靠近舞台。",
+        "zh-TW": "歌手張嘴，連低語也發不出。人們站了起來，卻沒人敢靠近舞臺。"
+      }
+    },
+    {
+      "id": "ep-08:98",
+      "source": "그 사람 노래를 갖고 싶었던 거지, 그 사람 목소리를 망가뜨리고 싶었던 건 아니잖아!",
+      "sourceHash": "cf83e3fbe5cb429200795c78ff4ebe0f163ba7b107fd8d302b7f0a8ad2166bfe",
+      "translations": {
+        "zh-CN": "你想要的是她的歌，不是毁掉她的声音吧！",
+        "zh-TW": "你想要的是她的歌，不是毀掉她的聲音吧！"
+      }
+    },
+    {
+      "id": "ep-08:99",
+      "source": "내가 원한 게 뭔지 네가 어떻게 알아.",
+      "sourceHash": "c4623291c4d0397cf13373668f9c64b8aa109c19fb873d453b6cc754677a78d3",
+      "translations": {
+        "zh-CN": "你怎么知道我想要什么。",
+        "zh-TW": "你怎麼知道我想要什麼。"
+      }
+    },
+    {
+      "id": "ep-08:100",
+      "source": "그럼 원하는 걸 말해. 내가 갚을게. 저 누나 몫까지.",
+      "sourceHash": "ae17b394bfd0f2df690efbbd3084db7dc720725c94f6a8d2154eaf70dda680a8",
+      "translations": {
+        "zh-CN": "那就说你要什么，我来还，连那位姐姐的份一起。",
+        "zh-TW": "那就說你要什麼，我來還，連那位姐姐的份一起。"
+      }
+    },
+    {
+      "id": "ep-08:101",
+      "source": "연이야. 그 말은 거둬.",
+      "sourceHash": "ab49678ac0acfadf2d202a4944cb6f933640b45b89197131249cd84791d876de",
+      "translations": {
+        "zh-CN": "Yeoni，收回这句话。",
+        "zh-TW": "Yeoni，收回這句話。"
+      }
+    },
+    {
+      "id": "ep-08:102",
+      "source": "호랑이의 붉은 눈이 연이에게 멈췄다. 장부 넘기던 앞발도 멈췄다. 아주 짧은 순간, 호랑이는 무언가를 계산하는 얼굴이었다.",
+      "sourceHash": "63f5d926427167857e37f7fa340808840ba07480493b78dd9b1832f0ef86bb99",
+      "translations": {
+        "zh-CN": "黑虎的红眼睛停在Yeoni身上，翻账本的前爪也停了。极短一瞬，它露出盘算什么的神情。",
+        "zh-TW": "黑虎的紅眼睛停在Yeoni身上，翻帳本的前爪也停了。極短一瞬，牠露出盤算什麼的神情。"
+      }
+    },
+    {
+      "id": "ep-08:103",
+      "source": "남의 빚을 대신 지겠다고? 이자도 모르면서?",
+      "sourceHash": "2756b5241641549e46fd20ee058d1e95d7a4497986456f1079858088e33ff574",
+      "translations": {
+        "zh-CN": "要替别人背债？连利息都不知道？",
+        "zh-TW": "要替別人背債？連利息都不知道？"
+      }
+    },
+    {
+      "id": "ep-08:104",
+      "source": "이자 같은 거 몰라. 그냥 저 사람 목소리 돌려줘.",
+      "sourceHash": "1332edc181c66b36c158be9a10c3e63d22941c5e018185d53c01e2d041958da8",
+      "translations": {
+        "zh-CN": "利息什么的我不懂，只要把那人的声音还回去。",
+        "zh-TW": "利息什麼的我不懂，只要把那人的聲音還回去。"
+      }
+    },
+    {
+      "id": "ep-08:105",
+      "source": "…다친 걸 보면 멈추는 버릇. 여전하네.",
+      "sourceHash": "19a05098b15cdffae913fb8b18127db28c51001f9d88e8856c19438f6c8eb1dc",
+      "translations": {
+        "zh-CN": "……看见受伤就停下的习惯，还是没变啊。",
+        "zh-TW": "……看見受傷就停下的習慣，還是沒變啊。"
+      }
+    },
+    {
+      "id": "ep-08:106",
+      "source": "아직은 안 받을게. 네 값은 지금보다 훨씬 오를 테니까.",
+      "sourceHash": "454f0072bd49d38e906fb89cdfd24b45cde7800ab4b3ab97b279a09edd4ce5f6",
+      "translations": {
+        "zh-CN": "我暂时不收。你的价值，会涨得比现在高得多。",
+        "zh-TW": "我暫時不收。你的價值，會漲得比現在高得多。"
+      }
+    },
+    {
+      "id": "ep-08:107",
+      "source": "사람 목소리 가지고 흥정하지 마, 이 줄무늬야!",
+      "sourceHash": "76a481daa4c528ac43087aeb7c83cd2cf28dea5e7b9e7c7170cd99a26434aaf4",
+      "translations": {
+        "zh-CN": "别拿人的声音讨价还价，你这条纹怪！",
+        "zh-TW": "別拿人的聲音討價還價，你這條紋怪！"
+      }
+    },
+    {
+      "id": "ep-08:108",
+      "source": "줄무늬도 무늬야. 남의 무늬는 함부로 부르는 거 아니야, 수달.",
+      "sourceHash": "4a06e61f271ecbb371c328cdc38e348510001b3828a494e91a490c90ba76819a",
+      "translations": {
+        "zh-CN": "条纹也是纹样，别随便叫别人的纹样，水獭。",
+        "zh-TW": "條紋也是紋樣，別隨便叫別人的紋樣，水獺。"
+      }
+    },
+    {
+      "id": "ep-08:109",
+      "source": "그때 천장이 울렸다. 쿵. 또 한 번. 물탱크의 녹슨 지붕에 금이 갔다.",
+      "sourceHash": "151b83390a3f7e9d1c8b50a6f626f1c97fd6095f4082853e6a17b8c57e8ceab7",
+      "translations": {
+        "zh-CN": "这时，天花板响了。咚，又一次。水箱生锈的顶盖裂开。",
+        "zh-TW": "這時，天花板響了。咚，又一次。水箱生鏽的頂蓋裂開。"
+      }
+    },
+    {
+      "id": "ep-08:110",
+      "source": "지붕이 찢어졌다. 까마귀들이 검은 비처럼 쏟아졌다. 그 한가운데로 법복의 까마귀가 천천히 내려앉았다.",
+      "sourceHash": "adf067b48c33ad213dad76117c1893930816e4699c65410014183f2b728ec83b",
+      "translations": {
+        "zh-CN": "屋顶被撕开，乌鸦如黑雨落下。穿法袍的乌鸦，从中央缓缓降落。",
+        "zh-TW": "屋頂被撕開，烏鴉如黑雨落下。穿法袍的烏鴉，從中央緩緩降落。"
+      }
+    },
+    {
+      "id": "ep-08:111",
+      "source": "노래의 소굴을 찾았다.",
+      "sourceHash": "539e158ae9c2409c8082048efcfa59947d5f2ea6d889bdd8103af636228d73e4",
+      "translations": {
+        "zh-CN": "找到歌声的巢穴了。",
+        "zh-TW": "找到歌聲的巢穴了。"
+      }
+    },
+    {
+      "id": "ep-08:112",
+      "source": "전원, 도장.",
+      "sourceHash": "80973a1a6de439db3bed6916dc335456b859453b3f6d36bc1ef66323ff50d140",
+      "translations": {
+        "zh-CN": "全员，盖印。",
+        "zh-TW": "全員，蓋印。"
+      }
+    },
+    {
+      "id": "ep-08:113",
+      "source": "다들 속삭였잖아! 이게 무슨 소음이야!",
+      "sourceHash": "fccd509862a9d6e4fde9b50421f859bb537ab9aa93a0cd4b7a15dcb9903d117d",
+      "translations": {
+        "zh-CN": "大家都在低声唱啊！这算什么噪音！",
+        "zh-TW": "大家都在低聲唱啊！這算什麼噪音！"
+      }
+    },
+    {
+      "id": "ep-08:114",
+      "source": "속삭임도 노래다. 박수 없는 박수도 박수다.",
+      "sourceHash": "b013fe5112ea14798ba9c0ac23ea1c420d3363b51bb56ce7e25050e113e66cde",
+      "translations": {
+        "zh-CN": "低语也是歌，无掌声的鼓掌，也是鼓掌。",
+        "zh-TW": "低語也是歌，無掌聲的鼓掌，也是鼓掌。"
+      }
+    },
+    {
+      "id": "ep-08:115",
+      "source": "까마귀들이 도장을 내리찍었다. 쾅. 쾅. 손등마다 회색 꽃이 피었다. 아까의 숨소리 박자가 하나씩 꺼져 갔다.",
+      "sourceHash": "07206bc4df3c0d8dcca985490d9dd2029d5727f0ce89ec2cb5d5341b8fdce69b",
+      "translations": {
+        "zh-CN": "乌鸦砸下印章。砰，砰。灰花在每只手背绽开，刚才的呼吸节拍一一熄灭。",
+        "zh-TW": "烏鴉砸下印章。砰，砰。灰花在每隻手背綻開，剛才的呼吸節拍一一熄滅。"
+      }
+    },
+    {
+      "id": "ep-08:116",
+      "source": "사람들이 비명을 삼키며 흩어졌다. 등불이 쓰러졌다. 모카는 사람들을 뒷문 쪽으로 밀어냈다.",
+      "sourceHash": "130fc94718c01d9c495f31759a0c8aefc3edd3d51c603b0ca6fcc065866a73bc",
+      "translations": {
+        "zh-CN": "人们吞回尖叫，四散奔逃，灯倒了。摩卡把人群推向后门。",
+        "zh-TW": "人們吞回尖叫，四散奔逃，燈倒了。摩卡把人群推向後門。"
+      }
+    },
+    {
+      "id": "ep-08:117",
+      "source": "이쪽! 머리 숙이고! 말하지 마, 숨만 쉬어!",
+      "sourceHash": "4338ddc0b666d59c3e043d530ee45c6db5edb3cf013bdf2b67d88acaaed94b78",
+      "translations": {
+        "zh-CN": "这边！低头！别说话，只呼吸！",
+        "zh-TW": "這邊！低頭！別說話，只呼吸！"
+      }
+    },
+    {
+      "id": "ep-08:118",
+      "source": "누나! 누나도 빨리!",
+      "sourceHash": "47574ebd998f7c02361541c4d790189d5a9abfcf4793236c2a11061b19793071",
+      "translations": {
+        "zh-CN": "姐！你也快走！",
+        "zh-TW": "姐！你也快走！"
+      }
+    },
+    {
+      "id": "ep-08:119",
+      "source": "목소리를 잃은 가수가 무대 위에 얼어붙어 있었다. 손에는 아직 솜 낀 마이크가 쥐어져 있었다. 연이는 무대로 뛰어올랐다.",
+      "sourceHash": "60de5c6624b4938c11087cc1b624c27ba348c1d55b36ccb25793b07832a1156f",
+      "translations": {
+        "zh-CN": "失声的歌手僵在舞台上，手里还握着塞棉的麦克风。Yeoni跃上舞台。",
+        "zh-TW": "失聲的歌手僵在舞臺上，手裡還握著塞棉的麥克風。Yeoni躍上舞臺。"
+      }
+    },
+    {
+      "id": "ep-08:120",
+      "source": "연이야, 위!",
+      "sourceHash": "68f557f2970f9cc0e307a654d5611718dccc8b3b72b815a428b8ba2f6d70632d",
+      "translations": {
+        "zh-CN": "Yeoni，上面！",
+        "zh-TW": "Yeoni，上面！"
+      }
+    },
+    {
+      "id": "ep-08:121",
+      "source": "검은 그물이 하늘에서 떨어졌다. 연이는 가수를 무대 아래로 밀어냈다. 그물은 연이 혼자를 덮었다.",
+      "sourceHash": "3993652f7d9b9766a15614dc0f501c1699e4053ad8303ef2466b050590b6db4c",
+      "translations": {
+        "zh-CN": "黑网从天而降，Yeoni把歌手推下舞台。网只罩住了Yeoni。",
+        "zh-TW": "黑網從天而降，Yeoni把歌手推下舞臺。網只罩住了Yeoni。"
+      }
+    },
+    {
+      "id": "ep-08:122",
+      "source": "으악, 끈적해! 이거 뭐야!",
+      "sourceHash": "5cb45100b10f045e46464f825bae1f90011a3656639cb4b448170d61a393df97",
+      "translations": {
+        "zh-CN": "呜啊，好黏！这什么东西！",
+        "zh-TW": "嗚啊，好黏！這什麼東西！"
+      }
+    },
+    {
+      "id": "ep-08:123",
+      "source": "놔라!",
+      "sourceHash": "4812e5e491270174d81ec47eed9df20a6225eaf0beeef3815789b66b2872f8a1",
+      "translations": {
+        "zh-CN": "放开！",
+        "zh-TW": "放開！"
+      }
+    },
+    {
+      "id": "ep-08:124",
+      "source": "영냥이가 뛰어올랐다. 금빛 발톱이 그물로 향했다. 그 순간 까마귀의 깃털 수십 개가 작은 흰 몸을 휘감았다. 영냥이는 바닥에 내리꽂혔다.",
+      "sourceHash": "9ac3f491b33cefb2e04cefb71aeea27341c82169177491927f91e16f3516510a",
+      "translations": {
+        "zh-CN": "Yeongnyangi跃起，金爪劈向网。就在这时，数十根鸦羽缠住小小的白色身体，把Yeongnyangi砸在地上。",
+        "zh-TW": "Yeongnyangi躍起，金爪劈向網。就在這時，數十根鴉羽纏住小小的白色身體，把Yeongnyangi砸在地上。"
+      }
+    },
+    {
+      "id": "ep-08:125",
+      "source": "영냥아!",
+      "sourceHash": "21ff7ff61abcbff01c062228bd74ef7ac2546efff87a8462be8a0162d36203fe",
+      "translations": {
+        "zh-CN": "Yeongnyangi！",
+        "zh-TW": "Yeongnyangi！"
+      }
+    },
+    {
+      "id": "ep-08:126",
+      "source": "무대 뒤를 돌아보았을 때, 호랑이는 이미 없었다. 장부도, 빛나던 실도 사라지고 없었다. 바닥에 금실 한 올만 떨어져 있었다.",
+      "sourceHash": "fbb03a5d491911e29a671f3e89f811a7ef6bfb4d57f7473f3d7de838335d2e20",
+      "translations": {
+        "zh-CN": "再看舞台后，黑虎已经不在，账本和发光的线也消失了。地上只落着一缕金线。",
+        "zh-TW": "再看舞臺後，黑虎已經不在，帳本和發光的線也消失了。地上只落著一縷金線。"
+      }
+    },
+    {
+      "id": "ep-08:127",
+      "source": "피고, 꽃돼지.",
+      "sourceHash": "5f298252bdc8020dd3e31a31b1bfc853c2b4ac4632d8dade0f20b3a0f4b34bb8",
+      "translations": {
+        "zh-CN": "被告，花猪。",
+        "zh-TW": "被告，花豬。"
+      }
+    },
+    {
+      "id": "ep-08:128",
+      "source": "혐의, 노래 선동. 무단 미식. 과도한 감탄사.",
+      "sourceHash": "e0e5419df631ba14bbfd7f9ee6aa56456e585b60855c289aedbeda55fbda1b0f",
+      "translations": {
+        "zh-CN": "罪名：煽动歌唱，擅自品尝美食，过度使用感叹词。",
+        "zh-TW": "罪名：煽動歌唱，擅自品嚐美食，過度使用感嘆詞。"
+      }
+    },
+    {
+      "id": "ep-08:129",
+      "source": "과도한 감탄사는 또 뭐야!",
+      "sourceHash": "b8b66b2dd01a62a204c1e68a1bf142ab262281261b578377722f296353e99350",
+      "translations": {
+        "zh-CN": "过度使用感叹词又是什么啊！",
+        "zh-TW": "過度使用感嘆詞又是什麼啊！"
+      }
+    },
+    {
+      "id": "ep-08:130",
+      "source": "그물이 하늘로 들어 올려졌다. 마지막으로 본 것은 뒷문 틈에서 이를 악문 모카의 얼굴이었다.",
+      "sourceHash": "4797fad6325e6e0b3e88540ff4364ec198e469ae2276b428eea8e5a3100ab19b",
+      "translations": {
+        "zh-CN": "网被提上天空，最后看见的是后门缝里摩卡咬紧牙关的脸。",
+        "zh-TW": "網被提上天空，最後看見的是後門縫裡摩卡咬緊牙關的臉。"
+      }
+    },
+    {
+      "id": "ep-08:131",
+      "source": "내일 아침, 재판정으로.",
+      "sourceHash": "a83527aa24f100517058d1e35fbd2f353c66a8d989a8bad5e5a8bf8c68905046",
+      "translations": {
+        "zh-CN": "明早，带上法庭。",
+        "zh-TW": "明早，帶上法庭。"
+      }
+    }
+  ]
+}

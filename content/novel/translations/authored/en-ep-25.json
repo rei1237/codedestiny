@@ -1,0 +1,692 @@
+{
+  "locale": "en",
+  "episodeId": "ep-25",
+  "tag": "Episode 25 · Black Moon",
+  "title": "Black Moon",
+  "sourceTitle": "흑월",
+  "sourceTag": "제25화 · 흑월",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-25:1",
+      "source": "해가 사라진 하늘 아래, 강물이 검은 거울처럼 굳어 있었다. 바람도 멎었다. 물안개마저 공중에 멈춘 채 떨지 않았다.",
+      "sourceHash": "ed3dccd7706802f36f5130c715c3c50c1618949620ed63388f360c5e6cd7087a",
+      "t": "Beneath the sunless sky, the river had hardened into a black mirror. Even the wind stopped. The mist hung motionless, without a tremor."
+    },
+    {
+      "id": "ep-25:2",
+      "source": "간다. 어디로 가면 돼. 저 위야? 강 속이야?",
+      "sourceHash": "b840ceb68f0d4509eb7f913d40a962ebab34f3038cdabb0c3b512394478d4a31",
+      "t": "I'm going. Where do I go? Up there? Into the river?"
+    },
+    {
+      "id": "ep-25:3",
+      "source": "너 미쳤어? 오라고 하면 가냐? 저건 딱 봐도 덫이잖아!",
+      "sourceHash": "6f062a1bddcb0967471cea538aef0c1945dfe31aa6686dc27324ffce655677f9",
+      "t": "Are you crazy? You go just because it calls? That's obviously a trap!"
+    },
+    {
+      "id": "ep-25:4",
+      "source": "덫인 거 알아. 그래도 영냥이가 저기 있잖아.",
+      "sourceHash": "4a1b53c5c2ad4a5242e4745bdce9444778f705abb92b32293163b5077885afbd",
+      "t": "I know it's a trap. But Yeongnyangi is there."
+    },
+    {
+      "id": "ep-25:5",
+      "source": "숙녀분. 저쪽이 원하는 건 고양이님이 아니에요. 숙녀분이에요. 고양이님은 미끼고요.",
+      "sourceHash": "8945d4d334db835b4717020a69a90743ef2bffd4b0e7d960b6674578d07f9831",
+      "t": "My lady. It doesn't want Mr. Cat. It wants you. Mr. Cat is bait."
+    },
+    {
+      "id": "ep-25:6",
+      "source": "그럼 미끼를 물어야지. 안 물면 미끼는 어떻게 되는데.",
+      "sourceHash": "ee276013ad67258c9a852e0c8eadf8a551ecb06c375c65537e49bb94fb3ce593",
+      "t": "Then I have to take the bait. What happens to the bait if I don't?"
+    },
+    {
+      "id": "ep-25:7",
+      "source": "윤달은 대답하지 못했다. 모카도 입을 다물었다. 대답을 모두가 알고 있었다.",
+      "sourceHash": "2650769b3fddbbdcbb05c318f82f11ef33c05048e9fd80be139e1b3359d34f56",
+      "t": "Yundal had no answer. Moka fell silent, too. They all knew the answer."
+    },
+    {
+      "id": "ep-25:8",
+      "source": "검은 원 둘레의 붉은 고리가 한 번 크게 타올랐다. 굳어 있던 강물 한가운데가 둥글게 꺼지더니, 그 아래로 계단 같은 그림자가 생겼다.",
+      "sourceHash": "073792a6372bece6b61e916567abbe017844f0a71541af9f034aa23c5e98182b",
+      "t": "The red ring around the black disk flared once. The middle of the hardened river sank in a circle, revealing shadows like stairs beneath."
+    },
+    {
+      "id": "ep-25:9",
+      "source": "영리한 돼지구나. 계단을 깔아 주마. 친구들도 데려와도 좋다. 구경꾼이 있어야 재미있지.",
+      "sourceHash": "a5397bdffc68cd4c22532920a229b14a44c14f8a1b6155fa58f446cf41097030",
+      "t": "Clever pig. I'll lay out the stairs for you. Bring your friends, too. It's more entertaining with an audience.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-25:10",
+      "source": "너 누구야. 이름이 뭐야.",
+      "sourceHash": "2c5844e665f82c1c9e084323ce2e70ba0a92345ce4234f60e6742bbcfbe6e3c0",
+      "t": "Who are you? What's your name?"
+    },
+    {
+      "id": "ep-25:11",
+      "source": "이름이라. 너희는 늘 이름부터 묻는구나. 좋다. 오늘은 공짜로 하나 주지.",
+      "sourceHash": "ca058c41a37a0a86a858d1310ad070c7abaf834a229ba52727ef15b14ec7e5b8",
+      "t": "A name. You always ask for names first. Very well. Today, I'll give you one for free.",
+      "nm": "Voice"
+    },
+    {
+      "id": "ep-25:12",
+      "source": "[ 黑月 · 흑월 · 빛을 먹는 달 ]",
+      "sourceHash": "a99748799c1090baea2ad6f98fa9132f3c88d89af1ce94e18324de4cee7c11aa",
+      "t": "[ 黑月 · Black Moon · The Moon That Devours Light ]"
+    },
+    {
+      "id": "ep-25:13",
+      "source": "글자가 하늘에 새겨지듯 떠올랐다가, 가장자리부터 검게 타들어 갔다. 마치 이름조차 먹어 치우는 것처럼.",
+      "sourceHash": "f4b730b21acc82b24964c4c9e15b5f236bf99985347d65dc1406c853483237da",
+      "t": "The words appeared as though engraved in the sky, then burned black from their edges. As though even the name were being devoured."
+    },
+    {
+      "id": "ep-25:14",
+      "source": "흑월.",
+      "sourceHash": "ebf3c662eba13188ecd8cbd934e7e40c2971bf2cc4042ead4187613fc5f96feb",
+      "t": "Black Moon."
+    },
+    {
+      "id": "ep-25:15",
+      "source": "윤달의 손바닥 구멍이 거칠게 소용돌이쳤다. 윤달은 장갑을 다시 끼려다가, 손이 떨려 끼지 못했다.",
+      "sourceHash": "6e495dead111f401ab58b1e5bdc08b1ed29ec03f4d62d3e59aba4b7ae9e4abc9",
+      "t": "The hole in Yundal's palm swirled violently. He tried to put his glove back on, but his hand shook too badly."
+    },
+    {
+      "id": "ep-25:16",
+      "source": "사기꾼, 너 알아?",
+      "sourceHash": "fe897570f1446e47278c2b714ee05b05876802285cdea8ab6ea5aaf4ab958191",
+      "t": "Con artist, you know it?"
+    },
+    {
+      "id": "ep-25:17",
+      "source": "몰라요. 그런데 이 구멍은 알아요. 처음 생긴 날부터, 이 구멍은 저 이름 쪽으로만 당겨졌어요.",
+      "sourceHash": "fb63474eff9d4f7f6160976d7e5ecce489c591b18fc500ee4d6ed3374ce902af",
+      "t": "No. But this hole does. Since the day it appeared, it has only ever pulled toward that name."
+    },
+    {
+      "id": "ep-25:18",
+      "source": "세 사람은 강물 아래 계단을 내려갔다. 계단은 끝이 없을 것 같았다. 벽에는 검은 손바닥 자국이 빽빽하게 찍혀 있었다. 모두 안쪽을 향해 있었다.",
+      "sourceHash": "92610cfdea525acd774b09a037a8b48e22eb70c781d7d7ec763295d0fa493779",
+      "t": "The three descended beneath the river. The stairs seemed endless. Black handprints covered the walls, all pointing inward."
+    },
+    {
+      "id": "ep-25:19",
+      "source": "이 손자국들, 다 밖으로 나가려고 긁은 거야? 아니면 안으로 끌려간 거야?",
+      "sourceHash": "2cb8c851cc68d93de457947825f9f5667bb330dc389a8d94d560ce80e5b37e96",
+      "t": "These handprints. Were they scratching to get out? Or being dragged in?"
+    },
+    {
+      "id": "ep-25:20",
+      "source": "둘 다요. 끌려간 다음에 나가려고 긁은 거예요.",
+      "sourceHash": "cf2f416c3f1a1913c74791cd4e76da29848ca35b0e0efd05d008de08ecf9235a",
+      "t": "Both. Dragged in, then scratching to get out."
+    },
+    {
+      "id": "ep-25:21",
+      "source": "그럼 나가는 길도 있다는 거네.",
+      "sourceHash": "7d28a54575ba00176632eefcaacada8d5179d2559696cf32863892f765bb5f1f",
+      "t": "Then there must be a way out, too."
+    },
+    {
+      "id": "ep-25:22",
+      "source": "돼지 너는 이 상황에 왜 그렇게 긍정적이야.",
+      "sourceHash": "609c7ceb54c21fdcd7ae98264aee0515876510079eb04c1c5df719a5cec68d43",
+      "t": "Pig, how are you so positive right now?"
+    },
+    {
+      "id": "ep-25:23",
+      "source": "부정적이면 계단이 짧아져?",
+      "sourceHash": "b4680c72f4fa181ee6158e9d493eb154e6a69a1e71c4d6051a343de4cbcdb911",
+      "t": "Would being negative make the stairs shorter?"
+    },
+    {
+      "id": "ep-25:24",
+      "source": "숙녀분 말이 맞아요. 계단은 긍정해도 부정해도 길이가 같아요. 제가 장담해요.",
+      "sourceHash": "034e6cb756d3f4c8998fd6a06725543865f484050a6fc61382e015a8ce45c404",
+      "t": "Our lady is right. Positive or negative, the stairs stay the same length. I guarantee it."
+    },
+    {
+      "id": "ep-25:25",
+      "source": "둘 다 똑같아. 이 와중에.",
+      "sourceHash": "6579ff3db8d85a53952c5b9e9d042fe4ff925aa1ae3d611543b8b1fa72d724dc",
+      "t": "You're both the same. Even at a time like this."
+    },
+    {
+      "id": "ep-25:26",
+      "source": "모카가 웃음 같은 콧김을 뿜었다. 계단 끝에서 붉은 빛이 새어 나오고 있었다.",
+      "sourceHash": "43a82f272204482f3d95e7857c155ad11c8e06374674c6b968aa7b3aea4e0881",
+      "t": "Moka snorted something like a laugh. Red light seeped from the bottom of the stairs."
+    },
+    {
+      "id": "ep-25:27",
+      "source": "계단 끝은 다시 하늘이었다. 강물 밑에 거꾸로 걸린 하늘. 그 한가운데에 검은 원이 떠 있었고, 원 아래에 검은 실로 엮은 고치 하나가 매달려 있었다.",
+      "sourceHash": "61f4de39612a43cb7bfbdbddfa1342f74edb6261fdfb74cff360dc6ccae4b874",
+      "t": "At the bottom was sky again. An upside-down sky hanging beneath the river. At its center floated the black disk, and below it hung a cocoon woven of black thread."
+    },
+    {
+      "id": "ep-25:28",
+      "source": "고치 사이로 하얀 털이 비쳤다. 고치가 천천히 숨을 쉬듯 부풀었다 가라앉았다.",
+      "sourceHash": "6a906537e53bb5715f44554dee7e354aad125af20946ae7953ba47a679592e15",
+      "t": "White fur showed between the threads. The cocoon slowly swelled and sank, as though breathing."
+    },
+    {
+      "id": "ep-25:29",
+      "source": "영냥아!",
+      "sourceHash": "21ff7ff61abcbff01c062228bd74ef7ac2546efff87a8462be8a0162d36203fe",
+      "t": "Yeongnyangi!"
+    },
+    {
+      "id": "ep-25:30",
+      "source": "오지 마. 연이야, 돌아가.",
+      "sourceHash": "37fcdfa4e187aed8fe6489ebefcea79beaea6a08c8eb9bf7b0f6907b939f5cff",
+      "t": "Don't come. Yeoni, go back."
+    },
+    {
+      "id": "ep-25:31",
+      "source": "살아 있네. 살아 있어. 말도 하네.",
+      "sourceHash": "bf71360fc4a51f85fccad01c55c438b062ccba4cb0b966374fb35525cf5e7217",
+      "t": "He's alive. He's alive. He can talk, too."
+    },
+    {
+      "id": "ep-25:32",
+      "source": "내 말을 들어라. 이건 나를 잡으려는 게 아니다. 너를 잡으려는 거다.",
+      "sourceHash": "bf8ccef8134ffd83c61262ffe2f51ca4a2f4f24c69b72452478467937bb6d9ff",
+      "t": "Listen to me. This isn't to catch me. It's to catch you."
+    },
+    {
+      "id": "ep-25:33",
+      "source": "알아. 다 알고 왔어.",
+      "sourceHash": "669a5bfa61164a9cf5897d24ebe58a7c1430026a962205569c3e5ede2bd1101d",
+      "t": "I know. I knew all of it when I came."
+    },
+    {
+      "id": "ep-25:34",
+      "source": "고치를 감은 검은 실이 바짝 조여들었다. 영냥이가 이를 악물었다. 실이 지나간 자리의 녹이 검게 번졌다.",
+      "sourceHash": "2f1575600239380dc6f9c378fb1a817d4af8b304a091b966f7f833657b66a2c4",
+      "t": "The black threads tightened around the cocoon. Yeongnyangi clenched his teeth. Wherever the threads passed, his rust spread black."
+    },
+    {
+      "id": "ep-25:35",
+      "source": "반갑구나, 꼬마 돼지. 이렇게 얼굴을 마주하는 건 처음이지. 나는 너를 오래 봐 왔지만.",
+      "sourceHash": "d6cde72277df70038a27bac7375f3a7de744a1cf8a8af84a4a092ea608cbbdb8",
+      "t": "Welcome, little pig. Our first face-to-face meeting. Though I've watched you for a long time."
+    },
+    {
+      "id": "ep-25:36",
+      "source": "얼굴 같은 거 없잖아. 그냥 구멍이잖아.",
+      "sourceHash": "cb49cf26b8a656f906e616287295d0a2f1f29cfea8e7679364aa784cfab9839e",
+      "t": "You don't have a face. You're just a hole."
+    },
+    {
+      "id": "ep-25:37",
+      "source": "하하. 맞다. 얼굴은 빌려 쓰는 거다. 필요할 때, 필요한 사람 것을.",
+      "sourceHash": "dc001c7c5c90736894b746336b6914ead3c54e13dddfb459df573fe0e7fc9019",
+      "t": "Ha ha. True. Faces are borrowed. From whoever I need, whenever I need one."
+    },
+    {
+      "id": "ep-25:38",
+      "source": "검은 원 표면이 물결쳤다. 잠깐, 그 위에 연이 자신의 얼굴이 비쳤다가 지워졌다. 연이는 등줄기가 서늘해졌다.",
+      "sourceHash": "2b6e307c9119441c56befdb2b74e9ae481d62e8b50057ba830850b4bf7c84445",
+      "t": "The black disk's surface rippled. For a moment, Yeoni's own face appeared on it, then vanished. A chill ran down their spine."
+    },
+    {
+      "id": "ep-25:39",
+      "source": "숙녀분, 저 말 듣지 마요. 눈을 마주치지도 마요.",
+      "sourceHash": "2a56ab288452902fe882dbdbe0d26a1fb1ae964d8a3ce6ae2b2b0c244ffb411e",
+      "t": "My lady, don't listen. Don't look it in the eye, either."
+    },
+    {
+      "id": "ep-25:40",
+      "source": "점쟁이. 네 손바닥은 아직 배가 고프냐. 내가 먹다 남긴 시간이 그 안에서 울고 있구나.",
+      "sourceHash": "2f677200c2735f7644f4effa64417c7bf6fa1ba9ed83c48c941ba21fc74448b7",
+      "t": "Fortune-teller. Is your palm still hungry? The time I left uneaten cries inside it."
+    },
+    {
+      "id": "ep-25:41",
+      "source": "크윽.",
+      "sourceHash": "f070484e3fccbe2227a5fde3176101974edfbc623a2549bb07b89e55ffcb8510",
+      "t": "Ghh."
+    },
+    {
+      "id": "ep-25:42",
+      "source": "윤달이 무릎을 꿇었다. 손바닥의 구멍이 저절로 벌어지며 그를 앞으로 끌어당겼다. 모카가 윤달의 옷깃을 물고 버텼다.",
+      "sourceHash": "b36c4c641a44873e8115b13fd27719fcfb9e339bba65df4607e2ab0d38320981",
+      "t": "Yundal dropped to his knees. The hole in his palm opened on its own and dragged him forward. Moka seized his collar in his teeth and held on."
+    },
+    {
+      "id": "ep-25:43",
+      "source": "사기꾼, 버텨! 너 빨려 들어가면 궁합은 누가 봐 줘!",
+      "sourceHash": "bf499824582cbc9977bebc0d82b4234aabb3db16fca18928a8761dba69875f44",
+      "t": "Con artist, hold on! Who'll read our compatibility if you get sucked in?!"
+    },
+    {
+      "id": "ep-25:44",
+      "source": "그만해! 원하는 게 나라며. 나한테 말해. 다른 사람 건드리지 말고.",
+      "sourceHash": "25a14adefb6e5abb82bec11bdc75e996f8a9498ffe3d5c055142fa8b3d25418b",
+      "t": "Stop! You said you wanted me. Talk to me. Leave everyone else alone."
+    },
+    {
+      "id": "ep-25:45",
+      "source": "좋은 태도다. 장사가 되겠구나.",
+      "sourceHash": "9c1627b86acf82dd0a3e2372b6ede3b52ce48e92c84dc73115f619ef73320e1b",
+      "t": "A good attitude. We can do business."
+    },
+    {
+      "id": "ep-25:46",
+      "source": "검은 원이 연이 쪽으로 기울었다. 거대한 눈동자가 아래를 내려다보는 것 같았다.",
+      "sourceHash": "13a48e22d89ae2882bac849a873c7dd02e567a7a68ecd73f97ff93df39c230f5",
+      "t": "The black disk tilted toward Yeoni. Like a giant pupil looking down."
+    },
+    {
+      "id": "ep-25:47",
+      "source": "거래를 하자. 고양이를 돌려주마. 대신, 네 남은 운을 전부 다오.",
+      "sourceHash": "3f3fbf4cac499a72bdcdbdc72fad8d956537e10c5d05ca383f7bc2c16dcc8d67",
+      "t": "Let's make a deal. I'll return the cat. In exchange, give me all your remaining fortune."
+    },
+    {
+      "id": "ep-25:48",
+      "source": "운?",
+      "sourceHash": "675b6872c77765f9442b383bff95b47ab972f6adaeeae62fc445468abbbb8e20",
+      "t": "Fortune?"
+    },
+    {
+      "id": "ep-25:49",
+      "source": "네가 태어날 때 받은 것. 아직 쓰지 않은 내일들. 좋은 날, 운 좋은 날, 우연히 잘 풀리는 날. 그걸 전부.",
+      "sourceHash": "d14e1ca18c353da489e62307a9afa6f8bd1ed500c7b4be4f3380c118f2c8452c",
+      "t": "What you received at birth. The tomorrows you haven't used. Good days, lucky days, days when things happen to go well. All of them."
+    },
+    {
+      "id": "ep-25:50",
+      "source": "숙녀분, 안 돼요. 운을 다 비우면 사람은 그릇이 돼요. 빈 그릇은 뭐든 담겨요. 저게 원하는 게 그거예요.",
+      "sourceHash": "a1254fdd1ecab99c4f31e1b6987b94f2dee7ccaa344bdea2c97078065b39d857",
+      "t": "My lady, no. Empty all your fortune, and you become a vessel. Anything can fill an empty vessel. That's what it wants."
+    },
+    {
+      "id": "ep-25:51",
+      "source": "점쟁이가 말이 많구나. 그래, 그릇이다. 숨기지 않으마. 이 아이의 乙목 덩굴은 남의 숨까지 받아 품는다. 그런 그릇은 흔하지 않지.",
+      "sourceHash": "6405f209f0715a83abe8506122e630d16f09122d750c89742bc3614b2f9147f8",
+      "t": "The fortune-teller talks too much. Yes, a vessel. I won't hide it. This child's Eul Wood vines can receive and hold even another's breath. Such vessels are rare."
+    },
+    {
+      "id": "ep-25:52",
+      "source": "연이야, 듣지 마. 저건 너를 먹으려는 거야!",
+      "sourceHash": "a5a107507be7ebf8d881ed5878f0ec70b3d35af9ca841b930ff2d8fdc387fefe",
+      "t": "Yeoni, don't listen! It wants to eat you!"
+    },
+    {
+      "id": "ep-25:53",
+      "source": "먹는 게 아니다. 채우는 거다. 이 아이가 품은 것들을, 이 아이 대신 내가 쓰겠다는 거지.",
+      "sourceHash": "638aa456f5815c777bc8506ed20e8540ca6d0f1e752fb79f094bb67dfa79a70b",
+      "t": "Not eat. Fill. I intend to use what this child holds, in the child's place."
+    },
+    {
+      "id": "ep-25:54",
+      "source": "연이는 고치를 올려다보았다. 실 사이로 녹슨 앞발이 보였다. 어깨까지 번졌던 녹이, 이제 목덜미까지 올라와 있었다.",
+      "sourceHash": "def0fd1f8cf22062035630438d0a311350b692ec0ac4851a788f31f81e55df51",
+      "t": "Yeoni looked up at the cocoon. A rusted paw showed through the threads. The rust that had reached his shoulder now climbed to his neck."
+    },
+    {
+      "id": "ep-25:55",
+      "source": "(운은 또 모으면 돼. 꼬치도 다시 굽고, 노래도 다시 부르면 돼. 영냥이는 하나야.)",
+      "sourceHash": "c2516d92e8cd19605f33ef11dc05cc534f1a3152810384f1699a004fda0742cf",
+      "t": "(I can gather fortune again. Grill more skewers, sing again. There's only one Yeongnyangi.)"
+    },
+    {
+      "id": "ep-25:56",
+      "source": "할게.",
+      "sourceHash": "d02a569629a1726fa0e517ad7637e77e9f5a0863f32646a66254504efad62d18",
+      "t": "I'll do it."
+    },
+    {
+      "id": "ep-25:57",
+      "source": "돼지!",
+      "sourceHash": "02cc1d1dc5796ba69a0751f68dd285c6fda3109db43ca8c219de7a6bd1ba886e",
+      "t": "Pig!"
+    },
+    {
+      "id": "ep-25:58",
+      "source": "숙녀분!",
+      "sourceHash": "f99fe00304708da16ab97ab825657435622dbae347706d00989ebb9c038bd725",
+      "t": "My lady!"
+    },
+    {
+      "id": "ep-25:59",
+      "source": "연이야, 안 돼!",
+      "sourceHash": "739143c74a4c04b841052c7a4cccde9ce643b4f6cec5c540381493ef3512e4ba",
+      "t": "Yeoni, no!"
+    },
+    {
+      "id": "ep-25:60",
+      "source": "영냥아. 너는 맨날 나 대신 아팠잖아. 이번에 한 번만, 내가 할게.",
+      "sourceHash": "ced68c978f46e3bb1739cf9d1b47f412e91892be2b5a50d52172e9d962f91e1d",
+      "t": "Yeongnyangi. You always hurt in my place. Just this once, let me do it."
+    },
+    {
+      "id": "ep-25:61",
+      "source": "그건 내가 정한 일이야. 네가 대신 정하지 마!",
+      "sourceHash": "15b65830390b50bbe33f2d585c6cf162dbc059f6e6de206c59529aa57023ebba",
+      "t": "That was my decision. Don't make it for me!"
+    },
+    {
+      "id": "ep-25:62",
+      "source": "그 말 그대로 돌려줄게. 소용없는지 아닌지는 내가 정해.",
+      "sourceHash": "a9c68123dbc8a17e38af0e75e1946d4e66990a290085df18bc7caa73b37dbfb1",
+      "t": "I'll give you those exact words back. I decide whether it helps."
+    },
+    {
+      "id": "ep-25:63",
+      "source": "영냥이는 대답하지 못했다. 어제 연이가 했던 말이 그대로 돌아왔다. 그때는 듣고도 모른 척했던 말이었다.",
+      "sourceHash": "117065d8a75f8c8f7b06b5850f0d18e3a3c5d5a0ec22c84cad691d10bf0d0282",
+      "t": "Yeongnyangi couldn't answer. Yeoni's words from yesterday returned unchanged. Words he had heard and pretended not to understand."
+    },
+    {
+      "id": "ep-25:64",
+      "source": "계약 성립이다. 그럼 수금원을 부르지.",
+      "sourceHash": "bf654ea118e2c1f6ca799b7430b57e2f2b533742f96275ea6d47df00934f70da",
+      "t": "The contract is made. Then I'll call the collector."
+    },
+    {
+      "id": "ep-25:65",
+      "source": "검은 원 아래 그림자가 쩍 갈라졌다. 그 틈에서 검은 호랑이가 걸어 나왔다. 망토 끝이 젖어 있었다. 오른 앞발의 금장 고리가 붉은 빛에 번들거렸다.",
+      "sourceHash": "fb3900e4ee08f56b81b91c2b00e565835b7a320a79fc6374cc3d61a91efeb724",
+      "t": "The shadow beneath the disk split open. A black tiger walked from the gap. Its cloak's hem was wet. The golden ring on its right forepaw gleamed in the red light."
+    },
+    {
+      "id": "ep-25:66",
+      "source": "부르셨습니까.",
+      "sourceHash": "33d52323dd305390bcecb411cdb16115b347426abc0cab1c0f33baa673da7772",
+      "t": "You called?"
+    },
+    {
+      "id": "ep-25:67",
+      "source": "장부를 펴라. 이 아이의 남은 운, 전부 거두어라.",
+      "sourceHash": "4476abf81d422eedb9931b0c19a05da12cee0ca3fc0c6e19e243f6d7019db802",
+      "t": "Open the ledger. Collect all this child's remaining fortune."
+    },
+    {
+      "id": "ep-25:68",
+      "source": "호랑이의 시선이 연이에게 닿았다. 아주 잠깐, 시선이 멈추었다. 그리고 장부가 펼쳐졌다.",
+      "sourceHash": "36cd90dac267ba472340640891864fe076a58819385aa88c9cf951fe90d7641b",
+      "t": "The tiger's gaze met Yeoni. For an instant, it stopped. Then the ledger opened."
+    },
+    {
+      "id": "ep-25:69",
+      "source": "전부, 말입니까.",
+      "sourceHash": "1fd15e33658bddea76a6328adeb77ed8dcc3180606770692b836d49716e84319",
+      "t": "All of it, you mean?"
+    },
+    {
+      "id": "ep-25:70",
+      "source": "전부.",
+      "sourceHash": "1d9837d442f30ef5d886486849211d9b3fa1785a235a29da6379ed3eae7e7356",
+      "t": "All."
+    },
+    {
+      "id": "ep-25:71",
+      "source": "알겠습니다.",
+      "sourceHash": "31ed163142377e5da9a129edb7c078710db5f96062f71485607a1f8aa0b9d91b",
+      "t": "Understood."
+    },
+    {
+      "id": "ep-25:72",
+      "source": "또 너구나. 이번엔 박수 대신 뭘 가져가는데.",
+      "sourceHash": "f2d5faa25d30b2c997ad821b5de691a67056a47fda0f3c684e568697128f4e96",
+      "t": "You again. What are you taking instead of applause this time?"
+    },
+    {
+      "id": "ep-25:73",
+      "source": "내일을요. 아프지는 않을 거예요. 그냥, 좀 추워질 거예요.",
+      "sourceHash": "89dd140b70ad010823af3280eca1c326fb29fc0ecf6db0d3271246b59f8742d5",
+      "t": "Tomorrows. It won't hurt. You'll just feel a little cold."
+    },
+    {
+      "id": "ep-25:74",
+      "source": "줄무늬! 너 진짜 이거 할 거야? 돼지가 너한테 뭘 했는데!",
+      "sourceHash": "70f00a19961fdc687bd7c6bb2bbb3abcf0694defca8554ff0fb0d47e5ba2dfbc",
+      "t": "Stripes! You're really doing this? What did the pig ever do to you?!"
+    },
+    {
+      "id": "ep-25:75",
+      "source": "수달은 빠지세요. 계약은 이미 끝났어요.",
+      "sourceHash": "7adbbf1be08a4a05ef46482add0672c0776a0c220d672d528bff6d2ff65c9988",
+      "t": "Stay out of it, otter. The contract is already settled."
+    },
+    {
+      "id": "ep-25:76",
+      "source": "호랑이가 장부를 쥔 발에 힘을 주었다. 그 순간 오른 앞발의 고리가 저절로 한 칸 조여들었다. 호랑이는 표정 하나 바꾸지 않았다. 다만 장부 모서리가 조금 구겨졌다.",
+      "sourceHash": "164c174cf61373c9d4d67965ca67e5b9ff5a4fe4f5a8e023053eaafd54b553e0",
+      "t": "The tiger tightened its grip on the ledger. At that moment, the ring on its right forepaw tightened one notch by itself. The tiger's expression did not change. Only the ledger's corner crumpled a little."
+    },
+    {
+      "id": "ep-25:77",
+      "source": "장부의 연이 칸에서 빛이 빨려 나오기 시작했다. 분홍빛, 금빛, 연둣빛. 작은 별 같은 것들이 연이의 몸에서 하나씩 떨어져 나가 장부 속으로 들어갔다.",
+      "sourceHash": "fe93c56cdc6f8213676399a7ad899fc03bbd688f2d10766481309b085c3f5b07",
+      "t": "Light began drawing out through Yeoni's entry. Pink, gold, pale green. Tiny stars broke from Yeoni's body one by one and entered the ledger."
+    },
+    {
+      "id": "ep-25:78",
+      "source": "축제 섬에서 처음 맛본 꼬치. 정오 무대의 박수. 루나가 나눠 준 빵 반쪽. 하나가 빠져나갈 때마다 연이의 눈이 한 번씩 깜빡였다.",
+      "sourceHash": "bef5ab70450f4caf1d10feb7ed6334c1c12aa81997bf3796033b31a84e7d833c",
+      "t": "The first skewer on the festival island. The noon concert's applause. Half a roll shared by Luna. Each time one left, Yeoni blinked."
+    },
+    {
+      "id": "ep-25:79",
+      "source": "[ 장부 · 乙亥 연이 · 남은 운 회수 중 ]",
+      "sourceHash": "60394ccb5299e0ecf0b97bc6b9f6b24b8acbc4b40b5b8a8e70b29a0d3c94b430",
+      "t": "[ Ledger · Eulhae Yeoni · Collecting remaining fortune ]"
+    },
+    {
+      "id": "ep-25:80",
+      "source": "춥다.",
+      "sourceHash": "42ad075ff68185c331f0cc2da3dd2a0d5e0959b8066e1fbf69b081737ace0a6a",
+      "t": "Cold."
+    },
+    {
+      "id": "ep-25:81",
+      "source": "연이야.",
+      "sourceHash": "80cb95b01e8cc1368b8cd8ace84e07fc877503b06ef9dddd4795ce70845dc473",
+      "t": "Yeoni."
+    },
+    {
+      "id": "ep-25:82",
+      "source": "고치를 감은 실이 끊어질 듯 팽팽해졌다. 영냥이가 몸부림쳤다. 그럴수록 실은 더 깊이 박혔다.",
+      "sourceHash": "707540c780e4fa62496d6be295703b43859ee0dcce4e2ac89d5f97d51d88be27",
+      "t": "The cocoon's threads stretched almost to breaking. Yeongnyangi struggled. The harder he fought, the deeper they dug in."
+    },
+    {
+      "id": "ep-25:83",
+      "source": "수달 씨, 저 장부. 제 손으로 빨아들일 수 있을지도 몰라요.",
+      "sourceHash": "29e5d5f8fd88ff931a5d7f3c5c52da698dbf05f9e35a6a32b25a04547b1f19e9",
+      "t": "Mr. Otter, that ledger. I might be able to suck it into my hand."
+    },
+    {
+      "id": "ep-25:84",
+      "source": "그럼 해! 빨리!",
+      "sourceHash": "856211fd3dc7c4c07165778bdfbb458ce09e018c3022c563a915ceb6ffb89da2",
+      "t": "Then do it! Hurry!"
+    },
+    {
+      "id": "ep-25:85",
+      "source": "윤달이 장갑을 벗어 던지고 손바닥을 장부 쪽으로 뻗었다. 구멍이 소용돌이치며 빛 몇 개를 낚아챘다. 그러나 다음 순간 구멍 가장자리가 찢어지듯 벌어졌다.",
+      "sourceHash": "7fed29811e0ad5ad100a72ee6f9abbb3e8ac9e541ae9a635850a3006162c61c9",
+      "t": "Yundal flung off his glove and thrust his palm toward the ledger. The swirling hole caught several lights. But the next moment, its edge tore wider."
+    },
+    {
+      "id": "ep-25:86",
+      "source": "아악!",
+      "sourceHash": "5a849aff44e871dae201dcdb892f02985fd277a756af475db06adb17cb040b3d",
+      "t": "Aaagh!"
+    },
+    {
+      "id": "ep-25:87",
+      "source": "점쟁이야. 남의 그릇을 탐하면 네 구멍이 먼저 터진다.",
+      "sourceHash": "b92b8c8e5190dcfaa9dd620adf23853dcd144b217ed715e9ad933783d06d9721",
+      "t": "Fortune-teller. Covet another's vessel, and your hole will burst first."
+    },
+    {
+      "id": "ep-25:88",
+      "source": "윤달이 손목을 움켜쥐고 쓰러졌다. 구멍은 손바닥을 넘어 손목까지 번져 있었다. 모카가 그를 끌어안듯 막아섰다.",
+      "sourceHash": "4a4e6b0c443c639ca4244a2b53a9d1dc36dc8eb3112157aad660144deb8135f0",
+      "t": "Clutching his wrist, Yundal collapsed. The hole had spread beyond his palm to his wrist. Moka stepped protectively before him, almost embracing him."
+    },
+    {
+      "id": "ep-25:89",
+      "source": "그럼 내가 태워 버린다!",
+      "sourceHash": "2ce953852e519d64cb81355aed5cf3bc9dc29f2948f351c1b56880efc15700b4",
+      "t": "Then I'll burn it!"
+    },
+    {
+      "id": "ep-25:90",
+      "source": "모카가 불씨를 던졌다. 불씨는 장부에 닿기도 전에 검은 원의 그늘에 빨려 들어가 꺼졌다. 모카의 꼬리털이 바짝 섰다.",
+      "sourceHash": "dbcf38e6d4b1d619904a41361950dfe561046c350f14fcbabfd185c19dec15e3",
+      "t": "Moka hurled an ember. Before it could reach the ledger, the disk's shadow sucked it in and extinguished it. The fur on his tail stood on end."
+    },
+    {
+      "id": "ep-25:91",
+      "source": "안 돼. 여기선 불이 안 붙어.",
+      "sourceHash": "83b2dcb62dca6779b2fbe65aaf91c2eed610dbfd8ef7de663ab6c52159ddbe26",
+      "t": "No. Fire won't catch here."
+    },
+    {
+      "id": "ep-25:92",
+      "source": "마지막 빛 하나가 연이의 앞발 끝에서 떨어져 나갔다. 아주 작은, 하얀 빛이었다. 연이는 그게 무엇이었는지 기억나지 않았다.",
+      "sourceHash": "7179cffc166d2e1bce0e6660274f380c5b54f95247da65786ee5a3429ee914e5",
+      "t": "One last light fell from the tip of Yeoni's hoof. A very small white light. Yeoni could not remember what it had been."
+    },
+    {
+      "id": "ep-25:93",
+      "source": "다 됐어?",
+      "sourceHash": "2dffb3630e2c3ca108aa869acab064ff913eb4dda6cc609be2b3bc01441ed526",
+      "t": "Is it done?"
+    },
+    {
+      "id": "ep-25:94",
+      "source": "목소리에 높낮이가 없었다. 분홍빛이던 털이 잿빛으로 바래 있었다. 눈동자는 열려 있었지만, 아무것도 비추지 않았다.",
+      "sourceHash": "1e6fd95f1e5fe1aaee74684155be1189298f6bf7c2aa7bca1c02e9b222ad66d5",
+      "t": "The voice had no rise or fall. Pink fur had faded to gray. The eyes were open, but reflected nothing."
+    },
+    {
+      "id": "ep-25:95",
+      "source": "[ 장부 · 乙亥 연이 · 잔고 없음 ]",
+      "sourceHash": "a58b4302ee8885bc87502fc0d4b0de034aea1997bd1e8b9120a9abf5b04bea5a",
+      "t": "[ Ledger · Eulhae Yeoni · No balance remaining ]"
+    },
+    {
+      "id": "ep-25:96",
+      "source": "호랑이가 장부를 덮었다. 덮는 발이 아주 잠깐 떨렸다. 호랑이는 연이의 텅 빈 눈을 보았다. 그리고 고개를 돌렸다.",
+      "sourceHash": "18094515bff30fb51714ff3ad77496828b208bb7a369782db474a3d09422cf3c",
+      "t": "The tiger closed the ledger. The paw closing it trembled for an instant. It looked into Yeoni's empty eyes, then turned away."
+    },
+    {
+      "id": "ep-25:97",
+      "source": "수금 완료했습니다.",
+      "sourceHash": "627900f11a7f0befa5c6ead2ba2bf65378895d7606dc7c196541c3b0ba84553c",
+      "t": "Collection complete."
+    },
+    {
+      "id": "ep-25:98",
+      "source": "수고했다, 호랑이야. 이제 약속을 지켜야지.",
+      "sourceHash": "a992c553e49283391ecc9f82112f72fa051f72bb82d2cb324e99a5366a6c3c73",
+      "t": "Well done, tiger. Now to keep my promise."
+    },
+    {
+      "id": "ep-25:99",
+      "source": "검은 실이 풀렸다. 고치가 갈라지며 하얀 고양이가 연이 앞으로 떨어졌다. 영냥이는 땅에 닿자마자 몸을 일으켜 연이에게 기어갔다.",
+      "sourceHash": "aea7a4396495de6aa1da5b3426f895f28fc687fe41977ce0b63dcbedaeac29b8",
+      "t": "The black threads loosened. The cocoon split, and a white cat fell before Yeoni. The instant he touched the ground, Yeongnyangi pushed himself up and crawled toward them."
+    },
+    {
+      "id": "ep-25:100",
+      "source": "연이야. 나야. 날 봐.",
+      "sourceHash": "30210b26b67f3b0b0fb893cde6e8866e16aca61e5956c2826e2931f0e2405456",
+      "t": "Yeoni. It's me. Look at me."
+    },
+    {
+      "id": "ep-25:101",
+      "source": "응. 영냥이.",
+      "sourceHash": "127b4f4d41771a64508a8b118b02b929f1084132333a6760f32e587a45b0bb3a",
+      "t": "Yes. Yeongnyangi."
+    },
+    {
+      "id": "ep-25:102",
+      "source": "왜 이랬지. 왜.",
+      "sourceHash": "ef02816d869009080dd2759e31f434e5ae3b3cf6b560bac218ab012f6efdc346",
+      "t": "Why did you do this? Why?"
+    },
+    {
+      "id": "ep-25:103",
+      "source": "영냥이의 목소리가 갈라졌다. 연이 앞에서 한 번도 내지 않았던 목소리였다.",
+      "sourceHash": "1780856fb2fe18b545975e879b14f4fd7e19e4d08c6e0d901949fe7aad442b4e",
+      "t": "Yeongnyangi's voice broke. A voice he had never used before Yeoni."
+    },
+    {
+      "id": "ep-25:104",
+      "source": "몰라. 그냥 그러고 싶었어.",
+      "sourceHash": "7b21d6d31783ab9b22c8325501c62570f8cb6f004d360563c23b36b6312fb98b",
+      "t": "I don't know. I just wanted to."
+    },
+    {
+      "id": "ep-25:105",
+      "source": "연이는 웃으려 했다. 입꼬리가 올라가지 않았다. 웃는 법이, 운과 함께 장부 속으로 들어가 버린 것 같았다.",
+      "sourceHash": "d1d1f592364a490189b51398408a4e914eab6dcd69a20d1ef14dcec655b6a771",
+      "t": "Yeoni tried to smile. The corners of their mouth would not rise. It was as though the way to smile had entered the ledger along with their fortune."
+    },
+    {
+      "id": "ep-25:106",
+      "source": "영냥이가 연이를 앞발로 감쌌다. 녹슨 쪽이 아닌 오른 앞발로. 연이의 몸은 이상할 만큼 가벼웠다.",
+      "sourceHash": "6b54a9e3dec8b9217e0ae694193e6ffc43752e23b19cbcdebc168685d9852053",
+      "t": "Yeongnyangi wrapped a paw around Yeoni. His right, not the rusted one. Their body felt strangely light."
+    },
+    {
+      "id": "ep-25:107",
+      "source": "그때 영냥이의 목덜미에서 검은 실 한 가닥이 다시 솟았다. 실은 풀린 적이 없었다. 땅 밑까지 이어져, 검은 원과 연결되어 있었다.",
+      "sourceHash": "f6822d10a8c180ad35d4b5e1f06996cad8690ef687903aaba0f7d9d551fa93d5",
+      "t": "Then a black thread rose again from the back of Yeongnyangi's neck. It had never been released. It ran beneath the ground, connected to the black disk."
+    },
+    {
+      "id": "ep-25:108",
+      "source": "돌려준다고 했지. 놓아준다고는 하지 않았다.",
+      "sourceHash": "b1ef7e04a57bab59633c885cd158ad2f32e3f18a12d1651e03cc33f7a3832ec8",
+      "t": "I said I'd return him. I never said I'd release him."
+    },
+    {
+      "id": "ep-25:109",
+      "source": "이 비겁한.",
+      "sourceHash": "346ce16ed24fd7cee83c22bede42be0b102c8143a63f07d47c459c2a207d630d",
+      "t": "You coward."
+    },
+    {
+      "id": "ep-25:110",
+      "source": "셈이 정확한 거다. 내 수금원한테 배워라.",
+      "sourceHash": "a8e1b1ac93600e2bd03552e5e9073cce2d9222a36640dfc0c36bdff9b36ac462",
+      "t": "Merely accurate accounting. Learn from my collector."
+    },
+    {
+      "id": "ep-25:111",
+      "source": "검은 원이 아래로 내려오기 시작했다. 둘레의 붉은 고리가 거대한 입술처럼 벌어졌다. 그 안에서 검은 손들이 실타래처럼 풀려 나왔다.",
+      "sourceHash": "d5864de52724554225320680d873d08d7af0e83c94f0c9babb6c0e9115a16d66",
+      "t": "The black disk began descending. Its red rim opened like enormous lips. Black hands unspooled from within like skeins of thread."
+    },
+    {
+      "id": "ep-25:112",
+      "source": "그릇이 비었구나. 아름답다. 이제 담을 차례다.",
+      "sourceHash": "c73b38602232d6596a2bf99f1b84a07a6a58899674ac01e729bc12942116d78f",
+      "t": "The vessel is empty. Beautiful. Time to fill it."
+    },
+    {
+      "id": "ep-25:113",
+      "source": "호랑이가 한 걸음 물러섰다. 처음으로, 그녀의 얼굴에 무언가가 스쳤다. 그 뒤로 검은 손들이 빈 연이를 향해 일제히 손가락을 펼쳤다.",
+      "sourceHash": "a4c0d1a8be100384a072a20cc425b622e07d1097bd096e7a956b545a0c52e723",
+      "t": "The tiger stepped back. For the first time, something crossed its face. Behind it, all the black hands spread their fingers toward the empty Yeoni."
+    }
+  ]
+}

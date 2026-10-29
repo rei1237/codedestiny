@@ -1,0 +1,636 @@
+{
+  "locale": "en",
+  "episodeId": "ep-47",
+  "tag": "Episode 47 · The Five Energies",
+  "title": "The Five Energies",
+  "sourceTitle": "다섯 기운",
+  "sourceTag": "제47화 · 다섯 기운",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-47:1",
+      "source": "넷이 줄줄이 끌려갔다. 검은 해가 하늘 전체를 덮을 만큼 가까워졌다. 해의 가장자리에서 뜨겁지 않은 바람이 불었다.",
+      "sourceHash": "bcd32669833b1093edb2da2e87215eac12d791c75fd68e5c21db662c3be5892a",
+      "t": "The four were dragged in a line. The black sun drew close enough to fill the sky. Wind blew from its rim, without heat."
+    },
+    {
+      "id": "ep-47:2",
+      "source": "연이 씨, 손 놔요. 제발요.",
+      "sourceHash": "e30aed725287193cd022e74ead1f9a6c84e692f49feecfe540d75b7dbdaca5a2",
+      "t": "Yeoni, let go. Please."
+    },
+    {
+      "id": "ep-47:3",
+      "source": "싫어. 당기면 당길수록 더 세게 잡을 거야.",
+      "sourceHash": "d06aa123581b8eaac2eb2a134da372957936453c1b930d431a1e3da1a6cc170b",
+      "t": "No. The harder it pulls, the tighter I'll hold."
+    },
+    {
+      "id": "ep-47:4",
+      "source": "그런데 당길수록 더 끌려갔다. 검은 손은 연이의 힘까지 같이 먹고 있었다. 당기는 힘이 그대로 저쪽의 힘이 되었다.",
+      "sourceHash": "0f18645135bdef93530ee5d7750cf364f53e71c52869cfe11ed2138d78cc0d3c",
+      "t": "But the harder they pulled, the farther they were dragged. The black hand was eating Yeoni's strength too. Their pull became its power."
+    },
+    {
+      "id": "ep-47:5",
+      "source": "연이 씨, 그렇게 하면 안 돼요! 저건 당기는 힘을 먹어요!",
+      "sourceHash": "43f87750ada6b4cec4501991c68da99c6acebf83ef8d6fa1e9c8ec7c98bc06ea",
+      "t": "Yeoni, that won't work! It eats the force of pulling!"
+    },
+    {
+      "id": "ep-47:6",
+      "source": "그럼 어떡해. 놓으라고?",
+      "sourceHash": "8e828904d207ddff6a521e41c31add9dd1f8f44696bfa801646254879b364654",
+      "t": "Then what? Let go?"
+    },
+    {
+      "id": "ep-47:7",
+      "source": "그때 아주 오래된 말 하나가 떠올랐다. 누가 했는지는 기억나지 않았다. 섬에서, 첫 번째 고리 앞에서 들은 말이었다.",
+      "sourceHash": "5b9484e918c1bfc74f06a18f8ff73b139d552e918913c53e93f961923b2ba235",
+      "t": "Then a very old phrase returned. Yeoni couldn't remember who had said it. On the island, before the first ring."
+    },
+    {
+      "id": "ep-47:8",
+      "source": "(잡아당기지 말고, 밀어.)",
+      "sourceHash": "ee99d7b5e3369ddddfdca3091295f4b2bf87e928a6c3c5dfc31790926a434243",
+      "t": "(Don't pull. Push.)"
+    },
+    {
+      "id": "ep-47:9",
+      "source": "연이는 서한비를 당기던 손에서 힘을 뺐다. 대신 왼손을 서한비의 손목에 갖다 댔다. 검은 손가락과 흉터 사이로, 금빛이 새는 손바닥을.",
+      "sourceHash": "2fc083019217cee603278a689aa3814f6cd2bd8f63f5d137584a7afd2165dc87",
+      "t": "Yeoni relaxed the hand pulling Seo Hanbi. Instead, they placed their left palm against her wrist, between the black fingers and the scar. The palm leaking gold."
+    },
+    {
+      "id": "ep-47:10",
+      "source": "한비야, 받아. 이거 갚지 마.",
+      "sourceHash": "f7198bd72b16fad3b94fbe4e48c6e74896988185b2f027677dbdace25a7600ad",
+      "t": "Hanbi, take this. Don't repay it."
+    },
+    {
+      "id": "ep-47:11",
+      "source": "금빛이 손바닥에서 서한비의 손목으로 밀려 들어갔다. 검은 손가락이 그 빛에 닿자마자 쩍 갈라졌다. 칼날에 베인 것처럼 깨끗하게.",
+      "sourceHash": "7e0b055b7751f603852b37348dc6afc24fb215d7945639767c0a919554258ae3",
+      "t": "Gold pushed from Yeoni's palm into Seo Hanbi's wrist. The moment it touched the black fingers, they split cleanly, as though cut by a blade."
+    },
+    {
+      "id": "ep-47:12",
+      "source": "크윽.",
+      "sourceHash": "f070484e3fccbe2227a5fde3176101974edfbc623a2549bb07b89e55ffcb8510",
+      "t": "Ghh."
+    },
+    {
+      "id": "ep-47:13",
+      "source": "서한비의 손목이 풀려났다. 넷은 검은 판 위로 나뒹굴었다. 우산이 데굴데굴 굴러가다 모카의 발에 걸려 멈췄다.",
+      "sourceHash": "7aa237f79f2301f34aa219dcecaef3417a563bd3e7f5d7c35e46a633d55d5ed5",
+      "t": "Seo Hanbi's wrist came free. The four tumbled onto a black panel. The umbrella rolled until Moka's foot stopped it."
+    },
+    {
+      "id": "ep-47:14",
+      "source": "살았다. 아니 살았나? 다들 손가락 몇 개야. 세어 봐.",
+      "sourceHash": "50ee76755b82f681d8062761edfb3b772199fb07ab39021078c8b4ca59b34bc5",
+      "t": "Alive. Are we alive? How many fingers does everyone have? Count them."
+    },
+    {
+      "id": "ep-47:15",
+      "source": "열 개요. 아직은 제 것도 열 개예요. 하나는 좀 검지만.",
+      "sourceHash": "11a60857acbbb3fdcfe7ebe495f495a252e9e221e35aa7fcdf34de09998cb59b",
+      "t": "Ten. Still ten for me too. One's a little black."
+    },
+    {
+      "id": "ep-47:16",
+      "source": "검은 해가 잠시 물러났다. 다친 손을 거두어들이는 짐승 같았다. 일행은 그 틈에 가장 넓은 검은 판 위에 모였다.",
+      "sourceHash": "7911e8390fda984c72b44445e0ff0bf9aafe26be775aadf7e8e7e995255f5fcc",
+      "t": "The black sun retreated briefly, like a beast withdrawing an injured hand. They used the opening to gather on the widest panel."
+    },
+    {
+      "id": "ep-47:17",
+      "source": "연이는 왼손을 펴 보았다. 금빛이 아까보다 흐려져 있었다. 작은 불씨만큼만 남아 있었다.",
+      "sourceHash": "da623454eb2d3f7d93c3b12a783ac5f5f3723882dec59fc8e45b4e190f60c7eb",
+      "t": "Yeoni opened their left hand. The gold was fainter than before, no more than a small ember."
+    },
+    {
+      "id": "ep-47:18",
+      "source": "줄었다. 한비한테 밀어 넣은 만큼.",
+      "sourceHash": "a94562dabf954e36494b71b44453edf285abad1adb957c41e64babba0ff919ac",
+      "t": "It's smaller. By the amount I pushed into Hanbi."
+    },
+    {
+      "id": "ep-47:19",
+      "source": "저 때문에 그 조각이 이렇게 작아졌어요.",
+      "sourceHash": "b16272107f0e02b474437b6a8db3d7480a3a0113e750389fea4e8afe13cade2c",
+      "t": "Because of me, the piece is this small."
+    },
+    {
+      "id": "ep-47:20",
+      "source": "아니. 내가 정한 거야. 그리고 잘했잖아. 너 지금 여기 있잖아.",
+      "sourceHash": "06030b277cf06972dea86dba12cceb4402b14805062202fd4dec22f4a27b2fd0",
+      "t": "No. I chose. And it worked. You're here now."
+    },
+    {
+      "id": "ep-47:21",
+      "source": "서한비는 대답 대신 오른 손목을 쥐었다. 흉터 위가 따뜻했다. 처음 느껴 보는 온도였다. 금이 지나간 자리에 물기가 맺혀 있었다.",
+      "sourceHash": "29fc8da40ebf75219bc9da9d1e014142bfba1fbd9560de1fc33887051660ac97",
+      "t": "Seo Hanbi held her right wrist instead of answering. The scar was warm, a temperature she had never felt there before. Moisture beaded where Metal had passed."
+    },
+    {
+      "id": "ep-47:22",
+      "source": "잠깐. 서한비 씨, 그 손목 좀 보여 줘요.",
+      "sourceHash": "a5b30f9778e6d350fe8ebb16166532144daa70d76d039fc5e1a12cb131cc6809",
+      "t": "Wait. Seo Hanbi, let me see that wrist."
+    },
+    {
+      "id": "ep-47:23",
+      "source": "윤달이 서한비의 손목을 들여다보았다. 흉터 위의 물방울이 금빛을 머금고 반짝였다. 윤달이 짧게 웃었다.",
+      "sourceHash": "34d1aca75e901537eef1c32f965a5473a35a5a9e8148b0fb3da2b88e9bfb6b27",
+      "t": "Yundal examined it. A droplet above the scar glittered with gold. He gave a short laugh."
+    },
+    {
+      "id": "ep-47:24",
+      "source": "됐다. 방금 연이 씨가 한 거, 그게 정답이에요.",
+      "sourceHash": "64eda57f83ca2362419f719f4d0d7053ce0517aca1522c220057532201d8cf17",
+      "t": "That's it. What you just did, Yeoni—that's the answer."
+    },
+    {
+      "id": "ep-47:25",
+      "source": "무슨 소리야. 쉽게 말해. 나 불 담당이라 머리 안 써.",
+      "sourceHash": "76d2ede901e96f6ac2d83b7b86aaec5fc3d5e56a0a036f012a4302931db0c176",
+      "t": "Meaning? Simple words. I'm on fire duty, not thinking duty."
+    },
+    {
+      "id": "ep-47:26",
+      "source": "오행은 서로를 낳아요. 나무가 불을, 불이 흙을, 흙이 쇠를, 쇠가 물을, 물이 다시 나무를.",
+      "sourceHash": "2eafc70d3a304c93bb692be9f22b76ad99e0cf5f33b5eaed749b88df4063ab71",
+      "t": "The five elements generate one another. Wood makes Fire, Fire makes Earth, Earth makes Metal, Metal makes Water, and Water returns to nourish Wood."
+    },
+    {
+      "id": "ep-47:27",
+      "source": "[ 木 → 火 → 土 → 金 → 水 → 木 ]",
+      "sourceHash": "84824f1ace5d4f06dfd4067f210d8bfab7ee4b357900551309440c7dec92d4ee",
+      "t": "[ Wood → Fire → Earth → Metal → Water → Wood ]"
+    },
+    {
+      "id": "ep-47:28",
+      "source": "방금 연이 씨의 金이 서한비 씨한테 들어가서 물이 됐어요. 金生水. 고양이님 기운이 비를 낳은 거예요.",
+      "sourceHash": "e309403682fa62bc70cb79e738117bbbe177b3b204092860256da2bbabf0e14b",
+      "t": "Your Metal just entered Seo Hanbi and became Water. Metal generates Water. Mr. Cat's energy gave birth to rain."
+    },
+    {
+      "id": "ep-47:29",
+      "source": "제 비가 고양이님한테서.",
+      "sourceHash": "621d1c9ba1459be7daca85b42ef1fba1370b5f0ce4ce7d7aa7700a7c954e4111",
+      "t": "My rain came from Mr. Cat."
+    },
+    {
+      "id": "ep-47:30",
+      "source": "원래 그래요. 연이 씨 명식은 여름 나무라 물이 필요하고, 그 물은 金에서 와요. 고양이님은 처음부터 비를 데려오는 쪽이었어요.",
+      "sourceHash": "a9b0c6fb49aea4f3d8d1243f4f162e8886dd78050e17b8408c97f4e259e34ea4",
+      "t": "That's the natural order. You're a summer tree, Yeoni, so your chart needs Water. That Water comes from Metal. Mr. Cat was always the one who brought rain."
+    },
+    {
+      "id": "ep-47:31",
+      "source": "(그래서 그 고양이는 늘 우산을 들고 있었나. 사람일 때.)",
+      "sourceHash": "4987858546d79a8b6a1c5c0e0ea40039d78b64acc6c6317e78a6c2d9ac39ba42",
+      "t": "(Is that why the cat always carried an umbrella? When he was human.)"
+    },
+    {
+      "id": "ep-47:32",
+      "source": "연이는 자기 생각에 놀랐다. 사람일 때 우산이라니. 그런 걸 본 기억이 없었다. 그런데 메모에 적혀 있었다. 우산은 사람일 때.",
+      "sourceHash": "5bfa720a1e39097026f31fa2677a6c166a3e11e817d275424e69856a9e031a31",
+      "t": "Yeoni startled at their own thought. An umbrella when human? They had no memory of seeing that. Yet the note said it: Umbrella when human."
+    },
+    {
+      "id": "ep-47:33",
+      "source": "그러니까 한 바퀴를 돌려요. 다섯이 손을 잡고, 앞사람이 뒷사람한테 밀어 주는 거예요. 당기지 말고.",
+      "sourceHash": "bedb0556b1d3c8aa425bd721db410f3f59c661a8bed0a50cf7ce0fe54cbc27de",
+      "t": "So make a circuit. Five of us holding hands, each pushing energy to the next. Not pulling."
+    },
+    {
+      "id": "ep-47:34",
+      "source": "그럼 순서가 중요하겠네. 누가 누구 옆이야.",
+      "sourceHash": "6c6fbdb678de0ab14a10649556db8d21fa4bdd215fdd18cb9109fa23e688c375",
+      "t": "Then the order matters. Who stands beside whom?"
+    },
+    {
+      "id": "ep-47:35",
+      "source": "궁합 보는 거랑 비슷해요. 이번엔 공짜로 봐 드릴게요.",
+      "sourceHash": "937418b02e5137e4a793b7bf1b70bc7a7580706c3b89a70809b2d04a963914b7",
+      "t": "Like a compatibility reading. This one is free."
+    },
+    {
+      "id": "ep-47:36",
+      "source": "윤달이 검은 판 위에 손가락으로 원을 그렸다. 다섯 자리에 한 사람씩 세웠다.",
+      "sourceHash": "82079a4f8b9fa75c57fee2cde2fa79259235fbc727566ebb81b54d401ee01f2d",
+      "t": "Yundal drew a circle on the black panel with his finger and assigned a person to each of five positions."
+    },
+    {
+      "id": "ep-47:37",
+      "source": "연이 씨는 木. 덩굴이니까 맨 처음. 모카 씨는 火, 연이 씨 오른쪽.",
+      "sourceHash": "29728ae4826edbdfbed4f1556f32154635d4efc95f15b1b1db821057a81738b3",
+      "t": "Yeoni is Wood. A vine, so first. Moka is Fire, on Yeoni's right."
+    },
+    {
+      "id": "ep-47:38",
+      "source": "나무가 나를 키운다는 거지? 연이야, 나 잘 키워라. 비싸게.",
+      "sourceHash": "0bd44a5101d5674d9e52b716f6f9ba66d9b9d178183efed64d93a5330c8f90c5",
+      "t": "Wood feeds me, right? Yeoni, raise me well. Expensively."
+    },
+    {
+      "id": "ep-47:39",
+      "source": "저는 土. 불 다음. 공망이 흙이에요. 비어 있어서 뭐든 담는 땅.",
+      "sourceHash": "39397bb93650a3d110c3cef0681c5a01a349b2c8c6311549f0d5c9c842ff66d1",
+      "t": "I'm Earth. After Fire. The Void is Earth, empty ground that can hold anything."
+    },
+    {
+      "id": "ep-47:40",
+      "source": "그럼 저는 물이니까.",
+      "sourceHash": "45a8afb47317c326f7f43711b2ed4539a10f02114f5bebbc226dca8ce88dce61",
+      "t": "Then since I'm Water..."
+    },
+    {
+      "id": "ep-47:41",
+      "source": "서한비 씨는 金 다음, 연이 씨 왼쪽. 문제는 金 자리예요.",
+      "sourceHash": "4e55772d96e747516e6ff9f7997134d50c6af2ab4068921caafaaf73d06f75df",
+      "t": "Seo Hanbi comes after Metal, to Yeoni's left. The problem is Metal's place."
+    },
+    {
+      "id": "ep-47:42",
+      "source": "다섯 번째 자리가 비어 있었다. 윤달과 서한비 사이. 아무도 서지 않은 자리.",
+      "sourceHash": "80be8402bffffa56d878bb8b3d14e8faa500287832719e5f37d6b9fa7a2cf7eb",
+      "t": "The fifth place stood empty, between Yundal and Seo Hanbi. No one occupied it."
+    },
+    {
+      "id": "ep-47:43",
+      "source": "고양이 자리네.",
+      "sourceHash": "0affae836741f4d810edf9bc7e9f5862e85ebe99172fa6769f73ae421968ba98",
+      "t": "The cat's place."
+    },
+    {
+      "id": "ep-47:44",
+      "source": "네. 그래서 제가 이걸 들고 왔죠.",
+      "sourceHash": "10ae4cb85e9a7066cb0d1c78886df04e6caa96ff563da5833159ee52a003cc86",
+      "t": "Yes. That's why I brought this."
+    },
+    {
+      "id": "ep-47:45",
+      "source": "윤달이 장갑을 벗었다. 공망의 가장자리에 금실이 걸려 있었다. 탑에서 네오가 사라질 때 붙들어 둔 빛 한 가닥이었다.",
+      "sourceHash": "5e48a41ca0656fdf19837761980ccc8d56ce096b8b0de1714f4d6c875484ca87",
+      "t": "Yundal removed his glove. A golden thread hung at the Void's rim: the light he had caught when Neo disappeared at the tower."
+    },
+    {
+      "id": "ep-47:46",
+      "source": "제 손이 먹은 것 중에 유일하게 쓸모 있는 거예요. 버리지 않길 잘했다.",
+      "sourceHash": "74136fb32364cac584cc07897523fe5b3860ebe2dab74b5ee2cfac42e4912915",
+      "t": "The only useful thing this hand has eaten. Good thing I didn't throw it away."
+    },
+    {
+      "id": "ep-47:47",
+      "source": "그거 계속 갖고 있었어요?",
+      "sourceHash": "382e9eaea03dd9528fd9c5fbb0be5f8396c4e57a5b81a33959e13f4bb348816f",
+      "t": "You've kept it all this time?"
+    },
+    {
+      "id": "ep-47:48",
+      "source": "남의 남편이 돌아올 단서를 함부로 버릴 수는 없잖아요.",
+      "sourceHash": "953ba6db40461a3704b81385148b7a7ce51219a65485e37015740f7b7b8c4010",
+      "t": "I couldn't just throw away a clue that might bring someone else's husband back."
+    },
+    {
+      "id": "ep-47:49",
+      "source": "남편 아니라니까요! 아직!",
+      "sourceHash": "9d25d0ce2b2ae6bff1c63cea382550bc905d5b2c9b3ce5842c52151e5aa4f341",
+      "t": "He's not my husband! Yet!"
+    },
+    {
+      "id": "ep-47:50",
+      "source": "아직?",
+      "sourceHash": "7caba17434df0715ca9af3d9299239d262d382578732b560aca6ef597ff05d3e",
+      "t": "Yet?"
+    },
+    {
+      "id": "ep-47:51",
+      "source": "연이의 얼굴이 빨개졌다. 자기가 왜 아직이라고 했는지 알 수 없었다. 서한비가 작게 웃었다. 이번엔 어깨만이 아니라 소리까지 냈다.",
+      "sourceHash": "baf914ca1142aa44f7dc2d5906461cb92e00c6a178932a1f8070604406c6c052",
+      "t": "Yeoni blushed. They had no idea why they'd said yet. Seo Hanbi laughed softly. This time, not just a shoulder shake, but a sound."
+    },
+    {
+      "id": "ep-47:52",
+      "source": "원을 그리고 나서 잠깐, 아무도 말하지 않았다. 검은 해가 멀리서 숨을 고르고 있었다.",
+      "sourceHash": "168e44be335e367a7b2cf1b22196c890c4c1bcc7e03c5d9def2da52c426c0fe0",
+      "t": "After the circle was drawn, no one spoke for a moment. Far away, the black sun caught its breath."
+    },
+    {
+      "id": "ep-47:53",
+      "source": "윤달 씨. 아까 그 시계, 진짜 안 아까웠어요?",
+      "sourceHash": "2d881bd921496ba15dcd2a02086ac82ffd16050538d7a63bfe2142803e66c982",
+      "t": "Yundal. That clock earlier. Did you really not regret leaving it?"
+    },
+    {
+      "id": "ep-47:54",
+      "source": "아까웠죠. 다섯 시 이십 분. 바늘이 거기 있는 걸 보는데 숨이 막혔어요.",
+      "sourceHash": "c12a9e1ec093e00267702298b01817119507c4842138bff21a920c2f94da2f1a",
+      "t": "Of course I did. Five twenty. Seeing the hands there took my breath away."
+    },
+    {
+      "id": "ep-47:55",
+      "source": "근데 그걸 흑월한테 받으면 저는 평생 그놈한테 시간을 빌린 사람이 돼요. 그건 싫더라고요.",
+      "sourceHash": "1047e228be469f34811e07431556e903768290a427f54e2e0da3beb7bdbf465a",
+      "t": "But if I received it from Black Moon, I'd spend my life as someone who borrowed time from it. I didn't want that."
+    },
+    {
+      "id": "ep-47:56",
+      "source": "빌린 건 불어나요. 제가 잘 알아요.",
+      "sourceHash": "3c0ca845257cbcba9b0ecf63c2955be74474f69f5a836f5e7aab985cae1fbefe",
+      "t": "Borrowed things grow. I know that well."
+    },
+    {
+      "id": "ep-47:57",
+      "source": "장부 전문가가 그렇다면 그런 거죠.",
+      "sourceHash": "4ce75d7e1ab12578817f4ed5c0d37f586622b8c026c0613e52d82458836ea279",
+      "t": "If the ledger expert says so, it must be true."
+    },
+    {
+      "id": "ep-47:58",
+      "source": "집에 가면 뭐 할 건데, 윤달 오빠.",
+      "sourceHash": "8b600c65a554218988d93dd70486c3f2303c62a04da91b126e55030dfbba699c",
+      "t": "What will you do when you get home, Yundal?"
+    },
+    {
+      "id": "ep-47:59",
+      "source": "엄마한테 전화요. 제 목소리 기억하는지. 기억 못 하면 다시 소개하죠, 뭐.",
+      "sourceHash": "2fed59eda94ab4172a9092832625d9b3f3968276adc701568c15a912e9c96426",
+      "t": "Call my mother. See whether she remembers my voice. If not, I'll introduce myself again."
+    },
+    {
+      "id": "ep-47:60",
+      "source": "윤달은 웃었지만 장갑 낀 손은 주먹을 쥐고 있었다. 연이는 그 주먹 위에 손을 잠깐 얹었다가 뗐다.",
+      "sourceHash": "02590184c3ffaf4027e466e49ace95e19606502761236dea73a65c9bd39071d6",
+      "t": "Yundal smiled, but his gloved hand was clenched. Yeoni rested a hand briefly over that fist, then lifted it."
+    },
+    {
+      "id": "ep-47:61",
+      "source": "기억할 거예요. 우리가 기억하잖아요. 그럼 엄마도요.",
+      "sourceHash": "3767260ae0c880f9a155e1d3ae6312199512b22df7b8aad21a92fe5eaecb2779",
+      "t": "She'll remember. We remember you. Your mother will too."
+    },
+    {
+      "id": "ep-47:62",
+      "source": "무슨 작당을 하느냐.",
+      "sourceHash": "5ef54902a27f34f0783b38973a029fe82956336bc6240918c1059dc8210010ed",
+      "t": "What are you plotting?"
+    },
+    {
+      "id": "ep-47:63",
+      "source": "검은 해가 다시 다가왔다. 이번엔 손이 아니라 해 자체가 내려왔다. 다섯 개의 눈이 모두 연이를 보고 있었다.",
+      "sourceHash": "6894c5cc30671ff47e12346a8f87bcaaada660ac145ee1edbc38326cd532baa4",
+      "t": "The black sun approached again. This time not its hands, but the sun itself descended. All five eyes fixed on Yeoni."
+    },
+    {
+      "id": "ep-47:64",
+      "source": "지금이에요. 손 잡아요!",
+      "sourceHash": "cd57dc2c7e5c48d184388ed95afa2b37e95841f273b6a5d4d93d06613c7c7fea",
+      "t": "Now. Hold hands!"
+    },
+    {
+      "id": "ep-47:65",
+      "source": "다섯이 원을 만들었다. 연이, 모카, 윤달, 빈자리의 금실, 서한비. 윤달이 금실을 빈자리에 띄우자 실이 공중에서 팽팽하게 섰다.",
+      "sourceHash": "17a0a3d25747de73b2642624dcca0ceba90e9ce6c93edf4b5ca1ef1d9f44e9e4",
+      "t": "Five formed a circle: Yeoni, Moka, Yundal, the golden thread in the empty place, Seo Hanbi. Yundal set the thread afloat, and it stretched taut in midair."
+    },
+    {
+      "id": "ep-47:66",
+      "source": "모카 씨, 받아요!",
+      "sourceHash": "be350942b67e48c0f36da254a740f9305590f840f329bae0e85ff73d8993ee37",
+      "t": "Moka, take it!"
+    },
+    {
+      "id": "ep-47:67",
+      "source": "연이가 숨을 크게 들이쉬었다가 모카의 손에 밀어 넣었다. 덩굴이 손등을 타고 뻗어 나갔다. 모카의 손바닥에서 불이 피어났다. 성냥보다 훨씬 큰 불이었다.",
+      "sourceHash": "dbc1d771404bfcb2cccf96bd0cc793bf87842880d81493b828c31a57ed579282",
+      "t": "Yeoni drew a deep breath and pushed it into Moka's hand. Vines spread across the back of their hand. Fire bloomed in Moka's palm, far larger than a match flame."
+    },
+    {
+      "id": "ep-47:68",
+      "source": "오, 이거 뭐야. 장작이 생긴 느낌이야!",
+      "sourceHash": "d06835e7a0d980e9b4eaea8f0b0349cfd1fe5fe3e97c77b3aebeb589cc5473f6",
+      "t": "Whoa, what's this? Feels like I've got firewood!"
+    },
+    {
+      "id": "ep-47:69",
+      "source": "모카가 불을 윤달 쪽으로 밀었다. 불이 윤달의 손바닥에 닿자 검은 원의 가장자리가 단단하게 굳었다. 구운 흙처럼.",
+      "sourceHash": "9f1f27698946894881bd42d56b6018f93e58c7507b9dfaace897f331ebaff4f1",
+      "t": "Moka pushed the fire toward Yundal. As it touched his palm, the rim of the black circle hardened like fired clay."
+    },
+    {
+      "id": "ep-47:70",
+      "source": "뜨거워라. 그래도 처음으로 손이 안 비는 느낌이네요.",
+      "sourceHash": "d4cea78dda47cad2189f1cc5c5739adbc53aeed505bb87a65b9b1ac5e041b1a3",
+      "t": "Hot. But for the first time, my hand doesn't feel empty."
+    },
+    {
+      "id": "ep-47:71",
+      "source": "윤달이 흙의 기운을 금실에 보탰다. 한 가닥이 여러 갈래로 갈라져 빈자리에 어깨와 손의 윤곽을 그렸다.",
+      "sourceHash": "d2170f84bff267500abac17e4f69f1739b9471d4e9d00f0567a48c7c114e3998",
+      "t": "Yundal added Earth's energy to the golden thread. One strand split into many, tracing shoulders and hands in the empty place."
+    },
+    {
+      "id": "ep-47:72",
+      "source": "그 자리에 네오의 형상이 잠깐 섰다. 얼굴 없는 금빛 윤곽뿐이었다. 형상은 서한비 쪽으로 고개를 돌려 숨을 내쉬었다.",
+      "sourceHash": "31bd76e3097a4206b8aef5a1261a7931aa713f410bbc37f1872ecbb496907f0a",
+      "t": "Neo's shape stood there briefly. Only a faceless golden outline. It turned toward Seo Hanbi and breathed out."
+    },
+    {
+      "id": "ep-47:73",
+      "source": "받았어요. 연이 씨, 이번엔 제가 줄게요.",
+      "sourceHash": "4fcc4dc27fd1855b4170aab34400aec1cf97ec2cd565b28fb768d0526c9db98b",
+      "t": "Received. Yeoni, my turn to give."
+    },
+    {
+      "id": "ep-47:74",
+      "source": "서한비의 우산에서 비가 쏟아졌다. 차갑지 않은 비였다. 비는 연이의 머리 위로, 어깨 위로, 왼손 바닥으로 떨어졌다. 흐려졌던 금빛이 빗물 아래서 다시 밝아졌다.",
+      "sourceHash": "de66bf4409fe4efa4539da6caa8a71dce67bfb0a6a6c3fbd3a1eb586da782b72",
+      "t": "Rain poured from Seo Hanbi's umbrella. Not cold rain. It fell onto Yeoni's head, shoulders, left palm. Beneath it, the faded gold brightened again."
+    },
+    {
+      "id": "ep-47:75",
+      "source": "돌았다. 한 바퀴 돌았어!",
+      "sourceHash": "9409f016d57c8f2f42f82af044ffcea1aa540cac2ae50f035d8b102b94d1300e",
+      "t": "It went around. A full circuit!"
+    },
+    {
+      "id": "ep-47:76",
+      "source": "원이라. 원은 한 군데만 끊어도 끝이지.",
+      "sourceHash": "892bd97679c54206d58a36b786cc47378fbd1c44feb47b30c5ed7a4a81f5c05e",
+      "t": "A circle. Break it in one place, and it ends."
+    },
+    {
+      "id": "ep-47:77",
+      "source": "검은 손 하나가 윤달의 등 뒤로 파고들었다. 공망이 한순간 크게 벌어졌다. 윤달의 손에서 흙 기운이 새어 나가기 시작했다.",
+      "sourceHash": "2b341d73c9699bf1e92137d0d992de3cb7f1bca173d755d69ef123b35fbc823a",
+      "t": "A black hand slipped behind Yundal. The Void suddenly gaped wide. Earth's energy began leaking from his hand."
+    },
+    {
+      "id": "ep-47:78",
+      "source": "아, 이건 좀.",
+      "sourceHash": "bbf5c4a5fe96c749e11bdc98f09c90714038c78ce9ffef446d9f182e6c73ab0c",
+      "t": "Ah. This is a little..."
+    },
+    {
+      "id": "ep-47:79",
+      "source": "내 옆에서 누굴 건드려!",
+      "sourceHash": "ed66b949332ca861bcea91934c25447b9a1383eaa69d2de28164755e458cab07",
+      "t": "You don't touch someone standing beside me!"
+    },
+    {
+      "id": "ep-47:80",
+      "source": "모카가 윤달의 손을 더 꽉 쥐었다. 불이 흙을 다시 굽듯 감쌌다. 윤달의 손바닥이 다시 단단해졌다.",
+      "sourceHash": "64fb31a0851bd66e267d9b0ad11a7db13e21fe91abebe4eadc696f66435f18cd",
+      "t": "Moka gripped Yundal's hand tighter. Fire wrapped the Earth as though firing it again. Yundal's palm hardened once more."
+    },
+    {
+      "id": "ep-47:81",
+      "source": "다섯 기운이 원을 따라 돌기 시작했다. 한 바퀴, 두 바퀴. 돌 때마다 빨라졌다. 검은 판 위에 빛나는 다섯 꼭짓점의 별이 그려졌다.",
+      "sourceHash": "991372d88eb3e031206e08162cfd4d8822fe11707c1568e9260a6cf602413492",
+      "t": "The five energies began circling. One turn, two. Faster each time. A bright five-pointed star formed on the black panel."
+    },
+    {
+      "id": "ep-47:82",
+      "source": "그만둬라. 그건 그릇이 할 수 있는 일이 아니다.",
+      "sourceHash": "8c1eb1d14c8a1f2ff49323e8570ad49efe1a34316e62c0babf62d8c9ba336d9d",
+      "t": "Stop. That is not something a vessel can do."
+    },
+    {
+      "id": "ep-47:83",
+      "source": "그릇 아니라니까. 나 이연이야. 대학생이고, 별점 리뷰 쓰고, 양말 짝 잘 못 맞추는.",
+      "sourceHash": "9b18a4eea3b27a57a49de08cccc837256c378b0732fb370b79ed6ddc3b6f3c45",
+      "t": "I told you, I'm not a vessel. I'm Lee Yeoni. A university student. I write star reviews and I'm bad at matching socks."
+    },
+    {
+      "id": "ep-47:84",
+      "source": "별이 검은 해 한가운데로 날아갔다. 해와 달이 겹친 자리였다. 겹친 테두리에 금이 갔다. 금 사이로 아주 오래된 빛이 새어 나왔다.",
+      "sourceHash": "0b8e65cc39ff236bc3b9464ef7fe9fbb106664460ab6d74d8a64b4c34cab4fb0",
+      "t": "The star flew into the center of the black sun, where Sun and Moon overlapped. Cracks split the overlapping rims. Ancient light leaked through."
+    },
+    {
+      "id": "ep-47:85",
+      "source": "갈라진다! 갈라진다고!",
+      "sourceHash": "3a2b96d7fe690d3475c560c6d408007151e80f3f79a4c9d8042a3623a63948f9",
+      "t": "It's splitting! Splitting open!"
+    },
+    {
+      "id": "ep-47:86",
+      "source": "저 안에서 뭔가 빛나요. 아주 작은 거.",
+      "sourceHash": "a4f4e977160271f51c4c2afea42dee72fe5cbd165ac7bd57a76f74278636bbc6",
+      "t": "Something's shining inside. Something tiny."
+    },
+    {
+      "id": "ep-47:87",
+      "source": "하얀색이야. 하얀 거.",
+      "sourceHash": "3cb0f40cc37f23b099fefe2325d3e9d652cdb4a367804420e6eec547281b7dab",
+      "t": "White. Something white."
+    },
+    {
+      "id": "ep-47:88",
+      "source": "겹침이 풀리고 있어요. 근데 오래는 못 버텨요. 다시 닫혀요.",
+      "sourceHash": "b8087b17c42e9558517c89344c3c8ba981dcf9dd7d66bc921a979c04a71b97b0",
+      "t": "The overlap is coming apart. But it won't hold long. It's closing again."
+    },
+    {
+      "id": "ep-47:89",
+      "source": "갈라진 틈은 사람 하나가 겨우 들어갈 만했다. 그 안쪽 깊은 곳에서 하얀 무언가가 희미하게 깜빡였다. 반딧불만 한 빛이었다.",
+      "sourceHash": "3290cc5e193a72a1619035391ff652c321bb551e9337a2178169100ff64f8c83",
+      "t": "The split was barely wide enough for one person. Deep inside, something white flickered faintly, no larger than a firefly."
+    },
+    {
+      "id": "ep-47:90",
+      "source": "연이는 그 빛을 보았다. 이름은 여전히 떠오르지 않았다. 그런데 발이 먼저 틈 쪽으로 움직였다.",
+      "sourceHash": "3333153116aee416410a0c89d3558f86bac9e639c5159880da0237ce2f0e2b8f",
+      "t": "Yeoni looked at that light. Still no name came. But their feet moved toward the gap first."
+    },
+    {
+      "id": "ep-47:91",
+      "source": "혼자 가면 안 돼요. 그건 그릇을 먹으려고 기다리는 입이에요.",
+      "sourceHash": "5305b825bc5a912e69390c97e4c8af785d37a8d068aa83e17517e09050cdc708",
+      "t": "You can't go alone. That's a mouth waiting to eat the vessel."
+    },
+    {
+      "id": "ep-47:92",
+      "source": "알아. 근데 저 안에 들어갈 수 있는 건 그릇뿐이잖아. 내가 그릇이면, 그것도 쓸모가 있는 거지.",
+      "sourceHash": "b0391cb8f40e1a8d1f6c6af6b83747a4ef356d5d4c58b7bdeb0c4362f8707fca",
+      "t": "I know. But only a vessel can go in there, right? If I'm a vessel, that can be useful too."
+    },
+    {
+      "id": "ep-47:93",
+      "source": "들어가면 제가 공망으로 입구를 붙잡을게요. 오래는 못 해요. 길어야 노래 한 곡.",
+      "sourceHash": "a591d70112a1e0ac1381620436ffa409d58ca41cacfb4d1877eee8e744d38019",
+      "t": "Once you enter, I'll hold the entrance with the Void. Not for long. One song at most."
+    },
+    {
+      "id": "ep-47:94",
+      "source": "그럼 내가 노래할게. 끝날 때까지 나와. 앙코르는 없어.",
+      "sourceHash": "b2e6a5b6952798584b17b24c41fbae377e250fbb5b21990ff2ad68b692fa2f78",
+      "t": "Then I'll sing. Come out before it ends. No encore."
+    },
+    {
+      "id": "ep-47:95",
+      "source": "서한비가 우산을 연이 손에 쥐여 주었다. 테이프 세 겹 감긴 손잡이를.",
+      "sourceHash": "0331251190ab5002e12b26da897fb5f412668beda9801a8b17d5b990963103ec",
+      "t": "Seo Hanbi placed the umbrella in Yeoni's hand. The handle with three layers of tape."
+    },
+    {
+      "id": "ep-47:96",
+      "source": "가져가요. 빌려주는 거예요. 꼭 갚으러 와요.",
+      "sourceHash": "412efd46847c82f66bd7a51a7fbca2401d4c4eac79c4ff6c57281a51609a75b5",
+      "t": "Take it. It's a loan. You must come back to repay it."
+    },
+    {
+      "id": "ep-47:97",
+      "source": "너 방금 장부 말투 썼다.",
+      "sourceHash": "bdb4650d70e993e6e75b937ec141fa1ae3a68b292f1e663d6fd50e5d822e985c",
+      "t": "You just used your ledger voice."
+    },
+    {
+      "id": "ep-47:98",
+      "source": "이번 한 번만요.",
+      "sourceHash": "65a8b4c07f0cbf11bc9669b1f6d56e37823028fc433344dfd12f66c0f58ceebe",
+      "t": "Just this once."
+    },
+    {
+      "id": "ep-47:99",
+      "source": "연이는 우산을 쥐고 틈 안으로 뛰어들었다. 등 뒤에서 모카의 엉망인 랩이 시작되었다. 그 소리가 점점 멀어졌다.",
+      "sourceHash": "34e4bfd204b5041e5670f6c65a6f21b7797f878daf79b6cb50df243e21b5398b",
+      "t": "Umbrella in hand, Yeoni jumped through the gap. Behind them, Moka's dreadful rap began. It grew fainter."
+    },
+    {
+      "id": "ep-47:100",
+      "source": "떨어지는 동안 소리가 하나씩 꺼졌다. 랩도, 빗소리도, 자기 숨소리도. 손에 쥔 우산 손잡이만 따뜻했다.",
+      "sourceHash": "149d1e625801267679c7b93af6daf1909f73dde32b5e0d7925b87fde5d6ed803",
+      "t": "As they fell, sounds went out one by one. Rap, rain, their own breath. Only the umbrella handle in their hand was warm."
+    },
+    {
+      "id": "ep-47:101",
+      "source": "(무서우면 메모. 찾으러 감. 기억 안 나도 감. 내 글씨 믿음.)",
+      "sourceHash": "66703ace5d8e7e368bf9a268e2a4ef2ec07369e6963b94d9c137307c0e911872",
+      "t": "(When scared, notes. Going to find him. Even without remembering. Trust my handwriting.)"
+    },
+    {
+      "id": "ep-47:102",
+      "source": "안은 깊고 고요했다. 네오가 바닥에 옆으로 누워 있었다. 유리처럼 투명한 몸이 천천히 움직였다. 그가 눈을 떴다.",
+      "sourceHash": "2ba681738f20d984c027b4c3b8db1a92c7ab7dca2f77cb29a5fbcc79d0370260",
+      "t": "Inside was deep and still. Neo lay on his side on the floor. His glass-transparent body moved slowly. He opened his eyes."
+    },
+    {
+      "id": "ep-47:103",
+      "source": "「누구냐.」",
+      "sourceHash": "6b94ff0dee2d0f03f552a6b244f1bc7a24c2223dae12823d7e932288cd8e9a2d",
+      "t": "“Who are you?”"
+    },
+    {
+      "id": "ep-47:104",
+      "source": "나도 잘 몰라. 근데 너 찾으러 왔어. 메모에 그렇게 써 있거든.",
+      "sourceHash": "9c9daa79124b0e5a15c809c916f2443afd929cd5b1b734227cdc55f10f87287b",
+      "t": "I'm not quite sure either. But I came to find you. That's what my note says."
+    }
+  ]
+}
