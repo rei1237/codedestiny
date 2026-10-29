@@ -79,3 +79,14 @@
 - 신년운세 첫 소개를 이직·관계·새해 우선순위·월별 조언 중심으로 수정. 기존 FAQ에 현재 상황과 선택을 함께 적는 질문 예시 추가. FAQ 구조화 데이터는 동일 배열 사용.
 - 가격 숫자, 이용권/월정석/단건 결제, 환불 조건, 결제·인증·API·DB·생성 로직은 변경하지 않음. 별도 성공률·경력·대통령 적중 주장을 추가하지 않음.
 - 기존 canonical/robots/라우트 유지. 새 페이지나 가격 하드코딩 없음. 운영 반영·모바일 실화면은 아직 미검증.
+
+## 2026-10-29 추적·상세페이지 재검증
+- 사용자 직접 이미지 등록 완료 보고. Codex 재조회 또는 심사 승인 확인은 아님.
+- 사용자 지시: VAT 포함 50,000원 유지, 검증 완료 전 광고 활성화 금지. 이번 실행 충전/활성화 없음.
+- verify:analytics-events 통과. verify:new-year-ai-flow 및 verify:fusion-fortune-quality exit 0 (mock만 사용).
+- 구매/동의/출처 관련 27개 모의 검사는 직전 실행에서 통과. 실제 GA4 수신 및 서버 주문 대사 증거와 구분한다.
+- 네이버 전환 추적 목록 비어 있음. 신청 클릭 시 ‘신청 가능한 사이트가 없습니다.’ 표시. 비즈채널 검토중이며 잔액 부족 시 검토 미진행 안내.
+- js/core/analytics.js 및 lib/analytics.ts 확인: purchase 전송은 존재하지만 refund 전송 경로는 확인되지 않음. lib/marketing/growth-metrics.mjs의 grossVerifiedKRW를 환불 반영 순매출로 사용하면 안 됨.
+- 초융합/신년운세 변경 3파일은 소개·가치 설명·FAQ뿐. 결제/가격/인증/API/DB 정책 변경 없음.
+- check:pre-push: home-service-registry 및 public-mirror-fresh 통과, sitemap-lastmod 원장 드리프트로 실패. 기존 sitemap:generate로 복구 후 재검증 필요.
+- 전체 check:fast는 이전 실행 미완료. 모바일 실화면/실결제/상담 보관함/GA4 실제 수신 미검증. 광고 OFF 해제 조건을 충족하지 못함.
