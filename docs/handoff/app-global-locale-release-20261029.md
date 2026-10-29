@@ -6,7 +6,25 @@ next: 외부 번역 API 없이 직접 번역을 작성하고 화면·소설 언�
 
 # 앱 전체 다국어 출시
 
-## 2026-10-29 출시 담당 인수인계 — 최우선 최신 상태
+## 2026-10-29 후속 담당 진행 상태
+- 단독 통합 담당은 현재 대화. 기존 워크트리 그대로 사용한다. 직접 번역 담당 `novel_english`, `novel_japanese`, `novel_chinese`가 각각 authored/en-*, ja-*, zh-* 파일을 작성 중이며 커밋/최종본/출시는 담당하지 않는다. 에이전트 목록의 pending_init 표기와 실제 활성 메시지가 불일치한 적이 있어 상태만으로 완료/중단을 단정하지 않는다.
+- `23a1cb455`: 소설 UI 공통 문구 4개 언어, 텍스트 리더 `/stories`/회차 언어 선택 및 localized runtime 연결. 현재 외국어 본문은 미완성이므로 선택 불가. 본문·책갈피·기존 KO SEO 메타데이터 보존. 외국어 텍스트 리더는 전체 번역 본문/목차/이동/창작 안내를 제공하며 기존 한국어 허브의 긴 세계관·아크·로그라인은 아직 별도 외국어 편집이 필요하다.
+- `1a552dedc`: 홈 질문 54키 × 나머지 7개 언어 직접 번역. `596c07120`: authored 병합기의 배열 형제 항목 손실 방지(단일 배열 항목 번역 시 나머지 유지). 첫 잘못된 적용은 본인 사전 변경만 되돌린 뒤 재적용했고 14,564키 원복/유지 확인. `45bde93b8`: 상세 상담 공통 안내·FAQ 89키(실제 변경 807값) 직접 번역. 다른 키 변경/키 손실 없음, 가격125키×12언어 검사 통과.
+- `8e747187c`: API 없는 소설 authored 병합기. `node scripts/merge-novel-authored.mjs`는 진척만 확인, `--write`도 전체 원문/표시 문구가 완성되어야 최종 파일 기록. sourceTitle/sourceTag 및 문장 source/sourceHash를 검증하며 구판 해시 재인증 금지. 프롤로그 제목·태그 4언어 추가. EN beats 형식, JA/ZH rows/translations 형식을 모두 지원. 원고 담당이 기존 파일 sourceTitle/sourceTag를 보완 중이므로 그 전에는 검사에서 stale metadata로 실패한다.
+- 새 모의 테스트: 언어정책/선택/공통UI 10, 텍스트 리더 3, authored 병합 2, 배열 보존 1 통과. `verify-novel-player-start`, `verify-novel-runtime`(73화/7,844비트), `verify-story-text-sync`, typecheck 통과. React 변경 ESLint 오류0 경고4(일반 anchor). 시각 검증 아님.
+- `check:fast` 90개 중 npm test/deploy-base-guard/llm-generation-resilience/analysis-basis-contract 4개 실패. 호스트 모의 환경 재검사에서 뒤3개는 각각7/1275/96검사 통과. npm test는434/436 suites,7096/7097 tests 통과: payments-v2.context의 analyticsChannel 기대키 차이, marketing-pg-reconciliation의 node:test/Jest 분류 문제. 이 테스트·결제 파일은 이번 변경에서 수정하지 않았으며 전체 통과가 아니다. 로그 global-locale-audit/novel-host-*.txt. 불필요한 전체 검사 반복 금지.
+- 독립 검증 담당 대화 `01a18719-3f72-7472-a2da-3e28dd81dbeb`에서 62개 단위·동작 검사 + AI14규칙 + 12언어 fake provider + browser-contract 통과 보고. 모의 Chromium 390×844 `/yeongnyangi/fortune/?lang=...` 12개 입력 화면: 가로 넘침 없음/pageerror 없음/미정의 API 없음, 외국어11개 선택 언어와 제목 일치. 결과 파일은 `C:/Users/user/.codex/visualizations/2026/10/29/01a18719-3f72-7472-a2da-3e28dd81dbeb/locale-independent-verification.txt`. 실제기기/생성결과 검증은 아님.
+- 공개 `/`는 의도적으로 한국어(`app/page.js` data-cd-no-trans)라 기존 전체 로케일 브라우저 검사에서 `#localized-home-title`을 기대하는 경로가 낡았다. 한국어 질문 우선 첫 화면에서 `#reading-language`를 바로 기대하는 검사도 낡았다. 임의로 공개 홈 SEO 정책을 변경하지 않는다. 실제 앱 홈 국가별 표시 경로는 추가 확인 필요.
+- main CI `f7c922d6a63b8656e40dbd25fbd9bb99d194863e` 실패 확인: 다른 작업 문서 `docs/handoff/2026-10-29-toss-major-services-migration.md`가 frontmatter 없이 시작해 Static guards 실패(run40853211035). 이 실패 위로 현재 변경을 push하지 않았다. 최신 main 재확인/통합/CI/출시는 남아 있다.
+
+- 추가 완료: `a00a803b4` 자미두수 정본14필드×11 직접 번역; `96d94258a` 소설 기술 단위표시(unit) 4언어/완성검증; `025da5d00` 앱 홈 두 카드·대표 상담 React 언어 연결; `ef1b142f2` 첫 이용 안내23문구×11; `ef4cf5f1b` 상담 탐색21문구×11 + 기존 사전의 정책 링크/면책 재사용. 공개 웹은 KO, 모바일 빌드만 useLocale 반영. 본문·진입 URL·가격 정책 보존. 홈 더 둘러보기 내부의 나머지 소개/FAQ/사업자 라벨은 아직 미완료.
+- 새 홈 검증: native-home-copy/guide/home-entry-guide 9개, Babel JSX구문, ESLint 오류0. 실제 Chromium 모의 native flag +390×844 12언어: 제목/튜토리얼/두 서비스링크 일치, 가로넘침0/pageerror0. 320px DE,390px JA,1440px EN screenshot 확인. FR 상담 탐색390px 확인. 실제기기/새패키지 아님. 최초 mock에서 native 신호를 넣지 않아 PriceBadge SSR불일치가 났으나 native 신호를 맞춘12언어 재검사는없음. 외부정적font CDN CORS 오류는 남아 폰트 대체 상태로 검수.
+- 현재 mock dev 서버 세션24045,127.0.0.1:18720(front)/18721(API), NEXT_PUBLIC_RUNTIME_TARGET=mobile-app. scripts/dev-with-local-auth.mjs로 외부 API 차단. 종료 시 본인 세션만 종료. Playwright 스크린샷은 D:/Development/code-destiny/.playwright-mcp/native-home-*.png 및 native-discovery-fr-390.png. 도구의 C:artifact 쓰기는 allowed roots 제한으로거부되어 허용된 D:출력폴더 사용.
+- 직접 원고 `8996b37dc`: EN/JA EP.13까지, ZH EP.10까지 완료분37파일 커밋. 이후 원고는3담당이 계속 작성. 마지막 재검사 EN2530/JA2313/ZH1859각 비트, 총7844(이후 늘어남). 최종4언어 파일은 아직 교체하지 않았고 미완성 언어 공개금지.
+
+- 20:45 KST 무렵 재확인: origin/main 5d7fcf852c1eab54ff3471d4fea9630c0f4199b7, PR CI 40862258511 success. 이전 f7c922d6a 실패는 f90488fa8에서 문서 수정되어 해결. 최신 main에 기존 npm test 실패2파일 수정도 포함돼 통합 예정. `c10fcb7df` 앱 운세 종류/고민 소개25문구×11 추가; 독일어390px 가로넘침 없음.
+
+## 2026-10-29 최초 출시 담당 인수인계 — 아래는 인수 시점 기록
 - 사용자 최신 요청: “앱 출시까지 진행해줘 인수인계를 해서라도 마무리해”. 인수인계 자체를 완료로 보지 말고 실제 출시까지 진행한다. 번역 API 및 별도 LLM API 호출 금지. 직접 번역만 허용된다.
 - 소설 번역 범위 확정: 영어·일본어·중국어 간체·번체. 한국어 원문 유지. 그 외 서비스 언어는 영어판. 상세 운세/UI는 기존 지원 12개 언어를 점검한다.
 - 마지막 구현 커밋 `56fb0fcf8`와 그 부모 `bbefbc0bd`는 이 작업 트리에만 있고 아직 push하지 않았다. 앞선 `d5cf9ede2`까지 main에 push했다. 현재 원격/CI는 다시 확인해야 한다.
