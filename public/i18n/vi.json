@@ -2273,7 +2273,10 @@
       "selected": "Đã chọn",
       "fishTitle": "Nếu bạn thường dùng Yeongnyangi",
       "fishTerms": "Vé Yeongnyangi là sản phẩm riêng, không dùng trên Ggulggul Fortune.",
-      "fishLink": "Xem vé Yeongnyangi →"
+      "fishLink": "Xem vé Yeongnyangi →",
+      "compactTitle": "Vé Hũ Mật",
+      "conditions": "Phạm vi và điều kiện sử dụng",
+      "otherServices": "Xem vé cho dịch vụ khác"
     }
   },
   "terms": {

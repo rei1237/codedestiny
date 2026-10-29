@@ -2273,7 +2273,10 @@
       "selected": "選択中",
       "fishTitle": "ヨンニャンイをよく使うなら",
       "fishTerms": "ヨンニャンイ専用券は別商品で、Ggulggul Fortuneでは使えません。",
-      "fishLink": "ヨンニャンイの利用券を見る →"
+      "fishLink": "ヨンニャンイの利用券を見る →",
+      "compactTitle": "蜜壺パス",
+      "conditions": "対象サービスと利用条件",
+      "otherServices": "ほかのサービスのパスを見る"
     }
   },
   "terms": {

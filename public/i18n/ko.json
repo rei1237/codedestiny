@@ -2122,7 +2122,10 @@
       "selected": "선택 중",
       "fishTitle": "영냥이만 자주 찾는다면",
       "fishTerms": "영냥이 전용 이용권은 별도 상품이에요. 꿀꿀운세에서는 사용할 수 없어요.",
-      "fishLink": "영냥이 이용권 보기 →"
+      "fishLink": "영냥이 이용권 보기 →",
+      "compactTitle": "꿀단지 이용권",
+      "conditions": "적용 범위와 이용 조건",
+      "otherServices": "다른 서비스 이용권도 살펴보기"
     }
   },
   "footer": {

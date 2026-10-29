@@ -2273,7 +2273,10 @@
       "selected": "Ausgewählt",
       "fishTitle": "Wenn du meist Yeongnyangi nutzt",
       "fishTerms": "Yeongnyangi-Pässe sind separat und gelten nicht für Ggulggul Fortune.",
-      "fishLink": "Yeongnyangi-Pässe ansehen →"
+      "fishLink": "Yeongnyangi-Pässe ansehen →",
+      "compactTitle": "Honigtopf-Pässe",
+      "conditions": "Leistungsumfang und Bedingungen",
+      "otherServices": "Pässe für andere Dienste ansehen"
     }
   },
   "terms": {

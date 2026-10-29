@@ -2273,7 +2273,10 @@
       "selected": "Sélectionné",
       "fishTitle": "Si vous utilisez surtout Yeongnyangi",
       "fishTerms": "Les pass Yeongnyangi sont distincts et inutilisables sur Ggulggul Fortune.",
-      "fishLink": "Voir les pass Yeongnyangi →"
+      "fishLink": "Voir les pass Yeongnyangi →",
+      "compactTitle": "Pass Pot de Miel",
+      "conditions": "Services inclus et conditions",
+      "otherServices": "Voir les pass des autres services"
     }
   },
   "terms": {

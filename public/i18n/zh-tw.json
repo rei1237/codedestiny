@@ -2273,7 +2273,10 @@
       "selected": "已選擇",
       "fishTitle": "如果常用靈喵",
       "fishTerms": "靈喵專用通行證是獨立商品，不能在Ggulggul Fortune使用。",
-      "fishLink": "查看靈喵通行證 →"
+      "fishLink": "查看靈喵通行證 →",
+      "compactTitle": "蜜罐通行證",
+      "conditions": "適用範圍與使用條件",
+      "otherServices": "查看其他服務通行證"
     }
   },
   "terms": {
