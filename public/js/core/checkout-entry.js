@@ -2086,6 +2086,15 @@
     dialog.appendChild(title);
     dialog.appendChild(name);
     dialog.appendChild(notice);
+    // Keep the selected language's terms, refund policy and support reachable
+    // while the embedded provider UI is open, without navigating this order away.
+    var policies = doc.createElement("div");
+    policies.innerHTML = buildPaymentPolicyLinksHtml({ escape: function (value) {
+      var node = doc.createElement("span");
+      node.textContent = String(value);
+      return node.innerHTML.replace(/"/g, "&quot;");
+    } });
+    dialog.appendChild(policies);
     dialog.appendChild(container);
     dialog.appendChild(close);
     modal.appendChild(dialog);

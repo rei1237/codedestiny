@@ -167,6 +167,10 @@ export default function AppPassStoreClient() {
     }
     // 중복 탭 방지 — 결제창이 두 번 뜨면 두 번 청구된다.
     if (purchase.phase !== "idle") return;
+    if (!products[plan.productId] || !saleReady[plan.passTier]) {
+      setMessage(copy.productLoadFailedMessage);
+      return;
+    }
     setMessage("");
     setPurchase({ tier: plan.passTier, phase: "purchasing" });
 
@@ -254,7 +258,7 @@ export default function AppPassStoreClient() {
     } finally {
       setPurchase({ tier: "", phase: "idle" });
     }
-  }, [purchase.phase, copy, scheduleCheckoutReturn]);
+  }, [purchase.phase, copy, scheduleCheckoutReturn, products, saleReady]);
 
   if (isIOS) return (
     <section className="grid gap-3 px-4 pb-6" aria-label={copy.storeAriaLabel}>
@@ -341,6 +345,17 @@ export default function AppPassStoreClient() {
             </article>
           );
         })}
+
+      {!loadingProducts && nativeReady && passPlans.some((plan) => !products[plan.productId]) ? (
+        <div className="cd-app-body px-1" role="status">
+          <p>{copy.productLoadFailedMessage}</p>
+          <button type="button" disabled={purchase.phase !== "idle"}
+            onClick={() => void loadProducts()}
+            className="cd-app-tap cd-app-press mt-2 rounded-[var(--cd-app-radius-md)] px-4 text-sm font-bold disabled:opacity-50">
+            {copy.retryButton}
+          </button>
+        </div>
+      ) : null}
 
       {message ? (
         <p className="cd-app-body px-1" role="status" aria-live="polite">{message}</p>
