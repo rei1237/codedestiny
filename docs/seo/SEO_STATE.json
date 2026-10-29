@@ -4740,5 +4740,80 @@
       "CMP 게시·광고 실동작 검증 및 다국어 전체 감수",
       "검색 실적은 기존 비교 기간 유지하여 후속 관측"
     ]
+  },
+  "seoAeoGeo20261029": {
+    "status": "implemented-and-locally-verified",
+    "requestedAt": "2026-10-29",
+    "request": "네이버 노출·클릭 급감 대응: claude-seo로 SEO·AEO·GEO 진단 후 최적화(범위를 SEO·AEO·GEO로 한정)",
+    "audit": {
+      "tool": "claude-seo v2.5.0",
+      "seoHealth": 68,
+      "summary": "docs/seo/2026-10-29-seo-aeo-geo-audit.md",
+      "rootCause": "미확정(10/03·10/07 title 교체, 10/08 내일 치환 콘텐츠·lastmod 일괄 변경, 자정 발행 지연이 겹침)"
+    },
+    "paths": [
+      "/fortune/2027/",
+      "/fortune/2027/{12띠}/",
+      "/llms.txt",
+      "/llms-full.txt",
+      "/fortune/{today,tomorrow,weekly,monthly}/",
+      "/fortune/date/",
+      "/insights/famous-saju/*",
+      "/new-year-ai-consultation/"
+    ],
+    "changes": [
+      "2027 띠별 운세 허브와 12띠 상세 신설(한국어, index, sitemap-ko 13개). 띠 지지↔丁未 세운 결정 관계로 띠별 본문 계산, 공통 월건표는 허브 #months",
+      "llms-full.txt 신설(레지스트리 파생), llms.txt에 공식 서비스명 정의 문장과 /fortune/* 허브 추가, generate-llms-txt --check",
+      "운세 허브·/fortune/date/ 중복 WebPage 제거, #webpage CollectionPage 하나와 dateModified(S1·S12)",
+      "편집팀 author를 #organization CODE DESTINY 하나로(S2), 빈 FAQPage 제거(S3)",
+      "/new-year-ai-consultation/ → /fortune/2027/ 내부 링크(C6 일부)",
+      "sitemap lastmod는 기존 생성기로 갱신(entity-registry·structured-data import 폐쇄 변화로 818개 경로)"
+    ],
+    "reverted": [
+      "T5 내일 상세 datePublished를 발행일로: scripts/lib/fortune-date-contract.mjs:64 게이트(대상일 요구)와 충돌해 되돌림"
+    ],
+    "preserved": [
+      "title/description과 10/03 제목 실험",
+      "기존 URL·canonical·hreflang·robots",
+      "심리테스트 22종·유명인 3쪽·/human-design/ noindex와 다섯 곳 색인 정책",
+      "결제·인증·API·DB·운세 계산",
+      "2027 해설 문장의 생성형 AI 고지, 박병하 저자·검수 표기 없음"
+    ],
+    "measurements": {
+      "newYear2027": {
+        "commonFiveGramShare": 0.467,
+        "maxPairwiseContainment": 0.618,
+        "maxPair": "pig vs rabbit",
+        "bodyChars": "2937-3542"
+      },
+      "llmsChars": {
+        "llms.txt": 7258,
+        "llms-full.txt": 17135
+      }
+    },
+    "searchMetrics": {
+      "freshObservation": false,
+      "note": "서치어드바이저·검색광고 키워드도구 미조회(Chrome 확장 미연결). 기존 관측값을 갱신하지 않음"
+    },
+    "validation": {
+      "buildCf": "passed (postbuild verify-adsense-readiness OK, verify-sitemap-canonical 6개 사이트맵·loc 1033)",
+      "postBuildChecks": "S1·S2·S3·2027 허브 #months·llms-full·C6 링크 통과, 내일 상세 Article datePublished=대상일 유지",
+      "typecheck": "passed",
+      "lint": "passed",
+      "jestSuites": 435,
+      "jestTests": 7119,
+      "nodeTests": {
+        "pass": 3965,
+        "fail": 2,
+        "failNote": "Playwright Chromium 미설치 환경의 브라우저 테스트 2개(daily tarot, yeongnyangi hat prologue). 이번 변경과 무관"
+      },
+      "checkFast": "paid-gate-suite에서 위 브라우저 테스트 2개로 중단; 이후 단계 중 typecheck·lint는 따로 통과"
+    },
+    "productionDeployed": false,
+    "remaining": [
+      "운영 배포·서치어드바이저/GSC sitemap 재제출·/fortune/2027/ 수집 요청은 사용자 승인 대기",
+      "T1 자정 발행 지연(workflow 타임아웃·중복 디스패치), T2 무슬래시 308→301은 RED 승인 대기",
+      "후속 목록: docs/handoff/seo-followups-20261029.md"
+    ]
   }
 }

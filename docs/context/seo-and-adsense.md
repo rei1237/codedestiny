@@ -210,3 +210,15 @@
 - 한국어 돼지띠·뱀띠 내일 상세에 계산 근거·분야별 점수를 읽고 약속/지출/질문을 준비하는 고유 가이드를 추가했다. 날짜별 예언이나 새 계산을 만들지 않는다. i18n 문구 정본은 `lib/i18n/search-reading-paths.mjs`다.
 - 자미두수 관련 링크의 앞 3개에 명반 가이드·자미두수 인사이트·사주 비교를 배치했다. 인사이트 허브에는 접지 않은 가시 링크를, 유명인 상세의 기존 CTA에는 명리 읽는 법·체계 비교·개인 명반 경로를 제공한다. 유명인 공개/검수 필터와 noindex는 유지한다.
 - 10/03 상세 title 실험과 title/description 생성, URL·canonical·hreflang·robots·sitemap 선별 정책·이미지·광고 정책은 변경하지 않았다. 결제·인증·API·DB·운세 계산은 변경하지 않았다. main 전달과 운영 배포는 구분하며, 이번 변경의 CTR 효과는 후속 관찰 대상이다.
+
+### 2026-10-29 SEO·AEO·GEO 감사와 최적화
+
+- 요청: 네이버 노출·클릭 급감 → claude-seo(v2.5.0)로 진단 후 SEO·AEO·GEO 최적화만. 감사 요약 [2026-10-29-seo-aeo-geo-audit.md](../seo/2026-10-29-seo-aeo-geo-audit.md)(SEO Health 68/100), 후속 [seo-followups-20261029.md](../handoff/seo-followups-20261029.md). 하락 원인은 미확정이다. 서치어드바이저·검색광고 키워드도구는 이번에 조회하지 못해 경쟁도 실측값이 없다.
+- 신규 색인 URL: `/fortune/2027/` 허브와 `/fortune/2027/{12띠}/`(한국어만, sitemap-ko 13개, 자기 canonical, index). 띠 지지와 丁未 세운의 결정 관계(합·충·형·해·원진)로 띠별 본문을 계산한다. 공통 월건표는 허브 `#months`에만 둔다. 12쪽 공통 5-gram 46.7%(<50%), 쌍별 최대 포함률 61.8%(돼지↔토끼), 본문 2,937~3,542자. 해설 문장의 생성형 AI 고지를 화면에 두고, 박병하(네오)를 저자·검수자로 표기하지 않는다.
+- AEO·GEO: `llms-full.txt` 신설(레지스트리 파생, 17,135자), `llms.txt`에 공식 서비스명 정의 문장과 `/fortune/*` 허브를 넣었다. `generate-llms-txt.mjs --check`로 생성본과 커밋본의 일치를 본다.
+- JSON-LD: 운세 허브(오늘·내일·주간·월간)와 `/fortune/date/`의 중복 WebPage 노드를 없애 `#webpage` CollectionPage 하나로 두고 dateModified를 단다(S1·S12). 편집팀 author를 `#organization` "CODE DESTINY" 하나로 맞춘다(S2). FAQ가 없는 유명인 상세에서 빈 FAQPage를 내지 않는다(S3, 0/288).
+- 내부 링크: `/new-year-ai-consultation/` → `/fortune/2027/`(무료 정보와 유료 상담 의도 분리).
+- sitemap lastmod는 기존 생성기로만 갱신했다. `lib/seo/entity-registry.mjs`·`lib/structured-data.ts`가 대부분 경로의 import 폐쇄에 들어 있어 818개 경로의 lastmod가 바뀐다. 날짜만 만든 것이 아니라 서명 변화이며, 정확도 개선은 후속 D 절이다.
+- 되돌림: 내일 상세의 미래 datePublished(T5)를 발행일로 바꿨다가 `scripts/lib/fortune-date-contract.mjs:64`("Article datePublished = 대상일") 게이트에 막혀 되돌렸다. 계약을 먼저 정해야 한다.
+- 유지: title/description과 10/03 제목 실험, 기존 URL·canonical·hreflang·robots, 심리테스트 22종·유명인 3쪽·`/human-design/` noindex와 다섯 곳 색인 정책, 결제·인증·API·DB·운세 계산.
+- 검증: `build:cf`(postbuild `verify-adsense-readiness` OK, 사이트맵 6개·loc 1,033), typecheck·lint 통과, jest 435 스위트·7,119 테스트 통과, node 테스트 3,965 통과·2 실패(Playwright Chromium 미설치 환경의 브라우저 테스트, 이번 변경과 무관). 운영 배포·서치어드바이저/GSC 제출·수집 요청은 하지 않았다(승인 대기). 검색 실적 효과는 미관측이다.
