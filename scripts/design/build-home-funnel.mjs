@@ -1,4 +1,5 @@
-import { renderPassBenefits } from '../../lib/marketing/pass-benefits.mjs';
+import { renderPassBenefits, passBenefitOffers } from '../../lib/marketing/pass-benefits.mjs';
+import { JSDOM } from 'jsdom';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { CURRENT_PASS_PLANS, CURRENT_PASS_POLICY_VERSION } from '../../lib/payment/pass-policy.js';
@@ -272,7 +273,46 @@ vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-
   <a class="cd-sig__samples-link" href="/consultation-samples/"><svg class="cd-choice__moon" viewBox="0 0 64 64" aria-hidden="true"><circle class="cd-choice__moon-orbit" cx="31" cy="32" r="29"/><path class="cd-choice__moon-crescent" d="M36 9a24 24 0 1 0 20 35A27 27 0 0 1 36 9Z"/><path class="cd-choice__moon-star" d="m48 10 1.7 5.3L55 17l-5.3 1.7L48 24l-1.7-5.3L41 17l5.3-1.7Z"/><path class="cd-choice__moon-star cd-choice__moon-star--small" d="m54 29 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z"/><path class="cd-choice__moon-orbit" d="M17 50c8 6 19 7 28 2"/><circle cx="37" cy="29" r=".8" fill="currentColor" stroke="none"/></svg><span class="cd-choice__samples-label"><span>상담별 구성과</span> <strong>예시 보기</strong></span><svg class="cd-choice__cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
 </section>`;
 
-vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css">' + renderPassBenefits('honey','ggul-honey-pass') + `<section class="cdh-pass" data-cd-localized-pass aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
+// Mark the new comparison copy through the existing native locale contract.
+// Amounts and tier names remain derived from the shared purchase registry.
+function localizedPassBenefits() {
+  const copy = JSON.parse(readFileSync('i18n/authored/homeOverseas-09.json', 'utf8'));
+  const labels = new Map(Object.entries(copy).filter(([, value]) => !value.ko.includes('{')).map(([key, value]) => [value.ko, { key }]));
+  const add = (key, values) => labels.set(copy[key].ko.replace(/\{(\w+)\}/g, (_, name) => values[name]), { key, values });
+  for (const offer of passBenefitOffers('honey')) {
+    add('home.benefitsCopy.percent', { amount: String(Math.floor((1 - offer.price / offer.value) * 100)) });
+    add('home.benefitsCopy.saving', { amount: (offer.value - offer.price).toLocaleString('ko-KR') });
+    if (!offer.family) add('home.benefitsCopy.cap', { amount: offer.cap.toLocaleString('ko-KR') });
+    const nameKey = 'home.overseasCopy.pass' + offer.id[0].toUpperCase() + offer.id.slice(1);
+    labels.set(offer.name + ' 이용권 확인하기', { key: 'home.benefitsCopy.cta', values: { name: '@' + nameKey } });
+  }
+  const dom = new JSDOM(renderPassBenefits('honey', 'ggul-honey-pass'));
+  try {
+    const walker = dom.window.document.createTreeWalker(dom.window.document.body, dom.window.NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const node of nodes) {
+      const text = node.textContent.trim(), entry = labels.get(text);
+      if (!entry) continue;
+      if (node.parentElement.childNodes.length === 1) {
+        node.parentElement.setAttribute('data-cd-trans', entry.key);
+        if (entry.values) node.parentElement.setAttribute('data-cd-vars', JSON.stringify(entry.values));
+        continue;
+      }
+      const span = dom.window.document.createElement('span');
+      span.setAttribute('data-cd-trans', entry.key);
+      if (entry.values) span.setAttribute('data-cd-vars', JSON.stringify(entry.values));
+      span.textContent = text;
+      node.replaceWith(node.textContent.match(/^\s*/)[0], span, node.textContent.match(/\s*$/)[0]);
+    }
+    for (const image of dom.window.document.querySelectorAll('img[alt]')) {
+      const entry = labels.get(image.alt);
+      if (entry) image.setAttribute('data-cd-trans-attr', 'alt:' + entry.key);
+    }
+    return dom.window.document.body.innerHTML;
+  } finally { dom.window.close(); }
+}
+vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css">' + localizedPassBenefits() + `<section class="cdh-pass" data-cd-localized-pass aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
   <div class="cdh-pass__intro">
     <img class="cdh-pass__mascot" src="/images/home/yeoni-pass-mascot-240.webp" srcset="/images/home/yeoni-pass-mascot-240.webp 240w, /images/home/yeoni-pass-mascot-480.webp 480w" sizes="(max-width: 640px) 104px, 168px" alt="이용권 카드를 들고 웃는 꽃돼지 연이" data-cd-trans-attr="alt:home.gardenCopy.passMascotAlt" width="240" height="240" loading="lazy" decoding="async">
     <div class="cdh-pass__copy">
