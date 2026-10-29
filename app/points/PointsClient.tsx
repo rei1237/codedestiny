@@ -1,7 +1,7 @@
 "use client";
 
 import { getGiftGuidance } from "@/lib/payment/gift-policy.js";
-import { trackConfirmedPurchase } from "@/lib/analytics";
+import { trackConfirmedPurchase, trackEvent } from "@/lib/analytics";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -4296,6 +4296,11 @@ export default function PointsPage() {
       // 이 주문은 결제창으로 넘어갔다. 성공하든 취소되든 재사용하지 않는다 —
       // 이미 시도된 paymentId 로 다시 결제창을 열면 PG 가 거절한다.
       subscriptionPrepareRef.current = null;
+      trackEvent("begin_checkout", {
+        currency: "KRW",
+        value: order.paymentAmount,
+        items: [{ item_id: plan.planId, quantity: 1 }],
+      });
       const rsp = directPayFields.orderMethod === "paypal"
         ? await checkoutEntry.requestPaypalPayment(requestData, order.paypalCharge)
         : await window.PortOne.requestPayment(requestData);

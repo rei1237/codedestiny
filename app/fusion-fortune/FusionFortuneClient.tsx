@@ -1,5 +1,6 @@
 "use client";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import { trackConsultationCompleted } from '@/lib/analytics';
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
 import { fusionAdviceTopics } from '@/js/recommendations-context.mjs';
@@ -2240,6 +2241,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
 
   /** 보관본 하나를 화면에 올린다. 재열람(?cid=)과 결제 키 회수가 같은 모양이어야 한다. */
   const applyOpenedConsultation = useCallback((consultation: OpenedConsultation) => {
+    if (consultation.status === 'completed') trackConsultationCompleted({id:consultation.id,status:'completed',featureKey:'fusion-fortune-consultation'});
     setReadingRequestId(consultation.requestId || consultation.id);
     setResult(consultation.result);
     // 재열람 PDF 의 표지는 폼이 아니라 보관본의 요약에서 온다 — 새 탭에서 열면 폼이 비어 있다.
@@ -2594,6 +2596,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       setQualityNotice(payload.qualityTier === "degraded" ? String(payload.qualityNotice || "") : "");
       // 보관본 id 가 오면 같은 링크로 다시 열 수 있게 URL 에 남기고 목록도 갱신한다.
       const savedId = String(payload.consultationId || "");
+      if (payload.status === 'completed' && savedId) trackConsultationCompleted({id:savedId,status:'completed',featureKey:'fusion-fortune-consultation'});
       if (savedId) {
         setOpenedConsultationId(savedId);
         rememberConsultationUrl(savedId);

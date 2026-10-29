@@ -12,6 +12,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = normalizeAppPathname(usePathname() || "");
   const isRoot = pathname === "/app" || pathname === "/app/";
   const isTalisman = pathname.replace(/\/$/, "") === "/app/talismans";
+  const isPassStore = pathname.replace(/\/$/, "") === "/app/store";
   const [exitHint, setExitHint] = useState(false);
 
   const onExitHint = useCallback(() => {
@@ -42,7 +43,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className={"cd-app-shell" + (isTalisman ? " cd-talisman-shell" : "")} data-yn-night={isTalisman || undefined}>
+    <div className={"cd-app-shell" + (isTalisman ? " cd-talisman-shell" : "") + (isPassStore ? " cd-pass-shell" : "")} data-yn-night={isTalisman || undefined}>
       <div className={"cd-app-scroll mx-auto flex w-full flex-col" + (isTalisman ? "" : " max-w-[560px]")}>{children}</div>
       {/* 🔴 탭 정의 정본은 app/_lib/mobile-tabs.ts 하나다. 앱 셸 전용 탭바를 다시 만들지 말 것 —
           예전 AppTabBar 는 5탭 중 4탭이 이 셸을 벗어나(미들웨어가 정적 셸로 리다이렉트) 한 번

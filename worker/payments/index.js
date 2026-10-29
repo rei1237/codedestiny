@@ -19,6 +19,7 @@
  * 로그가 잡는다.
  */
 import { listCurrentPassOffers } from "../lib/pass-sale-policy.js";
+import { analyticsPaymentChannel } from './analytics-channel.js';
 import { resolveOrderProductName } from "../lib/payment-product-name.js";
 import {
   CURRENT_PASS_POLICY_VERSION,
@@ -719,12 +720,12 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
 
   if (giftPurchase) return json({
     ok: true, purchaseType: "GIFT", giftId: `gift_${orderId}`, orderId,
-    activationPending, idempotent, payment: { merchantUid: orderId, status: "paid" },
+    activationPending, idempotent, payment: { merchantUid: orderId, status: "paid", paymentAmount: Number(result.order?.paymentAmount || 0), analyticsChannel: analyticsPaymentChannel(result.order) },
     message: activationPending ? "결제가 확인됐어요. 선물을 준비 중이니 다시 결제하지 마세요." : "선물이 준비되었습니다.",
   });
   const subscription = presentPassSubscription(user?.profileSubscription, plan, { customerUid, paymentMethod });
   // 응답 에코는 **실제 청구된 주문 금액**이다(정가가 아니다) — 영수증·내역 표시가 승인액과 어긋나지 않게 한다.
-  const payment = { merchantUid: orderId, impUid, paymentAmount: Number(begun?.order?.paymentAmount || plan.wonPrice), paymentType: "membership_pass", status: "paid" };
+  const payment = { merchantUid: orderId, impUid, paymentAmount: Number(begun?.order?.paymentAmount || plan.wonPrice), paymentType: "membership_pass", status: "paid", analyticsChannel: analyticsPaymentChannel(result.order) };
   // 🔴 이용권 활성화는 GET /api/auth/me 응답의 pass/membership/subscription 필드를 바꾼다. 그 응답은
   // 30초 자격증명 단위 엣지 캐시(worker/lib/credential-scoped-cache.js)를 타므로, 여기서 지우지
   // 않으면 결제 직후 다른 탭·새로고침이 최대 30초간 옛 이용권 상태를 본다.
@@ -759,6 +760,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
 /** 주문을 클라이언트가 읽는 형태로. 내부 필드(rawPortOne·pricingSnapshot 등)는 내보내지 않는다. */
 function presentOrder(order) {
   return {
+    analyticsChannel: analyticsPaymentChannel(order),
     orderId: String(order.merchantUid || ""),
     status: toOrderStatus(order),
     productId: String(order.productId || ""),

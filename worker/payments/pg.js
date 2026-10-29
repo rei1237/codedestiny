@@ -43,6 +43,7 @@ export function paymentAttemptSummary(pg) {
 /** PG 응답에서 남길 것. 여기 없는 필드는 저장되지 않는다 — 특히 customer 는 통째로 빠진다. */
 function summarize(pg) {
   return {
+    channelType: ['LIVE','TEST'].includes(pg?.rawV2?.channel?.type) ? pg.rawV2.channel.type : 'UNKNOWN',
     attempt: paymentAttemptSummary(pg),
     paymentId: String(pg?.paymentId || ""),
     status: String(pg?.status || ""),

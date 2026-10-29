@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>천기를 누설한 고양이 · 편집 초안</title>
+<style>body{margin:0;background:#101724;color:#f6ead5;font:16px/1.6 system-ui}main{max-width:1120px;margin:auto;padding:24px;display:grid;grid-template-columns:1fr 360px;gap:32px}canvas{display:block;width:100%;max-height:88vh;object-fit:contain;background:#111827}h1{font:32px/1.4 serif}button,select{font:inherit;background:#efd09b;color:#141a28;border:0;border-radius:8px;padding:12px;margin:5px 0;min-height:46px;cursor:pointer}label{display:block;margin:16px 0}small{color:#d6c9b5}progress{width:100%;accent-color:#efd09b}a{color:#efd09b}@media(max-width:760px){main{display:block;padding:16px}canvas{max-height:72vh}aside{margin-top:24px}}</style>
+<main><div><canvas id="film" width="720" height="1280" aria-label="영냥이 유튜브 쇼츠 편집 미리보기"></canvas><progress id="progress" value="0" max="15"></progress></div><aside><p>꿀꿀 운세 · 9:16 자막 편집 초안</p><h1>천기를 누설한 고양이</h1><p>네오였던 영냥이와 꽃돼지 연이의 감성 코미디. 실제 캐릭터 원본과 이번 광고 원화로 구성했습니다.</p><label>에피소드 <select id="episode"><option value="0">1화 · 고등어 한 마리 5천 냥</option><option value="1">2화 · 천기를 누설한 명리학자의 최후</option><option value="2">3화 · 고등어는 못 팔아도 운세는 봐드립니다냥</option></select></label><label>길이 <select id="length"><option>15</option><option>35</option><option>60</option></select>초</label><button id="play">미리보기 재생</button> <button id="save">영상 저장 · WebM</button><p id="status" role="status">이미지를 준비하고 있어요.</p><small>내레이션 녹음 전 초안입니다. 재생·저장할 때 짧은 자작 효과음이 나옵니다. 고양이 변신은 창작 설정이며, 8챕터는 신규 한국어 질문 상담 기준입니다.</small><p><a href="creative-review.html">광고 이미지 보기</a> · <a href="youtube-production.md">대사·콘티·컷 프롬프트</a></p></aside></main>
+<script>
+const canvas=document.getElementById('film'),ctx=canvas.getContext('2d'),status=document.getElementById('status');
+const frames={cat:'assets/cat.webp',neo:'assets/neo.webp',yeoni:'assets/yeoni.webp',fish:'assets/mackerel.webp',offer:'creative/mackerel-story-9x16-v2.png'};
+const images={};const weights={15:[2,2,3,3,2,3],35:[2,5,6,7,8,7],60:[2,8,10,12,15,13]};
+const stories=[
+[['cat','대통령 운세 읽던 내가…','고등어 장수라고?'],['neo','그때는 큰 판세를 읽었지.','명리학자 네오의 지난날'],['cat','천기를 누설한 벌이라나.','지금은 이 모습이다냥.'],['cat','고등어 한 마리, 오천 냥…','고민도 같이 들어준다냥.'],['yeoni','생선보다 네 이야기가','필요할지도요.'],['offer','한 가지 고민, 답과 근거부터 행동까지.','고등어 5,000원 · 8챕터 AI 상담']],
+[['cat','천기를 누설한 대가가…','털갈이였다고?'],['neo','세상의 큰 흐름을 읽던','명리학자 네오.'],['cat','하늘이 내린 벌은 하나.','말끝마다 냥이 붙는다.'],['cat','내가 누군지 알아? …냥.','위엄은 그대로. 매출은 아직.'],['yeoni','오늘은 한 사람의','고민부터 들어봐요.'],['offer','그 명리학자가 만든 서비스.','고등어 5,000원 · 8챕터 AI 상담']],
+[['cat','고등어는 안 팔리는데…','고민은 자꾸 온다냥.'],['cat','이직할까, 조금 더 버틸까?','상황부터 정리하자.'],['neo','그 명리학자의 기준으로,','계산 근거를 AI가 해설해요.'],['cat','서두르지 않아도 괜찮아.','오늘 해볼 행동 하나부터.'],['yeoni','고등어는 네가 먹었구나?','상담은 해줬다냥…'],['offer','지금 마음에 남은 한 가지 고민.','고등어 5,000원 · 8챕터 AI 상담']]
+];
+let running=false,audio;
+function text(value,y,size=48,color='#fff2d9'){ctx.fillStyle=color;ctx.font='700 '+size+'px "Malgun Gothic",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(value,360,y,650);}
+function drawImage(image,x,y,w,h,alpha=1){ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(image,x,y,w,h);ctx.restore();}
+function draw(t,ep=0,duration=15){
+ t=Math.max(0,Math.min(t,duration-.001));let start=0,index=0;for(let i=0;i<6;i++){if(t<start+weights[duration][i]){index=i;break;}start+=weights[duration][i];}
+ const scene=stories[ep][index],progress=(t-start)/weights[duration][index];
+ ctx.fillStyle='#0c1629';ctx.fillRect(0,0,720,1280);
+ if(index===5){const im=images.offer;const h=1280*(1+.025*progress),w=720*(1+.025*progress);drawImage(im,(720-w)/2,(1280-h)/2,w,h,.83);ctx.fillStyle='rgba(6,13,25,.82)';ctx.fillRect(0,0,720,236);text('꿀꿀 운세',95,56,'#f3cf85');text('고등어 5,000원 · 8챕터',176,38);}
+ else {
+  ctx.fillStyle='#f5d69a';ctx.beginPath();ctx.arc(566,180,76,0,Math.PI*2);ctx.fill();ctx.fillStyle='#0c1629';ctx.beginPath();ctx.arc(590,158,74,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#18243b';for(let n=0;n<6;n++){const x=n*146-38;ctx.fillRect(x,580-(n%3)*50,132,410);ctx.fillStyle='#c98a43';ctx.fillRect(x+24,645-(n%3)*50,26,54);ctx.fillStyle='#18243b';}
+  ctx.fillStyle='#dbd8d1';ctx.fillRect(0,1000,720,280);ctx.fillStyle='#bfb9ad';ctx.fillRect(0,1032,720,8);
+  for(let i=0;i<45;i++){const x=(i*137+Math.sin(t*.8+i)*16)%720,y=(i*83+t*(22+i%8))%1110;ctx.fillStyle='rgba(250,245,232,.65)';ctx.beginPath();ctx.arc(x,y,2+i%3,0,7);ctx.fill();}
+  const actor=images[scene[0]],w=scene[0]==='neo'?440:610,h=w*actor.height/actor.width;drawImage(actor,(720-w)/2,1085-h+Math.sin(t*2)*5,w,h);
+  if(scene[0]==='cat'&&index!==2)drawImage(images.fish,392,824,218,160);
+  if(index===4)drawImage(images.cat,20,830,250,250,.8);
+  ctx.fillStyle='rgba(9,17,31,.88)';ctx.fillRect(0,0,720,355);
+  text('《천기를 누설한 고양이》',65,25,'#e7c48b');text(scene[1],168,index===0?49:39);text(scene[2],248,index===0?53:42,index===0?'#f6cb78':'#f1d8ae');
+ }
+ ctx.fillStyle='rgba(8,16,31,.91)';ctx.fillRect(0,1140,720,140);text(index===5?'고등어 상담 시작하기':'제'+(ep+1)+'화 · '+['고등어 한 마리 5천 냥','천기를 누설한 명리학자의 최후','고등어는 못 팔아도 운세는 봐드립니다냥'][ep],1180,index===5?37:25,'#f2cf8f');
+ text(index===5?'code-destiny.com':'영냥이 세계관 속 창작 이야기',1233,25);document.getElementById('progress').max=duration;document.getElementById('progress').value=t;
+}
+function sounds(duration,destination){const context=new AudioContext(),gain=context.createGain();gain.gain.value=.08;gain.connect(destination||context.destination);const notes=[440,554.37,659.25,493.88,587.33,739.99];weights[duration].reduce((t,w,i)=>{const osc=context.createOscillator(),volume=context.createGain(),at=context.currentTime+t+.05;osc.type='sine';osc.frequency.value=notes[i];volume.gain.setValueAtTime(0,at);volume.gain.linearRampToValueAtTime(.28,at+.02);volume.gain.exponentialRampToValueAtTime(.001,at+.7);osc.connect(volume);volume.connect(gain);osc.start(at);osc.stop(at+.8);return t+w;},0);return context;}
+window.assetsReady=Promise.all(Object.entries(frames).map(([key,src])=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{images[key]=im;resolve();};im.onerror=()=>reject(Error('이미지 불러오기 실패: '+src));im.src=src;}))).then(()=>{draw(0);status.textContent='재생 또는 영상 저장을 선택하세요.';});
+window.renderAt=async(t=0,ep=0,duration=15)=>{await window.assetsReady;draw(t,ep,duration);};
+async function play(record=false,ep=Number(document.getElementById('episode').value),duration=Number(document.getElementById('length').value)){
+ if(running)throw Error('재생이 진행 중입니다.');await window.assetsReady;running=true;let recorder,chunks=[],audioContext;
+ if(record){audioContext=new AudioContext();const target=audioContext.createMediaStreamDestination(),gain=audioContext.createGain();gain.gain.value=.07;gain.connect(target);weights[duration].reduce((t,w,i)=>{const o=audioContext.createOscillator(),g=audioContext.createGain(),at=audioContext.currentTime+t+.08;o.frequency.value=[440,554,659,494,587,740][i];g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(.25,at+.02);g.gain.exponentialRampToValueAtTime(.001,at+.6);o.connect(g);g.connect(gain);o.start(at);o.stop(at+.7);return t+w;},0);const stream=canvas.captureStream(24);target.stream.getAudioTracks().forEach(track=>stream.addTrack(track));recorder=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9,opus',videoBitsPerSecond:2500000});recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};recorder.start();}
+ else audioContext=sounds(duration);
+ status.textContent=record?'영상을 저장할 준비를 하고 있어요. 재생이 끝날 때까지 기다려 주세요.':'미리보기 재생 중';
+ const start=performance.now();await new Promise(resolve=>{function frame(now){const elapsed=(now-start)/1000;draw(Math.min(elapsed,duration-.001),ep,duration);if(elapsed<duration)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});
+ if(recorder)await new Promise(resolve=>{recorder.onstop=resolve;recorder.stop();});await audioContext.close();running=false;status.textContent='초안 재생을 마쳤어요.';return recorder?new Blob(chunks,{type:'video/webm'}):null;
+}
+window.recordFilm=async(ep=0,duration=15)=>{const blob=await play(true,ep,duration);const buffer=new Uint8Array(await blob.arrayBuffer());let binary='';for(let i=0;i<buffer.length;i+=16384)binary+=String.fromCharCode(...buffer.subarray(i,i+16384));return {base64:btoa(binary),bytes:buffer.length,mime:'video/webm'};};
+document.getElementById('play').onclick=()=>play().catch(e=>status.textContent=e.message);
+document.getElementById('save').onclick=async()=>{try{const blob=await play(true),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='yeongnyangi-ep'+(Number(document.getElementById('episode').value)+1)+'-'+document.getElementById('length').value+'s.webm';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){status.textContent=e.message;}};
+for(const id of ['episode','length'])document.getElementById(id).onchange=()=>{if(!running)draw(0,Number(document.getElementById('episode').value),Number(document.getElementById('length').value));};
+</script></html>

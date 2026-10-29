@@ -1,0 +1,104 @@
+{
+  "mode": "actual_components_in_isolated_preview_not_full_route",
+  "checks": [
+    {
+      "width": 360,
+      "scrollWidth": 360,
+      "heading": "꿀꿀 운세의 사주보는 고양이운세보는 영냥이",
+      "cta": {
+        "x": 20,
+        "y": 233.34375,
+        "width": 320,
+        "height": 52,
+        "top": 233.34375,
+        "right": 340,
+        "bottom": 285.34375,
+        "left": 20
+      },
+      "prices": [
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=mackerel",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=salmon",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=flounder",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=tuna",
+        "/yeongnyangi/fortune/?domain=fusion",
+        "/yeongnyangi/fortune/?product=fusion_all"
+      ]
+    },
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "heading": "꿀꿀 운세의 사주보는 고양이운세보는 영냥이",
+      "cta": {
+        "x": 20,
+        "y": 192.75,
+        "width": 350,
+        "height": 52,
+        "top": 192.75,
+        "right": 370,
+        "bottom": 244.75,
+        "left": 20
+      },
+      "prices": [
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=mackerel",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=salmon",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=flounder",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=tuna",
+        "/yeongnyangi/fortune/?domain=fusion",
+        "/yeongnyangi/fortune/?product=fusion_all"
+      ]
+    },
+    {
+      "width": 430,
+      "scrollWidth": 430,
+      "heading": "꿀꿀 운세의 사주보는 고양이운세보는 영냥이",
+      "cta": {
+        "x": 20,
+        "y": 171.625,
+        "width": 390,
+        "height": 52,
+        "top": 171.625,
+        "right": 410,
+        "bottom": 223.625,
+        "left": 20
+      },
+      "prices": [
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=mackerel",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=salmon",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=flounder",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=tuna",
+        "/yeongnyangi/fortune/?domain=fusion",
+        "/yeongnyangi/fortune/?product=fusion_all"
+      ]
+    },
+    {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "heading": "꿀꿀 운세의 사주보는 고양이운세보는 영냥이",
+      "cta": {
+        "x": 180,
+        "y": 323.296875,
+        "width": 229.609375,
+        "height": 52,
+        "top": 323.296875,
+        "right": 409.609375,
+        "bottom": 375.296875,
+        "left": 180
+      },
+      "prices": [
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=mackerel",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=salmon",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=flounder",
+        "/yeongnyangi/fortune/?flow=question&domain=saju&fish=tuna",
+        "/yeongnyangi/fortune/?domain=fusion",
+        "/yeongnyangi/fortune/?product=fusion_all"
+      ]
+    }
+  ],
+  "errors": [],
+  "video": {
+    "mime": "video/webm",
+    "bytes": 3492897,
+    "targetSeconds": 15,
+    "source": "existing character assets; generated poster; authored captions and synthesized chimes"
+  }
+}

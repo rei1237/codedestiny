@@ -199,7 +199,7 @@ export default function RootLayout({ children }) {
             }}
           />
         ) : null}
-        <Script src="/js/core/analytics.js?v=20261021-origin-guard-v2" strategy="afterInteractive" />
+        <Script src="/js/core/analytics.js?v=20261028-paid-search-v1" strategy="afterInteractive" />
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
         {/* hreflang / og:site_name / og:locale 을 여기서 하드코딩하지 말 것.
             이 layout 은 모든 Next 라우트의 <head> 이므로, 홈 기준 값을 박으면 전 페이지가

@@ -119,6 +119,20 @@
    *    (docs/analytics-kpi.md 2026-09-24 절). 원래 인코딩을 지키려고 파싱하지 않고 쌍 단위로 고른다.
    */
   function pageLocation() {
+    // Paid campaign URLs carry public codes only, including the initial GA config.
+    var paidQuery = new URLSearchParams(global.location.search || '');
+    if (/^paid_20261028_(naver|brand)$/.test(paidQuery.get('utm_campaign') || '')) {
+      var publicQuery = new URLSearchParams();
+      var publicFields = {
+        utm_source:/^naver$/,utm_medium:/^cpc$/,utm_campaign:/^paid_20261028_(naver|brand)$/,
+        utm_content:/^[A-E]_ko$/,utm_term:/^K(0[1-9]|10)$/
+      };
+      Object.keys(publicFields).forEach(function (key) {
+        var value = paidQuery.get(key) || '';
+        if (publicFields[key].test(value)) publicQuery.set(key,value);
+      });
+      return global.location.origin + global.location.pathname + '?' + publicQuery.toString();
+    }
     var campaign = String(global.location.search || "").replace(/^\?/, "").split("&").filter(function (pair) {
       return /^utm_[a-z_]+=./.test(pair);
     });
@@ -166,23 +180,42 @@
   function growthAttribution() {
     try {
       var key = 'cd:growth:campaign';
-      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); return null; }
+      var returnKey = key + ':paid-return';
+      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); global.localStorage.removeItem(returnKey); return null; }
       var allowed = /^(threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1)$/;
       // growth-20261012-v2: 4주 캠페인(블로그·YouTube·TikTok·X). 원고 ID(B01_ko)는 공개 코드라 함께 둔다.
       var allowedV2 = /^growth_(20261012_(naver_blog|youtube|tiktok|x)|20261021_(naver_blog|youtube))$/;
       var contentV2 = /^(W[0-9]{2}-)?[A-Z][A-Z0-9-]{1,10}_(ko|en|ja)$/;
+      var paidCampaigns = /^(paid_20261028_naver|paid_20261028_brand)$/;
+      var paidContent = /^[A-E]_ko$/;
+      var paidKeyword = /^K(0[1-9]|10)$/;
       var query = new URLSearchParams(global.location.search);
       var campaign = query.get('utm_source') === 'threads' && /^(social|organic_social)$/.test(query.get('utm_medium') || '') ? query.get('utm_campaign') : '';
       var campaignV2 = /^(growth_20261012|growth_20261021)$/.test(query.get('utm_campaign') || '') && query.get('utm_medium') === 'social' ? query.get('utm_campaign') + '_' + (query.get('utm_source') || '') : '';
-      if (allowed.test(campaign || '')) global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaign,until:Date.now()+1800000}));
+      if (paidCampaigns.test(query.get('utm_campaign') || '') && query.get('utm_source') === 'naver' && query.get('utm_medium') === 'cpc') {
+        global.sessionStorage.setItem(key, JSON.stringify({campaignId:query.get('utm_campaign'),content:paidContent.test(query.get('utm_content') || '') ? query.get('utm_content') : '',keyword:paidKeyword.test(query.get('utm_term') || '') ? query.get('utm_term') : '',until:Date.now()+1800000}));
+      }
+      else if (allowed.test(campaign || '')) global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaign,until:Date.now()+1800000}));
       else if (allowedV2.test(campaignV2)) {
         var content = query.get('utm_content') || '';
         global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaignV2,content:contentV2.test(content) ? content : '',until:Date.now()+1800000}));
       }
       var saved = JSON.parse(global.sessionStorage.getItem(key) || 'null');
+      // Consent-gated public campaign codes only. A new login/PG return tab may
+      // have no session storage; never replace an existing tab's attribution.
+      if (!saved) {
+        var returned = JSON.parse(global.localStorage.getItem(returnKey) || 'null');
+        if (returned && paidCampaigns.test(returned.campaignId) && Number.isFinite(returned.until) && returned.until > Date.now() && returned.until <= Date.now() + 1800000) saved = returned;
+      }
       var v2 = saved && allowedV2.test(saved.campaignId);
-      if (!saved || saved.until <= Date.now() || !(v2 || allowed.test(saved.campaignId))) { global.sessionStorage.removeItem(key); return null; }
+      var paid = saved && paidCampaigns.test(saved.campaignId);
+      if (paid && saved.until > Date.now()) {
+        global.localStorage.setItem(returnKey, JSON.stringify({campaignId:saved.campaignId,until:saved.until,
+          content:paidContent.test(saved.content || '') ? saved.content : '',keyword:paidKeyword.test(saved.keyword || '') ? saved.keyword : ''}));
+      }
+      if (!saved || saved.until <= Date.now() || !(paid || v2 || allowed.test(saved.campaignId))) { global.sessionStorage.removeItem(key); return null; }
       var device = global.innerWidth < 768 ? 'mobile' : 'desktop';
+      if (paid) return Object.assign({campaignId:saved.campaignId,consent:true,version:'paid-20261028-v1',device:device},paidContent.test(saved.content || '') ? {content:saved.content} : {},paidKeyword.test(saved.keyword || '') ? {keyword:saved.keyword} : {});
       if (v2) return contentV2.test(saved.content || '') ? {campaignId:saved.campaignId,consent:true,version:'growth-20261012-v2',device:device,content:saved.content} : {campaignId:saved.campaignId,consent:true,version:'growth-20261012-v2',device:device};
       return {campaignId:saved.campaignId,consent:true,version:'growth-20260929-v1',device:device};
     } catch (_) { return null; }
@@ -198,8 +231,17 @@
       if (insight) safeParams.share_campaign = insight;
       var growth = growthAttribution();
       if (growth) { safeParams.growth_campaign = growth.campaignId; safeParams.growth_version = growth.version; }
+      if (growth && growth.version === 'paid-20261028-v1') {
+        if (growth.content) safeParams.campaign_creative = growth.content;
+        if (growth.keyword) safeParams.campaign_keyword = growth.keyword;
+      }
       if (eventName === 'page_view') safeParams.page_location = pageLocation();
       global.gtag("event", String(eventName), safeParams);
+      // Existing web checkout funnel fires once immediately before opening PG.
+      // Do not derive KRW from legacy credit units or count a modal view as checkout.
+      if (eventName === 'checkout_pg_opened') global.cdTrack('begin_checkout', {
+        currency:'KRW',items:/^[a-zA-Z0-9_-]{1,100}$/.test(safeParams.feature_key || '') ? [{item_id:safeParams.feature_key,quantity:1}] : []
+      });
     } catch (_sendError) {
       /* 계측 실패는 무시한다 */
     }
@@ -290,12 +332,40 @@
   growthAttribution();
   if (crmCampaign()) global.cdTrack('crm_landing_visit', { landing_path: global.location.pathname });
   var purchaseEvents = Object.create(null);
+  global.cdTrackConsultationCompleted = function (record) {
+    if (!record || record.status !== 'completed' || !/^[a-zA-Z0-9_-]{1,160}$/.test(record.id || '') ||
+        !/^[a-zA-Z0-9_-]{1,100}$/.test(record.featureKey || '')) return;
+    try {
+      var key = 'cd:consultation:' + record.featureKey + ':' + record.id;
+      var persisted = readConsent() === 'accepted';
+      if (purchaseEvents[key] || (persisted && global.localStorage.getItem(key))) return;
+      global.cdTrack('consultation_completed', {item_id:record.featureKey,observation:'browser_server_response',metric_version:3});
+      purchaseEvents[key] = true;
+      if (persisted) global.localStorage.setItem(key,'1');
+    } catch (_) {}
+  };
+  // Only a server-provided full-refund receipt, never a cancel button or credit restoration.
+  global.cdTrackConfirmedRefund = function (order) {
+    var receipt = order && order.analyticsRefund;
+    if (!receipt || receipt.kind !== 'full_cash_refund' || !/^[a-zA-Z0-9_-]{1,160}$/.test(receipt.transactionId || '') ||
+        !Number.isFinite(receipt.amountKRW) || receipt.amountKRW <= 0) return;
+    try {
+      var key = 'cd:refund:' + receipt.transactionId;
+      var persisted = readConsent() === 'accepted';
+      if (purchaseEvents[key] || (persisted && global.localStorage.getItem(key))) return;
+      // A history read is not the time of refund. Keep this diagnostic separate
+      // from GA4 refund until server delivery and cross-device dedupe are wired.
+      global.cdTrack('refund_observed',{transaction_id:receipt.transactionId,value:receipt.amountKRW,currency:'KRW',observation:'browser_server_response'});
+      purchaseEvents[key] = true;
+      if (persisted) global.localStorage.setItem(key,'1');
+    } catch (_) {}
+  };
   // Browser-observed server state; no profile, question, result text or request ID is sent.
   global.cdTrackFortuneDelivery = function (record) {
     if (!record || record.paid !== true || record.state !== 'COMPLETED' || !/^[a-f0-9]{64}$/.test(record.id || '')) return;
     var item = String(record.product && record.product.cdFeatureKey || 'yeongnyangi-' + String(record.productId || 'fortune').replace(/_/g, '-'));
     if (!/^[a-zA-Z0-9_-]{1,100}$/.test(item)) return;
-    ['fortune_completed', 'fortune_first_open'].forEach(function (eventName) {
+    ['fortune_completed', 'fortune_first_open', 'consultation_completed'].forEach(function (eventName) {
       var key = 'cd:delivery:' + eventName + ':' + record.id;
       var persisted = readConsent() === 'accepted';
       var seen = purchaseEvents[key];
@@ -327,6 +397,8 @@
     try {
       var payment = payload && (payload.payment || payload.order);
       if (!payment || !/^(paid|success|fulfilled)$/i.test(String(payment.status || ''))) return false;
+      // Unknown older receipts remain reconcilable in the PG audit, never guessed as live revenue.
+      if (payment.analyticsChannel !== 'LIVE') return false;
       var id = String(payment.merchantUid || payment.orderId || '');
       var value = Number(payment.paymentAmount == null ? payment.amountKRW : payment.paymentAmount);
       // 지급 완료 봉투(worker/payments/compat.js legacyConfirmEnvelope)는 featureKey 를 accessGrant 안에만 싣는다.

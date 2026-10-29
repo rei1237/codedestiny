@@ -54,6 +54,9 @@ public class CodeDestinyWallpaperPlugin extends Plugin {
             String action = call.getString("action", "");
             String name = call.getString("fileName", "");
             String encoded = call.getString("base64", "");
+            // Capacitor persists call options twice when a system picker backgrounds
+            // the app. Keep PNG bytes local; callbacks read the cached file instead.
+            call.getData().remove("base64");
             if (!("save".equals(action) || "share".equals(action) || "wallpaper".equals(action) || "wallpaperPicker".equals(action)) ||
                 !name.matches("[a-z0-9-]{1,100}\\.png") || encoded.length() > 22369624) {
                 call.reject("Invalid image export", "INVALID_IMAGE"); return;

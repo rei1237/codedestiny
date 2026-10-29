@@ -12,7 +12,7 @@ test('React single-payment confirmation reports only approved server purchases, 
   assert.ok(start >= 0 && end > start, 'exercise the actual single-payment callback');
   const compiled = await transform(client.slice(start, end), { loader: 'ts', format: 'cjs' });
   const dom = boot();
-  const payment = { merchantUid: 'fixture-react-single', paymentAmount: 5000, status: 'paid' };
+  const payment = { merchantUid: 'fixture-react-single', paymentAmount: 5000, status:'paid',analyticsChannel:'LIVE' };
   let response = { ok: false, status: 500, payload: { payment } };
   const confirm = new Function('useCallback', 'authFetch', 'apiBase', 'confirmPaymentInFlightRef',
     'safeParseJson', 'trackConfirmedPurchase', 'refreshUserAccessAfterPayment',
@@ -47,9 +47,87 @@ function boot(url='https://code-destiny.com/points/?token=private',{consent='',s
   for(const [key,value] of Object.entries(stored))dom.window.localStorage.setItem(key,value);
   dom.window.eval(source);return dom;
 }
+
+test('brand campaign follows site-wide purchases and keeps product revenue separate', async()=>{
+ const dom=boot('https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_brand&utm_content=A_ko&utm_term=K01',{consent:'accepted'}),w=dom.window;
+ const products=[['fusion-fortune-consultation',50000],['new-year-ai-consultation',30000],['yeongnyangi-saju-mackerel',5000]];
+ for(const [featureKey,value] of products){
+   w.history.replaceState({},'','/points/');
+   const payload={featureKey,payment:{merchantUid:'brand-'+featureKey,paymentAmount:value,status:'paid',analyticsChannel:'LIVE'}};
+   w.cdTrackConfirmedPurchase(payload);w.cdTrackConfirmedPurchase(payload);
+ }
+ const events=w.dataLayer.filter(row=>row[1]==='purchase').map(row=>row[2]);
+ assert.equal(events.length,3);
+ assert.equal(events.reduce((sum,event)=>sum+event.value,0),85000);
+ for(const event of events){assert.equal(event.growth_campaign,'paid_20261028_brand');assert.equal(event.campaign_creative,'A_ko');}
+ const {normalizeGrowthAttribution}=await import('../../lib/marketing/growth-attribution.mjs');
+ assert.equal(normalizeGrowthAttribution(w.cdReadGrowthAttribution()).campaignId,'paid_20261028_brand');
+ dom.window.close();
+});
+
+test('brand attribution requires consent and the intended source and medium',()=>{
+ for(const [source,medium,consent] of [['google','cpc','accepted'],['naver','social','accepted'],['naver','cpc','essential']]){
+   const dom=boot('https://code-destiny.com/?utm_source='+source+'&utm_medium='+medium+'&utm_campaign=paid_20261028_brand',{consent});
+   assert.equal(dom.window.cdReadGrowthAttribution(),null);dom.window.close();
+ }
+});
+
+test('paid search attribution survives login and PG return without collecting question text',async()=>{
+ const dom=boot('https://code-destiny.com/yeongnyangi/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_naver&utm_content=C_ko&utm_term=K03&question=private',{consent:'accepted'}),w=dom.window;
+ const expected={campaignId:'paid_20261028_naver',version:'paid-20261028-v1',consent:true,device:'desktop',content:'C_ko',keyword:'K03'};
+ assert.deepEqual({...w.cdReadGrowthAttribution()},expected);
+ w.history.replaceState({},'','/login/?returnTo=private');
+ assert.deepEqual({...w.cdReadGrowthAttribution()},expected);
+ const saved=Object.fromEntries(Object.keys(w.sessionStorage).map(key=>[key,w.sessionStorage.getItem(key)]));
+ const returned=boot('https://code-destiny.com/checkout/?paymentId=private',{consent:'accepted'});
+ for(const [key,value] of Object.entries(saved))returned.window.sessionStorage.setItem(key,value);
+ returned.window.cdTrackConfirmedPurchase({payment:{merchantUid:'mock-paid-search',paymentAmount:5000,status:'paid',analyticsChannel:'LIVE'}});
+ const event=returned.window.dataLayer.find(row=>row[1]==='purchase')[2];
+ assert.equal(event.growth_campaign,expected.campaignId);assert.equal(event.campaign_creative,'C_ko');assert.equal(event.campaign_keyword,'K03');
+ assert.equal(JSON.stringify(event).includes('private'),false);
+ const {normalizeGrowthAttribution}=await import('../../lib/marketing/growth-attribution.mjs');
+ assert.deepEqual(normalizeGrowthAttribution({...expected,question:'private'}),expected);
+ returned.window.sessionStorage.setItem('cd:growth:campaign',JSON.stringify({...expected,until:Date.now()-1}));
+ assert.equal(returned.window.cdReadGrowthAttribution(),null);
+ dom.window.close();returned.window.close();
+});
+
+test('paid search rejects arbitrary creative and keyword text and clears on consent withdrawal',async()=>{
+ const dom=boot('https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_naver&utm_content=private&utm_term=private',{consent:'accepted'}),w=dom.window;
+ assert.equal(w.cdReadGrowthAttribution().content,undefined);assert.equal(w.cdReadGrowthAttribution().keyword,undefined);
+ assert.equal(w.sessionStorage.getItem('cd:growth:campaign').includes('private'),false);
+ w.cdTrack('page_view');
+ assert.equal(JSON.stringify(w.dataLayer).includes('private'),false);
+ w.document.cookie='cd_cookie_consent=essential; path=/';
+ assert.equal(w.cdReadGrowthAttribution(),null);assert.equal(w.sessionStorage.getItem('cd:growth:campaign'),null);
+ const {normalizeGrowthAttribution:normalize}=await import('../../lib/marketing/growth-attribution.mjs');
+ assert.equal(normalize({campaignId:'paid_20261028_naver',version:'paid-20261028-v1'}),undefined);
+ assert.equal(normalize({campaignId:'paid_20261028_google',version:'paid-20261028-v1',consent:true}),undefined);
+ assert.deepEqual(normalize({campaignId:'paid_20261028_naver',version:'paid-20261028-v1',consent:true,content:'private',keyword:'private'}),{campaignId:'paid_20261028_naver',version:'paid-20261028-v1',consent:true,device:'unknown'});
+ dom.window.close();
+});
+
+test('brand landing keeps public A/B codes but strips unknown UTM fields before GA config',()=>{
+ const dom=boot('https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_brand&utm_content=A_ko&utm_term=K01&utm_question=private&question=private',{consent:'accepted'}),w=dom.window;
+ const page=new URL(w.dataLayer.find(row=>row[0]==='config')[2].page_location);
+ assert.equal(page.searchParams.get('utm_content'),'A_ko');
+ assert.equal(page.searchParams.get('utm_term'),'K01');
+ assert.equal(page.searchParams.size,5);
+ assert.equal(JSON.stringify(w.dataLayer).includes('private'),false);
+ dom.window.close();
+});
+
+test('consultation_completed records a completed server response once and excludes refunded results',()=>{
+ const dom=boot(),w=dom.window,row={id:'d'.repeat(64),productId:'saju_mackerel',paid:true,state:'GENERATING'};
+ for(const state of ['GENERATING','REFUNDED'])w.cdTrackFortuneDelivery({...row,state});
+ assert.equal(w.dataLayer.filter(event=>event[1]==='consultation_completed').length,0);
+ w.cdTrackFortuneDelivery({...row,state:'COMPLETED'});w.cdTrackFortuneDelivery({...row,state:'COMPLETED'});
+ assert.equal(w.dataLayer.filter(event=>event[1]==='consultation_completed').length,1);
+ dom.window.close();
+});
 test('server approval is purchase; pending grant is not fulfillment; replay does not duplicate',()=>{
   const dom=boot(),w=dom.window;
-  const payload={code:'GRANT_PENDING',activationPending:true,payment:{merchantUid:'order-1',paymentAmount:1000,status:'paid'},question:'private',birthDate:'private'};
+  const payload={code:'GRANT_PENDING',activationPending:true,payment:{merchantUid:'order-1',paymentAmount:1000,status:'paid',analyticsChannel:'LIVE'},question:'private',birthDate:'private'};
   w.cdTrackConfirmedPurchase(payload);w.cdTrackConfirmedPurchase(payload);
   let events=w.dataLayer.filter(row=>row[0]==='event');
   assert.equal(events.filter(row=>row[1]==='purchase').length,1);
@@ -67,13 +145,13 @@ test('server approval is purchase; pending grant is not fulfillment; replay does
 });
 test('PG callback alone, unpaid status and missing server amount are not purchases',()=>{
   const dom=boot(),w=dom.window;
-  for(const payload of [{paymentId:'pg-callback'}, {payment:{merchantUid:'order-1',paymentAmount:1000,status:'pending'}}, {payment:{merchantUid:'order-1',status:'paid'}}])assert.equal(w.cdTrackConfirmedPurchase(payload),false);
+  for(const payload of [{paymentId:'pg-callback'}, {payment:{merchantUid:'order-1',paymentAmount:1000,status:'pending'}}, {payment:{merchantUid:'order-1',status:'paid',analyticsChannel:'LIVE'}}])assert.equal(w.cdTrackConfirmedPurchase(payload),false);
   assert.equal(w.dataLayer.filter(row=>row[1]==='purchase').length,0);
   dom.window.close();
 });
 test('one mock web payment through the real confirm envelopes is one purchase named by its feature',async()=>{
   const {legacyConfirmEnvelope}=await import('../../worker/payments/compat.js');
-  const order={merchantUid:'cd'+'1'.repeat(38),featureKey:'saju-deep',paymentAmount:5000,impUid:'imp-1'};
+  const order={merchantUid:'cd'+'1'.repeat(38),featureKey:'saju-deep',paymentAmount:5000,impUid:'imp-1',rawPortOne:{channelType:'LIVE'}};
   const dom=boot(),w=dom.window;
   w.cdTrackConfirmedPurchase(legacyConfirmEnvelope(order));
   w.cdTrackConfirmedPurchase(legacyConfirmEnvelope(order,{granted:true}));
@@ -85,6 +163,16 @@ test('one mock web payment through the real confirm envelopes is one purchase na
   d.cdTrackConfirmedPurchase(legacyConfirmEnvelope(order,{granted:true}));
   assert.equal(d.dataLayer.find(row=>row[1]==='purchase')[2].items[0].item_id,'saju-deep');
   direct.window.close();
+});
+test('test or unknown server channels never become purchase events', async()=>{
+  const {legacyConfirmEnvelope}=await import('../../worker/payments/compat.js');
+  const dom=boot(),w=dom.window;
+  for(const channelType of ['TEST','UNKNOWN',undefined]) {
+    const order={merchantUid:'excluded-'+String(channelType),featureKey:'saju-deep',paymentAmount:5000,rawPortOne:{channelType}};
+    assert.equal(w.cdTrackConfirmedPurchase(legacyConfirmEnvelope(order,{granted:true})),false);
+  }
+  assert.equal(w.dataLayer.filter(row=>row[1]==='purchase').length,0);
+  dom.window.close();
 });
 test('page_location keeps campaign parameters and drops every other query value',()=>{
   const dom=boot('https://code-destiny.com/landing/?utm_source=threads&token=private&utm_medium=social&utm_campaign=s1_launch'),w=dom.window;
@@ -188,7 +276,7 @@ test('growth-20261012-v2 attribution keeps only the public campaign source and c
 });
 
 test('purchase replay across documents persists only with analytics consent',()=>{
- const payload={payment:{merchantUid:'mock-order',paymentAmount:1000,status:'paid',featureKey:'yeongnyangi-saju-mackerel'}};
+ const payload={payment:{merchantUid:'mock-order',paymentAmount:1000,status:'paid',analyticsChannel:'LIVE',featureKey:'yeongnyangi-saju-mackerel'}};
  for(const consent of ['accepted','essential','']){
   const first=boot(undefined,{consent}),w=first.window;
   w.cdTrackConfirmedPurchase(payload);w.cdTrackConfirmedPurchase(payload);
@@ -206,7 +294,7 @@ test('purchase replay across documents persists only with analytics consent',()=
 test('pass or moonstone access without a positive server payment is not a new purchase',()=>{
  const dom=boot(),w=dom.window;
  for(const payload of [{passApplied:true},{paymentMode:'coin',accessGrant:{featureKey:'saju-deep'}},
-  {payment:{merchantUid:'mock-zero',paymentAmount:0,status:'paid'}}]){
+  {payment:{merchantUid:'mock-zero',paymentAmount:0,status:'paid',analyticsChannel:'LIVE'}}]){
   assert.equal(w.cdTrackConfirmedPurchase(payload),false);
  }
  assert.equal(w.dataLayer.filter(row=>row[1]==='purchase').length,0);
@@ -220,7 +308,7 @@ test('insight attribution uses public campaign codes, expires, and clears on con
   const dom=boot('https://code-destiny.com'+insightPath(id,brand,'copy'),{consent:'accepted'}),w=dom.window;
   w.cdTrack('insight_share_receive',{service:brand==='yeongnyangi'?'yeongnyangi':'ggulggul'});
   w.history.replaceState({},'','/yeongnyangi/fortune/');
-  w.cdTrackConfirmedPurchase({payment:{merchantUid:'mock-insight',paymentAmount:1000,status:'paid'}});
+  w.cdTrackConfirmedPurchase({payment:{merchantUid:'mock-insight',paymentAmount:1000,status:'paid',analyticsChannel:'LIVE'}});
   assert.equal(w.dataLayer.find(row=>row[1]==='purchase')[2].share_campaign,campaign);
   assert.equal(JSON.stringify(w.dataLayer).includes(id),false);
   w.sessionStorage.setItem('cd:insight:campaign',JSON.stringify({value:campaign,until:Date.now()-1}));
@@ -272,4 +360,49 @@ test('S00 observes current receipt coverage of real paid, daily and insight shar
  publicLink.window.eval(source);
  assert.equal(publicLink.window.dataLayer.filter(row=>row[1]==='share_receive').length,1);
  publicLink.window.close();
+});
+
+test('consented paid campaign survives a fresh return tab but expires and clears on withdrawal',()=>{
+ const landing=boot('https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_brand&utm_content=A_ko',{consent:'accepted'});
+ landing.window.cdReadGrowthAttribution();
+ const key='cd:growth:campaign:paid-return';
+ const stored=landing.window.localStorage.getItem(key);
+ const returned=boot('https://code-destiny.com/checkout/',{consent:'accepted',stored:{[key]:stored}});
+ assert.equal(returned.window.cdReadGrowthAttribution().content,'A_ko');
+ returned.window.localStorage.setItem(key,JSON.stringify({...JSON.parse(stored),until:Date.now()-1}));
+ assert.equal(returned.window.cdReadGrowthAttribution(),null);
+ const denied=boot('https://code-destiny.com/',{consent:'essential',stored:{[key]:stored}});
+ assert.equal(denied.window.cdReadGrowthAttribution(),null);
+ assert.equal(denied.window.localStorage.getItem(key),null);
+ landing.window.close();returned.window.close();denied.window.close();
+});
+
+test('PG funnel emits one begin_checkout without leaking payload or estimating cash',()=>{
+ const dom=boot(); const w=dom.window;
+ w.cdTrack('checkout_opened',{feature_key:'fusion-fortune-consultation'});
+ assert.equal(w.dataLayer.filter(r=>r[1]==='begin_checkout').length,0);
+ w.cdTrack('checkout_pg_opened',{feature_key:'fusion-fortune-consultation',coin_price:500,question:'private'});
+ const events=w.dataLayer.filter(r=>r[1]==='begin_checkout');assert.equal(events.length,1);
+ assert.equal(events[0][2].items[0].item_id,'fusion-fortune-consultation');
+ assert.equal(events[0][2].value,undefined);assert.equal(JSON.stringify(events).includes('private'),false);dom.window.close();
+});
+test('stored consultation completion is deduplicated and rejects partial results',()=>{
+ const dom=boot();const w=dom.window;
+ const record={id:'server-result-1',featureKey:'new-year-ai-consultation',status:'partial'};
+ w.cdTrackConsultationCompleted(record);assert.equal(w.dataLayer.filter(r=>r[1]==='consultation_completed').length,0);
+ record.status='completed';w.cdTrackConsultationCompleted(record);w.cdTrackConsultationCompleted(record);
+ const rows=w.dataLayer.filter(r=>r[1]==='consultation_completed');assert.equal(rows.length,1);
+ assert.equal(JSON.stringify(rows).includes('server-result-1'),false);dom.window.close();
+});
+test('refund requires a server full cash receipt; partial or credit restoration cannot emit',async()=>{
+ const {toLegacyOrderDetail}=await import('../../worker/payments/compat.js');
+ const dom=boot();const w=dom.window;
+ const order={merchantUid:'refund-fixture',paymentAmount:5000,paidAt:'2026-10-01',refundedAt:'2026-10-02',status:'refunded',orderState:'CANCELLED'};
+ for(const change of [{status:'cancelled'},{orderState:'PARTIAL_CANCELLED'},{paidAt:null},{refundedAt:null},{paymentAmount:0}]){
+  const detail=toLegacyOrderDetail({...order,...change});assert.equal(detail.analyticsRefund,undefined);w.cdTrackConfirmedRefund(detail);
+ }
+ assert.equal(w.dataLayer.filter(r=>r[1]==='refund_observed').length,0);
+ const detail=toLegacyOrderDetail(order);w.cdTrackConfirmedRefund(detail);w.cdTrackConfirmedRefund(detail);
+ const rows=w.dataLayer.filter(r=>r[1]==='refund_observed');assert.equal(rows.length,1);assert.equal(rows[0][2].value,5000);assert.equal(rows[0][2].transaction_id,'refund-fixture');
+ assert.equal(w.dataLayer.filter(r=>r[1]==='refund').length,0,'history viewing must not backfill a refund at the wrong time');dom.window.close();
 });

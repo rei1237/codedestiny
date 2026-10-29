@@ -201,8 +201,15 @@ describe("pg: PG 응답의 PII 는 저장 형태로 넘어가지 않는다", () 
     expect(result.summary.rawV2).toBeUndefined();
     // 대조·정산에 필요한 것은 남아 있어야 한다.
     expect(Object.keys(result.summary).sort()).toEqual(
-      ["amount", "attempt", "channelCheck", "currency", "paidAt", "payMethod", "paymentId", "receiptUrl", "status", "storeIdCheck"],
+      ["amount", "attempt", "channelCheck", "channelType", "currency", "paidAt", "payMethod", "paymentId", "receiptUrl", "status", "storeIdCheck"],
     );
+  });
+  test('tracking channel is PG evidence and never prevents entitlement verification', async()=>{
+    for(const type of ['LIVE','TEST',undefined]) {
+      const result=await verifyPgPayment(ENV,OK,{fetchPayment:async()=>pgReply({rawV2:{channel:{type}}})});
+      expect(result.summary.channelType).toBe(type || 'UNKNOWN');
+      expect(result.pgTransactionId).toBe('cdorder1');
+    }
   });
 });
 

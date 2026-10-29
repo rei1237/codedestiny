@@ -1,0 +1,68 @@
+status: done
+scope: source changes and evidence record; device verification remains incomplete
+date: 2026-10-29
+
+User request
+- Restyle the app pass shop in pink Moonlight Yehwa style.
+- Continue no-charge billing, localization and lock-screen talisman checks.
+- Do not apply store screenshots or descriptions in this task.
+
+Pass shop implementation
+- Scope the palette to /app/store only, including its shell background.
+- Pink paper, rose controls, a fine double card frame and the existing lunar sprig mask.
+- Wrap long translated headings, recommendation badges and purchase actions.
+- Preserve all policy text, currentPassPlan data, Play formattedPrice, product IDs,
+  sale availability, purchase callbacks, entitlement/recovery/auth/API/DB logic.
+- No store listing assets or descriptions changed by this task.
+
+UI evidence
+- Actual React header and store components; mock products and API; no real purchase.
+- 12 locales x 360/390/430/1440 px: 48 checks, no horizontal overflow or page errors.
+- Purchase targets at least 44 px. 430 px checks used dark device preference.
+- Final still captures: ko/ja/de at 390 and 1440 px; mock prices derived from policy.
+- First capture caught entry animation; recaptured with reduced motion.
+- Independent visual review of ko mobile and ja mobile/desktop: no clipping/overlap.
+- Contrast: muted text/card 6.50:1, heading/paper 12.11:1, button text/rose 6.73:1.
+- Impeccable detector: one advisory for pre-existing app-shell body size 0.875rem.
+- Evidence: C:/Users/user/.codex/visualizations/2026/10/29/01a185c5-3eb0-7543-97ab-aa4d56786f9c/pass-pink/
+
+Physical-device findings
+- Samsung SM-M156S / Android 16, com.codedestiny.app 1.0.54 (54), sideloaded.
+- Installed web bundle SHA: e0877563b6043bf6e8a09eb56243309079930478.
+  This is older than current main; source screenshots are not installed-app proof.
+- English, Japanese, Simplified Chinese and Traditional Chinese pass pages observed.
+- The installed English My sheet still showed Korean; latest full-app behavior unverified.
+- Per-app locale was restored to its original empty override after inspection.
+- No app data cleared, no purchase button tapped and no store listing applied.
+- Talisman save opens the Android document picker, then the app crashes:
+  TransactionTooLargeException, data parcel size 14136708 bytes.
+  capacitorLastPluginCallOptions and capacitorLastPluginCallBundle each contain
+  about 7 MB because the image base64 is serialized twice into saved activity state.
+
+Native correction
+- Read image base64 into the existing local variable, then remove it from call data.
+- Existing PNG validation, cached-file save callback and wallpaper target behavior remain.
+- :app:compileReleaseJavaWithJavac completed; patched class generated at 15:13:45 KST.
+- Full APK packaging did not complete. The large asset merge was interrupted, and a
+  constrained retry could not start the JVM (Windows error 1455, memory/page-file limit).
+- No replacement APK installed. Save/cancel/share return and actual wallpaper application
+  therefore remain unverified after the fix. Do not describe the native issue as device-fixed.
+
+Local validation limits
+- check:fast plan, whitespace, doc freshness, changed-file lint, sitemap drift and typecheck passed.
+- Full check:fast did not pass: one worker-recycle timeout, then repeated native Node memory
+  allocation failures. The isolated worker-recycle test subsequently passed (1/1).
+- Temporary APK assets were moved out of source before another attempt; overall local
+  checks still exceeded available machine resources. Do not attribute this solely to assets.
+- Related pass/localization/talisman tests: 24/24 passed. smoke:core passed, including
+  its final 47/47 Node assertions; no external billing or database calls.
+- Main CI is the authoritative full gate; source delivery is not an Android release.
+
+Remaining verification
+- Build and install a signed local verification APK after sufficient PC memory is available;
+  preserve app data and compare the signing certificate before replacement.
+- Repeat document-picker save/cancel and share/picker return; inspect crash logs and exported PNG.
+- Verify real lock-screen application/crop and all locale surfaces on the rebuilt app.
+- No-charge Play purchase is blocked until test payment methods AND isolated backend storage
+  are confirmed. Existing bridge defaults to production; license-tester status alone does not
+  authorize production payment records or entitlement writes. No real billing exercised.

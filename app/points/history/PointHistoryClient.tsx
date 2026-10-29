@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
+import { trackConfirmedRefund } from '@/lib/analytics';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -647,6 +648,7 @@ export default function PointHistoryPage() {
       );
       const detail = data?.data?.order;
       if (!detail) throw new Error("주문 상세 응답이 비어 있습니다.");
+      trackConfirmedRefund(detail);
       const viewModel = adaptOrderToViewModel(detail, lang);
       orderDetailCacheRef.current.set(cacheKey, viewModel);
       setSelectedOrder(viewModel);
